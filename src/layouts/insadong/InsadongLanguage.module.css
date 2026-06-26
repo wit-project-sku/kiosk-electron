@@ -1,0 +1,205 @@
+/* 언어선택 (4개국어) — exact Figma px (artboard 2160×3840). */
+.bg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  pointer-events: none;
+}
+
+/* 언어선택영역 (Figma 4167:87880): px170, column, centred, gap-150 between the
+   현재언어 and 변경언어 sections. Top-aligned (no justify-content:center) so a tall
+   list scrolls instead of clipping. */
+.area {
+  position: absolute;
+  top: 699px;
+  left: 0;
+  right: 0;
+  bottom: 573px;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 150px;
+  padding: 0 170px;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+.area::-webkit-scrollbar {
+  width: 34px;
+}
+.area::-webkit-scrollbar-thumb {
+  background: #fe6c50;
+  border-radius: 21.45px;
+}
+.area::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.section {
+  flex: none;
+  display: flex;
+  flex-direction: column;
+  gap: 65px;
+  width: 100%;
+}
+
+.label {
+  display: flex;
+  align-items: center;
+  gap: 30px;
+  font-family: var(--kiosk-font, sans-serif);
+  font-weight: 600;
+  font-size: 78px;
+  color: #000000;
+}
+
+.bar {
+  flex: none;
+  width: 10.725px;
+  height: 72.929px;
+  border-radius: 21.45px;
+  background: #000000;
+}
+
+/* 변경언어 cards — Figma 4167:87892: gap-100 between each row. (Section gap-65
+   already separates the label from the first card.) */
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: 100px;
+}
+
+/* Language row card — Figma 5287:62226: w1820 h320, padding 55/60, radius 42.9. */
+.card {
+  box-sizing: border-box;
+  width: 100%;
+  height: 320px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 20px;
+  padding: 55px 60px;
+  background: #ffffff;
+  border: 2.145px solid #e8e8e8;
+  border-radius: 42.9px;
+  box-shadow: 0 21.45px 21.45px rgba(143, 147, 157, 0.1);
+  font-family: var(--kiosk-font, sans-serif);
+  cursor: pointer;
+}
+
+/* Content row inside the card — fills height, pill+name left, check right. */
+.cardRow {
+  width: 100%;
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.currentCard {
+  background: #faeee3;
+  border-color: #fe6c50;
+  cursor: default;
+}
+
+/* Figma: 현재 언어 name is pure black; the change cards use #333. */
+.currentCard .langName {
+  color: #000000;
+}
+
+.cardOn {
+  background: rgba(254, 108, 80, 0.2);
+  border-color: #fe6c50;
+}
+
+.cardLeft {
+  display: flex;
+  align-items: center;
+  gap: 40px;
+}
+
+/* Coded circle pill (KR / EN / JP / CN …) */
+.pill {
+  flex: none;
+  width: 170px;
+  height: 170px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  font-family: var(--kiosk-font, sans-serif);
+  font-weight: 700;
+  font-size: 60px;
+}
+
+.pillOn {
+  background: #fe6c50;
+  color: #ffffff;
+}
+
+.pillOff {
+  background: #ffffff;
+  border: 4px solid #fe6c50;
+  color: #fe6c50;
+}
+
+.langName {
+  font-weight: 600;
+  font-size: 68px;
+  color: #333333;
+  white-space: nowrap;
+}
+
+.check {
+  width: 115px;
+  height: 115px;
+  flex: none;
+  object-fit: contain;
+}
+
+.leftNav {
+  position: absolute;
+  left: 21px;
+  top: 1995px;
+  display: flex;
+  flex-direction: column;
+  gap: 35px;
+}
+
+.leftNavBtn {
+  width: 85px;
+  height: 85px;
+  padding: 0;
+  border: none;
+  background: none;
+  cursor: pointer;
+}
+
+.leftNavBtn img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.banner {
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  width: 2160px;
+  height: 573px;
+  padding: 0;
+  border: none;
+  background: none;
+  cursor: pointer;
+  overflow: hidden;
+}
+
+.banner img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}

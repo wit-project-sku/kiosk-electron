@@ -1,0 +1,258 @@
+/* 도와줘 인사 — facility finder, exact Figma px (artboard 2160×3840). */
+.bg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  pointer-events: none;
+}
+
+/* Figma 검색결과 5287:63553: top 699, px170, gap 60 (tabs → cards AND
+   card → card). No bottom banner. */
+.results {
+  position: absolute;
+  top: 699px;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 60px;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: 0 170px 80px;
+}
+
+.results::-webkit-scrollbar {
+  width: 34.32px;
+}
+.results::-webkit-scrollbar-thumb {
+  background: #fe6c50;
+  border-radius: 21.45px;
+}
+.results::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+/* Category grid (2 rows × 5) */
+.cats {
+  flex: none;
+  display: flex;
+  flex-wrap: wrap;
+  align-content: flex-start;
+  justify-content: space-between;
+  row-gap: 35px;
+  width: 1820px;
+}
+
+.cat {
+  box-sizing: border-box;
+  width: 340px;
+  height: 170px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #ffffff;
+  border: 5px solid #e8e8e8;
+  border-radius: 42.9px;
+  box-shadow: 0 21.45px 42.9px rgba(143, 147, 157, 0.1);
+  font-family: var(--kiosk-font, sans-serif);
+  font-weight: 500;
+  font-size: 50px;
+  color: #999999;
+  cursor: pointer;
+}
+
+.catSel {
+  background: #faeee3;
+  font-weight: 700;
+  color: #fe6c50;
+}
+
+/* Result list — card-to-card gap matches Figma (list gap 20); the 100px gap
+   above stays between the category grid and this list. */
+.list {
+  flex: none;
+  width: 1820px;
+  display: flex;
+  flex-direction: column;
+  gap: 60px; /* Figma card → card gap 60 */
+}
+
+/* Result cards (single photo + info + QR) */
+.card {
+  position: relative;
+  flex: none;
+  width: 1820px;
+  height: 540px;
+  box-sizing: border-box;
+  display: flex;
+  align-items: flex-start;
+  gap: 60px;
+  padding: 65px 40px;
+  background: #ffffff;
+  border: 5px solid #e8e8e8;
+  border-radius: 42.9px;
+  text-align: left;
+  cursor: pointer;
+  overflow: hidden;
+}
+
+.photo {
+  width: 730px;
+  height: 410px;
+  flex: none;
+  border-radius: 42.9px;
+  overflow: hidden;
+}
+
+.photo img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.info {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 40px; /* Figma info col gap 40 */
+  overflow: hidden;
+  font-family: var(--kiosk-font, sans-serif);
+}
+
+.nameRow {
+  display: flex;
+  align-items: center;
+  gap: 42.9px; /* Figma name↔category gap */
+  min-width: 0;
+}
+
+.name {
+  flex: 0 1 auto;
+  min-width: 0;
+  font-weight: 600;
+  font-size: 68px;
+  color: #2b2b2b;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.cat2 {
+  display: flex;
+  align-items: center;
+  gap: 21.45px;
+  font-weight: 400;
+  font-size: 52px;
+  color: #999999;
+  white-space: nowrap;
+}
+
+.dot {
+  width: 17px;
+  height: 17px;
+  border-radius: 50%;
+  background: #fe6c50;
+}
+
+.address {
+  margin: 0;
+  font-weight: 500;
+  font-size: 48px;
+  color: #999999;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.hours {
+  margin: 0;
+  font-weight: 500;
+  font-size: 49px;
+  line-height: 1; /* Figma: leading-none */
+  color: #2b2b2b;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.tags {
+  margin: 0;
+  font-weight: 400;
+  font-size: 43px;
+  line-height: 1; /* Figma: leading-none */
+  color: #999999;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* QR — Figma: 180×180, border 5px #f48570, rounded 25, bottom-right of the card. */
+.qr {
+  position: absolute;
+  right: 40px;
+  bottom: 46px;
+  box-sizing: border-box;
+  width: 180px;
+  height: 180px;
+  padding: 22px;
+  background: #ffffff;
+  border: 5px solid #f48570;
+  border-radius: 25px;
+  overflow: hidden;
+}
+
+.qr img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.leftNav {
+  position: absolute;
+  left: 21px;
+  top: 1995px;
+  display: flex;
+  flex-direction: column;
+  gap: 35px;
+}
+
+.leftNavBtn {
+  width: 85px;
+  height: 85px;
+  padding: 0;
+  border: none;
+  background: none;
+  cursor: pointer;
+}
+
+.leftNavBtn img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.banner {
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  width: 2160px;
+  height: 573px;
+  padding: 0;
+  border: none;
+  background: none;
+  cursor: pointer;
+  overflow: hidden;
+}
+
+.banner img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}

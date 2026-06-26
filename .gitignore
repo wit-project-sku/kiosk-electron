@@ -1,0 +1,32 @@
+# Dependencies
+node_modules
+
+# Build output
+out
+dist
+release
+
+# Logs
+*.log
+logs
+
+# Editor / OS
+.DS_Store
+.vscode/*
+!.vscode/extensions.json
+Thumbs.db
+
+# Env
+.env
+.env.*
+!.env.example
+
+# TS build cache
+*.tsbuildinfo
+.tmp
+
+# Secrets (service-account keys, etc.)
+secrets
+
+# Large kiosk videos (served at runtime via media://, shipped as extraResources)
+resources/videos

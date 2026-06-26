@@ -1,0 +1,162 @@
+/* 언어선택 — same layout as InsadongLanguage, navy #1a4d7e accents. */
+.bg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  pointer-events: none;
+}
+
+.area {
+  position: absolute;
+  top: 699px;
+  left: 0;
+  right: 0;
+  bottom: 573px;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 150px;
+  padding: 0 170px;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+.area::-webkit-scrollbar { width: 34px; }
+.area::-webkit-scrollbar-thumb {
+  background: #1a4d7e;
+  border-radius: 21.45px;
+}
+.area::-webkit-scrollbar-track { background: transparent; }
+
+.section {
+  flex: none;
+  display: flex;
+  flex-direction: column;
+  gap: 65px;
+  width: 100%;
+}
+
+.label {
+  display: flex;
+  align-items: center;
+  gap: 30px;
+  font-family: var(--kiosk-font, sans-serif);
+  font-weight: 600;
+  font-size: 78px;
+  color: #000000;
+}
+
+.bar {
+  flex: none;
+  width: 10.725px;
+  height: 72.929px;
+  border-radius: 21.45px;
+  background: #1a4d7e;
+}
+
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: 100px;
+}
+
+.card {
+  box-sizing: border-box;
+  width: 100%;
+  height: 320px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 20px;
+  padding: 55px 60px;
+  background: #ffffff;
+  border: 2.145px solid #e8e8e8;
+  border-radius: 42.9px;
+  box-shadow: 0 21.45px 21.45px rgba(143, 147, 157, 0.1);
+  font-family: var(--kiosk-font, sans-serif);
+  cursor: pointer;
+}
+
+.cardRow {
+  width: 100%;
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.currentCard {
+  background: #d3dfec;
+  border-color: #1a4d7e;
+  cursor: default;
+}
+
+.currentCard .langName { color: #000000; }
+
+.cardOn {
+  background: rgba(26, 77, 126, 0.12);
+  border-color: #1a4d7e;
+}
+
+.cardLeft {
+  display: flex;
+  align-items: center;
+  gap: 40px;
+}
+
+.pill {
+  flex: none;
+  width: 170px;
+  height: 170px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  font-family: var(--kiosk-font, sans-serif);
+  font-weight: 700;
+  font-size: 60px;
+}
+
+.pillOn  { background: #1a4d7e; color: #ffffff; }
+.pillOff { background: #ffffff; border: 4px solid #1a4d7e; color: #1a4d7e; }
+
+.langName {
+  font-weight: 600;
+  font-size: 68px;
+  color: #333333;
+  white-space: nowrap;
+}
+
+.check {
+  width: 115px;
+  height: 115px;
+  flex: none;
+  object-fit: contain;
+}
+
+.leftNav {
+  position: absolute;
+  left: 21px;
+  top: 1995px;
+  display: flex;
+  flex-direction: column;
+  gap: 35px;
+}
+
+.leftNavBtn {
+  width: 85px;
+  height: 85px;
+  padding: 0;
+  border: none;
+  background: none;
+  cursor: pointer;
+}
+
+.leftNavBtn img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}

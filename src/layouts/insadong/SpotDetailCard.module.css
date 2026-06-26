@@ -1,0 +1,241 @@
+/* Shared spot-detail card — the AI 검색상세 design (Figma node 4167:90939),
+   reused by the AI detail and every list/search 상세. Artboard 2160×3840. */
+/* Fixed area (top 699 → bottom 573) — the card fits without scrolling, like
+   Figma. The description/tags are line-clamped so long text can't force a scroll. */
+.content {
+  position: absolute;
+  top: 699px;
+  left: 0;
+  right: 0;
+  bottom: 573px;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  overflow: hidden;
+  padding: 0 170px 60px;
+  font-family: var(--kiosk-font, sans-serif);
+}
+
+.card {
+  box-sizing: border-box;
+  width: 1820px;
+  display: flex;
+  flex-direction: column;
+  gap: 65px;
+  padding: 100px 45px;
+  background: #ffffff;
+  border: 5px solid #e8e8e8;
+  border-radius: 42.9px;
+}
+
+/* ── Title + gallery ── */
+.head {
+  display: flex;
+  flex-direction: column;
+  gap: 42.9px;
+}
+
+.titleRow {
+  display: flex;
+  align-items: center;
+  gap: 42.9px;
+}
+
+.title {
+  margin: 0;
+  font-weight: 700;
+  font-size: 85px;
+  color: #333333;
+  line-height: 1;
+}
+
+.cat {
+  display: flex;
+  align-items: center;
+  gap: 21.45px;
+  font-weight: 400;
+  font-size: 51px;
+  color: #999999;
+  line-height: 1;
+}
+
+.dot {
+  flex: none;
+  width: 17px;
+  height: 17px;
+  border-radius: 50%;
+  background: #fe6c50;
+}
+
+.gallery {
+  display: grid;
+  grid-template-columns: repeat(2, 575px);
+  gap: 45px;
+  justify-content: center;
+}
+
+.galleryCell {
+  width: 575px;
+  height: 324px;
+  border-radius: 45px;
+  overflow: hidden;
+}
+
+.galleryCell[data-clickable='true'] {
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.galleryCell[data-clickable='true']:active {
+  opacity: 0.85;
+}
+
+.galleryImg {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.divider {
+  height: 2.145px;
+  width: 100%;
+  background: #e8e8e8;
+}
+
+/* ── Address / hours / phone + QR ── */
+.info {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 40px;
+}
+
+.infoCol {
+  display: flex;
+  flex-direction: column;
+  gap: 40px;
+}
+
+.infoRow {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.infoIcon {
+  flex: none;
+  width: 85px;
+  height: 85px;
+  object-fit: contain;
+}
+
+.infoText {
+  font-weight: 400;
+  font-size: 55px;
+  color: #333333;
+  line-height: 1; /* Figma: leading-none */
+}
+
+.infoTextCol {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.qr {
+  flex: none;
+  box-sizing: border-box;
+  width: 340px;
+  height: 340px;
+  border: 4.29px solid #fe6c50;
+  border-radius: 25px;
+  background: #ffffff;
+  /* Figma: QR sits ~17% inset inside the 340 box (≈224px). */
+  padding: 54px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.qrImg {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  image-rendering: pixelated;
+}
+
+/* ── Description + tags ── */
+.desc {
+  margin: 0;
+  font-weight: 400;
+  font-size: 55px;
+  color: #333333;
+  line-height: 1.3;
+  /* Figma allots h220 (~3 lines at 55px/1.3); clamp so the card always fits. */
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.descTags {
+  margin: 0;
+  font-weight: 400;
+  font-size: 45px;
+  color: #616161;
+  line-height: 1.5;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* ── Ratings ── */
+.ratings {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 64.35px;
+}
+
+.ratingItem {
+  display: flex;
+  align-items: center;
+  gap: 21.45px;
+}
+
+.ratingIcon {
+  flex: none;
+  width: 85.799px;
+  height: 85.799px;
+  object-fit: contain;
+}
+
+.stars {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+
+.star {
+  width: 43px;
+  height: 43px;
+  object-fit: contain;
+}
+
+.ratingText {
+  font-weight: 400;
+  font-size: 51.48px;
+  color: #333333;
+  line-height: 1.5;
+  white-space: nowrap;
+}
+
+.ratingSep {
+  width: 2px;
+  height: 43px;
+  background: #d9d9d9;
+}

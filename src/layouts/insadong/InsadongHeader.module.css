@@ -1,0 +1,118 @@
+/* Figma "R=상단 메인" 2160×700: pt125 pb80 px170, gap65, centred (literal px). */
+/* Top-pinned (flex-start) so the brand/title/back row sits at the SAME 130px
+   top as the home screen's brand row — no vertical "drop" when navigating.
+   (justify-center made it content-dependent, shifting between pages.) */
+.header {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 2160px;
+  height: 700px;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  align-items: center;
+  gap: 65px;
+  padding: 130px 170px 80px;
+  box-sizing: border-box;
+}
+
+/* Figma 고궁안내 상세: header without subtitle is 574px tall. */
+.headerCompact {
+  height: 574px;
+}
+
+/* Figma 1233:2160 — topRow + titleRow grouped with gap-105, items-start.
+   (Header gap-65 then sits between this block and the subtitle.) */
+.headerBlock {
+  width: 1820px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 105px;
+}
+
+/* 상단 위치/날짜: h82 */
+.topRow {
+  width: 1820px;
+  height: 82px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 25.74px;
+  color: #fe6c50;
+  font-weight: 900;
+  font-size: 68px;
+  line-height: 1;
+}
+
+.pin {
+  width: 68px;
+  height: 68px;
+}
+
+.date {
+  color: #232323;
+  font-weight: 700;
+  font-size: 68px;
+}
+
+/* 타이틀 row: h182, home(175) · title(1342) · back(175) */
+.titleRow {
+  width: 1820px;
+  height: 182px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.navBtn {
+  width: 175px;
+  height: 175px;
+  flex: none;
+  padding: 0;
+  border: none;
+  background: none;
+  cursor: pointer;
+}
+
+.navBtn img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.title {
+  flex: 1;
+  margin: 0;
+  text-align: center;
+  font-weight: 700;
+  font-size: 78px;
+  color: #000000;
+}
+
+/* Promotion page: white title over the dark kitchen background. */
+.titleLight {
+  color: #ffffff;
+}
+
+/* 서브타이틀: ★ 페이지 설명문, 60px #909090 */
+.subtitle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 20px;
+  font-weight: 400;
+  font-size: 60px;
+  color: #909090;
+}
+
+.star {
+  color: #fe6c50;
+  font-size: 40px;
+}

@@ -1,0 +1,197 @@
+/* '인사' 뭐하지 (AI검색) — preference questionnaire, exact Figma px (artboard 2160×3840). */
+.bg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  pointer-events: none;
+}
+
+/* Figma 선택영역: a FIXED 2568px area (top 699 → bottom 573) that the content
+   fills exactly — no scroll. gap 100, px 170, NO vertical padding. */
+.content {
+  position: absolute;
+  top: 699px;
+  left: 0;
+  right: 0;
+  bottom: 573px;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 100px;
+  overflow: hidden;
+  padding: 0 170px;
+  font-family: var(--kiosk-font, sans-serif);
+}
+
+.section {
+  flex: none;
+  width: 1820px;
+  display: flex;
+  flex-direction: column;
+  gap: 60px;
+}
+
+.sectionTitle {
+  display: flex;
+  align-items: center;
+  gap: 30px;
+  font-family: var(--kiosk-font, sans-serif);
+  font-weight: 700;
+  font-size: 76px;
+  line-height: 1;
+  color: #000000;
+}
+
+.bar {
+  flex: none;
+  width: 10.725px;
+  height: 72.929px;
+  border-radius: 21.45px;
+  background: #000000;
+}
+
+/* 방문인원 / 체류시간 pills — Figma uses FIXED-width pills (per-pill width set
+   inline) spread with justify-between, which yields the uniform gaps (방문인원
+   14.8px, 체류시간 75.3px). Content-sized pills would overflow and lose the gaps. */
+.pillRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.pill {
+  box-sizing: border-box;
+  height: 192px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #ffffff;
+  border: 5px solid #e8e8e8;
+  border-radius: 45px;
+  font-family: var(--kiosk-font, sans-serif);
+  font-weight: 700;
+  font-size: 60px;
+  line-height: 1;
+  color: #999999;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.pillSel {
+  background: #f8ecde;
+  border-color: #fe6c50;
+  color: #fe6c50;
+}
+
+/* 즐길거리 tiles */
+.tileGrid {
+  display: grid;
+  grid-template-columns: repeat(6, 268px);
+  justify-content: space-between;
+  row-gap: 29px;
+}
+
+.tile {
+  box-sizing: border-box;
+  width: 268px;
+  height: 215px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  background: #ffffff;
+  border: 5px solid #e8e8e8;
+  border-radius: 45px;
+  cursor: pointer;
+}
+
+/* Figma: text box is 237px wide (centred in the 268px tile) and wraps within
+   it — the px-78 frame padding is overridden by this width, so labels like
+   역사유적지 / 채식·비건 fit without overflowing. */
+.tileText {
+  width: 237px;
+  display: flex;
+  flex-direction: column;
+  font-family: var(--kiosk-font, sans-serif);
+  font-weight: 700;
+  font-size: 47px;
+  line-height: 1;
+  color: #c89b7b;
+  text-align: center;
+  word-break: break-word;
+}
+
+.tileSel {
+  background: #f8ecde;
+  border-color: #fe6c50;
+}
+
+.tileSel .tileText {
+  color: #fe6c50;
+}
+
+/* CTA */
+.cta {
+  flex: none;
+  width: 1816.802px;
+  height: 178.034px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #fe6c50;
+  border: none;
+  border-radius: 42.9px;
+  font-family: var(--kiosk-font, sans-serif);
+  font-weight: 700;
+  font-size: 68.64px;
+  line-height: 1;
+  color: #ffffff;
+  cursor: pointer;
+}
+
+.leftNav {
+  position: absolute;
+  left: 21px;
+  top: 1995px;
+  display: flex;
+  flex-direction: column;
+  gap: 35px;
+}
+
+.leftNavBtn {
+  width: 85px;
+  height: 85px;
+  padding: 0;
+  border: none;
+  background: none;
+  cursor: pointer;
+}
+
+.leftNavBtn img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.banner {
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  width: 2160px;
+  height: 573px;
+  padding: 0;
+  border: none;
+  background: none;
+  cursor: pointer;
+  overflow: hidden;
+}
+
+.banner img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}

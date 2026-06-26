@@ -1,0 +1,81 @@
+.viewport {
+  position: fixed;
+  inset: 0;
+  background: var(--kiosk-bg, #fdf8f3);
+  overflow: hidden;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+/* Kiosk touchscreen: no focus rings, no text selection, no image dragging. */
+.viewport :focus,
+.viewport :focus-visible {
+  outline: none;
+}
+
+.viewport img {
+  -webkit-user-drag: none;
+  user-select: none;
+}
+
+/*
+ * Literal 2160×3840 canvas, centered and uniformly scaled to fit the window via
+ * --kiosk-scale (set in JS). Because the box is exactly 2160×3840, 1 CSS px =
+ * 1 Figma px, and cqw/cqh = 21.6px / 38.4px. Screens fill it (absolute inset:0).
+ */
+.artboard {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 2160px;
+  height: 3840px;
+  transform: translate(-50%, -50%) scale(var(--kiosk-scale, 0.25));
+  transform-origin: center center;
+  container-type: size;
+  /* Every kiosk screen inherits the themed font so home + header + all pages
+     render identically. Without this, headers fell back to the body's
+     --font-sans (Arial) while .home used --kiosk-font (Noto Sans) → mismatch. */
+  font-family: var(--kiosk-font, sans-serif);
+}
+
+.bg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: fill;
+  display: block;
+  pointer-events: none;
+}
+
+.overlay {
+  position: absolute;
+  inset: 0;
+}
+
+/* Flow-layout content layer for real-component screens (KioskArtboard). */
+.content {
+  position: absolute;
+  inset: 0;
+}
+
+.hotspot {
+  appearance: none;
+  margin: 0;
+  padding: 0;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  border-radius: 8%;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.hotspot:active {
+  background: rgba(0, 0, 0, 0.06);
+}
+
+/* Toggle via the `debug` prop to visualise tap zones while tuning alignment. */
+.hotspotDebug {
+  background: rgba(254, 108, 80, 0.25);
+  outline: 2px solid #fe6c50;
+}

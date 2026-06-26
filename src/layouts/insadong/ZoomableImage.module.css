@@ -1,0 +1,24 @@
+.viewport {
+  position: relative;
+  overflow: hidden;
+  flex: none;
+  /* Stop the OS from claiming pan/zoom gestures so our handlers run. */
+  touch-action: none;
+  cursor: grab;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.viewport[data-zoomed='true'] {
+  cursor: grabbing;
+}
+
+.image {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  /* Transforms scale from the top-left so translation clamping stays simple. */
+  transform-origin: 0 0;
+  will-change: transform;
+  pointer-events: none;
+}

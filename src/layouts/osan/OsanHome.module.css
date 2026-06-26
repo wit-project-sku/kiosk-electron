@@ -1,0 +1,519 @@
+/* OsanHome — exact Figma layout (2160×3840). Primary: navy #1a4d7e / #0e4e8c. */
+
+.bgImage {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  pointer-events: none;
+}
+
+.home {
+  position: absolute;
+  inset: 0;
+  background: transparent;
+  font-family: var(--kiosk-font, sans-serif);
+  color: #232323;
+}
+
+/* ── Top block: top 0, h 722px, pt130 pb65 px170, gap80 ── */
+.topBlock {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  height: 18.8%;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 2.08cqh;
+  padding: 3.39cqh 7.87cqw 1.69cqh;
+  box-sizing: border-box;
+}
+
+.header {
+  flex: none;
+  height: 2.14cqh;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+/* OSAEK MARKET — Noto Sans 900, 68px, #0e4e8c */
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 1.2cqw;
+  color: #0e4e8c;
+  font-weight: 700;
+  font-size: 1.77cqh;
+  line-height: 1;
+}
+
+/* Match the shared OsanHeader pin (63×82px) so the brand icon is the
+   same size as on every other page — the brand text is already 1.77cqh (68px). */
+.pin {
+  width: 2.917cqw;
+  height: 2.135cqh;
+  aspect-ratio: 63 / 82;
+}
+
+.date {
+  color: #232323;
+  font-weight: 700;
+  font-size: 1.77cqh;
+  line-height: 1;
+}
+
+/* Notice + weather row */
+.infoRow {
+  flex: none;
+  height: 9.5cqh;
+  display: flex;
+  gap: 1.85cqw;
+}
+
+.notice {
+  flex: 1109 1 0;
+  display: flex;
+  align-items: center;
+  gap: 1.79cqw;
+  background: rgba(26, 77, 126, 0.08);
+  backdrop-filter: blur(1.12cqh);
+  -webkit-backdrop-filter: blur(1.12cqh);
+  border-radius: 2.08cqw;
+  padding: 1.43cqh 2.78cqw;
+  box-sizing: border-box;
+  overflow: hidden;
+}
+
+.noticeBadge {
+  flex: none;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  color: #000000;
+  font-weight: 900;
+  font-size: 1.33cqh;
+  line-height: 1.55;
+}
+
+.noticeDivider {
+  flex: none;
+  width: 0.3cqw;
+  height: 6.31cqh;
+  background: #1a4d7e;
+  border-radius: 0.15cqw;
+}
+
+.noticeText {
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  flex: 1 1 auto;
+  /* Tuned so the (single-line, sheet-driven) Osaek notice copy wraps to ~3 rows,
+     matching the Figma where the notice lines are short and don't fill the box. */
+  max-width: 34cqw;
+  min-width: 0;
+  font-size: 1.33cqh; /* 51px */
+  line-height: 1.676cqh; /* 64.35px */
+  font-weight: 400;
+  color: #000000;
+  white-space: normal;
+  word-break: keep-all;
+  overflow-wrap: anywhere;
+}
+
+.noticeLine { font-weight: 400; }
+.noticeBold { font-weight: 700; }
+
+.weather {
+  flex: 665 1 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1.5cqw;
+  background: rgba(26, 77, 126, 0.08);
+  backdrop-filter: blur(1.12cqh);
+  -webkit-backdrop-filter: blur(1.12cqh);
+  border-radius: 2.08cqw;
+  border: none;
+  padding: 0;
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+  align-self: stretch;
+}
+
+.weatherGlyph {
+  width: 6.5cqh;
+  height: 6.5cqh;
+  object-fit: contain;
+}
+
+.temp {
+  font-size: 3.78cqh;
+  font-weight: 700;
+  color: #333333;
+}
+
+/* ── Content: search row + grid ── */
+.content {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 18.78%;
+  display: flex;
+  flex-direction: column;
+  gap: 1.69cqh;
+  padding: 0 7.87cqw;
+  box-sizing: border-box;
+}
+
+/* Search row: h182px, circles Ø180, field 1350px, gap 55 */
+.searchRow {
+  display: flex;
+  align-items: center;
+  gap: 2.55cqw;
+  height: 4.74cqh;
+  flex: none;
+}
+
+/* Home button — the SVG is a complete #0E4E8C circle, render it directly */
+.homeBtn {
+  height: 100%;
+  aspect-ratio: 1;
+  flex: none;
+  padding: 0;
+  border: none;
+  background: none;
+  cursor: pointer;
+}
+
+.homeBtn img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+/* KR circle — matches the home button's #0E4E8C */
+.krBtn {
+  height: 100%;
+  aspect-ratio: 1;
+  flex: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  background: #0e4e8c;
+  border-radius: 50%;
+  color: #ffffff;
+  font-weight: 700;
+  font-size: 1.56cqh;
+  line-height: 1;
+  font-family: var(--kiosk-font, sans-serif);
+  cursor: pointer;
+}
+
+.searchInput {
+  flex: 1;
+  min-width: 0;
+  height: 100%;
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  gap: 1cqw;
+  background: #ffffff;
+  border: 4.29px solid #1a4d7e;
+  border-radius: 3.13cqh;
+  padding: 0 2.5cqw;
+  cursor: text;
+  overflow: hidden;
+  font-family: var(--kiosk-font, sans-serif);
+}
+
+.inputTextWrap {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 0.4cqw;
+  overflow: hidden;
+}
+
+.inputText,
+.inputPlaceholder {
+  min-width: 0;
+  font-size: 1.564cqh;
+  font-weight: 600;
+  line-height: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-align: left;
+}
+
+.inputText        { color: #232323; }
+.inputPlaceholder { color: #999999; }
+
+.searchIcon {
+  flex: none;
+  width: 2.6cqh;
+  height: 2.6cqh;
+  color: #1a4d7e;
+}
+
+.caret {
+  flex: none;
+  width: 0.3cqw;
+  height: 2.6cqh;
+  background: #1a4d7e;
+  animation: blink 1s step-end infinite;
+}
+
+@keyframes blink { 50% { opacity: 0; } }
+
+/* ── Tile grid ── */
+.grid {
+  display: grid;
+  grid-template-columns: repeat(4, 13.89cqw); /* 300px */
+  justify-content: space-between;
+  grid-auto-rows: 9.71cqh; /* ~373px: colored box (flex:1) + gap + label */
+  row-gap: 2.604cqh; /* 100px */
+}
+
+.tile {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.911cqh; /* 35px (Figma gap) */
+  min-height: 0;
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+}
+
+.tileWide {
+  grid-column: span 2;
+}
+
+/* The Figma colored rounded rectangle: 300×300 (wide: 830×300),
+   radius 85.799px = 3.97cqw, height 300px = 7.8125cqh */
+.tileBox {
+  width: 100%;
+  height: 7.8125cqh;
+  flex: none;
+  border-radius: 3.97cqw;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.tileBox img {
+  width: 85%;
+  height: 85%;
+  object-fit: contain;
+}
+
+/* Bottom-anchored full-body illustrations (e.g. 안녕 '정이'): the figure sits
+   flush to the inner bottom of the box rather than vertically centered. */
+.tileBoxBottom {
+  align-items: flex-end;
+}
+
+.tileBoxBottom img {
+  width: 94%;
+  height: 94%;
+  object-fit: contain;
+  object-position: bottom;
+}
+
+.tileFallback {
+  font-size: 1.3cqh;
+  font-weight: 700;
+  color: rgba(255, 255, 255, 0.9);
+  text-align: center;
+  padding: 0.5cqw;
+  word-break: keep-all;
+}
+
+.tileLabel {
+  flex: none;
+  font-size: 0.99cqh; /* 38px */
+  font-weight: 400;
+  line-height: 1;
+  text-align: center;
+  color: #000000;
+  white-space: nowrap;
+}
+
+/* ── Bottom row (same absolute coords as insadong) ── */
+.bottomRow {
+  position: absolute;
+  left: 0;
+  top: 2821px;
+  width: 2160px;
+  height: 446px;
+}
+
+.bottomBarBg {
+  position: absolute;
+  top: -7px;
+  left: -4px;
+  width: 2168px;
+  height: 459px;
+  z-index: 0;
+  pointer-events: none;
+}
+
+.kdramaItem,
+.restroomItem {
+  position: absolute;
+  z-index: 1;
+  padding: 0;
+  border: none;
+  background: none;
+  cursor: pointer;
+}
+
+/* K-DRAMA: Figma left=245 top=89 381×235; label top=352 → height 314 */
+.kdramaItem {
+  left: 245px;
+  top: 89px;
+  width: 381px;
+  height: 314px;
+}
+
+/* 화장실: Figma left=1581 top=99 235×235; label top=360 → height 312 */
+.restroomItem {
+  left: 1581px;
+  top: 99px;
+  width: 235px;
+  height: 312px;
+}
+
+/* Figma 5358:48437: red #f44 box, rounded 50px, white K-DRAMA logo (187×120) inside */
+.kdramaIcon {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 381px;
+  height: 235px;
+  background: #ff4444;
+  border-radius: 50px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.kdramaIcon img {
+  width: 187px;
+  height: 120px;
+  object-fit: contain;
+}
+
+.navIcon {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 235px;
+  height: 235px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.navIcon img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.navLabel {
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  font-family: var(--kiosk-font, sans-serif);
+  font-size: 50px;
+  font-weight: 400;
+  line-height: 1;
+  color: #000000;
+  white-space: nowrap;
+}
+
+/* Camera — Figma: navy circle with white camera glyph (icon art has its own
+   circle, so the button itself is transparent), centered on the big dome */
+.cameraBtn {
+  position: absolute;
+  z-index: 1;
+  left: 903px;
+  top: 39px;
+  width: 356px;
+  height: 356px;
+  padding: 0;
+  border: none;
+  background: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.cameraImg {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+/* ── Bottom promo banner (오색시장 한복 체험): top 3267 → flush to artboard bottom ── */
+.banner {
+  position: absolute;
+  left: 0;
+  top: 3267px;
+  width: 2160px;
+  height: 573px;
+  padding: 0;
+  border: none;
+  background: none;
+  cursor: pointer;
+  overflow: hidden;
+}
+
+.bannerImg {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+/* ── Left nav ── */
+.leftNav {
+  position: absolute;
+  left: 21px;
+  top: 1995px;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  gap: 35px;
+}
+
+.leftNavBtn {
+  width: 85px;
+  height: 85px;
+  padding: 0;
+  border: none;
+  background: none;
+  cursor: pointer;
+}
+
+.leftNavBtn img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}

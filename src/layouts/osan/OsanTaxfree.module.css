@@ -1,0 +1,757 @@
+/* TAX-FREE — 3-tab layout. Artboard 2160×3840 px, 1 CSS px = 1 Figma px. */
+
+.bg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  pointer-events: none;
+}
+
+/* ======================================================
+   BODY — shared white card / webview wrapper. With the header compact (no page
+   description), the webview moves up to 645 and takes the full 1820×2290, ending
+   at 2935. Tab row keeps 64px clearance above (top 2999) and 98px above the
+   banner (tabs bottom 3169, banner top 3267).
+   ====================================================== */
+.body {
+  position: absolute;
+  top: 645px;
+  left: 170px;
+  width: 1820px;
+  height: 2290px;
+  border-radius: 42.9px;
+  overflow: hidden;
+  background: #ffffff;
+}
+
+.embed {
+  display: inline-flex;
+  width: 100%;
+  height: 100%;
+  border: none;
+}
+
+/* ======================================================
+   TAB 1 — REFUND INFO  (Figma Frame 01 exact styles)
+   Body: 1820×2290px.  All body-relative coords =
+   Figma absolute coord − 644 (body top in artboard).
+   ====================================================== */
+.refundInfo {
+  position: absolute;
+  inset: 0;
+}
+
+/* One page slot per carousel page */
+.infoPage {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  transition: opacity 0.25s ease;
+}
+.infoPageActive { opacity: 1; pointer-events: auto; }
+.infoPageHidden  { opacity: 0; pointer-events: none; }
+
+.pageImg {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  object-position: top center;
+  display: block;
+}
+
+/* ── Page 1: absolutely positioned children ── */
+
+/* Title "텍스프리 소개"
+   Figma absolute y=764px; body-relative y=764−644=120px */
+.p1Title {
+  position: absolute;
+  top: 120px;
+  left: 0;
+  width: 100%;
+  text-align: center;
+  font-size: 120px;
+  font-weight: 700;
+  color: #1a4d7e;
+  margin: 0;
+  line-height: 1;
+}
+
+/* Description paragraph
+   Figma absolute y=965px; body-relative=321px; width=1560px */
+.p1Desc {
+  position: absolute;
+  top: 321px;
+  left: 130px; /* (1820−1560)/2 */
+  width: 1560px;
+  font-size: 40px;
+  font-weight: 400;
+  color: #3d4c5e;
+  line-height: 1.6;
+  text-align: center;
+  margin: 0;
+  white-space: pre-wrap;
+}
+
+/* Table section container
+   Figma absolute y=1263px; body-relative=619px */
+.tableSection {
+  position: absolute;
+  top: 619px;
+  left: 130px;
+  width: 1560px;
+  display: flex;
+  flex-direction: column;
+  gap: 40px;
+}
+
+.tableHeaderRow {
+  display: flex;
+  gap: 45px;
+  align-items: center;
+  justify-content: center;
+}
+
+/* "품목" and "환급액" header cells — Figma: bg #1a4d7e, 430×111px, r=16 */
+.thBase {
+  flex-shrink: 0;
+  width: 430px;
+  height: 111px;
+  background: #1a4d7e;
+  border-radius: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #ffffff;
+  font-size: 42px;
+  font-weight: 700;
+  text-align: center;
+  white-space: pre-wrap;
+  box-shadow: 0px 10px 7.5px rgba(0, 0, 0, 0.1), 0px 4px 3px rgba(0, 0, 0, 0.1);
+}
+
+/* "최종 결제 금액" header — Figma: bg #1f6aff, 600×140px, r=16 */
+.thFinal {
+  flex-shrink: 0;
+  width: 600px;
+  height: 140px;
+  background: #1f6aff;
+  border-radius: 16px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  box-shadow: 0px 10px 7.5px rgba(0, 0, 0, 0.1), 0px 4px 3px rgba(0, 0, 0, 0.1);
+}
+
+/* Figma: main text 60px SemiBold */
+.thFinalMain {
+  font-size: 60px;
+  font-weight: 600;
+  color: #ffffff;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+/* Figma: sub text 30px Regular */
+.thFinalSub {
+  font-size: 30px;
+  font-weight: 400;
+  color: #ffffff;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.tableDataRows {
+  display: flex;
+  flex-direction: column;
+  gap: 30px;
+}
+
+.tableRow {
+  display: flex;
+  gap: 45px;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Item / refund amount cells — Figma: bg white, border 3.562px #e5e7eb, 430×115px, r=16 */
+.tdBase {
+  flex-shrink: 0;
+  width: 430px;
+  height: 115px;
+  background: #ffffff;
+  border: 3.562px solid #e5e7eb;
+  border-radius: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #1a4d7e;
+  font-size: 40px;
+  font-weight: 700;
+  text-align: center;
+  box-shadow: 0px 4px 3px rgba(0, 0, 0, 0.1), 0px 2px 2px rgba(0, 0, 0, 0.1);
+}
+
+/* Final price cell — Figma: bg white, border 4.274px #1f6aff, 600×140px, r=19.2 */
+.tdFinal {
+  flex-shrink: 0;
+  width: 600px;
+  height: 140px;
+  background: #ffffff;
+  border: 4.274px solid #1f6aff;
+  border-radius: 19.2px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #1f6aff;
+  font-size: 48px;
+  font-weight: 700;
+  text-align: center;
+  box-shadow: 0px 4.8px 3.6px rgba(0, 0, 0, 0.1), 0px 2.4px 2.4px rgba(0, 0, 0, 0.1);
+}
+
+/* Process card "환급 절차"
+   Figma absolute y=2014px; body-relative=1370px; 1560×755px, r=30 */
+.processCard {
+  position: absolute;
+  top: 1370px;
+  left: 130px;
+  width: 1560px;
+  height: 755px;
+  background: #ffffff;
+  border: 1.5px solid #d9d9d9;
+  border-radius: 30px;
+  box-shadow: 0px 1.5px 4.5px rgba(116, 141, 113, 0.14);
+  overflow: hidden;
+}
+
+/* "환급 절차" title — Figma: top=7%×755=53px, 100px bold #1a4d7e */
+.processTitle {
+  position: absolute;
+  top: 53px;
+  left: 0;
+  width: 100%;
+  text-align: center;
+  font-size: 100px;
+  font-weight: 700;
+  color: #1a4d7e;
+  margin: 0;
+  line-height: 1;
+}
+
+/* Thin divider — Figma: 25.13%×755≈190px from card top */
+.processLine {
+  position: absolute;
+  top: 190px;
+  left: 490px;
+  right: 490px;
+  height: 1.5px;
+  background: #d9d9d9;
+}
+
+/* "간단한 4단계로 환급 완료!" — Figma: 28.09%×755≈212px, 40px regular #546881 */
+.processSub {
+  position: absolute;
+  top: 212px;
+  left: 0;
+  width: 100%;
+  text-align: center;
+  font-size: 40px;
+  font-weight: 400;
+  color: #546881;
+  margin: 0;
+}
+
+/* 4-step icon row — Figma: top=310.81px in card, gap=85px, justify center */
+.steps {
+  position: absolute;
+  top: 311px;
+  left: 0;
+  width: 100%;
+  display: flex;
+  gap: 85px;
+  align-items: flex-start;
+  justify-content: center;
+}
+
+.step {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 24px;
+  width: 290px;
+}
+
+/* Step circle — Figma: 200×200px, rounded full; bg alternates #497fb2 / #1a4d7e */
+.stepCircle {
+  width: 200px;
+  height: 200px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Step label — Figma: 48px Bold #1e2939 */
+.stepTitle {
+  font-size: 48px;
+  font-weight: 700;
+  color: #1e2939;
+  text-align: center;
+  margin: 0;
+  line-height: 1.5;
+  white-space: pre-wrap;
+}
+
+/* Step desc — Figma: 32px Regular #4a5565 line-height 40px */
+.stepSub {
+  font-size: 32px;
+  font-weight: 400;
+  color: #4a5565;
+  text-align: center;
+  margin: 0;
+  line-height: 1.25;
+  white-space: pre-wrap;
+}
+
+/* ── Page navigation ── */
+/* Transparent hotspots overlaid on the buttons that are PAINTED INTO the
+   image (chevron arrows + apply CTA). No visible chrome — the image already
+   shows them; these just make the drawn buttons tappable. */
+.navHotspot {
+  position: absolute;
+  top: 38%;
+  height: 24%;
+  width: 150px;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  padding: 0;
+  z-index: 10;
+}
+.navHotspotRight { right: 0; }
+.navHotspotLeft { left: 0; }
+
+/* Over the blue "apply for tax refund" CTA on page 2.
+   Measured from images: centered, ~17%–83% wide, ~76%–90% tall. */
+.applyHotspot {
+  position: absolute;
+  left: 17%;
+  width: 66%;
+  top: 76%;
+  height: 14%;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  padding: 0;
+  z-index: 10;
+}
+
+/* ── Page 2: scrollable in-flow layout ── */
+.infoScroll {
+  position: absolute;
+  inset: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: 80px 90px 160px;
+  box-sizing: border-box;
+}
+
+/* Used only in page 2 (inside .infoScroll — in flow, not absolute) */
+.infoTitle {
+  font-size: 100px;
+  font-weight: 700;
+  color: #1a4d7e;
+  text-align: center;
+  margin: 0 0 60px;
+  line-height: 1.2;
+}
+
+.flowCard {
+  border: 2px solid #d0dff0;
+  border-radius: 28px;
+  padding: 60px 50px;
+  margin-bottom: 60px;
+}
+
+.flowCardTitle {
+  font-size: 90px;
+  font-weight: 800;
+  color: #1a4d7e;
+  text-align: center;
+  margin: 0 0 30px;
+}
+
+.flowDivider {
+  height: 2px;
+  background: #d0dff0;
+  margin-bottom: 60px;
+}
+
+.flowRow {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 30px;
+}
+
+.flowItem {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 28px;
+}
+
+.flowBox {
+  width: 280px;
+  height: 280px;
+  border-radius: 24px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  padding: 20px;
+  box-sizing: border-box;
+}
+
+.flowBoxFilled   { background: #1a4d7e; }
+.flowBoxOutlined { background: #ffffff; border: 3px solid #1a4d7e; }
+
+.flowBoxLabel {
+  font-size: 40px;
+  font-weight: 700;
+  color: #ffffff;
+  text-align: center;
+  white-space: pre-line;
+  line-height: 1.25;
+}
+
+.flowBoxLabelDark { color: #1a4d7e; }
+
+.flowArrow {
+  font-size: 100px;
+  color: #1a4d7e;
+  line-height: 1;
+  flex-shrink: 0;
+  align-self: center;
+  margin-bottom: 28px;
+}
+
+.flowDesc {
+  font-size: 42px;
+  color: #555;
+  text-align: center;
+  white-space: pre-line;
+  line-height: 1.45;
+  margin: 0;
+}
+
+.infoText {
+  font-size: 44px;
+  color: #888;
+  text-align: center;
+  white-space: pre-line;
+  line-height: 1.6;
+  margin: 0 0 60px;
+}
+
+.boldStatement {
+  font-size: 60px;
+  font-weight: 800;
+  color: #1a4d7e;
+  text-align: center;
+  white-space: pre-line;
+  line-height: 1.4;
+  margin: 0 0 70px;
+}
+
+.applyBtn {
+  display: block;
+  width: 100%;
+  height: 160px;
+  background: #1a4d7e;
+  border-radius: 28px;
+  border: none;
+  cursor: pointer;
+  font-size: 68px;
+  font-weight: 700;
+  color: #ffffff;
+  font-family: var(--kiosk-font, sans-serif);
+  text-align: center;
+}
+
+/* ======================================================
+   TAB 3 — MERCHANT
+   ====================================================== */
+.merchant {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  background: #fff;
+}
+
+.merchantBg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  pointer-events: none;
+}
+
+.merchantContent {
+  position: relative;
+  z-index: 1;
+  padding: 100px 90px;
+  display: flex;
+  flex-direction: column;
+  gap: 40px;
+}
+
+.merchantTitle {
+  font-size: 110px;
+  font-weight: 700;
+  color: #1a4d7e;
+  text-align: center;
+  margin: 0;
+  line-height: 1.2;
+}
+
+.merchantSubtitle {
+  font-size: 50px;
+  font-weight: 500;
+  color: #3d4c5e;
+  text-align: center;
+  line-height: 1.55;
+  white-space: pre-line;
+  margin: 0;
+}
+
+.merchantCard {
+  background: #ffffff;
+  border: 1.5px solid #d9d9d9;
+  border-radius: 30px;
+  box-shadow: 0 8px 28px rgba(0, 0, 0, 0.05);
+  padding: 70px;
+  display: flex;
+  align-items: flex-start;
+  gap: 55px;
+}
+
+.cardNum {
+  flex-shrink: 0;
+  width: 140px;
+  height: 140px;
+  background: #005278;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 80px;
+  font-weight: 700;
+  color: #ffffff;
+  font-family: var(--kiosk-font, sans-serif);
+}
+
+.cardBody {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+  justify-content: center;
+  min-height: 140px;
+}
+
+.cardTitle {
+  font-size: 64px;
+  font-weight: 600;
+  color: #3e3a39;
+  line-height: 1.35;
+  white-space: pre-line;
+  margin: 0;
+}
+
+.cardContact {
+  display: flex;
+  align-items: center;
+  gap: 28px;
+}
+
+.callIcon {
+  width: 78px;
+  height: 78px;
+  object-fit: contain;
+  flex-shrink: 0;
+}
+
+.contactText {
+  font-size: 58px;
+  font-weight: 700;
+  color: #005278;
+  line-height: 1;
+}
+
+.cardQrRow {
+  display: flex;
+  align-items: center;
+  gap: 60px;
+}
+
+.qrWrap {
+  flex-shrink: 0;
+  width: 450px;
+  height: 450px;
+  border: 5px solid #005278;
+  border-radius: 20px;
+  background: #fbfbfb;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  box-sizing: border-box;
+  box-shadow: 0 6px 20px rgba(0, 82, 120, 0.12);
+}
+
+.qrImg {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.card3Text {
+  font-size: 62px;
+  font-weight: 700;
+  color: #3e3a39;
+  line-height: 1.55;
+  white-space: pre-line;
+  margin: 0;
+}
+
+.card3Right {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  justify-content: center;
+  flex: 1;
+}
+
+.card3Title {
+  font-size: 62px;
+  font-weight: 700;
+  color: #3e3a39;
+  line-height: 1.3;
+  white-space: pre-line;
+  margin: 0;
+}
+
+.card3Desc {
+  font-size: 48px;
+  font-weight: 400;
+  color: #005278;
+  line-height: 1.55;
+  white-space: pre-line;
+  margin: 0;
+}
+
+.merchantNotice {
+  font-size: 58px;
+  font-weight: 700;
+  color: #fb2c36;
+  text-align: center;
+  margin: 10px 0 0;
+  line-height: 1.4;
+}
+
+/* ======================================================
+   BOTTOM TABS
+   top = 699 + 2290 + 64.7 = 3053.7px
+   ====================================================== */
+.tabs {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  top: 2999px;
+  width: 1814px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.tab {
+  box-sizing: border-box;
+  width: 580px;
+  height: 170px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #ffffff;
+  border: 2.145px solid #1a4d7e;
+  border-radius: 42.905px;
+  box-shadow: 0 21.453px 42.905px rgba(143, 147, 157, 0.1);
+  font-family: var(--kiosk-font, sans-serif);
+  font-weight: 500;
+  font-size: 52px;
+  color: #1a4d7e;
+  cursor: pointer;
+  text-align: center;
+  padding: 0 18px;
+  line-height: 1.2;
+}
+
+.tabSelected {
+  background: #1a4d7e;
+  color: #ffffff;
+}
+
+/* ======================================================
+   LEFT NAV & BANNER
+   ====================================================== */
+.leftNav {
+  position: absolute;
+  left: 21px;
+  top: 1995px;
+  display: flex;
+  flex-direction: column;
+  gap: 35px;
+}
+
+.leftNavBtn {
+  width: 85px;
+  height: 85px;
+  padding: 0;
+  border: none;
+  background: none;
+  cursor: pointer;
+}
+
+.leftNavBtn img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.banner {
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  width: 2160px;
+  height: 573px;
+  padding: 0;
+  border: none;
+  background: none;
+  cursor: pointer;
+  overflow: hidden;
+}
+
+.banner img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}

@@ -1,0 +1,114 @@
+/* Osan header — same dimensions as InsadongHeader, navy #0e4e8c brand. */
+/* Top-pinned (flex-start) so the brand/title/back row sits at the SAME 130px
+   top as the home screen's brand row — no vertical "drop" when navigating.
+   (justify-center made it content-dependent, shifting between pages.) */
+.header {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 2160px;
+  height: 700px;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  align-items: center;
+  gap: 65px;
+  padding: 130px 170px 80px;
+  box-sizing: border-box;
+}
+
+.headerCompact {
+  height: 574px;
+}
+
+.headerBlock {
+  width: 1820px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 105px;
+}
+
+.topRow {
+  width: 1820px;
+  height: 82px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 25.74px;
+  color: #0e4e8c;
+  font-weight: 700;
+  font-size: 68px;
+  line-height: 1;
+}
+
+.pin {
+  width: 63px;
+  height: 82px;
+  aspect-ratio: 63 / 82;
+}
+
+.date {
+  color: #232323;
+  font-weight: 700;
+  font-size: 68px;
+  line-height: 1;
+}
+
+.titleRow {
+  width: 1820px;
+  height: 182px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.navBtn {
+  width: 175px;
+  height: 175px;
+  flex: none;
+  padding: 0;
+  border: none;
+  background: none;
+  cursor: pointer;
+}
+
+.navBtn img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.title {
+  flex: 1;
+  margin: 0;
+  text-align: center;
+  font-weight: 700;
+  font-size: 78px;
+  color: #000000;
+}
+
+/* Promo (dark) page: white title. */
+.titleLight {
+  color: #ffffff;
+}
+
+.subtitle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 20px;
+  font-weight: 400;
+  font-size: 60px;
+  color: #909090;
+}
+
+.star {
+  color: #1a4d7e;
+  font-size: 40px;
+}

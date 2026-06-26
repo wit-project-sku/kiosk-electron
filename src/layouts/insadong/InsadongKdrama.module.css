@@ -1,0 +1,238 @@
+/* K-Drama promotion screen — 2160×3840 artboard */
+
+.screen {
+  position: absolute;
+  inset: 0;
+  font-family: var(--kiosk-font, sans-serif);
+  color: #ffffff;
+  overflow: hidden;
+}
+
+/* Full-bleed kitchen background */
+.bg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* Radial gradient overlay — Figma radialGradient centered at 50%/50%, ellipse 50%×50%,
+   opacity 0.6, from white center to black edge */
+.bgOverlay {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  background: radial-gradient(
+    ellipse 50% 50% at 50% 50%,
+    rgba(255, 255, 255, 1)    18%,
+    rgba(191, 191, 191, 0.875) 34%,
+    rgba(159, 159, 159, 0.8125) 42%,
+    rgba(128, 128, 128, 0.75)   49%,
+    rgba(96,  96,  96,  0.6875) 57%,
+    rgba(64,  64,  64,  0.625)  65%,
+    rgba(32,  32,  32,  0.5625) 73%,
+    rgba(16,  16,  16,  0.53125) 76%,
+    rgba(0,   0,   0,   0.5)    80%
+  );
+  opacity: 0.6;
+}
+
+/* Golden conic-gradient content frame — pure decorative overlay.
+   Figma node 4277:83155: no CSS border, only the conic-gradient background.
+   The golden glow comes purely from the gradient colour stops. */
+.contentFrame {
+  position: absolute;
+  left: calc(50% + 1px);
+  transform: translateX(-50%);
+  top: 792px;
+  width: 2020px;
+  height: 2620px;
+  z-index: 2;
+  pointer-events: none;
+  background: conic-gradient(
+    from 90deg,
+    rgba(224, 188, 80, 0.7)    -25.144%,
+    rgba(199, 167, 71, 0.525)   -8.5426%,
+    rgba(173, 145, 62, 0.35)     8.0592%,
+    rgba(148, 124, 53, 0.175)   24.661%,
+    rgba(122, 103, 44, 0)       41.263%,
+    rgba(148, 124, 53, 0.175)   49.661%,
+    rgba(173, 145, 62, 0.35)    58.059%,
+    rgba(199, 167, 71, 0.525)   66.457%,
+    rgba(224, 188, 80, 0.7)     74.856%,
+    rgba(199, 167, 71, 0.525)   91.457%,
+    rgba(173, 145, 62, 0.35)   108.06%,
+    rgba(148, 124, 53, 0.175)  124.66%,
+    rgba(122, 103, 44, 0)      141.26%
+  );
+}
+
+/* Top / bottom gold lines matching Figma's imgLine10 (no side borders) */
+.contentFrame::before,
+.contentFrame::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 5px;
+  background: rgba(224, 188, 80, 0.8);
+  border-radius: 2px;
+}
+
+.contentFrame::before { top: 0; }
+.contentFrame::after  { bottom: 0; }
+
+/* Trailer placeholder (main view) — grey box centred on the artboard */
+.trailerPlaceholder {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  width: 1080px;
+  height: 1920px;
+  background: #d9d9d9;
+  z-index: 3;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.trailerLabel {
+  font-size: 128px;
+  font-weight: 700;
+  color: #232323;
+  line-height: 1;
+}
+
+/* Promotion trailer video — fills the same 1080×1920 area as the placeholder */
+.trailerVideo {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  width: 1080px;
+  height: 1920px;
+  object-fit: cover;
+  background: #d9d9d9;
+  z-index: 3;
+}
+
+/* Quest / Reward card — centred on artboard, gold border, rounded corners */
+.cardImg {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  width: 1404px;
+  height: 1982px;
+  border-radius: 79px;
+  border: 5px solid #e0bc50;
+  object-fit: cover;
+  z-index: 3;
+  display: block;
+}
+
+/* Bottom navigation buttons — 650×162px gold buttons at y=2973.
+   Figma: left value = button CENTER (uses translateX(-50%)).
+   Main view (page-01):  center at calc(50%-425px) and calc(50%+299px)
+   Card views (page-02): center at calc(50%-377px) and calc(50%+347px)
+
+   Structure: .goldBtnWrap is the click target. .goldBtnBg holds the
+   blurred border/fill so filter:blur doesn't affect the text label. */
+
+.goldBtnWrap {
+  position: absolute;
+  top: 2973px;
+  height: 162px;
+  width: 650px;
+  z-index: 4;
+  transform: translateX(-50%);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: none;
+  border: none;
+  padding: 0;
+}
+
+/* Blurred border + frosted bg — separate layer so text stays sharp */
+.goldBtnBg {
+  position: absolute;
+  inset: 0;
+  border: 5px solid #fac831;
+  border-radius: 18px;
+  background: rgba(224, 188, 80, 0.30);
+  backdrop-filter: blur(2px);
+  -webkit-backdrop-filter: blur(2px);
+  filter: blur(2px);
+  pointer-events: none;
+}
+
+.goldBtnWrap:active .goldBtnBg {
+  background: rgba(224, 188, 80, 0.55);
+}
+
+/* Text row with triangle decorators on both sides */
+.goldBtnLabel {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  gap: 22px;
+  font-family: var(--kiosk-font, sans-serif);
+  font-size: 68px;
+  font-weight: 500;
+  line-height: 1;
+  color: #000000;
+  white-space: nowrap;
+  pointer-events: none;
+}
+
+/* Arrow icons (Figma SVG ►/◄), 30×35, flanking the button label. */
+.goldBtnTri {
+  flex: none;
+  display: block;
+}
+
+/* Main view button pair (page-01): center positions */
+.btnLeftMain  { left: calc(50% - 425px); }
+.btnRightMain { left: calc(50% + 299px); }
+
+/* Quest view button pair (page-02): center positions */
+.btnLeftCard  { left: calc(50% - 377px); }
+.btnRightCard { left: calc(50% + 347px); }
+
+/* Reward view button pair (page-03): center positions */
+.btnLeftReward  { left: calc(50% - 361px); }
+.btnRightReward { left: calc(50% + 363px); }
+
+/* Left-edge nav (home / back) */
+.leftNav {
+  position: absolute;
+  left: 21px;
+  top: 1995px;
+  z-index: 5;
+  display: flex;
+  flex-direction: column;
+  gap: 35px;
+}
+
+.leftNavBtn {
+  width: 85px;
+  height: 85px;
+  padding: 0;
+  border: none;
+  background: none;
+  cursor: pointer;
+}
+
+.leftNavBtn img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}

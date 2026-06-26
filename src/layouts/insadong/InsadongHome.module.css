@@ -1,0 +1,542 @@
+/* Insadong home — EXACT Figma layout (인사동메인 2160×3840).
+   Units: 1cqw = 21.6px, 1cqh = 38.4px. Sections are positioned at their exact
+   Figma coordinates so spacing/fit matches the design precisely. */
+
+/* Decorative background (fills the shared artboard, behind the content). */
+.bgImage {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  pointer-events: none;
+}
+
+.home {
+  position: absolute;
+  inset: 0;
+  background: transparent; /* decorative bg.png shows behind */
+  font-family: var(--kiosk-font, sans-serif);
+  color: #232323;
+}
+
+/* 상단 메인: top 0, h722, pt130 pb65 px170, gap80 */
+.topBlock {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  height: 18.8%;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 2.08cqh;
+  padding: 3.39cqh 7.87cqw 1.69cqh;
+  box-sizing: border-box;
+}
+
+/* 상단 위치/날짜: h82, justify-between */
+.header {
+  flex: none;
+  height: 2.14cqh;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+/* INSADONG wordmark — Figma: Noto Sans 900, 68px, #FE6C50, line-height 100%. */
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 1.2cqw;
+  color: #fe6c50;
+  font-weight: 900;
+  font-size: 1.77cqh;
+  line-height: 1;
+}
+
+.pin {
+  width: 2.14cqh;
+  height: 2.14cqh;
+}
+
+.date {
+  color: #232323;
+  font-weight: 700;
+  font-size: 1.77cqh;
+}
+
+/* 상단 공지/날씨: h365, gap40, 공지:날씨 = 1109:665 */
+.infoRow {
+  flex: none;
+  height: 9.5cqh;
+  display: flex;
+  gap: 1.85cqw;
+}
+
+.notice {
+  flex: 1109 1 0;
+  display: flex;
+  align-items: center;
+  gap: 1.79cqw;
+  background: rgba(108, 90, 70, 0.1);
+  backdrop-filter: blur(1.12cqh);
+  -webkit-backdrop-filter: blur(1.12cqh);
+  border-radius: 2.08cqw;
+  padding: 1.43cqh 2.78cqw;
+  box-sizing: border-box;
+  overflow: hidden;
+}
+
+/* Vertical "공지" label — Figma 3704:40429: Inter Black 51px, line-height 107.249px.
+   The tall line-height (≈2.1×) is what puts a gap between 공 and 지. */
+.noticeBadge {
+  flex: none;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  color: #000000;
+  font-weight: 900;
+  font-size: 1.33cqh;
+  line-height: 1.55;
+}
+
+.noticeDivider {
+  flex: none;
+  width: 0.3cqw;
+  height: 6.31cqh;
+  background: #fe6c50;
+  border-radius: 0.15cqw;
+}
+
+.noticeText {
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  flex: 1 1 auto;
+  min-width: 0;
+  font-size: 1.33cqh;
+  line-height: 1.26;
+  color: #000000;
+  /* Wrap instead of overflowing: Korean uses short \n lines, but en/ja are
+     longer (ja has none), so let each line wrap within the box. */
+  white-space: normal;
+  word-break: keep-all;
+  overflow-wrap: anywhere;
+}
+
+.noticeLine {
+  font-weight: 400;
+}
+
+.noticeBold {
+  font-weight: 700;
+}
+
+.weather {
+  flex: 665 1 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1.5cqw;
+  background: rgba(108, 90, 70, 0.1);
+  backdrop-filter: blur(1.12cqh);
+  -webkit-backdrop-filter: blur(1.12cqh);
+  border-radius: 2.08cqw;
+  /* Rendered as a <button> (taps the display to the next clip) — strip the
+     native chrome so it looks identical to the original card. */
+  border: none;
+  padding: 0;
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  align-self: stretch;
+}
+
+.weatherGlyph {
+  width: 6.5cqh;
+  height: 6.5cqh;
+  object-fit: contain;
+}
+
+.temp {
+  font-size: 3.78cqh;
+  font-weight: 700;
+  color: #333333;
+}
+
+/* 컨텐츠: top 721, px170, gap65 */
+.content {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 18.78%;
+  display: flex;
+  flex-direction: column;
+  gap: 1.69cqh;
+  padding: 0 7.87cqw;
+  box-sizing: border-box;
+}
+
+/* 검색장: h182, home/lang circles Ø180, field 1350, gaps 55 */
+.searchRow {
+  display: flex;
+  align-items: center;
+  gap: 2.55cqw;
+  height: 4.74cqh;
+  flex: none;
+}
+
+/* Home + KR are the SAME Ø180 orange circle (Figma 검색장). The home button used
+   to be a bare image (looked smaller); now both share the circle so they match. */
+.homeBtn,
+.krBtn {
+  height: 100%;
+  aspect-ratio: 1;
+  flex: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  background: #fe6c50;
+  border-radius: 50%;
+  overflow: hidden;
+  cursor: pointer;
+}
+
+.krBtn {
+  color: #ffffff;
+  font-weight: 700;
+  font-size: 1.56cqh;
+  line-height: 1;
+  font-family: var(--kiosk-font, sans-serif);
+}
+
+.homeBtn img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.searchInput {
+  flex: 1;
+  min-width: 0;
+  height: 100%;
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  gap: 1cqw;
+  background: #ffffff;
+  /* Figma 검색필드: 4.29px #fe6c50 border, rounded 120. */
+  border: 4.29px solid #fe6c50;
+  border-radius: 3.13cqh;
+  padding: 0 2.5cqw;
+  cursor: text;
+  overflow: hidden;
+  font-family: var(--kiosk-font, sans-serif);
+}
+
+/* Text + caret grouped on the LEFT; the magnifier sits at the right. */
+.inputTextWrap {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 0.4cqw;
+  overflow: hidden;
+}
+
+/* Figma placeholder: Noto Sans 600, 60.06px, #999, line-height 100%. */
+.inputText,
+.inputPlaceholder {
+  min-width: 0;
+  font-size: 1.564cqh;
+  font-weight: 600;
+  line-height: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-align: left;
+}
+
+.inputText {
+  color: #232323;
+}
+
+.inputPlaceholder {
+  color: #999999;
+}
+
+.searchIcon {
+  flex: none;
+  width: 2.6cqh;
+  height: 2.6cqh;
+  color: #fe6c50;
+}
+
+.caret {
+  flex: none;
+  width: 0.3cqw;
+  height: 2.6cqh;
+  background: #fe6c50;
+  animation: blink 1s step-end infinite;
+}
+
+@keyframes blink {
+  50% {
+    opacity: 0;
+  }
+}
+
+.searchNotice {
+  margin: 0;
+  font-size: 1.5cqh;
+  font-weight: 600;
+  color: #8a5a2b;
+  flex: none;
+}
+
+/* 메인메뉴 (Figma 4167:87290): rows are `justify-between w-[1820px]`, gap-[100px].
+   Fixed-300px columns distributed with space-between reproduce justify-between, so
+   col-1's left edge pins to x0 (under the home button) and col-4's right edge pins
+   to x1820 (under the KR button) — the outer tiles share the SAME vertical lines as
+   the home/KR circles. The wide AI tile spans 2 columns (Figma 830). */
+.grid {
+  display: grid;
+  grid-template-columns: repeat(4, 13.89cqw); /* 300px */
+  justify-content: space-between;
+  grid-auto-rows: 9.71cqh; /* 373px */
+  row-gap: 2.604cqh; /* 100px */
+}
+
+.tile {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.91cqh;
+  min-height: 0;
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+}
+
+.tileWide {
+  grid-column: span 2;
+}
+
+.tileArt {
+  flex: 1;
+  min-height: 0;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.tileArt img {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+}
+
+.tileFallback {
+  width: 70%;
+  aspect-ratio: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #efe3d6;
+  border-radius: 3cqw;
+  font-size: 1.2cqh;
+  text-align: center;
+  color: #a8917c;
+}
+
+.tileLabel {
+  flex: none;
+  font-size: 0.99cqh; /* 38px */
+  font-weight: 400; /* Figma: Noto Sans Regular */
+  line-height: 1; /* Figma: leading-none */
+  text-align: center;
+  color: #000000; /* Figma: text-black */
+}
+
+/* 하단네비 (R=하단버튼): the scalloped bar (Union, 2168×459) has THREE differently
+   sized bumps — measured from the actual PNG:
+     • LEFT  square bump : center x=438, ~436px wide  → K-DRAMA wide logo (381×235)
+     • MID   big dome     : center x=1080, ~380px wide → orange camera (356×356)
+     • RIGHT small dome   : center x=1688, ~192px wide → restroom icon (~185)
+   Each item is centered on its bump; labels share one baseline near the bar base. */
+.bottomRow {
+  position: absolute;
+  left: 0;
+  top: 2821px;
+  width: 2160px;
+  height: 446px;
+}
+
+.bottomBarBg {
+  position: absolute;
+  top: -7px;
+  left: -4px;
+  width: 2168px;
+  height: 459px;
+  z-index: 0;
+  pointer-events: none;
+}
+
+/* K-DRAMA / 화장실 — exact Figma component R=하단버튼 (node 5308:19877) coords.
+   Each item box wraps its icon (top:0) + label (bottom:0); item heights are
+   chosen so the label baseline lands on the Figma label-top (352 / 360). */
+.kdramaItem,
+.restroomItem {
+  position: absolute;
+  z-index: 1;
+  padding: 0;
+  border: none;
+  background: none;
+  cursor: pointer;
+}
+
+/* K-DRAMA logo: Figma left=245 top=89 381×235; label top=352 → height 314. */
+.kdramaItem {
+  left: 245px;
+  top: 89px;
+  width: 381px;
+  height: 314px;
+}
+
+/* Restroom: Figma left=1581 top=99 235×235; label top=360 → height 312. */
+.restroomItem {
+  left: 1581px;
+  top: 99px;
+  width: 235px;
+  height: 312px;
+}
+
+/* Wide K-DRAMA logo (native 381×235) — fills the square bump without squashing. */
+.kdramaIcon {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 381px;
+  height: 235px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.kdramaIcon img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+/* Restroom icon — Figma Group 132: 235×235 centered on the right dome. */
+.navIcon {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 235px;
+  height: 235px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.navIcon img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.navLabel {
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  font-family: var(--kiosk-font, sans-serif);
+  font-size: 50px;
+  font-weight: 400;
+  line-height: 1;
+  color: #000000;
+  white-space: nowrap;
+}
+
+/* Orange camera — Figma Group 134: left=903 top=39 356×356 (center x=1081). */
+.cameraBtn {
+  position: absolute;
+  z-index: 1;
+  left: 903px;
+  top: 39px;
+  width: 356px;
+  height: 356px;
+  padding: 0;
+  border: none;
+  background: none;
+  cursor: pointer;
+}
+
+.cameraBtn img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  filter: drop-shadow(0 12px 36px rgba(254, 108, 80, 0.35));
+}
+
+/* R>하단배너: top 2821+446=3267 → flush to bottom, full width */
+.banner {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 85.08%;
+  bottom: 0;
+  padding: 0;
+  border: none;
+  background: none;
+  cursor: pointer;
+  overflow: hidden;
+}
+
+.bannerImg {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+/* 준비중 (coming soon) — shown but not tappable. */
+.navDisabled {
+  cursor: default;
+  opacity: 0.45;
+}
+
+/* Left nav (home / back) — vertically aligned like every other screen. */
+.leftNav {
+  position: absolute;
+  left: 21px;
+  top: 1995px;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  gap: 35px;
+}
+
+.leftNavBtn {
+  width: 85px;
+  height: 85px;
+  padding: 0;
+  border: none;
+  background: none;
+  cursor: pointer;
+}
+
+.leftNavBtn img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}

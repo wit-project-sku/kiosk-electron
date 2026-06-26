@@ -1,0 +1,147 @@
+/* 환율 — exact Figma px (artboard 2160×3840). */
+.bg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  pointer-events: none;
+}
+
+.results {
+  position: absolute;
+  top: 699px;
+  left: 0;
+  right: 0;
+  bottom: 573px;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  gap: 100px;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: 0 170px;
+}
+
+.results::-webkit-scrollbar {
+  width: 34px;
+}
+.results::-webkit-scrollbar-thumb {
+  background: #fe6c50;
+  border-radius: 21.45px;
+}
+.results::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+/* Rate list — items centred, 40px apart (Figma 4167:99955). */
+.list {
+  flex: none;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 40px;
+  width: 100%;
+}
+
+/* Currency pill row (Figma 5287:63634): w1820 px65 py40, border 5px #d9d9d9, r214.499. */
+.row {
+  flex: none;
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: 40px 65px;
+  background: #ffffff;
+  border: 5px solid #d9d9d9;
+  border-radius: 214.499px;
+  overflow: hidden;
+  font-family: var(--kiosk-font, sans-serif);
+}
+
+.left {
+  display: flex;
+  align-items: center;
+  gap: 42.9px;
+  width: 560px;
+}
+
+/* Figma: a uniform circular flag (the source SVGs are rectangular, so cover-crop
+   to a circle keeps every currency the same size/shape regardless of aspect). */
+.flag {
+  width: 170px;
+  height: 170px;
+  flex: none;
+  border-radius: 50%;
+  object-fit: cover;
+  background: #ffffff;
+  border: 2px solid #e8e8e8;
+}
+
+.label {
+  font-weight: 500;
+  font-size: 60px;
+  line-height: normal;
+  color: #333333;
+  text-align: center;
+  white-space: nowrap;
+}
+
+.rate {
+  flex: none;
+  width: 354px;
+  height: 82px;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  font-weight: 500;
+  font-size: 60px;
+  line-height: normal;
+  color: #000000;
+  white-space: nowrap;
+}
+
+.leftNav {
+  position: absolute;
+  left: 21px;
+  top: 1995px;
+  display: flex;
+  flex-direction: column;
+  gap: 35px;
+}
+
+.leftNavBtn {
+  width: 85px;
+  height: 85px;
+  padding: 0;
+  border: none;
+  background: none;
+  cursor: pointer;
+}
+
+.leftNavBtn img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.banner {
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  width: 2160px;
+  height: 573px;
+  padding: 0;
+  border: none;
+  background: none;
+  cursor: pointer;
+  overflow: hidden;
+}
+
+.banner img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}

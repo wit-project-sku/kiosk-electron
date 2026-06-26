@@ -1,0 +1,411 @@
+/* 교통안내 — tabbed transit screen, exact Figma px (artboard 2160×3840). */
+.bg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  pointer-events: none;
+}
+
+.results {
+  position: absolute;
+  top: 699px;
+  left: 0;
+  right: 0;
+  bottom: 573px;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  gap: 60px;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: 0 170px;
+}
+
+.results::-webkit-scrollbar {
+  width: 34.32px;
+}
+.results::-webkit-scrollbar-thumb {
+  background: #fe6c50;
+  border-radius: 21.45px;
+}
+.results::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+/* Category tabs (3, equal width) */
+.tabs {
+  flex: none;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 1820px;
+}
+
+.tab {
+  width: 579px;
+  height: 170px;
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #ffffff;
+  border: 5px solid #e8e8e8;
+  border-radius: 42.9px;
+  font-family: var(--kiosk-font, sans-serif);
+  font-weight: 500;
+  font-size: 50px;
+  color: #999999;
+  cursor: pointer;
+}
+
+.tabSelected {
+  background: #f8ecde;
+  font-weight: 700;
+  color: #fe6c50;
+}
+
+/* Big content card */
+.card {
+  flex: none;
+  width: 1820px;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 60px;
+  /* Trimmed top + bottom padding so the tall 1628 map fits with clear space
+     above the bottom banner (no scrollbar). */
+  padding: 55px 40px 45px;
+  background: #ffffff;
+  border: 5px solid #e8e8e8;
+  border-radius: 42.9px;
+  box-shadow: 0 21.45px 21.45px rgba(143, 147, 157, 0.1);
+}
+
+/* Figma: 지하철/버스 title sits at the LEFT of the 1740 content row. */
+.cardTitle {
+  margin: 0;
+  width: 1740px;
+  font-family: var(--kiosk-font, sans-serif);
+  font-weight: 700;
+  font-size: 80px;
+  color: #333333;
+  text-align: left;
+}
+
+.mapWrap {
+  width: 1628px; /* Figma 서울 지하철 노선도 1628×1628 */
+  height: 1628px;
+  flex: none;
+}
+
+.mapWrap img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+/* Legend */
+.legendRow {
+  display: flex;
+  align-items: flex-start;
+  gap: 42.9px;
+  width: 1740px;
+}
+
+.marker {
+  width: 85px;
+  height: 85px;
+  flex: none;
+  object-fit: contain;
+}
+
+.legendItems {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 42.9px;
+}
+
+.legendColumn {
+  display: flex;
+  flex-direction: column;
+  gap: 21.45px;
+}
+
+.legendItem {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  font-family: var(--kiosk-font, sans-serif);
+  font-weight: 500;
+  font-size: 40px;
+  color: #333333;
+}
+
+.badge {
+  flex: none;
+  width: 85px;
+  height: 85px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  font-family: var(--kiosk-font, sans-serif);
+  font-weight: 600;
+  font-size: 50px;
+  color: #ffffff;
+}
+
+/* ── Tab 3: 주차장 안내 (종로Pick) ── */
+.parkingHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 1740px;
+}
+
+.appIdentity {
+  display: flex;
+  align-items: flex-start;
+  gap: 42.9px;
+}
+
+.appIcon {
+  width: 300px;
+  height: 300px;
+  flex: none;
+  border-radius: 42.9px;
+  overflow: hidden;
+  box-shadow: 0 0 15.015px rgba(0, 0, 0, 0.15);
+}
+
+.appIcon img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.appNameCol {
+  display: flex;
+  flex-direction: column;
+  gap: 42.9px;
+  font-family: var(--kiosk-font, sans-serif);
+  color: #333333;
+  white-space: nowrap;
+}
+
+.appName {
+  font-weight: 700;
+  font-size: 68px;
+  line-height: 1;
+}
+
+.appFree {
+  font-weight: 400;
+  font-size: 52px;
+  line-height: 1;
+}
+
+.qrGroup {
+  display: flex;
+  align-items: flex-start;
+  gap: 42.9px;
+}
+
+/* QR image already includes the store glyph / IOS label baked in. */
+.qrImg {
+  width: 246px;
+  height: auto;
+  flex: none;
+  object-fit: contain;
+}
+
+/* Single composed image of the four app screenshots (Figma Frame 1102, 1740×558). */
+.parkingScreens {
+  width: 1740px;
+  flex: none;
+}
+
+.parkingScreens img {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+.parkingDivider {
+  width: 1740px;
+  height: 2.145px;
+  background: #e8e8e8;
+  flex: none;
+}
+
+.parkingSection {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 30px;
+  width: 1740px;
+  font-family: var(--kiosk-font, sans-serif);
+}
+
+.parkingSubhead {
+  margin: 0;
+  font-weight: 700;
+  font-size: 60px;
+  line-height: 1.5;
+  color: #333333;
+}
+
+.parkingDesc {
+  display: flex;
+  flex-direction: column;
+  font-weight: 400;
+  font-size: 52px;
+  line-height: 1.3;
+  color: #333333;
+}
+
+.parkingServices {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 30px;
+  width: 1740px;
+  font-family: var(--kiosk-font, sans-serif);
+}
+
+.parkingServicesTitle {
+  margin: 0;
+  width: 100%;
+  font-weight: 700;
+  font-size: 60px;
+  line-height: 1.5;
+  color: #333333;
+  text-align: center;
+}
+
+.serviceList {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 48px;
+}
+
+.serviceItem {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  font-weight: 400;
+  font-size: 52px;
+  line-height: 1;
+  color: #000000;
+}
+
+.serviceDot {
+  flex: none;
+  width: 17.16px;
+  height: 17.16px;
+  border-radius: 50%;
+  background: #fe6c50;
+}
+
+/* 인사동 지도 tab */
+.mapIntro {
+  margin: 0;
+  width: 1740px;
+  font-family: var(--kiosk-font, sans-serif);
+  font-weight: 700;
+  font-size: 60px;
+  line-height: 1.5;
+  color: #333333;
+  text-align: center;
+}
+
+.areaMapWrap {
+  width: 1740px;
+  height: 1550px;
+  flex: none;
+  overflow: hidden;
+}
+
+.areaMapWrap img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.kioskLocations {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 30px;
+  width: 1740px;
+  padding-top: 40px;
+  font-family: var(--kiosk-font, sans-serif);
+  text-align: center;
+  color: #333333;
+}
+
+.kioskTitle {
+  margin: 0;
+  font-weight: 700;
+  font-size: 60px;
+  line-height: 1.5;
+}
+
+.kioskList {
+  margin: 0;
+  font-weight: 500;
+  font-size: 50px;
+  line-height: 1.5;
+}
+
+.leftNav {
+  position: absolute;
+  left: 21px;
+  top: 1995px;
+  display: flex;
+  flex-direction: column;
+  gap: 35px;
+}
+
+.leftNavBtn {
+  width: 85px;
+  height: 85px;
+  padding: 0;
+  border: none;
+  background: none;
+  cursor: pointer;
+}
+
+.leftNavBtn img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.banner {
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  width: 2160px;
+  height: 573px;
+  padding: 0;
+  border: none;
+  background: none;
+  cursor: pointer;
+  overflow: hidden;
+}
+
+.banner img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}

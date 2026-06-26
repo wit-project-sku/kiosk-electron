@@ -1,0 +1,79 @@
+/* Fills the 2160×3840 customer-display artboard. */
+.wrap {
+  position: absolute;
+  inset: 0;
+  /* Whitish base so any momentary gap reads as a soft flash, never black. */
+  background: #f6f6f6;
+}
+
+.video {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  background: #f6f6f6;
+  display: block;
+  /* Instant cut between the two stacked layers (no animation) — the hidden
+     layer is only revealed once it is actually playing, so there is never a
+     black frame, and switching costs nothing. */
+}
+
+.show {
+  opacity: 1;
+}
+
+.hide {
+  opacity: 0;
+}
+
+/* PARK SUL NYEO brand logo, top-left. Source SVG embeds a 3000×2121 raster,
+   so it stays crisp at this size. */
+.logo {
+  position: absolute;
+  top: 80px;
+  left: 80px;
+  width: 460px;
+  height: auto;
+  object-fit: contain;
+  pointer-events: none;
+  image-rendering: auto;
+}
+
+/* Ambassador label (title), top-right. Figma: NOTOSANS / FFFFFF / regular / 68. */
+.label {
+  position: absolute;
+  top: 90px;
+  right: 90px;
+  max-width: 1400px;
+  text-align: right;
+  font-family: var(--kiosk-font, sans-serif);
+  font-weight: 400;
+  font-size: 68px;
+  line-height: 1.3;
+  color: #ffffff;
+}
+
+/* Subtitle box — Figma Rectangle 240653651: width 2096, rounded 150,
+   bg rgba(0,0,0,0.2); text NOTOSANS / FFFFFF / regular / 68 / 행간 150.
+   Sits a bit higher up the screen (not pinned to the bottom). */
+.subtitle {
+  position: absolute;
+  left: 50%;
+  bottom: 480px;
+  transform: translateX(-50%);
+  box-sizing: border-box;
+  width: 2096px;
+  text-align: center;
+  white-space: pre-line;
+  font-family: var(--kiosk-font, sans-serif);
+  font-weight: 400;
+  font-size: 68px;
+  line-height: 1.5;
+  color: #ffffff;
+  padding: 48px 100px;
+  border-radius: 150px;
+  background: rgba(0, 0, 0, 0.2);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}

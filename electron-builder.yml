@@ -1,0 +1,83 @@
+appId: com.kioskapp.desktop
+productName: Kiosk App
+copyright: Copyright © 2026 Kiosk App Team
+
+directories:
+  output: release/${version}
+  buildResources: build
+
+# Bundle the compiled output and the native better-sqlite3 module.
+files:
+  - out/**/*
+  - package.json
+  # Vendored NestJS payment agent (compiled JS, incl. its dist/package.json
+  # marking the subtree commonjs). Its runtime deps live in the app's own
+  # node_modules (declared in package.json), so they are ASAR-packed and
+  # ABI-rebuilt for Electron alongside the rest of the app. Spawned as an
+  # isolated Node child (ELECTRON_RUN_AS_NODE) on card-terminal kiosks (W003).
+  - payment-agent/dist/**/*
+
+extraResources:
+  - from: themes
+    to: themes
+  # Display/attract videos — streamed at runtime via media://video/<name>.
+  - from: resources/videos
+    to: videos
+  # Runtime config + Google service-account secret (read from resources/ in the
+  # packaged app). Keep these out of source control; they are baked into the
+  # installer for this controlled kiosk fleet.
+  - from: .env
+    to: .env
+  # Per-machine kiosk provisioning helper (sets electron-store kioskId).
+  - from: provision-kiosk.ps1
+    to: provision-kiosk.ps1
+  # OS-level touch/kiosk lockdown (disables edge-swipe, Win key, Task Manager).
+  - from: scripts/lockdown-kiosk.ps1
+    to: lockdown-kiosk.ps1
+  - from: secrets
+    to: secrets
+
+# Native modules must not be ASAR-packed unextracted (better-sqlite3 + the
+# payment agent's serialport bindings).
+asarUnpack:
+  - '**/*.node'
+  - node_modules/better-sqlite3/**
+  - node_modules/serialport/**
+  - node_modules/@serialport/**
+
+npmRebuild: true
+
+win:
+  target:
+    - target: nsis
+      arch:
+        - x64
+  # Build_<buildVer>_<buildDate>_v<appVersion>_<location>_<channel>_<releaseDate>
+  # e.g. Build_V4_20260430_v5.0.5_북인사_live_2026.05.01.exe
+  # Env tokens are injected by scripts/build-win.mjs (date/version auto, labels
+  # overridable: BUILD_VER, KIOSK_LOC, CHANNEL, RELEASE_DATE).
+  artifactName: Build_${env.BUILD_VER}_${env.BUILD_DATE}_v${version}_${env.KIOSK_LOC}_${env.CHANNEL}_${env.RELEASE_DATE}.${ext}
+  sign: null
+  forceCodeSigning: false
+
+nsis:
+  oneClick: false
+  perMachine: false
+  allowToChangeInstallationDirectory: true
+  deleteAppDataOnUninstall: false
+
+mac:
+  target:
+    - dmg
+  category: public.app-category.business
+  artifactName: ${productName}-${version}.${ext}
+
+linux:
+  target:
+    - AppImage
+  category: Utility
+  artifactName: ${productName}-${version}.${ext}
+
+publish:
+  provider: generic
+  url: https://example.com/updates

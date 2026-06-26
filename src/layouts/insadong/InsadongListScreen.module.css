@@ -1,0 +1,261 @@
+/* Reusable list screen (뭐먹지/뭐사지) — exact Figma px (artboard 2160×3840). */
+.bg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  pointer-events: none;
+}
+
+/* 검색결과 5287:64643: top 699, px170, gap 100 (tabs → list). No bottom banner. */
+.results {
+  position: absolute;
+  top: 699px;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 100px;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: 0 170px 80px;
+}
+
+.results::-webkit-scrollbar {
+  width: 34px;
+}
+.results::-webkit-scrollbar-thumb {
+  background: #fe6c50;
+  border-radius: 21.45px;
+}
+.results::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+/* Category tabs — 2×5 grid of rounded-rect tabs (exact Figma: 340×170, r42.9) */
+.tabs {
+  flex: none;
+  display: flex;
+  flex-wrap: wrap;
+  align-content: flex-start;
+  justify-content: space-between;
+  row-gap: 35px;
+  width: 100%;
+}
+
+/* ≤5 categories: one row, tabs share the width equally (≈580px for 3). */
+.tabsRow {
+  flex-wrap: nowrap;
+  justify-content: space-between;
+  gap: 40px;
+}
+
+.tabWide {
+  width: auto;
+  flex: 1;
+}
+
+.tab {
+  box-sizing: border-box;
+  width: 340px;
+  height: 170px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #ffffff;
+  border: 5px solid #e8e8e8;
+  border-radius: 42.9px;
+  box-shadow: 0 21.45px 42.9px rgba(143, 147, 157, 0.1);
+  font-family: var(--kiosk-font, sans-serif);
+  font-weight: 500;
+  font-size: 50px;
+  color: #999999;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.tabSelected {
+  background: #faeee3;
+  font-weight: 700;
+  color: #fe6c50;
+}
+
+/* List 5287:64645: w1820, gap 60 between cards. */
+.list {
+  flex: none;
+  width: 1820px;
+  display: flex;
+  flex-direction: column;
+  gap: 60px;
+}
+
+/* Card R>리스트-사진4개 (1233:2477): w1820 h530, px45 py65, border 5px #e8e8e8,
+   radius 42.9. Inner: info(1120) ↔ photos(570), gap 40. */
+.card {
+  width: 100%;
+  height: 530px;
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 40px;
+  padding: 65px 45px;
+  background: #ffffff;
+  border: 5px solid #e8e8e8;
+  border-radius: 42.9px;
+  box-shadow: 0 21.45px 21.45px rgba(143, 147, 157, 0.1);
+  text-align: left;
+  cursor: pointer;
+  overflow: hidden;
+}
+
+.info {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 40px;
+  overflow: hidden;
+  font-family: var(--kiosk-font, sans-serif);
+}
+
+.nameRow {
+  display: flex;
+  align-items: center;
+  gap: 40px;
+  min-width: 0;
+}
+
+.name {
+  flex: 0 1 auto;
+  min-width: 0;
+  font-weight: 600;
+  font-size: 68px;
+  line-height: 1; /* Figma: 100% */
+  color: #2b2b2b;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.cat {
+  flex: none;
+  display: flex;
+  align-items: center;
+  gap: 21.45px;
+  font-weight: 400;
+  font-size: 52px;
+  line-height: 1; /* Figma: 100% */
+  color: #999999;
+  white-space: nowrap;
+}
+
+.dot {
+  width: 17px;
+  height: 17px;
+  border-radius: 50%;
+  background: #fe6c50;
+}
+
+.address {
+  margin: 0;
+  font-weight: 500;
+  font-size: 48px;
+  line-height: 1; /* Figma: 100% */
+  color: #999999;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Figma: description wraps to a max of 2 lines, then "…". */
+.desc {
+  margin: 0;
+  font-weight: 500;
+  font-size: 48px;
+  line-height: 1.2;
+  color: #2b2b2b;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.tags {
+  margin: 0;
+  font-weight: 400;
+  font-size: 40px;
+  line-height: 1; /* Figma: 100% */
+  color: #999999;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.photos {
+  width: 570px;
+  flex: none;
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 30px;
+}
+
+.thumb {
+  height: 150px;
+  border-radius: 21.45px;
+  overflow: hidden;
+}
+
+.thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.leftNav {
+  position: absolute;
+  left: 21px;
+  top: 1995px;
+  display: flex;
+  flex-direction: column;
+  gap: 35px;
+}
+
+.leftNavBtn {
+  width: 85px;
+  height: 85px;
+  padding: 0;
+  border: none;
+  background: none;
+  cursor: pointer;
+}
+
+.leftNavBtn img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.banner {
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  width: 2160px;
+  height: 573px;
+  padding: 0;
+  border: none;
+  background: none;
+  cursor: pointer;
+  overflow: hidden;
+}
+
+.banner img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}

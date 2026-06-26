@@ -1,0 +1,462 @@
+/* 안녕 '인사' — 인사 mascot (profile / hobbies / stretching). Exact Figma px (2160×3840). */
+.bg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  pointer-events: none;
+}
+
+.content {
+  position: absolute;
+  top: 699px;
+  left: 0;
+  right: 0;
+  bottom: 573px;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 100px; /* Figma tab → card gap */
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: 0 170px 40px;
+  font-family: var(--kiosk-font, sans-serif);
+}
+
+.content::-webkit-scrollbar {
+  width: 34.32px;
+}
+.content::-webkit-scrollbar-thumb {
+  background: #fe6c50;
+  border-radius: 21.45px;
+}
+.content::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+/* ── Tabs ── */
+.tabs {
+  flex: none;
+  width: 1816.802px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.tab {
+  box-sizing: border-box;
+  width: 580px; /* Figma tab w579-580 */
+  height: 170px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #ffffff;
+  border: 5px solid #e8e8e8;
+  border-radius: 42.9px;
+  font-family: var(--kiosk-font, sans-serif);
+  font-weight: 500;
+  font-size: 50px;
+  color: #999999;
+  cursor: pointer;
+  white-space: nowrap;
+  padding: 0 12px;
+  text-align: center;
+}
+
+.tabSelected {
+  background: #f8ecde;
+  font-weight: 600; /* Figma: SemiBold */
+  color: #fe6c50;
+}
+
+/* ── Card (shared) — Figma: w1820, h2160 (all 3 tabs same height), gap 65,
+   px40 py65, border 5px, radius 42.9. */
+.card {
+  box-sizing: border-box;
+  width: 1820px;
+  height: 2160px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  /* Tighter section gap + smaller top padding so the footer (hashtags/social)
+     doesn't crash the card's bottom edge within the fixed 2160 height. */
+  gap: 45px;
+  padding: 50px 40px 65px;
+  background: #ffffff;
+  border: 5px solid #e8e8e8;
+  border-radius: 42.9px;
+  box-shadow: 0 21.45px 21.45px rgba(143, 147, 157, 0.1);
+}
+
+/* ===========================================================
+   TAB 1 — profile
+   =========================================================== */
+.topRow {
+  display: flex;
+  align-items: center;
+  gap: 100px;
+  width: 1740px;
+}
+
+.portrait {
+  flex: none;
+  width: 750px; /* Figma 750×750 */
+  height: 750px;
+  border-radius: 50%;
+  overflow: hidden;
+}
+.portrait img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  /* Anchor to the top so the head is never cropped off. */
+  object-position: center top;
+}
+
+.infoCol {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 45px; /* Figma info col gap 45 */
+}
+
+.nameRow {
+  display: flex;
+  align-items: center;
+  gap: 40px;
+}
+
+.label {
+  flex: none;
+  font-weight: 700;
+  font-size: 60px;
+  color: #000000;
+  line-height: 1;
+}
+
+.namePill {
+  display: inline-flex;
+  align-items: center;
+  background: #f8ecde;
+  color: #fe6c50;
+  font-weight: 700;
+  font-size: 58px;
+  padding: 14px 26px;
+  line-height: 1;
+}
+
+.field {
+  display: flex;
+  align-items: center;
+}
+.field .label {
+  width: 210px;
+}
+
+.value {
+  font-weight: 400;
+  font-size: 58px;
+  color: #000000;
+  line-height: 1;
+}
+
+.divider {
+  height: 2px;
+  width: 100%;
+  background: #e8e8e8;
+}
+
+.detailsCol {
+  display: flex;
+  flex-direction: column;
+  gap: 50px; /* Figma body col gap 50 */
+}
+
+.detail {
+  display: flex;
+  align-items: flex-start;
+  gap: 40px;
+}
+.detail .label {
+  width: 230px;
+}
+
+.detailValue {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  font-weight: 400;
+  font-size: 58px; /* Figma body value 58 */
+  color: #000000;
+  line-height: 1.3;
+}
+
+/* ===========================================================
+   TAB 2 — hobbies (alternating image side)
+   =========================================================== */
+/* Figma: title + description top-align with the image (items-start), not centered. */
+.hobby {
+  display: flex;
+  align-items: flex-start;
+  gap: 100px;
+  width: 1740px;
+}
+.hobbyReverse {
+  flex-direction: row-reverse;
+}
+
+.hobbyText {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 25px;
+}
+
+.hobbyTitle {
+  margin: 0;
+  font-weight: 700;
+  font-size: 63px;
+  color: #000000;
+  line-height: 1.3;
+}
+
+.hobbyBody {
+  display: flex;
+  flex-direction: column;
+  font-weight: 400;
+  font-size: 50px;
+  color: #000000;
+  line-height: 1.3;
+}
+
+.hobbyImg {
+  flex: none;
+  width: 452px;
+  height: 565px;
+  border-radius: 45px;
+  overflow: hidden;
+}
+.hobbyImg img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* ===========================================================
+   TAB 3 — stretching
+   =========================================================== */
+.stretchPhotos {
+  display: flex;
+  justify-content: space-between;
+  width: 1740px;
+}
+
+.stretchPhoto {
+  width: 536px;
+  height: 670px;
+  border-radius: 45px;
+  overflow: hidden;
+}
+.stretchPhoto img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.stretchIntro {
+  display: flex;
+  flex-direction: column;
+  gap: 25px;
+  width: 1740px;
+}
+
+.stretchIntroTitle {
+  margin: 0;
+  font-weight: 700;
+  font-size: 63px;
+  color: #000000;
+  line-height: 1.3;
+}
+
+.stretchIntroBody {
+  display: flex;
+  flex-direction: column;
+  font-weight: 400;
+  font-size: 50px;
+  color: #000000;
+  line-height: 1.3;
+}
+
+.stretchBottom {
+  display: flex;
+  align-items: flex-start;
+  gap: 100px;
+  width: 1740px;
+}
+
+.stretchSections {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 64.35px;
+}
+
+.stretchSection {
+  display: flex;
+  flex-direction: column;
+  gap: 25px;
+}
+
+.stretchSecTitle {
+  margin: 0;
+  font-weight: 700;
+  font-size: 63px;
+  color: #000000;
+  line-height: 1.3;
+}
+
+.stretchSecBody {
+  display: flex;
+  flex-direction: column;
+  font-weight: 400;
+  font-size: 50px;
+  color: #000000;
+  line-height: 1.3;
+}
+
+.stretchSide {
+  flex: none;
+  width: 499px;
+  height: 625px;
+  border-radius: 32.175px;
+  overflow: hidden;
+}
+.stretchSide img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* ===========================================================
+   FOOTER — hashtags + social (TikTok/Instagram + QR)
+   =========================================================== */
+.footer {
+  display: flex;
+  align-items: center;
+  gap: 30px;
+  width: 1740px;
+}
+
+.hashtag {
+  flex: none;
+  box-sizing: border-box;
+  width: 322px;
+  height: 125px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #fe6c50;
+  border-radius: 42.9px;
+  font-weight: 700;
+  font-size: 51.48px;
+  color: #ffffff;
+  white-space: nowrap;
+}
+
+.socials {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 25px; /* Figma social row gap 25 */
+}
+
+.social {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+}
+
+.socialPair {
+  display: flex;
+  align-items: center;
+  gap: 25px;
+}
+
+/* Figma social icons / QR: 125×125, QR border 5px #f48570 r21.45. */
+.socialIcon {
+  flex: none;
+  width: 125px;
+  height: 125px;
+  object-fit: contain;
+  border-radius: 21.45px;
+}
+
+.socialQr {
+  flex: none;
+  box-sizing: border-box;
+  width: 125px;
+  height: 125px;
+  border: 5px solid #f48570;
+  border-radius: 21.45px;
+  background: #ffffff;
+  padding: 10px;
+}
+.socialQr img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  image-rendering: pixelated;
+}
+
+.socialWho {
+  font-weight: 500;
+  font-size: 30px;
+  color: #999999;
+  white-space: nowrap;
+}
+
+/* ── Left nav & banner ── */
+.leftNav {
+  position: absolute;
+  left: 21px;
+  top: 1995px;
+  display: flex;
+  flex-direction: column;
+  gap: 35px;
+}
+
+.leftNavBtn {
+  width: 85px;
+  height: 85px;
+  padding: 0;
+  border: none;
+  background: none;
+  cursor: pointer;
+}
+.leftNavBtn img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.banner {
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  width: 2160px;
+  height: 573px;
+  padding: 0;
+  border: none;
+  background: none;
+  cursor: pointer;
+  overflow: hidden;
+}
+.banner img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}

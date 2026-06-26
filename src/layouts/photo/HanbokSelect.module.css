@@ -1,0 +1,660 @@
+/* AR 한복체험 outfit selection — exact Figma px (artboard 2160×3840). */
+.bg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  pointer-events: none;
+}
+
+.content {
+  position: absolute;
+  top: 594px;
+  left: 170px;
+  width: 1820px;
+  bottom: 573px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 60px; /* Figma 검색결과 gap 60 */
+  overflow-y: auto;
+  font-family: var(--kiosk-font, sans-serif);
+}
+
+/* Step heading */
+.stepHead {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 40px;
+  width: 100%;
+}
+
+.stepRow {
+  display: flex;
+  align-items: center;
+  gap: 21.45px;
+}
+
+.stepNum {
+  flex: none;
+  width: 105px;
+  height: 105px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--photo-accent, #fe6c50);
+  border-radius: 50%;
+  font-weight: 700;
+  font-size: 65px;
+  color: #ffffff;
+  
+}
+
+.stepTitle {
+  font-weight: 700;
+  font-size: 68px;
+  color: #333333;
+  white-space: nowrap;
+}
+
+.stepSub {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  padding: 0 40px;
+  font-weight: 700;
+  font-size: 47px;
+  color: #909090;
+}
+
+.star {
+  color: var(--photo-accent, #fe6c50);
+  font-size: 40px;
+}
+
+/* Category tabs (2×4) */
+.tabs {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  row-gap: 35px;
+  width: 1820px;
+}
+
+.tab {
+  box-sizing: border-box;
+  width: 420px;
+  height: 170px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #ffffff;
+  border: 5px solid #e8e8e8;
+  border-radius: 42.9px;
+  font-family: var(--kiosk-font, sans-serif);
+  font-weight: 500;
+  font-size: 50px;
+  color: #999999;
+  cursor: pointer;
+}
+
+.tabSel {
+  background: var(--photo-accent-soft, #faeee3);
+  font-weight: 700;
+  color: var(--photo-accent, #fe6c50);
+}
+
+/* Outfit grid — 2 horizontally-scrollable rows */
+/* Swiper Grid: 2 rows of 490px cards + 36px gap = 1016px tall, 1820 wide.
+   slidesPerView 3.54 → 3 full cards + a peek (Figma swipe cue). Swiper keeps its
+   own overflow:hidden so off-page cards are clipped to the peek. */
+.grid {
+  width: 1820px;
+  height: 1016px;
+  cursor: grab;
+}
+.grid:active {
+  cursor: grabbing;
+}
+
+.outfitSlide {
+  /* Deterministic row height regardless of Swiper internals: (1016 - 36) / 2. */
+  height: calc((100% - 36px) / 2) !important;
+  box-sizing: border-box;
+}
+
+.outfit {
+  box-sizing: border-box;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding-top: 20px;
+  background: #ffffff;
+  border: 2.145px solid #e8e8e8;
+  border-radius: 42.9px;
+  box-shadow: 0 21.45px 42.9px rgba(143, 147, 157, 0.1);
+  cursor: pointer;
+}
+
+.outfitSel {
+  background: var(--photo-accent-soft, #faeee3);
+  border-color: var(--photo-accent, #fe6c50);
+}
+
+/* Figma: outfit image is 181×350 inside the 478×490 card. */
+.outfit img {
+  width: 181px;
+  height: 350px;
+  object-fit: cover;
+}
+
+/* Capture buttons */
+.captureRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 1740px;
+}
+
+.captureBtn {
+  box-sizing: border-box;
+  width: 815px;
+  height: 150px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 30px;
+  background: #616161;
+  border: none;
+  border-radius: 42.9px;
+  box-shadow: 0 21.45px 42.9px rgba(143, 147, 157, 0.1);
+  font-family: var(--kiosk-font, sans-serif);
+  font-weight: 700;
+  font-size: 58px;
+  color: #e9e9e9;
+  cursor: pointer;
+}
+
+.captureIcon {
+  width: 68px;
+  height: 68px;
+  flex: none;
+}
+
+/* Step 2 card */
+.step2 {
+  box-sizing: border-box;
+  width: 1820px;
+  height: 592px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 65px 40px;
+  background: #ffffff;
+  border: 2.145px solid #e8e8e8;
+  border-radius: 42.9px;
+  box-shadow: 0 21.45px 21.45px rgba(143, 147, 157, 0.1);
+}
+
+.step2Main {
+  display: flex;
+  flex-direction: column;
+  gap: 30px;
+}
+
+.step2Sub {
+  display: flex;
+  align-items: flex-start;
+  gap: 20px;
+  padding: 0 40px;
+}
+
+.step2Lines {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  font-weight: 700;
+  font-size: 47px;
+  line-height: 1.4;
+  color: #909090;
+}
+
+.privacy {
+  align-self: flex-start;
+  padding: 0;
+  font-weight: 700;
+  font-size: 47px;
+  color: #d0d2d3;
+  border: none;
+  background: none;
+  cursor: pointer;
+  text-align: left;
+  font-family: var(--kiosk-font, sans-serif);
+}
+
+.hanbokInfo {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 24px;
+  width: 235px;
+  flex: none;
+  border: none;
+  background: none;
+  cursor: pointer;
+  padding: 0;
+}
+
+.hanbokInfoCircle {
+  width: 235px;
+  height: 235px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  overflow: hidden;
+}
+
+/* The icon already includes its own coloured circle — let it fill the slot. */
+.hanbokInfoCircle img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.hanbokInfoLabel {
+  font-weight: 600;
+  font-size: 47px;
+  color: #333333;
+}
+
+.leftNav {
+  position: absolute;
+  left: 21px;
+  top: 1995px;
+  display: flex;
+  flex-direction: column;
+  gap: 35px;
+}
+
+.leftNavBtn {
+  width: 85px;
+  height: 85px;
+  padding: 0;
+  border: none;
+  background: none;
+  cursor: pointer;
+}
+
+.leftNavBtn img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.banner {
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  width: 2160px;
+  height: 573px;
+  overflow: hidden;
+}
+
+.banner img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+/* ── Camera direction popup (Figma 한복체험_촬영안내) ───────────────────────── */
+/* Full-screen dim overlay, rgba(0,0,0,0.3). */
+.camBackdrop {
+  position: absolute;
+  inset: 0;
+  z-index: 49;
+  background: rgba(0, 0, 0, 0.3);
+}
+
+/* Popup image — Figma: 1295×2630, radius 75.074, top 545, horizontally centred. */
+.camPopup {
+  position: absolute;
+  left: 50%;
+  top: 545px;
+  transform: translateX(-50%);
+  width: 1295px;
+  height: 2630px;
+  z-index: 50;
+  pointer-events: none;
+}
+
+.camPopupImg {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 75.074px;
+  display: block;
+}
+
+/* ── 한복 설명 page ───────────────────────────────────────────────────────── */
+.infoContent {
+  position: absolute;
+  top: 699px;
+  left: 0;
+  right: 0;
+  bottom: 1019px; /* clear the curved bottom nav bar (top 2821) above the banner */
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  gap: 60px;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: 0 170px 30px;
+  font-family: var(--kiosk-font, sans-serif);
+}
+
+/* ── 한복 설명 bottom nav — identical to the home page curved bar ──────────── */
+.infoNav {
+  position: absolute;
+  left: 0;
+  top: 2821px;
+  width: 2160px;
+  height: 446px;
+  z-index: 5;
+}
+
+.infoNavBg {
+  position: absolute;
+  top: -51px;
+  left: -43px;
+  width: 2246px;
+  height: 532px;
+  z-index: 0;
+  pointer-events: none;
+}
+
+/* 인사동 지도 / 화장실 — icon (in the bump) + label (near the bar base). */
+.infoNavLeft,
+.infoNavRight {
+  position: absolute;
+  z-index: 1;
+  top: 99px;
+  width: 403px;
+  height: 303px;
+  padding: 0;
+  border: none;
+  background: none;
+  cursor: pointer;
+  font-family: var(--kiosk-font, sans-serif);
+}
+.infoNavLeft {
+  left: 262px;
+}
+.infoNavRight {
+  left: 1497px;
+}
+
+.infoNavIcon {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 235px;
+  height: 235px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.infoNavIcon img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  /* Clip to a circle so the map squircle matches the circular Figma nav icons. */
+  border-radius: 50%;
+}
+
+.infoNavLabel {
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  font-weight: 400;
+  font-size: 50px;
+  color: #000000;
+  white-space: nowrap;
+}
+
+/* Centre camera button — sits in the bar's bump, like the home page. */
+.infoNavCam {
+  position: absolute;
+  z-index: 1;
+  left: 902px;
+  top: 39px;
+  width: 356px;
+  height: 356px;
+  padding: 0;
+  border: none;
+  background: none;
+  cursor: pointer;
+}
+.infoNavCam img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  filter: drop-shadow(0 12px 36px rgba(254, 108, 80, 0.35));
+}
+
+/* Osan: navy circular camera button (matches the home page), white glyph. */
+.infoNavCamOsan {
+  border-radius: 50%;
+  background: #1a4d7e;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 12px 36px rgba(26, 77, 126, 0.35);
+}
+.infoNavCamGlyph {
+  width: 160px;
+  height: 160px;
+  color: #ffffff;
+}
+
+/* Osan: the left nav (지도) icon sits on the uploaded circle image (Ellipse 22),
+   with the map illustration centred on top so the circle shows around it. */
+.infoNavIconOsan {
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+}
+.infoNavIconOsan img {
+  width: 62%;
+  height: 62%;
+  border-radius: 0;
+}
+
+.infoContent::-webkit-scrollbar {
+  width: 34px;
+}
+.infoContent::-webkit-scrollbar-thumb {
+  background: var(--photo-accent, #fe6c50);
+  border-radius: 21.45px;
+}
+
+/* Outfit cards (Figma 한복체험_한복설명): white rounded cards, the first one
+   selected (orange border + cream fill), outfit image centred. Drag to scroll. */
+.infoCarousel {
+  flex: none;
+  display: flex;
+  gap: 28px;
+  width: 100%;
+  overflow-x: auto;
+  cursor: grab;
+  touch-action: pan-x;
+  user-select: none;
+  -webkit-user-select: none;
+  scrollbar-width: none;
+}
+.infoCarousel:active {
+  cursor: grabbing;
+}
+.infoCarousel::-webkit-scrollbar {
+  display: none;
+}
+
+.infoThumb {
+  box-sizing: border-box;
+  flex: none;
+  width: 478px;
+  height: 490px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #ffffff;
+  border: 2.145px solid #e8e8e8;
+  border-radius: 42.9px;
+  box-shadow: 0 21.45px 42.9px rgba(143, 147, 157, 0.1);
+}
+.infoThumbSel {
+  background: var(--photo-tint, #fff9f3);
+  border-color: var(--photo-accent, #fe6c50);
+}
+.infoThumb img {
+  width: auto;
+  height: 350px;
+  object-fit: contain;
+}
+
+/* Figma 한복설명 body card: w1820 h1374, px40 py100, gap 65, justify-center. */
+.infoCard {
+  flex: none;
+  box-sizing: border-box;
+  width: 1820px;
+  height: 1374px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: flex-start;
+  gap: 65px;
+  padding: 100px 40px;
+  background: #ffffff;
+  border: 2.145px solid #e8e8e8;
+  border-radius: 45px;
+  box-shadow: 0 21.45px 21.45px rgba(143, 147, 157, 0.1);
+}
+
+.infoHeading {
+  margin: 0;
+  font-weight: 700;
+  font-size: 65px;
+  color: #333333;
+}
+
+.infoBody {
+  display: flex;
+  flex-direction: column;
+  gap: 36px;
+}
+
+.infoPara {
+  margin: 0;
+  font-weight: 400;
+  font-size: 50px;
+  line-height: 1.5;
+  color: #000000;
+}
+
+/* ── 개인정보 처리방침 modal ──────────────────────────────────────────────── */
+.privacyOverlay {
+  position: absolute;
+  inset: 0;
+  z-index: 3000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.45);
+}
+
+.privacyModal {
+  box-sizing: border-box;
+  width: 1760px;
+  max-height: 2700px;
+  display: flex;
+  flex-direction: column;
+  background: #ffffff;
+  border-radius: 42.9px;
+  padding: 70px 80px 40px;
+  box-shadow: 0 30px 90px rgba(0, 0, 0, 0.25);
+}
+
+.privacyHead {
+  flex: none;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 40px;
+}
+
+.privacyTitle {
+  font-family: var(--kiosk-font, sans-serif);
+  font-weight: 700;
+  font-size: 64px;
+  color: #1a1a1a;
+}
+
+.privacyClose {
+  width: 90px;
+  height: 90px;
+  border: none;
+  background: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #333333;
+}
+.privacyCloseIcon {
+  width: 64px;
+  height: 64px;
+}
+
+.privacyBody {
+  flex: 1;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 40px;
+  font-family: var(--kiosk-font, sans-serif);
+}
+.privacyBody::-webkit-scrollbar {
+  width: 24px;
+}
+.privacyBody::-webkit-scrollbar-thumb {
+  background: var(--photo-accent, #fe6c50);
+  border-radius: 12px;
+}
+
+.privacySection {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.privacySecTitle {
+  margin: 0 0 6px;
+  font-weight: 700;
+  font-size: 42px;
+  color: #1a1a1a;
+}
+
+.privacySecLine {
+  margin: 0;
+  font-weight: 400;
+  font-size: 36px;
+  line-height: 1.45;
+  color: #555555;
+}

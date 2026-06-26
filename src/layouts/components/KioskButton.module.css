@@ -1,0 +1,46 @@
+.button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 5rem;
+  padding: 1.25rem 1.5rem;
+  border: none;
+  border-radius: 12px;
+  background: var(--kiosk-primary, #8b4513);
+  color: #fff;
+  font-family: inherit;
+  font-size: var(--kiosk-button-size, 1.25rem);
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 120ms ease, transform 80ms ease;
+  touch-action: manipulation;
+}
+
+.button:active {
+  transform: scale(0.97);
+  background: var(--kiosk-primary-hover, #6d3610);
+}
+
+.buttonSecondary {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 5rem;
+  padding: 1.25rem 1.5rem;
+  border: 2px solid var(--kiosk-primary, #8b4513);
+  border-radius: 12px;
+  background: var(--kiosk-surface, #fff);
+  color: var(--kiosk-primary, #8b4513);
+  font-family: inherit;
+  font-size: var(--kiosk-button-size, 1.25rem);
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 120ms ease, transform 80ms ease;
+  touch-action: manipulation;
+}
+
+.buttonSecondary:active {
+  transform: scale(0.97);
+  background: var(--kiosk-secondary, #d4a574);
+  color: #fff;
+}

@@ -1,0 +1,145 @@
+/* Fullscreen photo lightbox. Lives inside the scaled 2160×3840 artboard, so
+   `position: fixed` is relative to the transformed stage and 1px = 1 Figma px. */
+.overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 200;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  /* Frosted glass instead of a heavy dark box — the photo is the focus while
+     the page behind is softly blurred away. */
+  background: rgba(245, 247, 250, 0.12);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+}
+
+.close {
+  position: absolute;
+  top: 90px;
+  right: 90px;
+  z-index: 10;
+  width: 150px;
+  height: 150px;
+  padding: 0;
+  border: none;
+  border-radius: 50%;
+  background: rgba(20, 28, 40, 0.72);
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.25);
+  -webkit-tap-highlight-color: transparent;
+}
+
+.close:active {
+  background: rgba(20, 28, 40, 0.9);
+}
+
+.close svg {
+  width: 74px;
+  height: 74px;
+}
+
+/* Bigger than before — fills most of the artboard so photos read large. */
+.stage {
+  width: 2040px;
+  height: 3040px;
+  max-width: 95%;
+}
+
+.swiper {
+  width: 100%;
+  height: 100%;
+}
+
+.slide {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.zoomBox {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.img {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+  border-radius: 36px;
+  box-shadow: 0 30px 90px rgba(0, 0, 0, 0.28);
+}
+
+/* ── Custom prev/next buttons ── */
+.nav {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 10;
+  width: 160px;
+  height: 160px;
+  padding: 0;
+  border: none;
+  border-radius: 50%;
+  background: rgba(20, 28, 40, 0.72);
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.25);
+  transition: opacity 0.15s ease, transform 0.1s ease;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.nav:active {
+  background: rgba(20, 28, 40, 0.9);
+  transform: translateY(-50%) scale(0.94);
+}
+
+.nav:disabled {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.nav svg {
+  width: 76px;
+  height: 76px;
+}
+
+.navPrev {
+  left: 70px;
+}
+
+.navPrev svg {
+  transform: scaleX(-1);
+}
+
+.navNext {
+  right: 70px;
+}
+
+/* ── Pagination bullets ── */
+.overlay :global(.swiper-pagination) {
+  bottom: 12px;
+}
+
+.overlay :global(.swiper-pagination-bullet) {
+  width: 28px;
+  height: 28px;
+  margin: 0 14px !important;
+  background: #1a2330;
+  opacity: 0.28;
+}
+
+.overlay :global(.swiper-pagination-bullet-active) {
+  opacity: 1;
+  background: var(--lb-accent, #1a4d7e);
+}

@@ -1,0 +1,15 @@
+.date {
+  /* Mask the baked date with the sampled header colour. */
+  background: #f8ecde;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  color: #232323;
+  font-family: var(--kiosk-font, sans-serif);
+  font-weight: 700;
+  font-size: 1.45cqh;
+  letter-spacing: -0.01em;
+  white-space: nowrap;
+  /* Header overlaps the hidden admin gesture — let taps pass through. */
+  pointer-events: none;
+}

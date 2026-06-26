@@ -1,0 +1,79 @@
+/* Figma 검색 키보드: white rounded keys with a soft shadow, one dark backspace
+   key, white function keys. Sized in literal artboard px. */
+.keyboard {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 58px; /* Figma row gap (row pitch 178 − key height 120) */
+}
+
+.row {
+  display: flex;
+  flex: 1;
+  gap: 14px; /* Figma horizontal gap between keys */
+  justify-content: center;
+}
+
+.key {
+  flex: none;
+  width: 163px; /* Figma: number/alphabet key */
+  height: 120px;
+  appearance: none;
+  border: none;
+  border-radius: 20px; /* Figma key radius */
+  background: #ffffff;
+  color: #1f1f1f;
+  font-family: var(--kiosk-font, sans-serif);
+  font-size: 64px;
+  font-weight: 700; /* Figma: Noto Sans Bold */
+  box-shadow: 0 5px 8px rgba(0, 0, 0, 0.16);
+  cursor: pointer;
+  outline: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.key:active {
+  background: #eef0f3;
+}
+
+.icon {
+  width: 64px;
+  height: 64px;
+}
+
+/* The single dark key (backspace), top-right — Figma 262×120. */
+.backspace {
+  width: 262px;
+  background: #222222;
+  color: #ffffff;
+}
+.backspace:active {
+  background: #3a3a3a;
+}
+
+/* White function keys — exact Figma widths (all 120px tall). */
+.enter {
+  width: 362px;
+}
+.shift {
+  width: 262px;
+}
+.globe {
+  width: 362px;
+}
+.space {
+  width: 1211px;
+  font-weight: 700;
+}
+
+/* Shift engaged. */
+.active {
+  background: var(--kiosk-primary, #fe6c50);
+  color: #ffffff;
+}
+.active:active {
+  background: #e85d43;
+}

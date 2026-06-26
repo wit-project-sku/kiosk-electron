@@ -1,0 +1,270 @@
+/* 지역화폐 — exact Figma layout (artboard 2160×3840), navy #1a4d7e theme. */
+.bg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  pointer-events: none;
+}
+
+.results {
+  position: absolute;
+  top: 699px;
+  left: 0;
+  right: 0;
+  /* Leave a gap above the bottom banner (banner top = 3267 → 573 from bottom). */
+  bottom: 615px;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 40px;
+  overflow: hidden;
+  padding: 0 170px 10px;
+}
+
+/* Two tabs (온누리상품권 | 오색전), 580px each, centered. */
+.tabs {
+  flex: none;
+  display: flex;
+  gap: 200px;
+  justify-content: center;
+}
+
+.tab {
+  box-sizing: border-box;
+  width: 580px;
+  height: 170px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #ffffff;
+  border: 2.145px solid #e8e8e8;
+  border-radius: 42.9px;
+  box-shadow: 0 21.45px 42.9px rgba(143, 147, 157, 0.1);
+  font-family: var(--kiosk-font, sans-serif);
+  font-weight: 500;
+  font-size: 50px;
+  color: #999999;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.tabSelected {
+  background: #d3dfec;
+  font-weight: 700;
+  color: #1a4d7e;
+}
+
+/* White content card. */
+/* flex:1 → both tabs' cards fill the same available height (equal height). */
+.card {
+  flex: 1 1 auto;
+  min-height: 0;
+  width: 1820px;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  /* space-between distributes any leftover height (the card is taller than the
+     content) so the last section sits flush at the bottom — matching Figma,
+     where the usage row hugs the card base instead of floating mid-card. */
+  justify-content: space-between;
+  gap: 48px;
+  padding: 70px 40px;
+  background: #ffffff;
+  border: 5px solid #e8e8e8;
+  border-radius: 42.9px;
+  box-shadow: 0 21.45px 21.45px rgba(143, 147, 157, 0.1);
+  font-family: var(--kiosk-font, sans-serif);
+  overflow: hidden;
+}
+
+.cardCentered {
+  align-items: center;
+}
+
+.bigTitle {
+  margin: 0;
+  font-weight: 800;
+  font-size: 100px;
+  color: #1a4d7e;
+  line-height: 1;
+  text-align: center;
+}
+
+.block {
+  width: 1740px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+/* Section heading — Noto Sans Bold 60px navy. */
+.h {
+  margin: 0;
+  font-weight: 700;
+  font-size: 60px;
+  color: #1a4d7e;
+  line-height: 1.1;
+}
+
+/* Body — Noto Sans Regular 45px #2b2b2b, line-height 130%. */
+.body {
+  margin: 0;
+  font-family: 'Noto Sans', 'Noto Sans KR', sans-serif;
+  font-weight: 400;
+  font-size: 45px;
+  color: #2b2b2b;
+  line-height: 1.3;
+}
+
+/* Emphasised body phrases — same copy, 600 weight (inherits family/size/colour). */
+.bodyBold {
+  font-weight: 600;
+}
+
+.note {
+  margin: 0;
+  font-weight: 400;
+  font-size: 33px;
+  color: rgba(43, 43, 43, 0.7);
+  line-height: 1.3;
+}
+
+.imageWide {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  margin-top: 20px;
+}
+
+.imageWide img {
+  max-width: 1321px;
+  max-height: 480px; /* Figma ~492 — fills the card so the usage row reaches the bottom */
+  width: 100%;
+  height: auto;
+  object-fit: contain;
+  display: block;
+}
+
+/* 온누리 usage row — text + BI logo + member card. */
+.usageRow {
+  width: 1740px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 40px;
+}
+
+.usageText {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.usageMedia {
+  flex: none;
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.biLogo {
+  flex: none;
+  height: 250px;
+  width: auto;
+  object-fit: contain;
+}
+
+/* QR beside the BI logo (Figma 온누리 usage row bordered card). */
+.usageQr {
+  flex: none;
+  box-sizing: border-box;
+  width: 230px;
+  height: 253px;
+  border: 4.29px solid #1a4d7e;
+  border-radius: 21.45px;
+  background: #ffffff;
+  padding: 23px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* 오색전 cards row — two cards + QR column. */
+.cardsRow {
+  width: 1740px;
+  display: flex;
+  gap: 50px;
+  align-items: center;
+  justify-content: center;
+}
+
+.payCard {
+  /* Match the two-row QR column height: 2×qrBox(300) + gap(30) = 630. */
+  height: 630px;
+  width: auto;
+  object-fit: contain;
+  border-radius: 21.45px;
+}
+
+.qrCol {
+  display: flex;
+  flex-direction: column;
+  gap: 30px;
+}
+
+.qrBox {
+  width: 257px;
+  height: 300px;
+  box-sizing: border-box;
+  border: 4.29px solid #1a4d7e;
+  border-radius: 21.45px;
+  background: #ffffff;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 23px;
+}
+
+.qrBox img {
+  width: 200px;
+  height: 200px;
+  object-fit: contain;
+}
+
+.qrLabel {
+  font-weight: 700;
+  font-size: 32px;
+  color: #1a4d7e;
+  line-height: 1;
+}
+
+.leftNav {
+  position: absolute;
+  left: 21px;
+  top: 1995px;
+  display: flex;
+  flex-direction: column;
+  gap: 35px;
+}
+
+.leftNavBtn {
+  width: 85px;
+  height: 85px;
+  padding: 0;
+  border: none;
+  background: none;
+  cursor: pointer;
+}
+
+.leftNavBtn img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}

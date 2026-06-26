@@ -1,0 +1,408 @@
+/* '인사' 뭐하지 (AI 검색) — RESULTS (코스추천 후보), exact Figma px (artboard 2160×3840).
+   Figma node 4167:93266. */
+.bg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  pointer-events: none;
+}
+
+/* Fixed 2568px area (top 699 → bottom 573) that the content fills — no scroll,
+   like Figma. 40px top clears the selected-course peach cap (top: -40). */
+.content {
+  position: absolute;
+  top: 699px;
+  left: 0;
+  right: 0;
+  bottom: 573px;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 65px;
+  overflow: hidden;
+  padding: 40px 170px 0;
+  font-family: var(--kiosk-font, sans-serif);
+}
+
+/* ── Course header pills (A·B·C코스) ── */
+.tabs {
+  flex: none;
+  width: 1816.802px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  position: relative;
+  z-index: 2; /* above the peach folder cap */
+}
+
+.tab {
+  box-sizing: border-box;
+  width: 565px;
+  height: 170px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #ffffff;
+  border: 5px solid #e8e8e8;
+  border-radius: 42.9px;
+  font-family: var(--kiosk-font, sans-serif);
+  font-weight: 700;
+  font-size: 63px;
+  color: #616161;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s, color 0.15s;
+}
+
+/* Selected tab stays a white button (Figma keeps all tabs white) — the peach
+   folder cap behind it provides the "selected" wrap. */
+.tabActive {
+  background: #ffffff;
+  position: relative;
+  z-index: 2;
+}
+
+/* ── Three course columns ── */
+.columns {
+  flex: none;
+  width: 1816.802px;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+}
+
+.column {
+  box-sizing: border-box;
+  width: 565px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 65px;
+  padding: 65px 40px;
+  background: #ffffff;
+  border: 5px solid #e8e8e8;
+  border-radius: 42.9px;
+}
+
+/* ── A single recommended spot card (overview, clickable) ── */
+.spot {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 40px;
+  width: 485px;
+  margin: 0;
+  padding: 0;
+  border: none;
+  background: none;
+  font-family: var(--kiosk-font, sans-serif);
+  text-align: left;
+  cursor: pointer;
+}
+
+.spotInner {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 32.175px;
+  width: 485px;
+}
+
+.spotHead {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 21.45px;
+  width: 100%;
+}
+
+.spotCategory {
+  margin: 0;
+  font-weight: 500;
+  font-size: 43px;
+  color: #999999;
+  line-height: 1;
+  word-break: break-word;
+}
+
+.spotTitle {
+  margin: 0;
+  font-weight: 700;
+  font-size: 51px;
+  color: #333333;
+  line-height: 1;
+  word-break: break-word;
+}
+
+.spotImageWrap {
+  width: 485px;
+  height: 305px;
+  border-radius: 42.9px;
+  overflow: hidden;
+  flex: none;
+}
+
+.spotImage {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.spotTags {
+  width: 100%;
+  font-weight: 500;
+  font-size: 38px;
+  line-height: 1.3;
+  color: #999999;
+  /* Max 2 lines of tags, then "…". */
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.spotTags p {
+  margin: 0 0 10.72px;
+  line-height: 1;
+}
+.spotTags p:last-child {
+  margin-bottom: 0;
+}
+
+.chevron {
+  width: 42.9px;
+  height: 21.45px;
+  display: block;
+  flex: none;
+}
+
+/* ===========================================================
+   FULL FILTERED LIST (a single course selected) — Figma -03
+   =========================================================== */
+/* Folder wrapper: holds the tab row + peach panel and positions the cap that
+   wraps the selected tab and connects it to the panel (Figma 코스Border). */
+.folder {
+  flex: none;
+  width: 1816.802px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 65px;
+  position: relative;
+}
+
+/* Peach cap behind the selected tab — rises CAP_PAD(40) around it on every side
+   and bridges the gap down into the panel; left/width set inline per tab.
+   Height = 40 top pad + tab(170) + gap(65) + 10px overlap = 285. */
+.cap {
+  position: absolute;
+  top: -40px;
+  height: 285px;
+  background: #f8ecde;
+  border-radius: 42.9px 42.9px 0 0;
+  z-index: 0;
+}
+
+/* Peach panel holding the selected course's list (Figma 코스Border #F8ECDE).
+   Oversized 40px beyond the tab row on each side so the cap's outer edge lines
+   up with the panel edge (the folder is wider than the tabs, like Figma). */
+.course {
+  flex: none;
+  width: 1896.802px;
+  box-sizing: border-box;
+  padding: 90px 98px;
+  background: #f8ecde;
+  border-radius: 42.9px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 80px;
+  position: relative;
+  z-index: 1; /* content above the cap; same colour so the join is seamless */
+}
+
+.courseHeading {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 30px;
+}
+
+.courseHeadingTitle {
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 21px;
+  font-weight: 700;
+  font-size: 60px;
+  color: #616161;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.courseHeadingSub {
+  margin: 0;
+  font-weight: 400;
+  font-size: 60px;
+  color: #616161;
+  line-height: 1.1;
+}
+
+.dot {
+  flex: none;
+  width: 17px;
+  height: 17px;
+  border-radius: 50%;
+  background: #616161;
+}
+
+.courseList {
+  width: 1700px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 60px;
+}
+
+.wideCardWrap {
+  width: 1700px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 30px;
+}
+
+.wideCard {
+  box-sizing: border-box;
+  width: 1700px;
+  height: 515px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 60px;
+  padding: 65px 70px;
+  background: #ffffff;
+  border: 5px solid #e8e8e8;
+  border-radius: 42.9px;
+  font-family: var(--kiosk-font, sans-serif);
+  text-align: left;
+  cursor: pointer;
+}
+
+.wideImageWrap {
+  flex: none;
+  width: 599px;
+  height: 385px;
+  border-radius: 42.9px;
+  overflow: hidden;
+}
+
+.wideImage {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.wideBody {
+  flex: 1;
+  height: 385px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.wideHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 30px;
+}
+
+.wideTitle {
+  font-weight: 700;
+  font-size: 75px;
+  color: #000000;
+  line-height: 1;
+}
+
+.wideCat {
+  display: flex;
+  align-items: center;
+  gap: 21px;
+  flex: none;
+  font-weight: 600;
+  font-size: 50px;
+  color: #999999;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.dotSmall {
+  flex: none;
+  width: 17px;
+  height: 17px;
+  border-radius: 50%;
+  background: #d9d9d9;
+}
+
+.wideTags {
+  margin: 0;
+  font-weight: 500;
+  font-size: 47px;
+  color: #999999;
+  line-height: 1.3;
+  /* Max 2 lines of tags, then "…". */
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* ── Left nav & banner (shared chrome) ── */
+.leftNav {
+  position: absolute;
+  left: 21px;
+  top: 1995px;
+  display: flex;
+  flex-direction: column;
+  gap: 35px;
+}
+
+.leftNavBtn {
+  width: 85px;
+  height: 85px;
+  padding: 0;
+  border: none;
+  background: none;
+  cursor: pointer;
+}
+
+.leftNavBtn img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.banner {
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  width: 2160px;
+  height: 573px;
+  padding: 0;
+  border: none;
+  background: none;
+  cursor: pointer;
+  overflow: hidden;
+}
+
+.banner img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}

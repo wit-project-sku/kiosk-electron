@@ -1,0 +1,285 @@
+.stage {
+  /* Fills the 2160×3840 KioskArtboard (which scales to the display monitor). */
+  width: 100%;
+  height: 100%;
+  background-color: #000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.media {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.attract {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: var(--space-8);
+  gap: 1rem;
+}
+
+.attractHeading {
+  font-size: clamp(2rem, 8cqw, 6rem);
+  font-weight: 700;
+  color: #fff;
+  letter-spacing: -0.02em;
+  margin: 0;
+}
+
+.attractSub {
+  font-size: clamp(1rem, 3cqw, 2rem);
+  color: rgba(255, 255, 255, 0.7);
+  margin: 0;
+}
+
+/* ── Camera / countdown screen ─────────────────────────────────────────── */
+
+.cameraScreen {
+  position: relative;
+  width: 100cqw;
+  height: 100cqh;
+  background: #000000;
+  overflow: hidden;
+  font-family: 'Noto Sans KR', sans-serif;
+}
+
+/* Top: title (live count) + numbered tips. Figma text node 56,56 (w1007). */
+.camText {
+  position: absolute;
+  left: 108px;
+  top: 108px;
+  width: 1944px;
+}
+
+.camTitleRow {
+  display: flex;
+  align-items: center;
+  gap: 48px;
+}
+
+.camTitle {
+  margin: 0;
+  font-family: 'Poppins', 'Noto Sans KR', sans-serif;
+  font-weight: 700;
+  line-height: 193px;
+  white-space: pre;
+}
+
+/* Live countdown badge to the right of the title (counts down to capture). */
+.camLiveCount {
+  flex: none;
+  /* Pushed to the right end of the title row, near the right edge. */
+  margin-left: auto;
+  width: 258.479px;
+  height: 258.479px;
+  border-radius: 258.479px;
+  background: #fe6c50;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'Poppins', 'Noto Sans KR', sans-serif;
+  font-weight: 800;
+  font-size: 135px;
+  line-height: 1;
+  color: #ffffff;
+  font-variant-numeric: tabular-nums;
+  box-shadow: 0 12px 40px rgba(254, 108, 80, 0.4);
+}
+
+.camCount {
+  color: #fe6c50;
+  font-size: 174px;
+}
+
+.camTitleRest {
+  color: #ffd200;
+  font-size: 135px;
+}
+
+.camTips {
+  list-style: decimal;
+  margin: 77px 0 0;
+  padding: 0 0 0 70px;
+  color: #ffffff;
+  font-family: 'Poppins', 'Noto Sans KR', sans-serif;
+  font-weight: 700;
+  font-size: 77px;
+}
+
+.camTip {
+  line-height: 135px;
+}
+
+/* Leaves room for the absolutely-positioned no-glasses icon over tip 1. */
+.camTipIconGap {
+  display: inline-block;
+  width: 175px;
+}
+
+.camNoGlasses {
+  position: absolute;
+  left: 226px;
+  top: 426px;
+  width: 154px;
+  height: 155px;
+  object-fit: contain;
+  pointer-events: none;
+}
+
+/* Middle: live camera (white bg) + dashed guide overlay. Figma y491..1325. */
+.camFeedWrap {
+  position: absolute;
+  left: 0;
+  top: 950px;
+  width: 2160px;
+  height: 1613px;
+  background: #ffffff;
+  overflow: hidden;
+}
+
+.camFeed {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.camGuide {
+  position: absolute;
+  left: 23px;
+  top: 234px;
+  width: 2092px;
+  height: 1754px;
+  object-fit: contain;
+  pointer-events: none;
+}
+
+/* Bottom black zone (Figma y1325..1985): two reference-pose boxes. */
+.camRefLeft {
+  position: absolute;
+  left: 274px;
+  top: 2718px;
+  width: 700px;
+  height: 607px;
+  object-fit: contain;
+}
+
+.camRefRight {
+  position: absolute;
+  left: 1228px;
+  top: 2728px;
+  width: 700px;
+  height: 598px;
+}
+
+.camRefRightFrame {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: fill;
+}
+
+.camRefRightImg {
+  position: absolute;
+  left: 65px;
+  top: 48px;
+  width: 562px;
+  height: 538px;
+  object-fit: cover;
+}
+
+.camDisclaimer {
+  position: absolute;
+  left: 282px;
+  top: 3428px;
+  width: 1647px;
+  margin: 0;
+  text-align: center;
+  color: #ffa37e;
+  font-weight: 700;
+  font-size: 62px;
+}
+
+.camBranding {
+  position: absolute;
+  left: 546px;
+  top: 3637px;
+  width: 1139px;
+  margin: 0;
+  text-align: center;
+  color: #bd90cb;
+  font-weight: 700;
+  font-size: 93px;
+  white-space: nowrap;
+}
+
+/* ── Generating / waiting screen ────────────────────────────────────────── */
+
+.genScreen {
+  position: relative;
+  width: 100cqw;
+  height: 100cqh;
+  background: #000;
+  overflow: hidden;
+}
+
+.genVideo {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* Top-right row: ambassador label + spinner, side by side with a gap so they
+   never overlap. */
+.genTopRow {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  display: flex;
+  align-items: flex-start;
+  gap: 3cqw;
+}
+
+.genLabel {
+  margin-top: 0.6cqh;
+  font-family: 'Noto Sans KR', sans-serif;
+  font-size: 1.6cqh;
+  font-weight: 700;
+  color: #ffffff;
+  white-space: nowrap;
+}
+
+/* Spinner with the countdown in its centre — no backdrop, just the spinner. */
+.genCountWrap {
+  flex: none;
+  position: relative;
+  width: 22cqw;
+  height: 22cqw;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.genSpinnerImg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.genSpinnerNum {
+  position: relative;
+  font-family: 'Poppins', 'Noto Sans KR', sans-serif;
+  font-size: 2.8cqh;
+  font-weight: 800;
+  line-height: 1;
+  color: #111111;
+  font-variant-numeric: tabular-nums;
+}
