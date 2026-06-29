@@ -72,6 +72,12 @@ function seedLocalContent(container: AppContainer): void {
 // Must be set before app.whenReady().
 app.commandLine.appendSwitch('disk-cache-size', '536870912');
 
+// The customer display (Monitor 2) plays spoken prompts but never receives a
+// touch/click, so Chromium's autoplay gate would silently block its audio.
+// Allow gesture-free playback globally (belt-and-suspenders to the per-window
+// `autoplayPolicy` in windowConfig). Must be set before app.whenReady().
+app.commandLine.appendSwitch('autoplay-policy', 'no-user-gesture-required');
+
 loadEnvFile();
 initLogger();
 const log = createLogger('main');

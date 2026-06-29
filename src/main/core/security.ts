@@ -22,12 +22,27 @@ const log = createLogger('security');
  * `https:` is allowed for img-src/media-src because shop cards render remote
  * photos served from the witteria S3/CDN (the URLs come from the shops API and
  * can't be enumerated as a fixed allowlist). Images/media can't execute code, so
- * this stays safe while script/connect remain locked to 'self'.
+ * this stays safe while script/connect remain locked to 'self' (+ our own
+ * media:/blob: for the bundled MediaPipe runtime, below).
+ *
+ * MediaPipe face detection (customer-display camera gating) needs:
+ *  - `connect-src media:`        → fetch the BlazeFace model + wasm served from
+ *                                  the bundled `media://app/*` scheme.
+ *  - `script-src 'wasm-unsafe-eval' media: blob:` → dynamically import the wasm
+ *                                  loader JS (from media:) and compile the wasm.
+ *  - `worker-src blob:`          → the Emscripten runtime may spin a blob worker.
+ * These only widen to our own app-controlled schemes (media:// serves bundled
+ * files; blob: is same-origin), and `'wasm-unsafe-eval'` permits WebAssembly
+ * without enabling general eval(). Without them the detector silently fails and
+ * presence gating turns off in production.
  */
 const PRODUCTION_CSP =
   "default-src 'self'; img-src 'self' https: media: data: blob:; " +
   "media-src 'self' https: media: blob:; " +
-  "style-src 'self' 'unsafe-inline'; script-src 'self'; connect-src 'self'";
+  "style-src 'self' 'unsafe-inline'; " +
+  "script-src 'self' 'wasm-unsafe-eval' media: blob:; " +
+  "worker-src 'self' blob:; " +
+  "connect-src 'self' media:";
 
 let cspApplied = false;
 function applyProductionCsp(contents: WebContents): void {

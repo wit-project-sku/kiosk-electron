@@ -103,6 +103,8 @@ export interface KioskBridge {
     selectClothing(clothingKey: string): Promise<Result<PhotoWorkflowState>>;
     selectStyle(styleKey: string): Promise<Result<PhotoWorkflowState>>;
     beginCountdown(): Promise<Result<PhotoWorkflowState>>;
+    pauseCountdown(): Promise<Result<PhotoWorkflowState>>;
+    resumeCountdown(): Promise<Result<PhotoWorkflowState>>;
     captureAndGenerate(request: {
       sessionId: string;
       dataUrl: string;
@@ -111,6 +113,11 @@ export interface KioskBridge {
     }): Promise<
       Result<{ sessionId: string; resultFileName: string; resultImagePath: string }>
     >;
+    startEffects(): Promise<Result<PhotoWorkflowState>>;
+    captureEffects(request: {
+      dataUrl: string;
+      filterId: string;
+    }): Promise<Result<{ resultFileName: string; resultImagePath: string }>>;
     reset(): Promise<Result<PhotoWorkflowState>>;
   };
   language: {
@@ -129,6 +136,8 @@ export interface KioskBridge {
     setScreen(screen: string): Promise<Result<string>>;
     /** Advance the customer display to the next clip for the current screen. */
     advanceVideo(): Promise<Result<boolean>>;
+    /** Pick an AR wearable for the 인스타 효과 screen (empty id = none). */
+    setEffectsWearable(wearableId: string): Promise<Result<string>>;
   };
   /** Cached shop catalogue (from the witteria API, refreshed on launch + nightly). */
   shops: {
@@ -164,6 +173,7 @@ export interface KioskBridge {
     onExchangeChanged(listener: (exchange: ExchangeSnapshot) => void): Unsubscribe;
     onKioskScreenChanged(listener: (screen: string) => void): Unsubscribe;
     onKioskVideoAdvanced(listener: () => void): Unsubscribe;
+    onEffectsWearableChanged(listener: (wearableId: string) => void): Unsubscribe;
     onShopsChanged(listener: () => void): Unsubscribe;
   };
 }

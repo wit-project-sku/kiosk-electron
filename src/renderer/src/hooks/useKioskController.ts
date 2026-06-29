@@ -174,5 +174,18 @@ export function useKioskController(): KioskController {
 
   useInactivityReset({ timeoutMs: IDLE_TIMEOUT_MS, onIdle: handleIdle });
 
+  // Presence-based reset: when the photo countdown is held because nobody is in
+  // front of the camera (Monitor 2 reports this via `countdownPaused`), return
+  // to home after the idle timeout so the kiosk never sits on a frozen capture
+  // screen. The timer re-arms on every absence, so a brief return resets it; it
+  // only fires after a full IDLE_TIMEOUT_MS of continuous no-show.
+  const photoPhase = usePhotoStore((s) => s.phase);
+  const countdownPaused = usePhotoStore((s) => s.countdownPaused);
+  useEffect(() => {
+    if (photoPhase !== 'countdown' || !countdownPaused) return;
+    const timer = window.setTimeout(() => handleIdle(), IDLE_TIMEOUT_MS);
+    return () => window.clearTimeout(timer);
+  }, [photoPhase, countdownPaused, handleIdle]);
+
   return { screen, photoActive, kioskId, navigate, startPhoto };
 }

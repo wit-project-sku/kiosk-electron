@@ -65,7 +65,11 @@ export const IpcChannels = {
   PhotoSelectClothing: 'photo:selectClothing',
   PhotoSelectStyle: 'photo:selectStyle',
   PhotoBeginCountdown: 'photo:beginCountdown',
+  PhotoPauseCountdown: 'photo:pauseCountdown',
+  PhotoResumeCountdown: 'photo:resumeCountdown',
   PhotoCaptureAndGenerate: 'photo:captureAndGenerate',
+  PhotoStartEffects: 'photo:startEffects',
+  PhotoCaptureEffects: 'photo:captureEffects',
   PhotoReset: 'photo:reset',
 
   // Language / Translations
@@ -84,6 +88,9 @@ export const IpcChannels = {
   // Advance the customer-display video to the next clip for the current screen
   // (e.g. tapping the home weather card).
   KioskAdvanceVideo: 'kiosk:advanceVideo',
+  // Touch screen picked an AR wearable for the 인스타 효과 screen; the customer
+  // display anchors it to the face.
+  KioskSetEffectsWearable: 'kiosk:setEffectsWearable',
 
   // Shops (cached from the witteria API)
   ShopsList: 'shops:list',
@@ -112,6 +119,8 @@ export const IpcEvents = {
   KioskScreenChanged: 'event:kiosk:screenChanged',
   /** Touch screen requested the next clip for the current screen (weather card). */
   KioskVideoAdvanced: 'event:kiosk:videoAdvanced',
+  /** Touch screen picked an AR wearable; the customer display anchors it. */
+  EffectsWearableChanged: 'event:kiosk:effectsWearableChanged',
   /** Shop catalogue refreshed into SQLite; the renderer reloads its store. */
   ShopsChanged: 'event:shops:changed',
 } as const;

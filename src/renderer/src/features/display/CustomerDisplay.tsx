@@ -6,8 +6,10 @@ import { DEFAULT_SETTINGS } from '@shared/constants';
 import { PHOTO_COUNTDOWN_SECONDS } from '@shared/constants/photoOptions';
 import { assetUrl, generatedUrl } from '@renderer/lib/media';
 import { useKioskCamera } from '@renderer/hooks/useKioskCamera';
+import { useFacePresence } from '@renderer/hooks/useFacePresence';
 import { usePhotoWorkflow } from '@renderer/hooks/usePhotoWorkflow';
 import { usePhotoStore } from '@renderer/store/photoStore';
+import { stayInFrameAudioUrl } from '@renderer/assets/audio';
 import { trackEvent } from '@renderer/lib/analytics';
 import { displayVideosFor } from '@renderer/assets/videos';
 import { cameraIconUrl } from '@renderer/assets/icons/insadong/camera';
@@ -17,6 +19,7 @@ import { KioskArtboard } from '@layouts/components/KioskScreenImage';
 import { Slideshow } from './components/Slideshow';
 import { VideoWall } from './components/VideoWall';
 import { AiModelVideoWall } from './components/AiModelVideoWall';
+import { EffectsCamera } from './components/EffectsCamera';
 import styles from './CustomerDisplay.module.css';
 
 const ATTRACT_STATE: DisplayState = {
@@ -29,6 +32,22 @@ const ATTRACT_STATE: DisplayState = {
 };
 
 const GEN_WAIT_SECS = 60;
+
+/** "Please stand in front of the camera" — shown + spoken when no face is seen. */
+const STAY_IN_FRAME: Record<SupportedLanguage, string> = {
+  ko: '카메라 앞에 서 주세요',
+  en: 'Please stand in front of the camera',
+  ja: 'カメラの前に立ってください',
+  zh: '请站在镜头前',
+  zh_cn: '请站在镜头前',
+  zh_tw: '請站在鏡頭前',
+  vi: 'Vui lòng đứng trước máy ảnh',
+  th: 'กรุณายืนอยู่หน้ากล้อง',
+  es: 'Por favor, colócate frente a la cámara',
+};
+
+/** Re-speak the "stand in frame" prompt this often while still absent. */
+const VOICE_REPROMPT_MS = 4500;
 
 /**
  * Monitor 2 — borderless customer display.
@@ -132,21 +151,72 @@ export function CustomerDisplay(): JSX.Element {
     enabled: cameraEnabled,
   });
 
+  // Is a person actually in front of the camera? Used to hold the countdown so
+  // we never auto-capture an empty frame and feed it to the AI.
+  const { present, ready: faceReady } = useFacePresence({ videoRef, enabled: cameraEnabled });
+
   const sessionId = usePhotoStore((s) => s.sessionId);
   const clothingKey = usePhotoStore((s) => s.clothingKey);
   const styleKey = usePhotoStore((s) => s.styleKey);
 
   const captureAndGenerate = useCallback(async () => {
     if (!sessionId || !clothingKey || !styleKey) return;
+    // Belt-and-suspenders: the countdown is held while absent, so it can only
+    // reach 0 with a face present — but never send an empty frame regardless.
+    if (faceReady && !present) return;
     const dataUrl = capture();
     if (!dataUrl) return;
     const result = await window.api.photo.captureAndGenerate({ sessionId, dataUrl, clothingKey, styleKey });
     if (!isOk(result)) void trackEvent({ name: 'ai_request_failed', payload: { sessionId } });
-  }, [sessionId, clothingKey, styleKey, capture]);
+  }, [sessionId, clothingKey, styleKey, capture, faceReady, present]);
 
   usePhotoWorkflow(() => {
     void captureAndGenerate();
   });
+
+  // ── Presence gating: pause/resume the capture countdown + voice prompt ──────
+  const voiceRef = useRef<HTMLAudioElement | null>(null);
+  const wasPresentRef = useRef(true);
+
+  const playStayInFrame = useCallback(() => {
+    const url = stayInFrameAudioUrl(lang);
+    if (!url) return;
+    try {
+      const el = voiceRef.current ?? (voiceRef.current = new Audio());
+      if (el.src !== url) el.src = url;
+      el.currentTime = 0;
+      void el.play().catch(() => {});
+    } catch {
+      // Audio playback is best-effort; the on-screen prompt still shows.
+    }
+  }, [lang]);
+
+  useEffect(() => {
+    // Only gate during the live countdown, and only once the detector is ready.
+    if (state.mode !== 'countdown' || !faceReady) {
+      wasPresentRef.current = true;
+      return;
+    }
+    if (present) {
+      if (!wasPresentRef.current) void window.api.photo.resumeCountdown();
+      wasPresentRef.current = true;
+    } else {
+      if (wasPresentRef.current) {
+        void window.api.photo.pauseCountdown();
+        playStayInFrame();
+      }
+      wasPresentRef.current = false;
+    }
+  }, [present, faceReady, state.mode, playStayInFrame]);
+
+  // Keep nudging (audio) every few seconds while the person is still away.
+  useEffect(() => {
+    if (state.mode !== 'countdown' || !faceReady || present) return;
+    const id = setInterval(playStayInFrame, VOICE_REPROMPT_MS);
+    return () => clearInterval(id);
+  }, [state.mode, faceReady, present, playStayInFrame]);
+
+  const showStayPrompt = state.mode === 'countdown' && faceReady && !present;
 
   // Camera-guide assets (Figma 4795:43166). Names match the Figma node names.
   const guideOverlay = cameraIconUrl('guide-overlay');
@@ -175,6 +245,9 @@ export function CustomerDisplay(): JSX.Element {
           )}
         </>
       )}
+
+      {/* ── 인스타 효과 (gesture-driven Instagram effects) ── */}
+      {state.mode === 'effects' && <EffectsCamera deviceId={state.cameraDeviceId} />}
 
       {state.mode === 'slideshow' && assets.length > 0 && (
         <Slideshow assets={assets} intervalMs={settings.slideshowIntervalMs} />
@@ -218,6 +291,11 @@ export function CustomerDisplay(): JSX.Element {
             <video ref={videoRef} className={styles.camFeed} muted playsInline />
             {guideOverlay && (
               <img src={guideOverlay} className={styles.camGuide} alt="" draggable={false} />
+            )}
+            {showStayPrompt && (
+              <div className={styles.camPrompt}>
+                <span>{STAY_IN_FRAME[lang] ?? STAY_IN_FRAME.ko}</span>
+              </div>
             )}
           </div>
 

@@ -88,7 +88,8 @@ export type DisplayMode =
   | 'idle'
   | 'image'
   | 'video'
-  | 'slideshow';
+  | 'slideshow'
+  | 'effects';
 
 /** Persisted application settings. */
 export interface AppSettings {

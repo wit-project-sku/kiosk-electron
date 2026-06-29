@@ -19,4 +19,11 @@ export function registerKioskHandlers(windows: WindowManager): void {
     windows.broadcast(IpcEvents.KioskVideoAdvanced, null);
     return true;
   });
+
+  // Touch screen picked an AR wearable on the 인스타 효과 screen — tell the
+  // customer display to anchor it to the face (empty string = none).
+  handle(IpcChannels.KioskSetEffectsWearable, ({ wearableId }) => {
+    windows.broadcast(IpcEvents.EffectsWearableChanged, wearableId);
+    return wearableId;
+  });
 }

@@ -49,6 +49,7 @@ export interface AppContainer {
   failedRequests: FailedRequestService;
   camera: CameraService;
   capture: CaptureService;
+  imageHost: ImageHostService;
   ai: AIService;
   drive: GoogleDriveService;
   photoGeneration: PhotoGenerationService;
@@ -122,6 +123,7 @@ export function createContainer(): AppContainer {
     failedRequests,
     camera,
     capture,
+    imageHost,
     ai,
     drive,
     photoGeneration,

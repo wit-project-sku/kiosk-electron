@@ -230,6 +230,14 @@ export interface IpcContract {
     request: void;
     response: Result<PhotoWorkflowState>;
   };
+  [IpcChannels.PhotoPauseCountdown]: {
+    request: void;
+    response: Result<PhotoWorkflowState>;
+  };
+  [IpcChannels.PhotoResumeCountdown]: {
+    request: void;
+    response: Result<PhotoWorkflowState>;
+  };
   [IpcChannels.PhotoCaptureAndGenerate]: {
     request: {
       sessionId: string;
@@ -239,6 +247,20 @@ export interface IpcContract {
     };
     response: Result<{
       sessionId: string;
+      resultFileName: string;
+      resultImagePath: string;
+    }>;
+  };
+  [IpcChannels.PhotoStartEffects]: {
+    request: void;
+    response: Result<PhotoWorkflowState>;
+  };
+  [IpcChannels.PhotoCaptureEffects]: {
+    request: {
+      dataUrl: string;
+      filterId: string;
+    };
+    response: Result<{
       resultFileName: string;
       resultImagePath: string;
     }>;
@@ -278,6 +300,10 @@ export interface IpcContract {
     request: void;
     response: Result<boolean>;
   };
+  [IpcChannels.KioskSetEffectsWearable]: {
+    request: { wearableId: string };
+    response: Result<string>;
+  };
   [IpcChannels.ShopsList]: {
     request: void;
     response: Result<Shop[]>;
@@ -306,6 +332,7 @@ export interface IpcEventPayloads {
   [IpcEvents.ExchangeChanged]: ExchangeSnapshot;
   [IpcEvents.KioskScreenChanged]: string;
   [IpcEvents.KioskVideoAdvanced]: null;
+  [IpcEvents.EffectsWearableChanged]: string;
   [IpcEvents.ShopsChanged]: null;
 }
 

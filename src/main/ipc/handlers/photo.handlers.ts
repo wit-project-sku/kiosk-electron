@@ -43,6 +43,51 @@ export function registerPhotoHandlers(container: AppContainer): void {
 
   handle(IpcChannels.PhotoBeginCountdown, () => container.photoWorkflow.beginCountdown());
 
+  handle(IpcChannels.PhotoPauseCountdown, () => container.photoWorkflow.pauseCountdown());
+
+  handle(IpcChannels.PhotoResumeCountdown, () => container.photoWorkflow.resumeCountdown());
+
+  handle(IpcChannels.PhotoStartEffects, () => container.photoWorkflow.startEffects());
+
+  // Gesture-driven Instagram-effects capture: the filter is already baked into
+  // the canvas data URL on Monitor 2, so we just persist it, get a phone-openable
+  // URL for the save QR, and flip both monitors to the result. No AI involved.
+  handle(IpcChannels.PhotoCaptureEffects, async (req: { dataUrl: string; filterId: string }) => {
+    if (!req?.dataUrl || typeof req.dataUrl !== 'string') {
+      throw AppError.validation('Invalid effects capture request.');
+    }
+
+    const workflow = container.photoWorkflow.getState();
+    const sessionId = workflow.sessionId ?? 'effects';
+
+    container.analytics.track({
+      name: 'ai_request_started',
+      payload: { sessionId, styleKey: 'effects', filterId: req.filterId },
+    });
+
+    try {
+      const { filePath, fileName } = await container.capture.saveCapture(req.dataUrl, sessionId);
+      // saveCapture already wrote the JPEG bytes; decode the same data URL for the
+      // public-host upload that powers the phone save QR.
+      const base64 = req.dataUrl.includes(',') ? req.dataUrl.split(',')[1] ?? '' : req.dataUrl;
+      const buffer = Buffer.from(base64, 'base64');
+      const resultUrl = await container.imageHost.upload(buffer, fileName);
+
+      container.photoWorkflow.setResult(filePath, fileName, resultUrl);
+
+      container.analytics.track({
+        name: 'ai_request_completed',
+        payload: { sessionId, resultFileName: fileName, styleKey: 'effects', filterId: req.filterId },
+      });
+
+      return { resultFileName: fileName, resultImagePath: filePath };
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Effects capture failed';
+      container.photoWorkflow.setError(message);
+      throw new Error(message);
+    }
+  });
+
   handle(IpcChannels.PhotoReset, () => container.photoWorkflow.reset());
 
   handle(IpcChannels.PhotoCaptureAndGenerate, async (req: unknown) => {

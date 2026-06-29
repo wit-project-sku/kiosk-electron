@@ -145,7 +145,11 @@ const api: KioskBridge = {
     selectClothing: (clothingKey) => invoke(IpcChannels.PhotoSelectClothing, { clothingKey }),
     selectStyle: (styleKey) => invoke(IpcChannels.PhotoSelectStyle, { styleKey }),
     beginCountdown: () => invoke(IpcChannels.PhotoBeginCountdown),
+    pauseCountdown: () => invoke(IpcChannels.PhotoPauseCountdown),
+    resumeCountdown: () => invoke(IpcChannels.PhotoResumeCountdown),
     captureAndGenerate: (request) => invoke(IpcChannels.PhotoCaptureAndGenerate, request),
+    startEffects: () => invoke(IpcChannels.PhotoStartEffects),
+    captureEffects: (request) => invoke(IpcChannels.PhotoCaptureEffects, request),
     reset: () => invoke(IpcChannels.PhotoReset),
   },
   language: {
@@ -162,6 +166,8 @@ const api: KioskBridge = {
   kiosk: {
     setScreen: (screen) => invoke(IpcChannels.KioskSetScreen, { screen }),
     advanceVideo: () => invoke(IpcChannels.KioskAdvanceVideo),
+    setEffectsWearable: (wearableId) =>
+      invoke(IpcChannels.KioskSetEffectsWearable, { wearableId }),
   },
   shops: {
     list: () => invoke(IpcChannels.ShopsList),
@@ -190,6 +196,7 @@ const api: KioskBridge = {
     onExchangeChanged: (listener) => subscribe(IpcEvents.ExchangeChanged, listener),
     onKioskScreenChanged: (listener) => subscribe(IpcEvents.KioskScreenChanged, listener),
     onKioskVideoAdvanced: (listener) => subscribe(IpcEvents.KioskVideoAdvanced, listener),
+    onEffectsWearableChanged: (listener) => subscribe(IpcEvents.EffectsWearableChanged, listener),
     onShopsChanged: (listener) => subscribe(IpcEvents.ShopsChanged, listener),
   },
 };

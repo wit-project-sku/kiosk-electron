@@ -21,10 +21,10 @@ export type SupportedLanguage =
   | 'es';
 
 /** Layout identifiers mapped to React layout components. */
-export type KioskLayoutId = 'INSADONG' | 'NAM_INSADONG' | 'OSAN';
+export type KioskLayoutId = 'INSADONG' | 'NAM_INSADONG' | 'OSAN' | 'HWASEONG';
 
 /** Well-known kiosk deployment IDs. */
-export type KioskId = 'W001' | 'W002' | 'W003' | (string & {});
+export type KioskId = 'W001' | 'W002' | 'W003' | 'W005' | (string & {});
 
 export interface KioskConfig {
   kioskId: KioskId;
@@ -100,4 +100,11 @@ export type KioskScreenId =
   | 'facilities'
   | 'food'
   | 'shopping'
-  | 'culture';
+  | 'culture'
+  // Hwaseong rest stop (W005)
+  | 'rest_info'    // 휴게소 안내
+  | 'food_court'   // 푸드코트
+  | 'convenience'  // 편의시설
+  | 'tourism'      // 주변관광
+  | 'parking'      // 주차안내
+  | 'emergency';   // 긴급안내

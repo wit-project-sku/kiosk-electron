@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { Camera } from 'lucide-react';
+import { Camera, Sparkles } from 'lucide-react';
 import { Swiper, SwiperSlide } from 'swiper/react';
 import { Grid, FreeMode } from 'swiper/modules';
 import 'swiper/css';
@@ -17,6 +17,7 @@ import { HANBOK_INFO, PRIVACY } from './photoTexts';
 import styles from './HanbokSelect.module.css';
 
 const LABELS = {
+  instaEffect: { ko: '인스타 효과', en: 'Insta Effects', ja: 'インスタ効果', zh: '滤镜拍照' },
   hanbokInfo: { ko: '한복 설명', en: 'About Hanbok', ja: '韓服の説明', zh: '韩服说明' },
   privacy: { ko: '[개인정보 처리방침]', en: '[Privacy Policy]', ja: '[プライバシーポリシー]', zh: '[隐私政策]' },
   mapNav: { ko: '인사동 지도', en: 'Insadong Map', ja: '仁寺洞マップ', zh: '仁寺洞地图' },
@@ -85,13 +86,15 @@ export type CaptureMode = 'solo' | 'withInsa';
 interface HanbokSelectProps {
   /** Fired when a 사진촬영 button is pressed → starts the camera flow. */
   onCapture: (mode: CaptureMode, category: string) => void;
+  /** Fired by the 인스타 효과 button → starts the gesture-driven effects flow. */
+  onEffects: () => void;
   onHome: () => void;
   /** When true (countdown/preview phase), show the "look at the camera" popup. */
   countdownActive?: boolean;
 }
 
 /** AR 한복체험 — outfit selection (Step 1) + capture-mode buttons (Step 2). */
-export function HanbokSelect({ onCapture, onHome, countdownActive = false }: HanbokSelectProps): JSX.Element {
+export function HanbokSelect({ onCapture, onEffects, onHome, countdownActive = false }: HanbokSelectProps): JSX.Element {
   const rotating = useRotatingBanner();
   const lang = useLang();
   const { isOsan, icon, Header, photoTitle } = usePhotoChrome();
@@ -282,7 +285,7 @@ export function HanbokSelect({ onCapture, onHome, countdownActive = false }: Han
         </Swiper>
 
         {/* Capture buttons */}
-        <div className={styles.captureRow}>
+        <div className={`${styles.captureRow} ${isOsan ? styles.captureRowThree : ''}`}>
           <button type="button" className={styles.captureBtn} onClick={() => onCapture('solo', outfitKey)}>
             <Camera className={styles.captureIcon} strokeWidth={2} />
             {t('Photo_SelectAlone', lang)}
@@ -291,6 +294,13 @@ export function HanbokSelect({ onCapture, onHome, countdownActive = false }: Han
             <Camera className={styles.captureIcon} strokeWidth={2} />
             {t('Photo_SelectTogether', lang)}
           </button>
+          {/* 인스타 효과 — Osan (W004) only for now; keep it off the live Insadong kiosks. */}
+          {isOsan && (
+            <button type="button" className={`${styles.captureBtn} ${styles.effectBtn}`} onClick={onEffects}>
+              <Sparkles className={styles.captureIcon} strokeWidth={2} />
+              {pick(LABELS.instaEffect, lang)}
+            </button>
+          )}
         </div>
 
         {/* Step 2 card */}

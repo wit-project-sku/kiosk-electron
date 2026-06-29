@@ -11,6 +11,7 @@ import { generatedUrl } from '@renderer/lib/media';
 import { pick, useLang } from '@renderer/lib/i18n';
 import { trackEvent } from '@renderer/lib/analytics';
 import { resolveButton } from '@renderer/lib/buttonCatalog';
+import { WEARABLES } from '@renderer/features/display/wearables';
 import { HanbokSelect, type CaptureMode } from './HanbokSelect';
 import { usePhotoChrome } from './photoChrome';
 import { RESULT } from './photoTexts';
@@ -21,6 +22,32 @@ const GOODS_URL = 'https://insarang.kr/';
 /** Phone save page — the result image URL is appended. Matches the (working)
  *  Unity kiosk, which uses the Vercel host (netlify is the fallback mirror). */
 const SAVE_BASE = 'https://withphoto.vercel.app/?imageUrl=';
+
+/** 인스타 효과 guide copy (Monitor 1 — the user shoots by gesture on Monitor 2). */
+const EFFECTS_GUIDE = {
+  header: { ko: '인스타 효과', en: 'Insta Effects', ja: 'インスタ効果', zh: '滤镜拍照' },
+  title: {
+    ko: '오른쪽 화면을 보고 손동작으로 촬영하세요',
+    en: 'Watch the screen and shoot with hand gestures',
+    ja: '画面を見ながら手のジェスチャーで撮影してください',
+    zh: '看着屏幕用手势拍照',
+  },
+  swipe: {
+    ko: '✋ 손을 좌우로 움직여 효과 변경',
+    en: '✋ Move your hand left/right to change the effect',
+    ja: '✋ 手を左右に動かして効果を変更',
+    zh: '✋ 左右移动手来切换滤镜',
+  },
+  capture: {
+    ko: '✌️ 손가락(브이)으로 촬영',
+    en: '✌️ Show a peace sign to capture',
+    ja: '✌️ ピースサインで撮影',
+    zh: '✌️ 比出剪刀手即可拍照',
+  },
+  wear: { ko: '착용 아이템 선택', en: 'Choose an item to wear', ja: '着用アイテムを選択', zh: '选择佩戴道具' },
+  none: { ko: '없음', en: 'None', ja: 'なし', zh: '无' },
+  home: { ko: '홈으로', en: 'Home', ja: 'ホーム', zh: '主页' },
+} as const;
 
 /**
  * AI 한복 photo workflow — Monitor 1 (touch kiosk).
@@ -35,6 +62,7 @@ export function PhotoWorkflow(): JSX.Element {
   const errorMessage = usePhotoStore((s) => s.errorMessage);
   const resultFileName = usePhotoStore((s) => s.resultFileName);
   const resultUrl = usePhotoStore((s) => s.resultUrl);
+  const effectsMode = usePhotoStore((s) => s.effectsMode);
   const reset = usePhotoStore((s) => s.reset);
   const kioskId = useKioskStore((s) => s.config.kioskId);
   const screen = useKioskStore((s) => s.screen);
@@ -46,6 +74,8 @@ export function PhotoWorkflow(): JSX.Element {
   const banner = isOsan ? icon('banner') : rotating;
   const [goodsQrOpen, setGoodsQrOpen] = useState(false);
   const [saveQrOpen, setSaveQrOpen] = useState(false);
+  // Selected AR wearable on the 인스타 효과 screen ('' = none).
+  const [wearableId, setWearableId] = useState('');
 
   usePhotoWorkflow();
 
@@ -76,16 +106,78 @@ export function PhotoWorkflow(): JSX.Element {
     await window.api.photo.beginCountdown();
   };
 
+  const handleEffects = (): void => {
+    void trackEvent({
+      name: 'button_clicked',
+      payload: { screen: 'photo_capture_start', mode: 'effects', kioskId },
+    });
+    setWearableId('');
+    void window.api.photo.startEffects();
+  };
+
+  const pickWearable = (id: string): void => {
+    setWearableId(id);
+    void window.api.kiosk.setEffectsWearable(id);
+  };
+
   // ── Outfit selection + capture (countdown → capture → generating) ──────────
   // Keep the AR 한복체험 screen on Monitor 1 throughout; during capture overlay
   // the camera-direction popup ("look at the camera between the screens").
   if (phase === 'clothing' || phase === 'style' || phase === 'preview' || phase === 'countdown' || phase === 'generating') {
     const capturing = phase === 'preview' || phase === 'countdown' || phase === 'generating';
-    return <HanbokSelect onHome={handleReset} onCapture={handleCapture} countdownActive={capturing} />;
+    return (
+      <HanbokSelect
+        onHome={handleReset}
+        onCapture={handleCapture}
+        onEffects={handleEffects}
+        countdownActive={capturing}
+      />
+    );
+  }
+
+  // ── 인스타 효과 — Monitor 1 just guides; the user interacts by hand on Monitor 2 ──
+  if (phase === 'effects') {
+    return (
+      <>
+        {icon('bg') && <img className={styles.bg} src={icon('bg')} alt="" draggable={false} />}
+        <Header title={pick(EFFECTS_GUIDE.header, lang)} onHome={handleReset} />
+        <div className={styles.effectsGuide}>
+          <p className={styles.effectsTitle}>{pick(EFFECTS_GUIDE.title, lang)}</p>
+          <ul className={styles.effectsList}>
+            <li className={styles.effectsItem}>{pick(EFFECTS_GUIDE.swipe, lang)}</li>
+            <li className={styles.effectsItem}>{pick(EFFECTS_GUIDE.capture, lang)}</li>
+          </ul>
+
+          <p className={styles.effectsWearTitle}>{pick(EFFECTS_GUIDE.wear, lang)}</p>
+          <div className={styles.effectsWearGrid}>
+            <button
+              type="button"
+              className={`${styles.effectsWearItem} ${wearableId === '' ? styles.effectsWearItemSel : ''}`}
+              onClick={() => pickWearable('')}
+            >
+              <span className={styles.effectsWearNone}>✕</span>
+              <span className={styles.effectsWearLabel}>{pick(EFFECTS_GUIDE.none, lang)}</span>
+            </button>
+            {WEARABLES.map((w) => (
+              <button
+                key={w.id}
+                type="button"
+                className={`${styles.effectsWearItem} ${wearableId === w.id ? styles.effectsWearItemSel : ''}`}
+                onClick={() => pickWearable(w.id)}
+              >
+                <img className={styles.effectsWearImg} src={w.src} alt="" draggable={false} />
+                <span className={styles.effectsWearLabel}>{pick(w.name, lang)}</span>
+              </button>
+            ))}
+          </div>
+        </div>
+      </>
+    );
   }
 
   // ── Result (PAYMENT kiosks W003/W004): WIT Store on Monitor 1; result image big on Monitor 2 ──
-  if (phase === 'result' && hasPayment) {
+  // 인스타 효과 captures skip the store and use the simple photo + save-QR result.
+  if (phase === 'result' && hasPayment && !effectsMode) {
     const imageUrl = resultUrl ?? (resultFileName ? generatedUrl(resultFileName) : '');
     const saveUrl = `${SAVE_BASE}${encodeURIComponent(imageUrl)}`;
     return (

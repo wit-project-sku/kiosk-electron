@@ -13,7 +13,11 @@ interface PhotoUIState {
   cameraDeviceId: string | null;
   resultFileName: string | null;
   resultUrl: string | null;
+  /** True for the gesture-driven 인스타 효과 path (no outfit / no AI). */
+  effectsMode: boolean;
   countdown: number | null;
+  /** True while the countdown is held because no one is in front of the camera. */
+  countdownPaused: boolean;
   statusMessage: string | null;
   errorMessage: string | null;
   /** Pre-selected 한복/의상 category for the next photo session (e.g. 프로모션
@@ -30,7 +34,9 @@ interface PhotoUIState {
     selectedCameraDeviceId: string | null;
     resultFileName: string | null;
     resultUrl: string | null;
+    effectsMode: boolean;
     countdown: number | null;
+    countdownPaused: boolean;
     statusMessage: string | null;
     errorMessage: string | null;
   }) => void;
@@ -45,7 +51,9 @@ const IDLE = {
   cameraDeviceId: null,
   resultFileName: null,
   resultUrl: null,
+  effectsMode: false,
   countdown: null,
+  countdownPaused: false,
   statusMessage: null,
   errorMessage: null,
   initialCategory: null,
@@ -66,7 +74,9 @@ export const usePhotoStore = create<PhotoUIState>((set) => ({
       cameraDeviceId: wf.selectedCameraDeviceId,
       resultFileName: wf.resultFileName,
       resultUrl: wf.resultUrl,
+      effectsMode: wf.effectsMode,
       countdown: wf.countdown,
+      countdownPaused: wf.countdownPaused,
       statusMessage: wf.statusMessage,
       errorMessage: wf.errorMessage,
     }),

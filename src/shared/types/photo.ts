@@ -12,7 +12,9 @@ export type PhotoWorkflowPhase =
   | 'preview'
   | 'countdown'
   | 'generating'
-  | 'result';
+  | 'result'
+  /** Gesture-driven Instagram-effects capture (no outfit, no AI). */
+  | 'effects';
 
 /** Customer display modes on Monitor 2. */
 export type CustomerDisplayMode =
@@ -24,7 +26,8 @@ export type CustomerDisplayMode =
   | 'idle'
   | 'image'
   | 'video'
-  | 'slideshow';
+  | 'slideshow'
+  | 'effects';
 
 export type DriveSyncState = 'pending' | 'synced' | 'failed';
 
@@ -61,8 +64,13 @@ export interface PhotoWorkflowState {
   resultFileName: string | null;
   /** Public phone-openable URL of the result, when the AI returns one. */
   resultUrl: string | null;
+  /** True for the gesture-driven Instagram-effects path (no outfit / no AI) —
+   *  lets the result screen show the photo + save QR instead of the store. */
+  effectsMode: boolean;
   selectedCameraDeviceId: string | null;
   countdown: number | null;
+  /** True while the countdown is held because no one is in front of the camera. */
+  countdownPaused: boolean;
   statusMessage: string | null;
   errorMessage: string | null;
 }

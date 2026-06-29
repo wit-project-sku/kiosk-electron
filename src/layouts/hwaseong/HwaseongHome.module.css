@@ -1,0 +1,131 @@
+.root {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  background: #0a3d6b;
+  color: #fff;
+  font-family: 'Noto Sans KR', sans-serif;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 60px 80px 40px;
+  flex-shrink: 0;
+}
+
+.logo {
+  height: 80px;
+  object-fit: contain;
+}
+
+.headerRight {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 8px;
+}
+
+.date {
+  font-size: 36px;
+  font-weight: 400;
+  opacity: 0.85;
+}
+
+.weather {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 40px;
+  font-weight: 700;
+}
+
+.weatherIcon {
+  width: 56px;
+  height: 56px;
+  object-fit: contain;
+}
+
+.title {
+  text-align: center;
+  font-size: 64px;
+  font-weight: 800;
+  letter-spacing: -1px;
+  margin-bottom: 60px;
+  flex-shrink: 0;
+}
+
+.titleAccent {
+  color: #4db8ff;
+}
+
+.grid {
+  flex: 1;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  grid-template-rows: repeat(3, 1fr);
+  gap: 24px;
+  padding: 0 60px 60px;
+  container-type: size;
+}
+
+.tile {
+  border-radius: 32px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 20px;
+  cursor: pointer;
+  transition: transform 0.15s, filter 0.15s;
+  padding: 40px 24px;
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.tile:active {
+  transform: scale(0.97);
+  filter: brightness(0.92);
+}
+
+.tileIcon {
+  width: 28cqw;
+  height: 28cqw;
+  max-width: 160px;
+  max-height: 160px;
+  object-fit: contain;
+}
+
+.tileIconPlaceholder {
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 48px;
+}
+
+.tileLabel {
+  font-size: 36px;
+  font-weight: 700;
+  color: #fff;
+  line-height: 1.2;
+}
+
+.tileSubLabel {
+  font-size: 26px;
+  font-weight: 400;
+  color: rgba(255, 255, 255, 0.8);
+  line-height: 1;
+}
+
+/* Wide tile spanning 2 columns */
+.tileWide {
+  grid-column: span 2;
+}

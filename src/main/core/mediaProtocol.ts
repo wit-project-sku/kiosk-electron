@@ -9,17 +9,38 @@
  *   media://asset/<storedFileName>     -> original media file
  *   media://thumb/<storedFileName>     -> generated thumbnail
  *   media://generated/<storedFileName> -> AI photo result
+ *   media://app/<bundledPath>          -> file from the renderer bundle
+ *                                         (e.g. mediapipe/* — fetch()-able under
+ *                                         the file:// production origin)
  */
 
-import { join, normalize, sep } from 'node:path';
+import { readFile } from 'node:fs/promises';
+import { extname, join, normalize, sep } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { net, protocol } from 'electron';
 import { appPaths } from './paths';
+import { RENDERER_DIR } from '../windows/windowConfig';
 import { createLogger } from './logger';
 
 const log = createLogger('media-protocol');
 
 export const MEDIA_SCHEME = 'media';
+
+/** MIME types for renderer-bundle (`media://app/*`) files. */
+function contentTypeFor(filePath: string): string {
+  switch (extname(filePath).toLowerCase()) {
+    case '.wasm':
+      return 'application/wasm';
+    case '.js':
+    case '.mjs':
+      return 'text/javascript';
+    case '.json':
+      return 'application/json';
+    case '.tflite':
+    default:
+      return 'application/octet-stream';
+  }
+}
 
 /** Must run before `app.whenReady()`. */
 export function registerMediaScheme(): void {
@@ -43,7 +64,7 @@ export function registerMediaProtocol(): void {
   protocol.handle(MEDIA_SCHEME, async (request) => {
     try {
       const url = new URL(request.url);
-      const kind = url.hostname; // 'asset' | 'thumb' | 'generated' | 'video'
+      const kind = url.hostname; // 'asset' | 'thumb' | 'generated' | 'video' | 'app'
       const fileName = decodeURIComponent(url.pathname).replace(/^\/+/, '');
       const baseDir =
         kind === 'thumb'
@@ -52,12 +73,29 @@ export function registerMediaProtocol(): void {
             ? appPaths.generated
             : kind === 'video'
               ? appPaths.videos
-              : appPaths.media;
+              : kind === 'app'
+                ? RENDERER_DIR
+                : appPaths.media;
 
       const filePath = resolveSafe(baseDir, fileName);
       if (!filePath) {
         log.warn('Blocked media path traversal attempt', { url: request.url });
         return new Response('Forbidden', { status: 403 });
+      }
+
+      // Renderer-bundle files (MediaPipe wasm/model) live inside app.asar in
+      // production, where net.fetch(file://) is unreliable. Read them with the
+      // asar-aware fs and serve with the right MIME — the .wasm in particular
+      // needs `application/wasm` so WebAssembly can stream-compile it.
+      if (kind === 'app') {
+        const bytes = await readFile(filePath);
+        return new Response(bytes, {
+          status: 200,
+          headers: {
+            'Content-Type': contentTypeFor(filePath),
+            'Cache-Control': 'public, max-age=31536000, immutable',
+          },
+        });
       }
 
       // Forward the renderer's Range header so files are served as seekable

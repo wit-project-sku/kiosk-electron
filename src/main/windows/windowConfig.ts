@@ -24,6 +24,11 @@ export function baseWebPreferences(
     nodeIntegration: false,
     sandbox: false,
     webSecurity: true,
+    // The customer display (Monitor 2) never receives a touch/click — every
+    // gesture happens on Monitor 1 — so Chromium's default policy would block
+    // its spoken prompts (e.g. "stand in front of the camera"). Allow audio to
+    // play without a user gesture on these kiosk windows.
+    autoplayPolicy: 'no-user-gesture-required',
     // Enables <webview> so the kiosk can embed first-party sites (WITStore,
     // events) in their own isolated process — robust against X-Frame-Options.
     webviewTag: true,
