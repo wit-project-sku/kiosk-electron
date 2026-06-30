@@ -1,12 +1,10 @@
 import type { WeatherSnapshot } from '@shared/types/weather';
 import { createLogger } from '@main/core/logger';
+import { getKioskCoordinates } from '@shared/config/kioskLocations';
+import type { KioskService } from './KioskService';
 import type { LocalCacheService } from './LocalCacheService';
 
 const log = createLogger('weather-service');
-
-/** Insadong, Seoul (matches the provided OpenWeatherMap query). */
-const LAT = 37.5744;
-const LON = 126.9849;
 
 /** Refetch interval. 30 min keeps us well within OpenWeatherMap's free tier. */
 const REFRESH_MS = 30 * 60 * 1000;
@@ -36,7 +34,10 @@ export class WeatherService {
   private warnedNoKey = false;
   private readonly listeners = new Set<WeatherListener>();
 
-  constructor(private readonly cache: LocalCacheService) {}
+  constructor(
+    private readonly cache: LocalCacheService,
+    private readonly kiosk: KioskService,
+  ) {}
 
   /** Hydrate from cache for an instant first paint, then begin polling. */
   start(): void {
@@ -80,9 +81,12 @@ export class WeatherService {
       return;
     }
 
+    // Coordinates follow the running kiosk's physical location (화성휴게소 for W005,
+    // 오색시장 for W004, Insadong otherwise) — derived from the provisioned kioskId.
+    const { lat, lon } = getKioskCoordinates(this.kiosk.getConfig().kioskId);
     const url =
       `https://api.openweathermap.org/data/2.5/weather` +
-      `?lat=${LAT}&lon=${LON}&units=metric&lang=en&appid=${apiKey}`;
+      `?lat=${lat}&lon=${lon}&units=metric&lang=en&appid=${apiKey}`;
 
     try {
       const res = await fetch(url);

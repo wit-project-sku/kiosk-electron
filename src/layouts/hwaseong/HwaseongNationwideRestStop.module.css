@@ -1,0 +1,205 @@
+/* 전국 휴게소 — Figma node 3681:76155. Artboard: 2160×3840px. */
+.root {
+  position: absolute;
+  inset: 0;
+  width: 2160px;
+  height: 3840px;
+  overflow: hidden;
+  background: #fff;
+  font-family: 'Noto Sans KR', 'Noto Sans', sans-serif;
+}
+.bgBase { position: absolute; left: 0; top: 0; width: 2160px; height: 3840px; background: #fff; }
+.bgImage { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; opacity: 0.5; pointer-events: none; }
+
+/* ── Results area ── */
+.results {
+  position: absolute;
+  top: 699px;
+  left: 0;
+  right: 0;
+  bottom: 573px;
+  box-sizing: border-box;
+  padding: 0 136px 60px 170px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 60px;
+  overflow-y: auto;
+  overflow-x: hidden;
+  scrollbar-gutter: stable;
+}
+.results::-webkit-scrollbar { width: 34px; }
+.results::-webkit-scrollbar-thumb { background: #005ab4; border-radius: 21.45px; }
+.results::-webkit-scrollbar-track { background: transparent; }
+
+/* ── Filter tabs block ── */
+.filterBlock {
+  flex: none;
+  width: 1820px;
+  display: flex;
+  flex-direction: column;
+  gap: 35px;
+}
+.tabRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+}
+.filterTab {
+  width: 340px;
+  height: 170px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #fff;
+  border: 2.145px solid #e8e8e8;
+  border-radius: 42.9px;
+  font-size: 50px;
+  font-weight: 500;
+  color: #999;
+  line-height: 1;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  white-space: nowrap;
+  box-shadow: 0 21.45px 42.9px rgba(143, 147, 157, 0.1);
+}
+.filterTabActive {
+  background: #005ab4;
+  border-color: #005ab4;
+  color: #fff;
+  font-weight: 700;
+}
+
+/* ── Rest stop card ── */
+.card {
+  position: relative;
+  flex: none;
+  width: 1820px;
+  height: 540px;
+  box-sizing: border-box;
+  background: #fff;
+  border: 2px solid #e8e8e8;
+  border-radius: 42.9px;
+  padding: 65px 40px;
+  display: flex;
+  align-items: flex-start;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  text-align: left;
+  font-family: inherit;
+  gap: 60px;
+  filter: drop-shadow(0 21.45px 21.45px rgba(143, 147, 157, 0.1));
+}
+
+.cardPhoto {
+  width: 730px;
+  height: 410px;
+  border-radius: 42.9px;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+.cardPhotoImg { width: 100%; height: 100%; object-fit: cover; display: block; }
+.cardPhotoPlaceholder { width: 100%; height: 100%; background: #f5f5f5; }
+
+.cardInfo {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 40px;
+}
+
+.cardTitleRow {
+  display: flex;
+  align-items: center;
+  gap: 42.9px;
+}
+.cardTitle {
+  font-size: 68px;
+  font-weight: 600;
+  color: #2b2b2b;
+  line-height: 1;
+  white-space: nowrap;
+}
+.cardRegion {
+  display: flex;
+  align-items: center;
+  gap: 21.45px;
+}
+.cardDot { width: 17px; height: 17px; flex-shrink: 0; }
+.cardDotFallback {
+  width: 17px;
+  height: 17px;
+  border-radius: 50%;
+  background: #d9d9d9;
+  flex-shrink: 0;
+}
+.cardRegionLabel {
+  font-size: 52px;
+  font-weight: 400;
+  color: #d9d9d9;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.cardAddress {
+  font-size: 48px;
+  font-weight: 500;
+  color: #d9d9d9;
+  line-height: 1;
+}
+.cardHours {
+  font-size: 49px;
+  font-weight: 500;
+  color: #2b2b2b;
+  line-height: 1;
+}
+.cardTags {
+  font-size: 43px;
+  font-weight: 400;
+  color: #d9d9d9;
+  line-height: 1;
+}
+
+/* QR box — absolute bottom-right */
+.cardQr {
+  position: absolute;
+  left: 1587px;
+  top: 304px;
+  width: 180px;
+  height: 180px;
+  border: 5px solid #005ab4;
+  border-radius: 25px;
+  background: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+}
+.cardQrText {
+  font-size: 52px;
+  font-weight: 700;
+  color: #005ab4;
+}
+
+.empty {
+  font-size: 60px;
+  color: #999;
+  text-align: center;
+  margin: 200px 0;
+}
+
+/* ── Left nav ── */
+.leftNav { position: absolute; left: 21px; top: 1995px; width: 85px; height: 205px; z-index: 20; }
+.leftNavImg { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; pointer-events: none; }
+.leftNavZoneHome, .leftNavZoneBack {
+  position: absolute; left: 0; width: 85px; height: 85px;
+  padding: 0; border: none; background: none; cursor: pointer; -webkit-tap-highlight-color: transparent;
+}
+.leftNavZoneHome { top: 0; }
+.leftNavZoneBack { top: 120px; }
+
+/* ── Bottom banner ── */
+.banner { position: absolute; top: 3267px; left: 0; width: 2160px; height: 573px; pointer-events: none; }
+.bannerImg { width: 100%; height: 100%; object-fit: cover; display: block; }

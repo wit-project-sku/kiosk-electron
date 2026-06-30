@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import type { KioskController } from '@renderer/hooks/useKioskController';
 import { iconUrl } from '@renderer/assets/icons/insadong';
 import { useDetailStore } from '@renderer/store/detailStore';
@@ -45,6 +45,11 @@ export function InsadongMuseum({ controller }: InsadongMuseumProps): JSX.Element
   }, [baseShops, lang]);
 
   const activeKr = selected || tabs[0]?.kr || '';
+
+  useEffect(() => {
+    if (activeKr) void window.api.kiosk.setScreen('museum_category');
+  }, [activeKr]);
+
   const visible = useMemo(
     () => baseShops.filter((s) => s.secondCategoryKr === activeKr),
     [baseShops, activeKr],

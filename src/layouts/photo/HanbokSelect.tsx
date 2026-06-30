@@ -94,12 +94,12 @@ interface HanbokSelectProps {
 export function HanbokSelect({ onCapture, onHome, countdownActive = false }: HanbokSelectProps): JSX.Element {
   const rotating = useRotatingBanner();
   const lang = useLang();
-  const { isOsan, icon, Header, photoTitle } = usePhotoChrome();
-  // Osan has its own single promo banner; insadong rotates through several.
-  const banner = isOsan ? icon('banner') : rotating;
+  const { isOsan, isHwaseong, icon, Header, photoTitle, banner: chromeBanner } = usePhotoChrome();
+  // Osan/Hwaseong have their own single promo banner; insadong rotates through several.
+  const banner = chromeBanner ?? rotating;
   // Camera-direction popup (shown while the photo is captured/sent to AI) —
-  // Osan uses its own uploaded image; insadong keeps the camera-folder asset.
-  const camPopupSrc = (isOsan && icon('camera-popup')) || cameraIconUrl('camera-popup');
+  // Osan and Hwaseong each have their own uploaded image; insadong uses the camera-folder asset.
+  const camPopupSrc = ((isOsan || isHwaseong) && icon('camera-popup')) || cameraIconUrl('camera-popup');
   // If the session was opened with a pre-selected tab (e.g. 프로모션 from the
   // K-DRAMA 이벤트 참여 button), start there; then clear it so it doesn't stick.
   const initialCategory = usePhotoStore((s) => s.initialCategory);
@@ -140,7 +140,14 @@ export function HanbokSelect({ onCapture, onHome, countdownActive = false }: Han
     const info = pick(HANBOK_INFO, lang);
     return (
       <>
-        {icon('bg') && <img className={styles.bg} src={icon('bg')} alt="" draggable={false} />}
+        {isHwaseong ? (
+          <>
+            <div className={styles.bgBase} />
+            {icon('bg') && <img className={styles.bgHw} src={icon('bg')} alt="" draggable={false} />}
+          </>
+        ) : (
+          icon('bg') && <img className={styles.bg} src={icon('bg')} alt="" draggable={false} />
+        )}
         <Header title={pick(LABELS.hanbokInfo, lang)} onHome={onHome} onBack={() => setInfoOpen(false)} />
         <div className={styles.infoContent}>
           <div
@@ -170,38 +177,56 @@ export function HanbokSelect({ onCapture, onHome, countdownActive = false }: Han
           </div>
         </div>
 
-        {/* Bottom nav bar (Figma 한복체험_한복설명 하단네비) — same curved bar as the home page. */}
-        <div className={styles.infoNav}>
-          {icon('bottom-bar-classic') && <img className={styles.infoNavBg} src={icon('bottom-bar-classic')} alt="" draggable={false} />}
-          <button type="button" className={styles.infoNavLeft} onClick={() => setInfoOpen(false)}>
-            <span
-              className={`${styles.infoNavIcon} ${isOsan ? styles.infoNavIconOsan : ''}`}
-              style={isOsan && icon('nav-circle') ? { backgroundImage: `url("${icon('nav-circle')}")` } : undefined}
-            >
-              {icon('map') && <img src={icon('map')} alt="" draggable={false} />}
-            </span>
-            <span className={styles.infoNavLabel}>{pick(LABELS.mapNav, lang)}</span>
-          </button>
-          <button
-            type="button"
-            className={`${styles.infoNavCam} ${isOsan ? styles.infoNavCamOsan : ''}`}
-            onClick={() => {
-              setInfoOpen(false);
-              onCapture('solo', outfitKey);
-            }}
-            aria-label="사진촬영"
-          >
-            {isOsan ? (
-              <Camera className={styles.infoNavCamGlyph} strokeWidth={2.2} />
-            ) : (
-              icon('camera') && <img src={icon('camera')} alt="" draggable={false} />
+        {/* Bottom nav bar. Hwaseong (Figma 휴_한복체험 하단네비) shows ONLY the centre
+            camera button on the curved bar; other kiosks keep the 3-button bar. */}
+        {isHwaseong ? (
+          <div className={styles.infoNav}>
+            {icon('fg-hanbok-cam') && (
+              <img className={styles.hwInfoNavImg} src={icon('fg-hanbok-cam')} alt="" draggable={false} />
             )}
-          </button>
-          <button type="button" className={styles.infoNavRight} onClick={() => setInfoOpen(false)}>
-            <span className={styles.infoNavIcon}>{icon('restroom') && <img src={icon('restroom')} alt="" draggable={false} />}</span>
-            <span className={styles.infoNavLabel}>{pick(LABELS.restroomNav, lang)}</span>
-          </button>
-        </div>
+            <button
+              type="button"
+              className={styles.hwInfoNavCam}
+              onClick={() => {
+                setInfoOpen(false);
+                onCapture('solo', outfitKey);
+              }}
+              aria-label="사진촬영"
+            />
+          </div>
+        ) : (
+          <div className={styles.infoNav}>
+            {icon('bottom-bar-classic') && <img className={styles.infoNavBg} src={icon('bottom-bar-classic')} alt="" draggable={false} />}
+            <button type="button" className={styles.infoNavLeft} onClick={() => setInfoOpen(false)}>
+              <span
+                className={`${styles.infoNavIcon} ${isOsan ? styles.infoNavIconOsan : ''}`}
+                style={isOsan && icon('nav-circle') ? { backgroundImage: `url("${icon('nav-circle')}")` } : undefined}
+              >
+                {icon('map') && <img src={icon('map')} alt="" draggable={false} />}
+              </span>
+              <span className={styles.infoNavLabel}>{pick(LABELS.mapNav, lang)}</span>
+            </button>
+            <button
+              type="button"
+              className={`${styles.infoNavCam} ${isOsan ? styles.infoNavCamOsan : ''}`}
+              onClick={() => {
+                setInfoOpen(false);
+                onCapture('solo', outfitKey);
+              }}
+              aria-label="사진촬영"
+            >
+              {isOsan ? (
+                <Camera className={styles.infoNavCamGlyph} strokeWidth={2.2} />
+              ) : (
+                icon('camera') && <img src={icon('camera')} alt="" draggable={false} />
+              )}
+            </button>
+            <button type="button" className={styles.infoNavRight} onClick={() => setInfoOpen(false)}>
+              <span className={styles.infoNavIcon}>{icon('restroom') && <img src={icon('restroom')} alt="" draggable={false} />}</span>
+              <span className={styles.infoNavLabel}>{pick(LABELS.restroomNav, lang)}</span>
+            </button>
+          </div>
+        )}
 
         <div className={styles.leftNav}>
           <button type="button" className={styles.leftNavBtn} onClick={onHome} aria-label="홈으로">
@@ -222,7 +247,14 @@ export function HanbokSelect({ onCapture, onHome, countdownActive = false }: Han
 
   return (
     <>
-      {icon('bg') && <img className={styles.bg} src={icon('bg')} alt="" draggable={false} />}
+      {isHwaseong ? (
+        <>
+          <div className={styles.bgBase} />
+          {icon('bg') && <img className={styles.bgHw} src={icon('bg')} alt="" draggable={false} />}
+        </>
+      ) : (
+        icon('bg') && <img className={styles.bg} src={icon('bg')} alt="" draggable={false} />
+      )}
 
       <Header title={photoTitle} onHome={onHome} />
 
@@ -338,17 +370,12 @@ export function HanbokSelect({ onCapture, onHome, countdownActive = false }: Han
         </div>
       )}
 
-      {/* Camera direction popup — shown during countdown/preview phase */}
+      {/* Camera direction popup — shown during countdown/preview phase. */}
       {countdownActive && camPopupSrc && (
         <>
           <div className={styles.camBackdrop} />
           <div className={styles.camPopup}>
-            <img
-              src={camPopupSrc}
-              className={styles.camPopupImg}
-              alt=""
-              draggable={false}
-            />
+            <img src={camPopupSrc} className={styles.camPopupImg} alt="" draggable={false} />
           </div>
         </>
       )}

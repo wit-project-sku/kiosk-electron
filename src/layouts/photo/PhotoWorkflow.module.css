@@ -8,6 +8,23 @@
   pointer-events: none;
 }
 
+/* Hwaseong: white base + semi-transparent bg, same as all hwaseong pages */
+.bgBase {
+  position: absolute;
+  inset: 0;
+  background: #fff;
+  pointer-events: none;
+}
+.bgHw {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  opacity: 0.5;
+  pointer-events: none;
+}
+
 /* ── Camera wait screen (preview / countdown / generating) ─────────────── */
 /* Only the camera-popup.png is shown — nothing else. */
 .waitScreen {

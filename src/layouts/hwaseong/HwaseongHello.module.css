@@ -1,0 +1,338 @@
+/* 안녕 '휴' — exact Figma (nodes 4167:172656/726/767). Tabs + persona card. */
+.root {
+  position: absolute;
+  inset: 0;
+  width: 2160px;
+  height: 3840px;
+  overflow: hidden;
+  background: #fff;
+  font-family: 'Noto Sans KR', 'Noto Sans', sans-serif;
+}
+
+.bgBase { position: absolute; left: 0; top: 0; width: 2160px; height: 3840px; background: #fff; }
+.bgImage { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; opacity: 0.5; pointer-events: none; }
+
+.results {
+  position: absolute;
+  top: 699px;
+  left: 0;
+  right: 0;
+  bottom: 573px;
+  box-sizing: border-box;
+  padding: 0 136px 40px 170px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 100px;
+  overflow-y: auto;
+  overflow-x: hidden;
+  scrollbar-gutter: stable;
+}
+
+.results::-webkit-scrollbar { width: 34.32px; }
+.results::-webkit-scrollbar-thumb { background: #005ab4; border-radius: 21.45px; }
+.results::-webkit-scrollbar-track { background: transparent; }
+
+/* ── Tabs ── */
+.tabs {
+  flex: none;
+  width: 1820px;
+  height: 170px;
+  display: flex;
+  align-items: center;
+  gap: 60px;
+}
+
+.tab {
+  width: 566px;
+  height: 170px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #fff;
+  border: 5px solid #e8e8e8;
+  border-radius: 42.9px;
+  font-size: 50px;
+  font-weight: 500;
+  color: #999;
+  line-height: 1;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  white-space: nowrap;
+}
+
+.tabSelected {
+  background: #daecfe;
+  color: #005ab4;
+  font-weight: 700;
+}
+
+/* ── Card ── */
+.card {
+  flex: none;
+  width: 1820px;
+  /* Fixed height so every tab's card is the same size (fills the results area:
+     2568 − tabs 170 − gap 100 − bottom pad 40). */
+  height: 2258px;
+  box-sizing: border-box;
+  background: #fff;
+  border: 2.145px solid #e8e8e8;
+  border-radius: 42.9px;
+  filter: drop-shadow(0 21.45px 21.45px rgba(143, 147, 157, 0.1));
+  padding: 65px 40px;
+  display: flex;
+  flex-direction: column;
+  gap: 60px;
+}
+
+/* ── Tab 1: intro profile ── */
+.topRow {
+  display: flex;
+  align-items: center;
+  gap: 100px;
+  width: 1740px;
+}
+
+.profilePhoto {
+  width: 750px;
+  height: 750px;
+  border-radius: 50%;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+.profilePhoto img { width: 100%; height: 100%; object-fit: contain; object-position: center; }
+
+.profileInfo {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 45px;
+}
+
+.nameRow { display: flex; align-items: center; gap: 40px; }
+
+.nameValue {
+  font-size: 58px;
+  font-weight: 700;
+  color: #005ab4;
+  line-height: 1;
+  background: #f2fbff;
+  padding: 8px 14px;
+}
+.nameEn { font-weight: 600; }
+
+.infoRow { display: flex; align-items: baseline; gap: 40px; }
+
+.infoLabel {
+  font-size: 60px;
+  font-weight: 700;
+  color: #000;
+  line-height: 1;
+  white-space: nowrap;
+  min-width: 220px;
+  flex-shrink: 0;
+}
+
+.infoValue {
+  font-size: 58px;
+  font-weight: 400;
+  color: #000;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.divider { width: 100%; height: 2.145px; background: #e8e8e8; flex: none; }
+
+.detailCol { display: flex; flex-direction: column; gap: 45px; width: 100%; }
+.detailRow { display: flex; align-items: flex-start; gap: 40px; }
+
+.detailLabel {
+  font-size: 60px;
+  font-weight: 700;
+  color: #000;
+  line-height: 1.3;
+  white-space: nowrap;
+  flex-shrink: 0;
+  min-width: 240px;
+}
+
+.detailValue {
+  font-size: 58px;
+  font-weight: 400;
+  color: #000;
+  line-height: 1.3;
+  white-space: pre-wrap;
+}
+
+/* ── Tab 2: hobby — alternating text+image ── */
+.hobbySections {
+  display: flex;
+  flex-direction: column;
+  gap: 64.35px;
+  width: 1740px;
+}
+
+.hobbyRow {
+  display: flex;
+  align-items: flex-start;
+  gap: 100px;
+  width: 100%;
+}
+
+.hobbyText {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 25px;
+  min-width: 0;
+}
+
+.hobbyTitle {
+  margin: 0;
+  font-size: 63px;
+  font-weight: 700;
+  color: #000;
+  line-height: 1.3;
+}
+
+.hobbyBody {
+  margin: 0;
+  font-size: 50px;
+  font-weight: 400;
+  color: #333;
+  line-height: 1.4;
+}
+
+.hobbyImg {
+  width: 452px;
+  height: 565px;
+  border-radius: 45px;
+  object-fit: cover;
+  object-position: top;
+  flex-shrink: 0;
+  display: block;
+}
+
+/* ── Tab 3: stretch — sport photos row + text sections ── */
+.sportImgRow {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  width: 1740px;
+  flex: none;
+}
+
+.sportImg {
+  width: 536px;
+  height: 670px;
+  border-radius: 45px;
+  object-fit: cover;
+  object-position: top;
+  display: block;
+}
+
+.stretchSection {
+  display: flex;
+  flex-direction: column;
+  gap: 25px;
+}
+
+/* Sections 2+3: left text column + right exercising image */
+.stretchBottomBlock {
+  display: flex;
+  align-items: flex-start;
+  gap: 60px;
+  width: 1740px;
+}
+
+.stretchTextCol {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 64.35px;
+}
+
+.stretchImg {
+  width: 499px;
+  height: 650px;
+  border-radius: 45px;
+  object-fit: cover;
+  object-position: top;
+  flex-shrink: 0;
+  display: block;
+}
+
+/* ── Footer: chips + social ── */
+.footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  flex: none;
+}
+
+.chips {
+  display: flex;
+  align-items: center;
+  gap: 60px;
+}
+
+.chip {
+  height: 124.409px;
+  min-width: 321px;
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 30px;
+  background: #005ab4;
+  border-radius: 42.9px;
+  font-size: 51.48px;
+  font-weight: 700;
+  color: #fff;
+  white-space: nowrap;
+}
+
+.social { display: flex; align-items: center; gap: 21.45px; }
+
+.socialIconWrap {
+  width: 124.409px;
+  height: 124.409px;
+  flex-shrink: 0;
+  border-radius: 21.45px;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.socialQrWrap {
+  width: 124.409px;
+  height: 124.409px;
+  flex-shrink: 0;
+  border-radius: 21.45px;
+  border: 4.29px solid #005ab4;
+  background: #fff;
+  box-sizing: border-box;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 6px;
+}
+
+/* ── Left nav ── */
+.leftNav { position: absolute; left: 21px; top: 1995px; width: 85px; height: 205px; }
+.leftNavImg { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; pointer-events: none; }
+.leftNavZoneHome, .leftNavZoneBack {
+  position: absolute; left: 0; width: 85px; height: 85px;
+  padding: 0; border: none; background: none; cursor: pointer; -webkit-tap-highlight-color: transparent;
+}
+.leftNavZoneHome { top: 0; }
+.leftNavZoneBack { top: 120px; }
+
+/* ── Bottom banner ── */
+.banner { position: absolute; top: 3267px; left: 0; width: 2160px; height: 573px; pointer-events: none; }
+.bannerImg { width: 100%; height: 100%; object-fit: cover; display: block; pointer-events: none; }

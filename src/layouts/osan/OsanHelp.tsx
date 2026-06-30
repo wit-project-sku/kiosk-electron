@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { QRCodeSVG } from 'qrcode.react';
 import type { KioskController } from '@renderer/hooks/useKioskController';
 import { osanIconUrl } from '@renderer/assets/icons/osan';
@@ -57,6 +57,10 @@ export function OsanHelp({ controller, initialTab }: OsanHelpProps): JSX.Element
   // Deep-link (e.g. 화장실 from the restroom tile) matches a tab by its bare name.
   const initialKr = initialTab ? tabs.find((t) => stripPrefix(t.kr) === initialTab)?.kr : undefined;
   const activeKr = selected || initialKr || tabs[0]?.kr || '';
+
+  useEffect(() => {
+    if (activeKr) void window.api.kiosk.setScreen('help_category');
+  }, [activeKr]);
   const visible = useMemo(
     () => baseShops.filter((s) => s.secondCategoryKr === activeKr),
     [baseShops, activeKr],

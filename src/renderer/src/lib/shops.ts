@@ -44,6 +44,12 @@ export function searchShops(shops: Shop[], query: string, lang: Lang, limit = 60
 /** Strip a leading "12-" group/order prefix from a category label. */
 export const stripPrefix = (s: string): string => s.replace(/^\s*\d+\s*-\s*/, '').trim();
 
+/** Keep a card's hashtag line compact — at most `max` tags so it never runs
+ *  into the QR/photo. Shared by the 도와줘 / 뭐사지 / 전국시장 cards. */
+export function firstTags(raw: string, max = 3): string {
+  return raw.split(/\s+/).filter(Boolean).slice(0, max).join(' ');
+}
+
 /** Image URLs ordered by sortOrder. */
 export const shopImages = (s: Shop): string[] =>
   [...s.images].sort((a, b) => a.sortOrder - b.sortOrder).map((i) => i.imageUrl);

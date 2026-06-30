@@ -8,7 +8,7 @@
  *  - deny all permission requests by default (camera is granted explicitly)
  */
 
-import { app, shell, type WebContents } from 'electron';
+import { app, session, shell, type WebContents } from 'electron';
 import { is } from '@electron-toolkit/utils';
 import { createLogger } from './logger';
 
@@ -94,6 +94,26 @@ function isAllowedNavigation(url: string, devServerUrl: string | undefined): boo
   if (url.startsWith('file://')) return true;
   if (devServerUrl && url.startsWith(devServerUrl)) return true;
   return false;
+}
+
+/**
+ * Suppress Electron's native HTTP-auth dialog for the webview embed session.
+ * Without this, sites that return a 401 (e.g. witteria.com) pop up an OS-level
+ * login modal. Calling callback() with no args cancels the challenge so the
+ * site's own in-page login UI renders inside the webview instead.
+ */
+export function suppressEmbedAuthDialog(): void {
+  // The `login` event lives on `app` (Electron's Session has no such event).
+  // Scope it to the embed partition by matching the webContents' session, then
+  // cancel the challenge (preventDefault + empty callback) so the site renders
+  // its own in-page login UI instead of the OS dialog. Other sessions fall
+  // through to Electron's default handling untouched.
+  const embedSession = session.fromPartition('persist:embeds');
+  app.on('login', (event, webContents, _details, _authInfo, callback) => {
+    if (webContents?.session !== embedSession) return;
+    event.preventDefault();
+    callback(); // cancel — no credentials
+  });
 }
 
 export function applyWebContentsSecurity(

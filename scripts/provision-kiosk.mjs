@@ -24,9 +24,11 @@ const PRESETS = {
   W001: { kioskId: 'W001', layout: 'INSADONG' },
   W002: { kioskId: 'W002', layout: 'INSADONG' },
   W003: { kioskId: 'W003', layout: 'NAM_INSADONG' },
+  W004: { kioskId: 'W004', layout: 'OSAN' },
+  W005: { kioskId: 'W005', layout: 'HWASEONG' },
 };
 
-const VALID_LAYOUTS = new Set(['INSADONG', 'NAM_INSADONG']);
+const VALID_LAYOUTS = new Set(['INSADONG', 'NAM_INSADONG', 'OSAN', 'HWASEONG']);
 
 function defaultDataDir() {
   // Must match Electron's app.getPath('userData'), which derives from the
@@ -71,14 +73,16 @@ function printUsage() {
   console.log(`
 Provision kiosk identity (kiosk-config.json)
 
-  node scripts/provision-kiosk.mjs <W001|W002|W003>
-  node scripts/provision-kiosk.mjs --kiosk-id W003 --layout NAM_INSADONG
+  node scripts/provision-kiosk.mjs <W001|W002|W003|W004|W005>
+  node scripts/provision-kiosk.mjs --kiosk-id W005 --layout HWASEONG
   node scripts/provision-kiosk.mjs W001 --data-dir "C:\\Custom\\Kiosk App"
 
 Presets:
-  W001  북인사마당      → INSADONG
-  W002  인사동센터      → INSADONG
-  W003  남인사마당      → NAM_INSADONG
+  W001  북인사마당        → INSADONG
+  W002  인사동센터        → INSADONG
+  W003  남인사마당        → NAM_INSADONG
+  W004  오산시 오색시장   → OSAN
+  W005  화성휴게소        → HWASEONG
 `);
 }
 

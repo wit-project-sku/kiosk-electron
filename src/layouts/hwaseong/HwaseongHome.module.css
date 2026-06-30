@@ -1,0 +1,506 @@
+/* Root — fills the 2160×3840 artboard */
+.root {
+  position: absolute;
+  inset: 0;
+  width: 2160px;
+  height: 3840px;
+  overflow: hidden;
+  font-family: 'Noto Sans KR', 'Noto Sans', sans-serif;
+}
+
+/* ── Background layers ──────────────────────────────── */
+.bgBase {
+  position: absolute;
+  background: #fff;
+  left: 0;
+  top: 0;
+  width: 2160px;
+  height: 3840px;
+}
+
+.bgImage {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  opacity: 0.5;
+  pointer-events: none;
+}
+
+/* ── Header (Component29) ───────────────────────────── */
+.header {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 2160px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 130px 170px 65px;
+  gap: 80px;
+}
+
+.headerTopRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 1820px;
+  height: 82px;
+  flex-shrink: 0;
+}
+
+.headerLeft {
+  display: flex;
+  align-items: center;
+  gap: 26px;
+}
+
+.locationIcon {
+  width: 71px;
+  height: 90px;
+  flex-shrink: 0;
+}
+
+.siteName {
+  font-size: 68px;
+  font-weight: 700;
+  color: #005ab4;
+  white-space: nowrap;
+  line-height: 1;
+  font-variation-settings: 'CTGR' 0, 'wdth' 100;
+}
+
+.headerDate {
+  font-size: 68px;
+  font-weight: 700;
+  color: #232323;
+  white-space: nowrap;
+  line-height: 1;
+  font-variation-settings: 'CTGR' 0, 'wdth' 100;
+}
+
+.headerBottomRow {
+  display: flex;
+  align-items: center;
+  gap: 40px;
+  width: 1820px;
+  height: 365px;
+  flex-shrink: 0;
+}
+
+/* Notice card */
+.noticeCard {
+  width: 1109px;
+  height: 365px;
+  backdrop-filter: blur(42.9px);
+  background: rgba(108, 90, 70, 0.1);
+  border-radius: 45px;
+  padding: 55px 60px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  flex-shrink: 0;
+  box-sizing: border-box;
+}
+
+.noticeInner {
+  display: flex;
+  align-items: center;
+  gap: 38.61px;
+}
+
+.noticeLabel {
+  font-family: 'Inter', sans-serif;
+  font-weight: 900;
+  font-size: 51px;
+  color: #000;
+  white-space: nowrap;
+  line-height: 107.249px;
+}
+
+.noticeDivider {
+  width: 6.435px;
+  height: 242.383px;
+  background: #232323;
+  border-radius: 3px;
+  flex-shrink: 0;
+}
+
+.noticeText {
+  font-size: 51px;
+  color: #000;
+  line-height: 64.35px;
+  font-variation-settings: 'CTGR' 0, 'wdth' 100;
+  white-space: pre-wrap;
+}
+
+.noticeBold {
+  font-weight: 700;
+}
+
+.noticeMedium {
+  font-weight: 500;
+}
+
+.noticeRegular {
+  font-weight: 400;
+}
+
+/* Weather card */
+.weatherCard {
+  width: 665px;
+  height: 365px;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  backdrop-filter: blur(42.9px);
+  background: rgba(108, 90, 70, 0.1);
+  border-radius: 45px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  gap: 30px;
+  box-sizing: border-box;
+}
+
+.weatherIconImg {
+  width: 309.836px;
+  height: 214.501px;
+  object-fit: contain;
+}
+
+.weatherTemp {
+  font-size: 145px;
+  font-weight: 700;
+  color: #333;
+  line-height: 1;
+  white-space: nowrap;
+  font-variation-settings: 'CTGR' 0, 'wdth' 100;
+}
+
+/* ── Content section ────────────────────────────────── */
+.content {
+  position: absolute;
+  top: 721px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 2160px;
+  padding: 0 170px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 65px;
+  box-sizing: border-box;
+  /* Keep the search bar + menu tiles above the decorative bottom nav / banner
+     so their tap targets are never blocked by an overlapping layer. */
+  z-index: 2;
+}
+
+/* Search bar */
+.searchBar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 1820px;
+  height: 182px;
+  flex-shrink: 0;
+}
+
+.searchHomeIcon {
+  width: 180px;
+  height: 180px;
+  object-fit: contain;
+  flex-shrink: 0;
+}
+
+.searchField {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 1350px;
+  height: 182px;
+  background: #fff;
+  border: 4.29px solid #005ab4;
+  border-radius: 120px;
+  padding: 55px 75px;
+  box-sizing: border-box;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.searchFieldText {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  overflow: hidden;
+}
+
+.searchPlaceholder,
+.searchValue {
+  font-size: 60.06px;
+  font-weight: 600;
+  line-height: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-variation-settings: 'CTGR' 0, 'wdth' 100;
+}
+
+.searchPlaceholder { color: #999; }
+.searchValue { color: #232323; }
+
+.searchCaret {
+  flex: none;
+  width: 6px;
+  height: 68px;
+  background: #005ab4;
+  animation: hwBlink 1s step-end infinite;
+}
+
+@keyframes hwBlink { 50% { opacity: 0; } }
+
+.searchIcon {
+  width: 71px;
+  height: 68px;
+  flex-shrink: 0;
+  color: #005ab4;
+}
+
+.langBtn {
+  width: 180px;
+  height: 180px;
+  background: #005ab4;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  cursor: pointer;
+}
+
+.langBtnText {
+  font-size: 60.06px;
+  font-weight: 700;
+  color: #fff;
+  line-height: 1;
+  font-variation-settings: 'CTGR' 0, 'wdth' 100;
+}
+
+/* ── Menu grid ──────────────────────────────────────── */
+.menuGrid {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 100px;
+  width: 1820px;
+  flex-shrink: 0;
+}
+
+.menuRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 1820px;
+  flex-shrink: 0;
+}
+
+/* Tile wrapper (icon card + label) — fixed 300px column so the row's
+   justify-between spacing stays uniform regardless of label length. */
+.tileWrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 35px;
+  flex-shrink: 0;
+  width: 300px;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.tileCard {
+  width: 300px;
+  height: 300px;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition: transform 0.12s, filter 0.12s;
+  flex-shrink: 0;
+}
+
+.tileCard:active {
+  transform: scale(0.96);
+  filter: brightness(0.9);
+}
+
+/* Figma tile renders already include the rounded card + drop shadow, so just
+   fit them into the slot (contain keeps the baked-in shadow from clipping). */
+.tileCardImg {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  display: block;
+  pointer-events: none;
+}
+
+.tileLabel {
+  font-size: 38px;
+  font-weight: 400;
+  color: #000;
+  text-align: center;
+  line-height: 1.1;
+  font-variation-settings: 'CTGR' 0, 'wdth' 100;
+  width: 100%;
+  word-break: keep-all;
+}
+
+/* Disabled tile — keeps visual appearance but blocks interaction */
+.tileDisabled {
+  pointer-events: none;
+  cursor: default;
+}
+
+/* Wide tile (전국도로교통상황) */
+.tileWrapWide {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 35px;
+  width: 830px;
+  flex-shrink: 0;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.tileCardWide {
+  width: 830px;
+  height: 300px;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition: transform 0.12s, filter 0.12s;
+  flex-shrink: 0;
+}
+
+.tileCardWide:active {
+  transform: scale(0.98);
+  filter: brightness(0.9);
+}
+
+/* ── Left nav ───────────────────────────────────────── */
+/* Single Figma render (home + back), with transparent click zones. */
+.leftNav {
+  position: absolute;
+  left: 21px;
+  top: 1995px;
+  width: 85px;
+  height: 205px; /* 85 + 35 gap + 85 */
+}
+
+.leftNavImg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  pointer-events: none;
+}
+
+.leftNavZoneHome,
+.leftNavZoneBack {
+  position: absolute;
+  left: 0;
+  width: 85px;
+  height: 85px;
+  padding: 0;
+  border: none;
+  background: none;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.leftNavZoneHome {
+  top: 0;
+}
+
+.leftNavZoneBack {
+  top: 120px; /* 85 + 35 gap */
+}
+
+/* ── Bottom nav ─────────────────────────────────────── */
+/* Single Figma render (strip + 3 buttons + labels), with click zones.
+   The container is click-through so it never blocks the menu tiles that may
+   sit beneath its transparent areas — only the three zones are interactive. */
+.bottomNav {
+  position: absolute;
+  top: 2821px;
+  left: 0;
+  width: 2160px;
+  height: 446px;
+  pointer-events: none;
+}
+
+.bottomNavImg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: fill;
+  pointer-events: none;
+}
+
+/* Transparent click zones at exact Figma button coordinates */
+.bottomNavZoneLeft,
+.bottomNavZoneCenter,
+.bottomNavZoneRight {
+  position: absolute;
+  padding: 0;
+  border: none;
+  background: none;
+  cursor: pointer;
+  pointer-events: auto;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* 스마트 관광: Figma left 15.97% → 345px, top 99px, 235×235 */
+.bottomNavZoneLeft {
+  left: 345px;
+  top: 99px;
+  width: 235px;
+  height: 235px;
+}
+
+/* AR 한복체험 camera: Figma left 41.81% → 903px, top 39px, 356×356 */
+.bottomNavZoneCenter {
+  left: 903px;
+  top: 39px;
+  width: 356px;
+  height: 356px;
+}
+
+/* 화장실: Figma left 73.29% → 1583px, top 99px, 235×235 */
+.bottomNavZoneRight {
+  left: 1583px;
+  top: 99px;
+  width: 235px;
+  height: 235px;
+}
+
+/* ── Bottom banner ──────────────────────────────────── */
+.bottomBanner {
+  position: absolute;
+  top: 3267px;
+  left: 0;
+  width: 2160px;
+  height: 573px;
+  pointer-events: none;
+}
+
+.bottomBannerImg {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  pointer-events: none;
+}

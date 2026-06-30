@@ -1,0 +1,184 @@
+/* 전국시장 상세 — exact Figma (node 4167:173281). gallery + info + QR + ratings. */
+.root {
+  position: absolute;
+  inset: 0;
+  width: 2160px;
+  height: 3840px;
+  overflow: hidden;
+  background: #fff;
+  font-family: 'Noto Sans KR', 'Noto Sans', sans-serif;
+}
+
+.bgBase { position: absolute; left: 0; top: 0; width: 2160px; height: 3840px; background: #fff; }
+.bgImage { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; opacity: 0.5; pointer-events: none; }
+
+.content {
+  position: absolute;
+  top: 699px;
+  left: 0;
+  right: 0;
+  bottom: 573px;
+  box-sizing: border-box;
+  padding: 0 136px 80px 170px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  overflow-y: auto;
+  overflow-x: hidden;
+  scrollbar-gutter: stable;
+}
+
+.content::-webkit-scrollbar { width: 34.32px; }
+.content::-webkit-scrollbar-thumb { background: #005ab4; border-radius: 21.45px; }
+.content::-webkit-scrollbar-track { background: transparent; }
+
+.card {
+  flex: none;
+  width: 1820px;
+  box-sizing: border-box;
+  background: #fff;
+  border: 5px solid #e8e8e8;
+  border-radius: 42.9px;
+  /* Figma: 48px from the card top to the title (was 100px). */
+  padding: 48px 45px 100px;
+  display: flex;
+  flex-direction: column;
+  gap: 65px;
+}
+
+/* Title + gallery */
+.head { display: flex; flex-direction: column; gap: 42.9px; }
+
+.titleRow { display: flex; align-items: center; gap: 42.9px; }
+
+.title {
+  margin: 0;
+  font-size: 85px;
+  font-weight: 700;
+  color: #333;
+  line-height: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-variation-settings: 'CTGR' 0, 'wdth' 100;
+}
+
+.cat {
+  flex: none;
+  display: flex;
+  align-items: center;
+  gap: 21.45px;
+  font-size: 51px;
+  font-weight: 400;
+  color: #999;
+  line-height: 1;
+  white-space: nowrap;
+  font-variation-settings: 'CTGR' 0, 'wdth' 100;
+}
+
+.dot { width: 17px; height: 17px; border-radius: 50%; background: #005ab4; flex-shrink: 0; }
+
+.gallery {
+  display: grid;
+  grid-template-columns: repeat(2, 575px);
+  justify-content: center;
+  gap: 45px;
+}
+
+.cell { width: 575px; height: 324px; border-radius: 45px; overflow: hidden; }
+.cell img { width: 100%; height: 100%; object-fit: cover; }
+.cellEmpty { width: 100%; height: 100%; background: #ededed; }
+
+.divider { width: 100%; height: 2px; background: #e8e8e8; flex: none; }
+
+/* Info + QR */
+.infoRow { display: flex; align-items: center; justify-content: space-between; width: 100%; }
+
+.info { display: flex; flex-direction: column; gap: 40px; min-width: 0; }
+
+.line { display: flex; align-items: center; gap: 20px; }
+
+.icon { width: 85px; height: 85px; flex-shrink: 0; }
+
+.infoCol { display: flex; flex-direction: column; gap: 20px; }
+
+.infoText {
+  font-size: 55px;
+  font-weight: 400;
+  color: #333;
+  line-height: 1;
+  white-space: nowrap;
+  font-variation-settings: 'CTGR' 0, 'wdth' 100;
+}
+
+.qr {
+  width: 340px;
+  height: 340px;
+  box-sizing: border-box;
+  border: 4.29px solid #005ab4;
+  border-radius: 25px;
+  background: #fff;
+  padding: 50px;
+  flex-shrink: 0;
+}
+
+/* Description + tags */
+.desc {
+  margin: 0;
+  font-size: 55px;
+  font-weight: 400;
+  line-height: 1.3;
+  color: #333;
+  white-space: pre-wrap;
+  font-variation-settings: 'CTGR' 0, 'wdth' 100;
+}
+
+.tags {
+  margin: 0;
+  font-size: 45px;
+  font-weight: 400;
+  line-height: 1.5;
+  color: #616161;
+  font-variation-settings: 'CTGR' 0, 'wdth' 100;
+}
+
+/* Ratings */
+.ratings {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 64.35px;
+}
+
+.ratingItem { display: flex; align-items: center; gap: 21.45px; }
+
+.naver { width: 85.799px; height: 85.799px; flex-shrink: 0; border-radius: 50%; }
+
+.stars { display: flex; align-items: center; gap: 2.14px; }
+.star { width: 42.9px; height: 42.9px; }
+
+.ratingText {
+  font-size: 51.48px;
+  font-weight: 400;
+  color: #333;
+  line-height: 1.5;
+  white-space: nowrap;
+  font-variation-settings: 'CTGR' 0, 'wdth' 100;
+}
+
+.vline { width: 2px; height: 43px; background: #ddd; flex-shrink: 0; }
+
+/* ── Left nav ── */
+.leftNav { position: absolute; left: 21px; top: 1995px; width: 85px; height: 205px; }
+.leftNavImg { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; pointer-events: none; }
+.leftNavZoneHome, .leftNavZoneBack {
+  position: absolute; left: 0; width: 85px; height: 85px;
+  padding: 0; border: none; background: none; cursor: pointer; -webkit-tap-highlight-color: transparent;
+}
+.leftNavZoneHome { top: 0; }
+.leftNavZoneBack { top: 120px; }
+
+/* ── Bottom banner ── */
+.banner { position: absolute; top: 3267px; left: 0; width: 2160px; height: 573px; pointer-events: none; }
+.bannerImg { width: 100%; height: 100%; object-fit: cover; display: block; pointer-events: none; }

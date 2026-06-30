@@ -82,7 +82,7 @@ export function createContainer(): AppContainer {
   const translations = new TranslationService(translationRepo);
   const shops = new ShopService(cache, kiosk);
   const stats = new StatsService(kiosk, failedRequests);
-  const weather = new WeatherService(cache);
+  const weather = new WeatherService(cache, kiosk);
   const exchange = new ExchangeService(cache);
 
   const display = new DisplayService();

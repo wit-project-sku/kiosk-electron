@@ -15,7 +15,7 @@ import { APP_NAME } from '@shared/constants';
 import { IpcEvents } from '@shared/ipc/channels';
 import { initLogger, createLogger } from './core/logger';
 import { loadEnvFile } from './core/env';
-import { enforceSingleInstance } from './core/security';
+import { enforceSingleInstance, suppressEmbedAuthDialog } from './core/security';
 import { registerMediaScheme, registerMediaProtocol } from './core/mediaProtocol';
 import { setupKioskPower } from './core/PowerManager';
 import { PaymentAgentManager } from './core/PaymentAgentManager';
@@ -100,6 +100,7 @@ async function bootstrap(): Promise<void> {
   });
 
   registerMediaProtocol();
+  suppressEmbedAuthDialog();
 
   // Provision OS-level kiosk power behavior (nightly 02:00 reboot + auto-start
   // on boot) so the fleet self-heals without anyone running the .bat helpers.

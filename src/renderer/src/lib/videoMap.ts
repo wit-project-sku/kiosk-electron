@@ -1,7 +1,8 @@
 import type { Lang } from '@renderer/lib/i18n';
 import { VIDEO_SUBTITLES, type VideoEntry } from '@renderer/data/videoSubtitles.generated';
 import { VIDEO_SUBTITLES_OSAEK } from '@renderer/data/videoSubtitles-osaek.generated';
-import { VIDEO_FILES_INSADONG, VIDEO_FILES_OSAEK } from '@renderer/assets/videos/manifest';
+import { VIDEO_SUBTITLES_HWASEONG } from '@renderer/data/videoSubtitles-hwaseong.generated';
+import { VIDEO_FILES_INSADONG, VIDEO_FILES_OSAEK, VIDEO_FILES_HWASEONG } from '@renderer/assets/videos/manifest';
 import { getKioskLocation } from '@shared/config/kioskLocations';
 import type { KioskId } from '@shared/types/kiosk';
 import { pickText } from '@renderer/data/types';
@@ -20,13 +21,14 @@ export interface DisplayClip {
 }
 
 /** Video set (subfolder under resources/videos) chosen per kiosk at runtime. */
-type VideoSet = 'insadong' | 'osaek';
+type VideoSet = 'insadong' | 'osaek' | 'hwaseong';
 
 /** Normalize a file stem so sheet names tolerant-match the real files. */
 const norm = (s: string): string => s.toLowerCase().replace(/\.mp4$/, '').replace(/[^a-z0-9]/g, '');
 const FILE_BY_NORM: Record<VideoSet, Map<string, string>> = {
   insadong: new Map(VIDEO_FILES_INSADONG.map((f) => [norm(f), f])),
   osaek: new Map(VIDEO_FILES_OSAEK.map((f) => [norm(f), f])),
+  hwaseong: new Map(VIDEO_FILES_HWASEONG.map((f) => [norm(f), f])),
 };
 
 /** Resolve a sheet file stem to a media:// URL within the kiosk's video set. */
@@ -46,9 +48,14 @@ function buildByKey(entries: VideoEntry[]): Map<string, VideoEntry[]> {
 }
 const BY_KEY_INSA = buildByKey(VIDEO_SUBTITLES);
 const BY_KEY_OSAEK = buildByKey(VIDEO_SUBTITLES_OSAEK);
+const BY_KEY_HWASEONG = buildByKey(VIDEO_SUBTITLES_HWASEONG);
 
 function isOsan(kioskId?: KioskId): boolean {
   return kioskId != null && getKioskLocation(kioskId).layout === 'OSAN';
+}
+
+function isHwaseong(kioskId?: KioskId): boolean {
+  return kioskId != null && getKioskLocation(kioskId).layout === 'HWASEONG';
 }
 
 function clipsForKey(
@@ -90,6 +97,15 @@ const SCREEN_TO_VIDEO_KEY: Record<string, string> = {
   language: 'Default',
   photo: 'Photo_Creating',
 
+  // Category sub-state (broadcast by list screens when a category tab is active).
+  eat_category: 'ToEat_Category',
+  shop_category: 'ToBuy_Category',
+  museum_category: 'ToGallery_Category',
+  lodging_category: 'ToStay_Category',
+  help_category: 'ToHelp_Category',
+  events_category: 'ToEvent_Category',
+  transport_category: 'Transport_Category',
+
   // Per-source detail pages (reported by InsadongDetail as `<from>_detail`).
   eat_detail: 'ToEat_Detail',
   shop_detail: 'ToBuy_Detail',
@@ -109,6 +125,50 @@ const SCREEN_TO_VIDEO_KEY: Record<string, string> = {
 };
 
 /**
+ * Hwaseong (W005) screen→key mapping. Language screen is handled separately
+ * in clipsForScreen using the `lang` param to pick ChangeLanguage_KR/EN/JP/CH.
+ */
+const HWASEONG_SCREEN_TO_VIDEO_KEY: Record<string, string> = {
+  home:        'Default',
+  search:      'Search',
+  detail:      'Default',     // generic detail — can't distinguish context at screen level
+  language:    'Default',     // overridden per-lang below
+  restroom:    'Toilet',
+  transport:   'TrafficInfo',
+  market:              'Default',     // 전국시장 — no dedicated key in sheet
+  market_detail:       'Default',
+  events:              'Event',
+  food_court:          'ToEat',
+  food_court_category: 'ToEat_Category',
+  food_court_detail:   'ToEat_Detail',
+  shop:                'ToBuy',
+  shop_category:       'ToBuy_Category',
+  shop_detail:         'ToBuy_Detail',
+  convenience:         'RestArea',
+  convenience_category:'RestArea_Category',
+  convenience_detail:  'RestArea_Detail',
+  taxfree:             'TaxFree',
+  tourism:             'Here',
+  hello:               'Greeting',
+  help:                'ToHelp',
+  help_category:       'ToHelp_Category',
+  help_detail:         'ToHelp_Detail',
+  parking:             'SAMap',
+  exchange:            'Exchange',
+  rest_info:           'Default',
+  photo:               'Photo_Creating',
+  hanbok_explain:      'HanbokExplain',
+  search_detail:       'Search_Detail',
+};
+
+const LANG_TO_CHANGE_KEY: Record<string, string> = {
+  ko: 'ChangeLanguage_KR',
+  en: 'ChangeLanguage_EN',
+  ja: 'ChangeLanguage_JP',
+  zh: 'ChangeLanguage_CH',
+};
+
+/**
  * Osan (W004) screen→key overrides — the home grid reorders several screens, so
  * a few resolve to different VideoSubtitle_Osaek keys than Insadong:
  *  - museum = 지역화폐 (시장화폐) → MarketPaper (not the gallery)
@@ -118,6 +178,7 @@ const SCREEN_TO_VIDEO_KEY: Record<string, string> = {
 const OSAN_SCREEN_TO_VIDEO_KEY: Record<string, string> = {
   museum: 'MarketPaper',
   lodging: 'ToBuy',
+  lodging_category: 'ToBuy_Category',
   lodging_detail: 'ToBuy_Detail',
 };
 
@@ -126,8 +187,18 @@ function screenKey(screen: string, osan: boolean): string {
   return override ?? SCREEN_TO_VIDEO_KEY[screen] ?? 'Default';
 }
 
+function hwaseongScreenKey(screen: string, lang: Lang): string {
+  if (screen === 'language') return LANG_TO_CHANGE_KEY[lang] ?? 'ChangeLanguage_KR';
+  return HWASEONG_SCREEN_TO_VIDEO_KEY[screen] ?? 'Default';
+}
+
 /** Ordered clips for a screen, falling back to the Default idle sequence. */
 export function clipsForScreen(screen: string, lang: Lang, kioskId?: KioskId): DisplayClip[] {
+  if (isHwaseong(kioskId)) {
+    const key = hwaseongScreenKey(screen, lang);
+    const clips = clipsForKey(BY_KEY_HWASEONG, key, lang, 'hwaseong');
+    return clips.length > 0 ? clips : clipsForKey(BY_KEY_HWASEONG, 'Default', lang, 'hwaseong');
+  }
   const osan = isOsan(kioskId);
   const set: VideoSet = osan ? 'osaek' : 'insadong';
   const byKey = osan ? BY_KEY_OSAEK : BY_KEY_INSA;
@@ -137,6 +208,9 @@ export function clipsForScreen(screen: string, lang: Lang, kioskId?: KioskId): D
 
 /** The idle/attract sequence (Default). */
 export function idleClips(lang: Lang, kioskId?: KioskId): DisplayClip[] {
+  if (isHwaseong(kioskId)) {
+    return clipsForKey(BY_KEY_HWASEONG, 'Default', lang, 'hwaseong');
+  }
   const osan = isOsan(kioskId);
   return clipsForKey(osan ? BY_KEY_OSAEK : BY_KEY_INSA, 'Default', lang, osan ? 'osaek' : 'insadong');
 }

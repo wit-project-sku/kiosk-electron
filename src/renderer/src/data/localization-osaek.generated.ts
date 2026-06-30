@@ -186,7 +186,7 @@ export const LOCALIZATION_OSAEK: Record<string, LangText> = {
   "SubHeader_Detail_Event": {"ko":"* QR코드로 이벤트의 상세정보를 확인하세요","en":"* Scan the QR code for event details","ja":"* QRコードでイベントの詳細を確認してください","zh":"* 扫描二维码查看活动详情"},
   "SubHeader_Transport": {"ko":"* 오색 시장을 올수 있는 다양한 방법을 알려드릴게요","en":"* Let me show you the different ways you can get to Osaek Market","ja":"オセク市場へのさまざまなアクセス方法をご案内します","zh":"我来告诉你前往五色市场的多种方式"},
   "SubHeader_TaxFree": {"ko":"*TaxFree 리펀드 기능을 통해 공항하는 업무를 줄여 드립니다. \n  상점에서 받은 영수증을 준비하시고 언어를 선택해보세요","en":"*The Tax-Free refund reduces what you need to do at the airport.\n  Prepare your receipt and choose your language.","ja":"*TaxFree返金で空港手続き이 줄어요。\n  レシートを用意して言語を選んでください。","zh":"*TaxFree退税功能可以减少您在机场办理的手续。\n  请准备好商店给您的收据，并选择语言"},
-  "AI_SubmitButton": {"ko":"정이에게 추천받기","en":"Get recommendations from Jeong-i","ja":"ジョンイからおすすめをもらう","zh":"向Jeong-i获取推荐"},
+  "AI_SubmitButton": {"ko":"정이'에게 추천받기","en":"Get recommendations from Jeong-i","ja":"ジョンイからおすすめをもらう","zh":"向Jeong-i获取推荐"},
   "AI_CourseContent_1": {"ko":"•  맞춤 코스가 준비되었어요!","en":"•  A personalized course is ready for you!","ja":"•  あなただけのカスタムコースが準備できました！","zh":"•  为你定制的专属路线已经准备好了！"},
   "AI_CourseContent_2": {"ko":"맞춤 코스에 따라 오색 시장을 즐겨보세요.","en":"Enjoy Osaek Market with your personalized course","ja":"あなた専用のコースに沿ってオセク市場を楽しんでみてください","zh":"按照为你定制的路线，尽情畅游五色市场吧！"},
   "Search_NoContent": {"ko":"콘텐츠 없음","en":"No matching results","ja":"コンテンツがありません","zh":"暂无内容"},

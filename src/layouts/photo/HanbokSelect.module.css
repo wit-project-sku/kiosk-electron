@@ -8,6 +8,25 @@
   pointer-events: none;
 }
 
+/* Hwaseong: white base beneath the semi-transparent bg image */
+.bgBase {
+  position: absolute;
+  inset: 0;
+  background: #fff;
+  pointer-events: none;
+}
+
+/* Hwaseong variant: bg image at 50% opacity like all other hwaseong pages */
+.bgHw {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  opacity: 0.5;
+  pointer-events: none;
+}
+
 .content {
   position: absolute;
   top: 594px;
@@ -321,24 +340,61 @@
   background: rgba(0, 0, 0, 0.3);
 }
 
-/* Popup image — Figma: 1295×2630, radius 75.074, top 545, horizontally centred. */
+/* Popup image — Figma: 1295 wide, radius 75.074, top 545, horizontally centred.
+   Height follows the image's natural aspect so it is never cropped/stretched
+   (object-fit: cover was cutting the side icons/text off a wider source PNG). */
 .camPopup {
   position: absolute;
   left: 50%;
   top: 545px;
   transform: translateX(-50%);
   width: 1295px;
-  height: 2630px;
   z-index: 50;
   pointer-events: none;
 }
 
 .camPopupImg {
   width: 100%;
-  height: 100%;
-  object-fit: cover;
+  height: auto;
+  object-fit: contain;
   border-radius: 75.074px;
   display: block;
+}
+
+/* Hwaseong camera waiting overlay — full-screen with blue branded style */
+.hwCamOverlay {
+  position: absolute;
+  inset: 0;
+  z-index: 50;
+  background: rgba(255, 255, 255, 0.92);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.hwCamBox {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 40px;
+  padding: 120px 160px;
+  background: #005ab4;
+  border-radius: 60px;
+}
+.hwCamTitle {
+  margin: 0;
+  font-size: 100px;
+  font-weight: 700;
+  color: #fff;
+  text-align: center;
+  line-height: 1.2;
+}
+.hwCamSub {
+  margin: 0;
+  font-size: 60px;
+  font-weight: 400;
+  color: rgba(255,255,255,0.8);
+  text-align: center;
+  line-height: 1.2;
 }
 
 /* ── 한복 설명 page ───────────────────────────────────────────────────────── */
@@ -366,6 +422,29 @@
   width: 2160px;
   height: 446px;
   z-index: 5;
+}
+
+/* Hwaseong 한복 설명 bar — single curved-bar image + centre camera hit-area. */
+.hwInfoNavImg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: fill;
+  pointer-events: none;
+}
+
+.hwInfoNavCam {
+  position: absolute;
+  left: 903px;
+  top: 39px;
+  width: 356px;
+  height: 356px;
+  padding: 0;
+  border: none;
+  background: none;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
 }
 
 .infoNavBg {

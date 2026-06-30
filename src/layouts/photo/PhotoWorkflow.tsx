@@ -41,9 +41,9 @@ export function PhotoWorkflow(): JSX.Element {
   const lang = useLang();
   const hasPayment = getKioskLocation(kioskId).hasCardTerminal;
   const rotating = useRotatingBanner();
-  const { isOsan, icon, Header, photoTitle } = usePhotoChrome();
-  // Osan has its own single promo banner; insadong rotates through several.
-  const banner = isOsan ? icon('banner') : rotating;
+  const { isHwaseong, icon, Header, photoTitle, banner: chromeBanner } = usePhotoChrome();
+  // Osan/Hwaseong have their own single promo banner; insadong rotates through several.
+  const banner = chromeBanner ?? rotating;
   const [goodsQrOpen, setGoodsQrOpen] = useState(false);
   const [saveQrOpen, setSaveQrOpen] = useState(false);
 
@@ -90,7 +90,14 @@ export function PhotoWorkflow(): JSX.Element {
     const saveUrl = `${SAVE_BASE}${encodeURIComponent(imageUrl)}`;
     return (
       <>
-        {icon('bg') && <img className={styles.bg} src={icon('bg')} alt="" draggable={false} />}
+        {isHwaseong ? (
+          <>
+            <div className={styles.bgBase} />
+            {icon('bg') && <img className={styles.bgHw} src={icon('bg')} alt="" draggable={false} />}
+          </>
+        ) : (
+          icon('bg') && <img className={styles.bg} src={icon('bg')} alt="" draggable={false} />
+        )}
 
         <Header title="위드마켓" onHome={handleReset} />
 
@@ -157,17 +164,22 @@ export function PhotoWorkflow(): JSX.Element {
     );
   }
 
-  // ── Result (NO-PAYMENT kiosks W001/W002): show the result image + QR to save ──
+  // ── Result (NO-PAYMENT kiosks W001/W002/W005): show the result image + QR to save ──
   if (phase === 'result') {
     const c = pick(RESULT, lang);
-    // Prefer the public AI result URL (phone-openable); fall back to the local
-    // reference only when the AI didn't return one.
     const imageUrl = resultUrl ?? (resultFileName ? generatedUrl(resultFileName) : '');
     const saveUrl = `${SAVE_BASE}${encodeURIComponent(imageUrl)}`;
 
     return (
       <>
-        {icon('bg') && <img className={styles.bg} src={icon('bg')} alt="" draggable={false} />}
+        {isHwaseong ? (
+          <>
+            <div className={styles.bgBase} />
+            {icon('bg') && <img className={styles.bgHw} src={icon('bg')} alt="" draggable={false} />}
+          </>
+        ) : (
+          icon('bg') && <img className={styles.bg} src={icon('bg')} alt="" draggable={false} />
+        )}
 
         <Header title={photoTitle} onHome={handleReset} subtitle={c.subtitle} />
 
@@ -247,7 +259,14 @@ export function PhotoWorkflow(): JSX.Element {
   // Fallback (idle / unknown phase) — should not normally render.
   return (
     <>
-      {icon('bg') && <img className={styles.bg} src={icon('bg')} alt="" draggable={false} />}
+      {isHwaseong ? (
+        <>
+          <div className={styles.bgBase} />
+          {icon('bg') && <img className={styles.bgHw} src={icon('bg')} alt="" draggable={false} />}
+        </>
+      ) : (
+        icon('bg') && <img className={styles.bg} src={icon('bg')} alt="" draggable={false} />
+      )}
       <div className={styles.waitScreen} />
     </>
   );

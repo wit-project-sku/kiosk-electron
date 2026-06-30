@@ -8,6 +8,8 @@
  *   Localization_Insa  → src/renderer/src/data/localization.generated.ts
  *   PalaceInfo_Insa    → src/renderer/src/data/palaces.generated.ts
  *   AICategory_Insa    → src/renderer/src/data/aiCategories.generated.ts
+ *   (W004 오색시장: *_Osaek tabs;  W005 화성휴게소: *_Hwaseong tabs — separate sheets)
+ *   NationwideMarkets (전국시장, own sheet) → src/.../nationwideMarkets.generated.ts
  *
  * Raw CSVs are cached under src/renderer/src/data/sheet-cache/ so the build
  * still works offline; pass --offline to regenerate from the cache only.
@@ -19,6 +21,10 @@ import { dirname, join } from 'node:path';
 const SHEET_ID = '1AVZoyepjrlWIUtwXamGRYU6TWkKKKgVb7fzwEtbRDaw';
 /** W004 오산 오색시장 content sheet (tabs suffixed _Osaek). */
 const OSAEK_SHEET_ID = '1_CkWFXfB7ud0sJw-cnIWGvFlTzF12UxDuNylp5HkOiw';
+/** W005 화성휴게소 content sheet (tabs suffixed _Hwaseong). */
+const HWASEONG_SHEET_ID = '14aWRWrJXPC_J-W4GpZqa_g-3fDjjUsy6BpAhDg8OvVU';
+/** 전국시장 (nationwide markets) dataset — shared, used by 화성휴게소's 전국휴게소 screen. */
+const NATIONWIDE_MARKETS_SHEET_ID = '1EGeS48JvN3YNzFDLiBduKW-t8P5ilSDucNIMUNS2M-4';
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
 const DATA_DIR = join(ROOT, 'src/renderer/src/data');
 const CACHE_DIR = join(DATA_DIR, 'sheet-cache');
@@ -192,6 +198,87 @@ async function genVideoSubtitlesOsaek() {
   return entries.length;
 }
 
+// ─── W005 화성휴게소 (same column layout, _Hwaseong tabs, separate sheet) ───────
+async function genLocalizationHwaseong() {
+  const rows = await loadTab('Localization_Hwaseong', HWASEONG_SHEET_ID);
+  const entries = {};
+  for (const r of rows.slice(1)) {
+    const key = clean(r[1]);
+    if (!key || key === 'Key') continue;
+    entries[key] = langText(r[2], r[3], r[4], r[5]);
+  }
+  const body = Object.entries(entries)
+    .map(([k, v]) => `  ${JSON.stringify(k)}: ${JSON.stringify(v)},`)
+    .join('\n');
+  const out = `${BANNER}import type { LangText } from './types';\n\n/** W005 화성휴게소 UI strings keyed by their sheet \`Key\` (Localization_Hwaseong). */\nexport const LOCALIZATION_HWASEONG: Record<string, LangText> = {\n${body}\n};\n`;
+  await writeFile(join(DATA_DIR, 'localization-hwaseong.generated.ts'), out, 'utf8');
+  return Object.keys(entries).length;
+}
+
+async function genAiCategoriesHwaseong() {
+  const rows = await loadTab('AICategory_Hwaseong', HWASEONG_SHEET_ID);
+  const cats = [];
+  for (const r of rows.slice(1)) {
+    if (!/^\d+$/.test(clean(r[0]))) continue;
+    const ko = stripPrefix(r[1]);
+    if (!ko) continue; // skip numbered-but-blank rows so no nameless tiles render
+    cats.push(langText(ko, stripPrefix(r[2]), stripPrefix(r[3]), stripPrefix(r[4])));
+  }
+  const body = cats.map((c) => `  ${JSON.stringify(c)},`).join('\n');
+  const out = `${BANNER}import type { LangText } from './types';\n\n/** W005 화성휴게소 모하지(AI검색) 즐길거리 categories, prefix stripped. */\nexport const AI_CATEGORIES_HWASEONG: LangText[] = [\n${body}\n];\n`;
+  await writeFile(join(DATA_DIR, 'aiCategories-hwaseong.generated.ts'), out, 'utf8');
+  return cats.length;
+}
+
+async function genVideoSubtitlesHwaseong() {
+  const rows = await loadTab('VideoSubtitle_Hwaseong', HWASEONG_SHEET_ID);
+  const entries = [];
+  for (const r of rows.slice(1)) {
+    const key = clean(r[1]);
+    const file = clean(r[2]);
+    if (!key || key === 'Key' || !file) continue;
+    entries.push({
+      key,
+      file,
+      subtitle: langText(r[3], r[4], r[5], r[6]),
+      label: langText(r[7], r[8], r[9], r[10]),
+    });
+  }
+  const body = entries.map((e) => `  ${JSON.stringify(e)},`).join('\n');
+  const out = `${BANNER}import type { VideoEntry } from './videoSubtitles.generated';\n\n/** W005 화성휴게소 AI-model display videos per screen/state, in sheet order. */\nexport const VIDEO_SUBTITLES_HWASEONG: VideoEntry[] = [\n${body}\n];\n`;
+  await writeFile(join(DATA_DIR, 'videoSubtitles-hwaseong.generated.ts'), out, 'utf8');
+  return entries.length;
+}
+
+// ─── 전국시장 (nationwide markets) — single sheet, grouped by province ──────────
+async function genNationwideMarkets() {
+  // Cols: 0 Num, 1 사진여부, 2-5 name ko/en/jp/cn, 6-9 province, 10-13 district,
+  //       14-17 address, 18-21 hashtag, 22-25 description, 26-29 openTime,
+  //       30 tel, 31 naverLink.
+  const rows = await loadTab('NationwideMarkets', NATIONWIDE_MARKETS_SHEET_ID);
+  const markets = [];
+  for (const r of rows.slice(1)) {
+    if (!/^\d+$/.test(clean(r[0]))) continue; // data rows are numbered
+    const name = langText(r[2], r[3], r[4], r[5]);
+    if (!name.ko) continue; // skip blank rows
+    markets.push({
+      name,
+      province: langText(r[6], r[7], r[8], r[9]),
+      district: langText(r[10], r[11], r[12], r[13]),
+      address: langText(r[14], r[15], r[16], r[17]),
+      hashtag: langText(r[18], r[19], r[20], r[21]),
+      description: langText(r[22], r[23], r[24], r[25]),
+      openTime: langText(r[26], r[27], r[28], r[29]),
+      tel: clean(r[30]),
+      naverLink: clean(r[31]),
+    });
+  }
+  const body = markets.map((m) => `  ${JSON.stringify(m)},`).join('\n');
+  const out = `${BANNER}import type { LangText } from './types';\n\nexport interface NationwideMarket {\n  name: LangText;\n  province: LangText;\n  district: LangText;\n  address: LangText;\n  hashtag: LangText;\n  description: LangText;\n  openTime: LangText;\n  tel: string;\n  naverLink: string;\n}\n\n/** 전국시장 — nationwide markets grouped by province (전국휴게소 screen). */\nexport const NATIONWIDE_MARKETS: NationwideMarket[] = [\n${body}\n];\n`;
+  await writeFile(join(DATA_DIR, 'nationwideMarkets.generated.ts'), out, 'utf8');
+  return markets.length;
+}
+
 async function main() {
   await mkdir(CACHE_DIR, { recursive: true });
   const loc = await genLocalization();
@@ -210,6 +297,18 @@ async function main() {
   console.log(`✓ [osaek] localization: ${locO} keys`);
   console.log(`✓ [osaek] aiCategories: ${catsO}`);
   console.log(`✓ [osaek] videoSubtitles: ${videosO}`);
+
+  // W005 화성휴게소 (separate sheet, _Hwaseong tabs)
+  const locH = await genLocalizationHwaseong();
+  const catsH = await genAiCategoriesHwaseong();
+  const videosH = await genVideoSubtitlesHwaseong();
+  console.log(`✓ [hwaseong] localization: ${locH} keys`);
+  console.log(`✓ [hwaseong] aiCategories: ${catsH}`);
+  console.log(`✓ [hwaseong] videoSubtitles: ${videosH}`);
+
+  // 전국시장 (nationwide markets, single shared sheet)
+  const markets = await genNationwideMarkets();
+  console.log(`✓ nationwideMarkets: ${markets}`);
   console.log(OFFLINE ? '(offline: regenerated from cache)' : '(synced from Google Sheets)');
 }
 

@@ -1,0 +1,417 @@
+/* ── Language screen — 화성휴게소 (W005) ─────────────────────────
+   All measurements in Figma px: 1 CSS px = 1 Figma px inside KioskArtboard.
+   Artboard: 2160 × 3840.
+───────────────────────────────────────────────────────────────── */
+
+.root {
+  position: absolute;
+  inset: 0;
+  width: 2160px;
+  height: 3840px;
+  overflow: hidden;
+  font-family: 'Noto Sans KR', 'Noto Sans', sans-serif;
+}
+
+/* ── Background ─────────────────────────────────────── */
+.bgBase {
+  position: absolute;
+  background: #fff;
+  left: 0;
+  top: 0;
+  width: 2160px;
+  height: 3840px;
+}
+
+.bgImage {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  opacity: 0.5;
+  pointer-events: none;
+}
+
+/* ── Header (Component 29) ──────────────────────────── */
+/* h-700px  pt-125  pb-80  px-170  gap-65 (between inner rows and subtitle) */
+.header {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 2160px;
+  height: 700px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 125px 170px 80px;
+  gap: 65px;
+  box-sizing: border-box;
+}
+
+/* Inner rows container: flex-col gap-105 */
+.headerRows {
+  display: flex;
+  flex-direction: column;
+  gap: 105px;
+  width: 1820px;
+  flex-shrink: 0;
+}
+
+/* Row 1: HWASEONG SA + date */
+.headerTopRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 1820px;
+  height: 82px;
+}
+
+.headerLeft {
+  display: flex;
+  align-items: center;
+  gap: 25.74px;
+  height: 82px;
+}
+
+.locationIcon {
+  width: 63px;
+  height: 82px;
+  object-fit: contain;
+  flex-shrink: 0;
+}
+
+.siteName {
+  font-size: 68px;
+  font-weight: 700;
+  color: #005ab4;
+  white-space: nowrap;
+  line-height: 1;
+  font-variation-settings: 'CTGR' 0, 'wdth' 100;
+}
+
+.headerDate {
+  font-size: 68px;
+  font-weight: 700;
+  color: #232323;
+  white-space: nowrap;
+  line-height: 1;
+  font-variation-settings: 'CTGR' 0, 'wdth' 100;
+}
+
+/* Row 2: home icon | 언어선택 title | back icon */
+.headerTitleRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 1820px;
+  height: 182px;
+}
+
+.headerHomeIcon {
+  width: 175px;
+  height: 175px;
+  object-fit: contain;
+  cursor: pointer;
+  flex-shrink: 0;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.headerHomeIconBtn {
+  width: 175px;
+  height: 175px;
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: #005ab4;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.headerTitleBox {
+  /* no bg, no border — transparent title label */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 1342px;
+  height: 182px;
+  padding: 50px 75px;
+  border-radius: 117.974px;
+  box-sizing: border-box;
+}
+
+.headerTitleText {
+  font-size: 78px;
+  font-weight: 700;
+  color: #000;
+  text-align: center;
+  line-height: 1;
+  font-variation-settings: 'CTGR' 0, 'wdth' 100;
+}
+
+.headerBackBtn {
+  width: 175px;
+  height: 175px;
+  object-fit: contain;
+  cursor: pointer;
+  flex-shrink: 0;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Subtitle: ★ 페이지 설명문 */
+.subtitle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  width: 1820px;
+  flex-shrink: 0;
+}
+
+.subtitleStar {
+  font-size: 36px;
+  color: #909090;
+  line-height: 1;
+}
+
+.subtitleText {
+  font-size: 60.06px;
+  font-weight: 700;
+  color: #909090;
+  white-space: nowrap;
+  font-variation-settings: 'CTGR' 0, 'wdth' 100;
+}
+
+/* ── Language selection area ─────────────────────────
+   top-699, bottom-573 (above bottom nav+banner), px-170 */
+.area {
+  position: absolute;
+  top: 699px;
+  left: 0;
+  right: 0;
+  bottom: 573px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 150px;
+  padding: 0 170px;
+  overflow-y: auto;
+  overflow-x: hidden;
+  box-sizing: border-box;
+}
+
+.area::-webkit-scrollbar { width: 0; }
+
+/* Section (현재언어영역 / 변경언어영역) */
+.section {
+  flex: none;
+  display: flex;
+  flex-direction: column;
+  gap: 65px;
+  width: 1820px;
+}
+
+/* Section header: black bar + label */
+.sectionLabel {
+  display: flex;
+  align-items: center;
+  gap: 30px;
+}
+
+.sectionBar {
+  flex: none;
+  width: 10.725px;
+  height: 72.929px;
+  border-radius: 21.45px;
+  background: #000;
+}
+
+.sectionLabelText {
+  font-size: 76px;
+  font-weight: 600;
+  color: #000;
+  line-height: 1;
+  white-space: nowrap;
+  font-variation-settings: 'CTGR' 0, 'wdth' 100;
+}
+
+/* Current language card — bg #dbecff, border #005ab4 */
+.currentCard {
+  box-sizing: border-box;
+  width: 100%;
+  height: 320px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  padding: 55px 60px;
+  background: #dbecff;
+  border: 2.145px solid #005ab4;
+  border-radius: 42.9px;
+  box-shadow: 0 21.45px 21.45px rgba(143, 147, 157, 0.1);
+}
+
+/* Card inner row */
+.cardRow {
+  width: 100%;
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  overflow: hidden;
+}
+
+.cardLeft {
+  display: flex;
+  align-items: center;
+  gap: 40px;
+}
+
+/* Language pill (circle with 2-letter code) */
+.pillOn {
+  flex: none;
+  width: 170px;
+  height: 170px;
+  border-radius: 50%;
+  background: #005ab4;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 60px;
+  font-weight: 700;
+  color: #fff;
+  font-variation-settings: 'CTGR' 0, 'wdth' 100;
+}
+
+.pillOff {
+  flex: none;
+  width: 170px;
+  height: 170px;
+  border-radius: 50%;
+  background: #fff;
+  border: 4px solid #005ab4;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 60px;
+  font-weight: 700;
+  color: #005ab4;
+  font-variation-settings: 'CTGR' 0, 'wdth' 100;
+}
+
+.langName {
+  font-size: 68px;
+  font-weight: 600;
+  color: #333;
+  white-space: nowrap;
+  font-variation-settings: 'CTGR' 0, 'wdth' 100;
+}
+
+/* Change language list */
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: 100px;
+}
+
+/* Unselected row card */
+.langCard {
+  box-sizing: border-box;
+  width: 1820px;
+  height: 320px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  padding: 55px 60px;
+  background: #fff;
+  border: 2.145px solid #e8e8e8;
+  border-radius: 42.9px;
+  box-shadow: 0 21.45px 21.45px rgba(143, 147, 157, 0.1);
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition: background 0.15s, border-color 0.15s;
+}
+
+/* Selected row card */
+.langCardOn {
+  background: #dbecff;
+  border-color: #005ab4;
+}
+
+/* Checkmark icons */
+.checkOn {
+  flex: none;
+  width: 115px;
+  height: 115px;
+  border-radius: 50%;
+  background: #005ab4;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.checkOff {
+  flex: none;
+  width: 115px;
+  height: 115px;
+  border-radius: 50%;
+  background: #f0f0f0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* ── Left nav ────────────────────────────────────────── */
+.leftNav {
+  position: absolute;
+  left: 21px;
+  top: 1995px;
+  width: 85px;
+  height: 205px;
+}
+
+.leftNavImg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  pointer-events: none;
+}
+
+.leftNavZoneHome,
+.leftNavZoneBack {
+  position: absolute;
+  left: 0;
+  width: 85px;
+  height: 85px;
+  padding: 0;
+  border: none;
+  background: none;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.leftNavZoneHome { top: 0; }
+.leftNavZoneBack { top: 120px; }
+
+/* ── Bottom banner ───────────────────────────────────── */
+.bottomBanner {
+  position: absolute;
+  top: 3267px;
+  left: 0;
+  width: 2160px;
+  height: 573px;
+}
+
+.bottomBannerImg {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  pointer-events: none;
+}

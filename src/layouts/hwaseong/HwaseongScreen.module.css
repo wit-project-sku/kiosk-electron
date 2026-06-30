@@ -1,0 +1,99 @@
+/* Shared chrome for not-yet-designed 화성휴게소 pages. */
+.root {
+  position: absolute;
+  inset: 0;
+  width: 2160px;
+  height: 3840px;
+  overflow: hidden;
+  font-family: 'Noto Sans KR', 'Noto Sans', sans-serif;
+}
+
+.bgBase {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 2160px;
+  height: 3840px;
+  background: #fff;
+}
+
+.bgImage {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  opacity: 0.5;
+  pointer-events: none;
+}
+
+/* Body area — between header (699) and banner (573) */
+.body {
+  position: absolute;
+  top: 699px;
+  left: 0;
+  width: 2160px;
+  height: 2568px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.placeholder {
+  font-size: 72px;
+  font-weight: 600;
+  color: #909090;
+  line-height: 1;
+  font-variation-settings: 'CTGR' 0, 'wdth' 100;
+}
+
+/* Left nav (single Figma render) */
+.leftNav {
+  position: absolute;
+  left: 21px;
+  top: 1995px;
+  width: 85px;
+  height: 205px;
+}
+
+.leftNavImg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  pointer-events: none;
+}
+
+.leftNavZoneHome,
+.leftNavZoneBack {
+  position: absolute;
+  left: 0;
+  width: 85px;
+  height: 85px;
+  padding: 0;
+  border: none;
+  background: none;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.leftNavZoneHome { top: 0; }
+.leftNavZoneBack { top: 120px; }
+
+/* Bottom banner */
+.banner {
+  position: absolute;
+  top: 3267px;
+  left: 0;
+  width: 2160px;
+  height: 573px;
+}
+
+.bannerImg {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  pointer-events: none;
+}

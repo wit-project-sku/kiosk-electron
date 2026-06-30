@@ -1,0 +1,324 @@
+/* 지역화폐 — 화성휴게소. Artboard 2160×3840px. NO scroll anywhere.
+   Layout matches exact Figma positions (4167:170102 / 4167:170053). */
+.root {
+  position: absolute;
+  inset: 0;
+  width: 2160px;
+  height: 3840px;
+  overflow: hidden;
+  background: #fff;
+  font-family: 'Noto Sans KR', 'Noto Sans', sans-serif;
+}
+
+.bgBase { position: absolute; left: 0; top: 0; width: 2160px; height: 3840px; background: #fff; }
+.bgImage { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; opacity: 0.5; pointer-events: none; }
+
+/* ── Tab bar ── Figma: left=427 top=664 (온누리 active screen) */
+.tabs {
+  position: absolute;
+  top: 664px;
+  left: 427px;
+  width: 1360px;
+  display: flex;
+  gap: 200px;
+  z-index: 5;
+}
+
+.tab {
+  box-sizing: border-box;
+  width: 580px;
+  height: 170px;
+  flex: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #fff;
+  border: 2.145px solid #e8e8e8;
+  border-radius: 42.9px;
+  box-shadow: 0 21.45px 42.9px rgba(143, 147, 157, 0.1);
+  font-weight: 500;
+  font-size: 50px;
+  color: #999;
+  line-height: 1;
+  cursor: pointer;
+  white-space: nowrap;
+  -webkit-tap-highlight-color: transparent;
+  overflow: hidden;
+}
+
+/* 온누리상품권 active: #daecfe / #005ab4 */
+.tabSelected0 {
+  background: #daecfe;
+  font-weight: 700;
+  color: #005ab4;
+}
+
+/* 행복화성지역화폐 active: #e8f0f4 / #005cb1 */
+.tabSelected1 {
+  background: #e8f0f4;
+  font-weight: 700;
+  color: #005cb1;
+}
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   TAB 0: 온누리상품권
+   Card: left=163 top=917 w=1820 h=2344 padding=py-100 px-40 gap=65
+   ───────────────────────────────────────────────────────────────────────────── */
+.card0 {
+  position: absolute;
+  top: 917px;
+  left: 163px;
+  width: 1820px;
+  height: 2344px;
+  box-sizing: border-box;
+  background: #fff;
+  border: 2.145px solid #e8e8e8;
+  border-radius: 45px;
+  filter: drop-shadow(0 21.453px 21.453px rgba(143, 147, 157, 0.1));
+  padding: 100px 40px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 65px;
+  overflow: hidden;
+}
+
+/* Big title */
+.bigTitle {
+  margin: 0;
+  font-weight: 800;
+  font-size: 100px;
+  color: #1a4d7e;
+  line-height: 1;
+  text-align: center;
+  flex: none;
+  white-space: nowrap;
+}
+
+/* ── Inner blocks (inside card0) ── */
+.block {
+  width: 1740px;
+  flex: none;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.blockWithGap {
+  width: 1740px;
+  flex: none;
+  display: flex;
+  flex-direction: column;
+  gap: 40px;
+}
+
+/* Section heading */
+.h {
+  margin: 0;
+  font-weight: 700;
+  font-size: 60px;
+  color: #1a4d7e;
+  line-height: 1;
+}
+
+/* Body text */
+.body {
+  margin: 0;
+  font-weight: 400;
+  font-size: 45px;
+  color: #2b2b2b;
+  line-height: 1.3;
+}
+
+.bodySemi { font-weight: 600; }
+
+/* Note text */
+.note {
+  margin: 0;
+  font-size: 32px;
+  color: rgba(43, 43, 43, 0.7);
+  line-height: 1.3;
+}
+.note p { margin: 0; }
+
+/* Image containers inside card0 */
+.imgPaper {
+  width: 1740px;
+  height: 493px;
+  flex: none;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+.imgPaper img {
+  width: 1321px;
+  height: 493px;
+  object-fit: contain;
+  display: block;
+}
+
+.imgDigital {
+  width: 1740px;
+  height: 492px;
+  flex: none;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+.imgDigital img {
+  width: 1382px;
+  height: 492px;
+  object-fit: contain;
+  display: block;
+}
+
+/* 사용처 row */
+.usageRow {
+  width: 1740px;
+  height: 196px;
+  flex: none;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.usageText {
+  width: 1169px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+.usageMedia {
+  flex: none;
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+.biLogo {
+  width: 244px;
+  height: 250px;
+  object-fit: contain;
+  display: block;
+}
+.usageQr {
+  box-sizing: border-box;
+  width: 230px;
+  height: 253px;
+  border: 4.291px solid #1a4d7e;
+  border-radius: 21.453px;
+  background: #fff;
+  padding: 15px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.usageQr img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   TAB 1: 행복화성지역화폐
+   White card (title only): left=203 top=924 w=1820 h=2314
+   Content block:           left=243 top=1189 w=1740 gap=27
+   ───────────────────────────────────────────────────────────────────────────── */
+.card1 {
+  position: absolute;
+  top: 924px;
+  left: 203px;
+  width: 1820px;
+  height: 2314px;
+  background: #fff;
+  border: 5px solid #e8e8e8;
+  border-radius: 42.905px;
+  overflow: hidden;
+}
+
+.card1Title {
+  position: absolute;
+  top: 95px;
+  left: 35px;
+  right: 35px;
+  margin: 0;
+  font-weight: 800;
+  font-size: 100px;
+  color: #1a4d7e;
+  line-height: 1;
+  text-align: center;
+}
+
+/* Content area outside the white card */
+.content1 {
+  position: absolute;
+  top: 1189px;
+  left: 243px;
+  width: 1740px;
+  display: flex;
+  flex-direction: column;
+  gap: 27px;
+}
+
+/* Block 1: 행복화성이란? — heading at top:0, body at top:80px */
+.block1 {
+  position: relative;
+  height: 298px;
+  width: 1630px;
+  flex: none;
+}
+.block1Heading {
+  position: absolute;
+  top: 0;
+  margin: 0;
+  font-weight: 700;
+  font-size: 60px;
+  color: #1a4d7e;
+  line-height: 1;
+  white-space: nowrap;
+}
+.block1Body {
+  position: absolute;
+  top: 80px;
+  width: 1630px;
+  font-size: 45px;
+  color: #2b2b2b;
+  line-height: 1.3;
+}
+.block1Body p { margin: 0; }
+
+/* Image 162 */
+.imgLocalpay {
+  width: 1643px;
+  height: 903px;
+  flex: none;
+  overflow: hidden;
+  position: relative;
+}
+.imgLocalpay img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+/* Generic content1 inner block (누구나, 사용처) */
+.block1Inner {
+  flex: none;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  width: 100%;
+}
+
+/* ── Left nav ── */
+.leftNav { position: absolute; left: 21px; top: 1995px; width: 85px; height: 205px; z-index: 20; }
+.leftNavImg { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; pointer-events: none; }
+.leftNavZoneHome, .leftNavZoneBack {
+  position: absolute; left: 0; width: 85px; height: 85px;
+  padding: 0; border: none; background: none; cursor: pointer; -webkit-tap-highlight-color: transparent;
+}
+.leftNavZoneHome { top: 0; }
+.leftNavZoneBack { top: 120px; }
+
+/* ── Bottom banner ── */
+.banner { position: absolute; top: 3267px; left: 0; width: 2160px; height: 573px; pointer-events: none; z-index: 10; }
+.bannerImg { width: 100%; height: 100%; object-fit: cover; display: block; }

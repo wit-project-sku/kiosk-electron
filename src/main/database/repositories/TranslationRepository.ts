@@ -60,6 +60,13 @@ export class TranslationRepository extends BaseRepository {
     return (result.changes || 0) as number;
   }
 
+  /** Wipe every translation (used when the kiosk's location/layout changes, so
+   *  another location's cached strings can't linger). */
+  deleteAll(): number {
+    const result = this.conn.prepare('DELETE FROM translations').run();
+    return (result.changes || 0) as number;
+  }
+
   getAvailableLanguages(): SupportedLanguage[] {
     const rows = this.conn
       .prepare('SELECT DISTINCT language FROM translations ORDER BY language ASC')

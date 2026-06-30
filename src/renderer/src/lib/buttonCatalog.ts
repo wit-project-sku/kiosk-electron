@@ -125,6 +125,34 @@ const SLOT_OVERRIDES: Partial<Record<KioskId, Record<string, Slot>>> = {
     photo_solo: { position: 23, type: '혼자찍기', suffix: '혼자찍기' },
     photo_together: { position: 24, type: '같이찍기', suffix: '같이찍기' },
   },
+  // W005 (화성휴게소) — rest-stop wording (휴/화성휴게소) and a reordered grid: the
+  // wide top tile is 도로 교통상황(4), 전국휴게소(5)/전국 시장(9) replace the AI
+  // search & 미술관 slots, and 지역화폐(18) is the only active 준비중-row tile.
+  // The disabled 준비중 tiles (16/17/19) never navigate, so they need no key here.
+  // Mirrors the `buttons` table for kiosk_id 5 exactly.
+  W005: {
+    home: { position: 1, type: '홈' },
+    search: { position: 2, type: '검색' },
+    language: { position: 3, type: '언어선택' },
+    transport: { position: 4, type: '도로 교통상황' }, // wide traffic tile (its.go.kr)
+    convenience: { position: 5, type: '전국휴게소(준비중)' }, // 전국휴게소 list
+    events: { position: 6, type: '화성시 이벤트' },
+    food_court: { position: 7, type: '휴 뭐먹지' },
+    shop: { position: 8, type: '휴 뭐사지?' },
+    market: { position: 9, type: '전국 시장' }, // 전국시장 (HwaseongMarketScreen)
+    taxfree: { position: 10, type: '텍스프리' },
+    tourism: { position: 11, type: '화성휴게소' }, // HwaseongRestStop
+    hello: { position: 12, type: '안녕 휴' },
+    help: { position: 13, type: '도와줘 휴' },
+    parking: { position: 14, type: '화성휴게소 지도' }, // HwaseongMap
+    exchange: { position: 15, type: '환율' },
+    rest_info: { position: 18, type: '지역화폐' }, // HwaseongLocalpay (지역화폐)
+    photo: { position: 20, type: '사진촬영', suffix: '아이콘20' },
+    restroom: { position: 21, type: '화장실' },
+    weather: { position: 22, type: '날씨', suffix: '메인D' },
+    photo_solo: { position: 23, type: '혼자찍기', suffix: '혼자찍기' },
+    photo_together: { position: 24, type: '같이찍기', suffix: '같이찍기' },
+  },
 };
 
 /**

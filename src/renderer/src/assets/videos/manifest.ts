@@ -89,6 +89,9 @@ export const VIDEO_FILES_INSADONG: string[] = [
   "promotion.mp4",
 ];
 
+/** Hwaseong (W005) — populate once resources/videos/hwaseong/ is created. */
+export const VIDEO_FILES_HWASEONG: string[] = [];
+
 export const VIDEO_FILES_OSAEK: string[] = [
   "M1-A=6-C-V1-Fin-down.mp4",
   "M13-B(1)=3-Fin-down.mp4",

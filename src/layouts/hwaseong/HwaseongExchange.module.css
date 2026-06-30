@@ -1,0 +1,163 @@
+/* 환율 — Osaek layout, 화성휴게소 blue accent (#005ab4). */
+.root {
+  position: absolute;
+  inset: 0;
+  width: 2160px;
+  height: 3840px;
+  overflow: hidden;
+  background: #fff;
+  font-family: 'Noto Sans KR', 'Noto Sans', sans-serif;
+}
+
+.bgBase {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 2160px;
+  height: 3840px;
+  background: #fff;
+}
+
+.bgImage {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  opacity: 0.5;
+  pointer-events: none;
+}
+
+.results {
+  position: absolute;
+  top: 699px;
+  left: 0;
+  right: 0;
+  bottom: 573px;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  gap: 100px;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: 0 170px 80px;
+}
+
+.results::-webkit-scrollbar { width: 34.32px; }
+.results::-webkit-scrollbar-thumb { background: #005ab4; border-radius: 21.45px; }
+.results::-webkit-scrollbar-track { background: transparent; }
+
+.list {
+  flex: none;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 40px;
+  width: 100%;
+}
+
+.row {
+  flex: none;
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: 40px 65px;
+  background: #fff;
+  border: 5px solid #d9d9d9;
+  border-radius: 214.499px;
+  overflow: hidden;
+}
+
+.left {
+  display: flex;
+  align-items: center;
+  gap: 42.9px;
+  width: 560px;
+}
+
+.flag {
+  width: 170px;
+  height: 170px;
+  flex: none;
+  border-radius: 50%;
+  object-fit: cover;
+  background: #fff;
+  border: 2px solid #e8e8e8;
+}
+
+.label {
+  font-weight: 500;
+  font-size: 60px;
+  line-height: normal;
+  color: #333;
+  text-align: center;
+  white-space: nowrap;
+}
+
+.rate {
+  flex: none;
+  width: 354px;
+  height: 82px;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  font-weight: 500;
+  font-size: 60px;
+  line-height: normal;
+  color: #000;
+  white-space: nowrap;
+}
+
+/* ── Left nav ── */
+.leftNav {
+  position: absolute;
+  left: 21px;
+  top: 1995px;
+  width: 85px;
+  height: 205px;
+}
+
+.leftNavImg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  pointer-events: none;
+}
+
+.leftNavZoneHome,
+.leftNavZoneBack {
+  position: absolute;
+  left: 0;
+  width: 85px;
+  height: 85px;
+  padding: 0;
+  border: none;
+  background: none;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.leftNavZoneHome { top: 0; }
+.leftNavZoneBack { top: 120px; }
+
+/* ── Bottom banner ── */
+.banner {
+  position: absolute;
+  top: 3267px;
+  left: 0;
+  width: 2160px;
+  height: 573px;
+  pointer-events: none;
+}
+
+.bannerImg {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  pointer-events: none;
+}

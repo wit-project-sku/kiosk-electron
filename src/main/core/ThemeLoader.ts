@@ -14,6 +14,7 @@ const THEME_FILES: Record<KioskLayoutId, string> = {
   INSADONG: 'insadong.json',
   NAM_INSADONG: 'nam-insadong.json',
   OSAN: 'osan.json',
+  HWASEONG: 'hwaseong.json',
 };
 
 function themesDirectory(): string {
@@ -49,9 +50,21 @@ export function loadTheme(layout: KioskLayoutId): KioskTheme {
 }
 
 function fallbackTheme(layout: KioskLayoutId): KioskTheme {
+  const ID_MAP: Record<KioskLayoutId, string> = {
+    INSADONG: 'insadong',
+    NAM_INSADONG: 'nam-insadong',
+    OSAN: 'osan',
+    HWASEONG: 'hwaseong',
+  };
+  const NAME_MAP: Record<KioskLayoutId, string> = {
+    INSADONG: 'Insadong',
+    NAM_INSADONG: 'Nam Insadong',
+    OSAN: '오산시 오색시장',
+    HWASEONG: '화성휴게소',
+  };
   const theme: KioskTheme = {
-    id: layout === 'INSADONG' ? 'insadong' : layout === 'NAM_INSADONG' ? 'nam-insadong' : 'osan',
-    name: layout === 'INSADONG' ? 'Insadong' : layout === 'NAM_INSADONG' ? 'Nam Insadong' : '오산시 오색시장',
+    id: ID_MAP[layout] ?? layout.toLowerCase(),
+    name: NAME_MAP[layout] ?? layout,
     colors: {
       primary: '#4f8cff',
       primaryHover: '#3b73e8',

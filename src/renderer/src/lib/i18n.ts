@@ -1,6 +1,6 @@
 import type { SupportedLanguage } from '@shared/types/kiosk';
 import { useLanguageStore } from '@renderer/store/languageStore';
-import { hasLoc, t } from '@renderer/lib/loc';
+import { hasLoc, t, tExact } from '@renderer/lib/loc';
 
 export type Lang = SupportedLanguage;
 
@@ -21,6 +21,9 @@ const CATEGORY_LABELS: Record<string, Partial<Record<Lang, string>>> = {
   한정식: { en: 'Korean course', ja: '韓定食', zh: '韩定食' },
   바베큐: { en: 'BBQ', ja: 'バーベキュー', zh: '烧烤' },
   분식: { en: 'Snacks', ja: '粉食', zh: '小吃' },
+  사찰음식: { en: 'Temple food', ja: '精進料理', zh: '寺院料理' },
+  먹거리: { en: 'Street Food', ja: '軽食', zh: '小吃' },
+  특산품: { en: 'Specialties', ja: '特産品', zh: '特产' },
   샐러드샵: { en: 'Salad', ja: 'サラダ', zh: '沙拉' },
   '채식·비건': { en: 'Vegan', ja: 'ビーガン', zh: '素食' },
   '아시안·중식': { en: 'Asian·Chinese', ja: 'アジア・中華', zh: '亚洲·中餐' },
@@ -53,6 +56,56 @@ const CATEGORY_LABELS: Record<string, Partial<Record<Lang, string>>> = {
 /** Localized category label, falling back to the Korean id. */
 export function catLabel(id: string, lang: Lang): string {
   return CATEGORY_LABELS[id]?.[lang] ?? id;
+}
+
+/** Korean province / metro names → other languages (전국 filter tabs, regions).
+ *  Both the bare metro name ("서울") and full province name are keyed so the
+ *  markets sheet's province values resolve either way. */
+const PROVINCE_LABELS: Record<string, Partial<Record<Lang, string>>> = {
+  // 도 (provinces)
+  경기도: { en: 'Gyeonggi-do', ja: '京畿道', zh: '京畿道' },
+  강원도: { en: 'Gangwon-do', ja: '江原道', zh: '江原道' },
+  충청북도: { en: 'Chungcheongbuk-do', ja: '忠清北道', zh: '忠清北道' },
+  충청남도: { en: 'Chungcheongnam-do', ja: '忠清南道', zh: '忠清南道' },
+  경상북도: { en: 'Gyeongsangbuk-do', ja: '慶尚北道', zh: '庆尚北道' },
+  경상남도: { en: 'Gyeongsangnam-do', ja: '慶尚南道', zh: '庆尚南道' },
+  전라북도: { en: 'Jeollabuk-do', ja: '全羅北道', zh: '全罗北道' },
+  전라남도: { en: 'Jeollanam-do', ja: '全羅南道', zh: '全罗南道' },
+  제주도: { en: 'Jeju-do', ja: '済州島', zh: '济州岛' },
+  // 시 (metros / cities)
+  서울시: { en: 'Seoul', ja: 'ソウル', zh: '首尔' },
+  서울: { en: 'Seoul', ja: 'ソウル', zh: '首尔' },
+  인천: { en: 'Incheon', ja: '仁川', zh: '仁川' },
+  대전: { en: 'Daejeon', ja: '大田', zh: '大田' },
+  대구: { en: 'Daegu', ja: '大邱', zh: '大邱' },
+  부산: { en: 'Busan', ja: '釜山', zh: '釜山' },
+  세종: { en: 'Sejong', ja: '世宗', zh: '世宗' },
+  광주: { en: 'Gwangju', ja: '光州', zh: '光州' },
+  울산: { en: 'Ulsan', ja: '蔚山', zh: '蔚山' },
+};
+
+/** Localized province / metro name, falling back to the Korean id. */
+export function provinceLabel(id: string, lang: Lang): string {
+  return PROVINCE_LABELS[id]?.[lang] ?? id;
+}
+
+/** Korean facility-category names (도와줘 휴 filter tabs + card chips). */
+const FACILITY_LABELS: Record<string, Partial<Record<Lang, string>>> = {
+  상인회: { en: 'All', ja: 'すべて', zh: '全部' },
+  편의점: { en: 'Convenience', ja: 'コンビニ', zh: '便利店' },
+  병원: { en: 'Hospital', ja: '病院', zh: '医院' },
+  약국: { en: 'Pharmacy', ja: '薬局', zh: '药店' },
+  은행: { en: 'Bank', ja: '銀行', zh: '银行' },
+  환전소: { en: 'Exchange', ja: '両替所', zh: '货币兑换' },
+  종교: { en: 'Religion', ja: '宗教', zh: '宗教' },
+  화장실: { en: 'Restroom', ja: 'トイレ', zh: '洗手间' },
+  흡연실: { en: 'Smoking', ja: '喫煙室', zh: '吸烟室' },
+  기타: { en: 'Other', ja: 'その他', zh: '其他' },
+};
+
+/** Localized facility-category name, falling back to the Korean id. */
+export function facilityLabel(id: string, lang: Lang): string {
+  return FACILITY_LABELS[id]?.[lang] ?? id;
 }
 
 /**
@@ -106,12 +159,61 @@ const TITLE_KEYS: Record<string, { title: string; sub?: string }> = {
   "'정이' 뭐사지(물품)": { title: 'MainButton_ToBuy', sub: 'SubHeader_ToBuy' },
   "'정이' 모하지 (AI 검색)": { title: 'MainButton_AI', sub: 'SubHeader_AISearch' },
   "'정이' 모하지(AI 검색)": { title: 'MainButton_AI', sub: 'SubHeader_AICourse' },
+  // ── W005 화성휴게소 header titles + page descriptions (Localization_Hwaseong) ──
+  // The Korean ids are the literal strings the Hwaseong screens pass to
+  // HwaseongHeader; keys resolve against the Hwaseong bundled/synced table.
+  "전국도로교통상황": { title: 'MainButton_TrafficInfo', sub: 'SubHeader_TrafficInfo' },
+  "전국 휴게소": { title: 'MainButton_ServiceArea', sub: 'SubHeader_ServiceArea' },
+  "화성시 이벤트": { title: 'MainButton_Event', sub: 'SubHeader_Event' },
+  "'휴' 뭐먹지": { title: 'MainButton_ToEat', sub: 'SubHeader_ToEat' },
+  "'휴' 뭐사지": { title: 'MainButton_ToBuy', sub: 'SubHeader_ToBuy' },
+  "전국시장": { title: 'MainButton_TraditionalMarket', sub: 'SubHeader_TraditionalMarket' },
+  "TAX-FREE": { title: 'MainButton_TaxFree', sub: 'SubHeader_TaxFree' },
+  "화성휴게소": { title: 'MainButton_Here' },
+  "안녕 '휴'": { title: 'MainButton_Greeting' },
+  "도와줘 '휴'": { title: 'MainButton_ToHelp', sub: 'SubHeader_ToHelp' },
+  "화성휴게소 지도": { title: 'MainButton_SAMap', sub: 'SubHeader_SAMap' },
+  "지역화폐": { title: 'MainButton_MarketPaper' },
 };
+
+/**
+ * Curated 4-language fallbacks for button/title keys — used ONLY when the
+ * Localization_Hwaseong sheet has NO value for that exact language. The sheet
+ * always wins (even if it stores English in a ja/zh slot); these just fill
+ * genuinely-empty cells before the Korean fallback.
+ */
+const BUTTON_OVERRIDES: Record<string, Partial<Record<Lang, string>>> = {
+  MainButton_TrafficInfo: { ko: '도로 교통상황', en: 'Traffic Info', ja: '道路交通状況', zh: '道路交通状况' },
+  MainButton_TraditionalMarket: { ko: '전국시장', en: 'Nationwide Markets', ja: '全国市場', zh: '全国市场' },
+  MainButton_ServiceArea: { ko: '전국휴게소', en: 'Rest Areas', ja: '全国サービスエリア', zh: '全国休息站' },
+  MainButton_TaxFree: { ko: '텍스프리등록', en: 'Tax-Free', ja: 'タックスフリー', zh: '退税登记' },
+  MainButton_Here: { ko: '화성휴게소', en: 'Hwaseong SA', ja: '華城サービスエリア', zh: '华城休息站' },
+  MainButton_Greeting: { ko: "안녕 '휴'", en: "Hello 'HUE'", ja: 'こんにちは「HUE」', zh: '你好「HUE」' },
+  MainButton_SAMap: { ko: '화성휴게소 지도', en: 'SA Map', ja: 'サービスエリアマップ', zh: '休息站地图' },
+  MainButton_Property: { ko: '문화재(준비중)', en: 'Heritage (Soon)', ja: '文化財（準備中）', zh: '文化遗产（筹备中）' },
+  MainButton_KCulture: { ko: 'K-컬쳐(준비중)', en: 'K-Culture (Soon)', ja: 'Kカルチャー（準備中）', zh: 'K文化（筹备中）' },
+};
+
+/**
+ * Resolve a button/title localization key: the sheet's EXACT-language value
+ * wins (even if English), then the curated fallback for empty cells, then the
+ * full chain (ko → key). Returns undefined when the key isn't localized at all.
+ */
+export function buttonText(key: string, lang: Lang): string | undefined {
+  const exact = tExact(key, lang);
+  if (exact) return exact;
+  const fallback = BUTTON_OVERRIDES[key]?.[lang];
+  if (fallback) return fallback;
+  return hasLoc(key) ? t(key, lang) : undefined;
+}
 
 /** Localized page-header title, falling back to the hand map, then the id. */
 export function screenTitle(id: string, lang: Lang): string {
   const k = TITLE_KEYS[id]?.title;
-  if (k && hasLoc(k)) return t(k, lang);
+  if (k) {
+    const resolved = buttonText(k, lang);
+    if (resolved) return resolved;
+  }
   return SCREEN_TITLES[id]?.[lang] ?? id;
 }
 

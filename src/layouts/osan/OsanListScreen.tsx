@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import type { KioskController } from '@renderer/hooks/useKioskController';
 import { osanIconUrl } from '@renderer/assets/icons/osan';
 import { useDetailStore } from '@renderer/store/detailStore';
@@ -56,6 +56,11 @@ export function OsanListScreen({ title, controller }: OsanListScreenProps): JSX.
   }, [baseShops, lang]);
 
   const activeKr = selected || tabs[0]?.kr || '';
+
+  useEffect(() => {
+    if (activeKr) void window.api.kiosk.setScreen(`${controller.screen}_category`);
+  }, [activeKr, controller.screen]);
+
   const visible = useMemo(() => {
     const filtered = baseShops.filter((s) => s.secondCategoryKr === activeKr);
     // Show in random order, but float shops that HAVE photos to the top.

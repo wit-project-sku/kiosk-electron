@@ -96,6 +96,13 @@ export class TranslationService {
     }
   }
 
+  /** Drop all cached translations (e.g. when the kiosk's location changed) so a
+   *  previous location's strings can't survive into the new one. */
+  clearAll(): void {
+    this.repo.deleteAll();
+    this.map = {};
+  }
+
   getInMemoryMap(): TranslationMap {
     return this.map;
   }
