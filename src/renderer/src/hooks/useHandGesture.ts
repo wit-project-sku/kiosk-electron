@@ -24,7 +24,13 @@ const MP_BASE = import.meta.env.DEV
 /** Victory must be held this long before the shot fires. */
 const CAPTURE_HOLD_MS = 500;
 /** Minimum recognizer confidence for a gesture to count. */
-const MIN_SCORE = 0.55;
+const MIN_SCORE = 0.5;
+/** Gestures that are allowed to accumulate swipe samples. Open_Palm is the
+ *  primary swipe gesture; None/unknown hands are also OK so the filter isn't
+ *  too restrictive in low-light. Victory is explicitly excluded here because
+ *  it's reserved for capture and wrist motion while forming ✌️ causes spurious
+ *  swipes. */
+const SWIPE_ALLOWED_GESTURES = new Set(['Open_Palm', 'None', 'Pointing_Up', 'ILoveYou']);
 /** Horizontal hand travel (normalized 0–1) that counts as a swipe. */
 const SWIPE_DISTANCE = 0.16;
 /** Window over which swipe travel is measured. */
@@ -187,8 +193,9 @@ export function useHandGesture({
         setCaptureProgress((prev) => (prev === 0 ? prev : 0));
       }
 
-      // ── Swipe: horizontal travel of an open/visible hand ──
-      if (!hasHand) {
+      // ── Swipe: horizontal travel of an open palm.
+      // Only accumulate samples when the gesture is swipe-safe (not Victory).
+      if (!hasHand || !SWIPE_ALLOWED_GESTURES.has(name)) {
         swipeSamplesRef.current = [];
         return;
       }

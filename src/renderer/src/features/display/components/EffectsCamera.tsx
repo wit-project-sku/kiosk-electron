@@ -221,7 +221,6 @@ export function EffectsCamera({ deviceId }: EffectsCameraProps): JSX.Element {
       <div className={styles.scrimBottom} />
 
       <div className={styles.topBar}>
-        <div className={styles.brandChip}>인스타 효과</div>
         <div className={`${styles.handChip} ${handPresent ? styles.handChipOn : ''}`}>
           {handPresent ? '손 인식 중' : '손을 보여주세요'}
         </div>
@@ -239,7 +238,7 @@ export function EffectsCamera({ deviceId }: EffectsCameraProps): JSX.Element {
               style={{ strokeDasharray: ringDash, strokeDashoffset: ringDash * (1 - captureProgress) }}
             />
           </svg>
-          <span className={styles.ringLabel}>촬영 중…</span>
+          <span className={styles.ringLabel}>촬영 중</span>
         </div>
       )}
 
@@ -258,12 +257,10 @@ export function EffectsCamera({ deviceId }: EffectsCameraProps): JSX.Element {
         </div>
 
         <div className={styles.hints}>
-          <div className={styles.hint}>✋ 좌우로 손을 움직여 효과 변경</div>
-          <div className={`${styles.hint} ${styles.hintAccent}`}>✌️ 손가락으로 촬영</div>
+          <div className={styles.hint}>✋ 스와이프</div>
+          <div className={`${styles.hint} ${styles.hintAccent}`}>✌️ 촬영</div>
         </div>
       </div>
-
-      {!ready && <div className={styles.loading}>손동작 인식을 준비 중입니다…</div>}
     </div>
   );
 }
