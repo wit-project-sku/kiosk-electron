@@ -196,14 +196,6 @@ export function PhotoWorkflow(): JSX.Element {
           )}
 
           <p className={styles.resultHint}>{c.saveHint}</p>
-          <div className={styles.resultNote}>
-            {c.note.map((line, i) => (
-              <span key={i}>
-                {i === 0 ? '★ ' : ''}
-                {line}
-              </span>
-            ))}
-          </div>
 
           <div className={styles.resultBottom}>
             <div className={styles.resultQr}>
@@ -220,6 +212,16 @@ export function PhotoWorkflow(): JSX.Element {
                 {c.retake}
               </button>
             </div>
+          </div>
+
+          {/* Description text — sits under the buttons, with a larger gap above. */}
+          <div className={styles.resultNote}>
+            {c.note.map((line, i) => (
+              <span key={i}>
+                {i === 0 ? '★ ' : ''}
+                {line}
+              </span>
+            ))}
           </div>
         </div>
 

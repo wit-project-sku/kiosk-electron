@@ -93,8 +93,12 @@ export function HwaseongHello({ controller }: Props): JSX.Element {
           })}
         </div>
 
-        {/* Card */}
-        <div className={styles.card}>
+        {/* Card — per-tab sizing (Figma) */}
+        <div
+          className={`${styles.card} ${
+            tab === 'intro' ? styles.cardIntro : tab === 'hobby' ? styles.cardHobby : styles.cardStretch
+          }`}
+        >
           {/* ── Tab 1: 휴' 소개 ── */}
           {tab === 'intro' && (
             <>

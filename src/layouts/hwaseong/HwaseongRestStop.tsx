@@ -15,6 +15,19 @@ interface Props {
   controller: KioskController;
 }
 
+/**
+ * Split a description into paragraph blocks at a blank line OR before a '>'
+ * marker line (e.g. '> 위치정보'). The blank line / '>' is how the sheet marks a
+ * new block; the '>' itself stays in the displayed text (matching Figma). Each
+ * block renders as its own paragraph; the gap between them is set per section.
+ */
+function descBlocks(text: string): string[] {
+  return text
+    .split(/\n\s*\n|\n(?=\s*>)/)
+    .map((b) => b.trim())
+    .filter(Boolean);
+}
+
 export function HwaseongRestStop({ controller }: Props): JSX.Element {
   const lang = useLang();
   const L = (key: string): string => t(key, lang);
@@ -56,7 +69,11 @@ export function HwaseongRestStop({ controller }: Props): JSX.Element {
             </div>
             <div className={styles.sideText}>
               <p className={styles.secTitle}>{L('Here_Culture')}</p>
-              <p className={styles.sideDesc}>{L('Here_CultureContent')}</p>
+              <div className={`${styles.descBlocks} ${styles.descGap2}`}>
+                {descBlocks(L('Here_CultureContent')).map((b, i) => (
+                  <p key={i} className={styles.sideDesc}>{b}</p>
+                ))}
+              </div>
             </div>
           </div>
 
@@ -64,9 +81,13 @@ export function HwaseongRestStop({ controller }: Props): JSX.Element {
           <div className={styles.section3}>
             <div className={styles.section3Text}>
               <p className={styles.secTitle}>{L('Here_Attraction')}</p>
-              <p className={styles.sideDesc}>{L('Here_AttractionContent')}</p>
+              <div className={`${styles.descBlocks} ${styles.descGap3}`}>
+                {descBlocks(L('Here_AttractionContent')).map((b, i) => (
+                  <p key={i} className={styles.sideDesc}>{b}</p>
+                ))}
+              </div>
             </div>
-            <div className={styles.squarePhoto}>
+            <div className={`${styles.squarePhoto} ${styles.squarePhotoFill}`}>
               <img src={IMG_EXOIL} alt="EX-OIL 주유소" draggable={false} />
             </div>
           </div>

@@ -11,6 +11,7 @@ import {
   shopImages,
   shopName,
   shopSecondCategory,
+  shopCategoryLabel,
   shopsForBase,
   padImages,
 } from '@renderer/lib/shops';
@@ -143,10 +144,12 @@ export function HwaseongListScreen({ title, controller, baseCategory, fixedTabs,
                 <div className={styles.info}>
                   <div className={styles.nameRow}>
                     <span className={styles.name}>{shopName(shop, lang)}</span>
-                    <span className={styles.cat}>
-                      <span className={styles.dot} />
-                      {shopSecondCategory(shop, lang)}
-                    </span>
+                    {shopCategoryLabel(shop, lang) && (
+                      <span className={styles.cat}>
+                        <span className={styles.dot} />
+                        {shopCategoryLabel(shop, lang)}
+                      </span>
+                    )}
                   </div>
                   <p className={styles.address}>{shopAddress(shop, lang)}</p>
                   <p className={styles.desc}>{shopDescription(shop, lang)}</p>

@@ -54,6 +54,11 @@
   background: #3a3a3a;
 }
 
+/* Hwaseong: same light style as every other key, only the wider footprint. */
+.backspaceLight {
+  width: 262px;
+}
+
 /* White function keys — exact Figma widths (all 120px tall). */
 .enter {
   width: 362px;

@@ -7,13 +7,14 @@
  * `media://video/<set>/<name>` protocol (see src/main/core/mediaProtocol.ts).
  * Add files under resources/videos/insadong|osaek and run `npm run sync:videos`.
  */
-import { VIDEO_FILES_INSADONG, VIDEO_FILES_OSAEK } from './manifest';
+import { VIDEO_FILES_INSADONG, VIDEO_FILES_OSAEK, VIDEO_FILES_HWASEONG } from './manifest';
 
-type VideoSet = 'insadong' | 'osaek';
+type VideoSet = 'insadong' | 'osaek' | 'hwaseong';
 
-/** Generic-wall fallback URLs for a kiosk's video set (W004 → osaek). */
+/** Generic-wall fallback URLs for a kiosk's video set (W004 → osaek, W005 → hwaseong). */
 export function displayVideosFor(kioskId?: string): string[] {
-  const set: VideoSet = kioskId === 'W004' ? 'osaek' : 'insadong';
-  const files = set === 'osaek' ? VIDEO_FILES_OSAEK : VIDEO_FILES_INSADONG;
+  const set: VideoSet = kioskId === 'W004' ? 'osaek' : kioskId === 'W005' ? 'hwaseong' : 'insadong';
+  const files =
+    set === 'osaek' ? VIDEO_FILES_OSAEK : set === 'hwaseong' ? VIDEO_FILES_HWASEONG : VIDEO_FILES_INSADONG;
   return files.map((name) => `media://video/${set}/${encodeURIComponent(name)}`);
 }

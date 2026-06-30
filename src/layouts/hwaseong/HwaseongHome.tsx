@@ -404,7 +404,7 @@ export function HwaseongHome({ controller }: Props): JSX.Element {
       </div>
 
       {/* Inline search keyboard — shows in place, no navigation */}
-      <FloatingKeyboard open={searching} onKey={applyKey} onClose={() => setSearching(false)} lang={lang} />
+      <FloatingKeyboard open={searching} onKey={applyKey} onClose={() => setSearching(false)} lang={lang} lightBackspace />
     </div>
   );
 }

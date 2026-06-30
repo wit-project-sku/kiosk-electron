@@ -36,6 +36,7 @@
 .filterBlock {
   flex: none;
   width: 1820px;
+  margin-top: 10px;
   display: flex;
   flex-direction: column;
   gap: 35px;
@@ -129,12 +130,11 @@
   align-items: center;
   gap: 21.45px;
 }
-.cardDot { width: 17px; height: 17px; flex-shrink: 0; }
-.cardDotFallback {
+.cardDot {
   width: 17px;
   height: 17px;
   border-radius: 50%;
-  background: #999;
+  background: #005ab4;
   flex-shrink: 0;
 }
 .cardCatLabel {

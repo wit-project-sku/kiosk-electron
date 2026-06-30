@@ -33,6 +33,9 @@ interface VirtualKeyboardProps {
   /** Active language — Korean shows the 두벌식 layout, anything else starts in
    *  English (Korean composing is still reachable via the 🌐 toggle). */
   lang: SupportedLanguage;
+  /** When true, the backspace key uses the same light style as the other keys
+   *  instead of the dark Figma key (Hwaseong design). */
+  lightBackspace?: boolean;
 }
 
 /**
@@ -40,7 +43,7 @@ interface VirtualKeyboardProps {
  * shadow, a single dark backspace key (top-right), and white function keys
  * (↵ enter, ⬆ shift, 🌐 language). Korean 두벌식 / English / numbers.
  */
-export function VirtualKeyboard({ onKey, lang }: VirtualKeyboardProps): JSX.Element {
+export function VirtualKeyboard({ onKey, lang, lightBackspace = false }: VirtualKeyboardProps): JSX.Element {
   const [mode, setMode] = useState<Mode>(lang === 'ko' ? 'ko' : 'en');
   const [shift, setShift] = useState(false);
 
@@ -68,7 +71,7 @@ export function VirtualKeyboard({ onKey, lang }: VirtualKeyboardProps): JSX.Elem
         ))}
         <button
           type="button"
-          className={`${styles.key} ${styles.backspace}`}
+          className={`${styles.key} ${lightBackspace ? styles.backspaceLight : styles.backspace}`}
           onClick={() => onKey({ type: 'backspace' })}
           aria-label="지우기"
         >

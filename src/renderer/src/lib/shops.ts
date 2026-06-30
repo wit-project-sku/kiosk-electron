@@ -18,6 +18,15 @@ export const shopBaseCategory = (s: Shop, lang: Lang): string =>
   field(s, 'baseCategory', lang, s.baseCategoryKr ?? '');
 
 /**
+ * Category label shown beside a shop name (after the bullet). Prefers the
+ * localized second category, but many base categories (e.g. 뭐사지) carry no
+ * second category — those shops are tagged with an AI category instead
+ * (Korean-only in the data), so fall back to it so the label is never blank.
+ */
+export const shopCategoryLabel = (s: Shop, lang: Lang): string =>
+  shopSecondCategory(s, lang) || stripPrefix(s.aiCategoryKr ?? '');
+
+/**
  * Free-text search across name/tag/description (live + KR), ranked by where the
  * match lands: title first, then hashtag, then description/category/address.
  */

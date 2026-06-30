@@ -340,22 +340,23 @@
   background: rgba(0, 0, 0, 0.3);
 }
 
-/* Popup image — Figma: 1295 wide, radius 75.074, top 545, horizontally centred.
-   Height follows the image's natural aspect so it is never cropped/stretched
-   (object-fit: cover was cutting the side icons/text off a wider source PNG). */
+/* Popup image — Figma: 1450 × 2218, radius 75.074, horizontally centred.
+   Sized to the exact Figma box and nudged down so it sits closer to the
+   bottom banner (banner top is at y=3267 on the 3840-tall artboard). */
 .camPopup {
   position: absolute;
   left: 50%;
-  top: 545px;
+  top: 800px;
   transform: translateX(-50%);
-  width: 1295px;
+  width: 1450px;
+  height: 2218px;
   z-index: 50;
   pointer-events: none;
 }
 
 .camPopupImg {
   width: 100%;
-  height: auto;
+  height: 100%;
   object-fit: contain;
   border-radius: 75.074px;
   display: block;

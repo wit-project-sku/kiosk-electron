@@ -35,7 +35,12 @@ export function HwaseongHeader({ controller, title, subtitle, onHome, onBack }: 
   // Localize the Korean title id (Localization_Hwaseong) — same path as the
   // other kiosks; unknown ids fall through unchanged. Subtitle: explicit prop
   // wins, else the sheet subtitle for this title id, else hidden.
-  const localizedTitle = screenTitle(title, lang);
+  // Strip a stale "(준비중)" / "(Soon)" suffix the sheet may carry on an
+  // otherwise-live title (e.g. 전국시장(준비중)) — same cleanup the home tiles do.
+  const localizedTitle = screenTitle(title, lang).replace(
+    /\s*[(（][^)）]*(?:준비\s?중|soon|準備中|筹备中|籌備中)[^)）]*[)）]\s*/gi,
+    '',
+  ).trim();
   const sub = (subtitle ?? screenSubtitle(title, lang) ?? '').replace(/^\s*[*★]\s*/, '').trim();
   const goHome = onHome ?? ((): void => controller?.navigate('home', 'Back'));
   const goBack = onBack ?? goHome;

@@ -184,12 +184,13 @@
   align-items: center;
   justify-content: space-between;
   background: #fff;
-  border: 4.29px solid #005ab4;
+  border: 5px solid #005ab4;
   border-radius: 120px;
   padding: 55px 75px;
   cursor: text;
   overflow: hidden;
   font-family: inherit;
+  flex-shrink: 0;
 }
 
 .inputTextWrap {
@@ -218,8 +219,8 @@
 
 .searchIcon {
   flex: none;
-  width: 71px;
-  height: 68px;
+  width: 92px;
+  height: 88px;
   color: #005ab4;
 }
 

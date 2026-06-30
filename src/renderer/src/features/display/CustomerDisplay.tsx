@@ -45,10 +45,8 @@ export function CustomerDisplay(): JSX.Element {
   // Which kiosk this is (W004 → Osaek videos/subtitles). The display window
   // isn't bootstrap-hydrated, so fetch the config over IPC.
   const [kioskId, setKioskId] = useState<string | undefined>(undefined);
-  // Which clip of the current screen's list is showing. Tapping the home
-  // weather card advances this; navigating to another screen resets it to 0 so
-  // each screen always starts on its own first (related) clip.
-  const [clipIndex, setClipIndex] = useState(0);
+  // Bumped when the user taps the home weather box → advances the idle video.
+  const [advanceTick, setAdvanceTick] = useState(0);
 
   // Countdown shown on the generating/waiting screen (counts 60 → 0).
   const [genCountdown, setGenCountdown] = useState(GEN_WAIT_SECS);
@@ -63,14 +61,8 @@ export function CustomerDisplay(): JSX.Element {
     const offState = window.api.events.onDisplayStateChanged(setState);
     const offSettings = window.api.events.onSettingsChanged(setSettings);
     const offLang = window.api.events.onLanguageChanged(setLang);
-    const offScreen = window.api.events.onKioskScreenChanged((screen) => {
-      // New screen → start on its first (related) clip.
-      setKioskScreen(screen);
-      setClipIndex(0);
-    });
-    const offAdvance = window.api.events.onKioskVideoAdvanced(() =>
-      setClipIndex((i) => i + 1),
-    );
+    const offScreen = window.api.events.onKioskScreenChanged(setKioskScreen);
+    const offAdvance = window.api.events.onKioskVideoAdvanced(() => setAdvanceTick((t) => t + 1));
     return () => {
       offState();
       offSettings();
@@ -80,14 +72,13 @@ export function CustomerDisplay(): JSX.Element {
     };
   }, []);
 
+  // Full ordered clip list for the current screen (sheet order). The wall
+  // auto-advances through them on completion (home cycles 기본화면_1…10) and
+  // preloads the next clip for an instant, no-flash switch.
   const screenClips = clipsForScreen(kioskScreen, lang, kioskId);
-  // Rotate so the tapped clip is first (AiModelVideoWall loops clips[0]). Wraps
-  // around so repeated taps cycle through every clip for the screen.
-  const activeIndex = screenClips.length ? clipIndex % screenClips.length : 0;
-  const modelClips = screenClips.length
-    ? [...screenClips.slice(activeIndex), ...screenClips.slice(0, activeIndex)]
-    : screenClips;
   const genClips = clipsForScreen('photo', lang, kioskId);
+  // Osaek (W004) and Hwaseong (W005) don't use the PARK SUL NYEO brand logo.
+  const noBrandLogo = kioskId === 'W004' || kioskId === 'W005';
   // Generic-wall fallback URLs for the active kiosk's video set (W004 → osaek).
   const displayVideos = displayVideosFor(kioskId);
 
@@ -161,8 +152,8 @@ export function CustomerDisplay(): JSX.Element {
       {/* ── Idle / attract ── */}
       {(state.mode === 'attract' || state.mode === 'idle') && (
         <>
-          {modelClips.length > 0 ? (
-            <AiModelVideoWall key={`${kioskScreen}:${activeIndex}`} clips={modelClips} />
+          {screenClips.length > 0 ? (
+            <AiModelVideoWall clips={screenClips} hideLogo={noBrandLogo} advanceSignal={advanceTick} />
           ) : displayVideos.length > 0 ? (
             <VideoWall videos={displayVideos} />
           ) : assets.length > 0 ? (

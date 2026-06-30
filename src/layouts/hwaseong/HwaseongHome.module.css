@@ -264,8 +264,8 @@
 @keyframes hwBlink { 50% { opacity: 0; } }
 
 .searchIcon {
-  width: 71px;
-  height: 68px;
+  width: 92px;
+  height: 88px;
   flex-shrink: 0;
   color: #005ab4;
 }

@@ -216,26 +216,37 @@
   align-self: flex-start;
 }
 .resultStepNum {
-  width: 78px;
-  height: 78px;
-  border-radius: 50%;
+  width: 105px;
+  height: 105px;
+  border-radius: 428.997px;
   background: var(--photo-accent, #fe6c50);
   color: #ffffff;
   font-weight: 700;
-  font-size: 48px;
+  font-size: 65px;
+  line-height: 1;
+  flex-shrink: 0;
   display: flex;
   align-items: center;
   justify-content: center;
 }
 .resultStepTitle {
   font-weight: 700;
-  font-size: 60px;
-  color: #1a1a1a;
+  font-size: 68px;
+  line-height: 1;
+  color: #333;
+  text-align: center;
 }
 
 .resultPhoto {
-  flex: none;
-  width: 930px;
+  flex-shrink: 0;
+  width: 1200px;
+  height: 1435px;
+  /* 80px below the 저장하기 title (44px here + the 36px container gap). */
+  margin-top: 44px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
   border-radius: 32px;
   overflow: hidden;
   background: #ffffff;
@@ -243,7 +254,10 @@
 }
 .resultPhoto img {
   width: 100%;
-  height: auto;
+  height: 100%;
+  object-fit: cover;
+  /* Keep the top of the photo (face/head) visible, cropping from the bottom. */
+  object-position: top;
   display: block;
 }
 
@@ -260,9 +274,12 @@
   flex-direction: column;
   align-items: center;
   gap: 8px;
+  /* Larger gap between the buttons above and this description text. */
+  margin-top: 36px;
   font-weight: 400;
-  font-size: 40px;
-  color: #555555;
+  font-size: 60px;
+  line-height: 1;
+  color: #616161;
   text-align: center;
 }
 
@@ -280,7 +297,8 @@
   border: 4px solid var(--photo-accent, #fe6c50);
   border-radius: 24px;
   background: #ffffff;
-  padding: 12px;
+  /* Bigger inner padding → smaller QR while the box/border stay the same. */
+  padding: 34px;
   box-sizing: border-box;
 }
 .resultQr img {

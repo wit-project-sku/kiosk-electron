@@ -9,6 +9,8 @@ interface FloatingKeyboardProps {
   onClose: () => void;
   /** Active UI language — picks the initial keyboard layout (Korean vs English). */
   lang: SupportedLanguage;
+  /** Use the light (non-dark) backspace key — Hwaseong design. */
+  lightBackspace?: boolean;
 }
 
 /**
@@ -16,7 +18,7 @@ interface FloatingKeyboardProps {
  * the search bar (Figma 검색: 키보드 tray at y=900, 2160×1000). A transparent
  * backdrop closes it on any outside tap, mirroring real focus/blur behaviour.
  */
-export function FloatingKeyboard({ open, onKey, onClose, lang }: FloatingKeyboardProps): JSX.Element | null {
+export function FloatingKeyboard({ open, onKey, onClose, lang, lightBackspace }: FloatingKeyboardProps): JSX.Element | null {
   if (!open) return null;
 
   return (
@@ -25,7 +27,7 @@ export function FloatingKeyboard({ open, onKey, onClose, lang }: FloatingKeyboar
       {/* preventDefault on mousedown keeps the tap from clearing focus/selection
           or triggering any default action (no flicker, no refresh). */}
       <div className={styles.panel} onMouseDown={(e) => e.preventDefault()}>
-        <VirtualKeyboard onKey={onKey} lang={lang} />
+        <VirtualKeyboard onKey={onKey} lang={lang} lightBackspace={lightBackspace} />
       </div>
     </>
   );

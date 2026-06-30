@@ -61,12 +61,14 @@
   box-sizing: border-box;
 }
 
-/* Title + gallery block — top 43, width 1730, centred */
+/* Title + gallery block — top 43, width 1730. Anchored to the same left edge
+   (40px) as .info / .desc / .dividerTop so the title's left start sits on the
+   exact same vertical line as the body text below (the gallery inside still
+   centres itself via its own justify-content). */
 .head {
   position: absolute;
   top: 43.48px;
-  left: 50%;
-  transform: translateX(-50%);
+  left: 40px;
   width: 1730px;
   display: flex;
   flex-direction: column;

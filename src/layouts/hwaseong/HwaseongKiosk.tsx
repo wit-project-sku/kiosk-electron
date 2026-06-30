@@ -24,6 +24,16 @@ import { HwaseongMap } from './HwaseongMap';
 import { HwaseongScreen } from './HwaseongScreen';
 import { useDetailStore } from '@renderer/store/detailStore';
 
+// 전국도로교통상황 embeds https://www.its.go.kr/ — hide the site's own top
+// header (#div_topHeader / #header) and footer (#footer) so only the live map
+// shows inside our kiosk chrome. (.skip_nav / .header_popup are its overlays.)
+const ITS_HIDE_CHROME_CSS = `
+  #div_topHeader, #header, #footer, .skip_nav, .header_popup {
+    display: none !important;
+  }
+  #wrapper, #wrapper.mapType, #container { margin: 0 !important; padding: 0 !important; }
+`;
+
 const FOOD_TABS = ['한식', '한정식', '바베큐', '분식', '사찰음식'];
 // 뭐사지 Figma tabs (node 4167-173813) — the shop data has no second category,
 // so these render for visual parity with the design.
@@ -63,7 +73,7 @@ export function HwaseongKiosk(): JSX.Element {
     ) : cur === 'events' ? (
       <HwaseongWebScreen controller={controller} title="화성시 이벤트" url="https://withevent.kr/kiosk/events?region=hwaseong&category=ALL&page=1" />
     ) : cur === 'transport' ? (
-      <HwaseongWebScreen controller={controller} title="전국도로교통상황" url="https://www.its.go.kr/" />
+      <HwaseongWebScreen controller={controller} title="전국도로교통상황" url="https://www.its.go.kr/" injectCss={ITS_HIDE_CHROME_CSS} bodyHeight={2030} />
     ) : cur === 'food_court' ? (
       <HwaseongListScreen controller={controller} title="'휴' 뭐먹지" baseCategory="휴 뭐먹지" defaultTabs={FOOD_TABS} />
     ) : cur === 'shop' ? (

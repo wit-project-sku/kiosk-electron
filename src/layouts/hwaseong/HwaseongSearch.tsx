@@ -178,7 +178,7 @@ export function HwaseongSearch({ controller }: Props): JSX.Element {
         )}
       </div>
 
-      <FloatingKeyboard open={focused} onKey={applyKey} onClose={() => setFocused(false)} lang={lang} />
+      <FloatingKeyboard open={focused} onKey={applyKey} onClose={() => setFocused(false)} lang={lang} lightBackspace />
     </div>
   );
 }

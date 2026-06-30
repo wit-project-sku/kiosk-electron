@@ -159,7 +159,6 @@ function HelpCard({
   const photoSrc = shopImages(shop)[0] ?? noImg;
   const category = facilityLabel(facilityCategory(shop.shopNameKr), lang);
   const tags = firstTags(shopHashtag(shop, lang));
-  const dotSrc = hwaseongIconUrl('help-dot');
 
   return (
     <button type="button" className={styles.card} onClick={onOpen}>
@@ -177,11 +176,7 @@ function HelpCard({
         <div className={styles.cardTitleRow}>
           <span className={styles.cardTitle}>{shopName(shop, lang)}</span>
           <div className={styles.cardCat}>
-            {dotSrc ? (
-              <img src={dotSrc} alt="" className={styles.cardDot} draggable={false} />
-            ) : (
-              <span className={styles.cardDotFallback} />
-            )}
+            <span className={styles.cardDot} />
             <span className={styles.cardCatLabel}>{category}</span>
           </div>
         </div>

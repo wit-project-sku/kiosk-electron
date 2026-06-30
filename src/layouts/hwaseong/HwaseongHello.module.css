@@ -71,9 +71,6 @@
 .card {
   flex: none;
   width: 1820px;
-  /* Fixed height so every tab's card is the same size (fills the results area:
-     2568 − tabs 170 − gap 100 − bottom pad 40). */
-  height: 2258px;
   box-sizing: border-box;
   background: #fff;
   border: 2.145px solid #e8e8e8;
@@ -82,7 +79,22 @@
   padding: 65px 40px;
   display: flex;
   flex-direction: column;
+  align-items: flex-start;
   gap: 60px;
+}
+
+/* Per-tab card sizing (Figma). */
+.cardIntro {
+  height: 2160px;
+  gap: 60px;
+}
+.cardHobby {
+  gap: 78px; /* height auto — grows with the alternating sections */
+}
+.cardStretch {
+  display: inline-flex;
+  height: 2145.35px;
+  gap: 65px;
 }
 
 /* ── Tab 1: intro profile ── */
@@ -236,6 +248,7 @@
   display: flex;
   flex-direction: column;
   gap: 25px;
+  width: 100%;
 }
 
 /* Sections 2+3: left text column + right exercising image */

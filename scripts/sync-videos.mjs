@@ -4,10 +4,10 @@
  *
  *   npm run sync:videos
  *
- * Videos live in resources/videos/<set>/ (set = insadong | osaek) and ship as
- * electron-builder extraResources (the whole resources/videos tree). They are
- * streamed at runtime via media://video/<set>/<name>; the renderer only needs
- * the per-set file-name lists so it can resolve clips for the active kiosk.
+ * Videos live in resources/videos/<set>/ (set = insadong | hwaseong | osaek)
+ * and ship as electron-builder extraResources (the whole resources/videos tree).
+ * They are streamed at runtime via media://video/<set>/<name>; the renderer only
+ * needs the per-set file-name lists so it can resolve clips for the active kiosk.
  */
 import { readdir, writeFile } from 'node:fs/promises';
 import { existsSync } from 'node:fs';
@@ -16,7 +16,7 @@ import { dirname, join } from 'node:path';
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
 const OUT = join(ROOT, 'src/renderer/src/assets/videos/manifest.ts');
-const SETS = ['insadong', 'osaek'];
+const SETS = ['insadong', 'hwaseong', 'osaek'];
 
 async function listSet(set) {
   const dir = join(ROOT, 'resources/videos', set);
@@ -36,7 +36,11 @@ const out =
   `/** Display video file names per location set, served via media://video/<set>/<name>. */\n` +
   block('VIDEO_FILES_INSADONG', lists.insadong) +
   '\n' +
+  block('VIDEO_FILES_HWASEONG', lists.hwaseong) +
+  '\n' +
   block('VIDEO_FILES_OSAEK', lists.osaek);
 
 await writeFile(OUT, out, 'utf8');
-console.log(`✓ video manifest: insadong ${lists.insadong.length}, osaek ${lists.osaek.length}`);
+console.log(
+  `✓ video manifest: insadong ${lists.insadong.length}, hwaseong ${lists.hwaseong.length}, osaek ${lists.osaek.length}`,
+);
