@@ -74,6 +74,9 @@ export function EffectsCamera({ deviceId }: EffectsCameraProps): JSX.Element {
   const [stream, setStream] = useState<MediaStream | null>(null);
   const [flash, setFlash] = useState(false);
   const [wearableId, setWearableId] = useState('');
+  // Transient feedback: a directional swipe cue shown for a beat when the
+  // active filter changes (the filter-name label self-animates via CSS).
+  const [swipeCue, setSwipeCue] = useState<SwipeDirection | null>(null);
   const capturingRef = useRef(false);
 
   const stageRef = useRef<HTMLDivElement>(null);
@@ -96,6 +99,7 @@ export function EffectsCamera({ deviceId }: EffectsCameraProps): JSX.Element {
 
   const handleSwipe = (dir: SwipeDirection): void => {
     setIndex((i) => (i + (dir === 'next' ? 1 : -1) + PHOTO_FILTERS.length) % PHOTO_FILTERS.length);
+    setSwipeCue(dir);
   };
 
   // Imperatively place the AR overlay each frame (no React re-render churn).
@@ -190,6 +194,13 @@ export function EffectsCamera({ deviceId }: EffectsCameraProps): JSX.Element {
     return () => clearTimeout(t);
   }, [flash]);
 
+  // Clear the directional swipe cue shortly after it fires.
+  useEffect(() => {
+    if (!swipeCue) return;
+    const t = setTimeout(() => setSwipeCue(null), 520);
+    return () => clearTimeout(t);
+  }, [swipeCue]);
+
   const thumbs = useMemo(() => {
     const out: Array<{ filterIndex: number; offset: number }> = [];
     for (let o = -VISIBLE_EACH_SIDE; o <= VISIBLE_EACH_SIDE; o++) {
@@ -208,6 +219,7 @@ export function EffectsCamera({ deviceId }: EffectsCameraProps): JSX.Element {
         className={styles.feed}
         style={{ filter: filterCssFor(filter.id) }}
         muted
+        autoPlay
         playsInline
       />
 
@@ -220,11 +232,23 @@ export function EffectsCamera({ deviceId }: EffectsCameraProps): JSX.Element {
       <div className={styles.scrimTop} />
       <div className={styles.scrimBottom} />
 
-      <div className={styles.topBar}>
-        <div className={`${styles.handChip} ${handPresent ? styles.handChipOn : ''}`}>
-          {handPresent ? '손 인식 중' : '손을 보여주세요'}
+      {/* While the model loads — the only text on screen; gone once ready. */}
+      {!ready && (
+        <div className={styles.topBar}>
+          <div className={`${styles.handChip} ${styles.handChipLoading}`}>
+            <span className={styles.spinnerDot} />
+            효과 준비 중…
+          </div>
         </div>
-      </div>
+      )}
+
+      {/* Top-right: big, round, icon-only gesture guide. Lights up while a hand is seen. */}
+      {ready && (
+        <div className={`${styles.gestureIcons} ${handPresent ? styles.gestureIconsOn : ''}`}>
+          <div className={styles.gestureIcon}>✋</div>
+          <div className={`${styles.gestureIcon} ${styles.gestureIconAccent}`}>✌️</div>
+        </div>
+      )}
 
       {captureProgress > 0 && (
         <div className={styles.ringWrap}>
@@ -238,12 +262,21 @@ export function EffectsCamera({ deviceId }: EffectsCameraProps): JSX.Element {
               style={{ strokeDasharray: ringDash, strokeDashoffset: ringDash * (1 - captureProgress) }}
             />
           </svg>
-          <span className={styles.ringLabel}>촬영 중</span>
+        </div>
+      )}
+
+      {/* Directional swipe cue — a chevron flashes on the side you swiped. */}
+      {swipeCue && (
+        <div className={`${styles.swipeCue} ${swipeCue === 'next' ? styles.swipeCueNext : styles.swipeCuePrev}`}>
+          {swipeCue === 'next' ? '❯' : '❮'}
         </div>
       )}
 
       <div className={styles.bottom}>
-        <div className={styles.filterName}>{filter.name}</div>
+        {/* Brief filter-name label — pops on change, then fades (CSS keyframe). */}
+        <div key={filter.id} className={styles.filterLabel}>
+          {filter.name}
+        </div>
 
         <div className={styles.carousel}>
           {thumbs.map(({ filterIndex, offset }) => (
@@ -251,14 +284,8 @@ export function EffectsCamera({ deviceId }: EffectsCameraProps): JSX.Element {
               <div className={styles.thumbCircle}>
                 <FilterThumb stream={stream} filterId={filterAt(filterIndex).id} />
               </div>
-              <span className={styles.thumbLabel}>{filterAt(filterIndex).name}</span>
             </div>
           ))}
-        </div>
-
-        <div className={styles.hints}>
-          <div className={styles.hint}>✋ 스와이프</div>
-          <div className={`${styles.hint} ${styles.hintAccent}`}>✌️ 촬영</div>
         </div>
       </div>
     </div>

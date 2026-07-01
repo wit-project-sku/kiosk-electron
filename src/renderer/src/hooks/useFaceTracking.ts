@@ -46,15 +46,27 @@ interface UseFaceTrackingOptions {
   onFace: (metrics: FaceMetrics | null) => void;
 }
 
+/** Reject if a promise hasn't settled in `ms` — guards against a GPU init hang. */
+function withTimeout<T>(p: Promise<T>, ms: number, label: string): Promise<T> {
+  return Promise.race([
+    p,
+    new Promise<T>((_, reject) => setTimeout(() => reject(new Error(`${label} timed out`)), ms)),
+  ]);
+}
+
 async function createLandmarker(): Promise<FaceLandmarker> {
   const fileset = await FilesetResolver.forVisionTasks(`${MP_BASE}/wasm`);
   const modelAssetPath = `${MP_BASE}/face_landmarker.task`;
   try {
-    return await FaceLandmarker.createFromOptions(fileset, {
-      baseOptions: { modelAssetPath, delegate: 'GPU' },
-      runningMode: 'VIDEO',
-      numFaces: 1,
-    });
+    return await withTimeout(
+      FaceLandmarker.createFromOptions(fileset, {
+        baseOptions: { modelAssetPath, delegate: 'GPU' },
+        runningMode: 'VIDEO',
+        numFaces: 1,
+      }),
+      5000,
+      'face GPU init',
+    );
   } catch {
     return FaceLandmarker.createFromOptions(fileset, {
       baseOptions: { modelAssetPath, delegate: 'CPU' },
@@ -74,7 +86,17 @@ export function useFaceTracking({ videoRef, enabled, onFace }: UseFaceTrackingOp
   const lastTsRef = useRef(0);
   const lastProcessRef = useRef(0);
 
+  // Load the face model LAZILY — only once a wearable has actually been picked.
+  // Initialising it on mount made it race the GestureRecognizer's init on the
+  // same WASM runtime, and that contention left the gesture model stuck
+  // "loading" forever. Latch on first-enable, then keep it alive for the session.
+  const [shouldLoad, setShouldLoad] = useState(false);
   useEffect(() => {
+    if (enabled) setShouldLoad(true);
+  }, [enabled]);
+
+  useEffect(() => {
+    if (!shouldLoad) return;
     let cancelled = false;
     void (async () => {
       try {
@@ -96,7 +118,7 @@ export function useFaceTracking({ videoRef, enabled, onFace }: UseFaceTrackingOp
       landmarkerRef.current?.close();
       landmarkerRef.current = null;
     };
-  }, []);
+  }, [shouldLoad]);
 
   useEffect(() => {
     if (!enabled || !ready) return;

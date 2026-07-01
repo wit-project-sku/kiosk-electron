@@ -1,0 +1,21 @@
+# Force-treat binary assets as binary so core.autocrlf=true can never apply
+# CRLF/text normalisation to them. A 2-byte mangling of the MediaPipe .task
+# ZIP bundles silently broke the 인스타 효과 gesture + AR-wearable models
+# ("Unable to open zip archive"); marking them -text prevents a recurrence.
+*.task   binary
+*.tflite binary
+*.wasm   binary
+*.png    binary
+*.jpg    binary
+*.jpeg   binary
+*.gif    binary
+*.webp   binary
+*.ico    binary
+*.mp4    binary
+*.mov    binary
+*.webm   binary
+*.woff   binary
+*.woff2  binary
+*.ttf    binary
+*.otf    binary
+*.zip    binary

@@ -104,6 +104,31 @@ function blockReservedShortcuts(contents: WebContents): void {
   });
 }
 
+/**
+ * Mirror the renderer's `console.*` output into the main-process log file.
+ *
+ * Renderer console errors otherwise only live in DevTools, which is disabled on
+ * the kiosk — so failures like a MediaPipe model that won't load (the 인스타 효과
+ * gesture / AR-wearable models) were invisible in `logs/main.log`. Forwarding
+ * them makes such failures diagnosable from the log alone, on the real hardware.
+ */
+function forwardRendererConsole(contents: WebContents): void {
+  const rlog = createLogger('renderer');
+  // Electron ≤35 signature: (event, level:number, message, line, sourceId).
+  // level: 0 verbose · 1 info · 2 warning · 3 error.
+  contents.on(
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    'console-message' as any,
+    (_event: unknown, level: number, message: string, line: number, sourceId: string) => {
+      const where = sourceId ? ` (${sourceId}:${line})` : '';
+      const text = `${message}${where}`;
+      if (level >= 3) rlog.error(text);
+      else if (level >= 2) rlog.warn(text);
+      else rlog.info(text);
+    },
+  );
+}
+
 /** Origins the renderer is allowed to navigate to (dev server + file://). */
 function isAllowedNavigation(url: string, devServerUrl: string | undefined): boolean {
   if (url.startsWith('file://')) return true;
@@ -140,6 +165,7 @@ export function applyWebContentsSecurity(
 
   applyProductionCsp(contents);
   blockReservedShortcuts(contents);
+  forwardRendererConsole(contents);
 }
 
 /**

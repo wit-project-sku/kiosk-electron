@@ -25,18 +25,34 @@ const MP_BASE = import.meta.env.DEV
 const CAPTURE_HOLD_MS = 500;
 /** Minimum recognizer confidence for a gesture to count. */
 const MIN_SCORE = 0.5;
+/**
+ * Throttle gesture inference to ~30fps. The face-landmarker (AR wearables) runs
+ * its OWN MediaPipe graph against the SAME <video> whenever a prop is selected;
+ * two GPU graphs both inferring every rAF frame starve each other and the
+ * gesture recognizer silently returns empty results. Capping both well under
+ * 60fps removes the contention while staying smooth for swipe / hold.
+ */
+const GESTURE_MIN_INTERVAL_MS = 33;
+/**
+ * MediaPipe's per-frame label flickers (a held ✌️ briefly reads "None"). Tolerate
+ * a short dropout so a single bad frame can't reset the capture hold to zero —
+ * without this the confirm ring stutters and the shot never fires.
+ */
+const VICTORY_GRACE_MS = 220;
 /** Gestures that are allowed to accumulate swipe samples. Open_Palm is the
  *  primary swipe gesture; None/unknown hands are also OK so the filter isn't
  *  too restrictive in low-light. Victory is explicitly excluded here because
  *  it's reserved for capture and wrist motion while forming ✌️ causes spurious
  *  swipes. */
-const SWIPE_ALLOWED_GESTURES = new Set(['Open_Palm', 'None', 'Pointing_Up', 'ILoveYou']);
+const SWIPE_ALLOWED_GESTURES = new Set(['Open_Palm', 'None', 'Pointing_Up', 'ILoveYou', 'Closed_Fist', 'Thumb_Up']);
 /** Horizontal hand travel (normalized 0–1) that counts as a swipe. */
-const SWIPE_DISTANCE = 0.16;
+const SWIPE_DISTANCE = 0.14;
+/** A swipe must be built from at least this many samples (rejects single-frame jumps). */
+const SWIPE_MIN_SAMPLES = 3;
 /** Window over which swipe travel is measured. */
-const SWIPE_WINDOW_MS = 280;
+const SWIPE_WINDOW_MS = 320;
 /** Ignore further swipes for this long after one fires (debounce). */
-const SWIPE_COOLDOWN_MS = 650;
+const SWIPE_COOLDOWN_MS = 600;
 /**
  * Flip if swipe direction feels reversed on the kiosk. The Monitor 2 preview is
  * mirrored (selfie view), so increasing raw landmark-x maps to "previous" by
@@ -62,17 +78,30 @@ interface UseHandGestureResult {
   captureProgress: number;
 }
 
+/** Reject if a promise hasn't settled in `ms` — guards against a GPU init that
+ *  hangs forever (no throw, no resolve), which would leave gestures "loading". */
+function withTimeout<T>(p: Promise<T>, ms: number, label: string): Promise<T> {
+  return Promise.race([
+    p,
+    new Promise<T>((_, reject) => setTimeout(() => reject(new Error(`${label} timed out`)), ms)),
+  ]);
+}
+
 async function createRecognizer(): Promise<GestureRecognizer> {
   const fileset = await FilesetResolver.forVisionTasks(`${MP_BASE}/wasm`);
   const modelAssetPath = `${MP_BASE}/gesture_recognizer.task`;
   try {
-    return await GestureRecognizer.createFromOptions(fileset, {
-      baseOptions: { modelAssetPath, delegate: 'GPU' },
-      runningMode: 'VIDEO',
-      numHands: 1,
-    });
+    return await withTimeout(
+      GestureRecognizer.createFromOptions(fileset, {
+        baseOptions: { modelAssetPath, delegate: 'GPU' },
+        runningMode: 'VIDEO',
+        numHands: 1,
+      }),
+      5000,
+      'gesture GPU init',
+    );
   } catch {
-    // Some kiosk GPUs reject the WebGL delegate — fall back to CPU.
+    // Some kiosk GPUs reject (or stall on) the WebGL delegate — fall back to CPU.
     return GestureRecognizer.createFromOptions(fileset, {
       baseOptions: { modelAssetPath, delegate: 'CPU' },
       runningMode: 'VIDEO',
@@ -101,9 +130,11 @@ export function useHandGesture({
   const recognizerRef = useRef<GestureRecognizer | null>(null);
   const rafRef = useRef<number | null>(null);
   const lastTsRef = useRef(0);
+  const lastProcessRef = useRef(0);
 
   // Capture-hold + swipe state (refs — mutated every frame, not render state).
   const captureStartRef = useRef<number | null>(null);
+  const lastVictoryAtRef = useRef(0);
   const capturedRef = useRef(false);
   const swipeSamplesRef = useRef<Array<{ x: number; t: number }>>([]);
   const lastSwipeAtRef = useRef(0);
@@ -137,15 +168,24 @@ export function useHandGesture({
 
     let stopped = false;
     captureStartRef.current = null;
+    lastVictoryAtRef.current = 0;
     capturedRef.current = false;
     swipeSamplesRef.current = [];
 
     const loop = (): void => {
       if (stopped) return;
+      const now = performance.now();
       const video = videoRef.current;
       const recognizer = recognizerRef.current;
-      if (video && recognizer && video.readyState >= 2 && video.videoWidth > 0) {
-        let ts = performance.now();
+      if (
+        video &&
+        recognizer &&
+        video.readyState >= 2 &&
+        video.videoWidth > 0 &&
+        now - lastProcessRef.current >= GESTURE_MIN_INTERVAL_MS
+      ) {
+        lastProcessRef.current = now;
+        let ts = now;
         if (ts <= lastTsRef.current) ts = lastTsRef.current + 1;
         lastTsRef.current = ts;
         try {
@@ -168,9 +208,15 @@ export function useHandGesture({
       const topGesture = result.gestures[0]?.[0];
       const name = topGesture?.categoryName ?? '';
       const score = topGesture?.score ?? 0;
+      const isVictory = name === 'Victory' && score >= MIN_SCORE;
 
       // ── Capture: Victory held for CAPTURE_HOLD_MS ──
-      if (name === 'Victory' && score >= MIN_SCORE) {
+      // A brief label flicker (or the hand momentarily leaving) within
+      // VICTORY_GRACE_MS keeps the hold alive so the ring fills smoothly.
+      const holding =
+        captureStartRef.current != null && now - lastVictoryAtRef.current <= VICTORY_GRACE_MS;
+      if (isVictory || holding) {
+        if (isVictory) lastVictoryAtRef.current = now;
         if (captureStartRef.current == null) captureStartRef.current = now;
         const held = now - captureStartRef.current;
         const progress = Math.min(1, held / CAPTURE_HOLD_MS);
@@ -186,7 +232,7 @@ export function useHandGesture({
         return;
       }
 
-      // Not Victory → reset the capture hold (and re-arm for the next shot).
+      // Grace expired and no Victory → reset the capture hold (re-arm next shot).
       if (captureStartRef.current != null) {
         captureStartRef.current = null;
         capturedRef.current = false;
@@ -211,6 +257,7 @@ export function useHandGesture({
       }
 
       if (now - lastSwipeAtRef.current < SWIPE_COOLDOWN_MS) return;
+      if (samples.length < SWIPE_MIN_SAMPLES) return;
       const oldest = samples[0];
       if (!oldest) return;
       const dx = wrist.x - oldest.x;

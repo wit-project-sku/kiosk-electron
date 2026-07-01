@@ -26,25 +26,25 @@ const SAVE_BASE = 'https://withphoto.vercel.app/?imageUrl=';
 /** 인스타 효과 guide copy (Monitor 1 — the user shoots by gesture on Monitor 2). */
 const EFFECTS_GUIDE = {
   header: { ko: '인스타 효과', en: 'Insta Effects', ja: 'インスタ効果', zh: '滤镜拍照' },
-  title: {
-    ko: '오른쪽 화면을 보고 손동작으로 촬영하세요',
-    en: 'Watch the screen and shoot with hand gestures',
-    ja: '画面を見ながら手のジェスチャーで撮影してください',
-    zh: '看着屏幕用手势拍照',
+  lead: {
+    ko: '오른쪽 화면을 보며 손동작으로 촬영하세요',
+    en: 'Watch the right screen and shoot with gestures',
+    ja: '右の画面を見ながら手で撮影してください',
+    zh: '看着右侧屏幕，用手势拍照',
   },
   swipe: {
-    ko: '✋ 손을 좌우로 움직여 효과 변경',
-    en: '✋ Move your hand left/right to change the effect',
-    ja: '✋ 手を左右に動かして効果を変更',
-    zh: '✋ 左右移动手来切换滤镜',
+    ko: '좌우로 효과 변경',
+    en: 'Swipe to change effect',
+    ja: '左右で効果を変更',
+    zh: '左右切换滤镜',
   },
   capture: {
-    ko: '✌️ 손가락(브이)으로 촬영',
-    en: '✌️ Show a peace sign to capture',
-    ja: '✌️ ピースサインで撮影',
-    zh: '✌️ 比出剪刀手即可拍照',
+    ko: '브이로 촬영',
+    en: 'Peace sign to shoot',
+    ja: 'ピースで撮影',
+    zh: '比剪刀手拍照',
   },
-  wear: { ko: '착용 아이템 선택', en: 'Choose an item to wear', ja: '着用アイテムを選択', zh: '选择佩戴道具' },
+  wear: { ko: '착용할 아이템을 골라보세요', en: 'Pick an item to wear', ja: '着用アイテムを選んでください', zh: '挑选佩戴道具' },
   none: { ko: '없음', en: 'None', ja: 'なし', zh: '无' },
   home: { ko: '홈으로', en: 'Home', ja: 'ホーム', zh: '主页' },
 } as const;
@@ -142,11 +142,17 @@ export function PhotoWorkflow(): JSX.Element {
         {icon('bg') && <img className={styles.bg} src={icon('bg')} alt="" draggable={false} />}
         <Header title={pick(EFFECTS_GUIDE.header, lang)} onHome={handleReset} />
         <div className={styles.effectsGuide}>
-          <p className={styles.effectsTitle}>{pick(EFFECTS_GUIDE.title, lang)}</p>
-          <ul className={styles.effectsList}>
-            <li className={styles.effectsItem}>{pick(EFFECTS_GUIDE.swipe, lang)}</li>
-            <li className={styles.effectsItem}>{pick(EFFECTS_GUIDE.capture, lang)}</li>
-          </ul>
+          <p className={styles.effectsLead}>{pick(EFFECTS_GUIDE.lead, lang)}</p>
+          <div className={styles.effectsChips}>
+            <div className={styles.effectsChip}>
+              <span className={styles.effectsChipEmoji}>✋</span>
+              {pick(EFFECTS_GUIDE.swipe, lang)}
+            </div>
+            <div className={`${styles.effectsChip} ${styles.effectsChipAccent}`}>
+              <span className={styles.effectsChipEmoji}>✌️</span>
+              {pick(EFFECTS_GUIDE.capture, lang)}
+            </div>
+          </div>
 
           <p className={styles.effectsWearTitle}>{pick(EFFECTS_GUIDE.wear, lang)}</p>
           <div className={styles.effectsWearGrid}>

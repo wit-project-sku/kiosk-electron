@@ -1,6 +1,6 @@
 {
   "name": "kiosk-app",
-  "version": "5.0.15",
+  "version": "5.0.16",
   "description": "Production-grade offline-first Electron kiosk application with multi-monitor customer display.",
   "main": "./out/main/index.js",
   "author": "Kiosk App Team",
@@ -13,8 +13,9 @@
   "scripts": {
     "dev": "electron-vite dev --watch",
     "start": "electron-vite preview",
-    "build": "npm run typecheck && electron-vite build",
-    "postinstall": "electron-builder install-app-deps",
+    "build": "npm run sync:wasm && npm run typecheck && electron-vite build",
+    "sync:wasm": "node scripts/sync-mediapipe-wasm.mjs",
+    "postinstall": "electron-builder install-app-deps && node scripts/sync-mediapipe-wasm.mjs",
     "rebuild": "electron-builder install-app-deps",
     "version:bump": "npm version patch --no-git-tag-version",
     "prebuild:win": "npm run version:bump",

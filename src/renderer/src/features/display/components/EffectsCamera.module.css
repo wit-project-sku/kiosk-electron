@@ -121,7 +121,31 @@
 }
 
 .handChipOn::before {
-  background: #fff;
+  background: #4ade80;
+  box-shadow: 0 0 24px rgba(74, 222, 128, 0.9);
+}
+
+/* Model still loading — neutral, with a spinning dot instead of the status dot. */
+.handChipLoading {
+  color: rgba(255, 255, 255, 0.85);
+}
+
+.handChipLoading::before {
+  display: none;
+}
+
+.spinnerDot {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  border: 5px solid rgba(255, 255, 255, 0.25);
+  border-top-color: #fff;
+  flex-shrink: 0;
+  animation: spin 0.9s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
 }
 
 /* Capture confirm ring (Victory hold). */
@@ -158,68 +182,157 @@
   transition: stroke-dashoffset 80ms linear;
 }
 
-.ringLabel {
-  font-weight: 700;
-  font-size: 72px;
-  text-shadow: 0 4px 20px rgba(0, 0, 0, 0.8);
-  letter-spacing: 0.02em;
+/* Top-right gesture guide — big, round, icon-only. No text. */
+.gestureIcons {
+  position: absolute;
+  top: 96px;
+  right: 96px;
+  display: flex;
+  flex-direction: column;
+  gap: 44px;
+  z-index: 4;
 }
 
-/* Bottom stack: filter name → carousel → gesture hints. */
+.gestureIcon {
+  width: 240px;
+  height: 240px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 140px;
+  line-height: 1;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.4);
+  border: 5px solid rgba(255, 255, 255, 0.22);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.4);
+  transition: transform 200ms ease, border-color 200ms ease, box-shadow 200ms ease, background 200ms ease;
+}
+
+.gestureIconAccent {
+  background: rgba(26, 77, 126, 0.55);
+  border-color: rgba(120, 190, 255, 0.5);
+}
+
+/* When a hand is detected, the guide brightens + lifts (feedback, no text). */
+.gestureIconsOn .gestureIcon {
+  transform: scale(1.06);
+  border-color: rgba(255, 255, 255, 0.85);
+  box-shadow: 0 0 60px rgba(120, 190, 255, 0.6);
+}
+
+.gestureIconsOn .gestureIconAccent {
+  background: rgba(26, 77, 126, 0.92);
+  border-color: #9fd2ff;
+}
+
+/* Bottom: brief filter label above the filter swiper. */
 .bottom {
   position: absolute;
   left: 0;
   right: 0;
-  bottom: 80px;
+  bottom: 120px;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 48px;
+  gap: 64px;
   z-index: 4;
 }
 
-.filterName {
+/* Transient filter-name label — pops on change, holds, then fades (one shot). */
+.filterLabel {
   font-weight: 800;
-  font-size: 108px;
+  font-size: 100px;
   letter-spacing: 0.02em;
+  padding: 14px 72px;
+  border-radius: 999px;
+  background: rgba(0, 0, 0, 0.32);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
   text-shadow: 0 4px 24px rgba(0, 0, 0, 0.7);
+  opacity: 0;
+  pointer-events: none;
+  animation: labelLifecycle 1500ms ease forwards;
+}
+
+@keyframes labelLifecycle {
+  0% { opacity: 0; transform: translateY(28px) scale(0.88); }
+  12% { opacity: 1; transform: translateY(0) scale(1); }
+  78% { opacity: 1; transform: translateY(0) scale(1); }
+  100% { opacity: 0; transform: translateY(-14px) scale(0.96); }
+}
+
+/* Directional swipe cue — a big chevron flashing on the swiped side. */
+.swipeCue {
+  position: absolute;
+  top: 50%;
+  font-size: 320px;
+  font-weight: 700;
+  line-height: 1;
+  color: rgba(255, 255, 255, 0.92);
+  text-shadow: 0 0 60px rgba(74, 163, 255, 0.9);
+  z-index: 5;
+  pointer-events: none;
+}
+
+.swipeCueNext {
+  right: 120px;
+  animation: cueRight 520ms ease-out forwards;
+}
+
+.swipeCuePrev {
+  left: 120px;
+  animation: cueLeft 520ms ease-out forwards;
+}
+
+@keyframes cueRight {
+  0% { opacity: 0; transform: translateY(-50%) translateX(-60px); }
+  35% { opacity: 1; transform: translateY(-50%) translateX(0); }
+  100% { opacity: 0; transform: translateY(-50%) translateX(60px); }
+}
+
+@keyframes cueLeft {
+  0% { opacity: 0; transform: translateY(-50%) translateX(60px); }
+  35% { opacity: 1; transform: translateY(-50%) translateX(0); }
+  100% { opacity: 0; transform: translateY(-50%) translateX(-60px); }
 }
 
 .carousel {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 48px;
+  gap: 92px;
   width: 100%;
 }
 
 .thumb {
   display: flex;
-  flex-direction: column;
   align-items: center;
-  gap: 20px;
-  opacity: 0.42;
-  transition: opacity 180ms ease, transform 180ms ease;
+  justify-content: center;
+  opacity: 0.4;
+  transition: opacity 200ms ease, transform 200ms ease;
 }
 
 .thumbActive {
   opacity: 1;
-  transform: scale(1.14);
+  transform: scale(1.5);
+  z-index: 1;
 }
 
 .thumbCircle {
-  width: 220px;
-  height: 220px;
+  width: 280px;
+  height: 280px;
   border-radius: 50%;
   overflow: hidden;
-  border: 5px solid rgba(255, 255, 255, 0.3);
-  transition: border-color 180ms ease;
+  border: 6px solid rgba(255, 255, 255, 0.32);
+  transition: border-color 200ms ease, box-shadow 200ms ease;
 }
 
 .thumbActive .thumbCircle {
-  border-color: #1a4d7e;
-  border-width: 10px;
-  box-shadow: 0 0 60px rgba(26, 77, 126, 0.55);
+  border-color: #4aa3ff;
+  border-width: 8px;
+  box-shadow: 0 0 70px rgba(74, 163, 255, 0.65);
 }
 
 .thumbVideo {
@@ -228,39 +341,4 @@
   object-fit: cover;
   transform: scaleX(-1);
   background: #1a1a1a;
-}
-
-.thumbLabel {
-  font-weight: 600;
-  font-size: 46px;
-  color: rgba(255, 255, 255, 0.85);
-  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.7);
-}
-
-/* Compact gesture hints row. */
-.hints {
-  display: flex;
-  align-items: center;
-  gap: 32px;
-}
-
-.hint {
-  display: flex;
-  align-items: center;
-  gap: 20px;
-  background: rgba(255, 255, 255, 0.08);
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
-  border: 2px solid rgba(255, 255, 255, 0.12);
-  color: rgba(255, 255, 255, 0.8);
-  font-weight: 600;
-  font-size: 52px;
-  padding: 24px 52px;
-  border-radius: 999px;
-}
-
-.hintAccent {
-  background: rgba(26, 77, 126, 0.82);
-  border-color: rgba(26, 77, 126, 0.6);
-  color: #fff;
 }

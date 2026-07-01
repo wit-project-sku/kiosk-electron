@@ -34,10 +34,10 @@ interface Props {
 }
 
 export function HwaseongHome({ controller }: Props): JSX.Element {
-  const weather = useWeatherStore((s) => s.current);
+  const weather = useWeatherStore((s) => s.weather);
 
   function navigate(screen: KioskScreenId, label: string): void {
-    trackEvent('home_tile_tap', { screen, label, kiosk: 'W005' });
+    trackEvent({ name: 'home_tile_tap', payload: { screen, label, kiosk: 'W005' } });
     controller.navigate(screen);
   }
 
