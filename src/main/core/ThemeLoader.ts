@@ -76,7 +76,7 @@ function fallbackTheme(layout: KioskLayoutId): KioskTheme {
       accent: '#f5a623',
     },
     typography: {
-      fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
+      fontFamily: "'Noto Sans KR', 'Noto Sans SC', 'Microsoft YaHei', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
       headingSize: '2.5rem',
       bodySize: '1.125rem',
       buttonSize: '1.25rem',

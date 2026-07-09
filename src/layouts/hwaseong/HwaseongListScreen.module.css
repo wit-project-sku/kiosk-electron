@@ -35,7 +35,9 @@
   top: 699px;
   left: 0;
   right: 0;
-  bottom: 573px;
+  /* Bottom banner is hidden on these data-heavy list screens, so the scroll
+     area extends nearly to the bottom edge (was 573px, reserving banner space). */
+  bottom: 60px;
   box-sizing: border-box;
   padding: 0 136px 80px 170px;
   display: flex;

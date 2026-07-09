@@ -21,11 +21,14 @@ import { TemplateService } from './services/TemplateService';
 import { KioskService } from './services/KioskService';
 import { LocalCacheService } from './services/LocalCacheService';
 import { ShopService } from './services/ShopService';
+import { ButtonLayoutService } from './services/ButtonLayoutService';
 import { StatsService } from './services/StatsService';
 import { FailedRequestService } from './services/FailedRequestService';
 import { TranslationService } from './services/TranslationService';
 import { WeatherService } from './services/WeatherService';
 import { ExchangeService } from './services/ExchangeService';
+import { SubtitleService } from './services/SubtitleService';
+import { EventsService } from './services/EventsService';
 import { SyncService } from './services/sync/SyncService';
 import { CameraService } from './services/camera/CameraService';
 import { CaptureService } from './services/camera/CaptureService';
@@ -56,8 +59,11 @@ export interface AppContainer {
   translations: TranslationService;
   weather: WeatherService;
   exchange: ExchangeService;
+  subtitles: SubtitleService;
   shops: ShopService;
+  buttons: ButtonLayoutService;
   stats: StatsService;
+  events: EventsService;
 }
 
 let container: AppContainer | null = null;
@@ -81,9 +87,12 @@ export function createContainer(): AppContainer {
   const failedRequests = new FailedRequestService(failedRepo);
   const translations = new TranslationService(translationRepo);
   const shops = new ShopService(cache, kiosk);
+  const buttons = new ButtonLayoutService(cache, kiosk);
   const stats = new StatsService(kiosk, failedRequests);
   const weather = new WeatherService(cache, kiosk);
   const exchange = new ExchangeService(cache);
+  const subtitles = new SubtitleService(cache, kiosk);
+  const events = new EventsService();
 
   const display = new DisplayService();
   const camera = new CameraService();
@@ -129,8 +138,11 @@ export function createContainer(): AppContainer {
     translations,
     weather,
     exchange,
+    subtitles,
     shops,
+    buttons,
     stats,
+    events,
   };
 
   return container;

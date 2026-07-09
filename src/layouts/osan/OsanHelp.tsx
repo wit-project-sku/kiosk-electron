@@ -59,8 +59,12 @@ export function OsanHelp({ controller, initialTab }: OsanHelpProps): JSX.Element
   const activeKr = selected || initialKr || tabs[0]?.kr || '';
 
   useEffect(() => {
+    // The 화장실 (restroom) tile deep-links into this help screen but must keep the
+    // customer display on the 'restroom' → Toilet video that navigate() already
+    // set. Only the real 도와줘 help screen advances the display to its category clip.
+    if (controller.screen === 'restroom') return;
     if (activeKr) void window.api.kiosk.setScreen('help_category');
-  }, [activeKr]);
+  }, [activeKr, controller.screen]);
   const visible = useMemo(
     () => baseShops.filter((s) => s.secondCategoryKr === activeKr),
     [baseShops, activeKr],

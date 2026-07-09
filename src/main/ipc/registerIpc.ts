@@ -17,7 +17,10 @@ import { registerWeatherHandlers } from './handlers/weather.handlers';
 import { registerExchangeHandlers } from './handlers/exchange.handlers';
 import { registerKioskHandlers } from './handlers/kiosk.handlers';
 import { registerShopHandlers } from './handlers/shop.handlers';
+import { registerButtonHandlers } from './handlers/buttons.handlers';
 import { registerStatsHandlers } from './handlers/stats.handlers';
+import { registerSubtitleHandlers } from './handlers/subtitle.handlers';
+import { registerEventsHandlers } from './handlers/events.handlers';
 
 const log = createLogger('ipc');
 
@@ -42,6 +45,9 @@ export function registerIpcHandlers(container: AppContainer, windows: WindowMana
   registerExchangeHandlers(container);
   registerKioskHandlers(windows);
   registerShopHandlers(container);
+  registerButtonHandlers(container);
   registerStatsHandlers(container);
+  registerSubtitleHandlers(container);
+  registerEventsHandlers(container);
   log.info('IPC handlers registered');
 }

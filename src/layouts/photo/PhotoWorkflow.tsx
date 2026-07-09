@@ -195,14 +195,17 @@ export function PhotoWorkflow(): JSX.Element {
             </div>
           )}
 
-          <p className={styles.resultHint}>{c.saveHint}</p>
+          <p className={styles.resultHint}>
+            {c.saveHint.lead}
+            <span className={styles.resultHintAccent}>{c.saveHint.accent}</span>
+          </p>
 
           <div className={styles.resultBottom}>
             <div className={styles.resultQr}>
               <QRCodeSVG value={saveUrl} level="M" style={{ width: '100%', height: '100%' }} />
             </div>
             <div className={styles.resultButtons}>
-              <button type="button" className={styles.resultBtn} onClick={() => setGoodsQrOpen(false)}>
+              <button type="button" className={styles.resultBtn} onClick={() => setSaveQrOpen(true)}>
                 {c.save}
               </button>
               <button type="button" className={`${styles.resultBtn} ${styles.resultBtnAlt}`} onClick={() => setGoodsQrOpen(true)}>
@@ -238,6 +241,18 @@ export function PhotoWorkflow(): JSX.Element {
           <button type="button" className={styles.banner} onClick={handleReset} aria-label="가상 한복 체험">
             <img src={banner} alt="" draggable={false} />
           </button>
+        )}
+
+        {/* 저장하기 → bigger QR popup (save to phone) so the user can scan it comfortably. */}
+        {saveQrOpen && (
+          <div className={styles.qrOverlay} onClick={() => setSaveQrOpen(false)}>
+            <div className={styles.qrModal} onClick={(e) => e.stopPropagation()}>
+              <button type="button" className={styles.qrClose} onClick={() => setSaveQrOpen(false)} aria-label="닫기">
+                <X className={styles.qrCloseIcon} strokeWidth={2.4} />
+              </button>
+              <QRCodeSVG className={styles.qrModalImg} value={saveUrl} level="M" />
+            </div>
+          </div>
         )}
 
         {/* 굿즈제작 QR popup → insarang.kr */}

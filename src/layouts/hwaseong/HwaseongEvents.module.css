@@ -1,0 +1,635 @@
+/* HwaseongEvents — native replacement for the withevent.kr <webview> on W005,
+   laid out at EXACT Figma px on the 2160×3840 artboard (nodes 5494:158615 / 158665
+   / 158724 / 158814). Chrome matches HwaseongWebScreen. Blue [화성휴게소] main1
+   #005AB4, selected-soft #DAECFE. */
+
+.root {
+  position: absolute;
+  inset: 0;
+  width: 2160px;
+  height: 3840px;
+  overflow: hidden;
+  font-family: 'Noto Sans KR', 'Noto Sans', sans-serif;
+}
+
+.bgBase {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 2160px;
+  height: 3840px;
+  background: #fff;
+}
+
+.bgImage {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  opacity: 0.5;
+  pointer-events: none;
+}
+
+/* ── Region tabs (화성시 / MBTI) — R>컴포넌트=코스추천-카테고리; centered (2 tabs) ── */
+.regionTabs {
+  position: absolute;
+  left: 50%;
+  top: 699px;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 63px;
+}
+
+.regionTab {
+  box-sizing: border-box;
+  width: 565px;
+  height: 170px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #ffffff;
+  border: 5px solid #e8e8e8;
+  border-radius: 42.9px;
+  font-family: var(--kiosk-font, 'Noto Sans KR', sans-serif);
+  font-weight: 700;
+  font-size: 63px;
+  line-height: 1;
+  color: #616161;
+  cursor: pointer;
+}
+
+.regionTabSelected {
+  background: #005ab4;
+  border-color: #005ab4;
+  color: #ffffff;
+}
+
+/* ── Category tabs (전체/공연/전시/기타); active = 135×90 blue pill, others text ── */
+.categoryTabs {
+  position: absolute;
+  top: 941px;
+  left: 735px;
+  display: flex;
+  align-items: center;
+  height: 90px;
+  gap: 119.611px;
+}
+
+.categoryTab {
+  position: relative;
+  /* Own stacking context so the active ::before pill (z-index:-1) sits behind
+     the tab text but ABOVE the absolutely-positioned page background (.bg),
+     which would otherwise paint over the pill and hide the active highlight. */
+  isolation: isolate;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 90px;
+  padding: 0;
+  border: none;
+  background: transparent;
+  font-family: var(--kiosk-font, 'Noto Sans KR', sans-serif);
+  font-weight: 700;
+  font-size: 45px;
+  line-height: 1;
+  color: #1b1d1f;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.categoryTab.categoryTabSelected {
+  color: #ffffff;
+}
+
+.categoryTab.categoryTabSelected::before {
+  content: '';
+  position: absolute;
+  inset: 0 -24px;
+  background: #005ab4;
+  border-radius: 999px;
+  z-index: -1;
+}
+
+/* ── Event card grid (이벤트 리스트) — 3×2 cards, 6 per page ── */
+.grid {
+  position: absolute;
+  left: 224px;
+  top: 1088px;
+  display: grid;
+  grid-template-columns: repeat(3, 483.767px);
+  column-gap: 125px;
+  row-gap: 64px;
+}
+
+/* A card is a <button> (opens the detail modal) — reset the button chrome. */
+.card {
+  display: flex;
+  flex-direction: column;
+  text-align: left;
+  padding: 0;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.thumb {
+  width: 483.767px;
+  height: 683.286px;
+  border-radius: 10px;
+  overflow: hidden;
+  background: rgba(147, 147, 147, 0.2);
+}
+
+.thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.cardTitle {
+  margin: 24px 0 0;
+  font-family: var(--kiosk-font, 'Noto Sans KR', sans-serif);
+  font-weight: 700;
+  font-size: 35px;
+  line-height: 1.3;
+  color: #000000;
+  /* Long titles stay on ONE line and truncate with … */
+  max-width: 100%;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.cardVenue {
+  margin: 12px 0 0;
+  font-family: var(--kiosk-font, 'Noto Sans KR', sans-serif);
+  font-weight: 500;
+  font-size: 24px;
+  line-height: 1;
+  color: #999999;
+}
+
+/* ── Pagination (1 2 3 ⟩) ── */
+.pagination {
+  position: absolute;
+  top: 2831px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: 24px;
+}
+
+.pageBtn {
+  min-width: 96px;
+  height: 96px;
+  padding: 0 20px;
+  border: none;
+  border-radius: 9999px;
+  background: transparent;
+  font-family: var(--kiosk-font, 'Noto Sans KR', sans-serif);
+  font-weight: 700;
+  font-size: 50px;
+  line-height: 1;
+  color: rgba(0, 0, 0, 0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.pageBtnSelected {
+  background: #005ab4;
+  color: #ffffff;
+}
+
+.pageNext {
+  font-size: 60px;
+}
+
+/* ── QR footer ── */
+.qrFooter {
+  position: absolute;
+  left: 180px;
+  top: 2939px;
+  width: 1820px;
+  height: 219px;
+}
+
+.qrDivider {
+  position: absolute;
+  left: 156px;
+  top: 0;
+  width: 1556px;
+  height: 1px;
+  background: #ebebeb;
+  border-radius: 2px;
+}
+
+.qrImg {
+  position: absolute;
+  left: 1588px;
+  top: 35px;
+  width: 150px;
+  height: 150px;
+}
+
+.qrLabel {
+  position: absolute;
+  left: 1556px;
+  top: 110px;
+  transform: translate(-100%, -50%);
+  margin: 0;
+  font-family: var(--kiosk-font, 'Noto Sans KR', sans-serif);
+  font-weight: 700;
+  font-size: 40px;
+  line-height: 1.25;
+  color: #005ab4;
+  text-align: right;
+  letter-spacing: 0.4px;
+  white-space: nowrap;
+}
+
+/* ── Left nav (single Figma render + click zones) — matches HwaseongWebScreen ── */
+.leftNav {
+  position: absolute;
+  left: 21px;
+  top: 1995px;
+  width: 85px;
+  height: 205px;
+}
+
+.leftNavImg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  pointer-events: none;
+}
+
+.leftNavZoneHome,
+.leftNavZoneBack {
+  position: absolute;
+  left: 0;
+  width: 85px;
+  height: 85px;
+  padding: 0;
+  border: none;
+  background: none;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.leftNavZoneHome {
+  top: 0;
+}
+.leftNavZoneBack {
+  top: 120px;
+}
+
+/* ── Bottom banner ── */
+.banner {
+  position: absolute;
+  top: 3267px;
+  left: 0;
+  width: 2160px;
+  height: 573px;
+}
+
+.bannerImg {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  pointer-events: none;
+}
+
+/* ── MBTI workflow ────────────────────────────────────────────────────────── */
+/* 4×2 toggle grid — 5494:158632: 283×283, r50, border5, gap-x113 gap-y90.
+   Unselected uses 글씨-main #999 (border + text); selected turns blue. */
+.mbtiGrid {
+  position: absolute;
+  top: 1088px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: grid;
+  grid-template-columns: repeat(4, 283px);
+  column-gap: 113px;
+  row-gap: 90px;
+}
+
+.mbtiCell {
+  box-sizing: border-box;
+  width: 283px;
+  height: 283px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  background: #ffffff;
+  border: 5px solid #999999;
+  border-radius: 50px;
+  cursor: pointer;
+  font-family: var(--kiosk-font, 'Noto Sans KR', sans-serif);
+}
+
+.mbtiCellSelected {
+  background: #daecfe;
+  border-color: #005ab4;
+}
+
+.mbtiLetter {
+  font-weight: 700;
+  font-size: 96px;
+  line-height: 1;
+  color: #999999;
+}
+
+.mbtiCellSelected .mbtiLetter {
+  color: #005ab4;
+}
+
+.mbtiLabel {
+  font-weight: 700;
+  font-size: 35px;
+  line-height: 1;
+  color: #999999;
+}
+
+.mbtiCellSelected .mbtiLabel {
+  color: #005ab4;
+}
+
+/* CTA "추천 결과 보기" / "결과 로딩중.." — 5494:158629: 500×120, r30. */
+.mbtiCta {
+  position: absolute;
+  top: 1875px;
+  left: 50%;
+  transform: translateX(-50%);
+  box-sizing: border-box;
+  width: 500px;
+  height: 120px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  background: #ffffff;
+  border: 5px solid #005ab4;
+  border-radius: 30px;
+  font-family: var(--kiosk-font, 'Noto Sans KR', sans-serif);
+  font-weight: 700;
+  font-size: 50px;
+  color: #005ab4;
+  cursor: pointer;
+}
+
+.mbtiCtaLoading {
+  border-color: #999999;
+  font-weight: 600;
+  color: #999999;
+  cursor: default;
+}
+
+.mbtiSpinner {
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  border: 5px solid #e8e8e8;
+  border-top-color: #999999;
+  animation: mbtiSpin 0.8s linear infinite;
+}
+
+@keyframes mbtiSpin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Description — 5494:158631: centered, 55px bold, "화성시 이벤트" in #005ab4. */
+.mbtiDesc {
+  position: absolute;
+  top: 2141px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 1036px;
+  margin: 0;
+  text-align: center;
+  font-family: var(--kiosk-font, 'Noto Sans KR', sans-serif);
+  font-weight: 700;
+  font-size: 55px;
+  line-height: 1.85;
+  color: #000000;
+}
+
+.mbtiAccent {
+  color: #005ab4;
+}
+
+/* ── Shared modal overlay (dark scrim, centered content) ── */
+.modalOverlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10;
+}
+
+/* Results modal: white card, 2 event cards + QR + label. */
+.resultsBox {
+  box-sizing: border-box;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 105px;
+  width: 1720px;
+  height: 1484px;
+  padding: 176px 0 0;
+  background: #fffdfa;
+  border: 5px solid #e8e8e8;
+  border-radius: 80px;
+}
+
+.resultsCards {
+  display: flex;
+  gap: 245px;
+}
+
+.resultCard {
+  width: 526px;
+  display: flex;
+  flex-direction: column;
+  text-align: left;
+}
+
+.resultThumb {
+  width: 526px;
+  height: 683px;
+  border-radius: 11px;
+  background: rgba(142, 142, 142, 0.2);
+}
+
+.resultTitle {
+  margin: 24px 0 0;
+  font-family: var(--kiosk-font, 'Noto Sans KR', sans-serif);
+  font-weight: 700;
+  font-size: 39.865px;
+  line-height: 1.2;
+  color: #000000;
+}
+
+.resultVenue {
+  margin: 12px 0 0;
+  font-family: var(--kiosk-font, 'Noto Sans KR', sans-serif);
+  font-weight: 500;
+  font-size: 24px;
+  line-height: 1;
+  color: #999999;
+}
+
+.resultsQr {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 60px;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+}
+
+.resultsQrImg {
+  width: 182px;
+  height: 182px;
+}
+
+.resultsQrLabel {
+  font-family: var(--kiosk-font, 'Noto Sans KR', sans-serif);
+  font-weight: 700;
+  font-size: 40px;
+  color: #005ab4;
+}
+
+/* QR zoom modal: 1035×1035, big QR + corner frame. */
+.qrZoomBox {
+  position: relative;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 60px;
+  width: 1035px;
+  height: 1035px;
+  background: #ffffff;
+  border: 5px solid #e8e8e8;
+  border-radius: 50px;
+  box-shadow: 0 4px 4px rgba(0, 0, 0, 0.25);
+}
+
+.qrZoomFrame {
+  position: relative;
+  width: 631px;
+  height: 631px;
+}
+
+.qrCorner {
+  position: absolute;
+  color: #005ab4;
+  font-size: 130px;
+  line-height: 1;
+}
+
+.qrCornerTL {
+  top: -46px;
+  left: -24px;
+}
+
+.qrCornerTR {
+  top: -46px;
+  right: -24px;
+}
+
+.qrCornerBL {
+  bottom: -46px;
+  left: -24px;
+}
+
+.qrCornerBR {
+  bottom: -46px;
+  right: -24px;
+}
+
+.qrZoomHint {
+  margin: 0;
+  font-family: var(--kiosk-font, 'Noto Sans KR', sans-serif);
+  font-weight: 700;
+  font-size: 55px;
+  color: #005ab4;
+  letter-spacing: 0.55px;
+}
+
+.qrZoomClose {
+  position: absolute;
+  top: 40px;
+  right: 40px;
+  width: 108px;
+  height: 108px;
+  border: none;
+  background: transparent;
+  color: #555555;
+  font-size: 60px;
+  cursor: pointer;
+}
+
+/* Empty / error state shown in place of the event grid. */
+.emptyState {
+  margin: 40px 0;
+  font-size: 52px;
+  font-weight: 500;
+  color: #999;
+  text-align: center;
+}
+
+/* MBTI recommendation result thumbnail + empty state. */
+.resultThumb {
+  overflow: hidden;
+}
+.resultThumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+/* No-recommendation popup — small centered card with a message. */
+.noDataBox {
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 900px;
+  padding: 150px 120px;
+  background: #fffdfa;
+  border: 5px solid #e8e8e8;
+  border-radius: 80px;
+}
+
+.noDataText {
+  margin: 0;
+  font-family: var(--kiosk-font, 'Noto Sans KR', sans-serif);
+  font-weight: 700;
+  font-size: 60px;
+  color: #616161;
+  text-align: center;
+}
+
+/* Disabled next-page chevron (on the last page). */
+.pageBtnDisabled {
+  opacity: 0.25;
+  cursor: default;
+}

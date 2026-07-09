@@ -3,7 +3,7 @@ import type { KioskScreenId } from '@shared/types/kiosk';
 import { useKioskStore } from '@renderer/store/kioskStore';
 import { usePhotoStore } from '@renderer/store/photoStore';
 import { localIso, recordMenuTouch, trackEvent } from '@renderer/lib/analytics';
-import { resolveButton } from '@renderer/lib/buttonCatalog';
+import { useResolveButton } from '@renderer/lib/buttonLayout';
 import { useInactivityReset } from './useInactivityReset';
 
 /** An open menu-touch session: the button that left home + when it was touched. */
@@ -38,6 +38,9 @@ export function useKioskController(): KioskController {
   const photoActive = usePhotoStore((s) => s.active);
   const startPhotoStore = usePhotoStore((s) => s.start);
   const resetPhoto = usePhotoStore((s) => s.reset);
+  // Resolve a button's analytics identity, preferring the live API `id` over the
+  // hardcoded BUTTON_IDS mirror (correct even after a buttons-table reseed).
+  const resolveBtn = useResolveButton(kioskId);
 
   const navigate = useCallback(
     (target: KioskScreenId, label?: string) => {
@@ -48,7 +51,7 @@ export function useKioskController(): KioskController {
       setScreen(target);
       // Tell the customer display which AI-model video to show for this screen.
       void window.api.kiosk.setScreen(target);
-      const button = resolveButton(kioskId, target);
+      const button = resolveBtn(target);
       void trackEvent({
         name: 'button_clicked',
         payload: {
@@ -61,14 +64,14 @@ export function useKioskController(): KioskController {
         },
       });
     },
-    [kioskId, photoActive, resetPhoto, setScreen],
+    [kioskId, photoActive, resetPhoto, setScreen, resolveBtn],
   );
 
   const startPhoto = useCallback(() => {
     startPhotoStore();
     void window.api.kiosk.setScreen('photo');
     void window.api.photo.startWorkflow();
-    const button = resolveButton(kioskId, 'photo');
+    const button = resolveBtn('photo');
     void trackEvent({
       name: 'button_clicked',
       payload: {
@@ -79,7 +82,7 @@ export function useKioskController(): KioskController {
         kioskId,
       },
     });
-  }, [kioskId, startPhotoStore]);
+  }, [kioskId, startPhotoStore, resolveBtn]);
 
   // Page dwell-time analytics + menu-touch sessions. On every screen change we:
   //  1. log how long the visitor spent on the screen they just left (page_view), and
@@ -93,7 +96,7 @@ export function useKioskController(): KioskController {
     if (dwellScreenRef.current === screen) return;
     const leaving = dwellScreenRef.current;
 
-    const leavingBtn = resolveButton(kioskId, leaving);
+    const leavingBtn = resolveBtn(leaving);
     void trackEvent({
       name: 'page_view',
       payload: {
@@ -120,7 +123,7 @@ export function useKioskController(): KioskController {
     } else if (!menuTouchRef.current) {
       // Left home into a menu → open a session keyed by the button just touched.
       // Lateral/deeper navigation keeps the original session (only home closes it).
-      const enteredBtn = resolveButton(kioskId, screen);
+      const enteredBtn = resolveBtn(screen);
       if (enteredBtn?.id != null) {
         menuTouchRef.current = {
           buttonId: enteredBtn.id,
@@ -132,7 +135,7 @@ export function useKioskController(): KioskController {
 
     dwellScreenRef.current = screen;
     enteredAtRef.current = Date.now();
-  }, [screen, kioskId]);
+  }, [screen, kioskId, resolveBtn]);
 
   // The 사진촬영 (camera) flow runs as an overlay without changing `screen`, so it
   // gets its own menu-touch session: opened when the photo flow starts, closed
@@ -144,7 +147,7 @@ export function useKioskController(): KioskController {
       return;
     }
     if (photoTouchRef.current) {
-      const photoBtn = resolveButton(kioskId, 'photo');
+      const photoBtn = resolveBtn('photo');
       if (photoBtn?.id != null) {
         recordMenuTouch({
           buttonId: photoBtn.id,
@@ -155,7 +158,7 @@ export function useKioskController(): KioskController {
       }
       photoTouchRef.current = null;
     }
-  }, [photoActive, kioskId]);
+  }, [photoActive, kioskId, resolveBtn]);
 
   // Idle attract-loop reset: after IDLE_TIMEOUT_MS with no interaction, drop any
   // photo flow and return to home. No-op when already idling on the home screen.

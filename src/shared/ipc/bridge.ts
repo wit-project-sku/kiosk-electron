@@ -38,7 +38,16 @@ import type { CachedContent, SupportedLanguage } from '../types/kiosk';
 import type { CameraDeviceInfo, PhotoOption, PhotoWorkflowState } from '../types/photo';
 import type { WeatherSnapshot } from '../types/weather';
 import type { ExchangeSnapshot } from '../types/exchange';
+import type { VideoEntry } from '../types/subtitle';
 import type { Shop } from '../types/shop';
+import type { KioskButton } from '../types/buttons';
+import type {
+  EventDetail,
+  EventRecommendation,
+  EventsPage,
+  EventsQuery,
+  EventsRecommendQuery,
+} from '../types/events';
 
 /** Unsubscribe handle returned by every event subscription. */
 export type Unsubscribe = () => void;
@@ -124,6 +133,9 @@ export interface KioskBridge {
   exchange: {
     get(): Promise<Result<ExchangeSnapshot | null>>;
   };
+  subtitles: {
+    get(): Promise<Result<VideoEntry[] | null>>;
+  };
   /** Touch-screen navigation; tells the customer display which video to show. */
   kiosk: {
     setScreen(screen: string): Promise<Result<string>>;
@@ -134,10 +146,22 @@ export interface KioskBridge {
   shops: {
     list(): Promise<Result<Shop[]>>;
   };
+  /** Cached home button layout (from the witteria API, refreshed on launch only). */
+  buttons: {
+    list(): Promise<Result<KioskButton[]>>;
+  };
   /** Usage stats POSTed to the witteria API (offline-queued + retried on failure). */
   stats: {
     /** Report a completed menu-touch session (button tap → back to home). */
     recordMenuTouch(input: MenuTouchInput): Promise<Result<boolean>>;
+  };
+  /** Live paginated events list (from the witteria API, fetched per interaction). */
+  eventsApi: {
+    list(query: EventsQuery): Promise<Result<EventsPage>>;
+    /** MBTI-based recommendation (~2 events) for a region + MBTI string. */
+    recommend(query: EventsRecommendQuery): Promise<Result<EventRecommendation[]>>;
+    /** Full record for one event (GET /api/events/{eventId}). */
+    detail(eventId: number): Promise<Result<EventDetail>>;
   };
   /**
    * Local display-scaling controls for the operator window. These act on the
@@ -165,5 +189,6 @@ export interface KioskBridge {
     onKioskScreenChanged(listener: (screen: string) => void): Unsubscribe;
     onKioskVideoAdvanced(listener: () => void): Unsubscribe;
     onShopsChanged(listener: () => void): Unsubscribe;
+    onButtonsChanged(listener: () => void): Unsubscribe;
   };
 }

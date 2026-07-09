@@ -23,6 +23,7 @@ import { InsadongHello } from './InsadongHello';
 import { InsadongHelp } from './InsadongHelp';
 import { InsadongDetail } from './InsadongDetail';
 import { InsadongWebScreen } from './InsadongWebScreen';
+import { InsadongEvents } from './InsadongEvents';
 import { InsadongTaxfree } from './InsadongTaxfree';
 import { InsadongKdrama } from './InsadongKdrama';
 import { InsadongScreen } from './InsadongScreen';
@@ -60,13 +61,12 @@ function usePreloadScreens(): void {
 
 /** InsadongWebScreen pages always kept mounted for instant load. */
 const WEB_SCREENS = [
-  { screen: 'market' as const, title: '위드마켓',      url: WEB_EMBED_URLS.market, bodyHeight: undefined  },
-  { screen: 'events' as const, title: '인사동 이벤트', url: WEB_EMBED_URLS.events, bodyHeight: 2250       },
+  { screen: 'market' as const, title: '위드마켓', url: WEB_EMBED_URLS.market, bodyHeight: undefined },
 ] as const;
 
 type WebScreenKey = (typeof WEB_SCREENS)[number]['screen'];
 function isWebScreen(s: string): s is WebScreenKey {
-  return s === 'market' || s === 'events';
+  return s === 'market';
 }
 
 export function InsadongKiosk(): JSX.Element {
@@ -122,6 +122,8 @@ export function InsadongKiosk(): JSX.Element {
     <InsadongKdrama controller={controller} debug={debug} />
   ) : cur === 'detail' ? (
     <InsadongDetail controller={controller} debug={debug} />
+  ) : cur === 'events' ? (
+    <InsadongEvents controller={controller} />
   ) : isWebScreen(cur) || cur === 'taxfree' ? (
     null  // handled by pre-warmed layer below
   ) : (

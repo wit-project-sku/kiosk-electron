@@ -102,11 +102,6 @@ async function bootstrap(): Promise<void> {
   registerMediaProtocol();
   suppressEmbedAuthDialog();
 
-  // Provision OS-level kiosk power behavior (nightly 02:00 reboot + auto-start
-  // on boot) so the fleet self-heals without anyone running the .bat helpers.
-  // Best-effort: never blocks or fails startup.
-  void setupKioskPower();
-
   try {
     database.init();
   } catch (error) {
@@ -116,6 +111,12 @@ async function bootstrap(): Promise<void> {
   }
 
   const container = createContainer();
+
+  // Provision OS-level kiosk power behavior + auto-start on boot so the fleet
+  // self-heals without anyone running the .bat helpers. Osaek (W004) gets an
+  // 08:00 시작 / 22:00 종료 cycle; every other kiosk keeps the 02:00 reboot.
+  // Best-effort: never blocks or fails startup.
+  void setupKioskPower(container.kiosk.getConfig().kioskId);
 
   // Seed rarely-changing config and local content before windows open so the
   // renderer renders instantly from injected bootstrap data — no network, no spinners.
@@ -138,6 +139,7 @@ async function bootstrap(): Promise<void> {
   // refresh is broadcast to the renderer.
   container.weather.start();
   container.exchange.start();
+  container.subtitles.start();
 
   // Launch the embedded payment agent ONLY on kiosks with a physical card
   // terminal (W003 남인사마당). Runs as an isolated child process; best-effort.
@@ -154,6 +156,13 @@ async function bootstrap(): Promise<void> {
   // (cache is empty until this first fetch completes).
   void container.shops.refresh().then(() => {
     windowManager?.broadcast(IpcEvents.ShopsChanged, null);
+  });
+  // Refresh the home button layout from the witteria API into SQLite (background),
+  // then tell the renderer to reload. Deliberately NOT added to the nightly sync:
+  // the layout is only re-fetched when the app is closed and reopened, otherwise
+  // it serves the last-cached layout (offline-safe).
+  void container.buttons.refresh().then(() => {
+    windowManager?.broadcast(IpcEvents.ButtonsChanged, null);
   });
 
   app.on('activate', () => {

@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { MapPin, Search } from 'lucide-react';
 import type { KioskScreenId, SupportedLanguage } from '@shared/types/kiosk';
 import type { KioskController } from '@renderer/hooks/useKioskController';
@@ -10,6 +10,7 @@ import { getKioskLocation } from '@shared/config/kioskLocations';
 import { iconUrl } from '@renderer/assets/icons/insadong';
 import { weatherIconName, weatherIconUrl } from '@renderer/assets/weather';
 import { useRotatingBanner } from '@renderer/hooks/useRotatingBanner';
+import { useOrderedTiles, type TileKey } from '@renderer/lib/buttonLayout';
 import { t } from '@renderer/lib/loc';
 import { FloatingKeyboard } from './keyboard/FloatingKeyboard';
 import { HangulComposer } from './keyboard/hangul';
@@ -65,6 +66,9 @@ const TILE_LABEL_KEYS: Record<string, string> = {
   insarang: 'MainButton_Insarang',
 };
 
+/** Join a home tile to its CMS button by screen key (see useOrderedTiles). */
+const tileKey = (t: HomeTile): TileKey => ({ screen: t.screen });
+
 type Lang = SupportedLanguage;
 type Run = { t: string; b?: boolean };
 function pick<T>(map: Partial<Record<Lang, T>>, lang: Lang): T {
@@ -107,9 +111,10 @@ const SEARCH_PLACEHOLDER: Partial<Record<Lang, string>> = {
   zh: '搜索关于仁寺洞的内容！',
 };
 
-/** Language-selector button label per language. */
+/** Language-selector button label per language. Must match the 언어선택 picker
+ *  pill codes (LANG_META in InsadongLanguage.tsx): ja → JP, zh → CN. */
 const LANG_CODE: Partial<Record<Lang, string>> = {
-  ko: 'KR', en: 'EN', ja: 'JA', vi: 'VI', zh: 'ZH',
+  ko: 'KR', en: 'EN', ja: 'JP', vi: 'VN', zh: 'CN',
 };
 const langCode = (lang: Lang): string => LANG_CODE[lang] ?? lang.toUpperCase();
 
@@ -165,7 +170,14 @@ export function InsadongHome({ controller }: InsadongHomeProps): JSX.Element {
   const placeholder = pick(SEARCH_PLACEHOLDER, lang);
 
   // The 2nd home tile is location-specific (인사랑(준비중) vs 위드마켓).
-  const tiles: HomeTile[] = [AI_TILE, getKioskLocation(kioskId).secondTile, ...REST_TILES];
+  const tiles: HomeTile[] = useMemo(
+    () => [AI_TILE, getKioskLocation(kioskId).secondTile, ...REST_TILES],
+    [kioskId],
+  );
+  // Re-order the tiles to match the CMS layout (line/position); the 4-column grid
+  // auto-flows them (wide AI tile keeps its span-2 class). Falls back to authored
+  // order when the layout isn't cached — see useOrderedTiles.
+  const orderedTiles = useOrderedTiles(kioskId, tiles, tileKey);
 
   const setSearchQuery = useSearchStore((s) => s.setQuery);
   const composer = useRef(new HangulComposer());
@@ -284,7 +296,7 @@ export function InsadongHome({ controller }: InsadongHomeProps): JSX.Element {
 
 
         <div className={styles.grid}>
-          {tiles.map((tile) => {
+          {orderedTiles.map((tile) => {
             const key = TILE_LABEL_KEYS[tile.screen];
             const label = key ? t(key, lang) : tile.label;
             // 인사랑(준비중) is not ready yet — looks normal, does nothing on tap.

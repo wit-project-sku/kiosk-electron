@@ -5,6 +5,7 @@ import { useKioskTheme } from '@renderer/hooks/useKioskTheme';
 import { useKioskStore } from '@renderer/store/kioskStore';
 import { preloadAllImages } from '@renderer/lib/preloadAssets';
 import { useShopStore } from '@renderer/store/shopStore';
+import { useButtonStore } from '@renderer/store/buttonStore';
 
 /**
  * Root application shell. Reads kiosk config from synchronously-hydrated store
@@ -24,6 +25,15 @@ export function App(): JSX.Element {
     void useShopStore.getState().load();
     const off = window.api.events.onShopsChanged(() => {
       void useShopStore.getState().reload();
+    });
+    return off;
+  }, []);
+  // Load the home button layout from the SQLite-cached API data, and reload when
+  // main signals it refreshed (first-launch data appears without an app restart).
+  useEffect(() => {
+    void useButtonStore.getState().load();
+    const off = window.api.events.onButtonsChanged(() => {
+      void useButtonStore.getState().reload();
     });
     return off;
   }, []);

@@ -2,6 +2,7 @@ import type { KioskController } from '@renderer/hooks/useKioskController';
 import { hwaseongIconUrl } from '@renderer/assets/icons/hwaseong';
 import { pick, useLang } from '@renderer/lib/i18n';
 import { HwaseongHeader } from './HwaseongHeader';
+import { ZoomableImage } from '../insadong/ZoomableImage';
 import styles from './HwaseongMap.module.css';
 
 interface Props {
@@ -39,9 +40,10 @@ export function HwaseongMap({ controller }: Props): JSX.Element {
           {/* Card subtitle (title above the map) */}
           <p className={styles.cardSubtitle}>{pick(SUBTITLE, lang)}</p>
 
-          {/* Full floor-plan + legend map image */}
+          {/* Full floor-plan + legend map image — pinch/double-tap to zoom,
+              drag to pan (same touch-friendly viewer as the transport maps). */}
           {mapSrc ? (
-            <img src={mapSrc} alt="화성휴게소 지도" className={styles.mapImg} draggable={false} />
+            <ZoomableImage src={mapSrc} alt="화성휴게소 지도" className={styles.mapViewport} />
           ) : (
             <div className={styles.mapPlaceholder}>
               <span className={styles.mapPlaceholderText}>화성휴게소 배치도</span>

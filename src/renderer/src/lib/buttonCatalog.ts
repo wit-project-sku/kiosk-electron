@@ -139,7 +139,7 @@ const SLOT_OVERRIDES: Partial<Record<KioskId, Record<string, Slot>>> = {
     events: { position: 6, type: '화성시 이벤트' },
     food_court: { position: 7, type: '휴 뭐먹지' },
     shop: { position: 8, type: '휴 뭐사지?' },
-    market: { position: 9, type: '전국 시장' }, // 전국시장 (HwaseongMarketScreen)
+    market: { position: 9, type: '전국 시장(준비중)' }, // 전국시장 — disabled, no navigation
     taxfree: { position: 10, type: '텍스프리' },
     tourism: { position: 11, type: '화성휴게소' }, // HwaseongRestStop
     hello: { position: 12, type: '안녕 휴' },
@@ -166,4 +166,14 @@ export function resolveButton(kioskId: KioskId, key: string): KioskButtonRef | n
   const suffix = slot.suffix ?? `아이콘${String(slot.position).padStart(2, '0')}`;
   const id = BUTTON_IDS[kioskId]?.[slot.position] ?? null;
   return { key, id, position: slot.position, buttonName: `#${kioskId}_${suffix}`, buttonType: slot.type };
+}
+
+/**
+ * DB `buttons.id` for a kiosk + flat slot position (1–24), or null if unknown.
+ * Mirrors {@link resolveButton}'s id lookup for callers that key by a raw slot
+ * rather than a screen id — e.g. Hwaseong's shared `rest_info` tiles (slots
+ * 16/17/18). Used to join the id-keyed layout response to a home tile.
+ */
+export function buttonIdForSlot(kioskId: KioskId, slot: number): number | null {
+  return BUTTON_IDS[kioskId]?.[slot] ?? null;
 }

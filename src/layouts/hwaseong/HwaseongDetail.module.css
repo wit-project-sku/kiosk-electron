@@ -54,7 +54,8 @@
   position: relative;
   flex: none;
   width: 1820px;
-  height: 2980px;
+  /* Ends just below the floor map (top 1560 + ~692) — no legend below it. */
+  height: 2320px;
   background: #fff;
   border: 5px solid #e8e8e8;
   border-radius: 42.9px;
@@ -205,23 +206,14 @@
   font-variation-settings: 'CTGR' 0, 'wdth' 100;
 }
 
-/* Floor map (static render): top 1560, 1820×700 */
+/* 화성휴게소 floor map — newly uploaded image (1730×658). Keep its native
+   aspect so nothing distorts. It labels the shops/numbers itself (no legend). */
 .map {
   position: absolute;
   top: 1560px;
   left: 0;
   width: 1820px;
-  height: 700px;
-  object-fit: contain;
-}
-
-/* Category legend (static render): bottom of card, 1820×720 */
-.legend {
-  position: absolute;
-  top: 2260px;
-  left: 0;
-  width: 1820px;
-  height: 720px;
+  aspect-ratio: 1730 / 658;
   object-fit: contain;
 }
 

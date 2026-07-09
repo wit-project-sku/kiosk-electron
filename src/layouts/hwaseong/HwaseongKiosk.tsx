@@ -12,6 +12,7 @@ import { HwaseongSearch } from './HwaseongSearch';
 import { HwaseongTaxFree } from './HwaseongTaxFree';
 import { HwaseongRestStop } from './HwaseongRestStop';
 import { HwaseongWebScreen } from './HwaseongWebScreen';
+import { HwaseongEvents } from './HwaseongEvents';
 import { HwaseongListScreen } from './HwaseongListScreen';
 import { HwaseongMarketScreen } from './HwaseongMarketScreen';
 import { HwaseongHello } from './HwaseongHello';
@@ -31,13 +32,23 @@ const ITS_HIDE_CHROME_CSS = `
   #div_topHeader, #header, #footer, .skip_nav, .header_popup {
     display: none !important;
   }
-  #wrapper, #wrapper.mapType, #container { margin: 0 !important; padding: 0 !important; }
+  /* A fixed header/footer site keeps padding on html/body to reserve their
+     space — that padding is the white gap left after we hide the chrome, so
+     zero it (and pull the content containers to the very top). */
+  html, body {
+    margin: 0 !important;
+    padding: 0 !important;
+    min-height: 0 !important;
+  }
+  #wrapper, #wrapper.mapType, #container, #contents, #content, #skipContents {
+    margin: 0 !important;
+    padding: 0 !important;
+    top: 0 !important;
+    min-height: 0 !important;
+  }
 `;
 
 const FOOD_TABS = ['한식', '한정식', '바베큐', '분식', '사찰음식'];
-// 뭐사지 Figma tabs (node 4167-173813) — the shop data has no second category,
-// so these render for visual parity with the design.
-const SHOP_TABS = ['의류', '공예품', '수제도장', '엔틱', '화방', '한복', '잡화', '표구·액자', '기념품', '기타'];
 
 /** Theme the shared AR 한복 photo workflow with the 화성휴게소 blue (#005ab4). */
 const PHOTO_THEME = {
@@ -71,13 +82,13 @@ export function HwaseongKiosk(): JSX.Element {
     ) : cur === 'tourism' ? (
       <HwaseongRestStop controller={controller} />
     ) : cur === 'events' ? (
-      <HwaseongWebScreen controller={controller} title="화성시 이벤트" url="https://withevent.kr/kiosk/events?region=hwaseong&category=ALL&page=1" />
+      <HwaseongEvents controller={controller} />
     ) : cur === 'transport' ? (
       <HwaseongWebScreen controller={controller} title="전국도로교통상황" url="https://www.its.go.kr/" injectCss={ITS_HIDE_CHROME_CSS} bodyHeight={2030} />
     ) : cur === 'food_court' ? (
       <HwaseongListScreen controller={controller} title="'휴' 뭐먹지" baseCategory="휴 뭐먹지" defaultTabs={FOOD_TABS} />
     ) : cur === 'shop' ? (
-      <HwaseongListScreen controller={controller} title="'휴' 뭐사지" baseCategory="휴 뭐사지" fixedTabs={SHOP_TABS} />
+      <HwaseongListScreen controller={controller} title="'휴' 뭐사지" baseCategory="휴 뭐사지" hideTabs />
     ) : cur === 'market' ? (
       <HwaseongMarketScreen controller={controller} />
     ) : cur === 'hello' ? (

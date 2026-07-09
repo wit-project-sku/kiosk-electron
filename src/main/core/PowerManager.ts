@@ -31,6 +31,21 @@ const RESTART_MINUTE = 0;
 /** Run key value name registered alongside Electron's login-item setting. */
 const AUTORUN_KEY = 'KioskApp';
 
+/**
+ * Osaek (오색시장 W004) runs on a daily OPERATING-HOURS power cycle instead of the
+ * fleet-wide 2AM reboot: shut down at 22:00 (종료), start at 08:00 (시작).
+ *
+ * Note on the 08:00 start: a scheduled task's "wake" timer can resume the PC from
+ * sleep/hibernate, but Windows cannot power on a fully powered-off (S5) machine —
+ * that requires the motherboard BIOS "Power On by RTC Alarm" set to 08:00. The
+ * 08:00 task below covers wake-from-sleep and relaunches the app after a BIOS boot.
+ */
+const OSAEK_KIOSK_ID = 'W004';
+const OSAEK_SHUTDOWN_TASK = 'KioskShutdownAt10PM';
+const OSAEK_START_TASK = 'KioskStartAt8AM';
+const OSAEK_SHUTDOWN_TIME = '22:00';
+const OSAEK_START_TIME = '08:00';
+
 function isWindows(): boolean {
   return process.platform === 'win32';
 }
@@ -111,11 +126,55 @@ async function removeRestartTask(): Promise<void> {
 }
 
 /**
+ * Osaek (W004): provision the 08:00 시작 / 22:00 종료 daily power cycle and drop
+ * the fleet-wide 2AM reboot. Idempotent (`/f`, `-Force`) — safe to run every launch.
+ */
+async function ensureOsaekPowerCycle(): Promise<void> {
+  if (!isWindows() || !app.isPackaged) return;
+  // The 2AM reboot and the operating-hours cycle are mutually exclusive — make
+  // sure a previously-provisioned reboot task can't also fire.
+  await removeRestartTask();
+  try {
+    // 22:00 종료 — full shutdown.
+    await exec('schtasks', [
+      '/create',
+      '/tn', OSAEK_SHUTDOWN_TASK,
+      '/tr', 'shutdown /s /f /t 0',
+      '/sc', 'daily',
+      '/st', OSAEK_SHUTDOWN_TIME,
+      '/f',
+    ]);
+    // 08:00 시작 — a WakeToRun task (PowerShell, since schtasks can't set the wake
+    // flag) that resumes the PC from sleep/hibernate and (re)launches the kiosk.
+    const exePath = app.getPath('exe');
+    const ps = [
+      `$a=New-ScheduledTaskAction -Execute '${exePath}';`,
+      `$t=New-ScheduledTaskTrigger -Daily -At '${OSAEK_START_TIME}';`,
+      `$s=New-ScheduledTaskSettingsSet -WakeToRun -AllowStartIfOnBatteries -DontStopIfGoingOnBatteries -StartWhenAvailable;`,
+      `Register-ScheduledTask -TaskName '${OSAEK_START_TASK}' -Action $a -Trigger $t -Settings $s -RunLevel Highest -Force`,
+    ].join(' ');
+    await exec('powershell', ['-NoProfile', '-ExecutionPolicy', 'Bypass', '-Command', ps]);
+    // Allow wake timers so the 08:00 task can actually wake the machine.
+    await exec('powercfg', ['-change', '-standby-timeout-ac', '0']).catch(() => {});
+    log.info('Osaek power cycle scheduled', { start: OSAEK_START_TIME, shutdown: OSAEK_SHUTDOWN_TIME });
+  } catch (error) {
+    log.warn('Failed to schedule Osaek power cycle', error);
+  }
+}
+
+async function removeOsaekPowerCycle(): Promise<void> {
+  if (!isWindows()) return;
+  for (const task of [OSAEK_SHUTDOWN_TASK, OSAEK_START_TASK]) {
+    await exec('schtasks', ['/delete', '/tn', task, '/f']).catch(() => {});
+  }
+}
+
+/**
  * Provision OS-level kiosk power behavior. Call once during startup (after
  * `app.whenReady`). Best-effort and non-fatal — a failure here must never stop
  * the kiosk from coming up.
  */
-export async function setupKioskPower(): Promise<void> {
+export async function setupKioskPower(kioskId?: string): Promise<void> {
   if (!isWindows()) {
     log.debug('Kiosk power management skipped (non-Windows platform)');
     return;
@@ -125,7 +184,13 @@ export async function setupKioskPower(): Promise<void> {
     return;
   }
   configureAutoStart();
-  await ensureRestartTask();
+  // Osaek (W004) uses an operating-hours power cycle (08:00 시작 / 22:00 종료);
+  // every other kiosk keeps the fleet-wide 2AM reboot.
+  if (kioskId === OSAEK_KIOSK_ID) {
+    await ensureOsaekPowerCycle();
+  } else {
+    await ensureRestartTask();
+  }
 }
 
 /**
@@ -136,4 +201,5 @@ export async function setupKioskPower(): Promise<void> {
 export async function teardownKioskPower(): Promise<void> {
   disableAutoStart();
   await removeRestartTask();
+  await removeOsaekPowerCycle();
 }

@@ -1,3 +1,5 @@
+import { getKioskLocation } from '@shared/config/kioskLocations';
+
 /**
  * URLs for screens that embed an existing website inside the kiosk via a
  * <webview>. The sites render into the body region (below InsadongHeader,
@@ -19,10 +21,26 @@ export const WEB_EMBED_URLS = {
   // events (오색시장): 'https://withevent.kr/kiosk/events?region=Osansi'
   // events (화성휴게소): 'https://withevent.kr/kiosk/events?region=hwaseong&category=ALL&page=1'
 
-  /** TAX FREE — LinkTaxFree automated refund terminal */
-  taxfree: 'https://wit-test.linktaxfree.com/?sign=8e9a8752-3190-4637-87b7-972ccca93c65&scanner=true',
-  // taxfree: 'https://wit-test.linktaxfree.com/?sign=8e9a8752-3190-4637-87b7-972ccca93c65&scanner=false', // payment없는 곳
+  /** TAX FREE — LinkTaxFree automated refund terminal (production).
+   *  Prefer taxfreeUrl(kioskId) so the right variant is chosen per kiosk; this
+   *  value is the payment-terminal (TL3800) variant. */
+  taxfree: 'https://wit.linktaxfree.com/?sign=7730a1b2-a16a-4801-96ea-8cba5f866c73&scanner=true',
+
+  /** TAX FREE for kiosks WITHOUT the TL3800 payment terminal. Independently
+   *  editable from `taxfree` — identical today, may diverge later. */
+  taxfreeNoPayment: 'https://wit.linktaxfree.com/?sign=7730a1b2-a16a-4801-96ea-8cba5f866c73&scanner=true',
 } as const;
+
+/**
+ * Resolve the TAX-FREE webview URL for a kiosk. Kiosks WITH the TL3800 payment
+ * terminal (hasCardTerminal — W003/W004) use `taxfree`; kiosks WITHOUT it
+ * (W001/W002/W005) use `taxfreeNoPayment`.
+ */
+export function taxfreeUrl(kioskId: string): string {
+  return getKioskLocation(kioskId).hasCardTerminal
+    ? WEB_EMBED_URLS.taxfree
+    : WEB_EMBED_URLS.taxfreeNoPayment;
+}
 
 /** Body-only render area for embedded sites, in artboard px (2160×3840). */
 export const WEB_EMBED_SIZE = { width: 1820, height: 2250 } as const;

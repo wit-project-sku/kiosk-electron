@@ -37,7 +37,16 @@ import type {
 import type { SupportedLanguage } from '../types/kiosk';
 import type { WeatherSnapshot } from '../types/weather';
 import type { ExchangeSnapshot } from '../types/exchange';
+import type { VideoEntry } from '../types/subtitle';
 import type { Shop } from '../types/shop';
+import type { KioskButton } from '../types/buttons';
+import type {
+  EventDetail,
+  EventRecommendation,
+  EventsPage,
+  EventsQuery,
+  EventsRecommendQuery,
+} from '../types/events';
 
 /** Request payload for importing one or more image files. */
 export interface ImportImagesRequest {
@@ -270,6 +279,10 @@ export interface IpcContract {
     request: void;
     response: Result<ExchangeSnapshot | null>;
   };
+  [IpcChannels.SubtitlesGet]: {
+    request: void;
+    response: Result<VideoEntry[] | null>;
+  };
   [IpcChannels.KioskSetScreen]: {
     request: { screen: string };
     response: Result<string>;
@@ -282,9 +295,25 @@ export interface IpcContract {
     request: void;
     response: Result<Shop[]>;
   };
+  [IpcChannels.ButtonsList]: {
+    request: void;
+    response: Result<KioskButton[]>;
+  };
   [IpcChannels.StatsMenuTouch]: {
     request: MenuTouchInput;
     response: Result<boolean>;
+  };
+  [IpcChannels.EventsGet]: {
+    request: EventsQuery;
+    response: Result<EventsPage>;
+  };
+  [IpcChannels.EventsRecommend]: {
+    request: EventsRecommendQuery;
+    response: Result<EventRecommendation[]>;
+  };
+  [IpcChannels.EventsDetailGet]: {
+    request: { eventId: number };
+    response: Result<EventDetail>;
   };
 }
 
@@ -307,6 +336,7 @@ export interface IpcEventPayloads {
   [IpcEvents.KioskScreenChanged]: string;
   [IpcEvents.KioskVideoAdvanced]: null;
   [IpcEvents.ShopsChanged]: null;
+  [IpcEvents.ButtonsChanged]: null;
 }
 
 export type EventChannel = keyof IpcEventPayloads;

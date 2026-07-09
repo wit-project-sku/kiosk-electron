@@ -4,7 +4,7 @@ import type { KioskController } from '@renderer/hooks/useKioskController';
 import { useLanguageStore } from '@renderer/store/languageStore';
 import { iconUrl } from '@renderer/assets/icons/insadong';
 import { useRotatingBanner } from '@renderer/hooks/useRotatingBanner';
-import { WEB_EMBED_URLS } from '@shared/constants/webEmbeds';
+import { taxfreeUrl } from '@shared/constants/webEmbeds';
 import { InsadongHeader } from './InsadongHeader';
 import styles from './InsadongTaxfree.module.css';
 
@@ -142,7 +142,7 @@ export function InsadongTaxfree({ controller }: InsadongTaxfreeProps): JSX.Eleme
           }}
         >
           {/* eslint-disable-next-line react/no-unknown-property */}
-          <webview src={WEB_EMBED_URLS.taxfree} partition="persist:embeds" className={styles.embed} />
+          <webview src={taxfreeUrl(controller.kioskId)} partition="persist:embeds" className={styles.embed} />
         </div>
 
         {activeTab === 'merchant' && <MerchantTab lang={lang} />}

@@ -3,7 +3,7 @@ import type { SupportedLanguage } from '@shared/types/kiosk';
 import type { KioskController } from '@renderer/hooks/useKioskController';
 import { useLanguageStore } from '@renderer/store/languageStore';
 import { hwaseongIconUrl } from '@renderer/assets/icons/hwaseong';
-import { WEB_EMBED_URLS } from '@shared/constants/webEmbeds';
+import { taxfreeUrl } from '@shared/constants/webEmbeds';
 import { trackEvent } from '@renderer/lib/analytics';
 import { HwaseongHeader } from './HwaseongHeader';
 import styles from './HwaseongTaxFree.module.css';
@@ -149,7 +149,7 @@ export function HwaseongTaxFree({ controller }: Props): JSX.Element {
           }}
         >
           {/* eslint-disable-next-line react/no-unknown-property */}
-          <webview ref={webviewRef} src={WEB_EMBED_URLS.taxfree} partition="persist:embeds" className={styles.embed} />
+          <webview ref={webviewRef} src={taxfreeUrl(controller.kioskId)} partition="persist:embeds" className={styles.embed} />
         </div>
 
         {activeTab === 'merchant' && <MerchantTab lang={lang} />}

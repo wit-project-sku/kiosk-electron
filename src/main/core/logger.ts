@@ -19,8 +19,10 @@ export function initLogger(): void {
   if (initialized) return;
   initialized = true;
 
-  // Route renderer console output and uncaught errors through electron-log.
-  log.initialize();
+  // Route renderer console.* output and uncaught errors through electron-log so
+  // they land in the same persisted file — essential for diagnosing a deployed
+  // touch-screen kiosk where opening DevTools isn't practical.
+  log.initialize({ spyRendererConsole: true });
 
   log.transports.file.level = app.isPackaged ? 'info' : 'debug';
   log.transports.console.level = app.isPackaged ? 'warn' : 'debug';

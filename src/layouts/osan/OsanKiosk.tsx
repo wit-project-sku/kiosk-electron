@@ -22,21 +22,18 @@ import { OsanTransport } from './OsanTransport';
 import { OsanAbout } from './OsanAbout';
 import { OsanLocalpay } from './OsanLocalpay';
 import { OsanWebScreen } from './OsanWebScreen';
+import { OsanEvents } from './OsanEvents';
 import { OsanTaxfree } from './OsanTaxfree';
 import { OsanScreen } from './OsanScreen';
-
-/** 오산시 이벤트 — Osaek event listing (region=Osansi). */
-const EVENTS_URL = 'https://withevent.kr/kiosk/events?region=Osansi';
 
 /** Pre-warmed web screens, kept mounted so webview guests load before navigation. */
 const WEB_SCREENS = [
   { screen: 'market' as const, title: '위드마켓', url: WEB_EMBED_URLS.market },
-  { screen: 'events' as const, title: '오산시 이벤트', url: EVENTS_URL },
 ] as const;
 
 type WebScreenKey = (typeof WEB_SCREENS)[number]['screen'];
 function isWebScreen(s: string): s is WebScreenKey {
-  return s === 'market' || s === 'events';
+  return s === 'market';
 }
 
 /** Theme the shared photo (AI 한복) workflow navy for Osan (insadong stays orange).
@@ -110,6 +107,8 @@ export function OsanKiosk(): JSX.Element {
     <OsanAbout controller={controller} />
   ) : cur === 'museum' ? (
     <OsanLocalpay controller={controller} />
+  ) : cur === 'events' ? (
+    <OsanEvents controller={controller} />
   ) : isWebScreen(cur) || cur === 'taxfree' ? (
     null // handled by pre-warmed layers below
   ) : (

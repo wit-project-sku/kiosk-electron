@@ -79,6 +79,9 @@ export const IpcChannels = {
   // Exchange rates (cached; refreshed in main every 6h)
   ExchangeGet: 'exchange:get',
 
+  // AI-model video subtitles (fetched once per session from the witteria API)
+  SubtitlesGet: 'subtitles:get',
+
   // Kiosk navigation (touch screen → customer display video sync)
   KioskSetScreen: 'kiosk:setScreen',
   // Advance the customer-display video to the next clip for the current screen
@@ -88,8 +91,18 @@ export const IpcChannels = {
   // Shops (cached from the witteria API)
   ShopsList: 'shops:list',
 
+  // Home buttons (layout cached from the witteria API)
+  ButtonsList: 'buttons:list',
+
   // Stats (usage analytics POSTed to the witteria API)
   StatsMenuTouch: 'stats:menuTouch',
+
+  // Events (live paginated list from the witteria API)
+  EventsGet: 'events:get',
+  // Events MBTI recommendation
+  EventsRecommend: 'events:recommend',
+  // Event detail (GET /api/events/{eventId})
+  EventsDetailGet: 'events:detail',
 } as const;
 
 export type IpcInvokeChannel = (typeof IpcChannels)[keyof typeof IpcChannels];
@@ -114,6 +127,8 @@ export const IpcEvents = {
   KioskVideoAdvanced: 'event:kiosk:videoAdvanced',
   /** Shop catalogue refreshed into SQLite; the renderer reloads its store. */
   ShopsChanged: 'event:shops:changed',
+  /** Home button layout refreshed into SQLite; the renderer reloads its store. */
+  ButtonsChanged: 'event:buttons:changed',
 } as const;
 
 export type IpcEventChannel = (typeof IpcEvents)[keyof typeof IpcEvents];

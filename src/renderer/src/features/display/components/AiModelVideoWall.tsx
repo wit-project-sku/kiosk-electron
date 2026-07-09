@@ -155,6 +155,13 @@ export function AiModelVideoWall({
 
   if (clips.length === 0) return null;
 
+  // Label/subtitle are rendered from the LIVE clips prop (matched by URL), not
+  // the imperatively-stored `active` clip. This way a language change — which
+  // recomputes the clips with new subtitle/label text but the SAME video URL —
+  // updates the caption immediately, instead of only on the next clip/screen
+  // change. Falls back to the stored clip if the URL isn't in the new list.
+  const activeClip = active ? clips.find((c) => c.url === active.url) ?? active : null;
+
   return (
     <div className={styles.wrap}>
       <video
@@ -175,8 +182,8 @@ export function AiModelVideoWall({
       />
 
       {!hideLabel && !hideLogo && <img className={styles.logo} src={logoUrl} alt="" draggable={false} />}
-      {!hideLabel && active?.label && <div className={styles.label}>{active.label}</div>}
-      {active?.subtitle && <div className={styles.subtitle}>{active.subtitle}</div>}
+      {!hideLabel && activeClip?.label && <div className={styles.label}>{activeClip.label}</div>}
+      {activeClip?.subtitle && <div className={styles.subtitle}>{activeClip.subtitle}</div>}
     </div>
   );
 }

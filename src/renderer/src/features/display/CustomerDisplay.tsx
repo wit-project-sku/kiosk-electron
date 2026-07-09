@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import type { AppSettings, DisplayState, ImageAsset } from '@shared/types/domain';
-import type { SupportedLanguage } from '@shared/types/kiosk';
+import type { KioskId, SupportedLanguage } from '@shared/types/kiosk';
 import { isOk } from '@shared/types/result';
 import { DEFAULT_SETTINGS } from '@shared/constants';
 import { PHOTO_COUNTDOWN_SECONDS } from '@shared/constants/photoOptions';
@@ -11,7 +11,7 @@ import { usePhotoStore } from '@renderer/store/photoStore';
 import { trackEvent } from '@renderer/lib/analytics';
 import { displayVideosFor } from '@renderer/assets/videos';
 import { cameraIconUrl } from '@renderer/assets/icons/insadong/camera';
-import { clipsForScreen } from '@renderer/lib/videoMap';
+import { clipsForScreen, initSubtitles } from '@renderer/lib/videoMap';
 import spinnerImg from '@renderer/assets/spinner.svg';
 import { KioskArtboard } from '@layouts/components/KioskScreenImage';
 import { Slideshow } from './components/Slideshow';
@@ -56,7 +56,16 @@ export function CustomerDisplay(): JSX.Element {
     void window.api.display.getState().then((r) => isOk(r) && setState(r.value));
     void window.api.settings.get().then((r) => isOk(r) && setSettings(r.value));
     void window.api.language.get().then((r) => isOk(r) && setLang(r.value));
-    void window.api.app.bootstrap().then((r) => isOk(r) && setKioskId(r.value.kioskConfig.kioskId));
+    void window.api.app.bootstrap().then((r) => {
+      if (!isOk(r)) return;
+      const id = r.value.kioskConfig.kioskId as KioskId;
+      setKioskId(id);
+      // Fetch API subtitles once; replaces this kiosk's static fallback map if
+      // successful. Needs the resolved kioskId so entries land in the right set.
+      void window.api.subtitles.get().then((sr) => {
+        if (isOk(sr) && sr.value) initSubtitles(sr.value, id);
+      });
+    });
 
     const offState = window.api.events.onDisplayStateChanged(setState);
     const offSettings = window.api.events.onSettingsChanged(setSettings);

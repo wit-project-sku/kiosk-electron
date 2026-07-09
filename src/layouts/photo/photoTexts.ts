@@ -3,7 +3,8 @@ import type { Lang } from '@renderer/lib/i18n';
 export interface ResultCopy {
   subtitle: string;
   step: string;
-  saveHint: string;
+  /** Save hint, split so the "scan the QR" clause can be accent-coloured. */
+  saveHint: { lead: string; accent: string };
   note: string[];
   save: string;
   goods: string;
@@ -15,7 +16,7 @@ export const RESULT: Partial<Record<Lang, ResultCopy>> = {
   ko: {
     subtitle: '사진 촬영 결과물을 통해 나만의 굿즈를 만들어 보세요',
     step: '저장하기',
-    saveHint: '사진을 저장하려면 QR를 카메라로 찍어주세요!',
+    saveHint: { lead: '사진을 저장하려면 ', accent: 'QR를 카메라로 찍어주세요!' },
     note: ['QR을 통해서 내 핸드폰에 저장하고 다양한 SNS에 올려보세요', '한복 착장에 관한 이벤트가 준비중이나 많은 참여 바랍니다.'],
     save: '저장하기',
     goods: '굿즈제작',
@@ -24,7 +25,7 @@ export const RESULT: Partial<Record<Lang, ResultCopy>> = {
   en: {
     subtitle: 'Create your own goods from your photo result',
     step: 'Save',
-    saveHint: 'Scan the QR with your camera to save the photo!',
+    saveHint: { lead: 'To save the photo, ', accent: 'scan the QR with your camera!' },
     note: ['Save it to your phone via QR and share it on social media.', 'A hanbok dress-up event is coming soon — please join us!'],
     save: 'Save',
     goods: 'Make goods',
@@ -33,7 +34,7 @@ export const RESULT: Partial<Record<Lang, ResultCopy>> = {
   ja: {
     subtitle: '撮影した写真でオリジナルグッズを作ってみましょう',
     step: '保存する',
-    saveHint: '写真を保存するにはQRをカメラで読み取ってください！',
+    saveHint: { lead: '写真を保存するには', accent: 'QRをカメラで読み取ってください！' },
     note: ['QRからスマホに保存してSNSにアップしてみてください。', '韓服着付けに関するイベントを準備中です。ぜひご参加ください。'],
     save: '保存',
     goods: 'グッズ製作',
@@ -42,7 +43,7 @@ export const RESULT: Partial<Record<Lang, ResultCopy>> = {
   zh: {
     subtitle: '通过拍照结果制作专属周边吧',
     step: '保存',
-    saveHint: '要保存照片请用相机扫描二维码！',
+    saveHint: { lead: '要保存照片，', accent: '请用相机扫描二维码！' },
     note: ['通过二维码保存到手机并分享到各社交平台吧。', '韩服着装相关活动正在筹备中，欢迎积极参与。'],
     save: '保存',
     goods: '制作周边',

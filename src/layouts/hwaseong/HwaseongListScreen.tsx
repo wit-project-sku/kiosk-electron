@@ -31,6 +31,8 @@ interface Props {
   fixedTabs?: string[];
   /** Fallback category labels shown (per Figma) when no shop data is loaded. */
   defaultTabs?: string[];
+  /** Hide the category tabs entirely (e.g. 뭐사지 — only a few flat items, no filtering). */
+  hideTabs?: boolean;
 }
 
 /**
@@ -39,7 +41,7 @@ interface Props {
  * no sub-categories (e.g. 뭐사지), the Figma tabs (`fixedTabs`) render for visual
  * parity and all base shops show.
  */
-export function HwaseongListScreen({ title, controller, baseCategory, fixedTabs, defaultTabs = [] }: Props): JSX.Element {
+export function HwaseongListScreen({ title, controller, baseCategory, fixedTabs, defaultTabs = [], hideTabs = false }: Props): JSX.Element {
   const lang = useLang();
   const shops = useShopStore((s) => s.shops);
   const setDetail = useDetailStore((s) => s.setItem);
@@ -62,13 +64,15 @@ export function HwaseongListScreen({ title, controller, baseCategory, fixedTabs,
   }, [baseShops, lang]);
 
   const hasCats = dataTabs.length > 0;
-  const tabs = hasCats
-    ? dataTabs
-    : fixedTabs && fixedTabs.length > 0
-      ? fixedTabs.map((label) => ({ kr: label, label: catLabel(label, lang) }))
-      : baseShops.length > 0
-        ? []
-        : defaultTabs.map((label) => ({ kr: label, label: catLabel(label, lang) }));
+  const tabs = hideTabs
+    ? []
+    : hasCats
+      ? dataTabs
+      : fixedTabs && fixedTabs.length > 0
+        ? fixedTabs.map((label) => ({ kr: label, label: catLabel(label, lang) }))
+        : baseShops.length > 0
+          ? []
+          : defaultTabs.map((label) => ({ kr: label, label: catLabel(label, lang) }));
 
   const activeKr = selected || tabs[0]?.kr || '';
 
@@ -123,18 +127,20 @@ export function HwaseongListScreen({ title, controller, baseCategory, fixedTabs,
 
       {/* Category tabs + result list */}
       <div className={styles.results}>
-        <div className={styles.tabs}>
-          {tabs.map((tab) => (
-            <button
-              key={tab.kr}
-              type="button"
-              className={`${styles.tab} ${tab.kr === activeKr ? styles.tabSelected : ''}`}
-              onClick={() => setSelected(tab.kr)}
-            >
-              {tab.label}
-            </button>
-          ))}
-        </div>
+        {tabs.length > 0 && (
+          <div className={styles.tabs}>
+            {tabs.map((tab) => (
+              <button
+                key={tab.kr}
+                type="button"
+                className={`${styles.tab} ${tab.kr === activeKr ? styles.tabSelected : ''}`}
+                onClick={() => setSelected(tab.kr)}
+              >
+                {tab.label}
+              </button>
+            ))}
+          </div>
+        )}
 
         <div className={styles.list}>
           {visible.map((shop) => {
@@ -177,12 +183,8 @@ export function HwaseongListScreen({ title, controller, baseCategory, fixedTabs,
         <button type="button" className={styles.leftNavZoneBack} onClick={() => controller.navigate('home')} aria-label="뒤로" />
       </div>
 
-      {/* Bottom banner */}
-      <div className={styles.banner}>
-        {hwaseongIconUrl('fg-banner') && (
-          <img src={hwaseongIconUrl('fg-banner')} alt="" className={styles.bannerImg} draggable={false} />
-        )}
-      </div>
+      {/* No bottom banner here — these list screens are data-heavy and scroll, so
+          the results area extends into that space instead (see .results in CSS). */}
     </div>
   );
 }

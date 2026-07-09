@@ -159,6 +159,9 @@ const api: KioskBridge = {
   exchange: {
     get: () => invoke(IpcChannels.ExchangeGet),
   },
+  subtitles: {
+    get: () => invoke(IpcChannels.SubtitlesGet),
+  },
   kiosk: {
     setScreen: (screen) => invoke(IpcChannels.KioskSetScreen, { screen }),
     advanceVideo: () => invoke(IpcChannels.KioskAdvanceVideo),
@@ -166,8 +169,16 @@ const api: KioskBridge = {
   shops: {
     list: () => invoke(IpcChannels.ShopsList),
   },
+  buttons: {
+    list: () => invoke(IpcChannels.ButtonsList),
+  },
   stats: {
     recordMenuTouch: (input) => invoke(IpcChannels.StatsMenuTouch, input),
+  },
+  eventsApi: {
+    list: (query) => invoke(IpcChannels.EventsGet, query),
+    recommend: (query) => invoke(IpcChannels.EventsRecommend, query),
+    detail: (eventId) => invoke(IpcChannels.EventsDetailGet, { eventId }),
   },
   view: {
     bounds: ZOOM_BOUNDS,
@@ -191,6 +202,7 @@ const api: KioskBridge = {
     onKioskScreenChanged: (listener) => subscribe(IpcEvents.KioskScreenChanged, listener),
     onKioskVideoAdvanced: (listener) => subscribe(IpcEvents.KioskVideoAdvanced, listener),
     onShopsChanged: (listener) => subscribe(IpcEvents.ShopsChanged, listener),
+    onButtonsChanged: (listener) => subscribe(IpcEvents.ButtonsChanged, listener),
   },
 };
 

@@ -8,6 +8,7 @@ import { useSearchStore } from '@renderer/store/searchStore';
 import { useWeatherStore } from '@renderer/store/weatherStore';
 import { osanIconUrl } from '@renderer/assets/icons/osan';
 import { weatherIconName, weatherIconUrl } from '@renderer/assets/weather';
+import { useOrderedTiles, type TileKey } from '@renderer/lib/buttonLayout';
 import { t } from '@renderer/lib/loc';
 import { FloatingKeyboard } from '../insadong/keyboard/FloatingKeyboard';
 import { HangulComposer } from '../insadong/keyboard/hangul';
@@ -48,6 +49,9 @@ const TILES: OsanHomeTile[] = [
   { screen: 'palace',    label: '전국시장(준비중)', icon: 'national-market', bg: '#ffa7a8' },
   { screen: 'museum',    label: '지역화폐', icon: 'local-pay',       bg: '#94dfff' },
 ];
+
+/** Join a home tile to its CMS button by screen key (see useOrderedTiles). */
+const osanTileKey = (t: OsanHomeTile): TileKey => ({ screen: t.screen });
 
 /** Home-tile screen id → Localization_Osaek key (4-language label from the sheet).
  *  Tiles without a sheet key (물품, TAX-FREE) keep their hardcoded label. */
@@ -109,8 +113,10 @@ const LODGING_LABEL: Partial<Record<Lang, string>> = {
   zh: '我们买什么呢？(物品)',
 };
 
+/** Language-selector button label per language. Must match the 언어선택 picker
+ *  pill codes (LANG_META in OsanLanguage.tsx): ja → JP, zh → CN. */
 const LANG_CODE: Partial<Record<Lang, string>> = {
-  ko: 'KR', en: 'EN', ja: 'JA', vi: 'VI', zh: 'ZH',
+  ko: 'KR', en: 'EN', ja: 'JP', vi: 'VN', zh: 'CN',
 };
 const langCode = (lang: Lang): string => LANG_CODE[lang] ?? lang.toUpperCase();
 
@@ -177,6 +183,10 @@ export function OsanHome({ controller }: OsanHomeProps): JSX.Element {
     .map((s) => s.trim())
     .filter(Boolean);
   const placeholder = pick(SEARCH_PLACEHOLDER, lang);
+
+  // Re-order tiles to match the CMS layout (line/position); the 4-column grid
+  // auto-flows them. Falls back to authored order when uncached.
+  const orderedTiles = useOrderedTiles(kioskId, TILES, osanTileKey);
 
   const setSearchQuery = useSearchStore((s) => s.setQuery);
   const composer = useRef(new HangulComposer());
@@ -302,7 +312,7 @@ export function OsanHome({ controller }: OsanHomeProps): JSX.Element {
           </div>
 
           <div className={styles.grid}>
-            {TILES.map((tile) => {
+            {orderedTiles.map((tile) => {
               const key = TILE_LABEL_KEYS[tile.screen];
               const label = key
                 ? t(key, lang)

@@ -1,0 +1,259 @@
+/* Event detail PAGE (Figma 5494:134776 / 157999 / 159061) — exact px on the
+   2160×3840 kiosk artboard. Identical on all three kiosks; the brand color is
+   threaded via --event-accent (set inline by the component). The surrounding
+   chrome (header, tabs, QR footer, banner) belongs to the host events page. */
+
+.root {
+  position: absolute;
+  inset: 0;
+  font-family: var(--kiosk-font, 'Noto Sans KR', sans-serif);
+  pointer-events: none;
+}
+
+/* White card — 1820×1825 at top 1090, r80, border 5 #e8e8e8, soft shadow. */
+.card {
+  position: absolute;
+  left: 50%;
+  top: 1090px;
+  transform: translateX(-50%);
+  box-sizing: border-box;
+  width: 1820px;
+  height: 1825px;
+  background: #ffffff;
+  border: 5px solid #e8e8e8;
+  border-radius: 80px;
+  box-shadow: 0 4px 4px rgba(0, 0, 0, 0.25);
+}
+
+/* Loading / error state centered in the card. */
+.pending {
+  position: absolute;
+  left: 50%;
+  top: 2002px; /* card vertical center */
+  transform: translate(-50%, -50%);
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  font-weight: 600;
+  font-size: 50px;
+  color: #999999;
+}
+
+.spinner {
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  border: 5px solid #e8e8e8;
+  border-top-color: #999999;
+  animation: eventDetailSpin 0.8s linear infinite;
+}
+
+@keyframes eventDetailSpin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Poster — 544.598×707 at (323, 1213), r11.39, gray placeholder. */
+.poster {
+  position: absolute;
+  left: 323px;
+  top: 1213px;
+  width: 544.598px;
+  height: 707px;
+  border-radius: 11.39px;
+  overflow: hidden;
+  background: rgba(147, 147, 147, 0.2);
+}
+
+.poster img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* Title + info rows — 820px column at left 1017, vertically centered
+   against the poster (same 707px band). */
+.content {
+  position: absolute;
+  left: 1017px;
+  top: 1213px;
+  width: 820px;
+  height: 707px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.title {
+  margin: 0;
+  font-weight: 700;
+  font-size: 50px;
+  line-height: 60px;
+  color: #000000;
+  overflow-wrap: anywhere;
+}
+
+.info {
+  margin-top: 55px;
+  display: flex;
+  flex-direction: column;
+}
+
+.infoRow {
+  display: flex;
+  align-items: baseline;
+}
+
+.infoLabel {
+  flex: none;
+  width: 215px;
+  font-weight: 700;
+  font-size: 35px;
+  line-height: 60px;
+  color: #0b0b0b;
+}
+
+.infoValue {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  font-weight: 400;
+  font-size: 35px;
+  line-height: 60px;
+  color: #69605c;
+  overflow-wrap: anywhere;
+}
+
+.infoLine {
+  display: block;
+}
+
+/* 오시는 길 안내 — accent pin (70px at 309, 2026) + 55px bold label. */
+.mapHeading {
+  position: absolute;
+  left: 309px;
+  top: 2026px;
+  height: 70px;
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.mapPin {
+  width: 70px;
+  height: 70px;
+  color: var(--event-accent);
+}
+
+.mapTitle {
+  font-weight: 700;
+  font-size: 55px;
+  line-height: 1;
+  color: #000000;
+}
+
+/* Interactive map — 1514×631 centered at top 2137; OSM tiles, drag-to-pan,
+   button zoom. The root is pointer-events:none, so re-enable events here. */
+.map {
+  position: absolute;
+  left: 50%;
+  top: 2137px;
+  transform: translateX(-50%);
+  width: 1514px;
+  height: 631px;
+  overflow: hidden;
+  background: #e9e5dc;
+  pointer-events: auto;
+  /* We own all gestures — stop the browser from panning/zooming the page. */
+  touch-action: none;
+  cursor: grab;
+  user-select: none;
+}
+
+.mapDragging {
+  cursor: grabbing;
+}
+
+.mapTile {
+  position: absolute;
+  width: 512px;
+  height: 512px;
+  pointer-events: none;
+}
+
+.mapMarker {
+  position: absolute;
+  width: 90px;
+  height: 90px;
+  /* Pin TIP sits on the coordinate (left/top set inline), not the icon center. */
+  transform: translate(-50%, -100%);
+  color: var(--event-accent);
+  filter: drop-shadow(0 4px 6px rgba(0, 0, 0, 0.35));
+  pointer-events: none;
+}
+
+/* Zoom / recenter controls — kiosk-sized touch targets, bottom-right. */
+.mapControls {
+  position: absolute;
+  right: 40px;
+  bottom: 40px;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.mapBtn {
+  box-sizing: border-box;
+  width: 110px;
+  height: 110px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  background: #ffffff;
+  border: 5px solid #e8e8e8;
+  border-radius: 50%;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  font-family: inherit;
+  font-weight: 700;
+  font-size: 64px;
+  line-height: 1;
+  color: var(--event-accent);
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.mapBtn:disabled {
+  color: #c4c4c4;
+  cursor: default;
+}
+
+.mapBtnIcon {
+  width: 56px;
+  height: 56px;
+}
+
+/* OSM tile usage policy requires visible attribution. */
+.mapAttribution {
+  position: absolute;
+  left: 16px;
+  bottom: 10px;
+  padding: 4px 14px;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.75);
+  font-size: 24px;
+  color: #555555;
+  pointer-events: none;
+}
+
+.mapEmpty {
+  margin: 0;
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  font-weight: 600;
+  font-size: 45px;
+  color: #999999;
+}

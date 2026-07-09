@@ -134,12 +134,8 @@ export function HwaseongHelp({ controller, defaultTab, noScroll = false }: Props
         <button type="button" className={styles.leftNavZoneBack} onClick={() => controller.navigate('home')} aria-label="뒤로" />
       </div>
 
-      {/* Bottom banner */}
-      <div className={styles.banner}>
-        {hwaseongIconUrl('fg-banner') && (
-          <img src={hwaseongIconUrl('fg-banner')} alt="" className={styles.bannerImg} draggable={false} />
-        )}
-      </div>
+      {/* No bottom banner here — this list is data-heavy and scrolls, so the
+          results area extends into that space instead (see .results in CSS). */}
     </div>
   );
 }

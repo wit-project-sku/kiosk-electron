@@ -7,6 +7,7 @@ import { useLanguageStore } from '@renderer/store/languageStore';
 import { useSearchStore } from '@renderer/store/searchStore';
 import { weatherIconUrl, weatherIconName } from '@renderer/assets/weather';
 import { buttonText, pick } from '@renderer/lib/i18n';
+import { useApiTileRows, type TileKey } from '@renderer/lib/buttonLayout';
 import { t } from '@renderer/lib/loc';
 import { FloatingKeyboard } from '../insadong/keyboard/FloatingKeyboard';
 
@@ -63,9 +64,9 @@ const ROW1_WIDE: Tile = { screen: 'transport',  label: '전국도로교통상황
 // Per Figma 4167-176562: 전국시장 is the top row's 2nd tile, 전국휴게소 the 2nd
 // row's 3rd tile. Only the LABEL/destination moved — each grid slot keeps its
 // original icon art (so fg-reststop stays at row 1, fg-market at row 2).
-const ROW1: Tile[] = [
-  { screen: 'market',      label: '전국시장',     labelKey: 'MainButton_TraditionalMarket', icon: 'fg-reststop' },
-  { screen: 'events',      label: '화성시 이벤트', labelKey: 'MainButton_Event',             icon: 'fg-event'    },
+const ROW1: HomeTile[] = [
+  { screen: 'market',      label: '전국시장(준비중)', labelKey: 'MainButton_TraditionalMarket', icon: 'fg-reststop', disabled: true },
+  { screen: 'events',      label: '화성시 이벤트',    labelKey: 'MainButton_Event',             icon: 'fg-event'    },
 ];
 
 // Rows 2–4: 4 tiles each
@@ -83,12 +84,25 @@ const ROW3: Tile[] = [
   { screen: 'parking',   label: '화성휴게소 지도', labelKey: 'MainButton_SAMap',    icon: 'fg-map'      },
 ];
 
-const ROW4: (Tile & { disabled?: boolean })[] = [
+/** A tile plus optional flags: `disabled` (준비중), `wide` (the 2-col traffic card),
+ *  and an explicit DB `slot`. `slot` disambiguates tiles that share a screen key
+ *  (the three `rest_info` tiles → slots 16/17/18) so each joins to a distinct API row. */
+type HomeTile = Tile & { disabled?: boolean; wide?: boolean; slot?: number };
+
+const ROW4: HomeTile[] = [
   { screen: 'exchange',  label: '환율',          labelKey: 'MainButton_Exchange',    icon: 'fg-exchange' },
-  { screen: 'rest_info', label: '문화재(준비중)', labelKey: 'MainButton_Property',    icon: 'fg-heritage', disabled: true },
-  { screen: 'rest_info', label: 'K-컬처(준비중)', labelKey: 'MainButton_KCulture',    icon: 'fg-kculture', disabled: true },
-  { screen: 'rest_info', label: '지역화폐',       labelKey: 'MainButton_MarketPaper', icon: 'fg-localpay' },
+  { screen: 'rest_info', label: '문화재(준비중)', labelKey: 'MainButton_Property',    icon: 'fg-heritage', disabled: true, slot: 16 },
+  { screen: 'rest_info', label: 'K-컬처(준비중)', labelKey: 'MainButton_KCulture',    icon: 'fg-kculture', disabled: true, slot: 17 },
+  { screen: 'rest_info', label: '지역화폐',       labelKey: 'MainButton_MarketPaper', icon: 'fg-localpay', slot: 18 },
 ];
+
+/** Flat tile list in authored order — reordered to the CMS layout by useApiTileRows.
+ *  ROW1_WIDE is the 2-column traffic card (wide flag is local: the API span is null). */
+const ALL_TILES: HomeTile[] = [{ ...ROW1_WIDE, wide: true }, ...ROW1, ...ROW2, ...ROW3, ...ROW4];
+
+/** Join a Hwaseong tile to its CMS button — by explicit slot when the screen key
+ *  is shared (rest_info), else by screen key (see useApiTileRows). */
+const hwaseongTileKey = (t: HomeTile): TileKey => ({ screen: t.screen, slot: t.slot });
 
 // ── Sub-components ──────────────────────────────────────────────────
 function SquareTile({ tile, label, onClick, disabled }: { tile: Tile; label: string; onClick: () => void; disabled?: boolean }) {
@@ -107,6 +121,31 @@ function SquareTile({ tile, label, onClick, disabled }: { tile: Tile; label: str
       <span className={styles.tileLabel}>{label}</span>
     </div>
   );
+}
+
+/** The wide traffic-style card (spans 2 columns). */
+function WideTile({ tile, label, onClick }: { tile: Tile; label: string; onClick: () => void }) {
+  const src = hwaseongIconUrl(tile.icon);
+  return (
+    <div className={styles.tileWrapWide} onClick={onClick}>
+      <div className={styles.tileCardWide}>
+        {src ? (
+          <img src={src} alt={label} className={styles.tileCardImg} draggable={false} />
+        ) : (
+          <div style={{ width: '100%', height: '100%', background: '#fff48d', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 48 }}>
+            🚗
+          </div>
+        )}
+      </div>
+      <span className={styles.tileLabel}>{label}</span>
+    </div>
+  );
+}
+
+/** Renders a tile as the wide traffic card (tile.wide) or a square tile. */
+function TileView({ tile, label, onClick, disabled }: { tile: HomeTile; label: string; onClick: () => void; disabled?: boolean }) {
+  if (tile.wide) return <WideTile tile={tile} label={label} onClick={onClick} />;
+  return <SquareTile tile={tile} label={label} onClick={onClick} disabled={disabled} />;
 }
 
 // ── Main component ──────────────────────────────────────────────────
@@ -149,6 +188,10 @@ export function HwaseongHome({ controller }: Props): JSX.Element {
     // button_clicked + menu-touch analytics — same path as the other kiosks.
     controller.navigate(tile.screen, tile.label);
   }
+
+  // CMS-driven menu order (grouped into rows by line, sorted by position). null →
+  // keep the authored rows below (offline / partial data / any cell collision).
+  const dynamicRows = useApiTileRows(controller.kioskId, ALL_TILES, hwaseongTileKey);
 
   const weatherIcon = weather
     ? weatherIconUrl(weatherIconName(weather.icon, weather.main))
@@ -296,55 +339,57 @@ export function HwaseongHome({ controller }: Props): JSX.Element {
           </div>
         </div>
 
-        {/* Menu grid */}
+        {/* Menu grid — API-ordered when a full layout is cached, else authored. */}
         <div className={styles.menuGrid}>
-          {/* Row 1: wide + 2 */}
-          <div className={styles.menuRow}>
-            {/* Wide traffic tile */}
-            <div className={styles.tileWrapWide} onClick={() => go(ROW1_WIDE)}>
-              <div className={styles.tileCardWide}>
-                {hwaseongIconUrl(ROW1_WIDE.icon) ? (
-                  <img
-                    src={hwaseongIconUrl(ROW1_WIDE.icon)}
-                    alt={TILE(ROW1_WIDE.labelKey)}
-                    className={styles.tileCardImg}
-                    draggable={false}
-                  />
-                ) : (
-                  <div style={{ width: '100%', height: '100%', background: '#fff48d', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 48 }}>
-                    🚗
-                  </div>
-                )}
-              </div>
-              <span className={styles.tileLabel}>{TILE(ROW1_WIDE.labelKey)}</span>
-            </div>
+          {dynamicRows
+            ? dynamicRows.map((row, i) => (
+                <div key={i} className={styles.menuRow}>
+                  {row.map((tile) => (
+                    <TileView
+                      key={tile.screen + tile.label}
+                      tile={tile}
+                      label={TILE(tile.labelKey, tile.disabled)}
+                      onClick={() => go(tile)}
+                      disabled={tile.disabled}
+                    />
+                  ))}
+                </div>
+              ))
+            : (
+              <>
+                {/* Row 1: wide + 2 */}
+                <div className={styles.menuRow}>
+                  {/* Wide traffic tile */}
+                  <WideTile tile={ROW1_WIDE} label={TILE(ROW1_WIDE.labelKey)} onClick={() => go(ROW1_WIDE)} />
 
-            {/* 2 square tiles */}
-            {ROW1.map((tile) => (
-              <SquareTile key={tile.screen + tile.label} tile={tile} label={TILE(tile.labelKey)} onClick={() => go(tile)} />
-            ))}
-          </div>
+                  {/* 2 square tiles */}
+                  {ROW1.map((tile) => (
+                    <SquareTile key={tile.screen + tile.label} tile={tile} label={TILE(tile.labelKey, tile.disabled)} onClick={() => go(tile)} disabled={tile.disabled} />
+                  ))}
+                </div>
 
-          {/* Row 2 */}
-          <div className={styles.menuRow}>
-            {ROW2.map((tile) => (
-              <SquareTile key={tile.screen + tile.label} tile={tile} label={TILE(tile.labelKey)} onClick={() => go(tile)} />
-            ))}
-          </div>
+                {/* Row 2 */}
+                <div className={styles.menuRow}>
+                  {ROW2.map((tile) => (
+                    <SquareTile key={tile.screen + tile.label} tile={tile} label={TILE(tile.labelKey)} onClick={() => go(tile)} />
+                  ))}
+                </div>
 
-          {/* Row 3 */}
-          <div className={styles.menuRow}>
-            {ROW3.map((tile) => (
-              <SquareTile key={tile.screen + tile.label} tile={tile} label={TILE(tile.labelKey)} onClick={() => go(tile)} />
-            ))}
-          </div>
+                {/* Row 3 */}
+                <div className={styles.menuRow}>
+                  {ROW3.map((tile) => (
+                    <SquareTile key={tile.screen + tile.label} tile={tile} label={TILE(tile.labelKey)} onClick={() => go(tile)} />
+                  ))}
+                </div>
 
-          {/* Row 4 */}
-          <div className={styles.menuRow}>
-            {ROW4.map((tile) => (
-              <SquareTile key={tile.screen + tile.label} tile={tile} label={TILE(tile.labelKey, tile.disabled)} onClick={() => go(tile)} disabled={tile.disabled} />
-            ))}
-          </div>
+                {/* Row 4 */}
+                <div className={styles.menuRow}>
+                  {ROW4.map((tile) => (
+                    <SquareTile key={tile.screen + tile.label} tile={tile} label={TILE(tile.labelKey, tile.disabled)} onClick={() => go(tile)} disabled={tile.disabled} />
+                  ))}
+                </div>
+              </>
+            )}
         </div>
       </div>
 

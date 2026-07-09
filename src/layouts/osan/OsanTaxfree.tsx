@@ -3,7 +3,7 @@ import type { SupportedLanguage } from '@shared/types/kiosk';
 import type { KioskController } from '@renderer/hooks/useKioskController';
 import { useLanguageStore } from '@renderer/store/languageStore';
 import { osanIconUrl } from '@renderer/assets/icons/osan';
-import { WEB_EMBED_URLS } from '@shared/constants/webEmbeds';
+import { taxfreeUrl } from '@shared/constants/webEmbeds';
 import { OsanHeader } from './OsanHeader';
 import { OsanBanner } from './OsanBanner';
 import styles from './OsanTaxfree.module.css';
@@ -149,7 +149,7 @@ export function OsanTaxfree({ controller }: OsanTaxfreeProps): JSX.Element {
           }}
         >
           {/* eslint-disable-next-line react/no-unknown-property */}
-          <webview ref={webviewRef} src={WEB_EMBED_URLS.taxfree} partition="persist:embeds" className={styles.embed} />
+          <webview ref={webviewRef} src={taxfreeUrl(controller.kioskId)} partition="persist:embeds" className={styles.embed} />
         </div>
 
         {activeTab === 'merchant' && <MerchantTab lang={lang} />}

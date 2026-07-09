@@ -10,11 +10,40 @@ const log = createLogger('exchange-service');
  * incomplete certificate chain that Node's TLS stack rejects even though curl
  * and browsers accept it, so we relax verification for this read-only public
  * API. The request still uses HTTPS; only chain verification is skipped.
+ *
+ * The API returns a 302 redirect to itself on the first hit and expects the
+ * Set-Cookie it sends to be echoed back on the follow-up request. We handle
+ * exactly one redirect, carrying the cookies forward.
  */
-function fetchEximJson(url: string): Promise<unknown> {
+function fetchEximJson(url: string, cookies = ''): Promise<unknown> {
   return new Promise((resolve, reject) => {
-    const req = https.get(url, { rejectUnauthorized: false, timeout: 15000 }, (res) => {
+    const opts: Parameters<typeof https.get>[1] = {
+      rejectUnauthorized: false,
+      timeout: 15000,
+      headers: cookies ? { Cookie: cookies } : {},
+    };
+    const req = https.get(url, opts, (res) => {
       const status = res.statusCode ?? 0;
+
+      // Follow one redirect, carrying Set-Cookie back.
+      if (status === 301 || status === 302) {
+        res.resume();
+        const location = res.headers['location'];
+        const setCookie = res.headers['set-cookie'];
+        if (!location) {
+          reject(new Error('HTTP 302 with no Location'));
+          return;
+        }
+        const nextCookies = setCookie ? setCookie.map((c) => c.split(';')[0]).join('; ') : cookies;
+        // Avoid infinite redirect loops.
+        if (location === url && cookies === nextCookies) {
+          reject(new Error('HTTP 302 infinite redirect'));
+          return;
+        }
+        resolve(fetchEximJson(location, nextCookies));
+        return;
+      }
+
       if (status < 200 || status >= 300) {
         res.resume();
         reject(new Error(`HTTP ${status}`));

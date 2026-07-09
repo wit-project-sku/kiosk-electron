@@ -144,18 +144,24 @@ export function ZoomableImage({
             }),
           );
         }
-      } else if (g.panFrom && t.scale > 1) {
-        setT((prev) =>
-          clamp({
+      } else if (g.panFrom) {
+        const from = g.panFrom;
+        // Gate on the FRESH scale (prev.scale), never the render-closure `t`.
+        // On a touchscreen a pinch-zoom flows straight into a one-finger pan in
+        // the same continuous gesture — before React re-renders this handler —
+        // so a closure `t.scale` would still read 1 and silently skip the pan.
+        setT((prev) => {
+          if (prev.scale <= 1) return prev;
+          return clamp({
             scale: prev.scale,
-            tx: prev.tx + (p.x - g.panFrom!.x),
-            ty: prev.ty + (p.y - g.panFrom!.y),
-          }),
-        );
+            tx: prev.tx + (p.x - from.x),
+            ty: prev.ty + (p.y - from.y),
+          });
+        });
         g.panFrom = p;
       }
     },
-    [clamp, maxScale, t.scale],
+    [clamp, maxScale, toLocal],
   );
 
   const endPointer = useCallback(

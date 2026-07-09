@@ -15,7 +15,7 @@ export const LOCALIZATION_HWASEONG: Record<string, LangText> = {
   "MainButton_Event": {"ko":"화성시 이벤트","en":"Events","ja":"イベント","zh":"推荐活动"},
   "MainButton_ToEat": {"ko":"'휴' 뭐먹지","en":"To eat","ja":"飲食店の","zh":"我们吃什么呢？"},
   "MainButton_ToBuy": {"ko":"'휴' 뭐사지","en":"To buy","ja":"お買い物","zh":"我们买什么呢？"},
-  "MainButton_TraditionalMarket": {"ko":"전국시장","en":"TraditionalMarket","ja":"TraditionalMarket","zh":"TraditionalMarket"},
+  "MainButton_TraditionalMarket": {"ko":"전국시장(준비중)","en":"TraditionalMarket(Preparing)","ja":"TraditionalMarket(Preparing)","zh":"TraditionalMarket(Preparing)"},
   "MainButton_TaxFree": {"ko":"텍스프리등록","en":"TaxFree","ja":"TaxFree","zh":"TaxFree"},
   "MainButton_Here": {"ko":"화성휴게소","en":"HwaseongSA","ja":"HwaseongSA","zh":"HwaseongSA"},
   "MainButton_Greeting": {"ko":"안녕 '휴'","en":"Hello 'HUE'","ja":"Hello 'HUE'","zh":"你好 'HUEi'"},

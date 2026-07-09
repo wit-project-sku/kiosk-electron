@@ -63,6 +63,15 @@
   height: auto;
   display: block;
 }
+
+/* Zoomable/pannable viewport — locked to the map image's aspect (1730×1437)
+   so it fills the card width with no letterboxing. */
+.mapViewport {
+  width: 1740px;
+  max-width: 100%;
+  aspect-ratio: 1730 / 1437;
+  border-radius: 20px;
+}
 .mapPlaceholder {
   width: 1600px;
   height: 658px;

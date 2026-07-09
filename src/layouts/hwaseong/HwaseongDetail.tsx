@@ -102,13 +102,10 @@ export function HwaseongDetail({ controller }: Props): JSX.Element {
 
           <div className={styles.dividerBottom} />
 
-          {/* Floor map (static Figma render) */}
-          {hwaseongIconUrl('fg-detail-map') && (
-            <img src={hwaseongIconUrl('fg-detail-map')} alt="" className={styles.map} draggable={false} />
-          )}
-          {/* Category legend (static Figma render) */}
-          {hwaseongIconUrl('fg-detail-legend') && (
-            <img src={hwaseongIconUrl('fg-detail-legend')} alt="" className={styles.legend} draggable={false} />
+          {/* 화성휴게소 floor map — newly uploaded image (icons/Group 1707482176 →
+              detail-map). It already labels the shops/numbers, so no legend. */}
+          {hwaseongIconUrl('detail-map') && (
+            <img src={hwaseongIconUrl('detail-map')} alt="" className={styles.map} draggable={false} />
           )}
         </div>
       </div>
