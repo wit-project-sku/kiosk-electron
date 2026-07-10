@@ -23,6 +23,7 @@ import { InsadongHello } from './InsadongHello';
 import { InsadongHelp } from './InsadongHelp';
 import { InsadongDetail } from './InsadongDetail';
 import { InsadongWebScreen } from './InsadongWebScreen';
+import { DonationWebScreen } from './DonationWebScreen';
 import { InsadongEvents } from './InsadongEvents';
 import { InsadongTaxfree } from './InsadongTaxfree';
 import { InsadongKdrama } from './InsadongKdrama';
@@ -124,7 +125,7 @@ export function InsadongKiosk(): JSX.Element {
     <InsadongDetail controller={controller} debug={debug} />
   ) : cur === 'events' ? (
     <InsadongEvents controller={controller} />
-  ) : isWebScreen(cur) || cur === 'taxfree' ? (
+  ) : isWebScreen(cur) || cur === 'taxfree' || cur === 'donation' ? (
     null  // handled by pre-warmed layer below
   ) : (
     <InsadongScreen screen={cur} controller={controller} debug={debug} />
@@ -187,6 +188,23 @@ export function InsadongKiosk(): JSX.Element {
             }
           >
             <InsadongTaxfree controller={controller} />
+          </div>
+        );
+      })()}
+
+      {/* Donation web app — fullscreen embed, pre-warmed so it opens instantly.
+          zIndex 2 so it covers the kiosk chrome and reads as a native page. */}
+      {(() => {
+        const active = !photoActive && cur === 'donation';
+        return (
+          <div
+            style={
+              active
+                ? { position: 'absolute', inset: 0, zIndex: 2 }
+                : { position: 'absolute', top: 0, left: 0, width: 0, height: 0, overflow: 'hidden', pointerEvents: 'none', zIndex: 0 }
+            }
+          >
+            <DonationWebScreen url={WEB_EMBED_URLS.donation} controller={controller} />
           </div>
         );
       })()}

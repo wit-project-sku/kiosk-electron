@@ -66,6 +66,7 @@ export const IpcChannels = {
   PhotoSelectStyle: 'photo:selectStyle',
   PhotoBeginCountdown: 'photo:beginCountdown',
   PhotoCaptureAndGenerate: 'photo:captureAndGenerate',
+  PhotoGetResultDataUrl: 'photo:getResultDataUrl',
   PhotoReset: 'photo:reset',
 
   // Language / Translations

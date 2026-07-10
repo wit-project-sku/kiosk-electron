@@ -94,6 +94,7 @@ export type KioskScreenId =
   | 'detail' // 상세 (shared list-item detail)
   | 'kdrama' // K-DRAMA
   | 'restroom' // 화장실
+  | 'donation' // 기부 (embedded donation web app, fullscreen webview)
   // Legacy / Nam Insadong (W003) — kept so KioskShell + NamInsadongLayout still compile
   | 'intro'
   | 'guide'

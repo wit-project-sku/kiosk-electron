@@ -252,6 +252,10 @@ export interface IpcContract {
       resultImagePath: string;
     }>;
   };
+  [IpcChannels.PhotoGetResultDataUrl]: {
+    request: { fileName: string };
+    response: Result<string | null>;
+  };
   [IpcChannels.PhotoReset]: {
     request: void;
     response: Result<PhotoWorkflowState>;

@@ -24,6 +24,7 @@ function parseInitialState(): BootstrapData | null {
   }
 }
 
+
 /** Typed wrapper around ipcRenderer.invoke. */
 function invoke<C extends InvokeChannel>(
   channel: C,
@@ -146,6 +147,7 @@ const api: KioskBridge = {
     selectStyle: (styleKey) => invoke(IpcChannels.PhotoSelectStyle, { styleKey }),
     beginCountdown: () => invoke(IpcChannels.PhotoBeginCountdown),
     captureAndGenerate: (request) => invoke(IpcChannels.PhotoCaptureAndGenerate, request),
+    getResultDataUrl: (fileName) => invoke(IpcChannels.PhotoGetResultDataUrl, { fileName }),
     reset: () => invoke(IpcChannels.PhotoReset),
   },
   language: {

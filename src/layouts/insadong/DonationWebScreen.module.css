@@ -1,0 +1,16 @@
+/* Fullscreen donation embed — covers the whole artboard (no kiosk chrome). */
+.root {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  background: #ffffff;
+  overflow: hidden;
+}
+
+.embed {
+  display: inline-flex;
+  width: 100%;
+  height: 100%;
+  border: none;
+}

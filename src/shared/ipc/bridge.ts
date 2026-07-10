@@ -120,6 +120,12 @@ export interface KioskBridge {
     }): Promise<
       Result<{ sessionId: string; resultFileName: string; resultImagePath: string }>
     >;
+    /**
+     * Read a generated AI photo off local disk as a base64 data URL, so the
+     * donation webview can deliver the image as bytes instead of a public URL.
+     * Resolves to null if the file is missing.
+     */
+    getResultDataUrl(fileName: string): Promise<Result<string | null>>;
     reset(): Promise<Result<PhotoWorkflowState>>;
   };
   language: {

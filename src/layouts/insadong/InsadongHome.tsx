@@ -30,6 +30,7 @@ interface HomeTile {
  */
 const AI_TILE: HomeTile = { screen: 'ai_search', label: "'인사' 모하지 (AI검색)", icon: 'ai-search', wide: true };
 const REST_TILES: HomeTile[] = [
+  { screen: 'donation', label: '기부', icon: 'donation' },
   { screen: 'events', label: '인사동 이벤트', icon: 'events' },
   { screen: 'eat', label: "'인사' 뭐먹지", icon: 'eat' },
   { screen: 'shop', label: "'인사' 뭐사지", icon: 'shop' },

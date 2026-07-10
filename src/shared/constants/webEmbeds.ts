@@ -16,6 +16,11 @@ export const WEB_EMBED_URLS = {
   market: 'https://witteria.com/#/kiosk/store',
   // market: 'https://insarang.kr/',               // payment없는 곳
 
+  /** 기부 — WIT Global donation web app (fullscreen webview). The kiosk=1 marker
+   *  tells the donation app it's embedded (enables the console-message host bridge);
+   *  the app also auto-detects the Electron webview by user-agent. */
+  donation: 'https://witglobaldonation.vercel.app/#/?location=insadong&kiosk=1',
+
   /** 인사동 이벤트 — event listing */
   events: 'https://withevent.kr/kiosk/events?region=jongno&category=ALL&page=1',
   // events (오색시장): 'https://withevent.kr/kiosk/events?region=Osansi'
