@@ -96,6 +96,10 @@ const KDRAMA_LABEL: Partial<Record<Lang, string>> = {
   en: 'Cook Soldier: Legend',
   ja: '炊事兵、伝説になる',
   zh: '炊事兵成为传说',
+  vi: 'Anh nuôi trở thành huyền thoại',
+  th: 'พลทหารครัวสู่ตำนาน',
+  ru: 'Повар-солдат: легенда',
+  id: 'Prajurit Juru Masak Jadi Legenda',
 };
 
 const SEARCH_PLACEHOLDER: Partial<Record<Lang, string>> = {
@@ -103,6 +107,10 @@ const SEARCH_PLACEHOLDER: Partial<Record<Lang, string>> = {
   en: 'Search about Osaek Market!',
   ja: 'オセク市場について検索しましょう！',
   zh: '搜索关于五色市场的内容！',
+  vi: 'Tìm kiếm về chợ Osaek!',
+  th: 'ค้นหาเกี่ยวกับตลาดโอแซก!',
+  ru: 'Поиск о рынке Осэк!',
+  id: 'Cari tentang Pasar Osaek!',
 };
 
 /** 물품 (non-food goods) tile has no Localization_Osaek key — translate inline. */
@@ -111,12 +119,17 @@ const LODGING_LABEL: Partial<Record<Lang, string>> = {
   en: 'To buy (Goods)',
   ja: 'お買い物（物品）',
   zh: '我们买什么呢？(物品)',
+  vi: 'Mua gì (Hàng hóa)',
+  th: 'ซื้ออะไรดี (สินค้า)',
+  ru: 'Что купить (Товары)',
+  id: 'Mau beli apa (Barang)',
 };
 
 /** Language-selector button label per language. Must match the 언어선택 picker
  *  pill codes (LANG_META in OsanLanguage.tsx): ja → JP, zh → CN. */
 const LANG_CODE: Partial<Record<Lang, string>> = {
   ko: 'KR', en: 'EN', ja: 'JP', vi: 'VN', zh: 'CN',
+  th: 'TH', ru: 'RU', id: 'ID',
 };
 const langCode = (lang: Lang): string => LANG_CODE[lang] ?? lang.toUpperCase();
 

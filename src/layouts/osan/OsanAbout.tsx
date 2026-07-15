@@ -83,6 +83,66 @@ const CONTENT: Partial<Record<Lang, AboutContent>> = {
       body: '仁寺洞街道本身就是主要旅游景点，每条小巷都藏着传统韩屋、韩屋咖啡馆与美食店。尤其周末实行车辆管制，变为步行专用街，举办各种街头表演与展览。附近的曹溪寺与塔谷公园也很适合一同游览。',
     },
   },
+  vi: {
+    title: 'Đây là Chợ Osaek',
+    history: {
+      label: 'Lịch sử',
+      body: 'Từ thời Joseon, Insadong đã là trung tâm của Hanyang, nơi các học giả và văn nhân tụ họp để viết lách và trao đổi tư tưởng. Đặc biệt, thư pháp và sách cổ được giao dịch nhiều tại đây, và trong thời kỳ Nhật thuộc, người Nhật cũng buôn bán các di sản văn hóa. Sau đó, trải qua Chiến tranh Triều Tiên, nơi đây phát triển thành một nơi lưu giữ văn hóa và nghệ thuật truyền thống.',
+    },
+    culture: {
+      label: 'Văn hóa',
+      body: 'Insadong nổi tiếng là nơi có thể trải nghiệm văn hóa truyền thống Hàn Quốc. Bạn có thể mua các sản phẩm thủ công truyền thống, đồ gốm sứ, nghệ thuật giấy hanji cùng nhiều tác phẩm nghệ thuật truyền thống đa dạng, và cũng có thể trải nghiệm trà đạo (dado) tại các quán trà truyền thống. Dọc khắp các con phố có những phòng trưng bày và triển lãm, mang đến sức hấp dẫn văn hóa nơi hiện đại và truyền thống cùng tồn tại hài hòa.',
+    },
+    tour: {
+      label: 'Điểm tham quan',
+      body: 'Bản thân con phố Insadong là một điểm tham quan chính, với những ngôi nhà truyền thống ẩn mình, quán cà phê hanok và các nhà hàng nổi tiếng trong mỗi con hẻm. Đặc biệt vào cuối tuần, phố cấm xe và trở thành phố đi bộ, tổ chức nhiều buổi biểu diễn đường phố và triển lãm. Chùa Jogyesa và Công viên Tapgol nằm gần đó cũng là những điểm đến đáng ghé thăm cùng nhau.',
+    },
+  },
+  th: {
+    title: 'ที่นี่คือตลาดโอแซก',
+    history: {
+      label: 'ประวัติศาสตร์',
+      body: 'ตั้งแต่สมัยโชซอน อินซาดงเป็นศูนย์กลางของฮันยางที่เหล่านักปราชญ์และนักเขียนมารวมตัวกันเพื่อเขียนและแลกเปลี่ยนความคิด โดยเฉพาะการค้าขายงานอักษรวิจิตรและหนังสือโบราณเป็นจำนวนมาก และในช่วงที่ญี่ปุ่นยึดครอง ชาวญี่ปุ่นก็ค้าขายโบราณวัตถุทางวัฒนธรรมด้วย ต่อมาหลังผ่านสงครามเกาหลี ที่นี่ได้พัฒนาเป็นสถานที่ที่วัฒนธรรมและศิลปะดั้งเดิมยังคงหลงเหลืออยู่',
+    },
+    culture: {
+      label: 'วัฒนธรรม',
+      body: 'อินซาดงมีชื่อเสียงในฐานะสถานที่ที่สามารถสัมผัสวัฒนธรรมดั้งเดิมของเกาหลี คุณสามารถซื้องานหัตถกรรมดั้งเดิม เครื่องปั้นดินเผา งานศิลปะกระดาษฮันจิ และงานศิลปะดั้งเดิมอันหลากหลาย อีกทั้งยังสามารถสัมผัสพิธีชงชา (ทาโด) ที่ร้านน้ำชาแบบดั้งเดิม ตามถนนหนทางต่างๆ มีแกลเลอรีและห้องจัดแสดง ทำให้รู้สึกถึงเสน่ห์ทางวัฒนธรรมที่ความทันสมัยและความดั้งเดิมอยู่ร่วมกันอย่างกลมกลืน',
+    },
+    tour: {
+      label: 'สถานที่ท่องเที่ยว',
+      body: 'ถนนอินซาดงเองก็เป็นแหล่งท่องเที่ยวสำคัญ โดยในแต่ละตรอกซอยมีบ้านดั้งเดิมที่ซ่อนอยู่ คาเฟ่ฮันอก และร้านอาหารอร่อยตั้งอยู่ โดยเฉพาะในวันหยุดสุดสัปดาห์จะมีการควบคุมการจราจรและกลายเป็นถนนคนเดิน พร้อมจัดการแสดงริมถนนและนิทรรศการต่างๆ วัดโชกเยซาและสวนทับกลที่อยู่ใกล้เคียงก็เป็นสถานที่ที่เหมาะจะไปเยี่ยมชมด้วยกัน',
+    },
+  },
+  ru: {
+    title: 'Это рынок Осэк',
+    history: {
+      label: 'История',
+      body: 'Со времён эпохи Чосон Инсадон был центром Ханяна, где учёные и писатели собирались, чтобы писать и обмениваться идеями. Здесь особенно много торговали каллиграфией и антикварными книгами, а в период японского колониального правления японцы также торговали культурными ценностями. Позднее, пройдя через Корейскую войну, это место превратилось в район, где сохраняются традиционная культура и искусство.',
+    },
+    culture: {
+      label: 'Культура',
+      body: 'Инсадон известен как место, где можно познакомиться с традиционной корейской культурой. Здесь можно купить традиционные ремесленные изделия, керамику, изделия из бумаги ханджи и множество других традиционных произведений искусства, а также испытать чайную церемонию (тадо) в традиционных чайных. По всей улице расположены галереи и выставочные залы, где можно ощутить культурное очарование гармоничного сосуществования современности и традиций.',
+    },
+    tour: {
+      label: 'Достопримечательности',
+      body: 'Сама улица Инсадон является главной достопримечательностью: в каждом переулке спрятаны традиционные дома, кафе в стиле ханок и рестораны. Особенно по выходным движение транспорта перекрывается, и улица становится пешеходной, где проходят различные уличные представления и выставки. Расположенные поблизости храм Чогеса и парк Тапколь также отлично подходят для совместного посещения.',
+    },
+  },
+  id: {
+    title: 'Ini adalah Pasar Osaek',
+    history: {
+      label: 'Sejarah',
+      body: 'Sejak era Joseon, Insadong adalah pusat Hanyang tempat para cendekiawan dan penulis berkumpul untuk menulis dan bertukar gagasan. Kaligrafi dan buku antik khususnya banyak diperdagangkan di sini, dan pada masa penjajahan Jepang, orang Jepang juga memperjualbelikan artefak budaya. Setelah itu, melalui Perang Korea, tempat ini berkembang menjadi tempat di mana budaya dan seni tradisional tetap lestari.',
+    },
+    culture: {
+      label: 'Budaya',
+      body: 'Insadong terkenal sebagai tempat untuk merasakan budaya tradisional Korea. Anda dapat membeli kerajinan tradisional, keramik, seni kertas hanji, dan berbagai karya seni tradisional lainnya, serta dapat merasakan upacara minum teh (dado) di kedai teh tradisional. Di sepanjang jalan terdapat galeri dan ruang pameran, sehingga Anda dapat merasakan pesona budaya di mana modern dan tradisional hidup berdampingan secara harmonis.',
+    },
+    tour: {
+      label: 'Objek Wisata',
+      body: 'Jalan Insadong sendiri merupakan objek wisata utama, dengan rumah-rumah tradisional tersembunyi, kafe hanok, dan restoran enak di setiap gang. Terutama pada akhir pekan, kendaraan dilarang masuk dan jalan berubah menjadi jalur khusus pejalan kaki, di mana digelar berbagai pertunjukan jalanan dan pameran. Kuil Jogyesa dan Taman Tapgol yang terletak di dekatnya juga merupakan tempat yang bagus untuk dikunjungi bersama.',
+    },
+  },
 };
 
 interface OsanAboutProps {

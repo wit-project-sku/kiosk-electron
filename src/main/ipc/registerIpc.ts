@@ -20,6 +20,7 @@ import { registerShopHandlers } from './handlers/shop.handlers';
 import { registerButtonHandlers } from './handlers/buttons.handlers';
 import { registerStatsHandlers } from './handlers/stats.handlers';
 import { registerSubtitleHandlers } from './handlers/subtitle.handlers';
+import { registerVideoHandlers } from './handlers/video.handlers';
 import { registerEventsHandlers } from './handlers/events.handlers';
 
 const log = createLogger('ipc');
@@ -48,6 +49,7 @@ export function registerIpcHandlers(container: AppContainer, windows: WindowMana
   registerButtonHandlers(container);
   registerStatsHandlers(container);
   registerSubtitleHandlers(container);
+  registerVideoHandlers(container);
   registerEventsHandlers(container);
   log.info('IPC handlers registered');
 }

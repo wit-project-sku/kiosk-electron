@@ -6,7 +6,7 @@ import { useAiStore } from '@renderer/store/aiStore';
 import { useLang } from '@renderer/lib/i18n';
 import { t } from '@renderer/lib/loc';
 import { AI_CATEGORIES } from '@renderer/data/aiCategories.generated';
-import { pickText } from '@renderer/data/types';
+import { aiCatLabel } from '@renderer/lib/aiCategoryLabel';
 import { InsadongHeader } from './InsadongHeader';
 import styles from './InsadongAiSearch.module.css';
 
@@ -127,7 +127,7 @@ export function InsadongAiSearch({ controller }: InsadongAiSearchProps): JSX.Ele
                   onClick={() => toggleInterest(i)}
                 >
                   <span className={styles.tileText} style={selected ? undefined : { color: INTEREST_COLORS[i] }}>
-                    {pickText(cat, lang)}
+                    {aiCatLabel(cat, lang)}
                   </span>
                 </button>
               );

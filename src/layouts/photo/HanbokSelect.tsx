@@ -32,15 +32,18 @@ const CATEGORIES = [
 
 /** Localized tab labels keyed by the canonical category id. (No sheet keys
  *  exist for these yet — once added, swap to t().) */
-const CATEGORY_LABELS: Record<string, { ko: string; en: string; ja: string; zh: string }> = {
-  '여자 한복': { ko: '여자 한복', en: "Women's Hanbok", ja: '女性韓服', zh: '女款韩服' },
-  '여자 모델의상': { ko: '여자 모델의상', en: "Women's Outfit", ja: '女性モデル衣装', zh: '女款模特服' },
-  '남자 한복': { ko: '남자 한복', en: "Men's Hanbok", ja: '男性韓服', zh: '男款韩服' },
-  '남자 모델의상': { ko: '남자 모델의상', en: "Men's Outfit", ja: '男性モデル衣装', zh: '男款模特服' },
-  '글로벌 의상': { ko: '글로벌 의상', en: 'Global Outfit', ja: 'グローバル衣装', zh: '全球服饰' },
-  '프로모션': { ko: '프로모션', en: 'Promotion', ja: 'プロモーション', zh: '促销' },
-  '브랜드': { ko: '브랜드', en: 'Brand', ja: 'ブランド', zh: '品牌' },
-  'K-CULTURE': { ko: 'K-CULTURE', en: 'K-CULTURE', ja: 'K-CULTURE', zh: 'K-CULTURE' },
+const CATEGORY_LABELS: Record<
+  string,
+  { ko: string; en: string; ja: string; zh: string; vi: string; th: string; ru: string; id: string }
+> = {
+  '여자 한복': { ko: '여자 한복', en: "Women's Hanbok", ja: '女性韓服', zh: '女款韩服', vi: 'Hanbok nữ', th: 'ฮันบกหญิง', ru: 'Женский ханбок', id: 'Hanbok wanita' },
+  '여자 모델의상': { ko: '여자 모델의상', en: "Women's Outfit", ja: '女性モデル衣装', zh: '女款模特服', vi: 'Trang phục nữ', th: 'ชุดหญิง', ru: 'Женский образ', id: 'Busana wanita' },
+  '남자 한복': { ko: '남자 한복', en: "Men's Hanbok", ja: '男性韓服', zh: '男款韩服', vi: 'Hanbok nam', th: 'ฮันบกชาย', ru: 'Мужской ханбок', id: 'Hanbok pria' },
+  '남자 모델의상': { ko: '남자 모델의상', en: "Men's Outfit", ja: '男性モデル衣装', zh: '男款模特服', vi: 'Trang phục nam', th: 'ชุดชาย', ru: 'Мужской образ', id: 'Busana pria' },
+  '글로벌 의상': { ko: '글로벌 의상', en: 'Global Outfit', ja: 'グローバル衣装', zh: '全球服饰', vi: 'Trang phục quốc tế', th: 'ชุดนานาชาติ', ru: 'Мировые наряды', id: 'Busana global' },
+  '프로모션': { ko: '프로모션', en: 'Promotion', ja: 'プロモーション', zh: '促销', vi: 'Khuyến mãi', th: 'โปรโมชัน', ru: 'Акция', id: 'Promosi' },
+  '브랜드': { ko: '브랜드', en: 'Brand', ja: 'ブランド', zh: '品牌', vi: 'Thương hiệu', th: 'แบรนด์', ru: 'Бренд', id: 'Merek' },
+  'K-CULTURE': { ko: 'K-CULTURE', en: 'K-CULTURE', ja: 'K-CULTURE', zh: 'K-CULTURE', vi: 'K-CULTURE', th: 'K-CULTURE', ru: 'K-CULTURE', id: 'K-CULTURE' },
 };
 /** Click-and-drag (grab) horizontal scrolling for the 한복 설명 carousel. */
 function useDragScroll(): {

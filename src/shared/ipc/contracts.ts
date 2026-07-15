@@ -37,7 +37,7 @@ import type {
 import type { SupportedLanguage } from '../types/kiosk';
 import type { WeatherSnapshot } from '../types/weather';
 import type { ExchangeSnapshot } from '../types/exchange';
-import type { VideoEntry } from '../types/subtitle';
+import type { VideoEntry, VideoFilesBySet } from '../types/subtitle';
 import type { Shop } from '../types/shop';
 import type { KioskButton } from '../types/buttons';
 import type {
@@ -282,6 +282,10 @@ export interface IpcContract {
   [IpcChannels.SubtitlesGet]: {
     request: void;
     response: Result<VideoEntry[] | null>;
+  };
+  [IpcChannels.VideosList]: {
+    request: void;
+    response: Result<VideoFilesBySet>;
   };
   [IpcChannels.KioskSetScreen]: {
     request: { screen: string };

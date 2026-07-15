@@ -25,6 +25,8 @@ const LANG_META: Record<SupportedLanguage, { code: string; name: string }> = {
   zh_tw: { code: 'CN', name: '中文(繁)' },
   vi:    { code: 'VN', name: 'Tiếng Việt' },
   th:    { code: 'TH', name: 'ภาษาไทย' },
+  ru:    { code: 'RU', name: 'Русский' },
+  id:    { code: 'ID', name: 'Indonesia' },
   es:    { code: 'ES', name: 'Español' },
 };
 

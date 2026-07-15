@@ -162,6 +162,9 @@ const api: KioskBridge = {
   subtitles: {
     get: () => invoke(IpcChannels.SubtitlesGet),
   },
+  videos: {
+    list: () => invoke(IpcChannels.VideosList),
+  },
   kiosk: {
     setScreen: (screen) => invoke(IpcChannels.KioskSetScreen, { screen }),
     advanceVideo: () => invoke(IpcChannels.KioskAdvanceVideo),

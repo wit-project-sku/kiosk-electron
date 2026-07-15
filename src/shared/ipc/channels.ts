@@ -82,6 +82,10 @@ export const IpcChannels = {
   // AI-model video subtitles (fetched once per session from the witteria API)
   SubtitlesGet: 'subtitles:get',
 
+  // Real display-video file names present on disk, per set (listed at runtime so
+  // newly-added videos resolve without a rebuild; no build-time manifest).
+  VideosList: 'videos:list',
+
   // Kiosk navigation (touch screen → customer display video sync)
   KioskSetScreen: 'kiosk:setScreen',
   // Advance the customer-display video to the next clip for the current screen

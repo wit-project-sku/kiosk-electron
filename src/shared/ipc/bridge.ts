@@ -38,7 +38,7 @@ import type { CachedContent, SupportedLanguage } from '../types/kiosk';
 import type { CameraDeviceInfo, PhotoOption, PhotoWorkflowState } from '../types/photo';
 import type { WeatherSnapshot } from '../types/weather';
 import type { ExchangeSnapshot } from '../types/exchange';
-import type { VideoEntry } from '../types/subtitle';
+import type { VideoEntry, VideoFilesBySet } from '../types/subtitle';
 import type { Shop } from '../types/shop';
 import type { KioskButton } from '../types/buttons';
 import type {
@@ -135,6 +135,11 @@ export interface KioskBridge {
   };
   subtitles: {
     get(): Promise<Result<VideoEntry[] | null>>;
+  };
+  /** Real display-video file names on disk, per set — listed fresh at runtime so
+   *  newly-added videos resolve without a rebuild. */
+  videos: {
+    list(): Promise<Result<VideoFilesBySet>>;
   };
   /** Touch-screen navigation; tells the customer display which video to show. */
   kiosk: {

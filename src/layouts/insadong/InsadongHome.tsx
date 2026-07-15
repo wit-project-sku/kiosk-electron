@@ -101,6 +101,10 @@ const KDRAMA_LABEL: Partial<Record<Lang, string>> = {
   en: 'Cook Soldier: Legend',
   ja: '炊事兵、伝説になる',
   zh: '炊事兵成为传说',
+  vi: 'Anh nuôi trở thành huyền thoại',
+  th: 'พลทหารครัวสู่ตำนาน',
+  ru: 'Повар-солдат: легенда',
+  id: 'Prajurit Juru Masak Jadi Legenda',
 };
 
 /** Search field placeholder per language. */
@@ -109,12 +113,17 @@ const SEARCH_PLACEHOLDER: Partial<Record<Lang, string>> = {
   en: 'Search about Insadong!',
   ja: '仁寺洞について検索してみましょう！',
   zh: '搜索关于仁寺洞的内容！',
+  vi: 'Tìm kiếm về Insadong!',
+  th: 'ค้นหาเกี่ยวกับอินซาดง!',
+  ru: 'Поиск об Инсадоне!',
+  id: 'Cari tentang Insadong!',
 };
 
 /** Language-selector button label per language. Must match the 언어선택 picker
  *  pill codes (LANG_META in InsadongLanguage.tsx): ja → JP, zh → CN. */
 const LANG_CODE: Partial<Record<Lang, string>> = {
   ko: 'KR', en: 'EN', ja: 'JP', vi: 'VN', zh: 'CN',
+  th: 'TH', ru: 'RU', id: 'ID',
 };
 const langCode = (lang: Lang): string => LANG_CODE[lang] ?? lang.toUpperCase();
 

@@ -5,9 +5,9 @@
  */
 
 /**
- * Supported UI languages. W001/W002 use ko/en/ja/vi; W003 (남인사마당) adds the
- * Chinese (simplified/traditional), Thai and Spanish sets. `zh` is kept for
- * back-compat with previously-synced translation data.
+ * Supported UI languages. All kiosks ship the 8-language selector
+ * (ko/en/ja/zh + vi/th/ru/id). `zh_cn`/`zh_tw`/`es` are kept for back-compat
+ * with previously-synced translation data.
  */
 export type SupportedLanguage =
   | 'ko'
@@ -18,6 +18,8 @@ export type SupportedLanguage =
   | 'zh_cn'
   | 'zh_tw'
   | 'th'
+  | 'ru'
+  | 'id'
   | 'es';
 
 /** Layout identifiers mapped to React layout components. */

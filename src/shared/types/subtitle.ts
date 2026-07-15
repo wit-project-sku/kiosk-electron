@@ -1,10 +1,22 @@
 /** Shared subtitle types used by both main-process SubtitleService and renderer. */
 
+/** Which bundled video set a kiosk plays from (resources/videos/<set>/). */
+export type VideoSet = 'insadong' | 'osaek' | 'hwaseong';
+
+/** Real .mp4 file names present on disk, per video set. Listed at runtime by
+ *  the main process (IPC VideosList) so newly-added videos are picked up without
+ *  a rebuild — there is no build-time file manifest. */
+export type VideoFilesBySet = Record<VideoSet, string[]>;
+
 export interface SubtitleLangText {
   ko: string;
   en: string;
   ja: string;
   zh: string;
+  vi?: string;
+  th?: string;
+  ru?: string;
+  id?: string;
 }
 
 /** Single video + subtitle entry, keyed by playKey (e.g. "Default", "ToEat"). */
@@ -24,6 +36,10 @@ interface ApiLangText {
   en?: string;
   jp?: string;
   cn?: string;
+  vn?: string;
+  th?: string;
+  ru?: string;
+  id?: string;
 }
 
 interface ApiSubtitleItem {
@@ -51,11 +67,18 @@ export interface SubtitleApiResponse {
 // ── Transformation ─────────────────────────────────────────────────────────
 
 function apiLang(obj: ApiLangText): SubtitleLangText {
+  // API language keys → app language codes. The kiosk supports 8 UI languages;
+  // the API delivers all of them, so map every one (was previously 4, which
+  // silently dropped vi/th/ru/id and made those languages fall back to Korean).
   return {
     ko: obj.kr ?? '',
     en: obj.en ?? '',
     ja: obj.jp ?? '',
     zh: obj.cn ?? '',
+    vi: obj.vn ?? '',
+    th: obj.th ?? '',
+    ru: obj.ru ?? '',
+    id: obj.id ?? '',
   };
 }
 

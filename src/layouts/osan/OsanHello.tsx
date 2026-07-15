@@ -196,6 +196,162 @@ const CONTENT: Partial<Record<Lang, HelloContent>> = {
     ],
     hashtags: ['#JEONGE', '#正伊', '#你好正伊'],
   },
+  vi: {
+    title: 'Xin chào, JEONG-I',
+    tabs: ['Giới thiệu JEONG-I', 'Sở thích của JEONG-I', 'Giãn cơ GOGO~'],
+    nameLabel: 'Tên',
+    nameValue: 'JEONG-I',
+    profile: [
+      { label: 'Ngày sinh', value: '30 tháng 9, 2005' },
+      { label: 'Quê quán', value: 'Insadong, Jongno-gu, Seoul' },
+      { label: 'Quốc tịch', value: 'Đại Hàn Dân Quốc' },
+      { label: 'Nhóm máu', value: 'Nhóm A' },
+      { label: 'MBTI', value: 'ENTJ' },
+    ],
+    details: [
+      { label: 'Cơ thể', lines: ['168cm, nhóm B, 235mm  (cân nặng là bí mật..)'] },
+      { label: 'Sở thích', lines: ['Đi cà phê, nhảy K-POP, tennis, golf'] },
+      { label: 'Sở trường', lines: ['Ca hát'] },
+      { label: 'Ước mơ', lines: ['Là một influencer, mình muốn lan tỏa nét quyến rũ của chợ truyền thống', 'ra toàn thế giới với vai trò người mẫu quảng bá!'] },
+      {
+        label: 'Giới thiệu bản thân',
+        lines: [
+          'Một cô gái ngoài 20 yêu thể thao và thích khám phá chợ truyền thống!',
+          'Mình yêu ẩm thực Hàn Quốc thật~ nhiều, và dạo chợ ăn uống là thói quen chữa lành của riêng mình. Một tín đồ K-POP thế hệ MZ chính hiệu!',
+          'Ước mơ của mình là trở thành influencer lan tỏa Hàn Quốc ra toàn thế giới!',
+        ],
+      },
+    ],
+    hobbies: [
+      { title: 'Nhảy và hát K-POP là sân khấu của mình!', lines: ['Như một idol trên sân khấu! JEONG-I mê nhảy và hát theo K-POP.', 'Khi bài hát yêu thích vang lên, là tới giờ nhảy mọi lúc mọi nơi!'] },
+      { title: 'Giờ chữa lành ở sân golf', lines: ['Gần đây mình mới bắt đầu học golf (tân binh).', 'Làn gió mát trên thảm cỏ xanh khiến tâm trạng sảng khoái hẳn.', 'Vung gậy thong thả trên cỏ xanh~', 'Mình tìm thấy sự chữa lành giữa thiên nhiên khi chơi golf.', 'Và không thể bỏ qua phong cách trang phục golf sành điệu!'] },
+      { title: 'Tennis là cách xả stress của mình!', lines: ['Môn thể thao JEONG-I thích nhất là tennis~', 'Di chuyển thật nhanh và một cú smash!', 'Mình giải phóng năng lượng khi chơi tennis. Lập đội với bạn bè, hay tự luyện tập một mình vào buổi sáng yên tĩnh đều thích.', 'Thêm một ly nước mát sau khi đổ mồ hôi, đó chính là một ngày hoàn hảo của JEONG-I!'] },
+    ],
+    stretchTitle: 'Cùng JEONG-I giãn cơ nhẹ nhàng nào!',
+    stretchLines: ['Trước khi đi bộ đường dài, khoan đã! Làm theo mình khởi động nhẹ một chút nhé?', 'Tâm trạng cũng tươi mới~ năng lượng cũng dâng cao!', 'Nhìn mình trên màn hình và làm theo thật chậm rãi nhé.', 'Sau khi giãn cơ, bạn có thể du lịch nhẹ nhàng và vui vẻ hơn~'],
+    stretchSections: [
+      { title: 'Phòng ngừa mệt mỏi!', lines: ['Đi bộ lâu sẽ khiến chân và lưng tích tụ mệt mỏi.', 'Giãn cơ nhẹ giữa chừng sẽ giúp cơ thể thoải mái hơn nhiều!', "Cùng 'JEONG-I' vận động đơn giản nào."] },
+      { title: 'Đổi mới tâm trạng!', lines: ['Giãn cơ không chỉ làm mới cơ thể mà còn cả tâm hồn!', 'Nạp đầy sức sống và du lịch phấn khởi hơn.', 'Nghỉ ngơi một chút giữa hành trình thì sao~'] },
+    ],
+    hashtags: ['#JEONGE', '#JEONG-I', '#XinchaoJeonge'],
+  },
+  th: {
+    title: 'สวัสดี, JEONG-I',
+    tabs: ['แนะนำ JEONG-I', 'งานอดิเรกของ JEONG-I', 'ยืดเส้น GOGO~'],
+    nameLabel: 'ชื่อ',
+    nameValue: 'JEONG-I',
+    profile: [
+      { label: 'วันเกิด', value: '30 กันยายน 2005' },
+      { label: 'ภูมิลำเนา', value: 'อินซาดง เขตชงโน โซล' },
+      { label: 'สัญชาติ', value: 'สาธารณรัฐเกาหลี' },
+      { label: 'กรุ๊ปเลือด', value: 'กรุ๊ป A' },
+      { label: 'MBTI', value: 'ENTJ' },
+    ],
+    details: [
+      { label: 'รูปร่าง', lines: ['168cm, กรุ๊ป B, 235mm  (น้ำหนักเป็นความลับ..)'] },
+      { label: 'งานอดิเรก', lines: ['เข้าคาเฟ่ เต้น K-POP เทนนิส กอล์ฟ'] },
+      { label: 'ความสามารถพิเศษ', lines: ['ร้องเพลง'] },
+      { label: 'ความฝัน', lines: ['ในฐานะอินฟลูเอนเซอร์ ฉันอยากบอกเล่าเสน่ห์ของตลาดดั้งเดิม', 'ให้คนทั้งโลกรู้จักในฐานะพรีเซนเตอร์ประชาสัมพันธ์!'] },
+      {
+        label: 'แนะนำตัว',
+        lines: [
+          'สาววัย 20 ที่รักการออกกำลังกายและชอบเที่ยวตลาดดั้งเดิม!',
+          'ฉันรักอาหารเกาหลีมาก~ และการเดินกินของอร่อยในตลาดคือกิจวัตรฮีลใจของฉันเอง เป็นชาว MZ ที่รัก K-POP ตัวจริง!',
+          'ความฝันของฉันคือการเป็นอินฟลูเอนเซอร์ที่บอกเล่าเกาหลีให้คนทั้งโลกรู้จัก!',
+        ],
+      },
+    ],
+    hobbies: [
+      { title: 'เต้นและร้อง K-POP คือเวทีของฉัน!', lines: ['เหมือนไอดอลบนเวที! JEONG-I รักการเต้นและร้องตาม K-POP', 'พอเพลงโปรดดังขึ้นมา ก็ถึงเวลาเต้นได้ทุกที่ทุกเวลา!'] },
+      { title: 'ช่วงเวลาฮีลใจที่สนามกอล์ฟ', lines: ['เพิ่งเริ่มหัดเล่นกอล์ฟเมื่อไม่นานนี้ (มือใหม่)', 'ลมเย็นบนสนามหญ้าเขียวทำให้อารมณ์สดชื่นไปหมด', 'สวิงอย่างสบายๆ บนสนามหญ้า~', 'ฉันฮีลใจท่ามกลางธรรมชาติไปพร้อมกับการเล่นกอล์ฟ', 'และการแต่งตัวชุดกอล์ฟเก๋ๆ ก็พลาดไม่ได้!'] },
+      { title: 'เทนนิสคือวิธีคลายเครียดของฉัน!', lines: ['กีฬาที่ JEONG-I ชอบที่สุดคือเทนนิส~', 'ขยับเร็วๆ แล้วสแมชสักที!', 'ฉันปลดปล่อยพลังงานด้วยการเล่นเทนนิส จับทีมกับเพื่อน หรือฝึกคนเดียวในเช้าที่เงียบสงบก็ชอบ', 'ปิดท้ายด้วยเครื่องดื่มเย็นๆ หลังเหงื่อออก นี่แหละวันที่สมบูรณ์แบบของ JEONG-I!'] },
+    ],
+    stretchTitle: 'มายืดเส้นเบาๆ ไปกับ JEONG-I กันเถอะ!',
+    stretchLines: ['ก่อนเดินไกลๆ เดี๋ยวก่อน! ทำตามฉันแล้วมาวอร์มร่างกายเบาๆ กันไหม?', 'อารมณ์ก็สดชื่น~ พลังงานก็เพิ่มขึ้น!', 'มองฉันบนจอแล้วค่อยๆ ทำตามช้าๆ นะ', 'หลังยืดเส้นแล้วจะเที่ยวได้เบาสบายและสนุกยิ่งขึ้น~'],
+    stretchSections: [
+      { title: 'ป้องกันความเมื่อยล้า!', lines: ['เดินนานๆ ขาและหลังจะสะสมความเมื่อยล้า', 'ยืดเส้นเบาๆ ระหว่างทางจะทำให้ร่างกายสบายขึ้นมาก!', "มาออกกำลังกายง่ายๆ ไปกับ 'JEONG-I' กันเถอะ"] },
+      { title: 'เปลี่ยนอารมณ์!', lines: ['การยืดเส้นไม่เพียงผ่อนคลายร่างกาย แต่ยังทำให้จิตใจสดชื่น!', 'เติมพลังแล้วเที่ยวได้สนุกยิ่งขึ้น', 'พักสักครู่ระหว่างทางเป็นอย่างไรบ้าง~'] },
+    ],
+    hashtags: ['#JEONGE', '#JEONG-I', '#สวัสดีJeonge'],
+  },
+  ru: {
+    title: 'Привет, JEONG-I',
+    tabs: ['О JEONG-I', 'Увлечения JEONG-I', 'Разминка GOGO~'],
+    nameLabel: 'Имя',
+    nameValue: 'JEONG-I',
+    profile: [
+      { label: 'Дата рождения', value: '30 сентября 2005' },
+      { label: 'Родом из', value: 'Инсадон, Чонно-гу, Сеул' },
+      { label: 'Гражданство', value: 'Республика Корея' },
+      { label: 'Группа крови', value: 'Группа A' },
+      { label: 'MBTI', value: 'ENTJ' },
+    ],
+    details: [
+      { label: 'Параметры', lines: ['168 см, группа B, 235 мм  (вес — это секрет..)'] },
+      { label: 'Хобби', lines: ['Кафе, танцы K-POP, теннис, гольф'] },
+      { label: 'Талант', lines: ['Пение'] },
+      { label: 'Мечта', lines: ['Как инфлюенсер, я хочу рассказать об очаровании традиционных рынков', 'всему миру в роли модели-промоутера!'] },
+      {
+        label: 'О себе',
+        lines: [
+          'Девушка чуть за 20, которая обожает спорт и прогулки по традиционным рынкам!',
+          'Я по-настоящему люблю корейскую кухню, а гастротуры по рынкам — мой личный ритуал отдыха. Настоящая MZ-поклонница K-POP!',
+          'Моя мечта — стать инфлюенсером, который открывает Корею всему миру!',
+        ],
+      },
+    ],
+    hobbies: [
+      { title: 'Танцы и песни K-POP — моя сцена!', lines: ['Как айдол на сцене! JEONG-I обожает танцевать и петь под K-POP.', 'Когда звучит моя любимая песня — время танцевать в любом месте и в любое время!'] },
+      { title: 'Время отдыха на поле для гольфа', lines: ['Недавно начала играть в гольф (совсем новичок).', 'Прохладный ветер над зелёной травой освежает всё настроение.', 'Расслабленный свинг на зелёной траве~', 'Играя в гольф, я нахожу покой среди природы.', 'И стильный образ в одежде для гольфа тоже нельзя упускать!'] },
+      { title: 'Теннис — мой способ снять стресс!', lines: ['Любимый спорт JEONG-I — теннис~', 'Быстрое движение и один смэш!', 'Я выпускаю энергию, играя в теннис. Люблю собираться в команду с друзьями или тренироваться одна тихим утром.', 'А ещё прохладный напиток после хорошей нагрузки — вот идеальный день JEONG-I!'] },
+    ],
+    stretchTitle: 'Давай слегка разомнёмся вместе с JEONG-I!',
+    stretchLines: ['Перед долгой прогулкой — стоп! Повторяй за мной и немного разомнись.', 'Настроение освежается~ и энергия растёт!', 'Смотри на меня на экране и повторяй медленно, шаг за шагом.', 'После разминки путешествовать будет легче и радостнее~'],
+    stretchSections: [
+      { title: 'Профилактика усталости!', lines: ['Если долго идти, в ногах и пояснице копится усталость.', 'Лёгкая разминка по пути делает тело намного легче!', "Давай сделаем простые упражнения вместе с 'JEONG-I'."] },
+      { title: 'Смена настроения!', lines: ['Разминка освежает не только тело, но и душу!', 'Заряжайся энергией и путешествуй с ещё большим удовольствием.', 'Как насчёт небольшого перерыва на отдых~'] },
+    ],
+    hashtags: ['#JEONGE', '#JEONG-I', '#ПриветJeonge'],
+  },
+  id: {
+    title: 'Halo, JEONG-I',
+    tabs: ['Tentang JEONG-I', 'Hobi JEONG-I', 'Peregangan GOGO~'],
+    nameLabel: 'Nama',
+    nameValue: 'JEONG-I',
+    profile: [
+      { label: 'Lahir', value: '30 September 2005' },
+      { label: 'Asal', value: 'Insadong, Jongno-gu, Seoul' },
+      { label: 'Kewarganegaraan', value: 'Republik Korea' },
+      { label: 'Golongan darah', value: 'Golongan A' },
+      { label: 'MBTI', value: 'ENTJ' },
+    ],
+    details: [
+      { label: 'Fisik', lines: ['168cm, golongan B, 235mm  (berat badan rahasia..)'] },
+      { label: 'Hobi', lines: ['Nongkrong di kafe, menari K-POP, tenis, golf'] },
+      { label: 'Keahlian', lines: ['Menyanyi'] },
+      { label: 'Cita-cita', lines: ['Sebagai influencer, aku ingin menyebarkan pesona pasar tradisional', 'ke seluruh dunia sebagai model promosi!'] },
+      {
+        label: 'Perkenalan diri',
+        lines: [
+          'Gadis berusia 20-an yang suka olahraga dan menjelajahi pasar tradisional!',
+          'Aku benar-benar cinta masakan Korea, dan wisata kuliner pasar adalah rutinitas healing-ku sendiri. Gen-MZ sejati pecinta K-POP!',
+          'Impianku adalah menjadi influencer yang memperkenalkan Korea ke seluruh dunia!',
+        ],
+      },
+    ],
+    hobbies: [
+      { title: 'Menari dan menyanyi K-POP adalah panggungku!', lines: ['Seperti idol di atas panggung! JEONG-I suka menari dan bernyanyi mengikuti K-POP.', 'Saat lagu favoritku diputar, kapan pun dan di mana pun langsung jadi waktu menari!'] },
+      { title: 'Waktu healing di lapangan golf', lines: ['Baru-baru ini mulai belajar golf (masih pemula).', 'Angin sejuk di atas rumput hijau membuat suasana hati jadi segar.', 'Ayunan santai di atas rumput~', 'Aku menemukan ketenangan di alam sambil bermain golf.', 'Gaya busana golf yang keren juga tak boleh ketinggalan!'] },
+      { title: 'Tenis adalah cara melepas stresku!', lines: ['Olahraga paling disukai JEONG-I adalah tenis~', 'Bergerak cepat dan satu smash!', 'Aku melepaskan energi dengan bermain tenis. Suka membentuk tim bersama teman, atau berlatih sendiri di pagi yang tenang.', 'Ditambah minuman segar setelah berkeringat, inilah hari sempurna ala JEONG-I!'] },
+    ],
+    stretchTitle: 'Yuk, peregangan ringan bersama JEONG-I!',
+    stretchLines: ['Sebelum berjalan jauh, tunggu dulu! Ikuti aku dan lakukan pemanasan ringan yuk?', 'Suasana hati pun segar~ energi juga naik!', 'Ikuti aku di layar, perlahan, langkah demi langkah.', 'Setelah peregangan, kamu bisa berwisata lebih ringan dan menyenangkan~'],
+    stretchSections: [
+      { title: 'Cegah kelelahan!', lines: ['Berjalan terlalu lama membuat kaki dan pinggang menumpuk lelah.', 'Peregangan ringan di tengah jalan membuat tubuh terasa jauh lebih nyaman!', "Ayo lakukan olahraga sederhana bersama 'JEONG-I'."] },
+      { title: 'Segarkan suasana hati!', lines: ['Peregangan menyegarkan bukan hanya tubuh, tapi juga pikiran!', 'Isi ulang energi dan berwisata dengan lebih seru.', 'Bagaimana kalau istirahat sejenak di tengah jalan~'] },
+    ],
+    hashtags: ['#JEONGE', '#JEONG-I', '#HaloJeonge'],
+  },
 };
 
 const HOBBY_IMAGES = [hobbyKpop, hobbyGolf, hobbyTennis];

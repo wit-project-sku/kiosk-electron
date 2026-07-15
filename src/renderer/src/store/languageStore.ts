@@ -16,8 +16,9 @@ interface LanguageState {
   hydrate: (language: SupportedLanguage, available: SupportedLanguage[]) => void;
 }
 
-/** The kiosk ships exactly these 4 languages everywhere. */
-const ALLOWED: SupportedLanguage[] = ['ko', 'en', 'ja', 'zh'];
+/** The kiosk ships exactly these 8 languages everywhere. Order matters: the
+ *  language selector lays these out column-major (4 left, 4 right). */
+const ALLOWED: SupportedLanguage[] = ['ko', 'en', 'ja', 'zh', 'vi', 'th', 'ru', 'id'];
 const clampLang = (l: SupportedLanguage): SupportedLanguage => (ALLOWED.includes(l) ? l : 'ko');
 
 /**
@@ -42,7 +43,7 @@ export const useLanguageStore = create<LanguageState>((set, get) => ({
   applyLanguage: (language) => set({ currentLanguage: clampLang(language) }),
 
   hydrate: (language) => {
-    // Ignore the backend's language list — the kiosk always offers the 4 ALLOWED.
+    // Ignore the backend's language list — the kiosk always offers the 8 ALLOWED.
     set({ currentLanguage: clampLang(language), availableLanguages: ALLOWED, loaded: true });
   },
 }));

@@ -12,7 +12,7 @@ import { t } from '@renderer/lib/loc';
 import { FloatingKeyboard } from '../insadong/keyboard/FloatingKeyboard';
 
 /** Search-bar language button → the current language's display code. */
-const LANG_CODE: Record<string, string> = { ko: 'KR', en: 'EN', ja: 'JP', zh: 'CN' };
+const LANG_CODE: Record<string, string> = { ko: 'KR', en: 'EN', ja: 'JP', zh: 'CN', vi: 'VN', th: 'TH', ru: 'RU', id: 'ID' };
 
 /** Home notice card + search placeholder (localized; tiles use sheet keys). */
 const NOTICE = {
@@ -26,6 +26,10 @@ const SEARCH_PLACEHOLDER = {
   en: 'Search about Hwaseong Service Area!',
   ja: '華城SAについて検索してみてください！',
   zh: '搜索关于华城休息站的信息！',
+  vi: 'Tìm kiếm về trạm dừng Hwaseong!',
+  th: 'ค้นหาเกี่ยวกับจุดพักรถฮวาซอง!',
+  ru: 'Поиск о зоне отдыха Хвасон!',
+  id: 'Cari tentang Rest Area Hwaseong!',
 };
 import { HangulComposer } from '../insadong/keyboard/hangul';
 import type { KeyAction } from '../insadong/keyboard/VirtualKeyboard';

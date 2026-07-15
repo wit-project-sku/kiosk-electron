@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { AppSettings, DisplayState, ImageAsset } from '@shared/types/domain';
 import type { KioskId, SupportedLanguage } from '@shared/types/kiosk';
 import { isOk } from '@shared/types/result';
@@ -11,7 +11,7 @@ import { usePhotoStore } from '@renderer/store/photoStore';
 import { trackEvent } from '@renderer/lib/analytics';
 import { displayVideosFor } from '@renderer/assets/videos';
 import { cameraIconUrl } from '@renderer/assets/icons/insadong/camera';
-import { clipsForScreen, initSubtitles } from '@renderer/lib/videoMap';
+import { clipsForScreen, initSubtitles, initVideoFiles } from '@renderer/lib/videoMap';
 import spinnerImg from '@renderer/assets/spinner.svg';
 import { KioskArtboard } from '@layouts/components/KioskScreenImage';
 import { Slideshow } from './components/Slideshow';
@@ -47,6 +47,9 @@ export function CustomerDisplay(): JSX.Element {
   const [kioskId, setKioskId] = useState<string | undefined>(undefined);
   // Bumped when the user taps the home weather box → advances the idle video.
   const [advanceTick, setAdvanceTick] = useState(0);
+  // Bumped once the API subtitles + on-disk video list have loaded, so the clip
+  // lookups below recompute against the freshly-populated (was-empty) maps.
+  const [dataVersion, setDataVersion] = useState(0);
 
   // Countdown shown on the generating/waiting screen (counts 60 → 0).
   const [genCountdown, setGenCountdown] = useState(GEN_WAIT_SECS);
@@ -60,11 +63,19 @@ export function CustomerDisplay(): JSX.Element {
       if (!isOk(r)) return;
       const id = r.value.kioskConfig.kioskId as KioskId;
       setKioskId(id);
-      // Fetch API subtitles once; replaces this kiosk's static fallback map if
-      // successful. Needs the resolved kioskId so entries land in the right set.
-      void window.api.subtitles.get().then((sr) => {
+      // Freshly load, on every launch: (1) the real on-disk video file list,
+      // THEN (2) this kiosk's API subtitles. Order matters — initSubtitles drops
+      // any entry whose video file isn't known, so the file list must be loaded
+      // first. Both replace the initially-empty maps; there is no hardcoded/
+      // build-time data. Needs the resolved kioskId so entries land in the right
+      // set. Bump dataVersion afterwards so the clip lookups recompute.
+      void (async () => {
+        const vr = await window.api.videos.list();
+        if (isOk(vr) && vr.value) initVideoFiles(vr.value);
+        const sr = await window.api.subtitles.get();
         if (isOk(sr) && sr.value) initSubtitles(sr.value, id);
-      });
+        setDataVersion((v) => v + 1);
+      })();
     });
 
     const offState = window.api.events.onDisplayStateChanged(setState);
@@ -84,12 +95,19 @@ export function CustomerDisplay(): JSX.Element {
   // Full ordered clip list for the current screen (sheet order). The wall
   // auto-advances through them on completion (home cycles 기본화면_1…10) and
   // preloads the next clip for an instant, no-flash switch.
-  const screenClips = clipsForScreen(kioskScreen, lang, kioskId);
-  const genClips = clipsForScreen('photo', lang, kioskId);
+  // dataVersion is a dep so these recompute once subtitles/video files load.
+  const screenClips = useMemo(
+    () => clipsForScreen(kioskScreen, lang, kioskId),
+    [kioskScreen, lang, kioskId, dataVersion],
+  );
+  const genClips = useMemo(
+    () => clipsForScreen('photo', lang, kioskId),
+    [lang, kioskId, dataVersion],
+  );
   // Osaek (W004) and Hwaseong (W005) don't use the PARK SUL NYEO brand logo.
   const noBrandLogo = kioskId === 'W004' || kioskId === 'W005';
   // Generic-wall fallback URLs for the active kiosk's video set (W004 → osaek).
-  const displayVideos = displayVideosFor(kioskId);
+  const displayVideos = useMemo(() => displayVideosFor(kioskId), [kioskId, dataVersion]);
 
   useEffect(() => {
     if (state.mode === 'generating') {

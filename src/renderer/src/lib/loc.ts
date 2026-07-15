@@ -5,8 +5,12 @@ import { LOCALIZATION_HWASEONG } from '@renderer/data/localization-hwaseong.gene
 import { getKioskLocation } from '@shared/config/kioskLocations';
 import { useKioskStore } from '@renderer/store/kioskStore';
 
-type Lang4 = 'ko' | 'en' | 'ja' | 'zh';
-const lang4 = (lang: Lang): Lang4 => (['ko', 'en', 'ja', 'zh'].includes(lang) ? (lang as Lang4) : 'ko');
+/** Languages the localization tables can carry a column for. Matches the keys
+ *  on LangText (ko/en/ja/zh + vi/th/ru/id). Anything else falls back to Korean. */
+type LocLang = 'ko' | 'en' | 'ja' | 'zh' | 'vi' | 'th' | 'ru' | 'id';
+const LOC_LANGS: readonly LocLang[] = ['ko', 'en', 'ja', 'zh', 'vi', 'th', 'ru', 'id'];
+const locLang = (lang: Lang): LocLang =>
+  (LOC_LANGS as readonly string[]).includes(lang) ? (lang as LocLang) : 'ko';
 
 /**
  * Bundled fallback table for the running location: Osaek for W004 (OSAN),
@@ -29,7 +33,7 @@ function bundledTable(): typeof LOCALIZATION {
  * launch after a sync.
  */
 export function t(key: string, lang: Lang): string {
-  const k = lang4(lang);
+  const k = locLang(lang);
 
   const synced = useKioskStore.getState().translations[key];
   if (synced) {
@@ -49,7 +53,7 @@ export function t(key: string, lang: Lang): string {
  * empty. `t()` is the full fallback chain.
  */
 export function tExact(key: string, lang: Lang): string {
-  const k = lang4(lang);
+  const k = locLang(lang);
   const synced = useKioskStore.getState().translations[key];
   if (synced && synced[k] && synced[k]!.trim()) return synced[k]!.trim();
   const entry = bundledTable()[key];

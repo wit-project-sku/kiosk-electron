@@ -152,10 +152,11 @@ export class GoogleSheetsSyncTransport implements SyncTransport {
    *  contamination). */
   private async downloadTranslations(config: NonNullable<ReturnType<typeof getGoogleSyncConfig>>): Promise<void> {
     const { sheetId, localizationRange: range } = this.contentSheet();
+    const layout = getKioskLocation(this.kiosk.getConfig().kioskId).layout;
     try {
       const client = new SheetsClient({ ...config, sheetId });
       const rows = await client.getValues(range);
-      const byLang = parseLocalizationSheet(rows);
+      const byLang = parseLocalizationSheet(rows, layout);
 
       let total = 0;
       for (const [lang, entries] of Object.entries(byLang)) {

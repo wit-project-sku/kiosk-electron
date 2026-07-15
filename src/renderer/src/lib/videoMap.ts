@@ -1,12 +1,8 @@
 import type { Lang } from '@renderer/lib/i18n';
-import { VIDEO_SUBTITLES } from '@renderer/data/videoSubtitles.generated';
-import { VIDEO_SUBTITLES_OSAEK } from '@renderer/data/videoSubtitles-osaek.generated';
-import { VIDEO_SUBTITLES_HWASEONG } from '@renderer/data/videoSubtitles-hwaseong.generated';
-import { VIDEO_FILES_INSADONG, VIDEO_FILES_OSAEK, VIDEO_FILES_HWASEONG } from '@renderer/assets/videos/manifest';
 import { getKioskLocation } from '@shared/config/kioskLocations';
 import type { KioskId } from '@shared/types/kiosk';
 import { pickText } from '@renderer/data/types';
-import type { VideoEntry } from '@shared/types/subtitle';
+import type { VideoEntry, VideoFilesBySet, VideoSet } from '@shared/types/subtitle';
 
 /**
  * Resolves the AI-model display videos for each kiosk screen, from
@@ -21,16 +17,37 @@ export interface DisplayClip {
   label: string;
 }
 
-/** Video set (subfolder under resources/videos) chosen per kiosk at runtime. */
-type VideoSet = 'insadong' | 'osaek' | 'hwaseong';
-
-/** Normalize a file stem so sheet names tolerant-match the real files. */
+/** Normalize a file stem so API names tolerant-match the real files. */
 const norm = (s: string): string => s.toLowerCase().replace(/\.mp4$/, '').replace(/[^a-z0-9]/g, '');
+
+// The real .mp4 files on disk, per set — the SINGLE source of truth for which
+// videos exist. Populated by initVideoFiles() from the main process's live
+// directory listing (IPC VideosList); empty until then. No build-time manifest,
+// so adding a video file makes it resolvable without a rebuild.
+const FILES_BY_SET: VideoFilesBySet = { insadong: [], osaek: [], hwaseong: [] };
 const FILE_BY_NORM: Record<VideoSet, Map<string, string>> = {
-  insadong: new Map(VIDEO_FILES_INSADONG.map((f) => [norm(f), f])),
-  osaek: new Map(VIDEO_FILES_OSAEK.map((f) => [norm(f), f])),
-  hwaseong: new Map(VIDEO_FILES_HWASEONG.map((f) => [norm(f), f])),
+  insadong: new Map(),
+  osaek: new Map(),
+  hwaseong: new Map(),
 };
+
+/**
+ * Load the real on-disk video file names (from IPC VideosList) so subtitle
+ * entries and the attract wall resolve against files that actually exist right
+ * now. Idempotent; call again to refresh after a sync.
+ */
+export function initVideoFiles(bySet: VideoFilesBySet): void {
+  for (const set of ['insadong', 'osaek', 'hwaseong'] as VideoSet[]) {
+    const files = bySet[set] ?? [];
+    FILES_BY_SET[set] = files;
+    FILE_BY_NORM[set] = new Map(files.map((f) => [norm(f), f]));
+  }
+}
+
+/** Real file names for a set (for the generic attract wall). */
+export function filesForSet(set: VideoSet): string[] {
+  return FILES_BY_SET[set];
+}
 
 /** Resolve a sheet file stem to a media:// URL within the kiosk's video set. */
 function resolveUrl(stem: string, set: VideoSet): string | null {
@@ -48,12 +65,13 @@ function buildByKey(entries: VideoEntry[]): Map<string, VideoEntry[]> {
   return m;
 }
 
-// Mutable maps — replaced by initSubtitles() when the API responds.
-// Initialised from the static generated fallbacks so the display works even
-// before the first API call completes (or if the API is unreachable).
-let BY_KEY_INSA = buildByKey(VIDEO_SUBTITLES);
-let BY_KEY_OSAEK = buildByKey(VIDEO_SUBTITLES_OSAEK);
-let BY_KEY_HWASEONG = buildByKey(VIDEO_SUBTITLES_HWASEONG);
+// Mutable maps — populated by initSubtitles() when the API responds. The API
+// (via SQLite offline cache) is the single source of truth for subtitles; there
+// is no build-time sheet fallback. Empty until the first successful fetch, so a
+// never-synced kiosk with no network shows no clips until it reaches the API once.
+let BY_KEY_INSA = new Map<string, VideoEntry[]>();
+let BY_KEY_OSAEK = new Map<string, VideoEntry[]>();
+let BY_KEY_HWASEONG = new Map<string, VideoEntry[]>();
 
 /** Which video set a kiosk's own subtitle entries belong to — the caller
  *  already knows this (it fetched `/api/kiosks/{thisKiosk}/subtitles`), so

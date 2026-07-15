@@ -49,6 +49,42 @@ export const RESULT: Partial<Record<Lang, ResultCopy>> = {
     goods: '制作周边',
     retake: '重拍',
   },
+  vi: {
+    subtitle: 'Hãy tạo món đồ lưu niệm của riêng bạn từ kết quả chụp ảnh',
+    step: 'Lưu',
+    saveHint: { lead: 'Để lưu ảnh, ', accent: 'hãy quét mã QR bằng camera!' },
+    note: ['Lưu vào điện thoại của bạn qua mã QR và chia sẻ lên mạng xã hội.', 'Sự kiện trải nghiệm hanbok đang được chuẩn bị — rất mong bạn tham gia!'],
+    save: 'Lưu',
+    goods: 'Làm đồ lưu niệm',
+    retake: 'Chụp lại',
+  },
+  th: {
+    subtitle: 'สร้างสินค้าที่เป็นของคุณเองจากผลลัพธ์ภาพถ่าย',
+    step: 'บันทึก',
+    saveHint: { lead: 'หากต้องการบันทึกรูปภาพ ', accent: 'สแกน QR ด้วยกล้องของคุณ!' },
+    note: ['บันทึกลงในโทรศัพท์ของคุณผ่าน QR และแชร์บนโซเชียลมีเดีย', 'กิจกรรมสวมใส่ฮันบกกำลังจะมาเร็ว ๆ นี้ — เชิญร่วมสนุกกับเรา!'],
+    save: 'บันทึก',
+    goods: 'ทำสินค้า',
+    retake: 'ถ่ายใหม่',
+  },
+  ru: {
+    subtitle: 'Создайте собственный сувенир по результату фотосъёмки',
+    step: 'Сохранить',
+    saveHint: { lead: 'Чтобы сохранить фото, ', accent: 'отсканируйте QR-код камерой!' },
+    note: ['Сохраните на телефон через QR-код и поделитесь в соцсетях.', 'Скоро мероприятие с примеркой ханбока — приглашаем принять участие!'],
+    save: 'Сохранить',
+    goods: 'Создать сувенир',
+    retake: 'Переснять',
+  },
+  id: {
+    subtitle: 'Buat suvenir Anda sendiri dari hasil foto',
+    step: 'Simpan',
+    saveHint: { lead: 'Untuk menyimpan foto, ', accent: 'pindai QR dengan kamera Anda!' },
+    note: ['Simpan ke ponsel Anda melalui QR dan bagikan ke media sosial.', 'Acara mengenakan hanbok akan segera hadir — silakan bergabung!'],
+    save: 'Simpan',
+    goods: 'Buat suvenir',
+    retake: 'Foto ulang',
+  },
 };
 
 export interface HanbokInfo {
@@ -88,6 +124,38 @@ export const HANBOK_INFO: Partial<Record<Lang, HanbokInfo>> = {
       '韩服是韩国的传统服饰，拥有悠久的历史与传统。它以独特的美感和别致的设计被视为代表韩国文化的象征之一，主要在特别的活动或节日时穿着。与线条笔直的西式服装不同，韩服以柔和流畅的线条和宽松飘逸的衣摆为特点。',
       '传统上，韩服的颜色会依社会地位、年龄、季节等来选择，配色也反映了穿着者的个性与场合。韩服不仅是一件衣服，更是象征韩国传统与文化的重要文化遗产，其美感在世界范围内也广受认可。',
       '现在就让我——INSA，把各位穿上韩服的美丽身影留在屏幕里吧！快来开始韩服试穿服务吧～～',
+    ],
+  },
+  vi: {
+    heading: 'Giới thiệu Hanbok',
+    paragraphs: [
+      'Hanbok là trang phục truyền thống của Hàn Quốc, mang bề dày lịch sử và truyền thống lâu đời. Với vẻ đẹp riêng và thiết kế độc đáo, hanbok được xem là một trong những biểu tượng của văn hóa Hàn Quốc và thường được mặc trong những dịp đặc biệt hay ngày lễ. Khác với đường nét thẳng của trang phục phương Tây, hanbok đặc trưng bởi những đường lượn mềm mại và tà áo rộng buông rủ.',
+      'Theo truyền thống, màu sắc của hanbok được chọn theo địa vị xã hội, độ tuổi và mùa, và cách phối màu phản ánh cá tính cũng như hoàn cảnh của người mặc. Hơn cả một bộ trang phục, hanbok là di sản văn hóa quan trọng tượng trưng cho truyền thống và văn hóa Hàn Quốc, và vẻ đẹp của nó được công nhận trên toàn thế giới.',
+      'Ngay bây giờ, hãy để tôi — INSA — lưu lại những khoảnh khắc đáng yêu của bạn trong bộ hanbok lên màn hình! Hãy bắt đầu dịch vụ mặc thử hanbok nào~~',
+    ],
+  },
+  th: {
+    heading: 'เกี่ยวกับฮันบก',
+    paragraphs: [
+      'ฮันบกเป็นเครื่องแต่งกายดั้งเดิมของเกาหลี ที่มีประวัติศาสตร์และประเพณีอันยาวนาน ด้วยความงามที่เป็นเอกลักษณ์และการออกแบบที่โดดเด่น ฮันบกจึงถือเป็นหนึ่งในสัญลักษณ์ของวัฒนธรรมเกาหลี และมักสวมใส่ในโอกาสพิเศษหรือเทศกาลต่าง ๆ ต่างจากเสื้อผ้าตะวันตกที่มีเส้นสายตรง ฮันบกโดดเด่นด้วยเส้นสายที่พลิ้วไหวอ่อนช้อยและชายผ้าที่กว้างสยาย',
+      'ตามธรรมเนียม สีของฮันบกจะเลือกตามสถานะทางสังคม อายุ และฤดูกาล และการจับคู่สีสะท้อนถึงบุคลิกและสถานการณ์ของผู้สวมใส่ ฮันบกเป็นมากกว่าเครื่องแต่งกาย แต่เป็นมรดกทางวัฒนธรรมที่สำคัญซึ่งเป็นสัญลักษณ์ของประเพณีและวัฒนธรรมเกาหลี และความงามของมันได้รับการยอมรับไปทั่วโลก',
+      'ตอนนี้เลย ให้ฉัน — INSA — เก็บภาพช่วงเวลาน่ารักของคุณในชุดฮันบกไว้บนหน้าจอ! มาเริ่มบริการสวมใส่ฮันบกกันเลย~~',
+    ],
+  },
+  ru: {
+    heading: 'О ханбоке',
+    paragraphs: [
+      'Ханбок — это традиционная одежда Кореи с долгой историей и богатым наследием. Благодаря своей неповторимой красоте и самобытному дизайну он считается одним из символов корейской культуры и надевается преимущественно по особым случаям и праздникам. В отличие от прямых линий западной одежды, ханбок отличается мягко струящимися линиями и просторными, ниспадающими полами.',
+      'Традиционно цвета ханбока выбирались в соответствии с общественным положением, возрастом и временем года, а сочетания цветов отражают характер и обстоятельства человека, который его носит. Ханбок — это больше, чем просто одежда: это важное культурное наследие, символизирующее корейские традиции и культуру, и его красота признана во всём мире.',
+      'Прямо сейчас позвольте мне — ИНСА — запечатлеть на экране ваши прекрасные мгновения в ханбоке! Начните услугу примерки ханбока~~',
+    ],
+  },
+  id: {
+    heading: 'Tentang Hanbok',
+    paragraphs: [
+      'Hanbok adalah pakaian tradisional Korea dengan sejarah dan warisan yang panjang. Dengan keindahannya yang khas dan desainnya yang unik, hanbok dianggap sebagai salah satu simbol budaya Korea dan umumnya dikenakan pada acara istimewa atau hari raya. Berbeda dengan garis lurus pada pakaian Barat, hanbok memiliki ciri garis yang mengalir lembut serta kain yang longgar dan menjuntai.',
+      'Secara tradisional, warna hanbok dipilih sesuai dengan status sosial, usia, dan musim, dan padanan warnanya mencerminkan kepribadian serta situasi pemakainya. Lebih dari sekadar pakaian, hanbok merupakan warisan budaya penting yang melambangkan tradisi dan budaya Korea, dan keindahannya diakui di seluruh dunia.',
+      'Sekarang juga, biarkan saya — INSA — mengabadikan momen indah Anda dalam balutan hanbok di layar! Mari mulai layanan mengenakan hanbok~~',
     ],
   },
 };
@@ -149,6 +217,54 @@ export const PRIVACY: Partial<Record<Lang, PrivacyPolicy>> = {
       { title: '5. 安全保障措施', lines: ['为保护个人信息，我们采取以下措施：', '数据加密：个人信息加密存储与传输。', '访问限制：将访问权限限于必要的员工及合作方。', '安全更新：通过定期检查与更新防止系统漏洞。'] },
       { title: '6. 政策的变更', lines: ['本隐私政策可能依法律要求或服务变更而修订。如有变更，将通过应用或网站予以公告。'] },
       { title: '7. 个人信息保护负责人', lines: ['负责人：因陀罗', '联系方式：company @witworldwide.com'] },
+    ],
+  },
+  vi: {
+    title: 'Chính sách quyền riêng tư',
+    sections: [
+      { title: '1. Mục và phương thức thu thập thông tin cá nhân', lines: ['Chúng tôi thu thập các thông tin cá nhân sau đây để cung cấp dịch vụ:', 'Mục bắt buộc: tệp ảnh và siêu dữ liệu liên quan', 'Phương thức thu thập: thông tin ảnh ghép được tạo ra khi người dùng chọn trang phục và chụp ảnh tại ki-ốt'] },
+      { title: '2. Mục đích thu thập và sử dụng thông tin cá nhân', lines: ['Chúng tôi sử dụng thông tin cá nhân đã thu thập cho các mục đích sau:', 'Cung cấp dịch vụ: cung cấp dữ liệu ảnh ghép cho người dùng', 'Thông báo và tiếp thị: sử dụng để cung cấp thông tin được cá nhân hóa như sự kiện, khuyến mãi và quảng cáo'] },
+      { title: '3. Thời gian lưu giữ và sử dụng thông tin cá nhân', lines: ['Chúng tôi lưu giữ thông tin cá nhân cho đến khi đạt được mục đích thu thập, và sau khi mục đích sử dụng đã hoàn thành, thông tin sẽ được hủy an toàn ngay lập tức. Ngay cả khi người dùng yêu cầu hủy tài khoản hoặc ngừng sử dụng, thông tin cá nhân vẫn được lưu giữ trong một khoảng thời gian nhất định theo quy định pháp luật liên quan rồi mới hủy.'] },
+      { title: '4. Cung cấp thông tin cá nhân cho bên thứ ba', lines: ['Về nguyên tắc, chúng tôi không cung cấp thông tin cá nhân của người dùng cho bên thứ ba. Tuy nhiên, thông tin cá nhân có thể được cung cấp trong các trường hợp sau:', 'Nghĩa vụ pháp lý: khi có yêu cầu theo quy định pháp luật hoặc theo thủ tục pháp lý', 'Đối tác cung cấp dịch vụ: khi hợp tác với các đơn vị bên ngoài cần thiết để cung cấp tính năng và khuyến mãi, chúng tôi có thể chia sẻ thông tin cá nhân ở mức tối thiểu.', 'Sự đồng ý trước của người dùng: chỉ cung cấp thông tin cá nhân khi người dùng đã đồng ý.'] },
+      { title: '5. Biện pháp bảo đảm an toàn thông tin cá nhân', lines: ['Chúng tôi thực hiện các biện pháp sau để bảo vệ thông tin cá nhân của người dùng:', 'Mã hóa dữ liệu: thông tin cá nhân được mã hóa khi lưu trữ và truyền tải.', 'Hạn chế truy cập: giới hạn quyền truy cập thông tin cá nhân cho những nhân viên và đối tác cần thiết.', 'Cập nhật bảo mật: ngăn ngừa lỗ hổng của hệ thống thông qua việc kiểm tra và cập nhật bảo mật định kỳ.'] },
+      { title: '6. Thay đổi chính sách quyền riêng tư', lines: ['Chính sách quyền riêng tư này có thể được sửa đổi theo yêu cầu pháp lý hoặc thay đổi dịch vụ. Nếu có thay đổi, chúng tôi sẽ thông báo nội dung thay đổi qua ứng dụng hoặc trang web.'] },
+      { title: '7. Người phụ trách bảo vệ thông tin cá nhân', lines: ['Người phụ trách: Indara', 'Liên hệ: company @witworldwide.com'] },
+    ],
+  },
+  th: {
+    title: 'นโยบายความเป็นส่วนตัว',
+    sections: [
+      { title: '1. รายการและวิธีการเก็บรวบรวมข้อมูลส่วนบุคคล', lines: ['เราเก็บรวบรวมข้อมูลส่วนบุคคลต่อไปนี้เพื่อให้บริการ:', 'รายการที่จำเป็น: ไฟล์ภาพถ่ายและข้อมูลเมทาดาทาที่เกี่ยวข้อง', 'วิธีการเก็บรวบรวม: ข้อมูลภาพสังเคราะห์ที่สร้างขึ้นเมื่อผู้ใช้เลือกเครื่องแต่งกายและถ่ายภาพที่ตู้คีออสก์'] },
+      { title: '2. วัตถุประสงค์ในการเก็บรวบรวมและใช้ข้อมูลส่วนบุคคล', lines: ['เราใช้ข้อมูลส่วนบุคคลที่เก็บรวบรวมเพื่อวัตถุประสงค์ต่อไปนี้:', 'การให้บริการ: การมอบข้อมูลภาพสังเคราะห์ให้แก่ผู้ใช้', 'การแจ้งเตือนและการตลาด: ใช้เพื่อมอบข้อมูลเฉพาะบุคคล เช่น กิจกรรม โปรโมชัน และโฆษณา'] },
+      { title: '3. ระยะเวลาการเก็บรักษาและใช้ข้อมูลส่วนบุคคล', lines: ['เราเก็บรักษาข้อมูลส่วนบุคคลไว้จนกว่าจะบรรลุวัตถุประสงค์ในการเก็บรวบรวม และหลังจากบรรลุวัตถุประสงค์ในการใช้แล้ว ข้อมูลจะถูกทำลายอย่างปลอดภัยโดยทันที แม้ผู้ใช้จะร้องขอยกเลิกการใช้งานหรือหยุดใช้บริการ ข้อมูลส่วนบุคคลก็จะถูกเก็บรักษาไว้ตามระยะเวลาที่กฎหมายที่เกี่ยวข้องกำหนดก่อนแล้วจึงทำลาย'] },
+      { title: '4. การเปิดเผยข้อมูลส่วนบุคคลแก่บุคคลที่สาม', lines: ['โดยหลักการ เราจะไม่เปิดเผยข้อมูลส่วนบุคคลของผู้ใช้แก่บุคคลที่สาม อย่างไรก็ตาม อาจมีการเปิดเผยข้อมูลส่วนบุคคลเฉพาะในกรณีต่อไปนี้:', 'ภาระผูกพันทางกฎหมาย: กรณีที่มีการร้องขอตามกฎหมายหรือตามกระบวนการทางกฎหมาย', 'พันธมิตรเพื่อการให้บริการ: เมื่อร่วมมือกับผู้ให้บริการภายนอกที่จำเป็นเพื่อมอบฟังก์ชันและโปรโมชัน เราอาจแบ่งปันข้อมูลส่วนบุคคลในระดับขั้นต่ำ', 'ความยินยอมล่วงหน้าของผู้ใช้: เราจะเปิดเผยข้อมูลส่วนบุคคลเฉพาะกรณีที่ผู้ใช้ให้ความยินยอมเท่านั้น'] },
+      { title: '5. มาตรการรักษาความปลอดภัยของข้อมูลส่วนบุคคล', lines: ['เราดำเนินมาตรการต่อไปนี้เพื่อปกป้องข้อมูลส่วนบุคคลของผู้ใช้:', 'การเข้ารหัสข้อมูล: จัดเก็บและส่งข้อมูลส่วนบุคคลในรูปแบบที่เข้ารหัส', 'การจำกัดการเข้าถึง: จำกัดการเข้าถึงข้อมูลส่วนบุคคลไว้เฉพาะพนักงานและพันธมิตรที่จำเป็น', 'การอัปเดตความปลอดภัย: ป้องกันช่องโหว่ของระบบด้วยการตรวจสอบและอัปเดตความปลอดภัยอย่างสม่ำเสมอ'] },
+      { title: '6. การเปลี่ยนแปลงนโยบายความเป็นส่วนตัว', lines: ['นโยบายความเป็นส่วนตัวนี้อาจมีการแก้ไขตามข้อกำหนดทางกฎหมายหรือการเปลี่ยนแปลงบริการ หากมีการเปลี่ยนแปลง เราจะแจ้งให้ทราบผ่านแอปพลิเคชันหรือเว็บไซต์'] },
+      { title: '7. ผู้รับผิดชอบด้านการคุ้มครองข้อมูลส่วนบุคคล', lines: ['ผู้รับผิดชอบ: อินดารา', 'ติดต่อ: company @witworldwide.com'] },
+    ],
+  },
+  ru: {
+    title: 'Политика конфиденциальности',
+    sections: [
+      { title: '1. Состав и способ сбора персональных данных', lines: ['Мы собираем следующие персональные данные для предоставления услуги:', 'Обязательные данные: файлы фотографий и связанные метаданные', 'Способ сбора: данные составной фотографии, создаваемой, когда пользователь выбирает наряд и делает снимок в киоске'] },
+      { title: '2. Цели сбора и использования персональных данных', lines: ['Мы используем собранные персональные данные в следующих целях:', 'Предоставление услуги: предоставление пользователю данных составной фотографии', 'Уведомления и маркетинг: использование для предоставления персонализированной информации, такой как мероприятия, акции и реклама'] },
+      { title: '3. Срок хранения и использования персональных данных', lines: ['Мы храним персональные данные до достижения цели их сбора, после чего они немедленно и безопасно уничтожаются. Даже если пользователь запрашивает прекращение членства или прекращает использование услуги, персональные данные хранятся в течение определённого срока в соответствии с применимым законодательством, а затем уничтожаются.'] },
+      { title: '4. Передача персональных данных третьим лицам', lines: ['Как правило, мы не передаём персональные данные пользователя третьим лицам. Однако персональные данные могут быть предоставлены в следующих случаях:', 'Правовое обязательство: при наличии требования согласно законодательству или в рамках юридической процедуры', 'Партнёры для предоставления услуги: при сотрудничестве с необходимыми внешними компаниями для предоставления функций и акций мы можем передавать минимально необходимый объём персональных данных.', 'Предварительное согласие пользователя: персональные данные предоставляются только при наличии согласия пользователя.'] },
+      { title: '5. Меры по обеспечению безопасности персональных данных', lines: ['Для защиты персональных данных пользователя мы принимаем следующие меры:', 'Шифрование данных: персональные данные хранятся и передаются в зашифрованном виде.', 'Ограничение доступа: доступ к персональным данным ограничен необходимыми сотрудниками и партнёрами.', 'Обновления безопасности: предотвращение уязвимостей системы посредством регулярных проверок и обновлений безопасности.'] },
+      { title: '6. Изменение политики конфиденциальности', lines: ['Настоящая политика конфиденциальности может быть изменена в соответствии с требованиями законодательства или изменениями услуги. При наличии изменений мы уведомим об изменённых положениях через приложение или веб-сайт.'] },
+      { title: '7. Ответственный за защиту персональных данных', lines: ['Ответственный: Индара', 'Контакт: company @witworldwide.com'] },
+    ],
+  },
+  id: {
+    title: 'Kebijakan Privasi',
+    sections: [
+      { title: '1. Jenis dan metode pengumpulan data pribadi', lines: ['Kami mengumpulkan data pribadi berikut untuk menyediakan layanan:', 'Data wajib: berkas foto dan metadata terkait', 'Metode pengumpulan: informasi foto komposit yang dihasilkan saat pengguna memilih busana dan mengambil foto di kios'] },
+      { title: '2. Tujuan pengumpulan dan penggunaan data pribadi', lines: ['Kami menggunakan data pribadi yang dikumpulkan untuk tujuan berikut:', 'Penyediaan layanan: menyediakan data foto komposit kepada pengguna', 'Pemberitahuan dan pemasaran: digunakan untuk menyediakan informasi yang dipersonalisasi seperti acara, promosi, dan iklan'] },
+      { title: '3. Jangka waktu penyimpanan dan penggunaan data pribadi', lines: ['Kami menyimpan data pribadi hingga tujuan pengumpulan tercapai, dan setelah tujuan penggunaan tercapai, data akan segera dimusnahkan dengan aman. Meskipun pengguna meminta pengunduran diri atau berhenti menggunakan layanan, data pribadi tetap disimpan selama jangka waktu tertentu sesuai peraturan perundang-undangan yang berlaku sebelum dimusnahkan.'] },
+      { title: '4. Pemberian data pribadi kepada pihak ketiga', lines: ['Pada prinsipnya kami tidak memberikan data pribadi pengguna kepada pihak ketiga. Namun, data pribadi dapat diberikan hanya dalam kasus berikut:', 'Kewajiban hukum: apabila diminta berdasarkan peraturan perundang-undangan atau mengikuti prosedur hukum', 'Mitra untuk penyediaan layanan: saat bekerja sama dengan perusahaan eksternal yang diperlukan untuk menyediakan fitur dan promosi, kami dapat membagikan data pribadi seminimal mungkin.', 'Persetujuan sebelumnya dari pengguna: data pribadi hanya diberikan apabila pengguna telah menyetujuinya.'] },
+      { title: '5. Langkah-langkah pengamanan data pribadi', lines: ['Kami mengambil langkah-langkah berikut untuk melindungi data pribadi pengguna:', 'Enkripsi data: data pribadi disimpan dan dikirim dalam bentuk terenkripsi.', 'Pembatasan akses: membatasi akses terhadap data pribadi hanya untuk karyawan dan mitra yang diperlukan.', 'Pembaruan keamanan: mencegah kerentanan sistem melalui pemeriksaan dan pembaruan keamanan secara berkala.'] },
+      { title: '6. Perubahan kebijakan privasi', lines: ['Kebijakan privasi ini dapat direvisi sesuai dengan persyaratan hukum atau perubahan layanan. Apabila terdapat perubahan, kami akan memberitahukan perubahan tersebut melalui aplikasi atau situs web.'] },
+      { title: '7. Petugas perlindungan data pribadi', lines: ['Petugas: Indara', 'Kontak: company @witworldwide.com'] },
     ],
   },
 };

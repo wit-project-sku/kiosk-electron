@@ -1,6 +1,6 @@
 {
   "name": "kiosk-app",
-  "version": "5.0.22",
+  "version": "5.0.5",
   "description": "Production-grade offline-first Electron kiosk application with multi-monitor customer display.",
   "main": "./out/main/index.js",
   "author": "Kiosk App Team",
@@ -32,7 +32,6 @@
     "format:check": "prettier --check \"src/**/*.{ts,tsx,css,json}\"",
     "provision:kiosk": "node scripts/provision-kiosk.mjs",
     "sync:sheet": "node scripts/sync-sheet.mjs",
-    "sync:videos": "node scripts/sync-videos.mjs",
     "db:inspect": "node scripts/db-inspect.mjs"
   },
   "dependencies": {
