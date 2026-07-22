@@ -119,7 +119,20 @@ export class PhotoWorkflowService {
 
   setError(message: string): PhotoWorkflowState {
     this.clearCountdown();
-    this.state = { ...this.state, errorMessage: message, statusMessage: null };
+    // Land on the 'result' phase (an existing Monitor 1 render branch) with no
+    // result fields — the renderer shows the error + home button instead of the
+    // camera popup lingering on a phase that never renders errorMessage.
+    // Monitor 2 falls back to the attract loop, same as before.
+    this.state = {
+      ...this.state,
+      phase: 'result',
+      resultImagePath: null,
+      resultFileName: null,
+      resultUrl: null,
+      countdown: null,
+      statusMessage: null,
+      errorMessage: message,
+    };
     this.syncDisplay('attract');
     this.emit();
     return this.state;

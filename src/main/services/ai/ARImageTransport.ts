@@ -15,6 +15,9 @@ const log = createLogger('ar-image-transport');
 const DEFAULT_PROCESS_IMAGE_URL = 'https://kr-kiosk.digicon.pro/api/v2/process_image';
 const DEFAULT_PROCESS_COMBINE_URL = 'https://kr-kiosk.digicon.pro/api/v2/process_and_combine';
 
+/** Abort the AR request after this long. Override with VITE_AR_TIMEOUT_MS. */
+const DEFAULT_TIMEOUT_MS = 90_000;
+
 /**
  * Digicon AR hanbok transport. Two endpoints:
  *   solo     → process_image          (styleKey 'solo')
@@ -51,6 +54,10 @@ export class ARImageTransport implements AITransport {
   private combineUrl(): string {
     return process.env['VITE_AR_PROCESS_API_URL'] || DEFAULT_PROCESS_COMBINE_URL;
   }
+  private timeoutMs(): number {
+    const raw = Number(process.env['VITE_AR_TIMEOUT_MS'] || '');
+    return Number.isFinite(raw) && raw > 0 ? raw : DEFAULT_TIMEOUT_MS;
+  }
 
   isConfigured(): boolean {
     return true; // endpoints always resolve (env override or built-in default)
@@ -84,9 +91,27 @@ export class ARImageTransport implements AITransport {
       gender,
     });
 
-    const response = await fetch(endpoint, { method: 'POST', body: form });
+    let response: Response;
+    try {
+      response = await fetch(endpoint, {
+        method: 'POST',
+        body: form,
+        signal: AbortSignal.timeout(this.timeoutMs()),
+      });
+    } catch (error) {
+      // Keep the timeout case identifiable in logs/analytics; everything else
+      // surfaces as a plain network-level failure.
+      const aborted =
+        error instanceof Error && (error.name === 'TimeoutError' || error.name === 'AbortError');
+      if (aborted) {
+        throw new Error(`AR generation timed out after ${this.timeoutMs()}ms`, { cause: error });
+      }
+      const message = error instanceof Error ? error.message : 'AR request failed';
+      throw new Error(`AR request failed: ${message}`, { cause: error });
+    }
+
     if (!response.ok) {
-      const body = await response.text();
+      const body = await response.text().catch(() => '');
       throw new Error(`AR generation failed (${response.status}): ${body}`);
     }
 

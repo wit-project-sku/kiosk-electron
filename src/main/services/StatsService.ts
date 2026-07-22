@@ -29,8 +29,9 @@ const SYNC_BATCH_LIMIT = 1000;
 /** Safety bound on how many 1000-item batches one nightly run will push. */
 const MAX_BATCH_PASSES = 20;
 
-/** Local ISO-8601 with the machine's tz offset, e.g. "2026-06-01T13:53:26+09:00". */
-function localIso(date: Date = new Date()): string {
+/** Local ISO-8601 with the machine's tz offset, e.g. "2026-06-01T13:53:26+09:00".
+ *  Exported so the photo pipeline can pin `shotAt` at generation start. */
+export function localIso(date: Date = new Date()): string {
   const pad = (n: number): string => String(n).padStart(2, '0');
   const offsetMin = -date.getTimezoneOffset();
   const sign = offsetMin >= 0 ? '+' : '-';

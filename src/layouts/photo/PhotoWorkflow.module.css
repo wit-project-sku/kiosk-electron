@@ -184,6 +184,45 @@
   color: #c0392b;
 }
 
+/* ── Generation-failed screen: error copy + home button ─────────────────── */
+.errorScreen {
+  position: absolute;
+  inset: 699px 170px 890px; /* below the header, same content band as result */
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 48px;
+  text-align: center;
+  font-family: var(--kiosk-font, sans-serif);
+}
+
+.errorTitle {
+  font-size: 96px;
+  font-weight: 700;
+  color: #c0392b;
+}
+
+.errorBody {
+  font-size: 56px;
+  font-weight: 500;
+  color: #333333;
+}
+
+.errorHomeBtn {
+  margin-top: 60px;
+  width: 640px;
+  height: 150px;
+  border: none;
+  border-radius: 42.9px;
+  background: var(--photo-accent, #fe6c50);
+  color: #ffffff;
+  font-family: var(--kiosk-font, sans-serif);
+  font-weight: 700;
+  font-size: 56px;
+  cursor: pointer;
+}
+
 /* ── Result (no-payment): result image + QR to save ───────────────────────── */
 .resultContent {
   position: absolute;

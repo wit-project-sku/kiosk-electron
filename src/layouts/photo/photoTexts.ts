@@ -51,6 +51,36 @@ export const RESULT: Partial<Record<Lang, ResultCopy>> = {
   },
 };
 
+export interface GenerationErrorCopy {
+  title: string;
+  body: string;
+  home: string;
+}
+
+/** AI 합성 실패 화면 copy — 에러 안내 문구 + 홈 버튼 (최소 구성). */
+export const GENERATION_ERROR: Partial<Record<Lang, GenerationErrorCopy>> = {
+  ko: {
+    title: '사진 생성에 실패했어요',
+    body: '잠시 후 처음 화면에서 다시 시도해 주세요.',
+    home: '처음으로',
+  },
+  en: {
+    title: 'Photo generation failed',
+    body: 'Please try again from the home screen in a moment.',
+    home: 'Home',
+  },
+  ja: {
+    title: '写真の生成に失敗しました',
+    body: 'しばらくしてからホーム画面でもう一度お試しください。',
+    home: 'ホームへ',
+  },
+  zh: {
+    title: '照片生成失败',
+    body: '请稍后返回首页重试。',
+    home: '返回首页',
+  },
+};
+
 export interface HanbokInfo {
   heading: string;
   paragraphs: string[];

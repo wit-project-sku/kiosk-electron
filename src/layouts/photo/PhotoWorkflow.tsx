@@ -13,7 +13,7 @@ import { trackEvent } from '@renderer/lib/analytics';
 import { resolveButton } from '@renderer/lib/buttonCatalog';
 import { HanbokSelect, type CaptureMode } from './HanbokSelect';
 import { usePhotoChrome } from './photoChrome';
-import { RESULT } from './photoTexts';
+import { GENERATION_ERROR, RESULT } from './photoTexts';
 import styles from './PhotoWorkflow.module.css';
 
 /** Where the 굿즈제작 button's QR points. */
@@ -82,6 +82,36 @@ export function PhotoWorkflow(): JSX.Element {
   if (phase === 'clothing' || phase === 'style' || phase === 'preview' || phase === 'countdown' || phase === 'generating') {
     const capturing = phase === 'preview' || phase === 'countdown' || phase === 'generating';
     return <HanbokSelect onHome={handleReset} onCapture={handleCapture} countdownActive={capturing} />;
+  }
+
+  // ── Generation failed (all kiosks): error message + home button ────────────
+  // setError() lands on the 'result' phase with no result fields; catch that
+  // combination here so the customer sees the failure instead of a stuck
+  // camera popup. Home button + 3-min inactivity reset both lead back home.
+  if (phase === 'result' && errorMessage && !resultFileName) {
+    const c = pick(GENERATION_ERROR, lang);
+    return (
+      <>
+        {isHwaseong ? (
+          <>
+            <div className={styles.bgBase} />
+            {icon('bg') && <img className={styles.bgHw} src={icon('bg')} alt="" draggable={false} />}
+          </>
+        ) : (
+          icon('bg') && <img className={styles.bg} src={icon('bg')} alt="" draggable={false} />
+        )}
+
+        <Header title={photoTitle} onHome={handleReset} />
+
+        <div className={styles.errorScreen}>
+          <p className={styles.errorTitle}>{c.title}</p>
+          <p className={styles.errorBody}>{c.body}</p>
+          <button type="button" className={styles.errorHomeBtn} onClick={handleReset}>
+            {c.home}
+          </button>
+        </div>
+      </>
+    );
   }
 
   // ── Result (PAYMENT kiosks W003/W004): WIT Store on Monitor 1; result image big on Monitor 2 ──
