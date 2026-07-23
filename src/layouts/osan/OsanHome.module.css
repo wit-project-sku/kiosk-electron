@@ -318,6 +318,15 @@
   object-fit: contain;
 }
 
+/* Art that IS the tile face (an opaque square, e.g. 기부) rather than a glyph on
+   the box colour: fill edge-to-edge so the box colour never frames it. `cover`
+   crops rather than letterboxes; .tileBox already clips to the radius. */
+.tileBoxFull img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
 /* Bottom-anchored full-body illustrations (e.g. 안녕 '정이'): the figure sits
    flush to the inner bottom of the box rather than vertically centered. */
 .tileBoxBottom {

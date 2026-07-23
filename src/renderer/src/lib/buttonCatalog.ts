@@ -31,6 +31,13 @@ interface Slot {
    * use bespoke names taken straight from the DB.
    */
   suffix?: string;
+  /**
+   * This button's `buttons.id` is NOT in the BUTTON_IDS mirror below and must be
+   * resolved from the live API by `type` instead. Set for rows whose id differs
+   * per API environment, where any hardcoded value would be wrong somewhere —
+   * see `donation`.
+   */
+  dynamicId?: true;
 }
 
 /**
@@ -58,7 +65,19 @@ const SLOTS: Record<string, Slot> = {
   about: { position: 11, type: '여기는 인사동' },
   hello: { position: 12, type: '안녕 인사' },
   help: { position: 13, type: '도와줘 인사' },
-  map: { position: 14, type: '인사동 지도' },
+  // Slot 14 is the 지도 slot, and 기부 takes it over on the kiosks that run the
+  // donation app (W003/W004/W005) — the two are mutually exclusive, so exactly
+  // one of `map`/`parking`/`donation` is rendered per kiosk. See hasDonation in
+  // kioskLocations and useHasDonationTile for who gets which.
+  map: { position: 14, type: '인사동 지도' }, // W001/W002
+  //
+  // 기부 is NOT slot 14's DB row — it is its own row, and its id differs per API
+  // environment (production 126/127/128 vs stage 128/129/130 for W003/W004/W005).
+  // Note prod id 128 is W005's 기부 while stage id 128 is W003's, so ANY hardcoded
+  // id is actively wrong in one environment: dynamicId forces resolution by
+  // `type` off the live response instead. Keep `type` exactly matching the CMS's
+  // button_type — it is the only join key.
+  donation: { position: 14, type: '기부', suffix: '기부', dynamicId: true },
   exchange: { position: 15, type: '환율' },
   transport: { position: 16, type: '교통안내' },
   lodging: { position: 17, type: '숙박안내' },
@@ -164,7 +183,10 @@ export function resolveButton(kioskId: KioskId, key: string): KioskButtonRef | n
   const slot = SLOT_OVERRIDES[kioskId]?.[key] ?? SLOTS[key];
   if (!slot) return null;
   const suffix = slot.suffix ?? `아이콘${String(slot.position).padStart(2, '0')}`;
-  const id = BUTTON_IDS[kioskId]?.[slot.position] ?? null;
+  // dynamicId rows have no entry in the mirror — their id comes from the live API
+  // (useResolveButton matches by buttonType). Reading BUTTON_IDS[position] here
+  // would hand back the id of whichever button really owns that slot.
+  const id = slot.dynamicId ? null : BUTTON_IDS[kioskId]?.[slot.position] ?? null;
   return { key, id, position: slot.position, buttonName: `#${kioskId}_${suffix}`, buttonType: slot.type };
 }
 

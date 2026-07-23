@@ -252,6 +252,19 @@
   display: flex;
 }
 
+/* Street-tab map (빨강길·녹색길·미소거리·아름거리·맘스거리): fixed Figma-exact
+   size (width/height set inline), natural aspect, top-aligned. Centred within
+   the card (맘스거리 is a narrower 984px column). Pinch/drag to zoom. */
+.streetMapWrap {
+  /* grow:0 keeps short crops (빨강/녹색/미소) at their exact height; shrink:1
+     lets the tall crops (아름/맘스) shrink to fit rather than clip the card. */
+  flex: 0 1 auto;
+  min-height: 0;
+  border-radius: 21.45px;
+  overflow: hidden;
+  display: flex;
+}
+
 .marketBottom {
   flex: none;
   width: 1740px;
@@ -272,6 +285,12 @@
   line-height: 1.5;
   text-align: center;
   width: 1740px;
+}
+
+/* Street tabs (빨강길·녹색길·미소거리·아름거리·맘스거리): the map description
+   reads left-aligned; the kiosk title/location below it stay centred. */
+.marketDescLeft {
+  text-align: left;
 }
 
 .kioskBlock {

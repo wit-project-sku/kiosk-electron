@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import type { KioskController } from '@renderer/hooks/useKioskController';
-import { useLang, pick } from '@renderer/lib/i18n';
+import { useLang, pick, type Lang } from '@renderer/lib/i18n';
 import { kdramaAsset } from '@renderer/assets/icons/insadong/kdrama';
 import { osanIconUrl } from '@renderer/assets/icons/osan';
 import { usePhotoStore } from '@renderer/store/photoStore';
@@ -8,17 +8,20 @@ import { OsanHeader } from './OsanHeader';
 import styles from '../insadong/InsadongKdrama.module.css';
 
 type View = 'main' | 'quest' | 'reward';
-type Lang = 'ko' | 'en' | 'ja' | 'zh';
 
 const TITLE: Partial<Record<Lang, string>> = {
   ko: '티빙 오리지널 취사병 전설이 되다',
   en: 'Tving Original: Cook Soldier — Become a Legend',
   ja: 'Tvingオリジナル 취사병 전설이 되다',
   zh: 'Tving 原创剧 취사병 전설이 되다',
+  vi: 'Tving Original: Anh Nuôi Trở Thành Huyền Thoại',
+  th: 'Tving Original: พลทหารครัวสู่ตำนาน',
+  ru: 'Tving Original: Повар-солдат становится легендой',
+  id: 'Tving Original: Prajurit Juru Masak Jadi Legenda',
 };
-const BTN_INTRO: Partial<Record<Lang, string>> = { ko: '이벤트 소개', en: 'Event Info', ja: 'イベント紹介', zh: '活动介绍' };
-const BTN_PRIZE: Partial<Record<Lang, string>> = { ko: '이벤트 상품', en: 'Prizes', ja: 'イベント賞品', zh: '活动奖品' };
-const BTN_JOIN: Partial<Record<Lang, string>> = { ko: '이벤트 참여', en: 'Participate', ja: 'イベント参加', zh: '参与活动' };
+const BTN_INTRO: Partial<Record<Lang, string>> = { ko: '이벤트 소개', en: 'Event Info', ja: 'イベント紹介', zh: '活动介绍', vi: 'Giới thiệu sự kiện', th: 'แนะนำกิจกรรม', ru: 'О событии', id: 'Info Acara' };
+const BTN_PRIZE: Partial<Record<Lang, string>> = { ko: '이벤트 상품', en: 'Prizes', ja: 'イベント賞品', zh: '活动奖品', vi: 'Quà tặng sự kiện', th: 'ของรางวัล', ru: 'Призы', id: 'Hadiah Acara' };
+const BTN_JOIN: Partial<Record<Lang, string>> = { ko: '이벤트 참여', en: 'Participate', ja: 'イベント参加', zh: '参与活动', vi: 'Tham gia sự kiện', th: 'เข้าร่วมกิจกรรม', ru: 'Участвовать', id: 'Ikut Serta' };
 
 const PROMO_VIDEO = 'media://video/osaek/promotion.mp4';
 

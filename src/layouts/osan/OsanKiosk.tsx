@@ -3,8 +3,11 @@ import { useKioskController } from '@renderer/hooks/useKioskController';
 import { useWeatherSync } from '@renderer/hooks/useWeatherSync';
 import { useExchangeSync } from '@renderer/hooks/useExchangeSync';
 import { WEB_EMBED_URLS } from '@shared/constants/webEmbeds';
+import { DONATION_COMING_SOON } from '@shared/config/donation';
+import { useHasDonationTile } from '@renderer/lib/buttonLayout';
 import { osanIconUrl } from '@renderer/assets/icons/osan';
 import { KioskArtboard } from '../components/KioskScreenImage';
+import { DonationWebScreen } from '../components/DonationWebScreen';
 import { PhotoWorkflow } from '../photo/PhotoWorkflow';
 import { OsanHome } from './OsanHome';
 import { OsanLanguage } from './OsanLanguage';
@@ -62,6 +65,7 @@ export function OsanKiosk(): JSX.Element {
 
   const cur = controller.screen;
   const photoActive = controller.photoActive;
+  const hasDonation = useHasDonationTile(controller.kioskId);
 
   const foreground = photoActive ? (
     <div style={{ position: 'absolute', inset: 0, ...PHOTO_THEME }}>
@@ -109,7 +113,7 @@ export function OsanKiosk(): JSX.Element {
     <OsanLocalpay controller={controller} />
   ) : cur === 'events' ? (
     <OsanEvents controller={controller} />
-  ) : isWebScreen(cur) || cur === 'taxfree' ? (
+  ) : isWebScreen(cur) || cur === 'taxfree' || cur === 'donation' ? (
     null // handled by pre-warmed layers below
   ) : (
     <OsanScreen screen={cur} controller={controller} />
@@ -165,6 +169,26 @@ export function OsanKiosk(): JSX.Element {
             }
           >
             <OsanTaxfree controller={controller} />
+          </div>
+        );
+      })()}
+
+      {/* Donation web app — fullscreen embed, pre-warmed so it opens instantly.
+          zIndex 2 so it covers the kiosk chrome and reads as a native page.
+          Only mounted where 기부 exists AND is live: the layer loads the remote
+          page immediately, so on a kiosk with no 기부 tile — or while 기부 is 준비중
+          (unreachable) — it would sit there fetching a page nothing can reach. */}
+      {hasDonation && !DONATION_COMING_SOON && (() => {
+        const active = !photoActive && cur === 'donation';
+        return (
+          <div
+            style={
+              active
+                ? { position: 'absolute', inset: 0, zIndex: 2 }
+                : { position: 'absolute', top: 0, left: 0, width: 0, height: 0, overflow: 'hidden', pointerEvents: 'none', zIndex: 0 }
+            }
+          >
+            <DonationWebScreen url={WEB_EMBED_URLS.donation} controller={controller} />
           </div>
         );
       })()}

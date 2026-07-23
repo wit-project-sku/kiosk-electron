@@ -6,11 +6,13 @@ import { trackEvent } from '@renderer/lib/analytics';
 import { useLanguageStore } from '@renderer/store/languageStore';
 import { useSearchStore } from '@renderer/store/searchStore';
 import { useWeatherStore } from '@renderer/store/weatherStore';
+import { useWeatherVideo } from '@renderer/hooks/useWeatherVideo';
 import { getKioskLocation } from '@shared/config/kioskLocations';
 import { iconUrl } from '@renderer/assets/icons/insadong';
 import { weatherIconName, weatherIconUrl } from '@renderer/assets/weather';
 import { useRotatingBanner } from '@renderer/hooks/useRotatingBanner';
-import { useOrderedTiles, type TileKey } from '@renderer/lib/buttonLayout';
+import { useHasDonationTile, useOrderedTiles, type TileKey } from '@renderer/lib/buttonLayout';
+import { DONATION_COMING_SOON, withComingSoon } from '@shared/config/donation';
 import { t } from '@renderer/lib/loc';
 import { FloatingKeyboard } from './keyboard/FloatingKeyboard';
 import { HangulComposer } from './keyboard/hangul';
@@ -29,8 +31,16 @@ interface HomeTile {
  * for W001/W002, 위드마켓 for W003 — see getKioskLocation). The rest are shared.
  */
 const AI_TILE: HomeTile = { screen: 'ai_search', label: "'인사' 모하지 (AI검색)", icon: 'ai-search', wide: true };
-const REST_TILES: HomeTile[] = [
-  { screen: 'donation', label: '기부', icon: 'donation' },
+
+/** Grid slot 14 — 기부 on the kiosks running the donation app (남인사마당 W003),
+ *  인사동 지도 on the rest. Mutually exclusive: the CMS carries a row for exactly
+ *  one of them per kiosk, so rendering both would drop the grid to authored
+ *  order. See useHasDonationTile. */
+const DONATION_TILE: HomeTile = { screen: 'donation', label: '기부', icon: 'donation' };
+const MAP_TILE: HomeTile = { screen: 'map', label: '인사동지도', icon: 'map' };
+
+/** Tiles authored before slot 14 (the 기부/지도 slot). */
+const TILES_BEFORE_SLOT14: HomeTile[] = [
   { screen: 'events', label: '인사동 이벤트', icon: 'events' },
   { screen: 'eat', label: "'인사' 뭐먹지", icon: 'eat' },
   { screen: 'shop', label: "'인사' 뭐사지", icon: 'shop' },
@@ -39,7 +49,9 @@ const REST_TILES: HomeTile[] = [
   { screen: 'about', label: '여기는 인사동', icon: 'about' },
   { screen: 'hello', label: "안녕 '인사'", icon: 'hello' },
   { screen: 'help', label: "도와줘 '인사'", icon: 'help' },
-  { screen: 'map', label: '인사동지도', icon: 'map' },
+];
+/** Tiles authored after slot 14. */
+const TILES_AFTER_SLOT14: HomeTile[] = [
   { screen: 'exchange', label: '환율', icon: 'exchange' },
   { screen: 'transport', label: '교통안내', icon: 'transport' },
   { screen: 'lodging', label: '숙박안내', icon: 'lodging' },
@@ -66,6 +78,7 @@ const TILE_LABEL_KEYS: Record<string, string> = {
   market: 'MainButton_Goods',
   insarang: 'MainButton_Insarang',
 };
+// 기부 has no sheet key — it keeps DONATION_TILE's hardcoded label.
 
 /** Join a home tile to its CMS button by screen key (see useOrderedTiles). */
 const tileKey = (t: HomeTile): TileKey => ({ screen: t.screen });
@@ -102,6 +115,10 @@ const KDRAMA_LABEL: Partial<Record<Lang, string>> = {
   en: 'Cook Soldier: Legend',
   ja: '炊事兵、伝説になる',
   zh: '炊事兵成为传说',
+  vi: 'Anh nuôi trở thành huyền thoại',
+  th: 'พลทหารครัวสู่ตำนาน',
+  ru: 'Повар-солдат: легенда',
+  id: 'Prajurit Juru Masak Jadi Legenda',
 };
 
 /** Search field placeholder per language. */
@@ -110,12 +127,17 @@ const SEARCH_PLACEHOLDER: Partial<Record<Lang, string>> = {
   en: 'Search about Insadong!',
   ja: '仁寺洞について検索してみましょう！',
   zh: '搜索关于仁寺洞的内容！',
+  vi: 'Tìm kiếm về Insadong!',
+  th: 'ค้นหาเกี่ยวกับอินซาดง!',
+  ru: 'Поиск об Инсадоне!',
+  id: 'Cari tentang Insadong!',
 };
 
 /** Language-selector button label per language. Must match the 언어선택 picker
  *  pill codes (LANG_META in InsadongLanguage.tsx): ja → JP, zh → CN. */
 const LANG_CODE: Partial<Record<Lang, string>> = {
   ko: 'KR', en: 'EN', ja: 'JP', vi: 'VN', zh: 'CN',
+  th: 'TH', ru: 'RU', id: 'ID',
 };
 const langCode = (lang: Lang): string => LANG_CODE[lang] ?? lang.toUpperCase();
 
@@ -163,6 +185,7 @@ interface InsadongHomeProps {
 export function InsadongHome({ controller }: InsadongHomeProps): JSX.Element {
   const { navigate, startPhoto, kioskId } = controller;
   const weather = useWeatherStore((s) => s.weather);
+  const playWeatherVideo = useWeatherVideo();
   const lang = useLanguageStore((s) => s.currentLanguage);
 
   // Sheet-driven (Localization_Insa): NoticeContent = body, Notice = vertical badge.
@@ -170,10 +193,18 @@ export function InsadongHome({ controller }: InsadongHomeProps): JSX.Element {
   const badge = t('Notice', lang).split('\n').map((s) => s.trim()).filter(Boolean);
   const placeholder = pick(SEARCH_PLACEHOLDER, lang);
 
-  // The 2nd home tile is location-specific (인사랑(준비중) vs 위드마켓).
+  // The 2nd home tile is location-specific (인사랑(준비중) vs 위드마켓), and slot 14
+  // is 기부 or 인사동 지도 depending on whether this kiosk runs the donation app.
+  const hasDonation = useHasDonationTile(kioskId);
   const tiles: HomeTile[] = useMemo(
-    () => [AI_TILE, getKioskLocation(kioskId).secondTile, ...REST_TILES],
-    [kioskId],
+    () => [
+      AI_TILE,
+      getKioskLocation(kioskId).secondTile,
+      ...TILES_BEFORE_SLOT14,
+      hasDonation ? DONATION_TILE : MAP_TILE,
+      ...TILES_AFTER_SLOT14,
+    ],
+    [kioskId, hasDonation],
   );
   // Re-order the tiles to match the CMS layout (line/position); the 4-column grid
   // auto-flows them (wide AI tile keeps its span-2 class). Falls back to authored
@@ -265,8 +296,8 @@ export function InsadongHome({ controller }: InsadongHomeProps): JSX.Element {
           <button
             type="button"
             className={styles.weather}
-            onClick={() => void window.api.kiosk.advanceVideo()}
-            aria-label="다음 영상"
+            onClick={playWeatherVideo}
+            aria-label="오늘 날씨 영상"
           >
             {weatherSrc && <img className={styles.weatherGlyph} src={weatherSrc} alt="" draggable={false} />}
             <span className={styles.temp}>{weather ? `${weather.tempC}°` : '—'}</span>
@@ -299,9 +330,12 @@ export function InsadongHome({ controller }: InsadongHomeProps): JSX.Element {
         <div className={styles.grid}>
           {orderedTiles.map((tile) => {
             const key = TILE_LABEL_KEYS[tile.screen];
-            const label = key ? t(key, lang) : tile.label;
-            // 인사랑(준비중) is not ready yet — looks normal, does nothing on tap.
-            const comingSoon = tile.screen === 'insarang';
+            // 인사랑(준비중) and — while soft-launching — 기부(준비중) are not ready:
+            // they look normal (same slot + colour) but do nothing on tap.
+            const donationSoon = tile.screen === 'donation' && DONATION_COMING_SOON;
+            const comingSoon = tile.screen === 'insarang' || donationSoon;
+            const base = key ? t(key, lang) : tile.label;
+            const label = donationSoon ? withComingSoon(base, lang) : base;
             return (
               <Tile
                 key={tile.screen}

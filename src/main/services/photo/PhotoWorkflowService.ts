@@ -29,6 +29,12 @@ export class PhotoWorkflowService {
   private state: PhotoWorkflowState = { ...INITIAL };
   private readonly listeners = new Set<WorkflowListener>();
   private countdownTimer: NodeJS.Timeout | null = null;
+  /**
+   * 기부(학교) 흐름 전용 — 촬영은 결제 전에 끝나므로, 결제 완료 전에 AI 결과를
+   * 선명하게 보여 주면 안 된다(사진만 받고 이탈). true 면 setResult 가 결과를
+   * 블러 잠금(resultLocked) 상태로 띄우고, revealResult() 시(결제 완료) 풀린다.
+   */
+  private holdResultDisplay = false;
 
   constructor(
     private readonly display: DisplayService,
@@ -109,11 +115,39 @@ export class PhotoWorkflowService {
       statusMessage: null,
       errorMessage: null,
     };
-    // Always show the result image big on Monitor 2 — every kiosk, payment or
-    // not. The main touch screen shows it too; Monitor 2 falls back to the
-    // attract video on reset.
-    this.syncDisplay('result', { resultFileName });
+    if (this.holdResultDisplay) {
+      // 기부(학교) 흐름 — 결제 완료 전이다. 결과를 선명하게 띄우면 안 되지만,
+      // 완전히 숨기면(어트랙트 영상) 결과가 나왔다는 사실조차 알 수 없다.
+      // 블러 + 안내 문구로 "결과는 준비됐다"만 보여주고 내용은 가린다 → 결제 유도.
+      // 결제 완료(revealResult) 시 블러가 풀린다. 결제 없이 이탈하면 reset() 이
+      // 어트랙트 영상으로 되돌린다.
+      this.syncDisplay('result', { resultFileName, resultLocked: true });
+    } else {
+      // 키오스크 자체 촬영: 결과를 Monitor 2 에 바로 크게 띄운다.
+      this.syncDisplay('result', { resultFileName });
+    }
     this.emit();
+    return this.state;
+  }
+
+  /**
+   * 결과를 Monitor 2 에 바로 띄울지 보류할지 정한다.
+   * 기부 웹뷰가 촬영을 시작할 때 학교 흐름이면 true 로 건다.
+   */
+  setHoldResultDisplay(hold: boolean): PhotoWorkflowState {
+    this.holdResultDisplay = hold;
+    return this.state;
+  }
+
+  /**
+   * 보류해 둔 결과를 Monitor 2 에 노출한다(기부 결제 완료 시점).
+   * 아직 생성 중이면 hold 만 풀고, 이후 setResult 가 바로 띄운다.
+   */
+  revealResult(): PhotoWorkflowState {
+    this.holdResultDisplay = false;
+    if (this.state.phase === 'result' && this.state.resultFileName) {
+      this.syncDisplay('result', { resultFileName: this.state.resultFileName });
+    }
     return this.state;
   }
 
@@ -127,6 +161,9 @@ export class PhotoWorkflowService {
 
   reset(): PhotoWorkflowState {
     this.clearCountdown();
+    // hold 는 세션 한정 — 초기화 시 반드시 풀어야 다음 키오스크 자체 촬영이
+    // 결과를 못 띄우는 일이 없다.
+    this.holdResultDisplay = false;
     this.state = { ...INITIAL };
     this.syncDisplay('attract');
     this.emit();
@@ -165,7 +202,9 @@ export class PhotoWorkflowService {
 
   private syncDisplay(
     mode: DisplayState['mode'],
-    extras?: Partial<Pick<DisplayState, 'cameraDeviceId' | 'countdown' | 'resultFileName'>>,
+    extras?: Partial<
+      Pick<DisplayState, 'cameraDeviceId' | 'countdown' | 'resultFileName' | 'resultLocked'>
+    >,
   ): void {
     const current = this.display.getState();
     this.display.setState({
@@ -175,6 +214,8 @@ export class PhotoWorkflowService {
       cameraDeviceId: extras?.cameraDeviceId ?? this.state.selectedCameraDeviceId,
       countdown: extras?.countdown ?? null,
       resultFileName: extras?.resultFileName ?? null,
+      // 명시하지 않으면 항상 해제 — 잠금은 setResult(hold) 한 곳에서만 건다.
+      resultLocked: extras?.resultLocked ?? false,
     });
   }
 

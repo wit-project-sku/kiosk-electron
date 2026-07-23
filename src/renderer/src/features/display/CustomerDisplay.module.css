@@ -1,5 +1,6 @@
 .stage {
   /* Fills the 2160×3840 KioskArtboard (which scales to the display monitor). */
+  position: relative; /* 잠금 안내(.lockedNotice)의 기준 박스 */
   width: 100%;
   height: 100%;
   background-color: #000;
@@ -13,6 +14,46 @@
   width: 100%;
   height: 100%;
   object-fit: cover;
+}
+
+/* 결제 전 잠금 미리보기 — 결과가 나왔다는 것만 보여 주고 내용은 블러로 가린다.
+   (Figma 5890:3751 의 노이즈 텍스처를 실측해 재현해 봤으나 실기에서 원하는 그림이
+    아니었다 → 블러로 되돌림. 노이즈는 사진을 거의 못 가려서 "결제해야 볼 수 있다"는
+    목적에도 블러가 맞는다.)
+   blur 는 가장자리가 비쳐 검게 뜨므로 살짝 확대해 화면을 꽉 채운다.
+   세기를 바꾸려면 blur 값만 조절한다. */
+.mediaLocked {
+  filter: blur(64px);
+  transform: scale(1.12);
+}
+
+/* 안내 문구 래퍼 — 블러 사진 위 중앙. */
+.lockedNotice {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 2096px;
+  height: 300px;
+  border-radius: 150px;
+  background: rgba(0, 0, 0, 0.5);
+  box-sizing: border-box;
+  padding: 0 60px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.lockedNoticeText {
+  margin: 0;
+  font-family: 'Noto Sans KR', sans-serif;
+  font-size: 72px;
+  font-weight: 700;
+  line-height: 1.35;
+  text-align: center;
+  /* 래퍼가 검정 반투명이므로 흰 글씨 */
+  color: #ffffff;
+  word-break: keep-all;
 }
 
 .attract {

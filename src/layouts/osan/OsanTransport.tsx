@@ -6,6 +6,11 @@ import { osanIconUrl } from '@renderer/assets/icons/osan';
 import { t } from '@renderer/lib/loc';
 import transitMap from '@renderer/assets/photos/osan/transport/transit-map.png';
 import marketMap from '@renderer/assets/photos/osan/transport/market-map.png';
+import streetRed from '@renderer/assets/photos/osan/transport/street-red.png';
+import streetGreen from '@renderer/assets/photos/osan/transport/street-green.png';
+import streetSmile from '@renderer/assets/photos/osan/transport/street-smile.png';
+import streetAreum from '@renderer/assets/photos/osan/transport/street-areum.png';
+import streetMoms from '@renderer/assets/photos/osan/transport/street-moms.png';
 import { OsanHeader } from './OsanHeader';
 import { OsanBanner } from './OsanBanner';
 import { ZoomableImage } from '../insadong/ZoomableImage';
@@ -164,6 +169,138 @@ const CONTENT: Partial<Record<Lang, TransportContent>> = {
       kioskLoc: '五色市场主十字路口（五色市场商人会前）',
     },
   },
+  vi: {
+    title: 'Hướng dẫn giao thông',
+    tabs: ['Giao thông công cộng', 'Bản đồ chợ Osaek', 'Đường Đỏ', 'Đường Xanh', 'Phố Smile', 'Phố Areum', "Phố Mom's", 'Khác'],
+    comingSoon: 'Đang chuẩn bị',
+    transit: {
+      heading: 'Tàu điện ngầm / Xe buýt',
+      subtitle: 'Giao thông công cộng',
+      subwayRows: [
+        [
+          { badge: '1', color: SUB1, text: 'Tuyến 1 · Ga Jonggak Cửa ra số 11' },
+          { badge: '3', color: SUB3, text: 'Tuyến 3 · Ga Anguk Cửa ra số 6' },
+        ],
+        [{ badge: '5', color: SUB5, text: 'Tuyến 5 · Ga Jongno 3-ga Cửa ra số 5' }],
+      ],
+      busRows: [
+        { badge: 'B', color: BUS, text: 'M4102, 5500, 9003, 9301, 9400, 940, 9411' },
+        { badge: 'B', color: BUS, text: '103, 109, 143, 150, 151, 160, 161, 162, 171, 172, 260, 270, 271, 273, 370, 601, 606' },
+      ],
+    },
+    marketMap: {
+      heading: 'Chợ Osaek Osan: Chợ truyền thống tiêu biểu của Osan, đầy ắp ẩm thực, cảnh đẹp và giải trí',
+      description: [
+        '* Tìm kiếm cửa hàng, thử hanbok bằng AR, gợi ý lộ trình bằng AI, thông tin thời tiết, thông tin tỷ giá và nhiều hơn nữa —',
+        'hãy trải nghiệm bảng hiệu AI của chợ Osaek mang đến đủ loại thông tin và trải nghiệm~',
+        "(Hãy cùng gặp 'JEONG-I', trợ lý quảng bá của chợ nhé!)",
+      ],
+      kioskTitle: '"WITH" = WIT AI SMART KIOSK vị trí lắp đặt',
+      kioskLoc: 'Ngã tư chính chợ Osaek (trước Hội thương nhân chợ Osaek)',
+    },
+  },
+  th: {
+    title: 'แนะนำการเดินทาง',
+    tabs: ['ขนส่งสาธารณะ', 'แผนที่ตลาดโอแซก', 'เส้นทางแดง', 'เส้นทางเขียว', 'ถนนสไมล์', 'ถนนอารึม', 'ถนนมัม', 'อื่นๆ'],
+    comingSoon: 'กำลังเตรียมการ',
+    transit: {
+      heading: 'รถไฟใต้ดิน / รถบัส',
+      subtitle: 'ขนส่งสาธารณะ',
+      subwayRows: [
+        [
+          { badge: '1', color: SUB1, text: 'สาย 1 · สถานีจงกัก ทางออก 11' },
+          { badge: '3', color: SUB3, text: 'สาย 3 · สถานีอันกุก ทางออก 6' },
+        ],
+        [{ badge: '5', color: SUB5, text: 'สาย 5 · สถานีจงโน 3-กา ทางออก 5' }],
+      ],
+      busRows: [
+        { badge: 'B', color: BUS, text: 'M4102, 5500, 9003, 9301, 9400, 940, 9411' },
+        { badge: 'B', color: BUS, text: '103, 109, 143, 150, 151, 160, 161, 162, 171, 172, 260, 270, 271, 273, 370, 601, 606' },
+      ],
+    },
+    marketMap: {
+      heading: 'ตลาดโอแซกโอซาน: ตลาดดั้งเดิมตัวแทนของโอซานที่เต็มไปด้วยของกิน ของน่าชม และความสนุก',
+      description: [
+        '* ค้นหาร้านค้า ลองสวมฮันบกด้วย AR แนะนำเส้นทางด้วย AI ข้อมูลสภาพอากาศ ข้อมูลอัตราแลกเปลี่ยน และอื่นๆ —',
+        'มาสัมผัสป้ายดิจิทัล AI ของตลาดโอแซกที่มอบข้อมูลและประสบการณ์หลากหลายกันเถอะ~',
+        "(มาพบกับ 'JEONG-I' ผู้ช่วยประชาสัมพันธ์ของตลาดด้วยนะ!)",
+      ],
+      kioskTitle: '"WITH" = WIT AI SMART KIOSK จุดติดตั้ง',
+      kioskLoc: 'สี่แยกหลักตลาดโอแซก (หน้าสมาคมพ่อค้าตลาดโอแซก)',
+    },
+  },
+  ru: {
+    title: 'Транспорт',
+    tabs: ['Общественный транспорт', 'Карта рынка Осэк', 'Красный маршрут', 'Зелёный маршрут', 'Улица Smile', 'Улица Areum', 'Улица Mom’s', 'Другое'],
+    comingSoon: 'В процессе подготовки',
+    transit: {
+      heading: 'Метро / Автобус',
+      subtitle: 'Общественный транспорт',
+      subwayRows: [
+        [
+          { badge: '1', color: SUB1, text: 'Линия 1 · Ст. Чонгак, выход 11' },
+          { badge: '3', color: SUB3, text: 'Линия 3 · Ст. Ангук, выход 6' },
+        ],
+        [{ badge: '5', color: SUB5, text: 'Линия 5 · Ст. Чонно 3-га, выход 5' }],
+      ],
+      busRows: [
+        { badge: 'B', color: BUS, text: 'M4102, 5500, 9003, 9301, 9400, 940, 9411' },
+        { badge: 'B', color: BUS, text: '103, 109, 143, 150, 151, 160, 161, 162, 171, 172, 260, 270, 271, 273, 370, 601, 606' },
+      ],
+    },
+    marketMap: {
+      heading: 'Рынок Осэк в Осане: главный традиционный рынок Осана, полный еды, достопримечательностей и развлечений',
+      description: [
+        '* Поиск магазинов, AR-примерка ханбока, рекомендации маршрутов от ИИ, погода, курсы валют и многое другое —',
+        'познакомьтесь с ИИ-вывеской рынка Осэк, которая предлагает самую разную информацию и впечатления~',
+        "(Приходите познакомиться с 'JEONG-I', помощником по продвижению рынка!)",
+      ],
+      kioskTitle: '"WITH" = WIT AI SMART KIOSK место установки',
+      kioskLoc: 'Главный перекрёсток рынка Осэк (перед Ассоциацией торговцев)',
+    },
+  },
+  id: {
+    title: 'Petunjuk Transportasi',
+    tabs: ['Transportasi Umum', 'Peta Pasar Osaek', 'Jalur Merah', 'Jalur Hijau', 'Jalan Smile', 'Jalan Areum', "Jalan Mom's", 'Lainnya'],
+    comingSoon: 'Sedang dipersiapkan',
+    transit: {
+      heading: 'Kereta Bawah Tanah / Bus',
+      subtitle: 'Transportasi Umum',
+      subwayRows: [
+        [
+          { badge: '1', color: SUB1, text: 'Jalur 1 · Stasiun Jonggak Pintu Keluar 11' },
+          { badge: '3', color: SUB3, text: 'Jalur 3 · Stasiun Anguk Pintu Keluar 6' },
+        ],
+        [{ badge: '5', color: SUB5, text: 'Jalur 5 · Stasiun Jongno 3-ga Pintu Keluar 5' }],
+      ],
+      busRows: [
+        { badge: 'B', color: BUS, text: 'M4102, 5500, 9003, 9301, 9400, 940, 9411' },
+        { badge: 'B', color: BUS, text: '103, 109, 143, 150, 151, 160, 161, 162, 171, 172, 260, 270, 271, 273, 370, 601, 606' },
+      ],
+    },
+    marketMap: {
+      heading: 'Pasar Osaek Osan: pasar tradisional unggulan Osan yang penuh kuliner, pemandangan, dan hiburan',
+      description: [
+        '* Pencarian toko, pas hanbok dengan AR, rekomendasi rute AI, info cuaca, info nilai tukar, dan lainnya —',
+        'nikmati papan digital AI Pasar Osaek yang menyediakan beragam informasi dan pengalaman~',
+        "(Temui juga 'JEONG-I', asisten promosi pasar!)",
+      ],
+      kioskTitle: '"WITH" = WIT AI SMART KIOSK lokasi pemasangan',
+      kioskLoc: 'Persimpangan utama Pasar Osaek (di depan Asosiasi Pedagang Pasar Osaek)',
+    },
+  },
+};
+
+/** 골목/거리 tabs (2–6) share the 오색시장지도 layout; only the map crop differs.
+ *  Sizes are the exact Figma frame dims (artboard px); aspect ratios match the
+ *  images so ZoomableImage (object-fit: contain) fills with no gutters.
+ *  Wide crops span the full 1740 body width; 맘스거리 is a centred 984 column. */
+const STREET_MAPS: Record<number, { src: string; w: number; h: number }> = {
+  2: { src: streetRed, w: 1740, h: 344 }, // 빨강길
+  3: { src: streetGreen, w: 1740, h: 338 }, // 녹색길
+  4: { src: streetSmile, w: 1740, h: 154 }, // 미소거리
+  5: { src: streetAreum, w: 1740, h: 1406 }, // 아름거리
+  6: { src: streetMoms, w: 984, h: 1379 }, // 맘스거리
 };
 
 function BadgePill({ b }: { b: Badge }): JSX.Element {
@@ -275,7 +412,30 @@ export function OsanTransport({ controller, initialTab = 0 }: OsanTransportProps
               <ZoomableImage className={styles.mapZoom} src={marketMap} />
             </div>
             <div className={styles.marketBottom}>
-              <div className={styles.marketDesc}>
+              <div className={`${styles.marketDesc} ${styles.marketDescLeft}`}>
+                {c.marketMap.description.map((line, i) => (
+                  <span key={i}>{line}</span>
+                ))}
+              </div>
+              <div className={styles.kioskBlock}>
+                <p className={styles.kioskTitle}>{c.marketMap.kioskTitle}</p>
+                <p className={styles.kioskLoc}>{c.marketMap.kioskLoc}</p>
+              </div>
+            </div>
+          </div>
+        ) : STREET_MAPS[tab] ? (
+          /* ── 골목/거리 tabs (빨강길·녹색길·미소거리·아름거리·맘스거리) — same
+             오색시장지도 layout, street-specific map crop ── */
+          <div className={`${styles.card} ${styles.cardMarket}`}>
+            <p className={styles.marketHeading}>{c.marketMap.heading}</p>
+            <div
+              className={styles.streetMapWrap}
+              style={{ width: STREET_MAPS[tab]!.w, height: STREET_MAPS[tab]!.h }}
+            >
+              <ZoomableImage className={styles.mapZoom} src={STREET_MAPS[tab]!.src} />
+            </div>
+            <div className={styles.marketBottom}>
+              <div className={`${styles.marketDesc} ${styles.marketDescLeft}`}>
                 {c.marketMap.description.map((line, i) => (
                   <span key={i}>{line}</span>
                 ))}
@@ -287,7 +447,7 @@ export function OsanTransport({ controller, initialTab = 0 }: OsanTransportProps
             </div>
           </div>
         ) : (
-          /* ── market-zone tabs — not ready yet (placeholder image + 준비중) ── */
+          /* ── 기타 (Other) — not ready yet (placeholder image + 준비중) ── */
           <div className={`${styles.card} ${styles.cardEmpty}`}>
             {osanIconUrl('coming-soon') && (
               <img className={styles.comingSoonImg} src={osanIconUrl('coming-soon')} alt="" draggable={false} />

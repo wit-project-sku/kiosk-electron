@@ -37,8 +37,9 @@ import type {
 import type { CachedContent, SupportedLanguage } from '../types/kiosk';
 import type { CameraDeviceInfo, PhotoOption, PhotoWorkflowState } from '../types/photo';
 import type { WeatherSnapshot } from '../types/weather';
+import type { WeatherPlayKey } from '../config/weatherVideo';
 import type { ExchangeSnapshot } from '../types/exchange';
-import type { VideoEntry } from '../types/subtitle';
+import type { VideoEntry, VideoFilesBySet } from '../types/subtitle';
 import type { Shop } from '../types/shop';
 import type { KioskButton } from '../types/buttons';
 import type {
@@ -126,6 +127,14 @@ export interface KioskBridge {
      * Resolves to null if the file is missing.
      */
     getResultDataUrl(fileName: string): Promise<Result<string | null>>;
+    /**
+     * Hold the Monitor-2 reveal of the AI result. The school donation flow shoots
+     * before payment, so the result must stay hidden until the user actually
+     * reaches the payment-complete screen (revealResult). Cleared by reset().
+     */
+    setHoldResult(hold: boolean): Promise<Result<PhotoWorkflowState>>;
+    /** Reveal a held AI result on Monitor 2 (donation payment complete). */
+    revealResult(): Promise<Result<PhotoWorkflowState>>;
     reset(): Promise<Result<PhotoWorkflowState>>;
   };
   language: {
@@ -142,11 +151,19 @@ export interface KioskBridge {
   subtitles: {
     get(): Promise<Result<VideoEntry[] | null>>;
   };
+  /** Real display-video file names on disk, per set — listed fresh at runtime so
+   *  newly-added videos resolve without a rebuild. */
+  videos: {
+    list(): Promise<Result<VideoFilesBySet>>;
+  };
   /** Touch-screen navigation; tells the customer display which video to show. */
   kiosk: {
-    setScreen(screen: string): Promise<Result<string>>;
-    /** Advance the customer display to the next clip for the current screen. */
-    advanceVideo(): Promise<Result<boolean>>;
+    /** `buttonId` (the tapped home tile's DB `buttons.id`, when known) lets the
+     *  display resolve that button's video by id instead of guessing from the
+     *  screen name. Omit / null for sub-states and idle navigation. */
+    setScreen(screen: string, buttonId?: number | null): Promise<Result<string>>;
+    /** Play the clip matching today's weather on the customer display. */
+    playWeatherVideo(key: WeatherPlayKey): Promise<Result<boolean>>;
   };
   /** Cached shop catalogue (from the witteria API, refreshed on launch + nightly). */
   shops: {
@@ -192,8 +209,10 @@ export interface KioskBridge {
     onLanguageChanged(listener: (language: SupportedLanguage) => void): Unsubscribe;
     onWeatherChanged(listener: (weather: WeatherSnapshot) => void): Unsubscribe;
     onExchangeChanged(listener: (exchange: ExchangeSnapshot) => void): Unsubscribe;
-    onKioskScreenChanged(listener: (screen: string) => void): Unsubscribe;
-    onKioskVideoAdvanced(listener: () => void): Unsubscribe;
+    onKioskScreenChanged(
+      listener: (payload: { screen: string; buttonId: number | null }) => void,
+    ): Unsubscribe;
+    onKioskWeatherVideo(listener: (key: WeatherPlayKey) => void): Unsubscribe;
     onShopsChanged(listener: () => void): Unsubscribe;
     onButtonsChanged(listener: () => void): Unsubscribe;
   };

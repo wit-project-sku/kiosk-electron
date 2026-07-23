@@ -5,7 +5,7 @@ import { useAiStore } from '@renderer/store/aiStore';
 import { useLang } from '@renderer/lib/i18n';
 import { t } from '@renderer/lib/loc';
 import { AI_CATEGORIES_OSAEK } from '@renderer/data/aiCategories-osaek.generated';
-import { pickText } from '@renderer/data/types';
+import { aiCatLabel } from '@renderer/lib/aiCategoryLabel';
 import { interestColor } from './interestColors';
 
 /** Drop blank rows the sheet leaves behind so no nameless tiles render. */
@@ -124,7 +124,7 @@ export function OsanAiSearch({ controller }: OsanAiSearchProps): JSX.Element {
                     className={styles.tileText}
                     style={selected ? undefined : { color: interestColor(cat.ko) }}
                   >
-                    {pickText(cat, lang)}
+                    {aiCatLabel(cat, lang)}
                   </span>
                 </button>
               );

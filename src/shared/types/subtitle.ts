@@ -1,10 +1,24 @@
 /** Shared subtitle types used by both main-process SubtitleService and renderer. */
 
+import { LANGUAGES, type LocalizedLang } from '@shared/config/languages';
+
+/** Which bundled video set a kiosk plays from (resources/videos/<set>/). */
+export type VideoSet = 'insadong' | 'osaek' | 'hwaseong';
+
+/** Real .mp4 file names present on disk, per video set. Listed at runtime by
+ *  the main process (IPC VideosList) so newly-added videos are picked up without
+ *  a rebuild — there is no build-time file manifest. */
+export type VideoFilesBySet = Record<VideoSet, string[]>;
+
 export interface SubtitleLangText {
   ko: string;
   en: string;
   ja: string;
   zh: string;
+  vi?: string;
+  th?: string;
+  ru?: string;
+  id?: string;
 }
 
 /** Single video + subtitle entry, keyed by playKey (e.g. "Default", "ToEat"). */
@@ -15,6 +29,17 @@ export interface VideoEntry {
   file: string;
   subtitle: SubtitleLangText;
   label: SubtitleLangText;
+  /**
+   * Owning `buttons.id` when this entry came from `data.buttons[]`, else `null`
+   * (autoSubtitles — Default idle, weather). Lets the display resolve a home
+   * button's clip directly by its DB id instead of a hardcoded screen→playKey
+   * table. Optional so older SQLite-cached entries (written before this field
+   * existed) still parse.
+   */
+  buttonId?: number | null;
+  /** API sort order within the owning button/autoSubtitles list. Optional for
+   *  the same cache-compat reason; used to pick a button's primary clip. */
+  sortOrder?: number;
 }
 
 // ── Raw API response shapes ────────────────────────────────────────────────
@@ -24,6 +49,10 @@ interface ApiLangText {
   en?: string;
   jp?: string;
   cn?: string;
+  vn?: string;
+  th?: string;
+  ru?: string;
+  id?: string;
 }
 
 interface ApiSubtitleItem {
@@ -50,13 +79,17 @@ export interface SubtitleApiResponse {
 
 // ── Transformation ─────────────────────────────────────────────────────────
 
+/**
+ * API language keys → app language codes, driven by the LANGUAGES registry so a
+ * new language needs no edit here. This used to be a hand-written list, and when
+ * it carried only 4 entries it silently dropped vi/th/ru/id.
+ */
 function apiLang(obj: ApiLangText): SubtitleLangText {
-  return {
-    ko: obj.kr ?? '',
-    en: obj.en ?? '',
-    ja: obj.jp ?? '',
-    zh: obj.cn ?? '',
-  };
+  const out = {} as Record<LocalizedLang, string>;
+  for (const { code, apiTextKey } of LANGUAGES) {
+    out[code] = obj[apiTextKey] ?? '';
+  }
+  return out as SubtitleLangText;
 }
 
 function extractStem(videoFileName: string): string {
@@ -71,20 +104,22 @@ export function transformSubtitleResponse(res: SubtitleApiResponse): VideoEntry[
   // Include every button's subtitles regardless of `status`: status gates the
   // touch-screen button visibility, not whether the subtitle/video lookup entry
   // should exist. The map is just a playKey → clip table.
-  const push = (s: ApiSubtitleItem): void => {
+  const push = (s: ApiSubtitleItem, buttonId: number | null): void => {
     if (!s.video?.videoFileName) return;
     entries.push({
       key: s.playKey,
       file: extractStem(s.video.videoFileName),
       subtitle: apiLang(s.main),
       label: apiLang(s.rightTop),
+      buttonId,
+      sortOrder: s.sortOrder,
     });
   };
 
   for (const button of res.data.buttons) {
-    for (const s of button.subtitles) push(s);
+    for (const s of button.subtitles) push(s, button.buttonId);
   }
-  for (const s of res.data.autoSubtitles) push(s);
+  for (const s of res.data.autoSubtitles) push(s, null);
 
   return entries;
 }

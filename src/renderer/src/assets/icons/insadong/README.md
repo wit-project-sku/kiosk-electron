@@ -23,7 +23,8 @@ text label underneath — the labels are rendered in code.
 - `about.png`       — 여기는 인사동
 - `hello.png`       — 안녕 '인사'
 - `help.png`        — 도와줘 '인사'
-- `map.png`         — 인사동지도
+- `donation.png`    — 기부 (takes 인사동지도's home slot on the kiosks running the
+  donation app — W003; W001/W002 still show `map.svg`)
 - `exchange.png`    — 환율
 - `transport.png`   — 교통안내
 - `lodging.png`     — 숙박안내

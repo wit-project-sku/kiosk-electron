@@ -12,6 +12,7 @@ const INITIAL_STATE: DisplayState = {
   cameraDeviceId: null,
   countdown: null,
   resultFileName: null,
+  resultLocked: false,
 };
 
 /**

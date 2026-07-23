@@ -115,6 +115,12 @@ export interface DisplayState {
   countdown: number | null;
   /** Generated result file name — served via media://generated/ */
   resultFileName: string | null;
+  /**
+   * 기부(학교) 흐름 — 결제 전 미리보기. true 면 결과를 블러 처리하고 "기부를 완료해
+   * 주세요" 안내를 덮어 씌운다(결과가 있다는 건 보여주되 내용은 가린다).
+   * 결제 완료(revealResult) 시 false 가 되어 선명하게 노출된다.
+   */
+  resultLocked: boolean;
 }
 
 /** Information about a connected monitor. */

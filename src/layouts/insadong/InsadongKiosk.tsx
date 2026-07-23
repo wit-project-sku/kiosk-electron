@@ -3,6 +3,8 @@ import { useKioskController } from '@renderer/hooks/useKioskController';
 import { useWeatherSync } from '@renderer/hooks/useWeatherSync';
 import { useExchangeSync } from '@renderer/hooks/useExchangeSync';
 import { WEB_EMBED_URLS } from '@shared/constants/webEmbeds';
+import { DONATION_COMING_SOON } from '@shared/config/donation';
+import { useHasDonationTile } from '@renderer/lib/buttonLayout';
 import { iconUrl } from '@renderer/assets/icons/insadong';
 import { kdramaAssetUrls } from '@renderer/assets/icons/insadong/kdrama';
 import { KioskArtboard } from '../components/KioskScreenImage';
@@ -23,7 +25,7 @@ import { InsadongHello } from './InsadongHello';
 import { InsadongHelp } from './InsadongHelp';
 import { InsadongDetail } from './InsadongDetail';
 import { InsadongWebScreen } from './InsadongWebScreen';
-import { DonationWebScreen } from './DonationWebScreen';
+import { DonationWebScreen } from '@layouts/components/DonationWebScreen';
 import { InsadongEvents } from './InsadongEvents';
 import { InsadongTaxfree } from './InsadongTaxfree';
 import { InsadongKdrama } from './InsadongKdrama';
@@ -79,6 +81,7 @@ export function InsadongKiosk(): JSX.Element {
 
   const cur = controller.screen;
   const photoActive = controller.photoActive;
+  const hasDonation = useHasDonationTile(controller.kioskId);
 
   // The "foreground" slot — null when a pre-warmed web screen is active.
   const foreground = photoActive ? (
@@ -193,8 +196,11 @@ export function InsadongKiosk(): JSX.Element {
       })()}
 
       {/* Donation web app — fullscreen embed, pre-warmed so it opens instantly.
-          zIndex 2 so it covers the kiosk chrome and reads as a native page. */}
-      {(() => {
+          zIndex 2 so it covers the kiosk chrome and reads as a native page.
+          Only mounted where 기부 exists (남인사마당 W003) AND is live: the layer loads
+          the remote page immediately, so on a kiosk with no 기부 tile — or while
+          기부 is 준비중 (unreachable) — it would sit there fetching for nothing. */}
+      {hasDonation && !DONATION_COMING_SOON && (() => {
         const active = !photoActive && cur === 'donation';
         return (
           <div

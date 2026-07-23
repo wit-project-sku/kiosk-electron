@@ -32,13 +32,21 @@ const T = {
     en: 'Search about Hwaseong Rest Area!',
     ja: '華城休憩所について検索！',
     zh: '搜索关于华城休息站的内容！',
+    vi: 'Tìm kiếm về trạm dừng Hwaseong!',
+    th: 'ค้นหาเกี่ยวกับจุดพักรถฮวาซอง!',
+    ru: 'Поиск о зоне отдыха Хвасон!',
+    id: 'Cari tentang Rest Area Hwaseong!',
   },
-  prompt: { ko: '검색어를 입력해보세요', en: 'Enter a search term', ja: '検索語を入力してください', zh: '请输入搜索词' },
+  prompt: { ko: '검색어를 입력해보세요', en: 'Enter a search term', ja: '検索語を入力してください', zh: '请输入搜索词', vi: 'Nhập từ khóa tìm kiếm', th: 'กรุณาป้อนคำค้นหา', ru: 'Введите запрос', id: 'Masukkan kata pencarian' },
   noResult: {
     ko: (q: string) => `'${q}' 검색 결과가 없습니다`,
     en: (q: string) => `No results for '${q}'`,
     ja: (q: string) => `「${q}」の検索結果がありません`,
     zh: (q: string) => `没有'${q}'的搜索结果`,
+    vi: (q: string) => `Không có kết quả cho '${q}'`,
+    th: (q: string) => `ไม่พบผลลัพธ์สำหรับ '${q}'`,
+    ru: (q: string) => `Нет результатов по '${q}'`,
+    id: (q: string) => `Tidak ada hasil untuk '${q}'`,
   },
 };
 

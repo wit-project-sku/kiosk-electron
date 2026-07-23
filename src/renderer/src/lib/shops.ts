@@ -1,8 +1,19 @@
 import type { Lang } from '@renderer/lib/i18n';
 import type { Shop } from '@shared/types/shop';
 
-type Suffix = 'Kr' | 'En' | 'Jp' | 'Ch';
-const SUFFIX: Record<string, Suffix> = { ko: 'Kr', en: 'En', ja: 'Jp', zh: 'Ch' };
+type Suffix = 'Kr' | 'En' | 'Jp' | 'Ch' | 'Vn' | 'Id' | 'Th' | 'Ru';
+// All 8 UI languages map to their shop-field suffix. The witteria shops API
+// returns every field in all 8; unknown langs fall back to Korean.
+const SUFFIX: Record<string, Suffix> = {
+  ko: 'Kr',
+  en: 'En',
+  ja: 'Jp',
+  zh: 'Ch',
+  vi: 'Vn',
+  id: 'Id',
+  th: 'Th',
+  ru: 'Ru',
+};
 const sfx = (lang: Lang): Suffix => SUFFIX[lang] ?? 'Kr';
 
 const field = (s: Shop, base: string, lang: Lang, fallback: string): string =>

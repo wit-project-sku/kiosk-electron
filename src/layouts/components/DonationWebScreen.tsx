@@ -22,6 +22,10 @@ interface DonationWebScreenProps {
  * Fullscreen embed of the WIT Global donation web app. Covers the entire artboard
  * so it reads as a native kiosk page.
  *
+ * Shared by every layout that runs 기부 (Insadong/Osan/Hwaseong). All of them pass
+ * the same WEB_EMBED_URLS.donation: the embed looks identical on every kiosk by
+ * design (see that constant).
+ *
  * Preload-independent bridge (robust against webview preload quirks):
  *   guest -> host : donation app console.log's KIOSK_TAG + json; we catch it on
  *                   the <webview> 'console-message' event.
@@ -36,6 +40,19 @@ export function DonationWebScreen({ url, controller }: DonationWebScreenProps): 
   // True only while a donation-initiated Monitor-2 capture is in flight, so we
   // don't forward the kiosk's own hanbok photo events to the donation guest.
   const capturingRef = useRef(false);
+
+  // 이 화면을 벗어나면(키오스크 홈 버튼·유휴 타임아웃·화면 전환 등) Monitor 2 를
+  // 반드시 어트랙트 영상으로 되돌린다.
+  //
+  // useKioskController.navigate 는 `photoActive`(키오스크 자체 촬영 스토어)일 때만
+  // 리셋하는데, 기부 흐름의 촬영은 메인 프로세스(startWorkflow)로 돌아가므로 그 값이
+  // false 다 → 홈으로 가도 Monitor 2 에 AI 결과가 그대로 남았다. 웹뷰가 만든 상태는
+  // 웹뷰가 치운다. (deps [] — 언마운트 때만 실행되어야 한다)
+  useEffect(() => {
+    return () => {
+      void window.api.photo.reset();
+    };
+  }, []);
 
   useEffect(() => {
     const el = ref.current;
@@ -53,16 +70,37 @@ export function DonationWebScreen({ url, controller }: DonationWebScreenProps): 
 
     // Drive the kiosk's Monitor-2 photo workflow from a donation request. Monitor 1
     // keeps showing the donation webview; only Monitor 2 runs camera/countdown/AI.
-    const runCapture = async (mode: 'solo' | 'together', clothingKey: string): Promise<void> => {
+    //
+    // holdResult: the school flow shoots BEFORE payment, so the AI result must not
+    // be legible on Monitor 2 until the guest reaches payment-complete (revealPhoto).
+    // While held it shows blurred behind a "기부를 완료해 주세요" notice — the result
+    // is visibly ready, which is what nudges the user to pay. revealPhoto unblurs it.
+    // The NGO flow pays first, so it shows unblurred as soon as the AI is done.
+    const runCapture = async (
+      mode: 'solo' | 'together',
+      clothingKey: string,
+      holdResult: boolean,
+    ): Promise<void> => {
+      // A missing outfit is a DEAD END, not a soft failure: Monitor 2's capture
+      // step bails out when clothingKey is empty, so the countdown would run to
+      // zero, nothing would be shot, and no photoResult/photoError would ever
+      // come back — the donation app would wait on a promise that never settles.
+      // Fail loudly here instead.
+      if (!clothingKey) {
+        sendToGuest({ type: 'photoError', message: 'no outfit selected' });
+        return;
+      }
       const styleKey = mode === 'together' ? 'withInsa' : 'solo';
       capturingRef.current = true;
       try {
+        await window.api.photo.setHoldResult(holdResult);
         await window.api.photo.startWorkflow();
         await window.api.photo.selectClothing(clothingKey);
         await window.api.photo.selectStyle(styleKey);
         await window.api.photo.beginCountdown();
       } catch (error) {
         capturingRef.current = false;
+        void window.api.photo.setHoldResult(false);
         sendToGuest({
           type: 'photoError',
           message: error instanceof Error ? error.message : 'capture failed',
@@ -74,6 +112,7 @@ export function DonationWebScreen({ url, controller }: DonationWebScreenProps): 
       type?: string;
       mode?: 'solo' | 'together';
       clothingKey?: string;
+      holdResult?: boolean;
     }): void => {
       switch (msg?.type) {
         case 'goHome':
@@ -81,7 +120,11 @@ export function DonationWebScreen({ url, controller }: DonationWebScreenProps): 
           controller.navigate('home', 'Donation Home');
           break;
         case 'takePhoto':
-          void runCapture(msg.mode ?? 'solo', msg.clothingKey ?? '');
+          void runCapture(msg.mode ?? 'solo', (msg.clothingKey ?? '').trim(), Boolean(msg.holdResult));
+          break;
+        case 'revealPhoto':
+          // 결제 완료 — 보류해 둔 AI 결과를 이제 Monitor 2 에 노출한다.
+          void window.api.photo.revealResult();
           break;
         case 'cancelPhoto':
           resetPhoto();

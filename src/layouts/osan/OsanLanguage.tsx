@@ -10,8 +10,8 @@ import { OsanBanner } from './OsanBanner';
 import styles from './OsanLanguage.module.css';
 
 const SECTION_LABELS = {
-  now:    { ko: '현재 언어', en: 'Current Language', ja: '現在の言語', zh: '当前语言' },
-  change: { ko: '변경 언어', en: 'Change Language',  ja: '変更する言語', zh: '更改语言' },
+  now:    { ko: '현재 언어', en: 'Current Language', ja: '現在の言語', zh: '当前语言', vi: 'Ngôn ngữ hiện tại', th: 'ภาษาปัจจุบัน', ru: 'Текущий язык', id: 'Bahasa saat ini' },
+  change: { ko: '변경 언어', en: 'Change Language',  ja: '変更する言語', zh: '更改语言', vi: 'Đổi ngôn ngữ', th: 'เปลี่ยนภาษา', ru: 'Сменить язык', id: 'Ubah bahasa' },
 };
 
 const LANG_META: Record<SupportedLanguage, { code: string; name: string }> = {
@@ -23,6 +23,8 @@ const LANG_META: Record<SupportedLanguage, { code: string; name: string }> = {
   zh_tw: { code: 'CN', name: '中文(繁)' },
   vi:    { code: 'VN', name: 'Tiếng Việt' },
   th:    { code: 'TH', name: 'ภาษาไทย' },
+  ru:    { code: 'RU', name: 'Русский' },
+  id:    { code: 'ID', name: 'Indonesia' },
   es:    { code: 'ES', name: 'Español' },
 };
 

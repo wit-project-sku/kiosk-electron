@@ -81,6 +81,14 @@ export function registerPhotoHandlers(container: AppContainer): void {
 
   handle(IpcChannels.PhotoReset, () => container.photoWorkflow.reset());
 
+  // 기부(학교) 흐름: 결제 완료 전까지 Monitor 2 에 AI 결과를 노출하지 않는다.
+  handle(
+    IpcChannels.PhotoSetHoldResult,
+    (req: { hold: boolean }) => container.photoWorkflow.setHoldResultDisplay(Boolean(req?.hold)),
+  );
+
+  handle(IpcChannels.PhotoRevealResult, () => container.photoWorkflow.revealResult());
+
   handle(
     IpcChannels.PhotoGetResultDataUrl,
     (req: { fileName: string }) => readGeneratedDataUrl(req.fileName),

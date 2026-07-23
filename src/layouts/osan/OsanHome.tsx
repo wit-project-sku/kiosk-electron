@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { Search } from 'lucide-react';
 import type { KioskScreenId, SupportedLanguage } from '@shared/types/kiosk';
 import type { KioskController } from '@renderer/hooks/useKioskController';
@@ -6,9 +6,11 @@ import { trackEvent } from '@renderer/lib/analytics';
 import { useLanguageStore } from '@renderer/store/languageStore';
 import { useSearchStore } from '@renderer/store/searchStore';
 import { useWeatherStore } from '@renderer/store/weatherStore';
+import { useWeatherVideo } from '@renderer/hooks/useWeatherVideo';
 import { osanIconUrl } from '@renderer/assets/icons/osan';
 import { weatherIconName, weatherIconUrl } from '@renderer/assets/weather';
-import { useOrderedTiles, type TileKey } from '@renderer/lib/buttonLayout';
+import { useHasDonationTile, useOrderedTiles, type TileKey } from '@renderer/lib/buttonLayout';
+import { DONATION_COMING_SOON, withComingSoon } from '@shared/config/donation';
 import { t } from '@renderer/lib/loc';
 import { FloatingKeyboard } from '../insadong/keyboard/FloatingKeyboard';
 import { HangulComposer } from '../insadong/keyboard/hangul';
@@ -26,9 +28,32 @@ interface OsanHomeTile {
   /** Explicit icon size (CSS length) overriding the default 85% — exact Figma dims. */
   iconW?: string;
   iconH?: string;
+  /**
+   * The art IS the whole tile face (an opaque square), not a glyph to centre on
+   * `bg`. Fills the box edge-to-edge instead of the default 85% inset — without
+   * this, `bg` shows as a frame around the artwork.
+   */
+  artFull?: boolean;
 }
 
-const TILES: OsanHomeTile[] = [
+/** Mint fill of donation.png (sampled from the art itself). The PNG is a rounded
+ *  square whose CORNERS are transparent, so the box behind it must match or the
+ *  corners show a different colour. */
+const DONATION_ART_BG = '#cbeae5';
+
+/** Grid slot 14 — 기부 on kiosks running the donation app (오색시장 W004), 오색시장
+ *  지도 otherwise. Mutually exclusive: the CMS carries a row for exactly one of
+ *  them, so rendering both drops the grid to authored order. See
+ *  useHasDonationTile. */
+const MAP_TILE: OsanHomeTile = { screen: 'map', label: '오색시장 지도', icon: 'map', bg: '#fdd089' };
+// Unlike every other Osan icon (a transparent glyph centred on `bg`), the 기부 art
+// is an opaque mint square that IS the tile face — so it fills the box and `bg`
+// only matters for the artwork's own rounded corners, which are transparent.
+// Hence mint, not the 지도 tile's orange: that orange was showing as a frame.
+const DONATION_TILE: OsanHomeTile = { screen: 'donation', label: '기부', icon: 'donation', bg: DONATION_ART_BG, artFull: true };
+
+/** Tiles authored before slot 14 (the 기부/지도 slot at the end of row 3). */
+const TILES_BEFORE_SLOT14: OsanHomeTile[] = [
   // Row 1 — AI wide tile + 2 regular
   { screen: 'ai_search', label: "'정이' 모하지 (AI검색)", icon: 'ai-search',       bg: '#1c7bd4', wide: true, iconW: '16.78cqw', iconH: '5.594cqh' },
   { screen: 'market',    label: '위드마켓',               icon: 'market',           bg: '#ffcc99', iconW: '5.995cqw', iconH: '5.625cqh' },
@@ -42,7 +67,9 @@ const TILES: OsanHomeTile[] = [
   { screen: 'about',     label: '여기는 오색시장', icon: 'about',           bg: '#ffa565' },
   { screen: 'hello',     label: "안녕 '정이'",    icon: 'hello',           bg: '#dbc7ff', alignBottom: true },
   { screen: 'help',      label: "도와줘 '정이'",  icon: 'help',            bg: '#9aea96' },
-  { screen: 'map',       label: '오색시장 지도',  icon: 'map',             bg: '#fdd089' },
+];
+/** Tiles authored after slot 14. */
+const TILES_AFTER_SLOT14: OsanHomeTile[] = [
   // Row 4
   { screen: 'exchange',  label: '환율',    icon: 'exchange',        bg: '#ffb2c5' },
   { screen: 'transport', label: '교통안내', icon: 'transport',       bg: '#9c8ce4' },
@@ -96,6 +123,10 @@ const KDRAMA_LABEL: Partial<Record<Lang, string>> = {
   en: 'Cook Soldier: Legend',
   ja: '炊事兵、伝説になる',
   zh: '炊事兵成为传说',
+  vi: 'Anh nuôi trở thành huyền thoại',
+  th: 'พลทหารครัวสู่ตำนาน',
+  ru: 'Повар-солдат: легенда',
+  id: 'Prajurit Juru Masak Jadi Legenda',
 };
 
 const SEARCH_PLACEHOLDER: Partial<Record<Lang, string>> = {
@@ -103,6 +134,10 @@ const SEARCH_PLACEHOLDER: Partial<Record<Lang, string>> = {
   en: 'Search about Osaek Market!',
   ja: 'オセク市場について検索しましょう！',
   zh: '搜索关于五色市场的内容！',
+  vi: 'Tìm kiếm về chợ Osaek!',
+  th: 'ค้นหาเกี่ยวกับตลาดโอแซก!',
+  ru: 'Поиск о рынке Осэк!',
+  id: 'Cari tentang Pasar Osaek!',
 };
 
 /** 물품 (non-food goods) tile has no Localization_Osaek key — translate inline. */
@@ -111,12 +146,17 @@ const LODGING_LABEL: Partial<Record<Lang, string>> = {
   en: 'To buy (Goods)',
   ja: 'お買い物（物品）',
   zh: '我们买什么呢？(物品)',
+  vi: 'Mua gì (Hàng hóa)',
+  th: 'ซื้ออะไรดี (สินค้า)',
+  ru: 'Что купить (Товары)',
+  id: 'Mau beli apa (Barang)',
 };
 
 /** Language-selector button label per language. Must match the 언어선택 picker
  *  pill codes (LANG_META in OsanLanguage.tsx): ja → JP, zh → CN. */
 const LANG_CODE: Partial<Record<Lang, string>> = {
   ko: 'KR', en: 'EN', ja: 'JP', vi: 'VN', zh: 'CN',
+  th: 'TH', ru: 'RU', id: 'ID',
 };
 const langCode = (lang: Lang): string => LANG_CODE[lang] ?? lang.toUpperCase();
 
@@ -149,7 +189,13 @@ function OsanTile({
       style={disabled ? { pointerEvents: 'none' } : undefined}
     >
       <span
-        className={tile.alignBottom ? `${styles.tileBox} ${styles.tileBoxBottom}` : styles.tileBox}
+        className={[
+          styles.tileBox,
+          tile.alignBottom ? styles.tileBoxBottom : '',
+          tile.artFull ? styles.tileBoxFull : '',
+        ]
+          .filter(Boolean)
+          .join(' ')}
         style={{ backgroundColor: tile.bg }}
       >
         {url ? (
@@ -175,6 +221,7 @@ interface OsanHomeProps {
 export function OsanHome({ controller }: OsanHomeProps): JSX.Element {
   const { navigate, startPhoto, kioskId } = controller;
   const weather = useWeatherStore((s) => s.weather);
+  const playWeatherVideo = useWeatherVideo();
   const lang = useLanguageStore((s) => s.currentLanguage);
 
   const noticeLines = parseNotice(t('NoticeContent', lang));
@@ -184,9 +231,16 @@ export function OsanHome({ controller }: OsanHomeProps): JSX.Element {
     .filter(Boolean);
   const placeholder = pick(SEARCH_PLACEHOLDER, lang);
 
+  // Slot 14 is 기부 or 오색시장 지도 depending on whether this kiosk runs the
+  // donation app.
+  const hasDonation = useHasDonationTile(kioskId);
+  const tiles: OsanHomeTile[] = useMemo(
+    () => [...TILES_BEFORE_SLOT14, hasDonation ? DONATION_TILE : MAP_TILE, ...TILES_AFTER_SLOT14],
+    [hasDonation],
+  );
   // Re-order tiles to match the CMS layout (line/position); the 4-column grid
   // auto-flows them. Falls back to authored order when uncached.
-  const orderedTiles = useOrderedTiles(kioskId, TILES, osanTileKey);
+  const orderedTiles = useOrderedTiles(kioskId, tiles, osanTileKey);
 
   const setSearchQuery = useSearchStore((s) => s.setQuery);
   const composer = useRef(new HangulComposer());
@@ -268,8 +322,8 @@ export function OsanHome({ controller }: OsanHomeProps): JSX.Element {
             <button
               type="button"
               className={styles.weather}
-              onClick={() => void window.api.kiosk.advanceVideo()}
-              aria-label="다음 영상"
+              onClick={playWeatherVideo}
+              aria-label="오늘 날씨 영상"
             >
               {weatherSrc && (
                 <img className={styles.weatherGlyph} src={weatherSrc} alt="" draggable={false} />
@@ -314,13 +368,16 @@ export function OsanHome({ controller }: OsanHomeProps): JSX.Element {
           <div className={styles.grid}>
             {orderedTiles.map((tile) => {
               const key = TILE_LABEL_KEYS[tile.screen];
-              const label = key
+              const base = key
                 ? t(key, lang)
                 : tile.screen === 'lodging'
                   ? pick(LODGING_LABEL, lang)
                   : tile.label;
-              // 전국시장 is not ready yet — keep the tile visible/coloured but inert.
-              const notReady = tile.screen === 'palace';
+              // 전국시장, and — while soft-launching — 기부, are not ready yet: keep
+              // the tile visible/coloured but inert.
+              const donationSoon = tile.screen === 'donation' && DONATION_COMING_SOON;
+              const notReady = tile.screen === 'palace' || donationSoon;
+              const label = donationSoon ? withComingSoon(base, lang) : base;
               return (
                 <OsanTile
                   key={tile.screen}

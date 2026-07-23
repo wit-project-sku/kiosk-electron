@@ -2,8 +2,10 @@ import type { CSSProperties } from 'react';
 import { useKioskController } from '@renderer/hooks/useKioskController';
 import { useWeatherSync } from '@renderer/hooks/useWeatherSync';
 import { useExchangeSync } from '@renderer/hooks/useExchangeSync';
+import { WEB_EMBED_URLS } from '@shared/constants/webEmbeds';
 import { hwaseongIconUrl } from '@renderer/assets/icons/hwaseong';
 import { KioskArtboard } from '../components/KioskScreenImage';
+import { DonationWebScreen } from '../components/DonationWebScreen';
 import { PhotoWorkflow } from '../photo/PhotoWorkflow';
 import { HwaseongExchange } from './HwaseongExchange';
 import { HwaseongHome } from './HwaseongHome';
@@ -109,6 +111,10 @@ export function HwaseongKiosk(): JSX.Element {
       <HwaseongNationwideRestStop controller={controller} />
     ) : cur === 'parking' ? (
       <HwaseongMap controller={controller} />
+    ) : cur === 'donation' ? (
+      // Mounted on demand, matching this layout's other webview screens (TAX-FREE)
+      // — Hwaseong pre-warms nothing, unlike Insadong/Osan.
+      <DonationWebScreen url={WEB_EMBED_URLS.donation} controller={controller} />
     ) : cur === 'exchange' ? (
       <HwaseongExchange controller={controller} />
     ) : (

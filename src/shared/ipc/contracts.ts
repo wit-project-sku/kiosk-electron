@@ -36,8 +36,9 @@ import type {
 } from '../types/photo';
 import type { SupportedLanguage } from '../types/kiosk';
 import type { WeatherSnapshot } from '../types/weather';
+import type { WeatherPlayKey } from '../config/weatherVideo';
 import type { ExchangeSnapshot } from '../types/exchange';
-import type { VideoEntry } from '../types/subtitle';
+import type { VideoEntry, VideoFilesBySet } from '../types/subtitle';
 import type { Shop } from '../types/shop';
 import type { KioskButton } from '../types/buttons';
 import type {
@@ -256,6 +257,16 @@ export interface IpcContract {
     request: { fileName: string };
     response: Result<string | null>;
   };
+  /** 기부(학교) 흐름: 결제 완료 전까지 Monitor 2 의 AI 결과 노출을 보류한다. */
+  [IpcChannels.PhotoSetHoldResult]: {
+    request: { hold: boolean };
+    response: Result<PhotoWorkflowState>;
+  };
+  /** 보류해 둔 AI 결과를 Monitor 2 에 노출한다(결제 완료). */
+  [IpcChannels.PhotoRevealResult]: {
+    request: void;
+    response: Result<PhotoWorkflowState>;
+  };
   [IpcChannels.PhotoReset]: {
     request: void;
     response: Result<PhotoWorkflowState>;
@@ -287,12 +298,16 @@ export interface IpcContract {
     request: void;
     response: Result<VideoEntry[] | null>;
   };
+  [IpcChannels.VideosList]: {
+    request: void;
+    response: Result<VideoFilesBySet>;
+  };
   [IpcChannels.KioskSetScreen]: {
-    request: { screen: string };
+    request: { screen: string; buttonId?: number | null };
     response: Result<string>;
   };
-  [IpcChannels.KioskAdvanceVideo]: {
-    request: void;
+  [IpcChannels.KioskPlayWeatherVideo]: {
+    request: { key: WeatherPlayKey };
     response: Result<boolean>;
   };
   [IpcChannels.ShopsList]: {
@@ -337,8 +352,8 @@ export interface IpcEventPayloads {
   [IpcEvents.LanguageChanged]: SupportedLanguage;
   [IpcEvents.WeatherChanged]: WeatherSnapshot;
   [IpcEvents.ExchangeChanged]: ExchangeSnapshot;
-  [IpcEvents.KioskScreenChanged]: string;
-  [IpcEvents.KioskVideoAdvanced]: null;
+  [IpcEvents.KioskScreenChanged]: { screen: string; buttonId: number | null };
+  [IpcEvents.KioskWeatherVideo]: WeatherPlayKey;
   [IpcEvents.ShopsChanged]: null;
   [IpcEvents.ButtonsChanged]: null;
 }

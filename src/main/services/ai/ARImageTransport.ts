@@ -1,6 +1,8 @@
 import { readFile } from 'node:fs/promises';
 import { basename } from 'node:path';
 import { createLogger } from '@main/core/logger';
+import { kioskConfigStore } from '@main/core/KioskConfigStore';
+import { getKioskLocation } from '@shared/config/kioskLocations';
 import type { AIGenerateOutput, AIGenerateParams, AITransport } from './AITransport';
 import { parseImageResponse } from './parseImageResponse';
 
@@ -17,12 +19,16 @@ const DEFAULT_PROCESS_COMBINE_URL = 'https://kr-kiosk.digicon.pro/api/v2/process
 
 /**
  * Digicon AR hanbok transport. Two endpoints:
- *   solo     → process_image          (styleKey 'solo')
- *   together → process_and_combine     (styleKey 'withInsa', with 'INSA')
+ *   solo     → process_image           (styleKey 'solo')
+ *   together → process_and_combine     (styleKey 'withInsa')
  *
  * Photo-workflow fields:
  *   clothingKey = "gender|code" outfit selection (see parseClothingKey)
  *   styleKey    = capture mode ('solo' | 'withInsa')
+ *
+ * NOTE 'withInsa' names the MODE (together), not the character — despite the
+ * name it does not mean "with 인사". Which mascot appears is a separate,
+ * per-kiosk decision: see togetherWith().
  */
 
 /**
@@ -52,6 +58,21 @@ export class ARImageTransport implements AITransport {
     return process.env['VITE_AR_PROCESS_API_URL'] || DEFAULT_PROCESS_COMBINE_URL;
   }
 
+  /**
+   * The mascot a 같이찍기 photo is composited with, resolved from THIS machine's
+   * kiosk id: 인사 on Insadong, 정이 on 오색시장, 휴 on 화성휴게소.
+   *
+   * One build serves every location, so a fixed value is wrong somewhere — this
+   * used to default to '2' (인사) for the whole fleet, which composited 오색시장 and
+   * 화성휴게소 visitors with the Insadong character. The env var stays as a manual
+   * override for testing, but it must not be the source of truth.
+   */
+  private togetherWith(): string {
+    const override = process.env['VITE_AR_TOGETHER_WITH'];
+    if (override) return override;
+    return getKioskLocation(kioskConfigStore.get().kioskId).aiCompanion;
+  }
+
   isConfigured(): boolean {
     return true; // endpoints always resolve (env override or built-in default)
   }
@@ -67,10 +88,9 @@ export class ARImageTransport implements AITransport {
     form.append('image', new Blob([imageBuffer], { type: 'image/jpeg' }), basename(params.capturePath));
     form.append('outfit', outfit);
 
-    // together_with: '2'=Insa (app default), '3'=Jeong-i, '4'=Hue, 'GROUP'=Insa & Jeong-i.
-    if (mode === 'together') {
-      form.append('together_with', process.env['VITE_AR_TOGETHER_WITH'] || '2');
-    }
+    // together_with: '2'=Insa, '3'=Jeong-i, '4'=Hue, 'GROUP'=Insa & Jeong-i.
+    const togetherWith = mode === 'together' ? this.togetherWith() : undefined;
+    if (togetherWith) form.append('together_with', togetherWith);
 
     if (gender) form.append('gender', gender);
 
@@ -82,6 +102,7 @@ export class ARImageTransport implements AITransport {
       endpoint,
       outfit,
       gender,
+      togetherWith,
     });
 
     const response = await fetch(endpoint, { method: 'POST', body: form });

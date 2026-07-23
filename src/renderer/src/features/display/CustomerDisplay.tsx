@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { AppSettings, DisplayState, ImageAsset } from '@shared/types/domain';
 import type { KioskId, SupportedLanguage } from '@shared/types/kiosk';
 import { isOk } from '@shared/types/result';
@@ -11,7 +11,8 @@ import { usePhotoStore } from '@renderer/store/photoStore';
 import { trackEvent } from '@renderer/lib/analytics';
 import { displayVideosFor } from '@renderer/assets/videos';
 import { cameraIconUrl } from '@renderer/assets/icons/insadong/camera';
-import { clipsForScreen, initSubtitles } from '@renderer/lib/videoMap';
+import { clipsForPlayKey, clipsForScreen, initSubtitles, initVideoFiles } from '@renderer/lib/videoMap';
+import type { WeatherPlayKey } from '@shared/config/weatherVideo';
 import spinnerImg from '@renderer/assets/spinner.svg';
 import { KioskArtboard } from '@layouts/components/KioskScreenImage';
 import { Slideshow } from './components/Slideshow';
@@ -26,9 +27,13 @@ const ATTRACT_STATE: DisplayState = {
   cameraDeviceId: null,
   countdown: null,
   resultFileName: null,
+  resultLocked: false,
 };
 
 const GEN_WAIT_SECS = 60;
+
+/** 결제 전 블러 미리보기 위에 덮는 안내 문구(기부 학교 흐름). */
+const LOCKED_RESULT_NOTICE = '기부를 완료해 주세요. 완료 후 사진을 다운로드할 수 있습니다.';
 
 /**
  * Monitor 2 — borderless customer display.
@@ -41,12 +46,19 @@ export function CustomerDisplay(): JSX.Element {
 
   // Current touch-screen + language drive which AI-model video plays here.
   const [kioskScreen, setKioskScreen] = useState<string>('home');
+  // DB `buttons.id` of the tapped home tile (null for sub-states / idle) — lets a
+  // top-level screen resolve its clip by button id instead of a screen→key guess.
+  const [buttonId, setButtonId] = useState<number | null>(null);
   const [lang, setLang] = useState<SupportedLanguage>('ko');
   // Which kiosk this is (W004 → Osaek videos/subtitles). The display window
   // isn't bootstrap-hydrated, so fetch the config over IPC.
   const [kioskId, setKioskId] = useState<string | undefined>(undefined);
-  // Bumped when the user taps the home weather box → advances the idle video.
-  const [advanceTick, setAdvanceTick] = useState(0);
+  // Set when the user taps the home weather box → the matching Weather_* clip
+  // takes over the display; cleared when it finishes, back to the idle sequence.
+  const [weatherKey, setWeatherKey] = useState<WeatherPlayKey | null>(null);
+  // Bumped once the API subtitles + on-disk video list have loaded, so the clip
+  // lookups below recompute against the freshly-populated (was-empty) maps.
+  const [dataVersion, setDataVersion] = useState(0);
 
   // Countdown shown on the generating/waiting screen (counts 60 → 0).
   const [genCountdown, setGenCountdown] = useState(GEN_WAIT_SECS);
@@ -60,36 +72,79 @@ export function CustomerDisplay(): JSX.Element {
       if (!isOk(r)) return;
       const id = r.value.kioskConfig.kioskId as KioskId;
       setKioskId(id);
-      // Fetch API subtitles once; replaces this kiosk's static fallback map if
-      // successful. Needs the resolved kioskId so entries land in the right set.
-      void window.api.subtitles.get().then((sr) => {
+      // Freshly load, on every launch: (1) the real on-disk video file list,
+      // THEN (2) this kiosk's API subtitles. Order matters — initSubtitles drops
+      // any entry whose video file isn't known, so the file list must be loaded
+      // first. Both replace the initially-empty maps; there is no hardcoded/
+      // build-time data. Needs the resolved kioskId so entries land in the right
+      // set. Bump dataVersion afterwards so the clip lookups recompute.
+      void (async () => {
+        const vr = await window.api.videos.list();
+        if (isOk(vr) && vr.value) initVideoFiles(vr.value);
+        const sr = await window.api.subtitles.get();
         if (isOk(sr) && sr.value) initSubtitles(sr.value, id);
-      });
+        setDataVersion((v) => v + 1);
+      })();
     });
 
     const offState = window.api.events.onDisplayStateChanged(setState);
     const offSettings = window.api.events.onSettingsChanged(setSettings);
     const offLang = window.api.events.onLanguageChanged(setLang);
-    const offScreen = window.api.events.onKioskScreenChanged(setKioskScreen);
-    const offAdvance = window.api.events.onKioskVideoAdvanced(() => setAdvanceTick((t) => t + 1));
+    const offScreen = window.api.events.onKioskScreenChanged(({ screen, buttonId }) => {
+      setKioskScreen(screen);
+      setButtonId(buttonId);
+    });
+    const offWeatherVideo = window.api.events.onKioskWeatherVideo((key) => setWeatherKey(key));
     return () => {
       offState();
       offSettings();
       offLang();
       offScreen();
-      offAdvance();
+      offWeatherVideo();
     };
   }, []);
 
   // Full ordered clip list for the current screen (sheet order). The wall
   // auto-advances through them on completion (home cycles 기본화면_1…10) and
   // preloads the next clip for an instant, no-flash switch.
-  const screenClips = clipsForScreen(kioskScreen, lang, kioskId);
-  const genClips = clipsForScreen('photo', lang, kioskId);
+  // dataVersion is a dep so these recompute once subtitles/video files load.
+  const screenClips = useMemo(
+    () => clipsForScreen(kioskScreen, lang, kioskId, buttonId),
+    [kioskScreen, buttonId, lang, kioskId, dataVersion],
+  );
+  const genClips = useMemo(
+    () => clipsForScreen('photo', lang, kioskId),
+    [lang, kioskId, dataVersion],
+  );
+  // The clip for the tapped weather condition. Empty when this kiosk's video
+  // set doesn't bundle that Weather_* file — then the tap is simply ignored and
+  // the idle sequence keeps playing, rather than cutting to an unrelated clip.
+  const weatherClips = useMemo(
+    () => (weatherKey ? clipsForPlayKey(weatherKey, lang, kioskId) : []),
+    [weatherKey, lang, kioskId, dataVersion],
+  );
+
+  // Navigating away cancels a playing weather clip — the new screen's own video
+  // wins, otherwise the weather clip would keep overriding it.
+  useEffect(() => {
+    setWeatherKey(null);
+  }, [kioskScreen]);
+
+  // The tap resolved to nothing — the API names a Weather_* video this machine
+  // doesn't have (see initVideoFiles/initSubtitles). Log it so a missing clip is
+  // visible instead of the weather box just looking dead.
+  useEffect(() => {
+    if (weatherKey && weatherClips.length === 0) {
+      console.warn('[display] no weather clip for key — video not bundled?', {
+        key: weatherKey,
+        kioskId,
+      });
+    }
+  }, [weatherKey, weatherClips.length, kioskId]);
   // Osaek (W004) and Hwaseong (W005) don't use the PARK SUL NYEO brand logo.
   const noBrandLogo = kioskId === 'W004' || kioskId === 'W005';
   // Generic-wall fallback URLs for the active kiosk's video set (W004 → osaek).
-  const displayVideos = displayVideosFor(kioskId);
+  const displayVideos = useMemo(() => displayVideosFor(kioskId), [kioskId, dataVersion]);
 
   useEffect(() => {
     if (state.mode === 'generating') {
@@ -161,8 +216,17 @@ export function CustomerDisplay(): JSX.Element {
       {/* ── Idle / attract ── */}
       {(state.mode === 'attract' || state.mode === 'idle') && (
         <>
-          {screenClips.length > 0 ? (
-            <AiModelVideoWall clips={screenClips} hideLogo={noBrandLogo} advanceSignal={advanceTick} />
+          {/* A tapped weather clip takes over (played once, then onDone hands
+              the display back to this screen's own sequence). Same element
+              position + type as the idle wall, so React keeps the instance and
+              the swap is the usual smooth double-buffered cut, not a remount. */}
+          {weatherClips.length > 0 || screenClips.length > 0 ? (
+            <AiModelVideoWall
+              clips={weatherClips.length > 0 ? weatherClips : screenClips}
+              hideLogo={noBrandLogo}
+              playOnce={weatherClips.length > 0}
+              onDone={() => setWeatherKey(null)}
+            />
           ) : displayVideos.length > 0 ? (
             <VideoWall videos={displayVideos} />
           ) : assets.length > 0 ? (
@@ -266,13 +330,22 @@ export function CustomerDisplay(): JSX.Element {
         </div>
       )}
 
-      {/* ── Result ── */}
+      {/* ── Result ──
+          resultLocked(기부 학교 흐름, 결제 전) → 블러 + 안내 문구.
+          결제 완료 시 revealResult 가 잠금을 풀어 선명하게 보인다. */}
       {state.mode === 'result' && state.resultFileName && (
-        <img
-          className={styles.media}
-          src={generatedUrl(state.resultFileName)}
-          alt="Generated result"
-        />
+        <>
+          <img
+            className={`${styles.media}${state.resultLocked ? ` ${styles.mediaLocked}` : ''}`}
+            src={generatedUrl(state.resultFileName)}
+            alt="Generated result"
+          />
+          {state.resultLocked && (
+            <div className={styles.lockedNotice}>
+              <p className={styles.lockedNoticeText}>{LOCKED_RESULT_NOTICE}</p>
+            </div>
+          )}
+        </>
       )}
       </div>
     </KioskArtboard>

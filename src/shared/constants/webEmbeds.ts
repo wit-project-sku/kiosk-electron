@@ -16,9 +16,21 @@ export const WEB_EMBED_URLS = {
   market: 'https://witteria.com/#/kiosk/store',
   // market: 'https://insarang.kr/',               // payment없는 곳
 
-  /** 기부 — WIT Global donation web app (fullscreen webview). The kiosk=1 marker
-   *  tells the donation app it's embedded (enables the console-message host bridge);
-   *  the app also auto-detects the Electron webview by user-agent. */
+  /**
+   * 기부 — WIT Global donation web app (fullscreen webview). ONE url for every
+   * kiosk, deliberately.
+   *
+   * `location` is the donation app's THEME key (insadong / osaek / hwaseong): it
+   * only repaints its chrome — back/home buttons, some button + text colour — and
+   * changes no content, campaigns or payment. We want 기부 to look identical on
+   * every kiosk, so we always send `insadong` and never the running kiosk's own
+   * location. Do NOT "fix" this into a per-kiosk value: that makes 오색시장 and
+   * 화성휴게소 render navy while Insadong stays coral.
+   *
+   * `kiosk=1` marks the page as embedded, enabling the console-message host
+   * bridge (see DonationWebScreen). It sits after the `#` because the app uses a
+   * HashRouter — a pre-hash query string is invisible to its useSearchParams.
+   */
   donation: 'https://witglobaldonation.vercel.app/#/?location=insadong&kiosk=1',
 
   /** 인사동 이벤트 — event listing */

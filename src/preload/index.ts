@@ -148,6 +148,8 @@ const api: KioskBridge = {
     beginCountdown: () => invoke(IpcChannels.PhotoBeginCountdown),
     captureAndGenerate: (request) => invoke(IpcChannels.PhotoCaptureAndGenerate, request),
     getResultDataUrl: (fileName) => invoke(IpcChannels.PhotoGetResultDataUrl, { fileName }),
+    setHoldResult: (hold) => invoke(IpcChannels.PhotoSetHoldResult, { hold }),
+    revealResult: () => invoke(IpcChannels.PhotoRevealResult),
     reset: () => invoke(IpcChannels.PhotoReset),
   },
   language: {
@@ -164,9 +166,13 @@ const api: KioskBridge = {
   subtitles: {
     get: () => invoke(IpcChannels.SubtitlesGet),
   },
+  videos: {
+    list: () => invoke(IpcChannels.VideosList),
+  },
   kiosk: {
-    setScreen: (screen) => invoke(IpcChannels.KioskSetScreen, { screen }),
-    advanceVideo: () => invoke(IpcChannels.KioskAdvanceVideo),
+    setScreen: (screen, buttonId) =>
+      invoke(IpcChannels.KioskSetScreen, { screen, buttonId: buttonId ?? null }),
+    playWeatherVideo: (key) => invoke(IpcChannels.KioskPlayWeatherVideo, { key }),
   },
   shops: {
     list: () => invoke(IpcChannels.ShopsList),
@@ -202,7 +208,7 @@ const api: KioskBridge = {
     onWeatherChanged: (listener) => subscribe(IpcEvents.WeatherChanged, listener),
     onExchangeChanged: (listener) => subscribe(IpcEvents.ExchangeChanged, listener),
     onKioskScreenChanged: (listener) => subscribe(IpcEvents.KioskScreenChanged, listener),
-    onKioskVideoAdvanced: (listener) => subscribe(IpcEvents.KioskVideoAdvanced, listener),
+    onKioskWeatherVideo: (listener) => subscribe(IpcEvents.KioskWeatherVideo, listener),
     onShopsChanged: (listener) => subscribe(IpcEvents.ShopsChanged, listener),
     onButtonsChanged: (listener) => subscribe(IpcEvents.ButtonsChanged, listener),
   },

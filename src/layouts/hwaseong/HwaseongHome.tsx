@@ -3,16 +3,18 @@ import type { KioskController } from '@renderer/hooks/useKioskController';
 import type { KioskScreenId } from '@shared/types/kiosk';
 import { hwaseongIconUrl } from '@renderer/assets/icons/hwaseong';
 import { useWeatherStore } from '@renderer/store/weatherStore';
+import { useWeatherVideo } from '@renderer/hooks/useWeatherVideo';
 import { useLanguageStore } from '@renderer/store/languageStore';
 import { useSearchStore } from '@renderer/store/searchStore';
 import { weatherIconUrl, weatherIconName } from '@renderer/assets/weather';
 import { buttonText, pick } from '@renderer/lib/i18n';
-import { useApiTileRows, type TileKey } from '@renderer/lib/buttonLayout';
+import { useApiTileRows, useHasDonationTile, type TileKey } from '@renderer/lib/buttonLayout';
+import { DONATION_COMING_SOON, withComingSoon } from '@shared/config/donation';
 import { t } from '@renderer/lib/loc';
 import { FloatingKeyboard } from '../insadong/keyboard/FloatingKeyboard';
 
 /** Search-bar language button → the current language's display code. */
-const LANG_CODE: Record<string, string> = { ko: 'KR', en: 'EN', ja: 'JP', zh: 'CN' };
+const LANG_CODE: Record<string, string> = { ko: 'KR', en: 'EN', ja: 'JP', zh: 'CN', vi: 'VN', th: 'TH', ru: 'RU', id: 'ID' };
 
 /** Home notice card + search placeholder (localized; tiles use sheet keys). */
 const NOTICE = {
@@ -26,6 +28,10 @@ const SEARCH_PLACEHOLDER = {
   en: 'Search about Hwaseong Service Area!',
   ja: '華城SAについて検索してみてください！',
   zh: '搜索关于华城休息站的信息！',
+  vi: 'Tìm kiếm về trạm dừng Hwaseong!',
+  th: 'ค้นหาเกี่ยวกับจุดพักรถฮวาซอง!',
+  ru: 'Поиск о зоне отдыха Хвасон!',
+  id: 'Cari tentang Rest Area Hwaseong!',
 };
 import { HangulComposer } from '../insadong/keyboard/hangul';
 import type { KeyAction } from '../insadong/keyboard/VirtualKeyboard';
@@ -77,12 +83,18 @@ const ROW2: Tile[] = [
   { screen: 'taxfree',     label: 'TAX-FREE',    labelKey: 'MainButton_TaxFree',     icon: 'fg-taxfree' },
 ];
 
-const ROW3: Tile[] = [
+const ROW3_HEAD: Tile[] = [
   { screen: 'tourism',   label: '화성휴게소',      labelKey: 'MainButton_Here',     icon: 'fg-resthome' },
   { screen: 'hello',     label: "안녕 '휴'",       labelKey: 'MainButton_Greeting', icon: 'fg-hello'    },
   { screen: 'help',      label: "도와줘 '휴'",     labelKey: 'MainButton_ToHelp',   icon: 'fg-help'     },
-  { screen: 'parking',   label: '화성휴게소 지도', labelKey: 'MainButton_SAMap',    icon: 'fg-map'      },
 ];
+
+/** Row 3's last tile (grid slot 14) — 기부 on kiosks running the donation app,
+ *  화성휴게소 지도 otherwise. Mutually exclusive: the CMS carries a row for exactly
+ *  one of them, so rendering both drops the grid to authored order. See
+ *  useHasDonationTile. */
+const MAP_TILE: Tile = { screen: 'parking', label: '화성휴게소 지도', labelKey: 'MainButton_SAMap', icon: 'fg-map' };
+const DONATION_TILE: Tile = { screen: 'donation', label: '기부', labelKey: 'MainButton_Donation', icon: 'fg-donation' };
 
 /** A tile plus optional flags: `disabled` (준비중), `wide` (the 2-col traffic card),
  *  and an explicit DB `slot`. `slot` disambiguates tiles that share a screen key
@@ -96,9 +108,20 @@ const ROW4: HomeTile[] = [
   { screen: 'rest_info', label: '지역화폐',       labelKey: 'MainButton_MarketPaper', icon: 'fg-localpay', slot: 18 },
 ];
 
+/** Row 3 with its slot-14 tile resolved (기부 vs 지도). 기부 is inert while
+ *  soft-launching (준비중) — same as the other disabled tiles. */
+function row3For(hasDonation: boolean): HomeTile[] {
+  const slot14: HomeTile = hasDonation
+    ? { ...DONATION_TILE, disabled: DONATION_COMING_SOON }
+    : MAP_TILE;
+  return [...ROW3_HEAD, slot14];
+}
+
 /** Flat tile list in authored order — reordered to the CMS layout by useApiTileRows.
  *  ROW1_WIDE is the 2-column traffic card (wide flag is local: the API span is null). */
-const ALL_TILES: HomeTile[] = [{ ...ROW1_WIDE, wide: true }, ...ROW1, ...ROW2, ...ROW3, ...ROW4];
+function allTilesFor(hasDonation: boolean): HomeTile[] {
+  return [{ ...ROW1_WIDE, wide: true }, ...ROW1, ...ROW2, ...row3For(hasDonation), ...ROW4];
+}
 
 /** Join a Hwaseong tile to its CMS button — by explicit slot when the screen key
  *  is shared (rest_info), else by screen key (see useApiTileRows). */
@@ -151,6 +174,7 @@ function TileView({ tile, label, onClick, disabled }: { tile: HomeTile; label: s
 // ── Main component ──────────────────────────────────────────────────
 export function HwaseongHome({ controller }: Props): JSX.Element {
   const weather = useWeatherStore((s) => s.weather);
+  const playWeatherVideo = useWeatherVideo();
   const today = useMemo(() => formatDate(new Date()), []);
   const lang = useLanguageStore((s) => s.currentLanguage);
   const setStoreQuery = useSearchStore((s) => s.setQuery);
@@ -160,6 +184,14 @@ export function HwaseongHome({ controller }: Props): JSX.Element {
   const L = (key: string): string => buttonText(key, lang) ?? t(key, lang);
   const TILE = (key: string, keepPending = false): string =>
     keepPending ? L(key) : L(key).replace(/\s*\(준비중\)\s*/g, '').trim();
+  // 기부 shows a fixed 기부 base (like Insadong/Osan, which hardcode it in every
+  // language), plus a localized "(준비중)" suffix while soft-launching. It does NOT
+  // resolve via labelKey — MainButton_Donation has no vi/th/ru/id data. Every
+  // other tile resolves normally.
+  const tileLabel = (tile: HomeTile): string => {
+    if (tile.screen !== 'donation') return TILE(tile.labelKey, tile.disabled);
+    return DONATION_COMING_SOON ? withComingSoon('기부', lang) : '기부';
+  };
 
   // Inline search keyboard (no navigation on tap — keyboard shows in place).
   const composer = useRef(new HangulComposer());
@@ -189,9 +221,15 @@ export function HwaseongHome({ controller }: Props): JSX.Element {
     controller.navigate(tile.screen, tile.label);
   }
 
+  // Slot 14 is 기부 or 화성휴게소 지도 depending on whether this kiosk runs the
+  // donation app — resolved before ordering so both the CMS and authored paths agree.
+  const hasDonation = useHasDonationTile(controller.kioskId);
+  const allTiles = useMemo(() => allTilesFor(hasDonation), [hasDonation]);
+  const row3 = useMemo(() => row3For(hasDonation), [hasDonation]);
+
   // CMS-driven menu order (grouped into rows by line, sorted by position). null →
   // keep the authored rows below (offline / partial data / any cell collision).
-  const dynamicRows = useApiTileRows(controller.kioskId, ALL_TILES, hwaseongTileKey);
+  const dynamicRows = useApiTileRows(controller.kioskId, allTiles, hwaseongTileKey);
 
   const weatherIcon = weather
     ? weatherIconUrl(weatherIconName(weather.icon, weather.main))
@@ -281,13 +319,13 @@ export function HwaseongHome({ controller }: Props): JSX.Element {
             </div>
           </div>
 
-          {/* Weather card — tap advances the customer-display video (다음 영상),
-              same as the other kiosks. */}
+          {/* Weather card — tap plays today's condition clip on the customer
+              display (Weather_Rain/Cold/Sunny), same as the other kiosks. */}
           <div
             className={styles.weatherCard}
             role="button"
-            aria-label="다음 영상"
-            onClick={() => void window.api.kiosk.advanceVideo()}
+            aria-label="오늘 날씨 영상"
+            onClick={playWeatherVideo}
           >
             {weatherIcon && (
               <img src={weatherIcon} alt="" className={styles.weatherIconImg} draggable={false} />
@@ -348,7 +386,7 @@ export function HwaseongHome({ controller }: Props): JSX.Element {
                     <TileView
                       key={tile.screen + tile.label}
                       tile={tile}
-                      label={TILE(tile.labelKey, tile.disabled)}
+                      label={tileLabel(tile)}
                       onClick={() => go(tile)}
                       disabled={tile.disabled}
                     />
@@ -375,10 +413,11 @@ export function HwaseongHome({ controller }: Props): JSX.Element {
                   ))}
                 </div>
 
-                {/* Row 3 */}
+                {/* Row 3 — its slot-14 tile (기부) can be disabled while 준비중, so
+                    pass disabled + keepPending like ROW1/ROW4 do. */}
                 <div className={styles.menuRow}>
-                  {ROW3.map((tile) => (
-                    <SquareTile key={tile.screen + tile.label} tile={tile} label={TILE(tile.labelKey)} onClick={() => go(tile)} />
+                  {row3.map((tile) => (
+                    <SquareTile key={tile.screen + tile.label} tile={tile} label={tileLabel(tile)} onClick={() => go(tile)} disabled={tile.disabled} />
                   ))}
                 </div>
 

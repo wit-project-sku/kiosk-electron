@@ -11,8 +11,12 @@ interface AiModelVideoWallProps {
   hideLabel?: boolean;
   /** Hide just the top-left brand logo (e.g. Osaek/Hwaseong have no PARK SUL NYEO logo). */
   hideLogo?: boolean;
-  /** Bump this to manually advance to the next clip (e.g. tapping the weather box). */
-  advanceSignal?: number;
+  /** Play the list through exactly once — no looping, no wrapping — and call
+   *  `onDone` when the last clip ends. Used for the one-shot weather clip, which
+   *  must hand the display back to the idle sequence when it finishes. */
+  playOnce?: boolean;
+  /** Fires when a `playOnce` list reaches the end of its last clip. */
+  onDone?: () => void;
 }
 
 /**
@@ -21,6 +25,7 @@ interface AiModelVideoWallProps {
  * - A single clip loops forever (native `loop`).
  * - Several clips auto-advance on `ended`, wrapping — this is how the sheet's
  *   numbered home videos (기본화면_1…10) cycle.
+ * - `playOnce` opts out of both: the list runs through once and reports `onDone`.
  * - The hidden back layer always has the NEXT clip preloaded, so advancing is an
  *   instant cut with no black frame. On a screen change the old clip keeps
  *   playing until the new one can play, so navigation switches fast and smooth.
@@ -32,7 +37,8 @@ export function AiModelVideoWall({
   clips,
   hideLabel = false,
   hideLogo = false,
-  advanceSignal = 0,
+  playOnce = false,
+  onDone,
 }: AiModelVideoWallProps): JSX.Element | null {
   const aRef = useRef<HTMLVideoElement>(null);
   const bRef = useRef<HTMLVideoElement>(null);
@@ -50,6 +56,8 @@ export function AiModelVideoWall({
   // Preload the next clip into the hidden back layer so advancing is instant.
   const preloadNext = (frontLayer: 'a' | 'b', list: DisplayClip[], index: number): void => {
     if (list.length <= 1) return;
+    // A playOnce list never wraps, so there is nothing to preload past the end.
+    if (playOnce && index >= list.length - 1) return;
     const el = elOf(frontLayer === 'a' ? 'b' : 'a');
     const nextClip = list[(index + 1) % list.length];
     if (el && nextClip && el.src !== nextClip.url) {
@@ -70,7 +78,7 @@ export function AiModelVideoWall({
       eng.current.cleanup();
       eng.current.cleanup = null;
     }
-    el.loop = list.length <= 1;
+    el.loop = !playOnce && list.length <= 1;
     if (el.src !== clip.url) {
       el.src = clip.url;
       el.load();
@@ -104,7 +112,7 @@ export function AiModelVideoWall({
       // First mount — show clips[0] on layer A immediately.
       const a = aRef.current;
       if (a) {
-        a.loop = clips.length <= 1;
+        a.loop = !playOnce && clips.length <= 1;
         a.src = clips[0]!.url;
         a.load();
         void a.play().catch(() => {});
@@ -130,6 +138,12 @@ export function AiModelVideoWall({
   const onEnded = (layer: 'a' | 'b'): void => {
     if (layer !== front) return; // only the visible layer advances the cycle
     const list = eng.current.clips;
+    // One-shot list (the weather clip): walk to the end, then hand back.
+    if (playOnce) {
+      if (eng.current.index >= list.length - 1) onDone?.();
+      else transitionTo(list, eng.current.index + 1, layer);
+      return;
+    }
     if (list.length <= 1) {
       // Native-loop safety net so a single clip never freezes on its last frame.
       const el = elOf(layer);
@@ -141,17 +155,6 @@ export function AiModelVideoWall({
     }
     transitionTo(list, (eng.current.index + 1) % list.length, layer);
   };
-
-  // Manual advance (e.g. tapping the home weather box) — skip the initial value.
-  const advanceRef = useRef(advanceSignal);
-  useEffect(() => {
-    if (advanceSignal === advanceRef.current) return;
-    advanceRef.current = advanceSignal;
-    const list = eng.current.clips;
-    if (list.length <= 1) return;
-    transitionTo(list, (eng.current.index + 1) % list.length, front);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [advanceSignal]);
 
   if (clips.length === 0) return null;
 

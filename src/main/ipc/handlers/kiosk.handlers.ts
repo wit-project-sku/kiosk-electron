@@ -8,15 +8,16 @@ import { handle } from '../registry';
  * video (VideoSubtitle_Insa).
  */
 export function registerKioskHandlers(windows: WindowManager): void {
-  handle(IpcChannels.KioskSetScreen, ({ screen }) => {
-    windows.broadcast(IpcEvents.KioskScreenChanged, screen);
+  handle(IpcChannels.KioskSetScreen, ({ screen, buttonId }) => {
+    windows.broadcast(IpcEvents.KioskScreenChanged, { screen, buttonId: buttonId ?? null });
     return screen;
   });
 
-  // Touch screen asked for the next clip (e.g. home weather card) — tell the
-  // customer display to advance within the current screen's clip list.
-  handle(IpcChannels.KioskAdvanceVideo, () => {
-    windows.broadcast(IpcEvents.KioskVideoAdvanced, null);
+  // Home weather card tapped — tell the customer display to play the clip for
+  // today's condition (Weather_Rain/Cold/Sunny). The touch window resolves the
+  // key from its weather snapshot; main just rebroadcasts it.
+  handle(IpcChannels.KioskPlayWeatherVideo, ({ key }) => {
+    windows.broadcast(IpcEvents.KioskWeatherVideo, key);
     return true;
   });
 }

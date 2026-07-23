@@ -27,6 +27,14 @@ export interface GeoCoordinates {
   lon: number;
 }
 
+/**
+ * Digicon `together_with` code — the mascot a 같이찍기 (together) photo is
+ * composited with: '2'=인사, '3'=정이, '4'=휴. ('GROUP'=인사+정이 exists but no
+ * kiosk uses it.) Each location must send ITS OWN character; there is no server
+ * default that gets this right.
+ */
+export type AiCompanionCode = '2' | '3' | '4';
+
 export interface KioskLocation {
   code: KioskLocationCode;
   /** Human name of the physical location. */
@@ -37,6 +45,21 @@ export interface KioskLocation {
   secondTile: KioskLocationTile;
   /** Has a physical card-payment terminal (남인사마당 W003, 오색시장 W004). */
   hasCardTerminal: boolean;
+  /**
+   * Whether this kiosk runs the 기부 (donation) web app — it takes the 지도 tile's
+   * grid slot, so the two are mutually exclusive.
+   *
+   * This is the AUTHORED default, used only until the buttons API is cached
+   * (cold start / offline). The live CMS is the real authority: see
+   * useHasDonationTile, which prefers a 기부 row in the API response. Keep this
+   * in sync with the CMS so a first boot with no network still looks right.
+   */
+  hasDonation: boolean;
+  /** Mascot for 같이찍기 photos at this location — see {@link AiCompanionCode}.
+   *  Applies to BOTH the kiosk's own photo flow and donation-initiated captures.
+   *  (Note the donation app's own CHROME is deliberately identical everywhere —
+   *  see WEB_EMBED_URLS.donation. This is the photo character, not the palette.) */
+  aiCompanion: AiCompanionCode;
   /** Languages offered by this kiosk's selector — adapts per kioskId (no hardcoding). */
   languages: SupportedLanguage[];
   /** Weather coordinates for this physical location (OpenWeatherMap query). */
@@ -57,14 +80,19 @@ const W003_LANGUAGES: SupportedLanguage[] = ['ko', 'en', 'ja', 'zh', 'vi', 'th',
 const INSARANG_TILE: KioskLocationTile = { screen: 'insarang', label: '인사랑(준비중)', icon: 'insarang' };
 const MARKET_TILE: KioskLocationTile = { screen: 'market', label: '위드마켓', icon: 'market' };
 
+// 기부 is deployed on W003/W004/W005 — mirrors the `buttons` CMS, which carries a
+// 기부 row for kiosks 3/4/5 (line 6 position 2) and has dropped their 지도 row, while
+// W001/W002 still have 인사동 지도 and no 기부. Note this is NOT the same set as
+// hasCardTerminal: 화성휴게소 W005 has no terminal but does run 기부 — the donation
+// web app takes payment itself, so it needs no physical reader.
 export const KIOSK_LOCATIONS: Record<KioskLocationCode, KioskLocation> = {
-  W001: { code: 'W001', name: '북인사마당', layout: 'INSADONG', secondTile: INSARANG_TILE, hasCardTerminal: false, languages: BASE_LANGUAGES, coordinates: INSADONG_COORDS },
-  W002: { code: 'W002', name: '인사동쉼터', layout: 'INSADONG', secondTile: INSARANG_TILE, hasCardTerminal: false, languages: BASE_LANGUAGES, coordinates: INSADONG_COORDS },
-  W003: { code: 'W003', name: '남인사마당', layout: 'NAM_INSADONG', secondTile: MARKET_TILE, hasCardTerminal: true, languages: W003_LANGUAGES, coordinates: INSADONG_COORDS },
+  W001: { code: 'W001', name: '북인사마당', layout: 'INSADONG', secondTile: INSARANG_TILE, hasCardTerminal: false, hasDonation: false, aiCompanion: '2', languages: BASE_LANGUAGES, coordinates: INSADONG_COORDS },
+  W002: { code: 'W002', name: '인사동쉼터', layout: 'INSADONG', secondTile: INSARANG_TILE, hasCardTerminal: false, hasDonation: false, aiCompanion: '2', languages: BASE_LANGUAGES, coordinates: INSADONG_COORDS },
+  W003: { code: 'W003', name: '남인사마당', layout: 'NAM_INSADONG', secondTile: MARKET_TILE, hasCardTerminal: true, hasDonation: true, aiCompanion: '2', languages: W003_LANGUAGES, coordinates: INSADONG_COORDS },
   // 오색시장 also has a physical card-payment terminal (like 남인사마당 W003), so it
   // takes the payment result flow (위드마켓 webview + save QR, result image on Monitor 2).
-  W004: { code: 'W004', name: '오산시 오색시장', layout: 'OSAN', secondTile: MARKET_TILE, hasCardTerminal: true, languages: BASE_LANGUAGES, coordinates: OSAN_COORDS },
-  W005: { code: 'W005', name: '화성휴게소', layout: 'HWASEONG', secondTile: INSARANG_TILE, hasCardTerminal: false, languages: BASE_LANGUAGES, coordinates: HWASEONG_COORDS },
+  W004: { code: 'W004', name: '오산시 오색시장', layout: 'OSAN', secondTile: MARKET_TILE, hasCardTerminal: true, hasDonation: true, aiCompanion: '3', languages: BASE_LANGUAGES, coordinates: OSAN_COORDS },
+  W005: { code: 'W005', name: '화성휴게소', layout: 'HWASEONG', secondTile: INSARANG_TILE, hasCardTerminal: false, hasDonation: true, aiCompanion: '4', languages: BASE_LANGUAGES, coordinates: HWASEONG_COORDS },
 };
 
 /** Resolve a location by kiosk id, falling back to W001 (북인사마당). */

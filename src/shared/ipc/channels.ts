@@ -67,6 +67,8 @@ export const IpcChannels = {
   PhotoBeginCountdown: 'photo:beginCountdown',
   PhotoCaptureAndGenerate: 'photo:captureAndGenerate',
   PhotoGetResultDataUrl: 'photo:getResultDataUrl',
+  PhotoSetHoldResult: 'photo:setHoldResult',
+  PhotoRevealResult: 'photo:revealResult',
   PhotoReset: 'photo:reset',
 
   // Language / Translations
@@ -83,11 +85,15 @@ export const IpcChannels = {
   // AI-model video subtitles (fetched once per session from the witteria API)
   SubtitlesGet: 'subtitles:get',
 
+  // Real display-video file names present on disk, per set (listed at runtime so
+  // newly-added videos resolve without a rebuild; no build-time manifest).
+  VideosList: 'videos:list',
+
   // Kiosk navigation (touch screen → customer display video sync)
   KioskSetScreen: 'kiosk:setScreen',
-  // Advance the customer-display video to the next clip for the current screen
-  // (e.g. tapping the home weather card).
-  KioskAdvanceVideo: 'kiosk:advanceVideo',
+  // Play the customer-display clip matching today's weather (tapping the home
+  // weather card). Carries the resolved Weather_* playKey.
+  KioskPlayWeatherVideo: 'kiosk:playWeatherVideo',
 
   // Shops (cached from the witteria API)
   ShopsList: 'shops:list',
@@ -124,8 +130,8 @@ export const IpcEvents = {
   ExchangeChanged: 'event:exchange:changed',
   /** Touch screen navigated; the customer display swaps its AI-model video. */
   KioskScreenChanged: 'event:kiosk:screenChanged',
-  /** Touch screen requested the next clip for the current screen (weather card). */
-  KioskVideoAdvanced: 'event:kiosk:videoAdvanced',
+  /** Weather card tapped; the customer display plays that condition's clip. */
+  KioskWeatherVideo: 'event:kiosk:weatherVideo',
   /** Shop catalogue refreshed into SQLite; the renderer reloads its store. */
   ShopsChanged: 'event:shops:changed',
   /** Home button layout refreshed into SQLite; the renderer reloads its store. */

@@ -49,9 +49,11 @@ export function useKioskController(): KioskController {
         resetPhoto();
       }
       setScreen(target);
-      // Tell the customer display which AI-model video to show for this screen.
-      void window.api.kiosk.setScreen(target);
+      // Tell the customer display which AI-model video to show. Pass the resolved
+      // button id (live-preferred) so the display resolves this button's clip by
+      // DB id straight from the API instead of guessing from the screen name.
       const button = resolveBtn(target);
+      void window.api.kiosk.setScreen(target, button?.id ?? null);
       void trackEvent({
         name: 'button_clicked',
         payload: {
