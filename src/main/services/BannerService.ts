@@ -36,7 +36,6 @@ export class BannerService {
     const base = (process.env['WITTERIA_API_BASE'] || DEFAULT_API_BASE).replace(/\/+$/, '');
     return `${base}/api/kiosks`;
   }
-
   /** Cached banners (from the last successful refresh). Empty until first sync. */
   list(): KioskBanner[] {
     const cached = this.cache.get(CACHE_KEY);
@@ -57,8 +56,14 @@ export class BannerService {
       const res = await fetch(url);
       log.info('Banners API responded', { status: res.status, ok: res.ok });
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      const json = (await res.json()) as { data?: KioskBanner[] };
-      const banners = Array.isArray(json.data) ? json.data : [];
+      const json = (await res.json()) as { data?: any[] };
+      const rawBanners = Array.isArray(json.data) ? json.data : [];
+      
+      if (rawBanners.length > 0) {
+        log.info('Banners API keys sample', { keys: Object.keys(rawBanners[0]) });
+      }
+
+      const banners = rawBanners.map((b) => normalizeBanner(b as Record<string, unknown>));
       log.info(
         'Banners API rows',
         banners
@@ -69,6 +74,7 @@ export class BannerService {
             sortOrder: b.sortOrder,
             startDate: b.startDate,
             endDate: b.endDate,
+            hasImageUrl: Boolean(b.imageUrl),
           })),
       );
       if (banners.length > 0) {
@@ -86,4 +92,23 @@ export class BannerService {
       return this.list().length;
     }
   }
+}
+
+/**
+ * Normalises a raw API banner object into a {@link KioskBanner}.
+ *
+ * The witteria API may return either snake_case (`image_url`, `sort_order`,
+ * `start_date`, `end_date`) or camelCase (`imageUrl`, `sortOrder`, …). Reading
+ * both conventions defensively means the banner set is never silently empty
+ * due to a field-name mismatch. `sortOrder` defaults to 0 so a missing value
+ * still produces a stable (if arbitrary) order.
+ */
+function normalizeBanner(raw: Record<string, unknown>): KioskBanner {
+  return {
+    bannerId:  Number(raw['bannerId']  ?? raw['banner_id']  ?? raw['id'] ?? 0),
+    imageUrl:  String(raw['imageUrl']  ?? raw['image_url']  ?? ''),
+    sortOrder: Number(raw['sortOrder'] ?? raw['sort_order'] ?? 0),
+    startDate: String(raw['startDate'] ?? raw['start_date'] ?? ''),
+    endDate:   String(raw['endDate']   ?? raw['end_date']   ?? ''),
+  };
 }

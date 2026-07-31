@@ -94,6 +94,12 @@ jobs:
           grep -v '^UPDATE_CHANNEL=' .env > .env.tmp 2>/dev/null || true
           mv -f .env.tmp .env 2>/dev/null || true
           echo "UPDATE_CHANNEL=$CH" >> .env
+          # DEV_MODE: true on beta/develop_1 builds, false on production/main builds.
+          DEV_MODE_VAL=$([ "${{ inputs.prerelease }}" = "true" ] && echo true || echo false)
+          grep -v '^DEV_MODE=' .env > .env.tmp 2>/dev/null || true
+          mv -f .env.tmp .env 2>/dev/null || true
+          echo "DEV_MODE=$DEV_MODE_VAL" >> .env
+          echo "Injected DEV_MODE=$DEV_MODE_VAL (prerelease=${{ inputs.prerelease }})"
           mkdir -p secrets
           [ -f secrets/service-account.json ] || echo '{}' > secrets/service-account.json
           [ -f secrets/service-account-osaek.json ] || echo '{}' > secrets/service-account-osaek.json
