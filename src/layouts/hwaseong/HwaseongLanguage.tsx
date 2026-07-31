@@ -2,6 +2,7 @@ import type { SupportedLanguage } from '@shared/types/kiosk';
 import type { KioskController } from '@renderer/hooks/useKioskController';
 import { useLanguageStore } from '@renderer/store/languageStore';
 import { hwaseongIconUrl } from '@renderer/assets/icons/hwaseong';
+import { useRotatingBanner } from '@renderer/hooks/useRotatingBanner';
 import { trackEvent } from '@renderer/lib/analytics';
 import { useLang } from '@renderer/lib/i18n';
 import { t } from '@renderer/lib/loc';
@@ -53,6 +54,7 @@ function CheckOff(): JSX.Element {
 
 // ── Main component ─────────────────────────────────────
 export function HwaseongLanguage({ controller }: Props): JSX.Element {
+  const banner = useRotatingBanner(hwaseongIconUrl('fg-banner'));
   const current    = useLanguageStore((s) => s.currentLanguage);
   const available  = useLanguageStore((s) => s.availableLanguages);
   const setLanguage = useLanguageStore((s) => s.setLanguage);
@@ -139,9 +141,9 @@ export function HwaseongLanguage({ controller }: Props): JSX.Element {
 
       {/* ── Bottom banner ─────────────────────────────── */}
       <div className={styles.bottomBanner}>
-        {hwaseongIconUrl('fg-banner') && (
+        {banner && (
           <img
-            src={hwaseongIconUrl('fg-banner')}
+            src={banner}
             alt=""
             className={styles.bottomBannerImg}
             draggable={false}

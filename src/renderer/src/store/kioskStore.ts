@@ -11,7 +11,10 @@ interface KioskState {
   content: Map<string, CachedContent>;
   translations: TranslationMap;
   screen: KioskScreenId;
+  /** `DEV_MODE=true` in the app's `.env` — surfaces the kiosk-location switcher. */
+  devMode: boolean;
   setScreen: (screen: KioskScreenId) => void;
+  setDevMode: (devMode: boolean) => void;
   hydrate: (config: KioskConfig, theme: KioskTheme, content: CachedContent[], translations: TranslationMap) => void;
   refreshContent: (content: CachedContent[]) => void;
   getContent: (key: string) => CachedContent | undefined;
@@ -43,7 +46,9 @@ export const useKioskStore = create<KioskState>((set, get) => ({
   content: new Map(),
   translations: {},
   screen: 'home',
+  devMode: false,
   setScreen: (screen) => set({ screen }),
+  setDevMode: (devMode) => set({ devMode }),
   hydrate: (config, theme, content, translations) => {
     const map = new Map<string, CachedContent>();
     for (const item of content) map.set(item.key, item);

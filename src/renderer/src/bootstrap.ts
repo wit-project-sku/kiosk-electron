@@ -18,6 +18,7 @@ export function applyBootstrap(data: BootstrapData): void {
   useTemplatesStore.getState().hydrate(data.templates);
   useSyncStore.getState().hydrate(data.syncStats);
   useKioskStore.getState().hydrate(data.kioskConfig, data.theme, data.content, data.translations);
+  useKioskStore.getState().setDevMode(data.devMode === true);
   // Languages adapt to the kiosk (W001/W002 = ko/en/ja/vi; W003 adds zh/th/es).
   useLanguageStore
     .getState()

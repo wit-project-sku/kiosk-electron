@@ -58,13 +58,23 @@ class AppPaths {
   }
 
   /**
-   * Display/attract videos. Shipped as electron-builder extraResources (large,
-   * not bundled). Packaged → resources/videos; dev → <repo>/resources/videos.
+   * Display/attract videos. Large and pre-downloaded per kiosk, so they live in a
+   * fixed EXTERNAL folder OUTSIDE the app install directory. This is what lets an
+   * auto-update replace the app without wiping the videos: the old
+   * `resources/videos` lived inside the install dir (process.resourcesPath) and
+   * would be lost on every update. Videos are NO LONGER shipped in the installer
+   * (removed from electron-builder extraResources) — drop the .mp4s into
+   * `<dir>/<set>/` (insadong|osaek|hwaseong) once per machine and updates leave
+   * them untouched.
+   *
+   * Default `C:\KioskVideos` on a packaged Windows kiosk (mirrors C:\KioskPhotos);
+   * override with `KIOSK_VIDEOS_DIR`. Dev keeps using the repo's resources/videos.
    */
   get videos(): string {
-    return app.isPackaged
-      ? join(process.resourcesPath, 'videos')
-      : join(process.cwd(), 'resources', 'videos');
+    const custom = process.env['KIOSK_VIDEOS_DIR'];
+    if (custom && custom.trim()) return ensureDir(custom.trim());
+    if (app.isPackaged && process.platform === 'win32') return ensureDir('C:\\KioskVideos');
+    return join(process.cwd(), 'resources', 'videos');
   }
 }
 

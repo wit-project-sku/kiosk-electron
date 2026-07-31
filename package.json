@@ -1,12 +1,16 @@
 {
   "name": "kiosk-app",
-  "version": "5.0.10",
+  "version": "5.0.16",
   "description": "Production-grade offline-first Electron kiosk application with multi-monitor customer display.",
   "main": "./out/main/index.js",
   "author": "Kiosk App Team",
   "license": "MIT",
   "private": true,
   "type": "module",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/wit-project-sku/kiosk-electron.git"
+  },
   "engines": {
     "node": ">=20"
   },
@@ -19,10 +23,7 @@
     "version:bump": "npm version patch --no-git-tag-version",
     "prebuild:win": "npm run version:bump",
     "build:win": "node scripts/build-win.mjs",
-    "prebuild:mac": "npm run version:bump",
-    "build:mac": "npm run build && electron-builder --mac",
-    "prebuild:linux": "npm run version:bump",
-    "build:linux": "npm run build && electron-builder --linux",
+    "release:win": "npm run build && electron-builder --win --publish always",
     "typecheck:node": "tsc --noEmit -p tsconfig.node.json --composite false",
     "typecheck:web": "tsc --noEmit -p tsconfig.web.json --composite false",
     "typecheck": "npm run typecheck:node && npm run typecheck:web",
@@ -30,6 +31,7 @@
     "lint:fix": "eslint . --ext .ts,.tsx --fix",
     "format": "prettier --write \"src/**/*.{ts,tsx,css,json}\"",
     "format:check": "prettier --check \"src/**/*.{ts,tsx,css,json}\"",
+    "vendor:payment-agent": "node scripts/vendor-payment-agent.mjs",
     "provision:kiosk": "node scripts/provision-kiosk.mjs",
     "sync:sheet": "node scripts/sync-sheet.mjs",
     "db:inspect": "node scripts/db-inspect.mjs"

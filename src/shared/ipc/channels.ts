@@ -94,12 +94,17 @@ export const IpcChannels = {
   // Play the customer-display clip matching today's weather (tapping the home
   // weather card). Carries the resolved Weather_* playKey.
   KioskPlayWeatherVideo: 'kiosk:playWeatherVideo',
+  // Dev-mode only: persist a new kiosk location id and relaunch as that kiosk.
+  KioskSwitchLocation: 'kiosk:switchLocation',
 
   // Shops (cached from the witteria API)
   ShopsList: 'shops:list',
 
   // Home buttons (layout cached from the witteria API)
   ButtonsList: 'buttons:list',
+
+  // Bottom promo banners (cached from the witteria API)
+  BannersList: 'banners:list',
 
   // Stats (usage analytics POSTed to the witteria API)
   StatsMenuTouch: 'stats:menuTouch',
@@ -110,6 +115,12 @@ export const IpcChannels = {
   EventsRecommend: 'events:recommend',
   // Event detail (GET /api/events/{eventId})
   EventsDetailGet: 'events:detail',
+
+  // Auto-update (electron-updater). Status is read-only; check/install are
+  // optional operator nudges — updating is otherwise fully automatic.
+  UpdateGetStatus: 'update:getStatus',
+  UpdateCheckNow: 'update:checkNow',
+  UpdateInstallNow: 'update:installNow',
 } as const;
 
 export type IpcInvokeChannel = (typeof IpcChannels)[keyof typeof IpcChannels];
@@ -136,6 +147,10 @@ export const IpcEvents = {
   ShopsChanged: 'event:shops:changed',
   /** Home button layout refreshed into SQLite; the renderer reloads its store. */
   ButtonsChanged: 'event:buttons:changed',
+  /** Bottom banners refreshed into SQLite; the renderer reloads its store. */
+  BannersChanged: 'event:banners:changed',
+  /** Auto-update status changed (checking / downloading / downloaded / …). */
+  UpdateStatusChanged: 'event:update:statusChanged',
 } as const;
 
 export type IpcEventChannel = (typeof IpcEvents)[keyof typeof IpcEvents];

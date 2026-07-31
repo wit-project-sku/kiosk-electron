@@ -1,0 +1,272 @@
+/*
+ * DEV-only kiosk-location switcher.
+ *
+ * Everything below lives inside a literal 2160×3840 stage scaled exactly like
+ * KioskArtboard, so **1 CSS px = 1 Figma px** here as well — the button and
+ * drawer are sized in kiosk units and match the app, instead of rendering as
+ * tiny OS-scale chrome. High z-index band (9000+) keeps it above every layout,
+ * including full-bleed webviews.
+ */
+
+.root {
+  position: fixed;
+  inset: 0;
+  z-index: 9000;
+  pointer-events: none;
+}
+
+.stage {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 2160px;
+  height: 3840px;
+  transform: translate(-50%, -50%) scale(var(--switcher-scale, 0.25));
+  transform-origin: center center;
+  font-family: var(--kiosk-font, sans-serif);
+}
+
+/*
+ * Invisible reveal target sitting exactly over the home screen's location pin
+ * (artboard x170 / y130, 82px row — the same spot in the Insadong, Osan and
+ * Hwaseong homes). Generous enough for a fingertip, transparent so the layout's
+ * own pin shows through untouched.
+ */
+.revealHotspot {
+  position: absolute;
+  top: 100px;
+  left: 136px;
+  width: 240px;
+  height: 180px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+  pointer-events: auto;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Drawer handle: a plain hamburger square, revealed over the pin that spawned
+   it so the connection between tap and handle is obvious. */
+.trigger {
+  position: absolute;
+  top: 96px;
+  left: 136px;
+  width: 132px;
+  height: 132px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 18px;
+  padding: 0;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-radius: 30px;
+  background: rgba(17, 20, 26, 0.78);
+  cursor: pointer;
+  pointer-events: auto;
+  box-shadow: 0 10px 34px rgba(0, 0, 0, 0.35);
+  animation: handleIn 160ms ease-out;
+}
+
+@keyframes handleIn {
+  from {
+    opacity: 0;
+    transform: scale(0.86);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.trigger i {
+  display: block;
+  width: 64px;
+  height: 7px;
+  border-radius: 7px;
+  background: #fff;
+}
+
+.trigger:active {
+  transform: scale(0.96);
+}
+
+.backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  pointer-events: auto;
+}
+
+.drawer {
+  position: absolute;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  width: 1120px;
+  display: flex;
+  flex-direction: column;
+  gap: 56px;
+  padding: 88px 64px;
+  background: #14171d;
+  color: #fff;
+  box-shadow: 24px 0 80px rgba(0, 0, 0, 0.55);
+  overflow-y: auto;
+  animation: slideIn 200ms ease-out;
+}
+
+@keyframes slideIn {
+  from {
+    transform: translateX(-100%);
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+
+.head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 32px;
+}
+
+.title {
+  font-size: 76px;
+  font-weight: 700;
+  line-height: 1.1;
+}
+
+.sub {
+  margin-top: 20px;
+  font-size: 34px;
+  line-height: 1.4;
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.close {
+  flex: none;
+  width: 104px;
+  height: 104px;
+  border: 0;
+  border-radius: 26px;
+  background: rgba(255, 255, 255, 0.1);
+  color: #fff;
+  font-size: 46px;
+  cursor: pointer;
+}
+
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.item {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 32px;
+  padding: 40px 36px;
+  border: 2px solid rgba(255, 255, 255, 0.12);
+  border-radius: 34px;
+  background: rgba(255, 255, 255, 0.05);
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.item:disabled {
+  cursor: default;
+}
+
+.itemCurrent {
+  border-color: #4da3ff;
+  background: rgba(77, 163, 255, 0.14);
+}
+
+.code {
+  flex: none;
+  min-width: 168px;
+  padding: 20px 0;
+  border-radius: 20px;
+  background: rgba(255, 255, 255, 0.1);
+  font-size: 40px;
+  font-weight: 700;
+  text-align: center;
+}
+
+.meta {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-width: 0;
+}
+
+.name {
+  font-size: 46px;
+  font-weight: 600;
+}
+
+.layout {
+  font-size: 28px;
+  color: rgba(255, 255, 255, 0.55);
+  letter-spacing: 0.02em;
+}
+
+.state {
+  flex: none;
+  font-size: 32px;
+  color: rgba(255, 255, 255, 0.65);
+}
+
+.error {
+  padding: 28px 32px;
+  border-radius: 24px;
+  background: rgba(255, 90, 60, 0.16);
+  color: #ffb3a5;
+  font-size: 32px;
+  line-height: 1.4;
+}
+
+.foot {
+  margin-top: auto;
+  padding-top: 32px;
+  border-top: 2px solid rgba(255, 255, 255, 0.1);
+  font-size: 28px;
+  color: rgba(255, 255, 255, 0.42);
+}
+
+.restarting {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 56px;
+  background: rgba(10, 12, 16, 0.9);
+  color: #fff;
+  font-size: 54px;
+  pointer-events: auto;
+}
+
+.spinner {
+  width: 140px;
+  height: 140px;
+  border: 12px solid rgba(255, 255, 255, 0.2);
+  border-top-color: #fff;
+  border-radius: 50%;
+  animation: spin 800ms linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}

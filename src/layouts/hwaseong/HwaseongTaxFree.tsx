@@ -3,6 +3,7 @@ import type { SupportedLanguage } from '@shared/types/kiosk';
 import type { KioskController } from '@renderer/hooks/useKioskController';
 import { useLanguageStore } from '@renderer/store/languageStore';
 import { hwaseongIconUrl } from '@renderer/assets/icons/hwaseong';
+import { useRotatingBanner } from '@renderer/hooks/useRotatingBanner';
 import { taxfreeUrl } from '@shared/constants/webEmbeds';
 import { trackEvent } from '@renderer/lib/analytics';
 import { HwaseongHeader } from './HwaseongHeader';
@@ -125,7 +126,7 @@ export function HwaseongTaxFree({ controller }: Props): JSX.Element {
   }, [lang]);
 
   const bgSrc = hwaseongIconUrl('bg');
-  const bannerSrc = hwaseongIconUrl('fg-banner');
+  const bannerSrc = useRotatingBanner(hwaseongIconUrl('fg-banner'));
 
   return (
     <div className={styles.root}>

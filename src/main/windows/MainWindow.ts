@@ -41,7 +41,7 @@ export function createMainWindow(bootstrap: BootstrapData): BrowserWindow {
     // over the kiosk. (Disabled in dev so devtools/editor stay reachable.)
     alwaysOnTop: !is.dev,
     autoHideMenuBar: true,
-    title: 'Insadong Kiosk',
+    title: 'witworldwide',
     backgroundColor: '#0b0d12',
     webPreferences: baseWebPreferences(bootstrapArguments(bootstrap)),
   });

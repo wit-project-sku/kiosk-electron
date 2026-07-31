@@ -2,6 +2,7 @@ import { useMemo, useRef, useState } from 'react';
 import type { KioskController } from '@renderer/hooks/useKioskController';
 import type { KioskScreenId } from '@shared/types/kiosk';
 import { hwaseongIconUrl } from '@renderer/assets/icons/hwaseong';
+import { useRotatingBanner } from '@renderer/hooks/useRotatingBanner';
 import { useWeatherStore } from '@renderer/store/weatherStore';
 import { useWeatherVideo } from '@renderer/hooks/useWeatherVideo';
 import { useLanguageStore } from '@renderer/store/languageStore';
@@ -173,6 +174,7 @@ function TileView({ tile, label, onClick, disabled }: { tile: HomeTile; label: s
 
 // ── Main component ──────────────────────────────────────────────────
 export function HwaseongHome({ controller }: Props): JSX.Element {
+  const banner = useRotatingBanner(hwaseongIconUrl('fg-banner'));
   const weather = useWeatherStore((s) => s.weather);
   const playWeatherVideo = useWeatherVideo();
   const today = useMemo(() => formatDate(new Date()), []);
@@ -477,9 +479,9 @@ export function HwaseongHome({ controller }: Props): JSX.Element {
 
       {/* ── Bottom banner (Figma render) ─────────────── */}
       <div className={styles.bottomBanner}>
-        {hwaseongIconUrl('fg-banner') && (
+        {banner && (
           <img
-            src={hwaseongIconUrl('fg-banner')}
+            src={banner}
             alt=""
             className={styles.bottomBannerImg}
             draggable={false}

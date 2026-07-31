@@ -1,0 +1,24 @@
+name: release-beta
+
+# Testing channel (beta). Fires on every push to the develop branch (a merged PR
+# is a push). Publishes a GitHub PRE-release versioned X.Y.Z-beta.<run_number>,
+# which makes electron-builder emit beta.yml. Testing kiosks (UPDATE_CHANNEL=beta)
+# pick it up automatically; production kiosks never see it.
+#
+# NOTE: this repo's dev branch is `develop_1`. `develop_v1` is also listed so the
+# workflow keeps working if the branch is (re)named to match the original spec.
+on:
+  push:
+    branches: [develop_1, develop_v1]
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    uses: ./.github/workflows/release.yml
+    with:
+      prerelease: true
+      channel_label: beta
+      release_type: prerelease
+    secrets: inherit

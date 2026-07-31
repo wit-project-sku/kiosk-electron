@@ -14,7 +14,7 @@
  * Node keeps the native-module ABI (serialport / better-sqlite3) compatible.
  *
  * Lifecycle: started once after `app.whenReady` (card-terminal kiosks only —
- * W003), killed on app quit, and respawned with capped backoff if it exits
+ * W003/W004/W005, i.e. hasCardTerminal), killed on app quit, and respawned with capped backoff if it exits
  * unexpectedly. Every step is best-effort and swallows errors so payment
  * problems never affect kiosk startup or runtime.
  */
@@ -58,12 +58,14 @@ export class PaymentAgentManager {
       OUTBOX_DB_PATH: outboxDb,
       HTTP_HOST: process.env['PAYMENT_HTTP_HOST'] ?? '127.0.0.1',
       HTTP_PORT: process.env['PAYMENT_HTTP_PORT'] ?? '8080',
-      // Must include the 위드마켓 store origin (https://witteria.com — no path/
-      // trailing slash, or it won't match the Origin header) so the webview's
-      // loopback calls aren't CORS-blocked.
+      // Must include BOTH webview origins (each with no path/trailing slash, or
+      // it won't match the Origin header) so the loopback calls aren't
+      // CORS-blocked: the 위드마켓 store (https://witteria.com) AND the 기부
+      // donation app — which is hosted on VERCEL (witglobaldonation.vercel.app),
+      // NOT netlify. WEB_EMBED_URLS.donation is the source of truth for that host.
       CORS_ORIGINS:
         process.env['PAYMENT_CORS_ORIGINS'] ??
-        'https://witteria.com,http://localhost:3000,http://localhost:5173,https://witglobaldonation.netlify.app',
+        'https://witteria.com,https://witglobaldonation.vercel.app,https://witglobaldonation.netlify.app,http://localhost:3000,http://localhost:5173',
       CENTRAL_BASE_URL: process.env['PAYMENT_CENTRAL_BASE_URL'] ?? '',
       TL3800_TERMINAL_ID: process.env['PAYMENT_TL3800_TERMINAL_ID'] ?? '',
     };
@@ -76,6 +78,10 @@ export class PaymentAgentManager {
       'CENTRAL_TIMEOUT_MS',
       'TL3800_PORT',
       'TL3800_BAUD_RATE',
+      // New in agent v2: baud-rate discovery + a hex/ASCII frame dump used to
+      // read a fresh terminal's IDs off the wire during install.
+      'TL3800_BAUD_FALLBACKS',
+      'TL3800_LOG_CONFIG_DISCOVERY',
       'TL3800_DATA_BITS',
       'TL3800_STOP_BITS',
       'TL3800_PARITY',
@@ -112,10 +118,18 @@ export class PaymentAgentManager {
     try {
       // Run the agent as a real Node process using Electron's binary
       // (ELECTRON_RUN_AS_NODE strips the Chromium/utility-process layer so
-      // net.listen works). cwd = the dist dir so its ConfigModule doesn't pick
-      // up the kiosk's own .env.
+      // net.listen works).
+      //
+      // cwd MUST be a real on-disk directory. In a PACKAGED build `dirname(entry)`
+      // is inside app.asar (a virtual path, not a real folder), so Windows `spawn`
+      // fails with ENOENT — the agent never launches and nothing listens on :8080
+      // (dev works only because there the dist dir is a real folder). Use userData
+      // when packaged: it's real, writable, and has no `.env`, so the agent's
+      // NestJS ConfigModule (which reads `.env` from cwd) picks up nothing stray —
+      // all its config comes from the env we pass below, not a cwd `.env`.
+      const cwd = app.isPackaged ? app.getPath('userData') : dirname(entry);
       const child = spawn(process.execPath, [entry], {
-        cwd: dirname(entry),
+        cwd,
         env: { ...process.env, ...this.childEnv(), ELECTRON_RUN_AS_NODE: '1' },
         stdio: ['ignore', 'pipe', 'pipe'],
         windowsHide: true,

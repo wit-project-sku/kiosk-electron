@@ -1,0 +1,8 @@
+# Update feed used ONLY when testing electron-updater in a non-packaged dev run
+# (autoUpdater.forceDevUpdateConfig = true). Production/installed builds ignore
+# this file and use the app-update.yml generated from electron-builder.yml.
+# The UpdateService skips auto-update entirely in dev by default; this exists so
+# the flow can be exercised manually against the real GitHub feed if needed.
+provider: github
+owner: wit-project-sku
+repo: kiosk-electron

@@ -22,6 +22,7 @@ import { KioskService } from './services/KioskService';
 import { LocalCacheService } from './services/LocalCacheService';
 import { ShopService } from './services/ShopService';
 import { ButtonLayoutService } from './services/ButtonLayoutService';
+import { BannerService } from './services/BannerService';
 import { StatsService } from './services/StatsService';
 import { FailedRequestService } from './services/FailedRequestService';
 import { TranslationService } from './services/TranslationService';
@@ -37,6 +38,7 @@ import { GoogleDriveService } from './services/drive/GoogleDriveService';
 import { PhotoGenerationService } from './services/photo/PhotoGenerationService';
 import { ImageHostService } from './services/photo/ImageHostService';
 import { PhotoWorkflowService } from './services/photo/PhotoWorkflowService';
+import { UpdateService } from './updater/UpdateService';
 
 export interface AppContainer {
   database: Database;
@@ -62,8 +64,10 @@ export interface AppContainer {
   subtitles: SubtitleService;
   shops: ShopService;
   buttons: ButtonLayoutService;
+  banners: BannerService;
   stats: StatsService;
   events: EventsService;
+  updater: UpdateService;
 }
 
 let container: AppContainer | null = null;
@@ -88,6 +92,7 @@ export function createContainer(): AppContainer {
   const translations = new TranslationService(translationRepo);
   const shops = new ShopService(cache, kiosk);
   const buttons = new ButtonLayoutService(cache, kiosk);
+  const banners = new BannerService(cache, kiosk);
   const stats = new StatsService(kiosk, failedRequests);
   const weather = new WeatherService(cache, kiosk);
   const exchange = new ExchangeService(cache);
@@ -141,8 +146,10 @@ export function createContainer(): AppContainer {
     subtitles,
     shops,
     buttons,
+    banners,
     stats,
     events,
+    updater: new UpdateService(),
   };
 
   return container;

@@ -5,6 +5,10 @@ node_modules
 out
 dist
 release
+# ...but the vendored payment-agent compiled output is NOT build output — its
+# source lives in a separate repo, so it must be committed for CI to bundle it.
+!payment-agent/dist
+!payment-agent/dist/**
 
 # Logs
 *.log

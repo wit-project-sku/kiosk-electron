@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import type { KioskController } from '@renderer/hooks/useKioskController';
 import { hwaseongIconUrl } from '@renderer/assets/icons/hwaseong';
+import { useRotatingBanner } from '@renderer/hooks/useRotatingBanner';
 import { useDetailStore } from '@renderer/store/detailStore';
 import { padImages } from '@renderer/lib/shops';
 import { screenTitle, useLang } from '@renderer/lib/i18n';
@@ -13,6 +14,7 @@ interface Props {
 }
 
 export function HwaseongDetail({ controller }: Props): JSX.Element {
+  const banner = useRotatingBanner(hwaseongIconUrl('fg-banner'));
   const item = useDetailStore((s) => s.item);
   const lang = useLang();
   const goBack = (): void => controller.navigate(item?.from ?? 'home', 'Back');
@@ -121,8 +123,8 @@ export function HwaseongDetail({ controller }: Props): JSX.Element {
 
       {/* Bottom banner */}
       <div className={styles.banner}>
-        {hwaseongIconUrl('fg-banner') && (
-          <img src={hwaseongIconUrl('fg-banner')} alt="" className={styles.bannerImg} draggable={false} />
+        {banner && (
+          <img src={banner} alt="" className={styles.bannerImg} draggable={false} />
         )}
       </div>
 

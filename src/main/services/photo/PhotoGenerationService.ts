@@ -124,7 +124,10 @@ export class PhotoGenerationService {
         name: 'ai_request_failed',
         payload: { sessionId, error: message },
       });
-      // Report the failed capture so the shots stats reflect real success rates.
+      // Count this as a picture TAKEN even though the AI failed: the user did take
+      // a photo — the original camera capture is saved above (before ai.generate),
+      // so we have a real image. Reported as a failed shot (isSuccess:false) so the
+      // total counts the picture while isSuccess still reflects the AI outcome.
       void this.stats.recordShot({
         isSuccess: false,
         outfitCode: outfitCodeOf(clothingKey),

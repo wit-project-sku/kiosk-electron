@@ -129,6 +129,14 @@ async function bootstrap(): Promise<void> {
       windowManager?.broadcast(IpcEvents.ShopsChanged, null);
     }),
   );
+  // Banners are date-windowed promo content, so refresh them at the nightly sync
+  // too (unlike the home button layout) — a same-day CMS change then appears
+  // without waiting for the next reboot.
+  container.sync.addNightTask(() =>
+    container.banners.refresh().then(() => {
+      windowManager?.broadcast(IpcEvents.BannersChanged, null);
+    }),
+  );
   container.sync.start();
 
   windowManager = new WindowManager(container);
@@ -142,10 +150,20 @@ async function bootstrap(): Promise<void> {
   container.subtitles.start();
 
   // Launch the embedded payment agent ONLY on kiosks with a physical card
-  // terminal (W003 남인사마당). Runs as an isolated child process; best-effort.
+  // terminal (hasCardTerminal — W003 남인사마당 / W004 오색시장 / W005 화성휴게소).
+  // Runs as an isolated child process; best-effort.
   if (getKioskLocation(container.kiosk.getConfig().kioskId).hasCardTerminal) {
     paymentAgent.start();
   }
+
+  // Background auto-update (electron-updater + GitHub Releases). Packaged builds
+  // only. Production checks on a weekly maintenance window (UPDATE_DAY/UPDATE_TIME,
+  // with missed-window catch-up on startup); beta polls every few minutes.
+  // Downloads in the background, and restarts to install only while the kiosk is
+  // idle (never mid photo/payment) — nightly reboot is the guaranteed fallback.
+  // Channel + schedule come from UPDATE_CHANNEL / UPDATE_* (see .env).
+  container.updater.setBusyCheck(() => container.photoWorkflow.getState().phase !== 'idle');
+  container.updater.start();
 
   // Refresh sheet content into SQLite in the background on every launch (in
   // addition to the 02:00 night sync). The current window already rendered from
@@ -163,6 +181,12 @@ async function bootstrap(): Promise<void> {
   // it serves the last-cached layout (offline-safe).
   void container.buttons.refresh().then(() => {
     windowManager?.broadcast(IpcEvents.ButtonsChanged, null);
+  });
+  // Refresh the bottom promo banners from the witteria API into SQLite
+  // (background), then tell the renderer to reload — fixes empty banners on the
+  // very first launch (cache is empty until this first fetch completes).
+  void container.banners.refresh().then(() => {
+    windowManager?.broadcast(IpcEvents.BannersChanged, null);
   });
 
   app.on('activate', () => {
@@ -188,6 +212,7 @@ app.on('before-quit', () => {
     getContainer().sync.stop();
     getContainer().weather.stop();
     getContainer().exchange.stop();
+    getContainer().updater.stop();
   } catch {
     // Container may not exist if startup failed; ignore.
   }

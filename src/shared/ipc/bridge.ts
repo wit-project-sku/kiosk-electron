@@ -38,10 +38,13 @@ import type { CachedContent, SupportedLanguage } from '../types/kiosk';
 import type { CameraDeviceInfo, PhotoOption, PhotoWorkflowState } from '../types/photo';
 import type { WeatherSnapshot } from '../types/weather';
 import type { WeatherPlayKey } from '../config/weatherVideo';
+import type { KioskLocationCode } from '../config/kioskLocations';
 import type { ExchangeSnapshot } from '../types/exchange';
 import type { VideoEntry, VideoFilesBySet } from '../types/subtitle';
 import type { Shop } from '../types/shop';
 import type { KioskButton } from '../types/buttons';
+import type { KioskBanner } from '../types/banner';
+import type { UpdateStatus } from '../types/update';
 import type {
   EventDetail,
   EventRecommendation,
@@ -164,6 +167,9 @@ export interface KioskBridge {
     setScreen(screen: string, buttonId?: number | null): Promise<Result<string>>;
     /** Play the clip matching today's weather on the customer display. */
     playWeatherVideo(key: WeatherPlayKey): Promise<Result<boolean>>;
+    /** Dev-mode only: persist a new kiosk id and relaunch the app as that
+     *  location. On success the process exits, so this never resolves. */
+    switchLocation(kioskId: KioskLocationCode): Promise<Result<boolean>>;
   };
   /** Cached shop catalogue (from the witteria API, refreshed on launch + nightly). */
   shops: {
@@ -173,10 +179,26 @@ export interface KioskBridge {
   buttons: {
     list(): Promise<Result<KioskButton[]>>;
   };
+  /** Cached bottom promo banners (from the witteria API, refreshed on launch + nightly). */
+  banners: {
+    list(): Promise<Result<KioskBanner[]>>;
+  };
   /** Usage stats POSTed to the witteria API (offline-queued + retried on failure). */
   stats: {
     /** Report a completed menu-touch session (button tap → back to home). */
     recordMenuTouch(input: MenuTouchInput): Promise<Result<boolean>>;
+  };
+  /**
+   * Auto-update (electron-updater + GitHub Releases). Updating is fully
+   * automatic — these are read-only status plus optional operator nudges.
+   */
+  updates: {
+    /** Current updater status (state, versions, progress, channel). */
+    getStatus(): Promise<Result<UpdateStatus>>;
+    /** Force an immediate check; resolves with the resulting status. */
+    checkNow(): Promise<Result<UpdateStatus>>;
+    /** Install a staged (downloaded) update now and restart. False if none staged. */
+    installNow(): Promise<Result<boolean>>;
   };
   /** Live paginated events list (from the witteria API, fetched per interaction). */
   eventsApi: {
@@ -215,5 +237,7 @@ export interface KioskBridge {
     onKioskWeatherVideo(listener: (key: WeatherPlayKey) => void): Unsubscribe;
     onShopsChanged(listener: () => void): Unsubscribe;
     onButtonsChanged(listener: () => void): Unsubscribe;
+    onBannersChanged(listener: () => void): Unsubscribe;
+    onUpdateStatusChanged(listener: (status: UpdateStatus) => void): Unsubscribe;
   };
 }

@@ -6,6 +6,7 @@
 import { useEffect, useRef } from 'react';
 import type { KioskController } from '@renderer/hooks/useKioskController';
 import { hwaseongIconUrl } from '@renderer/assets/icons/hwaseong';
+import { useRotatingBanner } from '@renderer/hooks/useRotatingBanner';
 import { HwaseongHeader } from './HwaseongHeader';
 import styles from './HwaseongWebScreen.module.css';
 
@@ -29,6 +30,7 @@ interface Props {
 }
 
 export function HwaseongWebScreen({ controller, title, url, injectCss, bodyHeight }: Props): JSX.Element {
+  const banner = useRotatingBanner(hwaseongIconUrl('fg-banner'));
   const webviewRef = useRef<WebviewEl | null>(null);
 
   useEffect(() => {
@@ -84,8 +86,8 @@ export function HwaseongWebScreen({ controller, title, url, injectCss, bodyHeigh
 
       {/* Bottom banner */}
       <div className={styles.banner}>
-        {hwaseongIconUrl('fg-banner') && (
-          <img src={hwaseongIconUrl('fg-banner')} alt="" className={styles.bannerImg} draggable={false} />
+        {banner && (
+          <img src={banner} alt="" className={styles.bannerImg} draggable={false} />
         )}
       </div>
     </div>

@@ -6,6 +6,7 @@
 import type { KioskController } from '@renderer/hooks/useKioskController';
 import type { KioskScreenId } from '@shared/types/kiosk';
 import { hwaseongIconUrl } from '@renderer/assets/icons/hwaseong';
+import { useRotatingBanner } from '@renderer/hooks/useRotatingBanner';
 import { pick, useLang } from '@renderer/lib/i18n';
 import { HwaseongHeader } from './HwaseongHeader';
 import styles from './HwaseongScreen.module.css';
@@ -41,6 +42,7 @@ const SCREEN_LABELS: Partial<Record<KioskScreenId, string>> = {
 };
 
 export function HwaseongScreen({ screen, controller }: Props): JSX.Element {
+  const banner = useRotatingBanner(hwaseongIconUrl('fg-banner'));
   const lang = useLang();
   const title = SCREEN_LABELS[screen] ?? screen;
 
@@ -71,8 +73,8 @@ export function HwaseongScreen({ screen, controller }: Props): JSX.Element {
 
       {/* Bottom banner */}
       <div className={styles.banner}>
-        {hwaseongIconUrl('fg-banner') && (
-          <img src={hwaseongIconUrl('fg-banner')} alt="" className={styles.bannerImg} draggable={false} />
+        {banner && (
+          <img src={banner} alt="" className={styles.bannerImg} draggable={false} />
         )}
       </div>
     </div>

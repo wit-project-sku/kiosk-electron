@@ -24,6 +24,7 @@ export class WindowManager {
   private unsubscribePhoto: (() => void) | null = null;
   private unsubscribeWeather: (() => void) | null = null;
   private unsubscribeExchange: (() => void) | null = null;
+  private unsubscribeUpdater: (() => void) | null = null;
 
   constructor(private readonly container: AppContainer) {}
 
@@ -61,6 +62,11 @@ export class WindowManager {
     // Forward FX refreshes so the 환율 screen updates without a reload.
     this.unsubscribeExchange = this.container.exchange.subscribe((snapshot) => {
       this.broadcast(IpcEvents.ExchangeChanged, snapshot);
+    });
+
+    // Forward auto-update status so the UI can show checking/downloading/etc.
+    this.unsubscribeUpdater = this.container.updater.subscribe((status) => {
+      this.broadcast(IpcEvents.UpdateStatusChanged, status);
     });
 
     // Re-evaluate monitors when the hardware setup changes.
@@ -153,6 +159,33 @@ export class WindowManager {
     }
   }
 
+  /**
+   * Reload every live window (dev-mode kiosk switch). The renderer re-fetches
+   * `app:bootstrap` on mount, so a reload is enough to pick up a changed kiosk
+   * identity — config, theme, languages and content all come from that payload.
+   */
+  reloadAll(): void {
+    for (const win of BrowserWindow.getAllWindows()) {
+      if (win.isDestroyed() || win.webContents.isDestroyed()) continue;
+      win.webContents.reload();
+    }
+  }
+
+  /**
+   * Destroy every window immediately, without firing close handlers.
+   *
+   * Used right before a relaunch: `close()` is asynchronous and can leave the
+   * customer-display window painted on the second monitor while the process is
+   * already handing over, which shows up as a stuck black screen.
+   */
+  destroyAll(): void {
+    for (const win of BrowserWindow.getAllWindows()) {
+      if (!win.isDestroyed()) win.destroy();
+    }
+    this.mainWindow = null;
+    this.displayWindow = null;
+  }
+
   /** Release listeners. Called on app shutdown. */
   dispose(): void {
     this.unsubscribeDisplay?.();
@@ -167,6 +200,8 @@ export class WindowManager {
     this.unsubscribeWeather = null;
     this.unsubscribeExchange?.();
     this.unsubscribeExchange = null;
+    this.unsubscribeUpdater?.();
+    this.unsubscribeUpdater = null;
     screen.removeListener('display-added', this.handleDisplaysChanged);
     screen.removeListener('display-removed', this.handleDisplaysChanged);
   }

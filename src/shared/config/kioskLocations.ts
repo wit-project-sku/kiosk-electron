@@ -82,9 +82,10 @@ const MARKET_TILE: KioskLocationTile = { screen: 'market', label: '위드마켓'
 
 // 기부 is deployed on W003/W004/W005 — mirrors the `buttons` CMS, which carries a
 // 기부 row for kiosks 3/4/5 (line 6 position 2) and has dropped their 지도 row, while
-// W001/W002 still have 인사동 지도 and no 기부. Note this is NOT the same set as
-// hasCardTerminal: 화성휴게소 W005 has no terminal but does run 기부 — the donation
-// web app takes payment itself, so it needs no physical reader.
+// W001/W002 still have 인사동 지도 and no 기부. As of 2026-07-31 화성휴게소 W005 also
+// has a physical TL-3800 terminal, so hasCardTerminal now matches hasDonation on
+// 3/4/5: all three drive card payment through the embedded loopback agent (the
+// donation webview posts to 127.0.0.1:8080), not an online-only flow.
 export const KIOSK_LOCATIONS: Record<KioskLocationCode, KioskLocation> = {
   W001: { code: 'W001', name: '북인사마당', layout: 'INSADONG', secondTile: INSARANG_TILE, hasCardTerminal: false, hasDonation: false, aiCompanion: '2', languages: BASE_LANGUAGES, coordinates: INSADONG_COORDS },
   W002: { code: 'W002', name: '인사동쉼터', layout: 'INSADONG', secondTile: INSARANG_TILE, hasCardTerminal: false, hasDonation: false, aiCompanion: '2', languages: BASE_LANGUAGES, coordinates: INSADONG_COORDS },
@@ -92,7 +93,7 @@ export const KIOSK_LOCATIONS: Record<KioskLocationCode, KioskLocation> = {
   // 오색시장 also has a physical card-payment terminal (like 남인사마당 W003), so it
   // takes the payment result flow (위드마켓 webview + save QR, result image on Monitor 2).
   W004: { code: 'W004', name: '오산시 오색시장', layout: 'OSAN', secondTile: MARKET_TILE, hasCardTerminal: true, hasDonation: true, aiCompanion: '3', languages: BASE_LANGUAGES, coordinates: OSAN_COORDS },
-  W005: { code: 'W005', name: '화성휴게소', layout: 'HWASEONG', secondTile: INSARANG_TILE, hasCardTerminal: false, hasDonation: true, aiCompanion: '4', languages: BASE_LANGUAGES, coordinates: HWASEONG_COORDS },
+  W005: { code: 'W005', name: '화성휴게소', layout: 'HWASEONG', secondTile: INSARANG_TILE, hasCardTerminal: true, hasDonation: true, aiCompanion: '4', languages: BASE_LANGUAGES, coordinates: HWASEONG_COORDS },
 };
 
 /** Resolve a location by kiosk id, falling back to W001 (북인사마당). */

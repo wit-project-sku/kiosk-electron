@@ -6,6 +6,9 @@ import { useKioskStore } from '@renderer/store/kioskStore';
 import { preloadAllImages } from '@renderer/lib/preloadAssets';
 import { useShopStore } from '@renderer/store/shopStore';
 import { useButtonStore } from '@renderer/store/buttonStore';
+import { useBannerStore } from '@renderer/store/bannerStore';
+import { KioskSwitcher } from '@renderer/components/kiosk/KioskSwitcher';
+import { UpdateStatusIndicator } from '@renderer/components/update/UpdateStatusIndicator';
 
 /**
  * Root application shell. Reads kiosk config from synchronously-hydrated store
@@ -37,8 +40,27 @@ export function App(): JSX.Element {
     });
     return off;
   }, []);
+  // Load the bottom promo banners from the SQLite-cached API data, and reload
+  // when main signals a refresh (first-launch/nightly data without a restart).
+  useEffect(() => {
+    void useBannerStore.getState().load();
+    const off = window.api.events.onBannersChanged(() => {
+      void useBannerStore.getState().reload();
+    });
+    return off;
+  }, []);
 
   const KioskLayout = useMemo(() => resolveLayout(layout), [layout]);
 
-  return <KioskLayout />;
+  return (
+    <>
+      <KioskLayout />
+      {/* DEV_MODE only (see .env): in-app W001–W005 location switcher. Renders
+          null on every normal deployment, so no layout is affected. */}
+      <KioskSwitcher />
+      {/* Non-blocking auto-update indicator. Renders null unless an update is
+          actively checking/downloading/installing (nothing on an idle kiosk). */}
+      <UpdateStatusIndicator />
+    </>
+  );
 }

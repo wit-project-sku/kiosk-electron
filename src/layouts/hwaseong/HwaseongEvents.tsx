@@ -4,6 +4,7 @@ import type { KioskController } from '@renderer/hooks/useKioskController';
 import type { EventCategory, EventRecommendation, EventRegion } from '@shared/types/events';
 import { isOk } from '@shared/types/result';
 import { hwaseongIconUrl } from '@renderer/assets/icons/hwaseong';
+import { useRotatingBanner } from '@renderer/hooks/useRotatingBanner';
 import { useEvents, pageWindow } from '@renderer/hooks/useEvents';
 import { EventDetailScreen } from '@layouts/components/EventDetailScreen';
 import { HwaseongHeader } from './HwaseongHeader';
@@ -163,6 +164,7 @@ interface HwaseongEventsProps {
  * event grid, MBTI swaps the body for the quiz workflow. Blue [화성휴게소] main1 #005ab4.
  */
 export function HwaseongEvents({ controller }: HwaseongEventsProps): JSX.Element {
+  const banner = useRotatingBanner(hwaseongIconUrl('fg-banner'));
   const [regionLabel, setRegionLabel] = useState(REGION_TABS[0]!.label);
   const [categoryLabel, setCategoryLabel] = useState(CATEGORY_TABS[0]!.label);
   const [page, setPage] = useState(1);
@@ -311,8 +313,8 @@ export function HwaseongEvents({ controller }: HwaseongEventsProps): JSX.Element
       </div>
 
       <div className={styles.banner}>
-        {hwaseongIconUrl('fg-banner') && (
-          <img src={hwaseongIconUrl('fg-banner')} alt="" className={styles.bannerImg} draggable={false} />
+        {banner && (
+          <img src={banner} alt="" className={styles.bannerImg} draggable={false} />
         )}
       </div>
 

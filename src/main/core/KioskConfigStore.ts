@@ -45,4 +45,16 @@ export const kioskConfigStore = {
     }
     return this.get();
   },
+
+  /**
+   * Remove a persisted key so it falls back to its derived default.
+   *
+   * Needed when switching location: a stale `shopApiKioskId` left over from the
+   * previous kiosk would keep pointing the shop API at the OLD location, so it
+   * must be dropped (not overwritten) to let it re-derive from the new kioskId.
+   * Mirrors what tools/location-tester does to kiosk-config.json.
+   */
+  delete(key: keyof KioskConfig): void {
+    getStore().delete(key as never);
+  },
 };

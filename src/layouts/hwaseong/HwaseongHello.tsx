@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { QRCodeSVG } from 'qrcode.react';
 import type { KioskController } from '@renderer/hooks/useKioskController';
 import { hwaseongIconUrl } from '@renderer/assets/icons/hwaseong';
+import { useRotatingBanner } from '@renderer/hooks/useRotatingBanner';
 import { trackEvent } from '@renderer/lib/analytics';
 import { useLang } from '@renderer/lib/i18n';
 import { t } from '@renderer/lib/loc';
@@ -57,6 +58,7 @@ const STRETCH_SECTIONS: { titleKey: string; bodyKey: string }[] = [
 const stripArrow = (s: string): string => s.replace(/^\s*>\s*/, '');
 
 export function HwaseongHello({ controller }: Props): JSX.Element {
+  const banner = useRotatingBanner(hwaseongIconUrl('fg-banner'));
   const lang = useLang();
   const L = (key: string): string => t(key, lang);
   const [tab, setTab] = useState<TabKey>('intro');
@@ -226,8 +228,8 @@ export function HwaseongHello({ controller }: Props): JSX.Element {
 
       {/* Bottom banner */}
       <div className={styles.banner}>
-        {hwaseongIconUrl('fg-banner') && (
-          <img src={hwaseongIconUrl('fg-banner')} alt="" className={styles.bannerImg} draggable={false} />
+        {banner && (
+          <img src={banner} alt="" className={styles.bannerImg} draggable={false} />
         )}
       </div>
     </div>

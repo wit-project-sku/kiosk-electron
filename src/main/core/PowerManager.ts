@@ -146,12 +146,20 @@ async function ensureOsaekPowerCycle(): Promise<void> {
     ]);
     // 08:00 시작 — a WakeToRun task (PowerShell, since schtasks can't set the wake
     // flag) that resumes the PC from sleep/hibernate and (re)launches the kiosk.
+    //
+    // Deliberately NO `-RunLevel Highest`: the kiosk app auto-starts UNELEVATED
+    // (Electron login-item / HKCU Run key, no elevation manifest, perMachine:
+    // false), and `Register-ScheduledTask -RunLevel Highest` fails with
+    // "Access denied" for an unelevated caller — which the catch below then
+    // swallowed, silently dropping the 08:00 task AND the powercfg call. Limited
+    // level is enough to launch the exe and still honours WakeToRun, and matches
+    // the fleet-wide 2AM reboot task (also Limited).
     const exePath = app.getPath('exe');
     const ps = [
       `$a=New-ScheduledTaskAction -Execute '${exePath}';`,
       `$t=New-ScheduledTaskTrigger -Daily -At '${OSAEK_START_TIME}';`,
       `$s=New-ScheduledTaskSettingsSet -WakeToRun -AllowStartIfOnBatteries -DontStopIfGoingOnBatteries -StartWhenAvailable;`,
-      `Register-ScheduledTask -TaskName '${OSAEK_START_TASK}' -Action $a -Trigger $t -Settings $s -RunLevel Highest -Force`,
+      `Register-ScheduledTask -TaskName '${OSAEK_START_TASK}' -Action $a -Trigger $t -Settings $s -Force`,
     ].join(' ');
     await exec('powershell', ['-NoProfile', '-ExecutionPolicy', 'Bypass', '-Command', ps]);
     // Allow wake timers so the 08:00 task can actually wake the machine.

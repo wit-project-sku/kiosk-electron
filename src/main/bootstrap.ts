@@ -2,6 +2,7 @@ import { app } from 'electron';
 import type { BootstrapData } from '@shared/ipc/contracts';
 import type { AppContainer } from './container';
 import { languageStore } from './core/LanguageStore';
+import { isDevMode } from './core/env';
 
 function versionInfo(): BootstrapData['version'] {
   return {
@@ -33,5 +34,9 @@ export function buildBootstrapData(container: AppContainer): BootstrapData {
     content: container.cache.listAll(),
     currentLanguage,
     translations: container.translations.getInMemoryMap(),
+    // Read from the `.env` at launch, so a test machine can be flipped without a
+    // rebuild. Rides the bootstrap payload (and the synchronously injected
+    // __INITIAL_STATE__) so the switcher is present on the very first paint.
+    devMode: isDevMode(),
   };
 }

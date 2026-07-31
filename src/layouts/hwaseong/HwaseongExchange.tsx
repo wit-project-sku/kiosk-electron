@@ -1,5 +1,6 @@
 import type { KioskController } from '@renderer/hooks/useKioskController';
 import { hwaseongIconUrl } from '@renderer/assets/icons/hwaseong';
+import { useRotatingBanner } from '@renderer/hooks/useRotatingBanner';
 import { pick, useLang } from '@renderer/lib/i18n';
 import { useExchangeStore } from '@renderer/store/exchangeStore';
 import jpnFlag from '@renderer/assets/photos/insadong/exchange/jpn.svg';
@@ -36,6 +37,7 @@ interface Props {
 
 /** 환율 — live currency rates (same logic/data as the other kiosks, Figma style). */
 export function HwaseongExchange({ controller }: Props): JSX.Element {
+  const banner = useRotatingBanner(hwaseongIconUrl('fg-banner'));
   const lang = useLang();
   const exchange = useExchangeStore((s) => s.exchange);
   const won = pick(WON, lang);
@@ -77,8 +79,8 @@ export function HwaseongExchange({ controller }: Props): JSX.Element {
       </div>
 
       <div className={styles.banner}>
-        {hwaseongIconUrl('fg-banner') && (
-          <img src={hwaseongIconUrl('fg-banner')} alt="" className={styles.bannerImg} draggable={false} />
+        {banner && (
+          <img src={banner} alt="" className={styles.bannerImg} draggable={false} />
         )}
       </div>
     </div>

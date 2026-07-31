@@ -8,6 +8,7 @@ import { useSearchStore } from '@renderer/store/searchStore';
 import { useWeatherStore } from '@renderer/store/weatherStore';
 import { useWeatherVideo } from '@renderer/hooks/useWeatherVideo';
 import { osanIconUrl } from '@renderer/assets/icons/osan';
+import { useRotatingBanner } from '@renderer/hooks/useRotatingBanner';
 import { weatherIconName, weatherIconUrl } from '@renderer/assets/weather';
 import { useHasDonationTile, useOrderedTiles, type TileKey } from '@renderer/lib/buttonLayout';
 import { DONATION_COMING_SOON, withComingSoon } from '@shared/config/donation';
@@ -247,6 +248,8 @@ export function OsanHome({ controller }: OsanHomeProps): JSX.Element {
   const [query, setQuery] = useState('');
   const [focused, setFocused] = useState(false);
   const [now, setNow] = useState(() => new Date());
+  // Bottom promo banner: live API banner when active, else the bundled 오색시장 one.
+  const banner = useRotatingBanner(osanIconUrl('banner'));
 
   useEffect(() => {
     const id = setInterval(() => setNow(new Date()), 60_000);
@@ -438,7 +441,7 @@ export function OsanHome({ controller }: OsanHomeProps): JSX.Element {
         </div>
 
         {/* Bottom promo banner (가상 한복 체험) */}
-        {osanIconUrl('banner') && (
+        {banner && (
           <button
             type="button"
             className={styles.banner}
@@ -447,7 +450,7 @@ export function OsanHome({ controller }: OsanHomeProps): JSX.Element {
           >
             <img
               className={styles.bannerImg}
-              src={osanIconUrl('banner')}
+              src={banner}
               alt=""
               draggable={false}
             />

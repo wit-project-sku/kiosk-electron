@@ -50,8 +50,8 @@ export const WEB_EMBED_URLS = {
 
 /**
  * Resolve the TAX-FREE webview URL for a kiosk. Kiosks WITH the TL3800 payment
- * terminal (hasCardTerminal — W003/W004) use `taxfree`; kiosks WITHOUT it
- * (W001/W002/W005) use `taxfreeNoPayment`.
+ * terminal (hasCardTerminal — W003/W004/W005) use `taxfree`; kiosks WITHOUT it
+ * (W001/W002) use `taxfreeNoPayment`.
  */
 export function taxfreeUrl(kioskId: string): string {
   return getKioskLocation(kioskId).hasCardTerminal

@@ -2,6 +2,7 @@ import { useRef, useState } from 'react';
 import { Search } from 'lucide-react';
 import type { KioskController } from '@renderer/hooks/useKioskController';
 import { hwaseongIconUrl } from '@renderer/assets/icons/hwaseong';
+import { useRotatingBanner } from '@renderer/hooks/useRotatingBanner';
 import { useLanguageStore } from '@renderer/store/languageStore';
 import { useSearchStore } from '@renderer/store/searchStore';
 import { useDetailStore } from '@renderer/store/detailStore';
@@ -55,6 +56,7 @@ interface Props {
 }
 
 export function HwaseongSearch({ controller }: Props): JSX.Element {
+  const banner = useRotatingBanner(hwaseongIconUrl('fg-banner'));
   const goHome = (): void => controller.navigate('home', 'Back');
   const lang = useLanguageStore((s) => s.currentLanguage);
   const initialQuery = useSearchStore((s) => s.query);
@@ -181,8 +183,8 @@ export function HwaseongSearch({ controller }: Props): JSX.Element {
 
       {/* ── Bottom banner ────────────────────────────── */}
       <div className={styles.banner}>
-        {hwaseongIconUrl('fg-banner') && (
-          <img src={hwaseongIconUrl('fg-banner')} alt="" className={styles.bannerImg} draggable={false} />
+        {banner && (
+          <img src={banner} alt="" className={styles.bannerImg} draggable={false} />
         )}
       </div>
 

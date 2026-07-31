@@ -1,0 +1,120 @@
+name: release
+
+# Reusable build+publish pipeline shared by both channels. The two thin caller
+# workflows (release-production.yml / release-beta.yml) only differ in inputs, so
+# the channels share all logic while staying completely isolated.
+on:
+  workflow_call:
+    inputs:
+      prerelease:
+        description: 'Publish as a GitHub pre-release (beta channel)'
+        required: true
+        type: boolean
+      channel_label:
+        description: 'Filename channel label (live | beta)'
+        required: true
+        type: string
+      release_type:
+        description: 'electron-builder publish.releaseType (release | prerelease)'
+        required: true
+        type: string
+
+permissions:
+  contents: write # let the default GITHUB_TOKEN create/upload GitHub Releases
+
+jobs:
+  build:
+    runs-on: windows-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      # `npm ci` runs the postinstall (electron-builder install-app-deps), which
+      # ABI-rebuilds the native modules (better-sqlite3, serialport) for Electron.
+      - name: Install dependencies
+        run: npm ci
+
+      # Resolve the version to publish and decide whether to publish at all.
+      #  - beta:  <pkg>-beta.<run_number>  (always unique -> always publishes)
+      #  - prod:  <pkg>                    (skips if that release already exists,
+      #                                     so you cut a release by bumping the
+      #                                     package.json version — no manual step)
+      - name: Resolve version
+        id: ver
+        shell: bash
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          BASE=$(node -p "require('./package.json').version")
+          if [ "${{ inputs.prerelease }}" = "true" ]; then
+            FULL="${BASE}-beta.${{ github.run_number }}"
+            npm version "$FULL" --no-git-tag-version --allow-same-version
+            echo "skip=false" >> "$GITHUB_OUTPUT"
+          else
+            FULL="$BASE"
+            if gh release view "v$FULL" >/dev/null 2>&1; then
+              echo "Release v$FULL already exists — bump package.json version to cut a new release."
+              echo "skip=true" >> "$GITHUB_OUTPUT"
+            else
+              echo "skip=false" >> "$GITHUB_OUTPUT"
+            fi
+          fi
+          echo "version=$FULL"           >> "$GITHUB_OUTPUT"
+          echo "date=$(date +%Y%m%d)"    >> "$GITHUB_OUTPUT"
+          echo "dateDot=$(date +%Y.%m.%d)" >> "$GITHUB_OUTPUT"
+
+      # electron-builder copies `.env` and `secrets/` as extraResources, but both
+      # are gitignored (they hold credentials), so a fresh checkout lacks them and
+      # the copy would fail. Create safe PLACEHOLDERS so the pipeline is always
+      # green and produces a valid auto-updating installer. To ship a
+      # fully-functional kiosk, inject the real files here from your own secrets
+      # (see docs/AUTO_UPDATE.md "CI runtime config"). The update mechanism itself
+      # needs none of this.
+      - name: Prepare runtime config placeholders
+        if: steps.ver.outputs.skip == 'false'
+        shell: bash
+        run: |
+          CH=$([ "${{ inputs.prerelease }}" = "true" ] && echo beta || echo latest)
+          # Base the placeholder on the committed .env.example (all non-secret
+          # operational defaults present, secrets blank) so the build is
+          # structurally complete even without a KIOSK_ENV secret.
+          if [ ! -f .env ]; then
+            cp .env.example .env 2>/dev/null || : > .env
+            echo "Note: no real .env — using .env.example defaults (no API keys; auto-update still works)."
+          fi
+          # Force the update channel to match THIS workflow (production=latest, beta=beta).
+          grep -v '^UPDATE_CHANNEL=' .env > .env.tmp 2>/dev/null || true
+          mv -f .env.tmp .env 2>/dev/null || true
+          echo "UPDATE_CHANNEL=$CH" >> .env
+          mkdir -p secrets
+          [ -f secrets/service-account.json ] || echo '{}' > secrets/service-account.json
+          [ -f secrets/service-account-osaek.json ] || echo '{}' > secrets/service-account-osaek.json
+
+      # Build + package + generate latest.yml/beta.yml + .blockmap + publish.
+      - name: Build and publish
+        if: steps.ver.outputs.skip == 'false'
+        shell: bash
+        env:
+          # electron-builder GitHub publisher reads GH_TOKEN.
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          # Filename tokens consumed by win.artifactName in electron-builder.yml.
+          BUILD_VER: R${{ github.run_number }}
+          BUILD_DATE: ${{ steps.ver.outputs.date }}
+          KIOSK_LOC: all
+          CHANNEL: ${{ inputs.channel_label }}
+          RELEASE_DATE: ${{ steps.ver.outputs.dateDot }}
+          # Windows code signing — OPTIONAL. Add these two repo secrets to enable
+          # signing with zero workflow changes; empty = unsigned (current state).
+          CSC_LINK: ${{ secrets.WINDOWS_CSC_LINK }}
+          CSC_KEY_PASSWORD: ${{ secrets.WINDOWS_CSC_KEY_PASSWORD }}
+        run: |
+          npm run build
+          npx electron-builder --win --publish always -c.publish.releaseType=${{ inputs.release_type }}

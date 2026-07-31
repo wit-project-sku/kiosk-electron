@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react';
 import { QRCodeSVG } from 'qrcode.react';
 import type { KioskController } from '@renderer/hooks/useKioskController';
 import { hwaseongIconUrl } from '@renderer/assets/icons/hwaseong';
+import { useRotatingBanner } from '@renderer/hooks/useRotatingBanner';
 import { useDetailStore } from '@renderer/store/detailStore';
 import { provinceLabel, useLang } from '@renderer/lib/i18n';
 import { firstTags } from '@renderer/lib/shops';
@@ -25,6 +26,7 @@ interface Props {
  * no-image placeholder; QR only when a market has a real link.
  */
 export function HwaseongMarketList({ controller, title, provinces }: Props): JSX.Element {
+  const banner = useRotatingBanner(hwaseongIconUrl('fg-banner'));
   const lang = useLang();
   const setDetail = useDetailStore((s) => s.setItem);
   const [activeKr, setActiveKr] = useState(provinces[0] ?? '');
@@ -121,8 +123,8 @@ export function HwaseongMarketList({ controller, title, provinces }: Props): JSX
       </div>
 
       <div className={styles.banner}>
-        {hwaseongIconUrl('fg-banner') && (
-          <img src={hwaseongIconUrl('fg-banner')} alt="" className={styles.bannerImg} draggable={false} />
+        {banner && (
+          <img src={banner} alt="" className={styles.bannerImg} draggable={false} />
         )}
       </div>
     </div>

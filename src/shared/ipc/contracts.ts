@@ -37,10 +37,12 @@ import type {
 import type { SupportedLanguage } from '../types/kiosk';
 import type { WeatherSnapshot } from '../types/weather';
 import type { WeatherPlayKey } from '../config/weatherVideo';
+import type { KioskLocationCode } from '../config/kioskLocations';
 import type { ExchangeSnapshot } from '../types/exchange';
 import type { VideoEntry, VideoFilesBySet } from '../types/subtitle';
 import type { Shop } from '../types/shop';
 import type { KioskButton } from '../types/buttons';
+import type { KioskBanner } from '../types/banner';
 import type {
   EventDetail,
   EventRecommendation,
@@ -48,6 +50,7 @@ import type {
   EventsQuery,
   EventsRecommendQuery,
 } from '../types/events';
+import type { UpdateStatus } from '../types/update';
 
 /** Request payload for importing one or more image files. */
 export interface ImportImagesRequest {
@@ -86,6 +89,9 @@ export interface BootstrapData {
   content: CachedContent[];
   currentLanguage: SupportedLanguage;
   translations: Record<string, Partial<Record<SupportedLanguage, string>>>;
+  /** `DEV_MODE=true` in the app's `.env` — enables the in-app kiosk-location
+   *  switcher for testing. False on every normal deployment. */
+  devMode: boolean;
 }
 
 export interface AnalyticsReportRange {
@@ -310,6 +316,12 @@ export interface IpcContract {
     request: { key: WeatherPlayKey };
     response: Result<boolean>;
   };
+  [IpcChannels.KioskSwitchLocation]: {
+    request: { kioskId: KioskLocationCode };
+    // Resolves only if the relaunch could not be started; on success the process
+    // exits before the renderer ever sees the reply.
+    response: Result<boolean>;
+  };
   [IpcChannels.ShopsList]: {
     request: void;
     response: Result<Shop[]>;
@@ -317,6 +329,10 @@ export interface IpcContract {
   [IpcChannels.ButtonsList]: {
     request: void;
     response: Result<KioskButton[]>;
+  };
+  [IpcChannels.BannersList]: {
+    request: void;
+    response: Result<KioskBanner[]>;
   };
   [IpcChannels.StatsMenuTouch]: {
     request: MenuTouchInput;
@@ -333,6 +349,19 @@ export interface IpcContract {
   [IpcChannels.EventsDetailGet]: {
     request: { eventId: number };
     response: Result<EventDetail>;
+  };
+
+  [IpcChannels.UpdateGetStatus]: {
+    request: void;
+    response: Result<UpdateStatus>;
+  };
+  [IpcChannels.UpdateCheckNow]: {
+    request: void;
+    response: Result<UpdateStatus>;
+  };
+  [IpcChannels.UpdateInstallNow]: {
+    request: void;
+    response: Result<boolean>;
   };
 }
 
@@ -356,6 +385,8 @@ export interface IpcEventPayloads {
   [IpcEvents.KioskWeatherVideo]: WeatherPlayKey;
   [IpcEvents.ShopsChanged]: null;
   [IpcEvents.ButtonsChanged]: null;
+  [IpcEvents.BannersChanged]: null;
+  [IpcEvents.UpdateStatusChanged]: UpdateStatus;
 }
 
 export type EventChannel = keyof IpcEventPayloads;

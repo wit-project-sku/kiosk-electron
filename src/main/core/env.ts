@@ -15,6 +15,20 @@ export function loadEnvFile(): void {
   for (const path of paths) loadFrom(path);
 }
 
+/**
+ * Operator "dev mode" — `DEV_MODE=true` in the `.env` next to the app.
+ *
+ * Purely a testing affordance: it surfaces the in-app kiosk-location switcher
+ * (see KioskSwitcher) so a tester can move one installed build between W001–W005
+ * without the external tools/location-tester script. Because it is read from the
+ * env file at every launch, flipping it needs an app restart, not a rebuild.
+ * Absent/empty (the production default) = off.
+ */
+export function isDevMode(): boolean {
+  const value = (process.env['DEV_MODE'] ?? '').trim().toLowerCase();
+  return value === '1' || value === 'true' || value === 'yes' || value === 'on';
+}
+
 function loadFrom(path: string): void {
   if (!existsSync(path)) return;
 

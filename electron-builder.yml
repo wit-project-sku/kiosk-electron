@@ -1,6 +1,14 @@
 appId: com.kioskapp.desktop
-productName: Kiosk App
-copyright: Copyright © 2026 Kiosk App Team
+productName: witworldwide
+copyright: Copyright © 2026 witworldwide
+
+# REQUIRED for this app: `maximum` shrinks the embedded app block enough that
+# 32-bit makensis can build the NSIS installer. With the default ('normal'),
+# makensis fails with "Internal compiler error #12345: error mmapping datablock"
+# because this build is large (~400 MB of renderer assets). Do not lower this
+# without first trimming the bundle size, or the installer (and thus auto-update)
+# will not build.
+compression: maximum
 
 directories:
   output: release/${version}
@@ -20,9 +28,10 @@ files:
 extraResources:
   - from: themes
     to: themes
-  # Display/attract videos — streamed at runtime via media://video/<name>.
-  - from: resources/videos
-    to: videos
+  # NOTE: display/attract videos are intentionally NOT bundled. They are large and
+  # pre-downloaded per kiosk into an EXTERNAL folder (C:\KioskVideos by default, or
+  # KIOSK_VIDEOS_DIR) that lives OUTSIDE the install dir, so an auto-update never
+  # wipes them. See src/main/core/paths.ts `videos` and docs/AUTO_UPDATE.md.
   # Runtime config + Google service-account secret (read from resources/ in the
   # packaged app). Keep these out of source control; they are baked into the
   # installer for this controlled kiosk fleet.
@@ -48,6 +57,10 @@ asarUnpack:
 npmRebuild: true
 
 win:
+  # App/exe icon (taskbar, window, installer). Multi-size .ico generated from the
+  # brand logo — see build/icon.ico. buildResources:build would auto-detect it,
+  # but keep it explicit so a rename can't silently drop the icon.
+  icon: build/icon.ico
   target:
     - target: nsis
       arch:
@@ -66,18 +79,21 @@ nsis:
   allowToChangeInstallationDirectory: true
   deleteAppDataOnUninstall: false
 
-mac:
-  target:
-    - dmg
-  category: public.app-category.business
-  artifactName: ${productName}-${version}.${ext}
-
-linux:
-  target:
-    - AppImage
-  category: Utility
-  artifactName: ${productName}-${version}.${ext}
-
+# Auto-update feed = GitHub Releases (electron-updater). This block is baked into
+# the app as `app-update.yml`, so each installed kiosk knows where to look. The
+# channel a kiosk actually follows (latest vs beta) is chosen at runtime from
+# UPDATE_CHANNEL — see src/main/updater. electron-builder emits the update
+# metadata (latest.yml for stable, beta.yml for -beta pre-releases) plus a
+# .blockmap next to each NSIS installer automatically.
 publish:
-  provider: generic
-  url: https://example.com/updates
+  provider: github
+  owner: wit-project-sku
+  repo: kiosk-electron
+  # Channel is derived from the VERSION, not hardcoded: a stable `X.Y.Z` writes
+  # `latest.yml`; a `X.Y.Z-beta.N` pre-release writes `beta.yml`. Both coexist in
+  # the same repo's releases, so the two channels never collide.
+  # Production publishes a normal release (default below); the beta workflow
+  # overrides this to `prerelease` via `-c.publish.releaseType=prerelease`.
+  releaseType: release
+
+# Windows-only fleet: NSIS installer + latest.yml + .blockmap. No mac/linux.
