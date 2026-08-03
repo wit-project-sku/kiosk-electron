@@ -18,6 +18,10 @@ on:
         description: 'electron-builder publish.releaseType (release | prerelease)'
         required: true
         type: string
+      environment:
+        description: 'GitHub Environment supplying the runtime config secrets (beta | production)'
+        required: true
+        type: string
 
 permissions:
   contents: write # let the default GITHUB_TOKEN create/upload GitHub Releases
@@ -25,6 +29,14 @@ permissions:
 jobs:
   build:
     runs-on: windows-latest
+    # Binds this job to a GitHub Environment, so `secrets.KIOSK_ENV` (and the two
+    # service-account secrets) resolve to THAT environment's values. This is what
+    # gives develop_1 staging config and main production config from one pipeline.
+    # Configure each environment's "deployment branches" rule so only the matching
+    # branch can use it (beta -> develop_1, production -> main).
+    # NOTE: do NOT add required reviewers to these environments — a release would
+    # then hang waiting for manual approval instead of publishing.
+    environment: ${{ inputs.environment }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -71,13 +83,48 @@ jobs:
           echo "date=$(date +%Y%m%d)"    >> "$GITHUB_OUTPUT"
           echo "dateDot=$(date +%Y.%m.%d)" >> "$GITHUB_OUTPUT"
 
+      # Materialize the REAL runtime config from the ENVIRONMENT's secrets, so a
+      # published installer is fully functional. Because the secrets are scoped to
+      # the environment, develop_1 builds get staging URLs + test keys and main
+      # builds get production URLs + live keys — from one shared pipeline, with
+      # nothing committed to the (public) repo.
+      #
+      # Every secret is OPTIONAL: an unset secret leaves the file absent and the
+      # placeholder step below fills it in, so the pipeline stays green either way.
+      # UPDATE_CHANNEL / DEV_MODE are deliberately NOT set here — the placeholder
+      # step force-overwrites them per channel, so a stale value baked into
+      # KIOSK_ENV can never put a kiosk on the wrong update feed.
+      - name: Inject runtime config
+        if: steps.ver.outputs.skip == 'false'
+        shell: bash
+        env:
+          KIOSK_ENV: ${{ secrets.KIOSK_ENV }}
+          GOOGLE_SA: ${{ secrets.GOOGLE_SERVICE_ACCOUNT_JSON }}
+          GOOGLE_SA_OSAEK: ${{ secrets.GOOGLE_SERVICE_ACCOUNT_JSON_OSAEK }}
+        run: |
+          mkdir -p secrets
+          if [ -n "$KIOSK_ENV" ]; then
+            printf '%s\n' "$KIOSK_ENV" > .env
+            echo "Injected .env from the '${{ inputs.environment }}' environment ($(grep -cE '^[A-Z_0-9]+=' .env) keys)."
+          else
+            echo "No KIOSK_ENV in the '${{ inputs.environment }}' environment — falling back to .env.example (weather/exim/sheets will be inert)."
+          fi
+          if [ -n "$GOOGLE_SA" ]; then
+            printf '%s' "$GOOGLE_SA" > secrets/service-account.json
+            echo "Injected secrets/service-account.json."
+          fi
+          if [ -n "$GOOGLE_SA_OSAEK" ]; then
+            printf '%s' "$GOOGLE_SA_OSAEK" > secrets/service-account-osaek.json
+            echo "Injected secrets/service-account-osaek.json."
+          fi
+          exit 0
+
       # electron-builder copies `.env` and `secrets/` as extraResources, but both
       # are gitignored (they hold credentials), so a fresh checkout lacks them and
       # the copy would fail. Create safe PLACEHOLDERS so the pipeline is always
-      # green and produces a valid auto-updating installer. To ship a
-      # fully-functional kiosk, inject the real files here from your own secrets
-      # (see docs/AUTO_UPDATE.md "CI runtime config"). The update mechanism itself
-      # needs none of this.
+      # green and produces a valid auto-updating installer. The step above injects
+      # the REAL values first; everything here is a no-op when they are present,
+      # EXCEPT the UPDATE_CHANNEL / DEV_MODE overwrites, which always win.
       - name: Prepare runtime config placeholders
         if: steps.ver.outputs.skip == 'false'
         shell: bash
@@ -123,4 +170,11 @@ jobs:
           CSC_KEY_PASSWORD: ${{ secrets.WINDOWS_CSC_KEY_PASSWORD }}
         run: |
           npm run build
-          npx electron-builder --win --publish always -c.publish.releaseType=${{ inputs.release_type }}
+          # publish.channel MUST be set explicitly. electron-builder does NOT derive
+          # it from a `-beta.N` version: both earlier pre-releases shipped
+          # `latest.yml` (verified 2026-08-03), so `beta.yml` 404s and every
+          # UPDATE_CHANNEL=beta kiosk dies with ERR_UPDATER_CHANNEL_FILE_NOT_FOUND.
+          CH=$([ "${{ inputs.prerelease }}" = "true" ] && echo beta || echo latest)
+          npx electron-builder --win --publish always \
+            -c.publish.releaseType=${{ inputs.release_type }} \
+            -c.publish.channel=$CH
