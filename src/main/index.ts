@@ -31,6 +31,7 @@ import {
 } from '@shared/constants/photoOptions';
 
 /** Ensures cached kiosk content exists locally before first paint. */
+// test:seedLocalContent
 function seedLocalContent(container: AppContainer): void {
   const { kioskId, layout } = container.kiosk.getConfig();
 
