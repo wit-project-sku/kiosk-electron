@@ -163,7 +163,16 @@ async function bootstrap(): Promise<void> {
   // Downloads in the background, and restarts to install only while the kiosk is
   // idle (never mid photo/payment) — nightly reboot is the guaranteed fallback.
   // Channel + schedule come from UPDATE_CHANNEL / UPDATE_* (see .env).
-  container.updater.setBusyCheck(() => container.photoWorkflow.getState().phase !== 'idle');
+  // Block a restart ONLY during the phases where it would destroy work the
+  // customer can't get back: `countdown` (about to shoot) and `generating` (AI
+  // is processing their photo). Browsing phases and a parked `result` screen do
+  // NOT block — the workflow only returns to `idle` when the renderer calls
+  // `photo:reset`, so a customer who walks away mid-flow would otherwise leave
+  // the phase non-idle forever and defer the install indefinitely.
+  container.updater.setBusyCheck(() => {
+    const { phase } = container.photoWorkflow.getState();
+    return phase === 'countdown' || phase === 'generating';
+  });
   container.updater.start();
   // Second, operator-initiated trigger: polls the witteria API for an "update
   // now" timestamp set from the admin site, and forces an immediate check when

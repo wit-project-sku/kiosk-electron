@@ -8,7 +8,6 @@ import { useShopStore } from '@renderer/store/shopStore';
 import { useButtonStore } from '@renderer/store/buttonStore';
 import { useBannerStore } from '@renderer/store/bannerStore';
 import { KioskSwitcher } from '@renderer/components/kiosk/KioskSwitcher';
-import { UpdateStatusIndicator } from '@renderer/components/update/UpdateStatusIndicator';
 
 /**
  * Root application shell. Reads kiosk config from synchronously-hydrated store
@@ -58,10 +57,6 @@ export function App(): JSX.Element {
       {/* DEV_MODE only (see .env): in-app W001–W005 location switcher. Renders
           null on every normal deployment, so no layout is affected. */}
       <KioskSwitcher />
-      {/* DEV_MODE only (same gate as KioskSwitcher): auto-update progress for
-          TEST kiosks. CI sets DEV_MODE=true on beta builds and false on
-          production, so a live kiosk shows no update chrome at all. */}
-      <UpdateStatusIndicator />
     </>
   );
 }

@@ -55,8 +55,31 @@ const RETRY_MIN_MS = 15 * 60 * 1000; // 15 minutes
 const RETRY_MAX_MS = 6 * 60 * 60 * 1000; // 6 hours
 /** Grace period after a download completes before installing. */
 const INSTALL_GRACE_MS = 10_000;
-/** How often to re-attempt a deferred (busy) install. */
-const INSTALL_RETRY_MS = 5 * 60 * 1000; // 5 minutes
+/**
+ * How often to re-attempt a deferred (busy) install.
+ *
+ * Kept SHORT because the busy gate now covers only `countdown` / `generating` —
+ * phases that last seconds, not minutes. At the old 5-minute cadence a staged
+ * update would idle for up to 5 extra minutes after the customer had already
+ * finished, which read as "downloaded but stuck".
+ */
+const INSTALL_RETRY_MS = 45 * 1000; // 45 seconds
+/**
+ * Hard ceiling on how long a staged update may be deferred by `busyCheck`.
+ *
+ * The photo workflow only returns to `idle` when the RENDERER calls `photo:reset`
+ * — so a customer who walks away mid-flow leaves the phase non-idle indefinitely,
+ * which used to defer the install forever (it then applied only on the nightly
+ * reboot). After this long, install regardless: at that point "busy" is far more
+ * likely to be a stranded session than a real customer.
+ */
+const INSTALL_MAX_DEFER_MS = 30 * 60 * 1000; // 30 minutes
+/**
+ * If `quitAndInstall` hasn't torn the app down within this long, force a normal
+ * quit — `autoInstallOnAppQuit` then applies the update on the way out. Covers
+ * the case where quitAndInstall silently no-ops instead of throwing.
+ */
+const QUIT_WATCHDOG_MS = 20_000;
 
 export class UpdateService {
   private readonly log = createLogger('updater');
@@ -73,6 +96,8 @@ export class UpdateService {
   private backoffMs = RETRY_MIN_MS;
   /** The weekly window we are currently trying to satisfy (production only). */
   private pendingWindow: Date | null = null;
+  /** When the current update finished downloading — drives the defer ceiling. */
+  private stagedAt: number | null = null;
 
   /** Returns true when it is unsafe to restart right now (customer mid-session).
    *  Defaults to "never busy"; wired to the photo workflow in the main entry. */
@@ -335,16 +360,27 @@ export class UpdateService {
 
   private scheduleInstall(): void {
     if (this.installTimer) clearTimeout(this.installTimer);
+    this.stagedAt = Date.now();
     this.installTimer = setTimeout(() => this.maybeInstall(), INSTALL_GRACE_MS);
   }
 
   private maybeInstall(): void {
     if (this.status.state !== 'downloaded') return;
-    if (this.busyCheck()) {
-      this.log.info('Install deferred: kiosk is mid-session; will retry (also applies on next restart)');
+
+    const deferredMs = this.stagedAt ? Date.now() - this.stagedAt : 0;
+    if (this.busyCheck() && deferredMs < INSTALL_MAX_DEFER_MS) {
+      this.log.info('Install deferred: kiosk is mid-session; will retry', {
+        deferredMinutes: Math.round(deferredMs / 60000),
+        maxDeferMinutes: Math.round(INSTALL_MAX_DEFER_MS / 60000),
+      });
       if (this.installTimer) clearTimeout(this.installTimer);
       this.installTimer = setTimeout(() => this.maybeInstall(), INSTALL_RETRY_MS);
       return;
+    }
+    if (deferredMs >= INSTALL_MAX_DEFER_MS) {
+      this.log.warn('Install deferral ceiling reached; installing anyway', {
+        deferredMinutes: Math.round(deferredMs / 60000),
+      });
     }
     this.doInstall();
   }
@@ -359,6 +395,15 @@ export class UpdateService {
       } catch (err) {
         this.log.error('quitAndInstall failed; will apply on next quit', err);
       }
+      // quitAndInstall can silently no-op (rather than throw) if the quit is
+      // swallowed. If we're still alive well after calling it, force a normal
+      // quit — autoInstallOnAppQuit applies the update on the way out, so the
+      // kiosk still lands on the new version instead of sitting at 'downloaded'.
+      const watchdog = setTimeout(() => {
+        this.log.warn('Still running after quitAndInstall; forcing quit to apply the update');
+        app.quit();
+      }, QUIT_WATCHDOG_MS);
+      if (typeof watchdog.unref === 'function') watchdog.unref();
     });
   }
 
