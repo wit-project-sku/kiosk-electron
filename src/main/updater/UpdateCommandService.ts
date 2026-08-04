@@ -59,6 +59,8 @@ export class UpdateCommandService {
   private timer: NodeJS.Timeout | null = null;
   private started = false;
   private polling = false;
+  /** Consecutive failed polls — drives the throttled failure logging below. */
+  private failures = 0;
 
   constructor(
     private readonly updater: UpdateService,
@@ -171,6 +173,10 @@ export class UpdateCommandService {
       const res = await fetch(url, { signal: controller.signal });
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const json = (await res.json()) as UpdateCommandPayload;
+      if (this.failures > 0) {
+        this.log.info('Update command endpoint reachable again', { url, afterFailures: this.failures });
+        this.failures = 0;
+      }
       const raw = json.data?.requestedAt;
       if (!raw) return null; // null/absent = nothing requested
       const epoch = Date.parse(raw);
@@ -180,11 +186,19 @@ export class UpdateCommandService {
       }
       return epoch;
     } catch (err) {
-      // Offline / API down / endpoint not deployed yet — stay quiet and retry.
-      this.log.debug('Update command poll failed (offline or endpoint absent)', {
-        url,
-        message: err instanceof Error ? err.message : String(err),
-      });
+      // Offline / API down / endpoint not deployed yet. Log the FIRST failure at
+      // info (packaged builds persist info and above, so a silent poll would
+      // otherwise be undiagnosable on a real kiosk), then throttle to roughly
+      // hourly so a not-yet-deployed endpoint can't flood the log forever.
+      this.failures += 1;
+      const throttle = Math.max(1, Math.round(60 / this.pollMinutes()));
+      if (this.failures === 1 || this.failures % throttle === 0) {
+        this.log.info('Update command poll failed (offline or endpoint not deployed)', {
+          url,
+          consecutiveFailures: this.failures,
+          message: err instanceof Error ? err.message : String(err),
+        });
+      }
       return null;
     } finally {
       clearTimeout(timeout);
