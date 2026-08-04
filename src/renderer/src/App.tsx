@@ -8,7 +8,6 @@ import { useShopStore } from '@renderer/store/shopStore';
 import { useButtonStore } from '@renderer/store/buttonStore';
 import { useBannerStore } from '@renderer/store/bannerStore';
 import { KioskSwitcher } from '@renderer/components/kiosk/KioskSwitcher';
-import { UpdateStatusIndicator } from '@renderer/components/update/UpdateStatusIndicator';
 
 /**
  * Root application shell. Reads kiosk config from synchronously-hydrated store
@@ -58,9 +57,6 @@ export function App(): JSX.Element {
       {/* DEV_MODE only (see .env): in-app W001–W005 location switcher. Renders
           null on every normal deployment, so no layout is affected. */}
       <KioskSwitcher />
-      {/* Non-blocking auto-update indicator. Renders null unless an update is
-          actively checking/downloading/installing (nothing on an idle kiosk). */}
-      <UpdateStatusIndicator />
     </>
   );
 }

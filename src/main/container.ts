@@ -39,6 +39,7 @@ import { PhotoGenerationService } from './services/photo/PhotoGenerationService'
 import { ImageHostService } from './services/photo/ImageHostService';
 import { PhotoWorkflowService } from './services/photo/PhotoWorkflowService';
 import { UpdateService } from './updater/UpdateService';
+import { UpdateCommandService } from './updater/UpdateCommandService';
 
 export interface AppContainer {
   database: Database;
@@ -68,6 +69,7 @@ export interface AppContainer {
   stats: StatsService;
   events: EventsService;
   updater: UpdateService;
+  updateCommands: UpdateCommandService;
 }
 
 let container: AppContainer | null = null;
@@ -117,6 +119,13 @@ export function createContainer(): AppContainer {
   );
   const photoWorkflow = new PhotoWorkflowService(display, camera);
 
+  // The remote "update now" trigger drives the SAME updater instance as the
+  // weekly scheduler, so both paths share one state machine (no double download,
+  // no competing installs). Hence the updater is built here rather than inline
+  // in the container literal below.
+  const updater = new UpdateService();
+  const updateCommands = new UpdateCommandService(updater, kiosk);
+
   const sync = new SyncService(syncRepo, analyticsRepo, failedRequests, cache, photoGeneration);
   sync.setTransport(SyncService.createTransport(cache, failedRequests, kiosk, translations));
   // Let night sync retry any menu-touch POSTs that failed while offline.
@@ -149,7 +158,8 @@ export function createContainer(): AppContainer {
     banners,
     stats,
     events,
-    updater: new UpdateService(),
+    updater,
+    updateCommands,
   };
 
   return container;

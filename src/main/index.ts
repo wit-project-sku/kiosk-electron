@@ -165,6 +165,11 @@ async function bootstrap(): Promise<void> {
   // Channel + schedule come from UPDATE_CHANNEL / UPDATE_* (see .env).
   container.updater.setBusyCheck(() => container.photoWorkflow.getState().phase !== 'idle');
   container.updater.start();
+  // Second, operator-initiated trigger: polls the witteria API for an "update
+  // now" timestamp set from the admin site, and forces an immediate check when
+  // it sees a newer one. Independent of — and does not disturb — the weekly
+  // window above. Install is still gated on the same idle check.
+  container.updateCommands.start();
 
   // Refresh sheet content into SQLite in the background on every launch (in
   // addition to the 02:00 night sync). The current window already rendered from
@@ -214,6 +219,7 @@ app.on('before-quit', () => {
     getContainer().weather.stop();
     getContainer().exchange.stop();
     getContainer().updater.stop();
+    getContainer().updateCommands.stop();
   } catch {
     // Container may not exist if startup failed; ignore.
   }
