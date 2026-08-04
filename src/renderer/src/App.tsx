@@ -18,7 +18,7 @@ export function App(): JSX.Element {
 
   useBootstrap();
   useKioskTheme();
-
+   //just test comment
   // Warm the image cache after first paint so every page is instant thereafter.
   useEffect(() => preloadAllImages(), []);
   // Load the shop catalogue from the SQLite-cached API data, and reload when main

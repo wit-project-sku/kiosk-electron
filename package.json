@@ -1,6 +1,6 @@
 {
   "name": "kiosk-app",
-  "version": "5.0.17",
+  "version": "5.0.16",
   "description": "Production-grade offline-first Electron kiosk application with multi-monitor customer display.",
   "main": "./out/main/index.js",
   "author": "Kiosk App Team",
@@ -13,28 +13,6 @@
   },
   "engines": {
     "node": ">=20"
-  },
-  "scripts": {
-    "dev": "electron-vite dev --watch",
-    "start": "electron-vite preview",
-    "build": "npm run typecheck && electron-vite build",
-    "postinstall": "electron-builder install-app-deps",
-    "rebuild": "electron-builder install-app-deps",
-    "version:bump": "npm version patch --no-git-tag-version",
-    "prebuild:win": "npm run version:bump",
-    "build:win": "node scripts/build-win.mjs",
-    "release:win": "npm run build && electron-builder --win --publish always",
-    "typecheck:node": "tsc --noEmit -p tsconfig.node.json --composite false",
-    "typecheck:web": "tsc --noEmit -p tsconfig.web.json --composite false",
-    "typecheck": "npm run typecheck:node && npm run typecheck:web",
-    "lint": "eslint . --ext .ts,.tsx --cache",
-    "lint:fix": "eslint . --ext .ts,.tsx --fix",
-    "format": "prettier --write \"src/**/*.{ts,tsx,css,json}\"",
-    "format:check": "prettier --check \"src/**/*.{ts,tsx,css,json}\"",
-    "vendor:payment-agent": "node scripts/vendor-payment-agent.mjs",
-    "provision:kiosk": "node scripts/provision-kiosk.mjs",
-    "sync:sheet": "node scripts/sync-sheet.mjs",
-    "db:inspect": "node scripts/db-inspect.mjs"
   },
   "dependencies": {
     "@fontsource/noto-sans-kr": "^5.2.9",
@@ -64,34 +42,5 @@
     "serialport": "^12.0.0",
     "swiper": "^12.2.0",
     "winston": "^3.17.0"
-  },
-  "devDependencies": {
-    "@electron-toolkit/preload": "^3.0.1",
-    "@electron-toolkit/utils": "^3.0.0",
-    "@hookform/resolvers": "^3.10.0",
-    "@types/adm-zip": "^0.5.8",
-    "@types/better-sqlite3": "^7.6.12",
-    "@types/node": "^22.10.7",
-    "@types/react": "^19.0.7",
-    "@types/react-dom": "^19.0.3",
-    "@typescript-eslint/eslint-plugin": "^8.21.0",
-    "@typescript-eslint/parser": "^8.21.0",
-    "@vitejs/plugin-react": "^4.3.4",
-    "electron": "^34.0.0",
-    "electron-builder": "^25.1.8",
-    "electron-vite": "^3.0.0",
-    "eslint": "^8.57.1",
-    "eslint-config-prettier": "^9.1.0",
-    "eslint-plugin-react": "^7.37.4",
-    "eslint-plugin-react-hooks": "^5.1.0",
-    "lucide-react": "^0.473.0",
-    "prettier": "^3.4.2",
-    "react": "^19.0.0",
-    "react-dom": "^19.0.0",
-    "react-hook-form": "^7.54.2",
-    "typescript": "^5.7.3",
-    "vite": "^6.0.7",
-    "zod": "^3.24.1",
-    "zustand": "^5.0.3"
   }
 }
