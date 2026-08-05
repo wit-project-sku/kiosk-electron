@@ -260,30 +260,36 @@ export function CustomerDisplay(): JSX.Element {
         <video className={styles.media} src={assetUrl(assets[0])} autoPlay loop muted />
       )}
 
-      {/* ── Camera / countdown ── (Figma 4795:43166, 2160×3840 artboard) */}
-      {(state.mode === 'camera' || state.mode === 'countdown') && (
+      {/* ── Camera / countdown ── (Figma 4795:43166, 2160×3840 artboard) ──
+          Manual capture mode strips the screen down to the bare feed: no tips,
+          no guide art, no pose references. A vertical camera's 9:16 frame and
+          the 2160×3840 artboard are the same shape, so the feed fills the whole
+          monitor with nothing cropped — the preview IS the saved capture. */}
+      {(state.mode === 'camera' || state.mode === 'countdown') && PHOTO_MANUAL_CAPTURE && (
+        <div className={styles.cameraScreen}>
+          <div className={styles.camFullBleed}>
+            <video
+              ref={videoRef}
+              className={camVertical ? styles.camFeedRotFull : styles.camFeed}
+              style={{ '--cam-rot': `${camRotation}deg` } as CSSProperties}
+              muted
+              playsInline
+            />
+          </div>
+        </div>
+      )}
+
+      {(state.mode === 'camera' || state.mode === 'countdown') && !PHOTO_MANUAL_CAPTURE && (
         <div className={styles.cameraScreen}>
           {/* Top: title + numbered tips. Left '10' is static info; the badge on
               the right is the LIVE countdown. */}
           <div className={styles.camText}>
             <div className={styles.camTitleRow}>
-              {PHOTO_MANUAL_CAPTURE ? (
-                // No timer in manual capture mode — the countdown copy and the
-                // live badge would both be lying.
-                <p className={styles.camTitle}>
-                  <span className={styles.camTitleRest}>촬영 버튼을 눌러주세요.</span>
-                </p>
-              ) : (
-                <>
-                  <p className={styles.camTitle}>
-                    <span className={styles.camCount}>&apos;{PHOTO_COUNTDOWN_SECONDS}&apos;</span>
-                    <span className={styles.camTitleRest}> 초후에 촬영이 됩니다.</span>
-                  </p>
-                  <div className={styles.camLiveCount}>
-                    {state.countdown ?? PHOTO_COUNTDOWN_SECONDS}
-                  </div>
-                </>
-              )}
+              <p className={styles.camTitle}>
+                <span className={styles.camCount}>&apos;{PHOTO_COUNTDOWN_SECONDS}&apos;</span>
+                <span className={styles.camTitleRest}> 초후에 촬영이 됩니다.</span>
+              </p>
+              <div className={styles.camLiveCount}>{state.countdown ?? PHOTO_COUNTDOWN_SECONDS}</div>
             </div>
             <ol className={styles.camTips}>
               <li className={styles.camTip}>

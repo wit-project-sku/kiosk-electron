@@ -222,6 +222,28 @@
   overflow: hidden;
 }
 
+/* Bare full-screen feed (manual capture mode) — the whole 2160×3840 monitor. */
+.camFullBleed {
+  position: absolute;
+  inset: 0;
+  background: #000000;
+  overflow: hidden;
+}
+
+/* Vertical camera, full screen: laid out PRE-rotation at 3840×2160 — the exact
+   16:9 of the stream, so cover fills it without cropping — then turned a
+   quarter onto the 2160×3840 artboard. 9:16 frame into a 9:16 screen: every
+   pixel the capture holds is on screen, and nothing is added. */
+.camFeedRotFull {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 3840px;
+  height: 2160px;
+  object-fit: cover;
+  transform: translate(-50%, -50%) rotate(var(--cam-rot, 90deg));
+}
+
 .camFeedRot {
   position: absolute;
   left: 50%;
