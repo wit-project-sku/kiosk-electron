@@ -6,6 +6,7 @@ import { appPaths } from '@main/core/paths';
 import {
   DEFAULT_CLOTHING_OPTIONS,
   DEFAULT_STYLE_OPTIONS,
+  PHOTO_MANUAL_CAPTURE,
 } from '@shared/constants/photoOptions';
 import { photoCaptureRequestSchema } from '@shared/validation/photo.schema';
 import type { AppContainer } from '@main/container';
@@ -79,6 +80,9 @@ export function registerPhotoHandlers(container: AppContainer): void {
 
   handle(IpcChannels.PhotoBeginCountdown, () => container.photoWorkflow.beginCountdown());
 
+  // Manual capture mode (PHOTO_MANUAL_CAPTURE) — 촬영 on the touch screen.
+  handle(IpcChannels.PhotoCaptureNow, () => container.photoWorkflow.requestCapture());
+
   handle(IpcChannels.PhotoReset, () => container.photoWorkflow.reset());
 
   // 기부(학교) 흐름: 결제 완료 전까지 Monitor 2 에 AI 결과를 노출하지 않는다.
@@ -110,8 +114,9 @@ export function registerPhotoHandlers(container: AppContainer): void {
     container.photoWorkflow.setGenerating('AI is creating your image…');
 
     // The customer display counts down 60s while generating; hold the result
-    // until that countdown completes (even if the AI finishes earlier).
-    const GENERATING_MIN_MS = 60_000;
+    // until that countdown completes (even if the AI finishes earlier). Skipped
+    // in manual capture mode so a test shot isn't a minute long.
+    const GENERATING_MIN_MS = PHOTO_MANUAL_CAPTURE ? 0 : 60_000;
     const startedAt = Date.now();
 
     // The workflow is a singleton whose sessionId is nulled by reset() (fired when

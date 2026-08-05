@@ -1,6 +1,7 @@
 import type { WebContents } from 'electron';
 import Store from 'electron-store';
-import type { CameraDeviceInfo } from '@shared/types/photo';
+import type { CameraDeviceInfo, CameraRotation } from '@shared/types/photo';
+import { DEFAULT_CAMERA_ROTATION, isCameraRotation } from '@shared/types/photo';
 import { createLogger } from '@main/core/logger';
 
 const log = createLogger('camera-service');
@@ -9,6 +10,18 @@ const ELGATO_PATTERN = /elgato|facecam|cam link|prompter/i;
 
 interface CameraStore {
   preferredDeviceId: string | null;
+  /** Degrees clockwise the camera is physically rotated on its mount. */
+  captureRotation: CameraRotation;
+}
+
+/**
+ * Rotation for a machine that has never been configured: DEFAULT_CAMERA_ROTATION
+ * (270 — vertical mount), overridable per machine with VITE_CAMERA_ROTATION=0
+ * for a kiosk whose camera is still horizontal.
+ */
+function envRotation(): CameraRotation {
+  const raw = Number(process.env['VITE_CAMERA_ROTATION']);
+  return isCameraRotation(raw) ? raw : DEFAULT_CAMERA_ROTATION;
 }
 
 let store: Store<CameraStore> | null = null;
@@ -17,7 +30,7 @@ function getStore(): Store<CameraStore> {
   if (!store) {
     store = new Store<CameraStore>({
       name: 'camera-config',
-      defaults: { preferredDeviceId: null },
+      defaults: { preferredDeviceId: null, captureRotation: envRotation() },
     });
   }
   return store;
@@ -79,6 +92,21 @@ export class CameraService {
 
   getPreferredDevice(): string | null {
     return getStore().get('preferredDeviceId');
+  }
+
+  /**
+   * Mount rotation, applied to BOTH the Monitor-2 preview and the saved JPEG so
+   * the two can never disagree. A stored value from an older build (or a hand
+   * edit) that isn't a right angle falls back to the env default.
+   */
+  getRotation(): CameraRotation {
+    const stored = getStore().get('captureRotation');
+    return isCameraRotation(stored) ? stored : envRotation();
+  }
+
+  setRotation(rotation: CameraRotation): void {
+    getStore().set('captureRotation', rotation);
+    log.info('Camera rotation set', { rotation });
   }
 }
 

@@ -6,6 +6,8 @@
  * Node/Electron dependencies, so they can be imported from anywhere.
  */
 
+import type { CameraRotation } from './photo';
+
 /** ISO-8601 timestamp string (e.g. `2026-06-10T06:00:00.000Z`). */
 export type IsoDateTime = string;
 
@@ -111,6 +113,13 @@ export interface DisplayState {
   message: string | null;
   /** Active camera device for live preview on Monitor 2. */
   cameraDeviceId: string | null;
+  /**
+   * Degrees clockwise the camera is physically rotated on its mount (90/270 =
+   * mounted vertically). Pushed with the state so the live preview and the
+   * saved capture always use the same value, and so changing it from the touch
+   * screen takes effect on Monitor 2 immediately.
+   */
+  cameraRotation: CameraRotation;
   /** Countdown value (3, 2, 1) shown on Monitor 2. */
   countdown: number | null;
   /** Generated result file name — served via media://generated/ */

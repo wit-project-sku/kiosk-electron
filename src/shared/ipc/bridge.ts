@@ -35,7 +35,12 @@ import type {
   Template,
 } from '../types/data';
 import type { CachedContent, SupportedLanguage } from '../types/kiosk';
-import type { CameraDeviceInfo, PhotoOption, PhotoWorkflowState } from '../types/photo';
+import type {
+  CameraDeviceInfo,
+  CameraRotation,
+  PhotoOption,
+  PhotoWorkflowState,
+} from '../types/photo';
 import type { WeatherSnapshot } from '../types/weather';
 import type { WeatherPlayKey } from '../config/weatherVideo';
 import type { KioskLocationCode } from '../config/kioskLocations';
@@ -106,8 +111,12 @@ export interface KioskBridge {
   };
   camera: {
     listDevices(): Promise<Result<CameraDeviceInfo[]>>;
-    getSelected(): Promise<Result<{ deviceId: string | null; devices: CameraDeviceInfo[] }>>;
+    getSelected(): Promise<
+      Result<{ deviceId: string | null; devices: CameraDeviceInfo[]; rotation: CameraRotation }>
+    >;
     setPreferred(deviceId: string): Promise<Result<{ deviceId: string }>>;
+    /** Mount rotation in degrees clockwise — 90/270 for a vertical camera. */
+    setRotation(rotation: CameraRotation): Promise<Result<{ rotation: CameraRotation }>>;
   };
   photo: {
     getOptions(): Promise<Result<{ clothing: PhotoOption[]; styles: PhotoOption[] }>>;
@@ -116,6 +125,8 @@ export interface KioskBridge {
     selectClothing(clothingKey: string): Promise<Result<PhotoWorkflowState>>;
     selectStyle(styleKey: string): Promise<Result<PhotoWorkflowState>>;
     beginCountdown(): Promise<Result<PhotoWorkflowState>>;
+    /** Manual capture mode — tells the display window to take the shot now. */
+    captureNow(): Promise<Result<PhotoWorkflowState>>;
     captureAndGenerate(request: {
       sessionId: string;
       dataUrl: string;

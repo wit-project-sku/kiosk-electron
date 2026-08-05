@@ -10,6 +10,7 @@ const INITIAL_STATE: DisplayState = {
   assetIds: [],
   message: null,
   cameraDeviceId: null,
+  cameraRotation: 0,
   countdown: null,
   resultFileName: null,
   resultLocked: false,

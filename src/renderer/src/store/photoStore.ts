@@ -14,6 +14,8 @@ interface PhotoUIState {
   resultFileName: string | null;
   resultUrl: string | null;
   countdown: number | null;
+  /** Increments when the touch screen asks for a shot (manual capture mode). */
+  captureToken: number;
   statusMessage: string | null;
   errorMessage: string | null;
   /** Pre-selected 한복/의상 category for the next photo session (e.g. 프로모션
@@ -31,6 +33,7 @@ interface PhotoUIState {
     resultFileName: string | null;
     resultUrl: string | null;
     countdown: number | null;
+    captureToken: number;
     statusMessage: string | null;
     errorMessage: string | null;
   }) => void;
@@ -46,6 +49,7 @@ const IDLE = {
   resultFileName: null,
   resultUrl: null,
   countdown: null,
+  captureToken: 0,
   statusMessage: null,
   errorMessage: null,
   initialCategory: null,
@@ -67,6 +71,7 @@ export const usePhotoStore = create<PhotoUIState>((set) => ({
       resultFileName: wf.resultFileName,
       resultUrl: wf.resultUrl,
       countdown: wf.countdown,
+      captureToken: wf.captureToken,
       statusMessage: wf.statusMessage,
       errorMessage: wf.errorMessage,
     }),

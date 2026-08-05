@@ -1,0 +1,63 @@
+/* TEMPORARY — vertical-camera test controls (PHOTO_MANUAL_CAPTURE).
+   Sits in the gap between the camera popup (ends y=3018) and the bottom
+   banner (starts y=3267) on the 2160×3840 touch artboard. */
+.panel {
+  position: absolute;
+  left: 50%;
+  top: 3040px;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: 60px;
+  z-index: 60;
+}
+
+.shoot {
+  width: 1120px;
+  height: 200px;
+  border: none;
+  border-radius: 100px;
+  background: #fe6c50;
+  color: #ffffff;
+  font-family: 'Poppins', 'Noto Sans KR', sans-serif;
+  font-weight: 800;
+  font-size: 84px;
+  line-height: 1;
+  box-shadow: 0 16px 40px rgba(254, 108, 80, 0.4);
+  cursor: pointer;
+}
+
+.shoot:disabled {
+  background: #b9b9b9;
+  box-shadow: none;
+}
+
+.rotate {
+  width: 640px;
+  height: 200px;
+  border: 6px solid #333333;
+  border-radius: 100px;
+  background: #ffffff;
+  color: #333333;
+  font-family: 'Poppins', 'Noto Sans KR', sans-serif;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  cursor: pointer;
+}
+
+.rotateLabel {
+  font-weight: 700;
+  font-size: 46px;
+  line-height: 1;
+}
+
+.rotateValue {
+  font-weight: 800;
+  font-size: 66px;
+  line-height: 1;
+  color: #fe6c50;
+}
+

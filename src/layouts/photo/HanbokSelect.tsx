@@ -10,7 +10,9 @@ import { useRotatingBanner } from '@renderer/hooks/useRotatingBanner';
 import { usePhotoStore } from '@renderer/store/photoStore';
 import { pick, useLang } from '@renderer/lib/i18n';
 import { t } from '@renderer/lib/loc';
+import { PHOTO_MANUAL_CAPTURE } from '@shared/constants/photoOptions';
 import { usePhotoChrome } from './photoChrome';
+import { ManualCapturePanel } from './ManualCapturePanel';
 import { OUTFITS_BY_CATEGORY } from '@renderer/assets/photos/insadong/hanbok/clothes';
 import hanbokInfo from '@renderer/assets/photos/insadong/hanbok/hanbok-info.png';
 import { HANBOK_INFO, PRIVACY } from './photoTexts';
@@ -380,6 +382,9 @@ export function HanbokSelect({ onCapture, onHome, countdownActive = false }: Han
           <div className={styles.camPopup}>
             <img src={camPopupSrc} className={styles.camPopupImg} alt="" draggable={false} />
           </div>
+          {/* Vertical-camera testing: 촬영 + mount-rotation controls in place of
+              the countdown. Remove with PHOTO_MANUAL_CAPTURE. */}
+          {PHOTO_MANUAL_CAPTURE && <ManualCapturePanel />}
         </>
       )}
 

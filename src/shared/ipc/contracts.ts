@@ -31,6 +31,7 @@ import type {
 import type { CachedContent, KioskConfig, KioskTheme } from '../types/kiosk';
 import type {
   CameraDeviceInfo,
+  CameraRotation,
   PhotoOption,
   PhotoWorkflowState,
 } from '../types/photo';
@@ -215,11 +216,19 @@ export interface IpcContract {
   };
   [IpcChannels.CameraGetSelected]: {
     request: void;
-    response: Result<{ deviceId: string | null; devices: CameraDeviceInfo[] }>;
+    response: Result<{
+      deviceId: string | null;
+      devices: CameraDeviceInfo[];
+      rotation: CameraRotation;
+    }>;
   };
   [IpcChannels.CameraSetPreferred]: {
     request: { deviceId: string };
     response: Result<{ deviceId: string }>;
+  };
+  [IpcChannels.CameraSetRotation]: {
+    request: { rotation: CameraRotation };
+    response: Result<{ rotation: CameraRotation }>;
   };
 
   [IpcChannels.PhotoGetOptions]: {
@@ -243,6 +252,10 @@ export interface IpcContract {
     response: Result<PhotoWorkflowState>;
   };
   [IpcChannels.PhotoBeginCountdown]: {
+    request: void;
+    response: Result<PhotoWorkflowState>;
+  };
+  [IpcChannels.PhotoCaptureNow]: {
     request: void;
     response: Result<PhotoWorkflowState>;
   };

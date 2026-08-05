@@ -138,6 +138,7 @@ const api: KioskBridge = {
     listDevices: () => invoke(IpcChannels.CameraListDevices),
     getSelected: () => invoke(IpcChannels.CameraGetSelected),
     setPreferred: (deviceId) => invoke(IpcChannels.CameraSetPreferred, { deviceId }),
+    setRotation: (rotation) => invoke(IpcChannels.CameraSetRotation, { rotation }),
   },
   photo: {
     getOptions: () => invoke(IpcChannels.PhotoGetOptions),
@@ -146,6 +147,7 @@ const api: KioskBridge = {
     selectClothing: (clothingKey) => invoke(IpcChannels.PhotoSelectClothing, { clothingKey }),
     selectStyle: (styleKey) => invoke(IpcChannels.PhotoSelectStyle, { styleKey }),
     beginCountdown: () => invoke(IpcChannels.PhotoBeginCountdown),
+    captureNow: () => invoke(IpcChannels.PhotoCaptureNow),
     captureAndGenerate: (request) => invoke(IpcChannels.PhotoCaptureAndGenerate, request),
     getResultDataUrl: (fileName) => invoke(IpcChannels.PhotoGetResultDataUrl, { fileName }),
     setHoldResult: (hold) => invoke(IpcChannels.PhotoSetHoldResult, { hold }),

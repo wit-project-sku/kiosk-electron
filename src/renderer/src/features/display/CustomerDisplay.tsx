@@ -1,9 +1,9 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties } from 'react';
 import type { AppSettings, DisplayState, ImageAsset } from '@shared/types/domain';
 import type { KioskId, SupportedLanguage } from '@shared/types/kiosk';
 import { isOk } from '@shared/types/result';
 import { DEFAULT_SETTINGS } from '@shared/constants';
-import { PHOTO_COUNTDOWN_SECONDS } from '@shared/constants/photoOptions';
+import { PHOTO_COUNTDOWN_SECONDS, PHOTO_MANUAL_CAPTURE } from '@shared/constants/photoOptions';
 import { assetUrl, generatedUrl } from '@renderer/lib/media';
 import { useKioskCamera } from '@renderer/hooks/useKioskCamera';
 import { usePhotoWorkflow } from '@renderer/hooks/usePhotoWorkflow';
@@ -25,6 +25,7 @@ const ATTRACT_STATE: DisplayState = {
   assetIds: [],
   message: null,
   cameraDeviceId: null,
+  cameraRotation: 0,
   countdown: null,
   resultFileName: null,
   resultLocked: false,
@@ -181,10 +182,17 @@ export function CustomerDisplay(): JSX.Element {
 
   const assets = library.filter((a) => state.assetIds.includes(a.id));
 
+  // Mount rotation of the capture camera (90/270 = mounted vertically). Arrives
+  // with the display state, so flipping it from the touch screen re-renders the
+  // live feed immediately.
+  const camRotation = state.cameraRotation;
+  const camVertical = camRotation === 90 || camRotation === 270;
+
   const cameraEnabled = state.mode === 'camera' || state.mode === 'countdown';
   const { videoRef, capture } = useKioskCamera({
     deviceId: state.cameraDeviceId,
     enabled: cameraEnabled,
+    rotation: camRotation,
   });
 
   const sessionId = usePhotoStore((s) => s.sessionId);
@@ -259,11 +267,23 @@ export function CustomerDisplay(): JSX.Element {
               the right is the LIVE countdown. */}
           <div className={styles.camText}>
             <div className={styles.camTitleRow}>
-              <p className={styles.camTitle}>
-                <span className={styles.camCount}>&apos;{PHOTO_COUNTDOWN_SECONDS}&apos;</span>
-                <span className={styles.camTitleRest}> 초후에 촬영이 됩니다.</span>
-              </p>
-              <div className={styles.camLiveCount}>{state.countdown ?? PHOTO_COUNTDOWN_SECONDS}</div>
+              {PHOTO_MANUAL_CAPTURE ? (
+                // No timer in manual capture mode — the countdown copy and the
+                // live badge would both be lying.
+                <p className={styles.camTitle}>
+                  <span className={styles.camTitleRest}>촬영 버튼을 눌러주세요.</span>
+                </p>
+              ) : (
+                <>
+                  <p className={styles.camTitle}>
+                    <span className={styles.camCount}>&apos;{PHOTO_COUNTDOWN_SECONDS}&apos;</span>
+                    <span className={styles.camTitleRest}> 초후에 촬영이 됩니다.</span>
+                  </p>
+                  <div className={styles.camLiveCount}>
+                    {state.countdown ?? PHOTO_COUNTDOWN_SECONDS}
+                  </div>
+                </>
+              )}
             </div>
             <ol className={styles.camTips}>
               <li className={styles.camTip}>
@@ -277,11 +297,28 @@ export function CustomerDisplay(): JSX.Element {
             <img src={noGlasses} className={styles.camNoGlasses} alt="" draggable={false} />
           )}
 
-          {/* Middle: live camera + dashed guide overlay */}
-          <div className={styles.camFeedWrap}>
-            <video ref={videoRef} className={styles.camFeed} muted playsInline />
-            {guideOverlay && (
-              <img src={guideOverlay} className={styles.camGuide} alt="" draggable={false} />
+          {/* Middle: live camera. Vertical mount → the feed is un-rotated and
+              fills the band edge to edge (no guide art). Filling the width
+              crops the frame's height, so the saved capture holds more above
+              and below than is shown here. */}
+          <div className={`${styles.camFeedWrap} ${camVertical ? styles.camFeedWrapDark : ''}`}>
+            {camVertical ? (
+              <div className={styles.camFeedPortrait}>
+                <video
+                  ref={videoRef}
+                  className={styles.camFeedRot}
+                  style={{ '--cam-rot': `${camRotation}deg` } as CSSProperties}
+                  muted
+                  playsInline
+                />
+              </div>
+            ) : (
+              <>
+                <video ref={videoRef} className={styles.camFeed} muted playsInline />
+                {guideOverlay && (
+                  <img src={guideOverlay} className={styles.camGuide} alt="" draggable={false} />
+                )}
+              </>
             )}
           </div>
 

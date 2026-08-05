@@ -1,7 +1,7 @@
 import { randomUUID } from 'node:crypto';
 import type { PhotoWorkflowState } from '@shared/types/photo';
 import type { DisplayState } from '@shared/types/domain';
-import { PHOTO_COUNTDOWN_SECONDS } from '@shared/constants/photoOptions';
+import { PHOTO_COUNTDOWN_SECONDS, PHOTO_MANUAL_CAPTURE } from '@shared/constants/photoOptions';
 import type { DisplayService } from '@main/services/DisplayService';
 import type { CameraService } from '@main/services/camera/CameraService';
 
@@ -17,6 +17,7 @@ const INITIAL: PhotoWorkflowState = {
   resultUrl: null,
   selectedCameraDeviceId: null,
   countdown: null,
+  captureToken: 0,
   statusMessage: null,
   errorMessage: null,
 };
@@ -83,10 +84,31 @@ export class PhotoWorkflowService {
   }
 
   beginCountdown(): PhotoWorkflowState {
+    // Manual capture mode: no timer and no auto-send. Monitor 2 just streams
+    // the camera until requestCapture() fires from the touch screen.
+    if (PHOTO_MANUAL_CAPTURE) {
+      this.clearCountdown();
+      this.state = { ...this.state, phase: 'preview', countdown: null };
+      this.syncDisplay('camera');
+      this.emit();
+      return this.state;
+    }
+
     this.state = { ...this.state, phase: 'countdown', countdown: PHOTO_COUNTDOWN_SECONDS };
     this.syncDisplay('countdown', { countdown: PHOTO_COUNTDOWN_SECONDS });
     this.emit();
     this.runCountdown();
+    return this.state;
+  }
+
+  /**
+   * 촬영 pressed on the touch screen. The shot itself is taken in the display
+   * window (that's where the MediaStream lives), so this only bumps the token
+   * the display is watching.
+   */
+  requestCapture(): PhotoWorkflowState {
+    this.state = { ...this.state, captureToken: this.state.captureToken + 1 };
+    this.emit();
     return this.state;
   }
 
@@ -212,6 +234,9 @@ export class PhotoWorkflowService {
       assetIds: current.assetIds,
       message: current.message,
       cameraDeviceId: extras?.cameraDeviceId ?? this.state.selectedCameraDeviceId,
+      // Always the live value — the camera screen is only ever reached through
+      // here, so Monitor 2 can never render the feed with a stale rotation.
+      cameraRotation: this.camera.getRotation(),
       countdown: extras?.countdown ?? null,
       resultFileName: extras?.resultFileName ?? null,
       // 명시하지 않으면 항상 해제 — 잠금은 setResult(hold) 한 곳에서만 건다.

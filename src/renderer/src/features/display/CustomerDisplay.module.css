@@ -201,6 +201,40 @@
   pointer-events: none;
 }
 
+/* ── Vertically mounted camera (rotation 90/270) ──────────────────────────
+   The stream is still landscape 1920×1080 with the scene on its side, so the
+   video element is laid out PRE-rotation (dimensions swapped) and then turned
+   a quarter to fill the 2160×1613 band edge to edge — no side bars.
+   Filling the width means the band shows the middle ~42% of the portrait
+   frame's height; the SAVED capture is still the whole 1080×1920 frame, so
+   the shot contains more above and below than the band shows. */
+/* The 9:16 feed leaves ~626px of band either side. White read as two bright
+   slabs against the screen's black chrome, so the band goes black with the
+   feed — the portrait frame reads as the only lit thing on the screen. */
+.camFeedWrapDark {
+  background: #000000;
+}
+
+.camFeedPortrait {
+  position: absolute;
+  inset: 0;
+  background: #000000;
+  overflow: hidden;
+}
+
+.camFeedRot {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  /* Pre-rotation, so the band's height/width swapped: turning it a quarter
+     lands it on 2160×1613. object-fit: cover then crops the frame's long
+     axis to fill that width. */
+  width: 1613px;
+  height: 2160px;
+  object-fit: cover;
+  transform: translate(-50%, -50%) rotate(var(--cam-rot, 90deg));
+}
+
 /* Bottom black zone (Figma y1325..1985): two reference-pose boxes. */
 .camRefLeft {
   position: absolute;

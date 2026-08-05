@@ -57,6 +57,7 @@ export const IpcChannels = {
   CameraListDevices: 'camera:listDevices',
   CameraGetSelected: 'camera:getSelected',
   CameraSetPreferred: 'camera:setPreferred',
+  CameraSetRotation: 'camera:setRotation',
 
   // AI Photo workflow
   PhotoGetOptions: 'photo:getOptions',
@@ -65,6 +66,7 @@ export const IpcChannels = {
   PhotoSelectClothing: 'photo:selectClothing',
   PhotoSelectStyle: 'photo:selectStyle',
   PhotoBeginCountdown: 'photo:beginCountdown',
+  PhotoCaptureNow: 'photo:captureNow',
   PhotoCaptureAndGenerate: 'photo:captureAndGenerate',
   PhotoGetResultDataUrl: 'photo:getResultDataUrl',
   PhotoSetHoldResult: 'photo:setHoldResult',
