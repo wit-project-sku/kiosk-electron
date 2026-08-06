@@ -20,6 +20,7 @@ import { Slideshow } from './components/Slideshow';
 import { VideoWall } from './components/VideoWall';
 import { AiModelVideoWall } from './components/AiModelVideoWall';
 import { EffectsCamera } from './components/EffectsCamera';
+import { GameScreen } from '@renderer/features/game/GameScreen';
 import styles from './CustomerDisplay.module.css';
 
 const ATTRACT_STATE: DisplayState = {
@@ -145,15 +146,26 @@ export function CustomerDisplay(): JSX.Element {
 
   const assets = library.filter((a) => state.assetIds.includes(a.id));
 
-  const cameraEnabled = state.mode === 'camera' || state.mode === 'countdown';
-  const { videoRef, capture } = useKioskCamera({
+  // The wait-time mini game runs here during `generating` and needs the camera
+  // for body control, so the stream outlives the capture itself.
+  const game = usePhotoStore((s) => s.game);
+  // Mounted (and holding the camera) for the whole offer, so the pose model is
+  // warm before PLAY. Only VISIBLE once the visitor actually starts a run —
+  // until then this display keeps playing its waiting video as usual.
+  const gameActive = state.mode === 'generating' && game.phase !== 'idle';
+  const gameVisible = gameActive && game.phase !== 'ready';
+
+  const captureEnabled = state.mode === 'camera' || state.mode === 'countdown';
+  const { videoRef, setVideoEl, capture } = useKioskCamera({
     deviceId: state.cameraDeviceId,
-    enabled: cameraEnabled,
+    enabled: captureEnabled || gameActive,
   });
 
   // Is a person actually in front of the camera? Used to hold the countdown so
-  // we never auto-capture an empty frame and feed it to the AI.
-  const { present, ready: faceReady } = useFacePresence({ videoRef, enabled: cameraEnabled });
+  // we never auto-capture an empty frame and feed it to the AI. Scoped to the
+  // capture phases only: during the game the pose landmarker owns the video, and
+  // two MediaPipe graphs against one <video> starve each other.
+  const { present, ready: faceReady } = useFacePresence({ videoRef, enabled: captureEnabled });
 
   const sessionId = usePhotoStore((s) => s.sessionId);
   const clothingKey = usePhotoStore((s) => s.clothingKey);
@@ -288,7 +300,7 @@ export function CustomerDisplay(): JSX.Element {
 
           {/* Middle: live camera + dashed guide overlay */}
           <div className={styles.camFeedWrap}>
-            <video ref={videoRef} className={styles.camFeed} muted playsInline />
+            <video ref={setVideoEl} className={styles.camFeed} muted playsInline />
             {guideOverlay && (
               <img src={guideOverlay} className={styles.camGuide} alt="" draggable={false} />
             )}
@@ -319,8 +331,20 @@ export function CustomerDisplay(): JSX.Element {
         </div>
       )}
 
-      {/* ── Generating / waiting ── */}
-      {state.mode === 'generating' && (
+      {/* ── Generating — wait-time mini game, played with the body ──
+          The camera <video> is mounted (offscreen) so the pose landmarker has a
+          source; GameScreen paints its frames into the coach canvas itself. It
+          is safe to share `videoRef` with the capture screen above because the
+          two branches are mutually exclusive modes. */}
+      {gameActive && (
+        <>
+          <video ref={setVideoEl} className={styles.gameFeed} muted playsInline />
+          <GameScreen game={game} lang={lang} videoRef={videoRef} />
+        </>
+      )}
+
+      {/* ── Generating / waiting — shown until a run actually starts ── */}
+      {state.mode === 'generating' && !gameVisible && (
         <div className={styles.genScreen}>
           {genClips.length > 0 ? (
             // One clip on native loop → perfectly smooth, non-stop while waiting.

@@ -12,6 +12,7 @@ import { pick, useLang } from '@renderer/lib/i18n';
 import { trackEvent } from '@renderer/lib/analytics';
 import { resolveButton } from '@renderer/lib/buttonCatalog';
 import { WEARABLES } from '@renderer/features/display/wearables';
+import { GameControlPanel } from '@renderer/features/game/GameControlPanel';
 import { HanbokSelect, type CaptureMode } from './HanbokSelect';
 import { usePhotoChrome } from './photoChrome';
 import { RESULT } from './photoTexts';
@@ -63,6 +64,7 @@ export function PhotoWorkflow(): JSX.Element {
   const resultFileName = usePhotoStore((s) => s.resultFileName);
   const resultUrl = usePhotoStore((s) => s.resultUrl);
   const effectsMode = usePhotoStore((s) => s.effectsMode);
+  const game = usePhotoStore((s) => s.game);
   const reset = usePhotoStore((s) => s.reset);
   const kioskId = useKioskStore((s) => s.config.kioskId);
   const screen = useKioskStore((s) => s.screen);
@@ -119,6 +121,17 @@ export function PhotoWorkflow(): JSX.Element {
     setWearableId(id);
     void window.api.kiosk.setEffectsWearable(id);
   };
+
+  // ── Generating — control panel for the wait-time mini game ────────────────
+  // The game itself runs on Monitor 2 (played with the body, no touch); this
+  // screen is the only thing the visitor touches: PLAY, then after they crash,
+  // their photo or another round. Main holds the finished photo back while a run
+  // is live, so nothing is yanked away mid-jump. A failed generation leaves the
+  // phase at `generating` with an errorMessage, so keep the old screen for that
+  // case instead of offering a game over a photo that is never coming.
+  if (phase === 'generating' && !errorMessage && game.phase !== 'idle') {
+    return <GameControlPanel game={game} />;
+  }
 
   // ── Outfit selection + capture (countdown → capture → generating) ──────────
   // Keep the AR 한복체험 screen on Monitor 1 throughout; during capture overlay

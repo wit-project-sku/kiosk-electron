@@ -49,6 +49,25 @@ export function registerPhotoHandlers(container: AppContainer): void {
 
   handle(IpcChannels.PhotoStartEffects, () => container.photoWorkflow.startEffects());
 
+  // ── Wait-time mini game ───────────────────────────────────────────────────
+  // Monitor 1 (touch) drives start/replay/show-result; Monitor 2 (big screen)
+  // reports what the camera can see and when the run ends.
+  handle(IpcChannels.GameStart, () => container.photoWorkflow.startGame());
+
+  handle(IpcChannels.GameBegin, () => container.photoWorkflow.beginGame());
+
+  handle(IpcChannels.GameOver, (req: { score: number }) =>
+    container.photoWorkflow.endGame(Number.isFinite(req?.score) ? Math.max(0, req.score) : 0),
+  );
+
+  handle(IpcChannels.GameReplay, () => container.photoWorkflow.replayGame());
+
+  handle(IpcChannels.GameShowResult, () => container.photoWorkflow.releaseResult());
+
+  handle(IpcChannels.GameReportPose, (req: { poseReady: boolean; bodyTracked: boolean }) =>
+    container.photoWorkflow.reportPose(!!req?.poseReady, !!req?.bodyTracked),
+  );
+
   // Gesture-driven Instagram-effects capture: the filter is already baked into
   // the canvas data URL on Monitor 2, so we just persist it, get a phone-openable
   // URL for the save QR, and flip both monitors to the result. No AI involved.
@@ -105,19 +124,18 @@ export function registerPhotoHandlers(container: AppContainer): void {
 
     container.photoWorkflow.setGenerating('AI is creating your image…');
 
-    // The customer display counts down 60s while generating; hold the result
-    // until that countdown completes (even if the AI finishes earlier).
-    const GENERATING_MIN_MS = 60_000;
-    const startedAt = Date.now();
-
     try {
       const result = await container.photoGeneration.generate(
         { sessionId, dataUrl, clothingKey, styleKey },
         (message) => container.photoWorkflow.setGenerating(message),
       );
 
-      const remaining = GENERATING_MIN_MS - (Date.now() - startedAt);
-      if (remaining > 0) await new Promise((resolve) => setTimeout(resolve, remaining));
+      // The photo is ready, but it is not necessarily the visitor's moment.
+      // If they are mid-run in the wait-time game we hold it back and let the
+      // touch screen offer it once they crash; if they never played, this is
+      // just the advertised 60s the customer display counts down.
+      container.photoWorkflow.markResultReady(result.resultFileName);
+      await container.photoWorkflow.waitForResultRelease();
 
       container.photoWorkflow.setResult(result.session.resultImagePath, result.resultFileName, result.resultUrl);
       return {

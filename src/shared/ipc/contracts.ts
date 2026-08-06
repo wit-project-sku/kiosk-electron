@@ -270,6 +270,31 @@ export interface IpcContract {
     response: Result<PhotoWorkflowState>;
   };
 
+  [IpcChannels.GameStart]: {
+    request: void;
+    response: Result<PhotoWorkflowState>;
+  };
+  [IpcChannels.GameBegin]: {
+    request: void;
+    response: Result<PhotoWorkflowState>;
+  };
+  [IpcChannels.GameOver]: {
+    request: { score: number };
+    response: Result<PhotoWorkflowState>;
+  };
+  [IpcChannels.GameReplay]: {
+    request: void;
+    response: Result<PhotoWorkflowState>;
+  };
+  [IpcChannels.GameShowResult]: {
+    request: void;
+    response: Result<PhotoWorkflowState>;
+  };
+  [IpcChannels.GameReportPose]: {
+    request: { poseReady: boolean; bodyTracked: boolean };
+    response: Result<PhotoWorkflowState>;
+  };
+
   [IpcChannels.LanguageGet]: {
     request: void;
     response: Result<SupportedLanguage>;

@@ -120,6 +120,21 @@ export interface KioskBridge {
     }): Promise<Result<{ resultFileName: string; resultImagePath: string }>>;
     reset(): Promise<Result<PhotoWorkflowState>>;
   };
+  /** Wait-time mini game: Monitor 1 controls it, Monitor 2 plays it. */
+  game: {
+    /** Touch screen: PLAY pressed. */
+    start(): Promise<Result<PhotoWorkflowState>>;
+    /** Monitor 2: get-into-position countdown finished, the run is live. */
+    begin(): Promise<Result<PhotoWorkflowState>>;
+    /** Monitor 2: the player crashed. */
+    over(score: number): Promise<Result<PhotoWorkflowState>>;
+    /** Touch screen: another round. */
+    replay(): Promise<Result<PhotoWorkflowState>>;
+    /** Touch screen: stop holding the photo back and show the result. */
+    showResult(): Promise<Result<PhotoWorkflowState>>;
+    /** Monitor 2: whether body control is available and someone is in frame. */
+    reportPose(poseReady: boolean, bodyTracked: boolean): Promise<Result<PhotoWorkflowState>>;
+  };
   language: {
     get(): Promise<Result<SupportedLanguage>>;
     set(language: SupportedLanguage): Promise<Result<SupportedLanguage>>;

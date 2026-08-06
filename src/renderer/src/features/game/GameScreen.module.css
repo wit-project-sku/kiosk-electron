@@ -1,0 +1,141 @@
+/* Wait-time mini game — Monitor 2. The game and nothing else: the canvas fills
+   the whole 2160×3840 display, and the only overlay is the count-in. */
+
+.screen {
+  position: absolute;
+  inset: 0;
+  background: #f4f6f8;
+  font-family: var(--kiosk-font, sans-serif);
+  overflow: hidden;
+}
+
+.canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+/* ── Count-in ────────────────────────────────────────────────────────────── */
+/* Anchored to the TOP so it never covers the ground line the player is about
+   to run along. Gone the moment the run starts. */
+.countIn {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 60px;
+  padding: 240px 120px 120px;
+  background: linear-gradient(180deg, rgba(244, 246, 248, 0.97) 62%, rgba(244, 246, 248, 0));
+  text-align: center;
+  pointer-events: none;
+}
+
+.count {
+  font-family: ui-monospace, 'SF Mono', Menlo, monospace;
+  font-size: 460px;
+  font-weight: 900;
+  line-height: 0.9;
+  color: var(--photo-accent, #fe6c50);
+  animation: pop 1s ease-out;
+}
+
+@keyframes pop {
+  0% {
+    transform: scale(0.6);
+    opacity: 0;
+  }
+  35% {
+    transform: scale(1.06);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+.moves {
+  display: flex;
+  flex-direction: column;
+  gap: 34px;
+}
+
+.move {
+  display: flex;
+  align-items: center;
+  gap: 40px;
+  padding: 40px 60px;
+  border-radius: 44px;
+  background: #ffffff;
+  border: 5px solid #e3e7ec;
+}
+
+.moveIcon {
+  font-size: 96px;
+  line-height: 1;
+  flex: none;
+}
+
+.moveText {
+  font-size: 62px;
+  font-weight: 700;
+  color: #1a1a1a;
+}
+
+/* Mirror so the player can check they are actually in shot before the run. */
+.selfieWrap {
+  position: relative;
+  width: 620px;
+  height: 465px;
+  border-radius: 40px;
+  overflow: hidden;
+  background: #11151a;
+  border: 5px solid #dde2e8;
+}
+
+.selfie {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.selfieWarn {
+  position: absolute;
+  left: 50%;
+  bottom: 28px;
+  transform: translateX(-50%);
+  padding: 18px 40px;
+  border-radius: 999px;
+  background: rgba(254, 108, 80, 0.95);
+  color: #ffffff;
+  font-size: 34px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+/* ── Player stepped out of frame ─────────────────────────────────────────── */
+.frozen {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(244, 246, 248, 0.9);
+}
+
+.frozenText {
+  font-size: 104px;
+  font-weight: 800;
+  color: var(--photo-accent, #fe6c50);
+  text-align: center;
+  padding: 0 120px;
+}
+
+/* Mounted-but-unseen while waiting for PLAY: the pose model stays warm and keeps
+   reporting to Monitor 1, while the customer display shows its waiting video. */
+.hidden {
+  visibility: hidden;
+}

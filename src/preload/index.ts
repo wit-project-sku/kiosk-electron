@@ -152,6 +152,15 @@ const api: KioskBridge = {
     captureEffects: (request) => invoke(IpcChannels.PhotoCaptureEffects, request),
     reset: () => invoke(IpcChannels.PhotoReset),
   },
+  game: {
+    start: () => invoke(IpcChannels.GameStart),
+    begin: () => invoke(IpcChannels.GameBegin),
+    over: (score) => invoke(IpcChannels.GameOver, { score }),
+    replay: () => invoke(IpcChannels.GameReplay),
+    showResult: () => invoke(IpcChannels.GameShowResult),
+    reportPose: (poseReady, bodyTracked) =>
+      invoke(IpcChannels.GameReportPose, { poseReady, bodyTracked }),
+  },
   language: {
     get: () => invoke(IpcChannels.LanguageGet),
     set: (language) => invoke(IpcChannels.LanguageSet, language),

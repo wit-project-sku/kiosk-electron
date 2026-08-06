@@ -72,6 +72,14 @@ export const IpcChannels = {
   PhotoCaptureEffects: 'photo:captureEffects',
   PhotoReset: 'photo:reset',
 
+  // Wait-time mini game (Monitor 2 plays it, Monitor 1 controls it)
+  GameStart: 'game:start',
+  GameBegin: 'game:begin',
+  GameOver: 'game:over',
+  GameReplay: 'game:replay',
+  GameShowResult: 'game:showResult',
+  GameReportPose: 'game:reportPose',
+
   // Language / Translations
   LanguageGet: 'language:get',
   LanguageSet: 'language:set',

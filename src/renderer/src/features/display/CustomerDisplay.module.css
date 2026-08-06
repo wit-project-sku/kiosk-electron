@@ -308,3 +308,18 @@
   color: #111111;
   font-variant-numeric: tabular-nums;
 }
+
+/* Hidden camera source for the wait-time mini game. The stream must be attached
+   to a live <video> for the pose landmarker to read it, but the visible preview
+   is painted into GameScreen's own canvas, so this element never shows.
+   Parked offscreen at a real size rather than shrunk to nothing or hidden with
+   display/visibility, either of which can stop the frame pipeline the landmarker
+   reads from. */
+.gameFeed {
+  position: absolute;
+  left: -9999px;
+  top: 0;
+  width: 640px;
+  height: 480px;
+  pointer-events: none;
+}

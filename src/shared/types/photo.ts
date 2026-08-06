@@ -29,6 +29,45 @@ export type CustomerDisplayMode =
   | 'slideshow'
   | 'effects';
 
+/**
+ * Wait-time mini game — a T-Rex runner played with the BODY on Monitor 2 while
+ * the AI renders the hanbok photo (~60s+). Monitor 1 (touch) is the control
+ * panel: it starts the run, and once the player crashes it offers the finished
+ * photo or another round. The player never touches the game itself — jumping and
+ * crouching in front of the camera are the only inputs.
+ */
+export type GamePhase =
+  /** Not offered (no camera / body control unavailable / outside generating). */
+  | 'idle'
+  /** Offered — waiting for PLAY on the touch screen. */
+  | 'ready'
+  /** PLAY pressed; Monitor 2 is running its get-into-position countdown. */
+  | 'starting'
+  /** Run is live. */
+  | 'playing'
+  /** Crashed — the touch screen offers the photo or another round. */
+  | 'over';
+
+export interface GameState {
+  phase: GamePhase;
+  /** Score of the run that just ended. */
+  lastScore: number;
+  /** Best score across this visitor's session. */
+  bestScore: number;
+  /**
+   * True once the AI has returned and the finished photo is being HELD back so
+   * the player can finish their run. The touch screen turns this into the
+   * "see your photo" button.
+   */
+  resultReady: boolean;
+  /** Held result's file name, so the touch screen can preview it before commit. */
+  resultPreviewFileName: string | null;
+  /** Monitor 2 reports whether the pose model actually loaded. */
+  poseReady: boolean;
+  /** True while a body is visible in front of the camera. */
+  bodyTracked: boolean;
+}
+
 export type DriveSyncState = 'pending' | 'synced' | 'failed';
 
 export interface PhotoSession {
@@ -73,6 +112,8 @@ export interface PhotoWorkflowState {
   countdownPaused: boolean;
   statusMessage: string | null;
   errorMessage: string | null;
+  /** Wait-time mini game shown during `generating`. */
+  game: GameState;
 }
 
 export interface PhotoGenerationProgress {
