@@ -9,6 +9,7 @@ import { usePhotoStore } from '@renderer/store/photoStore';
 import { useKioskStore } from '@renderer/store/kioskStore';
 import { generatedUrl } from '@renderer/lib/media';
 import { pick, useLang } from '@renderer/lib/i18n';
+import { ui } from '@renderer/lib/uiText';
 import { trackEvent } from '@renderer/lib/analytics';
 import { resolveButton } from '@renderer/lib/buttonCatalog';
 import { HanbokSelect, type CaptureMode } from './HanbokSelect';
@@ -106,7 +107,7 @@ export function PhotoWorkflow(): JSX.Element {
             // eslint-disable-next-line react/no-unknown-property
             <webview src={WEB_EMBED_URLS.market} partition="persist:embeds" className={styles.marketEmbed} />
           ) : (
-            <div className={styles.marketPlaceholder}>위드마켓 준비 중</div>
+            <div className={styles.marketPlaceholder}>{ui('marketComingSoon', lang)}</div>
           )}
         </div>
 

@@ -1,6 +1,7 @@
 import type { SupportedLanguage } from '@shared/types/kiosk';
 import { useLanguageStore } from '@renderer/store/languageStore';
 import { hasLoc, t, tExact } from '@renderer/lib/loc';
+import { ui, type UiTextKey } from '@renderer/lib/uiText';
 
 export type Lang = SupportedLanguage;
 
@@ -130,6 +131,12 @@ const SCREEN_TITLES: Record<string, Partial<Record<Lang, string>>> = {
   'AR 한복체험': { en: 'AR Hanbok', ja: 'AR韓服体験', zh: 'AR韩服体验', vi: 'Trải nghiệm Hanbok AR', th: 'ประสบการณ์ฮันบก AR', ru: 'AR-ханбок', id: 'Pengalaman Hanbok AR' },
   화장실: { en: 'Restroom', ja: 'トイレ', zh: '洗手间', vi: 'Nhà vệ sinh', th: 'ห้องน้ำ', ru: 'Туалет', id: 'Toilet' },
   상세: { en: 'Details', ja: '詳細', zh: '详情', vi: 'Chi tiết', th: 'รายละเอียด', ru: 'Подробнее', id: 'Detail' },
+  // Ids used only by the 준비중 placeholder scaffolds; no sheet row exists for
+  // these, and without an entry the header printed the raw Korean id.
+  '상세 정보': { en: 'Details', ja: '詳細情報', zh: '详细信息', vi: 'Thông tin chi tiết', th: 'ข้อมูลรายละเอียด', ru: 'Подробная информация', id: 'Informasi detail' },
+  '긴급 안내': { en: 'Emergency Info', ja: '緊急案内', zh: '紧急指引', vi: 'Thông tin khẩn cấp', th: 'ข้อมูลฉุกเฉิน', ru: 'Экстренная информация', id: 'Info darurat' },
+  'AI 추천 여행': { en: 'AI Trip Picks', ja: 'AIおすすめ旅行', zh: 'AI推荐旅行', vi: 'Gợi ý du lịch AI', th: 'ทริปแนะนำโดย AI', ru: 'AI-подбор поездки', id: 'Rekomendasi wisata AI' },
+  'AI 추천 결과': { en: 'AI Results', ja: 'AIおすすめ結果', zh: 'AI推荐结果', vi: 'Kết quả gợi ý AI', th: 'ผลลัพธ์แนะนำโดย AI', ru: 'Результаты AI', id: 'Hasil rekomendasi AI' },
 };
 
 /**
@@ -152,6 +159,25 @@ const TITLE_KEYS: Record<string, { title: string; sub?: string }> = {
   '교통 안내': { title: 'MainButton_Transport', sub: 'SubHeader_Transport' },
   위드마켓: { title: 'MainButton_Goods' },
   화장실: { title: 'MainButton_WC', sub: 'SubHeader_ToHelp' },
+  // ── Aliases for the ids the 준비중 placeholder scaffolds pass ────────────
+  // They spell the same screens differently from the real headers — straight
+  // quotes instead of curly, no space in '교통안내'/'인사동지도' — so they
+  // matched nothing and rendered the raw Korean id in every language. A key
+  // that a given location's sheet lacks simply falls through, so listing all
+  // of them here is safe across W001–W005.
+  "'인사' 모하지 (AI검색)": { title: 'MainButton_AI', sub: 'SubHeader_AISearch' },
+  인사랑: { title: 'MainButton_Insarang' },
+  인사동미술관: { title: 'MainButton_ToGallery', sub: 'SubHeader_ToGallery' },
+  "안녕 '인사'": { title: 'MainButton_Greeting' },
+  "안녕 '정이'": { title: 'MainButton_Greeting' },
+  "도와줘 '인사'": { title: 'MainButton_ToHelp', sub: 'SubHeader_ToHelp' },
+  인사동지도: { title: 'MainButton_Map' },
+  '오색시장 지도': { title: 'MainButton_Map' },
+  교통안내: { title: 'MainButton_Transport', sub: 'SubHeader_Transport' },
+  '언어 선택': { title: 'Language_Select_Language', sub: 'Language_Content' },
+  '화장실 안내': { title: 'MainButton_WC', sub: 'SubHeader_ToHelp' },
+  '여기는 오색시장': { title: 'MainButton_Here', sub: 'SubHeader_Attraction' },
+  전국휴게소: { title: 'MainButton_ServiceArea', sub: 'SubHeader_ServiceArea' },
   // 이벤트 screens: each location's sheet carries its own MainButton_Event /
   // SubHeader_Event copy, so all three ids resolve through the same pair.
   '인사동 이벤트': { title: 'MainButton_Event', sub: 'SubHeader_Event' },
@@ -181,33 +207,20 @@ const TITLE_KEYS: Record<string, { title: string; sub?: string }> = {
 };
 
 /**
- * Curated 4-language fallbacks for button/title keys — used ONLY when the
- * Localization_Hwaseong sheet has NO value for that exact language. The sheet
- * always wins (even if it stores English in a ja/zh slot); these just fill
- * genuinely-empty cells before the Korean fallback.
- */
-const BUTTON_OVERRIDES: Record<string, Partial<Record<Lang, string>>> = {
-  MainButton_TrafficInfo: { ko: '도로 교통상황', en: 'Traffic Info', ja: '道路交通状況', zh: '道路交通状况' },
-  MainButton_TraditionalMarket: { ko: '전국시장', en: 'Nationwide Markets', ja: '全国市場', zh: '全国市场' },
-  MainButton_ServiceArea: { ko: '전국휴게소', en: 'Rest Areas', ja: '全国サービスエリア', zh: '全国休息站' },
-  MainButton_TaxFree: { ko: '텍스프리등록', en: 'Tax-Free', ja: 'タックスフリー', zh: '退税登记' },
-  MainButton_Here: { ko: '화성휴게소', en: 'Hwaseong SA', ja: '華城サービスエリア', zh: '华城休息站' },
-  MainButton_Greeting: { ko: "안녕 '휴'", en: "Hello 'HUE'", ja: 'こんにちは「HUE」', zh: '你好「HUE」' },
-  MainButton_SAMap: { ko: '화성휴게소 지도', en: 'SA Map', ja: 'サービスエリアマップ', zh: '休息站地图' },
-  MainButton_Property: { ko: '문화재(준비중)', en: 'Heritage (Soon)', ja: '文化財（準備中）', zh: '文化遗产（筹备中）' },
-  MainButton_KCulture: { ko: 'K-컬쳐(준비중)', en: 'K-Culture (Soon)', ja: 'Kカルチャー（準備中）', zh: 'K文化（筹备中）' },
-};
-
-/**
  * Resolve a button/title localization key: the sheet's EXACT-language value
- * wins (even if English), then the curated fallback for empty cells, then the
- * full chain (ko → key). Returns undefined when the key isn't localized at all.
+ * wins (even if it stores English in a ja/zh slot), then the full chain
+ * (ko → key). Returns undefined when the key isn't localized at all.
+ *
+ * There used to be a curated `BUTTON_OVERRIDES` table here filling empty
+ * Hwaseong cells for 9 keys. It only ever carried ko/en/ja/zh, so it could
+ * never help vi/th/ru/id — and all 9 keys now hold all eight languages in
+ * Localization_Hwaseong, making every entry unreachable. Removed rather than
+ * extended: a partial shadow of sheet data is the exact shape of bug this
+ * codebase keeps hitting.
  */
 export function buttonText(key: string, lang: Lang): string | undefined {
   const exact = tExact(key, lang);
   if (exact) return exact;
-  const fallback = BUTTON_OVERRIDES[key]?.[lang];
-  if (fallback) return fallback;
   return hasLoc(key) ? t(key, lang) : undefined;
 }
 
@@ -221,20 +234,16 @@ export function screenTitle(id: string, lang: Lang): string {
   return SCREEN_TITLES[id]?.[lang] ?? id;
 }
 
-/** Localized page subtitle for a header-title id, or undefined if none mapped. */
-/** Localized subtitles not (yet) in the sheet, keyed by header-title id. */
-const EXTRA_SUBTITLES: Record<string, Partial<Record<Lang, string>>> = {
-  위드마켓: {
-    ko: '오직 현장에서만 할인받을 수 있는 상품들을 확인해보세요!',
-    en: 'Check out the products available at a discount only here, on-site!',
-    ja: '現場でしか割引を受けられない商品をぜひチェックしてください！',
-    zh: '快来看看只有在现场才能享受折扣的商品吧！',
-  },
+/** Header-title ids whose subtitle has no sheet row — the copy lives in
+ *  lib/uiText.ts, which enforces all eight languages at compile time. */
+const EXTRA_SUBTITLE_KEYS: Record<string, UiTextKey> = {
+  위드마켓: 'withMarketSubtitle',
 };
 
+/** Localized page subtitle for a header-title id, or undefined if none mapped. */
 export function screenSubtitle(id: string, lang: Lang): string | undefined {
-  const extra = EXTRA_SUBTITLES[id];
-  if (extra) return extra[lang] ?? extra.ko;
+  const extra = EXTRA_SUBTITLE_KEYS[id];
+  if (extra) return ui(extra, lang);
   const k = TITLE_KEYS[id]?.sub;
   return k && hasLoc(k) ? t(k, lang) : undefined;
 }

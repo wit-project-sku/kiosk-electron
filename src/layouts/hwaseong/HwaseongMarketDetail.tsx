@@ -6,13 +6,12 @@ import { hwaseongIconUrl } from '@renderer/assets/icons/hwaseong';
 import { useRotatingBanner } from '@renderer/hooks/useRotatingBanner';
 import { useDetailStore } from '@renderer/store/detailStore';
 import { padImages } from '@renderer/lib/shops';
-import { pick, screenTitle, useLang } from '@renderer/lib/i18n';
+import { screenTitle, useLang } from '@renderer/lib/i18n';
 import { ImageLightbox } from '../components/ImageLightbox';
 import { HwaseongHeader } from './HwaseongHeader';
 import styles from './HwaseongMarketDetail.module.css';
-
-const BLOG_REVIEWS = { ko: '블로그 리뷰', en: 'Blog Reviews', ja: 'ブログレビュー', zh: '博客评价' };
-
+import { ui } from '@renderer/lib/uiText';
+
 interface Props {
   controller: KioskController;
 }
@@ -131,7 +130,7 @@ export function HwaseongMarketDetail({ controller }: Props): JSX.Element {
                   {hasRating && <span className={styles.vline} />}
                   <div className={styles.ratingItem}>
                     <img className={styles.naver} src={iconNaver} alt="" draggable={false} />
-                    <span className={styles.ratingText}>{pick(BLOG_REVIEWS, lang)}</span>
+                    <span className={styles.ratingText}>{ui('blogReviews', lang)}</span>
                   </div>
                 </>
               )}

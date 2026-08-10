@@ -1,4 +1,6 @@
 import type { KioskController } from '@renderer/hooks/useKioskController';
+import { useLang } from '@renderer/lib/i18n';
+import { ui } from '@renderer/lib/uiText';
 import { iconUrl } from '@renderer/assets/icons/insadong';
 import { useRotatingBanner } from '@renderer/hooks/useRotatingBanner';
 import { InsadongHeader } from './InsadongHeader';
@@ -18,6 +20,7 @@ interface InsadongWebScreenProps {
  * Used for 위드마켓 (WITStore) and 인사동 이벤트.
  */
 export function InsadongWebScreen({ title, url, controller, bodyHeight }: InsadongWebScreenProps): JSX.Element {
+  const lang = useLang();
   const banner = useRotatingBanner();
   const goHome = (): void => controller.navigate('home', 'Back');
 
@@ -34,7 +37,7 @@ export function InsadongWebScreen({ title, url, controller, bodyHeight }: Insado
         ) : (
           <div className={styles.placeholder}>
             <p>{title}</p>
-            <p className={styles.placeholderHint}>웹사이트 주소가 설정되지 않았습니다</p>
+            <p className={styles.placeholderHint}>{ui('noWebsite', lang)}</p>
           </div>
         )}
       </div>

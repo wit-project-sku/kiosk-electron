@@ -47,6 +47,20 @@ export function t(key: string, lang: Lang): string {
 }
 
 /**
+ * Like `t()`, but without the leading list marker the sheet stores on some rows.
+ *
+ * Several Localization rows are authored as bullet lines — `AI_CourseContent_1`
+ * reads "• 맞춤 코스가 준비되었어요!" in ko/en/ja/zh/ru and "* …" in vi/th/id,
+ * `SubHeader_*` uses "* ". That marker belongs to the spreadsheet's own
+ * formatting, and rendering it inside a heading shows a stray glyph whose shape
+ * even changes with the language. Use this wherever the row is a heading or a
+ * standalone sentence; use `t()` when the marker is wanted verbatim.
+ */
+export function tPlain(key: string, lang: Lang): string {
+  return t(key, lang).replace(/^\s*[•*·]\s*/, '');
+}
+
+/**
  * The sheet's value for the EXACT language only — no Korean fallback. Returns
  * '' when that language's cell is empty. Use this to follow the sheet as-is
  * (even when it stores English in a ja/zh slot) and only fill gaps when truly

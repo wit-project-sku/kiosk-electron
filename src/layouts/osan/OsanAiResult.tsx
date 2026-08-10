@@ -5,8 +5,8 @@ import { useAiStore } from '@renderer/store/aiStore';
 import { useShopStore } from '@renderer/store/shopStore';
 import { useDetailStore } from '@renderer/store/detailStore';
 import type { Lang } from '@renderer/lib/i18n';
-import { pick, useLang } from '@renderer/lib/i18n';
-import { t } from '@renderer/lib/loc';
+import { useLang } from '@renderer/lib/i18n';
+import { t, tPlain } from '@renderer/lib/loc';
 import type { Shop } from '@shared/types/shop';
 import {
   shopAddress,
@@ -22,18 +22,10 @@ import { OsanBanner } from './OsanBanner';
 import { interestColor } from './interestColors';
 import styles from './OsanAiResult.module.css';
 
-const HEADING = {
-  ko: '맞춤 코스가 준비되었어요!',
-  en: 'Your custom course is ready!',
-  ja: 'おすすめコースが完成しました！',
-  zh: '为您准备好了专属路线！',
-};
-const HEADING_SUB = {
-  ko: '인기 장소, 숨은 명소, 균형 잡힌 코스 중에서 선택해 오색시장을 즐겨보세요.',
-  en: 'Pick from popular spots, hidden gems, and balanced courses to enjoy Osaek Market.',
-  ja: '人気スポット・穴場・バランス型コースから選んでオセク市場を楽しんでください。',
-  zh: '从热门景点、隐藏好去处和均衡路线中选择，尽情游览五色市场。',
-};
+/** Course-picker heading + subheading — Localization rows, so a copy edit needs
+ *  no code change and all eight languages come from the sheet. */
+const HEADING_KEY = 'AI_CourseContent_1';
+const HEADING_SUB_KEY = 'AI_CourseContent_2';
 
 const FALLBACK_INTERESTS = ['전시관', '한식', '카페'];
 /** Course tab names — Localization rows, so a copy edit needs no code change. */
@@ -203,10 +195,11 @@ export function OsanAiResult({ controller }: OsanAiResultProps): JSX.Element {
             >
               <div className={styles.heading}>
                 <p className={styles.headingTitle}>
+                  {/* The panel draws its own bullet, so use the marker-free value. */}
                   <span className={styles.headingDot} />
-                  {pick(HEADING, lang)}
+                  {tPlain(HEADING_KEY, lang)}
                 </p>
-                <p className={styles.headingSub}>{pick(HEADING_SUB, lang)}</p>
+                <p className={styles.headingSub}>{tPlain(HEADING_SUB_KEY, lang)}</p>
               </div>
               <div className={styles.list}>
                 {courses[selected]!.spots.map((spot, i, arr) => (

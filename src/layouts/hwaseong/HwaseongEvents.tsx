@@ -9,6 +9,7 @@ import { useEvents, pageWindow } from '@renderer/hooks/useEvents';
 import { EventDetailScreen } from '@layouts/components/EventDetailScreen';
 import { useLang } from '@renderer/lib/i18n';
 import { t } from '@renderer/lib/loc';
+import { ui, uiParts, type UiTextKey } from '@renderer/lib/uiText';
 import { HwaseongHeader } from './HwaseongHeader';
 import styles from './HwaseongEvents.module.css';
 
@@ -38,16 +39,11 @@ const MBTI_PAIRS: [MbtiAxis, MbtiAxis][] = [
 ];
 // Figma row-major order (5494:158632): E S T J / I N F P.
 const MBTI_GRID: MbtiAxis[] = ['E', 'S', 'T', 'J', 'I', 'N', 'F', 'P'];
-const MBTI_LABELS: Record<MbtiAxis, string> = {
-  E: '외향적',
-  I: '내향적',
-  S: '경험적',
-  N: '상상적',
-  T: '이성적',
-  F: '감성적',
-  J: '계획적',
-  P: '즉흥적',
-};
+/** Axis label keys — resolved per language at render (see lib/uiText.ts). */
+const MBTI_LABEL_KEYS = {
+  E: 'mbtiE', I: 'mbtiI', S: 'mbtiS', N: 'mbtiN',
+  T: 'mbtiT', F: 'mbtiF', J: 'mbtiJ', P: 'mbtiP',
+} as const satisfies Record<MbtiAxis, UiTextKey>;
 
 interface MbtiSectionProps {
   onOpenQr: () => void;
@@ -63,6 +59,7 @@ interface MbtiSectionProps {
  * exists — currently returns the first 2 mock events after a fake delay.
  */
 function MbtiSection({ onOpenQr, region }: MbtiSectionProps): JSX.Element {
+  const lang = useLang();
   const [selected, setSelected] = useState<Set<MbtiAxis>>(new Set());
   const [status, setStatus] = useState<'idle' | 'loading' | 'results'>('idle');
   const [results, setResults] = useState<EventRecommendation[]>([]);
@@ -100,7 +97,7 @@ function MbtiSection({ onOpenQr, region }: MbtiSectionProps): JSX.Element {
             onClick={() => toggle(letter)}
           >
             <span className={styles.mbtiLetter}>{letter}</span>
-            <span className={styles.mbtiLabel}>{MBTI_LABELS[letter]}</span>
+            <span className={styles.mbtiLabel}>{ui(MBTI_LABEL_KEYS[letter], lang)}</span>
           </button>
         ))}
       </div>
@@ -117,12 +114,22 @@ function MbtiSection({ onOpenQr, region }: MbtiSectionProps): JSX.Element {
       )}
 
       <p className={styles.mbtiDesc}>
-        MBTI 성향과 취향을 반영해 <span className={styles.mbtiAccent}>화성시 이벤트</span>를 맞춤 추천해드립니다!
+        {/* "{region}" is substituted here so the accent span survives translation. */}
+        {uiParts('mbtiIntro', lang)[0]}
+        <span className={styles.mbtiAccent}>
+          {`${t('Event_Tab_Hwaseong', lang)} ${t('MainButton_Event', lang)}`}
+        </span>
+        {uiParts('mbtiIntro', lang)[1]}
         <br />
         <br />
-        MBTI 4가지 유형을 전부 선택하지 않아도
-        <br />
-        나만의 추천 결과를 받아볼 수 있어요!
+        {ui('mbtiHint', lang)
+          .split('\n')
+          .map((line, i, all) => (
+            <span key={i}>
+              {line}
+              {i < all.length - 1 && <br />}
+            </span>
+          ))}
       </p>
 
       {status === 'results' && (
@@ -143,12 +150,12 @@ function MbtiSection({ onOpenQr, region }: MbtiSectionProps): JSX.Element {
                 <div className={styles.resultsQrImg}>
                   <img src={qrCodeImg} alt="QR" style={{ width: '100%', height: '100%', objectFit: 'contain' }} draggable={false} />
                 </div>
-                <span className={styles.resultsQrLabel}>모바일에서 확인하기</span>
+                <span className={styles.resultsQrLabel}>{ui('viewOnMobile', lang)}</span>
               </button>
             </div>
           ) : (
             <div className={styles.noDataBox} onClick={(e) => e.stopPropagation()}>
-              <p className={styles.noDataText}>추천 결과가 없습니다.</p>
+              <p className={styles.noDataText}>{ui('noRecommendations', lang)}</p>
             </div>
           )}
         </div>
@@ -270,7 +277,7 @@ export function HwaseongEvents({ controller }: HwaseongEventsProps): JSX.Element
 
               {!loading && items.length === 0 && (
                 <p className={styles.emptyState}>
-                  {error ? '이벤트를 불러오지 못했습니다.' : '등록된 이벤트가 없습니다.'}
+                  {error ? ui('eventsLoadFailed', lang) : ui('eventsEmpty', lang)}
                 </p>
               )}
 
@@ -337,7 +344,7 @@ export function HwaseongEvents({ controller }: HwaseongEventsProps): JSX.Element
               <span className={`${styles.qrCorner} ${styles.qrCornerBL}`}>⌞</span>
               <span className={`${styles.qrCorner} ${styles.qrCornerBR}`}>⌟</span>
             </div>
-            <p className={styles.qrZoomHint}>QR코드를 화면에 맞춰주세요.</p>
+            <p className={styles.qrZoomHint}>{ui('qrAlign', lang)}</p>
           </div>
         </div>
       )}

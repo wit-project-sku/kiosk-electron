@@ -2,6 +2,7 @@ import type { Shop } from '@shared/types/shop';
 import { createLogger } from '@main/core/logger';
 import type { LocalCacheService } from '@main/services/LocalCacheService';
 import type { KioskService } from '@main/services/KioskService';
+import { normalizeShops } from '@main/services/normalizeShop';
 
 const log = createLogger('shop-service');
 const CACHE_KEY = 'shops';
@@ -43,11 +44,19 @@ export class ShopService {
     return Number.isFinite(n) && n > 0 ? n : 1;
   }
 
-  /** Cached shops (from the last successful refresh). Empty until first sync. */
+  /**
+   * Cached shops (from the last successful refresh). Empty until first sync.
+   *
+   * Normalized on the way out as well as on the way in: a kiosk that is offline
+   * (or hasn't synced since this guard was added) is serving rows that were
+   * cached RAW, and those are exactly the ones that crash a detail page. Quiet,
+   * because `refresh()` already logged the same payload's defects.
+   */
   list(): Shop[] {
     const cached = this.cache.get(CACHE_KEY);
     const shops = cached?.data?.['shops'];
-    return Array.isArray(shops) ? (shops as Shop[]) : [];
+    if (!Array.isArray(shops)) return [];
+    return normalizeShops(shops, 'cache', true).shops;
   }
 
   /** Pull the full catalogue and cache it. (Pagination removed from the API.) */
@@ -56,11 +65,14 @@ export class ShopService {
     try {
       const res = await fetch(url);
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      const json = (await res.json()) as { data?: Shop[] | { content?: Shop[] } };
+      const json = (await res.json()) as { data?: unknown[] | { content?: unknown[] } };
       // The API now returns `data` as a plain array (post-pagination); keep the
       // old `data.content` path as a fallback so either shape works.
       const data = json.data;
-      const shops: Shop[] = Array.isArray(data) ? data : (data?.content ?? []);
+      const raw: unknown[] = Array.isArray(data) ? data : (data?.content ?? []);
+      // Coerce BEFORE caching so the bad shape is never persisted — see
+      // normalizeShop.ts for what the API actually sends versus what Shop claims.
+      const { shops } = normalizeShops(raw, `api kiosk=${this.kioskNum()}`);
       if (shops.length > 0) {
         this.cache.upsert(CACHE_KEY, { shops }, 'shop_api');
         log.info('Shops cached from API', { count: shops.length });

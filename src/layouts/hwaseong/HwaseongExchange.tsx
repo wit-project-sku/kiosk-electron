@@ -1,7 +1,8 @@
 import type { KioskController } from '@renderer/hooks/useKioskController';
 import { hwaseongIconUrl } from '@renderer/assets/icons/hwaseong';
 import { useRotatingBanner } from '@renderer/hooks/useRotatingBanner';
-import { pick, useLang } from '@renderer/lib/i18n';
+import { useLang } from '@renderer/lib/i18n';
+import { ui } from '@renderer/lib/uiText';
 import { useExchangeStore } from '@renderer/store/exchangeStore';
 import jpnFlag from '@renderer/assets/photos/insadong/exchange/jpn.svg';
 import usaFlag from '@renderer/assets/photos/insadong/exchange/usa.svg';
@@ -28,9 +29,6 @@ const DISPLAY = [
   { unit: 'SAR', label: 'SAR (1﷼)', flag: sarFlag },
 ];
 
-/** Korean won unit shown after each rate. */
-const WON = { ko: '원', en: ' KRW', ja: 'ウォン', zh: '韩元' };
-
 interface Props {
   controller: KioskController;
 }
@@ -40,7 +38,7 @@ export function HwaseongExchange({ controller }: Props): JSX.Element {
   const banner = useRotatingBanner(hwaseongIconUrl('fg-banner'));
   const lang = useLang();
   const exchange = useExchangeStore((s) => s.exchange);
-  const won = pick(WON, lang);
+  const won = ui('won', lang);
 
   const rows = DISPLAY.map((d) => {
     const match = exchange?.rates.find((r) => r.code === d.unit);

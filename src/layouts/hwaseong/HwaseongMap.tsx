@@ -1,7 +1,8 @@
 import type { KioskController } from '@renderer/hooks/useKioskController';
 import { hwaseongIconUrl } from '@renderer/assets/icons/hwaseong';
 import { useRotatingBanner } from '@renderer/hooks/useRotatingBanner';
-import { pick, useLang } from '@renderer/lib/i18n';
+import { useLang } from '@renderer/lib/i18n';
+import { ui } from '@renderer/lib/uiText';
 import { HwaseongHeader } from './HwaseongHeader';
 import { ZoomableImage } from '../insadong/ZoomableImage';
 import styles from './HwaseongMap.module.css';
@@ -9,14 +10,6 @@ import styles from './HwaseongMap.module.css';
 interface Props {
   controller: KioskController;
 }
-
-/** Card subtitle shown above the map image. */
-const SUBTITLE = {
-  ko: '화성휴게소: 먹거리랑 지역 특색 체험까지 가능한 작은 복합공간',
-  en: 'Hwaseong SA: a compact complex for food and local specialties',
-  ja: '華城SA：グルメから地域の特色体験まで楽しめる小さな複合空間',
-  zh: '华城休息站：可以体验美食和地方特色的小型综合空间',
-};
 
 /**
  * 화성휴게소 지도 — floor plan + legend. The full map (floor plan and the
@@ -40,7 +33,7 @@ export function HwaseongMap({ controller }: Props): JSX.Element {
       <div className={styles.results}>
         <div className={styles.card}>
           {/* Card subtitle (title above the map) */}
-          <p className={styles.cardSubtitle}>{pick(SUBTITLE, lang)}</p>
+          <p className={styles.cardSubtitle}>{ui('hwaseongMapSubtitle', lang)}</p>
 
           {/* Full floor-plan + legend map image — pinch/double-tap to zoom,
               drag to pan (same touch-friendly viewer as the transport maps). */}
@@ -48,7 +41,7 @@ export function HwaseongMap({ controller }: Props): JSX.Element {
             <ZoomableImage src={mapSrc} alt="화성휴게소 지도" className={styles.mapViewport} />
           ) : (
             <div className={styles.mapPlaceholder}>
-              <span className={styles.mapPlaceholderText}>화성휴게소 배치도</span>
+              <span className={styles.mapPlaceholderText}>{ui('hwaseongFloorPlan', lang)}</span>
             </div>
           )}
         </div>

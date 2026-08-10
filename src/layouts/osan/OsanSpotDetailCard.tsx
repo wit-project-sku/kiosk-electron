@@ -40,18 +40,21 @@ function RatingStar({ filled }: { filled: boolean }): JSX.Element {
 export function OsanSpotDetailCard({ data }: { data: SpotDetailData }): JSX.Element {
   // Real photos drive the lightbox; the grid is padded to 4 with the no-image
   // placeholder so the 2×2 layout always holds its shape.
-  const realPhotos = data.photos.filter(Boolean);
+  // See SpotDetailCard: shop rows can carry a null address/tags, and a string
+  // method on one blanks the page. Guard every such access.
+  const str = (v: string | null | undefined): string => (typeof v === 'string' ? v : '');
+  const realPhotos = (data.photos ?? []).filter(Boolean);
   const photos = padImages(realPhotos, osanIconUrl('noimage'), 4);
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
-  const qrLink = /^https?:\/\//i.test(data.blog) ? data.blog : null;
-  const ratingValue = parseFloat(data.rating);
+  const qrLink = /^https?:\/\//i.test(str(data.blog)) ? data.blog : null;
+  const ratingValue = parseFloat(str(data.rating));
   const hasRating = Number.isFinite(ratingValue) && ratingValue > 0;
   const filledStars = Math.round(ratingValue);
 
   const marker = osanIconUrl('marker');
   const alarm = osanIconUrl('alarm');
   const phone = osanIconUrl('phone');
-  const hours = data.hours.filter((h) => h.trim());
+  const hours = (data.hours ?? []).filter((h) => str(h).trim());
 
   return (
     <div className={styles.content}>
@@ -88,7 +91,7 @@ export function OsanSpotDetailCard({ data }: { data: SpotDetailData }): JSX.Elem
             its field has no data, so no stray icon sits next to an empty value. */}
         <div className={styles.info}>
           <div className={styles.infoCol}>
-            {data.address.trim() && (
+            {str(data.address).trim() && (
               <div className={styles.infoRow}>
                 {marker && <img className={styles.infoIcon} src={marker} alt="" draggable={false} />}
                 <span className={styles.infoText}>{data.address}</span>
@@ -106,7 +109,7 @@ export function OsanSpotDetailCard({ data }: { data: SpotDetailData }): JSX.Elem
                 </div>
               </div>
             )}
-            {data.phone.trim() && (
+            {str(data.phone).trim() && (
               <div className={styles.infoRow}>
                 {phone && <img className={styles.infoIcon} src={phone} alt="" draggable={false} />}
                 <span className={styles.infoText}>{data.phone}</span>

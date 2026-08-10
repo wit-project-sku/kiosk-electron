@@ -4,6 +4,8 @@ import { Hotspot, KioskScreenImage } from '../components/KioskScreenImage';
 import { KioskButton } from '../components/KioskButton';
 import { DEFAULT_BACK_RECTS, INSADONG_SCREENS } from './screenAssets';
 import { InsadongHeaderDate } from './InsadongHeaderDate';
+import { screenTitle, useLang } from '@renderer/lib/i18n';
+import { ui } from '@renderer/lib/uiText';
 import styles from './InsadongScreen.module.css';
 
 /** Korean titles for the themed fallback (used until a frame is exported). */
@@ -43,8 +45,11 @@ interface InsadongScreenProps {
  */
 export function InsadongScreen({ screen, controller, debug = false }: InsadongScreenProps): JSX.Element {
   const { navigate } = controller;
+  const lang = useLang();
   const asset = INSADONG_SCREENS[screen];
-  const title = SCREEN_TITLES[screen] ?? screen;
+  // Localized through the same resolver the real headers use, so the
+  // placeholder screen is not the one place that shows a raw Korean id.
+  const title = screenTitle(SCREEN_TITLES[screen] ?? screen, lang);
 
   if (asset) {
     const backRects = asset.back ?? DEFAULT_BACK_RECTS;
@@ -62,9 +67,9 @@ export function InsadongScreen({ screen, controller, debug = false }: InsadongSc
     <div className={styles.fallback}>
       <div className={styles.inner}>
         <h1 className={styles.title}>{title}</h1>
-        <p className={styles.note}>준비 중입니다</p>
+        <p className={styles.note}>{ui('comingSoon', lang)}</p>
         <KioskButton variant="secondary" onClick={() => navigate('home', 'Back')}>
-          ← 홈으로
+          {ui('backHome', lang)}
         </KioskButton>
       </div>
     </div>

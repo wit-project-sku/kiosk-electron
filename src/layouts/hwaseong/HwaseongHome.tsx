@@ -17,13 +17,8 @@ import { FloatingKeyboard } from '../insadong/keyboard/FloatingKeyboard';
 /** Search-bar language button → the current language's display code. */
 const LANG_CODE: Record<string, string> = { ko: 'KR', en: 'EN', ja: 'JP', zh: 'CN', vi: 'VN', th: 'TH', ru: 'RU', id: 'ID' };
 
-/** Home notice card + search placeholder (localized; tiles use sheet keys). */
-const NOTICE = {
-  ko: "화성휴게소의 마스코트 'HUE'가 박술녀 한복을 입고 나와요. 여러분도 체험할 수 있도록 할게요. 한복을 입어보세요~",
-  en: "Hwaseong SA's mascot 'HUE' appears in Master Park Sul-nyeo's hanbok. Come and try one on yourself too~",
-  ja: '華城SAのマスコット「HUE」が朴術女(パク・スルニョ)の韓服を着て登場。皆さんもぜひ韓服を体験してみてください～',
-  zh: '华城休息站的吉祥物“HUE”身着朴术女韩服登场。大家也来体验穿韩服吧～',
-};
+/** Search placeholder. The notice card + 공/지 badge come from the sheet
+ *  (NoticeContent / Notice), like Insadong and Osan. */
 const SEARCH_PLACEHOLDER = {
   ko: '화성휴게소에 대해 검색해보세요!',
   en: 'Search about Hwaseong Service Area!',
@@ -310,13 +305,24 @@ export function HwaseongHome({ controller }: Props): JSX.Element {
           {/* Notice card */}
           <div className={styles.noticeCard}>
             <div className={styles.noticeInner}>
+              {/* Vertical 공/지 badge — the sheet stores it as two \n-separated
+                  characters, same as Insadong/Osan read it. */}
               <div className={styles.noticeLabel}>
-                <p style={{ margin: 0 }}>공</p>
-                <p style={{ margin: 0 }}>지</p>
+                {t('Notice', lang)
+                  .split('\n')
+                  .map((s) => s.trim())
+                  .filter(Boolean)
+                  .map((ch, i) => (
+                    <p key={i} style={{ margin: 0 }}>
+                      {ch}
+                    </p>
+                  ))}
               </div>
               <div className={styles.noticeDivider} />
               <div className={styles.noticeText}>
-                <p style={{ margin: 0 }} className={styles.noticeMedium}>{pick(NOTICE, lang)}</p>
+                {/* Sheet-driven, like Insadong/Osan — Localization_Hwaseong's
+                    NoticeContent carries all eight languages. */}
+                <p style={{ margin: 0 }} className={styles.noticeMedium}>{t('NoticeContent', lang)}</p>
               </div>
             </div>
           </div>

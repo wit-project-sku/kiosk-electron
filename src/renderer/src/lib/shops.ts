@@ -16,8 +16,18 @@ const SUFFIX: Record<string, Suffix> = {
 };
 const sfx = (lang: Lang): Suffix => SUFFIX[lang] ?? 'Kr';
 
+/**
+ * Localized shop text, falling back to Korean.
+ *
+ * ALWAYS returns a string. The API sends null for fields `Shop` declares as
+ * `string` (see main/services/normalizeShop.ts), and when BOTH the localized
+ * field and its Korean fallback are null this used to hand back `null` typed as
+ * `string` — which `.trim()`/`.split()` downstream turn into a white screen.
+ * Main sanitizes the payload; this is the second line so a null can never be
+ * laundered through the type again.
+ */
 const field = (s: Shop, base: string, lang: Lang, fallback: string): string =>
-  (s[`${base}${sfx(lang)}` as keyof Shop] as string | null) || fallback;
+  (s[`${base}${sfx(lang)}` as keyof Shop] as string | null) || fallback || '';
 
 export const shopName = (s: Shop, lang: Lang): string => field(s, 'shopName', lang, s.shopNameKr);
 export const shopAddress = (s: Shop, lang: Lang): string => field(s, 'address', lang, s.addressKr);
@@ -80,12 +90,17 @@ export const stripPrefix = (s: string): string =>
 /** Keep a card's hashtag line compact — at most `max` tags so it never runs
  *  into the QR/photo. Shared by the 도와줘 / 뭐사지 / 전국시장 cards. */
 export function firstTags(raw: string, max = 3): string {
-  return raw.split(/\s+/).filter(Boolean).slice(0, max).join(' ');
+  return (raw ?? '').split(/\s+/).filter(Boolean).slice(0, max).join(' ');
 }
 
-/** Image URLs ordered by sortOrder. */
+/** Image URLs ordered by sortOrder. Tolerates a missing `images` array — the
+ *  spread throws "is not iterable" on null, which would take the list page down
+ *  rather than just dropping one card's photos. */
 export const shopImages = (s: Shop): string[] =>
-  [...s.images].sort((a, b) => a.sortOrder - b.sortOrder).map((i) => i.imageUrl);
+  (Array.isArray(s.images) ? [...s.images] : [])
+    .sort((a, b) => a.sortOrder - b.sortOrder)
+    .map((i) => i.imageUrl)
+    .filter(Boolean);
 
 /**
  * Exactly `count` image URLs for a card grid — real images first, then the
@@ -106,7 +121,7 @@ export function padImages(urls: string[], noImage: string | undefined, count = 4
 export function prefetchShopThumbnails(shops: Shop[]): void {
   const urls: string[] = [];
   for (const s of shops) {
-    const first = [...s.images].sort((a, b) => a.sortOrder - b.sortOrder)[0]?.imageUrl;
+    const first = shopImages(s)[0];
     if (first) urls.push(first);
   }
   const run = (): void => {

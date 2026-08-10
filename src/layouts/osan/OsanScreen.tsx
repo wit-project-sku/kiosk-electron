@@ -1,18 +1,12 @@
-import type { KioskScreenId, SupportedLanguage } from '@shared/types/kiosk';
+import type { KioskScreenId } from '@shared/types/kiosk';
 import type { KioskController } from '@renderer/hooks/useKioskController';
 import { osanIconUrl } from '@renderer/assets/icons/osan';
 import { useLanguageStore } from '@renderer/store/languageStore';
 import { OsanHeader } from './OsanHeader';
 import styles from './OsanScreen.module.css';
+import { screenTitle } from '@renderer/lib/i18n';
+import { ui } from '@renderer/lib/uiText';
 
-function pick<T>(m: Partial<Record<SupportedLanguage, T>>, lang: SupportedLanguage): T {
-  return (m[lang] ?? m.ko ?? (Object.values(m)[0] as T)) as T;
-}
-
-const T = {
-  comingSoon: { ko: '준비 중입니다', en: 'Coming soon', ja: '準備中です', zh: '准备中' },
-  home: { ko: '← 홈으로', en: '← Home', ja: '← ホームへ', zh: '← 返回主页' },
-};
 
 const SCREEN_TITLES: Partial<Record<KioskScreenId, string>> = {
   market:    '위드마켓',
@@ -42,7 +36,9 @@ interface OsanScreenProps {
 export function OsanScreen({ screen, controller }: OsanScreenProps): JSX.Element {
   const goHome = (): void => controller.navigate('home', 'Back');
   const lang = useLanguageStore((s) => s.currentLanguage);
-  const title = SCREEN_TITLES[screen] ?? screen;
+  // Localized through the same resolver the real headers use — the placeholder
+  // must not be the one screen that shows a raw Korean id.
+  const title = screenTitle(SCREEN_TITLES[screen] ?? screen, lang);
 
   return (
     <>
@@ -53,9 +49,9 @@ export function OsanScreen({ screen, controller }: OsanScreenProps): JSX.Element
       <OsanHeader title={title} onHome={goHome} />
 
       <div className={styles.body}>
-        <p className={styles.note}>{pick(T.comingSoon, lang)}</p>
+        <p className={styles.note}>{ui('comingSoon', lang)}</p>
         <button type="button" className={styles.backBtn} onClick={goHome}>
-          {pick(T.home, lang)}
+          {ui('backHome', lang)}
         </button>
       </div>
 

@@ -9,7 +9,8 @@ import { cameraIconUrl } from '@renderer/assets/icons/insadong/camera';
 import { useRotatingBanner } from '@renderer/hooks/useRotatingBanner';
 import { usePhotoStore } from '@renderer/store/photoStore';
 import { pick, useLang } from '@renderer/lib/i18n';
-import { t } from '@renderer/lib/loc';
+import { hasLoc, t } from '@renderer/lib/loc';
+import { ui } from '@renderer/lib/uiText';
 import { usePhotoChrome } from './photoChrome';
 import { OUTFITS_BY_CATEGORY } from '@renderer/assets/photos/insadong/hanbok/clothes';
 import hanbokInfo from '@renderer/assets/photos/insadong/hanbok/hanbok-info.png';
@@ -21,14 +22,12 @@ import styles from './HanbokSelect.module.css';
 const HANBOK_INFO_KEY = 'MainButton_Hanbok';
 const PRIVACY_LINK_KEY = 'Photo_PrivacyPolicy';
 
-/** Still hardcoded: MainButton_Map / MainButton_WC exist in the Insa and Osaek
- *  sheets but NOT in Localization_Hwaseong, and this photo flow is shared across
- *  all kiosks — routing them through t() would render the raw key on W005.
- *  Add those two rows to the Hwaseong sheet, then switch these over too. */
-const LABELS = {
-  mapNav: { ko: '인사동 지도', en: 'Insadong Map', ja: '仁寺洞マップ', zh: '仁寺洞地图' },
-  restroomNav: { ko: '화장실', en: 'Restroom', ja: 'トイレ', zh: '洗手间' },
-};
+/* MainButton_Map / MainButton_WC exist in the Insa and Osaek sheets but NOT in
+   Localization_Hwaseong, and this photo flow is shared across all kiosks — a
+   bare t() would print the raw KEY on W005. The two nav buttons below therefore
+   read the sheet only when the row exists and fall back to a generic
+   8-language label from uiText. Add those rows to the Hwaseong sheet and the
+   guard resolves to the sheet automatically. */
 
 /** 한복/의상 categories (Figma AR 한복체험). The Korean string is the canonical
  *  id (used for the clothes catalogue lookup); CATEGORY_LABELS localizes it. */
@@ -214,7 +213,7 @@ export function HanbokSelect({ onCapture, onHome, countdownActive = false }: Han
               >
                 {icon('map') && <img src={icon('map')} alt="" draggable={false} />}
               </span>
-              <span className={styles.infoNavLabel}>{pick(LABELS.mapNav, lang)}</span>
+              <span className={styles.infoNavLabel}>{hasLoc('MainButton_Map') ? t('MainButton_Map', lang) : ui('navMap', lang)}</span>
             </button>
             <button
               type="button"
@@ -233,7 +232,7 @@ export function HanbokSelect({ onCapture, onHome, countdownActive = false }: Han
             </button>
             <button type="button" className={styles.infoNavRight} onClick={() => setInfoOpen(false)}>
               <span className={styles.infoNavIcon}>{icon('restroom') && <img src={icon('restroom')} alt="" draggable={false} />}</span>
-              <span className={styles.infoNavLabel}>{pick(LABELS.restroomNav, lang)}</span>
+              <span className={styles.infoNavLabel}>{hasLoc('MainButton_WC') ? t('MainButton_WC', lang) : ui('navRestroom', lang)}</span>
             </button>
           </div>
         )}

@@ -7,7 +7,8 @@ import type { KioskController } from '@renderer/hooks/useKioskController';
 import type { KioskScreenId } from '@shared/types/kiosk';
 import { hwaseongIconUrl } from '@renderer/assets/icons/hwaseong';
 import { useRotatingBanner } from '@renderer/hooks/useRotatingBanner';
-import { pick, useLang } from '@renderer/lib/i18n';
+import { screenTitle, useLang } from '@renderer/lib/i18n';
+import { ui } from '@renderer/lib/uiText';
 import { HwaseongHeader } from './HwaseongHeader';
 import styles from './HwaseongScreen.module.css';
 
@@ -15,9 +16,6 @@ interface Props {
   screen: KioskScreenId;
   controller: KioskController;
 }
-
-/** "Coming soon" placeholder shown until a screen is designed. */
-const COMING_SOON = { ko: '준비중입니다', en: 'Coming soon', ja: '準備中です', zh: '敬请期待' };
 
 const SCREEN_LABELS: Partial<Record<KioskScreenId, string>> = {
   rest_info:   '전국도로교통상황',
@@ -44,7 +42,9 @@ const SCREEN_LABELS: Partial<Record<KioskScreenId, string>> = {
 export function HwaseongScreen({ screen, controller }: Props): JSX.Element {
   const banner = useRotatingBanner(hwaseongIconUrl('fg-banner'));
   const lang = useLang();
-  const title = SCREEN_LABELS[screen] ?? screen;
+  // Localized through the same resolver the real headers use — the placeholder
+  // must not be the one screen that shows a raw Korean id.
+  const title = screenTitle(SCREEN_LABELS[screen] ?? screen, lang);
 
   return (
     <div className={styles.root}>
@@ -59,7 +59,7 @@ export function HwaseongScreen({ screen, controller }: Props): JSX.Element {
 
       {/* Body — placeholder until the real screen is designed */}
       <div className={styles.body}>
-        <span className={styles.placeholder}>{pick(COMING_SOON, lang)}</span>
+        <span className={styles.placeholder}>{ui('comingSoon', lang)}</span>
       </div>
 
       {/* Left nav */}
