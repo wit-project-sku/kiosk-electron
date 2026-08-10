@@ -5,6 +5,7 @@ import { useLanguageStore } from '@renderer/store/languageStore';
 import { t } from '@renderer/lib/loc';
 import { iconUrl } from '@renderer/assets/icons/insadong';
 import { useRotatingBanner } from '@renderer/hooks/useRotatingBanner';
+import { TAXFREE_PAGE_BASES, taxfreePageImg } from '@renderer/lib/taxfreePages';
 import { taxfreeUrl } from '@shared/constants/webEmbeds';
 import { InsadongHeader } from './InsadongHeader';
 import styles from './InsadongTaxfree.module.css';
@@ -14,18 +15,6 @@ type TabId = 'refund' | 'intro' | 'merchant';
  *  this location's Localization sheet so a copy edit needs no code change —
  *  `t()` resolves against the running kiosk's own table. */
 const TAB_KEYS = ['Taxfree_Apply', 'Taxfree_Introduce', 'Taxfree_Enroll'] as const;
-
-// ─── Dynamic image loader ────────────────────────────────────────────────────
-// Place images as: assets/photos/insadong/taxfree/pages/tab1-p1-ko.png etc.
-const PAGE_IMGS = import.meta.glob<{ default: string }>(
-  '../../renderer/src/assets/photos/insadong/taxfree/pages/*.png',
-  { eager: true }
-);
-
-function pageImg(name: string): string | undefined {
-  const entry = Object.entries(PAGE_IMGS).find(([k]) => k.endsWith(`/${name}.png`));
-  return entry?.[1]?.default;
-}
 
 // ─── 텍스프리 소개 (intro tab) — two-page image carousel ─────────────────────
 // The chevron arrows AND the blue "apply" CTA are painted into the page images.
@@ -39,8 +28,8 @@ function TaxRefundInfo({
   onGoToWebview: () => void;
 }): JSX.Element {
   const [page, setPage] = useState(0);
-  const p1Src = pageImg(`tab1-p1-${lang}`);
-  const p2Src = pageImg(`tab1-p2-${lang}`);
+  const p1Src = taxfreePageImg('tab1-p1', lang);
+  const p2Src = taxfreePageImg('tab1-p2', lang);
 
   return (
     <div className={styles.refundInfo}>
@@ -77,7 +66,7 @@ function TaxRefundInfo({
 
 // ─── Tab 3 — merchant image ──────────────────────────────────────────────────
 function MerchantTab({ lang }: { lang: SupportedLanguage }): JSX.Element {
-  const src = pageImg(`tab3-${lang}`);
+  const src = taxfreePageImg('tab3', lang);
   return (
     <div className={styles.merchant}>
       {src && <img src={src} className={styles.pageImg} alt="" draggable={false} />}
@@ -101,8 +90,8 @@ export function InsadongTaxfree({ controller }: InsadongTaxfreeProps): JSX.Eleme
   // the merchant tab) is instant — the component is always mounted (pre-warmed),
   // so this runs before the user ever opens the screen.
   useEffect(() => {
-    for (const name of [`tab1-p1-${lang}`, `tab1-p2-${lang}`, `tab3-${lang}`]) {
-      const src = pageImg(name);
+    for (const base of TAXFREE_PAGE_BASES) {
+      const src = taxfreePageImg(base, lang);
       if (src) {
         const img = new Image();
         img.src = src;

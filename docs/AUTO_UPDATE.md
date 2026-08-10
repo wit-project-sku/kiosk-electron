@@ -68,7 +68,7 @@ transfer only changed blocks).
 | | Production | Beta |
 |---|---|---|
 | Branch | `main` | `develop_1` |
-| Version | `X.Y.Z` | `X.Y.Z-beta.<run#>` |
+| Version | `X.Y.Z` | `X.(Y+1).0-beta.<run#>` — one **minor ahead** of the newest stable |
 | GitHub release | normal | **pre-release** |
 | Metadata file | `latest.yml` | `beta.yml` |
 | Kiosk setting | `UPDATE_CHANNEL=latest` | `UPDATE_CHANNEL=beta` |
@@ -79,6 +79,25 @@ transfer only changed blocks).
   gets beta builds.
 - **Switching channels needs no rebuild** — set `UPDATE_CHANNEL` in the app's
   `.env` (or a real OS env var) and restart.
+
+> **A beta version must never trail the stable one.** The obvious
+> `X.Y.Z-beta.N` scheme is semver-LOWER than `X.Y.Z`, and that broke the beta
+> channel completely (fixed 2026-08-10): GitHub orders its release feed by
+> version, so the stable release sat above every beta; electron-updater's GitHub
+> provider takes the **first** feed entry whose tag is not another channel's
+> prerelease — a stable tag passes that test — then 404s on `beta.yml` at that
+> tag and **silently falls back to `latest.yml`**. Every beta kiosk therefore
+> "upgraded" itself onto the production build within a minute of being installed,
+> and stayed there (that build's `.env` says `UPDATE_CHANNEL=latest`). CI now
+> derives the beta version from the newest **stable release**, one minor ahead, so
+> the beta always sorts first in the feed and outranks production in semver. A
+> whole minor rather than a patch, because production cuts releases by bumping the
+> patch and would collide on the very next one.
+>
+> Related: `UpdateService` sets `allowDowngrade = false` **after**
+> `autoUpdater.channel`, because electron-updater's `channel` setter forces
+> `allowDowngrade = true`. Assigning them in the other order leaves every kiosk
+> willing to install an older build than the one it is running.
 
 ### 3.1 Update schedules (per channel)
 
@@ -116,8 +135,11 @@ UPDATE_BETA_INTERVAL_MIN=15   # minutes between checks (5-240); default 15
   to `main` (`npm version patch|minor|major --no-git-tag-version`). CI publishes
   that exact version. If the version is unchanged, the run is a **no-op** (it
   won't re-release an existing version).
-- **Beta:** CI appends `-beta.<github.run_number>` automatically, so every push
-  to `develop_1` yields a unique pre-release — you don't bump anything for beta.
+- **Beta:** CI computes the version automatically — the newest **stable** release
+  (or `package.json`, whichever is higher) with the **minor bumped** and
+  `-beta.<github.run_number>` appended, e.g. stable `5.0.18` → `5.1.0-beta.11`.
+  Every push to `develop_1` yields a unique pre-release that outranks production;
+  you don't bump anything for beta. See the callout in §3 for why this matters.
 
 ---
 

@@ -5,6 +5,7 @@ import { useLanguageStore } from '@renderer/store/languageStore';
 import { t } from '@renderer/lib/loc';
 import { hwaseongIconUrl } from '@renderer/assets/icons/hwaseong';
 import { useRotatingBanner } from '@renderer/hooks/useRotatingBanner';
+import { TAXFREE_PAGE_BASES, taxfreePageImg } from '@renderer/lib/taxfreePages';
 import { taxfreeUrl } from '@shared/constants/webEmbeds';
 import { trackEvent } from '@renderer/lib/analytics';
 import { HwaseongHeader } from './HwaseongHeader';
@@ -16,16 +17,10 @@ type TabId = 'refund' | 'intro' | 'merchant';
  *  `t()` resolves against the running kiosk's own table. */
 const TAB_KEYS = ['Taxfree_Apply', 'Taxfree_Introduce', 'Taxfree_Enroll'] as const;
 
-// Reuse the same tax-free service page images (identical service to insadong).
-const PAGE_IMGS = import.meta.glob<{ default: string }>(
-  '../../renderer/src/assets/photos/insadong/taxfree/pages/*.png',
-  { eager: true },
-);
-
-function pageImg(name: string): string | undefined {
-  const entry = Object.entries(PAGE_IMGS).find(([k]) => k.endsWith(`/${name}.png`));
-  return entry?.[1]?.default;
-}
+/** 화성휴게소 routes merchant sign-up through WIT GLOBAL, not insadong's
+ *  보존회, so its 가맹점 신청 page differs; everything else falls through to
+ *  the shared set. */
+const VARIANT = 'wit';
 
 function TaxRefundInfo({
   lang,
@@ -35,8 +30,8 @@ function TaxRefundInfo({
   onGoToWebview: () => void;
 }): JSX.Element {
   const [page, setPage] = useState(0);
-  const p1Src = pageImg(`tab1-p1-${lang}`);
-  const p2Src = pageImg(`tab1-p2-${lang}`);
+  const p1Src = taxfreePageImg('tab1-p1', lang, VARIANT);
+  const p2Src = taxfreePageImg('tab1-p2', lang, VARIANT);
 
   return (
     <div className={styles.refundInfo}>
@@ -69,7 +64,7 @@ function TaxRefundInfo({
 }
 
 function MerchantTab({ lang }: { lang: SupportedLanguage }): JSX.Element {
-  const src = pageImg(`tab3-${lang}`);
+  const src = taxfreePageImg('tab3', lang, VARIANT);
   return (
     <div className={styles.merchant}>
       {src && <img src={src} className={styles.pageImg} alt="" draggable={false} />}
@@ -107,8 +102,8 @@ export function HwaseongTaxFree({ controller }: Props): JSX.Element {
   }, []);
 
   useEffect(() => {
-    for (const name of [`tab1-p1-${lang}`, `tab1-p2-${lang}`, `tab3-${lang}`]) {
-      const src = pageImg(name);
+    for (const base of TAXFREE_PAGE_BASES) {
+      const src = taxfreePageImg(base, lang, VARIANT);
       if (src) {
         const img = new Image();
         img.src = src;
