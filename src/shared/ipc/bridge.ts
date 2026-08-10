@@ -143,7 +143,6 @@ export interface KioskBridge {
   language: {
     get(): Promise<Result<SupportedLanguage>>;
     set(language: SupportedLanguage): Promise<Result<SupportedLanguage>>;
-    getAvailable(): Promise<Result<SupportedLanguage[]>>;
   };
   weather: {
     get(): Promise<Result<WeatherSnapshot | null>>;

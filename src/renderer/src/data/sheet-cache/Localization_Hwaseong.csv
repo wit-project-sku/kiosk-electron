@@ -15,7 +15,7 @@ O","お
 "145","Language_Content","* 4개국어 서비스를 제공합니다. 언어를 선택해주세요","* Choose Language","* Choose Language","* Choose Language","Chúng tôi cung cấp dịch vụ bằng 4 ngôn ngữ. Vui lòng chọn ngôn ngữ.","Kami menawarkan layanan dalam 4 bahasa. Silakan pilih bahasa.","เราให้บริการใน 4 ภาษา โปรดเลือกภาษา","Мы предоставляем услуги на 4 языках. Пожалуйста, выберите язык.","",""
 "143","Language_Now_Language","현재 언어","Now Language","Now Language","Now Language","Ngôn ngữ hiện tại","Bahasa saat ini","ภาษาปัจจุบัน","Текущий язык","",""
 "144","Language_Target_Language","변경 언어","Change Language","Change Language","Change Language","Thay đổi ngôn ngữ","Ubah bahasa","เปลี่ยนภาษา","Изменить язык","",""
-"1704","MainButton_TrafficInfo","도로 교통상황","Traffic Info","Traffic Info","Traffic Info","Điều kiện giao thông đường bộ","Kondisi lalu lintas jalan","สภาพการจราจรบนถนน","Условия дорожного движения","",""
+"1704","MainButton_TrafficInfo","도로 교통상황","Traffic Info","Traffic Info","Traffic Info","Tình trạng giao thông đường bộ","Kondisi lalu lintas jalan raya","สภาพการจราจรบนถนน","Условия дорожного движения","",""
 "3","MainButton_Goods","(준비중)","Witteria","Witteria","Witteria","(chuẩn bị)","(mempersiapkan)","(เตรียมการ)","(подготовка)","",""
 "5","MainButton_Event","화성시 이벤트","Events","イベント","推荐活动","Sự kiện thành phố Hwaseong","Acara Kota Hwaseong","กิจกรรมเมืองฮวาซอง","Мероприятие в городе Хвасон","",""
 "2","MainButton_ToEat","'휴' 뭐먹지","To eat","飲食店の","我们吃什么呢？","Ôi trời, mình nên ăn gì đây?","Wah, aku harus makan apa?","เฮ้อ ฉันควรจะกินอะไรดีเนี่ย?","Фух, что же мне съесть?","",""
@@ -32,6 +32,7 @@ O","お
 "1701","MainButton_KCulture","K-컬쳐(준비중)","K-Culture(Preparing)","K-Culture(Preparing)","K-Culture(Preparing)","Văn hóa Hàn Quốc (Sắp ra mắt)","K-Culture (Segera Hadir)","วัฒนธรรมเกาหลี (เร็วๆ นี้)","K-Culture (Скоро)","",""
 "4","MainButton_MarketPaper","지역화폐","Local Currency","ちいきの おかね","地区货币","tiền tệ địa phương","mata uang lokal","สกุลเงินท้องถิ่น","местная валюта","",""
 "14","MainButton_SmartTour","스마트관광(준비중)","Smart Tourism (Preparing)","スマート観光（準備中）","智慧旅游（准备中）","Du lịch thông minh (Đang trong quá trình phát triển)","Pariwisata Cerdas (Dalam pengembangan)","การท่องเที่ยวอัจฉริยะ (อยู่ระหว่างการพัฒนา)","«Умный туризм» (в стадии разработки)","",""
+"","MainButton_Donation","기부","Donation","寄付","捐款","Quyên góp","Donasi","บริจาค","Пожертвование","",""
 "15","MainButton_Hanbok","한복설명","Hanbok","韓服","韩服","Giải thích về Hanbok","Penjelasan Hanbok","คำอธิบายเกี่ยวกับชุดฮันบก","пояснение к ханбоку","",""
 "50","Here_IsOsaek","여기는 화성휴게소 (목포방향)","Welcome to Hwaseong Service Area (Mokpo-bound)","ここは華城(ファソン)サービスエリア (木浦方面)です","这里是华城休息站（木浦方向）","Đây là khu nghỉ dưỡng Hwaseong (hướng Mokpo).","Ini adalah Area Istirahat Hwaseong (arah Mokpo)","นี่คือจุดพักรถฮวาซอง (ฝั่งมุ่งหน้าไปมกโพ)","Это зона отдыха Хвасон (в направлении Мокпо).","",""
 "51","Here_History","주요 특징 및 테마 ","Key Features & Themes","主な特徴とテーマ","主要特色与主题","Các tính năng và chủ đề chính","Fitur dan Tema Utama","คุณสมบัติหลักและธีม","Основные особенности и темы","",""
@@ -64,7 +65,7 @@ Toppingnya terlihat luar biasa, dan supnya terasa mengenyangkan, langsung menghi
 
 Anda pasti bisa menghabiskan seluruh mangkuknya!
 
-Sundubu Cheonggukjang: Kelembutan yang sempurna, menggabungkan rasa gurih yang kaya khas Cheonggukjang dengan tahu lembut yang mengembang.
+Sundubu Cheonggukjang: Kelembutan yang sempurna, menggabungkan rasa gurih yang khas dari Cheonggukjang dengan tahu lembut yang mengembang.
 
 Rasa umaminya luar biasa, menjadikannya pengisap nasi yang akan dinikmati semua orang dan dengan mudah menghabiskan semangkuk nasi.","ซุนแดกุกบับ: น้ำซุปเข้มข้นมาก ไม่ธรรมดาเลย
 
@@ -107,7 +108,7 @@ Các tiện ích khác: Có phòng cho con bú, cửa hàng tiện lợi, trạm
 
 Thông tin vị trí
 
-Tuyến đường: Đường cao tốc Bờ Tây (Quốc lộ số 15)
+Tuyến đường: Đường cao tốc bờ Tây (Quốc lộ số 15)
 
 Vị trí: Paltan-myeon, Hwaseong-si, Gyeonggi-do
 
@@ -160,7 +161,7 @@ Menuju Mokpo: Area istirahat berikutnya adalah Area Istirahat Haengdamdo","ส�
 "69","Greeting_MBTI","MBTI","MBTI","MBTI","MBTI","MBTI","MBTI","MBTI","MBTI","",""
 "70","Greeting_MBTIContent","ENTP (당당하고 창의적인)","ENTP","ENTP","ENTP","ENTP (Tự tin và Sáng tạo)","ENTP (Percaya Diri dan Kreatif)","ENTP (มั่นใจและสร้างสรรค์)","ENTP (Уверенный и Креативный)","",""
 "71","Greeting_BodyInfo","신체","Body","体型","身材","thân hình","tubuh","ร่างกาย","тело","",""
-"72","Greeting_BodyInfoContent","170cm, 34-25-35, 240mm (몸무게는 비밀…)","170cm, 34-25-35, 240mm (Weight is a secret!)","170cm, 34-25-35, 240mm (体重は秘密！)","170cm, 34-25-35, 240mm (体重是秘密哦！)","170cm, 34-25-35, 240mm (Cân nặng là bí mật…)","170cm, 34-25-35, 240mm (Beratnya dirahasiakan…)","ส่วนสูง 170 ซม., รอบอก 34-25-35, ความกว้าง 240 มม. (น้ำหนักเป็นความลับ…)","170 см, 34-25-35, 240 мм (Вес — секрет…)","",""
+"72","Greeting_BodyInfoContent","170cm, 34-25-35, 240mm (몸무게는 비밀…)","170cm, 34-25-35, 240mm (Weight is a secret!)","170cm, 34-25-35, 240mm (体重は秘密！)","170cm, 34-25-35, 240mm (体重是秘密哦！)","170cm, 34-25-35, 240mm (Cân nặng là bí mật…)","170cm, 34-25-35, 240mm (Beratnya dirahasiakan…)","ส่วนสูง 170 ซม., รอบอก 34-25-35, รอบเอว 240 มม. (น้ำหนักเป็นความลับ…)","170 см, 34-25-35, 240 мм (Вес — секрет…)","",""
 "73","Greeting_Hobby","특기","Specialties","特技","特长","Kỹ năng đặc biệt","Keahlian khusus","ทักษะพิเศษ","Особый навык","",""
 "74","Greeting_HobbyContent","다양한 나라의 언어 능력, 댄스, 노래 등","Multilingual skills, dancing, singing, etc.","多様な言語能力、ダンス、歌など","多国语言能力、舞蹈、唱歌等","Khả năng ngoại ngữ từ nhiều quốc gia, khiêu vũ, ca hát, v.v.","Kemampuan berbahasa dari berbagai negara, menari, menyanyi, dan lain sebagainya.","ทักษะด้านภาษาจากหลากหลายประเทศ การเต้นรำ การร้องเพลง เป็นต้น","Знание языков разных стран, танцы, пение и т.д.","",""
 "75","Greeting_Specialty","취미","Hobbies","趣味","兴趣","sở thích","hobi","งานอดิเรก","хобби","",""
@@ -187,13 +188,13 @@ Saya menikmati kehidupan kampus yang penuh semangat, menciptakan nilai baru mela
 최근에는 런닝을 시작했어요 우리 함게 달려보아요","Tennis and golf are core to my ""God-saeng"" routine. Dancing to K-POP in the studio helps me destress and fully recharges my energy—it's so much fun!
 I've started running lately—let's run together!","テニスとゴルフは私の「ガッセン」ルーティンの要。ストレスが溜まった時は練習室でK-POPダンスを踊って汗を流せば、エネルギーがフルチャージされる気分で本当に楽しいよ！
 さいきんは らんにんぐを はじめました！ いっしょに はしりましょう。","网球和高尔夫是我“极简自律”生活的核心。压力大时在练习室跳 K-POP 舞蹈挥洒汗水，感觉能量瞬间充满，真的超级开心！
-最近我开始跑步啦！我们一起奔跑吧。","Quần vợt và golf là cốt lõi trong ""cuộc sống thần thánh"" của tôi. Khi căng thẳng, tôi rất thích đổ mồ hôi khi nhảy K-POP ở phòng tập; cảm giác như năng lượng dồi dào của tôi được nạp đầy trở lại!
+最近我开始跑步啦！我们一起奔跑吧。","Quần vợt và golf là cốt lõi trong cuộc sống thường nhật tuyệt vời của tôi. Khi căng thẳng, tôi thích đổ mồ hôi bằng cách nhảy K-POP ở phòng tập; cảm giác như năng lượng dồi dào của tôi được nạp đầy trở lại!
 
-Gần đây tôi bắt đầu chạy bộ. Cùng chạy với nhau nhé!","Tenis dan golf adalah inti dari rutinitas ""kehidupan rohani"" saya. Saat stres, saya sangat menikmati berolahraga sambil menari K-POP di ruang latihan; rasanya energi saya yang tak habis-habisnya terisi penuh!
+Gần đây tôi bắt đầu chạy bộ. Cùng chạy với nhau nhé!","Tenis dan golf adalah inti dari rutinitas hidup saya yang luar biasa. Saat stres, saya suka berolahraga dengan menari K-POP di ruang latihan; rasanya energi saya yang tak pernah habis terisi penuh!
 
-Baru-baru ini saya mulai berlari. Mari kita lari bersama!","เทนนิสและกอล์ฟเป็นหัวใจหลักของกิจวัตร ""ชีวิตที่แสนสุข"" ของฉัน เวลาเครียด ฉันชอบไปออกกำลังกายด้วยการเต้น K-POP ในห้องซ้อม รู้สึกเหมือนพลังงานที่ไม่มีวันหมดของฉันได้รับการเติมเต็มอย่างเต็มที่!
+Baru-baru ini saya mulai berlari. Mari kita lari bersama!","เทนนิสและกอล์ฟเป็นหัวใจหลักของกิจวัตรชีวิตที่ยอดเยี่ยมของฉัน เวลาเครียด ฉันชอบไปออกกำลังกายด้วยการเต้น K-POP ในห้องซ้อม รู้สึกเหมือนพลังงานที่ไม่มีวันหมดของฉันได้รับการเติมเต็มอย่างเต็มที่!
 
-เมื่อเร็วๆ นี้ฉันเริ่มวิ่งแล้ว มาวิ่งด้วยกันเถอะ!","Теннис и гольф — основа моей ""божественной"" жизни. Когда я испытываю стресс, мне очень нравится хорошенько попотеть, танцуя K-POP в тренировочном зале; это как будто моя неиссякаемая энергия полностью восстанавливается!
+เมื่อเร็วๆ นี้ฉันเริ่มวิ่งแล้ว มาวิ่งด้วยกันเถอะ!","Теннис и гольф — основа моей потрясающей жизни. Когда я испытываю стресс, я обожаю хорошенько попотеть, танцуя K-POP в тренировочном зале; это как будто моя неиссякаемая энергия полностью восстанавливается!
 
 Недавно я начала бегать. Давайте побегаем вместе!","",""
 "89","Greeting_Stretching_First","뻐근한 목과 어깨를 위한 스트레칭 타임","Stretching time for stiff neck and shoulders","せなかの つかれに さようなら！ えねるぎい あっぷ すとれっちの じかん","告别腰背疲劳！活力满满的拉伸时间","Bài tập giãn cơ giúp giảm cứng cổ và vai.","Waktu peregangan untuk leher dan bahu yang kaku","ช่วงเวลาแห่งการยืดกล้ามเนื้อสำหรับอาการคอและไหล่แข็ง","Растяжка при затекшей шее и плечах.","",""
@@ -235,7 +236,7 @@ Mari kita coba beberapa latihan sederhana bersama dengan ‘Hue’.","เมื�
 
 Nạp lại năng lượng và bắt đầu chuyến đi với nhiều hứng khởi hơn.
 
-Sao không thử nghỉ ngơi một chút nhỉ?","Peregangan tidak hanya menyegarkan tubuh tetapi juga pikiran Anda!
+Sao không thử nghỉ ngơi một chút nhỉ?","Peregangan tidak hanya menyegarkan tubuh, tetapi juga pikiran Anda!
 
 Isi ulang energi Anda dan berpetualanglah dengan lebih banyak kegembiraan.
 
@@ -254,7 +255,7 @@ Bagaimana kalau beristirahat sejenak?","การยืดเหยียดร�
 "117","MarketPaper_Onnuri_Content_1_1","전국 16개 금융기관에서 5천원, 1만원, 3만원권 단위로 구매하여 사용하는 온누리상품권","Onnuri Gift Certificates available in 5,000, 10,000, and 30,000 won denominations at 16 banks nationwide.","ぜんこく じゅうろくの きんゆう きかんで ごせんうぉん、いちまんうぉん、さんまんうぉん たんいで かって つかう おんぬり しょうひんけん","可在全国16家金融机构购买，面额分为5千、1万、3万韩元的稳楼里商品券。","Phiếu quà tặng Onnuri, được mua và sử dụng với các mệnh giá 5.000, 10.000 và 30.000 won tại 16 tổ chức tài chính trên toàn quốc.","Sertifikat Hadiah Onnuri, dapat dibeli dan digunakan dalam nominal 5.000, 10.000, dan 30.000 won di 16 lembaga keuangan di seluruh negeri.","บัตรของขวัญ Onnuri สามารถซื้อและใช้ได้ในราคา 5,000, 10,000 และ 30,000 วอน ที่สถาบันการเงิน 16 แห่งทั่วประเทศ","Подарочные сертификаты Onnuri номиналом 5000, 10000 и 30000 вон были приобретены и использованы в 16 финансовых учреждениях по всей стране.","",""
 "117","MarketPaper_Onnuri_Content_2","지류상품권 권종","Paper voucher denominations","かみの しょうひんけんの しゅるい","纸质商品券面额","Các mệnh giá phiếu quà tặng bằng giấy","Nominal sertifikat hadiah kertas","มูลค่าของบัตรของขวัญกระดาษ","номиналы бумажных подарочных сертификатов","",""
 "117","MarketPaper_Onnuri_Content_3","디지털 온누리상품권이란?","What is Digital Onnuri Gift Certificate?","でじたある おんぬり しょうひんけんとは？","什么是数字稳楼里商品券？","Phiếu quà tặng điện tử Onnuri là gì?","Apa itu Sertifikat Hadiah Digital Onnuri?","บัตรของขวัญดิจิทัล Onnuri คืออะไร?","Что такое цифровой подарочный сертификат Onnuri?","",""
-"117","MarketPaper_Onnuri_Content_3_1","디지털 온누리상품권 앱 설치 후 기존 갖고 있는 카드를 등록하고 금액 충전 후, 실물카드 또는 QR코드 결제 방식으로 이용 가능한 온누리상품권","An Onnuri Gift Certificate that can be used via physical card or QR code after installing the Digital Onnuri App, registering your existing card, and charging the balance.","でじたある おんぬり しょうひんけん あぷりを いれ、もっている かあどを とうろくして おかねを いれたあと、かあどや きゅうあある こおどで つかえる おんぬり しょうひんけん","安装数字稳楼里商品券App并绑定现有银行卡充值后，可通过实体卡或二维码支付使用的稳楼里商品券。","Phiếu quà tặng Onnuri có thể được sử dụng bằng thẻ vật lý hoặc thanh toán qua mã QR sau khi cài đặt ứng dụng Phiếu quà tặng kỹ thuật số Onnuri, đăng ký thẻ hiện có và nạp tiền vào tài khoản.","Sertifikat Hadiah Onnuri yang dapat digunakan melalui kartu fisik atau pembayaran kode QR setelah menginstal aplikasi Sertifikat Hadiah Digital Onnuri, mendaftarkan kartu Anda yang sudah ada, dan mengisi saldo.","บัตรของขวัญ Onnuri สามารถใช้ได้ทั้งแบบบัตรจริงหรือชำระเงินผ่านคิวอาร์โค้ด หลังจากติดตั้งแอปพลิเคชัน Digital Onnuri Gift Certificate ลงทะเบียนบัตรที่มีอยู่ และเติมเงินในบัตรแล้ว","Подарочные сертификаты Onnuri, которые можно использовать для оплаты физической картой или QR-кодом после установки приложения Digital Onnuri Gift Certificate, регистрации существующей карты и пополнения баланса.","",""
+"117","MarketPaper_Onnuri_Content_3_1","디지털 온누리상품권 앱 설치 후 기존 갖고 있는 카드를 등록하고 금액 충전 후, 실물카드 또는 QR코드 결제 방식으로 이용 가능한 온누리상품권","An Onnuri Gift Certificate that can be used via physical card or QR code after installing the Digital Onnuri App, registering your existing card, and charging the balance.","でじたある おんぬり しょうひんけん あぷりを いれ、もっている かあどを とうろくして おかねを いれたあと、かあどや きゅうあある こおどで つかえる おんぬり しょうひんけん","安装数字稳楼里商品券App并绑定现有银行卡充值后，可通过实体卡或二维码支付使用的稳楼里商品券。","Sau khi cài đặt ứng dụng Phiếu quà tặng điện tử Onnuri, đăng ký thẻ hiện có và nạp tiền vào tài khoản, bạn có thể sử dụng Phiếu quà tặng Onnuri thông qua thẻ vật lý hoặc thanh toán bằng mã QR.","Setelah menginstal aplikasi Digital Onnuri Gift Certificate, daftarkan kartu Anda yang sudah ada, dan isi ulang saldo, Anda dapat menggunakan Onnuri Gift Certificate melalui kartu fisik atau pembayaran kode QR.","หลังจากติดตั้งแอปพลิเคชันบัตรของขวัญดิจิทัล Onnuri แล้ว ให้ลงทะเบียนบัตรที่มีอยู่ของคุณและเติมเงิน คุณสามารถใช้บัตรของขวัญ Onnuri ผ่านบัตรจริงหรือการชำระเงินด้วยรหัส QR ได้","После установки приложения Digital Onnuri Gift Certificate, регистрации существующей карты и пополнения баланса вы сможете использовать подарочный сертификат Onnuri с помощью физической карты или QR-кода.","",""
 "117","MarketPaper_Onnuri_Content_3_2","상품권 금액의 10% 할인가로 충전 가능! 최대 보유한도금액은 200만원입니다.","Recharge at a 10% discount! The maximum holding limit is 2 million won.","しょうひんけんの じゅっぱあせんと わりびきで ちゃあじ できる！ さいだい ほゆう げんどがくは にひゃくまんうぉんです。","可享受10%折扣充值！最大持有金额为200万韩元。","Bạn có thể nạp tiền vào tài khoản với mức chiết khấu 10% trên giá trị phiếu quà tặng! Số dư tối đa là 2 triệu won.","Anda bisa melakukan top up dengan diskon 10% dari nilai voucher hadiah! Batas saldo maksimal adalah 2 juta won.","คุณสามารถเติมเงินได้ในราคาลด 10% จากมูลค่าบัตรของขวัญ! วงเงินสูงสุดคือ 2 ล้านวอน","Вы можете пополнить счет со скидкой 10% от суммы подарочного сертификата! Максимальный лимит баланса — 2 миллиона вон.","",""
 "117","MarketPaper_Onnuri_Content_3_3","※ 단, 예산소진 상황에 따라 특별판매 내용 및 기간이 변경될 수 있습니다.","※ Note: Special sale details and periods are subject to change depending on budget exhaustion.","※ ただし、よさんが なくなり しだい、とくべつ はんばいの ないようや きかんが かわる ことが あります。","※ 注：特别销售内容及期限可能会根据预算消耗情况有所变更。","※ Tuy nhiên, chi tiết và thời gian của chương trình khuyến mãi đặc biệt có thể thay đổi tùy thuộc vào tình trạng hết ngân sách.","※ Namun, detail dan durasi penjualan khusus dapat berubah tergantung pada status habisnya anggaran.","※ อย่างไรก็ตาม รายละเอียดและระยะเวลาของการขายพิเศษอาจมีการเปลี่ยนแปลงได้ ขึ้นอยู่กับสถานะการใช้งบประมาณ","※ Однако детали и продолжительность специальной распродажи могут быть изменены в зависимости от состояния бюджета.","",""
 "117","MarketPaper_Onnuri_Content_4","온누리상품권 사용처","Where to use Onnuri Gift Certificates","おんぬり しょうひんけんが つかえる ところ","稳楼里商品券使用处","Những địa điểm có thể sử dụng Phiếu quà tặng Onnuri.","Tempat-tempat di mana Sertifikat Hadiah Onnuri dapat digunakan","สถานที่ที่สามารถใช้บัตรของขวัญ Onnuri ได้","Места, где можно использовать подарочные сертификаты Onnuri","",""
@@ -338,7 +339,7 @@ Yang dibatasi: Toko serba ada, hypermarket, tempat hiburan, usaha dengan penjual
 ","仅限在年销售额10亿韩元以下的小微企业店铺使用。
 这是可在加油站、传统市场、健身房、诊所、便利店、补习班、美容院、动物医院等场所使用的华城市市场货币。","Trạm xăng · Chợ truyền thống · Khu phố thương mại · Cơ sở kinh doanh giải trí (phòng tập thể dục, phòng tập Pilates, bể bơi, sân tập golf, sân bowling) · Bệnh viện và phòng khám (phòng khám nha khoa, phòng khám y học cổ truyền Hàn Quốc, v.v.) · Cửa hàng tiện lợi · Học viện (học viện dạy nghề, trung tâm dạy kèm, v.v.) · Y tế và vệ sinh công cộng (cửa hàng kính mắt, thẩm mỹ viện, v.v.) · Các cơ sở y tế khác (phòng khám thú y, v.v.)","Pompa bensin · Pasar tradisional · Kawasan komersial gang · Bisnis rekreasi (pusat kebugaran, studio Pilates, kolam renang, lapangan latihan golf, arena bowling) · Rumah sakit dan klinik (klinik gigi, klinik pengobatan Korea, dll.) · Toko serba ada · Akademi (akademi kejuruan, akademi bimbingan belajar, dll.) · Kesehatan dan kebersihan masyarakat (ahli kacamata, salon kecantikan, dll.) · Lembaga medis lainnya (klinik hewan, dll.)","สถานีบริการน้ำมัน · ตลาดแบบดั้งเดิม · ย่านการค้าในซอย · สถานประกอบการเพื่อการพักผ่อนหย่อนใจ (เช่น โรงยิม สตูดิโอพิลาทิส สระว่ายน้ำ สนามฝึกซ้อมกอล์ฟ สนามโบว์ลิ่ง) · โรงพยาบาลและคลินิก (เช่น คลินิกทันตกรรม คลินิกแพทย์แผนเกาหลี เป็นต้น) · ร้านสะดวกซื้อ · สถาบันการศึกษา (เช่น สถาบันอาชีวศึกษา สถาบันกวดวิชา เป็นต้น) · สถานพยาบาลและสุขอนามัย (เช่น ร้านแว่นตา ร้านเสริมสวย เป็นต้น) · สถานพยาบาลอื่นๆ (เช่น คลินิกสัตวแพทย์ เป็นต้น)","Автозаправочные станции · Традиционные рынки · Торговые кварталы в переулках · Развлекательные заведения (тренажерные залы, студии пилатеса, бассейны, поля для гольфа, боулинг) · Больницы и клиники (стоматологические клиники, клиники корейской медицины и т. д.) · Магазины шаговой доступности · Академии (профессиональные училища, учебные центры и т. д.) · Центры общественного здравоохранения и гигиены (офтальмологи, салоны красоты и т. д.) · Другие медицинские учреждения (ветеринарные клиники и т. д.)","",""
 "126","MarketPaper_SubHeader","화성시에서 사용할 수 있는 지역화폐 입니다.","A local currency that can be used in Hwaseong City.","ふぁそんしで つかえる ちいきの おかねです。","这是可以在华城市使用的地区货币。","Đây là đơn vị tiền tệ địa phương có thể được sử dụng tại thành phố Hwaseong.","Ini adalah mata uang lokal yang dapat digunakan di Kota Hwaseong.","นี่คือสกุลเงินท้องถิ่นที่สามารถใช้ได้ในเมืองฮวาซอง","Это местная валюта, которую можно использовать в городе Хвасон.","",""
-"127","MarketPaper_ButtonText","준비중","Coming soon","準備中","敬请期待","chuẩn bị","mempersiapkan","เตรียม","подготовка","",""
+"127","MarketPaper_ButtonText","준비중","Coming soon","準備中","敬请期待","chuẩn bị","mempersiapkan","เตรียมการ","подготовка","",""
 "128","Photo_HanbokTry","<AR 한복체험>  ","<AR Hanbok Try-On>","<AR 韓服 体験>","<AR 韩服 体验>","Trải nghiệm Hanbok AR","Pengalaman Hanbok AR","ประสบการณ์ AR Hanbok","AR Hanbok Experience","",""
 "1621","SubHeader_Photo","한복에서 브랜드의상 & K-컬처의상까지 체험하세요 ","Try Hanbok, casuals, brands & K-culture fits!","韓服から日常着、ブランドやKカルチャー衣装までフル体験！","尽情体验韩服、日常穿搭、品牌及K-culture服饰！","Khám phá mọi thứ từ Hanbok đến quần áo hàng hiệu và trang phục mang đậm văn hóa K-pop.","Temukan berbagai pilihan, mulai dari Hanbok hingga pakaian bermerek dan busana budaya Korea.","สัมผัสประสบการณ์ทุกอย่าง ตั้งแต่ชุดฮันบก เสื้อผ้าแบรนด์เนม ไปจนถึงเครื่องแต่งกายสไตล์วัฒนธรรมเกาหลี","Здесь вы найдете все: от традиционной корейской одежды ханбок до брендовой одежды и нарядов в стиле корейской культуры.","",""
 "129","Photo_HanbokSelect","한복/의상 선택하기","Choose Hanbok","韓服を選ぶ","选择韩服","Chọn Hanbok/Trang phục","Pilih Hanbok/Pakaian","เลือกชุดฮันบก/ชุดแต่งกาย","Выберите ханбок/костюм","",""
@@ -683,7 +684,7 @@ Kontak: company@wittworldwide.com
 
 В принципе, мы не предоставляем персональную информацию пользователей третьим лицам. Однако предоставление персональной информации может осуществляться только в следующих случаях:
 
-Юридическое обязательство: когда это требуется законом или в соответствии с юридическими процедурами.
+Юридическое обязательство: когда это требуется законом или в соответствии с правовыми процедурами.
 
 Аффилированные компании для предоставления услуг: минимальное количество персональной информации может быть передано при сотрудничестве с внешними компаниями, необходимыми для предоставления функций и проведения рекламных акций.
 
@@ -711,7 +712,7 @@ Kontak: company@wittworldwide.com
 
 ","",""
 "136","Photo_Start","촬영시작","Start Shooting","撮影開始","开始拍摄","Bắt đầu quay phim","Mulai syuting","เริ่มถ่ายทำ","Начать съемку","",""
-"1622","SubHeader_PhotoResult","의상을 이쁘게 입고 나왔어요^^ 핸드폰에 저장해가세요 ","Looking great! Save it to your phone.","衣装バッチリ！スマホに保存してね。","穿搭超好看！快保存到手机吧。","Mình diện một bộ đồ rất xinh ^^ Hãy lưu ảnh này vào điện thoại nhé.","Aku keluar mengenakan pakaian yang cantik^^ Tolong simpan ini ke ponselmu.","ฉันออกมาในชุดที่สวยมากเลย^^ ช่วยเซฟรูปนี้ลงโทรศัพท์ของคุณด้วยนะคะ","Я вышла в очень красивом наряде^^ Пожалуйста, сохраните это на свой телефон.","",""
+"1622","SubHeader_PhotoResult","의상을 이쁘게 입고 나왔어요^^ 핸드폰에 저장해가세요 ","Looking great! Save it to your phone.","衣装バッチリ！スマホに保存してね。","穿搭超好看！快保存到手机吧。","Mình diện một bộ đồ rất xinh ^^ Hãy lưu ảnh này vào điện thoại nhé.","Aku keluar mengenakan pakaian yang cantik^^ Tolong simpan ini di ponselmu.","ฉันออกมาในชุดที่สวยมากเลย^^ ช่วยเซฟรูปนี้ไว้ในโทรศัพท์ด้วยนะคะ","Я вышла в очень красивом наряде^^ Пожалуйста, сохраните это на свой телефон.","",""
 "137","Photo_QRExplain","저장하기 버튼클릭 
 <color=#1A4D7E>QR을 카메라로 찍어주세요!</color>","To save your photo, 
 <color=#1A4D7E>scan the QR!</color>","写真を保存するには
@@ -764,7 +765,7 @@ please include the hashtags #WITH #HanbokFittingKIOSK. ^^","はんぼくは な�
 
 Được coi là một trong những biểu tượng đại diện cho văn hóa Hàn Quốc bởi vẻ đẹp vốn có và thiết kế độc đáo, Hanbok chủ yếu được mặc trong các sự kiện đặc biệt hoặc ngày lễ.
 
-Không giống như trang phục phương Tây thẳng tắp, Hanbok được đặc trưng bởi những đường nét mềm mại và phần váy xòe rộng.
+Không giống như trang phục phương Tây thẳng tắp, Hanbok được đặc trưng bởi những đường nét mềm mại, uyển chuyển và phần váy xòe rộng.
 
 Theo truyền thống, màu sắc của Hanbok được lựa chọn khác nhau tùy theo địa vị xã hội, độ tuổi và mùa, và sự kết hợp màu sắc phản ánh cá tính của người mặc và dịp lễ.
 
@@ -827,6 +828,11 @@ Dan mohon simpan foto-foto tersebut ke ponsel Anda melalui kode QR. ^^
 "152","SubHeader_AISearch","","","","","","","","","",""
 "153","SubHeader_AICourse","","","","","","","","","",""
 "154","SubHeader_Event","* 진행중인 이벤트를 찾아보세요.","* Find events happening","*イベントを探してみてください","* 查找正在举行的活动","Tìm các sự kiện đang diễn ra.","Temukan acara yang sedang berlangsung.","ค้นหากิจกรรมที่กำลังจัดอยู่","Найдите информацию о текущих событиях.","",""
+"","Event_Tab_Hwaseong","화성시","Hwaseong","華城市","华城市","Thành phố Hwaseong","Kota Hwaseong","เมืองฮวาซอง","Хвасон","",""
+"","Event_Category_All","전체","All","全て","全部","Tất cả","Semua","ทั้งหมด","Все","",""
+"","Event_Category_performance","공연","Performance","公演","演出","Biểu diễn","Pertunjukan","การแสดง","Выступление","",""
+"","Event_Category_exibition","전시","Exhibition","展示","展览","Triển lãm","Pameran","นิทรรศการ","Выставка","",""
+"","Event_Category_etc","기타","Etc","その他","其他","Khác","Lainnya","อื่นๆ","Другое","",""
 "155","SubHeader_Exchange","환영합니다. 오늘의 환율 정보입니다. ","* Welcome. Here is today’s exchange rate","* ようこそ。本日の為替情報です","* 欢迎您。以下是今日汇率信息","Chào mừng. Dưới đây là thông tin tỷ giá hối đoái hôm nay.","Selamat datang. Berikut informasi nilai tukar hari ini.","ยินดีต้อนรับ นี่คือข้อมูลอัตราแลกเปลี่ยนประจำวันนี้","Добро пожаловать. Здесь представлена ​​информация о сегодняшнем обменном курсе.","",""
 "156","SubHeader_Detail","QR을 핸드폰으로 찍으시면 길을 안내해드려요","* Scan the QR with your phone. We’ll guide you","* スマホでQRを読み取ってください。ご案内します","* 用手机扫QR码，我们导航","Quét mã QR bằng điện thoại để xem chỉ đường.","Pindai kode QR dengan ponsel Anda untuk mendapatkan petunjuk arah.","สแกนคิวอาร์โค้ดด้วยโทรศัพท์ของคุณเพื่อดูเส้นทาง","Отсканируйте QR-код телефоном, чтобы получить указания.","",""
 "157","SubHeader_Detail_Event","QR코드로 이벤트의 상세정보를 확인하세요","* Scan the QR code for event details","* QRコードでイベントの詳細を確認してください","* 扫描二维码查看活动详情","Kiểm tra thông tin chi tiết sự kiện qua mã QR.","Cek detail acara melalui kode QR.","ตรวจสอบรายละเอียดกิจกรรมผ่านรหัส QR","Подробную информацию о мероприятии можно проверить с помощью QR-кода.","",""
@@ -844,10 +850,10 @@ Silakan siapkan struk pembelian dari toko dan pilih bahasa Anda.","เราช�
 โปรดเตรียมใบเสร็จรับเงินจากร้านค้าและเลือกภาษาของคุณ","Функция возврата средств TaxFree поможет вам снизить нагрузку.
 
 Пожалуйста, подготовьте чек из магазина и выберите язык.","",""
-"1599","SubHeader_ServiceArea","전국 휴게소 정보","","","","Thông tin về khu vực nghỉ ngơi trên toàn quốc","Informasi Area Istirahat Nasional","ข้อมูลจุดพักรถทั่วประเทศ","Информация о зонах отдыха по всей стране","",""
-"1598","SubHeader_TraditionalMarket","전국 전통시장 정보","","","","Thông tin về thị trường truyền thống quốc gia","Informasi Pasar Tradisional Nasional","ข้อมูลตลาดดั้งเดิมระดับชาติ","Национальная традиционная рыночная информация","",""
-"1597","SubHeader_TrafficInfo","도로교통상황 정보","","","","Thông tin về tình trạng giao thông đường bộ","Informasi kondisi lalu lintas jalan","ข้อมูลสภาพการจราจรบนถนน","Информация о дорожной обстановке","",""
-"1599","SubHeader_SAMap","화성유게소에 오신걸 환영합니다. 지도를 보고 찾아가세요 ","Welcome! Please check the map to find your way.","ちずを みて さがして みて ください。","欢迎来到华城休息站！请查看地图寻找路线。","Chào mừng đến với Hwaseong Yugeso. Vui lòng sử dụng bản đồ để tìm đường.","Selamat datang di Hwaseong Yugeso. Silakan gunakan peta untuk menemukan jalan Anda.","ยินดีต้อนรับสู่ฮวาซอง ยูเกโซ โปรดใช้แผนที่เพื่อหาทางไป","Добро пожаловать в Хвасон Югесо. Пожалуйста, воспользуйтесь картой, чтобы найти дорогу.","",""
+"1599","SubHeader_ServiceArea","전국 휴게소 정보","National Rest Area Information","全国サービスエリア情報","全国休息站信息","Thông tin về khu vực nghỉ ngơi trên toàn quốc","Informasi Area Istirahat Nasional","ข้อมูลจุดพักรถทั่วประเทศ","Информация о зонах отдыха по всей стране","",""
+"1598","SubHeader_TraditionalMarket","전국 전통시장 정보","National Traditional Market Information","全国伝統市場情報","全国传统市场信息","Thông tin về thị trường truyền thống quốc gia","Informasi Pasar Tradisional Nasional","ข้อมูลตลาดดั้งเดิมระดับชาติ","Национальная традиционная рыночная информация","",""
+"1597","SubHeader_TrafficInfo","도로교통상황 정보","Road Traffic Information","道路交通状況情報","道路交通状况信息","Thông tin về tình trạng giao thông đường bộ","Informasi kondisi lalu lintas jalan","ข้อมูลสภาพการจราจรบนถนน","Информация о дорожной обстановке","",""
+"1599","SubHeader_SAMap","화성유게소에 오신걸 환영합니다. 지도를 보고 찾아가세요 ","Welcome! Please check the map to find your way.","ちずを みて さがして みて ください。","欢迎来到华城休息站！请查看地图寻找路线。","Chào mừng đến với Hwaseong Yugeso. Vui lòng sử dụng bản đồ để tìm đường.","Selamat datang di Hwaseong Yugeso. Silakan gunakan peta untuk menemukan jalan Anda.","ยินดีต้อนรับสู่หมู่บ้านฮวาซอง ยูเกโซ โปรดใช้แผนที่เพื่อนำทาง","Добро пожаловать в Хвасон Югесо. Пожалуйста, воспользуйтесь картой, чтобы найти дорогу.","",""
 "160","AI_SubmitButton","휴'에게 추천받기","Get recommendations from Hue","ひゅーに おすすめして もらう","获取Hue的推荐","Nhận lời giới thiệu từ Hugh","Dapatkan rekomendasi dari Hugh","ขอคำแนะนำจากฮิวจ์","Получите рекомендацию от Хью.","",""
 "161","AI_CourseContent_1","맞춤 코스가 준비되었어요!","•  A personalized course is ready for you!","•  あなただけのカスタムコースが準備できました！","•  为你定制的专属路线已经准备好了！","Khóa học được thiết kế riêng đã sẵn sàng!","Kursus yang disesuaikan sudah siap!","หลักสูตรที่ปรับแต่งเฉพาะบุคคลพร้อมแล้ว!","Индивидуальный курс готов!","",""
 "162","AI_CourseContent_2","맞춤 코스에 따라 오색 시장을 즐겨보세요.","Enjoy Osaek Market with your personalized course","あなた専用のコースに沿ってオセク市場を楽しんでみてください","按照为你定制的路线，尽情畅游五色市场吧！","Hãy tận hưởng Chợ Osaek theo lộ trình được thiết kế riêng.","Nikmati Pasar Osaek sesuai dengan rencana perjalanan yang disesuaikan.","เพลิดเพลินไปกับตลาดโอแซกตามเส้นทางที่ปรับแต่งได้ตามความต้องการของคุณ","Насладитесь посещением рынка Осаек в рамках индивидуально разработанного маршрута.","",""
@@ -866,7 +872,7 @@ Silakan siapkan struk pembelian dari toko dan pilih bahasa Anda.","เราช�
 "178","Province_9","경상북도","Gyeongsangbuk-do","きょんさんぶくど","庆尚北道","Tỉnh Bắc Gyeongsang","Provinsi Gyeongsang Utara","จังหวัดคยองซังเหนือ","Провинция Северный Кёнсан","",""
 "179","Province_10","대구","Daegu","てぐ","大邱","daegu","daegu","แทกู","даэгу","",""
 "180","Province_11","전라북도","Jeollabuk-do","ちょるらぶくど","全罗北道","Jeollabuk-do","Jeollabuk-do","ชอลลาบุกโด","Чоллабукдо","",""
-"","Province_12","전주","","","","Jeonju","Jeonju","จอนจู","Чонджу","",""
+"","Province_12","전주","Jeonju","全州","全州","Jeonju","Jeonju","จอนจู","Чонджу","",""
 "181","Province_13","전라남도","Jeollanam-do","ちょるらなむど","全罗南道","Jeollanam-do","Jeollanam-do","ชอลลานัมโด","Чолланамдо","",""
 "182","Province_14","광주","Gwangju","くぁんじゅ","光州","gwangju","gwangju","กวางจู","Кванджу","",""
 "183","Province_15","경상남도","Gyeongsangnam-do","きょんさんなむど","庆尚南道","Gyeongsangnam-do","Kota Gyeongsangnam","จังหวัดคยองซังนัมโด","Кёнсаннамдо","",""
@@ -874,4 +880,4 @@ Silakan siapkan struk pembelian dari toko dan pilih bahasa Anda.","เราช�
 "185","Province_17","울산","Ulsan","うるさん","蔚山","Ulsan","Ulsan","อุลซาน","Ульсан","",""
 "186","Province_18","제주도","Jeju-do","ちぇじゅど","济州岛","đảo Jeju","Pulau Jeju","เกาะเชจู","остров Чеджу","",""
 "187","SmartTour_RecommendContentShowMore","더보기","See more","もっと みる","查看更多","xem thêm","lihat selengkapnya","ดูเพิ่มเติม","смотрите больше","",""
-"188","SmartTour_RecommendContent","추천 광광명소","","","","Các điểm tham quan du lịch được đề xuất","Objek wisata yang direkomendasikan","สถานที่ท่องเที่ยวแนะนำ","Рекомендуемые туристические достопримечательности","",""
+"188","SmartTour_RecommendContent","추천 관광명소","Recommended Tourist Attractions","おすすめ観光スポット","推荐旅游景点","Các điểm tham quan du lịch được đề xuất","Objek wisata yang direkomendasikan","สถานที่ท่องเที่ยวแนะนำ","Рекомендуемые туристические достопримечательности","",""

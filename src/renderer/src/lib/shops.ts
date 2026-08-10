@@ -61,8 +61,21 @@ export function searchShops(shops: Shop[], query: string, lang: Lang, limit = 60
   return scored.slice(0, limit).map((e) => e.shop);
 }
 
-/** Strip a leading "12-" group/order prefix from a category label. */
-export const stripPrefix = (s: string): string => s.replace(/^\s*\d+\s*-\s*/, '').trim();
+/**
+ * Strip a leading order prefix from a category label.
+ *
+ * The source data numbers categories for ordering, and the translators carried
+ * that number into the localized cells inconsistently — "1-안내소" (Korean),
+ * "1. ศูนย์ข้อมูล" (Thai), "5 bank" (Indonesian). All three forms are the same
+ * prefix, so all three are stripped.
+ *
+ * The bare-space form requires a NON-digit after it, so a name that legitimately
+ * starts with a number ("24시 편의점") is left alone. A trailing number
+ * ("Ngân hàng 5") is NOT stripped — that is bad source data, not a prefix, and
+ * guessing at it would risk mangling real names.
+ */
+export const stripPrefix = (s: string): string =>
+  s.replace(/^\s*\d+\s*(?:[-.)]+\s*|\s+(?=\D))/, '').trim();
 
 /** Keep a card's hashtag line compact — at most `max` tags so it never runs
  *  into the QR/photo. Shared by the 도와줘 / 뭐사지 / 전국시장 cards. */

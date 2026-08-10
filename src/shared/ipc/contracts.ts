@@ -286,11 +286,6 @@ export interface IpcContract {
     request: SupportedLanguage;
     response: Result<SupportedLanguage>;
   };
-  [IpcChannels.LanguageGetAvailable]: {
-    request: void;
-    response: Result<SupportedLanguage[]>;
-  };
-
   [IpcChannels.WeatherGet]: {
     request: void;
     response: Result<WeatherSnapshot | null>;

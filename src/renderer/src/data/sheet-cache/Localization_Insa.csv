@@ -1,4 +1,4 @@
-"운영팀> 2번 모니터> 유니티 프로그램 내용 Num","Key","Korean","English","Japanese","Chinese","Vietnamese","Thai","فريق العمليات > الشاشة 2 > محتوى برنامج يونيتي Russian","Indonesian","Description","구분(위치)"
+"운영팀> 2번 모니터> 유니티 프로그램 내용 Num","Key","Korean","English","Japanese","Chinese","Vietnamese","Thai","Команда управления > Монитор 2 > Содержание программы Unity Russian","Indonesian","Description","구분(위치)"
 "29","Notice","공
 지","I
 N
@@ -14,11 +14,10 @@ H
 Ú
  Ý","แ
 จ้
-ง","إ
-ع
-ل
-ا
-ن","I
+ง","И
+Н
+Ф
+О","I
 N
 F
 O","","메인A"
@@ -28,95 +27,95 @@ O","","메인A"
 할게요 <b>한복을 입어보세요~</b>","INSA will appear in a brand-new hanboks  by Park Sulnyeo!
 Get ready to enjoy the hanbok experience with all-new designs.","INSAはパク・スルニョによる全く新しい韓服（ハンボク）で登場します！ 新しいデザインの韓服体験をお楽しみに！","INSA
 将身着朴洙烈设计的全新韩服亮相！
-敬请期待全新设计的韩服体验！","Linh vật Insadong 'INSA' mặc Hanbok Bak Sul-nyeo xuất hiện! Chúng tôi sẽ giúp các bạn cùng trải nghiệm. Hãy thử Hanbok nhé~","มาสคอตอินซาดง 'INSA' สวมฮันบกพัคซุลนยอมาแล้ว! เราจะทำให้ทุกคนได้สัมผัสประสบการณ์นี้ มาลองสวมชุดฮันบกกัน~","تميمة إنسادونغ 'INSA' ترتدي هانبوك باك سول نيو! سنوفر لكم فرصة لتجربته أيضًا. جربوا ارتداء الهانبوك~","Maskot Insadong 'INSA' tampil pakai Hanbok Bak Sul-nyeo! Kami siapkan agar kalian juga bisa mencobanya. Ayo coba Hanbok~","","메인C"
-"134","Language_Select_Language","언어선택","Select Language","言語選択","选择语言","Chọn ngôn ngữ","เลือกภาษา","اختر اللغة","Pilih Bahasa","","아이콘03"
-"137","Language_Content","* 원하는 언어를 선택해 주세요.","* Service is available in 4 languages. Please select a language.","* 4ヶ国語に対応しています。言語を選択してください。","* 提供4种语言服务。请选择语言。","* Vui lòng chọn ngôn ngữ.","* มีให้บริการ 8 ภาษา โปรดเลือกภาษาที่ต้องการ","* الخدمة متوفرة بـ 8 لغات. يرجى اختيار اللغة.","* Silakan pilih bahasa.","","아이콘03"
-"135","Language_Now_Language","현재 언어","> Now Language","> Now Language","> Now Language","Ngôn ngữ hiện tại","ภาษาปัจจุบัน","اللغة الحالية","Bahasa Saat Ini","","아이콘03"
-"136","Language_Target_Language","변경 언어","> Change Language","> Change Language","> Change Language","Đổi ngôn ngữ","เปลี่ยนภาษา","تغيير اللغة","Ubah Bahasa","","아이콘03"
-"1","MainButton_AI"," '인사' 모하지(AI검색)","To do (Ai)","旅行先 おすすめ(Ai)","做什么比较好呢？(Ai)"," 'INSA' làm gì? (Tìm AI)"," 'INSA' ทำอะไรดี? (ค้นหา AI)","ماذا تفعل 'INSA'؟ (بحث AI)"," 'INSA' ngapain ya? (Cari AI)","","아이콘04"
-"16033","MainButton_Insarang","인사랑(준비중)","(Preparing)","(Preparing)","(Preparing)","Cùng INSA (Sắp)","กับ INSA (เร็วๆ นี้)","مع INSA (قريباً)","Bareng INSA (Segera)","","아이콘05"
-"5","MainButton_Event","인사동 이벤트","Events","おすすめイベント","推荐活动","Sự kiện Insadong","กิจกรรมอินซาดง","فعالية إنسادونغ","Event Insadong","","아이콘06"
-"2","MainButton_ToEat"," '인사' 뭐먹지?","To eat","飲食店のおすすめ","我们吃什么呢？"," 'INSA' ăn gì?"," 'INSA' กินอะไรดี?","'INSA' ماذا نأكل؟"," 'INSA' makan apa?","","아이콘07"
-"3","MainButton_ToBuy"," '인사' 뭐사지?","To buy","お買い物 おすすめ","我们买什么呢？"," 'INSA' mua gì?"," 'INSA' ซื้ออะไรดี?","'INSA' ماذا نشتري؟"," 'INSA' beli apa?","","아이콘08"
-"4","MainButton_ToGallery","인사동 미술관","Art Venues","仁寺洞美術館","仁寺洞美术馆","Bảo tàng Insadong","หอศิลป์อินซาดง","معرض إنسادونغ","Galeri Insadong","","아이콘09"
+敬请期待全新设计的韩服体验！","Linh vật Insadong 'INSA' mặc Hanbok Bak Sul-nyeo xuất hiện! Chúng tôi sẽ giúp các bạn cùng trải nghiệm. Hãy thử Hanbok nhé~","มาสคอตอินซาดง 'INSA' สวมฮันบกพัคซุลนยอมาแล้ว! เราจะทำให้ทุกคนได้สัมผัสประสบการณ์นี้ มาลองสวมชุดฮันบกกัน~","INSA появится в совершенно новых ханбоках от Пак Суль Нё!
+Приготовьтесь насладиться примеркой ханбоков с совершенно новым дизайном.","Maskot Insadong 'INSA' tampil pakai Hanbok Bak Sul-nyeo! Kami siapkan agar kalian juga bisa mencobanya. Ayo coba Hanbok~","","메인C"
+"134","Language_Select_Language","언어선택","Select Language","言語選択","选择语言","Chọn ngôn ngữ","เลือกภาษา","Выберите язык","Pilih Bahasa","","아이콘03"
+"137","Language_Content","* 원하는 언어를 선택해 주세요.","* Service is available in 4 languages. Please select a language.","* 4ヶ国語に対応しています。言語を選択してください。","* 提供4种语言服务。请选择语言。","* Vui lòng chọn ngôn ngữ.","* มีให้บริการ 8 ภาษา โปรดเลือกภาษาที่ต้องการ","* Услуга доступна на 4 языках. Пожалуйста, выберите язык.","* Silakan pilih bahasa.","","아이콘03"
+"135","Language_Now_Language","현재 언어","> Now Language","> Now Language","> Now Language","Ngôn ngữ hiện tại","ภาษาปัจจุบัน","> Текущий язык","Bahasa Saat Ini","","아이콘03"
+"136","Language_Target_Language","변경 언어","> Change Language","> Change Language","> Change Language","Đổi ngôn ngữ","เปลี่ยนภาษา","> Изменить язык","Ubah Bahasa","","아이콘03"
+"1","MainButton_AI"," '인사' 모하지(AI검색)","To do (Ai)","旅行先 おすすめ(Ai)","做什么比较好呢？(Ai)"," 'INSA' làm gì? (Tìm AI)"," 'INSA' ทำอะไรดี? (ค้นหา AI)","Чем заняться (ИИ)"," 'INSA' ngapain ya? (Cari AI)","","아이콘04"
+"16033","MainButton_Insarang","인사랑(준비중)","(Preparing)","(Preparing)","(Preparing)","Cùng INSA (Sắp)","กับ INSA (เร็วๆ นี้)","(В разработке)","Bareng INSA (Segera)","","아이콘05"
+"5","MainButton_Event","인사동 이벤트","Events","おすすめイベント","推荐活动","Sự kiện Insadong","กิจกรรมอินซาดง","Мероприятия","Event Insadong","","아이콘06"
+"2","MainButton_ToEat"," '인사' 뭐먹지?","To eat","飲食店のおすすめ","我们吃什么呢？"," 'INSA' ăn gì?"," 'INSA' กินอะไรดี?","Где поесть"," 'INSA' makan apa?","","아이콘07"
+"3","MainButton_ToBuy"," '인사' 뭐사지?","To buy","お買い物 おすすめ","我们买什么呢？"," 'INSA' mua gì?"," 'INSA' ซื้ออะไรดี?","Что купить"," 'INSA' beli apa?","","아이콘08"
+"4","MainButton_ToGallery","인사동 미술관","Art Venues","仁寺洞美術館","仁寺洞美术馆","Bảo tàng Insadong","หอศิลป์อินซาดง","Галереи","Galeri Insadong","","아이콘09"
 "9","MainButton_TaxFree","TAX-FREE","TAX-FREE","TAX-FREE","TAX-FREE","TAX-FREE","TAX-FREE","TAX-FREE","TAX-FREE","","아이콘10"
-"6","MainButton_Here","여기는 인사동","Insadong","インサドンの紹介","这里是仁寺洞","Đây là Insadong","ที่นี่คืออินซาดง","هنا إنسادونغ","Ini Insadong","","아이콘11"
-"7","MainButton_Greeting","안녕 '인사'","Hello 'INSA'","こんにちは 'INSA'","你好 'INSA'","Chào 'INSA'","สวัสดี 'INSA'","مرحباً 'INSA' ","Halo 'INSA'","","아이콘12"
-"8","MainButton_ToHelp","도와줘 '인사'","Help","ヘルプとサービスです","请帮忙","Giúp với 'INSA'","ช่วยด้วย 'INSA'","ساعدني 'INSA' ","Tolong 'INSA'","","아이콘13"
-"14","MainButton_Map","인사동 지도","Insadong Map","インサドン地図","仁寺洞地图","Bản đồ Insadong","แผนที่อินซาดง","خريطة إنسادونغ","Peta Insadong","","아이콘14"
-"10","MainButton_Exchange","환율","Exchange","為替レート情報","汇率信息","Tỷ giá","อัตราแลกเปลี่ยน","سعر الصرف","Kurs","","아이콘15"
-"11","MainButton_Transport","교통안내","Transportation","交通案内","交通指南","Giao thông","ข้อมูลการเดินทาง","معلومات النقل","Info Transport","","아이콘16"
-"12","MainButton_ToStay","숙박안내","Accommodation","宿泊情報","住宿信息","Lưu trú","ข้อมูลที่พัก","الإقامة","Akomodasi","","아이콘17"
-"13","MainButton_Palace","고궁안내","Palaces","故宮情報","故宫信息","Cung điện","ข้อมูลพระราชวัง","دليل القصور","Info Istana","","아이콘18"
-"1602","MainButton_SmartTour","스마트관광(준비중)","Attraction (Preparing)","スマート観光（準備中）","智慧旅游（准备中）","Du lịch thông minh","สมาร์ททัวร์","سياحة ذكية","Wisata Pintar","","아이콘19"
-"16","MainButton_WC","화장실","Toilet","トイレ","廁所","Nhà vệ sinh","ห้องน้ำ","حمام","Toilet","","아이콘21"
-"15","MainButton_Hanbok","한복설명","Hanbok","韓服","韩服","Thông tin Hanbok","ข้อมูลฮันบก","معلومات الهانبوك","Info Hanbok","",""
-"1601","MainButton_TraditionalMarket","전국시장(준비중)","Korea Market (Preparing)","伝統市場（準備中）","传统市场（准备中）","Chợ toàn quốc","ตลาดทั่วประเทศ","أسواق وطنية","Pasar Nasional","",""
-"1603","MainButton_Goods","위드 마켓 ","WITH Market","WITH Market","WITH Market","Chợ WITH","ตลาด WITH","سوق WITH","Pasar WITH","","아이콘15"
-"1604","MainButton_Mission","미션(준비중)","Mission(Preparing)","Mission(Preparing)","Mission(Preparing)","Nhiệm vụ","ภารกิจ","مهمة","Misi","",""
-"25","Event_Today","오늘의 행사","Today's Events","今日のイベント","今日的活动","","","","","",""
-"26","Event_Week","이번주 행사","This Week's Events","今週のイベント","本周活动","","","","","",""
-"27","Event_Upcomming","예정 행사","Upcomming Events","予定イベント","即将举行的活动","","","","","",""
-"28","Event_Past","지난 행사","Past Events","過去のイベント","往期活动","","","","","",""
-"31","VisitorCount","방문 인원","Number of visitors","訪問者数","访客人数","Số khách","จำนวนผู้เข้าชม","عدد الزوار","Jumlah Pengunjung","","아이콘04"
-"32","StayTime","체류 시간","How long are you planning to be here","どのくらい滞在する予定ですか？","您计划在这里停留多久？","Thời gian lưu trú","ระยะเวลาที่พำนัก","مدة الإقامة","Durasi Kunjungan","","아이콘04"
-"33","JoyContent","즐길 거리 (3개를 선택해주세요!)","Things to Enjoy (Please select 3!)","楽しみ (3つ選んでください！)","娱乐项目（请选择3个！）","Hoạt động (Hãy chọn 3 cái!)","สิ่งที่น่าสนใจ (โปรดเลือก 3 อย่าง!)","أشياء ممتعة (يرجى اختيار 3!)","Hal Menarik (Pilih 3 ya!)","","아이콘04"
-"34","ShowDetailList","코스를 클릭하시면 상세 리스트가 나와요","Click the course for details","コースをクリックして詳細を確認してください。","点击课程查看详情。","Nhấn vào lộ trình để xem chi tiết","คลิกที่คอร์สเพื่อดูรายละเอียด","اضغط على المسار لمساهدة التفاصيل","Klik rute untuk lihat detailnya","","아이콘04"
-"35","ACourse","A코스","Course A","Aコース","A路线","Lộ trình A","คอร์ส A","المسار A","Rute A","","아이콘04"
-"36","BCourse","B코스","Course B","Bコース","B路线","Lộ trình B","คอร์ส B","المسارBA","Rute B","","아이콘04"
-"37","CCourse","C코스","Course C","Cコース","C路线","Lộ trình C","คอร์ส C","المسار C","Rute C","","아이콘04"
-"38","Visitor_1","1명","1 person","1人","1人","1 người","1 คน","شخص واحد","1 orang","","아이콘04"
-"39","Visitor_2","2명","2 people","2人","2人","2 người","2 คน","شخصان","2 orang","","아이콘04"
-"40","Visitor_3","3명","3 people","3人","3人","3 người","3 คน","ثلاثة","3 orang","","아이콘04"
-"41","Visitor_4","4명","4 people","4人","4人","4 người","4 คน","أربعة","4 orang","","아이콘04"
-"42","Visitor_5","5명","5 people","5人","5人","5 người","5 คน","خمسة","5 orang","","아이콘04"
-"43","Visitor_6","6명","6 people","6人","6人","6 người","6 คน","ستة","6 orang","","아이콘04"
-"44","StayTime_02","0 ~ 2시간","0 ~ 2 hours","0～2時間","0～2小时","0 ~ 2 giờ","0 ~ 2 ชั่วโมง","0 - 2 ساعة","0 - 2 jam","","아이콘04"
-"45","StayTime_24","2 ~ 4시간","2 ~ 4 hours","2～4時間","2～4小时","2 ~ 4 giờ","2 ~ 4 ชั่วโมง","2 ~ 4 ساعة","2 ~ 4 jam","","아이콘04"
-"46","StayTime_46","4 ~ 6시간","4 ~ 6 hours","4～6時間","4～6小时","4 ~ 6 giờ","4 ~ 6 ชั่วโมง","4 ~ 6 ساعة","4 ~ 6 jam","","아이콘04"
-"47","StayTime_66","6시간~","6 hours ~","6時間～","6小时以上","6 giờ ~","6 ชั่วโมง ~","٦ ساعات ~","6 jam ~","","아이콘04"
-"48","ShowDetailShop","업체 정보를 클릭하시면 상세 정보가 나와요","Click the store for details.","店舗情報をクリックすると詳細情報が表示されます。","点击商户信息即可查看详细信息。","Nhấn vào thông tin đơn vị để xem chi tiết","คลิกที่ข้อมูลร้านค้าเพื่อดูรายละเอียด","اضغط على معلومات المتجر لمشاهدة التفاصيل","Klik info toko untuk lihat detailnya","","아이콘04"
-"152","AI_SubmitButton","인사에게 추천받기","Get recommendations from 'INSA'","インサからおすすめをもらう","向仁寺（Insa）获取推荐","Nhận đề xuất từ INSA'","ขอคำแนะนำจาก INSA","احصل على توصيات من 'INSA'","Dapatkan Rekomendasi dari 'INSA'","",""
-"153","AI_CourseContent_1","• 맞춤 코스가 준비되었어요!","• A personalized course is ready for you!","• あなただけのカスタムコースが準備できました！","• 为你定制的专属路线已经准备好了！","* Lộ trình riêng đã sẵn sàng!","* คอร์สเฉพาะของคุณพร้อมแล้ว!","* المسار المخصص جاهز!","* Rute kustom sudah siap!","",""
-"154","AI_CourseContent_2","맞춤 코스에 따라 인사동을 즐겨보세요.","Enjoy Insa-dong with your personalized course","あなた専用のコースに沿って仁寺洞を楽しんでみてください","按照为你定制的路线，尽情畅游仁寺洞吧！","Hãy tận hưởng Insadong theo lộ trình riêng nhé.","เพลิดเพลินกับอินซาดงตามคอร์สเฉพาะของคุณ","استمتع بـ إنسادونغ وفقاً للمسار المخصص لك.","Nikmati Insadong sesuai rute kustommu.","",""
-"49","Here_IsInsa","* 한국의 전통을 느낄수 있는  인사동 입니다.  ","* Experience Korean tradition in Insadong.","* 韓国の伝統を感じられる仁寺洞です。","* 这里是能感受韩国传统魅力的仁寺洞。","* Đây là Insadong, nơi cảm nhận truyền thống Hàn Quốc.","* ที่นี่คืออินซาดงที่คุณสัมผัสได้ถึงประเพณีเกาหลี","إنسادونغ، حيث يمكنك استشعار التقاليد الكورية.","* Inilah Insadong, tempat merasakan tradisi Korea.","",""
-"50","Here_History","역사","History","歴史","历史","Lịch sử","ประวัติศาสตร์","التاريخ","Sejarah","",""
+"6","MainButton_Here","여기는 인사동","Insadong","インサドンの紹介","这里是仁寺洞","Đây là Insadong","ที่นี่คืออินซาดง","Инсадон","Ini Insadong","","아이콘11"
+"7","MainButton_Greeting","안녕 '인사'","Hello 'INSA'","こんにちは 'INSA'","你好 'INSA'","Chào 'INSA'","สวัสดี 'INSA'","Привет, 'INSA'","Halo 'INSA'","","아이콘12"
+"8","MainButton_ToHelp","도와줘 '인사'","Help","ヘルプとサービスです","请帮忙","Giúp với 'INSA'","ช่วยด้วย 'INSA'","Помощь","Tolong 'INSA'","","아이콘13"
+"14","MainButton_Map","인사동 지도","Insadong Map","インサドン地図","仁寺洞地图","Bản đồ Insadong","แผนที่อินซาดง","Карта Инсадона","Peta Insadong","","아이콘14"
+"10","MainButton_Exchange","환율","Exchange","為替レート情報","汇率信息","Tỷ giá","อัตราแลกเปลี่ยน","Обмен валют","Kurs","","아이콘15"
+"11","MainButton_Transport","교통안내","Transportation","交通案内","交通指南","Giao thông","ข้อมูลการเดินทาง","Транспорт","Info Transport","","아이콘16"
+"12","MainButton_ToStay","숙박안내","Accommodation","宿泊情報","住宿信息","Lưu trú","ข้อมูลที่พัก","Проживание","Akomodasi","","아이콘17"
+"13","MainButton_Palace","고궁안내","Palaces","故宮情報","故宫信息","Cung điện","ข้อมูลพระราชวัง","Дворцы","Info Istana","","아이콘18"
+"1602","MainButton_SmartTour","스마트관광(준비중)","Attraction (Preparing)","スマート観光（準備中）","智慧旅游（准备中）","Du lịch thông minh","สมาร์ททัวร์","Достопримечательности (В разработке)","Wisata Pintar","","아이콘19"
+"16","MainButton_WC","화장실","Toilet","トイレ","廁所","Nhà vệ sinh","ห้องน้ำ","Туалет","Toilet","","아이콘21"
+"","MainButton_Donation","기부","Donation","寄付","捐款","Quyên góp","บริจาค","Пожертвование","Donasi","",""
+"15","MainButton_Hanbok","한복설명","Hanbok","韓服","韩服","Thông tin Hanbok","ข้อมูลฮันบก","Ханбок","Info Hanbok","",""
+"1601","MainButton_TraditionalMarket","전국시장(준비중)","Korea Market (Preparing)","伝統市場（準備中）","传统市场（准备中）","Chợ toàn quốc","ตลาดทั่วประเทศ","Рынки Кореи (В разработке)","Pasar Nasional","",""
+"1603","MainButton_Goods","위드 마켓 ","WITH Market","WITH Market","WITH Market","Chợ WITH","ตลาด WITH","Рынок WITH","Pasar WITH","","아이콘15"
+"1604","MainButton_Mission","미션(준비중)","Mission(Preparing)","Mission(Preparing)","Mission(Preparing)","Nhiệm vụ","ภารกิจ","Миссия (В разработке)","Misi","",""
+"25","Event_Today","오늘의 행사","Today's Events","今日のイベント","今日的活动","Sự kiện hôm nay","กิจกรรมวันนี้","Сегодняшние мероприятия","Acara Hari Ini","",""
+"26","Event_Week","이번주 행사","This Week's Events","今週のイベント","本周活动","Sự kiện tuần này","กิจกรรมสัปดาห์นี้","Мероприятия этой недели","Acara Minggu Ini","",""
+"27","Event_Upcomming","예정 행사","Upcomming Events","予定イベント","即将举行的活动","Sự kiện sắp tới","กิจกรรมที่กำลังจะมาถึง","Предстоящие мероприятия","Acara Mendatang","",""
+"28","Event_Past","지난 행사","Past Events","過去のイベント","往期活动","Sự kiện đã qua","กิจกรรมที่ผ่านมา","Прошедшие мероприятия","Acara Berlalu","",""
+"31","VisitorCount","방문 인원","Number of visitors","訪問者数","访客人数","Số khách","จำนวนผู้เข้าชม","Количество посетителей","Jumlah Pengunjung","","아이콘04"
+"32","StayTime","체류 시간","How long are you planning to be here","どのくらい滞在する予定ですか？","您计划在这里停留多久？","Thời gian lưu trú","ระยะเวลาที่พำนัก","Как долго вы планируете здесь пробыть?","Durasi Kunjungan","","아이콘04"
+"33","JoyContent","즐길 거리 (3개를 선택해주세요!)","Things to Enjoy (Please select 3!)","楽しみ (3つ選んでください！)","娱乐项目（请选择3个！）","Hoạt động (Hãy chọn 3 cái!)","สิ่งที่น่าสนใจ (โปรดเลือก 3 อย่าง!)","Развлечения (Пожалуйста, выберите 3!)","Hal Menarik (Pilih 3 ya!)","","아이콘04"
+"34","ShowDetailList","코스를 클릭하시면 상세 리스트가 나와요","Click the course for details","コースをクリックして詳細を確認してください。","点击课程查看详情。","Nhấn vào lộ trình để xem chi tiết","คลิกที่คอร์สเพื่อดูรายละเอียด","Нажмите на маршрут для подробностей","Klik rute untuk lihat detailnya","","아이콘04"
+"35","ACourse","A코스","Course A","Aコース","A路线","Lộ trình A","คอร์ส A","Маршрут A","Rute A","","아이콘04"
+"36","BCourse","B코스","Course B","Bコース","B路线","Lộ trình B","คอร์ส B","Маршрут B","Rute B","","아이콘04"
+"37","CCourse","C코스","Course C","Cコース","C路线","Lộ trình C","คอร์ส C","Маршрут C","Rute C","","아이콘04"
+"38","Visitor_1","1명","1 person","1人","1人","1 người","1 คน","1 человек","1 orang","","아이콘04"
+"39","Visitor_2","2명","2 people","2人","2人","2 người","2 คน","2 человека","2 orang","","아이콘04"
+"40","Visitor_3","3명","3 people","3人","3人","3 người","3 คน","3 человека","3 orang","","아이콘04"
+"41","Visitor_4","4명","4 people","4人","4人","4 người","4 คน","4 человека","4 orang","","아이콘04"
+"42","Visitor_5","5명","5 people","5人","5人","5 người","5 คน","5 человек","5 orang","","아이콘04"
+"43","Visitor_6","6명","6 people","6人","6人","6 người","6 คน","6 человек","6 orang","","아이콘04"
+"44","StayTime_02","0 ~ 2시간","0 ~ 2 hours","0～2時間","0～2小时","0 ~ 2 giờ","0 ~ 2 ชั่วโมง","0 ~ 2 часа","0 - 2 jam","","아이콘04"
+"45","StayTime_24","2 ~ 4시간","2 ~ 4 hours","2～4時間","2～4小时","2 ~ 4 giờ","2 ~ 4 ชั่วโมง","2 ~ 4 часа","2 ~ 4 jam","","아이콘04"
+"46","StayTime_46","4 ~ 6시간","4 ~ 6 hours","4～6時間","4～6小时","4 ~ 6 giờ","4 ~ 6 ชั่วโมง","4 ~ 6 часов","4 ~ 6 jam","","아이콘04"
+"47","StayTime_66","6시간~","6 hours ~","6時間～","6小时以上","6 giờ ~","6 ชั่วโมง ~","от 6 часов","6 jam ~","","아이콘04"
+"48","ShowDetailShop","업체 정보를 클릭하시면 상세 정보가 나와요","Click the store for details.","店舗情報をクリックすると詳細情報が表示されます。","点击商户信息即可查看详细信息。","Nhấn vào thông tin đơn vị để xem chi tiết","คลิกที่ข้อมูลร้านค้าเพื่อดูรายละเอียด","Нажмите на магазин для подробностей.","Klik info toko untuk lihat detailnya","","아이콘04"
+"152","AI_SubmitButton","인사에게 추천받기","Get recommendations from 'INSA'","インサからおすすめをもらう","向仁寺（Insa）获取推荐","Nhận đề xuất từ INSA'","ขอคำแนะนำจาก INSA","Получить рекомендации от 'INSA'","Dapatkan Rekomendasi dari 'INSA'","",""
+"153","AI_CourseContent_1","• 맞춤 코스가 준비되었어요!","• A personalized course is ready for you!","• あなただけのカスタムコースが準備できました！","• 为你定制的专属路线已经准备好了！","* Lộ trình riêng đã sẵn sàng!","* คอร์สเฉพาะของคุณพร้อมแล้ว!","• Индивидуальный маршрут готов для вас!","* Rute kustom sudah siap!","",""
+"154","AI_CourseContent_2","맞춤 코스에 따라 인사동을 즐겨보세요.","Enjoy Insa-dong with your personalized course","あなた専用のコースに沿って仁寺洞を楽しんでみてください","按照为你定制的路线，尽情畅游仁寺洞吧！","Hãy tận hưởng Insadong theo lộ trình riêng nhé.","เพลิดเพลินกับอินซาดงตามคอร์สเฉพาะของคุณ","Наслаждайтесь Инсадоном с вашим индивидуальным маршрутом","Nikmati Insadong sesuai rute kustommu.","",""
+"49","Here_IsInsa","* 한국의 전통을 느낄수 있는  인사동 입니다.  ","* Experience Korean tradition in Insadong.","* 韓国の伝統を感じられる仁寺洞です。","* 这里是能感受韩国传统魅力的仁寺洞。","* Đây là Insadong, nơi cảm nhận truyền thống Hàn Quốc.","* ที่นี่คืออินซาดงที่คุณสัมผัสได้ถึงประเพณีเกาหลี","* Почувствуйте корейские традиции в Инсадоне.","* Inilah Insadong, tempat merasakan tradisi Korea.","",""
+"50","Here_History","역사","History","歴史","历史","Lịch sử","ประวัติศาสตร์","История","Sejarah","",""
 "51","Here_HistoryContent","인사동은 조선시대부터 한양의 중심지로서, 선비와 학자들이 모여 글을 쓰고 교류하던 곳이었습니다. 특히 서화와 고서적이 많이 거래되었고, 일제강점기에는 일본인들이 문화재를 거래하기도 했습니다. 이후 한국전쟁을 거치면서 전통 문화와 예술이 남아있는 곳으로 발전했습니다.","Insadong has been a cultural hub since the Joseon Dynasty, known for its trade in calligraphy, paintings, and old books. After the Korean War, it became a center for preserving traditional art and culture.","インサドンは、朝鮮時代から学者や文人が集まる文化の中心地でした。書画や古書の取引で知られ、韓国戦争後は伝統文化と芸術を守る場所として発展しました。
-","仁寺洞自朝鲜时代以来一直是汉阳的中心，文人和学者们在这里聚集，写作和交流。特别是书画和古籍交易非常活跃，在日本占领时期，日本人也在这里交易文化遗产。经过韩国战争后，仁寺洞发展成为一个保存传统文化和艺术的地方。","Từ thời Joseon, Insadong đã là trung tâm của Hanyang, nơi các học giả giao lưu. Nơi đây từng nổi tiếng với tranh chữ và sách cổ, sau đó phát triển thành điểm đến lưu giữ nghệ thuật và văn hóa truyền thống Hàn Quốc.","อินซาดงเป็นศูนย์กลางของฮันยางตั้งแต่สมัยโชซอน เป็นที่รวมตัวของเหล่านักปราชญ์ ที่นี่เคยเป็นแหล่งซื้อขายภาพวาดและหนังสือเก่า จนกลายเป็นย่านศิลปะและวัฒนธรรมดั้งเดิมของเกาหลีในปัจจุบัน","كان Insadong منذ عهد Joseon Dynasty مركزًا للعلماء وتجارة الفنون والكتب القديمة، وخلال Japanese occupation of Korea تم تداول الممتلكات الثقافية، ثم أصبح بعد Korean War موطنًا للثقافة والفنون التقليدية.
-","Sejak zaman Dinasti Joseon, Insadong telah menjadi pusat Hanyang tempat para cendekiawan bertukar pikiran. Dikenal dengan lukisan dan buku kunonya, kini Insadong berkembang menjadi pusat seni dan budaya tradisional Korea.","",""
-"52","Here_Culture","문화","Culture","文化","文化","Văn hóa","วัฒนธรรม","الثقافة","Budaya","",""
-"53","Here_CultureContent","인사동은 한국의 전통 문화를 체험할 수 있는 장소로 유명합니다. 전통 공예품, 도자기, 한지 공예 등 다양한 전통 예술품을 구매할 수 있으며, 전통 찻집에서 다도(茶道)를 체험할 수도 있습니다. 거리 곳곳에는 갤러리와 전시관이 있어 현대와 전통이 조화롭게 공존하는 문화적 매력을 느낄 수 있습니다.","Insadong is known for its traditional Korean culture, with shops selling handicrafts, ceramics, and Hanji art. Traditional tea houses and galleries offer a unique blend of the modern and the traditional.","インサドンは、韓国の伝統文化を体験できる場所として知られています。伝統工芸品の購入や茶屋での茶道体験ができ、ギャラリーなどを通じて現代と伝統の調和を感じられます。","仁寺洞以体验韩国传统文化而闻名。您可以购买各种传统艺术品，如手工艺品、陶瓷和韩纸工艺，还可以在传统茶馆体验茶道。街道两旁有许多画廊和展览馆，展现出现代与传统和谐共存的文化魅力。","Nổi tiếng để trải nghiệm văn hóa. Có thể mua đồ thủ công, trà đạo. Các phòng triển lãm cho thấy sự hài hòa giữa hiện đại và truyền thống.","โดดเด่นด้านวัฒนธรรมดั้งเดิม เลือกซื้อของทำมือ สัมผัสพิธีชงชา และชมแกลเลอรีที่ผสมผสานความเก่าและใหม่ได้อย่างลงตัว","يشتهر Insadong بأنه مكان يمكن فيه تجربة الثقافة الكورية التقليدية، حيث يمكن شراء الحرف اليدوية التقليدية والسيراميك وفنون الورق الكوري، كما يمكن تجربة طقوس الشاي في المقاهي التقليدية. وتنتشر المعارض وصالات العرض في الشوارع، مما يخلق تناغمًا بين الحداثة والتقاليد.
-","Pusat budaya tradisional Korea. Bisa beli kerajinan, seni Hanji, dan teh. Galeri di sini memadukan sisi modern dan tradisional dengan apik.","",""
-"54","Here_Attraction","관광명소","Tourist Attractions","観光名所","旅游景点","Điểm tham quan","สถานที่ท่องเที่ยว","معالم سياحية","Objek Wisata","",""
-"55","Here_AttractionContent","인사동 거리 자체가 주요 관광 명소로, 골목마다 숨겨진 전통 가옥, 한옥 카페, 맛집들이 자리하고 있습니다. 특히 주말에는 차량이 통제되어 보행자 전용 거리로 변하며, 다양한 거리 공연과 전시회가 열립니다. 근처에 위치한 조계사와 탑골공원도 함께 방문하기 좋은 명소입니다.","Insadong Street is a popular tourist spot filled with Hanok cafes and local eateries. On weekends, it becomes a pedestrian zone with street performances and exhibitions, and nearby sites like Jogyesa Temple and Tapgol Park add to the charm.","インサドン通りは人気の観光地で、路地にはハノクカフェや食事処があります。週末は歩行者専用になり、ストリートパフォーマンスや展示が楽しめ、近くの曹渓寺やタッコル公園も見どころです。","仁寺洞街本身就是一个主要的旅游景点，每条小巷里都有隐藏的传统房屋、韩屋咖啡馆和受欢迎的餐馆。尤其是在周末，街道会禁止车辆通行，变成步行街，举办各种街头表演和展览。附近的曹溪寺和塔谷公园也是值得一游的景点。","Cả con phố là điểm tham quan chính với nhà cổ, cà phê Hanok và quán ăn ngon. Cuối tuần phố đi bộ có nhiều biểu diễn và triển lãm. Chùa Jogyesa và công viên Tapgol gần đó cũng rất đáng ghé thăm.","ถนนสายนี้เป็นจุดท่องเที่ยวหลักที่มีบ้านฮันอก คาเฟ่ และร้านอาหารซ่อนอยู่ตามซอกซอย ช่วงวันหยุดจะกลายเป็นถนนคนเดินที่มีการแสดงและนิทรรศการ รวมถึงมีวัดโชกเยซาและสวนทับโกลอยู่ใกล้ๆ","تُعد شوارع Insadong بحد ذاتها وجهة سياحية رئيسية، حيث تضم الأزقة بيوتًا تقليدية مخفية ومقاهي على طراز الهانوك ومطاعم مميزة. وفي عطلات نهاية الأسبوع تُغلق أمام السيارات لتصبح مخصصة للمشاة، مع عروض شارع ومعارض متنوعة. كما يمكن زيارة Jogyesa Temple وTapgol Park القريبتين.
-","Jalannya sendiri adalah objek wisata, penuh Hanok, kafe, dan resto unik. Akhir pekan jadi area bebas kendaraan dengan banyak pertunjukan. Kuil Jogyesa dan Taman Tapgol di dekatnya juga wajib dikunjungi.","",""
-"57","Greeting_Introduce","* 안녕하세요! 마스코트 '인사'를 소개할게요!","* Hello! Let me introduce ‘Insa,’ the mascot of Insadong!","* こんにちは！ インサドンのマスコット「インサ」を紹介します！","* 你好！让我来介绍一下仁寺洞的吉祥物“仁沙”！","* Xin chào! Xin giới thiệu linh vật 'INSA'!","สวัสดี! ขอแนะนำ 'INSA' มาสคอตของเรา!","مرحباً! أعرفكم على تميمتنا ""INSA""!","Halo! Kenalan yuk sama maskot 'INSA'!","",""
-"56","Greeting_Category1","인사' 소개","Model of Insadong","仁寺洞モデル","仁寺洞宣传模特 ","Giới thiệu về 'INSA'","แนะนำ 'INSA'","نبذة عن ""INSA""","Tentang 'INSA'","",""
-"80","Greeting_Category2","인사 취미생활","INSA's Hobbies","""INSA"" の趣味","INSA 的兴趣爱好","Sở thích của INSA","งานอดิเรกของ INSA","هوايات INSA","Hobi INSA","",""
+","仁寺洞自朝鲜时代以来一直是汉阳的中心，文人和学者们在这里聚集，写作和交流。特别是书画和古籍交易非常活跃，在日本占领时期，日本人也在这里交易文化遗产。经过韩国战争后，仁寺洞发展成为一个保存传统文化和艺术的地方。","Từ thời Joseon, Insadong đã là trung tâm của Hanyang, nơi các học giả giao lưu. Nơi đây từng nổi tiếng với tranh chữ và sách cổ, sau đó phát triển thành điểm đến lưu giữ nghệ thuật và văn hóa truyền thống Hàn Quốc.","อินซาดงเป็นศูนย์กลางของฮันยางตั้งแต่สมัยโชซอน เป็นที่รวมตัวของเหล่านักปราชญ์ ที่นี่เคยเป็นแหล่งซื้อขายภาพวาดและหนังสือเก่า จนกลายเป็นย่านศิลปะและวัฒนธรรมดั้งเดิมของเกาหลีในปัจจุบัน","Инсадон был культурным центром со времен династии Чосон, известным своей торговлей каллиграфией, картинами и старыми книгами. После Корейской войны он стал центром сохранения традиционного искусства и культуры.","Sejak zaman Dinasti Joseon, Insadong telah menjadi pusat Hanyang tempat para cendekiawan bertukar pikiran. Dikenal dengan lukisan dan buku kunonya, kini Insadong berkembang menjadi pusat seni dan budaya tradisional Korea.","",""
+"52","Here_Culture","문화","Culture","文化","文化","Văn hóa","วัฒนธรรม","Культура","Budaya","",""
+"53","Here_CultureContent","인사동은 한국의 전통 문화를 체험할 수 있는 장소로 유명합니다. 전통 공예품, 도자기, 한지 공예 등 다양한 전통 예술품을 구매할 수 있으며, 전통 찻집에서 다도(茶道)를 체험할 수도 있습니다. 거리 곳곳에는 갤러리와 전시관이 있어 현대와 전통이 조화롭게 공존하는 문화적 매력을 느낄 수 있습니다.","Insadong is known for its traditional Korean culture, with shops selling handicrafts, ceramics, and Hanji art. Traditional tea houses and galleries offer a unique blend of the modern and the traditional.","インサドンは、韓国の伝統文化を体験できる場所として知られています。伝統工芸品の購入や茶屋での茶道体験ができ、ギャラリーなどを通じて現代と伝統の調和を感じられます。","仁寺洞以体验韩国传统文化而闻名。您可以购买各种传统艺术品，如手工艺品、陶瓷和韩纸工艺，还可以在传统茶馆体验茶道。街道两旁有许多画廊和展览馆，展现出现代与传统和谐共存的文化魅力。","Nổi tiếng để trải nghiệm văn hóa. Có thể mua đồ thủ công, trà đạo. Các phòng triển lãm cho thấy sự hài hòa giữa hiện đại và truyền thống.","โดดเด่นด้านวัฒนธรรมดั้งเดิม เลือกซื้อของทำมือ สัมผัสพิธีชงชา และชมแกลเลอรีที่ผสมผสานความเก่าและใหม่ได้อย่างลงตัว","Инсадон известен своей традиционной корейской культурой: здесь продаются изделия ручной работы, керамика и искусство из бумаги ханджи. Традиционные чайные дома и галереи предлагают уникальное сочетание современного и традиционного.","Pusat budaya tradisional Korea. Bisa beli kerajinan, seni Hanji, dan teh. Galeri di sini memadukan sisi modern dan tradisional dengan apik.","",""
+"54","Here_Attraction","관광명소","Tourist Attractions","観光名所","旅游景点","Điểm tham quan","สถานที่ท่องเที่ยว","Достопримечательности","Objek Wisata","",""
+"55","Here_AttractionContent","인사동 거리 자체가 주요 관광 명소로, 골목마다 숨겨진 전통 가옥, 한옥 카페, 맛집들이 자리하고 있습니다. 특히 주말에는 차량이 통제되어 보행자 전용 거리로 변하며, 다양한 거리 공연과 전시회가 열립니다. 근처에 위치한 조계사와 탑골공원도 함께 방문하기 좋은 명소입니다.","Insadong Street is a popular tourist spot filled with Hanok cafes and local eateries. On weekends, it becomes a pedestrian zone with street performances and exhibitions, and nearby sites like Jogyesa Temple and Tapgol Park add to the charm.","インサドン通りは人気の観光地で、路地にはハノクカフェや食事処があります。週末は歩行者専用になり、ストリートパフォーマンスや展示が楽しめ、近くの曹渓寺やタッコル公園も見どころです。","仁寺洞街本身就是一个主要的旅游景点，每条小巷里都有隐藏的传统房屋、韩屋咖啡馆和受欢迎的餐馆。尤其是在周末，街道会禁止车辆通行，变成步行街，举办各种街头表演和展览。附近的曹溪寺和塔谷公园也是值得一游的景点。","Cả con phố là điểm tham quan chính với nhà cổ, cà phê Hanok và quán ăn ngon. Cuối tuần phố đi bộ có nhiều biểu diễn và triển lãm. Chùa Jogyesa và công viên Tapgol gần đó cũng rất đáng ghé thăm.","ถนนสายนี้เป็นจุดท่องเที่ยวหลักที่มีบ้านฮันอก คาเฟ่ และร้านอาหารซ่อนอยู่ตามซอกซอย ช่วงวันหยุดจะกลายเป็นถนนคนเดินที่มีการแสดงและนิทรรศการ รวมถึงมีวัดโชกเยซาและสวนทับโกลอยู่ใกล้ๆ","Улица Инсадон — популярное туристическое место, где много кафе в домах ханок и местных закусочных. По выходным она становится пешеходной зоной с уличными выступлениями и выставками, а близлежащие достопримечательности, такие как храм Чогеса и парк Тапголь, добавляют ей очарования.","Jalannya sendiri adalah objek wisata, penuh Hanok, kafe, dan resto unik. Akhir pekan jadi area bebas kendaraan dengan banyak pertunjukan. Kuil Jogyesa dan Taman Tapgol di dekatnya juga wajib dikunjungi.","",""
+"57","Greeting_Introduce","* 안녕하세요! 마스코트 '인사'를 소개할게요!","* Hello! Let me introduce ‘Insa,’ the mascot of Insadong!","* こんにちは！ インサドンのマスコット「インサ」を紹介します！","* 你好！让我来介绍一下仁寺洞的吉祥物“仁沙”！","* Xin chào! Xin giới thiệu linh vật 'INSA'!","สวัสดี! ขอแนะนำ 'INSA' มาสคอตของเรา!","* Привет! Позвольте представить 'Insa', талисмана Инсадона!","Halo! Kenalan yuk sama maskot 'INSA'!","",""
+"56","Greeting_Category1","인사' 소개","Model of Insadong","仁寺洞モデル","仁寺洞宣传模特 ","Giới thiệu về 'INSA'","แนะนำ 'INSA'","Модель Инсадона","Tentang 'INSA'","",""
+"80","Greeting_Category2","인사 취미생활","INSA's Hobbies","""INSA"" の趣味","INSA 的兴趣爱好","Sở thích của INSA","งานอดิเรกของ INSA","Хобби INSA","Hobi INSA","",""
 "87","Greeting_Category3","스트레칭 고고~","Let’s go stretch~
-","ストレッチ~","拉伸走 ~","Giãn cơ thôi nào~","มายืดเส้นยืดสายกันเถอะ~","لنبدأ التمدد، هيا!","Ayo peregangan!","",""
-"58","Greeting_Name","이름 ","Name","名前","姓名","Tên","ชื่อ","الاسم","Nama","",""
+","ストレッチ~","拉伸走 ~","Giãn cơ thôi nào~","มายืดเส้นยืดสายกันเถอะ~","Давайте разомнемся~
+","Ayo peregangan!","",""
+"58","Greeting_Name","이름 ","Name","名前","姓名","Tên","ชื่อ","Имя","Nama","",""
 "59","Greeting_NameContent","인사","Insa","インサ","英莎","INSA","INSA","INSA","INSA","",""
-"60","Greeting_BirthDay","생일","DOB","生年月日","出生日期","Sinh nhật","วันเกิด","عيد الميلاد","Hari ulang tahun","",""
-"61","Greeting_BirthDayContent","2005년 9월 30일","September 30, 2005","2005年9月30日","2005年9月30日","Ngày 30 tháng 9 năm 2005","30 กันยายน 2005","30 سبتمبر 2005","30 September 2005","",""
-"62","Greeting_HomeTown","출신","Home","出身地","出生地","Xuất thân","ถิ่นกำเนิด","الأصل","Asal","",""
-"63","Greeting_HomeTownContent","서울 종로구 인사동","Insadong, Seoul","ソウル特別市 鍾路区 仁寺洞","首尔市钟路区仁寺洞","Insadong, Jongno-gu, Seoul","อินซาดง เขตจงโน โซล","إنسادونغ، جونغنو-غو، سيول","Insadong, Jongno-gu, Seoul","",""
-"64","Greeting_Nationality","국적","Nationality","国籍","国籍","Quốc tịch","สัญชาติ","الجنسية","Kewarganegaraan","",""
-"65","Greeting_NationalityContent","대한민국","Republic of Korea","大韓民国","大韩民国","Hàn Quốc","สาธารณรัฐเกาหลี","جمهورية كوريا","Republik Korea","",""
-"66","Greeting_BloodType","혈액형","Blood ","血液型","血型","Nhóm máu","กรุ๊ปเลือด","فصيلة الدم","Golongan Darah","",""
-"67","Greeting_BloodTypeContent","A형","Type A","A型","A型","Nhóm máu A","กรุ๊ป A","فصيلة A","Golongan A","",""
+"60","Greeting_BirthDay","생일","DOB","生年月日","出生日期","Sinh nhật","วันเกิด","Дата рождения","Hari ulang tahun","",""
+"61","Greeting_BirthDayContent","2005년 9월 30일","September 30, 2005","2005年9月30日","2005年9月30日","Ngày 30 tháng 9 năm 2005","30 กันยายน 2005","30 сентября 2005 г.","30 September 2005","",""
+"62","Greeting_HomeTown","출신","Home","出身地","出生地","Xuất thân","ถิ่นกำเนิด","Родной город","Asal","",""
+"63","Greeting_HomeTownContent","서울 종로구 인사동","Insadong, Seoul","ソウル特別市 鍾路区 仁寺洞","首尔市钟路区仁寺洞","Insadong, Jongno-gu, Seoul","อินซาดง เขตจงโน โซล","Инсадон, Сеул","Insadong, Jongno-gu, Seoul","",""
+"64","Greeting_Nationality","국적","Nationality","国籍","国籍","Quốc tịch","สัญชาติ","Гражданство","Kewarganegaraan","",""
+"65","Greeting_NationalityContent","대한민국","Republic of Korea","大韓民国","大韩民国","Hàn Quốc","สาธารณรัฐเกาหลี","Республика Корея","Republik Korea","",""
+"66","Greeting_BloodType","혈액형","Blood ","血液型","血型","Nhóm máu","กรุ๊ปเลือด","Группа крови","Golongan Darah","",""
+"67","Greeting_BloodTypeContent","A형","Type A","A型","A型","Nhóm máu A","กรุ๊ป A","Группа A","Golongan A","",""
 "68","Greeting_MBTI","MBTI","MBTI","MBTI","MBTI","MBTI","MBTI","MBTI","MBTI","",""
 "69","Greeting_MBTIContent","ENTJ","ENTJ","ENTJ","ENTJ","ENTJ","ENTJ","ENTJ","ENTJ","",""
-"70","Greeting_BodyInfo","신체","Body","身体","身体","Thân thể","ร่างกาย","الجسم","Tubuh","",""
-"71","Greeting_BodyInfoContent","168cm, B형 , 235mm,  (몸무게는 비밀..)","168cm, Body Type B, 235mm (weight is a secret...)","168cm、体型B、235mm（体重は秘密…）","168cm，B型体型，235mm（体重是秘密…）","168cm, Nhóm máu B, 235mm, (Cân nặng là bí mật..)","168 ซม., กรุ๊ป B, 235 มม., (น้ำหนักเป็นความลับ..)","168 سنتيمتر، النوع ""ب""، 235 ملم.","168cm, Golongan B, 235mm, (Berat badan rahasia..)","",""
-"72","Greeting_Hobby","취미","Hobbies","趣味","兴趣爱好","Sở thích","งานอดิเรก","الهوايات","Hobi","",""
-"73","Greeting_HobbyContent","카페가기, K-POP춤추기, 테니스","Going to cafes, dancing to K-POP, tennis","カフェ巡り、K-POPダンス、テニス","去咖啡馆、跳K-POP舞、打网球","Đi cà phê, Nhảy K-POP, Tennis","ไปคาเฟ่, เต้น K-POP, เทนนิส","الذهاب للمقاهي، رقص K-POP، التنس","Pergi ke kafe, Menari K-POP, Tenis","",""
-"74","Greeting_Specialty","특기","Specialty","特技","特长","Sở trường","ความสามารถพิเศษ","التخصص","Keahlian","",""
-"75","Greeting_SpecialtyContent","노래","Singing","歌","唱歌","Hát","ร้องเพลง","الغناء","Menyanyi","",""
-"76","Greeting_FutureHope","장래희망","Dream","将来の夢","未来梦想","Ước mơ","ความฝันในอนาคต","حلم المستقبل","Cita-cita","",""
+"70","Greeting_BodyInfo","신체","Body","身体","身体","Thân thể","ร่างกาย","Телосложение","Tubuh","",""
+"71","Greeting_BodyInfoContent","168cm, B형 , 235mm,  (몸무게는 비밀..)","168cm, Body Type B, 235mm (weight is a secret...)","168cm、体型B、235mm（体重は秘密…）","168cm，B型体型，235mm（体重是秘密…）","168cm, Nhóm máu B, 235mm, (Cân nặng là bí mật..)","168 ซม., กรุ๊ป B, 235 มม., (น้ำหนักเป็นความลับ..)","168 см, тип фигуры B, 235 мм (вес - секрет...)","168cm, Golongan B, 235mm, (Berat badan rahasia..)","",""
+"72","Greeting_Hobby","취미","Hobbies","趣味","兴趣爱好","Sở thích","งานอดิเรก","Хобби","Hobi","",""
+"73","Greeting_HobbyContent","카페가기, K-POP춤추기, 테니스","Going to cafes, dancing to K-POP, tennis","カフェ巡り、K-POPダンス、テニス","去咖啡馆、跳K-POP舞、打网球","Đi cà phê, Nhảy K-POP, Tennis","ไปคาเฟ่, เต้น K-POP, เทนนิส","Походы в кафе, танцы под K-POP, теннис","Pergi ke kafe, Menari K-POP, Tenis","",""
+"74","Greeting_Specialty","특기","Specialty","特技","特长","Sở trường","ความสามารถพิเศษ","Особенности","Keahlian","",""
+"75","Greeting_SpecialtyContent","노래","Singing","歌","唱歌","Hát","ร้องเพลง","Пение","Menyanyi","",""
+"76","Greeting_FutureHope","장래희망","Dream","将来の夢","未来梦想","Ước mơ","ความฝันในอนาคต","Мечта","Cita-cita","",""
 "77","Greeting_FutureHopeContent","인사동을 전 세계에 알리는 홍보모델이 되고싶어요,
-한복모델, K-POP아이돌도요!","I aspire to become a globally recognized PR model, represent traditional Korean clothing like hanbok, and pursue a career as a K-pop idol.","世界的に認知されるPRモデルになり、伝統的な韓国の衣装であるハンボクを代表し、K-popアイドルとしてのキャリアを追求したいです。","我希望成为全球知名的公关模特，代表传统的韩国服装汉服，并追求成为K-pop偶像的职业。","Muốn làm mẫu quảng bá Insadong, mẫu Hanbok và cả thần tượng K-POP nữa!","อยากเป็นแบบโปรโมตอินซาดง นางแบบฮันบก และไอดอล K-POP ค่ะ!","أريد أن أكون عارضة لترويج إنسادونغ، وعارضة هانبوك، ونجمة K-POP!","Mau jadi model promosi Insadong, model Hanbok, dan idola K-POP!","",""
-"78","Greeting_Introdution","자기소개","Intro","自己紹介","你好","Giới thiệu bản thân","แนะนำตัว","تعريف بالنفس","Profil Diri","",""
+한복모델, K-POP아이돌도요!","I aspire to become a globally recognized PR model, represent traditional Korean clothing like hanbok, and pursue a career as a K-pop idol.","世界的に認知されるPRモデルになり、伝統的な韓国の衣装であるハンボクを代表し、K-popアイドルとしてのキャリアを追求したいです。","我希望成为全球知名的公关模特，代表传统的韩国服装汉服，并追求成为K-pop偶像的职业。","Muốn làm mẫu quảng bá Insadong, mẫu Hanbok và cả thần tượng K-POP nữa!","อยากเป็นแบบโปรโมตอินซาดง นางแบบฮันบก และไอดอล K-POP ค่ะ!","Я стремлюсь стать всемирно известной PR-моделью, представлять традиционную корейскую одежду, такую как ханбок, и сделать карьеру K-pop айдола.","Mau jadi model promosi Insadong, model Hanbok, dan idola K-POP!","",""
+"78","Greeting_Introdution","자기소개","Intro","自己紹介","你好","Giới thiệu bản thân","แนะนำตัว","О себе","Profil Diri","",""
 "79","Greeting_IntrodutionContent","MZ세대! 강아지와 고양이 러버.
 한식을 즐겨먹고 사진찍기, 인스타그램, 틱톡하는 것을 좋아해요. 
 맛집 탐방, 옷도 좋아해요! 
@@ -128,13 +127,14 @@ Come visit us on Instagram @insa_stagram","インサドン（仁寺洞）のマ�
 我喜欢狗狗、猫咪、韩餐和拍照，也爱用Instagram和TikTok。
 平时会去找美食、搭配时尚，穿校服去乐天世界或穿韩服逛宫殿。
 如果你对仁寺洞感兴趣，随时来问我吧！
-来我们的Instagram逛一逛吧 @insa_stagram","Thế hệ MZ! Yêu chó mèo. Thích món Hàn, chụp ảnh, Instagram và TikTok. Mê quán ngon và thời trang! Thích mặc đồng phục đi chơi, mặc Hanbok đi cung điện, mê K-POP. Ghé Instagram mình nhé @insa_stagram","คนรุ่น MZ ค่ะ! รักหมาแมว ชอบอาหารเกาหลี ถ่ายรูป เล่นไอจีและติ๊กต็อก ชอบตระเวนกินและแฟชั่น! ชอบใส่ชุดนักเรียนไปสวนสนุก ใส่ฮันบกไปวัง และติ่ง K-POP มาส่องไอจีกันได้นะ @insa_stagram","جيل MZ! محبة للقطط والكلاب. أعشق الطعام الكوري، التصوير، إنستغرام وتيك توك. أحب المطاعم والموضة! والزي المدرسي، الهانبوك، والـ K-POP. زوروا إنستغرامي @insa_stagram","Generasi MZ! Pecinta anjing & kucing. Suka kuliner Korea, foto, Instagram, dan TikTok. Suka hunting makan dan fashion! Suka ke taman bermain pakai seragam, ke istana pakai Hanbok, dan K-POP. Mampir ke Instagram ya @insa_stagram","",""
-"81","Greeting_Hobby_First","K-POP 댄스와 노래는 꿈을 위한 필수요소!","K-POP dance and singing are essential elements for my dream!","K-POPのダンスと歌は夢のために欠かせない要素！","K-POP舞蹈和歌唱是实现梦想的必备元素！","Nhảy và hát K-POP là yếu tố cần để đạt ước mơ!","เต้นและร้อง K-POP คือสิ่งสำคัญสู่ความฝัน!","رقص وغناء K-POP عنصران أساسيان لحلمي!","Dance dan lagu K-POP adalah kunci impianku!","",""
+来我们的Instagram逛一逛吧 @insa_stagram","Thế hệ MZ! Yêu chó mèo. Thích món Hàn, chụp ảnh, Instagram và TikTok. Mê quán ngon và thời trang! Thích mặc đồng phục đi chơi, mặc Hanbok đi cung điện, mê K-POP. Ghé Instagram mình nhé @insa_stagram","คนรุ่น MZ ค่ะ! รักหมาแมว ชอบอาหารเกาหลี ถ่ายรูป เล่นไอจีและติ๊กต็อก ชอบตระเวนกินและแฟชั่น! ชอบใส่ชุดนักเรียนไปสวนสนุก ใส่ฮันบกไปวัง และติ่ง K-POP มาส่องไอจีกันได้นะ @insa_stagram","Мне 20 лет, я из поколения MZ. Люблю K-pop, танцы, домашних животных и корейскую еду. Мне нравится фотографировать, сидеть в соцсетях и гулять по Lotte World в школьной форме или по дворцам в ханбоке. Спрашивайте меня о чем угодно про Инсадон!
+Заходите к нам в Instagram @insa_stagram","Generasi MZ! Pecinta anjing & kucing. Suka kuliner Korea, foto, Instagram, dan TikTok. Suka hunting makan dan fashion! Suka ke taman bermain pakai seragam, ke istana pakai Hanbok, dan K-POP. Mampir ke Instagram ya @insa_stagram","",""
+"81","Greeting_Hobby_First","K-POP 댄스와 노래는 꿈을 위한 필수요소!","K-POP dance and singing are essential elements for my dream!","K-POPのダンスと歌は夢のために欠かせない要素！","K-POP舞蹈和歌唱是实现梦想的必备元素！","Nhảy và hát K-POP là yếu tố cần để đạt ước mơ!","เต้นและร้อง K-POP คือสิ่งสำคัญสู่ความฝัน!","Танцы и пение K-POP — неотъемлемые элементы моей мечты!","Dance dan lagu K-POP adalah kunci impianku!","",""
 "82","Greeting_Hobby_First_Content","K-POP을 너무 사랑하고 아이돌들을 좋아해요^^
 무대 위 아이돌처럼! 인사는 K-POP 댄스를 
 따라 추고 노래하는 걸 사랑해요. 
-인사의 최애 곡이 나오면 언제 어디서든 바로 댄스 타임!","Just like an idol on stage! INSA loves dancing to and singing K-POP songs. When INSA's favorite song comes on, it’s dance time anytime, anywhere!","ステージの上のアイドルのように！インサはK-POPのダンスを真似して踊ったり、歌ったりするのが大好きです。 インサの大好きな曲が流れると、いつでもどこでもダンスタイム！","就像舞台上的偶像一样！INSA 喜欢跳 K-POP 舞蹈和唱歌。 只要听到 INSA 最喜欢的歌曲，随时随地都能开启舞蹈时间！","Mình rất yêu K-POP và các thần tượng! Giống như họ, INSA yêu việc nhảy và hát. Chỉ cần nhạc nổi lên là nhảy bất cứ đâu!","รัก K-POP และไอดอลมากค่ะ! อินซาก็รักการเต้นและการร้องเหมือนไอดอลเลย พอเพลงโปรดขึ้นเมื่อไหร่ ก็แดนซ์ได้ทุกที่ทุกเวลา!","أعشق الـ K-POP والآيدولز! تماماً مثلهم، أحب الرقص والغناء. عندما تعمل أغنيتي المفضلة، يبدأ وقت الرقص في أي مكان وزمان!","Sangat cinta K-POP dan idol! Seperti mereka, INSA suka nge-dance dan nyanyi. Kalau lagu favorit diputar, langsung dance time di mana saja!","",""
-"83","Greeting_Hobby_Second","골프장에서 힐링 타임","Healing time at the golf course","ゴルフ場での癒しの時間","在高尔夫球场的疗愈时光","Thời gian thư giãn tại sân golf","เวลาพักผ่อนที่สนามกอล์ฟ","وقت الاسترخاء في ملعب الغولف","Waktu healing di lapangan golf","",""
+인사의 최애 곡이 나오면 언제 어디서든 바로 댄스 타임!","Just like an idol on stage! INSA loves dancing to and singing K-POP songs. When INSA's favorite song comes on, it’s dance time anytime, anywhere!","ステージの上のアイドルのように！インサはK-POPのダンスを真似して踊ったり、歌ったりするのが大好きです。 インサの大好きな曲が流れると、いつでもどこでもダンスタイム！","就像舞台上的偶像一样！INSA 喜欢跳 K-POP 舞蹈和唱歌。 只要听到 INSA 最喜欢的歌曲，随时随地都能开启舞蹈时间！","Mình rất yêu K-POP và các thần tượng! Giống như họ, INSA yêu việc nhảy và hát. Chỉ cần nhạc nổi lên là nhảy bất cứ đâu!","รัก K-POP และไอดอลมากค่ะ! อินซาก็รักการเต้นและการร้องเหมือนไอดอลเลย พอเพลงโปรดขึ้นเมื่อไหร่ ก็แดนซ์ได้ทุกที่ทุกเวลา!","Как айдол на сцене! INSA обожает танцевать и петь K-POP. Когда играет любимая песня INSA, время танцевать в любом месте и в любое время!","Sangat cinta K-POP dan idol! Seperti mereka, INSA suka nge-dance dan nyanyi. Kalau lagu favorit diputar, langsung dance time di mana saja!","",""
+"83","Greeting_Hobby_Second","골프장에서 힐링 타임","Healing time at the golf course","ゴルフ場での癒しの時間","在高尔夫球场的疗愈时光","Thời gian thư giãn tại sân golf","เวลาพักผ่อนที่สนามกอล์ฟ","Время отдыха на поле для гольфа","Waktu healing di lapangan golf","",""
 "84","Greeting_Hobby_Second_Content","얼마전부터 배우기 시작한 골프(골린이)
 녹색 잔디 위에서 시원한 바람은 기분까지 
 상쾌하게 만들어줘요 
@@ -144,16 +144,20 @@ Come visit us on Instagram @insa_stagram","インサドン（仁寺洞）のマ�
 The cool breeze over the green grass lifts my mood.
 A relaxed swing on the fairway~
 I enjoy golf while healing in nature.
-And of course, I can’t miss out on stylish golfwear!","最近ゴルフを始めたばかりのゴルフ初心者（ゴルリンイ）です。爽やかな風と緑の芝生の中でスイングを楽しみ、リフレッシュしています。おしゃれなゴルフウェアも楽しみのひとつです！","最近刚开始学习高尔夫（高尔林——高尔夫小白）。 绿色草坪上的清风连心情也变得清爽起来。在草地上轻松挥杆~。一边打高尔夫一边在大自然中疗愈身心。当然不能错过帅气的高尔夫穿搭！","Mới tập chơi golf gần đây! Làn gió mát trên cỏ xanh làm tâm trạng thật sảng khoái. Vung gậy thảnh thơi~ Thư giãn giữa thiên nhiên. Không thể bỏ qua phong cách đồ golf cực chất!","เพิ่งเริ่มเรียนกอล์ฟค่ะ (มือใหม่)! ลมเย็นๆ บนสนามหญ้าสีเขียวทำให้สดชื่นมาก วาดสวิงอย่างผ่อนคลาย~ ฮีลใจท่ามกลางธรรมชาติ แถมชุดกอล์ฟสวยๆ ก็ห้ามพลาดเด็ดขาด!","بدأت تعلم الغولف مؤخراً (مبتدئة)! النسيم العليل على العشب الأخضر يمنحني الانتعاش. أرجوحة مريحة~ استرخاء في الطبيعة مع الغولف. ولا يمكنني تفويت أزياء الغولف الأنيقة!","Baru mulai belajar golf (pemula)! Angin sejuk di padang rumput hijau bikin segar. Swing santai di atas rumput~ Healing di alam sambil main golf. Gaya baju golf yang keren juga wajib!","",""
-"85","Greeting_Hobby_Third","테니스는 내 스트레스 해소법!","Tennis is my way of relieving stress!","テニスは私のストレス解消法！ ","网球是我释放压力的方法！ ","Tennis là cách giải tỏa căng thẳng của mình!","เทนนิสคือวิธีคลายเครียดของฉัน!","التنس هو طريقتي لتخفيف التوتر!","Tenis adalah cara melepas stresku!","",""
+And of course, I can’t miss out on stylish golfwear!","最近ゴルフを始めたばかりのゴルフ初心者（ゴルリンイ）です。爽やかな風と緑の芝生の中でスイングを楽しみ、リフレッシュしています。おしゃれなゴルフウェアも楽しみのひとつです！","最近刚开始学习高尔夫（高尔林——高尔夫小白）。 绿色草坪上的清风连心情也变得清爽起来。在草地上轻松挥杆~。一边打高尔夫一边在大自然中疗愈身心。当然不能错过帅气的高尔夫穿搭！","Mới tập chơi golf gần đây! Làn gió mát trên cỏ xanh làm tâm trạng thật sảng khoái. Vung gậy thảnh thơi~ Thư giãn giữa thiên nhiên. Không thể bỏ qua phong cách đồ golf cực chất!","เพิ่งเริ่มเรียนกอล์ฟค่ะ (มือใหม่)! ลมเย็นๆ บนสนามหญ้าสีเขียวทำให้สดชื่นมาก วาดสวิงอย่างผ่อนคลาย~ ฮีลใจท่ามกลางธรรมชาติ แถมชุดกอล์ฟสวยๆ ก็ห้ามพลาดเด็ดขาด!","Недавно я начала учиться играть в гольф (я новичок!).
+Прохладный ветерок над зеленой травой поднимает мне настроение.
+Расслабленный удар на фервее~
+Я наслаждаюсь гольфом, отдыхая на природе.
+И, конечно же, я не могу пропустить стильную одежду для гольфа!","Baru mulai belajar golf (pemula)! Angin sejuk di padang rumput hijau bikin segar. Swing santai di atas rumput~ Healing di alam sambil main golf. Gaya baju golf yang keren juga wajib!","",""
+"85","Greeting_Hobby_Third","테니스는 내 스트레스 해소법!","Tennis is my way of relieving stress!","テニスは私のストレス解消法！ ","网球是我释放压力的方法！ ","Tennis là cách giải tỏa căng thẳng của mình!","เทนนิสคือวิธีคลายเครียดของฉัน!","Теннис — мой способ снять стресс!","Tenis adalah cara melepas stresku!","",""
 "86","Greeting_Hobby_Third_Content","인사가 가장 좋아하는 운동은 테니스~
 빠르게 움직이고 스매시 한 방! 
 인사는 테니스를 치면서 에너지를 발산해요. 
 친구들과 팀을 짜서 게임을 하거나, 조용한 아침에 혼자 연습하는 것도 좋아해요. 
 친구들과 땀 흘린 후 시원한 음료 한 잔까지, 
 이게 바로 인사만의 완벽한 하루!","INSA's favorite sport is tennis—quick moves and a powerful smash! INSA enjoys both friendly matches and quiet morning practice. After a good workout, a refreshing drink makes the day complete!","インサが一番好きなスポーツはテニス〜 素早く動いて、スマッシュ一発！ インサはテニスをしながらエネルギーを発散します。友達とチームを組んで試合をしたり、静かな朝に一人で練習するのも好きです。汗をかいた後の冷たいドリンクまで、これがインサだけの完璧な一日！
-","INSA 最喜欢的运动就是网球～ 快速移动，再来一记强力扣杀！ INSA 在打网球时释放能量。无论是和朋友组队比赛，还是在清晨一个人练习，INSA 都很喜欢。挥汗之后再来一杯冰饮，这就是 INSA 独一无二的完美一天！","Môn thể thao INSA thích nhất là tennis~ Di chuyển nhanh và cú smash cực mạnh! Mình giải tỏa năng lượng qua tennis. Thích đấu nhóm cùng bạn bè hay tự tập buổi sáng yên tĩnh. Một ly nước mát sau khi đổ mồ hôi, đó là ngày hoàn hảo của INSA!","กีฬาโปรดของอินซาคือเทนนิสค่ะ~ เคลื่อนที่ให้ไวแล้วสแมชเลย! อินซาปลดปล่อยพลังผ่านเทนนิส ชอบทั้งเล่นทีมกับเพื่อนและซ้อมคนเดียวตอนเช้าๆ หลังเสียเหงื่อได้ดื่มน้ำเย็นๆ กับเพื่อนๆ นี่แหละวันที่สุดยอดของอินซา!","رياضة ""إنسا"" المفضلة هي التنس! حركة سريعة وضربة ""سماش""! أفرغ طاقتي في التنس. أحب اللعب مع الأصدقاء أو التدريب وحدي في الصباح الهادئ. مشروب بارد بعد التعب مع الأصدقاء، هذا هو يومي المثالي!","Olahraga favorit INSA adalah tenis~ Gerak cepat dan smash! Aku melepas energi lewat tenis. Suka main bareng teman atau latihan sendiri di pagi hari. Minum yang segar setelah berkeringat, itulah hari yang sempurna bagi INSA!","",""
-"88","Greeting_Stretching_First","인사랑 함께 가볍게 스트레칭 해요!","Let’s do some light stretching together with INSA!","インサと一緒に軽くストレッチしましょう！","和INSA一起轻松拉伸吧！","Cùng INSA khởi động nhẹ nhàng nào!","มาสเตรทชิ่งเบาๆ ไปกับอินซากันค่ะ!","لنقم ببعض التمدد الخفيف مع ""إنسا""!","Yuk, peregangan ringan bareng INSA!","",""
+","INSA 最喜欢的运动就是网球～ 快速移动，再来一记强力扣杀！ INSA 在打网球时释放能量。无论是和朋友组队比赛，还是在清晨一个人练习，INSA 都很喜欢。挥汗之后再来一杯冰饮，这就是 INSA 独一无二的完美一天！","Môn thể thao INSA thích nhất là tennis~ Di chuyển nhanh và cú smash cực mạnh! Mình giải tỏa năng lượng qua tennis. Thích đấu nhóm cùng bạn bè hay tự tập buổi sáng yên tĩnh. Một ly nước mát sau khi đổ mồ hôi, đó là ngày hoàn hảo của INSA!","กีฬาโปรดของอินซาคือเทนนิสค่ะ~ เคลื่อนที่ให้ไวแล้วสแมชเลย! อินซาปลดปล่อยพลังผ่านเทนนิส ชอบทั้งเล่นทีมกับเพื่อนและซ้อมคนเดียวตอนเช้าๆ หลังเสียเหงื่อได้ดื่มน้ำเย็นๆ กับเพื่อนๆ นี่แหละวันที่สุดยอดของอินซา!","Любимый вид спорта INSA — теннис: быстрые движения и мощный смеш! INSA любит как дружеские матчи, так и спокойные утренние тренировки. После хорошей разминки освежающий напиток сделает день идеальным!","Olahraga favorit INSA adalah tenis~ Gerak cepat dan smash! Aku melepas energi lewat tenis. Suka main bareng teman atau latihan sendiri di pagi hari. Minum yang segar setelah berkeringat, itulah hari yang sempurna bagi INSA!","",""
+"88","Greeting_Stretching_First","인사랑 함께 가볍게 스트레칭 해요!","Let’s do some light stretching together with INSA!","インサと一緒に軽くストレッチしましょう！","和INSA一起轻松拉伸吧！","Cùng INSA khởi động nhẹ nhàng nào!","มาสเตรทชิ่งเบาๆ ไปกับอินซากันค่ะ!","Давайте сделаем легкую растяжку вместе с INSA!","Yuk, peregangan ringan bareng INSA!","",""
 "89","Greeting_Stretching_First_Content","오랜 시간 걷기 전에, 잠깐! 저를 따라 가볍게 몸을 풀어볼까요? 
 기분도 리프레시~ 에너지도 업!
 화면 속 저를 따라 천천히 따라 해보세요. 
@@ -166,60 +170,66 @@ you’ll enjoy your Insadong trip even more after a good stretch!","長時間歩
 ストレッチ後は、もっと楽しく仁寺洞を歩けますよ〜","长时间步行前，先暂停一下！跟着我轻松地活动一下身体吧。
 让心情焕然一新，能量满满！
 慢慢跟着屏幕上的我做动作。
-拉伸后，你可以更轻松愉快地游览仁寺洞哦~","Trước khi đi bộ lâu, đợi chút nào! Cùng mình khởi động nhẹ nhàng nhé? Tâm trạng sảng khoái, năng lượng tràn đầy! Hãy làm theo mình trên màn hình thật chậm rãi. Sau khi giãn cơ, bạn sẽ khám phá Insadong nhẹ nhàng và vui vẻ hơn đó~","ก่อนจะเดินนานๆ แวะสักนิด! มายืดเส้นยืดสายไปกับฉันไหมคะ? รีเฟรชร่างกายและเติมพลัง! ทำตามฉันในหน้าจอช้าๆ นะคะ หลังจากสเตรทชิ่งแล้ว คุณจะเที่ยวอินซาดงได้อย่างเบาสบายและสนุกขึ้นแน่นอนค่ะ~","قبل المشي لفترة طويلة، انتظروا! هل نحمي أجسامنا معاً؟ استعادة للنشاط وطاقة أعلى! اتبعوا حركاتي على الشاشة ببطء. بعد التمدد، ستتمكنون من التجول في ""إنسادونغ"" بخفة وسعادة أكبر!","Sebelum jalan jauh, tunggu sebentar! Yuk, lemaskan badan bareng aku? Refresh suasana hati dan tambah energi! Ikuti gerakanku di layar pelan-pelan ya. Habis peregangan, jalan-jalan di Insadong jadi makin ringan dan seru!","",""
-"90","Greeting_Stretching_Second","피로 예방!","Fatigue prevention!","疲労予防！","疲劳预防！","Phòng ngừa mệt mỏi!","ป้องกันความเหนื่อยล้า!","الوقاية من التعب!","Cegah Kelelahan!","",""
+拉伸后，你可以更轻松愉快地游览仁寺洞哦~","Trước khi đi bộ lâu, đợi chút nào! Cùng mình khởi động nhẹ nhàng nhé? Tâm trạng sảng khoái, năng lượng tràn đầy! Hãy làm theo mình trên màn hình thật chậm rãi. Sau khi giãn cơ, bạn sẽ khám phá Insadong nhẹ nhàng và vui vẻ hơn đó~","ก่อนจะเดินนานๆ แวะสักนิด! มายืดเส้นยืดสายไปกับฉันไหมคะ? รีเฟรชร่างกายและเติมพลัง! ทำตามฉันในหน้าจอช้าๆ นะคะ หลังจากสเตรทชิ่งแล้ว คุณจะเที่ยวอินซาดงได้อย่างเบาสบายและสนุกขึ้นแน่นอนค่ะ~","Перед долгой прогулкой уделите минутку!
+Давайте сделаем легкую растяжку, чтобы освежиться и набраться сил.
+Просто повторяйте за мной на экране —
+после хорошей разминки вы получите еще больше удовольствия от прогулки по Инсадону!","Sebelum jalan jauh, tunggu sebentar! Yuk, lemaskan badan bareng aku? Refresh suasana hati dan tambah energi! Ikuti gerakanku di layar pelan-pelan ya. Habis peregangan, jalan-jalan di Insadong jadi makin ringan dan seru!","",""
+"90","Greeting_Stretching_Second","피로 예방!","Fatigue prevention!","疲労予防！","疲劳预防！","Phòng ngừa mệt mỏi!","ป้องกันความเหนื่อยล้า!","Профилактика усталости!","Cegah Kelelahan!","",""
 "91","Greeting_Stretching_Second_Content","계속 걷다 보면 다리와 허리에 피로가 쌓여요. 
 중간에 가볍게 스트레칭하면 몸이 훨씬 편해져요!
 ‘인사’와 함께 간단한 운동을 함께 해봐요 ","If you keep walking, your legs and lower back will get tired. Doing some light stretching in between makes your body feel much better! Let’s try some simple exercises together.","歩き続けると、脚や腰に疲れがたまります。
 途中で軽くストレッチをすると体がずっと楽になりますよ！「インサ」と一緒に簡単な運動をしてみましょう。","一直走路会让腿和腰感到疲劳。
 中途做些轻松的拉伸，身体会舒服很多！
-和“INSA”一起做些简单的运动吧。","Đi bộ liên tục sẽ khiến chân và lưng bị mỏi. Giãn cơ nhẹ nhàng giữa chừng sẽ giúp cơ thể thoải mái hơn! Hãy cùng 'INSA' tập vài động tác đơn giản nhé.","เดินนานๆ จะทำให้เมื่อยขาและหลังค่ะ ถ้าแวะสเตรทชิ่งเบาๆ ระหว่างทางจะช่วยให้สบายตัวขึ้นเยอะเลย! มาลองออกกำลังกายง่ายๆ ไปกับ 'อินซา' กันนะคะ","المشي المستمر يسبب التعب للساقين والظهر. التمدد الخفيف بين الحين والآخر يريح جسمكم كثيراً! جربوا تمارين بسيطة مع ""إنسا"".","Jalan terus bisa bikin kaki dan pinggang capek. Peregangan ringan di sela waktu bakal bikin badan jauh lebih enak! Yuk, olahraga simpel bareng 'INSA'.","",""
-"92","Greeting_Stretching_Third","기분 전환!","Refresh your mood !","気分転換！","换换心情！","Thay đổi tâm trạng!","เปลี่ยนบรรยากาศ!","تغيير المزاج!","Penyegaran Suasana!","",""
+和“INSA”一起做些简单的运动吧。","Đi bộ liên tục sẽ khiến chân và lưng bị mỏi. Giãn cơ nhẹ nhàng giữa chừng sẽ giúp cơ thể thoải mái hơn! Hãy cùng 'INSA' tập vài động tác đơn giản nhé.","เดินนานๆ จะทำให้เมื่อยขาและหลังค่ะ ถ้าแวะสเตรทชิ่งเบาๆ ระหว่างทางจะช่วยให้สบายตัวขึ้นเยอะเลย! มาลองออกกำลังกายง่ายๆ ไปกับ 'อินซา' กันนะคะ","Если вы будете долго идти, ваши ноги и поясница устанут. Легкая растяжка в перерывах поможет вашему телу почувствовать себя намного лучше! Давайте попробуем несколько простых упражнений вместе.","Jalan terus bisa bikin kaki dan pinggang capek. Peregangan ringan di sela waktu bakal bikin badan jauh lebih enak! Yuk, olahraga simpel bareng 'INSA'.","",""
+"92","Greeting_Stretching_Third","기분 전환!","Refresh your mood !","気分転換！","换换心情！","Thay đổi tâm trạng!","เปลี่ยนบรรยากาศ!","Освежите настроение!","Penyegaran Suasana!","",""
 "93","Greeting_Stretching_Third_Content","스트레칭은 몸뿐 아니라 마음까지 힐링타임! 
 활력 충전하고 더 신나게 여행할 수 있어요.
 잠시 쉬었다가는 휴식 타임 어떠신가요~","Stretching refreshes not only your body but also your mind! Recharge your energy and enjoy your trip even more. How about taking a short break for some rest~","ストレッチは体だけでなく心までリフレッシュ！
 活力をチャージして、もっと楽しく旅ができます。ちょっと休憩してリラックスタイムはいかがですか〜","拉伸不仅能让身体焕然一新，心情也会清爽！
 充电活力，更加开心地旅行吧。
 休息一下，来个小憩时间怎么样～
-","Giãn cơ không chỉ tốt cho cơ thể mà còn thư giãn cả tâm hồn! Nạp đầy năng lượng để chuyến đi thêm thú vị. Nghỉ ngơi một chút thì sao nhỉ?","การสเตรทชิ่งคือช่วงเวลาฮีลใจและกาย! เติมพลังแล้วไปเที่ยวให้สนุกยิ่งขึ้น แวะพักเหนื่อยสักครู่ดีไหมคะ?","التمدد وقت للشفاء للجسد والروح معاً! اشحن طاقتك لتستمتع برحلتك أكثر. ما رأيك بأخذ قسط من الراحة الآن؟","Peregangan adalah waktu healing bagi tubuh dan jiwa! Isi energi lagi agar makin semangat jalannya. Yuk, istirahat sejenak dulu!","",""
-"94","Transport_Public","대중교통","Public Transportation","公共交通機関","公共交通","Giao thông công cộng","ขนส่งสาธารณะ","النقل العام","Transportasi Umum","",""
-"95","Transport_Map","인사동지도","Insadong Map","仁寺洞マップ","仁寺洞地图","Bản đồ Insadong","แผนที่อินซาดง","خريطة إنسادونغ","Peta Insadong","",""
-"96","Transport_Parking","주차장 안내","Parking Information","駐車場案内","停车场指南","Hướng dẫn bãi đỗ xe","ข้อมูลที่จอดรถ","دليل مواقف السيارات","Informasi Parkir","",""
-"97","Transport_Subway","지하철","Subway","地下鉄","地铁","Tàu điện ngầm","รถไฟใต้ดิน","مترو الأنفاق","Subway / Kereta Bawah Tanah","",""
-"98","Transport_SubwayContent_1","1호선 종각역 11번출구","Jonggak Exit 11","1号線 鐘閣駅 11番出口","1号线 钟阁站 11号出口","Tuyến 1, Ga Jonggak Cổng 11","สาย 1 สถานีจงกัก ทางออก 11","الخط 1، محطة جونغ-غاك، مخرج 11","Jalur 1, Stasiun Jonggak Pintu Keluar 11","",""
-"99","Transport_SubwayContent_2","3호선 안국역 6번출구","Anguk Exit 6","3号線 安国駅 6番出口","3号线 安国站 6号出口","Tuyến 3, Ga Anguk Cổng 6","สาย 3 สถานีอันกุก ทางออก 6","مخرج 6 من محطة ""إنجلترا"" رقم 3","Jalur 3, Stasiun Anguk Pintu Keluar 6","",""
-"100","Transport_SubwayContent_3","종로3가역 5번출구","Jongno 3-ga Exit 5","鐘路3街駅 5番出口","钟路3街站 5号出口","Ga Jongno 3-ga Cổng 5","สถานีจงโน 3-กา ทางออก 5","مخرج محطة 5","Stasiun Jongno 3-ga Pintu Keluar 5","",""
-"101","Transport_Bus","버스","Bus","バス","公交车","Xe buýt","รถเมล์","حافلة","Bus","",""
-"102","Transport_BusContent_1","M4102, 5500, 9003, 9301, 9400,940, 9411","M4102, 5500, 9003, 9301, 9400, 940, 9411","M4102、5500、9003、9301、9400、940、9411","M4102、5500、9003、9301、9400、940、9411","M4102, 5500, 9003, 9301, 9400,940, 9411","M4102, 5500, 9003, 9301, 9400,940, 9411","M4102, 5500, 9003, 9301, 9400,940, 9411","M4102, 5500, 9003, 9301, 9400,940, 9411","",""
+","Giãn cơ không chỉ tốt cho cơ thể mà còn thư giãn cả tâm hồn! Nạp đầy năng lượng để chuyến đi thêm thú vị. Nghỉ ngơi một chút thì sao nhỉ?","การสเตรทชิ่งคือช่วงเวลาฮีลใจและกาย! เติมพลังแล้วไปเที่ยวให้สนุกยิ่งขึ้น แวะพักเหนื่อยสักครู่ดีไหมคะ?","Растяжка освежает не только тело, но и разум! Зарядитесь энергией и наслаждайтесь поездкой еще больше. Как насчет небольшого перерыва на отдых~","Peregangan adalah waktu healing bagi tubuh dan jiwa! Isi energi lagi agar makin semangat jalannya. Yuk, istirahat sejenak dulu!","",""
+"94","Transport_Public","대중교통","Public Transportation","公共交通機関","公共交通","Giao thông công cộng","ขนส่งสาธารณะ","Общественный транспорт","Transportasi Umum","",""
+"95","Transport_Map","인사동지도","Insadong Map","仁寺洞マップ","仁寺洞地图","Bản đồ Insadong","แผนที่อินซาดง","Карта Инсадона","Peta Insadong","",""
+"96","Transport_Parking","주차장 안내","Parking Information","駐車場案内","停车场指南","Hướng dẫn bãi đỗ xe","ข้อมูลที่จอดรถ","Информация о парковке","Informasi Parkir","",""
+"97","Transport_Subway","지하철","Subway","地下鉄","地铁","Tàu điện ngầm","รถไฟใต้ดิน","Метро","Subway / Kereta Bawah Tanah","",""
+"98","Transport_SubwayContent_1","1호선 종각역 11번출구","Jonggak Exit 11","1号線 鐘閣駅 11番出口","1号线 钟阁站 11号出口","Tuyến 1, Ga Jonggak Cổng 11","สาย 1 สถานีจงกัก ทางออก 11","Станция Чонгак, выход 11","Jalur 1, Stasiun Jonggak Pintu Keluar 11","",""
+"99","Transport_SubwayContent_2","3호선 안국역 6번출구","Anguk Exit 6","3号線 安国駅 6番出口","3号线 安国站 6号出口","Tuyến 3, Ga Anguk Cổng 6","สาย 3 สถานีอันกุก ทางออก 6","Станция Ангук, выход 6","Jalur 3, Stasiun Anguk Pintu Keluar 6","",""
+"100","Transport_SubwayContent_3","종로3가역 5번출구","Jongno 3-ga Exit 5","鐘路3街駅 5番出口","钟路3街站 5号出口","Ga Jongno 3-ga Cổng 5","สถานีจงโน 3-กา ทางออก 5","Станция Чонно 3-га, выход 5","Stasiun Jongno 3-ga Pintu Keluar 5","",""
+"101","Transport_Bus","버스","Bus","バス","公交车","Xe buýt","รถเมล์","Автобус","Bus","",""
+"102","Transport_BusContent_1","M4102, 5500, 9003, 9301, 9400,940, 9411","M4102, 5500, 9003, 9301, 9400, 940, 9411","M4102、5500、9003、9301、9400、940、9411","M4102、5500、9003、9301、9400、940、9411","M4102, 5500, 9003, 9301, 9400,940, 9411","M4102, 5500, 9003, 9301, 9400,940, 9411","M4102, 5500, 9003, 9301, 9400, 940, 9411","M4102, 5500, 9003, 9301, 9400,940, 9411","",""
 "103","Transport_BusContent_2","103,109, 143, 150, 151, 160, 161, 162, 171, 172, 260, 270, 271, 273, 370, 601, 606","103,109, 143, 150, 151, 160, 161, 162, 171, 172, 260, 270, 271, 273, 370, 601, 606","103,109, 143, 150, 151, 160, 161, 162, 171, 172, 260, 270, 271, 273, 370, 601, 606","103,109, 143, 150, 151, 160, 161, 162, 171, 172, 260, 270, 271, 273, 370, 601, 606","103,109, 143, 150, 151, 160, 161, 162, 171, 172, 260, 270, 271, 273, 370, 601, 606","103,109, 143, 150, 151, 160, 161, 162, 171, 172, 260, 270, 271, 273, 370, 601, 606","103,109, 143, 150, 151, 160, 161, 162, 171, 172, 260, 270, 271, 273, 370, 601, 606","103,109, 143, 150, 151, 160, 161, 162, 171, 172, 260, 270, 271, 273, 370, 601, 606","",""
 "104","Transport_BusContent_3","7212, 1020, 7022, 7025","7212, 1020, 7022, 7025","7212、1020、7022、7025","7212、1020、7022、7025","7212, 1020, 7022, 7025","7212, 1020, 7022, 7025","7212, 1020, 7022, 7025","7212, 1020, 7022, 7025","",""
-"105","Transport_MapInfo","한국의 전통문화를 접할 수 있는 서울의 대표 거리 인사동입니다.","Insadong is a representative street in Seoul where you can experience Korean traditional culture.","仁寺洞は、韓国の伝統文化を体験できるソウルの代表的な通りです。","仁寺洞是首尔具有代表性的街道，在这里可以体验韩国传统文化。","Chào mừng bạn đến với Insadong, con phố tiêu biểu của Seoul, nơi bạn có thể trải nghiệm văn hóa truyền thống Hàn Quốc.","อินซาดง ถนนสายหลักของโซลที่คุณจะได้สัมผัสกับวัฒนธรรมดั้งเดิมของเกาหลีค่ะ","إنسادونغ، الشارع الأشهر في سيؤول حيث يمكنك تجربة الثقافة الكورية التقليدية.","Insadong, jalan ikonik di Seoul tempat Anda bisa merasakan budaya tradisional Korea.","",""
+"105","Transport_MapInfo","한국의 전통문화를 접할 수 있는 서울의 대표 거리 인사동입니다.","Insadong is a representative street in Seoul where you can experience Korean traditional culture.","仁寺洞は、韓国の伝統文化を体験できるソウルの代表的な通りです。","仁寺洞是首尔具有代表性的街道，在这里可以体验韩国传统文化。","Chào mừng bạn đến với Insadong, con phố tiêu biểu của Seoul, nơi bạn có thể trải nghiệm văn hóa truyền thống Hàn Quốc.","อินซาดง ถนนสายหลักของโซลที่คุณจะได้สัมผัสกับวัฒนธรรมดั้งเดิมของเกาหลีค่ะ","Инсадон — это репрезентативная улица в Сеуле, где вы можете познакомиться с традиционной корейской культурой.","Insadong, jalan ikonik di Seoul tempat Anda bisa merasakan budaya tradisional Korea.","",""
 "106","Transport_MapContent_1","*인사동의 상점검색, 한복AR착장, Ai 추천 코스, 날씨정보제공, 환율정보제공등 
  다양한 정보와 체험을 제공하는  인사동의 Ai 키오스크 [WITH]를  경험해보세요~
  (인사동의 홍보 모델이자 마스코트인 ‘인사’도 함께 만나보세요)","*Discover [WITH], the AI kiosk of Insadong offering shop search, AR hanbok try-on, AI-recommended courses, weather updates, exchange rate information, and more!
  (Meet “INSA,” the Insa-dong guide, too!)","*ショップ検索、AR韓服試着、AIおすすめコース、天気情報、為替情報など、
 さまざまな情報と体験を提供するインサドンのAIキオスク [WITH] をぜひ体験してください！
  (案内役「インサ」にも会えます。)","在仁寺洞体验 AI 资讯亭 [WITH] 吧！
-这里提供商店搜索、韩服 AR 试穿、AI 推荐路线、天气资讯、汇率资讯等多种信息与体验。 ( 还能见到仁寺洞的宣传模特和吉祥物 “仁沙”！)","","","","","",""
-"107","Transport_MapContent_2","""WIT AI SMART KIOSK"" 설치장소","Installation Location of ""WIT AI SMART KIOSK""","「WIT AI SMART KIOSK」設置場所","""WIT AI SMART KIOSK"" 安装地点","Địa điểm lắp đặt ""WIT AI SMART KIOSK""","สถานที่ติดตั้ง ""WIT AI SMART KIOSK""","مواقع تركيب ""WIT AI SMART KIOSK""","Lokasi Pemasangan ""WIT AI SMART KIOSK""","",""
-"108","Transport_MapContent_3","1. 북인사 마당 앞  / 2. 인사동 쉼터(사거리) / 3. 남인사광장 앞","1. In front of Buk-Insa Yard / 2. Naminsa Rest Area / 3.In front of Naminsa Plaza","1. 北仁寺広場前 / 2.南仁寺休憩所 / 3. 南仁寺広場前","1. 北仁寺庭院前 / 2. 南仁寺休息区 / 3. 南仁寺广场前","Trước sân Bukinsadong / Khu nghỉ chân Insadong (Ngã tư) / Trước quảng trường Naminsadong","หน้าลานบุกอินซาดง / Khu nghỉ chân Insadong (Ngã tư) / หน้าลานกว้างนัมอินซาดง","أمام ساحة بوكينسادونغ / استراحة إنسادونغ (تقاطع طرق) / أمام ساحة نامينسادونغ","Di depan Bukinsadong Madang / Area Istirahat Insadong (Persimpangan) / Di depan Naminsadong Plaza","",""
-"151","SubHeader_Transport","* 인사동을 올수 있는 다양한 방법을 알려드릴게요 ","* Let me show you the different ways you can get to Insa-dong","* 仁寺洞 へのさまざまなアクセス方法をご案内します","* 我来告诉你前往仁寺洞的多种方式","Mình sẽ hướng dẫn bạn các cách khác nhau để đến Insadong nhé!","ฉันจะแนะนำวิธีต่างๆ ในการเดินทางมายังอินซาดงให้ทราบค่ะ!","سأوضح لكم الطرق المختلفة للوصول إلى إنسادونغ!","Aku bakal kasih tahu berbagai cara untuk pergi ke Insadong!","",""
-"109","Transport_JongroPick","종로 Pick","Jongno Pick","チョンノPick","钟路Pick (Jongno Pick)","Lựa chọn hàng đầu tại Jongno","จงโน พิก (ที่เที่ยวแนะนำในจงโน)","مختارات جونغنو","Pilihan Terbaik Jongno","",""
-"110","Transport_Free","무료","Free","無料","免费","Miễn phí","ฟรี","مجاني","Gratis","",""
-"111","Transport_Age","전체이용가","All Ages","全年齢対象","全年龄适用","Mọi lứa tuổi","เหมาะสำหรับทุกวัย","لجميع الأعمار","Semua Umur","",""
-"112","Transport_AppDetail","앱 상세정보","App Information","アプリ詳細情報","APP详细信息","Thông tin chi tiết ứng dụng","รายละเอียดแอป","تفاصيل التطبيق","Detail Aplikasi","",""
+这里提供商店搜索、韩服 AR 试穿、AI 推荐路线、天气资讯、汇率资讯等多种信息与体验。 ( 还能见到仁寺洞的宣传模特和吉祥物 “仁沙”！)","","","*Откройте для себя [WITH], ИИ-киоск Инсадона, предлагающий поиск магазинов, примерку ханбока в AR, маршруты, рекомендованные ИИ, обновления погоды, информацию о курсах валют и многое другое!
+ (А также познакомьтесь с «INSA», гидом по Инсадону!)","","",""
+"107","Transport_MapContent_2","""WIT AI SMART KIOSK"" 설치장소","Installation Location of ""WIT AI SMART KIOSK""","「WIT AI SMART KIOSK」設置場所","""WIT AI SMART KIOSK"" 安装地点","Địa điểm lắp đặt ""WIT AI SMART KIOSK""","สถานที่ติดตั้ง ""WIT AI SMART KIOSK""","Место установки ""WIT AI SMART KIOSK""","Lokasi Pemasangan ""WIT AI SMART KIOSK""","",""
+"108","Transport_MapContent_3","1. 북인사 마당 앞  / 2. 인사동 쉼터(사거리) / 3. 남인사광장 앞","1. In front of Buk-Insa Yard / 2. Naminsa Rest Area / 3.In front of Naminsa Plaza","1. 北仁寺広場前 / 2.南仁寺休憩所 / 3. 南仁寺広場前","1. 北仁寺庭院前 / 2. 南仁寺休息区 / 3. 南仁寺广场前","Trước sân Bukinsadong / Khu nghỉ chân Insadong (Ngã tư) / Trước quảng trường Naminsadong","หน้าลานบุกอินซาดง / Khu nghỉ chân Insadong (Ngã tư) / หน้าลานกว้างนัมอินซาดง","1. Перед двором Бук-Инса / 2. Зона отдыха Наминса / 3. Перед площадью Наминса","Di depan Bukinsadong Madang / Area Istirahat Insadong (Persimpangan) / Di depan Naminsadong Plaza","",""
+"151","SubHeader_Transport","* 인사동을 올수 있는 다양한 방법을 알려드릴게요 ","* Let me show you the different ways you can get to Insa-dong","* 仁寺洞 へのさまざまなアクセス方法をご案内します","* 我来告诉你前往仁寺洞的多种方式","Mình sẽ hướng dẫn bạn các cách khác nhau để đến Insadong nhé!","ฉันจะแนะนำวิธีต่างๆ ในการเดินทางมายังอินซาดงให้ทราบค่ะ!","* Позвольте мне показать вам различные способы добраться до Инсадона","Aku bakal kasih tahu berbagai cara untuk pergi ke Insadong!","",""
+"109","Transport_JongroPick","종로 Pick","Jongno Pick","チョンノPick","钟路Pick (Jongno Pick)","Lựa chọn hàng đầu tại Jongno","จงโน พิก (ที่เที่ยวแนะนำในจงโน)","Jongno Pick","Pilihan Terbaik Jongno","",""
+"110","Transport_Free","무료","Free","無料","免费","Miễn phí","ฟรี","Бесплатно","Gratis","",""
+"111","Transport_Age","전체이용가","All Ages","全年齢対象","全年龄适用","Mọi lứa tuổi","เหมาะสำหรับทุกวัย","Для всех возрастов","Semua Umur","",""
+"112","Transport_AppDetail","앱 상세정보","App Information","アプリ詳細情報","APP详细信息","Thông tin chi tiết ứng dụng","รายละเอียดแอป","Информация о приложении","Detail Aplikasi","",""
 "113","Transport_AppDetailContent","종로에는 종로Pick! 종로구 스마트 라이프앱 종로Pick을 통해
 종로구의 실시간 정보와 행정서비스 이용이 가능해집니다.","Jongno has JongnoPick! With this smart life app, you can access  
 real-time information and administrative services in Jongno-gu.","チョンノにはチョンノPick！このスマートライフアプリで、  
 チョンノ区のリアルタイム情報や行政サービスが利用できます。","钟路就用钟路Pick！ 
-通过这款智慧生活APP，可以获取钟路区的实时信息并使用行政服务。","Jongno Pick! Qua ứng dụng Jongno Pick, bạn có thể dùng dịch vụ hành chính và xem tin tức Jongno thực tế.","จงโนต้อง Jongno Pick! รับข้อมูลเรียลไทม์และบริการภาครัฐของจงโนได้ง่ายๆ ผ่านแอป Jongno Pick ค่ะ","جونغنو بيك! يمكنكم الوصول للمعلومات والخدمات الإدارية في جونغنو عبر تطبيق الحياة الذكية جونغنو بيك.","Jongno Pick! Akses info real-time dan layanan publik Jongno-gu melalui aplikasi smart life Jongno Pick.","",""
-"114","Transport_JongroPickService","종로 Pick 앱의 5대 주요 서비스","5 Main Services of the JongnoPick App","チョンノPickアプリの5大サービス","钟路Pick APP的五大服务","5 dịch vụ chính của ứng dụng Jongno Pick","5 บริการหลักของแอป Jongno Pick","أهم 5 خدمات لتطبيق جونغنو بيك","5 Layanan Utama Aplikasi Jongno Pick","",""
-"115","Transport_JongroPickServiceContent_1","공용주차장 실시간 주차정보","Real-time public parking availability  ","公共駐車場のリアルタイム情報  ","公共停车场实时信息","Thông tin đỗ xe công cộng thực tế","ข้อมูลที่จอดรถสาธารณะแบบเรียลไทม์","معلومات مواقف السيارات العامة فوراً","Info Parkir Umum Secara Real-time","",""
-"1151","Transport_JongroPickServiceContent_2","SOS 긴급신고","SOS Emergency Alerts ","SOS緊急通報  ","SOS 紧急申报","Báo động khẩn cấp SOS","แจ้งเหตุฉุกเฉิน SOS","نداء استغاثة SOS","Laporan Darurat SOS","",""
+通过这款智慧生活APP，可以获取钟路区的实时信息并使用行政服务。","Jongno Pick! Qua ứng dụng Jongno Pick, bạn có thể dùng dịch vụ hành chính và xem tin tức Jongno thực tế.","จงโนต้อง Jongno Pick! รับข้อมูลเรียลไทม์และบริการภาครัฐของจงโนได้ง่ายๆ ผ่านแอป Jongno Pick ค่ะ","В Чонно есть JongnoPick! С помощью этого умного приложения вы можете получить доступ к 
+информации в реальном времени и административным услугам в районе Чонно-гу.","Jongno Pick! Akses info real-time dan layanan publik Jongno-gu melalui aplikasi smart life Jongno Pick.","",""
+"114","Transport_JongroPickService","종로 Pick 앱의 5대 주요 서비스","5 Main Services of the JongnoPick App","チョンノPickアプリの5大サービス","钟路Pick APP的五大服务","5 dịch vụ chính của ứng dụng Jongno Pick","5 บริการหลักของแอป Jongno Pick","5 основных услуг приложения JongnoPick","5 Layanan Utama Aplikasi Jongno Pick","",""
+"115","Transport_JongroPickServiceContent_1","공용주차장 실시간 주차정보","Real-time public parking availability  ","公共駐車場のリアルタイム情報  ","公共停车场实时信息","Thông tin đỗ xe công cộng thực tế","ข้อมูลที่จอดรถสาธารณะแบบเรียลไทม์","Наличие мест на общественных парковках в реальном времени","Info Parkir Umum Secara Real-time","",""
+"1151","Transport_JongroPickServiceContent_2","SOS 긴급신고","SOS Emergency Alerts ","SOS緊急通報  ","SOS 紧急申报","Báo động khẩn cấp SOS","แจ้งเหตุฉุกเฉิน SOS","Экстренные оповещения SOS","Laporan Darurat SOS","",""
 "1152","Transport_JongroPickServiceContent_3","정화조 청소예약, 건강이상 서비스 신청 등 민원서비스","Civil services like septic tank cleaning and health check requests 
-"," 浄化槽清掃予約、健康異常サービス申請などの民願サービス  ","化粪池清理预约、健康异常服务申请等便民服务","Dịch vụ dân sự: Đặt lịch dọn bể phốt, dịch vụ y tế...","บริการจองล้างถังบำบัด, ขอรับบริการสุขภาพ และงานบริการรัฐ","الخدمات المدنية: حجز تنظيف الخزانات، طلب الرعاية الصحية","Layanan publik: Sedot septic tank, layanan kesehatan, dll.","",""
-"1153","Transport_JongroPickServiceContent_4","프로그램 / 강좌"," Programs / Courses  ","プログラム / 講座  ","项目 / 讲座","Chương trình / Khóa học","โปรแกรม / คอร์สเรียน","البرامج / الدورات","Program / Kursus","",""
-"1154","Transport_JongroPickServiceContent_5","종로산책(골목길 탐방코스)","Jongno Walk (Alleyway Tour Courses)","チョンノ散歩（路地裏探訪コース）","钟路漫步（胡同探访路线）","Tản bộ Jongno (Khám phá ngõ nhỏ)","เดินเล่นจงโน (ทัวร์ตรอกซอกซอย)","نزهة جونغنو (جولة الأزقة)","Jalan Jongno (Tur Gang Kecil)","",""
+"," 浄化槽清掃予約、健康異常サービス申請などの民願サービス  ","化粪池清理预约、健康异常服务申请等便民服务","Dịch vụ dân sự: Đặt lịch dọn bể phốt, dịch vụ y tế...","บริการจองล้างถังบำบัด, ขอรับบริการสุขภาพ และงานบริการรัฐ","Гражданские услуги, такие как очистка септиков и запросы на проверку здоровья 
+","Layanan publik: Sedot septic tank, layanan kesehatan, dll.","",""
+"1153","Transport_JongroPickServiceContent_4","프로그램 / 강좌"," Programs / Courses  ","プログラム / 講座  ","项目 / 讲座","Chương trình / Khóa học","โปรแกรม / คอร์สเรียน","Программы / Курсы","Program / Kursus","",""
+"1154","Transport_JongroPickServiceContent_5","종로산책(골목길 탐방코스)","Jongno Walk (Alleyway Tour Courses)","チョンノ散歩（路地裏探訪コース）","钟路漫步（胡同探访路线）","Tản bộ Jongno (Khám phá ngõ nhỏ)","เดินเล่นจงโน (ทัวร์ตรอกซอกซอย)","Прогулка по Чонно (Маршруты по переулкам)","Jalan Jongno (Tur Gang Kecil)","",""
 "120","Photo_HanbokTry","AR 한복체험  ","AR Hanbok Try-On","AR 韓服 体験","Ar 韩服 体验","Trải nghiệm Hanbok AR","ลองชุดฮันบก AR","Примерка ханбока в AR","Pengalaman Hanbok AR","","아이콘20"
 "121","Photo_HanbokSelect","한복/의상 선택하기","Choose Hanbok","韓服を選ぶ","选择韩服","Chọn Hanbok/Trang phục","เลือกชุดฮันบก/เครื่องแต่งกาย","Выбор ханбока/костюма","Pilih Hanbok/Busana","","아이콘20"
 "122","Photo_HanbokSelectContent","원하시는 의상을 고르고 선택 완료 버튼을 누른뒤 사진촬영 버튼을 눌러주세요 ","Please choose your desired costume and press the ""Complete Selection"" button","お好きな衣装を選んで「選択完了」ボタンを押してください","请选择您喜欢的服装，然后点击“完成选择”按钮","Chọn trang phục, nhấn 'Đã chọn xong' rồi nhấn 'Chụp ảnh'.","เลือกชุดที่ชอบ กด 'เลือกเสร็จแล้ว' แล้วกด 'ถ่ายภาพ' ค่ะ","Выберите желаемый костюм, нажмите кнопку «Выбор завершен», а затем нажмите кнопку «Сделать фото».","Pilih busana, tekan 'Selesai Memilih' lalu 'Ambil Foto'.","","아이콘20"
@@ -524,14 +534,19 @@ Now, I, INSA, will capture your beautiful hanbok look on screen—try our hanbok
 "144","SubHeader_AISearch","* 방문하고자하는 3개의 카테고리를 선택해주세요 ","* Select 3 categories you want to visit.","* 訪れたいカテゴリを3つ選んでください","* 请选择您想参观的3个类别","Vui lòng chọn 3 danh mục bạn muốn tham quan.","กรุณาเลือก 3 หมวดหมู่ที่คุณต้องการไปค่ะ","* Пожалуйста, выберите 3 категории, которые вы хотите посетить.","Silakan pilih 3 kategori yang ingin Anda kunjungi.","",""
 "145","SubHeader_AICourse","* QR을 핸드폰으로 찍으시면 길을 안내해드려요.","* Scan the QR with your phone. We’ll guide you","* スマホでQRを読み取ってください。ご案内します","* 用手机扫QR码，我们导航","Quét mã QR bằng điện thoại để được chỉ đường.","สแกนคิวอาร์โค้ดด้วยมือถือเพื่อดูการนำทางค่ะ","* Отсканируйте QR-код телефоном, и мы укажем вам дорогу.","Scan QR dengan ponsel untuk panduan arah jalan.","",""
 "146","SubHeader_Event","* 인사동에서 진행중인 이벤트를 찾아보세요 ","* Find events happening in Insa-dong.","* 仁寺洞で開催中のイベントを探してみてください","* 查找正在仁寺洞举行的活动","Tìm sự kiện đang diễn ra tại Insadong","ค้นหากิจกรรมที่จัดขึ้นในอินซาดงค่ะ","* Узнайте о мероприятиях, проходящих в Инсадоне.","Cari acara yang ada di Insadong","",""
+"","Event_Tab_Jongno","종로구","Jongno","鍾路区","钟路区","Jongno-gu","เขตจงโน","Чонногу","Jongno-gu","",""
+"","Event_Tab_Insadong","인사동","Insadong","仁寺洞","仁寺洞","Insadong","อินซาดง","Инсадон","Insadong","",""
+"","Event_Category_All","전체","All","全て","全部","Tất cả","ทั้งหมด","Все","Semua","",""
+"","Event_Category_performance","공연","Performance","公演","演出","Biểu diễn","การแสดง","Выступление","Pertunjukan","",""
+"","Event_Category_exibition","전시","Exhibition","展示","展览","Triển lãm","นิทรรศการ","Выставка","Pameran","",""
+"","Event_Category_etc","기타","Etc","その他","其他","Khác","อื่นๆ","Другое","Lainnya","",""
 "147","SubHeader_Exchange","* 인사동에 오신걸 환영합니다. 오늘의 환율 정보입니다. ","* Welcome. Here is today’s exchange rate","* ようこそ。本日の為替情報です","* 欢迎您。以下是今日汇率信息","Chào mừng đến Insadong. Tỷ giá hôm nay.","ยินดีต้อนรับสู่อินซาดง ข้อมูลอัตราแลกเปลี่ยนวันนี้ค่ะ","* Добро пожаловать в Инсадон. Вот информация о сегодняшнем курсе валют.","Selamat datang di Insadong. Info kurs hari ini.","",""
 "148","SubHeader_Detail","* QR을 핸드폰으로 찍으시면 길을 안내해드려요","* Scan the QR with your phone. We’ll guide you","* スマホでQRを読み取ってください。ご案内します","* 用手机扫QR码，我们导航","Quét QR để được chỉ đường.","สแกน QR เพื่อดูเส้นทางค่ะ","* Отсканируйте QR-код телефоном, и мы укажем вам дорогу.","Scan QR untuk panduan jalan.","",""
 "149","SubHeader_Detail_Event","* QR코드로 이벤트의 상세정보를 확인하세요","* Scan the QR code for event details","* QRコードでイベントの詳細を確認してください","* 扫描二维码查看活动详情","Quét QR xem chi tiết sự kiện.","สแกน QR เพื่อดูรายละเอียดค่ะ","* Отсканируйте QR-код, чтобы узнать подробности о мероприятии.","Scan QR untuk detail acara.","",""
 "150","SubHeader_Detail_Mission","* 미션 서브헤더","Mission Subheader","ミッションサブヘッダー","任务副标题","","","* Подзаголовок миссии","","",""
 "150","SubHeader_TaxFree","*TaxFree 리펀드 기능을 통해 공항하는 업무를 줄여 드립니다. 
   상점에서 받은 영수증을 준비하시고 언어를 선택해보세요  ","*The Tax-Free refund reduces what you need to do at the airport.
-  Prepare your receipt and choose your language.","*TaxFree返金で空港手続き이 줄어요。
-  レシートを用意して言語を選んでください。","*TaxFree退税功能可以减少您在机场办理的手续。
+  Prepare your receipt and choose your language.","*TaxFree返金で空港手続きが簡素化されます。レシートを用意して言語を選択してください。","*TaxFree退税功能可以减少您在机场办理的手续。
   请准备好商店给您的收据，并选择语言","Hoàn thuế nhanh, giảm thủ tục tại sân bay.
 Hãy chuẩn bị hóa đơn và chọn ngôn ngữ.","ลดขั้นตอนที่สนามบินด้วยการคืนภาษี
 เตรียมใบเสร็จให้พร้อมแล้วเลือกภาษาค่ะ","* Функция возврата налога Tax-Free сэкономит ваше время в аэропорту.\n Пожалуйста, подготовьте чек, полученный в магазине, и выберите язык.","Refund TaxFree kurangi antrean bandara.
@@ -551,29 +566,29 @@ Siapkan struk toko dan pilih bahasa Anda.","",""
 "167","Taxfree_Apply","세금 환급 신청","Tax-Free","免税申請","申请退税","Hoàn thuế","ขอคืนภาษี","Заявка на возврат налога","Pengajuan Refund Pajak","",""
 "168","Taxfree_Introduce","텍스프리 소개","About Tax-Free","免税サービス案内","免税服务介绍","Giới thiệu Tax Free","แนะนำแท็กซ์ฟรี (Tax Free)","О системе Tax-Free","Panduan Tax Free","",""
 "169","Taxfree_Enroll","가맹점 신청","Apply Tax-Free","免税加盟店申請","申请免税加盟店","Đăng ký cửa hàng ","สมัครร้านค้าสมาชิก","Регистрация торговой точки","Pendaftaran Merchant","",""
-"170","Province_1","서울","Seoul","そうる","首尔","Seoul","Seoul","Сеул","Сеул","",""
-"171","Province_2","경기도","Gyeonggi","きょんぎど","京畿道","gyeonggi-do","Kota Gyeonggi","Кёнгидо","Кёнгидо","",""
-"172","Province_3","인천","Incheon","いんちょん","仁川","Incheon","Incheon","Инчхон","Инчхон","",""
-"173","Province_4","강원도","Gangwon","かんうぉんど","江原道","Gangwon-do","Gangwon-do","Канвондо","Канвондо","",""
-"174","Province_5","충청남도","Chungcheongnam","ちゅんちょんなむど","忠清南道","Chungcheongnam-do","Chungcheongnam-do","Чхунчхоннамдо","Чхунчхоннамдо","",""
-"175","Province_6","세종","Sejong","せじょん","世宗","Sejong","Sejong","Седжон","Седжон","",""
-"176","Province_7","대전","Daejeon","てじょん","大田","điện khí hóa","elektrifikasi","Тэджон","электрификация","",""
-"177","Province_8","충청북도","Chungcheongbuk","ちゅんちょんぶくど","忠清北道","Chungcheongbuk-do","Chungcheongbuk-do","Чхунчхонбукдо","Чхунчхонбукдо","",""
-"178","Province_9","경상북도","Gyeongsangbuk","きょんさんぶくど","庆尚北道","Tỉnh Bắc Gyeongsang","Provinsi Gyeongsang Utara","Кёнсанбукдо","Провинция Северный Кёнсан","",""
-"179","Province_10","대구","Daegu","てぐ","大邱","daegu","daegu","Тэгу","даэгу","",""
-"180","Province_11","전라북도","Jeollabuk","ちょるらぶくど","全罗北道","Jeollabuk-do","Jeollabuk-do","Чоллабукдо","Чоллабукдо","",""
-"","Province_12","전주","","","","Jeonju","Jeonju","Чонджу","Чонджу","",""
-"181","Province_13","전라남도","Jeollanam","ちょるらなむど","全罗南道","Jeollanam-do","Jeollanam-do","Чолланамдо","Чолланамдо","",""
-"182","Province_14","광주","Gwangju","くぁんじゅ","光州","gwangju","gwangju","Кванджу","Кванджу","",""
-"183","Province_15","경상남도","Gyeongsangnam","きょんさんなむど","庆尚南道","Gyeongsangnam-do","Kota Gyeongsangnam","Кёнсаннамдо","Кёнсаннамдо","",""
-"184","Province_16","부산","Busan","ぷさん","釜山","Busan","Busan","Пусан","Пусан","",""
-"185","Province_17","울산","Ulsan","うるさん","蔚山","Ulsan","Ulsan","Ульсан","Ульсан","",""
-"186","Province_18","제주도","Jeju-do","ちぇじゅど","济州岛","đảo Jeju","Pulau Jeju","Чеджудо","остров Чеджу","",""
-"187","Photo_ResultSubHeader","사진 촬영 결과물을 통해 나만의 굿즈를 만들어 보세요 ","Make your own photo merch.","写真で自分だけのグッズ作り。","用照片定制专属周边。","Tạo ra các sản phẩm mang thương hiệu riêng của bạn bằng cách sử dụng kết quả buổi chụp ảnh.","Buat merchandise Anda sendiri menggunakan hasil pemotretan Anda.","Создайте собственную продукцию, используя результаты вашей фотосессии.","Создайте собственную продукцию, используя результаты вашей фотосессии.","",""
+"170","Province_1","서울","Seoul","そうる","首尔","Seoul","Seoul","Сеул","Seoul","",""
+"171","Province_2","경기도","Gyeonggi","きょんぎど","京畿道","gyeonggi-do","Kota Gyeonggi","Кёнгидо","Gyeonggi-do","",""
+"172","Province_3","인천","Incheon","いんちょん","仁川","Incheon","Incheon","Инчхон","Incheon","",""
+"173","Province_4","강원도","Gangwon","かんうぉんど","江原道","Gangwon-do","Gangwon-do","Канвондо","Gangwon-do","",""
+"174","Province_5","충청남도","Chungcheongnam","ちゅんちょんなむど","忠清南道","Chungcheongnam-do","Chungcheongnam-do","Чхунчхоннамдо","Chungcheongnam-do","",""
+"175","Province_6","세종","Sejong","せじょん","世宗","Sejong","Sejong","Седжон","Sejong","",""
+"176","Province_7","대전","Daejeon","てじょん","大田","Daejeon","Daejeon","Тэджон","Daejeon","",""
+"177","Province_8","충청북도","Chungcheongbuk","ちゅんちょんぶくど","忠清北道","Chungcheongbuk-do","Chungcheongbuk-do","Чхунчхонбукдо","Chungcheongbuk-do","",""
+"178","Province_9","경상북도","Gyeongsangbuk","きょんさんぶくど","庆尚北道","Tỉnh Bắc Gyeongsang","Provinsi Gyeongsang Utara","Кёнсанбукдо","Gyeongsangbuk-do","",""
+"179","Province_10","대구","Daegu","てぐ","大邱","daegu","daegu","Тэгу","Daegu","",""
+"180","Province_11","전라북도","Jeollabuk","ちょるらぶくど","全罗北道","Jeollabuk-do","Jeollabuk-do","Чоллабукдо","Jeollabuk-do","",""
+"","Province_12","전주","","","","Jeonju","Jeonju","Чонджу","Jeonju","",""
+"181","Province_13","전라남도","Jeollanam","ちょるらなむど","全罗南道","Jeollanam-do","Jeollanam-do","Чолланамдо","Jeollanam-do","",""
+"182","Province_14","광주","Gwangju","くぁんじゅ","光州","gwangju","gwangju","Кванджу","Gwangju","",""
+"183","Province_15","경상남도","Gyeongsangnam","きょんさんなむど","庆尚南道","Gyeongsangnam-do","Kota Gyeongsangnam","Кёнсаннамдо","Gyeongsangnam-do","",""
+"184","Province_16","부산","Busan","ぷさん","釜山","Busan","Busan","Пусан","Busan","",""
+"185","Province_17","울산","Ulsan","うるさん","蔚山","Ulsan","Ulsan","Ульсан","Ulsan","",""
+"186","Province_18","제주도","Jeju-do","ちぇじゅど","济州岛","đảo Jeju","Pulau Jeju","Чеджудо","Pulau Jeju","",""
+"187","Photo_ResultSubHeader","사진 촬영 결과물을 통해 나만의 굿즈를 만들어 보세요 ","Make your own photo merch.","写真で自分だけのグッズ作り。","用照片定制专属周边。","Tạo ra các sản phẩm mang thương hiệu riêng của bạn bằng cách sử dụng kết quả buổi chụp ảnh.","สร้างสินค้าของคุณเองโดยใช้ผลลัพธ์จากการถ่ายภาพ","Создайте собственную продукцию, используя результаты вашей фотосессии.","Buat merchandise Anda sendiri menggunakan hasil pemotretan Anda.","",""
 "189","SmartTour_RecommendContentShowMore","더보기","More","もっと見る","查看更多","Xem thêm","ดูเพิ่มเติม","Подробнее","Lihat Lebih Lanjut","",""
-"1900","MainButton_Promotion","취사병 전설이 되다","","","","","","","","",""
-"190","Header_Promotion","티빙 오리지널 취사병 전설이 되다","","","","","","","","",""
-"191","SubHeader_Promotion","이벤트에 참가 해보세요.","","","","","","","","",""
-"192","Promotion_Introduce","> 이벤트 소개 <","","","","","","","","",""
-"193","Promotion_Participate","> 이벤트 참여 <","","","","","","","","",""
-"194","Promotion_Reward","> 이벤트 상품 <","","","","","","","","",""
+"1900","MainButton_Promotion","취사병 전설이 되다","The Legend of a Cook","炊事兵、伝説になる","炊事兵成为传说","Đầu Bếp Huyền Thoại","ตำนานพลทหารทำอาหาร","Легенда о поваре","The Legend of a Cook","",""
+"190","Header_Promotion","티빙 오리지널 취사병 전설이 되다","TVING Original The Legend of a Cook","TVINGオリジナル 炊事兵、伝説になる","TVING原创 炊事兵成为传说","TVING Original Đầu Bếp Huyền Thoại","TVING Original ตำนานพลทหารทำอาหาร","Оригинальный сериал TVING Легенда о поваре","TVING Original The Legend of a Cook","",""
+"191","SubHeader_Promotion","이벤트에 참가 해보세요.","Please participate in the event.","イベントに参加してみてください。","请参加活动。","Hãy tham gia sự kiện.","เข้าร่วมกิจกรรม","Пожалуйста, примите участие в мероприятии.","Silakan ikuti acara ini.","",""
+"192","Promotion_Introduce","> 이벤트 소개 <","> Event Introduction <","> イベント紹介 <","> 活动介绍 <","> Giới thiệu sự kiện <","> แนะนำกิจกรรม <","> Описание мероприятия <","> Pengenalan Acara <","",""
+"193","Promotion_Participate","> 이벤트 참여 <","> Participate in Event <","> イベント参加 <","> 参与活动 <","> Tham gia sự kiện <","> เข้าร่วมกิจกรรม <","> Участие в мероприятии <","> Ikut Acara <","",""
+"194","Promotion_Reward","> 이벤트 상품 <","> Event Prizes <","> イベント商品 <","> 活动奖品 <","> Phần thưởng sự kiện <","> รางวัลกิจกรรม <","> Призы мероприятия <","> Hadiah Acara <","",""

@@ -97,6 +97,7 @@ const TILE_LABEL_KEYS: Partial<Record<string, string>> = {
   transport: 'MainButton_Transport',
   palace: 'MainButton_TraditionalMarket',
   museum: 'MainButton_MarketPaper',
+  donation: 'MainButton_Donation',
 };
 
 type Lang = SupportedLanguage;

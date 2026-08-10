@@ -7,6 +7,7 @@ import { useShopStore } from '@renderer/store/shopStore';
 import { useDetailStore } from '@renderer/store/detailStore';
 import type { Lang } from '@renderer/lib/i18n';
 import { pick, useLang } from '@renderer/lib/i18n';
+import { t } from '@renderer/lib/loc';
 import type { Shop } from '@shared/types/shop';
 import {
   shopAddress,
@@ -58,7 +59,8 @@ const HEADING_SUB = {
 };
 
 const FALLBACK_INTERESTS = ['전시관', '한식', '카페'];
-const COURSE_NAMES = ['A코스', 'B코스', 'C코스'] as const;
+/** Course tab names — Localization rows, so a copy edit needs no code change. */
+const COURSE_KEYS = ['ACourse', 'BCourse', 'CCourse'] as const;
 
 /** A shop matches an interest if its second- or AI-category (prefix stripped) equals it. */
 const catMatches = (shop: Shop, cat: string): boolean =>
@@ -71,8 +73,8 @@ const catMatches = (shop: Shop, cat: string): boolean =>
  */
 function buildCourses(interests: string[], shops: Shop[], lang: Lang, noImage: string): Course[] {
   const cats = interests.length ? interests.slice(0, 3) : FALLBACK_INTERESTS;
-  return COURSE_NAMES.map((name, ci) => ({
-    name,
+  return COURSE_KEYS.map((key, ci) => ({
+    name: t(key, lang),
     spots: cats.map((cat) => {
       const matches = shops.filter((s) => catMatches(s, cat));
       const shop = matches.length ? matches[ci % matches.length] : undefined;

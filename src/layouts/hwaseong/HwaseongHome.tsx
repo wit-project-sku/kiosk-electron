@@ -186,13 +186,13 @@ export function HwaseongHome({ controller }: Props): JSX.Element {
   const L = (key: string): string => buttonText(key, lang) ?? t(key, lang);
   const TILE = (key: string, keepPending = false): string =>
     keepPending ? L(key) : L(key).replace(/\s*\(준비중\)\s*/g, '').trim();
-  // 기부 shows a fixed 기부 base (like Insadong/Osan, which hardcode it in every
-  // language), plus a localized "(준비중)" suffix while soft-launching. It does NOT
-  // resolve via labelKey — MainButton_Donation has no vi/th/ru/id data. Every
-  // other tile resolves normally.
+  // 기부 resolves through labelKey like every other tile (MainButton_Donation now
+  // carries all 8 languages in every location's sheet); the localized "(준비중)"
+  // suffix is appended while soft-launching.
   const tileLabel = (tile: HomeTile): string => {
-    if (tile.screen !== 'donation') return TILE(tile.labelKey, tile.disabled);
-    return DONATION_COMING_SOON ? withComingSoon('기부', lang) : '기부';
+    const base = TILE(tile.labelKey, tile.disabled);
+    if (tile.screen !== 'donation') return base;
+    return DONATION_COMING_SOON ? withComingSoon(base, lang) : base;
   };
 
   // Inline search keyboard (no navigation on tap — keyboard shows in place).

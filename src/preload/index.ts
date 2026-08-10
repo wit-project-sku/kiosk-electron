@@ -155,7 +155,6 @@ const api: KioskBridge = {
   language: {
     get: () => invoke(IpcChannels.LanguageGet),
     set: (language) => invoke(IpcChannels.LanguageSet, language),
-    getAvailable: () => invoke(IpcChannels.LanguageGetAvailable),
   },
   weather: {
     get: () => invoke(IpcChannels.WeatherGet),

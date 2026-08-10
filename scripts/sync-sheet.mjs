@@ -169,24 +169,106 @@ async function genLocalization() {
   return Object.keys(entries).length;
 }
 
+/**
+ * PalaceInfo_Insa columns are resolved BY HEADER NAME, never by position.
+ *
+ * This sheet has already been restructured once (30 → 58 columns, with the four
+ * new languages INTERLEAVED into every field instead of appended). Positional
+ * reads survived that change silently and produced scrambled output — address.ko
+ * holding the Vietnamese NAME, phone holding a paragraph of prose — because
+ * nothing checks that column 5 is still "주소 (한국어)". Name lookup cannot
+ * mis-align, and resolvePalaceCols() below turns any future reshuffle into a
+ * loud build failure instead of corrupt content.
+ *
+ * Headers read "<field> (<language>)" with erratic spacing and the occasional
+ * missing paren ("업무시간 (한국어"), so both sides match loosely on the label.
+ */
+const PALACE_FIELD_MARKERS = {
+  name: /업체명/,
+  address: /주소/,
+  hashtag: /해쉬태그|해시태그/,
+  info: /정보/,
+  hours: /업무시간/,
+  highlights: /볼거리/,
+  admission: /입장료/,
+};
+const PALACE_LANG_MARKERS = {
+  ko: /한국어/,
+  en: /영어/,
+  ja: /일어|일본어/,
+  zh: /중국어/,
+  vi: /베트남/,
+  th: /태국/,
+  ru: /러시아/,
+  id: /인도네시아/,
+};
+
+/**
+ * Header row → `{ cols: { name: { ko: 1, en: 2, … }, … }, phone }`.
+ * A language with no column is simply absent, so a 4-language sheet still
+ * produces 4-language output; ko/en/ja/zh and phone are REQUIRED and throw.
+ */
+function resolvePalaceCols(header) {
+  const cols = {};
+  for (const field of Object.keys(PALACE_FIELD_MARKERS)) cols[field] = {};
+  let phone = null;
+
+  header.forEach((raw, i) => {
+    const h = clean(raw);
+    if (!h) return;
+    // 전화번호 first: it carries no language suffix and must not fall through.
+    if (phone == null && /전화번호/.test(h)) {
+      phone = i;
+      return;
+    }
+    const field = Object.keys(PALACE_FIELD_MARKERS).find((f) => PALACE_FIELD_MARKERS[f].test(h));
+    if (!field) return;
+    const lang = Object.keys(PALACE_LANG_MARKERS).find((l) => PALACE_LANG_MARKERS[l].test(h));
+    if (!lang || cols[field][lang] != null) return; // first column for a language wins
+    cols[field][lang] = i;
+  });
+
+  const missing = [];
+  for (const [field, map] of Object.entries(cols)) {
+    for (const lang of ['ko', 'en', 'ja', 'zh']) if (map[lang] == null) missing.push(`${field}.${lang}`);
+  }
+  if (phone == null) missing.push('phone');
+  if (missing.length > 0) {
+    throw new Error(
+      `PalaceInfo_Insa: could not locate [${missing.join(', ')}] by header name. The sheet's ` +
+        `header row changed — update PALACE_FIELD_MARKERS / PALACE_LANG_MARKERS in ` +
+        `scripts/sync-sheet.mjs. Do NOT fall back to column positions.`,
+    );
+  }
+  return { cols, phone };
+}
+
+/** Build an 8-language field from a resolved `{ lang: columnIndex }` map. */
+const langTextByCols = (r, map) => {
+  const out = { ko: clean(r[map.ko]), en: clean(r[map.en]), ja: clean(r[map.ja]), zh: clean(r[map.zh]) };
+  for (const lang of ['vi', 'th', 'ru', 'id']) {
+    if (map[lang] == null) continue;
+    const v = clean(r[map[lang]]);
+    if (v) out[lang] = v;
+  }
+  return out;
+};
+
 async function genPalaces() {
   const rows = await loadTab('PalaceInfo_Insa');
+  const { cols, phone } = resolvePalaceCols(rows[0] ?? []);
   const palaces = [];
   for (const r of rows.slice(1)) {
     if (!/^\d+$/.test(clean(r[0]))) continue; // data rows are numbered
-    // New languages (vi/th/ru/id) APPENDED after phone (col 29), one 4-col block
-    // per field in field order: name 30-33, address 34-37, hashtag 38-41,
-    // info 42-45, hours 46-49, highlights 50-53, admission 54-57. Each block is
-    // vi, th, ru, id. Until those columns exist the reads are undefined → 4-lang.
     palaces.push({
-      name: langTextExt(r, [1, 2, 3, 4], trail(30)),
-      address: langTextExt(r, [5, 6, 7, 8], trail(34)),
-      hashtag: langTextExt(r, [9, 10, 11, 12], trail(38)),
-      info: langTextExt(r, [13, 14, 15, 16], trail(42)),
-      hours: langTextExt(r, [17, 18, 19, 20], trail(46)),
-      highlights: langTextExt(r, [21, 22, 23, 24], trail(50)),
-      admission: langTextExt(r, [25, 26, 27, 28], trail(54)),
-      phone: clean(r[29]),
+      name: langTextByCols(r, cols.name),
+      address: langTextByCols(r, cols.address),
+      hashtag: langTextByCols(r, cols.hashtag),
+      info: langTextByCols(r, cols.info),
+      hours: langTextByCols(r, cols.hours),
+      highlights: langTextByCols(r, cols.highlights),
+      admission: langTextByCols(r, cols.admission),
+      phone: clean(r[phone]),
     });
   }
   const body = palaces.map((p) => `  ${JSON.stringify(p)},`).join('\n');

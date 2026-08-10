@@ -1,5 +1,4 @@
 import type { BootstrapData } from '@shared/ipc/contracts';
-import { getKioskLanguages } from '@shared/config/kioskLocations';
 import { useSettingsStore } from '@renderer/store/settingsStore';
 import { useTemplatesStore } from '@renderer/store/templatesStore';
 import { useSyncStore } from '@renderer/store/syncStore';
@@ -19,8 +18,6 @@ export function applyBootstrap(data: BootstrapData): void {
   useSyncStore.getState().hydrate(data.syncStats);
   useKioskStore.getState().hydrate(data.kioskConfig, data.theme, data.content, data.translations);
   useKioskStore.getState().setDevMode(data.devMode === true);
-  // Languages adapt to the kiosk (W001/W002 = ko/en/ja/vi; W003 adds zh/th/es).
-  useLanguageStore
-    .getState()
-    .hydrate(data.currentLanguage, getKioskLanguages(data.kioskConfig.kioskId));
+  // Every kiosk offers the same 8 languages (see languageStore ALLOWED).
+  useLanguageStore.getState().hydrate(data.currentLanguage);
 }

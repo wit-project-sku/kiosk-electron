@@ -7,20 +7,25 @@ import { hwaseongIconUrl } from '@renderer/assets/icons/hwaseong';
 import { useRotatingBanner } from '@renderer/hooks/useRotatingBanner';
 import { useEvents, pageWindow } from '@renderer/hooks/useEvents';
 import { EventDetailScreen } from '@layouts/components/EventDetailScreen';
+import { useLang } from '@renderer/lib/i18n';
+import { t } from '@renderer/lib/loc';
 import { HwaseongHeader } from './HwaseongHeader';
 import styles from './HwaseongEvents.module.css';
 
-/** Region tabs → API eventRegion (MBTI has no region; it opens the quiz). */
-const REGION_TABS: { label: string; region: EventRegion | null }[] = [
-  { label: '화성시', region: 'HWASEONG' },
-  { label: 'MBTI', region: null },
+/** Region tabs → API eventRegion (MBTI has no region; it opens the quiz).
+ *  `id` is the stable selection key — never the label, which is localized.
+ *  `key` is the Localization_Hwaseong row supplying the label; MBTI is a brand
+ *  name with no sheet row, so it falls back to its literal. */
+const REGION_TABS: { id: string; key: string | null; region: EventRegion | null }[] = [
+  { id: 'HWASEONG', key: 'Event_Tab_Hwaseong', region: 'HWASEONG' },
+  { id: 'MBTI', key: null, region: null },
 ];
-/** Category tabs → API eventCategory. */
-const CATEGORY_TABS: { label: string; value: EventCategory }[] = [
-  { label: '전체', value: 'ALL' },
-  { label: '공연', value: 'SHOW' },
-  { label: '전시', value: 'EXHIBITION' },
-  { label: '기타', value: 'ETC' },
+/** Category tabs → API eventCategory, labels from Localization_Hwaseong. */
+const CATEGORY_TABS: { key: string; value: EventCategory }[] = [
+  { key: 'Event_Category_All', value: 'ALL' },
+  { key: 'Event_Category_performance', value: 'SHOW' },
+  { key: 'Event_Category_exibition', value: 'EXHIBITION' },
+  { key: 'Event_Category_etc', value: 'ETC' },
 ];
 const PAGE_SIZE = 6;
 
@@ -165,14 +170,19 @@ interface HwaseongEventsProps {
  */
 export function HwaseongEvents({ controller }: HwaseongEventsProps): JSX.Element {
   const banner = useRotatingBanner(hwaseongIconUrl('fg-banner'));
-  const [regionLabel, setRegionLabel] = useState(REGION_TABS[0]!.label);
-  const [categoryLabel, setCategoryLabel] = useState(CATEGORY_TABS[0]!.label);
+  const lang = useLang();
+  /** Tab label from the sheet; MBTI (no key) keeps its literal id. */
+  const tabLabel = (tab: { id: string; key: string | null }): string =>
+    tab.key ? t(tab.key, lang) : tab.id;
+
+  const [regionId, setRegionId] = useState(REGION_TABS[0]!.id);
+  const [categoryValue, setCategoryValue] = useState<EventCategory>(CATEGORY_TABS[0]!.value);
   const [page, setPage] = useState(1);
   const [qrZoomOpen, setQrZoomOpen] = useState(false);
   const [detailId, setDetailId] = useState<number | null>(null);
 
-  const activeRegion = REGION_TABS.find((r) => r.label === regionLabel) ?? REGION_TABS[0]!;
-  const activeCategory = CATEGORY_TABS.find((c) => c.label === categoryLabel) ?? CATEGORY_TABS[0]!;
+  const activeRegion = REGION_TABS.find((r) => r.id === regionId) ?? REGION_TABS[0]!;
+  const activeCategory = CATEGORY_TABS.find((c) => c.value === categoryValue) ?? CATEGORY_TABS[0]!;
   const isMbti = activeRegion.region === null;
 
   const { items, totalPages, loading, error } = useEvents(
@@ -182,13 +192,13 @@ export function HwaseongEvents({ controller }: HwaseongEventsProps): JSX.Element
     PAGE_SIZE,
   );
 
-  const selectRegion = (label: string): void => {
-    setRegionLabel(label);
+  const selectRegion = (id: string): void => {
+    setRegionId(id);
     setPage(1);
     setDetailId(null);
   };
-  const selectCategory = (label: string): void => {
-    setCategoryLabel(label);
+  const selectCategory = (value: EventCategory): void => {
+    setCategoryValue(value);
     setPage(1);
     setDetailId(null);
   };
@@ -205,17 +215,17 @@ export function HwaseongEvents({ controller }: HwaseongEventsProps): JSX.Element
         <img src={hwaseongIconUrl('bg')} alt="" className={styles.bgImage} draggable={false} />
       )}
 
-      <HwaseongHeader controller={controller} title="화성시 이벤트" subtitle="페이지 설명문" onBack={goBack} />
+      <HwaseongHeader controller={controller} title="화성시 이벤트" onBack={goBack} />
 
       <div className={styles.regionTabs}>
         {REGION_TABS.map((r) => (
           <button
-            key={r.label}
+            key={r.id}
             type="button"
-            className={`${styles.regionTab} ${r.label === regionLabel ? styles.regionTabSelected : ''}`}
-            onClick={() => selectRegion(r.label)}
+            className={`${styles.regionTab} ${r.id === regionId ? styles.regionTabSelected : ''}`}
+            onClick={() => selectRegion(r.id)}
           >
-            {r.label}
+            {tabLabel(r)}
           </button>
         ))}
       </div>
@@ -227,12 +237,12 @@ export function HwaseongEvents({ controller }: HwaseongEventsProps): JSX.Element
           <div className={styles.categoryTabs}>
             {CATEGORY_TABS.map((c) => (
               <button
-                key={c.label}
+                key={c.value}
                 type="button"
-                className={`${styles.categoryTab} ${c.label === categoryLabel ? styles.categoryTabSelected : ''}`}
-                onClick={() => selectCategory(c.label)}
+                className={`${styles.categoryTab} ${c.value === categoryValue ? styles.categoryTabSelected : ''}`}
+                onClick={() => selectCategory(c.value)}
               >
-                {c.label}
+                {t(c.key, lang)}
               </button>
             ))}
           </div>
@@ -295,11 +305,7 @@ export function HwaseongEvents({ controller }: HwaseongEventsProps): JSX.Element
             <div className={styles.qrImg}>
               <img src={qrCodeImg} alt="QR" style={{ width: '100%', height: '100%', objectFit: 'contain' }} draggable={false} />
             </div>
-            <p className={styles.qrLabel}>
-              QR 클릭! ←
-              <br />
-              모바일에서 확인하기
-            </p>
+            <p className={styles.qrLabel}>{t('SubHeader_Detail_Event', lang)}</p>
           </div>
         </>
       )}

@@ -40,45 +40,6 @@ export class TranslationService {
   }
 
   /**
-   * Get a translation. Fallback chain: requested lang → Korean → key itself.
-   */
-  get(key: string, language: SupportedLanguage, fallbackLang: SupportedLanguage = 'ko'): string {
-    // Try requested language
-    if (this.map[key]?.[language]) {
-      return this.map[key][language]!;
-    }
-    // Try fallback (Korean)
-    if (this.map[key]?.[fallbackLang]) {
-      return this.map[key][fallbackLang]!;
-    }
-    // Return the key itself (visible but functional)
-    return key;
-  }
-
-  /**
-   * Get all translations for a language (used by bootstrap).
-   */
-  getAllForLanguage(language: SupportedLanguage): Record<string, string> {
-    const result: Record<string, string> = {};
-    for (const [key, variants] of Object.entries(this.map)) {
-      const text = variants[language] ?? variants.ko ?? key;
-      result[key] = text;
-    }
-    return result;
-  }
-
-  /**
-   * Update single translation (usually called by sync).
-   */
-  updateOne(key: string, language: SupportedLanguage, text: string): void {
-    if (!this.map[key]) {
-      this.map[key] = {};
-    }
-    this.map[key][language] = text;
-    this.repo.upsert(key, language, text);
-  }
-
-  /**
    * Replace all translations for a language (called by sync).
    */
   replaceLanguage(language: SupportedLanguage, entries: Record<string, string>): void {

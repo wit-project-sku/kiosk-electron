@@ -74,7 +74,6 @@ export const IpcChannels = {
   // Language / Translations
   LanguageGet: 'language:get',
   LanguageSet: 'language:set',
-  LanguageGetAvailable: 'language:getAvailable',
 
   // Weather (cached; refreshed in main every 30 min)
   WeatherGet: 'weather:get',

@@ -16,9 +16,16 @@ import hanbokInfo from '@renderer/assets/photos/insadong/hanbok/hanbok-info.png'
 import { HANBOK_INFO, PRIVACY } from './photoTexts';
 import styles from './HanbokSelect.module.css';
 
+/** Sheet-backed labels — every location's Localization tab carries these in all
+ *  8 languages, so they resolve through t() and need no code change on a copy edit. */
+const HANBOK_INFO_KEY = 'MainButton_Hanbok';
+const PRIVACY_LINK_KEY = 'Photo_PrivacyPolicy';
+
+/** Still hardcoded: MainButton_Map / MainButton_WC exist in the Insa and Osaek
+ *  sheets but NOT in Localization_Hwaseong, and this photo flow is shared across
+ *  all kiosks — routing them through t() would render the raw key on W005.
+ *  Add those two rows to the Hwaseong sheet, then switch these over too. */
 const LABELS = {
-  hanbokInfo: { ko: '한복 설명', en: 'About Hanbok', ja: '韓服の説明', zh: '韩服说明' },
-  privacy: { ko: '[개인정보 처리방침]', en: '[Privacy Policy]', ja: '[プライバシーポリシー]', zh: '[隐私政策]' },
   mapNav: { ko: '인사동 지도', en: 'Insadong Map', ja: '仁寺洞マップ', zh: '仁寺洞地图' },
   restroomNav: { ko: '화장실', en: 'Restroom', ja: 'トイレ', zh: '洗手间' },
 };
@@ -151,7 +158,7 @@ export function HanbokSelect({ onCapture, onHome, countdownActive = false }: Han
         ) : (
           icon('bg') && <img className={styles.bg} src={icon('bg')} alt="" draggable={false} />
         )}
-        <Header title={pick(LABELS.hanbokInfo, lang)} onHome={onHome} onBack={() => setInfoOpen(false)} />
+        <Header title={t(HANBOK_INFO_KEY, lang)} onHome={onHome} onBack={() => setInfoOpen(false)} />
         <div className={styles.infoContent}>
           <div
             ref={infoDrag.ref}
@@ -346,14 +353,14 @@ export function HanbokSelect({ onCapture, onHome, countdownActive = false }: Han
               </div>
             </div>
             <button type="button" className={styles.privacy} onClick={() => setPrivacyOpen(true)}>
-              {pick(LABELS.privacy, lang)}
+              {t(PRIVACY_LINK_KEY, lang)}
             </button>
           </div>
           <button type="button" className={styles.hanbokInfo} onClick={() => setInfoOpen(true)}>
             <div className={styles.hanbokInfoCircle}>
               <img src={hanbokInfo} alt="" draggable={false} />
             </div>
-            <span className={styles.hanbokInfoLabel}>{pick(LABELS.hanbokInfo, lang)}</span>
+            <span className={styles.hanbokInfoLabel}>{t(HANBOK_INFO_KEY, lang)}</span>
           </button>
         </div>
       </div>

@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import type { SupportedLanguage } from '@shared/types/kiosk';
 import type { KioskController } from '@renderer/hooks/useKioskController';
 import { useLanguageStore } from '@renderer/store/languageStore';
+import { t } from '@renderer/lib/loc';
 import { iconUrl } from '@renderer/assets/icons/insadong';
 import { useRotatingBanner } from '@renderer/hooks/useRotatingBanner';
 import { taxfreeUrl } from '@shared/constants/webEmbeds';
@@ -9,19 +10,10 @@ import { InsadongHeader } from './InsadongHeader';
 import styles from './InsadongTaxfree.module.css';
 
 type TabId = 'refund' | 'intro' | 'merchant';
-type LangMap<T> = Partial<Record<SupportedLanguage, T>>;
-
-function pick<T>(map: LangMap<T>, lang: SupportedLanguage): T {
-  return (map[lang] ?? map['ko'] ?? Object.values(map)[0]) as T;
-}
-
-const TAB_LABELS: LangMap<[string, string, string]> = {
-  ko: ['세금 환급 신청', '텍스프리 소개', '텍스프리 가맹점 신청'],
-  en: ['Tax Refund', 'About Tax Free', 'Merchant Apply'],
-  ja: ['税金還付申請', 'テックスフリー紹介', '加盟店申請'],
-  vi: ['Hoàn thuế', 'Giới thiệu', 'Đăng ký'],
-  zh: ['退税申请', '介绍', '加盟申请'],
-};
+/** Bottom tab labels, in tab order (refund / intro / merchant). Sourced from
+ *  this location's Localization sheet so a copy edit needs no code change —
+ *  `t()` resolves against the running kiosk's own table. */
+const TAB_KEYS = ['Taxfree_Apply', 'Taxfree_Introduce', 'Taxfree_Enroll'] as const;
 
 // ─── Dynamic image loader ────────────────────────────────────────────────────
 // Place images as: assets/photos/insadong/taxfree/pages/tab1-p1-ko.png etc.
@@ -104,7 +96,6 @@ export function InsadongTaxfree({ controller }: InsadongTaxfreeProps): JSX.Eleme
   const goHome = (): void => controller.navigate('home', 'Back');
   const lang = useLanguageStore((s) => s.currentLanguage);
   const [activeTab, setActiveTab] = useState<TabId>('refund');
-  const tabLabels = pick(TAB_LABELS, lang);
 
   // Pre-decode every tab image for the active language so switching tabs (esp.
   // the merchant tab) is instant — the component is always mounted (pre-warmed),
@@ -156,7 +147,7 @@ export function InsadongTaxfree({ controller }: InsadongTaxfreeProps): JSX.Eleme
             className={`${styles.tab} ${activeTab === tab ? styles.tabSelected : ''}`}
             onClick={() => setActiveTab(tab)}
           >
-            {tabLabels[i]}
+            {t(TAB_KEYS[i]!, lang)}
           </button>
         ))}
       </div>

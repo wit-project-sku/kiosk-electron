@@ -43,7 +43,7 @@ export function registerIpcHandlers(container: AppContainer, windows: WindowMana
   registerSyncHandlers(container);
   registerCameraHandlers(container, windows);
   registerPhotoHandlers(container);
-  registerLanguageHandlers(container, windows);
+  registerLanguageHandlers(windows);
   registerWeatherHandlers(container);
   registerExchangeHandlers(container);
   registerKioskHandlers(windows, container);

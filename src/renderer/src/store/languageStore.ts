@@ -12,8 +12,9 @@ interface LanguageState {
   /** Mirror a language change from the main process WITHOUT re-persisting (no IPC).
    *  Used by the LanguageChanged broadcast handler to avoid an echo loop. */
   applyLanguage: (language: SupportedLanguage) => void;
-  /** Populate from the startup bootstrap payload. */
-  hydrate: (language: SupportedLanguage, available: SupportedLanguage[]) => void;
+  /** Populate from the startup bootstrap payload. The kiosk always offers the
+   *  8 ALLOWED languages, so only the persisted current language is carried. */
+  hydrate: (language: SupportedLanguage) => void;
 }
 
 /** The kiosk ships exactly these 8 languages everywhere. Order matters: the
@@ -43,7 +44,6 @@ export const useLanguageStore = create<LanguageState>((set, get) => ({
   applyLanguage: (language) => set({ currentLanguage: clampLang(language) }),
 
   hydrate: (language) => {
-    // Ignore the backend's language list — the kiosk always offers the 8 ALLOWED.
     set({ currentLanguage: clampLang(language), availableLanguages: ALLOWED, loaded: true });
   },
 }));

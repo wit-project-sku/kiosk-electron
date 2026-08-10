@@ -152,6 +152,10 @@ const TITLE_KEYS: Record<string, { title: string; sub?: string }> = {
   '교통 안내': { title: 'MainButton_Transport', sub: 'SubHeader_Transport' },
   위드마켓: { title: 'MainButton_Goods' },
   화장실: { title: 'MainButton_WC', sub: 'SubHeader_ToHelp' },
+  // 이벤트 screens: each location's sheet carries its own MainButton_Event /
+  // SubHeader_Event copy, so all three ids resolve through the same pair.
+  '인사동 이벤트': { title: 'MainButton_Event', sub: 'SubHeader_Event' },
+  '오산시 이벤트': { title: 'MainButton_Event', sub: 'SubHeader_Event' },
   // ── W004 오산 오색시장 header titles + page descriptions (Localization_Osaek) ──
   "도와줘 '정이'": { title: 'MainButton_ToHelp', sub: 'SubHeader_ToHelp' },
   "'정이' 뭐먹지": { title: 'MainButton_ToEat', sub: 'SubHeader_ToEat' },
@@ -190,9 +194,6 @@ const BUTTON_OVERRIDES: Record<string, Partial<Record<Lang, string>>> = {
   MainButton_Here: { ko: '화성휴게소', en: 'Hwaseong SA', ja: '華城サービスエリア', zh: '华城休息站' },
   MainButton_Greeting: { ko: "안녕 '휴'", en: "Hello 'HUE'", ja: 'こんにちは「HUE」', zh: '你好「HUE」' },
   MainButton_SAMap: { ko: '화성휴게소 지도', en: 'SA Map', ja: 'サービスエリアマップ', zh: '休息站地图' },
-  // 기부 has no sheet row yet, so this curated entry is its ONLY source — without
-  // it the tile renders the raw key. Drop it once the sheet carries the key.
-  MainButton_Donation: { ko: '기부', en: 'Donation', ja: '寄付', zh: '捐赠' },
   MainButton_Property: { ko: '문화재(준비중)', en: 'Heritage (Soon)', ja: '文化財（準備中）', zh: '文化遗产（筹备中）' },
   MainButton_KCulture: { ko: 'K-컬쳐(준비중)', en: 'K-Culture (Soon)', ja: 'Kカルチャー（準備中）', zh: 'K文化（筹备中）' },
 };

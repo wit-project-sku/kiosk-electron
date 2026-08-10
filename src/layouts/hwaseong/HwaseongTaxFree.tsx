@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import type { SupportedLanguage } from '@shared/types/kiosk';
 import type { KioskController } from '@renderer/hooks/useKioskController';
 import { useLanguageStore } from '@renderer/store/languageStore';
+import { t } from '@renderer/lib/loc';
 import { hwaseongIconUrl } from '@renderer/assets/icons/hwaseong';
 import { useRotatingBanner } from '@renderer/hooks/useRotatingBanner';
 import { taxfreeUrl } from '@shared/constants/webEmbeds';
@@ -10,19 +11,10 @@ import { HwaseongHeader } from './HwaseongHeader';
 import styles from './HwaseongTaxFree.module.css';
 
 type TabId = 'refund' | 'intro' | 'merchant';
-type LangMap<T> = Partial<Record<SupportedLanguage, T>>;
-
-function pick<T>(map: LangMap<T>, lang: SupportedLanguage): T {
-  return (map[lang] ?? map['ko'] ?? Object.values(map)[0]) as T;
-}
-
-const TAB_LABELS: LangMap<[string, string, string]> = {
-  ko: ['세금 환급 신청', '텍스프리 소개', '텍스프리 가맹점 신청'],
-  en: ['Tax Refund', 'About Tax Free', 'Merchant Apply'],
-  ja: ['税金還付申請', 'テックスフリー紹介', '加盟店申請'],
-  vi: ['Hoàn thuế', 'Giới thiệu', 'Đăng ký'],
-  zh: ['退税申请', '介绍', '加盟申请'],
-};
+/** Bottom tab labels, in tab order (refund / intro / merchant). Sourced from
+ *  this location's Localization sheet so a copy edit needs no code change —
+ *  `t()` resolves against the running kiosk's own table. */
+const TAB_KEYS = ['Taxfree_Apply', 'Taxfree_Introduce', 'Taxfree_Enroll'] as const;
 
 // Reuse the same tax-free service page images (identical service to insadong).
 const PAGE_IMGS = import.meta.glob<{ default: string }>(
@@ -93,7 +85,6 @@ export function HwaseongTaxFree({ controller }: Props): JSX.Element {
   const goHome = (): void => controller.navigate('home', 'Back');
   const lang = useLanguageStore((s) => s.currentLanguage);
   const [activeTab, setActiveTab] = useState<TabId>('refund');
-  const tabLabels = pick(TAB_LABELS, lang);
 
   const webviewRef = useRef<HTMLElement | null>(null);
   useEffect(() => {
@@ -167,7 +158,7 @@ export function HwaseongTaxFree({ controller }: Props): JSX.Element {
               setActiveTab(tab);
             }}
           >
-            {tabLabels[i]}
+            {t(TAB_KEYS[i]!, lang)}
           </button>
         ))}
       </div>

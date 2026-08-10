@@ -1,4 +1,4 @@
-import type { KioskId, KioskLayoutId, KioskScreenId, SupportedLanguage } from '../types/kiosk';
+import type { KioskId, KioskLayoutId, KioskScreenId } from '../types/kiosk';
 
 /**
  * Per-location kiosk configuration.
@@ -60,8 +60,6 @@ export interface KioskLocation {
    *  (Note the donation app's own CHROME is deliberately identical everywhere —
    *  see WEB_EMBED_URLS.donation. This is the photo character, not the palette.) */
   aiCompanion: AiCompanionCode;
-  /** Languages offered by this kiosk's selector — adapts per kioskId (no hardcoding). */
-  languages: SupportedLanguage[];
   /** Weather coordinates for this physical location (OpenWeatherMap query). */
   coordinates: GeoCoordinates;
 }
@@ -73,10 +71,6 @@ const OSAN_COORDS: GeoCoordinates = { lat: 37.1499, lon: 127.0773 };
 /** 화성휴게소 (화성시) — W005. */
 const HWASEONG_COORDS: GeoCoordinates = { lat: 37.1996, lon: 126.8312 };
 
-/** W001/W002 base set (Figma 4개국어: 한국어/English/日本語/中國語); W003 adds more. */
-const BASE_LANGUAGES: SupportedLanguage[] = ['ko', 'en', 'ja', 'zh'];
-const W003_LANGUAGES: SupportedLanguage[] = ['ko', 'en', 'ja', 'zh', 'vi', 'th', 'es'];
-
 const INSARANG_TILE: KioskLocationTile = { screen: 'insarang', label: '인사랑(준비중)', icon: 'insarang' };
 const MARKET_TILE: KioskLocationTile = { screen: 'market', label: '위드마켓', icon: 'market' };
 
@@ -87,13 +81,13 @@ const MARKET_TILE: KioskLocationTile = { screen: 'market', label: '위드마켓'
 // 3/4/5: all three drive card payment through the embedded loopback agent (the
 // donation webview posts to 127.0.0.1:8080), not an online-only flow.
 export const KIOSK_LOCATIONS: Record<KioskLocationCode, KioskLocation> = {
-  W001: { code: 'W001', name: '북인사마당', layout: 'INSADONG', secondTile: INSARANG_TILE, hasCardTerminal: false, hasDonation: false, aiCompanion: '2', languages: BASE_LANGUAGES, coordinates: INSADONG_COORDS },
-  W002: { code: 'W002', name: '인사동쉼터', layout: 'INSADONG', secondTile: INSARANG_TILE, hasCardTerminal: false, hasDonation: false, aiCompanion: '2', languages: BASE_LANGUAGES, coordinates: INSADONG_COORDS },
-  W003: { code: 'W003', name: '남인사마당', layout: 'NAM_INSADONG', secondTile: MARKET_TILE, hasCardTerminal: true, hasDonation: true, aiCompanion: '2', languages: W003_LANGUAGES, coordinates: INSADONG_COORDS },
+  W001: { code: 'W001', name: '북인사마당', layout: 'INSADONG', secondTile: INSARANG_TILE, hasCardTerminal: false, hasDonation: false, aiCompanion: '2', coordinates: INSADONG_COORDS },
+  W002: { code: 'W002', name: '인사동쉼터', layout: 'INSADONG', secondTile: INSARANG_TILE, hasCardTerminal: false, hasDonation: false, aiCompanion: '2', coordinates: INSADONG_COORDS },
+  W003: { code: 'W003', name: '남인사마당', layout: 'NAM_INSADONG', secondTile: MARKET_TILE, hasCardTerminal: true, hasDonation: true, aiCompanion: '2', coordinates: INSADONG_COORDS },
   // 오색시장 also has a physical card-payment terminal (like 남인사마당 W003), so it
   // takes the payment result flow (위드마켓 webview + save QR, result image on Monitor 2).
-  W004: { code: 'W004', name: '오산시 오색시장', layout: 'OSAN', secondTile: MARKET_TILE, hasCardTerminal: true, hasDonation: true, aiCompanion: '3', languages: BASE_LANGUAGES, coordinates: OSAN_COORDS },
-  W005: { code: 'W005', name: '화성휴게소', layout: 'HWASEONG', secondTile: INSARANG_TILE, hasCardTerminal: true, hasDonation: true, aiCompanion: '4', languages: BASE_LANGUAGES, coordinates: HWASEONG_COORDS },
+  W004: { code: 'W004', name: '오산시 오색시장', layout: 'OSAN', secondTile: MARKET_TILE, hasCardTerminal: true, hasDonation: true, aiCompanion: '3', coordinates: OSAN_COORDS },
+  W005: { code: 'W005', name: '화성휴게소', layout: 'HWASEONG', secondTile: INSARANG_TILE, hasCardTerminal: true, hasDonation: true, aiCompanion: '4', coordinates: HWASEONG_COORDS },
 };
 
 /** Resolve a location by kiosk id, falling back to W001 (북인사마당). */
@@ -104,11 +98,6 @@ export function getKioskLocation(kioskId: KioskId): KioskLocation {
 /** React layout family for a kiosk — derived from kioskId. */
 export function getKioskLayout(kioskId: KioskId): KioskLayoutId {
   return getKioskLocation(kioskId).layout;
-}
-
-/** Languages this kiosk's selector offers — derived from kioskId, never hardcoded in a layout. */
-export function getKioskLanguages(kioskId: KioskId): SupportedLanguage[] {
-  return getKioskLocation(kioskId).languages;
 }
 
 /** Weather coordinates for a kiosk — derived from kioskId (falls back to Insadong). */

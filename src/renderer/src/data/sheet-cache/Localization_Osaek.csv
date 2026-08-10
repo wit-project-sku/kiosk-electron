@@ -15,6 +15,7 @@
 "1604","MainButton_KCulture","K Culture(준비중)","K Culture(Preparing)","K Culture(Preparing)","K Culture(Preparing)","K Culture (Đang chuẩn bị)","Kultur K (Persiapan)","K Culture (การเตรียม)","K-культура (подготовка)","","","","","",""
 "4","MainButton_MarketPaper","시장화폐","Market Currency","市場通貨","市场货币","Tiền tệ thị trường","Mata Uang Pasar","สกุลเงินตลาด","Рыночная валюта","","","","","",""
 "14","MainButton_SmartTour","스마트관광(준비중)","Smart Tourism (Preparing)","スマート観光（準備中）","智慧旅游（准备中）","Du lịch thông minh (Chuẩn bị)","Pariwisata Cerdas (Persiapan)","การท่องเที่ยวอัจฉริยะ (กำลังเตรียมการ)","«Умный туризм» (подготовка)","","","","","",""
+"","MainButton_Donation","기부","Donation","寄付","捐款","Quyên góp","Donasi","บริจาค","Пожертвование","","","","","",""
 "16","MainButton_WC","화장실","Toilet","トイレ","廁所","Nhà vệ sinh","Toilet","ห้องน้ำ","Туалет","","","","","",""
 "12","MainButton_TraditionalMarket","전국시장(준비중)","Korea Market (Preparing)","伝統市場（準備中）","传统市场（准备中）","Thị trường Hàn Quốc (Đang chuẩn bị)","Pasar Korea (Persiapan)","ตลาดเกาหลี (กำลังเตรียมการ)","Корейский рынок (в процессе подготовки)","","","","","",""
 "13","MainButton_Palace","(준비중)","(Preparing)","(準備中）","(准备中）","(Chuẩn bị)","(Persiapan)","(กำลังเตรียมการ)","(Подготовка)","","","","","",""
@@ -81,10 +82,10 @@ Năm 2013, chợ được đổi tên thành ""Chợ Osaek"", mang một diện 
 Secara resmi, pada tahun 1914 pasar ini mulai beroperasi di lokasi saat ini dengan nama ""Pasar Pusat Osan.""
 Pada tahun 2013, namanya diubah menjadi ""Pasar Osaek,"" menambahkan identitas modern.
 
-","ตลาดโอแซกในโอซาน ปรากฏครั้งแรกในหนังสือประวัติศาสตร์ฮวาซอง กวอลเยจี ที่ตีพิมพ์ในรัชสมัยของพระเจ้าจองโจ ปีที่ 16 (1792) ซึ่งแสดงให้เห็นถึงประเพณีอันยาวนานและร่ำรวย
+","ตลาดโอแซกในโอซาน ปรากฏครั้งแรกในหนังสือฮวาซอง กวอลเยจี ที่ตีพิมพ์ในรัชสมัยของพระเจ้าจองโจ ปีที่ 16 (1792) ซึ่งแสดงให้เห็นถึงประเพณีอันยาวนานและร่ำรวย
 อย่างเป็นทางการ ในปี 1914 ตลาดแห่งนี้ได้เริ่มดำเนินการในสถานที่ปัจจุบันภายใต้ชื่อ ""ตลาดกลางโอซาน""
 ในปี 2013 ได้เปลี่ยนชื่อเป็น ""ตลาดโอแซก"" เพื่อเพิ่มความทันสมัยให้กับตลาด
-","Рынок Осаек в Осане впервые упоминается в «Хвасон Гвеолльеджи», изданном в 16 году правления короля Чонджо (1792), что свидетельствует о его давних и богатых традициях.
+","Рынок Осаек в Осане впервые упоминается в «Хвасон Гвеолльеджи», изданном в 16-м году правления короля Чонджо (1792), что свидетельствует о его давних и богатых традициях.
 Официально он начал свою работу в 1914 году на своем нынешнем месте под названием «Центральный рынок Осана».
 В 2013 году он был переименован в «Рынок Осаек», что придало ему современный облик.
 
@@ -126,7 +127,7 @@ Saya senang berbagi kehidupan di SNS dan mengobrol dengan teman-teman. Akhir-akh
 Мне нравится делиться моментами из жизни в социальных сетях и общаться с друзьями. В последнее время меня очень интересует корейский контент и продвижение традиционных рынков.","","","","","",""
 "81","Greeting_Category2","정이의 취미","JEONG-I’s Hobbies","ジョンイの趣味","正伊的爱好","Sở thích của Jeong-i","Hobi JEONG-I","งานอดิเรกของจองอี","Хобби Чон И","","","","","",""
 "82","Greeting_Hobby_First","K-POP 댄스와 노래는 나의 무대!","K-POP dance and singing are my stage!","K-POPダンスと歌は私のステージ！","K-POP舞蹈和唱歌就是我的舞台！","Nhảy và hát K-POP là sân khấu của tôi!","Tarian dan nyanyian K-POP adalah panggungku!","การเต้นและการร้องเพลง K-POP คือเวทีของฉัน!","Танцы и пение в стиле K-POP – это моя сцена!","","","","","",""
-"83","Greeting_Hobby_First_Content","아이돌처럼 춤추고 노래하는 것을 좋아하고,좋아하는 노래가 나오면 몸이 저절로 움직입니다.
+"83","Greeting_Hobby_First_Content","아이돌처럼 춤추고 노래하는 것을 좋아하고, 좋아하는 노래가 나오면 몸이 저절로 움직입니다.
 카페 & 맛집 탐방은 나의 열정!
 숨겨진 디저트 카페와 핫한 맛집을 찾아 친구들과 공유합니다.","I love to dance and sing like an idol, and when my favorite song comes on, I can’t resist moving to the beat.
 Café and restaurant hopping is my passion!
@@ -158,8 +159,7 @@ Aku senang menemukan kafe makanan penutup tersembunyi dan restoran paling trendi
 
 ","ไปยืดเส้นยืดสายกันเถอะ~
 
-
-(ข้อความต้นฉบับไม่ชัดเจน จึงไม่ได้แปล)","Пойдём разомнёмся~
+","Пойдём разомнёмся~
 
 ","","","","","",""
 "89","Greeting_Stretching_First","정이랑 함께 가볍게 스트레칭 해요!","Let’s do some light stretching together with Jeong-i!","ジョンイと一緒に軽くストレッチしましょう！","和Jeong-i一起轻松拉伸吧！","Cùng Jeong-i thực hiện một vài động tác giãn cơ nhẹ nhé!","Mari kita lakukan peregangan ringan bersama Jeong-i!","มาลองยืดเหยียดกล้ามเนื้อเบาๆ ไปพร้อมกับจองอีกันเถอะ!","Давайте вместе с Чон-и немного поразомнемся!","","","","","",""
@@ -203,7 +203,7 @@ Ikuti saja petunjuk di layar— Anda akan lebih menikmati kunjungan ke Pasar Osa
 中途做些轻松的拉伸，身体会舒服很多！
 和“Jeong-i”一起做些简单的运动吧。","Nếu bạn cứ tiếp tục đi bộ, chân và lưng dưới của bạn sẽ mỏi. Thực hiện một vài động tác giãn cơ nhẹ nhàng giữa chừng sẽ giúp cơ thể bạn cảm thấy dễ chịu hơn! Hãy cùng thử một vài bài tập đơn giản với 'Jeong-i' nhé!","Jika kamu terus berjalan, kaki dan punggung bawahmu akan lelah. Melakukan peregangan ringan di sela-sela aktivitas akan membuat tubuhmu merasa jauh lebih baik! Mari kita coba beberapa latihan sederhana bersama ‘Jeong-i’
 
-","ถ้าคุณเดินต่อไปเรื่อยๆ ขาและหลังส่วนล่างของคุณจะเมื่อยล้า การยืดเหยียดเบาๆ ระหว่างเดินจะทำให้ร่างกายรู้สึกดีขึ้นมาก! มาลองออกกำลังกายง่ายๆ ไปพร้อมกับ 'จองอี' กันเถอะ
+","ถ้าเดินไปเรื่อยๆ ขาและหลังส่วนล่างของคุณจะเมื่อยล้า การยืดเหยียดเบาๆ ระหว่างเดินจะทำให้ร่างกายรู้สึกดีขึ้นมาก! มาลองออกกำลังกายง่ายๆ ไปพร้อมกับ 'จองอี' กันเถอะ
 
 ","Если вы будете продолжать ходить, ваши ноги и поясница устанут. Легкая растяжка между подходами значительно улучшит самочувствие! Давайте попробуем несколько простых упражнений вместе с «Чон-и».
 
@@ -243,7 +243,7 @@ Market days: 3rd, 8th, 13th, 18th, 23rd, 28th each month.","Jeong-I、五色市�
 
 Ngày chợ: 3, 8, 13, 18, 23, 28 mỗi tháng.","Mari berkenalan dengan Jeong-I, maskot AI Pasar Osaek, melalui [WITH]!
 Hari pasar: tanggal 3, 8, 13, 18, 23, 28 setiap bulan.","พบกับจองอี มาสคอต AI ของตลาดโอแซก ผ่านทาง [WITH]!
-วันทำการตลาด: วันที่ 3, 8, 13, 18, 23, 28 ของทุกเดือน","Познакомьтесь с Чон-И, искусственным интеллектом-талисманом рынка Осаек, через [WITH]!
+วันทำการตลาด: วันที่ 3, 8, 13, 18, 23, 28 ของทุกเดือน","Познакомьтесь с Чон-И, ИИ-талисманом рынка Осаек, через [WITH]!
 Рыночные дни: 3, 8, 13, 18, 23, 28 числа каждого месяца.","","","","","",""
 "108","Transport_MapContent_2","WITH' (WIT AI Smart-Tourism Hardware Platform) 설치장소","WITH' (WIT AI Smart-Tourism Hardware Platform) ","WITH' (WIT AI Smart-Tourism Hardware Platform) ","WITH' (WIT AI Smart-Tourism Hardware Platform) ","'WITH' (Nền tảng phần cứng du lịch thông minh WIT AI)","WITH' (Platform Perangkat Keras Pariwisata Cerdas AI WIT)","WITH' (แพลตฟอร์มฮาร์ดแวร์การท่องเที่ยวอัจฉริยะ WITH AI)","WITH' (WIT AI Smart-Tourism Hardware Platform)","","","","","",""
 "109","Transport_MapContent_3","오색시장 메인사거리  (오색시장 상인회 앞)"," "," "," ","#VALUE!","","","","","","","","",""
@@ -275,7 +275,7 @@ Hari pasar: tanggal 3, 8, 13, 18, 23, 28 setiap bulan.","พบกับจอ�
 • แจ้งเตือนเหตุฉุกเฉิน SOS
 • บริการสาธารณะ เช่น การทำความสะอาดถังบำบัดน้ำเสียและการขอตรวจสุขภาพ
 • โปรแกรม / หลักสูตร
-• การเดินชมตรอกซอยจงโน (หลักสูตรทัวร์ชมตรอกซอย)","<color=#FE6C50>•</color> Информация о наличии общественных парковок в режиме реального времени
+• เดินชมตรอกซอยจงโน (หลักสูตรทัวร์ชมตรอกซอย)","<color=#FE6C50>•</color> Информация о наличии общественных парковок в режиме реального времени
 <color=#FE6C50>•</color> Экстренные оповещения SOS
 <color=#FE6C50>•</color> Услуги гражданского сектора, такие как очистка септических резервуаров и запросы на проверку состояния здоровья
 <color=#FE6C50>•</color> Программы / Курсы
@@ -287,7 +287,7 @@ Hari pasar: tanggal 3, 8, 13, 18, 23, 28 setiap bulan.","พบกับจอ�
 "117","MarketPaper_Onnuri_Content_2","지류상품권 권종","Paper voucher denominations","かみの しょうひんけんの しゅるい","纸质商品券面额","Các mệnh giá phiếu giấy","Nominal voucher kertas","มูลค่าของบัตรกำนัลกระดาษ","Номиналы бумажных ваучеров","","","","","",""
 "117","MarketPaper_Onnuri_Content_3","디지털 온누리상품권이란?","What is Digital Onnuri Gift Certificate?","でじたある おんぬり しょうひんけんとは？","什么是数字稳楼里商品券？","Phiếu quà tặng điện tử Onnuri là gì?","Apa itu Sertifikat Hadiah Digital Onnuri?","บัตรของขวัญดิจิทัล Onnuri คืออะไร?","Что такое цифровой подарочный сертификат Onnuri?","","","","","",""
 "117","MarketPaper_Onnuri_Content_3_1","디지털 온누리상품권 앱 설치 후 기존 갖고 있는 카드를 등록하고 금액 충전 후, 실물카드 또는 QR코드 결제 방식으로 이용 가능한 온누리상품권","An Onnuri Gift Certificate that can be used via physical card or QR code after installing the Digital Onnuri App, registering your existing card, and charging the balance.","でじたある おんぬり しょうひんけん あぷりを いれ、もっている かあどを とうろくして おかねを いれたあと、かあどや きゅうあある こおどで つかえる おんぬり しょうひんけん","安装数字稳楼里商品券App并绑定现有银行卡充值后，可通过实体卡或二维码支付使用的稳楼里商品券。","Phiếu quà tặng Onnuri có thể sử dụng bằng thẻ vật lý hoặc mã QR sau khi cài đặt ứng dụng Onnuri kỹ thuật số, đăng ký thẻ hiện có và trừ tiền vào thẻ.","Sertifikat Hadiah Onnuri yang dapat digunakan melalui kartu fisik atau kode QR setelah menginstal Aplikasi Digital Onnuri, mendaftarkan kartu Anda yang sudah ada, dan mengisi saldo.","บัตรของขวัญ Onnuri ที่สามารถใช้ได้ทั้งในรูปแบบบัตรจริงหรือรหัส QR หลังจากติดตั้งแอปพลิเคชัน Digital Onnuri ลงทะเบียนบัตรที่มีอยู่ และเติมเงินลงในบัตรแล้ว","Подарочный сертификат Onnuri, который можно использовать с помощью физической карты или QR-кода после установки цифрового приложения Onnuri, регистрации существующей карты и списания средств.","","","","","",""
-"117","MarketPaper_Onnuri_Content_3_2","상품권 금액의 10% 할인가로 충전 가능! 최대 보유한도금액은 200만원입니다.","Recharge at a 10% discount! The maximum holding limit is 2 million won.","しょうひんけんの じゅっぱあせんと わりびきで ちゃあじ できる！ さいだい ほゆう げんどがくは にひゃくまんうぉんです。","可享受10%折扣充值！最大持有金额为200万韩元。","Nạp tiền với ưu đãi giảm giá 10%! Giới hạn nạp tối đa là 2 triệu won.","Isi ulang dengan diskon 10%! Batas isi ulang maksimal 2 juta won.","เติมเงินรับส่วนลด 10%! วงเงินสูงสุด 2 ล้านวอน","Пополните счет со скидкой 10%! Максимальный лимит пополнения — 2 миллиона вон.","","","","","",""
+"117","MarketPaper_Onnuri_Content_3_2","상품권 금액의 10% 할인가로 충전 가능! 최대 보유한도금액은 200만원입니다.","Recharge at a 10% discount! The maximum holding limit is 2 million won.","しょうひんけんの じゅっぱあせんと わりびきで ちゃあじ できる！ さいだい ほゆう げんどがくは にひゃくまんうぉんです。","可享受10%折扣充值！最大持有金额为200万韩元。","Nạp tiền với ưu đãi giảm giá 10%! Giới hạn nạp tối đa là 2 triệu won.","Isi ulang dengan diskon 10%! Batas saldo maksimal adalah 2 juta won.","เติมเงินรับส่วนลด 10%! วงเงินสูงสุด 2 ล้านวอน","Пополните счет со скидкой 10%! Максимальный лимит пополнения — 2 миллиона вон.","","","","","",""
 "117","MarketPaper_Onnuri_Content_3_3","※ 단, 예산소진 상황에 따라 특별판매 내용 및 기간이 변경될 수 있습니다.","※ Note: Special sale details and periods are subject to change depending on budget exhaustion.","※ ただし、よさんが なくなり しだい、とくべつ はんばいの ないようや きかんが かわる ことが あります。","※ 注：特别销售内容及期限可能会根据预算消耗情况有所变更。","※ Lưu ý: Chi tiết và thời gian khuyến mãi đặc biệt có thể thay đổi tùy thuộc vào ngân sách hiện có.","※ Catatan: Detail dan periode penjualan khusus dapat berubah tergantung pada ketersediaan anggaran.","※ หมายเหตุ: รายละเอียดและระยะเวลาของโปรโมชั่นพิเศษอาจมีการเปลี่ยนแปลงได้ ขึ้นอยู่กับงบประมาณที่มีอยู่","※ Примечание: Условия и сроки проведения специальных распродаж могут быть изменены в зависимости от исчерпания бюджета.","","","","","",""
 "117","MarketPaper_Onnuri_Content_4","온누리상품권 사용처","Where to use Onnuri Gift Certificates","おんぬり しょうひんけんが つかえる ところ","稳楼里商品券使用处","Phiếu quà tặng Onnuri có thể được sử dụng ở đâu?","Di mana menggunakan Sertifikat Hadiah Onnuri?","สามารถใช้บัตรของขวัญ Onnuri ได้ที่ไหนบ้าง","Где использовать подарочные сертификаты Onnuri","","","","","",""
 "117","MarketPaper_Onnuri_Content_4_1","온누리상품권 가맹점 스티커가 있는 곳에서 사용이 가능합니다.","Can be used at places with the Onnuri Gift Certificate affiliated store sticker.","おんぬり しょうひんけん かめいてん すてっかあが ある ところで つかえます。","可在贴有稳楼里商品券加盟店贴纸的地方使用。","Có thể sử dụng tại các cửa hàng có dán tem phiếu quà tặng Onnuri.","Dapat digunakan di tempat-tempat yang memiliki stiker toko afiliasi Sertifikat Hadiah Onnuri.","สามารถใช้ได้ที่ร้านค้าที่มีสติกเกอร์ร้านค้าพันธมิตรของ Onnuri Gift Certificate","Можно использовать в местах, где есть наклейка магазина-партнера подарочного сертификата Onnuri.","","","","","",""
@@ -405,12 +405,12 @@ Chỉ có hiệu lực tại các doanh nghiệp nhỏ có doanh thu hàng năm 
 病院・医院（歯科、韓医院など）、コンビニ、学園（補習・技能）、眼鏡店、美容院、動物病院など。
 ","例如: 加油站、传统市场、社区商店、休闲设施（健身房、普拉提、游泳馆、高尔夫练习场、保龄球馆）、
 医院/诊所（牙科、韩医馆等）、便利店、培训机构、眼镜行、美容院、动物医院等。
-","Ví dụ: trạm xăng, chợ truyền thống, cửa hàng địa phương, cơ sở giải trí (câu lạc bộ thể dục, pilates, bể bơi, sân golf, sân bowling), bệnh viện & phòng khám (nha sĩ, phòng khám Đông y, v.v.), cửa hàng tiện lợi, học viện (dạy kèm, dạy kỹ năng), cửa hàng kính mắt, thẩm mỹ viện, phòng khám thú y, v.v.","Contoh: pom bensin, pasar tradisional, toko lokal, fasilitas rekreasi (klub kebugaran, pilates, kolam renang, lapangan golf, arena bowling), rumah sakit & klinik (dokter gigi, klinik oriental, dll.), toko serba ada, akademi (bimbingan belajar, keterampilan), toko kacamata, salon kecantikan, klinik hewan, dll.","ตัวอย่างเช่น: ปั๊มน้ำมัน, ตลาดแบบดั้งเดิม, ร้านค้าท้องถิ่น, สถานที่พักผ่อนหย่อนใจ (ฟิตเนสคลับ, พิลาทิส, สระว่ายน้ำ, สนามกอล์ฟ, ลานโบว์ลิ่ง), โรงพยาบาลและคลินิก (ทันตแพทย์, คลินิกแผนตะวันออก ฯลฯ), ร้านสะดวกซื้อ, สถาบัน (ติวเตอร์, ฝึกทักษะ), ร้านแว่นตา, ร้านเสริมสวย, คลินิกสัตวแพทย์ ฯลฯ","Примеры: автозаправочные станции, традиционные рынки, местные магазины, развлекательные заведения (фитнес-клубы, пилатес, бассейны, поля для гольфа, боулинг), больницы и клиники (стоматологические клиники, клиники восточной медицины и т. д.), магазины товаров повседневного спроса, академии (репетиторство, обучение навыкам), магазины оптики, салоны красоты, ветеринарные клиники и т. д.","","","","","",""
-"126","MarketPaper_SubHeader","오산시장에서 사용할 수 있는 시장화폐 입니다.","A market currency that can be used at Osan Market.","おさん いちばで つかえる いちばの おかねです。","这是可以在乌山市场使用的市场货币。","Một loại tiền tệ có thể sử dụng tại chợ Osan.","Mata uang pasar yang dapat digunakan di Pasar Osan.","สกุลเงินที่ใช้ได้ในตลาดโอซาน","Рыночная валюта, которую можно использовать на рынке Осан.","","","","","",""
+","Ví dụ: trạm xăng, chợ truyền thống, cửa hàng địa phương, cơ sở giải trí (câu lạc bộ thể dục, pilates, bể bơi, sân golf, sân bowling), bệnh viện & phòng khám (nha sĩ, phòng khám Đông y, v.v.), cửa hàng tiện lợi, học viện (dạy kèm, dạy kỹ năng), cửa hàng kính mắt, thẩm mỹ viện, phòng khám thú y, v.v.","Contoh: pom bensin, pasar tradisional, toko lokal, fasilitas rekreasi (klub kebugaran, pilates, kolam renang, lapangan golf, arena bowling), rumah sakit & klinik (dokter gigi, klinik oriental, dll.), toko serba ada, akademi (bimbingan belajar, keterampilan), toko kacamata, salon kecantikan, klinik hewan, dll.","ตัวอย่างเช่น สถานีบริการน้ำมัน ตลาดแบบดั้งเดิม ร้านค้าท้องถิ่น สถานที่พักผ่อนหย่อนใจ (ฟิตเนสคลับ พิลาทิส สระว่ายน้ำ สนามกอล์ฟ สนามโบว์ลิ่ง) โรงพยาบาลและคลินิก (ทันตแพทย์ คลินิกแผนตะวันออก ฯลฯ) ร้านสะดวกซื้อ สถาบัน (ติวเตอร์ สอนทักษะ) ร้านแว่นตา ร้านเสริมสวย คลินิกสัตวแพทย์ ฯลฯ","Примеры: автозаправочные станции, традиционные рынки, местные магазины, развлекательные заведения (фитнес-клубы, пилатес, бассейны, поля для гольфа, боулинг), больницы и клиники (стоматологические клиники, клиники восточной медицины и т. д.), магазины товаров повседневного спроса, академии (репетиторство, обучение навыкам), магазины оптики, салоны красоты, ветеринарные клиники и т. д.","","","","","",""
+"126","MarketPaper_SubHeader","오산시장에서 사용할 수 있는 시장화폐 입니다.","A market currency that can be used at Osan Market.","おさん いちばで つかえる いちばの おかねです。","这是可以在乌山市场使用的市场货币。","Một loại tiền tệ thị trường có thể được sử dụng tại chợ Osan.","Mata uang pasar yang dapat digunakan di Pasar Osan.","สกุลเงินที่ใช้ได้ในตลาดโอซาน","Рыночная валюта, которую можно использовать на рынке Осан.","","","","","",""
 "127","MarketPaper_ButtonText","준비중","Coming soon","準備中","敬请期待","Sắp ra mắt","Segera hadir","เร็วๆ นี้","Вскоре","","","","","",""
 "128","Photo_HanbokTry","<AR 한복체험>  ","<AR Hanbok Try-On>","<AR 韓服 体験>","<AR 韩服 体验>","<AR Hanbok Try-On>","<AR Hanbok Try-On>","<AR Hanbok Try-On>","<Примерка ханбока AR>","","","","","",""
 "129","Photo_HanbokSelect","한복/의상 선택하기","Choose Hanbok","韓服を選ぶ","选择韩服","Chọn Hanbok","Pilih Hanbok","เลือกฮันบก","Выберите ханбок","","","","","",""
-"130","Photo_HanbokSelectContent","• 원하시는 의상을 고르고 선택 완료 버튼을 누른뒤 사진촬영 버튼을 눌러주세요 ","• Please choose your desired costume and press the ""Complete Selection"" button","• お好きな衣装を選んで「選択完了」ボタンを押してください","• 请选择您喜欢的服装，然后点击“完成选择”按钮","• Vui lòng chọn trang phục bạn muốn và nhấn nút ""Hoàn tất lựa chọn"".","• Silakan pilih kostum yang Anda inginkan dan tekan tombol ""Selesaikan Pilihan"".","• กรุณาเลือกชุดที่ต้องการแล้วกดปุ่ม ""เลือกชุดทั้งหมด""","• Пожалуйста, выберите желаемый костюм и нажмите кнопку «Завершить выбор».","","","","","",""
+"130","Photo_HanbokSelectContent","• 원하시는 의상을 고르고 선택 완료 버튼을 누른뒤 사진촬영 버튼을 눌러주세요 ","• Please choose your desired costume and press the ""Complete Selection"" button","• お好きな衣装を選んで「選択完了」ボタンを押してください","• 请选择您喜欢的服装，然后点击“完成选择”按钮","• Vui lòng chọn trang phục bạn muốn và nhấn nút ""Hoàn tất lựa chọn"".","• Silakan pilih kostum yang Anda inginkan dan tekan tombol ""Selesaikan Pilihan"".","• กรุณาเลือกชุดที่ต้องการแล้วกดปุ่ม ""เลือกให้ครบ""","• Пожалуйста, выберите желаемый костюм и нажмите кнопку «Завершить выбор».","","","","","",""
 "17","Hanbok_1","여자 한복","W>Hanbok","女性用韓服","女式韩服","Hanbok","Hanbok","W>ฮันบก","Ханбок","","","","","",""
 "18","Hanbok_2","여자 모델","M>Model        ","女性モデル","女性模特","M>Mô hình","M>Model","ม>โมเดล","М>Модель","","","","","",""
 "19","Hanbok_3","남자 한복","W>Hanbok","男性用韓服","男式韩服","Hanbok","Hanbok","W>ฮันบก","Ханбок","","","","","",""
@@ -566,7 +566,7 @@ Contact: company@witworldwide.com
 Chúng tôi thu thập thông tin cần thiết như tệp ảnh và siêu dữ liệu liên quan khi người dùng chọn trang phục và chụp ảnh tại ki-ốt, tạo ra hình ảnh ghép.
 
 2. Mục đích Thu thập và Sử dụng
-Dữ liệu thu thập được sử dụng để cung cấp dịch vụ ảnh ghép và gửi các thông báo cá nhân hóa như sự kiện, chương trình khuyến mãi và quảng cáo.
+Dữ liệu thu thập được sử dụng để cung cấp dịch vụ ảnh ghép và gửi thông báo cá nhân hóa như sự kiện, chương trình khuyến mãi và quảng cáo.
 
 3. Thời gian Lưu trữ
 Thông tin cá nhân sẽ được xóa an toàn sau khi mục đích thu thập được hoàn thành. Nếu người dùng rút khỏi hoặc ngừng sử dụng dịch vụ, dữ liệu sẽ bị xóa trừ trường hợp việc lưu trữ được yêu cầu theo luật.
@@ -621,13 +621,14 @@ Kontak: company@witworldwide.com
 ข้อมูลส่วนบุคคลจะถูกลบอย่างปลอดภัยเมื่อวัตถุประสงค์ในการเก็บรวบรวมเสร็จสิ้น หากผู้ใช้ยกเลิกหรือหยุดใช้บริการ ข้อมูลจะถูกลบ ยกเว้นในกรณีที่กฎหมายกำหนดให้ต้องเก็บรักษาไว้
 
 4. การเปิดเผยข้อมูลแก่บุคคลที่สาม
-โดยทั่วไปแล้ว ข้อมูลจะไม่ถูกเปิดเผยแก่บุคคลที่สาม ยกเว้นในกรณีที่กฎหมายกำหนด หรือเปิดเผยเพียงเล็กน้อยกับพันธมิตรผู้ให้บริการสำหรับฟีเจอร์และโปรโมชั่น หรือได้รับความยินยอมจากผู้ใช้ก่อน
+โดยทั่วไปแล้ว ข้อมูลจะไม่ถูกเปิดเผยแก่บุคคลที่สาม ยกเว้นในกรณีที่กฎหมายกำหนด หรือเปิดเผยเพียงเล็กน้อยแก่พันธมิตรผู้ให้บริการสำหรับฟีเจอร์และโปรโมชั่น หรือได้รับความยินยอมจากผู้ใช้ก่อน
 
 5. มาตรการรักษาความปลอดภัย
 เราเข้ารหัสข้อมูลส่วนบุคคลสำหรับการจัดเก็บและการส่ง จำกัดการเข้าถึงเฉพาะเจ้าหน้าที่และพันธมิตรที่ได้รับอนุญาต และดำเนินการตรวจสอบและอัปเดตความปลอดภัยเป็นประจำ
 
 6. การเปลี่ยนแปลงนโยบายความเป็นส่วนตัว
 นโยบายนี้อาจเปลี่ยนแปลงได้ตามการเปลี่ยนแปลงทางกฎหมายหรือบริการ
+
 การอัปเดตทั้งหมดจะแจ้งให้ทราบผ่านแอปหรือเว็บไซต์
 
 7. ผู้จัดการข้อมูลส่วนบุคคล
@@ -668,7 +669,7 @@ Kontak: company@witworldwide.com
 "1393","Photo_SNS","QR을 통해서 내 핸드폰에 저장하고 다양한 SNS에 올려보세요 
 한복 착장에 관한 이벤트가 준비중이니 많은 참여 바랍니다. ","","","","Hãy lưu mã QR vào điện thoại và chia sẻ trên các nền tảng mạng xã hội khác nhau. Một sự kiện về việc mặc Hanbok hiện đang được chuẩn bị, vì vậy chúng tôi rất mong chờ sự tham gia của các bạn.","Simpan kode QR ke ponsel Anda dan bagikan di berbagai platform media sosial. Sebuah acara terkait pemakaian Hanbok sedang dipersiapkan, jadi kami menantikan partisipasi Anda.","บันทึกคิวอาร์โค้ดลงในโทรศัพท์มือถือของคุณแล้วแชร์บนแพลตฟอร์มโซเชียลมีเดียต่างๆ ขณะนี้กำลังมีการเตรียมจัดกิจกรรมเกี่ยวกับการสวมชุดฮันบก เราจึงหวังเป็นอย่างยิ่งว่าคุณจะเข้าร่วม","Сохраните QR-код на свой мобильный телефон и поделитесь им в различных социальных сетях. В настоящее время готовится мероприятие, посвященное ношению ханбока, поэтому мы с нетерпением ждем вашего участия.","","","","","",""
 "140","HanbokExplain_HanbokDesigner"," 'WITH' (WIT AI Tourism Hardware) 에 AR로 착용하는 한복은 대한민국의 한복 명인 
-박술녀’ 디자이너 선생님이 제공해주신 한복입니다.  ","The AR hanbok on ‘WITH’ (WIT AI Tourism Hardware) is provided by Korea’s master designer, Park Sul-nyeo.","「WITH」のAR韓服は、韓国の名匠パク・スルニョ氏提供です。","“WITH”上的AR韩服由韩国韩服大师朴述女提供。","Bộ trang phục Hanbok thực tế ảo (AR) trên nền tảng ‘WITH’ (WIT AI Tourism Hardware) được thiết kế bởi nhà thiết kế bậc thầy người Hàn Quốc, Park Sul-nyeo.","Hanbok AR pada ‘WITH’ (WIT AI Tourism Hardware) disediakan oleh desainer ternama Korea, Park Sul-nyeo.","ชุดฮันบก AR ในแอปพลิเคชัน ‘WITH’ (WIT AI Tourism Hardware) ออกแบบโดย พัค ซุล-นยอ นักออกแบบชั้นนำของเกาหลี","Дополненная реальностью одежда ханбок, представленная на платформе «WITH» (WIT AI Tourism Hardware), создана ведущим корейским дизайнером Пак Суль-нё.","","","","","",""
+박술녀’ 디자이너 선생님이 제공해주신 한복입니다.  ","The AR hanbok on ‘WITH’ (WIT AI Tourism Hardware) is provided by Korea’s master designer, Park Sul-nyeo.","「WITH」のAR韓服は、韓国の名匠パク・スルニョ氏提供です。","“WITH”上的AR韩服由韩国韩服大师朴述女提供。","Bộ trang phục Hanbok thực tế ảo (AR) trên nền tảng ‘WITH’ (WIT AI Tourism Hardware) được thiết kế bởi nhà thiết kế bậc thầy người Hàn Quốc, Park Sul-nyeo.","Hanbok AR pada ‘WITH’ (WIT AI Tourism Hardware) disediakan oleh desainer ternama Korea, Park Sul-nyeo.","ชุดฮันบก AR ในแอปพลิเคชัน ‘WITH’ (WIT AI Tourism Hardware) ออกแบบโดยปาร์ค ซุล-นยอ นักออกแบบชั้นนำของเกาหลี","Дополненная реальностью одежда ханбок, представленная на платформе «WITH» (WIT AI Tourism Hardware), создана ведущим корейским дизайнером Пак Суль-нё.","","","","","",""
 "141","HanbokExplain_HanbokExplainContent","한복은 한국 전통 의복으로, 오랜 역사와 전통을 가진 옷입니다.
 한복은 고유의 아름다움과 독특한 디자인으로 한국 문화를 대표하는  상징 중 하나로 
 여겨지며, 특별한 행사나 명절 때 주로 착용됩니다. 
@@ -698,6 +699,11 @@ Kontak: company@witworldwide.com
 "151","SubHeader_ToStay","* 검색결과를 클릭하시면 상세정보를 보실수 있어요 ","* Click a search result to see more details","* 検索結果をクリックして詳細を見る","* 点击搜索结果即可查看详细信息","* Nhấp vào kết quả tìm kiếm để xem thêm chi tiết","* Klik hasil pencarian untuk melihat detail selengkapnya","* คลิกที่ผลการค้นหาเพื่อดูรายละเอียดเพิ่มเติม","* Нажмите на результат поиска, чтобы увидеть более подробную информацию.","","","","","",""
 "153","SubHeader_AICourse","* QR을 핸드폰으로 찍으시면 길을 안내해드려요.","* Scan the QR with your phone. We’ll guide you","* スマホでQRを読み取ってください。ご案内します","* 用手机扫QR码，我们导航","* Quét mã QR bằng điện thoại của bạn. Chúng tôi sẽ hướng dẫn bạn.","* Pindai kode QR dengan ponsel Anda. Kami akan memandu Anda.","* สแกนคิวอาร์โค้ดด้วยโทรศัพท์ของคุณ เราจะแนะนำคุณต่อไป","* Отсканируйте QR-код с помощью телефона. Мы вам поможем.","","","","","",""
 "154","SubHeader_Event","* 오색 시장에서 진행중인 이벤트를 찾아보세요 ","* Find events happening in Osaek Market","*オセク市場で開催中のイベントを探してみてください","* 查找正在五色市场举行的活动","* Tìm các sự kiện đang diễn ra tại Chợ Osaek","* Temukan acara yang berlangsung di Pasar Osaek","* ค้นหากิจกรรมที่เกิดขึ้นในตลาดโอเซค","* Найдите информацию о мероприятиях, проходящих на рынке Осаек","","","","","",""
+"","Event_Tab_Osan","오산시","Osan","烏山市","乌山市","Thành phố Osan","Kota Osan","เมืองโอซาน","Осан","","","","","",""
+"","Event_Category_All","전체","All","全て","全部","Tất cả","Semua","ทั้งหมด","Все","","","","","",""
+"","Event_Category_performance","공연","Performance","公演","演出","Biểu diễn","Pertunjukan","การแสดง","Выступление","","","","","",""
+"","Event_Category_exibition","전시","Exhibition","展示","展览","Triển lãm","Pameran","นิทรรศการ","Выставка","","","","","",""
+"","Event_Category_etc","기타","Etc","その他","其他","Khác","Lainnya","อื่นๆ","Другое","","","","","",""
 "155","SubHeader_Exchange","* 환영합니다. 오늘의 환율 정보입니다. ","* Welcome. Here is today’s exchange rate","* ようこそ。本日の為替情報です","* 欢迎您。以下是今日汇率信息","Chào mừng. Đây là tỷ giá hối đoái hôm nay.","Selamat datang. Berikut adalah nilai tukar hari ini.","* ยินดีต้อนรับ นี่คืออัตราแลกเปลี่ยนของวันนี้","* Добро пожаловать. Вот сегодняшний обменный курс.","","","","","",""
 "156","SubHeader_Detail","* QR을 핸드폰으로 찍으시면 길을 안내해드려요","* Scan the QR with your phone. We’ll guide you","* スマホでQRを読み取ってください。ご案内します","* 用手机扫QR码，我们导航","* Quét mã QR bằng điện thoại của bạn. Chúng tôi sẽ hướng dẫn bạn.","* Pindai kode QR dengan ponsel Anda. Kami akan memandu Anda.","* สแกนคิวอาร์โค้ดด้วยโทรศัพท์ของคุณ เราจะแนะนำคุณต่อไป","* Отсканируйте QR-код с помощью телефона. Мы вам поможем.","","","","","",""
 "157","SubHeader_Detail_Event","* QR코드로 이벤트의 상세정보를 확인하세요","* Scan the QR code for event details","* QRコードでイベントの詳細を確認してください","* 扫描二维码查看活动详情","* Quét mã QR để xem chi tiết sự kiện","* Pindai kode QR untuk detail acara","* สแกนคิวอาร์โค้ดเพื่อดูรายละเอียดกิจกรรม","* Отсканируйте QR-код, чтобы узнать подробности мероприятия.","","","","","",""

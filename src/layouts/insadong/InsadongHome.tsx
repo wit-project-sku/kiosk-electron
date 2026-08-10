@@ -77,8 +77,8 @@ const TILE_LABEL_KEYS: Record<string, string> = {
   restroom: 'MainButton_WC',
   market: 'MainButton_Goods',
   insarang: 'MainButton_Insarang',
+  donation: 'MainButton_Donation',
 };
-// 기부 has no sheet key — it keeps DONATION_TILE's hardcoded label.
 
 /** Join a home tile to its CMS button by screen key (see useOrderedTiles). */
 const tileKey = (t: HomeTile): TileKey => ({ screen: t.screen });

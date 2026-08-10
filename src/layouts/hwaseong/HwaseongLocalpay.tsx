@@ -11,11 +11,37 @@ import appQr from '@renderer/assets/photos/osan/localpay/app-qr.png';
 import { HwaseongHeader } from './HwaseongHeader';
 import styles from './HwaseongLocalpay.module.css';
 
-// Tab + title labels localize via the sheet (short, fit the fixed layout). The
-// dense body prose stays Korean: the Figma card boxes are fixed-height with
-// overflow:hidden, so longer translations would clip — full i18n of the body
-// needs a responsive layout pass (tracked separately).
+// Every string on this screen comes from Localization_Hwaseong's MarketPaper_*
+// rows (all 23 carry the full 8 languages), so a copy edit needs no code change.
+// NOTE: the Figma card boxes are fixed-height with overflow:hidden, so the
+// longest translations (ru/id run ~2× the Korean) can still clip — the boxes
+// need a responsive pass, but that is a CSS problem, not a reason to ship Korean.
 const TAB_KEYS = ['MarketPaper_Onnuri', 'MarketPaper_Osaekjeon'] as const;
+
+/** Sheet copy carries `\n` line breaks and <b>…</b> bold runs. Render both
+ *  rather than dumping raw markup on screen. */
+function RichText({ text, className }: { text: string; className?: string }): JSX.Element {
+  return (
+    <>
+      {text.split('\n').map((line, i) => (
+        <p key={i} className={className}>
+          {line
+            .split(/(<b>[\s\S]*?<\/b>)/g)
+            .filter(Boolean)
+            .map((part, j) =>
+              part.startsWith('<b>') ? (
+                <span key={j} className={styles.bodySemi}>
+                  {part.slice(3, -4)}
+                </span>
+              ) : (
+                <span key={j}>{part}</span>
+              ),
+            )}
+        </p>
+      ))}
+    </>
+  );
+}
 
 interface Props {
   controller: KioskController;
@@ -56,15 +82,13 @@ export function HwaseongLocalpay({ controller }: Props): JSX.Element {
 
           {/* 온누리상품권이란? */}
           <div className={styles.block}>
-            <p className={styles.h}>온누리상품권이란?</p>
-            <p className={styles.body}>
-              전국 16개 금융기관에서 5천원, 1만원, 3만원권 단위로 구매하여 사용하는 온누리상품권
-            </p>
+            <p className={styles.h}>{t('MarketPaper_Onnuri_Content_1', lang)}</p>
+            <RichText text={t('MarketPaper_Onnuri_Content_1_1', lang)} className={styles.body} />
           </div>
 
           {/* 지류상품권 */}
           <div className={styles.blockWithGap}>
-            <p className={styles.h}>지류상품권 권종</p>
+            <p className={styles.h}>{t('MarketPaper_Onnuri_Content_2', lang)}</p>
             <div className={styles.imgPaper}>
               <img src={onnuriPaper} alt="" draggable={false} />
             </div>
@@ -73,36 +97,23 @@ export function HwaseongLocalpay({ controller }: Props): JSX.Element {
           {/* 디지털 온누리상품권 */}
           <div className={styles.blockWithGap}>
             <div className={styles.block}>
-              <p className={styles.h}>디지털 온누리상품권이란?</p>
-              <p className={styles.body}>
-                <span className={styles.bodySemi}>디지털 온누리상품권 앱</span> 설치 후 기존 갖고 있는 카드를 등록하고 금액 충전 후,
-              </p>
-              <p className={styles.body}>
-                실물카드 또는 QR코드 결제 방식으로 이용 가능한 온누리상품권
-              </p>
+              <p className={styles.h}>{t('MarketPaper_Onnuri_Content_3', lang)}</p>
+              <RichText text={t('MarketPaper_Onnuri_Content_3_1', lang)} className={styles.body} />
             </div>
             <div className={styles.imgDigital}>
               <img src={onnuriDigital} alt="" draggable={false} />
             </div>
             <div className={styles.block}>
-              <p className={styles.body}>
-                상품권 금액의 <span className={styles.bodySemi}>10% 할인가</span>로 충전 가능!{' '}
-                <span className={styles.bodySemi}>최대 보유한도금액</span>은{' '}
-                <span className={styles.bodySemi}>200만원</span>입니다.
-              </p>
-              <p className={styles.note}>
-                ※ 단, 예산소진 상황에 따라 특별판매 내용 및 기간이 변경될 수 있습니다.
-              </p>
+              <RichText text={t('MarketPaper_Onnuri_Content_3_2', lang)} className={styles.body} />
+              <RichText text={t('MarketPaper_Onnuri_Content_3_3', lang)} className={styles.note} />
             </div>
           </div>
 
           {/* 사용처 */}
           <div className={styles.usageRow}>
             <div className={styles.usageText}>
-              <p className={styles.h}>온누리상품권 사용처</p>
-              <p className={styles.body}>
-                <span className={styles.bodySemi}>온누리상품권 가맹점 스티커</span>가 있는 곳에서 사용이 가능합니다.
-              </p>
+              <p className={styles.h}>{t('MarketPaper_Onnuri_Content_4', lang)}</p>
+              <RichText text={t('MarketPaper_Onnuri_Content_4_1', lang)} className={styles.body} />
             </div>
             <div className={styles.usageMedia}>
               <img className={styles.biLogo} src={onnuriBi} alt="" draggable={false} />
@@ -126,11 +137,9 @@ export function HwaseongLocalpay({ controller }: Props): JSX.Element {
           <div className={styles.content1}>
             {/* Block 1: 행복화성지역화폐란? h=298 */}
             <div className={styles.block1}>
-              <p className={styles.block1Heading}>행복화성지역화폐란?</p>
+              <p className={styles.block1Heading}>{t('MarketPaper_Osaekjeon_Content_1', lang)}</p>
               <div className={styles.block1Body}>
-                <p><span className={styles.bodySemi}>화성시 내에서만 사용할 수 있는 카드형 지역화폐 입니다.</span></p>
-                <p>전통시장 및 매출액 10억 이하의 소상공인 점포에서 사용 가능합니다.</p>
-                <p>경기지역화폐APP을 통해 간편하게 충전하고 잔액을 관리할 수 있습니다.</p>
+                <RichText text={t('MarketPaper_Osaekjeon_Content_1_1', lang)} />
               </div>
             </div>
 
@@ -143,31 +152,17 @@ export function HwaseongLocalpay({ controller }: Props): JSX.Element {
 
             {/* 누구나 신청 */}
             <div className={styles.block1Inner}>
-              <p className={styles.h}>누구나 신청 가능 하나요?</p>
-              <p className={styles.body}>
-                본인 명의의 은행계좌를 가지고 있는 만14세 이상이면 신청 가능합니다.
-              </p>
-              <p className={styles.body}>
-                거주지역에 상관없이{' '}
-                <span className={styles.bodySemi}>화성시 내 소비를 통해 인센티브 혜택을 받고 싶은 분들은</span>
-                {' '}모<span className={styles.bodySemi}>바일 APP 또는 관내 농협</span>에서 신청해주세요.
-              </p>
-              <p className={styles.body}>
-                신청방법은{' '}
-                <span className={styles.bodySemi}>모바일앱(경기지역화폐APP)</span>또는{' '}
-                <span className={styles.bodySemi}>관내 NH농협은행, 화성농협</span>에서 신청해주세요.
-              </p>
+              <p className={styles.h}>{t('MarketPaper_Osaekjeon_Content_2', lang)}</p>
+              <RichText text={t('MarketPaper_Osaekjeon_Content_2_1', lang)} className={styles.body} />
+              <RichText text={t('MarketPaper_Osaekjeon_Content_2_2', lang)} className={styles.body} />
             </div>
 
             {/* 지역화폐사용처 */}
             <div className={styles.block1Inner}>
-              <p className={styles.h}>지역화폐사용처</p>
-              <p className={styles.body}>
-                <span className={styles.bodySemi}>연 매출 10억 이하인 소상공인 점포에서만 사용 가능</span>합니다.
-              </p>
+              <p className={styles.h}>{t('MarketPaper_Osaekjeon_Content_3', lang)}</p>
+              <RichText text={t('MarketPaper_Osaekjeon_Content_3_1', lang)} className={styles.body} />
               <div className={styles.note}>
-                <p>주유소 · 전통시장 · 골목상권 · 레저업소 (헬스클럽, 필라테스, 수영장, 골프연습장, 볼링장)</p>
-                <p>병·의원 (치과, 한의원 등) · 편의점 · 학원 (기능학원, 보습학원 등) · 보건위생 (안경, 미용원 등) · 기타의료기관 (동물병원 등)</p>
+                <RichText text={t('MarketPaper_Osaekjeon_Content_3_2', lang)} />
               </div>
             </div>
           </div>
