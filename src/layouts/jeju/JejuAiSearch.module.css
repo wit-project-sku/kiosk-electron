@@ -1,0 +1,159 @@
+/*
+ * 제주 '제주' 뭐하지 (AI 검색) — Figma node 6050:142613.
+ *
+ * 선택영역 starts at y699 and stacks 5 blocks with a 100px gap. Each of the
+ * first three blocks is [label 76 · gap 60 · chip row 193] = 329 tall:
+ *
+ *   699  방문 인원 label      835  chips
+ *   1128 체류 기간 label     1264  chips
+ *   1557 이동수단 label      1693  chips
+ *   1986 즐길 거리 label     2122  grid (5 rows, step 244, each h215)
+ *   3413 CTA (h178)                        → content ends at y3591
+ *
+ * Content runs past the usual 3267 banner line, which is why this page is
+ * rendered with `showBanner={false}`.
+ */
+.root {
+  position: absolute;
+  left: 170px;
+  top: 0;
+  width: 1820px;
+  height: 3840px;
+}
+
+/* ── Section label: black bar + heading (identical to JejuLanguage's) ── */
+.label {
+  position: absolute;
+  left: 0;
+  height: 76px;
+  display: flex;
+  align-items: center;
+  gap: 30px;
+}
+
+.labelBar {
+  flex: 0 0 auto;
+  width: 10.725px;
+  height: 72.929px;
+  border-radius: 21.45px;
+  background: #000;
+}
+
+.labelText {
+  margin: 0;
+  font-size: 76px;
+  font-weight: 600;
+  line-height: 1;
+  color: #000;
+  white-space: nowrap;
+}
+
+/* ── Chip rows ──
+   Figma lays each row out with justify-between at explicit per-chip widths, so
+   the gaps are whatever is left over. Reproduced exactly rather than hardcoding
+   gaps: 방문 인원's chips are six different widths. */
+.row {
+  position: absolute;
+  left: 0;
+  width: 1820px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.chip {
+  flex: 0 0 auto;
+  height: 193px;
+  box-sizing: border-box;
+  padding: 0;
+  border: 2.145px solid #e8e8e8;
+  border-radius: 45px;
+  background: #fff;
+  box-shadow: 0 21.45px 42.9px rgba(143, 147, 157, 0.1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 60px;
+  font-weight: 600;
+  line-height: 1;
+  color: #999;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.chipSelected {
+  border-color: var(--kiosk-primary, #ff7f0f);
+  background: #ffeac7;
+  color: var(--kiosk-primary, #ff7f0f);
+  font-weight: 700;
+}
+
+/* ── 즐길 거리 grid: 5 rows × 6 columns of 268×215 ── */
+.grid {
+  position: absolute;
+  left: 0;
+  top: 2122px;
+  width: 1820px;
+  height: 1191px;
+}
+
+.gridRow {
+  position: absolute;
+  left: 0;
+  width: 1820px;
+  height: 215px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.tile {
+  flex: 0 0 auto;
+  width: 268px;
+  height: 215px;
+  box-sizing: border-box;
+  border: 2.145px solid #e8e8e8;
+  border-radius: 45px;
+  background: #fff;
+  box-shadow: 0 21.45px 42.9px rgba(143, 147, 157, 0.1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 47px;
+  font-weight: 700;
+  line-height: 1.15;
+  text-align: center;
+  /* `pre`, not `pre-line`: the two-line labels (제주\n향토음식) carry a literal
+     newline, but nothing may auto-wrap. Figma sets these nowrap and lets the
+     longest ones (K-POP 체험, 오름·트레킹) run to the tile's edge — with
+     pre-line and any horizontal padding, K-POP 체험 breaks into "K-POP 체 / 험". */
+  white-space: pre;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Selected 즐길 거리 tiles take the orange plate but KEEP their category text
+   colour — unlike Osan, where selection overrides it. */
+.tileSelected {
+  border-color: var(--kiosk-primary, #ff7f0f);
+  background: #ffeac7;
+}
+
+/* ── CTA ── */
+.cta {
+  position: absolute;
+  left: 0;
+  top: 3413px;
+  width: 1820px;
+  height: 178.034px;
+  padding: 0;
+  border: none;
+  border-radius: 42.9px;
+  background: var(--kiosk-primary, #ff7f0f);
+  color: #fff;
+  font-size: 68.64px;
+  font-weight: 700;
+  line-height: 1;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}

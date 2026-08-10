@@ -106,6 +106,10 @@ const BUTTON_IDS: Record<string, Record<number, number>> = {
   W004: { 1: 105, 2: 106, 3: 107, 4: 52, 5: 53, 6: 54, 7: 55, 8: 56, 9: 57, 10: 58, 11: 59, 12: 60, 13: 61, 14: 62, 15: 63, 16: 64, 17: 65, 18: 66, 19: 67, 20: 94, 21: 68, 22: 114, 23: 122, 24: 123 },
   // W005 (화성휴게소)
   W005: { 1: 108, 2: 109, 3: 110, 4: 69, 5: 70, 6: 71, 7: 72, 8: 73, 9: 74, 10: 75, 11: 76, 12: 77, 13: 78, 14: 79, 15: 80, 16: 81, 17: 82, 18: 83, 19: 84, 20: 95, 21: 85, 22: 115, 23: 124, 24: 125 },
+  // W006 (제주공항) — DELIBERATELY ABSENT until the `buttons` table is seeded for
+  // kiosk_id 6. resolveButton/buttonIdForSlot both fall back to `id: null`, so
+  // clicks are still tracked by label; only the DB join is missing. Guessing ids
+  // would be worse than none — they would join to ANOTHER kiosk's button rows.
 };
 
 /**
@@ -172,6 +176,11 @@ const SLOT_OVERRIDES: Partial<Record<KioskId, Record<string, Slot>>> = {
     photo_solo: { position: 23, type: '혼자찍기', suffix: '혼자찍기' },
     photo_together: { position: 24, type: '같이찍기', suffix: '같이찍기' },
   },
+  // TODO(제주 W006): add a `W006` block once the Jeju home grid is designed and
+  // the `buttons` rows for kiosk_id 6 exist. Each entry's `type` must match the
+  // CMS's `button_type` EXACTLY — it is the only join key. Until then W006 falls
+  // through to the Insadong base SLOTS, so positions/labels will be wrong for any
+  // tile the Jeju grid moves.
 };
 
 /**

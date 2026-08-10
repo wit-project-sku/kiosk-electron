@@ -27,6 +27,12 @@ const SHEET_ID = '1AVZoyepjrlWIUtwXamGRYU6TWkKKKgVb7fzwEtbRDaw';
 const OSAEK_SHEET_ID = '1_CkWFXfB7ud0sJw-cnIWGvFlTzF12UxDuNylp5HkOiw';
 /** W005 화성휴게소 content sheet (tabs suffixed _Hwaseong). */
 const HWASEONG_SHEET_ID = '14aWRWrJXPC_J-W4GpZqa_g-3fDjjUsy6BpAhDg8OvVU';
+/** W006 제주공항 content sheet (tabs suffixed _Jeju).
+ *  EMPTY until the 제주 spreadsheet is created — the generators below are skipped
+ *  while it is blank, so `npm run sync:sheet` still succeeds for every other
+ *  location. Fill it in here AND in the runtime mirror
+ *  (src/main/services/sync/GoogleSheetsSyncTransport.ts CONTENT_SHEETS). */
+const JEJU_SHEET_ID = '';
 /** 전국시장 (nationwide markets) dataset — shared, used by 화성휴게소's 전국휴게소 screen. */
 const NATIONWIDE_MARKETS_SHEET_ID = '1EGeS48JvN3YNzFDLiBduKW-t8P5ilSDucNIMUNS2M-4';
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
@@ -365,6 +371,54 @@ async function genAiCategoriesHwaseong() {
   return cats.length;
 }
 
+// ─── W006 제주공항 (separate sheet, _Jeju tabs) ────────────────────────
+// Assumes the newer Osaek/Hwaseong column layout (6 vi, 7 id, 8 th, 9 ru). VERIFY
+// against the real sheet's header row before trusting it — a wrong order silently
+// swaps languages rather than failing.
+async function genLocalizationJeju() {
+  const rows = await loadTab('Localization_Jeju', JEJU_SHEET_ID);
+  const entries = {};
+  for (const r of rows.slice(1)) {
+    const key = clean(r[1]);
+    if (!key || key === 'Key') continue;
+    entries[key] = localizedRow(r, NEW_LANG_COLS_OSAEK);
+  }
+  const body = Object.entries(entries)
+    .map(([k, v]) => `  ${JSON.stringify(k)}: ${JSON.stringify(v)},`)
+    .join('\n');
+  const out = `${BANNER}import type { LangText } from './types';
+
+/** W006 제주공항 UI strings keyed by their sheet \`Key\` (Localization_Jeju). */
+export const LOCALIZATION_JEJU: Record<string, LangText> = {
+${body}
+};
+`;
+  await writeFile(join(DATA_DIR, 'localization-jeju.generated.ts'), out, 'utf8');
+  return Object.keys(entries).length;
+}
+
+async function genAiCategoriesJeju() {
+  const rows = await loadTab('AICategory_Jeju', JEJU_SHEET_ID);
+  const langCols = findLangCols(rows[0] ?? []);
+  const cats = [];
+  for (const r of rows.slice(1)) {
+    if (!/^\d+$/.test(clean(r[0]))) continue;
+    const ko = stripPrefix(r[1]);
+    if (!ko) continue;
+    cats.push(langTextExt(r, [1, 2, 3, 4], langCols, stripPrefix));
+  }
+  const body = cats.map((c) => `  ${JSON.stringify(c)},`).join('\n');
+  const out = `${BANNER}import type { LangText } from './types';
+
+/** W006 제주공항 AI검색 categories, prefix stripped. */
+export const AI_CATEGORIES_JEJU: LangText[] = [
+${body}
+];
+`;
+  await writeFile(join(DATA_DIR, 'aiCategories-jeju.generated.ts'), out, 'utf8');
+  return cats.length;
+}
+
 // ─── 전국시장 (nationwide markets) — single sheet, grouped by province ──────────
 async function genNationwideMarkets() {
   // Cols: 0 Num, 1 사진여부, 2-5 name ko/en/jp/cn, 6-9 province, 10-13 district,
@@ -417,6 +471,16 @@ async function main() {
   const catsH = await genAiCategoriesHwaseong();
   console.log(`✓ [hwaseong] localization: ${locH} keys`);
   console.log(`✓ [hwaseong] aiCategories: ${catsH}`);
+
+  // W006 제주공항 (separate sheet, _Jeju tabs) — skipped until the sheet exists.
+  if (JEJU_SHEET_ID) {
+    const locJ = await genLocalizationJeju();
+    const catsJ = await genAiCategoriesJeju();
+    console.log(`✓ [jeju] localization: ${locJ} keys`);
+    console.log(`✓ [jeju] aiCategories: ${catsJ}`);
+  } else {
+    console.log('– [jeju] skipped (JEJU_SHEET_ID not set)');
+  }
 
   // 전국시장 (nationwide markets, single shared sheet)
   const markets = await genNationwideMarkets();

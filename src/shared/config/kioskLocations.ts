@@ -13,7 +13,7 @@ import type { KioskId, KioskLayoutId, KioskScreenId } from '../types/kiosk';
  * is electron-store (see KioskConfigStore), set per machine via provision-kiosk.ps1.
  * There is NO env override; one build serves every location.
  */
-export type KioskLocationCode = 'W001' | 'W002' | 'W003' | 'W004' | 'W005';
+export type KioskLocationCode = 'W001' | 'W002' | 'W003' | 'W004' | 'W005' | 'W006';
 
 export interface KioskLocationTile {
   screen: KioskScreenId;
@@ -70,6 +70,8 @@ const INSADONG_COORDS: GeoCoordinates = { lat: 37.5744, lon: 126.9849 };
 const OSAN_COORDS: GeoCoordinates = { lat: 37.1499, lon: 127.0773 };
 /** 화성휴게소 (화성시) — W005. */
 const HWASEONG_COORDS: GeoCoordinates = { lat: 37.1996, lon: 126.8312 };
+/** 제주국제공항 (제주시 용담이동) — W006. */
+const JEJU_AIRPORT_COORDS: GeoCoordinates = { lat: 33.5104, lon: 126.493 };
 
 const INSARANG_TILE: KioskLocationTile = { screen: 'insarang', label: '인사랑(준비중)', icon: 'insarang' };
 const MARKET_TILE: KioskLocationTile = { screen: 'market', label: '위드마켓', icon: 'market' };
@@ -88,6 +90,13 @@ export const KIOSK_LOCATIONS: Record<KioskLocationCode, KioskLocation> = {
   // takes the payment result flow (위드마켓 webview + save QR, result image on Monitor 2).
   W004: { code: 'W004', name: '오산시 오색시장', layout: 'OSAN', secondTile: MARKET_TILE, hasCardTerminal: true, hasDonation: true, aiCompanion: '3', coordinates: OSAN_COORDS },
   W005: { code: 'W005', name: '화성휴게소', layout: 'HWASEONG', secondTile: INSARANG_TILE, hasCardTerminal: true, hasDonation: true, aiCompanion: '4', coordinates: HWASEONG_COORDS },
+  // 제주공항 W006 — has a TL-3800 terminal and runs 기부, like W003–W005.
+  // TODO(제주): `secondTile` and `aiCompanion` are provisional. The home grid is
+  // redefined by the Jeju Figma (secondTile only matters for layouts that consume
+  // it), and `aiCompanion` currently sends 인사('2') because Digicon has no 제주
+  // mascot code yet — set it once the 같이찍기 character is decided, or 제주 photos
+  // will composite the Insadong character.
+  W006: { code: 'W006', name: '제주공항', layout: 'JEJU_AIRPORT', secondTile: MARKET_TILE, hasCardTerminal: true, hasDonation: true, aiCompanion: '2', coordinates: JEJU_AIRPORT_COORDS },
 };
 
 /** Resolve a location by kiosk id, falling back to W001 (북인사마당). */

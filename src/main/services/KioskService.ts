@@ -16,7 +16,7 @@ export class KioskService {
   }
 
   /**
-   * Numeric kiosk id (1–5) used by the witteria APIs. Prefers the per-machine
+   * Numeric kiosk id (1–6) used by the witteria APIs. Prefers the per-machine
    * provisioned `shopApiKioskId`; otherwise derives it from the kiosk id string
    * (e.g. "W003" → 3). Falls back to 1.
    */

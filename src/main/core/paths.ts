@@ -64,7 +64,8 @@ class AppPaths {
    * `resources/videos` lived inside the install dir (process.resourcesPath) and
    * would be lost on every update. Videos are NO LONGER shipped in the installer
    * (removed from electron-builder extraResources) — drop the .mp4s into
-   * `<dir>/<set>/` (insadong|osaek|hwaseong) once per machine and updates leave
+   * `<dir>/<set>/` (insadong|osaek|hwaseong|jeju — see VIDEO_SETS) once per
+   * machine and updates leave
    * them untouched.
    *
    * Default `C:\KioskVideos` on a packaged Windows kiosk (mirrors C:\KioskPhotos);

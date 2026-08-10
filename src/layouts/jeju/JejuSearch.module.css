@@ -1,0 +1,272 @@
+/*
+ * 제주 검색 결과 — Figma node 6050:140667 (제주>유산=검색-01).
+ *
+ * The search row and the result list scroll together in one column starting at
+ * y700, exactly as the Figma stacks them inside 검색결과 (gap 100). Layout:
+ *   700   search field (h182, w1350, centred in the 1820 column)
+ *   982   first result card (h530), then +590 per card (530 + 60 gap)
+ */
+.scroll {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 700px;
+  bottom: 0;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 100px;
+  overflow-x: hidden;
+  overflow-y: auto;
+  /* The 34.32px scrollbar is carved out of the RIGHT margin (Figma puts it at
+     x2128, inside the 170px gutter) so the content column stays exactly 1820:
+     2160 − 170 − 136 − 34.32 = 1819.7. */
+  padding: 0 136px 80px 170px;
+}
+
+.scroll::-webkit-scrollbar {
+  width: 34.32px;
+}
+
+.scroll::-webkit-scrollbar-thumb {
+  background: var(--kiosk-primary, #ff7f0f);
+  border-radius: 17.16px;
+}
+
+.scroll::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+/* ── Search re-entry field ── */
+.searchRow {
+  flex: none;
+  width: 1820px;
+  height: 182px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.searchField {
+  width: 1350px;
+  height: 182px;
+  box-sizing: border-box;
+  padding: 55px 75px;
+  border: 4.29px solid var(--kiosk-primary, #ff7f0f);
+  border-radius: 120px;
+  background: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.searchText {
+  flex: 1 1 auto;
+  min-width: 0;
+  font-size: 60.06px;
+  font-weight: 600;
+  line-height: 1;
+  text-align: left;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: #999;
+}
+
+.searchValue { color: #232323; }
+
+.caret {
+  display: inline-block;
+  width: 4px;
+  height: 62px;
+  margin-left: 6px;
+  vertical-align: middle;
+  background: var(--kiosk-primary, #ff7f0f);
+  animation: jejuCaret 1s step-end infinite;
+}
+
+@keyframes jejuCaret {
+  50% { opacity: 0; }
+}
+
+.searchIcon {
+  flex: 0 0 auto;
+  width: 71px;
+  height: 68px;
+  object-fit: contain;
+}
+
+/* ── Result list ── */
+.list {
+  flex: none;
+  width: 1820px;
+  display: flex;
+  flex-direction: column;
+  gap: 60px;
+}
+
+.card {
+  width: 1820px;
+  height: 530px;
+  box-sizing: border-box;
+  padding: 65px 45px;
+  border: 5px solid #e8e8e8;
+  border-radius: 42.9px;
+  background: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  text-align: left;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.info {
+  width: 1120px;
+  display: flex;
+  flex-direction: column;
+  gap: 40px;
+  min-width: 0;
+}
+
+.nameRow {
+  display: flex;
+  align-items: center;
+  gap: 40px;
+  min-width: 0;
+}
+
+.name {
+  font-size: 68px;
+  font-weight: 600;
+  line-height: 1;
+  color: #2b2b2b;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.cat {
+  display: flex;
+  align-items: center;
+  gap: 21.45px;
+  flex: 0 0 auto;
+  font-size: 52px;
+  font-weight: 400;
+  line-height: 1;
+  color: #999;
+  white-space: nowrap;
+}
+
+.dot {
+  width: 17px;
+  height: 17px;
+  border-radius: 50%;
+  background: var(--kiosk-primary, #ff7f0f);
+  flex: 0 0 auto;
+}
+
+.address,
+.desc,
+.tags {
+  margin: 0;
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+}
+
+.address {
+  font-size: 48px;
+  font-weight: 500;
+  line-height: 1;
+  color: #999;
+  -webkit-line-clamp: 1;
+}
+
+.desc {
+  font-size: 48px;
+  font-weight: 500;
+  line-height: 1.2;
+  color: #2b2b2b;
+  -webkit-line-clamp: 2;
+}
+
+.tags {
+  font-size: 40px;
+  font-weight: 400;
+  line-height: 1;
+  color: #999;
+  -webkit-line-clamp: 1;
+}
+
+/* Query match highlight. */
+.hl {
+  color: var(--kiosk-primary, #ff7f0f);
+  font-weight: 700;
+}
+
+/* ── Thumbnails: 2×2 of 270×150 ── */
+.photos {
+  flex: 0 0 auto;
+  width: 570px;
+  display: grid;
+  grid-template-columns: 270px 270px;
+  gap: 30px;
+}
+
+.thumb {
+  width: 270px;
+  height: 150px;
+  border-radius: 21.45px;
+  overflow: hidden;
+  background: #f2ede6;
+}
+
+.thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+/* ── Empty / prompt state ── */
+.empty {
+  flex: none;
+  margin: 120px 0 0;
+  font-size: 60px;
+  font-weight: 500;
+  line-height: 1.3;
+  color: #909090;
+  text-align: center;
+}
+
+/* ── Right-hand scroll buttons (Figma x2027, y2103 / y2223) ──
+   One asset: the orange circle with a white LEFT chevron, rotated into an up
+   and a down arrow — exactly how the Figma composes them. */
+.scrollBtn {
+  position: absolute;
+  left: 2027px;
+  width: 85px;
+  height: 85px;
+  padding: 0;
+  border: none;
+  background: none;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.scrollUp   { top: 2103px; }
+.scrollDown { top: 2223px; }
+
+.scrollBtnImg {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  pointer-events: none;
+}
+
+.scrollUp .scrollBtnImg   { transform: rotate(90deg); }
+.scrollDown .scrollBtnImg { transform: rotate(-90deg); }

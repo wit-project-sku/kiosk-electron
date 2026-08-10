@@ -1,0 +1,137 @@
+/*
+ * 제주공항 sub-page header — Figma `Component 34` (node 6043:14438), 2160×700.
+ *
+ * Figma builds this with nested flex + justify-center; reproduced here as
+ * absolute rows at their resolved y so a hidden subtitle can't re-centre the
+ * block and shift the title. Resolved from the Figma box model:
+ *   pt125 + [row1 h82 · gap105 · row2 h182] + gap65 + [subtitle h60] + pb80 = 700
+ */
+.root {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 2160px;
+  height: 700px;
+  font-family: var(--kiosk-font, 'Noto Sans KR', 'Noto Sans', sans-serif);
+}
+
+/* ── Row 1: location + date (y125, h82) ── */
+.topRow {
+  position: absolute;
+  left: 170px;
+  top: 125px;
+  width: 1820px;
+  height: 82px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.topLeft {
+  display: flex;
+  align-items: center;
+  gap: 25.74px;
+}
+
+.locationIcon {
+  width: 63px;
+  height: 82px;
+  object-fit: contain;
+}
+
+.siteName {
+  font-size: 68px;
+  font-weight: 700;
+  line-height: 1;
+  color: var(--kiosk-primary, #ff7f0f);
+  white-space: nowrap;
+}
+
+.date {
+  font-size: 68px;
+  font-weight: 700;
+  line-height: 1;
+  color: #232323;
+  white-space: nowrap;
+}
+
+/* ── Row 2: home · title · back (y312, h182) ──
+   justify-between across 1820 with 175 + 1342 + 175 leaves 128 → two 64px gaps. */
+.titleRow {
+  position: absolute;
+  left: 170px;
+  top: 312px;
+  width: 1820px;
+  height: 182px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.navBtn {
+  width: 175px;
+  height: 175px;
+  padding: 0;
+  border: none;
+  background: none;
+  flex: 0 0 auto;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.navBtnImg {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  pointer-events: none;
+}
+
+/* The title "field" is a transparent pill in the design — it carries the
+   rounded shape and padding but no fill or border. */
+.title {
+  flex: 0 0 auto;
+  width: 1342px;
+  height: 182px;
+  box-sizing: border-box;
+  padding: 50px 75px;
+  border-radius: 117.974px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0;
+  font-size: 78px;
+  font-weight: 700;
+  line-height: 1;
+  color: #000;
+  text-align: center;
+  white-space: nowrap;
+}
+
+/* ── Subtitle (y559, h60) — star + description, centred on the 1820 column ── */
+.subtitle {
+  position: absolute;
+  left: 170px;
+  top: 559px;
+  width: 1820px;
+  height: 60px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+}
+
+.subtitleStar {
+  width: 36px;
+  height: 36px;
+  object-fit: contain;
+  flex: 0 0 auto;
+}
+
+.subtitleText {
+  margin: 0;
+  font-size: 60px;
+  font-weight: 400;
+  line-height: 1;
+  color: #909090;
+  white-space: nowrap;
+}

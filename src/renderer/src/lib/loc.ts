@@ -15,6 +15,12 @@ const locLang = (lang: Lang): LocLang => toLocalizedLang(lang);
 /**
  * Bundled fallback table for the running location: Osaek for W004 (OSAN),
  * Hwaseong for W005 (HWASEONG), else insadong (W001–W003).
+ *
+ * TODO(제주 W006): JEJU_AIRPORT deliberately falls through to the Insadong table
+ * until a Localization_Jeju sheet exists and `npm run sync:sheet` emits
+ * localization-jeju.generated.ts — showing Insadong's Korean strings is a far
+ * better cold start than an empty table, which makes every t() render its raw
+ * key. Add the import + branch the moment the generated file lands.
  */
 function bundledTable(): typeof LOCALIZATION {
   const layout = getKioskLocation(useKioskStore.getState().config.kioskId).layout;

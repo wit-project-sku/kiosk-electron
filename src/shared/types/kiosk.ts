@@ -23,10 +23,10 @@ export type SupportedLanguage =
   | 'es';
 
 /** Layout identifiers mapped to React layout components. */
-export type KioskLayoutId = 'INSADONG' | 'NAM_INSADONG' | 'OSAN' | 'HWASEONG';
+export type KioskLayoutId = 'INSADONG' | 'NAM_INSADONG' | 'OSAN' | 'HWASEONG' | 'JEJU_AIRPORT';
 
 /** Well-known kiosk deployment IDs. */
-export type KioskId = 'W001' | 'W002' | 'W003' | 'W005' | (string & {});
+export type KioskId = 'W001' | 'W002' | 'W003' | 'W004' | 'W005' | 'W006' | (string & {});
 
 export interface KioskConfig {
   kioskId: KioskId;
@@ -110,4 +110,13 @@ export type KioskScreenId =
   | 'convenience'  // 편의시설
   | 'tourism'      // 주변관광
   | 'parking'      // 주차안내
-  | 'emergency';   // 긴급안내
+  | 'emergency'    // 긴급안내
+  // 제주공항 (W006) — the three home tiles with no equivalent in another layout.
+  // Everything else on the Jeju home reuses the shared ids above
+  // (eat/shop/lodging/taxfree/about/hello/help/exchange/donation/…).
+  // 지역화폐 gets its OWN id rather than reusing Osan's `museum` or Hwaseong's
+  // `rest_info` overload — those exist only because those kiosks' CMS rows
+  // happened to share a slot, and the alias makes every later reader guess.
+  | 'rentcar'      // 렌트카 (간편 예약)
+  | 'tamnao'       // 탐나오 (제주공공플랫폼)
+  | 'localpay';    // 지역화폐 (탐나는전)

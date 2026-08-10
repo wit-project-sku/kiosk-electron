@@ -11,6 +11,9 @@ const log = createLogger('localization-sync-parser');
  *   Localization_Insa      → 6 Vietnamese, 7 Thai,       8 Russian, 9 Indonesian
  *   Localization_Osaek     → 6 Vietnamese, 7 Indonesian, 8 Thai,    9 Russian
  *   Localization_Hwaseong  → 6 Vietnamese, 7 Indonesian, 8 Thai,    9 Russian
+ *   Localization_Jeju      → assumed same as Osaek/Hwaseong (the newer template);
+ *                            VERIFY against the real 제주 sheet header row before
+ *                            trusting it — a wrong order silently swaps languages.
  */
 const SHARED_COLS: Array<{ lang: SupportedLanguage; index: number }> = [
   { lang: 'ko', index: 2 },
@@ -38,6 +41,7 @@ const NEW_LANG_COLS: Record<KioskLayoutId, Array<{ lang: SupportedLanguage; inde
   NAM_INSADONG: INSA_NEW,
   OSAN: OSAEK_HWASEONG_NEW,
   HWASEONG: OSAEK_HWASEONG_NEW,
+  JEJU_AIRPORT: OSAEK_HWASEONG_NEW,
 };
 
 export type LocalizationByLang = Partial<Record<SupportedLanguage, Record<string, string>>>;
