@@ -22,12 +22,30 @@ const log = createLogger('security');
  * `https:` is allowed for img-src/media-src because shop cards render remote
  * photos served from the witteria S3/CDN (the URLs come from the shops API and
  * can't be enumerated as a fixed allowlist). Images/media can't execute code, so
- * this stays safe while script/connect remain locked to 'self'.
+ * this stays safe while script/connect stay off the network entirely.
+ *
+ * `appres:` in script-src/connect-src is the MediaPipe hand-gesture runtime on
+ * 제주's camera screen: `FilesetResolver` injects a <script> for the WASM loader
+ * and fetches the `.wasm` next to it, and a packaged renderer runs from `file://`
+ * where Chromium allows neither. That scheme serves ONLY the read-only
+ * install-directory folders on its own allowlist — see `appResourceProtocol.ts`
+ * for why it is a separate scheme from `media:` rather than a reuse of it.
+ *
+ * `'wasm-unsafe-eval'` is what actually lets that runtime COMPILE. A script-src
+ * with neither it nor `'unsafe-eval'` refuses `WebAssembly.instantiate()`
+ * outright, and the failure is doubly misleading: MediaPipe feature-detects SIMD
+ * by instantiating a tiny probe module, so the block also made that probe throw
+ * and the resolver quietly asked for the much slower `nosimd` build before
+ * failing on the real module. Despite the name this is the NARROW keyword — it
+ * permits WebAssembly only, and does NOT re-enable `eval()` or `new Function()`
+ * for JavaScript, which `'unsafe-eval'` would.
  */
 const PRODUCTION_CSP =
   "default-src 'self'; img-src 'self' https: media: data: blob:; " +
   "media-src 'self' https: media: blob:; " +
-  "style-src 'self' 'unsafe-inline'; script-src 'self'; connect-src 'self'";
+  "style-src 'self' 'unsafe-inline'; " +
+  "script-src 'self' appres: 'wasm-unsafe-eval'; " +
+  "connect-src 'self' appres:";
 
 let cspApplied = false;
 function applyProductionCsp(contents: WebContents): void {

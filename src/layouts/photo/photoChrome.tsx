@@ -4,9 +4,11 @@ import { useKioskStore } from '@renderer/store/kioskStore';
 import { iconUrl } from '@renderer/assets/icons/insadong';
 import { osanIconUrl } from '@renderer/assets/icons/osan';
 import { hwaseongIconUrl } from '@renderer/assets/icons/hwaseong';
+import { jejuIconUrl } from '@renderer/assets/icons/jeju';
 import { InsadongHeader } from '@layouts/insadong/InsadongHeader';
 import { OsanHeader } from '@layouts/osan/OsanHeader';
 import { HwaseongHeader } from '@layouts/hwaseong/HwaseongHeader';
+import { JejuHeader } from '@layouts/jeju/JejuHeader';
 
 /** Header props common to every location header used by the photo workflow. */
 export interface PhotoHeaderProps {
@@ -14,11 +16,23 @@ export interface PhotoHeaderProps {
   onHome: () => void;
   onBack?: () => void;
   subtitle?: string;
+  /**
+   * Grey out 홈/뒤로 and stop them responding.
+   *
+   * ★ Only JejuHeader honours this — it is the only location with a screen that
+   * must not be walked away from (틀린그림찾기, which runs over a photo that is
+   * already generating). Passing it to the other three is a no-op rather than an
+   * error, so if another location ever grows a comparable screen, wire the prop
+   * in that header rather than assuming this one already did.
+   */
+  navDisabled?: boolean;
 }
 
 export interface PhotoChrome {
   isOsan: boolean;
   isHwaseong: boolean;
+  /** 제주 replaces the whole outfit-selection step — see JejuHanbokSelect. */
+  isJeju: boolean;
   /** Icon resolver for the active location (falls back to insadong). */
   icon: (name: string) => string | undefined;
   /** Location-correct content header (OSAEK MARKET / INSADONG / HWASEONG SA). */
@@ -40,23 +54,37 @@ export function usePhotoChrome(): PhotoChrome {
   const layout = getKioskLocation(kioskId).layout;
   const isOsan = layout === 'OSAN';
   const isHwaseong = layout === 'HWASEONG';
+  const isJeju = layout === 'JEJU_AIRPORT';
 
   const icon = isOsan
     ? (name: string) => osanIconUrl(name) ?? iconUrl(name)
     : isHwaseong
       ? (name: string) => hwaseongIconUrl(name) ?? iconUrl(name)
-      : iconUrl;
+      : isJeju
+        ? (name: string) => jejuIconUrl(name) ?? iconUrl(name)
+        : iconUrl;
 
   const Header = (
-    isOsan ? OsanHeader : isHwaseong ? HwaseongHeader : InsadongHeader
+    isOsan ? OsanHeader : isHwaseong ? HwaseongHeader : isJeju ? JejuHeader : InsadongHeader
   ) as ComponentType<PhotoHeaderProps>;
 
   return {
     isOsan,
     isHwaseong,
+    isJeju,
     icon,
     Header,
     photoTitle: isOsan ? '사진 촬영' : 'AR 한복체험',
-    banner: isOsan ? osanIconUrl('banner') : isHwaseong ? hwaseongIconUrl('fg-banner') : undefined,
+    banner: isOsan
+      ? osanIconUrl('banner')
+      : isHwaseong
+        ? hwaseongIconUrl('fg-banner')
+        : isJeju
+          // `fg-banner` is HWASEONG's asset name — 제주's is `banner-hanbok`, the
+          // 가상 한복 착장 art every AR 한복체험 frame draws. Asking for the wrong
+          // name resolved to undefined, so the Jeju photo flow silently fell back
+          // to INSADONG's rotating banners.
+          ? jejuIconUrl('banner-hanbok')
+          : undefined,
   };
 }

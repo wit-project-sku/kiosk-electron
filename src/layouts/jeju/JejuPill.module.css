@@ -1,0 +1,39 @@
+/*
+ * The 제주 pill — Figma component `R>상단 카테고리-5개*2`.
+ *
+ * One rule set, composed by every page that draws it, because it is ONE Figma
+ * component and it moves: it used to be a shadowed chip with a solid-orange
+ * active state, and when the component changed to this outlined form only the
+ * page that was re-read got updated. Compose from here instead of restating it.
+ *
+ * Callers own the WIDTH (580 for a two-up row, 340 for the 5-up category grid)
+ * and the row layout; this is only the look.
+ *
+ * Drawn by:
+ *   JejuHelp      terminal pills + the 10 facility chips   6219:98776 / 98787
+ *   JejuLocalpay  온누리상품권 / 탐나는전 tabs              6249:32357 / 32290
+ */
+.pill {
+  height: 170px;
+  box-sizing: border-box;
+  padding: 0 16px;
+  border: 5px solid #e8e8e8;
+  border-radius: 42.9px;
+  background: #fff;
+  font-size: 50px;
+  font-weight: 500;
+  /* 교통약자 편의시설 is the one two-line chip, and Figma sets it leading-none. */
+  line-height: 1;
+  color: #999;
+  white-space: pre-line;
+  overflow: hidden;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.pillActive {
+  border-color: var(--kiosk-primary, #ff7f0f);
+  background: #ffeac7;
+  font-weight: 700;
+  color: var(--kiosk-primary, #ff7f0f);
+}

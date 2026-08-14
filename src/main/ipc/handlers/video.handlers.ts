@@ -2,14 +2,14 @@ import { existsSync, readdirSync } from 'node:fs';
 import { join } from 'node:path';
 import { IpcChannels } from '@shared/ipc/channels';
 import type { AppContainer } from '@main/container';
-import type { VideoFilesBySet, VideoSet } from '@shared/types/subtitle';
+import { VIDEO_SETS, type VideoFilesBySet, type VideoSet } from '@shared/types/subtitle';
 import { appPaths } from '@main/core/paths';
 import { createLogger } from '@main/core/logger';
 import { handle } from '../registry';
 
 const log = createLogger('video-handlers');
 
-const SETS: readonly VideoSet[] = ['insadong', 'osaek', 'hwaseong'];
+const SETS: readonly VideoSet[] = VIDEO_SETS;
 
 /**
  * The actual .mp4 files present in each resources/videos/<set>/ folder, read
@@ -19,7 +19,7 @@ const SETS: readonly VideoSet[] = ['insadong', 'osaek', 'hwaseong'];
  * immediately, no rebuild required.
  */
 function listVideoFiles(): VideoFilesBySet {
-  const out: VideoFilesBySet = { insadong: [], osaek: [], hwaseong: [] };
+  const out = Object.fromEntries(SETS.map((s) => [s, [] as string[]])) as VideoFilesBySet;
   for (const set of SETS) {
     const dir = join(appPaths.videos, set);
     if (!existsSync(dir)) continue;
@@ -29,11 +29,7 @@ function listVideoFiles(): VideoFilesBySet {
       log.warn('Could not list video set', { set, dir, error: String(error) });
     }
   }
-  log.info('Listed video files', {
-    insadong: out.insadong.length,
-    osaek: out.osaek.length,
-    hwaseong: out.hwaseong.length,
-  });
+  log.info('Listed video files', Object.fromEntries(SETS.map((s) => [s, out[s].length])));
   return out;
 }
 

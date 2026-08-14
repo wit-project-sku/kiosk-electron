@@ -1,0 +1,498 @@
+/*
+ * 제주공항 (W006) 환율 — Figma 제주>환율-01 (6219:99587), 제주>환율-키보드
+ * (6219:99269), 제주>환율-나라선택01 (6219:99361 top field / 6219:99473 bottom
+ * field) and the 실시간 환율 tab (6219:99645).
+ *
+ * Inside KioskArtboard 1 CSS px = 1 Figma px (2160×3840), so every value here is
+ * the exact number read out of the design. Chrome (background, header, left nav,
+ * banner) comes from JejuPageFrame.
+ *
+ * y map:
+ *    0…700   JejuHeader
+ *  700…870   환율 계산기 / 실시간 환율 tabs
+ *  950…1162  기준 환율 pill          ┐
+ * 1199…1623  금액 field              │ calculator tab
+ * 1713…1875  swap button             │
+ * 1854…2278  환전 field              ┘
+ * 2318…3275  numeric keypad overlay  (only while the amount field is focused)
+ *  970…3267  실시간 환율 list         (live tab)
+ */
+
+/* ── Tabs ───────────────────────────────────────────────────────────── */
+/* Same control as the 운항정보 page, 36px lower (Figma puts it at 700 here). */
+.tabs {
+  position: absolute;
+  left: 400px;
+  top: 700px;
+  width: 1360px;
+  height: 170px;
+  display: flex;
+  align-items: center;
+  gap: 200px;
+}
+
+.tab {
+  flex: 0 0 580px;
+  width: 580px;
+  height: 170px;
+  box-sizing: border-box;
+  padding: 0;
+  border: 5px solid #e8e8e8;
+  border-radius: 42.9px;
+  background: #fff;
+  font-size: 50px;
+  font-weight: 500;
+  line-height: 1;
+  color: #999;
+  text-align: center;
+  white-space: nowrap;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.tabActive {
+  border-color: var(--kiosk-primary, #ff7f0f);
+  background: #ffeac7; /* [제주] main 02 */
+  font-weight: 700;
+  color: var(--kiosk-primary, #ff7f0f);
+}
+
+/* ── 기준 환율 pill ─────────────────────────────────────────────────── */
+/*
+ * Figma fixes this at 794×212. The width is NORMALISED to a minimum plus
+ * padding: the drawn "1 JPY = 1,460 KRW" is one sample pair, and a real one can
+ * be much longer ("1 KRW = 0.00068 USD"). Height, centre and colours are exact.
+ */
+.basePill {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  top: 950px;
+  min-width: 794px;
+  height: 212px;
+  box-sizing: border-box;
+  padding: 0 60px;
+  border: 5px solid var(--kiosk-primary, #ff7f0f);
+  border-radius: 45px;
+  background: #ffeac7;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  color: var(--kiosk-primary, #ff7f0f);
+  white-space: nowrap;
+}
+
+.basePillLabel {
+  font-size: 50px;
+  font-weight: 700;
+  line-height: 1.1;
+}
+
+.basePillRate {
+  font-size: 70px;
+  font-weight: 700;
+  line-height: 1.1;
+}
+
+/* ── Amount / result fields ─────────────────────────────────────────── */
+.fieldLabel {
+  position: absolute;
+  left: 280px;
+  width: 512px;
+  margin: 0;
+  font-size: 60px;
+  font-weight: 500;
+  line-height: 1;
+  color: #000;
+  white-space: nowrap;
+}
+
+.labelAmount {
+  top: 1199px;
+}
+
+.labelResult {
+  top: 1854px;
+}
+
+/* radius 159 = half the height, i.e. a full pill. */
+.field {
+  position: absolute;
+  left: 172px;
+  width: 1820px;
+  height: 318px;
+  padding: 0;
+  border: none;
+  border-radius: 159px;
+  background: #fff;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.fieldAmount {
+  top: 1305px;
+}
+
+.fieldResult {
+  top: 1960px;
+  cursor: default;
+}
+
+/* Positioned against the artboard, not the field, so the numbers sit on
+   Figma's 307/1388 and 307/2047 regardless of the field's padding. */
+.value {
+  position: absolute;
+  left: 307px;
+  width: 1050px;
+  margin: 0;
+  font-size: 100px;
+  font-weight: 500;
+  line-height: 1;
+  color: #000;
+  text-align: left;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  pointer-events: none;
+}
+
+.valueAmount {
+  top: 1388px;
+}
+
+.valueResult {
+  top: 2047px;
+}
+
+/* The caret blinks only while the keypad is open, so it is obvious which field
+   the keys are typing into — the design has no other focus affordance. */
+.caretBar {
+  display: inline-block;
+  width: 6px;
+  height: 100px;
+  margin-left: 10px;
+  vertical-align: -14px;
+  background: var(--kiosk-primary, #ff7f0f);
+  animation: blink 1s steps(1, end) infinite;
+}
+
+@keyframes blink {
+  50% {
+    opacity: 0;
+  }
+}
+
+/* ── Currency picker button ─────────────────────────────────────────── */
+.ccyBtn {
+  position: absolute;
+  left: 1423px;
+  height: 170px;
+  padding: 0;
+  border: none;
+  background: none;
+  display: flex;
+  align-items: center;
+  gap: 42.9px;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.ccyAmount {
+  top: 1379px;
+}
+
+.ccyResult {
+  top: 2034px;
+}
+
+.ccyFlag {
+  width: 170px;
+  height: 170px;
+  border-radius: 50%;
+  object-fit: cover;
+  flex: 0 0 auto;
+}
+
+.ccyCode {
+  font-size: 70px;
+  font-weight: 500;
+  line-height: 1;
+  color: #333;
+  white-space: nowrap;
+}
+
+/* Figma draws "▼" as a text glyph, not an asset. */
+.caret {
+  position: absolute;
+  left: 1812px;
+  width: 57px;
+  margin: 0;
+  font-size: 68px;
+  font-weight: 400;
+  line-height: 1;
+  color: var(--kiosk-primary, #ff7f0f);
+  pointer-events: none;
+}
+
+.caretAmount {
+  top: 1423px;
+}
+
+.caretResult {
+  top: 2078px;
+}
+
+/* ── Swap ───────────────────────────────────────────────────────────── */
+.swap {
+  position: absolute;
+  left: 1028px;
+  top: 1713px;
+  width: 162px;
+  height: 162px;
+  padding: 0;
+  border: none;
+  background: none;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.swapImg {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  pointer-events: none;
+}
+
+/* ── Currency dropdown ──────────────────────────────────────────────── */
+/*
+ * Anchored to the field it belongs to: left 1293 (= field right − 699), top =
+ * the field's own top. Rows sit 130 in from the panel's left edge on a 246
+ * pitch, first one 74 below the top — so the open panel's first row lands
+ * exactly on the closed button it replaced.
+ */
+.dropdown {
+  position: absolute;
+  left: 1293px;
+  width: 699px;
+  height: 1330px;
+  box-sizing: border-box;
+  /* 74/130 in Figma, less the 5px border — under border-box the border and the
+     padding both push the content in, so the raw values land the first row 5px
+     low and 5px right of the button it replaces. */
+  padding: 69px 0 69px 125px;
+  border: 5px solid #ffeac7;
+  border-radius: 160px;
+  background: #fff;
+  overflow-y: auto;
+  z-index: 3;
+  display: flex;
+  flex-direction: column;
+  gap: 76px; /* 246 pitch − 170 row */
+}
+
+.dropdownAmount {
+  top: 1305px;
+}
+
+.dropdownResult {
+  top: 1960px;
+}
+
+/* House scrollbar. Figma insets it 40px from the panel edge; a CSS scrollbar
+   always rides the padding-box edge, so it sits flush instead. NORMALISED. */
+.dropdown::-webkit-scrollbar {
+  width: 34.32px;
+}
+
+.dropdown::-webkit-scrollbar-thumb {
+  background: var(--kiosk-primary, #ff7f0f);
+  border-radius: 17.16px;
+}
+
+.dropdown::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.option {
+  flex: 0 0 170px;
+  width: 376px;
+  height: 170px;
+  padding: 0;
+  border: none;
+  background: none;
+  display: flex;
+  align-items: center;
+  gap: 42.9px;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Closes an open dropdown or the keypad on any tap outside them. */
+.backdrop {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  padding: 0;
+  border: none;
+  background: none;
+  cursor: default;
+}
+
+/* ── Numeric keypad ─────────────────────────────────────────────────── */
+.keypad {
+  position: absolute;
+  left: 0;
+  top: 2318px;
+  width: 2160px;
+  height: 957px;
+  z-index: 3;
+}
+
+.keypadScrim {
+  position: absolute;
+  inset: 0;
+  background: #c5c5c1;
+  opacity: 0.7;
+}
+
+.keys {
+  position: absolute;
+  left: 155px;
+  top: 36px; /* 2354 − 2318 */
+  width: 1850px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 20px;
+}
+
+.keyRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+}
+
+/* Figma draws row 2 at 230 tall — the keys stay 200 and gain 15px of slack top
+   and bottom. Reproduced rather than evened out: it is what puts rows 3 and 4
+   on their drawn y. */
+.keyRowTall {
+  height: 230px;
+}
+
+/* Row 4 is 0 + backspace only, right-aligned inside the 1850 column. */
+.keyRowShort {
+  width: 1215px;
+}
+
+.key {
+  width: 580px;
+  height: 200px;
+  padding: 0;
+  border: none;
+  border-radius: 30px;
+  background: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 130px;
+  font-weight: 500;
+  line-height: 1;
+  color: #000;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.key:active {
+  background: #ffeac7;
+}
+
+.keyIcon {
+  width: 114.997px;
+  height: 82.906px;
+  object-fit: contain;
+  pointer-events: none;
+}
+
+/* ── 실시간 환율 list ───────────────────────────────────────────────── */
+/* Starts 270 below the tabs and runs to the banner. */
+.liveScroll {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 970px;
+  bottom: 573px;
+  overflow-x: hidden;
+  overflow-y: auto;
+}
+
+.liveList {
+  display: flex;
+  flex-direction: column;
+  gap: 40px; /* 290 pitch − 250 row */
+  padding: 0 170px 60px;
+}
+
+.liveRow {
+  flex: 0 0 250px;
+  height: 250px;
+  box-sizing: border-box;
+  padding: 40px 65px;
+  border: 2.145px solid #d9d9d9;
+  border-radius: 214.499px;
+  background: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.liveLeft {
+  display: flex;
+  align-items: center;
+  gap: 42.9px;
+}
+
+.liveLabel {
+  font-size: 60px;
+  font-weight: 500;
+  line-height: 1;
+  color: #333;
+  white-space: nowrap;
+}
+
+.liveRate {
+  width: 354px;
+  font-size: 60px;
+  font-weight: 500;
+  line-height: 1;
+  color: #000;
+  text-align: right;
+  white-space: nowrap;
+}
+
+.liveScroll::-webkit-scrollbar {
+  width: 34.32px;
+}
+
+.liveScroll::-webkit-scrollbar-thumb {
+  background: var(--kiosk-primary, #ff7f0f);
+  border-radius: 17.16px;
+}
+
+.liveScroll::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+/* Shown when the Eximbank snapshot is missing (no API key, or offline before
+   the first successful sync) — a stated problem beats a screen of dashes. */
+.empty {
+  margin: 0;
+  padding: 200px 170px;
+  font-size: 55px;
+  font-weight: 500;
+  line-height: 1.4;
+  color: #909090;
+  text-align: center;
+}

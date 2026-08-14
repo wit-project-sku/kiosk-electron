@@ -1,0 +1,134 @@
+/*
+ * 제주공항 (W006) 렌트카 — Figma 제주>하영=렌트카=공항-01 (6217:95726).
+ *
+ * The same shape as JejuListScreen with the chip grid and 초성 row swapped for a
+ * search field: header (700) · 검색장 (700…882) · card list from 982, five
+ * `R>리스트-사진4개` cards at a 590 pitch (530 tall, 60 apart).
+ *
+ * Inside KioskArtboard 1 CSS px = 1 Figma px. Chrome comes from JejuPageFrame.
+ */
+.scroll {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 700px;
+  bottom: 0;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  /* 982 − 882: the gap between the search row and the first card. */
+  gap: 100px;
+  overflow-x: hidden;
+  overflow-y: auto;
+  /* The 34.32 scrollbar is carved out of the right margin so the content column
+     stays exactly 1820 — same trick as JejuListScreen. */
+  padding: 0 136px 80px 170px;
+}
+
+.scroll::-webkit-scrollbar {
+  width: 34.32px;
+}
+
+.scroll::-webkit-scrollbar-thumb {
+  background: var(--kiosk-primary, #ff7f0f);
+  border-radius: 17.16px;
+}
+
+.scroll::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+/* ── Search ─────────────────────────────────────────────────────────── */
+/*
+ * Figma draws 검색장 as the home screen's row with its 홈 and 언어 buttons
+ * hidden, leaving a 1350-wide field at x405. The field itself keeps the home
+ * screen's own styling (4.29 border, r120, 60.06 placeholder) so the two search
+ * boxes on this kiosk stay identical.
+ */
+.searchRow {
+  flex: none;
+  width: 1820px;
+  height: 182px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.searchField {
+  width: 1350px;
+  height: 182px;
+  box-sizing: border-box;
+  padding: 55px 75px;
+  border: 4.29px solid var(--kiosk-primary, #ff7f0f);
+  border-radius: 120px;
+  background: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.searchText {
+  flex: 1 1 auto;
+  min-width: 0;
+  font-size: 60.06px;
+  font-weight: 500;
+  line-height: 1;
+  text-align: left;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.searchPlaceholder {
+  color: #999;
+}
+
+.searchValue {
+  color: #232323;
+}
+
+.searchCaret {
+  display: inline-block;
+  width: 4px;
+  height: 62px;
+  margin-left: 6px;
+  vertical-align: middle;
+  background: var(--kiosk-primary, #ff7f0f);
+  animation: jejuRentCaret 1s step-end infinite;
+}
+
+@keyframes jejuRentCaret {
+  50% {
+    opacity: 0;
+  }
+}
+
+.searchIcon {
+  flex: 0 0 auto;
+  width: 71px;
+  height: 68px;
+  object-fit: contain;
+}
+
+/* ── Card list ──────────────────────────────────────────────────────── */
+.list {
+  flex: none;
+  width: 1820px;
+  display: flex;
+  flex-direction: column;
+  gap: 60px; /* 590 pitch − 530 card */
+}
+
+.empty {
+  flex: none;
+  margin: 0;
+  padding: 240px 0;
+  font-size: 55px;
+  font-weight: 500;
+  line-height: 1.4;
+  color: #909090;
+  text-align: center;
+}

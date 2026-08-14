@@ -41,8 +41,12 @@ import type { KioskLocationCode } from '../config/kioskLocations';
 import type { ExchangeSnapshot } from '../types/exchange';
 import type { VideoEntry, VideoFilesBySet } from '../types/subtitle';
 import type { Shop } from '../types/shop';
+import type { Attraction } from '../types/attraction';
 import type { KioskButton } from '../types/buttons';
 import type { KioskBanner } from '../types/banner';
+import type { KioskBackground } from '../types/background';
+import type { SpotDiffRound } from '../types/spotDiff';
+import type { OutfitCatalogue } from '../types/outfit';
 import type {
   EventDetail,
   EventRecommendation,
@@ -246,6 +250,21 @@ export interface IpcContract {
     request: void;
     response: Result<PhotoWorkflowState>;
   };
+  /** 제주: 손바닥을 볼 때까지 카운트다운을 시작하지 않고 대기한다. */
+  [IpcChannels.PhotoArmGestureGate]: {
+    request: void;
+    response: Result<PhotoWorkflowState>;
+  };
+  /** 제주: 주먹 — 카운트다운을 현재 숫자에서 멈춘다. */
+  [IpcChannels.PhotoHoldCountdown]: {
+    request: void;
+    response: Result<PhotoWorkflowState>;
+  };
+  /** 제주: 손바닥 — 멈춰 둔 카운트다운을 그 숫자부터 이어서 센다. */
+  [IpcChannels.PhotoResumeCountdown]: {
+    request: void;
+    response: Result<PhotoWorkflowState>;
+  };
   [IpcChannels.PhotoCaptureAndGenerate]: {
     request: {
       sessionId: string;
@@ -273,9 +292,34 @@ export interface IpcContract {
     request: void;
     response: Result<PhotoWorkflowState>;
   };
+  /**
+   * 틀린그림찾기 진행 중 — AI 결과가 나와도 Monitor 2 는 대기 화면을 유지한다.
+   * `hold`(기부 흐름, 블러 결과)와 달리 결과를 아예 띄우지 않는다.
+   */
+  [IpcChannels.PhotoDeferResultDisplay]: {
+    request: { defer: boolean };
+    response: Result<PhotoWorkflowState>;
+  };
+  /** 게임 종료 — 미뤄 둔 AI 결과를 Monitor 2 에 띄운다. */
+  [IpcChannels.PhotoReleaseResultDisplay]: {
+    request: void;
+    response: Result<PhotoWorkflowState>;
+  };
   [IpcChannels.PhotoReset]: {
     request: void;
     response: Result<PhotoWorkflowState>;
+  };
+
+  /** AR 한복 outfits + category tabs (cached; bundled fallback when empty). */
+  [IpcChannels.OutfitsGet]: {
+    request: void;
+    response: Result<OutfitCatalogue>;
+  };
+
+  /** One 틀린그림찾기 round (cached; falls back to generated placeholder art). */
+  [IpcChannels.SpotDiffGetRound]: {
+    request: void;
+    response: Result<SpotDiffRound>;
   };
 
   [IpcChannels.LanguageGet]: {
@@ -321,6 +365,20 @@ export interface IpcContract {
     request: void;
     response: Result<Shop[]>;
   };
+  /** 제주 관광명소 — the curated subset behind 여기는 제주도's third tab. */
+  [IpcChannels.AttractionsList]: {
+    request: void;
+    response: Result<Attraction[]>;
+  };
+  /**
+   * 초성-filtered 관광명소. `null` means the request could not be made at all
+   * (offline / HTTP error) — distinct from an empty array, which means the
+   * server genuinely has no match. Only the first falls back to the local filter.
+   */
+  [IpcChannels.AttractionsListByInitial]: {
+    request: { initial: string };
+    response: Result<Attraction[] | null>;
+  };
   [IpcChannels.ButtonsList]: {
     request: void;
     response: Result<KioskButton[]>;
@@ -328,6 +386,10 @@ export interface IpcContract {
   [IpcChannels.BannersList]: {
     request: void;
     response: Result<KioskBanner[]>;
+  };
+  [IpcChannels.BackgroundsList]: {
+    request: void;
+    response: Result<KioskBackground[]>;
   };
   [IpcChannels.StatsMenuTouch]: {
     request: MenuTouchInput;
@@ -379,8 +441,11 @@ export interface IpcEventPayloads {
   [IpcEvents.KioskScreenChanged]: { screen: string; buttonId: number | null };
   [IpcEvents.KioskWeatherVideo]: WeatherPlayKey;
   [IpcEvents.ShopsChanged]: null;
+  [IpcEvents.AttractionsChanged]: null;
   [IpcEvents.ButtonsChanged]: null;
   [IpcEvents.BannersChanged]: null;
+  [IpcEvents.BackgroundsChanged]: null;
+  [IpcEvents.OutfitsChanged]: null;
   [IpcEvents.UpdateStatusChanged]: UpdateStatus;
 }
 

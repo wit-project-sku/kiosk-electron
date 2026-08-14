@@ -5,8 +5,10 @@ import { useKioskTheme } from '@renderer/hooks/useKioskTheme';
 import { useKioskStore } from '@renderer/store/kioskStore';
 import { preloadAllImages } from '@renderer/lib/preloadAssets';
 import { useShopStore } from '@renderer/store/shopStore';
+import { useAttractionStore } from '@renderer/store/attractionStore';
 import { useButtonStore } from '@renderer/store/buttonStore';
 import { useBannerStore } from '@renderer/store/bannerStore';
+import { useBackgroundStore } from '@renderer/store/backgroundStore';
 import { KioskSwitcher } from '@renderer/components/kiosk/KioskSwitcher';
 
 /**
@@ -30,6 +32,17 @@ export function App(): JSX.Element {
     });
     return off;
   }, []);
+  // 제주 관광명소, the same way. Loaded for every location rather than gated on
+  // the layout: the IPC returns an empty array where the cache was never filled,
+  // which costs one round-trip and keeps this block identical to its four
+  // neighbours instead of being the one that needs a condition.
+  useEffect(() => {
+    void useAttractionStore.getState().load();
+    const off = window.api.events.onAttractionsChanged(() => {
+      void useAttractionStore.getState().reload();
+    });
+    return off;
+  }, []);
   // Load the home button layout from the SQLite-cached API data, and reload when
   // main signals it refreshed (first-launch data appears without an app restart).
   useEffect(() => {
@@ -45,6 +58,16 @@ export function App(): JSX.Element {
     void useBannerStore.getState().load();
     const off = window.api.events.onBannersChanged(() => {
       void useBannerStore.getState().reload();
+    });
+    return off;
+  }, []);
+
+  // Load the AR 배경 테마 set the same way — the 제주 outfit screen reads it, and
+  // loading it here means the plates are already in memory when that step opens.
+  useEffect(() => {
+    void useBackgroundStore.getState().load();
+    const off = window.api.events.onBackgroundsChanged(() => {
+      void useBackgroundStore.getState().reload();
     });
     return off;
   }, []);

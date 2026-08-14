@@ -65,11 +65,22 @@ export const IpcChannels = {
   PhotoSelectClothing: 'photo:selectClothing',
   PhotoSelectStyle: 'photo:selectStyle',
   PhotoBeginCountdown: 'photo:beginCountdown',
+  // 제주 손동작 게이트 — the customer display drives these from what it sees in
+  // the camera feed (open palm / closed fist).
+  PhotoArmGestureGate: 'photo:armGestureGate',
+  PhotoHoldCountdown: 'photo:holdCountdown',
+  PhotoResumeCountdown: 'photo:resumeCountdown',
   PhotoCaptureAndGenerate: 'photo:captureAndGenerate',
   PhotoGetResultDataUrl: 'photo:getResultDataUrl',
   PhotoSetHoldResult: 'photo:setHoldResult',
   PhotoRevealResult: 'photo:revealResult',
+  PhotoDeferResultDisplay: 'photo:deferResultDisplay',
+  PhotoReleaseResultDisplay: 'photo:releaseResultDisplay',
   PhotoReset: 'photo:reset',
+
+  // 틀린그림찾기 — the mini-game played on the touch screen while the AR 한복
+  // photo generates (제주 W006).
+  SpotDiffGetRound: 'spotDiff:getRound',
 
   // Language / Translations
   LanguageGet: 'language:get',
@@ -99,11 +110,22 @@ export const IpcChannels = {
   // Shops (cached from the witteria API)
   ShopsList: 'shops:list',
 
+  // 제주 관광명소 (curated sightseeing catalogue, cached from the witteria API)
+  AttractionsList: 'attractions:list',
+  // 초성-filtered variant, straight off the API's `initial` param.
+  AttractionsListByInitial: 'attractions:listByInitial',
+
   // Home buttons (layout cached from the witteria API)
   ButtonsList: 'buttons:list',
 
   // Bottom promo banners (cached from the witteria API)
   BannersList: 'banners:list',
+
+  // AR 배경 테마 set for this kiosk (cached from the witteria API)
+  BackgroundsList: 'backgrounds:list',
+
+  // AR 한복 outfit catalogue + its category tabs (cached from the witteria API)
+  OutfitsGet: 'outfits:get',
 
   // Stats (usage analytics POSTed to the witteria API)
   StatsMenuTouch: 'stats:menuTouch',
@@ -144,10 +166,16 @@ export const IpcEvents = {
   KioskWeatherVideo: 'event:kiosk:weatherVideo',
   /** Shop catalogue refreshed into SQLite; the renderer reloads its store. */
   ShopsChanged: 'event:shops:changed',
+  /** 제주 관광명소 refreshed into SQLite; the renderer reloads its store. */
+  AttractionsChanged: 'event:attractions:changed',
   /** Home button layout refreshed into SQLite; the renderer reloads its store. */
   ButtonsChanged: 'event:buttons:changed',
   /** Bottom banners refreshed into SQLite; the renderer reloads its store. */
   BannersChanged: 'event:banners:changed',
+  /** AR background set refreshed into SQLite; the renderer reloads its store. */
+  BackgroundsChanged: 'event:backgrounds:changed',
+  /** Outfit catalogue refreshed into SQLite; the renderer reloads its store. */
+  OutfitsChanged: 'event:outfits:changed',
   /** Auto-update status changed (checking / downloading / downloaded / …). */
   UpdateStatusChanged: 'event:update:statusChanged',
 } as const;

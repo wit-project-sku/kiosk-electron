@@ -11,14 +11,25 @@ interface FloatingKeyboardProps {
   lang: SupportedLanguage;
   /** Use the light (non-dark) backspace key — Hwaseong design. */
   lightBackspace?: boolean;
+  /**
+   * Artboard y of the tray's top edge, so it sits flush under THIS layout's
+   * search bar. Defaults to 900 — the Insadong/Osan/Hwaseong position, where the
+   * search bar ends at ~903.
+   *
+   * Pass it whenever a layout puts its search bar somewhere else: 제주's sits at
+   * y1138–1320, and with the 900 default the tray rendered ABOVE the search bar
+   * instead of under it.
+   */
+  top?: number;
 }
 
 /**
  * On-screen keyboard rendered inline inside the artboard, positioned right under
- * the search bar (Figma 검색: 키보드 tray at y=900, 2160×1000). A transparent
- * backdrop closes it on any outside tap, mirroring real focus/blur behaviour.
+ * the search bar (Figma 검색: 키보드 tray at y=900, 2160×1000 — see {@link
+ * FloatingKeyboardProps.top}). A transparent backdrop closes it on any outside
+ * tap, mirroring real focus/blur behaviour.
  */
-export function FloatingKeyboard({ open, onKey, onClose, lang, lightBackspace }: FloatingKeyboardProps): JSX.Element | null {
+export function FloatingKeyboard({ open, onKey, onClose, lang, lightBackspace, top }: FloatingKeyboardProps): JSX.Element | null {
   if (!open) return null;
 
   return (
@@ -26,7 +37,11 @@ export function FloatingKeyboard({ open, onKey, onClose, lang, lightBackspace }:
       <div className={styles.backdrop} onClick={onClose} />
       {/* preventDefault on mousedown keeps the tap from clearing focus/selection
           or triggering any default action (no flicker, no refresh). */}
-      <div className={styles.panel} onMouseDown={(e) => e.preventDefault()}>
+      <div
+        className={styles.panel}
+        style={top == null ? undefined : { top }}
+        onMouseDown={(e) => e.preventDefault()}
+      >
         <VirtualKeyboard onKey={onKey} lang={lang} lightBackspace={lightBackspace} />
       </div>
     </>

@@ -1,0 +1,228 @@
+/*
+ * 제주공항 (W006) customer-display camera guide — the second screen while the
+ * visitor is being photographed.
+ *
+ * ★ PART SPEC, PART SCREENSHOT. The Figma frame for this state (6268:79294) is
+ * an empty white `Rectangle 240653580` — no content to read. The header's type,
+ * the pill box, the dashed rule and the line under it now carry the designer's
+ * written spec verbatim (sizes, weights, line-heights, #FF7F0F / #FFEAC7,
+ * 1312×153 r150 on rgba(0,0,0,.2)); everything else — the header's own height
+ * and colour, the gaps, the icon size, the pill's text size — is still
+ * proportion read off the reference image. True those up against a real frame
+ * when one exists.
+ *
+ * ★ "Gmarket Sans" IS NOT BUNDLED. The app ships @fontsource/noto-sans-kr and
+ * poppins only, and there is no @font-face anywhere in the repo, so the two
+ * header lines fall back to Noto Sans KR until someone adds the family. It is
+ * named first in the stack so it takes over the moment it lands — nothing else
+ * has to change.
+ *
+ * It is a much simpler screen than Insadong's (CustomerDisplay's .cameraScreen):
+ * one dark header carrying the countdown line, the no-glasses pill and the
+ * gesture prompt, then the live feed with a dashed pose outline. No numbered
+ * tips, no reference-pose boxes, no disclaimer or branding.
+ */
+.root {
+  position: relative;
+  width: 100cqw;
+  height: 100cqh;
+  background: #fff;
+  overflow: hidden;
+  font-family: 'Noto Sans KR', sans-serif;
+}
+
+/* ── Header ─────────────────────────────────────────────────────────── */
+.header {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 2160px;
+  height: 880px;
+  background: #4a4a4a;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 60px;
+}
+
+/*
+ * ★ The countdown row. Both halves are spec'd at `line-height: 100px` — 50% of
+ * the number's own 200px — which is Figma cropping the TEXT BOX, not the type.
+ * In CSS that box no longer reserves the height the glyphs actually occupy, so
+ * they would bleed into the pill below through the header's `gap`. The row
+ * carries the real 200px instead and centres both boxes inside it: the spec'd
+ * line-heights are kept verbatim, and the two different type sizes still centre
+ * on one line.
+ *
+ * No gap between them ON PURPOSE — Korean sets 초 tight against the numeral
+ * ("'10'초 후에…"), and the localized strings carry their own leading space
+ * where the language needs one (en: " seconds until the photo").
+ */
+.title {
+  margin: 0;
+  height: 200px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  white-space: nowrap;
+}
+
+/* 주먹으로 멈춘 상태 — the whole line dims together so the frozen numeral reads
+   as paused rather than as a kiosk that has stopped responding. */
+.titleHeld {
+  opacity: 0.45;
+  transition: opacity 200ms ease;
+}
+
+/* Only the number is branded — the sentence beside it stays white. */
+.count {
+  font-family: 'Gmarket Sans', 'Noto Sans KR', sans-serif;
+  font-size: 200px;
+  font-weight: 700;
+  line-height: 100px;
+  text-align: center;
+  /* The spec calls this --main-01; the repo's name for the same value. */
+  color: var(--kiosk-primary, #ff7f0f);
+}
+
+.titleRest {
+  font-family: 'Gmarket Sans', 'Noto Sans KR', sans-serif;
+  font-size: 150px;
+  font-weight: 700;
+  line-height: 100px;
+  color: #fff;
+}
+
+.pill {
+  width: 1312px;
+  height: 153px;
+  box-sizing: border-box;
+  border-radius: 150px;
+  background: rgba(0, 0, 0, 0.2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 34px;
+}
+
+.pillIcon {
+  width: 90px;
+  height: 90px;
+  flex: 0 0 auto;
+  object-fit: contain;
+}
+
+/* No size was given for the pill's own text, so it takes the one body size this
+   screen does specify (the 68px under the rule) in the pill's white. */
+.pillText {
+  margin: 0;
+  font-size: 68px;
+  font-weight: 700;
+  line-height: 1;
+  color: #fff;
+  white-space: nowrap;
+}
+
+/* Matched to the pill's width so the two edges line up under each other. */
+.rule {
+  width: 1312px;
+  height: 0;
+  border-top: 4px dashed #ffeac7;
+}
+
+.hint {
+  margin: 0;
+  font-family: 'Noto Sans KR', sans-serif;
+  font-size: 68px;
+  font-weight: 700;
+  line-height: 150%;
+  color: #ffeac7; /* [제주] main 02 — a literal everywhere else in this layout */
+  white-space: nowrap;
+}
+
+/* ── Live feed + pose outline ───────────────────────────────────────── */
+.feedWrap {
+  position: absolute;
+  left: 0;
+  top: 880px;
+  width: 2160px;
+  height: 2960px;
+  background: #fff;
+  overflow: hidden;
+}
+
+.feed {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  /* The camera is in front of the visitor, so the feed is mirrored — otherwise
+     "raise your RIGHT hand" points them the wrong way. */
+  transform: scaleX(-1);
+}
+
+/*
+ * The dashed figure the visitor lines themselves up with.
+ *
+ * Drawn at its EXPORT SIZE (1822×2346 — the artboard is 1:1, so these are the
+ * asset's own pixels), horizontally centred, sitting 134px off the bottom of the
+ * feed. It used to be `inset: 0` + `object-fit: contain`, which sized it from
+ * whatever box it landed in and let the designer's intended scale drift; these
+ * are the given numbers, so they are stated rather than derived.
+ *
+ * `bottom: 134px` rather than a margin: the element is absolutely positioned, so
+ * a margin-bottom on it has no box to push against — `bottom` is the same
+ * 134px gap expressed in the only way that actually holds here.
+ *
+ * The figure stands ON the ground line baked into the bottom of the export,
+ * which is why it is anchored to the bottom and not centred vertically: that
+ * line has to meet the floor of the frame, and a vertical centre would float it.
+ *
+ * Never mirrored, unlike `.feed` — it is symmetric guidance, not part of the
+ * picture. (Its raised hand is on the visitor's right either way, which is what
+ * the gesture prompt asks for.)
+ */
+.pose {
+  position: absolute;
+  left: 50%;
+  bottom: 134px;
+  transform: translateX(-50%);
+  width: 1822px;
+  height: 2346px;
+  object-fit: contain;
+  pointer-events: none;
+}
+
+/* ── 일시정지 badge ──────────────────────────────────────────────────── */
+/* Near the top of the feed rather than centred on it: the middle of the frame
+   is where the visitor's own face is, and covering that is exactly what they
+   are standing there to look at. */
+.pausedBadge {
+  position: absolute;
+  top: 120px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: 34px;
+  padding: 40px 82px;
+  border-radius: 150px;
+  background: rgba(0, 0, 0, 0.72);
+  font-size: 88px;
+  font-weight: 700;
+  line-height: 1;
+  color: #ffeac7;
+  white-space: nowrap;
+  pointer-events: none;
+}
+
+/* The ⏸ glyph is font-dependent (and absent from Noto Sans KR's Korean cut, so
+   it fell back to a tofu box). Two drawn bars can't miss. */
+.pausedBars {
+  flex: 0 0 auto;
+  width: 62px;
+  height: 84px;
+  background:
+    linear-gradient(#ffeac7, #ffeac7) left / 22px 100% no-repeat,
+    linear-gradient(#ffeac7, #ffeac7) right / 22px 100% no-repeat;
+}

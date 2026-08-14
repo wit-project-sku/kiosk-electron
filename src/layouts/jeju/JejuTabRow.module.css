@@ -1,0 +1,43 @@
+/*
+ * Three-pill tab row — the same 1820×170 row on every 제주 page that has tabs
+ * (6212:59067 여기는 제주도, 6217:94656 안녕 '하영'): three 580×170 pills at
+ * x170/y700, `justify-between` over 1820 leaving 40px gaps.
+ */
+.tabs {
+  position: absolute;
+  left: 170px;
+  top: 700px;
+  width: 1820px;
+  height: 170px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.tab {
+  width: 580px;
+  height: 170px;
+  box-sizing: border-box;
+  padding: 0 18px;
+  border: 5px solid #e8e8e8;
+  border-radius: 42.9px;
+  background: #fff;
+  font-size: 50px;
+  font-weight: 500;
+  /* Figma draws one 50px line, which Korean manages and
+     "Достопримечательности" does not — so it wraps and clips instead of
+     spilling past the pill, exactly as the category chips do. */
+  line-height: 1.1;
+  overflow: hidden;
+  overflow-wrap: anywhere;
+  color: #999;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.tabActive {
+  border-color: var(--kiosk-primary, #ff7f0f);
+  background: #ffeac7;
+  font-weight: 700;
+  color: var(--kiosk-primary, #ff7f0f);
+}

@@ -1,0 +1,616 @@
+/*
+ * 제주공항 (W006) home — Figma node 6117:48085 (제주>홈).
+ *
+ * Inside KioskArtboard 1 CSS px = 1 Figma px (2160×3840), so every value here is
+ * the exact number read out of the design. Two deliberate normalisations of
+ * designer slop are marked NORMALISED below.
+ *
+ * The 2000-wide content column is centred at x=1088 (Figma centres it 8px right
+ * of the artboard centre), i.e. left: 88px.
+ */
+.root {
+  position: absolute;
+  inset: 0;
+  width: 2160px;
+  height: 3840px;
+  overflow: hidden;
+  font-family: var(--kiosk-font, 'Noto Sans KR', 'Noto Sans', sans-serif);
+}
+
+/* The HOME background only — a flat cream field (#FBF8F3). Sub-pages use a
+   different one entirely; see JejuPageFrame. */
+.bgImage {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  pointer-events: none;
+}
+
+/* ── Top bar: location + date/time ─────────────────────────────────── */
+.topBar {
+  position: absolute;
+  left: 88px;
+  top: 94px;
+  width: 2000px;
+  height: 83px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.topLeft {
+  display: flex;
+  align-items: center;
+  gap: 26px;
+}
+
+.locationIcon {
+  width: 63px;
+  height: 82px;
+  object-fit: contain;
+}
+
+.siteName {
+  font-size: 68px;
+  font-weight: 700;
+  line-height: 1;
+  color: var(--kiosk-primary, #ff7f0f);
+  white-space: nowrap;
+}
+
+.dateTime {
+  font-size: 68px;
+  font-weight: 700;
+  line-height: 1;
+  color: #232323;
+  text-align: right;
+  white-space: pre;
+}
+
+/* ── 공지 card (notice + weather) ───────────────────────────────────── */
+/*
+ * The three frosted panels (.notice, .flight, .weather) deliberately DROP the
+ * `backdrop-blur-[42.9px]` the Figma specifies, keeping only the translucent
+ * fill. Reasons, in order:
+ *
+ *  1. It is provably a no-op here. The only thing behind these panels is
+ *     bg.png, which is a single flat colour (#FBF8F3) across the whole region —
+ *     verified, 1.4M identical pixels. Blurring a uniform colour returns that
+ *     same colour.
+ *  2. It is not free: Chromium's backdrop-filter path darkens the composite by
+ *     ~2/255. Measured against Figma's own render of this frame:
+ *       .notice  — Figma (236,232,225); with blur (235,230,224); without (237,232,225)
+ *       .weather — Figma (246,244,240); with blur (241,238,234); without (245,243,240)
+ *     The .weather error was much larger because it NESTS inside .notice, so the
+ *     parent's translucent tint landed in the child's sampled backdrop and was
+ *     painted under it again — the tint applied twice.
+ *  3. Three full-width backdrop filters on a 2160×3840 surface cost real GPU on
+ *     the kiosk for zero visible gain.
+ *
+ * Put the blur back if Figma node 6117:48939 (the `soop-kim-…unsplash` photo
+ * layer inside 공지, currently not rendered) is ever switched on — at that point
+ * the backdrop stops being flat and the blur starts doing actual work.
+ */
+.notice {
+  position: absolute;
+  left: 88px;
+  top: 277px;
+  width: 2000px;
+  height: 806px;
+  border-radius: 45px;
+  background: rgba(108, 90, 70, 0.1);
+  overflow: hidden;
+}
+
+/* Orange rule to the left of the notice copy (Figma Frame 1287 — a plain
+   filled bar, so it is drawn rather than shipped as an asset). */
+.noticeRule {
+  position: absolute;
+  left: 82px;
+  top: 149px;
+  width: 7px;
+  height: 242px;
+  background: var(--kiosk-primary, #ff7f0f);
+  border-radius: 4px;
+}
+
+/* Figma-exact 1033. The notice re-flows to this box now (see parseNotice), so
+   ko/ja/zh land on the three rows the orange rule is drawn for — measured at
+   51px, Korean is 2438px of text, 2.4 lines. English is the one exception at
+   3035px: it needs ≥1060px per line, so it still runs to four rows here. */
+.noticeText {
+  position: absolute;
+  left: 131px;
+  top: 165px;
+  width: 1033px;
+  margin: 0;
+  font-size: 51px;
+  line-height: 70px;
+  color: #000;
+  font-weight: 400;
+}
+
+.noticeText b {
+  font-weight: 700;
+}
+
+/* No backdrop-filter — see the note above .notice. */
+.weather {
+  position: absolute;
+  left: 1245px;
+  top: 68px;
+  width: 665px;
+  height: 405px;
+  border-radius: 45px;
+  background: rgba(255, 255, 255, 0.5);
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.weatherTemp {
+  position: absolute;
+  left: 38px;
+  top: 39px;
+  font-size: 145px;
+  font-weight: 700;
+  line-height: 1;
+  color: #333;
+  white-space: nowrap;
+}
+
+.weatherIcon {
+  position: absolute;
+  left: 208px;
+  top: 39px;
+  width: 419px;
+  height: 290px;
+  object-fit: contain;
+}
+
+/* The 운항 정보 board (frame 785…991) and its 더보기 control live in
+   JejuFlightBoard.module.css — it owns the three 현황 conditions. */
+
+/* ── Search row (home button + field + language) ────────────────────── */
+.searchRow {
+  position: absolute;
+  left: 88px;
+  top: 1138px;
+  width: 2000px;
+  height: 182px;
+}
+
+.searchHome {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 180px;
+  height: 179px;
+  padding: 0;
+  border: none;
+  background: none;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.searchHomeImg {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  pointer-events: none;
+}
+
+.searchField {
+  position: absolute;
+  left: 232px;
+  top: 0;
+  width: 1536px;
+  height: 182px;
+  box-sizing: border-box;
+  padding: 55px 75px;
+  border: 4.29px solid var(--kiosk-primary, #ff7f0f);
+  border-radius: 120px;
+  background: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.searchText {
+  flex: 1 1 auto;
+  min-width: 0;
+  font-size: 60.06px;
+  font-weight: 500;
+  line-height: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.searchPlaceholder {
+  color: #999;
+}
+
+.searchValue {
+  color: #232323;
+}
+
+/* Blinking caret while the inline keyboard is open. */
+.searchCaret {
+  display: inline-block;
+  width: 4px;
+  height: 62px;
+  margin-left: 6px;
+  vertical-align: middle;
+  background: var(--kiosk-primary, #ff7f0f);
+  animation: jejuCaret 1s step-end infinite;
+}
+
+@keyframes jejuCaret {
+  50% { opacity: 0; }
+}
+
+.searchIcon {
+  flex: 0 0 auto;
+  width: 71px;
+  height: 68px;
+  object-fit: contain;
+}
+
+.langBtn {
+  position: absolute;
+  left: 1820px;
+  top: 1px;
+  width: 180px;
+  height: 180px;
+  padding: 0;
+  border: none;
+  border-radius: 50%;
+  background: var(--kiosk-primary, #ff7f0f);
+  color: #fff;
+  font-size: 60.06px;
+  font-weight: 700;
+  line-height: 1;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* ── Three feature cards ────────────────────────────────────────────── */
+.cards {
+  position: absolute;
+  left: 88px;
+  top: 1419px;
+  width: 2000px;
+  height: 310px;
+}
+
+.card {
+  position: absolute;
+  top: 0;
+  height: 310px;
+  padding: 0;
+  border: none;
+  border-radius: 30px;
+  cursor: pointer;
+  text-align: left;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.cardTitle {
+  position: absolute;
+  margin: 0;
+  font-size: 45px;
+  font-weight: 700;
+  line-height: 1;
+  color: #000;
+  white-space: nowrap;
+}
+
+.cardSub {
+  position: absolute;
+  margin: 0;
+  font-size: 35px;
+  font-weight: 400;
+  line-height: 1;
+  color: #999;
+  white-space: nowrap;
+}
+
+.cardArt {
+  position: absolute;
+  object-fit: contain;
+  pointer-events: none;
+}
+
+/* Card 1 — '제주' 뭐하지 (AI). NORMALISED: Figma puts the title at x426 and the
+   subtitle at x436; both are visually left-aligned, so both use 426. */
+.cardAi {
+  left: 0;
+  width: 750px;
+  background: #f5f1ef;
+}
+.cardAi .cardTitle { left: 426px; top: 104px; }
+.cardAi .cardSub   { left: 426px; top: 178px; }
+.cardAi .cardArt   { left: 53px;  top: 48px; width: 249px; height: 214px; }
+
+/* Card 2 — 위드마켓 */
+.cardMarket {
+  left: 835px;
+  width: 540px;
+  background: #f3eae3;
+}
+.cardMarket .cardTitle { left: 57px; top: 108px; }
+.cardMarket .cardSub   { left: 57px; top: 182px; }
+.cardMarket .cardArt   { left: 322px; top: 47px; width: 140px; height: 216px; }
+
+/* Card 3 — 제주도 이벤트. NORMALISED: Figma has title x40 / subtitle x50.8;
+   both render left-aligned in the design, so both use 40. */
+.cardEvents {
+  left: 1460px;
+  width: 540px;
+  background: #f5efe9;
+}
+.cardEvents .cardTitle { left: 40px; top: 108px; }
+.cardEvents .cardSub   { left: 40px; top: 182px; }
+.cardEvents .cardArt   { left: 325px; top: 88px; width: 177px; height: 177px; }
+
+/* ── Menu grid on its white panel ───────────────────────────────────── */
+.panel {
+  position: absolute;
+  left: 124px;
+  top: 1802px;
+  width: 1927px;
+  height: 1001px;
+  border-radius: 30px;
+  background: #fff;
+}
+
+.grid {
+  position: absolute;
+  left: 139px;
+  top: 1874px;
+  width: 1882px;
+  height: 848px;
+}
+
+/* Rows are 200 tall with a 125 gap → 0 / 325 / 650. Columns step by 471. */
+.tile {
+  position: absolute;
+  width: 450px;
+  height: 200px;
+  padding: 0;
+  border: none;
+  background: none;
+  cursor: pointer;
+  text-align: left;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.tileDisabled {
+  cursor: default;
+  opacity: 0.45;
+}
+
+/* The tile art is the whole 200×200 rounded plate exported from Figma — its
+   background colour is baked into the image, so there is no colour to keep in
+   sync here.
+
+   The border-radius is NOT decoration: Figma flattens any node using
+   backdrop-blur against the canvas, so every exported plate ships with OPAQUE
+   #f5f5f5 corners instead of transparent ones. On the kiosk's cream background
+   that grey box reads as "the button lost its rounded corners". Clipping the
+   image at the plate's own Figma radius removes exactly the grey — verified: the
+   plate colour runs unchanged to the edge (tile-eat is #fff3cb throughout). */
+.tileArt {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 200px;
+  height: 200px;
+  border-radius: 45px;
+  object-fit: contain;
+  pointer-events: none;
+}
+
+/* Plate painted behind the art at the grid's own radius, for a tile whose
+   exported icon is rounder than the grid (see Tile.plate). The art still carries
+   its own tighter clip; this fills the corners that clip cuts away, so the tile
+   reads as a 45px plate rather than a pill. */
+.tilePlate {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 200px;
+  height: 200px;
+  border-radius: 45px;
+  pointer-events: none;
+}
+
+/* Fallback plate shown only when an icon file is missing, so a dropped asset
+   is visible as a labelled placeholder instead of an invisible tile. */
+.tileArtMissing {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 200px;
+  height: 200px;
+  border-radius: 45px;
+  background: #efefef;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 72px;
+  color: #b4b4b4;
+}
+
+/* Text sits to the right of the plate, bottom-aligned with it (Figma
+   `items-end`): 40 + 14 gap + 35 = 89 tall → top 111 inside the 200 row. */
+.tileText {
+  position: absolute;
+  left: 225px;
+  top: 111px;
+  width: 225px;
+}
+
+/* display:block matters — these are <span>s, and an inline box ignores the
+   14px margin, which runs the subtitle onto the title's line. */
+.tileTitle {
+  display: block;
+  margin: 0;
+  font-size: 40px;
+  font-weight: 700;
+  line-height: 1;
+  color: #000;
+  white-space: nowrap;
+}
+
+.tileSub {
+  display: block;
+  margin: 14px 0 0;
+  font-size: 35px;
+  font-weight: 400;
+  line-height: 1;
+  color: #000;
+  opacity: 0.3;
+  white-space: nowrap;
+}
+
+/* ── Bottom action row: K-DRAMA / 사진촬영 / 화장실 ───────────────────── */
+.kdrama {
+  position: absolute;
+  left: 260px;
+  top: 2928px;
+  width: 381px;
+  height: 235px;
+  padding: 0;
+  border: none;
+  background: none;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.camera {
+  position: absolute;
+  left: 911px;
+  top: 2869px;
+  width: 353px;
+  height: 355px;
+  padding: 0;
+  border: none;
+  background: none;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.restroom {
+  position: absolute;
+  left: 1585px;
+  top: 2921px;
+  width: 233px;
+  height: 234px;
+  padding: 0;
+  border: none;
+  background: none;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Same baked-corner problem as .tileArt — these three sit directly on the page
+   background, so their grey corners are the most visible of the lot. Each is
+   clipped to its own Figma shape: K-DRAMA is a 50px rounded rect, 사진촬영 and
+   화장실 are ellipses filling their box. */
+.actionImg {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  pointer-events: none;
+}
+
+.kdrama .actionImg { border-radius: 50px; }
+.camera .actionImg,
+.restroom .actionImg { border-radius: 50%; }
+
+.actionLabel {
+  position: absolute;
+  top: 3180px;
+  margin: 0;
+  font-size: 40px;
+  font-weight: 400;
+  line-height: 1;
+  color: #999;
+  text-align: center;
+}
+
+.labelKdrama {
+  left: 247px;
+  width: 400px;
+}
+
+.labelRestroom {
+  left: 1633px;
+  width: 142px;
+}
+
+/* ── Left nav (home / back) + accessibility ─────────────────────────── */
+.leftNav {
+  position: absolute;
+  left: 29px;
+  top: 2130px;
+  width: 85px;
+  height: 205px;
+}
+
+.leftNavImg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  pointer-events: none;
+}
+
+.leftNavZone {
+  position: absolute;
+  left: 0;
+  width: 85px;
+  height: 85px;
+  padding: 0;
+  border: none;
+  background: none;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.leftNavHome { top: 0; }
+.leftNavBack { top: 120px; }
+
+.accessibility {
+  position: absolute;
+  left: 29px;
+  top: 2370px;
+  width: 85px;
+  height: 85px;
+  object-fit: contain;
+  pointer-events: none;
+}
+
+/* ── Bottom banner ──────────────────────────────────────────────────── */
+.banner {
+  position: absolute;
+  left: 0;
+  top: 3267px;
+  width: 2160px;
+  height: 573px;
+  overflow: hidden;
+}
+
+.bannerImg {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  pointer-events: none;
+}
