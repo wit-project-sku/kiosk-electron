@@ -15,13 +15,13 @@ O","お
 "145","Language_Content","* 4개국어 서비스를 제공합니다. 언어를 선택해주세요","* Choose Language","* Choose Language","* Choose Language","Chúng tôi cung cấp dịch vụ bằng 4 ngôn ngữ. Vui lòng chọn ngôn ngữ.","Kami menawarkan layanan dalam 4 bahasa. Silakan pilih bahasa.","เราให้บริการใน 4 ภาษา โปรดเลือกภาษา","Мы предоставляем услуги на 4 языках. Пожалуйста, выберите язык.","",""
 "143","Language_Now_Language","현재 언어","Now Language","Now Language","Now Language","Ngôn ngữ hiện tại","Bahasa saat ini","ภาษาปัจจุบัน","Текущий язык","",""
 "144","Language_Target_Language","변경 언어","Change Language","Change Language","Change Language","Thay đổi ngôn ngữ","Ubah bahasa","เปลี่ยนภาษา","Изменить язык","",""
-"1704","MainButton_TrafficInfo","도로 교통상황","Traffic Info","Traffic Info","Traffic Info","Tình trạng giao thông đường bộ","Kondisi lalu lintas jalan raya","สภาพการจราจรบนถนน","Условия дорожного движения","",""
+"1704","MainButton_TrafficInfo","전국도로 교통상황","Traffic Info","Traffic Info","Traffic Info","Tình trạng giao thông đường bộ","Kondisi lalu lintas jalan raya","สภาพการจราจรบนถนน","Условия дорожного движения","",""
 "3","MainButton_Goods","(준비중)","Witteria","Witteria","Witteria","(chuẩn bị)","(mempersiapkan)","(เตรียมการ)","(подготовка)","",""
 "5","MainButton_Event","화성시 이벤트","Events","イベント","推荐活动","Sự kiện thành phố Hwaseong","Acara Kota Hwaseong","กิจกรรมเมืองฮวาซอง","Мероприятие в городе Хвасон","",""
 "2","MainButton_ToEat","'휴' 뭐먹지","To eat","飲食店の","我们吃什么呢？","Ôi trời, mình nên ăn gì đây?","Wah, aku harus makan apa?","เฮ้อ ฉันควรจะกินอะไรดีเนี่ย?","Фух, что же мне съесть?","",""
 "3","MainButton_ToBuy","'휴' 뭐사지","To buy","お買い物","我们买什么呢？","Ôi trời, mình nên mua gì đây?","Wah, apa yang harus saya beli?","เฮ้อ ฉันควรซื้ออะไรดีเนี่ย?","Уф, что же мне купить?","",""
 "1705","MainButton_TraditionalMarket","전국시장","TraditionalMarket","TraditionalMarket","TraditionalMarket","Thị trường quốc gia","Pasar Nasional","ตลาดแห่งชาติ","Национальный рынок","",""
-"9","MainButton_TaxFree","텍스프리등록","TaxFree","TaxFree","TaxFree","Đăng ký miễn thuế","Pendaftaran bebas pajak","การลงทะเบียนปลอดภาษี","Регистрация без уплаты налогов","",""
+"9","MainButton_TaxFree","TAX-FREE","TAX-FREE","TAX-FREE","TAX-FREE","TAX-FREE","TAX-FREE","TAX-FREE","TAX-FREE","",""
 "6","MainButton_Here","화성휴게소","HwaseongSA","HwaseongSA","HwaseongSA","Khu nghỉ dưỡng Hwaseong","Area Istirahat Hwaseong","จุดพักรถฮวาซอง","Зона отдыха Хвасон","",""
 "7","MainButton_Greeting","안녕 '휴'","Hello 'HUE'","Hello 'HUE'","你好 'HUEi'","Chào 'Phew'","Halo 'Fiuh'","สวัสดี 'เฟว'","Привет, «Фух»","",""
 "8","MainButton_ToHelp","도와줘 '휴'","Help","ヘルプ","请帮忙","Cứu tôi với, 'Phù'","Tolong aku, 'Fiuh'","ช่วยด้วย! 'เฮ้อ'","Помогите мне, «Фух»","",""
@@ -29,10 +29,19 @@ O","お
 "10","MainButton_Exchange","환율","Exchange","為替レート情報","汇率信息","tỷ giá hối đoái","kurs","อัตราแลกเปลี่ยน","обменный курс","",""
 "1700","MainButton_ServiceArea","전국휴게소","Service Area","Service Area","Service Area","Khu vực nghỉ ngơi quốc gia","Area peristirahatan nasional","จุดพักรถแห่งชาติ","Национальные зоны отдыха","",""
 "1702","MainButton_Property","문화재(준비중)","Korea Property","Korea Property","Korea Property","Di sản văn hóa (Đang trong quá trình chuẩn bị)","Warisan Budaya (Dalam tahap persiapan)","มรดกทางวัฒนธรรม (อยู่ระหว่างการจัดทำ)","Культурное наследие (в процессе подготовки)","",""
-"1701","MainButton_KCulture","K-컬쳐(준비중)","K-Culture(Preparing)","K-Culture(Preparing)","K-Culture(Preparing)","Văn hóa Hàn Quốc (Sắp ra mắt)","K-Culture (Segera Hadir)","วัฒนธรรมเกาหลี (เร็วๆ นี้)","K-Culture (Скоро)","",""
+"1701","MainButton_KCulture","K-컬쳐
+(준비중)","K-Culture
+(Preparing)","K-Culture
+(Preparing)","K-Culture
+(Preparing)","Văn hóa Hàn Quốc
+(Sắp ra mắt)","K-Culture
+(Segera Hadir)","วัฒนธรรมเกาหลี
+(เร็วๆ นี้)","K-Culture
+(Скоро)","",""
 "4","MainButton_MarketPaper","지역화폐","Local Currency","ちいきの おかね","地区货币","tiền tệ địa phương","mata uang lokal","สกุลเงินท้องถิ่น","местная валюта","",""
 "14","MainButton_SmartTour","스마트관광(준비중)","Smart Tourism (Preparing)","スマート観光（準備中）","智慧旅游（准备中）","Du lịch thông minh (Đang trong quá trình phát triển)","Pariwisata Cerdas (Dalam pengembangan)","การท่องเที่ยวอัจฉริยะ (อยู่ระหว่างการพัฒนา)","«Умный туризм» (в стадии разработки)","",""
 "","MainButton_Donation","기부","Donation","寄付","捐款","Quyên góp","Donasi","บริจาค","Пожертвование","",""
+"16","MainButton_WC","화장실","Toilet","トイレ","廁所","Nhà vệ sinh","Toilet","ห้องน้ำ","Туалет","",""
 "15","MainButton_Hanbok","한복설명","Hanbok","韓服","韩服","Giải thích về Hanbok","Penjelasan Hanbok","คำอธิบายเกี่ยวกับชุดฮันบก","пояснение к ханбоку","",""
 "50","Here_IsOsaek","여기는 화성휴게소 (목포방향)","Welcome to Hwaseong Service Area (Mokpo-bound)","ここは華城(ファソン)サービスエリア (木浦方面)です","这里是华城休息站（木浦方向）","Đây là khu nghỉ dưỡng Hwaseong (hướng Mokpo).","Ini adalah Area Istirahat Hwaseong (arah Mokpo)","นี่คือจุดพักรถฮวาซอง (ฝั่งมุ่งหน้าไปมกโพ)","Это зона отдыха Хвасон (в направлении Мокпо).","",""
 "51","Here_History","주요 특징 및 테마 ","Key Features & Themes","主な特徴とテーマ","主要特色与主题","Các tính năng và chủ đề chính","Fitur dan Tema Utama","คุณสมบัติหลักและธีม","Основные особенности и темы","",""
@@ -283,7 +292,8 @@ Mata uang ini dapat digunakan di pasar tradisional dan toko-toko usaha kecil den
 Regardless of where you live, if you want to receive incentives by spending in Hwaseong, you can apply. Please apply via the Mobile APP (Gyeonggi Local Currency) or local NH Bank branches.
 ","<b>本人名義の銀行口座を持つ満14歳以上なら申請可能です。</b>
 オサン資金の流出を防ぎ、地域経済を活性化させます。
-<b>居住地に関係なく、オサンで消費し追加ポイントを受けたい方なら誰でも申請できます。</b>","只要是年满14周岁且拥有本人名下银行账户的人均可申请。
+<b>居住地に関係なく、オサンで消費し追加ポイントを受けたい方なら誰でも申請できます。</b>
+","只要是年满14周岁且拥有本人名下银行账户的人均可申请。
 无论居住地在哪里，只要想在华城市消费并享受奖励优惠，均可申请。请通过手机APP（京畿地域货币）或市内农协银行申请。
 ","Bất kỳ ai từ 14 tuổi trở lên có tài khoản ngân hàng đứng tên mình đều đủ điều kiện đăng ký.
 
@@ -309,7 +319,8 @@ Apply via <b>mobile app (Gyeonggi Local Currency App)</b> or at <b>NH Nonghyup B
 Available only at small business stores with annual sales of 1 billion KRW or less.
 It is a local currency for Hwaseong that can be used at gas stations, markets, leisure facilities (gyms), clinics, convenience stores, academies, salons, and veterinary hospitals.","年商10億ウォン以下の小規模店舗でのみ使用可能です。
 ガソリンスタンド、伝統市場、レジャー施設（ジム）、病院、コンビニ、塾、美容院、動物病院などで使用できる華城市の市場通貨です。","百货商场、大型超市、连锁超市（SSM）、直营连锁店及娱乐场所/博彩业均不可使用。
-<b>仅限年销售额10亿韩元以下的小商户使用。</b>","Hướng dẫn sử dụng
+<b>仅限年销售额10亿韩元以下的小商户使用。</b>
+","Hướng dẫn sử dụng
 
 Áp dụng cho các cơ sở kinh doanh nhỏ có doanh thu hàng năm từ 1 tỷ won trở xuống.
 

@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useMemo, useRef, type Ref } from 'react';
 import type { KioskController } from '@renderer/hooks/useKioskController';
 import { hwaseongIconUrl } from '@renderer/assets/icons/hwaseong';
 import { screenSubtitle, screenTitle, useLang } from '@renderer/lib/i18n';
@@ -23,13 +23,17 @@ interface Props {
   onHome?: () => void;
   /** Override the back-button action (defaults to the home action). */
   onBack?: () => void;
+  /** Extra class on the subtitle row (e.g. TAX-FREE bottom gap). */
+  subtitleClassName?: string;
+  /** Ref on the subtitle row — used by TAX-FREE to size the webview card. */
+  subtitleRef?: Ref<HTMLDivElement>;
 }
 
 /**
  * Canonical sub-page header (Figma Component29 / node 3788:40351).
  * Identical position, sizing, fonts and icons across every 화성휴게소 sub-page.
  */
-export function HwaseongHeader({ controller, title, subtitle, onHome, onBack }: Props): JSX.Element {
+export function HwaseongHeader({ controller, title, subtitle, onHome, onBack, subtitleClassName, subtitleRef }: Props): JSX.Element {
   const today = useMemo(() => formatDate(new Date()), []);
   const lang = useLang();
   // Localize the Korean title id (Localization_Hwaseong) — same path as the
@@ -97,7 +101,7 @@ export function HwaseongHeader({ controller, title, subtitle, onHome, onBack }: 
       </div>
 
       {sub && (
-        <div className={styles.subtitle}>
+        <div ref={subtitleRef} className={`${styles.subtitle} ${subtitleClassName ?? ''}`}>
           <svg className={styles.subtitleStar} viewBox="0 0 36 36" fill="#005ab4">
             <path d="M18 0l4.6 12.7L36 13.2l-10.5 8.3 3.7 13.5L18 27.6 6.8 35l3.7-13.5L0 13.2l13.4-.5z" />
           </svg>

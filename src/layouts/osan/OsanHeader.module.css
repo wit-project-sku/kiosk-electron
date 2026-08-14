@@ -15,6 +15,7 @@
   gap: 65px;
   padding: 130px 170px 80px;
   box-sizing: border-box;
+  z-index: 5;
 }
 
 .headerCompact {
@@ -100,15 +101,29 @@
 
 .subtitle {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: center;
   gap: 20px;
-  font-weight: 400;
-  font-size: 60px;
+}
+
+.subtitleText {
+  font-size: 60.06px;
+  font-weight: 700;
   color: #909090;
+  line-height: 1.3;
+  max-width: 1640px;
+  text-align: center;
+  white-space: pre-line;
 }
 
 .star {
   color: #1a4d7e;
   font-size: 40px;
+  flex-shrink: 0;
+  margin-top: 12px;
+}
+
+/* TAX-FREE: breathing room below SubHeader_TaxFree (may wrap to 3 lines). */
+.subtitleBelowGap {
+  margin-bottom: 40px;
 }

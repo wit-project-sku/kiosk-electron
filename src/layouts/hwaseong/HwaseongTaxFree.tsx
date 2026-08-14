@@ -5,10 +5,12 @@ import { useLanguageStore } from '@renderer/store/languageStore';
 import { t } from '@renderer/lib/loc';
 import { hwaseongIconUrl } from '@renderer/assets/icons/hwaseong';
 import { useRotatingBanner } from '@renderer/hooks/useRotatingBanner';
+import { useTaxfreeBodyLayout } from '@renderer/hooks/useTaxfreeBodyLayout';
 import { TAXFREE_PAGE_BASES, taxfreePageImg } from '@renderer/lib/taxfreePages';
 import { taxfreeUrl } from '@shared/constants/webEmbeds';
 import { trackEvent } from '@renderer/lib/analytics';
 import { HwaseongHeader } from './HwaseongHeader';
+import headerStyles from './HwaseongHeader.module.css';
 import styles from './HwaseongTaxFree.module.css';
 
 type TabId = 'refund' | 'intro' | 'merchant';
@@ -80,6 +82,9 @@ export function HwaseongTaxFree({ controller }: Props): JSX.Element {
   const goHome = (): void => controller.navigate('home', 'Back');
   const lang = useLanguageStore((s) => s.currentLanguage);
   const [activeTab, setActiveTab] = useState<TabId>('refund');
+  const rootRef = useRef<HTMLDivElement>(null);
+  const subtitleRef = useRef<HTMLDivElement>(null);
+  const bodyLayout = useTaxfreeBodyLayout(rootRef, subtitleRef, lang);
 
   const webviewRef = useRef<HTMLElement | null>(null);
   useEffect(() => {
@@ -115,12 +120,17 @@ export function HwaseongTaxFree({ controller }: Props): JSX.Element {
   const bannerSrc = useRotatingBanner(hwaseongIconUrl('fg-banner'));
 
   return (
-    <div className={styles.root}>
+    <div ref={rootRef} className={styles.root}>
       {bgSrc && <img src={bgSrc} alt="" className={styles.bgImage} draggable={false} />}
 
-      <HwaseongHeader controller={controller} title="TAX-FREE" />
+      <HwaseongHeader
+        controller={controller}
+        title="TAX-FREE"
+        subtitleClassName={headerStyles.subtitleBelowGap}
+        subtitleRef={subtitleRef}
+      />
 
-      <div className={styles.body}>
+      <div className={styles.body} style={{ top: bodyLayout.top, height: bodyLayout.height }}>
         {activeTab === 'intro' && (
           <TaxRefundInfo lang={lang} onGoToWebview={() => setActiveTab('refund')} />
         )}

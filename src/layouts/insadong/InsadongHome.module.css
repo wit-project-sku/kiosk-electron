@@ -56,8 +56,11 @@
 }
 
 .pin {
-  width: 2.14cqh;
-  height: 2.14cqh;
+  width: 2.917cqw; /* 63px — match location-pin.svg */
+  height: 2.135cqh; /* 82px */
+  aspect-ratio: 63 / 82;
+  object-fit: contain;
+  flex-shrink: 0;
 }
 
 .date {
@@ -254,7 +257,7 @@
   min-width: 0;
   font-size: 1.564cqh;
   font-weight: 600;
-  line-height: 1;
+  line-height: 1.3;
   white-space: nowrap;
   overflow: hidden;
   text-align: left;
@@ -297,25 +300,24 @@
   flex: none;
 }
 
-/* 메인메뉴 (Figma 4167:87290): rows are `justify-between w-[1820px]`, gap-[100px].
-   Fixed-300px columns distributed with space-between reproduce justify-between, so
-   col-1's left edge pins to x0 (under the home button) and col-4's right edge pins
-   to x1820 (under the KR button) — the outer tiles share the SAME vertical lines as
-   the home/KR circles. The wide AI tile spans 2 columns (Figma 830). */
+/* 메인메뉴 (Figma 4167:87290): 4×300px columns, wide AI spans 2.
+   Image-to-image vertical gap is fixed at 173px (label line count must not
+   change it): each row = 300px art + 173px band for label. */
 .grid {
   display: grid;
   grid-template-columns: repeat(4, 13.89cqw); /* 300px */
   justify-content: space-between;
-  grid-auto-rows: 9.71cqh; /* 373px */
-  row-gap: 2.604cqh; /* 100px */
+  grid-auto-rows: calc(7.8125cqh + 173px); /* 300px art + 173px to next art */
+  row-gap: 0;
+  align-items: stretch;
 }
 
 .tile {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 0.91cqh;
-  min-height: 0;
+  gap: 0.7cqh; /* 30px image→label */
+  height: 100%;
   background: none;
   border: none;
   padding: 0;
@@ -326,10 +328,11 @@
   grid-column: span 2;
 }
 
+/* Fixed 300px art — label wraps inside the 173px band below, never shrinks art. */
 .tileArt {
-  flex: 1;
-  min-height: 0;
+  flex: none;
   width: 100%;
+  height: 7.8125cqh; /* 300px */
   display: flex;
   align-items: center;
   justify-content: center;
@@ -356,11 +359,15 @@
 
 .tileLabel {
   flex: none;
+  width: 100%;
   font-size: 0.99cqh; /* 38px */
   font-weight: 400; /* Figma: Noto Sans Regular */
-  line-height: 1; /* Figma: leading-none */
+  line-height: 1.15;
   text-align: center;
   color: #000000; /* Figma: text-black */
+  white-space: pre-line;
+  word-break: keep-all;
+  overflow-wrap: anywhere;
 }
 
 /* 하단네비 (R=하단버튼): the scalloped bar (Union, 2168×459) has THREE differently

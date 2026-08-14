@@ -4,9 +4,11 @@ import type { KioskController } from '@renderer/hooks/useKioskController';
 import { useLanguageStore } from '@renderer/store/languageStore';
 import { t } from '@renderer/lib/loc';
 import { osanIconUrl } from '@renderer/assets/icons/osan';
+import { useTaxfreeBodyLayout } from '@renderer/hooks/useTaxfreeBodyLayout';
 import { TAXFREE_PAGE_BASES, taxfreePageImg } from '@renderer/lib/taxfreePages';
 import { taxfreeUrl } from '@shared/constants/webEmbeds';
 import { OsanHeader } from './OsanHeader';
+import headerStyles from './OsanHeader.module.css';
 import { OsanBanner } from './OsanBanner';
 import styles from './OsanTaxfree.module.css';
 
@@ -79,6 +81,9 @@ export function OsanTaxfree({ controller }: OsanTaxfreeProps): JSX.Element {
   const goHome = (): void => controller.navigate('home', 'Back');
   const lang = useLanguageStore((s) => s.currentLanguage);
   const [activeTab, setActiveTab] = useState<TabId>('refund');
+  const rootRef = useRef<HTMLDivElement>(null);
+  const subtitleRef = useRef<HTMLDivElement>(null);
+  const bodyLayout = useTaxfreeBodyLayout(rootRef, subtitleRef, lang);
 
   // Strip the embedded page's own scroll: hide its scrollbars and lock the
   // document so the refund webview shows no inner scroll UI. Injected on
@@ -114,12 +119,17 @@ export function OsanTaxfree({ controller }: OsanTaxfreeProps): JSX.Element {
   }, [lang]);
 
   return (
-    <>
-      {osanIconUrl('bg') && <img className={styles.bg} src={osanIconUrl('bg')} alt="" draggable={false} />}
+    <div ref={rootRef} className={styles.root}>
+      {osanIconUrl('bg') && <img className={styles.bgImage} src={osanIconUrl('bg')} alt="" draggable={false} />}
 
-      <OsanHeader title="TAX - FREE" onHome={goHome} compact />
+      <OsanHeader
+        title="TAX-FREE"
+        onHome={goHome}
+        subtitleClassName={headerStyles.subtitleBelowGap}
+        subtitleRef={subtitleRef}
+      />
 
-      <div className={styles.body}>
+      <div className={styles.body} style={{ top: bodyLayout.top, height: bodyLayout.height }}>
         {activeTab === 'intro' && (
           <TaxRefundInfo lang={lang} onGoToWebview={() => setActiveTab('refund')} />
         )}
@@ -164,6 +174,6 @@ export function OsanTaxfree({ controller }: OsanTaxfreeProps): JSX.Element {
       </div>
 
       <OsanBanner onClick={() => controller.startPhoto()} />
-    </>
+    </div>
   );
 }

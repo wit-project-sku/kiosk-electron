@@ -226,6 +226,8 @@ export function buttonText(key: string, lang: Lang): string | undefined {
 
 /** Localized page-header title, falling back to the hand map, then the id. */
 export function screenTitle(id: string, lang: Lang): string {
+  // Brand mark — never pull translated sheet copy (Hwaseong once had 텍스프리등록).
+  if (id === 'TAX-FREE' || id === 'TAX - FREE') return id;
   const k = TITLE_KEYS[id]?.title;
   if (k) {
     const resolved = buttonText(k, lang);

@@ -1,5 +1,4 @@
-import { useEffect, useState } from 'react';
-import { MapPin } from 'lucide-react';
+import { useEffect, useRef, useState, type Ref } from 'react';
 import { iconUrl } from '@renderer/assets/icons/insadong';
 import { screenSubtitle, screenTitle, useLang } from '@renderer/lib/i18n';
 import styles from './InsadongHeader.module.css';
@@ -23,6 +22,10 @@ interface InsadongHeaderProps {
   compact?: boolean;
   /** Light mode (Figma promotion page): white title over the dark background. */
   light?: boolean;
+  /** Extra class on the subtitle row (e.g. TAX-FREE bottom gap). */
+  subtitleClassName?: string;
+  /** Ref on the subtitle row — used by TAX-FREE to size the webview card. */
+  subtitleRef?: Ref<HTMLDivElement>;
 }
 
 /**
@@ -30,7 +33,7 @@ interface InsadongHeaderProps {
  * date, then a title row (home button · centered title · back chevron), then a
  * subtitle. Exact Figma metrics in InsadongHeader.module.css.
  */
-export function InsadongHeader({ title, onHome, onBack, subtitle, compact = false, light = false }: InsadongHeaderProps): JSX.Element {
+export function InsadongHeader({ title, onHome, onBack, subtitle, compact = false, light = false, subtitleClassName, subtitleRef }: InsadongHeaderProps): JSX.Element {
   const lang = useLang();
   const localizedTitle = screenTitle(title, lang);
   const rawSub = subtitle ?? screenSubtitle(title, lang) ?? '';
@@ -48,7 +51,9 @@ export function InsadongHeader({ title, onHome, onBack, subtitle, compact = fals
       <div className={styles.headerBlock}>
         <div className={styles.topRow}>
           <div className={styles.brand}>
-            <MapPin className={styles.pin} strokeWidth={2.4} />
+            {iconUrl('location-pin') && (
+              <img className={styles.pin} src={iconUrl('location-pin')} alt="" draggable={false} />
+            )}
             <span>INSADONG</span>
           </div>
           <span className={styles.date}>{formatDate(now)}</span>
@@ -66,9 +71,9 @@ export function InsadongHeader({ title, onHome, onBack, subtitle, compact = fals
       </div>
 
       {!compact && sub && (
-        <div className={styles.subtitle}>
+        <div ref={subtitleRef} className={`${styles.subtitle} ${subtitleClassName ?? ''}`}>
           <span className={styles.star}>★</span>
-          <span>{sub}</span>
+          <span className={styles.subtitleText}>{sub}</span>
         </div>
       )}
     </header>

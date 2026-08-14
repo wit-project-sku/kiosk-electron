@@ -48,6 +48,22 @@ function formatDate(d: Date): string {
   return `${y}-${m}-${day}(${dow})`;
 }
 
+type NoticeRun = { t: string; b?: boolean };
+
+/** Same as Insadong/Osan: `\n` = line break, `<b>…</b>` = bold. */
+function parseNotice(text: string): NoticeRun[][] {
+  const lines: NoticeRun[][] = [[]];
+  let bold = false;
+  for (const tok of text.split(/(<b>|<\/b>|\n)/g)) {
+    if (tok === '') continue;
+    if (tok === '<b>') bold = true;
+    else if (tok === '</b>') bold = false;
+    else if (tok === '\n') lines.push([]);
+    else lines[lines.length - 1]!.push({ t: tok, b: bold });
+  }
+  return lines;
+}
+
 // ── Tile definitions ───────────────────────────────────────────────
 interface Tile {
   screen: KioskScreenId;
@@ -174,6 +190,12 @@ export function HwaseongHome({ controller }: Props): JSX.Element {
   const playWeatherVideo = useWeatherVideo();
   const today = useMemo(() => formatDate(new Date()), []);
   const lang = useLanguageStore((s) => s.currentLanguage);
+  // Sheet-driven (Localization_Hwaseong): NoticeContent = body, Notice = vertical badge.
+  const noticeLines = parseNotice(t('NoticeContent', lang));
+  const noticeBadge = t('Notice', lang)
+    .split('\n')
+    .map((s) => s.trim())
+    .filter(Boolean);
   const setStoreQuery = useSearchStore((s) => s.setQuery);
   // Tile label: curated override (proper ja/zh) → sheet value. Active tiles
   // strip a stale "(준비중)" suffix (e.g. a cached 전국시장(준비중)); only the
@@ -184,7 +206,10 @@ export function HwaseongHome({ controller }: Props): JSX.Element {
   // 기부 resolves through labelKey like every other tile (MainButton_Donation now
   // carries all 8 languages in every location's sheet); the localized "(준비중)"
   // suffix is appended while soft-launching.
+  // TAX-FREE stays the hardcoded brand string in every language — same as Osan,
+  // which omits MainButton_TaxFree from TILE_LABEL_KEYS and uses tile.label.
   const tileLabel = (tile: HomeTile): string => {
+    if (tile.screen === 'taxfree') return 'TAX-FREE';
     const base = TILE(tile.labelKey, tile.disabled);
     if (tile.screen !== 'donation') return base;
     return DONATION_COMING_SOON ? withComingSoon(base, lang) : base;
@@ -250,51 +275,14 @@ export function HwaseongHome({ controller }: Props): JSX.Element {
         {/* Row 1: site name + date */}
         <div className={styles.headerTopRow}>
           <div className={styles.headerLeft}>
-            {/* Location pin icon (Figma 5431:19607) */}
-            <svg
-              className={styles.locationIcon}
-              xmlns="http://www.w3.org/2000/svg"
-              width="71"
-              height="90"
-              viewBox="0 0 71 90"
-              fill="none"
-            >
-              <g filter="url(#hw_loc_shadow)">
-                <path
-                  d="M35.5 82C35.5 82 67 53.4783 67 32.087C67 14.3658 52.897 0 35.5 0C18.103 0 4 14.3658 4 32.087C4 53.4783 35.5 82 35.5 82Z"
-                  fill="#005AB4"
-                />
-                <path
-                  d="M45.5638 30.7507C45.5638 36.4116 41.0586 41.0007 35.5013 41.0007C29.9439 41.0007 25.4388 36.4116 25.4388 30.7507C25.4388 25.0897 29.9439 20.5007 35.5013 20.5007C41.0586 20.5007 45.5638 25.0897 45.5638 30.7507Z"
-                  fill="white"
-                />
-              </g>
-              <defs>
-                <filter
-                  id="hw_loc_shadow"
-                  x="0"
-                  y="0"
-                  width="71"
-                  height="90"
-                  filterUnits="userSpaceOnUse"
-                  colorInterpolationFilters="sRGB"
-                >
-                  <feFlood floodOpacity="0" result="BackgroundImageFix" />
-                  <feColorMatrix
-                    in="SourceAlpha"
-                    type="matrix"
-                    values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 127 0"
-                    result="hardAlpha"
-                  />
-                  <feOffset dy="4" />
-                  <feGaussianBlur stdDeviation="2" />
-                  <feComposite in2="hardAlpha" operator="out" />
-                  <feColorMatrix type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0.25 0" />
-                  <feBlend mode="normal" in2="BackgroundImageFix" result="effect1_dropShadow" />
-                  <feBlend mode="normal" in="SourceGraphic" in2="effect1_dropShadow" result="shape" />
-                </filter>
-              </defs>
-            </svg>
+            {hwaseongIconUrl('location-pin') && (
+              <img
+                src={hwaseongIconUrl('location-pin')}
+                alt=""
+                className={styles.locationIcon}
+                draggable={false}
+              />
+            )}
             <span className={styles.siteName}>HWASEONG SA</span>
           </div>
           <span className={styles.headerDate}>{today}</span>
@@ -302,28 +290,26 @@ export function HwaseongHome({ controller }: Props): JSX.Element {
 
         {/* Row 2: notice + weather */}
         <div className={styles.headerBottomRow}>
-          {/* Notice card */}
+          {/* Notice card — layout matches Insadong/Osan so EN INFO + long copy wrap inside. */}
           <div className={styles.noticeCard}>
             <div className={styles.noticeInner}>
-              {/* Vertical 공/지 badge — the sheet stores it as two \n-separated
-                  characters, same as Insadong/Osan read it. */}
               <div className={styles.noticeLabel}>
-                {t('Notice', lang)
-                  .split('\n')
-                  .map((s) => s.trim())
-                  .filter(Boolean)
-                  .map((ch, i) => (
-                    <p key={i} style={{ margin: 0 }}>
-                      {ch}
-                    </p>
-                  ))}
+                {noticeBadge.map((ch, i) => (
+                  <span key={i}>{ch}</span>
+                ))}
               </div>
               <div className={styles.noticeDivider} />
-              <div className={styles.noticeText}>
-                {/* Sheet-driven, like Insadong/Osan — Localization_Hwaseong's
-                    NoticeContent carries all eight languages. */}
-                <p style={{ margin: 0 }} className={styles.noticeMedium}>{t('NoticeContent', lang)}</p>
-              </div>
+              <p className={styles.noticeText}>
+                {noticeLines.map((line, i) => (
+                  <span key={i} className={styles.noticeLine}>
+                    {line.map((run, j) => (
+                      <span key={j} className={run.b ? styles.noticeBold : undefined}>
+                        {run.t}
+                      </span>
+                    ))}
+                  </span>
+                ))}
+              </p>
             </div>
           </div>
 
@@ -417,7 +403,7 @@ export function HwaseongHome({ controller }: Props): JSX.Element {
                 {/* Row 2 */}
                 <div className={styles.menuRow}>
                   {ROW2.map((tile) => (
-                    <SquareTile key={tile.screen + tile.label} tile={tile} label={TILE(tile.labelKey)} onClick={() => go(tile)} />
+                    <SquareTile key={tile.screen + tile.label} tile={tile} label={tileLabel(tile)} onClick={() => go(tile)} />
                   ))}
                 </div>
 
@@ -479,8 +465,11 @@ export function HwaseongHome({ controller }: Props): JSX.Element {
           type="button"
           className={styles.bottomNavZoneRight}
           onClick={() => controller.navigate('restroom', '화장실')}
-          aria-label="화장실"
-        />
+          aria-label={t('MainButton_WC', lang)}
+        >
+          {/* Covers the Korean label baked into fg-bottomnav.png so language can switch. */}
+          <span className={styles.bottomNavWcLabel}>{t('MainButton_WC', lang)}</span>
+        </button>
       </div>
 
       {/* ── Bottom banner (Figma render) ─────────────── */}

@@ -24,10 +24,8 @@
 /* ── Body card (white area below header, above tabs) ── */
 .body {
   position: absolute;
-  top: 645px;
   left: 170px;
   width: 1820px;
-  height: 2290px;
   border-radius: 42.9px;
   overflow: hidden;
   background: #ffffff;

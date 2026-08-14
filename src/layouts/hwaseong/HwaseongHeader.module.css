@@ -129,5 +129,11 @@
      overflowing on a single line. */
   max-width: 1640px;
   text-align: center;
+  white-space: pre-line;
   font-variation-settings: 'CTGR' 0, 'wdth' 100;
+}
+
+/* TAX-FREE: breathing room below SubHeader_TaxFree (may wrap to 3 lines). */
+.subtitleBelowGap {
+  margin-bottom: 40px;
 }

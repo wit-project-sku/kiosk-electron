@@ -1,26 +1,33 @@
 /* TAX-FREE — 3-tab layout. Artboard 2160×3840 px, 1 CSS px = 1 Figma px. */
 
-.bg {
+.root {
+  position: absolute;
+  inset: 0;
+  width: 2160px;
+  height: 3840px;
+  overflow: hidden;
+  font-family: 'Noto Sans KR', 'Noto Sans', sans-serif;
+  background: #fff;
+}
+
+.bgImage {
   position: absolute;
   inset: 0;
   width: 100%;
   height: 100%;
   object-fit: cover;
+  opacity: 0.5;
   pointer-events: none;
 }
 
 /* ======================================================
-   BODY — shared white card / webview wrapper. With the header compact (no page
-   description), the webview moves up to 645 and takes the full 1820×2290, ending
-   at 2935. Tab row keeps 64px clearance above (top 2999) and 98px above the
-   banner (tabs bottom 3169, banner top 3267).
+   BODY — shared white card / webview wrapper; top/height set inline.
+   Tab row at 2999; banner at 3267.
    ====================================================== */
 .body {
   position: absolute;
-  top: 645px;
   left: 170px;
   width: 1820px;
-  height: 2290px;
   border-radius: 42.9px;
   overflow: hidden;
   background: #ffffff;
@@ -681,6 +688,7 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
+  z-index: 6;
 }
 
 .tab {
@@ -716,19 +724,25 @@
   position: absolute;
   left: 21px;
   top: 1995px;
-  display: flex;
-  flex-direction: column;
-  gap: 35px;
+  width: 85px;
+  height: 205px;
+  z-index: 20;
 }
 
 .leftNavBtn {
+  position: absolute;
+  left: 0;
   width: 85px;
   height: 85px;
   padding: 0;
   border: none;
   background: none;
   cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
 }
+
+.leftNavBtn:first-child { top: 0; }
+.leftNavBtn:last-child { top: 120px; }
 
 .leftNavBtn img {
   width: 100%;

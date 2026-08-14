@@ -1,18 +1,34 @@
 "운영팀> 2번 모니터> 유니티 프로그램 내용 NO ","Key ","Korean ","English ","Japanese ","Chinese ","Vietnamese ","Indonesian ","Thai ","Russian ","Description ","","","","",""
-"1","MainButton_AI","'정이' 모하지(AI검색)","To do (Ai)","旅行先 おすすめ(Ai)","做什么比较好呢？(Ai)","Để làm (Ai)","Untuk melakukan (Ai)","สิ่งที่ต้องทำ (AI)","Сделать (Ai)","","","","","",""
+"1","MainButton_AI","'정이' 모하지(AI검색)","To do (AI)","旅行先 おすすめ(AI)","做什么比较好呢？(AI)","Để làm (AI)","Untuk melakukan (AI)","สิ่งที่ต้องทำ (AI)","Сделать (AI)","","","","","",""
 "5","MainButton_Event","오산시 이벤트","Events","イベント","推荐活动","Sự kiện","Acara","กิจกรรม","События","","","","","",""
-"1603","MainButton_Goods","위드 마켓 (준비중)","WITH Market(Preparing)","WITH Market(Preparing)","WITH Market(Preparing)","VỚI Thị trường (Đang chuẩn bị)","DENGAN Pasar (Persiapan)","ร่วมกับตลาด (กำลังเตรียมการ)","С рынком (в процессе подготовки)","","","","","",""
+"1603","MainButton_Goods","위드 마켓
+(준비중)","WITH Market
+(Preparing)","WITH Market
+(Preparing)","WITH Market
+(Preparing)","VỚI Thị trường
+(Đang chuẩn bị)","DENGAN Pasar
+(Persiapan)","ร่วมกับตลาด
+(กำลังเตรียมการ)","С рынком
+(в процессе подготовки)","","","","","",""
 "2","MainButton_ToEat","'정이' 뭐먹지?","To eat","飲食店の","我们吃什么呢？","Để ăn","Untuk makan","กิน","есть","","","","","",""
 "3","MainButton_ToBuy","'정이' 뭐사지?(식품)","To buy","お買い物","我们买什么呢？","Để mua","Untuk membeli","เพื่อซื้อ","Купить","","","","","",""
 "3","MainButton_ToBuy2","'정이' 뭐사지?(물품)","To buy","お買い物 ","我们买什么呢？","Để mua","Untuk membeli","เพื่อซื้อ","Купить","","","","","",""
-"9","MainButton_Mission","텍스프리등록","TaxFree","TaxFree","TaxFree","Miễn thuế","Bebas Pajak","ปลอดภาษี","TaxFree","","","","","",""
+"9","MainButton_Mission","미션(준비중)","Mission(Preparing)","Mission(Preparing)","Mission(Preparing)","Nhiệm vụ","Misi","ภารกิจ","Миссия (В разработке)","","","","","",""
 "6","MainButton_Here","여기는 오색시장","Osaek Market","オセク市場","这里是Osaek","Chợ Osaek","Pasar Osaek","ตลาดโอแซก","Рынок Осаек","","","","","",""
 "7","MainButton_Greeting","안녕 '정이'","Hello Jeong-i","Jeong-i","你好 'Jeong-i'","Chào Jeong-i","Halo Jeong-i","สวัสดีจองอี","Привет, Чон-и!","","","","","",""
 "8","MainButton_ToHelp","도와줘 '정이'","Help","ヘルプ","请帮忙","Giúp đỡ","Membantu","ช่วย","Помощь","","","","","",""
 "1605","MainButton_Map","오색시장 지도","OsaekMarket Map","オセク市場地図","OsaekMarket地图","Bản đồ chợ Osaek","Peta Pasar Osaka","แผนที่ตลาดโอแซก","Карта рынка Осаек","","","","","",""
 "10","MainButton_Exchange","환율","Exchange","為替レート情報","汇率信息","Trao đổi","Menukarkan","แลกเปลี่ยน","Обмен","","","","","",""
 "11","MainButton_Transport","교통안내","Transportation","交通案内","交通指南","Vận tải","Angkutan","การขนส่ง","Транспорт","","","","","",""
-"1604","MainButton_KCulture","K Culture(준비중)","K Culture(Preparing)","K Culture(Preparing)","K Culture(Preparing)","K Culture (Đang chuẩn bị)","Kultur K (Persiapan)","K Culture (การเตรียม)","K-культура (подготовка)","","","","","",""
+"1604","MainButton_KCulture","K Culture
+(준비중)","K Culture
+(Preparing)","K Culture
+(Preparing)","K Culture
+(Preparing)","K Culture
+(Đang chuẩn bị)","Kultur K
+(Persiapan)","K Culture
+(การเตรียม)","K-культура
+(подготовка)","","","","","",""
 "4","MainButton_MarketPaper","시장화폐","Market Currency","市場通貨","市场货币","Tiền tệ thị trường","Mata Uang Pasar","สกุลเงินตลาด","Рыночная валюта","","","","","",""
 "14","MainButton_SmartTour","스마트관광(준비중)","Smart Tourism (Preparing)","スマート観光（準備中）","智慧旅游（准备中）","Du lịch thông minh (Chuẩn bị)","Pariwisata Cerdas (Persiapan)","การท่องเที่ยวอัจฉริยะ (กำลังเตรียมการ)","«Умный туризм» (подготовка)","","","","","",""
 "","MainButton_Donation","기부","Donation","寄付","捐款","Quyên góp","Donasi","บริจาค","Пожертвование","","","","","",""
@@ -312,7 +328,8 @@ Linked with the Gyeonggi Local Currency App for easy recharge and balance manage
 ","<b>オサン市内だけで使えるカード型の地域通貨です。</b>
 大型マート、企業型スーパー、風俗・ギャンブル業種、オサンに住所を置かないフランチャイズ直営店を除き、
 <b>市内のICカード端末を備えた店舗なら利用可能です。</b>
-また「京畿地域通貨アプリ」と連携して、いつでもどこでもチャージや残高管理ができます。","<b>只能在乌山市内使用的卡片式地域货币。</b>
+また「京畿地域通貨アプリ」と連携して、いつでもどこでもチャージや残高管理ができます。
+","<b>只能在乌山市内使用的卡片式地域货币。</b>
 除大型超市、连锁超市、娱乐场所、博彩业、以及不在乌山市注册的连锁直营店外，
 <b>可在市内所有安装IC刷卡机的商铺使用。</b>
 并可与“京畿地域货币APP”联动，随时随地便捷充值与余额管理。
@@ -343,9 +360,11 @@ Terhubung dengan Aplikasi Mata Uang Lokal Gyeonggi untuk pengisian ulang dan pen
 오산 자금의 역외유출을 방지하여 우리 지역경제 활성화와 지역공동체 강화를 도모하는 오산시 지역화폐로, <b>거주지역에 상관없이 오산시에서 소비하고 추가 포인트
 혜택 받고싶은 누구나 신청 가능합니다.</b>","<b>Anyone aged 14 or older with a bank account in their own name can apply.</b>
 Osaekjeon prevents capital outflow and revitalizes Osan’s local economy.
-<b>Anyone who wants to shop in Osan and enjoy extra point benefits can apply, regardless of residence.</b>","<b>本人名義の銀行口座を持つ満14歳以上なら申請可能です。</b>
+<b>Anyone who wants to shop in Osan and enjoy extra point benefits can apply, regardless of residence.</b>
+","<b>本人名義の銀行口座を持つ満14歳以上なら申請可能です。</b>
 オサン資金の流出を防ぎ、地域経済を活性化させます。
-<b>居住地に関係なく、オサンで消費し追加ポイントを受けたい方なら誰でも申請できます。</b>","<b>年满14岁且拥有本人名下银行账户即可申请。</b>
+<b>居住地に関係なく、オサンで消費し追加ポイントを受けたい方なら誰でも申請できます。</b>
+","<b>年满14岁且拥有本人名下银行账户即可申请。</b>
 防止资金外流，促进乌山市经济。
 <b>无论居住地，凡想在乌山市消费并享受额外积分优惠的人都可申请。</b>
 ","Bất kỳ ai từ 14 tuổi trở lên có tài khoản ngân hàng đứng tên mình đều có thể đăng ký.
@@ -388,8 +407,10 @@ Daftar melalui <b>aplikasi seluler (Aplikasi Mata Uang Lokal Gyeonggi)</b> atau 
 사용이 제한되며 <b>연 매출 10억 이하인 소상공인 점포에서만 사용 가능</b>합니다.","Cannot be used at department stores, large marts, corporate supermarkets (SSM), franchise headquarters, or entertainment/gambling venues.
 <b>Only valid at small businesses with annual sales under 1 billion KRW.</b>
 ","百貨店、大型マート、企業型スーパー（SSM）、フランチャイズ直営店、風俗・ギャンブル業種では使えません。
-<b>年売上10億ウォン以下の小規模店舗でのみ利用可能です。</b>","百货商场、大型超市、连锁超市（SSM）、直营连锁店及娱乐场所/博彩业均不可使用。
-<b>仅限年销售额10亿韩元以下的小商户使用。</b>","Không áp dụng tại các cửa hàng bách hóa, siêu thị lớn, siêu thị thuộc tập đoàn (SSM), trụ sở nhượng quyền thương mại hoặc các địa điểm giải trí/đánh bạc.
+<b>年売上10億ウォン以下の小規模店舗でのみ利用可能です。</b>
+","百货商场、大型超市、连锁超市（SSM）、直营连锁店及娱乐场所/博彩业均不可使用。
+<b>仅限年销售额10亿韩元以下的小商户使用。</b>
+","Không áp dụng tại các cửa hàng bách hóa, siêu thị lớn, siêu thị thuộc tập đoàn (SSM), trụ sở nhượng quyền thương mại hoặc các địa điểm giải trí/đánh bạc.
 
 Chỉ có hiệu lực tại các doanh nghiệp nhỏ có doanh thu hàng năm dưới 1 tỷ KRW.</b>","Tidak dapat digunakan di department store, minimarket besar, supermarket korporat (SSM), kantor pusat waralaba, atau tempat hiburan/perjudian.
 
@@ -464,7 +485,8 @@ Foto akan diambil dalam 10 detik. Hasilnya akan muncul di layar kiri dan depan."
 7. 개인정보 보호 담당자
 담당자: 인디라 
 연락처: company@witworldwide.com
-","Privacy Policy  
+
+","Privacy Policy  
 1.Items and Collection Method
 We collect essential information such as photo files and related metadata when users select costumes and take photos at the kiosk, generating composite images.
 

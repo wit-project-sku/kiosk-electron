@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { MapPin, Search } from 'lucide-react';
+import { Search } from 'lucide-react';
 import type { KioskScreenId, SupportedLanguage } from '@shared/types/kiosk';
 import type { KioskController } from '@renderer/hooks/useKioskController';
 import { trackEvent } from '@renderer/lib/analytics';
@@ -267,7 +267,9 @@ export function InsadongHome({ controller }: InsadongHomeProps): JSX.Element {
         <div className={styles.topBlock}>
         <header className={styles.header}>
           <div className={styles.brand}>
-            <MapPin className={styles.pin} strokeWidth={2.4} />
+            {iconUrl('location-pin') && (
+              <img className={styles.pin} src={iconUrl('location-pin')} alt="" draggable={false} />
+            )}
             <span>INSADONG</span>
           </div>
           <span className={styles.date}>{formatDate(now)}</span>
