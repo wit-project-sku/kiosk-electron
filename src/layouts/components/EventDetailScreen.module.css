@@ -94,8 +94,11 @@
   overflow-wrap: anywhere;
 }
 
+/* 110.568 = the two empty paragraphs Figma uses to separate the title from the
+   spec rows. Both frames put row 1 exactly 243px below the title (제주 1246→1489,
+   Hwaseong 1263→1506); 55px left it 30px short on both. */
 .info {
-  margin-top: 55px;
+  margin-top: 110.568px;
   display: flex;
   flex-direction: column;
 }
@@ -105,9 +108,13 @@
   align-items: baseline;
 }
 
+/* 150, not 215: Figma fakes this column with literal spaces inside one text
+   node, so the width has to be read off the render. Both the Hwaseong frame
+   (5494:157999) and the 제주 one (6212:55057) put the value ink 151px after the
+   label ink — 215 pushed every value ~64px right of the design on both. */
 .infoLabel {
   flex: none;
-  width: 215px;
+  width: 150px;
   font-weight: 700;
   font-size: 35px;
   line-height: 60px;

@@ -23,6 +23,9 @@ import { LocalCacheService } from './services/LocalCacheService';
 import { ShopService } from './services/ShopService';
 import { ButtonLayoutService } from './services/ButtonLayoutService';
 import { BannerService } from './services/BannerService';
+import { BackgroundService } from './services/BackgroundService';
+import { SpotDiffService } from './services/SpotDiffService';
+import { OutfitService } from './services/OutfitService';
 import { StatsService } from './services/StatsService';
 import { FailedRequestService } from './services/FailedRequestService';
 import { TranslationService } from './services/TranslationService';
@@ -66,6 +69,9 @@ export interface AppContainer {
   shops: ShopService;
   buttons: ButtonLayoutService;
   banners: BannerService;
+  backgrounds: BackgroundService;
+  spotDiff: SpotDiffService;
+  outfits: OutfitService;
   stats: StatsService;
   events: EventsService;
   updater: UpdateService;
@@ -95,6 +101,9 @@ export function createContainer(): AppContainer {
   const shops = new ShopService(cache, kiosk);
   const buttons = new ButtonLayoutService(cache, kiosk);
   const banners = new BannerService(cache, kiosk);
+  const backgrounds = new BackgroundService(cache, kiosk);
+  const spotDiff = new SpotDiffService(cache);
+  const outfits = new OutfitService(cache, kiosk);
   const stats = new StatsService(kiosk, failedRequests);
   const weather = new WeatherService(cache, kiosk);
   const exchange = new ExchangeService(cache);
@@ -156,6 +165,9 @@ export function createContainer(): AppContainer {
     shops,
     buttons,
     banners,
+    backgrounds,
+    spotDiff,
+    outfits,
     stats,
     events,
     updater,

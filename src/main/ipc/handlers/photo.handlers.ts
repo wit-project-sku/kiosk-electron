@@ -89,6 +89,17 @@ export function registerPhotoHandlers(container: AppContainer): void {
 
   handle(IpcChannels.PhotoRevealResult, () => container.photoWorkflow.revealResult());
 
+  // 제주 틀린그림찾기: 게임이 끝날 때까지 Monitor 2 를 대기 화면에 붙잡아 둔다.
+  handle(
+    IpcChannels.PhotoDeferResultDisplay,
+    (req: { defer: boolean }) =>
+      container.photoWorkflow.setDeferResultDisplay(Boolean(req?.defer)),
+  );
+
+  handle(IpcChannels.PhotoReleaseResultDisplay, () =>
+    container.photoWorkflow.releaseResultDisplay(),
+  );
+
   handle(
     IpcChannels.PhotoGetResultDataUrl,
     (req: { fileName: string }) => readGeneratedDataUrl(req.fileName),

@@ -20,6 +20,21 @@ function formatDate(d: Date): string {
   return `${y}-${m}-${day}(${DAY_NAMES[d.getDay()]})`;
 }
 
+/**
+ * Shown when a page has no description of its own — the literal string the
+ * Figma frames draw in this slot.
+ *
+ * Deliberately NOT localized and deliberately not hidden: every 제주 frame
+ * reserves this row, so an empty one leaves the header looking short and
+ * unfinished, and the visible placeholder is also what makes a missing sheet
+ * row obvious on the device. Pages resolve past it as soon as they have copy —
+ * an explicit `subtitle` prop, or a SubHeader_* row for their title id.
+ */
+const SUBTITLE_FALLBACK = '페이지 설명문';
+
+/** Drop a leading "* " marker the sheet prefixes most descriptions with. */
+const stripStar = (s: string): string => s.replace(/^\s*\*\s*/, '');
+
 interface Props {
   /** Controller for default home/back navigation. Optional when onHome/onBack given. */
   controller?: KioskController;
@@ -27,27 +42,48 @@ interface Props {
   title: string;
   /**
    * Subtitle under the title row. Explicit prop wins, else the sheet's subtitle
-   * for this title id, else the row is hidden.
-   *
-   * The Figma shows the literal placeholder "페이지 설명문" here — that is Figma
-   * boilerplate, not copy, so nothing is invented in its place. Real subtitles
-   * appear automatically once Localization_Jeju exists.
+   * for this title id, else the Figma's own placeholder — see SUBTITLE_FALLBACK.
    */
   subtitle?: string;
   /** Override the home-button action (e.g. the shared photo workflow). */
   onHome?: () => void;
   /** Override the back-button action (defaults to the home action). */
   onBack?: () => void;
+  /**
+   * Subtitle colour. Most pages use the default grey; the ones that don't say
+   * so explicitly in Figma — 코스 상세 is #616161 and WIT Store is #8b7355 to
+   * sit with the store's brown palette.
+   */
+  subtitleColor?: string;
+  /** Draw the ★ before the subtitle. The WIT Store frame omits it. */
+  subtitleStar?: boolean;
 }
 
-export function JejuHeader({ controller, title, subtitle, onHome, onBack }: Props): JSX.Element {
+export function JejuHeader({
+  controller,
+  title,
+  subtitle,
+  onHome,
+  onBack,
+  subtitleColor,
+  subtitleStar = true,
+}: Props): JSX.Element {
   const today = useMemo(() => formatDate(new Date()), []);
   const lang = useLang();
 
   // Localize the Korean title id through the same path as the other kiosks;
   // unknown ids fall through unchanged (which is every id until the sheet lands).
   const localizedTitle = screenTitle(title, lang);
-  const resolvedSubtitle = subtitle ?? screenSubtitle(title, lang);
+  // `||`, not `??`: a sheet row that exists with an EMPTY cell resolves to '',
+  // which is just as missing as undefined and should show the placeholder too.
+  //
+  // The leading "*" is stripped because this row already DRAWS a star (the
+  // Figma star.svg beside the text). Most SubHeader_* cells are authored with a
+  // literal "* " prefix — "* 방문하고자하는 3개의 카테고리를 선택해주세요" — which
+  // rendered as two stars side by side. Stripping here rather than editing the
+  // sheet keeps the cells usable by anything that has no star of its own, and
+  // is the same `clean()` treatment JejuLanguage already applies to its labels.
+  const resolvedSubtitle = stripStar(subtitle || screenSubtitle(title, lang) || SUBTITLE_FALLBACK);
 
   const goHome = onHome ?? ((): void => controller?.navigate('home', '홈'));
   const goBack = onBack ?? goHome;
@@ -82,10 +118,12 @@ export function JejuHeader({ controller, title, subtitle, onHome, onBack }: Prop
 
       {resolvedSubtitle && (
         <div className={styles.subtitle}>
-          {jejuIconUrl('star') && (
+          {subtitleStar && jejuIconUrl('star') && (
             <img src={jejuIconUrl('star')} alt="" className={styles.subtitleStar} draggable={false} />
           )}
-          <p className={styles.subtitleText}>{resolvedSubtitle}</p>
+          <p className={styles.subtitleText} style={subtitleColor ? { color: subtitleColor } : undefined}>
+            {resolvedSubtitle}
+          </p>
         </div>
       )}
     </div>

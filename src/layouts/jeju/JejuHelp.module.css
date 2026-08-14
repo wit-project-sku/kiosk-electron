@@ -1,0 +1,180 @@
+/*
+ * 도와줘 '하영' — Figma node 6219:98767 (제주>도와줘 하영-01=공항).
+ *
+ * Three stacked pickers over one map:
+ *   700   terminal pills 1360×170 at x400 — two 580×170, 200 apart
+ *   920   floor row (JejuSubTabRow's own band)
+ *   1052  category chips 1820×375 at x170 — 5 × 340×170 per row, 30/35 gaps
+ *   1527  map 1820×1383 at x170
+ *
+ * The terminal pills and the category chips share one look with 지역화폐's tabs —
+ * the frame's own `R>상단 카테고리-5개*2` component — so it lives in
+ * JejuPill.module.css and only the widths are set here.
+ */
+.pill {
+  composes: pill from './JejuPill.module.css';
+}
+
+.pillActive {
+  composes: pillActive from './JejuPill.module.css';
+}
+
+/* ── Terminal (6219:98776) ── */
+.terminals {
+  position: absolute;
+  left: 400px;
+  top: 700px;
+  width: 1360px;
+  height: 170px;
+  display: flex;
+  align-items: center;
+  gap: 200px;
+}
+
+.terminals .pill {
+  width: 580px;
+}
+
+/* ── Categories (6219:98787) ──
+   Two rows of five, each `justify-between` over 1820 — which is the frame's own
+   30px gap (1820 − 5 × 340 = 120, over 4 gaps). */
+.cats {
+  position: absolute;
+  left: 170px;
+  top: 1052px;
+  width: 1820px;
+  display: flex;
+  flex-direction: column;
+  gap: 35px;
+}
+
+.catRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.cats .pill {
+  width: 340px;
+}
+
+/* ── Map (6219:98788) ──
+   The frame's export is only 799×607 for this 1820×1383 slot, so it is drawn
+   at ~2.3× and will look soft until a higher-resolution map is supplied. */
+.map {
+  position: absolute;
+  left: 170px;
+  top: 1527px;
+  width: 1820px;
+  height: 1383px;
+  overflow: hidden;
+}
+
+.map img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+/* ── 현위치 (6219:98771) ──
+   Where the kiosk itself stands, drawn ON the map: a 41×61 pin with the label
+   centred under it. Positioned relative to `.map`, not the artboard, so the
+   `here` coordinates a map declares are map-local and stay right whatever y the
+   map slot moves to.
+
+   Safe to place by percentage-free absolute px: the 799×607 source and the
+   1820×1383 slot are the same 1.316 aspect, so `object-fit: cover` scales
+   without cropping and the pin lands where Figma puts it. */
+/* ── Facility hotspots ──
+   The dots and their captions are painted into the map PNG, so these add no
+   art: a transparent 130px target centred on the drawn dot (which is only ~32px
+   across at this scale — too small to hit reliably on a 2160-wide kiosk). The
+   :active halo is the only thing that ever shows, so a press is acknowledged
+   before the 상세 screen swaps in. */
+.pin {
+  position: absolute;
+  width: 130px;
+  height: 130px;
+  margin: -65px 0 0 -65px;
+  padding: 0;
+  border: none;
+  border-radius: 50%;
+  background: transparent;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.pin:active {
+  background: rgba(255, 127, 15, 0.28);
+}
+
+/*
+ * The orange dot for the selected chip, drawn OVER the plan's black one.
+ *
+ * The plan paints its dots into the PNG, so there is nothing to recolour — this
+ * covers one instead. 34px because the source dots measure 13–14px across in
+ * the 799×607 export and the map is drawn at 1820 wide (×2.2778 ≈ 31px), plus a
+ * ~1.5px margin each side so no dark anti-aliased rim shows around the orange.
+ * Keep it under ~40px: the plan's captions sit only ~23px below a dot's centre.
+ */
+.pinDot {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background: var(--kiosk-primary, #ff7f0f);
+  pointer-events: none;
+}
+
+/* The box IS the 41×61 pin, anchored at its TIP (bottom centre) — that is the
+   point on the map that means "you are here", so a map's `here` is a map
+   position rather than the corner of a graphic. The label hangs out of flow
+   beneath it so a long translation cannot move the pin. */
+.here {
+  position: absolute;
+  width: 41px;
+  height: 61px;
+  transform: translate(-50%, -100%);
+  pointer-events: none;
+}
+
+.hereIcon {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.hereLabel {
+  position: absolute;
+  top: calc(100% + 5px);
+  left: 50%;
+  transform: translateX(-50%);
+  margin: 0;
+  /* Figma's own red, not the kiosk orange: the marker has to read against a map
+     whose pins and route line are already coloured. */
+  color: #f00;
+  font-size: 30px;
+  font-weight: 600;
+  line-height: 1.35;
+  text-align: center;
+  white-space: nowrap;
+}
+
+/* Only 국제선 / 1F / 화장실 is drawn; every other combination lands here. */
+.empty {
+  position: absolute;
+  left: 170px;
+  top: 1527px;
+  width: 1820px;
+  margin: 0;
+  padding-top: 600px;
+  font-size: 60px;
+  font-weight: 500;
+  line-height: 1.3;
+  color: #909090;
+  text-align: center;
+}

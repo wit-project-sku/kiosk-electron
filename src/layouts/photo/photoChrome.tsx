@@ -21,6 +21,8 @@ export interface PhotoHeaderProps {
 export interface PhotoChrome {
   isOsan: boolean;
   isHwaseong: boolean;
+  /** 제주 replaces the whole outfit-selection step — see JejuHanbokSelect. */
+  isJeju: boolean;
   /** Icon resolver for the active location (falls back to insadong). */
   icon: (name: string) => string | undefined;
   /** Location-correct content header (OSAEK MARKET / INSADONG / HWASEONG SA). */
@@ -59,6 +61,7 @@ export function usePhotoChrome(): PhotoChrome {
   return {
     isOsan,
     isHwaseong,
+    isJeju,
     icon,
     Header,
     photoTitle: isOsan ? '사진 촬영' : 'AR 한복체험',
@@ -67,7 +70,11 @@ export function usePhotoChrome(): PhotoChrome {
       : isHwaseong
         ? hwaseongIconUrl('fg-banner')
         : isJeju
-          ? jejuIconUrl('fg-banner')
+          // `fg-banner` is HWASEONG's asset name — 제주's is `banner-hanbok`, the
+          // 가상 한복 착장 art every AR 한복체험 frame draws. Asking for the wrong
+          // name resolved to undefined, so the Jeju photo flow silently fell back
+          // to INSADONG's rotating banners.
+          ? jejuIconUrl('banner-hanbok')
           : undefined,
   };
 }

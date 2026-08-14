@@ -1,0 +1,352 @@
+/*
+ * 안녕 '하영' — Figma 6217:94591 ('하영'소개), 6217:94681/94865/94926 (취미생활)
+ * and 6217:94987 (건강습관).
+ *
+ * 취미생활 and 건강습관 keep the tab row and the hashtag/SNS footer, nothing else,
+ * and are the same page as each other:
+ *   920   sub-tabs, one 82px band, centred on the page
+ *   1081  photo r45, centred — 959×1509 (취미생활) or 869×1546 (건강습관)
+ *   2670  card 1820×549 at x170 — title + copy, then the footer at y3052
+ *
+ * 소개 — the tab row is JejuTabRow's (x170 / y700). Everything else is one card:
+ *   972   card 1820×2160 at x170   (everything below is card-relative)
+ *   62.85 portrait circle 939²      → rel 59.85
+ *   227.85 profile column w733      → rel 1058.86
+ *   1077.86 divider 1731 wide       → rel 41.85
+ *   1138.86 detail rows w1740       → rel 59.85
+ *   1971.86 hashtags + socials 1582 → rel 117
+ *
+ * Every label/value pair on the page is `label + 40px gap + value`. Figma's
+ * per-row lefts (151 / 206 / 195 / 263) look hand-placed but are all exactly
+ * that: a Korean glyph at 60px advances ~55.8, so 2 chars + 40 = 151.6, 3 chars
+ * + 40 = 207, 4 chars + 40 = 263. One flex gap reproduces the lot.
+ */
+.card {
+  position: absolute;
+  /* Figma drags this to x172/centre+2; every other 제주 card is on 170. */
+  left: 170px;
+  top: 972px;
+  width: 1820px;
+  height: 2160px;
+  box-sizing: border-box;
+  /* 2.145px here, not the 5px the tab pills and 관광명소 cards use. */
+  border: 2.145px solid #e8e8e8;
+  border-radius: 42.9px;
+  background: #fff;
+  box-shadow: 0 21.45px 21.45px rgba(143, 147, 157, 0.1);
+  overflow: hidden;
+}
+
+/* ── Portrait ──
+   Figma draws a bare #D9D9D9 circle: 하영's photo has not been shot yet. The
+   slot renders the art when `hello-portrait` lands in the icon folder and stays
+   a grey circle until then, rather than collapsing the layout. */
+.portrait {
+  position: absolute;
+  left: 59.85px;
+  top: 62.85px;
+  width: 939px;
+  height: 939px;
+  border-radius: 50%;
+  overflow: hidden;
+  background: #d9d9d9;
+}
+
+.portrait img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+/* ── Profile column (6217:94598) ── */
+.profile {
+  position: absolute;
+  left: 1058.86px;
+  top: 227.85px;
+  width: 733px;
+  display: flex;
+  flex-direction: column;
+  gap: 45px;
+}
+
+.row {
+  display: flex;
+  align-items: center;
+  gap: 40px;
+  min-width: 0;
+}
+
+.label {
+  margin: 0;
+  flex: none;
+  font-size: 60px;
+  font-weight: 700;
+  line-height: 1;
+  color: #000;
+  white-space: nowrap;
+}
+
+.value {
+  margin: 0;
+  font-size: 58px;
+  font-weight: 400;
+  line-height: 1;
+  color: #000;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* The name is the one value on a plate: [제주] main 02 behind the brand orange.
+   No radius — Figma draws a bare rectangle. */
+.namePlate {
+  height: 85px;
+  box-sizing: border-box;
+  padding: 0 23.44px;
+  display: inline-flex;
+  align-items: center;
+  background: #ffeac7;
+  font-size: 58px;
+  font-weight: 700;
+  line-height: 1;
+  color: var(--kiosk-primary, #ff7f0f);
+  white-space: nowrap;
+}
+
+/* ── Divider (6217:94620) ── */
+.divider {
+  position: absolute;
+  left: 41.85px;
+  top: 1077.86px;
+  width: 1731px;
+  height: 2.145px;
+  background: #e8e8e8;
+}
+
+/* ── 특기 / 취미 / 장래희망 / 자기소개 (6217:94621) ── */
+.details {
+  position: absolute;
+  left: 59.85px;
+  top: 1138.86px;
+  width: 1740px;
+  display: flex;
+  flex-direction: column;
+  gap: 30px;
+}
+
+/* Multi-line values wrap; the label stays on the first line, which is why the
+   row is top-aligned rather than centred like the profile rows. */
+.detailRow {
+  display: flex;
+  align-items: flex-start;
+  gap: 40px;
+  min-width: 0;
+}
+
+.detailValue {
+  margin: 0;
+  font-size: 58px;
+  font-weight: 400;
+  line-height: 1.3;
+  color: #000;
+  min-width: 0;
+  /* Figma breaks these at spaces. CSS breaks Korean between ANY two syllables
+     by default, which splits 콘텐츠 and 여행객들 across lines — see the same
+     rule on the 관광명소 card's address. */
+  word-break: keep-all;
+  overflow-wrap: break-word;
+}
+
+/* A single-line value keeps Figma's `leading-none`; wrapped ones need 1.3, and
+   the two are within a pixel on one line. */
+.detailRow .label {
+  /* The 60px label against a 1.3-leading value: pull it onto the first line. */
+  line-height: 1.3;
+}
+
+/* ── Hashtags + socials (6217:94634 소개, 6217:94725 취미생활) ──
+   The same 1582×100 row on both tabs, and on both it lands on page x289 — 117
+   inside a card that starts at 170 plus its 2.145px border. Only the card it
+   sits in, and so its `top`, changes. */
+.footer {
+  position: absolute;
+  left: 117px;
+  width: 1582px;
+  height: 100px;
+  display: flex;
+  align-items: center;
+  gap: 40px;
+}
+
+.footerProfile { top: 1971.86px; }
+/* page 3052 − card top 2670 − border */
+.footerTopic { top: 379.9px; }
+
+.hashtag {
+  height: 100px;
+  box-sizing: border-box;
+  /* 322 / 322 / 343 in the frame: hand-sized around each label, so a 322 floor
+     with a small pad reproduces both the short tags and the long one. */
+  padding: 0 16px;
+  min-width: 322px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 42.9px;
+  background: var(--kiosk-primary, #ff7f0f);
+  font-size: 51.48px;
+  font-weight: 700;
+  line-height: 1;
+  color: #fff;
+  white-space: nowrap;
+}
+
+.socials {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 25px;
+}
+
+.socialIcon {
+  width: 100px;
+  height: 100px;
+  flex: none;
+  border-radius: 21.45px;
+  object-fit: contain;
+  display: block;
+}
+
+/* Frame for a GENERATED code (QRCodeSVG). Unused while the codes ship as
+   images — kept because that is the shape to come back to once 하영's account
+   URLs exist; see SOCIALS in JejuHello.tsx. */
+.socialQr {
+  width: 100px;
+  height: 100px;
+  box-sizing: border-box;
+  flex: none;
+  padding: 17px;
+  border: 5px solid var(--kiosk-primary, #ff7f0f);
+  border-radius: 21.45px;
+  background: #fff;
+}
+
+/* A shipped QR export. No border here: the artwork already carries the orange
+   rounded frame that `.socialQr` above draws in CSS — adding it again would
+   double it. Same 100px tile as the brand icons beside it. */
+.socialQrImg {
+  width: 100px;
+  height: 100px;
+  flex: none;
+  border-radius: 21.45px;
+  object-fit: contain;
+  display: block;
+}
+
+.socialQr svg {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+/* ── 취미생활 / 건강습관 ──
+   The two tabs draw the same three things — sub-tab row, photo, caption card —
+   and differ only in their sub-tab labels and the photo's size. */
+
+/* The sub-tab row itself lives in JejuSubTabRow — 도와줘 '하영' draws the same
+   one over its floors. */
+
+/* Size comes from the data: 959×1509 on 취미생활, 869×1546 on 건강습관. Centring
+   it here rather than positioning it reproduces both frames' own x (600/603 and
+   645) without carrying a third number — they are all aiming at the middle. */
+.topicPhoto {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  top: 1081px;
+  border-radius: 45px;
+  overflow: hidden;
+  background: #f2ede6;
+}
+
+/* Sources taller than their slot get cropped by ~13%, and which 13% is
+   per-photo, carried in the data as `focus`. 건강습관's fits, so it has none. */
+.topicPhoto img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+/* Shares the 소개 card's chrome but not its size, and its shadow is the wider
+   42.9px blur the other 제주 cards use rather than 소개's 21.45. */
+.topicCard {
+  position: absolute;
+  left: 170px;
+  top: 2670px;
+  width: 1820px;
+  height: 549px;
+  box-sizing: border-box;
+  border: 2.145px solid #e8e8e8;
+  border-radius: 42.9px;
+  background: #fff;
+  box-shadow: 0 21.45px 42.9px rgba(143, 147, 157, 0.1);
+}
+
+.topicText {
+  position: absolute;
+  left: 117px;
+  top: 54px;
+  width: 1188px;
+  display: flex;
+  flex-direction: column;
+  gap: 25px;
+}
+
+.topicTitle {
+  margin: 0;
+  font-size: 63px;
+  font-weight: 700;
+  line-height: 1.3;
+  color: #000;
+  word-break: keep-all;
+}
+
+/* The width comes from the data, not from here: each frame drags this one box
+   until its copy sits on two lines (1188 / 1233 / 1584), so it routinely
+   overflows the 1188 column it lives in. The widest still clears the card. */
+.topicBody {
+  margin: 0;
+  font-size: 50px;
+  font-weight: 400;
+  line-height: 1.3;
+  color: #000;
+  /* K-POP's copy carries its own line break between the two sentences. */
+  white-space: pre-line;
+  /* NO `keep-all` here, unlike the 소개 details and the 관광명소 address: this is
+     prose in a box the designer already widened to its limit, and Figma itself
+     breaks 덜어보세요 mid-word to keep 기분전환 on two lines. Measured across all
+     six captions, default breaking matches every mock; `keep-all` matches five
+     and pushes 기분전환 to three lines. */
+}
+
+/* The 건강습관 tab is not drawn, and neither are 골프 / 테니스. */
+.empty {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 900px;
+  margin: 0;
+  font-size: 60px;
+  font-weight: 500;
+  line-height: 1.3;
+  color: #909090;
+  text-align: center;
+}
+
+/* Centred in the 549px hobby card instead of the 2160px profile one. */
+.emptyTopic {
+  top: 205px;
+}

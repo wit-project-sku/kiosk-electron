@@ -1,10 +1,11 @@
-import { useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { X } from 'lucide-react';
 import { QRCodeSVG } from 'qrcode.react';
 import { WEB_EMBED_URLS } from '@shared/constants/webEmbeds';
 import { getKioskLocation } from '@shared/config/kioskLocations';
 import { useRotatingBanner } from '@renderer/hooks/useRotatingBanner';
 import { usePhotoWorkflow } from '@renderer/hooks/usePhotoWorkflow';
+import { useSpotDiffRounds } from '@renderer/hooks/useSpotDiffRound';
 import { usePhotoStore } from '@renderer/store/photoStore';
 import { useKioskStore } from '@renderer/store/kioskStore';
 import { generatedUrl } from '@renderer/lib/media';
@@ -12,6 +13,8 @@ import { pick, useLang } from '@renderer/lib/i18n';
 import { trackEvent } from '@renderer/lib/analytics';
 import { resolveButton } from '@renderer/lib/buttonCatalog';
 import { HanbokSelect, type CaptureMode } from './HanbokSelect';
+import { JejuHanbokSelect } from '../jeju/JejuHanbokSelect';
+import { JejuSpotDiffGame } from '../jeju/JejuSpotDiffGame';
 import { usePhotoChrome } from './photoChrome';
 import { RESULT } from './photoTexts';
 import styles from './PhotoWorkflow.module.css';
@@ -27,11 +30,16 @@ const SAVE_BASE = 'https://withphoto.vercel.app/?imageUrl=';
  *
  * Phase map:
  *   clothing / style  → HanbokSelect (outfit selection, no popup)
- *   preview / countdown / generating → camera-popup.png only (nothing else)
- *   result            → WIT Store webview (Monitor 2 shows result image)
+ *   preview / countdown → camera-popup.png only (nothing else)
+ *   generating        → camera popup; 제주 plays 틀린그림찾기 instead
+ *   result            → WIT Store webview (Monitor 2 shows result image),
+ *                       gated on the 제주 game finishing — see the gate below
  */
 export function PhotoWorkflow(): JSX.Element {
   const phase = usePhotoStore((s) => s.phase);
+  // Identifies the photo session — also what the waiting game keys its puzzle
+  // prefetch on, so a new visitor gets a new board.
+  const sessionId = usePhotoStore((s) => s.sessionId);
   const errorMessage = usePhotoStore((s) => s.errorMessage);
   const resultFileName = usePhotoStore((s) => s.resultFileName);
   const resultUrl = usePhotoStore((s) => s.resultUrl);
@@ -41,13 +49,53 @@ export function PhotoWorkflow(): JSX.Element {
   const lang = useLang();
   const hasPayment = getKioskLocation(kioskId).hasCardTerminal;
   const rotating = useRotatingBanner();
-  const { isHwaseong, icon, Header, photoTitle, banner: chromeBanner } = usePhotoChrome();
+  const chrome = usePhotoChrome();
+  const { isHwaseong, icon, Header, photoTitle, banner: chromeBanner } = chrome;
   // Osan/Hwaseong have their own single promo banner; insadong rotates through several.
   const banner = chromeBanner ?? rotating;
   const [goodsQrOpen, setGoodsQrOpen] = useState(false);
   const [saveQrOpen, setSaveQrOpen] = useState(false);
 
   usePhotoWorkflow();
+
+  // ── 제주 waiting game gate ──────────────────────────────────────────────
+  // 제주 fills the AI wait with 틀린그림찾기 instead of a static popup, and the
+  // result is gated on the GAME, not on the clock: `GENERATING_MIN_MS` in
+  // photo.handlers is a 60s floor, so the photo can land while someone is still
+  // hunting. `gameDone` is what actually lets the result screen through.
+  const playsWaitingGame = chrome.isJeju;
+  const [gameDone, setGameDone] = useState(false);
+  const deferredRef = useRef(false);
+
+  // Pick the puzzles and decode their images NOW — sessionId is set the moment
+  // the visitor opens the outfit step, which is ~30s of idle network before the
+  // capture. Doing it when the game appears would collide with the photo upload
+  // and the synthesis request. Several boards, because a fast player is offered
+  // 다시 하기 and that replay must not go to the network either.
+  const gameRounds = useSpotDiffRounds(playsWaitingGame ? sessionId : null);
+
+  // Hold Monitor 2 on its waiting screen for as long as the game runs, so the
+  // big screen doesn't hand over the photo the visitor is still playing for.
+  useEffect(() => {
+    if (!playsWaitingGame || phase !== 'generating' || deferredRef.current) return;
+    deferredRef.current = true;
+    void window.api.photo.setDeferResultDisplay(true);
+  }, [playsWaitingGame, phase]);
+
+  // A new session (or a 다시찍기 / 홈) re-arms the gate. Keyed on the phase
+  // leaving the generating→result pair rather than on the reset handler, so
+  // every route back to the start clears it, not just the button.
+  useEffect(() => {
+    if (phase === 'generating' || phase === 'result') return;
+    setGameDone(false);
+    deferredRef.current = false;
+  }, [phase]);
+
+  const handleGameFinish = useCallback(() => {
+    setGameDone(true);
+    deferredRef.current = false;
+    void window.api.photo.releaseResultDisplay();
+  }, []);
 
   const handleReset = (): void => {
     void window.api.photo.reset();
@@ -76,11 +124,40 @@ export function PhotoWorkflow(): JSX.Element {
     await window.api.photo.beginCountdown();
   };
 
+  // ── 제주 only: 틀린그림찾기 while the AI works ─────────────────────────────
+  // Deliberately ahead of the capture block, which would otherwise keep drawing
+  // the camera-direction popup through `generating`. Note the second clause: the
+  // game also survives INTO the result phase, which is what makes the finished
+  // photo wait for a player who hasn't finished yet.
+  // `errorMessage` opts out: a failed generation leaves the phase on
+  // 'generating' (setError does not move it), so without this clause the game
+  // would sit on "AI 사진을 마무리하고 있어요" forever over a photo that is never
+  // coming. Falling through restores the pre-game behaviour for that path.
+  if (
+    playsWaitingGame &&
+    !errorMessage &&
+    (phase === 'generating' || (phase === 'result' && !gameDone))
+  ) {
+    return (
+      <JejuSpotDiffGame
+        rounds={gameRounds}
+        aiReady={phase === 'result'}
+        onFinish={handleGameFinish}
+        onHome={handleReset}
+      />
+    );
+  }
+
   // ── Outfit selection + capture (countdown → capture → generating) ──────────
   // Keep the AR 한복체험 screen on Monitor 1 throughout; during capture overlay
   // the camera-direction popup ("look at the camera between the screens").
   if (phase === 'clothing' || phase === 'style' || phase === 'preview' || phase === 'countdown' || phase === 'generating') {
     const capturing = phase === 'preview' || phase === 'countdown' || phase === 'generating';
+    // 제주 redraws this step entirely (own taxonomy, background-theme row, its
+    // own layout) — same contract, different screen.
+    if (chrome.isJeju) {
+      return <JejuHanbokSelect onHome={handleReset} onCapture={handleCapture} countdownActive={capturing} />;
+    }
     return <HanbokSelect onHome={handleReset} onCapture={handleCapture} countdownActive={capturing} />;
   }
 

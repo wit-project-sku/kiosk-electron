@@ -28,11 +28,13 @@ const OSAEK_SHEET_ID = '1_CkWFXfB7ud0sJw-cnIWGvFlTzF12UxDuNylp5HkOiw';
 /** W005 화성휴게소 content sheet (tabs suffixed _Hwaseong). */
 const HWASEONG_SHEET_ID = '14aWRWrJXPC_J-W4GpZqa_g-3fDjjUsy6BpAhDg8OvVU';
 /** W006 제주공항 content sheet (tabs suffixed _Jeju).
- *  EMPTY until the 제주 spreadsheet is created — the generators below are skipped
- *  while it is blank, so `npm run sync:sheet` still succeeds for every other
- *  location. Fill it in here AND in the runtime mirror
+ *  Tabs: ShopData_Jeju · AICategory_Jeju · Localization_Jeju ·
+ *  VideoSubtitle_Jeju_하영 · VideoSubtitle_Jeju_유산 · three 규칙 reference tabs.
+ *  Only the two middle tabs are generated here — ShopData is served by the shops
+ *  API (kioskId=7) and VideoSubtitle by the subtitles API, same as every other
+ *  location. Mirrored in the runtime sync
  *  (src/main/services/sync/GoogleSheetsSyncTransport.ts CONTENT_SHEETS). */
-const JEJU_SHEET_ID = '';
+const JEJU_SHEET_ID = '1A90MnKneWksKeL2zEcCUn75JKbnMFj7-OBmQsTkI72I';
 /** 전국시장 (nationwide markets) dataset — shared, used by 화성휴게소's 전국휴게소 screen. */
 const NATIONWIDE_MARKETS_SHEET_ID = '1EGeS48JvN3YNzFDLiBduKW-t8P5ilSDucNIMUNS2M-4';
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
@@ -372,16 +374,70 @@ async function genAiCategoriesHwaseong() {
 }
 
 // ─── W006 제주공항 (separate sheet, _Jeju tabs) ────────────────────────
-// Assumes the newer Osaek/Hwaseong column layout (6 vi, 7 id, 8 th, 9 ru). VERIFY
-// against the real sheet's header row before trusting it — a wrong order silently
-// swaps languages rather than failing.
+// VERIFIED 2026-08-13 against the real header row, which reads
+//   Num · Key · Korean · English · Japanese · Chinese · Vietnamese · Thai ·
+//   Russian · Indonesian · 설명,비고 · 구분(위치)
+// — i.e. the INSA order (vi 6, th 7, ru 8, id 9), NOT the newer Osaek/Hwaseong
+// one this originally assumed. Reading it as Osaek would have put Thai in the
+// Indonesian slot, Russian in Thai's and Indonesian in Russian's, silently: every
+// cell is non-empty, so nothing would have failed — the kiosk would just have
+// shown the wrong language. Re-check this row before trusting any future edit.
+//
+// Row 0 is a title banner ("운영팀> 2번 모니터> 앱 콘텐츠 내용") and row 1 is the
+// header; slice(1) drops the banner and the `key === 'Key'` guard drops the header.
+
+/**
+ * This ONE tab serves three venues — the sheet is titled "#W6~8=제주_전체데이터".
+ * Seven keys therefore appear TWICE, once for 제주공항/여객선터미널 (mascot 하영)
+ * and once for 제주유산문화센터 (mascot 유산): NoticeContent, MainButton_Greeting,
+ * MainButton_ToHelp, SubButton_Greeting, Photo_SelectTogether, MainButton_Promotion
+ * and SubButton_ToHelp. A plain last-wins loop hands W006 the 유산 rows, so the
+ * kiosk renders "안녕 '유산'", "도와줘 '유산'" and "사진촬영 (with '유산')".
+ *
+ * Ties are broken on the MASCOT NAME, not the `설명, 비고` column, for two reasons:
+ *   - the note is WRONG on NoticeContent — the row marked "제주공항, 여객선터미널에
+ *     적용" carries YUSAN in all seven translations while the row marked
+ *     "제주유산문화센터에 적용" carries HAYOUNG. Both Korean cells say HAYOUNG, the
+ *     buttons CMS says 안녕 '하영', and the Figma agrees, so the notes are swapped
+ *     on that key;
+ *   - the note is ABSENT on SubButton_Greeting, whose two rows differ only by
+ *     하영' 소개 / 유산' 소개.
+ * The note is also NOT a filter: SubButton_Accommodation carries
+ * "제주유산문화센터에 적용" and is the ONLY row for its key — dropping it would lose
+ * 숙박안내's subtitle entirely. Hence disambiguation, never exclusion.
+ *
+ * Scored across all eight language cells: +1 per cell naming this venue's mascot,
+ * −1 per cell naming another's. Highest score wins; a tie keeps the LAST row, so
+ * every key with no mascot in it (MainButton_Promotion, and all 224 unique keys)
+ * behaves exactly as before. Mirrored at runtime in
+ * src/main/services/sync/google/LocalizationSyncParser.ts — keep the two in sync.
+ */
+const JEJU_MASCOT_OURS = /하영|HAYOUNG/i;
+const JEJU_MASCOT_OTHER = /유산|YUSAN/i;
+
+/** Venue score for one row — see the comment above. */
+function jejuVenueScore(r) {
+  let score = 0;
+  for (let i = 2; i <= 9; i++) {
+    const cell = r[i] ?? '';
+    if (JEJU_MASCOT_OURS.test(cell)) score += 1;
+    if (JEJU_MASCOT_OTHER.test(cell)) score -= 1;
+  }
+  return score;
+}
+
 async function genLocalizationJeju() {
   const rows = await loadTab('Localization_Jeju', JEJU_SHEET_ID);
   const entries = {};
+  const scores = {};
   for (const r of rows.slice(1)) {
     const key = clean(r[1]);
     if (!key || key === 'Key') continue;
-    entries[key] = localizedRow(r, NEW_LANG_COLS_OSAEK);
+    const score = jejuVenueScore(r);
+    // `>=` keeps last-wins on a tie, so single-row keys are untouched.
+    if (key in entries && score < scores[key]) continue;
+    entries[key] = localizedRow(r, NEW_LANG_COLS_INSA);
+    scores[key] = score;
   }
   const body = Object.entries(entries)
     .map(([k, v]) => `  ${JSON.stringify(k)}: ${JSON.stringify(v)},`)

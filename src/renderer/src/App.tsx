@@ -7,6 +7,7 @@ import { preloadAllImages } from '@renderer/lib/preloadAssets';
 import { useShopStore } from '@renderer/store/shopStore';
 import { useButtonStore } from '@renderer/store/buttonStore';
 import { useBannerStore } from '@renderer/store/bannerStore';
+import { useBackgroundStore } from '@renderer/store/backgroundStore';
 import { KioskSwitcher } from '@renderer/components/kiosk/KioskSwitcher';
 
 /**
@@ -45,6 +46,16 @@ export function App(): JSX.Element {
     void useBannerStore.getState().load();
     const off = window.api.events.onBannersChanged(() => {
       void useBannerStore.getState().reload();
+    });
+    return off;
+  }, []);
+
+  // Load the AR 배경 테마 set the same way — the 제주 outfit screen reads it, and
+  // loading it here means the plates are already in memory when that step opens.
+  useEffect(() => {
+    void useBackgroundStore.getState().load();
+    const off = window.api.events.onBackgroundsChanged(() => {
+      void useBackgroundStore.getState().reload();
     });
     return off;
   }, []);

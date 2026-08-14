@@ -26,6 +26,16 @@ interface Props {
    * the AI search page ends at y3591, so a banner would sit on top of its CTA.
    */
   showBanner?: boolean;
+  /**
+   * jejuIconUrl key for the bundled banner shown when the API has no active
+   * one. Defaults to the 한복 promo; the search-detail page carries its own
+   * (상점 검색 promo), so the artwork is per-page, not per-layout.
+   */
+  bannerFallback?: string;
+  /** Subtitle colour override — see JejuHeader. */
+  subtitleColor?: string;
+  /** Draw the ★ before the subtitle (WIT Store omits it). */
+  subtitleStar?: boolean;
   children?: ReactNode;
 }
 
@@ -35,10 +45,13 @@ export function JejuPageFrame({
   subtitle,
   onBack,
   showBanner = true,
+  bannerFallback = 'banner-page',
+  subtitleColor,
+  subtitleStar,
   children,
 }: Props): JSX.Element {
-  // Live API banner when one is active, else the bundled 한복 promo.
-  const banner = useRotatingBanner(jejuIconUrl('banner-page'));
+  // Live API banner when one is active, else this page's bundled promo.
+  const banner = useRotatingBanner(jejuIconUrl(bannerFallback));
   const bg = jejuIconUrl('bg-page');
   const goHome = (): void => controller.navigate('home', '홈');
 
@@ -47,7 +60,14 @@ export function JejuPageFrame({
       <div className={styles.bgBase} />
       {bg && <img src={bg} alt="" className={styles.bgImage} draggable={false} />}
 
-      <JejuHeader controller={controller} title={title} subtitle={subtitle} onBack={onBack} />
+      <JejuHeader
+        controller={controller}
+        title={title}
+        subtitle={subtitle}
+        onBack={onBack}
+        subtitleColor={subtitleColor}
+        subtitleStar={subtitleStar}
+      />
 
       <div className={styles.body}>{children}</div>
 

@@ -1,0 +1,500 @@
+/*
+ * 제주공항 (W006) 틀린그림찾기 — the AR 한복 waiting game. Figma 6258:78631.
+ *
+ * Inside KioskArtboard 1 CSS px = 1 Figma px (2160×3840), so the absolute
+ * numbers here are read straight out of the design.
+ *
+ * y map (from the frame):
+ *    0…594     header — Component 40, rendered by JejuHeader
+ *    794…899   ③ 잠시만 기다려주세요!            (step row, left 180)
+ *    947…1012  기다리는 동안 틀린 그림을 찾아보세요!  (#FF7F0F, centred)
+ *   1060…1125  n/5 progress                     (centred)
+ *   1200…2072  picture A  — 1730×872, r40, #d9d9d9 plate
+ *   2166…3038  picture B  — same box, 94px gap
+ *   3267…3840  banner
+ *
+ * ── What the frame does NOT draw ──────────────────────────────────────
+ * The mock is one static state, so it has no UI for the agreed rules (lives, a
+ * clock, the hint, the exit). Those go in the 3038…3267 band the frame leaves
+ * empty, plus the two ends of the 1060 progress line — the designed centre
+ * column is untouched, and everything added uses the frame's own type scale
+ * (65/58px Noto Sans Bold), its primary #FF7F0F and its 42.9px button radius.
+ * Replace with the real thing if a frame for those states lands.
+ */
+
+.root {
+  position: absolute;
+  inset: 0;
+  width: 2160px;
+  height: 3840px;
+  overflow: hidden;
+  font-family: var(--kiosk-font, 'Noto Sans KR', 'Noto Sans', sans-serif);
+}
+
+.bg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  pointer-events: none;
+}
+
+/* ── ③ 잠시만 기다려주세요! ─────────────────────────────────────────────
+   Same badge+title pair as JejuHanbokSelect's ① and ②, so the three steps of
+   the AR flow read as one series. The frame puts this one at 180, not the 170
+   its siblings use. */
+.step {
+  position: absolute;
+  left: 180px;
+  top: 794px;
+  display: flex;
+  align-items: center;
+  gap: 21.45px;
+}
+
+.stepBadge {
+  width: 105px;
+  height: 105px;
+  flex: 0 0 auto;
+  border-radius: 50%;
+  background: var(--kiosk-primary, #ff7f0f);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 65px;
+  font-weight: 700;
+  line-height: 1;
+  color: #fff;
+}
+
+.stepTitle {
+  margin: 0;
+  font-size: 68px;
+  font-weight: 700;
+  line-height: 1;
+  color: #333;
+  white-space: nowrap;
+}
+
+/* The frame anchors this at x1066.5 rather than the artboard's 1080 — an
+   artefact of its background sitting at left:3. Centred properly here; 13px on
+   a 2160 board is invisible, and centring survives a translation changing the
+   string's width, which a fixed x does not. */
+.prompt {
+  position: absolute;
+  left: 0;
+  top: 947px;
+  width: 2160px;
+  margin: 0;
+  font-size: 65px;
+  font-weight: 700;
+  line-height: 1;
+  color: var(--kiosk-primary, #ff7f0f);
+  text-align: center;
+}
+
+/* ── Progress line ──────────────────────────────────────────────────────
+   The frame draws only the centred "1/5". Lives and the clock take the two
+   ends of the same line: three equal columns inside the picture's own 252px
+   margins keep the counter exactly on the artboard centre. */
+.status {
+  position: absolute;
+  left: 0;
+  top: 1060px;
+  width: 2160px;
+  height: 65px;
+  padding: 0 252px;
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+}
+
+.statusSide {
+  flex: 1 1 0;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.statusRight {
+  justify-content: flex-end;
+}
+
+.counter {
+  flex: 1 1 0;
+  margin: 0;
+  font-size: 65px;
+  font-weight: 700;
+  line-height: 1;
+  color: #000;
+  text-align: center;
+  white-space: nowrap;
+}
+
+.heart {
+  width: 62px;
+  height: 62px;
+  color: #ff5a5f;
+  fill: #ff5a5f;
+}
+
+.heartSpent {
+  width: 62px;
+  height: 62px;
+  color: #d8d8d8;
+  fill: #ececec;
+}
+
+.clockIcon {
+  width: 62px;
+  height: 62px;
+  color: #333;
+}
+
+.clock {
+  margin: 0;
+  font-size: 65px;
+  font-weight: 700;
+  line-height: 1;
+  color: #333;
+  font-variant-numeric: tabular-nums;
+}
+
+/* The last 10 seconds are the one piece of state a player must notice without
+   reading a number. */
+.clockUrgent,
+.clockUrgent + .clock,
+.clock.clockUrgent {
+  color: #e63946;
+}
+
+/* ── The two pictures ───────────────────────────────────────────────────
+   `.slot` is the frame's grey plate: a FIXED 1730×872 box that never moves, so
+   the board cannot shift under a finger mid-tap. `.panel` is the picture inside
+   it, sized to the image's own ratio — the plate shows through as a margin when
+   a puzzle isn't 1730:872. Taps and markers are bound to `.panel`, never to the
+   plate, so the mapping stays right whatever the CMS uploads. */
+.slot {
+  position: absolute;
+  left: 252px;
+  width: 1730px;
+  height: 872px;
+  border-radius: 40px;
+  background: #d9d9d9;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.slotA {
+  top: 1200px;
+}
+
+.slotB {
+  top: 2166px;
+}
+
+.panel {
+  position: relative;
+  /*
+   * Fit-inside by arithmetic, not by `aspect-ratio`.
+   *
+   * `aspect-ratio` is IGNORED once both axes are constrained, so the obvious
+   * `height:100%; aspect-ratio:X; max-width:100%` silently yields a full-plate
+   * box and a stretched picture — which would break the hit test, since that
+   * reads this element's rect. Taking the min on both axes against the plate's
+   * known 1730×872 holds the ratio exactly at any aspect.
+   */
+  width: min(100%, calc(872px * var(--sd-aspect)));
+  height: min(100%, calc(1730px / var(--sd-aspect)));
+  /* Stated rather than inherited from the global reset: the sizing above is
+     exact arithmetic against the plate, and a border under content-box would
+     push past it and let flex shrink the width back. */
+  box-sizing: border-box;
+  /* A tap must never be swallowed by an image drag or a text selection. */
+  touch-action: manipulation;
+  user-select: none;
+}
+
+.panelImg {
+  width: 100%;
+  height: 100%;
+  object-fit: fill;
+  pointer-events: none;
+  display: block;
+}
+
+/* Markers are positioned by their CENTRE, hence the -50% translate. Width is a
+   percentage of the panel and `aspect-ratio: 1` keeps them circular — a height
+   percentage would resolve against the panel's height and go oval. */
+.foundRing,
+.hintRing {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  aspect-ratio: 1;
+  border-radius: 50%;
+  pointer-events: none;
+}
+
+/* Brand orange over a white halo, so the ring holds up over a dark photo as
+   well as a light one. */
+.foundRing {
+  border: 10px solid var(--kiosk-primary, #ff7f0f);
+  box-shadow:
+    0 0 0 6px rgba(255, 255, 255, 0.9),
+    inset 0 0 0 4px rgba(255, 255, 255, 0.6);
+  animation: pop 260ms ease-out;
+}
+
+/* Dashed and dark — deliberately NOT orange, which would read as "already
+   found" at a glance. */
+.hintRing {
+  border: 10px dashed #232323;
+  box-shadow: 0 0 0 6px rgba(255, 255, 255, 0.75);
+  animation: pulse 900ms ease-in-out infinite;
+}
+
+.missMark {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  font-size: 120px;
+  font-weight: 800;
+  color: #232323;
+  text-shadow: 0 0 18px rgba(255, 255, 255, 0.95);
+  pointer-events: none;
+  animation: fadeOut 700ms ease-out forwards;
+}
+
+@keyframes pop {
+  from {
+    transform: translate(-50%, -50%) scale(0.4);
+    opacity: 0;
+  }
+  to {
+    transform: translate(-50%, -50%) scale(1);
+    opacity: 1;
+  }
+}
+
+@keyframes pulse {
+  0%,
+  100% {
+    transform: translate(-50%, -50%) scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: translate(-50%, -50%) scale(1.15);
+    opacity: 0.55;
+  }
+}
+
+@keyframes fadeOut {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}
+
+.loading {
+  margin: auto;
+  font-size: 56px;
+  font-weight: 700;
+  color: #8b8b8b;
+}
+
+/* Generated fallback art, not CMS content — marked so a kiosk running without
+   puzzles is obvious on a site visit instead of looking like a design choice. */
+.sampleTag {
+  position: absolute;
+  right: 24px;
+  bottom: 24px;
+  padding: 10px 26px;
+  border-radius: 16px;
+  background: rgba(35, 35, 35, 0.6);
+  color: #fff;
+  font-size: 32px;
+  font-weight: 600;
+}
+
+/* ── Hint / exit ────────────────────────────────────────────────────────
+   The band the frame leaves empty between the pictures (3038) and the banner
+   (3267). Button metrics are the frame's own: 150 tall, 42.9 radius. */
+.actions {
+  position: absolute;
+  left: 252px;
+  top: 3060px;
+  width: 1730px;
+  height: 150px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 40px;
+}
+
+.actionBtn {
+  height: 150px;
+  box-sizing: border-box;
+  padding: 0 70px;
+  border-radius: 42.9px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 26px;
+  font-size: 58px;
+  font-weight: 700;
+  line-height: 1;
+  white-space: nowrap;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* 힌트 is the encouraged action, so it takes the primary fill; 결과 보기 leaves
+   the game early and is deliberately the quieter of the two. */
+.hintBtn {
+  border: none;
+  background: var(--kiosk-primary, #ff7f0f);
+  color: #fff;
+}
+
+.hintBtn:disabled {
+  background: #e7e7e7;
+  color: #a8a8a8;
+  cursor: default;
+}
+
+.hintIcon {
+  width: 68.64px;
+  height: 68.64px;
+  flex: 0 0 auto;
+}
+
+.hintCount {
+  min-width: 58px;
+  height: 58px;
+  padding: 0 14px;
+  border-radius: 29px;
+  background: rgba(0, 0, 0, 0.18);
+  font-size: 40px;
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.hintBtn:disabled .hintCount {
+  background: rgba(0, 0, 0, 0.06);
+}
+
+.skipBtn {
+  border: 5px solid #e0e0e0;
+  background: #fff;
+  color: #616161;
+}
+
+/* ── Banner ─────────────────────────────────────────────────────────────
+   The frame draws the 가상 한복 착장 banner here, so it is drawn. It is NOT a
+   button, unlike every other 제주 page: the visitor's photo is mid-generation,
+   and a stray tap on the way to a difference would reset the session and lose
+   it. 결과 보기 is the exit. */
+.banner {
+  position: absolute;
+  left: 0;
+  top: 3267px;
+  width: 2160px;
+  height: 573px;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.banner img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+/* ── Outcome overlay ────────────────────────────────────────────────────
+   No frame for this state; built from the same tokens as the rest. */
+.overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(35, 35, 35, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10;
+}
+
+.overlayCard {
+  width: 1500px;
+  padding: 130px 100px;
+  border-radius: 60px;
+  background: #fff;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 40px;
+  box-shadow: 0 40px 100px rgba(0, 0, 0, 0.3);
+}
+
+.overlayTitle {
+  margin: 0;
+  font-size: 105px;
+  font-weight: 700;
+  line-height: 1.1;
+  color: #333;
+  text-align: center;
+}
+
+.overlayScore {
+  margin: 0;
+  display: flex;
+  align-items: baseline;
+  gap: 16px;
+  font-size: 58px;
+  font-weight: 700;
+  color: #616161;
+}
+
+.overlayScoreNum {
+  font-size: 88px;
+  font-weight: 700;
+  color: var(--kiosk-primary, #ff7f0f);
+}
+
+.overlayNote {
+  margin: 0;
+  font-size: 48px;
+  color: #8b8b8b;
+  text-align: center;
+}
+
+/* The 한 판 더 / 그냥 기다릴게요 pair. Reuses the page's own button metrics
+   (.actionBtn + .hintBtn/.skipBtn) so the choice looks like the rest of the
+   screen rather than a modal with its own styling. */
+.overlayActions {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 40px;
+  margin-top: 20px;
+}
+
+.overlaySpinner {
+  width: 84px;
+  height: 84px;
+  border: 10px solid #ececec;
+  border-top-color: var(--kiosk-primary, #ff7f0f);
+  border-radius: 50%;
+  animation: spin 900ms linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}

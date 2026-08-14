@@ -35,6 +35,14 @@ export class PhotoWorkflowService {
    * 블러 잠금(resultLocked) 상태로 띄우고, revealResult() 시(결제 완료) 풀린다.
    */
   private holdResultDisplay = false;
+  /**
+   * 제주 틀린그림찾기 전용 — 생성 대기 중 터치 화면에서 게임을 하는 동안에는
+   * AI 결과가 나와도 Monitor 2 를 대기 화면에 붙잡아 둔다(사진을 미리 보여
+   * 주면 게임을 끝까지 할 이유가 없다). `holdResultDisplay` 는 결과를 블러로
+   * 띄우지만, 이쪽은 아예 띄우지 않는다는 점이 다르다.
+   * 게임 종료 시 releaseResultDisplay() 가 푼다.
+   */
+  private deferResultDisplay = false;
 
   constructor(
     private readonly display: DisplayService,
@@ -115,7 +123,11 @@ export class PhotoWorkflowService {
       statusMessage: null,
       errorMessage: null,
     };
-    if (this.holdResultDisplay) {
+    if (this.deferResultDisplay) {
+      // 틀린그림찾기 진행 중 — phase 는 'result' 로 올려 터치 화면이 "AI 준비됨"
+      // 을 알 수 있게 하되, Monitor 2 는 생성 대기 화면 그대로 둔다.
+      this.syncDisplay('generating');
+    } else if (this.holdResultDisplay) {
       // 기부(학교) 흐름 — 결제 완료 전이다. 결과를 선명하게 띄우면 안 되지만,
       // 완전히 숨기면(어트랙트 영상) 결과가 나왔다는 사실조차 알 수 없다.
       // 블러 + 안내 문구로 "결과는 준비됐다"만 보여주고 내용은 가린다 → 결제 유도.
@@ -151,6 +163,32 @@ export class PhotoWorkflowService {
     return this.state;
   }
 
+  /**
+   * 틀린그림찾기 시작/종료 시 Monitor 2 결과 노출을 미룰지 정한다.
+   * 게임이 시작될 때 true, 끝날 때 releaseResultDisplay() 로 푼다.
+   */
+  setDeferResultDisplay(defer: boolean): PhotoWorkflowState {
+    this.deferResultDisplay = defer;
+    return this.state;
+  }
+
+  /**
+   * 게임이 끝났다 — 미뤄 둔 결과를 Monitor 2 에 띄운다.
+   * 아직 생성 중이면 플래그만 풀고, 이후 setResult 가 바로 띄운다.
+   * `holdResultDisplay`(기부 결제 대기)가 걸려 있으면 그쪽 규칙이 이긴다 —
+   * 게임이 끝났다는 것이 결제를 대신하지는 않기 때문이다.
+   */
+  releaseResultDisplay(): PhotoWorkflowState {
+    this.deferResultDisplay = false;
+    if (this.state.phase === 'result' && this.state.resultFileName) {
+      this.syncDisplay('result', {
+        resultFileName: this.state.resultFileName,
+        resultLocked: this.holdResultDisplay,
+      });
+    }
+    return this.state;
+  }
+
   setError(message: string): PhotoWorkflowState {
     this.clearCountdown();
     this.state = { ...this.state, errorMessage: message, statusMessage: null };
@@ -164,6 +202,9 @@ export class PhotoWorkflowService {
     // hold 는 세션 한정 — 초기화 시 반드시 풀어야 다음 키오스크 자체 촬영이
     // 결과를 못 띄우는 일이 없다.
     this.holdResultDisplay = false;
+    // 게임 도중 홈으로 나가는 경우도 여기로 온다 — 안 풀면 다음 세션의 결과가
+    // Monitor 2 에 영영 뜨지 않는다.
+    this.deferResultDisplay = false;
     this.state = { ...INITIAL };
     this.syncDisplay('attract');
     this.emit();

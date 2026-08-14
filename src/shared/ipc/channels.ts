@@ -69,7 +69,13 @@ export const IpcChannels = {
   PhotoGetResultDataUrl: 'photo:getResultDataUrl',
   PhotoSetHoldResult: 'photo:setHoldResult',
   PhotoRevealResult: 'photo:revealResult',
+  PhotoDeferResultDisplay: 'photo:deferResultDisplay',
+  PhotoReleaseResultDisplay: 'photo:releaseResultDisplay',
   PhotoReset: 'photo:reset',
+
+  // 틀린그림찾기 — the mini-game played on the touch screen while the AR 한복
+  // photo generates (제주 W006).
+  SpotDiffGetRound: 'spotDiff:getRound',
 
   // Language / Translations
   LanguageGet: 'language:get',
@@ -104,6 +110,12 @@ export const IpcChannels = {
 
   // Bottom promo banners (cached from the witteria API)
   BannersList: 'banners:list',
+
+  // AR 배경 테마 set for this kiosk (cached from the witteria API)
+  BackgroundsList: 'backgrounds:list',
+
+  // AR 한복 outfit catalogue + its category tabs (cached from the witteria API)
+  OutfitsGet: 'outfits:get',
 
   // Stats (usage analytics POSTed to the witteria API)
   StatsMenuTouch: 'stats:menuTouch',
@@ -148,6 +160,10 @@ export const IpcEvents = {
   ButtonsChanged: 'event:buttons:changed',
   /** Bottom banners refreshed into SQLite; the renderer reloads its store. */
   BannersChanged: 'event:banners:changed',
+  /** AR background set refreshed into SQLite; the renderer reloads its store. */
+  BackgroundsChanged: 'event:backgrounds:changed',
+  /** Outfit catalogue refreshed into SQLite; the renderer reloads its store. */
+  OutfitsChanged: 'event:outfits:changed',
   /** Auto-update status changed (checking / downloading / downloaded / …). */
   UpdateStatusChanged: 'event:update:statusChanged',
 } as const;

@@ -41,6 +41,10 @@ const SCREEN_LABELS: Partial<Record<KioskScreenId, string>> = {
   kdrama: 'K-DRAMA',
   restroom: '화장실',
   search: '검색',
+  // Reached from a search-result card. Until JejuDetail is built this shows the
+  // 준비중 scaffold — without an entry here the header would print the raw
+  // screen id "detail" to a visitor.
+  detail: '상세',
   ai_search: "'제주' 뭐하지",
   ai_result: 'AI 검색 결과',
   ai_detail: '상세 정보',

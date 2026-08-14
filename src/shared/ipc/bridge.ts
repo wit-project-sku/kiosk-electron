@@ -36,6 +36,8 @@ import type {
 } from '../types/data';
 import type { CachedContent, SupportedLanguage } from '../types/kiosk';
 import type { CameraDeviceInfo, PhotoOption, PhotoWorkflowState } from '../types/photo';
+import type { SpotDiffRound } from '../types/spotDiff';
+import type { OutfitCatalogue } from '../types/outfit';
 import type { WeatherSnapshot } from '../types/weather';
 import type { WeatherPlayKey } from '../config/weatherVideo';
 import type { KioskLocationCode } from '../config/kioskLocations';
@@ -44,6 +46,7 @@ import type { VideoEntry, VideoFilesBySet } from '../types/subtitle';
 import type { Shop } from '../types/shop';
 import type { KioskButton } from '../types/buttons';
 import type { KioskBanner } from '../types/banner';
+import type { KioskBackground } from '../types/background';
 import type { UpdateStatus } from '../types/update';
 import type {
   EventDetail,
@@ -138,7 +141,25 @@ export interface KioskBridge {
     setHoldResult(hold: boolean): Promise<Result<PhotoWorkflowState>>;
     /** Reveal a held AI result on Monitor 2 (donation payment complete). */
     revealResult(): Promise<Result<PhotoWorkflowState>>;
+    /**
+     * Keep Monitor 2 on the waiting screen after the AI finishes — 제주 plays
+     * 틀린그림찾기 on the touch screen while generating, and the big screen must
+     * not spoil the photo before the player is done. Unlike `setHoldResult`
+     * (which shows a BLURRED result to push the donation payment), this shows
+     * no result at all. Cleared by reset().
+     */
+    setDeferResultDisplay(defer: boolean): Promise<Result<PhotoWorkflowState>>;
+    /** Game over — put the deferred result up on Monitor 2. */
+    releaseResultDisplay(): Promise<Result<PhotoWorkflowState>>;
     reset(): Promise<Result<PhotoWorkflowState>>;
+  };
+  /** AR 한복 outfit catalogue + category tabs (cached from the witteria API). */
+  outfits: {
+    get(): Promise<Result<OutfitCatalogue>>;
+  };
+  /** 틀린그림찾기 round data for the generating-phase mini-game. */
+  spotDiff: {
+    getRound(): Promise<Result<SpotDiffRound>>;
   };
   language: {
     get(): Promise<Result<SupportedLanguage>>;
@@ -181,6 +202,10 @@ export interface KioskBridge {
   /** Cached bottom promo banners (from the witteria API, refreshed on launch + nightly). */
   banners: {
     list(): Promise<Result<KioskBanner[]>>;
+  };
+  /** Cached AR 배경 테마 set (from the witteria API, refreshed on launch + nightly). */
+  backgrounds: {
+    list(): Promise<Result<KioskBackground[]>>;
   };
   /** Usage stats POSTed to the witteria API (offline-queued + retried on failure). */
   stats: {
@@ -237,6 +262,8 @@ export interface KioskBridge {
     onShopsChanged(listener: () => void): Unsubscribe;
     onButtonsChanged(listener: () => void): Unsubscribe;
     onBannersChanged(listener: () => void): Unsubscribe;
+    onBackgroundsChanged(listener: () => void): Unsubscribe;
+    onOutfitsChanged(listener: () => void): Unsubscribe;
     onUpdateStatusChanged(listener: (status: UpdateStatus) => void): Unsubscribe;
   };
 }

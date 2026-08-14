@@ -18,6 +18,8 @@ import { KioskArtboard } from '@layouts/components/KioskScreenImage';
 import { Slideshow } from './components/Slideshow';
 import { VideoWall } from './components/VideoWall';
 import { AiModelVideoWall } from './components/AiModelVideoWall';
+import { JejuCameraGuide } from './components/JejuCameraGuide';
+import { getKioskLocation } from '@shared/config/kioskLocations';
 import styles from './CustomerDisplay.module.css';
 
 const ATTRACT_STATE: DisplayState = {
@@ -203,6 +205,9 @@ export function CustomerDisplay(): JSX.Element {
     void captureAndGenerate();
   });
 
+  // 제주 has its own camera screen; every other location uses the one below.
+  const isJeju = kioskId ? getKioskLocation(kioskId).layout === 'JEJU_AIRPORT' : false;
+
   // Camera-guide assets (Figma 4795:43166). Names match the Figma node names.
   const guideOverlay = cameraIconUrl('guide-overlay');
   const noGlasses = cameraIconUrl('no-glasses');
@@ -252,8 +257,15 @@ export function CustomerDisplay(): JSX.Element {
         <video className={styles.media} src={assetUrl(assets[0])} autoPlay loop muted />
       )}
 
-      {/* ── Camera / countdown ── (Figma 4795:43166, 2160×3840 artboard) */}
-      {(state.mode === 'camera' || state.mode === 'countdown') && (
+      {/* ── Camera / countdown ── (Figma 4795:43166, 2160×3840 artboard) ──
+          제주 draws a different screen entirely — one dark header plus the feed,
+          no tips/pose boxes/branding — so it replaces this rather than
+          reskinning it. See JejuCameraGuide. */}
+      {(state.mode === 'camera' || state.mode === 'countdown') && isJeju && (
+        <JejuCameraGuide videoRef={videoRef} lang={lang} countdown={state.countdown} />
+      )}
+
+      {(state.mode === 'camera' || state.mode === 'countdown') && !isJeju && (
         <div className={styles.cameraScreen}>
           {/* Top: title + numbered tips. Left '10' is static info; the badge on
               the right is the LIVE countdown. */}
@@ -324,7 +336,11 @@ export function CustomerDisplay(): JSX.Element {
             {genClips[0]?.label && <span className={styles.genLabel}>{genClips[0].label}</span>}
             <div className={styles.genCountWrap}>
               <img className={styles.genSpinnerImg} src={spinnerImg} alt="" draggable={false} />
-              <span className={styles.genSpinnerNum}>{genCountdown}</span>
+              {/* 제주 holds this screen past 0 while the visitor finishes
+                  틀린그림찾기 (photo:deferResultDisplay). A frozen '0' reads as a
+                  hung kiosk, so the number drops out and the spinner alone
+                  carries "still working" for the rest of the wait. */}
+              {genCountdown > 0 && <span className={styles.genSpinnerNum}>{genCountdown}</span>}
             </div>
           </div>
         </div>

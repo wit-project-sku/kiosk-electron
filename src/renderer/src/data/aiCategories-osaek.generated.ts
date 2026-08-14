@@ -26,7 +26,7 @@ export const AI_CATEGORIES_OSAEK: LangText[] = [
   {"ko":"신발","en":"Shoes","ja":"靴","zh":"鞋","vi":"Giày dép","th":"รองเท้า","ru":"Shoes","id":"5 Sepatu"},
   {"ko":"패션잡화","en":"Accessories","ja":"服飾雑貨","zh":"配饰","vi":"Phụ kiện thời trang","th":"อุปกรณ์เสริม","ru":"6. Аксессуары","id":"Aksesoris"},
   {"ko":"생활용품","en":"Household","ja":"生活用品","zh":"生活用品","vi":"Đồ dùng sinh hoạt","th":"ครัวเรือน","ru":"Домохозяйство","id":"7 Rumah Tangga"},
-  {"ko":"문구","en":"Stationery","ja":"文具","zh":"文具","vi":"Văn phòng phẩm","th":"เครื่องเขียน","ru":"канцелярские товары","id":"Alat Tulis"},
+  {"ko":"문구","en":"Stationery","ja":"文具","zh":"文具","vi":"Văn phòng phẩm","th":"เครื่องเขียน","ru":"Канцелярские товары","id":"Alat Tulis"},
   {"ko":"가구","en":"Furniture","ja":"家具","zh":"家具","vi":"Nội thất","th":"เฟอร์นิเจอร์","ru":"1. Мебель","id":"Perabot"},
   {"ko":"인테리어/수리","en":"Interior/Repair","ja":"インテリア/修理","zh":"家居/维修","vi":"Trang trí nội thất/ Sửa chữa","th":"9. งานตกแต่งภายใน/ซ่อมแซม","ru":"9. Интерьер/Ремонт","id":"Interior/Perbaikan"},
 ];

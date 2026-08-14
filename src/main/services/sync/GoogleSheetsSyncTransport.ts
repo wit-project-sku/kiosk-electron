@@ -23,11 +23,7 @@ const log = createLogger('google-sheets-transport');
 const INSADONG_SHEET_ID = '1AVZoyepjrlWIUtwXamGRYU6TWkKKKgVb7fzwEtbRDaw';
 const OSAEK_SHEET_ID = '1_CkWFXfB7ud0sJw-cnIWGvFlTzF12UxDuNylp5HkOiw';
 const HWASEONG_SHEET_ID = '14aWRWrJXPC_J-W4GpZqa_g-3fDjjUsy6BpAhDg8OvVU';
-// TODO(제주 W006): no spreadsheet has been created for 제주공항 yet. Empty means
-// "no sheet" — sync is SKIPPED rather than silently borrowing another location's
-// strings (see downloadTranslations). Fill it in and mirror the same id into
-// scripts/sync-sheet.mjs.
-const JEJU_SHEET_ID = '';
+const JEJU_SHEET_ID = '1A90MnKneWksKeL2zEcCUn75JKbnMFj7-OBmQsTkI72I';
 
 interface ContentSheet {
   sheetId: string;

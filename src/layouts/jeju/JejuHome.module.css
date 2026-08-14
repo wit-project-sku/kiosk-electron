@@ -116,6 +116,10 @@
   border-radius: 4px;
 }
 
+/* Figma-exact 1033. The notice re-flows to this box now (see parseNotice), so
+   ko/ja/zh land on the three rows the orange rule is drawn for — measured at
+   51px, Korean is 2438px of text, 2.4 lines. English is the one exception at
+   3035px: it needs ≥1060px per line, so it still runs to four rows here. */
 .noticeText {
   position: absolute;
   left: 131px;
@@ -165,66 +169,8 @@
   object-fit: contain;
 }
 
-/* ── 항공편 안내 board ───────────────────────────────────────────────── */
-.flight {
-  position: absolute;
-  left: 155px;
-  top: 785px;
-  width: 1850px;
-  height: 206px;
-  border-radius: 45px;
-  background: rgba(255, 255, 255, 0.5);
-}
-
-.flightTitle {
-  position: absolute;
-  left: 48px;
-  top: 67px;
-  width: 294px;
-  margin: 0;
-  font-size: 60px;
-  font-weight: 700;
-  line-height: 1;
-  color: #000;
-}
-
-/* The board's 5 columns. `left` is the Figma x of each header/value pair; the
-   header and the value are centred on a shared column axis. */
-.flightCol {
-  position: absolute;
-  top: 0;
-}
-
-.flightHead {
-  position: absolute;
-  top: 38px;
-  font-size: 40px;
-  font-weight: 600;
-  line-height: 1;
-  color: #c8bda9;
-  white-space: nowrap;
-  transform: translateX(-50%);
-}
-
-.flightValue {
-  position: absolute;
-  top: 118px;
-  font-size: 48px;
-  font-weight: 400;
-  line-height: 1;
-  color: #333;
-  white-space: nowrap;
-  transform: translateX(-50%);
-}
-
-.flightRule {
-  position: absolute;
-  left: 407px;
-  top: 97px;
-  width: 1391px;
-  height: 3px;
-  background: rgba(0, 0, 0, 0.1);
-}
+/* The 운항 정보 board (frame 785…991) and its 더보기 control live in
+   JejuFlightBoard.module.css — it owns the three 현황 conditions. */
 
 /* ── Search row (home button + field + language) ────────────────────── */
 .searchRow {
@@ -466,6 +412,20 @@
   height: 200px;
   border-radius: 45px;
   object-fit: contain;
+  pointer-events: none;
+}
+
+/* Plate painted behind the art at the grid's own radius, for a tile whose
+   exported icon is rounder than the grid (see Tile.plate). The art still carries
+   its own tighter clip; this fills the corners that clip cuts away, so the tile
+   reads as a 45px plate rather than a pill. */
+.tilePlate {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 200px;
+  height: 200px;
+  border-radius: 45px;
   pointer-events: none;
 }
 

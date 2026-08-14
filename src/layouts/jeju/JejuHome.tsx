@@ -7,21 +7,27 @@
  * that guesswork is what produced missing icons on the Osan round.
  *
  * Layout, top to bottom: location + clock · 공지 card with live weather ·
- * 항공편 안내 board · search row · 3 feature cards · 12-tile grid on a white
+ * 운항 정보 board · search row · 3 feature cards · 12-tile grid on a white
  * panel · K-DRAMA / 사진촬영 / 화장실 · hanbok banner.
+ *
+ * The 운항 정보 board was redrawn with six columns and three 현황 conditions
+ * (탑승 중 / 지연 / 탑승최종) — it lives in JejuFlightBoard.tsx.
  */
 import { useEffect, useMemo, useRef, useState } from 'react';
 import type { KioskController } from '@renderer/hooks/useKioskController';
 import type { KioskScreenId } from '@shared/types/kiosk';
 import { jejuIconUrl } from '@renderer/assets/icons/jeju';
 import { useRotatingBanner } from '@renderer/hooks/useRotatingBanner';
+import { useOrderedTiles, type TileKey } from '@renderer/lib/buttonLayout';
 import { useWeatherStore } from '@renderer/store/weatherStore';
 import { useWeatherVideo } from '@renderer/hooks/useWeatherVideo';
 import { useLanguageStore } from '@renderer/store/languageStore';
 import { useSearchStore } from '@renderer/store/searchStore';
 import { weatherIconUrl, weatherIconName } from '@renderer/assets/weather';
-import { pick } from '@renderer/lib/i18n';
+import type { Lang } from '@renderer/lib/i18n';
+import { t, sheetText } from '@renderer/lib/loc';
 import { DONATION_COMING_SOON, withComingSoon } from '@shared/config/donation';
+import { JejuFlightBoard } from './JejuFlightBoard';
 import { FloatingKeyboard } from '../insadong/keyboard/FloatingKeyboard';
 import { HangulComposer } from '../insadong/keyboard/hangul';
 import type { KeyAction } from '../insadong/keyboard/VirtualKeyboard';
@@ -37,18 +43,24 @@ const LANG_CODE: Record<string, string> = {
 };
 
 /**
- * Notice copy. The Figma shows September seasonal text; it is authored here (and
- * translated) exactly like Hwaseong's NOTICE until a Localization_Jeju sheet
- * exists — at which point this moves to a sheet key like every other string.
+ * Notice + search placeholder now come from Localization_Jeju (`NoticeContent`,
+ * `Main_Search`), so an edit in the sheet reaches the kiosk on the next night
+ * sync with no rebuild — the same path every other location uses.
+ *
+ * These objects remain as the LAST-RESORT fallback for the two keys, used only
+ * when neither the synced nor the bundled table has a value for the language and
+ * `t()` would otherwise render the raw key. `t()` already falls back to the
+ * sheet's Korean first, so in practice these fire only if the key disappears
+ * from the sheet entirely.
  */
-const NOTICE = {
+const NOTICE_FALLBACK = {
   ko: '9월 제주는 살이 통통하게 오른 은갈치와 고등어 같은 가을 해산물과 상큼한 황금향이 맛과 향이 가장 뛰어난 제철입니다.',
   en: 'September in Jeju is peak season for plump autumn seafood — silver hairtail and mackerel — and for fragrant, tangy golden hallabong.',
   ja: '9月の済州は、身の締まったタチウオやサバなどの秋の海の幸と、爽やかな黄金香が最も美味しい旬の季節です。',
   zh: '九月的济州岛，正是肉质肥美的带鱼、青花鱼等秋季海鲜与清甜黄金香最当季的时节。',
 };
 
-const SEARCH_PLACEHOLDER = {
+const SEARCH_PLACEHOLDER_FALLBACK = {
   ko: '제주에 대해 검색해보세요!',
   en: 'Search about Jeju!',
   ja: '済州について検索してみてください！',
@@ -58,6 +70,125 @@ const SEARCH_PLACEHOLDER = {
   ru: 'Поиск о Чеджу!',
   id: 'Cari tentang Jeju!',
 };
+
+/** Sheet key → local fallback, resolved by {@link sheetText}. */
+const FALLBACKS: Record<string, Partial<Record<Lang, string>>> = {
+  NoticeContent: NOTICE_FALLBACK,
+  Main_Search: SEARCH_PLACEHOLDER_FALLBACK,
+};
+
+/**
+ * Localized sheet string, resolved PER LANGUAGE rather than per key.
+ *
+ * `sheetText` (lib/loc) does the resolving — sheet cell for this language, then
+ * the authored fallback for the SAME language, then `t()`'s Korean chain. A
+ * plain `t()` would hide a real regression: Localization_Jeju fills
+ * `Main_Search` in Korean only, while the copy authored here has all eight, so
+ * `t()` would answer Korean to an English visitor and look like it worked.
+ * Checked 2026-08-13: of the keys this screen uses, Main_Search is 1/8 languages
+ * and MainButton_ToEat / ToBuy / AI are 2/8 — the sheet still has gaps.
+ */
+const homeText = (key: string, lang: Lang): string => sheetText(key, lang, FALLBACKS[key]);
+
+/**
+ * Home-tile / card screen id → Localization_Jeju key, mirroring Osan's
+ * TILE_LABEL_KEYS. Only the DISPLAY label is localized — `navigate()` keeps
+ * receiving the Korean label, because that string is the analytics label and is
+ * joined against the `buttons` table (see buttonCatalog).
+ *
+ * 탐나오 and 운항 정보 have no MainButton_* row in the sheet, so they keep their
+ * authored labels; MainButton_Cruise is 운항정보's page title, not this tile.
+ *
+ * MainButton_Greeting and MainButton_ToHelp used to render "안녕 '유산'" and
+ * "도와줘 '유산'" here. That was NOT stale sheet data: Localization_Jeju is one
+ * tab shared by 제주공항 and 제주유산문화센터, so both keys carry two rows and a
+ * last-wins parser handed W006 the 유산 one. Both parsers now break the tie on
+ * the mascot name — see LocalizationSyncParser.VENUE_MASCOTS and
+ * sync-sheet.mjs jejuVenueScore. Nothing is overridden on this side.
+ */
+const TILE_LABEL_KEYS: Partial<Record<string, string>> = {
+  eat: 'MainButton_ToEat',
+  shop: 'MainButton_ToBuy',
+  lodging: 'MainButton_Accommodation',
+  taxfree: 'MainButton_TaxFree',
+  about: 'MainButton_Here',
+  hello: 'MainButton_Greeting',
+  help: 'MainButton_ToHelp',
+  rentcar: 'MainButton_RentCar',
+  exchange: 'MainButton_Exchange',
+  donation: 'MainButton_Donation',
+  localpay: 'MainButton_LocalCurrency',
+  tamnao: 'MainButton_Tamnao',
+  ai_search: 'MainButton_AI',
+  market: 'MainButton_Goods',
+  events: 'MainButton_Event',
+};
+
+/**
+ * The descriptive second line under each tile/card title, added to
+ * Localization_Jeju as `SubButton_*` on 2026-08-13. Same resolution as the
+ * titles: sheet first, authored `sub` as the fallback.
+ *
+ * 제주 is the only layout with two-line home tiles — Insadong/Osan/Hwaseong draw
+ * a single label — so this map has no counterpart on the other kiosks.
+ */
+const TILE_SUB_KEYS: Partial<Record<string, string>> = {
+  eat: 'SubButton_ToEat',
+  shop: 'SubButton_ToBuy',
+  lodging: 'SubButton_Accommodation',
+  taxfree: 'SubButton_TaxFree',
+  about: 'SubButton_Here',
+  hello: 'SubButton_Greeting',
+  help: 'SubButton_ToHelp',
+  rentcar: 'SubButton_RentCar',
+  exchange: 'SubButton_Exchange',
+  donation: 'SubButton_Donation',
+  localpay: 'SubButton_LocalCurrency',
+  tamnao: 'SubButton_Tamnao',
+  ai_search: 'SubButton_AI',
+  market: 'SubButton_Goods',
+  events: 'SubButton_Event',
+};
+
+/** A `<b>`-and-newline run, as the sheet's NoticeContent stores it. */
+interface Run {
+  text: string;
+  bold?: boolean;
+}
+
+/**
+ * Split the notice into bold/plain runs. The sheet authors it with literal
+ * `<b>…</b>` markers, which would otherwise render as visible tag text.
+ * `.noticeText b` already carries the 700 weight, so the markup maps straight
+ * onto the design.
+ *
+ * The sheet's `\n` / `<br/>` breaks become plain spaces rather than <br>: the
+ * Korean cell hard-wraps at FOUR lines, but this card's slot is THREE — the
+ * orange rule is 242px = 3 × 70px line-height + 2 × 16px padding, and
+ * `.noticeText`'s y165 + 3 lines ends at y375, exactly the rule's y391 minus
+ * that 16. So the fourth authored row hung below the rule.
+ *
+ * Re-flowing is safe because the copy is far narrower than four lines: measured
+ * in Noto Sans KR at 51px the whole Korean notice is 2438px of text — 2.4 lines
+ * against the 1033px box — so the browser wraps it to the three the design
+ * draws (ko 3, ja 3, zh 2). English is the one outlier at 3035px and still
+ * takes four rows; the line count now follows the copy and the box instead of
+ * whatever breaks the sheet happens to carry.
+ */
+function parseNotice(text: string): Run[] {
+  const runs: Run[] = [];
+  let bold = false;
+  for (const tok of text.split(/(<b>|<\/b>|<br\s*\/?>|\n)/g)) {
+    if (!tok) continue;
+    if (tok === '<b>') { bold = true; continue; }
+    if (tok === '</b>') { bold = false; continue; }
+    // A break is a word boundary, not a nbsp — HTML collapses the run of
+    // whitespace this leaves next to the sheet's own trailing spaces.
+    if (tok === '\n' || /^<br\s*\/?>$/.test(tok)) { runs.push({ text: ' ' }); continue; }
+    runs.push(bold ? { text: tok, bold: true } : { text: tok });
+  }
+  return runs;
+}
 
 // ── Date / time ────────────────────────────────────────────────────────
 const DAY_NAMES = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
@@ -72,33 +203,6 @@ function formatDateTime(d: Date): string {
   return `${y}-${m}-${day}(${DAY_NAMES[d.getDay()]})  ㅣ  ${hh}:${mm}`;
 }
 
-// ── 항공편 안내 board ───────────────────────────────────────────────────
-/**
- * The flight board's five columns. `x` is the Figma centre of each column.
- *
- * TODO(제주 W006): `PLACEHOLDER_FLIGHT` is the literal sample row drawn in the
- * Figma — there is NO flight data source wired. The kiosk has no airport API
- * today (ShopService/EventsService/WeatherService are the only feeds), so this
- * renders fixed sample values. Wire it to a real departures feed before this
- * board goes in front of travellers; a board showing a stale 대한항공 16:05 to
- * everyone is worse than no board.
- */
-const FLIGHT_COLUMNS = [
-  { key: 'airline',     head: '항공사',  x: 560 },
-  { key: 'destination', head: '목적지',  x: 866 },
-  { key: 'time',        head: '시간',    x: 1166 },
-  { key: 'gate',        head: '게이트',  x: 1400 },
-  { key: 'status',      head: '상태',    x: 1680 },
-] as const;
-
-const PLACEHOLDER_FLIGHT: Record<(typeof FLIGHT_COLUMNS)[number]['key'], string> = {
-  airline: '대한항공',
-  destination: '김해(PUS)',
-  time: '16:05',
-  gate: '7',
-  status: '탑승 중',
-};
-
 // ── Tiles ──────────────────────────────────────────────────────────────
 interface Tile {
   screen: KioskScreenId;
@@ -109,12 +213,16 @@ interface Tile {
   /** jejuIconUrl key — the exported 200×200 Figma plate. */
   icon: string;
   /**
-   * Corner radius of this tile's plate, in Figma px. Defaults to 45 (.tileArt).
-   * It has to be per-tile because the exported plates carry opaque grey corners
-   * (Figma flattens backdrop-blur nodes), and the CSS clip that hides them must
-   * match each plate's own radius — 탐나오 is drawn at 85.799, not 45.
+   * Plate colour painted BEHIND the art, at the grid's own 45px radius.
+   *
+   * Only 탐나오 needs it: its art is the 탐나오 app icon, a squircle drawn at
+   * radius ~86, which among eleven 45px plates reads as a different kind of
+   * control — a round button dropped into the grid. A plate in the icon's own
+   * red fills the corners the squircle leaves transparent, so the tile is the
+   * same 45px plate as its neighbours and the icon's roundness disappears into
+   * it. Match this to the ART, not to a palette token.
    */
-  radius?: number;
+  plate?: string;
 }
 
 /** The 12 grid tiles, in Figma reading order (4 columns × 3 rows). */
@@ -129,9 +237,12 @@ const TILES: Tile[] = [
   { screen: 'rentcar',  label: '렌트카',       sub: '간편 예약',      icon: 'tile-rentcar'  },
   { screen: 'exchange', label: '환율',         sub: '환율계산기',     icon: 'tile-exchange' },
   { screen: 'donation', label: '기부',         sub: '교복 기부',      icon: 'tile-donation' },
-  { screen: 'tamnao',   label: '탐나오',       sub: '제주공공플랫폼', icon: 'tile-tamnao', radius: 85.799 },
+  { screen: 'tamnao',   label: '탐나오',       sub: '제주공공플랫폼', icon: 'tile-tamnao', plate: '#e8534c' },
   { screen: 'localpay', label: '지역화폐',     sub: '탐나는전',       icon: 'tile-localpay' },
 ];
+
+/** Join a home tile to its CMS button row by screen key (see useOrderedTiles). */
+const jejuTileKey = (tile: Tile): TileKey => ({ screen: tile.screen });
 
 const COL_STEP = 471;
 const ROW_STEP = 325;
@@ -203,8 +314,41 @@ export function JejuHome({ controller }: Props): JSX.Element {
     : jejuIconUrl('weather-sun');
 
   const donationPending = DONATION_COMING_SOON;
-  const tileLabel = (tile: Tile): string =>
-    tile.screen === 'donation' && donationPending ? withComingSoon(tile.label, lang) : tile.label;
+  /** Resolve one of the two tile lines: the sheet's value, else the authored one. */
+  const fromSheet = (
+    map: Partial<Record<string, string>>,
+    screen: string,
+    authored: string,
+  ): string => {
+    const key = map[screen];
+    if (!key) return authored;
+    // `t()` answers the sheet's Korean for a language it has no cell for, and the
+    // key itself when the row is gone entirely — the latter is what the fallback
+    // is for. SubButton_Transport is authored blank in the sheet, so guard '' too.
+    const value = t(key, lang);
+    return !value || value === key ? authored : value;
+  };
+  /** Display label: the sheet's when the tile has a key, else the authored one. */
+  const labelFor = (screen: string, authored: string): string =>
+    fromSheet(TILE_LABEL_KEYS, screen, authored);
+  const subFor = (screen: string, authored: string): string =>
+    fromSheet(TILE_SUB_KEYS, screen, authored);
+  const tileLabel = (tile: Tile): string => {
+    const base = labelFor(tile.screen, tile.label);
+    return tile.screen === 'donation' && donationPending ? withComingSoon(base, lang) : base;
+  };
+  const noticeRuns = parseNotice(homeText('NoticeContent', lang));
+
+  /**
+   * Grid order from the buttons CMS (`/api/kiosks/6/buttons`), falling back to the
+   * authored order when the layout is not cached or any tile fails to match.
+   *
+   * The 12 seeded rows agree with the Figma today — lines 5/6/7 are exactly
+   * 뭐먹지·뭐사지·숙박·TAX-FREE / 여기는·안녕·도와줘·렌트카 / 환율·기부·탐나오·지역화폐 —
+   * so this changes nothing on screen right now. It is wired so a CMS reorder
+   * moves the grid without a release, which is how the other kiosks behave.
+   */
+  const orderedTiles = useOrderedTiles(controller.kioskId, TILES, jejuTileKey);
 
   return (
     <div className={styles.root}>
@@ -226,7 +370,9 @@ export function JejuHome({ controller }: Props): JSX.Element {
       {/* ── 공지 card + weather ── */}
       <div className={styles.notice}>
         <div className={styles.noticeRule} />
-        <p className={styles.noticeText}>{pick(NOTICE, lang)}</p>
+        <p className={styles.noticeText}>
+          {noticeRuns.map((run, i) => (run.bold ? <b key={i}>{run.text}</b> : <span key={i}>{run.text}</span>))}
+        </p>
 
         {/* Tapping the weather plays today's condition clip on the customer
             display (Weather_Rain/Cold/Sunny), same as the other kiosks. */}
@@ -245,19 +391,8 @@ export function JejuHome({ controller }: Props): JSX.Element {
         </div>
       </div>
 
-      {/* ── 항공편 안내 (placeholder data — see PLACEHOLDER_FLIGHT) ── */}
-      <div className={styles.flight}>
-        <p className={styles.flightTitle}>항공편 안내</p>
-        <div className={styles.flightRule} />
-        {FLIGHT_COLUMNS.map((col) => (
-          <div key={col.key} className={styles.flightCol}>
-            <span className={styles.flightHead} style={{ left: col.x }}>{col.head}</span>
-            <span className={styles.flightValue} style={{ left: col.x }}>
-              {PLACEHOLDER_FLIGHT[col.key]}
-            </span>
-          </div>
-        ))}
-      </div>
+      {/* ── 운항 정보 board — three 현황 conditions, see JejuFlightBoard ── */}
+      <JejuFlightBoard controller={controller} lang={lang} />
 
       {/* ── Search row ── */}
       <div className={styles.searchRow}>
@@ -274,7 +409,7 @@ export function JejuHome({ controller }: Props): JSX.Element {
 
         <div className={styles.searchField} onClick={() => setSearching(true)} role="button">
           <span className={`${styles.searchText} ${query ? styles.searchValue : styles.searchPlaceholder}`}>
-            {query || pick(SEARCH_PLACEHOLDER, lang)}
+            {query || homeText('Main_Search', lang)}
             {searching && <span className={styles.searchCaret} />}
           </span>
           {jejuIconUrl('ico-search') && (
@@ -301,8 +436,8 @@ export function JejuHome({ controller }: Props): JSX.Element {
             className={`${styles.card} ${styles[card.variant]}`}
             onClick={() => go(card.screen, card.label)}
           >
-            <span className={styles.cardTitle}>{card.label}</span>
-            <span className={styles.cardSub}>{card.sub}</span>
+            <span className={styles.cardTitle}>{labelFor(card.screen, card.label)}</span>
+            <span className={styles.cardSub}>{subFor(card.screen, card.sub)}</span>
             {jejuIconUrl(card.icon) && (
               <img src={jejuIconUrl(card.icon)} alt="" className={styles.cardArt} draggable={false} />
             )}
@@ -313,7 +448,7 @@ export function JejuHome({ controller }: Props): JSX.Element {
       {/* ── Menu grid ── */}
       <div className={styles.panel} />
       <div className={styles.grid}>
-        {TILES.map((tile, i) => {
+        {orderedTiles.map((tile, i) => {
           const art = jejuIconUrl(tile.icon);
           const disabled = tile.screen === 'donation' && donationPending;
           return (
@@ -326,19 +461,18 @@ export function JejuHome({ controller }: Props): JSX.Element {
               disabled={disabled}
             >
               {art ? (
-                <img
-                  src={art}
-                  alt=""
-                  className={styles.tileArt}
-                  style={tile.radius ? { borderRadius: tile.radius } : undefined}
-                  draggable={false}
-                />
+                <>
+                  {tile.plate && (
+                    <span className={styles.tilePlate} style={{ background: tile.plate }} />
+                  )}
+                  <img src={art} alt="" className={styles.tileArt} draggable={false} />
+                </>
               ) : (
                 <span className={styles.tileArtMissing}>{tile.label[0]}</span>
               )}
               <span className={styles.tileText}>
                 <span className={styles.tileTitle}>{tileLabel(tile)}</span>
-                <span className={styles.tileSub}>{tile.sub}</span>
+                <span className={styles.tileSub}>{subFor(tile.screen, tile.sub)}</span>
               </span>
             </button>
           );

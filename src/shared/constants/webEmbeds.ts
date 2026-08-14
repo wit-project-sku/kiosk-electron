@@ -33,6 +33,12 @@ export const WEB_EMBED_URLS = {
    */
   donation: 'https://witglobaldonation.vercel.app/#/?location=insadong&kiosk=1',
 
+  /**
+   * 탐나오 — 제주's public tourism platform (제주공공플랫폼), the 탐나오 home tile
+   * on W006. Jeju-only: no other location has this screen.
+   */
+  tamnao: 'https://www.tamnao.com/',
+
   /** 인사동 이벤트 — event listing */
   events: 'https://withevent.kr/kiosk/events?region=jongno&category=ALL&page=1',
   // events (오색시장): 'https://withevent.kr/kiosk/events?region=Osansi'

@@ -62,6 +62,21 @@ export interface KioskLocation {
   aiCompanion: AiCompanionCode;
   /** Weather coordinates for this physical location (OpenWeatherMap query). */
   coordinates: GeoCoordinates;
+  /**
+   * `kioskId` to send to the SHOP API (`/api/shops?kioskId=`) when it differs
+   * from this kiosk's own W-code number.
+   *
+   * Normally the two are the same — W004's shops are at `?kioskId=4`. 제주 is
+   * the exception: its catalogue is filed under 7 (verified 2026-08-12, prod and
+   * stage both: `?kioskId=6` returns `data: []`, `?kioskId=7` returns 310 rows
+   * that all carry `kioskId: 7`).
+   *
+   * This is SHOP-ONLY. The per-kiosk endpoints (`/api/kiosks/{n}/banners`,
+   * `/buttons`, `/subtitles`, stats, update-command) still key off the W-code
+   * number — W006's banners live at 6 and 7 has none — so `KioskService.kioskNum()`
+   * deliberately ignores this field. See ShopService.
+   */
+  shopApiKioskId?: number;
 }
 
 /** Insadong, Seoul — W001–W003 (북/남인사마당, 인사동쉼터). */
@@ -96,7 +111,7 @@ export const KIOSK_LOCATIONS: Record<KioskLocationCode, KioskLocation> = {
   // it), and `aiCompanion` currently sends 인사('2') because Digicon has no 제주
   // mascot code yet — set it once the 같이찍기 character is decided, or 제주 photos
   // will composite the Insadong character.
-  W006: { code: 'W006', name: '제주공항', layout: 'JEJU_AIRPORT', secondTile: MARKET_TILE, hasCardTerminal: true, hasDonation: true, aiCompanion: '2', coordinates: JEJU_AIRPORT_COORDS },
+  W006: { code: 'W006', name: '제주공항', layout: 'JEJU_AIRPORT', secondTile: MARKET_TILE, hasCardTerminal: true, hasDonation: true, aiCompanion: '2', coordinates: JEJU_AIRPORT_COORDS, shopApiKioskId: 7 },
 };
 
 /** Resolve a location by kiosk id, falling back to W001 (북인사마당). */
@@ -112,4 +127,14 @@ export function getKioskLayout(kioskId: KioskId): KioskLayoutId {
 /** Weather coordinates for a kiosk — derived from kioskId (falls back to Insadong). */
 export function getKioskCoordinates(kioskId: KioskId): GeoCoordinates {
   return getKioskLocation(kioskId).coordinates;
+}
+
+/**
+ * The shop API's `kioskId` for a kiosk, or `undefined` when it is just the
+ * W-code number. Authored in {@link KIOSK_LOCATIONS} so a machine works from a
+ * plain `provision-kiosk.ps1 W006` with no `-ShopId` — see
+ * {@link KioskLocation.shopApiKioskId} for why this is shop-only.
+ */
+export function getShopApiKioskId(kioskId: KioskId): number | undefined {
+  return getKioskLocation(kioskId).shopApiKioskId;
 }

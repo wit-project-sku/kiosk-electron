@@ -3,6 +3,7 @@ import { toLocalizedLang, type LocalizedLang } from '@shared/config/languages';
 import { LOCALIZATION } from '@renderer/data/localization.generated';
 import { LOCALIZATION_OSAEK } from '@renderer/data/localization-osaek.generated';
 import { LOCALIZATION_HWASEONG } from '@renderer/data/localization-hwaseong.generated';
+import { LOCALIZATION_JEJU } from '@renderer/data/localization-jeju.generated';
 import { getKioskLocation } from '@shared/config/kioskLocations';
 import { useKioskStore } from '@renderer/store/kioskStore';
 
@@ -14,18 +15,19 @@ const locLang = (lang: Lang): LocLang => toLocalizedLang(lang);
 
 /**
  * Bundled fallback table for the running location: Osaek for W004 (OSAN),
- * Hwaseong for W005 (HWASEONG), else insadong (W001–W003).
+ * Hwaseong for W005 (HWASEONG), Jeju for W006 (JEJU_AIRPORT), else insadong
+ * (W001–W003).
  *
- * TODO(제주 W006): JEJU_AIRPORT deliberately falls through to the Insadong table
- * until a Localization_Jeju sheet exists and `npm run sync:sheet` emits
- * localization-jeju.generated.ts — showing Insadong's Korean strings is a far
- * better cold start than an empty table, which makes every t() render its raw
- * key. Add the import + branch the moment the generated file lands.
+ * 제주 joined on 2026-08-13 — Localization_Jeju carries 233 keys, of which ~230
+ * have Korean and ~124 are translated. A key the 제주 sheet has not filled falls
+ * back to its own Korean (see `t`), NOT to the Insadong table: borrowing another
+ * location's copy is what the per-layout split exists to prevent.
  */
 function bundledTable(): typeof LOCALIZATION {
   const layout = getKioskLocation(useKioskStore.getState().config.kioskId).layout;
   if (layout === 'OSAN') return LOCALIZATION_OSAEK;
   if (layout === 'HWASEONG') return LOCALIZATION_HWASEONG;
+  if (layout === 'JEJU_AIRPORT') return LOCALIZATION_JEJU;
   return LOCALIZATION;
 }
 
@@ -70,4 +72,34 @@ export function tExact(key: string, lang: Lang): string {
 /** True when a key exists in either the live or bundled localization tables. */
 export function hasLoc(key: string): boolean {
   return key in bundledTable() || key in useKioskStore.getState().translations;
+}
+
+/**
+ * Sheet string for THIS language, with an authored fallback — resolved PER
+ * LANGUAGE rather than per key.
+ *
+ * The order is what makes a partly-translated sheet safe:
+ *   1. `tExact` — the sheet's own cell for this language. The sheet is
+ *      authoritative wherever it has an answer, even if it stores English in a
+ *      ja slot; following it is the whole point of the sheet.
+ *   2. the authored fallback for the SAME language.
+ *   3. `t()`'s Korean chain, and finally the fallback's Korean.
+ *
+ * Step 2 before step 3 is the part that matters. Localization_Jeju fills its
+ * page copy in Korean only while the screens carry all eight languages, so a
+ * plain `t()` would answer Korean to an English visitor and look like it worked
+ * — a real regression that nothing reports. This way the sheet drives every cell
+ * it has filled, and the authored copy covers the gaps until it does.
+ *
+ * Used by the 제주 screens that read long-form copy (홈 notice, 여기는 제주도,
+ * 안녕 '하영', 지역화폐); `t()` remains the right call for keys the sheet
+ * translates fully.
+ */
+export function sheetText(key: string, lang: Lang, fallback?: Partial<Record<Lang, string>>): string {
+  const exact = tExact(key, lang);
+  if (exact) return exact;
+  const authored = fallback?.[lang];
+  if (authored) return authored;
+  const value = t(key, lang);
+  return value === key ? (fallback?.ko ?? '') : value;
 }

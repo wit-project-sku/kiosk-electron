@@ -138,6 +138,25 @@ async function bootstrap(): Promise<void> {
       windowManager?.broadcast(IpcEvents.BannersChanged, null);
     }),
   );
+  // The AR 배경 테마 set is operator-swappable CMS content like the banners, so
+  // it refreshes nightly too — a background retired today disappears from the
+  // 제주 outfit screen without waiting for the next reboot.
+  container.sync.addNightTask(() =>
+    container.backgrounds.refresh().then(() => {
+      windowManager?.broadcast(IpcEvents.BackgroundsChanged, null);
+    }),
+  );
+  // The outfit catalogue is CMS content an operator edits during the day, so it
+  // refreshes nightly like the banners — a new outfit appears on the picker
+  // without a rebuild, which is the whole point of moving it off the bundle.
+  container.sync.addNightTask(() =>
+    container.outfits.refresh().then(() => {
+      windowManager?.broadcast(IpcEvents.OutfitsChanged, null);
+    }),
+  );
+  // Waiting-game rounds are rotating promo-ish content like the banners, so they
+  // refresh nightly too — a new round set goes live without a reboot.
+  container.sync.addNightTask(() => container.spotDiff.refresh().then(() => undefined));
   container.sync.start();
 
   windowManager = new WindowManager(container);
@@ -202,6 +221,20 @@ async function bootstrap(): Promise<void> {
   // very first launch (cache is empty until this first fetch completes).
   void container.banners.refresh().then(() => {
     windowManager?.broadcast(IpcEvents.BannersChanged, null);
+  });
+  // Refresh the AR 배경 테마 set from the witteria API into SQLite (background),
+  // then tell the renderer to reload — same first-launch reason as the banners.
+  void container.backgrounds.refresh().then(() => {
+    windowManager?.broadcast(IpcEvents.BackgroundsChanged, null);
+  });
+  // 틀린그림찾기 rounds for the AR 한복 waiting game. No broadcast: the renderer
+  // asks for a round when a photo session starts, not at boot, so a late arrival
+  // here is picked up by the next session on its own.
+  void container.spotDiff.refresh();
+  // The outfit catalogue, on the other hand, IS on screen as soon as someone
+  // taps AR 한복체험, so the renderer is told when it lands.
+  void container.outfits.refresh().then(() => {
+    windowManager?.broadcast(IpcEvents.OutfitsChanged, null);
   });
 
   app.on('activate', () => {

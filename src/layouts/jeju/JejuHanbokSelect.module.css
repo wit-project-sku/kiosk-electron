@@ -1,0 +1,680 @@
+/*
+ * 제주공항 (W006) AR 한복체험 — outfit selection. Figma frames 6258:48134 /
+ * 48264 (개인정보 modal) / 48326 / 48469 / 48575 / 48693 / 49124.
+ *
+ * Inside KioskArtboard 1 CSS px = 1 Figma px (2160×3840), so every value here is
+ * the exact number read out of the design.
+ *
+ * y map (Figma draws the body from 594, just under the header's last visible
+ * row at 494 — JejuHeader's box is 700 but paints nothing below 494, so the
+ * design's absolute values are used verbatim):
+ *   594…699   ① 의상 선택하기
+ *   739…786   ★ subtitle
+ *   844…1219  category tabs, 2 rows of 4
+ *  1236…1354  sub-category chips — CHIPPED CATEGORIES ONLY
+ *  1385…1875  outfit cards, ONE row   (chipped category — a Swiper, because
+ *             4×478 + 3×30 = 2002 overruns the 1820)
+ *  1387…2397  outfit cards, TWO rows  (unchipped — takes the chip row's space)
+ *  1978…2083  ② 배경 테마 선택하기
+ *  2141…2903  background themes (scrolls horizontally)
+ *  3006…3156  capture buttons
+ *  3267…3840  banner
+ */
+.root {
+  position: absolute;
+  inset: 0;
+  width: 2160px;
+  height: 3840px;
+  overflow: hidden;
+  font-family: var(--kiosk-font, 'Noto Sans KR', 'Noto Sans', sans-serif);
+}
+
+.bg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  pointer-events: none;
+}
+
+/* ── Step headings ──────────────────────────────────────────────────── */
+.step {
+  position: absolute;
+  left: 170px;
+  display: flex;
+  align-items: center;
+  gap: 21.45px;
+}
+
+.stepOutfit {
+  top: 594px;
+}
+
+.stepTheme {
+  top: 1978px;
+}
+
+.stepBadge {
+  width: 105px;
+  height: 105px;
+  flex: 0 0 auto;
+  border-radius: 50%;
+  background: var(--kiosk-primary, #ff7f0f);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 65px;
+  font-weight: 700;
+  line-height: 1;
+  color: #fff;
+}
+
+.stepTitle {
+  margin: 0;
+  font-size: 68px;
+  font-weight: 700;
+  line-height: 1;
+  color: #333;
+  white-space: nowrap;
+}
+
+.subtitle {
+  position: absolute;
+  left: 210px; /* 170 + the row's own 40 padding */
+  top: 739px;
+  height: 47px;
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.subtitleStar {
+  width: 36.465px;
+  height: 36.465px;
+  object-fit: contain;
+  flex: 0 0 auto;
+}
+
+.subtitleText {
+  margin: 0;
+  font-size: 47px;
+  font-weight: 700;
+  line-height: 1;
+  color: #909090;
+  white-space: nowrap;
+}
+
+/* ── Category tabs ──────────────────────────────────────────────────── */
+.cats {
+  position: absolute;
+  left: 170px;
+  top: 844px;
+  width: 1820px;
+  display: flex;
+  flex-direction: column;
+  gap: 35px; /* 205 pitch − 170 row */
+}
+
+.catRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 170px;
+}
+
+.cat {
+  width: 420px;
+  height: 170px;
+  box-sizing: border-box;
+  padding: 0;
+  border: 5px solid #e8e8e8;
+  border-radius: 42.9px;
+  background: #fff;
+  font-size: 50px;
+  font-weight: 500;
+  line-height: 1;
+  color: #999;
+  text-align: center;
+  white-space: nowrap;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.catActive {
+  border-color: var(--kiosk-primary, #ff7f0f);
+  background: #ffecd1;
+  font-weight: 700;
+  color: var(--kiosk-primary, #ff7f0f);
+}
+
+/* ── Step ② body: 배경 테마 (제주) or 사진촬영안내 (everything else) ────── */
+/*
+ * The two conditions do NOT share a slot. 제주 puts ② 배경 테마 at 1978 with the
+ * capture buttons under it at 3006 (6258:48575/48469/48693); every other tab
+ * drops the buttons to 2469 and hangs the 사진촬영안내 card BELOW them at 2688
+ * (6258:48327). The card is not a numbered step — it is a bulleted orange
+ * heading — so it carries no ② badge.
+ */
+.guide {
+  position: absolute;
+  left: 171px;
+  top: 2688px;
+  width: 1820px;
+  height: 500px;
+  box-sizing: border-box;
+  padding: 65px 40px;
+  border: 5px solid #e8e8e8;
+  border-radius: 42.9px;
+  background: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+/* The left column is a 1429×398 block with three absolutely-placed rows —
+   Figma stacks them at 0 / 117.64 / 351.44 inside it. */
+.guideMain {
+  position: relative;
+  flex: 0 0 1429px;
+  width: 1429px;
+  height: 398px;
+}
+
+/* Figma draws this as a <li> with `list-disc` and a 102px indent: the marker
+   sits at 45 and the label starts at 102. */
+.guideTitle {
+  position: absolute;
+  left: 45px;
+  top: 0;
+  display: flex;
+  align-items: center;
+  gap: 39px;
+}
+
+.guideDot {
+  width: 18px;
+  height: 18px;
+  flex: 0 0 auto;
+  border-radius: 50%;
+  background: var(--kiosk-primary, #ff7f0f);
+}
+
+.guideTitleText {
+  margin: 0;
+  font-size: 68px;
+  font-weight: 700;
+  line-height: 1;
+  color: var(--kiosk-primary, #ff7f0f);
+  white-space: nowrap;
+}
+
+.guideSub {
+  position: absolute;
+  left: 40px;
+  top: 117.64px;
+  display: flex;
+  align-items: flex-start;
+  gap: 20px;
+}
+
+.guideStar {
+  width: 40px;
+  height: 40px;
+  flex: 0 0 auto;
+  object-fit: contain;
+  margin-top: 6px;
+}
+
+.guideLines {
+  display: flex;
+  flex-direction: column;
+  font-size: 47px;
+  font-weight: 700;
+  line-height: 50px;
+  color: #909090;
+  white-space: nowrap;
+}
+
+.guidePrivacy {
+  position: absolute;
+  left: 42.9px;
+  top: 351.44px;
+  padding: 0;
+  border: none;
+  background: none;
+  font-size: 47px;
+  font-weight: 700;
+  line-height: 1;
+  color: #d0d2d3;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.guideInfo {
+  flex: 0 0 235px;
+  width: 235px;
+  padding: 0;
+  border: none;
+  background: none;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 24px;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Figma's `Ellipse 23`, drawn rather than shipped: a flat #76B6FE disc. */
+.guideInfoCircle {
+  width: 235px;
+  height: 235px;
+  border-radius: 50%;
+  background: #76b6fe;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+/*
+ * Fills the 235 disc, and THAT is what makes the 한복 render its Figma 91×155.
+ *
+ * The trap: 91×155 is the size of the GARMENT inside the disc, not of the image
+ * element. hanbok-info.png is a 235×235 plate that already carries the blue
+ * disc with the hanbok drawn inside it (the CSS disc above is the same #76b6fe
+ * sitting behind it). Setting the img itself to 91×155 shrank the WHOLE plate —
+ * disc and all — to 91 wide, so the garment inside came out around 35×60: a
+ * tiny hanbok on a tiny disc, centred on the real one.
+ *
+ * At 100% the artwork's own disc lines up with the CSS disc, and its garment
+ * lands at 91×155 of the 235 — the Figma measurement, reproduced rather than
+ * forced. Same reason the shared step (HanbokSelect .hanbokInfoCircle img) does
+ * it this way.
+ */
+.guideInfoCircle img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.guideInfoLabel {
+  font-size: 47px;
+  font-weight: 600;
+  line-height: 1;
+  color: #333;
+  text-align: center;
+  white-space: nowrap;
+}
+
+/* ── Sub-category chips ────────────────────────────────── */
+/*
+ * 6258:48134: a category that spans more than one source folder gets a chip row
+ * between the tabs and the grid (여자 한복 / 남자 한복). Measured off that
+ * frame — row at 1236, 118 tall, first chip 171→448, the next starting at 496,
+ * so the chips are content-sized with a 46 gutter.
+ */
+.subChips {
+  position: absolute;
+  left: 170px;
+  top: 1236px;
+  width: 1820px;
+  height: 118px;
+  display: flex;
+  align-items: center;
+  gap: 46px;
+  overflow-x: auto;
+  overflow-y: hidden;
+  scrollbar-width: none;
+}
+
+.subChips::-webkit-scrollbar {
+  display: none;
+}
+
+.subChip {
+  flex: 0 0 auto;
+  height: 118px;
+  box-sizing: border-box;
+  padding: 0 42.9px;
+  border: 5px solid #e8e8e8;
+  border-radius: 59px;
+  background: #fff;
+  font-size: 45px;
+  font-weight: 500;
+  line-height: 1;
+  color: #999;
+  white-space: nowrap;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.subChipActive {
+  border-color: var(--kiosk-primary, #ff7f0f);
+  background: #ffecd1;
+  font-weight: 700;
+  color: var(--kiosk-primary, #ff7f0f);
+}
+
+/* ── Outfit cards ───────────────────────────────────────────────────── */
+/*
+ * Four 478 cards + three 30 gaps overrun the 1820 column, so the strip is a
+ * Swiper — the same component (and the same freeMode + Grid recipe) the shared
+ * step gives every other layout, rather than a bare `overflow-x` box: a
+ * catalogue tab can hold dozens of outfits, and Swiper is what carries the
+ * drag momentum and the mouse-drag the kiosk's own touch layer doesn't.
+ * The Swiper root only carries the frame; slide widths come from
+ * `slidesPerView`, so no width is set on the card here.
+ */
+/*
+ * ── One row or two: the ② 배경 테마 step decides ────────────────────────
+ * Where that step exists it occupies 1978 onward, so the strip gets ONE row
+ * (490 at 1385). Where it does not, the strip takes the space back as TWO rows
+ * (1010 at 1387 — the same 490 card on a 520 pitch, 6258:48134).
+ */
+.outfits {
+  position: absolute;
+  left: 170px;
+  top: 1385px;
+  width: 1820px;
+  height: 490px;
+}
+
+/* No chip row above → the strip takes the space back as a second row. */
+.outfitsGrid {
+  top: 1387px;
+  height: 1010px;
+}
+
+/* Both conditions draw a 490 card; forcing it here keeps the two-row grid off
+   Swiper's internal rounding, which is what the shared step does too. */
+.outfitSlide {
+  height: 490px !important;
+  box-sizing: border-box;
+}
+
+/*
+ * ★ Kill Swiper's auto-centring for a short list.
+ *
+ * `swiper/modules/free-mode.css` puts `margin: 0 auto` on `.swiper-wrapper`.
+ * With two rows and only 1–3 outfits the wrapper is narrower than the strip
+ * (3 columns = 1524 of 1820), so `auto` split the remaining 296 into 148 a
+ * side and the cards floated into the MIDDLE of the strip instead of starting
+ * at the left edge like every full tab. `margin-right: auto` keeps the wrapper
+ * hugging the left; the left margin has to be an explicit 0 to beat it.
+ *
+ * Only visible with the grid, because in one-row mode Swiper sizes the wrapper
+ * to the full container and `auto` resolves to 0 — which is why this looked
+ * like a "some tabs are centred" bug rather than a general one. The shared
+ * HanbokSelect uses freeMode too and has the same latent behaviour.
+ */
+.outfits :global(.swiper-wrapper) {
+  margin-left: 0;
+  margin-right: auto;
+}
+
+.outfit {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  box-sizing: border-box;
+  padding: 0;
+  border: 5px solid #e8e8e8;
+  border-radius: 42.9px;
+  background: #fff;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.outfitActive {
+  border-color: var(--kiosk-primary, #ff7f0f);
+  background: #ffecd1;
+}
+
+/*
+ * Figma places the render at 150,69 in a 478 card — i.e. horizontally centred,
+ * 181×350.
+ *
+ * ★ `cover`, not `contain`. The catalogue ships 700×700 SQUARES with the
+ * garment centred, so `contain` fitted them to 181×181 and drew a garment ~155
+ * tall inside a 490 card — the "why is the outfit so small in its box" bug. The
+ * design's plate is 181×350 (aspect .52) and the shared step already uses
+ * `cover` for the same assets; covering scales the square by .5 and trims the
+ * empty margins at the sides, which is what fills the plate the way the frame
+ * draws it.
+ */
+.outfitImg {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  top: 64px; /* 69 − the 5px border */
+  width: 181px;
+  height: 350px;
+  object-fit: cover;
+  pointer-events: none;
+}
+
+.emptyCat {
+  position: absolute;
+  left: 170px;
+  top: 1385px;
+  width: 1820px;
+  height: 490px;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 50px;
+  font-weight: 500;
+  line-height: 1.4;
+  color: #909090;
+  text-align: center;
+}
+
+/* ── Background themes ──────────────────────────────────────────────── */
+/*
+ * The plates are the ACTIVE backgrounds assigned to this kiosk
+ * (`GET /api/kiosks/{n}/backgrounds`); the row is empty — and the whole step is
+ * dropped — for a kiosk that has none.
+ *
+ * ★ The PICK still goes nowhere. `ARImageTransport` posts
+ * image / outfit / together_with / gender / request_ids and the Digicon
+ * endpoints take no scene parameter, so the chosen `backgroundId` is
+ * deliberately NOT threaded into photoStore or the workflow — it would be
+ * dropped silently on the way out, which is worse than an obviously local
+ * control. The compositing server is meant to take the id; wire it through the
+ * moment the AR request grows that field. The selection already lives in one
+ * piece of state (`backgroundId` in JejuHanbokSelect).
+ */
+.themes {
+  position: absolute;
+  left: 170px;
+  top: 2141px;
+  width: 1820px;
+  height: 762px;
+  display: flex;
+  align-items: center;
+  gap: 35px; /* 416 pitch − 381 card */
+  overflow-x: auto;
+  overflow-y: hidden;
+  scrollbar-width: none;
+}
+
+.themes::-webkit-scrollbar {
+  display: none;
+}
+
+/*
+ * The bare plate is a WHITE card under a 20% black wash (6258:48649 —
+ * `rgba(0,0,0,.2)` over `#fff`, i.e. #ccc), 5px #e8e8e8, r45. Selecting turns
+ * the border orange, which is exactly the difference between 6258:48575 and
+ * 6258:48469 — the latter's row LOOKS like it gained a card at the front, but
+ * that is the designer's bare base plate (Group 1707482748) stacked over the
+ * row, the same placeholder-stacking the 제주 frames use elsewhere. Implemented
+ * as a state on the existing card, not an extra card.
+ *
+ * `background` is only ever seen on a plate with no photo; the plate WITH one is
+ * toned by `.theme::after` instead — see the note there.
+ */
+.theme {
+  position: relative;
+  flex: 0 0 381px;
+  width: 381px;
+  height: 762px;
+  box-sizing: border-box;
+  padding: 0;
+  border: 5px solid #e8e8e8;
+  border-radius: 45px;
+  background: #ccc;
+  overflow: hidden;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.themeActive {
+  border-color: var(--kiosk-primary, #ff7f0f);
+  background: #fff;
+}
+
+.themeImg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  pointer-events: none;
+}
+
+/*
+ * ★ The milky veil. The design's plate was drawn before there were any photos:
+ * its wash lived in the plate's own `background`, which a full-bleed photo
+ * covers completely — taking the centred name down with it.
+ *
+ * So the wash moves ON TOP of the photo, and the name goes dark to sit on it.
+ * 42% white + #222 is a MEASURED pair, not a guess: sampling the label band of
+ * all three live previews, the worst pixel behind the text goes from 1.02 with
+ * the old white-on-photo (i.e. literally invisible) to 3.3, averaging 5–8.
+ * Below ~40% the worst case drops under 3:1 again.
+ *
+ * `z-index` is what orders this against the label: the veil is the button's
+ * ::after, i.e. its LAST child, so without it the veil would paint over the
+ * very text it exists to make readable.
+ */
+.theme::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  border-radius: 40px; /* 45 card radius − 5 border */
+  background: rgba(255, 255, 255, 0.42);
+  pointer-events: none;
+}
+
+/*
+ * …and the selected plate gets a white matte INSIDE the orange rule.
+ *
+ * The veil alone does not do this job — measured, it does the opposite.
+ * #ff7f0f sits at mid luminance, so lifting the photo towards white moves it
+ * TOWARDS the border's own tone: along the card edge, the share of pixels where
+ * the orange holds less than 1.5:1 against the photo behind it goes 6% → 48%
+ * once the veil is on. The matte is what actually separates the two, and it
+ * costs no border width — the orange rule stays the drawn 5px.
+ */
+.themeActive::after {
+  box-shadow: inset 0 0 0 5px rgba(255, 255, 255, 0.9);
+}
+
+/* Figma centres the label at y348 in a 762 card. Dark ink, because it now sits
+   on the veil rather than straight on the photo; the white glow covers the
+   darker scenes the veil only partly lifts. */
+.themeLabel {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 343px;
+  z-index: 1;
+  margin: 0;
+  font-size: 45px;
+  font-weight: 700;
+  line-height: 1;
+  color: #222;
+  text-align: center;
+  white-space: nowrap;
+  text-shadow: 0 1px 8px rgba(255, 255, 255, 0.85);
+}
+
+/* ── Capture buttons ────────────────────────────────────────────────── */
+.captureRow {
+  position: absolute;
+  left: 187px;
+  top: 3006px;
+  width: 1740px;
+  height: 150px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.capture {
+  width: 815px;
+  height: 150px;
+  box-sizing: border-box;
+  padding: 0 50px;
+  border: none;
+  border-radius: 42.9px;
+  background: var(--photo-accent-alt, #616161);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 30px;
+  font-size: 58px;
+  font-weight: 700;
+  line-height: 1;
+  color: #e9e9e9;
+  white-space: nowrap;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.captureIcon {
+  width: 68.64px;
+  height: 68.64px;
+  flex: 0 0 auto;
+}
+
+/* Both frames draw these identically, but neither has an outfit chosen AND a
+   live button — capture cannot run without a selection, so the gate is shown
+   rather than letting a normal-looking button do nothing. */
+/* The 사진촬영안내 condition lifts the row to 2469 and centres it in the
+   artboard (1740 wide → left 210), because the card sits underneath it. */
+.captureRowGuide {
+  left: 210px;
+  top: 2469px;
+}
+
+.captureDisabled {
+  opacity: 0.45;
+  cursor: default;
+}
+
+/* The 개인정보처리방침 link is NOT a page-level control: it lives inside the
+   사진촬영안내 card (`.guidePrivacy`), so the 제주 tab — which shows 배경 테마
+   instead of that card — carries no link, exactly as 6258:48693 draws it. */
+
+/* ── Banner ─────────────────────────────────────────────────────────── */
+.banner {
+  position: absolute;
+  left: 0;
+  top: 3267px;
+  width: 2160px;
+  height: 573px;
+  overflow: hidden;
+}
+
+.banner img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}

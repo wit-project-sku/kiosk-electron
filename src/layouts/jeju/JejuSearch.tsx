@@ -20,15 +20,14 @@ import { pick } from '@renderer/lib/i18n';
 import {
   searchShops,
   shopAddress,
-  shopBaseCategory,
   shopDescription,
   shopHashtag,
   shopImages,
   shopName,
   shopSecondCategory,
 } from '@renderer/lib/shops';
-import { highlightMatch } from '@renderer/lib/highlightMatch';
 import { JejuPageFrame } from './JejuPageFrame';
+import { JejuShopCard } from './JejuShopCard';
 import { FloatingKeyboard } from '../insadong/keyboard/FloatingKeyboard';
 import { HangulComposer } from '../insadong/keyboard/hangul';
 import type { KeyAction } from '../insadong/keyboard/VirtualKeyboard';
@@ -65,9 +64,6 @@ const T = {
     id: (q: string) => `Tidak ada hasil untuk '${q}'`,
   },
 };
-
-/** Thumbnails per card — the Figma draws a fixed 2×2 grid. */
-const THUMBS = 4;
 
 /** One scroll-button press moves by a card + its gap. */
 const SCROLL_STEP = 590;
@@ -113,7 +109,9 @@ export function JejuSearch({ controller }: Props): JSX.Element {
   const openDetail = (shop: Shop): void => {
     setDetail({
       from: 'search',
-      title: shopBaseCategory(shop, lang) || '검색',
+      // The detail header reads "검색 > 상세" per the Figma, so the source label
+      // is the screen name — not the shop's base category.
+      title: '검색',
       name: shopName(shop, lang),
       category: shopSecondCategory(shop, lang),
       photos: shopImages(shop),
@@ -146,49 +144,15 @@ export function JejuSearch({ controller }: Props): JSX.Element {
 
         {results.length > 0 ? (
           <div className={styles.list}>
-            {results.map((shop) => {
-              const images = shopImages(shop);
-              return (
-                <button
-                  key={shop.id}
-                  type="button"
-                  className={styles.card}
-                  onClick={() => openDetail(shop)}
-                >
-                  <span className={styles.info}>
-                    <span className={styles.nameRow}>
-                      <span className={styles.name}>
-                        {highlightMatch(shopName(shop, lang), query, styles.hl)}
-                      </span>
-                      <span className={styles.cat}>
-                        <span className={styles.dot} />
-                        {shopSecondCategory(shop, lang)}
-                      </span>
-                    </span>
-                    <p className={styles.address}>
-                      {highlightMatch(shopAddress(shop, lang), query, styles.hl)}
-                    </p>
-                    <p className={styles.desc}>
-                      {highlightMatch(shopDescription(shop, lang), query, styles.hl)}
-                    </p>
-                    <p className={styles.tags}>
-                      {highlightMatch(shopHashtag(shop, lang), query, styles.hl)}
-                    </p>
-                  </span>
-
-                  {/* Always four slots so the 2×2 grid holds its shape; a shop
-                      with fewer photos shows empty tinted tiles rather than a
-                      ragged grid. There is no Jeju `noimage` asset to pad with. */}
-                  <span className={styles.photos}>
-                    {Array.from({ length: THUMBS }, (_, j) => (
-                      <span key={j} className={styles.thumb}>
-                        {images[j] && <img src={images[j]} alt="" draggable={false} loading="lazy" />}
-                      </span>
-                    ))}
-                  </span>
-                </button>
-              );
-            })}
+            {results.map((shop) => (
+              <JejuShopCard
+                key={shop.id}
+                shop={shop}
+                lang={lang}
+                query={query}
+                onClick={() => openDetail(shop)}
+              />
+            ))}
           </div>
         ) : (
           <p className={styles.empty}>

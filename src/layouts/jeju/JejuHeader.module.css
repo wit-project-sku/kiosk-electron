@@ -6,12 +6,23 @@
  * block and shift the title. Resolved from the Figma box model:
  *   pt125 + [row1 h82 · gap105 · row2 h182] + gap65 + [subtitle h60] + pb80 = 700
  */
+/* z-index keeps the header's 홈/뒤로 buttons above the page body. JejuPageFrame
+   renders the header BEFORE `.body`, and a screen whose own root spans the full
+   3840 artboard (so its absolute children keep Figma's y coordinates — see
+   JejuAiSearch) is a later sibling covering this band, which swallowed every tap
+   on the two nav buttons and made them look disabled.
+
+   pointer-events is off for the band as a whole and back on for the buttons
+   only, so raising the header cannot in turn steal taps from page content that
+   reaches under it. */
 .root {
   position: absolute;
   left: 0;
   top: 0;
   width: 2160px;
   height: 700px;
+  z-index: 2;
+  pointer-events: none;
   font-family: var(--kiosk-font, 'Noto Sans KR', 'Noto Sans', sans-serif);
 }
 
@@ -76,6 +87,7 @@
   background: none;
   flex: 0 0 auto;
   cursor: pointer;
+  pointer-events: auto;
   -webkit-tap-highlight-color: transparent;
 }
 

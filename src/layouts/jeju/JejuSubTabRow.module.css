@@ -1,0 +1,48 @@
+/*
+ * Sub-tab row — Figma draws it as ONE 60px text run, spaced with literal spaces
+ * and separated by ㅣ (U+3163 HANGUL LETTER I, not a pipe):
+ *   6217:94722  안녕 '하영' › 취미생활   K-POP ㅣ 런닝 ㅣ 테니스
+ *   6217:95029  안녕 '하영' › 건강습관   목·어깨 ㅣ 허리 ㅣ 기분전환
+ *   6219:98786  도와줘 '하영'            1F ㅣ 2F ㅣ 3F
+ * All three sit in the same 2160×82 band at y920.
+ *
+ * Split into buttons so each is a touch target; the 60/60 padding + 60/90
+ * separator margins reproduce the run's own 120-before / 150-after gaps.
+ */
+.row {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 920px;
+  height: 82px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.item {
+  height: 82px;
+  padding: 0 60px;
+  border: none;
+  background: none;
+  font-size: 60px;
+  font-weight: 600;
+  line-height: 1;
+  color: #999;
+  white-space: nowrap;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.itemActive {
+  font-weight: 900;
+  color: var(--kiosk-primary, #ff7f0f);
+}
+
+.sep {
+  margin: 0 90px 0 60px;
+  font-size: 60px;
+  font-weight: 600;
+  line-height: 1;
+  color: #999;
+}

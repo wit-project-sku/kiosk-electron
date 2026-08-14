@@ -119,4 +119,6 @@ export type KioskScreenId =
   // happened to share a slot, and the alias makes every later reader guess.
   | 'rentcar'      // 렌트카 (간편 예약)
   | 'tamnao'       // 탐나오 (제주공공플랫폼)
-  | 'localpay';    // 지역화폐 (탐나는전)
+  | 'localpay'     // 지역화폐 (탐나는전)
+  // Not a home tile — reached from the home 운항 정보 board's `더보기`.
+  | 'flights';     // 운항정보 (출발/도착 전체 보기)

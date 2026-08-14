@@ -7,6 +7,8 @@ import { hwaseongIconUrl } from '@renderer/assets/icons/hwaseong';
 import { useRotatingBanner } from '@renderer/hooks/useRotatingBanner';
 import { taxfreeUrl } from '@shared/constants/webEmbeds';
 import { trackEvent } from '@renderer/lib/analytics';
+import { taxFreePageImg, preloadTaxFreePages } from '../components/taxFreePages';
+import { useHideEmbedScrollbars } from '../components/useHideEmbedScrollbars';
 import { HwaseongHeader } from './HwaseongHeader';
 import styles from './HwaseongTaxFree.module.css';
 
@@ -16,17 +18,12 @@ type TabId = 'refund' | 'intro' | 'merchant';
  *  `t()` resolves against the running kiosk's own table. */
 const TAB_KEYS = ['Taxfree_Apply', 'Taxfree_Introduce', 'Taxfree_Enroll'] as const;
 
-// Reuse the same tax-free service page images (identical service to insadong).
-const PAGE_IMGS = import.meta.glob<{ default: string }>(
-  '../../renderer/src/assets/photos/insadong/taxfree/pages/*.png',
-  { eager: true },
-);
-
-function pageImg(name: string): string | undefined {
-  const entry = Object.entries(PAGE_IMGS).find(([k]) => k.endsWith(`/${name}.png`));
-  return entry?.[1]?.default;
-}
-
+/**
+ * The page artwork is the shared set (identical service to insadong), resolved
+ * through taxFreePages.ts — which also falls back to English for the four
+ * languages the pages were never drawn in. vi/th/ru/id rendered an EMPTY panel
+ * here before.
+ */
 function TaxRefundInfo({
   lang,
   onGoToWebview,
@@ -35,8 +32,8 @@ function TaxRefundInfo({
   onGoToWebview: () => void;
 }): JSX.Element {
   const [page, setPage] = useState(0);
-  const p1Src = pageImg(`tab1-p1-${lang}`);
-  const p2Src = pageImg(`tab1-p2-${lang}`);
+  const p1Src = taxFreePageImg('tab1-p1', lang);
+  const p2Src = taxFreePageImg('tab1-p2', lang);
 
   return (
     <div className={styles.refundInfo}>
@@ -69,7 +66,7 @@ function TaxRefundInfo({
 }
 
 function MerchantTab({ lang }: { lang: SupportedLanguage }): JSX.Element {
-  const src = pageImg(`tab3-${lang}`);
+  const src = taxFreePageImg('tab3', lang);
   return (
     <div className={styles.merchant}>
       {src && <img src={src} className={styles.pageImg} alt="" draggable={false} />}
@@ -87,34 +84,9 @@ export function HwaseongTaxFree({ controller }: Props): JSX.Element {
   const [activeTab, setActiveTab] = useState<TabId>('refund');
 
   const webviewRef = useRef<HTMLElement | null>(null);
-  useEffect(() => {
-    const wv = webviewRef.current as
-      | (HTMLElement & { insertCSS?: (css: string) => Promise<string> })
-      | null;
-    if (!wv?.insertCSS) return;
-    const stripScroll = (): void => {
-      void wv.insertCSS?.(
-        'html,body{overflow:hidden!important;scrollbar-width:none!important;-ms-overflow-style:none!important}' +
-          '*::-webkit-scrollbar{width:0!important;height:0!important;display:none!important}',
-      );
-    };
-    wv.addEventListener('dom-ready', stripScroll);
-    wv.addEventListener('did-navigate-in-page', stripScroll);
-    return () => {
-      wv.removeEventListener('dom-ready', stripScroll);
-      wv.removeEventListener('did-navigate-in-page', stripScroll);
-    };
-  }, []);
+  useHideEmbedScrollbars(webviewRef);
 
-  useEffect(() => {
-    for (const name of [`tab1-p1-${lang}`, `tab1-p2-${lang}`, `tab3-${lang}`]) {
-      const src = pageImg(name);
-      if (src) {
-        const img = new Image();
-        img.src = src;
-      }
-    }
-  }, [lang]);
+  useEffect(() => preloadTaxFreePages(lang), [lang]);
 
   const bgSrc = hwaseongIconUrl('bg');
   const bannerSrc = useRotatingBanner(hwaseongIconUrl('fg-banner'));

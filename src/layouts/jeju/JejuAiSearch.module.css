@@ -132,6 +132,19 @@
   -webkit-tap-highlight-color: transparent;
 }
 
+/* Non-Korean labels only. The `pre` above is sized to the Figma's Korean, which
+   fits 268px on one or two authored lines; the sheet's other seven languages run
+   much longer ("Опирающийся на опыт", "Museums & Culture") and would spill out of
+   the tile and over its neighbours. Wrapping keeps them inside, and the small
+   padding stops a wrapped word touching the border. Korean never gets this class,
+   so its tuned line breaks are untouched. */
+.tileWrap {
+  white-space: normal;
+  overflow-wrap: anywhere;
+  padding: 0 14px;
+  font-size: 40px;
+}
+
 /* Selected 즐길 거리 tiles take the orange plate but KEEP their category text
    colour — unlike Osan, where selection overrides it. */
 .tileSelected {
