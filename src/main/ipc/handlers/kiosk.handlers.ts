@@ -98,13 +98,17 @@ export function registerKioskHandlers(windows: WindowManager, container: AppCont
     log.info('Dev mode: reloading in place instead of relaunching');
     await Promise.allSettled([
       container.shops.refresh(),
+      container.attractions.refresh(),
       container.buttons.refresh(),
       container.banners.refresh(),
+      container.backgrounds.refresh(),
     ]);
     windows.reloadAll();
     windows.broadcast(IpcEvents.ShopsChanged, null);
+    windows.broadcast(IpcEvents.AttractionsChanged, null);
     windows.broadcast(IpcEvents.ButtonsChanged, null);
     windows.broadcast(IpcEvents.BannersChanged, null);
+    windows.broadcast(IpcEvents.BackgroundsChanged, null);
     return true;
   });
 }

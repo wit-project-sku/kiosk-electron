@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, type Ref } from 'react';
+import { useEffect, useState, type Ref } from 'react';
 import { iconUrl } from '@renderer/assets/icons/insadong';
 import { screenSubtitle, screenTitle, useLang } from '@renderer/lib/i18n';
 import styles from './InsadongHeader.module.css';

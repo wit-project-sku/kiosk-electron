@@ -125,7 +125,7 @@ export function OsanTaxfree({ controller }: OsanTaxfreeProps): JSX.Element {
       <OsanHeader
         title="TAX-FREE"
         onHome={goHome}
-        subtitleClassName={headerStyles.subtitleBelowGap}
+        subtitleClassName={`${headerStyles.subtitleBelowGap} ${headerStyles.subtitleWide}`}
         subtitleRef={subtitleRef}
       />
 

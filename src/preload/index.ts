@@ -146,11 +146,22 @@ const api: KioskBridge = {
     selectClothing: (clothingKey) => invoke(IpcChannels.PhotoSelectClothing, { clothingKey }),
     selectStyle: (styleKey) => invoke(IpcChannels.PhotoSelectStyle, { styleKey }),
     beginCountdown: () => invoke(IpcChannels.PhotoBeginCountdown),
+    armGestureGate: () => invoke(IpcChannels.PhotoArmGestureGate),
+    holdCountdown: () => invoke(IpcChannels.PhotoHoldCountdown),
+    resumeCountdown: () => invoke(IpcChannels.PhotoResumeCountdown),
     captureAndGenerate: (request) => invoke(IpcChannels.PhotoCaptureAndGenerate, request),
     getResultDataUrl: (fileName) => invoke(IpcChannels.PhotoGetResultDataUrl, { fileName }),
     setHoldResult: (hold) => invoke(IpcChannels.PhotoSetHoldResult, { hold }),
     revealResult: () => invoke(IpcChannels.PhotoRevealResult),
+    setDeferResultDisplay: (defer) => invoke(IpcChannels.PhotoDeferResultDisplay, { defer }),
+    releaseResultDisplay: () => invoke(IpcChannels.PhotoReleaseResultDisplay),
     reset: () => invoke(IpcChannels.PhotoReset),
+  },
+  outfits: {
+    get: () => invoke(IpcChannels.OutfitsGet),
+  },
+  spotDiff: {
+    getRound: () => invoke(IpcChannels.SpotDiffGetRound),
   },
   language: {
     get: () => invoke(IpcChannels.LanguageGet),
@@ -177,11 +188,18 @@ const api: KioskBridge = {
   shops: {
     list: () => invoke(IpcChannels.ShopsList),
   },
+  attractions: {
+    list: () => invoke(IpcChannels.AttractionsList),
+    listByInitial: (initial) => invoke(IpcChannels.AttractionsListByInitial, { initial }),
+  },
   buttons: {
     list: () => invoke(IpcChannels.ButtonsList),
   },
   banners: {
     list: () => invoke(IpcChannels.BannersList),
+  },
+  backgrounds: {
+    list: () => invoke(IpcChannels.BackgroundsList),
   },
   stats: {
     recordMenuTouch: (input) => invoke(IpcChannels.StatsMenuTouch, input),
@@ -218,8 +236,11 @@ const api: KioskBridge = {
     onKioskScreenChanged: (listener) => subscribe(IpcEvents.KioskScreenChanged, listener),
     onKioskWeatherVideo: (listener) => subscribe(IpcEvents.KioskWeatherVideo, listener),
     onShopsChanged: (listener) => subscribe(IpcEvents.ShopsChanged, listener),
+    onAttractionsChanged: (listener) => subscribe(IpcEvents.AttractionsChanged, listener),
     onButtonsChanged: (listener) => subscribe(IpcEvents.ButtonsChanged, listener),
     onBannersChanged: (listener) => subscribe(IpcEvents.BannersChanged, listener),
+    onBackgroundsChanged: (listener) => subscribe(IpcEvents.BackgroundsChanged, listener),
+    onOutfitsChanged: (listener) => subscribe(IpcEvents.OutfitsChanged, listener),
     onUpdateStatusChanged: (listener) => subscribe(IpcEvents.UpdateStatusChanged, listener),
   },
 };

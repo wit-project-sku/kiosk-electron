@@ -1,0 +1,153 @@
+/*
+ * 제주공항 (W006) 운항 정보 board — Figma 제주>홈 6212:48936 / 6217:96955 /
+ * 6217:97433 (the three 현황 conditions).
+ *
+ * Positioned in JejuHome's frame coordinates: inside KioskArtboard 1 CSS px =
+ * 1 Figma px on the 2160×3840 artboard, so every number here is the exact value
+ * read out of the design.
+ *
+ * The board is a SIBLING of .notice in the DOM even though 운항 정보 더보기 sits
+ * inside the 공지 frame in Figma — .notice has `overflow: hidden`, and the board
+ * (top 785, height 206) has to paint over it. Keeping both at frame level and
+ * ordering the board after .notice reproduces the Figma stacking without
+ * fighting that clip.
+ *
+ * No backdrop-filter: see the long note above .notice in JejuHome.module.css —
+ * the only thing behind these panels is a flat #FBF8F3, so the blur is a
+ * measurable no-op that darkens the composite.
+ */
+.board {
+  position: absolute;
+  left: 155px;
+  top: 785px;
+  width: 1850px;
+  height: 206px;
+  border-radius: 45px;
+  background: rgba(255, 255, 255, 0.5);
+}
+
+.title {
+  position: absolute;
+  left: 48px;
+  top: 67px;
+  width: 242px;
+  margin: 0;
+  font-size: 60px;
+  font-weight: 700;
+  line-height: 1;
+  color: #000;
+  white-space: nowrap;
+}
+
+/* Figma "Line 104": a 3px #C8BDA9 rule under the column headers, spanning the
+   six data columns only (it starts at 336, well right of the 운항 정보 title). */
+.rule {
+  position: absolute;
+  left: 336px;
+  top: 97px;
+  width: 1462px;
+  height: 3px;
+  background: #c8bda9;
+}
+
+/* Header and value share one column axis and are centred on it — every column
+   in all three Figma conditions centres to within 1px. */
+.head,
+.value {
+  position: absolute;
+  line-height: 1;
+  white-space: nowrap;
+  transform: translateX(-50%);
+}
+
+.head {
+  top: 38px;
+  font-size: 40px;
+  font-weight: 600;
+  color: #c8bda9;
+}
+
+.value {
+  top: 118px;
+  font-size: 48px;
+  font-weight: 400;
+  color: #333;
+}
+
+/* 항공사/편명 is one line at two sizes: 대한항공 at 48, (KE1141) at 40. */
+.flightNo {
+  font-size: 40px;
+}
+
+/*
+ * Condition 2 — the flight has been re-timed. The revised time rides 15px
+ * higher (118 → 103) to make room for the original, struck through beneath it.
+ * Driven by `hasTimeChange`, NOT by the 지연 status: the two are independent.
+ */
+.valueRetimed {
+  top: 103px;
+}
+
+.timeWas {
+  position: absolute;
+  top: 159px;
+  font-size: 35px;
+  font-weight: 400;
+  line-height: 1;
+  color: #ff7f0f;
+  text-decoration: line-through;
+  text-decoration-skip-ink: none;
+  white-space: nowrap;
+  transform: translateX(-50%);
+}
+
+/* ── 운항 정보 더보기 ────────────────────────────────────────────────── */
+/*
+ * Figma places this inside 공지 (text at 1040,738 · triangle box at 959,727),
+ * i.e. frame 1128,1015 and 1047,1004. The hit area is padded out around both —
+ * the drawn control is only 35px tall, far under a comfortable touch target.
+ */
+.more {
+  position: absolute;
+  left: 1032px;
+  top: 996px;
+  width: 476px;
+  height: 78px;
+  padding: 0;
+  border: 0;
+  background: none;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/*
+ * A plain filled triangle, drawn rather than shipped as an asset — the same
+ * call as .noticeRule in JejuHome.module.css.
+ *
+ * Figma: an 81×51 box rotated 180°, holding a 70.148×38.25 triangle inset
+ * 6.7% left/right and 1/4 from the bottom. After the rotation the visible
+ * triangle lands at frame 1052.4,1016.75 pointing down.
+ */
+.chevron {
+  position: absolute;
+  left: 20.4px; /* 1052.4 − 1032 */
+  top: 20.75px; /* 1016.75 − 996 */
+  width: 0;
+  height: 0;
+  border-left: 35.074px solid transparent;
+  border-right: 35.074px solid transparent;
+  border-top: 38.25px solid var(--kiosk-primary, #ff7f0f);
+}
+
+.moreText {
+  position: absolute;
+  left: 96px; /* 1128 − 1032 */
+  top: 19px; /* 1015 − 996 */
+  width: 360px;
+  font-size: 35px;
+  font-weight: 500;
+  line-height: 1;
+  color: var(--kiosk-primary, #ff7f0f);
+  text-align: left;
+  white-space: nowrap;
+}

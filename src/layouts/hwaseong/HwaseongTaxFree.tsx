@@ -126,7 +126,7 @@ export function HwaseongTaxFree({ controller }: Props): JSX.Element {
       <HwaseongHeader
         controller={controller}
         title="TAX-FREE"
-        subtitleClassName={headerStyles.subtitleBelowGap}
+        subtitleClassName={`${headerStyles.subtitleBelowGap} ${headerStyles.subtitleWide}`}
         subtitleRef={subtitleRef}
       />
 

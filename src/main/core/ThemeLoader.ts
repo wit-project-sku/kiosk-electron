@@ -15,6 +15,7 @@ const THEME_FILES: Record<KioskLayoutId, string> = {
   NAM_INSADONG: 'nam-insadong.json',
   OSAN: 'osan.json',
   HWASEONG: 'hwaseong.json',
+  JEJU_AIRPORT: 'jeju-airport.json',
 };
 
 function themesDirectory(): string {
@@ -55,12 +56,14 @@ function fallbackTheme(layout: KioskLayoutId): KioskTheme {
     NAM_INSADONG: 'nam-insadong',
     OSAN: 'osan',
     HWASEONG: 'hwaseong',
+    JEJU_AIRPORT: 'jeju-airport',
   };
   const NAME_MAP: Record<KioskLayoutId, string> = {
     INSADONG: 'Insadong',
     NAM_INSADONG: 'Nam Insadong',
     OSAN: '오산시 오색시장',
     HWASEONG: '화성휴게소',
+    JEJU_AIRPORT: '제주공항',
   };
   const theme: KioskTheme = {
     id: ID_MAP[layout] ?? layout.toLowerCase(),

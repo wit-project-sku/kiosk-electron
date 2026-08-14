@@ -1,7 +1,7 @@
 # ============================================================================
 # Kiosk Location Tester
 # ============================================================================
-# A one-click GUI for NON-TECHNICAL testers: pick a kiosk location (W001-W005),
+# A one-click GUI for NON-TECHNICAL testers: pick a kiosk location (W001-W006),
 # and this tool sets the machine's kiosk id, closes the running Kiosk App, and
 # relaunches it as that location. No terminal, no editing config files.
 #
@@ -40,7 +40,8 @@ $Locations = @(
   @{ Id = 'W002'; Name = "$([char]0xC778)$([char]0xC0AC)$([char]0xB3D9)$([char]0xC27C)$([char]0xD130)" },                                                                                # 인사동쉼터
   @{ Id = 'W003'; Name = "$([char]0xB0A8)$([char]0xC778)$([char]0xC0AC)$([char]0xB9C8)$([char]0xB2F9) ($([char]0xCE74)$([char]0xB4DC)$([char]0xB2E8)$([char]0xB9D0)$([char]0xAE30))" }, # 남인사마당 (카드단말기)
   @{ Id = 'W004'; Name = "$([char]0xC624)$([char]0xC0B0)$([char]0xC2DC) $([char]0xC624)$([char]0xC0C9)$([char]0xC2DC)$([char]0xC7A5)" },                                                 # 오산시 오색시장
-  @{ Id = 'W005'; Name = "$([char]0xD654)$([char]0xC131)$([char]0xD734)$([char]0xAC8C)$([char]0xC18C)" }                                                                                 # 화성휴게소
+  @{ Id = 'W005'; Name = "$([char]0xD654)$([char]0xC131)$([char]0xD734)$([char]0xAC8C)$([char]0xC18C)" },                                                                                # 화성휴게소
+  @{ Id = 'W006'; Name = "$([char]0xC81C)$([char]0xC8FC)$([char]0xACF5)$([char]0xD56D)" }                                                                                              # 제주공항
 )
 
 $ScriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path

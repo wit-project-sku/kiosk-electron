@@ -40,6 +40,34 @@ const CATEGORY_LABELS: Record<string, Partial<Record<Lang, string>>> = {
   잡화: { en: 'Goods', ja: '雑貨', zh: '杂货', vi: 'Tạp hóa', th: 'สินค้าเบ็ดเตล็ด', ru: 'Разные товары', id: 'Aneka barang' },
   '표구·액자': { en: 'Framing', ja: '額装', zh: '装裱·画框', vi: 'Đóng khung', th: 'กรอบรูป', ru: 'Багетные работы', id: 'Bingkai' },
   기념품: { en: 'Souvenirs', ja: 'お土産', zh: '纪念品', vi: 'Quà lưu niệm', th: 'ของที่ระลึก', ru: 'Сувениры', id: 'Suvenir' },
+  // ── 제주 W006 (Figma 6212:55184 뭐먹지 / 6212:55233 뭐사지) ──
+  // Authored here, not synced: there is no AICategory_Jeju / Localization_Jeju
+  // sheet yet, and an unmapped chip label silently renders Korean to every
+  // non-Korean visitor. 한식 / 한정식 / 카페 / 기념품 / 특산품 / 먹거리 /
+  // 공예품 / 기타 are already above and shared with the other locations.
+  // Non-CJK labels separate with " · ", not the Korean tight "·": the middle dot
+  // is NOT a line-break opportunity, so "Perikanan·Makanan" is one unbreakable
+  // 460px run in a chip with 310px of inner width. The spaces let it wrap at the
+  // separator instead of relying on the chip's break-anywhere guard.
+  흑돼지: { en: 'Black Pork', ja: '黒豚', zh: '黑猪肉', vi: 'Thịt heo đen', th: 'หมูดำ', ru: 'Чёрная свинина', id: 'Babi Hitam' },
+  '해산물·회': { en: 'Seafood · Sashimi', ja: '海鮮・刺身', zh: '海鲜·生鱼片', vi: 'Hải sản · Sashimi', th: 'อาหารทะเล · ซาชิมิ', ru: 'Рыба · Сашими', id: 'Seafood · Sashimi' },
+  '갈치·고등어': { en: 'Hairtail · Mackerel', ja: 'タチウオ・サバ', zh: '带鱼·鲭鱼', vi: 'Cá hố · Cá thu', th: 'ปลาดาบ · ปลาทู', ru: 'Сабля · Макрель', id: 'Layur · Makerel' },
+  고기국수: { en: 'Pork Noodles', ja: 'コギクッス', zh: '猪肉面', vi: 'Mì thịt heo', th: 'บะหมี่หมู', ru: 'Лапша со свининой', id: 'Mi Daging Babi' },
+  '제주 향토음식': { en: 'Jeju Local Food', ja: '済州郷土料理', zh: '济州乡土料理', vi: 'Ẩm thực Jeju', th: 'อาหารพื้นเมือง', ru: 'Кухня Чеджу', id: 'Kuliner Jeju' },
+  호텔뷔페: { en: 'Hotel Buffet', ja: 'ホテルビュッフェ', zh: '酒店自助餐', vi: 'Buffet khách sạn', th: 'บุฟเฟ่ต์โรงแรม', ru: 'Буфет отеля', id: 'Buffet Hotel' },
+  '감귤·농산물': { en: 'Tangerines · Produce', ja: 'みかん・農産物', zh: '柑橘·农产品', vi: 'Quýt · Nông sản', th: 'ส้ม · ผลผลิต', ru: 'Мандарины · Продукты', id: 'Jeruk · Hasil Tani' },
+  '수산물·해산물': { en: 'Seafood', ja: '水産物・海産物', zh: '水产·海鲜', vi: 'Thủy sản · Hải sản', th: 'อาหารทะเล', ru: 'Дары моря', id: 'Hasil Laut' },
+  '전통주·차': { en: 'Liquor · Tea', ja: '伝統酒・茶', zh: '传统酒·茶', vi: 'Rượu · Trà', th: 'สุรา · ชา', ru: 'Алкоголь · Чай', id: 'Arak · Teh' },
+  '제주 굿즈': { en: 'Jeju Goods', ja: '済州グッズ', zh: '济州周边', vi: 'Đồ Jeju', th: 'ของเชจู', ru: 'Товары Чеджу', id: 'Barang Jeju' },
+  '체험 기념품': { en: 'DIY Souvenirs', ja: '体験土産', zh: '体验纪念品', vi: 'Quà trải nghiệm', th: 'ของที่ระลึก DIY', ru: 'DIY-сувениры', id: 'Suvenir DIY' },
+  // 숙박안내 (6212:55288). 호텔 and 게스트하우스 are in the 숙박 block below.
+  // zh is 度假屋, not the obvious 民宿: 게스트하우스 below already uses 民宿, and the
+  // two chips sit side by side in this row.
+  펜션: { en: 'Pension', ja: 'ペンション', zh: '度假屋', vi: 'Pension', th: 'เพนชัน', ru: 'Пансион', id: 'Pension' },
+  // Keyed with the middle dot the catalogue uses ('3-리조트·콘도'), not the slash
+  // the Figma frame draws — the key is matched against the API string.
+  '리조트·콘도': { en: 'Resort · Condo', ja: 'リゾート・コンド', zh: '度假村·公寓', vi: 'Resort · Condo', th: 'รีสอร์ท · คอนโด', ru: 'Курорт · Кондо', id: 'Resor · Kondo' },
+  '독채·단독이용': { en: 'Private House', ja: '一棟貸し', zh: '独栋包租', vi: 'Nhà riêng', th: 'บ้านเดี่ยว', ru: 'Дом целиком', id: 'Rumah Utuh' },
   // 숙박
   호텔: { en: 'Hotel', ja: 'ホテル', zh: '酒店', vi: 'Khách sạn', th: 'โรงแรม', ru: 'Отель', id: 'Hotel' },
   호스텔: { en: 'Hostel', ja: 'ホステル', zh: '旅舍', vi: 'Nhà nghỉ', th: 'โฮสเทล', ru: 'Хостел', id: 'Hostel' },
@@ -102,6 +130,14 @@ const FACILITY_LABELS: Record<string, Partial<Record<Lang, string>>> = {
   화장실: { en: 'Restroom', ja: 'トイレ', zh: '洗手间', vi: 'Nhà vệ sinh', th: 'ห้องน้ำ', ru: 'Туалет', id: 'Toilet' },
   흡연실: { en: 'Smoking', ja: '喫煙室', zh: '吸烟室', vi: 'Phòng hút thuốc', th: 'ห้องสูบบุหรี่', ru: 'Курительная', id: 'Ruang merokok' },
   기타: { en: 'Other', ja: 'その他', zh: '其他', vi: 'Khác', th: 'อื่นๆ', ru: 'Другое', id: 'Lainnya' },
+  // 제주 airport (도와줘 '하영', 6219:98787). '은행·환전' is one chip in that
+  // frame, not the two separate 은행 / 환전소 categories above it.
+  안내소: { en: 'Information', ja: '案内所', zh: '问询处', vi: 'Quầy thông tin', th: 'จุดบริการข้อมูล', ru: 'Справочная', id: 'Informasi' },
+  식음료: { en: 'Food & drink', ja: '飲食', zh: '餐饮', vi: 'Đồ ăn & uống', th: 'อาหารและเครื่องดื่ม', ru: 'Еда и напитки', id: 'Makanan & minuman' },
+  '은행·환전': { en: 'Bank & exchange', ja: '銀行・両替', zh: '银行·货币兑换', vi: 'Ngân hàng & đổi tiền', th: 'ธนาคารและแลกเงิน', ru: 'Банк и обмен', id: 'Bank & penukaran' },
+  유아휴게실: { en: 'Nursing room', ja: '授乳室', zh: '母婴室', vi: 'Phòng cho bé bú', th: 'ห้องให้นมบุตร', ru: 'Комната матери и ребёнка', id: 'Ruang menyusui' },
+  '교통약자\n편의시설': { ko: '교통약자\n편의시설', en: 'Accessibility\nfacilities', ja: 'バリアフリー\n設備', zh: '无障碍\n设施', vi: 'Tiện ích\ntiếp cận', th: 'สิ่งอำนวย\nความสะดวก', ru: 'Доступная\nсреда', id: 'Fasilitas\ndisabilitas' },
+  유실물센터: { en: 'Lost & found', ja: '遺失物センター', zh: '失物招领', vi: 'Đồ thất lạc', th: 'ศูนย์ของหาย', ru: 'Бюро находок', id: 'Barang hilang' },
 };
 
 /** Localized facility-category name, falling back to the Korean id. */
@@ -122,6 +158,19 @@ const SCREEN_TITLES: Record<string, Partial<Record<Lang, string>>> = {
   '인사 미술관': { en: 'Insa Gallery', ja: '仁寺美術館', zh: '仁寺美术馆', vi: 'Bảo tàng Insa', th: 'หอศิลป์อินซา', ru: 'Галерея Инса', id: 'Galeri Insa' },
   "'인사' 뭐먹지": { en: 'What to Eat', ja: '何を食べる', zh: '吃什么', vi: 'Ăn gì', th: 'กินอะไรดี', ru: 'Что поесть', id: 'Mau makan apa' },
   "'인사' 뭐사지": { en: 'What to Buy', ja: '何を買う', zh: '买什么', vi: 'Mua gì', th: 'ซื้ออะไรดี', ru: 'Что купить', id: 'Mau beli apa' },
+  // 제주 W006 — the frames spell the title with the quotes and question mark
+  // (6212:55184 / 6212:55233), so those are the ids the screens pass. Kept OUT
+  // of TITLE_KEYS on purpose: Jeju has no Localization_Jeju sheet yet and falls
+  // back to the INSADONG bundled table, so MainButton_ToBuy would render
+  // "'인사' 뭐사지" here.
+  // 여기는 제주도 is kept out of TITLE_KEYS for the same reason: MainButton_Here
+  // resolves to Insadong's own "여기는 인사동" through the fallback table.
+  '여기는 제주도': { en: 'This is Jeju', ja: 'ここは済州島', zh: '这里是济州岛', vi: 'Đây là Jeju', th: 'ที่นี่คือเชจู', ru: 'Это Чеджудо', id: 'Ini Jeju' },
+  // Curly quotes, as the frame writes it (6219:98770) — the straight-quote form
+  // is Insadong's own '도와줘 ‘인사’' above.
+  '도와줘 ‘하영’': { en: 'Help', ja: 'ヘルプ', zh: '帮助', vi: 'Trợ giúp', th: 'ช่วยเหลือ', ru: 'Помощь', id: 'Bantuan' },
+  "'제주' 뭐먹지?": { en: 'What to Eat', ja: '何を食べる', zh: '吃什么', vi: 'Ăn gì', th: 'กินอะไรดี', ru: 'Что поесть', id: 'Mau makan apa' },
+  "'제주' 뭐사지?": { en: 'What to Buy', ja: '何を買う', zh: '买什么', vi: 'Mua gì', th: 'ซื้ออะไรดี', ru: 'Что купить', id: 'Mau beli apa' },
   숙박안내: { en: 'Lodging', ja: '宿泊案内', zh: '住宿指南', vi: 'Lưu trú', th: 'ที่พัก', ru: 'Проживание', id: 'Penginapan' },
   고궁안내: { en: 'Royal Palaces', ja: '古宮案内', zh: '古宫指南', vi: 'Cung điện', th: 'พระราชวัง', ru: 'Дворцы', id: 'Istana' },
   언어선택: { en: 'Language', ja: '言語選択', zh: '语言选择', vi: 'Ngôn ngữ', th: 'เลือกภาษา', ru: 'Язык', id: 'Bahasa' },
@@ -143,17 +192,30 @@ const SCREEN_TITLES: Record<string, Partial<Record<Lang, string>>> = {
  * Korean header-title id → sheet localization keys (title + optional subtitle).
  * Lets the header pull both from Localization_Insa; ids without a key fall back
  * to the hand-written SCREEN_TITLES above / the localized page-description.
+ *
+ * A field may list SEVERAL keys, tried in order, for the ids that four locations
+ * share while their sheets spell the key differently: 숙박안내 is MainButton_ToStay
+ * on Insadong but MainButton_Accommodation on 제주, and 지역화폐 is
+ * MainButton_MarketPaper on 화성 but MainButton_LocalCurrency on 제주. Only ONE of
+ * the candidates is ever present, because `bundledTable()` has already narrowed
+ * to the running kiosk's table by the time these resolve — so the order is a
+ * spelling fallback, not a precedence rule between locations.
  */
-const TITLE_KEYS: Record<string, { title: string; sub?: string }> = {
+type TitleKeySpec = { title: string | readonly string[]; sub?: string | readonly string[] };
+
+const TITLE_KEYS: Record<string, TitleKeySpec> = {
   '여기는 인사동': { title: 'MainButton_Here', sub: 'SubHeader_Attraction' },
   'TAX - FREE': { title: 'MainButton_TaxFree', sub: 'SubHeader_TaxFree' },
   '‘인사’ 뭐하지 (AI 검색)': { title: 'MainButton_AI', sub: 'SubHeader_AISearch' },
-  환율: { title: 'MainButton_Exchange', sub: 'SubHeader_Exchange' },
+  // 제주's sheet has no SubHeader_Exchange; its welcome line is Exchange_Header.
+  환율: { title: 'MainButton_Exchange', sub: ['SubHeader_Exchange', 'Exchange_Header'] },
   '도와줘 ‘인사’': { title: 'MainButton_ToHelp', sub: 'SubHeader_ToHelp' },
   '인사 미술관': { title: 'MainButton_ToGallery', sub: 'SubHeader_ToGallery' },
   "'인사' 뭐먹지": { title: 'MainButton_ToEat', sub: 'SubHeader_ToEat' },
   "'인사' 뭐사지": { title: 'MainButton_ToBuy', sub: 'SubHeader_ToBuy' },
-  숙박안내: { title: 'MainButton_ToStay', sub: 'SubHeader_ToStay' },
+  // 제주 files this under MainButton_Accommodation (8/8 languages); Insadong and
+  // 화성 use MainButton_ToStay. Both share SubHeader_ToStay.
+  숙박안내: { title: ['MainButton_ToStay', 'MainButton_Accommodation'], sub: 'SubHeader_ToStay' },
   고궁안내: { title: 'MainButton_Palace', sub: 'SubHeader_Palace' },
   언어선택: { title: 'Language_Select_Language', sub: 'Language_Content' },
   '교통 안내': { title: 'MainButton_Transport', sub: 'SubHeader_Transport' },
@@ -203,34 +265,90 @@ const TITLE_KEYS: Record<string, { title: string; sub?: string }> = {
   "안녕 '휴'": { title: 'MainButton_Greeting' },
   "도와줘 '휴'": { title: 'MainButton_ToHelp', sub: 'SubHeader_ToHelp' },
   "화성휴게소 지도": { title: 'MainButton_SAMap', sub: 'SubHeader_SAMap' },
-  "지역화폐": { title: 'MainButton_MarketPaper' },
+  // 화성 spells this MainButton_MarketPaper, 제주 MainButton_LocalCurrency; only
+  // 제주 carries a subtitle row for it.
+  "지역화폐": { title: ['MainButton_MarketPaper', 'MainButton_LocalCurrency'], sub: 'LocalCurrency_SubHeader' },
+  // ── W006 제주공항 header titles + page descriptions (Localization_Jeju) ──
+  // The ids are the literal strings each 제주 screen hands to JejuPageFrame, so a
+  // renamed header must be renamed here too or it silently falls back to Korean.
+  // 지역화폐/환율/언어선택/숙박안내/TAX-FREE/상세 already resolve through the shared
+  // entries above — 제주's sheet carries the same key names, and bundledTable()
+  // has already picked the 제주 table by then, so they land on 제주's own copy.
+  "'제주' 뭐하지 (AI 검색)": { title: 'MainButton_AI', sub: 'SubHeader_AISearch' },
+  "'제주' 뭐먹지?": { title: 'MainButton_ToEat', sub: 'SubHeader_ToEat' },
+  "'제주' 뭐사지?": { title: 'MainButton_ToBuy', sub: 'SubHeader_ToBuy' },
+  // NOT SubHeader_Attraction (that is Insadong's key and 제주's sheet has no such
+  // row) — 제주 writes this page's description as Here_IsJeju. With the wrong key
+  // the header printed the Figma placeholder 페이지 설명문 on the device.
+  "여기는 제주도": { title: 'MainButton_Here', sub: 'Here_IsJeju' },
+  "안녕 '하영'": { title: 'MainButton_Greeting', sub: 'Greeting_Introduce' },
+  "도와줘 ‘하영’": { title: 'MainButton_ToHelp', sub: 'SubHeader_ToHelp' },
+  "제주도 이벤트": { title: 'MainButton_Event', sub: 'SubHeader_Event' },
+  "렌트카": { title: 'MainButton_RentCar' },
+  "운항정보": { title: 'MainButton_Cruise' },
+  // NOTE: 검색 is deliberately NOT mapped. The 제주 sheet's only search key is
+  // `Main_Search`, whose value is the home search-bar PLACEHOLDER
+  // ("제주도에 대해 검색해보세요!") — mapping it here would print that whole
+  // sentence as the page title. 검색 resolves through SCREEN_TITLES instead.
+};
+
+/**
+ * Curated fallbacks for button/title keys — used ONLY when the location's sheet
+ * has NO value for that exact language. The sheet always wins (even if it stores
+ * English in a ja/zh slot); these just fill genuinely-empty cells before the
+ * Korean fallback.
+ *
+ * ★ This table was nine 화성 keys long and was DELETED on develop_1, for a good
+ * reason: those nine only ever carried ko/en/ja/zh, so they could never help
+ * vi/th/ru/id, and all nine now hold all eight languages in
+ * Localization_Hwaseong — every entry was unreachable, and a partial shadow of
+ * sheet data is the exact shape of bug this codebase keeps hitting. Those nine
+ * stay deleted.
+ *
+ * That reasoning does NOT reach 제주's MainButton_LocalCurrency:
+ * Localization_Jeju fills it in Korean only, so without this the 지역화폐 header
+ * printed 지역화폐 to every visitor. It is kept, and kept at all EIGHT languages
+ * — the shape develop_1 objected to was the partial one. Delete it the day the
+ * sheet carries the other seven.
+ */
+const BUTTON_OVERRIDES: Record<string, Partial<Record<Lang, string>>> = {
+  MainButton_LocalCurrency: {
+    ko: '지역화폐',
+    en: 'Local Currency',
+    ja: '地域通貨',
+    zh: '地方货币',
+    vi: 'Tiền địa phương',
+    th: 'สกุลเงินท้องถิ่น',
+    ru: 'Местная валюта',
+    id: 'Mata Uang Daerah',
+  },
 };
 
 /**
  * Resolve a button/title localization key: the sheet's EXACT-language value
- * wins (even if it stores English in a ja/zh slot), then the full chain
- * (ko → key). Returns undefined when the key isn't localized at all.
- *
- * There used to be a curated `BUTTON_OVERRIDES` table here filling empty
- * Hwaseong cells for 9 keys. It only ever carried ko/en/ja/zh, so it could
- * never help vi/th/ru/id — and all 9 keys now hold all eight languages in
- * Localization_Hwaseong, making every entry unreachable. Removed rather than
- * extended: a partial shadow of sheet data is the exact shape of bug this
- * codebase keeps hitting.
+ * wins (even if it stores English in a ja/zh slot), then the curated fallback
+ * above for a genuinely-empty cell, then the full chain (ko → key). Returns
+ * undefined when the key isn't localized at all.
  */
 export function buttonText(key: string, lang: Lang): string | undefined {
   const exact = tExact(key, lang);
   if (exact) return exact;
+  const fallback = BUTTON_OVERRIDES[key]?.[lang];
+  if (fallback) return fallback;
   return hasLoc(key) ? t(key, lang) : undefined;
 }
+
+/** Candidate keys for a title/sub field, as a list — see {@link TitleKeySpec}. */
+const keyList = (k: string | readonly string[] | undefined): readonly string[] =>
+  k == null ? [] : typeof k === 'string' ? [k] : k;
 
 /** Localized page-header title, falling back to the hand map, then the id. */
 export function screenTitle(id: string, lang: Lang): string {
   // Brand mark — never pull translated sheet copy (Hwaseong once had 텍스프리등록).
   if (id === 'TAX-FREE' || id === 'TAX - FREE') return id;
   const k = TITLE_KEYS[id]?.title;
-  if (k) {
-    const resolved = buttonText(k, lang);
+  for (const candidate of keyList(k)) {
+    const resolved = buttonText(candidate, lang);
     if (resolved) return resolved;
   }
   return SCREEN_TITLES[id]?.[lang] ?? id;
@@ -242,10 +360,40 @@ const EXTRA_SUBTITLE_KEYS: Record<string, UiTextKey> = {
   위드마켓: 'withMarketSubtitle',
 };
 
+/**
+ * Curated subtitle fallbacks, keyed by the SHEET KEY rather than by the header
+ * id — the same resolution {@link BUTTON_OVERRIDES} gives titles, and keyed this
+ * way so a subtitle row one location has and another lacks can never leak
+ * sideways. (지역화폐 is one header id shared by 화성 and 제주; only 제주's sheet
+ * carries LocalCurrency_SubHeader, so only 제주 sees this.)
+ *
+ * Distinct from {@link EXTRA_SUBTITLE_KEYS}, which is for ids with NO sheet row
+ * at all and whose copy lives in `uiText.ts` under compile-time enforcement.
+ * This one fills an empty cell in a row that does exist.
+ */
+const SUBTITLE_OVERRIDES: Record<string, Partial<Record<Lang, string>>> = {
+  LocalCurrency_SubHeader: {
+    ko: '제주도에서 사용할 수 있는 지역화폐 입니다.',
+    en: 'Local currencies you can use on Jeju Island.',
+    ja: '済州島で使える地域通貨のご案内です。',
+    zh: '这是可在济州岛使用的地方货币。',
+    vi: 'Các loại tiền địa phương dùng được trên đảo Jeju.',
+    th: 'เงินท้องถิ่นที่ใช้ได้บนเกาะเชจู',
+    ru: 'Местные платёжные средства, которые принимают на острове Чеджу.',
+    id: 'Mata uang daerah yang bisa dipakai di Pulau Jeju.',
+  },
+};
+
 /** Localized page subtitle for a header-title id, or undefined if none mapped. */
 export function screenSubtitle(id: string, lang: Lang): string | undefined {
   const extra = EXTRA_SUBTITLE_KEYS[id];
   if (extra) return ui(extra, lang);
-  const k = TITLE_KEYS[id]?.sub;
-  return k && hasLoc(k) ? t(k, lang) : undefined;
+  for (const k of keyList(TITLE_KEYS[id]?.sub)) {
+    // Same order as `buttonText`: the sheet's own cell for this language, then
+    // the curated fallback for genuinely-empty cells, then `t()`'s Korean chain.
+    // A plain `t()` here answered Korean for every Korean-only row and looked
+    // like it had worked.
+    if (hasLoc(k)) return tExact(k, lang) || SUBTITLE_OVERRIDES[k]?.[lang] || t(k, lang);
+  }
+  return undefined;
 }

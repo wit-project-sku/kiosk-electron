@@ -19,7 +19,7 @@
 
 import { join, normalize, sep } from 'node:path';
 import { pathToFileURL } from 'node:url';
-import { net, protocol, session } from 'electron';
+import { net, protocol, session, type CustomScheme } from 'electron';
 import { appPaths } from './paths';
 import { createLogger } from './logger';
 
@@ -31,21 +31,23 @@ function forbidden(): Response {
   return new Response('Forbidden', { status: 403 });
 }
 
-/** Must run before `app.whenReady()`. */
-export function registerMediaScheme(): void {
-  protocol.registerSchemesAsPrivileged([
-    {
-      scheme: MEDIA_SCHEME,
-      privileges: {
-        standard: true,
-        secure: true,
-        supportFetchAPI: true,
-        stream: true,
-        corsEnabled: true,
-      },
-    },
-  ]);
-}
+/**
+ * Privileges this scheme needs. Registered together with `appres://` in the
+ * single `registerSchemesAsPrivileged` call in `main/index.ts`.
+ *
+ * `corsEnabled: true` is required with `supportFetchAPI` so remote webview
+ * pages cannot fetch() this scheme and read the body (GHSA-v3j7-r9gq-3gjw).
+ */
+export const MEDIA_SCHEME_PRIVILEGES: CustomScheme = {
+  scheme: MEDIA_SCHEME,
+  privileges: {
+    standard: true,
+    secure: true,
+    supportFetchAPI: true,
+    stream: true,
+    corsEnabled: true,
+  },
+};
 
 function resolveSafe(baseDir: string, fileName: string): string | null {
   const target = normalize(join(baseDir, fileName));

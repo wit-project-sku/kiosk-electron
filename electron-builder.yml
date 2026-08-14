@@ -28,6 +28,12 @@ files:
 extraResources:
   - from: themes
     to: themes
+  # MediaPipe hand-landmark runtime for 제주's gesture-gated camera countdown.
+  # Served to the renderer over appres:// (see src/main/core/appResourceProtocol.ts)
+  # because a packaged renderer runs from file://, where the WASM loader's script
+  # tag and .wasm fetch are both blocked. Regenerate with `npm run vendor:mediapipe`.
+  - from: resources/mediapipe
+    to: mediapipe
   # NOTE: display/attract videos are intentionally NOT bundled. They are large and
   # pre-downloaded per kiosk into an EXTERNAL folder (C:\KioskVideos by default, or
   # KIOSK_VIDEOS_DIR) that lives OUTSIDE the install dir, so an auto-update never

@@ -26,9 +26,10 @@ const PRESETS = {
   W003: { kioskId: 'W003', layout: 'NAM_INSADONG' },
   W004: { kioskId: 'W004', layout: 'OSAN' },
   W005: { kioskId: 'W005', layout: 'HWASEONG' },
+  W006: { kioskId: 'W006', layout: 'JEJU_AIRPORT' },
 };
 
-const VALID_LAYOUTS = new Set(['INSADONG', 'NAM_INSADONG', 'OSAN', 'HWASEONG']);
+const VALID_LAYOUTS = new Set(['INSADONG', 'NAM_INSADONG', 'OSAN', 'HWASEONG', 'JEJU_AIRPORT']);
 
 function defaultDataDir() {
   // Must match Electron's app.getPath('userData'), which derives from the
@@ -73,7 +74,7 @@ function printUsage() {
   console.log(`
 Provision kiosk identity (kiosk-config.json)
 
-  node scripts/provision-kiosk.mjs <W001|W002|W003|W004|W005>
+  node scripts/provision-kiosk.mjs <W001|W002|W003|W004|W005|W006>
   node scripts/provision-kiosk.mjs --kiosk-id W005 --layout HWASEONG
   node scripts/provision-kiosk.mjs W001 --data-dir "C:\\Custom\\Kiosk App"
 
@@ -83,6 +84,7 @@ Presets:
   W003  남인사마당        → NAM_INSADONG
   W004  오산시 오색시장   → OSAN
   W005  화성휴게소        → HWASEONG
+  W006  제주공항          → JEJU_AIRPORT
 `);
 }
 
@@ -104,7 +106,7 @@ function main() {
   }
 
   if (!VALID_LAYOUTS.has(config.layout)) {
-    console.error(`Invalid layout "${config.layout}". Use INSADONG or NAM_INSADONG.`);
+    console.error(`Invalid layout "${config.layout}". Use one of: ${[...VALID_LAYOUTS].join(', ')}.`);
     process.exit(1);
   }
 

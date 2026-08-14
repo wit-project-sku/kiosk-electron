@@ -32,19 +32,28 @@ const RESTART_MINUTE = 0;
 const AUTORUN_KEY = 'KioskApp';
 
 /**
- * Osaek (오색시장 W004) runs on a daily OPERATING-HOURS power cycle instead of the
- * fleet-wide 2AM reboot: shut down at 22:00 (종료), start at 08:00 (시작).
+ * Some sites run on a daily OPERATING-HOURS power cycle instead of the fleet-wide
+ * 2AM reboot: shut down at 22:00 (종료), start at 08:00 (시작). Today that is
+ * 오색시장 W004 and 제주공항 W006.
  *
  * Note on the 08:00 start: a scheduled task's "wake" timer can resume the PC from
  * sleep/hibernate, but Windows cannot power on a fully powered-off (S5) machine —
  * that requires the motherboard BIOS "Power On by RTC Alarm" set to 08:00. The
  * 08:00 task below covers wake-from-sleep and relaunches the app after a BIOS boot.
+ *
+ * Do NOT add `-RunLevel Highest` to the Register-ScheduledTask call below: the app
+ * auto-starts UNELEVATED (login item / HKCU Run), so an elevated registration
+ * fails "Access denied" and the catch silently drops the 08:00 task AND the
+ * powercfg call, leaving a kiosk that shuts down at 22:00 and never comes back.
+ *
+ * TODO(제주 W006): 22:00/08:00 are the 오색시장 hours. Confirm 제주공항's actual
+ * operating hours and split the times per kiosk if they differ.
  */
-const OSAEK_KIOSK_ID = 'W004';
-const OSAEK_SHUTDOWN_TASK = 'KioskShutdownAt10PM';
-const OSAEK_START_TASK = 'KioskStartAt8AM';
-const OSAEK_SHUTDOWN_TIME = '22:00';
-const OSAEK_START_TIME = '08:00';
+const OPERATING_HOURS_KIOSK_IDS = new Set(['W004', 'W006']);
+const OPERATING_HOURS_SHUTDOWN_TASK = 'KioskShutdownAt10PM';
+const OPERATING_HOURS_START_TASK = 'KioskStartAt8AM';
+const OPERATING_HOURS_SHUTDOWN_TIME = '22:00';
+const OPERATING_HOURS_START_TIME = '08:00';
 
 function isWindows(): boolean {
   return process.platform === 'win32';
@@ -126,10 +135,10 @@ async function removeRestartTask(): Promise<void> {
 }
 
 /**
- * Osaek (W004): provision the 08:00 시작 / 22:00 종료 daily power cycle and drop
- * the fleet-wide 2AM reboot. Idempotent (`/f`, `-Force`) — safe to run every launch.
+ * W004/W006: provision the 08:00 시작 / 22:00 종료 daily power cycle and drop the
+ * fleet-wide 2AM reboot. Idempotent (`/f`, `-Force`) — safe to run every launch.
  */
-async function ensureOsaekPowerCycle(): Promise<void> {
+async function ensureOperatingHoursPowerCycle(): Promise<void> {
   if (!isWindows() || !app.isPackaged) return;
   // The 2AM reboot and the operating-hours cycle are mutually exclusive — make
   // sure a previously-provisioned reboot task can't also fire.
@@ -138,10 +147,10 @@ async function ensureOsaekPowerCycle(): Promise<void> {
     // 22:00 종료 — full shutdown.
     await exec('schtasks', [
       '/create',
-      '/tn', OSAEK_SHUTDOWN_TASK,
+      '/tn', OPERATING_HOURS_SHUTDOWN_TASK,
       '/tr', 'shutdown /s /f /t 0',
       '/sc', 'daily',
-      '/st', OSAEK_SHUTDOWN_TIME,
+      '/st', OPERATING_HOURS_SHUTDOWN_TIME,
       '/f',
     ]);
     // 08:00 시작 — a WakeToRun task (PowerShell, since schtasks can't set the wake
@@ -157,22 +166,22 @@ async function ensureOsaekPowerCycle(): Promise<void> {
     const exePath = app.getPath('exe');
     const ps = [
       `$a=New-ScheduledTaskAction -Execute '${exePath}';`,
-      `$t=New-ScheduledTaskTrigger -Daily -At '${OSAEK_START_TIME}';`,
+      `$t=New-ScheduledTaskTrigger -Daily -At '${OPERATING_HOURS_START_TIME}';`,
       `$s=New-ScheduledTaskSettingsSet -WakeToRun -AllowStartIfOnBatteries -DontStopIfGoingOnBatteries -StartWhenAvailable;`,
-      `Register-ScheduledTask -TaskName '${OSAEK_START_TASK}' -Action $a -Trigger $t -Settings $s -Force`,
+      `Register-ScheduledTask -TaskName '${OPERATING_HOURS_START_TASK}' -Action $a -Trigger $t -Settings $s -Force`,
     ].join(' ');
     await exec('powershell', ['-NoProfile', '-ExecutionPolicy', 'Bypass', '-Command', ps]);
     // Allow wake timers so the 08:00 task can actually wake the machine.
     await exec('powercfg', ['-change', '-standby-timeout-ac', '0']).catch(() => {});
-    log.info('Osaek power cycle scheduled', { start: OSAEK_START_TIME, shutdown: OSAEK_SHUTDOWN_TIME });
+    log.info('Operating-hours power cycle scheduled', { start: OPERATING_HOURS_START_TIME, shutdown: OPERATING_HOURS_SHUTDOWN_TIME });
   } catch (error) {
-    log.warn('Failed to schedule Osaek power cycle', error);
+    log.warn('Failed to schedule operating-hours power cycle', error);
   }
 }
 
-async function removeOsaekPowerCycle(): Promise<void> {
+async function removeOperatingHoursPowerCycle(): Promise<void> {
   if (!isWindows()) return;
-  for (const task of [OSAEK_SHUTDOWN_TASK, OSAEK_START_TASK]) {
+  for (const task of [OPERATING_HOURS_SHUTDOWN_TASK, OPERATING_HOURS_START_TASK]) {
     await exec('schtasks', ['/delete', '/tn', task, '/f']).catch(() => {});
   }
 }
@@ -192,10 +201,10 @@ export async function setupKioskPower(kioskId?: string): Promise<void> {
     return;
   }
   configureAutoStart();
-  // Osaek (W004) uses an operating-hours power cycle (08:00 시작 / 22:00 종료);
+  // W004/W006 use an operating-hours power cycle (08:00 시작 / 22:00 종료);
   // every other kiosk keeps the fleet-wide 2AM reboot.
-  if (kioskId === OSAEK_KIOSK_ID) {
-    await ensureOsaekPowerCycle();
+  if (kioskId != null && OPERATING_HOURS_KIOSK_IDS.has(kioskId)) {
+    await ensureOperatingHoursPowerCycle();
   } else {
     await ensureRestartTask();
   }
@@ -209,5 +218,5 @@ export async function setupKioskPower(kioskId?: string): Promise<void> {
 export async function teardownKioskPower(): Promise<void> {
   disableAutoStart();
   await removeRestartTask();
-  await removeOsaekPowerCycle();
+  await removeOperatingHoursPowerCycle();
 }

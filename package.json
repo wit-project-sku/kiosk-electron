@@ -32,6 +32,7 @@
     "format": "prettier --write \"src/**/*.{ts,tsx,css,json}\"",
     "format:check": "prettier --check \"src/**/*.{ts,tsx,css,json}\"",
     "vendor:payment-agent": "node scripts/vendor-payment-agent.mjs",
+    "vendor:mediapipe": "node scripts/vendor-mediapipe.mjs",
     "provision:kiosk": "node scripts/provision-kiosk.mjs",
     "sync:sheet": "node scripts/sync-sheet.mjs",
     "db:inspect": "node scripts/db-inspect.mjs"
@@ -39,6 +40,7 @@
   "dependencies": {
     "@fontsource/noto-sans-kr": "^5.2.9",
     "@fontsource/poppins": "^5.2.7",
+    "@mediapipe/tasks-vision": "^0.10.22-rc.20250304",
     "@nestjs/axios": "^3.1.3",
     "@nestjs/common": "^10.4.15",
     "@nestjs/config": "^3.3.0",

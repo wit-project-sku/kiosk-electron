@@ -3,6 +3,9 @@ import { useLayoutEffect, useState, type RefObject } from 'react';
 /** Tab row at y=2999; 64px gap above it → body bottom edge. */
 const BODY_BOTTOM = 2935;
 
+/** Figma layout: subtitle starts y≈564, 2 lines × (60.06×1.3) + 40px margin. */
+const BODY_TOP_MAX_TWO_LINES = 760;
+
 /** Walk up to the KioskArtboard — getBoundingClientRect is scaled, layout CSS is not. */
 function kioskScale(from: HTMLElement): number {
   let node: HTMLElement | null = from;
@@ -18,8 +21,9 @@ function kioskScale(from: HTMLElement): number {
 }
 
 /**
- * Positions the TAX-FREE white card / webview directly under the subtitle,
- * whatever line count the active language wraps to.
+ * Positions the TAX-FREE white card / webview under the subtitle.
+ * Measured per language for 1–2 lines; capped at two lines so a third
+ * wrapped line does not push the webview further down.
  */
 export function useTaxfreeBodyLayout(
   rootRef: RefObject<HTMLElement | null>,
@@ -38,7 +42,8 @@ export function useTaxfreeBodyLayout(
       const rootRect = root.getBoundingClientRect();
       const subRect = sub.getBoundingClientRect();
       const marginBottom = parseFloat(getComputedStyle(sub).marginBottom) || 0;
-      const top = Math.ceil((subRect.bottom - rootRect.top) / scale + marginBottom);
+      const measured = Math.ceil((subRect.bottom - rootRect.top) / scale + marginBottom);
+      const top = Math.min(measured, BODY_TOP_MAX_TWO_LINES);
       setLayout({ top, height: BODY_BOTTOM - top });
     };
 

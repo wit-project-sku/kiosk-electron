@@ -1,15 +1,19 @@
 import type { Lang } from '@renderer/lib/i18n';
 import { changeLanguagePlayKey } from '@shared/config/languages';
 import { getKioskLocation } from '@shared/config/kioskLocations';
-import type { KioskId } from '@shared/types/kiosk';
+import type { KioskId, KioskLayoutId } from '@shared/types/kiosk';
 import { pickText } from '@renderer/data/types';
-import type { VideoEntry, VideoFilesBySet, VideoSet } from '@shared/types/subtitle';
+import { VIDEO_SETS, type VideoEntry, type VideoFilesBySet, type VideoSet } from '@shared/types/subtitle';
 
 /**
- * Resolves the AI-model display videos for each kiosk screen, from
- * VideoSubtitle_Insa (default) or VideoSubtitle_Osaek (W004 / OSAN layout). The
- * customer display plays the clip(s) for the current screen (looping forever);
- * `Default` is the idle/attract sequence.
+ * Resolves the AI-model display videos for each kiosk screen, from that
+ * location's VideoSubtitle tab (Insa / Osaek / Hwaseong / Jeju). The customer
+ * display plays the clip(s) for the current screen (looping forever); `Default`
+ * is the idle/attract sequence.
+ *
+ * Everything per-location is keyed off two tables — {@link VIDEO_SET_BY_LAYOUT}
+ * and {@link SCREEN_KEYS_BY_LAYOUT} — so adding a location is two entries, not a
+ * new branch in every lookup.
  */
 
 export interface DisplayClip {
@@ -25,12 +29,11 @@ const norm = (s: string): string => s.toLowerCase().replace(/\.mp4$/, '').replac
 // videos exist. Populated by initVideoFiles() from the main process's live
 // directory listing (IPC VideosList); empty until then. No build-time manifest,
 // so adding a video file makes it resolvable without a rebuild.
-const FILES_BY_SET: VideoFilesBySet = { insadong: [], osaek: [], hwaseong: [] };
-const FILE_BY_NORM: Record<VideoSet, Map<string, string>> = {
-  insadong: new Map(),
-  osaek: new Map(),
-  hwaseong: new Map(),
-};
+const emptyBySet = <T,>(make: () => T): Record<VideoSet, T> =>
+  Object.fromEntries(VIDEO_SETS.map((s) => [s, make()])) as Record<VideoSet, T>;
+
+const FILES_BY_SET: VideoFilesBySet = emptyBySet<string[]>(() => []);
+const FILE_BY_NORM: Record<VideoSet, Map<string, string>> = emptyBySet(() => new Map());
 
 /**
  * Load the real on-disk video file names (from IPC VideosList) so subtitle
@@ -38,7 +41,7 @@ const FILE_BY_NORM: Record<VideoSet, Map<string, string>> = {
  * now. Idempotent; call again to refresh after a sync.
  */
 export function initVideoFiles(bySet: VideoFilesBySet): void {
-  for (const set of ['insadong', 'osaek', 'hwaseong'] as VideoSet[]) {
+  for (const set of VIDEO_SETS) {
     const files = bySet[set] ?? [];
     FILES_BY_SET[set] = files;
     FILE_BY_NORM[set] = new Map(files.map((f) => [norm(f), f]));
@@ -79,29 +82,33 @@ function buildByButton(entries: VideoEntry[]): Map<number, VideoEntry[]> {
   return m;
 }
 
-// Mutable maps — populated by initSubtitles() when the API responds. The API
-// (via SQLite offline cache) is the single source of truth for subtitles; there
-// is no build-time sheet fallback. Empty until the first successful fetch, so a
-// never-synced kiosk with no network shows no clips until it reaches the API once.
-let BY_KEY_INSA = new Map<string, VideoEntry[]>();
-let BY_KEY_OSAEK = new Map<string, VideoEntry[]>();
-let BY_KEY_HWASEONG = new Map<string, VideoEntry[]>();
+// Mutable maps, one per video set — populated by initSubtitles() when the API
+// responds. The API (via SQLite offline cache) is the single source of truth for
+// subtitles; there is no build-time sheet fallback. Empty until the first
+// successful fetch, so a never-synced kiosk with no network shows no clips until
+// it reaches the API once.
+let BY_KEY: Record<VideoSet, Map<string, VideoEntry[]>> = emptyBySet(() => new Map());
 
 // Same entries indexed by owning `buttons.id` — lets a top-level home tile resolve
 // its clip straight from its DB id (API-driven) instead of a hardcoded
 // screen→playKey guess. Only entries from `data.buttons[]` have a buttonId;
 // autoSubtitles (Default idle, weather) have none and live only in BY_KEY.
-let BY_BUTTON_INSA = new Map<number, VideoEntry[]>();
-let BY_BUTTON_OSAEK = new Map<number, VideoEntry[]>();
-let BY_BUTTON_HWASEONG = new Map<number, VideoEntry[]>();
+let BY_BUTTON: Record<VideoSet, Map<number, VideoEntry[]>> = emptyBySet(() => new Map());
+
+/** Each layout's video set. Locations sharing a design share a set (W001–W003). */
+const VIDEO_SET_BY_LAYOUT: Record<KioskLayoutId, VideoSet> = {
+  INSADONG: 'insadong',
+  NAM_INSADONG: 'insadong',
+  OSAN: 'osaek',
+  HWASEONG: 'hwaseong',
+  JEJU_AIRPORT: 'jeju',
+};
 
 /** Which video set a kiosk's own subtitle entries belong to — the caller
  *  already knows this (it fetched `/api/kiosks/{thisKiosk}/subtitles`), so
  *  entries are assigned directly instead of guessed from the file name. */
-function videoSetFor(kioskId?: KioskId): VideoSet {
-  if (isHwaseong(kioskId)) return 'hwaseong';
-  if (isOsan(kioskId)) return 'osaek';
-  return 'insadong';
+export function videoSetFor(kioskId?: KioskId): VideoSet {
+  return kioskId == null ? 'insadong' : VIDEO_SET_BY_LAYOUT[getKioskLocation(kioskId).layout];
 }
 
 /**
@@ -128,24 +135,9 @@ export function initSubtitles(entries: VideoEntry[], kioskId?: KioskId): void {
   }
 
   if (matched.length === 0) return;
-  if (set === 'insadong') {
-    BY_KEY_INSA = buildByKey(matched);
-    BY_BUTTON_INSA = buildByButton(matched);
-  } else if (set === 'osaek') {
-    BY_KEY_OSAEK = buildByKey(matched);
-    BY_BUTTON_OSAEK = buildByButton(matched);
-  } else {
-    BY_KEY_HWASEONG = buildByKey(matched);
-    BY_BUTTON_HWASEONG = buildByButton(matched);
-  }
-}
-
-function isOsan(kioskId?: KioskId): boolean {
-  return kioskId != null && getKioskLocation(kioskId).layout === 'OSAN';
-}
-
-function isHwaseong(kioskId?: KioskId): boolean {
-  return kioskId != null && getKioskLocation(kioskId).layout === 'HWASEONG';
+  // Replace only this set's maps (the call is idempotent per set).
+  BY_KEY = { ...BY_KEY, [set]: buildByKey(matched) };
+  BY_BUTTON = { ...BY_BUTTON, [set]: buildByButton(matched) };
 }
 
 function clipsForKey(
@@ -266,22 +258,44 @@ const OSAN_SCREEN_TO_VIDEO_KEY: Record<string, string> = {
   lodging_detail: 'ToBuy_Detail',
 };
 
+/**
+ * Per-layout screen→playKey resolution.
+ *
+ * `map` is consulted first; `inherit: true` means "fall through to the base
+ * Insadong map when this layout has no entry" (Osan overrides only a handful of
+ * screens), while `inherit: false` means the layout's map is the WHOLE story and
+ * anything unlisted goes to Default (Hwaseong's grid diverges too far to inherit).
+ */
+interface LayoutScreenKeys {
+  map: Record<string, string>;
+  inherit: boolean;
+}
+
+const SCREEN_KEYS_BY_LAYOUT: Record<KioskLayoutId, LayoutScreenKeys> = {
+  INSADONG: { map: {}, inherit: true },
+  NAM_INSADONG: { map: {}, inherit: true },
+  OSAN: { map: OSAN_SCREEN_TO_VIDEO_KEY, inherit: true },
+  HWASEONG: { map: HWASEONG_SCREEN_TO_VIDEO_KEY, inherit: false },
+  // TODO(제주 W006): once the Jeju home grid + VideoSubtitle_Jeju tab exist, give
+  // this its own map (and set inherit:false if the grid diverges like Hwaseong's).
+  // Until then it reads the base Insadong screen names, which is harmless — the
+  // `jeju` video set is empty, so every lookup returns no clips either way.
+  JEJU_AIRPORT: { map: {}, inherit: true },
+};
+
 // Every kiosk carries a dedicated ChangeLanguage_* clip per UI language (all 8),
 // so the language screen is resolved from `lang` directly instead of a static
-// map entry — this applies uniformly to all kiosks, not just Hwaseong.
-function screenKey(screen: string, lang: Lang, osan: boolean): string {
+// map entry — this applies uniformly to all kiosks.
+function screenKey(screen: string, lang: Lang, layout: KioskLayoutId): string {
   if (screen === 'language') return changeLanguagePlayKey(lang);
-  const override = osan ? OSAN_SCREEN_TO_VIDEO_KEY[screen] : undefined;
-  return override ?? SCREEN_TO_VIDEO_KEY[screen] ?? 'Default';
+  const { map, inherit } = SCREEN_KEYS_BY_LAYOUT[layout];
+  const own = map[screen];
+  if (own) return own;
+  return (inherit ? SCREEN_TO_VIDEO_KEY[screen] : undefined) ?? 'Default';
 }
 
-function hwaseongScreenKey(screen: string, lang: Lang): string {
-  if (screen === 'language') return changeLanguagePlayKey(lang);
-  return HWASEONG_SCREEN_TO_VIDEO_KEY[screen] ?? 'Default';
-}
-
-function byButtonFor(set: VideoSet): Map<number, VideoEntry[]> {
-  return set === 'hwaseong' ? BY_BUTTON_HWASEONG : set === 'osaek' ? BY_BUTTON_OSAEK : BY_BUTTON_INSA;
+function layoutOf(kioskId?: KioskId): KioskLayoutId {
+  return kioskId == null ? 'INSADONG' : getKioskLocation(kioskId).layout;
 }
 
 /**
@@ -305,7 +319,7 @@ function basePlayKeyOf(entries: VideoEntry[]): string {
  * so callers fall back to the legacy screen map / Default idle.
  */
 function clipsForButton(buttonId: number, lang: Lang, set: VideoSet): DisplayClip[] {
-  const entries = byButtonFor(set).get(buttonId);
+  const entries = BY_BUTTON[set].get(buttonId);
   if (!entries || entries.length === 0) return [];
   const basePlayKey = basePlayKeyOf(entries);
   const sortOf = (e: VideoEntry): number => e.sortOrder ?? Number.MAX_SAFE_INTEGER;
@@ -335,7 +349,7 @@ export function clipsForScreen(
   buttonId?: number | null,
 ): DisplayClip[] {
   const set = videoSetFor(kioskId);
-  const byKey = set === 'hwaseong' ? BY_KEY_HWASEONG : set === 'osaek' ? BY_KEY_OSAEK : BY_KEY_INSA;
+  const byKey = BY_KEY[set];
 
   if (screen === 'language') {
     const clips = clipsForKey(byKey, changeLanguagePlayKey(lang), lang, set);
@@ -350,9 +364,7 @@ export function clipsForScreen(
     // else fall through: this button has no API-associated clip → legacy map.
   }
 
-  const key = isHwaseong(kioskId)
-    ? hwaseongScreenKey(screen, lang)
-    : screenKey(screen, lang, isOsan(kioskId));
+  const key = screenKey(screen, lang, layoutOf(kioskId));
   const clips = clipsForKey(byKey, key, lang, set);
   return clips.length > 0 ? clips : clipsForKey(byKey, 'Default', lang, set);
 }
@@ -367,16 +379,11 @@ export function clipsForScreen(
  */
 export function clipsForPlayKey(key: string, lang: Lang, kioskId?: KioskId): DisplayClip[] {
   const set = videoSetFor(kioskId);
-  const byKey =
-    set === 'hwaseong' ? BY_KEY_HWASEONG : set === 'osaek' ? BY_KEY_OSAEK : BY_KEY_INSA;
-  return clipsForKey(byKey, key, lang, set);
+  return clipsForKey(BY_KEY[set], key, lang, set);
 }
 
 /** The idle/attract sequence (Default). */
 export function idleClips(lang: Lang, kioskId?: KioskId): DisplayClip[] {
-  if (isHwaseong(kioskId)) {
-    return clipsForKey(BY_KEY_HWASEONG, 'Default', lang, 'hwaseong');
-  }
-  const osan = isOsan(kioskId);
-  return clipsForKey(osan ? BY_KEY_OSAEK : BY_KEY_INSA, 'Default', lang, osan ? 'osaek' : 'insadong');
+  const set = videoSetFor(kioskId);
+  return clipsForKey(BY_KEY[set], 'Default', lang, set);
 }

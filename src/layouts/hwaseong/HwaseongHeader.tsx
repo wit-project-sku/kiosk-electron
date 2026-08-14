@@ -1,4 +1,4 @@
-import { useMemo, useRef, type Ref } from 'react';
+import { useMemo, type Ref } from 'react';
 import type { KioskController } from '@renderer/hooks/useKioskController';
 import { hwaseongIconUrl } from '@renderer/assets/icons/hwaseong';
 import { screenSubtitle, screenTitle, useLang } from '@renderer/lib/i18n';

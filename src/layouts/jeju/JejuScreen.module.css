@@ -1,0 +1,28 @@
+/* Body of the 준비중 scaffold page — the surrounding chrome lives in
+   JejuPageFrame, so this is only the placeholder that sits between the 700px
+   header and the 573px banner. */
+.body {
+  position: absolute;
+  left: 0;
+  top: 700px;
+  width: 2160px;
+  height: 2567px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 40px;
+}
+
+.placeholder {
+  font-size: 72px;
+  font-weight: 600;
+  color: #909090;
+  line-height: 1;
+}
+
+.screenId {
+  font-size: 40px;
+  color: #b4b4b4;
+  letter-spacing: 0.04em;
+}

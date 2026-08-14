@@ -1,0 +1,179 @@
+/*
+ * 제주공항 (W006) 운항정보 — Figma 제주>운항정보=출발 (6219:98606) and
+ * 제주>운항정보=도착 (6219:98493).
+ *
+ * Inside KioskArtboard 1 CSS px = 1 Figma px (2160×3840), so every value here
+ * is the exact number read out of the design.
+ *
+ * y map:
+ *    0…700   JejuHeader (JejuPageFrame)
+ *  664…834   출발 / 도착 tabs        (yes, they overlap the header band — the
+ *                                     header's own content ends at 619)
+ *  921…1070  orange column-header plate
+ *   1170     first row's text; rows repeat every 255, rule at row+155
+ *
+ * The two frames differ ONLY in three column labels (출발시각/도착시각,
+ * 목적지/출발지, 탑승구/수하물수취대) and which side of the flight the data
+ * comes from — so one table serves both and JejuFlights.tsx supplies the spec.
+ */
+
+/* ── Tabs ───────────────────────────────────────────────────────────── */
+/*
+ * The same control as JejuHelp's 국제선/국내선 picker (left 400, w 1360, two
+ * 580px pills, 200px gutter) but with 제주>운항정보's pale-plate active style
+ * rather than the solid-orange one. Figma puts it at 664 on 출발 and 411,664 on
+ * 도착 — the x is designer slop between two copies of one component, so both
+ * take 400. NORMALISED.
+ */
+.tabs {
+  position: absolute;
+  left: 400px;
+  top: 664px;
+  width: 1360px;
+  height: 170px;
+  display: flex;
+  align-items: center;
+  gap: 200px;
+}
+
+.tab {
+  flex: 0 0 580px;
+  width: 580px;
+  height: 170px;
+  box-sizing: border-box;
+  padding: 0;
+  border: 5px solid #e8e8e8;
+  border-radius: 42.9px;
+  background: #fff;
+  font-size: 50px;
+  font-weight: 500;
+  line-height: 1;
+  color: #999;
+  text-align: center;
+  white-space: nowrap;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.tabActive {
+  border-color: var(--kiosk-primary, #ff7f0f);
+  background: #ffeac7; /* [제주] main 02 */
+  font-weight: 700;
+  color: var(--kiosk-primary, #ff7f0f);
+}
+
+/* ── Column-header plate ────────────────────────────────────────────── */
+.headPlate {
+  position: absolute;
+  left: 170px;
+  top: 921px;
+  width: 1820px;
+  height: 149px;
+  border-radius: 20px;
+  background: var(--kiosk-primary, #ff7f0f);
+}
+
+.head {
+  position: absolute;
+  top: 971px;
+  font-size: 45px;
+  font-weight: 600;
+  line-height: 1;
+  color: #fff;
+  white-space: nowrap;
+}
+
+/* ── Scrolling rows ─────────────────────────────────────────────────── */
+/*
+ * Starts where the plate ends so the column headers stay put. The 100px lead-in
+ * puts the first row's text on Figma's 1170.
+ *
+ * Rows are normal-flow blocks (their cells are absolute inside them) — padding
+ * on an absolutely-positioned container would NOT move absolute children, since
+ * those resolve against the padding box, not the content box.
+ */
+.scroll {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 1070px;
+  bottom: 0;
+  overflow-x: hidden;
+  overflow-y: auto;
+}
+
+.rows {
+  padding-top: 100px;
+  padding-bottom: 120px;
+}
+
+/* House scrollbar — identical to JejuListScreen / JejuAbout / JejuEvents. */
+.scroll::-webkit-scrollbar {
+  width: 34.32px;
+}
+
+.scroll::-webkit-scrollbar-thumb {
+  background: var(--kiosk-primary, #ff7f0f);
+  border-radius: 17.16px;
+}
+
+.scroll::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+/* Figma repeats the row group every 255 with its rule 155 in — so the block is
+   255 tall and the rule is NOT centred in it. */
+.row {
+  position: relative;
+  height: 255px;
+}
+
+.rowRule {
+  position: absolute;
+  left: 170px;
+  top: 155px;
+  width: 1820px;
+  height: 3px;
+  background: #c8bda9;
+}
+
+.cell {
+  position: absolute;
+  top: 0;
+  font-size: 50px;
+  font-weight: 600;
+  line-height: 1;
+  color: #333;
+  white-space: nowrap;
+}
+
+/* Centred columns carry their axis in `left`; left-aligned ones carry their
+   edge. Which is which comes from the column spec in JejuFlights.tsx. */
+.cellCentred {
+  transform: translateX(-50%);
+}
+
+/* The re-timed flight's original time. Unlike the home board, the leading time
+   does NOT move up here — the struck one simply hangs 65px below it. */
+.timeWas {
+  position: absolute;
+  left: 219px;
+  top: 65px;
+  font-size: 40px;
+  font-weight: 400;
+  line-height: 1;
+  color: var(--kiosk-primary, #ff7f0f);
+  text-decoration: line-through;
+  text-decoration-skip-ink: none;
+  white-space: nowrap;
+}
+
+.empty {
+  margin: 0;
+  padding: 180px 0;
+  font-size: 55px;
+  font-weight: 500;
+  line-height: 1.4;
+  color: #909090;
+  text-align: center;
+}

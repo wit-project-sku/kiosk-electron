@@ -133,7 +133,16 @@
   font-variation-settings: 'CTGR' 0, 'wdth' 100;
 }
 
-/* TAX-FREE: breathing room below SubHeader_TaxFree (may wrap to 3 lines). */
+/* TAX-FREE: breathing room below SubHeader_TaxFree (up to 2 lines). */
 .subtitleBelowGap {
   margin-bottom: 40px;
+}
+
+/* TAX-FREE: use the full header row width so the subtitle wraps less often. */
+.subtitleWide {
+  width: 2000px;
+}
+
+.subtitleWide .subtitleText {
+  max-width: 2000px;
 }

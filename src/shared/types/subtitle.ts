@@ -2,8 +2,12 @@
 
 import { LANGUAGES, type LocalizedLang } from '@shared/config/languages';
 
+/** Every bundled video set, in one place — iterate this instead of re-listing the
+ *  names, so adding a location's set is a single edit. */
+export const VIDEO_SETS = ['insadong', 'osaek', 'hwaseong', 'jeju'] as const;
+
 /** Which bundled video set a kiosk plays from (resources/videos/<set>/). */
-export type VideoSet = 'insadong' | 'osaek' | 'hwaseong';
+export type VideoSet = (typeof VIDEO_SETS)[number];
 
 /** Real .mp4 file names present on disk, per video set. Listed at runtime by
  *  the main process (IPC VideosList) so newly-added videos are picked up without
