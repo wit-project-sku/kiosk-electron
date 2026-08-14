@@ -280,6 +280,16 @@
   overflow-y: auto;
 }
 
+/*
+ * No 초성 row (any language but Korean — see `showChosung`). The row's 82px band
+ * at y920 goes to the grid instead of being left as a hole under the tabs, so a
+ * non-Korean visitor gets slightly more of the list rather than a gap where a
+ * control used to be. 1002 − 82 = 920.
+ */
+.spotsNoChosung {
+  top: 920px;
+}
+
 .spots::-webkit-scrollbar {
   width: 34.32px;
 }

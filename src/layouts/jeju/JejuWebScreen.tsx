@@ -13,6 +13,7 @@ import { useEffect, useRef } from 'react';
 import type { KioskController } from '@renderer/hooks/useKioskController';
 import { useLanguageStore } from '@renderer/store/languageStore';
 import { pick } from '@renderer/lib/i18n';
+import { jejuIconUrl } from '@renderer/assets/icons/jeju';
 import { JejuPageFrame } from './JejuPageFrame';
 import styles from './JejuWebScreen.module.css';
 
@@ -53,7 +54,28 @@ interface Props {
   subtitleColor?: string;
   /** Draw the ★ before the subtitle (WIT Store omits it). */
   subtitleStar?: boolean;
+  /**
+   * 탐나오 only (6219:105645): the "모바일에서 확인하기" QR row under the panel,
+   * plus that frame's own panel metrics. One flag for both — see `.bodyTamnao`.
+   */
+  showMobileQr?: boolean;
 }
+
+/**
+ * 6352:144530. Two lines, ragged right against the QR — the break is authored
+ * here rather than left to wrapping, because the frame's second line is the
+ * longer one and auto-wrap would put the arrow in the wrong place.
+ */
+const MOBILE_QR = {
+  ko: ' QR 클릭! ←\n모바일에서 확인하기',
+  en: ' Scan the QR ←\nOpen it on your phone',
+  ja: ' QRはこちら ←\nスマホで見る',
+  zh: ' 扫描二维码 ←\n在手机上查看',
+  vi: ' Quét mã QR ←\nXem trên điện thoại',
+  th: ' สแกน QR ←\nดูบนมือถือ',
+  ru: ' Сканируйте QR ←\nОткрыть на телефоне',
+  id: ' Pindai QR ←\nBuka di ponsel',
+};
 
 const NO_URL = {
   ko: '웹사이트 주소가 설정되지 않았습니다',
@@ -73,6 +95,7 @@ export function JejuWebScreen({
   url,
   subtitleColor,
   subtitleStar,
+  showMobileQr = false,
 }: Props): JSX.Element {
   const lang = useLanguageStore((s) => s.currentLanguage);
   const webviewRef = useRef<WebviewEl | null>(null);
@@ -107,7 +130,7 @@ export function JejuWebScreen({
       bannerFallback="banner-detail"
       onBack={() => controller.navigate('home', '뒤로')}
     >
-      <div className={styles.body}>
+      <div className={`${styles.body} ${showMobileQr ? styles.bodyTamnao : ''}`}>
         {url ? (
           // `partition` keeps embedded sites in one persistent session, so a
           // cart/login survives navigating away and back.
@@ -125,6 +148,23 @@ export function JejuWebScreen({
           </div>
         )}
       </div>
+
+      {showMobileQr && (
+        <div className={styles.qrRow}>
+          <div className={styles.qrDivider} />
+          <p className={styles.qrText}>{pick(MOBILE_QR, lang)}</p>
+          <div className={styles.qrBox}>
+            {jejuIconUrl('qr-tamnao') && (
+              <img
+                className={styles.qrImg}
+                src={jejuIconUrl('qr-tamnao')}
+                alt=""
+                draggable={false}
+              />
+            )}
+          </div>
+        </div>
+      )}
     </JejuPageFrame>
   );
 }

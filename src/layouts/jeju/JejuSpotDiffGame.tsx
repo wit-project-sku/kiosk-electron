@@ -36,10 +36,19 @@
  * ── Where this departs from the frame, and why ────────────────────────
  * The frame is one static state: it has no lives, clock, hint or exit, because
  * it isn't drawing a game in progress. Those live in the empty band under the
- * pictures and at the two ends of the progress line — see the CSS header. The
- * banner is drawn as the frame has it but is NOT tappable here, unlike every
- * other 제주 page: a stray tap mid-game would reset the session and lose a
- * photo that is already generating.
+ * pictures and at the two ends of the progress line — see the CSS header.
+ *
+ * ── Nothing here may throw the photo away ─────────────────────────────
+ * Two departures from every other 제주 page, both the same rule: while the AI is
+ * working, this screen has no destructive exit.
+ *
+ *  - The banner is drawn as the frame has it but is NOT tappable.
+ *  - 홈/뒤로 are dimmed and inert until `aiReady` — see `navLocked`.
+ *
+ * A tap on either runs the photo reset, and the photo it discards is one the
+ * visitor has already posed for and the AI is already generating. Everywhere
+ * else backing out costs nothing; here it costs the thing they came for.
+ * `NAV_LOCK_MAX_MS` makes sure the lock can never outlive its own reason.
  */
 import { useCallback, useEffect, useRef, useState } from 'react';
 import type { CSSProperties, PointerEvent as ReactPointerEvent } from 'react';
@@ -84,6 +93,23 @@ const OUTCOME_HOLD_MS = 3200;
  * effect for why a round in play is deliberately exempt.
  */
 const IDLE_RELEASE_MS = 20_000;
+/**
+ * Hard ceiling on the 홈/뒤로 lock — see `navLocked`.
+ *
+ * The lock is normally released by `aiReady`, which lands right after the 60s
+ * floor in the common case. This bounds the case where it never lands at all: a
+ * generation that neither finishes nor errors leaves `aiReady` false forever,
+ * and without a ceiling the visitor is sealed on this screen with no way out.
+ *
+ * The global 3-minute inactivity reset is NOT that way out — it re-arms on every
+ * touch, so someone jabbing the dead 홈 button (or still playing) keeps it from
+ * ever firing. The escape has to be time-since-arrival, and it has to be here.
+ *
+ * Comfortably past the 60s `GENERATING_MIN_MS` hold in photo.handlers.ts, so it
+ * never cuts the intended lock short — it only ends a lock that has stopped
+ * making sense.
+ */
+const NAV_LOCK_MAX_MS = 90_000;
 /** Step number in the AR flow, as the frame draws it. */
 const STEP_NUMBER = '3';
 
@@ -299,6 +325,32 @@ export function JejuSpotDiffGame({ rounds, aiReady, onFinish, onHome }: Props): 
   const [hintSpotId, setHintSpotId] = useState<string | null>(null);
   /** Transient ✕ for a wrong tap: normalized position + which panel was hit. */
   const [missMark, setMissMark] = useState<{ x: number; y: number; panel: number; key: number } | null>(null);
+
+  /**
+   * The 홈/뒤로 lock's escape hatch — flips true NAV_LOCK_MAX_MS after arrival
+   * and never back. See the constant for why a ceiling is not optional.
+   */
+  const [navLockExpired, setNavLockExpired] = useState(false);
+  useEffect(() => {
+    const id = setTimeout(() => setNavLockExpired(true), NAV_LOCK_MAX_MS);
+    return () => clearTimeout(id);
+  }, []);
+
+  /**
+   * 홈/뒤로 are dead until the photo is ready.
+   *
+   * Leaving THIS screen is not like leaving any other: `onHome` runs the photo
+   * reset, and the photo it throws away is one the AI is already being paid to
+   * generate and the visitor has already posed for. Every other 제주 page can be
+   * backed out of at no cost; this one cannot, so for the ~60s it takes, it
+   * isn't offered.
+   *
+   * Released by `aiReady` rather than by a 60s timer, because the 60s
+   * (GENERATING_MIN_MS) is a FLOOR, not the finish: unlocking on the clock while
+   * the photo is still 10 seconds out would hand back an exit precisely when
+   * leaving is still destructive. `navLockExpired` bounds the wait either way.
+   */
+  const navLocked = !aiReady && !navLockExpired;
 
   /**
    * onFinish must fire exactly once. Note this guards the HAND-OVER, not the end
@@ -564,7 +616,7 @@ export function JejuSpotDiffGame({ rounds, aiReady, onFinish, onHome }: Props): 
     <div className={styles.root}>
       {icon('bg') && <img className={styles.bg} src={icon('bg')} alt="" draggable={false} />}
 
-      <Header title={photoTitle} onHome={onHome} onBack={onHome} />
+      <Header title={photoTitle} onHome={onHome} onBack={onHome} navDisabled={navLocked} />
 
       {/* ── ③ 잠시만 기다려주세요! ── */}
       <div className={styles.step}>

@@ -69,6 +69,8 @@ interface WebScreen {
   subtitle?: string;
   subtitleColor?: string;
   subtitleStar?: boolean;
+  /** 탐나오 only — the QR row + that frame's panel metrics. */
+  showMobileQr?: boolean;
 }
 
 const WEB_SCREENS: readonly WebScreen[] = [
@@ -90,6 +92,9 @@ const WEB_SCREENS: readonly WebScreen[] = [
     screen: 'tamnao',
     url: WEB_EMBED_URLS.tamnao,
     title: '탐나오',
+    // 6219:105645 hangs a "모바일에서 확인하기" QR under the panel so a visitor
+    // can carry the site away on their phone. WIT Store's frame has no such row.
+    showMobileQr: true,
   },
 ];
 
@@ -171,7 +176,7 @@ export function JejuKiosk(): JSX.Element {
         would sit on top of the home screen. Same reason Insadong and Osan do it
         this way.
       */}
-      {WEB_SCREENS.map(({ screen, url, title, subtitle, subtitleColor, subtitleStar }) => {
+      {WEB_SCREENS.map(({ screen, url, title, subtitle, subtitleColor, subtitleStar, showMobileQr }) => {
         const active = !controller.photoActive && cur === screen;
         return (
           <div
@@ -198,6 +203,7 @@ export function JejuKiosk(): JSX.Element {
               subtitleColor={subtitleColor}
               subtitleStar={subtitleStar}
               url={url}
+              showMobileQr={showMobileQr}
             />
           </div>
         );

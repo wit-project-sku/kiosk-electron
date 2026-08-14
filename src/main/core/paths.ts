@@ -77,6 +77,21 @@ class AppPaths {
     if (app.isPackaged && process.platform === 'win32') return ensureDir('C:\\KioskVideos');
     return join(process.cwd(), 'resources', 'videos');
   }
+
+  /**
+   * Read-only assets shipped INSIDE the install directory via electron-builder
+   * `extraResources` — currently just the MediaPipe runtime (see
+   * `scripts/vendor-mediapipe.mjs`).
+   *
+   * Unlike `videos` these are part of the app, not per-machine content, so they
+   * are meant to be replaced by an auto-update. Not `ensureDir`'d: the folder is
+   * created by the installer, and silently making an empty one would hide a
+   * packaging mistake behind a 404 instead of surfacing it.
+   */
+  get bundled(): string {
+    if (app.isPackaged) return process.resourcesPath;
+    return join(process.cwd(), 'resources');
+  }
 }
 
 export const appPaths = new AppPaths();

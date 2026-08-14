@@ -5,6 +5,7 @@ import { useKioskTheme } from '@renderer/hooks/useKioskTheme';
 import { useKioskStore } from '@renderer/store/kioskStore';
 import { preloadAllImages } from '@renderer/lib/preloadAssets';
 import { useShopStore } from '@renderer/store/shopStore';
+import { useAttractionStore } from '@renderer/store/attractionStore';
 import { useButtonStore } from '@renderer/store/buttonStore';
 import { useBannerStore } from '@renderer/store/bannerStore';
 import { useBackgroundStore } from '@renderer/store/backgroundStore';
@@ -28,6 +29,17 @@ export function App(): JSX.Element {
     void useShopStore.getState().load();
     const off = window.api.events.onShopsChanged(() => {
       void useShopStore.getState().reload();
+    });
+    return off;
+  }, []);
+  // 제주 관광명소, the same way. Loaded for every location rather than gated on
+  // the layout: the IPC returns an empty array where the cache was never filled,
+  // which costs one round-trip and keeps this block identical to its four
+  // neighbours instead of being the one that needs a condition.
+  useEffect(() => {
+    void useAttractionStore.getState().load();
+    const off = window.api.events.onAttractionsChanged(() => {
+      void useAttractionStore.getState().reload();
     });
     return off;
   }, []);

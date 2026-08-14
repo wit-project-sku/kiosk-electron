@@ -267,12 +267,29 @@ const TITLE_KEYS: Record<string, TitleKeySpec> = {
 };
 
 /**
- * Curated 4-language fallbacks for button/title keys — used ONLY when the
- * Localization_Hwaseong sheet has NO value for that exact language. The sheet
- * always wins (even if it stores English in a ja/zh slot); these just fill
- * genuinely-empty cells before the Korean fallback.
+ * Curated fallbacks for button/title keys — used ONLY when the location's sheet
+ * has NO value for that exact language. The sheet always wins (even if it stores
+ * English in a ja/zh slot); these just fill genuinely-empty cells before the
+ * Korean fallback.
+ *
+ * The MainButton_* block below is 화성's (4 languages, which is all its sheet
+ * ever needed); MainButton_LocalCurrency is 제주's and carries all 8. 화성 spells
+ * the same tile MainButton_MarketPaper and its sheet already translates it 8/8,
+ * so the two never collide.
  */
 const BUTTON_OVERRIDES: Record<string, Partial<Record<Lang, string>>> = {
+  // 제주 W006: Localization_Jeju fills MainButton_LocalCurrency in Korean only,
+  // so the 지역화폐 header printed 지역화폐 to every visitor.
+  MainButton_LocalCurrency: {
+    ko: '지역화폐',
+    en: 'Local Currency',
+    ja: '地域通貨',
+    zh: '地方货币',
+    vi: 'Tiền địa phương',
+    th: 'สกุลเงินท้องถิ่น',
+    ru: 'Местная валюта',
+    id: 'Mata Uang Daerah',
+  },
   MainButton_TrafficInfo: { ko: '도로 교통상황', en: 'Traffic Info', ja: '道路交通状況', zh: '道路交通状况' },
   MainButton_TraditionalMarket: { ko: '전국시장', en: 'Nationwide Markets', ja: '全国市場', zh: '全国市场' },
   MainButton_ServiceArea: { ko: '전국휴게소', en: 'Rest Areas', ja: '全国サービスエリア', zh: '全国休息站' },
@@ -321,11 +338,35 @@ const EXTRA_SUBTITLES: Record<string, Partial<Record<Lang, string>>> = {
   },
 };
 
+/**
+ * Curated subtitle fallbacks, keyed by the SHEET KEY rather than by the header
+ * id — the same resolution {@link BUTTON_OVERRIDES} gives titles, and keyed this
+ * way so a subtitle row one location has and another lacks can never leak
+ * sideways. (지역화폐 is one header id shared by 화성 and 제주; only 제주's sheet
+ * carries LocalCurrency_SubHeader, so only 제주 sees this.)
+ */
+const SUBTITLE_OVERRIDES: Record<string, Partial<Record<Lang, string>>> = {
+  LocalCurrency_SubHeader: {
+    ko: '제주도에서 사용할 수 있는 지역화폐 입니다.',
+    en: 'Local currencies you can use on Jeju Island.',
+    ja: '済州島で使える地域通貨のご案内です。',
+    zh: '这是可在济州岛使用的地方货币。',
+    vi: 'Các loại tiền địa phương dùng được trên đảo Jeju.',
+    th: 'เงินท้องถิ่นที่ใช้ได้บนเกาะเชจู',
+    ru: 'Местные платёжные средства, которые принимают на острове Чеджу.',
+    id: 'Mata uang daerah yang bisa dipakai di Pulau Jeju.',
+  },
+};
+
 export function screenSubtitle(id: string, lang: Lang): string | undefined {
   const extra = EXTRA_SUBTITLES[id];
   if (extra) return extra[lang] ?? extra.ko;
   for (const k of keyList(TITLE_KEYS[id]?.sub)) {
-    if (hasLoc(k)) return t(k, lang);
+    // Same order as `buttonText`: the sheet's own cell for this language, then
+    // the curated fallback for genuinely-empty cells, then `t()`'s Korean chain.
+    // A plain `t()` here answered Korean for every Korean-only row and looked
+    // like it had worked.
+    if (hasLoc(k)) return tExact(k, lang) || SUBTITLE_OVERRIDES[k]?.[lang] || t(k, lang);
   }
   return undefined;
 }

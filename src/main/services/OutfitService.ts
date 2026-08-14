@@ -1,4 +1,10 @@
-import type { KioskOutfit, OutfitCategory, OutfitGender } from '@shared/types/outfit';
+import type {
+  KioskOutfit,
+  OutfitCategory,
+  OutfitCategoryLabels,
+  OutfitGender,
+} from '@shared/types/outfit';
+import { fallbackOutfitLabels } from '@shared/constants/outfitCategories';
 import { createLogger } from '@main/core/logger';
 import type { LocalCacheService } from '@main/services/LocalCacheService';
 import type { KioskService } from '@main/services/KioskService';
@@ -21,8 +27,21 @@ const MAX_PAGES = 20;
  * serve from cache, work offline.
  *
  *   GET /api/outfits?pageNum=1&pageSize=200   → { data: { content, last, … } }
- *   GET /api/categories/outfits               → { data: [ { id, name } ] }
+ *   GET /api/outfits/categories               → { data: [ { id, categoryName, label* } ] }
  *
+ * ── The tab list is CMS content ───────────────────────────────────────
+ * `GET /api/outfits/categories` is what the picker draws its tabs from: one tab
+ * per row, in registration order, labelled in eight languages by the operator.
+ * Renaming a tab is an admin action rather than a release, which is why nothing
+ * downstream may re-label a category locally.
+ *
+ * ★ It 401s on PROD (verified 2026-08-14 — stage answers, prod says "JWT 토큰이
+ * 없거나 유효하지 않습니다"), so the pre-label `GET /api/categories/outfits` is
+ * kept as the fallback: same rows, `{id,name}` only, and the missing labels are
+ * filled from `shared/constants/outfitCategories`. Drop the fallback once the
+ * labelled endpoint is reachable without a token on prod.
+ *
+
  * ── Everything is fetched, nothing is filtered server-side ────────────
  * ★ `categoryName` is accepted by the endpoint and then IGNORED — every value
  * returns the full 65 rows (verified 2026-08-14: `w=hannbok`, `brand` and
@@ -36,8 +55,9 @@ const MAX_PAGES = 20;
  * nothing here has to change.
  *
  * Env:
- *   OUTFITS_API_URL     — full endpoint override (wins if set)
- *   WITTERIA_API_BASE   — shared API base, default https://api-v3.witteria.com
+ *   OUTFITS_API_URL            — full outfit endpoint override (wins if set)
+ *   OUTFIT_CATEGORIES_API_URL  — full tab-list endpoint override (wins if set)
+ *   WITTERIA_API_BASE          — shared API base, default https://api-v3.witteria.com
  */
 export class OutfitService {
   constructor(
@@ -54,6 +74,11 @@ export class OutfitService {
   }
 
   private categoriesUrl(): string {
+    return process.env['OUTFIT_CATEGORIES_API_URL'] || `${this.base()}/api/outfits/categories`;
+  }
+
+  /** Pre-label tab list — the fallback while the labelled one 401s on prod. */
+  private legacyCategoriesUrl(): string {
     return `${this.base()}/api/categories/outfits`;
   }
 
@@ -95,8 +120,13 @@ export class OutfitService {
         return this.list().length;
       }
 
-      this.cache.upsert(CACHE_KEY, { outfits, categories }, 'api');
-      log.info('Outfits cached', { outfits: outfits.length, categories: categories.length });
+      // Same reasoning one level down: no tabs means no way to reach any outfit,
+      // so a failed tab fetch keeps the tabs already cached rather than blanking
+      // the picker's top half.
+      const tabs = categories.length > 0 ? categories : this.categories();
+
+      this.cache.upsert(CACHE_KEY, { outfits, categories: tabs }, 'api');
+      log.info('Outfits cached', { outfits: outfits.length, categories: tabs.length });
       return outfits.length;
     } catch (error) {
       log.warn('Outfit refresh failed — keeping cached catalogue', {
@@ -140,24 +170,72 @@ export class OutfitService {
     return all;
   }
 
+  /**
+   * The tab list: the labelled endpoint, else the legacy one, else nothing.
+   *
+   * Never throws — a missing tab list must not take the outfit catalogue down
+   * with it, since the cached tabs from the last sync are a perfectly good
+   * answer and `refresh()` keeps them when this returns empty.
+   */
   private async fetchCategories(): Promise<OutfitCategory[]> {
-    const res = await fetch(this.categoriesUrl());
-    if (!res.ok) throw new Error(`HTTP ${res.status} (categories)`);
-    const json = (await res.json()) as { data?: unknown };
-    const rows = Array.isArray(json.data) ? json.data : [];
-    return rows
-      .map((row) => {
-        if (!row || typeof row !== 'object') return null;
-        const r = row as Record<string, unknown>;
-        const name = typeof r['name'] === 'string' ? r['name'].trim() : '';
-        const id = typeof r['id'] === 'number' ? r['id'] : null;
-        // The live list carries rows with `name: null` (ids 10 and 11). They
-        // cannot be matched against an outfit, so they are not tabs.
-        if (!name || id === null) return null;
-        return { id, name };
-      })
-      .filter((c): c is OutfitCategory => c !== null);
+    for (const url of [this.categoriesUrl(), this.legacyCategoriesUrl()]) {
+      try {
+        const res = await fetch(url);
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const json = (await res.json()) as { data?: unknown };
+        const rows = Array.isArray(json.data) ? json.data : [];
+        const categories = rows
+          .map(normalizeCategory)
+          .filter((c): c is OutfitCategory => c !== null);
+        if (categories.length > 0) return categories;
+        log.warn('Category endpoint returned no usable tabs', { url, rows: rows.length });
+      } catch (error) {
+        log.warn('Category endpoint failed', {
+          url,
+          error: error instanceof Error ? error.message : String(error),
+        });
+      }
+    }
+    return [];
   }
+}
+
+/**
+ * Normalises one tab row, from either endpoint.
+ *
+ * The two shapes differ only in the name field (`categoryName` vs `name`) and
+ * in whether labels are present, so one function reads both: a legacy row simply
+ * has every label filled from the local table. That also means the live list's
+ * `name: null` rows (ids 10 and 11) are dropped by the same check that drops a
+ * malformed one — a tab with no code cannot be matched against an outfit.
+ */
+function normalizeCategory(row: unknown): OutfitCategory | null {
+  if (!row || typeof row !== 'object') return null;
+  const r = row as Record<string, unknown>;
+
+  const id = typeof r['id'] === 'number' ? r['id'] : null;
+  const raw = r['categoryName'] ?? r['name'];
+  const categoryName = typeof raw === 'string' ? raw.trim() : '';
+  if (id === null || !categoryName) return null;
+
+  const fallback = fallbackOutfitLabels(categoryName);
+  const label = (key: keyof OutfitCategoryLabels): string => {
+    const v = r[key];
+    return typeof v === 'string' && v.trim() ? v.trim() : fallback[key];
+  };
+
+  return {
+    id,
+    categoryName,
+    labelKr: label('labelKr'),
+    labelEn: label('labelEn'),
+    labelJp: label('labelJp'),
+    labelCh: label('labelCh'),
+    labelVn: label('labelVn'),
+    labelId: label('labelId'),
+    labelTh: label('labelTh'),
+    labelRu: label('labelRu'),
+  };
 }
 
 /**

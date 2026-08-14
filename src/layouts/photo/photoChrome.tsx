@@ -16,6 +16,16 @@ export interface PhotoHeaderProps {
   onHome: () => void;
   onBack?: () => void;
   subtitle?: string;
+  /**
+   * Grey out 홈/뒤로 and stop them responding.
+   *
+   * ★ Only JejuHeader honours this — it is the only location with a screen that
+   * must not be walked away from (틀린그림찾기, which runs over a photo that is
+   * already generating). Passing it to the other three is a no-op rather than an
+   * error, so if another location ever grows a comparable screen, wire the prop
+   * in that header rather than assuming this one already did.
+   */
+  navDisabled?: boolean;
 }
 
 export interface PhotoChrome {

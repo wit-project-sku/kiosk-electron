@@ -13,7 +13,7 @@
 
 import { join, normalize, sep } from 'node:path';
 import { pathToFileURL } from 'node:url';
-import { net, protocol } from 'electron';
+import { net, protocol, type CustomScheme } from 'electron';
 import { appPaths } from './paths';
 import { createLogger } from './logger';
 
@@ -21,15 +21,20 @@ const log = createLogger('media-protocol');
 
 export const MEDIA_SCHEME = 'media';
 
-/** Must run before `app.whenReady()`. */
-export function registerMediaScheme(): void {
-  protocol.registerSchemesAsPrivileged([
-    {
-      scheme: MEDIA_SCHEME,
-      privileges: { standard: true, secure: true, supportFetchAPI: true, stream: true },
-    },
-  ]);
-}
+/**
+ * Privileges this scheme needs, handed to the ONE
+ * `protocol.registerSchemesAsPrivileged` call in `main/index.ts`.
+ *
+ * Electron allows that call exactly once, before `app.whenReady()` — a second
+ * call does not add to the first, it replaces it. This used to register itself,
+ * which was fine while `media://` was the only custom scheme and would have
+ * silently unregistered it the moment a second one appeared. Every scheme now
+ * exports its descriptor and the registration happens in one place.
+ */
+export const MEDIA_SCHEME_PRIVILEGES: CustomScheme = {
+  scheme: MEDIA_SCHEME,
+  privileges: { standard: true, secure: true, supportFetchAPI: true, stream: true },
+};
 
 function resolveSafe(baseDir: string, fileName: string): string | null {
   const target = normalize(join(baseDir, fileName));

@@ -8,6 +8,17 @@
  *   889   탐나는전 card      1820×2250
  * Everything inside a card is positioned against the CARD, not the artboard, so
  * moving a card is one number.
+ *
+ * ★ KNOWN: these boxes fit KOREAN ONLY. Until 2026-08-14 the page answered the
+ * sheet's Korean to every language (see withSheet in the .tsx), so nothing else
+ * was ever laid out. With the copy actually translating, six blocks overflow —
+ * measured room-left, worst language: digitalText −14, usageBlock −12 (hidden
+ * UNDER .beige, which paints after it), bullets −78, tamnaHead −168 (ru, lands
+ * on the 상품권 권종 heading), apply −8 (ru). `.bullets` never went through the
+ * sheet, so that one has always overflowed. Deliberately not fixed here: the
+ * remedy moves this frame's own coordinates and was split into its own task.
+ * The page does NOT scroll (JejuPageFrame .root is 3840 / overflow hidden), but
+ * there is ~129px free above the banner under each card.
  */
 
 /* ── Tabs (6249:32357 / 32290) ── */

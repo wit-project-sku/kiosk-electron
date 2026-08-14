@@ -41,6 +41,7 @@ import type { KioskLocationCode } from '../config/kioskLocations';
 import type { ExchangeSnapshot } from '../types/exchange';
 import type { VideoEntry, VideoFilesBySet } from '../types/subtitle';
 import type { Shop } from '../types/shop';
+import type { Attraction } from '../types/attraction';
 import type { KioskButton } from '../types/buttons';
 import type { KioskBanner } from '../types/banner';
 import type { KioskBackground } from '../types/background';
@@ -249,6 +250,21 @@ export interface IpcContract {
     request: void;
     response: Result<PhotoWorkflowState>;
   };
+  /** 제주: 손바닥을 볼 때까지 카운트다운을 시작하지 않고 대기한다. */
+  [IpcChannels.PhotoArmGestureGate]: {
+    request: void;
+    response: Result<PhotoWorkflowState>;
+  };
+  /** 제주: 주먹 — 카운트다운을 현재 숫자에서 멈춘다. */
+  [IpcChannels.PhotoHoldCountdown]: {
+    request: void;
+    response: Result<PhotoWorkflowState>;
+  };
+  /** 제주: 손바닥 — 멈춰 둔 카운트다운을 그 숫자부터 이어서 센다. */
+  [IpcChannels.PhotoResumeCountdown]: {
+    request: void;
+    response: Result<PhotoWorkflowState>;
+  };
   [IpcChannels.PhotoCaptureAndGenerate]: {
     request: {
       sessionId: string;
@@ -349,6 +365,20 @@ export interface IpcContract {
     request: void;
     response: Result<Shop[]>;
   };
+  /** 제주 관광명소 — the curated subset behind 여기는 제주도's third tab. */
+  [IpcChannels.AttractionsList]: {
+    request: void;
+    response: Result<Attraction[]>;
+  };
+  /**
+   * 초성-filtered 관광명소. `null` means the request could not be made at all
+   * (offline / HTTP error) — distinct from an empty array, which means the
+   * server genuinely has no match. Only the first falls back to the local filter.
+   */
+  [IpcChannels.AttractionsListByInitial]: {
+    request: { initial: string };
+    response: Result<Attraction[] | null>;
+  };
   [IpcChannels.ButtonsList]: {
     request: void;
     response: Result<KioskButton[]>;
@@ -411,6 +441,7 @@ export interface IpcEventPayloads {
   [IpcEvents.KioskScreenChanged]: { screen: string; buttonId: number | null };
   [IpcEvents.KioskWeatherVideo]: WeatherPlayKey;
   [IpcEvents.ShopsChanged]: null;
+  [IpcEvents.AttractionsChanged]: null;
   [IpcEvents.ButtonsChanged]: null;
   [IpcEvents.BannersChanged]: null;
   [IpcEvents.BackgroundsChanged]: null;

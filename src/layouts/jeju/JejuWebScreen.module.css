@@ -17,6 +17,83 @@
   background: #fffbf2;
 }
 
+/*
+ * 탐나오 (6219:105645) draws the same panel to its own numbers: 699 rather than
+ * 700, 2291 tall rather than 2250, and rounded 63. The extra height is not free
+ * space — that frame ends at 2990 and puts a QR row at 3008, where WIT Store
+ * simply stops at 2950. Same flag drives both, because in the frame they are
+ * one composition.
+ */
+.bodyTamnao {
+  top: 699px;
+  height: 2291px;
+  border-radius: 63px;
+}
+
+/* ── "모바일에서 확인하기" QR row — 6352:144525 ────────────────────────────
+   Sits between the panel (ends 2990) and the banner (3267). Not interactive:
+   the QR is something the visitor points a phone at, and the kiosk has no
+   larger view of it to open. */
+.qrRow {
+  position: absolute;
+  left: 252px;
+  top: 3008px;
+  width: 1820px;
+  height: 219px;
+}
+
+.qrDivider {
+  position: absolute;
+  left: 156px;
+  top: 0;
+  width: 1556px;
+  height: 1px;
+  border-radius: 2px;
+  background: #ebebeb;
+}
+
+/* The frame anchors this by its RIGHT edge at x1505 and centres it on y110
+   (`-translate-x-full -translate-y-1/2`), which is what keeps the two lines
+   ragged-right against the QR whatever the translation does to their width. */
+.qrText {
+  position: absolute;
+  right: 315px; /* 1820 − 1505 */
+  top: 110px;
+  transform: translateY(-50%);
+  margin: 0;
+  font-size: 40px;
+  font-weight: 700;
+  line-height: normal;
+  letter-spacing: 0.4px;
+  color: var(--kiosk-primary, #ff7f0f);
+  text-align: right;
+  white-space: pre-line;
+}
+
+.qrBox {
+  position: absolute;
+  left: 1551px;
+  top: 16px;
+  width: 187px;
+  height: 187px;
+  box-sizing: border-box;
+  border: 4.29px solid var(--kiosk-primary, #ff7f0f);
+  border-radius: 25px;
+  background: #fff;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* The exported asset is exactly the frame's 150×150, so it is placed at its
+   natural size and centred rather than stretched to the box. */
+.qrImg {
+  width: 150px;
+  height: 150px;
+  display: block;
+}
+
 /* `display` MUST stay flex/inline-flex. Electron's <webview> is a custom element
    whose shadow root is `:host{display:flex}` around an `<iframe style="flex:1">`
    — that iframe takes its HEIGHT only from the flex stretch, so `display:block`

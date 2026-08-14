@@ -10,11 +10,15 @@
  * design's absolute values are used verbatim):
  *   594…699   ① 의상 선택하기
  *   739…786   ★ subtitle
- *   844…1219  category tabs, 2 rows of 4
- *  1236…1354  sub-category chips — CHIPPED CATEGORIES ONLY
- *  1385…1875  outfit cards, ONE row   (chipped category — a Swiper, because
+ *   844…1219  category tabs, 2 rows (4 columns in the design; the API decides
+ *             how many there really are — see `.cats`)
+ *  1385…1875  outfit cards, ONE row   (landing tab — a Swiper, because
  *             4×478 + 3×30 = 2002 overruns the 1820)
- *  1387…2397  outfit cards, TWO rows  (unchipped — takes the chip row's space)
+ *  1387…2397  outfit cards, TWO rows  (every other tab)
+ *
+ * The design's 1236…1354 sub-category chip row is gone: every tab is now exactly
+ * one registered category, so there is nothing to choose between, and the frames
+ * that ship the row draw it hidden (6258:48575).
  *  1978…2083  ② 배경 테마 선택하기
  *  2141…2903  background themes (scrolls horizontally)
  *  3006…3156  capture buttons
@@ -106,6 +110,19 @@
 }
 
 /* ── Category tabs ──────────────────────────────────────────────────── */
+/*
+ * ── The tab row is CMS content, so its COLUMN count is a variable ──────
+ * 6258:48134 draws 8 tabs as 2 rows of 4 × 420 in the 1820 column. The tabs now
+ * come from `GET /api/outfits/categories` and nothing else, so the count is the
+ * operator's: nine registered categories today, and another registration would
+ * make it ten.
+ *
+ * The rows stay at 2 and the COLUMNS absorb the change, because everything
+ * below this block is absolutely positioned (strip 1385, step ② 1978, capture
+ * 3006) and a third row would draw straight over the outfit cards. `--cat-cols`
+ * is set inline by the component; the width below is the design's own
+ * arithmetic, so 4 columns still resolve to exactly 420.
+ */
 .cats {
   position: absolute;
   left: 170px;
@@ -114,31 +131,59 @@
   display: flex;
   flex-direction: column;
   gap: 35px; /* 205 pitch − 170 row */
+  --cat-cols: 4;
+  --cat-gap: 46.6667px; /* (1820 − 4×420) / 3 */
 }
 
+/* Left-aligned, NOT space-between: a short second row must sit under the first
+   row's columns rather than spreading itself across the full 1820. */
 .catRow {
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: flex-start;
+  gap: var(--cat-gap);
   height: 170px;
 }
 
 .cat {
-  width: 420px;
+  width: calc((1820px - (var(--cat-cols) - 1) * var(--cat-gap)) / var(--cat-cols));
   height: 170px;
   box-sizing: border-box;
-  padding: 0;
+  padding: 0 18px;
   border: 5px solid #e8e8e8;
   border-radius: 42.9px;
   background: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   font-size: 50px;
   font-weight: 500;
-  line-height: 1;
+  line-height: 1.1;
   color: #999;
   text-align: center;
-  white-space: nowrap;
   cursor: pointer;
   -webkit-tap-highlight-color: transparent;
+  /*
+   * The label is CMS text in eight languages, so it cannot be assumed to fit on
+   * one line the way the design's own eight Korean words did — "Женский ханбок"
+   * is 14 characters. Two lines inside the 170 button are fine at this size;
+   * `keep-all` is what stops Korean breaking mid-word (see the localpay note).
+   */
+  white-space: normal;
+  word-break: keep-all;
+  overflow-wrap: anywhere;
+}
+
+/*
+ * Five or more columns: the button is ~327 wide, so the type steps down and the
+ * side padding with it. Measured, not guessed — the longest label the CMS ships
+ * today is "Повседневное" (`m=everyday`, ru) at 288px, and 40px type inside a
+ * 10px padding leaves a 297px content box, so it lands on ONE line. At 44px it
+ * was 317 and broke mid-word, orphaning a single letter on the second line.
+ */
+.catsTight .cat {
+  font-size: 40px;
+  padding: 0 10px;
 }
 
 .catActive {
@@ -148,10 +193,11 @@
   color: var(--kiosk-primary, #ff7f0f);
 }
 
-/* ── Step ② body: 배경 테마 (제주) or 사진촬영안내 (everything else) ────── */
+/* ── Step ② body: 배경 테마 (landing tab) or 사진촬영안내 (everything else) ── */
 /*
- * The two conditions do NOT share a slot. 제주 puts ② 배경 테마 at 1978 with the
- * capture buttons under it at 3006 (6258:48575/48469/48693); every other tab
+ * The two conditions do NOT share a slot. The landing tab puts ② 배경 테마 at
+ * 1978 with the capture buttons under it at 3006 (6258:48575/48469/48693); every
+ * other tab
  * drops the buttons to 2469 and hangs the 사진촬영안내 card BELOW them at 2688
  * (6258:48327). The card is not a numbered step — it is a bulleted orange
  * heading — so it carries no ② badge.
@@ -306,55 +352,6 @@
   color: #333;
   text-align: center;
   white-space: nowrap;
-}
-
-/* ── Sub-category chips ────────────────────────────────── */
-/*
- * 6258:48134: a category that spans more than one source folder gets a chip row
- * between the tabs and the grid (여자 한복 / 남자 한복). Measured off that
- * frame — row at 1236, 118 tall, first chip 171→448, the next starting at 496,
- * so the chips are content-sized with a 46 gutter.
- */
-.subChips {
-  position: absolute;
-  left: 170px;
-  top: 1236px;
-  width: 1820px;
-  height: 118px;
-  display: flex;
-  align-items: center;
-  gap: 46px;
-  overflow-x: auto;
-  overflow-y: hidden;
-  scrollbar-width: none;
-}
-
-.subChips::-webkit-scrollbar {
-  display: none;
-}
-
-.subChip {
-  flex: 0 0 auto;
-  height: 118px;
-  box-sizing: border-box;
-  padding: 0 42.9px;
-  border: 5px solid #e8e8e8;
-  border-radius: 59px;
-  background: #fff;
-  font-size: 45px;
-  font-weight: 500;
-  line-height: 1;
-  color: #999;
-  white-space: nowrap;
-  cursor: pointer;
-  -webkit-tap-highlight-color: transparent;
-}
-
-.subChipActive {
-  border-color: var(--kiosk-primary, #ff7f0f);
-  background: #ffecd1;
-  font-weight: 700;
-  color: var(--kiosk-primary, #ff7f0f);
 }
 
 /* ── Outfit cards ───────────────────────────────────────────────────── */
@@ -659,8 +656,8 @@
 }
 
 /* The 개인정보처리방침 link is NOT a page-level control: it lives inside the
-   사진촬영안내 card (`.guidePrivacy`), so the 제주 tab — which shows 배경 테마
-   instead of that card — carries no link, exactly as 6258:48693 draws it. */
+   사진촬영안내 card (`.guidePrivacy`), so the landing tab — which shows 배경
+   테마 instead of that card — carries no link, exactly as 6258:48693 draws it. */
 
 /* ── Banner ─────────────────────────────────────────────────────────── */
 .banner {

@@ -65,6 +65,11 @@ export const IpcChannels = {
   PhotoSelectClothing: 'photo:selectClothing',
   PhotoSelectStyle: 'photo:selectStyle',
   PhotoBeginCountdown: 'photo:beginCountdown',
+  // 제주 손동작 게이트 — the customer display drives these from what it sees in
+  // the camera feed (open palm / closed fist).
+  PhotoArmGestureGate: 'photo:armGestureGate',
+  PhotoHoldCountdown: 'photo:holdCountdown',
+  PhotoResumeCountdown: 'photo:resumeCountdown',
   PhotoCaptureAndGenerate: 'photo:captureAndGenerate',
   PhotoGetResultDataUrl: 'photo:getResultDataUrl',
   PhotoSetHoldResult: 'photo:setHoldResult',
@@ -104,6 +109,11 @@ export const IpcChannels = {
 
   // Shops (cached from the witteria API)
   ShopsList: 'shops:list',
+
+  // 제주 관광명소 (curated sightseeing catalogue, cached from the witteria API)
+  AttractionsList: 'attractions:list',
+  // 초성-filtered variant, straight off the API's `initial` param.
+  AttractionsListByInitial: 'attractions:listByInitial',
 
   // Home buttons (layout cached from the witteria API)
   ButtonsList: 'buttons:list',
@@ -156,6 +166,8 @@ export const IpcEvents = {
   KioskWeatherVideo: 'event:kiosk:weatherVideo',
   /** Shop catalogue refreshed into SQLite; the renderer reloads its store. */
   ShopsChanged: 'event:shops:changed',
+  /** 제주 관광명소 refreshed into SQLite; the renderer reloads its store. */
+  AttractionsChanged: 'event:attractions:changed',
   /** Home button layout refreshed into SQLite; the renderer reloads its store. */
   ButtonsChanged: 'event:buttons:changed',
   /** Bottom banners refreshed into SQLite; the renderer reloads its store. */

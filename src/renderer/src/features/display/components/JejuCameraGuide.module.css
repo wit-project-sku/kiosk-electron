@@ -68,6 +68,13 @@
   white-space: nowrap;
 }
 
+/* 주먹으로 멈춘 상태 — the whole line dims together so the frozen numeral reads
+   as paused rather than as a kiosk that has stopped responding. */
+.titleHeld {
+  opacity: 0.45;
+  transition: opacity 200ms ease;
+}
+
 /* Only the number is branded — the sentence beside it stays white. */
 .count {
   font-family: 'Gmarket Sans', 'Noto Sans KR', sans-serif;
@@ -154,13 +161,68 @@
   transform: scaleX(-1);
 }
 
-/* The dashed figure the visitor lines themselves up with. Contained, centred,
-   and never mirrored — it is symmetric guidance, not part of the feed. */
+/*
+ * The dashed figure the visitor lines themselves up with.
+ *
+ * Drawn at its EXPORT SIZE (1822×2346 — the artboard is 1:1, so these are the
+ * asset's own pixels), horizontally centred, sitting 134px off the bottom of the
+ * feed. It used to be `inset: 0` + `object-fit: contain`, which sized it from
+ * whatever box it landed in and let the designer's intended scale drift; these
+ * are the given numbers, so they are stated rather than derived.
+ *
+ * `bottom: 134px` rather than a margin: the element is absolutely positioned, so
+ * a margin-bottom on it has no box to push against — `bottom` is the same
+ * 134px gap expressed in the only way that actually holds here.
+ *
+ * The figure stands ON the ground line baked into the bottom of the export,
+ * which is why it is anchored to the bottom and not centred vertically: that
+ * line has to meet the floor of the frame, and a vertical centre would float it.
+ *
+ * Never mirrored, unlike `.feed` — it is symmetric guidance, not part of the
+ * picture. (Its raised hand is on the visitor's right either way, which is what
+ * the gesture prompt asks for.)
+ */
 .pose {
   position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
+  left: 50%;
+  bottom: 134px;
+  transform: translateX(-50%);
+  width: 1822px;
+  height: 2346px;
   object-fit: contain;
   pointer-events: none;
+}
+
+/* ── 일시정지 badge ──────────────────────────────────────────────────── */
+/* Near the top of the feed rather than centred on it: the middle of the frame
+   is where the visitor's own face is, and covering that is exactly what they
+   are standing there to look at. */
+.pausedBadge {
+  position: absolute;
+  top: 120px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: 34px;
+  padding: 40px 82px;
+  border-radius: 150px;
+  background: rgba(0, 0, 0, 0.72);
+  font-size: 88px;
+  font-weight: 700;
+  line-height: 1;
+  color: #ffeac7;
+  white-space: nowrap;
+  pointer-events: none;
+}
+
+/* The ⏸ glyph is font-dependent (and absent from Noto Sans KR's Korean cut, so
+   it fell back to a tofu box). Two drawn bars can't miss. */
+.pausedBars {
+  flex: 0 0 auto;
+  width: 62px;
+  height: 84px;
+  background:
+    linear-gradient(#ffeac7, #ffeac7) left / 22px 100% no-repeat,
+    linear-gradient(#ffeac7, #ffeac7) right / 22px 100% no-repeat;
 }

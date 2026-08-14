@@ -44,6 +44,7 @@ import type { KioskLocationCode } from '../config/kioskLocations';
 import type { ExchangeSnapshot } from '../types/exchange';
 import type { VideoEntry, VideoFilesBySet } from '../types/subtitle';
 import type { Shop } from '../types/shop';
+import type { Attraction } from '../types/attraction';
 import type { KioskButton } from '../types/buttons';
 import type { KioskBanner } from '../types/banner';
 import type { KioskBackground } from '../types/background';
@@ -119,6 +120,20 @@ export interface KioskBridge {
     selectClothing(clothingKey: string): Promise<Result<PhotoWorkflowState>>;
     selectStyle(styleKey: string): Promise<Result<PhotoWorkflowState>>;
     beginCountdown(): Promise<Result<PhotoWorkflowState>>;
+    /**
+     * 제주 (W006): hold the countdown until the visitor shows an open palm.
+     *
+     * Pressing 등록하기 is the moment they still have to WALK BACK to fit in
+     * frame, so counting from that press spends the 10 seconds on the walk.
+     * Arming instead leaves the camera live and the clock stopped; the customer
+     * display starts it with `beginCountdown` when it sees the palm, and can
+     * stop and restart it with the two calls below.
+     */
+    armGestureGate(): Promise<Result<PhotoWorkflowState>>;
+    /** 주먹 — freeze the count at its current second. */
+    holdCountdown(): Promise<Result<PhotoWorkflowState>>;
+    /** 손바닥 — continue a held count from where it stopped. */
+    resumeCountdown(): Promise<Result<PhotoWorkflowState>>;
     captureAndGenerate(request: {
       sessionId: string;
       dataUrl: string;
@@ -195,6 +210,19 @@ export interface KioskBridge {
   shops: {
     list(): Promise<Result<Shop[]>>;
   };
+  /**
+   * 제주 관광명소 — the CURATED sightseeing catalogue, not a filtered view of
+   * `shops`. See `@shared/types/attraction` for what the two differ by.
+   */
+  attractions: {
+    list(): Promise<Result<Attraction[]>>;
+    /**
+     * The API's own 초성 filter. Resolves to `null` when the request could
+     * not be made — the caller then keeps whatever the local filter produced,
+     * which is what makes the 초성 row work offline.
+     */
+    listByInitial(initial: string): Promise<Result<Attraction[] | null>>;
+  };
   /** Cached home button layout (from the witteria API, refreshed on launch only). */
   buttons: {
     list(): Promise<Result<KioskButton[]>>;
@@ -260,6 +288,7 @@ export interface KioskBridge {
     ): Unsubscribe;
     onKioskWeatherVideo(listener: (key: WeatherPlayKey) => void): Unsubscribe;
     onShopsChanged(listener: () => void): Unsubscribe;
+    onAttractionsChanged(listener: () => void): Unsubscribe;
     onButtonsChanged(listener: () => void): Unsubscribe;
     onBannersChanged(listener: () => void): Unsubscribe;
     onBackgroundsChanged(listener: () => void): Unsubscribe;

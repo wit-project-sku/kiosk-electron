@@ -146,6 +146,9 @@ const api: KioskBridge = {
     selectClothing: (clothingKey) => invoke(IpcChannels.PhotoSelectClothing, { clothingKey }),
     selectStyle: (styleKey) => invoke(IpcChannels.PhotoSelectStyle, { styleKey }),
     beginCountdown: () => invoke(IpcChannels.PhotoBeginCountdown),
+    armGestureGate: () => invoke(IpcChannels.PhotoArmGestureGate),
+    holdCountdown: () => invoke(IpcChannels.PhotoHoldCountdown),
+    resumeCountdown: () => invoke(IpcChannels.PhotoResumeCountdown),
     captureAndGenerate: (request) => invoke(IpcChannels.PhotoCaptureAndGenerate, request),
     getResultDataUrl: (fileName) => invoke(IpcChannels.PhotoGetResultDataUrl, { fileName }),
     setHoldResult: (hold) => invoke(IpcChannels.PhotoSetHoldResult, { hold }),
@@ -184,6 +187,10 @@ const api: KioskBridge = {
   },
   shops: {
     list: () => invoke(IpcChannels.ShopsList),
+  },
+  attractions: {
+    list: () => invoke(IpcChannels.AttractionsList),
+    listByInitial: (initial) => invoke(IpcChannels.AttractionsListByInitial, { initial }),
   },
   buttons: {
     list: () => invoke(IpcChannels.ButtonsList),
@@ -229,6 +236,7 @@ const api: KioskBridge = {
     onKioskScreenChanged: (listener) => subscribe(IpcEvents.KioskScreenChanged, listener),
     onKioskWeatherVideo: (listener) => subscribe(IpcEvents.KioskWeatherVideo, listener),
     onShopsChanged: (listener) => subscribe(IpcEvents.ShopsChanged, listener),
+    onAttractionsChanged: (listener) => subscribe(IpcEvents.AttractionsChanged, listener),
     onButtonsChanged: (listener) => subscribe(IpcEvents.ButtonsChanged, listener),
     onBannersChanged: (listener) => subscribe(IpcEvents.BannersChanged, listener),
     onBackgroundsChanged: (listener) => subscribe(IpcEvents.BackgroundsChanged, listener),

@@ -6,6 +6,7 @@ import { DEFAULT_SETTINGS } from '@shared/constants';
 import { PHOTO_COUNTDOWN_SECONDS } from '@shared/constants/photoOptions';
 import { assetUrl, generatedUrl } from '@renderer/lib/media';
 import { useKioskCamera } from '@renderer/hooks/useKioskCamera';
+import { useHandGesture } from '@renderer/hooks/useHandGesture';
 import { usePhotoWorkflow } from '@renderer/hooks/usePhotoWorkflow';
 import { usePhotoStore } from '@renderer/store/photoStore';
 import { trackEvent } from '@renderer/lib/analytics';
@@ -33,6 +34,30 @@ const ATTRACT_STATE: DisplayState = {
 };
 
 const GEN_WAIT_SECS = 60;
+
+/**
+ * 제주 손동작 게이트 — the safety nets under it.
+ *
+ * The gate exists so the visitor decides when the shutter starts, but a kiosk
+ * that will not take a photo until it sees a hand is a kiosk that is broken
+ * whenever it cannot see one: a camera the landmarker can't read, a visitor in
+ * a wheelchair whose hands are out of frame, a child who doesn't understand the
+ * pictogram, bright airport backlight. Every one of those ends in the countdown
+ * starting anyway.
+ *
+ *  WAIT   — nothing seen while armed. Generous: this is the stretch where they
+ *           are walking backwards and looking for their spot, and cutting it
+ *           short is exactly the bad UX the gate was added to remove.
+ *  BLIND  — detection could not start at all. Short, because there is nothing
+ *           to wait FOR — just long enough for the briefing to be read and for
+ *           them to get clear of the kiosk.
+ *  HELD   — a fist has been holding the count. Long enough for a real pause,
+ *           short enough that a false positive (crossed arms, a hand in a coat
+ *           pocket) cannot strand the session.
+ */
+const GESTURE_WAIT_FALLBACK_MS = 30_000;
+const GESTURE_BLIND_FALLBACK_MS = 8_000;
+const GESTURE_HELD_FALLBACK_MS = 45_000;
 
 /** 결제 전 블러 미리보기 위에 덮는 안내 문구(기부 학교 흐름). */
 const LOCKED_RESULT_NOTICE = '기부를 완료해 주세요. 완료 후 사진을 다운로드할 수 있습니다.';
@@ -205,6 +230,50 @@ export function CustomerDisplay(): JSX.Element {
     void captureAndGenerate();
   });
 
+  // ── 제주 손동작 게이트 ─────────────────────────────────────────────────
+  // This window owns the camera stream, so it is the only one that can see the
+  // visitor's hand — the gate is therefore driven from here and merely recorded
+  // in main. 'off' everywhere else, which makes every branch below inert.
+  const gestureGate = usePhotoStore((s) => s.gestureGate);
+  const gated = gestureGate !== 'off';
+
+  const { gesture, status: gestureStatus } = useHandGesture({
+    video: videoRef,
+    enabled: gated && cameraEnabled,
+  });
+
+  // Each transition is guarded on the gate main reports rather than on a local
+  // flag, so the visitor simply LEAVING their palm up after the count starts
+  // sends nothing: 'open' + 'running' matches no branch. Without that, a held
+  // pose would fire an IPC call on every stable frame.
+  useEffect(() => {
+    if (gesture === 'open') {
+      if (gestureGate === 'waiting') void window.api.photo.beginCountdown();
+      else if (gestureGate === 'held') void window.api.photo.resumeCountdown();
+    } else if (gesture === 'fist' && gestureGate === 'running') {
+      void window.api.photo.holdCountdown();
+    }
+  }, [gesture, gestureGate]);
+
+  // Fallback out of 'waiting' — see the constants for why each of these exists.
+  // Re-armed when the detector's status changes, so the generous window is
+  // measured from the moment it is actually watching, not from the button press.
+  useEffect(() => {
+    if (gestureGate !== 'waiting') return;
+    const ms =
+      gestureStatus === 'unavailable' ? GESTURE_BLIND_FALLBACK_MS : GESTURE_WAIT_FALLBACK_MS;
+    const timer = setTimeout(() => void window.api.photo.beginCountdown(), ms);
+    return () => clearTimeout(timer);
+  }, [gestureGate, gestureStatus]);
+
+  // Fallback out of 'held'. Unconditional: if detection died WHILE paused, the
+  // open palm that would release it can no longer be seen either.
+  useEffect(() => {
+    if (gestureGate !== 'held') return;
+    const timer = setTimeout(() => void window.api.photo.resumeCountdown(), GESTURE_HELD_FALLBACK_MS);
+    return () => clearTimeout(timer);
+  }, [gestureGate]);
+
   // 제주 has its own camera screen; every other location uses the one below.
   const isJeju = kioskId ? getKioskLocation(kioskId).layout === 'JEJU_AIRPORT' : false;
 
@@ -262,7 +331,13 @@ export function CustomerDisplay(): JSX.Element {
           no tips/pose boxes/branding — so it replaces this rather than
           reskinning it. See JejuCameraGuide. */}
       {(state.mode === 'camera' || state.mode === 'countdown') && isJeju && (
-        <JejuCameraGuide videoRef={videoRef} lang={lang} countdown={state.countdown} />
+        <JejuCameraGuide
+          videoRef={videoRef}
+          lang={lang}
+          countdown={state.countdown}
+          gestureGate={gestureGate}
+          detectionUnavailable={gestureStatus === 'unavailable'}
+        />
       )}
 
       {(state.mode === 'camera' || state.mode === 'countdown') && !isJeju && (

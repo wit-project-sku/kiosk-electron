@@ -70,8 +70,19 @@ interface Content {
  *
  * Localization_Jeju now supplies this page through {@link SHEET_KEYS}; what
  * survives here is what the sheet does not answer. Today that is the seven
- * translations, because all 18 LocalCurrency_* rows are KOREAN ONLY — so Korean
+ * translations, because all 20 LocalCurrency_* rows are KOREAN ONLY — so Korean
  * follows the sheet and the other seven languages read the copy below.
+ *
+ * ★ INVARIANT: for every field listed in {@link SHEET_KEYS}, the `ko` copy below
+ * is the sheet's own Korean verbatim (only `**`/`\n`, which the sheet cannot
+ * store, are added), and the other seven are translations OF THAT KOREAN — not
+ * of the Figma frame. Korean already renders the sheet's cell, so anything else
+ * would make the page say different things in different languages. Four fields
+ * were re-aligned on 2026-08-14 for exactly that reason: introBody (desc_2),
+ * digitalBody's first paragraph (desc_5), note (desc_7), and the third sentence
+ * of tamna.introBody (desc_11), all of which had been transcribed from the frame
+ * while the sheet says something else. Re-check this invariant when the sheet's
+ * Korean is reworded.
  *
  * TODO(제주 W006): those seven translations are authored here, following
  * OsanLocalpay, because a Korean-only 지역화폐 page on an international airport
@@ -85,14 +96,14 @@ const CONTENT: Partial<Record<Lang, Content>> = {
     onnuri: {
       introH: ['온누리상품권', '이란?'],
       introBody:
-        '전통시장과 상점가의 활성화를 위해 발행된 전용 상품권으로, 전국의 온누리상품권 가맹점에서 다양한 상품과 서비스를 구매할 때 사용할 수 있습니다. 전통시장과 지역 상점가를 이용하면서 할인 혜택도 받고, 지역 경제 활성화에도 도움을 줄 수 있는 편리한 상품권입니다.',
+        '전국 16개 금융기관에서 5천원, 1만원, 3만원권 단위로 구매하여 사용하는 온누리상품권',
       paperLabel: '지류상품권 권종',
       digitalH: ['디지털 온누리상품권', '이란?'],
       digitalBody:
-        '스마트폰을 이용해 더욱 편리하게 사용할 수 있는 디지털 형태의 온누리상품권입니다. 모바일 앱을 통해 상품권을 충전하고, 가맹점에서 QR 또는 카드 결제 방식으로 간편하게 사용할 수 있습니다.\n상품권 금액의 **10% 할인가**로 충전 가능! **최대 보유한도금액**은 **200만원**입니다.',
+        '디지털 온누리상품권 앱 설치 후 기존 갖고 있는 카드를 등록하고 금액 충전 후, 실물카드 또는 QR코드 결제 방식으로 이용 가능한 온누리상품권\n상품권 금액의 **10% 할인가**로 충전 가능! **최대 보유한도금액**은 **200만원**입니다.',
       usageH: '온누리상품권 사용처',
       usageBody: '**온누리상품권 가맹점 스티커**가 있는 곳에서 사용이 가능합니다.',
-      note: '※ 할인율 및 혜택은 정책 및 판매 상황에 따라 변경될 수 있습니다.',
+      note: '※ 단, 예산소진 상황에 따라 특별판매 내용 및 기간이 변경될 수 있습니다.',
       bullets: [
         '할인 혜택 : 충전 시 약 10% 할인 적용됨',
         '소득공제 혜택 : 전통시장 사용 시 최대 40% 소득공제 가능',
@@ -103,7 +114,7 @@ const CONTENT: Partial<Record<Lang, Content>> = {
     tamna: {
       introH: '탐나는전이란?',
       introBody:
-        '지역 내 소비 진작을 통한 지역상권 활성화와 지역자금의 선순환을 위해 **제주특별자치도가 발행한 제주 전용 지역화폐**입니다.\n제주도 내 가맹점에서만 사용할 수 있는 지역화폐로, 대형마트·기업형 슈퍼마켓·유흥 및 사행성 업소·일부 직영 프랜차이즈 매장을 제외한 IC 카드 단말기를 사용하는 가맹점에서 이용 가능합니다.',
+        '지역 내 소비 진작을 통한 지역상권 활성화와 지역자금의 선순환을 위해 **제주특별자치도가 발행한 제주 전용 지역화폐**입니다.\n제주도 내 가맹점에서만 사용할 수 있는 지역화폐로, 대형마트·기업형 슈퍼마켓·유흥 및 사행성 업소·일부 직영 프랜차이즈 매장을 제외한 IC 카드 단말기를 사용하는 가맹점에서 이용 가능합니다. 또한 탐나는전 앱을 통해 언제 어디서나 간편하게 충전하고 사용 내역과 잔액을 편리하게 관리할 수 있습니다.',
       kwonjongH: '상품권 권종',
       kwonjongLabels: ['카드형', '모바일형', '지류형'],
       applyH: '누구나 신청 가능하나요?',
@@ -120,14 +131,14 @@ const CONTENT: Partial<Record<Lang, Content>> = {
     onnuri: {
       introH: ['Onnuri Voucher', ' — what is it?'],
       introBody:
-        'A voucher issued to support traditional markets and shopping districts. It can be used to buy goods and services at Onnuri member stores nationwide — you get a discount while you shop and help the local economy at the same time.',
+        'An Onnuri voucher bought in 5,000 / 10,000 / 30,000 won denominations at 16 financial institutions nationwide.',
       paperLabel: 'Paper voucher denominations',
       digitalH: ['Digital Onnuri Voucher', ' — what is it?'],
       digitalBody:
-        'A digital form of the Onnuri voucher, made easier to use on a smartphone. Top it up in the mobile app and pay at member stores by QR or card.\nTop up at a **10% discount** on the voucher amount. The **maximum balance** you may hold is **KRW 2,000,000**.',
+        'An Onnuri voucher you use by installing the Digital Onnuri app, registering a card you already have, topping it up, and paying with the physical card or a QR code.\nTop up at a **10% discount** on the voucher amount. The **maximum balance** you may hold is **KRW 2,000,000**.',
       usageH: 'Where to use it',
       usageBody: 'Accepted anywhere showing the **Onnuri member-store sticker**.',
-      note: '※ Discount rates and benefits may change with policy and sales conditions.',
+      note: '※ However, the terms and period of the special sale may change depending on how quickly the budget is used up.',
       bullets: [
         'Discount: about 10% off when you top up',
         'Tax deduction: up to 40% income deduction on traditional-market spending',
@@ -138,7 +149,7 @@ const CONTENT: Partial<Record<Lang, Content>> = {
     tamna: {
       introH: 'What is Tamnanunjeon?',
       introBody:
-        'It is **a local currency issued by Jeju Special Self-Governing Province for use in Jeju only**, to boost local spending and keep money circulating in the region.\nIt works only at member stores on Jeju Island — any store with an IC card terminal, except large marts, corporate supermarkets, entertainment and gambling venues, and some directly-operated franchise stores.',
+        'It is **a local currency issued by Jeju Special Self-Governing Province for use in Jeju only**, to boost local spending and keep money circulating in the region.\nIt works only at member stores on Jeju Island — any store with an IC card terminal, except large marts, corporate supermarkets, entertainment and gambling venues, and some directly-operated franchise stores. You can also top up anytime, anywhere in the Tamnanunjeon app and keep track of your spending and balance there.',
       kwonjongH: 'Voucher types',
       kwonjongLabels: ['Card', 'Mobile', 'Paper'],
       applyH: 'Can anyone apply?',
@@ -155,14 +166,14 @@ const CONTENT: Partial<Record<Lang, Content>> = {
     onnuri: {
       introH: ['オンヌリ商品券', 'とは?'],
       introBody:
-        '伝統市場や商店街の活性化のために発行された専用商品券です。全国のオンヌリ商品券加盟店で、さまざまな商品やサービスの購入に利用できます。割引を受けながら、地域経済の活性化にも役立つ便利な商品券です。',
+        '全国16の金融機関で5千ウォン・1万ウォン・3万ウォン券の単位で購入して使うオンヌリ商品券です。',
       paperLabel: '紙商品券の券種',
       digitalH: ['デジタルオンヌリ商品券', 'とは?'],
       digitalBody:
-        'スマートフォンでより便利に使えるデジタル版のオンヌリ商品券です。モバイルアプリでチャージし、加盟店ではQRまたはカード決済で簡単に利用できます。\n商品券額面の**10%割引**でチャージ可能。**保有限度額**は**200万ウォン**です。',
+        'デジタルオンヌリ商品券アプリをインストールし、お持ちのカードを登録して金額をチャージした後、実物カードまたはQRコード決済で利用できるオンヌリ商品券です。\n商品券額面の**10%割引**でチャージ可能。**保有限度額**は**200万ウォン**です。',
       usageH: 'オンヌリ商品券の利用先',
       usageBody: '**オンヌリ商品券加盟店ステッカー**のある店舗でご利用いただけます。',
-      note: '※ 割引率および特典は、政策や販売状況により変更される場合があります。',
+      note: '※ ただし、予算の消尽状況により、特別販売の内容および期間が変更される場合があります。',
       bullets: [
         '割引特典 : チャージ時に約10%割引',
         '所得控除 : 伝統市場での利用時、最大40%の所得控除',
@@ -173,7 +184,7 @@ const CONTENT: Partial<Record<Lang, Content>> = {
     tamna: {
       introH: 'タムナヌンジョンとは?',
       introBody:
-        '地域内の消費を促し、商圏の活性化と地域資金の好循環のために**済州特別自治道が発行した済州専用の地域通貨**です。\n済州島内の加盟店でのみ使える地域通貨で、大型マート・企業型スーパー・遊興および射幸業種・一部の直営フランチャイズ店舗を除く、ICカード端末を導入した加盟店で利用できます。',
+        '地域内の消費を促し、商圏の活性化と地域資金の好循環のために**済州特別自治道が発行した済州専用の地域通貨**です。\n済州島内の加盟店でのみ使える地域通貨で、大型マート・企業型スーパー・遊興および射幸業種・一部の直営フランチャイズ店舗を除く、ICカード端末を導入した加盟店で利用できます。また、タムナヌンジョンアプリでいつでもどこでも簡単にチャージでき、利用履歴と残高も手軽に管理できます。',
       kwonjongH: '商品券の種類',
       kwonjongLabels: ['カード型', 'モバイル型', '紙型'],
       applyH: '誰でも申し込めますか?',
@@ -190,14 +201,14 @@ const CONTENT: Partial<Record<Lang, Content>> = {
     onnuri: {
       introH: ['温努里商品券', '是什么?'],
       introBody:
-        '这是为振兴传统市场和商圈而发行的专用商品券，可在全国温努里加盟店购买各类商品和服务。既能享受折扣，又能为地方经济的发展出一份力。',
+        '可在全国16家金融机构以5千韩元、1万韩元、3万韩元面额购买使用的温努里商品券。',
       paperLabel: '纸质商品券面额',
       digitalH: ['数字温努里商品券', '是什么?'],
       digitalBody:
-        '这是可用智能手机更方便使用的数字版温努里商品券。通过手机应用充值，在加盟店以二维码或刷卡方式轻松支付。\n可按商品券金额的**九折**充值，**最高持有限额**为**200万韩元**。',
+        '安装数字温努里商品券应用后，登记您已有的卡片并充值，即可通过实体卡或二维码支付使用的温努里商品券。\n可按商品券金额的**九折**充值，**最高持有限额**为**200万韩元**。',
       usageH: '温努里商品券使用处',
       usageBody: '凡张贴**温努里商品券加盟店贴纸**的店铺均可使用。',
-      note: '※ 折扣率及优惠可能随政策和销售情况变动。',
+      note: '※ 但根据预算使用情况，特别销售的内容及期间可能会有变动。',
       bullets: [
         '折扣优惠：充值时约享九折',
         '所得扣除：在传统市场使用可享最高40%所得扣除',
@@ -208,7 +219,7 @@ const CONTENT: Partial<Record<Lang, Content>> = {
     tamna: {
       introH: '耽罗钱是什么?',
       introBody:
-        '这是为促进本地消费、振兴商圈并让地方资金良性循环，由**济州特别自治道发行的济州专用地方货币**。\n仅可在济州岛内的加盟店使用，除大型超市、企业型超市、娱乐及博彩场所和部分直营连锁店外，凡使用IC卡终端的加盟店均可使用。',
+        '这是为促进本地消费、振兴商圈并让地方资金良性循环，由**济州特别自治道发行的济州专用地方货币**。\n仅可在济州岛内的加盟店使用，除大型超市、企业型超市、娱乐及博彩场所和部分直营连锁店外，凡使用IC卡终端的加盟店均可使用。此外，还可通过耽罗钱应用随时随地轻松充值，并方便地管理使用记录和余额。',
       kwonjongH: '商品券种类',
       kwonjongLabels: ['卡片型', '手机型', '纸质型'],
       applyH: '任何人都能申请吗?',
@@ -225,14 +236,14 @@ const CONTENT: Partial<Record<Lang, Content>> = {
     onnuri: {
       introH: ['Phiếu Onnuri', ' là gì?'],
       introBody:
-        'Là phiếu mua hàng chuyên dụng được phát hành để hỗ trợ chợ truyền thống và khu phố mua sắm. Bạn có thể dùng để mua hàng hóa và dịch vụ tại các cửa hàng thành viên Onnuri trên toàn quốc — vừa được giảm giá, vừa góp phần phát triển kinh tế địa phương.',
+        'Phiếu Onnuri được mua tại 16 tổ chức tài chính trên toàn quốc theo mệnh giá 5.000 / 10.000 / 30.000 won.',
       paperLabel: 'Các mệnh giá phiếu giấy',
       digitalH: ['Phiếu Onnuri điện tử', ' là gì?'],
       digitalBody:
-        'Là dạng điện tử của phiếu Onnuri, tiện lợi hơn khi dùng trên điện thoại. Nạp tiền qua ứng dụng và thanh toán tại cửa hàng thành viên bằng mã QR hoặc thẻ.\nNạp tiền với **mức giảm 10%** so với mệnh giá. **Hạn mức nắm giữ tối đa** là **2.000.000 KRW**.',
+        'Phiếu Onnuri dùng được bằng cách cài ứng dụng Phiếu Onnuri điện tử, đăng ký thẻ bạn đang có, nạp tiền rồi thanh toán bằng thẻ thật hoặc mã QR.\nNạp tiền với **mức giảm 10%** so với mệnh giá. **Hạn mức nắm giữ tối đa** là **2.000.000 KRW**.',
       usageH: 'Nơi sử dụng',
       usageBody: 'Dùng được ở những nơi có dán **nhãn cửa hàng thành viên Onnuri**.',
-      note: '※ Tỷ lệ giảm giá và ưu đãi có thể thay đổi theo chính sách và tình hình bán hàng.',
+      note: '※ Tuy nhiên, nội dung và thời gian của đợt bán đặc biệt có thể thay đổi tùy theo tình hình sử dụng ngân sách.',
       bullets: [
         'Ưu đãi giảm giá: giảm khoảng 10% khi nạp tiền',
         'Khấu trừ thuế: khấu trừ thu nhập tối đa 40% khi chi tiêu ở chợ truyền thống',
@@ -243,7 +254,7 @@ const CONTENT: Partial<Record<Lang, Content>> = {
     tamna: {
       introH: 'Tamnanunjeon là gì?',
       introBody:
-        'Đây là **đồng tiền địa phương dành riêng cho Jeju, do tỉnh tự trị đặc biệt Jeju phát hành**, nhằm kích cầu tiêu dùng tại chỗ và giữ dòng tiền luân chuyển trong vùng.\nChỉ dùng được tại các cửa hàng thành viên trên đảo Jeju — mọi cửa hàng có máy đọc thẻ IC, trừ siêu thị lớn, siêu thị doanh nghiệp, cơ sở giải trí và cờ bạc, và một số cửa hàng nhượng quyền trực thuộc.',
+        'Đây là **đồng tiền địa phương dành riêng cho Jeju, do tỉnh tự trị đặc biệt Jeju phát hành**, nhằm kích cầu tiêu dùng tại chỗ và giữ dòng tiền luân chuyển trong vùng.\nChỉ dùng được tại các cửa hàng thành viên trên đảo Jeju — mọi cửa hàng có máy đọc thẻ IC, trừ siêu thị lớn, siêu thị doanh nghiệp, cơ sở giải trí và cờ bạc, và một số cửa hàng nhượng quyền trực thuộc. Ngoài ra, bạn có thể nạp tiền mọi lúc mọi nơi qua ứng dụng Tamnanunjeon và dễ dàng theo dõi lịch sử sử dụng cùng số dư.',
       kwonjongH: 'Các loại phiếu',
       kwonjongLabels: ['Dạng thẻ', 'Dạng di động', 'Dạng giấy'],
       applyH: 'Ai cũng đăng ký được không?',
@@ -260,14 +271,14 @@ const CONTENT: Partial<Record<Lang, Content>> = {
     onnuri: {
       introH: ['บัตรกำนัลอนนูรี', ' คืออะไร?'],
       introBody:
-        'บัตรกำนัลที่ออกเพื่อส่งเสริมตลาดดั้งเดิมและย่านการค้า ใช้ซื้อสินค้าและบริการได้ที่ร้านค้าสมาชิกอนนูรีทั่วประเทศ ได้ทั้งส่วนลดและช่วยกระตุ้นเศรษฐกิจท้องถิ่นไปพร้อมกัน',
+        'บัตรกำนัลอนนูรีที่ซื้อได้ที่สถาบันการเงิน 16 แห่งทั่วประเทศ ในมูลค่า 5,000 / 10,000 / 30,000 วอน',
       paperLabel: 'มูลค่าบัตรกำนัลแบบกระดาษ',
       digitalH: ['บัตรกำนัลอนนูรีดิจิทัล', ' คืออะไร?'],
       digitalBody:
-        'บัตรกำนัลอนนูรีในรูปแบบดิจิทัลที่ใช้งานสะดวกยิ่งขึ้นบนสมาร์ตโฟน เติมเงินผ่านแอปมือถือ และชำระเงินที่ร้านค้าสมาชิกด้วย QR หรือบัตร\nเติมเงินได้ในราคา**ลด 10%** ของมูลค่าบัตร **วงเงินถือครองสูงสุด**คือ **2,000,000 วอน**',
+        'บัตรกำนัลอนนูรีที่ใช้ได้โดยติดตั้งแอปบัตรกำนัลอนนูรีดิจิทัล ลงทะเบียนบัตรที่มีอยู่เดิม เติมเงิน แล้วชำระด้วยบัตรจริงหรือคิวอาร์โค้ด\nเติมเงินได้ในราคา**ลด 10%** ของมูลค่าบัตร **วงเงินถือครองสูงสุด**คือ **2,000,000 วอน**',
       usageH: 'สถานที่ใช้บัตรกำนัลอนนูรี',
       usageBody: 'ใช้ได้ที่ร้านซึ่งติด**สติกเกอร์ร้านค้าสมาชิกอนนูรี**',
-      note: '※ อัตราส่วนลดและสิทธิประโยชน์อาจเปลี่ยนแปลงตามนโยบายและสถานการณ์การจำหน่าย',
+      note: '※ ทั้งนี้ เนื้อหาและระยะเวลาของการจำหน่ายพิเศษอาจเปลี่ยนแปลงตามสถานการณ์การใช้งบประมาณ',
       bullets: [
         'ส่วนลด : ลดประมาณ 10% เมื่อเติมเงิน',
         'ลดหย่อนภาษี : ลดหย่อนเงินได้สูงสุด 40% เมื่อใช้จ่ายในตลาดดั้งเดิม',
@@ -278,7 +289,7 @@ const CONTENT: Partial<Record<Lang, Content>> = {
     tamna: {
       introH: 'ทัมนานึนจอนคืออะไร?',
       introBody:
-        'เป็น**เงินท้องถิ่นเฉพาะเชจูที่ออกโดยจังหวัดปกครองตนเองพิเศษเชจู** เพื่อกระตุ้นการใช้จ่ายในพื้นที่และให้เงินหมุนเวียนอยู่ในท้องถิ่น\nใช้ได้เฉพาะร้านค้าสมาชิกบนเกาะเชจู คือร้านที่มีเครื่องรูดบัตร IC ยกเว้นห้างค้าปลีกขนาดใหญ่ ซูเปอร์มาร์เก็ตของบริษัท สถานบันเทิงและการพนัน และร้านแฟรนไชส์ที่บริษัทดำเนินการเองบางแห่ง',
+        'เป็น**เงินท้องถิ่นเฉพาะเชจูที่ออกโดยจังหวัดปกครองตนเองพิเศษเชจู** เพื่อกระตุ้นการใช้จ่ายในพื้นที่และให้เงินหมุนเวียนอยู่ในท้องถิ่น\nใช้ได้เฉพาะร้านค้าสมาชิกบนเกาะเชจู คือร้านที่มีเครื่องรูดบัตร IC ยกเว้นห้างค้าปลีกขนาดใหญ่ ซูเปอร์มาร์เก็ตของบริษัท สถานบันเทิงและการพนัน และร้านแฟรนไชส์ที่บริษัทดำเนินการเองบางแห่ง นอกจากนี้ยังเติมเงินได้ทุกที่ทุกเวลาผ่านแอปทัมนานึนจอน และดูประวัติการใช้จ่ายกับยอดคงเหลือได้อย่างสะดวก',
       kwonjongH: 'ประเภทบัตรกำนัล',
       kwonjongLabels: ['แบบบัตร', 'แบบมือถือ', 'แบบกระดาษ'],
       applyH: 'ใครก็สมัครได้ไหม?',
@@ -295,14 +306,14 @@ const CONTENT: Partial<Record<Lang, Content>> = {
     onnuri: {
       introH: ['Ваучер Оннури', ' — что это?'],
       introBody:
-        'Ваучер, выпущенный для поддержки традиционных рынков и торговых улиц. Им можно оплачивать товары и услуги в магазинах-участниках Оннури по всей стране — вы получаете скидку и одновременно поддерживаете местную экономику.',
+        'Ваучер Оннури, который покупают номиналами 5 000, 10 000 и 30 000 вон в 16 финансовых учреждениях по всей стране.',
       paperLabel: 'Номиналы бумажного ваучера',
       digitalH: ['Цифровой ваучер Оннури', ' — что это?'],
       digitalBody:
-        'Цифровая версия ваучера Оннури, которой удобнее пользоваться со смартфона. Пополняйте баланс в мобильном приложении и платите в магазинах-участниках по QR-коду или картой.\nПополнение — со **скидкой 10%** от номинала. **Максимальный остаток** — **2 000 000 вон**.',
+        'Ваучер Оннури, которым пользуются так: установить приложение «Цифровой ваучер Оннури», привязать уже имеющуюся карту, пополнить баланс и платить самой картой или по QR-коду.\nПополнение — со **скидкой 10%** от номинала. **Максимальный остаток** — **2 000 000 вон**.',
       usageH: 'Где принимают',
       usageBody: 'Принимают там, где есть **наклейка магазина-участника Оннури**.',
-      note: '※ Размер скидки и льготы могут меняться в зависимости от политики и условий продаж.',
+      note: '※ Однако содержание и сроки специальной продажи могут измениться в зависимости от расходования бюджета.',
       bullets: [
         'Скидка: около 10% при пополнении',
         'Налоговый вычет: до 40% вычета при тратах на традиционных рынках',
@@ -313,7 +324,7 @@ const CONTENT: Partial<Record<Lang, Content>> = {
     tamna: {
       introH: 'Что такое Тамнанынджон?',
       introBody:
-        'Это **местная валюта только для Чеджу, выпущенная особой самоуправляемой провинцией Чеджудо**, чтобы оживить местную торговлю и удержать деньги в регионе.\nПринимается только в магазинах-участниках на острове Чеджу — в любой точке с терминалом IC-карт, кроме гипермаркетов, сетевых супермаркетов, развлекательных и игорных заведений и части фирменных франчайзинговых магазинов.',
+        'Это **местная валюта только для Чеджу, выпущенная особой самоуправляемой провинцией Чеджудо**, чтобы оживить местную торговлю и удержать деньги в регионе.\nПринимается только в магазинах-участниках на острове Чеджу — в любой точке с терминалом IC-карт, кроме гипермаркетов, сетевых супермаркетов, развлекательных и игорных заведений и части фирменных франчайзинговых магазинов. Кроме того, в приложении Тамнанынджон можно пополнять баланс в любое время и в любом месте и удобно следить за историей трат и остатком.',
       kwonjongH: 'Виды ваучера',
       kwonjongLabels: ['Карта', 'Мобильный', 'Бумажный'],
       applyH: 'Может ли оформить любой?',
@@ -330,14 +341,14 @@ const CONTENT: Partial<Record<Lang, Content>> = {
     onnuri: {
       introH: ['Voucher Onnuri', ' itu apa?'],
       introBody:
-        'Voucher khusus yang diterbitkan untuk menghidupkan pasar tradisional dan kawasan pertokoan. Bisa dipakai membeli berbagai barang dan jasa di toko anggota Onnuri di seluruh negeri — dapat potongan harga sekaligus ikut menggerakkan ekonomi daerah.',
+        'Voucher Onnuri yang dibeli dalam pecahan 5.000 / 10.000 / 30.000 won di 16 lembaga keuangan di seluruh negeri.',
       paperLabel: 'Pecahan voucher kertas',
       digitalH: ['Voucher Onnuri digital', ' itu apa?'],
       digitalBody:
-        'Bentuk digital dari voucher Onnuri yang lebih praktis dipakai lewat ponsel. Isi saldo di aplikasi, lalu bayar di toko anggota dengan QR atau kartu.\nIsi saldo dengan **potongan 10%** dari nilai voucher. **Batas saldo maksimum** adalah **KRW 2.000.000**.',
+        'Voucher Onnuri yang dipakai dengan memasang aplikasi Voucher Onnuri Digital, mendaftarkan kartu yang sudah Anda miliki, mengisi saldo, lalu membayar dengan kartu fisik atau kode QR.\nIsi saldo dengan **potongan 10%** dari nilai voucher. **Batas saldo maksimum** adalah **KRW 2.000.000**.',
       usageH: 'Tempat pemakaian',
       usageBody: 'Berlaku di tempat yang memasang **stiker toko anggota Onnuri**.',
-      note: '※ Besaran diskon dan manfaat dapat berubah mengikuti kebijakan dan kondisi penjualan.',
+      note: '※ Namun, isi dan periode penjualan khusus dapat berubah tergantung penyerapan anggaran.',
       bullets: [
         'Diskon: potongan sekitar 10% saat isi saldo',
         'Potongan pajak: pengurangan penghasilan hingga 40% untuk belanja di pasar tradisional',
@@ -348,7 +359,7 @@ const CONTENT: Partial<Record<Lang, Content>> = {
     tamna: {
       introH: 'Apa itu Tamnanunjeon?',
       introBody:
-        'Ini **mata uang daerah khusus Jeju yang diterbitkan Provinsi Otonomi Khusus Jeju**, untuk mendorong belanja setempat dan menjaga perputaran uang di daerah.\nHanya berlaku di toko anggota di Pulau Jeju — semua toko bermesin kartu IC, kecuali hypermarket, supermarket korporat, tempat hiburan dan perjudian, serta sebagian gerai waralaba milik perusahaan.',
+        'Ini **mata uang daerah khusus Jeju yang diterbitkan Provinsi Otonomi Khusus Jeju**, untuk mendorong belanja setempat dan menjaga perputaran uang di daerah.\nHanya berlaku di toko anggota di Pulau Jeju — semua toko bermesin kartu IC, kecuali hypermarket, supermarket korporat, tempat hiburan dan perjudian, serta sebagian gerai waralaba milik perusahaan. Selain itu, Anda bisa mengisi saldo kapan saja dan di mana saja lewat aplikasi Tamnanunjeon serta memantau riwayat pemakaian dan sisa saldo dengan mudah.',
       kwonjongH: 'Jenis voucher',
       kwonjongLabels: ['Kartu', 'Ponsel', 'Kertas'],
       applyH: 'Apakah semua orang bisa mendaftar?',
@@ -436,10 +447,27 @@ function splitHeading(sheet: string, authored: readonly [string, string]): [stri
 
 /** Overlay the sheet's cells for `lang` onto the authored copy. */
 function withSheet(c: Content, lang: Lang): Content {
-  const s = (key: string, fallback: string): string => sheetText(key, lang, { ko: fallback });
+  /**
+   * Sheet cell for THIS language, else the authored copy — which `c` has ALREADY
+   * resolved to `lang` (it is `pick(CONTENT, lang)`), so it belongs in that
+   * language's slot.
+   *
+   * ★ Until 2026-08-14 this passed `{ ko: fallback }`, putting an English (or
+   * Japanese, or Thai) string in the Korean slot. `sheetText` then found nothing
+   * at step 2 and fell through to `t()`, which answers the sheet's KOREAN for a
+   * language it has no cell for — and every LocalCurrency_* row is Korean-only.
+   * The result was a 지역화폐 page that rendered Korean to every visitor except
+   * for the four bullets, the three 권종 labels and the two accent headings,
+   * which carry no sheet key and so never went through here. Nothing errored.
+   *
+   * `ko` is still filled so the very last branch — key missing from the sheet
+   * entirely — returns copy rather than ''.
+   */
+  const s = (key: string, fallback: string): string =>
+    sheetText(key, lang, { ko: fallback, [lang]: fallback });
   const k = SHEET_KEYS;
   const digital = k.onnuri.digitalBody
-    .map((key, i) => sheetText(key, lang, { ko: c.onnuri.digitalBody.split('\n')[i] ?? '' }))
+    .map((key, i) => s(key, c.onnuri.digitalBody.split('\n')[i] ?? ''))
     .filter(Boolean)
     .join('\n');
 

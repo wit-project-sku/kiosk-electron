@@ -24,6 +24,7 @@ import { ShopService } from './services/ShopService';
 import { ButtonLayoutService } from './services/ButtonLayoutService';
 import { BannerService } from './services/BannerService';
 import { BackgroundService } from './services/BackgroundService';
+import { AttractionService } from './services/AttractionService';
 import { SpotDiffService } from './services/SpotDiffService';
 import { OutfitService } from './services/OutfitService';
 import { StatsService } from './services/StatsService';
@@ -70,6 +71,8 @@ export interface AppContainer {
   buttons: ButtonLayoutService;
   banners: BannerService;
   backgrounds: BackgroundService;
+  /** 제주 관광명소 catalogue (여기는 제주도 > 관광명소). */
+  attractions: AttractionService;
   spotDiff: SpotDiffService;
   outfits: OutfitService;
   stats: StatsService;
@@ -102,6 +105,7 @@ export function createContainer(): AppContainer {
   const buttons = new ButtonLayoutService(cache, kiosk);
   const banners = new BannerService(cache, kiosk);
   const backgrounds = new BackgroundService(cache, kiosk);
+  const attractions = new AttractionService(cache, kiosk);
   const spotDiff = new SpotDiffService(cache);
   const outfits = new OutfitService(cache, kiosk);
   const stats = new StatsService(kiosk, failedRequests);
@@ -166,6 +170,7 @@ export function createContainer(): AppContainer {
     buttons,
     banners,
     backgrounds,
+    attractions,
     spotDiff,
     outfits,
     stats,

@@ -3,49 +3,51 @@
  *
  * Figma 6258:48134 · 48264 (개인정보 처리방침) · 48326 · 48469 · 48575 · 48693 ·
  * 49124. A 제주-specific replacement for the shared `HanbokSelect` step: same
- * place in the workflow, same `onCapture` contract, different layout and a
- * different category taxonomy.
+ * place in the workflow, same `onCapture` contract, different layout — and,
+ * unlike the shared step, no locally-authored category list at all.
  *
- * ── Outfits come from the API ─────────────────────────────────────────
+ * ── Outfits AND their tabs come from the API ──────────────────────────
  * `GET /api/outfits`, cached in SQLite by OutfitService and grouped by
  * registered `categoryName` in `useOutfitStore`. They used to be a build-time
  * PNG glob, which meant a rebuild and a fleet redeploy to add one; the bundle
  * survives only as the offline fallback.
  *
- * 제주's tabs are its own naming, so the map to the registered names is explicit
- * here rather than positional:
+ * ★ The tab row is `GET /api/outfits/categories` and NOTHING ELSE — one tab per
+ * registered category, in the order the API returns, labelled in the visitor's
+ * language by the operator. No tab is authored here, not even a pinned one: a
+ * locally-added tab would outlive the category behind it and a locally-written
+ * label would silently contradict the admin web. The eight hardcoded 제주 names
+ * (제주 / 한복 / 직업의상 / 일상의상 / 브랜드 / 프로모션 / 기념일 / K-CULTURE) and
+ * their merges are gone. Consequences worth knowing:
+ *   · `brand` now reads 이벤트 and `w=model` reads 모델 — that is what the
+ *     operator actually set, not a translation slip.
+ *   · `New Outfit` (12 outfits, the second-largest category) had NO tab and was
+ *     unreachable. It is registered and labelled 직업복, so it now has one.
+ *   · 제주 and 기념일 have nothing registered behind them, so they are simply not
+ *     tabs. Registering a 제주 category is what brings that tab back — and if it
+ *     is registered first it also inherits step ② (see `isLandingTab`).
+ *   · An empty tab row means the catalogue has never synced AND the bundled
+ *     fallback is empty. There is nothing local left to draw in that case.
  *
- *   제주        ←  w=hannbok + m=hanbok   (placeholder — no 제주 set exists yet)
- *   한복        ←  w=hannbok + m=hanbok
- *   직업의상    ←  w=model
- *   일상의상    ←  m=everyday
- *   브랜드      ←  brand
- *   프로모션    ←  promotion
- *   기념일      —  nothing registered
- *   K-CULTURE   ←  K-Culture + global
- *
- * Merging two categories is safe: gender is derived per outfit (the `w=`/`m=`
- * prefix, or an explicit -F/-M on the code), so a merged 한복 tab still hands
- * the AR API the right gender per card. A tab whose categories return nothing
- * is drawn disabled — letting it through would send the AR API a category name
- * as an outfit code.
- *
- * ★ The live catalogue has a `New Outfit` category — 12 outfits, the second
- * largest — that NO tab points at, so it is currently unreachable. Which tab it
- * belongs to (or whether it needs its own) is a decision for the designer, not
- * a guess here. Live counts 2026-08-14: w=hannbok 13 · New Outfit 12 · m=hanbok
- * 9 · w=model 9 · promotion 5 · m=everyday 5 · K-Culture 3 · global 3 · brand 2.
+ * The sub-category chip row went with them: every tab is exactly one category,
+ * so there is nothing left to choose between. The frames that ship a chip row
+ * draw it `hidden` anyway (6258:48575).
  *
  * ── 배경 테마 comes from the API ──────────────────────────────────────
  * The plates are the ACTIVE backgrounds assigned to THIS kiosk
  * (`GET /api/kiosks/{kioskNum}/backgrounds`, cached in SQLite by
  * BackgroundService and served through `useBackgroundStore`). A kiosk with none
  * assigned gets an empty list — a legitimate answer, not a failure — so step ②
- * is dropped entirely there and 제주 falls back to the 사진촬영안내 card that
- * every other tab shows. The pick is still local state: see the note above
- * `.themes` in the CSS for what is missing on the AR side.
+ * is dropped entirely there and the landing tab falls back to the 사진촬영안내
+ * card that every other tab shows. The pick is still local state: see the note
+ * above `.themes` in the CSS for what is missing on the AR side.
+ *
+ * Step ② rides the LANDING tab (the first the API returns), which is where it
+ * sat when that tab was hardcoded 제주. It is deliberately not on every tab:
+ * the 사진촬영안내 card is mutually exclusive with it and is the only way into
+ * the 한복 설명 page.
  */
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Camera } from 'lucide-react';
 import { Swiper, SwiperSlide } from 'swiper/react';
 import { Grid, FreeMode } from 'swiper/modules';
@@ -64,9 +66,9 @@ import { useRotatingBanner } from '@renderer/hooks/useRotatingBanner';
 import { usePhotoStore } from '@renderer/store/photoStore';
 import { useBackgroundStore } from '@renderer/store/backgroundStore';
 import { backgroundName } from '@renderer/lib/backgrounds';
+import { outfitCategoryLabel } from '@renderer/lib/outfitCategories';
 import { cameraIconUrl } from '@renderer/assets/icons/insadong/camera';
 import { pick, useLang } from '@renderer/lib/i18n';
-import type { Lang } from '@renderer/lib/i18n';
 import { JejuPhotoRegister } from './JejuPhotoRegister';
 /* The privacy modal and the camera-direction popup are identical on every
    layout, so their styles are reused from the shared step rather than copied. */
@@ -79,187 +81,46 @@ interface Props {
   countdownActive?: boolean;
 }
 
-interface Category {
-  /** Canonical Korean id — also the analytics label. */
-  id: string;
+/** One tab in the row. Every one of them is a registered category. */
+interface Tab {
   /**
-   * Registered `categoryName` values from `GET /api/categories/outfits`, in the
-   * order their chips appear. Empty = this tab has no content yet.
-   * NOT display labels — matching is exact (case-insensitive).
+   * The registered `categoryName` — the filter code, e.g. "w=hannbok". Also the
+   * selection key. NOT a display label; matching an outfit against it is exact
+   * (case-insensitive).
    */
-  cats: string[];
-  label: Partial<Record<Lang, string>>;
+  id: string;
+  /** Already resolved to the terminal's language. */
+  label: string;
+  /** Korean label, for matching an `initialCategory` handed over by another page. */
+  ko: string;
 }
 
-const CATEGORIES: Category[] = [
-  // TODO(제주 W006): 제주 has no folder of its own yet. Every frame draws this
-  // tab selected WITH outfits, so it points at the hanbok folders until 제주
-  // artwork lands — an empty default tab is not what the design shows. Repoint
-  // this the moment a cat9-jeju (or similar) folder exists.
-  {
-    id: '제주',
-    cats: ['w=hannbok', 'm=hanbok'],
-    label: {
-      ko: '제주',
-      en: 'Jeju',
-      ja: '済州',
-      zh: '济州',
-      vi: 'Jeju',
-      th: 'เชจู',
-      ru: 'Чеджу',
-      id: 'Jeju',
-    },
-  },
-  {
-    id: '한복',
-    cats: ['w=hannbok', 'm=hanbok'],
-    label: {
-      ko: '한복',
-      en: 'Hanbok',
-      ja: '韓服',
-      zh: '韩服',
-      vi: 'Hanbok',
-      th: 'ฮันบก',
-      ru: 'Ханбок',
-      id: 'Hanbok',
-    },
-  },
-  {
-    id: '직업의상',
-    cats: ['w=model'],
-    label: {
-      ko: '직업의상',
-      en: 'Uniforms',
-      ja: '職業衣装',
-      zh: '职业服装',
-      vi: 'Đồng phục',
-      th: 'ชุดอาชีพ',
-      ru: 'Униформа',
-      id: 'Seragam',
-    },
-  },
-  {
-    id: '일상의상',
-    cats: ['m=everyday'],
-    label: {
-      ko: '일상의상',
-      en: 'Everyday',
-      ja: '日常着',
-      zh: '日常服装',
-      vi: 'Thường ngày',
-      th: 'ชุดลำลอง',
-      ru: 'Повседневное',
-      id: 'Kasual',
-    },
-  },
-  {
-    id: '브랜드',
-    cats: ['brand'],
-    label: {
-      ko: '브랜드',
-      en: 'Brands',
-      ja: 'ブランド',
-      zh: '品牌',
-      vi: 'Thương hiệu',
-      th: 'แบรนด์',
-      ru: 'Бренды',
-      id: 'Merek',
-    },
-  },
-  {
-    id: '프로모션',
-    cats: ['promotion'],
-    label: {
-      ko: '프로모션',
-      en: 'Promotion',
-      ja: 'プロモーション',
-      zh: '促销',
-      vi: 'Khuyến mãi',
-      th: 'โปรโมชัน',
-      ru: 'Акции',
-      id: 'Promosi',
-    },
-  },
-  {
-    id: '기념일',
-    cats: [],
-    label: {
-      ko: '기념일',
-      en: 'Occasions',
-      ja: '記念日',
-      zh: '纪念日',
-      vi: 'Dịp lễ',
-      th: 'วันพิเศษ',
-      ru: 'Праздники',
-      id: 'Perayaan',
-    },
-  },
-  { id: 'K-CULTURE', cats: ['K-Culture', 'global'], label: { ko: 'K-CULTURE' } },
-];
+/**
+ * The 한복 설명 page's own illustration strip — NOT a tab.
+ *
+ * That page is specifically about 한복 (its copy is `HANBOK_INFO`), so its
+ * carousel shows 한복 whatever tab it was opened from. These are the two
+ * registered category names the garments live under; if neither is registered
+ * the carousel is simply empty and the page still reads.
+ */
+const HANBOK_INFO_CATS = ['w=hannbok', 'm=hanbok'];
 
 /**
- * Label per registered category, for the sub-category chips. A tab that spans
- * more than one category gets a chip row (6258:48134 shows 여자 한복 / 남자 한복);
- * a single-category tab has nothing to choose between and gets none.
+ * Tab-row geometry. Figma 6258:48134 draws 8 tabs as 2 rows of 4 — 420-wide
+ * buttons in the 1820 column, so the gaps are (1820 − 4×420) / 3.
  *
- * Keys are the API's own names, lower-cased — the CMS ships no translations for
- * them, and "w=hannbok" is not something to put in front of a visitor.
+ * The count is no longer ours to fix: the API decides how many tabs there are,
+ * and the operator can register another one tomorrow. The ROWS stay at 2,
+ * because everything below (the strip at 1385, step ② at 1978, the capture
+ * buttons) is absolutely positioned and a third row would land on top of it —
+ * so the columns are what grows, and the button width is derived from them in
+ * CSS (`--cat-cols`). At 4 columns that arithmetic gives back the exact 420.
  */
-const CAT_LABELS: Record<string, Partial<Record<Lang, string>>> = {
-  'w=hannbok': {
-    ko: '여자 한복',
-    en: "Women's Hanbok",
-    ja: '女性韓服',
-    zh: '女式韩服',
-    vi: 'Hanbok nữ',
-    th: 'ฮันบกหญิง',
-    ru: 'Женский ханбок',
-    id: 'Hanbok wanita',
-  },
-  'w=model': {
-    ko: '여자 의상',
-    en: "Women's",
-    ja: '女性衣装',
-    zh: '女式服装',
-    vi: 'Trang phục nữ',
-    th: 'ชุดหญิง',
-    ru: 'Женское',
-    id: 'Busana wanita',
-  },
-  'm=hanbok': {
-    ko: '남자 한복',
-    en: "Men's Hanbok",
-    ja: '男性韓服',
-    zh: '男式韩服',
-    vi: 'Hanbok nam',
-    th: 'ฮันบกชาย',
-    ru: 'Мужской ханбок',
-    id: 'Hanbok pria',
-  },
-  'm=everyday': {
-    ko: '남자 의상',
-    en: "Men's",
-    ja: '男性衣装',
-    zh: '男式服装',
-    vi: 'Trang phục nam',
-    th: 'ชุดชาย',
-    ru: 'Мужское',
-    id: 'Busana pria',
-  },
-  'global': {
-    ko: '글로벌 의상',
-    en: 'Global',
-    ja: 'グローバル',
-    zh: '全球服装',
-    vi: 'Quốc tế',
-    th: 'สากล',
-    ru: 'Мировое',
-    id: 'Global',
-  },
-  promotion: { ko: '프로모션', en: 'Promotion' },
-  brand: { ko: '브랜드', en: 'Brands' },
-  'k-culture': { ko: 'K-CULTURE' },
-};
+const TAB_ROWS = 2;
+/** The design's own column count — also the floor, see `tabColumns`. */
+const TAB_MIN_COLUMNS = 4;
+/** Past this the labels are cramped enough to want the smaller type. */
+const TAB_TIGHT_FROM = 5;
 
 /**
  * Outfit-strip geometry, straight off 6258:48611 — 478-wide cards on a 508
@@ -369,6 +230,7 @@ export function JejuHanbokSelect({
   // the nightly sync, so switching tabs never touches the network. Falls back to
   // the bundled PNGs on a kiosk that has never synced — see outfitStore.
   const byCategory = useOutfitStore((s) => s.byCategory);
+  const categories = useOutfitStore((s) => s.categories);
   const loadOutfits = useOutfitStore((s) => s.load);
   const reloadOutfits = useOutfitStore((s) => s.reload);
   useEffect(() => {
@@ -376,22 +238,45 @@ export function JejuHanbokSelect({
     return window.api.events.onOutfitsChanged(() => void reloadOutfits());
   }, [loadOutfits, reloadOutfits]);
 
+  /**
+   * The tab row: exactly the registered categories, in the API's own order.
+   * Labels are resolved here, so a language switch relabels the row without
+   * touching the selection — `id` is the filter code, never a label.
+   */
+  const tabs: Tab[] = useMemo(
+    () =>
+      categories.map((c) => ({
+        id: c.categoryName,
+        label: outfitCategoryLabel(c, lang),
+        ko: c.labelKr,
+      })),
+    [categories, lang],
+  );
+
   // A session can be opened with a pre-selected tab (e.g. 프로모션 from K-DRAMA).
   const initialCategory = usePhotoStore((s) => s.initialCategory);
   const setInitialCategory = usePhotoStore((s) => s.setInitialCategory);
-  // 제주 is the landing tab — it is the one selected in every frame.
-  const [categoryId, setCategoryId] = useState<string>(() =>
-    initialCategory && CATEGORIES.some((c) => c.id === initialCategory && c.cats.length)
-      ? initialCategory
-      : '제주',
-  );
+  /** Empty until the tabs arrive; resolved to the landing tab below. */
+  const [categoryId, setCategoryId] = useState('');
   useEffect(() => {
-    if (initialCategory) setInitialCategory(null);
-  }, [initialCategory, setInitialCategory]);
+    // The row arrives asynchronously, so neither the default nor the hand-over
+    // can be settled in a state initialiser — wait for it, then decide once.
+    if (tabs.length === 0) return;
+    const landing = tabs[0] as Tab;
+    if (initialCategory) {
+      // The caller names the tab in Korean (`프로모션`), which is a label rather
+      // than a code, so both are accepted.
+      const match = tabs.find((t) => t.id === initialCategory || t.ko === initialCategory);
+      setCategoryId((match ?? landing).id);
+      setInitialCategory(null);
+      return;
+    }
+    // Also re-runs when the operator un-registers the selected category mid-
+    // session: the row changes under us and the selection falls back to landing.
+    if (!tabs.some((t) => t.id === categoryId)) setCategoryId(landing.id);
+  }, [initialCategory, tabs, categoryId, setInitialCategory]);
 
   const [outfitCode, setOutfitCode] = useState('');
-  /** Index INTO `category.cats` when the tab spans more than one. */
-  const [subIdx, setSubIdx] = useState(0);
   // No background is pre-selected — the frames draw every plate unhighlighted.
   const [backgroundId, setBackgroundId] = useState<number | null>(null);
   const [privacyOpen, setPrivacyOpen] = useState(false);
@@ -406,16 +291,26 @@ export function JejuHanbokSelect({
   const [brokenCodes, setBrokenCodes] = useState<Set<string>>(new Set());
   const markBroken = (code: string): void => setBrokenCodes((s) => new Set(s).add(code));
 
-  const category = CATEGORIES.find((c) => c.id === categoryId) ?? (CATEGORIES[1] as Category);
-  // A multi-folder category shows chips and lists ONE folder at a time; a
-  // single-folder one lists its folder outright.
-  const hasSubs = category.cats.length > 1;
-  const shownCats = hasSubs
-    ? [category.cats[Math.min(subIdx, category.cats.length - 1)] as string]
-    : category.cats;
-  const outfits: PickerOutfit[] = shownCats
-    .flatMap((name) => byCategory[name.toLowerCase()] ?? [])
-    .filter((o) => Boolean(o.url) && !brokenCodes.has(o.code));
+  // Undefined only for the frame before the tabs arrive — the effect above
+  // settles the selection as soon as there is a row to settle it against.
+  const category = tabs.find((c) => c.id === categoryId);
+  const outfits: PickerOutfit[] = (byCategory[category?.id.toLowerCase() ?? ''] ?? []).filter(
+    (o) => Boolean(o.url) && !brokenCodes.has(o.code),
+  );
+
+  /**
+   * 2 rows, columns derived from the count — see TAB_ROWS. The first row takes
+   * the remainder, so an odd list leaves the gap at the end of the SECOND row,
+   * which is where the design's own short row would be.
+   *
+   * Never fewer than the design's 4, so a short row (or the empty one before the
+   * catalogue arrives) keeps the design's button size instead of stretching one
+   * tab across the full 1820.
+   */
+  const tabColumns = Math.max(TAB_MIN_COLUMNS, Math.ceil(tabs.length / TAB_ROWS));
+  const tabRows = Array.from({ length: TAB_ROWS }, (_, r) =>
+    tabs.slice(r * tabColumns, r * tabColumns + tabColumns),
+  ).filter((row) => row.length > 0);
 
   /**
    * NOTHING is selected until the visitor taps a card: 6258:48693 draws all four
@@ -435,23 +330,30 @@ export function JejuHanbokSelect({
   };
 
   const star = jejuIconUrl('star');
-  /** 제주 is the only category with a background-theme step. */
-  const isJejuTab = categoryId === '제주';
+  /**
+   * The landing tab — the first the API returns — is the only one with a
+   * background-theme step. That is where it sat when the landing tab was a
+   * hardcoded 제주, and it stays there rather than spreading to every tab,
+   * because step ② and the 사진촬영안내 card share a slot and that card is the
+   * only way into the 한복 설명 page.
+   */
+  const isLandingTab = tabs.length > 0 && categoryId === tabs[0]?.id;
   /**
    * Step ② only exists when this kiosk actually has backgrounds assigned.
    * With none — an empty API list, or the very first launch before the fetch
-   * lands — 제주 draws the same 사진촬영안내 card as every other tab, which is
-   * also why this (not `isJejuTab`) drives the outfit strip's row count: the two
-   * halves of that slot must agree or the strip overlaps the capture buttons.
+   * lands — the landing tab draws the same 사진촬영안내 card as every other tab,
+   * which is also why this (not `isLandingTab`) drives the outfit strip's row
+   * count: the two halves of that slot must agree or the strip overlaps the
+   * capture buttons.
    */
-  const showThemes = isJejuTab && backgrounds.length > 0;
+  const showThemes = isLandingTab && backgrounds.length > 0;
 
   // ── 한복 설명 (opened from the 사진촬영안내 card) ──
   // Same content and chrome as the shared step's page, so it reuses those
   // styles rather than re-authoring them; 뒤로 in JejuHeader closes it.
   if (infoOpen) {
     const info = pick(HANBOK_INFO, lang);
-    const allHanbok = ['w=hannbok', 'm=hanbok']
+    const allHanbok = HANBOK_INFO_CATS
       .flatMap((name) => byCategory[name.toLowerCase()] ?? [])
       .filter((o) => Boolean(o.url) && !brokenCodes.has(o.code));
     return (
@@ -526,10 +428,16 @@ export function JejuHanbokSelect({
             <p className={styles.subtitleText}>{pick(SUBTITLE, lang)}</p>
           </div>
 
-          <div className={styles.cats}>
-            {[0, 1].map((row) => (
-              <div key={row} className={styles.catRow}>
-                {CATEGORIES.slice(row * 4, row * 4 + 4).map((c) => (
+          {/* The column count drives the button width in CSS, so the row still
+              measures the design's 420 at 8 tabs and simply divides the same
+              1820 differently when the operator registers more. */}
+          <div
+            className={`${styles.cats} ${tabColumns >= TAB_TIGHT_FROM ? styles.catsTight : ''}`}
+            style={{ '--cat-cols': tabColumns } as React.CSSProperties}
+          >
+            {tabRows.map((row, i) => (
+              <div key={i} className={styles.catRow}>
+                {row.map((c) => (
                   <button
                     key={c.id}
                     type="button"
@@ -537,33 +445,14 @@ export function JejuHanbokSelect({
                     onClick={() => {
                       setCategoryId(c.id);
                       setOutfitCode('');
-                      setSubIdx(0);
                     }}
                   >
-                    {pick(c.label, lang)}
+                    {c.label}
                   </button>
                 ))}
               </div>
             ))}
           </div>
-
-          {hasSubs && (
-            <div className={styles.subChips}>
-              {category.cats.map((name, i) => (
-                <button
-                  key={name}
-                  type="button"
-                  className={`${styles.subChip} ${i === subIdx ? styles.subChipActive : ''}`}
-                  onClick={() => {
-                    setSubIdx(i);
-                    setOutfitCode('');
-                  }}
-                >
-                  {pick(CAT_LABELS[name.toLowerCase()] ?? { ko: name }, lang)}
-                </button>
-              ))}
-            </div>
-          )}
 
           {outfits.length > 0 ? (
             <Swiper
@@ -579,7 +468,7 @@ export function JejuHanbokSelect({
               /* Remount on a tab change so the strip starts back at the first card
              and Swiper re-measures the new (possibly shorter) list. The row count
              is in the key because Swiper does not re-grid an existing instance. */
-              key={`${categoryId}-${subIdx}-${showThemes ? 1 : 2}`}
+              key={`${categoryId}-${showThemes ? 1 : 2}`}
             >
               {outfits.map((o) => (
                 <SwiperSlide key={o.code} className={styles.outfitSlide}>
@@ -601,7 +490,10 @@ export function JejuHanbokSelect({
               ))}
             </Swiper>
           ) : (
-            <p className={styles.emptyCat}>{pick(NO_OUTFITS, lang)}</p>
+            /* Only once there IS a tab: before the catalogue arrives every tab
+               is empty, and "준비 중" would flash on a screen that is merely
+               still loading. */
+            category && <p className={styles.emptyCat}>{pick(NO_OUTFITS, lang)}</p>
           )}
 
           {/* ── Step ② — the 제주 tab gets the background themes WHEN this kiosk

@@ -57,6 +57,18 @@ interface Props {
   subtitleColor?: string;
   /** Draw the ★ before the subtitle. The WIT Store frame omits it. */
   subtitleStar?: boolean;
+  /**
+   * Grey out 홈/뒤로 and make them inert. For screens the visitor must not leave
+   * mid-way — currently only 틀린그림찾기, which plays over a photo that is
+   * already generating, where a stray 홈 tap resets the session and throws that
+   * photo away.
+   *
+   * The buttons stay DRAWN rather than being hidden: they live in a fixed slot
+   * on every 제주 page, and a header that loses them for a minute and grows them
+   * back reads as a different screen. Dimmed-and-dead says "not yet"; missing
+   * says "wrong page".
+   */
+  navDisabled?: boolean;
 }
 
 export function JejuHeader({
@@ -67,6 +79,7 @@ export function JejuHeader({
   onBack,
   subtitleColor,
   subtitleStar = true,
+  navDisabled = false,
 }: Props): JSX.Element {
   const today = useMemo(() => formatDate(new Date()), []);
   const lang = useLang();
@@ -101,7 +114,13 @@ export function JejuHeader({
       </div>
 
       <div className={styles.titleRow}>
-        <button type="button" className={styles.navBtn} onClick={goHome} aria-label="홈">
+        <button
+          type="button"
+          className={`${styles.navBtn} ${navDisabled ? styles.navBtnOff : ''}`}
+          onClick={goHome}
+          disabled={navDisabled}
+          aria-label="홈"
+        >
           {jejuIconUrl('hdr-home') && (
             <img src={jejuIconUrl('hdr-home')} alt="" className={styles.navBtnImg} draggable={false} />
           )}
@@ -109,7 +128,13 @@ export function JejuHeader({
 
         <h1 className={styles.title}>{localizedTitle}</h1>
 
-        <button type="button" className={styles.navBtn} onClick={goBack} aria-label="뒤로">
+        <button
+          type="button"
+          className={`${styles.navBtn} ${navDisabled ? styles.navBtnOff : ''}`}
+          onClick={goBack}
+          disabled={navDisabled}
+          aria-label="뒤로"
+        >
           {jejuIconUrl('hdr-back') && (
             <img src={jejuIconUrl('hdr-back')} alt="" className={styles.navBtnImg} draggable={false} />
           )}

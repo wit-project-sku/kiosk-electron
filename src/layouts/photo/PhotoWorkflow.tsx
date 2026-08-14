@@ -121,7 +121,15 @@ export function PhotoWorkflow(): JSX.Element {
     });
     await window.api.photo.selectClothing(category);
     await window.api.photo.selectStyle(mode);
-    await window.api.photo.beginCountdown();
+    // 제주 hands the trigger to the visitor: 등록하기 only brings the camera up,
+    // and the countdown waits for the open-palm gesture Monitor 2 is watching
+    // for. Everywhere else the press IS the trigger, unchanged.
+    //
+    // The split lives here rather than in the service because this is already
+    // the file that knows which location it is (`chrome.isJeju`) — main would
+    // have to re-derive it from the kiosk config to make the same decision.
+    if (chrome.isJeju) await window.api.photo.armGestureGate();
+    else await window.api.photo.beginCountdown();
   };
 
   // ── 제주 only: 틀린그림찾기 while the AI works ─────────────────────────────

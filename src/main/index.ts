@@ -9,14 +9,18 @@
  * checkpoint and close the database.
  */
 
-import { app, BrowserWindow } from 'electron';
+import { app, BrowserWindow, protocol } from 'electron';
 import { electronApp, optimizer } from '@electron-toolkit/utils';
 import { APP_NAME } from '@shared/constants';
 import { IpcEvents } from '@shared/ipc/channels';
 import { initLogger, createLogger } from './core/logger';
 import { loadEnvFile } from './core/env';
 import { enforceSingleInstance, suppressEmbedAuthDialog } from './core/security';
-import { registerMediaScheme, registerMediaProtocol } from './core/mediaProtocol';
+import { MEDIA_SCHEME_PRIVILEGES, registerMediaProtocol } from './core/mediaProtocol';
+import {
+  APP_RESOURCE_SCHEME_PRIVILEGES,
+  registerAppResourceProtocol,
+} from './core/appResourceProtocol';
 import { setupKioskPower } from './core/PowerManager';
 import { PaymentAgentManager } from './core/PaymentAgentManager';
 import { getKioskLocation } from '@shared/config/kioskLocations';
@@ -85,7 +89,11 @@ const hasLock = enforceSingleInstance(() => windowManager?.focusMain());
 if (!hasLock) {
   log.warn('Another instance is already running; exiting.');
 } else {
-  registerMediaScheme();
+  // ONE call, every custom scheme — Electron honours only the first.
+  protocol.registerSchemesAsPrivileged([
+    MEDIA_SCHEME_PRIVILEGES,
+    APP_RESOURCE_SCHEME_PRIVILEGES,
+  ]);
   void bootstrap();
 }
 
@@ -101,6 +109,7 @@ async function bootstrap(): Promise<void> {
   });
 
   registerMediaProtocol();
+  registerAppResourceProtocol();
   suppressEmbedAuthDialog();
 
   try {
@@ -128,6 +137,13 @@ async function bootstrap(): Promise<void> {
   container.sync.addNightTask(() =>
     container.shops.refresh().then(() => {
       windowManager?.broadcast(IpcEvents.ShopsChanged, null);
+    }),
+  );
+  // 제주 관광명소 is catalogue content on the same footing as the shops above, so
+  // it rides the same nightly refresh rather than waiting for a reboot.
+  container.sync.addNightTask(() =>
+    container.attractions.refresh().then(() => {
+      windowManager?.broadcast(IpcEvents.AttractionsChanged, null);
     }),
   );
   // Banners are date-windowed promo content, so refresh them at the nightly sync
@@ -208,6 +224,11 @@ async function bootstrap(): Promise<void> {
   // (cache is empty until this first fetch completes).
   void container.shops.refresh().then(() => {
     windowManager?.broadcast(IpcEvents.ShopsChanged, null);
+  });
+  // Same for 제주's 관광명소 catalogue — without this the tab is empty on a
+  // machine's very first launch, since the SQLite cache starts out empty.
+  void container.attractions.refresh().then(() => {
+    windowManager?.broadcast(IpcEvents.AttractionsChanged, null);
   });
   // Refresh the home button layout from the witteria API into SQLite (background),
   // then tell the renderer to reload. Deliberately NOT added to the nightly sync:

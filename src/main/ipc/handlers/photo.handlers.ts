@@ -79,6 +79,12 @@ export function registerPhotoHandlers(container: AppContainer): void {
 
   handle(IpcChannels.PhotoBeginCountdown, () => container.photoWorkflow.beginCountdown());
 
+  // 제주 손동작 게이트. Driven by the customer display, which is the window that
+  // owns the camera stream and therefore the only one that can see the hand.
+  handle(IpcChannels.PhotoArmGestureGate, () => container.photoWorkflow.armGestureGate());
+  handle(IpcChannels.PhotoHoldCountdown, () => container.photoWorkflow.holdCountdown());
+  handle(IpcChannels.PhotoResumeCountdown, () => container.photoWorkflow.resumeCountdown());
+
   handle(IpcChannels.PhotoReset, () => container.photoWorkflow.reset());
 
   // 기부(학교) 흐름: 결제 완료 전까지 Monitor 2 에 AI 결과를 노출하지 않는다.

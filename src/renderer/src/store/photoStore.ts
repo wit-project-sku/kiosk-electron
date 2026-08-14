@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import type { PhotoWorkflowPhase } from '@shared/types/photo';
+import type { PhotoGestureGate, PhotoWorkflowPhase } from '@shared/types/photo';
 
 /**
  * Photo workflow UI state — paths and status only, never image bytes.
@@ -14,6 +14,13 @@ interface PhotoUIState {
   resultFileName: string | null;
   resultUrl: string | null;
   countdown: number | null;
+  /**
+   * 제주 손동작 게이트. Read by the customer display to decide whether to draw
+   * the gesture guide, the live count, or the "paused" badge — it arrives here
+   * on the same workflow broadcast the touch screen gets, so both monitors
+   * always agree on which of the three they are in.
+   */
+  gestureGate: PhotoGestureGate;
   statusMessage: string | null;
   errorMessage: string | null;
   /** Pre-selected 한복/의상 category for the next photo session (e.g. 프로모션
@@ -31,6 +38,7 @@ interface PhotoUIState {
     resultFileName: string | null;
     resultUrl: string | null;
     countdown: number | null;
+    gestureGate: PhotoGestureGate;
     statusMessage: string | null;
     errorMessage: string | null;
   }) => void;
@@ -46,6 +54,7 @@ const IDLE = {
   resultFileName: null,
   resultUrl: null,
   countdown: null,
+  gestureGate: 'off' as PhotoGestureGate,
   statusMessage: null,
   errorMessage: null,
   initialCategory: null,
@@ -67,6 +76,7 @@ export const usePhotoStore = create<PhotoUIState>((set) => ({
       resultFileName: wf.resultFileName,
       resultUrl: wf.resultUrl,
       countdown: wf.countdown,
+      gestureGate: wf.gestureGate,
       statusMessage: wf.statusMessage,
       errorMessage: wf.errorMessage,
     }),

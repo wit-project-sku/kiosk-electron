@@ -14,13 +14,15 @@
  * the `detail` screen — that one composes its own "<page> > 상세" header and
  * would come back to the 역사 tab, losing where the visitor was.
  */
-import { useLayoutEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import type { KioskController } from '@renderer/hooks/useKioskController';
 import { jejuIconUrl } from '@renderer/assets/icons/jeju';
 import type { Shop } from '@shared/types/shop';
+import { isOk } from '@shared/types/result';
 import type { DetailItem } from '@renderer/store/detailStore';
 import { useLanguageStore } from '@renderer/store/languageStore';
 import { useShopStore } from '@renderer/store/shopStore';
+import { useAttractionStore } from '@renderer/store/attractionStore';
 import { pick, type Lang } from '@renderer/lib/i18n';
 import { sheetText } from '@renderer/lib/loc';
 import { leadingChosung, type Chosung } from '@renderer/lib/chosung';
@@ -206,18 +208,34 @@ const CULTURE = [
 }>;
 
 /**
- * Base category (witteria `baseCategoryKr`) the 관광명소 grid reads.
+ * Fallback source for the 관광명소 grid: the general shop catalogue filtered to
+ * this base category.
  *
- * VERIFIED 2026-08-12 against the live catalogue (`/api/shops?kioskId=7`): the
- * attractions are filed under '제주 뭐하지' — 136 rows across 해녀 체험, 감귤 체험,
+ * This USED to be the only source. `/api/jeju/attractions` now supplies a
+ * curated list and is preferred; this stays as the offline/first-launch
+ * fallback, because the shop catalogue is fetched by the same launch sync and a
+ * kiosk that has one cached but not the other should still show a grid.
+ *
+ * The two are not the same rows. VERIFIED 2026-08-12 against
+ * `/api/shops?kioskId=7`: '제주 뭐하지' is 136 rows across 해녀 체험, 감귤 체험,
  * 승마 체험, 레저·액티비티, 사진 촬영, 자연명소, 해변, 섬 여행, 오름·트래킹,
- * 역사유적지 and 전시관·문화공간. There is no '제주 관광명소' category; the four
- * that exist are listed in JejuListScreen's BASE_CATEGORY comment.
+ * 역사유적지 and 전시관·문화공간 — the first five of which are ACTIVITIES that do
+ * not belong under 관광명소. The attractions endpoint returns only the other
+ * six (101 rows, verified against stage 2026-08-14), which is the actual reason
+ * to prefer it. Falling back therefore widens the list rather than emptying it,
+ * which is the right way round for a fallback.
  */
 const ATTRACTION_BASE_CATEGORY = '제주 뭐하지';
 
 /** 1744 (the row's drawn span, x208–1952) over its 14 letters. */
 const CHOSUNG_CELL = 1744 / 14;
+
+/**
+ * The 초성 row's own height (`.chosung` is 82px at y920, so the grid starts at
+ * y1002). Hiding the row hands that band back to the grid instead of leaving an
+ * 82px hole above it — see `.spotsNoChosung`.
+ */
+const CHOSUNG_BAND = 82;
 
 /** The 상세 card sits at y1047 here, clearing the tab and 초성 rows. */
 const DETAIL_TOP = 1047;
@@ -273,6 +291,7 @@ interface Props {
 export function JejuAbout({ controller }: Props): JSX.Element {
   const lang = useLanguageStore((s) => s.currentLanguage);
   const shops = useShopStore((s) => s.shops);
+  const attractions = useAttractionStore((s) => s.attractions);
   const [tab, setTab] = useState<TabId>('history');
   const [hero, setHero] = useState(0);
   const [jamo, setJamo] = useState<Chosung | null>(null);
@@ -283,20 +302,86 @@ export function JejuAbout({ controller }: Props): JSX.Element {
    *  grid. Only one is mounted at a time, so one ref serves both. */
   const scrollRef = useRef<HTMLDivElement>(null);
 
+  /**
+   * The curated catalogue when it has loaded, the filtered shop list when it has
+   * not. Both are `Shop`-shaped, so everything downstream — the 초성 index, the
+   * cards, the 상세 card — is unchanged by which one is in play.
+   *
+   * Ordering matters: an EMPTY attractions list means "not cached yet" (main
+   * refuses to cache an empty response — see AttractionService), never "there
+   * are no attractions", so falling through on empty is correct rather than a
+   * guess.
+   */
   const spots = useMemo(
-    () => shopsForBase(shops, ATTRACTION_BASE_CATEGORY),
-    [shops],
+    () =>
+      attractions.length > 0 ? attractions : shopsForBase(shops, ATTRACTION_BASE_CATEGORY),
+    [attractions, shops],
   );
+
+  /**
+   * ── The 초성 row is KOREAN-ONLY ────────────────────────────────────────
+   * Its buckets are Korean consonants and it indexes the Korean name, so to a
+   * visitor reading English or Thai it is a row of 14 glyphs they cannot match
+   * against anything on screen — every card shows a name in their own language.
+   * It is hidden outside Korean rather than translated, because there is nothing
+   * to translate it INTO: an alphabet index only works for the alphabet the
+   * names are written in.
+   */
+  const showChosung = lang === 'ko';
+
+  /**
+   * Leaving Korean must also drop an ACTIVE filter, not just the control.
+   * Otherwise a visitor who taps ㅅ and then switches to English is left on a
+   * 19-of-101 list with no visible reason and no way to clear it.
+   */
+  useEffect(() => {
+    if (!showChosung && jamo !== null) setJamo(null);
+  }, [showChosung, jamo]);
+
+  /**
+   * The API's own 초성 filter, when it answered. Null = never asked, or asked
+   * and failed — both fall through to the local filter below.
+   */
+  const [serverFiltered, setServerFiltered] = useState<Shop[] | null>(null);
+
+  /**
+   * Ask the API with `initial`, and let the local filter carry the screen until
+   * (or unless) it answers.
+   *
+   * The two agree for 13 of the 14 buckets; they differ on names that do not
+   * begin with a Korean syllable — `1100고지습지` is ㄱ to the server and
+   * unbucketable locally, because `leadingChosung` refuses to scan past a
+   * leading digit on purpose (see AttractionService.listByInitial). So the
+   * server is the better answer, and this is worth the round-trip — but only as
+   * a REFINEMENT: the grid has already painted from cache by the time it lands,
+   * and an offline kiosk simply keeps the local result.
+   *
+   * The `cancelled` guard is what makes rapid taps safe — ㄱ then ㅅ must not
+   * end with ㄱ's slower response overwriting ㅅ's list.
+   */
+  useEffect(() => {
+    setServerFiltered(null);
+    if (!jamo || !showChosung) return;
+    let cancelled = false;
+    void window.api.attractions.listByInitial(jamo).then((res) => {
+      if (cancelled || !isOk(res) || res.value === null) return;
+      setServerFiltered(res.value);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [jamo, showChosung]);
 
   /**
    * The 초성 row indexes the attraction NAME, and always the Korean one: the
    * buckets are Korean consonants, so filtering a translated name would empty
    * the list for every non-Korean visitor. Same rule as JejuListScreen.
    */
-  const visibleSpots = useMemo(
-    () => (jamo ? spots.filter((s) => leadingChosung(shopName(s, 'ko')) === jamo) : spots),
-    [spots, jamo],
-  );
+  const visibleSpots = useMemo(() => {
+    if (!jamo) return spots;
+    if (serverFiltered) return serverFiltered;
+    return spots.filter((s) => leadingChosung(shopName(s, 'ko')) === jamo);
+  }, [spots, jamo, serverFiltered]);
 
   /**
    * The ▲▼ pair is drawn on all three frames (6212:59090 / 59149 / 59320) as it
@@ -443,31 +528,37 @@ export function JejuAbout({ controller }: Props): JSX.Element {
           off the top of a kiosk screen would strand the visitor mid-list. */}
       {tab === 'attractions' && (
         <>
-          <JejuChosungRow
-            className={styles.chosung}
-            value={jamo}
-            onChange={(next) => {
-              setJamo(next);
-              // Filtering is a list action: it closes the drill-down and puts
-              // the visitor back on the grid. Re-filtering would otherwise also
-              // leave the view scrolled into a list that no longer exists.
-              setSpot(null);
-              scrollRef.current?.scrollTo({ top: 0 });
-            }}
-            cellWidth={CHOSUNG_CELL}
-          />
+          {showChosung && (
+            <JejuChosungRow
+              className={styles.chosung}
+              value={jamo}
+              onChange={(next) => {
+                setJamo(next);
+                // Filtering is a list action: it closes the drill-down and puts
+                // the visitor back on the grid. Re-filtering would otherwise also
+                // leave the view scrolled into a list that no longer exists.
+                setSpot(null);
+                scrollRef.current?.scrollTo({ top: 0 });
+              }}
+              cellWidth={CHOSUNG_CELL}
+            />
+          )}
 
           {spot ? (
             /* 상세 (6212:59326) — the shared card in its 사진1개 variant, in
                place of the grid. The 초성 row above it stays, exactly as the
-               frame draws it. */
+               frame draws it — and where there is no row, the card takes that
+               band too rather than floating below a gap. */
             <JejuSpotDetailCard
               item={toDetailItem(spot, lang)}
-              top={DETAIL_TOP}
+              top={showChosung ? DETAIL_TOP : DETAIL_TOP - CHOSUNG_BAND}
               gallery="single"
             />
           ) : (
-            <div className={styles.spots} ref={scrollRef}>
+            <div
+              className={`${styles.spots} ${showChosung ? '' : styles.spotsNoChosung}`}
+              ref={scrollRef}
+            >
               {visibleSpots.length > 0 ? (
                 <div className={styles.spotGrid}>
                   {visibleSpots.map((s) => (

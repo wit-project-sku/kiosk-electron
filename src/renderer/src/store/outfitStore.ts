@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import { isOk } from '@shared/types/result';
 import type { KioskOutfit, OutfitCategory } from '@shared/types/outfit';
+import { fallbackOutfitLabels } from '@shared/constants/outfitCategories';
 import { OUTFITS_BY_CATEGORY } from '@renderer/assets/photos/insadong/hanbok/clothes';
 
 /**
@@ -8,9 +9,12 @@ import { OUTFITS_BY_CATEGORY } from '@renderer/assets/photos/insadong/hanbok/clo
  * order. Lets the offline fallback be keyed exactly like API content, so the
  * picker has ONE lookup path instead of a fallback branch everywhere.
  *
- * Taken from the live `GET /api/categories/outfits` (2026-08-14) — note
+ * Taken from the live `GET /api/outfits/categories` (2026-08-14) — note
  * "w=hannbok" really is spelled with two n's server-side, and matching is
  * case-insensitive but otherwise exact.
+ *
+ * These are the first eight registered categories; the ninth ("New Outfit") has
+ * no bundled folder, so an offline kiosk simply has one tab fewer.
  */
 const BUNDLED_CATEGORY_NAMES = [
   'w=hannbok',
@@ -55,6 +59,20 @@ function bundledCatalogue(): Record<string, PickerOutfit[]> {
   return out;
 }
 
+/**
+ * Tabs for the bundled catalogue, so the offline picker has a tab row at all.
+ *
+ * The ids are positional rather than the server's — nothing matches on them,
+ * and this branch only runs when the server's list never arrived.
+ */
+function bundledCategories(): OutfitCategory[] {
+  return BUNDLED_CATEGORY_NAMES.map((name, i) => ({
+    id: i + 1,
+    categoryName: name,
+    ...fallbackOutfitLabels(name),
+  }));
+}
+
 function group(outfits: KioskOutfit[]): Record<string, PickerOutfit[]> {
   const out: Record<string, PickerOutfit[]> = {};
   for (const o of outfits) {
@@ -74,7 +92,13 @@ async function fetchCatalogue(): Promise<Pick<OutfitState, 'byCategory' | 'categ
   if (!isOk(result)) return null;
   const { outfits, categories, fallback } = result.value;
   if (fallback || outfits.length === 0) {
-    return { byCategory: bundledCatalogue(), categories, fallback: true };
+    // The two halves fail independently: a kiosk can hold cached tabs and no
+    // outfits. Keep whichever the cache has and only synthesize the missing one.
+    return {
+      byCategory: bundledCatalogue(),
+      categories: categories.length > 0 ? categories : bundledCategories(),
+      fallback: true,
+    };
   }
   return { byCategory: group(outfits), categories, fallback: false };
 }
@@ -105,7 +129,12 @@ export const useOutfitStore = create<OutfitState>((set, get) => ({
       // Never leave the picker empty: without cards there is no way to take a
       // photo at all, which is worse than showing last release's outfits.
       console.warn('[outfitStore] load() failed — using the bundled catalogue');
-      set({ byCategory: bundledCatalogue(), fallback: true, loaded: true });
+      set({
+        byCategory: bundledCatalogue(),
+        categories: bundledCategories(),
+        fallback: true,
+        loaded: true,
+      });
     }
   },
   reload: async () => {

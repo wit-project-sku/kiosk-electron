@@ -17,6 +17,7 @@ const INITIAL: PhotoWorkflowState = {
   resultUrl: null,
   selectedCameraDeviceId: null,
   countdown: null,
+  gestureGate: 'off',
   statusMessage: null,
   errorMessage: null,
 };
@@ -83,6 +84,10 @@ export class PhotoWorkflowService {
       styleKey,
       phase: 'preview',
       selectedCameraDeviceId: cameraDeviceId,
+      // 제주 arms the gate immediately after this call; everyone else goes
+      // straight to beginCountdown(). Clearing it here means a second run
+      // through the flow can never inherit the previous one's gate.
+      gestureGate: 'off',
       errorMessage: null,
     };
     this.syncDisplay('camera', { cameraDeviceId });
@@ -90,9 +95,72 @@ export class PhotoWorkflowService {
     return this.state;
   }
 
+  /**
+   * 제주 only — arm the 손동작 게이트 instead of counting straight away.
+   *
+   * The camera is already live (selectStyle put Monitor 2 in 'camera' mode);
+   * this just says "we are waiting for a hand, not for the clock". The count is
+   * started by beginCountdown() when the camera screen sees an open palm — or by
+   * its own fallback timer if it never does, so a dead camera or an unloadable
+   * model can't leave a visitor standing in front of a kiosk that never shoots.
+   */
+  armGestureGate(): PhotoWorkflowState {
+    this.clearCountdown();
+    this.state = { ...this.state, phase: 'preview', countdown: null, gestureGate: 'waiting' };
+    this.syncDisplay('camera');
+    this.emit();
+    return this.state;
+  }
+
   beginCountdown(): PhotoWorkflowState {
-    this.state = { ...this.state, phase: 'countdown', countdown: PHOTO_COUNTDOWN_SECONDS };
+    // A gated countdown has TWO things that can start it — the visitor's open
+    // palm and the camera screen's fallback timer — and they can both land
+    // inside one IPC round-trip: the timer is cancelled by the state change
+    // this call causes, so for a few milliseconds it is still armed. Without
+    // this guard that overlap restarts the count at 10 in front of someone who
+    // is already posing. Ungated callers are untouched (their gate is 'off').
+    if (this.state.gestureGate === 'running' && this.state.phase === 'countdown') {
+      return this.state;
+    }
+    this.state = {
+      ...this.state,
+      phase: 'countdown',
+      countdown: PHOTO_COUNTDOWN_SECONDS,
+      // Only a gate that was armed starts running — every other location calls
+      // this directly and must stay 'off', or Monitor 2 would draw 제주's
+      // gesture chrome on an insadong capture.
+      gestureGate: this.state.gestureGate === 'off' ? 'off' : 'running',
+    };
     this.syncDisplay('countdown', { countdown: PHOTO_COUNTDOWN_SECONDS });
+    this.emit();
+    this.runCountdown();
+    return this.state;
+  }
+
+  /**
+   * 주먹 — freeze the count where it is. The visitor is not ready (adjusting a
+   * 한복, waiting for someone to join the frame), and restarting from 10 would
+   * punish them for saying so.
+   *
+   * Deliberately a no-op unless a gated countdown is actually running: a stray
+   * fist during 'generating' must not resurrect the timer.
+   */
+  holdCountdown(): PhotoWorkflowState {
+    if (this.state.gestureGate !== 'running' || this.state.phase !== 'countdown') {
+      return this.state;
+    }
+    this.clearCountdown();
+    this.state = { ...this.state, gestureGate: 'held' };
+    this.syncDisplay('countdown', { countdown: this.state.countdown });
+    this.emit();
+    return this.state;
+  }
+
+  /** 손바닥 — pick the count back up from the second it stopped at. */
+  resumeCountdown(): PhotoWorkflowState {
+    if (this.state.gestureGate !== 'held') return this.state;
+    this.state = { ...this.state, phase: 'countdown', gestureGate: 'running' };
+    this.syncDisplay('countdown', { countdown: this.state.countdown });
     this.emit();
     this.runCountdown();
     return this.state;
@@ -104,6 +172,9 @@ export class PhotoWorkflowService {
       ...this.state,
       phase: 'generating',
       countdown: null,
+      // The shutter has already fired — close the gate so a hand still waving
+      // at the camera can't call hold/resume against a finished countdown.
+      gestureGate: 'off',
       statusMessage: message,
       errorMessage: null,
     };
@@ -191,7 +262,12 @@ export class PhotoWorkflowService {
 
   setError(message: string): PhotoWorkflowState {
     this.clearCountdown();
-    this.state = { ...this.state, errorMessage: message, statusMessage: null };
+    this.state = {
+      ...this.state,
+      gestureGate: 'off',
+      errorMessage: message,
+      statusMessage: null,
+    };
     this.syncDisplay('attract');
     this.emit();
     return this.state;
@@ -215,11 +291,24 @@ export class PhotoWorkflowService {
     return this.state.selectedCameraDeviceId ?? this.camera.resolveDeviceId();
   }
 
+  /**
+   * Ticks `state.countdown` down to 0, one second at a time.
+   *
+   * Starts from whatever is ALREADY in state rather than from
+   * PHOTO_COUNTDOWN_SECONDS, which is what lets resumeCountdown() pick a held
+   * count back up at 7 instead of restarting it at 10.
+   *
+   * The decrement moved to the TOP of `tick` for the same reason. It used to
+   * emit the starting value again on the first tick — harmless-looking, but it
+   * made every capture take 11 seconds instead of the 10 the screen promises,
+   * and on a resume it would have re-shown the held second before moving.
+   */
   private runCountdown(): void {
     this.clearCountdown();
-    let value = PHOTO_COUNTDOWN_SECONDS;
+    let value = this.state.countdown ?? PHOTO_COUNTDOWN_SECONDS;
 
     const tick = (): void => {
+      value -= 1;
       this.state = { ...this.state, countdown: value };
       this.syncDisplay('countdown', { countdown: value });
       this.emit();
@@ -229,7 +318,6 @@ export class PhotoWorkflowService {
         return;
       }
 
-      value -= 1;
       this.countdownTimer = setTimeout(tick, 1000);
     };
 
