@@ -291,26 +291,24 @@ export function HwaseongHome({ controller }: Props): JSX.Element {
         {/* Row 2: notice + weather */}
         <div className={styles.headerBottomRow}>
           {/* Notice card — layout matches Insadong/Osan so EN INFO + long copy wrap inside. */}
-          <div className={styles.noticeCard}>
-            <div className={styles.noticeInner}>
-              <div className={styles.noticeLabel}>
-                {noticeBadge.map((ch, i) => (
-                  <span key={i}>{ch}</span>
-                ))}
-              </div>
-              <div className={styles.noticeDivider} />
-              <p className={styles.noticeText}>
-                {noticeLines.map((line, i) => (
-                  <span key={i} className={styles.noticeLine}>
-                    {line.map((run, j) => (
-                      <span key={j} className={run.b ? styles.noticeBold : undefined}>
-                        {run.t}
-                      </span>
-                    ))}
-                  </span>
-                ))}
-              </p>
+          <div className={styles.notice}>
+            <div className={styles.noticeBadge}>
+              {noticeBadge.map((ch, i) => (
+                <span key={i}>{ch}</span>
+              ))}
             </div>
+            <div className={styles.noticeDivider} />
+            <p className={styles.noticeText}>
+              {noticeLines.map((line, i) => (
+                <span key={i} className={styles.noticeLine}>
+                  {line.map((run, j) => (
+                    <span key={j} className={run.b ? styles.noticeBold : undefined}>
+                      {run.t}
+                    </span>
+                  ))}
+                </span>
+              ))}
+            </p>
           </div>
 
           {/* Weather card — tap plays today's condition clip on the customer

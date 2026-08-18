@@ -94,7 +94,7 @@
 
 /* Notice card — wrapping matches Insadong/Osan so en/ja (and 4-letter INFO
    badge) stay inside the box instead of overflowing Korean-tuned metrics. */
-.noticeCard {
+.notice {
   flex: 1109 1 0;
   min-width: 0;
   height: auto;
@@ -103,22 +103,13 @@
   border-radius: 45px;
   padding: 55px 60px;
   display: flex;
-  flex-direction: column;
-  align-items: flex-start;
+  align-items: center;
+  gap: 38.61px;
   box-sizing: border-box;
   overflow: hidden;
 }
 
-.noticeInner {
-  display: flex;
-  align-items: center;
-  gap: 38.61px;
-  width: 100%;
-  min-width: 0;
-  height: 100%;
-}
-
-.noticeLabel {
+.noticeBadge {
   flex: none;
   display: flex;
   flex-direction: column;
@@ -133,7 +124,7 @@
 .noticeDivider {
   width: 6.435px;
   height: 242.383px;
-  background: #232323;
+  background: var(--kiosk-primary);
   border-radius: 3px;
   flex-shrink: 0;
 }

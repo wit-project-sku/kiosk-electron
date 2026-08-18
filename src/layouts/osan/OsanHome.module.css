@@ -79,7 +79,7 @@
   display: flex;
   align-items: center;
   gap: 1.79cqw;
-  background: rgba(26, 77, 126, 0.08);
+  background: rgba(108, 90, 70, 0.1);
   backdrop-filter: blur(1.12cqh);
   -webkit-backdrop-filter: blur(1.12cqh);
   border-radius: 2.08cqw;
@@ -113,9 +113,6 @@
   flex-direction: column;
   justify-content: center;
   flex: 1 1 auto;
-  /* Tuned so the (single-line, sheet-driven) Osaek notice copy wraps to ~3 rows,
-     matching the Figma where the notice lines are short and don't fill the box. */
-  max-width: 34cqw;
   min-width: 0;
   font-size: 1.33cqh; /* 51px */
   line-height: 1.676cqh; /* 64.35px */
@@ -135,7 +132,7 @@
   align-items: center;
   justify-content: center;
   gap: 1.5cqw;
-  background: rgba(26, 77, 126, 0.08);
+  background: rgba(108, 90, 70, 0.1);
   backdrop-filter: blur(1.12cqh);
   -webkit-backdrop-filter: blur(1.12cqh);
   border-radius: 2.08cqw;
