@@ -46,9 +46,9 @@
   overflow: hidden;
 }
 
-/* 온누리상품권 active: #daecfe / var(--kiosk-primary) */
+/* 온누리상품권 active: var(--kiosk-secondary) / var(--kiosk-primary) */
 .tabSelected0 {
-  background: #daecfe;
+  background: var(--kiosk-secondary);
   font-weight: 700;
   color: var(--kiosk-primary);
 }

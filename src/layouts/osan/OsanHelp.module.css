@@ -72,7 +72,7 @@
 }
 
 .catSel {
-  background: #d3dfec;
+  background: var(--kiosk-secondary);
   font-weight: 700;
   color: var(--kiosk-primary);
 }

@@ -94,7 +94,7 @@
 }
 
 .currentCard {
-  background: #d3dfec;
+  background: var(--kiosk-secondary);
   border-color: var(--kiosk-primary);
   cursor: default;
 }

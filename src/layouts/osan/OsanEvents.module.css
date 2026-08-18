@@ -1,6 +1,6 @@
 /* OsanEvents — native replacement for the withevent.kr <webview> on W004, laid
    out at EXACT Figma px on the 2160×3840 artboard (nodes 5494:154504 / 156455 /
-   5535:6134 / 157827). Navy [오색시장] main01 var(--kiosk-primary), selected-soft #D3DFEC. */
+   5535:6134 / 157827). Navy [오색시장] main01 var(--kiosk-primary), selected-soft var(--kiosk-secondary). */
 
 .bg {
   position: absolute;
@@ -287,7 +287,7 @@
 }
 
 .mbtiCellSelected {
-  background: #d3dfec;
+  background: var(--kiosk-secondary);
   border-color: var(--kiosk-primary);
 }
 

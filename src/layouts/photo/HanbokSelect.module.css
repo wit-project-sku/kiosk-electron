@@ -120,7 +120,7 @@
 }
 
 .tabSel {
-  background: var(--photo-accent-soft, #faeee3);
+  background: var(--photo-accent-soft, var(--kiosk-secondary));
   font-weight: 700;
   color: var(--photo-accent, #fe6c50);
 }
@@ -160,7 +160,7 @@
 }
 
 .outfitSel {
-  background: var(--photo-accent-soft, #faeee3);
+  background: var(--photo-accent-soft, var(--kiosk-secondary));
   border-color: var(--photo-accent, #fe6c50);
 }
 

@@ -122,7 +122,7 @@ export function OsanAiResult({ controller }: OsanAiResultProps): JSX.Element {
   };
 
   // Folder-cap geometry (Insadong-style selected tab): the cap rises CAP_PAD
-  // around the selected tab and bridges down into the #D3DFEC panel below.
+  // around the selected tab and bridges down into the var(--kiosk-secondary) panel below.
   const TAB_W = 565;
   const ROW_W = 1820;
   const CAP_PAD = 40;
@@ -178,7 +178,7 @@ export function OsanAiResult({ controller }: OsanAiResultProps): JSX.Element {
           </div>
         </div>
       ) : (
-        /* ── Selected course: navy folder — a #D3DFEC cap behind the selected tab
+        /* ── Selected course: navy folder — a var(--kiosk-secondary) cap behind the selected tab
            bridges into the panel below (same folder style as Insadong). ── */
         <div className={styles.contentSelected}>
           <div className={styles.folder}>

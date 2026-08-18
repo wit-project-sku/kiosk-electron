@@ -42,7 +42,7 @@
   z-index: 1;
 }
 
-/* Folder wrapper (Insadong style): holds the tab row + #D3DFEC panel and
+/* Folder wrapper (Insadong style): holds the tab row + var(--kiosk-secondary) panel and
    positions the cap that wraps the selected tab and connects it to the panel. */
 .folder {
   flex: none;
@@ -54,19 +54,19 @@
   position: relative;
 }
 
-/* #D3DFEC cap behind the selected tab — rises CAP_PAD(40) around it on every side
+/* var(--kiosk-secondary) cap behind the selected tab — rises CAP_PAD(40) around it on every side
    and bridges down into the panel; left/width set inline per selected tab.
    Height = 40 top + tab(170) + gap(65) + 10 overlap = 285. */
 .cap {
   position: absolute;
   top: -40px;
   height: 285px;
-  background: #d3dfec;
+  background: var(--kiosk-secondary);
   border-radius: 42.9px 42.9px 0 0;
   z-index: 0;
 }
 
-/* #D3DFEC panel holding the selected course's heading + list. Oversized 40px
+/* var(--kiosk-secondary) panel holding the selected course's heading + list. Oversized 40px
    beyond the tab row on each side so the cap's outer edge meets the panel edge
    (the folder is wider than the tabs, like Insadong). Same colour as the cap so
    the seam where the selected tab joins the panel is invisible. */
@@ -75,7 +75,7 @@
   width: 1900px;
   box-sizing: border-box;
   padding: 90px 100px;
-  background: #d3dfec;
+  background: var(--kiosk-secondary);
   border-radius: 60px;
   display: flex;
   flex-direction: column;
@@ -88,7 +88,7 @@
 /* ── Course tabs (A/B/C) — 3 × 565×170, justify-between ── */
 .tabs {
   position: relative;
-  z-index: 2; /* above the #D3DFEC folder cap */
+  z-index: 2; /* above the var(--kiosk-secondary) folder cap */
   flex: none;
   width: 1820px;
   display: flex;
@@ -114,7 +114,7 @@
   cursor: pointer;
 }
 
-/* Selected course tab — same WHITE pill as the other tabs; the #D3DFEC folder
+/* Selected course tab — same WHITE pill as the other tabs; the var(--kiosk-secondary) folder
    cap behind it provides the "selected" wrap (Insadong style). Navy var(--kiosk-primary) text
    for the theme cue, raised above the cap. */
 .tabActive {

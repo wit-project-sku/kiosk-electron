@@ -76,7 +76,7 @@
 }
 
 .pillSel {
-  background: #d3dfec;
+  background: var(--kiosk-secondary);
   border-color: var(--kiosk-primary);
   color: var(--kiosk-primary);
 }
@@ -116,7 +116,7 @@
 }
 
 .tileSel {
-  background: #d3dfec;
+  background: var(--kiosk-secondary);
   border-color: var(--kiosk-primary);
 }
 

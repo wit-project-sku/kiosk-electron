@@ -103,7 +103,7 @@
 }
 
 .currentCard {
-  background: #faeee3;
+  background: var(--kiosk-secondary);
   border-color: var(--kiosk-primary);
   cursor: default;
 }
@@ -114,7 +114,7 @@
 }
 
 .cardOn {
-  background: rgba(254, 108, 80, 0.2);
+  background: var(--kiosk-secondary);
   border-color: var(--kiosk-primary);
 }
 

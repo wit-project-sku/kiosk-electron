@@ -1,7 +1,7 @@
 /* HwaseongEvents — native replacement for the withevent.kr <webview> on W005,
    laid out at EXACT Figma px on the 2160×3840 artboard (nodes 5494:158615 / 158665
    / 158724 / 158814). Chrome matches HwaseongWebScreen. Blue [화성휴게소] main1
-   var(--kiosk-primary), selected-soft #DAECFE. */
+   var(--kiosk-primary), selected-soft var(--kiosk-secondary). */
 
 .root {
   position: absolute;
@@ -337,7 +337,7 @@
 }
 
 .mbtiCellSelected {
-  background: #daecfe;
+  background: var(--kiosk-secondary);
   border-color: var(--kiosk-primary);
 }
 

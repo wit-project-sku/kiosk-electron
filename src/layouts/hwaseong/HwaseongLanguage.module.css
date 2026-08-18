@@ -239,7 +239,7 @@
   font-variation-settings: 'CTGR' 0, 'wdth' 100;
 }
 
-/* Current language card — bg #dbecff, border var(--kiosk-primary) */
+/* Current language card — bg var(--kiosk-secondary), border var(--kiosk-primary) */
 .currentCard {
   box-sizing: border-box;
   width: 100%;
@@ -248,7 +248,7 @@
   flex-direction: column;
   align-items: flex-start;
   padding: 55px 60px;
-  background: #dbecff;
+  background: var(--kiosk-secondary);
   border: 2.145px solid var(--kiosk-primary);
   border-radius: 42.9px;
   box-shadow: 0 21.45px 21.45px rgba(143, 147, 157, 0.1);
@@ -341,7 +341,7 @@
 
 /* Selected row card */
 .langCardOn {
-  background: #dbecff;
+  background: var(--kiosk-secondary);
   border-color: var(--kiosk-primary);
 }
 

@@ -79,7 +79,7 @@
 }
 
 .tabSelected {
-  background: #faeee3;
+  background: var(--kiosk-secondary);
   font-weight: 700;
   color: var(--kiosk-primary);
 }

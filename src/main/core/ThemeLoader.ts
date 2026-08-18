@@ -84,7 +84,7 @@ const FALLBACK_COLORS: Record<KioskLayoutId, KioskTheme['colors']> = {
   HWASEONG: {
     primary: '#005AB4',
     primaryHover: '#004A96',
-    secondary: '#E8F0FA',
+    secondary: '#DAECFE',
     background: '#FFFFFF',
     surface: '#FFFFFF',
     text: '#232323',
