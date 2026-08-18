@@ -9,7 +9,7 @@
   font-family: 'Noto Sans KR', 'Noto Sans', sans-serif;
 }
 .bgBase { position: absolute; left: 0; top: 0; width: 2160px; height: 3840px; background: #fff; }
-.bgImage { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; opacity: 0.5; pointer-events: none; }
+.bgImage { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; pointer-events: none; }
 
 /* ── Results scroll area ── */
 .results {

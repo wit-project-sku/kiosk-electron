@@ -55,24 +55,14 @@ export function HwaseongHeader({ controller, title, subtitle, onHome, onBack, su
         {/* Row 1: location + brand + date */}
         <div className={styles.row1}>
           <div className={styles.left}>
-            <svg className={styles.pin} xmlns="http://www.w3.org/2000/svg" width="71" height="90" viewBox="0 0 71 90" fill="none">
-              <g filter="url(#hw_hdr_pin)">
-                <path d="M35.5 82C35.5 82 67 53.4783 67 32.087C67 14.3658 52.897 0 35.5 0C18.103 0 4 14.3658 4 32.087C4 53.4783 35.5 82 35.5 82Z" fill="var(--kiosk-primary)" />
-                <path d="M45.5638 30.7507C45.5638 36.4116 41.0586 41.0007 35.5013 41.0007C29.9439 41.0007 25.4388 36.4116 25.4388 30.7507C25.4388 25.0897 29.9439 20.5007 35.5013 20.5007C41.0586 20.5007 45.5638 25.0897 45.5638 30.7507Z" fill="white" />
-              </g>
-              <defs>
-                <filter id="hw_hdr_pin" x="0" y="0" width="71" height="90" filterUnits="userSpaceOnUse" colorInterpolationFilters="sRGB">
-                  <feFlood floodOpacity="0" result="bg" />
-                  <feColorMatrix in="SourceAlpha" type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 127 0" result="hardAlpha" />
-                  <feOffset dy="4" />
-                  <feGaussianBlur stdDeviation="2" />
-                  <feComposite in2="hardAlpha" operator="out" />
-                  <feColorMatrix type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0.25 0" />
-                  <feBlend mode="normal" in2="bg" result="effect1" />
-                  <feBlend mode="normal" in="SourceGraphic" in2="effect1" result="shape" />
-                </filter>
-              </defs>
-            </svg>
+            {hwaseongIconUrl('location-pin') && (
+              <img
+                className={styles.pin}
+                src={hwaseongIconUrl('location-pin')}
+                alt=""
+                draggable={false}
+              />
+            )}
             <span className={styles.brand}>HWASEONG SA</span>
           </div>
           <span className={styles.date}>{today}</span>

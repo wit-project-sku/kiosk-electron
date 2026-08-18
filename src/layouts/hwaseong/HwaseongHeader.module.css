@@ -40,8 +40,9 @@
 }
 
 .pin {
-  width: 71px;
-  height: 90px;
+  width: 63px;
+  height: 82px;
+  object-fit: contain;
   flex-shrink: 0;
 }
 
