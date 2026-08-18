@@ -57,7 +57,7 @@ export function HwaseongHeader({ controller, title, subtitle, onHome, onBack, su
           <div className={styles.left}>
             <svg className={styles.pin} xmlns="http://www.w3.org/2000/svg" width="71" height="90" viewBox="0 0 71 90" fill="none">
               <g filter="url(#hw_hdr_pin)">
-                <path d="M35.5 82C35.5 82 67 53.4783 67 32.087C67 14.3658 52.897 0 35.5 0C18.103 0 4 14.3658 4 32.087C4 53.4783 35.5 82 35.5 82Z" fill="#005AB4" />
+                <path d="M35.5 82C35.5 82 67 53.4783 67 32.087C67 14.3658 52.897 0 35.5 0C18.103 0 4 14.3658 4 32.087C4 53.4783 35.5 82 35.5 82Z" fill="var(--kiosk-primary)" />
                 <path d="M45.5638 30.7507C45.5638 36.4116 41.0586 41.0007 35.5013 41.0007C29.9439 41.0007 25.4388 36.4116 25.4388 30.7507C25.4388 25.0897 29.9439 20.5007 35.5013 20.5007C41.0586 20.5007 45.5638 25.0897 45.5638 30.7507Z" fill="white" />
               </g>
               <defs>
@@ -84,7 +84,7 @@ export function HwaseongHeader({ controller, title, subtitle, onHome, onBack, su
             {hwaseongIconUrl('ico-home') ? (
               <img src={hwaseongIconUrl('ico-home')} alt="" draggable={false} />
             ) : (
-              <svg viewBox="0 0 175 175" fill="none"><circle cx="87.5" cy="87.5" r="87.5" fill="#005ab4" /><path d="M50 92L87.5 55L125 92V130H102V104H73V130H50V92Z" fill="#fff" /></svg>
+              <svg viewBox="0 0 175 175" fill="none"><circle cx="87.5" cy="87.5" r="87.5" fill="var(--kiosk-primary)" /><path d="M50 92L87.5 55L125 92V130H102V104H73V130H50V92Z" fill="#fff" /></svg>
             )}
           </button>
           <div className={styles.titleField}>
@@ -94,7 +94,7 @@ export function HwaseongHeader({ controller, title, subtitle, onHome, onBack, su
             {hwaseongIconUrl('nav-back') ? (
               <img src={hwaseongIconUrl('nav-back')} alt="" draggable={false} />
             ) : (
-              <svg viewBox="0 0 175 175" fill="none"><circle cx="87.5" cy="87.5" r="87.5" fill="#e8e8e8" /><path d="M105 45L65 87.5L105 130" stroke="#005ab4" strokeWidth="12" strokeLinecap="round" strokeLinejoin="round" /></svg>
+              <svg viewBox="0 0 175 175" fill="none"><circle cx="87.5" cy="87.5" r="87.5" fill="#e8e8e8" /><path d="M105 45L65 87.5L105 130" stroke="var(--kiosk-primary)" strokeWidth="12" strokeLinecap="round" strokeLinejoin="round" /></svg>
             )}
           </button>
         </div>
@@ -102,7 +102,7 @@ export function HwaseongHeader({ controller, title, subtitle, onHome, onBack, su
 
       {sub && (
         <div ref={subtitleRef} className={`${styles.subtitle} ${subtitleClassName ?? ''}`}>
-          <svg className={styles.subtitleStar} viewBox="0 0 36 36" fill="#005ab4">
+          <svg className={styles.subtitleStar} viewBox="0 0 36 36" fill="var(--kiosk-primary)">
             <path d="M18 0l4.6 12.7L36 13.2l-10.5 8.3 3.7 13.5L18 27.6 6.8 35l3.7-13.5L0 13.2l13.4-.5z" />
           </svg>
           <span className={styles.subtitleText}>{sub}</span>

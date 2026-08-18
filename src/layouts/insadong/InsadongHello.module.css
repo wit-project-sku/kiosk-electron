@@ -29,7 +29,7 @@
   width: 34.32px;
 }
 .content::-webkit-scrollbar-thumb {
-  background: #fe6c50;
+  background: var(--kiosk-primary);
   border-radius: 21.45px;
 }
 .content::-webkit-scrollbar-track {
@@ -68,7 +68,7 @@
 .tabSelected {
   background: #f8ecde;
   font-weight: 600; /* Figma: SemiBold */
-  color: #fe6c50;
+  color: var(--kiosk-primary);
 }
 
 /* ── Card (shared) — Figma: w1820, h2160 (all 3 tabs same height), gap 65,
@@ -140,7 +140,7 @@
   display: inline-flex;
   align-items: center;
   background: #f8ecde;
-  color: #fe6c50;
+  color: var(--kiosk-primary);
   font-weight: 700;
   font-size: 58px;
   padding: 14px 26px;
@@ -357,7 +357,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background: #fe6c50;
+  background: var(--kiosk-primary);
   border-radius: 42.9px;
   font-weight: 700;
   font-size: 51.48px;

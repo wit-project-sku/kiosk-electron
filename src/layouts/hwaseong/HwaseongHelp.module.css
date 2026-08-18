@@ -29,7 +29,7 @@
   scrollbar-gutter: stable;
 }
 .results::-webkit-scrollbar { width: 34px; }
-.results::-webkit-scrollbar-thumb { background: #005ab4; border-radius: 21.45px; }
+.results::-webkit-scrollbar-thumb { background: var(--kiosk-primary); border-radius: 21.45px; }
 .results::-webkit-scrollbar-track { background: transparent; }
 
 /* ── Filter tabs block ── */
@@ -68,7 +68,7 @@
 .filterTabActive {
   background: #daecfe;
   border-color: #e8e8e8;
-  color: #005ab4;
+  color: var(--kiosk-primary);
   font-weight: 700;
 }
 
@@ -134,7 +134,7 @@
   width: 17px;
   height: 17px;
   border-radius: 50%;
-  background: #005ab4;
+  background: var(--kiosk-primary);
   flex-shrink: 0;
 }
 .cardCatLabel {

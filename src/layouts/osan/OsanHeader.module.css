@@ -117,7 +117,7 @@
 }
 
 .star {
-  color: #1a4d7e;
+  color: var(--kiosk-primary);
   font-size: 40px;
   flex-shrink: 0;
   margin-top: 12px;

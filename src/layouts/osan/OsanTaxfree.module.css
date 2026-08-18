@@ -80,7 +80,7 @@
   text-align: center;
   font-size: 120px;
   font-weight: 700;
-  color: #1a4d7e;
+  color: var(--kiosk-primary);
   margin: 0;
   line-height: 1;
 }
@@ -120,12 +120,12 @@
   justify-content: center;
 }
 
-/* "품목" and "환급액" header cells — Figma: bg #1a4d7e, 430×111px, r=16 */
+/* "품목" and "환급액" header cells — Figma: bg var(--kiosk-primary), 430×111px, r=16 */
 .thBase {
   flex-shrink: 0;
   width: 430px;
   height: 111px;
-  background: #1a4d7e;
+  background: var(--kiosk-primary);
   border-radius: 16px;
   display: flex;
   align-items: center;
@@ -195,7 +195,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #1a4d7e;
+  color: var(--kiosk-primary);
   font-size: 40px;
   font-weight: 700;
   text-align: center;
@@ -235,7 +235,7 @@
   overflow: hidden;
 }
 
-/* "환급 절차" title — Figma: top=7%×755=53px, 100px bold #1a4d7e */
+/* "환급 절차" title — Figma: top=7%×755=53px, 100px bold var(--kiosk-primary) */
 .processTitle {
   position: absolute;
   top: 53px;
@@ -244,7 +244,7 @@
   text-align: center;
   font-size: 100px;
   font-weight: 700;
-  color: #1a4d7e;
+  color: var(--kiosk-primary);
   margin: 0;
   line-height: 1;
 }
@@ -292,7 +292,7 @@
   width: 290px;
 }
 
-/* Step circle — Figma: 200×200px, rounded full; bg alternates #497fb2 / #1a4d7e */
+/* Step circle — Figma: 200×200px, rounded full; bg alternates #497fb2 / var(--kiosk-primary) */
 .stepCircle {
   width: 200px;
   height: 200px;
@@ -372,7 +372,7 @@
 .infoTitle {
   font-size: 100px;
   font-weight: 700;
-  color: #1a4d7e;
+  color: var(--kiosk-primary);
   text-align: center;
   margin: 0 0 60px;
   line-height: 1.2;
@@ -388,7 +388,7 @@
 .flowCardTitle {
   font-size: 90px;
   font-weight: 800;
-  color: #1a4d7e;
+  color: var(--kiosk-primary);
   text-align: center;
   margin: 0 0 30px;
 }
@@ -427,8 +427,8 @@
   box-sizing: border-box;
 }
 
-.flowBoxFilled   { background: #1a4d7e; }
-.flowBoxOutlined { background: #ffffff; border: 3px solid #1a4d7e; }
+.flowBoxFilled   { background: var(--kiosk-primary); }
+.flowBoxOutlined { background: #ffffff; border: 3px solid var(--kiosk-primary); }
 
 .flowBoxLabel {
   font-size: 40px;
@@ -439,11 +439,11 @@
   line-height: 1.25;
 }
 
-.flowBoxLabelDark { color: #1a4d7e; }
+.flowBoxLabelDark { color: var(--kiosk-primary); }
 
 .flowArrow {
   font-size: 100px;
-  color: #1a4d7e;
+  color: var(--kiosk-primary);
   line-height: 1;
   flex-shrink: 0;
   align-self: center;
@@ -471,7 +471,7 @@
 .boldStatement {
   font-size: 60px;
   font-weight: 800;
-  color: #1a4d7e;
+  color: var(--kiosk-primary);
   text-align: center;
   white-space: pre-line;
   line-height: 1.4;
@@ -482,7 +482,7 @@
   display: block;
   width: 100%;
   height: 160px;
-  background: #1a4d7e;
+  background: var(--kiosk-primary);
   border-radius: 28px;
   border: none;
   cursor: pointer;
@@ -524,7 +524,7 @@
 .merchantTitle {
   font-size: 110px;
   font-weight: 700;
-  color: #1a4d7e;
+  color: var(--kiosk-primary);
   text-align: center;
   margin: 0;
   line-height: 1.2;
@@ -699,13 +699,13 @@
   align-items: center;
   justify-content: center;
   background: #ffffff;
-  border: 2.145px solid #1a4d7e;
+  border: 2.145px solid var(--kiosk-primary);
   border-radius: 42.905px;
   box-shadow: 0 21.453px 42.905px rgba(143, 147, 157, 0.1);
   font-family: var(--kiosk-font, sans-serif);
   font-weight: 500;
   font-size: 52px;
-  color: #1a4d7e;
+  color: var(--kiosk-primary);
   cursor: pointer;
   text-align: center;
   padding: 0 18px;
@@ -713,7 +713,7 @@
 }
 
 .tabSelected {
-  background: #1a4d7e;
+  background: var(--kiosk-primary);
   color: #ffffff;
 }
 

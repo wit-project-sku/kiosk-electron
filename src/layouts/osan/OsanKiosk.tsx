@@ -40,9 +40,9 @@ function isWebScreen(s: string): s is WebScreenKey {
 }
 
 /** Theme the shared photo (AI 한복) workflow navy for Osan (insadong stays orange).
- *  Figma 3474:73963/73618: primary #1a4d7e, selected light bg #d3dfec, 다시찍기 #616161. */
+ *  Figma 3474:73963/73618: primary var(--kiosk-primary), selected light bg #d3dfec, 다시찍기 #616161. */
 const PHOTO_THEME = {
-  '--photo-accent': '#1a4d7e',
+  '--photo-accent': 'var(--kiosk-primary)',
   '--photo-accent-soft': '#d3dfec',
   '--photo-tint': '#eef4fa',
   '--photo-accent-alt': '#616161',

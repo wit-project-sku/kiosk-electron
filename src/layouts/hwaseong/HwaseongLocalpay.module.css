@@ -46,11 +46,11 @@
   overflow: hidden;
 }
 
-/* 온누리상품권 active: #daecfe / #005ab4 */
+/* 온누리상품권 active: #daecfe / var(--kiosk-primary) */
 .tabSelected0 {
   background: #daecfe;
   font-weight: 700;
-  color: #005ab4;
+  color: var(--kiosk-primary);
 }
 
 /* 행복화성지역화폐 active: #e8f0f4 / #005cb1 */

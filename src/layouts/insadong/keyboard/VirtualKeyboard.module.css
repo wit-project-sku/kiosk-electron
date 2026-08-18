@@ -76,7 +76,7 @@
 
 /* Shift engaged. */
 .active {
-  background: var(--kiosk-primary, #fe6c50);
+  background: var(--kiosk-primary);
   color: #ffffff;
 }
 .active:active {

@@ -11,7 +11,8 @@ import { ImageLightbox } from '../components/ImageLightbox';
 import { HwaseongHeader } from './HwaseongHeader';
 import styles from './HwaseongMarketDetail.module.css';
 import { ui } from '@renderer/lib/uiText';
-
+
+
 interface Props {
   controller: KioskController;
 }
@@ -78,13 +79,13 @@ export function HwaseongMarketDetail({ controller }: Props): JSX.Element {
             <div className={styles.info}>
               {item?.address?.trim() && (
                 <div className={styles.line}>
-                  <svg className={styles.icon} viewBox="0 0 85 85" fill="none"><path d="M42.5 8C28 8 16 19.6 16 34c0 19 26.5 43 26.5 43S69 53 69 34C69 19.6 57 8 42.5 8Zm0 36a10 10 0 1 1 0-20 10 10 0 0 1 0 20Z" fill="#005ab4" /></svg>
+                  <svg className={styles.icon} viewBox="0 0 85 85" fill="none"><path d="M42.5 8C28 8 16 19.6 16 34c0 19 26.5 43 26.5 43S69 53 69 34C69 19.6 57 8 42.5 8Zm0 36a10 10 0 1 1 0-20 10 10 0 0 1 0 20Z" fill="var(--kiosk-primary)" /></svg>
                   <span className={styles.infoText}>{item.address}</span>
                 </div>
               )}
               {item?.hours?.trim() && (
                 <div className={styles.line}>
-                  <svg className={styles.icon} viewBox="0 0 85 85" fill="none"><circle cx="42.5" cy="44" r="30" stroke="#005ab4" strokeWidth="6" /><path d="M42.5 27v18l13 8" stroke="#005ab4" strokeWidth="6" strokeLinecap="round" strokeLinejoin="round" /></svg>
+                  <svg className={styles.icon} viewBox="0 0 85 85" fill="none"><circle cx="42.5" cy="44" r="30" stroke="var(--kiosk-primary)" strokeWidth="6" /><path d="M42.5 27v18l13 8" stroke="var(--kiosk-primary)" strokeWidth="6" strokeLinecap="round" strokeLinejoin="round" /></svg>
                   <div className={styles.infoCol}>
                     <span className={styles.infoText}>{item.hours}</span>
                     {item.breaktime && <span className={styles.infoText}>(Breaktime {item.breaktime})</span>}
@@ -93,7 +94,7 @@ export function HwaseongMarketDetail({ controller }: Props): JSX.Element {
               )}
               {item?.phone?.trim() && (
                 <div className={styles.line}>
-                  <svg className={styles.icon} viewBox="0 0 85 85" fill="none"><path d="M26 14c-3 0-6 2-7 5-2 7 1 18 9 26s19 11 26 9c3-1 5-4 5-7v-9l-13-4-5 6c-5-3-9-7-12-12l6-5-4-13z" fill="#005ab4" /></svg>
+                  <svg className={styles.icon} viewBox="0 0 85 85" fill="none"><path d="M26 14c-3 0-6 2-7 5-2 7 1 18 9 26s19 11 26 9c3-1 5-4 5-7v-9l-13-4-5 6c-5-3-9-7-12-12l6-5-4-13z" fill="var(--kiosk-primary)" /></svg>
                   <span className={styles.infoText}>{item.phone}</span>
                 </div>
               )}
@@ -154,7 +155,7 @@ export function HwaseongMarketDetail({ controller }: Props): JSX.Element {
       </div>
 
       {lightbox !== null && (
-        <ImageLightbox images={real} initialIndex={lightbox} accent="#005ab4" onClose={() => setLightbox(null)} />
+        <ImageLightbox images={real} initialIndex={lightbox} accent="var(--kiosk-primary)" onClose={() => setLightbox(null)} />
       )}
     </div>
   );

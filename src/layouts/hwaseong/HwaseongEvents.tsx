@@ -173,7 +173,7 @@ interface HwaseongEventsProps {
  * Same 화성휴게소 chrome (bg, header, image left-nav, banner) as HwaseongWebScreen,
  * laid out at exact Figma px on the 2160×3840 artboard (node 5494:158615). Two
  * centered region tabs (화성시 · MBTI); the 화성시 tab shows a category-filtered
- * event grid, MBTI swaps the body for the quiz workflow. Blue [화성휴게소] main1 #005ab4.
+ * event grid, MBTI swaps the body for the quiz workflow. Blue [화성휴게소] main1 var(--kiosk-primary).
  */
 export function HwaseongEvents({ controller }: HwaseongEventsProps): JSX.Element {
   const banner = useRotatingBanner(hwaseongIconUrl('fg-banner'));
@@ -255,7 +255,7 @@ export function HwaseongEvents({ controller }: HwaseongEventsProps): JSX.Element
           </div>
 
           {detailId !== null ? (
-            <EventDetailScreen eventId={detailId} accent="#005ab4" />
+            <EventDetailScreen eventId={detailId} accent="var(--kiosk-primary)" />
           ) : (
             <>
               <div className={styles.grid}>

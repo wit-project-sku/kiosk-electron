@@ -1,7 +1,7 @@
 /* HwaseongEvents — native replacement for the withevent.kr <webview> on W005,
    laid out at EXACT Figma px on the 2160×3840 artboard (nodes 5494:158615 / 158665
    / 158724 / 158814). Chrome matches HwaseongWebScreen. Blue [화성휴게소] main1
-   #005AB4, selected-soft #DAECFE. */
+   var(--kiosk-primary), selected-soft #DAECFE. */
 
 .root {
   position: absolute;
@@ -60,8 +60,8 @@
 }
 
 .regionTabSelected {
-  background: #005ab4;
-  border-color: #005ab4;
+  background: var(--kiosk-primary);
+  border-color: var(--kiosk-primary);
   color: #ffffff;
 }
 
@@ -106,7 +106,7 @@
   content: '';
   position: absolute;
   inset: 0 -24px;
-  background: #005ab4;
+  background: var(--kiosk-primary);
   border-radius: 999px;
   z-index: -1;
 }
@@ -201,7 +201,7 @@
 }
 
 .pageBtnSelected {
-  background: #005ab4;
+  background: var(--kiosk-primary);
   color: #ffffff;
 }
 
@@ -246,7 +246,7 @@
   font-weight: 700;
   font-size: 40px;
   line-height: 1.25;
-  color: #005ab4;
+  color: var(--kiosk-primary);
   text-align: right;
   letter-spacing: 0.4px;
   white-space: nowrap;
@@ -339,7 +339,7 @@
 
 .mbtiCellSelected {
   background: #daecfe;
-  border-color: #005ab4;
+  border-color: var(--kiosk-primary);
 }
 
 .mbtiLetter {
@@ -350,7 +350,7 @@
 }
 
 .mbtiCellSelected .mbtiLetter {
-  color: #005ab4;
+  color: var(--kiosk-primary);
 }
 
 .mbtiLabel {
@@ -361,7 +361,7 @@
 }
 
 .mbtiCellSelected .mbtiLabel {
-  color: #005ab4;
+  color: var(--kiosk-primary);
 }
 
 /* CTA "추천 결과 보기" / "결과 로딩중.." — 5494:158629: 500×120, r30. */
@@ -378,12 +378,12 @@
   justify-content: center;
   gap: 10px;
   background: #ffffff;
-  border: 5px solid #005ab4;
+  border: 5px solid var(--kiosk-primary);
   border-radius: 30px;
   font-family: var(--kiosk-font, 'Noto Sans KR', sans-serif);
   font-weight: 700;
   font-size: 50px;
-  color: #005ab4;
+  color: var(--kiosk-primary);
   cursor: pointer;
 }
 
@@ -409,7 +409,7 @@
   }
 }
 
-/* Description — 5494:158631: centered, 55px bold, "화성시 이벤트" in #005ab4. */
+/* Description — 5494:158631: centered, 55px bold, "화성시 이벤트" in var(--kiosk-primary). */
 .mbtiDesc {
   position: absolute;
   top: 2141px;
@@ -426,7 +426,7 @@
 }
 
 .mbtiAccent {
-  color: #005ab4;
+  color: var(--kiosk-primary);
 }
 
 /* ── Shared modal overlay (dark scrim, centered content) ── */
@@ -512,7 +512,7 @@
   font-family: var(--kiosk-font, 'Noto Sans KR', sans-serif);
   font-weight: 700;
   font-size: 40px;
-  color: #005ab4;
+  color: var(--kiosk-primary);
 }
 
 /* QR zoom modal: 1035×1035, big QR + corner frame. */
@@ -540,7 +540,7 @@
 
 .qrCorner {
   position: absolute;
-  color: #005ab4;
+  color: var(--kiosk-primary);
   font-size: 130px;
   line-height: 1;
 }
@@ -570,7 +570,7 @@
   font-family: var(--kiosk-font, 'Noto Sans KR', sans-serif);
   font-weight: 700;
   font-size: 55px;
-  color: #005ab4;
+  color: var(--kiosk-primary);
   letter-spacing: 0.55px;
 }
 

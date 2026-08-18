@@ -2,14 +2,14 @@
   "id": "hwaseong",
   "name": "화성휴게소",
   "colors": {
-    "primary": "#005ab4",
-    "primaryHover": "#0047a0",
-    "secondary": "#dbecff",
-    "background": "#ffffff",
-    "surface": "#ffffff",
+    "primary": "#005AB4",
+    "primaryHover": "#0047A0",
+    "secondary": "#DBECFF",
+    "background": "#FFFFFF",
+    "surface": "#FFFFFF",
     "text": "#232323",
     "textMuted": "#909090",
-    "accent": "#005ab4"
+    "accent": "#005AB4"
   },
   "typography": {
     "fontFamily": "'Noto Sans KR', 'Noto Sans SC', 'Microsoft YaHei', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",

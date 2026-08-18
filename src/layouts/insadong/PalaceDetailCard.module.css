@@ -66,7 +66,7 @@
   width: 17.16px;
   height: 17.16px;
   border-radius: 50%;
-  background: #fe6c50;
+  background: var(--kiosk-primary);
 }
 
 /* ── Main wide photo ── */

@@ -1,4 +1,4 @@
-/* 교통안내 — exact Figma px (artboard 2160×3840). Navy #1a4d7e. NO scroll:
+/* 교통안내 — exact Figma px (artboard 2160×3840). Navy var(--kiosk-primary). NO scroll:
    the map is the flexible element and shrinks so everything fits the frame. */
 .bg {
   position: absolute;
@@ -70,7 +70,7 @@
 .tabSelected {
   background: #d3dfec;
   font-weight: 700;
-  color: #1a4d7e;
+  color: var(--kiosk-primary);
 }
 
 /* ── Content card — fills remaining height (no scroll) ── */
@@ -140,7 +140,7 @@
   width: 17px;
   height: 17px;
   border-radius: 50%;
-  background: #1a4d7e;
+  background: var(--kiosk-primary);
 }
 
 .mapWrap {

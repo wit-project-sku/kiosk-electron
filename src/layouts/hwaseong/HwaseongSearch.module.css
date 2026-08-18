@@ -1,4 +1,4 @@
-/* 화성휴게소 검색/결과 — exact Figma (node 4167:175236). Accent #005ab4. */
+/* 화성휴게소 검색/결과 — exact Figma (node 4167:175236). Accent var(--kiosk-primary). */
 .root {
   position: absolute;
   inset: 0;
@@ -65,7 +65,7 @@
 .brand {
   font-size: 68px;
   font-weight: 700;
-  color: #005ab4;
+  color: var(--kiosk-primary);
   line-height: 1;
   white-space: nowrap;
   font-variation-settings: 'CTGR' 0, 'wdth' 100;
@@ -163,7 +163,7 @@
 }
 
 .results::-webkit-scrollbar { width: 34.32px; }
-.results::-webkit-scrollbar-thumb { background: #005ab4; border-radius: 21.45px; }
+.results::-webkit-scrollbar-thumb { background: var(--kiosk-primary); border-radius: 21.45px; }
 .results::-webkit-scrollbar-track { background: transparent; }
 
 /* Search re-entry field — centered 1350px pill */
@@ -184,7 +184,7 @@
   align-items: center;
   justify-content: space-between;
   background: #fff;
-  border: 5px solid #005ab4;
+  border: 5px solid var(--kiosk-primary);
   border-radius: 120px;
   padding: 55px 75px;
   cursor: text;
@@ -221,14 +221,14 @@
   flex: none;
   width: 92px;
   height: 88px;
-  color: #005ab4;
+  color: var(--kiosk-primary);
 }
 
 .caret {
   flex: none;
   width: 6px;
   height: 68px;
-  background: #005ab4;
+  background: var(--kiosk-primary);
   animation: blink 1s step-end infinite;
 }
 
@@ -307,7 +307,7 @@
   width: 17px;
   height: 17px;
   border-radius: 50%;
-  background: #005ab4;
+  background: var(--kiosk-primary);
   flex-shrink: 0;
 }
 
@@ -348,7 +348,7 @@
   font-variation-settings: 'CTGR' 0, 'wdth' 100;
 }
 
-.hl { color: #005ab4; font-weight: 700; }
+.hl { color: var(--kiosk-primary); font-weight: 700; }
 
 .photos {
   width: 570px;

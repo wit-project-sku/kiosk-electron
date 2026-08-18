@@ -82,8 +82,8 @@
 
 .pillSel {
   background: #f8ecde;
-  border-color: #fe6c50;
-  color: #fe6c50;
+  border-color: var(--kiosk-primary);
+  color: var(--kiosk-primary);
 }
 
 /* 즐길거리 tiles */
@@ -126,11 +126,11 @@
 
 .tileSel {
   background: #f8ecde;
-  border-color: #fe6c50;
+  border-color: var(--kiosk-primary);
 }
 
 .tileSel .tileText {
-  color: #fe6c50;
+  color: var(--kiosk-primary);
 }
 
 /* CTA */
@@ -141,7 +141,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background: #fe6c50;
+  background: var(--kiosk-primary);
   border: none;
   border-radius: 42.9px;
   font-family: var(--kiosk-font, sans-serif);

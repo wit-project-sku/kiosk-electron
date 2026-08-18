@@ -30,7 +30,7 @@
   width: 34.32px;
 }
 .results::-webkit-scrollbar-thumb {
-  background: #1a4d7e;
+  background: var(--kiosk-primary);
   border-radius: 21.45px;
 }
 .results::-webkit-scrollbar-track {
@@ -74,7 +74,7 @@
 .catSel {
   background: #d3dfec;
   font-weight: 700;
-  color: #1a4d7e;
+  color: var(--kiosk-primary);
 }
 
 /* Result list — card-to-card gap matches Figma (list gap 20); the 100px gap
@@ -165,7 +165,7 @@
   width: 17px;
   height: 17px;
   border-radius: 50%;
-  background: #1a4d7e;
+  background: var(--kiosk-primary);
 }
 
 .address {
@@ -210,7 +210,7 @@
   height: 180px;
   padding: 22px;
   background: #ffffff;
-  border: 5px solid #1a4d7e;
+  border: 5px solid var(--kiosk-primary);
   border-radius: 25px;
   overflow: hidden;
 }

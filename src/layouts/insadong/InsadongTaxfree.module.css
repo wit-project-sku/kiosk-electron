@@ -698,13 +698,13 @@
   align-items: center;
   justify-content: center;
   background: #ffffff;
-  border: 2.145px solid #fe6c50;
+  border: 2.145px solid var(--kiosk-primary);
   border-radius: 42.905px;
   box-shadow: 0 21.453px 42.905px rgba(143, 147, 157, 0.1);
   font-family: var(--kiosk-font, sans-serif);
   font-weight: 500;
   font-size: 52px;
-  color: #fe6c50;
+  color: var(--kiosk-primary);
   cursor: pointer;
   text-align: center;
   padding: 0 18px;
@@ -712,7 +712,7 @@
 }
 
 .tabSelected {
-  background: #fe6c50;
+  background: var(--kiosk-primary);
   color: #ffffff;
 }
 

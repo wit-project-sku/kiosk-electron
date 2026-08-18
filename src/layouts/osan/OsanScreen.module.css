@@ -34,7 +34,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background: #1a4d7e;
+  background: var(--kiosk-primary);
   border: none;
   border-radius: 42.9px;
   font-family: var(--kiosk-font, sans-serif);

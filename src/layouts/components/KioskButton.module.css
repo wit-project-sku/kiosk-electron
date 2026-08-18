@@ -6,7 +6,7 @@
   padding: 1.25rem 1.5rem;
   border: none;
   border-radius: 12px;
-  background: var(--kiosk-primary, #8b4513);
+  background: var(--kiosk-primary, #fe6c50);
   color: #fff;
   font-family: inherit;
   font-size: var(--kiosk-button-size, 1.25rem);
@@ -18,7 +18,7 @@
 
 .button:active {
   transform: scale(0.97);
-  background: var(--kiosk-primary-hover, #6d3610);
+  background: var(--kiosk-primary-hover, #e85a40);
 }
 
 .buttonSecondary {
@@ -27,10 +27,10 @@
   justify-content: center;
   min-height: 5rem;
   padding: 1.25rem 1.5rem;
-  border: 2px solid var(--kiosk-primary, #8b4513);
+  border: 2px solid var(--kiosk-primary, #fe6c50);
   border-radius: 12px;
   background: var(--kiosk-surface, #fff);
-  color: var(--kiosk-primary, #8b4513);
+  color: var(--kiosk-primary, #fe6c50);
   font-family: inherit;
   font-size: var(--kiosk-button-size, 1.25rem);
   font-weight: 600;
@@ -41,6 +41,6 @@
 
 .buttonSecondary:active {
   transform: scale(0.97);
-  background: var(--kiosk-secondary, #d4a574);
+  background: var(--kiosk-secondary, #f8ecde);
   color: #fff;
 }

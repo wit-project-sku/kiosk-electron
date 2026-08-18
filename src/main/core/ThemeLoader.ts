@@ -50,6 +50,59 @@ export function loadTheme(layout: KioskLayoutId): KioskTheme {
   }
 }
 
+const FALLBACK_COLORS: Record<KioskLayoutId, KioskTheme['colors']> = {
+  INSADONG: {
+    primary: '#FE6C50',
+    primaryHover: '#E85A40',
+    secondary: '#F8ECDE',
+    background: '#FFFFFF',
+    surface: '#FFFFFF',
+    text: '#232323',
+    textMuted: '#999999',
+    accent: '#FE6C50',
+  },
+  NAM_INSADONG: {
+    primary: '#FE6C50',
+    primaryHover: '#E85A40',
+    secondary: '#F8ECDE',
+    background: '#FFFFFF',
+    surface: '#FFFFFF',
+    text: '#232323',
+    textMuted: '#999999',
+    accent: '#FE6C50',
+  },
+  OSAN: {
+    primary: '#1A4D7E',
+    primaryHover: '#153D65',
+    secondary: '#D3DFEC',
+    background: '#FFFFFF',
+    surface: '#FFFFFF',
+    text: '#232323',
+    textMuted: '#999999',
+    accent: '#1A4D7E',
+  },
+  HWASEONG: {
+    primary: '#005AB4',
+    primaryHover: '#004A96',
+    secondary: '#E8F0FA',
+    background: '#FFFFFF',
+    surface: '#FFFFFF',
+    text: '#232323',
+    textMuted: '#999999',
+    accent: '#005AB4',
+  },
+  JEJU_AIRPORT: {
+    primary: '#4f8cff',
+    primaryHover: '#3b73e8',
+    secondary: '#e8f0fa',
+    background: '#f5f6f8',
+    surface: '#ffffff',
+    text: '#1a1d23',
+    textMuted: '#687087',
+    accent: '#f5a623',
+  },
+};
+
 function fallbackTheme(layout: KioskLayoutId): KioskTheme {
   const ID_MAP: Record<KioskLayoutId, string> = {
     INSADONG: 'insadong',
@@ -68,16 +121,7 @@ function fallbackTheme(layout: KioskLayoutId): KioskTheme {
   const theme: KioskTheme = {
     id: ID_MAP[layout] ?? layout.toLowerCase(),
     name: NAME_MAP[layout] ?? layout,
-    colors: {
-      primary: '#4f8cff',
-      primaryHover: '#3b73e8',
-      secondary: '#7cb686',
-      background: '#f5f6f8',
-      surface: '#ffffff',
-      text: '#1a1d23',
-      textMuted: '#687087',
-      accent: '#f5a623',
-    },
+    colors: FALLBACK_COLORS[layout] ?? FALLBACK_COLORS.INSADONG,
     typography: {
       fontFamily: "'Noto Sans KR', 'Noto Sans SC', 'Microsoft YaHei', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
       headingSize: '2.5rem',

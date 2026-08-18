@@ -346,7 +346,7 @@ export function HwaseongHome({ controller }: Props): JSX.Element {
               onClick={() => controller.navigate('home')}
             />
           ) : (
-            <div style={{ width: 180, height: 180, borderRadius: '50%', background: '#005ab4', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}
+            <div style={{ width: 180, height: 180, borderRadius: '50%', background: 'var(--kiosk-primary)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}
               onClick={() => controller.navigate('home')}>
               <svg width="80" height="80" viewBox="0 0 24 24" fill="white"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
             </div>
@@ -362,7 +362,7 @@ export function HwaseongHome({ controller }: Props): JSX.Element {
               {searching && <span className={styles.searchCaret} />}
             </span>
             <svg xmlns="http://www.w3.org/2000/svg" width="80" height="77" viewBox="0 0 80 77" fill="none" className={styles.searchIcon}>
-              <path d="M60.8219 58.9L75.5 72.5M70.7667 36.2333C70.7667 53.7592 55.9324 67.9667 37.6333 67.9667C19.3343 67.9667 4.5 53.7592 4.5 36.2333C4.5 18.7075 19.3343 4.5 37.6333 4.5C55.9324 4.5 70.7667 18.7075 70.7667 36.2333Z" stroke="#005AB4" strokeWidth="9" strokeLinecap="round"/>
+              <path d="M60.8219 58.9L75.5 72.5M70.7667 36.2333C70.7667 53.7592 55.9324 67.9667 37.6333 67.9667C19.3343 67.9667 4.5 53.7592 4.5 36.2333C4.5 18.7075 19.3343 4.5 37.6333 4.5C55.9324 4.5 70.7667 18.7075 70.7667 36.2333Z" stroke="var(--kiosk-primary)" strokeWidth="9" strokeLinecap="round"/>
             </svg>
           </div>
 

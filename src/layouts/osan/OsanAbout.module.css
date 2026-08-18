@@ -24,7 +24,7 @@
 }
 
 .content::-webkit-scrollbar { width: 34px; }
-.content::-webkit-scrollbar-thumb { background: #1a4d7e; border-radius: 21.45px; }
+.content::-webkit-scrollbar-thumb { background: var(--kiosk-primary); border-radius: 21.45px; }
 .content::-webkit-scrollbar-track { background: transparent; }
 
 /* White card: border 5px #e8e8e8, r42.9, px40 py100, gap 60 between sections. */

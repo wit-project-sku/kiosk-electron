@@ -1,7 +1,7 @@
 /* InsadongEvents — native replacement for the withevent.kr <webview>, laid out
    at EXACT Figma px on the 2160×3840 artboard. Nodes: list 이벤트-5 (5494:134307);
    MBTI 인사동이벤트_01/04/05 (4232:131337 / 4232:130821 / 4232:130619 / 5494:151909).
-   Accent [인사동] main01 #FE6C50, main02 #F8ECDE. */
+   Accent [인사동] main01 var(--kiosk-primary), main02 #F8ECDE. */
 
 .bg {
   position: absolute;
@@ -40,8 +40,8 @@
 }
 
 .regionTabSelected {
-  background: #fe6c50;
-  border-color: #fe6c50;
+  background: var(--kiosk-primary);
+  border-color: var(--kiosk-primary);
   color: #ffffff;
 }
 
@@ -87,7 +87,7 @@
   content: '';
   position: absolute;
   inset: 0 -24px;
-  background: #fe6c50;
+  background: var(--kiosk-primary);
   border-radius: 999px;
   z-index: -1;
 }
@@ -182,7 +182,7 @@
 }
 
 .pageBtnSelected {
-  background: #fe6c50;
+  background: var(--kiosk-primary);
   color: #ffffff;
 }
 
@@ -227,7 +227,7 @@
   font-weight: 700;
   font-size: 40px;
   line-height: 1.25;
-  color: #fe6c50;
+  color: var(--kiosk-primary);
   text-align: right;
   letter-spacing: 0.4px;
   white-space: nowrap;
@@ -309,7 +309,7 @@
 
 .mbtiCellSelected {
   background: #f8ecde;
-  border-color: #fe6c50;
+  border-color: var(--kiosk-primary);
 }
 
 .mbtiLetter {
@@ -320,7 +320,7 @@
 }
 
 .mbtiCellSelected .mbtiLetter {
-  color: #fe6c50;
+  color: var(--kiosk-primary);
 }
 
 .mbtiLabel {
@@ -331,7 +331,7 @@
 }
 
 .mbtiCellSelected .mbtiLabel {
-  color: #fe6c50;
+  color: var(--kiosk-primary);
 }
 
 /* CTA "추천 결과 보기" / "결과 로딩중.." — 4232:130741 / 4232:130943: 500×120, r30. */
@@ -348,12 +348,12 @@
   justify-content: center;
   gap: 10px;
   background: #ffffff;
-  border: 5px solid #fe6c50;
+  border: 5px solid var(--kiosk-primary);
   border-radius: 30px;
   font-family: var(--kiosk-font, sans-serif);
   font-weight: 700;
   font-size: 50px;
-  color: #fe6c50;
+  color: var(--kiosk-primary);
   cursor: pointer;
 }
 
@@ -482,7 +482,7 @@
   font-family: var(--kiosk-font, sans-serif);
   font-weight: 700;
   font-size: 40px;
-  color: #fe6c50;
+  color: var(--kiosk-primary);
 }
 
 /* QR zoom modal — 4232:130608 "QR 확대 박스": 1035×1035, big QR + corner frame. */
@@ -510,7 +510,7 @@
 
 .qrCorner {
   position: absolute;
-  color: #fe6c50;
+  color: var(--kiosk-primary);
   font-size: 130px;
   line-height: 1;
 }
@@ -540,7 +540,7 @@
   font-family: var(--kiosk-font, sans-serif);
   font-weight: 700;
   font-size: 55px;
-  color: #fe6c50;
+  color: var(--kiosk-primary);
   letter-spacing: 0.55px;
 }
 

@@ -28,7 +28,7 @@
   pointer-events: none;
 }
 
-/* Full-width scroll area → scrollbar in the outer padding (Figma thumb #005ab4). */
+/* Full-width scroll area → scrollbar in the outer padding (Figma thumb var(--kiosk-primary)). */
 .results {
   position: absolute;
   top: 699px;
@@ -47,7 +47,7 @@
 }
 
 .results::-webkit-scrollbar { width: 34.32px; }
-.results::-webkit-scrollbar-thumb { background: #005ab4; border-radius: 21.45px; }
+.results::-webkit-scrollbar-thumb { background: var(--kiosk-primary); border-radius: 21.45px; }
 .results::-webkit-scrollbar-track { background: transparent; }
 
 /* ── Region tabs (340×170, 5 per row × 2, 30px gap, 35px row gap) ── */
@@ -83,7 +83,7 @@
 
 .tabSelected {
   background: #daecfe;
-  color: #005ab4;
+  color: var(--kiosk-primary);
   font-weight: 700;
 }
 
@@ -186,7 +186,7 @@
   width: 17px;
   height: 17px;
   border-radius: 50%;
-  background: #005ab4;
+  background: var(--kiosk-primary);
   flex-shrink: 0;
 }
 
@@ -226,7 +226,7 @@
   font-variation-settings: 'CTGR' 0, 'wdth' 100;
 }
 
-/* QR — 180×180, 5px #005ab4 border, radius 25, bottom-right of the card */
+/* QR — 180×180, 5px var(--kiosk-primary) border, radius 25, bottom-right of the card */
 .qr {
   position: absolute;
   left: 1587px;
@@ -234,7 +234,7 @@
   width: 180px;
   height: 180px;
   box-sizing: border-box;
-  border: 5px solid #005ab4;
+  border: 5px solid var(--kiosk-primary);
   border-radius: 25px;
   background: #fff;
   padding: 26px;

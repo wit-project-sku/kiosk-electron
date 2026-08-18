@@ -44,12 +44,12 @@
   justify-content: space-between;
 }
 
-/* INSADONG wordmark — Figma: Noto Sans 900, 68px, #FE6C50, line-height 100%. */
+/* INSADONG wordmark — Figma: Noto Sans 900, 68px, var(--kiosk-primary), line-height 100%. */
 .brand {
   display: flex;
   align-items: center;
   gap: 1.2cqw;
-  color: #fe6c50;
+  color: var(--kiosk-primary);
   font-weight: 900;
   font-size: 1.77cqh;
   line-height: 1;
@@ -108,7 +108,7 @@
   flex: none;
   width: 0.3cqw;
   height: 6.31cqh;
-  background: #fe6c50;
+  background: var(--kiosk-primary);
   border-radius: 0.15cqw;
 }
 
@@ -203,7 +203,7 @@
   align-items: center;
   justify-content: center;
   border: none;
-  background: #fe6c50;
+  background: var(--kiosk-primary);
   border-radius: 50%;
   overflow: hidden;
   cursor: pointer;
@@ -232,8 +232,8 @@
   align-items: center;
   gap: 1cqw;
   background: #ffffff;
-  /* Figma 검색필드: 4.29px #fe6c50 border, rounded 120. */
-  border: 4.29px solid #fe6c50;
+  /* Figma 검색필드: 4.29px var(--kiosk-primary) border, rounded 120. */
+  border: 4.29px solid var(--kiosk-primary);
   border-radius: 3.13cqh;
   padding: 0 2.5cqw;
   cursor: text;
@@ -275,14 +275,14 @@
   flex: none;
   width: 2.6cqh;
   height: 2.6cqh;
-  color: #fe6c50;
+  color: var(--kiosk-primary);
 }
 
 .caret {
   flex: none;
   width: 0.3cqw;
   height: 2.6cqh;
-  background: #fe6c50;
+  background: var(--kiosk-primary);
   animation: blink 1s step-end infinite;
 }
 

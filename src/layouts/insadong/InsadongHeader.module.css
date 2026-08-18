@@ -46,7 +46,7 @@
   display: flex;
   align-items: center;
   gap: 25.74px;
-  color: #fe6c50;
+  color: var(--kiosk-primary);
   font-weight: 900;
   font-size: 68px;
   line-height: 1;
@@ -123,7 +123,7 @@
 }
 
 .star {
-  color: #fe6c50;
+  color: var(--kiosk-primary);
   font-size: 40px;
   flex-shrink: 0;
   margin-top: 12px;

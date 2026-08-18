@@ -83,7 +83,7 @@ export function HwaseongDetail({ controller }: Props): JSX.Element {
             {item?.address?.trim() && (
               <div className={styles.infoRow}>
                 <svg className={styles.infoIcon} viewBox="0 0 85 85" fill="none">
-                  <path d="M42.5 8C28 8 16 19.6 16 34c0 19 26.5 43 26.5 43S69 53 69 34C69 19.6 57 8 42.5 8Zm0 36a10 10 0 1 1 0-20 10 10 0 0 1 0 20Z" fill="#005ab4" />
+                  <path d="M42.5 8C28 8 16 19.6 16 34c0 19 26.5 43 26.5 43S69 53 69 34C69 19.6 57 8 42.5 8Zm0 36a10 10 0 1 1 0-20 10 10 0 0 1 0 20Z" fill="var(--kiosk-primary)" />
                 </svg>
                 <span className={styles.infoText}>{item.address}</span>
               </div>
@@ -91,8 +91,8 @@ export function HwaseongDetail({ controller }: Props): JSX.Element {
             {hours && (
               <div className={styles.infoRow}>
                 <svg className={styles.infoIcon} viewBox="0 0 85 85" fill="none">
-                  <circle cx="42.5" cy="44" r="30" stroke="#005ab4" strokeWidth="6" />
-                  <path d="M42.5 27v18l13 8" stroke="#005ab4" strokeWidth="6" strokeLinecap="round" strokeLinejoin="round" />
+                  <circle cx="42.5" cy="44" r="30" stroke="var(--kiosk-primary)" strokeWidth="6" />
+                  <path d="M42.5 27v18l13 8" stroke="var(--kiosk-primary)" strokeWidth="6" strokeLinecap="round" strokeLinejoin="round" />
                 </svg>
                 <span className={styles.infoText}>{hours}</span>
               </div>
@@ -129,7 +129,7 @@ export function HwaseongDetail({ controller }: Props): JSX.Element {
       </div>
 
       {lightbox !== null && (
-        <ImageLightbox images={real} initialIndex={lightbox} accent="#005ab4" onClose={() => setLightbox(null)} />
+        <ImageLightbox images={real} initialIndex={lightbox} accent="var(--kiosk-primary)" onClose={() => setLightbox(null)} />
       )}
     </div>
   );

@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { QRCodeSVG } from 'qrcode.react';
 import type { KioskController } from '@renderer/hooks/useKioskController';
+import { useKioskStore } from '@renderer/store/kioskStore';
 import { hwaseongIconUrl } from '@renderer/assets/icons/hwaseong';
 import { useRotatingBanner } from '@renderer/hooks/useRotatingBanner';
 import { trackEvent } from '@renderer/lib/analytics';
@@ -238,6 +239,7 @@ export function HwaseongHello({ controller }: Props): JSX.Element {
 
 /** Shared hashtag chips + social QR row at the bottom of each card. */
 function Footer(): JSX.Element {
+  const primary = useKioskStore((s) => s.theme.colors.primary);
   return (
     <div className={styles.footer}>
       <div className={styles.chips}>
@@ -254,7 +256,7 @@ function Footer(): JSX.Element {
           </svg>
         </div>
         <div className={styles.socialQrWrap}>
-          <QRCodeSVG value={INSTAGRAM_URL} size={100} bgColor="#fff" fgColor="#005ab4" level="M" />
+          <QRCodeSVG value={INSTAGRAM_URL} size={100} bgColor="#fff" fgColor={primary} level="M" />
         </div>
         {/* Instagram icon + QR */}
         <div className={styles.socialIconWrap}>
@@ -275,7 +277,7 @@ function Footer(): JSX.Element {
           </svg>
         </div>
         <div className={styles.socialQrWrap}>
-          <QRCodeSVG value={INSTAGRAM_URL} size={100} bgColor="#fff" fgColor="#005ab4" level="M" />
+          <QRCodeSVG value={INSTAGRAM_URL} size={100} bgColor="#fff" fgColor={primary} level="M" />
         </div>
       </div>
     </div>

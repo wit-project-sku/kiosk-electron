@@ -2,14 +2,14 @@
   "id": "osan",
   "name": "오산시 오색시장",
   "colors": {
-    "primary": "#1a4d7e",
-    "primaryHover": "#0e4e8c",
-    "secondary": "#d3dfec",
-    "background": "#ffffff",
-    "surface": "#ffffff",
+    "primary": "#1A4D7E",
+    "primaryHover": "#0E4E8C",
+    "secondary": "#D3DFEC",
+    "background": "#FFFFFF",
+    "surface": "#FFFFFF",
     "text": "#232323",
     "textMuted": "#999999",
-    "accent": "#1a4d7e"
+    "accent": "#1A4D7E"
   },
   "typography": {
     "fontFamily": "'Noto Sans KR', 'Noto Sans SC', 'Microsoft YaHei', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",

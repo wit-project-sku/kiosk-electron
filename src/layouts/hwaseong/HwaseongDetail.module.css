@@ -46,7 +46,7 @@
 }
 
 .content::-webkit-scrollbar { width: 34.32px; }
-.content::-webkit-scrollbar-thumb { background: #005ab4; border-radius: 21.45px; }
+.content::-webkit-scrollbar-thumb { background: var(--kiosk-primary); border-radius: 21.45px; }
 .content::-webkit-scrollbar-track { background: transparent; }
 
 /* Card — fixed Figma layout (children absolutely positioned). */
@@ -111,7 +111,7 @@
   width: 17px;
   height: 17px;
   border-radius: 50%;
-  background: #005ab4;
+  background: var(--kiosk-primary);
   flex-shrink: 0;
 }
 

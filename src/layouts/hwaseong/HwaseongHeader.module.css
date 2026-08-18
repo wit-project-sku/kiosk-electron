@@ -48,7 +48,7 @@
 .brand {
   font-size: 68px;
   font-weight: 700;
-  color: #005ab4;
+  color: var(--kiosk-primary);
   line-height: 1;
   white-space: nowrap;
   font-variation-settings: 'CTGR' 0, 'wdth' 100;

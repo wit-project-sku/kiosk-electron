@@ -28,7 +28,7 @@
   scrollbar-gutter: stable;
 }
 .results::-webkit-scrollbar { width: 34px; }
-.results::-webkit-scrollbar-thumb { background: #005ab4; border-radius: 21.45px; }
+.results::-webkit-scrollbar-thumb { background: var(--kiosk-primary); border-radius: 21.45px; }
 .results::-webkit-scrollbar-track { background: transparent; }
 
 /* ── Main card — Figma: bg-white border-5 #e8e8e8 rounded-42.9 pb-79 pt-100 ── */
@@ -76,7 +76,7 @@
   width: 1600px;
   height: 658px;
   background: #f5f5f5;
-  border: 1px solid #005ab4;
+  border: 1px solid var(--kiosk-primary);
   border-radius: 20px;
   display: flex;
   align-items: center;

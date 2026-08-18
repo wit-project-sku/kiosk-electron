@@ -29,7 +29,7 @@
   width: 34.32px;
 }
 .results::-webkit-scrollbar-thumb {
-  background: #fe6c50;
+  background: var(--kiosk-primary);
   border-radius: 21.45px;
 }
 .results::-webkit-scrollbar-track {
@@ -110,7 +110,7 @@
   width: 17px;
   height: 17px;
   border-radius: 50%;
-  background: #fe6c50;
+  background: var(--kiosk-primary);
 }
 
 .address {

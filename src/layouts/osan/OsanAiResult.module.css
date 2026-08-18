@@ -115,10 +115,10 @@
 }
 
 /* Selected course tab — same WHITE pill as the other tabs; the #D3DFEC folder
-   cap behind it provides the "selected" wrap (Insadong style). Navy #1a4d7e text
+   cap behind it provides the "selected" wrap (Insadong style). Navy var(--kiosk-primary) text
    for the theme cue, raised above the cap. */
 .tabActive {
-  color: #1a4d7e;
+  color: var(--kiosk-primary);
   position: relative;
   z-index: 2;
 }
@@ -253,7 +253,7 @@
   width: 17px;
   height: 17px;
   border-radius: 50%;
-  background: #1a4d7e;
+  background: var(--kiosk-primary);
 }
 
 .headingSub {
@@ -358,7 +358,7 @@
   width: 17px;
   height: 17px;
   border-radius: 50%;
-  background: #1a4d7e;
+  background: var(--kiosk-primary);
 }
 
 .wideTags {

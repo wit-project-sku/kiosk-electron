@@ -30,7 +30,7 @@
 }
 
 .results::-webkit-scrollbar { width: 34.32px; }
-.results::-webkit-scrollbar-thumb { background: #005ab4; border-radius: 21.45px; }
+.results::-webkit-scrollbar-thumb { background: var(--kiosk-primary); border-radius: 21.45px; }
 .results::-webkit-scrollbar-track { background: transparent; }
 
 /* ── Tabs ── */
@@ -63,7 +63,7 @@
 
 .tabSelected {
   background: #daecfe;
-  color: #005ab4;
+  color: var(--kiosk-primary);
   font-weight: 700;
 }
 
@@ -127,7 +127,7 @@
 .nameValue {
   font-size: 58px;
   font-weight: 700;
-  color: #005ab4;
+  color: var(--kiosk-primary);
   line-height: 1;
   background: #f2fbff;
   padding: 8px 14px;
@@ -300,7 +300,7 @@
   align-items: center;
   justify-content: center;
   padding: 0 30px;
-  background: #005ab4;
+  background: var(--kiosk-primary);
   border-radius: 42.9px;
   font-size: 51.48px;
   font-weight: 700;
@@ -326,7 +326,7 @@
   height: 124.409px;
   flex-shrink: 0;
   border-radius: 21.45px;
-  border: 4.29px solid #005ab4;
+  border: 4.29px solid var(--kiosk-primary);
   background: #fff;
   box-sizing: border-box;
   overflow: hidden;

@@ -27,7 +27,7 @@
   width: 34.32px;
 }
 .results::-webkit-scrollbar-thumb {
-  background: #fe6c50;
+  background: var(--kiosk-primary);
   border-radius: 21.45px;
 }
 .results::-webkit-scrollbar-track {
@@ -63,7 +63,7 @@
 .tabSelected {
   background: #f8ecde;
   font-weight: 700;
-  color: #fe6c50;
+  color: var(--kiosk-primary);
 }
 
 /* Big content card */
@@ -312,7 +312,7 @@
   width: 17.16px;
   height: 17.16px;
   border-radius: 50%;
-  background: #fe6c50;
+  background: var(--kiosk-primary);
 }
 
 /* 인사동 지도 tab */

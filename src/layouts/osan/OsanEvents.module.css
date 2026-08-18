@@ -1,6 +1,6 @@
 /* OsanEvents — native replacement for the withevent.kr <webview> on W004, laid
    out at EXACT Figma px on the 2160×3840 artboard (nodes 5494:154504 / 156455 /
-   5535:6134 / 157827). Navy [오색시장] main01 #1A4D7E, selected-soft #D3DFEC. */
+   5535:6134 / 157827). Navy [오색시장] main01 var(--kiosk-primary), selected-soft #D3DFEC. */
 
 .bg {
   position: absolute;
@@ -40,8 +40,8 @@
 }
 
 .regionTabSelected {
-  background: #1a4d7e;
-  border-color: #1a4d7e;
+  background: var(--kiosk-primary);
+  border-color: var(--kiosk-primary);
   color: #ffffff;
 }
 
@@ -86,7 +86,7 @@
   content: '';
   position: absolute;
   inset: 0 -24px;
-  background: #1a4d7e;
+  background: var(--kiosk-primary);
   border-radius: 999px;
   z-index: -1;
 }
@@ -181,7 +181,7 @@
 }
 
 .pageBtnSelected {
-  background: #1a4d7e;
+  background: var(--kiosk-primary);
   color: #ffffff;
 }
 
@@ -226,7 +226,7 @@
   font-weight: 700;
   font-size: 40px;
   line-height: 1.25;
-  color: #1a4d7e;
+  color: var(--kiosk-primary);
   text-align: right;
   letter-spacing: 0.4px;
   white-space: nowrap;
@@ -288,7 +288,7 @@
 
 .mbtiCellSelected {
   background: #d3dfec;
-  border-color: #1a4d7e;
+  border-color: var(--kiosk-primary);
 }
 
 .mbtiLetter {
@@ -299,7 +299,7 @@
 }
 
 .mbtiCellSelected .mbtiLetter {
-  color: #1a4d7e;
+  color: var(--kiosk-primary);
 }
 
 .mbtiLabel {
@@ -310,7 +310,7 @@
 }
 
 .mbtiCellSelected .mbtiLabel {
-  color: #1a4d7e;
+  color: var(--kiosk-primary);
 }
 
 /* CTA "추천 결과 보기" / "결과 로딩중.." — 5494:154632: 500×120, r30. */
@@ -327,12 +327,12 @@
   justify-content: center;
   gap: 10px;
   background: #ffffff;
-  border: 5px solid #1a4d7e;
+  border: 5px solid var(--kiosk-primary);
   border-radius: 30px;
   font-family: var(--kiosk-font, sans-serif);
   font-weight: 700;
   font-size: 50px;
-  color: #1a4d7e;
+  color: var(--kiosk-primary);
   cursor: pointer;
 }
 
@@ -358,7 +358,7 @@
   }
 }
 
-/* Description — 5494:154634: centered, 55px bold, "오산시 이벤트" in #1a4d7e. */
+/* Description — 5494:154634: centered, 55px bold, "오산시 이벤트" in var(--kiosk-primary). */
 .mbtiDesc {
   position: absolute;
   top: 2141px;
@@ -375,7 +375,7 @@
 }
 
 .mbtiAccent {
-  color: #1a4d7e;
+  color: var(--kiosk-primary);
 }
 
 /* ── Shared modal overlay (dark scrim, centered content) ── */
@@ -461,7 +461,7 @@
   font-family: var(--kiosk-font, sans-serif);
   font-weight: 700;
   font-size: 40px;
-  color: #1a4d7e;
+  color: var(--kiosk-primary);
 }
 
 /* QR zoom modal — "QR 확대 박스": 1035×1035, big QR + corner frame. */
@@ -489,7 +489,7 @@
 
 .qrCorner {
   position: absolute;
-  color: #1a4d7e;
+  color: var(--kiosk-primary);
   font-size: 130px;
   line-height: 1;
 }
@@ -519,7 +519,7 @@
   font-family: var(--kiosk-font, sans-serif);
   font-weight: 700;
   font-size: 55px;
-  color: #1a4d7e;
+  color: var(--kiosk-primary);
   letter-spacing: 0.55px;
 }
 

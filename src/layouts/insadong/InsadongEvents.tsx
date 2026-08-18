@@ -253,7 +253,7 @@ export function InsadongEvents({ controller }: InsadongEventsProps): JSX.Element
           </div>
 
           {detailId !== null ? (
-            <EventDetailScreen eventId={detailId} accent="#fe6c50" />
+            <EventDetailScreen eventId={detailId} accent="var(--kiosk-primary)" />
           ) : (
             <>
               <div className={styles.grid}>
