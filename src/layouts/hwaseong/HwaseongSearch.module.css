@@ -185,7 +185,7 @@
   background: #fff;
   border: 5px solid var(--kiosk-primary);
   border-radius: 120px;
-  padding: 55px 75px;
+  padding: 55px 62px 55px 75px;
   cursor: text;
   overflow: hidden;
   font-family: inherit;
@@ -218,8 +218,9 @@
 
 .searchIcon {
   flex: none;
-  width: 92px;
-  height: 88px;
+  width: 80px;
+  height: 77px;
+  flex-shrink: 0;
   color: var(--kiosk-primary);
 }
 

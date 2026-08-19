@@ -232,7 +232,7 @@
   background: #fff;
   border: 4.29px solid var(--kiosk-primary);
   border-radius: 120px;
-  padding: 55px 75px;
+  padding: 55px 62px 55px 75px;
   box-sizing: border-box;
   cursor: pointer;
   flex-shrink: 0;

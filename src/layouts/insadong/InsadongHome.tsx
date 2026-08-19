@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { Search } from 'lucide-react';
 import type { KioskScreenId, SupportedLanguage } from '@shared/types/kiosk';
+import { SearchIcon } from '@layouts/components/SearchIcon';
 import type { KioskController } from '@renderer/hooks/useKioskController';
 import { trackEvent } from '@renderer/lib/analytics';
 import { useLanguageStore } from '@renderer/store/languageStore';
@@ -321,7 +321,7 @@ export function InsadongHome({ controller }: InsadongHomeProps): JSX.Element {
               )}
               {focused && <span className={styles.caret} />}
             </span>
-            <Search className={styles.searchIcon} strokeWidth={2.4} />
+            <SearchIcon className={styles.searchIcon} />
           </button>
           <button type="button" className={styles.krBtn} onClick={() => navigate('language', '언어선택')}>
             {langCode(lang)}

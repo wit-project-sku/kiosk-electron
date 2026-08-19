@@ -34,23 +34,25 @@
 /* Search re-entry row */
 .searchRow {
   flex: none;
-  width: 100%;
+  width: 1820px;
   height: 182px;
   display: flex;
   align-items: center;
+  justify-content: center;
 }
 
 .searchInput {
-  flex: 1;
-  height: 100%;
+  flex: none;
+  width: 1350px;
+  height: 182px;
   box-sizing: border-box;
   display: flex;
   align-items: center;
-  gap: 1cqw;
+  justify-content: space-between;
   background: #ffffff;
   border: 4.29px solid var(--kiosk-primary);
-  border-radius: 3.13cqh;
-  padding: 0 2.5cqw;
+  border-radius: 120px;
+  padding: 0 62px 0 75px;
   cursor: text;
   overflow: hidden;
   font-family: var(--kiosk-font, sans-serif);
@@ -81,8 +83,9 @@
 
 .searchIcon {
   flex: none;
-  width: 2.6cqh;
-  height: 2.6cqh;
+  width: 80px;
+  height: 77px;
+  flex-shrink: 0;
   color: var(--kiosk-primary);
 }
 

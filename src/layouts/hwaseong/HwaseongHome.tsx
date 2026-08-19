@@ -12,6 +12,7 @@ import { buttonText, pick } from '@renderer/lib/i18n';
 import { useApiTileRows, useHasDonationTile, type TileKey } from '@renderer/lib/buttonLayout';
 import { DONATION_COMING_SOON, withComingSoon } from '@shared/config/donation';
 import { t } from '@renderer/lib/loc';
+import { SearchIcon } from '@layouts/components/SearchIcon';
 import { FloatingKeyboard } from '../insadong/keyboard/FloatingKeyboard';
 
 /** Search-bar language button → the current language's display code. */
@@ -359,9 +360,7 @@ export function HwaseongHome({ controller }: Props): JSX.Element {
               )}
               {searching && <span className={styles.searchCaret} />}
             </span>
-            <svg xmlns="http://www.w3.org/2000/svg" width="80" height="77" viewBox="0 0 80 77" fill="none" className={styles.searchIcon}>
-              <path d="M60.8219 58.9L75.5 72.5M70.7667 36.2333C70.7667 53.7592 55.9324 67.9667 37.6333 67.9667C19.3343 67.9667 4.5 53.7592 4.5 36.2333C4.5 18.7075 19.3343 4.5 37.6333 4.5C55.9324 4.5 70.7667 18.7075 70.7667 36.2333Z" stroke="var(--kiosk-primary)" strokeWidth="9" strokeLinecap="round"/>
-            </svg>
+            <SearchIcon className={styles.searchIcon} />
           </div>
 
           <div className={styles.langBtn} onClick={() => controller.navigate('language')}>

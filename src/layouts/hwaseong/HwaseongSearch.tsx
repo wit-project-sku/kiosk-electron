@@ -1,6 +1,6 @@
 import { useRef, useState } from 'react';
-import { Search } from 'lucide-react';
 import type { KioskController } from '@renderer/hooks/useKioskController';
+import { SearchIcon } from '@layouts/components/SearchIcon';
 import { hwaseongIconUrl } from '@renderer/assets/icons/hwaseong';
 import { useRotatingBanner } from '@renderer/hooks/useRotatingBanner';
 import { useLanguageStore } from '@renderer/store/languageStore';
@@ -134,7 +134,7 @@ export function HwaseongSearch({ controller }: Props): JSX.Element {
               )}
               {focused && <span className={styles.caret} />}
             </span>
-            <Search className={styles.searchIcon} strokeWidth={2.4} />
+            <SearchIcon className={styles.searchIcon} />
           </button>
         </div>
 
