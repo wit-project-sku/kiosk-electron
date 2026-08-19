@@ -20,7 +20,7 @@
   gap: 100px;
   overflow-y: auto;
   overflow-x: hidden;
-  padding: 0 170px;
+  padding: 0 170px 80px;
 }
 
 .results::-webkit-scrollbar {

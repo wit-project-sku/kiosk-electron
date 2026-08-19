@@ -1,12 +1,13 @@
 import { useEffect, useState } from 'react';
 import type { KioskController } from '@renderer/hooks/useKioskController';
 import { hwaseongIconUrl } from '@renderer/assets/icons/hwaseong';
-import { useRotatingBanner } from '@renderer/hooks/useRotatingBanner';
 import { useDetailStore } from '@renderer/store/detailStore';
 import { padImages } from '@renderer/lib/shops';
 import { screenTitle, useLang } from '@renderer/lib/i18n';
 import { ImageLightbox } from '../components/ImageLightbox';
 import { HwaseongHeader } from './HwaseongHeader';
+import { HwaseongBanner } from './HwaseongBanner';
+import { HwaseongLeftNav } from './HwaseongLeftNav';
 import styles from './HwaseongDetail.module.css';
 
 interface Props {
@@ -14,7 +15,6 @@ interface Props {
 }
 
 export function HwaseongDetail({ controller }: Props): JSX.Element {
-  const banner = useRotatingBanner(hwaseongIconUrl('fg-banner'));
   const item = useDetailStore((s) => s.item);
   const lang = useLang();
   const goBack = (): void => controller.navigate(item?.from ?? 'home', 'Back');
@@ -113,20 +113,12 @@ export function HwaseongDetail({ controller }: Props): JSX.Element {
       </div>
 
       {/* Left nav */}
-      <div className={styles.leftNav}>
-        {hwaseongIconUrl('fg-leftnav') && (
-          <img src={hwaseongIconUrl('fg-leftnav')} alt="" className={styles.leftNavImg} draggable={false} />
-        )}
-        <button type="button" className={styles.leftNavZoneHome} onClick={() => controller.navigate('home')} aria-label="홈" />
-        <button type="button" className={styles.leftNavZoneBack} onClick={goBack} aria-label="뒤로" />
-      </div>
+      <HwaseongLeftNav
+        onHome={() => controller.navigate('home', 'Back')}
+        onBack={goBack}
+      />
 
-      {/* Bottom banner */}
-      <div className={styles.banner}>
-        {banner && (
-          <img src={banner} alt="" className={styles.bannerImg} draggable={false} />
-        )}
-      </div>
+      <HwaseongBanner onClick={() => controller.startPhoto()} />
 
       {lightbox !== null && (
         <ImageLightbox images={real} initialIndex={lightbox} accent="var(--kiosk-primary)" onClose={() => setLightbox(null)} />

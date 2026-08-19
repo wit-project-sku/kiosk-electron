@@ -4,13 +4,14 @@ import type { KioskController } from '@renderer/hooks/useKioskController';
 import type { EventCategory, EventRecommendation, EventRegion } from '@shared/types/events';
 import { isOk } from '@shared/types/result';
 import { hwaseongIconUrl } from '@renderer/assets/icons/hwaseong';
-import { useRotatingBanner } from '@renderer/hooks/useRotatingBanner';
 import { useEvents, pageWindow } from '@renderer/hooks/useEvents';
 import { EventDetailScreen } from '@layouts/components/EventDetailScreen';
 import { useLang } from '@renderer/lib/i18n';
 import { t } from '@renderer/lib/loc';
 import { ui, uiParts, type UiTextKey } from '@renderer/lib/uiText';
 import { HwaseongHeader } from './HwaseongHeader';
+import { HwaseongBanner } from './HwaseongBanner';
+import { HwaseongLeftNav } from './HwaseongLeftNav';
 import styles from './HwaseongEvents.module.css';
 
 /** Region tabs → API eventRegion (MBTI has no region; it opens the quiz).
@@ -176,7 +177,6 @@ interface HwaseongEventsProps {
  * event grid, MBTI swaps the body for the quiz workflow. Blue [화성휴게소] main1 var(--kiosk-primary).
  */
 export function HwaseongEvents({ controller }: HwaseongEventsProps): JSX.Element {
-  const banner = useRotatingBanner(hwaseongIconUrl('fg-banner'));
   const lang = useLang();
   /** Tab label from the sheet; MBTI (no key) keeps its literal id. */
   const tabLabel = (tab: { id: string; key: string | null }): string =>
@@ -317,19 +317,12 @@ export function HwaseongEvents({ controller }: HwaseongEventsProps): JSX.Element
         </>
       )}
 
-      <div className={styles.leftNav}>
-        {hwaseongIconUrl('fg-leftnav') && (
-          <img src={hwaseongIconUrl('fg-leftnav')} alt="" className={styles.leftNavImg} draggable={false} />
-        )}
-        <button type="button" className={styles.leftNavZoneHome} onClick={() => controller.navigate('home', 'Back')} aria-label="홈" />
-        <button type="button" className={styles.leftNavZoneBack} onClick={goBack} aria-label="뒤로" />
-      </div>
+      <HwaseongLeftNav
+        onHome={() => controller.navigate('home', 'Back')}
+        onBack={goBack}
+      />
 
-      <div className={styles.banner}>
-        {banner && (
-          <img src={banner} alt="" className={styles.bannerImg} draggable={false} />
-        )}
-      </div>
+      <HwaseongBanner onClick={() => controller.startPhoto()} />
 
       {qrZoomOpen && (
         <div className={styles.modalOverlay} onClick={() => setQrZoomOpen(false)}>

@@ -2,7 +2,6 @@ import { useMemo, useRef, useState } from 'react';
 import type { KioskController } from '@renderer/hooks/useKioskController';
 import type { KioskScreenId } from '@shared/types/kiosk';
 import { hwaseongIconUrl } from '@renderer/assets/icons/hwaseong';
-import { useRotatingBanner } from '@renderer/hooks/useRotatingBanner';
 import { useWeatherStore } from '@renderer/store/weatherStore';
 import { useWeatherVideo } from '@renderer/hooks/useWeatherVideo';
 import { useLanguageStore } from '@renderer/store/languageStore';
@@ -32,6 +31,8 @@ const SEARCH_PLACEHOLDER = {
 };
 import { HangulComposer } from '../insadong/keyboard/hangul';
 import type { KeyAction } from '../insadong/keyboard/VirtualKeyboard';
+import { HwaseongBanner } from './HwaseongBanner';
+import { HwaseongLeftNav } from './HwaseongLeftNav';
 import styles from './HwaseongHome.module.css';
 
 interface Props {
@@ -186,7 +187,6 @@ function TileView({ tile, label, onClick, disabled }: { tile: HomeTile; label: s
 
 // ── Main component ──────────────────────────────────────────────────
 export function HwaseongHome({ controller }: Props): JSX.Element {
-  const banner = useRotatingBanner(hwaseongIconUrl('fg-banner'));
   const weather = useWeatherStore((s) => s.weather);
   const playWeatherVideo = useWeatherVideo();
   const today = useMemo(() => formatDate(new Date()), []);
@@ -423,25 +423,7 @@ export function HwaseongHome({ controller }: Props): JSX.Element {
         </div>
       </div>
 
-      {/* ── Left nav (single Figma render: home + back) ── */}
-      <div className={styles.leftNav}>
-        {hwaseongIconUrl('fg-leftnav') && (
-          <img src={hwaseongIconUrl('fg-leftnav')} alt="" className={styles.leftNavImg} draggable={false} />
-        )}
-        {/* Transparent click zones over the two icons */}
-        <button
-          type="button"
-          className={styles.leftNavZoneHome}
-          onClick={() => controller.navigate('home')}
-          aria-label="홈"
-        />
-        <button
-          type="button"
-          className={styles.leftNavZoneBack}
-          onClick={() => controller.navigate('home')}
-          aria-label="뒤로"
-        />
-      </div>
+      <HwaseongLeftNav onHome={() => controller.navigate('home')} />
 
       {/* ── Bottom nav (single Figma render incl. labels) ── */}
       <div className={styles.bottomNav}>
@@ -469,17 +451,7 @@ export function HwaseongHome({ controller }: Props): JSX.Element {
         </button>
       </div>
 
-      {/* ── Bottom banner (Figma render) ─────────────── */}
-      <div className={styles.bottomBanner}>
-        {banner && (
-          <img
-            src={banner}
-            alt=""
-            className={styles.bottomBannerImg}
-            draggable={false}
-          />
-        )}
-      </div>
+      <HwaseongBanner onClick={() => controller.startPhoto()} />
 
       {/* Inline search keyboard — shows in place, no navigation */}
       <FloatingKeyboard open={searching} onKey={applyKey} onClose={() => setSearching(false)} lang={lang} lightBackspace />

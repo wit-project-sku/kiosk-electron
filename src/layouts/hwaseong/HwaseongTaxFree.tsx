@@ -4,12 +4,13 @@ import type { KioskController } from '@renderer/hooks/useKioskController';
 import { useLanguageStore } from '@renderer/store/languageStore';
 import { t } from '@renderer/lib/loc';
 import { hwaseongIconUrl } from '@renderer/assets/icons/hwaseong';
-import { useRotatingBanner } from '@renderer/hooks/useRotatingBanner';
 import { useTaxfreeBodyLayout } from '@renderer/hooks/useTaxfreeBodyLayout';
 import { TAXFREE_PAGE_BASES, taxfreePageImg } from '@renderer/lib/taxfreePages';
 import { taxfreeUrl } from '@shared/constants/webEmbeds';
 import { trackEvent } from '@renderer/lib/analytics';
 import { HwaseongHeader } from './HwaseongHeader';
+import { HwaseongBanner } from './HwaseongBanner';
+import { HwaseongLeftNav } from './HwaseongLeftNav';
 import headerStyles from './HwaseongHeader.module.css';
 import styles from './HwaseongTaxFree.module.css';
 
@@ -117,7 +118,6 @@ export function HwaseongTaxFree({ controller }: Props): JSX.Element {
   }, [lang]);
 
   const bgSrc = hwaseongIconUrl('bg');
-  const bannerSrc = useRotatingBanner(hwaseongIconUrl('fg-banner'));
 
   return (
     <div ref={rootRef} className={styles.root}>
@@ -168,19 +168,9 @@ export function HwaseongTaxFree({ controller }: Props): JSX.Element {
         ))}
       </div>
 
-      {/* Left nav */}
-      <div className={styles.leftNav}>
-        {hwaseongIconUrl('fg-leftnav') && (
-          <img src={hwaseongIconUrl('fg-leftnav')} alt="" className={styles.leftNavImg} draggable={false} />
-        )}
-        <button type="button" className={styles.leftNavZoneHome} onClick={goHome} aria-label="홈" />
-        <button type="button" className={styles.leftNavZoneBack} onClick={goHome} aria-label="뒤로" />
-      </div>
+      <HwaseongLeftNav onHome={goHome} />
 
-      {/* Bottom banner */}
-      <div className={styles.banner}>
-        {bannerSrc && <img src={bannerSrc} alt="" className={styles.bannerImg} draggable={false} />}
-      </div>
+      <HwaseongBanner onClick={() => controller.startPhoto()} />
     </div>
   );
 }

@@ -1,0 +1,26 @@
+/* Sub-page left nav — same layout as Insadong/Osan (home + back, 85×85, gap 35). */
+.leftNav {
+  position: absolute;
+  left: 21px;
+  top: 1995px;
+  display: flex;
+  flex-direction: column;
+  gap: 35px;
+  z-index: 20;
+}
+
+.leftNavBtn {
+  width: 85px;
+  height: 85px;
+  padding: 0;
+  border: none;
+  background: none;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.leftNavBtn img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}

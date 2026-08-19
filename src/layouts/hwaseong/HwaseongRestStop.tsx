@@ -7,6 +7,7 @@ import { trackEvent } from '@renderer/lib/analytics';
 import { useLang } from '@renderer/lib/i18n';
 import { t } from '@renderer/lib/loc';
 import { HwaseongHeader } from './HwaseongHeader';
+import { HwaseongLeftNav } from './HwaseongLeftNav';
 import styles from './HwaseongRestStop.module.css';
 
 interface Props {
@@ -35,8 +36,6 @@ export function HwaseongRestStop({ controller }: Props): JSX.Element {
     controller.navigate('home');
   }
 
-  const homeIconSrc = hwaseongIconUrl('ico-home');
-  const backIconSrc = hwaseongIconUrl('nav-back');
   const bgSrc       = hwaseongIconUrl('bg');
 
   return (
@@ -96,15 +95,10 @@ export function HwaseongRestStop({ controller }: Props): JSX.Element {
       {/* ── Header (rendered on top of content) ── */}
       <HwaseongHeader controller={controller} title="화성휴게소" />
 
-      {/* ── Left nav ─────────────────────────────── */}
-      <div className={styles.leftNav}>
-        <button type="button" className={styles.leftNavBtn} onClick={() => onNav('홈')} aria-label="홈">
-          {homeIconSrc ? <img src={homeIconSrc} alt="홈" draggable={false} /> : null}
-        </button>
-        <button type="button" className={styles.leftNavBtn} onClick={() => onNav('뒤로')} aria-label="뒤로">
-          {backIconSrc ? <img src={backIconSrc} alt="뒤로" draggable={false} /> : null}
-        </button>
-      </div>
+      <HwaseongLeftNav
+        onHome={() => onNav('홈')}
+        onBack={() => onNav('뒤로')}
+      />
     </div>
   );
 }

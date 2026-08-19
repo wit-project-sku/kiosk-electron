@@ -2,7 +2,6 @@ import { useRef, useState } from 'react';
 import type { KioskController } from '@renderer/hooks/useKioskController';
 import { SearchIcon } from '@layouts/components/SearchIcon';
 import { hwaseongIconUrl } from '@renderer/assets/icons/hwaseong';
-import { useRotatingBanner } from '@renderer/hooks/useRotatingBanner';
 import { useLanguageStore } from '@renderer/store/languageStore';
 import { useSearchStore } from '@renderer/store/searchStore';
 import { useDetailStore } from '@renderer/store/detailStore';
@@ -25,6 +24,8 @@ import { FloatingKeyboard } from '../insadong/keyboard/FloatingKeyboard';
 import { HangulComposer } from '../insadong/keyboard/hangul';
 import type { KeyAction } from '../insadong/keyboard/VirtualKeyboard';
 import { HwaseongHeader } from './HwaseongHeader';
+import { HwaseongBanner } from './HwaseongBanner';
+import { HwaseongLeftNav } from './HwaseongLeftNav';
 import styles from './HwaseongSearch.module.css';
 
 const T = {
@@ -56,7 +57,6 @@ interface Props {
 }
 
 export function HwaseongSearch({ controller }: Props): JSX.Element {
-  const banner = useRotatingBanner(hwaseongIconUrl('fg-banner'));
   const goHome = (): void => controller.navigate('home', 'Back');
   const lang = useLanguageStore((s) => s.currentLanguage);
   const initialQuery = useSearchStore((s) => s.query);
@@ -172,21 +172,10 @@ export function HwaseongSearch({ controller }: Props): JSX.Element {
         )}
       </div>
 
-      {/* ── Left nav ─────────────────────────────────── */}
-      <div className={styles.leftNav}>
-        {hwaseongIconUrl('fg-leftnav') && (
-          <img src={hwaseongIconUrl('fg-leftnav')} alt="" className={styles.leftNavImg} draggable={false} />
-        )}
-        <button type="button" className={styles.leftNavZoneHome} onClick={goHome} aria-label="홈" />
-        <button type="button" className={styles.leftNavZoneBack} onClick={goHome} aria-label="뒤로" />
-      </div>
+      <HwaseongLeftNav onHome={goHome} />
 
       {/* ── Bottom banner ────────────────────────────── */}
-      <div className={styles.banner}>
-        {banner && (
-          <img src={banner} alt="" className={styles.bannerImg} draggable={false} />
-        )}
-      </div>
+      <HwaseongBanner onClick={() => controller.startPhoto()} />
 
       <FloatingKeyboard open={focused} onKey={applyKey} onClose={() => setFocused(false)} lang={lang} lightBackspace />
     </div>
