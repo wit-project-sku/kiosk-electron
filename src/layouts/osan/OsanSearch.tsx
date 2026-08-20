@@ -21,6 +21,7 @@ import {
 } from '@renderer/lib/shops';
 import { highlightMatch } from '@renderer/lib/highlightMatch';
 import { OsanHeader } from './OsanHeader';
+import { OsanBanner } from './OsanBanner';
 import { FloatingKeyboard } from '../insadong/keyboard/FloatingKeyboard';
 import { HangulComposer } from '../insadong/keyboard/hangul';
 import type { KeyAction } from '../insadong/keyboard/VirtualKeyboard';
@@ -194,6 +195,8 @@ export function OsanSearch({ controller }: OsanSearchProps): JSX.Element {
           )}
         </button>
       </div>
+
+      <OsanBanner onClick={() => controller.startPhoto()} />
 
       <FloatingKeyboard
         open={focused}

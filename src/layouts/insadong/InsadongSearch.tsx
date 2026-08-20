@@ -2,6 +2,7 @@ import { useRef, useState } from 'react';
 import type { KioskController } from '@renderer/hooks/useKioskController';
 import { SearchIcon } from '@layouts/components/SearchIcon';
 import { iconUrl } from '@renderer/assets/icons/insadong';
+import { useRotatingBanner } from '@renderer/hooks/useRotatingBanner';
 import { useLanguageStore } from '@renderer/store/languageStore';
 import { useSearchStore } from '@renderer/store/searchStore';
 import { useDetailStore } from '@renderer/store/detailStore';
@@ -67,6 +68,7 @@ export function InsadongSearch({ controller }: InsadongSearchProps): JSX.Element
 
   const shops = useShopStore((s) => s.shops);
   const noImg = iconUrl('noimage');
+  const banner = useRotatingBanner();
   const [query, setQuery] = useState(initialQuery);
   const [focused, setFocused] = useState(false);
   const results = searchShops(shops, query, lang);
@@ -176,6 +178,12 @@ export function InsadongSearch({ controller }: InsadongSearchProps): JSX.Element
           {iconUrl('back-arrow') && <img src={iconUrl('back-arrow')} alt="" draggable={false} />}
         </button>
       </div>
+
+      {banner && (
+        <button type="button" className={styles.banner} onClick={() => controller.startPhoto()} aria-label="가상 한복 체험">
+          <img src={banner} alt="" draggable={false} />
+        </button>
+      )}
 
       <FloatingKeyboard open={focused} onKey={applyKey} onClose={() => setFocused(false)} lang={lang} />
     </>

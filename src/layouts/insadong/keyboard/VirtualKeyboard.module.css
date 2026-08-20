@@ -80,5 +80,5 @@
   color: #ffffff;
 }
 .active:active {
-  background: #e85d43;
+  filter: brightness(0.85);
 }

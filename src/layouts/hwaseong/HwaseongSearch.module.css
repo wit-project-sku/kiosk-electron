@@ -18,131 +18,6 @@
   pointer-events: none;
 }
 
-/* ── Header (검색) ─────────────────────────────────── */
-.header {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 2160px;
-  height: 700px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 125px 170px 80px;
-  gap: 65px;
-  box-sizing: border-box;
-}
-
-.headerTop {
-  display: flex;
-  flex-direction: column;
-  gap: 105px;
-  width: 1820px;
-}
-
-.headerRow1 {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  width: 1820px;
-  height: 82px;
-}
-
-.headerLeft {
-  display: flex;
-  align-items: center;
-  gap: 25.74px;
-}
-
-.locationIcon {
-  width: 71px;
-  height: 90px;
-  flex-shrink: 0;
-}
-
-.brand {
-  font-size: 68px;
-  font-weight: 700;
-  color: var(--kiosk-primary);
-  line-height: 1;
-  white-space: nowrap;
-  font-variation-settings: 'CTGR' 0, 'wdth' 100;
-}
-
-.date {
-  font-size: 68px;
-  font-weight: 700;
-  color: #232323;
-  line-height: 1;
-  white-space: nowrap;
-  font-variation-settings: 'CTGR' 0, 'wdth' 100;
-}
-
-.titleRow {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  width: 1820px;
-  height: 182px;
-}
-
-.titleNavBtn {
-  width: 175px;
-  height: 175px;
-  padding: 0;
-  border: none;
-  background: none;
-  cursor: pointer;
-  -webkit-tap-highlight-color: transparent;
-  flex-shrink: 0;
-}
-
-.titleNavBtn img,
-.titleNavBtn svg {
-  width: 100%;
-  height: 100%;
-  object-fit: contain;
-}
-
-.titleField {
-  width: 1342px;
-  height: 182px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.titleText {
-  font-size: 78px;
-  font-weight: 700;
-  color: #000;
-  line-height: 1;
-  font-variation-settings: 'CTGR' 0, 'wdth' 100;
-}
-
-.subtitle {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 20px;
-}
-
-.subtitleStar {
-  width: 36px;
-  height: 36px;
-  flex-shrink: 0;
-}
-
-.subtitleText {
-  font-size: 60.06px;
-  font-weight: 700;
-  color: #909090;
-  line-height: 1;
-  white-space: nowrap;
-  font-variation-settings: 'CTGR' 0, 'wdth' 100;
-}
-
 /* ── Results ───────────────────────────────────────── */
 .results {
   position: absolute;
@@ -151,7 +26,7 @@
   right: 0;
   bottom: 573px;
   box-sizing: border-box;
-  padding: 0 136px 80px 170px;
+  padding: 0 170px 80px;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -197,24 +72,23 @@
   min-width: 0;
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 6px;
   overflow: hidden;
 }
 
 .inputText,
 .inputPlaceholder {
   min-width: 0;
-  font-size: 60.06px;
+  font-size: 60px;
   font-weight: 600;
   line-height: 1;
   white-space: nowrap;
   overflow: hidden;
-  text-overflow: ellipsis;
-  font-variation-settings: 'CTGR' 0, 'wdth' 100;
+  text-align: left;
 }
 
 .inputText { color: #232323; }
-.inputPlaceholder { color: #999; }
+.inputPlaceholder { color: #999999; }
 
 .searchIcon {
   flex: none;
@@ -237,14 +111,14 @@
 /* Result list */
 .list {
   flex: none;
-  width: 1820px;
+  width: 100%;
   display: flex;
   flex-direction: column;
   gap: 60px;
 }
 
 .card {
-  width: 1820px;
+  width: 100%;
   height: 530px;
   box-sizing: border-box;
   display: flex;
@@ -255,6 +129,7 @@
   background: #fff;
   border: 5px solid #e8e8e8;
   border-radius: 42.9px;
+  box-shadow: 0 21.45px 21.45px rgba(143, 147, 157, 0.1);
   text-align: left;
   cursor: pointer;
   overflow: hidden;
@@ -262,12 +137,13 @@
 }
 
 .info {
-  width: 1120px;
-  flex: none;
+  flex: 1;
+  min-width: 0;
   display: flex;
   flex-direction: column;
   gap: 40px;
   overflow: hidden;
+  font-family: var(--kiosk-font, sans-serif);
 }
 
 .nameRow {
@@ -370,65 +246,9 @@
   object-fit: cover;
 }
 
-.thumbEmpty {
-  width: 100%;
-  height: 100%;
-  background: #ededed;
-}
-
 .empty {
   margin: auto;
   font-size: 60px;
   color: #999;
   text-align: center;
-}
-
-/* ── Left nav (single Figma render) ────────────────── */
-.leftNav {
-  position: absolute;
-  left: 21px;
-  top: 1995px;
-  width: 85px;
-  height: 205px;
-}
-
-.leftNavImg {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  object-fit: contain;
-  pointer-events: none;
-}
-
-.leftNavZoneHome,
-.leftNavZoneBack {
-  position: absolute;
-  left: 0;
-  width: 85px;
-  height: 85px;
-  padding: 0;
-  border: none;
-  background: none;
-  cursor: pointer;
-}
-
-.leftNavZoneHome { top: 0; }
-.leftNavZoneBack { top: 120px; }
-
-/* ── Bottom banner ─────────────────────────────────── */
-.banner {
-  position: absolute;
-  top: 3267px;
-  left: 0;
-  width: 2160px;
-  height: 573px;
-}
-
-.bannerImg {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  display: block;
-  pointer-events: none;
 }

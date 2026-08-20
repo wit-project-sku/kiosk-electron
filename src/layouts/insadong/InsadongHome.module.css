@@ -235,7 +235,7 @@
   /* Figma 검색필드: 4.29px var(--kiosk-primary) border, rounded 120. */
   border: 4.29px solid var(--kiosk-primary);
   border-radius: 3.13cqh;
-  padding: 0 62px 0 2.5cqw;
+  padding: 55px 62px 55px 75px;
   cursor: text;
   overflow: hidden;
   font-family: var(--kiosk-font, sans-serif);
@@ -281,8 +281,8 @@
 
 .caret {
   flex: none;
-  width: 0.3cqw;
-  height: 2.6cqh;
+  width: 6px;
+  height: 68px;
   background: var(--kiosk-primary);
   animation: blink 1s step-end infinite;
 }

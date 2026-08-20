@@ -140,32 +140,29 @@ export function HwaseongSearch({ controller }: Props): JSX.Element {
 
         {results.length > 0 ? (
           <div className={styles.list}>
-            {results.map((shop) => {
-              const thumbs = padImages(shopImages(shop), noImg ?? '', 4);
-              return (
-                <button type="button" key={shop.id} className={styles.card} onClick={() => openDetail(shop)}>
-                  <div className={styles.info}>
-                    <div className={styles.nameRow}>
-                      <span className={styles.name}>{highlightMatch(shopName(shop, lang), query, styles.hl)}</span>
-                      <span className={styles.cat}>
-                        <span className={styles.dot} />
-                        {shopSecondCategory(shop, lang)}
-                      </span>
+            {results.map((shop) => (
+              <button type="button" key={shop.id} className={styles.card} onClick={() => openDetail(shop)}>
+                <div className={styles.info}>
+                  <div className={styles.nameRow}>
+                    <span className={styles.name}>{highlightMatch(shopName(shop, lang), query, styles.hl)}</span>
+                    <span className={styles.cat}>
+                      <span className={styles.dot} />
+                      {shopSecondCategory(shop, lang)}
+                    </span>
+                  </div>
+                  <p className={styles.address}>{highlightMatch(shopAddress(shop, lang), query, styles.hl)}</p>
+                  <p className={styles.desc}>{highlightMatch(shopDescription(shop, lang), query, styles.hl)}</p>
+                  <p className={styles.tags}>{highlightMatch(shopHashtag(shop, lang), query, styles.hl)}</p>
+                </div>
+                <div className={styles.photos}>
+                  {padImages(shopImages(shop), noImg, 4).map((src, j) => (
+                    <div key={j} className={styles.thumb}>
+                      <img src={src} alt="" draggable={false} loading="lazy" />
                     </div>
-                    <p className={styles.address}>{highlightMatch(shopAddress(shop, lang), query, styles.hl)}</p>
-                    <p className={styles.desc}>{highlightMatch(shopDescription(shop, lang), query, styles.hl)}</p>
-                    <p className={styles.tags}>{highlightMatch(shopHashtag(shop, lang), query, styles.hl)}</p>
-                  </div>
-                  <div className={styles.photos}>
-                    {thumbs.map((src, j) => (
-                      <div key={j} className={styles.thumb}>
-                        {src ? <img src={src} alt="" draggable={false} loading="lazy" /> : <div className={styles.thumbEmpty} />}
-                      </div>
-                    ))}
-                  </div>
-                </button>
-              );
-            })}
+                  ))}
+                </div>
+              </button>
+            ))}
           </div>
         ) : (
           <p className={styles.empty}>{query ? pick(T.noResult, lang)(query) : pick(T.prompt, lang)}</p>
@@ -177,7 +174,7 @@ export function HwaseongSearch({ controller }: Props): JSX.Element {
       {/* ── Bottom banner ────────────────────────────── */}
       <HwaseongBanner onClick={() => controller.startPhoto()} />
 
-      <FloatingKeyboard open={focused} onKey={applyKey} onClose={() => setFocused(false)} lang={lang} lightBackspace />
+      <FloatingKeyboard open={focused} onKey={applyKey} onClose={() => setFocused(false)} lang={lang} />
     </div>
   );
 }
