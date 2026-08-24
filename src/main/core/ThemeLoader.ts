@@ -102,6 +102,16 @@ const FALLBACK_COLORS: Record<KioskLayoutId, KioskTheme['colors']> = {
     textMuted: '#687087',
     accent: '#f5a623',
   },
+  JEJU_HERITAGE: {
+    primary: '#ff7f0f',
+    primaryHover: '#e56f06',
+    secondary: '#f5f1ef',
+    background: '#ffffff',
+    surface: '#ffffff',
+    text: '#232323',
+    textMuted: '#999999',
+    accent: '#ff7f0f',
+  },
 };
 
 function fallbackTheme(layout: KioskLayoutId): KioskTheme {
