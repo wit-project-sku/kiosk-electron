@@ -402,46 +402,6 @@
   filter: brightness(0.9);
 }
 
-/* ── Left nav ───────────────────────────────────────── */
-/* Single Figma render (home + back), with transparent click zones. */
-.leftNav {
-  position: absolute;
-  left: 21px;
-  top: 1995px;
-  width: 85px;
-  height: 205px; /* 85 + 35 gap + 85 */
-}
-
-.leftNavImg {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  object-fit: contain;
-  pointer-events: none;
-}
-
-.leftNavZoneHome,
-.leftNavZoneBack {
-  position: absolute;
-  left: 0;
-  width: 85px;
-  height: 85px;
-  padding: 0;
-  border: none;
-  background: none;
-  cursor: pointer;
-  -webkit-tap-highlight-color: transparent;
-}
-
-.leftNavZoneHome {
-  top: 0;
-}
-
-.leftNavZoneBack {
-  top: 120px; /* 85 + 35 gap */
-}
-
 /* ── Bottom nav ─────────────────────────────────────── */
 /* Single Figma render (strip + 3 buttons + labels), with click zones.
    The container is click-through so it never blocks the menu tiles that may

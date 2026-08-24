@@ -10,6 +10,7 @@ import { TAXFREE_PAGE_BASES, taxfreePageImg } from '@renderer/lib/taxfreePages';
 import { taxfreeUrl } from '@shared/constants/webEmbeds';
 import { InsadongHeader } from './InsadongHeader';
 import headerStyles from './InsadongHeader.module.css';
+import { InsadongLeftNav } from './InsadongLeftNav';
 import styles from './InsadongTaxfree.module.css';
 
 type TabId = 'refund' | 'intro' | 'merchant';
@@ -171,14 +172,7 @@ export function InsadongTaxfree({ controller }: InsadongTaxfreeProps): JSX.Eleme
         ))}
       </div>
 
-      <div className={styles.leftNav}>
-        <button type="button" className={styles.leftNavBtn} onClick={goHome} aria-label="홈으로">
-          {iconUrl('home-btn') && <img src={iconUrl('home-btn')} alt="" draggable={false} />}
-        </button>
-        <button type="button" className={styles.leftNavBtn} onClick={goHome} aria-label="뒤로">
-          {iconUrl('back-arrow') && <img src={iconUrl('back-arrow')} alt="" draggable={false} />}
-        </button>
-      </div>
+      <InsadongLeftNav onHome={goHome} />
 
       {banner && (
         <button

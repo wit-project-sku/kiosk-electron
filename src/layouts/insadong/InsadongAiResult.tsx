@@ -19,6 +19,7 @@ import {
   stripPrefix,
 } from '@renderer/lib/shops';
 import { InsadongHeader } from './InsadongHeader';
+import { InsadongLeftNav } from './InsadongLeftNav';
 import styles from './InsadongAiResult.module.css';
 
 /**
@@ -254,14 +255,7 @@ export function InsadongAiResult({ controller }: InsadongAiResultProps): JSX.Ele
         )}
       </div>
 
-      <div className={styles.leftNav}>
-        <button type="button" className={styles.leftNavBtn} onClick={goHome} aria-label="홈으로">
-          {iconUrl('home-btn') && <img src={iconUrl('home-btn')} alt="" draggable={false} />}
-        </button>
-        <button type="button" className={styles.leftNavBtn} onClick={goBack} aria-label="뒤로">
-          {iconUrl('back-arrow') && <img src={iconUrl('back-arrow')} alt="" draggable={false} />}
-        </button>
-      </div>
+      <InsadongLeftNav onHome={goHome} onBack={goBack} />
 
       {banner && (
         <button type="button" className={styles.banner} onClick={() => controller.startPhoto()} aria-label="가상 한복 체험">

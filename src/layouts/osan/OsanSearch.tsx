@@ -25,6 +25,7 @@ import { OsanBanner } from './OsanBanner';
 import { FloatingKeyboard } from '../insadong/keyboard/FloatingKeyboard';
 import { HangulComposer } from '../insadong/keyboard/hangul';
 import type { KeyAction } from '../insadong/keyboard/VirtualKeyboard';
+import { OsanLeftNav } from './OsanLeftNav';
 import styles from './OsanSearch.module.css';
 
 const T = {
@@ -183,18 +184,7 @@ export function OsanSearch({ controller }: OsanSearchProps): JSX.Element {
         )}
       </div>
 
-      <div className={styles.leftNav}>
-        <button type="button" className={styles.leftNavBtn} onClick={goHome} aria-label="홈으로">
-          {osanIconUrl('home-btn') && (
-            <img src={osanIconUrl('home-btn')} alt="" draggable={false} />
-          )}
-        </button>
-        <button type="button" className={styles.leftNavBtn} onClick={goHome} aria-label="뒤로">
-          {osanIconUrl('back-arrow') && (
-            <img src={osanIconUrl('back-arrow')} alt="" draggable={false} />
-          )}
-        </button>
-      </div>
+      <OsanLeftNav onHome={goHome} />
 
       <OsanBanner onClick={() => controller.startPhoto()} />
 

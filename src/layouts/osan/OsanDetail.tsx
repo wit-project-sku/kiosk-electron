@@ -7,6 +7,7 @@ import { useDetailStore } from '@renderer/store/detailStore';
 import { OsanSpotDetailCard, type SpotDetailData } from './OsanSpotDetailCard';
 import { OsanHeader } from './OsanHeader';
 import { OsanBanner } from './OsanBanner';
+import { OsanLeftNav } from './OsanLeftNav';
 import styles from './OsanDetail.module.css';
 
 interface OsanDetailProps {
@@ -64,18 +65,7 @@ export function OsanDetail({ controller }: OsanDetailProps): JSX.Element {
 
       <OsanSpotDetailCard data={data} />
 
-      <div className={styles.leftNav}>
-        <button type="button" className={styles.leftNavBtn} onClick={goHome} aria-label="홈으로">
-          {osanIconUrl('home-btn') && (
-            <img src={osanIconUrl('home-btn')} alt="" draggable={false} />
-          )}
-        </button>
-        <button type="button" className={styles.leftNavBtn} onClick={goBack} aria-label="뒤로">
-          {osanIconUrl('back-arrow') && (
-            <img src={osanIconUrl('back-arrow')} alt="" draggable={false} />
-          )}
-        </button>
-      </div>
+      <OsanLeftNav onHome={goHome} onBack={goBack} />
 
       <OsanBanner onClick={() => controller.startPhoto()} />
     </>

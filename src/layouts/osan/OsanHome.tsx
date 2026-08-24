@@ -16,6 +16,7 @@ import { t } from '@renderer/lib/loc';
 import { FloatingKeyboard } from '../insadong/keyboard/FloatingKeyboard';
 import { HangulComposer } from '../insadong/keyboard/hangul';
 import type { KeyAction } from '../insadong/keyboard/VirtualKeyboard';
+import { OsanLeftNav } from './OsanLeftNav';
 import styles from './OsanHome.module.css';
 
 interface OsanHomeTile {
@@ -460,28 +461,10 @@ export function OsanHome({ controller }: OsanHomeProps): JSX.Element {
       </div>
 
       {/* Left nav — home + back */}
-      <div className={styles.leftNav}>
-        <button
-          type="button"
-          className={styles.leftNavBtn}
-          onClick={() => navigate('home', 'Home')}
-          aria-label="홈으로"
-        >
-          {osanIconUrl('home-btn') && (
-            <img src={osanIconUrl('home-btn')} alt="" draggable={false} />
-          )}
-        </button>
-        <button
-          type="button"
-          className={styles.leftNavBtn}
-          onClick={() => navigate('home', 'Back')}
-          aria-label="뒤로"
-        >
-          {osanIconUrl('back-arrow') && (
-            <img src={osanIconUrl('back-arrow')} alt="" draggable={false} />
-          )}
-        </button>
-      </div>
+      <OsanLeftNav
+        onHome={() => navigate('home', 'Home')}
+        onBack={() => navigate('home', 'Back')}
+      />
 
       <FloatingKeyboard
         open={focused}

@@ -14,6 +14,7 @@ import hkgFlag from '@renderer/assets/photos/insadong/exchange/hkg.svg';
 import thbFlag from '@renderer/assets/photos/insadong/exchange/thb.svg';
 import sarFlag from '@renderer/assets/photos/insadong/exchange/sar.svg';
 import { InsadongHeader } from './InsadongHeader';
+import { InsadongLeftNav } from './InsadongLeftNav';
 import styles from './InsadongExchange.module.css';
 
 /** Currencies to show → API `cur_unit` + flag asset + display label. */
@@ -67,14 +68,7 @@ export function InsadongExchange({ controller }: InsadongExchangeProps): JSX.Ele
         </div>
       </div>
 
-      <div className={styles.leftNav}>
-        <button type="button" className={styles.leftNavBtn} onClick={goHome} aria-label="홈으로">
-          {iconUrl('home-btn') && <img src={iconUrl('home-btn')} alt="" draggable={false} />}
-        </button>
-        <button type="button" className={styles.leftNavBtn} onClick={goHome} aria-label="뒤로">
-          {iconUrl('back-arrow') && <img src={iconUrl('back-arrow')} alt="" draggable={false} />}
-        </button>
-      </div>
+      <InsadongLeftNav onHome={goHome} />
 
       {banner && (
         <button type="button" className={styles.banner} onClick={() => controller.startPhoto()} aria-label="가상 한복 체험">

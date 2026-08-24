@@ -20,6 +20,7 @@ import {
 import { OsanHeader } from './OsanHeader';
 import { OsanBanner } from './OsanBanner';
 import { interestColor } from './interestColors';
+import { OsanLeftNav } from './OsanLeftNav';
 import styles from './OsanAiResult.module.css';
 
 /** Course-picker heading + subheading — Localization rows, so a copy edit needs
@@ -231,14 +232,7 @@ export function OsanAiResult({ controller }: OsanAiResultProps): JSX.Element {
         </div>
       )}
 
-      <div className={styles.leftNav}>
-        <button type="button" className={styles.leftNavBtn} onClick={goHome} aria-label="홈으로">
-          {osanIconUrl('home-btn') && <img src={osanIconUrl('home-btn')} alt="" draggable={false} />}
-        </button>
-        <button type="button" className={styles.leftNavBtn} onClick={goBack} aria-label="뒤로">
-          {osanIconUrl('back-arrow') && <img src={osanIconUrl('back-arrow')} alt="" draggable={false} />}
-        </button>
-      </div>
+      <OsanLeftNav onHome={goHome} onBack={goBack} />
 
       <OsanBanner onClick={() => controller.startPhoto()} />
     </>

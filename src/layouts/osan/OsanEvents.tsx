@@ -11,6 +11,7 @@ import { t } from '@renderer/lib/loc';
 import { ui, uiParts, type UiTextKey } from '@renderer/lib/uiText';
 import { OsanHeader } from './OsanHeader';
 import { OsanBanner } from './OsanBanner';
+import { OsanLeftNav } from './OsanLeftNav';
 import styles from './OsanEvents.module.css';
 
 /** Region tabs → API eventRegion (MBTI has no region; it opens the quiz).
@@ -314,14 +315,7 @@ export function OsanEvents({ controller }: OsanEventsProps): JSX.Element {
         </>
       )}
 
-      <div className={styles.leftNav}>
-        <button type="button" className={styles.leftNavBtn} onClick={goHome} aria-label="홈으로">
-          {osanIconUrl('home-btn') && <img src={osanIconUrl('home-btn')} alt="" draggable={false} />}
-        </button>
-        <button type="button" className={styles.leftNavBtn} onClick={goBack} aria-label="뒤로">
-          {osanIconUrl('back-arrow') && <img src={osanIconUrl('back-arrow')} alt="" draggable={false} />}
-        </button>
-      </div>
+      <OsanLeftNav onHome={goHome} onBack={goBack} />
 
       <OsanBanner onClick={() => controller.startPhoto()} />
 

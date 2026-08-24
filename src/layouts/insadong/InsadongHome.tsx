@@ -17,6 +17,7 @@ import { t } from '@renderer/lib/loc';
 import { FloatingKeyboard } from './keyboard/FloatingKeyboard';
 import { HangulComposer } from './keyboard/hangul';
 import type { KeyAction } from './keyboard/VirtualKeyboard';
+import { InsadongLeftNav } from './InsadongLeftNav';
 import styles from './InsadongHome.module.css';
 
 interface HomeTile {
@@ -373,14 +374,10 @@ export function InsadongHome({ controller }: InsadongHomeProps): JSX.Element {
         )}
       </div>
 
-      <div className={styles.leftNav}>
-        <button type="button" className={styles.leftNavBtn} onClick={() => navigate('home', 'Home')} aria-label="홈으로">
-          {iconUrl('home-btn') && <img src={iconUrl('home-btn')} alt="" draggable={false} />}
-        </button>
-        <button type="button" className={styles.leftNavBtn} onClick={() => navigate('home', 'Back')} aria-label="뒤로">
-          {iconUrl('back-arrow') && <img src={iconUrl('back-arrow')} alt="" draggable={false} />}
-        </button>
-      </div>
+      <InsadongLeftNav
+        onHome={() => navigate('home', 'Home')}
+        onBack={() => navigate('home', 'Back')}
+      />
 
       <FloatingKeyboard open={focused} onKey={applyKey} onClose={() => setFocused(false)} lang={lang} />
     </>

@@ -16,6 +16,7 @@ import {
 } from '@renderer/lib/shops';
 import type { KioskScreenId } from '@shared/types/kiosk';
 import { OsanHeader } from './OsanHeader';
+import { OsanLeftNav } from './OsanLeftNav';
 import styles from './OsanListScreen.module.css';
 
 /** Osan screen → witteria API `baseCategoryKr` (exact match, kioskId=4 data). */
@@ -156,18 +157,7 @@ export function OsanListScreen({ title, controller }: OsanListScreenProps): JSX.
         </div>
       </div>
 
-      <div className={styles.leftNav}>
-        <button type="button" className={styles.leftNavBtn} onClick={goHome} aria-label="홈으로">
-          {osanIconUrl('home-btn') && (
-            <img src={osanIconUrl('home-btn')} alt="" draggable={false} />
-          )}
-        </button>
-        <button type="button" className={styles.leftNavBtn} onClick={goHome} aria-label="뒤로">
-          {osanIconUrl('back-arrow') && (
-            <img src={osanIconUrl('back-arrow')} alt="" draggable={false} />
-          )}
-        </button>
-      </div>
+      <OsanLeftNav onHome={goHome} />
     </>
   );
 }

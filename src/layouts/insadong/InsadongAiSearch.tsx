@@ -8,6 +8,7 @@ import { t } from '@renderer/lib/loc';
 import { AI_CATEGORIES } from '@renderer/data/aiCategories.generated';
 import { aiCatLabel } from '@renderer/lib/aiCategoryLabel';
 import { InsadongHeader } from './InsadongHeader';
+import { InsadongLeftNav } from './InsadongLeftNav';
 import styles from './InsadongAiSearch.module.css';
 
 /** 방문 인원 / 체류 시간 pills — Localization key + Figma fixed widths. */
@@ -140,14 +141,7 @@ export function InsadongAiSearch({ controller }: InsadongAiSearchProps): JSX.Ele
         </button>
       </div>
 
-      <div className={styles.leftNav}>
-        <button type="button" className={styles.leftNavBtn} onClick={goHome} aria-label="홈으로">
-          {iconUrl('home-btn') && <img src={iconUrl('home-btn')} alt="" draggable={false} />}
-        </button>
-        <button type="button" className={styles.leftNavBtn} onClick={goHome} aria-label="뒤로">
-          {iconUrl('back-arrow') && <img src={iconUrl('back-arrow')} alt="" draggable={false} />}
-        </button>
-      </div>
+      <InsadongLeftNav onHome={goHome} />
 
       {banner && (
         <button type="button" className={styles.banner} onClick={() => controller.startPhoto()} aria-label="가상 한복 체험">
