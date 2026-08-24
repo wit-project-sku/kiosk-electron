@@ -217,6 +217,12 @@ export function displayTime(f: JejuFlightBase): string {
   return hasTimeChange(f) ? (f.estimatedTime as string) : f.scheduledTime;
 }
 
+/** 탑승구 — empty/null from the apron feed reads as "-". */
+export function formatGate(gate: string | undefined): string {
+  if (gate?.trim()) return gate.trim();
+  return '-';
+}
+
 export function normalizeDeparture(raw: RawJejuDeparture): JejuDeparture {
   return { ...normalizeBase(raw), destination: raw.destination, gate: raw.gate };
 }

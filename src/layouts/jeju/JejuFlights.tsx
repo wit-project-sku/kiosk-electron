@@ -33,6 +33,7 @@ import {
   flightKindLabel,
   flightStatusColor,
   flightStatusLabel,
+  formatGate,
   hasTimeChange,
   useJejuArrivals,
   useJejuDepartures,
@@ -186,7 +187,8 @@ export function JejuFlights({ controller }: Props): JSX.Element {
       case 'airline': return `${row.flight.airline}(${row.flight.flightNo})`;
       case 'place':   return row.place;
       case 'kind':    return flightKindLabel(row.flight.kind, lang);
-      case 'stand':   return row.stand;
+      case 'stand':
+        return direction === 'departure' ? formatGate(row.stand) : row.stand;
       // Blank when nothing is published — see the header comment.
       case 'status':  return row.flight.status ? flightStatusLabel(row.flight.status, lang) : '';
       default:        return '';

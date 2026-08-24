@@ -26,6 +26,7 @@ import {
   flightKindLabel,
   flightStatusColor,
   flightStatusLabel,
+  formatGate,
   hasTimeChange,
   useJejuDepartures,
 } from '@renderer/lib/jejuFlight';
@@ -126,7 +127,7 @@ function FlightCells({ departure, lang }: { departure: JejuDeparture; lang: Lang
       </span>
 
       <span className={styles.value} style={{ left: COLUMNS.gate }}>
-        {departure.gate}
+        {formatGate(departure.gate)}
       </span>
 
       {/* Blank when the airport has published no 현황 — see normalizeFlightStatus. */}
