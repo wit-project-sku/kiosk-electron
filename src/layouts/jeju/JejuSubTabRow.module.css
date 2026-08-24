@@ -62,3 +62,18 @@
   line-height: 1;
   color: var(--jeju-subtab-idle, #999);
 }
+
+.compact {
+  height: 60px;
+}
+
+.compact .item,
+.compact .sep {
+  height: 60px;
+  font-size: 38px;
+  padding: 0 40px;
+}
+
+.compact .sep {
+  margin: 0 var(--jeju-subtab-sep-after, 80px) 0 var(--jeju-subtab-sep-before, 80px);
+}

@@ -154,6 +154,7 @@ const EMPTY_LEAD = {
 };
 
 export function JejuFlightBoard({ controller, lang }: Props): JSX.Element {
+  const lowReach = useAccessibilityStore((s) => s.lowReach);
   const departures = useJejuDepartures();
   const lead = departures[0];
 

@@ -174,17 +174,17 @@ const COLUMNS: Record<SailingDirection, Column[]> = {
   departure: [
     { key: 'time',     x: 285.5,  head: COL_TIME_DEPARTURE },
     { key: 'duration', x: 515,    head: COL_DURATION },
-    { key: 'ship',     x: 763.5,  head: COL_SHIP },
-    { key: 'route',    x: 1205,   head: COL_ROUTE },
-    { key: 'place',    x: 1638,   head: COL_PLACE_DEPARTURE },
+    { key: 'ship',     x: 840,    head: COL_SHIP },
+    { key: 'route',    x: 1260,   head: COL_ROUTE },
+    { key: 'place',    x: 1700,   head: COL_PLACE_DEPARTURE },
     { key: 'status',   x: 1918.5, head: COL_STATUS },
   ],
   arrival: [
     { key: 'time',     x: 285.5,  head: COL_TIME_ARRIVAL },
     { key: 'duration', x: 515,    head: COL_DURATION },
-    { key: 'ship',     x: 763.5,  head: COL_SHIP },
-    { key: 'route',    x: 1205,   head: COL_ROUTE },
-    { key: 'place',    x: 1638,   head: COL_PLACE_ARRIVAL },
+    { key: 'ship',     x: 840,    head: COL_SHIP },
+    { key: 'route',    x: 1260,   head: COL_ROUTE },
+    { key: 'place',    x: 1700,   head: COL_PLACE_ARRIVAL },
     { key: 'status',   x: 1918.5, head: COL_STATUS },
   ],
 };

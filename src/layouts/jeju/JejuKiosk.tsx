@@ -15,6 +15,7 @@ import type { KioskScreenId } from '@shared/types/kiosk';
 import { useKioskController } from '@renderer/hooks/useKioskController';
 import { useWeatherSync } from '@renderer/hooks/useWeatherSync';
 import { useFlightSync } from '@renderer/hooks/useFlightSync';
+import { useSailingSync } from '@renderer/hooks/useSailingSync';
 import { useExchangeSync } from '@renderer/hooks/useExchangeSync';
 import { WEB_EMBED_URLS } from '@shared/constants/webEmbeds';
 import { DONATION_COMING_SOON } from '@shared/config/donation';
@@ -110,6 +111,7 @@ export function JejuKiosk(): JSX.Element {
   const controller = useKioskController();
   useWeatherSync();
   useFlightSync();
+  useSailingSync();
   useExchangeSync();
   const hasDonation = useHasDonationTile(controller.kioskId);
 

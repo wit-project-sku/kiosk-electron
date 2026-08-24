@@ -183,6 +183,7 @@ async function bootstrap(): Promise<void> {
   // refresh is broadcast to the renderer.
   container.weather.start();
   container.flights.start();
+  container.sailings.start();
   container.exchange.start();
   container.subtitles.start();
 

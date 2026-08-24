@@ -26,14 +26,10 @@
  * the 결항 row). It is free text from the operator, not an enum — the design
  * shows one value but a real feed publishes many (기상악화, 정비, 결측).
  *
- * TODO(제주 W007): `SAMPLE_*` is placeholder data, exactly as jejuFlight.ts is
- * for the airport. The kiosk has no sailing feed, so these are the literal rows
- * drawn in the Figma. `useJejuDepartureSailings()` / `useJejuArrivalSailings()`
- * are the ONE seam: swap their bodies for the real feed (제주지방해양수산청 /
- * 가고싶은섬 운항정보 or the terminal's own) and everything below keeps working,
- * because the raw strings already go through `normalizeSailingStatus`. A board
- * showing a stale 16:15 결항 to a traveller who then misses a real sailing is
- * worse than no board — wire it before this goes live.
+ * TODO(제주 W007): `SAMPLE_*` remains as fallback when the TAGO feed has not
+ * landed yet. `useJejuDepartureSailings()` / `useJejuArrivalSailings()` read
+ * the IPC snapshot from {@link useSailingStore} and fall back to samples when
+ * empty.
  *
  * TODO(제주 W007): the 연안항 tab has NO authored rows. Both Figma frames draw
  * the 국제항 tab only (every row's 출발장소 reads 국제터미널), so inventing
@@ -43,6 +39,8 @@
  */
 import { useMemo } from 'react';
 import type { Lang } from '@renderer/lib/i18n';
+import type { RawJejuSailing } from '@shared/types/jejuSailing';
+import { useSailingStore } from '@renderer/store/sailingStore';
 
 // ── Status ─────────────────────────────────────────────────────────────
 
@@ -182,20 +180,6 @@ export interface JejuSailing {
   note?: string;
 }
 
-/** The rows as a feed hands them over, before normalisation. */
-export interface RawJejuSailing {
-  id: string;
-  scheduledTime: string;
-  estimatedTime?: string;
-  duration: string;
-  shipName: string;
-  route: string;
-  place: string;
-  port?: string;
-  status?: string;
-  note?: string;
-}
-
 /**
  * True when the sailing has been re-timed — the condition that adds the
  * struck-through original time under the leading one.
@@ -300,10 +284,20 @@ const SAMPLE_ARRIVALS: RawJejuSailing[] = [
  * tabs and its 국제항/연안항 filter — is already driven by the normalised shape.
  */
 export function useJejuDepartureSailings(): JejuSailing[] {
-  return useMemo(() => SAMPLE_DEPARTURES.map(normalizeSailing), []);
+  const snapshot = useSailingStore((s) => s.snapshot);
+  const rows = snapshot?.departures;
+  return useMemo(() => {
+    if (snapshot) return (rows ?? []).map(normalizeSailing);
+    return SAMPLE_DEPARTURES.map(normalizeSailing);
+  }, [snapshot, rows]);
 }
 
 /** The sailings behind the 도착 tab. Same seam as above. */
 export function useJejuArrivalSailings(): JejuSailing[] {
-  return useMemo(() => SAMPLE_ARRIVALS.map(normalizeSailing), []);
+  const snapshot = useSailingStore((s) => s.snapshot);
+  const rows = snapshot?.arrivals;
+  return useMemo(() => {
+    if (snapshot) return (rows ?? []).map(normalizeSailing);
+    return SAMPLE_ARRIVALS.map(normalizeSailing);
+  }, [snapshot, rows]);
 }

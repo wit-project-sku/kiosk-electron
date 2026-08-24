@@ -40,6 +40,7 @@ import type { SpotDiffRound } from '../types/spotDiff';
 import type { OutfitCatalogue } from '../types/outfit';
 import type { WeatherSnapshot } from '../types/weather';
 import type { JejuFlightSnapshot } from '../types/jejuFlight';
+import type { JejuSailingSnapshot } from '../types/jejuSailing';
 import type { WeatherPlayKey } from '../config/weatherVideo';
 import type { KioskLocationCode } from '../config/kioskLocations';
 import type { ExchangeSnapshot } from '../types/exchange';
@@ -187,6 +188,9 @@ export interface KioskBridge {
   flights: {
     get(): Promise<Result<JejuFlightSnapshot | null>>;
   };
+  sailings: {
+    get(): Promise<Result<JejuSailingSnapshot | null>>;
+  };
   exchange: {
     get(): Promise<Result<ExchangeSnapshot | null>>;
   };
@@ -287,6 +291,7 @@ export interface KioskBridge {
     onLanguageChanged(listener: (language: SupportedLanguage) => void): Unsubscribe;
     onWeatherChanged(listener: (weather: WeatherSnapshot) => void): Unsubscribe;
     onFlightsChanged(listener: (flights: JejuFlightSnapshot) => void): Unsubscribe;
+    onSailingsChanged(listener: (sailings: JejuSailingSnapshot) => void): Unsubscribe;
     onExchangeChanged(listener: (exchange: ExchangeSnapshot) => void): Unsubscribe;
     onKioskScreenChanged(
       listener: (payload: { screen: string; buttonId: number | null }) => void,

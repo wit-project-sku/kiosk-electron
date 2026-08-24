@@ -12,6 +12,7 @@ const log = createLogger('flight-service');
 /** 2 min — see the 5,000/day quota discussion; two calls per cycle. */
 const REFRESH_MS = 2 * 60 * 1000;
 const CACHE_KEY = 'jeju-flights';
+const AIRPORT_KIOSK = 'W006';
 const AIRPORT_CODE = 'CJU';
 const PAGE_SIZE = 100;
 const MAX_PAGES = 10;
@@ -19,6 +20,18 @@ const MAX_PAGES = 10;
 /** 15158625 GW: 출발 오퍼레이션은 루트(`/flight-status`)가 아니라 `/depart`. */
 const DEP_URL = 'https://apis.data.go.kr/B551178/flight-status/depart';
 const ARR_URL = 'https://apis.data.go.kr/B551178/flight-status/arrival';
+/** 15158946 GW: 제주 주기장 — `gate` / `baggageClaim` (탑승구·수하물수취대). */
+const APRON_URL = 'https://apis.data.go.kr/B551178/flight-apron-status/cju';
+/** Apron paginates ~24 pages/day; refresh less often than the status feed. */
+const APRON_REFRESH_MS = 10 * 60 * 1000;
+const MAX_APRON_PAGES = 15;
+
+interface ApronMaps {
+  ymd: string;
+  fetchedAt: number;
+  gates: Map<string, string>;
+  belts: Map<string, string>;
+}
 
 type FlightListener = (snapshot: JejuFlightSnapshot) => void;
 
@@ -39,14 +52,15 @@ interface PortalResponse {
 /**
  * Fetches 제주 (CJU) departures + arrivals from KAC's real-time board API,
  * caches them, and refreshes every two minutes. Network stays in main; the
- * renderer only reads the snapshot over IPC. Gated to the 제주공항 layout so
- * other kiosks do not spend the shared 5,000/day quota.
+ * renderer only reads the snapshot over IPC. Gated to W006 (제주공항) so the
+ * passenger terminal kiosk does not spend the shared 5,000/day quota.
  */
 export class FlightService {
   private current: JejuFlightSnapshot | null = null;
   private timer: ReturnType<typeof setInterval> | null = null;
   private cacheHydrated = false;
   private warnedNoKey = false;
+  private apronMaps: ApronMaps | null = null;
   private readonly listeners = new Set<FlightListener>();
 
   constructor(
@@ -67,13 +81,13 @@ export class FlightService {
 
   /** Dev kiosk switch: fetch now so the reloaded renderer's first `get()` hits data. */
   async refreshIfJeju(): Promise<void> {
-    if (this.kiosk.getConfig().layout !== 'JEJU_AIRPORT') return;
+    if (this.kiosk.getConfig().kioskId !== AIRPORT_KIOSK) return;
     this.hydrateFromCacheOnce();
     await this.refresh();
   }
 
   private async tick(): Promise<void> {
-    if (this.kiosk.getConfig().layout !== 'JEJU_AIRPORT') return;
+    if (this.kiosk.getConfig().kioskId !== AIRPORT_KIOSK) return;
     this.hydrateFromCacheOnce();
     await this.refresh();
   }
@@ -129,9 +143,11 @@ export class FlightService {
     const { ymd, fromHm, toHm } = seoulWindow();
 
     try {
+      const apronPromise = this.ensureApronMaps(serviceKey, ymd);
       const [depResult, arrResult] = await Promise.allSettled([
         this.fetchList(DEP_URL, serviceKey, ymd, fromHm, toHm, mapDeparture),
         this.fetchList(ARR_URL, serviceKey, ymd, fromHm, toHm, mapArrival),
+        apronPromise,
       ]);
       if (depResult.status === 'rejected') {
         log.warn('Jeju departures fetch failed', depResult.reason);
@@ -139,16 +155,20 @@ export class FlightService {
       if (arrResult.status === 'rejected') {
         log.warn('Jeju arrivals fetch failed', arrResult.reason);
       }
-      const departures =
+      let departures =
         depResult.status === 'fulfilled'
           ? depResult.value
           : (this.current?.departures ?? []);
-      const arrivals =
+      let arrivals =
         arrResult.status === 'fulfilled'
           ? arrResult.value
           : (this.current?.arrivals ?? []);
       if (depResult.status === 'rejected' && arrResult.status === 'rejected') {
         throw depResult.reason;
+      }
+      if (this.apronMaps?.ymd === ymd) {
+        departures = mergeGate(departures, this.apronMaps.gates);
+        arrivals = mergeBelt(arrivals, this.apronMaps.belts);
       }
       const snapshot: JejuFlightSnapshot = {
         fetchedAt: new Date().toISOString(),
@@ -161,6 +181,7 @@ export class FlightService {
       log.info('Jeju flights updated', {
         departures: departures.length,
         arrivals: arrivals.length,
+        gates: this.apronMaps?.gates.size ?? 0,
       });
     } catch (error) {
       log.warn('Jeju flight fetch failed (keeping last snapshot)', error);
@@ -235,6 +256,73 @@ export class FlightService {
     const code = String(header?.resultCode ?? '');
     if (code && code !== '00' && code !== '0000') {
       throw new Error(`KAC ${code}: ${header?.resultMsg ?? ''}`);
+    }
+    if (!json.response?.body && !res.ok) {
+      throw new Error(`HTTP ${res.status}`);
+    }
+    return json.response?.body ?? {};
+  }
+
+  /** Paginate 제주 주기장 (I/O 각각) and index gate/belt by 편명+시각. */
+  private async ensureApronMaps(serviceKey: string, ymd: string): Promise<void> {
+    const now = Date.now();
+    if (
+      this.apronMaps &&
+      this.apronMaps.ymd === ymd &&
+      now - this.apronMaps.fetchedAt < APRON_REFRESH_MS
+    ) {
+      return;
+    }
+
+    try {
+      const gates = new Map<string, string>();
+      const belts = new Map<string, string>();
+
+      for (const io of ['I', 'O'] as const) {
+        let pageNo = 1;
+        let total = Infinity;
+        while (pageNo <= MAX_APRON_PAGES && (pageNo - 1) * PAGE_SIZE < total) {
+          const body = await this.fetchApronPage(serviceKey, ymd, pageNo, io);
+          const items = unwrapItems(body.items);
+          total = Number(body.totalCount ?? items.length);
+          if (!Number.isFinite(total)) total = items.length;
+
+          for (const item of items) {
+            indexApronItem(item, gates, belts);
+          }
+
+          if (items.length === 0) break;
+          pageNo += 1;
+        }
+      }
+
+      this.apronMaps = { ymd, fetchedAt: now, gates, belts };
+      log.info('Jeju apron indexed', { gates: gates.size, belts: belts.size });
+    } catch (error) {
+      log.warn('Jeju apron fetch failed (keeping last gate index)', error);
+    }
+  }
+
+  private async fetchApronPage(
+    serviceKey: string,
+    flightdate: string,
+    pageNo: number,
+    io: 'I' | 'O',
+  ): Promise<PortalBody> {
+    const qs = new URLSearchParams({
+      pageNo: String(pageNo),
+      numOfRows: String(PAGE_SIZE),
+      flightdate,
+      io,
+      type: 'json',
+    });
+    const url = `${APRON_URL}?serviceKey=${serviceKey}&${qs.toString()}`;
+    const res = await fetch(url, { signal: AbortSignal.timeout(20_000) });
+    const json = await readPortalJson(res);
+    const header = json.response?.header;
+    const code = String(header?.resultCode ?? '');
+    if (code && code !== '00' && code !== '0000') {
+      throw new Error(`KAC apron ${code}: ${header?.resultMsg ?? ''}`);
     }
     if (!json.response?.body && !res.ok) {
       throw new Error(`HTTP ${res.status}`);
@@ -373,4 +461,58 @@ function mapArrival(item: Record<string, unknown>): RawJejuArrival | null {
     origin: first(item, ['dep_airport', 'depAirport', 'depairport']),
     belt: first(item, ['baggageClaim', 'carousel', 'chkinrange', 'baggageclaim']),
   };
+}
+
+/** Join key shared by flight-status rows and apron rows. */
+function flightRowKey(flightNo: string, scheduledTime: string): string {
+  return `${flightNo}-${scheduledTime}`;
+}
+
+function stdToHm(std: string): string {
+  const digits = std.replace(/\D/g, '');
+  if (digits.length >= 4) {
+    const hm = digits.slice(-4);
+    return `${hm.slice(0, 2)}:${hm.slice(2)}`;
+  }
+  return '';
+}
+
+function isJeju(label: string): boolean {
+  return label.replace(/\s+/g, '').includes('제주');
+}
+
+/** Index one apron record into gate/belt maps when it belongs to CJU depart/arrive. */
+function indexApronItem(
+  item: Record<string, unknown>,
+  gates: Map<string, string>,
+  belts: Map<string, string>,
+): void {
+  const flightNo = first(item, ['airfln', 'airFln', 'flight_id', 'flightid']);
+  const scheduledTime = stdToHm(first(item, ['std', 'scheduledatetime']));
+  if (!flightNo || !scheduledTime) return;
+
+  const key = flightRowKey(flightNo, scheduledTime);
+  const boarding = first(item, ['boardingkor', 'boardingKor']);
+  const arrived = first(item, ['arrivedkor', 'arrivedKor']);
+  const gate = first(item, ['gate', 'gatenumber']);
+  const belt = first(item, ['baggageclaim', 'baggageClaim', 'carousel']);
+
+  if (gate && isJeju(boarding)) gates.set(key, gate);
+  if (belt && isJeju(arrived)) belts.set(key, belt);
+}
+
+function mergeGate(departures: RawJejuDeparture[], gates: Map<string, string>): RawJejuDeparture[] {
+  return departures.map((row) => {
+    if (row.gate) return row;
+    const gate = gates.get(flightRowKey(row.flightNo, row.scheduledTime));
+    return gate ? { ...row, gate } : row;
+  });
+}
+
+function mergeBelt(arrivals: RawJejuArrival[], belts: Map<string, string>): RawJejuArrival[] {
+  return arrivals.map((row) => {
+    if (row.belt) return row;
+    const belt = belts.get(flightRowKey(row.flightNo, row.scheduledTime));
+    return belt ? { ...row, belt } : row;
+  });
 }

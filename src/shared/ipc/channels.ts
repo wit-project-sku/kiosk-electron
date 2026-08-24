@@ -92,6 +92,9 @@ export const IpcChannels = {
   // 제주공항 운항 (cached; refreshed in main every 2 min)
   FlightsGet: 'flights:get',
 
+  // 제주국제여객터미널 선박 운항 (cached; refreshed in main every 5 min)
+  SailingsGet: 'sailings:get',
+
   // Exchange rates (cached; refreshed in main every 6h)
   ExchangeGet: 'exchange:get',
 
@@ -163,6 +166,7 @@ export const IpcEvents = {
   LanguageChanged: 'event:language:changed',
   WeatherChanged: 'event:weather:changed',
   FlightsChanged: 'event:flights:changed',
+  SailingsChanged: 'event:sailings:changed',
   ExchangeChanged: 'event:exchange:changed',
   /** Touch screen navigated; the customer display swaps its AI-model video. */
   KioskScreenChanged: 'event:kiosk:screenChanged',

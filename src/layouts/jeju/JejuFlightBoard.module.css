@@ -23,11 +23,11 @@
  */
 .board {
   position: absolute;
-  left: 100px;
-  top: 785px;
-  width: 1960px;
+  left: 155px;
+  top: 732px;
+  width: 1850px;
   height: 206px;
-  border-radius: 90px;
+  border-radius: 45px;
   background: rgba(255, 255, 255, 0.5);
 }
 
@@ -67,9 +67,9 @@
    six data columns only (it starts at 336, well right of the 운항 정보 title). */
 .rule {
   position: absolute;
-  left: 281px;
+  left: 330px;
   top: 97px;
-  width: 1572px;
+  width: 1462px;
   height: 3px;
   background: #c8bda9;
 }
