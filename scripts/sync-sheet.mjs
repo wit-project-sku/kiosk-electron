@@ -56,7 +56,9 @@ function parseCSV(text) {
     if (inQuotes) {
       if (c === '"') {
         if (text[i + 1] === '"') { field += '"'; i++; } else inQuotes = false;
-      } else field += c;
+      } else if (c === '\r') { /* ignore inside quotes too — git autocrlf turns the
+        cached CSVs CRLF, which would otherwise embed \r\n in generated strings */ }
+      else field += c;
     } else if (c === '"') inQuotes = true;
     else if (c === ',') { row.push(field); field = ''; }
     else if (c === '\r') { /* ignore */ }
@@ -411,9 +413,60 @@ async function genAiCategoriesHwaseong() {
  * every key with no mascot in it (MainButton_Promotion, and all 224 unique keys)
  * behaves exactly as before. Mirrored at runtime in
  * src/main/services/sync/google/LocalizationSyncParser.ts — keep the two in sync.
+ *
+ * W008 세계자연유산본부 (JEJU_HERITAGE, mascot 유산) is the same tab scored the
+ * other way round — genLocalizationJeju emits its picks as a small OVERRIDES
+ * module (only the keys whose pick differs) that loc.ts overlays on
+ * LOCALIZATION_JEJU, so the ~230-key table isn't bundled twice.
  */
 const JEJU_MASCOT_OURS = /하영|HAYOUNG/i;
 const JEJU_MASCOT_OTHER = /유산|YUSAN/i;
+
+/** 하영 → 유산 in the scripts where the name is unambiguous. Reversed for 하영. */
+const JEJU_MASCOT_RENAME = [
+  ['HAYOUNG', 'YUSAN'],
+  ['ハヨン', 'ユサン'],
+  ['Хаён', 'Юсан'],
+];
+/** The hangul pair, replaced only when quoted or alone — 유산 is also an
+ *  ordinary noun ("세계자연유산"), so a blanket swap corrupts 제주 history copy. */
+const JEJU_MASCOT_RENAME_KO = ['하영', '유산'];
+const QUOTED = String.raw`['\u2018\u2019"\u201C\u201D()\[\]\u300C\u300D\u300E\u300F]`;
+
+/** Re-case `to` the way `sample` is cased; caseless scripts pass through. */
+function matchCase(sample, to) {
+  if (sample !== sample.toLowerCase() && sample === sample.toUpperCase()) return to.toUpperCase();
+  if (sample.slice(1) === sample.slice(1).toLowerCase()) {
+    return to.charAt(0).toUpperCase() + to.slice(1).toLowerCase();
+  }
+  return to.toLowerCase();
+}
+
+/**
+ * Rewrite the other venue's mascot name to this venue's inside an already-picked
+ * row. `sign` 1 = the 하영 venues (so 유산 → 하영), −1 = 유산 (하영 → 유산).
+ *
+ * Mirrors renameMascot in LocalizationSyncParser.ts — keep the two in sync.
+ * The sheet's 유산 rows still say HAYOUNG in 18 cells (all of MainButton_Greeting's
+ * translations, three of MainButton_ToHelp, and every cell of NoticeContent), so
+ * picking the right row is not by itself enough. Self-healing: once the sheet is
+ * corrected this matches nothing.
+ */
+function jejuRenameMascot(text, sign) {
+  if (!text) return text;
+  const other = sign === 1 ? JEJU_MASCOT_OTHER : JEJU_MASCOT_OURS;
+  if (!other.test(text)) return text;
+
+  const pairs = sign === 1 ? JEJU_MASCOT_RENAME.map(([a, b]) => [b, a]) : JEJU_MASCOT_RENAME;
+  let out = text;
+  for (const [from, to] of pairs) out = out.replace(new RegExp(from, 'gi'), (m) => matchCase(m, to));
+
+  const [koFrom, koTo] = sign === 1
+    ? [JEJU_MASCOT_RENAME_KO[1], JEJU_MASCOT_RENAME_KO[0]]
+    : JEJU_MASCOT_RENAME_KO;
+  if (out.trim() === koFrom) return koTo;
+  return out.replace(new RegExp('(?<=' + QUOTED + ')' + koFrom + '|' + koFrom + '(?=' + QUOTED + ')', 'g'), koTo);
+}
 
 /** Venue score for one row — see the comment above. */
 function jejuVenueScore(r) {
@@ -428,17 +481,24 @@ function jejuVenueScore(r) {
 
 async function genLocalizationJeju() {
   const rows = await loadTab('Localization_Jeju', JEJU_SHEET_ID);
-  const entries = {};
-  const scores = {};
-  for (const r of rows.slice(1)) {
-    const key = clean(r[1]);
-    if (!key || key === 'Key') continue;
-    const score = jejuVenueScore(r);
-    // `>=` keeps last-wins on a tie, so single-row keys are untouched.
-    if (key in entries && score < scores[key]) continue;
-    entries[key] = localizedRow(r, NEW_LANG_COLS_INSA);
-    scores[key] = score;
-  }
+  /** One venue's picks — sign +1 keeps the 하영 rows (W006/W007), −1 keeps 유산's (W008). */
+  const pickVenue = (sign) => {
+    const entries = {};
+    const scores = {};
+    for (const r of rows.slice(1)) {
+      const key = clean(r[1]);
+      if (!key || key === 'Key') continue;
+      const score = sign * jejuVenueScore(r);
+      // `>=` keeps last-wins on a tie, so single-row keys are untouched.
+      if (key in entries && score < scores[key]) continue;
+      const cells = localizedRow(r, NEW_LANG_COLS_INSA);
+      for (const lang of Object.keys(cells)) cells[lang] = jejuRenameMascot(cells[lang], sign);
+      entries[key] = cells;
+      scores[key] = score;
+    }
+    return entries;
+  };
+  const entries = pickVenue(1);
   const body = Object.entries(entries)
     .map(([k, v]) => `  ${JSON.stringify(k)}: ${JSON.stringify(v)},`)
     .join('\n');
@@ -450,6 +510,25 @@ ${body}
 };
 `;
   await writeFile(join(DATA_DIR, 'localization-jeju.generated.ts'), out, 'utf8');
+
+  // W008 세계자연유산본부 (JEJU_HERITAGE) — the 유산-preferred picks, emitted as a
+  // delta: only the keys whose winning row differs from W006's make the file.
+  const heritage = pickVenue(-1);
+  const overrides = Object.entries(heritage).filter(
+    ([k, v]) => JSON.stringify(entries[k]) !== JSON.stringify(v),
+  );
+  const heritageBody = overrides.map(([k, v]) => `  ${JSON.stringify(k)}: ${JSON.stringify(v)},`).join('\n');
+  const heritageOut = `${BANNER}import type { LangText } from './types';
+
+/** W008 세계자연유산본부 (JEJU_HERITAGE): the Localization_Jeju keys whose venue
+ *  pick differs from W006's — i.e. the 유산-mascot rows. Overlaid on
+ *  LOCALIZATION_JEJU by loc.ts; mirrors the runtime split in
+ *  LocalizationSyncParser.VENUE_MASCOTS. */
+export const LOCALIZATION_JEJU_HERITAGE_OVERRIDES: Record<string, LangText> = {
+${heritageBody}
+};
+`;
+  await writeFile(join(DATA_DIR, 'localization-jeju-heritage.generated.ts'), heritageOut, 'utf8');
   return Object.keys(entries).length;
 }
 

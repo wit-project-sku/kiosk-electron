@@ -84,9 +84,9 @@ export class PhotoWorkflowService {
       styleKey,
       phase: 'preview',
       selectedCameraDeviceId: cameraDeviceId,
-      // 제주 arms the gate immediately after this call; everyone else goes
-      // straight to beginCountdown(). Clearing it here means a second run
-      // through the flow can never inherit the previous one's gate.
+      // Every location arms the gate immediately after this call
+      // (2026-08-24 — the 손동작 게이트 went fleet-wide). Clearing it here means
+      // a second run through the flow can never inherit the previous one's gate.
       gestureGate: 'off',
       errorMessage: null,
     };
@@ -96,7 +96,8 @@ export class PhotoWorkflowService {
   }
 
   /**
-   * 제주 only — arm the 손동작 게이트 instead of counting straight away.
+   * Arm the 손동작 게이트 instead of counting straight away — every location
+   * since 2026-08-24 (it began as 제주-only).
    *
    * The camera is already live (selectStyle put Monitor 2 in 'camera' mode);
    * this just says "we are waiting for a hand, not for the clock". The count is
@@ -126,9 +127,10 @@ export class PhotoWorkflowService {
       ...this.state,
       phase: 'countdown',
       countdown: PHOTO_COUNTDOWN_SECONDS,
-      // Only a gate that was armed starts running — every other location calls
-      // this directly and must stay 'off', or Monitor 2 would draw 제주's
-      // gesture chrome on an insadong capture.
+      // Only a gate that was armed starts running. Since every location arms
+      // the gate now, 'off' survives only for a count started outside the
+      // normal flow (nothing armed it) — and must stay 'off' so the camera
+      // screen does not narrate gestures nobody is watching for.
       gestureGate: this.state.gestureGate === 'off' ? 'off' : 'running',
     };
     this.syncDisplay('countdown', { countdown: PHOTO_COUNTDOWN_SECONDS });

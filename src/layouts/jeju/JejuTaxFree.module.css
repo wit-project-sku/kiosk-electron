@@ -3,6 +3,10 @@
  *   664   panel, 1820×2290 (Rectangle 4226) at x202
  *   3016  tab row, 1814 wide at x197 — three 580×170 buttons, 37px gaps
  *   3267  banner (JejuPageFrame)
+ *
+ * 2026-08-24: the tab row is the only thing the redesign touched — labels drop
+ * 60→50, the picked tab steps up to Bold, and the orange ring comes off. The
+ * panel and its coordinates are unchanged.
  */
 
 /* The panel sits at x202, NOT the 170 every other 제주 page uses: the frame
@@ -18,8 +22,6 @@
   border-radius: 42.9px;
   background: #fff;
   overflow: hidden;
-  /* Figma exports Rectangle 4226 as an SVG purely to carry this shadow. */
-  box-shadow: 0 21.45px 42.9px rgba(143, 147, 157, 0.1);
 }
 
 /* One stacking slot inside the panel — the webview, or an artwork page. */
@@ -104,15 +106,19 @@
   justify-content: center;
   text-align: center;
   background: #fff;
-  border: 2.145px solid var(--kiosk-primary, #ff7f0f);
+  /* Borderless. The redesign is inconsistent about this — 텍스프리 가맹점 신청
+     (6212:57360) has no stroke at all, while the other two carry a 2.145px one
+     in #FF7F0F, which on the SELECTED tab is the same colour as its own fill and
+     so invisible. Only one idle tab actually shows a ring, which reads as
+     duplication rather than intent, so all three are flat. */
+  border: none;
   border-radius: 42.905px;
-  box-shadow: 0 21.453px 42.905px rgba(143, 147, 157, 0.1);
-  font-size: 60px;
+  font-size: 50px;
   font-weight: 500;
-  /* Figma draws every label on one 60px line, which only Korean manages:
-     "Регистрация торговой точки" is ~780px against 544px of inner width. So the
+  /* Figma draws every label on one 50px line, which only Korean manages:
+     "Регистрация торговой точки" runs past the 544px of inner width. So the
      label wraps — 1.2 leaves two lines inside the 170px pill — and clips rather
-     than spilling past the border. */
+     than spilling past the plate. */
   line-height: 1.2;
   overflow: hidden;
   overflow-wrap: anywhere;
@@ -121,7 +127,10 @@
   -webkit-tap-highlight-color: transparent;
 }
 
+/* Picked: solid brand plate, white BOLD type — the weight step is new; the tab
+   used to keep Medium and only swap its colours. */
 .tabSelected {
   background: var(--kiosk-primary, #ff7f0f);
   color: #fff;
+  font-weight: 700;
 }

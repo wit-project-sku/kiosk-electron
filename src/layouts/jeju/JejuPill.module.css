@@ -17,7 +17,10 @@
   height: 170px;
   box-sizing: border-box;
   padding: 0 16px;
-  border: 5px solid #e8e8e8;
+  /* Idle is borderless — the #e8e8e8 hairline is gone everywhere in the
+     2026-08-24 pass. `none`, not omitted, because these are <button>s and would
+     otherwise take Chrome's UA outset bevel. */
+  border: none;
   border-radius: 42.9px;
   background: #fff;
   font-size: 50px;
@@ -31,8 +34,16 @@
   -webkit-tap-highlight-color: transparent;
 }
 
+/* Picked: the pale [제주] main 02 plate behind an orange rule and an orange Bold
+   label. The full `border` now, not just `border-color` — the idle pill above no
+   longer has one to recolour.
+
+   NOTE this is the OLD picked treatment, and 6393:59030 still draws it that way
+   for this component (I6393:59050;4164:90304). The four list frames draw the
+   SAME component picked as a solid #FF7F0F plate with white type, which is what
+   JejuListScreen does. Flagged rather than unified — see the summary. */
 .pillActive {
-  border-color: var(--kiosk-primary, #ff7f0f);
+  border: 5px solid var(--kiosk-primary, #ff7f0f);
   background: #ffeac7;
   font-weight: 700;
   color: var(--kiosk-primary, #ff7f0f);

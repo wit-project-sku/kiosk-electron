@@ -1,5 +1,5 @@
 /**
- * 제주공항 언어선택 — Figma node 6050:140657 (제주>언어선택).
+ * 제주공항 언어선택 — Figma node 6212:50714 (제주>언어선택), 2026-08 redesign.
  *
  * Reuses the shared language state (languageStore) and the JejuPageFrame chrome;
  * only the 현재 언어 / 변경 언어 body is Jeju-specific.
@@ -95,7 +95,10 @@ export function JejuLanguage({ controller }: Props): JSX.Element {
               if (!code) return null;
               const meta = LANG_META[code];
               const selected = code === current;
-              const check = jejuIconUrl(selected ? 'check-on' : 'check-off');
+              // check-off-lang, not the shared check-off: this screen's Figma
+              // fills the empty tick with #FFEAC7 ([제주] main 02) while
+              // JejuPhotoRegister's still specifies #FFE0C4.
+              const check = jejuIconUrl(selected ? 'check-on' : 'check-off-lang');
               return (
                 <button
                   key={code}

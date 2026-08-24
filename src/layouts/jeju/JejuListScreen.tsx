@@ -1,13 +1,19 @@
 /**
  * 제주 shop category list — one screen for all three Figma frames, which draw the
  * byte-identical layout and differ only in their title and chip set:
- *   6212:55184  "'제주' 뭐먹지?"  (eat)     10 chips, 5×2
- *   6212:55233  "'제주' 뭐사지?"  (shop)    10 chips, 5×2
- *   6212:55282  "숙박안내"        (lodging)  5 chips, one row
+ *   6212:55184  "'제주' 뭐먹지?"  (eat)     10 chips, 5×2 (also 6391:57961,
+ *                                          the same frame with nothing picked)
+ *   6212:55233  "'제주' 뭐사지?"  (shop)    10 chips, 5×2 (also 6390:57326,
+ *                                          the same frame with 기념품 picked)
+ *   6212:55282  "숙박안내"        (lodging)  5 chips, one row (also 6391:58267,
+ *                                          the same frame with nothing picked)
  * The first two carry the same stale frame name ("제주>하영뭐사지=공항-01") — the
  * title inside Component 30 is what distinguishes them. The chip row's height is
  * the ONLY layout difference between them (170 vs 375), and the grid derives it,
- * so the 50px gaps below and every card y follow automatically.
+ * so the 50px gaps below and every card y follow automatically — verified
+ * 2026-08-24 against the lodging frames, whose single 170 row puts the 초성 index
+ * on 920 and the first card on 1042 exactly as Figma draws them (the two-row
+ * screens land on 1125 / 1247).
  *
  * A category chip grid (5 per row) + a 초성 index row over the shared shop card
  * list. Same data path the other layouts' list screens use: filter the shops to
@@ -34,6 +40,7 @@ import {
   shopsForBase,
 } from '@renderer/lib/shops';
 import { JejuChosungRow } from './JejuChosungRow';
+import { useAccessibilityStore } from '@renderer/store/accessibilityStore';
 import { JejuPageFrame } from './JejuPageFrame';
 import { JejuShopCard } from './JejuShopCard';
 import styles from './JejuListScreen.module.css';
@@ -70,6 +77,13 @@ const TITLE: Record<JejuListScreenId, string> = {
   lodging: '숙박안내',
 };
 
+/** Chips per row — Figma's `R>상단 카테고리-5개*2` is a 5-wide grid. */
+const CHIP_COLS = 5;
+/** Top of the scrolling area, under the 700px header. */
+const LIST_TOP = 700;
+/** Low-reach: gap between the list's bottom edge and the controls block. */
+const LOW_CONTROLS_GAP = 100;
+
 /**
  * Figma-parity chips, shown only while no shop data has loaded — the real list
  * is derived from the data, exactly as the other layouts do it. Mirrors
@@ -100,6 +114,7 @@ export function JejuListScreen({ screen, controller }: Props): JSX.Element {
   const shops = useShopStore((s) => s.shops);
 
   const scrollRef = useRef<HTMLDivElement>(null);
+  const lowReach = useAccessibilityStore((s) => s.lowReach);
   const [activeKr, setActiveKr] = useState<string | null>(null);
   const [jamo, setJamo] = useState<Chosung | null>(null);
 
@@ -124,6 +139,22 @@ export function JejuListScreen({ screen, controller }: Props): JSX.Element {
   const chips = tabs.length > 0
     ? tabs
     : DEFAULT_TABS[screen].map((label) => ({ kr: label, label: catLabel(label, lang) }));
+
+  /*
+   * Low-reach geometry follows the chip ROW COUNT, because the controls sit at
+   * the foot and a shorter chip block gives the list back the space:
+   *
+   *   2 rows (eat/shop, 10 categories)  list h2434, controls y3234
+   *   1 row  (lodging, 5 categories)    list h2645, controls y3445
+   *
+   * Measured on 6293:71909 / 6422:44503 (two rows) and 6422:44919 / 6289:68599
+   * (one row; those two state it as 2646/3446, 1px apart from each other). Both
+   * fall out of one rule — the controls hang 100px under the list — so only the
+   * list height is a constant here.
+   */
+  const chipRows = Math.ceil(chips.length / CHIP_COLS);
+  const lowListHeight = chipRows >= 2 ? 2434 : 2645;
+  const lowControlsTop = LIST_TOP + lowListHeight + LOW_CONTROLS_GAP;
 
   const visible = useMemo(() => {
     let list = activeKr ? baseShops.filter((s) => s.secondCategoryKr === activeKr) : baseShops;
@@ -162,11 +193,15 @@ export function JejuListScreen({ screen, controller }: Props): JSX.Element {
     controller.navigate('detail', TITLE[screen]);
   };
 
-  return (
-    // No banner: the list runs to the bottom of the artboard in this frame.
-    <JejuPageFrame controller={controller} title={TITLE[screen]} showBanner={false}>
-      <div className={styles.scroll} ref={scrollRef}>
-        <div className={styles.cats}>
+  /* The category chips and the 초성 index. In the standard layout they scroll
+     with the cards; in low-reach they are pulled out of the scroller and pinned
+     to the foot of the page — same markup either way, see .controlsLow. */
+  const controls = (
+    <>
+        {/* `catsIdle` while nothing is picked — the whole row is drawn in the
+            brand colour then, and only falls back to grey once one chip takes
+            the solid plate. See the note above .catsIdle. */}
+        <div className={`${styles.cats} ${activeKr === null ? styles.catsIdle : ''}`}>
           {chips.map((c) => (
             <button
               key={c.kr}
@@ -185,13 +220,30 @@ export function JejuListScreen({ screen, controller }: Props): JSX.Element {
 
         <JejuChosungRow
           className={styles.chosung}
+          /* 14 × 120.43 = 1686, Figma's x237–1923 for the ㄱ…ㅎ run. The
+             low-reach frames set the row wider — their text box is x208–1952
+             (1744, measured ink 220–1943) — so the cells grow with it rather
+             than leaving the run narrow against a wider slot. Both centre on
+             x1080. */
+          cellWidth={lowReach ? 124.57 : 120.43}
           value={jamo}
           onChange={(next) => {
             setJamo(next);
             resetScroll();
           }}
         />
+    </>
+  );
 
+  return (
+    // No banner: the list runs to the bottom of the artboard in this frame.
+    <JejuPageFrame controller={controller} title={TITLE[screen]} showBanner={false}>
+      <div
+        className={`${styles.scroll} ${lowReach ? styles.scrollLow : ''}`}
+        style={lowReach ? { height: lowListHeight } : undefined}
+        ref={scrollRef}
+      >
+        {!lowReach && controls}
         {visible.length > 0 ? (
           <div className={styles.list}>
             {visible.map((shop) => (
@@ -209,6 +261,12 @@ export function JejuListScreen({ screen, controller }: Props): JSX.Element {
           </p>
         )}
       </div>
+
+      {lowReach && (
+        <div className={styles.controlsLow} style={{ top: lowControlsTop }}>
+          {controls}
+        </div>
+      )}
 
       <button
         type="button"
@@ -235,7 +293,7 @@ export function JejuListScreen({ screen, controller }: Props): JSX.Element {
           frames as a bare pair of triangles — no button chrome — so it is a
           "this list scrolls" hint, not a control: the round buttons above are
           the controls. Only visible here because these frames carry no banner. */}
-      {jejuIconUrl('scroll-hint') && (
+      {!lowReach && jejuIconUrl('scroll-hint') && (
         <img src={jejuIconUrl('scroll-hint')} alt="" className={styles.scrollHint} draggable={false} />
       )}
     </JejuPageFrame>

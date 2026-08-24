@@ -13,7 +13,7 @@ import type { KioskId, KioskLayoutId, KioskScreenId } from '../types/kiosk';
  * is electron-store (see KioskConfigStore), set per machine via provision-kiosk.ps1.
  * There is NO env override; one build serves every location.
  */
-export type KioskLocationCode = 'W001' | 'W002' | 'W003' | 'W004' | 'W005' | 'W006';
+export type KioskLocationCode = 'W001' | 'W002' | 'W003' | 'W004' | 'W005' | 'W006' | 'W007' | 'W008';
 
 export interface KioskLocationTile {
   screen: KioskScreenId;
@@ -39,7 +39,8 @@ export interface KioskLocation {
   code: KioskLocationCode;
   /** Human name of the physical location. */
   name: string;
-  /** React layout family — W001/W002 = INSADONG, W003 = NAM_INSADONG (separable design). */
+  /** React layout family — W001/W002 = INSADONG, W003 = NAM_INSADONG (separable
+   *  design), W006/W007 = JEJU_AIRPORT (one 제주 design, two venues). */
   layout: KioskLayoutId;
   /** The 2nd home-grid tile (the only home difference between locations). */
   secondTile: KioskLocationTile;
@@ -66,10 +67,16 @@ export interface KioskLocation {
    * `kioskId` to send to the SHOP API (`/api/shops?kioskId=`) when it differs
    * from this kiosk's own W-code number.
    *
-   * Normally the two are the same — W004's shops are at `?kioskId=4`. 제주 is
-   * the exception: its catalogue is filed under 7 (verified 2026-08-12, prod and
-   * stage both: `?kioskId=6` returns `data: []`, `?kioskId=7` returns 310 rows
-   * that all carry `kioskId: 7`).
+   * Normally the two are the same — W004's shops are at `?kioskId=4`. W006 was
+   * the exception when its catalogue was filed under 7 (2026-08-12: `?kioskId=6`
+   * returned `data: []`, `?kioskId=7` returned 310 rows).
+   *
+   * That has since been re-filed. Re-checked 2026-08-24: `?kioskId=6` now returns
+   * the 310 rows, every one carrying `kioskId: 6`, and 7 and 8 answer with the
+   * same rows — the whole 제주 fleet reads one catalogue. W006's override is
+   * therefore redundant but still correct, so it stays rather than being changed
+   * on a live fleet; W007 needs none. Do NOT copy the override onto a new 제주
+   * kiosk without re-checking which number actually carries the rows.
    *
    * This is SHOP-ONLY. The per-kiosk endpoints (`/api/kiosks/{n}/banners`,
    * `/buttons`, `/subtitles`, stats, update-command) still key off the W-code
@@ -87,6 +94,16 @@ const OSAN_COORDS: GeoCoordinates = { lat: 37.1499, lon: 127.0773 };
 const HWASEONG_COORDS: GeoCoordinates = { lat: 37.1996, lon: 126.8312 };
 /** 제주국제공항 (제주시 용담이동) — W006. */
 const JEJU_AIRPORT_COORDS: GeoCoordinates = { lat: 33.5104, lon: 126.493 };
+/** 제주국제여객터미널 (제주시 임항로) — W007. Its own coordinates, ~5km east of the
+ *  airport: close enough that the weather usually agrees, far enough that reusing
+ *  the airport's would be a guess rather than this kiosk's location. */
+const JEJU_TERMINAL_COORDS: GeoCoordinates = { lat: 33.5237, lon: 126.5427 };
+/** 세계자연유산본부 — W008. Coordinates are the 제주세계자연유산센터 (거문오름,
+ *  제주시 조천읍 선교로 569-36), the venue's visitor building — inland and ~25km
+ *  east of 제주시내, so its weather genuinely differs from the other two 제주
+ *  kiosks'. Weather-grade precision; re-verify against the machine's actual
+ *  site at provisioning if the kiosk lands elsewhere in the complex. */
+const JEJU_HERITAGE_COORDS: GeoCoordinates = { lat: 33.4557, lon: 126.7126 };
 
 const INSARANG_TILE: KioskLocationTile = { screen: 'insarang', label: '인사랑(준비중)', icon: 'insarang' };
 const MARKET_TILE: KioskLocationTile = { screen: 'market', label: '위드마켓', icon: 'market' };
@@ -112,7 +129,51 @@ export const KIOSK_LOCATIONS: Record<KioskLocationCode, KioskLocation> = {
   // mascot code yet — set it once the 같이찍기 character is decided, or 제주 photos
   // will composite the Insadong character.
   W006: { code: 'W006', name: '제주공항', layout: 'JEJU_AIRPORT', secondTile: MARKET_TILE, hasCardTerminal: true, hasDonation: true, aiCompanion: '2', coordinates: JEJU_AIRPORT_COORDS, shopApiKioskId: 7 },
+  // 제주국제여객터미널 W007 — the CMS name is `#W007-제주시=제주국제여객터미널`. It runs
+  // the SAME design as 제주공항: one JEJU_AIRPORT layout, one Localization_Jeju tab,
+  // the same 하영 mascot rows, the same 310-row 제주 shop catalogue.
+  //
+  // Verified against the live CMS on 2026-08-24, `/api/kiosks/7/buttons` (21 rows,
+  // ids 150–170) is byte-for-byte 제주공항's grid with ONE row changed: line 6
+  // position 4 is 크루즈 운항 where W006 has 렌트카. Everything else — 기부 (hence
+  // hasDonation), 탐나오, 지역화폐, TAX-FREE, the two 하영 tiles — is identical.
+  //
+  // No `shopApiKioskId`: `/api/shops?kioskId=7` already answers with the 제주
+  // catalogue (310 rows), so the plain W-code number is right here. W006 keeps its
+  // override for the reason recorded on the `shopApiKioskId` field above.
+  // TODO(제주 W007): `aiCompanion` sends 인사('2') exactly like W006 — the venue's
+  // mascot is 하영, but Digicon has no 하영 code, so 같이찍기 photos composite the
+  // Insadong character until one exists. Fix both kiosks together.
+  W007: { code: 'W007', name: '제주국제여객터미널', layout: 'JEJU_AIRPORT', secondTile: MARKET_TILE, hasCardTerminal: true, hasDonation: true, aiCompanion: '2', coordinates: JEJU_TERMINAL_COORDS },
+  // 세계자연유산본부 W008 — the CMS name is `#W008-제주시=세계자연유산본부` (the sheet's
+  // 비고 column calls the venue 제주유산문화센터). Same 제주 design, but its OWN
+  // JEJU_HERITAGE layout because its mascot is 유산, not 하영 — the shared
+  // Localization_Jeju tab is disambiguated per layout (see
+  // LocalizationSyncParser.VENUE_MASCOTS), so the two mascots cannot share one
+  // layout id.
+  //
+  // Verified against the live CMS on 2026-08-24: `/api/kiosks/8/buttons` (21 rows,
+  // ids 171–191) is byte-for-byte W007's grid — 크루즈 운항 included, NOT 렌트카 —
+  // with the two mascot rows renamed: line 6 positions 2/3 are 안녕 '유산' /
+  // 도와줘 '유산'. 기부 is seeded (id 186), hence hasDonation.
+  //
+  // No `shopApiKioskId`: `/api/shops?kioskId=8` answers with the same 310-row
+  // 제주 catalogue (re-checked 2026-08-24), so the plain W-code number is right.
+  // TODO(제주 W008): hasCardTerminal mirrors W006/W007 (the 기부 flow pays through
+  // the loopback agent) — confirm the venue actually receives a TL-3800 at install.
+  // TODO(제주 W008): `aiCompanion` sends 인사('2') like the other 제주 kiosks —
+  // Digicon has no 유산 code either. Fix all three together when codes exist.
+  W008: { code: 'W008', name: '세계자연유산본부', layout: 'JEJU_HERITAGE', secondTile: MARKET_TILE, hasCardTerminal: true, hasDonation: true, aiCompanion: '2', coordinates: JEJU_HERITAGE_COORDS },
 };
+
+/**
+ * True for every 제주-design layout (JEJU_AIRPORT W006/W007, JEJU_HERITAGE W008).
+ * The two layout ids exist only to split the mascot rows of one shared sheet —
+ * design-family checks (photo chrome and friends) must treat them as one.
+ */
+export function isJejuLayout(layout: KioskLayoutId): boolean {
+  return layout === 'JEJU_AIRPORT' || layout === 'JEJU_HERITAGE';
+}
 
 /** Resolve a location by kiosk id, falling back to W001 (북인사마당). */
 export function getKioskLocation(kioskId: KioskId): KioskLocation {

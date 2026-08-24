@@ -2,7 +2,8 @@
  * 제주공항 (W006) 운항정보 — the full board behind the home screen's
  * `▼ 운항 정보 더보기`.
  *
- * Figma 제주>운항정보=출발 (6219:98606) and 제주>운항정보=도착 (6219:98493).
+ * Figma 제주>운항정보=출발 (6412:75981) and 제주>운항정보=도착 (6412:76071),
+ * the 2026-08-24 redraw of 6219:98606 / 6219:98493.
  * They are one screen with a 출발/도착 tab: identical chrome, identical row
  * geometry, and only three column labels differ —
  *
@@ -74,13 +75,15 @@ const EMPTY = {
 };
 
 /**
- * A column: where it sits and how it is aligned.
+ * A column: where its centre axis sits.
  *
- * `x` is a left edge for the two left-aligned columns and a centre axis for the
- * four centred ones. Figma's per-row x drifts up to 16px inside a column (the
- * 탑승구 header centres on 1673.5 while its "7" centres on 1687.5); a table
- * cannot have a column that wanders, so header and cell share the HEADER's
- * axis throughout. NORMALISED.
+ * The 2026-08-24 redraw centres EVERY column — proven by the one row whose two
+ * texts differ in width: the 지연 flight's 16:15 (centre 285.5) and its struck
+ * 16:05 (284.5) share an axis, and 오사카/간사이 (1101) sits on 서울/김포's
+ * 1099. `x` is the ROW CELLS' centre, which the two frames agree on to ≤2px;
+ * the header inks drift off it by up to 18px (탑승구 centres on 1655.5 in 출발
+ * and 1666 in 도착 against the cells' fixed 1673.5), and a column cannot wander
+ * between tabs, so headers take the cells' axis too. NORMALISED.
  */
 interface Column {
   key: string;

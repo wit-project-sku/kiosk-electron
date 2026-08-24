@@ -45,16 +45,23 @@ const NEW_LANG_COLS: Record<KioskLayoutId, Array<{ lang: SupportedLanguage; inde
   OSAN: OSAEK_HWASEONG_NEW,
   HWASEONG: OSAEK_HWASEONG_NEW,
   JEJU_AIRPORT: INSA_NEW,
+  JEJU_HERITAGE: INSA_NEW, // same Localization_Jeju tab, same column order
 };
 
 /**
  * Layouts whose Localization tab is SHARED with another venue, and the mascot
  * names that tell the rows apart.
  *
- * Localization_Jeju serves 제주공항 / 여객선터미널 (하영) and 제주유산문화센터 (유산)
- * from one tab — the sheet is titled "#W6~8=제주_전체데이터" — so seven keys appear
- * twice. Without this, last-wins gives a W006 machine the 유산 rows and the kiosk
- * shows "안녕 '유산'", "도와줘 '유산'", "사진촬영 (with '유산')".
+ * Localization_Jeju serves 제주국제공항 W006 / 제주국제여객터미널 W007 (both mascot
+ * 하영) and 세계자연유산본부 W008 (mascot 유산) from one tab — the sheet is titled
+ * "#W6~8=제주_전체데이터" — so seven keys appear twice. Without this, last-wins gives
+ * a 하영 machine the 유산 rows and the kiosk shows "안녕 '유산'", "도와줘 '유산'",
+ * "사진촬영 (with '유산')".
+ *
+ * The scoring is keyed by LAYOUT, so W006 and W007 are covered by the one
+ * JEJU_AIRPORT entry — they are the same venue as far as this sheet is concerned.
+ * JEJU_HERITAGE (W008) is the same tab with the mascots the other way round —
+ * that asymmetry is the whole reason W008 has its own layout id.
  *
  * The `설명, 비고` column looks like the obvious discriminator and is not usable:
  * it is SWAPPED on NoticeContent (the row marked 제주공항 carries YUSAN in all
@@ -66,9 +73,91 @@ const NEW_LANG_COLS: Record<KioskLayoutId, Array<{ lang: SupportedLanguage; inde
  * Mirrored at build time in scripts/sync-sheet.mjs (jejuVenueScore) — keep both
  * in sync, or a fresh build and a synced kiosk disagree about the mascot.
  */
-const VENUE_MASCOTS: Partial<Record<KioskLayoutId, { ours: RegExp; other: RegExp }>> = {
-  JEJU_AIRPORT: { ours: /하영|HAYOUNG/i, other: /유산|YUSAN/i },
+interface VenueMascots {
+  ours: RegExp;
+  other: RegExp;
+  /**
+   * Other-mascot HANGUL spelling → ours. Replaced only next to a quote or as a
+   * whole cell — 유산 is also an ordinary noun ("세계자연유산", "인류무형문화유산"),
+   * and a blanket swap turns those into "자연하영" / "인류무형문화하영".
+   */
+  renameKo: readonly [from: string, to: string];
+  /**
+   * The same name in the scripts where it is unambiguous — no Korean word
+   * contains HAYOUNG / YUSAN / ハヨン / ユサン / Хаён / Юсан — so these are
+   * replaced wherever they appear, preserving the sample's capitalisation.
+   */
+  rename: ReadonlyArray<readonly [from: string, to: string]>;
+}
+
+/** Quote and bracket characters the sheet wraps the mascot's name in. */
+const QUOTED = String.raw`['\u2018\u2019"\u201C\u201D()\[\]\u300C\u300D\u300E\u300F]`;
+
+const VENUE_MASCOTS: Partial<Record<KioskLayoutId, VenueMascots>> = {
+  JEJU_AIRPORT: {
+    ours: /하영|HAYOUNG/i,
+    other: /유산|YUSAN/i,
+    renameKo: ['유산', '하영'],
+    rename: [
+      ['YUSAN', 'HAYOUNG'],
+      ['ユサン', 'ハヨン'],
+      ['Юсан', 'Хаён'],
+    ],
+  },
+  JEJU_HERITAGE: {
+    ours: /유산|YUSAN/i,
+    other: /하영|HAYOUNG/i,
+    renameKo: ['하영', '유산'],
+    rename: [
+      ['HAYOUNG', 'YUSAN'],
+      ['ハヨン', 'ユサン'],
+      ['Хаён', 'Юсан'],
+    ],
+  },
 };
+
+/** Re-case `replacement` the way `sample` is cased (ALL CAPS / Title / lower).
+ *  Korean and katakana are caseless, so every branch returns them unchanged. */
+function matchCase(sample: string, replacement: string): string {
+  if (sample !== sample.toLowerCase() && sample === sample.toUpperCase()) return replacement.toUpperCase();
+  if (sample.slice(1) === sample.slice(1).toLowerCase()) {
+    return replacement.charAt(0).toUpperCase() + replacement.slice(1).toLowerCase();
+  }
+  return replacement.toLowerCase();
+}
+
+/**
+ * Rewrite the OTHER venue's mascot name to this venue's, inside a row the
+ * tie-break has already assigned to us.
+ *
+ * Picking the right ROW is not enough, because the sheet's rows are copy-pasted
+ * and then only partly re-worded. Measured on 2026-08-24, the 유산-marked rows
+ * still say HAYOUNG in 18 cells: every non-Korean cell of MainButton_Greeting
+ * ("Hello 'HAYOUNG'"), three of MainButton_ToHelp, and ALL EIGHT of
+ * NoticeContent — whose Korean names HAYOUNG on both rows, so 제주공항 shows it
+ * too. Without this a W008 kiosk headed 안녕 '유산' greets its visitors in
+ * English as "Hello 'HAYOUNG'".
+ *
+ * Scoped by construction rather than by a key list: on a 유산 kiosk the string
+ * 하영 should never appear at all, and vice versa. It is also self-healing —
+ * once the operators correct the sheet there is nothing left to match, so this
+ * becomes a no-op rather than something to remember to remove.
+ */
+function renameMascot(text: string, mascots: VenueMascots): string {
+  if (!text || !mascots.other.test(text)) return text;
+
+  let out = text;
+  for (const [from, to] of mascots.rename) {
+    out = out.replace(new RegExp(from, 'gi'), (m) => matchCase(m, to));
+  }
+
+  // Hangul: the whole cell (Greeting_NameContent is a bare "하영"), or an
+  // occurrence touching a quote — "안녕 '하영'", "하영' 소개", "마스코트 '하영'를".
+  // Anything else is an ordinary word that happens to contain 유산.
+  const [koFrom, koTo] = mascots.renameKo;
+  if (out.trim() === koFrom) return koTo;
+  return out.replace(new RegExp('(?<=' + QUOTED + ')' + koFrom + '|' + koFrom + '(?=' + QUOTED + ')', 'g'), koTo);
+}
 
 /**
  * Collapse rows that share a key down to this venue's row.
@@ -127,7 +216,9 @@ export function parseLocalizationSheet(rows: string[][], layout: KioskLayoutId):
     if (!key || key === 'Key') continue; // skip section/header rows
 
     for (const { lang, index } of cols) {
-      const text = (row[index] ?? '').replace(/ /g, ' ').trim();
+      const raw = (row[index] ?? '').replace(/ /g, ' ').trim();
+      // Correct any residual other-venue mascot name — see renameMascot.
+      const text = mascots ? renameMascot(raw, mascots) : raw;
       if (text) result[lang]![key] = text;
     }
   }

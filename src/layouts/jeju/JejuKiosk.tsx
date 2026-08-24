@@ -39,6 +39,7 @@ import { JejuLocalpay } from './JejuLocalpay';
 import { JejuWebScreen } from './JejuWebScreen';
 import { JejuEvents } from './JejuEvents';
 import { JejuFlights } from './JejuFlights';
+import { JejuCruise } from './JejuCruise';
 import { JejuExchange } from './JejuExchange';
 import { JejuRentcar } from './JejuRentcar';
 
@@ -138,6 +139,10 @@ export function JejuKiosk(): JSX.Element {
     <JejuEvents controller={controller} />
   ) : cur === 'flights' ? (
     <JejuFlights controller={controller} />
+  ) : cur === 'cruise' ? (
+    // 여객터미널 W007's ferry board. Reachable only there — W006's home draws
+    // 렌트카 in the slot that navigates here.
+    <JejuCruise controller={controller} />
   ) : cur === 'exchange' ? (
     <JejuExchange controller={controller} />
   ) : cur === 'rentcar' ? (

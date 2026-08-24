@@ -1,0 +1,25 @@
+{
+  "_comment": "W008 세계자연유산본부 (JEJU_HERITAGE) — byte-for-byte the 제주공항 theme (jeju-airport.json): one 제주 design family, three venues. Only id/name differ; the mascot split (하영 vs 유산) lives in the localization layer, not here. If a value changes in jeju-airport.json, change it here too.",
+  "id": "jeju-heritage",
+  "name": "세계자연유산본부",
+  "colors": {
+    "primary": "#ff7f0f",
+    "primaryHover": "#e56f06",
+    "secondary": "#f5f1ef",
+    "background": "#ffffff",
+    "surface": "#ffffff",
+    "text": "#232323",
+    "textMuted": "#999999",
+    "accent": "#ff7f0f"
+  },
+  "typography": {
+    "fontFamily": "'Pretendard', 'Noto Sans KR', 'Noto Sans SC', 'Microsoft YaHei', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
+    "headingSize": "2.5rem",
+    "bodySize": "1.125rem",
+    "buttonSize": "1.25rem"
+  },
+  "spacing": {
+    "screenPadding": "2rem",
+    "buttonGap": "1rem"
+  }
+}

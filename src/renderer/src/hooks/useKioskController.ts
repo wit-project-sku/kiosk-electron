@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef } from 'react';
 import type { KioskScreenId } from '@shared/types/kiosk';
+import { useAccessibilityStore } from '@renderer/store/accessibilityStore';
 import { useKioskStore } from '@renderer/store/kioskStore';
 import { usePhotoStore } from '@renderer/store/photoStore';
 import { localIso, recordMenuTouch, trackEvent } from '@renderer/lib/analytics';
@@ -167,6 +168,13 @@ export function useKioskController(): KioskController {
   const handleIdle = useCallback(() => {
     const from = useKioskStore.getState().screen;
     const inPhoto = usePhotoStore.getState().active;
+    // Before the home-screen early return: the low-reach layout belongs to the
+    // visitor who switched it on, so it has to clear even if they left the
+    // kiosk sitting on home. Guarded so an idle machine isn't re-notifying its
+    // subscribers every timeout.
+    if (useAccessibilityStore.getState().lowReach) {
+      useAccessibilityStore.getState().setLowReach(false);
+    }
     if (from === 'home' && !inPhoto) return;
     if (inPhoto) {
       void window.api.photo.reset();

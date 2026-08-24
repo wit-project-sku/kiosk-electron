@@ -1,5 +1,5 @@
 {
-  "_comment": "W006 제주공항. Colours read from Figma node 6117:48085 — `[제주] main 01` = #FF7F0F, body text #232323, muted #999, notice/feature-card surface #F5F1EF. Tile plate colours are NOT here: each tile ships as an exported 200×200 image with its own background baked in (assets/icons/jeju/tile-*.png).",
+  "_comment": "W006 제주공항. Colours read from Figma node 6117:48085 — `[제주] main 01` = #FF7F0F, body text #232323, muted #999, notice/feature-card surface #F5F1EF. Tile plate colours are NOT here: each tile ships as an exported 200×200 image with its own background baked in (assets/icons/jeju/tile-*.png). Type is Pretendard as of the 2026-08 redesign (Figma draws every 제주 label in Pretendard, mixed with Noto Sans); Noto Sans KR stays next in the stack because the bundled Pretendard has no Thai or kana/kanji.",
   "id": "jeju-airport",
   "name": "제주공항",
   "colors": {
@@ -13,7 +13,7 @@
     "accent": "#ff7f0f"
   },
   "typography": {
-    "fontFamily": "'Noto Sans KR', 'Noto Sans SC', 'Microsoft YaHei', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
+    "fontFamily": "'Pretendard', 'Noto Sans KR', 'Noto Sans SC', 'Microsoft YaHei', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
     "headingSize": "2.5rem",
     "bodySize": "1.125rem",
     "buttonSize": "1.25rem"

@@ -3,7 +3,6 @@ import type { AppSettings, DisplayState, ImageAsset } from '@shared/types/domain
 import type { KioskId, SupportedLanguage } from '@shared/types/kiosk';
 import { isOk } from '@shared/types/result';
 import { DEFAULT_SETTINGS } from '@shared/constants';
-import { PHOTO_COUNTDOWN_SECONDS } from '@shared/constants/photoOptions';
 import { assetUrl, generatedUrl } from '@renderer/lib/media';
 import { useKioskCamera } from '@renderer/hooks/useKioskCamera';
 import { useHandGesture } from '@renderer/hooks/useHandGesture';
@@ -11,7 +10,6 @@ import { usePhotoWorkflow } from '@renderer/hooks/usePhotoWorkflow';
 import { usePhotoStore } from '@renderer/store/photoStore';
 import { trackEvent } from '@renderer/lib/analytics';
 import { displayVideosFor } from '@renderer/assets/videos';
-import { cameraIconUrl } from '@renderer/assets/icons/insadong/camera';
 import { clipsForPlayKey, clipsForScreen, initSubtitles, initVideoFiles } from '@renderer/lib/videoMap';
 import type { WeatherPlayKey } from '@shared/config/weatherVideo';
 import spinnerImg from '@renderer/assets/spinner.svg';
@@ -20,7 +18,6 @@ import { Slideshow } from './components/Slideshow';
 import { VideoWall } from './components/VideoWall';
 import { AiModelVideoWall } from './components/AiModelVideoWall';
 import { JejuCameraGuide } from './components/JejuCameraGuide';
-import { getKioskLocation } from '@shared/config/kioskLocations';
 import styles from './CustomerDisplay.module.css';
 
 const ATTRACT_STATE: DisplayState = {
@@ -274,16 +271,6 @@ export function CustomerDisplay(): JSX.Element {
     return () => clearTimeout(timer);
   }, [gestureGate]);
 
-  // 제주 has its own camera screen; every other location uses the one below.
-  const isJeju = kioskId ? getKioskLocation(kioskId).layout === 'JEJU_AIRPORT' : false;
-
-  // Camera-guide assets (Figma 4795:43166). Names match the Figma node names.
-  const guideOverlay = cameraIconUrl('guide-overlay');
-  const noGlasses = cameraIconUrl('no-glasses');
-  const poseLeft = cameraIconUrl('pose-ref-left');
-  const poseRightFrame = cameraIconUrl('pose-ref-right-frame');
-  const poseRight = cameraIconUrl('pose-ref-right');
-
   return (
     <KioskArtboard>
       <div className={styles.stage}>
@@ -326,11 +313,13 @@ export function CustomerDisplay(): JSX.Element {
         <video className={styles.media} src={assetUrl(assets[0])} autoPlay loop muted />
       )}
 
-      {/* ── Camera / countdown ── (Figma 4795:43166, 2160×3840 artboard) ──
-          제주 draws a different screen entirely — one dark header plus the feed,
-          no tips/pose boxes/branding — so it replaces this rather than
-          reskinning it. See JejuCameraGuide. */}
-      {(state.mode === 'camera' || state.mode === 'countdown') && isJeju && (
+      {/* ── Camera / countdown ──
+          ONE screen for every location since 2026-08-24: the gesture-gated
+          guide (dark header, palm/fist chips, live feed with the pose outline).
+          The legacy Insadong screen — numbered tips, reference-pose boxes,
+          disclaimer, branding — is retired along with its per-location branch;
+          its styles remain in the CSS should it ever need to come back. */}
+      {(state.mode === 'camera' || state.mode === 'countdown') && (
         <JejuCameraGuide
           videoRef={videoRef}
           lang={lang}
@@ -338,58 +327,6 @@ export function CustomerDisplay(): JSX.Element {
           gestureGate={gestureGate}
           detectionUnavailable={gestureStatus === 'unavailable'}
         />
-      )}
-
-      {(state.mode === 'camera' || state.mode === 'countdown') && !isJeju && (
-        <div className={styles.cameraScreen}>
-          {/* Top: title + numbered tips. Left '10' is static info; the badge on
-              the right is the LIVE countdown. */}
-          <div className={styles.camText}>
-            <div className={styles.camTitleRow}>
-              <p className={styles.camTitle}>
-                <span className={styles.camCount}>&apos;{PHOTO_COUNTDOWN_SECONDS}&apos;</span>
-                <span className={styles.camTitleRest}> 초후에 촬영이 됩니다.</span>
-              </p>
-              <div className={styles.camLiveCount}>{state.countdown ?? PHOTO_COUNTDOWN_SECONDS}</div>
-            </div>
-            <ol className={styles.camTips}>
-              <li className={styles.camTip}>
-                <span className={styles.camTipIconGap} aria-hidden />안경은 벗고 찍어주세요.
-              </li>
-              <li className={styles.camTip}>원안에 ‘얼굴’과 ‘손’을 넣어주세요.</li>
-              <li className={styles.camTip}>원 밖으로 나가면 이상하게 합성될 수 있어요.</li>
-            </ol>
-          </div>
-          {noGlasses && (
-            <img src={noGlasses} className={styles.camNoGlasses} alt="" draggable={false} />
-          )}
-
-          {/* Middle: live camera + dashed guide overlay */}
-          <div className={styles.camFeedWrap}>
-            <video ref={videoRef} className={styles.camFeed} muted playsInline />
-            {guideOverlay && (
-              <img src={guideOverlay} className={styles.camGuide} alt="" draggable={false} />
-            )}
-          </div>
-
-          {/* Bottom: two reference-pose boxes */}
-          {poseLeft && (
-            <img src={poseLeft} className={styles.camRefLeft} alt="" draggable={false} />
-          )}
-          <div className={styles.camRefRight}>
-            {poseRightFrame && (
-              <img src={poseRightFrame} className={styles.camRefRightFrame} alt="" draggable={false} />
-            )}
-            {poseRight && (
-              <img src={poseRight} className={styles.camRefRightImg} alt="" draggable={false} />
-            )}
-          </div>
-
-          <p className={styles.camDisclaimer}>
-            # 날씨가 어둡거나 흐린날은 AI 사진 합성이 어색할 수 있어요
-          </p>
-          <p className={styles.camBranding}>WIT GLOBAL &nbsp;x&nbsp; DIGICON</p>
-        </div>
       )}
 
       {/* ── Generating / waiting ── */}

@@ -21,6 +21,7 @@ import { useMemo, useState } from 'react';
 import type { KioskController } from '@renderer/hooks/useKioskController';
 import { jejuIconUrl } from '@renderer/assets/icons/jeju';
 import { useDetailStore } from '@renderer/store/detailStore';
+import { useAccessibilityStore } from '@renderer/store/accessibilityStore';
 import { useLanguageStore } from '@renderer/store/languageStore';
 import { useShopStore } from '@renderer/store/shopStore';
 import { facilityLabel, pick, type Lang } from '@renderer/lib/i18n';
@@ -33,6 +34,7 @@ import {
   shopsForBase,
 } from '@renderer/lib/shops';
 import { trackEvent } from '@renderer/lib/analytics';
+import { jejuMascot } from './jejuMascot';
 import { JejuPageFrame } from './JejuPageFrame';
 import { JejuSubTabRow } from './JejuSubTabRow';
 import styles from './JejuHelp.module.css';
@@ -243,6 +245,7 @@ interface Props {
 
 export function JejuHelp({ controller, initialCategory }: Props): JSX.Element {
   const lang = useLanguageStore((s) => s.currentLanguage);
+  const lowReach = useAccessibilityStore((s) => s.lowReach);
   const shops = useShopStore((s) => s.shops);
   const setDetail = useDetailStore((s) => s.setItem);
   const [terminal, setTerminal] = useState<TerminalId>('international');
@@ -298,18 +301,23 @@ export function JejuHelp({ controller, initialCategory }: Props): JSX.Element {
       // Carries the Naver LINK, not a review count — see JejuDetail.
       blogReviews: shop?.naverLink ?? '',
     });
-    controller.navigate('detail', '도와줘 하영 상세');
+    controller.navigate('detail', `도와줘 ${jejuMascot().ko} 상세`);
   };
 
   return (
-    // No banner: the frame runs the background illustration to the bottom.
+    // No banner in the standard layout: the frame runs the background
+    // illustration to the bottom. The low-reach frame DOES open with one, so
+    // the page asks for it — see .mapLow and friends.
     <JejuPageFrame
       controller={controller}
-      title="도와줘 ‘하영’"
+      title={jejuMascot().helpTitle}
       showBanner={false}
+      lowReachBanner
+      lowReachSelfLayout
+      bannerFallback="banner-detail"
       onBack={() => controller.navigate('home', '뒤로')}
     >
-      <div className={styles.terminals}>
+      <div className={`${styles.terminals} ${lowReach ? styles.terminalsLow : ''}`}>
         {TERMINALS.map(({ id, label }) => (
           <button
             key={id}
@@ -325,7 +333,9 @@ export function JejuHelp({ controller, initialCategory }: Props): JSX.Element {
         ))}
       </div>
 
+      {/* This page's floor band is on y940, not the shared row's y920. */}
       <JejuSubTabRow
+        className={`${styles.floors} ${lowReach ? styles.floorsLow : ''}`}
         items={FLOORS}
         value={floor}
         onChange={(id) => {
@@ -334,7 +344,7 @@ export function JejuHelp({ controller, initialCategory }: Props): JSX.Element {
         }}
       />
 
-      <div className={styles.cats}>
+      <div className={`${styles.cats} ${lowReach ? styles.catsLow : ''}`}>
         {[0, PER_ROW].map((start) => (
           <div key={start} className={styles.catRow}>
             {CATEGORIES.slice(start, start + PER_ROW).map((id) => (
@@ -355,7 +365,7 @@ export function JejuHelp({ controller, initialCategory }: Props): JSX.Element {
       </div>
 
       {map ? (
-        <div className={styles.map}>
+        <div className={`${styles.map} ${lowReach ? styles.mapLow : ''}`}>
           <img src={map.src} alt="" draggable={false} />
 
           {/* The dots for the selected chip. The plan paints every dot BLACK,
@@ -385,7 +395,7 @@ export function JejuHelp({ controller, initialCategory }: Props): JSX.Element {
           )}
         </div>
       ) : (
-        <p className={styles.empty}>{pick(COMING_SOON, lang)}</p>
+        <p className={`${styles.empty} ${lowReach ? styles.emptyLow : ''}`}>{pick(COMING_SOON, lang)}</p>
       )}
     </JejuPageFrame>
   );

@@ -43,8 +43,9 @@ interface Slot {
 /**
  * Every interactive kiosk button keyed to its slot in the `buttons` table.
  *
- * Positions are identical across all deployments (W001–W005); only the row id
- * and the kioskId prefix differ. Most buttons are 1:1 with a destination screen;
+ * Positions are identical across the Insadong deployments (W001–W003); only the
+ * row id and the kioskId prefix differ. W004 onwards reorder and relabel, so each
+ * has its own entry in SLOT_OVERRIDES below. Most buttons are 1:1 with a screen;
  * the photo sub-actions and weather widget are explicit non-screen keys.
  *
  * Position 5 is location-specific: 인사랑(준비중) on W001/W002, 위드마켓 on W003 —
@@ -215,6 +216,79 @@ const SLOT_OVERRIDES: Partial<Record<KioskId, Record<string, Slot>>> = {
     exchange: { position: 15, type: '환율' },
     // Same reason as the base 기부 slot: the id differs per API environment, so it
     // must come off the live response by type rather than any static mirror.
+    donation: { position: 16, type: '기부', suffix: '기부', dynamicId: true },
+    tamnao: { position: 17, type: '탐나오' },
+    localpay: { position: 18, type: '지역화폐' },
+    photo: { position: 20, type: '사진촬영', suffix: '아이콘20' },
+    restroom: { position: 21, type: '화장실' },
+  },
+  // ── W007 제주국제여객터미널 ──
+  // Transcribed from the live response on 2026-08-24 (21 rows, ids 150–170 in
+  // production). It is W006's grid with EXACTLY ONE row changed: line 6 position 4
+  // is 크루즈 운항 where 제주공항 has 렌트카. Every other type, line and position
+  // matches byte-for-byte, apostrophes included (ASCII U+0027, not the Figma's
+  // curly U+2018/2019).
+  //
+  // No BUTTON_IDS mirror, same reasoning as W006: 150–170 are verified for
+  // PRODUCTION only and the 기부 case proved ids diverge between prod and stage, so
+  // every id is resolved off the live response by `buttonType` instead.
+  //
+  // `cruise` has no screen behind it yet — the tile the visitor sees is still
+  // 렌트카 (see JejuHome's VENUE_TILE). The row is mirrored anyway because this
+  // file's job is to match the CMS, and the moment that tile is swapped the
+  // analytics join is already correct. Not in the CMS, so still id-less here:
+  // K-DRAMA, 운항정보, photo_solo/photo_together; `프로모션` (id 168) is the reverse
+  // — a seeded row with no 제주 screen behind it.
+  W007: {
+    home: { position: 1, type: '홈' },
+    search: { position: 2, type: '검색' },
+    language: { position: 3, type: '언어선택' },
+    ai_search: { position: 4, type: "'제주' 뭐하지(AI검색)" },
+    market: { position: 5, type: '위드마켓' },
+    events: { position: 6, type: '제주도 이벤트' },
+    eat: { position: 7, type: "'제주' 뭐먹지" },
+    shop: { position: 8, type: "'제주' 뭐사지" },
+    lodging: { position: 9, type: '숙박안내' },
+    taxfree: { position: 10, type: 'TAX-FREE' },
+    about: { position: 11, type: '여기는 제주도' },
+    hello: { position: 12, type: "안녕 '하영'" },
+    help: { position: 13, type: "도와줘 '하영'" },
+    cruise: { position: 14, type: '크루즈 운항' }, // ← the one row 제주공항 does not have
+    exchange: { position: 15, type: '환율' },
+    donation: { position: 16, type: '기부', suffix: '기부', dynamicId: true },
+    tamnao: { position: 17, type: '탐나오' },
+    localpay: { position: 18, type: '지역화폐' },
+    photo: { position: 20, type: '사진촬영', suffix: '아이콘20' },
+    restroom: { position: 21, type: '화장실' },
+  },
+  // ── W008 세계자연유산본부 ──
+  // Transcribed from the live response on 2026-08-24 (21 rows, ids 171–191 in
+  // production). It is W007's grid — 크루즈 운항 at line 6 position 4, NOT 렌트카 —
+  // with the two mascot rows renamed: 안녕 '유산' / 도와줘 '유산' (ASCII U+0027
+  // apostrophes, verified by dumping the codepoints). Every other type, line and
+  // position matches W007 byte-for-byte.
+  //
+  // No BUTTON_IDS mirror, same reasoning as W006/W007: 171–191 are verified for
+  // PRODUCTION only and the 기부 case proved ids diverge between prod and stage, so
+  // every id is resolved off the live response by `buttonType` instead. Not in the
+  // CMS, so still id-less here: K-DRAMA, 운항정보, photo_solo/photo_together;
+  // `프로모션` (id 189) is the reverse — a seeded row with no 제주 screen behind it.
+  W008: {
+    home: { position: 1, type: '홈' },
+    search: { position: 2, type: '검색' },
+    language: { position: 3, type: '언어선택' },
+    ai_search: { position: 4, type: "'제주' 뭐하지(AI검색)" },
+    market: { position: 5, type: '위드마켓' },
+    events: { position: 6, type: '제주도 이벤트' },
+    eat: { position: 7, type: "'제주' 뭐먹지" },
+    shop: { position: 8, type: "'제주' 뭐사지" },
+    lodging: { position: 9, type: '숙박안내' },
+    taxfree: { position: 10, type: 'TAX-FREE' },
+    about: { position: 11, type: '여기는 제주도' },
+    hello: { position: 12, type: "안녕 '유산'" }, // ← the mascot rows W006/W007 spell 하영
+    help: { position: 13, type: "도와줘 '유산'" },
+    cruise: { position: 14, type: '크루즈 운항' },
+    exchange: { position: 15, type: '환율' },
     donation: { position: 16, type: '기부', suffix: '기부', dynamicId: true },
     tamnao: { position: 17, type: '탐나오' },
     localpay: { position: 18, type: '지역화폐' },

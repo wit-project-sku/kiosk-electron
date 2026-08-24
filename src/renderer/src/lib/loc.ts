@@ -4,6 +4,7 @@ import { LOCALIZATION } from '@renderer/data/localization.generated';
 import { LOCALIZATION_OSAEK } from '@renderer/data/localization-osaek.generated';
 import { LOCALIZATION_HWASEONG } from '@renderer/data/localization-hwaseong.generated';
 import { LOCALIZATION_JEJU } from '@renderer/data/localization-jeju.generated';
+import { LOCALIZATION_JEJU_HERITAGE_OVERRIDES } from '@renderer/data/localization-jeju-heritage.generated';
 import { getKioskLocation } from '@shared/config/kioskLocations';
 import { useKioskStore } from '@renderer/store/kioskStore';
 
@@ -15,7 +16,7 @@ const locLang = (lang: Lang): LocLang => toLocalizedLang(lang);
 
 /**
  * Bundled fallback table for the running location: Osaek for W004 (OSAN),
- * Hwaseong for W005 (HWASEONG), Jeju for W006 (JEJU_AIRPORT), else insadong
+ * Hwaseong for W005 (HWASEONG), Jeju for W006/W007 (JEJU_AIRPORT), else insadong
  * (W001–W003).
  *
  * 제주 joined on 2026-08-13 — Localization_Jeju carries 233 keys, of which ~230
@@ -23,11 +24,23 @@ const locLang = (lang: Lang): LocLang => toLocalizedLang(lang);
  * back to its own Korean (see `t`), NOT to the Insadong table: borrowing another
  * location's copy is what the per-layout split exists to prevent.
  */
+/**
+ * W008 세계자연유산본부's bundled table — W006's with the 유산-venue rows overlaid.
+ * The overrides file carries ONLY the keys whose mascot pick differs (7 today),
+ * so the ~230-key 제주 table isn't bundled twice. Mirrors what the runtime sync
+ * produces for a JEJU_HERITAGE machine (LocalizationSyncParser.VENUE_MASCOTS).
+ */
+const LOCALIZATION_JEJU_HERITAGE: typeof LOCALIZATION = {
+  ...LOCALIZATION_JEJU,
+  ...LOCALIZATION_JEJU_HERITAGE_OVERRIDES,
+};
+
 function bundledTable(): typeof LOCALIZATION {
   const layout = getKioskLocation(useKioskStore.getState().config.kioskId).layout;
   if (layout === 'OSAN') return LOCALIZATION_OSAEK;
   if (layout === 'HWASEONG') return LOCALIZATION_HWASEONG;
   if (layout === 'JEJU_AIRPORT') return LOCALIZATION_JEJU;
+  if (layout === 'JEJU_HERITAGE') return LOCALIZATION_JEJU_HERITAGE;
   return LOCALIZATION;
 }
 

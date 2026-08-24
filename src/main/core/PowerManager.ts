@@ -34,7 +34,7 @@ const AUTORUN_KEY = 'KioskApp';
 /**
  * Some sites run on a daily OPERATING-HOURS power cycle instead of the fleet-wide
  * 2AM reboot: shut down at 22:00 (종료), start at 08:00 (시작). Today that is
- * 오색시장 W004 and 제주공항 W006.
+ * 오색시장 W004, 제주공항 W006 and 제주국제여객터미널 W007.
  *
  * Note on the 08:00 start: a scheduled task's "wake" timer can resume the PC from
  * sleep/hibernate, but Windows cannot power on a fully powered-off (S5) machine —
@@ -46,10 +46,11 @@ const AUTORUN_KEY = 'KioskApp';
  * fails "Access denied" and the catch silently drops the 08:00 task AND the
  * powercfg call, leaving a kiosk that shuts down at 22:00 and never comes back.
  *
- * TODO(제주 W006): 22:00/08:00 are the 오색시장 hours. Confirm 제주공항's actual
- * operating hours and split the times per kiosk if they differ.
+ * TODO(제주 W006/W007): 22:00/08:00 are the 오색시장 hours. Confirm each 제주 venue's
+ * actual operating hours and split the times per kiosk if they differ — a ferry
+ * terminal's last sailing and an airport's last flight are not the same clock.
  */
-const OPERATING_HOURS_KIOSK_IDS = new Set(['W004', 'W006']);
+const OPERATING_HOURS_KIOSK_IDS = new Set(['W004', 'W006', 'W007', 'W008']);
 const OPERATING_HOURS_SHUTDOWN_TASK = 'KioskShutdownAt10PM';
 const OPERATING_HOURS_START_TASK = 'KioskStartAt8AM';
 const OPERATING_HOURS_SHUTDOWN_TIME = '22:00';
@@ -135,7 +136,7 @@ async function removeRestartTask(): Promise<void> {
 }
 
 /**
- * W004/W006: provision the 08:00 시작 / 22:00 종료 daily power cycle and drop the
+ * W004/W006/W007: provision the 08:00 시작 / 22:00 종료 daily power cycle and drop the
  * fleet-wide 2AM reboot. Idempotent (`/f`, `-Force`) — safe to run every launch.
  */
 async function ensureOperatingHoursPowerCycle(): Promise<void> {
@@ -201,7 +202,7 @@ export async function setupKioskPower(kioskId?: string): Promise<void> {
     return;
   }
   configureAutoStart();
-  // W004/W006 use an operating-hours power cycle (08:00 시작 / 22:00 종료);
+  // W004/W006/W007 use an operating-hours power cycle (08:00 시작 / 22:00 종료);
   // every other kiosk keeps the fleet-wide 2AM reboot.
   if (kioskId != null && OPERATING_HOURS_KIOSK_IDS.has(kioskId)) {
     await ensureOperatingHoursPowerCycle();

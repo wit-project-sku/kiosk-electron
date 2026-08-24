@@ -28,7 +28,10 @@
      between top and bottom, so nothing is clipped; the 100px bottom padding
      stays as the floor for everything shorter. */
   padding: 28px 45px 100px;
-  border: 5px solid #e8e8e8;
+  /* No border, no shadow — Figma draws a plain white rounded plate
+     (`bg-white rounded-[42.9px]`). The only stroke the design keeps on this
+     screen is the QR frame's 4.29px #ff7f0f, further down. */
+  border: none;
   border-radius: 42.9px;
   background: #fff;
   display: flex;

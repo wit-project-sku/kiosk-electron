@@ -43,9 +43,10 @@
  * above `.themes` in the CSS for what is missing on the AR side.
  *
  * Step ② rides the LANDING tab (the first the API returns), which is where it
- * sat when that tab was hardcoded 제주. It is deliberately not on every tab:
- * the 사진촬영안내 card is mutually exclusive with it and is the only way into
- * the 한복 설명 page.
+ * sat when that tab was hardcoded 제주. Since the 2026-08-24 redraw the
+ * 사진촬영안내 card is on EVERY condition — the landing tab drops it into the
+ * banner band (and draws no banner), every other tab hangs it above the banner
+ * — so the 한복 설명 page is reachable from anywhere.
  */
 import { useEffect, useMemo, useState } from 'react';
 import { Camera } from 'lucide-react';
@@ -69,7 +70,7 @@ import { backgroundName } from '@renderer/lib/backgrounds';
 import { outfitCategoryLabel } from '@renderer/lib/outfitCategories';
 import { cameraIconUrl } from '@renderer/assets/icons/insadong/camera';
 import { pick, useLang } from '@renderer/lib/i18n';
-import { JejuPhotoRegister } from './JejuPhotoRegister';
+import { jejuMascot, type JejuMascot } from './jejuMascot';
 /* The privacy modal and the camera-direction popup are identical on every
    layout, so their styles are reused from the shared step rather than copied. */
 import shared from '../photo/HanbokSelect.module.css';
@@ -123,14 +124,13 @@ const TAB_MIN_COLUMNS = 4;
 const TAB_TIGHT_FROM = 5;
 
 /**
- * Outfit-strip geometry, straight off 6258:48611 — 478-wide cards on a 508
- * pitch inside the 1820 column. Swiper sizes slides from `slidesPerView`, so
- * the card width is expressed as "how many fit", not as a fixed px: four cards
- * overrun the column, and the fractional value is what leaves the design's
- * peek of the next card at the right edge.
+ * Outfit-strip geometry, straight off the 2026-08-24 frames — 350-wide cards
+ * justify-between across the 1820 column, i.e. a 17.5 gap. Swiper sizes slides
+ * from `slidesPerView`, and (1820 + 17.5) / (350 + 17.5) is exactly 5: the
+ * design shows five whole cards with no peek.
  */
-const CARD_GAP = 30;
-const CARDS_PER_VIEW = (1820 + CARD_GAP) / (478 + CARD_GAP); // 3.6417…
+const CARD_GAP = 17.5;
+const CARDS_PER_VIEW = (1820 + CARD_GAP) / (350 + CARD_GAP); // = 5
 
 const SUBTITLE = {
   ko: '원하시는 의상을 고르고 하단의 버튼을 눌러주세요',
@@ -176,16 +176,21 @@ const SOLO = {
   id: 'Foto (sendiri)',
 };
 
-const TOGETHER = {
-  ko: "사진촬영(with '하영')",
-  en: "Take a photo (with 'Hayoung')",
-  ja: '写真撮影（하영と）',
-  zh: "拍照（与'하영'）",
-  vi: "Chụp ảnh (với 'Hayoung')",
-  th: "ถ่ายรูป (กับ 'Hayoung')",
-  ru: 'Фото (с «Хаён»)',
-  id: "Foto (dengan 'Hayoung')",
-};
+/**
+ * Built per mascot: 하영 on W006/W007, 유산 on W008. Only the LAST-RESORT
+ * fallback — the sheet's Photo_SelectTogether row is already venue-split
+ * (see LocalizationSyncParser.VENUE_MASCOTS) and wins whenever it has a cell.
+ */
+const togetherLabel = (m: JejuMascot) => ({
+  ko: `사진촬영(with '${m.ko}')`,
+  en: `Take a photo (with '${m.mixed}')`,
+  ja: `写真撮影（${m.ko}と）`,
+  zh: `拍照（与'${m.ko}'）`,
+  vi: `Chụp ảnh (với '${m.mixed}')`,
+  th: `ถ่ายรูป (กับ '${m.mixed}')`,
+  ru: `Фото (с «${m.ru}»)`,
+  id: `Foto (dengan '${m.mixed}')`,
+});
 
 const NO_OUTFITS = {
   ko: '준비 중인 의상입니다.',
@@ -280,11 +285,6 @@ export function JejuHanbokSelect({
   // No background is pre-selected — the frames draw every plate unhighlighted.
   const [backgroundId, setBackgroundId] = useState<number | null>(null);
   const [privacyOpen, setPrivacyOpen] = useState(false);
-  /**
-   * 정보 입력 (Figma 6258:49690) stands between the capture buttons and the
-   * camera: it holds the chosen mode until 등록하기 confirms consent.
-   */
-  const [pendingMode, setPendingMode] = useState<CaptureMode | null>(null);
   const [infoOpen, setInfoOpen] = useState(false);
 
   // Cards whose image fails to load are dropped rather than left as empty boxes.
@@ -324,9 +324,16 @@ export function JejuHanbokSelect({
   /** The AR clothing key: `gender|code`, exactly as the shared step builds it. */
   const outfitKey = selectedOutfit ? `${selectedOutfit.gender ?? ''}|${selectedOutfit.code}` : '';
 
-  const askForDetails = (mode: CaptureMode): void => {
+  /**
+   * Straight to the camera. The 정보 입력 step (JejuPhotoRegister — 국적/키 plus
+   * a consent tick) used to stand here; removed 2026-08-24 by request. The two
+   * fields were collected-but-never-sent anyway, and dropping the step is also
+   * what every other location does — their capture buttons have always fired
+   * directly. The component file stays in the repo should the step return.
+   */
+  const startCapture = (mode: CaptureMode): void => {
     if (!selectedOutfit) return; // nothing chosen — never send a bare category
-    setPendingMode(mode);
+    onCapture(mode, outfitKey);
   };
 
   const star = jejuIconUrl('star');
@@ -395,29 +402,13 @@ export function JejuHanbokSelect({
     );
   }
 
-  /**
-   * 정보 입력 replaces this page's BODY rather than veiling it. Figma 6258:49690
-   * draws that step as an ordinary sub-page — background, header, banner, the
-   * card — with no trace of the outfit step behind it. Rendering it over a
-   * translucent scrim left the tabs, the outfit strip and the capture buttons
-   * showing through, which is not what either frame draws.
-   */
-  const registering = pendingMode !== null && !countdownActive;
-
   return (
     <div className={styles.root}>
       {icon('bg') && <img src={icon('bg')} alt="" className={styles.bg} draggable={false} />}
 
-      {/* 뒤로 backs out of 정보 입력 first — the frame draws the same chevron, and
-          it is the only way back now that there is no scrim to tap. */}
-      <Header
-        title={photoTitle}
-        onHome={onHome}
-        onBack={registering ? () => setPendingMode(null) : undefined}
-      />
+      <Header title={photoTitle} onHome={onHome} />
 
-      {!registering && (
-        <>
+      <>
           {/* ── ① 의상 선택하기 ── */}
           <div className={`${styles.step} ${styles.stepOutfit}`}>
             <span className={styles.stepBadge}>1</span>
@@ -459,7 +450,7 @@ export function JejuHanbokSelect({
               className={`${styles.outfits} ${showThemes ? '' : styles.outfitsGrid}`}
               modules={[Grid, FreeMode]}
               /* The ② 배경 테마 step is what decides: where it exists it occupies
-                 1978 onward, so the strip gets ONE row; where it does not, the
+                 1855 onward, so the strip gets ONE row; where it does not, the
                  strip takes that space back as a second. See `.outfits`. */
               grid={{ rows: showThemes ? 1 : 2, fill: 'row' }}
               slidesPerView={CARDS_PER_VIEW}
@@ -496,22 +487,23 @@ export function JejuHanbokSelect({
             category && <p className={styles.emptyCat}>{pick(NO_OUTFITS, lang)}</p>
           )}
 
-          {/* ── Step ② — the 제주 tab gets the background themes WHEN this kiosk
-             has any; every other category (and a kiosk with none assigned) gets
-             the 사진촬영안내 card. Mutually exclusive, same slot. ── */}
-          {showThemes ? (
+          {/* ── Step ② — the landing tab gets the background themes WHEN this
+             kiosk has any; the 사진촬영안내 card is on EVERY condition since the
+             2026-08-24 redraw, just lower on the landing tab (where it takes the
+             banner's band — see .guideLanding). ── */}
+          {showThemes && (
             <>
               <div className={`${styles.step} ${styles.stepTheme}`}>
                 <span className={styles.stepBadge}>2</span>
                 <p className={styles.stepTitle}>{pick(STEP_THEME, lang)}</p>
               </div>
               {/* Plates are the API's 9:16 previews; `object-fit: cover` fits
-                  them to the design's 381×762 card, under the milky veil that
-                  carries the name (see `.theme::after` in the CSS). See the note
-                  above `.themes` for why the pick does not travel with the
-                  capture. A plate whose image 404s keeps its name and falls back
-                  to the bare plate on its own — the veil and the label sit over
-                  the button, not over the <img>. */}
+                  them to the design's 340×680 tile, under the 20% black wash
+                  that carries the white name (see `.theme::after` in the CSS).
+                  See the note above `.themes` for why the pick does not travel
+                  with the capture. A plate whose photo 404s keeps its name and
+                  falls back to the bare washed plate on its own — the wash and
+                  the label sit over the button, not over the image element. */}
               <div className={styles.themes}>
                 {backgrounds.map((bg) => {
                   const on = bg.backgroundId === backgroundId;
@@ -536,8 +528,10 @@ export function JejuHanbokSelect({
                 })}
               </div>
             </>
-          ) : (
-            <div className={styles.guide}>
+          )}
+
+          {/* On every condition — landing drops it into the banner band. */}
+          <div className={`${styles.guide} ${showThemes ? styles.guideLanding : ''}`}>
               <div className={styles.guideMain}>
                 <div className={styles.guideTitle}>
                   <span className={styles.guideDot} />
@@ -567,8 +561,7 @@ export function JejuHanbokSelect({
                 </span>
                 <span className={styles.guideInfoLabel}>{t('MainButton_Hanbok', lang)}</span>
               </button>
-            </div>
-          )}
+          </div>
 
           {/* ── Capture ── */}
           <div className={`${styles.captureRow} ${showThemes ? '' : styles.captureRowGuide}`}>
@@ -576,7 +569,7 @@ export function JejuHanbokSelect({
               type="button"
               className={`${styles.capture} ${selectedOutfit ? '' : styles.captureDisabled}`}
               disabled={!selectedOutfit}
-              onClick={() => askForDetails('solo')}
+              onClick={() => startCapture('solo')}
             >
               <Camera className={styles.captureIcon} strokeWidth={2} />
               {pick(SOLO, lang)}
@@ -585,31 +578,20 @@ export function JejuHanbokSelect({
               type="button"
               className={`${styles.capture} ${selectedOutfit ? '' : styles.captureDisabled}`}
               disabled={!selectedOutfit}
-              onClick={() => askForDetails('withInsa')}
+              onClick={() => startCapture('withInsa')}
             >
               <Camera className={styles.captureIcon} strokeWidth={2} />
-              {pick(TOGETHER, lang)}
+              {pick(togetherLabel(jejuMascot()), lang)}
             </button>
           </div>
-        </>
-      )}
+      </>
 
-      {banner && (
+      {/* No banner on the landing outfit view — its 사진촬영안내 card occupies
+          the banner band (6258:48575/48469 draw none). */}
+      {banner && !showThemes && (
         <div className={styles.banner}>
           <img src={banner} alt="" draggable={false} />
         </div>
-      )}
-
-      {/* 정보 입력 — 등록하기 is what actually starts the capture. */}
-      {registering && (
-        <JejuPhotoRegister
-          onOpenPolicy={() => setPrivacyOpen(true)}
-          onSubmit={() => {
-            const mode = pendingMode;
-            setPendingMode(null);
-            onCapture(mode, outfitKey);
-          }}
-        />
       )}
 
       {/* Camera-direction popup — shown while capturing / generating. */}
@@ -625,8 +607,14 @@ export function JejuHanbokSelect({
       {/* 개인정보 처리방침 — Figma 6258:48264. Same copy and chrome as every
           other layout, so it reuses the shared modal styles verbatim. */}
       {privacyOpen && (
-        <div className={shared.privacyOverlay} onClick={() => setPrivacyOpen(false)}>
-          <div className={shared.privacyModal} onClick={(e) => e.stopPropagation()}>
+        <div
+          className={`${shared.privacyOverlay} ${styles.privacyOverlayJeju}`}
+          onClick={() => setPrivacyOpen(false)}
+        >
+          <div
+            className={`${shared.privacyModal} ${styles.privacyModalJeju}`}
+            onClick={(e) => e.stopPropagation()}
+          >
             <div className={shared.privacyHead}>
               <span className={shared.privacyTitle}>{pick(PRIVACY, lang).title}</span>
               <button
