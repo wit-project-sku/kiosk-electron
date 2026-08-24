@@ -15,17 +15,15 @@
  * differing from `scheduledTime` (see `hasTimeChange`), and the colour by the
  * status — two independent conditions, exactly as the design implies.
  *
- * TODO(제주 W006): `SAMPLE_DEPARTURES` is placeholder data. The kiosk has no
- * airport feed — ShopService/EventsService/WeatherService are the only ones —
- * so this ships the literal rows drawn in the Figma. `useJejuDepartures()` is
- * the ONE seam: swap its body for the real departures feed (한국공항공사 운항
- * 현황 or equivalent) and everything below keeps working, because the raw feed
- * strings already go through `normalizeFlightStatus`. A board showing a stale
- * 대한항공 16:05 to every traveller is worse than no board — wire it before this
- * goes live.
+ * `useJejuDepartures()` / `useJejuArrivals()` read the IPC snapshot from
+ * `useFlightStore` (filled by FlightService from 한국공항공사 실시간 운항정보).
+ * Raw feed strings go through `normalizeFlightStatus` so the board colours and
+ * strike-through stay independent of the transport.
  */
 import { useMemo } from 'react';
 import type { Lang } from '@renderer/lib/i18n';
+import { useFlightStore } from '@renderer/store/flightStore';
+import type { RawJejuArrival, RawJejuDeparture } from '@shared/types/jejuFlight';
 
 // ── Status ─────────────────────────────────────────────────────────────
 
@@ -47,9 +45,9 @@ export type FlightStatusId =
 const STATUS_COLOR: Record<FlightStatusId, string> = {
   // Pinned by the design.
   boarding: '#005ab4', // [화성휴게소] main 1 — home board 6212:48936
-  final: '#2e7d32', // green 01 — home board 6217:97433
+  final: '#2e7d32', // green 01 — home board 6217:97433 / 도착 현황
   delayed: '#ff7f0f', // [제주] main 01 — home board 6217:96955
-  arrived: '#ff7f0f', // [제주] main 01 — 운항정보=도착 6219:98530
+  arrived: '#2e7d32', // 탑승최종과 동일 — 운항정보=도착
   // Not drawn anywhere. `scheduled`/`departed` are unremarkable, so they take
   // the same #333 every other cell uses. `cancelled` is a disruption like 지연
   // and reuses that token rather than introducing a colour of its own.
@@ -64,7 +62,7 @@ const STATUS_LABEL: Record<FlightStatusId, Partial<Record<Lang, string>>> = {
     vi: 'Dự kiến', th: 'ตามกำหนด', ru: 'По расписанию', id: 'Terjadwal',
   },
   boarding: {
-    ko: '탑승 중', en: 'Boarding', ja: '搭乗中', zh: '登机中',
+    ko: '탑승중', en: 'Boarding', ja: '搭乗中', zh: '登机中',
     vi: 'Đang lên máy bay', th: 'กำลังขึ้นเครื่อง', ru: 'Посадка', id: 'Boarding',
   },
   final: {
@@ -162,7 +160,8 @@ export function flightKindLabel(kind: FlightKind, lang: Lang): string {
 
 /** What every flight row carries, whichever direction it is going. */
 export interface JejuFlightBase {
-  /** Stable key. Flight number is unique per day on a board. */
+  /** Stable key. Fid + 편명 + 시각 — codeshares share a flight number. */
+  id: string;
   flightNo: string;
   /** Published time, `HH:mm`. Always the ORIGINAL — never overwrite it. */
   scheduledTime: string;
@@ -191,21 +190,18 @@ export interface JejuArrival extends JejuFlightBase {
 }
 
 /** The rows as a feed hands them over, before normalisation. */
-interface RawFlightBase {
-  flightNo: string;
-  scheduledTime: string;
-  estimatedTime?: string;
-  airline: string;
-  kind?: string;
-  status?: string;
-}
-export interface RawJejuDeparture extends RawFlightBase {
-  destination: string;
-  gate: string;
-}
-export interface RawJejuArrival extends RawFlightBase {
-  origin: string;
-  belt: string;
+export type { RawJejuArrival, RawJejuDeparture };
+
+function normalizeBase(raw: RawJejuDeparture | RawJejuArrival): JejuFlightBase {
+  return {
+    id: raw.id || raw.flightNo,
+    flightNo: raw.flightNo,
+    scheduledTime: raw.scheduledTime,
+    estimatedTime: raw.estimatedTime,
+    airline: raw.airline,
+    kind: raw.kind === '국제선' || raw.kind === 'international' ? 'international' : 'domestic',
+    status: normalizeFlightStatus(raw.status),
+  };
 }
 
 /**
@@ -221,17 +217,6 @@ export function displayTime(f: JejuFlightBase): string {
   return hasTimeChange(f) ? (f.estimatedTime as string) : f.scheduledTime;
 }
 
-function normalizeBase(raw: RawFlightBase): JejuFlightBase {
-  return {
-    flightNo: raw.flightNo,
-    scheduledTime: raw.scheduledTime,
-    estimatedTime: raw.estimatedTime,
-    airline: raw.airline,
-    kind: raw.kind === '국제선' || raw.kind === 'international' ? 'international' : 'domestic',
-    status: normalizeFlightStatus(raw.status),
-  };
-}
-
 export function normalizeDeparture(raw: RawJejuDeparture): JejuDeparture {
   return { ...normalizeBase(raw), destination: raw.destination, gate: raw.gate };
 }
@@ -240,77 +225,13 @@ export function normalizeArrival(raw: RawJejuArrival): JejuArrival {
   return { ...normalizeBase(raw), origin: raw.origin, belt: raw.belt };
 }
 
-// ── Source ─────────────────────────────────────────────────────────────
-
-/**
- * Placeholder departures — see the TODO at the top of this file.
- *
- * These are written as RAW feed rows on purpose: they go through
- * `normalizeDeparture` exactly like live data would, so the status mapping is
- * exercised on every render instead of being untested code waiting for an API.
- *
- * The three rows are the three Figma conditions, in order, so all of them are
- * reachable on a running kiosk: the board leads with the first and 운항 정보
- * 더보기 reveals the rest.
- */
-const SAMPLE_DEPARTURES: RawJejuDeparture[] = [
-  {
-    flightNo: 'KE1141', scheduledTime: '16:05', airline: '대한항공',
-    destination: '김해/부산', kind: '국내선', gate: '7', status: '탑승중',
-  },
-  {
-    flightNo: 'OZ8942', scheduledTime: '16:05', estimatedTime: '16:15',
-    airline: '아시아나항공', destination: '김포/서울', kind: '국내선', gate: '4', status: '지연',
-  },
-  {
-    flightNo: '7C512', scheduledTime: '16:15', airline: '제주항공',
-    destination: '인천/서울', kind: '국제선', gate: '2', status: '탑승마감',
-  },
-  { flightNo: 'LJ304', scheduledTime: '16:30', airline: '진에어', destination: '서울/김포', kind: '국내선', gate: '5', status: '탑승마감' },
-  { flightNo: 'TW702', scheduledTime: '16:40', airline: '티웨이항공', destination: '대구', kind: '국내선', gate: '9', status: '탑승마감' },
-  { flightNo: 'BX8814', scheduledTime: '16:50', airline: '에어부산', destination: '부산/김해', kind: '국내선', gate: '3', status: '출발예정' },
-  { flightNo: 'RS902', scheduledTime: '17:00', airline: '에어서울', destination: '오사카/간사이', kind: '국제선', gate: '11', status: '출발예정' },
-  { flightNo: 'KE1156', scheduledTime: '17:10', airline: '대한항공', destination: '서울/김포', kind: '국내선', gate: '7' },
-];
-
-/**
- * Placeholder arrivals — 운항정보=도착 (6219:98493). Rows past the third carry
- * NO 현황 in the design, so their `status` is omitted rather than set to a
- * guess; `normalizeFlightStatus` turns that into a blank cell.
- */
-const SAMPLE_ARRIVALS: RawJejuArrival[] = [
-  {
-    flightNo: 'KE1141', scheduledTime: '16:05', estimatedTime: '16:15',
-    airline: '대한항공', origin: '서울/김포', kind: '국내선', belt: '7', status: '도착',
-  },
-  {
-    flightNo: 'OZ8942', scheduledTime: '16:15', airline: '아시아나항공',
-    origin: '오사카/간사이', kind: '국제선', belt: '7', status: '도착',
-  },
-  {
-    flightNo: '7C512', scheduledTime: '16:25', airline: '제주항공',
-    origin: '서울/김포', kind: '국내선', belt: '7', status: '도착',
-  },
-  { flightNo: 'LJ304', scheduledTime: '16:35', airline: '진에어', origin: '서울/김포', kind: '국내선', belt: '7' },
-  { flightNo: 'TW702', scheduledTime: '16:45', airline: '티웨이항공', origin: '서울/김포', kind: '국내선', belt: '7' },
-  { flightNo: 'BX8814', scheduledTime: '16:55', airline: '에어부산', origin: '부산/김해', kind: '국내선', belt: '6' },
-  { flightNo: 'RS902', scheduledTime: '17:05', airline: '에어서울', origin: '서울/김포', kind: '국내선', belt: '6' },
-];
-
-/**
- * The departures the home board leads with and the 운항정보 page lists,
- * most imminent first.
- *
- * THE seam: replace the body with the real feed (a store fed over IPC,
- * mirroring `useWeatherStore`) and map each row through `normalizeDeparture`.
- * Everything downstream — colours, the strike-through condition, the page's
- * two tabs — is already driven by the normalised shape.
- */
 export function useJejuDepartures(): JejuDeparture[] {
-  return useMemo(() => SAMPLE_DEPARTURES.map(normalizeDeparture), []);
+  const rows = useFlightStore((s) => s.snapshot?.departures);
+  return useMemo(() => (rows ?? []).map(normalizeDeparture), [rows]);
 }
 
-/** The arrivals behind the 운항정보 page's 도착 tab. Same seam as above. */
 export function useJejuArrivals(): JejuArrival[] {
-  return useMemo(() => SAMPLE_ARRIVALS.map(normalizeArrival), []);
+  const rows = useFlightStore((s) => s.snapshot?.arrivals);
+  return useMemo(() => (rows ?? []).map(normalizeArrival), [rows]);
 }
+

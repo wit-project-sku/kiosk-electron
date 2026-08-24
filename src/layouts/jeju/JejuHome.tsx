@@ -11,7 +11,7 @@
  * panel · K-DRAMA / 사진촬영 / 화장실 · hanbok banner.
  *
  * The 운항 정보 board was redrawn with six columns and three 현황 conditions
- * (탑승 중 / 지연 / 탑승최종) — it lives in JejuFlightBoard.tsx.
+ * (탑승중 / 지연 / 탑승최종) — it lives in JejuFlightBoard.tsx.
  */
 import { useEffect, useMemo, useRef, useState } from 'react';
 import type { KioskController } from '@renderer/hooks/useKioskController';

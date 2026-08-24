@@ -6,11 +6,10 @@
  * is the exact number read out of the design.
  *
  * y map:
- *    0…700   JejuHeader (JejuPageFrame)
- *  664…834   출발 / 도착 tabs        (yes, they overlap the header band — the
- *                                     header's own content ends at 619)
- *  921…1070  orange column-header plate
- *   1170     first row's text; rows repeat every 255, rule at row+155
+ *    0…700   JejuHeader (JejuPageFrame; subtitle ends 619)
+ *  714…884   출발 / 도착 tabs
+ * 1021…1170  orange column-header plate
+ *   1270     first row's text; rows repeat every 255, rule at row+155
  *
  * The two frames differ ONLY in three column labels (출발시각/도착시각,
  * 목적지/출발지, 탑승구/수하물수취대) and which side of the flight the data
@@ -19,16 +18,13 @@
 
 /* ── Tabs ───────────────────────────────────────────────────────────── */
 /*
- * The same control as JejuHelp's 국제선/국내선 picker (left 400, w 1360, two
- * 580px pills, 200px gutter) but with 제주>운항정보's pale-plate active style
- * rather than the solid-orange one. Figma puts it at 664 on 출발 and 411,664 on
- * 도착 — the x is designer slop between two copies of one component, so both
- * take 400. NORMALISED.
+ * Two-pill picker (left 400, w 1360, two 580px pills, 200px gutter).
+ * Selected = solid orange + white text; unselected = white + gray, no stroke.
  */
 .tabs {
   position: absolute;
   left: 400px;
-  top: 664px;
+  top: 714px;
   width: 1360px;
   height: 170px;
   display: flex;
@@ -42,13 +38,14 @@
   height: 170px;
   box-sizing: border-box;
   padding: 0;
-  border: 5px solid #e8e8e8;
+  border: none;
   border-radius: 42.9px;
   background: #fff;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.08);
   font-size: 50px;
   font-weight: 500;
   line-height: 1;
-  color: #999;
+  color: #a0a0a0;
   text-align: center;
   white-space: nowrap;
   cursor: pointer;
@@ -56,26 +53,26 @@
 }
 
 .tabActive {
-  border-color: var(--kiosk-primary, #ff7f0f);
-  background: #ffeac7; /* [제주] main 02 */
-  font-weight: 700;
-  color: var(--kiosk-primary, #ff7f0f);
+  background: var(--kiosk-primary, #ff7f0f);
+  color: #fff;
+  font-weight: 500;
+  box-shadow: 0 6px 18px rgba(255, 127, 15, 0.35);
 }
 
 /* ── Column-header plate ────────────────────────────────────────────── */
 .headPlate {
   position: absolute;
-  left: 170px;
-  top: 921px;
-  width: 1820px;
+  left: 100px;
+  top: 1021px;
+  width: 1960px;
   height: 149px;
-  border-radius: 20px;
+  border-radius: 72px;
   background: var(--kiosk-primary, #ff7f0f);
 }
 
 .head {
   position: absolute;
-  top: 971px;
+  top: 1071px;
   font-size: 45px;
   font-weight: 600;
   line-height: 1;
@@ -96,7 +93,7 @@
   position: absolute;
   left: 0;
   right: 0;
-  top: 1070px;
+  top: 1170px;
   bottom: 0;
   overflow-x: hidden;
   overflow-y: auto;
@@ -147,17 +144,19 @@
   white-space: nowrap;
 }
 
-/* Centred columns carry their axis in `left`; left-aligned ones carry their
-   edge. Which is which comes from the column spec in JejuFlights.tsx. */
+/* Centred columns carry their axis in `left` and use translateX(-50%). */
 .cellCentred {
   transform: translateX(-50%);
+}
+
+.cellStatus {
+  font-weight: 700;
 }
 
 /* The re-timed flight's original time. Unlike the home board, the leading time
    does NOT move up here — the struck one simply hangs 65px below it. */
 .timeWas {
   position: absolute;
-  left: 219px;
   top: 65px;
   font-size: 40px;
   font-weight: 400;

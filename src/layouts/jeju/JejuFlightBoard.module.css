@@ -18,11 +18,11 @@
  */
 .board {
   position: absolute;
-  left: 155px;
+  left: 100px;
   top: 785px;
-  width: 1850px;
+  width: 1960px;
   height: 206px;
-  border-radius: 45px;
+  border-radius: 90px;
   background: rgba(255, 255, 255, 0.5);
 }
 
@@ -43,9 +43,9 @@
    six data columns only (it starts at 336, well right of the 운항 정보 title). */
 .rule {
   position: absolute;
-  left: 336px;
+  left: 281px;
   top: 97px;
-  width: 1462px;
+  width: 1572px;
   height: 3px;
   background: #c8bda9;
 }
@@ -72,6 +72,20 @@
   font-size: 48px;
   font-weight: 400;
   color: #333;
+}
+
+.valueStatus {
+  font-weight: 500;
+}
+
+.empty {
+  position: absolute;
+  top: 118px;
+  font-size: 40px;
+  font-weight: 400;
+  line-height: 1;
+  color: #999;
+  white-space: nowrap;
 }
 
 /* 항공사/편명 is one line at two sizes: 대한항공 at 48, (KE1141) at 40. */

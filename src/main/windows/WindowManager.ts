@@ -23,6 +23,7 @@ export class WindowManager {
   private unsubscribeContent: (() => void) | null = null;
   private unsubscribePhoto: (() => void) | null = null;
   private unsubscribeWeather: (() => void) | null = null;
+  private unsubscribeFlights: (() => void) | null = null;
   private unsubscribeExchange: (() => void) | null = null;
   private unsubscribeUpdater: (() => void) | null = null;
 
@@ -34,6 +35,10 @@ export class WindowManager {
     this.mainWindow = createMainWindow(bootstrap);
     this.mainWindow.on('closed', () => {
       this.mainWindow = null;
+    });
+    this.mainWindow.webContents.once('did-finish-load', () => {
+      const flights = this.container.flights.getCurrent();
+      if (flights) this.broadcast(IpcEvents.FlightsChanged, flights);
     });
 
     // Forward every display-state change to the customer window.
@@ -57,6 +62,10 @@ export class WindowManager {
     // Forward weather refreshes so the kiosk header updates without a reload.
     this.unsubscribeWeather = this.container.weather.subscribe((snapshot) => {
       this.broadcast(IpcEvents.WeatherChanged, snapshot);
+    });
+
+    this.unsubscribeFlights = this.container.flights.subscribe((snapshot) => {
+      this.broadcast(IpcEvents.FlightsChanged, snapshot);
     });
 
     // Forward FX refreshes so the 환율 screen updates without a reload.
@@ -198,6 +207,8 @@ export class WindowManager {
     this.unsubscribePhoto = null;
     this.unsubscribeWeather?.();
     this.unsubscribeWeather = null;
+    this.unsubscribeFlights?.();
+    this.unsubscribeFlights = null;
     this.unsubscribeExchange?.();
     this.unsubscribeExchange = null;
     this.unsubscribeUpdater?.();

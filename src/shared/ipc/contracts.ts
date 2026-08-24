@@ -36,6 +36,7 @@ import type {
 } from '../types/photo';
 import type { SupportedLanguage } from '../types/kiosk';
 import type { WeatherSnapshot } from '../types/weather';
+import type { JejuFlightSnapshot } from '../types/jejuFlight';
 import type { WeatherPlayKey } from '../config/weatherVideo';
 import type { KioskLocationCode } from '../config/kioskLocations';
 import type { ExchangeSnapshot } from '../types/exchange';
@@ -334,6 +335,10 @@ export interface IpcContract {
     request: void;
     response: Result<WeatherSnapshot | null>;
   };
+  [IpcChannels.FlightsGet]: {
+    request: void;
+    response: Result<JejuFlightSnapshot | null>;
+  };
 
   [IpcChannels.ExchangeGet]: {
     request: void;
@@ -437,6 +442,7 @@ export interface IpcEventPayloads {
   [IpcEvents.PhotoWorkflowChanged]: PhotoWorkflowState;
   [IpcEvents.LanguageChanged]: SupportedLanguage;
   [IpcEvents.WeatherChanged]: WeatherSnapshot;
+  [IpcEvents.FlightsChanged]: JejuFlightSnapshot;
   [IpcEvents.ExchangeChanged]: ExchangeSnapshot;
   [IpcEvents.KioskScreenChanged]: { screen: string; buttonId: number | null };
   [IpcEvents.KioskWeatherVideo]: WeatherPlayKey;

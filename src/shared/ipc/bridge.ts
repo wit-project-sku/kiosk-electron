@@ -39,6 +39,7 @@ import type { CameraDeviceInfo, PhotoOption, PhotoWorkflowState } from '../types
 import type { SpotDiffRound } from '../types/spotDiff';
 import type { OutfitCatalogue } from '../types/outfit';
 import type { WeatherSnapshot } from '../types/weather';
+import type { JejuFlightSnapshot } from '../types/jejuFlight';
 import type { WeatherPlayKey } from '../config/weatherVideo';
 import type { KioskLocationCode } from '../config/kioskLocations';
 import type { ExchangeSnapshot } from '../types/exchange';
@@ -183,6 +184,9 @@ export interface KioskBridge {
   weather: {
     get(): Promise<Result<WeatherSnapshot | null>>;
   };
+  flights: {
+    get(): Promise<Result<JejuFlightSnapshot | null>>;
+  };
   exchange: {
     get(): Promise<Result<ExchangeSnapshot | null>>;
   };
@@ -282,6 +286,7 @@ export interface KioskBridge {
     onPhotoWorkflowChanged(listener: (state: PhotoWorkflowState) => void): Unsubscribe;
     onLanguageChanged(listener: (language: SupportedLanguage) => void): Unsubscribe;
     onWeatherChanged(listener: (weather: WeatherSnapshot) => void): Unsubscribe;
+    onFlightsChanged(listener: (flights: JejuFlightSnapshot) => void): Unsubscribe;
     onExchangeChanged(listener: (exchange: ExchangeSnapshot) => void): Unsubscribe;
     onKioskScreenChanged(
       listener: (payload: { screen: string; buttonId: number | null }) => void,

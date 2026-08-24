@@ -102,6 +102,7 @@ export function registerKioskHandlers(windows: WindowManager, container: AppCont
       container.buttons.refresh(),
       container.banners.refresh(),
       container.backgrounds.refresh(),
+      container.flights.refreshIfJeju(),
     ]);
     windows.reloadAll();
     windows.broadcast(IpcEvents.ShopsChanged, null);
