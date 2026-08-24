@@ -1,5 +1,6 @@
 /**
- * 제주 AI 코스 상세 — Figma node 6140:95766 (제주>제주모하지(AI검색)-03-1).
+ * 제주 AI 코스 상세 — Figma nodes 6289:55320 (제주>제주모하지(AI검색)-03-1, one day)
+ * and 6289:55078 (-03-2, the multi-day variant that adds the DAY arrows).
  *
  * Shows the course chosen on JejuAiResult: its title/description/hashtags, a
  * summary bar, and the numbered spot itinerary.
@@ -16,11 +17,13 @@
  *    nothing computes a route. They are authored per course below and must be
  *    replaced by a real source before this ships — see COURSE_META.
  */
-import { Fragment, useMemo, useState } from 'react';
+import { Fragment, useCallback, useMemo, useState } from 'react';
+import type { CSSProperties } from 'react';
 import { QRCodeSVG } from 'qrcode.react';
 import type { KioskController } from '@renderer/hooks/useKioskController';
 import type { Shop } from '@shared/types/shop';
 import { jejuIconUrl } from '@renderer/assets/icons/jeju';
+import { useAccessibilityStore } from '@renderer/store/accessibilityStore';
 import { useAiStore } from '@renderer/store/aiStore';
 import { useShopStore } from '@renderer/store/shopStore';
 import { useDetailStore } from '@renderer/store/detailStore';
@@ -60,9 +63,9 @@ const DAYS_BY_STAY: Record<string, number> = {
 
 /**
  * Timeline geometry. NORMALISED: Figma steps the cards by 565 (515 + 50 gap)
- * but the numbered circles by 583, so its own stops drift below their cards —
- * by stop 4 the circle sits 51px low. Stepping by the card pitch keeps every
- * number centred on its card; stop 1 still lands within 3px of Figma's 1625.
+ * but the numbered circles by 566 (1625 / 2191 / 2757 / 3323), so its own stops
+ * drift below their cards. Stepping by the card pitch keeps every number
+ * centred on its card; stop 1 still lands within 3px of Figma's 1625.
  */
 const STOP_TOP = 1628;
 const STOP_STEP = 565;
@@ -84,6 +87,59 @@ const QR_GAP = 30;
 /** Top of the QR row for `n` spot cards. */
 const qrTopFor = (n: number): number =>
   LIST_TOP + n * CARD_HEIGHT + Math.max(0, n - 1) * CARD_GAP + QR_GAP;
+
+/** QR frame side, and the round day arrow's, so the low-reach pair can centre on that row. */
+const QR_SIZE = 150;
+const ARROW_SIZE = 85;
+
+/**
+ * Top of the low-reach day pager: vertically centred on the QR row, which is
+ * where Figma 6418:11330 draws it (measured y3695 against a QR row at y3663).
+ */
+const bottomPagerTopFor = (n: number): number => qrTopFor(n) + (QR_SIZE - ARROW_SIZE) / 2;
+
+/**
+ * One round day-pager button — an 85px disc with a white chevron, #ff7f0f while
+ * the day exists and #999 once it does not. Shared by the pager beside the DAY
+ * label and the low-reach one at the foot of the page so the two can't drift.
+ */
+function DayArrow({
+  dir,
+  disabled,
+  onClick,
+  className,
+  style,
+}: {
+  dir: 'prev' | 'next';
+  disabled: boolean;
+  onClick: () => void;
+  /** Optional because CSS Module lookups are typed `string | undefined` here. */
+  className?: string;
+  style?: CSSProperties;
+}): JSX.Element {
+  return (
+    <button
+      type="button"
+      className={`${styles.dayArrow} ${className}`}
+      onClick={onClick}
+      disabled={disabled}
+      style={style}
+      aria-label={dir === 'prev' ? '이전 날짜' : '다음 날짜'}
+    >
+      <svg className={styles.dayArrowIcon} viewBox="0 0 85 85" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+        <circle cx="42.5" cy="42.5" r="42.5" fill={disabled ? '#999999' : '#FF7F0F'} />
+        <path
+          d={dir === 'prev' ? 'M48.5 25.5 L32 42.5 L48.5 59.5' : 'M36.5 25.5 L53 42.5 L36.5 59.5'}
+          fill="none"
+          stroke="#fff"
+          strokeWidth="7"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+      </svg>
+    </button>
+  );
+}
 
 const T = {
   empty: {
@@ -216,6 +272,10 @@ export function JejuAiDetail({ controller }: Props): JSX.Element {
   const meta = COURSE_META[courseKey] ?? COURSE_META.nature!;
   const dayCount = DAYS_BY_STAY[stay] ?? 1;
   const [day, setDay] = useState(1);
+  const lowReach = useAccessibilityStore((s) => s.lowReach);
+
+  const goPrevDay = useCallback(() => setDay((d) => Math.max(1, d - 1)), []);
+  const goNextDay = useCallback(() => setDay((d) => Math.min(dayCount, d + 1)), [dayCount]);
 
   // Build the whole trip once, then slice the visible day out of it, so a spot
   // never appears on two days.
@@ -299,31 +359,11 @@ export function JejuAiDetail({ controller }: Props): JSX.Element {
 
       {/* Day swiper. The arrows are always drawn — greyed at the ends, exactly
           as the Figma shows the left one on DAY 1 — so the row never reflows. */}
-      <button
-        type="button"
-        className={`${styles.dayArrow} ${styles.dayPrev}`}
-        onClick={() => setDay((d) => Math.max(1, d - 1))}
-        disabled={day <= 1}
-        aria-label="이전 날짜"
-      >
-        <svg className={styles.dayArrowIcon} viewBox="0 0 59 68" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-          <path d="M59 0 L59 68 L0 34 Z" fill={day <= 1 ? '#D9D9D9' : '#FF7F0F'} />
-        </svg>
-      </button>
+      <DayArrow dir="prev" disabled={day <= 1} onClick={goPrevDay} className={styles.dayPrev} />
 
       <p className={styles.day}>DAY {day}</p>
 
-      <button
-        type="button"
-        className={`${styles.dayArrow} ${styles.dayNext}`}
-        onClick={() => setDay((d) => Math.min(dayCount, d + 1))}
-        disabled={day >= dayCount}
-        aria-label="다음 날짜"
-      >
-        <svg className={styles.dayArrowIcon} viewBox="0 0 59 68" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-          <path d="M0 0 L0 68 L59 34 Z" fill={day >= dayCount ? '#D9D9D9' : '#FF7F0F'} />
-        </svg>
-      </button>
+      <DayArrow dir="next" disabled={day >= dayCount} onClick={goNextDay} className={styles.dayNext} />
 
       {spots.length === 0 ? (
         <p className={styles.empty}>{pick(T.empty, lang)}</p>
@@ -399,6 +439,30 @@ export function JejuAiDetail({ controller }: Props): JSX.Element {
                 <QRCodeSVG className={styles.qrCode} value={qrLink} bgColor="#ffffff" fgColor="#000000" level="M" />
               </span>
             </div>
+          )}
+
+          {/* Low-reach day pager — the same two buttons repeated at the foot of
+              the page. Only for the ♿ layout: this page cannot be shifted down
+              the way JejuLanguage is (its list already runs to y3663), so the
+              reachable control is duplicated rather than moved. Multi-day
+              courses only; on a one-day course both ends are dead. */}
+          {lowReach && dayCount > 1 && (
+            <>
+              <DayArrow
+                dir="prev"
+                disabled={day <= 1}
+                onClick={goPrevDay}
+                className={styles.dayPrevBottom}
+                style={{ top: bottomPagerTopFor(spots.length) }}
+              />
+              <DayArrow
+                dir="next"
+                disabled={day >= dayCount}
+                onClick={goNextDay}
+                className={styles.dayNextBottom}
+                style={{ top: bottomPagerTopFor(spots.length) }}
+              />
+            </>
           )}
         </>
       )}

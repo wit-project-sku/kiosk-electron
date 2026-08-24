@@ -1,11 +1,19 @@
 /*
- * 제주 shop category list — Figma node 6212:55184 ("'제주' 뭐먹지?").
+ * 제주 shop category list — Figma nodes 6212:55184 ("'제주' 뭐먹지?", 흑돼지
+ * picked) and 6391:57961 (the same screen with nothing picked); the 뭐사지 pair
+ * 6390:57326 (기념품 picked) / 6212:55233 (nothing picked) is the same layout
+ * with its own ten labels, and needs no geometry of its own.
  *
  * Everything below the 700px header is one scrolling column (Figma's 검색결과
  * frame: px 170, gap 50), exactly like JejuSearch:
  *   700   category chips, 5 × 340 per row (h170, col gap 30, row gap 35)
- *   1125  초성 index row (60px, letter-spacing 30, centred)
- *   1257  first card, then +590 per card (530 + 60 gap)
+ *   1125  초성 index row (60px, tracking 30, centred, 14 cells over x237–1923)
+ *   1247  first card, then +590 per card (530 + 60 gap)
+ *
+ * The redesign flattened the chips: the #e8e8e8 hairline is gone, and picking
+ * one now paints the whole plate #FF7F0F with white Bold type instead of the
+ * pale #ffeac7 fill with an orange rule and orange label. The two frames also
+ * differ on the UNPICKED label colour — see .catsIdle.
  */
 .scroll {
   position: absolute;
@@ -23,6 +31,33 @@
   /* The 34.32px scrollbar is carved out of the RIGHT margin (Figma puts it at
      x2128) so the content column stays exactly 1820. */
   padding: 0 136px 80px 170px;
+}
+
+/*
+ * Low-reach (♿) — Figma 6293:71909 (흑돼지 picked) and 6422:44503 (nothing
+ * picked). The header and the card list stay exactly where they are; the two
+ * CONTROLS move to the foot of the artboard, where a seated visitor can reach
+ * them — category chips at y3234, 초성 index at y3659.
+ *
+ * They also stop scrolling. In the standard layout they live inside `.scroll`
+ * and slide away with the cards; here they are siblings of it and stay put,
+ * which is the whole point of moving them down. So the scroller shrinks to
+ * Figma's Frame 1304 — y700, h2434, ending at 3134 with a 100 gap to the chips.
+ */
+.scrollLow {
+  bottom: auto;
+  height: 2434px;
+  padding-bottom: 0;
+}
+
+.controlsLow {
+  position: absolute;
+  left: 170px;
+  top: 3234px;
+  width: 1820px;
+  display: flex;
+  flex-direction: column;
+  gap: 50px;
 }
 
 .scroll::-webkit-scrollbar {
@@ -56,18 +91,26 @@
   height: 170px;
   box-sizing: border-box;
   padding: 0 10px;
-  border: 5px solid #e8e8e8;
+  /* Borderless — the plate is plain white on the page background. `none`, not
+     omitted, because these are <button>s and would otherwise take Chrome's UA
+     outset bevel. */
+  border: none;
   border-radius: 42.9px;
   background: #fff;
   font-size: 50px;
   font-weight: 500;
-  /* Figma draws every chip as one clipped 50px line (leading-none). Korean fits;
-     translations do not — "수산물·해산물" is already 325px against 310px of inner
-     width, and the Russian/Thai labels are longer still. So the label WRAPS here
-     instead of being clipped: 1.1 leaves two 50px lines inside the 150px box,
-     and `anywhere` + `overflow: hidden` guarantee a long word can never paint
-     outside the pill (Figma's own overflow-clip). Single-line chips are
-     unaffected — the button centres its content either way. */
+  /* Figma draws every chip as one clipped 50px line (leading-none), and so do
+     we for KOREAN: re-measured 2026-08-24 in Pretendard across all three chip
+     sets, the widest label is 수산물·해산물 / 독채·단독이용 at 304.7px against
+     320px of inner width, so nothing wraps. (The old note here said 325 against
+     310 — that was true while the chip still carried its 5px border, which ate
+     10 of the inner width; the borderless plate has the room.)
+
+     The wrap stays as the safety net for the other seven languages, which run
+     far longer: 1.1 leaves two 50px lines inside the 170px box, and `anywhere`
+     + `overflow: hidden` guarantee a long word can never paint outside the pill
+     (Figma's own overflow-clip). Single-line chips are unaffected — the button
+     centres its content either way. */
   line-height: 1.1;
   overflow: hidden;
   overflow-wrap: anywhere;
@@ -76,20 +119,43 @@
   -webkit-tap-highlight-color: transparent;
 }
 
-/* Unlike the events region tabs (solid orange), the active chip here is the
-   pale [제주] main 02 plate with an orange rule and orange bold label. */
-.chipActive {
-  border-color: var(--kiosk-primary, #ff7f0f);
-  background: #ffeac7;
-  font-weight: 700;
+/*
+ * The row has TWO idle looks, and which one applies depends on whether anything
+ * is picked at all — the two frames differ on exactly this:
+ *
+ *   nothing picked (6391:57961)  every label #FF7F0F Medium — the row reads as
+ *                                "all of these are live, choose one"
+ *   one picked (6212:55184)      the picked plate goes solid #FF7F0F with white
+ *                                Bold, and the rest fall back to #999 Medium
+ *
+ * So `.chip`'s own colour is the second case, and this rule restores the first.
+ * (6391:57967 also leaves its FIRST chip at Bold — that is the component's
+ * selected-slot instance half-reset, not a rule about 흑돼지, so it is not
+ * reproduced: nothing is picked in that state and nothing should look picked.)
+ */
+.catsIdle .chip {
   color: var(--kiosk-primary, #ff7f0f);
 }
 
-/* ── 초성 index (6212:55199) ──
+/* Picked: the solid brand plate with white Bold type, the same treatment the
+   events region tabs use. (It used to be the pale #ffeac7 fill with an orange
+   rule and an orange label.) */
+.chipActive {
+  background: var(--kiosk-primary, #ff7f0f);
+  font-weight: 700;
+  color: #fff;
+}
+
+/* ── 초성 index (6212:55191) ──
    The control itself lives in JejuChosungRow; this only places it in the
-   column. Its default 129px cell spans Figma's x220–1943. */
+   column and pins the row to Figma's 72px text box — the shared component's
+   cells are 82 tall for the touch target, and letting that set the row height
+   pushed every card 10px below the design's 1247. The cells overflow the row
+   symmetrically; they are transparent, so nothing shows. The caller sets the
+   cell WIDTH too — 14 × 120.43 spans Figma's x237–1923. */
 .chosung {
   flex: none;
+  height: 72px;
 }
 
 /* ── Card list ── */

@@ -1,5 +1,8 @@
 /**
- * 제주도 이벤트 — Figma nodes 6052:45789 (MBTI tab) and 6052:46385 (list tab).
+ * 제주도 이벤트 — Figma nodes 6212:54808 (MBTI tab at rest), 6212:54858 (mid
+ * request), 6308:78956 (results) and 6212:54917 (list tab), the 2026-08-24
+ * redesign of 6052:45789 / 6052:46385. The event detail behind a card is
+ * 6212:55057 — the shared EventDetailScreen, unchanged by this pass.
  *
  * Two tabs share the header, the QR row and the banner:
  *  - the region tab lists real events from the witteria API (category chips →
@@ -10,7 +13,7 @@
  * Both data paths are the shared ones HwaseongEvents uses (useEvents /
  * eventsApi.recommend / EventDetailScreen); only the presentation is Jeju's.
  */
-import { useState } from 'react';
+import { Fragment, useState } from 'react';
 import qrCodeImg from '@renderer/assets/event-qr.png';
 import { isOk } from '@shared/types/result';
 import type { EventCategory, EventRecommendation, EventRegion } from '@shared/types/events';
@@ -30,11 +33,10 @@ interface Props {
 const REGION: EventRegion = 'JEJU';
 
 /**
- * Tabs drawn in the design are 종로구 / 인사동 / MBTI — INSADONG districts left
- * over from the source frame, not 제주 regions. Reproducing them on a 제주 kiosk
- * would be wrong, so the region tab is 제주도 (API region JEJU) until the real
- * region list is confirmed. `.tab` is flex:1, so adding tabs back re-spaces the
- * row automatically (three land on Figma's exact 565px).
+ * Two tabs — 제주도 (API region JEJU) and MBTI. The previous frames drew three
+ * (종로구 / 인사동 / MBTI, Insadong districts left over from the source file) and
+ * this file cut them down to two; the redesign agrees, and 6212:54808 now draws
+ * exactly these two. `.tab` is flex:1, so a third would re-space the row.
  */
 const TABS: Array<{ id: string; label: string }> = [
   { id: 'REGION', label: '제주도' },
@@ -166,16 +168,21 @@ export function JejuEvents({ controller }: Props): JSX.Element {
 
       {!isMbti ? (
         <>
+          {/* One centred line, "전체 ㅣ 공연 ㅣ 전시 ㅣ 기타" — the ㅣ separators
+              are real glyphs in the design, drawn between the labels rather
+              than as a border, so they are rendered as inert spans. */}
           <div className={styles.chips}>
-            {CATEGORY_TABS.map((c) => (
-              <button
-                key={c.value}
-                type="button"
-                className={`${styles.chip} ${c.value === category ? styles.chipActive : ''}`}
-                onClick={() => selectCategory(c.value)}
-              >
-                {t(c.key, lang)}
-              </button>
+            {CATEGORY_TABS.map((c, i) => (
+              <Fragment key={c.value}>
+                {i > 0 && <span className={styles.chipSep}>ㅣ</span>}
+                <button
+                  type="button"
+                  className={`${styles.chip} ${c.value === category ? styles.chipActive : ''}`}
+                  onClick={() => selectCategory(c.value)}
+                >
+                  {t(c.key, lang)}
+                </button>
+              </Fragment>
             ))}
           </div>
 
@@ -252,8 +259,8 @@ export function JejuEvents({ controller }: Props): JSX.Element {
           <p className={styles.desc}>
             MBTI 성향과 취향을 반영해
             <br />
-            {/* Figma reads "종로구 이벤트" here — an Insadong leftover, same as
-                the tabs; the accent naturally belongs to this kiosk's region. */}
+            {/* The redesign agrees with this now — 6212:54808 reads "제주도
+                이벤트"; the older node still said 종로구, an Insadong leftover. */}
             <span className={styles.descAccent}>제주도 이벤트</span>를 맞춤 추천해드립니다!
             <br />
             <br />
@@ -288,16 +295,9 @@ export function JejuEvents({ controller }: Props): JSX.Element {
                             nothing to render. It needs an API field. */}
                       </div>
                     ))}
-
-                    <button
-                      type="button"
-                      className={styles.modalQr}
-                      onClick={() => setQrZoom(true)}
-                      aria-label="QR 크게 보기"
-                    >
-                      <img src={qrCodeImg} alt="QR" className={styles.qrImg} draggable={false} />
-                    </button>
-                    <p className={styles.modalQrLabel}>모바일에서 확인하기</p>
+                    {/* No QR here any more: 6308:78956 draws the card with the
+                        two event columns and nothing else. The page's own QR row
+                        is still there once the card is dismissed. */}
                   </>
                 ) : (
                   // "없습니다", not "불러오지 못했습니다": `results` is empty both

@@ -1,6 +1,8 @@
 /*
- * 제주공항 (W006) AR 한복체험 — outfit selection. Figma frames 6258:48134 /
- * 48264 (개인정보 modal) / 48326 / 48469 / 48575 / 48693 / 49124.
+ * 제주공항 (W006) AR 한복체험 — outfit selection. Figma frames 6258:48575 /
+ * 48469 (landing tab, theme unpicked / picked) and 6258:48326 / 48134 (한복
+ * tab, sub-chip unpicked / picked), the 2026-08-24 redraw; 48264 is the
+ * 개인정보 modal.
  *
  * Inside KioskArtboard 1 CSS px = 1 Figma px (2160×3840), so every value here is
  * the exact number read out of the design.
@@ -11,18 +13,20 @@
  *   594…699   ① 의상 선택하기
  *   739…786   ★ subtitle
  *   844…1219  category tabs, 2 rows (4 columns in the design; the API decides
- *             how many there really are — see `.cats`)
- *  1385…1875  outfit cards, ONE row   (landing tab — a Swiper, because
- *             4×478 + 3×30 = 2002 overruns the 1820)
- *  1387…2397  outfit cards, TWO rows  (every other tab)
+ *             how many there really are — see `.cats`). The 한복 frames start
+ *             their column 13px higher (831) — slop; the row must not move on
+ *             a tab press, so 844 everywhere.
+ *  1447…1797  outfit cards, ONE row   (landing tab — 5 × 350 across the 1820)
+ *  1447…2212  outfit cards, TWO rows  (every other tab; 415 pitch)
  *
- * The design's 1236…1354 sub-category chip row is gone: every tab is now exactly
- * one registered category, so there is nothing to choose between, and the frames
- * that ship the row draw it hidden (6258:48575).
- *  1978…2083  ② 배경 테마 선택하기
- *  2141…2903  background themes (scrolls horizontally)
- *  3006…3156  capture buttons
- *  3267…3840  banner
+ * The design's sub-category chip row (여자 한복 / 남자 한복, 1266…1386 on the
+ * 한복 frames) is still NOT drawn: every tab is exactly one registered
+ * category, so there is nothing to choose between — see the .tsx header.
+ *  1855…1960  ② 배경 테마 선택하기
+ *  2018…2698  background themes (scrolls horizontally; 340×680 tiles)
+ *  2883…3033  capture buttons (landing) · 2279…2429 (other tabs)
+ *  3210…3710  사진촬영안내 card (landing) · 2497…2997 (other tabs)
+ *  3267…3840  banner — every tab EXCEPT landing, whose guide card sits there
  */
 .root {
   position: absolute;
@@ -56,7 +60,7 @@
 }
 
 .stepTheme {
-  top: 1978px;
+  top: 1855px;
 }
 
 .stepBadge {
@@ -150,7 +154,7 @@
   height: 170px;
   box-sizing: border-box;
   padding: 0 18px;
-  border: 5px solid #e8e8e8;
+  border: none;
   border-radius: 42.9px;
   background: #fff;
   display: flex;
@@ -188,34 +192,40 @@
 
 .catActive {
   border-color: var(--kiosk-primary, #ff7f0f);
-  background: #ffecd1;
+  background: var(--kiosk-primary, #ff7f0f);
   font-weight: 700;
-  color: var(--kiosk-primary, #ff7f0f);
+  color: #fff;
 }
 
-/* ── Step ② body: 배경 테마 (landing tab) or 사진촬영안내 (everything else) ── */
+/* ── 사진촬영안내 card — EVERY condition, two positions ────────────────── */
 /*
- * The two conditions do NOT share a slot. The landing tab puts ② 배경 테마 at
- * 1978 with the capture buttons under it at 3006 (6258:48575/48469/48693); every
- * other tab
- * drops the buttons to 2469 and hangs the 사진촬영안내 card BELOW them at 2688
- * (6258:48327). The card is not a numbered step — it is a bulleted orange
- * heading — so it carries no ② badge.
+ * The 2026-08-24 redraw puts the card on the landing tab too: non-landing tabs
+ * hang it under the capture buttons at 2497 and keep the banner below it;
+ * the landing tab drops it to 3210, INTO the banner band, and draws no banner
+ * (6258:48575/48469 vs 48326/48134). It is not a numbered step — a bulleted
+ * orange heading — so it carries no ② badge, and it stays the only way into
+ * the 한복 설명 page from either condition.
  */
 .guide {
   position: absolute;
-  left: 171px;
-  top: 2688px;
+  left: 170px;
+  top: 2497px;
   width: 1820px;
   height: 500px;
   box-sizing: border-box;
   padding: 65px 40px;
-  border: 5px solid #e8e8e8;
+  /* Flat plate — no outline, no shadow (2026-08-24 direction). */
+  border: none;
   border-radius: 42.9px;
   background: #fff;
   display: flex;
   align-items: center;
   justify-content: space-between;
+}
+
+/* Landing tab: below the capture buttons, where the banner would be. */
+.guideLanding {
+  top: 3210px;
 }
 
 /* The left column is a 1429×398 block with three absolutely-placed rows —
@@ -356,39 +366,49 @@
 
 /* ── Outfit cards ───────────────────────────────────────────────────── */
 /*
- * Four 478 cards + three 30 gaps overrun the 1820 column, so the strip is a
- * Swiper — the same component (and the same freeMode + Grid recipe) the shared
- * step gives every other layout, rather than a bare `overflow-x` box: a
- * catalogue tab can hold dozens of outfits, and Swiper is what carries the
- * drag momentum and the mouse-drag the kiosk's own touch layer doesn't.
- * The Swiper root only carries the frame; slide widths come from
+ * The 2026-08-24 redraw shrinks the card to 350×350: five fit the 1820 column
+ * exactly (5 × 350 + 4 × 17.5), so `slidesPerView` resolves to a whole 5. The
+ * strip stays a Swiper — the same freeMode + Grid recipe as the shared step —
+ * because a catalogue tab can hold dozens of outfits and Swiper is what
+ * carries the drag momentum and the mouse-drag the kiosk's own touch layer
+ * doesn't. The Swiper root only carries the frame; slide widths come from
  * `slidesPerView`, so no width is set on the card here.
  */
 /*
  * ── One row or two: the ② 배경 테마 step decides ────────────────────────
- * Where that step exists it occupies 1978 onward, so the strip gets ONE row
- * (490 at 1385). Where it does not, the strip takes the space back as TWO rows
- * (1010 at 1387 — the same 490 card on a 520 pitch, 6258:48134).
+ * Where that step exists it occupies 1855 onward, so the strip gets ONE row
+ * (350 at 1447, 6258:48575). Where it does not, the strip takes the space back
+ * as TWO rows — the same 350 card on a 415 pitch (1447/1862, 6258:48134).
  */
 .outfits {
   position: absolute;
   left: 170px;
-  top: 1385px;
+  top: 1447px;
   width: 1820px;
-  height: 490px;
+  height: 350px;
 }
 
-/* No chip row above → the strip takes the space back as a second row. */
+/* No chip row above → the strip takes the space back as a second row.
+   812.5 = 2 × 397.5 padded slides + 17.5 — see .outfitSlide. */
 .outfitsGrid {
-  top: 1387px;
-  height: 1010px;
+  height: 812.5px;
 }
 
-/* Both conditions draw a 490 card; forcing it here keeps the two-row grid off
-   Swiper's internal rounding, which is what the shared step does too. */
+/*
+ * One-row slides are the bare 350 card. In GRID mode the slide is padded to
+ * 397.5 with the card pinned to its top: Swiper's Grid puts row 2 at
+ * slideHeight + spaceBetween, and spaceBetween is already spoken for by the
+ * design's 17.5 COLUMN gap — so the slide absorbs the difference and
+ * 397.5 + 17.5 lands row 2's card exactly on the drawn 415 pitch. The padding
+ * hangs empty below row 2 (ends 2259.5, capture is at 2279) and draws nothing.
+ */
 .outfitSlide {
-  height: 490px !important;
+  height: 350px !important;
   box-sizing: border-box;
+}
+
+.outfitsGrid .outfitSlide {
+  height: 397.5px !important;
 }
 
 /*
@@ -414,10 +434,13 @@
 .outfit {
   position: relative;
   width: 100%;
-  height: 100%;
+  /* Fixed rather than 100%: in grid mode the slide is 397.5 tall (see above)
+     and the card must stay the drawn 350. */
+  height: 350px;
   box-sizing: border-box;
   padding: 0;
-  border: 5px solid #e8e8e8;
+  border: none;
+  box-shadow: 0 21.45px 42.9px rgba(143, 147, 157, 0.1);
   border-radius: 42.9px;
   background: #fff;
   cursor: pointer;
@@ -426,38 +449,47 @@
 
 .outfitActive {
   border-color: var(--kiosk-primary, #ff7f0f);
-  background: #ffecd1;
+  background: #ffeac7;
+  border: 5px solid var(--kiosk-primary, #ff7f0f);
+  box-shadow: none;
 }
 
 /*
- * Figma places the render at 150,69 in a 478 card — i.e. horizontally centred,
- * 181×350.
+ * Figma places the render at 103,37 in the 350 card — horizontally centred,
+ * 143×276.
  *
  * ★ `cover`, not `contain`. The catalogue ships 700×700 SQUARES with the
- * garment centred, so `contain` fitted them to 181×181 and drew a garment ~155
- * tall inside a 490 card — the "why is the outfit so small in its box" bug. The
- * design's plate is 181×350 (aspect .52) and the shared step already uses
- * `cover` for the same assets; covering scales the square by .5 and trims the
- * empty margins at the sides, which is what fills the plate the way the frame
- * draws it.
+ * garment centred, so `contain` fitted them to a square and drew the garment
+ * tiny inside the card — the "why is the outfit so small in its box" bug. The
+ * design's plate is 143×276 (aspect .52) and the shared step already uses
+ * `cover` for the same assets; covering scales the square and trims the empty
+ * margins at the sides, which is what fills the plate the way the frame draws
+ * it.
  */
 .outfitImg {
   position: absolute;
   left: 50%;
   transform: translateX(-50%);
-  top: 64px; /* 69 − the 5px border */
-  width: 181px;
-  height: 350px;
+  top: 37px;
+  width: 143px;
+  height: 276px;
   object-fit: cover;
   pointer-events: none;
+}
+
+/* Absolute children offset from the padding edge, so the picked card's 5px
+   border would push the garment to a visual 42 — compensated to stay on the
+   drawn 37. */
+.outfitActive .outfitImg {
+  top: 32px;
 }
 
 .emptyCat {
   position: absolute;
   left: 170px;
-  top: 1385px;
+  top: 1447px;
   width: 1820px;
-  height: 490px;
+  height: 350px;
   margin: 0;
   display: flex;
   align-items: center;
@@ -487,12 +519,12 @@
 .themes {
   position: absolute;
   left: 170px;
-  top: 2141px;
+  top: 2018px;
   width: 1820px;
-  height: 762px;
+  height: 680px;
   display: flex;
   align-items: center;
-  gap: 35px; /* 416 pitch − 381 card */
+  gap: 30px; /* 370 pitch − 340 tile */
   overflow-x: auto;
   overflow-y: hidden;
   scrollbar-width: none;
@@ -503,34 +535,32 @@
 }
 
 /*
- * The bare plate is a WHITE card under a 20% black wash (6258:48649 —
- * `rgba(0,0,0,.2)` over `#fff`, i.e. #ccc), 5px #e8e8e8, r45. Selecting turns
- * the border orange, which is exactly the difference between 6258:48575 and
- * 6258:48469 — the latter's row LOOKS like it gained a card at the front, but
- * that is the designer's bare base plate (Group 1707482748) stacked over the
- * row, the same placeholder-stacking the 제주 frames use elsewhere. Implemented
- * as a state on the existing card, not an extra card.
+ * The 2026-08-24 tile is 340×680 r45 and BORDERLESS when idle: a white plate
+ * under a 20% BLACK wash (the redraw dropped the old #e8e8e8 rule and the
+ * milky white veil), with the name in white Bold on the wash. The wash lives
+ * in `::after` so it tones the photo too, not just the bare plate.
  *
- * `background` is only ever seen on a plate with no photo; the plate WITH one is
- * toned by `.theme::after` instead — see the note there.
+ * Picking a tile is exactly the difference between 6258:48575 and 48469: the
+ * 5px orange rule appears and the wash comes OFF, so the chosen scene is the
+ * one shown at full strength.
  */
 .theme {
   position: relative;
-  flex: 0 0 381px;
-  width: 381px;
-  height: 762px;
+  flex: 0 0 340px;
+  width: 340px;
+  height: 680px;
   box-sizing: border-box;
   padding: 0;
-  border: 5px solid #e8e8e8;
+  border: none;
   border-radius: 45px;
-  background: #ccc;
+  background: #fff;
   overflow: hidden;
   cursor: pointer;
   -webkit-tap-highlight-color: transparent;
 }
 
 .themeActive {
-  border-color: var(--kiosk-primary, #ff7f0f);
+  border: 5px solid var(--kiosk-primary, #ff7f0f);
   background: #fff;
 }
 
@@ -543,69 +573,53 @@
   pointer-events: none;
 }
 
-/*
- * ★ The milky veil. The design's plate was drawn before there were any photos:
- * its wash lived in the plate's own `background`, which a full-bleed photo
- * covers completely — taking the centred name down with it.
- *
- * So the wash moves ON TOP of the photo, and the name goes dark to sit on it.
- * 42% white + #222 is a MEASURED pair, not a guess: sampling the label band of
- * all three live previews, the worst pixel behind the text goes from 1.02 with
- * the old white-on-photo (i.e. literally invisible) to 3.3, averaging 5–8.
- * Below ~40% the worst case drops under 3:1 again.
- *
- * `z-index` is what orders this against the label: the veil is the button's
- * ::after, i.e. its LAST child, so without it the veil would paint over the
- * very text it exists to make readable.
- */
+/* The 20% black wash (6258:48648's own fill stack), over photo and bare plate
+   alike. `z-index` orders it under the label — the wash is the button's LAST
+   child and would otherwise paint over the very text it sits behind. */
 .theme::after {
   content: '';
   position: absolute;
   inset: 0;
   z-index: 0;
-  border-radius: 40px; /* 45 card radius − 5 border */
-  background: rgba(255, 255, 255, 0.42);
+  border-radius: 45px;
+  background: rgba(0, 0, 0, 0.2);
   pointer-events: none;
 }
 
-/*
- * …and the selected plate gets a white matte INSIDE the orange rule.
- *
- * The veil alone does not do this job — measured, it does the opposite.
- * #ff7f0f sits at mid luminance, so lifting the photo towards white moves it
- * TOWARDS the border's own tone: along the card edge, the share of pixels where
- * the orange holds less than 1.5:1 against the photo behind it goes 6% → 48%
- * once the veil is on. The matte is what actually separates the two, and it
- * costs no border width — the orange rule stays the drawn 5px.
- */
+/* Picked: the wash comes off — the frame draws the chosen tile unwashed. */
 .themeActive::after {
-  box-shadow: inset 0 0 0 5px rgba(255, 255, 255, 0.9);
+  background: none;
 }
 
-/* Figma centres the label at y348 in a 762 card. Dark ink, because it now sits
-   on the veil rather than straight on the photo; the white glow covers the
-   darker scenes the veil only partly lifts. */
+/* Figma sets the 45px Bold WHITE name on the tile's vertical centre (box 312,
+   normal leading — centre 339.5 of 680). The soft dark shadow is NOT in the
+   frame: white type on an unwashed photo (the picked state) can vanish on a
+   bright sky, and the shadow is the cheapest way to keep the name legible
+   without re-adding the veil the redraw removed. */
 .themeLabel {
   position: absolute;
   left: 0;
   right: 0;
-  top: 343px;
+  top: 312px;
   z-index: 1;
   margin: 0;
   font-size: 45px;
   font-weight: 700;
-  line-height: 1;
-  color: #222;
+  line-height: 55px; /* Figma's own box — `normal` renders 65 and drifts low */
+  color: #fff;
   text-align: center;
   white-space: nowrap;
-  text-shadow: 0 1px 8px rgba(255, 255, 255, 0.85);
+  text-shadow: 0 2px 12px rgba(0, 0, 0, 0.45);
 }
 
 /* ── Capture buttons ────────────────────────────────────────────────── */
+/* Centred: 1740 in the 2160 artboard → left 210. 6258:48575 draws it there;
+   48469 hand-places the same row at 187 — slop between two copies, and the
+   non-landing frames centre it too, so 210 everywhere. NORMALISED. */
 .captureRow {
   position: absolute;
-  left: 187px;
-  top: 3006px;
+  left: 210px;
+  top: 2883px;
   width: 1740px;
   height: 150px;
   display: flex;
@@ -646,8 +660,7 @@
 /* The 사진촬영안내 condition lifts the row to 2469 and centres it in the
    artboard (1740 wide → left 210), because the card sits underneath it. */
 .captureRowGuide {
-  left: 210px;
-  top: 2469px;
+  top: 2279px;
 }
 
 .captureDisabled {
@@ -674,4 +687,27 @@
   height: 100%;
   object-fit: cover;
   display: block;
+}
+
+
+/* ── 개인정보 처리방침 modal, 제주 overrides ────────────────────────────────
+ * The modal markup and most of its styling come from the shared photo layout
+ * (`../photo/HanbokSelect.module.css`), which every kiosk uses. 제주's own frame
+ * (6258:48264) differs on two measurable points, so they are overridden HERE
+ * rather than in the shared file — the other layouts' frames have not been
+ * re-checked and must not be moved on 제주's evidence alone.
+ *
+ *   panel width   shared 1760          제주 1820  (measured x170..1989)
+ *   scrim         shared rgba(0,0,0,.45)  제주 ~.30
+ *
+ * The scrim is derived, not eyeballed: three known colours under it — the
+ * #ff7f0f home disc and two background samples — all come back multiplied by
+ * 0.694…0.702, i.e. 30% black, where .45 would give 0.55.
+ */
+.privacyOverlayJeju {
+  background: rgba(0, 0, 0, 0.3);
+}
+
+.privacyModalJeju {
+  width: 1820px;
 }

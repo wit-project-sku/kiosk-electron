@@ -1,158 +1,33 @@
 /*
- * 제주공항 (W006) customer-display camera guide — the second screen while the
- * visitor is being photographed.
+ * Customer-display camera guide — full-screen camera feed under ONE overlay
+ * image (2026-08-24). Every location draws this screen.
  *
- * ★ PART SPEC, PART SCREENSHOT. The Figma frame for this state (6268:79294) is
- * an empty white `Rectangle 240653580` — no content to read. The header's type,
- * the pill box, the dashed rule and the line under it now carry the designer's
- * written spec verbatim (sizes, weights, line-heights, #FF7F0F / #FFEAC7,
- * 1312×153 r150 on rgba(0,0,0,.2)); everything else — the header's own height
- * and colour, the gaps, the icon size, the pill's text size — is still
- * proportion read off the reference image. True those up against a real frame
- * when one exists.
+ * The overlay is the designer's own transparent export (repo root
+ * icons/"Group 1707482852 (1).png" → assets/icons/jeju/capture-guide.png with
+ * the countdown digits patched out — see .count). Its 2155×3739 canvas is
+ * stretched to the 2160×3840 artboard ("fully fit"), a 0.2%/2.7% stretch that
+ * is invisible at glass distance; every position below is the image coordinate
+ * mapped through that stretch (×1.00232 horizontally, ×1.02701 vertically).
  *
- * ★ "Gmarket Sans" IS NOT BUNDLED. The app ships @fontsource/noto-sans-kr and
- * poppins only, and there is no @font-face anywhere in the repo, so the two
- * header lines fall back to Noto Sans KR until someone adds the family. It is
- * named first in the stack so it takes over the moment it lands — nothing else
- * has to change.
- *
- * It is a much simpler screen than Insadong's (CustomerDisplay's .cameraScreen):
- * one dark header carrying the countdown line, the no-glasses pill and the
- * gesture prompt, then the live feed with a dashed pose outline. No numbered
- * tips, no reference-pose boxes, no disclaimer or branding.
+ * Layer order: feed → overlay → live numeral / badges. The overlay's header
+ * band is a baked rgba(112,117,129,.7) frost, so the feed dims through it and
+ * the white baked type stays readable; its body is fully transparent apart
+ * from the glowing pose figure.
  */
 .root {
   position: relative;
   width: 100cqw;
   height: 100cqh;
-  background: #fff;
-  overflow: hidden;
-  font-family: 'Noto Sans KR', sans-serif;
-}
-
-/* ── Header ─────────────────────────────────────────────────────────── */
-.header {
-  position: absolute;
-  left: 0;
-  top: 0;
-  width: 2160px;
-  height: 880px;
+  /* Behind everything until the camera delivers its first frame — dark, so the
+     overlay's white ink is readable from the very first paint. */
   background: #4a4a4a;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 60px;
-}
-
-/*
- * ★ The countdown row. Both halves are spec'd at `line-height: 100px` — 50% of
- * the number's own 200px — which is Figma cropping the TEXT BOX, not the type.
- * In CSS that box no longer reserves the height the glyphs actually occupy, so
- * they would bleed into the pill below through the header's `gap`. The row
- * carries the real 200px instead and centres both boxes inside it: the spec'd
- * line-heights are kept verbatim, and the two different type sizes still centre
- * on one line.
- *
- * No gap between them ON PURPOSE — Korean sets 초 tight against the numeral
- * ("'10'초 후에…"), and the localized strings carry their own leading space
- * where the language needs one (en: " seconds until the photo").
- */
-.title {
-  margin: 0;
-  height: 200px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  white-space: nowrap;
-}
-
-/* 주먹으로 멈춘 상태 — the whole line dims together so the frozen numeral reads
-   as paused rather than as a kiosk that has stopped responding. */
-.titleHeld {
-  opacity: 0.45;
-  transition: opacity 200ms ease;
-}
-
-/* Only the number is branded — the sentence beside it stays white. */
-.count {
-  font-family: 'Gmarket Sans', 'Noto Sans KR', sans-serif;
-  font-size: 200px;
-  font-weight: 700;
-  line-height: 100px;
-  text-align: center;
-  /* The spec calls this --main-01; the repo's name for the same value. */
-  color: var(--kiosk-primary, #ff7f0f);
-}
-
-.titleRest {
-  font-family: 'Gmarket Sans', 'Noto Sans KR', sans-serif;
-  font-size: 150px;
-  font-weight: 700;
-  line-height: 100px;
-  color: #fff;
-}
-
-.pill {
-  width: 1312px;
-  height: 153px;
-  box-sizing: border-box;
-  border-radius: 150px;
-  background: rgba(0, 0, 0, 0.2);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 34px;
-}
-
-.pillIcon {
-  width: 90px;
-  height: 90px;
-  flex: 0 0 auto;
-  object-fit: contain;
-}
-
-/* No size was given for the pill's own text, so it takes the one body size this
-   screen does specify (the 68px under the rule) in the pill's white. */
-.pillText {
-  margin: 0;
-  font-size: 68px;
-  font-weight: 700;
-  line-height: 1;
-  color: #fff;
-  white-space: nowrap;
-}
-
-/* Matched to the pill's width so the two edges line up under each other. */
-.rule {
-  width: 1312px;
-  height: 0;
-  border-top: 4px dashed #ffeac7;
-}
-
-.hint {
-  margin: 0;
-  font-family: 'Noto Sans KR', sans-serif;
-  font-size: 68px;
-  font-weight: 700;
-  line-height: 150%;
-  color: #ffeac7; /* [제주] main 02 — a literal everywhere else in this layout */
-  white-space: nowrap;
-}
-
-/* ── Live feed + pose outline ───────────────────────────────────────── */
-.feedWrap {
-  position: absolute;
-  left: 0;
-  top: 880px;
-  width: 2160px;
-  height: 2960px;
-  background: #fff;
   overflow: hidden;
+  font-family: 'Noto Sans KR', sans-serif;
 }
 
 .feed {
+  position: absolute;
+  inset: 0;
   width: 100%;
   height: 100%;
   object-fit: cover;
@@ -161,35 +36,67 @@
   transform: scaleX(-1);
 }
 
-/*
- * The dashed figure the visitor lines themselves up with.
- *
- * Drawn at its EXPORT SIZE (1822×2346 — the artboard is 1:1, so these are the
- * asset's own pixels), horizontally centred, sitting 134px off the bottom of the
- * feed. It used to be `inset: 0` + `object-fit: contain`, which sized it from
- * whatever box it landed in and let the designer's intended scale drift; these
- * are the given numbers, so they are stated rather than derived.
- *
- * `bottom: 134px` rather than a margin: the element is absolutely positioned, so
- * a margin-bottom on it has no box to push against — `bottom` is the same
- * 134px gap expressed in the only way that actually holds here.
- *
- * The figure stands ON the ground line baked into the bottom of the export,
- * which is why it is anchored to the bottom and not centred vertically: that
- * line has to meet the floor of the frame, and a vertical centre would float it.
- *
- * Never mirrored, unlike `.feed` — it is symmetric guidance, not part of the
- * picture. (Its raised hand is on the visitor's right either way, which is what
- * the gesture prompt asks for.)
- */
-.pose {
+/* Stretched to fill — see the header note for the mapping. */
+.overlay {
   position: absolute;
-  left: 50%;
-  bottom: 134px;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
+/*
+ * The live countdown numeral, inside the overlay's baked quotes.
+ *
+ * The shipped overlay has the digit ink (image px 460…594 × 195…288) replaced
+ * with the header plate's own colour; this element re-fills that slot. The
+ * numbers, mapped image→screen: slot centre x 526 → 527, digit ink 195…288 →
+ * 200…296. 128px Bold Noto measures its "10" ink at 96×137 (canvas
+ * actualBoundingBox), matching the baked 96×134 to a pixel or two.
+ * Re-measure if the overlay is re-exported.
+ */
+.count {
+  position: absolute;
+  left: 527px;
+  top: 190px;
   transform: translateX(-50%);
-  width: 1822px;
-  height: 2346px;
-  object-fit: contain;
+  height: 116px;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'Gmarket Sans', 'Noto Sans KR', sans-serif;
+  font-size: 128px;
+  font-weight: 700;
+  line-height: 1;
+  color: #fff;
+  white-space: nowrap;
+  pointer-events: none;
+}
+
+/* 주먹으로 멈춘 상태 — only the live numeral can dim (the rest of the title is
+   baked into the overlay), and the paused badge below carries the message. */
+.countHeld {
+  opacity: 0.45;
+  transition: opacity 200ms ease;
+}
+
+/* Detection down — the overlay's baked chips promise gestures nothing is
+   watching for, so this states the truth just under the header band. */
+.autoStart {
+  position: absolute;
+  top: 960px;
+  left: 50%;
+  transform: translateX(-50%);
+  margin: 0;
+  padding: 32px 70px;
+  border-radius: 150px;
+  background: rgba(0, 0, 0, 0.72);
+  font-size: 60px;
+  font-weight: 700;
+  line-height: 1;
+  color: #fff;
+  white-space: nowrap;
   pointer-events: none;
 }
 
@@ -199,7 +106,7 @@
    are standing there to look at. */
 .pausedBadge {
   position: absolute;
-  top: 120px;
+  top: 1030px;
   left: 50%;
   transform: translateX(-50%);
   display: flex;

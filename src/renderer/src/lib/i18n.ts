@@ -169,6 +169,8 @@ const SCREEN_TITLES: Record<string, Partial<Record<Lang, string>>> = {
   // Curly quotes, as the frame writes it (6219:98770) — the straight-quote form
   // is Insadong's own '도와줘 ‘인사’' above.
   '도와줘 ‘하영’': { en: 'Help', ja: 'ヘルプ', zh: '帮助', vi: 'Trợ giúp', th: 'ช่วยเหลือ', ru: 'Помощь', id: 'Bantuan' },
+  // W008 세계자연유산본부's mascot spelling of the same page (see jejuMascot).
+  '도와줘 ‘유산’': { en: 'Help', ja: 'ヘルプ', zh: '帮助', vi: 'Trợ giúp', th: 'ช่วยเหลือ', ru: 'Помощь', id: 'Bantuan' },
   "'제주' 뭐먹지?": { en: 'What to Eat', ja: '何を食べる', zh: '吃什么', vi: 'Ăn gì', th: 'กินอะไรดี', ru: 'Что поесть', id: 'Mau makan apa' },
   "'제주' 뭐사지?": { en: 'What to Buy', ja: '何を買う', zh: '买什么', vi: 'Mua gì', th: 'ซื้ออะไรดี', ru: 'Что купить', id: 'Mau beli apa' },
   숙박안내: { en: 'Lodging', ja: '宿泊案内', zh: '住宿指南', vi: 'Lưu trú', th: 'ที่พัก', ru: 'Проживание', id: 'Penginapan' },
@@ -283,6 +285,11 @@ const TITLE_KEYS: Record<string, TitleKeySpec> = {
   "여기는 제주도": { title: 'MainButton_Here', sub: 'Here_IsJeju' },
   "안녕 '하영'": { title: 'MainButton_Greeting', sub: 'Greeting_Introduce' },
   "도와줘 ‘하영’": { title: 'MainButton_ToHelp', sub: 'SubHeader_ToHelp' },
+  // W008 세계자연유산본부 passes the 유산 spellings (jejuMascot) — the KEYS are the
+  // same because the sheet's mascot tie-break already answers per-layout, so the
+  // header shows the 유산 row on a JEJU_HERITAGE machine and 하영's elsewhere.
+  "안녕 '유산'": { title: 'MainButton_Greeting', sub: 'Greeting_Introduce' },
+  "도와줘 ‘유산’": { title: 'MainButton_ToHelp', sub: 'SubHeader_ToHelp' },
   "제주도 이벤트": { title: 'MainButton_Event', sub: 'SubHeader_Event' },
   "렌트카": { title: 'MainButton_RentCar' },
   "운항정보": { title: 'MainButton_Cruise' },

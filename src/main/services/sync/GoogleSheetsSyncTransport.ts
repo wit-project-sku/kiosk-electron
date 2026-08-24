@@ -36,6 +36,9 @@ const CONTENT_SHEETS: Record<KioskLayoutId, ContentSheet> = {
   OSAN: { sheetId: OSAEK_SHEET_ID, localizationRange: 'Localization_Osaek!A:L' },
   HWASEONG: { sheetId: HWASEONG_SHEET_ID, localizationRange: 'Localization_Hwaseong!A:L' },
   JEJU_AIRPORT: { sheetId: JEJU_SHEET_ID, localizationRange: 'Localization_Jeju!A:L' },
+  // Same tab as JEJU_AIRPORT on purpose — "#W6~8=제주_전체데이터" serves all three
+  // 제주 venues; the mascot rows are split per layout in LocalizationSyncParser.
+  JEJU_HERITAGE: { sheetId: JEJU_SHEET_ID, localizationRange: 'Localization_Jeju!A:L' },
 };
 
 /**

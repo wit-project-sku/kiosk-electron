@@ -1,20 +1,22 @@
 /**
- * 제주공항 (W006) 렌트카 — Figma 제주>하영=렌트카=공항-01 (6217:95726).
+ * 제주공항 (W006) 렌트카 — Figma 6297:76578 / 6297:76391 (제주>하영=렌트카=공항-01).
  *
- * The same screen as JejuListScreen with the chip grid and 초성 row replaced by
- * a search field: the frame draws the identical `R>리스트-사진4개` card at the
- * identical 590 pitch, so the shared `JejuShopCard` and the shared shop→detail
- * path are reused verbatim. Only the filter differs — free text instead of
- * second-category chips.
+ * The same screen as JejuListScreen with the second-category chip grid left
+ * out: the frame draws the identical 초성 index over the identical
+ * `R>리스트-사진4개` card at the identical 590 pitch, so the shared
+ * `JejuChosungRow`, `JejuShopCard` and shop→detail path are reused verbatim.
  *
- * Search matches name / address / description / hashtags in the ACTIVE language
- * plus the Korean name, so a foreign visitor typing a romanised or translated
- * name finds the same row a Korean visitor does.
+ * ★ 2026-08-24: the free-text search field this screen used to carry is GONE
+ * from the design — the redraw indexes the 112 rental companies by the leading
+ * consonant of their name instead, exactly like 뭐먹지 / 뭐사지 / 숙박안내. The
+ * old node (6217:95726) was deleted from the Figma file rather than edited.
+ * That took the on-screen keyboard with it; nothing else about the screen moved.
  */
 import { useLayoutEffect, useMemo, useRef, useState } from 'react';
 import type { KioskController } from '@renderer/hooks/useKioskController';
 import type { Shop } from '@shared/types/shop';
 import { jejuIconUrl } from '@renderer/assets/icons/jeju';
+import { leadingChosung, type Chosung } from '@renderer/lib/chosung';
 import { useLanguageStore } from '@renderer/store/languageStore';
 import { useDetailStore } from '@renderer/store/detailStore';
 import { useShopStore } from '@renderer/store/shopStore';
@@ -28,9 +30,8 @@ import {
   shopSecondCategory,
   shopsForBase,
 } from '@renderer/lib/shops';
-import { FloatingKeyboard } from '../insadong/keyboard/FloatingKeyboard';
-import { HangulComposer } from '../insadong/keyboard/hangul';
-import type { KeyAction } from '../insadong/keyboard/VirtualKeyboard';
+import { useAccessibilityStore } from '@renderer/store/accessibilityStore';
+import { JejuChosungRow } from './JejuChosungRow';
 import { JejuPageFrame } from './JejuPageFrame';
 import { JejuShopCard } from './JejuShopCard';
 import styles from './JejuRentcar.module.css';
@@ -72,17 +73,6 @@ const TITLE = '렌트카';
  */
 const BASE_CATEGORY = '렌트카';
 
-const PLACEHOLDER = {
-  ko: '렌트카 검색해보세요',
-  en: 'Search rental cars',
-  ja: 'レンタカーを検索してください',
-  zh: '搜索租车',
-  vi: 'Tìm kiếm xe cho thuê',
-  th: 'ค้นหารถเช่า',
-  ru: 'Поиск аренды авто',
-  id: 'Cari rental mobil',
-};
-
 const NO_DATA = {
   ko: '준비중입니다', en: 'Coming soon', ja: '準備中です', zh: '准备中',
   vi: 'Đang chuẩn bị', th: 'กำลังเตรียมการ', ru: 'Готовится', id: 'Segera hadir',
@@ -93,8 +83,13 @@ const NO_MATCH = {
   vi: 'Không có kết quả', th: 'ไม่พบผลลัพธ์', ru: 'Ничего не найдено', id: 'Tidak ada hasil',
 };
 
-/** The search row ends at 882; the keyboard tray opens flush under it. */
-const KEYBOARD_TOP = 882;
+/**
+ * 14 × 124.57 = 1744, this frame's x208–1952 for the ㄱ…ㅎ run (6297:76742).
+ * Wider than the 1686 the standard list screens use — and identical to their
+ * low-reach frames — because the row is the only thing in this column and is
+ * drawn at the full content width.
+ */
+const CHOSUNG_CELL = 1744 / 14;
 
 /**
  * How far one ▲▼ press moves: exactly one card. 530 card + 60 gap = the same 590
@@ -106,13 +101,12 @@ const SCROLL_STEP = 590;
 
 export function JejuRentcar({ controller }: Props): JSX.Element {
   const lang = useLanguageStore((s) => s.currentLanguage);
+  const lowReach = useAccessibilityStore((s) => s.lowReach);
   const setDetail = useDetailStore((s) => s.setItem);
   const shops = useShopStore((s) => s.shops);
 
   const scrollRef = useRef<HTMLDivElement>(null);
-  const composer = useRef(new HangulComposer());
-  const [query, setQuery] = useState('');
-  const [searching, setSearching] = useState(false);
+  const [jamo, setJamo] = useState<Chosung | null>(null);
 
   const scrollBy = (delta: number): void =>
     scrollRef.current?.scrollBy({ top: delta, behavior: 'smooth' });
@@ -121,58 +115,33 @@ export function JejuRentcar({ controller }: Props): JSX.Element {
    * The ▲▼ pair appears only when the list actually overflows.
    *
    * JejuListScreen draws its pair unconditionally, which is fine there — its
-   * chip filters always leave a long list. This screen has a free-text search
-   * that routinely narrows 112 rows to one or none, and a round button that
-   * visibly does nothing on a kiosk gets pressed repeatedly and reads as a
-   * frozen machine. Same rule, and the same reasoning, as JejuAbout.
+   * chip filters always leave a long list. This screen's single 초성 filter
+   * routinely narrows 112 rows to one or none, and a round button that visibly
+   * does nothing on a kiosk gets pressed repeatedly and reads as a frozen
+   * machine. Same rule, and the same reasoning, as JejuAbout.
    *
    * `useLayoutEffect` so the decision is made from the measured DOM in the same
    * frame the list changes in — a `useEffect` shows the buttons for one frame
-   * after a search empties the list.
+   * after a filter empties the list.
    */
   const [canScroll, setCanScroll] = useState(false);
 
   const baseShops = useMemo(() => shopsForBase(shops, BASE_CATEGORY), [shops]);
 
   const visible = useMemo(() => {
-    const q = query.trim().toLowerCase();
-    if (!q) return baseShops;
-    return baseShops.filter((s) =>
-      [
-        shopName(s, lang),
-        shopName(s, 'ko'),
-        shopAddress(s, lang),
-        shopDescription(s, lang),
-        shopHashtag(s, lang),
-      ]
-        .join(' ')
-        .toLowerCase()
-        .includes(q),
-    );
-  }, [baseShops, query, lang]);
+    // The 초성 row indexes the shop NAME, and always the Korean one: the buckets
+    // are Korean consonants, so filtering a translated name would empty the list
+    // for every non-Korean visitor.
+    if (!jamo) return baseShops;
+    return baseShops.filter((s) => leadingChosung(shopName(s, 'ko')) === jamo);
+  }, [baseShops, jamo]);
 
-  // Re-measure whenever the list length changes (a search) or the language does
+  // Re-measure whenever the list length changes (a filter) or the language does
   // (translated names wrap differently, so the same rows can be a different height).
   useLayoutEffect(() => {
     const el = scrollRef.current;
     setCanScroll(!!el && el.scrollHeight > el.clientHeight + 1);
   }, [visible.length, lang]);
-
-  function applyKey(action: KeyAction): void {
-    const c = composer.current;
-    switch (action.type) {
-      case 'jamo':      c.inputJamo(action.value);    break;
-      case 'literal':   c.inputLiteral(action.value); break;
-      case 'space':     c.inputLiteral(' ');          break;
-      case 'backspace': c.backspace();                break;
-      case 'enter':
-        setSearching(false);
-        return;
-    }
-    setQuery(c.value);
-    // A narrowed list leaves the view scrolled into rows that no longer exist.
-    scrollRef.current?.scrollTo({ top: 0 });
-  }
 
   const openDetail = (shop: Shop): void => {
     setDetail({
@@ -193,23 +162,31 @@ export function JejuRentcar({ controller }: Props): JSX.Element {
     controller.navigate('detail', TITLE);
   };
 
+  const chosungRow = (
+    <JejuChosungRow
+      className={`${styles.chosung} ${lowReach ? styles.chosungLow : ''}`}
+      cellWidth={CHOSUNG_CELL}
+      value={jamo}
+      onChange={(next) => {
+        setJamo(next);
+        // Re-filtering leaves the view scrolled into rows that no longer exist.
+        scrollRef.current?.scrollTo({ top: 0 });
+      }}
+    />
+  );
+
   return (
     // No banner: the card list runs to the bottom of the artboard in this frame.
     <JejuPageFrame controller={controller} title={TITLE} showBanner={false}>
-      <div className={styles.scroll} ref={scrollRef}>
-        <div className={styles.searchRow}>
-          <div className={styles.searchField} onClick={() => setSearching(true)} role="button">
-            <span
-              className={`${styles.searchText} ${query ? styles.searchValue : styles.searchPlaceholder}`}
-            >
-              {query || pick(PLACEHOLDER, lang)}
-              {searching && <span className={styles.searchCaret} />}
-            </span>
-            {jejuIconUrl('ico-search') && (
-              <img src={jejuIconUrl('ico-search')} alt="" className={styles.searchIcon} draggable={false} />
-            )}
-          </div>
-        </div>
+      {/* The 초성 row scrolls with the cards normally; in low-reach it is pulled
+          out of the column and pinned to the foot — see .chosungLow. */}
+      {lowReach && chosungRow}
+
+      <div
+        className={`${styles.scroll} ${lowReach ? styles.scrollLow : ''}`}
+        ref={scrollRef}
+      >
+        {!lowReach && chosungRow}
 
         {visible.length > 0 ? (
           <div className={styles.list}>
@@ -218,7 +195,6 @@ export function JejuRentcar({ controller }: Props): JSX.Element {
                 key={shop.id}
                 shop={shop}
                 lang={lang}
-                query={query}
                 onClick={() => openDetail(shop)}
               />
             ))}
@@ -268,14 +244,12 @@ export function JejuRentcar({ controller }: Props): JSX.Element {
         </>
       )}
 
-      <FloatingKeyboard
-        open={searching}
-        onKey={applyKey}
-        onClose={() => setSearching(false)}
-        lang={lang}
-        lightBackspace
-        top={KEYBOARD_TOP}
-      />
+      {/* Bottom-right scroll hint (Group 1707482775, x2040 y3543) — the same
+          bare pair of triangles the list frames draw, and only visible here
+          because this frame carries no banner. */}
+      {jejuIconUrl('scroll-hint') && (
+        <img src={jejuIconUrl('scroll-hint')} alt="" className={styles.scrollHint} draggable={false} />
+      )}
     </JejuPageFrame>
   );
 }

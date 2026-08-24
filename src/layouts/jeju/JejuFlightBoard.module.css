@@ -1,6 +1,7 @@
 /*
- * 제주공항 (W006) 운항 정보 board — Figma 제주>홈 6212:48936 / 6217:96955 /
- * 6217:97433 (the three 현황 conditions).
+ * 제주공항 (W006) 운항 정보 board — Figma 제주>홈 6439:71583 inside the redesigned
+ * home node 6439:71456 (the three 현황 conditions were 6212:48936 / 6217:96955 /
+ * 6217:97433 and are unchanged apart from type sizes).
  *
  * Positioned in JejuHome's frame coordinates: inside KioskArtboard 1 CSS px =
  * 1 Figma px on the 2160×3840 artboard, so every number here is the exact value
@@ -8,31 +9,54 @@
  *
  * The board is a SIBLING of .notice in the DOM even though 운항 정보 더보기 sits
  * inside the 공지 frame in Figma — .notice has `overflow: hidden`, and the board
- * (top 785, height 206) has to paint over it. Keeping both at frame level and
+ * (top 732, height 206) has to paint over it. Keeping both at frame level and
  * ordering the board after .notice reproduces the Figma stacking without
  * fighting that clip.
  *
  * No backdrop-filter: see the long note above .notice in JejuHome.module.css —
  * the only thing behind these panels is a flat #FBF8F3, so the blur is a
  * measurable no-op that darkens the composite.
+ *
+ * 2026-08-24 redesign: the board rides 53px higher (785 → 732) and every type
+ * size drops one step — 운항 정보 60→55, headers 40→38, values 48→45, 더보기
+ * 35→38 — with 항공사/편명 now one size instead of two.
  */
 .board {
   position: absolute;
   left: 155px;
-  top: 785px;
+  top: 732px;
   width: 1850px;
   height: 206px;
   border-radius: 45px;
   background: rgba(255, 255, 255, 0.5);
 }
 
+/*
+ * LOW-REACH (♿) — Figma 6442:105429, `Frame 2085666873` at (155, 1569).
+ *
+ * The board rides INSIDE the 공지 panel, and that panel moves 297 → 1134 without
+ * resizing (still 2000×750), so the board moves with it rigidly: +837, no
+ * compression. That is unlike most of the low-reach home, which also shrinks —
+ * see the table in JejuHome.module.css.
+ *
+ * Everything else about the board is untouched, and that is measured, not
+ * assumed: the low-reach frame repeats 1850×206 at left 155, the title at 57/76,
+ * the rule at 336 × 1462, and all six column axes to within the same 1px the
+ * standard board records — time 412, airline 731, destination 1095.5, kind 1320,
+ * gate 1507.5, status 1718 (header 1720 / 탑승최종 1715, split as before). Type
+ * sizes match too: title 55, heads 38, values 45, 더보기 38.
+ */
+.boardLow {
+  top: 1569px;
+}
+
 .title {
   position: absolute;
-  left: 48px;
-  top: 67px;
+  left: 57px;
+  top: 76px;
   width: 242px;
   margin: 0;
-  font-size: 60px;
+  font-size: 55px;
   font-weight: 700;
   line-height: 1;
   color: #000;
@@ -62,21 +86,29 @@
 
 .head {
   top: 38px;
-  font-size: 40px;
+  font-size: 38px;
   font-weight: 600;
   color: #c8bda9;
 }
 
 .value {
   top: 118px;
-  font-size: 48px;
+  font-size: 45px;
   font-weight: 400;
   color: #333;
 }
 
-/* 항공사/편명 is one line at two sizes: 대한항공 at 48, (KE1141) at 40. */
+/* 항공사/편명 used to be one line at two sizes (48 + 40); the redesign draws
+   대한항공 and (KE1141) at the same 45, so this only exists to keep the two runs
+   addressable. */
 .flightNo {
-  font-size: 40px;
+  font-size: 45px;
+}
+
+/* 현황 is the one value drawn semibold — its colour comes from
+   flightStatusColor(), so only the weight belongs here. */
+.status {
+  font-weight: 600;
 }
 
 /*
@@ -103,14 +135,14 @@
 
 /* ── 운항 정보 더보기 ────────────────────────────────────────────────── */
 /*
- * Figma places this inside 공지 (text at 1040,738 · triangle box at 959,727),
- * i.e. frame 1128,1015 and 1047,1004. The hit area is padded out around both —
- * the drawn control is only 35px tall, far under a comfortable touch target.
+ * Figma places this inside 공지 (text at 911,677 · triangle box at 830,666),
+ * i.e. frame 991,974 and 910,963. The hit area is padded out around both — the
+ * drawn control is only 38px tall, far under a comfortable touch target.
  */
 .more {
   position: absolute;
-  left: 1032px;
-  top: 996px;
+  left: 895.03px;
+  top: 955px;
   width: 476px;
   height: 78px;
   padding: 0;
@@ -121,17 +153,28 @@
 }
 
 /*
+ * The same +837 the board takes. Confirmed on two independent anchors in
+ * 6442:105429 rather than inferred from the board: the 운항 정보 더보기 text sits
+ * at y1811 against the standard 974, and its triangle group at y1800 against
+ * 963 — both exactly 837. The padded hit area keeps its 8px lead over the
+ * triangle box, so `top` is 955 + 837.
+ */
+.moreLow {
+  top: 1792px;
+}
+
+/*
  * A plain filled triangle, drawn rather than shipped as an asset — the same
  * call as .noticeRule in JejuHome.module.css.
  *
  * Figma: an 81×51 box rotated 180°, holding a 70.148×38.25 triangle inset
  * 6.7% left/right and 1/4 from the bottom. After the rotation the visible
- * triangle lands at frame 1052.4,1016.75 pointing down.
+ * triangle lands at frame 915.43,975.75 pointing down.
  */
 .chevron {
   position: absolute;
-  left: 20.4px; /* 1052.4 − 1032 */
-  top: 20.75px; /* 1016.75 − 996 */
+  left: 20.4px; /* 915.43 − 895.03 */
+  top: 20.75px; /* 975.75 − 955 */
   width: 0;
   height: 0;
   border-left: 35.074px solid transparent;
@@ -141,10 +184,10 @@
 
 .moreText {
   position: absolute;
-  left: 96px; /* 1128 − 1032 */
-  top: 19px; /* 1015 − 996 */
+  left: 96px; /* 991 − 895.03 */
+  top: 19px; /* 974 − 955 */
   width: 360px;
-  font-size: 35px;
+  font-size: 38px;
   font-weight: 500;
   line-height: 1;
   color: var(--kiosk-primary, #ff7f0f);

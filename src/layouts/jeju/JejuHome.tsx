@@ -1,5 +1,6 @@
 /**
- * 제주공항 (W006) home — Figma node 6117:48085 (제주>홈).
+ * 제주공항 (W006) home — Figma node 6439:71456 (제주>홈), the 2026-08-24 redesign
+ * of 6117:48085.
  *
  * Built from the real node via get_design_context; every position/size in
  * JejuHome.module.css is the exact Figma value. All artwork is exported from its
@@ -8,7 +9,12 @@
  *
  * Layout, top to bottom: location + clock · 공지 card with live weather ·
  * 운항 정보 board · search row · 3 feature cards · 12-tile grid on a white
- * panel · K-DRAMA / 사진촬영 / 화장실 · hanbok banner.
+ * panel · K-DRAMA / 사진촬영 / 화장실.
+ *
+ * The redesign moved the bottom action row down into the strip the rotating
+ * banner used to own (y3267–3840) and draws NOTHING below it, so the banner is
+ * no longer part of this screen — `useRotatingBanner` is gone from here. Other
+ * layouts still use it; put it back only with a design that has room for it.
  *
  * The 운항 정보 board was redrawn with six columns and three 현황 conditions
  * (탑승 중 / 지연 / 탑승최종) — it lives in JejuFlightBoard.tsx.
@@ -17,8 +23,8 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import type { KioskController } from '@renderer/hooks/useKioskController';
 import type { KioskScreenId } from '@shared/types/kiosk';
 import { jejuIconUrl } from '@renderer/assets/icons/jeju';
-import { useRotatingBanner } from '@renderer/hooks/useRotatingBanner';
 import { useOrderedTiles, type TileKey } from '@renderer/lib/buttonLayout';
+import { useAccessibilityStore } from '@renderer/store/accessibilityStore';
 import { useWeatherStore } from '@renderer/store/weatherStore';
 import { useWeatherVideo } from '@renderer/hooks/useWeatherVideo';
 import { useLanguageStore } from '@renderer/store/languageStore';
@@ -96,8 +102,16 @@ const homeText = (key: string, lang: Lang): string => sheetText(key, lang, FALLB
  * receiving the Korean label, because that string is the analytics label and is
  * joined against the `buttons` table (see buttonCatalog).
  *
- * 탐나오 and 운항 정보 have no MainButton_* row in the sheet, so they keep their
- * authored labels; MainButton_Cruise is 운항정보's page title, not this tile.
+ * 탐나오 and the home's own 운항 정보 board have no MainButton_* row in the sheet,
+ * so they keep their authored labels.
+ *
+ * MainButton_Cruise / SubButton_Cruise (운항정보 · 입·출항 정보) serve DOUBLE duty
+ * and that is correct: on 제주공항 they title the 운항정보 page (see i18n's
+ * TITLE_KEYS), and on 여객터미널 they also label the 크루즈 운항 tile that opens
+ * the ferry board. The sheet files both under "유산문화센터, 여객선터미널에 적용".
+ * Note the tile therefore READS 운항정보 while `navigate()` still receives
+ * 크루즈 운항 — the CMS's button_type, and the only string the analytics join
+ * matches on.
  *
  * MainButton_Greeting and MainButton_ToHelp used to render "안녕 '유산'" and
  * "도와줘 '유산'" here. That was NOT stale sheet data: Localization_Jeju is one
@@ -115,6 +129,7 @@ const TILE_LABEL_KEYS: Partial<Record<string, string>> = {
   hello: 'MainButton_Greeting',
   help: 'MainButton_ToHelp',
   rentcar: 'MainButton_RentCar',
+  cruise: 'MainButton_Cruise',
   exchange: 'MainButton_Exchange',
   donation: 'MainButton_Donation',
   localpay: 'MainButton_LocalCurrency',
@@ -141,6 +156,7 @@ const TILE_SUB_KEYS: Partial<Record<string, string>> = {
   hello: 'SubButton_Greeting',
   help: 'SubButton_ToHelp',
   rentcar: 'SubButton_RentCar',
+  cruise: 'SubButton_Cruise',
   exchange: 'SubButton_Exchange',
   donation: 'SubButton_Donation',
   localpay: 'SubButton_LocalCurrency',
@@ -225,31 +241,95 @@ interface Tile {
   plate?: string;
 }
 
+/**
+ * The one grid slot that differs between the two 제주 venues — row 2, column 4.
+ *
+ * 제주공항 W006 draws 렌트카; 제주국제여객터미널 W007 draws 크루즈 운항, which opens
+ * the ferry sailing board (JejuCruise). Everything else on the two homes is
+ * identical, so this is the whole of the per-venue difference.
+ *
+ * Verified against the live CMS on 2026-08-24: `/api/kiosks/7/buttons` is
+ * byte-for-byte W006's 21 rows with exactly this one changed (id 163, line 6
+ * position 4), and the terminal's Figma home 6457:116495 draws a ship in the
+ * same cell.
+ *
+ * `label` is the ANALYTICS label — `navigate()` hands it straight to the buttons
+ * join, so it must stay byte-identical to the CMS's `button_type` (see
+ * buttonCatalog's SLOT_OVERRIDES). The label the visitor READS comes from
+ * TILE_LABEL_KEYS via the sheet, and the two are allowed to differ.
+ */
+const RENTCAR_TILE: Tile = { screen: 'rentcar', label: '렌트카', sub: '간편 예약', icon: 'tile-rentcar' };
+const CRUISE_TILE: Tile = { screen: 'cruise', label: '크루즈 운항', sub: '입·출항 정보', icon: 'tile-cruise' };
+
+/**
+ * The 안녕/도와줘 tiles carry the venue's MASCOT in their analytics labels, so
+ * they too are per-venue: W006/W007's CMS rows read 하영, W008's read 유산
+ * (`/api/kiosks/8/buttons` ids 182/183, verified 2026-08-24). Like the venue
+ * tile's label, these must stay byte-identical to the CMS `button_type`
+ * (ASCII apostrophes); the label the visitor READS still comes from
+ * TILE_LABEL_KEYS via the sheet, whose mascot tie-break already answers
+ * per-layout.
+ */
+interface TileMascot {
+  hello: string;
+  helloSub: string;
+  help: string;
+}
+const HAYOUNG_LABELS: TileMascot = { hello: "안녕 '하영'", helloSub: '하영 소개', help: "도와줘 '하영'" };
+const YUSAN_LABELS: TileMascot = { hello: "안녕 '유산'", helloSub: '유산 소개', help: "도와줘 '유산'" };
+
 /** The 12 grid tiles, in Figma reading order (4 columns × 3 rows). */
-const TILES: Tile[] = [
+const tilesWith = (venue: Tile, m: TileMascot = HAYOUNG_LABELS): Tile[] => [
   { screen: 'eat',      label: "'제주'뭐먹지", sub: '맛집 추천',      icon: 'tile-eat'      },
   { screen: 'shop',     label: "'제주'뭐사지", sub: '쇼핑 추천',      icon: 'tile-shop'     },
   { screen: 'lodging',  label: '숙박안내',     sub: '제주 숙소 모음', icon: 'tile-lodging'  },
   { screen: 'taxfree',  label: 'TAX-FREE',    sub: '면세혜택',       icon: 'tile-taxfree'  },
   { screen: 'about',    label: '여기는 제주도', sub: '관광지 추천',    icon: 'tile-about'    },
-  { screen: 'hello',    label: "안녕 '하영'",  sub: '하영 소개',      icon: 'tile-hello'    },
-  { screen: 'help',     label: "도와줘 '하영'", sub: '편의시설 안내',  icon: 'tile-help'     },
-  { screen: 'rentcar',  label: '렌트카',       sub: '간편 예약',      icon: 'tile-rentcar'  },
+  { screen: 'hello',    label: m.hello,        sub: m.helloSub,       icon: 'tile-hello'    },
+  { screen: 'help',     label: m.help,          sub: '편의시설 안내',  icon: 'tile-help'     },
+  venue,
   { screen: 'exchange', label: '환율',         sub: '환율계산기',     icon: 'tile-exchange' },
   { screen: 'donation', label: '기부',         sub: '교복 기부',      icon: 'tile-donation' },
   { screen: 'tamnao',   label: '탐나오',       sub: '제주공공플랫폼', icon: 'tile-tamnao', plate: '#e8534c' },
   { screen: 'localpay', label: '지역화폐',     sub: '탐나는전',       icon: 'tile-localpay' },
 ];
 
+/**
+ * Both grids, built once at module scope.
+ *
+ * Their identities have to be STABLE across renders: `useOrderedTiles` memoises
+ * on the array it is handed, so building one per render would re-run the CMS
+ * join — and re-log its diagnostics — on every tick of the home clock.
+ */
+const TILES_AIRPORT = tilesWith(RENTCAR_TILE);
+const TILES_TERMINAL = tilesWith(CRUISE_TILE);
+// W008 세계자연유산본부 — W007's grid (크루즈 운항, not 렌트카) with the 유산 tiles.
+const TILES_HERITAGE = tilesWith(CRUISE_TILE, YUSAN_LABELS);
+
+/**
+ * Which grid a 제주 kiosk draws, by kiosk id.
+ *
+ * Keyed by KIOSK, not by layout: W006 and W007 deliberately share the
+ * JEJU_AIRPORT layout (one 제주 design, two venues — see KioskLayoutId), so the
+ * layout cannot tell them apart and this is the level the difference lives at.
+ * A kiosk with no entry gets the airport grid.
+ */
+const TILES_BY_KIOSK: Partial<Record<string, Tile[]>> = { W007: TILES_TERMINAL, W008: TILES_HERITAGE };
+
 /** Join a home tile to its CMS button row by screen key (see useOrderedTiles). */
 const jejuTileKey = (tile: Tile): TileKey => ({ screen: tile.screen });
 
-const COL_STEP = 471;
-const ROW_STEP = 325;
+/** 300-wide tile + 180 gap across, 412-tall tile + 80 gap down. */
+const COL_STEP = 480;
+const ROW_STEP = 492;
+/* Low-reach compresses the tile grid: columns land on 0/503.33/1006.67/1510 and
+   rows on 0/334/667 (Figma 6442:105429). */
+const COL_STEP_LOW = 503.33;
+const ROW_STEP_LOW = 333.5;
 
 /** Search row geometry (mirrors .searchRow in the CSS) — the inline keyboard
  *  tray is positioned from it, so the two can't drift apart. */
-const SEARCH_ROW_TOP = 1138;
+const SEARCH_ROW_TOP = 1136;
 const SEARCH_ROW_HEIGHT = 182;
 
 interface CardDef {
@@ -268,8 +348,6 @@ const CARDS: CardDef[] = [
 ];
 
 export function JejuHome({ controller }: Props): JSX.Element {
-  // Bottom promo: live API banner when one is active, else the bundled 한복 banner.
-  const banner = useRotatingBanner(jejuIconUrl('banner-hanbok'));
   const weather = useWeatherStore((s) => s.weather);
   const playWeatherVideo = useWeatherVideo();
   const lang = useLanguageStore((s) => s.currentLanguage);
@@ -340,15 +418,26 @@ export function JejuHome({ controller }: Props): JSX.Element {
   const noticeRuns = parseNotice(homeText('NoticeContent', lang));
 
   /**
-   * Grid order from the buttons CMS (`/api/kiosks/6/buttons`), falling back to the
-   * authored order when the layout is not cached or any tile fails to match.
+   * Grid order from the buttons CMS (`/api/kiosks/{6,7}/buttons`), falling back to
+   * the authored order when the layout is not cached or any tile fails to match.
    *
-   * The 12 seeded rows agree with the Figma today — lines 5/6/7 are exactly
-   * 뭐먹지·뭐사지·숙박·TAX-FREE / 여기는·안녕·도와줘·렌트카 / 환율·기부·탐나오·지역화폐 —
-   * so this changes nothing on screen right now. It is wired so a CMS reorder
-   * moves the grid without a release, which is how the other kiosks behave.
+   * Both venues' 12 seeded rows agree with their Figma today — lines 5/6/7 are
+   * 뭐먹지·뭐사지·숙박·TAX-FREE / 여기는·안녕·도와줘·(렌트카|크루즈 운항) /
+   * 환율·기부·탐나오·지역화폐 — so this changes nothing on screen right now. It is
+   * wired so a CMS reorder moves the grid without a release, which is how the
+   * other kiosks behave.
    */
-  const orderedTiles = useOrderedTiles(controller.kioskId, TILES, jejuTileKey);
+  const tiles = TILES_BY_KIOSK[controller.kioskId] ?? TILES_AIRPORT;
+  const orderedTiles = useOrderedTiles(controller.kioskId, tiles, jejuTileKey);
+
+  /* Low-reach: a 959px hero opens the page and everything below both moves down
+     AND compresses — see the block at the foot of JejuHome.module.css. */
+  const lowReach = useAccessibilityStore((s) => s.lowReach);
+  const toggleLowReach = useAccessibilityStore((s) => s.toggleLowReach);
+  /* Params are optional because CSS Module lookups are typed `string | undefined`. */
+  const low = (base?: string, alt?: string): string => `${base ?? ''} ${lowReach ? alt ?? '' : ''}`;
+  const colStep = lowReach ? COL_STEP_LOW : COL_STEP;
+  const rowStep = lowReach ? ROW_STEP_LOW : ROW_STEP;
 
   return (
     <div className={styles.root}>
@@ -356,8 +445,16 @@ export function JejuHome({ controller }: Props): JSX.Element {
         <img src={jejuIconUrl('bg')} alt="" className={styles.bgImage} draggable={false} />
       )}
 
+      {lowReach && jejuIconUrl('banner-ai-hero') && (
+        <div className={styles.hero}>
+          <img src={jejuIconUrl('banner-ai-hero')} alt="" className={styles.heroImg} draggable={false} />
+          <div className={`${styles.heroRule} ${styles.heroRuleTop}`} />
+          <div className={`${styles.heroRule} ${styles.heroRuleBottom}`} />
+        </div>
+      )}
+
       {/* ── Top bar ── */}
-      <div className={styles.topBar}>
+      <div className={low(styles.topBar, styles.topBarLow)}>
         <div className={styles.topLeft}>
           {jejuIconUrl('ico-location') && (
             <img src={jejuIconUrl('ico-location')} alt="" className={styles.locationIcon} draggable={false} />
@@ -368,7 +465,7 @@ export function JejuHome({ controller }: Props): JSX.Element {
       </div>
 
       {/* ── 공지 card + weather ── */}
-      <div className={styles.notice}>
+      <div className={low(styles.notice, styles.noticeLow)}>
         <div className={styles.noticeRule} />
         <p className={styles.noticeText}>
           {noticeRuns.map((run, i) => (run.bold ? <b key={i}>{run.text}</b> : <span key={i}>{run.text}</span>))}
@@ -395,7 +492,7 @@ export function JejuHome({ controller }: Props): JSX.Element {
       <JejuFlightBoard controller={controller} lang={lang} />
 
       {/* ── Search row ── */}
-      <div className={styles.searchRow}>
+      <div className={low(styles.searchRow, styles.searchRowLow)}>
         <button
           type="button"
           className={styles.searchHome}
@@ -407,7 +504,7 @@ export function JejuHome({ controller }: Props): JSX.Element {
           )}
         </button>
 
-        <div className={styles.searchField} onClick={() => setSearching(true)} role="button">
+        <div className={low(styles.searchField, styles.searchFieldLow)} onClick={() => setSearching(true)} role="button">
           <span className={`${styles.searchText} ${query ? styles.searchValue : styles.searchPlaceholder}`}>
             {query || homeText('Main_Search', lang)}
             {searching && <span className={styles.searchCaret} />}
@@ -419,7 +516,7 @@ export function JejuHome({ controller }: Props): JSX.Element {
 
         <button
           type="button"
-          className={styles.langBtn}
+          className={low(styles.langBtn, styles.langBtnLow)}
           onClick={() => go('language', '언어선택')}
           aria-label="언어선택"
         >
@@ -428,7 +525,7 @@ export function JejuHome({ controller }: Props): JSX.Element {
       </div>
 
       {/* ── Three feature cards ── */}
-      <div className={styles.cards}>
+      <div className={low(styles.cards, styles.cardsLow)}>
         {CARDS.map((card) => (
           <button
             key={card.screen}
@@ -446,8 +543,8 @@ export function JejuHome({ controller }: Props): JSX.Element {
       </div>
 
       {/* ── Menu grid ── */}
-      <div className={styles.panel} />
-      <div className={styles.grid}>
+      <div className={low(styles.panel, styles.panelLow)} />
+      <div className={low(styles.grid, styles.gridLow)}>
         {orderedTiles.map((tile, i) => {
           const art = jejuIconUrl(tile.icon);
           const disabled = tile.screen === 'donation' && donationPending;
@@ -455,22 +552,24 @@ export function JejuHome({ controller }: Props): JSX.Element {
             <button
               key={tile.screen}
               type="button"
-              className={`${styles.tile} ${disabled ? styles.tileDisabled : ''}`}
-              style={{ left: (i % 4) * COL_STEP, top: Math.floor(i / 4) * ROW_STEP }}
+              className={[styles.tile, lowReach ? styles.tileLow : '', disabled ? styles.tileDisabled : '']
+                .filter(Boolean)
+                .join(' ')}
+              style={{ left: (i % 4) * colStep, top: Math.floor(i / 4) * rowStep }}
               onClick={disabled ? undefined : () => go(tile.screen, tile.label)}
               disabled={disabled}
             >
               {art ? (
                 <>
                   {tile.plate && (
-                    <span className={styles.tilePlate} style={{ background: tile.plate }} />
+                    <span className={low(styles.tilePlate, styles.tilePlateLow)} style={{ background: tile.plate }} />
                   )}
-                  <img src={art} alt="" className={styles.tileArt} draggable={false} />
+                  <img src={art} alt="" className={low(styles.tileArt, styles.tileArtLow)} draggable={false} />
                 </>
               ) : (
                 <span className={styles.tileArtMissing}>{tile.label[0]}</span>
               )}
-              <span className={styles.tileText}>
+              <span className={low(styles.tileText, styles.tileTextLow)}>
                 <span className={styles.tileTitle}>{tileLabel(tile)}</span>
                 <span className={styles.tileSub}>{subFor(tile.screen, tile.sub)}</span>
               </span>
@@ -480,25 +579,35 @@ export function JejuHome({ controller }: Props): JSX.Element {
       </div>
 
       {/* ── Bottom actions ── */}
-      <button type="button" className={styles.kdrama} onClick={() => go('kdrama', 'K-DRAMA')} aria-label="K-DRAMA">
+      {/* K-DRAMA is DISABLED for now — the screen behind it is not ready. Only
+          the click is off: no dim, no colour change, so the art stays exactly
+          as the frame draws it (`disabled` alone would take Chrome's UA fade).
+          Re-enable by restoring `onClick={() => go('kdrama', 'K-DRAMA')}`. */}
+      <button
+        type="button"
+        className={low(styles.kdrama, styles.kdramaLow)}
+        disabled
+        aria-disabled="true"
+        aria-label="K-DRAMA"
+      >
         {jejuIconUrl('btn-kdrama') && (
           <img src={jejuIconUrl('btn-kdrama')} alt="" className={styles.actionImg} draggable={false} />
         )}
       </button>
-      <span className={`${styles.actionLabel} ${styles.labelKdrama}`}>K-DRAMA</span>
+      <span className={`${styles.actionLabel} ${styles.labelKdrama} ${lowReach ? styles.actionLabelLow : ''}`}>K-DRAMA</span>
 
-      <button type="button" className={styles.camera} onClick={() => controller.startPhoto()} aria-label="사진촬영">
+      <button type="button" className={low(styles.camera, styles.cameraLow)} onClick={() => controller.startPhoto()} aria-label="사진촬영">
         {jejuIconUrl('btn-camera') && (
           <img src={jejuIconUrl('btn-camera')} alt="" className={styles.actionImg} draggable={false} />
         )}
       </button>
 
-      <button type="button" className={styles.restroom} onClick={() => go('restroom', '화장실')} aria-label="화장실">
+      <button type="button" className={low(styles.restroom, styles.restroomLow)} onClick={() => go('restroom', '화장실')} aria-label="화장실">
         {jejuIconUrl('ico-restroom') && (
           <img src={jejuIconUrl('ico-restroom')} alt="" className={styles.actionImg} draggable={false} />
         )}
       </button>
-      <span className={`${styles.actionLabel} ${styles.labelRestroom}`}>화장실</span>
+      <span className={`${styles.actionLabel} ${styles.labelRestroom} ${lowReach ? styles.actionLabelLow : ''}`}>화장실</span>
 
       {/* ── Left nav (one Figma render, two tap zones) ── */}
       <div className={styles.leftNav}>
@@ -519,16 +628,24 @@ export function JejuHome({ controller }: Props): JSX.Element {
         />
       </div>
       {jejuIconUrl('ico-accessibility') && (
-        <img src={jejuIconUrl('ico-accessibility')} alt="" className={styles.accessibility} draggable={false} />
+        <button
+          type="button"
+          className={styles.accessibility}
+          onClick={toggleLowReach}
+          aria-label="저상 화면"
+          aria-pressed={lowReach}
+        >
+          <img
+            src={jejuIconUrl('ico-accessibility')}
+            alt=""
+            className={styles.accessibilityImg}
+            draggable={false}
+          />
+        </button>
       )}
 
-      {/* ── Bottom banner ── */}
-      <div className={styles.banner}>
-        {banner && <img src={banner} alt="" className={styles.bannerImg} draggable={false} />}
-      </div>
-
       {/* Inline search keyboard — shows in place, no navigation until Enter.
-          `top` must track the search row (1138 + 182 = 1320) so the tray opens
+          `top` must track the search row (1136 + 182 = 1318) so the tray opens
           flush UNDER it; the shared default of 900 is Insadong's position and
           would put the keyboard above Jeju's search bar. */}
       <FloatingKeyboard

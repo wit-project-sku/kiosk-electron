@@ -1,5 +1,5 @@
 import type { ComponentType } from 'react';
-import { getKioskLocation } from '@shared/config/kioskLocations';
+import { getKioskLocation, isJejuLayout } from '@shared/config/kioskLocations';
 import { useKioskStore } from '@renderer/store/kioskStore';
 import { iconUrl } from '@renderer/assets/icons/insadong';
 import { osanIconUrl } from '@renderer/assets/icons/osan';
@@ -54,7 +54,7 @@ export function usePhotoChrome(): PhotoChrome {
   const layout = getKioskLocation(kioskId).layout;
   const isOsan = layout === 'OSAN';
   const isHwaseong = layout === 'HWASEONG';
-  const isJeju = layout === 'JEJU_AIRPORT';
+  const isJeju = isJejuLayout(layout);
 
   const icon = isOsan
     ? (name: string) => osanIconUrl(name) ?? iconUrl(name)

@@ -17,11 +17,20 @@ interface Props<Id extends string> {
   items: ReadonlyArray<Item<Id>>;
   value: Id;
   onChange: (next: Id) => void;
+  /** Extra class on the row, for callers that re-place it — 안녕 '하영' moves it
+   *  below the tab row at the foot of the page in the low-reach layout, and
+   *  도와줘 '하영' draws its band on y940 rather than y920. */
+  className?: string;
 }
 
-export function JejuSubTabRow<Id extends string>({ items, value, onChange }: Props<Id>): JSX.Element {
+export function JejuSubTabRow<Id extends string>({
+  items,
+  value,
+  onChange,
+  className,
+}: Props<Id>): JSX.Element {
   return (
-    <div className={styles.row}>
+    <div className={`${styles.row} ${className ?? ''}`}>
       {items.map(({ id, label }, i) => (
         <Fragment key={id}>
           {i > 0 && (

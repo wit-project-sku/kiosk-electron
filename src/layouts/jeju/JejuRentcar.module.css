@@ -1,9 +1,13 @@
 /*
- * 제주공항 (W006) 렌트카 — Figma 제주>하영=렌트카=공항-01 (6217:95726).
+ * 제주공항 (W006) 렌트카 — Figma 6297:76578 / 6297:76391 (제주>하영=렌트카=공항-01,
+ * the two are byte-identical duplicates), the 2026-08-24 redraw of 6217:95726.
+ * That old node no longer exists in the file — it was replaced, not edited.
  *
- * The same shape as JejuListScreen with the chip grid and 초성 row swapped for a
- * search field: header (700) · 검색장 (700…882) · card list from 982, five
- * `R>리스트-사진4개` cards at a 590 pitch (530 tall, 60 apart).
+ * ★ The free-text 검색장 is GONE. The screen is now JejuListScreen with the
+ * category chips left out: one scrolling column under the 700px header —
+ *   700   초성 index row, 1744 wide at x208 (h82)
+ *   832   first card, then +590 per card (530 tall, 60 apart)
+ * so the column gap is 50, exactly the list screens' 검색결과 gap.
  *
  * Inside KioskArtboard 1 CSS px = 1 Figma px. Chrome comes from JejuPageFrame.
  */
@@ -17,8 +21,8 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  /* 982 − 882: the gap between the search row and the first card. */
-  gap: 100px;
+  /* 832 − 782: 초성 row to first card. */
+  gap: 50px;
   overflow-x: hidden;
   overflow-y: auto;
   /* The 34.32 scrollbar is carved out of the right margin so the content column
@@ -39,78 +43,14 @@
   background: transparent;
 }
 
-/* ── Search ─────────────────────────────────────────────────────────── */
-/*
- * Figma draws 검색장 as the home screen's row with its 홈 and 언어 buttons
- * hidden, leaving a 1350-wide field at x405. The field itself keeps the home
- * screen's own styling (4.29 border, r120, 60.06 placeholder) so the two search
- * boxes on this kiosk stay identical.
- */
-.searchRow {
+/* ── 초성 index (6297:76742) ──
+   The control itself lives in JejuChosungRow. No height override here: this
+   frame's text box is the full 82 the shared cells already are (700…782),
+   unlike the list screens' 72. The caller sets the cell WIDTH — 14 × 124.57
+   spans Figma's x208–1952, and `align-items: center` on the column puts that
+   1744-wide run at x208 inside the 1820 content band. */
+.chosung {
   flex: none;
-  width: 1820px;
-  height: 182px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.searchField {
-  width: 1350px;
-  height: 182px;
-  box-sizing: border-box;
-  padding: 55px 75px;
-  border: 4.29px solid var(--kiosk-primary, #ff7f0f);
-  border-radius: 120px;
-  background: #fff;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  cursor: pointer;
-  -webkit-tap-highlight-color: transparent;
-}
-
-.searchText {
-  flex: 1 1 auto;
-  min-width: 0;
-  font-size: 60.06px;
-  font-weight: 500;
-  line-height: 1;
-  text-align: left;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.searchPlaceholder {
-  color: #999;
-}
-
-.searchValue {
-  color: #232323;
-}
-
-.searchCaret {
-  display: inline-block;
-  width: 4px;
-  height: 62px;
-  margin-left: 6px;
-  vertical-align: middle;
-  background: var(--kiosk-primary, #ff7f0f);
-  animation: jejuRentCaret 1s step-end infinite;
-}
-
-@keyframes jejuRentCaret {
-  50% {
-    opacity: 0;
-  }
-}
-
-.searchIcon {
-  flex: 0 0 auto;
-  width: 71px;
-  height: 68px;
-  object-fit: contain;
 }
 
 /* ── Card list ──────────────────────────────────────────────────────── */
@@ -124,9 +64,9 @@
 
 /* ── ▲▼ scroll controls ──────────────────────────────────────────────
    The same pair, at the same coordinates, as JejuListScreen and JejuSearch —
-   this frame is that frame with the chip grid swapped for a search field, so
-   the control cannot move without the three screens disagreeing. Right margin
-   (x2027), vertically centred on the scrolling region. */
+   this frame is that frame with the chip grid dropped, so the control cannot
+   move without the three screens disagreeing. Right margin (x2027), vertically
+   centred on the scrolling region. */
 .scrollBtn {
   position: absolute;
   left: 2027px;
@@ -162,6 +102,19 @@
   transform: rotate(-90deg);
 }
 
+/* Decorative "this list scrolls" hint in the bottom-right corner — the frame's
+   own Group 1707482775 (x2040, y3543, 80×179), the same bare pair of triangles
+   the list screens draw. Not a control; the round buttons above are. */
+.scrollHint {
+  position: absolute;
+  left: 2040px;
+  top: 3543px;
+  width: 80px;
+  height: 179px;
+  object-fit: contain;
+  pointer-events: none;
+}
+
 .empty {
   flex: none;
   margin: 0;
@@ -171,4 +124,34 @@
   line-height: 1.4;
   color: #909090;
   text-align: center;
+}
+
+
+/* ────────────────────────────────────────────────────────────────────────────
+ * LOW-REACH (♿) — Figma 6297:77389 / 6297:77411 (both the same layout).
+ *
+ * The page keeps its header and its cards where they are; only the 초성 index
+ * moves, from the top of the scrolling column (y700) to the foot of the page
+ * (y3658) where a seated visitor can reach it. Out of the column it stops
+ * scrolling with the cards, which is the point.
+ *
+ * With the row gone from the top, the list reclaims that band: Figma starts the
+ * cards on y674 (its 검색결과 frame holds them at −26) and clips the viewport at
+ * y3558, just above the row.
+ *
+ * The run itself is unchanged — 14 × 124.57 = 1744 at x208 — because this page
+ * already drew the wide variant that the other low-reach screens adopt.
+ * ──────────────────────────────────────────────────────────────────────────── */
+.scrollLow {
+  top: 674px;
+  bottom: 282px;
+  padding-bottom: 0;
+}
+
+.chosungLow {
+  position: absolute;
+  left: 208px;
+  top: 3658px;
+  width: 1744px;
+  height: 82px;
 }

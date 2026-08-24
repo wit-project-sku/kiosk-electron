@@ -1,6 +1,6 @@
 /*
  * 제주 shop list card — Figma component `4030:74958` (R>리스트-사진4개).
- * 1820×530, r42.9, 5px #e8e8e8, padding 65/45. Info column 1120 (gap 40),
+ * 1820×530, r42.9, borderless, padding 65/45. Info column 1120 (gap 40),
  * photo column 570 (2×2 of 270×150 at r21.45, gap 30).
  */
 .card {
@@ -8,7 +8,11 @@
   height: 530px;
   box-sizing: border-box;
   padding: 65px 45px;
-  border: 5px solid #e8e8e8;
+  /* No border, no shadow — Figma draws a plain white rounded plate. `border: none`
+     rather than omitting the property, because this card is a <button> and would
+     otherwise pick up Chrome's UA `2px outset ButtonBorder` bevel (the project has
+     no global button reset; global.css only sets font-family). */
+  border: none;
   border-radius: 42.9px;
   background: #fff;
   display: flex;

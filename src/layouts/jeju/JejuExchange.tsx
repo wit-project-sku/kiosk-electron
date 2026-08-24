@@ -1,10 +1,10 @@
 /**
- * 제주공항 (W006) 환율 — Figma 제주>환율-01 (6219:99587) and its four other
- * states: 키보드 (6219:99269), 나라선택01 on the top field (6219:99361) and on
- * the bottom field (6219:99473), and the 실시간 환율 tab (6219:99645).
+ * 제주공항 (W006) 환율 — Figma 제주>환율-나라선택01, the 2026-08-24 redraw:
+ * 6412:76217 (calculator), 6412:76438 (keyboard open), 6412:76521 / 6412:76726
+ * (currency dropdown on the top / bottom field) and 6219:99645 (실시간 환율).
  *
  * One screen, two tabs:
- *   환율 계산기  amount + currency → converted amount, with a numeric keypad and
+ *   환율계산기   amount + currency → converted amount, with a numeric keypad and
  *                a currency dropdown per field
  *   실시간 환율  the same read-only rate list the other three layouts already
  *                ship (identical row: white pill, 170 flag, 60px label/rate)
@@ -35,6 +35,7 @@ import cadFlag from '@renderer/assets/photos/insadong/exchange/cad.svg';
 import hkgFlag from '@renderer/assets/photos/insadong/exchange/hkg.svg';
 import thbFlag from '@renderer/assets/photos/insadong/exchange/thb.svg';
 import sarFlag from '@renderer/assets/photos/insadong/exchange/sar.svg';
+import { useAccessibilityStore } from '@renderer/store/accessibilityStore';
 import { JejuPageFrame } from './JejuPageFrame';
 import styles from './JejuExchange.module.css';
 
@@ -81,7 +82,8 @@ const TABS: ReadonlyArray<{ id: TabId; label: Partial<Record<Lang, string>> }> =
   {
     id: 'calc',
     label: {
-      ko: '환율 계산기', en: 'Converter', ja: '為替計算機', zh: '汇率计算器',
+      // Written closed-up in the design (6412:76320), not "환율 계산기".
+      ko: '환율계산기', en: 'Converter', ja: '為替計算機', zh: '汇率计算器',
       vi: 'Máy tính tỷ giá', th: 'เครื่องคำนวณ', ru: 'Калькулятор', id: 'Kalkulator',
     },
   },
@@ -223,13 +225,25 @@ export function JejuExchange({ controller }: Props): JSX.Element {
 
   const overlayOpen = keypad || picker !== null;
 
+  /*
+   * Low-reach: the whole calculator block rides one shift (see .rootLow), which
+   * tightens by 61px while the keypad is open so the 환전 field's bottom edge
+   * meets the keypad's top exactly. Everything else is a per-element class.
+   */
+  const lowReach = useAccessibilityStore((s) => s.lowReach);
+  const lowShift = !lowReach
+    ? ''
+    : `${styles.rootLowAny} ${keypad ? styles.rootLowKeypad : styles.rootLow}`;
+
   return (
     <JejuPageFrame
       controller={controller}
       title="환율"
       onBack={() => controller.navigate('home', '뒤로')}
+      lowReachSelfLayout
     >
-      <div className={styles.tabs}>
+      <div className={lowShift}>
+      <div className={`${styles.tabs} ${lowReach ? styles.tabsLow : ''}`}>
         {TABS.map((t) => (
           <button
             key={t.id}
@@ -248,7 +262,14 @@ export function JejuExchange({ controller }: Props): JSX.Element {
 
       {tab === 'calc' ? (
         <>
-          <div className={styles.basePill}>
+          <div
+            className={[
+              styles.basePill,
+              lowReach ? (keypad ? styles.basePillLowKeypad : styles.basePillLow) : '',
+            ]
+              .filter(Boolean)
+              .join(' ')}
+          >
             <span className={styles.basePillLabel}>{pick(BASE_LABEL, lang)}</span>
             <span className={styles.basePillRate}>
               {oneUnit === undefined
@@ -320,13 +341,20 @@ export function JejuExchange({ controller }: Props): JSX.Element {
                 >
                   <img src={c.flag} alt="" className={styles.ccyFlag} draggable={false} />
                   <span className={styles.ccyCode}>{c.ccy}</span>
+                  {/* The closed button's ▼ follows the current pick into the
+                      open panel (6219:99583) — it marks which row is selected. */}
+                  {c.unit === (picker === 'from' ? fromUnit : toUnit) && (
+                    <span className={styles.optionCaret} aria-hidden="true">
+                      ▼
+                    </span>
+                  )}
                 </button>
               ))}
             </div>
           )}
 
           {keypad && (
-            <div className={styles.keypad}>
+            <div className={`${styles.keypad} ${lowReach ? styles.keypadLow : ''}`}>
               <div className={styles.keypadScrim} />
               <div className={styles.keys}>
                 {[0, 1, 2].map((row) => (
@@ -361,7 +389,7 @@ export function JejuExchange({ controller }: Props): JSX.Element {
           )}
         </>
       ) : (
-        <div className={styles.liveScroll}>
+        <div className={`${styles.liveScroll} ${lowReach ? styles.liveScrollLow : ''}`}>
           {exchange ? (
             <div className={styles.liveList}>
               {liveRows.map((r) => (
@@ -379,6 +407,7 @@ export function JejuExchange({ controller }: Props): JSX.Element {
           )}
         </div>
       )}
+      </div>
     </JejuPageFrame>
   );
 }

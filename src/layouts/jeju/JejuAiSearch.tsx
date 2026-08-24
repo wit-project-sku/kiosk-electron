@@ -1,17 +1,25 @@
 /**
- * 제주 '제주' 뭐하지 (AI 검색) questionnaire — Figma node 6050:142613.
+ * 제주 '제주' 뭐하지 (AI 검색) questionnaire — Figma nodes 6336:67302 (resting)
+ * and 6289:54956 (with picks), the 2026-08-24 redesign of 6050:142613.
  *
  * Four filters (방문 인원 · 체류 기간 · 이동수단 · 즐길 거리) and a CTA that hands
  * the picked interests to the shared aiStore and moves to the result screen —
  * the same flow OsanAiSearch uses.
+ *
+ * The redesign left every coordinate alone and changed only how a plate looks:
+ * see the header of JejuAiSearch.module.css.
  */
 import { useState } from 'react';
 import type { KioskController } from '@renderer/hooks/useKioskController';
+import { useAccessibilityStore } from '@renderer/store/accessibilityStore';
 import { useAiStore } from '@renderer/store/aiStore';
 import { useLanguageStore } from '@renderer/store/languageStore';
+import { pick } from '@renderer/lib/i18n';
+import type { Lang } from '@renderer/lib/i18n';
 import { t } from '@renderer/lib/loc';
 import { aiCatLabel } from '@renderer/lib/aiCategoryLabel';
 import { AI_CATEGORIES_JEJU } from '@renderer/data/aiCategories-jeju.generated';
+import { jejuMascot } from './jejuMascot';
 import { JejuPageFrame } from './JejuPageFrame';
 import styles from './JejuAiSearch.module.css';
 
@@ -162,7 +170,54 @@ const Y = {
   interestsLabel: 1986,
 } as const;
 
+/**
+ * Low-reach coordinates — Figma 6336:67216 / 6326:81769 (step 1) and
+ * 6336:99702 / 6326:81686 (step 2).
+ *
+ * The hero banner eats the top 1181px and the header runs to y1906, which
+ * leaves about 1700px of reachable page — enough for THREE chip groups or the
+ * 즐길 거리 grid, but not both. So the low-reach layout splits the questionnaire
+ * into two steps; see `step`. Both steps start their content at y1906 and put
+ * the CTA at y3432.
+ *
+ * Step 1 stacks [label 76 · gap 60 · row 193] = 329 with a 100 gap:
+ *   1906 label  2042 row   ·   2335 label  2471 row   ·   2764 label  2900 row
+ * ending at 3093, which is the 1187 the frame's 선택영역 box states.
+ */
+const Y_LOW = {
+  visitorsLabel: 1906,
+  visitorsRow: 2042,
+  stayLabel: 2335,
+  stayRow: 2471,
+  transportLabel: 2764,
+  transportRow: 2900,
+  interestsLabel: 1906,
+} as const;
+
+/** Grid top, measured off each frame: 2122 standard, 2042 low-reach. */
+const GRID_TOP = 2122;
+const GRID_TOP_LOW = 2042;
+
 const GRID_ROW_STEP = 244;
+
+/** CTA top: 3413 on the standard frame, 3432 on both low-reach ones. */
+const CTA_TOP_LOW = 3432;
+
+/**
+ * Step-1 CTA. Authored rather than fetched: Localization_Jeju has no row for it
+ * (the low-reach split is new and the sheet only knows the single-page flow),
+ * which is the same reason JejuAiDetail authors its 모바일에서 확인하기 label.
+ */
+const NEXT_LABEL = {
+  ko: '다음으로',
+  en: 'Next',
+  ja: '次へ',
+  zh: '下一步',
+  vi: 'Tiếp theo',
+  th: 'ถัดไป',
+  ru: 'Далее',
+  id: 'Berikutnya',
+};
 
 export function JejuAiSearch({ controller }: Props): JSX.Element {
   const setAiInterests = useAiStore((s) => s.setInterests);
@@ -189,6 +244,20 @@ export function JejuAiSearch({ controller }: Props): JSX.Element {
   const [transport, setTransport] = useState(0);
   const [interests, setInterests] = useState<Set<number>>(() => new Set([0]));
 
+  const lowReach = useAccessibilityStore((s) => s.lowReach);
+  /** Low-reach only: 1 = the three chip groups, 2 = 즐길 거리. See Y_LOW. */
+  const [step, setStep] = useState<1 | 2>(1);
+  const y = lowReach ? Y_LOW : Y;
+  // Standard shows everything at once; low-reach shows one step at a time.
+  const showChips = !lowReach || step === 1;
+  const showInterests = !lowReach || step === 2;
+
+  /* Step 1 advances; every other case submits. The three chip groups are
+     single-select and always hold a value, so only the 즐길 거리 step can be
+     empty — which is the grey CTA both "nothing picked" frames draw. */
+  const onFirstStep = lowReach && step === 1;
+  const ctaDisabled = !onFirstStep && interests.size === 0;
+
   const toggleInterest = (i: number): void =>
     setInterests((prev) => {
       const next = new Set(prev);
@@ -210,19 +279,40 @@ export function JejuAiSearch({ controller }: Props): JSX.Element {
     controller.navigate('ai_result', 'AI 추천');
   };
 
+  /** Step 1 advances to 즐길 거리; every other case submits. */
+  const onCta = onFirstStep ? (): void => setStep(2) : submit;
+
+  /**
+   * On the low-reach 즐길 거리 step, 뒤로 means "back to the questions", not
+   * "leave the page" — the split is an artefact of the accessible layout, so
+   * stepping out of it one screen at a time is what a visitor expects. Drives
+   * BOTH back affordances (the header arrow and the left rail's), since
+   * JejuPageFrame feeds this one callback to each. `undefined` anywhere else
+   * keeps the frame's own default of returning home.
+   */
+  const onBack = lowReach && step === 2 ? (): void => setStep(1) : undefined;
+
   const rows = Array.from({ length: Math.ceil(INTERESTS.length / COLS) }, (_, r) =>
     INTERESTS.slice(r * COLS, r * COLS + COLS),
   );
 
   return (
-    <JejuPageFrame controller={controller} title="'제주' 뭐하지 (AI 검색)" showBanner={false}>
+    <JejuPageFrame
+      controller={controller}
+      title="'제주' 뭐하지 (AI 검색)"
+      showBanner={false}
+      lowReachHero="banner-ai-hero"
+      onBack={onBack}
+    >
       <div className={styles.root}>
+        {showChips && (
+          <>
         {/* ── 방문 인원 ── */}
-        <div className={styles.label} style={{ top: Y.visitorsLabel }}>
+        <div className={styles.label} style={{ top: y.visitorsLabel }}>
           <span className={styles.labelBar} />
           <p className={styles.labelText}>{s(SECTION.visitors.key, SECTION.visitors.label)}</p>
         </div>
-        <div className={styles.row} style={{ top: Y.visitorsRow }}>
+        <div className={styles.row} style={{ top: y.visitorsRow }}>
           {VISITORS.map((v, i) => (
             <button
               key={v.key}
@@ -237,11 +327,11 @@ export function JejuAiSearch({ controller }: Props): JSX.Element {
         </div>
 
         {/* ── 체류 기간 ── */}
-        <div className={styles.label} style={{ top: Y.stayLabel }}>
+        <div className={styles.label} style={{ top: y.stayLabel }}>
           <span className={styles.labelBar} />
           <p className={styles.labelText}>{s(SECTION.stay.key, SECTION.stay.label)}</p>
         </div>
-        <div className={styles.row} style={{ top: Y.stayRow }}>
+        <div className={styles.row} style={{ top: y.stayRow }}>
           {STAY.map((item, i) => (
             <button
               key={item.key}
@@ -256,11 +346,11 @@ export function JejuAiSearch({ controller }: Props): JSX.Element {
         </div>
 
         {/* ── 이동수단 ── */}
-        <div className={styles.label} style={{ top: Y.transportLabel }}>
+        <div className={styles.label} style={{ top: y.transportLabel }}>
           <span className={styles.labelBar} />
           <p className={styles.labelText}>{s(SECTION.transport.key, SECTION.transport.label)}</p>
         </div>
-        <div className={styles.row} style={{ top: Y.transportRow }}>
+        <div className={styles.row} style={{ top: y.transportRow }}>
           {TRANSPORT.map((item, i) => (
             <button
               key={item.key}
@@ -273,13 +363,17 @@ export function JejuAiSearch({ controller }: Props): JSX.Element {
             </button>
           ))}
         </div>
+          </>
+        )}
 
+        {showInterests && (
+          <>
         {/* ── 즐길 거리 ── */}
-        <div className={styles.label} style={{ top: Y.interestsLabel }}>
+        <div className={styles.label} style={{ top: y.interestsLabel }}>
           <span className={styles.labelBar} />
           <p className={styles.labelText}>{s(SECTION.interests.key, SECTION.interests.label)}</p>
         </div>
-        <div className={styles.grid}>
+        <div className={styles.grid} style={{ top: lowReach ? GRID_TOP_LOW : GRID_TOP }}>
           {rows.map((row, r) => (
             <div key={r} className={styles.gridRow} style={{ top: r * GRID_ROW_STEP }}>
               {row.map((item, c) => {
@@ -299,7 +393,11 @@ export function JejuAiSearch({ controller }: Props): JSX.Element {
                     ]
                       .filter(Boolean)
                       .join(' ')}
-                    style={{ color: item.color }}
+                    // The resting palette is per-tile, so it has to be inline —
+                    // but a picked tile is white on the brand plate, and an
+                    // inline colour would outrank .tileSelected. Dropping the
+                    // style entirely lets the class win without !important.
+                    style={selected ? undefined : { color: item.color }}
                     onClick={() => toggleInterest(i)}
                   >
                     {tileLabel(i)}
@@ -309,9 +407,24 @@ export function JejuAiSearch({ controller }: Props): JSX.Element {
             </div>
           ))}
         </div>
+          </>
+        )}
 
-        <button type="button" className={styles.cta} onClick={submit}>
-          {s('AI_SubmitButton', '‘유산’에게 추천받기')}
+        <button
+          type="button"
+          className={`${styles.cta} ${ctaDisabled ? styles.ctaDisabled : ''}`}
+          style={lowReach ? { top: CTA_TOP_LOW } : undefined}
+          disabled={ctaDisabled}
+          onClick={onCta}
+        >
+          {/* THIS venue's mascot — the sheet is a tab shared across the three
+              제주 venues, so the LAST-RESORT fallback has to name the right one
+              per kiosk (the synced value is already disambiguated by
+              LocalizationSyncParser.VENUE_MASCOTS; jejuMascot answers 하영 on
+              W006/W007 and 유산 on W008). */}
+          {onFirstStep
+            ? pick(NEXT_LABEL, lang as Lang)
+            : s('AI_SubmitButton', `‘${jejuMascot().ko}’에게 추천받기`)}
         </button>
       </div>
     </JejuPageFrame>

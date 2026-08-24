@@ -1,5 +1,6 @@
 /**
- * 제주 AI 검색 결과 — Figma node 6127:17606 (제주>제주모하지(AI검색)-02).
+ * 제주 AI 검색 결과 — Figma node 6289:55267 (제주>제주모하지(AI검색)-02), the
+ * 2026-08-24 redesign of 6127:17606.
  *
  * Reached from the JejuAiSearch CTA. 제주 differs from the other kiosks here:
  * Osan/Hwaseong assemble three courses out of the picked interests and list the
@@ -22,12 +23,17 @@ interface Props {
 /**
  * Page chrome, in the eight languages the kiosk ships.
  *
- * Localization_Jeju has no row for either string — its AI keys are
+ * Localization_Jeju has no row for this string — its AI keys are
  * SubHeader_AISearch (the category picker) and SubHeader_AICourse (the QR line
- * on the course detail), neither of which is "pick a course". They were literal
+ * on the course detail), neither of which is "pick a course". It was literal
  * Korean here, so every visitor saw Korean regardless of the language they had
- * chosen. Authored locally the way TAX-FREE does it; add sheet rows later and
- * these become the fallback.
+ * chosen. Authored locally the way TAX-FREE does it; add a sheet row later and
+ * this becomes the fallback.
+ *
+ * The "맞춤 코스를 선택해 제주도를 즐겨보세요." heading that used to sit at y700
+ * between the subtitle and the first card is not in the redesign — 6289:55267
+ * runs the header straight into the A코스 plate — so it and its eight
+ * translations are gone with it.
  */
 const T = {
   subtitle: {
@@ -39,16 +45,6 @@ const T = {
     th: 'กรุณาเลือกคอร์ส',
     ru: 'Пожалуйста, выберите маршрут',
     id: 'Silakan pilih rute',
-  },
-  heading: {
-    ko: '맞춤 코스를 선택해 제주도를 즐겨보세요.',
-    en: 'Pick the course made for you and enjoy Jeju.',
-    ja: 'おすすめのコースを選んで済州島を楽しみましょう。',
-    zh: '选择专属路线，尽享济州岛。',
-    vi: 'Chọn lộ trình phù hợp và tận hưởng đảo Jeju.',
-    th: 'เลือกคอร์สที่ใช่สำหรับคุณ แล้วสนุกกับเชจู',
-    ru: 'Выберите подходящий маршрут и наслаждайтесь Чеджу.',
-    id: 'Pilih rute yang cocok dan nikmati Pulau Jeju.',
   },
 };
 
@@ -81,7 +77,7 @@ const COURSES: Course[] = [
     label: 'A코스',
     subtitle: '자연과 유산을 따라 걷는',
     title: '자연·유산 탐방 코스',
-    desc: '제주의 자연과 문화유산을\n함께 둘러보는 힐링 코스',
+    desc: '제주의 자연과 문화유산을 함께\n둘러보는 힐링코스',
     tags: '#자연 #유산 #힐링',
     icon: 'course-nature',
     art: { left: 1064, top: 246, width: 555, height: 412 },
@@ -104,7 +100,7 @@ const COURSES: Course[] = [
     desc: '온 가족이 함께 즐길 수 있는\n체험 중심 코스',
     tags: '#가족 #체험 #즐거움',
     icon: 'course-family',
-    art: { left: 1064, top: 258, width: 469, height: 380 },
+    art: { left: 1043, top: 221, width: 469, height: 380 },
   },
 ];
 
@@ -128,8 +124,6 @@ export function JejuAiResult({ controller }: Props): JSX.Element {
       bannerFallback="banner-detail"
       onBack={() => controller.navigate('ai_search', '뒤로')}
     >
-      <p className={styles.heading}>{pick(T.heading, lang)}</p>
-
       {COURSES.map((course, i) => (
         <button
           key={course.key}

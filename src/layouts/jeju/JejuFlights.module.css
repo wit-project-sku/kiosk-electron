@@ -1,16 +1,16 @@
 /*
- * 제주공항 (W006) 운항정보 — Figma 제주>운항정보=출발 (6219:98606) and
- * 제주>운항정보=도착 (6219:98493).
+ * 제주공항 (W006) 운항정보 — Figma 제주>운항정보=출발 (6412:75981) and
+ * 제주>운항정보=도착 (6412:76071), the 2026-08-24 redraw of 6219:98606 /
+ * 6219:98493.
  *
  * Inside KioskArtboard 1 CSS px = 1 Figma px (2160×3840), so every value here
  * is the exact number read out of the design.
  *
  * y map:
  *    0…700   JejuHeader (JejuPageFrame)
- *  664…834   출발 / 도착 tabs        (yes, they overlap the header band — the
- *                                     header's own content ends at 619)
- *  921…1070  orange column-header plate
- *   1170     first row's text; rows repeat every 255, rule at row+155
+ *  701…871   출발 / 도착 tabs
+ * 1079…1229  orange column-header plate (1880 wide, centred)
+ *   1329     first row's text; rows repeat every 255, rule at row+155
  *
  * The two frames differ ONLY in three column labels (출발시각/도착시각,
  * 목적지/출발지, 탑승구/수하물수취대) and which side of the flight the data
@@ -19,16 +19,15 @@
 
 /* ── Tabs ───────────────────────────────────────────────────────────── */
 /*
- * The same control as JejuHelp's 국제선/국내선 picker (left 400, w 1360, two
- * 580px pills, 200px gutter) but with 제주>운항정보's pale-plate active style
- * rather than the solid-orange one. Figma puts it at 664 on 출발 and 411,664 on
- * 도착 — the x is designer slop between two copies of one component, so both
- * take 400. NORMALISED.
+ * Two 580px pills, 200px gutter, at 400/701 — both frames agree on the 701.
+ * The redraw flattened them: the idle #e8e8e8 outline is gone and the picked
+ * pill is the solid brand plate with white Bold type (6412:76202), not the
+ * pale #ffeac7-with-ring look this page used to share with 도와줘 '하영'.
  */
 .tabs {
   position: absolute;
   left: 400px;
-  top: 664px;
+  top: 701px;
   width: 1360px;
   height: 170px;
   display: flex;
@@ -36,13 +35,15 @@
   gap: 200px;
 }
 
+/* `border: none`, not omitted — these are <button>s and would otherwise take
+   Chrome's UA outset bevel. */
 .tab {
   flex: 0 0 580px;
   width: 580px;
   height: 170px;
   box-sizing: border-box;
   padding: 0;
-  border: 5px solid #e8e8e8;
+  border: none;
   border-radius: 42.9px;
   background: #fff;
   font-size: 50px;
@@ -56,26 +57,27 @@
 }
 
 .tabActive {
-  border-color: var(--kiosk-primary, #ff7f0f);
-  background: #ffeac7; /* [제주] main 02 */
+  background: var(--kiosk-primary, #ff7f0f);
   font-weight: 700;
-  color: var(--kiosk-primary, #ff7f0f);
+  color: #fff;
 }
 
-/* ── Column-header plate ────────────────────────────────────────────── */
+/* ── Column-header plate (6412:76007) ──────────────────────────────────
+   WIDER than the 1820 content band on purpose — Figma centres a 1880×150 pill
+   (radius 74.5 = half the height) 30px proud of the rows each side. */
 .headPlate {
   position: absolute;
-  left: 170px;
-  top: 921px;
-  width: 1820px;
-  height: 149px;
-  border-radius: 20px;
+  left: 140px;
+  top: 1079px;
+  width: 1880px;
+  height: 150px;
+  border-radius: 74.5px;
   background: var(--kiosk-primary, #ff7f0f);
 }
 
 .head {
   position: absolute;
-  top: 971px;
+  top: 1129px;
   font-size: 45px;
   font-weight: 600;
   line-height: 1;
@@ -86,7 +88,7 @@
 /* ── Scrolling rows ─────────────────────────────────────────────────── */
 /*
  * Starts where the plate ends so the column headers stay put. The 100px lead-in
- * puts the first row's text on Figma's 1170.
+ * puts the first row's text on Figma's 1329.
  *
  * Rows are normal-flow blocks (their cells are absolute inside them) — padding
  * on an absolutely-positioned container would NOT move absolute children, since
@@ -96,7 +98,7 @@
   position: absolute;
   left: 0;
   right: 0;
-  top: 1070px;
+  top: 1229px;
   bottom: 0;
   overflow-x: hidden;
   overflow-y: auto;
@@ -147,19 +149,27 @@
   white-space: nowrap;
 }
 
-/* Centred columns carry their axis in `left`; left-aligned ones carry their
-   edge. Which is which comes from the column spec in JejuFlights.tsx. */
+/* Every column is centred in the redraw; the axis rides in `left`. */
 .cellCentred {
   transform: translateX(-50%);
 }
 
+/* 현황 is the one cell drawn full Bold (6412:76019) — its colour comes from
+   flightStatusColor(), so only the weight lives here. */
+.cellStatus {
+  font-weight: 700;
+}
+
 /* The re-timed flight's original time. Unlike the home board, the leading time
-   does NOT move up here — the struck one simply hangs 65px below it. */
+   does NOT move up here — the struck one simply hangs below it, centred on the
+   time column's axis (16:05 at 237/1412 centres on 284.5 ≈ the column's 285.5;
+   the 도착 frame draws it 5px higher at 1407 — slop, 출발's own 83 ships). */
 .timeWas {
   position: absolute;
-  left: 219px;
-  top: 65px;
-  font-size: 40px;
+  left: 285.5px;
+  top: 83px;
+  transform: translateX(-50%);
+  font-size: 38px;
   font-weight: 400;
   line-height: 1;
   color: var(--kiosk-primary, #ff7f0f);

@@ -7,7 +7,7 @@
  * local currency. Each tab is its own Figma frame and they share nothing but the
  * tab row, so this file draws two independent bodies rather than one template.
  *
- * The 온누리 tab is TWO stacked cards (997 + 1194); 탐나는전 is one tall card
+ * The 온누리 tab is TWO stacked cards (1002 + 1194); 탐나는전 is one tall card
  * (2250). That is the frames' own structure, not a layout choice.
  */
 import { useState, type ReactNode } from 'react';
@@ -16,6 +16,7 @@ import { useLanguageStore } from '@renderer/store/languageStore';
 import { pick, type Lang } from '@renderer/lib/i18n';
 import { sheetText, tExact } from '@renderer/lib/loc';
 import { trackEvent } from '@renderer/lib/analytics';
+import { useAccessibilityStore } from '@renderer/store/accessibilityStore';
 import { JejuPageFrame } from './JejuPageFrame';
 import styles from './JejuLocalpay.module.css';
 
@@ -506,11 +507,23 @@ interface Props {
 
 export function JejuLocalpay({ controller }: Props): JSX.Element {
   const lang = useLanguageStore((s) => s.currentLanguage);
+  const lowReach = useAccessibilityStore((s) => s.lowReach);
   const [tab, setTab] = useState<TabId>('onnuri');
   // `pick` falls back to Korean for the language codes this copy does not carry
   // (zh_cn / zh_tw / es), exactly as every other 제주 screen's label maps do;
   // `withSheet` then lets Localization_Jeju override whatever it has filled.
   const c = withSheet(pick(CONTENT, lang), lang);
+
+  /*
+   * ♿ re-lays this page out rather than shifting it, so almost every positioned
+   * element takes a second class. Type and copy are untouched — see the low-reach
+   * block in the CSS for the y map and the two normalisations behind it.
+   */
+  const low = (base?: string, alt?: string): string =>
+    `${base ?? ''} ${lowReach ? alt ?? '' : ''}`;
+  /* The card shell picks up its ring here so both tabs get it from one place. */
+  const card = (variant?: string, variantLow?: string): string =>
+    `${low(styles.card, styles.cardLow)} ${low(variant, variantLow)}`;
 
   const select = (id: TabId): void => {
     trackEvent({
@@ -522,8 +535,15 @@ export function JejuLocalpay({ controller }: Props): JSX.Element {
 
   return (
     // Same 상점 검색 promo the 상세 pages carry, which is what both frames draw.
-    <JejuPageFrame controller={controller} title="지역화폐" bannerFallback="banner-detail">
-      <div className={styles.tabs}>
+    <JejuPageFrame
+      controller={controller}
+      title="지역화폐"
+      bannerFallback="banner-detail"
+      /* ♿: let the frame move the promo to y0 and the header to 573, but not the
+         body — the cards below carry their own low-reach coordinates. */
+      lowReachSelfLayout
+    >
+      <div className={low(styles.tabs, styles.tabsLow)}>
         {(['onnuri', 'tamna'] as const).map((id) => (
           <button
             key={id}
@@ -539,8 +559,8 @@ export function JejuLocalpay({ controller }: Props): JSX.Element {
       {tab === 'onnuri' ? (
         <>
           {/* ── 온누리상품권이란? + 지류상품권 권종 (6249:32378) ── */}
-          <section className={`${styles.card} ${styles.cardIntro}`}>
-            <div className={styles.introText}>
+          <section className={card(styles.cardIntro, styles.cardIntroLow)}>
+            <div className={low(styles.introText, styles.introTextLow)}>
               <p className={styles.h70}>
                 <span className={styles.accent}>{c.onnuri.introH[0]}</span>
                 {c.onnuri.introH[1]}
@@ -548,7 +568,7 @@ export function JejuLocalpay({ controller }: Props): JSX.Element {
               <p className={styles.body}>{c.onnuri.introBody}</p>
             </div>
 
-            <div className={styles.paperPanel}>
+            <div className={low(styles.paperPanel, styles.paperPanelLow)}>
               <p className={styles.paperLabel}>{c.onnuri.paperLabel}</p>
               <div className={styles.paperImage}>
                 <img src={onnuriPaper} alt="" draggable={false} />
@@ -557,8 +577,8 @@ export function JejuLocalpay({ controller }: Props): JSX.Element {
           </section>
 
           {/* ── 디지털 온누리상품권이란? + 사용처 (6249:32386) ── */}
-          <section className={`${styles.card} ${styles.cardDigital}`}>
-            <div className={styles.digitalText}>
+          <section className={card(styles.cardDigital, styles.cardDigitalLow)}>
+            <div className={low(styles.digitalText, styles.digitalTextLow)}>
               <p className={styles.h70}>
                 <span className={styles.accent}>{c.onnuri.digitalH[0]}</span>
                 {c.onnuri.digitalH[1]}
@@ -566,29 +586,40 @@ export function JejuLocalpay({ controller }: Props): JSX.Element {
               <div>{rich(c.onnuri.digitalBody)}</div>
             </div>
 
-            <img className={styles.mascot} src={onnuriMascot} alt="" draggable={false} />
-
-            <div className={styles.usageBlock}>
+            <div className={low(styles.usageBlock, styles.usageBlockLow)}>
               <p className={styles.h50}>{c.onnuri.usageH}</p>
               <div>{rich(c.onnuri.usageBody)}</div>
             </div>
 
-            <div className={styles.beige} />
-            <p className={styles.beigeNote}>{c.onnuri.note}</p>
-            <ul className={styles.bullets}>
+            <div className={low(styles.beige, styles.beigeLow)} />
+            {/* AFTER .beige, as the frame stacks them (32390 → 32392): the
+                mascots' feet stand ON the beige plate, not under it. */}
+            <img
+              className={low(styles.mascot, styles.mascotLow)}
+              src={onnuriMascot}
+              alt=""
+              draggable={false}
+            />
+            <p className={low(styles.beigeNote, styles.beigeNoteLow)}>{c.onnuri.note}</p>
+            <ul className={low(styles.bullets, styles.bulletsLow)}>
               {c.onnuri.bullets.map((b) => (
                 <li key={b}>· {b}</li>
               ))}
             </ul>
-            <img className={styles.bi} src={onnuriBi} alt="" draggable={false} />
-            <div className={styles.qrPlate} />
-            <img className={styles.qrImage} src={onnuriQr} alt="" draggable={false} />
+            <img className={low(styles.bi, styles.biLow)} src={onnuriBi} alt="" draggable={false} />
+            <div className={low(styles.qrPlate, styles.qrPlateLow)} />
+            <img
+              className={low(styles.qrImage, styles.qrImageLow)}
+              src={onnuriQr}
+              alt=""
+              draggable={false}
+            />
           </section>
         </>
       ) : (
         /* ── 탐나는전 (6249:32310) ── */
-        <section className={`${styles.card} ${styles.cardTamna}`}>
-          <div className={styles.tamnaHead}>
+        <section className={card(styles.cardTamna, styles.cardTamnaLow)}>
+          <div className={low(styles.tamnaHead, styles.tamnaHeadLow)}>
             <img className={styles.tamnaLogo} src={tamnaLogo} alt="" draggable={false} />
             <div className={styles.tamnaIntro}>
               <p className={styles.h60}>{c.tamna.introH}</p>
@@ -596,7 +627,7 @@ export function JejuLocalpay({ controller }: Props): JSX.Element {
             </div>
           </div>
 
-          <div className={styles.kwonjong}>
+          <div className={low(styles.kwonjong, styles.kwonjongLow)}>
             <p className={styles.h60}>{c.tamna.kwonjongH}</p>
             <div className={styles.kwonjongPanel} />
             <img
@@ -626,12 +657,12 @@ export function JejuLocalpay({ controller }: Props): JSX.Element {
             <div className={`${styles.kwDivider} ${styles.kwDividerRight}`} />
           </div>
 
-          <div className={styles.apply}>
+          <div className={low(styles.apply, styles.applyLow)}>
             <p className={styles.h60}>{c.tamna.applyH}</p>
             <div>{rich(c.tamna.applyBody)}</div>
           </div>
 
-          <div className={styles.useRow}>
+          <div className={low(styles.useRow, styles.useRowLow)}>
             <div className={styles.useText}>
               <p className={styles.h60}>{c.tamna.useH}</p>
               <div>{rich(c.tamna.useBody)}</div>

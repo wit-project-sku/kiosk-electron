@@ -102,6 +102,7 @@ const VIDEO_SET_BY_LAYOUT: Record<KioskLayoutId, VideoSet> = {
   OSAN: 'osaek',
   HWASEONG: 'hwaseong',
   JEJU_AIRPORT: 'jeju',
+  JEJU_HERITAGE: 'jeju', // one 제주 video set — the mascot split is text-only
 };
 
 /** Which video set a kiosk's own subtitle entries belong to — the caller
@@ -281,6 +282,7 @@ const SCREEN_KEYS_BY_LAYOUT: Record<KioskLayoutId, LayoutScreenKeys> = {
   // Until then it reads the base Insadong screen names, which is harmless — the
   // `jeju` video set is empty, so every lookup returns no clips either way.
   JEJU_AIRPORT: { map: {}, inherit: true },
+  JEJU_HERITAGE: { map: {}, inherit: true },
 };
 
 // Every kiosk carries a dedicated ChangeLanguage_* clip per UI language (all 8),

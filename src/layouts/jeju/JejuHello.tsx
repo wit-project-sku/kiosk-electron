@@ -1,5 +1,14 @@
 /**
- * 안녕 '하영' — Figma node 6217:94591 ('하영'소개 tab).
+ * 안녕 '하영' / 안녕 '유산' — Figma node 6217:94591 ('하영'소개 tab).
+ *
+ * One page for both 제주 mascots: 하영 on W006/W007, 유산 on W008 (jejuMascot).
+ * Everything NAMED after the mascot — title, tab fallbacks, name fallback,
+ * hashtags — resolves through the mascot; the biography VALUES stay sheet-driven
+ * (Greeting_*Content), so 유산's profile appears the moment the operators add
+ * 유산 rows to Localization_Jeju (the venue tie-break already prefers them on a
+ * JEJU_HERITAGE machine). TODO(제주 W008): the ART is still 하영's — portrait
+ * (hello-portrait), hobby/health photos and the SNS QR (qr-hayoung) — swap in
+ * 유산 exports when the designer supplies them, until then W008 shows 하영's.
  *
  * Three tabs. 소개 has its own layout; the other two are the SAME page as each
  * other — a sub-tab row over a photo with a caption card under it — so they
@@ -20,6 +29,8 @@ import { useLanguageStore } from '@renderer/store/languageStore';
 import { pick, type Lang } from '@renderer/lib/i18n';
 import { sheetText } from '@renderer/lib/loc';
 import { trackEvent } from '@renderer/lib/analytics';
+import { useAccessibilityStore } from '@renderer/store/accessibilityStore';
+import { jejuMascot, type JejuMascot, type JejuMascotBio } from './jejuMascot';
 import { JejuPageFrame } from './JejuPageFrame';
 import { JejuSubTabRow } from './JejuSubTabRow';
 import { JejuTabRow } from './JejuTabRow';
@@ -34,17 +45,29 @@ import hobbyTennis from '@renderer/assets/photos/jeju/hello/hobby-tennis.jpg';
 import healthNeck from '@renderer/assets/photos/jeju/hello/health-neck.jpg';
 import healthWaist from '@renderer/assets/photos/jeju/hello/health-waist.jpg';
 import healthRefresh from '@renderer/assets/photos/jeju/hello/health-refresh.jpg';
+// 유산's own six topic photos (W008), exported 1:1 with the 842×1509 slot from
+// the frames listed in TOPICS_BY_MASCOT. 하영's are the six above.
+import qrYusan from '@renderer/assets/photos/jeju/hello/qr-yusan.png';
+import ysHobbyKpop from '@renderer/assets/photos/jeju/hello/yusan-hobby-kpop.jpg';
+import ysHobbyFood from '@renderer/assets/photos/jeju/hello/yusan-hobby-food.jpg';
+import ysHobbyTennis from '@renderer/assets/photos/jeju/hello/yusan-hobby-tennis.jpg';
+import ysHealthNeck from '@renderer/assets/photos/jeju/hello/yusan-health-neck.jpg';
+import ysHealthWaist from '@renderer/assets/photos/jeju/hello/yusan-health-waist.jpg';
+import ysHealthRefresh from '@renderer/assets/photos/jeju/hello/yusan-health-refresh.jpg';
 
 type TabId = 'profile' | 'hobbies' | 'health';
 /** The two sub-tabbed tabs; `profile` has no sub-tabs. */
 type TopicTabId = Exclude<TabId, 'profile'>;
 
 /** Tabs in frame order (6217:94659 / 94661 / 94663). Figma writes them with
- *  curly quotes and its own spacing — ‘하영’소개, ‘하영’ 건강습관 — kept verbatim. */
-const TABS = [
-  { id: 'profile', key: 'Greeting_Category1', label: { ko: '‘하영’소개', en: "About HAYOUNG", ja: '‘ハヨン’紹介', zh: '‘HAYOUNG’介绍', vi: 'Giới thiệu ‘HAYOUNG’', th: 'แนะนำ ‘HAYOUNG’', ru: 'О ‘HAYOUNG’', id: 'Tentang ‘HAYOUNG’' } },
-  { id: 'hobbies', key: 'Greeting_Category2', label: { ko: '‘하영’취미생활', en: "HAYOUNG's Hobbies", ja: '‘ハヨン’の趣味', zh: '‘HAYOUNG’的爱好', vi: 'Sở thích của ‘HAYOUNG’', th: 'งานอดิเรกของ ‘HAYOUNG’', ru: 'Хобби ‘HAYOUNG’', id: 'Hobi ‘HAYOUNG’' } },
-  { id: 'health', key: 'Greeting_Category3', label: { ko: '‘하영’ 건강습관', en: "HAYOUNG's Health", ja: '‘ハヨン’の健康習慣', zh: '‘HAYOUNG’的健康习惯', vi: 'Thói quen của ‘HAYOUNG’', th: 'สุขภาพของ ‘HAYOUNG’', ru: 'Привычки ‘HAYOUNG’', id: 'Kebiasaan ‘HAYOUNG’' } },
+ *  curly quotes and its own spacing — ‘하영’소개, ‘하영’ 건강습관 — kept verbatim,
+ *  with the mascot's own name spliced in per venue. These are only the
+ *  FALLBACKS: the sheet's Greeting_Category1–3 rows win whenever filled, and
+ *  the venue tie-break already picks the right mascot's row per layout. */
+const helloTabs = (m: JejuMascot) => [
+  { id: 'profile', key: 'Greeting_Category1', label: { ko: `‘${m.ko}’소개`, en: `About ${m.roman}`, ja: `‘${m.ja}’紹介`, zh: `‘${m.roman}’介绍`, vi: `Giới thiệu ‘${m.roman}’`, th: `แนะนำ ‘${m.roman}’`, ru: `О ‘${m.roman}’`, id: `Tentang ‘${m.roman}’` } },
+  { id: 'hobbies', key: 'Greeting_Category2', label: { ko: `‘${m.ko}’취미생활`, en: `${m.roman}'s Hobbies`, ja: `‘${m.ja}’の趣味`, zh: `‘${m.roman}’的爱好`, vi: `Sở thích của ‘${m.roman}’`, th: `งานอดิเรกของ ‘${m.roman}’`, ru: `Хобби ‘${m.roman}’`, id: `Hobi ‘${m.roman}’` } },
+  { id: 'health', key: 'Greeting_Category3', label: { ko: `‘${m.ko}’ 건강습관`, en: `${m.roman}'s Health`, ja: `‘${m.ja}’の健康習慣`, zh: `‘${m.roman}’的健康习惯`, vi: `Thói quen của ‘${m.roman}’`, th: `สุขภาพของ ‘${m.roman}’`, ru: `Привычки ‘${m.roman}’`, id: `Kebiasaan ‘${m.roman}’` } },
 ] as const satisfies ReadonlyArray<{ id: TabId; key: string; label: Record<string, string> }>;
 
 const COMING_SOON = {
@@ -79,51 +102,55 @@ const L = {
   about: { key: 'Greeting_Introdution', ko: '자기소개', en: 'About me', ja: '自己紹介', zh: '自我介绍', vi: 'Giới thiệu', th: 'แนะนำตัว', ru: 'О себе', id: 'Tentang saya' },
 } as const satisfies Record<string, { key: string } & Partial<Record<Lang, string>>>;
 
-/** Sheet cell for a {@link L} entry in this language, else its authored copy. */
+/** Sheet cell for a {@link L} entry in this language, else its authored copy.
+ *  Field LABELS (이름 / 출생 / …) name no mascot, so both venues read the sheet. */
 const label = (f: { key: string } & Partial<Record<Lang, string>>, lang: Lang): string =>
   sheetText(f.key, lang, f);
 
 /**
- * 하영's profile — every VALUE now reads its Greeting_*Content row from
- * Localization_Jeju, so the mascot's biography is editable in the sheet.
+ * A `Greeting_*` string that DESCRIBES the mascot — a profile value, a tab
+ * label, a sub-tab label or a topic caption.
  *
- * The literals stay as the fallback for a missing key. They are verbatim from
- * the frame's text nodes (6217:94601–94633); where the sheet disagrees the
- * SHEET wins, which is the point. One such disagreement exists today —
- * Greeting_MBTIContent says ENTP and the frame said ENFP — and the kiosk now
- * shows ENTP.
- *
- * TODO(제주 W006): these rows are KOREAN ONLY in the sheet, so the values still
- * read Korean in the other seven languages. That is now a sheet task; nothing
- * further is needed here.
+ * 하영 reads the sheet first, exactly as before. 유산 does not: those rows exist
+ * once and hold 하영's data (birthday, 런닝, 자기소개), so on a W008 machine the
+ * sheet is the wrong mascot rather than a fallback — see JejuMascotBio.fromSheet
+ * for how to hand these back to the sheet once 유산 rows exist.
  */
-const NAME_FALLBACK_KO = '하영(Hayoung)';
+const greet = (
+  m: JejuMascot,
+  key: string,
+  lang: Lang,
+  fallback: Partial<Record<Lang, string>>,
+): string => (m.bio.fromSheet ? sheetText(key, lang, fallback) : fallback[lang] ?? fallback.ko ?? '');
 
+/**
+ * The profile rows, in frame order — the sheet key each VALUE resolves through
+ * plus which {@link JejuMascotBio} field supplies it.
+ *
+ * For 하영 the sheet wins and the bio field is the fallback, so the mascot's
+ * biography stays editable in Localization_Jeju (one live disagreement:
+ * Greeting_MBTIContent says ENTP where the frame said ENFP, and the kiosk
+ * correctly shows ENTP). For 유산 the bio field wins — see `greet`.
+ *
+ * TODO(제주): the sheet's Greeting_* rows are KOREAN ONLY, so every value still
+ * reads Korean in the other seven languages on both mascots. A sheet task.
+ */
 const PROFILE = [
-  { label: L.born, key: 'Greeting_BirthDayContent', value: '2006년 3월 19일' },
-  { label: L.from, key: 'Greeting_HomeTownContent', value: '제주특별자치도 제주시' },
-  { label: L.nationality, key: 'Greeting_NationalityContent', value: '대한민국' },
-  { label: L.blood, key: 'Greeting_BloodTypeContent', value: 'O형' },
-  { label: L.mbti, key: 'Greeting_MBTIContent', value: 'ENFP' },
-];
+  { label: L.born, key: 'Greeting_BirthDayContent', field: 'born' },
+  { label: L.from, key: 'Greeting_HomeTownContent', field: 'from' },
+  { label: L.nationality, key: 'Greeting_NationalityContent', field: 'nationality' },
+  { label: L.blood, key: 'Greeting_BloodTypeContent', field: 'blood' },
+  { label: L.mbti, key: 'Greeting_MBTIContent', field: 'mbti' },
+] as const satisfies ReadonlyArray<{ label: unknown; key: string; field: keyof JejuMascotBio }>;
 
 const DETAILS = [
-  { label: L.talent, key: 'Greeting_SpecialtyContent', value: '다국어 회화 능력, 여행 코스 추천, 노래 등' },
-  { label: L.hobby, key: 'Greeting_HobbyContent', value: 'K-POP 댄스, 감성 카페 방문, 요가, 러닝' },
-  {
-    label: L.dream,
-    key: 'Greeting_FutureHopeContent',
-    value: 'K-컬처와 로컬 전통을 결합해 새로운 관광·라이프스타일 콘텐츠를 만드는 크리에이터',
-  },
-  {
-    label: L.about,
-    key: 'Greeting_IntrodutionContent',
-    value:
-      '저는 현재 제주도 홍보모델로 활동하고 있어요!\nK-콘텐츠와 제주 문화에 관심을 가지고, 제주를 방문하는 여행객들에게 유용한 정보와 특별한 경험을 전달하고 있어요. 제주 주요 관광 거점에서 여행 안내부터 지역 콘텐츠 소개까지, 제주 여행의 즐거움을 함께 만들어갑니다.',
-  },
-];
+  { label: L.talent, key: 'Greeting_SpecialtyContent', field: 'talent' },
+  { label: L.hobby, key: 'Greeting_HobbyContent', field: 'hobby' },
+  { label: L.dream, key: 'Greeting_FutureHopeContent', field: 'dream' },
+  { label: L.about, key: 'Greeting_IntrodutionContent', field: 'about' },
+] as const satisfies ReadonlyArray<{ label: unknown; key: string; field: keyof JejuMascotBio }>;
 
-const HASHTAGS = ['#HAYOUNG', '#하영', '#안녕하영'];
+// Hashtags moved to the mascot itself — see jejuMascot's `hashtags`.
 
 /**
  * One sub-tab of 취미생활 or 건강습관: a photo, a title and a line or two of copy.
@@ -252,10 +279,119 @@ const HEALTH: readonly Topic[] = [
   },
 ];
 
-/** Sub-tabs and the photo slot they fill, per tab. */
-const TOPICS: Record<TopicTabId, { topics: readonly Topic[]; photo: { width: number; height: number } }> = {
-  hobbies: { topics: HOBBIES, photo: { width: 959, height: 1509 } },
-  health: { topics: HEALTH, photo: { width: 869, height: 1546 } },
+/**
+ * 유산's 취미생활 — Figma 6431:31474 (K-POP), 6431:31714 (맛집탐방),
+ * 6431:31773 (테니스).
+ *
+ * The middle sub-tab is 맛집탐방 where 하영's is 런닝, which matches 유산's own
+ * 취미 line ("K-POP 댄스, 맛집 탐방, 디저트 카페 방문, 테니스, 골프"). K-POP's
+ * caption is word-for-word 하영's; the other two are 유산's own copy.
+ *
+ * No `focus` on any of the six: the exports are the RENDERED 842×1509 node, so
+ * they already carry the frame's crop and `object-fit: cover` is a no-op. 하영's
+ * are full-bleed sources that still need their per-photo anchor.
+ */
+const YS_HOBBIES: readonly Topic[] = [
+  {
+    id: 'kpop',
+    labelKey: 'Greeting_Hobby_First',
+    titleKey: 'Greeting_Hobby_First_Desc_1',
+    bodyKey: 'Greeting_Hobby_First_Desc_2',
+    label: 'K-POP',
+    photo: ysHobbyKpop,
+    title: 'K-POP 댄스로 에너지를 충전해요!',
+    body: '좋아하는 안무를 하나씩 배우며 즐거운 시간을 보내요.\n신나는 음악이 들리면 어디서든 리듬을 타게 된답니다.',
+    bodyWidth: 1188,
+  },
+  {
+    id: 'food',
+    labelKey: 'Greeting_Hobby_Second',
+    titleKey: 'Greeting_Hobby_Second_Desc_1',
+    bodyKey: 'Greeting_Hobby_Second_Desc_2',
+    label: '맛집탐방',
+    photo: ysHobbyFood,
+    title: '맛집 탐방으로 미식의 즐거움을 느껴요!',
+    body: '새로운 맛집을 찾아 맛있는 음식을 하나씩 즐겨보며 특별한 시간을 보내요.\n맛있는 음식이 보이면 누구보다 빠르게 찾아가고 싶어진답니다.',
+    bodyWidth: 1582,
+  },
+  {
+    id: 'tennis',
+    labelKey: 'Greeting_Hobby_Third',
+    titleKey: 'Greeting_Hobby_Third_Desc_1',
+    bodyKey: 'Greeting_Hobby_Third_Desc_2',
+    label: '테니스',
+    photo: ysHobbyTennis,
+    title: '테니스는 내 스트레스 해소법!',
+    body: '랠리를 이어가며 한 점 한 점 승부를 즐기는 시간이 가장 행복해요. 친구들과\n함께 경기를 하거나 새로운 기술을 연습하며 건강한 에너지를 충전한답니다.',
+    bodyWidth: 1618,
+  },
+];
+
+/**
+ * 유산's 건강습관 — Figma 6431:31534 (목·어깨), 6431:31594 (허리),
+ * 6431:31654 (기분전환).
+ *
+ * Same three sub-tabs and word-for-word the same captions as 하영's; only the
+ * photos and the per-frame `bodyWidth` differ. (The three frames all draw
+ * 목·어깨 as the SELECTED sub-tab — stale, like 하영's 골프/런닝 labels. Identify
+ * them by their copy, which is what the ids below follow.)
+ */
+const YS_HEALTH: readonly Topic[] = [
+  {
+    id: 'neck',
+    labelKey: 'Greeting_Healthy_Habit_First',
+    titleKey: 'Greeting_Healthy_Habit_First_Desc_1',
+    bodyKey: 'Greeting_Healthy_Habit_First_Desc_2',
+    label: '목·어깨',
+    photo: ysHealthNeck,
+    title: '여행의 설렘만큼 몸도 가볍게 풀어보세요.',
+    body: '여행 중 쌓인 목과 어깨의 긴장을 가볍게 풀어보세요.  화면 속 동작을 천천히 따라 하며 몸을 리프레시하고, 더욱 편안한 여행을 이어가세요.',
+    bodyWidth: 1459,
+  },
+  {
+    id: 'waist',
+    labelKey: 'Greeting_Healthy_Habit_Second',
+    titleKey: 'Greeting_Healthy_Habit_Second_Desc_1',
+    bodyKey: 'Greeting_Healthy_Habit_Second_Desc_2',
+    label: '허리',
+    photo: ysHealthWaist,
+    title: '비행과 여행으로 지친 몸, 잠시 쉬어가세요.',
+    body: '오랜 이동으로 뻐근해진 허리를 시원하게 풀어보세요.\n간단한 스트레칭으로 몸의 균형을 되찾고, 가벼운 몸으로 여행을 시작해 보세요.',
+    bodyWidth: 1568,
+  },
+  {
+    id: 'refresh',
+    labelKey: 'Greeting_Healthy_Habit_Third',
+    titleKey: 'Greeting_Healthy_Habit_Third_Desc_1',
+    bodyKey: 'Greeting_Healthy_Habit_Third_Desc_2',
+    label: '기분전환',
+    photo: ysHealthRefresh,
+    title: '잠시 멈춰, 기분 좋은 에너지를 채워보세요.',
+    body: '간단한 스트레칭을 따라 하며 긴장을 풀고, 여행 중 쌓인 피로를 자연스럽게\n덜어보세요. 잠깐의 휴식이 제주 여행을 더욱 즐겁게 만드는 특별한 시간이 될 거예요.',
+    bodyWidth: 1638,
+  },
+];
+
+/**
+ * Sub-tabs and the photo slot they fill, per tab and per mascot.
+ *
+ * 하영 draws two different photo boxes (959×1509 on 취미생활, 869×1546 on
+ * 건강습관); 유산 draws ONE 842×1509 box on all six frames. The default sub-tab
+ * ids differ too — 하영's middle hobby is `running`, 유산's is `food` — so the
+ * initial state is derived from these tables rather than hardcoded.
+ */
+const TOPICS_BY_MASCOT: Record<
+  JejuMascot['id'],
+  Record<TopicTabId, { topics: readonly Topic[]; photo: { width: number; height: number } }>
+> = {
+  hayoung: {
+    hobbies: { topics: HOBBIES, photo: { width: 959, height: 1509 } },
+    health: { topics: HEALTH, photo: { width: 869, height: 1546 } },
+  },
+  yusan: {
+    hobbies: { topics: YS_HOBBIES, photo: { width: 842, height: 1509 } },
+    health: { topics: YS_HEALTH, photo: { width: 842, height: 1509 } },
+  },
 };
 
 /**
@@ -268,35 +404,57 @@ const TOPICS: Record<TopicTabId, { topics: readonly Topic[]; photo: { width: num
  * nothing to generate from. Insadong ships its codes the same way
  * (qr-insa-tiktok.png / qr-insa-insta.png).
  *
- * The artwork carries its own orange rounded frame, which is why these render
- * through `.socialQrImg` rather than the `.socialQr` box that draws that frame
- * in CSS around a generated code. If the real URLs ever turn up, prefer going
- * back to QRCodeSVG inside `.socialQr`: a generated code is inspectable, stays
- * crisp at any scale, and can be corrected without a re-export.
+ * 하영's artwork carries its own orange rounded frame, which is why it renders
+ * through `.socialQrImg` rather than a box that draws the frame in CSS.
+ *
+ * 유산's frames (6432:47483) draw the OTHER shape: a bare glyph inset in a
+ * white `border-5 #ff7f0f` rounded box — `.socialQrFramed` + `.socialQrGlyph`
+ * below, at the frame's own 17% / 17.74% / 66% / 64.52%. The two render almost
+ * identically; each venue gets its own asset so replacing one venue's real code
+ * later cannot disturb the other.
+ *
+ * NOTE the 유산 export looks like the SAME placeholder code as 하영's — the
+ * designer has not supplied either mascot's real account URLs yet, so treat
+ * both as placeholders. If real URLs turn up, prefer a generated QRCodeSVG
+ * inside `.socialQrFramed`: inspectable, crisp at any scale, correctable
+ * without a re-export.
  */
-const SOCIALS: ReadonlyArray<{ id: string; icon: string; qr: string }> = [
-  { id: 'tiktok', icon: tiktokIcon, qr: qrHayoung },
-  { id: 'instagram', icon: instaIcon, qr: qrHayoung },
+const QR_BY_MASCOT: Record<JejuMascot['id'], { qr: string; framed: boolean }> = {
+  hayoung: { qr: qrHayoung, framed: false },
+  yusan: { qr: qrYusan, framed: true },
+};
+
+/** The two brand tiles are shared; only the code beside them is per-mascot. */
+const SOCIAL_BRANDS: ReadonlyArray<{ id: string; icon: string }> = [
+  { id: 'tiktok', icon: tiktokIcon },
+  { id: 'instagram', icon: instaIcon },
 ];
 
 /**
  * Hashtag pills + SNS tiles. Both built tabs draw the identical 1582×100 row;
  * only which card it sits in, and so its `top`, differs.
  */
-function HelloFooter({ position }: { position: string | undefined }): JSX.Element {
+function HelloFooter({ mascot, position }: { mascot: JejuMascot; position: string | undefined }): JSX.Element {
+  const { qr, framed } = QR_BY_MASCOT[mascot.id];
   return (
     <div className={`${styles.footer} ${position}`}>
-      {HASHTAGS.map((h) => (
+      {mascot.hashtags.map((h) => (
         <span key={h} className={styles.hashtag}>
           {h}
         </span>
       ))}
 
       <div className={styles.socials}>
-        {SOCIALS.map((s) => (
+        {SOCIAL_BRANDS.map((s) => (
           <Fragment key={s.id}>
             <img className={styles.socialIcon} src={s.icon} alt="" draggable={false} />
-            <img className={styles.socialQrImg} src={s.qr} alt="" draggable={false} />
+            {framed ? (
+              <div className={styles.socialQrFramed}>
+                <img className={styles.socialQrGlyph} src={qr} alt="" draggable={false} />
+              </div>
+            ) : (
+              <img className={styles.socialQrImg} src={qr} alt="" draggable={false} />
+            )}
           </Fragment>
         ))}
       </div>
@@ -309,30 +467,42 @@ function HelloFooter({ position }: { position: string | undefined }): JSX.Elemen
  * both — the frames differ only in their labels, copy and photo size.
  */
 function TopicPanel({
+  mascot,
   tab,
   value,
   onChange,
   emptyLabel,
   lang,
 }: {
+  mascot: JejuMascot;
   tab: TopicTabId;
   value: string;
   onChange: (id: string) => void;
   emptyLabel: string;
   lang: Lang;
 }): JSX.Element {
-  const { topics, photo } = TOPICS[tab];
+  const { topics, photo } = TOPICS_BY_MASCOT[mascot.id][tab];
   const current = topics.find((t) => t.id === value) ?? topics[0]!;
 
-  // Sub-tab captions come from the sheet; the PHOTO and its crop stay bundled.
-  const items = topics.map((t) => ({ id: t.id, label: sheetText(t.labelKey, lang, { ko: t.label }) }));
+  // Sub-tab captions follow the mascot (see `greet`); the PHOTO stays bundled.
+  const lowReach = useAccessibilityStore((s) => s.lowReach);
+  const heritage = mascot.id === 'yusan' ? styles.topicHeritage : '';
+  const items = topics.map((t) => ({ id: t.id, label: greet(mascot, t.labelKey, lang, { ko: t.label }) }));
 
   return (
     <>
-      <JejuSubTabRow items={items} value={value} onChange={onChange} />
+      <JejuSubTabRow
+        items={items}
+        value={value}
+        onChange={onChange}
+        className={lowReach ? styles.subTabsLow : undefined}
+      />
 
       {current.photo && (
-        <div className={styles.topicPhoto} style={photo}>
+        <div
+          className={`${styles.topicPhoto} ${heritage} ${lowReach ? styles.topicPhotoLow : ''}`}
+          style={photo}
+        >
           <img
             src={current.photo}
             alt=""
@@ -342,21 +512,21 @@ function TopicPanel({
         </div>
       )}
 
-      <div className={styles.topicCard}>
+      <div className={`${styles.topicCard} ${heritage} ${lowReach ? styles.topicCardLow : ''}`}>
         {current.title ? (
-          <div className={styles.topicText}>
+          <div className={`${styles.topicText} ${heritage}`}>
             <p className={styles.topicTitle}>
-              {sheetText(current.titleKey, lang, { ko: current.title })}
+              {greet(mascot, current.titleKey, lang, { ko: current.title })}
             </p>
             <p className={styles.topicBody} style={{ width: current.bodyWidth }}>
-              {sheetText(current.bodyKey, lang, { ko: current.body })}
+              {greet(mascot, current.bodyKey, lang, { ko: current.body })}
             </p>
           </div>
         ) : (
           <p className={`${styles.empty} ${styles.emptyTopic}`}>{emptyLabel}</p>
         )}
 
-        <HelloFooter position={styles.footerTopic} />
+        <HelloFooter mascot={mascot} position={`${styles.footerTopic} ${heritage}`} />
       </div>
     </>
   );
@@ -368,12 +538,19 @@ interface Props {
 
 export function JejuHello({ controller }: Props): JSX.Element {
   const lang = useLanguageStore((s) => s.currentLanguage);
+  const lowReach = useAccessibilityStore((s) => s.lowReach);
+  const mascot = jejuMascot();
+  const heritage = mascot.id === 'yusan' ? styles.profileHeritage : '';
   const [tab, setTab] = useState<TabId>('profile');
-  /** Selected sub-tab per tab, so switching away and back keeps the place. */
-  const [topic, setTopic] = useState<Record<TopicTabId, string>>({
-    hobbies: 'kpop',
-    health: 'neck',
-  });
+  /**
+   * Selected sub-tab per tab, so switching away and back keeps the place.
+   * Seeded from the mascot's own tables — 하영's middle hobby id is `running`
+   * and 유산's is `food`, so a hardcoded pair would be wrong for one of them.
+   */
+  const [topic, setTopic] = useState<Record<TopicTabId, string>>(() => ({
+    hobbies: TOPICS_BY_MASCOT[mascot.id].hobbies.topics[0]!.id,
+    health: TOPICS_BY_MASCOT[mascot.id].health.topics[0]!.id,
+  }));
 
   const select = (id: TabId): void => {
     trackEvent({
@@ -391,24 +568,38 @@ export function JejuHello({ controller }: Props): JSX.Element {
     setTopic((prev) => ({ ...prev, [parent]: id }));
   };
 
+  /**
+   * Neither mascot has a portrait export — 하영's frame and 유산's 6432:47434
+   * both draw a bare #D9D9D9 circle, which `.portrait` reproduces. The slot
+   * picks the art up automatically once `hello-portrait` lands in the icon
+   * folder; a second mascot's portrait will need a per-mascot key here.
+   */
   const portrait = jejuIconUrl('hello-portrait');
 
   return (
     <JejuPageFrame
       controller={controller}
-      title="안녕 '하영'"
+      title={mascot.helloTitle}
+      // 유산's Greeting_Introduce row does not exist — see JejuMascot.introLine.
+      subtitle={mascot.bio.fromSheet ? undefined : mascot.introLine}
       onBack={() => controller.navigate('home', '뒤로')}
+      lowReachSelfLayout
     >
       <JejuTabRow
-        tabs={TABS.map(({ id, key, label: fb }) => ({ id, label: sheetText(key, lang, fb) }))}
+        tabs={helloTabs(mascot).map(({ id, key, label: fb }) => ({
+          id,
+          label: greet(mascot, key, lang, fb),
+        }))}
         value={tab}
         onChange={select}
+        className={lowReach ? styles.tabsLow : undefined}
       />
 
       {/* 취미생활 and 건강습관 draw no big card — a sub-tab row over a photo,
           with a short caption card under it. */}
       {tab !== 'profile' && (
         <TopicPanel
+          mascot={mascot}
           tab={tab}
           value={topic[tab]}
           onChange={(id) => selectTopic(tab, id)}
@@ -418,7 +609,7 @@ export function JejuHello({ controller }: Props): JSX.Element {
       )}
 
       {tab === 'profile' && (
-        <div className={styles.card}>
+        <div className={`${styles.card} ${heritage} ${lowReach ? styles.cardLow : ''}`}>
           <div className={styles.portrait}>
             {portrait && <img src={portrait} alt="" draggable={false} />}
           </div>
@@ -427,14 +618,16 @@ export function JejuHello({ controller }: Props): JSX.Element {
             <div className={styles.row}>
               <p className={styles.label}>{label(L.name, lang)}</p>
               <span className={styles.namePlate}>
-                {sheetText('Greeting_NameContent', lang, { ko: NAME_FALLBACK_KO })}
+                {greet(mascot, 'Greeting_NameContent', lang, { ko: mascot.bio.name })}
               </span>
             </div>
 
             {PROFILE.map((row) => (
               <div key={row.key} className={styles.row}>
                 <p className={styles.label}>{label(row.label, lang)}</p>
-                <p className={styles.value}>{sheetText(row.key, lang, { ko: row.value })}</p>
+                <p className={styles.value}>
+                  {greet(mascot, row.key, lang, { ko: mascot.bio[row.field] as string })}
+                </p>
               </div>
             ))}
           </div>
@@ -445,15 +638,15 @@ export function JejuHello({ controller }: Props): JSX.Element {
             {DETAILS.map((row) => (
               <div key={row.key} className={styles.detailRow}>
                 <p className={styles.label}>{label(row.label, lang)}</p>
-                {/* 자기소개 keeps whatever line break the sheet cell carries. */}
+                {/* 장래희망 / 자기소개 keep whatever line break the value carries. */}
                 <p className={styles.detailValue} style={{ whiteSpace: 'pre-line' }}>
-                  {sheetText(row.key, lang, { ko: row.value })}
+                  {greet(mascot, row.key, lang, { ko: mascot.bio[row.field] as string })}
                 </p>
               </div>
             ))}
           </div>
 
-          <HelloFooter position={styles.footerProfile} />
+          <HelloFooter mascot={mascot} position={`${styles.footerProfile} ${heritage}`} />
         </div>
       )}
     </JejuPageFrame>

@@ -15,10 +15,12 @@
    pointer-events is off for the band as a whole and back on for the buttons
    only, so raising the header cannot in turn steal taps from page content that
    reaches under it. */
+/* `top` follows JejuPageFrame's --jeju-shift so the low-reach variant carries
+   the header down with the body; 0 when the header is used outside the frame. */
 .root {
   position: absolute;
   left: 0;
-  top: 0;
+  top: var(--jeju-shift, 0px);
   width: 2160px;
   height: 700px;
   z-index: 2;

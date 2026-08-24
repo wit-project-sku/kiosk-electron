@@ -7,9 +7,15 @@
  * 출발시각 cell change, so this renders one board and lets `jejuFlight.ts`
  * decide both. See that file for why the two conditions are independent.
  *
- * Sits at frame level inside JejuHome's .root — the board (785) and the 더보기
- * control (996) are both positioned in Figma coordinates. 더보기 opens
+ * Sits at frame level inside JejuHome's .root — the board (732) and the 더보기
+ * control (955) are both positioned in Figma coordinates. 더보기 opens
  * 제주>운항정보 (JejuFlights), the full 출발/도착 board.
+ *
+ * ♿ low-reach moves both down 837 with the 공지 panel they sit in. The flag is
+ * read from the store here rather than passed down from JejuHome: the board is
+ * positioned in page coordinates that only this file knows, so a `lowReach` prop
+ * would make JejuHome responsible for a layout it cannot see. Same call
+ * JejuRentcar and JejuCruise make.
  */
 import type { KioskController } from '@renderer/hooks/useKioskController';
 import { pick } from '@renderer/lib/i18n';
@@ -24,6 +30,7 @@ import {
   useJejuDepartures,
 } from '@renderer/lib/jejuFlight';
 import type { JejuDeparture } from '@renderer/lib/jejuFlight';
+import { useAccessibilityStore } from '@renderer/store/accessibilityStore';
 import styles from './JejuFlightBoard.module.css';
 
 interface Props {
@@ -43,16 +50,17 @@ const MORE = {
 
 /**
  * The six column axes, in Figma board coordinates. Header and value are both
- * centred on the axis — verified against all three condition frames, where
- * every column's two nodes agree to within 1px.
+ * centred on the axis — in the 2026-08-24 board (node 6439:71583) each column's
+ * two nodes agree to within 1px, except 현황 where the header centres on 1720 and
+ * 탑승최종 on 1715; the axis below splits that.
  */
 const COLUMNS = {
-  time: 420,
-  airline: 739,
-  destination: 1091.5,
-  kind: 1329.5,
-  gate: 1522.5,
-  status: 1725,
+  time: 412,
+  airline: 731,
+  destination: 1095.5,
+  kind: 1320,
+  gate: 1507,
+  status: 1718,
 } as const;
 
 const HEADS: Record<keyof typeof COLUMNS, Partial<Record<Lang, string>>> = {
@@ -124,7 +132,7 @@ function FlightCells({ departure, lang }: { departure: JejuDeparture; lang: Lang
       {/* Blank when the airport has published no 현황 — see normalizeFlightStatus. */}
       {departure.status && (
         <span
-          className={styles.value}
+          className={`${styles.value} ${styles.status}`}
           style={{ left: COLUMNS.status, color: flightStatusColor(departure.status) }}
         >
           {flightStatusLabel(departure.status, lang)}
@@ -136,6 +144,8 @@ function FlightCells({ departure, lang }: { departure: JejuDeparture; lang: Lang
 
 export function JejuFlightBoard({ controller, lang }: Props): JSX.Element | null {
   const departures = useJejuDepartures();
+  // Before the early return below — hooks cannot run conditionally.
+  const lowReach = useAccessibilityStore((s) => s.lowReach);
 
   // No feed, no board — better an empty strip of background than a frame of
   // headers over nothing.
@@ -144,7 +154,7 @@ export function JejuFlightBoard({ controller, lang }: Props): JSX.Element | null
 
   return (
     <>
-      <div className={styles.board}>
+      <div className={`${styles.board} ${lowReach ? styles.boardLow : ''}`}>
         <p className={styles.title}>{pick(TITLE, lang)}</p>
         <div className={styles.rule} />
 
@@ -160,7 +170,7 @@ export function JejuFlightBoard({ controller, lang }: Props): JSX.Element | null
       {/* Opens 제주>운항정보 (JejuFlights) — the full 출발/도착 board. */}
       <button
         type="button"
-        className={styles.more}
+        className={`${styles.more} ${lowReach ? styles.moreLow : ''}`}
         onClick={() => controller.navigate('flights', FLIGHTS_TITLE)}
       >
         <span className={styles.chevron} />

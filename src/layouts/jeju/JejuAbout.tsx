@@ -37,6 +37,7 @@ import {
 } from '@renderer/lib/shops';
 import { trackEvent } from '@renderer/lib/analytics';
 import { JejuAttractionCard } from './JejuAttractionCard';
+import { useAccessibilityStore } from '@renderer/store/accessibilityStore';
 import { JejuChosungRow } from './JejuChosungRow';
 import { JejuPageFrame } from './JejuPageFrame';
 import { JejuSpotDetailCard } from './JejuSpotDetailCard';
@@ -57,7 +58,12 @@ import cultureFood from '@renderer/assets/photos/jeju/about/culture-food.jpg';
 type TabId = 'history' | 'culture' | 'attractions';
 
 /**
- * Tabs in frame order (6212:59071 / 59073 / 59075).
+ * Tabs — 관광명소 FIRST, then the frames' 역사 / 문화.
+ *
+ * The Figma frames order them 역사 / 문화 / 관광명소 (6212:59071 / 59073 /
+ * 59075); 관광명소 was moved to the head on 2026-08-24 by request — it is the
+ * tab visitors actually come for, and it also becomes the landing tab (the
+ * `tab` state initialises to the first entry's id).
  *
  * Labels come from Localization_Jeju — Here_History / Here_Culture /
  * Here_Attraction, all three filled in every one of the eight languages. The
@@ -66,9 +72,9 @@ type TabId = 'history' | 'culture' | 'attractions';
  * empty ja cell falls to the authored Japanese, not to Korean.
  */
 const TABS = [
+  { id: 'attractions', key: 'Here_Attraction', label: { ko: '관광명소', en: 'Attractions', ja: '観光名所', zh: '旅游景点', vi: 'Điểm tham quan', th: 'สถานที่ท่องเที่ยว', ru: 'Достопримечательности', id: 'Tempat Wisata' } },
   { id: 'history', key: 'Here_History', label: { ko: '역사', en: 'History', ja: '歴史', zh: '历史', vi: 'Lịch sử', th: 'ประวัติศาสตร์', ru: 'История', id: 'Sejarah' } },
   { id: 'culture', key: 'Here_Culture', label: { ko: '문화', en: 'Culture', ja: '文化', zh: '文化', vi: 'Văn hóa', th: 'วัฒนธรรม', ru: 'Культура', id: 'Budaya' } },
-  { id: 'attractions', key: 'Here_Attraction', label: { ko: '관광명소', en: 'Attractions', ja: '観光名所', zh: '旅游景点', vi: 'Điểm tham quan', th: 'สถานที่ท่องเที่ยว', ru: 'Достопримечательности', id: 'Tempat Wisata' } },
 ] as const satisfies ReadonlyArray<{ id: TabId; key: string; label: Record<string, string> }>;
 
 // Copy resolution is `sheetText` from lib/loc — sheet cell for this language,
@@ -227,18 +233,29 @@ const CULTURE = [
  */
 const ATTRACTION_BASE_CATEGORY = '제주 뭐하지';
 
-/** 1744 (the row's drawn span, x208–1952) over its 14 letters. */
-const CHOSUNG_CELL = 1744 / 14;
+/** 1686 (the row's drawn span, x208–1894) over its 14 letters — 120.43, the
+ *  same cell the list screens use for the identical ㄱ…ㅎ run. */
+const CHOSUNG_CELL = 1686 / 14;
 
 /**
- * The 초성 row's own height (`.chosung` is 82px at y920, so the grid starts at
- * y1002). Hiding the row hands that band back to the grid instead of leaving an
- * 82px hole above it — see `.spotsNoChosung`.
+ * The band the 초성 row occupies between the tabs and the grid (`.chosung` sits
+ * at y920 and the grid starts at y1002). Hiding the row hands that band back to
+ * the grid instead of leaving an 82px hole above it — see `.spotsNoChosung`.
+ * This is the SPACING, not the row's own 72px box.
  */
 const CHOSUNG_BAND = 82;
 
 /** The 상세 card sits at y1047 here, clearing the tab and 초성 rows. */
 const DETAIL_TOP = 1047;
+
+/*
+ * Low-reach y values — Figma 6289:70215 / 70264 / 70323 / 70496. The tab row
+ * moves to the foot, so the panel, the card grid and the 상세 card all start at
+ * 1229 regardless of tab, and the 초성 row joins the tabs at the bottom.
+ */
+const LOW_CONTENT_TOP = 1229;
+/** 14 × 124.57 = 1744 — the wider ㄱ…ㅎ run the low-reach frames draw. */
+const LOW_CHOSUNG_CELL = 124.57;
 
 /**
  * A shop row as the shared 상세 card reads it. `from`/`title` are the detail
@@ -292,7 +309,9 @@ export function JejuAbout({ controller }: Props): JSX.Element {
   const lang = useLanguageStore((s) => s.currentLanguage);
   const shops = useShopStore((s) => s.shops);
   const attractions = useAttractionStore((s) => s.attractions);
-  const [tab, setTab] = useState<TabId>('history');
+  // Lands on the row's FIRST tab — 관광명소 since the 2026-08-24 reorder — so
+  // the highlighted tab is never mid-row on open.
+  const [tab, setTab] = useState<TabId>(TABS[0].id);
   const [hero, setHero] = useState(0);
   const [jamo, setJamo] = useState<Chosung | null>(null);
   /** The 관광명소 drill-down; null is the card grid. */
@@ -300,6 +319,7 @@ export function JejuAbout({ controller }: Props): JSX.Element {
 
   /** Whichever region the active tab scrolls — the 역사 prose or the 관광명소
    *  grid. Only one is mounted at a time, so one ref serves both. */
+  const lowReach = useAccessibilityStore((s) => s.lowReach);
   const scrollRef = useRef<HTMLDivElement>(null);
 
   /**
@@ -438,17 +458,19 @@ export function JejuAbout({ controller }: Props): JSX.Element {
       title="여기는 제주도"
       bannerFallback="banner-detail"
       onBack={goBack}
+      lowReachSelfLayout
     >
       <JejuTabRow
         tabs={TABS.map(({ id, key, label }) => ({ id, label: sheetText(key, lang, label) }))}
         value={tab}
         onChange={select}
+        className={lowReach ? styles.tabsLow : undefined}
       />
 
       {/* 문화 (6212:59098) draws no panel — the four cards sit on the page
           background, so the grid replaces the panel rather than filling it. */}
       {tab === 'culture' && (
-        <div className={styles.cards}>
+        <div className={`${styles.cards} ${lowReach ? styles.cardsLow : ''}`}>
           {CULTURE.map(({ id, photo, focus, titleKey, bodyKey, title, body }) => (
             <article key={id} className={styles.card}>
               <div className={styles.cardPhoto}>
@@ -475,7 +497,7 @@ export function JejuAbout({ controller }: Props): JSX.Element {
       )}
 
       {tab === 'history' && (
-        <div className={styles.panel}>
+        <div className={`${styles.panel} ${lowReach ? styles.panelLow : ''}`}>
           <div className={styles.heroRow}>
             <button
               type="button"
@@ -530,7 +552,8 @@ export function JejuAbout({ controller }: Props): JSX.Element {
         <>
           {showChosung && (
             <JejuChosungRow
-              className={styles.chosung}
+              className={`${styles.chosung} ${lowReach ? styles.chosungLow : ''}`}
+              {...(lowReach ? { cellWidth: LOW_CHOSUNG_CELL } : {})}
               value={jamo}
               onChange={(next) => {
                 setJamo(next);
@@ -551,12 +574,14 @@ export function JejuAbout({ controller }: Props): JSX.Element {
                band too rather than floating below a gap. */
             <JejuSpotDetailCard
               item={toDetailItem(spot, lang)}
-              top={showChosung ? DETAIL_TOP : DETAIL_TOP - CHOSUNG_BAND}
+              top={lowReach ? LOW_CONTENT_TOP : showChosung ? DETAIL_TOP : DETAIL_TOP - CHOSUNG_BAND}
               gallery="single"
             />
           ) : (
             <div
-              className={`${styles.spots} ${showChosung ? '' : styles.spotsNoChosung}`}
+              className={[styles.spots, showChosung ? '' : styles.spotsNoChosung, lowReach ? styles.spotsLow : '']
+                .filter(Boolean)
+                .join(' ')}
               ref={scrollRef}
             >
               {visibleSpots.length > 0 ? (

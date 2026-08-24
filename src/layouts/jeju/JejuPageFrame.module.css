@@ -9,7 +9,107 @@
   height: 3840px;
   overflow: hidden;
   font-family: var(--kiosk-font, 'Noto Sans KR', 'Noto Sans', sans-serif);
+
+  /* How far the header sits below the top of the artboard, and how far the body
+     does. They are separate because the two low-reach shapes differ: the banner
+     variant moves both by the banner's height, the hero variant moves only the
+     header and lets the screen place its own content. 0 / 0 normally. */
+  --jeju-shift: 0px;
+  --jeju-body-shift: 0px;
 }
+
+/*
+ * Low-reach variant (♿ on the left rail) — Figma 6286:24611 against the normal
+ * 6212:50714. The two frames hold the SAME content at the same sizes; the whole
+ * page is just re-stacked so the touchable half sits lower for a seated visitor:
+ * the banner moves from the bottom (y3267) to the top (y0), and the header and
+ * body follow it down by exactly its 573 height (header y0→573, body y700→1273).
+ *
+ * Driven by one inherited custom property so no screen file has to know about
+ * it: `.body` and JejuHeader's own `.root` both read --jeju-shift. Shifting via
+ * `top` rather than `transform` on purpose — a transform would make .body the
+ * containing block for ImageLightbox's `position: fixed`, which currently
+ * resolves against the artboard.
+ *
+ * The left rail does NOT move (y2043 in both frames): it is already within reach
+ * and it is what you tap to leave the variant again.
+ *
+ * NORMALISED to 573. 언어선택 states 573/1273 outright, and 573 is the banner's
+ * own height, so the header lands flush under it. The 상세 low-reach frames
+ * (6336:100864 and the newer 6439:75165, whose banner IS at the top — measured
+ * bottom edge y573, home button y880 ⇒ header y564.5, card y1264) place theirs
+ * 9px higher, which would tuck the header band 9px INTO the banner for no
+ * visible gain: the header draws nothing above its own 125px top padding, so
+ * the two differ only in how far the whole page sits down the artboard. One
+ * derivable rule beats carrying a 9px per-page exception.
+ */
+.rootLowReach {
+  --jeju-shift: 573px;
+  --jeju-body-shift: 573px;
+}
+
+/*
+ * Low-reach HERO variant — for the pages whose content is far too tall to push
+ * down 573px. Instead of re-stacking the existing page, these frames open with a
+ * 1181px illustrated banner and restart the page under it: header at y1206, and
+ * the screen lays its own content out at fresh coordinates (so --jeju-body-shift
+ * stays 0 — a shifted body would move the screen's absolute y values twice).
+ *
+ * Figma 6336:67216 / 6326:81769 / 6336:99702 / 6326:81686, the four states of
+ * 제주모하지(AI검색). Those frames also split the questionnaire into two steps to
+ * fit the space the banner leaves — that part lives in JejuAiSearch.
+ */
+.rootLowReachHero {
+  --jeju-shift: 1206px;
+  --jeju-body-shift: 0px;
+}
+
+/*
+ * The banner variant, but for a screen that re-lays-itself-out rather than
+ * riding the shift — 여기는 제주도, whose low-reach frames keep the 573 banner and
+ * the y573 header yet move their tab row to the foot and pull the panel up to
+ * y1229. Composed onto .rootLowReach so the header and banner rules still
+ * apply; only the body offset is cancelled, because the screen supplies its own
+ * absolute coordinates and shifting it too would apply the offset twice.
+ */
+.rootBodyUnshifted {
+  --jeju-body-shift: 0px;
+}
+
+/* The hero banner itself: 2160×1181 with a 30px #f49c56 rule across its top and
+   bottom edges (Figma draws them as separate bars at y0 and y1151). The artwork
+   is exported at 1536×857, a slightly squarer aspect than the box, so it is
+   drawn `cover` — which is what Figma's own 100.07%/102.12% overscan does. */
+.hero {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 2160px;
+  height: 1181px;
+  overflow: hidden;
+}
+
+.heroImg {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  /* Figma pins this one at top 0 (h102.12%), so the 2.12% overflow all comes off
+     the bottom rather than being split evenly the way `cover` defaults to. */
+  object-position: center top;
+  display: block;
+  pointer-events: none;
+}
+
+.heroRule {
+  position: absolute;
+  left: 0;
+  width: 2160px;
+  height: 30px;
+  background: #f49c56;
+}
+
+.heroRuleTop { top: 0; }
+.heroRuleBottom { top: 1151px; }
 
 /* Sub-pages use a DIFFERENT background from the home screen: `image 182`
    (Figma node 6043:14435), the same illustration on every sub-page — the AI
@@ -40,7 +140,7 @@
 .body {
   position: absolute;
   left: 0;
-  top: 0;
+  top: var(--jeju-body-shift);
   width: 2160px;
   height: 3840px;
   pointer-events: none;
@@ -84,17 +184,29 @@
 .leftNavHome { top: 0; }
 .leftNavBack { top: 120px; }
 
+/* The ♿ toggle. Sits apart from .leftNav because the rail art (nav-left.svg)
+   covers only the home/back pair; this third icon is its own asset in Figma. */
 .accessibility {
   position: absolute;
   left: 50px;
   top: 2283px;
   width: 85px;
   height: 85px;
+  padding: 0;
+  border: none;
+  background: none;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.accessibilityImg {
+  width: 100%;
+  height: 100%;
   object-fit: contain;
   pointer-events: none;
 }
 
-/* ── Bottom banner ── */
+/* ── Banner: bottom normally, top in the low-reach variant ── */
 .banner {
   position: absolute;
   left: 0;
@@ -102,6 +214,10 @@
   width: 2160px;
   height: 573px;
   overflow: hidden;
+}
+
+.rootLowReach .banner {
+  top: 0;
 }
 
 .bannerImg {

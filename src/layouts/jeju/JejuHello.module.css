@@ -1,6 +1,14 @@
 /*
- * 안녕 '하영' — Figma 6217:94591 ('하영'소개), 6217:94681/94865/94926 (취미생활)
- * and 6217:94987 (건강습관).
+ * 안녕 '하영' — Figma 6217:94591 ('하영'소개); 6217:94681 / 94865 / 94926
+ * (취미생활 K-POP / 런닝 / 테니스); 6217:94987 / 94743 / 94804 (건강습관 목·어깨 /
+ * 허리 / 기분전환). All six sub-tab frames are the same template and differ only
+ * in their photo slot, labels and copy — see TOPICS_BY_MASCOT in JejuHello.tsx.
+ *
+ * 안녕 '유산' (W008 세계자연유산본부) — Figma 6432:46475 ('유산'소개); 6431:31474 /
+ * 31714 / 31773 (취미생활 K-POP / 맛집탐방 / 테니스); 6431:31534 / 31594 / 31654
+ * (건강습관 목·어깨 / 허리 / 기분전환). The SAME page with a different character,
+ * so it shares every rule here and overrides five boxes — see the
+ * "유산 (W008)" section below for the measured deltas and why each one exists.
  *
  * 취미생활 and 건강습관 keep the tab row and the hashtag/SNS footer, nothing else,
  * and are the same page as each other:
@@ -10,30 +18,44 @@
  *
  * 소개 — the tab row is JejuTabRow's (x170 / y700). Everything else is one card:
  *   972   card 1820×2160 at x170   (everything below is card-relative)
- *   62.85 portrait circle 939²      → rel 59.85
- *   227.85 profile column w733      → rel 1058.86
- *   1077.86 divider 1731 wide       → rel 41.85
- *   1138.86 detail rows w1740       → rel 59.85
- *   1971.86 hashtags + socials 1582 → rel 117
+ *   65    portrait circle 939²
+ *   230   profile column w733      → rel 1107
+ *   1080  divider 1731 wide        → rel 44
+ *   1156  detail rows w1635        → rel 93
+ *   1974  hashtags + socials 1582  → rel 119
  *
- * Every label/value pair on the page is `label + 40px gap + value`. Figma's
- * per-row lefts (151 / 206 / 195 / 263) look hand-placed but are all exactly
- * that: a Korean glyph at 60px advances ~55.8, so 2 chars + 40 = 151.6, 3 chars
- * + 40 = 207, 4 chars + 40 = 263. One flex gap reproduces the lot.
+ * 2026-08-24: every label and value on 소개 dropped 60/58 → 50, and the columns
+ * moved with them (profile 1058.86 → 1107, details 59.85 → 93). The card's own
+ * box is unchanged.
+ *
+ * Every label/value pair on the page is `label + 40px gap + value`, which is
+ * Figma's own auto-layout gap — 장래희망's text node is w223.078 with its value
+ * at 263, i.e. exactly 40 apart. The profile rows' hand-placed lefts (151 / 206
+ * / 195) are the same 40 behind a 2-, 3- or 4-glyph label, so one flex gap
+ * reproduces the lot.
  */
 .card {
   position: absolute;
-  /* Figma drags this to x172/centre+2; every other 제주 card is on 170. */
+  /* Figma drags 하영's to x172/centre+2 and 유산's to 170; every other 제주 card
+     is on 170, so 170 it is. Same for `top`: 972 (하영) vs 971 (유산), normalised. */
   left: 170px;
   top: 972px;
   width: 1820px;
   height: 2160px;
   box-sizing: border-box;
-  /* 2.145px here, not the 5px the tab pills and 관광명소 cards use. */
-  border: 2.145px solid #e8e8e8;
+  /* No outline — probed at 1:1 on both mascots' 소개 frames, the page background
+     goes straight to pure white at the card's top edge (하영 y972, 유산 y971). */
+  border: none;
+  /* The shadow, however, IS drawn, and the blanket 2026-08-24 "flat plate" pass
+     took it off. Restored after probing below the card's bottom edge on BOTH
+     current frames: the page bg (251,248,243) darkens by ~23/255 two pixels
+     under the edge and fades to nothing by +50px — the same profile on each.
+     Narrower blur than the other 제주 cards' 42.9 (see .topicCard). */
+  box-shadow: 0 21.45px 21.45px rgba(143, 147, 157, 0.1);
   border-radius: 42.9px;
   background: #fff;
-  box-shadow: 0 21.45px 21.45px rgba(143, 147, 157, 0.1);
+  /* NOT clipped: `overflow: hidden` on a box-shadow'd element is fine, but the
+     shadow is painted outside the border-box either way. */
   overflow: hidden;
 }
 
@@ -43,8 +65,8 @@
    a grey circle until then, rather than collapsing the layout. */
 .portrait {
   position: absolute;
-  left: 59.85px;
-  top: 62.85px;
+  left: 62px;
+  top: 65px;
   width: 939px;
   height: 939px;
   border-radius: 50%;
@@ -62,8 +84,8 @@
 /* ── Profile column (6217:94598) ── */
 .profile {
   position: absolute;
-  left: 1058.86px;
-  top: 227.85px;
+  left: 1107px;
+  top: 230px;
   width: 733px;
   display: flex;
   flex-direction: column;
@@ -80,7 +102,7 @@
 .label {
   margin: 0;
   flex: none;
-  font-size: 60px;
+  font-size: 50px;
   font-weight: 700;
   line-height: 1;
   color: #000;
@@ -89,7 +111,7 @@
 
 .value {
   margin: 0;
-  font-size: 58px;
+  font-size: 50px;
   font-weight: 400;
   line-height: 1;
   color: #000;
@@ -108,7 +130,7 @@
   display: inline-flex;
   align-items: center;
   background: #ffeac7;
-  font-size: 58px;
+  font-size: 50px;
   font-weight: 700;
   line-height: 1;
   color: var(--kiosk-primary, #ff7f0f);
@@ -118,8 +140,8 @@
 /* ── Divider (6217:94620) ── */
 .divider {
   position: absolute;
-  left: 41.85px;
-  top: 1077.86px;
+  left: 44px;
+  top: 1080px;
   width: 1731px;
   height: 2.145px;
   background: #e8e8e8;
@@ -128,9 +150,9 @@
 /* ── 특기 / 취미 / 장래희망 / 자기소개 (6217:94621) ── */
 .details {
   position: absolute;
-  left: 59.85px;
-  top: 1138.86px;
-  width: 1740px;
+  left: 93px;
+  top: 1156px;
+  width: 1635px;
   display: flex;
   flex-direction: column;
   gap: 30px;
@@ -147,7 +169,7 @@
 
 .detailValue {
   margin: 0;
-  font-size: 58px;
+  font-size: 50px;
   font-weight: 400;
   line-height: 1.3;
   color: #000;
@@ -162,17 +184,18 @@
 /* A single-line value keeps Figma's `leading-none`; wrapped ones need 1.3, and
    the two are within a pixel on one line. */
 .detailRow .label {
-  /* The 60px label against a 1.3-leading value: pull it onto the first line. */
+  /* The 50px label against a 1.3-leading value: pull it onto the first line. */
   line-height: 1.3;
 }
 
 /* ── Hashtags + socials (6217:94634 소개, 6217:94725 취미생활) ──
-   The same 1582×100 row on both tabs, and on both it lands on page x289 — 117
-   inside a card that starts at 170 plus its 2.145px border. Only the card it
+   The same 1582×100 row on both tabs, and on both it lands on page x289 — 119
+   inside a card that starts at 170. (It was 117 while the card still carried a
+   2.145px border; the borderless plate gives those 2px back.) Only the card it
    sits in, and so its `top`, changes. */
 .footer {
   position: absolute;
-  left: 117px;
+  left: 119px;
   width: 1582px;
   height: 100px;
   display: flex;
@@ -180,9 +203,9 @@
   gap: 40px;
 }
 
-.footerProfile { top: 1971.86px; }
-/* page 3052 − card top 2670 − border */
-.footerTopic { top: 379.9px; }
+.footerProfile { top: 1974px; }
+/* page 3052 − card top 2670 */
+.footerTopic { top: 382px; }
 
 .hashtag {
   height: 100px;
@@ -196,7 +219,7 @@
   justify-content: center;
   border-radius: 42.9px;
   background: var(--kiosk-primary, #ff7f0f);
-  font-size: 51.48px;
+  font-size: 50px;
   font-weight: 700;
   line-height: 1;
   color: #fff;
@@ -220,8 +243,9 @@
 }
 
 /* Frame for a GENERATED code (QRCodeSVG). Unused while the codes ship as
-   images — kept because that is the shape to come back to once 하영's account
-   URLs exist; see SOCIALS in JejuHello.tsx. */
+   images — kept because that is the shape to come back to once the mascots'
+   account URLs exist; see QR_BY_MASCOT in JejuHello.tsx. The 유산 variant just
+   below is the same frame drawn around a bare exported glyph. */
 .socialQr {
   width: 100px;
   height: 100px;
@@ -248,6 +272,37 @@
 .socialQr svg {
   width: 100%;
   height: 100%;
+  display: block;
+}
+
+/* 유산's code ships as a BARE glyph and its frames draw the orange frame in CSS
+   (6432:47483), where 하영's export bakes the frame into the artwork. Same
+   100px tile either way; the glyph's inset is the frame's own 17% / 17.74% and
+   66% / 64.52%, which is why it is placed rather than padded. */
+.socialQrFramed {
+  position: relative;
+  width: 100px;
+  height: 100px;
+  box-sizing: border-box;
+  flex: none;
+  /* Inset ring rather than `border: 5px`, for the same reason as .topicCard
+     above: the glyph below is placed against this box, and a real border would
+     shrink its containing block to 90px and shift it 5px in. */
+  box-shadow: inset 0 0 0 5px var(--kiosk-primary, #ff7f0f);
+  border-radius: 21.45px;
+  background: #fff;
+}
+
+/* The frame states the glyph as 17% / 17.74% and 66% / 64.52% of a tile that is
+   always exactly 100px, so these are written as the px they resolve to — a
+   percentage here would silently re-base if the tile ever gained a border. */
+.socialQrGlyph {
+  position: absolute;
+  left: 17px;
+  top: 17.74px;
+  width: 66px;
+  height: 64.52px;
+  object-fit: contain;
   display: block;
 }
 
@@ -289,16 +344,21 @@
   width: 1820px;
   height: 549px;
   box-sizing: border-box;
-  border: 2.145px solid #e8e8e8;
+  /* Flat plate - no outline, no shadow (2026-08-24 direction). */
+  border: none;
   border-radius: 42.9px;
   background: #fff;
-  box-shadow: 0 21.45px 42.9px rgba(143, 147, 157, 0.1);
 }
 
+/* NORMALISED: 취미생활 draws this block at page y2726 (card-rel 56) and 건강습관
+   at y2730 (rel 60) — 6217:94687 against 6217:94994, and the same 4px split runs
+   through all six sub-tab frames. Both are hand-placed in a 549 card whose
+   content is 335 tall, so neither is a derived value; one number for a control
+   both tabs share beats a per-tab knob for 4px. */
 .topicText {
   position: absolute;
-  left: 117px;
-  top: 54px;
+  left: 119px;
+  top: 56px;
   width: 1188px;
   display: flex;
   flex-direction: column;
@@ -307,7 +367,7 @@
 
 .topicTitle {
   margin: 0;
-  font-size: 63px;
+  font-size: 60px;
   font-weight: 700;
   line-height: 1.3;
   color: #000;
@@ -349,4 +409,115 @@
 /* Centred in the 549px hobby card instead of the 2160px profile one. */
 .emptyTopic {
   top: 205px;
+}
+
+
+/* ────────────────────────────────────────────────────────────────────────────
+ * 유산 (W008 세계자연유산본부) — the five boxes the 유산 frames measure differently.
+ *
+ * Everything else on the page is shared: the tab row, portrait circle, profile
+ * and detail columns, divider, hashtag row and every type ramp land on the same
+ * numbers in both mascots' frames. Only these move, and each because 유산's copy
+ * is a different length, not because the design diverged.
+ *
+ * These rules sit ABOVE the low-reach block on purpose. They and the .*Low rules
+ * are single classes on the same elements, so equal specificity makes SOURCE
+ * ORDER the tie-break — low-reach must win, and it only re-places `top`, so the
+ * heights and the border below survive into the low-reach layout, which is what
+ * 유산's longer captions need. (There is no 유산 low-reach frame yet; this is the
+ * shared 하영-derived arrangement carrying 유산's boxes. Re-check when one lands.)
+ * ──────────────────────────────────────────────────────────────────────────── */
+
+/* 소개 card: 2106 tall, not 2160 (6432:47433). Both cards END on y3077/3078 —
+   the plate is anchored just above the banner and 유산's shorter 자기소개 lets it
+   start lower — so this is a height change, not a move. */
+.card.profileHeritage {
+  height: 2106px;
+}
+
+/* Hashtags hang under the detail block, which is 33px shorter here (735 vs 768):
+   card-rel 1941 against 하영's 1974 (6432:47471). */
+.footer.profileHeritage {
+  top: 1941px;
+}
+
+/* 취미생활 and 건강습관 draw ONE photo box on all six 유산 frames — 842×1509 at
+   y1060 (the size itself comes from TOPICS_BY_MASCOT, only the top is here).
+   하영 draws two boxes at y1081. */
+.topicPhoto.topicHeritage {
+  top: 1060px;
+}
+
+/* Caption card: taller and higher, and it keeps its outline. Bottom edge is
+   y3219 on BOTH mascots (2619+600 = 2670+549), again anchored above the banner.
+   The 2.145px #e8e8e8 IS drawn here and is NOT on 하영's — probed at 1:1 in a
+   clear column (x250): 하영's 6217:94681 goes page-bg → pure white at y2670,
+   while 유산's 6431:31474 reads #e8e8e8 for two rows at y2619 first. A genuine
+   per-venue difference, so it must not move onto the shared .topicCard. */
+.topicCard.topicHeritage {
+  top: 2619px;
+  height: 600px;
+  /* An INSET shadow, not a `border`. The card's children are absolutely
+     positioned, so their left/top resolve against its PADDING box — a real
+     border would push .topicText and the footer 2.145px right and down, off the
+     frame's own x289 / y2689. Figma strokes this inside the edge anyway (probed:
+     #e8e8e8 occupies y2619–2621 of a card whose top IS 2619), so an inset ring
+     is both the faithful paint and the one that costs no layout. */
+  box-shadow:
+    inset 0 0 0 2.145px #e8e8e8,
+    0 21.45px 42.9px rgba(143, 147, 157, 0.1);
+}
+
+/* Caption text sits 70 inside its card, not 56 (6431:31480 at page y2689). */
+.topicText.topicHeritage {
+  top: 70px;
+}
+
+/* page 3052 − card top 2619. The row itself is unchanged. */
+.footer.topicHeritage {
+  top: 433px;
+}
+
+/* ────────────────────────────────────────────────────────────────────────────
+ * LOW-REACH (♿) — Figma 6297:73923 ('하영'소개) and 6297:74304 ('하영'취미생활).
+ *
+ * Same shape as 여기는 제주도: the 573 banner stays at the top with the header at
+ * y573 (the frame's .rootLowReach), and the page re-lays-out below it. Both tab
+ * rows go to the foot — the main row to y3467 and the sub-tab row to y3687 —
+ * and the content moves up to y1260 now that nothing sits above it.
+ *
+ * The cards also gain a hairline they do NOT have in the standard frame: probed
+ * at x1700, standard 6217:94591 goes straight to white at its card top (y972)
+ * while both low-reach frames read #e8e8e8 for ~2.145px first (profile y1260,
+ * 취미 caption card y2818). So this is a per-variant difference, not a border
+ * that was wrongly dropped from the shared rule.
+ *
+ * The two footers are positioned RELATIVE to their cards and need no override:
+ * the hashtag row measures y3234 against a card at 1260, i.e. the same 1974 the
+ * standard uses.
+ * ──────────────────────────────────────────────────────────────────────────── */
+
+/* Doubled class: `.tabs` / `.row` live in JejuTabRow's and JejuSubTabRow's own
+   modules, so an equal-specificity override from this file would be decided by
+   bundler stylesheet order. 0-2-0 settles it. */
+.tabsLow.tabsLow {
+  top: 3467px;
+}
+
+.subTabsLow.subTabsLow {
+  top: 3687px;
+}
+
+.cardLow {
+  top: 1260px;
+  border: 2.145px solid #e8e8e8;
+}
+
+.topicPhotoLow {
+  top: 1260px;
+}
+
+.topicCardLow {
+  top: 2818px;
+  border: 2.145px solid #e8e8e8;
 }

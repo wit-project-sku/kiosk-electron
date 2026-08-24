@@ -1,5 +1,7 @@
 /*
- * 제주 '제주' 뭐하지 (AI 검색) — Figma node 6050:142613.
+ * 제주 '제주' 뭐하지 (AI 검색) — Figma nodes 6336:67302 (nothing picked) and
+ * 6289:54956 (the same screen with 2명 · 3박 이상 · 자동차 and three 즐길 거리
+ * tiles picked), the 2026-08-24 redesign of 6050:142613.
  *
  * 선택영역 starts at y699 and stacks 5 blocks with a 100px gap. Each of the
  * first three blocks is [label 76 · gap 60 · chip row 193] = 329 tall:
@@ -9,6 +11,15 @@
  *   1557 이동수단 label      1693  chips
  *   1986 즐길 거리 label     2122  grid (5 rows, step 244, each h215)
  *   3413 CTA (h178)                        → content ends at y3591
+ *
+ * The geometry above is unchanged by the redesign — verified against
+ * 6289:54958. What changed is the plate treatment: chips and tiles lost their
+ * #e8e8e8 hairline AND their drop shadow, and SELECTED now means a solid #FF7F0F
+ * plate with white text (it was a pale #ffeac7 fill that kept the label's own
+ * colour). Chip type dropped to Medium and the CTA from 68.64 to 60.
+ *
+ * The shadow the two frames still draw (#8F939D1A) is deliberately dropped: the
+ * 2026-08-24 direction is flat boxes and cards across the whole 제주 layout.
  *
  * Content runs past the usual 3267 banner line, which is why this page is
  * rendered with `showBanner={false}`.
@@ -66,25 +77,34 @@
   height: 193px;
   box-sizing: border-box;
   padding: 0;
-  border: 2.145px solid #e8e8e8;
+  /* Flat: no outline, no shadow. `border: none` rather than omitting the
+     property, because these are <button>s and would otherwise pick up Chrome's
+     UA `2px outset ButtonBorder` bevel (no global button reset here). */
+  border: none;
   border-radius: 45px;
   background: #fff;
+  /* Figma's 본문 호버시 effect. Probed on the STANDARD frame 6336:67302, not just
+     the low-reach one: directly under a chip the page darkens to (235,227,219)
+     and fades back over ~34px, while a column clear of the chips stays flat at
+     (255,242,230). It had been stripped under the general "remove borders and
+     shadows" pass — the design draws it, so it is back. */
   box-shadow: 0 21.45px 42.9px rgba(143, 147, 157, 0.1);
   display: flex;
   align-items: center;
   justify-content: center;
   font-size: 60px;
-  font-weight: 600;
+  font-weight: 500;
   line-height: 1;
   color: #999;
   cursor: pointer;
   -webkit-tap-highlight-color: transparent;
 }
 
+/* Picked: a solid brand plate with white Bold type. */
 .chipSelected {
-  border-color: var(--kiosk-primary, #ff7f0f);
-  background: #ffeac7;
-  color: var(--kiosk-primary, #ff7f0f);
+  background: var(--kiosk-primary, #ff7f0f);
+  box-shadow: none;
+  color: #fff;
   font-weight: 700;
 }
 
@@ -112,7 +132,8 @@
   width: 268px;
   height: 215px;
   box-sizing: border-box;
-  border: 2.145px solid #e8e8e8;
+  /* Flat, same as .chip. */
+  border: none;
   border-radius: 45px;
   background: #fff;
   box-shadow: 0 21.45px 42.9px rgba(143, 147, 157, 0.1);
@@ -121,7 +142,12 @@
   justify-content: center;
   font-size: 47px;
   font-weight: 700;
-  line-height: 1.15;
+  /* Figma's leading, not a guess: a one-line label's text box is h47 at y84 and
+     a two-line one h94 at y60 inside the 215 tile — both are `leading-none`.
+     At the old 1.15 the two-line tiles sat 7px high. (제주 향토음식 is the one
+     node drawn at 1.2; its neighbour 레저·액티비티 is at 1, so this follows the
+     pair that agrees.) */
+  line-height: 1;
   text-align: center;
   /* `pre`, not `pre-line`: the two-line labels (제주\n향토음식) carry a literal
      newline, but nothing may auto-wrap. Figma sets these nowrap and lets the
@@ -145,11 +171,15 @@
   font-size: 40px;
 }
 
-/* Selected 즐길 거리 tiles take the orange plate but KEEP their category text
-   colour — unlike Osan, where selection overrides it. */
+/* Picked 즐길 거리 tiles take the solid brand plate and DROP their category
+   colour for white — the redesign aligned them with Osan, where the palette is
+   only a resting-state cue.
+
+   `color` needs no !important: JejuAiSearch stops passing the inline category
+   colour once a tile is selected, so nothing outranks this rule. */
 .tileSelected {
-  border-color: var(--kiosk-primary, #ff7f0f);
-  background: #ffeac7;
+  background: var(--kiosk-primary, #ff7f0f);
+  color: #fff;
 }
 
 /* ── CTA ── */
@@ -164,9 +194,17 @@
   border-radius: 42.9px;
   background: var(--kiosk-primary, #ff7f0f);
   color: #fff;
-  font-size: 68.64px;
+  font-size: 60px;
   font-weight: 700;
   line-height: 1;
   cursor: pointer;
   -webkit-tap-highlight-color: transparent;
+}
+
+/* Nothing picked yet — the grey plate both "resting" frames draw (#999, the
+   sheet's 글씨-main). Only reachable on the 즐길 거리 step: the three chip groups
+   are single-select and always hold a value. */
+.ctaDisabled {
+  background: #999;
+  cursor: default;
 }

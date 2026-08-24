@@ -1,15 +1,21 @@
 /*
- * 도와줘 '하영' — Figma node 6219:98767 (제주>도와줘 하영-01=공항).
+ * 도와줘 '하영' — Figma node 6393:59030 (제주>도와줘 하영-01=공항), the
+ * 2026-08-24 redesign of 6219:98767. The 상세 behind a pin is 6219:99127 —
+ * `R>검색상세-사진1개` at y863, which JejuDetail already produces for `from:
+ * 'help'`.
  *
- * Three stacked pickers over one map:
- *   700   terminal pills 1360×170 at x400 — two 580×170, 200 apart
- *   920   floor row (JejuSubTabRow's own band)
- *   1052  category chips 1820×375 at x170 — 5 × 340×170 per row, 30/35 gaps
- *   1527  map 1820×1383 at x170
+ * Three stacked pickers over one map — every band moved:
+ *   700   terminal pills 1193×170 at x483.5 — two 565×170, 63 apart (was two
+ *         580s 200 apart at x400; it is now the same two-pill component the
+ *         events tabs use)
+ *   940   floor row (was 920 — JejuSubTabRow's shared band, overridden here)
+ *   1172  category chips 1820×375 at x170 — 5 × 340×170 per row, 30/35 gaps
+ *   1697  map 1820×1383 at x170
  *
- * The terminal pills and the category chips share one look with 지역화폐's tabs —
- * the frame's own `R>상단 카테고리-5개*2` component — so it lives in
- * JejuPill.module.css and only the widths are set here.
+ * The category chips are the frame's own `R>상단 카테고리-5개*2`, shared with
+ * 지역화폐's tabs, so their look lives in JejuPill.module.css and only the widths
+ * are set here. The TERMINAL pills are a different component and take their own
+ * picked style below.
  */
 .pill {
   composes: pill from './JejuPill.module.css';
@@ -19,20 +25,42 @@
   composes: pillActive from './JejuPill.module.css';
 }
 
-/* ── Terminal (6219:98776) ── */
+/* ── Terminal (6412:75786) ──
+   The two-pill `R>컴포넌트=코스추천-카테고리`, centred: 2 × 565 + 63 = 1193, so
+   left = (2160 − 1193) / 2 = 483.5. */
 .terminals {
   position: absolute;
-  left: 400px;
+  left: 483.5px;
   top: 700px;
-  width: 1360px;
+  width: 1193px;
   height: 170px;
   display: flex;
   align-items: center;
-  gap: 200px;
+  gap: 63px;
 }
 
 .terminals .pill {
-  width: 580px;
+  width: 565px;
+}
+
+/* Picked terminal: the solid brand plate with white Bold type — NOT the pale
+   #ffeac7 plate the category chips below keep. The two rows are different Figma
+   components and the redesign moved only this one. */
+.terminals .pillActive {
+  border: none;
+  background: var(--kiosk-primary, #ff7f0f);
+  color: #fff;
+}
+
+/* ── Floors (6393:59048) ──
+   JejuSubTabRow puts its band at y920 for 안녕 '하영'; this page draws it at 940.
+
+   Doubled selector on purpose: `.row` in JejuSubTabRow.module.css also sets
+   `top`, and at equal specificity the winner is whichever module the bundler
+   emits last — which is not something this page should depend on. `.floors
+   .floors` is (0,2,0) and beats it deterministically, without !important. */
+.floors.floors {
+  top: 940px;
 }
 
 /* ── Categories (6219:98787) ──
@@ -41,7 +69,7 @@
 .cats {
   position: absolute;
   left: 170px;
-  top: 1052px;
+  top: 1172px;
   width: 1820px;
   display: flex;
   flex-direction: column;
@@ -64,7 +92,7 @@
 .map {
   position: absolute;
   left: 170px;
-  top: 1527px;
+  top: 1697px;
   width: 1820px;
   height: 1383px;
   overflow: hidden;
@@ -168,7 +196,7 @@
 .empty {
   position: absolute;
   left: 170px;
-  top: 1527px;
+  top: 1697px;
   width: 1820px;
   margin: 0;
   padding-top: 600px;
@@ -177,4 +205,41 @@
   line-height: 1.3;
   color: #909090;
   text-align: center;
+}
+
+
+/* ────────────────────────────────────────────────────────────────────────────
+ * LOW-REACH (♿) — Figma 6422:44067.
+ *
+ * The page turns over: the map rises to the top of the body and all THREE
+ * pickers go to the foot, in the order they are used —
+ *
+ *   1379  map (was 1697)
+ *   2912  terminal pills (was 700)
+ *   3152  floor row (was 940)
+ *   3384  category chips (was 1172)
+ *
+ * This page carries no banner normally, so it asks the frame for one with
+ * `lowReachBanner`; the frame then draws it at y0 and moves the header down as
+ * usual. Figma puts the header on 577 here against the 573 it states for
+ * 언어선택 — the same 4px class of hand-nudge already normalised in
+ * JejuPageFrame.module.css, so the shared 573 stands.
+ * ──────────────────────────────────────────────────────────────────────────── */
+.mapLow,
+.emptyLow {
+  top: 1379px;
+}
+
+.terminalsLow {
+  top: 2912px;
+}
+
+/* (0,3,0): must beat BOTH JejuSubTabRow's `.row` and this file's own
+   `.floors.floors` (0,2,0), whichever order the bundler emits them in. */
+.floors.floorsLow.floorsLow {
+  top: 3152px;
+}
+
+.catsLow {
+  top: 3384px;
 }

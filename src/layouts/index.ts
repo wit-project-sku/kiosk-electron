@@ -12,6 +12,8 @@ const LAYOUTS: Record<KioskLayoutId, ComponentType> = {
   OSAN: OsanLayout,
   HWASEONG: HwaseongLayout,
   JEJU_AIRPORT: JejuLayout,
+  // Same screens, different mascot rows — see KioskLayoutId on the split.
+  JEJU_HERITAGE: JejuLayout,
 };
 
 export function resolveLayout(layout: KioskLayoutId): ComponentType {

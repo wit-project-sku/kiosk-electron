@@ -1,31 +1,41 @@
 /*
- * 제주도 이벤트 — Figma nodes 6052:45789 (MBTI tab) and 6052:46385 (list tab).
+ * 제주도 이벤트 — Figma nodes 6212:54808 (MBTI tab, nothing picked), 6212:54858
+ * (MBTI tab mid-request), 6308:78956 (MBTI results) and 6212:54917 (list tab),
+ * the 2026-08-24 redesign of 6052:45789 / 6052:46385. The event DETAIL page
+ * (6212:55057) is the shared EventDetailScreen and is unchanged.
  *
  * Shared by both tabs:
- *   699   tab row (h170, tabs 565 wide, gap 63 → 3 tabs fill the 1820 column)
+ *   699   tab row (h170, two 565-wide pills, gap 63 → 1193 centred at x483)
  *   2939  QR row (divider + code + label)
  *
- * List tab (6052:46385):
- *   941   category chips (h90 pills, 135 wide, gap 67.61, from x709)
+ * List tab:
+ *   919   category row — "전체 ㅣ 공연 ㅣ 전시 ㅣ 기타" at 60px
  *   1088  card grid (3 × 483.767 at x224, gap 130.35; rows pitch 864)
  *
- * MBTI tab (6052:45789):
+ * MBTI tab:
  *   1088  MBTI grid (1469×655 at x336; 4×2, gap-x 113, gap-y 90, cells 282.5²)
  *   1928  추천 결과 보기 (500×120 at x830)
  *   2201  description block (992 wide, centred, 55px / 100px leading)
+ *   916   results modal (1720×1417 at x190)
+ *
+ * What the redesign changed: the tab pills lost their #e8e8e8 hairline and
+ * dropped 63→50px (Medium when idle, Bold when picked); the category chips gave
+ * up their orange pill for a plain 60px row separated by ㅣ; the results modal
+ * lost its border, its own QR, and grew a 289px top inset while shrinking to
+ * 1417 tall.
  */
 .tabs {
   position: absolute;
-  left: 168px;
+  left: 483px;
   top: 699px;
-  width: 1821px;
+  width: 1193px;
   height: 170px;
   display: flex;
   align-items: center;
   gap: 63px;
 }
 
-/* flex:1 so the row always fills the column — three tabs land on Figma's exact
+/* flex:1 so the row always fills the column — the two tabs land on Figma's exact
    565, and a different count still spaces evenly. */
 .tab {
   flex: 1 1 0;
@@ -33,11 +43,14 @@
   min-width: 0;
   box-sizing: border-box;
   padding: 0;
-  border: 5px solid #e8e8e8;
+  /* Borderless — the idle pill is a plain white plate on the page background.
+     `none`, not omitted, because these are <button>s and would otherwise take
+     Chrome's UA outset bevel. */
+  border: none;
   border-radius: 42.9px;
   background: #fff;
-  font-size: 63px;
-  font-weight: 700;
+  font-size: 50px;
+  font-weight: 500;
   line-height: 1;
   color: #616161;
   cursor: pointer;
@@ -47,62 +60,74 @@
 .tabActive {
   background: var(--kiosk-primary, #ff7f0f);
   color: #fff;
+  font-weight: 700;
 }
 
-/* ── Category chips (list tab) ──
-   Figma draws the active pill as a 135×90 shape at x709 and the four labels as
-   a nowrap flex row at x735 with gap 119.611. Modelled here as four 135-wide
-   cells so the pill IS the cell: 135 + 67.611 gap keeps every label centre on
-   Figma's (776.5 / 979.1 / 1181.7 / 1384.3). */
+/* ── Category row (list tab) ──
+   No longer a pill: Figma draws one centred 60px line, "전체 ㅣ 공연 ㅣ 전시 ㅣ
+   기타", with the picked label in Black/#FF7F0F and the rest SemiBold/#999. The
+   separators are literal ㅣ glyphs, and the design's spacing comes from runs of
+   spaces around them — reproduced as a 126px gap, measured to reconstruct the
+   design's 1326px line width out of Pretendard's actual advances (4 × 103.7 +
+   3 × 51.9 of glyph + 6 × 126 of gap). The row is centred, so the width only
+   has to be right for the ㅣ to land where the design puts them. */
 .chips {
   position: absolute;
-  left: 709px;
-  top: 941px;
-  height: 90px;
+  left: 0;
+  top: 919px;
+  width: 2160px;
+  height: 82px;
   display: flex;
-  align-items: center;
-  gap: 67.611px;
+  align-items: flex-start;
+  justify-content: center;
+  gap: 126px;
+}
+
+.chip,
+.chipSep {
+  padding: 0;
+  border: none;
+  background: none;
+  font-size: 60px;
+  font-weight: 600;
+  /* Figma's box is h72 on a 60px face — its `leading-normal`. */
+  line-height: 1.2;
+  color: #999;
+  white-space: nowrap;
 }
 
 .chip {
-  width: 135px;
-  height: 90px;
-  box-sizing: border-box;
-  padding: 0;
-  border: none;
-  /* Half the height — the pill's corners are fully round (probed from the
-     render: the inset at 8px depth is 19px, which only r45 gives). */
-  border-radius: 45px;
-  background: transparent;
-  font-size: 45px;
-  font-weight: 700;
-  line-height: 1;
-  color: #1b1d1f;
-  white-space: nowrap;
   cursor: pointer;
   -webkit-tap-highlight-color: transparent;
 }
 
+.chipSep {
+  pointer-events: none;
+  user-select: none;
+}
+
 .chipActive {
-  background: var(--kiosk-primary, #ff7f0f);
-  color: #fff;
+  font-weight: 900;
+  color: var(--kiosk-primary, #ff7f0f);
 }
 
 /* ── Event card grid (list tab) ──
-   The grid scrolls; the 34.32px orange bar is Figma's (x2080). The container's
-   right edge is placed at 2114.32 so the bar lands exactly there, and the
-   padding absorbs whatever width the scrollbar reserves — the three 483.767
-   columns keep their geometry either way. */
+   The grid scrolls; the 34.32px orange bar is Figma's, now at x2128 (it was
+   x2080). The container runs to the artboard edge so the bar sits flush right
+   at 2125.68 — the design's 2128 is measured inside a 2162-wide frame and its
+   own bar overhangs the 2160 artboard by 2.3px. The padding absorbs the width
+   the scrollbar reserves, so the three 483.767 columns keep their geometry:
+   1936 − 189.68 − 34.32 = 1712 = 3 × 483.767 + 2 × 130.35. */
 .listScroll {
   position: absolute;
   left: 224px;
   top: 1088px;
-  width: 1890.32px;
+  width: 1936px;
   /* Stops short of the QR row at 2939. Two rows (2 × 864) fit unscrolled, so
      the six cards the design draws are visible at rest. */
   height: 1782px;
   box-sizing: border-box;
-  padding-right: 178.32px;
+  padding-right: 189.68px;
   overflow-x: hidden;
   overflow-y: auto;
 }
@@ -151,8 +176,10 @@
   height: 683.287px;
   flex: none;
   border-radius: 10px;
-  /* The design's empty-image plate; also what shows before a photo loads. */
-  background: rgba(142, 142, 142, 0.2);
+  /* The design's empty-image plate; also what shows before a photo loads.
+     147, not the modal's 142 — the two are drawn from different components and
+     each keeps its own value. */
+  background: rgba(147, 147, 147, 0.2);
   overflow: hidden;
   display: block;
 }
@@ -282,23 +309,28 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 20px;
+  gap: 10px;
   cursor: pointer;
   -webkit-tap-highlight-color: transparent;
 }
 
-/* Loading state — the same 500×120 box goes fully GREY (border and label both
-   #999, plate stays white). Sampled from 6052:45974; it is not the orange
-   button dimmed. */
+/* Loading state (6212:54858) — the same 500×120 box goes fully GREY (border and
+   label both #999, plate stays white) and the label steps down to SemiBold. It
+   is not the orange button dimmed.
+
+   The button does NOT move: 6212:54858 draws it 53px higher than the resting
+   frame and the copy block 60px higher, which would make the control jump under
+   the finger that pressed it. Both stay where 6212:54808 puts them. */
 .ctaLoading {
   cursor: default;
   border-color: #999;
   color: #999;
+  font-weight: 600;
 }
 
 .spinner {
-  width: 44px;
-  height: 44px;
+  width: 41.67px;
+  height: 41.67px;
   border: 5px solid rgba(153, 153, 153, 0.3);
   border-top-color: #999;
   border-radius: 50%;
@@ -330,7 +362,7 @@
 /* ── QR row ── */
 .qrRow {
   position: absolute;
-  left: 180px;
+  left: 170px;
   top: 2939px;
   width: 1820px;
   height: 219px;
@@ -404,17 +436,19 @@
   left: 190px;
   top: 916px;
   width: 1720px;
-  height: 1484px;
+  height: 1417px;
   box-sizing: border-box;
-  border: 5px solid #e8e8e8;
+  /* Borderless in the redesign — the plate is carried by the dim behind it. */
+  border: none;
   border-radius: 80px;
   background: #fffdfa;
 }
 
-/* Two result columns at x232 / x994 inside the card. */
+/* Two result columns at x232 / x994 inside the card, 289 down from its top
+   edge (the images start at y1205 against a card top of 916). */
 .result {
   position: absolute;
-  top: 176px;
+  top: 289px;
   width: 527px;
 }
 
@@ -443,34 +477,9 @@
   -webkit-line-clamp: 2;
 }
 
-/* QR under the two results, centred on the card. */
-.modalQr {
-  position: absolute;
-  left: 769px;
-  top: 1119px;
-  width: 182px;
-  height: 182px;
-  padding: 0;
-  border: none;
-  background: none;
-  display: block;
-  cursor: pointer;
-  -webkit-tap-highlight-color: transparent;
-}
-
-.modalQrLabel {
-  position: absolute;
-  left: 0;
-  top: 1341px;
-  width: 1710px;
-  margin: 0;
-  font-size: 40px;
-  font-weight: 700;
-  line-height: 1;
-  letter-spacing: 0.4px;
-  color: var(--kiosk-primary, #ff7f0f);
-  text-align: center;
-}
+/* The redesign has no QR inside the results card — 6308:78956 holds only the
+   two event columns, and the page's own QR row keeps working once the card is
+   dismissed. `.modalQr` / `.modalQrLabel` are gone with it. */
 
 .modalEmpty {
   position: absolute;

@@ -2,9 +2,9 @@
  * 제주 상세 — the one screen behind both detail entry points.
  *
  * Figma draws them as separate frames, but only the chrome differs:
- *   · from 검색        → "검색 > 상세"                   node 6050:140706
- *   · from AI 코스     → "'제주' 뭐하지 (AI 검색)"        node 6167:98729
- *                        with the course/day as the subtitle
+ *   · from 검색        → "검색 > 상세"                   node 6212:51220
+ *   · from AI 코스     → "'제주' 뭐하지 (AI 검색)"        node 6289:58438
+ *                        with the course/day as the subtitle, in #616161
  *   · from 뭐먹지/뭐사지 → "'제주' 뭐먹지? > 상세"          node 6212:55208
  *     /숙박안내            "'제주' 뭐사지? > 상세"          node 6212:55257
  *                        "숙박안내 > 상세"                node 6212:55305
@@ -60,10 +60,20 @@ function chromeFor(
   from: string,
   title: string,
   lang: Lang,
-): { title: string; subtitle?: string; cardTop?: number; gallery?: 'grid' | 'single' } {
+): {
+  title: string;
+  subtitle?: string;
+  subtitleColor?: string;
+  cardTop?: number;
+  gallery?: 'grid' | 'single';
+} {
   // The AI course keeps the flow's own title and puts "A코스 - 1일차" beneath it,
-  // so a visitor can see which course/day the spot belongs to.
-  if (from === 'ai_detail') return { title: "'제주' 뭐하지 (AI 검색)", subtitle: title };
+  // so a visitor can see which course/day the spot belongs to. #616161 rather
+  // than the default #909090 — 6289:58438 draws it the darker grey, matching the
+  // course screen this spot was opened from (JejuAiDetail passes the same).
+  if (from === 'ai_detail') {
+    return { title: "'제주' 뭐하지 (AI 검색)", subtitle: title, subtitleColor: '#616161' };
+  }
 
   // 도와줘 '하영' > 상세 (6219:99127) is the one frame that does NOT compose
   // "<page> > 상세": it carries the bare title "여기는 제주도", drawn that way in
@@ -111,6 +121,7 @@ export function JejuDetail({ controller }: Props): JSX.Element {
       controller={controller}
       title={chrome.title}
       subtitle={chrome.subtitle ?? detailSubtitle(lang)}
+      subtitleColor={chrome.subtitleColor}
       showBanner
       bannerFallback="banner-detail"
       onBack={goBack}

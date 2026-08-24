@@ -60,11 +60,24 @@ export function PhotoWorkflow(): JSX.Element {
   usePhotoWorkflow();
 
   // ── 제주 waiting game gate ──────────────────────────────────────────────
-  // 제주 fills the AI wait with 틀린그림찾기 instead of a static popup, and the
-  // result is gated on the GAME, not on the clock: `GENERATING_MIN_MS` in
-  // photo.handlers is a 60s floor, so the photo can land while someone is still
-  // hunting. `gameDone` is what actually lets the result screen through.
-  const playsWaitingGame = chrome.isJeju;
+  // 제주 CAN fill the AI wait with 틀린그림찾기 instead of a static popup, and when
+  // it does the result is gated on the GAME rather than the clock:
+  // `GENERATING_MIN_MS` in photo.handlers is a 60s floor, so the photo can land
+  // while someone is still hunting, and `gameDone` is what lets the result
+  // screen through.
+  //
+  // DISABLED 2026-08-24 at the user's request — the wait shows the
+  // camera-direction popup again, exactly as it did before the game landed.
+  // This one flag is the whole switch: the puzzle prefetch below stops asking
+  // for rounds, the Monitor 2 deferral stops holding the big screen back, and
+  // the render block further down falls through to the 한복 capture screen,
+  // which already draws that popup through `generating`. So the result now
+  // hands over the moment it is ready instead of waiting for a player.
+  //
+  // To bring the game back, restore `chrome.isJeju` — nothing else was removed.
+  // Typed `boolean` rather than left as the `false` literal so the branches it
+  // guards do not narrow to unreachable code.
+  const playsWaitingGame: boolean = false;
   const [gameDone, setGameDone] = useState(false);
   const deferredRef = useRef(false);
 
@@ -122,15 +135,13 @@ export function PhotoWorkflow(): JSX.Element {
     });
     await window.api.photo.selectClothing(category);
     await window.api.photo.selectStyle(mode);
-    // 제주 hands the trigger to the visitor: 등록하기 only brings the camera up,
-    // and the countdown waits for the open-palm gesture Monitor 2 is watching
-    // for. Everywhere else the press IS the trigger, unchanged.
-    //
-    // The split lives here rather than in the service because this is already
-    // the file that knows which location it is (`chrome.isJeju`) — main would
-    // have to re-derive it from the kiosk config to make the same decision.
-    if (chrome.isJeju) await window.api.photo.armGestureGate();
-    else await window.api.photo.beginCountdown();
+    // EVERY location hands the trigger to the visitor now (2026-08-24): the
+    // press only brings the camera up, and the countdown waits for the
+    // open-palm gesture Monitor 2 is watching for. Started as 제주-only; the
+    // fallback timers inside the gate (see JejuCameraGuide / CustomerDisplay)
+    // are what make this safe on a kiosk whose camera or hand model is dead —
+    // the count starts by itself rather than never.
+    await window.api.photo.armGestureGate();
   };
 
   // ── 제주 only: 틀린그림찾기 while the AI works ─────────────────────────────
