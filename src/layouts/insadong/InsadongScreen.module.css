@@ -4,8 +4,8 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background: var(--kiosk-bg, #fdf8f3);
-  color: var(--kiosk-text, #2c1810);
+  background: var(--kiosk-bg, #ffffff);
+  color: var(--kiosk-text, #232323);
   font-family: var(--kiosk-font, sans-serif);
   user-select: none;
   -webkit-user-select: none;
@@ -28,6 +28,6 @@
 
 .note {
   font-size: var(--kiosk-body-size, 1.125rem);
-  color: var(--kiosk-text-muted, #7a6355);
+  color: var(--kiosk-text-muted, #999999);
   margin: 0 0 1rem;
 }

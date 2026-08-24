@@ -13,6 +13,7 @@ import parkingQrIos from '@renderer/assets/photos/insadong/transport/parking/qr-
 import parkingScreens from '@renderer/assets/photos/insadong/transport/parking/screens.png';
 import { InsadongHeader } from './InsadongHeader';
 import { ZoomableImage } from './ZoomableImage';
+import { InsadongLeftNav } from './InsadongLeftNav';
 import styles from './InsadongTransport.module.css';
 
 type TabIndex = 0 | 1 | 2;
@@ -180,14 +181,7 @@ export function InsadongTransport({ controller, initialTab = 0 }: InsadongTransp
         </div>
       </div>
 
-      <div className={styles.leftNav}>
-        <button type="button" className={styles.leftNavBtn} onClick={goHome} aria-label="홈으로">
-          {iconUrl('home-btn') && <img src={iconUrl('home-btn')} alt="" draggable={false} />}
-        </button>
-        <button type="button" className={styles.leftNavBtn} onClick={goHome} aria-label="뒤로">
-          {iconUrl('back-arrow') && <img src={iconUrl('back-arrow')} alt="" draggable={false} />}
-        </button>
-      </div>
+      <InsadongLeftNav onHome={goHome} />
 
       {banner && (
         <button type="button" className={styles.banner} onClick={() => controller.startPhoto()} aria-label="가상 한복 체험">

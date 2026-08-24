@@ -16,6 +16,7 @@ import {
   padImages,
 } from '@renderer/lib/shops';
 import { HwaseongHeader } from './HwaseongHeader';
+import { HwaseongLeftNav } from './HwaseongLeftNav';
 import styles from './HwaseongListScreen.module.css';
 
 interface Props {
@@ -175,13 +176,7 @@ export function HwaseongListScreen({ title, controller, baseCategory, fixedTabs,
       </div>
 
       {/* Left nav */}
-      <div className={styles.leftNav}>
-        {hwaseongIconUrl('fg-leftnav') && (
-          <img src={hwaseongIconUrl('fg-leftnav')} alt="" className={styles.leftNavImg} draggable={false} />
-        )}
-        <button type="button" className={styles.leftNavZoneHome} onClick={() => controller.navigate('home')} aria-label="홈" />
-        <button type="button" className={styles.leftNavZoneBack} onClick={() => controller.navigate('home')} aria-label="뒤로" />
-      </div>
+      <HwaseongLeftNav onHome={() => controller.navigate('home', 'Back')} />
 
       {/* No bottom banner here — these list screens are data-heavy and scroll, so
           the results area extends into that space instead (see .results in CSS). */}

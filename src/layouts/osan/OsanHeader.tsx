@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, type Ref } from 'react';
 import { osanIconUrl } from '@renderer/assets/icons/osan';
 import { screenSubtitle, screenTitle, useLang } from '@renderer/lib/i18n';
 import styles from './OsanHeader.module.css';
@@ -18,6 +18,10 @@ interface OsanHeaderProps {
   compact?: boolean;
   /** White title over a dark background (e.g. the K-DRAMA promo page). */
   light?: boolean;
+  /** Extra class on the subtitle row (e.g. TAX-FREE bottom gap). */
+  subtitleClassName?: string;
+  /** Ref on the subtitle row — used by TAX-FREE to size the webview card. */
+  subtitleRef?: Ref<HTMLDivElement>;
 }
 
 /** Shared content-screen header for W004 — OSAEK MARKET brand in navy #0e4e8c. */
@@ -28,6 +32,8 @@ export function OsanHeader({
   subtitle,
   compact = false,
   light = false,
+  subtitleClassName,
+  subtitleRef,
 }: OsanHeaderProps): JSX.Element {
   const lang = useLang();
   const localizedTitle = screenTitle(title, lang);
@@ -74,9 +80,9 @@ export function OsanHeader({
       </div>
 
       {!compact && sub && (
-        <div className={styles.subtitle}>
+        <div ref={subtitleRef} className={`${styles.subtitle} ${subtitleClassName ?? ''}`}>
           <span className={styles.star}>★</span>
-          <span>{sub}</span>
+          <span className={styles.subtitleText}>{sub}</span>
         </div>
       )}
     </header>

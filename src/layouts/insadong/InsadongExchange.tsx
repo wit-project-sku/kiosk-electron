@@ -1,6 +1,8 @@
 import type { KioskController } from '@renderer/hooks/useKioskController';
 import { iconUrl } from '@renderer/assets/icons/insadong';
 import { useRotatingBanner } from '@renderer/hooks/useRotatingBanner';
+import { useLang } from '@renderer/lib/i18n';
+import { ui } from '@renderer/lib/uiText';
 import { useExchangeStore } from '@renderer/store/exchangeStore';
 import jpnFlag from '@renderer/assets/photos/insadong/exchange/jpn.svg';
 import usaFlag from '@renderer/assets/photos/insadong/exchange/usa.svg';
@@ -12,6 +14,7 @@ import hkgFlag from '@renderer/assets/photos/insadong/exchange/hkg.svg';
 import thbFlag from '@renderer/assets/photos/insadong/exchange/thb.svg';
 import sarFlag from '@renderer/assets/photos/insadong/exchange/sar.svg';
 import { InsadongHeader } from './InsadongHeader';
+import { InsadongLeftNav } from './InsadongLeftNav';
 import styles from './InsadongExchange.module.css';
 
 /** Currencies to show → API `cur_unit` + flag asset + display label. */
@@ -36,11 +39,13 @@ interface InsadongExchangeProps {
 export function InsadongExchange({ controller }: InsadongExchangeProps): JSX.Element {
   const banner = useRotatingBanner();
   const goHome = (): void => controller.navigate('home', 'Back');
+  const lang = useLang();
   const exchange = useExchangeStore((s) => s.exchange);
+  const won = ui('won', lang);
 
   const rows = DISPLAY.map((d) => {
     const match = exchange?.rates.find((r) => r.code === d.unit);
-    return { ...d, rateText: match ? `${match.rateText}원` : '—' };
+    return { ...d, rateText: match ? `${match.rateText}${won}` : '—' };
   });
 
   return (
@@ -63,14 +68,7 @@ export function InsadongExchange({ controller }: InsadongExchangeProps): JSX.Ele
         </div>
       </div>
 
-      <div className={styles.leftNav}>
-        <button type="button" className={styles.leftNavBtn} onClick={goHome} aria-label="홈으로">
-          {iconUrl('home-btn') && <img src={iconUrl('home-btn')} alt="" draggable={false} />}
-        </button>
-        <button type="button" className={styles.leftNavBtn} onClick={goHome} aria-label="뒤로">
-          {iconUrl('back-arrow') && <img src={iconUrl('back-arrow')} alt="" draggable={false} />}
-        </button>
-      </div>
+      <InsadongLeftNav onHome={goHome} />
 
       {banner && (
         <button type="button" className={styles.banner} onClick={() => controller.startPhoto()} aria-label="가상 한복 체험">

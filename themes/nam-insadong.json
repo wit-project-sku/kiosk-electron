@@ -2,14 +2,14 @@
   "id": "nam-insadong",
   "name": "남인사마당",
   "colors": {
-    "primary": "#2D5A3D",
-    "primaryHover": "#1E3D29",
-    "secondary": "#7CB686",
-    "background": "#F4F9F5",
+    "primary": "#FE6C50",
+    "primaryHover": "#E85A40",
+    "secondary": "#F8ECDE",
+    "background": "#FFFFFF",
     "surface": "#FFFFFF",
-    "text": "#1A2E1F",
-    "textMuted": "#5A7A62",
-    "accent": "#E8A838"
+    "text": "#232323",
+    "textMuted": "#999999",
+    "accent": "#FE6C50"
   },
   "typography": {
     "fontFamily": "'Noto Sans KR', 'Noto Sans SC', 'Microsoft YaHei', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",

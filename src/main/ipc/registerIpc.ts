@@ -14,6 +14,8 @@ import { registerCameraHandlers } from './handlers/camera.handlers';
 import { registerPhotoHandlers } from './handlers/photo.handlers';
 import { registerLanguageHandlers } from './handlers/language.handlers';
 import { registerWeatherHandlers } from './handlers/weather.handlers';
+import { registerFlightHandlers } from './handlers/flights.handlers';
+import { registerSailingHandlers } from './handlers/sailings.handlers';
 import { registerExchangeHandlers } from './handlers/exchange.handlers';
 import { registerKioskHandlers } from './handlers/kiosk.handlers';
 import { registerShopHandlers } from './handlers/shop.handlers';
@@ -48,6 +50,8 @@ export function registerIpcHandlers(container: AppContainer, windows: WindowMana
   registerPhotoHandlers(container);
   registerLanguageHandlers(windows);
   registerWeatherHandlers(container);
+  registerFlightHandlers(container);
+  registerSailingHandlers(container);
   registerExchangeHandlers(container);
   registerKioskHandlers(windows, container);
   registerShopHandlers(container);

@@ -15,6 +15,7 @@
   gap: 65px;
   padding: 130px 170px 80px;
   box-sizing: border-box;
+  z-index: 5;
 }
 
 /* Figma 고궁안내 상세: header without subtitle is 574px tall. */
@@ -45,15 +46,17 @@
   display: flex;
   align-items: center;
   gap: 25.74px;
-  color: #fe6c50;
+  color: var(--kiosk-primary);
   font-weight: 900;
   font-size: 68px;
   line-height: 1;
 }
 
 .pin {
-  width: 68px;
-  height: 68px;
+  width: 63px;
+  height: 82px;
+  object-fit: contain;
+  flex-shrink: 0;
 }
 
 .date {
@@ -104,15 +107,38 @@
 /* 서브타이틀: ★ 페이지 설명문, 60px #909090 */
 .subtitle {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: center;
   gap: 20px;
-  font-weight: 400;
-  font-size: 60px;
+}
+
+.subtitleText {
+  font-size: 60.06px;
+  font-weight: 700;
   color: #909090;
+  line-height: 1.3;
+  max-width: 1640px;
+  text-align: center;
+  white-space: pre-line;
 }
 
 .star {
-  color: #fe6c50;
+  color: var(--kiosk-primary);
   font-size: 40px;
+  flex-shrink: 0;
+  margin-top: 12px;
+}
+
+/* TAX-FREE: breathing room below SubHeader_TaxFree (up to 2 lines). */
+.subtitleBelowGap {
+  margin-bottom: 40px;
+}
+
+/* TAX-FREE: use the full header row width so the subtitle wraps less often. */
+.subtitleWide {
+  width: 1820px;
+}
+
+.subtitleWide .subtitleText {
+  max-width: 1760px;
 }

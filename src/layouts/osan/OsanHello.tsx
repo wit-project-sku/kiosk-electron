@@ -16,6 +16,7 @@ import stretch3 from '@renderer/assets/photos/osan/hello/stretch-3.png';
 import stretchSide from '@renderer/assets/photos/osan/hello/stretch-side.png';
 import { OsanHeader } from './OsanHeader';
 import { OsanBanner } from './OsanBanner';
+import { OsanLeftNav } from './OsanLeftNav';
 import styles from './OsanHello.module.css';
 
 type Lang = SupportedLanguage;
@@ -520,14 +521,7 @@ export function OsanHello({ controller }: OsanHelloProps): JSX.Element {
         )}
       </div>
 
-      <div className={styles.leftNav}>
-        <button type="button" className={styles.leftNavBtn} onClick={goHome} aria-label="홈으로">
-          {osanIconUrl('home-btn') && <img src={osanIconUrl('home-btn')} alt="" draggable={false} />}
-        </button>
-        <button type="button" className={styles.leftNavBtn} onClick={goHome} aria-label="뒤로">
-          {osanIconUrl('back-arrow') && <img src={osanIconUrl('back-arrow')} alt="" draggable={false} />}
-        </button>
-      </div>
+      <OsanLeftNav onHome={goHome} />
 
       <OsanBanner onClick={() => controller.startPhoto()} />
     </>

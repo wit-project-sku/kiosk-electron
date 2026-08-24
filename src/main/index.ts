@@ -182,6 +182,8 @@ async function bootstrap(): Promise<void> {
   // Begin weather polling after the window subscription is wired so the first
   // refresh is broadcast to the renderer.
   container.weather.start();
+  container.flights.start();
+  container.sailings.start();
   container.exchange.start();
   container.subtitles.start();
 

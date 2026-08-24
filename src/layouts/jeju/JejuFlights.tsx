@@ -21,10 +21,10 @@
  * The 현황 cell is BLANK when the airport has published no status — that is the
  * design (도착 rows 4 onward), not a fallback. See `normalizeFlightStatus`.
  *
- * Placeholder data: `useJejuDepartures` / `useJejuArrivals` still return the
- * Figma's sample rows. See the TODO at the top of lib/jejuFlight.ts.
+ * Live data: `useJejuDepartures` / `useJejuArrivals` read the KAC snapshot
+ * mirrored by `useFlightSync` (see FlightService).
  */
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import type { KioskController } from '@renderer/hooks/useKioskController';
 import { pick, useLang } from '@renderer/lib/i18n';
 import type { Lang } from '@renderer/lib/i18n';
@@ -33,6 +33,7 @@ import {
   flightKindLabel,
   flightStatusColor,
   flightStatusLabel,
+  formatGate,
   hasTimeChange,
   useJejuArrivals,
   useJejuDepartures,
@@ -136,20 +137,20 @@ const COL_STATUS = {
 
 const COLUMNS: Record<FlightDirection, Column[]> = {
   departure: [
-    { key: 'time',    x: 285.5,  centred: true, head: COL_TIME_DEPARTURE },
-    { key: 'airline', x: 643.5,  centred: true, head: COL_AIRLINE },
-    { key: 'place',   x: 1099,   centred: true, head: COL_DESTINATION },
-    { key: 'kind',    x: 1394,   centred: true, head: COL_KIND },
-    { key: 'stand',   x: 1673.5, centred: true, head: COL_GATE },
-    { key: 'status',  x: 1918.5, centred: true, head: COL_STATUS },
+    { key: 'time',    x: 300,    centred: true, head: COL_TIME_DEPARTURE },
+    { key: 'airline', x: 680,    centred: true, head: COL_AIRLINE },
+    { key: 'place',   x: 1113.5, centred: true,  head: COL_DESTINATION },
+    { key: 'kind',    x: 1394.5, centred: true,  head: COL_KIND },
+    { key: 'stand',   x: 1673.5, centred: true,  head: COL_GATE },
+    { key: 'status',  x: 1913.5, centred: true,  head: COL_STATUS },
   ],
   arrival: [
-    { key: 'time',    x: 285.5,  centred: true, head: COL_TIME_ARRIVAL },
-    { key: 'airline', x: 643.5,  centred: true, head: COL_AIRLINE },
-    { key: 'place',   x: 1099,   centred: true, head: COL_ORIGIN },
-    { key: 'kind',    x: 1394,   centred: true, head: COL_KIND },
-    { key: 'stand',   x: 1673.5, centred: true, head: COL_BELT },
-    { key: 'status',  x: 1918.5, centred: true, head: COL_STATUS },
+    { key: 'time',    x: 300,    centred: true, head: COL_TIME_ARRIVAL },
+    { key: 'airline', x: 680,    centred: true, head: COL_AIRLINE },
+    { key: 'place',   x: 1113.5, centred: true,  head: COL_ORIGIN },
+    { key: 'kind',    x: 1394.5, centred: true,  head: COL_KIND },
+    { key: 'stand',   x: 1673.5, centred: true,  head: COL_BELT },
+    { key: 'status',  x: 1913.5, centred: true,  head: COL_STATUS },
   ],
 };
 
@@ -163,9 +164,14 @@ interface Row {
 export function JejuFlights({ controller }: Props): JSX.Element {
   const lang = useLang();
   const [direction, setDirection] = useState<FlightDirection>('departure');
+  const scrollRef = useRef<HTMLDivElement>(null);
 
   const departures = useJejuDepartures();
   const arrivals = useJejuArrivals();
+
+  useEffect(() => {
+    scrollRef.current?.scrollTo(0, 0);
+  }, [direction]);
 
   const rows: Row[] =
     direction === 'departure'
@@ -173,6 +179,7 @@ export function JejuFlights({ controller }: Props): JSX.Element {
       : arrivals.map((a) => ({ flight: a, place: a.origin, stand: a.belt }));
 
   const columns = COLUMNS[direction];
+  const timeColX = columns.find((c) => c.key === 'time')?.x ?? 300;
 
   const cellText = (col: Column, row: Row): string => {
     switch (col.key) {
@@ -180,7 +187,8 @@ export function JejuFlights({ controller }: Props): JSX.Element {
       case 'airline': return `${row.flight.airline}(${row.flight.flightNo})`;
       case 'place':   return row.place;
       case 'kind':    return flightKindLabel(row.flight.kind, lang);
-      case 'stand':   return row.stand;
+      case 'stand':
+        return direction === 'departure' ? formatGate(row.stand) : row.stand;
       // Blank when nothing is published — see the header comment.
       case 'status':  return row.flight.status ? flightStatusLabel(row.flight.status, lang) : '';
       default:        return '';
@@ -211,7 +219,7 @@ export function JejuFlights({ controller }: Props): JSX.Element {
       <div className={styles.headPlate} />
       {columns.map((col) => (
         <span
-          key={col.key}
+          key={`${direction}-${col.key}`}
           className={`${styles.head} ${col.centred ? styles.cellCentred : ''}`}
           style={{ left: col.x }}
         >
@@ -219,19 +227,17 @@ export function JejuFlights({ controller }: Props): JSX.Element {
         </span>
       ))}
 
-      <div className={styles.scroll}>
-        <div className={styles.rows}>
+      <div className={styles.scroll} ref={scrollRef}>
+        <div key={direction} className={styles.rows}>
           {rows.length === 0 ? (
             <p className={styles.empty}>{pick(EMPTY, lang)}</p>
           ) : (
             rows.map((row) => (
-              <div key={row.flight.flightNo} className={styles.row}>
+              <div key={`${direction}-${row.flight.id}`} className={styles.row}>
                 {columns.map((col) => (
                   <span
-                    key={col.key}
-                    className={`${styles.cell} ${col.centred ? styles.cellCentred : ''} ${
-                      col.key === 'status' ? styles.cellStatus : ''
-                    }`}
+                    key={`${direction}-${col.key}`}
+                    className={`${styles.cell} ${col.centred ? styles.cellCentred : ''} ${col.key === 'status' ? styles.cellStatus : ''}`}
                     style={{
                       left: col.x,
                       ...(col.key === 'status' && row.flight.status
@@ -243,7 +249,12 @@ export function JejuFlights({ controller }: Props): JSX.Element {
                   </span>
                 ))}
                 {hasTimeChange(row.flight) && (
-                  <span className={styles.timeWas}>{row.flight.scheduledTime}</span>
+                  <span
+                    className={`${styles.timeWas} ${styles.cellCentred}`}
+                    style={{ left: timeColX }}
+                  >
+                    {row.flight.scheduledTime}
+                  </span>
                 )}
                 <div className={styles.rowRule} />
               </div>

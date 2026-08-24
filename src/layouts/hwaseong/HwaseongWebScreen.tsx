@@ -6,8 +6,9 @@
 import { useEffect, useRef } from 'react';
 import type { KioskController } from '@renderer/hooks/useKioskController';
 import { hwaseongIconUrl } from '@renderer/assets/icons/hwaseong';
-import { useRotatingBanner } from '@renderer/hooks/useRotatingBanner';
 import { HwaseongHeader } from './HwaseongHeader';
+import { HwaseongBanner } from './HwaseongBanner';
+import { HwaseongLeftNav } from './HwaseongLeftNav';
 import styles from './HwaseongWebScreen.module.css';
 
 /** Minimal subset of Electron's WebviewTag we use for CSS injection. */
@@ -30,7 +31,6 @@ interface Props {
 }
 
 export function HwaseongWebScreen({ controller, title, url, injectCss, bodyHeight }: Props): JSX.Element {
-  const banner = useRotatingBanner(hwaseongIconUrl('fg-banner'));
   const webviewRef = useRef<WebviewEl | null>(null);
 
   useEffect(() => {
@@ -75,21 +75,9 @@ export function HwaseongWebScreen({ controller, title, url, injectCss, bodyHeigh
         />
       </div>
 
-      {/* Left nav */}
-      <div className={styles.leftNav}>
-        {hwaseongIconUrl('fg-leftnav') && (
-          <img src={hwaseongIconUrl('fg-leftnav')} alt="" className={styles.leftNavImg} draggable={false} />
-        )}
-        <button type="button" className={styles.leftNavZoneHome} onClick={() => controller.navigate('home')} aria-label="홈" />
-        <button type="button" className={styles.leftNavZoneBack} onClick={() => controller.navigate('home')} aria-label="뒤로" />
-      </div>
+      <HwaseongLeftNav onHome={() => controller.navigate('home', 'Back')} />
 
-      {/* Bottom banner */}
-      <div className={styles.banner}>
-        {banner && (
-          <img src={banner} alt="" className={styles.bannerImg} draggable={false} />
-        )}
-      </div>
+      <HwaseongBanner onClick={() => controller.startPhoto()} />
     </div>
   );
 }

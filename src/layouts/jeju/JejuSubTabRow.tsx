@@ -21,6 +21,8 @@ interface Props<Id extends string> {
    *  below the tab row at the foot of the page in the low-reach layout, and
    *  도와줘 '하영' draws its band on y940 rather than y920. */
   className?: string;
+  /** Smaller band for the W007 home board's 국제항 ㅣ 연안항 row. */
+  compact?: boolean;
 }
 
 export function JejuSubTabRow<Id extends string>({
@@ -28,9 +30,10 @@ export function JejuSubTabRow<Id extends string>({
   value,
   onChange,
   className,
+  compact,
 }: Props<Id>): JSX.Element {
   return (
-    <div className={`${styles.row} ${className ?? ''}`}>
+    <div className={`${styles.row} ${compact ? styles.compact : ''} ${className ?? ''}`}>
       {items.map(({ id, label }, i) => (
         <Fragment key={id}>
           {i > 0 && (

@@ -1,4 +1,4 @@
-/* 환율 — Osaek layout, 화성휴게소 blue accent (#005ab4). */
+/* 환율 — Osaek layout, 화성휴게소 blue accent (var(--kiosk-primary)). */
 .root {
   position: absolute;
   inset: 0;
@@ -24,7 +24,6 @@
   width: 100%;
   height: 100%;
   object-fit: cover;
-  opacity: 0.5;
   pointer-events: none;
 }
 
@@ -44,7 +43,7 @@
 }
 
 .results::-webkit-scrollbar { width: 34.32px; }
-.results::-webkit-scrollbar-thumb { background: #005ab4; border-radius: 21.45px; }
+.results::-webkit-scrollbar-thumb { background: var(--kiosk-primary); border-radius: 21.45px; }
 .results::-webkit-scrollbar-track { background: transparent; }
 
 .list {
@@ -109,40 +108,6 @@
   color: #000;
   white-space: nowrap;
 }
-
-/* ── Left nav ── */
-.leftNav {
-  position: absolute;
-  left: 21px;
-  top: 1995px;
-  width: 85px;
-  height: 205px;
-}
-
-.leftNavImg {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  object-fit: contain;
-  pointer-events: none;
-}
-
-.leftNavZoneHome,
-.leftNavZoneBack {
-  position: absolute;
-  left: 0;
-  width: 85px;
-  height: 85px;
-  padding: 0;
-  border: none;
-  background: none;
-  cursor: pointer;
-  -webkit-tap-highlight-color: transparent;
-}
-
-.leftNavZoneHome { top: 0; }
-.leftNavZoneBack { top: 120px; }
 
 /* ── Bottom banner ── */
 .banner {

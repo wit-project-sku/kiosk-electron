@@ -6,6 +6,7 @@ import historyImg from '@renderer/assets/photos/insadong/about/history.png';
 import cultureImg from '@renderer/assets/photos/insadong/about/culture.png';
 import attractionsImg from '@renderer/assets/photos/insadong/about/attractions.png';
 import { InsadongHeader } from './InsadongHeader';
+import { InsadongLeftNav } from './InsadongLeftNav';
 import styles from './InsadongAbout.module.css';
 
 interface InsadongAboutProps {
@@ -56,14 +57,7 @@ export function InsadongAbout({ controller }: InsadongAboutProps): JSX.Element {
         </article>
       </div>
 
-      <div className={styles.leftNav}>
-        <button type="button" className={styles.leftNavBtn} onClick={goHome} aria-label="홈으로">
-          {iconUrl('home-btn') && <img src={iconUrl('home-btn')} alt="" draggable={false} />}
-        </button>
-        <button type="button" className={styles.leftNavBtn} onClick={goHome} aria-label="뒤로">
-          {iconUrl('back-arrow') && <img src={iconUrl('back-arrow')} alt="" draggable={false} />}
-        </button>
-      </div>
+      <InsadongLeftNav onHome={goHome} />
     </>
   );
 }

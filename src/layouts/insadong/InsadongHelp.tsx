@@ -4,7 +4,7 @@ import type { KioskController } from '@renderer/hooks/useKioskController';
 import { iconUrl } from '@renderer/assets/icons/insadong';
 import { useDetailStore } from '@renderer/store/detailStore';
 import { useShopStore } from '@renderer/store/shopStore';
-import { useLang } from '@renderer/lib/i18n';
+import { facilityLabel, useLang } from '@renderer/lib/i18n';
 import {
   shopAddress,
   shopDescription,
@@ -16,6 +16,7 @@ import {
   stripPrefix,
 } from '@renderer/lib/shops';
 import { InsadongHeader } from './InsadongHeader';
+import { InsadongLeftNav } from './InsadongLeftNav';
 import styles from './InsadongHelp.module.css';
 
 const BASE_CATEGORY = '인사 도와줘';
@@ -24,14 +25,12 @@ const BASE_CATEGORY = '인사 도와줘';
  *  the canonical id: it matches the API secondCategory's bare name and is the
  *  restroom deep-link target.
  *
- *  The LABELS are not listed here — they come from the shop rows themselves. The
- *  witteria API returns secondCategory in all 8 languages, so a hardcoded table
- *  here would be a second, competing translation of the same words (and was the
- *  reason vi/th/ru/id showed Korean). A category with no shops falls back to its
- *  Korean id. */
+ *  Labels prefer the shop rows (witteria returns secondCategory in all 8
+ *  languages). A category with no shops — e.g. 흡연실 — falls back to
+ *  `facilityLabel` so the tab still switches language. */
 const CATEGORY_IDS: string[] = [
   '안내소', '편의점', '병원', '약국', '은행',
-  '환전소', '종교', '화장실', '흡연장소', '기타',
+  '환전소', '종교', '화장실', '흡연실', '기타',
 ];
 
 interface InsadongHelpProps {
@@ -106,7 +105,7 @@ export function InsadongHelp({ controller, initialTab }: InsadongHelpProps): JSX
               className={`${styles.cat} ${active === id ? styles.catSel : ''}`}
               onClick={() => setActive(id)}
             >
-              {catLabels.get(id) || id}
+              {catLabels.get(id) || facilityLabel(id, lang)}
             </button>
           ))}
         </div>
@@ -140,14 +139,7 @@ export function InsadongHelp({ controller, initialTab }: InsadongHelpProps): JSX
         </div>
       </div>
 
-      <div className={styles.leftNav}>
-        <button type="button" className={styles.leftNavBtn} onClick={goHome} aria-label="홈으로">
-          {iconUrl('home-btn') && <img src={iconUrl('home-btn')} alt="" draggable={false} />}
-        </button>
-        <button type="button" className={styles.leftNavBtn} onClick={goHome} aria-label="뒤로">
-          {iconUrl('back-arrow') && <img src={iconUrl('back-arrow')} alt="" draggable={false} />}
-        </button>
-      </div>
+      <InsadongLeftNav onHome={goHome} />
 
     </>
   );

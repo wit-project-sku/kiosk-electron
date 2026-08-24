@@ -7,10 +7,10 @@
  * is the exact number read out of the design.
  *
  * y map:
- *    0…700   JejuHeader (JejuPageFrame)
- *  701…871   출발 / 도착 tabs
- * 1079…1229  orange column-header plate (1880 wide, centred)
- *   1329     first row's text; rows repeat every 255, rule at row+155
+ *    0…700   JejuHeader (JejuPageFrame; subtitle ends 619)
+ *  714…884   출발 / 도착 tabs
+ * 1021…1170  orange column-header plate
+ *   1270     first row's text; rows repeat every 255, rule at row+155
  *
  * The two frames differ ONLY in three column labels (출발시각/도착시각,
  * 목적지/출발지, 탑승구/수하물수취대) and which side of the flight the data
@@ -19,15 +19,13 @@
 
 /* ── Tabs ───────────────────────────────────────────────────────────── */
 /*
- * Two 580px pills, 200px gutter, at 400/701 — both frames agree on the 701.
- * The redraw flattened them: the idle #e8e8e8 outline is gone and the picked
- * pill is the solid brand plate with white Bold type (6412:76202), not the
- * pale #ffeac7-with-ring look this page used to share with 도와줘 '하영'.
+ * Two-pill picker (left 400, w 1360, two 580px pills, 200px gutter).
+ * Selected = solid orange + white text; unselected = white + gray, no stroke.
  */
 .tabs {
   position: absolute;
   left: 400px;
-  top: 701px;
+  top: 714px;
   width: 1360px;
   height: 170px;
   display: flex;
@@ -46,10 +44,11 @@
   border: none;
   border-radius: 42.9px;
   background: #fff;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.08);
   font-size: 50px;
   font-weight: 500;
   line-height: 1;
-  color: #999;
+  color: #a0a0a0;
   text-align: center;
   white-space: nowrap;
   cursor: pointer;
@@ -58,8 +57,9 @@
 
 .tabActive {
   background: var(--kiosk-primary, #ff7f0f);
-  font-weight: 700;
   color: #fff;
+  font-weight: 500;
+  box-shadow: 0 6px 18px rgba(255, 127, 15, 0.35);
 }
 
 /* ── Column-header plate (6412:76007) ──────────────────────────────────
@@ -67,17 +67,17 @@
    (radius 74.5 = half the height) 30px proud of the rows each side. */
 .headPlate {
   position: absolute;
-  left: 140px;
-  top: 1079px;
-  width: 1880px;
-  height: 150px;
-  border-radius: 74.5px;
+  left: 100px;
+  top: 1021px;
+  width: 1960px;
+  height: 149px;
+  border-radius: 72px;
   background: var(--kiosk-primary, #ff7f0f);
 }
 
 .head {
   position: absolute;
-  top: 1129px;
+  top: 1071px;
   font-size: 45px;
   font-weight: 600;
   line-height: 1;
@@ -98,7 +98,7 @@
   position: absolute;
   left: 0;
   right: 0;
-  top: 1229px;
+  top: 1170px;
   bottom: 0;
   overflow-x: hidden;
   overflow-y: auto;
@@ -149,13 +149,11 @@
   white-space: nowrap;
 }
 
-/* Every column is centred in the redraw; the axis rides in `left`. */
+/* Centred columns carry their axis in `left` and use translateX(-50%). */
 .cellCentred {
   transform: translateX(-50%);
 }
 
-/* 현황 is the one cell drawn full Bold (6412:76019) — its colour comes from
-   flightStatusColor(), so only the weight lives here. */
 .cellStatus {
   font-weight: 700;
 }
@@ -166,10 +164,8 @@
    the 도착 frame draws it 5px higher at 1407 — slop, 출발's own 83 ships). */
 .timeWas {
   position: absolute;
-  left: 285.5px;
-  top: 83px;
-  transform: translateX(-50%);
-  font-size: 38px;
+  top: 65px;
+  font-size: 40px;
   font-weight: 400;
   line-height: 1;
   color: var(--kiosk-primary, #ff7f0f);

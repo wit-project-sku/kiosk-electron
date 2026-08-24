@@ -2,9 +2,9 @@ import { useState } from 'react';
 import type { KioskController } from '@renderer/hooks/useKioskController';
 import { useLang, pick, type Lang } from '@renderer/lib/i18n';
 import { kdramaAsset } from '@renderer/assets/icons/insadong/kdrama';
-import { osanIconUrl } from '@renderer/assets/icons/osan';
 import { usePhotoStore } from '@renderer/store/photoStore';
 import { OsanHeader } from './OsanHeader';
+import { OsanLeftNav } from './OsanLeftNav';
 import styles from '../insadong/InsadongKdrama.module.css';
 
 type View = 'main' | 'quest' | 'reward';
@@ -106,19 +106,10 @@ export function OsanKdrama({ controller }: OsanKdramaProps): JSX.Element {
         </>
       )}
 
-      <div className={styles.leftNav}>
-        <button type="button" className={styles.leftNavBtn} onClick={() => navigate('home', 'Back')} aria-label="홈으로">
-          {osanIconUrl('home-btn') && <img src={osanIconUrl('home-btn')} alt="" draggable={false} />}
-        </button>
-        <button
-          type="button"
-          className={styles.leftNavBtn}
-          onClick={() => (view !== 'main' ? setView('main') : navigate('home', 'Back'))}
-          aria-label="뒤로"
-        >
-          {osanIconUrl('back-arrow') && <img src={osanIconUrl('back-arrow')} alt="" draggable={false} />}
-        </button>
-      </div>
+      <OsanLeftNav
+        onHome={() => navigate('home', 'Back')}
+        onBack={() => (view !== 'main' ? setView('main') : navigate('home', 'Back'))}
+      />
     </div>
   );
 }

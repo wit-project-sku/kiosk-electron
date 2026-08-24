@@ -6,6 +6,7 @@ import historyImg from '@renderer/assets/photos/osan/about/history.png';
 import cultureImg from '@renderer/assets/photos/osan/about/culture.png';
 import tourImg from '@renderer/assets/photos/osan/about/tour.png';
 import { OsanHeader } from './OsanHeader';
+import { OsanLeftNav } from './OsanLeftNav';
 import styles from './OsanAbout.module.css';
 
 type Lang = SupportedLanguage;
@@ -196,14 +197,7 @@ export function OsanAbout({ controller }: OsanAboutProps): JSX.Element {
         </div>
       </div>
 
-      <div className={styles.leftNav}>
-        <button type="button" className={styles.leftNavBtn} onClick={goHome} aria-label="홈으로">
-          {osanIconUrl('home-btn') && <img src={osanIconUrl('home-btn')} alt="" draggable={false} />}
-        </button>
-        <button type="button" className={styles.leftNavBtn} onClick={goHome} aria-label="뒤로">
-          {osanIconUrl('back-arrow') && <img src={osanIconUrl('back-arrow')} alt="" draggable={false} />}
-        </button>
-      </div>
+      <OsanLeftNav onHome={goHome} />
     </>
   );
 }

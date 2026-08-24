@@ -7,6 +7,7 @@ import { pick } from '@renderer/lib/i18n';
 import { t } from '@renderer/lib/loc';
 import { OsanHeader } from './OsanHeader';
 import { OsanBanner } from './OsanBanner';
+import { OsanLeftNav } from './OsanLeftNav';
 import styles from './OsanLanguage.module.css';
 
 const SECTION_LABELS = {
@@ -112,18 +113,7 @@ export function OsanLanguage({ controller }: OsanLanguageProps): JSX.Element {
         </section>
       </div>
 
-      <div className={styles.leftNav}>
-        <button type="button" className={styles.leftNavBtn} onClick={goHome} aria-label="홈으로">
-          {osanIconUrl('home-btn') && (
-            <img src={osanIconUrl('home-btn')} alt="" draggable={false} />
-          )}
-        </button>
-        <button type="button" className={styles.leftNavBtn} onClick={goHome} aria-label="뒤로">
-          {osanIconUrl('back-arrow') && (
-            <img src={osanIconUrl('back-arrow')} alt="" draggable={false} />
-          )}
-        </button>
-      </div>
+      <OsanLeftNav onHome={goHome} />
 
       <OsanBanner onClick={() => controller.startPhoto()} />
     </>

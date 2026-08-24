@@ -11,6 +11,7 @@ import { t } from '@renderer/lib/loc';
 import { ui, uiParts, type UiTextKey } from '@renderer/lib/uiText';
 import { OsanHeader } from './OsanHeader';
 import { OsanBanner } from './OsanBanner';
+import { OsanLeftNav } from './OsanLeftNav';
 import styles from './OsanEvents.module.css';
 
 /** Region tabs → API eventRegion (MBTI has no region; it opens the quiz).
@@ -173,7 +174,7 @@ interface OsanEventsProps {
  * Same header/left-nav/banner chrome as every other Osan content screen, laid out
  * at exact Figma px on the 2160×3840 artboard (node 5494:154504). Two centered
  * region tabs (오산시 · MBTI); the 오산시 tab shows a category-filtered event grid,
- * MBTI swaps the body for the quiz workflow. Navy [오색시장] main01 #1a4d7e.
+ * MBTI swaps the body for the quiz workflow. Navy [오색시장] main01 var(--kiosk-primary).
  */
 export function OsanEvents({ controller }: OsanEventsProps): JSX.Element {
   const goHome = (): void => controller.navigate('home', 'Back');
@@ -252,7 +253,7 @@ export function OsanEvents({ controller }: OsanEventsProps): JSX.Element {
           </div>
 
           {detailId !== null ? (
-            <EventDetailScreen eventId={detailId} accent="#1a4d7e" />
+            <EventDetailScreen eventId={detailId} accent="var(--kiosk-primary)" />
           ) : (
             <>
               <div className={styles.grid}>
@@ -314,14 +315,7 @@ export function OsanEvents({ controller }: OsanEventsProps): JSX.Element {
         </>
       )}
 
-      <div className={styles.leftNav}>
-        <button type="button" className={styles.leftNavBtn} onClick={goHome} aria-label="홈으로">
-          {osanIconUrl('home-btn') && <img src={osanIconUrl('home-btn')} alt="" draggable={false} />}
-        </button>
-        <button type="button" className={styles.leftNavBtn} onClick={goBack} aria-label="뒤로">
-          {osanIconUrl('back-arrow') && <img src={osanIconUrl('back-arrow')} alt="" draggable={false} />}
-        </button>
-      </div>
+      <OsanLeftNav onHome={goHome} onBack={goBack} />
 
       <OsanBanner onClick={() => controller.startPhoto()} />
 

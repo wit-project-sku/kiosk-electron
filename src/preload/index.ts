@@ -170,6 +170,12 @@ const api: KioskBridge = {
   weather: {
     get: () => invoke(IpcChannels.WeatherGet),
   },
+  flights: {
+    get: () => invoke(IpcChannels.FlightsGet),
+  },
+  sailings: {
+    get: () => invoke(IpcChannels.SailingsGet),
+  },
   exchange: {
     get: () => invoke(IpcChannels.ExchangeGet),
   },
@@ -232,6 +238,8 @@ const api: KioskBridge = {
     onPhotoWorkflowChanged: (listener) => subscribe(IpcEvents.PhotoWorkflowChanged, listener),
     onLanguageChanged: (listener) => subscribe(IpcEvents.LanguageChanged, listener),
     onWeatherChanged: (listener) => subscribe(IpcEvents.WeatherChanged, listener),
+    onFlightsChanged: (listener) => subscribe(IpcEvents.FlightsChanged, listener),
+    onSailingsChanged: (listener) => subscribe(IpcEvents.SailingsChanged, listener),
     onExchangeChanged: (listener) => subscribe(IpcEvents.ExchangeChanged, listener),
     onKioskScreenChanged: (listener) => subscribe(IpcEvents.KioskScreenChanged, listener),
     onKioskWeatherVideo: (listener) => subscribe(IpcEvents.KioskWeatherVideo, listener),

@@ -6,10 +6,11 @@
 import type { KioskController } from '@renderer/hooks/useKioskController';
 import type { KioskScreenId } from '@shared/types/kiosk';
 import { hwaseongIconUrl } from '@renderer/assets/icons/hwaseong';
-import { useRotatingBanner } from '@renderer/hooks/useRotatingBanner';
 import { screenTitle, useLang } from '@renderer/lib/i18n';
 import { ui } from '@renderer/lib/uiText';
 import { HwaseongHeader } from './HwaseongHeader';
+import { HwaseongBanner } from './HwaseongBanner';
+import { HwaseongLeftNav } from './HwaseongLeftNav';
 import styles from './HwaseongScreen.module.css';
 
 interface Props {
@@ -40,7 +41,6 @@ const SCREEN_LABELS: Partial<Record<KioskScreenId, string>> = {
 };
 
 export function HwaseongScreen({ screen, controller }: Props): JSX.Element {
-  const banner = useRotatingBanner(hwaseongIconUrl('fg-banner'));
   const lang = useLang();
   // Localized through the same resolver the real headers use — the placeholder
   // must not be the one screen that shows a raw Korean id.
@@ -62,21 +62,9 @@ export function HwaseongScreen({ screen, controller }: Props): JSX.Element {
         <span className={styles.placeholder}>{ui('comingSoon', lang)}</span>
       </div>
 
-      {/* Left nav */}
-      <div className={styles.leftNav}>
-        {hwaseongIconUrl('fg-leftnav') && (
-          <img src={hwaseongIconUrl('fg-leftnav')} alt="" className={styles.leftNavImg} draggable={false} />
-        )}
-        <button type="button" className={styles.leftNavZoneHome} onClick={() => controller.navigate('home')} aria-label="홈" />
-        <button type="button" className={styles.leftNavZoneBack} onClick={() => controller.navigate('home')} aria-label="뒤로" />
-      </div>
+      <HwaseongLeftNav onHome={() => controller.navigate('home', 'Back')} />
 
-      {/* Bottom banner */}
-      <div className={styles.banner}>
-        {banner && (
-          <img src={banner} alt="" className={styles.bannerImg} draggable={false} />
-        )}
-      </div>
+      <HwaseongBanner onClick={() => controller.startPhoto()} />
     </div>
   );
 }

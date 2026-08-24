@@ -17,7 +17,7 @@
  * layouts still use it; put it back only with a design that has room for it.
  *
  * The 운항 정보 board was redrawn with six columns and three 현황 conditions
- * (탑승 중 / 지연 / 탑승최종) — it lives in JejuFlightBoard.tsx.
+ * (탑승중 / 지연 / 탑승최종) — it lives in JejuFlightBoard.tsx.
  */
 import { useEffect, useMemo, useRef, useState } from 'react';
 import type { KioskController } from '@renderer/hooks/useKioskController';
@@ -34,6 +34,7 @@ import type { Lang } from '@renderer/lib/i18n';
 import { t, sheetText } from '@renderer/lib/loc';
 import { DONATION_COMING_SOON, withComingSoon } from '@shared/config/donation';
 import { JejuFlightBoard } from './JejuFlightBoard';
+import { JejuSailingBoard } from './JejuSailingBoard';
 import { FloatingKeyboard } from '../insadong/keyboard/FloatingKeyboard';
 import { HangulComposer } from '../insadong/keyboard/hangul';
 import type { KeyAction } from '../insadong/keyboard/VirtualKeyboard';
@@ -488,8 +489,12 @@ export function JejuHome({ controller }: Props): JSX.Element {
         </div>
       </div>
 
-      {/* ── 운항 정보 board — three 현황 conditions, see JejuFlightBoard ── */}
-      <JejuFlightBoard controller={controller} lang={lang} />
+      {/* ── 운항 정보 board — W006 flights, W007 ferry sailings ── */}
+      {controller.kioskId === 'W007' ? (
+        <JejuSailingBoard controller={controller} lang={lang} />
+      ) : (
+        <JejuFlightBoard controller={controller} lang={lang} />
+      )}
 
       {/* ── Search row ── */}
       <div className={low(styles.searchRow, styles.searchRowLow)}>
