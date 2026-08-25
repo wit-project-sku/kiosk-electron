@@ -6,7 +6,9 @@
  *
  * Shared by both tabs:
  *   699   tab row (h170, two 565-wide pills, gap 63 → 1193 centred at x483)
- *   2939  QR row (divider + code + label)
+ *
+ * The frames also draw a QR row at 2939. It is NOT built — removed 2026-08-24 at
+ * the user's request, along with the zoom it opened.
  *
  * List tab:
  *   919   category row — "전체 ㅣ 공연 ㅣ 전시 ㅣ 기타" at 60px
@@ -123,8 +125,11 @@
   left: 224px;
   top: 1088px;
   width: 1936px;
-  /* Stops short of the QR row at 2939. Two rows (2 × 864) fit unscrolled, so
-     the six cards the design draws are visible at rest. */
+  /* Two rows (2 × 864) fit unscrolled, so the six cards the design draws are
+     visible at rest. This was originally sized to stop short of the QR row at
+     2939; the row is gone, but the height stays — the space it freed is only
+     ~330px, half a card, so growing into it would put a clipped third row on
+     screen instead of the clean two the design draws. */
   height: 1782px;
   box-sizing: border-box;
   padding-right: 189.68px;
@@ -359,62 +364,11 @@
   color: var(--kiosk-primary, #ff7f0f);
 }
 
-/* ── QR row ── */
-.qrRow {
-  position: absolute;
-  left: 170px;
-  top: 2939px;
-  width: 1820px;
-  height: 219px;
-}
-
-.qrDivider {
-  position: absolute;
-  left: 156px;
-  top: 0;
-  width: 1556px;
-  height: 1px;
-  border-radius: 2px;
-  background: #ebebeb;
-}
-
-.qrCode {
-  position: absolute;
-  left: 1588px;
-  top: 35px;
-  width: 150px;
-  height: 150px;
-  padding: 0;
-  border: none;
-  background: none;
-  display: block;
-  cursor: pointer;
-  -webkit-tap-highlight-color: transparent;
-}
-
-/* The bundled event-qr.png inside a QR slot — the slot owns the size, the
-   image just fills it. Used by the page row and the results modal. */
-.qrImg {
-  width: 100%;
-  height: 100%;
-  object-fit: contain;
-  display: block;
-}
-
-.qrLabel {
-  position: absolute;
-  left: 1036px;
-  top: 110px;
-  width: 520px;
-  margin: 0;
-  transform: translateY(-50%);
-  font-size: 40px;
-  font-weight: 700;
-  line-height: 1.3;
-  letter-spacing: 0.4px;
-  color: var(--kiosk-primary, #ff7f0f);
-  text-align: right;
-}
+/* The QR row that used to sit here (a #ebebeb rule at y2939, the orange
+   "QR 클릭! ← 모바일에서 확인하기" label and the 150×150 code at x1588) was
+   removed 2026-08-24 at the user's request, together with the full-screen zoom
+   it opened. Nothing on this page draws a QR any more — see the note at the top
+   of JejuEvents.tsx. */
 
 /* ── Results modal — Figma node 6173:100721 ──
    Dim + card sit over the page; tapping the dim closes (the design has no
@@ -478,8 +432,7 @@
 }
 
 /* The redesign has no QR inside the results card — 6308:78956 holds only the
-   two event columns, and the page's own QR row keeps working once the card is
-   dismissed. `.modalQr` / `.modalQrLabel` are gone with it. */
+   two event columns. `.modalQr` / `.modalQrLabel` went with it. */
 
 .modalEmpty {
   position: absolute;
@@ -490,99 +443,5 @@
   font-size: 50px;
   line-height: 1.4;
   color: #909090;
-  text-align: center;
-}
-
-/* ── QR zoom — Figma node 6052:46296 ──
-   Tapping a QR enlarges it for scanning. Unlike the results modal there is NO
-   dim: sampling the frame shows the MBTI cells, tabs and banner pixel-identical
-   to the un-zoomed page, so only the card is added. The backdrop stays
-   transparent purely to catch the tap that closes it. */
-.qrZoomBackdrop {
-  position: absolute;
-  inset: 0;
-  z-index: 60;
-  background: transparent;
-}
-
-/* NORMALISED: Figma puts the card ~50px right of centre (and its results card
-   30px left) — both look like drop position, not intent, so this one is
-   centred: (2160 − 1024) / 2 = 568. */
-.qrZoom {
-  position: absolute;
-  left: 568px;
-  top: 1481px;
-  width: 1024px;
-  height: 1024px;
-  border-radius: 40px;
-  background: #fff;
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.12);
-}
-
-.qrZoomClose {
-  position: absolute;
-  right: 85px;
-  top: 56px;
-  width: 64px;
-  height: 64px;
-  padding: 0;
-  border: none;
-  background: none;
-  color: #808080;
-  cursor: pointer;
-  -webkit-tap-highlight-color: transparent;
-}
-
-.qrZoomCloseIcon {
-  width: 100%;
-  height: 100%;
-  display: block;
-}
-
-/* Viewfinder brackets: a 630×635 frame centred on the card, drawn as four
-   L-shaped corners ~48px long and 10px thick. */
-.qrZoomFrame {
-  position: absolute;
-  left: 197px;
-  top: 179px;
-  width: 630px;
-  height: 635px;
-  pointer-events: none;
-}
-
-.qrCorner {
-  position: absolute;
-  width: 48px;
-  height: 48px;
-  border: 10px solid var(--kiosk-primary, #ff7f0f);
-}
-
-.qrCornerTl { left: 0;  top: 0;     border-right: none; border-bottom: none; }
-.qrCornerTr { right: 0; top: 0;     border-left: none;  border-bottom: none; }
-.qrCornerBl { left: 0;  bottom: 0;  border-right: none; border-top: none; }
-.qrCornerBr { right: 0; bottom: 0;  border-left: none;  border-top: none; }
-
-.qrZoomCode {
-  position: absolute;
-  left: 267px;
-  top: 252px;
-  width: 491px;
-  height: 491px;
-  object-fit: contain;
-  display: block;
-}
-
-.qrZoomLabel {
-  position: absolute;
-  left: 0;
-  top: 878px;
-  width: 1024px;
-  margin: 0;
-  font-size: 45px;
-  font-weight: 700;
-  line-height: 1;
-  /* Figma draws this (and the brackets) in #FE6C50 — Insadong coral, the third
-     such leftover in this file. Uses the 제주 orange instead. */
-  color: var(--kiosk-primary, #ff7f0f);
   text-align: center;
 }

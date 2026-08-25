@@ -35,7 +35,8 @@
     "vendor:mediapipe": "node scripts/vendor-mediapipe.mjs",
     "provision:kiosk": "node scripts/provision-kiosk.mjs",
     "sync:sheet": "node scripts/sync-sheet.mjs",
-    "db:inspect": "node scripts/db-inspect.mjs"
+    "db:inspect": "node scripts/db-inspect.mjs",
+    "footfall:selftest": "node scripts/footfall-selftest.mjs"
   },
   "dependencies": {
     "@fontsource/noto-sans-kr": "^5.2.9",

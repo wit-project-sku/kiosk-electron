@@ -4,7 +4,7 @@
  * redesign of 6052:45789 / 6052:46385. The event detail behind a card is
  * 6212:55057 — the shared EventDetailScreen, unchanged by this pass.
  *
- * Two tabs share the header, the QR row and the banner:
+ * Two tabs share the header and the banner:
  *  - the region tab lists real events from the witteria API (category chips →
  *    a 3-across scrolling card grid → the shared event detail page), and
  *  - the MBTI tab picks up to one letter per axis, then 추천 결과 보기 calls the
@@ -14,7 +14,6 @@
  * eventsApi.recommend / EventDetailScreen); only the presentation is Jeju's.
  */
 import { Fragment, useState } from 'react';
-import qrCodeImg from '@renderer/assets/event-qr.png';
 import { isOk } from '@shared/types/result';
 import type { EventCategory, EventRecommendation, EventRegion } from '@shared/types/events';
 import type { KioskController } from '@renderer/hooks/useKioskController';
@@ -82,12 +81,14 @@ const MBTI_LABELS: Record<MbtiAxis, string> = {
 };
 
 /*
- * The QR is the shared `event-qr.png` every other location renders (Insadong,
- * 오산, 화성 all import the same asset) — one location-agnostic code for the
- * events mobile view, so 제주 needs no destination of its own. It previously
- * generated a code from a `MOBILE_URL` that was left empty, which gated the
- * whole QR workflow off: no code in the results modal, no QR row on the page,
- * and no zoom. Nothing about it is per-kiosk, so it is bundled, not built.
+ * ★ NO QR on this page (removed 2026-08-24 at the user's request). It used to
+ * draw the shared `event-qr.png` — the bottom-right "QR 클릭! ← 모바일에서
+ * 확인하기" row and the full-screen zoom it opened — over every state of both
+ * tabs. Both are gone, along with the `qrZoom` state and the ~15 `.qr*` rules
+ * that only they used.
+ *
+ * The ASSET stays: Insadong, 오산 and 화성 all import the same file and still
+ * draw their own QR rows. This removal is 제주-only.
  */
 
 /** Result slots the modal draws (Figma 6173:100721 has exactly two columns). */
@@ -101,7 +102,6 @@ export function JejuEvents({ controller }: Props): JSX.Element {
   const [selected, setSelected] = useState<Set<MbtiAxis>>(new Set());
   const [status, setStatus] = useState<'idle' | 'loading' | 'results'>('idle');
   const [results, setResults] = useState<EventRecommendation[]>([]);
-  const [qrZoom, setQrZoom] = useState(false);
 
   const isMbti = tab === 'MBTI';
   // Passing a null region on the MBTI tab skips the fetch entirely.
@@ -270,8 +270,8 @@ export function JejuEvents({ controller }: Props): JSX.Element {
           </p>
 
           {status === 'results' && (
-            // Figma node 6173:100721. Two columns, a QR beneath, and no close
-            // button — tapping the dim is the only dismiss, as designed.
+            // Figma node 6173:100721 — two columns and no close button, so
+            // tapping the dim is the only dismiss, as designed.
             <div className={styles.overlay} role="presentation" onClick={() => setStatus('idle')}>
               <div className={styles.modal} onClick={(e) => e.stopPropagation()}>
                 {results.length > 0 ? (
@@ -295,9 +295,8 @@ export function JejuEvents({ controller }: Props): JSX.Element {
                             nothing to render. It needs an API field. */}
                       </div>
                     ))}
-                    {/* No QR here any more: 6308:78956 draws the card with the
-                        two event columns and nothing else. The page's own QR row
-                        is still there once the card is dismissed. */}
+                    {/* No QR here: 6308:78956 draws the card with the two event
+                        columns and nothing else. */}
                   </>
                 ) : (
                   // "없습니다", not "불러오지 못했습니다": `results` is empty both
@@ -312,51 +311,6 @@ export function JejuEvents({ controller }: Props): JSX.Element {
         </>
       )}
 
-      {/* Every state draws the QR row: the list (6052:46593), the MBTI tab, and
-          the event detail (6212:55097) — the detail card ends at y2915, so the
-          row at 2939 clears it. */}
-      <div className={styles.qrRow}>
-        <span className={styles.qrDivider} />
-        <p className={styles.qrLabel}>
-          QR 클릭! ←
-          <br />
-          모바일에서 확인하기
-        </p>
-        {/* "QR 클릭!" is an instruction — the code opens the zoom view. */}
-        <button type="button" className={styles.qrCode} onClick={() => setQrZoom(true)} aria-label="QR 크게 보기">
-          <img src={qrCodeImg} alt="QR" className={styles.qrImg} draggable={false} />
-        </button>
-      </div>
-
-      {/* QR zoom — sits above both the page and the results modal, so a visitor
-          can enlarge either code. Tapping anywhere outside, or the ✕, closes. */}
-      {qrZoom && (
-        <div className={styles.qrZoomBackdrop} role="presentation" onClick={() => setQrZoom(false)}>
-          <div className={styles.qrZoom} onClick={(e) => e.stopPropagation()}>
-            <button
-              type="button"
-              className={styles.qrZoomClose}
-              onClick={() => setQrZoom(false)}
-              aria-label="닫기"
-            >
-              <svg className={styles.qrZoomCloseIcon} viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-                <path d="M8 8 L56 56 M56 8 L8 56" stroke="currentColor" strokeWidth="7" strokeLinecap="round" />
-              </svg>
-            </button>
-
-            <div className={styles.qrZoomFrame}>
-              <span className={`${styles.qrCorner} ${styles.qrCornerTl}`} />
-              <span className={`${styles.qrCorner} ${styles.qrCornerTr}`} />
-              <span className={`${styles.qrCorner} ${styles.qrCornerBl}`} />
-              <span className={`${styles.qrCorner} ${styles.qrCornerBr}`} />
-            </div>
-
-            <img className={styles.qrZoomCode} src={qrCodeImg} alt="QR" draggable={false} />
-
-            <p className={styles.qrZoomLabel}>QR코드를 화면에 맞춰주세요.</p>
-          </div>
-        </div>
-      )}
     </JejuPageFrame>
   );
 }

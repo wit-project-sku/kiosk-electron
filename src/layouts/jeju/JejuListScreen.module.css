@@ -205,13 +205,3 @@
 .scrollUp .scrollBtnImg   { transform: rotate(90deg); }
 .scrollDown .scrollBtnImg { transform: rotate(-90deg); }
 
-/* Decorative scroll hint in the bottom-right corner (Figma x2040, y3543). */
-.scrollHint {
-  position: absolute;
-  left: 2040px;
-  top: 3543px;
-  width: 80px;
-  height: 179px;
-  object-fit: contain;
-  pointer-events: none;
-}

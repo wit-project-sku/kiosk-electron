@@ -12,6 +12,7 @@ const INITIAL: PhotoWorkflowState = {
   sessionId: null,
   clothingKey: null,
   styleKey: null,
+  backgroundId: null,
   resultImagePath: null,
   resultFileName: null,
   resultUrl: null,
@@ -78,10 +79,22 @@ export class PhotoWorkflowService {
     return this.state;
   }
 
-  selectStyle(styleKey: string, cameraDeviceId: string | null): PhotoWorkflowState {
+  /**
+   * `backgroundId` rides along with the capture mode because both are decided on
+   * the same screen and by the same tap: the 제주 outfit page shows the 배경 테마
+   * plates and the two capture buttons together, so the mode and the background
+   * are one choice, not two steps. Callers with no background UI (every non-제주
+   * layout, and the donation webview) simply omit it and it stays null.
+   */
+  selectStyle(
+    styleKey: string,
+    cameraDeviceId: string | null,
+    backgroundId: number | null = null,
+  ): PhotoWorkflowState {
     this.state = {
       ...this.state,
       styleKey,
+      backgroundId,
       phase: 'preview',
       selectedCameraDeviceId: cameraDeviceId,
       // Every location arms the gate immediately after this call

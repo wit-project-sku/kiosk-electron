@@ -33,6 +33,7 @@ import {
 import { useAccessibilityStore } from '@renderer/store/accessibilityStore';
 import { JejuChosungRow } from './JejuChosungRow';
 import { JejuPageFrame } from './JejuPageFrame';
+import { JejuScrollHint } from './JejuScrollHint';
 import { JejuShopCard } from './JejuShopCard';
 import styles from './JejuRentcar.module.css';
 
@@ -244,12 +245,10 @@ export function JejuRentcar({ controller }: Props): JSX.Element {
         </>
       )}
 
-      {/* Bottom-right scroll hint (Group 1707482775, x2040 y3543) — the same
-          bare pair of triangles the list frames draw, and only visible here
-          because this frame carries no banner. */}
-      {jejuIconUrl('scroll-hint') && (
-        <img src={jejuIconUrl('scroll-hint')} alt="" className={styles.scrollHint} draggable={false} />
-      )}
+      {/* Bottom-right ▲▼ (Group 1707482775, x2040 y3543) — the frame's corner
+          triangles, now a real scroll control; see JejuScrollHint. Only visible
+          here because this frame carries no banner. */}
+      <JejuScrollHint onUp={() => scrollBy(-SCROLL_STEP)} onDown={() => scrollBy(SCROLL_STEP)} />
     </JejuPageFrame>
   );
 }

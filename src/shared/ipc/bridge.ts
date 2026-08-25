@@ -37,7 +37,9 @@ import type {
 import type { CachedContent, SupportedLanguage } from '../types/kiosk';
 import type { CameraDeviceInfo, PhotoOption, PhotoWorkflowState } from '../types/photo';
 import type { SpotDiffRound } from '../types/spotDiff';
+import type { FootfallReport, FootfallRuntime, FootfallStats } from '../types/footfall';
 import type { OutfitCatalogue } from '../types/outfit';
+import type { JejuCourse, JejuCourseRecommendQuery } from '../types/jejuCourse';
 import type { WeatherSnapshot } from '../types/weather';
 import type { WeatherPlayKey } from '../config/weatherVideo';
 import type { KioskLocationCode } from '../config/kioskLocations';
@@ -118,7 +120,13 @@ export interface KioskBridge {
     getWorkflow(): Promise<Result<PhotoWorkflowState>>;
     startWorkflow(): Promise<Result<PhotoWorkflowState>>;
     selectClothing(clothingKey: string): Promise<Result<PhotoWorkflowState>>;
-    selectStyle(styleKey: string): Promise<Result<PhotoWorkflowState>>;
+    /**
+     * `backgroundId` is the 제주 배경 테마 (step ②) the visitor tapped, sent on as
+     * the AR `background_to_use`. Omit it (or pass null) when the screen has no
+     * background plates — the AR request then explicitly skips the CB template
+     * set instead of letting the server pick a background on its own.
+     */
+    selectStyle(styleKey: string, backgroundId?: number | null): Promise<Result<PhotoWorkflowState>>;
     beginCountdown(): Promise<Result<PhotoWorkflowState>>;
     /**
      * 제주 (W006): hold the countdown until the visitor shows an open palm.
@@ -175,6 +183,13 @@ export interface KioskBridge {
   /** 틀린그림찾기 round data for the generating-phase mini-game. */
   spotDiff: {
     getRound(): Promise<Result<SpotDiffRound>>;
+  };
+  /**
+   * 제주 '제주' 뭐하지 (AI 검색) course scheduling. Live, uncached, and 제주-only —
+   * the API 400s any other kiosk, which arrives as a failed Result.
+   */
+  jejuCourse: {
+    recommend(query: JejuCourseRecommendQuery): Promise<Result<JejuCourse>>;
   };
   language: {
     get(): Promise<Result<SupportedLanguage>>;
@@ -252,6 +267,21 @@ export interface KioskBridge {
     /** Install a staged (downloaded) update now and restart. False if none staged. */
     installNow(): Promise<Result<boolean>>;
   };
+  /**
+   * 유동인구 — anonymous passer-by counting. Only the touch-screen window uses
+   * this: it runs the camera pipeline and hands main integers. No frame, image,
+   * or identifier ever crosses the bridge.
+   */
+  footfall: {
+    /** What to run, on which camera, and whether to run it at all right now. */
+    getRuntime(): Promise<Result<FootfallRuntime>>;
+    /** Hand over a batch of line crossings plus the watch time behind them. */
+    report(report: FootfallReport): Promise<Result<{ accepted: number }>>;
+    /** Tell main whether a camera could actually be opened. */
+    status(status: { available: boolean; deviceId: string | null }): Promise<Result<null>>;
+    /** Diagnostic snapshot (today's totals, pending uploads). */
+    getStats(): Promise<Result<FootfallStats>>;
+  };
   /** Live paginated events list (from the witteria API, fetched per interaction). */
   eventsApi: {
     list(query: EventsQuery): Promise<Result<EventsPage>>;
@@ -294,5 +324,6 @@ export interface KioskBridge {
     onBackgroundsChanged(listener: () => void): Unsubscribe;
     onOutfitsChanged(listener: () => void): Unsubscribe;
     onUpdateStatusChanged(listener: (status: UpdateStatus) => void): Unsubscribe;
+    onFootfallRuntimeChanged(listener: (runtime: FootfallRuntime) => void): Unsubscribe;
   };
 }

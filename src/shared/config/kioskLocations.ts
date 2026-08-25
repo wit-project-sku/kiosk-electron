@@ -29,11 +29,12 @@ export interface GeoCoordinates {
 
 /**
  * Digicon `together_with` code — the mascot a 같이찍기 (together) photo is
- * composited with: '2'=인사, '3'=정이, '4'=휴. ('GROUP'=인사+정이 exists but no
- * kiosk uses it.) Each location must send ITS OWN character; there is no server
- * default that gets this right.
+ * composited with: '2'=인사, '3'=정이, '4'=휴, '5'=하영. ('GROUP'=인사+정이 exists
+ * but no kiosk uses it.) Each location must send ITS OWN character; the server
+ * defaults to '2' when the field is absent, which is right for exactly one
+ * venue and wrong for every other.
  */
-export type AiCompanionCode = '2' | '3' | '4';
+export type AiCompanionCode = '2' | '3' | '4' | '5';
 
 export interface KioskLocation {
   code: KioskLocationCode;
@@ -123,12 +124,15 @@ export const KIOSK_LOCATIONS: Record<KioskLocationCode, KioskLocation> = {
   W004: { code: 'W004', name: '오산시 오색시장', layout: 'OSAN', secondTile: MARKET_TILE, hasCardTerminal: true, hasDonation: true, aiCompanion: '3', coordinates: OSAN_COORDS },
   W005: { code: 'W005', name: '화성휴게소', layout: 'HWASEONG', secondTile: INSARANG_TILE, hasCardTerminal: true, hasDonation: true, aiCompanion: '4', coordinates: HWASEONG_COORDS },
   // 제주공항 W006 — has a TL-3800 terminal and runs 기부, like W003–W005.
-  // TODO(제주): `secondTile` and `aiCompanion` are provisional. The home grid is
-  // redefined by the Jeju Figma (secondTile only matters for layouts that consume
-  // it), and `aiCompanion` currently sends 인사('2') because Digicon has no 제주
-  // mascot code yet — set it once the 같이찍기 character is decided, or 제주 photos
-  // will composite the Insadong character.
-  W006: { code: 'W006', name: '제주공항', layout: 'JEJU_AIRPORT', secondTile: MARKET_TILE, hasCardTerminal: true, hasDonation: true, aiCompanion: '2', coordinates: JEJU_AIRPORT_COORDS, shopApiKioskId: 7 },
+  // TODO(제주): `secondTile` is provisional — the home grid is redefined by the
+  // Jeju Figma (it only matters for layouts that consume it).
+  //
+  // `aiCompanion` is now 하영('5'), the venue's own mascot: Digicon added the code
+  // in the 2026-08-25 AR spec, closing the gap this line used to carry. Until
+  // then it sent 인사('2'), so 같이찍기 photos composited the Insadong character
+  // while the screen next to them said "사진촬영 (with '하영')" — the UI has always
+  // promised 하영 (see Photo_SelectTogether and the two 하영 home tiles).
+  W006: { code: 'W006', name: '제주공항', layout: 'JEJU_AIRPORT', secondTile: MARKET_TILE, hasCardTerminal: true, hasDonation: true, aiCompanion: '5', coordinates: JEJU_AIRPORT_COORDS, shopApiKioskId: 7 },
   // 제주국제여객터미널 W007 — the CMS name is `#W007-제주시=제주국제여객터미널`. It runs
   // the SAME design as 제주공항: one JEJU_AIRPORT layout, one Localization_Jeju tab,
   // the same 하영 mascot rows, the same 310-row 제주 shop catalogue.
@@ -141,10 +145,9 @@ export const KIOSK_LOCATIONS: Record<KioskLocationCode, KioskLocation> = {
   // No `shopApiKioskId`: `/api/shops?kioskId=7` already answers with the 제주
   // catalogue (310 rows), so the plain W-code number is right here. W006 keeps its
   // override for the reason recorded on the `shopApiKioskId` field above.
-  // TODO(제주 W007): `aiCompanion` sends 인사('2') exactly like W006 — the venue's
-  // mascot is 하영, but Digicon has no 하영 code, so 같이찍기 photos composite the
-  // Insadong character until one exists. Fix both kiosks together.
-  W007: { code: 'W007', name: '제주국제여객터미널', layout: 'JEJU_AIRPORT', secondTile: MARKET_TILE, hasCardTerminal: true, hasDonation: true, aiCompanion: '2', coordinates: JEJU_TERMINAL_COORDS },
+  // `aiCompanion` is 하영('5'), exactly like W006 — same venue mascot, same
+  // Localization_Jeju rows, and the two were always meant to move together.
+  W007: { code: 'W007', name: '제주국제여객터미널', layout: 'JEJU_AIRPORT', secondTile: MARKET_TILE, hasCardTerminal: true, hasDonation: true, aiCompanion: '5', coordinates: JEJU_TERMINAL_COORDS },
   // 세계자연유산본부 W008 — the CMS name is `#W008-제주시=세계자연유산본부` (the sheet's
   // 비고 column calls the venue 제주유산문화센터). Same 제주 design, but its OWN
   // JEJU_HERITAGE layout because its mascot is 유산, not 하영 — the shared
@@ -161,8 +164,14 @@ export const KIOSK_LOCATIONS: Record<KioskLocationCode, KioskLocation> = {
   // 제주 catalogue (re-checked 2026-08-24), so the plain W-code number is right.
   // TODO(제주 W008): hasCardTerminal mirrors W006/W007 (the 기부 flow pays through
   // the loopback agent) — confirm the venue actually receives a TL-3800 at install.
-  // TODO(제주 W008): `aiCompanion` sends 인사('2') like the other 제주 kiosks —
-  // Digicon has no 유산 code either. Fix all three together when codes exist.
+  // TODO(제주 W008): `aiCompanion` still sends 인사('2'). W006/W007 moved to
+  // 하영('5') when Digicon added that code (2026-08-25), but there is STILL no
+  // 유산 code, and this venue's mascot is 유산 — so both options are wrong here.
+  // '2' is kept deliberately rather than borrowing W006/W007's '5': this kiosk
+  // has its own JEJU_HERITAGE layout precisely to keep 하영 off a 유산 machine
+  // (LocalizationSyncParser.VENUE_MASCOTS rewrites every 하영 row to 유산), so
+  // compositing 하영 would contradict the one rule this layout exists to enforce.
+  // Revisit when Digicon ships a 유산 code.
   W008: { code: 'W008', name: '세계자연유산본부', layout: 'JEJU_HERITAGE', secondTile: MARKET_TILE, hasCardTerminal: true, hasDonation: true, aiCompanion: '2', coordinates: JEJU_HERITAGE_COORDS },
 };
 

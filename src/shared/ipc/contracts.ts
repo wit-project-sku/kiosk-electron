@@ -47,6 +47,7 @@ import type { KioskBanner } from '../types/banner';
 import type { KioskBackground } from '../types/background';
 import type { SpotDiffRound } from '../types/spotDiff';
 import type { OutfitCatalogue } from '../types/outfit';
+import type { JejuCourse, JejuCourseRecommendQuery } from '../types/jejuCourse';
 import type {
   EventDetail,
   EventRecommendation,
@@ -55,6 +56,11 @@ import type {
   EventsRecommendQuery,
 } from '../types/events';
 import type { UpdateStatus } from '../types/update';
+import type {
+  FootfallReport,
+  FootfallRuntime,
+  FootfallStats,
+} from '../types/footfall';
 
 /** Request payload for importing one or more image files. */
 export interface ImportImagesRequest {
@@ -243,7 +249,8 @@ export interface IpcContract {
     response: Result<PhotoWorkflowState>;
   };
   [IpcChannels.PhotoSelectStyle]: {
-    request: { styleKey: string };
+    /** `backgroundId` — 제주 배경 테마 choice; omitted everywhere else. */
+    request: { styleKey: string; backgroundId?: number | null };
     response: Result<PhotoWorkflowState>;
   };
   [IpcChannels.PhotoBeginCountdown]: {
@@ -408,6 +415,15 @@ export interface IpcContract {
     response: Result<EventDetail>;
   };
 
+  /**
+   * 제주 AI 코스 추천 — one live POST per questionnaire submission. `kioskId` is
+   * NOT part of the request: JejuCourseService fills it from KioskService.
+   */
+  [IpcChannels.JejuCourseRecommend]: {
+    request: JejuCourseRecommendQuery;
+    response: Result<JejuCourse>;
+  };
+
   [IpcChannels.UpdateGetStatus]: {
     request: void;
     response: Result<UpdateStatus>;
@@ -419,6 +435,23 @@ export interface IpcContract {
   [IpcChannels.UpdateInstallNow]: {
     request: void;
     response: Result<boolean>;
+  };
+
+  [IpcChannels.FootfallGetRuntime]: {
+    request: void;
+    response: Result<FootfallRuntime>;
+  };
+  [IpcChannels.FootfallReport]: {
+    request: FootfallReport;
+    response: Result<{ accepted: number }>;
+  };
+  [IpcChannels.FootfallStatus]: {
+    request: { available: boolean; deviceId: string | null };
+    response: Result<null>;
+  };
+  [IpcChannels.FootfallGetStats]: {
+    request: void;
+    response: Result<FootfallStats>;
   };
 }
 
@@ -447,6 +480,7 @@ export interface IpcEventPayloads {
   [IpcEvents.BackgroundsChanged]: null;
   [IpcEvents.OutfitsChanged]: null;
   [IpcEvents.UpdateStatusChanged]: UpdateStatus;
+  [IpcEvents.FootfallRuntimeChanged]: FootfallRuntime;
 }
 
 export type EventChannel = keyof IpcEventPayloads;

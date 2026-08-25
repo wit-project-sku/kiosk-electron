@@ -119,7 +119,16 @@ export function PhotoWorkflow(): JSX.Element {
     void window.api.kiosk.setScreen(screen);
   };
 
-  const handleCapture = async (mode: CaptureMode, category: string): Promise<void> => {
+  /**
+   * `backgroundId` — the 배경 테마 plate the visitor tapped. Only 제주 offers the
+   * choice (JejuHanbokSelect step ②); every other layout passes nothing, which
+   * makes the AR request skip the change-background template set entirely.
+   */
+  const handleCapture = async (
+    mode: CaptureMode,
+    category: string,
+    backgroundId: number | null = null,
+  ): Promise<void> => {
     const button = resolveButton(kioskId, mode === 'solo' ? 'photo_solo' : 'photo_together');
     void trackEvent({
       name: 'button_clicked',
@@ -127,6 +136,7 @@ export function PhotoWorkflow(): JSX.Element {
         screen: 'photo_capture_start',
         mode,
         category,
+        backgroundId,
         buttonId: button?.id ?? null,
         buttonName: button?.buttonName ?? null,
         position: button?.position ?? null,
@@ -134,7 +144,7 @@ export function PhotoWorkflow(): JSX.Element {
       },
     });
     await window.api.photo.selectClothing(category);
-    await window.api.photo.selectStyle(mode);
+    await window.api.photo.selectStyle(mode, backgroundId);
     // EVERY location hands the trigger to the visitor now (2026-08-24): the
     // press only brings the camera up, and the countdown waits for the
     // open-palm gesture Monitor 2 is watching for. Started as 제주-only; the

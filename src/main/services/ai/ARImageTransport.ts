@@ -11,8 +11,8 @@ const log = createLogger('ar-image-transport');
 /**
  * Digicon AR endpoints. Env overrides win, but we default to the known
  * production URLs so a packaged build that never loads `.env` still sends the
- * correct AR form (image/outfit/gender/together_with/request_ids) — never the
- * legacy generic shape.
+ * correct AR form (image/outfit/gender/together_with/change_background/
+ * background_to_use/request_ids) — never the legacy generic shape.
  */
 const DEFAULT_PROCESS_IMAGE_URL = 'https://kr-kiosk.digicon.pro/api/v2/process_image';
 const DEFAULT_PROCESS_COMBINE_URL = 'https://kr-kiosk.digicon.pro/api/v2/process_and_combine';
@@ -23,8 +23,9 @@ const DEFAULT_PROCESS_COMBINE_URL = 'https://kr-kiosk.digicon.pro/api/v2/process
  *   together → process_and_combine     (styleKey 'withInsa')
  *
  * Photo-workflow fields:
- *   clothingKey = "gender|code" outfit selection (see parseClothingKey)
- *   styleKey    = capture mode ('solo' | 'withInsa')
+ *   clothingKey  = "gender|code" outfit selection (see parseClothingKey)
+ *   styleKey     = capture mode ('solo' | 'withInsa')
+ *   backgroundId = 배경 테마 choice, or null (see the CB note on generate())
  *
  * NOTE 'withInsa' names the MODE (together), not the character — despite the
  * name it does not mean "with 인사". Which mascot appears is a separate,
@@ -77,6 +78,34 @@ export class ARImageTransport implements AITransport {
     return true; // endpoints always resolve (env override or built-in default)
   }
 
+  /**
+   * ── change_background / background_to_use ─────────────────────────────
+   *
+   * BOTH endpoints treat an ABSENT `change_background` as "use the CB
+   * (change-background) template set if you can" — process_image auto-detects,
+   * process_and_combine attempts it and silently falls back. So sending nothing
+   * is not neutral: it hands the decision to the server and would swap the
+   * background on every kiosk, including 인사동/오산/화성, which have no 배경 테마
+   * UI at all. We therefore ALWAYS send the field explicitly.
+   *
+   * `false` is the default because 제주 deliberately pre-selects no background
+   * (JejuHanbokSelect: "a pre-selected card would silently decide it"), so
+   * "no choice made" is a normal, common state — not an edge case.
+   *
+   * `backgroundId` doubles as `background_to_use`: the witteria CMS assigns the
+   * numbers Digicon's templates expect, so no translation is needed here
+   * ({outfit}.{together_with}-{N}-CB-A.png for together, {outfit}.1-{N}-CB.png
+   * for solo).
+   *
+   * CAUTION on solo: Digicon documents `change_background=true` on
+   * process_image as REQUIRING `{outfit}-CB.png` to exist, and unlike
+   * process_and_combine it carries no "never errors" guarantee. If an outfit
+   * ships without CB assets, a visitor who picked a background may get a hard
+   * failure — i.e. NO photo — where the together button on the same screen
+   * would have returned a plain one. Sending `true` is nonetheless the only way
+   * their choice is honoured (omitting it lets auto-detect discard it), so it
+   * stands until Digicon confirms the failure mode.
+   */
   async generate(params: AIGenerateParams): Promise<AIGenerateOutput> {
     const mode: 'solo' | 'together' = params.styleKey === 'withInsa' ? 'together' : 'solo';
     const endpoint = mode === 'together' ? this.combineUrl() : this.soloUrl();
@@ -88,11 +117,16 @@ export class ARImageTransport implements AITransport {
     form.append('image', new Blob([imageBuffer], { type: 'image/jpeg' }), basename(params.capturePath));
     form.append('outfit', outfit);
 
-    // together_with: '2'=Insa, '3'=Jeong-i, '4'=Hue, 'GROUP'=Insa & Jeong-i.
+    // together_with: '2'=Insa, '3'=Jeong-i, '4'=Hue, '5'=Hayoung, 'GROUP'=Insa & Jeong-i.
     const togetherWith = mode === 'together' ? this.togetherWith() : undefined;
     if (togetherWith) form.append('together_with', togetherWith);
 
     if (gender) form.append('gender', gender);
+
+    // See the CB note above — the field is always sent, never omitted.
+    const changeBackground = params.backgroundId != null;
+    form.append('change_background', String(changeBackground));
+    if (changeBackground) form.append('background_to_use', String(params.backgroundId));
 
     if (params.sessionId) form.append('request_ids', params.sessionId);
 
@@ -103,6 +137,8 @@ export class ARImageTransport implements AITransport {
       outfit,
       gender,
       togetherWith,
+      changeBackground,
+      backgroundToUse: params.backgroundId,
     });
 
     const response = await fetch(endpoint, { method: 'POST', body: form });

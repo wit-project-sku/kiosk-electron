@@ -16,7 +16,12 @@
  * is null in practice today, so `backgroundName()` falls back to Korean.
  */
 export interface KioskBackground {
-  /** DB `backgrounds.id` — this is the ONLY value the compose server needs. */
+  /**
+   * DB `backgrounds.id` — the ONLY value the compose server needs, sent verbatim
+   * as the AR `background_to_use` with no translation: the CMS assigns the same
+   * numbers Digicon's CB templates are named for
+   * (`{outfit}.{together_with}-{N}-CB-A.png`).
+   */
   backgroundId: number;
   /** Remote 9:16 preview image URL (shown directly via <img src>). */
   imageUrl: string;

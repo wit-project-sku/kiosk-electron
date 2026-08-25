@@ -11,6 +11,7 @@ import { SyncQueueRepository } from './database/repositories/SyncQueueRepository
 import { LocalCacheRepository } from './database/repositories/LocalCacheRepository';
 import { FailedRequestRepository } from './database/repositories/FailedRequestRepository';
 import { PhotoSessionRepository } from './database/repositories/PhotoSessionRepository';
+import { FootfallRepository } from './database/repositories/FootfallRepository';
 import { TranslationRepository } from './database/repositories/TranslationRepository';
 import { ImageService } from './services/ImageService';
 import { SettingsService } from './services/SettingsService';
@@ -27,6 +28,7 @@ import { BackgroundService } from './services/BackgroundService';
 import { AttractionService } from './services/AttractionService';
 import { SpotDiffService } from './services/SpotDiffService';
 import { OutfitService } from './services/OutfitService';
+import { JejuCourseService } from './services/JejuCourseService';
 import { StatsService } from './services/StatsService';
 import { FailedRequestService } from './services/FailedRequestService';
 import { TranslationService } from './services/TranslationService';
@@ -42,6 +44,8 @@ import { GoogleDriveService } from './services/drive/GoogleDriveService';
 import { PhotoGenerationService } from './services/photo/PhotoGenerationService';
 import { ImageHostService } from './services/photo/ImageHostService';
 import { PhotoWorkflowService } from './services/photo/PhotoWorkflowService';
+import { FootfallService } from './services/footfall/FootfallService';
+import { FootfallUploader } from './services/footfall/FootfallUploader';
 import { UpdateService } from './updater/UpdateService';
 import { UpdateCommandService } from './updater/UpdateCommandService';
 
@@ -75,10 +79,16 @@ export interface AppContainer {
   attractions: AttractionService;
   spotDiff: SpotDiffService;
   outfits: OutfitService;
+  /** 제주 AI 코스 추천 — live, uncached, 제주 kiosks only. */
+  jejuCourse: JejuCourseService;
   stats: StatsService;
   events: EventsService;
   updater: UpdateService;
   updateCommands: UpdateCommandService;
+  /** 유동인구 — anonymous passer-by counting (camera pipeline lives in the renderer). */
+  footfall: FootfallService;
+  /** Nightly 21:30 push of the day's 유동인구 counts. */
+  footfallUploader: FootfallUploader;
 }
 
 let container: AppContainer | null = null;
@@ -95,6 +105,7 @@ export function createContainer(): AppContainer {
   const failedRepo = new FailedRequestRepository(database);
   const photoSessionRepo = new PhotoSessionRepository(database);
   const translationRepo = new TranslationRepository(database);
+  const footfallRepo = new FootfallRepository(database);
 
   const kiosk = new KioskService();
   const analytics = new AnalyticsService(analyticsRepo, kiosk);
@@ -108,6 +119,9 @@ export function createContainer(): AppContainer {
   const attractions = new AttractionService(cache, kiosk);
   const spotDiff = new SpotDiffService(cache);
   const outfits = new OutfitService(cache, kiosk);
+  // No cache dependency: every recommendation is a fresh POST. It only needs
+  // the kiosk so it can stamp `kioskId` on the request itself.
+  const jejuCourse = new JejuCourseService(kiosk);
   const stats = new StatsService(kiosk, failedRequests);
   const weather = new WeatherService(cache, kiosk);
   const exchange = new ExchangeService(cache);
@@ -131,6 +145,15 @@ export function createContainer(): AppContainer {
     stats,
   );
   const photoWorkflow = new PhotoWorkflowService(display, camera);
+
+  // 유동인구. The service decides WHEN counting may run, and it decides it by
+  // watching the photo workflow and the customer display — the two things that
+  // open the camera. Subscribing here rather than editing those services keeps
+  // the capture pipeline unaware that anything else wants the device.
+  const footfall = new FootfallService(footfallRepo, kiosk, camera);
+  photoWorkflow.subscribe((state) => footfall.onPhotoWorkflowChanged(state));
+  display.subscribe((state) => footfall.onDisplayStateChanged(state));
+  const footfallUploader = new FootfallUploader(footfallRepo, kiosk, footfall);
 
   // The remote "update now" trigger drives the SAME updater instance as the
   // weekly scheduler, so both paths share one state machine (no double download,
@@ -173,10 +196,13 @@ export function createContainer(): AppContainer {
     attractions,
     spotDiff,
     outfits,
+    jejuCourse,
     stats,
     events,
     updater,
     updateCommands,
+    footfall,
+    footfallUploader,
   };
 
   return container;

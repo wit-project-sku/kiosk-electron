@@ -34,6 +34,13 @@ export interface PickerOutfit {
   /** Card image: a remote URL from the API, or a bundled asset URL offline. */
   url: string;
   gender: 'female' | 'male' | undefined;
+  /**
+   * The chip this outfit sits under, or null. Null for every outfit on a
+   * catalogue with no sub-categories (prod today) and for the bundled PNGs,
+   * which is why an unpicked chip row must show the whole category rather than
+   * filtering on it — see the chip row in JejuHanbokSelect.
+   */
+  subCategoryId: number | null;
 }
 
 interface OutfitState {
@@ -53,7 +60,13 @@ function bundledCatalogue(): Record<string, PickerOutfit[]> {
   BUNDLED_CATEGORY_NAMES.forEach((name, i) => {
     const folder = OUTFITS_BY_CATEGORY[i] ?? [];
     if (folder.length > 0) {
-      out[name.toLowerCase()] = folder.map((o) => ({ code: o.code, url: o.url, gender: o.gender }));
+      // The bundle predates sub-categories and has no way to express one.
+      out[name.toLowerCase()] = folder.map((o) => ({
+        code: o.code,
+        url: o.url,
+        gender: o.gender,
+        subCategoryId: null,
+      }));
     }
   });
   return out;
@@ -69,6 +82,10 @@ function bundledCategories(): OutfitCategory[] {
   return BUNDLED_CATEGORY_NAMES.map((name, i) => ({
     id: i + 1,
     categoryName: name,
+    // Positional, like the ids: the folder order IS the order offline, and
+    // there are no chips to draw for a bundle that has no sub-categories.
+    sortOrder: i,
+    subCategories: [],
     ...fallbackOutfitLabels(name),
   }));
 }
@@ -82,7 +99,12 @@ function group(outfits: KioskOutfit[]): Record<string, PickerOutfit[]> {
     if (o.type === 'SCHOOL_UNIFORM') continue;
     const key = o.categoryName.toLowerCase();
     if (!key) continue;
-    (out[key] ??= []).push({ code: o.code, url: o.imageUrl, gender: o.gender });
+    (out[key] ??= []).push({
+      code: o.code,
+      url: o.imageUrl,
+      gender: o.gender,
+      subCategoryId: o.subCategoryId,
+    });
   }
   return out;
 }

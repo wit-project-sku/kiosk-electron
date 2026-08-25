@@ -137,11 +137,21 @@ export const IpcChannels = {
   // Event detail (GET /api/events/{eventId})
   EventsDetailGet: 'events:detail',
 
+  // 제주 AI 코스 추천 (live POST; 제주 kiosks only)
+  JejuCourseRecommend: 'jejuCourse:recommend',
+
   // Auto-update (electron-updater). Status is read-only; check/install are
   // optional operator nudges — updating is otherwise fully automatic.
   UpdateGetStatus: 'update:getStatus',
   UpdateCheckNow: 'update:checkNow',
   UpdateInstallNow: 'update:installNow',
+
+  // 유동인구 (footfall) — anonymous passer-by counting. The renderer runs the
+  // camera pipeline and reports integers; main owns the counts and the upload.
+  FootfallGetRuntime: 'footfall:getRuntime',
+  FootfallReport: 'footfall:report',
+  FootfallStatus: 'footfall:status',
+  FootfallGetStats: 'footfall:getStats',
 } as const;
 
 export type IpcInvokeChannel = (typeof IpcChannels)[keyof typeof IpcChannels];
@@ -178,6 +188,12 @@ export const IpcEvents = {
   OutfitsChanged: 'event:outfits:changed',
   /** Auto-update status changed (checking / downloading / downloaded / …). */
   UpdateStatusChanged: 'event:update:statusChanged',
+  /**
+   * 유동인구 counting was armed or told to stand down (a photo session took the
+   * camera, the cool-down after one ended, no camera present). The renderer
+   * releases or re-opens its stream on this.
+   */
+  FootfallRuntimeChanged: 'event:footfall:runtimeChanged',
 } as const;
 
 export type IpcEventChannel = (typeof IpcEvents)[keyof typeof IpcEvents];

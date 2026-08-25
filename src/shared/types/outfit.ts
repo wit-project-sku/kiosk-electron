@@ -26,6 +26,18 @@ export interface KioskOutfit {
    * it is the school's name instead, which is why uniforms never match a tab.
    */
   categoryName: string;
+  /** Registered category id. Null where the endpoint omits it (prod today). */
+  categoryId: number | null;
+  /** The chip this outfit sits under, or null — most categories have no chips. */
+  subCategoryId: number | null;
+  /**
+   * The sub-category's Korean label ("남자" / "여자") verbatim, or null.
+   *
+   * Kept because it is the ONLY gender signal left on the newer catalogue: the
+   * `w=` / `m=` category prefixes are gone there and the codes under 한복 and
+   * 일상의상 carry no `-F` / `-M` suffix either. See `genderOf`.
+   */
+  subCategoryLabelKr: string | null;
   type: 'NORMAL' | 'PREMIUM' | 'SCHOOL_UNIFORM';
   /** Set only for SCHOOL_UNIFORM. */
   schoolId: number | null;
@@ -35,9 +47,9 @@ export interface KioskOutfit {
 }
 
 /**
- * A tab in the outfit picker — `GET /api/outfits/categories`, in registration
- * (`id`) order. This list IS the tab row: the picker draws one tab per row it
- * returns, so adding or renaming a tab is an admin action, not a release.
+ * A tab in the outfit picker — `GET /api/outfits/categories`, in `sortOrder`.
+ * This list IS the tab row: the picker draws one tab per row it returns, so
+ * adding, renaming or REORDERING a tab is an admin action, not a release.
  *
  * ★ `categoryName` is the FILTER CODE and never appears on screen — it is what
  * `KioskOutfit.categoryName` is matched against. The `label*` fields are the
@@ -53,10 +65,8 @@ export interface KioskOutfit {
  * every field arrives non-empty; the kiosk fills them the same way for the
  * legacy endpoint and the offline bundle (see `shared/constants/outfitCategories`).
  */
-export interface OutfitCategory {
-  id: number;
-  /** Registered filter code, e.g. "w=hannbok". Matches `KioskOutfit.categoryName`. */
-  categoryName: string;
+/** The eight display-name fields carried by a category and a sub-category alike. */
+export interface OutfitCategoryLabels {
   labelKr: string;
   labelEn: string;
   labelJp: string;
@@ -67,8 +77,36 @@ export interface OutfitCategory {
   labelRu: string;
 }
 
-/** The eight display-name fields of an {@link OutfitCategory}. */
-export type OutfitCategoryLabels = Omit<OutfitCategory, 'id' | 'categoryName'>;
+/**
+ * One chip under a tab — a row of the category's `subCategories`.
+ *
+ * Unlike a category it has NO name/code of its own: an outfit points at it by
+ * `subCategoryId`, so the id is the whole key and the labels are the whole
+ * display. Stage registers exactly 남자/여자 under 한복, 직업의상 and 일상의상;
+ * every other category ships an empty array and draws no chip row.
+ */
+export interface OutfitSubCategory extends OutfitCategoryLabels {
+  id: number;
+  /** The operator's order for the chip row. */
+  sortOrder: number;
+}
+
+export interface OutfitCategory extends OutfitCategoryLabels {
+  id: number;
+  /** Registered filter code, e.g. "w=hannbok". Matches `KioskOutfit.categoryName`. */
+  categoryName: string;
+  /**
+   * The operator's tab order. NOT the id: stage returns ids 76, 77, 9, 78, 5…
+   * against sortOrder 1…9, so ordering by id would scramble the row.
+   *
+   * Where the endpoint omits the field (prod today) the kiosk substitutes the
+   * row's position in the response, which makes sorting a no-op there and keeps
+   * the order the server chose.
+   */
+  sortOrder: number;
+  /** Empty for a category the operator gave no sub-categories. */
+  subCategories: OutfitSubCategory[];
+}
 
 /** What the renderer receives: the catalogue plus the tab list. */
 export interface OutfitCatalogue {

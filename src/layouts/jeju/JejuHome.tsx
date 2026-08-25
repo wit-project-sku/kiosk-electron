@@ -607,7 +607,13 @@ export function JejuHome({ controller }: Props): JSX.Element {
           <img src={jejuIconUrl('ico-restroom')} alt="" className={styles.actionImg} draggable={false} />
         )}
       </button>
-      <span className={`${styles.actionLabel} ${styles.labelRestroom} ${lowReach ? styles.actionLabelLow : ''}`}>화장실</span>
+      {/* MainButton_WC is fully translated in Localization_Jeju (8/8 langs);
+          this label was the one home-screen string still hardcoded Korean.
+          `navigate()` above keeps receiving the Korean '화장실' — that string is
+          the analytics label and the buttons-table join, like every tile. */}
+      <span className={`${styles.actionLabel} ${styles.labelRestroom} ${lowReach ? styles.actionLabelLow : ''}`}>
+        {t('MainButton_WC', lang)}
+      </span>
 
       {/* ── Left nav (one Figma render, two tap zones) ── */}
       <div className={styles.leftNav}>

@@ -22,7 +22,7 @@
  * in the CSS comment above `.count`).
  */
 import type { RefObject } from 'react';
-import { PHOTO_COUNTDOWN_SECONDS } from '@shared/constants/photoOptions';
+import { PHOTO_CAMERA_ROTATION, PHOTO_COUNTDOWN_SECONDS } from '@shared/constants/photoOptions';
 import type { PhotoGestureGate } from '@shared/types/photo';
 import { jejuIconUrl } from '@renderer/assets/icons/jeju';
 import { pick } from '@renderer/lib/i18n';
@@ -79,12 +79,26 @@ export function JejuCameraGuide({
   const seconds = countdown ?? PHOTO_COUNTDOWN_SECONDS;
   const held = gestureGate === 'held';
   const overlay = jejuIconUrl('capture-guide');
+  /** Sideways-mounted camera → the feed box is sized swapped; see .feedRotated. */
+  const sideways = PHOTO_CAMERA_ROTATION === 90 || PHOTO_CAMERA_ROTATION === 270;
 
   return (
     <div className={styles.root}>
-      {/* Full-bleed feed, mirrored — the camera faces the visitor, so without
-          the flip "raise your hand" points them the wrong way. */}
-      <video ref={videoRef} className={styles.feed} muted playsInline />
+      {/* Full-bleed feed. The transform composes screen-space outside-in:
+          centre (for the swapped-size rotated box) → mirror (the camera faces
+          the visitor, so without the flip "raise your hand" points them the
+          wrong way) → the mount rotation that stands the sideways sensor frame
+          upright (PHOTO_CAMERA_ROTATION — also applied to the captured JPEG in
+          useKioskCamera, so what the AR API gets matches what was on glass). */}
+      <video
+        ref={videoRef}
+        className={`${styles.feed} ${sideways ? styles.feedRotated : ''}`}
+        style={{
+          transform: `${sideways ? 'translate(-50%, -50%) ' : ''}scaleX(-1) rotate(${PHOTO_CAMERA_ROTATION}deg)`,
+        }}
+        muted
+        playsInline
+      />
 
       {/* The entire guide, exactly as the designer shipped it. Never mirrored —
           it is guidance, not part of the picture. */}

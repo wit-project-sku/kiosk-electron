@@ -13,7 +13,7 @@
  * survives only as the offline fallback.
  *
  * ★ The tab row is `GET /api/outfits/categories` and NOTHING ELSE — one tab per
- * registered category, in the order the API returns, labelled in the visitor's
+ * registered category, in the operator's `sortOrder`, labelled in the visitor's
  * language by the operator. No tab is authored here, not even a pinned one: a
  * locally-added tab would outlive the category behind it and a locally-written
  * label would silently contradict the admin web. The eight hardcoded 제주 names
@@ -23,15 +23,31 @@
  *     operator actually set, not a translation slip.
  *   · `New Outfit` (12 outfits, the second-largest category) had NO tab and was
  *     unreachable. It is registered and labelled 직업복, so it now has one.
- *   · 제주 and 기념일 have nothing registered behind them, so they are simply not
- *     tabs. Registering a 제주 category is what brings that tab back — and if it
- *     is registered first it also inherits step ② (see `isLandingTab`).
+ *   · 제주 IS registered now (`'Jeju'`, id 12 — added late, so the API lists it
+ *     last) but carries ZERO outfits (checked 2026-08-24: 65 outfits, none with
+ *     that categoryName), so its tab honestly shows 준비 중인 의상입니다. The
+ *     moment the operator uploads outfits under it, the tab fills itself AND
+ *     jumps to the head of the row as the landing tab with step ② — see the
+ *     reorder note above `tabs`. 기념일 remains unregistered entirely.
  *   · An empty tab row means the catalogue has never synced AND the bundled
  *     fallback is empty. There is nothing local left to draw in that case.
  *
- * The sub-category chip row went with them: every tab is exactly one category,
- * so there is nothing left to choose between. The frames that ship a chip row
- * draw it `hidden` anyway (6258:48575).
+ * ── The chip row is the category's own sub-categories ────────────────
+ * The design's chip row (6258:48326 / 48134, 1266…1386 on the 한복 frames) was
+ * left undrawn for as long as a tab was exactly one category and there was
+ * nothing to choose between. The catalogue since grew sub-categories — 한복,
+ * 직업의상 and 일상의상 each carry 남자/여자 — so the row draws itself for a
+ * category that has them and stays absent for one that does not, which is every
+ * category on the older catalogue and the rest of them on the newer one.
+ *
+ * Nothing is pre-picked and a second tap clears the pick: unpicked means the
+ * whole category, which is also the only honest reading where `subCategoryId`
+ * is null on every outfit. Like the tabs, not one chip is authored here.
+ *
+ * ★ The chips are ALSO the gender the AR request is sent with. The merge that
+ * created them retired the `w=` / `m=` category prefixes, and the codes beneath
+ * them carry no `-F` / `-M` either, so the sub-category is the only signal left
+ * — see `genderOf` in OutfitService.
  *
  * ── 배경 테마 comes from the API ──────────────────────────────────────
  * The plates are the ACTIVE backgrounds assigned to THIS kiosk
@@ -39,8 +55,11 @@
  * BackgroundService and served through `useBackgroundStore`). A kiosk with none
  * assigned gets an empty list — a legitimate answer, not a failure — so step ②
  * is dropped entirely there and the landing tab falls back to the 사진촬영안내
- * card that every other tab shows. The pick is still local state: see the note
- * above `.themes` in the CSS for what is missing on the AR side.
+ * card that every other tab shows. The pick reaches the AR request: it rides
+ * `onCapture` → `selectStyle` into the workflow and is sent as
+ * `background_to_use`. Picking NOTHING is normal (no plate is pre-selected) and
+ * sends `change_background=false` — see ARImageTransport for why that field is
+ * always sent rather than omitted.
  *
  * Step ② rides the LANDING tab (the first the API returns), which is where it
  * sat when that tab was hardcoded 제주. Since the 2026-08-24 redraw the
@@ -62,12 +81,13 @@ import { t } from '@renderer/lib/loc';
 import type { CaptureMode } from '../photo/HanbokSelect';
 import { useOutfitStore } from '@renderer/store/outfitStore';
 import type { PickerOutfit } from '@renderer/store/outfitStore';
+import type { OutfitSubCategory } from '@shared/types/outfit';
 import { jejuIconUrl } from '@renderer/assets/icons/jeju';
 import { useRotatingBanner } from '@renderer/hooks/useRotatingBanner';
 import { usePhotoStore } from '@renderer/store/photoStore';
 import { useBackgroundStore } from '@renderer/store/backgroundStore';
 import { backgroundName } from '@renderer/lib/backgrounds';
-import { outfitCategoryLabel } from '@renderer/lib/outfitCategories';
+import { outfitCategoryLabel, outfitSubCategoryLabel } from '@renderer/lib/outfitCategories';
 import { cameraIconUrl } from '@renderer/assets/icons/insadong/camera';
 import { pick, useLang } from '@renderer/lib/i18n';
 import { jejuMascot, type JejuMascot } from './jejuMascot';
@@ -77,7 +97,8 @@ import shared from '../photo/HanbokSelect.module.css';
 import styles from './JejuHanbokSelect.module.css';
 
 interface Props {
-  onCapture: (mode: CaptureMode, category: string) => void;
+  /** Third argument: the step ② 배경 테마 plate, or null when none was tapped. */
+  onCapture: (mode: CaptureMode, category: string, backgroundId?: number | null) => void;
   onHome: () => void;
   countdownActive?: boolean;
 }
@@ -94,6 +115,8 @@ interface Tab {
   label: string;
   /** Korean label, for matching an `initialCategory` handed over by another page. */
   ko: string;
+  /** This tab's chips, in `sortOrder`. Empty for a category with none. */
+  subs: OutfitSubCategory[];
 }
 
 /**
@@ -244,25 +267,50 @@ export function JejuHanbokSelect({
   }, [loadOutfits, reloadOutfits]);
 
   /**
-   * The tab row: exactly the registered categories, in the API's own order.
+   * The tab row: exactly the registered categories, in the operator's
+   * `sortOrder` (OutfitService sorts on it) — with ONE reorder left over. The
+   * operator registered 제주 late (`'Jeju'`, id 12) on the catalogue that has no
+   * sortOrder at all, so THAT one lists it LAST while the design (6431:31052)
+   * draws it FIRST as the landing tab with the ② 배경테마 step. When the 제주
+   * category actually has outfits it moves to the head of the row, and
+   * everything keyed off "the first tab" (the landing default, step ②) follows
+   * it for free. While it is
+   * still EMPTY it stays where the API puts it: promoting a bare 준비중 tab to
+   * the landing slot would open the whole feature on an apology. On the newer
+   * catalogue this is already a no-op — 제주 is sortOrder 1 and carries outfits,
+   * so it lands first on the operator's say-so rather than on ours.
+   *
    * Labels are resolved here, so a language switch relabels the row without
    * touching the selection — `id` is the filter code, never a label.
    */
-  const tabs: Tab[] = useMemo(
-    () =>
-      categories.map((c) => ({
-        id: c.categoryName,
-        label: outfitCategoryLabel(c, lang),
-        ko: c.labelKr,
-      })),
-    [categories, lang],
-  );
+  const tabs: Tab[] = useMemo(() => {
+    const all = categories.map((c) => ({
+      id: c.categoryName,
+      label: outfitCategoryLabel(c, lang),
+      ko: c.labelKr,
+      subs: c.subCategories,
+    }));
+    const i = all.findIndex(
+      (t) => t.id.toLowerCase() === 'jeju' && (byCategory[t.id.toLowerCase()]?.length ?? 0) > 0,
+    );
+    if (i > 0) {
+      const [jeju] = all.splice(i, 1) as [Tab];
+      all.unshift(jeju);
+    }
+    return all;
+  }, [categories, byCategory, lang]);
 
   // A session can be opened with a pre-selected tab (e.g. 프로모션 from K-DRAMA).
   const initialCategory = usePhotoStore((s) => s.initialCategory);
   const setInitialCategory = usePhotoStore((s) => s.setInitialCategory);
   /** Empty until the tabs arrive; resolved to the landing tab below. */
   const [categoryId, setCategoryId] = useState('');
+  /**
+   * The picked chip, or null for the whole category. Null by default: 6258:48326
+   * draws the row with nothing active and 48134 with one chip active, so the two
+   * frames are the before and after of a single tap.
+   */
+  const [subId, setSubId] = useState<number | null>(null);
   useEffect(() => {
     // The row arrives asynchronously, so neither the default nor the hand-over
     // can be settled in a state initialiser — wait for it, then decide once.
@@ -294,8 +342,23 @@ export function JejuHanbokSelect({
   // Undefined only for the frame before the tabs arrive — the effect above
   // settles the selection as soon as there is a row to settle it against.
   const category = tabs.find((c) => c.id === categoryId);
+
+  /** The chip row for the selected tab, in `sortOrder`. Empty → no row. */
+  // Memoised on the tab rather than recomputed: the fallback would otherwise be
+  // a fresh array every render and re-run the effect below with it.
+  const subs = useMemo(() => category?.subs ?? [], [category]);
+  useEffect(() => {
+    // The row is CMS content: the operator can retire the picked chip mid-
+    // session, and switching tabs lands on a row that never had it.
+    if (subId !== null && !subs.some((sc) => sc.id === subId)) setSubId(null);
+  }, [subId, subs]);
+
   const outfits: PickerOutfit[] = (byCategory[category?.id.toLowerCase() ?? ''] ?? []).filter(
-    (o) => Boolean(o.url) && !brokenCodes.has(o.code),
+    (o) =>
+      Boolean(o.url) &&
+      !brokenCodes.has(o.code) &&
+      // No chip picked → the whole category, chips or not.
+      (subId === null || o.subCategoryId === subId),
   );
 
   /**
@@ -333,7 +396,14 @@ export function JejuHanbokSelect({
    */
   const startCapture = (mode: CaptureMode): void => {
     if (!selectedOutfit) return; // nothing chosen — never send a bare category
-    onCapture(mode, outfitKey);
+    // Only forward a plate that is STILL in the active set. The set is CMS
+    // content refreshed on launch and nightly, so an operator retiring a 배경
+    // 테마 mid-session can leave the tapped id pointing at nothing — and the AR
+    // API answers a missing background by silently falling back to the plain
+    // template, which would look like the choice was honoured. Drop it here
+    // instead, so the request says what it means.
+    const chosen = backgrounds.some((b) => b.backgroundId === backgroundId) ? backgroundId : null;
+    onCapture(mode, outfitKey, chosen);
   };
 
   const star = jejuIconUrl('star');
@@ -435,6 +505,7 @@ export function JejuHanbokSelect({
                     className={`${styles.cat} ${c.id === categoryId ? styles.catActive : ''}`}
                     onClick={() => {
                       setCategoryId(c.id);
+                      setSubId(null);
                       setOutfitCode('');
                     }}
                   >
@@ -444,6 +515,29 @@ export function JejuHanbokSelect({
               </div>
             ))}
           </div>
+
+          {/* ── sub-category chips (1266…1386) ──
+              Drawn only where the category has them, which is what kept this
+              row out of the layout until the API began sending them. */}
+          {subs.length > 0 && (
+            <div className={styles.subcats}>
+              {subs.map((sc) => (
+                <button
+                  key={sc.id}
+                  type="button"
+                  className={`${styles.subcat} ${sc.id === subId ? styles.subcatActive : ''}`}
+                  onClick={() => {
+                    // Tapping the picked chip clears it — the only way back to
+                    // the whole category, since nothing here is pre-picked.
+                    setSubId((cur) => (cur === sc.id ? null : sc.id));
+                    setOutfitCode('');
+                  }}
+                >
+                  {outfitSubCategoryLabel(sc, lang)}
+                </button>
+              ))}
+            </div>
+          )}
 
           {outfits.length > 0 ? (
             <Swiper

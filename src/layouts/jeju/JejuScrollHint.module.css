@@ -1,0 +1,47 @@
+/*
+ * Bottom-right ▲▼ scroll control — see JejuScrollHint.tsx. The art keeps the
+ * frame's own 2040/3543 80×179 box; the two tap zones hang out of it to reach
+ * touch size, split at the gap between the triangles (the export's midpoint).
+ */
+.hint {
+  position: absolute;
+  left: 2040px;
+  top: 3543px;
+  width: 80px;
+  height: 179px;
+}
+
+.art {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  pointer-events: none;
+}
+
+.zoneUp,
+.zoneDown {
+  position: absolute;
+  left: -25px;
+  width: 130px;
+  height: 120px;
+  padding: 0;
+  border: none;
+  border-radius: 50%;
+  background: transparent;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.zoneUp {
+  top: -45px; /* centred on the top triangle (art y 0…~85) */
+}
+
+.zoneDown {
+  bottom: -45px; /* centred on the bottom triangle (art y ~94…179) */
+}
+
+/* A press is acknowledged where the finger is — same halo as JejuHelp's pins. */
+.zoneUp:active,
+.zoneDown:active {
+  background: rgba(255, 127, 15, 0.28);
+}

@@ -144,7 +144,8 @@ const api: KioskBridge = {
     getWorkflow: () => invoke(IpcChannels.PhotoGetWorkflow),
     startWorkflow: () => invoke(IpcChannels.PhotoStartWorkflow),
     selectClothing: (clothingKey) => invoke(IpcChannels.PhotoSelectClothing, { clothingKey }),
-    selectStyle: (styleKey) => invoke(IpcChannels.PhotoSelectStyle, { styleKey }),
+    selectStyle: (styleKey, backgroundId) =>
+      invoke(IpcChannels.PhotoSelectStyle, { styleKey, backgroundId: backgroundId ?? null }),
     beginCountdown: () => invoke(IpcChannels.PhotoBeginCountdown),
     armGestureGate: () => invoke(IpcChannels.PhotoArmGestureGate),
     holdCountdown: () => invoke(IpcChannels.PhotoHoldCountdown),
@@ -162,6 +163,9 @@ const api: KioskBridge = {
   },
   spotDiff: {
     getRound: () => invoke(IpcChannels.SpotDiffGetRound),
+  },
+  jejuCourse: {
+    recommend: (query) => invoke(IpcChannels.JejuCourseRecommend, query),
   },
   language: {
     get: () => invoke(IpcChannels.LanguageGet),
@@ -209,6 +213,12 @@ const api: KioskBridge = {
     checkNow: () => invoke(IpcChannels.UpdateCheckNow),
     installNow: () => invoke(IpcChannels.UpdateInstallNow),
   },
+  footfall: {
+    getRuntime: () => invoke(IpcChannels.FootfallGetRuntime),
+    report: (report) => invoke(IpcChannels.FootfallReport, report),
+    status: (status) => invoke(IpcChannels.FootfallStatus, status),
+    getStats: () => invoke(IpcChannels.FootfallGetStats),
+  },
   eventsApi: {
     list: (query) => invoke(IpcChannels.EventsGet, query),
     recommend: (query) => invoke(IpcChannels.EventsRecommend, query),
@@ -242,6 +252,8 @@ const api: KioskBridge = {
     onBackgroundsChanged: (listener) => subscribe(IpcEvents.BackgroundsChanged, listener),
     onOutfitsChanged: (listener) => subscribe(IpcEvents.OutfitsChanged, listener),
     onUpdateStatusChanged: (listener) => subscribe(IpcEvents.UpdateStatusChanged, listener),
+    onFootfallRuntimeChanged: (listener) =>
+      subscribe(IpcEvents.FootfallRuntimeChanged, listener),
   },
 };
 

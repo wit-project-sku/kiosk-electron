@@ -25,6 +25,7 @@ export class WindowManager {
   private unsubscribeWeather: (() => void) | null = null;
   private unsubscribeExchange: (() => void) | null = null;
   private unsubscribeUpdater: (() => void) | null = null;
+  private unsubscribeFootfall: (() => void) | null = null;
 
   constructor(private readonly container: AppContainer) {}
 
@@ -67,6 +68,12 @@ export class WindowManager {
     // Forward auto-update status so the UI can show checking/downloading/etc.
     this.unsubscribeUpdater = this.container.updater.subscribe((status) => {
       this.broadcast(IpcEvents.UpdateStatusChanged, status);
+    });
+
+    // Forward the 유동인구 runtime so the counting loop in the touch window knows
+    // when to release the camera (a photo session) and when to take it back.
+    this.unsubscribeFootfall = this.container.footfall.subscribe((runtime) => {
+      this.broadcast(IpcEvents.FootfallRuntimeChanged, runtime);
     });
 
     // Re-evaluate monitors when the hardware setup changes.
@@ -202,6 +209,8 @@ export class WindowManager {
     this.unsubscribeExchange = null;
     this.unsubscribeUpdater?.();
     this.unsubscribeUpdater = null;
+    this.unsubscribeFootfall?.();
+    this.unsubscribeFootfall = null;
     screen.removeListener('display-added', this.handleDisplaysChanged);
     screen.removeListener('display-removed', this.handleDisplaysChanged);
   }

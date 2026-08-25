@@ -25,15 +25,30 @@
   font-family: 'Noto Sans KR', sans-serif;
 }
 
+/* Unrotated camera (PHOTO_CAMERA_ROTATION 0/180): the frame fills the screen
+   directly. The mirror is screen-space — the camera faces the visitor, so
+   without it "raise your RIGHT hand" points them the wrong way. The rotation
+   half of the transform comes inline from the component, off the constant. */
 .feed {
   position: absolute;
   inset: 0;
   width: 100%;
   height: 100%;
   object-fit: cover;
-  /* The camera is in front of the visitor, so the feed is mirrored — otherwise
-     "raise your RIGHT hand" points them the wrong way. */
-  transform: scaleX(-1);
+}
+
+/*
+ * Sideways-mounted camera (90/270): the element is sized SWAPPED — 3840 wide ×
+ * 2160 tall, centred — so that after the quarter turn it covers the 2160×3840
+ * screen edge to edge. A 16:9 sensor frame then fills the box exactly: the
+ * "9:16" portrait stream is the full sensor, no crop.
+ */
+.feedRotated {
+  inset: auto;
+  left: 50%;
+  top: 50%;
+  width: 3840px;
+  height: 2160px;
 }
 
 /* Stretched to fill — see the header note for the mapping. */

@@ -92,8 +92,14 @@ function useDragScroll(): {
 export type CaptureMode = 'solo' | 'withInsa';
 
 interface HanbokSelectProps {
-  /** Fired when a 사진촬영 button is pressed → starts the camera flow. */
-  onCapture: (mode: CaptureMode, category: string) => void;
+  /**
+   * Fired when a 사진촬영 button is pressed → starts the camera flow.
+   *
+   * The third argument is the 배경 테마 choice. This screen has no background
+   * plates — only 제주 does (see JejuHanbokSelect) — so it never passes one, and
+   * the AR request skips the change-background template set.
+   */
+  onCapture: (mode: CaptureMode, category: string, backgroundId?: number | null) => void;
   onHome: () => void;
   /** When true (countdown/preview phase), show the "look at the camera" popup. */
   countdownActive?: boolean;

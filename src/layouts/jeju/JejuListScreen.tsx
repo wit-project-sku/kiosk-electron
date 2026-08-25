@@ -42,6 +42,7 @@ import {
 import { JejuChosungRow } from './JejuChosungRow';
 import { useAccessibilityStore } from '@renderer/store/accessibilityStore';
 import { JejuPageFrame } from './JejuPageFrame';
+import { JejuScrollHint } from './JejuScrollHint';
 import { JejuShopCard } from './JejuShopCard';
 import styles from './JejuListScreen.module.css';
 
@@ -289,12 +290,13 @@ export function JejuListScreen({ screen, controller }: Props): JSX.Element {
         )}
       </button>
 
-      {/* Bottom-right ▲▼ pair (6212:55250 / 6212:55201). Drawn on both list
-          frames as a bare pair of triangles — no button chrome — so it is a
-          "this list scrolls" hint, not a control: the round buttons above are
-          the controls. Only visible here because these frames carry no banner. */}
-      {!lowReach && jejuIconUrl('scroll-hint') && (
-        <img src={jejuIconUrl('scroll-hint')} alt="" className={styles.scrollHint} draggable={false} />
+      {/* Bottom-right ▲▼ pair (6212:55250 / 6212:55201) — the frames' corner
+          triangles, a real scroll control since 2026-08-24 (they read as
+          buttons and were pressed as buttons); see JejuScrollHint. Only visible
+          here because these frames carry no banner, and dropped in low-reach
+          with the rest of the standard-layout controls. */}
+      {!lowReach && (
+        <JejuScrollHint onUp={() => scrollBy(-SCROLL_STEP)} onDown={() => scrollBy(SCROLL_STEP)} />
       )}
     </JejuPageFrame>
   );

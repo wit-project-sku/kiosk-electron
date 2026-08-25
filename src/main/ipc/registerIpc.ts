@@ -22,11 +22,13 @@ import { registerBannerHandlers } from './handlers/banners.handlers';
 import { registerBackgroundHandlers } from './handlers/backgrounds.handlers';
 import { registerSpotDiffHandlers } from './handlers/spotDiff.handlers';
 import { registerOutfitHandlers } from './handlers/outfits.handlers';
+import { registerJejuCourseHandlers } from './handlers/jejuCourse.handlers';
 import { registerStatsHandlers } from './handlers/stats.handlers';
 import { registerSubtitleHandlers } from './handlers/subtitle.handlers';
 import { registerVideoHandlers } from './handlers/video.handlers';
 import { registerEventsHandlers } from './handlers/events.handlers';
 import { registerUpdateHandlers } from './handlers/update.handlers';
+import { registerFootfallHandlers } from './handlers/footfall.handlers';
 
 const log = createLogger('ipc');
 
@@ -56,10 +58,12 @@ export function registerIpcHandlers(container: AppContainer, windows: WindowMana
   registerBackgroundHandlers(container);
   registerSpotDiffHandlers(container);
   registerOutfitHandlers(container);
+  registerJejuCourseHandlers(container);
   registerStatsHandlers(container);
   registerSubtitleHandlers(container);
   registerVideoHandlers(container);
   registerEventsHandlers(container);
   registerUpdateHandlers(container);
+  registerFootfallHandlers(container);
   log.info('IPC handlers registered');
 }

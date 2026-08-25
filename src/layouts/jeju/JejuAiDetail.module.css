@@ -6,10 +6,14 @@
  * Fixed chrome down to the DAY label, then a scrolling spot list:
  *   693  course title (90px)       810  rule (w874)      831  hashtags
  *   925  course description        1095 summary bar (h150, r75)
- *   1300 DAY label                 1423 spot list (scrolls)
+ *   1300 DAY label + pager         1423 spot list (paged, four cards)
  *   3663 QR row (4 cards)
- * The numbered timeline (circles at x170) is pinned to the list's first four
- * rows — see STOP_TOP in the TSX for why it steps by the card pitch.
+ * The numbered circles at x170 are rows of the list itself rather than discs
+ * pinned to the page, so each one always sits beside the card it numbers. It
+ * has to work that way now the list is PAGED: the server schedules as many
+ * spots in a day as the time budget allows (nine on day 1 of a two-day 자연
+ * course), those spill onto further pages, and page two of a day opens on stops
+ * 5·6·7·8 — which a disc fixed at the first row could never say.
  *
  * NORMALISED: the hashtag line's Figma box is centred on x1124.5 while the
  * title, rule and description above it are all on 1080; it is centred here.
@@ -118,8 +122,17 @@
   background: #fff;
 }
 
+/*
+ * ★ `pointer-events: none` is load-bearing, not tidiness. This label is a
+ * FULL-WIDTH absolutely-positioned box (0…2160 at y1300…1368) painted after the
+ * ← button (x866…951 at y1291…1376), so it covered it and swallowed every tap:
+ * the back arrow was dead on every course, while → kept working purely because
+ * it is drawn after the label. The label is never interactive, so it stops
+ * taking hits at all rather than being pushed around with z-index.
+ */
 .day {
   position: absolute;
+  pointer-events: none;
   left: 0;
   top: 1300px;
   width: 2160px;
@@ -186,9 +199,20 @@
   opacity: 0.5;
 }
 
+/*
+ * Row = [disc 105][gap 35][card 1678] = 1818, which is the design's own gutter:
+ * the disc sits at x170 and the card at x310. Centred on the card, which is
+ * where the design draws it.
+ */
+.stopRow {
+  flex: none;
+  display: flex;
+  align-items: center;
+  gap: 35px;
+}
+
 .stop {
-  position: absolute;
-  left: 170px;
+  flex: none;
   width: 105px;
   height: 105px;
   border-radius: 50%;
@@ -200,24 +224,26 @@
   text-align: center;
 }
 
-/* ── Spot list (scrolls) ── */
+/* ── Spot list — PAGED, never scrolled ── */
 .list {
   position: absolute;
-  left: 310px;
+  /* Starts at the disc gutter rather than the card edge, because the discs are
+     rows of this list now — the cards still begin at the design's 310. */
+  left: 170px;
   top: 1423px;
-  width: 1678px;
+  width: 1818px;
   height: 2240px;
   display: flex;
   flex-direction: column;
   gap: 50px;
-  overflow-x: hidden;
-  overflow-y: auto;
-  /* Hide the scrollbar: the numbered rail is the position indicator here. */
-  scrollbar-width: none;
-}
-
-.list::-webkit-scrollbar {
-  display: none;
+  /*
+   * Deliberately NOT scrollable. Four cards (4×515 + 3×50 = 2210) fit inside
+   * this box, and a day with more spots than that is paged by the ← → pair
+   * beside the DAY label rather than dragged — that is what those buttons are
+   * for. `hidden` is the backstop: nothing here should ever exceed the box, and
+   * if something does it must be visibly wrong rather than quietly scrollable.
+   */
+  overflow: hidden;
 }
 
 .spot {

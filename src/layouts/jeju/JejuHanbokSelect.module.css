@@ -16,12 +16,10 @@
  *             how many there really are — see `.cats`). The 한복 frames start
  *             their column 13px higher (831) — slop; the row must not move on
  *             a tab press, so 844 everywhere.
+ *  1266…1386  sub-category chips — only where the category has any, so the
+ *             band is empty on most tabs (see `.subcats`)
  *  1447…1797  outfit cards, ONE row   (landing tab — 5 × 350 across the 1820)
  *  1447…2212  outfit cards, TWO rows  (every other tab; 415 pitch)
- *
- * The design's sub-category chip row (여자 한복 / 남자 한복, 1266…1386 on the
- * 한복 frames) is still NOT drawn: every tab is exactly one registered
- * category, so there is nothing to choose between — see the .tsx header.
  *  1855…1960  ② 배경 테마 선택하기
  *  2018…2698  background themes (scrolls horizontally; 340×680 tiles)
  *  2883…3033  capture buttons (landing) · 2279…2429 (other tabs)
@@ -192,6 +190,60 @@
 
 .catActive {
   border-color: var(--kiosk-primary, #ff7f0f);
+  background: var(--kiosk-primary, #ff7f0f);
+  font-weight: 700;
+  color: #fff;
+}
+
+/*
+ * ── Sub-category chips ─────────────────────────────────────────────────
+ * The row the 한복 frames draw at 1266…1386 (6258:48326 unpicked / 48134
+ * picked). It is absolutely positioned like everything else on this page, and
+ * it sits in dead space between the tab row (ends 1219) and the outfit strip
+ * (starts 1447), so a tab WITHOUT chips simply leaves the band empty and
+ * nothing below moves. That is what lets the row be conditional at all.
+ *
+ * ★ The BAND is read off the design; the pill treatment is the tab's, one size
+ * down. The design drew two chips reading 여자 한복 / 남자 한복 at widths that
+ * are not worth copying — the API sends 남자 / 여자 and seven more languages,
+ * and "Мужской" is nothing like either — so the chips size to their content
+ * from a floor instead, left-aligned under the first tab column.
+ */
+.subcats {
+  position: absolute;
+  left: 170px;
+  top: 1266px;
+  width: 1820px;
+  height: 120px;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 30px;
+}
+
+.subcat {
+  min-width: 260px;
+  height: 120px;
+  box-sizing: border-box;
+  padding: 0 44px;
+  border: none;
+  border-radius: 30.3px; /* the tab's 42.9 at 170, held to the 120 height */
+  background: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 40px;
+  font-weight: 500;
+  line-height: 1.1;
+  color: #999;
+  text-align: center;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  /* Same reasoning as `.cat`: the label is CMS text in eight languages. */
+  white-space: nowrap;
+}
+
+.subcatActive {
   background: var(--kiosk-primary, #ff7f0f);
   font-weight: 700;
   color: #fff;
@@ -507,14 +559,11 @@
  * (`GET /api/kiosks/{n}/backgrounds`); the row is empty — and the whole step is
  * dropped — for a kiosk that has none.
  *
- * ★ The PICK still goes nowhere. `ARImageTransport` posts
- * image / outfit / together_with / gender / request_ids and the Digicon
- * endpoints take no scene parameter, so the chosen `backgroundId` is
- * deliberately NOT threaded into photoStore or the workflow — it would be
- * dropped silently on the way out, which is worse than an obviously local
- * control. The compositing server is meant to take the id; wire it through the
- * moment the AR request grows that field. The selection already lives in one
- * piece of state (`backgroundId` in JejuHanbokSelect).
+ * ★ The PICK IS LIVE (2026-08-25). Digicon's AR spec grew the field this note
+ * was waiting for, so `backgroundId` now rides `selectStyle` into the workflow
+ * and leaves as the AR `background_to_use`. Picking nothing is still a normal
+ * outcome — no plate is pre-selected — and it sends `change_background=false`,
+ * which is what keeps the server from choosing a background on its own.
  */
 .themes {
   position: absolute;

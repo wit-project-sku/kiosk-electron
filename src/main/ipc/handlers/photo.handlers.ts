@@ -72,9 +72,9 @@ export function registerPhotoHandlers(container: AppContainer): void {
     (req: { clothingKey: string }) => container.photoWorkflow.selectClothing(req.clothingKey),
   );
 
-  handle(IpcChannels.PhotoSelectStyle, (req: { styleKey: string }) => {
+  handle(IpcChannels.PhotoSelectStyle, (req: { styleKey: string; backgroundId?: number | null }) => {
     const deviceId = container.photoWorkflow.resolveCameraDevice();
-    return container.photoWorkflow.selectStyle(req.styleKey, deviceId);
+    return container.photoWorkflow.selectStyle(req.styleKey, deviceId, req.backgroundId ?? null);
   });
 
   handle(IpcChannels.PhotoBeginCountdown, () => container.photoWorkflow.beginCountdown());
@@ -140,7 +140,12 @@ export function registerPhotoHandlers(container: AppContainer): void {
 
     try {
       const result = await container.photoGeneration.generate(
-        { sessionId, dataUrl, clothingKey, styleKey },
+        // backgroundId is read from the workflow rather than the request: the
+        // capture is fired by Monitor 2 from its own copy of the state, and a
+        // stale copy there would silently swap (or drop) the background the
+        // visitor picked. main already holds the authoritative value — set by
+        // selectStyle on the same tap that chose the capture mode.
+        { sessionId, dataUrl, clothingKey, styleKey, backgroundId: workflow.backgroundId },
         (message) => {
           if (isActiveSession()) container.photoWorkflow.setGenerating(message);
         },

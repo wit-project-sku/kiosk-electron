@@ -7,6 +7,7 @@ import { migration003 } from './003_kiosk_platform';
 import { migration004 } from './004_photo_sessions';
 import { migration005 } from './005_translations';
 import { migration006 } from './006_default_translations';
+import { migration007 } from './007_footfall';
 
 const log = createLogger('migrations');
 
@@ -14,7 +15,15 @@ const log = createLogger('migrations');
  * The ordered migration registry. Append new migrations here; never edit or
  * reorder existing ones once shipped.
  */
-const MIGRATIONS: Migration[] = [migration001, migration002, migration003, migration004, migration005, migration006];
+const MIGRATIONS: Migration[] = [
+  migration001,
+  migration002,
+  migration003,
+  migration004,
+  migration005,
+  migration006,
+  migration007,
+];
 
 function getCurrentVersion(db: BetterSqlite3.Database): number {
   db.exec(`

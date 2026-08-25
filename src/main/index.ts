@@ -215,6 +215,17 @@ async function bootstrap(): Promise<void> {
   // window above. Install is still gated on the same idle check.
   container.updateCommands.start();
 
+  // 유동인구 counting. Started after the window subscription is wired so the
+  // renderer's counting loop receives the first runtime broadcast, and after the
+  // photo workflow exists so a capture already in progress at boot (there never
+  // is one, but the ordering should not depend on that) suppresses it. The
+  // camera pipeline itself lives in the renderer; this half owns the counts.
+  container.footfall.start();
+  // Pushes the day's counts at 21:30 local. With no FOOTFALL_API_URL configured
+  // it is a no-op that keeps the rows pending — pointing it at a real endpoint
+  // later uploads the whole backlog on the first night.
+  container.footfallUploader.start();
+
   // Refresh sheet content into SQLite in the background on every launch (in
   // addition to the 02:00 night sync). The current window already rendered from
   // the last-synced/bundled data; the next bootstrap picks up these results.
@@ -283,6 +294,10 @@ app.on('before-quit', () => {
     getContainer().exchange.stop();
     getContainer().updater.stop();
     getContainer().updateCommands.stop();
+    // Persists whatever the last minute counted; without this, a nightly reboot
+    // would drop up to a minute of 유동인구 every single night.
+    getContainer().footfall.stop();
+    getContainer().footfallUploader.stop();
   } catch {
     // Container may not exist if startup failed; ignore.
   }

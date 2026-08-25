@@ -79,6 +79,15 @@ export interface PhotoWorkflowState {
   sessionId: string | null;
   clothingKey: string | null;
   styleKey: string | null;
+  /**
+   * 배경 테마 chosen in step ② of the 제주 outfit screen, or null when the visitor
+   * picked none (the 제주 default — nothing is pre-selected) or the kiosk has no
+   * background set assigned at all (every other location today). Lives here
+   * beside clothingKey/styleKey because Monitor 2 fires the capture and reads
+   * all three off the same workflow broadcast. Sent onward as the AR
+   * `background_to_use`; null means "skip the CB template set".
+   */
+  backgroundId: number | null;
   resultImagePath: string | null;
   resultFileName: string | null;
   /** Public phone-openable URL of the result, when the AI returns one. */

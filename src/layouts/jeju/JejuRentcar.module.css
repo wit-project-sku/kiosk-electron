@@ -102,19 +102,7 @@
   transform: rotate(-90deg);
 }
 
-/* Decorative "this list scrolls" hint in the bottom-right corner — the frame's
-   own Group 1707482775 (x2040, y3543, 80×179), the same bare pair of triangles
-   the list screens draw. Not a control; the round buttons above are. */
-.scrollHint {
-  position: absolute;
-  left: 2040px;
-  top: 3543px;
-  width: 80px;
-  height: 179px;
-  object-fit: contain;
-  pointer-events: none;
-}
-
+/* The bottom-right corner ▲▼ (Group 1707482775) lives in JejuScrollHint. */
 .empty {
   flex: none;
   margin: 0;

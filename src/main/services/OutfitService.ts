@@ -3,6 +3,7 @@ import type {
   OutfitCategory,
   OutfitCategoryLabels,
   OutfitGender,
+  OutfitSubCategory,
 } from '@shared/types/outfit';
 import { fallbackOutfitLabels } from '@shared/constants/outfitCategories';
 import { createLogger } from '@main/core/logger';
@@ -27,7 +28,8 @@ const MAX_PAGES = 20;
  * serve from cache, work offline.
  *
  *   GET /api/outfits?pageNum=1&pageSize=200   → { data: { content, last, … } }
- *   GET /api/outfits/categories               → { data: [ { id, categoryName, label* } ] }
+ *   GET /api/outfits/categories               → { data: [ { id, categoryName,
+ *                                                 label*, sortOrder, subCategories } ] }
  *
  * ── The tab list is CMS content ───────────────────────────────────────
  * `GET /api/outfits/categories` is what the picker draws its tabs from: one tab
@@ -35,11 +37,25 @@ const MAX_PAGES = 20;
  * Renaming a tab is an admin action rather than a release, which is why nothing
  * downstream may re-label a category locally.
  *
- * ★ It 401s on PROD (verified 2026-08-14 — stage answers, prod says "JWT 토큰이
- * 없거나 유효하지 않습니다"), so the pre-label `GET /api/categories/outfits` is
- * kept as the fallback: same rows, `{id,name}` only, and the missing labels are
- * filled from `shared/constants/outfitCategories`. Drop the fallback once the
- * labelled endpoint is reachable without a token on prod.
+ * It used to 401 on prod (2026-08-14), which is why the pre-label
+ * `GET /api/categories/outfits` is still tried second: same rows, `{id,name}`
+ * only, labels filled from `shared/constants/outfitCategories`. Re-checked
+ * 2026-08-25 — prod now answers 200 with no token, so that second attempt is
+ * unreachable in practice.
+ *
+ * ── Two shapes are in the field at once ───────────────────────────────
+ * Prod and stage do NOT agree today (both checked 2026-08-25), and the fleet
+ * runs against prod, so every field below is read defensively:
+ *
+ *   prod    10 flat rows, NO sortOrder and NO subCategories; the gender-split
+ *           codes intact (`w=hannbok` / `m=hanbok` / `m=everyday`); ids 1…9,12.
+ *   stage    9 rows WITH both; the gender-split pairs merged into `hanbok` and
+ *           `daily` carrying 남자·여자 chips; `w=model` retired, `ComeUp` added;
+ *           ids in no useful order (76, 77, 9, 78, 5…) against sortOrder 1…9.
+ *
+ * A missing sortOrder falls back to the row's position and a missing
+ * subCategories to an empty array, so one code path draws both: prod keeps the
+ * flat row it sends today and gains chips the day it starts sending them.
  *
 
  * ── Everything is fetched, nothing is filtered server-side ────────────
@@ -185,8 +201,14 @@ export class OutfitService {
         const json = (await res.json()) as { data?: unknown };
         const rows = Array.isArray(json.data) ? json.data : [];
         const categories = rows
-          .map(normalizeCategory)
-          .filter((c): c is OutfitCategory => c !== null);
+          .map((row, i) => normalizeCategory(row, i))
+          .filter((c): c is OutfitCategory => c !== null)
+          // The array happens to arrive in sortOrder today, but the FIELD is
+          // the operator's stated order and the array position is not, so the
+          // row order is taken from it rather than assumed. sort() is stable,
+          // and the substituted index (see normalizeCategory) makes this a
+          // no-op on a response that carries no sortOrder at all.
+          .sort((a, b) => a.sortOrder - b.sortOrder);
         if (categories.length > 0) return categories;
         log.warn('Category endpoint returned no usable tabs', { url, rows: rows.length });
       } catch (error) {
@@ -209,7 +231,7 @@ export class OutfitService {
  * `name: null` rows (ids 10 and 11) are dropped by the same check that drops a
  * malformed one — a tab with no code cannot be matched against an outfit.
  */
-function normalizeCategory(row: unknown): OutfitCategory | null {
+function normalizeCategory(row: unknown, index: number): OutfitCategory | null {
   if (!row || typeof row !== 'object') return null;
   const r = row as Record<string, unknown>;
 
@@ -224,9 +246,22 @@ function normalizeCategory(row: unknown): OutfitCategory | null {
     return typeof v === 'string' && v.trim() ? v.trim() : fallback[key];
   };
 
+  // No sortOrder → the row's own position, so an endpoint that carries none
+  // keeps exactly the order it sent. Ordering by `id` would NOT: the newer
+  // catalogue numbers its tabs 76, 77, 9, 78, 5… against sortOrder 1…9.
+  const sortOrder = typeof r['sortOrder'] === 'number' ? r['sortOrder'] : index;
+
+  const subRows = Array.isArray(r['subCategories']) ? (r['subCategories'] as unknown[]) : [];
+  const subCategories = subRows
+    .map((sub, i) => normalizeSubCategory(sub, i))
+    .filter((c): c is OutfitSubCategory => c !== null)
+    .sort((a, b) => a.sortOrder - b.sortOrder);
+
   return {
     id,
     categoryName,
+    sortOrder,
+    subCategories,
     labelKr: label('labelKr'),
     labelEn: label('labelEn'),
     labelJp: label('labelJp'),
@@ -239,17 +274,64 @@ function normalizeCategory(row: unknown): OutfitCategory | null {
 }
 
 /**
- * Gender for the AR request.
+ * One chip under a tab.
+ *
+ * A sub-category has no code to fall back on the way a category does — the id
+ * is the key and the labels are the whole display — so a row without a Korean
+ * label is dropped rather than drawn blank. The other seven fall back to the
+ * Korean one, which is the same rule the server documents for a blank label.
+ */
+function normalizeSubCategory(row: unknown, index: number): OutfitSubCategory | null {
+  if (!row || typeof row !== 'object') return null;
+  const r = row as Record<string, unknown>;
+
+  const id = typeof r['id'] === 'number' ? r['id'] : null;
+  const labelKr = typeof r['labelKr'] === 'string' ? r['labelKr'].trim() : '';
+  if (id === null || !labelKr) return null;
+
+  const label = (key: keyof OutfitCategoryLabels): string => {
+    const v = r[key];
+    return typeof v === 'string' && v.trim() ? v.trim() : labelKr;
+  };
+
+  return {
+    id,
+    sortOrder: typeof r['sortOrder'] === 'number' ? r['sortOrder'] : index,
+    labelKr,
+    labelEn: label('labelEn'),
+    labelJp: label('labelJp'),
+    labelCh: label('labelCh'),
+    labelVn: label('labelVn'),
+    labelId: label('labelId'),
+    labelTh: label('labelTh'),
+    labelRu: label('labelRu'),
+  };
+}
+
+/**
+ * Gender for the AR request, from whichever of the three signals is present.
  *
  * An explicit `-F` / `-M` on the code wins — that is how the unisex categories
- * (global / K-Culture / New Outfit / uniforms) mark a variant. Otherwise it
- * comes from the category's `w=` / `m=` prefix, which is exactly how the old
- * folder-indexed catalogue stamped it (cat1/cat2 female, cat3/cat4 male).
- * Neither → undefined, and the AR request simply omits the field.
+ * (global / K-Culture / 직업의상 / uniforms) mark a variant.
+ *
+ * ★ Then the SUB-CATEGORY, because on the newer catalogue it is the only thing
+ * left. The gender-split categories were merged there (`w=hannbok` + `m=hanbok`
+ * → one `hanbok` with 남자/여자 chips, `m=everyday` → `daily`), so the `w=` /
+ * `m=` prefix is gone AND those codes carry no suffix: checked 2026-08-25, all
+ * 36 outfits under 한복 and 일상의상 would come out genderless without this.
+ *
+ * The prefix stays last for the older catalogue, where it is how the whole
+ * folder-indexed bundle stamped gender (cat1/cat2 female, cat3/cat4 male). The
+ * two never coexist on one row, so the order between them is not load-bearing.
+ * None of the three → undefined, and the AR request simply omits the field.
  */
-function genderOf(categoryName: string, code: string): OutfitGender {
+function genderOf(categoryName: string, code: string, subLabelKr: string | null): OutfitGender {
   if (/-F$/i.test(code)) return 'female';
   if (/-M$/i.test(code)) return 'male';
+  // Matched on the Korean label because that is the field the API sends
+  // (`subCategoryLabelKr`); the localized ones are display-only.
+  if (subLabelKr === '여자') return 'female';
+  if (subLabelKr === '남자') return 'male';
   const n = categoryName.toLowerCase();
   if (n.startsWith('w=')) return 'female';
   if (n.startsWith('m=')) return 'male';
@@ -271,6 +353,8 @@ function normalizeOutfit(row: unknown): KioskOutfit | null {
   if (typeof r['status'] === 'string' && r['status'].toUpperCase() !== 'ACTIVE') return null;
 
   const categoryName = typeof r['categoryName'] === 'string' ? r['categoryName'].trim() : '';
+  const subLabel = typeof r['subCategoryLabelKr'] === 'string' ? r['subCategoryLabelKr'].trim() : '';
+  const subCategoryLabelKr = subLabel || null;
   const rawType = typeof r['type'] === 'string' ? r['type'].toUpperCase() : 'NORMAL';
   const type =
     rawType === 'PREMIUM' || rawType === 'SCHOOL_UNIFORM'
@@ -282,9 +366,12 @@ function normalizeOutfit(row: unknown): KioskOutfit | null {
     code,
     imageUrl,
     categoryName,
+    categoryId: typeof r['categoryId'] === 'number' ? r['categoryId'] : null,
+    subCategoryId: typeof r['subCategoryId'] === 'number' ? r['subCategoryId'] : null,
+    subCategoryLabelKr,
     type,
     schoolId: typeof r['schoolId'] === 'number' ? r['schoolId'] : null,
-    gender: genderOf(categoryName, code),
+    gender: genderOf(categoryName, code, subCategoryLabelKr),
     kioskIds: Array.isArray(r['kioskIds'])
       ? (r['kioskIds'] as unknown[]).filter((k): k is number => typeof k === 'number')
       : [],
