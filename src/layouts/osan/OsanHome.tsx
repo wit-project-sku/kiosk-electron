@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { Search } from 'lucide-react';
 import type { KioskScreenId, SupportedLanguage } from '@shared/types/kiosk';
+import { SearchIcon } from '@layouts/components/SearchIcon';
 import type { KioskController } from '@renderer/hooks/useKioskController';
 import { trackEvent } from '@renderer/lib/analytics';
 import { useLanguageStore } from '@renderer/store/languageStore';
@@ -16,6 +16,7 @@ import { t } from '@renderer/lib/loc';
 import { FloatingKeyboard } from '../insadong/keyboard/FloatingKeyboard';
 import { HangulComposer } from '../insadong/keyboard/hangul';
 import type { KeyAction } from '../insadong/keyboard/VirtualKeyboard';
+import { OsanLeftNav } from './OsanLeftNav';
 import styles from './OsanHome.module.css';
 
 interface OsanHomeTile {
@@ -358,7 +359,7 @@ export function OsanHome({ controller }: OsanHomeProps): JSX.Element {
                 )}
                 {focused && <span className={styles.caret} />}
               </span>
-              <Search className={styles.searchIcon} strokeWidth={2.4} />
+              <SearchIcon className={styles.searchIcon} />
             </button>
             <button
               type="button"
@@ -460,28 +461,10 @@ export function OsanHome({ controller }: OsanHomeProps): JSX.Element {
       </div>
 
       {/* Left nav — home + back */}
-      <div className={styles.leftNav}>
-        <button
-          type="button"
-          className={styles.leftNavBtn}
-          onClick={() => navigate('home', 'Home')}
-          aria-label="홈으로"
-        >
-          {osanIconUrl('home-btn') && (
-            <img src={osanIconUrl('home-btn')} alt="" draggable={false} />
-          )}
-        </button>
-        <button
-          type="button"
-          className={styles.leftNavBtn}
-          onClick={() => navigate('home', 'Back')}
-          aria-label="뒤로"
-        >
-          {osanIconUrl('back-arrow') && (
-            <img src={osanIconUrl('back-arrow')} alt="" draggable={false} />
-          )}
-        </button>
-      </div>
+      <OsanLeftNav
+        onHome={() => navigate('home', 'Home')}
+        onBack={() => navigate('home', 'Back')}
+      />
 
       <FloatingKeyboard
         open={focused}

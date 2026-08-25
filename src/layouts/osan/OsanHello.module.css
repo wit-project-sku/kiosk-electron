@@ -29,7 +29,7 @@
   width: 34.32px;
 }
 .content::-webkit-scrollbar-thumb {
-  background: #1a4d7e;
+  background: var(--kiosk-primary);
   border-radius: 21.45px;
 }
 .content::-webkit-scrollbar-track {
@@ -66,9 +66,9 @@
 }
 
 .tabSelected {
-  background: #d3dfec;
+  background: var(--kiosk-secondary);
   font-weight: 600; /* Figma: SemiBold */
-  color: #1a4d7e;
+  color: var(--kiosk-primary);
 }
 
 /* ── Card (shared) — Figma: w1820, h2160 (all 3 tabs same height), gap 65,
@@ -139,8 +139,8 @@
 .namePill {
   display: inline-flex;
   align-items: center;
-  background: #d3dfec;
-  color: #1a4d7e;
+  background: var(--kiosk-secondary);
+  color: var(--kiosk-primary);
   font-weight: 700;
   font-size: 58px;
   padding: 14px 26px;
@@ -357,7 +357,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background: #1a4d7e;
+  background: var(--kiosk-primary);
   border-radius: 42.9px;
   font-weight: 700;
   font-size: 51.48px;
@@ -416,30 +416,6 @@
   font-size: 30px;
   color: #999999;
   white-space: nowrap;
-}
-
-/* ── Left nav & banner ── */
-.leftNav {
-  position: absolute;
-  left: 21px;
-  top: 1995px;
-  display: flex;
-  flex-direction: column;
-  gap: 35px;
-}
-
-.leftNavBtn {
-  width: 85px;
-  height: 85px;
-  padding: 0;
-  border: none;
-  background: none;
-  cursor: pointer;
-}
-.leftNavBtn img {
-  width: 100%;
-  height: 100%;
-  object-fit: contain;
 }
 
 .banner {

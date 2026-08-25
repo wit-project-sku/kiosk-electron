@@ -1,13 +1,16 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import type { SupportedLanguage } from '@shared/types/kiosk';
 import type { KioskController } from '@renderer/hooks/useKioskController';
 import { useLanguageStore } from '@renderer/store/languageStore';
 import { t } from '@renderer/lib/loc';
 import { iconUrl } from '@renderer/assets/icons/insadong';
 import { useRotatingBanner } from '@renderer/hooks/useRotatingBanner';
+import { useTaxfreeBodyLayout } from '@renderer/hooks/useTaxfreeBodyLayout';
 import { TAXFREE_PAGE_BASES, taxfreePageImg } from '@renderer/lib/taxfreePages';
 import { taxfreeUrl } from '@shared/constants/webEmbeds';
 import { InsadongHeader } from './InsadongHeader';
+import headerStyles from './InsadongHeader.module.css';
+import { InsadongLeftNav } from './InsadongLeftNav';
 import styles from './InsadongTaxfree.module.css';
 
 type TabId = 'refund' | 'intro' | 'merchant';
@@ -85,6 +88,9 @@ export function InsadongTaxfree({ controller }: InsadongTaxfreeProps): JSX.Eleme
   const goHome = (): void => controller.navigate('home', 'Back');
   const lang = useLanguageStore((s) => s.currentLanguage);
   const [activeTab, setActiveTab] = useState<TabId>('refund');
+  const rootRef = useRef<HTMLDivElement>(null);
+  const subtitleRef = useRef<HTMLDivElement>(null);
+  const bodyLayout = useTaxfreeBodyLayout(rootRef, subtitleRef, lang);
 
   // Pre-decode every tab image for the active language so switching tabs (esp.
   // the merchant tab) is instant — the component is always mounted (pre-warmed),
@@ -99,13 +105,38 @@ export function InsadongTaxfree({ controller }: InsadongTaxfreeProps): JSX.Eleme
     }
   }, [lang]);
 
+  const webviewRef = useRef<HTMLElement | null>(null);
+  useEffect(() => {
+    const wv = webviewRef.current as
+      | (HTMLElement & { insertCSS?: (css: string) => Promise<string> })
+      | null;
+    if (!wv?.insertCSS) return;
+    const stripScroll = (): void => {
+      void wv.insertCSS?.(
+        'html,body{overflow:hidden!important;scrollbar-width:none!important;-ms-overflow-style:none!important}' +
+          '*::-webkit-scrollbar{width:0!important;height:0!important;display:none!important}',
+      );
+    };
+    wv.addEventListener('dom-ready', stripScroll);
+    wv.addEventListener('did-navigate-in-page', stripScroll);
+    return () => {
+      wv.removeEventListener('dom-ready', stripScroll);
+      wv.removeEventListener('did-navigate-in-page', stripScroll);
+    };
+  }, []);
+
   return (
-    <>
-      {iconUrl('bg') && <img className={styles.bg} src={iconUrl('bg')} alt="" draggable={false} />}
+    <div ref={rootRef} className={styles.root}>
+      {iconUrl('bg') && <img className={styles.bgImage} src={iconUrl('bg')} alt="" draggable={false} />}
 
-      <InsadongHeader title="TAX - FREE" onHome={goHome} />
+      <InsadongHeader
+        title="TAX-FREE"
+        onHome={goHome}
+        subtitleClassName={`${headerStyles.subtitleBelowGap} ${headerStyles.subtitleWide}`}
+        subtitleRef={subtitleRef}
+      />
 
-      <div className={styles.body}>
+      <div className={styles.body} style={{ top: bodyLayout.top, height: bodyLayout.height }}>
         {/* 텍스프리 소개 (intro): the static two-page info carousel. */}
         {activeTab === 'intro' && (
           <TaxRefundInfo lang={lang} onGoToWebview={() => setActiveTab('refund')} />
@@ -122,7 +153,7 @@ export function InsadongTaxfree({ controller }: InsadongTaxfreeProps): JSX.Eleme
           }}
         >
           {/* eslint-disable-next-line react/no-unknown-property */}
-          <webview src={taxfreeUrl(controller.kioskId)} partition="persist:embeds" className={styles.embed} />
+          <webview ref={webviewRef} src={taxfreeUrl(controller.kioskId)} partition="persist:embeds" className={styles.embed} />
         </div>
 
         {activeTab === 'merchant' && <MerchantTab lang={lang} />}
@@ -141,14 +172,7 @@ export function InsadongTaxfree({ controller }: InsadongTaxfreeProps): JSX.Eleme
         ))}
       </div>
 
-      <div className={styles.leftNav}>
-        <button type="button" className={styles.leftNavBtn} onClick={goHome} aria-label="홈으로">
-          {iconUrl('home-btn') && <img src={iconUrl('home-btn')} alt="" draggable={false} />}
-        </button>
-        <button type="button" className={styles.leftNavBtn} onClick={goHome} aria-label="뒤로">
-          {iconUrl('back-arrow') && <img src={iconUrl('back-arrow')} alt="" draggable={false} />}
-        </button>
-      </div>
+      <InsadongLeftNav onHome={goHome} />
 
       {banner && (
         <button
@@ -157,9 +181,9 @@ export function InsadongTaxfree({ controller }: InsadongTaxfreeProps): JSX.Eleme
           onClick={() => controller.startPhoto()}
           aria-label="가상 한복 체험"
         >
-          <img src={banner} alt="" draggable={false} />
+          <img src={banner} alt="" className={styles.bannerImg} draggable={false} />
         </button>
       )}
-    </>
+    </div>
   );
 }

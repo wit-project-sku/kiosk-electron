@@ -16,6 +16,7 @@ import {
   shopsForBase,
 } from '@renderer/lib/shops';
 import { HwaseongHeader } from './HwaseongHeader';
+import { HwaseongLeftNav } from './HwaseongLeftNav';
 import styles from './HwaseongHelp.module.css';
 
 /** witteria API base category for the 도와줘 '휴' facility finder (kioskId=5). */
@@ -126,13 +127,7 @@ export function HwaseongHelp({ controller, defaultTab, noScroll = false }: Props
       </div>
 
       {/* Left nav */}
-      <div className={styles.leftNav}>
-        {hwaseongIconUrl('fg-leftnav') && (
-          <img src={hwaseongIconUrl('fg-leftnav')} alt="" className={styles.leftNavImg} draggable={false} />
-        )}
-        <button type="button" className={styles.leftNavZoneHome} onClick={() => controller.navigate('home')} aria-label="홈" />
-        <button type="button" className={styles.leftNavZoneBack} onClick={() => controller.navigate('home')} aria-label="뒤로" />
-      </div>
+      <HwaseongLeftNav onHome={() => controller.navigate('home', 'Back')} />
 
       {/* No bottom banner here — this list is data-heavy and scrolls, so the
           results area extends into that space instead (see .results in CSS). */}

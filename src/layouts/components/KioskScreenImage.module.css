@@ -1,7 +1,7 @@
 .viewport {
   position: fixed;
   inset: 0;
-  background: var(--kiosk-bg, #fdf8f3);
+  background: var(--kiosk-bg, #ffffff);
   overflow: hidden;
   user-select: none;
   -webkit-user-select: none;
@@ -77,5 +77,5 @@
 /* Toggle via the `debug` prop to visualise tap zones while tuning alignment. */
 .hotspotDebug {
   background: rgba(254, 108, 80, 0.25);
-  outline: 2px solid #fe6c50;
+  outline: 2px solid var(--kiosk-primary);
 }

@@ -32,5 +32,9 @@ Thumbs.db
 # Secrets (service-account keys, etc.)
 secrets
 
+# AI 로컬 상태 (개인 설정 / 세션 캐시)
+.claude/settings.local.json
+.omc/
+
 # Large kiosk videos (served at runtime via media://, shipped as extraResources)
 resources/videos

@@ -1,12 +1,14 @@
 import { useState } from 'react';
 import { QRCodeSVG } from 'qrcode.react';
 import type { KioskController } from '@renderer/hooks/useKioskController';
+import { useKioskStore } from '@renderer/store/kioskStore';
 import { hwaseongIconUrl } from '@renderer/assets/icons/hwaseong';
-import { useRotatingBanner } from '@renderer/hooks/useRotatingBanner';
 import { trackEvent } from '@renderer/lib/analytics';
 import { useLang } from '@renderer/lib/i18n';
 import { t } from '@renderer/lib/loc';
 import { HwaseongHeader } from './HwaseongHeader';
+import { HwaseongBanner } from './HwaseongBanner';
+import { HwaseongLeftNav } from './HwaseongLeftNav';
 import styles from './HwaseongHello.module.css';
 
 const INSTAGRAM_URL = 'https://www.instagram.com/hue_stargram?igsh=YjJqeXBtMTVwbzFr';
@@ -58,7 +60,6 @@ const STRETCH_SECTIONS: { titleKey: string; bodyKey: string }[] = [
 const stripArrow = (s: string): string => s.replace(/^\s*>\s*/, '');
 
 export function HwaseongHello({ controller }: Props): JSX.Element {
-  const banner = useRotatingBanner(hwaseongIconUrl('fg-banner'));
   const lang = useLang();
   const L = (key: string): string => t(key, lang);
   const [tab, setTab] = useState<TabKey>('intro');
@@ -218,26 +219,17 @@ export function HwaseongHello({ controller }: Props): JSX.Element {
       </div>
 
       {/* Left nav */}
-      <div className={styles.leftNav}>
-        {hwaseongIconUrl('fg-leftnav') && (
-          <img src={hwaseongIconUrl('fg-leftnav')} alt="" className={styles.leftNavImg} draggable={false} />
-        )}
-        <button type="button" className={styles.leftNavZoneHome} onClick={() => controller.navigate('home')} aria-label="홈" />
-        <button type="button" className={styles.leftNavZoneBack} onClick={() => controller.navigate('home')} aria-label="뒤로" />
-      </div>
+      <HwaseongLeftNav onHome={() => controller.navigate('home', 'Back')} />
 
       {/* Bottom banner */}
-      <div className={styles.banner}>
-        {banner && (
-          <img src={banner} alt="" className={styles.bannerImg} draggable={false} />
-        )}
-      </div>
+      <HwaseongBanner onClick={() => controller.startPhoto()} />
     </div>
   );
 }
 
 /** Shared hashtag chips + social QR row at the bottom of each card. */
 function Footer(): JSX.Element {
+  const primary = useKioskStore((s) => s.theme.colors.primary);
   return (
     <div className={styles.footer}>
       <div className={styles.chips}>
@@ -254,7 +246,7 @@ function Footer(): JSX.Element {
           </svg>
         </div>
         <div className={styles.socialQrWrap}>
-          <QRCodeSVG value={INSTAGRAM_URL} size={100} bgColor="#fff" fgColor="#005ab4" level="M" />
+          <QRCodeSVG value={INSTAGRAM_URL} size={100} bgColor="#fff" fgColor={primary} level="M" />
         </div>
         {/* Instagram icon + QR */}
         <div className={styles.socialIconWrap}>
@@ -275,7 +267,7 @@ function Footer(): JSX.Element {
           </svg>
         </div>
         <div className={styles.socialQrWrap}>
-          <QRCodeSVG value={INSTAGRAM_URL} size={100} bgColor="#fff" fgColor="#005ab4" level="M" />
+          <QRCodeSVG value={INSTAGRAM_URL} size={100} bgColor="#fff" fgColor={primary} level="M" />
         </div>
       </div>
     </div>

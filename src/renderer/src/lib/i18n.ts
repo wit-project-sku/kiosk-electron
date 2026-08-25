@@ -351,8 +351,11 @@ const keyList = (k: string | readonly string[] | undefined): readonly string[] =
 
 /** Localized page-header title, falling back to the hand map, then the id. */
 export function screenTitle(id: string, lang: Lang): string {
-  for (const k of keyList(TITLE_KEYS[id]?.title)) {
-    const resolved = buttonText(k, lang);
+  // Brand mark — never pull translated sheet copy (Hwaseong once had 텍스프리등록).
+  if (id === 'TAX-FREE' || id === 'TAX - FREE') return id;
+  const k = TITLE_KEYS[id]?.title;
+  for (const candidate of keyList(k)) {
+    const resolved = buttonText(candidate, lang);
     if (resolved) return resolved;
   }
   return SCREEN_TITLES[id]?.[lang] ?? id;

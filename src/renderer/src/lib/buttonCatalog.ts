@@ -137,6 +137,7 @@ const SLOT_OVERRIDES: Partial<Record<KioskId, Record<string, Slot>>> = {
     eat: { position: 7, type: '정이 뭐먹지' },
     shop: { position: 8, type: '정이 뭐사지?(식품)' },
     lodging: { position: 9, type: '정이 뭐사지?(물품)' },
+    // CMS buttons.button_type for this slot (not a UI label — home hardcodes TAX-FREE).
     taxfree: { position: 10, type: '텍스프리등록' },
     about: { position: 11, type: '여기는 오색시장' },
     hello: { position: 12, type: '안녕 정이' },
@@ -162,7 +163,7 @@ const SLOT_OVERRIDES: Partial<Record<KioskId, Record<string, Slot>>> = {
     home: { position: 1, type: '홈' },
     search: { position: 2, type: '검색' },
     language: { position: 3, type: '언어선택' },
-    transport: { position: 4, type: '도로 교통상황' }, // wide traffic tile (its.go.kr)
+    transport: { position: 4, type: '전국도로 교통상황' }, // wide traffic tile (its.go.kr)
     convenience: { position: 5, type: '전국휴게소(준비중)' }, // 전국휴게소 list
     events: { position: 6, type: '화성시 이벤트' },
     food_court: { position: 7, type: '휴 뭐먹지' },

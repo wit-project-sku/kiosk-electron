@@ -33,6 +33,8 @@ import { StatsService } from './services/StatsService';
 import { FailedRequestService } from './services/FailedRequestService';
 import { TranslationService } from './services/TranslationService';
 import { WeatherService } from './services/WeatherService';
+import { FlightService } from './services/FlightService';
+import { SailingService } from './services/SailingService';
 import { ExchangeService } from './services/ExchangeService';
 import { SubtitleService } from './services/SubtitleService';
 import { EventsService } from './services/EventsService';
@@ -69,6 +71,8 @@ export interface AppContainer {
   photoWorkflow: PhotoWorkflowService;
   translations: TranslationService;
   weather: WeatherService;
+  flights: FlightService;
+  sailings: SailingService;
   exchange: ExchangeService;
   subtitles: SubtitleService;
   shops: ShopService;
@@ -124,6 +128,8 @@ export function createContainer(): AppContainer {
   const jejuCourse = new JejuCourseService(kiosk);
   const stats = new StatsService(kiosk, failedRequests);
   const weather = new WeatherService(cache, kiosk);
+  const flights = new FlightService(cache, kiosk);
+  const sailings = new SailingService(cache, kiosk);
   const exchange = new ExchangeService(cache);
   const subtitles = new SubtitleService(cache, kiosk);
   const events = new EventsService();
@@ -187,6 +193,8 @@ export function createContainer(): AppContainer {
     photoWorkflow,
     translations,
     weather,
+    flights,
+    sailings,
     exchange,
     subtitles,
     shops,

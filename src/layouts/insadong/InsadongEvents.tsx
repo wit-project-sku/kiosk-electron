@@ -11,6 +11,7 @@ import { useLang } from '@renderer/lib/i18n';
 import { t } from '@renderer/lib/loc';
 import { ui, uiParts, type UiTextKey } from '@renderer/lib/uiText';
 import { InsadongHeader } from './InsadongHeader';
+import { InsadongLeftNav } from './InsadongLeftNav';
 import styles from './InsadongEvents.module.css';
 
 /** Region tabs → API eventRegion (MBTI has no region; it opens the quiz).
@@ -253,7 +254,7 @@ export function InsadongEvents({ controller }: InsadongEventsProps): JSX.Element
           </div>
 
           {detailId !== null ? (
-            <EventDetailScreen eventId={detailId} accent="#fe6c50" />
+            <EventDetailScreen eventId={detailId} accent="var(--kiosk-primary)" />
           ) : (
             <>
               <div className={styles.grid}>
@@ -315,14 +316,7 @@ export function InsadongEvents({ controller }: InsadongEventsProps): JSX.Element
         </>
       )}
 
-      <div className={styles.leftNav}>
-        <button type="button" className={styles.leftNavBtn} onClick={goHome} aria-label="홈으로">
-          {iconUrl('home-btn') && <img src={iconUrl('home-btn')} alt="" draggable={false} />}
-        </button>
-        <button type="button" className={styles.leftNavBtn} onClick={goBack} aria-label="뒤로">
-          {iconUrl('back-arrow') && <img src={iconUrl('back-arrow')} alt="" draggable={false} />}
-        </button>
-      </div>
+      <InsadongLeftNav onHome={goHome} onBack={goBack} />
 
       {banner && (
         <button type="button" className={styles.banner} onClick={() => controller.startPhoto()} aria-label="가상 한복 체험">

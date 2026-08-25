@@ -3,6 +3,7 @@ import type { KioskController } from '@renderer/hooks/useKioskController';
 import { osanIconUrl } from '@renderer/assets/icons/osan';
 import { useLanguageStore } from '@renderer/store/languageStore';
 import { OsanHeader } from './OsanHeader';
+import { OsanLeftNav } from './OsanLeftNav';
 import styles from './OsanScreen.module.css';
 import { screenTitle } from '@renderer/lib/i18n';
 import { ui } from '@renderer/lib/uiText';
@@ -55,18 +56,7 @@ export function OsanScreen({ screen, controller }: OsanScreenProps): JSX.Element
         </button>
       </div>
 
-      <div className={styles.leftNav}>
-        <button type="button" className={styles.leftNavBtn} onClick={goHome} aria-label="홈으로">
-          {osanIconUrl('home-btn') && (
-            <img src={osanIconUrl('home-btn')} alt="" draggable={false} />
-          )}
-        </button>
-        <button type="button" className={styles.leftNavBtn} onClick={goHome} aria-label="뒤로">
-          {osanIconUrl('back-arrow') && (
-            <img src={osanIconUrl('back-arrow')} alt="" draggable={false} />
-          )}
-        </button>
-      </div>
+      <OsanLeftNav onHome={goHome} />
     </>
   );
 }

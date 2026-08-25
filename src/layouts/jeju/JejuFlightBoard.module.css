@@ -67,7 +67,7 @@
    six data columns only (it starts at 336, well right of the 운항 정보 title). */
 .rule {
   position: absolute;
-  left: 336px;
+  left: 330px;
   top: 97px;
   width: 1462px;
   height: 3px;
@@ -98,9 +98,21 @@
   color: #333;
 }
 
-/* 항공사/편명 used to be one line at two sizes (48 + 40); the redesign draws
-   대한항공 and (KE1141) at the same 45, so this only exists to keep the two runs
-   addressable. */
+.valueStatus {
+  font-weight: 500;
+}
+
+.empty {
+  position: absolute;
+  top: 118px;
+  font-size: 40px;
+  font-weight: 400;
+  line-height: 1;
+  color: #999;
+  white-space: nowrap;
+}
+
+/* 항공사/편명 is one line at two sizes: 대한항공 at 48, (KE1141) at 40. */
 .flightNo {
   font-size: 45px;
 }

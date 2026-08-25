@@ -163,7 +163,7 @@ export function SpotDetailCard({ data }: { data: SpotDetailData }): JSX.Element 
         <ImageLightbox
           images={realPhotos}
           initialIndex={lightboxIndex}
-          accent="#fe6c50"
+          accent="var(--kiosk-primary)"
           onClose={() => setLightboxIndex(null)}
         />
       )}

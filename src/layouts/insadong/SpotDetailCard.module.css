@@ -65,7 +65,7 @@
   width: 17px;
   height: 17px;
   border-radius: 50%;
-  background: #fe6c50;
+  background: var(--kiosk-primary);
 }
 
 .gallery {
@@ -149,7 +149,7 @@
   box-sizing: border-box;
   width: 340px;
   height: 340px;
-  border: 4.29px solid #fe6c50;
+  border: 4.29px solid var(--kiosk-primary);
   border-radius: 25px;
   background: #ffffff;
   /* Figma: QR sits ~17% inset inside the 340 box (≈224px). */

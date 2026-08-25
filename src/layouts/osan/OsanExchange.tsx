@@ -1,5 +1,7 @@
 import type { KioskController } from '@renderer/hooks/useKioskController';
 import { osanIconUrl } from '@renderer/assets/icons/osan';
+import { useLang } from '@renderer/lib/i18n';
+import { ui } from '@renderer/lib/uiText';
 import { useExchangeStore } from '@renderer/store/exchangeStore';
 import jpnFlag from '@renderer/assets/photos/insadong/exchange/jpn.svg';
 import usaFlag from '@renderer/assets/photos/insadong/exchange/usa.svg';
@@ -12,6 +14,7 @@ import thbFlag from '@renderer/assets/photos/insadong/exchange/thb.svg';
 import sarFlag from '@renderer/assets/photos/insadong/exchange/sar.svg';
 import { OsanHeader } from './OsanHeader';
 import { OsanBanner } from './OsanBanner';
+import { OsanLeftNav } from './OsanLeftNav';
 import styles from './OsanExchange.module.css';
 
 /** Currencies to show → API `cur_unit` + flag asset + display label. */
@@ -34,11 +37,13 @@ interface OsanExchangeProps {
 /** 환율 — live currency rates from the Korea Eximbank API (same as insadong). */
 export function OsanExchange({ controller }: OsanExchangeProps): JSX.Element {
   const goHome = (): void => controller.navigate('home', 'Back');
+  const lang = useLang();
   const exchange = useExchangeStore((s) => s.exchange);
+  const won = ui('won', lang);
 
   const rows = DISPLAY.map((d) => {
     const match = exchange?.rates.find((r) => r.code === d.unit);
-    return { ...d, rateText: match ? `${match.rateText}원` : '—' };
+    return { ...d, rateText: match ? `${match.rateText}${won}` : '—' };
   });
 
   return (
@@ -61,14 +66,7 @@ export function OsanExchange({ controller }: OsanExchangeProps): JSX.Element {
         </div>
       </div>
 
-      <div className={styles.leftNav}>
-        <button type="button" className={styles.leftNavBtn} onClick={goHome} aria-label="홈으로">
-          {osanIconUrl('home-btn') && <img src={osanIconUrl('home-btn')} alt="" draggable={false} />}
-        </button>
-        <button type="button" className={styles.leftNavBtn} onClick={goHome} aria-label="뒤로">
-          {osanIconUrl('back-arrow') && <img src={osanIconUrl('back-arrow')} alt="" draggable={false} />}
-        </button>
-      </div>
+      <OsanLeftNav onHome={goHome} />
 
       <OsanBanner onClick={() => controller.startPhoto()} />
     </>

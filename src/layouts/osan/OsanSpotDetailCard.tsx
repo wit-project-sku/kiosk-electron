@@ -35,7 +35,7 @@ function RatingStar({ filled }: { filled: boolean }): JSX.Element {
 
 /**
  * Osan place-detail card — same layout as the insadong 검색상세, but with the
- * Osaek navy theme (#1a4d7e accents) and the user-provided marker/alarm/phone icons.
+ * Osaek navy theme (var(--kiosk-primary) accents) and the user-provided marker/alarm/phone icons.
  */
 export function OsanSpotDetailCard({ data }: { data: SpotDetailData }): JSX.Element {
   // Real photos drive the lightbox; the grid is padded to 4 with the no-image
@@ -155,7 +155,7 @@ export function OsanSpotDetailCard({ data }: { data: SpotDetailData }): JSX.Elem
         <ImageLightbox
           images={realPhotos}
           initialIndex={lightboxIndex}
-          accent="#1a4d7e"
+          accent="var(--kiosk-primary)"
           onClose={() => setLightboxIndex(null)}
         />
       )}

@@ -120,7 +120,7 @@
 }
 
 .tabSel {
-  background: var(--photo-accent-soft, #faeee3);
+  background: var(--photo-accent-soft, var(--kiosk-secondary));
   font-weight: 700;
   color: var(--photo-accent, #fe6c50);
 }
@@ -160,7 +160,7 @@
 }
 
 .outfitSel {
-  background: var(--photo-accent-soft, #faeee3);
+  background: var(--photo-accent-soft, var(--kiosk-secondary));
   border-color: var(--photo-accent, #fe6c50);
 }
 
@@ -378,7 +378,7 @@
   align-items: center;
   gap: 40px;
   padding: 120px 160px;
-  background: #005ab4;
+  background: var(--kiosk-primary);
   border-radius: 60px;
 }
 .hwCamTitle {
@@ -532,7 +532,7 @@
 /* Osan: navy circular camera button (matches the home page), white glyph. */
 .infoNavCamOsan {
   border-radius: 50%;
-  background: #1a4d7e;
+  background: var(--kiosk-primary);
   display: flex;
   align-items: center;
   justify-content: center;

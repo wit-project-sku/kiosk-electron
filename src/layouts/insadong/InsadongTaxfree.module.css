@@ -1,6 +1,16 @@
 /* TAX-FREE — 3-tab layout. Artboard 2160×3840 px, 1 CSS px = 1 Figma px. */
 
-.bg {
+.root {
+  position: absolute;
+  inset: 0;
+  width: 2160px;
+  height: 3840px;
+  overflow: hidden;
+  font-family: 'Noto Sans KR', 'Noto Sans', sans-serif;
+  background: #fff;
+}
+
+.bgImage {
   position: absolute;
   inset: 0;
   width: 100%;
@@ -10,14 +20,12 @@
 }
 
 /* ======================================================
-   BODY — shared white card (top:699 left:170 1820×2290)
+   BODY — shared white card; top/height set inline from subtitle measure.
    ====================================================== */
 .body {
   position: absolute;
-  top: 699px;
   left: 170px;
   width: 1820px;
-  height: 2290px;
   border-radius: 42.9px;
   overflow: hidden;
   background: #ffffff;
@@ -53,7 +61,7 @@
 .pageImg {
   width: 100%;
   height: 100%;
-  object-fit: cover;
+  object-fit: contain;
   object-position: top center;
   display: block;
 }
@@ -667,17 +675,18 @@
 
 /* ======================================================
    BOTTOM TABS
-   top = 699 + 2290 + 64.7 = 3053.7px
+   top = 840 + 2095 + 64 = 2999px
    ====================================================== */
 .tabs {
   position: absolute;
   left: 50%;
   transform: translateX(-50%);
-  top: 3053.7px;
+  top: 2999px;
   width: 1814px;
   display: flex;
   align-items: center;
   justify-content: space-between;
+  z-index: 6;
 }
 
 .tab {
@@ -688,13 +697,13 @@
   align-items: center;
   justify-content: center;
   background: #ffffff;
-  border: 2.145px solid #fe6c50;
+  border: 2.145px solid var(--kiosk-primary);
   border-radius: 42.905px;
   box-shadow: 0 21.453px 42.905px rgba(143, 147, 157, 0.1);
   font-family: var(--kiosk-font, sans-serif);
   font-weight: 500;
   font-size: 52px;
-  color: #fe6c50;
+  color: var(--kiosk-primary);
   cursor: pointer;
   text-align: center;
   padding: 0 18px;
@@ -702,41 +711,14 @@
 }
 
 .tabSelected {
-  background: #fe6c50;
+  background: var(--kiosk-primary);
   color: #ffffff;
-}
-
-/* ======================================================
-   LEFT NAV & BANNER
-   ====================================================== */
-.leftNav {
-  position: absolute;
-  left: 21px;
-  top: 1995px;
-  display: flex;
-  flex-direction: column;
-  gap: 35px;
-}
-
-.leftNavBtn {
-  width: 85px;
-  height: 85px;
-  padding: 0;
-  border: none;
-  background: none;
-  cursor: pointer;
-}
-
-.leftNavBtn img {
-  width: 100%;
-  height: 100%;
-  object-fit: contain;
 }
 
 .banner {
   position: absolute;
   left: 0;
-  bottom: 0;
+  top: 3267px;
   width: 2160px;
   height: 573px;
   padding: 0;
@@ -744,9 +726,10 @@
   background: none;
   cursor: pointer;
   overflow: hidden;
+  z-index: 5;
 }
 
-.banner img {
+.bannerImg {
   width: 100%;
   height: 100%;
   object-fit: cover;

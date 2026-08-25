@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { MapPin, Search } from 'lucide-react';
 import type { KioskScreenId, SupportedLanguage } from '@shared/types/kiosk';
+import { SearchIcon } from '@layouts/components/SearchIcon';
 import type { KioskController } from '@renderer/hooks/useKioskController';
 import { trackEvent } from '@renderer/lib/analytics';
 import { useLanguageStore } from '@renderer/store/languageStore';
@@ -17,6 +17,7 @@ import { t } from '@renderer/lib/loc';
 import { FloatingKeyboard } from './keyboard/FloatingKeyboard';
 import { HangulComposer } from './keyboard/hangul';
 import type { KeyAction } from './keyboard/VirtualKeyboard';
+import { InsadongLeftNav } from './InsadongLeftNav';
 import styles from './InsadongHome.module.css';
 
 interface HomeTile {
@@ -267,7 +268,9 @@ export function InsadongHome({ controller }: InsadongHomeProps): JSX.Element {
         <div className={styles.topBlock}>
         <header className={styles.header}>
           <div className={styles.brand}>
-            <MapPin className={styles.pin} strokeWidth={2.4} />
+            {iconUrl('location-pin') && (
+              <img className={styles.pin} src={iconUrl('location-pin')} alt="" draggable={false} />
+            )}
             <span>INSADONG</span>
           </div>
           <span className={styles.date}>{formatDate(now)}</span>
@@ -319,7 +322,7 @@ export function InsadongHome({ controller }: InsadongHomeProps): JSX.Element {
               )}
               {focused && <span className={styles.caret} />}
             </span>
-            <Search className={styles.searchIcon} strokeWidth={2.4} />
+            <SearchIcon className={styles.searchIcon} />
           </button>
           <button type="button" className={styles.krBtn} onClick={() => navigate('language', '언어선택')}>
             {langCode(lang)}
@@ -371,14 +374,10 @@ export function InsadongHome({ controller }: InsadongHomeProps): JSX.Element {
         )}
       </div>
 
-      <div className={styles.leftNav}>
-        <button type="button" className={styles.leftNavBtn} onClick={() => navigate('home', 'Home')} aria-label="홈으로">
-          {iconUrl('home-btn') && <img src={iconUrl('home-btn')} alt="" draggable={false} />}
-        </button>
-        <button type="button" className={styles.leftNavBtn} onClick={() => navigate('home', 'Back')} aria-label="뒤로">
-          {iconUrl('back-arrow') && <img src={iconUrl('back-arrow')} alt="" draggable={false} />}
-        </button>
-      </div>
+      <InsadongLeftNav
+        onHome={() => navigate('home', 'Home')}
+        onBack={() => navigate('home', 'Back')}
+      />
 
       <FloatingKeyboard open={focused} onKey={applyKey} onClose={() => setFocused(false)} lang={lang} />
     </>

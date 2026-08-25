@@ -4,6 +4,7 @@ import { osanIconUrl } from '@renderer/assets/icons/osan';
 import { useLanguageStore } from '@renderer/store/languageStore';
 import { OsanHeader } from './OsanHeader';
 import { OsanBanner } from './OsanBanner';
+import { OsanLeftNav } from './OsanLeftNav';
 import styles from './OsanWebScreen.module.css';
 
 interface OsanWebScreenProps {
@@ -43,14 +44,7 @@ export function OsanWebScreen({ title, url, controller, bodyHeight }: OsanWebScr
         )}
       </div>
 
-      <div className={styles.leftNav}>
-        <button type="button" className={styles.leftNavBtn} onClick={goHome} aria-label="홈으로">
-          {osanIconUrl('home-btn') && <img src={osanIconUrl('home-btn')} alt="" draggable={false} />}
-        </button>
-        <button type="button" className={styles.leftNavBtn} onClick={goHome} aria-label="뒤로">
-          {osanIconUrl('back-arrow') && <img src={osanIconUrl('back-arrow')} alt="" draggable={false} />}
-        </button>
-      </div>
+      <OsanLeftNav onHome={goHome} />
 
       <OsanBanner onClick={() => controller.startPhoto()} />
     </>

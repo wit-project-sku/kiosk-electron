@@ -1,6 +1,5 @@
 import type { KioskController } from '@renderer/hooks/useKioskController';
 import { hwaseongIconUrl } from '@renderer/assets/icons/hwaseong';
-import { useRotatingBanner } from '@renderer/hooks/useRotatingBanner';
 import { useLang } from '@renderer/lib/i18n';
 import { ui } from '@renderer/lib/uiText';
 import { useExchangeStore } from '@renderer/store/exchangeStore';
@@ -14,6 +13,8 @@ import hkgFlag from '@renderer/assets/photos/insadong/exchange/hkg.svg';
 import thbFlag from '@renderer/assets/photos/insadong/exchange/thb.svg';
 import sarFlag from '@renderer/assets/photos/insadong/exchange/sar.svg';
 import { HwaseongHeader } from './HwaseongHeader';
+import { HwaseongBanner } from './HwaseongBanner';
+import { HwaseongLeftNav } from './HwaseongLeftNav';
 import styles from './HwaseongExchange.module.css';
 
 /** Currencies to show → API `cur_unit` + flag asset + display label. */
@@ -35,7 +36,6 @@ interface Props {
 
 /** 환율 — live currency rates (same logic/data as the other kiosks, Figma style). */
 export function HwaseongExchange({ controller }: Props): JSX.Element {
-  const banner = useRotatingBanner(hwaseongIconUrl('fg-banner'));
   const lang = useLang();
   const exchange = useExchangeStore((s) => s.exchange);
   const won = ui('won', lang);
@@ -68,19 +68,9 @@ export function HwaseongExchange({ controller }: Props): JSX.Element {
         </div>
       </div>
 
-      <div className={styles.leftNav}>
-        {hwaseongIconUrl('fg-leftnav') && (
-          <img src={hwaseongIconUrl('fg-leftnav')} alt="" className={styles.leftNavImg} draggable={false} />
-        )}
-        <button type="button" className={styles.leftNavZoneHome} onClick={() => controller.navigate('home')} aria-label="홈" />
-        <button type="button" className={styles.leftNavZoneBack} onClick={() => controller.navigate('home')} aria-label="뒤로" />
-      </div>
+      <HwaseongLeftNav onHome={() => controller.navigate('home', 'Back')} />
 
-      <div className={styles.banner}>
-        {banner && (
-          <img src={banner} alt="" className={styles.bannerImg} draggable={false} />
-        )}
-      </div>
+      <HwaseongBanner onClick={() => controller.startPhoto()} />
     </div>
   );
 }

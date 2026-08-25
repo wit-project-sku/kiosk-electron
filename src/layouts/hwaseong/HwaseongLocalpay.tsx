@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import type { KioskController } from '@renderer/hooks/useKioskController';
 import { hwaseongIconUrl } from '@renderer/assets/icons/hwaseong';
-import { useRotatingBanner } from '@renderer/hooks/useRotatingBanner';
 import { useLang } from '@renderer/lib/i18n';
 import { t } from '@renderer/lib/loc';
 import onnuriPaper from '@renderer/assets/photos/osan/localpay/onnuri-paper.png';
@@ -9,6 +8,8 @@ import onnuriDigital from '@renderer/assets/photos/osan/localpay/onnuri-digital.
 import onnuriBi from '@renderer/assets/photos/osan/localpay/onnuri-bi.png';
 import appQr from '@renderer/assets/photos/osan/localpay/app-qr.png';
 import { HwaseongHeader } from './HwaseongHeader';
+import { HwaseongBanner } from './HwaseongBanner';
+import { HwaseongLeftNav } from './HwaseongLeftNav';
 import styles from './HwaseongLocalpay.module.css';
 
 // Every string on this screen comes from Localization_Hwaseong's MarketPaper_*
@@ -48,7 +49,6 @@ interface Props {
 }
 
 export function HwaseongLocalpay({ controller }: Props): JSX.Element {
-  const banner = useRotatingBanner(hwaseongIconUrl('fg-banner'));
   const lang = useLang();
   const [tab, setTab] = useState(0);
 
@@ -170,20 +170,10 @@ export function HwaseongLocalpay({ controller }: Props): JSX.Element {
       )}
 
       {/* Left nav */}
-      <div className={styles.leftNav}>
-        {hwaseongIconUrl('fg-leftnav') && (
-          <img src={hwaseongIconUrl('fg-leftnav')} alt="" className={styles.leftNavImg} draggable={false} />
-        )}
-        <button type="button" className={styles.leftNavZoneHome} onClick={() => controller.navigate('home')} aria-label="홈" />
-        <button type="button" className={styles.leftNavZoneBack} onClick={() => controller.navigate('home')} aria-label="뒤로" />
-      </div>
+      <HwaseongLeftNav onHome={() => controller.navigate('home', 'Back')} />
 
       {/* Bottom banner */}
-      <div className={styles.banner}>
-        {banner && (
-          <img src={banner} alt="" className={styles.bannerImg} draggable={false} />
-        )}
-      </div>
+      <HwaseongBanner onClick={() => controller.startPhoto()} />
     </div>
   );
 }

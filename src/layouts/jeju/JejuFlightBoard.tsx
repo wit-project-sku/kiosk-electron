@@ -26,6 +26,7 @@ import {
   flightKindLabel,
   flightStatusColor,
   flightStatusLabel,
+  formatGate,
   hasTimeChange,
   useJejuDepartures,
 } from '@renderer/lib/jejuFlight';
@@ -126,13 +127,13 @@ function FlightCells({ departure, lang }: { departure: JejuDeparture; lang: Lang
       </span>
 
       <span className={styles.value} style={{ left: COLUMNS.gate }}>
-        {departure.gate}
+        {formatGate(departure.gate)}
       </span>
 
       {/* Blank when the airport has published no 현황 — see normalizeFlightStatus. */}
       {departure.status && (
         <span
-          className={`${styles.value} ${styles.status}`}
+          className={`${styles.value} ${styles.valueStatus}`}
           style={{ left: COLUMNS.status, color: flightStatusColor(departure.status) }}
         >
           {flightStatusLabel(departure.status, lang)}
@@ -142,15 +143,21 @@ function FlightCells({ departure, lang }: { departure: JejuDeparture; lang: Lang
   );
 }
 
-export function JejuFlightBoard({ controller, lang }: Props): JSX.Element | null {
-  const departures = useJejuDepartures();
-  // Before the early return below — hooks cannot run conditionally.
-  const lowReach = useAccessibilityStore((s) => s.lowReach);
+const EMPTY_LEAD = {
+  ko: '운항 정보를 불러오는 중입니다.',
+  en: 'Loading flight information…',
+  ja: '運航情報を読み込み中です。',
+  zh: '正在加载航班信息…',
+  vi: 'Đang tải thông tin chuyến bay…',
+  th: 'กำลังโหลดข้อมูลเที่ยวบิน…',
+  ru: 'Загрузка рейсов…',
+  id: 'Memuat informasi penerbangan…',
+};
 
-  // No feed, no board — better an empty strip of background than a frame of
-  // headers over nothing.
+export function JejuFlightBoard({ controller, lang }: Props): JSX.Element {
+  const lowReach = useAccessibilityStore((s) => s.lowReach);
+  const departures = useJejuDepartures();
   const lead = departures[0];
-  if (!lead) return null;
 
   return (
     <>
@@ -164,7 +171,13 @@ export function JejuFlightBoard({ controller, lang }: Props): JSX.Element | null
           </span>
         ))}
 
-        <FlightCells departure={lead} lang={lang} />
+        {lead ? (
+          <FlightCells departure={lead} lang={lang} />
+        ) : (
+          <span className={styles.empty} style={{ left: COLUMNS.time }}>
+            {pick(EMPTY_LEAD, lang)}
+          </span>
+        )}
       </div>
 
       {/* Opens 제주>운항정보 (JejuFlights) — the full 출발/도착 board. */}
