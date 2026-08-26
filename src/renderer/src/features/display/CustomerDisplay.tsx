@@ -10,7 +10,10 @@ import { usePhotoWorkflow } from '@renderer/hooks/usePhotoWorkflow';
 import { usePhotoStore } from '@renderer/store/photoStore';
 import { trackEvent } from '@renderer/lib/analytics';
 import { displayVideosFor } from '@renderer/assets/videos';
+import { cameraIconUrl } from '@renderer/assets/icons/insadong/camera';
 import { clipsForPlayKey, clipsForScreen, initSubtitles, initVideoFiles } from '@renderer/lib/videoMap';
+import { getCameraRotation, getKioskLocation, isJejuLayout } from '@shared/config/kioskLocations';
+import { PHOTO_COUNTDOWN_SECONDS } from '@shared/constants/photoOptions';
 import type { WeatherPlayKey } from '@shared/config/weatherVideo';
 import spinnerImg from '@renderer/assets/spinner.svg';
 import { KioskArtboard } from '@layouts/components/KioskScreenImage';
@@ -205,10 +208,17 @@ export function CustomerDisplay(): JSX.Element {
 
   const assets = library.filter((a) => state.assetIds.includes(a.id));
 
+  // 제주 has its own camera screen (and the sideways camera mount that goes
+  // with it); every other location draws the legacy screen further down.
+  const isJeju = kioskId ? isJejuLayout(getKioskLocation(kioskId as KioskId).layout) : false;
+  /** The venue's mount rotation — 90 on 제주, 0 (upright) everywhere else. */
+  const cameraRotation = kioskId ? getCameraRotation(kioskId as KioskId) : 0;
+
   const cameraEnabled = state.mode === 'camera' || state.mode === 'countdown';
   const { videoRef, capture } = useKioskCamera({
     deviceId: state.cameraDeviceId,
     enabled: cameraEnabled,
+    rotation: cameraRotation,
   });
 
   const sessionId = usePhotoStore((s) => s.sessionId);
@@ -314,19 +324,77 @@ export function CustomerDisplay(): JSX.Element {
       )}
 
       {/* ── Camera / countdown ──
-          ONE screen for every location since 2026-08-24: the gesture-gated
-          guide (dark header, palm/fist chips, live feed with the pose outline).
-          The legacy Insadong screen — numbered tips, reference-pose boxes,
-          disclaimer, branding — is retired along with its per-location branch;
-          its styles remain in the CSS should it ever need to come back. */}
-      {(state.mode === 'camera' || state.mode === 'countdown') && (
+          제주 draws the gesture-gated guide (dark header, palm/fist chips, live
+          feed with the pose outline) over its sideways-mounted camera. It ran
+          fleet-wide for a couple of days (2026-08-24 → 08-26) but the other
+          venues' cameras are mounted upright and their design is the legacy
+          screen below, so the per-location branch is back. */}
+      {(state.mode === 'camera' || state.mode === 'countdown') && isJeju && (
         <JejuCameraGuide
           videoRef={videoRef}
           lang={lang}
           countdown={state.countdown}
+          rotation={cameraRotation}
           gestureGate={gestureGate}
           detectionUnavailable={gestureStatus === 'unavailable'}
         />
+      )}
+
+      {/* Legacy camera screen (Figma 4795:43166, 2160×3840 artboard) — every
+          non-제주 location: numbered tips, dashed guide overlay, reference-pose
+          boxes, disclaimer, branding. Ungated: the countdown was started by the
+          capture button (see PhotoWorkflow.handleCapture), so the gesture
+          branches above stay inert here ('off'). */}
+      {(state.mode === 'camera' || state.mode === 'countdown') && !isJeju && (
+        <div className={styles.cameraScreen}>
+          {/* Top: title + numbered tips. Left '10' is static info; the badge on
+              the right is the LIVE countdown. */}
+          <div className={styles.camText}>
+            <div className={styles.camTitleRow}>
+              <p className={styles.camTitle}>
+                <span className={styles.camCount}>&apos;{PHOTO_COUNTDOWN_SECONDS}&apos;</span>
+                <span className={styles.camTitleRest}> 초후에 촬영이 됩니다.</span>
+              </p>
+              <div className={styles.camLiveCount}>{state.countdown ?? PHOTO_COUNTDOWN_SECONDS}</div>
+            </div>
+            <ol className={styles.camTips}>
+              <li className={styles.camTip}>
+                <span className={styles.camTipIconGap} aria-hidden />안경은 벗고 찍어주세요.
+              </li>
+              <li className={styles.camTip}>원안에 ‘얼굴’과 ‘손’을 넣어주세요.</li>
+              <li className={styles.camTip}>원 밖으로 나가면 이상하게 합성될 수 있어요.</li>
+            </ol>
+          </div>
+          {cameraIconUrl('no-glasses') && (
+            <img src={cameraIconUrl('no-glasses')} className={styles.camNoGlasses} alt="" draggable={false} />
+          )}
+
+          {/* Middle: live camera + dashed guide overlay */}
+          <div className={styles.camFeedWrap}>
+            <video ref={videoRef} className={styles.camFeed} muted playsInline />
+            {cameraIconUrl('guide-overlay') && (
+              <img src={cameraIconUrl('guide-overlay')} className={styles.camGuide} alt="" draggable={false} />
+            )}
+          </div>
+
+          {/* Bottom: two reference-pose boxes */}
+          {cameraIconUrl('pose-ref-left') && (
+            <img src={cameraIconUrl('pose-ref-left')} className={styles.camRefLeft} alt="" draggable={false} />
+          )}
+          <div className={styles.camRefRight}>
+            {cameraIconUrl('pose-ref-right-frame') && (
+              <img src={cameraIconUrl('pose-ref-right-frame')} className={styles.camRefRightFrame} alt="" draggable={false} />
+            )}
+            {cameraIconUrl('pose-ref-right') && (
+              <img src={cameraIconUrl('pose-ref-right')} className={styles.camRefRightImg} alt="" draggable={false} />
+            )}
+          </div>
+
+          <p className={styles.camDisclaimer}>
+            # 날씨가 어둡거나 흐린날은 AI 사진 합성이 어색할 수 있어요
+          </p>
+          <p className={styles.camBranding}>WIT GLOBAL &nbsp;x&nbsp; DIGICON</p>
+        </div>
       )}
 
       {/* ── Generating / waiting ── */}

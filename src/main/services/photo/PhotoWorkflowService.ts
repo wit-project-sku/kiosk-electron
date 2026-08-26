@@ -97,9 +97,10 @@ export class PhotoWorkflowService {
       backgroundId,
       phase: 'preview',
       selectedCameraDeviceId: cameraDeviceId,
-      // Every location arms the gate immediately after this call
-      // (2026-08-24 — the 손동작 게이트 went fleet-wide). Clearing it here means
-      // a second run through the flow can never inherit the previous one's gate.
+      // 제주 arms the gate immediately after this call; the other venues go
+      // straight to beginCountdown (see PhotoWorkflow.handleCapture). Clearing
+      // it here means a second run through the flow can never inherit the
+      // previous one's gate.
       gestureGate: 'off',
       errorMessage: null,
     };
@@ -109,8 +110,9 @@ export class PhotoWorkflowService {
   }
 
   /**
-   * Arm the 손동작 게이트 instead of counting straight away — every location
-   * since 2026-08-24 (it began as 제주-only).
+   * Arm the 손동작 게이트 instead of counting straight away — 제주 only. (It
+   * went fleet-wide 2026-08-24 and back to 제주-only 2026-08-26, when the other
+   * venues' legacy camera screen — which has no gesture chips — returned.)
    *
    * The camera is already live (selectStyle put Monitor 2 in 'camera' mode);
    * this just says "we are waiting for a hand, not for the clock". The count is
@@ -140,10 +142,9 @@ export class PhotoWorkflowService {
       ...this.state,
       phase: 'countdown',
       countdown: PHOTO_COUNTDOWN_SECONDS,
-      // Only a gate that was armed starts running. Since every location arms
-      // the gate now, 'off' survives only for a count started outside the
-      // normal flow (nothing armed it) — and must stay 'off' so the camera
-      // screen does not narrate gestures nobody is watching for.
+      // Only a gate that was armed starts running: the non-제주 venues call
+      // this directly with the gate 'off', and it must stay 'off' so the
+      // camera screen does not narrate gestures nobody is watching for.
       gestureGate: this.state.gestureGate === 'off' ? 'off' : 'running',
     };
     this.syncDisplay('countdown', { countdown: PHOTO_COUNTDOWN_SECONDS });

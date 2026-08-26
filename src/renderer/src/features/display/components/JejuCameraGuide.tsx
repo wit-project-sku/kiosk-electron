@@ -1,7 +1,9 @@
 /**
- * Customer-display camera guide — what the second screen shows while the
- * visitor is being photographed (`camera` / `countdown` modes). Every location
- * draws this screen; the 손동작 게이트 behind it is armed everywhere too.
+ * Customer-display camera guide — what the second screen shows while a 제주
+ * kiosk's visitor is being photographed (`camera` / `countdown` modes). 제주
+ * ONLY since 2026-08-26: it briefly ran fleet-wide (with the 손동작 게이트),
+ * but the other venues went back to their own legacy screen and an ungated
+ * countdown — see the camera branch in CustomerDisplay.
  *
  * ★ ONE OVERLAY IMAGE since 2026-08-24: the designer shipped the whole guide
  * as a single transparent PNG (repo root icons/"Group 1707482852 (1).png",
@@ -22,7 +24,7 @@
  * in the CSS comment above `.count`).
  */
 import type { RefObject } from 'react';
-import { PHOTO_CAMERA_ROTATION, PHOTO_COUNTDOWN_SECONDS } from '@shared/constants/photoOptions';
+import { PHOTO_COUNTDOWN_SECONDS } from '@shared/constants/photoOptions';
 import type { PhotoGestureGate } from '@shared/types/photo';
 import { jejuIconUrl } from '@renderer/assets/icons/jeju';
 import { pick } from '@renderer/lib/i18n';
@@ -34,6 +36,12 @@ interface Props {
   lang: Lang;
   /** Live seconds remaining, or null before the count starts. */
   countdown: number | null;
+  /**
+   * The venue's camera mount rotation (kioskLocations.cameraRotation) — 90 on
+   * the 제주 kiosks, whose cameras are mounted sideways. Must be the SAME value
+   * useKioskCamera captures with, or the preview and the photo disagree.
+   */
+  rotation: 0 | 90 | 180 | 270;
   /** 손동작 게이트 — armed at every location. See PhotoGestureGate. */
   gestureGate: PhotoGestureGate;
   /**
@@ -72,6 +80,7 @@ export function JejuCameraGuide({
   videoRef,
   lang,
   countdown,
+  rotation,
   gestureGate,
   detectionUnavailable,
 }: Props): JSX.Element {
@@ -80,7 +89,7 @@ export function JejuCameraGuide({
   const held = gestureGate === 'held';
   const overlay = jejuIconUrl('capture-guide');
   /** Sideways-mounted camera → the feed box is sized swapped; see .feedRotated. */
-  const sideways = PHOTO_CAMERA_ROTATION === 90 || PHOTO_CAMERA_ROTATION === 270;
+  const sideways = rotation === 90 || rotation === 270;
 
   return (
     <div className={styles.root}>
@@ -88,13 +97,13 @@ export function JejuCameraGuide({
           centre (for the swapped-size rotated box) → mirror (the camera faces
           the visitor, so without the flip "raise your hand" points them the
           wrong way) → the mount rotation that stands the sideways sensor frame
-          upright (PHOTO_CAMERA_ROTATION — also applied to the captured JPEG in
+          upright (`rotation` — also applied to the captured JPEG in
           useKioskCamera, so what the AR API gets matches what was on glass). */}
       <video
         ref={videoRef}
         className={`${styles.feed} ${sideways ? styles.feedRotated : ''}`}
         style={{
-          transform: `${sideways ? 'translate(-50%, -50%) ' : ''}scaleX(-1) rotate(${PHOTO_CAMERA_ROTATION}deg)`,
+          transform: `${sideways ? 'translate(-50%, -50%) ' : ''}scaleX(-1) rotate(${rotation}deg)`,
         }}
         muted
         playsInline

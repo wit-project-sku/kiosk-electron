@@ -115,6 +115,8 @@ export function JejuPageFrame({
       {heroSrc && (
         <div className={styles.hero}>
           <img src={heroSrc} alt="" className={styles.heroImg} draggable={false} />
+          <div className={`${styles.heroRule} ${styles.heroRuleTop}`} />
+          <div className={`${styles.heroRule} ${styles.heroRuleBottom}`} />
         </div>
       )}
 
