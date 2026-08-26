@@ -217,10 +217,15 @@ export function displayTime(f: JejuFlightBase): string {
   return hasTimeChange(f) ? (f.estimatedTime as string) : f.scheduledTime;
 }
 
+/** Empty/null board cells (탑승구 · 수하물수취대 · 현황) read as "-". */
+export function dashIfEmpty(value: string | undefined): string {
+  if (value?.trim()) return value.trim();
+  return '-';
+}
+
 /** 탑승구 — empty/null from the apron feed reads as "-". */
 export function formatGate(gate: string | undefined): string {
-  if (gate?.trim()) return gate.trim();
-  return '-';
+  return dashIfEmpty(gate);
 }
 
 export function normalizeDeparture(raw: RawJejuDeparture): JejuDeparture {
