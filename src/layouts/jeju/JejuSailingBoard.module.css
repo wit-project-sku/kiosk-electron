@@ -10,8 +10,10 @@
   --jeju-subtab-sep-after: 80px;
 }
 
+/* Low-reach rides the 공지 panel's +843 (2026-08 revision — was +837), same as
+   the board and 더보기 below; see JejuFlightBoard.module.css. */
 .portsLow.portsLow {
-  top: 1492px;
+  top: 1498px;
 }
 
 .board {
@@ -25,7 +27,7 @@
 }
 
 .boardLow {
-  top: 1569px;
+  top: 1575px;
 }
 
 .title {
@@ -128,7 +130,7 @@
 }
 
 .moreLow {
-  top: 1792px;
+  top: 1798px;
 }
 
 .chevron {

@@ -323,14 +323,17 @@ const jejuTileKey = (tile: Tile): TileKey => ({ screen: tile.screen });
 /** 300-wide tile + 180 gap across, 412-tall tile + 80 gap down. */
 const COL_STEP = 480;
 const ROW_STEP = 492;
-/* Low-reach compresses the tile grid: columns land on 0/503.33/1006.67/1510 and
-   rows on 0/334/667 (Figma 6442:105429). */
-const COL_STEP_LOW = 503.33;
-const ROW_STEP_LOW = 333.5;
+/* Low-reach reflows the grid to 6 columns × 2 rows of 230px tiles: columns step
+   by 312.4 ((1792 − 230) / 5), rows by 374 (Figma 6442:105429, 2026-08 rev). */
+const COL_STEP_LOW = 312.4;
+const ROW_STEP_LOW = 374;
+const COLS = 4;
+const COLS_LOW = 6;
 
-/** Search row geometry (mirrors .searchRow in the CSS) — the inline keyboard
- *  tray is positioned from it, so the two can't drift apart. */
+/** Search row geometry (mirrors .searchRow/.searchRowLow in the CSS) — the
+ *  inline keyboard tray is positioned from it, so the two can't drift apart. */
 const SEARCH_ROW_TOP = 1136;
+const SEARCH_ROW_TOP_LOW = 1942;
 const SEARCH_ROW_HEIGHT = 182;
 
 interface CardDef {
@@ -437,8 +440,13 @@ export function JejuHome({ controller }: Props): JSX.Element {
   const toggleLowReach = useAccessibilityStore((s) => s.toggleLowReach);
   /* Params are optional because CSS Module lookups are typed `string | undefined`. */
   const low = (base?: string, alt?: string): string => `${base ?? ''} ${lowReach ? alt ?? '' : ''}`;
+  const cols = lowReach ? COLS_LOW : COLS;
   const colStep = lowReach ? COL_STEP_LOW : COL_STEP;
   const rowStep = lowReach ? ROW_STEP_LOW : ROW_STEP;
+  /* The ♿ toggle swaps to its orange active render while low-reach is on
+     (Figma image 503); fall back to the idle art until the asset lands. */
+  const accessibilityIcon =
+    (lowReach ? jejuIconUrl('ico-accessibility-on') : undefined) ?? jejuIconUrl('ico-accessibility');
 
   return (
     <div className={styles.root}>
@@ -446,11 +454,12 @@ export function JejuHome({ controller }: Props): JSX.Element {
         <img src={jejuIconUrl('bg')} alt="" className={styles.bgImage} draggable={false} />
       )}
 
+      {lowReach && (
+        <div className={styles.modeBar}>지금은 베리어프리 모드입니다.</div>
+      )}
       {lowReach && jejuIconUrl('banner-ai-hero') && (
         <div className={styles.hero}>
           <img src={jejuIconUrl('banner-ai-hero')} alt="" className={styles.heroImg} draggable={false} />
-          <div className={`${styles.heroRule} ${styles.heroRuleTop}`} />
-          <div className={`${styles.heroRule} ${styles.heroRuleBottom}`} />
         </div>
       )}
 
@@ -560,7 +569,7 @@ export function JejuHome({ controller }: Props): JSX.Element {
               className={[styles.tile, lowReach ? styles.tileLow : '', disabled ? styles.tileDisabled : '']
                 .filter(Boolean)
                 .join(' ')}
-              style={{ left: (i % 4) * colStep, top: Math.floor(i / 4) * rowStep }}
+              style={{ left: (i % cols) * colStep, top: Math.floor(i / cols) * rowStep }}
               onClick={disabled ? undefined : () => go(tile.screen, tile.label)}
               disabled={disabled}
             >
@@ -583,14 +592,15 @@ export function JejuHome({ controller }: Props): JSX.Element {
         })}
       </div>
 
-      {/* ── Bottom actions ── */}
+      {/* ── Bottom actions — same position in both layouts (the 2026-08 low-reach
+          revision dropped the old +115 shift) ── */}
       {/* K-DRAMA is DISABLED for now — the screen behind it is not ready. Only
           the click is off: no dim, no colour change, so the art stays exactly
           as the frame draws it (`disabled` alone would take Chrome's UA fade).
           Re-enable by restoring `onClick={() => go('kdrama', 'K-DRAMA')}`. */}
       <button
         type="button"
-        className={low(styles.kdrama, styles.kdramaLow)}
+        className={styles.kdrama}
         disabled
         aria-disabled="true"
         aria-label="K-DRAMA"
@@ -599,15 +609,15 @@ export function JejuHome({ controller }: Props): JSX.Element {
           <img src={jejuIconUrl('btn-kdrama')} alt="" className={styles.actionImg} draggable={false} />
         )}
       </button>
-      <span className={`${styles.actionLabel} ${styles.labelKdrama} ${lowReach ? styles.actionLabelLow : ''}`}>K-DRAMA</span>
+      <span className={`${styles.actionLabel} ${styles.labelKdrama}`}>K-DRAMA</span>
 
-      <button type="button" className={low(styles.camera, styles.cameraLow)} onClick={() => controller.startPhoto()} aria-label="사진촬영">
+      <button type="button" className={styles.camera} onClick={() => controller.startPhoto()} aria-label="사진촬영">
         {jejuIconUrl('btn-camera') && (
           <img src={jejuIconUrl('btn-camera')} alt="" className={styles.actionImg} draggable={false} />
         )}
       </button>
 
-      <button type="button" className={low(styles.restroom, styles.restroomLow)} onClick={() => go('restroom', '화장실')} aria-label="화장실">
+      <button type="button" className={styles.restroom} onClick={() => go('restroom', '화장실')} aria-label="화장실">
         {jejuIconUrl('ico-restroom') && (
           <img src={jejuIconUrl('ico-restroom')} alt="" className={styles.actionImg} draggable={false} />
         )}
@@ -616,12 +626,14 @@ export function JejuHome({ controller }: Props): JSX.Element {
           this label was the one home-screen string still hardcoded Korean.
           `navigate()` above keeps receiving the Korean '화장실' — that string is
           the analytics label and the buttons-table join, like every tile. */}
-      <span className={`${styles.actionLabel} ${styles.labelRestroom} ${lowReach ? styles.actionLabelLow : ''}`}>
+      <span className={`${styles.actionLabel} ${styles.labelRestroom}`}>
         {t('MainButton_WC', lang)}
       </span>
 
-      {/* ── Left nav (one Figma render, two tap zones) ── */}
-      <div className={styles.leftNav}>
+      {/* ── Left nav (one Figma render, two tap zones) — low-reach crops the
+          render to the back button alone at y2163; the search row carries the
+          home button there ── */}
+      <div className={low(styles.leftNav, styles.leftNavLow)}>
         {jejuIconUrl('nav-left') && (
           <img src={jejuIconUrl('nav-left')} alt="" className={styles.leftNavImg} draggable={false} />
         )}
@@ -638,7 +650,7 @@ export function JejuHome({ controller }: Props): JSX.Element {
           aria-label="뒤로"
         />
       </div>
-      {jejuIconUrl('ico-accessibility') && (
+      {accessibilityIcon && (
         <button
           type="button"
           className={styles.accessibility}
@@ -647,7 +659,7 @@ export function JejuHome({ controller }: Props): JSX.Element {
           aria-pressed={lowReach}
         >
           <img
-            src={jejuIconUrl('ico-accessibility')}
+            src={accessibilityIcon}
             alt=""
             className={styles.accessibilityImg}
             draggable={false}
@@ -656,16 +668,16 @@ export function JejuHome({ controller }: Props): JSX.Element {
       )}
 
       {/* Inline search keyboard — shows in place, no navigation until Enter.
-          `top` must track the search row (1136 + 182 = 1318) so the tray opens
-          flush UNDER it; the shared default of 900 is Insadong's position and
-          would put the keyboard above Jeju's search bar. */}
+          `top` must track the search row (1136 + 182 = 1318, or 1942 + 182 in
+          low-reach) so the tray opens flush UNDER it; the shared default of 900
+          is Insadong's position and would put it above Jeju's search bar. */}
       <FloatingKeyboard
         open={searching}
         onKey={applyKey}
         onClose={() => setSearching(false)}
         lang={lang}
         lightBackspace
-        top={SEARCH_ROW_TOP + SEARCH_ROW_HEIGHT}
+        top={(lowReach ? SEARCH_ROW_TOP_LOW : SEARCH_ROW_TOP) + SEARCH_ROW_HEIGHT}
       />
     </div>
   );

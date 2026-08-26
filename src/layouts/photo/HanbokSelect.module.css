@@ -93,18 +93,29 @@
   font-size: 40px;
 }
 
-/* Category tabs (2×4) */
+/* Category tabs — 2 rows, columns from the API's category count.
+   The design's 8 tabs are 420 wide across the 1820 column, so the gap is
+   (1820 − 4×420) / 3 ≈ 46.67. Button width is derived from `--tab-cols`
+   (set inline by HanbokSelect) with that same gap, which gives back the
+   exact 420 at 4 columns and divides the same 1820 at more. */
 .tabs {
+  --tab-gap: 46.67px;
   display: flex;
-  flex-wrap: wrap;
-  justify-content: space-between;
+  flex-direction: column;
   row-gap: 35px;
   width: 1820px;
 }
 
+/* Fixed column gap, so a short second row leaves its hole at the END of the
+   row (where the design's own short row would) instead of spreading out. */
+.tabRow {
+  display: flex;
+  column-gap: var(--tab-gap);
+}
+
 .tab {
   box-sizing: border-box;
-  width: 420px;
+  width: calc((1820px - (var(--tab-cols, 4) - 1) * var(--tab-gap)) / var(--tab-cols, 4));
   height: 170px;
   display: flex;
   align-items: center;
@@ -123,6 +134,26 @@
   background: var(--photo-accent-soft, var(--kiosk-secondary));
   font-weight: 700;
   color: var(--photo-accent, #fe6c50);
+}
+
+/* 5+ columns: the buttons are narrower than the design's 420, so the longer
+   localized labels need the smaller type to stay on one line. */
+.tabsTight .tab {
+  font-size: 42px;
+}
+
+/* A registered tab whose category has no outfits yet — takes the grid's band
+   so the layout below does not shift. */
+.emptyCat {
+  width: 1820px;
+  height: 1016px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--kiosk-font, sans-serif);
+  font-weight: 600;
+  font-size: 60px;
+  color: #999999;
 }
 
 /* Outfit grid — 2 horizontally-scrollable rows */

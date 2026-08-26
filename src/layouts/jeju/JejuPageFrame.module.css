@@ -76,10 +76,12 @@
   --jeju-body-shift: 0px;
 }
 
-/* The hero banner itself: 2160×1181 with a 30px #f49c56 rule across its top and
-   bottom edges (Figma draws them as separate bars at y0 and y1151). The artwork
-   is exported at 1536×857, a slightly squarer aspect than the box, so it is
-   drawn `cover` — which is what Figma's own 100.07%/102.12% overscan does. */
+/* The hero banner itself: 2160×1181. Figma also frames it with a 30px #f49c56
+   rule across its top and bottom edges (separate bars at y0 and y1151) —
+   removed at the user's direction 2026-08-26, same call as the home hero: the
+   art stands alone. The artwork is exported at 1536×857, a slightly squarer
+   aspect than the box, so it is drawn `cover` — which is what Figma's own
+   100.07%/102.12% overscan does. */
 .hero {
   position: absolute;
   left: 0;
@@ -99,17 +101,6 @@
   display: block;
   pointer-events: none;
 }
-
-.heroRule {
-  position: absolute;
-  left: 0;
-  width: 2160px;
-  height: 30px;
-  background: #f49c56;
-}
-
-.heroRuleTop { top: 0; }
-.heroRuleBottom { top: 1151px; }
 
 /* Sub-pages use a DIFFERENT background from the home screen: `image 182`
    (Figma node 6043:14435), the same illustration on every sub-page — the AI

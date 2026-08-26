@@ -628,35 +628,67 @@
 
 
 /* ────────────────────────────────────────────────────────────────────────────
- * LOW-REACH (♿) — Figma 6442:105429.
+ * LOW-REACH (♿) — Figma 6442:105429, re-read 2026-08-26 after the design
+ * revision.
  *
- * The home screen takes the "hero + restart" shape: a 2160×959 banner opens the
- * page (30px #f49c56 rules across y0 and y929, probed on the 1:1 render) and
- * everything restarts under it. It is NOT a uniform shift — the hero eats 959px,
- * so the lower half also COMPRESSES:
+ * The revision opens the page with a 113px mode bar ("지금은 베리어프리
+ * 모드입니다.") above the hero (y113–966), and everything below slid down
+ * ~6–26px. The bar IS product UI (confirmed
+ * 2026-08-26 after some back-and-forth) with one deliberate deviation: white
+ * text on the brand-orange #ff7f0f band, not the frame's #232323 on #999 — the
+ * user's standing direction for this bar on every 베리어프리 frame that carries
+ * it. The bigger change is the tile grid: it reflows from the standard 4×3
+ * two-line tiles to 6 columns × 2 rows with a SINGLE 400-weight label per tile.
  *
  *                     standard        low-reach
+ *   mode bar          —               0      h113
+ *   hero              —               113    h853
  *   top bar           125             1005
- *   공지 panel         297             1134
- *   운항 정보 board     732             1569   ┐ ride the 공지 panel — a rigid +837
- *   운항 정보 더보기    955             1792   ┘ with no compression. Both live in
+ *   공지 panel         297             1140
+ *   운항 정보 board     732             1575   ┐ ride the 공지 panel — a rigid +843
+ *   운항 정보 더보기    955             1798   ┘ with no compression. Both live in
  *                                              JejuFlightBoard.module.css.
- *   검색장             1136            1916   (and 2000→1910 wide, at x125)
- *   feature cards     1407  h310      2130   h250
- *   tile panel        1772  h1494     2412   h1009
- *   tile grid         1821  h1396     2431   h970   (at x209, w1741)
+ *   검색장             1136            1942   (and 2000→1910 wide, at x125)
+ *   feature cards     1407  h310      2176   h250 (at x170, w1860, AI card 706)
+ *   tile panel        1772  h1494     2478   h810   (at x150, w1860)
+ *   tile grid         1821  h1396     2544   h678   (at x188, w1792, 6 cols)
  *   tile art          300×300         230×230, label at 260 not 335
- *   grid step         480 × 492       503.33 × 333.5
- *   bottom row        3338…3648       3453…3763   (a flat +115)
+ *   grid step         480 × 492       312.4 × 374
+ *   bottom row        3338…3648       unchanged — the old +115 shift is gone
  *
- * The left rail and ♿ do not move (2043 / 2283), same as every other page.
+ * The left rail DOES move now: the design drops the rail's home icon (the
+ * search row has its own), draws only the back button at y2163, and swaps the
+ * ♿ at 2283 to its orange active state (ico-accessibility-on, Figma image 503).
  * ──────────────────────────────────────────────────────────────────────────── */
-.hero {
+/* The type is the Figma bar's own — Pretendard Bold 68 via the inherited
+   --kiosk-font — but the COLOURS are not: white text on the brand-orange band
+   replaces the frame's #232323-on-#999, by the user's standing direction
+   (2026-08-26) for this bar on every 베리어프리 frame that carries it. */
+.modeBar {
   position: absolute;
   left: 0;
   top: 0;
   width: 2160px;
-  height: 959px;
+  height: 113px;
+  background: var(--kiosk-primary, #ff7f0f);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 68px;
+  font-weight: 700;
+  line-height: 1;
+  color: #fff;
+}
+
+/* The Figma-exact banner box: 2160×853 (the 157/62 ratio) at y113. The frame
+   also frames it with two 30px #f49c56 rules at y113/y936 — removed at the
+   user's direction 2026-08-26, the art stands alone. */
+.hero {
+  position: absolute;
+  left: 0;
+  top: 113px;
+  width: 2160px;
+  height: 853px;
   overflow: hidden;
 }
 
@@ -664,31 +696,20 @@
   width: 100%;
   height: 100%;
   object-fit: cover;
-  /* Figma scales the art to h125.76% and pins it at top -17.45%, so 67.7% of the
-     vertical overflow (17.45 / 25.76) is cropped off the TOP — not the even
+  /* Figma scales the art to h141.38% and pins it at top -22.28%, so 53.9% of the
+     vertical overflow (22.28 / 41.38) is cropped off the TOP — not the even
      split `cover` would default to. */
-  object-position: center 67.7%;
+  object-position: center 53.9%;
   display: block;
   pointer-events: none;
 }
 
-.heroRule {
-  position: absolute;
-  left: 0;
-  width: 2160px;
-  height: 30px;
-  background: #f49c56;
-}
-
-.heroRuleTop { top: 0; }
-.heroRuleBottom { top: 929px; }
-
 .topBarLow { top: 1005px; }
-.noticeLow { top: 1134px; }
+.noticeLow { top: 1140px; }
 
 .searchRowLow {
   left: 125px;
-  top: 1916px;
+  top: 1942px;
   width: 1910px;
 }
 
@@ -699,23 +720,50 @@
 
 .langBtnLow { left: 1730px; }
 
+/* 1860 wide, justify-between over 706 + 540 + 540 → two 37px gaps, i.e. card
+   lefts 0 / 743 / 1320. All three drop to 250 tall, so their contents move up:
+   titles to 74/78, subs to 148/152, and each card's art shrinks to fit.
+   NORMALISED: the AI subtitle sits at x410.42 in Figma against the title's
+   x401.01; both are left-aligned, so both use 401 (same call as standard). */
 .cardsLow {
-  top: 2130px;
+  left: 170px;
+  top: 2176px;
+  width: 1860px;
   height: 250px;
 }
 
-.cardLow { height: 250px; }
+.cardsLow .card { height: 250px; }
+
+.cardsLow .cardAi { width: 706px; }
+.cardsLow .cardAi .cardTitle { left: 401px; top: 74px; }
+.cardsLow .cardAi .cardSub   { left: 401px; top: 148px; }
+.cardsLow .cardAi .cardArt   { left: 56px; top: 31px; width: 222px; height: 191px; }
+
+.cardsLow .cardMarket { left: 743px; }
+.cardsLow .cardMarket .cardTitle { left: 57px; top: 78px; }
+.cardsLow .cardMarket .cardSub   { left: 57px; top: 152px; }
+.cardsLow .cardMarket .cardArt   { left: 337px; top: 45px; width: 109px; height: 169px; }
+
+.cardsLow .cardEvents { left: 1320px; }
+.cardsLow .cardEvents .cardTitle { left: 40px; top: 78px; }
+.cardsLow .cardEvents .cardSub   { left: 40px; top: 152px; }
+.cardsLow .cardEvents .cardArt   { left: 354px; top: 60px; width: 143px; height: 143px; }
 
 .panelLow {
-  top: 2412px;
-  height: 1009px;
+  left: 150px;
+  top: 2478px;
+  width: 1860px;
+  height: 810px;
 }
 
+/* NORMALISED: Figma draws row 1 as a 1792.059 frame and row 2 as 1820 — the
+   rows are visibly aligned in the render, so both use the frame's 1792 and the
+   step it implies: (1792 − 230) / 5 = 312.4. */
 .gridLow {
-  left: 209px;
-  top: 2431px;
-  width: 1741px;
-  height: 970px;
+  left: 188px;
+  top: 2544px;
+  width: 1792px;
+  height: 678px;
 }
 
 .tileLow {
@@ -723,18 +771,45 @@
   height: 303px;
 }
 
+/* The revision squares the plates off to a 45px radius (only 탐나오's wrapper
+   still says 85.799 — designer slop). 45 can't be used literally: the exported
+   art bakes a 45-on-200 radius, 51.75 once scaled to 230, and clipping INSIDE
+   that keeps the opaque #f5f5f5 corners (see the note above .tileArt). 52 is
+   the smallest radius that still removes them. */
 .tileArtLow,
 .tilePlateLow {
   width: 230px;
   height: 230px;
+  border-radius: 52px;
 }
 
+/* One centred 38px/400 line — the revision drops the tile subtitles here. */
 .tileTextLow {
   top: 260px;
   width: 230px;
 }
 
-.kdramaLow { top: 3503px; }
-.cameraLow { top: 3453px; }
-.restroomLow { top: 3504px; }
-.actionLabelLow { top: 3763px; }
+.tileTextLow .tileTitle { font-weight: 400; }
+.tileTextLow .tileSub { display: none; }
+
+/* The design keeps the bottom action row at its standard position (the old
+   +115 shift is gone from the revision), so there are no Low classes for it. */
+
+.leftNavLow {
+  top: 2163px;
+  height: 85px;
+  overflow: hidden;
+}
+
+/* nav-left.svg bakes home (y0–85) and back (y120–205) into one 85×205 export;
+   the 85px window above + this -120 shift shows only the back button. */
+.leftNavLow .leftNavImg {
+  inset: auto;
+  left: 0;
+  top: -120px;
+  width: 85px;
+  height: 205px;
+}
+
+.leftNavLow .leftNavHome { display: none; }
+.leftNavLow .leftNavBack { top: 0; }
