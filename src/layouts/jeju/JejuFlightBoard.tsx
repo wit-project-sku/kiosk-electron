@@ -56,12 +56,12 @@ const MORE = {
  * 탑승최종 on 1715; the axis below splits that.
  */
 const COLUMNS = {
-  time: 412,
-  airline: 731,
-  destination: 1095.5,
-  kind: 1320,
-  gate: 1507,
-  status: 1718,
+  time: 410,
+  airline: 750,
+  destination: 1110,
+  kind: 1340,
+  gate: 1530,
+  status: 1710,
 } as const;
 
 const HEADS: Record<keyof typeof COLUMNS, Partial<Record<Lang, string>>> = {
@@ -130,15 +130,16 @@ function FlightCells({ departure, lang }: { departure: JejuDeparture; lang: Lang
         {formatGate(departure.gate)}
       </span>
 
-      {/* Blank when the airport has published no 현황 — see normalizeFlightStatus. */}
-      {departure.status && (
-        <span
-          className={`${styles.value} ${styles.valueStatus}`}
-          style={{ left: COLUMNS.status, color: flightStatusColor(departure.status) }}
-        >
-          {flightStatusLabel(departure.status, lang)}
-        </span>
-      )}
+      {/* Empty 현황 → "-" (same rule as JejuFlights). */}
+      <span
+        className={`${styles.value} ${styles.valueStatus}`}
+        style={{
+          left: COLUMNS.status,
+          ...(departure.status ? { color: flightStatusColor(departure.status) } : null),
+        }}
+      >
+        {departure.status ? flightStatusLabel(departure.status, lang) : '-'}
+      </span>
     </>
   );
 }

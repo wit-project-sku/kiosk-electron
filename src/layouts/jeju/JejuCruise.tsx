@@ -28,10 +28,6 @@
  * changes — the two control rows drop to the foot of the artboard and the board
  * slides up 159 into the space. All of it is positional, so it lives in the
  * `*Low` classes rather than in this file; see the CSS header for the y map.
- *
- * Placeholder data: `useJejuDepartureSailings` / `useJejuArrivalSailings` still
- * return the Figma's sample rows, and 연안항 has none at all. See the two TODOs
- * at the top of lib/jejuSailing.ts.
  */
 import { useState } from 'react';
 import type { KioskController } from '@renderer/hooks/useKioskController';
@@ -176,7 +172,7 @@ const COLUMNS: Record<SailingDirection, Column[]> = {
     { key: 'duration', x: 515,    head: COL_DURATION },
     { key: 'ship',     x: 840,    head: COL_SHIP },
     { key: 'route',    x: 1260,   head: COL_ROUTE },
-    { key: 'place',    x: 1700,   head: COL_PLACE_DEPARTURE },
+    { key: 'place',    x: 1630,   head: COL_PLACE_DEPARTURE },
     { key: 'status',   x: 1918.5, head: COL_STATUS },
   ],
   arrival: [
@@ -184,7 +180,7 @@ const COLUMNS: Record<SailingDirection, Column[]> = {
     { key: 'duration', x: 515,    head: COL_DURATION },
     { key: 'ship',     x: 840,    head: COL_SHIP },
     { key: 'route',    x: 1260,   head: COL_ROUTE },
-    { key: 'place',    x: 1700,   head: COL_PLACE_ARRIVAL },
+    { key: 'place',    x: 1630,   head: COL_PLACE_ARRIVAL },
     { key: 'status',   x: 1918.5, head: COL_STATUS },
   ],
 };

@@ -26,16 +26,8 @@
  * the 결항 row). It is free text from the operator, not an enum — the design
  * shows one value but a real feed publishes many (기상악화, 정비, 결측).
  *
- * TODO(제주 W007): `SAMPLE_*` remains as fallback when the TAGO feed has not
- * landed yet. `useJejuDepartureSailings()` / `useJejuArrivalSailings()` read
- * the IPC snapshot from {@link useSailingStore} and fall back to samples when
- * empty.
- *
- * TODO(제주 W007): the 연안항 tab has NO authored rows. Both Figma frames draw
- * the 국제항 tab only (every row's 출발장소 reads 국제터미널), so inventing
- * coastal sailings here would put fabricated departure times in front of
- * travellers. The tab therefore shows the designed empty state until the feed
- * lands, which is the honest reading of a design that does not specify it.
+ * Live rows come from KOMSA via {@link useSailingStore}. Until the snapshot
+ * arrives the hooks return an empty list (the board's empty state).
  */
 import { useMemo } from 'react';
 import type { Lang } from '@renderer/lib/i18n';
@@ -103,19 +95,25 @@ const STATUS_LABEL: Record<SailingStatusId, Partial<Record<Lang, string>>> = {
  * whitespace-stripped, lower-cased string so '승선 중' and '승선중' are one key.
  */
 const STATUS_ALIASES: Record<string, SailingStatusId> = {
-  // normal
+  // normal — KOMSA 운항구분 정상/증선/증회
   '정상운항': 'normal', '정상': 'normal', '운항': 'normal', '운항예정': 'normal', '예정': 'normal',
+  '증선': 'normal', '증회': 'normal',
   normal: 'normal', ontime: 'normal', scheduled: 'normal',
-  // delayed
-  '지연': 'delayed', '지연운항': 'delayed', delayed: 'delayed', delay: 'delayed',
-  // cancelled
+  // delayed — KOMSA 대기/지연
+  '지연': 'delayed', '지연운항': 'delayed', '대기': 'delayed', '대기/지연': 'delayed',
+  delayed: 'delayed', delay: 'delayed',
+  // cancelled — KOMSA 비운항/통제
   '결항': 'cancelled', '취소': 'cancelled', '운항중단': 'cancelled',
+  '비운항': 'cancelled', '통제': 'cancelled',
   cancelled: 'cancelled', canceled: 'cancelled',
   // boarding
   '승선중': 'boarding', '승선': 'boarding', boarding: 'boarding',
-  // departed / arrived
-  '출항': 'departed', '출항완료': 'departed', departed: 'departed',
-  '입항': 'arrived', '입항완료': 'arrived', '도착': 'arrived', arrived: 'arrived',
+  // departed / arrived — KOMSA 운항상태
+  '출항': 'departed', '출항완료': 'departed', '출항전': 'normal', '출항중': 'departed',
+  departed: 'departed',
+  '입항': 'arrived', '입항완료': 'arrived', '입항중': 'arrived', '도착': 'arrived',
+  '기항지도착': 'arrived', '운항중': 'departed', '완료': 'arrived',
+  arrived: 'arrived',
 };
 
 /**
@@ -210,94 +208,16 @@ export function normalizeSailing(raw: RawJejuSailing): JejuSailing {
 
 // ── Source ─────────────────────────────────────────────────────────────
 
-/**
- * Placeholder departures — the six rows 6420:23807 draws, in order, written as
- * RAW feed rows on purpose so the status mapping is exercised on every render
- * instead of being untested code waiting for an API.
- *
- * Row 1 is the 결항 + 기상악화 condition and row 2 the re-timed 지연 (16:05 →
- * 16:15, struck through); the rest are 정상운항, so every drawn condition is
- * reachable on a running kiosk.
- */
-const SAMPLE_DEPARTURES: RawJejuSailing[] = [
-  {
-    id: 'dep-goldstella-1615', scheduledTime: '16:15', duration: '02:40',
-    shipName: '골드스텔라', route: '제주국제-삼천포신항', place: '국제터미널',
-    port: '국제항', status: '결항', note: '기상악화',
-  },
-  {
-    id: 'dep-queenjenuvia2-1605', scheduledTime: '16:05', estimatedTime: '16:15', duration: '02:40',
-    shipName: '퀸제누비아2', route: '제주도-하추자도', place: '국제터미널',
-    port: '국제항', status: '지연',
-  },
-  {
-    id: 'dep-queenjenuvia2-1615', scheduledTime: '16:15', duration: '02:40',
-    shipName: '퀸제누비아2', route: '제주도-하추자도', place: '국제터미널',
-    port: '국제항', status: '정상운항',
-  },
-  {
-    id: 'dep-queenjenuvia2-1715', scheduledTime: '17:15', duration: '02:40',
-    shipName: '퀸제누비아2', route: '제주도-하추자도', place: '국제터미널',
-    port: '국제항', status: '정상운항',
-  },
-  {
-    id: 'dep-queenjenuvia2-1815', scheduledTime: '18:15', duration: '02:40',
-    shipName: '퀸제누비아2', route: '제주도-하추자도', place: '국제터미널',
-    port: '국제항', status: '정상운항',
-  },
-  {
-    id: 'dep-queenjenuvia2-1915', scheduledTime: '19:15', duration: '02:40',
-    shipName: '퀸제누비아2', route: '제주도-하추자도', place: '국제터미널',
-    port: '국제항', status: '정상운항',
-  },
-];
-
-/**
- * Placeholder arrivals — the three rows 6420:23892 draws. That frame lists
- * fewer sailings than 출발 and leads with the 지연 condition; both are the
- * design, not an omission.
- */
-const SAMPLE_ARRIVALS: RawJejuSailing[] = [
-  {
-    id: 'arr-queenjenuvia2-1615', scheduledTime: '16:15', duration: '02:40',
-    shipName: '퀸제누비아2', route: '제주도-하추자도', place: '국제터미널',
-    port: '국제항', status: '지연',
-  },
-  {
-    id: 'arr-queenjenuvia2-1715', scheduledTime: '17:15', duration: '02:40',
-    shipName: '퀸제누비아2', route: '제주도-하추자도', place: '국제터미널',
-    port: '국제항', status: '정상운항',
-  },
-  {
-    id: 'arr-queenjenuvia2-1815', scheduledTime: '18:15', duration: '02:40',
-    shipName: '퀸제누비아2', route: '제주도-하추자도', place: '국제터미널',
-    port: '국제항', status: '정상운항',
-  },
-];
-
-/**
- * The sailings behind the 운항정보 page's 출발 tab.
- *
- * THE seam: replace the body with the real feed (a store fed over IPC,
- * mirroring `useWeatherStore`) and map each row through `normalizeSailing`.
- * Everything downstream — colours, the strike-through condition, the page's two
- * tabs and its 국제항/연안항 filter — is already driven by the normalised shape.
- */
+/** Departures for the 운항정보 출발 tab — KOMSA snapshot via IPC. */
 export function useJejuDepartureSailings(): JejuSailing[] {
   const snapshot = useSailingStore((s) => s.snapshot);
   const rows = snapshot?.departures;
-  return useMemo(() => {
-    if (snapshot) return (rows ?? []).map(normalizeSailing);
-    return SAMPLE_DEPARTURES.map(normalizeSailing);
-  }, [snapshot, rows]);
+  return useMemo(() => (rows ?? []).map(normalizeSailing), [rows]);
 }
 
-/** The sailings behind the 도착 tab. Same seam as above. */
+/** Arrivals for the 운항정보 도착 tab — same KOMSA snapshot. */
 export function useJejuArrivalSailings(): JejuSailing[] {
   const snapshot = useSailingStore((s) => s.snapshot);
   const rows = snapshot?.arrivals;
-  return useMemo(() => {
-    if (snapshot) return (rows ?? []).map(normalizeSailing);
-    return SAMPLE_ARRIVALS.map(normalizeSailing);
-  }, [snapshot, rows]);
+  return useMemo(() => (rows ?? []).map(normalizeSailing), [rows]);
 }

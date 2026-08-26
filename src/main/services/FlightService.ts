@@ -169,6 +169,8 @@ export class FlightService {
       if (this.apronMaps?.ymd === ymd) {
         departures = mergeGate(departures, this.apronMaps.gates);
         arrivals = mergeBelt(arrivals, this.apronMaps.belts);
+      } else if (!this.apronMaps) {
+        log.warn('Jeju apron index missing — gates/belts will be empty until apron fetch succeeds');
       }
       const snapshot: JejuFlightSnapshot = {
         fetchedAt: new Date().toISOString(),
@@ -178,17 +180,22 @@ export class FlightService {
       this.current = snapshot;
       this.cache.upsert(CACHE_KEY, snapshot as unknown as Record<string, unknown>, 'kac-flights');
       this.emit();
+      const withGate = departures.filter((d) => d.gate).length;
+      const withBelt = arrivals.filter((a) => a.belt).length;
       log.info('Jeju flights updated', {
         departures: departures.length,
         arrivals: arrivals.length,
-        gates: this.apronMaps?.gates.size ?? 0,
+        apronGates: this.apronMaps?.gates.size ?? 0,
+        apronBelts: this.apronMaps?.belts.size ?? 0,
+        matchedGates: withGate,
+        matchedBelts: withBelt,
       });
     } catch (error) {
       log.warn('Jeju flight fetch failed (keeping last snapshot)', error);
     }
   }
 
-  private async fetchList<T extends { scheduledTime: string; flightNo: string }>(
+  private async fetchList<T extends { id: string; scheduledTime: string; flightNo: string }>(
     base: string,
     serviceKey: string,
     searchday: string,
@@ -225,12 +232,15 @@ export class FlightService {
       pageNo += 1;
     }
 
-    rows.sort((a, b) =>
+    // KAC sometimes repeats the same fid+편명+시각 (pagination / codeshare).
+    // Drop duplicates so React list keys stay unique and the board shows one row.
+    const unique = dedupeById(rows);
+    unique.sort((a, b) =>
       a.scheduledTime === b.scheduledTime
         ? a.flightNo.localeCompare(b.flightNo)
         : a.scheduledTime.localeCompare(b.scheduledTime),
     );
-    return rows;
+    return unique;
   }
 
   private async fetchPage(
@@ -443,29 +453,57 @@ function mapBase(item: Record<string, unknown>): {
   };
 }
 
+/** Keep first row per `id` (fid + flightNo + scheduledTime). */
+function dedupeById<T extends { id: string }>(rows: T[]): T[] {
+  const out: T[] = [];
+  const seen = new Set<string>();
+  for (const row of rows) {
+    if (seen.has(row.id)) continue;
+    seen.add(row.id);
+    out.push(row);
+  }
+  return out;
+}
+
 function mapDeparture(item: Record<string, unknown>): RawJejuDeparture | null {
   const base = mapBase(item);
   if (!base) return null;
+  const master = normalizeFlightNo(
+    first(item, ['masterflightid', 'masterFlightId', 'masterflight']),
+  );
+  const masterFlightNo =
+    master && master !== normalizeFlightNo(base.flightNo) ? master : undefined;
   return {
     ...base,
     destination: first(item, ['arr_airport', 'arrAirport', 'arrvairport', 'arrvAirport']),
     gate: first(item, ['gate', 'gatenumber']),
+    masterFlightNo,
   };
 }
 
 function mapArrival(item: Record<string, unknown>): RawJejuArrival | null {
   const base = mapBase(item);
   if (!base) return null;
+  const master = normalizeFlightNo(
+    first(item, ['masterflightid', 'masterFlightId', 'masterflight']),
+  );
+  const masterFlightNo =
+    master && master !== normalizeFlightNo(base.flightNo) ? master : undefined;
   return {
     ...base,
     origin: first(item, ['dep_airport', 'depAirport', 'depairport']),
     belt: first(item, ['baggageClaim', 'carousel', 'chkinrange', 'baggageclaim']),
+    masterFlightNo,
   };
+}
+
+function normalizeFlightNo(flightNo: string): string {
+  return flightNo.replace(/\s+/g, '').toUpperCase();
 }
 
 /** Join key shared by flight-status rows and apron rows. */
 function flightRowKey(flightNo: string, scheduledTime: string): string {
-  return `${flightNo}-${scheduledTime}`;
+  return `${normalizeFlightNo(flightNo)}-${scheduledTime}`;
 }
 
 function stdToHm(std: string): string {
@@ -479,6 +517,12 @@ function stdToHm(std: string): string {
 
 function isJeju(label: string): boolean {
   return label.replace(/\s+/g, '').includes('제주');
+}
+
+/** Keep a non-empty value; apron often emits a blank row and a filled row for the same flight. */
+function preferFilled(map: Map<string, string>, key: string, value: string): void {
+  if (!value) return;
+  if (!map.has(key)) map.set(key, value);
 }
 
 /** Index one apron record into gate/belt maps when it belongs to CJU depart/arrive. */
@@ -497,14 +541,31 @@ function indexApronItem(
   const gate = first(item, ['gate', 'gatenumber']);
   const belt = first(item, ['baggageclaim', 'baggageClaim', 'carousel']);
 
-  if (gate && isJeju(boarding)) gates.set(key, gate);
-  if (belt && isJeju(arrived)) belts.set(key, belt);
+  // /cju apron also lists other airports' legs; only keep Jeju-boarding departures
+  // and Jeju-arriving belts. Empty boarding/arrived is ignored (ambiguous).
+  if (gate && isJeju(boarding)) preferFilled(gates, key, gate);
+  if (belt && isJeju(arrived)) preferFilled(belts, key, belt);
+}
+
+function lookupStand(
+  map: Map<string, string>,
+  flightNo: string,
+  scheduledTime: string,
+  masterFlightNo?: string,
+): string {
+  const direct = map.get(flightRowKey(flightNo, scheduledTime));
+  if (direct) return direct;
+  if (masterFlightNo) {
+    const viaMaster = map.get(flightRowKey(masterFlightNo, scheduledTime));
+    if (viaMaster) return viaMaster;
+  }
+  return '';
 }
 
 function mergeGate(departures: RawJejuDeparture[], gates: Map<string, string>): RawJejuDeparture[] {
   return departures.map((row) => {
     if (row.gate) return row;
-    const gate = gates.get(flightRowKey(row.flightNo, row.scheduledTime));
+    const gate = lookupStand(gates, row.flightNo, row.scheduledTime, row.masterFlightNo);
     return gate ? { ...row, gate } : row;
   });
 }
@@ -512,7 +573,7 @@ function mergeGate(departures: RawJejuDeparture[], gates: Map<string, string>): 
 function mergeBelt(arrivals: RawJejuArrival[], belts: Map<string, string>): RawJejuArrival[] {
   return arrivals.map((row) => {
     if (row.belt) return row;
-    const belt = belts.get(flightRowKey(row.flightNo, row.scheduledTime));
+    const belt = lookupStand(belts, row.flightNo, row.scheduledTime, row.masterFlightNo);
     return belt ? { ...row, belt } : row;
   });
 }
