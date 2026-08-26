@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState, type RefObject } from 'react';
+import { PHOTO_CAMERA_ROTATION } from '@shared/constants/photoOptions';
 
 interface UseKioskCameraOptions {
   deviceId: string | null;
@@ -74,12 +75,23 @@ export function useKioskCamera({ deviceId, enabled }: UseKioskCameraOptions): Us
   const capture = useCallback((): string | null => {
     const video = videoRef.current;
     if (!video || !active) return null;
+    // The kiosk cameras are mounted sideways (PHOTO_CAMERA_ROTATION): the raw
+    // frame is landscape with rotated content, and the AR API must receive the
+    // UPRIGHT portrait photo — the same turn the live preview applies. The
+    // canvas swaps its axes for a quarter turn (1920×1080 in → 1080×1920 out)
+    // and rotates about its centre. NOT mirrored: the mirror is a display-only
+    // affordance, and a mirrored photo would flip text on clothing.
+    const w = video.videoWidth;
+    const h = video.videoHeight;
+    const quarter = PHOTO_CAMERA_ROTATION === 90 || PHOTO_CAMERA_ROTATION === 270;
     const canvas = document.createElement('canvas');
-    canvas.width = video.videoWidth;
-    canvas.height = video.videoHeight;
+    canvas.width = quarter ? h : w;
+    canvas.height = quarter ? w : h;
     const ctx = canvas.getContext('2d');
     if (!ctx) return null;
-    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+    ctx.translate(canvas.width / 2, canvas.height / 2);
+    ctx.rotate((PHOTO_CAMERA_ROTATION * Math.PI) / 180);
+    ctx.drawImage(video, -w / 2, -h / 2, w, h);
     return canvas.toDataURL('image/jpeg', 0.92);
   }, [active]);
 

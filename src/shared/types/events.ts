@@ -7,7 +7,7 @@
  */
 
 /** Region query values accepted by the API. */
-export type EventRegion = 'JONGNO' | 'INSA' | 'HWASEONG' | 'OSAN';
+export type EventRegion = 'JONGNO' | 'INSA' | 'HWASEONG' | 'OSAN' | 'JEJU';
 
 /** Category query values accepted by the API (ALL = no filter). */
 export type EventCategory = 'ALL' | 'SHOW' | 'EXHIBITION' | 'FESTIVAL' | 'EDUEXP' | 'ETC';

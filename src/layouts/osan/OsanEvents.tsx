@@ -6,21 +6,28 @@ import { isOk } from '@shared/types/result';
 import { osanIconUrl } from '@renderer/assets/icons/osan';
 import { useEvents, pageWindow } from '@renderer/hooks/useEvents';
 import { EventDetailScreen } from '@layouts/components/EventDetailScreen';
+import { useLang } from '@renderer/lib/i18n';
+import { t } from '@renderer/lib/loc';
+import { ui, uiParts, type UiTextKey } from '@renderer/lib/uiText';
 import { OsanHeader } from './OsanHeader';
 import { OsanBanner } from './OsanBanner';
+import { OsanLeftNav } from './OsanLeftNav';
 import styles from './OsanEvents.module.css';
 
-/** Region tabs → API eventRegion (MBTI has no region; it opens the quiz). */
-const REGION_TABS: { label: string; region: EventRegion | null }[] = [
-  { label: '오산시', region: 'OSAN' },
-  { label: 'MBTI', region: null },
+/** Region tabs → API eventRegion (MBTI has no region; it opens the quiz).
+ *  `id` is the stable selection key — never the label, which is localized.
+ *  `key` is the Localization_Osaek row supplying the label; MBTI is a brand
+ *  name with no sheet row, so it falls back to its literal. */
+const REGION_TABS: { id: string; key: string | null; region: EventRegion | null }[] = [
+  { id: 'OSAN', key: 'Event_Tab_Osan', region: 'OSAN' },
+  { id: 'MBTI', key: null, region: null },
 ];
-/** Category tabs → API eventCategory. */
-const CATEGORY_TABS: { label: string; value: EventCategory }[] = [
-  { label: '전체', value: 'ALL' },
-  { label: '공연', value: 'SHOW' },
-  { label: '전시', value: 'EXHIBITION' },
-  { label: '기타', value: 'ETC' },
+/** Category tabs → API eventCategory, labels from Localization_Osaek. */
+const CATEGORY_TABS: { key: string; value: EventCategory }[] = [
+  { key: 'Event_Category_All', value: 'ALL' },
+  { key: 'Event_Category_performance', value: 'SHOW' },
+  { key: 'Event_Category_exibition', value: 'EXHIBITION' },
+  { key: 'Event_Category_etc', value: 'ETC' },
 ];
 const PAGE_SIZE = 6;
 
@@ -33,16 +40,11 @@ const MBTI_PAIRS: [MbtiAxis, MbtiAxis][] = [
 ];
 // Figma row-major order (5494:154635): E S T J / I N F P.
 const MBTI_GRID: MbtiAxis[] = ['E', 'S', 'T', 'J', 'I', 'N', 'F', 'P'];
-const MBTI_LABELS: Record<MbtiAxis, string> = {
-  E: '외향적',
-  I: '내향적',
-  S: '경험적',
-  N: '상상적',
-  T: '이성적',
-  F: '감성적',
-  J: '계획적',
-  P: '즉흥적',
-};
+/** Axis label keys — resolved per language at render (see lib/uiText.ts). */
+const MBTI_LABEL_KEYS = {
+  E: 'mbtiE', I: 'mbtiI', S: 'mbtiS', N: 'mbtiN',
+  T: 'mbtiT', F: 'mbtiF', J: 'mbtiJ', P: 'mbtiP',
+} as const satisfies Record<MbtiAxis, UiTextKey>;
 
 interface MbtiSectionProps {
   onOpenQr: () => void;
@@ -58,6 +60,7 @@ interface MbtiSectionProps {
  * exists — currently returns the first 2 mock events after a fake delay.
  */
 function MbtiSection({ onOpenQr, region }: MbtiSectionProps): JSX.Element {
+  const lang = useLang();
   const [selected, setSelected] = useState<Set<MbtiAxis>>(new Set());
   const [status, setStatus] = useState<'idle' | 'loading' | 'results'>('idle');
   const [results, setResults] = useState<EventRecommendation[]>([]);
@@ -95,7 +98,7 @@ function MbtiSection({ onOpenQr, region }: MbtiSectionProps): JSX.Element {
             onClick={() => toggle(letter)}
           >
             <span className={styles.mbtiLetter}>{letter}</span>
-            <span className={styles.mbtiLabel}>{MBTI_LABELS[letter]}</span>
+            <span className={styles.mbtiLabel}>{ui(MBTI_LABEL_KEYS[letter], lang)}</span>
           </button>
         ))}
       </div>
@@ -112,12 +115,22 @@ function MbtiSection({ onOpenQr, region }: MbtiSectionProps): JSX.Element {
       )}
 
       <p className={styles.mbtiDesc}>
-        MBTI 성향과 취향을 반영해 <span className={styles.mbtiAccent}>오산시 이벤트</span>를 맞춤 추천해드립니다!
+        {/* "{region}" is substituted here so the accent span survives translation. */}
+        {uiParts('mbtiIntro', lang)[0]}
+        <span className={styles.mbtiAccent}>
+          {`${t('Event_Tab_Osan', lang)} ${t('MainButton_Event', lang)}`}
+        </span>
+        {uiParts('mbtiIntro', lang)[1]}
         <br />
         <br />
-        MBTI 4가지 유형을 전부 선택하지 않아도
-        <br />
-        나만의 추천 결과를 받아볼 수 있어요!
+        {ui('mbtiHint', lang)
+          .split('\n')
+          .map((line, i, all) => (
+            <span key={i}>
+              {line}
+              {i < all.length - 1 && <br />}
+            </span>
+          ))}
       </p>
 
       {status === 'results' && (
@@ -138,12 +151,12 @@ function MbtiSection({ onOpenQr, region }: MbtiSectionProps): JSX.Element {
                 <div className={styles.resultsQrImg}>
                   <img src={qrCodeImg} alt="QR" style={{ width: '100%', height: '100%', objectFit: 'contain' }} draggable={false} />
                 </div>
-                <span className={styles.resultsQrLabel}>모바일에서 확인하기</span>
+                <span className={styles.resultsQrLabel}>{ui('viewOnMobile', lang)}</span>
               </button>
             </div>
           ) : (
             <div className={styles.noDataBox} onClick={(e) => e.stopPropagation()}>
-              <p className={styles.noDataText}>추천 결과가 없습니다.</p>
+              <p className={styles.noDataText}>{ui('noRecommendations', lang)}</p>
             </div>
           )}
         </div>
@@ -161,19 +174,23 @@ interface OsanEventsProps {
  * Same header/left-nav/banner chrome as every other Osan content screen, laid out
  * at exact Figma px on the 2160×3840 artboard (node 5494:154504). Two centered
  * region tabs (오산시 · MBTI); the 오산시 tab shows a category-filtered event grid,
- * MBTI swaps the body for the quiz workflow. Navy [오색시장] main01 #1a4d7e.
+ * MBTI swaps the body for the quiz workflow. Navy [오색시장] main01 var(--kiosk-primary).
  */
 export function OsanEvents({ controller }: OsanEventsProps): JSX.Element {
   const goHome = (): void => controller.navigate('home', 'Back');
+  const lang = useLang();
+  /** Tab label from the sheet; MBTI (no key) keeps its literal id. */
+  const tabLabel = (tab: { id: string; key: string | null }): string =>
+    tab.key ? t(tab.key, lang) : tab.id;
 
-  const [regionLabel, setRegionLabel] = useState(REGION_TABS[0]!.label);
-  const [categoryLabel, setCategoryLabel] = useState(CATEGORY_TABS[0]!.label);
+  const [regionId, setRegionId] = useState(REGION_TABS[0]!.id);
+  const [categoryValue, setCategoryValue] = useState<EventCategory>(CATEGORY_TABS[0]!.value);
   const [page, setPage] = useState(1);
   const [qrZoomOpen, setQrZoomOpen] = useState(false);
   const [detailId, setDetailId] = useState<number | null>(null);
 
-  const activeRegion = REGION_TABS.find((r) => r.label === regionLabel) ?? REGION_TABS[0]!;
-  const activeCategory = CATEGORY_TABS.find((c) => c.label === categoryLabel) ?? CATEGORY_TABS[0]!;
+  const activeRegion = REGION_TABS.find((r) => r.id === regionId) ?? REGION_TABS[0]!;
+  const activeCategory = CATEGORY_TABS.find((c) => c.value === categoryValue) ?? CATEGORY_TABS[0]!;
   const isMbti = activeRegion.region === null;
 
   const { items, totalPages, loading, error } = useEvents(
@@ -183,13 +200,13 @@ export function OsanEvents({ controller }: OsanEventsProps): JSX.Element {
     PAGE_SIZE,
   );
 
-  const selectRegion = (label: string): void => {
-    setRegionLabel(label);
+  const selectRegion = (id: string): void => {
+    setRegionId(id);
     setPage(1);
     setDetailId(null);
   };
-  const selectCategory = (label: string): void => {
-    setCategoryLabel(label);
+  const selectCategory = (value: EventCategory): void => {
+    setCategoryValue(value);
     setPage(1);
     setDetailId(null);
   };
@@ -203,17 +220,17 @@ export function OsanEvents({ controller }: OsanEventsProps): JSX.Element {
     <>
       {osanIconUrl('bg') && <img className={styles.bg} src={osanIconUrl('bg')} alt="" draggable={false} />}
 
-      <OsanHeader title="오산시 이벤트" subtitle="페이지 설명문" onHome={goHome} onBack={goBack} />
+      <OsanHeader title="오산시 이벤트" onHome={goHome} onBack={goBack} />
 
       <div className={styles.regionTabs}>
         {REGION_TABS.map((r) => (
           <button
-            key={r.label}
+            key={r.id}
             type="button"
-            className={`${styles.regionTab} ${r.label === regionLabel ? styles.regionTabSelected : ''}`}
-            onClick={() => selectRegion(r.label)}
+            className={`${styles.regionTab} ${r.id === regionId ? styles.regionTabSelected : ''}`}
+            onClick={() => selectRegion(r.id)}
           >
-            {r.label}
+            {tabLabel(r)}
           </button>
         ))}
       </div>
@@ -225,18 +242,18 @@ export function OsanEvents({ controller }: OsanEventsProps): JSX.Element {
           <div className={styles.categoryTabs}>
             {CATEGORY_TABS.map((c) => (
               <button
-                key={c.label}
+                key={c.value}
                 type="button"
-                className={`${styles.categoryTab} ${c.label === categoryLabel ? styles.categoryTabSelected : ''}`}
-                onClick={() => selectCategory(c.label)}
+                className={`${styles.categoryTab} ${c.value === categoryValue ? styles.categoryTabSelected : ''}`}
+                onClick={() => selectCategory(c.value)}
               >
-                {c.label}
+                {t(c.key, lang)}
               </button>
             ))}
           </div>
 
           {detailId !== null ? (
-            <EventDetailScreen eventId={detailId} accent="#1a4d7e" />
+            <EventDetailScreen eventId={detailId} accent="var(--kiosk-primary)" />
           ) : (
             <>
               <div className={styles.grid}>
@@ -258,7 +275,7 @@ export function OsanEvents({ controller }: OsanEventsProps): JSX.Element {
 
               {!loading && items.length === 0 && (
                 <p className={styles.emptyState}>
-                  {error ? '이벤트를 불러오지 못했습니다.' : '등록된 이벤트가 없습니다.'}
+                  {error ? ui('eventsLoadFailed', lang) : ui('eventsEmpty', lang)}
                 </p>
               )}
 
@@ -293,23 +310,12 @@ export function OsanEvents({ controller }: OsanEventsProps): JSX.Element {
             <div className={styles.qrImg}>
               <img src={qrCodeImg} alt="QR" style={{ width: '100%', height: '100%', objectFit: 'contain' }} draggable={false} />
             </div>
-            <p className={styles.qrLabel}>
-              QR 클릭! ←
-              <br />
-              모바일에서 확인하기
-            </p>
+            <p className={styles.qrLabel}>{t('SubHeader_Detail_Event', lang)}</p>
           </div>
         </>
       )}
 
-      <div className={styles.leftNav}>
-        <button type="button" className={styles.leftNavBtn} onClick={goHome} aria-label="홈으로">
-          {osanIconUrl('home-btn') && <img src={osanIconUrl('home-btn')} alt="" draggable={false} />}
-        </button>
-        <button type="button" className={styles.leftNavBtn} onClick={goBack} aria-label="뒤로">
-          {osanIconUrl('back-arrow') && <img src={osanIconUrl('back-arrow')} alt="" draggable={false} />}
-        </button>
-      </div>
+      <OsanLeftNav onHome={goHome} onBack={goBack} />
 
       <OsanBanner onClick={() => controller.startPhoto()} />
 
@@ -326,7 +332,7 @@ export function OsanEvents({ controller }: OsanEventsProps): JSX.Element {
               <span className={`${styles.qrCorner} ${styles.qrCornerBL}`}>⌞</span>
               <span className={`${styles.qrCorner} ${styles.qrCornerBR}`}>⌟</span>
             </div>
-            <p className={styles.qrZoomHint}>QR코드를 화면에 맞춰주세요.</p>
+            <p className={styles.qrZoomHint}>{ui('qrAlign', lang)}</p>
           </div>
         </div>
       )}

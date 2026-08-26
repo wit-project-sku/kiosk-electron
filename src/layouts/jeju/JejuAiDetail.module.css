@@ -1,0 +1,443 @@
+/*
+ * 제주 AI 코스 상세 — Figma nodes 6289:55320 (single day, -03-1) and 6289:55078
+ * (multi-day with the DAY arrows, -03-2), the 2026-08-24 pass over 6418:11009 /
+ * 6418:11330.
+ *
+ * Fixed chrome down to the DAY label, then a scrolling spot list:
+ *   693  course title (90px)       810  rule (w874)      831  hashtags
+ *   925  course description        1095 summary bar (h150, r75)
+ *   1300 DAY label + pager         1423 spot list (paged, four cards)
+ *   3663 QR row (4 cards)
+ * The numbered circles at x170 are rows of the list itself rather than discs
+ * pinned to the page, so each one always sits beside the card it numbers. It
+ * has to work that way now the list is PAGED: the server schedules as many
+ * spots in a day as the time budget allows (nine on day 1 of a two-day 자연
+ * course), those spill onto further pages, and page two of a day opens on stops
+ * 5·6·7·8 — which a disc fixed at the first row could never say.
+ *
+ * NORMALISED: the hashtag line's Figma box is centred on x1124.5 while the
+ * title, rule and description above it are all on 1080; it is centred here.
+ * -03-1 puts the DAY label at y1308 and -03-2 at y1300; 1300 wins because that
+ * is the frame where the label has to sit between the two arrow buttons
+ * (1291..1376), and it centres on them exactly.
+ */
+.title {
+  position: absolute;
+  left: 0;
+  top: 693px;
+  width: 2160px;
+  margin: 0;
+  font-size: 90px;
+  font-weight: 700;
+  line-height: 1;
+  color: #000;
+  text-align: center;
+}
+
+/* Underline beneath the course title. The 제주 primary, not the #e8e8e8 grey the
+   other rules on this page use — this one is an accent, not a separator. */
+.rule {
+  position: absolute;
+  left: 50%;
+  top: 810px;
+  width: 874px;
+  height: 3px;
+  transform: translateX(-50%);
+  background: var(--kiosk-primary, #ff7f0f);
+}
+
+.tags {
+  position: absolute;
+  left: 0;
+  top: 831px;
+  width: 2160px;
+  margin: 0;
+  font-size: 45px;
+  font-weight: 500;
+  line-height: 1.3;
+  color: var(--kiosk-primary, #ff7f0f);
+  text-align: center;
+}
+
+/* Figma sizes this box at 1632; kept at the full 1820 content column so each
+   `\n`-separated line stays on one line even if the bundled face runs wider
+   than Figma's. Centred text in a wider centred box renders identically, so
+   this only ever buys slack against an unwanted wrap into the summary bar. */
+.desc {
+  position: absolute;
+  left: 50%;
+  top: 925px;
+  width: 1820px;
+  transform: translateX(-50%);
+  margin: 0;
+  font-size: 38px;
+  font-weight: 500;
+  line-height: 1.3;
+  color: #5d5d5d;
+  text-align: center;
+  white-space: pre-line;
+}
+
+/* ── Summary bar: 4 stats separated by 3 hairlines ── */
+.summary {
+  position: absolute;
+  left: 170px;
+  top: 1095px;
+  width: 1820px;
+  height: 150px;
+  border-radius: 75px;
+  background: var(--kiosk-primary, #ff7f0f);
+  display: flex;
+  align-items: center;
+}
+
+.stat {
+  flex: 1 1 0;
+  min-width: 0;
+  text-align: center;
+  color: #fff;
+}
+
+.statLabel {
+  display: block;
+  font-size: 25px;
+  font-weight: 500;
+  line-height: 1.3;
+}
+
+.statValue {
+  display: block;
+  font-size: 45px;
+  font-weight: 600;
+  line-height: 1.3;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.statSep {
+  width: 3px;
+  height: 110px;
+  flex: 0 0 auto;
+  background: #fff;
+}
+
+/*
+ * ★ `pointer-events: none` is load-bearing, not tidiness. This label is a
+ * FULL-WIDTH absolutely-positioned box (0…2160 at y1300…1368) painted after the
+ * ← button (x866…951 at y1291…1376), so it covered it and swallowed every tap:
+ * the back arrow was dead on every course, while → kept working purely because
+ * it is drawn after the label. The label is never interactive, so it stops
+ * taking hits at all rather than being pushed around with z-index.
+ */
+.day {
+  position: absolute;
+  pointer-events: none;
+  left: 0;
+  top: 1300px;
+  width: 2160px;
+  margin: 0;
+  font-size: 68px;
+  font-weight: 700;
+  line-height: 1;
+  color: #616161;
+  text-align: center;
+}
+
+/* ── Day swiper: 85×85 round chevron buttons either side of the DAY label ──
+   The redesign (6418:11330) replaced the old bare 59×68 triangles with filled
+   circles carrying a white chevron: #ff7f0f when the day exists, #999 when it
+   does not — the frame shows the left one grey on DAY 1. Measured off the 1:1
+   render at x866 / x1209, y1291; symmetric about x1080. */
+.dayArrow {
+  position: absolute;
+  top: 1291px;
+  width: 85px;
+  height: 85px;
+  padding: 0;
+  border: none;
+  background: none;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.dayArrow:disabled {
+  cursor: default;
+}
+
+.dayPrev { left: 866px; }
+.dayNext { left: 1209px; }
+
+/* ── Low-reach day pager ──
+   A SECOND copy of the same two buttons at the foot of the page, drawn only
+   while the ♿ layout is on. This page is far too tall to shift the way
+   JejuLanguage does, so the accessible affordance is a reachable DUPLICATE of
+   the control rather than a moved one: a seated visitor can page the days
+   without reaching y1291. The pair is centred on the artboard (85 + 30 gap +
+   85 = 200 → x980 / x1095) and `top` is set inline, centred on the QR row so
+   it tracks the real card count — see bottomPagerTopFor() in the TSX.
+   Measured off the 1:1 render of Figma 6418:11330 at y3695. */
+.dayPrevBottom { left: 980px; }
+.dayNextBottom { left: 1095px; }
+
+.dayArrowIcon {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+/* ── Timeline rail: dashed line + numbered stops ──
+   Circles sit at x170; the dashed line (Figma x222, y1705, h1687) runs behind
+   them. */
+.rail {
+  position: absolute;
+  left: 220px;
+  top: 1705px;
+  width: 5px;
+  height: 1687px;
+  border-left: 5px dashed var(--kiosk-primary, #ff7f0f);
+  opacity: 0.5;
+}
+
+/*
+ * Row = [disc 105][gap 35][card 1678] = 1818, which is the design's own gutter:
+ * the disc sits at x170 and the card at x310. Centred on the card, which is
+ * where the design draws it.
+ */
+.stopRow {
+  flex: none;
+  display: flex;
+  align-items: center;
+  gap: 35px;
+}
+
+.stop {
+  flex: none;
+  width: 105px;
+  height: 105px;
+  border-radius: 50%;
+  background: var(--kiosk-primary, #ff7f0f);
+  color: #fff;
+  font-size: 65px;
+  font-weight: 700;
+  line-height: 105px;
+  text-align: center;
+}
+
+/* ── Spot list — PAGED, never scrolled ── */
+.list {
+  position: absolute;
+  /* Starts at the disc gutter rather than the card edge, because the discs are
+     rows of this list now — the cards still begin at the design's 310. */
+  left: 170px;
+  top: 1423px;
+  width: 1818px;
+  height: 2240px;
+  display: flex;
+  flex-direction: column;
+  gap: 50px;
+  /*
+   * Deliberately NOT scrollable. Four cards (4×515 + 3×50 = 2210) fit inside
+   * this box, and a day with more spots than that is paged by the ← → pair
+   * beside the DAY label rather than dragged — that is what those buttons are
+   * for. `hidden` is the backstop: nothing here should ever exceed the box, and
+   * if something does it must be visibly wrong rather than quietly scrollable.
+   */
+  overflow: hidden;
+}
+
+.spot {
+  flex: none;
+  width: 1678px;
+  height: 515px;
+  box-sizing: border-box;
+  padding: 65px 80px 51px 74px;
+  border: none;
+  border-radius: 40px;
+  background: #fff;
+  display: flex;
+  align-items: center;
+  gap: 51px;
+  text-align: left;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.spotImg {
+  width: 620px;
+  height: 399px;
+  flex: 0 0 auto;
+  border-radius: 42.9px;
+  object-fit: cover;
+  background: #f2ede6;
+}
+
+.spotBody {
+  width: 875px;
+  height: 399px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  min-width: 0;
+}
+
+.spotTop {
+  height: 287px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.spotNameRow {
+  height: 85.799px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 30px;
+  min-width: 0;
+}
+
+.spotName {
+  margin: 0;
+  font-size: 68px;
+  font-weight: 700;
+  line-height: 1;
+  color: #000;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.spotTag {
+  margin: 0;
+  flex: 0 0 auto;
+  font-size: 52px;
+  font-weight: 400;
+  line-height: 1;
+  color: #999;
+  text-align: right;
+  white-space: nowrap;
+}
+
+.spotAddrRow {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  min-width: 0;
+}
+
+.spotAddrIcon {
+  width: 51px;
+  height: 51px;
+  flex: 0 0 auto;
+  object-fit: contain;
+}
+
+.spotAddr {
+  margin: 0;
+  font-size: 38px;
+  font-weight: 400;
+  line-height: 1;
+  color: #333;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.spotDesc {
+  margin: 0;
+  font-size: 38px;
+  font-weight: 400;
+  line-height: 1.3;
+  color: #999;
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
+.spotMeta {
+  display: flex;
+  align-items: center;
+  gap: 60px;
+}
+
+.metaItem {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.metaIcon {
+  width: 58px;
+  height: 58px;
+  flex: 0 0 auto;
+  object-fit: contain;
+}
+
+.metaText {
+  font-size: 38px;
+  font-weight: 400;
+  line-height: 1;
+  color: #333;
+  white-space: nowrap;
+}
+
+/* ── 모바일에서 확인하기 QR, under the last spot card ──────────────────
+   Anchored by `right`, not `left`, so the QR's right edge lines up with the
+   cards' right edge (310 + 1678 = 1988 → 2160 − 1988 = 172) no matter how wide
+   the label runs — a left-anchored row would drift as the label is translated.
+   `top` is set inline from the real card count; see qrTopFor(). */
+.qrRow {
+  position: absolute;
+  right: 172px;
+  display: flex;
+  align-items: center;
+  gap: 30px;
+}
+
+.qrLabel {
+  font-size: 40px;
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: 0.4px;
+  color: #5d5d5d;
+  white-space: nowrap;
+}
+
+/* A bare 150×150 code — NO orange frame. That stroke belongs to the 상세 card's
+   QR (JejuSpotDetailCard), not to this one; this screen draws the code straight
+   onto the page. */
+.qrFrame {
+  flex: 0 0 auto;
+  width: 150px;
+  height: 150px;
+  box-sizing: border-box;
+  background: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Quiet zone: 117 inside the 150 box leaves 16.5px of white on each side —
+   the same margin the old bordered frame gave, so scan reliability is
+   unchanged by dropping the border. */
+.qrCode {
+  width: 117px;
+  height: 117px;
+  display: block;
+}
+
+/* ── Empty state ── */
+.empty {
+  position: absolute;
+  left: 310px;
+  top: 1700px;
+  width: 1678px;
+  margin: 0;
+  font-size: 55px;
+  font-weight: 500;
+  line-height: 1.4;
+  color: #909090;
+  text-align: center;
+}

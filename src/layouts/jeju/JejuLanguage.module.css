@@ -1,0 +1,174 @@
+/*
+ * 제주공항 언어선택 — Figma node 6212:50714 (제주>언어선택), 2026-08 redesign.
+ *
+ * These cards carry NO border, unlike every other 제주 card/pill (JejuPill,
+ * JejuTabRow, JejuShopCard… all 5px #e8e8e8 + orange when active). The redesign
+ * distinguishes them by fill alone — white vs #ffeac7 ([제주] main 02) — with the
+ * drop shadow as the only edge on the selected one. Don't "fix" the missing
+ * border back in for consistency; the design is deliberately flat here.
+ *
+ * 언어선택영역 is y700, h2325 (confirmed by get_metadata), laid out in Figma as
+ * nested flex whose gaps resolve to exactly 2325. Reproduced as absolute rows at
+ * their resolved y so nothing accumulates rounding error:
+ *
+ *   700   현재언어 label row (h76)
+ *   841   현재언어 card (h320)          → 현재언어영역 = 700..1164 (h464)
+ *   1314  변경언어 label row (h66)      → +150 gap
+ *   1445  card row 1 (h320)             → +65 gap
+ *   1865  card row 2   2285  row 3   2705  row 4   → +100 gaps, ends 3025
+ */
+.area {
+  position: absolute;
+  left: 170px;
+  top: 700px;
+  width: 1820px;
+  height: 2325px;
+}
+
+/* ── Section label: black bar + heading ── */
+.label {
+  position: absolute;
+  left: 0;
+  display: flex;
+  align-items: center;
+  gap: 30px;
+}
+
+.labelBar {
+  flex: 0 0 auto;
+  width: 10.725px;
+  height: 72.929px;
+  border-radius: 21.45px;
+  background: #000;
+}
+
+.labelText {
+  margin: 0;
+  font-size: 76px;
+  font-weight: 600;
+  line-height: 1;
+  color: #000;
+  white-space: nowrap;
+}
+
+.labelCurrent { top: 0; height: 76px; }
+.labelTarget  { top: 614px; height: 66px; }
+
+/* ── 현재 언어 card (y841 → 141 inside .area) ── */
+.currentCard {
+  position: absolute;
+  left: 0;
+  top: 141px;
+  width: 1820px;
+  height: 320px;
+  box-sizing: border-box;
+  padding: 55px 60px;
+  border-radius: 42.9px;
+  background: #ffeac7;
+  display: flex;
+  align-items: center;
+}
+
+/* ── 변경 언어 grid: 4 rows × 2 columns ──
+   NORMALISED: Figma draws row 1's cards 870 wide (gap 80) and rows 2–4 at 875
+   (gap 70); both render as one aligned column pair, so all use 875/70 here.
+   Row tops inside .area: 745 / 1165 / 1585 / 2005 (y1445 / 1865 / 2285 / 2705). */
+.grid {
+  position: absolute;
+  left: 0;
+  top: 745px;
+  width: 1820px;
+  height: 1580px;
+}
+
+.card {
+  position: absolute;
+  width: 875px;
+  height: 320px;
+  box-sizing: border-box;
+  padding: 55px 60px;
+  /* `border: none`, NOT a deleted declaration: this is a <button>, and with no
+     border of its own Chrome's UA sheet applies `2px outset ButtonBorder` —
+     a grey bevel that reads as a border AND a drop shadow on every card. The
+     project has no global button reset (global.css only sets font-family). */
+  border: none;
+  border-radius: 42.9px;
+  background: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  cursor: pointer;
+  text-align: left;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Selected: the same treatment as the 현재 언어 card, plus the Figma drop shadow. */
+.cardSelected {
+  background: #ffeac7;
+  filter: drop-shadow(0 21.45px 21.45px rgba(143, 147, 157, 0.1));
+}
+
+/* ── Card contents ── */
+.cardLeft {
+  display: flex;
+  align-items: center;
+  gap: 42.9px;
+  min-width: 0;
+}
+
+/* Language code pill. Figma ships these as two circle SVGs (filled #FF7F0F, and
+   a 2.145px ring of the same colour); drawn in CSS instead so the code sits
+   optically centred at any scale and there is no extra asset to keep in sync. */
+.pill {
+  flex: 0 0 auto;
+  width: 170px;
+  height: 170px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 60px;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.pillOn {
+  background: var(--kiosk-primary, #ff7f0f);
+  color: #fff;
+}
+
+.pillOff {
+  background: transparent;
+  border: 2.145px solid var(--kiosk-primary, #ff7f0f);
+  color: var(--kiosk-primary, #ff7f0f);
+}
+
+.langName {
+  margin: 0;
+  font-size: 68px;
+  font-weight: 600;
+  /* NOT `line-height: 1`. At 68px the font's content area is ~1.45em tall
+     (ascender + descender), so a 1.0 line box is ~15px shorter than the glyphs
+     at BOTH ends — and `overflow: hidden` (there for the ellipsis) then cuts
+     whatever pokes out. Only the names with descenders showed it: English's
+     "g", Tiếng Việt's "g", Español's "p", Русский's "у"; 한국어 / 日本語 / 中國語
+     have none, which is why it looked language-specific. 1.5 clears the
+     descender on both the Noto Sans KR and Malgun Gothic fallbacks, and the
+     card centres its row, so nothing else moves. */
+  line-height: 1.5;
+  color: #333;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* The 현재 언어 card's name is pure black; the change-list cards use #333. */
+.currentCard .langName { color: #000; }
+
+.check {
+  flex: 0 0 auto;
+  width: 115px;
+  height: 115px;
+  object-fit: contain;
+  pointer-events: none;
+}

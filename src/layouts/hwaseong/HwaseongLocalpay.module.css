@@ -11,7 +11,7 @@
 }
 
 .bgBase { position: absolute; left: 0; top: 0; width: 2160px; height: 3840px; background: #fff; }
-.bgImage { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; opacity: 0.5; pointer-events: none; }
+.bgImage { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; pointer-events: none; }
 
 /* ── Tab bar ── Figma: left=427 top=664 (온누리 active screen) */
 .tabs {
@@ -46,11 +46,11 @@
   overflow: hidden;
 }
 
-/* 온누리상품권 active: #daecfe / #005ab4 */
+/* 온누리상품권 active: var(--kiosk-secondary) / var(--kiosk-primary) */
 .tabSelected0 {
-  background: #daecfe;
+  background: var(--kiosk-secondary);
   font-weight: 700;
-  color: #005ab4;
+  color: var(--kiosk-primary);
 }
 
 /* 행복화성지역화폐 active: #e8f0f4 / #005cb1 */
@@ -308,16 +308,6 @@
   gap: 20px;
   width: 100%;
 }
-
-/* ── Left nav ── */
-.leftNav { position: absolute; left: 21px; top: 1995px; width: 85px; height: 205px; z-index: 20; }
-.leftNavImg { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; pointer-events: none; }
-.leftNavZoneHome, .leftNavZoneBack {
-  position: absolute; left: 0; width: 85px; height: 85px;
-  padding: 0; border: none; background: none; cursor: pointer; -webkit-tap-highlight-color: transparent;
-}
-.leftNavZoneHome { top: 0; }
-.leftNavZoneBack { top: 120px; }
 
 /* ── Bottom banner ── */
 .banner { position: absolute; top: 3267px; left: 0; width: 2160px; height: 573px; pointer-events: none; z-index: 10; }

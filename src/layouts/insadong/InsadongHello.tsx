@@ -17,6 +17,7 @@ import stretchSide from '@renderer/assets/photos/insadong/hello/stretch-side.jpg
 import qrInsaTiktok from '@renderer/assets/photos/insadong/hello/qr-insa-tiktok.png';
 import qrInsaInsta from '@renderer/assets/photos/insadong/hello/qr-insa-insta.png';
 import { InsadongHeader } from './InsadongHeader';
+import { InsadongLeftNav } from './InsadongLeftNav';
 import styles from './InsadongHello.module.css';
 
 type Lang = SupportedLanguage;
@@ -549,14 +550,7 @@ export function InsadongHello({ controller }: InsadongHelloProps): JSX.Element {
         )}
       </div>
 
-      <div className={styles.leftNav}>
-        <button type="button" className={styles.leftNavBtn} onClick={goHome} aria-label="홈으로">
-          {iconUrl('home-btn') && <img src={iconUrl('home-btn')} alt="" draggable={false} />}
-        </button>
-        <button type="button" className={styles.leftNavBtn} onClick={goHome} aria-label="뒤로">
-          {iconUrl('back-arrow') && <img src={iconUrl('back-arrow')} alt="" draggable={false} />}
-        </button>
-      </div>
+      <InsadongLeftNav onHome={goHome} />
 
       {banner && (
         <button type="button" className={styles.banner} onClick={() => controller.startPhoto()} aria-label="가상 한복 체험">

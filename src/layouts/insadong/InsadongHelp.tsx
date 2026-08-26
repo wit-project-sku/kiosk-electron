@@ -4,7 +4,7 @@ import type { KioskController } from '@renderer/hooks/useKioskController';
 import { iconUrl } from '@renderer/assets/icons/insadong';
 import { useDetailStore } from '@renderer/store/detailStore';
 import { useShopStore } from '@renderer/store/shopStore';
-import { pick, useLang } from '@renderer/lib/i18n';
+import { facilityLabel, useLang } from '@renderer/lib/i18n';
 import {
   shopAddress,
   shopDescription,
@@ -16,23 +16,21 @@ import {
   stripPrefix,
 } from '@renderer/lib/shops';
 import { InsadongHeader } from './InsadongHeader';
+import { InsadongLeftNav } from './InsadongLeftNav';
 import styles from './InsadongHelp.module.css';
 
 const BASE_CATEGORY = '인사 도와줘';
 
-/** Fixed Figma category tabs (2-row grid). `id` matches the API secondCategory's
- *  bare name (e.g. "안내소"); 화장실 is also the restroom deep-link target. */
-const CATEGORIES: Array<{ id: string; t: Record<string, string> }> = [
-  { id: '안내소', t: { ko: '안내소', en: 'Info', ja: '案内所', zh: '咨询处' } },
-  { id: '편의점', t: { ko: '편의점', en: 'Store', ja: 'コンビニ', zh: '便利店' } },
-  { id: '병원', t: { ko: '병원', en: 'Hospital', ja: '病院', zh: '医院' } },
-  { id: '약국', t: { ko: '약국', en: 'Pharmacy', ja: '薬局', zh: '药店' } },
-  { id: '은행', t: { ko: '은행', en: 'Bank', ja: '銀行', zh: '银行' } },
-  { id: '환전소', t: { ko: '환전소', en: 'Exchange', ja: '両替所', zh: '换钱所' } },
-  { id: '종교', t: { ko: '종교', en: 'Religion', ja: '宗教', zh: '宗教' } },
-  { id: '화장실', t: { ko: '화장실', en: 'Restroom', ja: 'トイレ', zh: '洗手间' } },
-  { id: '흡연장소', t: { ko: '흡연장소', en: 'Smoking', ja: '喫煙所', zh: '吸烟区' } },
-  { id: '기타', t: { ko: '기타', en: 'Other', ja: 'その他', zh: '其他' } },
+/** Fixed Figma category tabs (2-row grid), in design order. The Korean string is
+ *  the canonical id: it matches the API secondCategory's bare name and is the
+ *  restroom deep-link target.
+ *
+ *  Labels prefer the shop rows (witteria returns secondCategory in all 8
+ *  languages). A category with no shops — e.g. 흡연실 — falls back to
+ *  `facilityLabel` so the tab still switches language. */
+const CATEGORY_IDS: string[] = [
+  '안내소', '편의점', '병원', '약국', '은행',
+  '환전소', '종교', '화장실', '흡연실', '기타',
 ];
 
 interface InsadongHelpProps {
@@ -50,10 +48,21 @@ export function InsadongHelp({ controller, initialTab }: InsadongHelpProps): JSX
   const setDetail = useDetailStore((s) => s.setItem);
   // Deep-link: open on initialTab (e.g. 화장실 from the restroom tile), else 안내소.
   const [active, setActive] = useState(
-    initialTab && CATEGORIES.some((c) => c.id === initialTab) ? initialTab : '안내소',
+    initialTab && CATEGORY_IDS.includes(initialTab) ? initialTab : '안내소',
   );
 
   const baseShops = useMemo(() => shopsForBase(shops, BASE_CATEGORY), [shops]);
+
+  /** Korean category id → the label in the active language, taken from the shop
+   *  rows the cards already use, so the tab and the card can never disagree. */
+  const catLabels = useMemo(() => {
+    const map = new Map<string, string>();
+    for (const s of baseShops) {
+      const kr = stripPrefix(s.secondCategoryKr ?? '');
+      if (kr && !map.has(kr)) map.set(kr, shopSecondCategory(s, lang));
+    }
+    return map;
+  }, [baseShops, lang]);
   const visible = useMemo(
     () => baseShops.filter((s) => stripPrefix(s.secondCategoryKr ?? '') === active),
     [baseShops, active],
@@ -89,14 +98,14 @@ export function InsadongHelp({ controller, initialTab }: InsadongHelpProps): JSX
 
       <div className={styles.results}>
         <div className={styles.cats}>
-          {CATEGORIES.map((c) => (
+          {CATEGORY_IDS.map((id) => (
             <button
-              key={c.id}
+              key={id}
               type="button"
-              className={`${styles.cat} ${active === c.id ? styles.catSel : ''}`}
-              onClick={() => setActive(c.id)}
+              className={`${styles.cat} ${active === id ? styles.catSel : ''}`}
+              onClick={() => setActive(id)}
             >
-              {pick(c.t, lang)}
+              {catLabels.get(id) || facilityLabel(id, lang)}
             </button>
           ))}
         </div>
@@ -130,14 +139,7 @@ export function InsadongHelp({ controller, initialTab }: InsadongHelpProps): JSX
         </div>
       </div>
 
-      <div className={styles.leftNav}>
-        <button type="button" className={styles.leftNavBtn} onClick={goHome} aria-label="홈으로">
-          {iconUrl('home-btn') && <img src={iconUrl('home-btn')} alt="" draggable={false} />}
-        </button>
-        <button type="button" className={styles.leftNavBtn} onClick={goHome} aria-label="뒤로">
-          {iconUrl('back-arrow') && <img src={iconUrl('back-arrow')} alt="" draggable={false} />}
-        </button>
-      </div>
+      <InsadongLeftNav onHome={goHome} />
 
     </>
   );

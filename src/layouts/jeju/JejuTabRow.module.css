@@ -1,0 +1,48 @@
+/*
+ * Three-pill tab row — the same 1820×170 row on every 제주 page that has tabs
+ * (6212:59067 여기는 제주도, 6217:94656 안녕 '하영'): three 580×170 pills at
+ * x170/y700, `justify-between` over 1820 leaving 40px gaps.
+ */
+.tabs {
+  position: absolute;
+  left: 170px;
+  top: 700px;
+  width: 1820px;
+  height: 170px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.tab {
+  width: 580px;
+  height: 170px;
+  box-sizing: border-box;
+  padding: 0 18px;
+  /* Borderless — the idle pill is a plain white plate on the page background.
+     `none`, not omitted, because these are <button>s and would otherwise take
+     Chrome's UA outset bevel. */
+  border: none;
+  border-radius: 42.9px;
+  background: #fff;
+  font-size: 50px;
+  font-weight: 500;
+  /* Figma draws one 50px line, which Korean manages and
+     "Достопримечательности" does not — so it wraps and clips instead of
+     spilling past the pill, exactly as the category chips do. */
+  line-height: 1.1;
+  overflow: hidden;
+  overflow-wrap: anywhere;
+  color: #999;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Picked: the solid brand plate with white Bold type — it used to be the pale
+   #ffeac7 fill with an orange rule and an orange label. Same treatment the
+   category chips and the events tabs now use. */
+.tabActive {
+  background: var(--kiosk-primary, #ff7f0f);
+  font-weight: 700;
+  color: #fff;
+}

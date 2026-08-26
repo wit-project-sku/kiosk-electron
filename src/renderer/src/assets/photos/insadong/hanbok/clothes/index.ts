@@ -1,7 +1,9 @@
 /**
- * Outfit catalogue for the AR 한복체험 selection grid, grouped by the 8
- * categories (same order as HanbokSelect's CATEGORIES). Drop PNGs into the
- * per-category "catN-..." folders and they are picked up automatically.
+ * Bundled outfit catalogue — the OFFLINE FALLBACK for the AR 한복체험 pickers.
+ * The live catalogue (outfits AND tabs) comes from `GET /api/outfits` via
+ * OutfitService/outfitStore on every layout now; these PNGs only stand in on a
+ * kiosk that has never synced. Folder order matches outfitStore's
+ * BUNDLED_CATEGORY_NAMES, which keys them like API content.
  *
  * The file stem is the outfit code sent to the AR API (e.g. "1.1", "10.2-F").
  */

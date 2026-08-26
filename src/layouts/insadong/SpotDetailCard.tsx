@@ -47,14 +47,20 @@ function RatingStar({ filled }: { filled: boolean }): JSX.Element {
 export function SpotDetailCard({ data }: { data: SpotDetailData }): JSX.Element {
   // Real photos drive the lightbox; the grid is padded to 4 with the no-image
   // icon like the cards so the 2×2 layout always holds its shape.
-  const realPhotos = data.photos.filter(Boolean);
+  const realPhotos = (data.photos ?? []).filter(Boolean);
   const photos = padImages(realPhotos, iconUrl('noimage'), 4);
-  const hours = data.hours.filter((h) => h.trim());
+  // `str` guards every field this card calls a string method on. detailStore is
+  // written from a dozen screens and its fields are typed `string`, but shop
+  // rows can carry a null address (see main/services/normalizeShop.ts) — before
+  // this, `data.address.trim()` threw and blanked the whole detail page for the
+  // five 뭐먹지 shops at 오색시장 with no address.
+  const str = (v: string | null | undefined): string => (typeof v === 'string' ? v : '');
+  const hours = (data.hours ?? []).filter((h) => str(h).trim());
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
   // The QR encodes the shop's Naver link (blog field); static art when absent.
-  const qrLink = /^https?:\/\//i.test(data.blog) ? data.blog : null;
+  const qrLink = /^https?:\/\//i.test(str(data.blog)) ? data.blog : null;
   // Real Naver rating — stars are derived from it; hidden when there is none.
-  const ratingValue = parseFloat(data.rating);
+  const ratingValue = parseFloat(str(data.rating));
   const hasRating = Number.isFinite(ratingValue) && ratingValue > 0;
   const filledStars = Math.round(ratingValue);
 
@@ -93,7 +99,7 @@ export function SpotDetailCard({ data }: { data: SpotDetailData }): JSX.Element 
             its field has no data, so no stray icon sits next to an empty value. */}
         <div className={styles.info}>
           <div className={styles.infoCol}>
-            {data.address.trim() && (
+            {str(data.address).trim() && (
               <div className={styles.infoRow}>
                 <img className={styles.infoIcon} src={iconMarker} alt="" draggable={false} />
                 <span className={styles.infoText}>{data.address}</span>
@@ -111,7 +117,7 @@ export function SpotDetailCard({ data }: { data: SpotDetailData }): JSX.Element 
                 </div>
               </div>
             )}
-            {data.phone.trim() && (
+            {str(data.phone).trim() && (
               <div className={styles.infoRow}>
                 <img className={styles.infoIcon} src={iconPhone} alt="" draggable={false} />
                 <span className={styles.infoText}>{data.phone}</span>
@@ -157,7 +163,7 @@ export function SpotDetailCard({ data }: { data: SpotDetailData }): JSX.Element 
         <ImageLightbox
           images={realPhotos}
           initialIndex={lightboxIndex}
-          accent="#fe6c50"
+          accent="var(--kiosk-primary)"
           onClose={() => setLightboxIndex(null)}
         />
       )}

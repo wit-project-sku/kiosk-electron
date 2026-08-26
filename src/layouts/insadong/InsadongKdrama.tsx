@@ -1,10 +1,10 @@
 import type { KioskController } from '@renderer/hooks/useKioskController';
 import { useLang, pick, type Lang } from '@renderer/lib/i18n';
 import { kdramaAsset } from '@renderer/assets/icons/insadong/kdrama';
-import { iconUrl } from '@renderer/assets/icons/insadong';
 import { usePhotoStore } from '@renderer/store/photoStore';
 import { InsadongHeader } from './InsadongHeader';
 import { useState } from 'react';
+import { InsadongLeftNav } from './InsadongLeftNav';
 import styles from './InsadongKdrama.module.css';
 
 type View = 'main' | 'quest' | 'reward';
@@ -221,24 +221,10 @@ export function InsadongKdrama({ controller }: InsadongKdramaProps): JSX.Element
       )}
 
       {/* Left-edge nav (home / back) */}
-      <div className={styles.leftNav}>
-        <button
-          type="button"
-          className={styles.leftNavBtn}
-          onClick={() => navigate('home', 'Back')}
-          aria-label="홈으로"
-        >
-          {iconUrl('home-btn') && <img src={iconUrl('home-btn')} alt="" draggable={false} />}
-        </button>
-        <button
-          type="button"
-          className={styles.leftNavBtn}
-          onClick={() => (view !== 'main' ? setView('main') : navigate('home', 'Back'))}
-          aria-label="뒤로"
-        >
-          {iconUrl('back-arrow') && <img src={iconUrl('back-arrow')} alt="" draggable={false} />}
-        </button>
-      </div>
+      <InsadongLeftNav
+        onHome={() => navigate('home', 'Back')}
+        onBack={() => (view !== 'main' ? setView('main') : navigate('home', 'Back'))}
+      />
     </div>
   );
 }

@@ -1,0 +1,79 @@
+/*
+ * Sub-tab row — Figma draws it as ONE 60px text run, spaced with literal spaces
+ * and separated by ㅣ (U+3163 HANGUL LETTER I, not a pipe):
+ *   6217:94722  안녕 '하영' › 취미생활   K-POP ㅣ 런닝 ㅣ 테니스
+ *   6217:95029  안녕 '하영' › 건강습관   목·어깨 ㅣ 허리 ㅣ 기분전환
+ *   6219:98786  도와줘 '하영'            1F ㅣ 2F ㅣ 3F
+ * All three sit in the same 2160×82 band at y920.
+ *
+ * Split into buttons so each is a touch target; the 60/60 padding + 60/90
+ * separator margins reproduce the run's own 120-before / 150-after gaps.
+ *
+ * The idle ink is #999 on all three of those, but 여객터미널's 운항정보
+ * (6420:23807, 국제항 ㅣ 연안항) draws it in #1a1a1a. Callers override it with
+ * `--jeju-subtab-idle` on the row rather than by reaching into `.item` from
+ * another module — an equal-specificity cross-file override whose winner depends
+ * on bundler stylesheet order, which is the trap `.tabsLow.tabsLow` exists for
+ * in JejuAbout.
+ */
+.row {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 920px;
+  height: 82px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.item {
+  height: 82px;
+  padding: 0 60px;
+  border: none;
+  background: none;
+  font-size: 60px;
+  font-weight: 600;
+  line-height: 1;
+  color: var(--jeju-subtab-idle, #999);
+  white-space: nowrap;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.itemActive {
+  font-weight: 900;
+  color: var(--kiosk-primary, #ff7f0f);
+}
+
+/*
+ * The 60/90 default reproduces the 120-before / 150-after gaps of the three
+ * frames above. That asymmetry moves the ㅣ off the artboard's centre line,
+ * which is right for those pages and wrong for 여객터미널's 운항정보: 6420:23807
+ * spaces its run evenly (ten literal spaces each side) and lands the separator
+ * on 1079.5, i.e. dead centre. Equal margins put it there for free whenever the
+ * two labels are the same width, so that page overrides both to 80px — measured
+ * to reproduce the frame's ~168px ink gap.
+ */
+.sep {
+  margin: 0 var(--jeju-subtab-sep-after, 90px) 0 var(--jeju-subtab-sep-before, 60px);
+  font-size: 60px;
+  font-weight: 600;
+  line-height: 1;
+  color: var(--jeju-subtab-idle, #999);
+}
+
+.compact {
+  height: 60px;
+}
+
+.compact .item,
+.compact .sep {
+  height: 60px;
+  font-size: 38px;
+  padding: 0 40px;
+}
+
+.compact .sep {
+  margin: 0 var(--jeju-subtab-sep-after, 80px) 0 var(--jeju-subtab-sep-before, 80px);
+}

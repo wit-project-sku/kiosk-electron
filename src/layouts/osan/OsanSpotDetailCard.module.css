@@ -65,7 +65,7 @@
   width: 17px;
   height: 17px;
   border-radius: 50%;
-  background: #1a4d7e;
+  background: var(--kiosk-primary);
 }
 
 .gallery {
@@ -149,7 +149,7 @@
   box-sizing: border-box;
   width: 340px;
   height: 340px;
-  border: 4.29px solid #1a4d7e;
+  border: 4.29px solid var(--kiosk-primary);
   border-radius: 25px;
   background: #ffffff;
   /* QR sits inset inside the 340 box; larger padding = smaller code, box unchanged. */

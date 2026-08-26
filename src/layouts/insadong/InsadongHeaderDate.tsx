@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { Region, type Rect } from '../components/KioskScreenImage';
 import styles from './InsadongHeaderDate.module.css';
 
-/** Covers the baked date in the header (cream core sampled as #f8ecde). */
+/** Covers the baked date in the header (cream core sampled as var(--kiosk-secondary)). */
 const DATE_RECT: Rect = { x: 79.5, y: 3.5, w: 13, h: 1.6 };
 
 const WEEKDAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];

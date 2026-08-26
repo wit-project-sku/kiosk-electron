@@ -1,0 +1,132 @@
+/*
+ * 제주 shop list card — Figma component `4030:74958` (R>리스트-사진4개).
+ * 1820×530, r42.9, borderless, padding 65/45. Info column 1120 (gap 40),
+ * photo column 570 (2×2 of 270×150 at r21.45, gap 30).
+ */
+.card {
+  width: 1820px;
+  height: 530px;
+  box-sizing: border-box;
+  padding: 65px 45px;
+  /* No border, no shadow — Figma draws a plain white rounded plate. `border: none`
+     rather than omitting the property, because this card is a <button> and would
+     otherwise pick up Chrome's UA `2px outset ButtonBorder` bevel (the project has
+     no global button reset; global.css only sets font-family). */
+  border: none;
+  border-radius: 42.9px;
+  background: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  text-align: left;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.info {
+  width: 1120px;
+  display: flex;
+  flex-direction: column;
+  gap: 40px;
+  min-width: 0;
+}
+
+.nameRow {
+  display: flex;
+  align-items: center;
+  gap: 40px;
+  min-width: 0;
+}
+
+.name {
+  font-size: 68px;
+  font-weight: 600;
+  line-height: 1;
+  color: #2b2b2b;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.cat {
+  display: flex;
+  align-items: center;
+  gap: 21.45px;
+  flex: 0 0 auto;
+  font-size: 52px;
+  font-weight: 400;
+  line-height: 1;
+  color: #999;
+  white-space: nowrap;
+}
+
+.dot {
+  width: 17px;
+  height: 17px;
+  border-radius: 50%;
+  background: var(--kiosk-primary, #ff7f0f);
+  flex: 0 0 auto;
+}
+
+.address,
+.desc,
+.tags {
+  margin: 0;
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+}
+
+.address {
+  font-size: 48px;
+  font-weight: 500;
+  line-height: 1;
+  color: #999;
+  -webkit-line-clamp: 1;
+}
+
+.desc {
+  font-size: 48px;
+  font-weight: 500;
+  line-height: 1.2;
+  color: #2b2b2b;
+  -webkit-line-clamp: 2;
+}
+
+.tags {
+  font-size: 40px;
+  font-weight: 400;
+  line-height: 1;
+  color: #999;
+  -webkit-line-clamp: 1;
+}
+
+/* Query match highlight (search only). */
+.hl {
+  color: var(--kiosk-primary, #ff7f0f);
+  font-weight: 700;
+}
+
+/* ── Thumbnails: 2×2 of 270×150 ── */
+.photos {
+  flex: 0 0 auto;
+  width: 570px;
+  display: grid;
+  grid-template-columns: 270px 270px;
+  gap: 30px;
+}
+
+.thumb {
+  width: 270px;
+  height: 150px;
+  border-radius: 21.45px;
+  overflow: hidden;
+  background: #f2ede6;
+}
+
+.thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}

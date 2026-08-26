@@ -1,0 +1,147 @@
+/*
+ * 제주 AI 검색 결과 (코스 선택) — Figma node 6289:55267 (제주>제주모하지(AI검색)-02),
+ * the 2026-08-24 redesign of 6127:17606.
+ *
+ * Three course cards. Each is a #ffeac7 plate (x175, w1810, r80) with a white
+ * panel laid over its right side (x383 → 1985, rounded on the right only), so
+ * the 208px strip that remains on the left carries the A/B/C 코스 label.
+ *
+ * Card tops: 868 / 1628 / 2385, all three h697 (the redesign settled the 700/697
+ * mismatch the old node had).
+ *
+ * What the redesign changed: the "맞춤 코스를 선택해…" line above the cards is
+ * gone; the rail label drops 65→60; the subtitle 50→45; the hashtags jump 45→52
+ * and lose their Medium weight. The plate carries no shadow at all now — it had
+ * a hard black one, briefly the design system's soft #8F939D1A, and then none.
+ *
+ * NORMALISED — the three cards disagree with each other in the design and this
+ * file takes one value for all three:
+ *   · subtitle/title y — card A is drawn 9px higher (73/158) than B and C
+ *     (83/168, 82/167); 82/167 wins.
+ *   · desc/tags y — 418/566 (A), 433/581 (B), 398/546 (C); the mean 416/564
+ *     wins. The 148px desc→tags step is the one thing all three agree on.
+ */
+/* ── Card ── */
+.card {
+  position: absolute;
+  left: 175px;
+  width: 1810px;
+  height: 697px;
+  padding: 0;
+  /* Borderless. It used to be a 5px border in the plate's OWN colour, which was
+     invisible but not free: an absolutely positioned child resolves against the
+     padding box, so .panel's `left: 208 / top: 0 / height: 100%` landed 5px in
+     on every side and left a #ffeac7 rim around the white panel. */
+  border: none;
+  border-radius: 80px;
+  background: #ffeac7;
+  box-sizing: border-box;
+  text-align: left;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* White body over the right side; the uncovered left strip is the label rail. */
+.panel {
+  position: absolute;
+  left: 208px;
+  top: 0;
+  width: 1602px;
+  height: 100%;
+  border-radius: 0 80px 80px 0;
+  background: #fff;
+  pointer-events: none;
+}
+
+.courseLabel {
+  position: absolute;
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 208px;
+  font-size: 60px;
+  font-weight: 700;
+  line-height: 1;
+  color: var(--kiosk-primary, #ff7f0f);
+  text-align: center;
+}
+
+/* ── Card body (offsets are from the card's own top-left) ── */
+.courseSubtitle,
+.courseTitle,
+.desc,
+.tags {
+  position: absolute;
+  left: 269px;
+  margin: 0;
+}
+
+.courseSubtitle {
+  top: 82px;
+  font-size: 45px;
+  font-weight: 500;
+  line-height: 1;
+  color: #999;
+  white-space: nowrap;
+}
+
+/* Press feedback, authored — the redesign draws all three subtitles grey, so
+   unlike the previous node there is no orange one to read as a state. Kept
+   because a 1810×697 tile with no touch response reads as a dead kiosk. */
+.card:active .courseSubtitle {
+  color: var(--kiosk-primary, #ff7f0f);
+}
+
+/* 82 + the 45px subtitle + Figma's 40px column gap. */
+.courseTitle {
+  top: 167px;
+  font-size: 90px;
+  font-weight: 700;
+  line-height: 1;
+  color: #333;
+  white-space: nowrap;
+}
+
+.desc {
+  top: 416px;
+  width: 600px;
+  font-size: 38px;
+  font-weight: 500;
+  /* 1.44, not the design's literal 1.3: Figma draws the two lines as separate
+     paragraphs at 1.3 with a 10.72px margin between them (h108 for the pair).
+     This is one text node with an authored newline, so the margin has to live
+     in the leading — 2 × 38 × 1.44 = 109.4. */
+  line-height: 1.44;
+  color: #999;
+  /* Both lines are authored with a literal newline so the break matches the
+     design instead of depending on the box width. */
+  white-space: pre-line;
+}
+
+.tags {
+  top: 564px;
+  width: 600px;
+  font-size: 52px;
+  font-weight: 400;
+  line-height: 1.3;
+  color: var(--kiosk-primary, #ff7f0f);
+  white-space: nowrap;
+}
+
+.art {
+  position: absolute;
+  object-fit: contain;
+  pointer-events: none;
+}
+
+.arrow {
+  position: absolute;
+  left: 1583px;
+  top: 278px;
+  width: 141px;
+  height: 141px;
+  object-fit: contain;
+  pointer-events: none;
+  /* Figma rotates the shared left-chevron button to point right. */
+  transform: rotate(180deg);
+}

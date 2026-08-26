@@ -72,12 +72,18 @@ export function registerPhotoHandlers(container: AppContainer): void {
     (req: { clothingKey: string }) => container.photoWorkflow.selectClothing(req.clothingKey),
   );
 
-  handle(IpcChannels.PhotoSelectStyle, (req: { styleKey: string }) => {
+  handle(IpcChannels.PhotoSelectStyle, (req: { styleKey: string; backgroundId?: number | null }) => {
     const deviceId = container.photoWorkflow.resolveCameraDevice();
-    return container.photoWorkflow.selectStyle(req.styleKey, deviceId);
+    return container.photoWorkflow.selectStyle(req.styleKey, deviceId, req.backgroundId ?? null);
   });
 
   handle(IpcChannels.PhotoBeginCountdown, () => container.photoWorkflow.beginCountdown());
+
+  // 제주 손동작 게이트. Driven by the customer display, which is the window that
+  // owns the camera stream and therefore the only one that can see the hand.
+  handle(IpcChannels.PhotoArmGestureGate, () => container.photoWorkflow.armGestureGate());
+  handle(IpcChannels.PhotoHoldCountdown, () => container.photoWorkflow.holdCountdown());
+  handle(IpcChannels.PhotoResumeCountdown, () => container.photoWorkflow.resumeCountdown());
 
   handle(IpcChannels.PhotoReset, () => container.photoWorkflow.reset());
 
@@ -88,6 +94,17 @@ export function registerPhotoHandlers(container: AppContainer): void {
   );
 
   handle(IpcChannels.PhotoRevealResult, () => container.photoWorkflow.revealResult());
+
+  // 제주 틀린그림찾기: 게임이 끝날 때까지 Monitor 2 를 대기 화면에 붙잡아 둔다.
+  handle(
+    IpcChannels.PhotoDeferResultDisplay,
+    (req: { defer: boolean }) =>
+      container.photoWorkflow.setDeferResultDisplay(Boolean(req?.defer)),
+  );
+
+  handle(IpcChannels.PhotoReleaseResultDisplay, () =>
+    container.photoWorkflow.releaseResultDisplay(),
+  );
 
   handle(
     IpcChannels.PhotoGetResultDataUrl,
@@ -123,7 +140,12 @@ export function registerPhotoHandlers(container: AppContainer): void {
 
     try {
       const result = await container.photoGeneration.generate(
-        { sessionId, dataUrl, clothingKey, styleKey },
+        // backgroundId is read from the workflow rather than the request: the
+        // capture is fired by Monitor 2 from its own copy of the state, and a
+        // stale copy there would silently swap (or drop) the background the
+        // visitor picked. main already holds the authoritative value — set by
+        // selectStyle on the same tap that chose the capture mode.
+        { sessionId, dataUrl, clothingKey, styleKey, backgroundId: workflow.backgroundId },
         (message) => {
           if (isActiveSession()) container.photoWorkflow.setGenerating(message);
         },

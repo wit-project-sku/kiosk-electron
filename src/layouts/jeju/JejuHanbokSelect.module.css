@@ -1,0 +1,762 @@
+/*
+ * 제주공항 (W006) AR 한복체험 — outfit selection. Figma frames 6258:48575 /
+ * 48469 (landing tab, theme unpicked / picked) and 6258:48326 / 48134 (한복
+ * tab, sub-chip unpicked / picked), the 2026-08-24 redraw; 48264 is the
+ * 개인정보 modal.
+ *
+ * Inside KioskArtboard 1 CSS px = 1 Figma px (2160×3840), so every value here is
+ * the exact number read out of the design.
+ *
+ * y map (Figma draws the body from 594, just under the header's last visible
+ * row at 494 — JejuHeader's box is 700 but paints nothing below 494, so the
+ * design's absolute values are used verbatim):
+ *   594…699   ① 의상 선택하기
+ *   739…786   ★ subtitle
+ *   844…1219  category tabs, 2 rows (4 columns in the design; the API decides
+ *             how many there really are — see `.cats`). The 한복 frames start
+ *             their column 13px higher (831) — slop; the row must not move on
+ *             a tab press, so 844 everywhere.
+ *  1266…1386  sub-category chips — only where the category has any, so the
+ *             band is empty on most tabs (see `.subcats`)
+ *  1447…1797  outfit cards, ONE row   (landing tab — 5 × 350 across the 1820)
+ *  1447…2212  outfit cards, TWO rows  (every other tab; 415 pitch)
+ *  1855…1960  ② 배경 테마 선택하기
+ *  2018…2698  background themes (scrolls horizontally; 340×680 tiles)
+ *  2883…3033  capture buttons (landing) · 2279…2429 (other tabs)
+ *  3210…3710  사진촬영안내 card (landing) · 2497…2997 (other tabs)
+ *  3267…3840  banner — every tab EXCEPT landing, whose guide card sits there
+ */
+.root {
+  position: absolute;
+  inset: 0;
+  width: 2160px;
+  height: 3840px;
+  overflow: hidden;
+  font-family: var(--kiosk-font, 'Noto Sans KR', 'Noto Sans', sans-serif);
+}
+
+.bg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  pointer-events: none;
+}
+
+/* ── Step headings ──────────────────────────────────────────────────── */
+.step {
+  position: absolute;
+  left: 170px;
+  display: flex;
+  align-items: center;
+  gap: 21.45px;
+}
+
+.stepOutfit {
+  top: 594px;
+}
+
+.stepTheme {
+  top: 1855px;
+}
+
+.stepBadge {
+  width: 105px;
+  height: 105px;
+  flex: 0 0 auto;
+  border-radius: 50%;
+  background: var(--kiosk-primary, #ff7f0f);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 65px;
+  font-weight: 700;
+  line-height: 1;
+  color: #fff;
+}
+
+.stepTitle {
+  margin: 0;
+  font-size: 68px;
+  font-weight: 700;
+  line-height: 1;
+  color: #333;
+  white-space: nowrap;
+}
+
+.subtitle {
+  position: absolute;
+  left: 210px; /* 170 + the row's own 40 padding */
+  top: 739px;
+  height: 47px;
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.subtitleStar {
+  width: 36.465px;
+  height: 36.465px;
+  object-fit: contain;
+  flex: 0 0 auto;
+}
+
+.subtitleText {
+  margin: 0;
+  font-size: 47px;
+  font-weight: 700;
+  line-height: 1;
+  color: #909090;
+  white-space: nowrap;
+}
+
+/* ── Category tabs ──────────────────────────────────────────────────── */
+/*
+ * ── The tab row is CMS content, so its COLUMN count is a variable ──────
+ * 6258:48134 draws 8 tabs as 2 rows of 4 × 420 in the 1820 column. The tabs now
+ * come from `GET /api/outfits/categories` and nothing else, so the count is the
+ * operator's: nine registered categories today, and another registration would
+ * make it ten.
+ *
+ * The rows stay at 2 and the COLUMNS absorb the change, because everything
+ * below this block is absolutely positioned (strip 1385, step ② 1978, capture
+ * 3006) and a third row would draw straight over the outfit cards. `--cat-cols`
+ * is set inline by the component; the width below is the design's own
+ * arithmetic, so 4 columns still resolve to exactly 420.
+ */
+.cats {
+  position: absolute;
+  left: 170px;
+  top: 844px;
+  width: 1820px;
+  display: flex;
+  flex-direction: column;
+  gap: 35px; /* 205 pitch − 170 row */
+  --cat-cols: 4;
+  --cat-gap: 46.6667px; /* (1820 − 4×420) / 3 */
+}
+
+/* Left-aligned, NOT space-between: a short second row must sit under the first
+   row's columns rather than spreading itself across the full 1820. */
+.catRow {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: var(--cat-gap);
+  height: 170px;
+}
+
+.cat {
+  width: calc((1820px - (var(--cat-cols) - 1) * var(--cat-gap)) / var(--cat-cols));
+  height: 170px;
+  box-sizing: border-box;
+  padding: 0 18px;
+  border: none;
+  border-radius: 42.9px;
+  background: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 50px;
+  font-weight: 500;
+  line-height: 1.1;
+  color: #999;
+  text-align: center;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  /*
+   * The label is CMS text in eight languages, so it cannot be assumed to fit on
+   * one line the way the design's own eight Korean words did — "Женский ханбок"
+   * is 14 characters. Two lines inside the 170 button are fine at this size;
+   * `keep-all` is what stops Korean breaking mid-word (see the localpay note).
+   */
+  white-space: normal;
+  word-break: keep-all;
+  overflow-wrap: anywhere;
+}
+
+/*
+ * Five or more columns: the button is ~327 wide, so the type steps down and the
+ * side padding with it. Measured, not guessed — the longest label the CMS ships
+ * today is "Повседневное" (`m=everyday`, ru) at 288px, and 40px type inside a
+ * 10px padding leaves a 297px content box, so it lands on ONE line. At 44px it
+ * was 317 and broke mid-word, orphaning a single letter on the second line.
+ */
+.catsTight .cat {
+  font-size: 40px;
+  padding: 0 10px;
+}
+
+.catActive {
+  border-color: var(--kiosk-primary, #ff7f0f);
+  background: var(--kiosk-primary, #ff7f0f);
+  font-weight: 700;
+  color: #fff;
+}
+
+/*
+ * ── Sub-category chips ─────────────────────────────────────────────────
+ * The row the 한복 frames draw at 1266…1386 (6258:48326 unpicked / 48134
+ * picked). It is absolutely positioned like everything else on this page, and
+ * it sits in dead space between the tab row (ends 1219) and the outfit strip
+ * (starts 1447), so a tab WITHOUT chips simply leaves the band empty and
+ * nothing below moves. That is what lets the row be conditional at all.
+ *
+ * ★ The BAND is read off the design; the pill treatment is the tab's, one size
+ * down. The design drew two chips reading 여자 한복 / 남자 한복 at widths that
+ * are not worth copying — the API sends 남자 / 여자 and seven more languages,
+ * and "Мужской" is nothing like either — so the chips size to their content
+ * from a floor instead, left-aligned under the first tab column.
+ */
+.subcats {
+  position: absolute;
+  left: 170px;
+  top: 1266px;
+  width: 1820px;
+  height: 120px;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 30px;
+}
+
+.subcat {
+  min-width: 260px;
+  height: 120px;
+  box-sizing: border-box;
+  padding: 0 44px;
+  border: none;
+  border-radius: 30.3px; /* the tab's 42.9 at 170, held to the 120 height */
+  background: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 40px;
+  font-weight: 500;
+  line-height: 1.1;
+  color: #999;
+  text-align: center;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  /* Same reasoning as `.cat`: the label is CMS text in eight languages. */
+  white-space: nowrap;
+}
+
+.subcatActive {
+  background: var(--kiosk-primary, #ff7f0f);
+  font-weight: 700;
+  color: #fff;
+}
+
+/* ── 사진촬영안내 card — EVERY condition, two positions ────────────────── */
+/*
+ * The 2026-08-24 redraw puts the card on the landing tab too: non-landing tabs
+ * hang it under the capture buttons at 2497 and keep the banner below it;
+ * the landing tab drops it to 3210, INTO the banner band, and draws no banner
+ * (6258:48575/48469 vs 48326/48134). It is not a numbered step — a bulleted
+ * orange heading — so it carries no ② badge, and it stays the only way into
+ * the 한복 설명 page from either condition.
+ */
+.guide {
+  position: absolute;
+  left: 170px;
+  top: 2497px;
+  width: 1820px;
+  height: 500px;
+  box-sizing: border-box;
+  padding: 65px 40px;
+  /* Flat plate — no outline, no shadow (2026-08-24 direction). */
+  border: none;
+  border-radius: 42.9px;
+  background: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+/* Landing tab: below the capture buttons, where the banner would be. */
+.guideLanding {
+  top: 3210px;
+}
+
+/* The left column is a 1429×398 block with three absolutely-placed rows —
+   Figma stacks them at 0 / 117.64 / 351.44 inside it. */
+.guideMain {
+  position: relative;
+  flex: 0 0 1429px;
+  width: 1429px;
+  height: 398px;
+}
+
+/* Figma draws this as a <li> with `list-disc` and a 102px indent: the marker
+   sits at 45 and the label starts at 102. */
+.guideTitle {
+  position: absolute;
+  left: 45px;
+  top: 0;
+  display: flex;
+  align-items: center;
+  gap: 39px;
+}
+
+.guideDot {
+  width: 18px;
+  height: 18px;
+  flex: 0 0 auto;
+  border-radius: 50%;
+  background: var(--kiosk-primary, #ff7f0f);
+}
+
+.guideTitleText {
+  margin: 0;
+  font-size: 68px;
+  font-weight: 700;
+  line-height: 1;
+  color: var(--kiosk-primary, #ff7f0f);
+  white-space: nowrap;
+}
+
+.guideSub {
+  position: absolute;
+  left: 40px;
+  top: 117.64px;
+  display: flex;
+  align-items: flex-start;
+  gap: 20px;
+}
+
+.guideStar {
+  width: 40px;
+  height: 40px;
+  flex: 0 0 auto;
+  object-fit: contain;
+  margin-top: 6px;
+}
+
+.guideLines {
+  display: flex;
+  flex-direction: column;
+  font-size: 47px;
+  font-weight: 700;
+  line-height: 50px;
+  color: #909090;
+  white-space: nowrap;
+}
+
+.guidePrivacy {
+  position: absolute;
+  left: 42.9px;
+  top: 351.44px;
+  padding: 0;
+  border: none;
+  background: none;
+  font-size: 47px;
+  font-weight: 700;
+  line-height: 1;
+  color: #d0d2d3;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.guideInfo {
+  flex: 0 0 235px;
+  width: 235px;
+  padding: 0;
+  border: none;
+  background: none;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 24px;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Figma's `Ellipse 23`, drawn rather than shipped: a flat #76B6FE disc. */
+.guideInfoCircle {
+  width: 235px;
+  height: 235px;
+  border-radius: 50%;
+  background: #76b6fe;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+/*
+ * Fills the 235 disc, and THAT is what makes the 한복 render its Figma 91×155.
+ *
+ * The trap: 91×155 is the size of the GARMENT inside the disc, not of the image
+ * element. hanbok-info.png is a 235×235 plate that already carries the blue
+ * disc with the hanbok drawn inside it (the CSS disc above is the same #76b6fe
+ * sitting behind it). Setting the img itself to 91×155 shrank the WHOLE plate —
+ * disc and all — to 91 wide, so the garment inside came out around 35×60: a
+ * tiny hanbok on a tiny disc, centred on the real one.
+ *
+ * At 100% the artwork's own disc lines up with the CSS disc, and its garment
+ * lands at 91×155 of the 235 — the Figma measurement, reproduced rather than
+ * forced. Same reason the shared step (HanbokSelect .hanbokInfoCircle img) does
+ * it this way.
+ */
+.guideInfoCircle img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.guideInfoLabel {
+  font-size: 47px;
+  font-weight: 600;
+  line-height: 1;
+  color: #333;
+  text-align: center;
+  white-space: nowrap;
+}
+
+/* ── Outfit cards ───────────────────────────────────────────────────── */
+/*
+ * The 2026-08-24 redraw shrinks the card to 350×350: five fit the 1820 column
+ * exactly (5 × 350 + 4 × 17.5), so `slidesPerView` resolves to a whole 5. The
+ * strip stays a Swiper — the same freeMode + Grid recipe as the shared step —
+ * because a catalogue tab can hold dozens of outfits and Swiper is what
+ * carries the drag momentum and the mouse-drag the kiosk's own touch layer
+ * doesn't. The Swiper root only carries the frame; slide widths come from
+ * `slidesPerView`, so no width is set on the card here.
+ */
+/*
+ * ── One row or two: the ② 배경 테마 step decides ────────────────────────
+ * Where that step exists it occupies 1855 onward, so the strip gets ONE row
+ * (350 at 1447, 6258:48575). Where it does not, the strip takes the space back
+ * as TWO rows — the same 350 card on a 415 pitch (1447/1862, 6258:48134).
+ */
+.outfits {
+  position: absolute;
+  left: 170px;
+  top: 1447px;
+  width: 1820px;
+  height: 350px;
+}
+
+/* No chip row above → the strip takes the space back as a second row.
+   812.5 = 2 × 397.5 padded slides + 17.5 — see .outfitSlide. */
+.outfitsGrid {
+  height: 812.5px;
+}
+
+/*
+ * One-row slides are the bare 350 card. In GRID mode the slide is padded to
+ * 397.5 with the card pinned to its top: Swiper's Grid puts row 2 at
+ * slideHeight + spaceBetween, and spaceBetween is already spoken for by the
+ * design's 17.5 COLUMN gap — so the slide absorbs the difference and
+ * 397.5 + 17.5 lands row 2's card exactly on the drawn 415 pitch. The padding
+ * hangs empty below row 2 (ends 2259.5, capture is at 2279) and draws nothing.
+ */
+.outfitSlide {
+  height: 350px !important;
+  box-sizing: border-box;
+}
+
+.outfitsGrid .outfitSlide {
+  height: 397.5px !important;
+}
+
+/*
+ * ★ Kill Swiper's auto-centring for a short list.
+ *
+ * `swiper/modules/free-mode.css` puts `margin: 0 auto` on `.swiper-wrapper`.
+ * With two rows and only 1–3 outfits the wrapper is narrower than the strip
+ * (3 columns = 1524 of 1820), so `auto` split the remaining 296 into 148 a
+ * side and the cards floated into the MIDDLE of the strip instead of starting
+ * at the left edge like every full tab. `margin-right: auto` keeps the wrapper
+ * hugging the left; the left margin has to be an explicit 0 to beat it.
+ *
+ * Only visible with the grid, because in one-row mode Swiper sizes the wrapper
+ * to the full container and `auto` resolves to 0 — which is why this looked
+ * like a "some tabs are centred" bug rather than a general one. The shared
+ * HanbokSelect uses freeMode too and has the same latent behaviour.
+ */
+.outfits :global(.swiper-wrapper) {
+  margin-left: 0;
+  margin-right: auto;
+}
+
+.outfit {
+  position: relative;
+  width: 100%;
+  /* Fixed rather than 100%: in grid mode the slide is 397.5 tall (see above)
+     and the card must stay the drawn 350. */
+  height: 350px;
+  box-sizing: border-box;
+  padding: 0;
+  border: none;
+  box-shadow: 0 21.45px 42.9px rgba(143, 147, 157, 0.1);
+  border-radius: 42.9px;
+  background: #fff;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.outfitActive {
+  border-color: var(--kiosk-primary, #ff7f0f);
+  background: #ffeac7;
+  border: 5px solid var(--kiosk-primary, #ff7f0f);
+  box-shadow: none;
+}
+
+/*
+ * Figma places the render at 103,37 in the 350 card — horizontally centred,
+ * 143×276.
+ *
+ * ★ `cover`, not `contain`. The catalogue ships 700×700 SQUARES with the
+ * garment centred, so `contain` fitted them to a square and drew the garment
+ * tiny inside the card — the "why is the outfit so small in its box" bug. The
+ * design's plate is 143×276 (aspect .52) and the shared step already uses
+ * `cover` for the same assets; covering scales the square and trims the empty
+ * margins at the sides, which is what fills the plate the way the frame draws
+ * it.
+ */
+.outfitImg {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  top: 37px;
+  width: 143px;
+  height: 276px;
+  object-fit: cover;
+  pointer-events: none;
+}
+
+/* Absolute children offset from the padding edge, so the picked card's 5px
+   border would push the garment to a visual 42 — compensated to stay on the
+   drawn 37. */
+.outfitActive .outfitImg {
+  top: 32px;
+}
+
+.emptyCat {
+  position: absolute;
+  left: 170px;
+  top: 1447px;
+  width: 1820px;
+  height: 350px;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 50px;
+  font-weight: 500;
+  line-height: 1.4;
+  color: #909090;
+  text-align: center;
+}
+
+/* ── Background themes ──────────────────────────────────────────────── */
+/*
+ * The plates are the ACTIVE backgrounds assigned to this kiosk
+ * (`GET /api/kiosks/{n}/backgrounds`); the row is empty — and the whole step is
+ * dropped — for a kiosk that has none.
+ *
+ * ★ The PICK IS LIVE (2026-08-25). Digicon's AR spec grew the field this note
+ * was waiting for, so `backgroundId` now rides `selectStyle` into the workflow
+ * and leaves as the AR `background_to_use`. Picking nothing is still a normal
+ * outcome — no plate is pre-selected — and it sends `change_background=false`,
+ * which is what keeps the server from choosing a background on its own.
+ */
+.themes {
+  position: absolute;
+  left: 170px;
+  top: 2018px;
+  width: 1820px;
+  height: 680px;
+  display: flex;
+  align-items: center;
+  gap: 30px; /* 370 pitch − 340 tile */
+  overflow-x: auto;
+  overflow-y: hidden;
+  scrollbar-width: none;
+}
+
+.themes::-webkit-scrollbar {
+  display: none;
+}
+
+/*
+ * The 2026-08-24 tile is 340×680 r45 and BORDERLESS when idle: a white plate
+ * under a 20% BLACK wash (the redraw dropped the old #e8e8e8 rule and the
+ * milky white veil), with the name in white Bold on the wash. The wash lives
+ * in `::after` so it tones the photo too, not just the bare plate.
+ *
+ * Picking a tile is exactly the difference between 6258:48575 and 48469: the
+ * 5px orange rule appears and the wash comes OFF, so the chosen scene is the
+ * one shown at full strength.
+ */
+.theme {
+  position: relative;
+  flex: 0 0 340px;
+  width: 340px;
+  height: 680px;
+  box-sizing: border-box;
+  padding: 0;
+  border: none;
+  border-radius: 45px;
+  background: #fff;
+  overflow: hidden;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.themeActive {
+  border: 5px solid var(--kiosk-primary, #ff7f0f);
+  background: #fff;
+}
+
+.themeImg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  pointer-events: none;
+}
+
+/* The 20% black wash (6258:48648's own fill stack), over photo and bare plate
+   alike. `z-index` orders it under the label — the wash is the button's LAST
+   child and would otherwise paint over the very text it sits behind. */
+.theme::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  border-radius: 45px;
+  background: rgba(0, 0, 0, 0.2);
+  pointer-events: none;
+}
+
+/* Picked: the wash comes off — the frame draws the chosen tile unwashed. */
+.themeActive::after {
+  background: none;
+}
+
+/* Figma sets the 45px Bold WHITE name on the tile's vertical centre (box 312,
+   normal leading — centre 339.5 of 680). The soft dark shadow is NOT in the
+   frame: white type on an unwashed photo (the picked state) can vanish on a
+   bright sky, and the shadow is the cheapest way to keep the name legible
+   without re-adding the veil the redraw removed. */
+.themeLabel {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 312px;
+  z-index: 1;
+  margin: 0;
+  font-size: 45px;
+  font-weight: 700;
+  line-height: 55px; /* Figma's own box — `normal` renders 65 and drifts low */
+  color: #fff;
+  text-align: center;
+  white-space: nowrap;
+  text-shadow: 0 2px 12px rgba(0, 0, 0, 0.45);
+}
+
+/* ── Capture buttons ────────────────────────────────────────────────── */
+/* Centred: 1740 in the 2160 artboard → left 210. 6258:48575 draws it there;
+   48469 hand-places the same row at 187 — slop between two copies, and the
+   non-landing frames centre it too, so 210 everywhere. NORMALISED. */
+.captureRow {
+  position: absolute;
+  left: 210px;
+  top: 2883px;
+  width: 1740px;
+  height: 150px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.capture {
+  width: 815px;
+  height: 150px;
+  box-sizing: border-box;
+  padding: 0 50px;
+  border: none;
+  border-radius: 42.9px;
+  background: var(--photo-accent-alt, #616161);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 30px;
+  font-size: 58px;
+  font-weight: 700;
+  line-height: 1;
+  color: #e9e9e9;
+  white-space: nowrap;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.captureIcon {
+  width: 68.64px;
+  height: 68.64px;
+  flex: 0 0 auto;
+}
+
+/* Both frames draw these identically, but neither has an outfit chosen AND a
+   live button — capture cannot run without a selection, so the gate is shown
+   rather than letting a normal-looking button do nothing. */
+/* The 사진촬영안내 condition lifts the row to 2469 and centres it in the
+   artboard (1740 wide → left 210), because the card sits underneath it. */
+.captureRowGuide {
+  top: 2279px;
+}
+
+.captureDisabled {
+  opacity: 0.45;
+  cursor: default;
+}
+
+/* The 개인정보처리방침 link is NOT a page-level control: it lives inside the
+   사진촬영안내 card (`.guidePrivacy`), so the landing tab — which shows 배경
+   테마 instead of that card — carries no link, exactly as 6258:48693 draws it. */
+
+/* ── Banner ─────────────────────────────────────────────────────────── */
+.banner {
+  position: absolute;
+  left: 0;
+  top: 3267px;
+  width: 2160px;
+  height: 573px;
+  overflow: hidden;
+}
+
+.banner img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+
+/* ── 개인정보 처리방침 modal, 제주 overrides ────────────────────────────────
+ * The modal markup and most of its styling come from the shared photo layout
+ * (`../photo/HanbokSelect.module.css`), which every kiosk uses. 제주's own frame
+ * (6258:48264) differs on two measurable points, so they are overridden HERE
+ * rather than in the shared file — the other layouts' frames have not been
+ * re-checked and must not be moved on 제주's evidence alone.
+ *
+ *   panel width   shared 1760          제주 1820  (measured x170..1989)
+ *   scrim         shared rgba(0,0,0,.45)  제주 ~.30
+ *
+ * The scrim is derived, not eyeballed: three known colours under it — the
+ * #ff7f0f home disc and two background samples — all come back multiplied by
+ * 0.694…0.702, i.e. 30% black, where .45 would give 0.55.
+ */
+.privacyOverlayJeju {
+  background: rgba(0, 0, 0, 0.3);
+}
+
+.privacyModalJeju {
+  width: 1820px;
+}

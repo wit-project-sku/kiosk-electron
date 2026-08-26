@@ -45,6 +45,9 @@ export class AIService {
           clothingKey: params.clothingKey,
           styleKey: params.styleKey,
           capturePath: params.capturePath,
+          // Recorded so a night-sync retry reproduces the visitor's 배경 테마
+          // choice rather than silently falling back to no background.
+          backgroundId: params.backgroundId,
         },
         message,
         `ai-${params.sessionId}`,

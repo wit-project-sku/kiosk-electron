@@ -31,6 +31,8 @@ export interface GeneratePhotoInput {
   dataUrl: string;
   clothingKey: string;
   styleKey: string;
+  /** 배경 테마 choice (제주 step ②), or null when none was picked. */
+  backgroundId?: number | null;
 }
 
 export interface GeneratePhotoResult {
@@ -58,12 +60,12 @@ export class PhotoGenerationService {
   ) {}
 
   async generate(input: GeneratePhotoInput, onProgress?: ProgressCallback): Promise<GeneratePhotoResult> {
-    const { sessionId, dataUrl, clothingKey, styleKey } = input;
+    const { sessionId, dataUrl, clothingKey, styleKey, backgroundId = null } = input;
 
     try {
       this.analytics.track({
         name: 'ai_request_started',
-        payload: { sessionId, clothingKey, styleKey },
+        payload: { sessionId, clothingKey, styleKey, backgroundId },
       });
 
       onProgress?.('Preparing your photo…');
@@ -77,6 +79,7 @@ export class PhotoGenerationService {
         capturePath: capture.filePath,
         clothingKey,
         styleKey,
+        backgroundId,
       });
 
       onProgress?.('Saving your result…');

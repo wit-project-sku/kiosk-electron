@@ -23,6 +23,7 @@ const log = createLogger('google-sheets-transport');
 const INSADONG_SHEET_ID = '1AVZoyepjrlWIUtwXamGRYU6TWkKKKgVb7fzwEtbRDaw';
 const OSAEK_SHEET_ID = '1_CkWFXfB7ud0sJw-cnIWGvFlTzF12UxDuNylp5HkOiw';
 const HWASEONG_SHEET_ID = '14aWRWrJXPC_J-W4GpZqa_g-3fDjjUsy6BpAhDg8OvVU';
+const JEJU_SHEET_ID = '1A90MnKneWksKeL2zEcCUn75JKbnMFj7-OBmQsTkI72I';
 
 interface ContentSheet {
   sheetId: string;
@@ -34,6 +35,10 @@ const CONTENT_SHEETS: Record<KioskLayoutId, ContentSheet> = {
   NAM_INSADONG: { sheetId: INSADONG_SHEET_ID, localizationRange: 'Localization_Insa!A:L' },
   OSAN: { sheetId: OSAEK_SHEET_ID, localizationRange: 'Localization_Osaek!A:L' },
   HWASEONG: { sheetId: HWASEONG_SHEET_ID, localizationRange: 'Localization_Hwaseong!A:L' },
+  JEJU_AIRPORT: { sheetId: JEJU_SHEET_ID, localizationRange: 'Localization_Jeju!A:L' },
+  // Same tab as JEJU_AIRPORT on purpose — "#W6~8=제주_전체데이터" serves all three
+  // 제주 venues; the mascot rows are split per layout in LocalizationSyncParser.
+  JEJU_HERITAGE: { sheetId: JEJU_SHEET_ID, localizationRange: 'Localization_Jeju!A:L' },
 };
 
 /**
@@ -97,6 +102,13 @@ export class GoogleSheetsSyncTransport implements SyncTransport {
     const config = getGoogleSyncConfig();
     if (!config) return;
 
+    // No sheet for this layout yet → nowhere to append. Return without throwing,
+    // exactly like the not-configured case above: the caller marks the batch
+    // synced and the events are dropped from THIS sink only (the witteria stats
+    // API is a separate, unaffected path). Better than appending a 제주 kiosk's
+    // rows into another location's spreadsheet.
+    if (!this.contentSheet().sheetId) return;
+
     try {
       const client = new SheetsClient(this.layoutConfig(config));
       const { kioskId } = this.kiosk.getConfig();
@@ -153,6 +165,13 @@ export class GoogleSheetsSyncTransport implements SyncTransport {
   private async downloadTranslations(config: NonNullable<ReturnType<typeof getGoogleSyncConfig>>): Promise<void> {
     const { sheetId, localizationRange: range } = this.contentSheet();
     const layout = getKioskLocation(this.kiosk.getConfig().kioskId).layout;
+    // A layout with no spreadsheet yet (see CONTENT_SHEETS) must not fall back to
+    // another location's sheet — that is exactly the cross-kiosk contamination
+    // this per-layout mapping exists to prevent. Skip and keep the bundled table.
+    if (!sheetId) {
+      log.warn('No content sheet configured for this layout; skipping translation sync', { layout });
+      return;
+    }
     try {
       const client = new SheetsClient({ ...config, sheetId });
       const rows = await client.getValues(range);

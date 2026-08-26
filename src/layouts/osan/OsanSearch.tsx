@@ -1,6 +1,6 @@
 import { useRef, useState } from 'react';
-import { Search } from 'lucide-react';
 import type { KioskController } from '@renderer/hooks/useKioskController';
+import { SearchIcon } from '@layouts/components/SearchIcon';
 import { osanIconUrl } from '@renderer/assets/icons/osan';
 import { useLanguageStore } from '@renderer/store/languageStore';
 import { useSearchStore } from '@renderer/store/searchStore';
@@ -21,9 +21,11 @@ import {
 } from '@renderer/lib/shops';
 import { highlightMatch } from '@renderer/lib/highlightMatch';
 import { OsanHeader } from './OsanHeader';
+import { OsanBanner } from './OsanBanner';
 import { FloatingKeyboard } from '../insadong/keyboard/FloatingKeyboard';
 import { HangulComposer } from '../insadong/keyboard/hangul';
 import type { KeyAction } from '../insadong/keyboard/VirtualKeyboard';
+import { OsanLeftNav } from './OsanLeftNav';
 import styles from './OsanSearch.module.css';
 
 const T = {
@@ -132,7 +134,7 @@ export function OsanSearch({ controller }: OsanSearchProps): JSX.Element {
               )}
               {focused && <span className={styles.caret} />}
             </span>
-            <Search className={styles.searchIcon} strokeWidth={2.4} />
+            <SearchIcon className={styles.searchIcon} />
           </button>
         </div>
 
@@ -182,18 +184,9 @@ export function OsanSearch({ controller }: OsanSearchProps): JSX.Element {
         )}
       </div>
 
-      <div className={styles.leftNav}>
-        <button type="button" className={styles.leftNavBtn} onClick={goHome} aria-label="홈으로">
-          {osanIconUrl('home-btn') && (
-            <img src={osanIconUrl('home-btn')} alt="" draggable={false} />
-          )}
-        </button>
-        <button type="button" className={styles.leftNavBtn} onClick={goHome} aria-label="뒤로">
-          {osanIconUrl('back-arrow') && (
-            <img src={osanIconUrl('back-arrow')} alt="" draggable={false} />
-          )}
-        </button>
-      </div>
+      <OsanLeftNav onHome={goHome} />
+
+      <OsanBanner onClick={() => controller.startPhoto()} />
 
       <FloatingKeyboard
         open={focused}

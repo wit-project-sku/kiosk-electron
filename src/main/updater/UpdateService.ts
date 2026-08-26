@@ -22,6 +22,9 @@
  * {@link subscribe} and reads {@link getStatus}.
  */
 
+import { randomBytes } from 'node:crypto';
+import { unlinkSync, writeFileSync } from 'node:fs';
+import { dirname, join } from 'node:path';
 import { app } from 'electron';
 // electron-updater is CommonJS; in this "type":"module" app electron-vite keeps
 // it external, so a NAMED import (`import { autoUpdater }`) fails at runtime with
@@ -75,11 +78,24 @@ const INSTALL_RETRY_MS = 45 * 1000; // 45 seconds
  */
 const INSTALL_MAX_DEFER_MS = 30 * 60 * 1000; // 30 minutes
 /**
- * If `quitAndInstall` hasn't torn the app down within this long, force a normal
- * quit — `autoInstallOnAppQuit` then applies the update on the way out. Covers
- * the case where quitAndInstall silently no-ops instead of throwing.
+ * How long to wait before deciding `quitAndInstall` did not tear the app down.
+ *
+ * We do NOT force a quit here. Quitting is only useful if it applies the update,
+ * and it cannot: electron-updater sets `quitAndInstallCalled` before spawning the
+ * installer, so its own `autoInstallOnAppQuit` hook is skipped for the rest of
+ * this process ("Update installer has already been triggered"). A forced quit
+ * would therefore just close the kiosk and change nothing — the exact failure
+ * this service exists to avoid. Staying up and logging is strictly better; the
+ * nightly reboot gives the next process a clean attempt.
  */
 const QUIT_WATCHDOG_MS = 20_000;
+/**
+ * How many times an installer may be spawned for the SAME version before we stop
+ * trying. Two is enough to rule out a one-off (a locked file, a half-written
+ * download) while capping the damage: a kiosk that cannot apply an update is
+ * closed at most twice, not every check for the rest of the week.
+ */
+const MAX_INSTALL_ATTEMPTS = 2;
 
 export class UpdateService {
   private readonly log = createLogger('updater');
@@ -152,12 +168,23 @@ export class UpdateService {
       return;
     }
 
+    // Did the update we quit for last time actually land? Must run before the
+    // first check, so a version that fails to apply is blocked rather than
+    // downloaded and "installed" again on this very run.
+    this.verifyPreviousInstall();
+
     autoUpdater.logger = log;
     autoUpdater.autoDownload = true; // background download
     autoUpdater.autoInstallOnAppQuit = true; // safety net: applies on the nightly reboot
-    autoUpdater.allowDowngrade = false;
     autoUpdater.channel = this.channel;
     autoUpdater.allowPrerelease = this.channel === 'beta';
+    // MUST come after `channel`. electron-updater's channel SETTER forces
+    // `allowDowngrade = true` (AppUpdater.js: "allowDowngrade will be
+    // automatically set to true. If this behavior is not suitable for you,
+    // simple set allowDowngrade explicitly after"), so assigning it before the
+    // channel — as this did — silently left every kiosk willing to install an
+    // OLDER build than the one it is running.
+    autoUpdater.allowDowngrade = false;
 
     this.wireEvents();
     this.patch({ enabled: true });
@@ -195,11 +222,81 @@ export class UpdateService {
     return this.getStatus();
   }
 
-  /** Install a staged update now, if one is downloaded. Returns false if not. */
+  /** Install a staged update now, if one is downloaded. Returns false if not.
+   *  Operator-initiated, so it ignores the failed-attempt block: a human is
+   *  present and can answer an elevation prompt the scheduled path cannot. */
   installNow(): boolean {
     if (this.status.state !== 'downloaded') return false;
-    this.doInstall();
+    this.doInstall(true);
     return true;
+  }
+
+  // ---- install verification ------------------------------------------------
+
+  /**
+   * Compare the version we last quit to install against the one now running.
+   *
+   * A mismatch means the installer we spawned did not replace this app — the
+   * kiosk was closed for nothing. Repeat it and the kiosk is unusable, so the
+   * version is blocked after {@link MAX_INSTALL_ATTEMPTS}.
+   */
+  private verifyPreviousInstall(): void {
+    const pending = this.stateStore.getPendingInstall();
+    if (!pending) return;
+
+    const current = app.getVersion();
+    if (pending.version === current) {
+      this.log.info('Previous update applied successfully', { version: current });
+      this.stateStore.clearPendingInstall();
+      this.stateStore.setBlockedVersion(null);
+      return;
+    }
+
+    if (pending.attempts >= MAX_INSTALL_ATTEMPTS) {
+      this.stateStore.setBlockedVersion(pending.version);
+      this.stateStore.clearPendingInstall();
+      this.log.error(
+        'Update repeatedly failed to install — auto-install disabled for this version. ' +
+          'The kiosk stays on the current version instead of closing again. Most likely the ' +
+          'app is installed per-machine (Program Files), which needs elevation the silent ' +
+          'installer cannot get, or it is being launched from a copy the installer does not ' +
+          'own. Reinstall it for the current user only and relaunch from the installed path.',
+        {
+          runningVersion: current,
+          failedVersion: pending.version,
+          attempts: pending.attempts,
+          installDir: dirname(app.getPath('exe')),
+        },
+      );
+      return;
+    }
+
+    this.log.warn('Previous update did not apply; will retry once', {
+      runningVersion: current,
+      expectedVersion: pending.version,
+      attempts: pending.attempts,
+    });
+  }
+
+  /**
+   * Can a SILENT installer actually write to this install?
+   *
+   * A per-machine install (Program Files) is not writable by the unelevated
+   * kiosk process. electron-builder's NSIS installer detects that case and asks
+   * for elevation — a UAC dialog nobody is there to answer on an unattended
+   * kiosk — then quits, leaving the app closed and unchanged. Probing the
+   * directory first turns that into a logged error with the kiosk still running.
+   */
+  private canWriteToInstallDir(): boolean {
+    const dir = dirname(app.getPath('exe'));
+    const probe = join(dir, `.update-probe-${randomBytes(6).toString('hex')}`);
+    try {
+      writeFileSync(probe, '');
+      unlinkSync(probe);
+      return true;
+    } catch {
+      return false;
+    }
   }
 
   // ---- scheduling ----------------------------------------------------------
@@ -385,23 +482,75 @@ export class UpdateService {
     this.doInstall();
   }
 
-  private doInstall(): void {
-    this.log.info('Installing update and restarting', { version: this.status.availableVersion });
+  /**
+   * Quit and hand over to the downloaded installer.
+   *
+   * Both guards below fail SAFE: they leave the kiosk running on the current
+   * version. Closing the app is only justified when the installer can plausibly
+   * replace it — otherwise the kiosk goes dark and nothing is gained.
+   *
+   * @param force operator-initiated install; skips the failed-attempt block.
+   */
+  private doInstall(force = false): void {
+    const version = this.status.availableVersion;
+
+    if (!force && version && this.stateStore.getBlockedVersion() === version) {
+      this.log.error('Install skipped: this version already failed to apply twice', { version });
+      this.patch({
+        state: 'error',
+        error: `Update ${version} could not be installed (auto-install disabled for it). Reinstall the kiosk manually.`,
+      });
+      return;
+    }
+
+    if (!force && !this.canWriteToInstallDir()) {
+      const installDir = dirname(app.getPath('exe'));
+      this.log.error(
+        'Install skipped: the install directory is not writable by this process, so the silent ' +
+          'installer would stop at an elevation prompt and close the kiosk for nothing. ' +
+          'Reinstall for the current user only (per-user install).',
+        { installDir, version },
+      );
+      this.patch({
+        state: 'error',
+        error: `Update ${version ?? ''} needs administrator rights (${installDir}); kiosk left running.`,
+      });
+      return;
+    }
+
+    // Recorded BEFORE quitting: quitAndInstall reports only that the installer
+    // was SPAWNED, so the next startup is the only place that can tell whether
+    // it actually applied. See UpdateStateStore.
+    if (version) {
+      const pending = this.stateStore.recordInstallAttempt(version, Date.now());
+      this.log.info('Installing update and restarting', {
+        version,
+        attempt: pending.attempts,
+        maxAttempts: MAX_INSTALL_ATTEMPTS,
+      });
+    } else {
+      this.log.info('Installing update and restarting', { version: null });
+    }
+
     // isSilent = true (no installer UI — zero user interaction),
     // isForceRunAfter = true (relaunch the kiosk automatically).
     setImmediate(() => {
       try {
         autoUpdater.quitAndInstall(true, true);
       } catch (err) {
-        this.log.error('quitAndInstall failed; will apply on next quit', err);
+        this.log.error('quitAndInstall failed; staying on the current version', err);
+        this.stateStore.clearPendingInstall();
       }
-      // quitAndInstall can silently no-op (rather than throw) if the quit is
-      // swallowed. If we're still alive well after calling it, force a normal
-      // quit — autoInstallOnAppQuit applies the update on the way out, so the
-      // kiosk still lands on the new version instead of sitting at 'downloaded'.
+      // If we're still alive well after calling it, the quit was swallowed.
+      // Do NOT force one (see QUIT_WATCHDOG_MS): it could not apply the update
+      // and would only take the kiosk down.
       const watchdog = setTimeout(() => {
-        this.log.warn('Still running after quitAndInstall; forcing quit to apply the update');
-        app.quit();
+        this.log.warn(
+          'Still running after quitAndInstall; the update was not applied. Keeping the kiosk up ' +
+            'and retrying on the next check.',
+          { version },
+        );
+        this.patch({ state: 'error', error: 'Update could not be installed; kiosk left running.' });
       }, QUIT_WATCHDOG_MS);
       if (typeof watchdog.unref === 'function') watchdog.unref();
     });

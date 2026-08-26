@@ -1,12 +1,13 @@
 import { useEffect, useState } from 'react';
 import type { KioskController } from '@renderer/hooks/useKioskController';
 import { hwaseongIconUrl } from '@renderer/assets/icons/hwaseong';
-import { useRotatingBanner } from '@renderer/hooks/useRotatingBanner';
 import { useDetailStore } from '@renderer/store/detailStore';
 import { padImages } from '@renderer/lib/shops';
 import { screenTitle, useLang } from '@renderer/lib/i18n';
 import { ImageLightbox } from '../components/ImageLightbox';
 import { HwaseongHeader } from './HwaseongHeader';
+import { HwaseongBanner } from './HwaseongBanner';
+import { HwaseongLeftNav } from './HwaseongLeftNav';
 import styles from './HwaseongDetail.module.css';
 
 interface Props {
@@ -14,7 +15,6 @@ interface Props {
 }
 
 export function HwaseongDetail({ controller }: Props): JSX.Element {
-  const banner = useRotatingBanner(hwaseongIconUrl('fg-banner'));
   const item = useDetailStore((s) => s.item);
   const lang = useLang();
   const goBack = (): void => controller.navigate(item?.from ?? 'home', 'Back');
@@ -83,7 +83,7 @@ export function HwaseongDetail({ controller }: Props): JSX.Element {
             {item?.address?.trim() && (
               <div className={styles.infoRow}>
                 <svg className={styles.infoIcon} viewBox="0 0 85 85" fill="none">
-                  <path d="M42.5 8C28 8 16 19.6 16 34c0 19 26.5 43 26.5 43S69 53 69 34C69 19.6 57 8 42.5 8Zm0 36a10 10 0 1 1 0-20 10 10 0 0 1 0 20Z" fill="#005ab4" />
+                  <path d="M42.5 8C28 8 16 19.6 16 34c0 19 26.5 43 26.5 43S69 53 69 34C69 19.6 57 8 42.5 8Zm0 36a10 10 0 1 1 0-20 10 10 0 0 1 0 20Z" fill="var(--kiosk-primary)" />
                 </svg>
                 <span className={styles.infoText}>{item.address}</span>
               </div>
@@ -91,8 +91,8 @@ export function HwaseongDetail({ controller }: Props): JSX.Element {
             {hours && (
               <div className={styles.infoRow}>
                 <svg className={styles.infoIcon} viewBox="0 0 85 85" fill="none">
-                  <circle cx="42.5" cy="44" r="30" stroke="#005ab4" strokeWidth="6" />
-                  <path d="M42.5 27v18l13 8" stroke="#005ab4" strokeWidth="6" strokeLinecap="round" strokeLinejoin="round" />
+                  <circle cx="42.5" cy="44" r="30" stroke="var(--kiosk-primary)" strokeWidth="6" />
+                  <path d="M42.5 27v18l13 8" stroke="var(--kiosk-primary)" strokeWidth="6" strokeLinecap="round" strokeLinejoin="round" />
                 </svg>
                 <span className={styles.infoText}>{hours}</span>
               </div>
@@ -113,23 +113,15 @@ export function HwaseongDetail({ controller }: Props): JSX.Element {
       </div>
 
       {/* Left nav */}
-      <div className={styles.leftNav}>
-        {hwaseongIconUrl('fg-leftnav') && (
-          <img src={hwaseongIconUrl('fg-leftnav')} alt="" className={styles.leftNavImg} draggable={false} />
-        )}
-        <button type="button" className={styles.leftNavZoneHome} onClick={() => controller.navigate('home')} aria-label="홈" />
-        <button type="button" className={styles.leftNavZoneBack} onClick={goBack} aria-label="뒤로" />
-      </div>
+      <HwaseongLeftNav
+        onHome={() => controller.navigate('home', 'Back')}
+        onBack={goBack}
+      />
 
-      {/* Bottom banner */}
-      <div className={styles.banner}>
-        {banner && (
-          <img src={banner} alt="" className={styles.bannerImg} draggable={false} />
-        )}
-      </div>
+      <HwaseongBanner onClick={() => controller.startPhoto()} />
 
       {lightbox !== null && (
-        <ImageLightbox images={real} initialIndex={lightbox} accent="#005ab4" onClose={() => setLightbox(null)} />
+        <ImageLightbox images={real} initialIndex={lightbox} accent="var(--kiosk-primary)" onClose={() => setLightbox(null)} />
       )}
     </div>
   );

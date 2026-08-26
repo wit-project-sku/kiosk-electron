@@ -1,0 +1,335 @@
+/*
+ * Shared 제주 상세 card — the identical component behind EVERY detail page:
+ *   · 검색 > 상세             Figma 6050:140706
+ *   · AI 코스 spot 상세       Figma 6167:98729
+ *   · 뭐먹지/뭐사지 > 상세     Figma 6212:55208 / 6212:55257 (card at y864)
+ * Diffing Figma's two renders below the header shows them pixel-identical
+ * (976 of 4.75M pixels differ, all antialiasing), so they are one component
+ * with two headers — mirroring OsanSpotDetailCard.
+ */
+.card {
+  position: absolute;
+  left: 170px;
+  top: 700px;
+  width: 1820px;
+  /* FIXED, not min-height. Figma's card is h-2133 and its content is ~2076
+     tall — taller than the padding box leaves — so with min-height the card
+     instead grew to 2289 and the content sat ~82px low. */
+  height: 2133px;
+  box-sizing: border-box;
+  /* Top-anchored 28px below the border, NOT centred. The card was
+     `justify-content: center`, so the gap above the title was a function of the
+     DATA: at the richest item's ~2076px of content the overflow splits evenly
+     and the title lands ≈28px below the card's outer edge, but every sparser
+     item — no hours, no phone, no QR, a one-line description — is shorter, so
+     centring pushed its title steadily further down. Anchoring the column
+     fixes the gap at 28px on every 상세 page. The tallest content now ends
+     ~24px short of the card's bottom edge instead of splitting its overflow
+     between top and bottom, so nothing is clipped; the 100px bottom padding
+     stays as the floor for everything shorter. */
+  padding: 28px 45px 100px;
+  /* No border, no shadow — Figma draws a plain white rounded plate
+     (`bg-white rounded-[42.9px]`). The only stroke the design keeps on this
+     screen is the QR frame's 4.29px #ff7f0f, further down. */
+  border: none;
+  border-radius: 42.9px;
+  background: #fff;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  gap: 65px;
+}
+
+/* ── Title + gallery ── */
+.head {
+  display: flex;
+  flex-direction: column;
+  gap: 42.9px;
+  width: 100%;
+}
+
+.nameRow {
+  display: flex;
+  align-items: center;
+  gap: 42.9px;
+  min-width: 0;
+}
+
+.name {
+  margin: 0;
+  font-size: 85px;
+  font-weight: 700;
+  line-height: 1;
+  color: #333;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.cat {
+  display: flex;
+  align-items: center;
+  gap: 21.45px;
+  flex: 0 0 auto;
+  font-size: 51px;
+  font-weight: 400;
+  line-height: 1;
+  color: #999;
+  white-space: nowrap;
+}
+
+.dot {
+  width: 17px;
+  height: 17px;
+  border-radius: 50%;
+  background: var(--kiosk-primary, #ff7f0f);
+  flex: 0 0 auto;
+}
+
+/* 2×2 gallery of 575×324, centred in the card's content box. */
+.photos {
+  display: grid;
+  grid-template-columns: 575px 575px;
+  gap: 45px;
+  justify-content: center;
+}
+
+/* ── 사진1개 variant (6212:59361) ──
+   The same card with one 1215×685 photo instead of the 2×2. Only two nodes
+   differ from 사진4개, and this is one of them. */
+.photosSingle {
+  display: flex;
+  justify-content: center;
+}
+
+.photosSingle .photo {
+  width: 1215px;
+  height: 685px;
+}
+
+/* The other difference: 사진1개 puts the name in a fixed 700px box and centres
+   the text in it, where 사진4개 lets it sit flush against the content edge.
+   Compare Figma's own renders — 을지정육 (6212:55208) starts at the card's left
+   padding, GS25 종로인사점 (6212:59361) is indented by the centring. */
+.nameBoxed {
+  flex: 0 0 700px;
+  width: 700px;
+  text-align: center;
+}
+
+.photo {
+  width: 575px;
+  height: 324px;
+  border-radius: 45px;
+  overflow: hidden;
+  background: #f2ede6;
+  padding: 0;
+  border: none;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.photo img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.divider {
+  width: 100%;
+  height: 2.145px;
+  background: #e8e8e8;
+  flex: none;
+}
+
+/* ── Address / hours / phone + QR ── */
+.infoRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  gap: 40px;
+}
+
+.infoList {
+  display: flex;
+  flex-direction: column;
+  gap: 40px;
+  min-width: 0;
+}
+
+.infoItem {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  min-width: 0;
+}
+
+/* Icons sit in an 85×85 SLOT that the glyph does not fill.
+ *
+ * The slot is what sets the row height and the text's left edge, and Figma
+ * frames all three icons that way (marker-02 and phone are size-85 frames, the
+ * clock an 84-wide column). The ART inside is smaller: marker 57.51×73.01,
+ * alarm 72.29², phone 67.12×67.82 — the exact sizes the exported SVGs carry.
+ * Sizing the <img> itself 85×85 stretched every glyph to fill the frame, 16–25%
+ * oversized and visibly uneven against each other (phone worst, at +25%).
+ * The glyph therefore carries its own dimensions and the slot centres it, so
+ * the painted size is stated outright rather than left to object-fit. */
+.infoIconSlot {
+  width: 85px;
+  height: 85px;
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* The 영업시간 clock is the one icon that does NOT centre on its row: Figma
+   gives its column `self-stretch` + `h-full items-start p-[8px]`
+   (I…;2668:56708), so the glyph pins to the top while the row still centres the
+   text. Centred against a two-line block (영업시간 + 브레이크타임) it sat 15px
+   low — 23px down the 130px row against Figma's 8. Only the slot is pinned:
+   top-aligning the row would drag the text up with it. The glyph now lands 6.5px
+   down (centred in the pinned slot), 1.5px off Figma, which is not worth a
+   second padding rule. */
+.infoItemHours .infoIconSlot {
+  align-self: flex-start;
+}
+
+.infoIcon {
+  display: block;
+  object-fit: contain;
+}
+
+.iconMarker { width: 57.51px; height: 73.01px; }
+.iconAlarm  { width: 72.29px; height: 72.29px; }
+.iconPhone  { width: 67.12px; height: 67.82px; }
+
+.infoText {
+  margin: 0;
+  font-size: 55px;
+  font-weight: 400;
+  line-height: 1;
+  color: #333;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Opening hours can carry a second 브레이크타임 line. */
+.hours {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  justify-content: center;
+  min-width: 0;
+}
+
+.qr {
+  width: 340px;
+  height: 340px;
+  box-sizing: border-box;
+  flex: 0 0 auto;
+  border: 4.29px solid var(--kiosk-primary, #ff7f0f);
+  border-radius: 25px;
+  background: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Figma insets the code to ~66% of the plate. */
+.qrCode {
+  width: 224px;
+  height: 224px;
+  display: block;
+}
+
+/* ── Description + tags ── */
+/* Figma fixes this block at h-220 — two lines of copy plus an empty trailing
+   paragraph — so the rest of the card sits at the same y whatever the shop's
+   description length. Fixed (not min-height) for the same reason the card is:
+   the card has no room to absorb a longer block, so a rambling description
+   clips at three lines rather than pushing the ratings row out of the card.
+   Without the 220 the block is ~78px short and the rows below it ride up. */
+.desc {
+  margin: 0;
+  width: 100%;
+  min-height: 220px;
+  max-height: 220px;
+  overflow: hidden;
+  font-size: 55px;
+  font-weight: 400;
+  line-height: 1.3;
+  color: #333;
+  white-space: pre-wrap;
+}
+
+.tags {
+  margin: 0;
+  width: 100%;
+  font-size: 45px;
+  font-weight: 400;
+  line-height: 1.5;
+  color: #616161;
+}
+
+/* ── Rating / social row ── */
+.ratings {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  /* The 86px row sits at the TOP of the 130px block (Figma pins its `R` group
+     to top-0), not centred in it — centring put the row 23px low. align-items
+     still centres each icon against its label. */
+  align-content: flex-start;
+  justify-content: center;
+  gap: 64.35px;
+  width: 100%;
+  min-height: 130px;
+}
+
+.ratingItem {
+  display: flex;
+  align-items: center;
+  gap: 21.45px;
+  height: 86px;
+}
+
+.ratingIcon {
+  width: 85.799px;
+  height: 85.799px;
+  flex: 0 0 auto;
+  object-fit: contain;
+}
+
+.stars {
+  display: flex;
+  align-items: center;
+  gap: 2.15px;
+  flex: 0 0 auto;
+}
+
+.star {
+  width: 42.9px;
+  height: 42.9px;
+  display: block;
+}
+
+.ratingText {
+  font-size: 51.48px;
+  font-weight: 400;
+  line-height: 1.5;
+  color: #333;
+  white-space: nowrap;
+}
+
+.ratingSep {
+  width: 2.145px;
+  height: 43px;
+  background: #e8e8e8;
+  flex: 0 0 auto;
+}
+

@@ -1,0 +1,290 @@
+/*
+ * 제주공항 (W006) AR 한복체험 — 정보 입력 step.
+ * Figma 6258:49690 (idle) and 6258:49693 (keyboard open).
+ *
+ * Shown after 사진촬영 (혼자 찍기) / (with '하영') and before the camera runs:
+ * 국적 + 키 + consent, then 등록하기.
+ *
+ * ★ This is a PAGE, not an overlay. Both frames draw the ordinary sub-page —
+ * background, header, bottom banner — with the card as the only body content
+ * and NOTHING of the outfit step behind it. It used to render as a 55%-white
+ * scrim over the outfit page, so the tabs, the outfit strip and the capture
+ * buttons stayed half-visible through it, which is the "strange UI" this
+ * replaces. JejuHanbokSelect now hides its own body while this is up, so this
+ * module owns only the card, the consent row and the button; the keyboard is
+ * the shared FloatingKeyboard.
+ *
+ * y map: card 699…1357 · consent 1424…1512 · 등록하기 1610…1760 ·
+ *        keyboard tray 1838…2838 (only while 키 is focused)
+ */
+.card {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  top: 699px;
+  width: 1668px;
+  height: 658px;
+  box-sizing: border-box;
+  border: 15px solid var(--kiosk-primary, #ff7f0f);
+  border-radius: 80px;
+  background: #fff;
+  z-index: 6;
+}
+
+/*
+ * While the 국적 dropdown is open the card has to out-rank its SIBLINGS.
+ *
+ * The dropdown is 900 tall inside a 658 card, so it spills far past the card's
+ * bottom edge — straight over 동의 and 등록하기, which are siblings of the card
+ * at the same z-index 6. Equal z-index means DOM order decides, and both come
+ * after the card, so they painted on top of the open list. The 등록하기 button
+ * is `opacity: .4` until consent is given, which is why this read as "the
+ * dropdown is see-through" — it was a translucent button drawn OVER it, not a
+ * translucent panel. The dropdown's own `z-index: 7` cannot help: `.card` is a
+ * positioned element with a z-index, so that 7 is scoped inside the card's own
+ * stacking context and never competes with the siblings.
+ */
+.cardPicking {
+  z-index: 8;
+}
+
+.cardTitle {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  top: 88px; /* 787 − 699 */
+  width: 1155px;
+  margin: 0;
+  font-size: 68px;
+  font-weight: 500;
+  line-height: 1.15;
+  color: var(--kiosk-primary, #ff7f0f);
+  text-align: left;
+}
+
+.fieldLabel {
+  position: absolute;
+  top: 258px; /* 957 − 699 */
+  width: 406px;
+  margin: 0;
+  font-size: 60px;
+  font-weight: 400;
+  line-height: 1;
+  color: #636363;
+  white-space: nowrap;
+}
+
+.labelNation {
+  left: 137px; /* 379 − 242 */
+}
+
+.labelHeight {
+  left: 872px; /* 1114 − 242 */
+}
+
+/* Both fields are 690×180; Figma gives them radius 90 and 80 respectively —
+   a 1px difference on a 180-tall pill, normalised to 90 (fully round). */
+.field {
+  position: absolute;
+  top: 375px; /* 1074 − 699 */
+  width: 690px;
+  height: 180px;
+  box-sizing: border-box;
+  padding: 0;
+  border: 5px solid #e8e8e8;
+  border-radius: 90px;
+  background: #fff;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.fieldNation {
+  left: 109px; /* 351 − 242 */
+  display: flex;
+  align-items: center;
+  gap: 42.9px;
+  padding-left: 87px; /* 438 − 351 */
+}
+
+.fieldHeight {
+  left: 841px; /* 1083 − 242 */
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  padding-left: 87px;
+  font-size: 70px;
+  font-weight: 500;
+  line-height: 1;
+  color: #333;
+}
+
+.flag {
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  object-fit: cover;
+  flex: 0 0 auto;
+}
+
+.code {
+  font-size: 70px;
+  font-weight: 500;
+  line-height: 1;
+  color: #333;
+  white-space: nowrap;
+}
+
+.placeholder {
+  color: #c9c9c9;
+}
+
+.caret {
+  position: absolute;
+  left: 674px; /* 916 − 242 */
+  top: 424px; /* 1123 − 699 */
+  width: 57px;
+  margin: 0;
+  font-size: 68px;
+  font-weight: 400;
+  line-height: 1;
+  color: var(--kiosk-primary, #ff7f0f);
+  pointer-events: none;
+}
+
+/* ── Consent ────────────────────────────────────────────────────────── */
+.consent {
+  position: absolute;
+  left: 293px;
+  top: 1424px;
+  height: 88px;
+  z-index: 6;
+  display: flex;
+  align-items: center;
+  gap: 52px; /* 438 − 293 − 85 checkbox + slack */
+  padding: 0;
+  border: none;
+  background: none;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* 85×88 per the frame's Vector. The disc and the tick are both in the asset —
+   this is only the tap target, so it carries no background of its own. */
+.check {
+  width: 85px;
+  height: 88px;
+  flex: 0 0 auto;
+  padding: 0;
+  border: none;
+  background: none;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.checkIcon {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  display: block;
+  pointer-events: none;
+}
+
+.consentText {
+  margin: 0;
+  font-size: 48px;
+  font-weight: 700;
+  line-height: 1;
+  color: #d0d2d3;
+  white-space: nowrap;
+}
+
+/* The bracketed policy label is its own tap target — it opens the modal
+   instead of toggling the checkbox. */
+.policyLink {
+  padding: 0;
+  border: none;
+  background: none;
+  font-size: 48px;
+  font-weight: 700;
+  line-height: 1;
+  color: #d0d2d3;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.consentOn .consentText,
+.consentOn .policyLink {
+  color: #909090;
+}
+
+/* ── 등록하기 ───────────────────────────────────────────────────────── */
+.submit {
+  position: absolute;
+  left: 250px;
+  top: 1610px;
+  width: 1660px;
+  height: 150px;
+  z-index: 6;
+  padding: 0;
+  border: none;
+  border-radius: 45px;
+  background: var(--kiosk-primary, #ff7f0f);
+  font-size: 63px;
+  font-weight: 700;
+  line-height: 1;
+  color: #fff;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Consent is the gate: the design shows one button, so a refused consent has to
+   read as "not yet" rather than silently doing nothing on tap. */
+.submitDisabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+/* ── Nationality dropdown ───────────────────────────────────────────── */
+.dropdown {
+  position: absolute;
+  left: 109px;
+  top: 375px;
+  width: 690px;
+  max-height: 900px;
+  box-sizing: border-box;
+  padding: 64px 0 64px 87px;
+  border: 5px solid #ffeac7;
+  border-radius: 80px;
+  background: #fff;
+  overflow-y: auto;
+  z-index: 7;
+  display: flex;
+  flex-direction: column;
+  gap: 40px;
+}
+
+.dropdown::-webkit-scrollbar {
+  width: 34.32px;
+}
+
+.dropdown::-webkit-scrollbar-thumb {
+  background: var(--kiosk-primary, #ff7f0f);
+  border-radius: 17.16px;
+}
+
+.dropdown::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.option {
+  flex: 0 0 120px;
+  height: 120px;
+  padding: 0;
+  border: none;
+  background: none;
+  display: flex;
+  align-items: center;
+  gap: 42.9px;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}

@@ -1,0 +1,815 @@
+/*
+ * 제주공항 (W006) home — Figma node 6439:71456 (WIT-WITH>디자인, 제주>홈).
+ *
+ * Inside KioskArtboard 1 CSS px = 1 Figma px (2160×3840), so every value here is
+ * the exact number read out of the design. Deliberate normalisations of designer
+ * slop are marked NORMALISED below.
+ *
+ * 2026-08-24 redesign (node 6439:71456 replaces 6117:48085). What moved:
+ *  - the whole page shifts down — top bar 94→125, 공지 277→297, 검색장 1138→1136,
+ *    cards 1419→1407, panel 1802→1772;
+ *  - the grid turns from twelve 450×200 rows (art left, text right) into twelve
+ *    300-wide COLUMNS: a 300×300 squircle plate over centred two-line text;
+ *  - the bottom action row drops to y3338 and its labels are 38px/700 black
+ *    instead of 40px/400 grey — which is where the old rotating banner used to
+ *    sit, so the banner is gone from this screen (see JejuHome.tsx);
+ *  - type sizes: 공지 51→60, tile title 40→38, tile sub 35→25, card sub 35→38.
+ */
+.root {
+  position: absolute;
+  inset: 0;
+  width: 2160px;
+  height: 3840px;
+  overflow: hidden;
+  font-family: var(--kiosk-font, 'Noto Sans KR', 'Noto Sans', sans-serif);
+}
+
+/* The HOME background only — a flat cream field (#FBF8F3). Sub-pages use a
+   different one entirely; see JejuPageFrame. */
+.bgImage {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  pointer-events: none;
+}
+
+/* ── Top bar: location + date/time ─────────────────────────────────── */
+.topBar {
+  position: absolute;
+  left: 84px;
+  top: 125px;
+  width: 2000px;
+  height: 83px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.topLeft {
+  display: flex;
+  align-items: center;
+  gap: 26px;
+}
+
+.locationIcon {
+  width: 63px;
+  height: 82px;
+  object-fit: contain;
+}
+
+.siteName {
+  font-size: 68px;
+  font-weight: 700;
+  line-height: 1;
+  color: var(--kiosk-primary, #ff7f0f);
+  white-space: nowrap;
+}
+
+.dateTime {
+  font-size: 68px;
+  font-weight: 700;
+  line-height: 1;
+  color: #232323;
+  text-align: right;
+  white-space: pre;
+}
+
+/* ── 공지 card (notice + weather) ───────────────────────────────────── */
+/*
+ * The frosted panels (.notice, .weather, .panel and .board in the flight-board
+ * module) deliberately DROP the backdrop blur the Figma specifies, keeping only
+ * the translucent fill. Reasons, in order:
+ *
+ *  1. It is provably a no-op here. The only thing behind these panels is
+ *     bg.png, which is a single flat colour (#FBF8F3) across the whole region —
+ *     verified, 1.4M identical pixels. Blurring a uniform colour returns that
+ *     same colour.
+ *  2. It is not free: Chromium's backdrop-filter path darkens the composite by
+ *     ~2/255. Measured against Figma's own render of this frame:
+ *       .notice  — Figma (236,232,225); with blur (235,230,224); without (237,232,225)
+ *       .weather — Figma (246,244,240); with blur (241,238,234); without (245,243,240)
+ *     The .weather error was much larger because it NESTS inside .notice, so the
+ *     parent's translucent tint landed in the child's sampled backdrop and was
+ *     painted under it again — the tint applied twice.
+ *  3. Four full-width backdrop filters on a 2160×3840 surface cost real GPU on
+ *     the kiosk for zero visible gain.
+ */
+.notice {
+  position: absolute;
+  left: 80px;
+  top: 297px;
+  width: 2000px;
+  height: 750px;
+  border-radius: 45px;
+  background: rgba(108, 90, 70, 0.1);
+  overflow: hidden;
+}
+
+/* Orange rule to the left of the notice copy (Figma Frame 1287 — a plain
+   filled bar, so it is drawn rather than shipped as an asset). */
+.noticeRule {
+  position: absolute;
+  left: 91px;
+  top: 114px;
+  width: 6.435px;
+  height: 242.383px;
+  background: var(--kiosk-primary, #ff7f0f);
+  border-radius: 4px;
+}
+
+/*
+ * Figma-exact 977 wide at 60/70. The notice re-flows to this box (see
+ * parseNotice in the TSX), so ko/ja/zh land on the three rows the orange rule is
+ * drawn for — measured at 51px Korean was 2438px of text, i.e. ~2870px at this
+ * size, 2.9 lines. English is the one exception at ~3570px: it takes four rows,
+ * ending at 130 + 4×70 = 410, still clear of the 운항 정보 board at 435.
+ */
+.noticeText {
+  position: absolute;
+  left: 140px;
+  top: 130px;
+  width: 977px;
+  margin: 0;
+  font-size: 60px;
+  line-height: 70px;
+  color: #000;
+  font-weight: 400;
+}
+
+.noticeText b {
+  font-weight: 700;
+}
+
+/* No backdrop-filter — see the note above .notice. */
+.weather {
+  position: absolute;
+  left: 1260px;
+  top: 69px;
+  width: 665px;
+  height: 332px;
+  border-radius: 45px;
+  background: rgba(255, 255, 255, 0.5);
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.weatherTemp {
+  position: absolute;
+  left: 38px;
+  top: 21px;
+  font-size: 145px;
+  font-weight: 700;
+  line-height: 1;
+  color: #333;
+  white-space: nowrap;
+}
+
+.weatherIcon {
+  position: absolute;
+  left: 208px;
+  top: 21px;
+  width: 419px;
+  height: 290px;
+  object-fit: contain;
+}
+
+/* The 운항 정보 board (frame 155,732) and its 더보기 control live in
+   JejuFlightBoard.module.css — it owns the three 현황 conditions. */
+
+/* ── Search row (home button + field + language) ────────────────────── */
+.searchRow {
+  position: absolute;
+  left: 80px;
+  top: 1136px;
+  width: 2000px;
+  height: 182px;
+}
+
+.searchHome {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 180px;
+  height: 179px;
+  padding: 0;
+  border: none;
+  background: none;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.searchHomeImg {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  pointer-events: none;
+}
+
+.searchField {
+  position: absolute;
+  left: 232px;
+  top: 0;
+  width: 1536px;
+  height: 182px;
+  box-sizing: border-box;
+  padding: 55px 75px;
+  border: 4.29px solid var(--kiosk-primary, #ff7f0f);
+  border-radius: 120px;
+  background: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.searchText {
+  flex: 1 1 auto;
+  min-width: 0;
+  font-size: 60.06px;
+  font-weight: 500;
+  line-height: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.searchPlaceholder {
+  color: #999;
+}
+
+.searchValue {
+  color: #232323;
+}
+
+/* Blinking caret while the inline keyboard is open. */
+.searchCaret {
+  display: inline-block;
+  width: 4px;
+  height: 62px;
+  margin-left: 6px;
+  vertical-align: middle;
+  background: var(--kiosk-primary, #ff7f0f);
+  animation: jejuCaret 1s step-end infinite;
+}
+
+@keyframes jejuCaret {
+  50% { opacity: 0; }
+}
+
+.searchIcon {
+  flex: 0 0 auto;
+  width: 71px;
+  height: 68px;
+  object-fit: contain;
+}
+
+.langBtn {
+  position: absolute;
+  left: 1820px;
+  top: 1px;
+  width: 180px;
+  height: 180px;
+  padding: 0;
+  border: none;
+  border-radius: 50%;
+  background: var(--kiosk-primary, #ff7f0f);
+  color: #fff;
+  font-size: 60.06px;
+  font-weight: 700;
+  line-height: 1;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* ── Three feature cards ────────────────────────────────────────────── */
+/* 1926 wide, `justify-between` over 750 + 540 + 540 → two 48px gaps, i.e. the
+   card lefts below are 0 / 798 / 1386. */
+.cards {
+  position: absolute;
+  left: 120px;
+  top: 1407px;
+  width: 1926px;
+  height: 310px;
+}
+
+.card {
+  position: absolute;
+  top: 0;
+  height: 310px;
+  padding: 0;
+  border: none;
+  border-radius: 30px;
+  cursor: pointer;
+  text-align: left;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.cardTitle {
+  position: absolute;
+  margin: 0;
+  font-size: 45px;
+  font-weight: 700;
+  line-height: 1;
+  color: #000;
+  white-space: nowrap;
+}
+
+.cardSub {
+  position: absolute;
+  margin: 0;
+  font-size: 38px;
+  font-weight: 400;
+  line-height: 1;
+  color: #999;
+  white-space: nowrap;
+}
+
+.cardArt {
+  position: absolute;
+  object-fit: contain;
+  pointer-events: none;
+}
+
+/* Card 1 — '제주' 뭐하지 (AI). NORMALISED: Figma puts the title at x426 and the
+   subtitle at x436; both are visually left-aligned, so both use 426. */
+.cardAi {
+  left: 0;
+  width: 750px;
+  background: #f5f1ef;
+}
+.cardAi .cardTitle { left: 426px; top: 104px; }
+.cardAi .cardSub   { left: 426px; top: 178px; }
+.cardAi .cardArt   { left: 53px;  top: 48px; width: 249px; height: 214px; }
+
+/* Card 2 — 위드마켓 */
+.cardMarket {
+  left: 798px;
+  width: 540px;
+  background: #f3eae3;
+}
+.cardMarket .cardTitle { left: 57px; top: 108px; }
+.cardMarket .cardSub   { left: 57px; top: 182px; }
+.cardMarket .cardArt   { left: 322px; top: 47px; width: 140px; height: 216px; }
+
+/* Card 3 — 제주도 이벤트. NORMALISED: Figma has title x40 / subtitle x50.8;
+   both render left-aligned in the design, so both use 40. */
+.cardEvents {
+  left: 1386px;
+  width: 540px;
+  background: #f5efe9;
+}
+.cardEvents .cardTitle { left: 40px; top: 108px; }
+.cardEvents .cardSub   { left: 40px; top: 182px; }
+.cardEvents .cardArt   { left: 325px; top: 88px; width: 177px; height: 177px; }
+
+/* ── Menu grid on its white panel ───────────────────────────────────── */
+/* No backdrop-filter here either — see the note above .notice. */
+.panel {
+  position: absolute;
+  left: 135px;
+  top: 1772px;
+  width: 1889px;
+  height: 1494px;
+  border-radius: 50px;
+  background: rgba(255, 255, 255, 0.7);
+}
+
+.grid {
+  position: absolute;
+  left: 203px;
+  top: 1821px;
+  width: 1740px;
+  height: 1396px;
+}
+
+/*
+ * A tile is a 300-wide column: a 300×300 plate, a 35px gap, then the two text
+ * lines (38 + 14 + 25 = 77) → 412 tall. Columns step by 480 (300 + 180 gap),
+ * rows by 492 (412 + 80 gap).
+ */
+.tile {
+  position: absolute;
+  width: 300px;
+  height: 412px;
+  padding: 0;
+  border: none;
+  background: none;
+  cursor: pointer;
+  text-align: center;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.tileDisabled {
+  cursor: default;
+  opacity: 0.45;
+}
+
+/* The tile art is the whole rounded plate exported from Figma — its background
+   colour is baked into the image, so there is no colour to keep in sync here.
+   The exports are 200×200 plates at 2× (400px files), drawn here at the design's
+   new 300.
+
+   The border-radius is NOT decoration: Figma flattens any node using
+   backdrop-blur against the canvas, so every exported plate ships with OPAQUE
+   #f5f5f5 corners instead of transparent ones. On the kiosk's cream background
+   that grey box reads as "the button lost its rounded corners". The new plate
+   radius (85.799 on 300) is ROUNDER than the baked one (45 on 200 → 67.5 once
+   scaled), so clipping to it removes strictly more than the grey — the corner
+   region the clip keeps is entirely inside the baked plate. */
+.tileArt {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 300px;
+  height: 300px;
+  border-radius: 85.799px;
+  object-fit: contain;
+  pointer-events: none;
+}
+
+/* Plate painted behind the art at the grid's own radius, for a tile whose
+   exported icon is rounder than the grid (see Tile.plate). The art still carries
+   its own tighter clip; this fills the corners that clip cuts away, so the tile
+   reads as one plate rather than a pill. */
+.tilePlate {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 300px;
+  height: 300px;
+  border-radius: 85.799px;
+  pointer-events: none;
+}
+
+/* Fallback plate shown only when an icon file is missing, so a dropped asset
+   is visible as a labelled placeholder instead of an invisible tile. */
+.tileArtMissing {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 300px;
+  height: 300px;
+  border-radius: 85.799px;
+  background: #efefef;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 108px;
+  color: #b4b4b4;
+}
+
+/* Text sits UNDER the plate now, centred on the column: 300 + 35 gap = 335. */
+.tileText {
+  position: absolute;
+  left: 0;
+  top: 335px;
+  width: 300px;
+}
+
+/* display:block matters — these are <span>s, and an inline box ignores the
+   14px margin, which runs the subtitle onto the title's line. Neither line is
+   `nowrap` any more: Figma sets `word-break: break-word` on both, and the
+   non-Korean labels are long enough to need it in a 300px column. */
+.tileTitle {
+  display: block;
+  margin: 0;
+  font-size: 38px;
+  font-weight: 700;
+  line-height: 1;
+  color: #000;
+  word-break: break-word;
+}
+
+.tileSub {
+  display: block;
+  margin: 14px 0 0;
+  font-size: 25px;
+  font-weight: 400;
+  line-height: 1;
+  color: #000;
+  opacity: 0.3;
+  word-break: break-word;
+}
+
+/* ── Bottom action row: K-DRAMA / 사진촬영 / 화장실 ───────────────────── */
+.kdrama {
+  position: absolute;
+  left: 304px;
+  top: 3388px;
+  width: 381px;
+  height: 235px;
+  padding: 0;
+  border: none;
+  background: none;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.camera {
+  position: absolute;
+  left: 950px;
+  top: 3338px;
+  width: 353px;
+  height: 355px;
+  padding: 0;
+  border: none;
+  background: none;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.restroom {
+  position: absolute;
+  left: 1632px;
+  top: 3389px;
+  width: 233px;
+  height: 234px;
+  padding: 0;
+  border: none;
+  background: none;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Same baked-corner problem as .tileArt — these three sit directly on the page
+   background, so their grey corners are the most visible of the lot. Each is
+   clipped to its own Figma shape: K-DRAMA is a 50px rounded rect, 사진촬영 and
+   화장실 are ellipses filling their box. */
+.actionImg {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  pointer-events: none;
+}
+
+.kdrama .actionImg { border-radius: 50px; }
+.camera .actionImg,
+.restroom .actionImg { border-radius: 50%; }
+
+.actionLabel {
+  position: absolute;
+  top: 3648px;
+  margin: 0;
+  font-size: 38px;
+  font-weight: 700;
+  line-height: 1;
+  color: #000;
+  text-align: center;
+}
+
+.labelKdrama {
+  left: 294px;
+  width: 400px;
+}
+
+.labelRestroom {
+  left: 1678px;
+  width: 142px;
+}
+
+/* ── Left nav (home / back) + accessibility ─────────────────────────── */
+.leftNav {
+  position: absolute;
+  left: 50px;
+  top: 2043px;
+  width: 85px;
+  height: 205px;
+}
+
+.leftNavImg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  pointer-events: none;
+}
+
+.leftNavZone {
+  position: absolute;
+  left: 0;
+  width: 85px;
+  height: 85px;
+  padding: 0;
+  border: none;
+  background: none;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.leftNavHome { top: 0; }
+.leftNavBack { top: 120px; }
+
+/* The ♿ toggle. Was a dead <img> with `pointer-events: none` — the home screen
+   had no way to reach the low-reach layout at all, even though its own frame
+   (6442:105429) draws one. Same treatment as JejuPageFrame's. */
+.accessibility {
+  position: absolute;
+  left: 50px;
+  top: 2283px;
+  width: 85px;
+  height: 85px;
+  padding: 0;
+  border: none;
+  background: none;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.accessibilityImg {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  pointer-events: none;
+}
+
+
+/* ────────────────────────────────────────────────────────────────────────────
+ * LOW-REACH (♿) — Figma 6442:105429, re-read 2026-08-26 after the design
+ * revision.
+ *
+ * The revision opens the page with a 113px mode bar ("지금은 베리어프리
+ * 모드입니다.") above the hero (y113–966), and everything below slid down
+ * ~6–26px. The bar IS product UI (confirmed
+ * 2026-08-26 after some back-and-forth) with one deliberate deviation: white
+ * text on the brand-orange #ff7f0f band, not the frame's #232323 on #999 — the
+ * user's standing direction for this bar on every 베리어프리 frame that carries
+ * it. The bigger change is the tile grid: it reflows from the standard 4×3
+ * two-line tiles to 6 columns × 2 rows with a SINGLE 400-weight label per tile.
+ *
+ *                     standard        low-reach
+ *   mode bar          —               0      h113
+ *   hero              —               113    h853
+ *   top bar           125             1005
+ *   공지 panel         297             1140
+ *   운항 정보 board     732             1575   ┐ ride the 공지 panel — a rigid +843
+ *   운항 정보 더보기    955             1798   ┘ with no compression. Both live in
+ *                                              JejuFlightBoard.module.css.
+ *   검색장             1136            1942   (and 2000→1910 wide, at x125)
+ *   feature cards     1407  h310      2176   h250 (at x170, w1860, AI card 706)
+ *   tile panel        1772  h1494     2478   h810   (at x150, w1860)
+ *   tile grid         1821  h1396     2544   h678   (at x188, w1792, 6 cols)
+ *   tile art          300×300         230×230, label at 260 not 335
+ *   grid step         480 × 492       312.4 × 374
+ *   bottom row        3338…3648       unchanged — the old +115 shift is gone
+ *
+ * The left rail DOES move now: the design drops the rail's home icon (the
+ * search row has its own), draws only the back button at y2163, and swaps the
+ * ♿ at 2283 to its orange active state (ico-accessibility-on, Figma image 503).
+ * ──────────────────────────────────────────────────────────────────────────── */
+/* The type is the Figma bar's own — Pretendard Bold 68 via the inherited
+   --kiosk-font — but the COLOURS are not: white text on the brand-orange band
+   replaces the frame's #232323-on-#999, by the user's standing direction
+   (2026-08-26) for this bar on every 베리어프리 frame that carries it. */
+.modeBar {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 2160px;
+  height: 113px;
+  background: var(--kiosk-primary, #ff7f0f);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 68px;
+  font-weight: 700;
+  line-height: 1;
+  color: #fff;
+}
+
+/* The Figma-exact banner box: 2160×853 (the 157/62 ratio) at y113. The frame
+   also frames it with two 30px #f49c56 rules at y113/y936 — removed at the
+   user's direction 2026-08-26, the art stands alone. */
+.hero {
+  position: absolute;
+  left: 0;
+  top: 113px;
+  width: 2160px;
+  height: 853px;
+  overflow: hidden;
+}
+
+.heroImg {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  /* Figma scales the art to h141.38% and pins it at top -22.28%, so 53.9% of the
+     vertical overflow (22.28 / 41.38) is cropped off the TOP — not the even
+     split `cover` would default to. */
+  object-position: center 53.9%;
+  display: block;
+  pointer-events: none;
+}
+
+.topBarLow { top: 1005px; }
+.noticeLow { top: 1140px; }
+
+.searchRowLow {
+  left: 125px;
+  top: 1942px;
+  width: 1910px;
+}
+
+.searchFieldLow {
+  left: 230px;
+  width: 1450px;
+}
+
+.langBtnLow { left: 1730px; }
+
+/* 1860 wide, justify-between over 706 + 540 + 540 → two 37px gaps, i.e. card
+   lefts 0 / 743 / 1320. All three drop to 250 tall, so their contents move up:
+   titles to 74/78, subs to 148/152, and each card's art shrinks to fit.
+   NORMALISED: the AI subtitle sits at x410.42 in Figma against the title's
+   x401.01; both are left-aligned, so both use 401 (same call as standard). */
+.cardsLow {
+  left: 170px;
+  top: 2176px;
+  width: 1860px;
+  height: 250px;
+}
+
+.cardsLow .card { height: 250px; }
+
+.cardsLow .cardAi { width: 706px; }
+.cardsLow .cardAi .cardTitle { left: 401px; top: 74px; }
+.cardsLow .cardAi .cardSub   { left: 401px; top: 148px; }
+.cardsLow .cardAi .cardArt   { left: 56px; top: 31px; width: 222px; height: 191px; }
+
+.cardsLow .cardMarket { left: 743px; }
+.cardsLow .cardMarket .cardTitle { left: 57px; top: 78px; }
+.cardsLow .cardMarket .cardSub   { left: 57px; top: 152px; }
+.cardsLow .cardMarket .cardArt   { left: 337px; top: 45px; width: 109px; height: 169px; }
+
+.cardsLow .cardEvents { left: 1320px; }
+.cardsLow .cardEvents .cardTitle { left: 40px; top: 78px; }
+.cardsLow .cardEvents .cardSub   { left: 40px; top: 152px; }
+.cardsLow .cardEvents .cardArt   { left: 354px; top: 60px; width: 143px; height: 143px; }
+
+.panelLow {
+  left: 150px;
+  top: 2478px;
+  width: 1860px;
+  height: 810px;
+}
+
+/* NORMALISED: Figma draws row 1 as a 1792.059 frame and row 2 as 1820 — the
+   rows are visibly aligned in the render, so both use the frame's 1792 and the
+   step it implies: (1792 − 230) / 5 = 312.4. */
+.gridLow {
+  left: 188px;
+  top: 2544px;
+  width: 1792px;
+  height: 678px;
+}
+
+.tileLow {
+  width: 230px;
+  height: 303px;
+}
+
+/* The revision squares the plates off to a 45px radius (only 탐나오's wrapper
+   still says 85.799 — designer slop). 45 can't be used literally: the exported
+   art bakes a 45-on-200 radius, 51.75 once scaled to 230, and clipping INSIDE
+   that keeps the opaque #f5f5f5 corners (see the note above .tileArt). 52 is
+   the smallest radius that still removes them. */
+.tileArtLow,
+.tilePlateLow {
+  width: 230px;
+  height: 230px;
+  border-radius: 52px;
+}
+
+/* One centred 38px/400 line — the revision drops the tile subtitles here. */
+.tileTextLow {
+  top: 260px;
+  width: 230px;
+}
+
+.tileTextLow .tileTitle { font-weight: 400; }
+.tileTextLow .tileSub { display: none; }
+
+/* The design keeps the bottom action row at its standard position (the old
+   +115 shift is gone from the revision), so there are no Low classes for it. */
+
+.leftNavLow {
+  top: 2163px;
+  height: 85px;
+  overflow: hidden;
+}
+
+/* nav-left.svg bakes home (y0–85) and back (y120–205) into one 85×205 export;
+   the 85px window above + this -120 shift shows only the back button. */
+.leftNavLow .leftNavImg {
+  inset: auto;
+  left: 0;
+  top: -120px;
+  width: 85px;
+  height: 205px;
+}
+
+.leftNavLow .leftNavHome { display: none; }
+.leftNavLow .leftNavBack { top: 0; }

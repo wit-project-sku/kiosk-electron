@@ -1,7 +1,8 @@
 import { useRef, useState } from 'react';
-import { Search } from 'lucide-react';
 import type { KioskController } from '@renderer/hooks/useKioskController';
+import { SearchIcon } from '@layouts/components/SearchIcon';
 import { iconUrl } from '@renderer/assets/icons/insadong';
+import { useRotatingBanner } from '@renderer/hooks/useRotatingBanner';
 import { useLanguageStore } from '@renderer/store/languageStore';
 import { useSearchStore } from '@renderer/store/searchStore';
 import { useDetailStore } from '@renderer/store/detailStore';
@@ -24,6 +25,7 @@ import { InsadongHeader } from './InsadongHeader';
 import { FloatingKeyboard } from './keyboard/FloatingKeyboard';
 import { HangulComposer } from './keyboard/hangul';
 import type { KeyAction } from './keyboard/VirtualKeyboard';
+import { InsadongLeftNav } from './InsadongLeftNav';
 import styles from './InsadongSearch.module.css';
 
 const T = {
@@ -67,6 +69,7 @@ export function InsadongSearch({ controller }: InsadongSearchProps): JSX.Element
 
   const shops = useShopStore((s) => s.shops);
   const noImg = iconUrl('noimage');
+  const banner = useRotatingBanner();
   const [query, setQuery] = useState(initialQuery);
   const [focused, setFocused] = useState(false);
   const results = searchShops(shops, query, lang);
@@ -131,7 +134,7 @@ export function InsadongSearch({ controller }: InsadongSearchProps): JSX.Element
               )}
               {focused && <span className={styles.caret} />}
             </span>
-            <Search className={styles.searchIcon} strokeWidth={2.4} />
+            <SearchIcon className={styles.searchIcon} />
           </button>
         </div>
 
@@ -168,14 +171,13 @@ export function InsadongSearch({ controller }: InsadongSearchProps): JSX.Element
         )}
       </div>
 
-      <div className={styles.leftNav}>
-        <button type="button" className={styles.leftNavBtn} onClick={goHome} aria-label="홈으로">
-          {iconUrl('home-btn') && <img src={iconUrl('home-btn')} alt="" draggable={false} />}
+      <InsadongLeftNav onHome={goHome} />
+
+      {banner && (
+        <button type="button" className={styles.banner} onClick={() => controller.startPhoto()} aria-label="가상 한복 체험">
+          <img src={banner} alt="" draggable={false} />
         </button>
-        <button type="button" className={styles.leftNavBtn} onClick={goHome} aria-label="뒤로">
-          {iconUrl('back-arrow') && <img src={iconUrl('back-arrow')} alt="" draggable={false} />}
-        </button>
-      </div>
+      )}
 
       <FloatingKeyboard open={focused} onKey={applyKey} onClose={() => setFocused(false)} lang={lang} />
     </>

@@ -1,0 +1,545 @@
+/*
+ * 지역화폐 — Figma 6249:32350 (=온누리상품권) / 6249:32283 (=탐나는전),
+ * re-read 2026-08-24: the tab row moved to y700 and went solid-orange when
+ * picked, and every card slid down to clear it.
+ *
+ * Two tabs over the shared JejuPageFrame chrome. Page coords:
+ *   700   tab row 1360×170, centred (x400) — two 580×170, 200 apart
+ *   944   온누리 intro card  1820×1002
+ *   1998  온누리 digital card 1820×1194
+ *   944   탐나는전 card      1820×2250
+ * Everything inside a card is positioned against the CARD, not the artboard, so
+ * moving a card is one number.
+ *
+ * ★ KNOWN: these boxes fit KOREAN ONLY. Until 2026-08-14 the page answered the
+ * sheet's Korean to every language (see withSheet in the .tsx), so nothing else
+ * was ever laid out. With the copy actually translating, six blocks overflow —
+ * measured room-left, worst language: digitalText −14, usageBlock −12 (hidden
+ * UNDER .beige, which paints after it), bullets −78, tamnaHead −168 (ru, lands
+ * on the 상품권 권종 heading), apply −8 (ru). `.bullets` never went through the
+ * sheet, so that one has always overflowed. Deliberately not fixed here: the
+ * remedy moves this frame's own coordinates and was split into its own task.
+ * The page does NOT scroll (JejuPageFrame .root is 3840 / overflow hidden), and
+ * the 2026-08-24 slide-down (cards now end 3192/3194, banner 3267) leaves only
+ * ~74px free above the banner — TIGHTER than when this note was measured.
+ */
+
+/* ── Tabs (6249:32357 / 32290) ──
+   Centred: the 탐나는전 frame draws the row at left 50% (x400); the 온누리 frame
+   hand-places it at 429 — slop, since the pills must not move on a tab press. */
+.tabs {
+  position: absolute;
+  left: 400px;
+  top: 700px;
+  width: 1360px;
+  height: 170px;
+  display: flex;
+  align-items: center;
+  gap: 200px;
+}
+
+.tab {
+  composes: pill from './JejuPill.module.css';
+  width: 580px;
+}
+
+/* Picked: the solid brand plate with white Bold type (6249:32297 / 32360) —
+   NOT JejuPill's pale #ffeac7-with-ring pillActive. This page's frames were the
+   last drawing that old picked look; the re-read replaced it. */
+.tabActive {
+  border: none;
+  background: var(--kiosk-primary, #ff7f0f);
+  font-weight: 700;
+  color: #fff;
+}
+
+/* ── Card shell ──
+   The 탐나는전 frame draws its card at x199 rather than centred like the two
+   온누리 cards (x170). Centred here on purpose: the two tabs swap IN PLACE, so a
+   29px sideways jump on every tab press reads as a bug. Set `left: 199px` on
+   .cardTamna to go back to the frame's own number. */
+.card {
+  position: absolute;
+  left: 170px;
+  width: 1820px;
+  box-sizing: border-box;
+  /* Flat plate - no outline, no shadow (2026-08-24 direction). */
+  border: none;
+  border-radius: 45px;
+  background: #fff;
+}
+
+.cardIntro   { top: 944px;  height: 1002px; }
+.cardDigital { top: 1998px; height: 1194px; }
+.cardTamna   { top: 944px;  height: 2250px; }
+
+/* ── Shared type ── */
+/* The section headings are one text run split in two colours — "온누리상품권"
+   orange, "이란?" black — so the accent is a span, not a second element. */
+.h70 {
+  margin: 0;
+  font-size: 70px;
+  font-weight: 700;
+  line-height: 1;
+  color: #000;
+}
+
+.h60 {
+  margin: 0;
+  font-size: 60px;
+  font-weight: 700;
+  line-height: 1;
+  color: var(--kiosk-primary, #ff7f0f);
+}
+
+.h50 {
+  margin: 0;
+  font-size: 50px;
+  font-weight: 700;
+  line-height: 1;
+  color: var(--kiosk-primary, #ff7f0f);
+}
+
+.accent {
+  color: var(--kiosk-primary, #ff7f0f);
+}
+
+.body {
+  margin: 0;
+  font-size: 45px;
+  font-weight: 400;
+  line-height: 1.3;
+  color: #2b2b2b;
+}
+
+/* **…** segments in the copy — SemiBold, same size and colour. */
+.bodyBold {
+  font-weight: 600;
+}
+
+/* ── 온누리 intro card (6249:32378) ── */
+.introText {
+  position: absolute;
+  left: 40px;
+  top: 50px;
+  width: 1740px;
+  display: flex;
+  flex-direction: column;
+  gap: 50px;
+}
+
+/* 지류상품권 권종 panel (6249:32382). Figma centres it 7px left of the card's
+   middle — the card's own 45px padding is not symmetric here. */
+.paperPanel {
+  position: absolute;
+  left: 50%;
+  top: 414px;
+  width: 1740px;
+  height: 537.676px;
+  margin-left: -7px;
+  transform: translateX(-50%);
+  border-radius: 20px;
+  background: #f6f8f9;
+}
+
+.paperLabel {
+  position: absolute;
+  left: 40px;
+  top: 22px;
+  margin: 0;
+  font-size: 45px;
+  font-weight: 500;
+  line-height: 1;
+  color: #2b2b2b;
+}
+
+/* The note photo is drawn ZOOMED inside its slot (115.31% × 128.55%, offset
+   −7.35% / −13.29%) rather than fitted — transcribed from the frame so the crop
+   matches instead of being re-derived by object-fit.
+   Positioned inside .paperPanel, so 85 is the frame's own panel-relative y. */
+.paperImage {
+  position: absolute;
+  left: 50%;
+  top: 85px;
+  width: 1210px;
+  height: 440px;
+  margin-left: -4px;
+  transform: translateX(-50%);
+  border-radius: 20px;
+  overflow: hidden;
+}
+
+.paperImage img {
+  position: absolute;
+  left: -7.35%;
+  top: -13.29%;
+  width: 115.31%;
+  height: 128.55%;
+  max-width: none;
+  display: block;
+}
+
+/* ── 온누리 digital card (6249:32386) ── */
+.digitalText {
+  position: absolute;
+  left: 36px;
+  top: 50px;
+  width: 1660px;
+  display: flex;
+  flex-direction: column;
+  gap: 50px;
+}
+
+/* The frame's "10% 할인가" / "최대 보유한도금액" / "200만원" runs are full Bold
+   (Display_Bold, 700), one weight up from the SemiBold every other `**` segment
+   on this page takes. */
+.digitalText strong {
+  font-weight: 700;
+}
+
+.usageBlock {
+  position: absolute;
+  left: 36px;
+  top: 461px;
+  width: 1197px;
+  display: flex;
+  flex-direction: column;
+  gap: 30px;
+}
+
+.mascot {
+  position: absolute;
+  left: 1254px;
+  top: 407px;
+  width: 575px;
+  height: 304px;
+  object-fit: contain;
+}
+
+.beige {
+  position: absolute;
+  left: 50%;
+  top: 673px;
+  width: 1748px;
+  height: 456px;
+  transform: translateX(-50%);
+  border-radius: 20px;
+  background: #ffeac7;
+}
+
+/* Figma nowraps this line. Left wrapping here: it is the longest single line on
+   the page and every translation runs longer than the Korean, so nowrap would
+   push it out of the card. */
+.beigeNote {
+  position: absolute;
+  left: 57px;
+  top: 718px;
+  width: 1155px;
+  margin: 0;
+  font-size: 30px;
+  font-weight: 400;
+  line-height: 1.3;
+  color: #000;
+}
+
+/* Figma's box is 1155 wide with −0.32px tracking on the 사용처 확대 line, which is
+   the longest. Rendered in Noto Sans KR that line is ~40px too wide and wraps,
+   pushing the fourth bullet down; the box is widened to the 1190 available
+   before the BI sticker at x1245 and the frame's own tracking applied to the
+   whole list, which keeps all four on one line each. */
+.bullets {
+  position: absolute;
+  left: 50px;
+  top: 799px;
+  width: 1190px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font-size: 40px;
+  font-weight: 600;
+  line-height: 1.7;
+  letter-spacing: -0.32px;
+  color: var(--kiosk-primary, #ff7f0f);
+}
+
+.bi {
+  position: absolute;
+  left: 1245px;
+  top: 783px;
+  width: 244px;
+  height: 250px;
+  object-fit: contain;
+}
+
+/* The frame draws a 0/4/4 25% drop shadow on this plate; left off — the
+   2026-08-24 borders/shadows-off direction, same call as the earlier sweep. */
+.qrPlate {
+  position: absolute;
+  left: 1492px;
+  top: 768px;
+  width: 230px;
+  height: 253px;
+  border-radius: 21.453px;
+  background: #fff;
+}
+
+/* The export carries its own "앱 다운로드" caption, so this is one image, not a
+   code plus a label. */
+.qrImage {
+  position: absolute;
+  left: 1508.07px;
+  top: 783.34px;
+  width: 199.753px;
+  height: 222.333px;
+  object-fit: contain;
+}
+
+/* ── 탐나는전 card (6249:32310) ── */
+.tamnaHead {
+  position: absolute;
+  left: 128px;
+  top: 100px;
+  display: flex;
+  align-items: center;
+  gap: 61px;
+}
+
+.tamnaLogo {
+  flex: 0 0 auto;
+  width: 260px;
+  height: 387.687px;
+  object-fit: contain;
+}
+
+.tamnaIntro {
+  width: 1331px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+/* ── 상품권 권종 (6249:32316) ──
+   Three artworks straddling a grey plate: they start ABOVE its top edge and each
+   one is a different height, which is why they are placed individually rather
+   than laid out in a row. */
+.kwonjong {
+  position: absolute;
+  left: 40px;
+  top: 597px;
+  width: 1740px;
+  height: 617px;
+}
+
+.kwonjongPanel {
+  position: absolute;
+  left: 150px;
+  top: 100px;
+  width: 1441px;
+  height: 517px;
+  border-radius: 20px;
+  background: #f6f8f9;
+}
+
+.kwonjongImg {
+  position: absolute;
+  object-fit: contain;
+}
+
+.kwCard   { left: 218px;  top: 60px;  width: 426px; height: 482px; }
+.kwMobile { left: 632px;  top: 77px;  width: 477px; height: 540px; }
+.kwPaper  { left: 1144px; top: 100px; width: 447px; height: 505px; }
+
+.kwLabel {
+  position: absolute;
+  top: 131px;
+  margin: 0;
+  transform: translateX(-50%);
+  font-size: 32px;
+  font-weight: 400;
+  line-height: 1.3;
+  color: #2b2b2b;
+  text-align: center;
+}
+
+.kwLabelCard   { left: 431.5px;  width: 107px; }
+.kwLabelMobile { left: 870.5px;  width: 133px; }
+.kwLabelPaper  { left: 1322.5px; width: 133px; }
+
+.kwDivider {
+  position: absolute;
+  top: 172px;
+  width: 2px;
+  height: 370px;
+  background: #e8e8e8;
+}
+
+.kwDividerLeft  { left: 632px; }
+.kwDividerRight { left: 1109px; }
+
+/* ── 누구나 신청 가능하나요? (6249:32327) ── */
+.apply {
+  position: absolute;
+  left: 40px;
+  top: 1323px;
+  width: 1740px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+/* ── 탐나는전 사용처 + store QRs (6249:32331) ── */
+.useRow {
+  position: absolute;
+  left: 40px;
+  top: 1921px;
+  width: 1740px;
+  height: 196px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.useText {
+  width: 1169px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.stores {
+  position: relative;
+  flex: 0 0 auto;
+  width: 538px;
+  height: 300px;
+}
+
+.store {
+  position: absolute;
+  top: 16px;
+  width: 257px;
+  height: 284px;
+  box-sizing: border-box;
+  border: 4.291px solid var(--kiosk-primary, #ff7f0f);
+  border-radius: 21.453px;
+  background: #fff;
+}
+
+.storeAndroid { left: 0; }
+.storeIos     { left: 281px; }
+
+.storeQr {
+  position: absolute;
+  object-fit: contain;
+}
+
+/* The two codes are drawn at slightly different sizes and insets; kept as the
+   frame has them rather than averaged, since a QR is read by a camera. */
+.storeQrAndroid { left: 34px; top: 26px; width: 193px; height: 191px; }
+.storeQrIos     { left: 33px; top: 21px; width: 196px; height: 196px; }
+
+.storeLabel {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 227px;
+  margin: 0;
+  font-size: 32px;
+  font-weight: 700;
+  line-height: 1;
+  color: var(--kiosk-primary, #ff7f0f);
+  text-align: center;
+}
+
+/* ────────────────────────────────────────────────────────────────────────────
+ * LOW-REACH (♿) — Figma 6326:80281 (=온누리상품권) / 6326:80332 (=탐나는전).
+ *
+ * The frame's own re-stack does the chrome: this page keeps its banner, so
+ * JejuPageFrame's `shifted` already moves the promo to y0 and the header to 573.
+ * The BODY is placed here instead (`lowReachSelfLayout`), because the cards are
+ * not merely pushed down — they are re-laid-out, and the tab row leaves the top
+ * entirely for the foot.
+ *
+ *                        standard        low-reach
+ *   tab row              700             3437
+ *   온누리 intro card      944  h1002      1206  h997
+ *   온누리 digital card    1998 h1194      2234  h1123
+ *   탐나는전 card          944  h2250      1206  h2147
+ *
+ * ── Two normalisations, both measured rather than assumed ──
+ *
+ * 1. The 온누리 frame is drawn a uniform +5px LOW: its header sits at 578 against
+ *    the 573 the 탐나는전 frame (and every other 제주 page) states, and its tab row
+ *    at 3442 against 3437. Correcting by −5 lands its tab row on the 탐나는전
+ *    frame's 3437 EXACTLY, which is what confirms the nudge is uniform slop
+ *    rather than a real difference. Same class of hand-nudge as 702/700 → 701 on
+ *    the 운항정보 tabs.
+ *
+ * 2. After that correction the two card tops are 1205 (온누리) and 1207 (탐나는전).
+ *    Both are drawn at 944 in the standard frames, so the 2px is slop; taking the
+ *    midpoint 1206 for all three keeps the card from twitching when the tabs
+ *    swap — the same reason .cardTamna is centred at 170 instead of the frame's
+ *    own 199. The digital card follows at 1206 + 997 + 31 (its measured gap).
+ *
+ * ── Type is UNCHANGED ──
+ * Every size, weight and colour matches the standard frames: 70 headings, 45.05
+ * body, 60.067/60 section headings, 50 사용처, 40 bullets at 1.7 with −0.32
+ * tracking, 32 labels, 30 note, 50 tabs. So are the untouched internals — the
+ * 지류상품권 panel and its label/photo, the whole 상품권 권종 block (panel 150/100
+ * 1441×517, artworks 218/60, 632/77, 1144/100, labels on 431.5/870.5/1322.5,
+ * dividers at 632/1109), and both store cards down to the two QRs' different
+ * insets (34/26 193×191 and 33/21 196×196) and their 227 label. Only the values
+ * listed below move.
+ * ──────────────────────────────────────────────────────────────────────────── */
+
+/*
+ * ★ The low-reach frames draw a 5px #e8e8e8 ring on the card — a named library
+ * token (`외곽선/내부/5`), not a stray stroke — and the STANDARD frames do not.
+ * Probed at 1:1 on all four edges of all four frames to be sure: the standard
+ * card goes background → white with nothing between (x170 bg, x170 white), while
+ * the low-reach card reads (232,232,232) for exactly five pixels first
+ * (170–174 left, 1985–1989 right, and the same top and bottom).
+ *
+ * Drawn as an INSET shadow rather than a `border` on purpose. Every child on
+ * this card is absolutely positioned, and those resolve against the PADDING box:
+ * a real 5px border would silently shift all ~15 of them 5px down and right,
+ * whereas an inset ring paints over 0–5 and moves nothing — which is also
+ * exactly where the probe found the grey.
+ */
+.cardLow {
+  box-shadow: inset 0 0 0 5px #e8e8e8;
+}
+
+.tabsLow { top: 3437px; }
+
+.cardIntroLow   { top: 1206px; height: 997px; }
+.cardDigitalLow { top: 2234px; height: 1123px; }
+.cardTamnaLow   { top: 1206px; height: 2147px; }
+
+/* ── 온누리 intro card (6326:80288) ── */
+.introTextLow  { left: 35px; top: 70px; }
+.paperPanelLow { top: 417px; }
+
+/* ── 온누리 digital card (6326:80296) ──
+   The card loses 71px, and it does not lose it evenly: the two text blocks move
+   DOWN (+23 / +10) while everything from the mascot down moves UP 17 and the
+   #ffeac7 plate also gives up 31 of its own height. The QR pair is the one group
+   that keeps its x and moves only −12, so it is listed separately below. */
+.digitalTextLow { left: 31px; top: 73px; }
+.usageBlockLow  { left: 31px; top: 471px; }
+.mascotLow      { left: 1249px; top: 390px; }
+.beigeLow       { top: 656px; height: 425px; }
+.beigeNoteLow   { left: 52px; top: 701px; }
+/* Width stays the widened 1190, not the frame's 1155 — the reason above .bullets
+   still holds, and 45 + 1190 clears the BI sticker's new x1240. */
+.bulletsLow     { left: 45px; top: 782px; }
+.biLow          { left: 1240px; top: 766px; }
+.qrPlateLow     { top: 756px; }
+.qrImageLow     { top: 771.34px; }
+
+/* ── 탐나는전 card (6326:80335) ──
+   All four blocks shift 5px left, and the three below the head climb steadily
+   (−43, −81, −119) as the card tightens by 103. */
+.tamnaHeadLow { left: 123px; top: 95px; }
+.kwonjongLow  { left: 35px; top: 554px; }
+.applyLow     { left: 35px; top: 1242px; }
+.useRowLow    { left: 35px; top: 1802px; }

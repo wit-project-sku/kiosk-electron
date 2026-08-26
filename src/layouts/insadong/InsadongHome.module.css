@@ -44,20 +44,23 @@
   justify-content: space-between;
 }
 
-/* INSADONG wordmark — Figma: Noto Sans 900, 68px, #FE6C50, line-height 100%. */
+/* INSADONG wordmark — Figma: Noto Sans 900, 68px, var(--kiosk-primary), line-height 100%. */
 .brand {
   display: flex;
   align-items: center;
   gap: 1.2cqw;
-  color: #fe6c50;
+  color: var(--kiosk-primary);
   font-weight: 900;
   font-size: 1.77cqh;
   line-height: 1;
 }
 
 .pin {
-  width: 2.14cqh;
-  height: 2.14cqh;
+  width: 2.917cqw; /* 63px — match location-pin.svg */
+  height: 2.135cqh; /* 82px */
+  aspect-ratio: 63 / 82;
+  object-fit: contain;
+  flex-shrink: 0;
 }
 
 .date {
@@ -105,7 +108,7 @@
   flex: none;
   width: 0.3cqw;
   height: 6.31cqh;
-  background: #fe6c50;
+  background: var(--kiosk-primary);
   border-radius: 0.15cqw;
 }
 
@@ -200,7 +203,7 @@
   align-items: center;
   justify-content: center;
   border: none;
-  background: #fe6c50;
+  background: var(--kiosk-primary);
   border-radius: 50%;
   overflow: hidden;
   cursor: pointer;
@@ -229,10 +232,10 @@
   align-items: center;
   gap: 1cqw;
   background: #ffffff;
-  /* Figma 검색필드: 4.29px #fe6c50 border, rounded 120. */
-  border: 4.29px solid #fe6c50;
+  /* Figma 검색필드: 4.29px var(--kiosk-primary) border, rounded 120. */
+  border: 4.29px solid var(--kiosk-primary);
   border-radius: 3.13cqh;
-  padding: 0 2.5cqw;
+  padding: 55px 62px 55px 75px;
   cursor: text;
   overflow: hidden;
   font-family: var(--kiosk-font, sans-serif);
@@ -254,7 +257,7 @@
   min-width: 0;
   font-size: 1.564cqh;
   font-weight: 600;
-  line-height: 1;
+  line-height: 1.3;
   white-space: nowrap;
   overflow: hidden;
   text-align: left;
@@ -270,16 +273,17 @@
 
 .searchIcon {
   flex: none;
-  width: 2.6cqh;
-  height: 2.6cqh;
-  color: #fe6c50;
+  width: 80px;
+  height: 77px;
+  flex-shrink: 0;
+  color: var(--kiosk-primary);
 }
 
 .caret {
   flex: none;
-  width: 0.3cqw;
-  height: 2.6cqh;
-  background: #fe6c50;
+  width: 6px;
+  height: 68px;
+  background: var(--kiosk-primary);
   animation: blink 1s step-end infinite;
 }
 
@@ -297,25 +301,24 @@
   flex: none;
 }
 
-/* 메인메뉴 (Figma 4167:87290): rows are `justify-between w-[1820px]`, gap-[100px].
-   Fixed-300px columns distributed with space-between reproduce justify-between, so
-   col-1's left edge pins to x0 (under the home button) and col-4's right edge pins
-   to x1820 (under the KR button) — the outer tiles share the SAME vertical lines as
-   the home/KR circles. The wide AI tile spans 2 columns (Figma 830). */
+/* 메인메뉴 (Figma 4167:87290): 4×300px columns, wide AI spans 2.
+   Image-to-image vertical gap is fixed at 173px (label line count must not
+   change it): each row = 300px art + 173px band for label. */
 .grid {
   display: grid;
   grid-template-columns: repeat(4, 13.89cqw); /* 300px */
   justify-content: space-between;
-  grid-auto-rows: 9.71cqh; /* 373px */
-  row-gap: 2.604cqh; /* 100px */
+  grid-auto-rows: calc(7.8125cqh + 173px); /* 300px art + 173px to next art */
+  row-gap: 0;
+  align-items: stretch;
 }
 
 .tile {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 0.91cqh;
-  min-height: 0;
+  gap: 0.7cqh; /* 30px image→label */
+  height: 100%;
   background: none;
   border: none;
   padding: 0;
@@ -326,10 +329,11 @@
   grid-column: span 2;
 }
 
+/* Fixed 300px art — label wraps inside the 173px band below, never shrinks art. */
 .tileArt {
-  flex: 1;
-  min-height: 0;
+  flex: none;
   width: 100%;
+  height: 7.8125cqh; /* 300px */
   display: flex;
   align-items: center;
   justify-content: center;
@@ -356,11 +360,15 @@
 
 .tileLabel {
   flex: none;
+  width: 100%;
   font-size: 0.99cqh; /* 38px */
   font-weight: 400; /* Figma: Noto Sans Regular */
-  line-height: 1; /* Figma: leading-none */
+  line-height: 1.15;
   text-align: center;
   color: #000000; /* Figma: text-black */
+  white-space: pre-line;
+  word-break: keep-all;
+  overflow-wrap: anywhere;
 }
 
 /* 하단네비 (R=하단버튼): the scalloped bar (Union, 2168×459) has THREE differently
@@ -515,28 +523,3 @@
   opacity: 0.45;
 }
 
-/* Left nav (home / back) — vertically aligned like every other screen. */
-.leftNav {
-  position: absolute;
-  left: 21px;
-  top: 1995px;
-  z-index: 2;
-  display: flex;
-  flex-direction: column;
-  gap: 35px;
-}
-
-.leftNavBtn {
-  width: 85px;
-  height: 85px;
-  padding: 0;
-  border: none;
-  background: none;
-  cursor: pointer;
-}
-
-.leftNavBtn img {
-  width: 100%;
-  height: 100%;
-  object-fit: contain;
-}

@@ -1,9 +1,11 @@
 name: release-beta
 
 # Testing channel (beta). Fires on every push to the develop branch (a merged PR
-# is a push). Publishes a GitHub PRE-release versioned X.Y.Z-beta.<run_number>,
-# which makes electron-builder emit beta.yml. Testing kiosks (UPDATE_CHANNEL=beta)
-# pick it up automatically; production kiosks never see it.
+# is a push). Publishes a GitHub PRE-release one MINOR ahead of the newest stable
+# release (5.0.18 stable -> 5.1.0-beta.<run_number>) — see "Resolve version" in
+# release.yml for why a beta must outrank production instead of trailing it.
+# Testing kiosks (UPDATE_CHANNEL=beta) pick it up automatically; production kiosks
+# never see it.
 #
 # Runtime config comes from the `beta` GitHub Environment (staging URLs + test
 # keys). Restrict that environment's deployment branches to develop_1 so a push

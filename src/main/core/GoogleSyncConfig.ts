@@ -50,11 +50,6 @@ export function getGoogleScopes(): string {
   return scopes.join(' ');
 }
 
-/** @deprecated Use getGoogleScopes() */
-export function getSheetsScope(): string {
-  return getGoogleScopes();
-}
-
 /** Resolve a (possibly relative) secret path against cwd, then the packaged
  * resources dir, so it works in both dev and a Windows production build. */
 function resolveSecretPath(p: string): string {
@@ -83,9 +78,4 @@ function loadServiceAccount(): ServiceAccountCredentials | null {
   } catch {
     return null;
   }
-}
-
-/** Validate credentials file exists (for deployment diagnostics). */
-export function validateCredentialsPath(path: string): boolean {
-  return existsSync(resolve(path));
 }

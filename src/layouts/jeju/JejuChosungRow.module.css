@@ -1,0 +1,38 @@
+/*
+ * 초성 index row — Figma draws it as ONE 60px text run with letter-spacing 30
+ * (6212:55199 on the list frames, 6212:59319 on 관광명소; identical type).
+ * Modelled as 14 equal cells so each letter is a real touch target on a kiosk;
+ * the caller sets the cell width to whatever its frame spans.
+ */
+.row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.jamo {
+  width: var(--jeju-jamo-cell, 129px);
+  height: 82px;
+  padding: 0;
+  border: none;
+  background: none;
+  /* Centre explicitly — a bare button would place the glyph on the default
+     baseline, which drifts with the font. */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 60px;
+  /* Pretendard Bold — 6212:55191 draws every letter at 700, not the 600 the
+     text node's own base style claims. */
+  font-weight: 700;
+  line-height: 1;
+  color: #000;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Figma draws the row with no selected state, so the active letter uses the
+   brand colour every other control on this kiosk uses. */
+.jamoActive {
+  color: var(--kiosk-primary, #ff7f0f);
+}

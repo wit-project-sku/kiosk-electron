@@ -1,8 +1,7 @@
 import { useRef, useState } from 'react';
-import { Search } from 'lucide-react';
 import type { KioskController } from '@renderer/hooks/useKioskController';
+import { SearchIcon } from '@layouts/components/SearchIcon';
 import { hwaseongIconUrl } from '@renderer/assets/icons/hwaseong';
-import { useRotatingBanner } from '@renderer/hooks/useRotatingBanner';
 import { useLanguageStore } from '@renderer/store/languageStore';
 import { useSearchStore } from '@renderer/store/searchStore';
 import { useDetailStore } from '@renderer/store/detailStore';
@@ -25,6 +24,8 @@ import { FloatingKeyboard } from '../insadong/keyboard/FloatingKeyboard';
 import { HangulComposer } from '../insadong/keyboard/hangul';
 import type { KeyAction } from '../insadong/keyboard/VirtualKeyboard';
 import { HwaseongHeader } from './HwaseongHeader';
+import { HwaseongBanner } from './HwaseongBanner';
+import { HwaseongLeftNav } from './HwaseongLeftNav';
 import styles from './HwaseongSearch.module.css';
 
 const T = {
@@ -56,7 +57,6 @@ interface Props {
 }
 
 export function HwaseongSearch({ controller }: Props): JSX.Element {
-  const banner = useRotatingBanner(hwaseongIconUrl('fg-banner'));
   const goHome = (): void => controller.navigate('home', 'Back');
   const lang = useLanguageStore((s) => s.currentLanguage);
   const initialQuery = useSearchStore((s) => s.query);
@@ -134,61 +134,47 @@ export function HwaseongSearch({ controller }: Props): JSX.Element {
               )}
               {focused && <span className={styles.caret} />}
             </span>
-            <Search className={styles.searchIcon} strokeWidth={2.4} />
+            <SearchIcon className={styles.searchIcon} />
           </button>
         </div>
 
         {results.length > 0 ? (
           <div className={styles.list}>
-            {results.map((shop) => {
-              const thumbs = padImages(shopImages(shop), noImg ?? '', 4);
-              return (
-                <button type="button" key={shop.id} className={styles.card} onClick={() => openDetail(shop)}>
-                  <div className={styles.info}>
-                    <div className={styles.nameRow}>
-                      <span className={styles.name}>{highlightMatch(shopName(shop, lang), query, styles.hl)}</span>
-                      <span className={styles.cat}>
-                        <span className={styles.dot} />
-                        {shopSecondCategory(shop, lang)}
-                      </span>
+            {results.map((shop) => (
+              <button type="button" key={shop.id} className={styles.card} onClick={() => openDetail(shop)}>
+                <div className={styles.info}>
+                  <div className={styles.nameRow}>
+                    <span className={styles.name}>{highlightMatch(shopName(shop, lang), query, styles.hl)}</span>
+                    <span className={styles.cat}>
+                      <span className={styles.dot} />
+                      {shopSecondCategory(shop, lang)}
+                    </span>
+                  </div>
+                  <p className={styles.address}>{highlightMatch(shopAddress(shop, lang), query, styles.hl)}</p>
+                  <p className={styles.desc}>{highlightMatch(shopDescription(shop, lang), query, styles.hl)}</p>
+                  <p className={styles.tags}>{highlightMatch(shopHashtag(shop, lang), query, styles.hl)}</p>
+                </div>
+                <div className={styles.photos}>
+                  {padImages(shopImages(shop), noImg, 4).map((src, j) => (
+                    <div key={j} className={styles.thumb}>
+                      <img src={src} alt="" draggable={false} loading="lazy" />
                     </div>
-                    <p className={styles.address}>{highlightMatch(shopAddress(shop, lang), query, styles.hl)}</p>
-                    <p className={styles.desc}>{highlightMatch(shopDescription(shop, lang), query, styles.hl)}</p>
-                    <p className={styles.tags}>{highlightMatch(shopHashtag(shop, lang), query, styles.hl)}</p>
-                  </div>
-                  <div className={styles.photos}>
-                    {thumbs.map((src, j) => (
-                      <div key={j} className={styles.thumb}>
-                        {src ? <img src={src} alt="" draggable={false} loading="lazy" /> : <div className={styles.thumbEmpty} />}
-                      </div>
-                    ))}
-                  </div>
-                </button>
-              );
-            })}
+                  ))}
+                </div>
+              </button>
+            ))}
           </div>
         ) : (
           <p className={styles.empty}>{query ? pick(T.noResult, lang)(query) : pick(T.prompt, lang)}</p>
         )}
       </div>
 
-      {/* ── Left nav ─────────────────────────────────── */}
-      <div className={styles.leftNav}>
-        {hwaseongIconUrl('fg-leftnav') && (
-          <img src={hwaseongIconUrl('fg-leftnav')} alt="" className={styles.leftNavImg} draggable={false} />
-        )}
-        <button type="button" className={styles.leftNavZoneHome} onClick={goHome} aria-label="홈" />
-        <button type="button" className={styles.leftNavZoneBack} onClick={goHome} aria-label="뒤로" />
-      </div>
+      <HwaseongLeftNav onHome={goHome} />
 
       {/* ── Bottom banner ────────────────────────────── */}
-      <div className={styles.banner}>
-        {banner && (
-          <img src={banner} alt="" className={styles.bannerImg} draggable={false} />
-        )}
-      </div>
+      <HwaseongBanner onClick={() => controller.startPhoto()} />
 
-      <FloatingKeyboard open={focused} onKey={applyKey} onClose={() => setFocused(false)} lang={lang} lightBackspace />
+      <FloatingKeyboard open={focused} onKey={applyKey} onClose={() => setFocused(false)} lang={lang} />
     </div>
   );
 }

@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { Camera } from 'lucide-react';
 import { Swiper, SwiperSlide } from 'swiper/react';
 import { Grid, FreeMode } from 'swiper/modules';
@@ -9,41 +9,74 @@ import { cameraIconUrl } from '@renderer/assets/icons/insadong/camera';
 import { useRotatingBanner } from '@renderer/hooks/useRotatingBanner';
 import { usePhotoStore } from '@renderer/store/photoStore';
 import { pick, useLang } from '@renderer/lib/i18n';
-import { t } from '@renderer/lib/loc';
+import { hasLoc, t } from '@renderer/lib/loc';
+import { ui } from '@renderer/lib/uiText';
 import { usePhotoChrome } from './photoChrome';
-import { OUTFITS_BY_CATEGORY } from '@renderer/assets/photos/insadong/hanbok/clothes';
+import { useOutfitStore } from '@renderer/store/outfitStore';
+import { outfitCategoryLabel } from '@renderer/lib/outfitCategories';
 import hanbokInfo from '@renderer/assets/photos/insadong/hanbok/hanbok-info.png';
 import { HANBOK_INFO, PRIVACY } from './photoTexts';
 import styles from './HanbokSelect.module.css';
 
-const LABELS = {
-  hanbokInfo: { ko: '한복 설명', en: 'About Hanbok', ja: '韓服の説明', zh: '韩服说明' },
-  privacy: { ko: '[개인정보 처리방침]', en: '[Privacy Policy]', ja: '[プライバシーポリシー]', zh: '[隐私政策]' },
-  mapNav: { ko: '인사동 지도', en: 'Insadong Map', ja: '仁寺洞マップ', zh: '仁寺洞地图' },
-  restroomNav: { ko: '화장실', en: 'Restroom', ja: 'トイレ', zh: '洗手间' },
-};
+/** Sheet-backed labels — every location's Localization tab carries these in all
+ *  8 languages, so they resolve through t() and need no code change on a copy edit. */
+const HANBOK_INFO_KEY = 'MainButton_Hanbok';
+const PRIVACY_LINK_KEY = 'Photo_PrivacyPolicy';
 
-/** 한복/의상 categories (Figma AR 한복체험). The Korean string is the canonical
- *  id (used for the clothes catalogue lookup); CATEGORY_LABELS localizes it. */
-const CATEGORIES = [
-  '여자 한복', '여자 모델의상', '남자 한복', '남자 모델의상',
-  '글로벌 의상', '프로모션', '브랜드', 'K-CULTURE',
-];
+/* MainButton_Map / MainButton_WC exist in the Insa and Osaek sheets but NOT in
+   Localization_Hwaseong, and this photo flow is shared across all kiosks — a
+   bare t() would print the raw KEY on W005. The two nav buttons below therefore
+   read the sheet only when the row exists and fall back to a generic
+   8-language label from uiText. Add those rows to the Hwaseong sheet and the
+   guard resolves to the sheet automatically. */
 
-/** Localized tab labels keyed by the canonical category id. (No sheet keys
- *  exist for these yet — once added, swap to t().) */
-const CATEGORY_LABELS: Record<
-  string,
-  { ko: string; en: string; ja: string; zh: string; vi: string; th: string; ru: string; id: string }
-> = {
-  '여자 한복': { ko: '여자 한복', en: "Women's Hanbok", ja: '女性韓服', zh: '女款韩服', vi: 'Hanbok nữ', th: 'ฮันบกหญิง', ru: 'Женский ханбок', id: 'Hanbok wanita' },
-  '여자 모델의상': { ko: '여자 모델의상', en: "Women's Outfit", ja: '女性モデル衣装', zh: '女款模特服', vi: 'Trang phục nữ', th: 'ชุดหญิง', ru: 'Женский образ', id: 'Busana wanita' },
-  '남자 한복': { ko: '남자 한복', en: "Men's Hanbok", ja: '男性韓服', zh: '男款韩服', vi: 'Hanbok nam', th: 'ฮันบกชาย', ru: 'Мужской ханбок', id: 'Hanbok pria' },
-  '남자 모델의상': { ko: '남자 모델의상', en: "Men's Outfit", ja: '男性モデル衣装', zh: '男款模特服', vi: 'Trang phục nam', th: 'ชุดชาย', ru: 'Мужской образ', id: 'Busana pria' },
-  '글로벌 의상': { ko: '글로벌 의상', en: 'Global Outfit', ja: 'グローバル衣装', zh: '全球服饰', vi: 'Trang phục quốc tế', th: 'ชุดนานาชาติ', ru: 'Мировые наряды', id: 'Busana global' },
-  '프로모션': { ko: '프로모션', en: 'Promotion', ja: 'プロモーション', zh: '促销', vi: 'Khuyến mãi', th: 'โปรโมชัน', ru: 'Акция', id: 'Promosi' },
-  '브랜드': { ko: '브랜드', en: 'Brand', ja: 'ブランド', zh: '品牌', vi: 'Thương hiệu', th: 'แบรนด์', ru: 'Бренд', id: 'Merek' },
-  'K-CULTURE': { ko: 'K-CULTURE', en: 'K-CULTURE', ja: 'K-CULTURE', zh: 'K-CULTURE', vi: 'K-CULTURE', th: 'K-CULTURE', ru: 'K-CULTURE', id: 'K-CULTURE' },
+/**
+ * One tab in the row. Every tab is a registered category from
+ * `GET /api/outfits/categories` — the hardcoded 8-name list (여자 한복 …
+ * K-CULTURE) and its locally-authored translations are gone, same as the 제주
+ * picker: a locally-added tab would outlive the category behind it and a
+ * locally-written label would silently contradict the admin web.
+ */
+interface Tab {
+  /** Registered `categoryName` — the filter code ("w=hannbok"), never shown. */
+  id: string;
+  /** Already resolved to the terminal's language. */
+  label: string;
+  /** Korean label, for matching an `initialCategory` handed over by another page. */
+  ko: string;
+}
+
+/**
+ * The 한복 설명 page's illustration strip — NOT a tab. The page is specifically
+ * about 한복, so its carousel shows the two registered 한복 categories whatever
+ * tab it was opened from (these are the registered names, "hannbok" typo and
+ * all — see outfitStore's BUNDLED_CATEGORY_NAMES).
+ */
+const HANBOK_INFO_CATS = ['w=hannbok', 'm=hanbok'];
+
+/**
+ * Tab-row geometry. The Figma frame draws 8 tabs as 2 rows of 4 (420-wide
+ * buttons across the 1820 column), but the count is the API's now — the
+ * operator can register a ninth tomorrow. The ROWS stay at 2 and the columns
+ * grow, with the button width derived in CSS from `--tab-cols`; at 4 columns
+ * that arithmetic gives back the design's exact 420.
+ */
+const TAB_ROWS = 2;
+/** The design's own column count — also the floor, so short rows keep 420. */
+const TAB_MIN_COLUMNS = 4;
+/** Past this the labels are cramped enough to want the smaller type. */
+const TAB_TIGHT_FROM = 5;
+
+/** Shown on a registered tab whose category carries no outfits yet. */
+const NO_OUTFITS = {
+  ko: '준비 중인 의상입니다.',
+  en: 'These outfits are on the way.',
+  ja: '準備中の衣装です。',
+  zh: '服装正在准备中。',
+  vi: 'Trang phục đang được chuẩn bị.',
+  th: 'ชุดกำลังจัดเตรียม',
+  ru: 'Наряды готовятся.',
+  id: 'Busana sedang disiapkan.',
 };
 /** Click-and-drag (grab) horizontal scrolling for the 한복 설명 carousel. */
 function useDragScroll(): {
@@ -86,8 +119,14 @@ function useDragScroll(): {
 export type CaptureMode = 'solo' | 'withInsa';
 
 interface HanbokSelectProps {
-  /** Fired when a 사진촬영 button is pressed → starts the camera flow. */
-  onCapture: (mode: CaptureMode, category: string) => void;
+  /**
+   * Fired when a 사진촬영 button is pressed → starts the camera flow.
+   *
+   * The third argument is the 배경 테마 choice. This screen has no background
+   * plates — only 제주 does (see JejuHanbokSelect) — so it never passes one, and
+   * the AR request skips the change-background template set.
+   */
+  onCapture: (mode: CaptureMode, category: string, backgroundId?: number | null) => void;
   onHome: () => void;
   /** When true (countdown/preview phase), show the "look at the camera" popup. */
   countdownActive?: boolean;
@@ -103,16 +142,54 @@ export function HanbokSelect({ onCapture, onHome, countdownActive = false }: Han
   // Camera-direction popup (shown while the photo is captured/sent to AI) —
   // Osan and Hwaseong each have their own uploaded image; insadong uses the camera-folder asset.
   const camPopupSrc = ((isOsan || isHwaseong) && icon('camera-popup')) || cameraIconUrl('camera-popup');
+  // The outfit catalogue AND its tab row, from the API (SQLite-cached, loaded
+  // at first use and refreshed on the nightly sync — see outfitStore /
+  // OutfitService). Falls back to the bundled PNGs on a kiosk that has never
+  // synced, keyed exactly like API content, so there is one lookup path here.
+  const byCategory = useOutfitStore((s) => s.byCategory);
+  const categories = useOutfitStore((s) => s.categories);
+  const loadOutfits = useOutfitStore((s) => s.load);
+  const reloadOutfits = useOutfitStore((s) => s.reload);
+  useEffect(() => {
+    void loadOutfits();
+    return window.api.events.onOutfitsChanged(() => void reloadOutfits());
+  }, [loadOutfits, reloadOutfits]);
+
+  // Labels are resolved here so a language switch relabels the row without
+  // touching the selection — `id` is the filter code, never a label.
+  const tabs: Tab[] = useMemo(
+    () =>
+      categories.map((c) => ({
+        id: c.categoryName,
+        label: outfitCategoryLabel(c, lang),
+        ko: c.labelKr,
+      })),
+    [categories, lang],
+  );
+
   // If the session was opened with a pre-selected tab (e.g. 프로모션 from the
   // K-DRAMA 이벤트 참여 button), start there; then clear it so it doesn't stick.
   const initialCategory = usePhotoStore((s) => s.initialCategory);
   const setInitialCategory = usePhotoStore((s) => s.setInitialCategory);
-  const [category, setCategory] = useState<string>(() =>
-    initialCategory && CATEGORIES.includes(initialCategory) ? initialCategory : '여자 한복',
-  );
+  /** Empty until the tabs arrive; resolved to the landing (first) tab below. */
+  const [categoryId, setCategoryId] = useState('');
   useEffect(() => {
-    if (initialCategory) setInitialCategory(null);
-  }, [initialCategory, setInitialCategory]);
+    // The row arrives asynchronously, so neither the default nor the hand-over
+    // can be settled in a state initialiser — wait for it, then decide once.
+    if (tabs.length === 0) return;
+    const landing = tabs[0] as Tab;
+    if (initialCategory) {
+      // The caller names the tab in Korean (`프로모션`), which is a label rather
+      // than a code, so both are accepted.
+      const match = tabs.find((t) => t.id === initialCategory || t.ko === initialCategory);
+      setCategoryId((match ?? landing).id);
+      setInitialCategory(null);
+      return;
+    }
+    // Also re-runs if the operator un-registers the selected category mid-
+    // session: the row changes under us and the selection falls back to landing.
+    if (!tabs.some((t) => t.id === categoryId)) setCategoryId(landing.id);
+  }, [initialCategory, tabs, categoryId, setInitialCategory]);
   const [outfitCode, setOutfitCode] = useState<string>('');
   const [infoOpen, setInfoOpen] = useState(false);
   const [privacyOpen, setPrivacyOpen] = useState(false);
@@ -128,15 +205,28 @@ export function HanbokSelect({ onCapture, onHome, countdownActive = false }: Han
   const markBroken = (code: string): void => setBrokenCodes((s) => new Set(s).add(code));
   const isOk = (o: { code: string; url: string }): boolean => Boolean(o.url) && !brokenCodes.has(o.code);
 
-  // Real outfits for the selected category (from the clothes/ catalogue).
-  const catIdx = Math.max(0, CATEGORIES.indexOf(category));
-  const outfits = (OUTFITS_BY_CATEGORY[catIdx] ?? []).filter(isOk);
+  // Real outfits for the selected category, keyed by lower-cased categoryName.
+  const outfits = (byCategory[categoryId.toLowerCase()] ?? []).filter(isOk);
   const selectedOutfit = outfits.find((o) => o.code === outfitCode) ?? outfits[0];
   // AR fields: gender + specific outfit code, passed through as the clothing key.
-  const outfitKey = selectedOutfit ? `${selectedOutfit.gender ?? ''}|${selectedOutfit.code}` : category;
+  const outfitKey = selectedOutfit ? `${selectedOutfit.gender ?? ''}|${selectedOutfit.code}` : '';
+
+  // A registered category can carry zero outfits (e.g. 'Jeju' on prod today),
+  // and the tab shows 준비 중 instead of a grid then — so a capture with
+  // nothing selectable must not fire with a bare category as the clothing key.
+  const startCapture = (mode: CaptureMode): void => {
+    if (!selectedOutfit) return;
+    onCapture(mode, outfitKey);
+  };
 
   // 한복 설명 always shows ALL hanbok (여자 한복 + 남자 한복), never the last-picked tab.
-  const allHanbok = [0, 2].flatMap((i) => OUTFITS_BY_CATEGORY[i] ?? []).filter(isOk);
+  const allHanbok = HANBOK_INFO_CATS.flatMap((name) => byCategory[name] ?? []).filter(isOk);
+
+  /** 2 rows, columns derived from the count — see TAB_ROWS. */
+  const tabColumns = Math.max(TAB_MIN_COLUMNS, Math.ceil(tabs.length / TAB_ROWS));
+  const tabRows = Array.from({ length: TAB_ROWS }, (_, r) =>
+    tabs.slice(r * tabColumns, r * tabColumns + tabColumns),
+  ).filter((row) => row.length > 0);
 
   // ── 한복 설명 page ──
   if (infoOpen) {
@@ -151,7 +241,7 @@ export function HanbokSelect({ onCapture, onHome, countdownActive = false }: Han
         ) : (
           icon('bg') && <img className={styles.bg} src={icon('bg')} alt="" draggable={false} />
         )}
-        <Header title={pick(LABELS.hanbokInfo, lang)} onHome={onHome} onBack={() => setInfoOpen(false)} />
+        <Header title={t(HANBOK_INFO_KEY, lang)} onHome={onHome} onBack={() => setInfoOpen(false)} />
         <div className={styles.infoContent}>
           <div
             ref={infoDrag.ref}
@@ -192,7 +282,7 @@ export function HanbokSelect({ onCapture, onHome, countdownActive = false }: Han
               className={styles.hwInfoNavCam}
               onClick={() => {
                 setInfoOpen(false);
-                onCapture('solo', outfitKey);
+                startCapture('solo');
               }}
               aria-label="사진촬영"
             />
@@ -207,14 +297,14 @@ export function HanbokSelect({ onCapture, onHome, countdownActive = false }: Han
               >
                 {icon('map') && <img src={icon('map')} alt="" draggable={false} />}
               </span>
-              <span className={styles.infoNavLabel}>{pick(LABELS.mapNav, lang)}</span>
+              <span className={styles.infoNavLabel}>{hasLoc('MainButton_Map') ? t('MainButton_Map', lang) : ui('navMap', lang)}</span>
             </button>
             <button
               type="button"
               className={`${styles.infoNavCam} ${isOsan ? styles.infoNavCamOsan : ''}`}
               onClick={() => {
                 setInfoOpen(false);
-                onCapture('solo', outfitKey);
+                startCapture('solo');
               }}
               aria-label="사진촬영"
             >
@@ -226,7 +316,7 @@ export function HanbokSelect({ onCapture, onHome, countdownActive = false }: Han
             </button>
             <button type="button" className={styles.infoNavRight} onClick={() => setInfoOpen(false)}>
               <span className={styles.infoNavIcon}>{icon('restroom') && <img src={icon('restroom')} alt="" draggable={false} />}</span>
-              <span className={styles.infoNavLabel}>{pick(LABELS.restroomNav, lang)}</span>
+              <span className={styles.infoNavLabel}>{hasLoc('MainButton_WC') ? t('MainButton_WC', lang) : ui('navRestroom', lang)}</span>
             </button>
           </div>
         )}
@@ -274,55 +364,71 @@ export function HanbokSelect({ onCapture, onHome, countdownActive = false }: Han
           </div>
         </div>
 
-        {/* Category tabs (2×4) */}
-        <div className={styles.tabs}>
-          {CATEGORIES.map((c) => (
-            <button
-              key={c}
-              type="button"
-              className={`${styles.tab} ${category === c ? styles.tabSel : ''}`}
-              onClick={() => {
-                setCategory(c);
-                setOutfitCode('');
-              }}
-            >
-              {pick(CATEGORY_LABELS[c] ?? { ko: c }, lang)}
-            </button>
+        {/* Category tabs — 2 rows, columns derived from the API's count; the
+            column count drives the button width in CSS (`--tab-cols`), so the
+            row still measures the design's 420 at 8 tabs and simply divides
+            the same 1820 differently when the operator registers more. */}
+        <div
+          className={`${styles.tabs} ${tabColumns >= TAB_TIGHT_FROM ? styles.tabsTight : ''}`}
+          style={{ '--tab-cols': tabColumns } as React.CSSProperties}
+        >
+          {tabRows.map((row, i) => (
+            <div key={i} className={styles.tabRow}>
+              {row.map((c) => (
+                <button
+                  key={c.id}
+                  type="button"
+                  className={`${styles.tab} ${categoryId === c.id ? styles.tabSel : ''}`}
+                  onClick={() => {
+                    setCategoryId(c.id);
+                    setOutfitCode('');
+                  }}
+                >
+                  {c.label}
+                </button>
+              ))}
+            </div>
           ))}
         </div>
 
         {/* Outfit grid — Swiper Grid: 2 rows, swipe horizontally through pages.
             ~3.5 cards per view shows a peek of the next (Figma swipe cue). */}
-        <Swiper
-          className={styles.grid}
-          modules={[Grid, FreeMode]}
-          grid={{ rows: 2, fill: 'row' }}
-          slidesPerView={3.54}
-          spaceBetween={36}
-          freeMode
-          // The whole card area is draggable; selecting an outfit is a tap.
-          key={category}
-        >
-          {outfits.map((o) => (
-            <SwiperSlide key={o.code} className={styles.outfitSlide}>
-              <button
-                type="button"
-                className={`${styles.outfit} ${selectedOutfit?.code === o.code ? styles.outfitSel : ''}`}
-                onClick={() => setOutfitCode(o.code)}
-              >
-                <img src={o.url} alt="" draggable={false} decoding="async" onError={() => markBroken(o.code)} />
-              </button>
-            </SwiperSlide>
-          ))}
-        </Swiper>
+        {outfits.length > 0 ? (
+          <Swiper
+            className={styles.grid}
+            modules={[Grid, FreeMode]}
+            grid={{ rows: 2, fill: 'row' }}
+            slidesPerView={3.54}
+            spaceBetween={36}
+            freeMode
+            // The whole card area is draggable; selecting an outfit is a tap.
+            key={categoryId}
+          >
+            {outfits.map((o) => (
+              <SwiperSlide key={o.code} className={styles.outfitSlide}>
+                <button
+                  type="button"
+                  className={`${styles.outfit} ${selectedOutfit?.code === o.code ? styles.outfitSel : ''}`}
+                  onClick={() => setOutfitCode(o.code)}
+                >
+                  <img src={o.url} alt="" draggable={false} decoding="async" onError={() => markBroken(o.code)} />
+                </button>
+              </SwiperSlide>
+            ))}
+          </Swiper>
+        ) : (
+          /* Only once there IS a tab: before the catalogue arrives every tab is
+             empty, and "준비 중" would flash on a screen that is merely loading. */
+          categoryId && <p className={styles.emptyCat}>{pick(NO_OUTFITS, lang)}</p>
+        )}
 
         {/* Capture buttons */}
         <div className={styles.captureRow}>
-          <button type="button" className={styles.captureBtn} onClick={() => onCapture('solo', outfitKey)}>
+          <button type="button" className={styles.captureBtn} onClick={() => startCapture('solo')}>
             <Camera className={styles.captureIcon} strokeWidth={2} />
             {t('Photo_SelectAlone', lang)}
           </button>
-          <button type="button" className={styles.captureBtn} onClick={() => onCapture('withInsa', outfitKey)}>
+          <button type="button" className={styles.captureBtn} onClick={() => startCapture('withInsa')}>
             <Camera className={styles.captureIcon} strokeWidth={2} />
             {t('Photo_SelectTogether', lang)}
           </button>
@@ -346,14 +452,14 @@ export function HanbokSelect({ onCapture, onHome, countdownActive = false }: Han
               </div>
             </div>
             <button type="button" className={styles.privacy} onClick={() => setPrivacyOpen(true)}>
-              {pick(LABELS.privacy, lang)}
+              {t(PRIVACY_LINK_KEY, lang)}
             </button>
           </div>
           <button type="button" className={styles.hanbokInfo} onClick={() => setInfoOpen(true)}>
             <div className={styles.hanbokInfoCircle}>
               <img src={hanbokInfo} alt="" draggable={false} />
             </div>
-            <span className={styles.hanbokInfoLabel}>{pick(LABELS.hanbokInfo, lang)}</span>
+            <span className={styles.hanbokInfoLabel}>{t(HANBOK_INFO_KEY, lang)}</span>
           </button>
         </div>
       </div>

@@ -2,11 +2,12 @@ import type { SupportedLanguage } from '@shared/types/kiosk';
 import type { KioskController } from '@renderer/hooks/useKioskController';
 import { useLanguageStore } from '@renderer/store/languageStore';
 import { hwaseongIconUrl } from '@renderer/assets/icons/hwaseong';
-import { useRotatingBanner } from '@renderer/hooks/useRotatingBanner';
 import { trackEvent } from '@renderer/lib/analytics';
 import { useLang } from '@renderer/lib/i18n';
 import { t } from '@renderer/lib/loc';
 import { HwaseongHeader } from './HwaseongHeader';
+import { HwaseongBanner } from './HwaseongBanner';
+import { HwaseongLeftNav } from './HwaseongLeftNav';
 import styles from './HwaseongLanguage.module.css';
 
 /** Strip a leading "* " marker the sheet prefixes some labels with. */
@@ -54,7 +55,6 @@ function CheckOff(): JSX.Element {
 
 // ── Main component ─────────────────────────────────────
 export function HwaseongLanguage({ controller }: Props): JSX.Element {
-  const banner = useRotatingBanner(hwaseongIconUrl('fg-banner'));
   const current    = useLanguageStore((s) => s.currentLanguage);
   const available  = useLanguageStore((s) => s.availableLanguages);
   const setLanguage = useLanguageStore((s) => s.setLanguage);
@@ -131,25 +131,9 @@ export function HwaseongLanguage({ controller }: Props): JSX.Element {
       </div>
 
       {/* ── Left nav (single Figma render) ──────────────── */}
-      <div className={styles.leftNav}>
-        {hwaseongIconUrl('fg-leftnav') && (
-          <img src={hwaseongIconUrl('fg-leftnav')} alt="" className={styles.leftNavImg} draggable={false} />
-        )}
-        <button type="button" className={styles.leftNavZoneHome} onClick={() => controller.navigate('home')} aria-label="홈" />
-        <button type="button" className={styles.leftNavZoneBack} onClick={() => controller.navigate('home')} aria-label="뒤로" />
-      </div>
+      <HwaseongLeftNav onHome={() => controller.navigate('home', 'Back')} />
 
-      {/* ── Bottom banner ─────────────────────────────── */}
-      <div className={styles.bottomBanner}>
-        {banner && (
-          <img
-            src={banner}
-            alt=""
-            className={styles.bottomBannerImg}
-            draggable={false}
-          />
-        )}
-      </div>
+      <HwaseongBanner onClick={() => controller.startPhoto()} />
     </div>
   );
 }

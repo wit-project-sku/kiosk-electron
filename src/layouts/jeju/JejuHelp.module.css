@@ -1,0 +1,245 @@
+/*
+ * 도와줘 '하영' — Figma node 6393:59030 (제주>도와줘 하영-01=공항), the
+ * 2026-08-24 redesign of 6219:98767. The 상세 behind a pin is 6219:99127 —
+ * `R>검색상세-사진1개` at y863, which JejuDetail already produces for `from:
+ * 'help'`.
+ *
+ * Three stacked pickers over one map — every band moved:
+ *   700   terminal pills 1193×170 at x483.5 — two 565×170, 63 apart (was two
+ *         580s 200 apart at x400; it is now the same two-pill component the
+ *         events tabs use)
+ *   940   floor row (was 920 — JejuSubTabRow's shared band, overridden here)
+ *   1172  category chips 1820×375 at x170 — 5 × 340×170 per row, 30/35 gaps
+ *   1697  map 1820×1383 at x170
+ *
+ * The category chips are the frame's own `R>상단 카테고리-5개*2`, shared with
+ * 지역화폐's tabs, so their look lives in JejuPill.module.css and only the widths
+ * are set here. The TERMINAL pills are a different component and take their own
+ * picked style below.
+ */
+.pill {
+  composes: pill from './JejuPill.module.css';
+}
+
+.pillActive {
+  composes: pillActive from './JejuPill.module.css';
+}
+
+/* ── Terminal (6412:75786) ──
+   The two-pill `R>컴포넌트=코스추천-카테고리`, centred: 2 × 565 + 63 = 1193, so
+   left = (2160 − 1193) / 2 = 483.5. */
+.terminals {
+  position: absolute;
+  left: 483.5px;
+  top: 700px;
+  width: 1193px;
+  height: 170px;
+  display: flex;
+  align-items: center;
+  gap: 63px;
+}
+
+.terminals .pill {
+  width: 565px;
+}
+
+/* Picked terminal: the solid brand plate with white Bold type — NOT the pale
+   #ffeac7 plate the category chips below keep. The two rows are different Figma
+   components and the redesign moved only this one. */
+.terminals .pillActive {
+  border: none;
+  background: var(--kiosk-primary, #ff7f0f);
+  color: #fff;
+}
+
+/* ── Floors (6393:59048) ──
+   JejuSubTabRow puts its band at y920 for 안녕 '하영'; this page draws it at 940.
+
+   Doubled selector on purpose: `.row` in JejuSubTabRow.module.css also sets
+   `top`, and at equal specificity the winner is whichever module the bundler
+   emits last — which is not something this page should depend on. `.floors
+   .floors` is (0,2,0) and beats it deterministically, without !important. */
+.floors.floors {
+  top: 940px;
+}
+
+/* ── Categories (6219:98787) ──
+   Two rows of five, each `justify-between` over 1820 — which is the frame's own
+   30px gap (1820 − 5 × 340 = 120, over 4 gaps). */
+.cats {
+  position: absolute;
+  left: 170px;
+  top: 1172px;
+  width: 1820px;
+  display: flex;
+  flex-direction: column;
+  gap: 35px;
+}
+
+.catRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.cats .pill {
+  width: 340px;
+}
+
+/* ── Map (6219:98788) ──
+   The frame's export is only 799×607 for this 1820×1383 slot, so it is drawn
+   at ~2.3× and will look soft until a higher-resolution map is supplied. */
+.map {
+  position: absolute;
+  left: 170px;
+  top: 1697px;
+  width: 1820px;
+  height: 1383px;
+  overflow: hidden;
+}
+
+.map img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+/* ── 현위치 (6219:98771) ──
+   Where the kiosk itself stands, drawn ON the map: a 41×61 pin with the label
+   centred under it. Positioned relative to `.map`, not the artboard, so the
+   `here` coordinates a map declares are map-local and stay right whatever y the
+   map slot moves to.
+
+   Safe to place by percentage-free absolute px: the 799×607 source and the
+   1820×1383 slot are the same 1.316 aspect, so `object-fit: cover` scales
+   without cropping and the pin lands where Figma puts it. */
+/* ── Facility hotspots ──
+   The dots and their captions are painted into the map PNG, so these add no
+   art: a transparent 130px target centred on the drawn dot (which is only ~32px
+   across at this scale — too small to hit reliably on a 2160-wide kiosk). The
+   :active halo is the only thing that ever shows, so a press is acknowledged
+   before the 상세 screen swaps in. */
+.pin {
+  position: absolute;
+  width: 130px;
+  height: 130px;
+  margin: -65px 0 0 -65px;
+  padding: 0;
+  border: none;
+  border-radius: 50%;
+  background: transparent;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.pin:active {
+  background: rgba(255, 127, 15, 0.28);
+}
+
+/*
+ * The orange dot for the selected chip, drawn OVER the plan's black one.
+ *
+ * The plan paints its dots into the PNG, so there is nothing to recolour — this
+ * covers one instead. 34px because the source dots measure 13–14px across in
+ * the 799×607 export and the map is drawn at 1820 wide (×2.2778 ≈ 31px), plus a
+ * ~1.5px margin each side so no dark anti-aliased rim shows around the orange.
+ * Keep it under ~40px: the plan's captions sit only ~23px below a dot's centre.
+ */
+.pinDot {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background: var(--kiosk-primary, #ff7f0f);
+  pointer-events: none;
+}
+
+/* The box IS the 41×61 pin, anchored at its TIP (bottom centre) — that is the
+   point on the map that means "you are here", so a map's `here` is a map
+   position rather than the corner of a graphic. The label hangs out of flow
+   beneath it so a long translation cannot move the pin. */
+.here {
+  position: absolute;
+  width: 41px;
+  height: 61px;
+  transform: translate(-50%, -100%);
+  pointer-events: none;
+}
+
+.hereIcon {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.hereLabel {
+  position: absolute;
+  top: calc(100% + 5px);
+  left: 50%;
+  transform: translateX(-50%);
+  margin: 0;
+  /* Figma's own red, not the kiosk orange: the marker has to read against a map
+     whose pins and route line are already coloured. */
+  color: #f00;
+  font-size: 30px;
+  font-weight: 600;
+  line-height: 1.35;
+  text-align: center;
+  white-space: nowrap;
+}
+
+/* Only 국제선 / 1F / 화장실 is drawn; every other combination lands here. */
+.empty {
+  position: absolute;
+  left: 170px;
+  top: 1697px;
+  width: 1820px;
+  margin: 0;
+  padding-top: 600px;
+  font-size: 60px;
+  font-weight: 500;
+  line-height: 1.3;
+  color: #909090;
+  text-align: center;
+}
+
+
+/* ────────────────────────────────────────────────────────────────────────────
+ * LOW-REACH (♿) — Figma 6422:44067.
+ *
+ * The page turns over: the map rises to the top of the body and all THREE
+ * pickers go to the foot, in the order they are used —
+ *
+ *   1379  map (was 1697)
+ *   2912  terminal pills (was 700)
+ *   3152  floor row (was 940)
+ *   3384  category chips (was 1172)
+ *
+ * This page carries no banner normally, so it asks the frame for one with
+ * `lowReachBanner`; the frame then draws it at y0 and moves the header down as
+ * usual. Figma puts the header on 577 here against the 573 it states for
+ * 언어선택 — the same 4px class of hand-nudge already normalised in
+ * JejuPageFrame.module.css, so the shared 573 stands.
+ * ──────────────────────────────────────────────────────────────────────────── */
+.mapLow,
+.emptyLow {
+  top: 1379px;
+}
+
+.terminalsLow {
+  top: 2912px;
+}
+
+/* (0,3,0): must beat BOTH JejuSubTabRow's `.row` and this file's own
+   `.floors.floors` (0,2,0), whichever order the bundler emits them in. */
+.floors.floorsLow.floorsLow {
+  top: 3152px;
+}
+
+.catsLow {
+  top: 3384px;
+}

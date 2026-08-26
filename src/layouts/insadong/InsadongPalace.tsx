@@ -2,16 +2,15 @@ import { QRCodeSVG } from 'qrcode.react';
 import type { KioskController } from '@renderer/hooks/useKioskController';
 import { iconUrl } from '@renderer/assets/icons/insadong';
 import { useLang } from '@renderer/lib/i18n';
+import { palaceCategory } from '@renderer/lib/palace';
 import { useDetailStore } from '@renderer/store/detailStore';
 import { PALACES } from '@renderer/data/palaces.generated';
 import { pickText } from '@renderer/data/types';
 import { PALACE_PHOTOS } from '@renderer/assets/photos/insadong/palace/halls';
 import storePhoto from '@renderer/assets/photos/insadong/palace/store.png';
 import { InsadongHeader } from './InsadongHeader';
+import { InsadongLeftNav } from './InsadongLeftNav';
 import styles from './InsadongPalace.module.css';
-
-/** "고궁" category chip label per language. */
-const PALACE_CAT = { ko: '고궁', en: 'Palace', ja: '古宮', zh: '古宫' };
 
 interface InsadongPalaceProps {
   controller: KioskController;
@@ -23,7 +22,7 @@ export function InsadongPalace({ controller }: InsadongPalaceProps): JSX.Element
   const lang = useLang();
   const goHome = (): void => controller.navigate('home', 'Back');
   const setDetail = useDetailStore((s) => s.setItem);
-  const cat = PALACE_CAT[lang as 'ko' | 'en' | 'ja' | 'zh'] ?? PALACE_CAT.ko;
+  const cat = palaceCategory(lang);
 
   const openDetail = (i: number): void => {
     const p = PALACES[i]!;
@@ -86,14 +85,7 @@ export function InsadongPalace({ controller }: InsadongPalaceProps): JSX.Element
         ))}
       </div>
 
-      <div className={styles.leftNav}>
-        <button type="button" className={styles.leftNavBtn} onClick={goHome} aria-label="홈으로">
-          {iconUrl('home-btn') && <img src={iconUrl('home-btn')} alt="" draggable={false} />}
-        </button>
-        <button type="button" className={styles.leftNavBtn} onClick={goHome} aria-label="뒤로">
-          {iconUrl('back-arrow') && <img src={iconUrl('back-arrow')} alt="" draggable={false} />}
-        </button>
-      </div>
+      <InsadongLeftNav onHome={goHome} />
 
     </>
   );

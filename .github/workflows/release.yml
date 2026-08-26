@@ -67,7 +67,36 @@ jobs:
         run: |
           BASE=$(node -p "require('./package.json').version")
           if [ "${{ inputs.prerelease }}" = "true" ]; then
-            FULL="${BASE}-beta.${{ github.run_number }}"
+            # A beta MUST outrank the newest stable release, so it is a prerelease
+            # of the next MINOR: 5.0.18 stable -> 5.1.0-beta.N.
+            #
+            # The obvious `${BASE}-beta.N` is broken in BOTH directions, because
+            # `5.0.18-beta.10` is semver-LOWER than `5.0.18`:
+            #  1. GitHub's release feed is ordered by version, so the stable
+            #     release sits ABOVE every beta. electron-updater's GitHub
+            #     provider walks that feed and takes the FIRST entry whose tag is
+            #     not another channel's prerelease — a STABLE tag passes that
+            #     test — so a beta kiosk resolves the stable tag, 404s on
+            #     `beta.yml` there, silently falls back to `latest.yml`, and
+            #     installs PRODUCTION. Verified live: v5.0.18 is the first feed
+            #     entry, ahead of v5.0.18-beta.10.
+            #  2. Even reaching a beta, `5.0.18 > 5.0.18-beta.N` makes moving to
+            #     production a legitimate "upgrade" no flag can refuse.
+            # Being a MINOR ahead puts the beta first in the feed and above the
+            # stable in semver, which is what keeps a beta kiosk on beta. A whole
+            # minor (not a patch) because production cuts releases by bumping the
+            # patch — 5.0.19 would collide with a 5.0.19-beta.N lane on the very
+            # next production release and hand every test kiosk to production again.
+            STABLE=$(gh release view --json tagName -q .tagName 2>/dev/null || echo "")
+            FULL=$(node -e '
+              const parse = (v) => (v || "0.0.0").replace(/^v/, "").split("-")[0].split(".").map(Number);
+              const pkg = parse(process.argv[1]);
+              const stable = parse(process.argv[2]);
+              const cmp = (a, b) => a[0] - b[0] || a[1] - b[1] || a[2] - b[2];
+              const [major, minor] = cmp(pkg, stable) >= 0 ? pkg : stable;
+              console.log(`${major}.${minor + 1}.0-beta.${process.argv[3]}`);
+            ' "$BASE" "$STABLE" "${{ github.run_number }}")
+            echo "Beta version $FULL (package.json $BASE, newest stable release ${STABLE:-none})."
             npm version "$FULL" --no-git-tag-version --allow-same-version
             echo "skip=false" >> "$GITHUB_OUTPUT"
           else

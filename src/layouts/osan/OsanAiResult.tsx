@@ -5,7 +5,8 @@ import { useAiStore } from '@renderer/store/aiStore';
 import { useShopStore } from '@renderer/store/shopStore';
 import { useDetailStore } from '@renderer/store/detailStore';
 import type { Lang } from '@renderer/lib/i18n';
-import { pick, useLang } from '@renderer/lib/i18n';
+import { useLang } from '@renderer/lib/i18n';
+import { t, tPlain } from '@renderer/lib/loc';
 import type { Shop } from '@shared/types/shop';
 import {
   shopAddress,
@@ -19,23 +20,17 @@ import {
 import { OsanHeader } from './OsanHeader';
 import { OsanBanner } from './OsanBanner';
 import { interestColor } from './interestColors';
+import { OsanLeftNav } from './OsanLeftNav';
 import styles from './OsanAiResult.module.css';
 
-const HEADING = {
-  ko: '맞춤 코스가 준비되었어요!',
-  en: 'Your custom course is ready!',
-  ja: 'おすすめコースが完成しました！',
-  zh: '为您准备好了专属路线！',
-};
-const HEADING_SUB = {
-  ko: '인기 장소, 숨은 명소, 균형 잡힌 코스 중에서 선택해 오색시장을 즐겨보세요.',
-  en: 'Pick from popular spots, hidden gems, and balanced courses to enjoy Osaek Market.',
-  ja: '人気スポット・穴場・バランス型コースから選んでオセク市場を楽しんでください。',
-  zh: '从热门景点、隐藏好去处和均衡路线中选择，尽情游览五色市场。',
-};
+/** Course-picker heading + subheading — Localization rows, so a copy edit needs
+ *  no code change and all eight languages come from the sheet. */
+const HEADING_KEY = 'AI_CourseContent_1';
+const HEADING_SUB_KEY = 'AI_CourseContent_2';
 
 const FALLBACK_INTERESTS = ['전시관', '한식', '카페'];
-const COURSE_NAMES = ['A코스', 'B코스', 'C코스'] as const;
+/** Course tab names — Localization rows, so a copy edit needs no code change. */
+const COURSE_KEYS = ['ACourse', 'BCourse', 'CCourse'] as const;
 
 const catMatches = (shop: Shop, cat: string): boolean =>
   stripPrefix(shop.secondCategoryKr ?? '') === cat || stripPrefix(shop.aiCategoryKr ?? '') === cat;
@@ -56,8 +51,8 @@ interface Course {
 
 function buildCourses(interests: string[], shops: Shop[], lang: Lang, noImage: string): Course[] {
   const cats = interests.length ? interests.slice(0, 3) : FALLBACK_INTERESTS;
-  return COURSE_NAMES.map((name, ci) => ({
-    name,
+  return COURSE_KEYS.map((key, ci) => ({
+    name: t(key, lang),
     spots: cats.map((cat) => {
       const matches = shops.filter((s) => catMatches(s, cat));
       const shop = matches.length ? matches[ci % matches.length] : undefined;
@@ -128,7 +123,7 @@ export function OsanAiResult({ controller }: OsanAiResultProps): JSX.Element {
   };
 
   // Folder-cap geometry (Insadong-style selected tab): the cap rises CAP_PAD
-  // around the selected tab and bridges down into the #D3DFEC panel below.
+  // around the selected tab and bridges down into the var(--kiosk-secondary) panel below.
   const TAB_W = 565;
   const ROW_W = 1820;
   const CAP_PAD = 40;
@@ -184,7 +179,7 @@ export function OsanAiResult({ controller }: OsanAiResultProps): JSX.Element {
           </div>
         </div>
       ) : (
-        /* ── Selected course: navy folder — a #D3DFEC cap behind the selected tab
+        /* ── Selected course: navy folder — a var(--kiosk-secondary) cap behind the selected tab
            bridges into the panel below (same folder style as Insadong). ── */
         <div className={styles.contentSelected}>
           <div className={styles.folder}>
@@ -201,10 +196,11 @@ export function OsanAiResult({ controller }: OsanAiResultProps): JSX.Element {
             >
               <div className={styles.heading}>
                 <p className={styles.headingTitle}>
+                  {/* The panel draws its own bullet, so use the marker-free value. */}
                   <span className={styles.headingDot} />
-                  {pick(HEADING, lang)}
+                  {tPlain(HEADING_KEY, lang)}
                 </p>
-                <p className={styles.headingSub}>{pick(HEADING_SUB, lang)}</p>
+                <p className={styles.headingSub}>{tPlain(HEADING_SUB_KEY, lang)}</p>
               </div>
               <div className={styles.list}>
                 {courses[selected]!.spots.map((spot, i, arr) => (
@@ -236,14 +232,7 @@ export function OsanAiResult({ controller }: OsanAiResultProps): JSX.Element {
         </div>
       )}
 
-      <div className={styles.leftNav}>
-        <button type="button" className={styles.leftNavBtn} onClick={goHome} aria-label="홈으로">
-          {osanIconUrl('home-btn') && <img src={osanIconUrl('home-btn')} alt="" draggable={false} />}
-        </button>
-        <button type="button" className={styles.leftNavBtn} onClick={goBack} aria-label="뒤로">
-          {osanIconUrl('back-arrow') && <img src={osanIconUrl('back-arrow')} alt="" draggable={false} />}
-        </button>
-      </div>
+      <OsanLeftNav onHome={goHome} onBack={goBack} />
 
       <OsanBanner onClick={() => controller.startPhoto()} />
     </>

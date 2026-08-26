@@ -26,6 +26,28 @@ export type CustomerDisplayMode =
   | 'video'
   | 'slideshow';
 
+/**
+ * 제주 (W006) 손동작 게이트 — who is driving the capture countdown.
+ *
+ * Every other location starts counting the instant the visitor presses the
+ * capture button, which is the wrong moment: they still have to walk back far
+ * enough to fit in frame, and the count is already running while they do it.
+ * 제주 hands the trigger to the visitor instead — the camera screen watches for
+ * an open palm to start and a closed fist to hold — so the 10 seconds are 10
+ * seconds of posing rather than 10 seconds of walking.
+ *
+ *  'off'     — no gate; the countdown was started directly (all non-제주 flows).
+ *  'waiting' — armed, camera live, nothing counting yet. Show the gesture guide.
+ *  'running' — counting down.
+ *  'held'    — a fist paused it; `countdown` keeps the value it stopped at.
+ *
+ * The gate lives in main (next to the countdown timer it controls) rather than
+ * on Monitor 2, because both screens have to agree on it: Monitor 2 reads it to
+ * decide what to draw, and the touch screen's own capture popup follows the same
+ * workflow state.
+ */
+export type PhotoGestureGate = 'off' | 'waiting' | 'running' | 'held';
+
 export type DriveSyncState = 'pending' | 'synced' | 'failed';
 
 export interface PhotoSession {
@@ -57,12 +79,23 @@ export interface PhotoWorkflowState {
   sessionId: string | null;
   clothingKey: string | null;
   styleKey: string | null;
+  /**
+   * 배경 테마 chosen in step ② of the 제주 outfit screen, or null when the visitor
+   * picked none (the 제주 default — nothing is pre-selected) or the kiosk has no
+   * background set assigned at all (every other location today). Lives here
+   * beside clothingKey/styleKey because Monitor 2 fires the capture and reads
+   * all three off the same workflow broadcast. Sent onward as the AR
+   * `background_to_use`; null means "skip the CB template set".
+   */
+  backgroundId: number | null;
   resultImagePath: string | null;
   resultFileName: string | null;
   /** Public phone-openable URL of the result, when the AI returns one. */
   resultUrl: string | null;
   selectedCameraDeviceId: string | null;
   countdown: number | null;
+  /** 제주 손동작 게이트. 'off' everywhere else — see PhotoGestureGate. */
+  gestureGate: PhotoGestureGate;
   statusMessage: string | null;
   errorMessage: string | null;
 }

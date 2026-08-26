@@ -1,0 +1,624 @@
+/*
+ * 제주공항 (W006) 환율 — Figma 제주>환율-나라선택01: 6412:76217 (calculator),
+ * 6412:76438 (keyboard open), 6412:76521 (top-field dropdown), 6412:76726
+ * (bottom-field dropdown) and 6219:99645 (실시간 환율 tab) — the 2026-08-24
+ * redraw of the 6219:99587 family.
+ *
+ * Inside KioskArtboard 1 CSS px = 1 Figma px (2160×3840), so every value here is
+ * the exact number read out of the design. Chrome (background, header, left nav,
+ * banner) comes from JejuPageFrame.
+ *
+ * y map:
+ *    0…700   JejuHeader
+ *  700…870   환율계산기 / 실시간 환율 tabs
+ *  987…1199  기준 환율 pill          ┐
+ * 1244…1651  금액 field              │ calculator tab
+ * 1743…1905  swap button             │
+ * 1855…2267  환전 field              ┘
+ * 2326…3283  numeric keypad overlay  (only while the amount field is focused)
+ *  970…3267  실시간 환율 list         (live tab)
+ */
+
+/* ── Tabs ───────────────────────────────────────────────────────────── */
+/* The shared two-pill `R>컴포넌트=코스추천-카테고리` (x483.5, 2 × 565 + 63 gap
+   = 1193) — the same control, at the same coordinates, as the 지역행사 region
+   tabs and 도와줘 '하영's terminal pills. It replaced this page's own 580-wide
+   outlined pair at x400. */
+.tabs {
+  position: absolute;
+  left: 483.5px;
+  top: 700px;
+  width: 1193px;
+  height: 170px;
+  display: flex;
+  align-items: center;
+  gap: 63px;
+}
+
+/* flex:1 so the row always fills the column — the two tabs land on Figma's
+   exact 565. Borderless: the idle pill is a plain white plate (`none`, not
+   omitted — these are <button>s and would otherwise take Chrome's UA bevel). */
+.tab {
+  flex: 1 1 0;
+  height: 170px;
+  min-width: 0;
+  box-sizing: border-box;
+  padding: 0;
+  border: none;
+  border-radius: 42.9px;
+  background: #fff;
+  font-size: 50px;
+  font-weight: 500;
+  line-height: 1;
+  color: #999; /* 글씨-main */
+  text-align: center;
+  white-space: nowrap;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Picked: the solid brand plate with white Bold type. */
+.tabActive {
+  background: var(--kiosk-primary, #ff7f0f);
+  font-weight: 700;
+  color: #fff;
+}
+
+/* ── 기준 환율 pill ─────────────────────────────────────────────────── */
+/*
+ * Figma fixes this at 794×212 (top 987 — 76726 alone says 985, 2px slop). The
+ * width is NORMALISED to a minimum plus padding: the drawn "1 JPY = 1,460 KRW"
+ * is one sample pair, and a real one can be much longer ("1 KRW = 0.00068
+ * USD"). Height, centre and colours are exact. The 5px orange outline is gone
+ * — the redraw leaves the bare [제주] main 02 plate.
+ */
+.basePill {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  top: 987px;
+  min-width: 794px;
+  height: 212px;
+  box-sizing: border-box;
+  padding: 0 60px;
+  border: none;
+  border-radius: 45px;
+  background: #ffeac7;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  color: var(--kiosk-primary, #ff7f0f);
+  white-space: nowrap;
+}
+
+/* Figma sets both lines on a 100px leading (2 × 100 centred in the 212 box),
+   with the label one weight down from the rate. */
+.basePillLabel {
+  font-size: 50px;
+  font-weight: 600;
+  line-height: 100px;
+}
+
+.basePillRate {
+  font-size: 60px;
+  font-weight: 700;
+  line-height: 100px;
+}
+
+/* ── Amount / result fields ─────────────────────────────────────────── */
+.fieldLabel {
+  position: absolute;
+  left: 280px;
+  width: 512px;
+  margin: 0;
+  font-size: 60px;
+  font-weight: 500;
+  line-height: 1;
+  color: #000;
+  white-space: nowrap;
+}
+
+.labelAmount {
+  top: calc(1244px + var(--jeju-exch-shift, 0px));
+}
+
+.labelResult {
+  top: calc(1855px + var(--jeju-exch-shift, 0px));
+}
+
+/* Full pill — Figma still writes radius 159 on the now-270 rect, which clamps
+   to half the height anyway. (The fields were 318 tall before the redraw.) */
+.field {
+  position: absolute;
+  left: 172px;
+  width: 1820px;
+  height: 270px;
+  padding: 0;
+  border: none;
+  border-radius: 135px;
+  background: #fff;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.fieldAmount {
+  top: calc(1381px + var(--jeju-exch-shift, 0px));
+}
+
+.fieldResult {
+  top: calc(1997px + var(--jeju-exch-shift, 0px));
+  cursor: default;
+}
+
+/* Positioned against the artboard, not the field, so the numbers sit on the
+   fields' vertical centres (Figma boxes them 1464/104 and 2076/113 — both
+   centre on the field's own 1516/2132) regardless of the field's padding. */
+.value {
+  position: absolute;
+  left: 307px;
+  width: 1050px;
+  margin: 0;
+  font-size: 90px;
+  font-weight: 500;
+  line-height: 1;
+  color: #000;
+  text-align: left;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  pointer-events: none;
+}
+
+.valueAmount {
+  top: calc(1471px + var(--jeju-exch-shift, 0px)); /* centre 1516 − 45 */
+}
+
+.valueResult {
+  top: calc(2087px + var(--jeju-exch-shift, 0px)); /* centre 2132 − 45 */
+}
+
+/* The caret blinks only while the keypad is open, so it is obvious which field
+   the keys are typing into — the design has no other focus affordance. */
+.caretBar {
+  display: inline-block;
+  width: 6px;
+  height: 90px;
+  margin-left: 10px;
+  vertical-align: -12px;
+  background: var(--kiosk-primary, #ff7f0f);
+  animation: blink 1s steps(1, end) infinite;
+}
+
+@keyframes blink {
+  50% {
+    opacity: 0;
+  }
+}
+
+/* ── Currency picker button ─────────────────────────────────────────── */
+.ccyBtn {
+  position: absolute;
+  left: 1423px;
+  height: 170px;
+  padding: 0;
+  border: none;
+  background: none;
+  display: flex;
+  align-items: center;
+  gap: 42.9px;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.ccyAmount {
+  top: calc(1431px + var(--jeju-exch-shift, 0px));
+}
+
+.ccyResult {
+  top: calc(2047px + var(--jeju-exch-shift, 0px));
+}
+
+.ccyFlag {
+  width: 170px;
+  height: 170px;
+  border-radius: 50%;
+  object-fit: cover;
+  flex: 0 0 auto;
+}
+
+.ccyCode {
+  font-size: 60px;
+  font-weight: 500;
+  line-height: 1;
+  color: #333;
+  white-space: nowrap;
+}
+
+/* Figma draws "▼" as a text glyph, not an asset. */
+.caret {
+  position: absolute;
+  left: 1812px;
+  width: 57px;
+  margin: 0;
+  font-size: 68px;
+  font-weight: 400;
+  line-height: 1;
+  color: var(--kiosk-primary, #ff7f0f);
+  pointer-events: none;
+}
+
+.caretAmount {
+  top: calc(1475px + var(--jeju-exch-shift, 0px));
+}
+
+.caretResult {
+  top: calc(2091px + var(--jeju-exch-shift, 0px));
+}
+
+/* ── Swap ───────────────────────────────────────────────────────────── */
+.swap {
+  position: absolute;
+  left: 1028px;
+  top: calc(1743px + var(--jeju-exch-shift, 0px));
+  width: 162px;
+  height: 162px;
+  padding: 0;
+  border: none;
+  background: none;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.swapImg {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  pointer-events: none;
+}
+
+/* ── Currency dropdown ──────────────────────────────────────────────── */
+/*
+ * Anchored to the field it belongs to: left 1327, top = the field's own top.
+ * (The top-field frame draws its panel at 1378, 3px above the field's 1381,
+ * while the bottom-field frame puts it exactly on 1997 — the 3px is slop, so
+ * both anchor on the field.) Rows sit 92 in from the panel's left edge on a
+ * 233 pitch, first one 74 below the top — so the open panel's first row lands
+ * on the closed button it replaced. Panel look read out of the frame's own
+ * SVG export: white fill, 5px #FFEAC7 stroke, radius 160.
+ */
+.dropdown {
+  position: absolute;
+  left: 1327px;
+  width: 680px;
+  height: 1700px;
+  box-sizing: border-box;
+  /* 74/92 in Figma, less the 5px border — under border-box the border and the
+     padding both push the content in, so the raw values land the first row 5px
+     low and 5px right of the button it replaces. */
+  padding: 69px 0 52px 87px;
+  border: 5px solid #ffeac7;
+  border-radius: 160px;
+  background: #fff;
+  overflow-y: auto;
+  z-index: 3;
+  display: flex;
+  flex-direction: column;
+  gap: 63px; /* 233 pitch − 170 row */
+}
+
+.dropdownAmount {
+  top: calc(1381px + var(--jeju-exch-shift, 0px));
+}
+
+.dropdownResult {
+  top: calc(1997px + var(--jeju-exch-shift, 0px));
+}
+
+/* House scrollbar. Figma insets it 40px from the panel edge; a CSS scrollbar
+   always rides the padding-box edge, so it sits flush instead. NORMALISED. */
+.dropdown::-webkit-scrollbar {
+  width: 34.32px;
+}
+
+.dropdown::-webkit-scrollbar-thumb {
+  background: var(--kiosk-primary, #ff7f0f);
+  border-radius: 17.16px;
+}
+
+.dropdown::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.option {
+  position: relative;
+  flex: 0 0 170px;
+  width: 376px;
+  height: 170px;
+  padding: 0;
+  border: none;
+  background: none;
+  display: flex;
+  align-items: center;
+  gap: 42.9px;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* The ▼ the closed button wears follows the CURRENT currency into the open
+   panel — Figma draws it beside the first row (abs 1825/1496 = 406 right of
+   the row's own left edge), which is the selected one in every dropdown frame. */
+.optionCaret {
+  position: absolute;
+  left: 406px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 68px;
+  font-weight: 400;
+  line-height: 1;
+  color: var(--kiosk-primary, #ff7f0f);
+  pointer-events: none;
+}
+
+/* Closes an open dropdown or the keypad on any tap outside them. */
+.backdrop {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  padding: 0;
+  border: none;
+  background: none;
+  cursor: default;
+}
+
+/* ── Numeric keypad ─────────────────────────────────────────────────── */
+.keypad {
+  position: absolute;
+  left: 0;
+  top: 2326px;
+  width: 2160px;
+  height: 957px;
+  z-index: 3;
+}
+
+.keypadScrim {
+  position: absolute;
+  inset: 0;
+  background: #c5c5c1;
+  opacity: 0.7;
+}
+
+.keys {
+  position: absolute;
+  left: 155px;
+  top: 36px; /* 2362 − 2326 */
+  width: 1850px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 20px;
+}
+
+.keyRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+}
+
+/* Figma draws row 2 at 230 tall — the keys stay 200 and gain 15px of slack top
+   and bottom. Reproduced rather than evened out: it is what puts rows 3 and 4
+   on their drawn y. */
+.keyRowTall {
+  height: 230px;
+}
+
+/* Row 4 is 0 + backspace only, right-aligned inside the 1850 column. */
+.keyRowShort {
+  width: 1215px;
+}
+
+.key {
+  width: 580px;
+  height: 200px;
+  padding: 0;
+  border: none;
+  border-radius: 30px;
+  background: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 130px;
+  font-weight: 500;
+  line-height: 1;
+  color: #000;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.key:active {
+  background: #ffeac7;
+}
+
+.keyIcon {
+  width: 114.997px;
+  height: 82.906px;
+  object-fit: contain;
+  pointer-events: none;
+}
+
+/* ── 실시간 환율 list ───────────────────────────────────────────────── */
+/* Starts 270 below the tabs and runs to the banner. */
+.liveScroll {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 970px;
+  bottom: 573px;
+  overflow-x: hidden;
+  overflow-y: auto;
+}
+
+.liveList {
+  display: flex;
+  flex-direction: column;
+  gap: 40px; /* 290 pitch − 250 row */
+  padding: 0 170px 60px;
+}
+
+.liveRow {
+  flex: 0 0 250px;
+  height: 250px;
+  box-sizing: border-box;
+  padding: 40px 65px;
+  /* 2.145px #d9d9d9 hairline — NOT borderless. The frames keep this one: probed
+     on the 1:1 render of 6326:84606, the first row's top edge reads (217,217,217)
+     for ~2px before the white fill. It had been stripped under the general
+     "remove borders" pass; the design draws it, so it is back. */
+  border: 2.145px solid #d9d9d9;
+  border-radius: 214.499px;
+  background: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.liveLeft {
+  display: flex;
+  align-items: center;
+  gap: 42.9px;
+}
+
+.liveLabel {
+  font-size: 60px;
+  font-weight: 500;
+  line-height: 1;
+  color: #333;
+  white-space: nowrap;
+}
+
+.liveRate {
+  width: 354px;
+  font-size: 60px;
+  font-weight: 500;
+  line-height: 1;
+  color: #000;
+  text-align: right;
+  white-space: nowrap;
+}
+
+.liveScroll::-webkit-scrollbar {
+  width: 34.32px;
+}
+
+.liveScroll::-webkit-scrollbar-thumb {
+  background: var(--kiosk-primary, #ff7f0f);
+  border-radius: 17.16px;
+}
+
+.liveScroll::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+/* Shown when the Eximbank snapshot is missing (no API key, or offline before
+   the first successful sync) — a stated problem beats a screen of dashes. */
+.empty {
+  margin: 0;
+  padding: 200px 170px;
+  font-size: 55px;
+  font-weight: 500;
+  line-height: 1.4;
+  color: #909090;
+  text-align: center;
+}
+
+
+/* ────────────────────────────────────────────────────────────────────────────
+ * LOW-REACH (♿) — Figma 6326:84228 (calculator) · 6326:84288 (keypad open) ·
+ * 6326:84382 / 6326:84494 (currency dropdown, top and bottom field) ·
+ * 6326:84606 (실시간 환율).
+ *
+ * The 573 banner comes to the top with the header on y573 (the frame's
+ * .rootLowReach), the tab row drops to the foot, and the whole calculator
+ * block moves down as one. Every element of it — labels, fields, values,
+ * currency buttons, carets, the swap button and both dropdowns — is +590 in
+ * all four calculator frames, so the block rides ONE variable rather than
+ * thirteen re-measured constants. Verified against every element in both
+ * states, e.g. 금액 label 1199→1789, swap 1713→2303, 환전 field 1960→2550.
+ *
+ * With the keypad open the block rises 61px (shift 529) so the 환전 field's
+ * bottom edge lands exactly on the keypad's top: 1960+529+318 = 2807. That is
+ * the only reason the two states differ.
+ * ──────────────────────────────────────────────────────────────────────────── */
+.rootLow {
+  --jeju-exch-shift: 590px;
+}
+
+.rootLowKeypad {
+  --jeju-exch-shift: 529px;
+}
+
+/* Tabs to the foot. Doubled: `.tabs` above also sets `top`. */
+.tabsLow.tabsLow {
+  top: 3438px;
+}
+
+/* The 기준 환율 pill is the one element the +590 rule does NOT fit — Figma hand-
+   places it in each frame (1487 with the keypad closed, 1372 with it open,
+   against 1540/1479 the rule would give). Measured values rather than a rule
+   that is wrong in both states. */
+.basePillLow {
+  top: 1487px;
+}
+
+.basePillLowKeypad {
+  top: 1372px;
+}
+
+.keypadLow {
+  top: 2807px;
+}
+
+/* 실시간 환율 list: 970 → 1300, ending above the tab row instead of the banner. */
+.liveScrollLow {
+  top: 1300px;
+  bottom: 532px;
+}
+
+
+/* ── Low-reach type/box overrides ───────────────────────────────────────────
+ * The low-reach frames do NOT merely re-position the calculator: they draw a
+ * taller, rounder field and larger type, and they put a rule around the 기준
+ * 환율 pill. Verified by probing BOTH layouts at 1:1 —
+ *
+ *              standard (6412:76217)      low-reach (6326:84228)
+ *   field      y1381..1650  h270          y1895..2212  h318
+ *   pill edge  straight to #ffeac7        5px #ff7f0f, then #ffeac7
+ *
+ * so these belong to the variant, not to the shared rules. (The .liveRow
+ * hairline is the opposite case — both layouts have it, so it stays global.)
+ * ────────────────────────────────────────────────────────────────────────── */
+.rootLowAny .field {
+  height: 318px;
+  border-radius: 159px;
+}
+
+.rootLowAny .value {
+  font-size: 100px;
+}
+
+.rootLowAny .ccyCode {
+  font-size: 70px;
+}
+
+.rootLowAny .basePill {
+  border: 5px solid var(--kiosk-primary, #ff7f0f);
+}
+
+.rootLowAny .basePillLabel {
+  font-weight: 700;
+}
+
+.rootLowAny .basePillRate {
+  font-size: 70px;
+}

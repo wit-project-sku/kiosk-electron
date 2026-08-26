@@ -1,0 +1,150 @@
+/*
+ * Customer-display camera guide — full-screen camera feed under ONE overlay
+ * image (2026-08-24). Every location draws this screen.
+ *
+ * The overlay is the designer's own transparent export (repo root
+ * icons/"Group 1707482852 (1).png" → assets/icons/jeju/capture-guide.png with
+ * the countdown digits patched out — see .count). Its 2155×3739 canvas is
+ * stretched to the 2160×3840 artboard ("fully fit"), a 0.2%/2.7% stretch that
+ * is invisible at glass distance; every position below is the image coordinate
+ * mapped through that stretch (×1.00232 horizontally, ×1.02701 vertically).
+ *
+ * Layer order: feed → overlay → live numeral / badges. The overlay's header
+ * band is a baked rgba(112,117,129,.7) frost, so the feed dims through it and
+ * the white baked type stays readable; its body is fully transparent apart
+ * from the glowing pose figure.
+ */
+.root {
+  position: relative;
+  width: 100cqw;
+  height: 100cqh;
+  /* Behind everything until the camera delivers its first frame — dark, so the
+     overlay's white ink is readable from the very first paint. */
+  background: #4a4a4a;
+  overflow: hidden;
+  font-family: 'Noto Sans KR', sans-serif;
+}
+
+/* Unrotated camera (PHOTO_CAMERA_ROTATION 0/180): the frame fills the screen
+   directly. The mirror is screen-space — the camera faces the visitor, so
+   without it "raise your RIGHT hand" points them the wrong way. The rotation
+   half of the transform comes inline from the component, off the constant. */
+.feed {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/*
+ * Sideways-mounted camera (90/270): the element is sized SWAPPED — 3840 wide ×
+ * 2160 tall, centred — so that after the quarter turn it covers the 2160×3840
+ * screen edge to edge. A 16:9 sensor frame then fills the box exactly: the
+ * "9:16" portrait stream is the full sensor, no crop.
+ */
+.feedRotated {
+  inset: auto;
+  left: 50%;
+  top: 50%;
+  width: 3840px;
+  height: 2160px;
+}
+
+/* Stretched to fill — see the header note for the mapping. */
+.overlay {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
+/*
+ * The live countdown numeral, inside the overlay's baked quotes.
+ *
+ * The shipped overlay has the digit ink (image px 460…594 × 195…288) replaced
+ * with the header plate's own colour; this element re-fills that slot. The
+ * numbers, mapped image→screen: slot centre x 526 → 527, digit ink 195…288 →
+ * 200…296. 128px Bold Noto measures its "10" ink at 96×137 (canvas
+ * actualBoundingBox), matching the baked 96×134 to a pixel or two.
+ * Re-measure if the overlay is re-exported.
+ */
+.count {
+  position: absolute;
+  left: 527px;
+  top: 190px;
+  transform: translateX(-50%);
+  height: 116px;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'Gmarket Sans', 'Noto Sans KR', sans-serif;
+  font-size: 128px;
+  font-weight: 700;
+  line-height: 1;
+  color: #fff;
+  white-space: nowrap;
+  pointer-events: none;
+}
+
+/* 주먹으로 멈춘 상태 — only the live numeral can dim (the rest of the title is
+   baked into the overlay), and the paused badge below carries the message. */
+.countHeld {
+  opacity: 0.45;
+  transition: opacity 200ms ease;
+}
+
+/* Detection down — the overlay's baked chips promise gestures nothing is
+   watching for, so this states the truth just under the header band. */
+.autoStart {
+  position: absolute;
+  top: 960px;
+  left: 50%;
+  transform: translateX(-50%);
+  margin: 0;
+  padding: 32px 70px;
+  border-radius: 150px;
+  background: rgba(0, 0, 0, 0.72);
+  font-size: 60px;
+  font-weight: 700;
+  line-height: 1;
+  color: #fff;
+  white-space: nowrap;
+  pointer-events: none;
+}
+
+/* ── 일시정지 badge ──────────────────────────────────────────────────── */
+/* Near the top of the feed rather than centred on it: the middle of the frame
+   is where the visitor's own face is, and covering that is exactly what they
+   are standing there to look at. */
+.pausedBadge {
+  position: absolute;
+  top: 1030px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: 34px;
+  padding: 40px 82px;
+  border-radius: 150px;
+  background: rgba(0, 0, 0, 0.72);
+  font-size: 88px;
+  font-weight: 700;
+  line-height: 1;
+  color: #ffeac7;
+  white-space: nowrap;
+  pointer-events: none;
+}
+
+/* The ⏸ glyph is font-dependent (and absent from Noto Sans KR's Korean cut, so
+   it fell back to a tofu box). Two drawn bars can't miss. */
+.pausedBars {
+  flex: 0 0 auto;
+  width: 62px;
+  height: 84px;
+  background:
+    linear-gradient(#ffeac7, #ffeac7) left / 22px 100% no-repeat,
+    linear-gradient(#ffeac7, #ffeac7) right / 22px 100% no-repeat;
+}

@@ -52,10 +52,10 @@ const ITS_HIDE_CHROME_CSS = `
 
 const FOOD_TABS = ['한식', '한정식', '바베큐', '분식', '사찰음식'];
 
-/** Theme the shared AR 한복 photo workflow with the 화성휴게소 blue (#005ab4). */
+/** Theme the shared AR 한복 photo workflow with the 화성휴게소 blue (var(--kiosk-primary)). */
 const PHOTO_THEME = {
-  '--photo-accent': '#005ab4',
-  '--photo-accent-soft': '#daecfe',
+  '--photo-accent': 'var(--kiosk-primary)',
+  '--photo-accent-soft': 'var(--kiosk-secondary)',
   '--photo-tint': '#eef4fa',
   '--photo-accent-alt': '#616161',
 } as CSSProperties;

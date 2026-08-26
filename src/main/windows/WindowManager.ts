@@ -23,8 +23,11 @@ export class WindowManager {
   private unsubscribeContent: (() => void) | null = null;
   private unsubscribePhoto: (() => void) | null = null;
   private unsubscribeWeather: (() => void) | null = null;
+  private unsubscribeFlights: (() => void) | null = null;
+  private unsubscribeSailings: (() => void) | null = null;
   private unsubscribeExchange: (() => void) | null = null;
   private unsubscribeUpdater: (() => void) | null = null;
+  private unsubscribeFootfall: (() => void) | null = null;
 
   constructor(private readonly container: AppContainer) {}
 
@@ -34,6 +37,12 @@ export class WindowManager {
     this.mainWindow = createMainWindow(bootstrap);
     this.mainWindow.on('closed', () => {
       this.mainWindow = null;
+    });
+    this.mainWindow.webContents.once('did-finish-load', () => {
+      const flights = this.container.flights.getCurrent();
+      if (flights) this.broadcast(IpcEvents.FlightsChanged, flights);
+      const sailings = this.container.sailings.getCurrent();
+      if (sailings) this.broadcast(IpcEvents.SailingsChanged, sailings);
     });
 
     // Forward every display-state change to the customer window.
@@ -59,6 +68,14 @@ export class WindowManager {
       this.broadcast(IpcEvents.WeatherChanged, snapshot);
     });
 
+    this.unsubscribeFlights = this.container.flights.subscribe((snapshot) => {
+      this.broadcast(IpcEvents.FlightsChanged, snapshot);
+    });
+
+    this.unsubscribeSailings = this.container.sailings.subscribe((snapshot) => {
+      this.broadcast(IpcEvents.SailingsChanged, snapshot);
+    });
+
     // Forward FX refreshes so the 환율 screen updates without a reload.
     this.unsubscribeExchange = this.container.exchange.subscribe((snapshot) => {
       this.broadcast(IpcEvents.ExchangeChanged, snapshot);
@@ -67,6 +84,12 @@ export class WindowManager {
     // Forward auto-update status so the UI can show checking/downloading/etc.
     this.unsubscribeUpdater = this.container.updater.subscribe((status) => {
       this.broadcast(IpcEvents.UpdateStatusChanged, status);
+    });
+
+    // Forward the 유동인구 runtime so the counting loop in the touch window knows
+    // when to release the camera (a photo session) and when to take it back.
+    this.unsubscribeFootfall = this.container.footfall.subscribe((runtime) => {
+      this.broadcast(IpcEvents.FootfallRuntimeChanged, runtime);
     });
 
     // Re-evaluate monitors when the hardware setup changes.
@@ -198,10 +221,16 @@ export class WindowManager {
     this.unsubscribePhoto = null;
     this.unsubscribeWeather?.();
     this.unsubscribeWeather = null;
+    this.unsubscribeFlights?.();
+    this.unsubscribeFlights = null;
+    this.unsubscribeSailings?.();
+    this.unsubscribeSailings = null;
     this.unsubscribeExchange?.();
     this.unsubscribeExchange = null;
     this.unsubscribeUpdater?.();
     this.unsubscribeUpdater = null;
+    this.unsubscribeFootfall?.();
+    this.unsubscribeFootfall = null;
     screen.removeListener('display-added', this.handleDisplaysChanged);
     screen.removeListener('display-removed', this.handleDisplaysChanged);
   }

@@ -2,7 +2,6 @@ import { useMemo, useRef, useState } from 'react';
 import type { KioskController } from '@renderer/hooks/useKioskController';
 import type { KioskScreenId } from '@shared/types/kiosk';
 import { hwaseongIconUrl } from '@renderer/assets/icons/hwaseong';
-import { useRotatingBanner } from '@renderer/hooks/useRotatingBanner';
 import { useWeatherStore } from '@renderer/store/weatherStore';
 import { useWeatherVideo } from '@renderer/hooks/useWeatherVideo';
 import { useLanguageStore } from '@renderer/store/languageStore';
@@ -12,18 +11,14 @@ import { buttonText, pick } from '@renderer/lib/i18n';
 import { useApiTileRows, useHasDonationTile, type TileKey } from '@renderer/lib/buttonLayout';
 import { DONATION_COMING_SOON, withComingSoon } from '@shared/config/donation';
 import { t } from '@renderer/lib/loc';
+import { SearchIcon } from '@layouts/components/SearchIcon';
 import { FloatingKeyboard } from '../insadong/keyboard/FloatingKeyboard';
 
 /** Search-bar language button → the current language's display code. */
 const LANG_CODE: Record<string, string> = { ko: 'KR', en: 'EN', ja: 'JP', zh: 'CN', vi: 'VN', th: 'TH', ru: 'RU', id: 'ID' };
 
-/** Home notice card + search placeholder (localized; tiles use sheet keys). */
-const NOTICE = {
-  ko: "화성휴게소의 마스코트 'HUE'가 박술녀 한복을 입고 나와요. 여러분도 체험할 수 있도록 할게요. 한복을 입어보세요~",
-  en: "Hwaseong SA's mascot 'HUE' appears in Master Park Sul-nyeo's hanbok. Come and try one on yourself too~",
-  ja: '華城SAのマスコット「HUE」が朴術女(パク・スルニョ)の韓服を着て登場。皆さんもぜひ韓服を体験してみてください～',
-  zh: '华城休息站的吉祥物“HUE”身着朴术女韩服登场。大家也来体验穿韩服吧～',
-};
+/** Search placeholder. The notice card + 공/지 badge come from the sheet
+ *  (NoticeContent / Notice), like Insadong and Osan. */
 const SEARCH_PLACEHOLDER = {
   ko: '화성휴게소에 대해 검색해보세요!',
   en: 'Search about Hwaseong Service Area!',
@@ -36,6 +31,8 @@ const SEARCH_PLACEHOLDER = {
 };
 import { HangulComposer } from '../insadong/keyboard/hangul';
 import type { KeyAction } from '../insadong/keyboard/VirtualKeyboard';
+import { HwaseongBanner } from './HwaseongBanner';
+import { HwaseongLeftNav } from './HwaseongLeftNav';
 import styles from './HwaseongHome.module.css';
 
 interface Props {
@@ -51,6 +48,22 @@ function formatDate(d: Date): string {
   const day = String(d.getDate()).padStart(2, '0');
   const dow = DAY_NAMES[d.getDay()];
   return `${y}-${m}-${day}(${dow})`;
+}
+
+type NoticeRun = { t: string; b?: boolean };
+
+/** Same as Insadong/Osan: `\n` = line break, `<b>…</b>` = bold. */
+function parseNotice(text: string): NoticeRun[][] {
+  const lines: NoticeRun[][] = [[]];
+  let bold = false;
+  for (const tok of text.split(/(<b>|<\/b>|\n)/g)) {
+    if (tok === '') continue;
+    if (tok === '<b>') bold = true;
+    else if (tok === '</b>') bold = false;
+    else if (tok === '\n') lines.push([]);
+    else lines[lines.length - 1]!.push({ t: tok, b: bold });
+  }
+  return lines;
 }
 
 // ── Tile definitions ───────────────────────────────────────────────
@@ -174,11 +187,16 @@ function TileView({ tile, label, onClick, disabled }: { tile: HomeTile; label: s
 
 // ── Main component ──────────────────────────────────────────────────
 export function HwaseongHome({ controller }: Props): JSX.Element {
-  const banner = useRotatingBanner(hwaseongIconUrl('fg-banner'));
   const weather = useWeatherStore((s) => s.weather);
   const playWeatherVideo = useWeatherVideo();
   const today = useMemo(() => formatDate(new Date()), []);
   const lang = useLanguageStore((s) => s.currentLanguage);
+  // Sheet-driven (Localization_Hwaseong): NoticeContent = body, Notice = vertical badge.
+  const noticeLines = parseNotice(t('NoticeContent', lang));
+  const noticeBadge = t('Notice', lang)
+    .split('\n')
+    .map((s) => s.trim())
+    .filter(Boolean);
   const setStoreQuery = useSearchStore((s) => s.setQuery);
   // Tile label: curated override (proper ja/zh) → sheet value. Active tiles
   // strip a stale "(준비중)" suffix (e.g. a cached 전국시장(준비중)); only the
@@ -186,13 +204,16 @@ export function HwaseongHome({ controller }: Props): JSX.Element {
   const L = (key: string): string => buttonText(key, lang) ?? t(key, lang);
   const TILE = (key: string, keepPending = false): string =>
     keepPending ? L(key) : L(key).replace(/\s*\(준비중\)\s*/g, '').trim();
-  // 기부 shows a fixed 기부 base (like Insadong/Osan, which hardcode it in every
-  // language), plus a localized "(준비중)" suffix while soft-launching. It does NOT
-  // resolve via labelKey — MainButton_Donation has no vi/th/ru/id data. Every
-  // other tile resolves normally.
+  // 기부 resolves through labelKey like every other tile (MainButton_Donation now
+  // carries all 8 languages in every location's sheet); the localized "(준비중)"
+  // suffix is appended while soft-launching.
+  // TAX-FREE stays the hardcoded brand string in every language — same as Osan,
+  // which omits MainButton_TaxFree from TILE_LABEL_KEYS and uses tile.label.
   const tileLabel = (tile: HomeTile): string => {
-    if (tile.screen !== 'donation') return TILE(tile.labelKey, tile.disabled);
-    return DONATION_COMING_SOON ? withComingSoon('기부', lang) : '기부';
+    if (tile.screen === 'taxfree') return 'TAX-FREE';
+    const base = TILE(tile.labelKey, tile.disabled);
+    if (tile.screen !== 'donation') return base;
+    return DONATION_COMING_SOON ? withComingSoon(base, lang) : base;
   };
 
   // Inline search keyboard (no navigation on tap — keyboard shows in place).
@@ -255,51 +276,14 @@ export function HwaseongHome({ controller }: Props): JSX.Element {
         {/* Row 1: site name + date */}
         <div className={styles.headerTopRow}>
           <div className={styles.headerLeft}>
-            {/* Location pin icon (Figma 5431:19607) */}
-            <svg
-              className={styles.locationIcon}
-              xmlns="http://www.w3.org/2000/svg"
-              width="71"
-              height="90"
-              viewBox="0 0 71 90"
-              fill="none"
-            >
-              <g filter="url(#hw_loc_shadow)">
-                <path
-                  d="M35.5 82C35.5 82 67 53.4783 67 32.087C67 14.3658 52.897 0 35.5 0C18.103 0 4 14.3658 4 32.087C4 53.4783 35.5 82 35.5 82Z"
-                  fill="#005AB4"
-                />
-                <path
-                  d="M45.5638 30.7507C45.5638 36.4116 41.0586 41.0007 35.5013 41.0007C29.9439 41.0007 25.4388 36.4116 25.4388 30.7507C25.4388 25.0897 29.9439 20.5007 35.5013 20.5007C41.0586 20.5007 45.5638 25.0897 45.5638 30.7507Z"
-                  fill="white"
-                />
-              </g>
-              <defs>
-                <filter
-                  id="hw_loc_shadow"
-                  x="0"
-                  y="0"
-                  width="71"
-                  height="90"
-                  filterUnits="userSpaceOnUse"
-                  colorInterpolationFilters="sRGB"
-                >
-                  <feFlood floodOpacity="0" result="BackgroundImageFix" />
-                  <feColorMatrix
-                    in="SourceAlpha"
-                    type="matrix"
-                    values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 127 0"
-                    result="hardAlpha"
-                  />
-                  <feOffset dy="4" />
-                  <feGaussianBlur stdDeviation="2" />
-                  <feComposite in2="hardAlpha" operator="out" />
-                  <feColorMatrix type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0.25 0" />
-                  <feBlend mode="normal" in2="BackgroundImageFix" result="effect1_dropShadow" />
-                  <feBlend mode="normal" in="SourceGraphic" in2="effect1_dropShadow" result="shape" />
-                </filter>
-              </defs>
-            </svg>
+            {hwaseongIconUrl('location-pin') && (
+              <img
+                src={hwaseongIconUrl('location-pin')}
+                alt=""
+                className={styles.locationIcon}
+                draggable={false}
+              />
+            )}
             <span className={styles.siteName}>HWASEONG SA</span>
           </div>
           <span className={styles.headerDate}>{today}</span>
@@ -307,18 +291,25 @@ export function HwaseongHome({ controller }: Props): JSX.Element {
 
         {/* Row 2: notice + weather */}
         <div className={styles.headerBottomRow}>
-          {/* Notice card */}
-          <div className={styles.noticeCard}>
-            <div className={styles.noticeInner}>
-              <div className={styles.noticeLabel}>
-                <p style={{ margin: 0 }}>공</p>
-                <p style={{ margin: 0 }}>지</p>
-              </div>
-              <div className={styles.noticeDivider} />
-              <div className={styles.noticeText}>
-                <p style={{ margin: 0 }} className={styles.noticeMedium}>{pick(NOTICE, lang)}</p>
-              </div>
+          {/* Notice card — layout matches Insadong/Osan so EN INFO + long copy wrap inside. */}
+          <div className={styles.notice}>
+            <div className={styles.noticeBadge}>
+              {noticeBadge.map((ch, i) => (
+                <span key={i}>{ch}</span>
+              ))}
             </div>
+            <div className={styles.noticeDivider} />
+            <p className={styles.noticeText}>
+              {noticeLines.map((line, i) => (
+                <span key={i} className={styles.noticeLine}>
+                  {line.map((run, j) => (
+                    <span key={j} className={run.b ? styles.noticeBold : undefined}>
+                      {run.t}
+                    </span>
+                  ))}
+                </span>
+              ))}
+            </p>
           </div>
 
           {/* Weather card — tap plays today's condition clip on the customer
@@ -354,7 +345,7 @@ export function HwaseongHome({ controller }: Props): JSX.Element {
               onClick={() => controller.navigate('home')}
             />
           ) : (
-            <div style={{ width: 180, height: 180, borderRadius: '50%', background: '#005ab4', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}
+            <div style={{ width: 180, height: 180, borderRadius: '50%', background: 'var(--kiosk-primary)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}
               onClick={() => controller.navigate('home')}>
               <svg width="80" height="80" viewBox="0 0 24 24" fill="white"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
             </div>
@@ -369,9 +360,7 @@ export function HwaseongHome({ controller }: Props): JSX.Element {
               )}
               {searching && <span className={styles.searchCaret} />}
             </span>
-            <svg xmlns="http://www.w3.org/2000/svg" width="80" height="77" viewBox="0 0 80 77" fill="none" className={styles.searchIcon}>
-              <path d="M60.8219 58.9L75.5 72.5M70.7667 36.2333C70.7667 53.7592 55.9324 67.9667 37.6333 67.9667C19.3343 67.9667 4.5 53.7592 4.5 36.2333C4.5 18.7075 19.3343 4.5 37.6333 4.5C55.9324 4.5 70.7667 18.7075 70.7667 36.2333Z" stroke="#005AB4" strokeWidth="9" strokeLinecap="round"/>
-            </svg>
+            <SearchIcon className={styles.searchIcon} />
           </div>
 
           <div className={styles.langBtn} onClick={() => controller.navigate('language')}>
@@ -411,7 +400,7 @@ export function HwaseongHome({ controller }: Props): JSX.Element {
                 {/* Row 2 */}
                 <div className={styles.menuRow}>
                   {ROW2.map((tile) => (
-                    <SquareTile key={tile.screen + tile.label} tile={tile} label={TILE(tile.labelKey)} onClick={() => go(tile)} />
+                    <SquareTile key={tile.screen + tile.label} tile={tile} label={tileLabel(tile)} onClick={() => go(tile)} />
                   ))}
                 </div>
 
@@ -434,25 +423,7 @@ export function HwaseongHome({ controller }: Props): JSX.Element {
         </div>
       </div>
 
-      {/* ── Left nav (single Figma render: home + back) ── */}
-      <div className={styles.leftNav}>
-        {hwaseongIconUrl('fg-leftnav') && (
-          <img src={hwaseongIconUrl('fg-leftnav')} alt="" className={styles.leftNavImg} draggable={false} />
-        )}
-        {/* Transparent click zones over the two icons */}
-        <button
-          type="button"
-          className={styles.leftNavZoneHome}
-          onClick={() => controller.navigate('home')}
-          aria-label="홈"
-        />
-        <button
-          type="button"
-          className={styles.leftNavZoneBack}
-          onClick={() => controller.navigate('home')}
-          aria-label="뒤로"
-        />
-      </div>
+      <HwaseongLeftNav onHome={() => controller.navigate('home')} />
 
       {/* ── Bottom nav (single Figma render incl. labels) ── */}
       <div className={styles.bottomNav}>
@@ -473,24 +444,17 @@ export function HwaseongHome({ controller }: Props): JSX.Element {
           type="button"
           className={styles.bottomNavZoneRight}
           onClick={() => controller.navigate('restroom', '화장실')}
-          aria-label="화장실"
-        />
+          aria-label={t('MainButton_WC', lang)}
+        >
+          {/* Covers the Korean label baked into fg-bottomnav.png so language can switch. */}
+          <span className={styles.bottomNavWcLabel}>{t('MainButton_WC', lang)}</span>
+        </button>
       </div>
 
-      {/* ── Bottom banner (Figma render) ─────────────── */}
-      <div className={styles.bottomBanner}>
-        {banner && (
-          <img
-            src={banner}
-            alt=""
-            className={styles.bottomBannerImg}
-            draggable={false}
-          />
-        )}
-      </div>
+      <HwaseongBanner onClick={() => controller.startPhoto()} />
 
       {/* Inline search keyboard — shows in place, no navigation */}
-      <FloatingKeyboard open={searching} onKey={applyKey} onClose={() => setSearching(false)} lang={lang} lightBackspace />
+      <FloatingKeyboard open={searching} onKey={applyKey} onClose={() => setSearching(false)} lang={lang} />
     </div>
   );
 }

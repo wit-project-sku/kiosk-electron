@@ -1,0 +1,158 @@
+/*
+ * 제주국제여객터미널 (W007) home 운항 정보 board — same frame slot as
+ * JejuFlightBoard.module.css with six sailing columns and a compact
+ * 국제항 ㅣ 연안항 row above the panel.
+ */
+.ports {
+  top: 655px;
+  --jeju-subtab-idle: #1a1a1a;
+  --jeju-subtab-sep-before: 80px;
+  --jeju-subtab-sep-after: 80px;
+}
+
+/* Low-reach rides the 공지 panel's +843 (2026-08 revision — was +837), same as
+   the board and 더보기 below; see JejuFlightBoard.module.css. */
+.portsLow.portsLow {
+  top: 1498px;
+}
+
+.board {
+  position: absolute;
+  left: 155px;
+  top: 732px;
+  width: 1850px;
+  height: 206px;
+  border-radius: 45px;
+  background: rgba(255, 255, 255, 0.5);
+}
+
+.boardLow {
+  top: 1575px;
+}
+
+.title {
+  position: absolute;
+  left: 57px;
+  top: 76px;
+  width: 242px;
+  margin: 0;
+  font-size: 55px;
+  font-weight: 700;
+  line-height: 1;
+  color: #000;
+  white-space: nowrap;
+}
+
+.rule {
+  position: absolute;
+  left: 330px;
+  top: 97px;
+  width: 1462px;
+  height: 3px;
+  background: #c8bda9;
+}
+
+.head,
+.value {
+  position: absolute;
+  line-height: 1;
+  white-space: nowrap;
+  transform: translateX(-50%);
+}
+
+.head {
+  top: 38px;
+  font-size: 38px;
+  font-weight: 600;
+  color: #c8bda9;
+}
+
+.value {
+  top: 118px;
+  font-size: 45px;
+  font-weight: 400;
+  color: #333;
+}
+
+.valueStatus {
+  font-weight: 500;
+}
+
+.empty {
+  position: absolute;
+  top: 118px;
+  font-size: 40px;
+  font-weight: 400;
+  line-height: 1;
+  color: #999;
+  white-space: nowrap;
+}
+
+.valueRetimed {
+  top: 103px;
+}
+
+.timeWas {
+  position: absolute;
+  top: 159px;
+  font-size: 35px;
+  font-weight: 400;
+  line-height: 1;
+  color: #ff7f0f;
+  text-decoration: line-through;
+  text-decoration-skip-ink: none;
+  white-space: nowrap;
+  transform: translateX(-50%);
+}
+
+.note {
+  position: absolute;
+  top: 159px;
+  font-size: 35px;
+  font-weight: 400;
+  line-height: 1;
+  color: #ff7f0f;
+  white-space: nowrap;
+  transform: translateX(-50%);
+}
+
+.more {
+  position: absolute;
+  left: 895.03px;
+  top: 955px;
+  width: 476px;
+  height: 78px;
+  padding: 0;
+  border: 0;
+  background: none;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.moreLow {
+  top: 1798px;
+}
+
+.chevron {
+  position: absolute;
+  left: 20.4px;
+  top: 20.75px;
+  width: 0;
+  height: 0;
+  border-left: 35.074px solid transparent;
+  border-right: 35.074px solid transparent;
+  border-top: 38.25px solid var(--kiosk-primary, #ff7f0f);
+}
+
+.moreText {
+  position: absolute;
+  left: 96px;
+  top: 19px;
+  width: 360px;
+  font-size: 38px;
+  font-weight: 500;
+  line-height: 1;
+  color: var(--kiosk-primary, #ff7f0f);
+  text-align: left;
+  white-space: nowrap;
+}

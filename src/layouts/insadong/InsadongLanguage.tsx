@@ -7,6 +7,7 @@ import { useRotatingBanner } from '@renderer/hooks/useRotatingBanner';
 import { pick } from '@renderer/lib/i18n';
 import { t } from '@renderer/lib/loc';
 import { InsadongHeader } from './InsadongHeader';
+import { InsadongLeftNav } from './InsadongLeftNav';
 import styles from './InsadongLanguage.module.css';
 
 /** Section labels — hardcoded because the sheet keys (Language_Now_Language /
@@ -112,14 +113,7 @@ export function InsadongLanguage({ controller }: InsadongLanguageProps): JSX.Ele
         </section>
       </div>
 
-      <div className={styles.leftNav}>
-        <button type="button" className={styles.leftNavBtn} onClick={goHome} aria-label="홈으로">
-          {iconUrl('home-btn') && <img src={iconUrl('home-btn')} alt="" draggable={false} />}
-        </button>
-        <button type="button" className={styles.leftNavBtn} onClick={goHome} aria-label="뒤로">
-          {iconUrl('back-arrow') && <img src={iconUrl('back-arrow')} alt="" draggable={false} />}
-        </button>
-      </div>
+      <InsadongLeftNav onHome={goHome} />
 
       {banner && (
         <button type="button" className={styles.banner} onClick={() => controller.startPhoto()} aria-label="가상 한복 체험">

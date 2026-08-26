@@ -29,7 +29,7 @@
   width: 34px;
 }
 .results::-webkit-scrollbar-thumb {
-  background: #fe6c50;
+  background: var(--kiosk-primary);
   border-radius: 21.45px;
 }
 .results::-webkit-scrollbar-track {
@@ -79,9 +79,9 @@
 }
 
 .tabSelected {
-  background: #faeee3;
+  background: var(--kiosk-secondary);
   font-weight: 700;
-  color: #fe6c50;
+  color: var(--kiosk-primary);
 }
 
 /* List 5287:64645: w1820, gap 60 between cards. */
@@ -158,7 +158,7 @@
   width: 17px;
   height: 17px;
   border-radius: 50%;
-  background: #fe6c50;
+  background: var(--kiosk-primary);
 }
 
 .address {
@@ -214,30 +214,6 @@
   width: 100%;
   height: 100%;
   object-fit: cover;
-}
-
-.leftNav {
-  position: absolute;
-  left: 21px;
-  top: 1995px;
-  display: flex;
-  flex-direction: column;
-  gap: 35px;
-}
-
-.leftNavBtn {
-  width: 85px;
-  height: 85px;
-  padding: 0;
-  border: none;
-  background: none;
-  cursor: pointer;
-}
-
-.leftNavBtn img {
-  width: 100%;
-  height: 100%;
-  object-fit: contain;
 }
 
 .banner {

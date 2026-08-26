@@ -2,14 +2,14 @@
   "id": "insadong",
   "name": "북인사마당 · 인사동센터",
   "colors": {
-    "primary": "#8B4513",
-    "primaryHover": "#6D3610",
-    "secondary": "#D4A574",
-    "background": "#FDF8F3",
+    "primary": "#FE6C50",
+    "primaryHover": "#E85A40",
+    "secondary": "#F8ECDE",
+    "background": "#FFFFFF",
     "surface": "#FFFFFF",
-    "text": "#2C1810",
-    "textMuted": "#7A6355",
-    "accent": "#C17817"
+    "text": "#232323",
+    "textMuted": "#999999",
+    "accent": "#FE6C50"
   },
   "typography": {
     "fontFamily": "'Noto Sans KR', 'Noto Sans SC', 'Microsoft YaHei', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",

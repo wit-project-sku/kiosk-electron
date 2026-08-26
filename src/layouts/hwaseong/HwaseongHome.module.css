@@ -24,7 +24,6 @@
   width: 100%;
   height: 100%;
   object-fit: cover;
-  opacity: 0.5;
   pointer-events: none;
 }
 
@@ -58,15 +57,16 @@
 }
 
 .locationIcon {
-  width: 71px;
-  height: 90px;
+  width: 63px;
+  height: 82px;
+  object-fit: contain;
   flex-shrink: 0;
 }
 
 .siteName {
   font-size: 68px;
   font-weight: 700;
-  color: #005ab4;
+  color: var(--kiosk-primary);
   white-space: nowrap;
   line-height: 1;
   font-variation-settings: 'CTGR' 0, 'wdth' 100;
@@ -81,77 +81,84 @@
   font-variation-settings: 'CTGR' 0, 'wdth' 100;
 }
 
+/* Notice + weather — same flex ratio as Insadong/Osan (1109 : 665) so the
+   weather card width matches the other homes on the 1820px content row. */
 .headerBottomRow {
   display: flex;
-  align-items: center;
-  gap: 40px;
+  align-items: stretch;
+  gap: 40px; /* ≈ 1.85cqw on 2160 */
   width: 1820px;
-  height: 365px;
+  height: 365px; /* ≈ 9.5cqh on 3840 */
   flex-shrink: 0;
 }
 
-/* Notice card */
-.noticeCard {
-  width: 1109px;
-  height: 365px;
+/* Notice card — wrapping matches Insadong/Osan so en/ja (and 4-letter INFO
+   badge) stay inside the box instead of overflowing Korean-tuned metrics. */
+.notice {
+  flex: 1109 1 0;
+  min-width: 0;
+  height: auto;
   backdrop-filter: blur(42.9px);
   background: rgba(108, 90, 70, 0.1);
   border-radius: 45px;
   padding: 55px 60px;
   display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  flex-shrink: 0;
-  box-sizing: border-box;
-}
-
-.noticeInner {
-  display: flex;
   align-items: center;
   gap: 38.61px;
+  box-sizing: border-box;
+  overflow: hidden;
 }
 
-.noticeLabel {
+.noticeBadge {
+  flex: none;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
   font-family: 'Inter', sans-serif;
   font-weight: 900;
   font-size: 51px;
   color: #000;
-  white-space: nowrap;
-  line-height: 107.249px;
+  line-height: 1.55;
 }
 
 .noticeDivider {
   width: 6.435px;
   height: 242.383px;
-  background: #232323;
+  background: var(--kiosk-primary);
   border-radius: 3px;
   flex-shrink: 0;
 }
 
 .noticeText {
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  flex: 1 1 auto;
+  min-width: 0;
   font-size: 51px;
   color: #000;
   line-height: 64.35px;
+  font-weight: 500;
   font-variation-settings: 'CTGR' 0, 'wdth' 100;
-  white-space: pre-wrap;
+  white-space: normal;
+  word-break: keep-all;
+  overflow-wrap: anywhere;
+}
+
+.noticeLine {
+  font-weight: 500;
 }
 
 .noticeBold {
   font-weight: 700;
 }
 
-.noticeMedium {
-  font-weight: 500;
-}
-
-.noticeRegular {
-  font-weight: 400;
-}
-
 /* Weather card */
 .weatherCard {
-  width: 665px;
-  height: 365px;
+  flex: 665 1 0;
+  min-width: 0;
+  height: auto;
   cursor: pointer;
   -webkit-tap-highlight-color: transparent;
   backdrop-filter: blur(42.9px);
@@ -160,19 +167,20 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  flex-shrink: 0;
-  gap: 30px;
+  gap: 30px; /* ≈ 1.5cqw on 2160 */
   box-sizing: border-box;
 }
 
+/* Match Insadong/Osan weatherGlyph (6.5cqh ≈ 250px on 3840 artboard). */
 .weatherIconImg {
-  width: 309.836px;
-  height: 214.501px;
+  width: 250px;
+  height: 250px;
   object-fit: contain;
+  flex-shrink: 0;
 }
 
 .weatherTemp {
-  font-size: 145px;
+  font-size: 145px; /* ≈ 3.78cqh on 3840 */
   font-weight: 700;
   color: #333;
   line-height: 1;
@@ -222,9 +230,9 @@
   width: 1350px;
   height: 182px;
   background: #fff;
-  border: 4.29px solid #005ab4;
+  border: 4.29px solid var(--kiosk-primary);
   border-radius: 120px;
-  padding: 55px 75px;
+  padding: 55px 62px 55px 75px;
   box-sizing: border-box;
   cursor: pointer;
   flex-shrink: 0;
@@ -235,45 +243,45 @@
   min-width: 0;
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 0.4cqw;
   overflow: hidden;
 }
 
 .searchPlaceholder,
 .searchValue {
-  font-size: 60.06px;
+  min-width: 0;
+  font-size: 1.564cqh;
   font-weight: 600;
-  line-height: 1;
+  line-height: 1.3;
   white-space: nowrap;
   overflow: hidden;
-  text-overflow: ellipsis;
-  font-variation-settings: 'CTGR' 0, 'wdth' 100;
+  text-align: left;
 }
 
-.searchPlaceholder { color: #999; }
+.searchPlaceholder { color: #999999; }
 .searchValue { color: #232323; }
 
 .searchCaret {
   flex: none;
   width: 6px;
   height: 68px;
-  background: #005ab4;
+  background: var(--kiosk-primary);
   animation: hwBlink 1s step-end infinite;
 }
 
 @keyframes hwBlink { 50% { opacity: 0; } }
 
 .searchIcon {
-  width: 92px;
-  height: 88px;
+  width: 80px;
+  height: 77px;
   flex-shrink: 0;
-  color: #005ab4;
+  color: var(--kiosk-primary);
 }
 
 .langBtn {
   width: 180px;
   height: 180px;
-  background: #005ab4;
+  background: var(--kiosk-primary);
   border-radius: 50%;
   display: flex;
   align-items: center;
@@ -290,21 +298,24 @@
   font-variation-settings: 'CTGR' 0, 'wdth' 100;
 }
 
-/* ── Menu grid ──────────────────────────────────────── */
+/* ── Menu grid ────────────────────────────────────────
+   Image-to-image vertical gap fixed at 173px (label line count ignored):
+   each row = 300px card + 173px band for label; no extra gap between rows. */
 .menuGrid {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 100px;
+  gap: 0;
   width: 1820px;
   flex-shrink: 0;
 }
 
 .menuRow {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: space-between;
   width: 1820px;
+  height: calc(300px + 173px);
   flex-shrink: 0;
 }
 
@@ -314,9 +325,10 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 35px;
+  gap: 25px;
   flex-shrink: 0;
   width: 300px;
+  height: 100%;
   cursor: pointer;
   -webkit-tap-highlight-color: transparent;
 }
@@ -353,6 +365,7 @@
   line-height: 1.1;
   font-variation-settings: 'CTGR' 0, 'wdth' 100;
   width: 100%;
+  white-space: pre-line;
   word-break: keep-all;
 }
 
@@ -367,8 +380,9 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 35px;
+  gap: 25px;
   width: 830px;
+  height: 100%;
   flex-shrink: 0;
   cursor: pointer;
   -webkit-tap-highlight-color: transparent;
@@ -386,46 +400,6 @@
 .tileCardWide:active {
   transform: scale(0.98);
   filter: brightness(0.9);
-}
-
-/* ── Left nav ───────────────────────────────────────── */
-/* Single Figma render (home + back), with transparent click zones. */
-.leftNav {
-  position: absolute;
-  left: 21px;
-  top: 1995px;
-  width: 85px;
-  height: 205px; /* 85 + 35 gap + 85 */
-}
-
-.leftNavImg {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  object-fit: contain;
-  pointer-events: none;
-}
-
-.leftNavZoneHome,
-.leftNavZoneBack {
-  position: absolute;
-  left: 0;
-  width: 85px;
-  height: 85px;
-  padding: 0;
-  border: none;
-  background: none;
-  cursor: pointer;
-  -webkit-tap-highlight-color: transparent;
-}
-
-.leftNavZoneHome {
-  top: 0;
-}
-
-.leftNavZoneBack {
-  top: 120px; /* 85 + 35 gap */
 }
 
 /* ── Bottom nav ─────────────────────────────────────── */
@@ -479,12 +453,34 @@
   height: 356px;
 }
 
-/* 화장실: Figma left 73.29% → 1583px, top 99px, 235×235 */
+/* 화장실: Figma left 73.29% → 1583px, top 99px, icon 235×235 + label band
+   (same rhythm as Insadong restroomItem: label baseline ~360). */
 .bottomNavZoneRight {
   left: 1583px;
   top: 99px;
   width: 235px;
-  height: 235px;
+  height: 312px;
+}
+
+/* Localized WC label — opaque white strip hides the Korean text baked into
+   fg-bottomnav.png so en/ja/… can replace it. */
+.bottomNavWcLabel {
+  position: absolute;
+  left: 50%;
+  bottom: 0;
+  transform: translateX(-50%);
+  box-sizing: border-box;
+  min-width: 235px;
+  padding: 6px 12px 2px;
+  background: #fff;
+  font-family: 'Noto Sans KR', 'Noto Sans', sans-serif;
+  font-size: 50px;
+  font-weight: 400;
+  line-height: 1.1;
+  color: #000;
+  text-align: center;
+  white-space: nowrap;
+  pointer-events: none;
 }
 
 /* ── Bottom banner ──────────────────────────────────── */

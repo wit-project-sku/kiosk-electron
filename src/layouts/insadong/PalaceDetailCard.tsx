@@ -1,6 +1,7 @@
 import type { DetailItem } from '@renderer/store/detailStore';
 import { useLang } from '@renderer/lib/i18n';
 import { t } from '@renderer/lib/loc';
+import { palaceCategory } from '@renderer/lib/palace';
 import { PALACES } from '@renderer/data/palaces.generated';
 import { pickText } from '@renderer/data/types';
 import iconHistory from '@renderer/assets/photos/insadong/palace/icons/history.png';
@@ -27,6 +28,10 @@ export function PalaceDetailCard({ item }: PalaceDetailCardProps): JSX.Element {
   const p = item.palaceIndex != null ? PALACES[item.palaceIndex] : undefined;
 
   const name = p ? pickText(p.name, lang) : item.name;
+  // Resolved here, not read off `item.category`: that field is a SNAPSHOT taken
+  // when the card was tapped, so switching language on this page left the chip
+  // in the previous one while every other field re-read the sheet.
+  const category = p ? palaceCategory(lang) : item.category;
   const history = p ? pickText(p.info, lang) : item.description;
   const highlights = p ? pickText(p.highlights, lang) : item.address;
   const hours = p ? pickText(p.hours, lang) : item.hours;
@@ -50,7 +55,7 @@ export function PalaceDetailCard({ item }: PalaceDetailCardProps): JSX.Element {
           <h2 className={styles.name}>{name}</h2>
           <span className={styles.cat}>
             <span className={styles.dot} />
-            {item.category}
+            {category}
           </span>
         </div>
 

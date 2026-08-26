@@ -40,15 +40,16 @@
 }
 
 .pin {
-  width: 71px;
-  height: 90px;
+  width: 63px;
+  height: 82px;
+  object-fit: contain;
   flex-shrink: 0;
 }
 
 .brand {
   font-size: 68px;
   font-weight: 700;
-  color: #005ab4;
+  color: var(--kiosk-primary);
   line-height: 1;
   white-space: nowrap;
   font-variation-settings: 'CTGR' 0, 'wdth' 100;
@@ -129,5 +130,20 @@
      overflowing on a single line. */
   max-width: 1640px;
   text-align: center;
+  white-space: pre-line;
   font-variation-settings: 'CTGR' 0, 'wdth' 100;
+}
+
+/* TAX-FREE: breathing room below SubHeader_TaxFree (up to 2 lines). */
+.subtitleBelowGap {
+  margin-bottom: 40px;
+}
+
+/* TAX-FREE: use the full header row width so the subtitle wraps less often. */
+.subtitleWide {
+  width: 2000px;
+}
+
+.subtitleWide .subtitleText {
+  max-width: 2000px;
 }

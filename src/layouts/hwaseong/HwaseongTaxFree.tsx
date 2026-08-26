@@ -2,38 +2,28 @@ import { useEffect, useRef, useState } from 'react';
 import type { SupportedLanguage } from '@shared/types/kiosk';
 import type { KioskController } from '@renderer/hooks/useKioskController';
 import { useLanguageStore } from '@renderer/store/languageStore';
+import { t } from '@renderer/lib/loc';
 import { hwaseongIconUrl } from '@renderer/assets/icons/hwaseong';
-import { useRotatingBanner } from '@renderer/hooks/useRotatingBanner';
+import { useTaxfreeBodyLayout } from '@renderer/hooks/useTaxfreeBodyLayout';
+import { TAXFREE_PAGE_BASES, taxfreePageImg } from '@renderer/lib/taxfreePages';
 import { taxfreeUrl } from '@shared/constants/webEmbeds';
 import { trackEvent } from '@renderer/lib/analytics';
 import { HwaseongHeader } from './HwaseongHeader';
+import { HwaseongBanner } from './HwaseongBanner';
+import { HwaseongLeftNav } from './HwaseongLeftNav';
+import headerStyles from './HwaseongHeader.module.css';
 import styles from './HwaseongTaxFree.module.css';
 
 type TabId = 'refund' | 'intro' | 'merchant';
-type LangMap<T> = Partial<Record<SupportedLanguage, T>>;
+/** Bottom tab labels, in tab order (refund / intro / merchant). Sourced from
+ *  this location's Localization sheet so a copy edit needs no code change —
+ *  `t()` resolves against the running kiosk's own table. */
+const TAB_KEYS = ['Taxfree_Apply', 'Taxfree_Introduce', 'Taxfree_Enroll'] as const;
 
-function pick<T>(map: LangMap<T>, lang: SupportedLanguage): T {
-  return (map[lang] ?? map['ko'] ?? Object.values(map)[0]) as T;
-}
-
-const TAB_LABELS: LangMap<[string, string, string]> = {
-  ko: ['세금 환급 신청', '텍스프리 소개', '텍스프리 가맹점 신청'],
-  en: ['Tax Refund', 'About Tax Free', 'Merchant Apply'],
-  ja: ['税金還付申請', 'テックスフリー紹介', '加盟店申請'],
-  vi: ['Hoàn thuế', 'Giới thiệu', 'Đăng ký'],
-  zh: ['退税申请', '介绍', '加盟申请'],
-};
-
-// Reuse the same tax-free service page images (identical service to insadong).
-const PAGE_IMGS = import.meta.glob<{ default: string }>(
-  '../../renderer/src/assets/photos/insadong/taxfree/pages/*.png',
-  { eager: true },
-);
-
-function pageImg(name: string): string | undefined {
-  const entry = Object.entries(PAGE_IMGS).find(([k]) => k.endsWith(`/${name}.png`));
-  return entry?.[1]?.default;
-}
+/** 화성휴게소 routes merchant sign-up through WIT GLOBAL, not insadong's
+ *  보존회, so its 가맹점 신청 page differs; everything else falls through to
+ *  the shared set. */
+const VARIANT = 'wit';
 
 function TaxRefundInfo({
   lang,
@@ -43,8 +33,8 @@ function TaxRefundInfo({
   onGoToWebview: () => void;
 }): JSX.Element {
   const [page, setPage] = useState(0);
-  const p1Src = pageImg(`tab1-p1-${lang}`);
-  const p2Src = pageImg(`tab1-p2-${lang}`);
+  const p1Src = taxfreePageImg('tab1-p1', lang, VARIANT);
+  const p2Src = taxfreePageImg('tab1-p2', lang, VARIANT);
 
   return (
     <div className={styles.refundInfo}>
@@ -77,7 +67,7 @@ function TaxRefundInfo({
 }
 
 function MerchantTab({ lang }: { lang: SupportedLanguage }): JSX.Element {
-  const src = pageImg(`tab3-${lang}`);
+  const src = taxfreePageImg('tab3', lang, VARIANT);
   return (
     <div className={styles.merchant}>
       {src && <img src={src} className={styles.pageImg} alt="" draggable={false} />}
@@ -93,7 +83,9 @@ export function HwaseongTaxFree({ controller }: Props): JSX.Element {
   const goHome = (): void => controller.navigate('home', 'Back');
   const lang = useLanguageStore((s) => s.currentLanguage);
   const [activeTab, setActiveTab] = useState<TabId>('refund');
-  const tabLabels = pick(TAB_LABELS, lang);
+  const rootRef = useRef<HTMLDivElement>(null);
+  const subtitleRef = useRef<HTMLDivElement>(null);
+  const bodyLayout = useTaxfreeBodyLayout(rootRef, subtitleRef, lang);
 
   const webviewRef = useRef<HTMLElement | null>(null);
   useEffect(() => {
@@ -116,8 +108,8 @@ export function HwaseongTaxFree({ controller }: Props): JSX.Element {
   }, []);
 
   useEffect(() => {
-    for (const name of [`tab1-p1-${lang}`, `tab1-p2-${lang}`, `tab3-${lang}`]) {
-      const src = pageImg(name);
+    for (const base of TAXFREE_PAGE_BASES) {
+      const src = taxfreePageImg(base, lang, VARIANT);
       if (src) {
         const img = new Image();
         img.src = src;
@@ -126,15 +118,19 @@ export function HwaseongTaxFree({ controller }: Props): JSX.Element {
   }, [lang]);
 
   const bgSrc = hwaseongIconUrl('bg');
-  const bannerSrc = useRotatingBanner(hwaseongIconUrl('fg-banner'));
 
   return (
-    <div className={styles.root}>
+    <div ref={rootRef} className={styles.root}>
       {bgSrc && <img src={bgSrc} alt="" className={styles.bgImage} draggable={false} />}
 
-      <HwaseongHeader controller={controller} title="TAX-FREE" />
+      <HwaseongHeader
+        controller={controller}
+        title="TAX-FREE"
+        subtitleClassName={`${headerStyles.subtitleBelowGap} ${headerStyles.subtitleWide}`}
+        subtitleRef={subtitleRef}
+      />
 
-      <div className={styles.body}>
+      <div className={styles.body} style={{ top: bodyLayout.top, height: bodyLayout.height }}>
         {activeTab === 'intro' && (
           <TaxRefundInfo lang={lang} onGoToWebview={() => setActiveTab('refund')} />
         )}
@@ -167,24 +163,14 @@ export function HwaseongTaxFree({ controller }: Props): JSX.Element {
               setActiveTab(tab);
             }}
           >
-            {tabLabels[i]}
+            {t(TAB_KEYS[i]!, lang)}
           </button>
         ))}
       </div>
 
-      {/* Left nav */}
-      <div className={styles.leftNav}>
-        {hwaseongIconUrl('fg-leftnav') && (
-          <img src={hwaseongIconUrl('fg-leftnav')} alt="" className={styles.leftNavImg} draggable={false} />
-        )}
-        <button type="button" className={styles.leftNavZoneHome} onClick={goHome} aria-label="홈" />
-        <button type="button" className={styles.leftNavZoneBack} onClick={goHome} aria-label="뒤로" />
-      </div>
+      <HwaseongLeftNav onHome={goHome} />
 
-      {/* Bottom banner */}
-      <div className={styles.banner}>
-        {bannerSrc && <img src={bannerSrc} alt="" className={styles.bannerImg} draggable={false} />}
-      </div>
+      <HwaseongBanner onClick={() => controller.startPhoto()} />
     </div>
   );
 }

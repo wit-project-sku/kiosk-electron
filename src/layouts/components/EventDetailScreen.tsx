@@ -2,6 +2,10 @@ import { useRef, useState } from 'react';
 import type { CSSProperties, PointerEvent as ReactPointerEvent } from 'react';
 import type { EventDetail } from '@shared/types/events';
 import { useEventDetail } from '@renderer/hooks/useEvents';
+import type { Lang } from '@renderer/lib/i18n';
+import { useLang } from '@renderer/lib/i18n';
+import { t } from '@renderer/lib/loc';
+import { ui } from '@renderer/lib/uiText';
 import styles from './EventDetailScreen.module.css';
 
 /* ── Interactive map (오시는 길 안내) ────────────────────────────────────────
@@ -283,16 +287,16 @@ interface InfoRow {
 }
 
 /** The fixed 6 rows of the Figma spec — empty values render as '-' (not hidden). */
-function infoRows(d: EventDetail): InfoRow[] {
-  const price = d.price ?? (d.isFree === true ? '무료' : null);
+function infoRows(d: EventDetail, lang: Lang): InfoRow[] {
+  const price = d.price ?? (d.isFree === true ? t('Transport_Free', lang) : null);
   const period = [`${d.startDate} ~ ${d.endDate}`, ...(d.eventTime ? [d.eventTime] : [])];
   return [
-    { label: '장소', lines: [d.location || '-'] },
-    { label: '기간', lines: period },
-    { label: '모집대상', lines: [d.recruitTarget ?? '-'] },
-    { label: '기본가', lines: [price ?? '-'] },
-    { label: '문의', lines: [d.inquiry ?? '-'] },
-    { label: '비고', lines: [d.description ?? '-'] },
+    { label: ui('eventPlace', lang), lines: [d.location || '-'] },
+    { label: ui('eventPeriod', lang), lines: period },
+    { label: ui('eventTarget', lang), lines: [d.recruitTarget ?? '-'] },
+    { label: ui('eventPrice', lang), lines: [price ?? '-'] },
+    { label: ui('eventInquiry', lang), lines: [d.inquiry ?? '-'] },
+    { label: ui('eventNotes', lang), lines: [d.description ?? '-'] },
   ];
 }
 
@@ -312,6 +316,7 @@ export interface EventDetailScreenProps {
  * then 오시는 길 안내 with an interactive map centered on the event.
  */
 export function EventDetailScreen({ eventId, accent }: EventDetailScreenProps): JSX.Element {
+  const lang = useLang();
   const { detail, loading, error } = useEventDetail(eventId);
   const hasCoords = detail !== null && detail.latitude !== null && detail.longitude !== null;
 
@@ -326,7 +331,7 @@ export function EventDetailScreen({ eventId, accent }: EventDetailScreenProps): 
         </div>
       )}
 
-      {!loading && (error || !detail) && <div className={styles.pending}>이벤트 정보를 불러오지 못했습니다.</div>}
+      {!loading && (error || !detail) && <div className={styles.pending}>{ui('eventDetailFailed', lang)}</div>}
 
       {!loading && detail && (
         <>
@@ -337,7 +342,7 @@ export function EventDetailScreen({ eventId, accent }: EventDetailScreenProps): 
           <div className={styles.content}>
             <p className={styles.title}>{detail.title}</p>
             <div className={styles.info}>
-              {infoRows(detail).map((row) => (
+              {infoRows(detail, lang).map((row) => (
                 <div key={row.label} className={styles.infoRow}>
                   <span className={styles.infoLabel}>{row.label}</span>
                   <span className={styles.infoValue}>
@@ -364,14 +369,14 @@ export function EventDetailScreen({ eventId, accent }: EventDetailScreenProps): 
               />
               <circle cx="12" cy="10" r="2.6" fill="none" stroke="currentColor" strokeWidth="2" />
             </svg>
-            <span className={styles.mapTitle}>오시는 길 안내</span>
+            <span className={styles.mapTitle}>{ui('directions', lang)}</span>
           </div>
 
           {hasCoords ? (
             <InteractiveMap key={detail.eventId} lat={detail.latitude!} lng={detail.longitude!} />
           ) : (
             <div className={styles.map}>
-              <p className={styles.mapEmpty}>지도 정보가 없습니다.</p>
+              <p className={styles.mapEmpty}>{ui('noMapInfo', lang)}</p>
             </div>
           )}
         </>

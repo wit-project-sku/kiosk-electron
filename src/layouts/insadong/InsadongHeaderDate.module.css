@@ -1,6 +1,6 @@
 .date {
   /* Mask the baked date with the sampled header colour. */
-  background: #f8ecde;
+  background: var(--kiosk-secondary);
   display: flex;
   align-items: center;
   justify-content: flex-end;
