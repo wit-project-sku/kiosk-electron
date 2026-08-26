@@ -59,8 +59,8 @@ const COLUMNS = {
   time: 412,
   duration: 580,
   ship: 840,
-  route: 1220,
-  place: 1550,
+  route: 1190,
+  place: 1500,
   status: 1718,
 } as const;
 

@@ -22,11 +22,15 @@ export interface RawJejuFlightBase {
 export interface RawJejuDeparture extends RawJejuFlightBase {
   destination: string;
   gate: string;
+  /** Operating carrier 편명 when this row is a codeshare (`masterflightid`). */
+  masterFlightNo?: string;
 }
 
 export interface RawJejuArrival extends RawJejuFlightBase {
   origin: string;
   belt: string;
+  /** Operating carrier 편명 when this row is a codeshare (`masterflightid`). */
+  masterFlightNo?: string;
 }
 
 /** Cached board snapshot from 한국공항공사 실시간 항공기 운항정보. */

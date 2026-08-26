@@ -18,8 +18,7 @@
  * so `COLUMNS` is a per-direction spec over one table renderer rather than two
  * near-identical components.
  *
- * The 현황 cell is BLANK when the airport has published no status — that is the
- * design (도착 rows 4 onward), not a fallback. See `normalizeFlightStatus`.
+ * Empty 탑승구 / 수하물수취대 / 현황 cells show "-" (see `dashIfEmpty`).
  *
  * Live data: `useJejuDepartures` / `useJejuArrivals` read the KAC snapshot
  * mirrored by `useFlightSync` (see FlightService).
@@ -29,6 +28,7 @@ import type { KioskController } from '@renderer/hooks/useKioskController';
 import { pick, useLang } from '@renderer/lib/i18n';
 import type { Lang } from '@renderer/lib/i18n';
 import {
+  dashIfEmpty,
   displayTime,
   flightKindLabel,
   flightStatusColor,
@@ -137,20 +137,20 @@ const COL_STATUS = {
 
 const COLUMNS: Record<FlightDirection, Column[]> = {
   departure: [
-    { key: 'time',    x: 300,    centred: true, head: COL_TIME_DEPARTURE },
+    { key: 'time',    x: 280,    centred: true, head: COL_TIME_DEPARTURE },
     { key: 'airline', x: 680,    centred: true, head: COL_AIRLINE },
-    { key: 'place',   x: 1113.5, centred: true,  head: COL_DESTINATION },
-    { key: 'kind',    x: 1394.5, centred: true,  head: COL_KIND },
-    { key: 'stand',   x: 1673.5, centred: true,  head: COL_GATE },
-    { key: 'status',  x: 1913.5, centred: true,  head: COL_STATUS },
+    { key: 'place',   x: 1180, centred: true,  head: COL_DESTINATION },
+    { key: 'kind',    x: 1480, centred: true,  head: COL_KIND },
+    { key: 'stand',   x: 1690, centred: true,  head: COL_GATE },
+    { key: 'status',  x: 1913, centred: true,  head: COL_STATUS },
   ],
   arrival: [
-    { key: 'time',    x: 300,    centred: true, head: COL_TIME_ARRIVAL },
+    { key: 'time',    x: 280,    centred: true, head: COL_TIME_ARRIVAL },
     { key: 'airline', x: 680,    centred: true, head: COL_AIRLINE },
-    { key: 'place',   x: 1113.5, centred: true,  head: COL_ORIGIN },
-    { key: 'kind',    x: 1394.5, centred: true,  head: COL_KIND },
-    { key: 'stand',   x: 1673.5, centred: true,  head: COL_BELT },
-    { key: 'status',  x: 1913.5, centred: true,  head: COL_STATUS },
+    { key: 'place',   x: 1180, centred: true,  head: COL_ORIGIN },
+    { key: 'kind',    x: 1480, centred: true,  head: COL_KIND },
+    { key: 'stand',   x: 1690, centred: true,  head: COL_BELT },
+    { key: 'status',  x: 1913, centred: true,  head: COL_STATUS },
   ],
 };
 
@@ -188,9 +188,11 @@ export function JejuFlights({ controller }: Props): JSX.Element {
       case 'place':   return row.place;
       case 'kind':    return flightKindLabel(row.flight.kind, lang);
       case 'stand':
-        return direction === 'departure' ? formatGate(row.stand) : row.stand;
-      // Blank when nothing is published — see the header comment.
-      case 'status':  return row.flight.status ? flightStatusLabel(row.flight.status, lang) : '';
+        return direction === 'departure' ? formatGate(row.stand) : dashIfEmpty(row.stand);
+      case 'status':
+        return row.flight.status
+          ? flightStatusLabel(row.flight.status, lang)
+          : '-';
       default:        return '';
     }
   };
