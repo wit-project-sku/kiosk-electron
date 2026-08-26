@@ -145,13 +145,21 @@ export function PhotoWorkflow(): JSX.Element {
     });
     await window.api.photo.selectClothing(category);
     await window.api.photo.selectStyle(mode, backgroundId);
-    // EVERY location hands the trigger to the visitor now (2026-08-24): the
-    // press only brings the camera up, and the countdown waits for the
-    // open-palm gesture Monitor 2 is watching for. Started as 제주-only; the
-    // fallback timers inside the gate (see JejuCameraGuide / CustomerDisplay)
-    // are what make this safe on a kiosk whose camera or hand model is dead —
-    // the count starts by itself rather than never.
-    await window.api.photo.armGestureGate();
+    if (chrome.isJeju) {
+      // 제주 hands the trigger to the visitor: the press only brings the camera
+      // up, and the countdown waits for the open-palm gesture Monitor 2 is
+      // watching for. The fallback timers inside the gate (see JejuCameraGuide /
+      // CustomerDisplay) are what make this safe on a kiosk whose camera or
+      // hand model is dead — the count starts by itself rather than never.
+      //
+      // It went fleet-wide for a couple of days (2026-08-24 → 08-26) and was
+      // pulled back to 제주-only with the legacy camera screen's return: that
+      // screen has no palm/fist chips, so a gate behind it would just be a
+      // silent 30s stall before the fallback timer fired.
+      await window.api.photo.armGestureGate();
+    } else {
+      await window.api.photo.beginCountdown();
+    }
   };
 
   // ── 제주 only: 틀린그림찾기 while the AI works ─────────────────────────────

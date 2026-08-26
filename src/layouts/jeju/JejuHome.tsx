@@ -460,6 +460,8 @@ export function JejuHome({ controller }: Props): JSX.Element {
       {lowReach && jejuIconUrl('banner-ai-hero') && (
         <div className={styles.hero}>
           <img src={jejuIconUrl('banner-ai-hero')} alt="" className={styles.heroImg} draggable={false} />
+          <div className={`${styles.heroRule} ${styles.heroRuleTop}`} />
+          <div className={`${styles.heroRule} ${styles.heroRuleBottom}`} />
         </div>
       )}
 

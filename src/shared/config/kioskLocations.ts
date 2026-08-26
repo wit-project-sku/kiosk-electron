@@ -65,6 +65,23 @@ export interface KioskLocation {
   /** Weather coordinates for this physical location (OpenWeatherMap query). */
   coordinates: GeoCoordinates;
   /**
+   * Degrees CLOCKWISE the raw camera frame must be turned to stand upright.
+   *
+   * The 제주 kiosks' cameras are MOUNTED SIDEWAYS (2026-08-24): the sensor
+   * delivers a 16:9 landscape frame whose content is rotated, and turning it
+   * 90° yields the true 9:16 portrait stream the second screen shows. The
+   * Insadong/오색/화성 machines mount theirs upright, so this is per-venue —
+   * NOT a fleet constant (it briefly was one, `PHOTO_CAMERA_ROTATION`, which
+   * rotated every venue's feed; reverted 2026-08-26).
+   *
+   * One value drives BOTH consumers, which must never disagree:
+   *   · the live preview  (JejuCameraGuide .feed)
+   *   · the captured JPEG (useKioskCamera.capture) — the AR API must receive
+   *     the upright photo, not the raw sideways frame
+   * A camera mounted the other way round is 270; upright is 0.
+   */
+  cameraRotation: 0 | 90 | 180 | 270;
+  /**
    * `kioskId` to send to the SHOP API (`/api/shops?kioskId=`) when it differs
    * from this kiosk's own W-code number.
    *
@@ -116,13 +133,13 @@ const MARKET_TILE: KioskLocationTile = { screen: 'market', label: '위드마켓'
 // 3/4/5: all three drive card payment through the embedded loopback agent (the
 // donation webview posts to 127.0.0.1:8080), not an online-only flow.
 export const KIOSK_LOCATIONS: Record<KioskLocationCode, KioskLocation> = {
-  W001: { code: 'W001', name: '북인사마당', layout: 'INSADONG', secondTile: INSARANG_TILE, hasCardTerminal: false, hasDonation: false, aiCompanion: '2', coordinates: INSADONG_COORDS },
-  W002: { code: 'W002', name: '인사동쉼터', layout: 'INSADONG', secondTile: INSARANG_TILE, hasCardTerminal: false, hasDonation: false, aiCompanion: '2', coordinates: INSADONG_COORDS },
-  W003: { code: 'W003', name: '남인사마당', layout: 'NAM_INSADONG', secondTile: MARKET_TILE, hasCardTerminal: true, hasDonation: true, aiCompanion: '2', coordinates: INSADONG_COORDS },
+  W001: { code: 'W001', name: '북인사마당', layout: 'INSADONG', secondTile: INSARANG_TILE, hasCardTerminal: false, hasDonation: false, aiCompanion: '2', coordinates: INSADONG_COORDS, cameraRotation: 0 },
+  W002: { code: 'W002', name: '인사동쉼터', layout: 'INSADONG', secondTile: INSARANG_TILE, hasCardTerminal: false, hasDonation: false, aiCompanion: '2', coordinates: INSADONG_COORDS, cameraRotation: 0 },
+  W003: { code: 'W003', name: '남인사마당', layout: 'NAM_INSADONG', secondTile: MARKET_TILE, hasCardTerminal: true, hasDonation: true, aiCompanion: '2', coordinates: INSADONG_COORDS, cameraRotation: 0 },
   // 오색시장 also has a physical card-payment terminal (like 남인사마당 W003), so it
   // takes the payment result flow (위드마켓 webview + save QR, result image on Monitor 2).
-  W004: { code: 'W004', name: '오산시 오색시장', layout: 'OSAN', secondTile: MARKET_TILE, hasCardTerminal: true, hasDonation: true, aiCompanion: '3', coordinates: OSAN_COORDS },
-  W005: { code: 'W005', name: '화성휴게소', layout: 'HWASEONG', secondTile: INSARANG_TILE, hasCardTerminal: true, hasDonation: true, aiCompanion: '4', coordinates: HWASEONG_COORDS },
+  W004: { code: 'W004', name: '오산시 오색시장', layout: 'OSAN', secondTile: MARKET_TILE, hasCardTerminal: true, hasDonation: true, aiCompanion: '3', coordinates: OSAN_COORDS, cameraRotation: 0 },
+  W005: { code: 'W005', name: '화성휴게소', layout: 'HWASEONG', secondTile: INSARANG_TILE, hasCardTerminal: true, hasDonation: true, aiCompanion: '4', coordinates: HWASEONG_COORDS, cameraRotation: 0 },
   // 제주공항 W006 — has a TL-3800 terminal and runs 기부, like W003–W005.
   // TODO(제주): `secondTile` is provisional — the home grid is redefined by the
   // Jeju Figma (it only matters for layouts that consume it).
@@ -132,7 +149,7 @@ export const KIOSK_LOCATIONS: Record<KioskLocationCode, KioskLocation> = {
   // then it sent 인사('2'), so 같이찍기 photos composited the Insadong character
   // while the screen next to them said "사진촬영 (with '하영')" — the UI has always
   // promised 하영 (see Photo_SelectTogether and the two 하영 home tiles).
-  W006: { code: 'W006', name: '제주공항', layout: 'JEJU_AIRPORT', secondTile: MARKET_TILE, hasCardTerminal: true, hasDonation: true, aiCompanion: '5', coordinates: JEJU_AIRPORT_COORDS, shopApiKioskId: 7 },
+  W006: { code: 'W006', name: '제주공항', layout: 'JEJU_AIRPORT', secondTile: MARKET_TILE, hasCardTerminal: true, hasDonation: true, aiCompanion: '5', coordinates: JEJU_AIRPORT_COORDS, shopApiKioskId: 7, cameraRotation: 90 },
   // 제주국제여객터미널 W007 — the CMS name is `#W007-제주시=제주국제여객터미널`. It runs
   // the SAME design as 제주공항: one JEJU_AIRPORT layout, one Localization_Jeju tab,
   // the same 하영 mascot rows, the same 310-row 제주 shop catalogue.
@@ -147,7 +164,7 @@ export const KIOSK_LOCATIONS: Record<KioskLocationCode, KioskLocation> = {
   // override for the reason recorded on the `shopApiKioskId` field above.
   // `aiCompanion` is 하영('5'), exactly like W006 — same venue mascot, same
   // Localization_Jeju rows, and the two were always meant to move together.
-  W007: { code: 'W007', name: '제주국제여객터미널', layout: 'JEJU_AIRPORT', secondTile: MARKET_TILE, hasCardTerminal: true, hasDonation: true, aiCompanion: '5', coordinates: JEJU_TERMINAL_COORDS },
+  W007: { code: 'W007', name: '제주국제여객터미널', layout: 'JEJU_AIRPORT', secondTile: MARKET_TILE, hasCardTerminal: true, hasDonation: true, aiCompanion: '5', coordinates: JEJU_TERMINAL_COORDS, cameraRotation: 90 },
   // 세계자연유산본부 W008 — the CMS name is `#W008-제주시=세계자연유산본부` (the sheet's
   // 비고 column calls the venue 제주유산문화센터). Same 제주 design, but its OWN
   // JEJU_HERITAGE layout because its mascot is 유산, not 하영 — the shared
@@ -172,7 +189,7 @@ export const KIOSK_LOCATIONS: Record<KioskLocationCode, KioskLocation> = {
   // (LocalizationSyncParser.VENUE_MASCOTS rewrites every 하영 row to 유산), so
   // compositing 하영 would contradict the one rule this layout exists to enforce.
   // Revisit when Digicon ships a 유산 code.
-  W008: { code: 'W008', name: '세계자연유산본부', layout: 'JEJU_HERITAGE', secondTile: MARKET_TILE, hasCardTerminal: true, hasDonation: true, aiCompanion: '2', coordinates: JEJU_HERITAGE_COORDS },
+  W008: { code: 'W008', name: '세계자연유산본부', layout: 'JEJU_HERITAGE', secondTile: MARKET_TILE, hasCardTerminal: true, hasDonation: true, aiCompanion: '2', coordinates: JEJU_HERITAGE_COORDS, cameraRotation: 90 },
 };
 
 /**
@@ -197,6 +214,15 @@ export function getKioskLayout(kioskId: KioskId): KioskLayoutId {
 /** Weather coordinates for a kiosk — derived from kioskId (falls back to Insadong). */
 export function getKioskCoordinates(kioskId: KioskId): GeoCoordinates {
   return getKioskLocation(kioskId).coordinates;
+}
+
+/**
+ * Camera mount rotation for a kiosk — see {@link KioskLocation.cameraRotation}.
+ * 0 (upright, the W001 fallback) until the display window's kioskId resolves,
+ * which is long before any camera mode can be reached.
+ */
+export function getCameraRotation(kioskId: KioskId): 0 | 90 | 180 | 270 {
+  return getKioskLocation(kioskId).cameraRotation;
 }
 
 /**

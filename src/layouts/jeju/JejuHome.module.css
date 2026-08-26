@@ -680,9 +680,8 @@
   color: #fff;
 }
 
-/* The Figma-exact banner box: 2160×853 (the 157/62 ratio) at y113. The frame
-   also frames it with two 30px #f49c56 rules at y113/y936 — removed at the
-   user's direction 2026-08-26, the art stands alone. */
+/* The Figma-exact banner box: 2160×853 (the 157/62 ratio) at y113, framed by
+   the two #f49c56 rules at page y113 and y936. */
 .hero {
   position: absolute;
   left: 0;
@@ -703,6 +702,18 @@
   display: block;
   pointer-events: none;
 }
+
+/* Rule tops are hero-relative: the page draws them at y113 and y936. */
+.heroRule {
+  position: absolute;
+  left: 0;
+  width: 2160px;
+  height: 30px;
+  background: #f49c56;
+}
+
+.heroRuleTop { top: 0; }
+.heroRuleBottom { top: 823px; }
 
 .topBarLow { top: 1005px; }
 .noticeLow { top: 1140px; }

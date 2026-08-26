@@ -1,9 +1,14 @@
 import { useCallback, useEffect, useRef, useState, type RefObject } from 'react';
-import { PHOTO_CAMERA_ROTATION } from '@shared/constants/photoOptions';
 
 interface UseKioskCameraOptions {
   deviceId: string | null;
   enabled: boolean;
+  /**
+   * Degrees clockwise the raw frame must be turned to stand upright — the
+   * venue's camera mount (see kioskLocations.cameraRotation). 0 for an upright
+   * camera; the 제주 kiosks are 90. Must match what the live preview applies.
+   */
+  rotation?: 0 | 90 | 180 | 270;
 }
 
 interface UseKioskCameraResult {
@@ -17,7 +22,7 @@ interface UseKioskCameraResult {
  * Kiosk camera hook — uses deviceId from CameraService via IPC.
  * Never stores image data in state; capture returns a data URL on demand.
  */
-export function useKioskCamera({ deviceId, enabled }: UseKioskCameraOptions): UseKioskCameraResult {
+export function useKioskCamera({ deviceId, enabled, rotation = 0 }: UseKioskCameraOptions): UseKioskCameraResult {
   const videoRef = useRef<HTMLVideoElement>(null);
   const streamRef = useRef<MediaStream | null>(null);
   const [active, setActive] = useState(false);
@@ -75,25 +80,26 @@ export function useKioskCamera({ deviceId, enabled }: UseKioskCameraOptions): Us
   const capture = useCallback((): string | null => {
     const video = videoRef.current;
     if (!video || !active) return null;
-    // The kiosk cameras are mounted sideways (PHOTO_CAMERA_ROTATION): the raw
-    // frame is landscape with rotated content, and the AR API must receive the
+    // A sideways-mounted camera (rotation 90/270 — the 제주 kiosks) delivers a
+    // landscape frame with rotated content, and the AR API must receive the
     // UPRIGHT portrait photo — the same turn the live preview applies. The
     // canvas swaps its axes for a quarter turn (1920×1080 in → 1080×1920 out)
-    // and rotates about its centre. NOT mirrored: the mirror is a display-only
-    // affordance, and a mirrored photo would flip text on clothing.
+    // and rotates about its centre; rotation 0 leaves the frame untouched.
+    // NOT mirrored: the mirror is a display-only affordance, and a mirrored
+    // photo would flip text on clothing.
     const w = video.videoWidth;
     const h = video.videoHeight;
-    const quarter = PHOTO_CAMERA_ROTATION === 90 || PHOTO_CAMERA_ROTATION === 270;
+    const quarter = rotation === 90 || rotation === 270;
     const canvas = document.createElement('canvas');
     canvas.width = quarter ? h : w;
     canvas.height = quarter ? w : h;
     const ctx = canvas.getContext('2d');
     if (!ctx) return null;
     ctx.translate(canvas.width / 2, canvas.height / 2);
-    ctx.rotate((PHOTO_CAMERA_ROTATION * Math.PI) / 180);
+    ctx.rotate((rotation * Math.PI) / 180);
     ctx.drawImage(video, -w / 2, -h / 2, w, h);
     return canvas.toDataURL('image/jpeg', 0.92);
-  }, [active]);
+  }, [active, rotation]);
 
   return { videoRef, active, error, capture };
 }
