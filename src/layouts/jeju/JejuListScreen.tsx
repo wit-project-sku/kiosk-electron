@@ -80,8 +80,10 @@ const TITLE: Record<JejuListScreenId, string> = {
 
 /** Chips per row — Figma's `R>상단 카테고리-5개*2` is a 5-wide grid. */
 const CHIP_COLS = 5;
-/** Top of the scrolling area, under the 700px header. */
-const LIST_TOP = 700;
+/* The standard list top (y700, under the 700px header) lives in the CSS as
+   `.scroll`; only the low-reach top is needed here, to hang the controls. */
+/** Low-reach list top — under the mode bar + header (Figma 6561:80628). */
+const LIST_TOP_LOW = 837;
 /** Low-reach: gap between the list's bottom edge and the controls block. */
 const LOW_CONTROLS_GAP = 100;
 
@@ -145,17 +147,19 @@ export function JejuListScreen({ screen, controller }: Props): JSX.Element {
    * Low-reach geometry follows the chip ROW COUNT, because the controls sit at
    * the foot and a shorter chip block gives the list back the space:
    *
-   *   2 rows (eat/shop, 10 categories)  list h2434, controls y3234
-   *   1 row  (lodging, 5 categories)    list h2645, controls y3445
+   *   2 rows (eat/shop, 10 categories)  list h2296, controls y3233
+   *   1 row  (lodging, 5 categories)    list h2501, controls y3438
    *
-   * Measured on 6293:71909 / 6422:44503 (two rows) and 6422:44919 / 6289:68599
-   * (one row; those two state it as 2646/3446, 1px apart from each other). Both
+   * The one-row values are measured on the mode-bar revision template
+   * 6561:80628 (list y837–3338, chips 3438, 초성 3658); the two-row pair is
+   * derived from it by one chip row + its 35 gap (205), keeping the 초성 row on
+   * its ~3658 anchor — the revised two-row frames have not been shared. Both
    * fall out of one rule — the controls hang 100px under the list — so only the
    * list height is a constant here.
    */
   const chipRows = Math.ceil(chips.length / CHIP_COLS);
-  const lowListHeight = chipRows >= 2 ? 2434 : 2645;
-  const lowControlsTop = LIST_TOP + lowListHeight + LOW_CONTROLS_GAP;
+  const lowListHeight = chipRows >= 2 ? 2296 : 2501;
+  const lowControlsTop = LIST_TOP_LOW + lowListHeight + LOW_CONTROLS_GAP;
 
   const visible = useMemo(() => {
     let list = activeKr ? baseShops.filter((s) => s.secondCategoryKr === activeKr) : baseShops;
@@ -237,8 +241,17 @@ export function JejuListScreen({ screen, controller }: Props): JSX.Element {
   );
 
   return (
-    // No banner: the list runs to the bottom of the artboard in this frame.
-    <JejuPageFrame controller={controller} title={TITLE[screen]} showBanner={false}>
+    /* No banner: the list runs to the bottom of the artboard in this frame.
+       ♿ is on the 2026-08-26 mode-bar revision (template 6561:80628): bar at
+       the top, header at y113; the list/controls position themselves, so the
+       body shift stays 0. */
+    <JejuPageFrame
+      controller={controller}
+      title={TITLE[screen]}
+      showBanner={false}
+      lowReachModeBar
+      lowReachShift={113}
+    >
       <div
         className={`${styles.scroll} ${lowReach ? styles.scrollLow : ''}`}
         style={lowReach ? { height: lowListHeight } : undefined}

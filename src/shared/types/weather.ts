@@ -22,3 +22,38 @@ export interface WeatherSnapshot {
   /** ISO timestamp of when this snapshot was fetched. */
   fetchedAt: string;
 }
+
+/**
+ * One day of the multi-day outlook, as drawn by the 제주 weather panel: a
+ * morning glyph, an afternoon glyph and the day's low/high.
+ */
+export interface WeatherDayForecast {
+  /** Local calendar date at the kiosk, `YYYY-MM-DD`. */
+  date: string;
+  /** Lowest temperature forecast for the day in °C (rounded). */
+  minC: number;
+  /** Highest temperature forecast for the day in °C (rounded). */
+  maxC: number;
+  /** OpenWeatherMap icon code standing in for 00:00–11:59, e.g. "10d". */
+  morningIcon: string;
+  /** Condition group behind {@link morningIcon}, e.g. "Rain" (glyph fallback). */
+  morningMain: string;
+  /** OpenWeatherMap icon code standing in for 12:00–23:59. */
+  afternoonIcon: string;
+  /** Condition group behind {@link afternoonIcon}. */
+  afternoonMain: string;
+}
+
+/**
+ * Multi-day outlook derived from OpenWeatherMap's 5-day/3-hour endpoint, cached
+ * next to the current snapshot. Like {@link WeatherSnapshot} it is fetched only
+ * in the main process; the renderer reads the cached value over IPC.
+ */
+export interface WeatherForecast {
+  /** Today first, then each following local date — at most six. */
+  days: WeatherDayForecast[];
+  /** Resolved city name. */
+  city: string;
+  /** ISO timestamp of when this outlook was fetched. */
+  fetchedAt: string;
+}

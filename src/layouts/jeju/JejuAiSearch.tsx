@@ -297,11 +297,16 @@ export function JejuAiSearch({ controller }: Props): JSX.Element {
   );
 
   return (
+    /* lowReachShift 1072: the mode-bar revision (6336:67216 et al.) drops the
+       hero to y113–1072 and the header lands flush under it. Body stays
+       self-positioned (Y_LOW / CTA_TOP_LOW are unchanged in the revision). */
     <JejuPageFrame
       controller={controller}
       title="'제주' 뭐하지 (AI 검색)"
       showBanner={false}
       lowReachHero="banner-ai-hero"
+      lowReachModeBar
+      lowReachShift={1072}
       onBack={onBack}
     >
       <div className={styles.root}>

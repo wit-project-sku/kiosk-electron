@@ -14,3 +14,37 @@
   color: #909090;
   text-align: center;
 }
+
+/*
+ * ── 다음 장소 (AI course only) ──────────────────────────────────────────
+ * Figma 6289:58439 lays the page's body out as one 1820-wide column at y700
+ * with a 70px gap: 상세 card (h2133) · chevron (h39) · 다음 장소 card (h515),
+ * ending at y3527. The pieces are absolutely positioned here because the 상세
+ * card is, so the two y values below are that stack resolved:
+ *   700 + 2133 + 70 = 2903   chevron   (78×39 after rotation)
+ *   2903 +   39 + 70 = 3012   card
+ */
+
+/*
+ * The frame draws the shared chevron rotated -90° into a down arrow, so it is
+ * rotated here rather than re-exported. The export is 49×88 — the 39×78 vector
+ * plus the 5px its 10px stroke bleeds on each side — and is placed on the
+ * centre of the 78×39 visual box (1080, 2922.5) so the rotation lands the box
+ * exactly on y2903–2942.
+ */
+.nextChevron {
+  position: absolute;
+  left: 1055.5px;
+  top: 2878.5px;
+  width: 49px;
+  height: 88px;
+  transform: rotate(-90deg);
+  pointer-events: none;
+}
+
+/* 1793 wide (set by the component) centred on the page: (2160 − 1793) / 2. */
+.nextCard {
+  position: absolute;
+  left: 183.5px;
+  top: 3012px;
+}

@@ -1,6 +1,8 @@
 /**
- * 제주 AI 코스 상세 — Figma nodes 6289:55320 (제주>제주모하지(AI검색)-03-1, one day)
- * and 6289:55078 (-03-2, the multi-day variant that adds the DAY arrows).
+ * 제주 AI 코스 상세 — Figma node 6516:73138 (제주>제주모하지(AI검색)-03-1), the
+ * 2026-08-26 re-stack of 6289:55320 (-03-1) / 6289:55078 (-03-2). See the
+ * stylesheet header for what moved; the one thing that is new rather than moved
+ * is the row of answer pills under the summary bar.
  *
  * Shows the course chosen on JejuAiResult: its title/description/hashtags, a
  * summary bar, and the numbered spot itinerary.
@@ -55,6 +57,7 @@ import { useAccessibilityStore } from '@renderer/store/accessibilityStore';
 import { useAiStore } from '@renderer/store/aiStore';
 import { useShopStore } from '@renderer/store/shopStore';
 import { useDetailStore } from '@renderer/store/detailStore';
+import type { DetailItem } from '@renderer/store/detailStore';
 import { useLanguageStore } from '@renderer/store/languageStore';
 import type { Lang } from '@renderer/lib/i18n';
 import { pick } from '@renderer/lib/i18n';
@@ -78,6 +81,7 @@ import {
   transportCode,
 } from '@renderer/lib/jejuCourse';
 import { JejuPageFrame } from './JejuPageFrame';
+import { JejuCourseSpotCard } from './JejuCourseSpotCard';
 import styles from './JejuAiDetail.module.css';
 
 interface Props {
@@ -106,13 +110,17 @@ const DAYS_BY_STAY: Record<string, number> = {
   '3박 이상': 4,
 };
 
-/* ── QR block under the itinerary ──────────────────────────────────────
-   Derived from .list in the CSS (top 1423, height 2240) and .spot (height 515,
-   gap 50), so the QR tracks the ACTUAL number of cards rather than a baked y.
-   It moves in BOTH directions: a thin day holds fewer cards than the design's
-   four and the QR rises to meet them, while a scheduled day can hold nine —
-   more than the list's 2240 viewport shows — and the QR would otherwise be
-   pushed off the artboard entirely. See `qrTopFor` for the clamp that stops
+/* ── QR block under the itinerary — ♿ ONLY ────────────────────────────
+   The standard frame (6516:73138) puts the QR on the DAY row at a fixed y1395,
+   so none of this arithmetic applies there any more; it survives for the ♿
+   frame (6418:11330), which still draws the QR under the last card.
+
+   Derived from .listLow in the CSS (top 1423, height 2240) and the spot card
+   (height 515, gap 50), so the QR tracks the ACTUAL number of cards rather than
+   a baked y. It moves in BOTH directions: a thin day holds fewer cards than the
+   design's four and the QR rises to meet them, while a scheduled day can hold
+   nine — more than the list's 2240 viewport shows — and the QR would otherwise
+   be pushed off the artboard entirely. See `qrTopFor` for the clamp that stops
    it. */
 const LIST_TOP = 1423;
 const CARD_HEIGHT = 515;
@@ -351,6 +359,21 @@ export function JejuAiDetail({ controller }: Props): JSX.Element {
   const [pageIndex, setPageIndex] = useState(0);
   const lowReach = useAccessibilityStore((s) => s.lowReach);
 
+  /**
+   * Adds the ♿ row-top override to a class, and nothing otherwise.
+   *
+   * The standard frame is the 2026-08-26 re-stack (6516:73138) and the ♿ frame
+   * (6418:11330) is still on the layout before it, so seven rows sit at two
+   * different heights. See the *Low block at the foot of the stylesheet.
+   */
+  /* Both params are `string | undefined` because that is how CSS Module lookups
+     are typed here — see DayArrow's `className` for the same. */
+  const low = (base?: string, lowClass?: string): string =>
+    [base, lowReach ? lowClass : ''].filter(Boolean).join(' ');
+
+  /** The questionnaire, echoed under the summary bar — see the row in the JSX. */
+  const picks = [visitors, stay, transport, ...interests].filter(Boolean);
+
   /** The scheduled course, or null while it loads and after a failed call. */
   const [course, setCourse] = useState<JejuCourse | null>(null);
   const [loading, setLoading] = useState(true);
@@ -487,8 +510,57 @@ export function JejuAiDetail({ controller }: Props): JSX.Element {
   const firstLink = stops[0]?.shop.naverLink ?? '';
   const qrLink = /^https?:\/\//i.test(firstLink) ? firstLink : null;
 
-  const openSpot = ({ shop, spot }: Stop): void => {
-    setDetail({
+  /**
+   * Every stop of the VISIBLE DAY, in itinerary order.
+   *
+   * Paging is a display device — a day that does not fit in the list's 2240px
+   * viewport spills onto further pages — so anything that follows the itinerary
+   * rather than the screen has to walk this, not `stops`.
+   */
+  const dayStops = useMemo(
+    () => pages.filter((p) => p.day === day).flatMap((p) => p.stops),
+    [pages, day],
+  );
+
+  /** How long the visitor spends here: the schedule's, or the authored placeholder offline. */
+  const dwellOf = (stop: Stop): string =>
+    stop.spot ? minutesLabel(stop.spot.dwellMinutes) : meta.spotDuration;
+
+  /**
+   * "난이도 X". An ungraded SCHEDULED spot draws no row rather than a wrong one —
+   * `difficulty: 0` is the normalizer's "the server gave none". Offline there is
+   * no schedule to grade, so the authored placeholder stands in.
+   */
+  const hardnessOf = (stop: Stop): string => {
+    if (!stop.spot) return meta.spotDifficulty;
+    const grade = difficultyLabel(stop.spot.difficulty);
+    return grade ? `난이도 ${grade}` : '';
+  };
+
+  /** Falls back to the shared no-image placeholder, like the list and detail cards. */
+  const photoOf = (stop: Stop): string => shopImages(stop.shop)[0] ?? jejuIconUrl('noimage') ?? '';
+
+  /**
+   * The DetailItem for `dayStops[i]`, with the stop AFTER it attached as
+   * `courseNext` — which is what JejuDetail draws as the 다음 장소 card under the
+   * 상세 plate (Figma 6289:58438 / 6516:72906). Recursive, so that card opens a
+   * detail carrying the one after it and a visitor can walk the whole day
+   * without returning here.
+   *
+   * Scoped to the DAY, deliberately: the detail's header subtitle is
+   * "A코스 - 1일차", so a card that quietly crossed into the next day would be
+   * captioned with the wrong one. The last stop of a day simply has no card.
+   *
+   * Built on demand rather than memoised — the depth is the day's spot count
+   * (nine at the worst observed) and it runs once per tap.
+   */
+  const detailFor = (i: number): DetailItem | undefined => {
+    const stop = dayStops[i];
+    if (!stop) return undefined;
+    const { shop, spot } = stop;
+    const nextStop = dayStops[i + 1];
+    const nextItem = detailFor(i + 1);
+    return {
       from: 'ai_detail',
       // JejuDetail shows this as the header SUBTITLE for AI-course spots, so it
       // carries the course + day rather than a generic label.
@@ -511,7 +583,19 @@ export function JejuAiDetail({ controller }: Props): JSX.Element {
       rating: shop.naverRating != null ? String(shop.naverRating) : '',
       instagram: '',
       blogReviews: shop.naverLink ?? '',
-    });
+      ...(nextStop && nextItem
+        ? { courseNext: { dwell: dwellOf(nextStop), difficulty: hardnessOf(nextStop), item: nextItem } }
+        : {}),
+    };
+  };
+
+  const openSpot = (stop: Stop): void => {
+    // Identity lookup, not an index: `pages` holds one Stop object per stop and
+    // `dayStops` re-lists those same objects, so the tapped card is found even
+    // though the visible page is only a slice of the day.
+    const item = detailFor(dayStops.indexOf(stop));
+    if (!item) return;
+    setDetail(item);
     controller.navigate('detail', '코스 상세');
   };
 
@@ -559,10 +643,10 @@ export function JejuAiDetail({ controller }: Props): JSX.Element {
     >
       <p className={styles.title}>{meta.title}</p>
       <div className={styles.rule} />
-      <p className={styles.tags}>{meta.tags}</p>
-      <p className={styles.desc}>{meta.desc}</p>
+      <p className={low(styles.tags, styles.tagsLow)}>{meta.tags}</p>
+      <p className={low(styles.desc, styles.descLow)}>{meta.desc}</p>
 
-      <div className={styles.summary}>
+      <div className={low(styles.summary, styles.summaryLow)}>
         {stats.map((s, i) => (
           <Fragment key={s.label}>
             {i > 0 && <span className={styles.statSep} />}
@@ -574,6 +658,18 @@ export function JejuAiDetail({ controller }: Props): JSX.Element {
         ))}
       </div>
 
+      {/* The questionnaire echoed back, between the summary bar and the DAY row
+          (6516:73323). Standard frame only — the ♿ frame has no such row. Every
+          value is stored KOREAN (see JejuAiSearch's submit), which is how the
+          frame draws them; empty slots (deep-link, idle reset) drop out. */}
+      {!lowReach && picks.length > 0 && (
+        <div className={styles.picks}>
+          {picks.map((p, i) => (
+            <span key={i} className={styles.pick}>{p}</span>
+          ))}
+        </div>
+      )}
+
       {/* The pager. Always drawn — greyed at the ends, exactly as the Figma
           shows the left one on the first screen — so the row never reflows.
           It steps a PAGE at a time, which is a day boundary only when the day
@@ -582,16 +678,16 @@ export function JejuAiDetail({ controller }: Props): JSX.Element {
         dir="prev"
         disabled={pageIndex <= 0}
         onClick={goPrevPage}
-        className={styles.dayPrev}
+        className={low(styles.dayPrev, styles.dayArrowLow)}
       />
 
-      <p className={styles.day}>DAY {day}</p>
+      <p className={low(styles.day, styles.dayLow)}>DAY {day}</p>
 
       <DayArrow
         dir="next"
         disabled={pageIndex >= pages.length - 1}
         onClick={goNextPage}
-        className={styles.dayNext}
+        className={low(styles.dayNext, styles.dayArrowLow)}
       />
 
       {/* Nothing at all while the schedule is in flight: the empty copy tells
@@ -601,7 +697,7 @@ export function JejuAiDetail({ controller }: Props): JSX.Element {
         <p className={styles.empty}>{pick(T.empty, lang)}</p>
       ) : (
         <>
-          <div className={styles.rail} />
+          <div className={low(styles.rail, styles.railLow)} />
 
           {/* ── The itinerary ──
               Each numbered disc rides INSIDE the row with its own card rather
@@ -613,68 +709,25 @@ export function JejuAiDetail({ controller }: Props): JSX.Element {
               Flex centring reproduces the design's own offset exactly: a 105
               disc centred on a 515 card is the 1628 against a list top of 1423
               that the old STOP_TOP encoded. */}
-          <div className={styles.list}>
-            {stops.map((stop, i) => {
-              const { shop, spot } = stop;
-              // Falls back to the shared no-image placeholder, like the list
-              // and detail cards; the empty slot stays only if even that is
-              // missing from the asset folder.
-              const photo = shopImages(shop)[0] ?? jejuIconUrl('noimage');
-              // How long the visitor spends here, and how hard it is. Both come
-              // from the schedule; the authored pair stands in only offline.
-              const dwell = spot ? minutesLabel(spot.dwellMinutes) : meta.spotDuration;
-              const grade = spot ? difficultyLabel(spot.difficulty) : '';
-              // An ungraded spot draws no 난이도 row rather than a wrong one —
-              // `difficulty: 0` is the normalizer's "the server gave none".
-              const hardness = spot ? (grade ? `난이도 ${grade}` : '') : meta.spotDifficulty;
-              return (
-                <div key={`${i}-${shop.id}`} className={styles.stopRow}>
-                  <span className={styles.stop}>{stop.number}</span>
-                  <button type="button" className={styles.spot} onClick={() => openSpot(stop)}>
-                  {photo ? (
-                    <img src={photo} alt="" className={styles.spotImg} draggable={false} loading="lazy" />
-                  ) : (
-                    <span className={styles.spotImg} />
-                  )}
-
-                  <span className={styles.spotBody}>
-                    <span className={styles.spotTop}>
-                      <span className={styles.spotNameRow}>
-                        <p className={styles.spotName}>{shopName(shop, lang)}</p>
-                        <p className={styles.spotTag}>{shopSecondCategory(shop, lang)}</p>
-                      </span>
-
-                      <span className={styles.spotAddrRow}>
-                        {jejuIconUrl('ico-marker') && (
-                          <img src={jejuIconUrl('ico-marker')} alt="" className={styles.spotAddrIcon} draggable={false} />
-                        )}
-                        <p className={styles.spotAddr}>{shopAddress(shop, lang)}</p>
-                      </span>
-
-                      <p className={styles.spotDesc}>{shopDescription(shop, lang)}</p>
-                    </span>
-
-                    <span className={styles.spotMeta}>
-                      <span className={styles.metaItem}>
-                        {jejuIconUrl('ico-duration') && (
-                          <img src={jejuIconUrl('ico-duration')} alt="" className={styles.metaIcon} draggable={false} />
-                        )}
-                        <span className={styles.metaText}>{dwell}</span>
-                      </span>
-                      {hardness && (
-                        <span className={styles.metaItem}>
-                          {jejuIconUrl('ico-difficulty') && (
-                            <img src={jejuIconUrl('ico-difficulty')} alt="" className={styles.metaIcon} draggable={false} />
-                          )}
-                          <span className={styles.metaText}>{hardness}</span>
-                        </span>
-                      )}
-                    </span>
-                  </span>
-                  </button>
-                </div>
-              );
-            })}
+          <div className={low(styles.list, styles.listLow)}>
+            {stops.map((stop, i) => (
+              <div key={`${i}-${stop.shop.id}`} className={styles.stopRow}>
+                <span className={styles.stop}>{stop.number}</span>
+                {/* 1678, not the detail screen's 1793: the numbered disc and its
+                    35px gap take the first 140px of the list's 1818 gutter. */}
+                <JejuCourseSpotCard
+                  width={1678}
+                  photo={photoOf(stop)}
+                  name={shopName(stop.shop, lang)}
+                  category={shopSecondCategory(stop.shop, lang)}
+                  address={shopAddress(stop.shop, lang)}
+                  description={shopDescription(stop.shop, lang)}
+                  dwell={dwellOf(stop)}
+                  difficulty={hardnessOf(stop)}
+                  onClick={() => openSpot(stop)}
+                />
+              </div>
+            ))}
           </div>
 
           {/* 모바일에서 확인하기 — label left, QR right, the QR's right edge flush
@@ -683,7 +736,12 @@ export function JejuAiDetail({ controller }: Props): JSX.Element {
               nothing is worse than no QR, which is how JejuSpotDetailCard treats
               its own. See `qrLink`. */}
           {qrLink && (
-            <div className={styles.qrRow} style={{ top: qrTopFor(stops.length) }}>
+            <div
+              className={styles.qrRow}
+              /* Standard: a fixed y1395 on the DAY row, set in the CSS. ♿ still
+                 hangs it off the last card, so only that layout computes a top. */
+              style={lowReach ? { top: qrTopFor(stops.length) } : undefined}
+            >
               <span className={styles.qrLabel}>{pick(T.viewOnMobile, lang)}</span>
               <span className={styles.qrFrame}>
                 <QRCodeSVG className={styles.qrCode} value={qrLink} bgColor="#ffffff" fgColor="#000000" level="M" />

@@ -20,19 +20,24 @@
  */
 
 /* ── Tabs ───────────────────────────────────────────────────────────── */
-/* The shared two-pill `R>컴포넌트=코스추천-카테고리` (x483.5, 2 × 565 + 63 gap
-   = 1193) — the same control, at the same coordinates, as the 지역행사 region
-   tabs and 도와줘 '하영's terminal pills. It replaced this page's own 580-wide
-   outlined pair at x400. */
+/* The shared two-pill `R>컴포넌트=코스추천-카테고리` — the same control, at the
+   same coordinates, as the 지역행사 region tabs and 도와줘 '하영's terminal
+   pills. It replaced this page's own 580-wide outlined pair at x400.
+
+   Two-tab row. 2 × 565 + a 200 gap = 1330, so left = (2160 − 1330) / 2 = 415.
+   200 is the gap every other two-tab 제주 page already uses (운항정보, 크루즈
+   운항, 지역화폐 — all 580 pills at gap 200); this row was still on the old 63.
+   Widening the band rather than shrinking the pills is what keeps them on
+   Figma's 565. */
 .tabs {
   position: absolute;
-  left: 483.5px;
+  left: 415px;
   top: 700px;
-  width: 1193px;
+  width: 1330px;
   height: 170px;
   display: flex;
   align-items: center;
-  gap: 63px;
+  gap: 200px;
 }
 
 /* flex:1 so the row always fills the column — the two tabs land on Figma's

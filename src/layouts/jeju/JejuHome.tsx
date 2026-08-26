@@ -20,7 +20,8 @@
  * (탑승중 / 지연 / 탑승최종) — it lives in JejuFlightBoard.tsx.
  */
 import { useEffect, useMemo, useRef, useState } from 'react';
-import type { KioskController } from '@renderer/hooks/useKioskController';
+import { IDLE_TIMEOUT_MS, type KioskController } from '@renderer/hooks/useKioskController';
+import { useInactivityReset } from '@renderer/hooks/useInactivityReset';
 import type { KioskScreenId } from '@shared/types/kiosk';
 import { jejuIconUrl } from '@renderer/assets/icons/jeju';
 import { useOrderedTiles, type TileKey } from '@renderer/lib/buttonLayout';
@@ -35,6 +36,7 @@ import { t, sheetText } from '@renderer/lib/loc';
 import { DONATION_COMING_SOON, withComingSoon } from '@shared/config/donation';
 import { JejuFlightBoard } from './JejuFlightBoard';
 import { JejuSailingBoard } from './JejuSailingBoard';
+import { JejuWeatherPanel } from './JejuWeatherPanel';
 import { FloatingKeyboard } from '../insadong/keyboard/FloatingKeyboard';
 import { HangulComposer } from '../insadong/keyboard/hangul';
 import type { KeyAction } from '../insadong/keyboard/VirtualKeyboard';
@@ -353,6 +355,16 @@ const CARDS: CardDef[] = [
 
 export function JejuHome({ controller }: Props): JSX.Element {
   const weather = useWeatherStore((s) => s.weather);
+  const forecast = useWeatherStore((s) => s.forecast);
+  const [weatherOpen, setWeatherOpen] = useState(false);
+  /* The controller's own idle reset early-returns while the kiosk is already on
+     home, so it would never take this overlay down — it would still be open for
+     the next visitor. Armed only while the panel is up, on the same clock. */
+  useInactivityReset({
+    enabled: weatherOpen,
+    timeoutMs: IDLE_TIMEOUT_MS,
+    onIdle: () => setWeatherOpen(false),
+  });
   const playWeatherVideo = useWeatherVideo();
   const lang = useLanguageStore((s) => s.currentLanguage);
   const setStoreQuery = useSearchStore((s) => s.setQuery);
@@ -483,13 +495,20 @@ export function JejuHome({ controller }: Props): JSX.Element {
           {noticeRuns.map((run, i) => (run.bold ? <b key={i}>{run.text}</b> : <span key={i}>{run.text}</span>))}
         </p>
 
-        {/* Tapping the weather plays today's condition clip on the customer
-            display (Weather_Rain/Cold/Sunny), same as the other kiosks. */}
+        {/* Tapping the weather opens the 날씨 panel (Figma 6516:74521) on this
+            screen AND plays today's condition clip on the customer display
+            (Weather_Rain/Cold/Sunny) — the clip is the behaviour the other
+            kiosks have always had, and it runs on the second monitor, so the
+            panel does not displace it. */}
         <div
           className={styles.weather}
           role="button"
-          aria-label="오늘 날씨 영상"
-          onClick={playWeatherVideo}
+          aria-label="제주 날씨"
+          aria-expanded={weatherOpen}
+          onClick={() => {
+            playWeatherVideo();
+            setWeatherOpen((open) => !open);
+          }}
         >
           <span className={styles.weatherTemp}>
             {weather ? `${Math.round(weather.tempC)}˚` : '--˚'}
@@ -667,6 +686,18 @@ export function JejuHome({ controller }: Props): JSX.Element {
             draggable={false}
           />
         </button>
+      )}
+
+      {/* 날씨 panel — the weather card's overlay. Its layer is z-index 20, over
+          the whole (unlayered) home screen; the keyboard below is 2000, so it
+          still opens on top. */}
+      {weatherOpen && (
+        <JejuWeatherPanel
+          forecast={forecast}
+          current={weather}
+          lang={lang}
+          onClose={() => setWeatherOpen(false)}
+        />
       )}
 
       {/* Inline search keyboard — shows in place, no navigation until Enter.

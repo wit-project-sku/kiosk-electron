@@ -4,7 +4,7 @@
  * Pure auto-layout in the frame, so it is flow here too — no absolute offsets.
  * The nesting below mirrors Figma's frame tree exactly, which is what keeps the
  * three different gaps (25 / 32 / 22) from collapsing into one:
- *   .card   pad 43/23/47/36, borderless, r42.905          gap 25
+ *   .card   pad 43/23/47/36, flat (no stroke), r42.905     gap 25
  *   ├ .photo  509×297 r20
  *   └ .body   521 wide                                    gap 32
  *     ├ .name   50px Medium
@@ -12,8 +12,9 @@
  *       ├ .rowMarker  45×45 marker + 12 + 40px Regular
  *       └ .rowHours   41×60 alarm  + 15 + 40px Regular lines, 20 apart
  *
- * Padding is Figma's minus the 5px stroke, since the 580×730 frame INCLUDES its
- * stroke: 5 + 36 puts the column at x36 as drawn.
+ * Padding is Figma's own 43/23/47/36 — the 580×730 frame includes the stroke it
+ * draws, so with the stroke dropped the padding carries that 5px itself and the
+ * column still lands on x36 as drawn.
  */
 .card {
   width: 580px;
@@ -23,13 +24,13 @@
      than clip it; the grid row follows. */
   min-height: 730px;
   box-sizing: border-box;
-  padding: 38px 18px 42px 31px;
-  /* 5px #e8e8e8 hairline — this card is NOT one of the flat ones. Probed at 1:1
-     on BOTH layouts: the standard 관광명소 frame (6212:59152) reads (232,232,232)
-     for 5px from y1052 before the white fill, and the low-reach frame
-     (6289:70323) does the same from y1229. It was stripped under the general
-     "remove borders" pass; the design draws it, so it is back. */
-  border: 5px solid #e8e8e8;
+  padding: 43px 23px 47px 36px;
+  /* Flat, like every other card plate and button on the 제주 layout. The frame
+     draws a 5px #e8e8e8 hairline (probed at 1:1 on both the standard 관광명소
+     frame 6212:59152 and the low-reach 6289:70323), but the borderless
+     direction wins over the export — user call, 2026-08-26. The padding above
+     absorbed the stroke's 5px so the content column stays on x36 as drawn. */
+  border: none;
   border-radius: 42.905px;
   background: #fff;
   display: flex;

@@ -10,6 +10,7 @@
  */
 import type { KioskController } from '@renderer/hooks/useKioskController';
 import { jejuIconUrl } from '@renderer/assets/icons/jeju';
+import { useAccessibilityStore } from '@renderer/store/accessibilityStore';
 import { useAiStore } from '@renderer/store/aiStore';
 import { useLanguageStore } from '@renderer/store/languageStore';
 import { pick } from '@renderer/lib/i18n';
@@ -104,12 +105,31 @@ const COURSES: Course[] = [
   },
 ];
 
-/** Card `top` per course, in artboard px. */
-const CARD_TOPS = [868, 1628, 2385];
+/**
+ * Card `top` per course, in artboard px.
+ *
+ * The 2026-08-26 pass moved all three down 55 (868/1628/2385 → 923/1683/2440)
+ * to open the y737 slot the answer pills now occupy.
+ */
+const CARD_TOPS = [923, 1683, 2440];
 
 export function JejuAiResult({ controller }: Props): JSX.Element {
   const setCourse = useAiStore((s) => s.setCourse);
   const lang = useLanguageStore((s) => s.currentLanguage);
+  const lowReach = useAccessibilityStore((s) => s.lowReach);
+
+  /* The pill row above the cards echoes the questionnaire answers: 인원 · 기간 ·
+     이동수단, then the picked interests. All stored KOREAN (see JejuAiSearch's
+     submit), which is also how the frames draw them. Empty slots (deep-link,
+     idle reset) just drop out.
+
+     It started as a ♿-only row (6326:82014); the 2026-08-26 pass put it on the
+     standard frame too (6516:73056), left-aligned at x172 rather than centred. */
+  const visitors = useAiStore((s) => s.visitors);
+  const stay = useAiStore((s) => s.stay);
+  const transport = useAiStore((s) => s.transport);
+  const interests = useAiStore((s) => s.interests);
+  const picks = [visitors, stay, transport, ...interests].filter(Boolean);
 
   const choose = (course: Course): void => {
     setCourse(course.key);
@@ -117,13 +137,28 @@ export function JejuAiResult({ controller }: Props): JSX.Element {
   };
 
   return (
+    /* Mode-bar revision (6326:82014): header at y113, all three cards a pure
+       +531 (868/1628/2385 → 1399/2159/2916, measured), no banner in low-reach. */
     <JejuPageFrame
       controller={controller}
       title="'제주' 뭐하지 (AI 검색)"
       subtitle={pick(T.subtitle, lang)}
       bannerFallback="banner-detail"
       onBack={() => controller.navigate('ai_search', '뒤로')}
+      lowReachModeBar
+      lowReachShift={113}
+      /* 476, not the old 531: the standard cards moved down 55 and the ♿ frame
+         did not — its three cards are still measured at 1399/2159/2916, so the
+         shift absorbs the difference (923 + 476 = 1399). */
+      lowReachBodyShift={476}
     >
+      {picks.length > 0 && (
+        <div className={`${styles.picks} ${lowReach ? styles.picksLow : ''}`}>
+          {picks.map((p, i) => (
+            <span key={i} className={styles.pick}>{p}</span>
+          ))}
+        </div>
+      )}
       {COURSES.map((course, i) => (
         <button
           key={course.key}

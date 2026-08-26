@@ -1,13 +1,24 @@
 /*
- * 제주 AI 코스 상세 — Figma nodes 6289:55320 (single day, -03-1) and 6289:55078
- * (multi-day with the DAY arrows, -03-2), the 2026-08-24 pass over 6418:11009 /
- * 6418:11330.
+ * 제주 AI 코스 상세 — Figma node 6516:73138 (-03-1), the 2026-08-26 re-stack of
+ * 6289:55320 / 6289:55078 (-03-2).
  *
- * Fixed chrome down to the DAY label, then a scrolling spot list:
- *   693  course title (90px)       810  rule (w874)      831  hashtags
- *   925  course description        1095 summary bar (h150, r75)
- *   1300 DAY label + pager         1423 spot list (paged, four cards)
- *   3663 QR row (4 cards)
+ * Fixed chrome down to the DAY row, then a paged spot list:
+ *   693  course title (90px)       810  rule (w874)      824  hashtags
+ *   926  course description        1049 summary bar (h150, r75)
+ *   1235 answer pills (h130)       1395 QR row (h150, right)
+ *   1427 DAY pager  1436 DAY label
+ *   1575 spot list (four cards, 2210)   1880 timeline rail
+ *
+ * WHAT THE RE-STACK CHANGED, against the 2026-08-24 layout it replaces: the
+ * summary bar rose 46 (1095 → 1049) to open a slot at 1235 for a row of pills
+ * echoing the questionnaire; the QR came OFF the foot of the list and onto the
+ * DAY row at a fixed y1395, so it no longer tracks the card count; and the DAY
+ * row and list moved down (1300 → 1436, 1423 → 1575).
+ *
+ * ♿ IS NOT ON THIS REVISION. Its frame (6418:11330) still draws the old stack,
+ * so the *Low rules at the foot of this file put those seven rows back rather
+ * than guessing where a revised ♿ frame would place them.
+ *
  * The numbered circles at x170 are rows of the list itself rather than discs
  * pinned to the page, so each one always sits beside the card it numbers. It
  * has to work that way now the list is PAGED: the server schedules as many
@@ -49,7 +60,7 @@
 .tags {
   position: absolute;
   left: 0;
-  top: 831px;
+  top: 824px;
   width: 2160px;
   margin: 0;
   font-size: 45px;
@@ -66,7 +77,7 @@
 .desc {
   position: absolute;
   left: 50%;
-  top: 925px;
+  top: 926px;
   width: 1820px;
   transform: translateX(-50%);
   margin: 0;
@@ -82,7 +93,7 @@
 .summary {
   position: absolute;
   left: 170px;
-  top: 1095px;
+  top: 1049px;
   width: 1820px;
   height: 150px;
   border-radius: 75px;
@@ -124,8 +135,8 @@
 
 /*
  * ★ `pointer-events: none` is load-bearing, not tidiness. This label is a
- * FULL-WIDTH absolutely-positioned box (0…2160 at y1300…1368) painted after the
- * ← button (x866…951 at y1291…1376), so it covered it and swallowed every tap:
+ * FULL-WIDTH absolutely-positioned box (0…2160 at y1436…1504) painted after the
+ * ← button (x866…951 at y1427…1512), so it covered it and swallowed every tap:
  * the back arrow was dead on every course, while → kept working purely because
  * it is drawn after the label. The label is never interactive, so it stops
  * taking hits at all rather than being pushed around with z-index.
@@ -134,7 +145,7 @@
   position: absolute;
   pointer-events: none;
   left: 0;
-  top: 1300px;
+  top: 1436px;
   width: 2160px;
   margin: 0;
   font-size: 68px;
@@ -147,11 +158,11 @@
 /* ── Day swiper: 85×85 round chevron buttons either side of the DAY label ──
    The redesign (6418:11330) replaced the old bare 59×68 triangles with filled
    circles carrying a white chevron: #ff7f0f when the day exists, #999 when it
-   does not — the frame shows the left one grey on DAY 1. Measured off the 1:1
-   render at x866 / x1209, y1291; symmetric about x1080. */
+   does not — the frame shows the left one grey on DAY 1. x866 / x1209, y1427
+   (6418:11598/11599); symmetric about x1080. */
 .dayArrow {
   position: absolute;
-  top: 1291px;
+  top: 1427px;
   width: 85px;
   height: 85px;
   padding: 0;
@@ -187,12 +198,12 @@
 }
 
 /* ── Timeline rail: dashed line + numbered stops ──
-   Circles sit at x170; the dashed line (Figma x222, y1705, h1687) runs behind
+   Circles sit at x170; the dashed line (Figma x222, y1880, h1687) runs behind
    them. */
 .rail {
   position: absolute;
   left: 220px;
-  top: 1705px;
+  top: 1880px;
   width: 5px;
   height: 1687px;
   border-left: 5px dashed var(--kiosk-primary, #ff7f0f);
@@ -230,9 +241,10 @@
   /* Starts at the disc gutter rather than the card edge, because the discs are
      rows of this list now — the cards still begin at the design's 310. */
   left: 170px;
-  top: 1423px;
+  top: 1575px;
   width: 1818px;
-  height: 2240px;
+  /* Exactly four cards: 4×515 + 3×50. */
+  height: 2210px;
   display: flex;
   flex-direction: column;
   gap: 50px;
@@ -246,154 +258,28 @@
   overflow: hidden;
 }
 
-.spot {
-  flex: none;
-  width: 1678px;
-  height: 515px;
-  box-sizing: border-box;
-  padding: 65px 80px 51px 74px;
-  border: none;
-  border-radius: 40px;
-  background: #fff;
-  display: flex;
-  align-items: center;
-  gap: 51px;
-  text-align: left;
-  cursor: pointer;
-  -webkit-tap-highlight-color: transparent;
-}
+/* The spot card itself (the 515px white plate) moved to
+   JejuCourseSpotCard.module.css when the 2026-08-26 pass put the same card
+   under the spot detail too. Only the list geometry above is still here. */
 
-.spotImg {
-  width: 620px;
-  height: 399px;
-  flex: 0 0 auto;
-  border-radius: 42.9px;
-  object-fit: cover;
-  background: #f2ede6;
-}
 
-.spotBody {
-  width: 875px;
-  height: 399px;
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-  min-width: 0;
-}
-
-.spotTop {
-  height: 287px;
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-}
-
-.spotNameRow {
-  height: 85.799px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 30px;
-  min-width: 0;
-}
-
-.spotName {
-  margin: 0;
-  font-size: 68px;
-  font-weight: 700;
-  line-height: 1;
-  color: #000;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.spotTag {
-  margin: 0;
-  flex: 0 0 auto;
-  font-size: 52px;
-  font-weight: 400;
-  line-height: 1;
-  color: #999;
-  text-align: right;
-  white-space: nowrap;
-}
-
-.spotAddrRow {
-  display: flex;
-  align-items: center;
-  gap: 20px;
-  min-width: 0;
-}
-
-.spotAddrIcon {
-  width: 51px;
-  height: 51px;
-  flex: 0 0 auto;
-  object-fit: contain;
-}
-
-.spotAddr {
-  margin: 0;
-  font-size: 38px;
-  font-weight: 400;
-  line-height: 1;
-  color: #333;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.spotDesc {
-  margin: 0;
-  font-size: 38px;
-  font-weight: 400;
-  line-height: 1.3;
-  color: #999;
-  overflow: hidden;
-  display: -webkit-box;
-  -webkit-box-orient: vertical;
-  -webkit-line-clamp: 2;
-}
-
-.spotMeta {
-  display: flex;
-  align-items: center;
-  gap: 60px;
-}
-
-.metaItem {
-  display: flex;
-  align-items: center;
-  gap: 20px;
-}
-
-.metaIcon {
-  width: 58px;
-  height: 58px;
-  flex: 0 0 auto;
-  object-fit: contain;
-}
-
-.metaText {
-  font-size: 38px;
-  font-weight: 400;
-  line-height: 1;
-  color: #333;
-  white-space: nowrap;
-}
-
-/* ── 모바일에서 확인하기 QR, under the last spot card ──────────────────
+/* ── 모바일에서 확인하기 QR ─────────────────────────────────────────────
    Anchored by `right`, not `left`, so the QR's right edge lines up with the
    cards' right edge (310 + 1678 = 1988 → 2160 − 1988 = 172) no matter how wide
    the label runs — a left-anchored row would drift as the label is translated.
-   `top` is set inline from the real card count; see qrTopFor(). */
+   (The frame puts it at 1985; the 3px is Figma's own centring rounding, and
+   sitting flush with the cards is what the row is for.)
+
+   The 2026-08-26 pass moved it OFF the foot of the list and onto the DAY row —
+   a fixed y1395, no longer a function of how many cards the page drew. ♿ still
+   has it under the last card and sets `top` inline; see qrTopFor(). */
 .qrRow {
   position: absolute;
   right: 172px;
+  top: 1395px;
   display: flex;
   align-items: center;
-  gap: 30px;
+  gap: 32px;
 }
 
 .qrLabel {
@@ -440,4 +326,69 @@
   line-height: 1.4;
   color: #909090;
   text-align: center;
+}
+
+/* ── The answer pills ──────────────────────────────────────────────────
+   6516:73323 — the questionnaire echoed back between the summary bar and the
+   DAY row: 인원 · 기간 · 이동수단 and the picked 즐길 거리, same six values
+   JejuAiResult shows one screen earlier. Centred, h120 pills at 45px (the
+   course-picker's are h130 at 50px — the two rows are drawn at different
+   sizes, so neither borrows the other's).
+
+   Standard frame only: the ♿ frame (6418:11330) has no such row. */
+.picks {
+  position: absolute;
+  left: 170px;
+  top: 1235px;
+  width: 1820px;
+  height: 130px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 32px;
+}
+
+.pick {
+  box-sizing: border-box;
+  /* Shrinkable for the same reason JejuAiResult's are: the six Korean pills fill
+     1812 of the 1820 column, so a longer language has to wrap rather than push
+     the last pill off the page — which is what the frame's own 레저·액티비티
+     pill already does. */
+  flex: 0 1 auto;
+  min-width: 208px;
+  height: 120px;
+  padding: 0 60px;
+  border-radius: 45px;
+  background: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 45px;
+  font-weight: 700;
+  line-height: 1.1;
+  color: var(--kiosk-primary, #ff7f0f);
+  text-align: center;
+  overflow-wrap: anywhere;
+}
+
+/*
+ * ── LOW-REACH (♿) row tops ────────────────────────────────────────────
+ * Everything above is the STANDARD frame as re-stacked on 2026-08-26
+ * (6516:73138). The ♿ frame (6418:11330) has NOT been revised, so it keeps the
+ * geometry it was actually measured against rather than a guess — these seven
+ * rules restore it. They must stay after the rules they override: both are
+ * single-class selectors, so source order is what decides.
+ *
+ * The pill row has no ♿ counterpart and simply is not drawn there.
+ */
+.tagsLow { top: 831px; }
+.descLow { top: 925px; }
+.summaryLow { top: 1095px; }
+.dayLow { top: 1300px; }
+.dayArrowLow { top: 1291px; }
+.railLow { top: 1705px; }
+
+.listLow {
+  top: 1423px;
+  height: 2240px;
 }

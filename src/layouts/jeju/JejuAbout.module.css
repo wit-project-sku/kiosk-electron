@@ -52,21 +52,18 @@
   row-gap: 72px;
 }
 
-/* Same pill chrome as the tab row: 5px #e8e8e8 border, r42.9, white — the
-   frame exports it as a flattened SVG, but it carries no shadow, only a
-   stroke. Padding puts content at card-rel 78 / 54 through the 5px border. */
+/* Same pill chrome as the tab row: r42.9, white, flat. The frame exports it as
+   a flattened SVG carrying a 5px #e8e8e8 stroke and no shadow, but the 제주
+   direction is borderless card plates and buttons throughout — the stroke is
+   dropped here as it is everywhere else on the layout (user call,
+   2026-08-26). Content still sits at card-rel 78 / 54; the padding carries the
+   5px the border used to, so nothing moved when the stroke went. */
 .card {
   width: 806px;
   height: 1014px;
   box-sizing: border-box;
-  padding: 49px 73px 0;
-  /* The 5px #e8e8e8 stroke the comment above describes, and which the padding
-     is measured through. Probed at 1:1 on the low-reach 문화 frame
-     (6289:70264): the card's top edge reads (232,232,232) for 5px from y1229
-     before the white fill. It had briefly gone to `border: none` under the
-     general "remove borders" pass, which also invalidated the 78/54 padding
-     note above — restored. */
-  border: 5px solid #e8e8e8;
+  padding: 54px 78px 0;
+  border: none;
   border-radius: 42.9px;
   background: #fff;
   overflow: hidden;
@@ -364,49 +361,56 @@
 
 /* ────────────────────────────────────────────────────────────────────────────
  * LOW-REACH (♿) — Figma 6289:70215 (역사) · 6289:70264 (문화) ·
- * 6289:70323 (관광명소) · 6289:70496 (관광명소 상세).
+ * 6289:70323 (관광명소) · 6289:70496 (관광명소 상세), re-read 2026-08-26 on the
+ * mode-bar revision.
  *
- * All four keep the 573 banner at the top and the header at y573 (the frame's
- * .rootLowReach does that), then re-lay-out the page below it: the tab row
- * leaves y700 for the foot at y3438, and losing it from the top lets the panel
- * come up from y979 to y1229. The 초성 index follows the tabs down to y3658 —
- * measured ink x218–1942 centred on 1080, the same widened run the low-reach
- * list screens use, hence the matching 124.57 cell.
+ * The 573 banner is GONE from ♿; the 113px mode bar opens the page and the
+ * header lands under it at y113 (the frame's lowReachModeBar + lowReachShift
+ * do that). The tab row still moves to the foot and the 초성 index joins it,
+ * but everything gained the room the banner freed: the 역사 panel and 문화
+ * cards come up 1229 → 1085, the grid's first card row 1229 → 875 (exactly
+ * three 730 rows now fit the viewport), and the drill-down 상세 card sits at
+ * 1057 (see LOW_CONTENT_TOP in the TSX).
  *
- * The frame is told `lowReachSelfLayout`, so it moves the header and banner but
- * leaves the body at 0 — every y below is absolute artboard, as in the standard
- * layout.
+ * NORMALISED: the four frames scatter the foot rows — tabs at 3430 / 3435 /
+ * 3438 / 3434 and 초성 at 3650 / 3654 — pure hand-drag slop, so the means win
+ * (3434 / 3652) and nothing twitches when the tabs swap. The 초성 keeps the
+ * widened 124.57 cell of the low-reach list screens.
+ *
+ * The frame is told `lowReachSelfLayout`, so the body stays at 0 — every y
+ * below is absolute artboard, as in the standard layout.
  * ──────────────────────────────────────────────────────────────────────────── */
 /* Doubled class on purpose. `.tabs` (top: 700px) lives in JejuTabRow's own
    module, so this override has equal specificity in a DIFFERENT file and which
    one wins would come down to the bundler's stylesheet order. `.tabsLow.tabsLow`
    raises it to 0-2-0 and settles it regardless of order. */
 .tabsLow.tabsLow {
-  top: 3438px;
+  top: 3434px;
 }
 
 .panelLow,
 .cardsLow {
-  top: 1229px;
+  top: 1085px;
 }
 
-/* The grid's own scroll viewport. Figma clips it to y1229–3329 (h2100); the
-   50/60 padding means `top` sits 50 above the first card row and `bottom`
-   60 below the last, so 1179 / 451 puts the content box exactly on 2100. */
+/* The grid's own scroll viewport. Figma clips it to y875–3185 (h2310 — three
+   730 rows + two 60 gaps exactly); the 50/60 padding means `top` sits 50 above
+   the first card row and `bottom` 60 below the last, so 825 / 595 puts the
+   content box exactly on 2310. */
 .spotsLow {
-  top: 1179px;
-  bottom: 451px;
+  top: 825px;
+  bottom: 595px;
 }
 
 /* In low-reach the 초성 row is at the foot beside the tabs, not above the grid,
    so the no-초성 language case no longer reclaims a band from the top — both
    cases start at the same y and this override cancels .spotsNoChosung. */
 .spotsLow.spotsNoChosung {
-  top: 1179px;
+  top: 825px;
 }
 
 .chosungLow {
-  top: 3658px;
+  top: 3652px;
   left: 208px;
   width: 1744px;
 }

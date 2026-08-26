@@ -23,6 +23,7 @@ export class WindowManager {
   private unsubscribeContent: (() => void) | null = null;
   private unsubscribePhoto: (() => void) | null = null;
   private unsubscribeWeather: (() => void) | null = null;
+  private unsubscribeWeatherForecast: (() => void) | null = null;
   private unsubscribeFlights: (() => void) | null = null;
   private unsubscribeSailings: (() => void) | null = null;
   private unsubscribeExchange: (() => void) | null = null;
@@ -66,6 +67,11 @@ export class WindowManager {
     // Forward weather refreshes so the kiosk header updates without a reload.
     this.unsubscribeWeather = this.container.weather.subscribe((snapshot) => {
       this.broadcast(IpcEvents.WeatherChanged, snapshot);
+    });
+
+    // Same 30-min tick, separate payload — the 제주 weather panel reads this one.
+    this.unsubscribeWeatherForecast = this.container.weather.subscribeForecast((forecast) => {
+      this.broadcast(IpcEvents.WeatherForecastChanged, forecast);
     });
 
     this.unsubscribeFlights = this.container.flights.subscribe((snapshot) => {
@@ -221,6 +227,8 @@ export class WindowManager {
     this.unsubscribePhoto = null;
     this.unsubscribeWeather?.();
     this.unsubscribeWeather = null;
+    this.unsubscribeWeatherForecast?.();
+    this.unsubscribeWeatherForecast = null;
     this.unsubscribeFlights?.();
     this.unsubscribeFlights = null;
     this.unsubscribeSailings?.();

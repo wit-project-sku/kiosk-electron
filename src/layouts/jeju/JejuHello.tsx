@@ -489,6 +489,16 @@ function TopicPanel({
   const heritage = mascot.id === 'yusan' ? styles.topicHeritage : '';
   const items = topics.map((t) => ({ id: t.id, label: greet(mascot, t.labelKey, lang, { ko: t.label }) }));
 
+  /* ♿ draws the topic photo 15% larger — 6297:74010's 1103×1736 is exactly
+     하영's 959×1509 × 1.15 (the round lands 1px under its 1736; slop) — and at
+     ONE size for both topic tabs: 건강습관 uses 취미생활's box rather than
+     scaling its own narrower standard dims (user's call, 2026-08-26). So the
+     scale rides the mascot's HOBBIES dims regardless of tab. */
+  const lowBase = TOPICS_BY_MASCOT[mascot.id].hobbies.photo;
+  const dims = lowReach
+    ? { width: Math.round(lowBase.width * 1.15), height: Math.round(lowBase.height * 1.15) }
+    : photo;
+
   return (
     <>
       <JejuSubTabRow
@@ -501,7 +511,7 @@ function TopicPanel({
       {current.photo && (
         <div
           className={`${styles.topicPhoto} ${heritage} ${lowReach ? styles.topicPhotoLow : ''}`}
-          style={photo}
+          style={dims}
         >
           <img
             src={current.photo}
@@ -577,6 +587,9 @@ export function JejuHello({ controller }: Props): JSX.Element {
   const portrait = jejuIconUrl('hello-portrait');
 
   return (
+    /* ♿ is on the 2026-08-26 mode-bar revision (6558:79587 / 6297:74010): bar
+       at the top, header y113, no banner; the page self-positions its content
+       (the .*Low classes), so the body shift stays 0. */
     <JejuPageFrame
       controller={controller}
       title={mascot.helloTitle}
@@ -584,6 +597,8 @@ export function JejuHello({ controller }: Props): JSX.Element {
       subtitle={mascot.bio.fromSheet ? undefined : mascot.introLine}
       onBack={() => controller.navigate('home', '뒤로')}
       lowReachSelfLayout
+      lowReachModeBar
+      lowReachShift={113}
     >
       <JejuTabRow
         tabs={helloTabs(mascot).map(({ id, key, label: fb }) => ({

@@ -68,7 +68,16 @@ export function JejuLanguage({ controller }: Props): JSX.Element {
   }
 
   return (
-    <JejuPageFrame controller={controller} title="언어선택">
+    /* This page's ♿ frame (6286:24611) is on the 2026-08-26 mode-bar revision:
+       bar at the top, no promo banner, header y113, body +420 (언어선택영역
+       y700 → y1120, measured). */
+    <JejuPageFrame
+      controller={controller}
+      title="언어선택"
+      lowReachModeBar
+      lowReachShift={113}
+      lowReachBodyShift={420}
+    >
       <div className={styles.area}>
         {/* ── 현재 언어 ── */}
         <div className={`${styles.label} ${styles.labelCurrent}`}>

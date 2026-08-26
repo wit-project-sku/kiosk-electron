@@ -128,7 +128,12 @@ export function JejuSearch({ controller }: Props): JSX.Element {
   };
 
   return (
-    <JejuPageFrame controller={controller} title="검색" showBanner={false}>
+    /* This page's ♿ frame (6336:100835, 검색-02) is on the 2026-08-26 mode-bar
+       revision, and it is the degenerate case: the bar overlays the top and
+       NOTHING moves — header, search row, list and scroll discs all repeat
+       their standard positions (measured on the 1:1 render; the frame's
+       staggered scroll-disc group coords are paste slop). */
+    <JejuPageFrame controller={controller} title="검색" showBanner={false} lowReachModeBar>
       <div className={styles.scroll} ref={scrollRef}>
         <div className={styles.searchRow}>
           <div className={styles.searchField} role="button" onClick={() => setFocused(true)}>

@@ -49,18 +49,50 @@
 }
 
 /*
+ * The 2026-08-26 REVISION of the low-reach shapes — Figma 6286:24611 (언어선택),
+ * 6336:100835 (검색-02), 6336:100864 (검색-03), as they stand now (the designer
+ * edits frames in place). The 573 promo banner is gone from low-reach entirely;
+ * the 113px mode bar below overlays the top instead, and each page drops its
+ * header/body by ITS OWN measured offsets, which ride in as JejuPageFrame's
+ * lowReachShift / lowReachBodyShift props and land as inline --jeju-shift /
+ * --jeju-body-shift (언어선택 113/420 · 검색 상세 687/687 · 검색 0/0). Opt-in per
+ * page via `lowReachModeBar`; flip each page over as its revised frame arrives.
+ *
+ * Same bar as JejuHome's — the frames draw #232323 on #999, but the standing
+ * direction (2026-08-26) is white on the brand orange, on every 베리어프리
+ * frame that carries it.
+ */
+.modeBar {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 2160px;
+  height: 113px;
+  background: var(--kiosk-primary, #ff7f0f);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 68px;
+  font-weight: 700;
+  line-height: 1;
+  color: #fff;
+}
+
+/*
  * Low-reach HERO variant — for the pages whose content is far too tall to push
- * down 573px. Instead of re-stacking the existing page, these frames open with a
- * 1181px illustrated banner and restart the page under it: header at y1206, and
- * the screen lays its own content out at fresh coordinates (so --jeju-body-shift
- * stays 0 — a shifted body would move the screen's absolute y values twice).
+ * down. Instead of re-stacking the existing page, these frames restart the page
+ * under an illustrated banner: the screen lays its own content out at fresh
+ * coordinates (so --jeju-body-shift stays 0 — a shifted body would move the
+ * screen's absolute y values twice).
  *
  * Figma 6336:67216 / 6326:81769 / 6336:99702 / 6326:81686, the four states of
- * 제주모하지(AI검색). Those frames also split the questionnaire into two steps to
- * fit the space the banner leaves — that part lives in JejuAiSearch.
+ * 제주모하지(AI검색), re-read 2026-08-26 after the mode-bar revision: the bar
+ * takes y0–113, the hero shrinks 1181 → 959 and drops to y113–1072, and the
+ * header lands flush under it at y1072 (was 1206). The questionnaire content
+ * (y1906) and CTA (y3432) did NOT move — that part lives in JejuAiSearch.
  */
 .rootLowReachHero {
-  --jeju-shift: 1206px;
+  --jeju-shift: 1072px;
   --jeju-body-shift: 0px;
 }
 
@@ -76,16 +108,17 @@
   --jeju-body-shift: 0px;
 }
 
-/* The hero banner itself: 2160×1181 with a 30px #f49c56 rule across its top and
-   bottom edges (Figma draws them as separate bars at y0 and y1151). The artwork
-   is exported at 1536×857, a slightly squarer aspect than the box, so it is
-   drawn `cover` — which is what Figma's own 100.07%/102.12% overscan does. */
+/* The hero banner itself: 2160×959 at y113, under the mode bar. The 2026-08-26
+   revision dropped the 30px #f49c56 rules the old 1181-tall hero carried —
+   verified on the render: no #f49c56 at either edge (unlike the HOME hero,
+   whose frame keeps its rules). The artwork is exported at 1536×857, squarer
+   than the box, so it is drawn `cover` with Figma's own crop. */
 .hero {
   position: absolute;
   left: 0;
-  top: 0;
+  top: 113px;
   width: 2160px;
-  height: 1181px;
+  height: 959px;
   overflow: hidden;
 }
 
@@ -93,23 +126,13 @@
   width: 100%;
   height: 100%;
   object-fit: cover;
-  /* Figma pins this one at top 0 (h102.12%), so the 2.12% overflow all comes off
-     the bottom rather than being split evenly the way `cover` defaults to. */
-  object-position: center top;
+  /* Figma scales the art to h125.76% and pins it at top -17.75%, so 68.9% of
+     the vertical overflow (17.75 / 25.76) is cropped off the TOP — not the even
+     split `cover` would default to. */
+  object-position: center 68.9%;
   display: block;
   pointer-events: none;
 }
-
-.heroRule {
-  position: absolute;
-  left: 0;
-  width: 2160px;
-  height: 30px;
-  background: #f49c56;
-}
-
-.heroRuleTop { top: 0; }
-.heroRuleBottom { top: 1151px; }
 
 /* Sub-pages use a DIFFERENT background from the home screen: `image 182`
    (Figma node 6043:14435), the same illustration on every sub-page — the AI
@@ -218,6 +241,13 @@
 
 .rootLowReach .banner {
   top: 0;
+}
+
+/* Mode-bar shape with the banner kept (lowReachBarBanner): the 573 promo sits
+   flush under the 113px bar — 113 + 573 = 686, one round-up short of the y687
+   header the 검색 상세 frame draws. */
+.bannerBelowBar {
+  top: 113px;
 }
 
 .bannerImg {

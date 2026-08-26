@@ -18,11 +18,14 @@
  * the shop's Naver link, which is what the card turns into a QR.
  */
 import type { KioskController } from '@renderer/hooks/useKioskController';
+import { jejuIconUrl } from '@renderer/assets/icons/jeju';
+import { useAccessibilityStore } from '@renderer/store/accessibilityStore';
 import { useDetailStore } from '@renderer/store/detailStore';
 import { useLanguageStore } from '@renderer/store/languageStore';
 import { pick, screenTitle, type Lang } from '@renderer/lib/i18n';
 import { hasLoc, t } from '@renderer/lib/loc';
 import { JejuPageFrame } from './JejuPageFrame';
+import { JejuCourseSpotCard } from './JejuCourseSpotCard';
 import { JejuSpotDetailCard } from './JejuSpotDetailCard';
 import styles from './JejuDetail.module.css';
 
@@ -101,14 +104,22 @@ function chromeFor(
 
 export function JejuDetail({ controller }: Props): JSX.Element {
   const item = useDetailStore((s) => s.item);
+  const setItem = useDetailStore((s) => s.setItem);
   const lang = useLanguageStore((s) => s.currentLanguage);
+  const lowReach = useAccessibilityStore((s) => s.lowReach);
 
   // Back returns to the screen the item came from, not home.
   const goBack = (): void => controller.navigate(item?.from ?? 'search', '뒤로');
 
   if (!item) {
     return (
-      <JejuPageFrame controller={controller} title="상세" showBanner={false} onBack={goBack}>
+      <JejuPageFrame
+        controller={controller}
+        title="상세"
+        showBanner={false}
+        onBack={goBack}
+        lowReachModeBar
+      >
         <p className={styles.empty}>{pick(T.missing, lang)}</p>
       </JejuPageFrame>
     );
@@ -116,17 +127,67 @@ export function JejuDetail({ controller }: Props): JSX.Element {
 
   const chrome = chromeFor(item.from, item.title, lang);
 
+  /*
+   * The 다음 장소 card under the 상세 plate (6289:58438 → 6516:72906). Only the
+   * AI course ever sets `courseNext`, and only when the day has a stop left.
+   *
+   * NOT drawn in ♿: that layout re-stacks this page by +687 (see the frame
+   * props below), which would put the card at y3699–4214 — off the 3840
+   * artboard. The revised low-reach frame for -04 has not arrived, so the
+   * standard layout gets the card and ♿ keeps the plain detail until it does.
+   */
+  const next = lowReach ? undefined : item.courseNext;
+
   return (
+    /* This page's ♿ frame (6336:100864, 검색-03) is on the 2026-08-26 mode-bar
+       revision: header at y687 and the card riding the same +687 (y700 → y1387,
+       measured). The y687 is exactly bar (113) + promo banner (573) + Figma's
+       1px round-up — the banner STAYS at the top here, under the bar
+       (lowReachBarBanner; user-confirmed 2026-08-26 — the frame carries the
+       slot for the bar and banner, not the nodes themselves). */
     <JejuPageFrame
       controller={controller}
       title={chrome.title}
       subtitle={chrome.subtitle ?? detailSubtitle(lang)}
       subtitleColor={chrome.subtitleColor}
-      showBanner
+      /* The 다음 장소 card ends at y3527 and the banner starts at y3267, so the
+         page gives the banner up whenever it draws one — the same trade the AI
+         search page makes. Without a next stop nothing changes. In ♿ the card
+         never draws (see `next`), so showBanner is true there and the banner
+         moves to its under-the-bar slot. */
+      showBanner={!next}
       bannerFallback="banner-detail"
       onBack={goBack}
+      lowReachModeBar
+      lowReachShift={687}
+      lowReachBodyShift={687}
+      lowReachBarBanner
     >
       <JejuSpotDetailCard item={item} top={chrome.cardTop} gallery={chrome.gallery} />
+
+      {next && (
+        <>
+          {jejuIconUrl('ico-chevron') && (
+            <img src={jejuIconUrl('ico-chevron')} alt="" className={styles.nextChevron} draggable={false} />
+          )}
+          {/* Tapping it swaps the store item rather than navigating: this IS the
+              detail screen, so the next stop is the same page with new content —
+              and `from` travels with the item, so 뒤로 still returns to the
+              course list however far down the day a visitor has walked. */}
+          <JejuCourseSpotCard
+            width={1793}
+            className={styles.nextCard}
+            photo={next.item.photos[0] ?? jejuIconUrl('noimage') ?? ''}
+            name={next.item.name}
+            category={next.item.category}
+            address={next.item.address}
+            description={next.item.description}
+            dwell={next.dwell}
+            difficulty={next.difficulty}
+            onClick={() => setItem(next.item)}
+          />
+        </>
+      )}
     </JejuPageFrame>
   );
 }

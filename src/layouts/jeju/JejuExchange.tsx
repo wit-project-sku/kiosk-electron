@@ -3,11 +3,12 @@
  * 6412:76217 (calculator), 6412:76438 (keyboard open), 6412:76521 / 6412:76726
  * (currency dropdown on the top / bottom field) and 6219:99645 (실시간 환율).
  *
- * One screen, two tabs:
- *   환율계산기   amount + currency → converted amount, with a numeric keypad and
- *                a currency dropdown per field
+ * One screen, two tabs — 실시간 환율 on the left and open by default, 환율계산기
+ * on the right:
  *   실시간 환율  the same read-only rate list the other three layouts already
  *                ship (identical row: white pill, 170 flag, 60px label/rate)
+ *   환율계산기   amount + currency → converted amount, with a numeric keypad and
+ *                a currency dropdown per field
  *
  * The keypad and the two dropdowns are mutually exclusive overlays — opening one
  * closes the others, and a tap anywhere else closes all of them.
@@ -78,20 +79,27 @@ const CURRENCIES: Currency[] = [
 const byUnit = (unit: string): Currency =>
   CURRENCIES.find((c) => c.unit === unit) ?? (CURRENCIES[0] as Currency);
 
+/**
+ * Row order IS the drawn order — .tabs is a two-up flex row with no per-tab
+ * positioning — and the first entry is also the tab the page opens on (see
+ * `tab`'s initial state). 실시간 환율 leads: it is the read-only view, so it is
+ * what a visitor who only wants to glance at a rate needs, and the calculator
+ * is one tap away for the visitor who wants to do something.
+ */
 const TABS: ReadonlyArray<{ id: TabId; label: Partial<Record<Lang, string>> }> = [
+  {
+    id: 'live',
+    label: {
+      ko: '실시간 환율', en: 'Live Rates', ja: 'リアルタイム為替', zh: '实时汇率',
+      vi: 'Tỷ giá trực tiếp', th: 'อัตราเรียลไทม์', ru: 'Курсы валют', id: 'Kurs Terkini',
+    },
+  },
   {
     id: 'calc',
     label: {
       // Written closed-up in the design (6412:76320), not "환율 계산기".
       ko: '환율계산기', en: 'Converter', ja: '為替計算機', zh: '汇率计算器',
       vi: 'Máy tính tỷ giá', th: 'เครื่องคำนวณ', ru: 'Калькулятор', id: 'Kalkulator',
-    },
-  },
-  {
-    id: 'live',
-    label: {
-      ko: '실시간 환율', en: 'Live Rates', ja: 'リアルタイム為替', zh: '实时汇率',
-      vi: 'Tỷ giá trực tiếp', th: 'อัตราเรียลไทม์', ru: 'Курсы валют', id: 'Kurs Terkini',
     },
   },
 ];
@@ -151,7 +159,8 @@ export function JejuExchange({ controller }: Props): JSX.Element {
   const lang = useLang();
   const exchange = useExchangeStore((s) => s.exchange);
 
-  const [tab, setTab] = useState<TabId>('calc');
+  /** Opens on 실시간 환율, the left-hand tab — see TABS. */
+  const [tab, setTab] = useState<TabId>('live');
   const [fromUnit, setFromUnit] = useState('JPY(100)');
   const [toUnit, setToUnit] = useState('KRW');
   const [digits, setDigits] = useState('1000');

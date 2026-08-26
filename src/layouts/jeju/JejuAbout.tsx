@@ -249,11 +249,14 @@ const CHOSUNG_BAND = 82;
 const DETAIL_TOP = 1047;
 
 /*
- * Low-reach y values — Figma 6289:70215 / 70264 / 70323 / 70496. The tab row
- * moves to the foot, so the panel, the card grid and the 상세 card all start at
- * 1229 regardless of tab, and the 초성 row joins the tabs at the bottom.
+ * Low-reach y values — Figma 6289:70215 / 70264 / 70323 / 70496, re-read
+ * 2026-08-26 on the mode-bar revision (bar at y0–113, header y113, no banner).
+ * The tab row moves to the foot and the content tops are now PER STATE: the
+ * 역사 panel and 문화 cards at 1085, the 관광명소 grid's first card at 875
+ * (exactly three 730 rows fit), and the drill-down 상세 card at 1057 (its 2133
+ * height bottoms out at 3190, level with the grid's 3185).
  */
-const LOW_CONTENT_TOP = 1229;
+const LOW_CONTENT_TOP = 1057;
 /** 14 × 124.57 = 1744 — the wider ㄱ…ㅎ run the low-reach frames draw. */
 const LOW_CHOSUNG_CELL = 124.57;
 
@@ -452,13 +455,19 @@ export function JejuAbout({ controller }: Props): JSX.Element {
   const arrow = jejuIconUrl('arrow-gallery');
 
   return (
-    // No banner override: this frame carries the same 상점 검색 promo as 상세.
+    /* No banner override in STANDARD: this frame carries the same 상점 검색
+       promo as 상세. ♿ is on the 2026-08-26 mode-bar revision (all four state
+       frames): bar at the top, header y113, banner gone, content self-laid-out
+       below — so the body shift stays 0 (lowReachSelfLayout's job, and the
+       mode-bar default). */
     <JejuPageFrame
       controller={controller}
       title="여기는 제주도"
       bannerFallback="banner-detail"
       onBack={goBack}
       lowReachSelfLayout
+      lowReachModeBar
+      lowReachShift={113}
     >
       <JejuTabRow
         tabs={TABS.map(({ id, key, label }) => ({ id, label: sheetText(key, lang, label) }))}

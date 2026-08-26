@@ -479,12 +479,18 @@
 }
 
 /* ────────────────────────────────────────────────────────────────────────────
- * LOW-REACH (♿) — Figma 6297:73923 ('하영'소개) and 6297:74304 ('하영'취미생활).
+ * LOW-REACH (♿) — Figma 6558:79587 ('하영'소개) and 6297:74010 ('하영'취미생활),
+ * re-read 2026-08-26 on the mode-bar revision (previously 6297:73923 / 74304).
  *
- * Same shape as 여기는 제주도: the 573 banner stays at the top with the header at
- * y573 (the frame's .rootLowReach), and the page re-lays-out below it. Both tab
- * rows go to the foot — the main row to y3467 and the sub-tab row to y3687 —
- * and the content moves up to y1260 now that nothing sits above it.
+ * Same shape as 여기는 제주도: the 573 banner is GONE, the 113px mode bar opens
+ * the page with the header flush under it at y113 (lowReachModeBar +
+ * lowReachShift in the TSX), and the page re-lays-out below. Both tab rows go
+ * to the foot — the main row to y3434 (the two frames draw 3435/3430, hand-drag
+ * slop, normalised to the same 3434 the 여기는 제주도 foot uses) and the sub-tab
+ * row 220 under it at y3654 — and the content rises now that nothing sits
+ * above it: profile card 1025, topic photo 927 (and 1.15× larger — see the
+ * TSX), topic caption card 2781. Heights are untouched (profile 2160, caption
+ * 549), so the mascot overrides above still ride into this layout.
  *
  * The cards also gain a hairline they do NOT have in the standard frame: probed
  * at x1700, standard 6217:94591 goes straight to white at its card top (y972)
@@ -501,23 +507,23 @@
    modules, so an equal-specificity override from this file would be decided by
    bundler stylesheet order. 0-2-0 settles it. */
 .tabsLow.tabsLow {
-  top: 3467px;
+  top: 3434px;
 }
 
 .subTabsLow.subTabsLow {
-  top: 3687px;
+  top: 3654px;
 }
 
 .cardLow {
-  top: 1260px;
+  top: 1025px;
   border: 2.145px solid #e8e8e8;
 }
 
 .topicPhotoLow {
-  top: 1260px;
+  top: 927px;
 }
 
 .topicCardLow {
-  top: 2818px;
+  top: 2781px;
   border: 2.145px solid #e8e8e8;
 }
