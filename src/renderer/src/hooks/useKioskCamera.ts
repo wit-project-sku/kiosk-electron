@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState, type RefObject } from 'react';
+import { openMonoCamera, PHOTO_STEREO_MODES, type MonoCamera } from '@renderer/lib/stereoCamera';
 
 interface UseKioskCameraOptions {
   deviceId: string | null;
@@ -16,23 +17,33 @@ interface UseKioskCameraResult {
   active: boolean;
   error: string | null;
   capture: () => string | null;
+  /** The camera delivered a side-by-side frame and one eye was kept. */
+  stereo: boolean;
 }
 
 /**
  * Kiosk camera hook — uses deviceId from CameraService via IPC.
  * Never stores image data in state; capture returns a data URL on demand.
+ *
+ * The stream handed to `videoRef` is always a single-picture one. A stereo
+ * camera (the ZED 2i) puts both sensors inside one frame, side by side, and
+ * `openMonoCamera` halves it before anything here sees it — so the preview, the
+ * capture below and the hand landmarker that reads the same element all get an
+ * ordinary mono feed. See `lib/stereoCamera.ts`.
  */
 export function useKioskCamera({ deviceId, enabled, rotation = 0 }: UseKioskCameraOptions): UseKioskCameraResult {
   const videoRef = useRef<HTMLVideoElement>(null);
-  const streamRef = useRef<MediaStream | null>(null);
+  const cameraRef = useRef<MonoCamera | null>(null);
   const [active, setActive] = useState(false);
+  const [stereo, setStereo] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const stop = useCallback((): void => {
-    streamRef.current?.getTracks().forEach((t) => t.stop());
-    streamRef.current = null;
+    cameraRef.current?.stop();
+    cameraRef.current = null;
     if (videoRef.current) videoRef.current.srcObject = null;
     setActive(false);
+    setStereo(false);
   }, []);
 
   useEffect(() => {
@@ -46,26 +57,27 @@ export function useKioskCamera({ deviceId, enabled, rotation = 0 }: UseKioskCame
     void (async () => {
       setError(null);
       try {
-        const constraints: MediaStreamConstraints = {
-          video: deviceId
-            ? { deviceId: { exact: deviceId }, width: { ideal: 1920 }, height: { ideal: 1080 } }
-            : { width: { ideal: 1920 }, height: { ideal: 1080 } },
-          audio: false,
-        };
-        const stream = await navigator.mediaDevices.getUserMedia(constraints);
+        const camera = await openMonoCamera({
+          deviceId,
+          stereoModes: PHOTO_STEREO_MODES,
+          // What a plain webcam gets — unchanged from before the ZED, so the
+          // Elgato kiosks that have not been swapped over behave identically.
+          fallback: { width: { ideal: 1920 }, height: { ideal: 1080 } },
+        });
         if (cancelled) {
-          stream.getTracks().forEach((t) => t.stop());
+          camera.stop();
           return;
         }
-        streamRef.current = stream;
+        cameraRef.current = camera;
         if (videoRef.current) {
-          videoRef.current.srcObject = stream;
+          videoRef.current.srcObject = camera.stream;
           await videoRef.current.play();
         }
+        setStereo(camera.stereo);
         setActive(true);
       } catch {
         if (!cancelled) {
-          setError('Camera unavailable. Check that your Elgato or USB camera is connected.');
+          setError('Camera unavailable. Check that your ZED or USB camera is connected.');
           setActive(false);
         }
       }
@@ -101,5 +113,5 @@ export function useKioskCamera({ deviceId, enabled, rotation = 0 }: UseKioskCame
     return canvas.toDataURL('image/jpeg', 0.92);
   }, [active, rotation]);
 
-  return { videoRef, active, error, capture };
+  return { videoRef, active, error, capture, stereo };
 }

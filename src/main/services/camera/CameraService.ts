@@ -6,6 +6,12 @@ import { createLogger } from '@main/core/logger';
 const log = createLogger('camera-service');
 
 const ELGATO_PATTERN = /elgato|facecam|cam link|prompter/i;
+/**
+ * The ZED 2i, the kiosk's camera since 2026-08. UVC-compliant, so it needs no
+ * driver and no ZED SDK to appear here — but its frames are side by side and
+ * are halved in the renderer (`renderer/lib/stereoCamera.ts`).
+ */
+const ZED_PATTERN = /\bzed\b|stereolabs/i;
 
 interface CameraStore {
   preferredDeviceId: string | null;
@@ -52,7 +58,12 @@ export class CameraService {
       vendor: detectVendor(d.label),
     }));
 
-    log.info('Camera devices enumerated', { count: this.cachedDevices.length });
+    // Labels, not just a count: "is the ZED even being seen, and is it listed
+    // twice?" is the first question every camera call-out starts with.
+    log.info('Camera devices enumerated', {
+      count: this.cachedDevices.length,
+      devices: this.cachedDevices.map((d) => `${d.label} (${d.vendor})`),
+    });
     return this.cachedDevices;
   }
 
@@ -60,12 +71,23 @@ export class CameraService {
     return this.cachedDevices;
   }
 
-  /** Select best camera: saved preference → Elgato → first available. */
+  /**
+   * Select best camera: saved preference → ZED → Elgato → first available.
+   *
+   * The ZED outranks the Elgato because it is the camera the kiosks are being
+   * fitted with; a machine that still has both plugged in during the swap
+   * should be running the new one. `find` also settles the case of a driver
+   * that lists the ZED more than once — the first entry is the one every open
+   * then uses, rather than a different node each time.
+   */
   resolveDeviceId(): string | null {
     const preferred = getStore().get('preferredDeviceId');
     if (preferred && this.cachedDevices.some((d) => d.deviceId === preferred)) {
       return preferred;
     }
+
+    const zed = this.cachedDevices.find((d) => d.vendor === 'zed');
+    if (zed) return zed.deviceId;
 
     const elgato = this.cachedDevices.find((d) => d.vendor === 'elgato');
     if (elgato) return elgato.deviceId;
@@ -83,6 +105,7 @@ export class CameraService {
 }
 
 function detectVendor(label: string): CameraDeviceInfo['vendor'] {
+  if (ZED_PATTERN.test(label)) return 'zed';
   if (ELGATO_PATTERN.test(label)) return 'elgato';
   if (label.trim().length > 0) return 'usb';
   return 'unknown';

@@ -32,6 +32,28 @@ export class WindowManager {
 
   constructor(private readonly container: AppContainer) {}
 
+  /**
+   * Copies the renderer's `[camera]` lines into the main log file.
+   *
+   * The camera is opened in the renderer, so what it negotiated — device label,
+   * frame size, whether the side-by-side split engaged — is only ever written
+   * to a DevTools console nobody opens on a kiosk in a shopping arcade. Those
+   * few lines are exactly what a "the screen shows two people" call-out needs,
+   * and a packaged machine has no other way to surrender them.
+   *
+   * Deliberately narrow: this is a diagnostic bridge for one subsystem, not a
+   * general renderer-console mirror, which would fill a 10 MB rotation with
+   * React noise and bury the lines it exists to preserve.
+   */
+  private forwardCameraLogs(window: BrowserWindow, source: 'main' | 'display'): void {
+    window.webContents.on('console-message', (_event, level, message) => {
+      if (!message.includes('[camera]')) return;
+      // Levels are 0-3 (verbose, info, warning, error).
+      if (level >= 2) log.warn(`[${source}] ${message}`);
+      else log.info(`[${source}] ${message}`);
+    });
+  }
+
   /** Create the operator window and auto-open the display on a 2nd monitor. */
   bootstrap(): void {
     const bootstrap = buildBootstrapData(this.container);
@@ -39,6 +61,7 @@ export class WindowManager {
     this.mainWindow.on('closed', () => {
       this.mainWindow = null;
     });
+    this.forwardCameraLogs(this.mainWindow, 'main');
     this.mainWindow.webContents.once('did-finish-load', () => {
       const flights = this.container.flights.getCurrent();
       if (flights) this.broadcast(IpcEvents.FlightsChanged, flights);
@@ -132,6 +155,8 @@ export class WindowManager {
       display,
       kiosk: settings.displayKioskMode,
     });
+
+    this.forwardCameraLogs(this.displayWindow, 'display');
 
     // Push the current state as soon as the window's renderer is ready.
     this.displayWindow.webContents.once('did-finish-load', () => {

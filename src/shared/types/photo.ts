@@ -70,7 +70,12 @@ export interface PhotoOption {
 export interface CameraDeviceInfo {
   deviceId: string;
   label: string;
-  vendor: 'elgato' | 'usb' | 'unknown';
+  /**
+   * `zed` is the ZED 2i — a stereo camera, so its frames arrive side by side
+   * and have to be halved before anything shows them. See
+   * `renderer/lib/stereoCamera.ts`.
+   */
+  vendor: 'zed' | 'elgato' | 'usb' | 'unknown';
 }
 
 /** Runtime workflow state — lives in main process, synced via IPC. */

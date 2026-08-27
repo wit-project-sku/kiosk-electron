@@ -74,6 +74,17 @@ export interface KioskLocation {
    * NOT a fleet constant (it briefly was one, `PHOTO_CAMERA_ROTATION`, which
    * rotated every venue's feed; reverted 2026-08-26).
    *
+   * ★ 제주 is back to 0 since the ZED 2i (2026-08-26). The turn still happens —
+   * it is just done by the CAMERA now, set to rotate left 90° in its own
+   * settings, which is free where doing it here costs a full-frame canvas
+   * rotate on every captured photo. The camera then delivers its two eyes
+   * STACKED rather than side by side, which the splitter recognises and cuts
+   * along the other axis (`lib/stereoCamera.ts`, StereoLayout).
+   *
+   * This value and the camera's own setting are two halves of one decision:
+   * set this to 0 only where the camera has actually been turned, or the
+   * kiosk shows a sideways visitor. One value covers all three 제주 machines.
+   *
    * One value drives BOTH consumers, which must never disagree:
    *   · the live preview  (JejuCameraGuide .feed)
    *   · the captured JPEG (useKioskCamera.capture) — the AR API must receive
@@ -149,7 +160,7 @@ export const KIOSK_LOCATIONS: Record<KioskLocationCode, KioskLocation> = {
   // then it sent 인사('2'), so 같이찍기 photos composited the Insadong character
   // while the screen next to them said "사진촬영 (with '하영')" — the UI has always
   // promised 하영 (see Photo_SelectTogether and the two 하영 home tiles).
-  W006: { code: 'W006', name: '제주공항', layout: 'JEJU_AIRPORT', secondTile: MARKET_TILE, hasCardTerminal: true, hasDonation: true, aiCompanion: '5', coordinates: JEJU_AIRPORT_COORDS, shopApiKioskId: 7, cameraRotation: 90 },
+  W006: { code: 'W006', name: '제주공항', layout: 'JEJU_AIRPORT', secondTile: MARKET_TILE, hasCardTerminal: true, hasDonation: true, aiCompanion: '5', coordinates: JEJU_AIRPORT_COORDS, shopApiKioskId: 7, cameraRotation: 0 },
   // 제주국제여객터미널 W007 — the CMS name is `#W007-제주시=제주국제여객터미널`. It runs
   // the SAME design as 제주공항: one JEJU_AIRPORT layout, one Localization_Jeju tab,
   // the same 하영 mascot rows, the same 310-row 제주 shop catalogue.
@@ -164,7 +175,7 @@ export const KIOSK_LOCATIONS: Record<KioskLocationCode, KioskLocation> = {
   // override for the reason recorded on the `shopApiKioskId` field above.
   // `aiCompanion` is 하영('5'), exactly like W006 — same venue mascot, same
   // Localization_Jeju rows, and the two were always meant to move together.
-  W007: { code: 'W007', name: '제주국제여객터미널', layout: 'JEJU_AIRPORT', secondTile: MARKET_TILE, hasCardTerminal: true, hasDonation: true, aiCompanion: '5', coordinates: JEJU_TERMINAL_COORDS, cameraRotation: 90 },
+  W007: { code: 'W007', name: '제주국제여객터미널', layout: 'JEJU_AIRPORT', secondTile: MARKET_TILE, hasCardTerminal: true, hasDonation: true, aiCompanion: '5', coordinates: JEJU_TERMINAL_COORDS, cameraRotation: 0 },
   // 세계자연유산본부 W008 — the CMS name is `#W008-제주시=세계자연유산본부` (the sheet's
   // 비고 column calls the venue 제주유산문화센터). Same 제주 design, but its OWN
   // JEJU_HERITAGE layout because its mascot is 유산, not 하영 — the shared
@@ -189,7 +200,7 @@ export const KIOSK_LOCATIONS: Record<KioskLocationCode, KioskLocation> = {
   // (LocalizationSyncParser.VENUE_MASCOTS rewrites every 하영 row to 유산), so
   // compositing 하영 would contradict the one rule this layout exists to enforce.
   // Revisit when Digicon ships a 유산 code.
-  W008: { code: 'W008', name: '세계자연유산본부', layout: 'JEJU_HERITAGE', secondTile: MARKET_TILE, hasCardTerminal: true, hasDonation: true, aiCompanion: '2', coordinates: JEJU_HERITAGE_COORDS, cameraRotation: 90 },
+  W008: { code: 'W008', name: '세계자연유산본부', layout: 'JEJU_HERITAGE', secondTile: MARKET_TILE, hasCardTerminal: true, hasDonation: true, aiCompanion: '2', coordinates: JEJU_HERITAGE_COORDS, cameraRotation: 0 },
 };
 
 /**

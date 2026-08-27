@@ -1,6 +1,6 @@
 {
   "name": "kiosk-app",
-  "version": "5.0.20",
+  "version": "5.0.23",
   "description": "Production-grade offline-first Electron kiosk application with multi-monitor customer display.",
   "main": "./out/main/index.js",
   "author": "Kiosk App Team",

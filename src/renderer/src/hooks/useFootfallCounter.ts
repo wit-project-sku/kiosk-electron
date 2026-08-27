@@ -6,6 +6,7 @@ import { LineCrossingCounter } from '@renderer/lib/footfall/LineCrossingCounter'
 import { MotionGate } from '@renderer/lib/footfall/MotionGate';
 import { ObjectTracker } from '@renderer/lib/footfall/ObjectTracker';
 import { PersonDetector } from '@renderer/lib/footfall/PersonDetector';
+import { FOOTFALL_STEREO_MODES, openMonoCamera, type MonoCamera } from '@renderer/lib/stereoCamera';
 
 /**
  * 유동인구 — the seeing half.
@@ -92,7 +93,7 @@ export function useFootfallCounter({ video }: Options): FootfallStatus {
     // the wrong element's srcObject would leave this stream attached to nothing
     // that can release it.
     const videoElement = video.current;
-    let stream: MediaStream | null = null;
+    let camera: MonoCamera | null = null;
     let loopTimer: ReturnType<typeof setTimeout> | null = null;
     let reportTimer: ReturnType<typeof setInterval> | null = null;
     let retryTimer: ReturnType<typeof setTimeout> | null = null;
@@ -165,24 +166,25 @@ export function useFootfallCounter({ video }: Options): FootfallStatus {
         // it is what keeps this stream cheap to decode next to everything else
         // on screen. The photo pipeline's 1920×1080 is a different open of the
         // same device — which is exactly why we let go of it rather than share.
-        stream = await navigator.mediaDevices.getUserMedia({
-          video: runtime.deviceId
-            ? {
-                deviceId: { exact: runtime.deviceId },
-                width: { ideal: 640 },
-                height: { ideal: 480 },
-                frameRate: { ideal: 15 },
-              }
-            : { width: { ideal: 640 }, height: { ideal: 480 }, frameRate: { ideal: 15 } },
-          audio: false,
+        //
+        // openMonoCamera, not getUserMedia, for the ZED 2i: its frames carry
+        // both sensors side by side, and a detector fed the raw frame sees two
+        // half-width copies of every visitor — which is two of every line
+        // crossing. The counting pipeline behind this call is unchanged; it
+        // just receives one picture per frame. See lib/stereoCamera.ts.
+        camera = await openMonoCamera({
+          deviceId: runtime.deviceId,
+          stereoModes: FOOTFALL_STEREO_MODES,
+          fallback: { width: { ideal: 640 }, height: { ideal: 480 }, frameRate: { ideal: 15 } },
         });
         if (cancelled) {
-          stream.getTracks().forEach((track) => track.stop());
+          camera.stop();
+          camera = null;
           return;
         }
 
         if (!videoElement) throw new Error('No video element');
-        videoElement.srcObject = stream;
+        videoElement.srcObject = camera.stream;
         await videoElement.play();
 
         await detector.load(runtime.tuning);
@@ -204,8 +206,8 @@ export function useFootfallCounter({ video }: Options): FootfallStatus {
         // Letting that stream live would mean the next retry opens a second one
         // — and on Windows, the second open of a busy device is the one that
         // fails, so the retry would be guaranteed to fail too.
-        stream?.getTracks().forEach((track) => track.stop());
-        stream = null;
+        camera?.stop();
+        camera = null;
         if (videoElement) videoElement.srcObject = null;
         if (cancelled) return;
         setStatus('unavailable');
@@ -226,9 +228,11 @@ export function useFootfallCounter({ video }: Options): FootfallStatus {
       if (retryTimer) clearTimeout(retryTimer);
       flushReport();
       // Releasing the device is the whole contract with the photo pipeline —
-      // stopping the tracks is what actually hands the camera back, and it has
-      // to happen here, synchronously, not on some later frame.
-      stream?.getTracks().forEach((track) => track.stop());
+      // stop() is what actually hands the camera back (for a stereo camera it
+      // also tears down the frame pump doing the split), and it has to happen
+      // here, synchronously, not on some later frame.
+      camera?.stop();
+      camera = null;
       if (videoElement) videoElement.srcObject = null;
     };
   }, [runtime, video]);
