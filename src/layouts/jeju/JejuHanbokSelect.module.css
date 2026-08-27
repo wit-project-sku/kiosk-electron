@@ -1,30 +1,40 @@
 /*
- * 제주공항 (W006) AR 한복체험 — outfit selection. Figma frames 6258:48575 /
- * 48469 (landing tab, theme unpicked / picked) and 6258:48326 / 48134 (한복
- * tab, sub-chip unpicked / picked), the 2026-08-24 redraw; 48264 is the
- * 개인정보 modal.
+ * 제주공항 (W006) AR 한복체험 — outfit selection. The 2026-08-27 redraw:
+ * Figma 6258:48469 (the 제주 tab — one outfit row, then ② 배경 테마 stacked
+ * straight under it, no chip row) and 6258:48326 (every other tab — two outfit
+ * rows, no step ②); 6530:10400 draws the 제주 tab too but hand-places
+ * everything from ② down 258px lower, which is slop — see `.stepTheme`.
+ * 48264 is the 개인정보 modal.
  *
  * Inside KioskArtboard 1 CSS px = 1 Figma px (2160×3840), so every value here is
  * the exact number read out of the design.
+ *
+ * ★ What the redraw changed, and why so much below y=1400 moved: every outfit
+ * card gained a NAME — 16 under the plate, 25 tall — so the strip's unit grew
+ * from the 350 card to a 391 cell, and the two-row grid's pitch from 415 to 441.
+ * Everything under the strip shifted down to make room.
  *
  * y map (Figma draws the body from 594, just under the header's last visible
  * row at 494 — JejuHeader's box is 700 but paints nothing below 494, so the
  * design's absolute values are used verbatim):
  *   594…699   ① 의상 선택하기
  *   739…786   ★ subtitle
- *   844…1219  category tabs, 2 rows (4 columns in the design; the API decides
- *             how many there really are — see `.cats`). The 한복 frames start
- *             their column 13px higher (831) — slop; the row must not move on
- *             a tab press, so 844 everywhere.
+ *   844…1219  category tabs, 2 rows (5 columns in the design; the API decides
+ *             how many there really are — see `.cats`). The frames start their
+ *             column at 831 and 844 — slop; the row must not move on a tab
+ *             press, so 844 everywhere.
  *  1266…1386  sub-category chips — only where the category has any, so the
- *             band is empty on most tabs (see `.subcats`)
- *  1447…1797  outfit cards, ONE row   (landing tab — 5 × 350 across the 1820)
- *  1447…2212  outfit cards, TWO rows  (every other tab; 415 pitch)
- *  1855…1960  ② 배경 테마 선택하기
- *  2018…2698  background themes (scrolls horizontally; 340×680 tiles)
- *  2883…3033  capture buttons (landing) · 2279…2429 (other tabs)
- *  3210…3710  사진촬영안내 card (landing) · 2497…2997 (other tabs)
- *  3267…3840  banner — every tab EXCEPT landing, whose guide card sits there
+ *             band is empty on most tabs (see `.subcats`). 6530:10400 draws the
+ *             same row 7px lower; normalised to 1266 for the same reason.
+ *  1447…1838  outfit cells, ONE row  (제주 tab — 5 × 350 across the 1820,
+ *             card 1447…1797 + name 1813…1838)
+ *  1447…2279  outfit cells, TWO rows (every other tab; 441 pitch)
+ *  1855…1960  ② 배경 테마 선택하기 — 제주 tab only, ALWAYS drawn there
+ *  2018…2718  background themes (scrolls horizontally; 350×700 tiles), or
+ *             준비 중인 배경입니다 in the same box when the kiosk has none
+ *  2883…3033  capture buttons (제주) · 2347…2497 (other tabs)
+ *  3210…3710  사진촬영안내 card (제주) · 2565…3065 (other tabs)
+ *  3267…3840  banner — every tab EXCEPT 제주, whose guide card sits there
  */
 .root {
   position: absolute;
@@ -57,6 +67,15 @@
   top: 594px;
 }
 
+/*
+ * Directly under the outfit row (6258:48469: cells end 1838, the ② badge starts
+ * 1855). 6530:10400 hand-places the same heading at 2113 instead — 258 lower,
+ * with nothing between them to account for it, since the chip row that frame
+ * also draws sits ABOVE the strip and cannot push what is below it. Slop
+ * between two copies; NORMALISED to the tight stack, which is the one that
+ * survives the operator adding a sub-category to 제주 without the page opening a
+ * 258px hole.
+ */
 .stepTheme {
   top: 1855px;
 }
@@ -203,11 +222,17 @@
  * (starts 1447), so a tab WITHOUT chips simply leaves the band empty and
  * nothing below moves. That is what lets the row be conditional at all.
  *
- * ★ The BAND is read off the design; the pill treatment is the tab's, one size
- * down. The design drew two chips reading 여자 한복 / 남자 한복 at widths that
- * are not worth copying — the API sends 남자 / 여자 and seven more languages,
- * and "Мужской" is nothing like either — so the chips size to their content
- * from a floor instead, left-aligned under the first tab column.
+ * ★ The idle chip is ORANGE ON WHITE, not the tab row's grey — both 2026-08-27
+ * frames draw the whole row that way (#ff7f0f, 50 Medium, r42.9), which is the
+ * tab's own pill treatment recoloured rather than shrunk. The earlier read had
+ * it as grey 40, which is why the row looked like a second, dimmer tab row.
+ *
+ * ★ The BAND is read off the design; the WIDTH is not. The design drew six
+ * chips at a flat 279 on a 40 gap — the API sends 남자 / 여자 and seven more
+ * languages, and "Мужской ханбок" is nothing like either — so 279 is a
+ * FLOOR the chip grows past on its content. That is also why the row scrolls:
+ * the frames simply clip the sixth chip at the column edge, and a row of long
+ * labels would put a real chip behind that clip with no way to reach it.
  */
 .subcats {
   position: absolute;
@@ -218,24 +243,32 @@
   display: flex;
   align-items: center;
   justify-content: flex-start;
-  gap: 30px;
+  gap: 40px; /* 319 pitch − 279 chip */
+  overflow-x: auto;
+  overflow-y: hidden;
+  scrollbar-width: none;
+}
+
+.subcats::-webkit-scrollbar {
+  display: none;
 }
 
 .subcat {
-  min-width: 260px;
+  min-width: 279px;
   height: 120px;
+  flex: 0 0 auto;
   box-sizing: border-box;
-  padding: 0 44px;
+  padding: 0 30px;
   border: none;
-  border-radius: 30.3px; /* the tab's 42.9 at 170, held to the 120 height */
+  border-radius: 42.9px;
   background: #fff;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 40px;
+  font-size: 50px;
   font-weight: 500;
   line-height: 1.1;
-  color: #999;
+  color: var(--kiosk-primary, #ff7f0f);
   text-align: center;
   cursor: pointer;
   -webkit-tap-highlight-color: transparent;
@@ -251,17 +284,17 @@
 
 /* ── 사진촬영안내 card — EVERY condition, two positions ────────────────── */
 /*
- * The 2026-08-24 redraw puts the card on the landing tab too: non-landing tabs
- * hang it under the capture buttons at 2497 and keep the banner below it;
- * the landing tab drops it to 3210, INTO the banner band, and draws no banner
- * (6258:48575/48469 vs 48326/48134). It is not a numbered step — a bulleted
- * orange heading — so it carries no ② badge, and it stays the only way into
- * the 한복 설명 page from either condition.
+ * The card is on EVERY tab, in one of two places: a non-제주 tab hangs it under
+ * the capture buttons at 2565 and keeps the banner below it; the 제주 tab drops
+ * it to 3210, INTO the banner band, and draws no banner (6530:10400 vs
+ * 6258:48326). It is not a numbered step — a bulleted orange heading — so it
+ * carries no ② badge, and it stays the only way into the 한복 설명 page from
+ * either condition.
  */
 .guide {
   position: absolute;
   left: 170px;
-  top: 2497px;
+  top: 2565px;
   width: 1820px;
   height: 500px;
   box-sizing: border-box;
@@ -275,7 +308,10 @@
   justify-content: space-between;
 }
 
-/* Landing tab: below the capture buttons, where the banner would be. */
+/* The 제주 tab: below the capture buttons, where the banner would be. The class
+   is still called `guideLanding` because that tab WAS the landing tab when the
+   slot was drawn; step ② has since been bound to 제주 by name (see the
+   component's `themeTabId`), and this rule follows it. */
 .guideLanding {
   top: 3210px;
 }
@@ -418,49 +454,57 @@
 
 /* ── Outfit cards ───────────────────────────────────────────────────── */
 /*
- * The 2026-08-24 redraw shrinks the card to 350×350: five fit the 1820 column
- * exactly (5 × 350 + 4 × 17.5), so `slidesPerView` resolves to a whole 5. The
- * strip stays a Swiper — the same freeMode + Grid recipe as the shared step —
- * because a catalogue tab can hold dozens of outfits and Swiper is what
- * carries the drag momentum and the mouse-drag the kiosk's own touch layer
- * doesn't. The Swiper root only carries the frame; slide widths come from
- * `slidesPerView`, so no width is set on the card here.
- */
-/*
- * ── One row or two: the ② 배경 테마 step decides ────────────────────────
- * Where that step exists it occupies 1855 onward, so the strip gets ONE row
- * (350 at 1447, 6258:48575). Where it does not, the strip takes the space back
- * as TWO rows — the same 350 card on a 415 pitch (1447/1862, 6258:48134).
+ * The card is 350×350 and five fit the 1820 column (5 × 350 + 4 × 17), so
+ * `slidesPerView` is a whole 5. The strip stays a Swiper — the same freeMode +
+ * Grid recipe as the shared step — because a catalogue tab can hold dozens of
+ * outfits and Swiper is what carries the drag momentum and the mouse-drag the
+ * kiosk's own touch layer doesn't. The Swiper root only carries the frame;
+ * slide widths come from `slidesPerView`, so no width is set on the card here.
+ *
+ * ★ The CELL is 391, not 350. The 2026-08-27 redraw hangs the outfit's name
+ * under the plate — 16 of gap, 25 of type — so the slide is a column of card +
+ * caption and only the card carries the 350 (see `.outfit`, which keeps a fixed
+ * height for exactly this reason).
+ *
+ * ── One row or two: the ② 배경 테마 step decides ──────────────────
+ * The 제주 tab hands 1855 onward to step ②, so its strip gets ONE row
+ * (1447…1838, 6258:48469) whether or not the kiosk has any background
+ * assigned. Every other tab takes that space back as TWO rows — the same 391
+ * cell on a 441 pitch (1447/1888, 6258:48326).
  */
 .outfits {
   position: absolute;
   left: 170px;
   top: 1447px;
   width: 1820px;
-  height: 350px;
+  height: 391px;
 }
 
-/* No chip row above → the strip takes the space back as a second row.
-   812.5 = 2 × 397.5 padded slides + 17.5 — see .outfitSlide. */
+/* Two rows: 865 = 2 × 424 padded slides + the 17 Swiper puts between them —
+   see .outfitSlide. */
 .outfitsGrid {
-  height: 812.5px;
+  height: 865px;
+}
+
+/* The slide is the CELL: the card on top, the outfit's name under it. */
+.outfitSlide {
+  height: 391px !important;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 }
 
 /*
- * One-row slides are the bare 350 card. In GRID mode the slide is padded to
- * 397.5 with the card pinned to its top: Swiper's Grid puts row 2 at
- * slideHeight + spaceBetween, and spaceBetween is already spoken for by the
- * design's 17.5 COLUMN gap — so the slide absorbs the difference and
- * 397.5 + 17.5 lands row 2's card exactly on the drawn 415 pitch. The padding
- * hangs empty below row 2 (ends 2259.5, capture is at 2279) and draws nothing.
+ * In GRID mode the slide is padded to 424 with the cell pinned to its top:
+ * Swiper's Grid puts row 2 at slideHeight + spaceBetween, and spaceBetween is
+ * already spoken for by the design's 17 COLUMN gap — so the slide absorbs the
+ * difference and 424 + 17 lands row 2 exactly on the drawn 441 pitch. The
+ * padding hangs empty below row 2 (the cell ends 2279, capture is at 2347) and
+ * draws nothing.
  */
-.outfitSlide {
-  height: 350px !important;
-  box-sizing: border-box;
-}
-
 .outfitsGrid .outfitSlide {
-  height: 397.5px !important;
+  height: 424px !important;
 }
 
 /*
@@ -536,12 +580,38 @@
   top: 32px;
 }
 
+/*
+ * The outfit's name, 16 under the plate — Figma 6530:10487 / 6516:75664: 25
+ * Regular, BLACK AT 30% (an opacity on the text, not a grey), centred on the
+ * card's full width. Pretendard comes from `--kiosk-font`, which the 제주 theme
+ * already leads with, so no family is set here.
+ *
+ * The name is the operator's (`name` on the outfit row, e.g. "global_5.7") —
+ * neither length-checked nor translated server-side, so it is held to ONE line
+ * and ellipsised. Letting it wrap would push row 2 of the two-row grid off its
+ * 441 pitch and into the capture buttons.
+ */
+.outfitName {
+  width: 100%;
+  height: 25px;
+  margin: 16px 0 0;
+  flex: 0 0 auto;
+  font-size: 25px;
+  font-weight: 400;
+  line-height: 25px;
+  color: rgba(0, 0, 0, 0.3);
+  text-align: center;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
 .emptyCat {
   position: absolute;
   left: 170px;
   top: 1447px;
   width: 1820px;
-  height: 350px;
+  height: 391px;
   margin: 0;
   display: flex;
   align-items: center;
@@ -570,10 +640,10 @@
   left: 170px;
   top: 2018px;
   width: 1820px;
-  height: 680px;
+  height: 700px;
   display: flex;
   align-items: center;
-  gap: 30px; /* 370 pitch − 340 tile */
+  gap: 18px; /* 368 pitch − 350 tile */
   overflow-x: auto;
   overflow-y: hidden;
   scrollbar-width: none;
@@ -584,7 +654,8 @@
 }
 
 /*
- * The 2026-08-24 tile is 340×680 r45 and BORDERLESS when idle: a white plate
+ * The 2026-08-27 tile is 350×700 r45 on an 18 gap (6258:48469 · 6530:10459) and
+ * BORDERLESS when idle: a white plate
  * under a 20% BLACK wash (the redraw dropped the old #e8e8e8 rule and the
  * milky white veil), with the name in white Bold on the wash. The wash lives
  * in `::after` so it tones the photo too, not just the bare plate.
@@ -595,9 +666,9 @@
  */
 .theme {
   position: relative;
-  flex: 0 0 340px;
-  width: 340px;
-  height: 680px;
+  flex: 0 0 350px;
+  width: 350px;
+  height: 700px;
   box-sizing: border-box;
   padding: 0;
   border: none;
@@ -640,8 +711,10 @@
   background: none;
 }
 
-/* Figma sets the 45px Bold WHITE name on the tile's vertical centre (box 312,
-   normal leading — centre 339.5 of 680). The soft dark shadow is NOT in the
+/* Figma sets the 45px Bold WHITE name on the tile's vertical centre (box
+   319.12, normal leading — centre 347 of 700). Figma's own box is left-aligned
+   and inset 46.32, which its one sample name overflows anyway; centred on the
+   full width instead, because the names are CMS content of any length.  The soft dark shadow is NOT in the
    frame: white type on an unwashed photo (the picked state) can vanish on a
    bright sky, and the shadow is the cheapest way to keep the name legible
    without re-adding the veil the redraw removed. */
@@ -649,7 +722,7 @@
   position: absolute;
   left: 0;
   right: 0;
-  top: 312px;
+  top: 319px;
   z-index: 1;
   margin: 0;
   font-size: 45px;
@@ -661,10 +734,45 @@
   text-shadow: 0 2px 12px rgba(0, 0, 0, 0.45);
 }
 
+/* Absolute children offset from the padding edge, so the picked tile's 5px
+   rule would push the name to a visual 324 — compensated back to the drawn
+   319, exactly as `.outfitActive .outfitImg` does for the card. */
+.themeActive .themeLabel {
+  top: 314px;
+}
+
+/*
+ * Step ②'s empty state — no ACTIVE background assigned to this kiosk.
+ *
+ * It occupies the tiles' EXACT box (1820×700 at 2018), so the heading above and
+ * the capture row below sit where they always do. That is the whole point: an
+ * unassigned background list is a content gap, not a different page, and until
+ * 2026-08-27 it silently re-laid the 제주 tab out as the two-row grid.
+ *
+ * Typed like `.emptyCat`, the strip's own empty state, because they are the
+ * same sentence about the same thing one section apart.
+ */
+.emptyThemes {
+  position: absolute;
+  left: 170px;
+  top: 2018px;
+  width: 1820px;
+  height: 700px;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 50px;
+  font-weight: 500;
+  line-height: 1.4;
+  color: #909090;
+  text-align: center;
+}
+
 /* ── Capture buttons ────────────────────────────────────────────────── */
-/* Centred: 1740 in the 2160 artboard → left 210. 6258:48575 draws it there;
-   48469 hand-places the same row at 187 — slop between two copies, and the
-   non-landing frames centre it too, so 210 everywhere. NORMALISED. */
+/* Centred: 1740 in the 2160 artboard → left 210. 6258:48326 draws it there;
+   6530:10400 hand-places the same row at 187 — slop between two copies, and
+   every other frame centres it, so 210 everywhere. NORMALISED. */
 .captureRow {
   position: absolute;
   left: 210px;
@@ -706,10 +814,10 @@
 /* Both frames draw these identically, but neither has an outfit chosen AND a
    live button — capture cannot run without a selection, so the gate is shown
    rather than letting a normal-looking button do nothing. */
-/* The 사진촬영안내 condition lifts the row to 2469 and centres it in the
-   artboard (1740 wide → left 210), because the card sits underneath it. */
+/* No step ② → the two-row strip ends at 2279 and the row sits at 2347, with
+   the 사진촬영안내 card underneath it rather than the background tiles above. */
 .captureRowGuide {
-  top: 2279px;
+  top: 2347px;
 }
 
 .captureDisabled {
@@ -718,8 +826,8 @@
 }
 
 /* The 개인정보처리방침 link is NOT a page-level control: it lives inside the
-   사진촬영안내 card (`.guidePrivacy`), so the landing tab — which shows 배경
-   테마 instead of that card — carries no link, exactly as 6258:48693 draws it. */
+   사진촬영안내 card (`.guidePrivacy`), which every tab now draws — the 제주
+   tab simply draws it lower. Both 2026-08-27 frames show it. */
 
 /* ── Banner ─────────────────────────────────────────────────────────── */
 .banner {

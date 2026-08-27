@@ -4,6 +4,11 @@
  * (bottom-field dropdown) and 6219:99645 (실시간 환율 tab) — the 2026-08-24
  * redraw of the 6219:99587 family.
  *
+ * The LOW-REACH (♿) half was redrawn again on 2026-08-27 — 6326:84606
+ * (실시간 환율), 6460:117343 (calculator), 6460:117395 (keypad open),
+ * 6460:118038 / 6460:117849 (dropdown on the top / bottom field). See the
+ * low-reach section at the foot for what that changed.
+ *
  * Inside KioskArtboard 1 CSS px = 1 Figma px (2160×3840), so every value here is
  * the exact number read out of the design. Chrome (background, header, left nav,
  * banner) comes from JejuPageFrame.
@@ -24,16 +29,18 @@
    same coordinates, as the 지역행사 region tabs and 도와줘 '하영's terminal
    pills. It replaced this page's own 580-wide outlined pair at x400.
 
-   Two-tab row. 2 × 565 + a 200 gap = 1330, so left = (2160 − 1330) / 2 = 415.
-   200 is the gap every other two-tab 제주 page already uses (운항정보, 크루즈
-   운항, 지역화폐 — all 580 pills at gap 200); this row was still on the old 63.
-   Widening the band rather than shrinking the pills is what keeps them on
-   Figma's 565. */
+   Two-tab row. 2 × 580 + a 200 gap = 1360, so left = (2160 − 1360) / 2 = 400 —
+   the exact geometry the 2026-08-27 low-reach frames draw, and the same 580/200
+   every other two-tab 제주 page already uses (운항정보, 크루즈 운항, 지역화폐).
+   The band had been 1330/565, a compromise struck when only the older frames
+   were available; the redraw settles it on the house figure. Shared by both
+   layouts — the tabs are the one control that does not move between them apart
+   from their y (see .tabsLow). */
 .tabs {
   position: absolute;
-  left: 415px;
+  left: 400px;
   top: 700px;
-  width: 1330px;
+  width: 1360px;
   height: 170px;
   display: flex;
   align-items: center;
@@ -41,7 +48,7 @@
 }
 
 /* flex:1 so the row always fills the column — the two tabs land on Figma's
-   exact 565. Borderless: the idle pill is a plain white plate (`none`, not
+   exact 580. Borderless: the idle pill is a plain white plate (`none`, not
    omitted — these are <button>s and would otherwise take Chrome's UA bevel). */
 .tab {
   flex: 1 1 0;
@@ -109,6 +116,20 @@
   font-size: 60px;
   font-weight: 700;
   line-height: 100px;
+}
+
+/* "26.08.30. 19:30 기준" — when the snapshot was fetched. Drawn only by the
+   low-reach frames (6567:81202 and its siblings); the standard pill is 212 tall
+   and has no room for a third line, so .basePillLow places this one. */
+.basePillStamp {
+  position: absolute;
+  left: 0;
+  right: 0;
+  font-size: 40px;
+  font-weight: 400;
+  line-height: 1;
+  color: #999; /* 글씨-main */
+  text-align: center;
 }
 
 /* ── Amount / result fields ─────────────────────────────────────────── */
@@ -467,20 +488,22 @@
 .liveList {
   display: flex;
   flex-direction: column;
-  gap: 40px; /* 290 pitch − 250 row */
+  gap: 40px; /* 270 pitch − 230 row */
   padding: 0 170px 60px;
 }
 
 .liveRow {
-  flex: 0 0 250px;
-  height: 250px;
+  flex: 0 0 230px;
+  height: 230px;
   box-sizing: border-box;
-  padding: 40px 65px;
-  /* 2.145px #d9d9d9 hairline — NOT borderless. The frames keep this one: probed
-     on the 1:1 render of 6326:84606, the first row's top edge reads (217,217,217)
-     for ~2px before the white fill. It had been stripped under the general
-     "remove borders" pass; the design draws it, so it is back. */
-  border: 2.145px solid #d9d9d9;
+  /* Figma writes py-40 on a 230-tall row while its flag is 170 — the two don't
+     both fit, and the render shows the flag whole, so the padding is the value
+     that gives: 30 top and bottom is exactly what centres a 170 flag in 230. */
+  padding: 30px 65px;
+  /* Borderless. The 2026-08-27 redraw of 6326:84606 dropped the 2.145px #d9d9d9
+     hairline an earlier pass had probed off the older render of the same node —
+     re-probed against the new one, the pill's edge is white on white. */
+  border: none;
   border-radius: 214.499px;
   background: #fff;
   display: flex;
@@ -539,28 +562,41 @@
 
 
 /* ────────────────────────────────────────────────────────────────────────────
- * LOW-REACH (♿) — Figma 6326:84228 (calculator) · 6326:84288 (keypad open) ·
- * 6326:84382 / 6326:84494 (currency dropdown, top and bottom field) ·
- * 6326:84606 (실시간 환율).
+ * LOW-REACH (♿) — the 2026-08-27 redraw: Figma 6326:84606 (실시간 환율) ·
+ * 6460:117343 (calculator) · 6460:117395 (keypad open) · 6460:118038 /
+ * 6460:117849 (currency dropdown, top and bottom field). Supersedes the
+ * 6326:84228 family this section used to follow.
  *
- * The 573 banner comes to the top with the header on y573 (the frame's
- * .rootLowReach), the tab row drops to the foot, and the whole calculator
- * block moves down as one. Every element of it — labels, fields, values,
- * currency buttons, carets, the swap button and both dropdowns — is +590 in
- * all four calculator frames, so the block rides ONE variable rather than
- * thirteen re-measured constants. Verified against every element in both
- * states, e.g. 금액 label 1199→1789, swap 1713→2303, 환전 field 1960→2550.
+ * The page now wears JejuPageFrame's MODE-BAR shape rather than the old
+ * banner-to-the-top re-stack, and the two tabs no longer share a frame layout:
  *
- * With the keypad open the block rises 61px (shift 529) so the 환전 field's
- * bottom edge lands exactly on the keypad's top: 1960+529+318 = 2807. That is
- * the only reason the two states differ.
+ *   실시간 환율   113px bar, NO banner, header y116, list y816…3185
+ *   환율계산기    113px bar, promo banner y113…686, header y686
+ *
+ * The list is what forces the split — it needs the banner's 573px of height to
+ * show a useful number of rows, and the calculator does not. Both offsets ride
+ * in as JejuPageFrame's lowReachShift / lowReachBarBanner, switched on `tab`.
+ *
+ * The calculator block below the 기준 환율 pill — labels, fields, values,
+ * currency buttons, carets, the swap button and both dropdowns — is a uniform
+ * +573 on the standard layout, so it rides ONE variable rather than thirteen
+ * constants (금액 label 1244→1817, swap 1743→2316, 환전 field 1997→2570).
+ *
+ * NORMALISED to a single shift. The three overlay-open frames actually draw
+ * +557, 16px tighter than the +573 the plain frame draws, and nothing lines up
+ * on either number — the 환전 field's bottom edge clears the keypad's top by
+ * 59px at +557 and 43px at +573, so neither is load-bearing. Honouring the 16px
+ * would make the whole block JUMP the moment a dropdown or the keypad opens,
+ * which is a visible glitch traded for a difference nobody can see.
+ *
+ * The redraw also brought the low-reach type and boxes back onto the standard
+ * layout's: the field is 270 tall again (was 318), the value stays 90px (was
+ * 100), the currency code 60px (was 70), the rate line 60px (was 70), and the
+ * 기준 환율 pill lost its 5px #ff7f0f rule. That whole override block is gone —
+ * only positions differ between the layouts now, plus the pill's third line.
  * ──────────────────────────────────────────────────────────────────────────── */
 .rootLow {
-  --jeju-exch-shift: 590px;
-}
-
-.rootLowKeypad {
-  --jeju-exch-shift: 529px;
+  --jeju-exch-shift: 573px;
 }
 
 /* Tabs to the foot. Doubled: `.tabs` above also sets `top`. */
@@ -568,62 +604,49 @@
   top: 3438px;
 }
 
-/* The 기준 환율 pill is the one element the +590 rule does NOT fit — Figma hand-
-   places it in each frame (1487 with the keypad closed, 1372 with it open,
-   against 1540/1479 the rule would give). Measured values rather than a rule
-   that is wrong in both states. */
+/*
+ * The 기준 환율 pill is the one element the +573 rule does NOT fit — Figma hand-
+ * places it at 1460 in all four calculator frames (against the 1560 the rule
+ * would give), and grows it 212 → 283 to seat the fetched-at line.
+ *
+ * The three lines are top-aligned rather than centred: Figma puts them at 33 /
+ * 123 / 201 relative to the pill, and 33 + 90 + 90 = 213 for the third. The
+ * stamp is absolute at its drawn 201 instead, tucking 12px into the rate's
+ * line box — empty space, since 60px glyphs fill only 75 of that 90px leading.
+ */
 .basePillLow {
-  top: 1487px;
+  top: 1460px;
+  height: 283px;
+  padding: 33px 60px 0;
+  justify-content: flex-start;
 }
 
-.basePillLowKeypad {
-  top: 1372px;
+.basePillLow .basePillLabel,
+.basePillLow .basePillRate {
+  line-height: 90px;
+}
+
+.basePillLow .basePillStamp {
+  top: 201px;
 }
 
 .keypadLow {
-  top: 2807px;
+  top: 2883px;
 }
 
-/* 실시간 환율 list: 970 → 1300, ending above the tab row instead of the banner. */
+/*
+ * The result field's dropdown is SHORTER in low-reach: the panel hangs off the
+ * field, and at the low-reach 환전 field (y2570) a full 1700 would run 430px off
+ * the bottom of the artboard. Figma draws 1240 there (6460:117849), which lands
+ * the panel's foot on 3810. The 금액 panel keeps 1700 — 1954 + 1700 = 3654 fits.
+ */
+.rootLow .dropdownResult {
+  height: 1240px;
+}
+
+/* 실시간 환율 list: 970 → 816, flush under the header and ending 253px clear of
+   the tab row (Figma boxes it 816…3185 with no banner beneath it). */
 .liveScrollLow {
-  top: 1300px;
-  bottom: 532px;
-}
-
-
-/* ── Low-reach type/box overrides ───────────────────────────────────────────
- * The low-reach frames do NOT merely re-position the calculator: they draw a
- * taller, rounder field and larger type, and they put a rule around the 기준
- * 환율 pill. Verified by probing BOTH layouts at 1:1 —
- *
- *              standard (6412:76217)      low-reach (6326:84228)
- *   field      y1381..1650  h270          y1895..2212  h318
- *   pill edge  straight to #ffeac7        5px #ff7f0f, then #ffeac7
- *
- * so these belong to the variant, not to the shared rules. (The .liveRow
- * hairline is the opposite case — both layouts have it, so it stays global.)
- * ────────────────────────────────────────────────────────────────────────── */
-.rootLowAny .field {
-  height: 318px;
-  border-radius: 159px;
-}
-
-.rootLowAny .value {
-  font-size: 100px;
-}
-
-.rootLowAny .ccyCode {
-  font-size: 70px;
-}
-
-.rootLowAny .basePill {
-  border: 5px solid var(--kiosk-primary, #ff7f0f);
-}
-
-.rootLowAny .basePillLabel {
-  font-weight: 700;
-}
-
-.rootLowAny .basePillRate {
-  font-size: 70px;
+  top: 816px;
+  bottom: 655px;
 }

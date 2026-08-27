@@ -314,6 +314,7 @@ export function JejuSpotDiffGame({ rounds, aiReady, onFinish, onHome }: Props): 
   const lang = useLang();
   const kioskId = useKioskStore((s) => s.config.kioskId);
   const { icon, Header, photoTitle, banner } = usePhotoChrome();
+  const pageBg = icon('bg-page') || icon('bg');
 
   /** Which board of `rounds` is in play; a replay advances it. */
   const [roundIdx, setRoundIdx] = useState(0);
@@ -614,7 +615,11 @@ export function JejuSpotDiffGame({ rounds, aiReady, onFinish, onHome }: Props): 
 
   return (
     <div className={styles.root}>
-      {icon('bg') && <img className={styles.bg} src={icon('bg')} alt="" draggable={false} />}
+      {/* `bg-page` is the illustrated 제주 plate 6258:78631 draws; `bg` is the
+          BLANK #faf7f2 one the home screen uses. Both resolve and both are
+          2160×3840, so asking for the wrong one loses the artwork silently —
+          same slip as JejuHanbokSelect had. `bg` stays as the fallback. */}
+      {pageBg && <img className={styles.bg} src={pageBg} alt="" draggable={false} />}
 
       <Header title={photoTitle} onHome={onHome} onBack={onHome} navDisabled={navLocked} />
 

@@ -1,6 +1,7 @@
 /**
  * 지역화폐 — Figma 6249:32350 (제주>지역화폐=온누리상품권) and 6249:32283
- * (제주>지역화폐=탐나는전).
+ * (제주>지역화폐=탐나는전). The 베리어프리 (♿) half follows 6326:80281 and
+ * 6326:80332, re-read 2026-08-27 — see the low-reach block in the CSS.
  *
  * Two tabs. 온누리상품권 is the national voucher (the same screen Osan and
  * Hwaseong draw, with 제주's own shorter copy); 탐나는전 is 제주특별자치도's own
@@ -521,9 +522,10 @@ export function JejuLocalpay({ controller }: Props): JSX.Element {
    */
   const low = (base?: string, alt?: string): string =>
     `${base ?? ''} ${lowReach ? alt ?? '' : ''}`;
-  /* The card shell picks up its ring here so both tabs get it from one place. */
+  /* The shell is identical in both layouts — only the card's own top and height
+     differ, which is what `variantLow` carries. */
   const card = (variant?: string, variantLow?: string): string =>
-    `${low(styles.card, styles.cardLow)} ${low(variant, variantLow)}`;
+    `${styles.card} ${low(variant, variantLow)}`;
 
   const select = (id: TabId): void => {
     trackEvent({
@@ -539,9 +541,11 @@ export function JejuLocalpay({ controller }: Props): JSX.Element {
       controller={controller}
       title="지역화폐"
       bannerFallback="banner-detail"
-      /* ♿: let the frame move the promo to y0 and the header to 573, but not the
-         body — the cards below carry their own low-reach coordinates. */
-      lowReachSelfLayout
+      /* ♿: the 113px mode bar replaces the promo banner entirely and the header
+         drops to y116. The body stays at 0 — the cards below carry their own
+         low-reach coordinates. */
+      lowReachModeBar
+      lowReachShift={116}
     >
       <div className={low(styles.tabs, styles.tabsLow)}>
         {(['onnuri', 'tamna'] as const).map((id) => (
@@ -619,7 +623,8 @@ export function JejuLocalpay({ controller }: Props): JSX.Element {
       ) : (
         /* ── 탐나는전 (6249:32310) ── */
         <section className={card(styles.cardTamna, styles.cardTamnaLow)}>
-          <div className={low(styles.tamnaHead, styles.tamnaHeadLow)}>
+          {/* No low-reach variant: the head is at top 100 in both layouts. */}
+          <div className={styles.tamnaHead}>
             <img className={styles.tamnaLogo} src={tamnaLogo} alt="" draggable={false} />
             <div className={styles.tamnaIntro}>
               <p className={styles.h60}>{c.tamna.introH}</p>
