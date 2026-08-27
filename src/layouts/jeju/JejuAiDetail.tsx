@@ -59,6 +59,7 @@ import { useShopStore } from '@renderer/store/shopStore';
 import { useDetailStore } from '@renderer/store/detailStore';
 import type { DetailItem } from '@renderer/store/detailStore';
 import { useLanguageStore } from '@renderer/store/languageStore';
+import { sheetText, t } from '@renderer/lib/loc';
 import type { Lang } from '@renderer/lib/i18n';
 import { pick } from '@renderer/lib/i18n';
 import {
@@ -229,9 +230,9 @@ const T = {
 interface CourseMeta {
   /** Rail letter used in the header subtitle — "A코스 - 1일차". */
   label: string;
-  title: string;
-  tags: string;
-  desc: string;
+  title: Partial<Record<Lang, string>>;
+  tags: Partial<Record<Lang, string>>;
+  desc: Partial<Record<Lang, string>>;
   /**
    * OFFLINE FALLBACK ONLY. These are the authored placeholders this page used
    * to show unconditionally; `POST /api/jeju/courses/recommend` now supplies
@@ -248,39 +249,158 @@ interface CourseMeta {
   spotDifficulty: string;
 }
 
+/**
+ * Summary-bar labels and the two values that are words rather than numbers.
+ *
+ * ★ Translated here, in all eight languages (2026-08-27). Localization_Jeju has
+ * `TotalStayTime` and nothing else for this bar — no row for 이동수단, 이동거리 or
+ * 난이도 — so three of the four labels rendered Korean on a page the visitor
+ * reaches through a fully localized questionnaire. Same reason SECTION in
+ * JejuAiSearch is authored: the sheet simply has no row yet.
+ *
+ * The NUMBERS beside them (약 4~5시간, 약 18Km) are still Korean. They come from
+ * COURSE_META, which is authored placeholder data for the no-API path, and from
+ * `minutesLabel` in lib/jejuCourse — a shared helper with no `lang` parameter
+ * that every layout calls. Localizing those is a separate change to that lib.
+ */
+const STAT_LABEL = {
+  transport: {
+    ko: '이동수단', en: 'Getting around', ja: '移動手段', zh: '交通方式',
+    vi: 'Phương tiện', th: 'การเดินทาง', ru: 'Транспорт', id: 'Transportasi',
+  },
+  distance: {
+    ko: '이동거리', en: 'Distance', ja: '移動距離', zh: '移动距离',
+    vi: 'Quãng đường', th: 'ระยะทาง', ru: 'Расстояние', id: 'Jarak',
+  },
+  travel: {
+    ko: '이동시간', en: 'Travel time', ja: '移動時間', zh: '移动时间',
+    vi: 'Thời gian di chuyển', th: 'เวลาเดินทาง', ru: 'Время в пути', id: 'Waktu tempuh',
+  },
+  difficulty: {
+    ko: '난이도', en: 'Difficulty', ja: '難易度', zh: '难度',
+    vi: 'Độ khó', th: 'ระดับความยาก', ru: 'Сложность', id: 'Tingkat kesulitan',
+  },
+};
+
+/** COURSE_META's authored 난이도 words, so the value localizes with its label. */
+const DIFFICULTY_WORD: Record<string, Partial<Record<Lang, string>>> = {
+  쉬움: {
+    ko: '쉬움', en: 'Easy', ja: 'やさしい', zh: '简单',
+    vi: 'Dễ', th: 'ง่าย', ru: 'Лёгкий', id: 'Mudah',
+  },
+  보통: {
+    ko: '보통', en: 'Moderate', ja: 'ふつう', zh: '普通',
+    vi: 'Trung bình', th: 'ปานกลาง', ru: 'Средний', id: 'Sedang',
+  },
+  어려움: {
+    ko: '어려움', en: 'Hard', ja: 'むずかしい', zh: '困难',
+    vi: 'Khó', th: 'ยาก', ru: 'Сложный', id: 'Sulit',
+  },
+};
+
+/**
+ * The visitor's 이동수단 answer, localized.
+ *
+ * aiStore deliberately keeps every answer in KOREAN — it is what the course and
+ * shop matching downstream key on (see JejuAiSearch) — so the stored value has
+ * to be mapped back to a label for display. The four Korean words are the
+ * fallbacks JejuAiSearch authors against Transportation_1..4, in that order.
+ */
+const TRANSPORT_KO = ['도보', '자전거', '대중교통', '자동차'];
+const transportLabel = (ko: string, lang: Lang): string => {
+  const i = TRANSPORT_KO.indexOf(ko);
+  if (i < 0) return ko;
+  const value = t(`Transportation_${i + 1}`, lang);
+  return value.startsWith('Transportation_') ? ko : value;
+};
+
 const COURSE_META: Record<string, CourseMeta> = {
   nature: {
     label: 'A',
-    title: '자연·유산 탐방 코스',
-    tags: '#자연 #유산 #힐링',
-    desc: '제주의 아름다운 자연 경관과 역사·문화·유산을 함께 만날 수 있는 코스입니다.\n탁 트인 바다와 오름, 전통 마을을 천천히 둘러보며 여유로운 시간을 즐겨보세요.',
+    title: {
+      ko: '자연·유산 탐방 코스', en: 'Nature & Heritage', ja: '自然・遺産探訪コース',
+      zh: '自然·遗产探访路线', vi: 'Thiên nhiên & Di sản',
+      th: 'เส้นทางธรรมชาติและมรดก', ru: 'Природа и наследие', id: 'Alam & Warisan',
+    },
+    tags: {
+      ko: '#자연 #유산 #힐링', en: '#Nature #Heritage #Healing', ja: '#自然 #遺産 #ヒーリング',
+      zh: '#自然 #遗产 #疗愈', vi: '#Thiênnhiên #Disản #Thưgiãn',
+      th: '#ธรรมชาติ #มรดก #ผ่อนคลาย', ru: '#Природа #Наследие #Отдых',
+      id: '#Alam #Warisan #Relaksasi',
+    },
+    desc: {
+      ko: '제주의 아름다운 자연 경관과 역사·문화·유산을 함께 만날 수 있는 코스입니다.\n탁 트인 바다와 오름, 전통 마을을 천천히 둘러보며 여유로운 시간을 즐겨보세요.',
+      en: "A course that brings together Jeju's scenery and its history and heritage.\nTake your time along the open sea, the oreum and the old villages.",
+      ja: '済州の美しい自然と歴史・文化・遺産を一緒に楽しめるコースです。\n開けた海とオルム、伝統的な村をゆっくり巡ってみてください。',
+      zh: '这是一条可以同时领略济州自然风光与历史文化遗产的路线。\n请慢慢游览开阔的大海、오름和传统村落。',
+      vi: 'Hành trình kết hợp cảnh quan thiên nhiên với lịch sử và di sản của Jeju.\nHãy thong thả dạo qua biển rộng, các oreum và những ngôi làng cổ.',
+      th: 'เส้นทางที่รวมทัศนียภาพธรรมชาติเข้ากับประวัติศาสตร์และมรดกของเชจู\nค่อย ๆ เดินชมทะเลกว้าง โอรึม และหมู่บ้านโบราณ',
+      ru: 'Маршрут, соединяющий природу Чеджу с его историей и наследием.\nНе спеша пройдите вдоль открытого моря, оремов и старых деревень.',
+      id: 'Rute yang memadukan panorama alam dengan sejarah dan warisan Jeju.\nNikmati perlahan laut lepas, oreum, dan desa-desa tradisional.',
+    },
     duration: '약 4~5시간',
     distance: '약 18Km',
     difficulty: '쉬움',
     spotDuration: '2-3시간',
-    spotDifficulty: '난이도 쉬움',
+    spotDifficulty: '쉬움',
   },
   food: {
     label: 'B',
-    title: '맛집·감성 코스',
-    tags: '#미식 #감성 #로컬',
-    desc: '제주의 맛과 감성을 가득 담은 로컬 중심 코스입니다.\n현지인이 즐겨 찾는 맛집과 감성 공간을 천천히 둘러보세요.',
+    title: {
+      ko: '맛집·감성 코스', en: 'Food & Vibes', ja: 'グルメ・雰囲気コース',
+      zh: '美食·情调路线', vi: 'Ẩm thực & Cảm xúc',
+      th: 'อาหารและบรรยากาศ', ru: 'Еда и атмосфера', id: 'Kuliner & Suasana',
+    },
+    tags: {
+      ko: '#미식 #감성 #로컬', en: '#Food #Vibes #Local', ja: '#グルメ #雰囲気 #ローカル',
+      zh: '#美食 #情调 #本地', vi: '#Ẩmthực #Cảmxúc #Địaphương',
+      th: '#อาหาร #บรรยากาศ #ท้องถิ่น', ru: '#Еда #Атмосфера #Местное',
+      id: '#Kuliner #Suasana #Lokal',
+    },
+    desc: {
+      ko: '제주의 맛과 감성을 가득 담은 로컬 중심 코스입니다.\n현지인이 즐겨 찾는 맛집과 감성 공간을 천천히 둘러보세요.',
+      en: "A local-first course full of Jeju's flavours and atmosphere.\nTake your time around the places islanders themselves go back to.",
+      ja: '済州の味と雰囲気をたっぷり詰め込んだローカル中心のコースです。\n地元の人が通う名店と居心地のよい空間をゆっくり巡ってみてください。',
+      zh: '这是一条充满济州味道与情调的本地路线。\n请慢慢探访当地人常去的美食店与惬意空间。',
+      vi: 'Hành trình thiên về địa phương, đậm hương vị và cảm xúc Jeju.\nHãy thong thả ghé những quán ăn và không gian mà người bản địa yêu thích.',
+      th: 'เส้นทางเน้นท้องถิ่นที่เต็มไปด้วยรสชาติและบรรยากาศของเชจู\nค่อย ๆ แวะร้านอาหารและพื้นที่ที่คนท้องถิ่นชื่นชอบ',
+      ru: 'Маршрут для местных вкусов и атмосферы Чеджу.\nНе спеша загляните туда, куда возвращаются сами островитяне.',
+      id: 'Rute berbasis lokal yang penuh cita rasa dan suasana Jeju.\nNikmati perlahan tempat makan dan ruang favorit warga setempat.',
+    },
     duration: '약 4~5시간',
     distance: '약 15Km',
     difficulty: '쉬움',
     spotDuration: '1-2시간',
-    spotDifficulty: '난이도 쉬움',
+    spotDifficulty: '쉬움',
   },
   family: {
     label: 'C',
-    title: '가족·체험 코스',
-    tags: '#가족 #체험 #즐거움',
-    desc: '온 가족이 함께 즐길 수 있는 체험 중심 코스입니다.\n아이와 어른 모두 즐겁게 참여할 수 있는 장소로 구성했습니다.',
+    title: {
+      ko: '가족·체험 코스', en: 'Family & Activities', ja: '家族・体験コース',
+      zh: '家庭·体验路线', vi: 'Gia đình & Trải nghiệm',
+      th: 'ครอบครัวและกิจกรรม', ru: 'Семья и впечатления', id: 'Keluarga & Aktivitas',
+    },
+    tags: {
+      ko: '#가족 #체험 #즐거움', en: '#Family #Experience #Fun', ja: '#家族 #体験 #楽しさ',
+      zh: '#家庭 #体验 #欢乐', vi: '#Giađình #Trảinghiệm #Vuivẻ',
+      th: '#ครอบครัว #กิจกรรม #สนุก', ru: '#Семья #Впечатления #Веселье',
+      id: '#Keluarga #Pengalaman #Seru',
+    },
+    desc: {
+      ko: '온 가족이 함께 즐길 수 있는 체험 중심 코스입니다.\n아이와 어른 모두 즐겁게 참여할 수 있는 장소로 구성했습니다.',
+      en: 'A hands-on course the whole family can enjoy together.\nEvery stop is somewhere children and adults can join in.',
+      ja: '家族みんなで楽しめる体験中心のコースです。\n子どもも大人も一緒に参加できる場所で構成しました。',
+      zh: '这是一条全家人都能一起享受的体验路线。\n每个地点孩子与大人都能愉快参与。',
+      vi: 'Hành trình trải nghiệm cả gia đình cùng tận hưởng.\nMỗi điểm dừng đều phù hợp cho cả trẻ em và người lớn.',
+      th: 'เส้นทางเน้นกิจกรรมที่ทั้งครอบครัวสนุกร่วมกันได้\nทุกจุดแวะเหมาะกับทั้งเด็กและผู้ใหญ่',
+      ru: 'Маршрут впечатлений для всей семьи.\nКаждая остановка подходит и детям, и взрослым.',
+      id: 'Rute pengalaman yang bisa dinikmati seluruh keluarga.\nSetiap perhentian cocok untuk anak maupun orang dewasa.',
+    },
     duration: '약 5~6시간',
     distance: '약 22Km',
     difficulty: '보통',
     spotDuration: '2-3시간',
-    spotDifficulty: '난이도 쉬움',
+    spotDifficulty: '쉬움',
   },
 };
 
@@ -353,6 +473,19 @@ export function JejuAiDetail({ controller }: Props): JSX.Element {
   const shops = useShopStore((s) => s.shops);
   const setDetail = useDetailStore((s) => s.setItem);
   const lang = useLanguageStore((s) => s.currentLanguage) as Lang;
+  /**
+   * The two labels this page repeats — from Localization_Jeju, which carries
+   * both in all eight languages and was going unread. They were authored Korean,
+   * so an English visitor read "총 소요시간" and "1일차" on an otherwise
+   * translated page. The authored words stay as the fallback.
+   *
+   * `dayLapsed` is a SUFFIX ("일차"), and it is appended in every language
+   * because that is how the sheet stores it — one word, not a pattern with a
+   * slot. English therefore reads "1 Day"; putting the number elsewhere would
+   * need a placeholder the sheet does not have.
+   */
+  const totalTimeLabel = sheetText('TotalStayTime', lang, { ko: '총 소요시간' });
+  const dayWord = sheetText('dayLapsed', lang, { ko: '일차' });
 
   const meta = COURSE_META[courseKey] ?? COURSE_META.nature!;
   /** Index into `pages`, not a day number — a day can span several pages. */
@@ -488,6 +621,8 @@ export function JejuAiDetail({ controller }: Props): JSX.Element {
   const stops = page?.stops ?? [];
   /** The day the visible page belongs to — what the DAY label and header show. */
   const day = page?.day ?? 1;
+  /** The header's course+day line, e.g. "A코스 - 1일차". */
+  const courseDayTitle = `${meta.label}코스 - ${day}${dayWord}`;
 
   const goPrevPage = useCallback(() => setPageIndex((i) => Math.max(0, i - 1)), []);
   const goNextPage = useCallback(
@@ -532,9 +667,11 @@ export function JejuAiDetail({ controller }: Props): JSX.Element {
    * no schedule to grade, so the authored placeholder stands in.
    */
   const hardnessOf = (stop: Stop): string => {
-    if (!stop.spot) return meta.spotDifficulty;
-    const grade = difficultyLabel(stop.spot.difficulty);
-    return grade ? `난이도 ${grade}` : '';
+    const grade = stop.spot ? difficultyLabel(stop.spot.difficulty) : meta.spotDifficulty;
+    if (!grade) return '';
+    // Was the Korean literal `난이도 ${grade}` — built from the same two tables
+    // the summary bar uses, so the word and its label localize together.
+    return `${pick(STAT_LABEL.difficulty, lang)} ${pick(DIFFICULTY_WORD[grade] ?? { ko: grade }, lang)}`;
   };
 
   /** Falls back to the shared no-image placeholder, like the list and detail cards. */
@@ -564,7 +701,7 @@ export function JejuAiDetail({ controller }: Props): JSX.Element {
       from: 'ai_detail',
       // JejuDetail shows this as the header SUBTITLE for AI-course spots, so it
       // carries the course + day rather than a generic label.
-      title: `${meta.label}코스 - ${day}일차`,
+      title: courseDayTitle,
       name: shopName(shop, lang),
       category: shopSecondCategory(shop, lang),
       photos: shopImages(shop),
@@ -610,13 +747,16 @@ export function JejuAiDetail({ controller }: Props): JSX.Element {
    * the whole course, not the visible day — the DAY pager sits below the bar.
    */
   const stats: Array<{ label: string; value: string }> = useMemo(() => {
-    const chosenTransport = transport || '자동차';
+    const chosenTransport = transportLabel(transport || '자동차', lang);
     if (!course) {
       return [
-        { label: '총 소요시간', value: meta.duration },
-        { label: '이동수단', value: chosenTransport },
-        { label: '이동거리', value: meta.distance },
-        { label: '난이도', value: meta.difficulty },
+        { label: totalTimeLabel, value: meta.duration },
+        { label: pick(STAT_LABEL.transport, lang), value: chosenTransport },
+        { label: pick(STAT_LABEL.distance, lang), value: meta.distance },
+        {
+          label: pick(STAT_LABEL.difficulty, lang),
+          value: pick(DIFFICULTY_WORD[meta.difficulty] ?? { ko: meta.difficulty }, lang),
+        },
       ];
     }
     const travel = course.schedule.reduce(
@@ -624,27 +764,33 @@ export function JejuAiDetail({ controller }: Props): JSX.Element {
       0,
     );
     return [
-      { label: '총 소요시간', value: `약 ${minutesLabel(course.totalMinutes)}` },
-      { label: '이동수단', value: chosenTransport },
-      { label: '이동시간', value: minutesLabel(travel) },
-      { label: '난이도', value: difficultyLabel(course.difficulty) || meta.difficulty },
+      { label: totalTimeLabel, value: `약 ${minutesLabel(course.totalMinutes)}` },
+      { label: pick(STAT_LABEL.transport, lang), value: chosenTransport },
+      { label: pick(STAT_LABEL.travel, lang), value: minutesLabel(travel) },
+      {
+        label: pick(STAT_LABEL.difficulty, lang),
+        value: (() => {
+          const word = difficultyLabel(course.difficulty) || meta.difficulty;
+          return pick(DIFFICULTY_WORD[word] ?? { ko: word }, lang);
+        })(),
+      },
     ];
-  }, [course, transport, meta]);
+  }, [course, transport, meta, totalTimeLabel, lang]);
 
   return (
     <JejuPageFrame
       controller={controller}
       title="'제주' 뭐하지 (AI 검색)"
-      subtitle={`${meta.label}코스 - ${day}일차`}
+      subtitle={courseDayTitle}
       subtitleColor="#616161"
       bannerFallback="banner-detail"
       showBanner={false}
       onBack={() => controller.navigate('ai_result', '뒤로')}
     >
-      <p className={styles.title}>{meta.title}</p>
+      <p className={styles.title}>{pick(meta.title, lang)}</p>
       <div className={styles.rule} />
-      <p className={low(styles.tags, styles.tagsLow)}>{meta.tags}</p>
-      <p className={low(styles.desc, styles.descLow)}>{meta.desc}</p>
+      <p className={low(styles.tags, styles.tagsLow)}>{pick(meta.tags, lang)}</p>
+      <p className={low(styles.desc, styles.descLow)}>{pick(meta.desc, lang)}</p>
 
       <div className={low(styles.summary, styles.summaryLow)}>
         {stats.map((s, i) => (

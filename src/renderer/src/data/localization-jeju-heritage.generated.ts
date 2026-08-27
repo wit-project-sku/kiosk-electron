@@ -7,14 +7,12 @@ import type { LangText } from './types';
  *  LOCALIZATION_JEJU by loc.ts; mirrors the runtime split in
  *  LocalizationSyncParser.VENUE_MASCOTS. */
 export const LOCALIZATION_JEJU_HERITAGE_OVERRIDES: Record<string, LangText> = {
-  "NoticeContent": {"ko":"제주도의 마스코트<b>'YUSAN'이\n박술녀 한복을</b> 입고 나와요\n여러분도 체험할 수 있도록 \n할게요 <b>한복을 입어보세요~</b>","en":"YUSAN will appear in a brand-new hanboks  by Park Sulnyeo!\nGet ready to enjoy the hanbok experience with all-new designs.","ja":"YUSANはパク・スルニョによる全く新しい韓服（ハンボク）で登場します！ 新しいデザインの韓服体験をお楽しみに！","zh":"YUSAN\n将身着朴洙烈设计的全新韩服亮相！\n敬请期待全新设计的韩服体验！","vi":"Linh vật Insadong 'YUSAN' mặc Hanbok Bak Sul-nyeo xuất hiện! Chúng tôi sẽ giúp các bạn cùng trải nghiệm. Hãy thử Hanbok nhé~","th":"มาสคอตอินซาดง 'YUSAN' สวมฮันบกพัคซุลนยอมาแล้ว! เราจะทำให้ทุกคนได้สัมผัสประสบการณ์นี้ มาลองสวมชุดฮันบกกัน~","ru":"YUSAN появится в совершенно новых ханбоках от Пак Суль Нё!\nПриготовьтесь насладиться примеркой ханбоков с совершенно новым дизайном.","id":"Maskot Insadong 'YUSAN' tampil pakai Hanbok Bak Sul-nyeo! Kami siapkan agar kalian juga bisa mencobanya. Ayo coba Hanbok~"},
   "MainButton_Greeting": {"ko":"안녕 '유산'","en":"Hello 'YUSAN'","ja":"こんにちは 'YUSAN'","zh":"你好 'YUSAN'","vi":"Chào 'YUSAN'","th":"สวัสดี 'YUSAN'","ru":"Привет, 'YUSAN'","id":"Halo 'YUSAN'"},
   "MainButton_ToHelp": {"ko":"도와줘'유산'","en":"Help","ja":"ヘルプとサービスです","zh":"请帮忙","vi":"Giúp với 'YUSAN'","th":"ช่วยด้วย 'YUSAN'","ru":"Помощь","id":"Tolong 'YUSAN'"},
-  "SubButton_Greeting": {"ko":"유산' 소개","en":"","ja":"","zh":""},
-  "Greeting_Introduce": {"ko":"* 안녕하세요! 마스코트 '유산'를 소개할게요!","en":"","ja":"","zh":""},
-  "Greeting_Category1": {"ko":"유산' 소개","en":"","ja":"","zh":""},
-  "Greeting_Category2": {"ko":"유산' 취미생활","en":"","ja":"","zh":""},
-  "Greeting_Category3": {"ko":"유산' 건강습관","en":"","ja":"","zh":""},
+  "Greeting_Introduce": {"ko":"* 안녕하세요! 마스코트 '유산'를 소개할게요!","en":"Hello! Let me introduce our mascot, 'Yusan'!","ja":"*こんにちは！マスコット「ハヨン」を紹介します！","zh":"大家好！让我来介绍一下我们的吉祥物“夏英”！","vi":"Xin chào! Cho phép tôi giới thiệu linh vật của chúng ta, 'Yusan'!","th":"สวัสดี! ขอแนะนำมาสคอตของเรา 'ฮายอง' ค่ะ!","ru":"Здравствуйте! Позвольте представить вам нашего талисмана, Хаён!","id":"Halo! Izinkan saya memperkenalkan maskot kami, 'Yusan'!"},
+  "Greeting_Category1": {"ko":"유산' 소개","en":"Yusan's Introduction","ja":"ハヨンの紹介","zh":"夏荣的介绍","vi":"Lời giới thiệu của Yusan","th":"การแนะนำตัวของฮายอง","ru":"Вступление Хаён","id":"Perkenalan Yusan"},
+  "Greeting_Category2": {"ko":"유산' 취미생활","en":"Yusan's hobbies","ja":"ハヨン「趣味生活」","zh":"Yusan的爱好","vi":"Sở thích của Yusan","th":"งานอดิเรกของฮายอง","ru":"Хобби Хаён","id":"Hobi Yusan"},
+  "Greeting_Category3": {"ko":"유산' 건강습관","en":"Yusan's healthy habits","ja":"ハヨンの健康習慣","zh":"Yusan的健康习惯","vi":"Những thói quen lành mạnh của Yusan","th":"นิสัยรักสุขภาพของฮายอง","ru":"Здоровые привычки Хаён","id":"Kebiasaan sehat Yusan"},
   "Greeting_NameContent": {"ko":"유산","en":"Yusan","ja":"インサ","zh":"英莎","vi":"INSA","th":"INSA","ru":"INSA","id":"INSA"},
-  "Photo_SelectTogether": {"ko":"사진촬영 (with '유산')","en":"With ‘Yusan’","ja":"","zh":""},
+  "Photo_SelectTogether": {"ko":"사진촬영 (with '유산')","en":"With ‘Yusan’","ja":"写真撮影（with '遺産'）","zh":"照片拍摄（与“流产”有关）","vi":"Buổi chụp ảnh (với chủ đề 'Sảy thai')","th":"ถ่ายภาพ (กับ 'การแท้งบุตร')","ru":"Фотосессия (с фильмом «Выкидыш»)","id":"Sesi foto (dengan 'Keguguran')"},
 };

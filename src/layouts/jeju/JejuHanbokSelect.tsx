@@ -142,7 +142,22 @@ interface Tab {
  * registered category names the garments live under; if neither is registered
  * the carousel is simply empty and the page still reads.
  */
-const HANBOK_INFO_CATS = ['w=hannbok', 'm=hanbok'];
+/**
+ * ★ Matched by SHAPE, not by a fixed list of names.
+ *
+ * This was `['w=hannbok', 'm=hanbok']` — the two categories PROD registers — and
+ * on the newer catalogue it found nothing at all, so the page opened with an
+ * EMPTY carousel and only the text card. Stage merged the gender-split pair into
+ * a single `hanbok` (22 outfits, verified 2026-08-27), and a name the list did
+ * not spell simply did not exist as far as this page was concerned.
+ *
+ * The regex covers every spelling either catalogue has used: the `w=` / `m=`
+ * prefixes that the merge retired, and the server-side double-n in "hannbok".
+ * A future respelling of the same category keeps working; an unrelated category
+ * still cannot match, which is what keeps 직업의상 and 글로벌 out of a page whose
+ * copy is specifically about 한복.
+ */
+const isHanbokCategory = (name: string): boolean => /^(?:[wm]=)?hann?bok$/i.test(name.trim());
 
 /**
  * The registered category name of the 제주 tab — the ONE tab that carries the
@@ -508,9 +523,15 @@ export function JejuHanbokSelect({
   // styles rather than re-authoring them; 뒤로 in JejuHeader closes it.
   if (infoOpen) {
     const info = pick(HANBOK_INFO, lang);
-    const allHanbok = HANBOK_INFO_CATS.flatMap(
-      (name) => byCategory[name.toLowerCase()] ?? [],
-    ).filter((o) => Boolean(o.url) && !brokenCodes.has(o.code));
+    // Walk the catalogue's OWN keys rather than probing for names we guessed:
+    // whatever the operator registered 한복 under is what gets drawn. Sorted so
+    // a catalogue with two 한복 categories (prod's w=/m= pair) keeps a stable
+    // order between renders rather than following object insertion.
+    const allHanbok = Object.keys(byCategory)
+      .filter(isHanbokCategory)
+      .sort()
+      .flatMap((name) => byCategory[name] ?? [])
+      .filter((o) => Boolean(o.url) && !brokenCodes.has(o.code));
     return (
       <div className={styles.root}>
         {pageBg && <img src={pageBg} alt="" className={styles.bg} draggable={false} />}

@@ -12,7 +12,7 @@
  * old node (6217:95726) was deleted from the Figma file rather than edited.
  * That took the on-screen keyboard with it; nothing else about the screen moved.
  */
-import { useLayoutEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import type { KioskController } from '@renderer/hooks/useKioskController';
 import type { Shop } from '@shared/types/shop';
 import { jejuIconUrl } from '@renderer/assets/icons/jeju';
@@ -108,6 +108,22 @@ export function JejuRentcar({ controller }: Props): JSX.Element {
 
   const scrollRef = useRef<HTMLDivElement>(null);
   const [jamo, setJamo] = useState<Chosung | null>(null);
+  /**
+   * The 초성 row is a KOREAN-only control: it filters on the leading jamo of the
+   * shop's Korean name, so on any other language it is a row of glyphs the
+   * visitor cannot read filtering on a name they are not being shown. Hidden
+   * outside Korean, exactly as JejuAbout's 관광명소 grid does it.
+   */
+  const showChosung = lang === 'ko';
+
+  /**
+   * Leaving Korean must also drop an ACTIVE filter, not just the control —
+   * otherwise a visitor who taps ㅅ and then switches to English is left on a
+   * short list with no visible reason and no way to clear it.
+   */
+  useEffect(() => {
+    if (!showChosung && jamo !== null) setJamo(null);
+  }, [showChosung, jamo]);
 
   const scrollBy = (delta: number): void =>
     scrollRef.current?.scrollBy({ top: delta, behavior: 'smooth' });
@@ -163,7 +179,7 @@ export function JejuRentcar({ controller }: Props): JSX.Element {
     controller.navigate('detail', TITLE);
   };
 
-  const chosungRow = (
+  const chosungRow = !showChosung ? null : (
     <JejuChosungRow
       className={`${styles.chosung} ${lowReach ? styles.chosungLow : ''}`}
       cellWidth={CHOSUNG_CELL}

@@ -62,16 +62,49 @@ const TRANSPORT = [
 ];
 
 /**
- * Section headings. 방문 인원 / 체류 기간 / 즐길 거리 have sheet keys; 이동수단 does
- * NOT — Localization_Jeju carries Transportation_1..4 but no heading row for
- * them — so it keeps its authored label until one is added.
+ * Section headings.
+ *
+ * ★ NONE of these four keys is in Localization_Jeju — checked 2026-08-27:
+ * VisitorCount, StayTime, JoyContent and the heading for 이동수단 are all
+ * absent, so `s()` fell through to its authored string and every heading on this
+ * page read KOREAN in all eight languages while the chips beneath them were
+ * fully translated. (Only the CHIP rows exist — Visitor_*, StayTime_*,
+ * Transportation_* — which is what made the gap easy to miss.)
+ *
+ * So the labels are authored here in all eight languages, the same way
+ * NEXT_LABEL is. The sheet key stays on each one and still WINS when present:
+ * add the row and the authored copy steps aside with no release.
  */
 const SECTION = {
-  visitors: { key: 'VisitorCount', label: '방문 인원' },
-  stay: { key: 'StayTime', label: '체류 기간' },
-  transport: { key: null, label: '이동수단' },
-  interests: { key: 'JoyContent', label: '즐길 거리' },
-} as const;
+  visitors: {
+    key: 'VisitorCount',
+    label: {
+      ko: '방문 인원', en: 'Group size', ja: '訪問人数', zh: '同行人数',
+      vi: 'Số người', th: 'จำนวนผู้มา', ru: 'Количество гостей', id: 'Jumlah orang',
+    },
+  },
+  stay: {
+    key: 'StayTime',
+    label: {
+      ko: '체류 기간', en: 'Length of stay', ja: '滞在期間', zh: '停留时间',
+      vi: 'Thời gian lưu trú', th: 'ระยะเวลาพำนัก', ru: 'Срок пребывания', id: 'Lama menginap',
+    },
+  },
+  transport: {
+    key: 'Transportation',
+    label: {
+      ko: '이동수단', en: 'Getting around', ja: '移動手段', zh: '交通方式',
+      vi: 'Phương tiện di chuyển', th: 'การเดินทาง', ru: 'Транспорт', id: 'Transportasi',
+    },
+  },
+  interests: {
+    key: 'JoyContent',
+    label: {
+      ko: '즐길 거리', en: 'What to enjoy', ja: '楽しみ方', zh: '体验项目',
+      vi: 'Hoạt động yêu thích', th: 'กิจกรรมที่สนใจ', ru: 'Что интересно', id: 'Aktivitas',
+    },
+  },
+} as const satisfies Record<string, { key: string; label: Partial<Record<Lang, string>> }>;
 
 /**
  * 즐길 거리 — 30 tiles in 5 rows × 6 columns, each carrying its own text colour.
@@ -224,12 +257,16 @@ export function JejuAiSearch({ controller }: Props): JSX.Element {
   const setAiAnswers = useAiStore((s) => s.setAnswers);
   const lang = useLanguageStore((s) => s.currentLanguage);
 
-  /** Sheet string, falling back to the authored Korean when the key is absent. */
+  /** Sheet string, falling back to the authored copy when the key is absent. */
   const s = (key: string | null, authored: string): string => {
     if (!key) return authored;
     const value = t(key, lang);
     return value === key ? authored : value;
   };
+
+  /** A section heading: the sheet's row if it has one, else our own translation. */
+  const heading = (sec: (typeof SECTION)[keyof typeof SECTION]): string =>
+    s(sec.key, pick(sec.label, lang));
 
   /** Tile label: Korean keeps the Figma's two-line form, others use the sheet. */
   const tileLabel = (i: number): string => {
@@ -315,7 +352,7 @@ export function JejuAiSearch({ controller }: Props): JSX.Element {
         {/* ── 방문 인원 ── */}
         <div className={styles.label} style={{ top: y.visitorsLabel }}>
           <span className={styles.labelBar} />
-          <p className={styles.labelText}>{s(SECTION.visitors.key, SECTION.visitors.label)}</p>
+          <p className={styles.labelText}>{heading(SECTION.visitors)}</p>
         </div>
         <div className={styles.row} style={{ top: y.visitorsRow }}>
           {VISITORS.map((v, i) => (
@@ -334,7 +371,7 @@ export function JejuAiSearch({ controller }: Props): JSX.Element {
         {/* ── 체류 기간 ── */}
         <div className={styles.label} style={{ top: y.stayLabel }}>
           <span className={styles.labelBar} />
-          <p className={styles.labelText}>{s(SECTION.stay.key, SECTION.stay.label)}</p>
+          <p className={styles.labelText}>{heading(SECTION.stay)}</p>
         </div>
         <div className={styles.row} style={{ top: y.stayRow }}>
           {STAY.map((item, i) => (
@@ -353,7 +390,7 @@ export function JejuAiSearch({ controller }: Props): JSX.Element {
         {/* ── 이동수단 ── */}
         <div className={styles.label} style={{ top: y.transportLabel }}>
           <span className={styles.labelBar} />
-          <p className={styles.labelText}>{s(SECTION.transport.key, SECTION.transport.label)}</p>
+          <p className={styles.labelText}>{heading(SECTION.transport)}</p>
         </div>
         <div className={styles.row} style={{ top: y.transportRow }}>
           {TRANSPORT.map((item, i) => (
@@ -376,7 +413,7 @@ export function JejuAiSearch({ controller }: Props): JSX.Element {
         {/* ── 즐길 거리 ── */}
         <div className={styles.label} style={{ top: y.interestsLabel }}>
           <span className={styles.labelBar} />
-          <p className={styles.labelText}>{s(SECTION.interests.key, SECTION.interests.label)}</p>
+          <p className={styles.labelText}>{heading(SECTION.interests)}</p>
         </div>
         <div className={styles.grid} style={{ top: lowReach ? GRID_TOP_LOW : GRID_TOP }}>
           {rows.map((row, r) => (

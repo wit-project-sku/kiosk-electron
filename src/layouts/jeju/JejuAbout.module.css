@@ -255,6 +255,25 @@
   white-space: pre-wrap;
 }
 
+/*
+ * 역사 epochs — the sheet's `Here_HistoryContent_1..5`, each with its own
+ * `_epoch` heading. The frame drew one unbroken text node because the sheet held
+ * one cell; the operator has since split it into titled sections, so the page
+ * gives each its own block. Spacing only: the body keeps `.prose p` verbatim, so
+ * a kiosk that still has the single-key fallback renders exactly as before.
+ */
+.epoch + .epoch {
+  margin-top: 56px;
+}
+
+.epochTitle {
+  margin: 0 0 18px;
+  font-size: 54px;
+  font-weight: 700;
+  line-height: 1.25;
+  color: var(--kiosk-primary, #ff7f0f);
+}
+
 /* ── 관광명소 (6212:59152) ── */
 
 /* Fixed, not part of the scroll: the row is the list's filter, and a kiosk
