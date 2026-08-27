@@ -22,6 +22,10 @@
  *
  * Live data: `useJejuDepartures` / `useJejuArrivals` read the KAC snapshot
  * mirrored by `useFlightSync` (see FlightService).
+ *
+ * ♿ low-reach: same "controls to the foot" shape as the terminal's JejuCruise —
+ * the 출발/도착 tabs drop to the artboard floor and the board slides up 159 into
+ * the space. All of it is positional (`*Low` classes); see the CSS header.
  */
 import { useEffect, useRef, useState } from 'react';
 import type { KioskController } from '@renderer/hooks/useKioskController';
@@ -39,6 +43,7 @@ import {
   useJejuDepartures,
 } from '@renderer/lib/jejuFlight';
 import type { JejuFlightBase } from '@renderer/lib/jejuFlight';
+import { useAccessibilityStore } from '@renderer/store/accessibilityStore';
 import { JejuPageFrame } from './JejuPageFrame';
 import styles from './JejuFlights.module.css';
 
@@ -140,16 +145,16 @@ const COLUMNS: Record<FlightDirection, Column[]> = {
     { key: 'time',    x: 280,    centred: true, head: COL_TIME_DEPARTURE },
     { key: 'airline', x: 680,    centred: true, head: COL_AIRLINE },
     { key: 'place',   x: 1180, centred: true,  head: COL_DESTINATION },
-    { key: 'kind',    x: 1480, centred: true,  head: COL_KIND },
-    { key: 'stand',   x: 1690, centred: true,  head: COL_GATE },
+    { key: 'kind',    x: 1500, centred: true,  head: COL_KIND },
+    { key: 'stand',   x: 1710, centred: true,  head: COL_GATE },
     { key: 'status',  x: 1913, centred: true,  head: COL_STATUS },
   ],
   arrival: [
     { key: 'time',    x: 280,    centred: true, head: COL_TIME_ARRIVAL },
     { key: 'airline', x: 680,    centred: true, head: COL_AIRLINE },
     { key: 'place',   x: 1180, centred: true,  head: COL_ORIGIN },
-    { key: 'kind',    x: 1480, centred: true,  head: COL_KIND },
-    { key: 'stand',   x: 1690, centred: true,  head: COL_BELT },
+    { key: 'kind',    x: 1500, centred: true,  head: COL_KIND },
+    { key: 'stand',   x: 1710, centred: true,  head: COL_BELT },
     { key: 'status',  x: 1913, centred: true,  head: COL_STATUS },
   ],
 };
@@ -163,6 +168,7 @@ interface Row {
 
 export function JejuFlights({ controller }: Props): JSX.Element {
   const lang = useLang();
+  const lowReach = useAccessibilityStore((s) => s.lowReach);
   const [direction, setDirection] = useState<FlightDirection>('departure');
   const scrollRef = useRef<HTMLDivElement>(null);
 
@@ -180,6 +186,18 @@ export function JejuFlights({ controller }: Props): JSX.Element {
 
   const columns = COLUMNS[direction];
   const timeColX = columns.find((c) => c.key === 'time')?.x ?? 300;
+
+  /*
+   * ♿ only moves things on this page — every size, weight and colour is shared
+   * with the standard frames — so each element keeps its class and picks up a
+   * second one that re-places it. Same helper JejuCruise / JejuHome use.
+   *
+   * Note there is no `lowReachSelfLayout` on the frame below: that prop only
+   * matters once JejuPageFrame's 573px re-stack is in play, and `showBanner`
+   * is false here, so the frame already leaves the body alone.
+   */
+  const low = (base?: string, alt?: string): string =>
+    `${base ?? ''} ${lowReach ? alt ?? '' : ''}`;
 
   const cellText = (col: Column, row: Row): string => {
     switch (col.key) {
@@ -204,7 +222,7 @@ export function JejuFlights({ controller }: Props): JSX.Element {
       showBanner={false}
       onBack={() => controller.navigate('home', '뒤로')}
     >
-      <div className={styles.tabs}>
+      <div className={low(styles.tabs, styles.tabsLow)}>
         {TABS.map((tab) => (
           <button
             key={tab.id}
@@ -218,18 +236,18 @@ export function JejuFlights({ controller }: Props): JSX.Element {
         ))}
       </div>
 
-      <div className={styles.headPlate} />
+      <div className={low(styles.headPlate, styles.headPlateLow)} />
       {columns.map((col) => (
         <span
           key={`${direction}-${col.key}`}
-          className={`${styles.head} ${col.centred ? styles.cellCentred : ''}`}
+          className={`${low(styles.head, styles.headLow)} ${col.centred ? styles.cellCentred : ''}`}
           style={{ left: col.x }}
         >
           {pick(col.head, lang)}
         </span>
       ))}
 
-      <div className={styles.scroll} ref={scrollRef}>
+      <div className={low(styles.scroll, styles.scrollLow)} ref={scrollRef}>
         <div key={direction} className={styles.rows}>
           {rows.length === 0 ? (
             <p className={styles.empty}>{pick(EMPTY, lang)}</p>
