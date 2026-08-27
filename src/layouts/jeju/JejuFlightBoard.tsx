@@ -57,11 +57,11 @@ const MORE = {
  */
 const COLUMNS = {
   time: 410,
-  airline: 750,
+  airline: 740,
   destination: 1110,
-  kind: 1370,
-  gate: 1550,
-  status: 1720,
+  kind: 1390,
+  gate: 1560,
+  status: 1730,
 } as const;
 
 const HEADS: Record<keyof typeof COLUMNS, Partial<Record<Lang, string>>> = {

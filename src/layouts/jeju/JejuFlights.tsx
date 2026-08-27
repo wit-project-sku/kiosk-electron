@@ -132,7 +132,7 @@ const COL_GATE = {
  * designer rather than reproduced.
  */
 const COL_BELT = {
-  ko: '수하물수취대', en: 'Baggage Claim', ja: '手荷物受取所', zh: '行李提取处',
+  ko: '수하물 수취대', en: 'Baggage Claim', ja: '手荷物受取所', zh: '行李提取处',
   vi: 'Băng chuyền', th: 'สายพานกระเป๋า', ru: 'Выдача багажа', id: 'Pengambilan Bagasi',
 };
 const COL_STATUS = {
@@ -143,18 +143,18 @@ const COL_STATUS = {
 const COLUMNS: Record<FlightDirection, Column[]> = {
   departure: [
     { key: 'time',    x: 280,    centred: true, head: COL_TIME_DEPARTURE },
-    { key: 'airline', x: 680,    centred: true, head: COL_AIRLINE },
-    { key: 'place',   x: 1180, centred: true,  head: COL_DESTINATION },
+    { key: 'airline', x: 670,    centred: true, head: COL_AIRLINE },
+    { key: 'place',   x: 1160, centred: true,  head: COL_DESTINATION },
     { key: 'kind',    x: 1500, centred: true,  head: COL_KIND },
-    { key: 'stand',   x: 1710, centred: true,  head: COL_GATE },
+    { key: 'stand',   x: 1700, centred: true,  head: COL_GATE },
     { key: 'status',  x: 1913, centred: true,  head: COL_STATUS },
   ],
   arrival: [
     { key: 'time',    x: 280,    centred: true, head: COL_TIME_ARRIVAL },
-    { key: 'airline', x: 680,    centred: true, head: COL_AIRLINE },
-    { key: 'place',   x: 1180, centred: true,  head: COL_ORIGIN },
+    { key: 'airline', x: 670,    centred: true, head: COL_AIRLINE },
+    { key: 'place',   x: 1160, centred: true,  head: COL_ORIGIN },
     { key: 'kind',    x: 1500, centred: true,  head: COL_KIND },
-    { key: 'stand',   x: 1710, centred: true,  head: COL_BELT },
+    { key: 'stand',   x: 1700, centred: true,  head: COL_BELT },
     { key: 'status',  x: 1913, centred: true,  head: COL_STATUS },
   ],
 };
