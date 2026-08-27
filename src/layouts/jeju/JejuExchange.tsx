@@ -27,6 +27,7 @@ import type { KioskController } from '@renderer/hooks/useKioskController';
 import { jejuIconUrl } from '@renderer/assets/icons/jeju';
 import { useExchangeStore } from '@renderer/store/exchangeStore';
 import { pick, useLang } from '@renderer/lib/i18n';
+import { sheetText } from '@renderer/lib/loc';
 import type { Lang } from '@renderer/lib/i18n';
 import korFlag from '@renderer/assets/photos/insadong/exchange/kor.png';
 import jpnFlag from '@renderer/assets/photos/insadong/exchange/jpn.svg';
@@ -88,9 +89,10 @@ const byUnit = (unit: string): Currency =>
  * what a visitor who only wants to glance at a rate needs, and the calculator
  * is one tap away for the visitor who wants to do something.
  */
-const TABS: ReadonlyArray<{ id: TabId; label: Partial<Record<Lang, string>> }> = [
+const TABS: ReadonlyArray<{ id: TabId; key: string; label: Partial<Record<Lang, string>> }> = [
   {
     id: 'live',
+    key: 'Exchange_tab_2',
     label: {
       ko: '실시간 환율', en: 'Live Rates', ja: 'リアルタイム為替', zh: '实时汇率',
       vi: 'Tỷ giá trực tiếp', th: 'อัตราเรียลไทม์', ru: 'Курсы валют', id: 'Kurs Terkini',
@@ -98,8 +100,10 @@ const TABS: ReadonlyArray<{ id: TabId; label: Partial<Record<Lang, string>> }> =
   },
   {
     id: 'calc',
+    key: 'Exchange_tab_1',
     label: {
-      // Written closed-up in the design (6412:76320), not "환율 계산기".
+      // Written closed-up in the design (6412:76320), not "환율 계산기" — which
+      // IS how the sheet spells it, and the sheet wins. Kept as the fallback.
       ko: '환율계산기', en: 'Converter', ja: '為替計算機', zh: '汇率计算器',
       vi: 'Máy tính tỷ giá', th: 'เครื่องคำนวณ', ru: 'Калькулятор', id: 'Kalkulator',
     },
@@ -115,6 +119,21 @@ const RESULT_LABEL = {
   ko: '환전:', en: 'Converted:', ja: '換算:', zh: '兑换:',
   vi: 'Quy đổi:', th: 'แลกเปลี่ยน:', ru: 'Обмен:', id: 'Konversi:',
 };
+
+/**
+ * Localized sheet string with the authored table behind it — the same
+ * `sheetText` contract JejuHome and JejuAbout use, so an operator edit reaches
+ * the kiosk on the next night sync with no rebuild.
+ *
+ * Wired 2026-08-27: Localization_Jeju has carried `Exchange_tab_1` / `_tab_2` /
+ * `_desc_1` in all eight languages for a while and this screen was reading none
+ * of them. `Exchange_desc_2` (금액) and `_desc_3` (환전) are deliberately NOT
+ * wired: the design's labels end in a colon the sheet does not store, and the
+ * sheet's English is lower-cased mid-sentence prose ("amount", "currency
+ * exchange") rather than a field label.
+ */
+const exchangeText = (key: string, lang: Lang, fallback: Partial<Record<Lang, string>>): string =>
+  sheetText(key, lang, fallback);
 
 const BASE_LABEL = {
   ko: '기준 환율', en: 'Base rate', ja: '基準為替レート', zh: '基准汇率',
@@ -288,7 +307,7 @@ export function JejuExchange({ controller }: Props): JSX.Element {
               setTab(t.id);
             }}
           >
-            {pick(t.label, lang)}
+            {exchangeText(t.key, lang, t.label)}
           </button>
         ))}
       </div>
@@ -296,7 +315,9 @@ export function JejuExchange({ controller }: Props): JSX.Element {
       {tab === 'calc' ? (
         <>
           <div className={`${styles.basePill} ${lowReach ? styles.basePillLow : ''}`}>
-            <span className={styles.basePillLabel}>{pick(BASE_LABEL, lang)}</span>
+            <span className={styles.basePillLabel}>
+                {exchangeText('Exchange_desc_1', lang, BASE_LABEL)}
+              </span>
             <span className={styles.basePillRate}>
               {oneUnit === undefined
                 ? `1 ${from.ccy} = — ${to.ccy}`

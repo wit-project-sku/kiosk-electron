@@ -509,7 +509,14 @@ interface Props {
 export function JejuLocalpay({ controller }: Props): JSX.Element {
   const lang = useLanguageStore((s) => s.currentLanguage);
   const lowReach = useAccessibilityStore((s) => s.lowReach);
-  const [tab, setTab] = useState<TabId>('onnuri');
+  /**
+   * 탐나는전 is the LANDING tab (2026-08-27, by request). It is
+   * 제주특별자치도's own currency, so on a 제주 kiosk it is the one a visitor is
+   * most likely to be asking about; 온누리상품권 is the national voucher and
+   * moves to the right. The row order below matches, so the active tab is the
+   * left one on arrival rather than the right.
+   */
+  const [tab, setTab] = useState<TabId>('tamna');
   // `pick` falls back to Korean for the language codes this copy does not carry
   // (zh_cn / zh_tw / es), exactly as every other 제주 screen's label maps do;
   // `withSheet` then lets Localization_Jeju override whatever it has filled.
@@ -548,7 +555,7 @@ export function JejuLocalpay({ controller }: Props): JSX.Element {
       lowReachShift={116}
     >
       <div className={low(styles.tabs, styles.tabsLow)}>
-        {(['onnuri', 'tamna'] as const).map((id) => (
+        {(['tamna', 'onnuri'] as const).map((id) => (
           <button
             key={id}
             type="button"

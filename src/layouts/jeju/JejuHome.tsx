@@ -100,6 +100,25 @@ const FALLBACKS: Record<string, Partial<Record<Lang, string>>> = {
 const homeText = (key: string, lang: Lang): string => sheetText(key, lang, FALLBACKS[key]);
 
 /**
+ * The notice, preferring THIS MONTH's row.
+ *
+ * ★ The sheet grew twelve month rows — `NoticeContent -1` … `NoticeContent -12`
+ * (note the space before the dash: that is the operator's spelling, and the key
+ * is matched verbatim). They carry seasonal copy: `-9` is about 은갈치 and
+ * 황금향, `-10` about 노지감귐 and 방어. Only those two are written today; the
+ * other ten are empty rows waiting to be filled.
+ *
+ * So the month is a PREFERENCE, not a requirement: an empty month falls straight
+ * back to the undated `NoticeContent` the screen has always shown, which is why
+ * filling a row is all the operator has to do and clearing one is safe. Uses the
+ * kiosk's local month, the same clock the header's date line reads.
+ */
+const noticeText = (lang: Lang): string => {
+  const monthly = sheetText(`NoticeContent -${new Date().getMonth() + 1}`, lang);
+  return monthly || homeText('NoticeContent', lang);
+};
+
+/**
  * Home-tile / card screen id → Localization_Jeju key, mirroring Osan's
  * TILE_LABEL_KEYS. Only the DISPLAY label is localized — `navigate()` keeps
  * receiving the Korean label, because that string is the analytics label and is
@@ -431,7 +450,7 @@ export function JejuHome({ controller }: Props): JSX.Element {
     const base = labelFor(tile.screen, tile.label);
     return tile.screen === 'donation' && donationPending ? withComingSoon(base, lang) : base;
   };
-  const noticeRuns = parseNotice(homeText('NoticeContent', lang));
+  const noticeRuns = parseNotice(noticeText(lang));
 
   /**
    * Grid order from the buttons CMS (`/api/kiosks/{6,7}/buttons`), falling back to

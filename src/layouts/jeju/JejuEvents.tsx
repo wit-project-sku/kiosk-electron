@@ -13,14 +13,15 @@
  * Both data paths are the shared ones HwaseongEvents uses (useEvents /
  * eventsApi.recommend / EventDetailScreen); only the presentation is Jeju's.
  */
-import { Fragment, useState } from 'react';
+import { Fragment, useMemo, useState } from 'react';
 import { isOk } from '@shared/types/result';
 import type { EventCategory, EventRecommendation, EventRegion } from '@shared/types/events';
 import type { KioskController } from '@renderer/hooks/useKioskController';
 import { useEvents } from '@renderer/hooks/useEvents';
 import { EventDetailScreen } from '@layouts/components/EventDetailScreen';
 import { useLang } from '@renderer/lib/i18n';
-import { t } from '@renderer/lib/loc';
+import type { Lang } from '@renderer/lib/i18n';
+import { sheetText, t } from '@renderer/lib/loc';
 import { JejuPageFrame } from './JejuPageFrame';
 import styles from './JejuEvents.module.css';
 
@@ -37,15 +38,19 @@ const REGION: EventRegion = 'JEJU';
  * this file cut them down to two; the redesign agrees, and 6212:54808 now draws
  * exactly these two. `.tab` is flex:1, so a third would re-space the row.
  */
-const TABS: Array<{ id: string; label: string }> = [
-  { id: 'REGION', label: '제주도' },
+const TABS: Array<{ id: string; key?: string; label: string }> = [
+  // The sheet spells it 제주시 (Event_Tab_Jeju, 8/8 languages); the frame drew
+  // 제주도. The sheet wins — it is the operator's word for their own region —
+  // and the authored label stays as the fallback. MBTI is a loan word with no
+  // row of its own and needs none.
+  { id: 'REGION', key: 'Event_Tab_Jeju', label: '제주도' },
   { id: 'MBTI', label: 'MBTI' },
 ];
 
 /**
  * Category chips under the region tabs (Figma 6052:46478). Labels come from the
- * localization table by key — 제주 has no sheet yet, so `t()` falls through to
- * the bundled Insadong rows, which carry all eight languages for these four.
+ * localization table by key. Localization_Jeju now carries all four itself, so
+ * `t()` answers from the 제주 rows rather than falling through to Insadong's.
  */
 const CATEGORY_TABS: { key: string; value: EventCategory }[] = [
   { key: 'Event_Category_All', value: 'ALL' },
@@ -73,12 +78,42 @@ const MBTI_PAIRS: [MbtiAxis, MbtiAxis][] = [
 /** Figma row-major order (6052:45935): E S T J / I N F P. */
 const MBTI_GRID: MbtiAxis[] = ['E', 'S', 'T', 'J', 'I', 'N', 'F', 'P'];
 
+/** Authored Korean, the fallback behind `Event_MBTI_types`. */
 const MBTI_LABELS: Record<MbtiAxis, string> = {
   E: '외향적', I: '내향적',
   S: '경험적', N: '상상적',
   T: '이성적', F: '감성적',
   J: '계획적', P: '즉흥적',
 };
+
+/**
+ * The eight axis words, from Localization_Jeju `Event_MBTI_types`.
+ *
+ * The sheet stores them as ONE bracketed list — "[외향적, 경험적, …]" — in
+ * MBTI_GRID's own row-major order (E S T J / I N F P), which is why this maps
+ * positionally onto that array rather than onto MBTI_PAIRS.
+ *
+ * ★ Split on the IDEOGRAPHIC comma too: ja and zh separate with 、 rather than
+ * ",", so a plain `split(',')` returns the whole list as one item and every
+ * Japanese tile would read the entire sentence. Anything that does not yield
+ * exactly eight parts is discarded and the authored Korean stands.
+ */
+const mbtiLabels = (lang: Lang): Record<MbtiAxis, string> => {
+  const raw = sheetText('Event_MBTI_types', lang);
+  const parts = raw
+    .replace(/^\s*\[|\]\s*$/g, '')
+    .split(/[,、，]/)
+    .map((v) => v.trim())
+    .filter(Boolean);
+  if (parts.length !== MBTI_GRID.length) return MBTI_LABELS;
+  return Object.fromEntries(MBTI_GRID.map((a, i) => [a, parts[i]!])) as Record<MbtiAxis, string>;
+};
+
+/**
+ * A sheet line that stores its own break as a literal `<br/>`. Rendered as real
+ * line breaks rather than injected as HTML — the cell is operator text.
+ */
+const brLines = (text: string): string[] => text.split(/<br\s*\/?>/i).map((l) => l.trim());
 
 /*
  * ★ NO QR on this page (removed 2026-08-24 at the user's request). It used to
@@ -100,6 +135,7 @@ export function JejuEvents({ controller }: Props): JSX.Element {
   const [category, setCategory] = useState<EventCategory>('ALL');
   const [detailId, setDetailId] = useState<number | null>(null);
   const [selected, setSelected] = useState<Set<MbtiAxis>>(new Set());
+  const axisLabels = useMemo(() => mbtiLabels(lang), [lang]);
   const [status, setStatus] = useState<'idle' | 'loading' | 'results'>('idle');
   const [results, setResults] = useState<EventRecommendation[]>([]);
 
@@ -161,7 +197,7 @@ export function JejuEvents({ controller }: Props): JSX.Element {
             className={`${styles.tab} ${tab === tb.id ? styles.tabActive : ''}`}
             onClick={() => selectTab(tb.id)}
           >
-            {tb.label}
+            {tb.key ? sheetText(tb.key, lang, { ko: tb.label }) : tb.label}
           </button>
         ))}
       </div>
@@ -240,7 +276,7 @@ export function JejuEvents({ controller }: Props): JSX.Element {
                 onClick={() => toggle(letter)}
               >
                 <span className={styles.letter}>{letter}</span>
-                <span className={styles.axisLabel}>{MBTI_LABELS[letter]}</span>
+                <span className={styles.axisLabel}>{axisLabels[letter]}</span>
               </button>
             ))}
           </div>
@@ -252,21 +288,40 @@ export function JejuEvents({ controller }: Props): JSX.Element {
             </div>
           ) : (
             <button type="button" className={styles.cta} onClick={() => void getResults()}>
-              추천 결과 보기
+              {sheetText('Event_MBTI_results', lang, { ko: '추천 결과 보기' })}
             </button>
           )}
 
+          {/* Both paragraphs come from Localization_Jeju (Event_MBTI_guide1 /
+              _guide2), which stores its own break as a literal `<br/>`.
+              The orange accent the frame puts on "제주도 이벤트" is NOT
+              reconstructed: the phrase moves inside the sentence in every other
+              language, so locating it would be a guess. Korean-only copy in all
+              eight languages was the worse trade. */}
           <p className={styles.desc}>
-            MBTI 성향과 취향을 반영해
-            <br />
-            {/* The redesign agrees with this now — 6212:54808 reads "제주도
-                이벤트"; the older node still said 종로구, an Insadong leftover. */}
-            <span className={styles.descAccent}>제주도 이벤트</span>를 맞춤 추천해드립니다!
-            <br />
-            <br />
-            MBTI 4가지 유형을 전부 선택하지 않아도
-            <br />
-            나만의 추천 결과를 받아볼 수 있어요!
+            {[
+              sheetText('Event_MBTI_guide1', lang, {
+                ko: 'MBTI 성향과 취향을 반영해<br/>제주도 이벤트를 맞춤 추천해드립니다!',
+              }),
+              sheetText('Event_MBTI_guide2', lang, {
+                ko: 'MBTI 4가지 유형을 전부 선택하지 않아도<br/>나만의 추천 결과를 받아볼 수 있어요!',
+              }),
+            ].map((para, p) => (
+              <span key={p}>
+                {p > 0 && (
+                  <>
+                    <br />
+                    <br />
+                  </>
+                )}
+                {brLines(para).map((line, i) => (
+                  <span key={i}>
+                    {i > 0 && <br />}
+                    {line}
+                  </span>
+                ))}
+              </span>
+            ))}
           </p>
 
           {status === 'results' && (

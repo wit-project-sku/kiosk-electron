@@ -21,8 +21,7 @@
 import { useEffect, useRef, useState } from 'react';
 import type { KioskController } from '@renderer/hooks/useKioskController';
 import { useLanguageStore } from '@renderer/store/languageStore';
-import { pick } from '@renderer/lib/i18n';
-import { t } from '@renderer/lib/loc';
+import { sheetText, t } from '@renderer/lib/loc';
 import { trackEvent } from '@renderer/lib/analytics';
 import { taxfreeUrl } from '@shared/constants/webEmbeds';
 import { taxFreePageImg, preloadTaxFreePages } from '../components/taxFreePages';
@@ -47,6 +46,26 @@ const TABS: ReadonlyArray<{ id: TabId; key: string }> = [
  * slot. It is also a title id shared with the other three locations, so an
  * override there would change their pages too.
  */
+/**
+ * The frame's own subtitle copy (6212:57363), now the FALLBACK behind the
+ * sheet's `Taxfree_header1` — which holds the same sentence in all eight
+ * languages and was going unread.
+ *
+ * Still not `SubHeader_TaxFree`: that key is two lines about preparing receipts,
+ * shared with the other three locations, and would change their pages too.
+ */
+/** The 가맹점 tab's own line — fallback behind `Taxfree_header2`. */
+const MERCHANT_SUBTITLE = {
+  ko: '텍스프리 가맹점을 무상으로 신청하세요',
+  en: 'Apply to become a tax-free merchant, free of charge',
+  ja: 'タックスフリー加盟店を無料でご申請ください',
+  zh: '免费申请成为退税商店',
+  vi: 'Đăng ký làm cửa hàng miễn thuế miễn phí',
+  th: 'สมัครเป็นร้านค้าปลอดภาษีฟรี',
+  ru: 'Подайте заявку на tax-free — бесплатно',
+  id: 'Daftar jadi toko bebas pajak, gratis',
+};
+
 const SUBTITLE = {
   ko: '텍스리펀드 서비스를 통해 텍스를 환급해가세요',
   en: 'Get your tax refunded with the Tax Refund service',
@@ -102,7 +121,14 @@ export function JejuTaxFree({ controller }: Props): JSX.Element {
     <JejuPageFrame
       controller={controller}
       title="TAX-FREE"
-      subtitle={pick(SUBTITLE, lang)}
+      /* Per TAB: the 가맹점 tab is about signing a shop up, not about a
+         traveller's refund, and the sheet carries its own line for it
+         (Taxfree_header2, 8/8). The other two keep the refund subtitle. */
+      subtitle={
+        tab === 'merchant'
+          ? sheetText('Taxfree_header2', lang, MERCHANT_SUBTITLE)
+          : sheetText('Taxfree_header1', lang, SUBTITLE)
+      }
       bannerFallback="banner-detail"
       onBack={() => controller.navigate('home', '뒤로')}
     >

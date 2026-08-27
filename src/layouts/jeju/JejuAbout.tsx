@@ -24,7 +24,7 @@ import { useLanguageStore } from '@renderer/store/languageStore';
 import { useShopStore } from '@renderer/store/shopStore';
 import { useAttractionStore } from '@renderer/store/attractionStore';
 import { pick, type Lang } from '@renderer/lib/i18n';
-import { sheetText } from '@renderer/lib/loc';
+import { hasLoc, sheetText } from '@renderer/lib/loc';
 import { leadingChosung, type Chosung } from '@renderer/lib/chosung';
 import {
   shopAddress,
@@ -350,6 +350,38 @@ export function JejuAbout({ controller }: Props): JSX.Element {
    * to translate it INTO: an alphabet index only works for the alphabet the
    * names are written in.
    */
+  /**
+   * The 역사 timeline, straight from Localization_Jeju.
+   *
+   * ★ The sheet REPLACED one blob with five epochs. `Here_HistoryContent` was a
+   * single 459-character cell with its paragraph breaks lost and Korean only;
+   * the operator has since added `Here_HistoryContent_1..5` plus a `_epoch`
+   * title for each, filled in all eight languages. That fixes both TODOs above
+   * at once — the split is the SHEET's now, not a guess about where a sentence
+   * ends, and the page localizes.
+   *
+   * Built by probing 1..5 rather than from a fixed list, so the operator adding
+   * a sixth epoch needs no release. An epoch with no body is skipped (the rows
+   * exist before they are written); an empty result falls the whole tab back to
+   * the original single key, which is what a kiosk on the old bundled table has.
+   * `tExact` is deliberate: a body that has not been translated yet should fall
+   * to Korean via `sheetText`, but a MISSING epoch must read as absent, and
+   * `t()` would return the key name itself.
+   */
+  const historyEpochs = useMemo(() => {
+    const out: Array<{ key: string; title: string; body: string }> = [];
+    for (let i = 1; ; i += 1) {
+      const key = `Here_HistoryContent_${i}`;
+      if (!hasLoc(key)) break;
+      const body = sheetText(key, lang);
+      if (!body) continue;
+      // The title row lags the body — _1_epoch is Korean-only today — so it is
+      // optional and falls back to Korean rather than suppressing the epoch.
+      out.push({ key, title: sheetText(`${key}_epoch`, lang), body });
+    }
+    return out;
+  }, [lang]);
+
   const showChosung = lang === 'ko';
 
   /**
@@ -549,7 +581,16 @@ export function JejuAbout({ controller }: Props): JSX.Element {
           </div>
 
           <div className={styles.prose} ref={scrollRef}>
-            <p>{sheetText('Here_HistoryContent', lang, { ko: HISTORY_FALLBACK_KO })}</p>
+            {historyEpochs.length > 0 ? (
+              historyEpochs.map((e) => (
+                <section key={e.key} className={styles.epoch}>
+                  {e.title && <h3 className={styles.epochTitle}>{e.title}</h3>}
+                  <p>{e.body}</p>
+                </section>
+              ))
+            ) : (
+              <p>{sheetText('Here_HistoryContent', lang, { ko: HISTORY_FALLBACK_KO })}</p>
+            )}
           </div>
         </div>
       )}
