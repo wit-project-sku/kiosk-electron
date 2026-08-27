@@ -2,6 +2,8 @@
  * 제주공항 (W006) 환율 — Figma 제주>환율-나라선택01, the 2026-08-24 redraw:
  * 6412:76217 (calculator), 6412:76438 (keyboard open), 6412:76521 / 6412:76726
  * (currency dropdown on the top / bottom field) and 6219:99645 (실시간 환율).
+ * The 베리어프리 (♿) half follows the newer 2026-08-27 frames — 6326:84606,
+ * 6460:117343, 6460:117395, 6460:118038 and 6460:117849.
  *
  * One screen, two tabs — 실시간 환율 on the left and open by default, 환율계산기
  * on the right:
@@ -119,6 +121,12 @@ const BASE_LABEL = {
   vi: 'Tỷ giá cơ sở', th: 'อัตราอ้างอิง', ru: 'Базовый курс', id: 'Kurs dasar',
 };
 
+/** When the snapshot was fetched — `{t}` is the `26.08.30. 19:30` stamp. */
+const AS_OF = {
+  ko: '{t} 기준', en: 'As of {t}', ja: '{t} 基準', zh: '{t} 基准',
+  vi: 'Tính đến {t}', th: 'ณ {t}', ru: 'на {t}', id: 'Per {t}',
+};
+
 /** The 원 suffix on the live list, matching HwaseongExchange. */
 const WON = {
   ko: '원', en: ' KRW', ja: 'ウォン', zh: '韩元',
@@ -153,6 +161,19 @@ function groupDigits(digits: string): string {
 function formatAmount(value: number): string {
   if (!Number.isFinite(value)) return '—';
   return value.toLocaleString('en-US', { maximumFractionDigits: 2 });
+}
+
+/**
+ * `fetchedAt` → the design's `26.08.30. 19:30`. Hand-formatted rather than
+ * `toLocaleString`: the frame draws a fixed two-digit-year shape, and the kiosk
+ * renders eight languages that would each format it differently.
+ */
+function formatFetchedAt(iso: string | undefined): string | undefined {
+  if (!iso) return undefined;
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return undefined;
+  const p = (n: number): string => String(n).padStart(2, '0');
+  return `${p(d.getFullYear() % 100)}.${p(d.getMonth() + 1)}.${p(d.getDate())}. ${p(d.getHours())}:${p(d.getMinutes())}`;
 }
 
 export function JejuExchange({ controller }: Props): JSX.Element {
@@ -235,21 +256,24 @@ export function JejuExchange({ controller }: Props): JSX.Element {
   const overlayOpen = keypad || picker !== null;
 
   /*
-   * Low-reach: the whole calculator block rides one shift (see .rootLow), which
-   * tightens by 61px while the keypad is open so the 환전 field's bottom edge
-   * meets the keypad's top exactly. Everything else is a per-element class.
+   * Low-reach: the whole calculator block rides one shift (see .rootLow), and
+   * everything else is a per-element class. The two tabs take DIFFERENT frame
+   * shapes — 실시간 환율 drops the promo banner and starts its header at y116 so
+   * the rate list gets the banner's height, while 환율계산기 keeps the banner
+   * under the mode bar and starts at y686. See the .rootLow comment block.
    */
   const lowReach = useAccessibilityStore((s) => s.lowReach);
-  const lowShift = !lowReach
-    ? ''
-    : `${styles.rootLowAny} ${keypad ? styles.rootLowKeypad : styles.rootLow}`;
+  const lowShift = lowReach ? styles.rootLow : '';
+  const asOf = formatFetchedAt(exchange?.fetchedAt);
 
   return (
     <JejuPageFrame
       controller={controller}
       title="환율"
       onBack={() => controller.navigate('home', '뒤로')}
-      lowReachSelfLayout
+      lowReachModeBar
+      lowReachBarBanner={tab === 'calc'}
+      lowReachShift={tab === 'calc' ? 686 : 116}
     >
       <div className={lowShift}>
       <div className={`${styles.tabs} ${lowReach ? styles.tabsLow : ''}`}>
@@ -271,20 +295,18 @@ export function JejuExchange({ controller }: Props): JSX.Element {
 
       {tab === 'calc' ? (
         <>
-          <div
-            className={[
-              styles.basePill,
-              lowReach ? (keypad ? styles.basePillLowKeypad : styles.basePillLow) : '',
-            ]
-              .filter(Boolean)
-              .join(' ')}
-          >
+          <div className={`${styles.basePill} ${lowReach ? styles.basePillLow : ''}`}>
             <span className={styles.basePillLabel}>{pick(BASE_LABEL, lang)}</span>
             <span className={styles.basePillRate}>
               {oneUnit === undefined
                 ? `1 ${from.ccy} = — ${to.ccy}`
                 : `1 ${from.ccy} = ${formatAmount(oneUnit)} ${to.ccy}`}
             </span>
+            {/* Third line, low-reach only — the standard 212-tall pill has no
+                room for it (see .basePillStamp). */}
+            {lowReach && asOf !== undefined && (
+              <span className={styles.basePillStamp}>{pick(AS_OF, lang).replace('{t}', asOf)}</span>
+            )}
           </div>
 
           {/* Closes whichever overlay is open. Sits under them, over everything

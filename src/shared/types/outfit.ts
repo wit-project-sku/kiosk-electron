@@ -9,8 +9,14 @@
 /** Female / male / unisex. Undefined = the AR request sends no gender. */
 export type OutfitGender = 'female' | 'male' | undefined;
 
-/** One wearable outfit. */
-export interface KioskOutfit {
+/**
+ * One wearable outfit.
+ *
+ * Extends `OutfitCategoryLabels` for the same reason a category does: the eight
+ * `label*` fields are the outfit's DISPLAY NAME, edited per language in the
+ * admin web. `name` is not — see below.
+ */
+export interface KioskOutfit extends OutfitCategoryLabels {
   /** DB id. Not sent anywhere — `code` is what the AR API takes. */
   id: number;
   /**
@@ -20,6 +26,17 @@ export interface KioskOutfit {
   code: string;
   /** Remote card image (webp). Shown directly, like shop and banner images. */
   imageUrl: string;
+  /**
+   * ★ The INTERNAL slug, e.g. "global_5.7" — NOT the caption. It is the
+   * operator's filing name: category code plus outfit code, in one language,
+   * and it is what the admin web lists rows by. The visitor sees `label*`.
+   *
+   * Kept only as the last resort behind those labels, for the same reason
+   * `categoryName` is kept behind a category's: a row the operator has just
+   * created and not yet named reads oddly rather than blank. Empty on a row
+   * that never had one, and on a cache written before this field existed.
+   */
+  name: string;
   /**
    * Registered category name — `categoryName` verbatim, e.g. "w=hannbok",
    * "K-Culture". This is the tab key, NOT a display label. For a school uniform

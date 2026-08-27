@@ -113,24 +113,40 @@ const FALLBACK_LABELS: Record<string, OutfitCategoryLabels> = {
 };
 
 /**
+ * The same text in all eight languages — the shape a label set has to be in
+ * when there is only one string to put in it.
+ *
+ * This is the rule the server documents for a blank label (한국어 → 코드), and
+ * the pickers rely on it: a label set is never partially filled, so every
+ * caller can read its own language's field and get something.
+ */
+export function uniformOutfitLabels(text: string): OutfitCategoryLabels {
+  return {
+    labelKr: text,
+    labelEn: text,
+    labelJp: text,
+    labelCh: text,
+    labelVn: text,
+    labelId: text,
+    labelTh: text,
+    labelRu: text,
+  };
+}
+
+/**
  * Display names for a registered category name, for a source that carries none.
  *
- * An unknown category falls back to its own code in all eight languages — the
- * same rule the server documents for a blank label (한국어 → 코드). A tab the
- * operator has just registered is then visible and usable, spelled oddly, which
- * is strictly better than a tab that is missing or blank.
+ * An unknown category falls back to its own code in all eight languages. A tab
+ * the operator has just registered is then visible and usable, spelled oddly,
+ * which is strictly better than a tab that is missing or blank.
+ *
+ * ★ CATEGORIES ONLY. Do not reach for this to label an OUTFIT: the table above
+ * is keyed by category code, so an outfit whose slug happens to read "global"
+ * would come back captioned 글로벌 — the tab's name on a garment. Outfits use
+ * `uniformOutfitLabels` on their own slug or code instead.
  */
 export function fallbackOutfitLabels(categoryName: string): OutfitCategoryLabels {
   const known = FALLBACK_LABELS[categoryName.trim().toLowerCase()];
   if (known) return { ...known };
-  return {
-    labelKr: categoryName,
-    labelEn: categoryName,
-    labelJp: categoryName,
-    labelCh: categoryName,
-    labelVn: categoryName,
-    labelId: categoryName,
-    labelTh: categoryName,
-    labelRu: categoryName,
-  };
+  return uniformOutfitLabels(categoryName);
 }
