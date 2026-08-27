@@ -26,8 +26,8 @@
  * the 결항 row). It is free text from the operator, not an enum — the design
  * shows one value but a real feed publishes many (기상악화, 정비, 결측).
  *
- * Live rows come from KOMSA via {@link useSailingStore}. Until the snapshot
- * arrives the hooks return an empty list (the board's empty state).
+ * Live rows come from the jeju.ferry.or.kr terminal board via {@link useSailingStore}.
+ * Until the snapshot arrives the hooks return an empty list (the board's empty state).
  */
 import { useMemo } from 'react';
 import type { Lang } from '@renderer/lib/i18n';
@@ -37,17 +37,9 @@ import { useSailingStore } from '@renderer/store/sailingStore';
 // ── Status ─────────────────────────────────────────────────────────────
 
 /**
- * The 현황 column's condition. Only `normal`/`delayed`/`cancelled` are drawn in
- * the Figma; the rest are states a real board cannot avoid and take the board's
- * ordinary value colour so nothing visual is invented.
+ * The 현황 column's condition — terminal board IsCancel strings map to these three.
  */
-export type SailingStatusId =
-  | 'normal'
-  | 'delayed'
-  | 'cancelled'
-  | 'boarding'
-  | 'departed'
-  | 'arrived';
+export type SailingStatusId = 'normal' | 'delayed' | 'cancelled';
 
 /** 현황 text colour per condition. */
 const STATUS_COLOR: Record<SailingStatusId, string> = {
@@ -55,11 +47,6 @@ const STATUS_COLOR: Record<SailingStatusId, string> = {
   normal: '#005ab4', // [화성휴게소] main 1 — the same blue the airport board uses for 탑승 중
   delayed: '#ff7f0f', // [제주] main 01
   cancelled: '#ff7f0f', // [제주] main 01 — 결항 is drawn in the same orange as 지연
-  // Not drawn anywhere. Unremarkable states take the same #333 every other cell
-  // uses rather than introducing a colour of their own.
-  boarding: '#005ab4',
-  departed: '#333',
-  arrived: '#333',
 };
 
 const STATUS_LABEL: Record<SailingStatusId, Partial<Record<Lang, string>>> = {
@@ -75,18 +62,6 @@ const STATUS_LABEL: Record<SailingStatusId, Partial<Record<Lang, string>>> = {
     ko: '결항', en: 'Cancelled', ja: '欠航', zh: '停航',
     vi: 'Đã hủy', th: 'ยกเลิกเดินเรือ', ru: 'Отменён', id: 'Dibatalkan',
   },
-  boarding: {
-    ko: '승선 중', en: 'Boarding', ja: '乗船中', zh: '登船中',
-    vi: 'Đang lên tàu', th: 'กำลังขึ้นเรือ', ru: 'Посадка', id: 'Boarding',
-  },
-  departed: {
-    ko: '출항', en: 'Departed', ja: '出港済', zh: '已出港',
-    vi: 'Đã rời bến', th: 'ออกจากท่าแล้ว', ru: 'Отправился', id: 'Berangkat',
-  },
-  arrived: {
-    ko: '입항', en: 'Arrived', ja: '入港済', zh: '已入港',
-    vi: 'Đã cập bến', th: 'ถึงท่าแล้ว', ru: 'Прибыл', id: 'Tiba',
-  },
 };
 
 /**
@@ -95,25 +70,15 @@ const STATUS_LABEL: Record<SailingStatusId, Partial<Record<Lang, string>>> = {
  * whitespace-stripped, lower-cased string so '승선 중' and '승선중' are one key.
  */
 const STATUS_ALIASES: Record<string, SailingStatusId> = {
-  // normal — KOMSA 운항구분 정상/증선/증회
+  // normal — terminal board IsCancel
   '정상운항': 'normal', '정상': 'normal', '운항': 'normal', '운항예정': 'normal', '예정': 'normal',
-  '증선': 'normal', '증회': 'normal',
   normal: 'normal', ontime: 'normal', scheduled: 'normal',
-  // delayed — KOMSA 대기/지연
-  '지연': 'delayed', '지연운항': 'delayed', '대기': 'delayed', '대기/지연': 'delayed',
+  // delayed
+  '지연': 'delayed', '지연운항': 'delayed', '대기': 'delayed',
   delayed: 'delayed', delay: 'delayed',
-  // cancelled — KOMSA 비운항/통제
+  // cancelled
   '결항': 'cancelled', '취소': 'cancelled', '운항중단': 'cancelled',
-  '비운항': 'cancelled', '통제': 'cancelled',
   cancelled: 'cancelled', canceled: 'cancelled',
-  // boarding
-  '승선중': 'boarding', '승선': 'boarding', boarding: 'boarding',
-  // departed / arrived — KOMSA 운항상태
-  '출항': 'departed', '출항완료': 'departed', '출항전': 'normal', '출항중': 'departed',
-  departed: 'departed',
-  '입항': 'arrived', '입항완료': 'arrived', '입항중': 'arrived', '도착': 'arrived',
-  '기항지도착': 'arrived', '운항중': 'departed', '완료': 'arrived',
-  arrived: 'arrived',
 };
 
 /**
@@ -208,14 +173,14 @@ export function normalizeSailing(raw: RawJejuSailing): JejuSailing {
 
 // ── Source ─────────────────────────────────────────────────────────────
 
-/** Departures for the 운항정보 출발 tab — KOMSA snapshot via IPC. */
+/** Departures for the 운항정보 출발 tab — terminal board snapshot via IPC. */
 export function useJejuDepartureSailings(): JejuSailing[] {
   const snapshot = useSailingStore((s) => s.snapshot);
   const rows = snapshot?.departures;
   return useMemo(() => (rows ?? []).map(normalizeSailing), [rows]);
 }
 
-/** Arrivals for the 운항정보 도착 tab — same KOMSA snapshot. */
+/** Arrivals for the 운항정보 도착 tab — same terminal board snapshot. */
 export function useJejuArrivalSailings(): JejuSailing[] {
   const snapshot = useSailingStore((s) => s.snapshot);
   const rows = snapshot?.arrivals;

@@ -15,6 +15,26 @@
  * The two frames differ ONLY in three column labels (출발시각/도착시각,
  * 목적지/출발지, 탑승구/수하물수취대) and which side of the flight the data
  * comes from — so one table serves both and JejuFlights.tsx supplies the spec.
+ *
+ * ── LOW-REACH (♿) ─────────────────────────────────────────────────────
+ * Same fourth low-reach shape as the terminal's JejuCruise — *move the
+ * controls to the foot* — rather than the re-stack: this page already runs
+ * `showBanner={false}`, so JejuPageFrame's 573px shift never applies. The
+ * board is a scrolling list, so pushing it DOWN would only shrink it; instead
+ * the 출발/도착 tabs drop to the bottom of the artboard, within reach, and the
+ * table slides up 159 into the space they leave (the same −159 JejuCruise
+ * measured off its Figma low-reach frames — the two boards were drawn from one
+ * master; keep them in step):
+ *
+ *              standard   low-reach
+ *   tabs           714      3467.5
+ *   header plate  1021       862     ┐
+ *   header text   1071       912     │ all −159
+ *   rows top      1170      1011     │
+ *   first row     1270      1111     ┘
+ *
+ * No 국제항ㅣ연안항 band here, so the scroll viewport stops at the tab row
+ * (bottom: 372.5) rather than clearing a second control row under it.
  */
 
 /* ── Tabs ───────────────────────────────────────────────────────────── */
@@ -31,6 +51,12 @@
   display: flex;
   align-items: center;
   gap: 200px;
+}
+
+/* Same 1360×170 row, same 200 gutter — only the y moves. Matches JejuCruise's
+   foot park (midpoint of its 출발/도착 low-reach frames). */
+.tabsLow {
+  top: 3467.5px;
 }
 
 /* `border: none`, not omitted — these are <button>s and would otherwise take
@@ -75,6 +101,11 @@
   background: var(--kiosk-primary, #ff7f0f);
 }
 
+/* Identical plate, 159 higher — same −159 as JejuCruise's low-reach board. */
+.headPlateLow {
+  top: 862px;
+}
+
 .head {
   position: absolute;
   top: 1071px;
@@ -83,6 +114,11 @@
   line-height: 1;
   color: #fff;
   white-space: nowrap;
+}
+
+/* Rides the plate: 50 below its top, exactly as at 1021/1071. */
+.headLow {
+  top: 912px;
 }
 
 /* ── Scrolling rows ─────────────────────────────────────────────────── */
@@ -102,6 +138,18 @@
   bottom: 0;
   overflow-x: hidden;
   overflow-y: auto;
+}
+
+/*
+ * Low-reach: starts where the raised plate ends (862 + 149) so the same 100px
+ * lead-in lands the first row's text on 1111, and stops at the tab row instead
+ * of the artboard floor — otherwise long lists would scroll under the controls
+ * that were just moved down there. The 120px `.rows` tail keeps a gap between
+ * the last rule and the 출발/도착 pills at full scroll.
+ */
+.scrollLow {
+  top: 1011px;
+  bottom: 372.5px;
 }
 
 .rows {
