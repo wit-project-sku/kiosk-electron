@@ -57,10 +57,10 @@ const MORE = {
  */
 const COLUMNS = {
   time: 410,
-  airline: 740,
-  destination: 1110,
-  kind: 1390,
-  gate: 1560,
+  airline: 750,
+  destination: 1150,
+  kind: 1410,
+  gate: 1570,
   status: 1730,
 } as const;
 

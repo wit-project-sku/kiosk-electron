@@ -485,7 +485,7 @@ export function JejuHome({ controller }: Props): JSX.Element {
       )}
 
       {lowReach && (
-        <div className={styles.modeBar}>지금은 베리어프리 모드입니다.</div>
+        <div className={styles.modeBar}>지금은 배리어프리 모드입니다.</div>
       )}
       {lowReach && jejuIconUrl('banner-ai-hero') && (
         <div className={styles.hero}>

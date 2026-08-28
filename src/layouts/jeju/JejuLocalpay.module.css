@@ -25,8 +25,7 @@
  */
 
 /* ── Tabs (6249:32357 / 32290) ──
-   Centred: the 탐나는전 frame draws the row at left 50% (x400); the 온누리 frame
-   hand-places it at 429 — slop, since the pills must not move on a tab press. */
+   온누리상품권 leads; 탐나는전 is second. Both frames centre the row at x400. */
 .tabs {
   position: absolute;
   left: 400px;
@@ -325,7 +324,7 @@
 .kwonjong {
   position: absolute;
   left: 40px;
-  top: 597px;
+  top: 637px;
   width: 1740px;
   height: 617px;
 }
@@ -380,7 +379,7 @@
 .apply {
   position: absolute;
   left: 40px;
-  top: 1323px;
+  top: 1360px;
   width: 1740px;
   display: flex;
   flex-direction: column;
@@ -391,7 +390,7 @@
 .useRow {
   position: absolute;
   left: 40px;
-  top: 1921px;
+  top: 1900px;
   width: 1740px;
   height: 196px;
   display: flex;
@@ -530,6 +529,6 @@
 /* ── 탐나는전 card (6326:80335) ──
    The head keeps its place; the three blocks below it climb steadily (−38, −76,
    −114) as the card tightens by 103. */
-.kwonjongLow  { top: 559px; }
+.kwonjongLow  { top: 599px; }
 .applyLow     { top: 1247px; }
-.useRowLow    { top: 1807px; }
+.useRowLow    { top: 1757px; }
