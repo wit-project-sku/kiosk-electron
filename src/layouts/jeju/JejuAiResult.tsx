@@ -10,9 +10,12 @@
  */
 import type { KioskController } from '@renderer/hooks/useKioskController';
 import { jejuIconUrl } from '@renderer/assets/icons/jeju';
+import { useAccessibilityStore } from '@renderer/store/accessibilityStore';
 import { useAiStore } from '@renderer/store/aiStore';
 import { useLanguageStore } from '@renderer/store/languageStore';
 import { pick } from '@renderer/lib/i18n';
+import type { Lang } from '@renderer/lib/i18n';
+import { sheetText } from '@renderer/lib/loc';
 import { JejuPageFrame } from './JejuPageFrame';
 import styles from './JejuAiResult.module.css';
 
@@ -52,12 +55,14 @@ interface Course {
   /** Stable key stored on aiStore for the detail screen. */
   key: string;
   /** Rail label — A코스 / B코스 / C코스. */
-  label: string;
-  subtitle: string;
-  title: string;
+  label: Partial<Record<Lang, string>>;
+  subtitle: Partial<Record<Lang, string>>;
+  title: Partial<Record<Lang, string>>;
+  /** Korean title, kept flat — it is the analytics label `navigate()` receives. */
+  titleKo: string;
   /** `\n` marks the line break drawn in the design. */
   desc: string;
-  tags: string;
+  tags: Partial<Record<Lang, string>>;
   icon: string;
   /** Illustration box, in artboard px relative to the card's top-left. */
   art: { left: number; top: number; width: number; height: number };
@@ -68,62 +73,177 @@ interface Course {
  * illustrations all come from the Figma, not from the shops API or the picked
  * interests.
  *
- * TODO(제주 W006): move the copy to Localization_Jeju when that sheet exists so
- * it localizes; the illustrations stay bundled either way.
+ * ★ Translated HERE, in all eight languages (2026-08-27). Localization_Jeju
+ * carries no row for a course NAME, subtitle or hashtag set — only
+ * `CCourseDesc3` and a single `CCourseTags`, neither of which covers A or B —
+ * so the whole card read Korean in every language, on a page the visitor
+ * reaches by answering four fully localized questions. Authored copy is the
+ * honest stand-in until the sheet carries the rows; `desc` already prefers the
+ * sheet where it has one, and the rest can move the same way once CCourse* is
+ * filled out per course.
+ *
+ * `titleKo` stays flat and Korean because it is NOT display text: it is the
+ * label `navigate()` records and the string the detail screen matches on.
  */
+/**
+ * The card blurb, from Localization_Jeju `CCourseDesc1..3` — positional, so
+ * A→1, B→2, C→3 and the authored Korean stands wherever the row is absent.
+ *
+ * ★ Only `CCourseDesc3` exists today (가족·체험, 8/8 languages); 1 and 2 have
+ * never been written and 4 is an empty row. Wiring all three anyway is the
+ * point: the moment the operator fills 1 and 2 the page localizes with no
+ * release. Until then C is translated and A/B read Korean, which is the same
+ * partly-filled state every other sheet-backed screen here lives with.
+ *
+ * `tags` is deliberately NOT wired. The sheet has ONE `CCourseTags` row and it
+ * holds C's own "#가족 #체험 #즐거움" — pinning it to all three cards would
+ * put the family hashtags on the nature and food courses. It needs to become
+ * CCourseTags1..3 in the sheet before it can be used.
+ */
+const courseDesc = (course: Course, i: number, lang: Lang): string =>
+  sheetText(`CCourseDesc${i + 1}`, lang, { ko: course.desc });
+
 const COURSES: Course[] = [
   {
     key: 'nature',
-    label: 'A코스',
-    subtitle: '자연과 유산을 따라 걷는',
-    title: '자연·유산 탐방 코스',
+    label: {
+      ko: 'A코스', en: 'Course A', ja: 'Aコース', zh: 'A路线',
+      vi: 'Lộ trình A', th: 'คอร์ส A', ru: 'Маршрут A', id: 'Rute A',
+    },
+    subtitle: {
+      ko: '자연과 유산을 따라 걷는', en: 'Walking through nature and heritage',
+      ja: '自然と遺産をたどる', zh: '漫步自然与遗产',
+      vi: 'Đi bộ giữa thiên nhiên và di sản', th: 'เดินชมธรรมชาติและมรดก',
+      ru: 'Прогулка среди природы и наследия', id: 'Menyusuri alam dan warisan',
+    },
+    title: {
+      ko: '자연·유산 탐방 코스', en: 'Nature & Heritage', ja: '自然・遺産探訪コース',
+      zh: '自然·遗产探访路线', vi: 'Thiên nhiên & Di sản',
+      th: 'เส้นทางธรรมชาติและมรดก', ru: 'Природа и наследие', id: 'Alam & Warisan',
+    },
+    titleKo: '자연·유산 탐방 코스',
     desc: '제주의 자연과 문화유산을 함께\n둘러보는 힐링코스',
-    tags: '#자연 #유산 #힐링',
+    tags: {
+      ko: '#자연 #유산 #힐링', en: '#Nature #Heritage #Healing', ja: '#自然 #遺産 #ヒーリング',
+      zh: '#自然 #遗产 #疗愈', vi: '#Thiênnhiên #Disản #Thưgiãn',
+      th: '#ธรรมชาติ #มรดก #ผ่อนคลาย', ru: '#Природа #Наследие #Отдых',
+      id: '#Alam #Warisan #Relaksasi',
+    },
     icon: 'course-nature',
     art: { left: 1064, top: 246, width: 555, height: 412 },
   },
   {
     key: 'food',
-    label: 'B코스',
-    subtitle: '미식과 감성을 즐기는',
-    title: '맛집·감성 코스',
+    label: {
+      ko: 'B코스', en: 'Course B', ja: 'Bコース', zh: 'B路线',
+      vi: 'Lộ trình B', th: 'คอร์ส B', ru: 'Маршрут B', id: 'Rute B',
+    },
+    subtitle: {
+      ko: '미식과 감성을 즐기는', en: 'For food and atmosphere',
+      ja: '美食と雰囲気を楽しむ', zh: '享受美食与情调',
+      vi: 'Dành cho ẩm thực và cảm xúc', th: 'สำหรับอาหารและบรรยากาศ',
+      ru: 'Для гастрономии и атмосферы', id: 'Untuk kuliner dan suasana',
+    },
+    title: {
+      ko: '맛집·감성 코스', en: 'Food & Vibes', ja: 'グルメ・雰囲気コース',
+      zh: '美食·情调路线', vi: 'Ẩm thực & Cảm xúc',
+      th: 'อาหารและบรรยากาศ', ru: 'Еда и атмосфера', id: 'Kuliner & Suasana',
+    },
+    titleKo: '맛집·감성 코스',
     desc: '제주의 맛과 감성을 가득 담은\n로컬 중심 코스',
-    tags: '#미식 #감성 #로컬',
+    tags: {
+      ko: '#미식 #감성 #로컬', en: '#Food #Vibes #Local', ja: '#グルメ #雰囲気 #ローカル',
+      zh: '#美食 #情调 #本地', vi: '#Ẩmthực #Cảmxúc #Địaphương',
+      th: '#อาหาร #บรรยากาศ #ท้องถิ่น', ru: '#Еда #Атмосфера #Местное',
+      id: '#Kuliner #Suasana #Lokal',
+    },
     icon: 'course-food',
     art: { left: 964, top: 316, width: 606, height: 265 },
   },
   {
     key: 'family',
-    label: 'C코스',
-    subtitle: '아이와 함께 즐기는',
-    title: '가족·체험 코스',
+    label: {
+      ko: 'C코스', en: 'Course C', ja: 'Cコース', zh: 'C路线',
+      vi: 'Lộ trình C', th: 'คอร์ส C', ru: 'Маршрут C', id: 'Rute C',
+    },
+    subtitle: {
+      ko: '아이와 함께 즐기는', en: 'Fun with the kids',
+      ja: '子どもと一緒に楽しむ', zh: '与孩子一起享受',
+      vi: 'Vui cùng trẻ nhỏ', th: 'สนุกไปกับเด็ก ๆ',
+      ru: 'Весело с детьми', id: 'Seru bersama anak',
+    },
+    title: {
+      ko: '가족·체험 코스', en: 'Family & Activities', ja: '家族・体験コース',
+      zh: '家庭·体验路线', vi: 'Gia đình & Trải nghiệm',
+      th: 'ครอบครัวและกิจกรรม', ru: 'Семья и впечатления', id: 'Keluarga & Aktivitas',
+    },
+    titleKo: '가족·체험 코스',
     desc: '온 가족이 함께 즐길 수 있는\n체험 중심 코스',
-    tags: '#가족 #체험 #즐거움',
+    tags: {
+      ko: '#가족 #체험 #즐거움', en: '#Family #Experience #Fun', ja: '#家族 #体験 #楽しさ',
+      zh: '#家庭 #体验 #欢乐', vi: '#Giađình #Trảinghiệm #Vuivẻ',
+      th: '#ครอบครัว #กิจกรรม #สนุก', ru: '#Семья #Впечатления #Веселье',
+      id: '#Keluarga #Pengalaman #Seru',
+    },
     icon: 'course-family',
     art: { left: 1043, top: 221, width: 469, height: 380 },
   },
 ];
 
-/** Card `top` per course, in artboard px. */
-const CARD_TOPS = [868, 1628, 2385];
+/**
+ * Card `top` per course, in artboard px.
+ *
+ * The 2026-08-26 pass moved all three down 55 (868/1628/2385 → 923/1683/2440)
+ * to open the y737 slot the answer pills now occupy.
+ */
+const CARD_TOPS = [923, 1683, 2440];
 
 export function JejuAiResult({ controller }: Props): JSX.Element {
   const setCourse = useAiStore((s) => s.setCourse);
   const lang = useLanguageStore((s) => s.currentLanguage);
+  const lowReach = useAccessibilityStore((s) => s.lowReach);
+
+  /* The pill row above the cards echoes the questionnaire answers: 인원 · 기간 ·
+     이동수단, then the picked interests. All stored KOREAN (see JejuAiSearch's
+     submit), which is also how the frames draw them. Empty slots (deep-link,
+     idle reset) just drop out.
+
+     It started as a ♿-only row (6326:82014); the 2026-08-26 pass put it on the
+     standard frame too (6516:73056), left-aligned at x172 rather than centred. */
+  const visitors = useAiStore((s) => s.visitors);
+  const stay = useAiStore((s) => s.stay);
+  const transport = useAiStore((s) => s.transport);
+  const interests = useAiStore((s) => s.interests);
+  const picks = [visitors, stay, transport, ...interests].filter(Boolean);
 
   const choose = (course: Course): void => {
     setCourse(course.key);
-    controller.navigate('ai_detail', course.title);
+    controller.navigate('ai_detail', course.titleKo);
   };
 
   return (
+    /* Mode-bar revision (6326:82014): header at y113, all three cards a pure
+       +531 (868/1628/2385 → 1399/2159/2916, measured), no banner in low-reach. */
     <JejuPageFrame
       controller={controller}
       title="'제주' 뭐하지 (AI 검색)"
       subtitle={pick(T.subtitle, lang)}
       bannerFallback="banner-detail"
       onBack={() => controller.navigate('ai_search', '뒤로')}
+      lowReachModeBar
+      lowReachShift={113}
+      /* 476, not the old 531: the standard cards moved down 55 and the ♿ frame
+         did not — its three cards are still measured at 1399/2159/2916, so the
+         shift absorbs the difference (923 + 476 = 1399). */
+      lowReachBodyShift={476}
     >
+      {picks.length > 0 && (
+        <div className={`${styles.picks} ${lowReach ? styles.picksLow : ''}`}>
+          {picks.map((p, i) => (
+            <span key={i} className={styles.pick}>{p}</span>
+          ))}
+        </div>
+      )}
       {COURSES.map((course, i) => (
         <button
           key={course.key}
@@ -133,12 +253,12 @@ export function JejuAiResult({ controller }: Props): JSX.Element {
           onClick={() => choose(course)}
         >
           <span className={styles.panel} />
-          <span className={styles.courseLabel}>{course.label}</span>
+          <span className={styles.courseLabel}>{pick(course.label, lang)}</span>
 
-          <span className={styles.courseSubtitle}>{course.subtitle}</span>
-          <span className={styles.courseTitle}>{course.title}</span>
-          <span className={styles.desc}>{course.desc}</span>
-          <span className={styles.tags}>{course.tags}</span>
+          <span className={styles.courseSubtitle}>{pick(course.subtitle, lang)}</span>
+          <span className={styles.courseTitle}>{pick(course.title, lang)}</span>
+          <span className={styles.desc}>{courseDesc(course, i, lang)}</span>
+          <span className={styles.tags}>{pick(course.tags, lang)}</span>
 
           {jejuIconUrl(course.icon) && (
             <img

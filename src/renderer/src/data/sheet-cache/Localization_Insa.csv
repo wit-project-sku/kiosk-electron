@@ -33,7 +33,7 @@ Get ready to enjoy the hanbok experience with all-new designs.","INSAはパク�
 "137","Language_Content","* 원하는 언어를 선택해 주세요.","* Service is available in 4 languages. Please select a language.","* 4ヶ国語に対応しています。言語を選択してください。","* 提供4种语言服务。请选择语言。","* Vui lòng chọn ngôn ngữ.","* มีให้บริการ 8 ภาษา โปรดเลือกภาษาที่ต้องการ","* Услуга доступна на 4 языках. Пожалуйста, выберите язык.","* Silakan pilih bahasa.","","아이콘03"
 "135","Language_Now_Language","현재 언어","> Now Language","> Now Language","> Now Language","Ngôn ngữ hiện tại","ภาษาปัจจุบัน","> Текущий язык","Bahasa Saat Ini","","아이콘03"
 "136","Language_Target_Language","변경 언어","> Change Language","> Change Language","> Change Language","Đổi ngôn ngữ","เปลี่ยนภาษา","> Изменить язык","Ubah Bahasa","","아이콘03"
-"1","MainButton_AI"," '인사' 모하지(AI검색)","To do (AI)","旅行先 おすすめ(AI)","做什么比较好呢？(AI)"," 'INSA' làm gì? (Tìm AI)"," 'INSA' ทำอะไรดี? (ค้นหา AI)","Чем заняться (ИИ)"," 'INSA' ngapain ya? (Cari AI)","","아이콘04"
+"1","MainButton_AI"," '인사' 모하지(AI검색)","To do (Ai)","旅行先 おすすめ(Ai)","做什么比较好呢？(Ai)"," 'INSA' làm gì? (Tìm AI)"," 'INSA' ทำอะไรดี? (ค้นหา AI)","Чем заняться (ИИ)"," 'INSA' ngapain ya? (Cari AI)","","아이콘04"
 "16033","MainButton_Insarang","인사랑(준비중)","(Preparing)","(Preparing)","(Preparing)","Cùng INSA (Sắp)","กับ INSA (เร็วๆ นี้)","(В разработке)","Bareng INSA (Segera)","","아이콘05"
 "5","MainButton_Event","인사동 이벤트","Events","おすすめイベント","推荐活动","Sự kiện Insadong","กิจกรรมอินซาดง","Мероприятия","Event Insadong","","아이콘06"
 "2","MainButton_ToEat"," '인사' 뭐먹지?","To eat","飲食店のおすすめ","我们吃什么呢？"," 'INSA' ăn gì?"," 'INSA' กินอะไรดี?","Где поесть"," 'INSA' makan apa?","","아이콘07"
@@ -204,8 +204,8 @@ you’ll enjoy your Insadong trip even more after a good stretch!","長時間歩
 "103","Transport_BusContent_2","103,109, 143, 150, 151, 160, 161, 162, 171, 172, 260, 270, 271, 273, 370, 601, 606","103,109, 143, 150, 151, 160, 161, 162, 171, 172, 260, 270, 271, 273, 370, 601, 606","103,109, 143, 150, 151, 160, 161, 162, 171, 172, 260, 270, 271, 273, 370, 601, 606","103,109, 143, 150, 151, 160, 161, 162, 171, 172, 260, 270, 271, 273, 370, 601, 606","103,109, 143, 150, 151, 160, 161, 162, 171, 172, 260, 270, 271, 273, 370, 601, 606","103,109, 143, 150, 151, 160, 161, 162, 171, 172, 260, 270, 271, 273, 370, 601, 606","103,109, 143, 150, 151, 160, 161, 162, 171, 172, 260, 270, 271, 273, 370, 601, 606","103,109, 143, 150, 151, 160, 161, 162, 171, 172, 260, 270, 271, 273, 370, 601, 606","",""
 "104","Transport_BusContent_3","7212, 1020, 7022, 7025","7212, 1020, 7022, 7025","7212、1020、7022、7025","7212、1020、7022、7025","7212, 1020, 7022, 7025","7212, 1020, 7022, 7025","7212, 1020, 7022, 7025","7212, 1020, 7022, 7025","",""
 "105","Transport_MapInfo","한국의 전통문화를 접할 수 있는 서울의 대표 거리 인사동입니다.","Insadong is a representative street in Seoul where you can experience Korean traditional culture.","仁寺洞は、韓国の伝統文化を体験できるソウルの代表的な通りです。","仁寺洞是首尔具有代表性的街道，在这里可以体验韩国传统文化。","Chào mừng bạn đến với Insadong, con phố tiêu biểu của Seoul, nơi bạn có thể trải nghiệm văn hóa truyền thống Hàn Quốc.","อินซาดง ถนนสายหลักของโซลที่คุณจะได้สัมผัสกับวัฒนธรรมดั้งเดิมของเกาหลีค่ะ","Инсадон — это репрезентативная улица в Сеуле, где вы можете познакомиться с традиционной корейской культурой.","Insadong, jalan ikonik di Seoul tempat Anda bisa merasakan budaya tradisional Korea.","",""
-"106","Transport_MapContent_1","*인사동의 상점검색, 한복AR착장, AI 추천 코스, 날씨정보제공, 환율정보제공등 
- 다양한 정보와 체험을 제공하는  인사동의 AI 키오스크 [WITH]를  경험해보세요~
+"106","Transport_MapContent_1","*인사동의 상점검색, 한복AR착장, Ai 추천 코스, 날씨정보제공, 환율정보제공등 
+ 다양한 정보와 체험을 제공하는  인사동의 Ai 키오스크 [WITH]를  경험해보세요~
  (인사동의 홍보 모델이자 마스코트인 ‘인사’도 함께 만나보세요)","*Discover [WITH], the AI kiosk of Insadong offering shop search, AR hanbok try-on, AI-recommended courses, weather updates, exchange rate information, and more!
  (Meet “INSA,” the Insa-dong guide, too!)","*ショップ検索、AR韓服試着、AIおすすめコース、天気情報、為替情報など、
 さまざまな情報と体験を提供するインサドンのAIキオスク [WITH] をぜひ体験してください！
@@ -550,7 +550,7 @@ Now, I, INSA, will capture your beautiful hanbok look on screen—try our hanbok
 "147","SubHeader_Exchange","* 인사동에 오신걸 환영합니다. 오늘의 환율 정보입니다. ","* Welcome. Here is today’s exchange rate","* ようこそ。本日の為替情報です","* 欢迎您。以下是今日汇率信息","Chào mừng đến Insadong. Tỷ giá hôm nay.","ยินดีต้อนรับสู่อินซาดง ข้อมูลอัตราแลกเปลี่ยนวันนี้ค่ะ","* Добро пожаловать в Инсадон. Вот информация о сегодняшнем курсе валют.","Selamat datang di Insadong. Info kurs hari ini.","",""
 "148","SubHeader_Detail","* QR을 핸드폰으로 찍으시면 길을 안내해드려요","* Scan the QR with your phone. We’ll guide you","* スマホでQRを読み取ってください。ご案内します","* 用手机扫QR码，我们导航","Quét QR để được chỉ đường.","สแกน QR เพื่อดูเส้นทางค่ะ","* Отсканируйте QR-код телефоном, и мы укажем вам дорогу.","Scan QR untuk panduan jalan.","",""
 "149","SubHeader_Detail_Event","* QR코드로 이벤트의 상세정보를 확인하세요","* Scan the QR code for event details","* QRコードでイベントの詳細を確認してください","* 扫描二维码查看活动详情","Quét QR xem chi tiết sự kiện.","สแกน QR เพื่อดูรายละเอียดค่ะ","* Отсканируйте QR-код, чтобы узнать подробности о мероприятии.","Scan QR untuk detail acara.","",""
-"150","SubHeader_Detail_Mission","* 미션","Mission Subheader","ミッションサブヘッダー","任务副标题","","","* Подзаголовок миссии","","",""
+"150","SubHeader_Detail_Mission","* 미션 서브헤더","Mission Subheader","ミッションサブヘッダー","任务副标题","","","* Подзаголовок миссии","","",""
 "150","SubHeader_TaxFree","*TaxFree 리펀드 기능을 통해 공항하는 업무를 줄여 드립니다. 
   상점에서 받은 영수증을 준비하시고 언어를 선택해보세요  ","*The Tax-Free refund reduces what you need to do at the airport.
   Prepare your receipt and choose your language.","*TaxFree返金で空港手続きが簡素化されます。レシートを用意して言語を選択してください。","*TaxFree退税功能可以减少您在机场办理的手续。
@@ -564,8 +564,8 @@ Siapkan struk toko dan pilih bahasa Anda.","",""
 "158","Photo_Goods","굿즈제작","Creating Goods","グッズ作り","制作商品","Tạo đồ lưu niệm","ทำสินค้าที่ระลึก","Изготовление сувениров","Buat Souvenir","AR사진촬영",""
 "159","Header_KoreaMap","전국지도","KoreaMap","KoreaMap","KoreaMap","Bản đồ toàn quốc","แผนที่ทั่วประเทศ","Карта всей страны","Peta Nasional","",""
 "160","SubHeader_KoreaMap","지역을 선택해 주세요.","Please select a region.","地域を選択してください。","请选择地区。","Vui lòng chọn khu vực.","กรุณาเลือกพื้นที่ค่ะ","Пожалуйста, выберите регион.","Silakan pilih wilayah.","",""
-"161","SubHeader_Attraction","* 관광명소","* Tourist Attractions","* 観光名所","* 旅游景点","Điểm tham quan","สถานที่ท่องเที่ยว","Достопримечательности","Objek Wisata","관광명소 ",""
-"162","SubHeader_TraditionalMarket","* 전통시장","* Traditional Markets","* 伝統市場","* 传统市场","Chợ truyền thống","ตลาดพื้นเมือง","Традиционные рынки","Pasar Tradisional","전통시장",""
+"161","SubHeader_Attraction","* 관광명소 서브헤더","* Tourist Attractions","* 観光名所","* 旅游景点","Điểm tham quan","สถานที่ท่องเที่ยว","Достопримечательности","Objek Wisata","관광명소 ",""
+"162","SubHeader_TraditionalMarket","* 전통시장 서브헤더","* Traditional Markets","* 伝統市場","* 传统市场","Chợ truyền thống","ตลาดพื้นเมือง","Традиционные рынки","Pasar Tradisional","전통시장",""
 "163","Palace_History","역사","History","歴史","历史","Lịch sử","ประวัติ","История","Sejarah","",""
 "164","Palace_Attraction","볼거리","Attractions","見どころ","看点","Điểm tham quan","สิ่งที่น่าสนใจ","Что посмотреть","Tempat Menarik","",""
 "165","Palace_OpeningTime","영업시간","Business Hours","営業時間","营业时间","Giờ mở cửa","เวลาทำการ","Часы работы","Jam Operasional","",""

@@ -451,95 +451,85 @@
 }
 
 /* ────────────────────────────────────────────────────────────────────────────
- * LOW-REACH (♿) — Figma 6326:80281 (=온누리상품권) / 6326:80332 (=탐나는전).
+ * LOW-REACH (♿) — Figma 6326:80281 (=온누리상품권) / 6326:80332 (=탐나는전), as
+ * redrawn 2026-08-27. The designer edits these frames in place; this is the
+ * second reading of the same two node ids.
  *
- * The frame's own re-stack does the chrome: this page keeps its banner, so
- * JejuPageFrame's `shifted` already moves the promo to y0 and the header to 573.
- * The BODY is placed here instead (`lowReachSelfLayout`), because the cards are
- * not merely pushed down — they are re-laid-out, and the tab row leaves the top
- * entirely for the foot.
+ * The chrome moved to JejuPageFrame's MODE-BAR shape: a 113px 베리어프리 bar
+ * overlays y0, the promo banner is gone from ♿ entirely, and the header sits at
+ * y116 rather than the 573 the banner shape used to push it to. That rides in as
+ * `lowReachModeBar` + `lowReachShift={116}` on the frame. The BODY still places
+ * itself here (body shift 0), because the cards are re-laid-out rather than
+ * pushed, and the tab row leaves the top entirely for the foot.
  *
  *                        standard        low-reach
  *   tab row              700             3437
- *   온누리 intro card      944  h1002      1206  h997
- *   온누리 digital card    1998 h1194      2234  h1123
- *   탐나는전 card          944  h2250      1206  h2147
+ *   온누리 intro card      944  h1002      1041  h997
+ *   온누리 digital card    1998 h1194      2069  h1123
+ *   탐나는전 card          944  h2250      1041  h2147
  *
- * ── Two normalisations, both measured rather than assumed ──
+ * ── What the redraw changed, beyond the chrome ──
  *
- * 1. The 온누리 frame is drawn a uniform +5px LOW: its header sits at 578 against
- *    the 573 the 탐나는전 frame (and every other 제주 page) states, and its tab row
- *    at 3442 against 3437. Correcting by −5 lands its tab row on the 탐나는전
- *    frame's 3437 EXACTLY, which is what confirms the nudge is uniform slop
- *    rather than a real difference. Same class of hand-nudge as 702/700 → 701 on
- *    the 운항정보 tabs.
+ * 1. The 5px #e8e8e8 ring is GONE. The previous reading probed it on all four
+ *    edges of all four frames and drew it as an inset shadow; re-probed at 1:1 on
+ *    the new 6326:80288, every edge is (255,255,255) straight through. So .card
+ *    is now the same flat plate in both layouts and .cardLow no longer exists.
  *
- * 2. After that correction the two card tops are 1205 (온누리) and 1207 (탐나는전).
- *    Both are drawn at 944 in the standard frames, so the 2px is slop; taking the
- *    midpoint 1206 for all three keeps the card from twitching when the tabs
- *    swap — the same reason .cardTamna is centred at 170 instead of the frame's
- *    own 199. The digital card follows at 1206 + 997 + 31 (its measured gap).
+ * 2. Every x MATCHES THE STANDARD LAYOUT. The old reading carried a −5 correction
+ *    on the 온누리 frame (which was drawn a uniform 5px low) and so ended up with
+ *    its own left values; the redraw hand-places nothing — the cards are centred
+ *    rather than nudged — and each block lands on the standard frame's own x. The
+ *    low-reach rules below are therefore PURE Y OVERRIDES, plus the two card
+ *    heights.
+ *
+ * The 5px slop survives in one place only, the 온누리 frame's tab row (3442
+ * against 탐나는전's 3437), and the card tops now differ by 1 (1041 / 1040).
+ * Both are normalised — to 3437 and 1041 — because the tabs swap IN PLACE and a
+ * few px of twitch on a tab press reads as a bug. Same call as centring
+ * .cardTamna at 170 instead of the frame's own 199.
  *
  * ── Type is UNCHANGED ──
  * Every size, weight and colour matches the standard frames: 70 headings, 45.05
  * body, 60.067/60 section headings, 50 사용처, 40 bullets at 1.7 with −0.32
  * tracking, 32 labels, 30 note, 50 tabs. So are the untouched internals — the
- * 지류상품권 panel and its label/photo, the whole 상품권 권종 block (panel 150/100
- * 1441×517, artworks 218/60, 632/77, 1144/100, labels on 431.5/870.5/1322.5,
- * dividers at 632/1109), and both store cards down to the two QRs' different
- * insets (34/26 193×191 and 33/21 196×196) and their 227 label. Only the values
- * listed below move.
+ * 지류상품권 panel's own label/photo (22 and 85 panel-relative), the whole 상품권
+ * 권종 block (panel 150/100 1441×517, artworks 218/60, 632/77, 1144/100, labels
+ * on 431.5/870.5/1322.5, dividers at 632/1109), and both store cards down to the
+ * two QRs' different insets (34/26 193×191 and 33/21 196×196) and their 227
+ * label. 탐나는전's head block does not move either — top 100 in both layouts —
+ * so it has no low-reach rule at all. Only the values listed below move.
  * ──────────────────────────────────────────────────────────────────────────── */
-
-/*
- * ★ The low-reach frames draw a 5px #e8e8e8 ring on the card — a named library
- * token (`외곽선/내부/5`), not a stray stroke — and the STANDARD frames do not.
- * Probed at 1:1 on all four edges of all four frames to be sure: the standard
- * card goes background → white with nothing between (x170 bg, x170 white), while
- * the low-reach card reads (232,232,232) for exactly five pixels first
- * (170–174 left, 1985–1989 right, and the same top and bottom).
- *
- * Drawn as an INSET shadow rather than a `border` on purpose. Every child on
- * this card is absolutely positioned, and those resolve against the PADDING box:
- * a real 5px border would silently shift all ~15 of them 5px down and right,
- * whereas an inset ring paints over 0–5 and moves nothing — which is also
- * exactly where the probe found the grey.
- */
-.cardLow {
-  box-shadow: inset 0 0 0 5px #e8e8e8;
-}
 
 .tabsLow { top: 3437px; }
 
-.cardIntroLow   { top: 1206px; height: 997px; }
-.cardDigitalLow { top: 2234px; height: 1123px; }
-.cardTamnaLow   { top: 1206px; height: 2147px; }
+.cardIntroLow   { top: 1041px; height: 997px; }
+.cardDigitalLow { top: 2069px; height: 1123px; }
+.cardTamnaLow   { top: 1041px; height: 2147px; }
 
 /* ── 온누리 intro card (6326:80288) ── */
-.introTextLow  { left: 35px; top: 70px; }
-.paperPanelLow { top: 417px; }
+.introTextLow  { top: 75px; }
+.paperPanelLow { top: 422px; }
 
 /* ── 온누리 digital card (6326:80296) ──
    The card loses 71px, and it does not lose it evenly: the two text blocks move
-   DOWN (+23 / +10) while everything from the mascot down moves UP 17 and the
-   #ffeac7 plate also gives up 31 of its own height. The QR pair is the one group
-   that keeps its x and moves only −12, so it is listed separately below. */
-.digitalTextLow { left: 31px; top: 73px; }
-.usageBlockLow  { left: 31px; top: 471px; }
-.mascotLow      { left: 1249px; top: 390px; }
-.beigeLow       { top: 656px; height: 425px; }
-.beigeNoteLow   { left: 52px; top: 701px; }
+   DOWN (+25 / +15) while EVERYTHING from the #ffeac7 plate onward — the plate,
+   the mascot, the note, the bullets, the BI sticker and the QR pair — moves up
+   by exactly 12, and the plate also gives up 31 of its own height. */
+.digitalTextLow { top: 78px; }
+.usageBlockLow  { top: 476px; }
+.mascotLow      { top: 395px; }
+.beigeLow       { top: 661px; height: 425px; }
+.beigeNoteLow   { top: 706px; }
 /* Width stays the widened 1190, not the frame's 1155 — the reason above .bullets
-   still holds, and 45 + 1190 clears the BI sticker's new x1240. */
-.bulletsLow     { left: 45px; top: 782px; }
-.biLow          { left: 1240px; top: 766px; }
+   still holds, and 50 + 1190 clears the BI sticker at x1245. */
+.bulletsLow     { top: 787px; }
+.biLow          { top: 771px; }
 .qrPlateLow     { top: 756px; }
 .qrImageLow     { top: 771.34px; }
 
 /* ── 탐나는전 card (6326:80335) ──
-   All four blocks shift 5px left, and the three below the head climb steadily
-   (−43, −81, −119) as the card tightens by 103. */
-.tamnaHeadLow { left: 123px; top: 95px; }
-.kwonjongLow  { left: 35px; top: 554px; }
-.applyLow     { left: 35px; top: 1242px; }
-.useRowLow    { left: 35px; top: 1802px; }
+   The head keeps its place; the three blocks below it climb steadily (−38, −76,
+   −114) as the card tightens by 103. */
+.kwonjongLow  { top: 559px; }
+.applyLow     { top: 1247px; }
+.useRowLow    { top: 1807px; }

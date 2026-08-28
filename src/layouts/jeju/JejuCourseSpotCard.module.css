@@ -1,0 +1,146 @@
+/*
+ * 제주 코스 장소 카드 — the 515px white plate the AI-course flow draws for one
+ * scheduled stop. Moved here verbatim from JejuAiDetail.module.css when the
+ * 2026-08-26 pass put the same card on a second screen; see the component.
+ *
+ * Only the plate WIDTH differs between the two placements, so it is the one
+ * value the caller supplies (inline) rather than a rule here.
+ */
+.spot {
+  flex: none;
+  /* width is set inline — 1678 in the itinerary list (the numbered disc takes
+     the rest of the 1818 gutter), 1793 under the spot detail where there is no
+     disc and the plate is centred on the page instead. */
+  height: 515px;
+  box-sizing: border-box;
+  padding: 65px 80px 51px 74px;
+  border: none;
+  border-radius: 40px;
+  background: #fff;
+  display: flex;
+  align-items: center;
+  gap: 51px;
+  text-align: left;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.spotImg {
+  width: 620px;
+  height: 399px;
+  flex: 0 0 auto;
+  border-radius: 42.9px;
+  object-fit: cover;
+  background: #f2ede6;
+}
+
+.spotBody {
+  width: 875px;
+  height: 399px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  min-width: 0;
+}
+
+.spotTop {
+  height: 287px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.spotNameRow {
+  height: 85.799px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 30px;
+  min-width: 0;
+}
+
+.spotName {
+  margin: 0;
+  font-size: 68px;
+  font-weight: 700;
+  line-height: 1;
+  color: #000;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.spotTag {
+  margin: 0;
+  flex: 0 0 auto;
+  font-size: 52px;
+  font-weight: 400;
+  line-height: 1;
+  color: #999;
+  text-align: right;
+  white-space: nowrap;
+}
+
+.spotAddrRow {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  min-width: 0;
+}
+
+.spotAddrIcon {
+  width: 51px;
+  height: 51px;
+  flex: 0 0 auto;
+  object-fit: contain;
+}
+
+.spotAddr {
+  margin: 0;
+  font-size: 38px;
+  font-weight: 400;
+  line-height: 1;
+  color: #333;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.spotDesc {
+  margin: 0;
+  font-size: 38px;
+  font-weight: 400;
+  line-height: 1.3;
+  color: #999;
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
+.spotMeta {
+  display: flex;
+  align-items: center;
+  gap: 60px;
+}
+
+.metaItem {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.metaIcon {
+  width: 58px;
+  height: 58px;
+  flex: 0 0 auto;
+  object-fit: contain;
+}
+
+.metaText {
+  font-size: 38px;
+  font-weight: 400;
+  line-height: 1;
+  color: #333;
+  white-space: nowrap;
+}

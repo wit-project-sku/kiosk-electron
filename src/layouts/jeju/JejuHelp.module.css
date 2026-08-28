@@ -26,17 +26,22 @@
 }
 
 /* ── Terminal (6412:75786) ──
-   The two-pill `R>컴포넌트=코스추천-카테고리`, centred: 2 × 565 + 63 = 1193, so
-   left = (2160 − 1193) / 2 = 483.5. */
+   The two-pill `R>컴포넌트=코스추천-카테고리`, centred.
+
+   Two-tab row. 2 × 565 + a 200 gap = 1330, so left = (2160 − 1330) / 2 = 415.
+   200 is the gap every other two-tab 제주 page already uses (운항정보, 크루즈
+   운항, 지역화폐 — all 580 pills at gap 200); this row was still on the old 63.
+   Widening the band rather than shrinking the pills is what keeps them on
+   Figma's 565. */
 .terminals {
   position: absolute;
-  left: 483.5px;
+  left: 415px;
   top: 700px;
-  width: 1193px;
+  width: 1330px;
   height: 170px;
   display: flex;
   align-items: center;
-  gap: 63px;
+  gap: 200px;
 }
 
 .terminals .pill {

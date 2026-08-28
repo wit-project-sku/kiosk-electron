@@ -6,7 +6,7 @@
  * the ~20 sub-pages still to build can't drift apart — and so the sub-page
  * background lives in exactly one place.
  */
-import type { ReactNode } from 'react';
+import type { CSSProperties, ReactNode } from 'react';
 import type { KioskController } from '@renderer/hooks/useKioskController';
 import { jejuIconUrl } from '@renderer/assets/icons/jeju';
 import { useRotatingBanner } from '@renderer/hooks/useRotatingBanner';
@@ -54,6 +54,28 @@ interface Props {
    * down exactly as it does for the pages that always carry one.
    */
   lowReachBanner?: boolean;
+  /**
+   * The 2026-08-26 revised low-reach shape: the promo banner disappears
+   * entirely and a 113px mode bar overlays the top of the page instead. How far
+   * the header and body drop varies PER PAGE (measured from each revised
+   * frame, not derived): 언어선택 113/420, 검색 상세 687/687, 검색 0/0 — so the
+   * offsets ride along as props. Opt-in per page while the remaining pages'
+   * revised frames are still arriving; supersedes the plain re-stack where set.
+   */
+  lowReachModeBar?: boolean;
+  /** Header offset (px) while ♿ is on with the mode-bar shape. Default 0. */
+  lowReachShift?: number;
+  /** Body offset (px) while ♿ is on with the mode-bar shape. Default 0. */
+  lowReachBodyShift?: number;
+  /**
+   * Mode-bar shape only: KEEP the promo banner, drawn directly under the bar
+   * (y113–686). 검색 상세 is the page that wants this — its ♿ frame's y687
+   * header is exactly bar (113) + banner (573) + Figma's 1px round-up, and the
+   * user confirmed the banner stays (the frame just doesn't carry the node).
+   * Pages whose revised frames genuinely drop the banner (언어선택, AI 결과)
+   * leave this off.
+   */
+  lowReachBarBanner?: boolean;
   /** Subtitle colour override — see JejuHeader. */
   subtitleColor?: string;
   /** Draw the ★ before the subtitle (WIT Store omits it). */
@@ -71,6 +93,10 @@ export function JejuPageFrame({
   lowReachHero,
   lowReachSelfLayout = false,
   lowReachBanner = false,
+  lowReachModeBar = false,
+  lowReachShift = 0,
+  lowReachBodyShift = 0,
+  lowReachBarBanner = false,
   subtitleColor,
   subtitleStar,
   children,
@@ -91,32 +117,48 @@ export function JejuPageFrame({
    * Figma; until then they keep the standard layout and ♿ is a no-op there.
    */
   const shifted = lowReach && (showBanner || lowReachBanner);
+  /* The revised re-stack: mode bar instead of any banner (see lowReachModeBar). */
+  const modeBar = lowReach && lowReachModeBar;
   /* Pages that opt in via `lowReachBanner` have no banner at all normally, so
-     the element itself has to appear for the low-reach layout to move it. */
-  const drawBanner = showBanner || (lowReach && lowReachBanner);
+     the element itself has to appear for the low-reach layout to move it. The
+     mode-bar revision drops the banner from low-reach — except on pages that
+     keep it under the bar via `lowReachBarBanner`. */
+  const drawBanner =
+    (showBanner || (lowReach && lowReachBanner)) && (!modeBar || lowReachBarBanner);
   /* The other low-reach shape: too tall to re-stack, so the page restarts under
      a hero banner instead. Opt-in per page via `lowReachHero`. */
   const heroSrc = lowReach && lowReachHero ? jejuIconUrl(lowReachHero) : undefined;
+  /* The ♿ toggle swaps to its orange active render while low-reach is on
+     (Figma image 503); fall back to the idle art until the asset lands. */
+  const accessibilityIcon =
+    (lowReach ? jejuIconUrl('ico-accessibility-on') : undefined) ?? jejuIconUrl('ico-accessibility');
 
   return (
     <div
       className={[
         styles.root,
-        shifted ? styles.rootLowReach : '',
+        shifted && !modeBar ? styles.rootLowReach : '',
         heroSrc ? styles.rootLowReachHero : '',
         shifted && lowReachSelfLayout ? styles.rootBodyUnshifted : '',
       ]
         .filter(Boolean)
         .join(' ')}
+      /* Mode-bar shape offsets are per page, so they arrive as props and land
+         as inline vars — inline beats every class above, which is intended. */
+      style={
+        modeBar
+          ? ({ '--jeju-shift': `${lowReachShift}px`, '--jeju-body-shift': `${lowReachBodyShift}px` } as CSSProperties)
+          : undefined
+      }
     >
       <div className={styles.bgBase} />
       {bg && <img src={bg} alt="" className={styles.bgImage} draggable={false} />}
 
+      {modeBar && <div className={styles.modeBar}>지금은 베리어프리 모드입니다.</div>}
+
       {heroSrc && (
         <div className={styles.hero}>
           <img src={heroSrc} alt="" className={styles.heroImg} draggable={false} />
-          <div className={`${styles.heroRule} ${styles.heroRuleTop}`} />
-          <div className={`${styles.heroRule} ${styles.heroRuleBottom}`} />
         </div>
       )}
 
@@ -148,7 +190,7 @@ export function JejuPageFrame({
           aria-label="뒤로"
         />
       </div>
-      {jejuIconUrl('ico-accessibility') && (
+      {accessibilityIcon && (
         <button
           type="button"
           className={styles.accessibility}
@@ -157,7 +199,7 @@ export function JejuPageFrame({
           aria-pressed={lowReach}
         >
           <img
-            src={jejuIconUrl('ico-accessibility')}
+            src={accessibilityIcon}
             alt=""
             className={styles.accessibilityImg}
             draggable={false}
@@ -166,7 +208,7 @@ export function JejuPageFrame({
       )}
 
       {drawBanner && (
-        <div className={styles.banner}>
+        <div className={`${styles.banner} ${modeBar ? styles.bannerBelowBar : ''}`}>
           {banner && <img src={banner} alt="" className={styles.bannerImg} draggable={false} />}
         </div>
       )}

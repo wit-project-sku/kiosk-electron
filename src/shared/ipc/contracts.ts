@@ -35,7 +35,7 @@ import type {
   PhotoWorkflowState,
 } from '../types/photo';
 import type { SupportedLanguage } from '../types/kiosk';
-import type { WeatherSnapshot } from '../types/weather';
+import type { WeatherForecast, WeatherSnapshot } from '../types/weather';
 import type { JejuFlightSnapshot } from '../types/jejuFlight';
 import type { JejuSailingSnapshot } from '../types/jejuSailing';
 import type { WeatherPlayKey } from '../config/weatherVideo';
@@ -343,6 +343,10 @@ export interface IpcContract {
     request: void;
     response: Result<WeatherSnapshot | null>;
   };
+  [IpcChannels.WeatherForecastGet]: {
+    request: void;
+    response: Result<WeatherForecast | null>;
+  };
   [IpcChannels.FlightsGet]: {
     request: void;
     response: Result<JejuFlightSnapshot | null>;
@@ -480,6 +484,7 @@ export interface IpcEventPayloads {
   [IpcEvents.PhotoWorkflowChanged]: PhotoWorkflowState;
   [IpcEvents.LanguageChanged]: SupportedLanguage;
   [IpcEvents.WeatherChanged]: WeatherSnapshot;
+  [IpcEvents.WeatherForecastChanged]: WeatherForecast;
   [IpcEvents.FlightsChanged]: JejuFlightSnapshot;
   [IpcEvents.SailingsChanged]: JejuSailingSnapshot;
   [IpcEvents.ExchangeChanged]: ExchangeSnapshot;

@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import { isOk } from '@shared/types/result';
-import type { KioskOutfit, OutfitCategory } from '@shared/types/outfit';
-import { fallbackOutfitLabels } from '@shared/constants/outfitCategories';
+import type { KioskOutfit, OutfitCategory, OutfitCategoryLabels } from '@shared/types/outfit';
+import { fallbackOutfitLabels, uniformOutfitLabels } from '@shared/constants/outfitCategories';
 import { OUTFITS_BY_CATEGORY } from '@renderer/assets/photos/insadong/hanbok/clothes';
 
 /**
@@ -27,8 +27,14 @@ const BUNDLED_CATEGORY_NAMES = [
   'K-Culture',
 ] as const;
 
-/** One outfit as the picker draws it, whatever the source. */
-export interface PickerOutfit {
+/**
+ * One outfit as the picker draws it, whatever the source.
+ *
+ * Carries the eight `label*` fields like a category does — the card's caption
+ * is CMS content in the visitor's language, resolved at render time by
+ * `outfitLabel` so a language switch relabels the strip without refetching.
+ */
+export interface PickerOutfit extends OutfitCategoryLabels {
   /** AR outfit code — what `clothingKey` carries to the AR API. */
   code: string;
   /** Card image: a remote URL from the API, or a bundled asset URL offline. */
@@ -64,6 +70,9 @@ function bundledCatalogue(): Record<string, PickerOutfit[]> {
       out[name.toLowerCase()] = folder.map((o) => ({
         code: o.code,
         url: o.url,
+        // The bundle predates the labels — the file stem IS the AR code, so it
+        // is the only caption an offline kiosk can put under the card.
+        ...uniformOutfitLabels(o.code),
         gender: o.gender,
         subCategoryId: null,
       }));
@@ -90,6 +99,28 @@ function bundledCategories(): OutfitCategory[] {
   }));
 }
 
+const LABEL_KEYS = [
+  'labelKr',
+  'labelEn',
+  'labelJp',
+  'labelCh',
+  'labelVn',
+  'labelId',
+  'labelTh',
+  'labelRu',
+] as const satisfies readonly (keyof OutfitCategoryLabels)[];
+
+/**
+ * The label fields an outfit row actually carries, dropping the empty ones so
+ * they do not overwrite the stand-in spread in before them. A cache written
+ * before OutfitService normalised these has none at all.
+ */
+function pickLabels(o: KioskOutfit): Partial<OutfitCategoryLabels> {
+  const out: Partial<OutfitCategoryLabels> = {};
+  for (const k of LABEL_KEYS) if (o[k]) out[k] = o[k];
+  return out;
+}
+
 function group(outfits: KioskOutfit[]): Record<string, PickerOutfit[]> {
   const out: Record<string, PickerOutfit[]> = {};
   for (const o of outfits) {
@@ -102,6 +133,11 @@ function group(outfits: KioskOutfit[]): Record<string, PickerOutfit[]> {
     (out[key] ??= []).push({
       code: o.code,
       url: o.imageUrl,
+      // Already normalised to eight non-empty strings by OutfitService — except
+      // on a cache written before the fields existed, where they are absent and
+      // the AR code stands in rather than the caption slot rendering blank.
+      ...uniformOutfitLabels(o.code),
+      ...pickLabels(o),
       gender: o.gender,
       subCategoryId: o.subCategoryId,
     });

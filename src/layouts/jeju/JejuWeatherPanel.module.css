@@ -1,0 +1,199 @@
+/*
+ * 제주 날씨 overlay — Figma node 6516:74520, the group the home weather card
+ * opens over 제주>홈. Page coordinates: the frosted panel is 2000×2942 at
+ * (81, 302); everything inside is panel-relative, so the numbers below are the
+ * Figma values minus that origin.
+ */
+
+.layer {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 2160px;
+  height: 3840px;
+  /* Above the whole home screen (which draws unlayered, in document order) but
+     below the search keyboard, which mounts after this in JejuHome. */
+  z-index: 20;
+}
+
+/* Invisible dismiss target covering the page BEHIND the panel — see the note in
+   JejuWeatherPanel.tsx. The frame has no close button; tapping the bare screen
+   around the panel is the way out. */
+.dismiss {
+  position: absolute;
+  inset: 0;
+  padding: 0;
+  border: none;
+  background: none;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/*
+ * Unlike the home screen's frosted cards (see the long note above `.notice` in
+ * JejuHome.module.css, which drop the blur because the only thing behind them is
+ * one flat colour) this panel KEEPS its backdrop-filter: what sits behind it is
+ * the home screen itself — the 공지 card, the 운항 정보 board and the tile grid —
+ * so the blur is doing real work here.
+ */
+.panel {
+  position: absolute;
+  left: 81px;
+  top: 302px;
+  width: 2000px;
+  height: 2942px;
+  border-radius: 45px;
+  background: rgba(237, 233, 226, 0.9);
+  backdrop-filter: blur(15px);
+  -webkit-backdrop-filter: blur(15px);
+  overflow: hidden;
+}
+
+/* 오늘's lighter card. It reaches above the first row to take in the column
+   heads, which is why the frame draws no rule between rows 1 and 2. */
+.todayCard {
+  position: absolute;
+  left: 70px;
+  top: 90px;
+  width: 1861px;
+  height: 497px;
+  border-radius: 45px;
+  background: rgba(255, 255, 255, 0.5);
+}
+
+/* ── Column heads ───────────────────────────────────────────────────── */
+.head {
+  position: absolute;
+  font-size: 38px;
+  font-weight: 400;
+  line-height: 1;
+  color: #999; /* 글씨-main */
+  white-space: nowrap;
+}
+
+.headMorning {
+  left: 697px;
+  top: 132px;
+}
+
+.headAfternoon {
+  left: 1154px;
+  top: 132px;
+}
+
+/* The one head the frame sets 5px lower than the other two. */
+.headRange {
+  left: 1598px;
+  top: 137px;
+}
+
+/* Figma "Line 106": a 3px #C8BDA9 rule inset 111 from the panel edge — the same
+   rule colour and weight the 운항 정보 board uses. `top` comes from the TSX. */
+.rule {
+  position: absolute;
+  left: 111px;
+  width: 1778px;
+  height: 3px;
+  background: #c8bda9;
+}
+
+/* ── One day ────────────────────────────────────────────────────────── */
+/* 357 tall — the height of the taller (afternoon) glyph box, which is what sets
+   the row. `top` comes from the TSX. */
+.row {
+  position: absolute;
+  left: 0;
+  width: 2000px;
+  height: 357px;
+}
+
+/*
+ * 오늘 / 내일 fill this 126 box at 68px and overhang it slightly either side;
+ * the single-letter weekdays are centred in it. Centring both is what the frame
+ * draws — 목/금/토/일 sit visibly further right than 오늘/내일.
+ */
+.day {
+  position: absolute;
+  left: 157px;
+  top: 137px;
+  width: 126px;
+  font-size: 68px;
+  font-weight: 700;
+  line-height: 1;
+  color: #232323;
+  text-align: center;
+  white-space: nowrap;
+}
+
+.date {
+  position: absolute;
+  left: 167px;
+  top: 229px;
+  font-size: 38px;
+  font-weight: 400;
+  line-height: 1;
+  color: #999; /* 글씨-main */
+  white-space: nowrap;
+}
+
+/*
+ * Both glyph slots are one fixed 280×357 box with `contain`, centred on the axis
+ * the frame draws each half-day's art on (795 / 1257.5 in page coordinates).
+ *
+ * The frame itself sizes every glyph by hand and does not agree with itself —
+ * 04 lands at 265×256 (0.88× its source), 03 at 277×357 (0.89×) and the 내일
+ * sun_cloud at 345×239 (1.10×). A single box reproduces the two 0.88× glyphs to
+ * within a few px and keeps the whole column consistent, which the hand-sized
+ * version is not.
+ */
+.glyphSlot {
+  position: absolute;
+  top: 0;
+  width: 280px;
+  height: 357px;
+}
+
+.glyphMorning {
+  left: 580px;
+}
+
+.glyphAfternoon {
+  left: 1038px;
+}
+
+.glyph {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+/* ── 최저 / 최고 ────────────────────────────────────────────────────── */
+.min,
+.max {
+  position: absolute;
+  top: 129px;
+  font-size: 100px;
+  font-weight: 700;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.min {
+  left: 1466px;
+  color: #3172e7;
+}
+
+.max {
+  left: 1712px;
+  color: #cd3534;
+}
+
+.slash {
+  position: absolute;
+  left: 1653px;
+  top: 144px;
+  font-size: 70px;
+  font-weight: 400;
+  line-height: 1;
+  color: #999; /* 글씨-main */
+}

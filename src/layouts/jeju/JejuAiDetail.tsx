@@ -1,6 +1,8 @@
 /**
- * 제주 AI 코스 상세 — Figma nodes 6289:55320 (제주>제주모하지(AI검색)-03-1, one day)
- * and 6289:55078 (-03-2, the multi-day variant that adds the DAY arrows).
+ * 제주 AI 코스 상세 — Figma node 6516:73138 (제주>제주모하지(AI검색)-03-1), the
+ * 2026-08-26 re-stack of 6289:55320 (-03-1) / 6289:55078 (-03-2). See the
+ * stylesheet header for what moved; the one thing that is new rather than moved
+ * is the row of answer pills under the summary bar.
  *
  * Shows the course chosen on JejuAiResult: its title/description/hashtags, a
  * summary bar, and the numbered spot itinerary.
@@ -55,7 +57,9 @@ import { useAccessibilityStore } from '@renderer/store/accessibilityStore';
 import { useAiStore } from '@renderer/store/aiStore';
 import { useShopStore } from '@renderer/store/shopStore';
 import { useDetailStore } from '@renderer/store/detailStore';
+import type { DetailItem } from '@renderer/store/detailStore';
 import { useLanguageStore } from '@renderer/store/languageStore';
+import { sheetText, t } from '@renderer/lib/loc';
 import type { Lang } from '@renderer/lib/i18n';
 import { pick } from '@renderer/lib/i18n';
 import {
@@ -78,6 +82,7 @@ import {
   transportCode,
 } from '@renderer/lib/jejuCourse';
 import { JejuPageFrame } from './JejuPageFrame';
+import { JejuCourseSpotCard } from './JejuCourseSpotCard';
 import styles from './JejuAiDetail.module.css';
 
 interface Props {
@@ -106,13 +111,17 @@ const DAYS_BY_STAY: Record<string, number> = {
   '3박 이상': 4,
 };
 
-/* ── QR block under the itinerary ──────────────────────────────────────
-   Derived from .list in the CSS (top 1423, height 2240) and .spot (height 515,
-   gap 50), so the QR tracks the ACTUAL number of cards rather than a baked y.
-   It moves in BOTH directions: a thin day holds fewer cards than the design's
-   four and the QR rises to meet them, while a scheduled day can hold nine —
-   more than the list's 2240 viewport shows — and the QR would otherwise be
-   pushed off the artboard entirely. See `qrTopFor` for the clamp that stops
+/* ── QR block under the itinerary — ♿ ONLY ────────────────────────────
+   The standard frame (6516:73138) puts the QR on the DAY row at a fixed y1395,
+   so none of this arithmetic applies there any more; it survives for the ♿
+   frame (6418:11330), which still draws the QR under the last card.
+
+   Derived from .listLow in the CSS (top 1423, height 2240) and the spot card
+   (height 515, gap 50), so the QR tracks the ACTUAL number of cards rather than
+   a baked y. It moves in BOTH directions: a thin day holds fewer cards than the
+   design's four and the QR rises to meet them, while a scheduled day can hold
+   nine — more than the list's 2240 viewport shows — and the QR would otherwise
+   be pushed off the artboard entirely. See `qrTopFor` for the clamp that stops
    it. */
 const LIST_TOP = 1423;
 const CARD_HEIGHT = 515;
@@ -221,9 +230,9 @@ const T = {
 interface CourseMeta {
   /** Rail letter used in the header subtitle — "A코스 - 1일차". */
   label: string;
-  title: string;
-  tags: string;
-  desc: string;
+  title: Partial<Record<Lang, string>>;
+  tags: Partial<Record<Lang, string>>;
+  desc: Partial<Record<Lang, string>>;
   /**
    * OFFLINE FALLBACK ONLY. These are the authored placeholders this page used
    * to show unconditionally; `POST /api/jeju/courses/recommend` now supplies
@@ -240,39 +249,158 @@ interface CourseMeta {
   spotDifficulty: string;
 }
 
+/**
+ * Summary-bar labels and the two values that are words rather than numbers.
+ *
+ * ★ Translated here, in all eight languages (2026-08-27). Localization_Jeju has
+ * `TotalStayTime` and nothing else for this bar — no row for 이동수단, 이동거리 or
+ * 난이도 — so three of the four labels rendered Korean on a page the visitor
+ * reaches through a fully localized questionnaire. Same reason SECTION in
+ * JejuAiSearch is authored: the sheet simply has no row yet.
+ *
+ * The NUMBERS beside them (약 4~5시간, 약 18Km) are still Korean. They come from
+ * COURSE_META, which is authored placeholder data for the no-API path, and from
+ * `minutesLabel` in lib/jejuCourse — a shared helper with no `lang` parameter
+ * that every layout calls. Localizing those is a separate change to that lib.
+ */
+const STAT_LABEL = {
+  transport: {
+    ko: '이동수단', en: 'Getting around', ja: '移動手段', zh: '交通方式',
+    vi: 'Phương tiện', th: 'การเดินทาง', ru: 'Транспорт', id: 'Transportasi',
+  },
+  distance: {
+    ko: '이동거리', en: 'Distance', ja: '移動距離', zh: '移动距离',
+    vi: 'Quãng đường', th: 'ระยะทาง', ru: 'Расстояние', id: 'Jarak',
+  },
+  travel: {
+    ko: '이동시간', en: 'Travel time', ja: '移動時間', zh: '移动时间',
+    vi: 'Thời gian di chuyển', th: 'เวลาเดินทาง', ru: 'Время в пути', id: 'Waktu tempuh',
+  },
+  difficulty: {
+    ko: '난이도', en: 'Difficulty', ja: '難易度', zh: '难度',
+    vi: 'Độ khó', th: 'ระดับความยาก', ru: 'Сложность', id: 'Tingkat kesulitan',
+  },
+};
+
+/** COURSE_META's authored 난이도 words, so the value localizes with its label. */
+const DIFFICULTY_WORD: Record<string, Partial<Record<Lang, string>>> = {
+  쉬움: {
+    ko: '쉬움', en: 'Easy', ja: 'やさしい', zh: '简单',
+    vi: 'Dễ', th: 'ง่าย', ru: 'Лёгкий', id: 'Mudah',
+  },
+  보통: {
+    ko: '보통', en: 'Moderate', ja: 'ふつう', zh: '普通',
+    vi: 'Trung bình', th: 'ปานกลาง', ru: 'Средний', id: 'Sedang',
+  },
+  어려움: {
+    ko: '어려움', en: 'Hard', ja: 'むずかしい', zh: '困难',
+    vi: 'Khó', th: 'ยาก', ru: 'Сложный', id: 'Sulit',
+  },
+};
+
+/**
+ * The visitor's 이동수단 answer, localized.
+ *
+ * aiStore deliberately keeps every answer in KOREAN — it is what the course and
+ * shop matching downstream key on (see JejuAiSearch) — so the stored value has
+ * to be mapped back to a label for display. The four Korean words are the
+ * fallbacks JejuAiSearch authors against Transportation_1..4, in that order.
+ */
+const TRANSPORT_KO = ['도보', '자전거', '대중교통', '자동차'];
+const transportLabel = (ko: string, lang: Lang): string => {
+  const i = TRANSPORT_KO.indexOf(ko);
+  if (i < 0) return ko;
+  const value = t(`Transportation_${i + 1}`, lang);
+  return value.startsWith('Transportation_') ? ko : value;
+};
+
 const COURSE_META: Record<string, CourseMeta> = {
   nature: {
     label: 'A',
-    title: '자연·유산 탐방 코스',
-    tags: '#자연 #유산 #힐링',
-    desc: '제주의 아름다운 자연 경관과 역사·문화·유산을 함께 만날 수 있는 코스입니다.\n탁 트인 바다와 오름, 전통 마을을 천천히 둘러보며 여유로운 시간을 즐겨보세요.',
+    title: {
+      ko: '자연·유산 탐방 코스', en: 'Nature & Heritage', ja: '自然・遺産探訪コース',
+      zh: '自然·遗产探访路线', vi: 'Thiên nhiên & Di sản',
+      th: 'เส้นทางธรรมชาติและมรดก', ru: 'Природа и наследие', id: 'Alam & Warisan',
+    },
+    tags: {
+      ko: '#자연 #유산 #힐링', en: '#Nature #Heritage #Healing', ja: '#自然 #遺産 #ヒーリング',
+      zh: '#自然 #遗产 #疗愈', vi: '#Thiênnhiên #Disản #Thưgiãn',
+      th: '#ธรรมชาติ #มรดก #ผ่อนคลาย', ru: '#Природа #Наследие #Отдых',
+      id: '#Alam #Warisan #Relaksasi',
+    },
+    desc: {
+      ko: '제주의 아름다운 자연 경관과 역사·문화·유산을 함께 만날 수 있는 코스입니다.\n탁 트인 바다와 오름, 전통 마을을 천천히 둘러보며 여유로운 시간을 즐겨보세요.',
+      en: "A course that brings together Jeju's scenery and its history and heritage.\nTake your time along the open sea, the oreum and the old villages.",
+      ja: '済州の美しい自然と歴史・文化・遺産を一緒に楽しめるコースです。\n開けた海とオルム、伝統的な村をゆっくり巡ってみてください。',
+      zh: '这是一条可以同时领略济州自然风光与历史文化遗产的路线。\n请慢慢游览开阔的大海、오름和传统村落。',
+      vi: 'Hành trình kết hợp cảnh quan thiên nhiên với lịch sử và di sản của Jeju.\nHãy thong thả dạo qua biển rộng, các oreum và những ngôi làng cổ.',
+      th: 'เส้นทางที่รวมทัศนียภาพธรรมชาติเข้ากับประวัติศาสตร์และมรดกของเชจู\nค่อย ๆ เดินชมทะเลกว้าง โอรึม และหมู่บ้านโบราณ',
+      ru: 'Маршрут, соединяющий природу Чеджу с его историей и наследием.\nНе спеша пройдите вдоль открытого моря, оремов и старых деревень.',
+      id: 'Rute yang memadukan panorama alam dengan sejarah dan warisan Jeju.\nNikmati perlahan laut lepas, oreum, dan desa-desa tradisional.',
+    },
     duration: '약 4~5시간',
     distance: '약 18Km',
     difficulty: '쉬움',
     spotDuration: '2-3시간',
-    spotDifficulty: '난이도 쉬움',
+    spotDifficulty: '쉬움',
   },
   food: {
     label: 'B',
-    title: '맛집·감성 코스',
-    tags: '#미식 #감성 #로컬',
-    desc: '제주의 맛과 감성을 가득 담은 로컬 중심 코스입니다.\n현지인이 즐겨 찾는 맛집과 감성 공간을 천천히 둘러보세요.',
+    title: {
+      ko: '맛집·감성 코스', en: 'Food & Vibes', ja: 'グルメ・雰囲気コース',
+      zh: '美食·情调路线', vi: 'Ẩm thực & Cảm xúc',
+      th: 'อาหารและบรรยากาศ', ru: 'Еда и атмосфера', id: 'Kuliner & Suasana',
+    },
+    tags: {
+      ko: '#미식 #감성 #로컬', en: '#Food #Vibes #Local', ja: '#グルメ #雰囲気 #ローカル',
+      zh: '#美食 #情调 #本地', vi: '#Ẩmthực #Cảmxúc #Địaphương',
+      th: '#อาหาร #บรรยากาศ #ท้องถิ่น', ru: '#Еда #Атмосфера #Местное',
+      id: '#Kuliner #Suasana #Lokal',
+    },
+    desc: {
+      ko: '제주의 맛과 감성을 가득 담은 로컬 중심 코스입니다.\n현지인이 즐겨 찾는 맛집과 감성 공간을 천천히 둘러보세요.',
+      en: "A local-first course full of Jeju's flavours and atmosphere.\nTake your time around the places islanders themselves go back to.",
+      ja: '済州の味と雰囲気をたっぷり詰め込んだローカル中心のコースです。\n地元の人が通う名店と居心地のよい空間をゆっくり巡ってみてください。',
+      zh: '这是一条充满济州味道与情调的本地路线。\n请慢慢探访当地人常去的美食店与惬意空间。',
+      vi: 'Hành trình thiên về địa phương, đậm hương vị và cảm xúc Jeju.\nHãy thong thả ghé những quán ăn và không gian mà người bản địa yêu thích.',
+      th: 'เส้นทางเน้นท้องถิ่นที่เต็มไปด้วยรสชาติและบรรยากาศของเชจู\nค่อย ๆ แวะร้านอาหารและพื้นที่ที่คนท้องถิ่นชื่นชอบ',
+      ru: 'Маршрут для местных вкусов и атмосферы Чеджу.\nНе спеша загляните туда, куда возвращаются сами островитяне.',
+      id: 'Rute berbasis lokal yang penuh cita rasa dan suasana Jeju.\nNikmati perlahan tempat makan dan ruang favorit warga setempat.',
+    },
     duration: '약 4~5시간',
     distance: '약 15Km',
     difficulty: '쉬움',
     spotDuration: '1-2시간',
-    spotDifficulty: '난이도 쉬움',
+    spotDifficulty: '쉬움',
   },
   family: {
     label: 'C',
-    title: '가족·체험 코스',
-    tags: '#가족 #체험 #즐거움',
-    desc: '온 가족이 함께 즐길 수 있는 체험 중심 코스입니다.\n아이와 어른 모두 즐겁게 참여할 수 있는 장소로 구성했습니다.',
+    title: {
+      ko: '가족·체험 코스', en: 'Family & Activities', ja: '家族・体験コース',
+      zh: '家庭·体验路线', vi: 'Gia đình & Trải nghiệm',
+      th: 'ครอบครัวและกิจกรรม', ru: 'Семья и впечатления', id: 'Keluarga & Aktivitas',
+    },
+    tags: {
+      ko: '#가족 #체험 #즐거움', en: '#Family #Experience #Fun', ja: '#家族 #体験 #楽しさ',
+      zh: '#家庭 #体验 #欢乐', vi: '#Giađình #Trảinghiệm #Vuivẻ',
+      th: '#ครอบครัว #กิจกรรม #สนุก', ru: '#Семья #Впечатления #Веселье',
+      id: '#Keluarga #Pengalaman #Seru',
+    },
+    desc: {
+      ko: '온 가족이 함께 즐길 수 있는 체험 중심 코스입니다.\n아이와 어른 모두 즐겁게 참여할 수 있는 장소로 구성했습니다.',
+      en: 'A hands-on course the whole family can enjoy together.\nEvery stop is somewhere children and adults can join in.',
+      ja: '家族みんなで楽しめる体験中心のコースです。\n子どもも大人も一緒に参加できる場所で構成しました。',
+      zh: '这是一条全家人都能一起享受的体验路线。\n每个地点孩子与大人都能愉快参与。',
+      vi: 'Hành trình trải nghiệm cả gia đình cùng tận hưởng.\nMỗi điểm dừng đều phù hợp cho cả trẻ em và người lớn.',
+      th: 'เส้นทางเน้นกิจกรรมที่ทั้งครอบครัวสนุกร่วมกันได้\nทุกจุดแวะเหมาะกับทั้งเด็กและผู้ใหญ่',
+      ru: 'Маршрут впечатлений для всей семьи.\nКаждая остановка подходит и детям, и взрослым.',
+      id: 'Rute pengalaman yang bisa dinikmati seluruh keluarga.\nSetiap perhentian cocok untuk anak maupun orang dewasa.',
+    },
     duration: '약 5~6시간',
     distance: '약 22Km',
     difficulty: '보통',
     spotDuration: '2-3시간',
-    spotDifficulty: '난이도 쉬움',
+    spotDifficulty: '쉬움',
   },
 };
 
@@ -345,11 +473,39 @@ export function JejuAiDetail({ controller }: Props): JSX.Element {
   const shops = useShopStore((s) => s.shops);
   const setDetail = useDetailStore((s) => s.setItem);
   const lang = useLanguageStore((s) => s.currentLanguage) as Lang;
+  /**
+   * The two labels this page repeats — from Localization_Jeju, which carries
+   * both in all eight languages and was going unread. They were authored Korean,
+   * so an English visitor read "총 소요시간" and "1일차" on an otherwise
+   * translated page. The authored words stay as the fallback.
+   *
+   * `dayLapsed` is a SUFFIX ("일차"), and it is appended in every language
+   * because that is how the sheet stores it — one word, not a pattern with a
+   * slot. English therefore reads "1 Day"; putting the number elsewhere would
+   * need a placeholder the sheet does not have.
+   */
+  const totalTimeLabel = sheetText('TotalStayTime', lang, { ko: '총 소요시간' });
+  const dayWord = sheetText('dayLapsed', lang, { ko: '일차' });
 
   const meta = COURSE_META[courseKey] ?? COURSE_META.nature!;
   /** Index into `pages`, not a day number — a day can span several pages. */
   const [pageIndex, setPageIndex] = useState(0);
   const lowReach = useAccessibilityStore((s) => s.lowReach);
+
+  /**
+   * Adds the ♿ row-top override to a class, and nothing otherwise.
+   *
+   * The standard frame is the 2026-08-26 re-stack (6516:73138) and the ♿ frame
+   * (6418:11330) is still on the layout before it, so seven rows sit at two
+   * different heights. See the *Low block at the foot of the stylesheet.
+   */
+  /* Both params are `string | undefined` because that is how CSS Module lookups
+     are typed here — see DayArrow's `className` for the same. */
+  const low = (base?: string, lowClass?: string): string =>
+    [base, lowReach ? lowClass : ''].filter(Boolean).join(' ');
+
+  /** The questionnaire, echoed under the summary bar — see the row in the JSX. */
+  const picks = [visitors, stay, transport, ...interests].filter(Boolean);
 
   /** The scheduled course, or null while it loads and after a failed call. */
   const [course, setCourse] = useState<JejuCourse | null>(null);
@@ -465,6 +621,8 @@ export function JejuAiDetail({ controller }: Props): JSX.Element {
   const stops = page?.stops ?? [];
   /** The day the visible page belongs to — what the DAY label and header show. */
   const day = page?.day ?? 1;
+  /** The header's course+day line, e.g. "A코스 - 1일차". */
+  const courseDayTitle = `${meta.label}코스 - ${day}${dayWord}`;
 
   const goPrevPage = useCallback(() => setPageIndex((i) => Math.max(0, i - 1)), []);
   const goNextPage = useCallback(
@@ -487,12 +645,63 @@ export function JejuAiDetail({ controller }: Props): JSX.Element {
   const firstLink = stops[0]?.shop.naverLink ?? '';
   const qrLink = /^https?:\/\//i.test(firstLink) ? firstLink : null;
 
-  const openSpot = ({ shop, spot }: Stop): void => {
-    setDetail({
+  /**
+   * Every stop of the VISIBLE DAY, in itinerary order.
+   *
+   * Paging is a display device — a day that does not fit in the list's 2240px
+   * viewport spills onto further pages — so anything that follows the itinerary
+   * rather than the screen has to walk this, not `stops`.
+   */
+  const dayStops = useMemo(
+    () => pages.filter((p) => p.day === day).flatMap((p) => p.stops),
+    [pages, day],
+  );
+
+  /** How long the visitor spends here: the schedule's, or the authored placeholder offline. */
+  const dwellOf = (stop: Stop): string =>
+    stop.spot ? minutesLabel(stop.spot.dwellMinutes) : meta.spotDuration;
+
+  /**
+   * "난이도 X". An ungraded SCHEDULED spot draws no row rather than a wrong one —
+   * `difficulty: 0` is the normalizer's "the server gave none". Offline there is
+   * no schedule to grade, so the authored placeholder stands in.
+   */
+  const hardnessOf = (stop: Stop): string => {
+    const grade = stop.spot ? difficultyLabel(stop.spot.difficulty) : meta.spotDifficulty;
+    if (!grade) return '';
+    // Was the Korean literal `난이도 ${grade}` — built from the same two tables
+    // the summary bar uses, so the word and its label localize together.
+    return `${pick(STAT_LABEL.difficulty, lang)} ${pick(DIFFICULTY_WORD[grade] ?? { ko: grade }, lang)}`;
+  };
+
+  /** Falls back to the shared no-image placeholder, like the list and detail cards. */
+  const photoOf = (stop: Stop): string => shopImages(stop.shop)[0] ?? jejuIconUrl('noimage') ?? '';
+
+  /**
+   * The DetailItem for `dayStops[i]`, with the stop AFTER it attached as
+   * `courseNext` — which is what JejuDetail draws as the 다음 장소 card under the
+   * 상세 plate (Figma 6289:58438 / 6516:72906). Recursive, so that card opens a
+   * detail carrying the one after it and a visitor can walk the whole day
+   * without returning here.
+   *
+   * Scoped to the DAY, deliberately: the detail's header subtitle is
+   * "A코스 - 1일차", so a card that quietly crossed into the next day would be
+   * captioned with the wrong one. The last stop of a day simply has no card.
+   *
+   * Built on demand rather than memoised — the depth is the day's spot count
+   * (nine at the worst observed) and it runs once per tap.
+   */
+  const detailFor = (i: number): DetailItem | undefined => {
+    const stop = dayStops[i];
+    if (!stop) return undefined;
+    const { shop, spot } = stop;
+    const nextStop = dayStops[i + 1];
+    const nextItem = detailFor(i + 1);
+    return {
       from: 'ai_detail',
       // JejuDetail shows this as the header SUBTITLE for AI-course spots, so it
       // carries the course + day rather than a generic label.
-      title: `${meta.label}코스 - ${day}일차`,
+      title: courseDayTitle,
       name: shopName(shop, lang),
       category: shopSecondCategory(shop, lang),
       photos: shopImages(shop),
@@ -511,7 +720,19 @@ export function JejuAiDetail({ controller }: Props): JSX.Element {
       rating: shop.naverRating != null ? String(shop.naverRating) : '',
       instagram: '',
       blogReviews: shop.naverLink ?? '',
-    });
+      ...(nextStop && nextItem
+        ? { courseNext: { dwell: dwellOf(nextStop), difficulty: hardnessOf(nextStop), item: nextItem } }
+        : {}),
+    };
+  };
+
+  const openSpot = (stop: Stop): void => {
+    // Identity lookup, not an index: `pages` holds one Stop object per stop and
+    // `dayStops` re-lists those same objects, so the tapped card is found even
+    // though the visible page is only a slice of the day.
+    const item = detailFor(dayStops.indexOf(stop));
+    if (!item) return;
+    setDetail(item);
     controller.navigate('detail', '코스 상세');
   };
 
@@ -526,13 +747,16 @@ export function JejuAiDetail({ controller }: Props): JSX.Element {
    * the whole course, not the visible day — the DAY pager sits below the bar.
    */
   const stats: Array<{ label: string; value: string }> = useMemo(() => {
-    const chosenTransport = transport || '자동차';
+    const chosenTransport = transportLabel(transport || '자동차', lang);
     if (!course) {
       return [
-        { label: '총 소요시간', value: meta.duration },
-        { label: '이동수단', value: chosenTransport },
-        { label: '이동거리', value: meta.distance },
-        { label: '난이도', value: meta.difficulty },
+        { label: totalTimeLabel, value: meta.duration },
+        { label: pick(STAT_LABEL.transport, lang), value: chosenTransport },
+        { label: pick(STAT_LABEL.distance, lang), value: meta.distance },
+        {
+          label: pick(STAT_LABEL.difficulty, lang),
+          value: pick(DIFFICULTY_WORD[meta.difficulty] ?? { ko: meta.difficulty }, lang),
+        },
       ];
     }
     const travel = course.schedule.reduce(
@@ -540,29 +764,35 @@ export function JejuAiDetail({ controller }: Props): JSX.Element {
       0,
     );
     return [
-      { label: '총 소요시간', value: `약 ${minutesLabel(course.totalMinutes)}` },
-      { label: '이동수단', value: chosenTransport },
-      { label: '이동시간', value: minutesLabel(travel) },
-      { label: '난이도', value: difficultyLabel(course.difficulty) || meta.difficulty },
+      { label: totalTimeLabel, value: `약 ${minutesLabel(course.totalMinutes)}` },
+      { label: pick(STAT_LABEL.transport, lang), value: chosenTransport },
+      { label: pick(STAT_LABEL.travel, lang), value: minutesLabel(travel) },
+      {
+        label: pick(STAT_LABEL.difficulty, lang),
+        value: (() => {
+          const word = difficultyLabel(course.difficulty) || meta.difficulty;
+          return pick(DIFFICULTY_WORD[word] ?? { ko: word }, lang);
+        })(),
+      },
     ];
-  }, [course, transport, meta]);
+  }, [course, transport, meta, totalTimeLabel, lang]);
 
   return (
     <JejuPageFrame
       controller={controller}
       title="'제주' 뭐하지 (AI 검색)"
-      subtitle={`${meta.label}코스 - ${day}일차`}
+      subtitle={courseDayTitle}
       subtitleColor="#616161"
       bannerFallback="banner-detail"
       showBanner={false}
       onBack={() => controller.navigate('ai_result', '뒤로')}
     >
-      <p className={styles.title}>{meta.title}</p>
+      <p className={styles.title}>{pick(meta.title, lang)}</p>
       <div className={styles.rule} />
-      <p className={styles.tags}>{meta.tags}</p>
-      <p className={styles.desc}>{meta.desc}</p>
+      <p className={low(styles.tags, styles.tagsLow)}>{pick(meta.tags, lang)}</p>
+      <p className={low(styles.desc, styles.descLow)}>{pick(meta.desc, lang)}</p>
 
-      <div className={styles.summary}>
+      <div className={low(styles.summary, styles.summaryLow)}>
         {stats.map((s, i) => (
           <Fragment key={s.label}>
             {i > 0 && <span className={styles.statSep} />}
@@ -574,6 +804,18 @@ export function JejuAiDetail({ controller }: Props): JSX.Element {
         ))}
       </div>
 
+      {/* The questionnaire echoed back, between the summary bar and the DAY row
+          (6516:73323). Standard frame only — the ♿ frame has no such row. Every
+          value is stored KOREAN (see JejuAiSearch's submit), which is how the
+          frame draws them; empty slots (deep-link, idle reset) drop out. */}
+      {!lowReach && picks.length > 0 && (
+        <div className={styles.picks}>
+          {picks.map((p, i) => (
+            <span key={i} className={styles.pick}>{p}</span>
+          ))}
+        </div>
+      )}
+
       {/* The pager. Always drawn — greyed at the ends, exactly as the Figma
           shows the left one on the first screen — so the row never reflows.
           It steps a PAGE at a time, which is a day boundary only when the day
@@ -582,16 +824,16 @@ export function JejuAiDetail({ controller }: Props): JSX.Element {
         dir="prev"
         disabled={pageIndex <= 0}
         onClick={goPrevPage}
-        className={styles.dayPrev}
+        className={low(styles.dayPrev, styles.dayArrowLow)}
       />
 
-      <p className={styles.day}>DAY {day}</p>
+      <p className={low(styles.day, styles.dayLow)}>DAY {day}</p>
 
       <DayArrow
         dir="next"
         disabled={pageIndex >= pages.length - 1}
         onClick={goNextPage}
-        className={styles.dayNext}
+        className={low(styles.dayNext, styles.dayArrowLow)}
       />
 
       {/* Nothing at all while the schedule is in flight: the empty copy tells
@@ -601,7 +843,7 @@ export function JejuAiDetail({ controller }: Props): JSX.Element {
         <p className={styles.empty}>{pick(T.empty, lang)}</p>
       ) : (
         <>
-          <div className={styles.rail} />
+          <div className={low(styles.rail, styles.railLow)} />
 
           {/* ── The itinerary ──
               Each numbered disc rides INSIDE the row with its own card rather
@@ -613,68 +855,25 @@ export function JejuAiDetail({ controller }: Props): JSX.Element {
               Flex centring reproduces the design's own offset exactly: a 105
               disc centred on a 515 card is the 1628 against a list top of 1423
               that the old STOP_TOP encoded. */}
-          <div className={styles.list}>
-            {stops.map((stop, i) => {
-              const { shop, spot } = stop;
-              // Falls back to the shared no-image placeholder, like the list
-              // and detail cards; the empty slot stays only if even that is
-              // missing from the asset folder.
-              const photo = shopImages(shop)[0] ?? jejuIconUrl('noimage');
-              // How long the visitor spends here, and how hard it is. Both come
-              // from the schedule; the authored pair stands in only offline.
-              const dwell = spot ? minutesLabel(spot.dwellMinutes) : meta.spotDuration;
-              const grade = spot ? difficultyLabel(spot.difficulty) : '';
-              // An ungraded spot draws no 난이도 row rather than a wrong one —
-              // `difficulty: 0` is the normalizer's "the server gave none".
-              const hardness = spot ? (grade ? `난이도 ${grade}` : '') : meta.spotDifficulty;
-              return (
-                <div key={`${i}-${shop.id}`} className={styles.stopRow}>
-                  <span className={styles.stop}>{stop.number}</span>
-                  <button type="button" className={styles.spot} onClick={() => openSpot(stop)}>
-                  {photo ? (
-                    <img src={photo} alt="" className={styles.spotImg} draggable={false} loading="lazy" />
-                  ) : (
-                    <span className={styles.spotImg} />
-                  )}
-
-                  <span className={styles.spotBody}>
-                    <span className={styles.spotTop}>
-                      <span className={styles.spotNameRow}>
-                        <p className={styles.spotName}>{shopName(shop, lang)}</p>
-                        <p className={styles.spotTag}>{shopSecondCategory(shop, lang)}</p>
-                      </span>
-
-                      <span className={styles.spotAddrRow}>
-                        {jejuIconUrl('ico-marker') && (
-                          <img src={jejuIconUrl('ico-marker')} alt="" className={styles.spotAddrIcon} draggable={false} />
-                        )}
-                        <p className={styles.spotAddr}>{shopAddress(shop, lang)}</p>
-                      </span>
-
-                      <p className={styles.spotDesc}>{shopDescription(shop, lang)}</p>
-                    </span>
-
-                    <span className={styles.spotMeta}>
-                      <span className={styles.metaItem}>
-                        {jejuIconUrl('ico-duration') && (
-                          <img src={jejuIconUrl('ico-duration')} alt="" className={styles.metaIcon} draggable={false} />
-                        )}
-                        <span className={styles.metaText}>{dwell}</span>
-                      </span>
-                      {hardness && (
-                        <span className={styles.metaItem}>
-                          {jejuIconUrl('ico-difficulty') && (
-                            <img src={jejuIconUrl('ico-difficulty')} alt="" className={styles.metaIcon} draggable={false} />
-                          )}
-                          <span className={styles.metaText}>{hardness}</span>
-                        </span>
-                      )}
-                    </span>
-                  </span>
-                  </button>
-                </div>
-              );
-            })}
+          <div className={low(styles.list, styles.listLow)}>
+            {stops.map((stop, i) => (
+              <div key={`${i}-${stop.shop.id}`} className={styles.stopRow}>
+                <span className={styles.stop}>{stop.number}</span>
+                {/* 1678, not the detail screen's 1793: the numbered disc and its
+                    35px gap take the first 140px of the list's 1818 gutter. */}
+                <JejuCourseSpotCard
+                  width={1678}
+                  photo={photoOf(stop)}
+                  name={shopName(stop.shop, lang)}
+                  category={shopSecondCategory(stop.shop, lang)}
+                  address={shopAddress(stop.shop, lang)}
+                  description={shopDescription(stop.shop, lang)}
+                  dwell={dwellOf(stop)}
+                  difficulty={hardnessOf(stop)}
+                  onClick={() => openSpot(stop)}
+                />
+              </div>
+            ))}
           </div>
 
           {/* 모바일에서 확인하기 — label left, QR right, the QR's right edge flush
@@ -683,7 +882,12 @@ export function JejuAiDetail({ controller }: Props): JSX.Element {
               nothing is worse than no QR, which is how JejuSpotDetailCard treats
               its own. See `qrLink`. */}
           {qrLink && (
-            <div className={styles.qrRow} style={{ top: qrTopFor(stops.length) }}>
+            <div
+              className={styles.qrRow}
+              /* Standard: a fixed y1395 on the DAY row, set in the CSS. ♿ still
+                 hangs it off the last card, so only that layout computes a top. */
+              style={lowReach ? { top: qrTopFor(stops.length) } : undefined}
+            >
               <span className={styles.qrLabel}>{pick(T.viewOnMobile, lang)}</span>
               <span className={styles.qrFrame}>
                 <QRCodeSVG className={styles.qrCode} value={qrLink} bgColor="#ffffff" fgColor="#000000" level="M" />

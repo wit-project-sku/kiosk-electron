@@ -40,7 +40,7 @@ import type { SpotDiffRound } from '../types/spotDiff';
 import type { FootfallReport, FootfallRuntime, FootfallStats } from '../types/footfall';
 import type { OutfitCatalogue } from '../types/outfit';
 import type { JejuCourse, JejuCourseRecommendQuery } from '../types/jejuCourse';
-import type { WeatherSnapshot } from '../types/weather';
+import type { WeatherForecast, WeatherSnapshot } from '../types/weather';
 import type { JejuFlightSnapshot } from '../types/jejuFlight';
 import type { JejuSailingSnapshot } from '../types/jejuSailing';
 import type { WeatherPlayKey } from '../config/weatherVideo';
@@ -199,6 +199,8 @@ export interface KioskBridge {
   };
   weather: {
     get(): Promise<Result<WeatherSnapshot | null>>;
+    /** Multi-day outlook drawn by the 제주 weather panel. */
+    getForecast(): Promise<Result<WeatherForecast | null>>;
   };
   flights: {
     get(): Promise<Result<JejuFlightSnapshot | null>>;
@@ -320,6 +322,7 @@ export interface KioskBridge {
     onPhotoWorkflowChanged(listener: (state: PhotoWorkflowState) => void): Unsubscribe;
     onLanguageChanged(listener: (language: SupportedLanguage) => void): Unsubscribe;
     onWeatherChanged(listener: (weather: WeatherSnapshot) => void): Unsubscribe;
+    onWeatherForecastChanged(listener: (forecast: WeatherForecast) => void): Unsubscribe;
     onFlightsChanged(listener: (flights: JejuFlightSnapshot) => void): Unsubscribe;
     onSailingsChanged(listener: (sailings: JejuSailingSnapshot) => void): Unsubscribe;
     onExchangeChanged(listener: (exchange: ExchangeSnapshot) => void): Unsubscribe;

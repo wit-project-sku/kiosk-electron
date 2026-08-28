@@ -34,19 +34,23 @@
 }
 
 /*
- * Low-reach (♿) — Figma 6293:71909 (흑돼지 picked) and 6422:44503 (nothing
- * picked). The header and the card list stay exactly where they are; the two
- * CONTROLS move to the foot of the artboard, where a seated visitor can reach
- * them — category chips at y3234, 초성 index at y3659.
+ * Low-reach (♿) — re-read 2026-08-26 from the mode-bar revision template
+ * 6561:80628 (제주>하영뭐사지=공항-01; earlier shape from 6293:71909 / 6422:44503).
+ * The 113px mode bar opens the page, the header lands under it (y113 — the
+ * frame draws 116, 3px slop, normalised to flush like every other bar page),
+ * and the list viewport drops to y837. The two CONTROLS stay pinned at the
+ * foot where a seated visitor can reach them — chips hang 100 under the list's
+ * bottom edge (y3438 on the frame's one-row demo), 초성 50 under those (y3658).
  *
  * They also stop scrolling. In the standard layout they live inside `.scroll`
  * and slide away with the cards; here they are siblings of it and stay put,
- * which is the whole point of moving them down. So the scroller shrinks to
- * Figma's Frame 1304 — y700, h2434, ending at 3134 with a 100 gap to the chips.
+ * which is the whole point of moving them down. The height is per chip-row
+ * count and set inline — see lowListHeight in JejuListScreen.tsx.
  */
 .scrollLow {
+  top: 837px;
   bottom: auto;
-  height: 2434px;
+  height: 2501px;
   padding-bottom: 0;
 }
 

@@ -2,12 +2,15 @@
  * 제주공항 (W006) 환율 — Figma 제주>환율-나라선택01, the 2026-08-24 redraw:
  * 6412:76217 (calculator), 6412:76438 (keyboard open), 6412:76521 / 6412:76726
  * (currency dropdown on the top / bottom field) and 6219:99645 (실시간 환율).
+ * The 베리어프리 (♿) half follows the newer 2026-08-27 frames — 6326:84606,
+ * 6460:117343, 6460:117395, 6460:118038 and 6460:117849.
  *
- * One screen, two tabs:
- *   환율계산기   amount + currency → converted amount, with a numeric keypad and
- *                a currency dropdown per field
+ * One screen, two tabs — 실시간 환율 on the left and open by default, 환율계산기
+ * on the right:
  *   실시간 환율  the same read-only rate list the other three layouts already
  *                ship (identical row: white pill, 170 flag, 60px label/rate)
+ *   환율계산기   amount + currency → converted amount, with a numeric keypad and
+ *                a currency dropdown per field
  *
  * The keypad and the two dropdowns are mutually exclusive overlays — opening one
  * closes the others, and a tap anywhere else closes all of them.
@@ -24,6 +27,7 @@ import type { KioskController } from '@renderer/hooks/useKioskController';
 import { jejuIconUrl } from '@renderer/assets/icons/jeju';
 import { useExchangeStore } from '@renderer/store/exchangeStore';
 import { pick, useLang } from '@renderer/lib/i18n';
+import { sheetText } from '@renderer/lib/loc';
 import type { Lang } from '@renderer/lib/i18n';
 import korFlag from '@renderer/assets/photos/insadong/exchange/kor.png';
 import jpnFlag from '@renderer/assets/photos/insadong/exchange/jpn.svg';
@@ -78,20 +82,30 @@ const CURRENCIES: Currency[] = [
 const byUnit = (unit: string): Currency =>
   CURRENCIES.find((c) => c.unit === unit) ?? (CURRENCIES[0] as Currency);
 
-const TABS: ReadonlyArray<{ id: TabId; label: Partial<Record<Lang, string>> }> = [
-  {
-    id: 'calc',
-    label: {
-      // Written closed-up in the design (6412:76320), not "환율 계산기".
-      ko: '환율계산기', en: 'Converter', ja: '為替計算機', zh: '汇率计算器',
-      vi: 'Máy tính tỷ giá', th: 'เครื่องคำนวณ', ru: 'Калькулятор', id: 'Kalkulator',
-    },
-  },
+/**
+ * Row order IS the drawn order — .tabs is a two-up flex row with no per-tab
+ * positioning — and the first entry is also the tab the page opens on (see
+ * `tab`'s initial state). 실시간 환율 leads: it is the read-only view, so it is
+ * what a visitor who only wants to glance at a rate needs, and the calculator
+ * is one tap away for the visitor who wants to do something.
+ */
+const TABS: ReadonlyArray<{ id: TabId; key: string; label: Partial<Record<Lang, string>> }> = [
   {
     id: 'live',
+    key: 'Exchange_tab_2',
     label: {
       ko: '실시간 환율', en: 'Live Rates', ja: 'リアルタイム為替', zh: '实时汇率',
       vi: 'Tỷ giá trực tiếp', th: 'อัตราเรียลไทม์', ru: 'Курсы валют', id: 'Kurs Terkini',
+    },
+  },
+  {
+    id: 'calc',
+    key: 'Exchange_tab_1',
+    label: {
+      // Written closed-up in the design (6412:76320), not "환율 계산기" — which
+      // IS how the sheet spells it, and the sheet wins. Kept as the fallback.
+      ko: '환율계산기', en: 'Converter', ja: '為替計算機', zh: '汇率计算器',
+      vi: 'Máy tính tỷ giá', th: 'เครื่องคำนวณ', ru: 'Калькулятор', id: 'Kalkulator',
     },
   },
 ];
@@ -106,9 +120,30 @@ const RESULT_LABEL = {
   vi: 'Quy đổi:', th: 'แลกเปลี่ยน:', ru: 'Обмен:', id: 'Konversi:',
 };
 
+/**
+ * Localized sheet string with the authored table behind it — the same
+ * `sheetText` contract JejuHome and JejuAbout use, so an operator edit reaches
+ * the kiosk on the next night sync with no rebuild.
+ *
+ * Wired 2026-08-27: Localization_Jeju has carried `Exchange_tab_1` / `_tab_2` /
+ * `_desc_1` in all eight languages for a while and this screen was reading none
+ * of them. `Exchange_desc_2` (금액) and `_desc_3` (환전) are deliberately NOT
+ * wired: the design's labels end in a colon the sheet does not store, and the
+ * sheet's English is lower-cased mid-sentence prose ("amount", "currency
+ * exchange") rather than a field label.
+ */
+const exchangeText = (key: string, lang: Lang, fallback: Partial<Record<Lang, string>>): string =>
+  sheetText(key, lang, fallback);
+
 const BASE_LABEL = {
   ko: '기준 환율', en: 'Base rate', ja: '基準為替レート', zh: '基准汇率',
   vi: 'Tỷ giá cơ sở', th: 'อัตราอ้างอิง', ru: 'Базовый курс', id: 'Kurs dasar',
+};
+
+/** When the snapshot was fetched — `{t}` is the `26.08.30. 19:30` stamp. */
+const AS_OF = {
+  ko: '{t} 기준', en: 'As of {t}', ja: '{t} 基準', zh: '{t} 基准',
+  vi: 'Tính đến {t}', th: 'ณ {t}', ru: 'на {t}', id: 'Per {t}',
 };
 
 /** The 원 suffix on the live list, matching HwaseongExchange. */
@@ -147,11 +182,25 @@ function formatAmount(value: number): string {
   return value.toLocaleString('en-US', { maximumFractionDigits: 2 });
 }
 
+/**
+ * `fetchedAt` → the design's `26.08.30. 19:30`. Hand-formatted rather than
+ * `toLocaleString`: the frame draws a fixed two-digit-year shape, and the kiosk
+ * renders eight languages that would each format it differently.
+ */
+function formatFetchedAt(iso: string | undefined): string | undefined {
+  if (!iso) return undefined;
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return undefined;
+  const p = (n: number): string => String(n).padStart(2, '0');
+  return `${p(d.getFullYear() % 100)}.${p(d.getMonth() + 1)}.${p(d.getDate())}. ${p(d.getHours())}:${p(d.getMinutes())}`;
+}
+
 export function JejuExchange({ controller }: Props): JSX.Element {
   const lang = useLang();
   const exchange = useExchangeStore((s) => s.exchange);
 
-  const [tab, setTab] = useState<TabId>('calc');
+  /** Opens on 실시간 환율, the left-hand tab — see TABS. */
+  const [tab, setTab] = useState<TabId>('live');
   const [fromUnit, setFromUnit] = useState('JPY(100)');
   const [toUnit, setToUnit] = useState('KRW');
   const [digits, setDigits] = useState('1000');
@@ -226,21 +275,24 @@ export function JejuExchange({ controller }: Props): JSX.Element {
   const overlayOpen = keypad || picker !== null;
 
   /*
-   * Low-reach: the whole calculator block rides one shift (see .rootLow), which
-   * tightens by 61px while the keypad is open so the 환전 field's bottom edge
-   * meets the keypad's top exactly. Everything else is a per-element class.
+   * Low-reach: the whole calculator block rides one shift (see .rootLow), and
+   * everything else is a per-element class. The two tabs take DIFFERENT frame
+   * shapes — 실시간 환율 drops the promo banner and starts its header at y116 so
+   * the rate list gets the banner's height, while 환율계산기 keeps the banner
+   * under the mode bar and starts at y686. See the .rootLow comment block.
    */
   const lowReach = useAccessibilityStore((s) => s.lowReach);
-  const lowShift = !lowReach
-    ? ''
-    : `${styles.rootLowAny} ${keypad ? styles.rootLowKeypad : styles.rootLow}`;
+  const lowShift = lowReach ? styles.rootLow : '';
+  const asOf = formatFetchedAt(exchange?.fetchedAt);
 
   return (
     <JejuPageFrame
       controller={controller}
       title="환율"
       onBack={() => controller.navigate('home', '뒤로')}
-      lowReachSelfLayout
+      lowReachModeBar
+      lowReachBarBanner={tab === 'calc'}
+      lowReachShift={tab === 'calc' ? 686 : 116}
     >
       <div className={lowShift}>
       <div className={`${styles.tabs} ${lowReach ? styles.tabsLow : ''}`}>
@@ -255,27 +307,27 @@ export function JejuExchange({ controller }: Props): JSX.Element {
               setTab(t.id);
             }}
           >
-            {pick(t.label, lang)}
+            {exchangeText(t.key, lang, t.label)}
           </button>
         ))}
       </div>
 
       {tab === 'calc' ? (
         <>
-          <div
-            className={[
-              styles.basePill,
-              lowReach ? (keypad ? styles.basePillLowKeypad : styles.basePillLow) : '',
-            ]
-              .filter(Boolean)
-              .join(' ')}
-          >
-            <span className={styles.basePillLabel}>{pick(BASE_LABEL, lang)}</span>
+          <div className={`${styles.basePill} ${lowReach ? styles.basePillLow : ''}`}>
+            <span className={styles.basePillLabel}>
+                {exchangeText('Exchange_desc_1', lang, BASE_LABEL)}
+              </span>
             <span className={styles.basePillRate}>
               {oneUnit === undefined
                 ? `1 ${from.ccy} = — ${to.ccy}`
                 : `1 ${from.ccy} = ${formatAmount(oneUnit)} ${to.ccy}`}
             </span>
+            {/* Third line, low-reach only — the standard 212-tall pill has no
+                room for it (see .basePillStamp). */}
+            {lowReach && asOf !== undefined && (
+              <span className={styles.basePillStamp}>{pick(AS_OF, lang).replace('{t}', asOf)}</span>
+            )}
           </div>
 
           {/* Closes whichever overlay is open. Sits under them, over everything

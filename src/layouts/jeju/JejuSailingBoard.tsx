@@ -2,10 +2,13 @@
  * 제주국제여객터미널 (W007) home 운항 정보 board.
  *
  * Counterpart to JejuFlightBoard: one lead departure row with the six sailing
- * columns (출발시각 · 소요시간 · 선박명 · 항로 · 출발장소 · 현황) and a
- * 국제항 ㅣ 연안항 filter above the panel. 더보기 opens JejuCruise.
+ * columns (출발시각 · 소요시간 · 선박명 · 항로 · 출발장소 · 현황).
+ *
+ * The board carries no 국제항 ㅣ 연안항 filter — the lead row is simply the next
+ * sailing from either terminal, and the berth split belongs to the 운항정보 page
+ * (JejuCruise), which still has that sub-tab. Both the panel itself and 더보기
+ * open that page.
  */
-import { useEffect, useState } from 'react';
 import type { KioskController } from '@renderer/hooks/useKioskController';
 import { pick } from '@renderer/lib/i18n';
 import type { Lang } from '@renderer/lib/i18n';
@@ -17,10 +20,9 @@ import {
   sailingStatusLabel,
   useJejuDepartureSailings,
 } from '@renderer/lib/jejuSailing';
-import type { JejuSailing, SailingPort } from '@renderer/lib/jejuSailing';
+import type { JejuSailing } from '@renderer/lib/jejuSailing';
 import { useAccessibilityStore } from '@renderer/store/accessibilityStore';
 import { useSailingStore } from '@renderer/store/sailingStore';
-import { JejuSubTabRow } from './JejuSubTabRow';
 import styles from './JejuSailingBoard.module.css';
 
 interface Props {
@@ -37,23 +39,6 @@ const MORE = {
   ko: '운항 정보 더보기', en: 'More sailings', ja: '運航情報をもっと見る', zh: '查看更多航运',
   vi: 'Xem thêm chuyến tàu', th: 'ดูเรือเพิ่มเติม', ru: 'Больше рейсов', id: 'Lihat pelayaran lain',
 };
-
-const PORTS: ReadonlyArray<{ id: SailingPort; label: Partial<Record<Lang, string>> }> = [
-  {
-    id: 'international',
-    label: {
-      ko: '국제항', en: 'International', ja: '国際港', zh: '国际港',
-      vi: 'Cảng quốc tế', th: 'ท่าเรือระหว่างประเทศ', ru: 'Междунар. порт', id: 'Pelabuhan Internasional',
-    },
-  },
-  {
-    id: 'coastal',
-    label: {
-      ko: '연안항', en: 'Coastal', ja: '沿岸港', zh: '沿岸港',
-      vi: 'Cảng ven biển', th: 'ท่าเรือชายฝั่ง', ru: 'Каботажный порт', id: 'Pelabuhan Pesisir',
-    },
-  },
-];
 
 const COLUMNS = {
   time: 412,
@@ -159,32 +144,26 @@ const EMPTY = {
 export function JejuSailingBoard({ controller, lang }: Props): JSX.Element {
   const lowReach = useAccessibilityStore((s) => s.lowReach);
   const snapshot = useSailingStore((s) => s.snapshot);
-  const [port, setPort] = useState<SailingPort>('international');
-  const allDepartures = useJejuDepartureSailings();
-  const portDepartures = allDepartures.filter((s) => s.port === port);
-  const lead = portDepartures[0];
+  // Departures arrive already deduped and sorted by time (SailingService), so
+  // the first one is the next sailing out of 제주항, whichever berth it leaves.
+  const lead = useJejuDepartureSailings()[0];
   const isLoading = snapshot === null;
 
-  // 국제항에 남은 편이 없고 연안항만 있을 때(저녁 시간대 등) 자동으로 탭 전환.
-  useEffect(() => {
-    if (!snapshot || portDepartures.length > 0) return;
-    const alt: SailingPort = port === 'international' ? 'coastal' : 'international';
-    if (allDepartures.some((s) => s.port === alt)) setPort(alt);
-  }, [snapshot, allDepartures, port, portDepartures.length]);
-
   const emptyMessage = isLoading ? LOADING : EMPTY;
+  const openSailings = (): void => controller.navigate('cruise', CRUISE_TITLE);
 
   return (
     <>
-      <JejuSubTabRow
-        compact
-        className={`${styles.ports} ${lowReach ? styles.portsLow : ''}`}
-        items={PORTS.map((p) => ({ id: p.id, label: pick(p.label, lang) }))}
-        value={port}
-        onChange={setPort}
-      />
-
-      <div className={`${styles.board} ${lowReach ? styles.boardLow : ''}`}>
+      {/* The whole panel is the tap target, not just 더보기 below it — a visitor
+          reaching for the row they are reading gets the same 운항정보 page. It
+          stays a div with role=button because the title is a <p>, which a real
+          <button> may not contain (same call as the home weather card). */}
+      <div
+        className={`${styles.board} ${lowReach ? styles.boardLow : ''}`}
+        role="button"
+        aria-label={pick(TITLE, lang)}
+        onClick={openSailings}
+      >
         <p className={styles.title}>{pick(TITLE, lang)}</p>
         <div className={styles.rule} />
 
@@ -206,7 +185,7 @@ export function JejuSailingBoard({ controller, lang }: Props): JSX.Element {
       <button
         type="button"
         className={`${styles.more} ${lowReach ? styles.moreLow : ''}`}
-        onClick={() => controller.navigate('cruise', CRUISE_TITLE)}
+        onClick={openSailings}
       >
         <span className={styles.chevron} />
         <span className={styles.moreText}>{pick(MORE, lang)}</span>

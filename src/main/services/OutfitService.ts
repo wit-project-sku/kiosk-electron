@@ -5,7 +5,7 @@ import type {
   OutfitGender,
   OutfitSubCategory,
 } from '@shared/types/outfit';
-import { fallbackOutfitLabels } from '@shared/constants/outfitCategories';
+import { fallbackOutfitLabels, uniformOutfitLabels } from '@shared/constants/outfitCategories';
 import { createLogger } from '@main/core/logger';
 import type { LocalCacheService } from '@main/services/LocalCacheService';
 import type { KioskService } from '@main/services/KioskService';
@@ -353,7 +353,26 @@ function normalizeOutfit(row: unknown): KioskOutfit | null {
   if (typeof r['status'] === 'string' && r['status'].toUpperCase() !== 'ACTIVE') return null;
 
   const categoryName = typeof r['categoryName'] === 'string' ? r['categoryName'].trim() : '';
+  const name = typeof r['name'] === 'string' ? r['name'].trim() : '';
   const subLabel = typeof r['subCategoryLabelKr'] === 'string' ? r['subCategoryLabelKr'].trim() : '';
+
+  /*
+   * The card's caption, one per language — what the 2026-08-27 redraw hangs
+   * under the plate (Figma 6530:10487).
+   *
+   * ★ `label*`, NOT `name`. `name` is the operator's filing slug ("global_5.7")
+   * and reads as one in every language; the labels are the garment's actual
+   * name, translated in the admin web (사라판 / Sarafan / Сарафан). Only stage
+   * sends them today — prod's outfit rows carry `name` and no labels at all —
+   * so the slug, then the AR code, stand in until prod catches up. Never
+   * `fallbackOutfitLabels`: that table is keyed by CATEGORY code and would
+   * caption an outfit slugged "global" with the 글로벌 tab's name.
+   */
+  const labels = uniformOutfitLabels(name || code);
+  const label = (key: keyof OutfitCategoryLabels): string => {
+    const v = r[key];
+    return typeof v === 'string' && v.trim() ? v.trim() : labels[key];
+  };
   const subCategoryLabelKr = subLabel || null;
   const rawType = typeof r['type'] === 'string' ? r['type'].toUpperCase() : 'NORMAL';
   const type =
@@ -365,6 +384,15 @@ function normalizeOutfit(row: unknown): KioskOutfit | null {
     id,
     code,
     imageUrl,
+    name,
+    labelKr: label('labelKr'),
+    labelEn: label('labelEn'),
+    labelJp: label('labelJp'),
+    labelCh: label('labelCh'),
+    labelVn: label('labelVn'),
+    labelId: label('labelId'),
+    labelTh: label('labelTh'),
+    labelRu: label('labelRu'),
     categoryName,
     categoryId: typeof r['categoryId'] === 'number' ? r['categoryId'] : null,
     subCategoryId: typeof r['subCategoryId'] === 'number' ? r['subCategoryId'] : null,

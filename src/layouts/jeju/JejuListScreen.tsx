@@ -20,7 +20,7 @@
  * this screen's base category, derive the second-category chips from what the
  * data actually contains, and open the shared detail on tap.
  */
-import { useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import type { KioskController } from '@renderer/hooks/useKioskController';
 import type { KioskScreenId } from '@shared/types/kiosk';
 import type { Shop } from '@shared/types/shop';
@@ -80,8 +80,10 @@ const TITLE: Record<JejuListScreenId, string> = {
 
 /** Chips per row — Figma's `R>상단 카테고리-5개*2` is a 5-wide grid. */
 const CHIP_COLS = 5;
-/** Top of the scrolling area, under the 700px header. */
-const LIST_TOP = 700;
+/* The standard list top (y700, under the 700px header) lives in the CSS as
+   `.scroll`; only the low-reach top is needed here, to hang the controls. */
+/** Low-reach list top — under the mode bar + header (Figma 6561:80628). */
+const LIST_TOP_LOW = 837;
 /** Low-reach: gap between the list's bottom edge and the controls block. */
 const LOW_CONTROLS_GAP = 100;
 
@@ -96,10 +98,30 @@ const LOW_CONTROLS_GAP = 100;
  * renders Korean in all 8 languages with no error.
  */
 const DEFAULT_TABS: Record<JejuListScreenId, string[]> = {
-  eat: ['흑돼지', '해산물·회', '갈치·고등어', '고기국수', '제주 향토음식',
-        '한식', '한정식', '호텔뷔페', '카페', '기타'],
-  shop: ['기념품', '특산품', '먹거리', '감귤·농산물', '수산물·해산물',
-         '전통주·차', '공예품', '제주 굿즈', '체험 기념품', '기타'],
+  eat: [
+    '흑돼지',
+    '해산물·회',
+    '갈치·고등어',
+    '고기국수',
+    '제주 향토음식',
+    '한식',
+    '한정식',
+    '호텔뷔페',
+    '카페',
+    '기타',
+  ],
+  shop: [
+    '기념품',
+    '특산품',
+    '먹거리',
+    '감귤·농산물',
+    '수산물·해산물',
+    '전통주·차',
+    '공예품',
+    '제주 굿즈',
+    '체험 기념품',
+    '기타',
+  ],
   // Written '리조트·콘도' and '독채·단독이용' with the middle dot the DATA uses —
   // these are ids matched against the catalogue's own strings, not display copy,
   // so they follow it rather than the frame's slash.
@@ -118,11 +140,24 @@ export function JejuListScreen({ screen, controller }: Props): JSX.Element {
   const lowReach = useAccessibilityStore((s) => s.lowReach);
   const [activeKr, setActiveKr] = useState<string | null>(null);
   const [jamo, setJamo] = useState<Chosung | null>(null);
+  /**
+   * The 초성 row is a KOREAN-only control: it filters on the leading jamo of the
+   * shop's Korean name, so on any other language it is a row of glyphs the
+   * visitor cannot read filtering on a name they are not being shown. Hidden
+   * outside Korean, exactly as JejuAbout's 관광명소 grid does it.
+   */
+  const showChosung = lang === 'ko';
 
-  const baseShops = useMemo(
-    () => shopsForBase(shops, BASE_CATEGORY[screen]),
-    [shops, screen],
-  );
+  /**
+   * Leaving Korean must also drop an ACTIVE filter, not just the control —
+   * otherwise a visitor who taps ㅅ and then switches to English is left on a
+   * short list with no visible reason and no way to clear it.
+   */
+  useEffect(() => {
+    if (!showChosung && jamo !== null) setJamo(null);
+  }, [showChosung, jamo]);
+
+  const baseShops = useMemo(() => shopsForBase(shops, BASE_CATEGORY[screen]), [shops, screen]);
 
   // Distinct second categories present in the data, ordered by the sheet's "N-"
   // prefix and labelled in the current language.
@@ -137,25 +172,28 @@ export function JejuListScreen({ screen, controller }: Props): JSX.Element {
       .sort((a, b) => (parseInt(a.kr, 10) || 999) - (parseInt(b.kr, 10) || 999));
   }, [baseShops, lang]);
 
-  const chips = tabs.length > 0
-    ? tabs
-    : DEFAULT_TABS[screen].map((label) => ({ kr: label, label: catLabel(label, lang) }));
+  const chips =
+    tabs.length > 0
+      ? tabs
+      : DEFAULT_TABS[screen].map((label) => ({ kr: label, label: catLabel(label, lang) }));
 
   /*
    * Low-reach geometry follows the chip ROW COUNT, because the controls sit at
    * the foot and a shorter chip block gives the list back the space:
    *
-   *   2 rows (eat/shop, 10 categories)  list h2434, controls y3234
-   *   1 row  (lodging, 5 categories)    list h2645, controls y3445
+   *   2 rows (eat/shop, 10 categories)  list h2296, controls y3233
+   *   1 row  (lodging, 5 categories)    list h2501, controls y3438
    *
-   * Measured on 6293:71909 / 6422:44503 (two rows) and 6422:44919 / 6289:68599
-   * (one row; those two state it as 2646/3446, 1px apart from each other). Both
+   * The one-row values are measured on the mode-bar revision template
+   * 6561:80628 (list y837–3338, chips 3438, 초성 3658); the two-row pair is
+   * derived from it by one chip row + its 35 gap (205), keeping the 초성 row on
+   * its ~3658 anchor — the revised two-row frames have not been shared. Both
    * fall out of one rule — the controls hang 100px under the list — so only the
    * list height is a constant here.
    */
   const chipRows = Math.ceil(chips.length / CHIP_COLS);
-  const lowListHeight = chipRows >= 2 ? 2434 : 2645;
-  const lowControlsTop = LIST_TOP + lowListHeight + LOW_CONTROLS_GAP;
+  const lowListHeight = chipRows >= 2 ? 2296 : 2501;
+  const lowControlsTop = LIST_TOP_LOW + lowListHeight + LOW_CONTROLS_GAP;
 
   const visible = useMemo(() => {
     let list = activeKr ? baseShops.filter((s) => s.secondCategoryKr === activeKr) : baseShops;
@@ -199,26 +237,27 @@ export function JejuListScreen({ screen, controller }: Props): JSX.Element {
      to the foot of the page — same markup either way, see .controlsLow. */
   const controls = (
     <>
-        {/* `catsIdle` while nothing is picked — the whole row is drawn in the
+      {/* `catsIdle` while nothing is picked — the whole row is drawn in the
             brand colour then, and only falls back to grey once one chip takes
             the solid plate. See the note above .catsIdle. */}
-        <div className={`${styles.cats} ${activeKr === null ? styles.catsIdle : ''}`}>
-          {chips.map((c) => (
-            <button
-              key={c.kr}
-              type="button"
-              className={`${styles.chip} ${c.kr === activeKr ? styles.chipActive : ''}`}
-              onClick={() => {
-                // Tapping the active chip clears it — there is no "전체" chip.
-                setActiveKr((prev) => (prev === c.kr ? null : c.kr));
-                resetScroll();
-              }}
-            >
-              {c.label}
-            </button>
-          ))}
-        </div>
+      <div className={`${styles.cats} ${activeKr === null ? styles.catsIdle : ''}`}>
+        {chips.map((c) => (
+          <button
+            key={c.kr}
+            type="button"
+            className={`${styles.chip} ${c.kr === activeKr ? styles.chipActive : ''}`}
+            onClick={() => {
+              // Tapping the active chip clears it — there is no "전체" chip.
+              setActiveKr((prev) => (prev === c.kr ? null : c.kr));
+              resetScroll();
+            }}
+          >
+            {c.label}
+          </button>
+        ))}
+      </div>
 
+      {showChosung && (
         <JejuChosungRow
           className={styles.chosung}
           /* 14 × 120.43 = 1686, Figma's x237–1923 for the ㄱ…ㅎ run. The
@@ -233,12 +272,22 @@ export function JejuListScreen({ screen, controller }: Props): JSX.Element {
             resetScroll();
           }}
         />
+      )}
     </>
   );
 
   return (
-    // No banner: the list runs to the bottom of the artboard in this frame.
-    <JejuPageFrame controller={controller} title={TITLE[screen]} showBanner={false}>
+    /* No banner: the list runs to the bottom of the artboard in this frame.
+       ♿ is on the 2026-08-26 mode-bar revision (template 6561:80628): bar at
+       the top, header at y113; the list/controls position themselves, so the
+       body shift stays 0. */
+    <JejuPageFrame
+      controller={controller}
+      title={TITLE[screen]}
+      showBanner={false}
+      lowReachModeBar
+      lowReachShift={113}
+    >
       <div
         className={`${styles.scroll} ${lowReach ? styles.scrollLow : ''}`}
         style={lowReach ? { height: lowListHeight } : undefined}
@@ -276,7 +325,12 @@ export function JejuListScreen({ screen, controller }: Props): JSX.Element {
         aria-label="위로"
       >
         {jejuIconUrl('scroll-arrow') && (
-          <img src={jejuIconUrl('scroll-arrow')} alt="" className={styles.scrollBtnImg} draggable={false} />
+          <img
+            src={jejuIconUrl('scroll-arrow')}
+            alt=""
+            className={styles.scrollBtnImg}
+            draggable={false}
+          />
         )}
       </button>
       <button
@@ -286,7 +340,12 @@ export function JejuListScreen({ screen, controller }: Props): JSX.Element {
         aria-label="아래로"
       >
         {jejuIconUrl('scroll-arrow') && (
-          <img src={jejuIconUrl('scroll-arrow')} alt="" className={styles.scrollBtnImg} draggable={false} />
+          <img
+            src={jejuIconUrl('scroll-arrow')}
+            alt=""
+            className={styles.scrollBtnImg}
+            draggable={false}
+          />
         )}
       </button>
 

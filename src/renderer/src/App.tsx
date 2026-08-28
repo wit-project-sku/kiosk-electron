@@ -73,6 +73,8 @@ export function App(): JSX.Element {
     return off;
   }, []);
 
+  console.log('App.tsx: layout - 1');
+
   const KioskLayout = useMemo(() => resolveLayout(layout), [layout]);
 
   return (

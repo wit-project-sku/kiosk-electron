@@ -88,6 +88,8 @@ export const IpcChannels = {
 
   // Weather (cached; refreshed in main every 30 min)
   WeatherGet: 'weather:get',
+  // Multi-day outlook behind the 제주 weather panel; same 30-min refresh tick.
+  WeatherForecastGet: 'weather:getForecast',
 
   // 제주공항 운항 (cached; refreshed in main every 2 min)
   FlightsGet: 'flights:get',
@@ -175,6 +177,7 @@ export const IpcEvents = {
   PhotoWorkflowChanged: 'event:photo:workflowChanged',
   LanguageChanged: 'event:language:changed',
   WeatherChanged: 'event:weather:changed',
+  WeatherForecastChanged: 'event:weather:forecastChanged',
   FlightsChanged: 'event:flights:changed',
   SailingsChanged: 'event:sailings:changed',
   ExchangeChanged: 'event:exchange:changed',

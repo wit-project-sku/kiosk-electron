@@ -40,6 +40,19 @@ export const outfitCategoryLabel = (cat: OutfitCategory, lang: Lang): string =>
 export const outfitSubCategoryLabel = (sub: OutfitSubCategory, lang: Lang): string =>
   label(sub, lang);
 
+/**
+ * An outfit's own name in the current UI language — the caption under its card
+ * (Figma 6530:10487).
+ *
+ * ★ This is `label*`, never the row's `name`: that field is the operator's
+ * filing slug ("global_5.7"), identical in all eight languages. OutfitService
+ * already falls the labels back to it (and then to the AR code) for a source
+ * that carries none — prod today — so there is nothing further to fall back
+ * to here.
+ */
+export const outfitLabel = (outfit: OutfitCategoryLabels, lang: Lang): string =>
+  label(outfit, lang);
+
 /** The label for the current language, else the Korean one. */
 function label(labels: OutfitCategoryLabels, lang: Lang): string {
   const key = `label${SUFFIX[lang] ?? 'Kr'}` as keyof OutfitCategoryLabels;

@@ -15,7 +15,8 @@ interface MenuTouch {
 }
 
 /** Return to the home/attract screen after this long with no interaction. */
-const IDLE_TIMEOUT_MS = 3 * 60 * 1000;
+/** Attract-loop idle window. Exported so overlays can expire on the same clock. */
+export const IDLE_TIMEOUT_MS = 3 * 60 * 1000;
 
 export interface KioskController {
   screen: KioskScreenId;
