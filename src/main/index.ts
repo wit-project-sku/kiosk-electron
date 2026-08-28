@@ -28,6 +28,7 @@ import { getKioskLocation } from '@shared/config/kioskLocations';
 import { database } from './database/Database';
 import { createContainer, getContainer } from './container';
 import { WindowManager } from './windows/WindowManager';
+import { languageStore } from './core/LanguageStore';
 import { registerIpcHandlers } from './ipc/registerIpc';
 import type { AppContainer } from './container';
 import {
@@ -197,6 +198,9 @@ async function bootstrap(): Promise<void> {
 
   windowManager = new WindowManager(container);
   registerIpcHandlers(container, windowManager);
+  // Every launch starts in Korean; the visitor's in-session choice is cleared on
+  // the next restart or idle timeout (see useKioskController.handleIdle).
+  languageStore.set('ko');
   windowManager.bootstrap();
 
   // Begin weather polling after the window subscription is wired so the first
