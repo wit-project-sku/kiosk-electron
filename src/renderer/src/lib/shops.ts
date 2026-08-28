@@ -131,10 +131,13 @@ const DRIVE_DURATION: Record<Lang, (min: number) => string> = {
   en: (min) => `${min} min by car`,
   ja: (min) => `車で${min}分`,
   zh: (min) => `驾车 ${min} 分钟`,
+  zh_cn: (min) => `驾车 ${min} 分钟`,
+  zh_tw: (min) => `駕車 ${min} 分鐘`,
   vi: (min) => `${min} phút lái xe`,
   th: (min) => `ขับรถ ${min} นาที`,
   ru: (min) => `${min} мин на машине`,
   id: (min) => `${min} menit berkendara`,
+  es: (min) => `${min} min en coche`,
 };
 export const shopDescription = (s: Shop, lang: Lang): string => field(s, 'description', lang, s.descriptionKr);
 export const shopSecondCategory = (s: Shop, lang: Lang): string =>
