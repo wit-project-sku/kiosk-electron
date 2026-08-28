@@ -200,7 +200,9 @@ export function InsadongHome({ controller }: InsadongHomeProps): JSX.Element {
   const tiles: HomeTile[] = useMemo(
     () => [
       AI_TILE,
-      getKioskLocation(kioskId).secondTile,
+      // Optional since KADA (W202) has no home grid — every INSADONG-family
+      // location still defines it, so this filter never fires here.
+      ...(getKioskLocation(kioskId).secondTile ? [getKioskLocation(kioskId).secondTile as HomeTile] : []),
       ...TILES_BEFORE_SLOT14,
       hasDonation ? DONATION_TILE : MAP_TILE,
       ...TILES_AFTER_SLOT14,

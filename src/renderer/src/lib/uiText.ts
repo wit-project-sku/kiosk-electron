@@ -40,6 +40,18 @@ const UI_TEXT = {
     ru: '← На главную',
     id: '← Beranda',
   },
+  // Accessible name for a bare camera button — used where the design draws a
+  // glyph with no visible label (KADA's 한복 설명 capture button).
+  takePhoto: {
+    ko: '사진 촬영',
+    en: 'Take photo',
+    ja: '写真撮影',
+    zh: '拍照',
+    vi: 'Chụp ảnh',
+    th: 'ถ่ายภาพ',
+    ru: 'Сделать фото',
+    id: 'Ambil foto',
+  },
   loading: {
     ko: '불러오는 중..',
     en: 'Loading..',

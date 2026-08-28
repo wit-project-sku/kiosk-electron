@@ -13,7 +13,7 @@ import type { KioskId, KioskLayoutId, KioskScreenId } from '../types/kiosk';
  * is electron-store (see KioskConfigStore), set per machine via provision-kiosk.ps1.
  * There is NO env override; one build serves every location.
  */
-export type KioskLocationCode = 'W001' | 'W002' | 'W003' | 'W004' | 'W005' | 'W006' | 'W007' | 'W008';
+export type KioskLocationCode = 'W001' | 'W002' | 'W003' | 'W004' | 'W005' | 'W006' | 'W007' | 'W008' | 'W202';
 
 export interface KioskLocationTile {
   screen: KioskScreenId;
@@ -43,8 +43,14 @@ export interface KioskLocation {
   /** React layout family — W001/W002 = INSADONG, W003 = NAM_INSADONG (separable
    *  design), W006/W007 = JEJU_AIRPORT (one 제주 design, two venues). */
   layout: KioskLayoutId;
-  /** The 2nd home-grid tile (the only home difference between locations). */
-  secondTile: KioskLocationTile;
+  /**
+   * The 2nd home-grid tile (the only home difference between locations).
+   *
+   * Optional because not every venue HAS a home grid: KADA (W202) draws a
+   * single bespoke home screen with one destination, so there is no slot for
+   * this to fill. Only InsadongHome consumes it.
+   */
+  secondTile?: KioskLocationTile;
   /** Has a physical card-payment terminal (남인사마당 W003, 오색시장 W004). */
   hasCardTerminal: boolean;
   /**
@@ -123,6 +129,14 @@ const JEJU_TERMINAL_COORDS: GeoCoordinates = { lat: 33.5237, lon: 126.5427 };
  *  site at provisioning if the kiosk lands elsewhere in the complex. */
 const JEJU_HERITAGE_COORDS: GeoCoordinates = { lat: 33.4557, lon: 126.7126 };
 
+/**
+ * KADA W202 — Học viện Công nghệ Bưu chính Viễn thông (PTIT), Hà Đông, Hà Nội.
+ * The first deployment outside Korea, so this is the only entry whose weather
+ * query leaves the KMA's coverage; OpenWeatherMap answers for Hanoi the same way
+ * it does for the domestic venues.
+ */
+const KADA_COORDS: GeoCoordinates = { lat: 20.9806, lon: 105.7876 };
+
 const INSARANG_TILE: KioskLocationTile = { screen: 'insarang', label: '인사랑(준비중)', icon: 'insarang' };
 const MARKET_TILE: KioskLocationTile = { screen: 'market', label: '위드마켓', icon: 'market' };
 
@@ -190,6 +204,21 @@ export const KIOSK_LOCATIONS: Record<KioskLocationCode, KioskLocation> = {
   // compositing 하영 would contradict the one rule this layout exists to enforce.
   // Revisit when Digicon ships a 유산 code.
   W008: { code: 'W008', name: '세계자연유산본부', layout: 'JEJU_HERITAGE', secondTile: MARKET_TILE, hasCardTerminal: true, hasDonation: true, aiCompanion: '2', coordinates: JEJU_HERITAGE_COORDS, cameraRotation: 90 },
+  // KADA W202 — Korea-ASEAN Digital Academy, Vietnam Chapter (PTIT, Hà Nội).
+  //
+  // The first NON-KOREAN deployment, and the first that is not a tourism kiosk.
+  // It is deliberately the thinnest entry in this table:
+  //   · no `secondTile`      — the KADA home is one bespoke screen, not a grid
+  //   · hasCardTerminal false — no TL-3800 ships with this machine
+  //   · hasDonation false     — 기부 is a Korean-market flow with no VN equivalent
+  //
+  // `aiCompanion` is 인사('2'). That is NOT a considered choice of character so
+  // much as the only safe one: Digicon's `together_with` enum has no KADA code,
+  // and '2' is what the AR server already defaults to when the field is absent,
+  // so sending it changes nothing. The KADA photo screen never offers 같이찍기
+  // (see KadaKiosk's PHOTO_MODES), so no visitor should ever see a composited
+  // mascot here — revisit only if that flow is switched on for this venue.
+  W202: { code: 'W202', name: 'Korea-ASEAN Digital Academy', layout: 'KADA', hasCardTerminal: false, hasDonation: false, aiCompanion: '2', coordinates: KADA_COORDS, cameraRotation: 0 },
 };
 
 /**
@@ -199,6 +228,15 @@ export const KIOSK_LOCATIONS: Record<KioskLocationCode, KioskLocation> = {
  */
 export function isJejuLayout(layout: KioskLayoutId): boolean {
   return layout === 'JEJU_AIRPORT' || layout === 'JEJU_HERITAGE';
+}
+
+/**
+ * True for the KADA design family (W202). Used wherever a subsystem built for
+ * the Korean venues has to be switched OFF rather than reconfigured — the CMS
+ * localization sheets, the buttons/banners catalogues, the 8-language selector.
+ */
+export function isKadaLayout(layout: KioskLayoutId): boolean {
+  return layout === 'KADA';
 }
 
 /** Resolve a location by kiosk id, falling back to W001 (북인사마당). */

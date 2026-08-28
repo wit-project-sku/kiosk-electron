@@ -98,12 +98,29 @@ export class OutfitService {
     return `${this.base()}/api/categories/outfits`;
   }
 
+  /**
+   * Append `kioskId` to an endpoint, respecting a query string it may already
+   * have (both URLs are env-overridable, and an override may carry one).
+   *
+   * Passing it is what makes the server do the work this class used to do
+   * badly: it returns only outfits ASSIGNED to this kiosk AND inside their
+   * operating period, and only categories that actually have one — so an event
+   * category stops arriving as an empty tab once its run ends. The client-side
+   * filter in list() stays as a backstop for an override that drops the param.
+   */
+  private withKioskId(url: string): string {
+    return `${url}${url.includes('?') ? '&' : '?'}kioskId=${this.kiosk.kioskNum()}`;
+  }
+
   /** Cached outfits for THIS kiosk. Empty until the first successful refresh. */
   list(): KioskOutfit[] {
     const rows = this.cache.get(CACHE_KEY)?.data?.['outfits'];
     if (!Array.isArray(rows)) return [];
     const kioskNum = this.kiosk.kioskNum();
-    // Assignment is per-kiosk, so an outfit not assigned here must not show up.
+    // Belt and braces: the fetch now sends `kioskId`, so the server has already
+    // dropped anything not assigned here (and anything outside its operating
+    // period, which this filter cannot see). This still runs because
+    // OUTFITS_API_URL can override the endpoint with one that drops the param.
     // An empty kioskIds is treated as "everywhere" rather than "nowhere" — the
     // failure mode of hiding the whole catalogue is far worse than showing one
     // extra outfit.
@@ -158,7 +175,7 @@ export class OutfitService {
     const seen = new Set<number>();
 
     for (let page = 1; page <= MAX_PAGES; page += 1) {
-      const url = `${this.outfitsUrl()}?pageNum=${page}&pageSize=${PAGE_SIZE}`;
+      const url = this.withKioskId(`${this.outfitsUrl()}?pageNum=${page}&pageSize=${PAGE_SIZE}`);
       const res = await fetch(url);
       if (!res.ok) throw new Error(`HTTP ${res.status} on page ${page}`);
       const json = (await res.json()) as { data?: Record<string, unknown> };
@@ -194,7 +211,7 @@ export class OutfitService {
    * answer and `refresh()` keeps them when this returns empty.
    */
   private async fetchCategories(): Promise<OutfitCategory[]> {
-    for (const url of [this.categoriesUrl(), this.legacyCategoriesUrl()]) {
+    for (const url of [this.withKioskId(this.categoriesUrl()), this.legacyCategoriesUrl()]) {
       try {
         const res = await fetch(url);
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
