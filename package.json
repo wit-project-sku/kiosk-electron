@@ -38,7 +38,10 @@
     "provision:kiosk": "node scripts/provision-kiosk.mjs",
     "sync:sheet": "node scripts/sync-sheet.mjs",
     "db:inspect": "node scripts/db-inspect.mjs",
-    "footfall:selftest": "node scripts/footfall-selftest.mjs"
+    "footfall:selftest": "node scripts/footfall-selftest.mjs",
+    "height:calibrate": "cd zed-height && python main.py --calibrate",
+    "height:selftest": "cd zed-height && python main.py --selftest",
+    "height:test": "cd zed-height && python -m pytest tests -q"
   },
   "dependencies": {
     "@fontsource/noto-sans-kr": "^5.2.9",
