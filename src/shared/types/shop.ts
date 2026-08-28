@@ -5,6 +5,13 @@ export interface ShopImage {
   sortOrder: number;
 }
 
+/** Driving distance/time from the kiosk to a rentcar shop (witteria `route`). */
+export interface ShopRoute {
+  distanceKm: number | null;
+  durationMin: number | null;
+  guideType?: string | null;
+}
+
 /**
  * A shop record from the witteria shops API (multilingual).
  *
@@ -86,4 +93,6 @@ export interface Shop {
   naverLink: string | null;
   naverRating: number | null;
   images: ShopImage[];
+  /** Present on rentcar rows — distance/duration from the kiosk. */
+  route?: ShopRoute | null;
 }

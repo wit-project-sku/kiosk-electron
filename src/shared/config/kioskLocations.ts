@@ -91,10 +91,11 @@ export interface KioskLocation {
    *
    * That has since been re-filed. Re-checked 2026-08-24: `?kioskId=6` now returns
    * the 310 rows, every one carrying `kioskId: 6`, and 7 and 8 answer with the
-   * same rows — the whole 제주 fleet reads one catalogue. W006's override is
-   * therefore redundant but still correct, so it stays rather than being changed
-   * on a live fleet; W007 needs none. Do NOT copy the override onto a new 제주
-   * kiosk without re-checking which number actually carries the rows.
+   * same rows — the whole 제주 fleet reads one catalogue. W006 uses its plain
+   * W-code number (6) so `/api/shops?route` distances match 제주공항; the old
+   * `shopApiKioskId: 7` override was dropped once 6 carried the rows again.
+   * Do NOT copy an override onto a new 제주 kiosk without re-checking which
+   * number actually carries the rows and the right route origin.
    *
    * This is SHOP-ONLY. The per-kiosk endpoints (`/api/kiosks/{n}/banners`,
    * `/buttons`, `/subtitles`, stats, update-command) still key off the W-code
@@ -149,7 +150,7 @@ export const KIOSK_LOCATIONS: Record<KioskLocationCode, KioskLocation> = {
   // then it sent 인사('2'), so 같이찍기 photos composited the Insadong character
   // while the screen next to them said "사진촬영 (with '하영')" — the UI has always
   // promised 하영 (see Photo_SelectTogether and the two 하영 home tiles).
-  W006: { code: 'W006', name: '제주공항', layout: 'JEJU_AIRPORT', secondTile: MARKET_TILE, hasCardTerminal: true, hasDonation: true, aiCompanion: '5', coordinates: JEJU_AIRPORT_COORDS, shopApiKioskId: 7, cameraRotation: 90 },
+  W006: { code: 'W006', name: '제주공항', layout: 'JEJU_AIRPORT', secondTile: MARKET_TILE, hasCardTerminal: true, hasDonation: true, aiCompanion: '5', coordinates: JEJU_AIRPORT_COORDS, cameraRotation: 90 },
   // 제주국제여객터미널 W007 — the CMS name is `#W007-제주시=제주국제여객터미널`. It runs
   // the SAME design as 제주공항: one JEJU_AIRPORT layout, one Localization_Jeju tab,
   // the same 하영 mascot rows, the same 310-row 제주 shop catalogue.
@@ -159,9 +160,8 @@ export const KIOSK_LOCATIONS: Record<KioskLocationCode, KioskLocation> = {
   // position 4 is 크루즈 운항 where W006 has 렌트카. Everything else — 기부 (hence
   // hasDonation), 탐나오, 지역화폐, TAX-FREE, the two 하영 tiles — is identical.
   //
-  // No `shopApiKioskId`: `/api/shops?kioskId=7` already answers with the 제주
-  // catalogue (310 rows), so the plain W-code number is right here. W006 keeps its
-  // override for the reason recorded on the `shopApiKioskId` field above.
+  // No `shopApiKioskId`: `/api/shops?kioskId=7` answers with the same 제주
+  // catalogue as 6/8; the plain W-code number (7) is right for this terminal.
   // `aiCompanion` is 하영('5'), exactly like W006 — same venue mascot, same
   // Localization_Jeju rows, and the two were always meant to move together.
   W007: { code: 'W007', name: '제주국제여객터미널', layout: 'JEJU_AIRPORT', secondTile: MARKET_TILE, hasCardTerminal: true, hasDonation: true, aiCompanion: '5', coordinates: JEJU_TERMINAL_COORDS, cameraRotation: 90 },

@@ -70,11 +70,20 @@
 
 .address,
 .desc,
-.tags {
+.tags,
+.route {
   margin: 0;
   overflow: hidden;
   display: -webkit-box;
   -webkit-box-orient: vertical;
+}
+
+.route {
+  font-size: 48px;
+  font-weight: 500;
+  line-height: 1;
+  color: #616161;
+  -webkit-line-clamp: 1;
 }
 
 .address {
@@ -129,4 +138,73 @@
   height: 100%;
   object-fit: cover;
   display: block;
+}
+
+/* 렌트카 list — name + route/tel centred vertically (JejuRentcar `compact`). */
+.cardCompact {
+  height: 300px;
+  padding: 35px 45px;
+  align-items: stretch;
+}
+
+/* 렌터카하우스 목록 — #ffeac7 fill, primary outline (JejuHanbokSelect subcatActive). */
+.cardHouse {
+  background: #ffeac7;
+  border: 5px solid var(--kiosk-primary, #ff7f0f);
+}
+
+.infoCompact {
+  width: 100%;
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 60px;
+}
+
+/* Name on the left, badge on the right — same row, vertically centred on the name. */
+.nameRowCompact {
+  width: 100%;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+}
+
+.nameRowCompact .name {
+  flex: 1;
+  min-width: 0;
+}
+
+/* 렌터카 list — badge chip beside the shop name (JejuRentcar `compact`). */
+.badge {
+  flex: 0 0 auto;
+  box-sizing: border-box;
+  padding: 28px 32px;
+  border-radius: 70px;
+  font-size: 40px;
+  font-weight: 600;
+  line-height: 1;
+  white-space: nowrap;
+  pointer-events: none;
+}
+
+.badgePrimary {
+  background: var(--kiosk-primary, #ff7f0f);
+  color: #fff;
+}
+
+.badgeShuttle {
+  background: #e8f5e9;
+  color: #2e7d32;
+}
+
+.badgeNoShuttle {
+  background: #F5F5F5;
+  color: #5e5e5e;
+}
+
+.badgeFerry {
+  background: #ffeac7;
+  color: var(--kiosk-primary, #ff7f0f);
 }

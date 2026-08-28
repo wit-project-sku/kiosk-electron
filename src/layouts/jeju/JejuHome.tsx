@@ -729,7 +729,6 @@ export function JejuHome({ controller }: Props): JSX.Element {
         onKey={applyKey}
         onClose={() => setSearching(false)}
         lang={lang}
-        lightBackspace
         top={(lowReach ? SEARCH_ROW_TOP_LOW : SEARCH_ROW_TOP) + SEARCH_ROW_HEIGHT}
       />
     </div>
