@@ -23,6 +23,8 @@
     "version:bump": "npm version patch --no-git-tag-version",
     "prebuild:win": "npm run version:bump",
     "build:win": "node scripts/build-win.mjs",
+    "build:win:beta": "node scripts/build-win.mjs --beta",
+    "icon:beta": "node scripts/make-beta-icon.mjs",
     "release:win": "npm run build && electron-builder --win --publish always",
     "typecheck:node": "tsc --noEmit -p tsconfig.node.json --composite false",
     "typecheck:web": "tsc --noEmit -p tsconfig.web.json --composite false",

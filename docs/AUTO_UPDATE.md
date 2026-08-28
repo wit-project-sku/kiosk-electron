@@ -80,6 +80,58 @@ transfer only changed blocks).
 - **Switching channels needs no rebuild** — set `UPDATE_CHANNEL` in the app's
   `.env` (or a real OS env var) and restart.
 
+### 3.1 Beta installs SIDE BY SIDE with production
+
+A beta build is a **separate application**, not a second copy of the same one.
+That is what lets one office machine run and test both channels; before this
+(2026-08-27) installing beta simply upgraded production over the top, because
+NSIS keys its uninstall entry off `appId`.
+
+| | production | beta |
+|---|---|---|
+| `appId` | `com.kioskapp.desktop` | `com.kioskapp.desktop.beta` |
+| `productName` / install dir | `witworldwide` | `witworldwide-beta` |
+| icon | `build/icon.ico` (navy) | `build/icon-beta.ico` (orange, "BETA") |
+| `%APPDATA%` tree | `kiosk-app` | `kiosk-app-beta` |
+| config | `electron-builder.yml` | `electron-builder.beta.yml` |
+
+Because the `%APPDATA%` trees are separate, so are the database, the logs and
+the **provisioned kioskId** — each install needs `provision-kiosk.ps1` run once:
+
+```powershell
+.\provision-kiosk.ps1 -KioskId W006            # production
+.\provision-kiosk.ps1 -KioskId W006 -Beta      # the beta install
+```
+
+They can run at the same time: the singleton lock is a file inside `userData`,
+so each build locks only itself.
+
+★ **Production's directory was deliberately NOT renamed.** `userData` is
+Electron's default there (`kiosk-app`, from package.json's `name`), and the
+existing `app.setName()` call runs after `whenReady()`, too late to move it on
+Electron 34. Making that call early would have relocated every deployed kiosk to
+a fresh empty database with no kioskId on the next auto-update. Only the beta
+build is redirected, and it uses an explicit `app.setPath('userData', …)` rather
+than a rename — see `src/main/core/appIdentity.ts`.
+
+Build a beta locally with `npm run build:win:beta`; CI passes
+`--config electron-builder.beta.yml` whenever `prerelease` is true. Regenerate
+the icon with `npm run icon:beta` if `build/icon.png` ever changes.
+
+**Identity comes from the BUILD, not from `.env`.** `electron-builder.beta.yml`
+stamps `buildChannel: beta` into the packaged `package.json` (`extraMetadata`),
+and that is what `appIdentity.ts` reads. `UPDATE_CHANNEL` is only the fallback.
+This matters for LOCAL builds: CI force-writes `UPDATE_CHANNEL=beta` from the
+same `prerelease` input that selects the beta config, so the two can never
+disagree there — but `npm run build:win:beta` on a developer machine ships that
+developer's `.env`. If identity keyed off `UPDATE_CHANNEL` alone, such a build
+would install under the beta name and icon while still pointing at production's
+`kiosk-app` database and singleton lock.
+
+The update FEED still follows `UPDATE_CHANNEL`, so a local beta build whose
+`.env` says `latest` would replace itself with production on its first update
+check. `build:win:beta` prints a warning when it spots that mismatch.
+
 > **A beta version must never trail the stable one.** The obvious
 > `X.Y.Z-beta.N` scheme is semver-LOWER than `X.Y.Z`, and that broke the beta
 > channel completely (fixed 2026-08-10): GitHub orders its release feed by
