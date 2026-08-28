@@ -204,6 +204,12 @@ jobs:
           # `latest.yml` (verified 2026-08-03), so `beta.yml` 404s and every
           # UPDATE_CHANNEL=beta kiosk dies with ERR_UPDATER_CHANNEL_FILE_NOT_FOUND.
           CH=$([ "${{ inputs.prerelease }}" = "true" ] && echo beta || echo latest)
-          npx electron-builder --win --publish always \
+          # Beta builds carry their OWN identity (appId / productName / icon) so
+          # they install ALONGSIDE production rather than upgrading it — the
+          # office has one kiosk and both channels have to be testable on it.
+          # See electron-builder.beta.yml; the matching runtime half (the
+          # %APPDATA% tree and the singleton lock) is in core/appIdentity.ts.
+          CFG=$([ "${{ inputs.prerelease }}" = "true" ] && echo "--config electron-builder.beta.yml" || echo "")
+          npx electron-builder --win --publish always $CFG \
             -c.publish.releaseType=${{ inputs.release_type }} \
             -c.publish.channel=$CH

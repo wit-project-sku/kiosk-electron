@@ -136,12 +136,12 @@ interface HanbokSelectProps {
 export function HanbokSelect({ onCapture, onHome, countdownActive = false }: HanbokSelectProps): JSX.Element {
   const rotating = useRotatingBanner();
   const lang = useLang();
-  const { isOsan, isHwaseong, icon, Header, photoTitle, banner: chromeBanner } = usePhotoChrome();
+  const { isOsan, isHwaseong, isKada, icon, Header, photoTitle, banner: chromeBanner } = usePhotoChrome();
   // Osan/Hwaseong have their own single promo banner; insadong rotates through several.
   const banner = chromeBanner ?? rotating;
   // Camera-direction popup (shown while the photo is captured/sent to AI) —
   // Osan and Hwaseong each have their own uploaded image; insadong uses the camera-folder asset.
-  const camPopupSrc = ((isOsan || isHwaseong) && icon('camera-popup')) || cameraIconUrl('camera-popup');
+  const camPopupSrc = ((isOsan || isHwaseong || isKada) && icon('camera-popup')) || cameraIconUrl('camera-popup');
   // The outfit catalogue AND its tab row, from the API (SQLite-cached, loaded
   // at first use and refreshed on the nightly sync — see outfitStore /
   // OutfitService). Falls back to the bundled PNGs on a kiosk that has never
@@ -241,7 +241,9 @@ export function HanbokSelect({ onCapture, onHome, countdownActive = false }: Han
         ) : (
           icon('bg') && <img className={styles.bg} src={icon('bg')} alt="" draggable={false} />
         )}
-        <Header title={t(HANBOK_INFO_KEY, lang)} onHome={onHome} onBack={() => setInfoOpen(false)} />
+        {/* KADA has no Localization sheet, so t() here would render the Korean
+            fallback on a Hanoi kiosk — its header shows the venue wordmark. */}
+        <Header title={isKada ? photoTitle : t(HANBOK_INFO_KEY, lang)} onHome={onHome} onBack={() => setInfoOpen(false)} />
         <div className={styles.infoContent}>
           <div
             ref={infoDrag.ref}
@@ -271,8 +273,29 @@ export function HanbokSelect({ onCapture, onHome, countdownActive = false }: Han
         </div>
 
         {/* Bottom nav bar. Hwaseong (Figma 휴_한복체험 하단네비) shows ONLY the centre
-            camera button on the curved bar; other kiosks keep the 3-button bar. */}
-        {isHwaseong ? (
+            camera button on the curved bar; other kiosks keep the 3-button bar.
+            KADA (Figma 4618:2742) has neither: its two side buttons are 인사동
+            지도 and 화장실, which mean nothing in Hanoi, and its home/back live
+            in the header. What the frame does draw is the partner logo bar. */}
+        {isKada ? (
+          <>
+            <button
+              type="button"
+              className={styles.kadaCam}
+              onClick={() => {
+                setInfoOpen(false);
+                startCapture('solo');
+              }}
+              aria-label={ui('takePhoto', lang)}
+            >
+              {icon('photo-button-bg') && <img className={styles.kadaCamRing} src={icon('photo-button-bg')} alt="" draggable={false} />}
+              {icon('ico-camera') && <img className={styles.kadaCamGlyph} src={icon('ico-camera')} alt="" draggable={false} />}
+            </button>
+            {icon('partner-bar') && (
+              <img className={styles.kadaPartnerBar} src={icon('partner-bar')} alt="" draggable={false} />
+            )}
+          </>
+        ) : isHwaseong ? (
           <div className={styles.infoNav}>
             {icon('fg-hanbok-cam') && (
               <img className={styles.hwInfoNavImg} src={icon('fg-hanbok-cam')} alt="" draggable={false} />
@@ -321,14 +344,19 @@ export function HanbokSelect({ onCapture, onHome, countdownActive = false }: Han
           </div>
         )}
 
-        <div className={styles.leftNav}>
-          <button type="button" className={styles.leftNavBtn} onClick={onHome} aria-label="홈으로">
-            {icon('home-btn') && <img src={icon('home-btn')} alt="" draggable={false} />}
-          </button>
-          <button type="button" className={styles.leftNavBtn} onClick={() => setInfoOpen(false)} aria-label="뒤로">
-            {icon('back-arrow') && <img src={icon('back-arrow')} alt="" draggable={false} />}
-          </button>
-        </div>
+        {/* KADA draws home and back inside its header (KadaHeader), so this
+            floating pair would be a second, duplicate set of the same two
+            controls on the same screen. */}
+        {!isKada && (
+          <div className={styles.leftNav}>
+            <button type="button" className={styles.leftNavBtn} onClick={onHome} aria-label="홈으로">
+              {icon('home-btn') && <img src={icon('home-btn')} alt="" draggable={false} />}
+            </button>
+            <button type="button" className={styles.leftNavBtn} onClick={() => setInfoOpen(false)} aria-label="뒤로">
+              {icon('back-arrow') && <img src={icon('back-arrow')} alt="" draggable={false} />}
+            </button>
+          </div>
+        )}
         {banner && (
           <div className={styles.banner}>
             <img src={banner} alt="" draggable={false} />
@@ -349,7 +377,12 @@ export function HanbokSelect({ onCapture, onHome, countdownActive = false }: Han
         icon('bg') && <img className={styles.bg} src={icon('bg')} alt="" draggable={false} />
       )}
 
-      <Header title={photoTitle} onHome={onHome} />
+      {/* onBack mirrors onHome deliberately. The floating .leftNav this screen
+          used to carry wired BOTH of its buttons to onHome — the outfit picker
+          is the first step of the flow, so there is nothing behind it but the
+          way out. KADA draws that pair in the header, and without an onBack
+          KadaHeader renders no arrow at all, which is why it went missing. */}
+      <Header title={photoTitle} onHome={onHome} onBack={onHome} />
 
       <div className={styles.content}>
         {/* Step 1 */}
@@ -424,7 +457,7 @@ export function HanbokSelect({ onCapture, onHome, countdownActive = false }: Han
 
         {/* Capture buttons */}
         <div className={styles.captureRow}>
-          <button type="button" className={styles.captureBtn} onClick={() => startCapture('solo')}>
+          <button type="button" className={`${styles.captureBtn} ${styles.captureBtnPrimary}`} onClick={() => startCapture('solo')}>
             <Camera className={styles.captureIcon} strokeWidth={2} />
             {t('Photo_SelectAlone', lang)}
           </button>
@@ -457,21 +490,32 @@ export function HanbokSelect({ onCapture, onHome, countdownActive = false }: Han
           </div>
           <button type="button" className={styles.hanbokInfo} onClick={() => setInfoOpen(true)}>
             <div className={styles.hanbokInfoCircle}>
-              <img src={hanbokInfo} alt="" draggable={false} />
+              {/* The insadong import is the fleet default; KADA ships its own
+                  gold-ringed mark under the same name. */}
+              <img src={icon('hanbok-info') ?? hanbokInfo} alt="" draggable={false} />
             </div>
             <span className={styles.hanbokInfoLabel}>{t(HANBOK_INFO_KEY, lang)}</span>
           </button>
         </div>
       </div>
 
-      <div className={styles.leftNav}>
-        <button type="button" className={styles.leftNavBtn} onClick={onHome} aria-label="홈으로">
-          {icon('home-btn') && <img src={icon('home-btn')} alt="" draggable={false} />}
-        </button>
-        <button type="button" className={styles.leftNavBtn} onClick={onHome} aria-label="뒤로">
-          {icon('back-arrow') && <img src={icon('back-arrow')} alt="" draggable={false} />}
-        </button>
-      </div>
+      {/* KADA draws home and back in its header — this floating pair would be a
+          duplicate of the same two controls. It closes with the partner bar. */}
+      {isKada && icon('partner-bar') && (
+        <img className={styles.kadaPartnerBar} src={icon('partner-bar')} alt="" draggable={false} />
+      )}
+      {/* Not `hidden` — .leftNav sets display:flex, which outranks the hidden
+          attribute's UA display:none, so it would still have been drawn. */}
+      {!isKada && (
+        <div className={styles.leftNav}>
+          <button type="button" className={styles.leftNavBtn} onClick={onHome} aria-label="홈으로">
+            {icon('home-btn') && <img src={icon('home-btn')} alt="" draggable={false} />}
+          </button>
+          <button type="button" className={styles.leftNavBtn} onClick={onHome} aria-label="뒤로">
+            {icon('back-arrow') && <img src={icon('back-arrow')} alt="" draggable={false} />}
+          </button>
+        </div>
+      )}
 
       {banner && (
         <div className={styles.banner}>

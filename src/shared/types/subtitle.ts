@@ -4,7 +4,7 @@ import { LANGUAGES, type LocalizedLang } from '@shared/config/languages';
 
 /** Every bundled video set, in one place — iterate this instead of re-listing the
  *  names, so adding a location's set is a single edit. */
-export const VIDEO_SETS = ['insadong', 'osaek', 'hwaseong', 'jeju'] as const;
+export const VIDEO_SETS = ['insadong', 'osaek', 'hwaseong', 'jeju', 'kada'] as const;
 
 /** Which bundled video set a kiosk plays from (resources/videos/<set>/). */
 export type VideoSet = (typeof VIDEO_SETS)[number];

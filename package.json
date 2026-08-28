@@ -23,6 +23,8 @@
     "version:bump": "npm version patch --no-git-tag-version",
     "prebuild:win": "npm run version:bump",
     "build:win": "node scripts/build-win.mjs",
+    "build:win:beta": "node scripts/build-win.mjs --beta",
+    "icon:beta": "node scripts/make-beta-icon.mjs",
     "release:win": "npm run build && electron-builder --win --publish always",
     "typecheck:node": "tsc --noEmit -p tsconfig.node.json --composite false",
     "typecheck:web": "tsc --noEmit -p tsconfig.web.json --composite false",
@@ -39,6 +41,8 @@
     "footfall:selftest": "node scripts/footfall-selftest.mjs"
   },
   "dependencies": {
+    "@fontsource/manuale": "^5.3.0",
+    "@fontsource/noto-sans": "^5.3.0",
     "@fontsource/noto-sans-kr": "^5.2.9",
     "@fontsource/poppins": "^5.2.7",
     "@fontsource/pretendard": "^5.3.0",

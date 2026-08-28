@@ -39,6 +39,13 @@ const CONTENT_SHEETS: Record<KioskLayoutId, ContentSheet> = {
   // Same tab as JEJU_AIRPORT on purpose — "#W6~8=제주_전체데이터" serves all three
   // 제주 venues; the mascot rows are split per layout in LocalizationSyncParser.
   JEJU_HERITAGE: { sheetId: JEJU_SHEET_ID, localizationRange: 'Localization_Jeju!A:L' },
+  // KADA W202 has NO content spreadsheet, and is not waiting for one: its ten
+  // strings are authored in layouts/kada/kadaText.ts because the venue has no
+  // CMS and no one on site to maintain a tab (see that file). The empty sheetId
+  // is the existing "no spreadsheet for this layout" signal — `downloadTranslations`
+  // and `uploadAnalytics` both check it and skip rather than falling back to
+  // another location's sheet.
+  KADA: { sheetId: '', localizationRange: '' },
 };
 
 /**

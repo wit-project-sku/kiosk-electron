@@ -39,10 +39,26 @@ export type SupportedLanguage =
  * (see LocalizationSyncParser.VENUE_MASCOTS). Everything else keyed by layout —
  * sheet id, column order, video set, photo chrome — is duplicated 1:1 on purpose.
  */
-export type KioskLayoutId = 'INSADONG' | 'NAM_INSADONG' | 'OSAN' | 'HWASEONG' | 'JEJU_AIRPORT' | 'JEJU_HERITAGE';
+/**
+ * KADA (W202, Korea-ASEAN Digital Academy — Vietnam Chapter, Hanoi) is a
+ * STANDALONE design family, not a variant of a Korean venue. It ships five
+ * screens and nothing else: four flattened Figma pages plus the shared photo
+ * (K-CULTURE CHALLENGE) workflow. It deliberately opts out of every CMS-driven
+ * subsystem the domestic kiosks depend on — Google Sheets localization, the
+ * buttons/banners/shops APIs, analytics — because the venue has no CMS rows and
+ * a two-language (en/vi) audience. See layouts/kada/.
+ */
+export type KioskLayoutId =
+  | 'INSADONG'
+  | 'NAM_INSADONG'
+  | 'OSAN'
+  | 'HWASEONG'
+  | 'JEJU_AIRPORT'
+  | 'JEJU_HERITAGE'
+  | 'KADA';
 
 /** Well-known kiosk deployment IDs. */
-export type KioskId = 'W001' | 'W002' | 'W003' | 'W004' | 'W005' | 'W006' | 'W007' | 'W008' | (string & {});
+export type KioskId = 'W001' | 'W002' | 'W003' | 'W004' | 'W005' | 'W006' | 'W007' | 'W008' | 'W202' | (string & {});
 
 export interface KioskConfig {
   kioskId: KioskId;
@@ -142,4 +158,15 @@ export type KioskScreenId =
   // W008 세계자연유산본부 draws it too (its CMS grid is W007's, not W006's).
   | 'cruise'       // 크루즈 운항 → the ferry sailing board (JejuCruise)
   // Not a home tile — reached from the home 운항 정보 board's `더보기`.
-  | 'flights';     // 운항정보 (출발/도착 전체 보기)
+  | 'flights'      // 운항정보 (출발/도착 전체 보기)
+  // ── KADA (W202) ─────────────────────────────────────────────────────────
+  // One screen per KADA partner, reached by tapping that partner's badge on the
+  // home screen or its entry in the rail every partner page carries. Each is a
+  // flattened full-bleed export — TWO of them, English and Vietnamese, since the
+  // body copy is painted into the artwork (assets/kada/<partner>-<lang>.png).
+  // See layouts/kada/kadaPages.ts.
+  | 'kada_akcf'   // ASEAN-Korea Cooperation Fund
+  | 'kada_nipa'   // National IT Industry Promotion Agency
+  | 'kada_ptit'   // Posts and Telecommunications Institute of Technology
+  | 'kada_sku'    // Seokyeong University
+  | 'kada_wit';   // WIT GLOBAL

@@ -10,12 +10,13 @@
  */
 
 import { app, BrowserWindow, protocol } from 'electron';
-import { electronApp, optimizer } from '@electron-toolkit/utils';
+import { optimizer } from '@electron-toolkit/utils';
 import { APP_NAME } from '@shared/constants';
 import { IpcEvents } from '@shared/ipc/channels';
 import { initLogger, createLogger } from './core/logger';
 import { loadEnvFile } from './core/env';
 import { enforceSingleInstance, suppressEmbedAuthDialog } from './core/security';
+import { applyAppIdentity, appDisplayName } from './core/appIdentity';
 import { MEDIA_SCHEME_PRIVILEGES, registerMediaProtocol } from './core/mediaProtocol';
 import {
   APP_RESOURCE_SCHEME_PRIVILEGES,
@@ -78,8 +79,25 @@ function seedLocalContent(container: AppContainer): void {
 app.commandLine.appendSwitch('disk-cache-size', '536870912');
 
 loadEnvFile();
+
+// ★ IDENTITY BEFORE EVERYTHING — before the logger, before the lock, before
+// whenReady. On a BETA build this repoints `userData`, and that directory holds
+// kiosk.db, the provisioned kioskId, the log file and the SingletonLock taken
+// below. Beta installs alongside production (electron-builder.beta.yml), so
+// anything resolving `userData` ahead of this line would land in production's
+// tree — and beta would then exit on startup, having found "itself" running.
+//
+// It sits above `initLogger()` because electron-log resolves its file path on
+// the FIRST WRITE and initLogger's own banner line is that write. Only
+// `loadEnvFile()` must precede it, for UPDATE_CHANNEL.
+//
+// A PRODUCTION build is unaffected: it keeps the `kiosk-app` directory it has
+// always used. See core/appIdentity.ts for why that matters.
+const identity = applyAppIdentity();
+
 initLogger();
 const log = createLogger('main');
+log.info('App identity', identity);
 
 let windowManager: WindowManager | null = null;
 const paymentAgent = new PaymentAgentManager();
@@ -100,8 +118,10 @@ if (!hasLock) {
 async function bootstrap(): Promise<void> {
   await app.whenReady();
 
-  electronApp.setAppUserModelId('com.kioskapp.desktop');
-  app.setName(APP_NAME);
+  // Display name only — `userData` was already fixed by applyAppIdentity(), so
+  // varying this per channel is safe. "Kiosk App Beta" is what a support ticket
+  // and the window title report on a side-by-side install.
+  app.setName(appDisplayName(APP_NAME));
 
   // F12 toggles devtools in dev; ignored in production builds.
   app.on('browser-window-created', (_event, window) => {
