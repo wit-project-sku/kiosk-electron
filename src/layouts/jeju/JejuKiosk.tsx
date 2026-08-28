@@ -8,7 +8,7 @@
  * The shared flows are already wired and need no Jeju-specific code:
  *  - PhotoWorkflow (한복/사진) — themed via CSS vars, see PHOTO_THEME below and
  *    photoChrome.tsx for the per-layout header/icon resolution.
- *  - DonationWebScreen (기부) — W006 has hasDonation, one URL for every kiosk.
+ *  - DonationWebScreen (기부) — W006 has hasDonation; URL via donationUrl(kioskId).
  */
 import type { CSSProperties } from 'react';
 import type { KioskScreenId } from '@shared/types/kiosk';
@@ -17,7 +17,7 @@ import { useWeatherSync } from '@renderer/hooks/useWeatherSync';
 import { useFlightSync } from '@renderer/hooks/useFlightSync';
 import { useSailingSync } from '@renderer/hooks/useSailingSync';
 import { useExchangeSync } from '@renderer/hooks/useExchangeSync';
-import { WEB_EMBED_URLS } from '@shared/constants/webEmbeds';
+import { WEB_EMBED_URLS, donationUrl } from '@shared/constants/webEmbeds';
 import { DONATION_COMING_SOON } from '@shared/config/donation';
 import { useHasDonationTile } from '@renderer/lib/buttonLayout';
 import { KioskArtboard } from '../components/KioskScreenImage';
@@ -251,7 +251,7 @@ export function JejuKiosk(): JSX.Element {
                     }
               }
             >
-              <DonationWebScreen url={WEB_EMBED_URLS.donation} controller={controller} />
+              <DonationWebScreen url={donationUrl(controller.kioskId)} controller={controller} />
             </div>
           );
         })()}

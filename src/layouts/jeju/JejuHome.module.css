@@ -107,14 +107,25 @@
   overflow: hidden;
 }
 
-/* Orange rule to the left of the notice copy (Figma Frame 1287 — a plain
-   filled bar, so it is drawn rather than shipped as an asset). */
-.noticeRule {
+/*
+ * Orange rule + NoticeContent as one row so they share a horizontal axis
+ * (Figma Frame 1287 at x91 y114, 6.4×242). The copy used to sit 16px
+ * below the rule (`top: 130` vs `114`); flex keeps them on one band.
+ */
+.noticeLead {
   position: absolute;
   left: 91px;
   top: 114px;
-  width: 6.435px;
+  display: flex;
+  align-items: center;
+  gap: 42.565px;
   height: 242.383px;
+}
+
+.noticeRule {
+  flex: none;
+  width: 6.435px;
+  height: 100%;
   background: var(--kiosk-primary, #ff7f0f);
   border-radius: 4px;
 }
@@ -123,13 +134,9 @@
  * Figma-exact 977 wide at 60/70. The notice re-flows to this box (see
  * parseNotice in the TSX), so ko/ja/zh land on the three rows the orange rule is
  * drawn for — measured at 51px Korean was 2438px of text, i.e. ~2870px at this
- * size, 2.9 lines. English is the one exception at ~3570px: it takes four rows,
- * ending at 130 + 4×70 = 410, still clear of the 운항 정보 board at 435.
+ * size, 2.9 lines. English is the one exception at ~3570px: it takes four rows.
  */
 .noticeText {
-  position: absolute;
-  left: 140px;
-  top: 130px;
   width: 977px;
   margin: 0;
   font-size: 60px;

@@ -202,9 +202,8 @@ interface Run {
  *
  * The sheet's `\n` / `<br/>` breaks become plain spaces rather than <br>: the
  * Korean cell hard-wraps at FOUR lines, but this card's slot is THREE — the
- * orange rule is 242px = 3 × 70px line-height + 2 × 16px padding, and
- * `.noticeText`'s y165 + 3 lines ends at y375, exactly the rule's y391 minus
- * that 16. So the fourth authored row hung below the rule.
+ * orange rule is 242px tall (3 × 70px line-height). The fourth authored row
+ * hung below the rule.
  *
  * Re-flowing is safe because the copy is far narrower than four lines: measured
  * in Noto Sans KR at 51px the whole Korean notice is 2438px of text — 2.4 lines
@@ -486,7 +485,7 @@ export function JejuHome({ controller }: Props): JSX.Element {
       )}
 
       {lowReach && (
-        <div className={styles.modeBar}>지금은 베리어프리 모드입니다.</div>
+        <div className={styles.modeBar}>지금은 배리어프리 모드입니다.</div>
       )}
       {lowReach && jejuIconUrl('banner-ai-hero') && (
         <div className={styles.hero}>
@@ -509,10 +508,12 @@ export function JejuHome({ controller }: Props): JSX.Element {
 
       {/* ── 공지 card + weather ── */}
       <div className={low(styles.notice, styles.noticeLow)}>
-        <div className={styles.noticeRule} />
-        <p className={styles.noticeText}>
-          {noticeRuns.map((run, i) => (run.bold ? <b key={i}>{run.text}</b> : <span key={i}>{run.text}</span>))}
-        </p>
+        <div className={styles.noticeLead}>
+          <div className={styles.noticeRule} />
+          <p className={styles.noticeText}>
+            {noticeRuns.map((run, i) => (run.bold ? <b key={i}>{run.text}</b> : <span key={i}>{run.text}</span>))}
+          </p>
+        </div>
 
         {/* Tapping the weather opens the 날씨 panel (Figma 6516:74521) on this
             screen AND plays today's condition clip on the customer display
@@ -728,7 +729,6 @@ export function JejuHome({ controller }: Props): JSX.Element {
         onKey={applyKey}
         onClose={() => setSearching(false)}
         lang={lang}
-        lightBackspace
         top={(lowReach ? SEARCH_ROW_TOP_LOW : SEARCH_ROW_TOP) + SEARCH_ROW_HEIGHT}
       />
     </div>

@@ -40,6 +40,14 @@ export interface DetailItem {
   palaceIndex?: number;
   /** AI course only — the next stop of the same day. See CourseNextSpot. */
   courseNext?: CourseNextSpot;
+  /** Rentcar detail — replaces the photo gallery with the route guide panel. */
+  rentcarGuide?: {
+    /** e.g. 공항 셔틀 이용 / 도보 이용 / 배편 이용 */
+    modeLabel: string;
+    distanceKm: number | null;
+    /** When true, shows the airport-shuttle footnote under the mode row. */
+    isShuttle?: boolean;
+  };
 }
 
 interface DetailState {

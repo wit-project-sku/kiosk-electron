@@ -13,6 +13,7 @@
 import { useState } from 'react';
 import { QRCodeSVG } from 'qrcode.react';
 import type { DetailItem } from '@renderer/store/detailStore';
+import { pick, type Lang } from '@renderer/lib/i18n';
 import { padImages } from '@renderer/lib/shops';
 import { jejuIconUrl } from '@renderer/assets/icons/jeju';
 import { ImageLightbox } from '../components/ImageLightbox';
@@ -20,6 +21,28 @@ import styles from './JejuSpotDetailCard.module.css';
 
 /** Photo slots in the gallery — the Figma draws a fixed 2×2. */
 const PHOTOS = 4;
+
+const RENTCAR_HOW_TO = {
+  ko: '가는 방법',
+  en: 'How to get there',
+  ja: '行き方',
+  zh: '前往方式',
+  vi: 'Cách đi',
+  th: 'วิธีเดินทาง',
+  ru: 'Как добраться',
+  id: 'Cara menuju',
+};
+
+const RENTCAR_SHUTTLE_NOTE = {
+  ko: '공항에서 업체 셔틀버스로 이동합니다',
+  en: 'Take the company shuttle bus from the airport',
+  ja: '空港から各社シャトルバスで移動します',
+  zh: '从机场乘坐各公司班车前往',
+  vi: 'Di chuyển bằng xe đưa của công ty từ sân bay',
+  th: 'เดินทางด้วยรถรับส่งของบริษัทจากสนามบิน',
+  ru: 'Доберитесь на шаттле компании от аэропорта',
+  id: 'Naik shuttle perusahaan dari bandara',
+};
 
 /**
  * One 주소/영업시간/전화 icon: an 85×85 slot with the glyph drawn at the size
@@ -63,12 +86,14 @@ interface Props {
    * differ in the gallery and the name box, nothing else.
    */
   gallery?: 'grid' | 'single';
+  lang?: Lang;
 }
 
-export function JejuSpotDetailCard({ item, top = 700, gallery = 'grid' }: Props): JSX.Element {
+export function JejuSpotDetailCard({ item, top = 700, gallery = 'grid', lang = 'ko' }: Props): JSX.Element {
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
 
-  const single = gallery === 'single';
+  const isRentcar = item.from === 'rentcar' && item.rentcarGuide != null;
+  const single = !isRentcar && gallery === 'single';
   // Real photos drive the lightbox and the tap targets; the grid is padded to
   // its slot count with the shared no-image placeholder so an item with no
   // photos shows the same thing every other location shows.
@@ -84,10 +109,17 @@ export function JejuSpotDetailCard({ item, top = 700, gallery = 'grid' }: Props)
   const slots = single ? 1 : PHOTOS;
   const photos = padImages(realPhotos, jejuIconUrl('noimage'), slots);
 
+  const guide = item.rentcarGuide;
+  const guideDistance =
+    guide && guide.distanceKm != null ? `${guide.distanceKm.toFixed(1)} km` : null;
+
   return (
     <>
-      <div className={styles.card} style={{ top }}>
-        {/* ── Name + gallery ── */}
+      <div
+        className={`${styles.card} ${isRentcar ? styles.cardRentcar : ''}`}
+        style={{ top }}
+      >
+        {/* ── Name + gallery / rentcar route guide ── */}
         <div className={styles.head}>
           <div className={styles.nameRow}>
             <p className={`${styles.name} ${single ? styles.nameBoxed : ''}`}>{item.name}</p>
@@ -99,20 +131,35 @@ export function JejuSpotDetailCard({ item, top = 700, gallery = 'grid' }: Props)
             )}
           </div>
 
-          <div className={single ? styles.photosSingle : styles.photos}>
-            {Array.from({ length: slots }, (_, i) => (
-              <button
-                key={i}
-                type="button"
-                className={styles.photo}
-                onClick={realPhotos[i] ? () => setLightboxIndex(i) : undefined}
-                disabled={!realPhotos[i]}
-                aria-label={`사진 ${i + 1}`}
-              >
-                {photos[i] && <img src={photos[i]} alt="" draggable={false} loading="lazy" />}
-              </button>
-            ))}
-          </div>
+          {isRentcar && guide ? (
+            <div className={styles.rentcarGuide}>
+              <p className={styles.rentcarGuideTitle}>{pick(RENTCAR_HOW_TO, lang)}</p>
+              <div className={styles.rentcarGuideMeta}>
+                <p className={styles.rentcarGuideRow}>
+                  <span>{guide.modeLabel}</span>
+                  {guideDistance && <span className={styles.rentcarGuideSep}>・ {guideDistance}</span>}
+                </p>
+                {guide.isShuttle && (
+                  <p className={styles.rentcarGuideNote}>{pick(RENTCAR_SHUTTLE_NOTE, lang)}</p>
+                )}
+              </div>
+            </div>
+          ) : (
+            <div className={single ? styles.photosSingle : styles.photos}>
+              {Array.from({ length: slots }, (_, i) => (
+                <button
+                  key={i}
+                  type="button"
+                  className={styles.photo}
+                  onClick={realPhotos[i] ? () => setLightboxIndex(i) : undefined}
+                  disabled={!realPhotos[i]}
+                  aria-label={`사진 ${i + 1}`}
+                >
+                  {photos[i] && <img src={photos[i]} alt="" draggable={false} loading="lazy" />}
+                </button>
+              ))}
+            </div>
+          )}
         </div>
 
         <div className={styles.divider} />
@@ -153,44 +200,48 @@ export function JejuSpotDetailCard({ item, top = 700, gallery = 'grid' }: Props)
           )}
         </div>
 
-        <div className={styles.divider} />
+        {!isRentcar && (
+          <>
+            <div className={styles.divider} />
 
-        {item.description && <p className={styles.desc}>{item.description}</p>}
-        {item.tags && <p className={styles.tags}>{item.tags}</p>}
+            {item.description && <p className={styles.desc}>{item.description}</p>}
+            {item.tags && <p className={styles.tags}>{item.tags}</p>}
 
-        <div className={styles.divider} />
+            <div className={styles.divider} />
 
-        {/* ── Naver rating ──
-            The Figma also draws an Instagram follower count (#127K) and a blog
-            review count (블로그 리뷰 1,502개). The shops API carries NEITHER —
-            only naverRating and naverLink — so those segments render solely when
-            a value exists, which today means never. They need new API fields,
-            not layout work. Osan drops them for the same reason. */}
-        <div className={styles.ratings}>
-          {hasRating && (
-            <div className={styles.ratingItem}>
-              {jejuIconUrl('ico-naver') && (
-                <img src={jejuIconUrl('ico-naver')} alt="" className={styles.ratingIcon} draggable={false} />
+            {/* ── Naver rating ──
+                The Figma also draws an Instagram follower count (#127K) and a blog
+                review count (블로그 리뷰 1,502개). The shops API carries NEITHER —
+                only naverRating and naverLink — so those segments render solely when
+                a value exists, which today means never. They need new API fields,
+                not layout work. Osan drops them for the same reason. */}
+            <div className={styles.ratings}>
+              {hasRating && (
+                <div className={styles.ratingItem}>
+                  {jejuIconUrl('ico-naver') && (
+                    <img src={jejuIconUrl('ico-naver')} alt="" className={styles.ratingIcon} draggable={false} />
+                  )}
+                  <span className={styles.stars}>
+                    {[0, 1, 2, 3, 4].map((i) => (
+                      <RatingStar key={i} filled={i < filledStars} />
+                    ))}
+                  </span>
+                  <span className={styles.ratingText}>{item.rating}</span>
+                </div>
               )}
-              <span className={styles.stars}>
-                {[0, 1, 2, 3, 4].map((i) => (
-                  <RatingStar key={i} filled={i < filledStars} />
-                ))}
-              </span>
-              <span className={styles.ratingText}>{item.rating}</span>
-            </div>
-          )}
 
-          {hasRating && item.instagram && <span className={styles.ratingSep} />}
-          {item.instagram && (
-            <div className={styles.ratingItem}>
-              {jejuIconUrl('ico-instagram') && (
-                <img src={jejuIconUrl('ico-instagram')} alt="" className={styles.ratingIcon} draggable={false} />
+              {hasRating && item.instagram && <span className={styles.ratingSep} />}
+              {item.instagram && (
+                <div className={styles.ratingItem}>
+                  {jejuIconUrl('ico-instagram') && (
+                    <img src={jejuIconUrl('ico-instagram')} alt="" className={styles.ratingIcon} draggable={false} />
+                  )}
+                  <span className={styles.ratingText}>{item.instagram}</span>
+                </div>
               )}
-              <span className={styles.ratingText}>{item.instagram}</span>
             </div>
-          )}
-        </div>
+          </>
+        )}
       </div>
 
       {lightboxIndex !== null && (

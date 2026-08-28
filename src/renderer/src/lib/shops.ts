@@ -1,4 +1,5 @@
 import type { Lang } from '@renderer/lib/i18n';
+import { pick } from '@renderer/lib/i18n';
 import type { Shop } from '@shared/types/shop';
 
 type Suffix = 'Kr' | 'En' | 'Jp' | 'Ch' | 'Vn' | 'Id' | 'Th' | 'Ru';
@@ -32,6 +33,109 @@ const field = (s: Shop, base: string, lang: Lang, fallback: string): string =>
 export const shopName = (s: Shop, lang: Lang): string => field(s, 'shopName', lang, s.shopNameKr);
 export const shopAddress = (s: Shop, lang: Lang): string => field(s, 'address', lang, s.addressKr);
 export const shopHashtag = (s: Shop, lang: Lang): string => field(s, 'hashTag', lang, s.hashTagKr);
+
+/** True when the shop's Korean hashtag line includes `#tag` (with or without `#`). */
+export function shopHasHashtag(s: Shop, tag: string): boolean {
+  const bare = tag.replace(/^#+/, '');
+  return (s.hashTagKr ?? '')
+    .split(/\s+/)
+    .filter(Boolean)
+    .some((token) => token.replace(/^#+/, '') === bare);
+}
+
+/** Normalized witteria rentcar `route.guideType` (`SHUTTLE`, `ROAD`, `FERRY`, …). */
+export function shopRentcarGuideType(shop: Shop): string | null {
+  const guideType = shop.route?.guideType;
+  if (typeof guideType !== 'string' || !guideType.trim()) return null;
+  return guideType.trim().toUpperCase();
+}
+
+/** `route.guideType === SHUTTLE` — airport shuttle available. */
+export function shopHasRentcarShuttle(shop: Shop): boolean {
+  return shopRentcarGuideType(shop) === 'SHUTTLE';
+}
+
+/** `route.guideType === ROAD` — no airport shuttle (self-drive from the kiosk). */
+export function shopHasRentcarRoad(shop: Shop): boolean {
+  return shopRentcarGuideType(shop) === 'ROAD';
+}
+
+/** Non-shuttle rentcar rows — `ROAD` plus ferry-access `FERRY` (셔틀 없음 filter). */
+export function shopHasRentcarNoShuttle(shop: Shop): boolean {
+  const guideType = shopRentcarGuideType(shop);
+  return guideType === 'ROAD' || guideType === 'FERRY';
+}
+
+/** True when the shop's Korean address mentions 우도 (ferry-access rentcar). */
+export function shopHasUdoAddress(s: Shop): boolean {
+  return (s.addressKr ?? '').includes('우도');
+}
+
+/** Ferry-access rentcar (`FERRY` guide or 우도 address). */
+export function shopHasRentcarFerry(shop: Shop): boolean {
+  return shopRentcarGuideType(shop) === 'FERRY' || shopHasUdoAddress(shop);
+}
+
+const RENTCAR_GUIDE_SHUTTLE = {
+  ko: '공항 셔틀 이용', en: 'Airport shuttle', ja: '空港シャトル利用', zh: '机场班车',
+  vi: 'Xe đưa sân bay', th: 'รถรับส่งสนามบิน', ru: 'Аэропортный шаттл', id: 'Antar-jemput bandara',
+};
+
+const RENTCAR_GUIDE_WALK = {
+  ko: '도보 이용', en: 'On foot', ja: '徒歩', zh: '步行',
+  vi: 'Đi bộ', th: 'เดิน', ru: 'Пешком', id: 'Jalan kaki',
+};
+
+const RENTCAR_GUIDE_FERRY = {
+  ko: '배편 이용', en: 'Ferry access', ja: 'フェリー利用', zh: '渡轮',
+  vi: 'Đi phà', th: 'เรือข้ามฟาก', ru: 'На пароме', id: 'Akses feri',
+};
+
+/** Rentcar detail route line — how to reach the shop from the kiosk. */
+export function shopRentcarGuideModeLabel(shop: Shop, lang: Lang): string {
+  if (shopHasRentcarShuttle(shop)) return pick(RENTCAR_GUIDE_SHUTTLE, lang);
+  if (shopHasRentcarFerry(shop)) return pick(RENTCAR_GUIDE_FERRY, lang);
+  if (shopHasRentcarRoad(shop)) return pick(RENTCAR_GUIDE_WALK, lang);
+  return pick(RENTCAR_GUIDE_WALK, lang);
+}
+
+export function shopRentcarGuideDistanceKm(shop: Shop): number | null {
+  const km = shop.route?.distanceKm;
+  return typeof km === 'number' && Number.isFinite(km) ? km : null;
+}
+
+/**
+ * Rentcar list line from `route` + `tel`.
+ * e.g. `5.5 km ・ 차로 15분 ・ 064-751-8000`
+ */
+export function shopRentcarRouteSummary(s: Shop, lang: Lang): string {
+  const parts: string[] = [];
+  const route = s.route;
+  if (route) {
+    const { distanceKm, durationMin } = route;
+    if (typeof distanceKm === 'number' && Number.isFinite(distanceKm)) {
+      parts.push(`${distanceKm.toFixed(1)} km`);
+    }
+    if (typeof durationMin === 'number' && Number.isFinite(durationMin)) {
+      const drive = DRIVE_DURATION[lang]?.(durationMin) ?? DRIVE_DURATION.ko(durationMin);
+      parts.push(drive);
+    }
+  }
+  const tel = s.tel?.trim();
+  if (tel) parts.push(tel);
+  return parts.join(' ・ ');
+}
+
+const DRIVE_DURATION: Record<Lang, (min: number) => string> = {
+  ko: (min) => `차로 ${min}분`,
+  en: (min) => `${min} min by car`,
+  ja: (min) => `車で${min}分`,
+  zh: (min) => `驾车 ${min} 分钟`,
+  vi: (min) => `${min} phút lái xe`,
+  th: (min) => `ขับรถ ${min} นาที`,
+  ru: (min) => `${min} мин на машине`,
+  id: (min) => `${min} menit berkendara`,
+};
 export const shopDescription = (s: Shop, lang: Lang): string => field(s, 'description', lang, s.descriptionKr);
 export const shopSecondCategory = (s: Shop, lang: Lang): string =>
   stripPrefix(field(s, 'secondCategory', lang, s.secondCategoryKr ?? ''));

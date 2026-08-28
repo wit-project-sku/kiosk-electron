@@ -163,7 +163,7 @@ export function JejuDetail({ controller }: Props): JSX.Element {
       lowReachBodyShift={687}
       lowReachBarBanner
     >
-      <JejuSpotDetailCard item={item} top={chrome.cardTop} gallery={chrome.gallery} />
+      <JejuSpotDetailCard item={item} top={chrome.cardTop} gallery={chrome.gallery} lang={lang} />
 
       {next && (
         <>
