@@ -61,6 +61,9 @@ extraResources:
   # OS-level touch/kiosk lockdown (disables edge-swipe, Win key, Task Manager).
   - from: scripts/lockdown-kiosk.ps1
     to: lockdown-kiosk.ps1
+  # 제주 ZED setup check + floor calibration, run by hand at a venue install.
+  - from: scripts/provision-zed.ps1
+    to: provision-zed.ps1
   - from: secrets
     to: secrets
 
