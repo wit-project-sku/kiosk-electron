@@ -17,6 +17,7 @@ import { pick, type Lang } from '@renderer/lib/i18n';
 import { padImages } from '@renderer/lib/shops';
 import { jejuIconUrl } from '@renderer/assets/icons/jeju';
 import { ImageLightbox } from '../components/ImageLightbox';
+import { JejuRentcarDirections } from './JejuRentcarDirections';
 import styles from './JejuSpotDetailCard.module.css';
 
 /** Photo slots in the gallery — the Figma draws a fixed 2×2. */
@@ -110,8 +111,10 @@ export function JejuSpotDetailCard({ item, top = 700, gallery = 'grid', lang = '
   const photos = padImages(realPhotos, jejuIconUrl('noimage'), slots);
 
   const guide = item.rentcarGuide;
+  const route = item.rentcarRoute;
   const guideDistance =
     guide && guide.distanceKm != null ? `${guide.distanceKm.toFixed(1)} km` : null;
+  const showShuttlePanel = isRentcar && guide?.isShuttle;
 
   return (
     <>
@@ -131,20 +134,23 @@ export function JejuSpotDetailCard({ item, top = 700, gallery = 'grid', lang = '
             )}
           </div>
 
-          {isRentcar && guide ? (
+          {showShuttlePanel && guide ? (
             <div className={styles.rentcarGuide}>
               <p className={styles.rentcarGuideTitle}>{pick(RENTCAR_HOW_TO, lang)}</p>
               <div className={styles.rentcarGuideMeta}>
                 <p className={styles.rentcarGuideRow}>
-                  <span>{guide.modeLabel}</span>
-                  {guideDistance && <span className={styles.rentcarGuideSep}>・ {guideDistance}</span>}
+                  <span className={styles.rentcarGuideIcon} aria-hidden="true">
+                    🚌
+                  </span>
+                  <span>
+                    {guide.modeLabel}
+                    {guideDistance && <> · {guideDistance}</>}
+                  </span>
                 </p>
-                {guide.isShuttle && (
-                  <p className={styles.rentcarGuideNote}>{pick(RENTCAR_SHUTTLE_NOTE, lang)}</p>
-                )}
+                <p className={styles.rentcarGuideNote}>{pick(RENTCAR_SHUTTLE_NOTE, lang)}</p>
               </div>
             </div>
-          ) : (
+          ) : !isRentcar ? (
             <div className={single ? styles.photosSingle : styles.photos}>
               {Array.from({ length: slots }, (_, i) => (
                 <button
@@ -158,6 +164,14 @@ export function JejuSpotDetailCard({ item, top = 700, gallery = 'grid', lang = '
                   {photos[i] && <img src={photos[i]} alt="" draggable={false} loading="lazy" />}
                 </button>
               ))}
+            </div>
+          ) : null}
+
+          {showShuttlePanel && route && <div className={styles.rentcarGuideDivider} aria-hidden="true" />}
+
+          {isRentcar && route && (
+            <div className={styles.rentcarDirections}>
+              <JejuRentcarDirections route={route} destination={item.name} lang={lang} />
             </div>
           )}
         </div>

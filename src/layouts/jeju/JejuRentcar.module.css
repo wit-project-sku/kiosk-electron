@@ -68,7 +68,7 @@
   flex: 1 1 auto;
   min-width: 0;
   font-size: 60.06px;
-  font-weight: 600;
+  font-weight: 500;
   line-height: 1;
   text-align: left;
   overflow: hidden;
@@ -79,6 +79,7 @@
 
 .searchValue {
   color: #232323;
+  font-weight: 600;
 }
 
 .caret {
@@ -151,6 +152,24 @@
 .chipActive .chipLabel,
 .chipActive .chipCount {
   font-weight: 700;
+}
+
+/* ── 렌터카하우스 section heading ── */
+.houseSection {
+  flex: none;
+  width: 1820px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding-top: 50px;
+}
+
+.houseHeading {
+  margin: 0;
+  font-size: 48px;
+  font-weight: 600;
+  line-height: 1;
+  color: var(--kiosk-primary, #ff7f0f);
 }
 
 /* ── Card list ──────────────────────────────────────────────────────── */

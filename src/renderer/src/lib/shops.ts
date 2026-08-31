@@ -1,6 +1,6 @@
 import type { Lang } from '@renderer/lib/i18n';
 import { pick } from '@renderer/lib/i18n';
-import type { Shop } from '@shared/types/shop';
+import type { Shop, ShopBusStop, ShopRoute, ShopTransitLeg } from '@shared/types/shop';
 
 type Suffix = 'Kr' | 'En' | 'Jp' | 'Ch' | 'Vn' | 'Id' | 'Th' | 'Ru';
 // All 8 UI languages map to their shop-field suffix. The witteria shops API
@@ -102,6 +102,53 @@ export function shopRentcarGuideModeLabel(shop: Shop, lang: Lang): string {
 export function shopRentcarGuideDistanceKm(shop: Shop): number | null {
   const km = shop.route?.distanceKm;
   return typeof km === 'number' && Number.isFinite(km) ? km : null;
+}
+
+type StopLangSuffix = 'Kr' | 'En' | 'Jp' | 'Ch';
+
+const STOP_SUFFIX: Record<string, StopLangSuffix> = {
+  ko: 'Kr',
+  en: 'En',
+  ja: 'Jp',
+  zh: 'Ch',
+  vi: 'Kr',
+  id: 'Kr',
+  th: 'Kr',
+  ru: 'Kr',
+};
+
+/** Localized transit-leg boarding stop — falls back to Korean. */
+export function shopTransitLegBoardStop(leg: ShopTransitLeg, lang: Lang): string {
+  const sfx = STOP_SUFFIX[lang] ?? 'Kr';
+  const key = `boardStopName${sfx}` as keyof ShopTransitLeg;
+  const localized = leg[key];
+  return typeof localized === 'string' && localized.trim() ? localized : leg.boardStopNameKr;
+}
+
+/** Localized alighting bus stop — falls back to Korean. */
+export function shopBusStopName(stop: ShopBusStop, lang: Lang): string {
+  const sfx = STOP_SUFFIX[lang] ?? 'Kr';
+  const key = `name${sfx}` as keyof ShopBusStop;
+  const localized = stop[key];
+  return typeof localized === 'string' && localized.trim() ? localized : stop.nameKr;
+}
+
+/** Minutes for the bike row when `bikeable` — API field first, else distance estimate. */
+export function shopRentcarBikeMin(route: ShopRoute): number | null {
+  if (!route.bikeable) return null;
+  if (typeof route.bikeMin === 'number' && Number.isFinite(route.bikeMin)) return route.bikeMin;
+  const km = route.distanceKm;
+  if (typeof km !== 'number' || !Number.isFinite(km)) return null;
+  return Math.max(1, Math.round((km / 15) * 60));
+}
+
+/** Minutes for the walk row when `walkable` — API field first, else distance estimate. */
+export function shopRentcarWalkMin(route: ShopRoute): number | null {
+  if (!route.walkable) return null;
+  if (typeof route.walkMin === 'number' && Number.isFinite(route.walkMin)) return route.walkMin;
+  const km = route.distanceKm;
+  if (typeof km !== 'number' || !Number.isFinite(km)) return null;
+  return Math.max(1, Math.round((km / 5) * 60));
 }
 
 /**

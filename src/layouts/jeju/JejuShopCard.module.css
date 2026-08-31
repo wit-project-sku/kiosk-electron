@@ -149,7 +149,7 @@
 
 /* 렌터카하우스 목록 — #ffeac7 fill, primary outline (JejuHanbokSelect subcatActive). */
 .cardHouse {
-  background: #ffeac7;
+  background: #FFF0DF;
   border: 5px solid var(--kiosk-primary, #ff7f0f);
 }
 

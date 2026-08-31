@@ -130,6 +130,17 @@ const FILTER_NO_SHUTTLE = {
 /** Fixed wayfinding line for `#렌터카하우스` cards — never the API km/time row. */
 const RENTCAR_HOUSE_ROUTE = '1층 2번 게이트 → 렌터카하우스';
 
+const HOUSE_HEADING = {
+  ko: (n: number) => `공항 안에서 바로 ・ 렌터카하우스 ${n}곳`,
+  en: (n: number) => `Directly in the airport ・ Rent-a-Car House ${n} locations`,
+  ja: (n: number) => `空港内ですぐ ・ レンタカーハウス ${n}件`,
+  zh: (n: number) => `机场内直达 ・ 租车之家 ${n}家`,
+  vi: (n: number) => `Ngay trong sân bay ・ Rent-a-Car House ${n} địa điểm`,
+  th: (n: number) => `ในสนามบินเลย ・ Rent-a-Car House ${n} แห่ง`,
+  ru: (n: number) => `Прямо в аэропорту ・ Rent-a-Car House — ${n} точек`,
+  id: (n: number) => `Langsung di bandara ・ Rent-a-Car House ${n} lokasi`,
+};
+
 type ShuttleFilter = 'all' | 'shuttle' | 'noShuttle';
 
 const SHUTTLE_FILTERS: ShuttleFilter[] = ['all', 'shuttle', 'noShuttle'];
@@ -246,6 +257,7 @@ export function JejuRentcar({ controller }: Props): JSX.Element {
         distanceKm: shopRentcarGuideDistanceKm(shop),
         isShuttle: shopHasRentcarShuttle(shop),
       },
+      rentcarRoute: shop.route ?? null,
     });
     controller.navigate('detail', TITLE);
   };
@@ -319,12 +331,16 @@ export function JejuRentcar({ controller }: Props): JSX.Element {
           <p className={styles.empty}>{pick(SEARCH_NO_RESULT, lang)(query.trim())}</p>
         ) : (
           <>
-            {houseShops.length > 0 &&
-              renderCards(houseShops, {
-                forceDeskBadge: true,
-                routeLine: RENTCAR_HOUSE_ROUTE,
-                house: true,
-              })}
+            {houseShops.length > 0 && (
+              <div className={styles.houseSection}>
+                <p className={styles.houseHeading}>{pick(HOUSE_HEADING, lang)(houseShops.length)}</p>
+                {renderCards(houseShops, {
+                  forceDeskBadge: true,
+                  routeLine: RENTCAR_HOUSE_ROUTE,
+                  house: true,
+                })}
+              </div>
+            )}
 
             {otherShops.length > 0 && (
               <div className={styles.filters}>

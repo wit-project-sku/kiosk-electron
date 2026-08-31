@@ -5,11 +5,47 @@ export interface ShopImage {
   sortOrder: number;
 }
 
-/** Driving distance/time from the kiosk to a rentcar shop (witteria `route`). */
+/** One bus leg in a rentcar `route.transit` itinerary. */
+export interface ShopTransitLeg {
+  routeNum: string;
+  boardStopNameKr: string;
+  boardStopNameEn?: string;
+  boardStopNameCh?: string;
+  boardStopNameJp?: string;
+  rideStops: number;
+  rideMin: number;
+}
+
+/** Public-transit summary from Jeju Airport (witteria `route.transit`). */
+export interface ShopTransit {
+  status: string;
+  transferCount?: number | null;
+  totalMin?: number | null;
+  basedOn?: string | null;
+  legs: ShopTransitLeg[];
+}
+
+/** Nearest bus stop before the final walk to a rentcar shop. */
+export interface ShopBusStop {
+  nameKr: string;
+  nameEn?: string;
+  nameCh?: string;
+  nameJp?: string;
+  routes?: string;
+  walkMin?: number | null;
+}
+
+/** Driving / transit directions from Jeju Airport to a rentcar shop (witteria `route`). */
 export interface ShopRoute {
   distanceKm: number | null;
   durationMin: number | null;
   guideType?: string | null;
+  walkable?: boolean;
+  bikeable?: boolean;
+  bikeMin?: number | null;
+  walkMin?: number | null;
+  busStop?: ShopBusStop | null;
+  transit?: ShopTransit | null;
 }
 
 /**

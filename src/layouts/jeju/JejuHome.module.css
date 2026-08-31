@@ -344,33 +344,33 @@
    subtitle at x436; both are visually left-aligned, so both use 426. */
 .cardAi {
   left: 0;
-  width: 750px;
+  width: 670px;
   background: #f5f1ef;
 }
-.cardAi .cardTitle { left: 426px; top: 104px; }
-.cardAi .cardSub   { left: 426px; top: 178px; }
+.cardAi .cardTitle { left: 356px; top: 104px; }
+.cardAi .cardSub   { left: 356px; top: 178px; }
 .cardAi .cardArt   { left: 53px;  top: 48px; width: 249px; height: 214px; }
 
 /* Card 2 — 위드마켓 */
 .cardMarket {
-  left: 798px;
-  width: 540px;
+  left: 718px;
+  width: 570px;
   background: #f3eae3;
 }
 .cardMarket .cardTitle { left: 57px; top: 108px; }
 .cardMarket .cardSub   { left: 57px; top: 182px; }
-.cardMarket .cardArt   { left: 322px; top: 47px; width: 140px; height: 216px; }
+.cardMarket .cardArt   { left: 352px; top: 47px; width: 140px; height: 216px; }
 
 /* Card 3 — 제주도 이벤트. NORMALISED: Figma has title x40 / subtitle x50.8;
    both render left-aligned in the design, so both use 40. */
 .cardEvents {
-  left: 1386px;
-  width: 540px;
+  left: 1336px;
+  width: 590px;
   background: #f5efe9;
 }
-.cardEvents .cardTitle { left: 40px; top: 108px; }
-.cardEvents .cardSub   { left: 40px; top: 182px; }
-.cardEvents .cardArt   { left: 325px; top: 88px; width: 177px; height: 177px; }
+.cardEvents .cardTitle { left: 50px; top: 108px; }
+.cardEvents .cardSub   { left: 50px; top: 182px; }
+.cardEvents .cardArt   { left: 365px; top: 88px; width: 177px; height: 177px; }
 
 /* ── Menu grid on its white panel ───────────────────────────────────── */
 /* No backdrop-filter here either — see the note above .notice. */

@@ -93,10 +93,13 @@ function chromeFor(
   // finished string through untouched.
   const detail = `${screenTitle(title, lang)} > ${screenTitle('상세', lang)}`;
 
-  // The 뭐먹지/뭐사지/숙박안내/렌트카 frames drop the card 164px (6212:55208 /
-  // 6212:55257 / 6212:55305 / 6217:95707); 검색 and the AI course butt it
-  // against the header. Same card, different y — see JejuSpotDetailCard's `top`.
-  if (from === 'eat' || from === 'shop' || from === 'lodging' || from === 'rentcar') {
+  // The 뭐먹지/뭐사지/숙박안내 frames drop the card 164px (6212:55208 /
+  // 6212:55257 / 6212:55305); 검색 and the AI course butt it against the
+  // header. 렌트카 상세는 탭/초성 행이 없어 카드를 더 위에 둔다.
+  if (from === 'rentcar') {
+    return { title: detail, cardTop: 760 };
+  }
+  if (from === 'eat' || from === 'shop' || from === 'lodging') {
     return { title: detail, cardTop: 864 };
   }
   return { title: detail };
