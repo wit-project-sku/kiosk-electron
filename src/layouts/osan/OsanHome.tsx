@@ -401,18 +401,20 @@ export function OsanHome({ controller }: OsanHomeProps): JSX.Element {
           {bottomBarSrc && (
             <img className={styles.bottomBarBg} src={bottomBarSrc} alt="" draggable={false} />
           )}
-          <button
-            type="button"
-            className={styles.kdramaItem}
-            onClick={() => navigate('kdrama', 'K-DRAMA')}
+          {/* K-DRAMA 준비중: keeps its full colour, but is not tappable. */}
+          <div
+            className={`${styles.kdramaItem} ${styles.kdramaSoon}`}
+            aria-disabled="true"
           >
             <span className={styles.kdramaIcon}>
               {osanIconUrl('kdrama') && (
                 <img src={osanIconUrl('kdrama')} alt="" draggable={false} />
               )}
             </span>
-            <span className={styles.navLabel}>{pick(KDRAMA_LABEL, lang)}</span>
-          </button>
+            <span className={styles.navLabel}>
+              {withComingSoon(pick(KDRAMA_LABEL, lang), lang)}
+            </span>
+          </div>
           <button
             type="button"
             className={styles.cameraBtn}
