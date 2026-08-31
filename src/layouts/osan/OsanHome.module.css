@@ -409,6 +409,12 @@
   height: 312px;
 }
 
+/* K-DRAMA 준비중: rendered at full opacity/colour, just inert. */
+.kdramaSoon {
+  cursor: default;
+  pointer-events: none;
+}
+
 /* Figma 5358:48437: red #f44 box, rounded 50px, white K-DRAMA logo (187×120) inside */
 .kdramaIcon {
   position: absolute;
