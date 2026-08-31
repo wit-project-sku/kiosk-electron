@@ -93,11 +93,11 @@ function chromeFor(
   // finished string through untouched.
   const detail = `${screenTitle(title, lang)} > ${screenTitle('상세', lang)}`;
 
-  // The 뭐먹지/뭐사지/숙박안내/렌트카 frames drop the card 164px (6212:55208 /
-  // 6212:55257 / 6212:55305 / 6217:95707); 검색 and the AI course butt it
-  // against the header. Same card, different y — see JejuSpotDetailCard's `top`.
-  if (from === 'eat' || from === 'shop' || from === 'lodging' || from === 'rentcar') {
-    return { title: detail, cardTop: 864 };
+  // The 뭐먹지/뭐사지/숙박안내 frames drop the card 164px (6212:55208 /
+  // 6212:55257 / 6212:55305); 검색 and the AI course butt it against the
+  // 렌트카·뭐먹지·뭐사지·숙박안내 상세 — 카드를 y760에 둔다.
+  if (from === 'rentcar' || from === 'eat' || from === 'shop' || from === 'lodging') {
+    return { title: detail, cardTop: 720 };
   }
   return { title: detail };
 }
@@ -130,13 +130,21 @@ export function JejuDetail({ controller }: Props): JSX.Element {
   /*
    * The 다음 장소 card under the 상세 plate (6289:58438 → 6516:72906). Only the
    * AI course ever sets `courseNext`, and only when the day has a stop left.
-   *
-   * NOT drawn in ♿: that layout re-stacks this page by +687 (see the frame
-   * props below), which would put the card at y3699–4214 — off the 3840
-   * artboard. The revised low-reach frame for -04 has not arrived, so the
-   * standard layout gets the card and ♿ keeps the plain detail until it does.
+   * Hidden in ♿ — the re-stack would push the follow-on card off the artboard.
+   * 뭐먹지/뭐사지/숙박안내 instead scroll inside `.scroll` / `.scrollLow`.
    */
   const next = lowReach ? undefined : item.courseNext;
+  const shopListDetail = item.from === 'eat' || item.from === 'shop' || item.from === 'lodging';
+
+  const detailCard = (
+    <JejuSpotDetailCard
+      item={item}
+      top={chrome.cardTop}
+      gallery={chrome.gallery}
+      lang={lang}
+      scrollable={shopListDetail}
+    />
+  );
 
   return (
     /* This page's ♿ frame (6336:100864, 검색-03) is on the 2026-08-26 mode-bar
@@ -163,7 +171,11 @@ export function JejuDetail({ controller }: Props): JSX.Element {
       lowReachBodyShift={687}
       lowReachBarBanner
     >
-      <JejuSpotDetailCard item={item} top={chrome.cardTop} gallery={chrome.gallery} lang={lang} />
+      {shopListDetail ? (
+        <div className={`${styles.scroll} ${lowReach ? styles.scrollLow : ''}`}>{detailCard}</div>
+      ) : (
+        detailCard
+      )}
 
       {next && (
         <>

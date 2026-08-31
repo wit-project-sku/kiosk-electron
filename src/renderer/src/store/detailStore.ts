@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import type { KioskScreenId } from '@shared/types/kiosk';
+import type { ShopRoute } from '@shared/types/shop';
 
 /**
  * The stop AFTER the one being shown, when the detail was opened from an AI
@@ -48,6 +49,8 @@ export interface DetailItem {
     /** When true, shows the airport-shuttle footnote under the mode row. */
     isShuttle?: boolean;
   };
+  /** Full witteria `route` — drives the airport directions panel on rentcar 상세. */
+  rentcarRoute?: ShopRoute | null;
 }
 
 interface DetailState {

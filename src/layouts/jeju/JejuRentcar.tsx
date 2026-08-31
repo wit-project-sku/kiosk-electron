@@ -15,16 +15,16 @@ import { useShopStore } from '@renderer/store/shopStore';
 import { pick } from '@renderer/lib/i18n';
 import {
   searchShops,
-  shopAddress,
   shopHasHashtag,
   shopHasRentcarFerry,
   shopHasRentcarNoShuttle,
   shopHasRentcarRoad,
   shopHasRentcarShuttle,
-  shopName,
+  shopRentcarAddress,
   shopRentcarGuideDistanceKm,
   shopRentcarGuideModeLabel,
-  shopSecondCategory,
+  shopRentcarName,
+  shopRentcarSecondCategory,
   shopsForBase,
 } from '@renderer/lib/shops';
 import { JejuPageFrame } from './JejuPageFrame';
@@ -128,7 +128,27 @@ const FILTER_NO_SHUTTLE = {
 };
 
 /** Fixed wayfinding line for `#렌터카하우스` cards — never the API km/time row. */
-const RENTCAR_HOUSE_ROUTE = '1층 2번 게이트 → 렌터카하우스';
+const RENTCAR_HOUSE_ROUTE = {
+  ko: '1층 2번 게이트 → 렌터카하우스',
+  en: '1F Gate 2 → Rent-a-Car House',
+  ja: '1階2番ゲート → レンタカーハウス',
+  zh: '1层2号门 → 租车之家',
+  vi: 'Cổng số 2 tầng 1 → Rent-a-Car House',
+  th: 'ประตู 2 ชั้น 1 → Rent-a-Car House',
+  ru: 'Выход 2, 1-й этаж → Rent-a-Car House',
+  id: 'Gerbang 2 Lantai 1 → Rent-a-Car House',
+};
+
+const HOUSE_HEADING = {
+  ko: (n: number) => `공항 안에서 바로 ・ 렌터카하우스 ${n}곳`,
+  en: (n: number) => `Directly in the airport ・ Rent-a-Car House ${n} locations`,
+  ja: (n: number) => `空港内ですぐ ・ レンタカーハウス ${n}件`,
+  zh: (n: number) => `机场内直达 ・ 租车之家 ${n}家`,
+  vi: (n: number) => `Ngay trong sân bay ・ Rent-a-Car House ${n} địa điểm`,
+  th: (n: number) => `ในสนามบินเลย ・ Rent-a-Car House ${n} แห่ง`,
+  ru: (n: number) => `Прямо в аэропорту ・ Rent-a-Car House — ${n} точек`,
+  id: (n: number) => `Langsung di bandara ・ Rent-a-Car House ${n} lokasi`,
+};
 
 type ShuttleFilter = 'all' | 'shuttle' | 'noShuttle';
 
@@ -167,7 +187,7 @@ export function JejuRentcar({ controller }: Props): JSX.Element {
   const catalogShops = useMemo(() => {
     const trimmed = query.trim();
     if (!trimmed) return baseShops;
-    return searchShops(baseShops, trimmed, lang, 999);
+    return searchShops(baseShops, trimmed, lang, 999, { rentcar: true });
   }, [baseShops, query, lang]);
 
   const houseShops = useMemo(
@@ -230,10 +250,10 @@ export function JejuRentcar({ controller }: Props): JSX.Element {
     setDetail({
       from: 'rentcar',
       title: TITLE,
-      name: shopName(shop, lang),
-      category: shopSecondCategory(shop, lang),
+      name: shopRentcarName(shop, lang),
+      category: shopRentcarSecondCategory(shop, lang),
       photos: [],
-      address: shopAddress(shop, lang),
+      address: shopRentcarAddress(shop, lang),
       hours: shop.openTime ?? '',
       phone: shop.tel ?? '',
       description: '',
@@ -246,6 +266,7 @@ export function JejuRentcar({ controller }: Props): JSX.Element {
         distanceKm: shopRentcarGuideDistanceKm(shop),
         isShuttle: shopHasRentcarShuttle(shop),
       },
+      rentcarRoute: shop.route ?? null,
     });
     controller.navigate('detail', TITLE);
   };
@@ -287,6 +308,7 @@ export function JejuRentcar({ controller }: Props): JSX.Element {
             lang={lang}
             query={query}
             compact
+            rentcarApi
             house={house}
             badge={badge?.label}
             badgeVariant={badge?.variant}
@@ -319,12 +341,16 @@ export function JejuRentcar({ controller }: Props): JSX.Element {
           <p className={styles.empty}>{pick(SEARCH_NO_RESULT, lang)(query.trim())}</p>
         ) : (
           <>
-            {houseShops.length > 0 &&
-              renderCards(houseShops, {
-                forceDeskBadge: true,
-                routeLine: RENTCAR_HOUSE_ROUTE,
-                house: true,
-              })}
+            {houseShops.length > 0 && (
+              <div className={styles.houseSection}>
+                <p className={styles.houseHeading}>{pick(HOUSE_HEADING, lang)(houseShops.length)}</p>
+                {renderCards(houseShops, {
+                  forceDeskBadge: true,
+                  routeLine: pick(RENTCAR_HOUSE_ROUTE, lang),
+                  house: true,
+                })}
+              </div>
+            )}
 
             {otherShops.length > 0 && (
               <div className={styles.filters}>

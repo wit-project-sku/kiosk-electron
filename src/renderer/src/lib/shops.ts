@@ -1,6 +1,6 @@
 import type { Lang } from '@renderer/lib/i18n';
 import { pick } from '@renderer/lib/i18n';
-import type { Shop } from '@shared/types/shop';
+import type { Shop, ShopBusStop, ShopRoute, ShopTransitLeg } from '@shared/types/shop';
 
 type Suffix = 'Kr' | 'En' | 'Jp' | 'Ch' | 'Vn' | 'Id' | 'Th' | 'Ru';
 // All 8 UI languages map to their shop-field suffix. The witteria shops API
@@ -104,6 +104,83 @@ export function shopRentcarGuideDistanceKm(shop: Shop): number | null {
   return typeof km === 'number' && Number.isFinite(km) ? km : null;
 }
 
+type StopLangSuffix = 'Kr' | 'En' | 'Jp' | 'Ch';
+
+/** Rentcar route/transit API ships Kr · En · Jp · Ch only — other UI langs → En. */
+const RENTCAR_API_LANG: Record<string, StopLangSuffix> = {
+  ko: 'Kr',
+  en: 'En',
+  ja: 'Jp',
+  zh: 'Ch',
+  zh_cn: 'Ch',
+  zh_tw: 'Ch',
+};
+
+function rentcarApiSuffix(lang: Lang): StopLangSuffix {
+  return RENTCAR_API_LANG[lang] ?? 'En';
+}
+
+function rentcarShopField(s: Shop, base: string, lang: Lang): string {
+  const suffix = rentcarApiSuffix(lang);
+  const primary = s[`${base}${suffix}` as keyof Shop] as string | null | undefined;
+  if (typeof primary === 'string' && primary.trim()) return primary;
+  const en = s[`${base}En` as keyof Shop] as string | null | undefined;
+  if (typeof en === 'string' && en.trim()) return en;
+  const kr = s[`${base}Kr` as keyof Shop] as string | null | undefined;
+  return typeof kr === 'string' ? kr : '';
+}
+
+/** Rentcar shop name — API has Kr/En/Jp/Ch; vi/th/ru/id/… fall back to En. */
+export const shopRentcarName = (s: Shop, lang: Lang): string => rentcarShopField(s, 'shopName', lang);
+
+export const shopRentcarAddress = (s: Shop, lang: Lang): string => rentcarShopField(s, 'address', lang);
+
+export const shopRentcarSecondCategory = (s: Shop, lang: Lang): string =>
+  stripPrefix(rentcarShopField(s, 'secondCategory', lang) || (s.secondCategoryKr ?? ''));
+
+function rentcarNamedField(
+  record: Record<string, unknown>,
+  prefix: string,
+  krKey: string,
+  lang: Lang,
+): string {
+  const suffix = rentcarApiSuffix(lang);
+  const primary = record[`${prefix}${suffix}`];
+  if (typeof primary === 'string' && primary.trim()) return primary;
+  const en = record[`${prefix}En`];
+  if (typeof en === 'string' && en.trim()) return en;
+  const kr = record[krKey];
+  return typeof kr === 'string' ? kr : '';
+}
+
+/** Localized transit-leg boarding stop — En fallback for unsupported UI langs. */
+export function shopTransitLegBoardStop(leg: ShopTransitLeg, lang: Lang): string {
+  return rentcarNamedField(leg as unknown as Record<string, unknown>, 'boardStopName', 'boardStopNameKr', lang);
+}
+
+/** Localized alighting bus stop — En fallback for unsupported UI langs. */
+export function shopBusStopName(stop: ShopBusStop, lang: Lang): string {
+  return rentcarNamedField(stop as unknown as Record<string, unknown>, 'name', 'nameKr', lang);
+}
+
+/** Minutes for the bike row when `bikeable` — API field first, else distance estimate. */
+export function shopRentcarBikeMin(route: ShopRoute): number | null {
+  if (!route.bikeable) return null;
+  if (typeof route.bikeMin === 'number' && Number.isFinite(route.bikeMin)) return route.bikeMin;
+  const km = route.distanceKm;
+  if (typeof km !== 'number' || !Number.isFinite(km)) return null;
+  return Math.max(1, Math.round((km / 15) * 60));
+}
+
+/** Minutes for the walk row when `walkable` — API field first, else distance estimate. */
+export function shopRentcarWalkMin(route: ShopRoute): number | null {
+  if (!route.walkable) return null;
+  if (typeof route.walkMin === 'number' && Number.isFinite(route.walkMin)) return route.walkMin;
+  const km = route.distanceKm;
+  if (typeof km !== 'number' || !Number.isFinite(km)) return null;
+  return Math.max(1, Math.round((km / 5) * 60));
+}
+
 /**
  * Rentcar list line from `route` + `tel`.
  * e.g. `5.5 km ・ 차로 15분 ・ 064-751-8000`
@@ -158,15 +235,25 @@ export const shopCategoryLabel = (s: Shop, lang: Lang): string =>
  * Free-text search across name/tag/description (live + KR), ranked by where the
  * match lands: title first, then hashtag, then description/category/address.
  */
-export function searchShops(shops: Shop[], query: string, lang: Lang, limit = 60): Shop[] {
+export function searchShops(
+  shops: Shop[],
+  query: string,
+  lang: Lang,
+  limit = 60,
+  opts?: { rentcar?: boolean },
+): Shop[] {
   const q = query.trim().toLowerCase();
   if (!q) return [];
 
   const scored: Array<{ shop: Shop; rank: number }> = [];
   for (const s of shops) {
-    const title = `${shopName(s, lang)} ${s.shopNameKr}`.toLowerCase();
+    const title = opts?.rentcar
+      ? `${shopRentcarName(s, lang)} ${s.shopNameKr ?? ''} ${s.shopNameEn ?? ''}`.toLowerCase()
+      : `${shopName(s, lang)} ${s.shopNameKr}`.toLowerCase();
     const tag = `${shopHashtag(s, lang)} ${s.hashTagKr}`.toLowerCase();
-    const rest = `${shopDescription(s, lang)} ${shopSecondCategory(s, lang)} ${shopAddress(s, lang)} ${s.addressKr}`.toLowerCase();
+    const rest = opts?.rentcar
+      ? `${shopRentcarAddress(s, lang)} ${s.addressKr ?? ''} ${s.addressEn ?? ''}`.toLowerCase()
+      : `${shopDescription(s, lang)} ${shopSecondCategory(s, lang)} ${shopAddress(s, lang)} ${s.addressKr}`.toLowerCase();
 
     // 1 = title, 2 = tag, 3 = description/other; lower is better.
     const rank = title.includes(q) ? 1 : tag.includes(q) ? 2 : rest.includes(q) ? 3 : 0;

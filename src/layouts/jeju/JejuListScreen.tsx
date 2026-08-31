@@ -228,6 +228,7 @@ export function JejuListScreen({ screen, controller }: Props): JSX.Element {
       rating: shop.naverRating != null ? String(shop.naverRating) : '',
       instagram: '',
       blogReviews: shop.naverLink ?? '',
+      rentcarRoute: shop.route ?? null,
     });
     controller.navigate('detail', TITLE[screen]);
   };
