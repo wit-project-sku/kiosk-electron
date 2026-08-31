@@ -88,9 +88,17 @@ interface Props {
    */
   gallery?: 'grid' | 'single';
   lang?: Lang;
+  /** 뭐먹지/뭐사지/숙박안내 — card lives in JejuDetail's scroll column. */
+  scrollable?: boolean;
 }
 
-export function JejuSpotDetailCard({ item, top = 700, gallery = 'grid', lang = 'ko' }: Props): JSX.Element {
+export function JejuSpotDetailCard({
+  item,
+  top = 700,
+  gallery = 'grid',
+  lang = 'ko',
+  scrollable = false,
+}: Props): JSX.Element {
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
 
   const isRentcar = item.from === 'rentcar' && item.rentcarGuide != null;
@@ -105,6 +113,7 @@ export function JejuSpotDetailCard({ item, top = 700, gallery = 'grid', lang = '
   const ratingValue = parseFloat(item.rating);
   const hasRating = Number.isFinite(ratingValue) && ratingValue > 0;
   const filledStars = Math.round(ratingValue);
+  const showRatings = hasRating || !!item.instagram;
   const hours = [item.hours, item.breaktime ? `(${item.breaktime})` : ''].filter((h) => h.trim());
   /** 사진1개 draws exactly one slot; 사진4개 always draws four. */
   const slots = single ? 1 : PHOTOS;
@@ -115,12 +124,19 @@ export function JejuSpotDetailCard({ item, top = 700, gallery = 'grid', lang = '
   const guideDistance =
     guide && guide.distanceKm != null ? `${guide.distanceKm.toFixed(1)} km` : null;
   const showShuttlePanel = isRentcar && guide?.isShuttle;
+  // 뭐먹지/뭐사지/숙박안내 상세 — Figma revision drops the copy + hashtag block.
+  const hideDescTags = item.from === 'eat' || item.from === 'shop' || item.from === 'lodging';
+  const showShopRoute =
+    hideDescTags &&
+    route != null &&
+    typeof route.distanceKm === 'number' &&
+    Number.isFinite(route.distanceKm);
 
   return (
     <>
       <div
-        className={`${styles.card} ${isRentcar ? styles.cardRentcar : ''}`}
-        style={{ top }}
+        className={`${styles.card} ${isRentcar ? styles.cardRentcar : ''} ${hideDescTags || isRentcar ? styles.cardAuto : ''} ${scrollable ? styles.cardInScroll : ''}`}
+        style={scrollable ? undefined : { top }}
       >
         {/* ── Name + gallery / rentcar route guide ── */}
         <div className={styles.head}>
@@ -176,6 +192,15 @@ export function JejuSpotDetailCard({ item, top = 700, gallery = 'grid', lang = '
           )}
         </div>
 
+        {showShopRoute && route && (
+          <>
+            <div className={styles.divider} />
+            <div className={styles.rentcarDirections}>
+              <JejuRentcarDirections route={route} destination={item.name} lang={lang} />
+            </div>
+          </>
+        )}
+
         <div className={styles.divider} />
 
         {/* ── Address / hours / phone + QR ── */}
@@ -216,12 +241,15 @@ export function JejuSpotDetailCard({ item, top = 700, gallery = 'grid', lang = '
 
         {!isRentcar && (
           <>
-            <div className={styles.divider} />
+            {!hideDescTags && (
+              <>
+                <div className={styles.divider} />
+                {item.description && <p className={styles.desc}>{item.description}</p>}
+                {item.tags && <p className={styles.tags}>{item.tags}</p>}
+              </>
+            )}
 
-            {item.description && <p className={styles.desc}>{item.description}</p>}
-            {item.tags && <p className={styles.tags}>{item.tags}</p>}
-
-            <div className={styles.divider} />
+            {!hideDescTags && <div className={styles.divider} />}
 
             {/* ── Naver rating ──
                 The Figma also draws an Instagram follower count (#127K) and a blog
@@ -229,31 +257,33 @@ export function JejuSpotDetailCard({ item, top = 700, gallery = 'grid', lang = '
                 only naverRating and naverLink — so those segments render solely when
                 a value exists, which today means never. They need new API fields,
                 not layout work. Osan drops them for the same reason. */}
-            <div className={styles.ratings}>
-              {hasRating && (
-                <div className={styles.ratingItem}>
-                  {jejuIconUrl('ico-naver') && (
-                    <img src={jejuIconUrl('ico-naver')} alt="" className={styles.ratingIcon} draggable={false} />
-                  )}
-                  <span className={styles.stars}>
-                    {[0, 1, 2, 3, 4].map((i) => (
-                      <RatingStar key={i} filled={i < filledStars} />
-                    ))}
-                  </span>
-                  <span className={styles.ratingText}>{item.rating}</span>
-                </div>
-              )}
+            {showRatings && (
+              <div className={styles.ratings}>
+                {hasRating && (
+                  <div className={styles.ratingItem}>
+                    {jejuIconUrl('ico-naver') && (
+                      <img src={jejuIconUrl('ico-naver')} alt="" className={styles.ratingIcon} draggable={false} />
+                    )}
+                    <span className={styles.stars}>
+                      {[0, 1, 2, 3, 4].map((i) => (
+                        <RatingStar key={i} filled={i < filledStars} />
+                      ))}
+                    </span>
+                    <span className={styles.ratingText}>{item.rating}</span>
+                  </div>
+                )}
 
-              {hasRating && item.instagram && <span className={styles.ratingSep} />}
-              {item.instagram && (
-                <div className={styles.ratingItem}>
-                  {jejuIconUrl('ico-instagram') && (
-                    <img src={jejuIconUrl('ico-instagram')} alt="" className={styles.ratingIcon} draggable={false} />
-                  )}
-                  <span className={styles.ratingText}>{item.instagram}</span>
-                </div>
-              )}
-            </div>
+                {hasRating && item.instagram && <span className={styles.ratingSep} />}
+                {item.instagram && (
+                  <div className={styles.ratingItem}>
+                    {jejuIconUrl('ico-instagram') && (
+                      <img src={jejuIconUrl('ico-instagram')} alt="" className={styles.ratingIcon} draggable={false} />
+                    )}
+                    <span className={styles.ratingText}>{item.instagram}</span>
+                  </div>
+                )}
+              </div>
+            )}
           </>
         )}
       </div>

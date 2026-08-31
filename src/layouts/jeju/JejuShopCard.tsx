@@ -15,6 +15,7 @@ import {
   shopHashtag,
   shopImages,
   shopName,
+  shopRentcarName,
   shopRentcarRouteSummary,
   shopSecondCategory,
 } from '@renderer/lib/shops';
@@ -47,6 +48,8 @@ interface Props {
   query?: string;
   /** 렌트카 list: text-only row — no photo grid, no hashtag line, shorter plate. */
   compact?: boolean;
+  /** Rentcar API fields (Kr/En/Jp/Ch only) — other UI langs fall back to En. */
+  rentcarApi?: boolean;
   /** Optional top-right badge (렌터카하우스 "공항 내 데스크" chip). */
   badge?: string;
   /** Badge colour — rentcar compact list variants. */
@@ -63,6 +66,7 @@ export function JejuShopCard({
   lang,
   query = '',
   compact = false,
+  rentcarApi = false,
   badge,
   badgeVariant = 'primary',
   routeLine,
@@ -75,6 +79,7 @@ export function JejuShopCard({
   // empty tinted tile.
   const images = padImages(shopImages(shop), jejuIconUrl('noimage'), THUMBS);
   const routeSummary = compact ? routeLine ?? shopRentcarRouteSummary(shop, lang) : '';
+  const displayName = rentcarApi ? shopRentcarName(shop, lang) : shopName(shop, lang);
   const mark = (text: string): ReturnType<typeof highlightMatch> | string =>
     query ? highlightMatch(text, query, styles.hl) : text;
 
@@ -86,7 +91,7 @@ export function JejuShopCard({
     >
       <span className={`${styles.info} ${compact ? styles.infoCompact : ''}`}>
         <span className={`${styles.nameRow} ${compact ? styles.nameRowCompact : ''}`}>
-          <span className={styles.name}>{mark(shopName(shop, lang))}</span>
+          <span className={styles.name}>{mark(displayName)}</span>
           {compact && badge ? (
             <span className={`${styles.badge} ${rentcarBadgeClass(badgeVariant)}`}>
               {badge}

@@ -12,9 +12,9 @@
   left: 170px;
   top: 700px;
   width: 1820px;
-  /* FIXED, not min-height. Figma's card is h-2133 and its content is ~2076
-     tall — taller than the padding box leaves — so with min-height the card
-     instead grew to 2289 and the content sat ~82px low. */
+  /* Default Figma height for 검색 / AI-course frames. Rentcar and the
+     뭐먹지·뭐사지·숙박안내 revisions use `.cardAuto` so the plate grows with
+     the route panel instead of clipping or leaving a fixed void. */
   height: 2133px;
   box-sizing: border-box;
   /* Top-anchored 28px below the border, NOT centred. The card was
@@ -27,7 +27,7 @@
      ~24px short of the card's bottom edge instead of splitting its overflow
      between top and bottom, so nothing is clipped; the 100px bottom padding
      stays as the floor for everything shorter. */
-  padding: 28px 45px 100px;
+  padding: 28px 45px 50px;
   /* No border, no shadow — Figma draws a plain white rounded plate
      (`bg-white rounded-[42.9px]`). The only stroke the design keeps on this
      screen is the QR frame's 4.29px #ff7f0f, further down. */
@@ -136,10 +136,17 @@
   display: block;
 }
 
-/* ── Rentcar detail — route guide replaces the photo gallery ── */
-.cardRentcar {
+/* Content-driven height — rentcar + 뭐먹지/뭐사지/숙박안내 상세. */
+.cardAuto {
   height: auto;
   min-height: 0;
+}
+
+/* Inside JejuDetail's scroll viewport — normal flow, not artboard-absolute. */
+.cardInScroll {
+  position: relative;
+  left: auto;
+  top: auto;
 }
 
 .cardRentcar .head {

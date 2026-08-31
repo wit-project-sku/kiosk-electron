@@ -1,6 +1,42 @@
 /* 제주 상세 페이지 — chrome only; the card itself lives in
    JejuSpotDetailCard.module.css, shared with the AI-course spot detail. */
 
+/*
+ * 뭐먹지/뭐사지/숙박안내 상세 — the card can outgrow the banner-safe band, so
+ * only the body scrolls. Viewport: y700–y3267 (header to bottom promo). The
+ * 20px lead-in matches cardTop 720 on JejuDetail.
+ */
+.scroll {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 700px;
+  bottom: 573px;
+  box-sizing: border-box;
+  overflow-x: hidden;
+  overflow-y: auto;
+  padding: 20px 136px 80px 170px;
+}
+
+/* ♿ mode-bar shape: .body rides --jeju-body-shift (687 on this page) so its
+   floor sits past the artboard; pin the scroll viewport to the visible foot. */
+.scrollLow {
+  bottom: var(--jeju-body-shift, 0px);
+}
+
+.scroll::-webkit-scrollbar {
+  width: 34.32px;
+}
+
+.scroll::-webkit-scrollbar-thumb {
+  background: var(--kiosk-primary, #ff7f0f);
+  border-radius: 17.16px;
+}
+
+.scroll::-webkit-scrollbar-track {
+  background: transparent;
+}
+
 /* ── Empty state (no item in the store) ── */
 .empty {
   position: absolute;
