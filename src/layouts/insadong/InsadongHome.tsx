@@ -109,17 +109,20 @@ function parseNotice(text: string): Run[][] {
   return lines;
 }
 
-/** K-DRAMA promo button label. Hardcoded because the sheet key
- *  (MainButton_Promotion) has no en/ja/zh values yet. */
+/** Promo (K-DRAMA slot) button label — base word only, since `withComingSoon`
+ *  appends the (준비중) marker per language. Hardcoded rather than read from
+ *  MainButton_Promotion: that row still holds the old 취사병 drama title, while
+ *  the tile now reads 프로모션. Wording matches Localization_Jeju's own
+ *  MainButton_Promotion row, minus its baked-in suffix. */
 const KDRAMA_LABEL: Partial<Record<Lang, string>> = {
-  ko: '취사병 전설이 되다',
-  en: 'Cook Soldier: Legend',
-  ja: '炊事兵、伝説になる',
-  zh: '炊事兵成为传说',
-  vi: 'Anh nuôi trở thành huyền thoại',
-  th: 'พลทหารครัวสู่ตำนาน',
-  ru: 'Повар-солдат: легенда',
-  id: 'Prajurit Juru Masak Jadi Legenda',
+  ko: '프로모션',
+  en: 'PROMOTION',
+  ja: 'PROMOTION',
+  zh: '促销活动',
+  vi: 'CHƯƠNG TRÌNH KHUYẾN MÃI',
+  th: 'โปรโมชั่น',
+  ru: 'АКЦИЯ',
+  id: 'PROMOSI',
 };
 
 /** Search field placeholder per language. */
