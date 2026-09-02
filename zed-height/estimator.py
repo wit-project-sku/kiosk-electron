@@ -34,6 +34,7 @@ from dataclasses import dataclass
 import numpy as np
 
 from geometry import (
+    strip_vertical_planes,
     HEAD_SLAB_FRACTION,
     MAX_BODY_M,
     MIN_BODY_M,
@@ -249,8 +250,17 @@ def find_subjects(
     if not body.any():
         return []
 
-    xy = frame.floor_xy(points[body])
-    h = heights[body]
+    # Take the walls out before clustering. Without this a visitor standing in
+    # front of one is flood-filled into it and the pair is rejected as too wide
+    # — the room, not the person, becomes the cluster. See strip_vertical_planes.
+    body_points = points[body]
+    standing = strip_vertical_planes(body_points, frame.normal)
+    body_points = body_points[standing]
+    if len(body_points) == 0:
+        return []
+
+    xy = frame.floor_xy(body_points)
+    h = heights[body][standing]
 
     # The camera sits at the origin, so its own floor projection is (0, 0) and
     # radial distance in the floor plane is simply the norm. Rotation-agnostic:

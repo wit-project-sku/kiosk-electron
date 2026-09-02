@@ -293,3 +293,50 @@ def test_a_visitor_standing_near_a_desk_is_the_one_measured():
     subjects = find_subjects(frame, cam, *ZONE)
     assert len(subjects) == 1
     assert subjects[0].height_m == pytest.approx(1.79, abs=0.03)
+
+
+@pytest.mark.parametrize("gap_m", [0.25, 0.4, 0.7])
+def test_a_visitor_standing_close_to_a_wall_is_still_found(gap_m):
+    """The failure that made the kiosk see nobody at all.
+
+    Clustering flood-fills through anything touching anything, so a visitor in
+    front of a wall becomes one blob with it — a live test produced a single
+    cluster 3.9 m wide and rejected the person as "too wide". Narrowing the zone
+    cannot help: the wall is AT the visitor's distance, which is the whole point
+    of standing in front of it. Only removing the plane separates them.
+    """
+    rng = np.random.default_rng(61)
+    cam, frame = build(
+        rng,
+        person(rng, height_m=1.79),
+        wall(rng, distance_m=gap_m),
+    )
+    subjects = find_subjects(frame, cam, *ZONE)
+    assert len(subjects) == 1
+    assert subjects[0].height_m == pytest.approx(1.79, abs=0.03)
+
+
+def test_a_visitor_with_arms_out_is_not_mistaken_for_a_wall():
+    """Wall removal must not delete a person who happens to be flat-ish.
+
+    A plane sliced through a torso collects thousands of points, so inlier count
+    alone would strip the visitor. Width is what distinguishes them.
+    """
+    rng = np.random.default_rng(62)
+    cam, frame = build(rng, person(rng, height_m=1.72, raised_arm_to=1.95))
+    subjects = find_subjects(frame, cam, *ZONE)
+    assert len(subjects) == 1
+    assert subjects[0].height_m == pytest.approx(1.72, abs=0.03)
+
+
+def test_two_visitors_in_front_of_a_wall_are_both_found():
+    rng = np.random.default_rng(63)
+    cam, frame = build(
+        rng,
+        person(rng, height_m=1.81, centre_xy=(-0.4, 0.0)),
+        person(rng, height_m=1.58, centre_xy=(0.4, 0.0)),
+        wall(rng, distance_m=0.5),
+    )
+    subjects = find_subjects(frame, cam, *ZONE)
+    assert len(subjects) == 2
+    assert sorted(round(s.height_m, 2) for s in subjects) == pytest.approx([1.58, 1.81], abs=0.03)

@@ -168,6 +168,108 @@ def fit_plane_ransac(
     return normal, -float(normal @ centroid)
 
 
+# How wide a vertical plane must run before it counts as a wall rather than a
+# slice through somebody. Shoulders are ~0.5 m and a person with arms out
+# reaches ~1.6 m, but only a wall stays flat across that span — an outstretched
+# arm curves away from any plane through the torso long before this.
+MIN_WALL_WIDTH_M = 1.8
+
+
+def strip_vertical_planes(
+    points: np.ndarray,
+    up: np.ndarray,
+    max_planes: int = 3,
+    tolerance_m: float = 0.05,
+    min_inliers: int = 1500,
+    max_tilt_deg: float = 25.0,
+    rng: np.random.Generator | None = None,
+) -> np.ndarray:
+    """Drop points lying on wall-like planes. Returns a boolean keep-mask.
+
+    ── Why clustering alone cannot work indoors ───────────────────────────
+    Visitors are found by flood-filling occupied floor cells, and that chains
+    through anything touching anything. In a real room the back wall, the
+    furniture against it and the person standing in front are one connected
+    blob: a live test at 2.2-2.8 m produced a single cluster 3.9 m wide, so the
+    visitor was rejected as "too wide" and the kiosk saw nobody at all.
+
+    Tightening the zone does not help — the wall is AT the visitor's distance,
+    which is rather the point of standing in front of it.
+
+    What separates them is shape, not position. A wall is a plane; a person is
+    not. Removing the large vertical planes first leaves the visitor standing
+    alone, whatever they are standing against.
+
+    Only BIG planes are removed (`min_inliers`), so a person's back does not
+    qualify — flat-ish over a few thousand points at close range, but never over
+    the tens of thousands a wall carries.
+    """
+    if len(points) < min_inliers:
+        return np.ones(len(points), dtype=bool)
+
+    rng = rng or np.random.default_rng(0)
+    up = np.asarray(up, dtype=float)
+    up = up / np.linalg.norm(up)
+    max_cos = np.cos(np.deg2rad(90.0 - max_tilt_deg))
+
+    keep = np.ones(len(points), dtype=bool)
+    for _ in range(max_planes):
+        live = np.flatnonzero(keep)
+        if live.size < min_inliers:
+            break
+
+        # Score candidates on a subsample. Walls are the biggest thing in the
+        # scene by a wide margin, so they are found just as reliably from a
+        # tenth of the points, and the full pass costs 10x more per candidate.
+        sample = live[:: max(live.size // 20000, 1)]
+        subset = points[sample]
+
+        best_normal: np.ndarray | None = None
+        best_count = 0
+        for _ in range(60):
+            idx = rng.choice(len(subset), size=3, replace=False)
+            a, b, c = subset[idx]
+            normal = np.cross(b - a, c - a)
+            norm = np.linalg.norm(normal)
+            if norm < 1e-9:
+                continue
+            normal = normal / norm
+            # Vertical means the normal is perpendicular to up.
+            if abs(float(normal @ up)) > max_cos:
+                continue
+            offset = -float(normal @ a)
+            count = int((np.abs(subset @ normal + offset) < tolerance_m).sum())
+            if count > best_count:
+                best_count, best_normal, best_offset = count, normal, offset
+
+        if best_normal is None:
+            break
+        # Scale the subsample's verdict back up before deciding it is a wall.
+        if best_count * (live.size / len(subset)) < min_inliers:
+            break
+
+        on_plane = np.abs(points[live] @ best_normal + best_offset) < tolerance_m
+        inliers = points[live[on_plane]]
+        if len(inliers) < min_inliers:
+            break
+
+        # ── The test that matters: how WIDE is it? ────────────────────────
+        # Point count alone cannot tell a wall from a person. A plane sliced
+        # through a torso collects a broad band of its surface — easily
+        # thousands of points — and stripping those deletes the visitor, which
+        # is exactly what happened when this was first written. A wall runs for
+        # metres; a body is half a metre across at the shoulders.
+        sideways = np.cross(up, best_normal)
+        sideways /= np.linalg.norm(sideways)
+        span = float(np.ptp(inliers @ sideways))
+        if span < MIN_WALL_WIDTH_M:
+            break
+
+        keep[live[on_plane]] = False
+
+    return keep
+
+
 def orient_up(normal: np.ndarray, offset: float, gravity: np.ndarray | None = None) -> FloorFrame:
     """Point the plane's normal at the sky.
 
