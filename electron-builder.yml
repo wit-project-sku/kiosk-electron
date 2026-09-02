@@ -46,9 +46,34 @@ extraResources:
   # Per-machine kiosk provisioning helper (sets electron-store kioskId).
   - from: provision-kiosk.ps1
     to: provision-kiosk.ps1
+  # 키 측정 — the 제주 ZED height sidecar (see ZedSidecarManager).
+  #
+  # MUST be extraResources, not `files`. It is run by a real Python interpreter,
+  # and Python cannot open a path inside app.asar — that virtual path only means
+  # anything to Electron's own patched fs. The ZED SDK and pyzed it needs are
+  # NOT bundled: ~1.2 GB of CUDA is a per-machine provisioning step, so this
+  # ships to every kiosk and simply never starts on the ones without them.
+  - from: zed-height
+    to: zed-height
+    filter:
+      - '**/*.py'
+      - README.md
+      # The local dev virtualenv is thousands of site-package .py files that
+      # '**/*.py' would otherwise sweep into the installer. A kiosk uses the
+      # system Python the ZED SDK installed pyzed into, never this — and
+      # ZedSidecarManager only prefers a .venv when one exists on disk, so its
+      # absence here is what makes a packaged build fall through to that
+      # system interpreter.
+      - '!.venv'
+      - '!.venv/**'
+      - '!**/__pycache__'
+      - '!**/__pycache__/**'
   # OS-level touch/kiosk lockdown (disables edge-swipe, Win key, Task Manager).
   - from: scripts/lockdown-kiosk.ps1
     to: lockdown-kiosk.ps1
+  # 제주 ZED setup check + floor calibration, run by hand at a venue install.
+  - from: scripts/provision-zed.ps1
+    to: provision-zed.ps1
   - from: secrets
     to: secrets
 

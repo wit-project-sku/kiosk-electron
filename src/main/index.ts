@@ -252,6 +252,17 @@ async function bootstrap(): Promise<void> {
   // later uploads the whole backlog on the first night.
   container.footfallUploader.start();
 
+  // 키 측정 — the headless ZED height sidecar. 제주 only; the service checks the
+  // layout itself and does nothing anywhere else, so there is no condition here
+  // to keep in sync with one inside it. Best-effort in every direction: a
+  // missing ZED SDK, an unplugged camera or a crashed child costs a null height
+  // and never touches the photo flow.
+  container.height.start();
+  // 키 측정 rows are one per capture, so unlike 유동인구's hourly buckets they grow
+  // with how busy the kiosk is. Pruned on the same 02:00 pass that refreshes
+  // content, rather than on a scheduler of its own.
+  container.sync.addNightTask(() => container.height.pruneOldMeasurements());
+
   // Refresh sheet content into SQLite in the background on every launch (in
   // addition to the 02:00 night sync). The current window already rendered from
   // the last-synced/bundled data; the next bootstrap picks up these results.
@@ -324,6 +335,9 @@ app.on('before-quit', () => {
     // would drop up to a minute of 유동인구 every single night.
     getContainer().footfall.stop();
     getContainer().footfallUploader.stop();
+    // Kills the Python child. Without this it outlives the app and keeps the
+    // ZED open, so the next launch cannot claim the camera.
+    getContainer().height.stop();
   } catch {
     // Container may not exist if startup failed; ignore.
   }

@@ -71,20 +71,35 @@ export interface KioskLocation {
   /** Weather coordinates for this physical location (OpenWeatherMap query). */
   coordinates: GeoCoordinates;
   /**
-   * Degrees CLOCKWISE the raw camera frame must be turned to stand upright.
-   *
-   * The 제주 kiosks' cameras are MOUNTED SIDEWAYS (2026-08-24): the sensor
-   * delivers a 16:9 landscape frame whose content is rotated, and turning it
-   * 90° yields the true 9:16 portrait stream the second screen shows. The
-   * Insadong/오색/화성 machines mount theirs upright, so this is per-venue —
-   * NOT a fleet constant (it briefly was one, `PHOTO_CAMERA_ROTATION`, which
-   * rotated every venue's feed; reverted 2026-08-26).
+   * Degrees CLOCKWISE the APP must turn the raw camera frame to stand upright.
    *
    * One value drives BOTH consumers, which must never disagree:
    *   · the live preview  (JejuCameraGuide .feed)
    *   · the captured JPEG (useKioskCamera.capture) — the AR API must receive
    *     the upright photo, not the raw sideways frame
-   * A camera mounted the other way round is 270; upright is 0.
+   *
+   * ── 제주 is 0 even though its cameras are mounted sideways ─────────────
+   * The 제주 Elgatos are mounted rotated 90°, but the rotation is applied in
+   * WINDOWS (Settings > Bluetooth & devices > Cameras), so the driver already
+   * hands over an upright portrait frame — 1080x1920 rather than 1920x1080.
+   * Rotating again here would turn it a second time and land every AR photo on
+   * its side. Exactly one of the two may rotate, and as of 2026-09-02 that is
+   * the driver (changed from 90 on the operator's decision).
+   *
+   * THE COST OF THAT CHOICE, so it is not a surprise later: this value ships
+   * with the build, the Windows setting does not. A driver update, an OS
+   * reimage or a swapped camera silently drops the rotation, and the symptom is
+   * sideways photos with no code change to blame. If a 제주 kiosk starts
+   * producing sideways AR results, check the camera's rotation in Windows
+   * BEFORE looking anywhere else.
+   *
+   * ── And never rotate the ZED ──────────────────────────────────────────
+   * The same Windows setting exists for the ZED 2i and must stay at 0. It does
+   * not turn that camera, it restacks the two stereo eyes in the buffer
+   * (2560x720 side by side becomes 720x2560 stacked), and the ZED SDK can then
+   * no longer split them: it refuses the device outright with CAMERA NOT
+   * DETECTED. The height pipeline needs no rotation of any kind — it derives
+   * up from the fitted floor plane. See zed-height/README.md.
    */
   cameraRotation: 0 | 90 | 180 | 270;
   /**
@@ -164,7 +179,7 @@ export const KIOSK_LOCATIONS: Record<KioskLocationCode, KioskLocation> = {
   // then it sent 인사('2'), so 같이찍기 photos composited the Insadong character
   // while the screen next to them said "사진촬영 (with '하영')" — the UI has always
   // promised 하영 (see Photo_SelectTogether and the two 하영 home tiles).
-  W006: { code: 'W006', name: '제주공항', layout: 'JEJU_AIRPORT', secondTile: MARKET_TILE, hasCardTerminal: true, hasDonation: true, aiCompanion: '5', coordinates: JEJU_AIRPORT_COORDS, cameraRotation: 90 },
+  W006: { code: 'W006', name: '제주공항', layout: 'JEJU_AIRPORT', secondTile: MARKET_TILE, hasCardTerminal: true, hasDonation: true, aiCompanion: '5', coordinates: JEJU_AIRPORT_COORDS, cameraRotation: 0 },
   // 제주국제여객터미널 W007 — the CMS name is `#W007-제주시=제주국제여객터미널`. It runs
   // the SAME design as 제주공항: one JEJU_AIRPORT layout, one Localization_Jeju tab,
   // the same 하영 mascot rows, the same 310-row 제주 shop catalogue.
@@ -178,7 +193,7 @@ export const KIOSK_LOCATIONS: Record<KioskLocationCode, KioskLocation> = {
   // catalogue as 6/8; the plain W-code number (7) is right for this terminal.
   // `aiCompanion` is 하영('5'), exactly like W006 — same venue mascot, same
   // Localization_Jeju rows, and the two were always meant to move together.
-  W007: { code: 'W007', name: '제주국제여객터미널', layout: 'JEJU_AIRPORT', secondTile: MARKET_TILE, hasCardTerminal: true, hasDonation: true, aiCompanion: '5', coordinates: JEJU_TERMINAL_COORDS, cameraRotation: 90 },
+  W007: { code: 'W007', name: '제주국제여객터미널', layout: 'JEJU_AIRPORT', secondTile: MARKET_TILE, hasCardTerminal: true, hasDonation: true, aiCompanion: '5', coordinates: JEJU_TERMINAL_COORDS, cameraRotation: 0 },
   // 세계자연유산본부 W008 — the CMS name is `#W008-제주시=세계자연유산본부` (the sheet's
   // 비고 column calls the venue 제주유산문화센터). Same 제주 design, but its OWN
   // JEJU_HERITAGE layout because its mascot is 유산, not 하영 — the shared
@@ -203,7 +218,7 @@ export const KIOSK_LOCATIONS: Record<KioskLocationCode, KioskLocation> = {
   // (LocalizationSyncParser.VENUE_MASCOTS rewrites every 하영 row to 유산), so
   // compositing 하영 would contradict the one rule this layout exists to enforce.
   // Revisit when Digicon ships a 유산 code.
-  W008: { code: 'W008', name: '세계자연유산본부', layout: 'JEJU_HERITAGE', secondTile: MARKET_TILE, hasCardTerminal: true, hasDonation: true, aiCompanion: '2', coordinates: JEJU_HERITAGE_COORDS, cameraRotation: 90 },
+  W008: { code: 'W008', name: '세계자연유산본부', layout: 'JEJU_HERITAGE', secondTile: MARKET_TILE, hasCardTerminal: true, hasDonation: true, aiCompanion: '2', coordinates: JEJU_HERITAGE_COORDS, cameraRotation: 0 },
   // KADA W202 — Korea-ASEAN Digital Academy, Vietnam Chapter (PTIT, Hà Nội).
   //
   // The first NON-KOREAN deployment, and the first that is not a tourism kiosk.
