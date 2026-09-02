@@ -41,9 +41,9 @@
     "footfall:selftest": "node scripts/footfall-selftest.mjs",
     "camera:selftest": "node scripts/camera-selftest.mjs",
     "height:selftest": "node scripts/height-selftest.mjs",
-    "height:test": "cd zed-height && python -m pytest tests -q",
-    "height:calibrate": "powershell -ExecutionPolicy Bypass -File scripts/provision-zed.ps1 -Calibrate",
-    "height:measure": "cd zed-height && python main.py --selftest"
+    "height:test": "node scripts/height-run.mjs --pytest",
+    "height:calibrate": "node scripts/height-run.mjs --calibrate",
+    "height:measure": "node scripts/height-run.mjs --selftest"
   },
   "dependencies": {
     "@fontsource/manuale": "^5.3.0",
