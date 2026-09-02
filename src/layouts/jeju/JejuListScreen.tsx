@@ -36,6 +36,7 @@ import {
   shopHashtag,
   shopImages,
   shopName,
+  shopOpenTime,
   shopSecondCategory,
   shopsForBase,
 } from '@renderer/lib/shops';
@@ -221,7 +222,7 @@ export function JejuListScreen({ screen, controller }: Props): JSX.Element {
       category: shopSecondCategory(shop, lang),
       photos: shopImages(shop),
       address: shopAddress(shop, lang),
-      hours: shop.openTime ?? '',
+      hours: shopOpenTime(shop.openTime),
       phone: shop.tel ?? '',
       description: shopDescription(shop, lang),
       tags: shopHashtag(shop, lang),
