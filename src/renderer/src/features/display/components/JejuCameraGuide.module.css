@@ -30,21 +30,25 @@
    "raise your RIGHT hand" points them the wrong way. The rotation half of the
    transform comes inline from the component, off the constant.
 
-   `contain`, NOT `cover`: the visitor must see themselves as the camera sees
-   them, because what they are looking at is a preview of the photo they are
-   about to have taken. `cover` crops whatever does not match the screen's
-   aspect, which zoomed the 제주 feed in and cut the edges off — and since the
-   overlay's pose figure is what tells them where to stand, a cropped preview
-   asks them to frame themselves against something that is not the frame. With
-   the Elgato portrait and the display portrait the two match anyway and nothing
-   is letterboxed; when they ever disagree, seeing the whole frame is the
-   behaviour that stays honest. */
+   `fill`, NOT `cover`: the frame is stretched to the screen's own width and
+   height, so the WHOLE frame is shown and none of it is cropped. `cover` (what
+   this was) crops whatever does not match the screen's aspect, which zoomed the
+   제주 feed in and cut the edges off — and since the overlay's pose figure is
+   what tells the visitor where to stand, a cropped preview asks them to frame
+   themselves against something that is not the frame.
+
+   `fill` distorts rather than letterboxes when the two aspects disagree. That
+   is the deliberate choice for a kiosk: the screen must be full, and a black
+   band down the side of a purpose-built display looks broken to a visitor in a
+   way that a couple of percent of stretch does not. Today it costs nothing —
+   the Elgato is portrait 1080x1920 and the display is portrait, so the aspects
+   already match and `fill` changes no pixel. */
 .feed {
   position: absolute;
   inset: 0;
   width: 100%;
   height: 100%;
-  object-fit: contain;
+  object-fit: fill;
 }
 
 /*
