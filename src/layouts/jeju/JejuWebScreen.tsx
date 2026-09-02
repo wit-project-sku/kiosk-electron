@@ -1,18 +1,22 @@
 /**
  * Embeds an existing website in the 제주 body region — Figma node 6050:149556
- * (위드마켓_01_상품 목록, "WIT Store").
+ * (위드마켓_01_상품 목록, "WIT Store") and 6493:118287 (탐나오&제주큐랑).
  *
- * The Figma renders the store site as a static mockup; at runtime it is a live
+ * The Figma renders each site as a static mockup; at runtime it is a live
  * <webview>, so none of the product grid / cart / 결제 UI is reimplemented here.
  * That UI belongs to witteria.com and changing it is a change to that site.
  *
- * Reusable for every 제주 webview screen (WIT Store today, 제주도 이벤트 next),
- * mirroring OsanWebScreen / HwaseongWebScreen.
+ * Two shapes, one component: one site filling the panel (WIT Store), or several
+ * behind a tab row (탐나오 / 제주큐랑). See `tabs`.
+ *
+ * Reusable for every 제주 webview screen, mirroring OsanWebScreen /
+ * HwaseongWebScreen.
  */
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import type { KioskController } from '@renderer/hooks/useKioskController';
 import { useLanguageStore } from '@renderer/store/languageStore';
 import { pick } from '@renderer/lib/i18n';
+import { trackEvent } from '@renderer/lib/analytics';
 import { jejuIconUrl } from '@renderer/assets/icons/jeju';
 import { JejuPageFrame } from './JejuPageFrame';
 import styles from './JejuWebScreen.module.css';
@@ -43,22 +47,48 @@ const EMBED_CHROME_CSS = [
   '::-webkit-scrollbar-corner{background:transparent}',
 ].join('');
 
+/** One embedded site. A screen draws a tab per entry once it has more than one. */
+export interface EmbedTab {
+  id: string;
+  /**
+   * Tab label. Left in Korean deliberately: 탐나오 and 제주큐랑 are the BRAND
+   * NAMES of two Korean sites, and this screen's header title has never been
+   * localized either (neither id is in i18n's TITLE_KEYS). A translated label
+   * would name something the visitor then cannot find on the site itself.
+   */
+  label: string;
+  url: string;
+}
+
 interface Props {
   controller: KioskController;
   /** Header title (Korean id — localized by JejuHeader). */
   title: string;
   /** Header subtitle; omit to fall back to the sheet. */
   subtitle?: string;
+  /** The single embedded site. Ignored when `tabs` is given. */
   url: string;
   /** Subtitle colour — WIT Store uses the store's brown. */
   subtitleColor?: string;
   /** Draw the ★ before the subtitle (WIT Store omits it). */
   subtitleStar?: boolean;
   /**
-   * 탐나오 only (6219:105645): the "모바일에서 확인하기" QR row under the panel,
-   * plus that frame's own panel metrics. One flag for both — see `.bodyTamnao`.
+   * 탐나오&제주큐랑 only (6516:71785): the "모바일에서 확인하기" QR row under the
+   * panel, plus that frame's own panel metrics. One flag for both — see
+   * `.bodyTamnao`.
    */
   showMobileQr?: boolean;
+  /**
+   * Two or more sites behind a tab row (6493:118322 — 탐나오 / 제주큐랑). The
+   * first entry is the landing tab. Omit for a one-site screen: WIT Store draws
+   * no row and its panel starts where its own frame puts it.
+   */
+  tabs?: readonly EmbedTab[];
+  /**
+   * Draw the bottom page banner. Off for the 탐나오&제주큐랑 frame, whose panel
+   * and QR row run to y3592 — past the y3267 the banner occupies.
+   */
+  showBanner?: boolean;
 }
 
 /**
@@ -88,16 +118,13 @@ const NO_URL = {
   id: 'Alamat situs web belum diatur',
 };
 
-export function JejuWebScreen({
-  controller,
-  title,
-  subtitle,
-  url,
-  subtitleColor,
-  subtitleStar,
-  showMobileQr = false,
-}: Props): JSX.Element {
-  const lang = useLanguageStore((s) => s.currentLanguage);
+/**
+ * One site's <webview>, with the chrome injection that has to be re-applied per
+ * document. Split out of JejuWebScreen so each tab owns its own element and its
+ * own effect — the alternative, swapping `src` on a single webview, makes the
+ * guest boot, fetch and repaint on every tab press while the visitor watches.
+ */
+function EmbedPane({ url, active }: { url: string; active: boolean }): JSX.Element {
   const webviewRef = useRef<WebviewEl | null>(null);
 
   // Re-applied per document: insertCSS lives only for the document that was
@@ -121,26 +148,80 @@ export function JejuWebScreen({
   }, []);
 
   return (
+    <div className={active ? styles.pane : styles.paneHidden}>
+      {/* `partition` keeps embedded sites in one persistent session, so a
+          cart/login survives navigating away and back. */}
+      {/* eslint-disable-next-line react/no-unknown-property */}
+      <webview
+        ref={webviewRef as unknown as React.Ref<HTMLElement>}
+        src={url}
+        partition="persist:embeds"
+        className={styles.embed}
+      />
+    </div>
+  );
+}
+
+export function JejuWebScreen({
+  controller,
+  title,
+  subtitle,
+  url,
+  subtitleColor,
+  subtitleStar,
+  showMobileQr = false,
+  tabs,
+  showBanner = true,
+}: Props): JSX.Element {
+  const lang = useLanguageStore((s) => s.currentLanguage);
+  /* One code path for both shapes: a screen without `tabs` is a screen with one
+     unlabelled site, and the row below only draws when there is a choice. */
+  const landing: EmbedTab = tabs?.[0] ?? { id: 'main', label: '', url };
+  const sites: readonly EmbedTab[] = tabs?.length ? tabs : [landing];
+  const [tab, setTab] = useState(landing.id);
+  /* Guard the id against a `tabs` list that changed under a stale selection, so
+     a mismatch falls back to the landing tab instead of hiding every pane. */
+  const active = sites.some((t) => t.id === tab) ? tab : landing.id;
+
+  /* `screen: 'tamnao'` because that is the only screen with a tab row — the row
+     does not draw at all without `tabs`. Give this a prop if a second one lands. */
+  const select = (id: string): void => {
+    trackEvent({
+      name: 'button_clicked',
+      payload: { screen: 'tamnao', tab: id, kioskId: controller.kioskId },
+    });
+    setTab(id);
+  };
+
+  return (
     <JejuPageFrame
       controller={controller}
       title={title}
       subtitle={subtitle}
       subtitleColor={subtitleColor}
       subtitleStar={subtitleStar}
+      showBanner={showBanner}
       bannerFallback="banner-detail"
       onBack={() => controller.navigate('home', '뒤로')}
     >
+      {sites.length > 1 && (
+        <div className={styles.tabs}>
+          {sites.map((t) => (
+            <button
+              key={t.id}
+              type="button"
+              className={`${styles.tab} ${t.id === active ? styles.tabActive : ''}`}
+              onClick={() => select(t.id)}
+            >
+              {t.label}
+            </button>
+          ))}
+        </div>
+      )}
+
       <div className={`${styles.body} ${showMobileQr ? styles.bodyTamnao : ''}`}>
-        {url ? (
-          // `partition` keeps embedded sites in one persistent session, so a
-          // cart/login survives navigating away and back.
-          // eslint-disable-next-line react/no-unknown-property
-          <webview
-            ref={webviewRef as unknown as React.Ref<HTMLElement>}
-            src={url}
-            partition="persist:embeds"
-            className={styles.embed}
-          />
+        {sites.some((t) => t.url) ? (
+          sites.map((t) => <EmbedPane key={t.id} url={t.url} active={t.id === active} />)
         ) : (
           <div className={styles.placeholder}>
             <p className={styles.placeholderTitle}>{title}</p>

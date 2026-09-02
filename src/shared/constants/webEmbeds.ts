@@ -31,8 +31,19 @@ export const WEB_EMBED_URLS = {
   /**
    * 탐나오 — 제주's public tourism platform (제주공공플랫폼), the 탐나오 home tile
    * on W006. Jeju-only: no other location has this screen.
+   *
+   * Since 6493:118287 that tile opens a TWO-TAB screen, so this is the FIRST tab
+   * only; `jejuqrang` below is the second. It briefly held jejuqrang.com, before
+   * the frame arrived showing both sites side by side.
    */
-  tamnao: 'https://jejuqrang.com/',
+  tamnao: 'https://www.tamnao.com/',
+
+  /**
+   * 제주큐랑 — the 제주관광협회's QR travel-info site, second tab of that screen.
+   * Mobile-first (its content column caps at 768px), so on the 1820px panel it
+   * paints a centred ribbon; the frame draws it that way too.
+   */
+  jejuqrang: 'https://jejuqrang.com/',
 
   /** 인사동 이벤트 — event listing */
   events: 'https://withevent.kr/kiosk/events?region=jongno&category=ALL&page=1',

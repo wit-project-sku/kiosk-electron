@@ -829,6 +829,62 @@
    사진촬영안내 card (`.guidePrivacy`), which every tab now draws — the 제주
    tab simply draws it lower. Both 2026-08-27 frames show it. */
 
+/* ── Left nav: home / back / accessibility (Figma 6530:10544 — x50;
+   y2043 / 2163 / 2283) ─────────────────────────────────────────────── */
+.leftNav {
+  position: absolute;
+  left: 50px;
+  top: 2043px;
+  width: 85px;
+  height: 205px;
+  z-index: 10;
+}
+
+.leftNavImg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  pointer-events: none;
+}
+
+.leftNavZone {
+  position: absolute;
+  left: 0;
+  width: 85px;
+  height: 85px;
+  padding: 0;
+  border: none;
+  background: none;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.leftNavHome { top: 0; }
+.leftNavBack { top: 120px; }
+
+.accessibility {
+  position: absolute;
+  left: 50px;
+  top: 2283px;
+  width: 85px;
+  height: 85px;
+  padding: 0;
+  border: none;
+  background: none;
+  cursor: pointer;
+  z-index: 10;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.accessibilityImg {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  pointer-events: none;
+}
+
 /* ── Banner ─────────────────────────────────────────────────────────── */
 .banner {
   position: absolute;

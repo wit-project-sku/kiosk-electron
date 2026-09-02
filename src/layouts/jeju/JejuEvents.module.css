@@ -72,12 +72,8 @@
 
 /* ── Category row (list tab) ──
    No longer a pill: Figma draws one centred 60px line, "전체 ㅣ 공연 ㅣ 전시 ㅣ
-   기타", with the picked label in Black/#FF7F0F and the rest SemiBold/#999. The
-   separators are literal ㅣ glyphs, and the design's spacing comes from runs of
-   spaces around them — reproduced as a 126px gap, measured to reconstruct the
-   design's 1326px line width out of Pretendard's actual advances (4 × 103.7 +
-   3 × 51.9 of glyph + 6 × 126 of gap). The row is centred, so the width only
-   has to be right for the ㅣ to land where the design puts them. */
+   기타", with the picked label in #FF7F0F / weight 900 and the rest
+   gray-07/#1A1A1A / weight 600. */
 .chips {
   position: absolute;
   left: 0;
@@ -88,6 +84,8 @@
   align-items: flex-start;
   justify-content: center;
   gap: 126px;
+  font-family: Pretendard, 'Noto Sans KR', sans-serif;
+  font-style: normal;
 }
 
 .chip,
@@ -95,11 +93,12 @@
   padding: 0;
   border: none;
   background: none;
+  font-family: inherit;
   font-size: 60px;
+  font-style: normal;
   font-weight: 600;
-  /* Figma's box is h72 on a 60px face — its `leading-normal`. */
-  line-height: 1.2;
-  color: #999;
+  line-height: normal;
+  color: #1a1a1a;
   white-space: nowrap;
 }
 
@@ -114,7 +113,12 @@
 }
 
 .chipActive {
+  font-family: inherit;
+  font-size: 60px;
+  font-style: normal;
   font-weight: 900;
+  line-height: normal;
+  text-align: center;
   color: var(--kiosk-primary, #ff7f0f);
 }
 
@@ -273,12 +277,19 @@
   -webkit-tap-highlight-color: transparent;
 }
 
-/* Selected state — Figma node 6052:45974, sampled from its render:
-   plate #F8ECDE, border + BOTH text colours #FF7F0F. The axis label turns
-   orange too, not just the letter. */
+/* Selected state.
+   6532:39157 draws it as a SOLID #FF7F0F plate with white type — the same move
+   every other picked control on 제주 has made (JejuPill's tabs, JejuListScreen's
+   chips, 지역화폐's two tabs), replacing the pale #F8ECDE-with-orange-rule look
+   the older 6052:45974 rendered. The border stays 5px and only changes colour so
+   the cell's outer box is byte-identical between states and nothing nudges when
+   a letter is picked.
+
+   This is NOT low-reach-only: it is one component with one look, and the frame
+   that redrew it happens to be the ♿ one. */
 .cellSelected {
   border-color: var(--kiosk-primary, #ff7f0f);
-  background: #f8ecde;
+  background: var(--kiosk-primary, #ff7f0f);
 }
 
 .letter {
@@ -297,7 +308,7 @@
 
 .cellSelected .letter,
 .cellSelected .axisLabel {
-  color: var(--kiosk-primary, #ff7f0f);
+  color: #fff;
 }
 
 /* ── CTA ── */
@@ -449,4 +460,73 @@
   line-height: 1.4;
   color: #909090;
   text-align: center;
+}
+
+/* ── ♿ 베리어프리 (low-reach) layout — Figma 6532:39157 ────────────────────
+ * The 2026-08-26 mode-bar shape: a 113px orange bar at y0, the 573 promo flush
+ * under it, and the header at 113 + 573 = 686 (JejuPageFrame's lowReachModeBar
+ * + lowReachBarBanner + lowReachShift={686} — the same trio 환율's calculator
+ * tab already passes). The page then lays its OWN body out, so every rule below
+ * is an absolute artboard coordinate, not an offset.
+ *
+ * The re-stack is the point of the variant: the tab row leaves the top of the
+ * page and goes to the BOTTOM, within reach of a seated visitor, and the MBTI
+ * content moves down with it — copy first, then the grid, then the button, all
+ * of them 900-1000px lower than the standing layout puts them.
+ *
+ * ★ FROM THE FRAME: the tab row (3439), and the MBTI tab's copy (1415), grid
+ *   (2147) and button (2987). Sizes and gaps are unchanged from the standing
+ *   layout, which is what the frame draws too — only the tops move.
+ * ★ DERIVED, NO FRAME YET: the 제주도 (list) tab. 6532:39157 is the MBTI tab
+ *   only, and the list tab needs an answer because the header moving to 686
+ *   would otherwise land on top of it.
+ *
+ *   The CATEGORY ROW GOES DOWN TOO. It is the page's inner tab row — 전체 ㅣ
+ *   공연 ㅣ 전시 ㅣ 기타, one tap per category — so leaving it at the top while
+ *   the main tabs sit at the foot would strand half of this tab's controls out
+ *   of reach and split one act of choosing across the height of a 4K panel.
+ *   It lands 50px under the main row (3609 + 50 = 3659), which is exactly the
+ *   gap the standing layout puts between the two (869 -> 919), so the pair
+ *   reads as one block and keeps its reading order: outer tabs, then inner.
+ *
+ *   That frees the whole middle for the list, which keeps its standing 1782
+ *   height and is placed to end 100px clear of the main row (1557 + 1782 =
+ *   3339). Replace these two numbers with the list tab's own frame the moment
+ *   it exists.
+ */
+.tabsLow {
+  left: 483.5px;
+  top: 3439px;
+  width: 1193px;
+  gap: 63px;
+}
+
+.chipsLow {
+  top: 3659px;
+}
+
+/* Height deliberately NOT overridden — the standing 1782 still fits between the
+   header (ends 1386) and the main tab row (3439), so the list shows the same
+   number of rows in both layouts. */
+.listScrollLow {
+  top: 1557px;
+}
+
+.descLow {
+  top: 1415px;
+}
+
+.gridLow {
+  top: 2147px;
+}
+
+.ctaLow {
+  top: 2987px;
+}
+
+/* The dim stops at 3267 in the standing layout because nothing is tappable
+   below it. In ♿ the tab row is — at 3439 — so the dim has to reach the foot of
+   the artboard or the modal would sit over a live control. */
+.overlayLow {
+  height: 3840px;
 }

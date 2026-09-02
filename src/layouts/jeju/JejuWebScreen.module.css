@@ -18,26 +18,86 @@
 }
 
 /*
- * 탐나오 (6219:105645) draws the same panel to its own numbers: 699 rather than
- * 700, 2291 tall rather than 2250, and rounded 63. The extra height is not free
- * space — that frame ends at 2990 and puts a QR row at 3008, where WIT Store
- * simply stops at 2950. Same flag drives both, because in the frame they are
- * one composition.
+ * 탐나오&제주큐랑 (6493:118287, the redraw of 6219:105645) draws the same panel
+ * to its own numbers: 2291 tall rather than 2250, rounded 63, and pushed down to
+ * 973 to clear the tab row this frame adds at 700. The extra height is not free
+ * space — the panel ends at 3264 and the QR row follows at 3373, where WIT Store
+ * simply stops at 2950. Same flag drives both, because in the frame they are one
+ * composition.
+ *
+ * 973 + 2291 + the QR row = 3592, past the y3267 a page banner would occupy,
+ * which is why this screen passes showBanner={false} — see JejuWebScreen. That
+ * also makes ♿ a no-op here (JejuPageFrame only re-stacks pages that HAVE a
+ * banner), which is correct: shifting this layout down 573 would run it off the
+ * 3840 artboard. Its low-reach frame is still to come from Figma.
  */
 .bodyTamnao {
-  top: 699px;
+  top: 973px;
   height: 2291px;
   border-radius: 63px;
 }
 
+/* ── Tab row — 6493:118322 ──
+   탐나오 leads; 제주큐랑 is second. The frame puts the 1360-wide row at x429,
+   29px right of centre; drawn CENTRED (x400) on purpose, exactly as
+   JejuLocalpay normalises the same 29px drift its own tab frames carry — the
+   two pages draw the identical component and must not disagree. */
+.tabs {
+  position: absolute;
+  left: 400px;
+  top: 700px;
+  width: 1360px;
+  height: 170px;
+  display: flex;
+  align-items: center;
+  gap: 200px;
+}
+
+.tab {
+  composes: pill from './JejuPill.module.css';
+  width: 580px;
+}
+
+/* Picked: the solid brand plate with white Bold type (6493:118325) — the same
+   treatment JejuLocalpay's tabs take, NOT JejuPill's pale pillActive. */
+.tabActive {
+  border: none;
+  background: var(--kiosk-primary, #ff7f0f);
+  font-weight: 700;
+  color: #fff;
+}
+
+/*
+ * One pane per tab. Every site stays MOUNTED so switching is instant — a
+ * <webview> whose src changes has to boot, fetch and paint from scratch and the
+ * visitor watches it happen. The inactive pane collapses to 0×0 rather than
+ * `visibility: hidden`: Electron's webview paints at the OS compositor level
+ * and BLEEDS THROUGH CSS visibility on its parent. Same reason JejuKiosk hides
+ * whole screens this way.
+ */
+.pane {
+  position: absolute;
+  inset: 0;
+}
+
+.paneHidden {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 0;
+  height: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+
 /* ── "모바일에서 확인하기" QR row — 6352:144525 ────────────────────────────
-   Sits between the panel (ends 2990) and the banner (3267). Not interactive:
-   the QR is something the visitor points a phone at, and the kiosk has no
-   larger view of it to open. */
+   Sits under the panel, which now ends at 3264. Nothing follows it — this
+   frame has no banner. Not interactive: the QR is something the visitor points
+   a phone at, and the kiosk has no larger view of it to open. */
 .qrRow {
   position: absolute;
   left: 252px;
-  top: 3008px;
+  top: 3373px;
   width: 1820px;
   height: 219px;
 }

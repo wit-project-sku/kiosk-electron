@@ -116,6 +116,12 @@ export function JejuDetail({ controller }: Props): JSX.Element {
       <JejuPageFrame
         controller={controller}
         title="상세"
+        /* Same description the loaded page carries. Without it this state fell
+           through to JejuHeader's generic line — 상세 is not in TITLE_KEYS (it is
+           Insadong's and 오산's header id too, so a shared mapping would light up
+           their detail pages as well), and resolving it here keeps the key on
+           the one page it was written for. */
+        subtitle={detailSubtitle(lang)}
         showBanner={false}
         onBack={goBack}
         lowReachModeBar

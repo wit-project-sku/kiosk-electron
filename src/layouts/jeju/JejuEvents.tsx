@@ -22,6 +22,7 @@ import { EventDetailScreen } from '@layouts/components/EventDetailScreen';
 import { useLang } from '@renderer/lib/i18n';
 import type { Lang } from '@renderer/lib/i18n';
 import { sheetText, t } from '@renderer/lib/loc';
+import { useAccessibilityStore } from '@renderer/store/accessibilityStore';
 import { JejuPageFrame } from './JejuPageFrame';
 import styles from './JejuEvents.module.css';
 
@@ -138,6 +139,13 @@ export function JejuEvents({ controller }: Props): JSX.Element {
   const axisLabels = useMemo(() => mbtiLabels(lang), [lang]);
   const [status, setStatus] = useState<'idle' | 'loading' | 'results'>('idle');
   const [results, setResults] = useState<EventRecommendation[]>([]);
+  /* ♿ re-lays this page out rather than shifting it — the tab row moves to the
+     foot of the artboard and the MBTI content follows it down — so almost every
+     positioned element takes a second class. See the low-reach block at the end
+     of JejuEvents.module.css for the y map. */
+  const lowReach = useAccessibilityStore((s) => s.lowReach);
+  /* Params are optional because CSS Module lookups are typed `string | undefined`. */
+  const low = (base?: string, alt?: string): string => `${base ?? ''} ${lowReach ? alt ?? '' : ''}`;
 
   const isMbti = tab === 'MBTI';
   // Passing a null region on the MBTI tab skips the fetch entirely.
@@ -188,8 +196,14 @@ export function JejuEvents({ controller }: Props): JSX.Element {
       title="제주도 이벤트"
       bannerFallback="banner-detail"
       onBack={goBack}
+      /* ♿ 6532:39157: the mode-bar shape with the promo KEPT under the bar, so
+         the header lands at 113 + 573 = 686. The body shift stays 0 — this page
+         positions its own low-reach body (see the CSS). */
+      lowReachModeBar
+      lowReachBarBanner
+      lowReachShift={686}
     >
-      <div className={styles.tabs}>
+      <div className={low(styles.tabs, styles.tabsLow)}>
         {TABS.map((tb) => (
           <button
             key={tb.id}
@@ -207,7 +221,7 @@ export function JejuEvents({ controller }: Props): JSX.Element {
           {/* One centred line, "전체 ㅣ 공연 ㅣ 전시 ㅣ 기타" — the ㅣ separators
               are real glyphs in the design, drawn between the labels rather
               than as a border, so they are rendered as inert spans. */}
-          <div className={styles.chips}>
+          <div className={low(styles.chips, styles.chipsLow)}>
             {CATEGORY_TABS.map((c, i) => (
               <Fragment key={c.value}>
                 {i > 0 && <span className={styles.chipSep}>ㅣ</span>}
@@ -235,7 +249,7 @@ export function JejuEvents({ controller }: Props): JSX.Element {
               <EventDetailScreen eventId={detailId} accent="#ff7f0f" />
             </div>
           ) : (
-            <div className={styles.listScroll}>
+            <div className={low(styles.listScroll, styles.listScrollLow)}>
               <div className={styles.list}>
                 {items.map((event) => (
                   <button
@@ -267,7 +281,7 @@ export function JejuEvents({ controller }: Props): JSX.Element {
         </>
       ) : (
         <>
-          <div className={styles.grid}>
+          <div className={low(styles.grid, styles.gridLow)}>
             {MBTI_GRID.map((letter) => (
               <button
                 key={letter}
@@ -282,12 +296,16 @@ export function JejuEvents({ controller }: Props): JSX.Element {
           </div>
 
           {status === 'loading' ? (
-            <div className={`${styles.cta} ${styles.ctaLoading}`}>
+            <div className={`${low(styles.cta, styles.ctaLow)} ${styles.ctaLoading}`}>
               <span className={styles.spinner} />
               결과 로딩중..
             </div>
           ) : (
-            <button type="button" className={styles.cta} onClick={() => void getResults()}>
+            <button
+              type="button"
+              className={low(styles.cta, styles.ctaLow)}
+              onClick={() => void getResults()}
+            >
               {sheetText('Event_MBTI_results', lang, { ko: '추천 결과 보기' })}
             </button>
           )}
@@ -298,7 +316,7 @@ export function JejuEvents({ controller }: Props): JSX.Element {
               reconstructed: the phrase moves inside the sentence in every other
               language, so locating it would be a guess. Korean-only copy in all
               eight languages was the worse trade. */}
-          <p className={styles.desc}>
+          <p className={low(styles.desc, styles.descLow)}>
             {[
               sheetText('Event_MBTI_guide1', lang, {
                 ko: 'MBTI 성향과 취향을 반영해<br/>제주도 이벤트를 맞춤 추천해드립니다!',
@@ -327,7 +345,11 @@ export function JejuEvents({ controller }: Props): JSX.Element {
           {status === 'results' && (
             // Figma node 6173:100721 — two columns and no close button, so
             // tapping the dim is the only dismiss, as designed.
-            <div className={styles.overlay} role="presentation" onClick={() => setStatus('idle')}>
+            <div
+              className={low(styles.overlay, styles.overlayLow)}
+              role="presentation"
+              onClick={() => setStatus('idle')}
+            >
               <div className={styles.modal} onClick={(e) => e.stopPropagation()}>
                 {results.length > 0 ? (
                   <>

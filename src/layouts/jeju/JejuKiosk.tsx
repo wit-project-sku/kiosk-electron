@@ -37,7 +37,7 @@ import { JejuAbout } from './JejuAbout';
 import { JejuHello } from './JejuHello';
 import { JejuHelp } from './JejuHelp';
 import { JejuLocalpay } from './JejuLocalpay';
-import { JejuWebScreen } from './JejuWebScreen';
+import { JejuWebScreen, type EmbedTab } from './JejuWebScreen';
 import { JejuEvents } from './JejuEvents';
 import { JejuFlights } from './JejuFlights';
 import { JejuCruise } from './JejuCruise';
@@ -61,7 +61,9 @@ const PHOTO_THEME = {
  * its site from scratch. Mounting one only when its screen is current means the
  * visitor taps the tile and stares at an empty panel while that happens; the
  * other kiosks keep it in the DOM from boot so the site is already painted when
- * they arrive. Two guests run here (witteria + tamnao), both idle after load.
+ * they arrive. Three guests run here (witteria + tamnao + jejuqrang — the last
+ * two are the tabs of one screen, and both stay mounted so switching tabs does
+ * not restart a guest), all idle after load.
  */
 interface WebScreen {
   screen: Extract<KioskScreenId, 'market' | 'tamnao'>;
@@ -72,8 +74,12 @@ interface WebScreen {
   subtitle?: string;
   subtitleColor?: string;
   subtitleStar?: boolean;
-  /** 탐나오 only — the QR row + that frame's panel metrics. */
+  /** 탐나오&제주큐랑 only — the QR row + that frame's panel metrics. */
   showMobileQr?: boolean;
+  /** Several sites behind a tab row — see JejuWebScreen's `tabs`. */
+  tabs?: readonly EmbedTab[];
+  /** Off for a frame whose content runs past the banner at y3267. */
+  showBanner?: boolean;
 }
 
 const WEB_SCREENS: readonly WebScreen[] = [
@@ -88,16 +94,25 @@ const WEB_SCREENS: readonly WebScreen[] = [
     subtitleStar: false,
   },
   {
-    // 탐나오 (제주공공플랫폼) — the same treatment WIT Store gets: the live site
-    // in a <webview> under 제주's own header/nav/banner. No subtitle is passed:
-    // 탐나오 has no SubHeader_* row in Localization_Jeju, and JejuHeader hides
-    // the row when neither a prop nor the sheet supplies one.
+    // 탐나오&제주큐랑 — the same treatment WIT Store gets: the live sites in a
+    // <webview> under 제주's own header/nav. 6493:118287 turned what was one
+    // 탐나오 page into a two-tab one, so the header title is the pair and the
+    // tile still opens on 탐나오. No subtitle is passed: neither site has a
+    // SubHeader_* row in Localization_Jeju, and JejuHeader falls back to the
+    // frame's own 페이지 설명문 placeholder, which is what 6493:118287 draws.
     screen: 'tamnao',
     url: WEB_EMBED_URLS.tamnao,
-    title: '탐나오',
-    // 6219:105645 hangs a "모바일에서 확인하기" QR under the panel so a visitor
+    title: '탐나오&제주큐랑',
+    tabs: [
+      { id: 'tamnao', label: '탐나오', url: WEB_EMBED_URLS.tamnao },
+      { id: 'jejuqrang', label: '제주큐랑', url: WEB_EMBED_URLS.jejuqrang },
+    ],
+    // 6516:71785 hangs a "모바일에서 확인하기" QR under the panel so a visitor
     // can carry the site away on their phone. WIT Store's frame has no such row.
     showMobileQr: true,
+    // The panel (973 + 2291) and that QR row end at y3592, so there is no room
+    // left for the y3267 banner — and 6493:118287 draws none.
+    showBanner: false,
   },
 ];
 
@@ -156,9 +171,13 @@ export function JejuKiosk(): JSX.Element {
   ) : cur === 'hello' ? (
     <JejuHello controller={controller} />
   ) : cur === 'help' || cur === 'restroom' ? (
-    // 화장실 has no screen of its own: the home button opens 도와줘 '하영' with the
-    // 화장실 chip already lit, which is that page's first category anyway.
-    <JejuHelp controller={controller} initialCategory={cur === 'restroom' ? '화장실' : undefined} />
+    // 화장실 has no screen of its own: the home button opens 도와줘 '하영'. It used
+    // to arrive with the 화장실 chip already lit, but that chip is gone — the row
+    // is now exactly AirportFacilityData_Jeju's BaseCategory values and the sheet
+    // carries no 화장실 rows (see lib/airportFacilities). Passing it would resolve
+    // to the first chip anyway, so it is not passed: the page opens plain, and
+    // this becomes `initialCategory="화장실"` again the day the sheet lists them.
+    <JejuHelp controller={controller} />
   ) : cur === 'localpay' ? (
     <JejuLocalpay controller={controller} />
   ) : // WIT Store · 탐나오 · 기부 all render from the pre-warmed layers below, so
@@ -185,11 +204,11 @@ export function JejuKiosk(): JSX.Element {
         would sit on top of the home screen. Same reason Insadong and Osan do it
         this way.
       */}
-      {WEB_SCREENS.map(({ screen, url, title, subtitle, subtitleColor, subtitleStar, showMobileQr }) => {
-        const active = !controller.photoActive && cur === screen;
+      {WEB_SCREENS.map((web) => {
+        const active = !controller.photoActive && cur === web.screen;
         return (
           <div
-            key={screen}
+            key={web.screen}
             style={
               active
                 ? { position: 'absolute', inset: 0, zIndex: 1 }
@@ -207,12 +226,14 @@ export function JejuKiosk(): JSX.Element {
           >
             <JejuWebScreen
               controller={controller}
-              title={title}
-              subtitle={subtitle}
-              subtitleColor={subtitleColor}
-              subtitleStar={subtitleStar}
-              url={url}
-              showMobileQr={showMobileQr}
+              title={web.title}
+              subtitle={web.subtitle}
+              subtitleColor={web.subtitleColor}
+              subtitleStar={web.subtitleStar}
+              url={web.url}
+              showMobileQr={web.showMobileQr}
+              tabs={web.tabs}
+              showBanner={web.showBanner}
             />
           </div>
         );
