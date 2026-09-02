@@ -96,6 +96,18 @@ MAX_SUBJECT_FOOTPRINT_M = 1.2
 # below this.
 CEILING_REJECT_M = MAX_BODY_M - 2 * SLAB_M
 
+# The other end of the same idea: nothing this short is a visitor STANDING at a
+# kiosk. Desks, counters, chair backs and bollards all live between 0.7 and
+# 0.9 m, they are person-sized in footprint, they stop well below the ceiling,
+# and they sit still — so they are otherwise a perfect subject. A first real
+# test measured a desk edge as a rock-solid 78 cm with confidence 1.00.
+#
+# The cost, stated rather than hidden: a toddler under a metre is refused too.
+# That is acceptable here because a child that small is at the kiosk with an
+# adult, which makes it a two-subject capture, and those record no height
+# anyway (see Session.result).
+MIN_SUBJECT_HEIGHT_M = 1.00
+
 
 @dataclass(frozen=True)
 class Subject:
@@ -262,6 +274,9 @@ def find_subjects(
         # Ran to the top of the body band without ever thinning out: not a
         # person, something that carries on past where a head would stop.
         if crown >= CEILING_REJECT_M:
+            continue
+        # Too short to be anyone standing up — a desk, a counter, a chair back.
+        if crown < MIN_SUBJECT_HEIGHT_M:
             continue
         subjects.append(
             Subject(

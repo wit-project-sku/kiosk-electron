@@ -247,3 +247,49 @@ def test_a_rotated_mount_recovers_the_true_camera_height():
     rng = np.random.default_rng(43)
     _, frame = build(rng, person(rng), roll_deg=90.0)
     assert frame.offset == pytest.approx(1.4, abs=0.02)
+
+
+def test_a_desk_is_not_a_short_visitor():
+    """Found on real hardware: a desk edge read as a rock-solid 78 cm.
+
+    Furniture at desk height is person-sized in footprint, stops well below the
+    ceiling, and never moves — a perfect subject by every other test. Only its
+    height gives it away.
+    """
+    rng = np.random.default_rng(51)
+    cam, frame = build(rng, counter(rng, centre_xy=(0.0, 0.0), height_m=0.78))
+    assert find_subjects(frame, cam, *ZONE) == []
+
+
+@pytest.mark.parametrize("furniture_height", [0.72, 0.78, 0.85, 0.95])
+def test_furniture_at_any_plausible_height_is_refused(furniture_height):
+    rng = np.random.default_rng(52)
+    cam, frame = build(rng, counter(rng, centre_xy=(0.0, 0.0), height_m=furniture_height))
+    assert find_subjects(frame, cam, *ZONE) == []
+
+
+def test_a_short_adult_is_still_measured():
+    """The filter must not eat real visitors. 1.45 m is a small adult."""
+    rng = np.random.default_rng(53)
+    cam, frame = build(rng, person(rng, height_m=1.45))
+    subjects = find_subjects(frame, cam, *ZONE)
+    assert len(subjects) == 1
+    assert subjects[0].height_m == pytest.approx(1.45, abs=0.03)
+
+
+def test_a_visitor_standing_near_a_desk_is_the_one_measured():
+    """The office scene: a desk in the zone, a person standing clear of it.
+
+    Not closer than ~0.4 m, because at that point they genuinely are one blob
+    to a depth camera — a visitor leaning on a counter is not separable from it,
+    and pretending otherwise in a test would prove nothing.
+    """
+    rng = np.random.default_rng(54)
+    cam, frame = build(
+        rng,
+        person(rng, height_m=1.79),
+        counter(rng, centre_xy=(1.1, 0.0), height_m=0.78),
+    )
+    subjects = find_subjects(frame, cam, *ZONE)
+    assert len(subjects) == 1
+    assert subjects[0].height_m == pytest.approx(1.79, abs=0.03)
