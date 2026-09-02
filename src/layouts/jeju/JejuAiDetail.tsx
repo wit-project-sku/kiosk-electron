@@ -59,7 +59,7 @@ import { useShopStore } from '@renderer/store/shopStore';
 import { useDetailStore } from '@renderer/store/detailStore';
 import type { DetailItem } from '@renderer/store/detailStore';
 import { useLanguageStore } from '@renderer/store/languageStore';
-import { sheetText, t } from '@renderer/lib/loc';
+import { sheetText } from '@renderer/lib/loc';
 import type { Lang } from '@renderer/lib/i18n';
 import { pick } from '@renderer/lib/i18n';
 import {
@@ -75,12 +75,15 @@ import {
   courseLetter,
   difficultyLabel,
   interestCodes,
+  jejuCourseDayTitle,
   minutesLabel,
+  aboutMinutesLabel,
   nightCount,
   partySize,
   todayIso,
   transportCode,
 } from '@renderer/lib/jejuCourse';
+import { localizeJejuAiPick } from '@renderer/lib/jejuAiPicksLabel';
 import { JejuPageFrame } from './JejuPageFrame';
 import { JejuCourseSpotCard } from './JejuCourseSpotCard';
 import styles from './JejuAiDetail.module.css';
@@ -169,6 +172,7 @@ function DayArrow({
   onClick,
   className,
   style,
+  lang,
 }: {
   dir: 'prev' | 'next';
   disabled: boolean;
@@ -176,6 +180,7 @@ function DayArrow({
   /** Optional because CSS Module lookups are typed `string | undefined` here. */
   className?: string;
   style?: CSSProperties;
+  lang: Lang;
 }): JSX.Element {
   return (
     <button
@@ -184,7 +189,7 @@ function DayArrow({
       onClick={onClick}
       disabled={disabled}
       style={style}
-      aria-label={dir === 'prev' ? '이전 날짜' : '다음 날짜'}
+      aria-label={dir === 'prev' ? pick(T.arrowPrev, lang) : pick(T.arrowNext, lang)}
     >
       <svg className={styles.dayArrowIcon} viewBox="0 0 85 85" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
         <circle cx="42.5" cy="42.5" r="42.5" fill={disabled ? '#999999' : '#FF7F0F'} />
@@ -202,6 +207,14 @@ function DayArrow({
 }
 
 const T = {
+  arrowPrev: {
+    ko: '이전', en: 'Previous', ja: '前へ', zh: '上一页',
+    vi: 'Trước', th: 'ก่อนหน้า', ru: 'Назад', id: 'Sebelumnya',
+  },
+  arrowNext: {
+    ko: '다음', en: 'Next', ja: '次へ', zh: '下一页',
+    vi: 'Tiếp', th: 'ถัดไป', ru: 'Далее', id: 'Berikutnya',
+  },
   empty: {
     ko: '코스에 담을 장소를 찾지 못했어요.\n관심사를 바꿔 다시 검색해보세요.',
     en: 'No places found for this course.\nTry different interests.',
@@ -241,11 +254,11 @@ interface CourseMeta {
    * reach the network still has to draw a course — but nothing on the API path
    * may read them, or the bar would mix a real number with an invented one.
    */
-  duration: string;
-  distance: string;
+  duration: Partial<Record<Lang, string>>;
+  distance: Partial<Record<Lang, string>>;
   difficulty: string;
   /** Per-spot placeholders, same caveat. */
-  spotDuration: string;
+  spotDuration: Partial<Record<Lang, string>>;
   spotDifficulty: string;
 }
 
@@ -298,21 +311,8 @@ const DIFFICULTY_WORD: Record<string, Partial<Record<Lang, string>>> = {
   },
 };
 
-/**
- * The visitor's 이동수단 answer, localized.
- *
- * aiStore deliberately keeps every answer in KOREAN — it is what the course and
- * shop matching downstream key on (see JejuAiSearch) — so the stored value has
- * to be mapped back to a label for display. The four Korean words are the
- * fallbacks JejuAiSearch authors against Transportation_1..4, in that order.
- */
-const TRANSPORT_KO = ['도보', '자전거', '대중교통', '자동차'];
-const transportLabel = (ko: string, lang: Lang): string => {
-  const i = TRANSPORT_KO.indexOf(ko);
-  if (i < 0) return ko;
-  const value = t(`Transportation_${i + 1}`, lang);
-  return value.startsWith('Transportation_') ? ko : value;
-};
+/** The visitor's 이동수단 answer, localized — same path as the pick chips. */
+const transportLabel = (ko: string, lang: Lang): string => localizeJejuAiPick(ko, lang);
 
 const COURSE_META: Record<string, CourseMeta> = {
   nature: {
@@ -338,10 +338,19 @@ const COURSE_META: Record<string, CourseMeta> = {
       ru: 'Маршрут, соединяющий природу Чеджу с его историей и наследием.\nНе спеша пройдите вдоль открытого моря, оремов и старых деревень.',
       id: 'Rute yang memadukan panorama alam dengan sejarah dan warisan Jeju.\nNikmati perlahan laut lepas, oreum, dan desa-desa tradisional.',
     },
-    duration: '약 4~5시간',
-    distance: '약 18Km',
+    duration: {
+      ko: '약 4~5시간', en: 'Approx. 4–5 hrs', ja: '約4〜5時間', zh: '约 4–5 小时',
+      vi: 'Khoảng 4–5 giờ', th: 'ประมาณ 4–5 ชม.', ru: 'Около 4–5 ч', id: 'Sekitar 4–5 jam',
+    },
+    distance: {
+      ko: '약 18Km', en: 'Approx. 18 km', ja: '約18km', zh: '约 18 公里',
+      vi: 'Khoảng 18 km', th: 'ประมาณ 18 กม.', ru: 'Около 18 км', id: 'Sekitar 18 km',
+    },
     difficulty: '쉬움',
-    spotDuration: '2-3시간',
+    spotDuration: {
+      ko: '2-3시간', en: '2–3 hrs', ja: '2〜3時間', zh: '2–3 小时',
+      vi: '2–3 giờ', th: '2–3 ชม.', ru: '2–3 ч', id: '2–3 jam',
+    },
     spotDifficulty: '쉬움',
   },
   food: {
@@ -367,10 +376,19 @@ const COURSE_META: Record<string, CourseMeta> = {
       ru: 'Маршрут для местных вкусов и атмосферы Чеджу.\nНе спеша загляните туда, куда возвращаются сами островитяне.',
       id: 'Rute berbasis lokal yang penuh cita rasa dan suasana Jeju.\nNikmati perlahan tempat makan dan ruang favorit warga setempat.',
     },
-    duration: '약 4~5시간',
-    distance: '약 15Km',
+    duration: {
+      ko: '약 4~5시간', en: 'Approx. 4–5 hrs', ja: '約4〜5時間', zh: '约 4–5 小时',
+      vi: 'Khoảng 4–5 giờ', th: 'ประมาณ 4–5 ชม.', ru: 'Около 4–5 ч', id: 'Sekitar 4–5 jam',
+    },
+    distance: {
+      ko: '약 15Km', en: 'Approx. 15 km', ja: '約15km', zh: '约 15 公里',
+      vi: 'Khoảng 15 km', th: 'ประมาณ 15 กม.', ru: 'Около 15 км', id: 'Sekitar 15 km',
+    },
     difficulty: '쉬움',
-    spotDuration: '1-2시간',
+    spotDuration: {
+      ko: '1-2시간', en: '1–2 hrs', ja: '1〜2時間', zh: '1–2 小时',
+      vi: '1–2 giờ', th: '1–2 ชม.', ru: '1–2 ч', id: '1–2 jam',
+    },
     spotDifficulty: '쉬움',
   },
   family: {
@@ -396,10 +414,19 @@ const COURSE_META: Record<string, CourseMeta> = {
       ru: 'Маршрут впечатлений для всей семьи.\nКаждая остановка подходит и детям, и взрослым.',
       id: 'Rute pengalaman yang bisa dinikmati seluruh keluarga.\nSetiap perhentian cocok untuk anak maupun orang dewasa.',
     },
-    duration: '약 5~6시간',
-    distance: '약 22Km',
+    duration: {
+      ko: '약 5~6시간', en: 'Approx. 5–6 hrs', ja: '約5〜6時間', zh: '约 5–6 小时',
+      vi: 'Khoảng 5–6 giờ', th: 'ประมาณ 5–6 ชม.', ru: 'Около 5–6 ч', id: 'Sekitar 5–6 jam',
+    },
+    distance: {
+      ko: '약 22Km', en: 'Approx. 22 km', ja: '約22km', zh: '约 22 公里',
+      vi: 'Khoảng 22 km', th: 'ประมาณ 22 กม.', ru: 'Около 22 км', id: 'Sekitar 22 km',
+    },
     difficulty: '보통',
-    spotDuration: '2-3시간',
+    spotDuration: {
+      ko: '2-3시간', en: '2–3 hrs', ja: '2〜3時間', zh: '2–3 小时',
+      vi: '2–3 giờ', th: '2–3 ชม.', ru: '2–3 ч', id: '2–3 jam',
+    },
     spotDifficulty: '쉬움',
   },
 };
@@ -485,7 +512,6 @@ export function JejuAiDetail({ controller }: Props): JSX.Element {
    * need a placeholder the sheet does not have.
    */
   const totalTimeLabel = sheetText('TotalStayTime', lang, { ko: '총 소요시간' });
-  const dayWord = sheetText('dayLapsed', lang, { ko: '일차' });
 
   const meta = COURSE_META[courseKey] ?? COURSE_META.nature!;
   /** Index into `pages`, not a day number — a day can span several pages. */
@@ -505,7 +531,14 @@ export function JejuAiDetail({ controller }: Props): JSX.Element {
     [base, lowReach ? lowClass : ''].filter(Boolean).join(' ');
 
   /** The questionnaire, echoed under the summary bar — see the row in the JSX. */
-  const picks = [visitors, stay, transport, ...interests].filter(Boolean);
+  const picks = useMemo(
+    () => [visitors, stay, transport, ...interests].filter(Boolean),
+    [visitors, stay, transport, interests],
+  );
+  const pickLabels = useMemo(
+    () => picks.map((p) => localizeJejuAiPick(p, lang)),
+    [picks, lang],
+  );
 
   /** The scheduled course, or null while it loads and after a failed call. */
   const [course, setCourse] = useState<JejuCourse | null>(null);
@@ -622,7 +655,7 @@ export function JejuAiDetail({ controller }: Props): JSX.Element {
   /** The day the visible page belongs to — what the DAY label and header show. */
   const day = page?.day ?? 1;
   /** The header's course+day line, e.g. "A코스 - 1일차". */
-  const courseDayTitle = `${meta.label}코스 - ${day}${dayWord}`;
+  const courseDayTitle = jejuCourseDayTitle(meta.label, day, lang);
 
   const goPrevPage = useCallback(() => setPageIndex((i) => Math.max(0, i - 1)), []);
   const goNextPage = useCallback(
@@ -659,7 +692,7 @@ export function JejuAiDetail({ controller }: Props): JSX.Element {
 
   /** How long the visitor spends here: the schedule's, or the authored placeholder offline. */
   const dwellOf = (stop: Stop): string =>
-    stop.spot ? minutesLabel(stop.spot.dwellMinutes) : meta.spotDuration;
+    stop.spot ? minutesLabel(stop.spot.dwellMinutes, lang) : pick(meta.spotDuration, lang);
 
   /**
    * "난이도 X". An ungraded SCHEDULED spot draws no row rather than a wrong one —
@@ -750,9 +783,9 @@ export function JejuAiDetail({ controller }: Props): JSX.Element {
     const chosenTransport = transportLabel(transport || '자동차', lang);
     if (!course) {
       return [
-        { label: totalTimeLabel, value: meta.duration },
+        { label: totalTimeLabel, value: pick(meta.duration, lang) },
         { label: pick(STAT_LABEL.transport, lang), value: chosenTransport },
-        { label: pick(STAT_LABEL.distance, lang), value: meta.distance },
+        { label: pick(STAT_LABEL.distance, lang), value: pick(meta.distance, lang) },
         {
           label: pick(STAT_LABEL.difficulty, lang),
           value: pick(DIFFICULTY_WORD[meta.difficulty] ?? { ko: meta.difficulty }, lang),
@@ -764,9 +797,9 @@ export function JejuAiDetail({ controller }: Props): JSX.Element {
       0,
     );
     return [
-      { label: totalTimeLabel, value: `약 ${minutesLabel(course.totalMinutes)}` },
+      { label: totalTimeLabel, value: aboutMinutesLabel(course.totalMinutes, lang) },
       { label: pick(STAT_LABEL.transport, lang), value: chosenTransport },
-      { label: pick(STAT_LABEL.travel, lang), value: minutesLabel(travel) },
+      { label: pick(STAT_LABEL.travel, lang), value: minutesLabel(travel, lang) },
       {
         label: pick(STAT_LABEL.difficulty, lang),
         value: (() => {
@@ -810,8 +843,8 @@ export function JejuAiDetail({ controller }: Props): JSX.Element {
           frame draws them; empty slots (deep-link, idle reset) drop out. */}
       {!lowReach && picks.length > 0 && (
         <div className={styles.picks}>
-          {picks.map((p, i) => (
-            <span key={i} className={styles.pick}>{p}</span>
+          {pickLabels.map((label, i) => (
+            <span key={i} className={styles.pick}>{label}</span>
           ))}
         </div>
       )}
@@ -825,6 +858,7 @@ export function JejuAiDetail({ controller }: Props): JSX.Element {
         disabled={pageIndex <= 0}
         onClick={goPrevPage}
         className={low(styles.dayPrev, styles.dayArrowLow)}
+        lang={lang}
       />
 
       <p className={low(styles.day, styles.dayLow)}>DAY {day}</p>
@@ -834,6 +868,7 @@ export function JejuAiDetail({ controller }: Props): JSX.Element {
         disabled={pageIndex >= pages.length - 1}
         onClick={goNextPage}
         className={low(styles.dayNext, styles.dayArrowLow)}
+        lang={lang}
       />
 
       {/* Nothing at all while the schedule is in flight: the empty copy tells
@@ -908,6 +943,7 @@ export function JejuAiDetail({ controller }: Props): JSX.Element {
                 onClick={goPrevPage}
                 className={styles.dayPrevBottom}
                 style={{ top: bottomPagerTopFor(stops.length) }}
+                lang={lang}
               />
               <DayArrow
                 dir="next"
@@ -915,6 +951,7 @@ export function JejuAiDetail({ controller }: Props): JSX.Element {
                 onClick={goNextPage}
                 className={styles.dayNextBottom}
                 style={{ top: bottomPagerTopFor(stops.length) }}
+                lang={lang}
               />
             </>
           )}
