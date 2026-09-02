@@ -188,5 +188,12 @@ if ($code -ne 0) {
 
 Write-Host ''
 Write-Host "Calibrated. Saved to $calibration" -ForegroundColor Green
-Write-Host 'Now verify against a tape measure before leaving:'
+Write-Host ''
+Write-Host 'DO NOT LEAVE WITHOUT CHECKING THE HEIGHT PRINTED ABOVE.' -ForegroundColor Yellow
+Write-Host 'Measure the ZED lens from the floor with a tape. If the two numbers'
+Write-Host 'disagree, the fit landed on a counter or a step rather than the floor,'
+Write-Host 'and every visitor will be measured wrong by exactly that difference.'
+Write-Host 'Nothing downstream can detect it — the readings look perfectly normal.'
+Write-Host ''
+Write-Host 'Then check it against a person of known height:'
 Write-Host "  cd `"$SidecarPath`"; $Python main.py --selftest"

@@ -383,7 +383,20 @@ def main() -> int:
         if args.calibrate:
             floor = calibrate(camera)
             save_calibration(floor)
-            log(f"calibrated: camera is {floor.offset:.3f} m above the floor")
+            # ── The one number a human must check ──────────────────────
+            # Nothing in software can tell the real floor from the largest flat
+            # surface in view. A camera on a desk fits the DESK, calls it the
+            # floor, and every visitor afterwards is measured from waist height
+            # — confidently, with no error anywhere. Only a tape measure
+            # catches it, so the number is put in front of whoever ran this
+            # rather than logged quietly.
+            log("")
+            log(f"  Camera is {floor.offset:.2f} m above the surface it fitted.")
+            log("  >> CHECK THIS WITH A TAPE MEASURE. <<")
+            log("  If it does not match the real lens height above the FLOOR,")
+            log("  the fit landed on a desk or counter and every height will be")
+            log("  wrong by the difference. Clear the floor and run again.")
+            log("")
             log(f"saved to {CALIBRATION_PATH.resolve()}")
             return 0
         if args.selftest:
