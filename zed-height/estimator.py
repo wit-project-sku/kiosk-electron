@@ -297,31 +297,60 @@ def _cluster_centres(xy: np.ndarray) -> list[tuple[np.ndarray, float]]:
     larger side of its bounding box on the floor — the measurement that tells a
     standing person from a wall. See MAX_SUBJECT_FOOTPRINT_M.
     """
+    # The flood fill walks CELLS, not points, so the points are collapsed to
+    # unique cells first, in numpy. Doing it the obvious way — a Python dict
+    # keyed per point — costs one interpreted iteration per point, which is
+    # invisible on a 640x360 cloud and dominates everything at 1280x720
+    # (271 ms/frame, against a ~20 ms budget). A room only ever occupies a few
+    # hundred cells however many points land in them.
     cells = np.floor(xy / CLUSTER_CELL_M).astype(int)
-    occupied: dict[tuple[int, int], list[int]] = {}
-    for i, cell in enumerate(map(tuple, cells)):
-        occupied.setdefault(cell, []).append(i)
+    uniq, inverse = np.unique(cells, axis=0, return_inverse=True)
+    index_of = {(int(c[0]), int(c[1])): i for i, c in enumerate(uniq)}
 
-    seen: set[tuple[int, int]] = set()
-    clusters: list[tuple[np.ndarray, float]] = []
-    for cell in occupied:
-        if cell in seen:
+    # Label each CELL by flood fill (a few hundred iterations), then push the
+    # labels down to the points in one gather. Testing membership per cluster
+    # instead — np.isin(inverse, group) — is O(points x clusters) and was 105 ms
+    # of a 208 ms frame at 1280x720.
+    label_of_cell = np.full(len(uniq), -1, dtype=np.intp)
+    next_label = 0
+    for start in range(len(uniq)):
+        if label_of_cell[start] != -1:
             continue
-        stack, members = [cell], []
-        seen.add(cell)
+        stack = [start]
+        label_of_cell[start] = next_label
         while stack:
-            cx, cy = stack.pop()
-            members.extend(occupied[(cx, cy)])
+            current = stack.pop()
+            cx, cy = int(uniq[current][0]), int(uniq[current][1])
             for dx in (-1, 0, 1):
                 for dy in (-1, 0, 1):
-                    nb = (cx + dx, cy + dy)
-                    if nb in occupied and nb not in seen:
-                        seen.add(nb)
+                    nb = index_of.get((cx + dx, cy + dy))
+                    if nb is not None and label_of_cell[nb] == -1:
+                        label_of_cell[nb] = next_label
                         stack.append(nb)
-        if len(members) >= MIN_CLUSTER_POINTS:
-            pts = xy[members]
-            footprint = float((pts.max(axis=0) - pts.min(axis=0)).max())
-            clusters.append((pts.mean(axis=0), footprint))
+        next_label += 1
+
+    if next_label == 0:
+        return []
+
+    labels = label_of_cell[inverse]
+    counts = np.bincount(labels, minlength=next_label)
+
+    # Centroid and bounding box for every cluster at once. Sorting by label puts
+    # each cluster's points in one contiguous run, which `reduceat` can then
+    # summarise without a Python loop.
+    order = np.argsort(labels, kind="stable")
+    starts = np.zeros(next_label, dtype=np.intp)
+    np.cumsum(counts[:-1], out=starts[1:])
+    ordered = xy[order]
+    present = counts > 0
+    lo = np.minimum.reduceat(ordered, starts, axis=0)
+    hi = np.maximum.reduceat(ordered, starts, axis=0)
+    total = np.add.reduceat(ordered, starts, axis=0)
+
+    clusters: list[tuple[np.ndarray, float]] = []
+    for label in np.flatnonzero(present & (counts >= MIN_CLUSTER_POINTS)):
+        centre = total[label] / counts[label]
+        clusters.append((centre, float((hi[label] - lo[label]).max())))
     return clusters
 
 

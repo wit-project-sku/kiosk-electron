@@ -140,10 +140,32 @@ length is the whole reason a median works.
 
 | env | default | |
 |---|---|---|
-| `HEIGHT_FPS` | 12 | sampling rate (not the camera's frame rate) |
+| `HEIGHT_FPS` | 4 | sampling rate (not the camera's frame rate) |
+| `HEIGHT_MEASURE_WIDTH` | 1280 | point-cloud width retrieved per frame |
+| `HEIGHT_MEASURE_HEIGHT` | 720 | and its height |
 | `HEIGHT_ZONE_MIN` | 0.8 | standing zone, metres across the floor from the camera |
 | `HEIGHT_ZONE_MAX` | 3.5 | |
 | `HEIGHT_CALIBRATION` | `./calibration.json` | the app and `height-run.mjs` both point this at userData |
+| `HEIGHT_PYTHON` | — | interpreter override, when the system `python` is not the one holding pyzed |
+
+**Narrow the zone to the real standing spot.** The defaults are generous, and
+anything inside them that is person-shaped competes with the visitor. If the
+kiosk's marked spot is 2.7 m, `HEIGHT_ZONE_MIN=2.0` and `HEIGHT_ZONE_MAX=3.2`
+keeps counters, bollards and passers-by out of the answer.
+
+Resolution is the one to reach for if heights look noisy at distance rather than
+wrong. Point density falls with the SQUARE of distance and the estimator counts
+points in 2 cm slabs, so the far edge of the zone is where it runs out of
+evidence first. Measured (grab + estimate, RTX 4060):
+
+| cloud | rate | samples in 20 s | points on a head slab at 2.8 m |
+|---|---|---|---|
+| 640x360 | 18.6 fps | 371 | ~35 — swung 142-216 cm on a 179 cm person |
+| 960x540 | 8.0 fps | 160 | ~60 |
+| **1280x720** (default) | 4.6 fps | 91 | ~110 |
+
+Every row gives a median far more samples than it needs, so the cloud is worth
+more than the rate.
 
 ## Layout
 

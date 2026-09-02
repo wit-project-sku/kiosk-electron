@@ -13,16 +13,32 @@ every developer machine until someone installs 1.2 GB of CUDA.
 
 from __future__ import annotations
 
+import os
 from dataclasses import dataclass
 
 import numpy as np
 
-# Point cloud resolution requested from the SDK. The full depth map is far more
-# than the estimator needs — it counts points in 2 cm slabs, and 640x360 already
-# puts thousands of points on a person at 2 m. Retrieving less is the single
-# cheapest thing we do for frame time.
-MEASURE_WIDTH = 640
-MEASURE_HEIGHT = 360
+# Point cloud resolution requested from the SDK.
+#
+# ── Why this is not smaller ────────────────────────────────────────────────
+# It was 640x360, which is ample at 2 m and falls apart at 3. Point density
+# drops with the SQUARE of distance, and the estimator works by counting points
+# in 2 cm slabs, so the far end of the standing zone is exactly where it runs
+# out of evidence. Measured on a ZED 2i (2.1 mm lens, 101° across 640 px):
+#
+#   distance   head width      points in a 2 cm head slab
+#   1.5 m      ~40 px          ~150
+#   2.8 m      ~21 px          ~35        <- noise, and it showed
+#
+# At 2.8 m that produced swings of 142-216 cm on a 179 cm person, in both
+# directions: too few points and the crown search either stops early or wanders
+# into the background. 제주 visitors stand at ~2.7 m, so that is the case that
+# has to work, not the easy one at 1.5 m.
+#
+# 1280x720 restores a 4x margin there. It costs frame time, but the budget is
+# HEIGHT_FPS (12) rather than the camera's 30, and there is room.
+MEASURE_WIDTH = int(os.environ.get("HEIGHT_MEASURE_WIDTH", "1280"))
+MEASURE_HEIGHT = int(os.environ.get("HEIGHT_MEASURE_HEIGHT", "720"))
 
 # Nothing at a kiosk is a visitor beyond this, and cutting depth short keeps the
 # cloud small and the stereo matcher honest.

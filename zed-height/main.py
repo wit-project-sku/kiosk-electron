@@ -76,9 +76,23 @@ def _env_float(name: str, default: float) -> float:
 
 
 # Frames per second to sample at. Not the camera's rate — just how often we do
-# the arithmetic. 12 over a 20 s window is ~240 samples, far more than the
-# median needs, and it leaves the GPU alone between grabs.
-FPS = _env_float("HEIGHT_FPS", 12.0)
+# the arithmetic.
+#
+# ── Why this is low, and why that is the right trade ───────────────────────
+# What the median needs is not a high rate, it is enough samples and enough
+# points per sample. Those pull in opposite directions: a bigger point cloud
+# costs frame time. Measured end to end (grab + estimate) on an RTX 4060:
+#
+#   640x360    18.6 fps   371 samples/20 s   ~35 pts on a head slab at 2.8 m
+#   960x540     8.0 fps   160 samples/20 s   ~60 pts
+#   1280x720    4.6 fps    91 samples/20 s  ~110 pts
+#
+# 제주 visitors stand at ~2.7 m, and ~35 points per slab is where the estimate
+# started swinging 142-216 cm on a 179 cm person. Every row gives far more
+# samples than a median needs, so the cloud wins and the rate loses: zed.py
+# retrieves 1280x720 and this paces slower to match, leaving the machine idle
+# between frames rather than pinning a core for the whole capture.
+FPS = _env_float("HEIGHT_FPS", 4.0)
 
 # The standing zone, as radial distance across the floor from the camera's own
 # ground position. Anything nearer is someone reaching for the touch screen;
