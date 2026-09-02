@@ -79,6 +79,12 @@ class ZedCamera:
         init.depth_mode = _depth_mode(sl)
         init.coordinate_units = sl.UNIT.METER
         init.depth_maximum_distance = MAX_DEPTH_M
+        # The SDK logs to STDOUT, which is this process's protocol channel —
+        # every "[ZED][INFO]" line arrives at the supervisor as an unparseable
+        # message. Harmless as long as they stay on their own lines, and one
+        # badly-timed flush from corrupting a result, so they are turned off
+        # rather than tolerated. Real diagnostics go to stderr via `log`.
+        init.sdk_verbose = 0
 
         cam = sl.Camera()
         status = cam.open(init)

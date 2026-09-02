@@ -36,6 +36,7 @@ from __future__ import annotations
 
 import argparse
 import json
+from collections import Counter
 import os
 import queue
 import sys
@@ -195,11 +196,21 @@ class Session:
     def __init__(self) -> None:
         self.heights: list[float] = []
         self.subject_counts: list[int] = []
+        # Why clusters were turned down, tallied across the capture. Without
+        # this a null result says only "nobody in the measurement zone", which
+        # is equally true when nobody was there and when the visitor was
+        # standing right in front of the camera and got filtered out. The
+        # difference matters enormously and is invisible from the app side —
+        # `--diagnose` can only be run by hand, on a camera the app is not
+        # using at the time.
+        self.rejections: Counter[str] = Counter()
 
-    def add(self, subjects: list[Subject]) -> None:
+    def add(self, subjects: list[Subject], rejected: list[Rejection] | None = None) -> None:
         self.subject_counts.append(len(subjects))
         if len(subjects) == 1:
             self.heights.append(subjects[0].height_m)
+        for r in rejected or ():
+            self.rejections[r.reason] += 1
 
     def result(self) -> dict:
         """What the app gets. A height only when it means something.
@@ -214,7 +225,7 @@ class Session:
 
         subjects = int(np.bincount(self.subject_counts).argmax())
         if subjects == 0:
-            return _empty("nobody in the measurement zone", subjects=0)
+            return _empty(self._why_nobody(), subjects=0)
         if subjects > 1:
             return _empty("more than one visitor in frame", subjects=subjects)
 
@@ -233,6 +244,19 @@ class Session:
         }
 
 
+    def _why_nobody(self) -> str:
+        """The most useful sentence available when no visitor was counted.
+
+        A bare "nobody in the measurement zone" is the same message whether the
+        zone was empty or the visitor was rejected by a filter, and only one of
+        those is a bug. If anything WAS seen and turned down, say what and why.
+        """
+        if not self.rejections:
+            return "nobody in the measurement zone"
+        reason, hits = self.rejections.most_common(1)[0]
+        return f"nobody counted; {hits} clusters rejected, mostly: {reason}"
+
+
 def _empty(reason: str, subjects: int = 0) -> dict:
     return {
         "type": "result",
@@ -244,11 +268,15 @@ def _empty(reason: str, subjects: int = 0) -> dict:
     }
 
 
-def measure(frame_points: np.ndarray, floor: FloorFrame) -> list[Subject]:
+def measure(
+    frame_points: np.ndarray,
+    floor: FloorFrame,
+    rejections: list[Rejection] | None = None,
+) -> list[Subject]:
     points = finite_points(frame_points)
     if len(points) < 500:
         return []
-    return find_subjects(floor, points, ZONE_MIN_M, ZONE_MAX_M)
+    return find_subjects(floor, points, ZONE_MIN_M, ZONE_MAX_M, rejections=rejections)
 
 
 # ── Modes ──────────────────────────────────────────────────────────────────
@@ -354,7 +382,8 @@ def run_service(camera: ZedCamera) -> int:
 
         frame = camera.grab()
         if frame is not None:
-            session.add(measure(frame.points, floor))
+            rejected: list[Rejection] = []
+            session.add(measure(frame.points, floor, rejected), rejected)
 
 
 def run_selftest(camera: ZedCamera) -> int:
