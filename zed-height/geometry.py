@@ -174,11 +174,20 @@ def fit_plane_ransac(
 # arm curves away from any plane through the torso long before this.
 MIN_WALL_WIDTH_M = 1.8
 
+# ...and how far it must run vertically. Within the body band a wall spans most
+# of the 2 m; a ceiling caught edge-on by a vertical plane spans almost nothing.
+MIN_WALL_HEIGHT_M = 0.8
+
+# How much of its own bounding box a plane must fill to be a real surface.
+# A wall comes out near 1.0 even with a visitor standing in front of part of it;
+# coplanar points that merely happen to line up fill almost none of theirs.
+MIN_WALL_COVERAGE = 0.5
+
 
 def strip_vertical_planes(
     points: np.ndarray,
     up: np.ndarray,
-    max_planes: int = 3,
+    max_planes: int = 4,
     tolerance_m: float = 0.05,
     min_inliers: int = 1500,
     max_tilt_deg: float = 25.0,
@@ -226,7 +235,12 @@ def strip_vertical_planes(
 
         best_normal: np.ndarray | None = None
         best_count = 0
-        for _ in range(60):
+        # 60 was not enough: a real room's far field is walls, desks, monitors
+        # and screens, so a random triple lands on one plane's worth of points
+        # fairly rarely, and a wall that is missed takes the visitor in front of
+        # it down too. The scoring runs on a subsample, so iterations are the
+        # cheap axis here.
+        for _ in range(200):
             idx = rng.choice(len(subset), size=3, replace=False)
             a, b, c = subset[idx]
             normal = np.cross(b - a, c - a)
@@ -261,8 +275,24 @@ def strip_vertical_planes(
         # metres; a body is half a metre across at the shoulders.
         sideways = np.cross(up, best_normal)
         sideways /= np.linalg.norm(sideways)
-        span = float(np.ptp(inliers @ sideways))
-        if span < MIN_WALL_WIDTH_M:
+        u = inliers @ sideways
+        v = inliers @ up
+        if float(np.ptp(u)) < MIN_WALL_WIDTH_M or float(np.ptp(v)) < MIN_WALL_HEIGHT_M:
+            break
+
+        # ── Is it actually a SURFACE, or just points that happen to be coplanar?
+        # Extent is not enough. A vertical plane can slice a horizontal ceiling
+        # into a strip metres long and pass through the visitor on its way — the
+        # union is wide, tall, and takes the person's head with it when stripped.
+        # That happened, and it is what this catches: a wall FILLS its bounding
+        # box, while a ceiling-strip-plus-body-slice is an L of two thin lines
+        # with nothing in between.
+        cell = 0.15
+        iu = ((u - u.min()) / cell).astype(int)
+        iv = ((v - v.min()) / cell).astype(int)
+        rows = int(iv.max()) + 1
+        filled = np.unique(iu * rows + iv).size
+        if filled / float((int(iu.max()) + 1) * rows) < MIN_WALL_COVERAGE:
             break
 
         keep[live[on_plane]] = False
