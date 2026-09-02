@@ -58,6 +58,16 @@ extraResources:
     filter:
       - '**/*.py'
       - README.md
+      # The local dev virtualenv is thousands of site-package .py files that
+      # '**/*.py' would otherwise sweep into the installer. A kiosk uses the
+      # system Python the ZED SDK installed pyzed into, never this — and
+      # ZedSidecarManager only prefers a .venv when one exists on disk, so its
+      # absence here is what makes a packaged build fall through to that
+      # system interpreter.
+      - '!.venv'
+      - '!.venv/**'
+      - '!**/__pycache__'
+      - '!**/__pycache__/**'
   # OS-level touch/kiosk lockdown (disables edge-swipe, Win key, Task Manager).
   - from: scripts/lockdown-kiosk.ps1
     to: lockdown-kiosk.ps1

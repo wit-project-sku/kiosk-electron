@@ -44,13 +44,20 @@ Verify with `python main.py --selftest`.
 the camera, then:
 
 ```
-python main.py --calibrate
+npm run height:calibrate
 ```
 
-This fits the floor plane and writes `calibration.json`. Deliberately a manual
-step: a kiosk boots with people in front of it, and a floor silently refitted
-onto someone's shoulders would shift every height that day with nothing to show
-for it.
+This fits the floor plane and saves it. Deliberately a manual step: a kiosk boots
+with people in front of it, and a floor silently refitted onto someone's
+shoulders would shift every height that day with nothing to show for it.
+
+It goes through `scripts/provision-zed.ps1` rather than calling `main.py`
+directly, because **where** the result lands matters. The app reads it from
+`%APPDATA%\kiosk-app\zed-height\calibration.json` — under userData, so it
+survives an auto-update replacing the install directory. Running
+`python main.py --calibrate` by hand writes to the working directory instead,
+and the app will never see it. If you do run it directly, set
+`HEIGHT_CALIBRATION` to the path above.
 
 The camera's mount rotation is **not** configured anywhere. 제주 mounts both
 cameras rotated 90° (`kioskLocations.cameraRotation`), and nothing here is told

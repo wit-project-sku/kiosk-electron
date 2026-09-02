@@ -82,13 +82,32 @@ export class ZedSidecarManager {
   }
 
   /**
-   * The interpreter to run. `HEIGHT_PYTHON` exists because the sidecar must run
-   * under the SAME Python the ZED SDK's `get_python_api.py` installed pyzed
-   * into, and on a machine with several Pythons the bare `python` on PATH is
-   * frequently not that one.
+   * The interpreter to run. It must be the SAME Python the ZED SDK's
+   * `get_python_api.py` installed pyzed into, and on a machine with several
+   * Pythons the bare `python` on PATH is frequently not that one — on a
+   * developer machine it is routinely some unrelated tool's venv, which fails
+   * with `ModuleNotFoundError: numpy` five times and then gives up.
+   *
+   * Resolution order, chosen so a developer needs no setup and a kiosk is
+   * unaffected:
+   *   1. `HEIGHT_PYTHON` — the explicit answer, and what a kiosk sets when its
+   *      system `python` is not the one holding pyzed.
+   *   2. a `.venv` beside the sidecar — how this is developed locally. It is
+   *      gitignored and excluded from the packaged build, so it simply does not
+   *      exist on a kiosk and this step falls through.
+   *   3. `python` on PATH.
    */
   private pythonPath(): string {
-    return process.env['HEIGHT_PYTHON'] || 'python';
+    const explicit = process.env['HEIGHT_PYTHON'];
+    if (explicit) return explicit;
+
+    const venv =
+      process.platform === 'win32'
+        ? join(this.scriptDir(), '.venv', 'Scripts', 'python.exe')
+        : join(this.scriptDir(), '.venv', 'bin', 'python');
+    if (existsSync(venv)) return venv;
+
+    return 'python';
   }
 
   start(): void {
@@ -119,7 +138,10 @@ export class ZedSidecarManager {
       });
       this.child = child;
       const startedAt = Date.now();
-      log.info('Height sidecar starting', { pid: child.pid });
+      // The interpreter is logged because it is the single most common reason
+      // this fails: a `ModuleNotFoundError: numpy` means the wrong Python, and
+      // the path here says immediately which one was tried.
+      log.info('Height sidecar starting', { pid: child.pid, python: this.pythonPath() });
 
       child.stdout?.on('data', (b: Buffer) => this.onStdout(b.toString()));
       child.stderr?.on('data', (b: Buffer) => log.info(`[zed] ${b.toString().trimEnd()}`));

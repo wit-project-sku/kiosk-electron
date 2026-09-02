@@ -42,7 +42,7 @@
     "camera:selftest": "node scripts/camera-selftest.mjs",
     "height:selftest": "node scripts/height-selftest.mjs",
     "height:test": "cd zed-height && python -m pytest tests -q",
-    "height:calibrate": "cd zed-height && python main.py --calibrate",
+    "height:calibrate": "powershell -ExecutionPolicy Bypass -File scripts/provision-zed.ps1 -Calibrate",
     "height:measure": "cd zed-height && python main.py --selftest"
   },
   "dependencies": {
