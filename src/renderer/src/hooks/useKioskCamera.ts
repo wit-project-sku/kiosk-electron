@@ -97,8 +97,18 @@ export function useKioskCamera({ deviceId, enabled, rotation = 0 }: UseKioskCame
 
         let stream: MediaStream;
         try {
+          // Device only — no size or orientation asked for.
+          //
+          // This used to request 1920x1080. That is a LANDSCAPE shape, and the
+          // 제주 Elgato is configured portrait in Windows (1080x1920), so
+          // Chromium scaled and cropped to approximate the landscape frame it
+          // was told to want. The visitor appeared zoomed in on the customer
+          // display, and the AR photo was taken from that cropped frame.
+          //
+          // The camera's own default mode is its native one, which is exactly
+          // what both the preview and the capture should have.
           stream = await navigator.mediaDevices.getUserMedia({
-            video: { deviceId: { exact: chosen }, width: { ideal: 1920 }, height: { ideal: 1080 } },
+            video: { deviceId: { exact: chosen } },
             audio: false,
           });
         } catch {
