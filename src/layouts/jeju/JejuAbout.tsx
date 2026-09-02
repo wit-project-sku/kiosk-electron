@@ -3,8 +3,8 @@
  *
  * Three tabs (역사 / 문화 / 관광명소). Each tab is its own Figma frame with its
  * OWN layout, not a shared template — only 역사 uses the white panel:
- *   역사        6212:59045  one 1818×2100 panel: carousel + filmstrip + prose
- *   문화        6212:59093  no panel; four 806×1014 cards, 2×2 on the background
+ *   역사        6212:59045  white panel: gallery + intro, timeline bar, epoch prose
+ *   문화        6212:59093  one white panel: intro + four 806×1014 shadowed cards
  *   관광명소     6212:59152  no panel; 초성 index over a scrolling 3-wide card grid
  * The tab row is the only thing all three share, and it is the same row on all
  * three frames.
@@ -14,7 +14,7 @@
  * the `detail` screen — that one composes its own "<page> > 상세" header and
  * would come back to the 역사 tab, losing where the visitor was.
  */
-import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
+import { Fragment, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import type { KioskController } from '@renderer/hooks/useKioskController';
 import { jejuIconUrl } from '@renderer/assets/icons/jeju';
 import type { Shop } from '@shared/types/shop';
@@ -24,7 +24,7 @@ import { useLanguageStore } from '@renderer/store/languageStore';
 import { useShopStore } from '@renderer/store/shopStore';
 import { useAttractionStore } from '@renderer/store/attractionStore';
 import { pick, type Lang } from '@renderer/lib/i18n';
-import { hasLoc, sheetText } from '@renderer/lib/loc';
+import { hasLoc, sheetText, t, tExact } from '@renderer/lib/loc';
 import { leadingChosung, type Chosung } from '@renderer/lib/chosung';
 import {
   shopAddress,
@@ -77,11 +77,8 @@ const TABS = [
   { id: 'culture', key: 'Here_Culture', label: { ko: '문화', en: 'Culture', ja: '文化', zh: '文化', vi: 'Văn hóa', th: 'วัฒนธรรม', ru: 'Культура', id: 'Budaya' } },
 ] as const satisfies ReadonlyArray<{ id: TabId; key: string; label: Record<string, string> }>;
 
-// Copy resolution is `sheetText` from lib/loc — sheet cell for this language,
-// then the authored fallback for the same language, then Korean. Localization_Jeju
-// fills Here_History / Here_Culture / Here_Attraction in all eight languages but
-// the long-form Here_HistoryContent / Here_CultureContent_* in Korean only, so
-// the per-language order is what keeps a partly-translated sheet honest.
+// Copy resolution is `t()` from lib/loc — Localization_Jeju fills the about-tab
+// keys in all eight languages.
 
 const COMING_SOON = {
   ko: '준비중입니다',
@@ -104,44 +101,19 @@ const COMING_SOON = {
  * were up to 4096px for a 361px slot). They are the design's own content, but
  * they are stock, so swap in licensed 제주 photography before launch.
  */
-const HERO_W = 825;
 const GALLERY = [
-  { src: history1, w: 825 },
-  { src: history2, w: 315 },
-  { src: history3, w: 315 },
-  { src: history4, w: 361 },
-  { src: history5, w: 314 },
-  { src: history6, w: 280 },
+  { src: history1 },
+  { src: history2 },
+  { src: history3 },
+  { src: history4 },
+  { src: history5 },
+  { src: history6 },
 ];
-/** The filmstrip is the five non-hero photos, in frame order (6212:59055). */
-const STRIP = [1, 2, 3, 4, 5];
+/** Vertical filmstrip beside the hero — indices 1..5 in frame order. */
+const THUMBS = [1, 2, 3, 4, 5];
 
-/**
- * 역사 copy — now read from Localization_Jeju `Here_HistoryContent`, so an edit
- * in the sheet reaches the kiosk on the next night sync with no rebuild.
- *
- * The literal below stays as the fallback for a missing key ONLY. It is the same
- * ~900 characters the frame's text node draws (6212:59051), verified identical
- * to the sheet's Korean cell on 2026-08-13.
- *
- * TODO(제주 W006): the sheet has this key in KOREAN ONLY, so every other language
- * still shows the Korean — which is at least correct. The seven translations
- * belong in the sheet's own columns, reviewed by a person; nothing more is
- * needed on this side once they land.
- *
- * TODO(sheet): the cell is ONE 459-character run with no line breaks, while the
- * frame — and the fallback below — draw THREE paragraphs. `.prose` is
- * `white-space: pre-wrap`, so it renders exactly what the cell holds: the copy
- * is right and the paragraphing is gone. The two breaks belong back in the cell
- * (Alt+Enter before "제주는 섬이라는 환경 속에서…" and "오늘날 제주도는 한라산…").
- * Deliberately NOT reconstructed here — the sheet stores no marker to split on,
- * so any code-side split would be a guess about where a sentence ends.
- */
-const HISTORY_FALLBACK_KO = `제주도는 화산 활동으로 만들어진 섬으로, 오래전부터 독특한 자연환경 속에서 고유한 문화를 발전시켜 왔습니다. 고대에는 탐라국이라는 독립적인 해양국가가 존재했으며, 바다를 통해 한반도와 중국·일본 등과 교류했습니다. 이후 고려 시대에 편입되면서 '제주'라는 이름이 사용되기 시작했고, 조선 시대에는 유배지로 활용되며 독특한 지역문화가 형성되었습니다.
-
-제주는 섬이라는 환경 속에서 해녀 문화, 돌하르방, 돌담, 제주 방언 등 고유한 생활문화를 발전시켰습니다. 일제강점기에는 일본의 군사 거점으로 이용되며 많은 어려움을 겪었고, 해방 이후에는 제주 4·3 사건이라는 아픈 현대사를 지나왔습니다.
-
-오늘날 제주도는 한라산, 오름, 용암동굴 등 아름다운 자연유산과 전통문화가 어우러진 대한민국 대표 관광지로 자리 잡았습니다. 과거의 역사와 제주 사람들의 삶이 함께 이어지며, 자연과 문화가 공존하는 특별한 섬으로 사랑받고 있습니다.`;
+/** Timeline emoji — one per stage (1=선사 … 6=현재). Paste from the design sheet. */
+const HISTORY_FLOW_EMOJI = ['🪨', '👑', '🏯', '📜', '🇰🇷', ' 🌋'] as const;
 
 /**
  * 문화 cards (6212:59098), in frame order — reading order is row-major, so the
@@ -156,15 +128,9 @@ const HISTORY_FALLBACK_KO = `제주도는 화산 활동으로 만들어진 섬�
  * (Unsplash originals, re-encoded from 19MB to 445KB; two were 4096px wide for a
  * 650px slot). Swap in licensed 제주 photography before launch.
  *
- * The TITLE and BODY of each card now come from Localization_Jeju
- * (Here_CultureContent_N_title / Here_CultureContent_N, numbered in this same
- * frame order). The strings below are the fallback for a missing key, verified
- * identical to the sheet's Korean cells on 2026-08-13. The PHOTO and its crop
- * stay here: they are bundled assets and a layout property of the frame, not
- * content anyone edits in a spreadsheet.
- *
- * TODO(제주 W006): the sheet has these eight keys in KOREAN ONLY, so the cards
- * still read Korean in every language. That is a sheet task now, not a code one.
+ * Title and body copy come from Localization_Jeju (`Here_CultureContent_N_title`
+ * / `Here_CultureContent_N`). Photos and crop anchors stay here — bundled assets,
+ * not sheet content.
  */
 const CULTURE = [
   {
@@ -173,8 +139,6 @@ const CULTURE = [
     focus: 'center',
     titleKey: 'Here_CultureContent_1_title',
     bodyKey: 'Here_CultureContent_1',
-    title: '해녀 문화',
-    body: '제주의 대표적인 여성 공동체 문화로, 물질을 통해 바다에서 해산물을 채취하며 가족과 지역을 지켜왔습니다. 강인한 삶과 공동체 정신을 담은 문화로 유네스코 인류무형문화유산에 등재되었습니다.',
   },
   {
     id: 'stone',
@@ -182,8 +146,6 @@ const CULTURE = [
     focus: 'bottom',
     titleKey: 'Here_CultureContent_2_title',
     bodyKey: 'Here_CultureContent_2',
-    title: '돌 문화',
-    body: '화산섬 제주에서는 현무암을 활용한 돌담, 돌하르방 등 독특한 돌 문화가 발달했습니다. 바람을 막고 삶을 지켜온 제주 사람들의 지혜가 담겨 있습니다.',
   },
   {
     id: 'living',
@@ -191,8 +153,6 @@ const CULTURE = [
     focus: 'bottom',
     titleKey: 'Here_CultureContent_3_title',
     bodyKey: 'Here_CultureContent_3',
-    title: '제주 생활문화',
-    body: '자연환경에 적응하며 형성된 제주만의 전통생활문화입니다. 강한 바람을 견디는 초가집과 돌담 마을은 제주 사람들의 지혜와 삶의 방식을 보여줍니다.',
   },
   {
     id: 'food',
@@ -200,8 +160,6 @@ const CULTURE = [
     focus: 'top',
     titleKey: 'Here_CultureContent_4_title',
     bodyKey: 'Here_CultureContent_4',
-    title: '제주 음식문화',
-    body: '제주의 청정 자연이 키워낸 신선한 식재료로 다양한 향토음식을 즐길 수 있습니다. 흑돼지, 갈치, 감귤 등 제주를 대표하는 먹거리는 여행객들이 꼭 경험하는 미식 문화입니다.',
   },
 ] as const satisfies ReadonlyArray<{
   id: string;
@@ -209,8 +167,6 @@ const CULTURE = [
   focus: 'top' | 'center' | 'bottom';
   titleKey: string;
   bodyKey: string;
-  title: string;
-  body: string;
 }>;
 
 /**
@@ -295,12 +251,12 @@ const NO_MATCH = {
 };
 
 /**
- * How far one ▲▼ press moves, per tab: about four lines of 역사 prose, or one
- * 관광명소 row (730 card + 60 gap). 문화 never scrolls — see `canScroll`.
+ * How far one ▲▼ press moves, per tab: about four lines of 역사 prose, one
+ * 문화 card row (890 card + 72 gap), or one 관광명소 row (730 card + 60 gap).
  */
 const SCROLL_STEP: Record<TabId, number> = {
   history: 260,
-  culture: 0,
+  culture: 962,
   attractions: 790,
 };
 
@@ -320,8 +276,8 @@ export function JejuAbout({ controller }: Props): JSX.Element {
   /** The 관광명소 drill-down; null is the card grid. */
   const [spot, setSpot] = useState<Shop | null>(null);
 
-  /** Whichever region the active tab scrolls — the 역사 prose or the 관광명소
-   *  grid. Only one is mounted at a time, so one ref serves both. */
+  /** Whichever region the active tab scrolls — the 문화 panel, the 역사 prose
+   *  (below the timeline), or the 관광명소 grid. Only one is mounted at a time. */
   const lowReach = useAccessibilityStore((s) => s.lowReach);
   const scrollRef = useRef<HTMLDivElement>(null);
 
@@ -373,11 +329,27 @@ export function JejuAbout({ controller }: Props): JSX.Element {
     for (let i = 1; ; i += 1) {
       const key = `Here_HistoryContent_${i}`;
       if (!hasLoc(key)) break;
-      const body = sheetText(key, lang);
+      const body = tExact(key, lang);
       if (!body) continue;
-      // The title row lags the body — _1_epoch is Korean-only today — so it is
-      // optional and falls back to Korean rather than suppressing the epoch.
-      out.push({ key, title: sheetText(`${key}_epoch`, lang), body });
+      out.push({ key, title: t(`${key}_epoch`, lang), body });
+    }
+    return out;
+  }, [lang]);
+
+  /** Timeline bar — epoch label + one-line summary per stage (1..6). */
+  const historyFlow = useMemo(() => {
+    const out: Array<{ key: string; epoch: string; summary: string }> = [];
+    for (let i = 1; ; i += 1) {
+      const key = `Here_HistoryContent_${i}`;
+      const epochKey = `${key}_epoch`;
+      if (!hasLoc(epochKey)) break;
+      const epoch = t(epochKey, lang);
+      if (!epoch) continue;
+      out.push({
+        key,
+        epoch,
+        summary: t(`${key}_summary`, lang),
+      });
     }
     return out;
   }, [lang]);
@@ -441,21 +413,15 @@ export function JejuAbout({ controller }: Props): JSX.Element {
   /**
    * The ▲▼ pair is drawn on all three frames (6212:59090 / 59149 / 59320) as it
    * is on every 제주 content page, but on two of them it would have nothing to
-   * move: the 역사 copy fits the 872px box in Korean with 0px to spare
-   * (measured), and 문화's four cards end at y3079, well clear of the banner at
-   * y3267. Showing a control that does nothing is worse than not showing it, so
-   * it appears only when the region actually overflows — which 역사 will once
-   * the translations land, since they run longer than the Korean, and 관광명소
-   * does as soon as there are more than six attractions.
+   * move: the 문화 panel scrolls as a whole when content overflows; 역사 keeps
+   * the gallery and timeline fixed and scrolls only the epoch prose below; and
+   * 관광명소 does as soon as there are more than six attractions.
    */
   const [canScroll, setCanScroll] = useState(false);
   useLayoutEffect(() => {
     const el = scrollRef.current;
     setCanScroll(!!el && el.scrollHeight > el.clientHeight + 1);
-  }, [tab, lang, spot, visibleSpots.length]);
-
-  const step = (delta: number): void =>
-    setHero((i) => (i + delta + GALLERY.length) % GALLERY.length);
+  }, [tab, lang, spot, visibleSpots.length, historyEpochs.length, historyFlow.length]);
 
   const scrollBy = (delta: number): void =>
     scrollRef.current?.scrollBy({ top: delta, behavior: 'smooth' });
@@ -484,8 +450,6 @@ export function JejuAbout({ controller }: Props): JSX.Element {
     else controller.navigate('home', '뒤로');
   };
 
-  const arrow = jejuIconUrl('arrow-gallery');
-
   return (
     /* No banner override in STANDARD: this frame carries the same 상점 검색
        promo as 상세. ♿ is on the 2026-08-26 mode-bar revision (all four state
@@ -508,88 +472,151 @@ export function JejuAbout({ controller }: Props): JSX.Element {
         className={lowReach ? styles.tabsLow : undefined}
       />
 
-      {/* 문화 (6212:59098) draws no panel — the four cards sit on the page
-          background, so the grid replaces the panel rather than filling it. */}
       {tab === 'culture' && (
-        <div className={`${styles.cards} ${lowReach ? styles.cardsLow : ''}`}>
-          {CULTURE.map(({ id, photo, focus, titleKey, bodyKey, title, body }) => (
-            <article key={id} className={styles.card}>
-              <div className={styles.cardPhoto}>
-                <img
-                  src={photo}
-                  alt=""
-                  style={{ objectPosition: focus }}
-                  draggable={false}
-                  loading="lazy"
-                />
-              </div>
-              <h3 className={styles.cardTitle}>
-                {/* Figma draws a ▼ rotated −90° rather than ▶ — the two glyphs
-                    are not the same size in Noto Sans, so keep the rotation. */}
-                <span className={styles.cardMarker} aria-hidden="true">
-                  ▼
-                </span>
-                {sheetText(titleKey, lang, { ko: title })}
-              </h3>
-              <p className={styles.cardBody}>{sheetText(bodyKey, lang, { ko: body })}</p>
-            </article>
-          ))}
+        <div
+          ref={scrollRef}
+          className={`${styles.culturePanel} ${lowReach ? styles.culturePanelLow : ''}`}
+        >
+          <header className={styles.cultureHeader}>
+            <h2 className={styles.cultureTitle}>
+              <span className={styles.cultureBullet} aria-hidden="true">
+                ●
+              </span>
+              {t('Here_Jeju_1_Culture', lang)}
+            </h2>
+            <p className={styles.cultureIntro}>
+              {t('Here_Jeju_1_CultureContent', lang)}
+            </p>
+          </header>
+
+          <div className={styles.cards}>
+            {CULTURE.map(({ id, photo, focus, titleKey, bodyKey }) => (
+              <article key={id} className={styles.card}>
+                <div className={styles.cardPhoto}>
+                  <img
+                    src={photo}
+                    alt=""
+                    style={{ objectPosition: focus }}
+                    draggable={false}
+                    loading="lazy"
+                  />
+                </div>
+                <h3 className={styles.cardTitle}>{t(titleKey, lang)}</h3>
+                <p className={styles.cardBody}>{t(bodyKey, lang)}</p>
+              </article>
+            ))}
+          </div>
         </div>
       )}
 
       {tab === 'history' && (
-        <div className={`${styles.panel} ${lowReach ? styles.panelLow : ''}`}>
-          <div className={styles.heroRow}>
-            <button
-              type="button"
-              className={styles.navBtn}
-              onClick={() => step(-1)}
-              aria-label="이전 사진"
-            >
-              {arrow && <img src={arrow} alt="" className={styles.navPrev} draggable={false} />}
-            </button>
-
-            <div className={styles.hero} style={{ width: HERO_W }}>
-              <img src={GALLERY[hero]!.src} alt="" draggable={false} />
+        <div className={`${styles.historyPanel} ${lowReach ? styles.historyPanelLow : ''}`}>
+          <div className={styles.historyIntroRow}>
+            <div className={styles.historyGallery}>
+              <div className={styles.historyThumbs}>
+                {THUMBS.map((i) => (
+                  <button
+                    key={i}
+                    type="button"
+                    className={`${styles.historyThumb} ${hero === i ? styles.historyThumbActive : ''}`}
+                    onClick={() => setHero(i)}
+                    aria-label={`사진 ${i + 1}`}
+                  >
+                    <img src={GALLERY[i]!.src} alt="" draggable={false} loading="lazy" />
+                  </button>
+                ))}
+              </div>
+              <div className={styles.historyHero}>
+                <img src={GALLERY[hero]!.src} alt="" draggable={false} />
+              </div>
             </div>
 
-            <button
-              type="button"
-              className={styles.navBtn}
-              onClick={() => step(1)}
-              aria-label="다음 사진"
-            >
-              {arrow && <img src={arrow} alt="" className={styles.navNext} draggable={false} />}
-            </button>
+            <div className={styles.historyIntro}>
+              <h2 className={styles.sectionTitle}>
+                <span className={styles.sectionBullet} aria-hidden="true">
+                  ●
+                </span>
+                {t('Here_Jeju_2_Culture', lang)}
+              </h2>
+              <p className={styles.historyIntroBody}>
+                {t('Here_Jeju_2_CultureContent', lang)}
+              </p>
+            </div>
           </div>
 
-          {/* Filmstrip — each tile keeps the width Figma gives it, so the row
-              reads as a set of differently-proportioned photos, not a grid. */}
-          <div className={styles.strip}>
-            {STRIP.map((i) => (
-              <button
-                key={i}
-                type="button"
-                className={styles.thumb}
-                style={{ width: GALLERY[i]!.w }}
-                onClick={() => setHero(i)}
-                aria-label={`사진 ${i + 1}`}
-              >
-                <img src={GALLERY[i]!.src} alt="" draggable={false} loading="lazy" />
-              </button>
-            ))}
-          </div>
+          {historyFlow.length > 0 && (
+            <section className={styles.historyFlow}>
+              <h2 className={styles.sectionTitle}>
+                <span className={styles.sectionBullet} aria-hidden="true">
+                  ●
+                </span>
+                {t('Here_HistoryFlow', lang)}
+              </h2>
+              <div className={styles.historyFlowBar}>
+                {historyFlow.map((item, index) => (
+                  <div
+                    key={`${item.key}-emoji`}
+                    className={styles.historyFlowEmojiSlot}
+                    style={{ gridColumn: index * 2 + 1, gridRow: 1 }}
+                  >
+                    {HISTORY_FLOW_EMOJI[index] && (
+                      <span className={styles.historyFlowEmoji} aria-hidden="true">
+                        {HISTORY_FLOW_EMOJI[index]}
+                      </span>
+                    )}
+                  </div>
+                ))}
 
-          <div className={styles.prose} ref={scrollRef}>
+                {historyFlow.map((item, index) => (
+                  <Fragment key={item.key}>
+                    {index > 0 && (
+                      <span
+                        className={styles.historyFlowArrow}
+                        style={{ gridColumn: index * 2, gridRow: 2 }}
+                        aria-hidden="true"
+                      >
+                        ›
+                      </span>
+                    )}
+                    <span
+                      className={styles.historyFlowEpoch}
+                      style={{ gridColumn: index * 2 + 1, gridRow: 2 }}
+                    >
+                      {item.epoch}
+                    </span>
+                  </Fragment>
+                ))}
+
+                {historyFlow.map((item, index) => (
+                  <p
+                    key={`${item.key}-summary`}
+                    className={styles.historyFlowSummary}
+                    style={{ gridColumn: index * 2 + 1, gridRow: 3 }}
+                  >
+                    {item.summary}
+                  </p>
+                ))}
+              </div>
+            </section>
+          )}
+
+          <div className={styles.historyProse} ref={scrollRef}>
             {historyEpochs.length > 0 ? (
               historyEpochs.map((e) => (
                 <section key={e.key} className={styles.epoch}>
-                  {e.title && <h3 className={styles.epochTitle}>{e.title}</h3>}
+                  {e.title && (
+                    <h3 className={styles.epochTitle}>
+                      <span className={styles.sectionBullet} aria-hidden="true">
+                        ●
+                      </span>
+                      {e.title}
+                    </h3>
+                  )}
                   <p>{e.body}</p>
                 </section>
               ))
             ) : (
-              <p>{sheetText('Here_HistoryContent', lang, { ko: HISTORY_FALLBACK_KO })}</p>
+              <p>{t('Here_HistoryContent_1', lang)}</p>
             )}
           </div>
         </div>

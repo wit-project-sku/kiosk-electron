@@ -1,12 +1,7 @@
 /*
- * 제주공항 (W006) 렌트카 — Figma 6297:76578 / 6297:76391 (제주>하영=렌트카=공항-01,
- * the two are byte-identical duplicates), the 2026-08-24 redraw of 6217:95726.
+ * 제주공항 (W006) 렌트카 — Figma 6297:76578 / 6297:76391 (제주>하영=렌트카=공항-01).
  *
- * One scrolling column under the 700px header — `#렌터카하우스` block first (when
- * present), then the rest of the catalogue. Compact cards at 440px + 60 gap = 500
- * pitch.
- *
- * Inside KioskArtboard 1 CSS px = 1 Figma px. Chrome comes from JejuPageFrame.
+ * Search, filter chips, then compact cards at 384px + 60 gap = 444 pitch.
  */
 .scroll {
   position: absolute;
@@ -128,7 +123,7 @@
   object-fit: contain;
 }
 
-/* ── Shuttle filter chips (전체 / 공항 셔틀 / 셔틀 없음) ── */
+/* ── Filter chips (전체 / 공항 내 / 공항 셔틀 / 셔틀 없음) ── */
 .filters {
   flex: none;
   width: 1820px;
@@ -141,15 +136,16 @@
 .chip {
   box-sizing: border-box;
   flex: 0 0 auto;
-  width: fit-content;
+  width: 340px;
   max-width: 100%;
+  height: 170px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 16px;
-  padding: 48px 70px;
+  gap: 8px;
+  padding: 0;
   border: none;
-  border-radius: 80px;
+  border-radius: 40px;
   background: #fff;
   font-size: 50px;
   font-weight: 500;
@@ -177,31 +173,13 @@
   font-weight: 700;
 }
 
-/* ── 렌터카하우스 section heading ── */
-.houseSection {
-  flex: none;
-  width: 1820px;
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-  padding-top: 50px;
-}
-
-.houseHeading {
-  margin: 0;
-  font-size: 48px;
-  font-weight: 600;
-  line-height: 1;
-  color: var(--kiosk-primary, #ff7f0f);
-}
-
 /* ── Card list ──────────────────────────────────────────────────────── */
 .list {
   flex: none;
   width: 1820px;
   display: flex;
   flex-direction: column;
-  gap: 60px; /* 360 pitch − 300 compact card */
+  gap: 60px; /* 444 pitch − 384 compact card */
 }
 
 /* ── ▲▼ scroll controls ──────────────────────────────────────────────
