@@ -43,7 +43,8 @@
     "height:selftest": "node scripts/height-selftest.mjs",
     "height:test": "node scripts/height-run.mjs --pytest",
     "height:calibrate": "node scripts/height-run.mjs --calibrate",
-    "height:measure": "node scripts/height-run.mjs --selftest"
+    "height:measure": "node scripts/height-run.mjs --selftest",
+    "height:diagnose": "node scripts/height-run.mjs --diagnose"
   },
   "dependencies": {
     "@fontsource/manuale": "^5.3.0",

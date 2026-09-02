@@ -56,7 +56,7 @@ for _stream in (sys.stdout, sys.stderr):
     except (AttributeError, ValueError):  # pragma: no cover — already UTF-8, or piped
         pass
 
-from estimator import Subject, find_subjects, summarise
+from estimator import Rejection, Subject, find_subjects, summarise
 from geometry import (
     FloorFrame,
     camera_is_above,
@@ -392,6 +392,49 @@ def run_selftest(camera: ZedCamera) -> int:
         return 0
 
 
+def run_diagnose(camera: ZedCamera) -> int:
+    """Show EVERY cluster in the zone and why each one was or was not a visitor.
+
+    `--selftest` reports what was accepted, so a visitor who is being filtered
+    out looks identical to a visitor who is not there: "nobody in the zone" for
+    both. That is the least debuggable outcome a measurement can have, and it is
+    exactly what a room full of furniture produces. This prints the rejects and
+    their reasons, which turns "it does not see me" into a specific filter and a
+    number.
+    """
+    floor = load_calibration()
+    if floor is None:
+        log("no calibration found — run: npm run height:calibrate")
+        return 1
+
+    log(f"camera {floor.offset:.2f} m above the floor; zone {ZONE_MIN_M}-{ZONE_MAX_M} m")
+    log("Stand where the visitor stands. Ctrl+C to stop.\n")
+    try:
+        while True:
+            time.sleep(1.0 / FPS)
+            frame = camera.grab()
+            if frame is None:
+                continue
+            points = finite_points(frame.points)
+            rejected: list[Rejection] = []
+            subjects = find_subjects(floor, points, ZONE_MIN_M, ZONE_MAX_M, rejections=rejected)
+
+            if not subjects and not rejected:
+                log("  nothing in the zone at all — no cluster even formed")
+                continue
+            for s in subjects:
+                log(f"  ACCEPTED  {s.height_m * 100:6.1f} cm  at {s.distance_m:.2f} m  ({s.points} pts)")
+            for r in rejected:
+                height = f"{r.height_m * 100:6.1f} cm" if r.height_m else "     -- "
+                log(
+                    f"  rejected  {height}  at {r.distance_m:.2f} m  "
+                    f"(width {r.footprint_m:.2f} m, {r.points} pts)  {r.reason}"
+                )
+            log("")
+    except KeyboardInterrupt:
+        return 0
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(
         description="제주 visitor-height sidecar (ZED 2i, headless). "
@@ -407,6 +450,11 @@ def main() -> int:
         action="store_true",
         help="print live height estimates to stderr instead of speaking the protocol",
     )
+    parser.add_argument(
+        "--diagnose",
+        action="store_true",
+        help="show every cluster and why each was or was not counted as a visitor",
+    )
     args = parser.parse_args()
 
     camera = ZedCamera()
@@ -416,7 +464,7 @@ def main() -> int:
         # Non-zero so the supervisor's backoff restart applies. On the protocol
         # path the app also gets a machine-readable reason; on the CLI paths
         # stderr is the whole point.
-        if not (args.calibrate or args.selftest):
+        if not (args.calibrate or args.selftest or args.diagnose):
             emit(type="error", message=str(exc))
         log(f"ZED unavailable: {exc}")
         return 1
@@ -441,6 +489,8 @@ def main() -> int:
             log("")
             log(f"saved to {CALIBRATION_PATH.resolve()}")
             return 0
+        if args.diagnose:
+            return run_diagnose(camera)
         if args.selftest:
             return run_selftest(camera)
         return run_service(camera)

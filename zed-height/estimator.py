@@ -210,11 +210,30 @@ def estimate_crown(heights: np.ndarray, limit_m: float | None = None) -> float |
     return (base + top + 1) * SLAB_M
 
 
+@dataclass(frozen=True)
+class Rejection:
+    """A cluster that was NOT counted as a visitor, and why.
+
+    Every filter here can drop a real person for the wrong reason — a visitor
+    standing against a wall merges with it and looks too wide; one behind a
+    counter loses the torso the clustering needs. When that happens the symptom
+    is silence ("nobody in the zone"), which is the least debuggable thing a
+    measurement can do. This carries the reason out so `--diagnose` can show it.
+    """
+
+    reason: str
+    distance_m: float
+    footprint_m: float
+    points: int
+    height_m: float | None
+
+
 def find_subjects(
     frame: FloorFrame,
     points: np.ndarray,
     zone_min_m: float,
     zone_max_m: float,
+    rejections: list[Rejection] | None = None,
 ) -> list[Subject]:
     """Every person standing in the measurement zone, with a height estimate each.
 
@@ -251,15 +270,25 @@ def find_subjects(
 
     subjects: list[Subject] = []
     for centre, footprint in centres:
-        # A person's torso stands on a small patch of floor. A wall, counter or
-        # pillar does not, and indoors it is otherwise the most convincing
-        # "subject" in the scene — see MAX_SUBJECT_FOOTPRINT_M.
-        if footprint > MAX_SUBJECT_FOOTPRINT_M:
-            continue
-
         offset = np.linalg.norm(xy - centre, axis=1)
         near = offset <= CLUSTER_RADIUS_M
-        if int(near.sum()) < MIN_CLUSTER_POINTS:
+        count = int(near.sum())
+        where = float(np.median(radial[near])) if count else float("nan")
+
+        def drop(reason: str, height: float | None = None) -> None:
+            if rejections is not None:
+                rejections.append(Rejection(reason, where, footprint, count, height))
+
+        # A person's torso stands on a small patch of floor. A wall, counter or
+        # pillar does not, and indoors it is otherwise the most convincing
+        # "subject" in the scene — see MAX_SUBJECT_FOOTPRINT_M. This also drops
+        # a visitor who has merged with something they are standing against,
+        # which is why the reason is reported rather than swallowed.
+        if footprint > MAX_SUBJECT_FOOTPRINT_M:
+            drop("footprint too wide — merged with a wall, counter or another person")
+            continue
+        if count < MIN_CLUSTER_POINTS:
+            drop("too few points — too far, too small, or mostly occluded")
             continue
         # Two stages, because each answers a question the other cannot:
         # the full cluster is continuous, so it says where the BODY stops (and
@@ -267,24 +296,22 @@ def find_subjects(
         # it says where the HEAD is within that.
         limit = body_top(h[near])
         if limit is None:
+            drop("no torso — nothing solid between 0.6 and 1.4 m, so probably occluded")
             continue
         crown = estimate_crown(h[offset <= HEAD_COLUMN_RADIUS_M], limit_m=limit)
         if crown is None:
+            drop("no head found above the torso", limit)
             continue
         # Ran to the top of the body band without ever thinning out: not a
         # person, something that carries on past where a head would stop.
         if crown >= CEILING_REJECT_M:
+            drop("reaches the ceiling — a wall or pillar, not a visitor", crown)
             continue
         # Too short to be anyone standing up — a desk, a counter, a chair back.
         if crown < MIN_SUBJECT_HEIGHT_M:
+            drop("too short to be standing — furniture", crown)
             continue
-        subjects.append(
-            Subject(
-                height_m=crown,
-                points=int(near.sum()),
-                distance_m=float(np.median(radial[near])),
-            )
-        )
+        subjects.append(Subject(height_m=crown, points=count, distance_m=where))
 
     subjects.sort(key=lambda s: s.distance_m)
     return subjects
