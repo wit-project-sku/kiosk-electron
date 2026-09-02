@@ -2,30 +2,17 @@ import type { WebContents } from 'electron';
 import Store from 'electron-store';
 import type { CameraDeviceInfo } from '@shared/types/photo';
 import { createLogger } from '@main/core/logger';
+import { classifyCamera } from '@shared/config/cameras';
 
 const log = createLogger('camera-service');
 
-const ELGATO_PATTERN = /elgato|facecam|cam link|prompter/i;
-
 /**
- * Depth sensors — cameras that must NEVER be opened as the photo camera.
- *
- * The 제주 kiosks run two cameras side by side: an Elgato that takes the picture
- * and a ZED 2i that measures visitor height (see HeightService). The ZED is a
- * STEREO device: as a plain UVC camera it hands out one frame containing BOTH
- * sensors side by side, so a photo taken with it shows the visitor twice — and
- * that is what the AR API would receive. It is also normally held exclusively
- * by the ZED SDK sidecar, which makes `getUserMedia` on it fail outright.
- *
- * Either way it is not a photo camera, and `enumerateDevices()` lists it all the
- * same. Without this pattern the `resolveDeviceId()` fallback below — "first
- * available device" — silently picks it the moment the Elgato is unplugged or
- * enumerates late, and the kiosk starts shipping double-image photos with no
- * error anywhere. Matching by label is the only signal we have here; the
- * ZED reports itself as "ZED 2i".
+ * Selection rules live in @shared/config/cameras so main and the renderer
+ * cannot drift apart. The renderer's copy is the one that actually protects
+ * the photo (it is what calls getUserMedia); this one keeps main's own
+ * consumers — footfall, the operator device list — honest about the same
+ * devices. See useKioskCamera for why the renderer must decide for itself.
  */
-const DEPTH_PATTERN = /\bzed\b|stereolabs/i;
-
 interface CameraStore {
   preferredDeviceId: string | null;
 }
@@ -108,7 +95,7 @@ export class CameraService {
     if (elgato) return elgato.deviceId;
 
     // Deliberately the first SELECTABLE device, never simply the first
-    // enumerated one — see DEPTH_PATTERN.
+    // enumerated one — see DEPTH_CAMERA_PATTERN in @shared/config/cameras.
     return selectable[0]?.deviceId ?? null;
   }
 
@@ -122,10 +109,5 @@ export class CameraService {
 }
 
 function detectVendor(label: string): CameraDeviceInfo['vendor'] {
-  // Checked FIRST: a depth sensor is disqualifying, and no later branch may
-  // reclassify it as a usable camera.
-  if (DEPTH_PATTERN.test(label)) return 'depth';
-  if (ELGATO_PATTERN.test(label)) return 'elgato';
-  if (label.trim().length > 0) return 'usb';
-  return 'unknown';
+  return classifyCamera(label);
 }

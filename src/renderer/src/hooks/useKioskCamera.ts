@@ -1,4 +1,9 @@
 import { useCallback, useEffect, useRef, useState, type RefObject } from 'react';
+import {
+  DEPTH_CAMERA_PATTERN,
+  PREFERRED_CAMERA_PATTERN,
+  looksLikeStereoPair,
+} from '@shared/config/cameras';
 
 interface UseKioskCameraOptions {
   deviceId: string | null;
@@ -19,7 +24,34 @@ interface UseKioskCameraResult {
 }
 
 /**
- * Kiosk camera hook — uses deviceId from CameraService via IPC.
+ * Pick the camera to open, EXCLUDING any depth sensor.
+ *
+ * ── Why this happens here and not in main ──────────────────────────────
+ * CameraService also refuses depth devices, but it can only judge what it has
+ * been told about: its cache is filled by `camera:listDevices`, and nothing in
+ * the renderer ever calls it. `resolveDeviceId()` therefore returns null, and a
+ * null deviceId used to mean "no constraint" — which hands the choice to
+ * Chromium, which picks the SYSTEM DEFAULT camera. On a 제주 machine that is
+ * quite likely the ZED, and the result is a side-by-side stereo photo sent to
+ * the AR API with nothing logged anywhere. That is not a fallback, it is a
+ * coin toss, so it is gone: this hook decides for itself, from the device list
+ * it can see, and opens nothing if there is no valid camera.
+ */
+async function pickPhotoCamera(explicit: string | null, rejected: Set<string>): Promise<string | null> {
+  if (explicit && !rejected.has(explicit)) return explicit;
+
+  const devices = (await navigator.mediaDevices.enumerateDevices()).filter(
+    (d) => d.kind === 'videoinput',
+  );
+  const usable = devices.filter(
+    (d) => !DEPTH_CAMERA_PATTERN.test(d.label) && !rejected.has(d.deviceId),
+  );
+  const preferred = usable.find((d) => PREFERRED_CAMERA_PATTERN.test(d.label));
+  return (preferred ?? usable[0])?.deviceId ?? null;
+}
+
+/**
+ * Kiosk camera hook — opens the venue's PHOTO camera, never its depth sensor.
  * Never stores image data in state; capture returns a data URL on demand.
  */
 export function useKioskCamera({ deviceId, enabled, rotation = 0 }: UseKioskCameraOptions): UseKioskCameraResult {
@@ -45,29 +77,62 @@ export function useKioskCamera({ deviceId, enabled, rotation = 0 }: UseKioskCame
 
     void (async () => {
       setError(null);
-      try {
-        const constraints: MediaStreamConstraints = {
-          video: deviceId
-            ? { deviceId: { exact: deviceId }, width: { ideal: 1920 }, height: { ideal: 1080 } }
-            : { width: { ideal: 1920 }, height: { ideal: 1080 } },
-          audio: false,
-        };
-        const stream = await navigator.mediaDevices.getUserMedia(constraints);
+      // Devices rejected this attempt — a depth sensor whose LABEL was empty
+      // (Chromium hides labels until camera permission is granted) and which
+      // only gave itself away once its frame arrived. Retrying without it is
+      // what turns that hole into a one-frame delay instead of a broken photo.
+      const rejected = new Set<string>();
+
+      for (let attempt = 0; attempt < 3; attempt += 1) {
+        if (cancelled) return;
+
+        const chosen = await pickPhotoCamera(deviceId, rejected);
+        if (!chosen) {
+          if (!cancelled) {
+            setError('No photo camera found. Check that the Elgato or USB camera is connected.');
+            setActive(false);
+          }
+          return;
+        }
+
+        let stream: MediaStream;
+        try {
+          stream = await navigator.mediaDevices.getUserMedia({
+            video: { deviceId: { exact: chosen }, width: { ideal: 1920 }, height: { ideal: 1080 } },
+            audio: false,
+          });
+        } catch {
+          rejected.add(chosen);
+          continue;
+        }
+
         if (cancelled) {
           stream.getTracks().forEach((t) => t.stop());
           return;
         }
+
+        // The label-free backstop. A stereo pair's aspect ratio is nothing like
+        // a webcam's, so if this is one we opened a depth sensor blind — drop
+        // it, remember it, and take the next candidate.
+        const { width = 0, height = 0 } = stream.getVideoTracks()[0]?.getSettings() ?? {};
+        if (looksLikeStereoPair(width, height)) {
+          stream.getTracks().forEach((t) => t.stop());
+          rejected.add(chosen);
+          continue;
+        }
+
         streamRef.current = stream;
         if (videoRef.current) {
           videoRef.current.srcObject = stream;
           await videoRef.current.play();
         }
         setActive(true);
-      } catch {
-        if (!cancelled) {
-          setError('Camera unavailable. Check that your Elgato or USB camera is connected.');
-          setActive(false);
-        }
+        return;
+      }
+
+      if (!cancelled) {
+        setError('Camera unavailable. Check that your Elgato or USB camera is connected.');
+        setActive(false);
       }
     })();
 

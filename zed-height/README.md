@@ -61,8 +61,13 @@ IMU's gravity vector is used only to reject a fit that landed on a wall.
 ## Check it against real people
 
 ```
-npm run height:camera
+npm run height:measure
 ```
+
+Prints numbers to the terminal — a per-frame estimate, a running median, and the
+subject count. It shows **no video**: like the rest of this sidecar it only ever
+asks the camera for `MEASURE.XYZ` (a grid of 3D coordinates), never for an
+image, so there is nothing to display even by accident.
 
 Prints a live per-frame estimate, a running median, and the subject count. Stand
 at the kiosk's marked spot and compare against a tape measure. Expect **±2–5 cm**
@@ -131,7 +136,7 @@ machine with no camera and no CUDA.
 | `npm run height:test` | no | the measurement maths, against synthetic bodies |
 | `npm run height:selftest` | no | the app-side plumbing (`scripts/height-selftest.mjs`) |
 | `npm run height:calibrate` | **yes** | fit and save the floor plane |
-| `npm run height:camera` | **yes** | live estimates, to check against a tape measure |
+| `npm run height:measure` | **yes** | live estimates as text, to check against a tape measure |
 
 Only `height:selftest` is pure Node. The three `python` ones run whatever `python`
 resolves to on PATH, which on a developer machine is very often **not** the

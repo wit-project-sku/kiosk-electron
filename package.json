@@ -39,10 +39,11 @@
     "sync:sheet": "node scripts/sync-sheet.mjs",
     "db:inspect": "node scripts/db-inspect.mjs",
     "footfall:selftest": "node scripts/footfall-selftest.mjs",
+    "camera:selftest": "node scripts/camera-selftest.mjs",
     "height:selftest": "node scripts/height-selftest.mjs",
     "height:test": "cd zed-height && python -m pytest tests -q",
     "height:calibrate": "cd zed-height && python main.py --calibrate",
-    "height:camera": "cd zed-height && python main.py --selftest"
+    "height:measure": "cd zed-height && python main.py --selftest"
   },
   "dependencies": {
     "@fontsource/manuale": "^5.3.0",
