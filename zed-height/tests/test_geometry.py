@@ -212,3 +212,38 @@ def test_a_full_room_measures_only_the_person():
     subjects = find_subjects(frame, cam, *ZONE)
     assert len(subjects) == 1
     assert subjects[0].height_m == pytest.approx(1.74, abs=0.03)
+
+
+@pytest.mark.parametrize("roll_deg", [0.0, 90.0, 180.0, 270.0, 45.0])
+def test_any_mount_rotation_measures_the_same_person(roll_deg):
+    """제주 mounts the ZED rotated 90° left, permanently.
+
+    Nothing in the estimator is told that, and nothing may ever need to be: up
+    comes from the fitted floor, the standing zone is a radial distance, and the
+    floor-plane basis is arbitrary. This pins that down for every orientation
+    somebody might mount a camera in, including ones nobody plans to — a
+    constant that has to agree with a bracket is a constant that will one day
+    disagree with it.
+    """
+    rng = np.random.default_rng(41)
+    cam, frame = build(rng, person(rng, height_m=1.79), roll_deg=roll_deg)
+    subjects = find_subjects(frame, cam, *ZONE)
+    assert len(subjects) == 1
+    assert subjects[0].height_m == pytest.approx(1.79, abs=0.03)
+
+
+@pytest.mark.parametrize("tilt_deg", [-15.0, -8.0, 0.0, 8.0, 15.0])
+def test_a_rotated_mount_that_is_also_tilted_still_measures(tilt_deg):
+    """A bracket is never perfectly level. Rotation and tilt together."""
+    rng = np.random.default_rng(42)
+    cam, frame = build(rng, person(rng, height_m=1.68), roll_deg=90.0, tilt_deg=tilt_deg)
+    subjects = find_subjects(frame, cam, *ZONE)
+    assert len(subjects) == 1
+    assert subjects[0].height_m == pytest.approx(1.68, abs=0.03)
+
+
+def test_a_rotated_mount_recovers_the_true_camera_height():
+    """The number an installer checks against a tape, taken through a 90° mount."""
+    rng = np.random.default_rng(43)
+    _, frame = build(rng, person(rng), roll_deg=90.0)
+    assert frame.offset == pytest.approx(1.4, abs=0.02)
