@@ -136,6 +136,17 @@
 }
 
 /* In-card scroll — grows with content up to a cap, then scrolls inside. */
+/* AI 코스 상세 + 다음 장소 — card grows in a page-level scroll column. */
+.cardFlow {
+  position: relative;
+  left: auto;
+  top: auto;
+  width: 100%;
+  height: auto;
+  max-height: none;
+  overflow: visible;
+}
+
 .cardFixedScroll {
   height: auto;
   min-height: 0;
@@ -145,7 +156,7 @@
 }
 
 .cardFixedScrollTall {
-  max-height: 2400px;
+  max-height: 2450px;
 }
 
 .cardFixedScroll::-webkit-scrollbar {
@@ -161,8 +172,29 @@
   background: transparent;
 }
 
-.cardRentcar .head {
+.cardRouteDetail .head {
   gap: 50px;
+}
+
+.cardRouteDetail {
+  padding-top: 60px;
+  padding-bottom: 60px;
+}
+
+/* 뭐먹지/뭐사지/숙박안내 — four photos in one row (card content ≈1730px). */
+.cardRouteDetail .photos {
+  display: flex;
+  flex-direction: row;
+  gap: 40px;
+  width: 100%;
+}
+
+.cardRouteDetail .photos .photo {
+  flex: 1 1 0;
+  width: 0;
+  min-width: 0;
+  height: auto;
+  aspect-ratio: 16 / 9;
 }
 
 /* ── Shuttle “가는 방법” panel (공항 셔틀 이용) ── */
@@ -312,6 +344,28 @@
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+.cardRouteDetail .infoText {
+  font-size: 48px;
+}
+
+.cardRouteDetail .desc {
+  min-height: 140px;
+  max-height: 140px;
+  font-size: 48px;
+  line-height: 1.25;
+}
+
+.cardRouteDetail .tags {
+  margin-top: 16px;
+  font-size: 40px;
+  line-height: 1.3;
+}
+
+.cardRouteDetail .ratings {
+  min-height: 86px;
+  gap: 40px;
 }
 
 /* Opening hours can carry a second 브레이크타임 line. */

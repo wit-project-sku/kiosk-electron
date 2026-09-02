@@ -5,18 +5,23 @@
  * Font/spacing tokens below — adjust these to resize the whole block.
  */
 .wrap {
-  --dir-distance: 62px;
+  --dir-distance: 50px;
   --dir-road-note: 34px;
   --dir-mode: 48px;
-  --dir-mode-icon: 60px;
-  --dir-bus-label: 52px;
-  --dir-bus-time: 62px;
-  --dir-bus-note: 34px;
-  --dir-stop-name: 48px;
-  --dir-stop-dest: 52px;
+  --dir-mode-time: 55px;
+  --dir-mode-time-left: 410px;
+  --dir-mode-icon: 80px;
+  --dir-mode-icon-gap: 16px;
+  --dir-shuttle-note: 36px;
+  --dir-card-pad-x: 60px;
+  --dir-card-pad-y: 55px;
+  --dir-card-radius: 80px;
+  --dir-stop-name: 50px;
+  --dir-stop-dest: 50px;
   --dir-stop-meta: 40px;
-  --dir-pill: 36px;
+  --dir-pill: 50px;
   --dir-foot: 34px;
+  --dir-card-bg: #ffeac7;
 
   width: 100%;
   display: flex;
@@ -24,142 +29,129 @@
   gap: 44px;
 }
 
-.summary {
-  display: flex;
-  flex-direction: column;
-  gap: 24px;
-}
-
-.distanceRow {
-  display: flex;
-  align-items: baseline;
-  flex-wrap: wrap;
-  gap: 24px 40px;
-}
-
 .distance {
   margin: 0;
-  flex: 0 1 auto;
   font-size: var(--dir-distance);
   font-weight: 700;
   line-height: 1.2;
-  color: #333;
+  color: var(--kiosk-primary, #ff7f0f);
 }
 
 .distanceKm {
   font-weight: 700;
 }
 
-.roadNote {
-  margin: 0;
-  flex: 0 1 auto;
-  font-size: var(--dir-road-note);
-  font-weight: 400;
-  line-height: 1.2;
-  color: #999;
-}
-
-.modes {
+.modeList {
   display: flex;
   flex-direction: column;
   gap: 40px;
-  padding-top: 32px;
 }
 
-.modeRow {
+/* Icon · label on the left; time pinned at --dir-mode-time-left. */
+.modeHead {
+  position: relative;
   display: flex;
   align-items: center;
-  gap: 24px;
+  width: 100%;
+  min-height: var(--dir-mode-icon);
+  box-sizing: border-box;
+  padding: 0 var(--dir-card-pad-x);
 }
 
-.modeLead {
+.modeHeadLeft {
   display: inline-flex;
   align-items: center;
-  gap: 20px;
-  flex: 0 0 calc(var(--dir-mode-icon) + 20px + 24ch);
-  width: calc(var(--dir-mode-icon) + 20px + 24ch);
-  box-sizing: border-box;
-}
-
-.modeLabel {
-  font-size: var(--dir-mode);
-  font-weight: 600;
-  line-height: 1;
-  color: #333;
-  white-space: nowrap;
+  gap: var(--dir-mode-icon-gap);
+  flex: 0 1 auto;
+  min-width: 0;
 }
 
 .modeIcon {
+  flex: 0 0 auto;
   font-size: var(--dir-mode-icon);
   line-height: 1;
 }
 
-.modeTime {
+.modeLabel {
   font-size: var(--dir-mode);
+  font-weight: 700;
+  line-height: 1;
+  color: #333;
+  white-space: nowrap;
+}
+
+.modeTime {
+  position: absolute;
+  left: var(--dir-mode-time-left);
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: var(--dir-mode-time);
   font-weight: 600;
   line-height: 1;
   color: #333;
   white-space: nowrap;
+}
+
+.modeTimeAccent {
+  font-weight: 700;
+  color: var(--kiosk-primary, #ff7f0f);
+}
+
+/* Car / bike / walk — time only muted (label stays black). */
+.modeList > .modeHead .modeTime {
+  color: #999;
+}
+
+/* ── Shuttle card ── */
+.shuttleCard {
+  box-sizing: border-box;
+  width: 100%;
+  padding: var(--dir-card-pad-y) 0;
+  border-radius: var(--dir-card-radius);
+  background: var(--dir-card-bg);
+  display: flex;
+  flex-direction: column;
+  gap: 48px;
+}
+
+.shuttleNote {
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 0 var(--dir-card-pad-x);
+  padding-left: calc(var(--dir-card-pad-x) + var(--dir-mode-icon) + var(--dir-mode-icon-gap));
+  font-size: var(--dir-shuttle-note);
+  font-weight: 400;
+  line-height: 1.35;
+  color: #999;
+}
+
+.shuttleBullet {
+  flex: 0 0 auto;
+  width: var(--dir-shuttle-note);
+  height: var(--dir-shuttle-note);
+  border-radius: 50%;
+  background: var(--kiosk-primary, #ff7f0f);
 }
 
 /* ── Bus card ── */
 .busCard {
   box-sizing: border-box;
   width: 100%;
-  padding: 55px 60px 50px;
-  border-radius: 45px;
-  background: #fff5eb;
+  padding: var(--dir-card-pad-y) 0 50px;
+  border-radius: var(--dir-card-radius);
+  background: var(--dir-card-bg);
   display: flex;
   flex-direction: column;
   gap: 44px;
-}
-
-.busHead {
-  display: flex;
-  align-items: baseline;
-  flex-wrap: wrap;
-  gap: 12px 120px;
-}
-
-.busHeadMeta {
-  display: inline-flex;
-  align-items: baseline;
-  gap: 32px;
-}
-
-.busHeadLeft {
-  display: inline-flex;
-  align-items: center;
-  gap: 16px;
-  font-size: var(--dir-bus-label);
-  font-weight: 700;
-  line-height: 1;
-  color: #333;
-}
-
-.busHeadLeft .modeIcon {
-  font-size: var(--dir-mode-icon);
-}
-
-.busHeadTime {
-  font-size: var(--dir-bus-time);
-  font-weight: 700;
-  line-height: 1;
-  color: var(--kiosk-primary, #ff7f0f);
-}
-
-.busHeadNote {
-  font-size: var(--dir-bus-note);
-  font-weight: 400;
-  line-height: 1.2;
-  color: #999;
 }
 
 /* ── Timeline ── */
 .timeline {
   display: flex;
   flex-direction: column;
-  padding-top: 32px;
+  padding: 32px var(--dir-card-pad-x) 0;
 }
 
 .stop {
@@ -192,7 +184,7 @@
   height: 40px;
   margin-top: 12px;
   box-sizing: border-box;
-  background: #fff5eb;
+  background: var(--dir-card-bg);
   border: 5px solid var(--kiosk-primary, #ff7f0f);
 }
 
@@ -203,13 +195,19 @@
   min-height: 28px;
   margin-top: 10px;
   border-radius: 2px;
-  background: #ddd;
+  background: var(--kiosk-primary, #ff7f0f);
 }
 
 .stopDashed:not(.stopLast) .rail::after {
-  width: 0;
-  background: none;
-  border-left: 4px dashed #bbb;
+  width: 4px;
+  background: repeating-linear-gradient(
+    to bottom,
+    var(--kiosk-primary, #ff7f0f) 0,
+    var(--kiosk-primary, #ff7f0f) 28px,
+    transparent 28px,
+    transparent 48px
+  );
+  border: none;
   border-radius: 0;
 }
 
@@ -225,14 +223,14 @@
 
 .stopTop {
   display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
   gap: 20px;
 }
 
 .stopName {
   margin: 0;
-  flex: 1 1 auto;
+  flex: 0 1 auto;
   min-width: 0;
   font-size: var(--dir-stop-name);
   font-weight: 700;
@@ -257,14 +255,19 @@
 .pill {
   flex: 0 0 auto;
   box-sizing: border-box;
-  padding: 18px 28px;
+  width: 234px;
+  padding: 18px 0;
   border-radius: 60px;
   background: var(--kiosk-primary, #ff7f0f);
   font-size: var(--dir-pill);
-  font-weight: 600;
+  font-weight: 700;
   line-height: 1;
   color: #fff;
   white-space: nowrap;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
 }
 
 .pillDark {
@@ -273,6 +276,7 @@
 
 .busFoot {
   margin: 0;
+  padding: 0 var(--dir-card-pad-x);
   font-size: var(--dir-foot);
   font-weight: 400;
   line-height: 1.35;

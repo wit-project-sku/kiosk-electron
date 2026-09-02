@@ -17,6 +17,7 @@ import {
   shopName,
   shopRentcarName,
   shopRentcarRouteSummary,
+  shopRentcarSecondCategory,
   shopSecondCategory,
 } from '@renderer/lib/shops';
 import { highlightMatch } from '@renderer/lib/highlightMatch';
@@ -56,8 +57,8 @@ interface Props {
   badgeVariant?: RentcarBadgeVariant;
   /** 렌트카 compact row override — e.g. 렌터카하우스 wayfinding line. */
   routeLine?: string;
-  /** 렌터카하우스 목록 — #ffeac7 plate + primary border. */
-  house?: boolean;
+  /** 렌트카 compact bottom row — tel, or km · drive · tel. */
+  footerLine?: string;
   onClick: () => void;
 }
 
@@ -70,7 +71,7 @@ export function JejuShopCard({
   badge,
   badgeVariant = 'primary',
   routeLine,
-  house = false,
+  footerLine,
   onClick,
 }: Props): JSX.Element {
   // Real photos first, then the shared no-image placeholder — the same asset
@@ -78,35 +79,60 @@ export function JejuShopCard({
   // locations use, so a shop with no photos reads as "no photo" instead of an
   // empty tinted tile.
   const images = padImages(shopImages(shop), jejuIconUrl('noimage'), THUMBS);
-  const routeSummary = compact ? routeLine ?? shopRentcarRouteSummary(shop, lang) : '';
+  const routeSummary = compact ? routeLine : '';
+  const footerSummary = compact ? footerLine ?? (routeLine == null ? shopRentcarRouteSummary(shop, lang) : '') : '';
   const displayName = rentcarApi ? shopRentcarName(shop, lang) : shopName(shop, lang);
+  const displayCategory = rentcarApi
+    ? shopRentcarSecondCategory(shop, lang)
+    : shopSecondCategory(shop, lang);
   const mark = (text: string): ReturnType<typeof highlightMatch> | string =>
     query ? highlightMatch(text, query, styles.hl) : text;
 
   return (
     <button
       type="button"
-      className={`${styles.card} ${compact ? styles.cardCompact : ''} ${house ? styles.cardHouse : ''}`}
+      className={`${styles.card} ${compact ? styles.cardCompact : ''}`}
       onClick={onClick}
     >
       <span className={`${styles.info} ${compact ? styles.infoCompact : ''}`}>
         <span className={`${styles.nameRow} ${compact ? styles.nameRowCompact : ''}`}>
-          <span className={styles.name}>{mark(displayName)}</span>
-          {compact && badge ? (
-            <span className={`${styles.badge} ${rentcarBadgeClass(badgeVariant)}`}>
-              {badge}
-            </span>
+          {compact ? (
+            <>
+              <span className={styles.nameRowLeft}>
+                <span className={styles.name}>{mark(displayName)}</span>
+                {displayCategory && (
+                  <span className={styles.cat}>
+                    <span className={styles.dot} />
+                    {displayCategory}
+                  </span>
+                )}
+              </span>
+              {badge ? (
+                <span className={`${styles.badge} ${rentcarBadgeClass(badgeVariant)}`}>{badge}</span>
+              ) : null}
+            </>
           ) : (
-            !compact && (
+            <>
+              <span className={styles.name}>{mark(displayName)}</span>
               <span className={styles.cat}>
                 <span className={styles.dot} />
-                {shopSecondCategory(shop, lang)}
+                {displayCategory}
               </span>
-            )
+            </>
           )}
         </span>
         {compact ? (
-          routeSummary ? <p className={styles.route}>{routeSummary}</p> : null
+          <>
+            {routeSummary ? (
+              <>
+                <span className={styles.compactGap} aria-hidden="true" />
+                <p className={styles.route}>{mark(routeSummary)}</p>
+                <span className={styles.compactGap} aria-hidden="true" />
+              </>
+            ) : null}
+            <span className={styles.compactSpacer} aria-hidden="true" />
+            {footerSummary ? <p className={styles.footer}>{mark(footerSummary)}</p> : null}
+          </>
         ) : (
           <>
             <p className={styles.address}>{mark(shopAddress(shop, lang))}</p>

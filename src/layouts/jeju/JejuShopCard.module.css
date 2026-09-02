@@ -71,7 +71,8 @@
 .address,
 .desc,
 .tags,
-.route {
+.route,
+.footer {
   margin: 0;
   overflow: hidden;
   display: -webkit-box;
@@ -82,8 +83,18 @@
   font-size: 48px;
   font-weight: 500;
   line-height: 1;
-  color: #616161;
+  color: #999;
   -webkit-line-clamp: 1;
+  flex: 0 0 auto;
+}
+
+.footer {
+  font-size: 48px;
+  font-weight: 500;
+  line-height: 1;
+  color: #999;
+  -webkit-line-clamp: 1;
+  flex: 0 0 auto;
 }
 
 .address {
@@ -140,17 +151,11 @@
   display: block;
 }
 
-/* 렌트카 list — name + route/tel centred vertically (JejuRentcar `compact`). */
+/* 렌트카 list — name · category / route / footer (JejuRentcar `compact`). */
 .cardCompact {
-  height: 300px;
-  padding: 35px 45px;
+  height: 384px;
+  padding: 60px 45px;
   align-items: stretch;
-}
-
-/* 렌터카하우스 목록 — #ffeac7 fill, primary outline (JejuHanbokSelect subcatActive). */
-.cardHouse {
-  background: #FFF0DF;
-  border: 5px solid var(--kiosk-primary, #ff7f0f);
 }
 
 .infoCompact {
@@ -159,31 +164,60 @@
   min-height: 0;
   display: flex;
   flex-direction: column;
-  justify-content: center;
-  gap: 60px;
+  justify-content: flex-start;
+  gap: 0;
+}
+
+.compactGap {
+  flex: 0 0 20px;
+}
+
+.compactSpacer {
+  flex: 1 1 0;
+  min-height: 0;
+}
+
+.nameRowLeft {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.nameRowLeft .name {
+  flex: 0 1 auto;
+  max-width: none;
+}
+
+.nameRowCompact .cat {
+  flex: 0 0 auto;
+  font-size: 52px;
 }
 
 /* Name on the left, badge on the right — same row, vertically centred on the name. */
 .nameRowCompact {
   width: 100%;
+  flex: 0 0 auto;
   align-items: center;
   justify-content: space-between;
   gap: 24px;
-}
-
-.nameRowCompact .name {
-  flex: 1;
-  min-width: 0;
 }
 
 /* 렌터카 list — badge chip beside the shop name (JejuRentcar `compact`). */
 .badge {
   flex: 0 0 auto;
   box-sizing: border-box;
-  padding: 28px 32px;
-  border-radius: 70px;
-  font-size: 40px;
-  font-weight: 600;
+  width: 395px;
+  height: 97px;
+  padding: 0;
+  border-radius: 60px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 48px;
+  font-weight: 500;
   line-height: 1;
   white-space: nowrap;
   pointer-events: none;
@@ -195,8 +229,8 @@
 }
 
 .badgeShuttle {
-  background: #e8f5e9;
-  color: #2e7d32;
+  background: #fff0df;
+  color: var(--kiosk-primary, #ff7f0f);
 }
 
 .badgeNoShuttle {

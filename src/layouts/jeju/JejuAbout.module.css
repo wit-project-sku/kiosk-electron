@@ -2,18 +2,11 @@
  * 여기는 제주도 — Figma nodes 6212:59045 (역사) and 6212:59093 (문화).
  *
  * 역사:
- *   700   tab row, 1820 wide at x170 — three 580×170 buttons, 40px gaps
- *   979   panel, 1818×2100 at x170  (everything below is panel-relative)
- *   1089  hero photo 825×550 r20      → rel 497 / 110
- *   1397  gallery chevrons, centred    → rel y 418 (33px below the hero's middle)
- *   1711  filmstrip 1648×210 at x256  → rel 86 / 732
- *   2028  prose 1669×872 at x245      → rel 75 / 1049
+ *   979   history panel — gallery + intro row, timeline bar, scrollable epoch prose
  *
- * 문화 shares the tab row and nothing else — no panel, four cards instead:
- *   979   card grid 1681×2100 at x244 — 806×1014 cards, 69/72 gaps
- *   1033  photo 650×379 r20            → card-rel 78 / 54
- *   1453  heading, ▼ marker at rel 78  → card-rel 151 / 474
- *   1545  body 650 wide                → card-rel 78 / 566
+ * 문화 shares the tab row, then one white panel wrapping an intro and four cards:
+ *   979   panel 1818 wide at x170 — title + intro, then 2×2 card grid inside
+ *   cards 806×1014, 69/72 gaps, each with a soft drop shadow
  *
  * 관광명소 likewise, plus the one scrolling region on this page:
  *   920   초성 index row 1686×72 at x208 (fixed — the filter, not content)
@@ -24,7 +17,7 @@
 
 /* The tab row (6212:59067) lives in JejuTabRow — 안녕 '하영' draws the same one. */
 
-/* ── Panel (6212:59048) ── */
+/* ── Panel (legacy — 관광명소 상세 등에서만 쓰이면 유지; 역사는 historyPanel) ── */
 .panel {
   position: absolute;
   left: 170px;
@@ -37,18 +30,260 @@
   overflow: hidden;
 }
 
+/* ── 역사 panel ── */
+.historyPanel {
+  position: absolute;
+  left: 170px;
+  top: 979px;
+  width: 1818px;
+  height: 2240px;
+  box-sizing: border-box;
+  border-radius: 42.9px;
+  background: #fff;
+  padding: 60px 100px 74px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.historyIntroRow {
+  display: flex;
+  align-items: flex-start;
+  gap: 48px;
+  flex-shrink: 0;
+  margin-bottom: 56px;
+}
+
+.historyGallery {
+  display: flex;
+  flex: 0 0 auto;
+  gap: 16px;
+}
+
+.historyThumbs {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.historyThumb {
+  width: 150px;
+  height: 94px;
+  padding: 0;
+  border: 3px solid transparent;
+  border-radius: 12px;
+  overflow: hidden;
+  background: #f2ede6;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.historyThumbActive {
+  border-color: var(--kiosk-primary, #ff7f0f);
+}
+
+.historyThumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.historyHero {
+  width: 860px;
+  height: 534px;
+  border-radius: 20px;
+  overflow: hidden;
+  background: #f2ede6;
+}
+
+.historyHero img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.historyIntro {
+  flex: 1;
+  min-width: 0;
+}
+
+.historyIntroBody {
+  margin: 24px 0 0;
+  font-size: 40px;
+  font-weight: 500;
+  line-height: 1.5;
+  color: #666;
+  white-space: pre-wrap;
+}
+
+.sectionTitle {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  margin: 0;
+  font-size: 54px;
+  font-weight: 700;
+  line-height: 1.25;
+  color: #333;
+}
+
+.sectionBullet {
+  flex: 0 0 auto;
+  font-size: 44px;
+  line-height: 1;
+  color: var(--kiosk-primary, #ff7f0f);
+}
+
+.historyFlow {
+  flex-shrink: 0;
+  margin: 0 0 40px;
+}
+
+.historyFlowBar {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr auto 1fr auto 1fr auto 1fr auto 1fr;
+  grid-template-rows: auto auto auto;
+  align-items: center;
+  row-gap: 0;
+  margin-top: 32px;
+  padding: 68px 40px;
+  border-radius: 24px;
+  background: #f9f8f6;
+}
+
+.historyFlowEmojiSlot {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 76px;
+}
+
+.historyFlowEmoji {
+  font-size: 58px;
+  line-height: 1;
+}
+
+.historyFlowArrow {
+  justify-self: center;
+  align-self: center;
+  padding: 0 6px;
+  font-size: 76px;
+  font-weight: 400;
+  line-height: 1;
+  color: #909090;
+}
+
+.historyFlowEpoch {
+  justify-self: center;
+  margin: 0;
+  font-size: 42px;
+  font-weight: 700;
+  line-height: 1.25;
+  text-align: center;
+  color: #333;
+}
+
+.historyFlowSummary {
+  justify-self: center;
+  width: 88%;
+  max-width: 100%;
+  margin: 24px 0 0;
+  font-size: 36px;
+  font-weight: 500;
+  line-height: 1.4;
+  text-align: center;
+  color: #888;
+  white-space: pre-wrap;
+}
+
+.historyProse {
+  flex: 1;
+  min-height: 0;
+  overflow-x: hidden;
+  overflow-y: auto;
+  padding-top: 48px;
+  scrollbar-width: none;
+}
+
+.historyProse::-webkit-scrollbar {
+  width: 0;
+  height: 0;
+}
+
+.historyProse p {
+  margin: 0;
+  font-size: 50px;
+  font-weight: 500;
+  line-height: 1.3;
+  color: #333;
+  white-space: pre-wrap;
+}
+
+/* ── 문화 panel ──
+   One white plate holds the intro and the four cards. The cards used to sit
+   directly on the page background; the 2026-09 design wraps them inside. */
+.culturePanel {
+  position: absolute;
+  left: 170px;
+  top: 979px;
+  width: 1818px;
+  height: 2240px;
+  box-sizing: border-box;
+  border-radius: 42.9px;
+  background: #fff;
+  padding: 60px 140px 74px;
+  overflow-x: hidden;
+  overflow-y: auto;
+  scrollbar-width: none;
+}
+
+.culturePanel::-webkit-scrollbar {
+  width: 0;
+  height: 0;
+}
+
+.cultureHeader {
+  margin-bottom: 48px;
+}
+
+.cultureTitle {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  margin: 0;
+  font-size: 54px;
+  font-weight: 700;
+  line-height: 1.25;
+  color: #333;
+}
+
+.cultureBullet {
+  flex: 0 0 auto;
+  font-size: 44px;
+  line-height: 1;
+  color: var(--kiosk-primary, #ff7f0f);
+}
+
+.cultureIntro {
+  margin: 24px 0 0;
+  font-size: 40px;
+  font-weight: 500;
+  line-height: 1.5;
+  color: #666;
+  white-space: pre-wrap;
+}
+
 /* ── 문화 card grid (6212:59098) ──
-   Four cards, no panel behind them. Figma nudges the second column and the
+   Four cards inside the panel. Figma nudges the second column and the
    second row by a few px (x1119 vs x1114, photos at rel y54 vs y57); those are
    hand-drags, not intent, so the grid normalises them — four identical cards
    read as a set, four almost-identical ones read as a mistake. */
 .cards {
-  position: absolute;
-  left: 244px;
-  top: 979px;
   display: grid;
-  grid-template-columns: repeat(2, 806px);
-  column-gap: 69px;
+  grid-template-columns: repeat(2, 1fr);
+  column-gap: 36px;
   row-gap: 72px;
 }
 
@@ -59,18 +294,18 @@
    2026-08-26). Content still sits at card-rel 78 / 54; the padding carries the
    5px the border used to, so nothing moved when the stroke went. */
 .card {
-  width: 806px;
-  height: 1014px;
+  width: 100%;
+  height: 890px;
   box-sizing: border-box;
-  padding: 54px 78px 0;
-  border: none;
+  padding: 54px 48px 0;
+  border: 1px solid #c8c8c8;
   border-radius: 42.9px;
   background: #fff;
   overflow: hidden;
 }
 
 .cardPhoto {
-  width: 650px;
+  width: 100%;
   height: 379px;
   border-radius: 20px;
   overflow: hidden;
@@ -88,31 +323,12 @@
 }
 
 .cardTitle {
-  position: relative;
   /* 41 = heading top (474) − photo bottom (433). */
   margin: 41px 0 0;
-  /* 73 = heading x (151) − content left (78); the marker sits in that gutter. */
-  padding-left: 73px;
   font-size: 50px;
-  font-weight: 500;
+  font-weight: 700;
   line-height: 1.3;
   color: #333;
-}
-
-/* Figma draws ▼ rotated −90°, in an 82×38 box whose centre sits 6px above the
-   heading's line box — hence the explicit 26px rather than align-items:center.
-   The rotation is out of flow, so the heading's own line box is unaffected. */
-.cardMarker {
-  position: absolute;
-  left: 0;
-  top: 26px;
-  width: 82px;
-  text-align: center;
-  font-size: 50px;
-  font-weight: 400;
-  line-height: 1;
-  color: var(--kiosk-primary, #ff7f0f);
-  transform: translateY(-50%) rotate(-90deg);
 }
 
 /* Height is left to the content: Figma fixes the box at 261px, but the card has
@@ -263,15 +479,18 @@
  * a kiosk that still has the single-key fallback renders exactly as before.
  */
 .epoch + .epoch {
-  margin-top: 56px;
+  margin-top: 72px;
 }
 
 .epochTitle {
+  display: flex;
+  align-items: center;
+  gap: 18px;
   margin: 0 0 18px;
   font-size: 54px;
   font-weight: 700;
   line-height: 1.25;
-  color: var(--kiosk-primary, #ff7f0f);
+  color: #333;
 }
 
 /* ── 관광명소 (6212:59152) ── */
@@ -408,7 +627,8 @@
 }
 
 .panelLow,
-.cardsLow {
+.historyPanelLow,
+.culturePanelLow {
   top: 1085px;
 }
 

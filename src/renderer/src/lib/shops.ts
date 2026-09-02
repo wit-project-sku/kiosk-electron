@@ -182,10 +182,10 @@ export function shopRentcarWalkMin(route: ShopRoute): number | null {
 }
 
 /**
- * Rentcar list line from `route` + `tel`.
- * e.g. `5.5 km ・ 차로 15분 ・ 064-751-8000`
+ * Rentcar list distance/drive row — km · drive time only (no tel).
+ * e.g. `3.8 km ・ 차로 5분`
  */
-export function shopRentcarRouteSummary(s: Shop, lang: Lang): string {
+export function shopRentcarRouteMeta(s: Shop, lang: Lang): string {
   const parts: string[] = [];
   const route = s.route;
   if (route) {
@@ -198,9 +198,18 @@ export function shopRentcarRouteSummary(s: Shop, lang: Lang): string {
       parts.push(drive);
     }
   }
-  const tel = s.tel?.trim();
-  if (tel) parts.push(tel);
   return parts.join(' ・ ');
+}
+
+/**
+ * Rentcar list line from `route` + `tel`.
+ * e.g. `5.5 km ・ 차로 15분 ・ 064-751-8000`
+ */
+export function shopRentcarRouteSummary(s: Shop, lang: Lang): string {
+  const meta = shopRentcarRouteMeta(s, lang);
+  const tel = s.tel?.trim();
+  if (meta && tel) return `${meta} ・ ${tel}`;
+  return meta || tel || '';
 }
 
 const DRIVE_DURATION: Record<Lang, (min: number) => string> = {

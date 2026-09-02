@@ -1,10 +1,8 @@
 /**
  * Shared shop 상세 — 제주공항에서 업체까지 가는 방법 (Figma directions panel).
  *
- * Used on 렌트카, 뭐먹지, 뭐사지, 숙박안내 detail. Car / bike / walk summary
- * rows, then a bus timeline when `transit.status` is FOUND. Rentcar shuttle
- * shops keep the peach panel above this; the block sits under the title (or
- * under the shuttle panel when present).
+ * Used on 렌트카, 뭐먹지, 뭐사지, 숙박안내 detail. Rentcar shuttle shops
+ * show shuttle → car → bus → bike → walk; other categories omit shuttle.
  */
 import type { Lang } from '@renderer/lib/i18n';
 import { pick } from '@renderer/lib/i18n';
@@ -45,7 +43,21 @@ const T = {
     ko: '자전거', en: 'Bicycle', ja: '自転車', zh: '自行车', vi: 'Xe đạp', th: 'จักรยาน', ru: 'Велосипед', id: 'Sepeda',
   },
   walk: {
-    ko: '걷기', en: 'Walk', ja: '徒歩', zh: '步行', vi: 'Đi bộ', th: 'เดิน', ru: 'Пешком', id: 'Jalan kaki',
+    ko: '도보', en: 'Walk', ja: '徒歩', zh: '步行', vi: 'Đi bộ', th: 'เดิน', ru: 'Пешком', id: 'Jalan kaki',
+  },
+  shuttle: {
+    ko: '공항 셔틀', en: 'Airport shuttle', ja: '空港シャトル', zh: '机场班车',
+    vi: 'Xe đưa sân bay', th: 'รถรับส่งสนามบิน', ru: 'Аэропортный шаттл', id: 'Antar-jemput bandara',
+  },
+  shuttleNote: {
+    ko: '공항에서 업체 셔틀버스로 이동합니다',
+    en: 'Take the company shuttle bus from the airport',
+    ja: '空港から各社シャトルバスで移動します',
+    zh: '从机场乘坐各公司班车前往',
+    vi: 'Di chuyển bằng xe đưa của công ty từ sân bay',
+    th: 'เดินทางด้วยรถรับส่งของบริษัทจากสนามบิน',
+    ru: 'Доберитесь на шаттле компании от аэропорта',
+    id: 'Naik shuttle perusahaan dari bandara',
   },
   bus: {
     ko: '버스', en: 'Bus', ja: 'バス', zh: '公交', vi: 'Xe buýt', th: 'รถเมล์', ru: 'Автобус', id: 'Bus',
@@ -71,7 +83,7 @@ const T = {
     id: 'Tanpa waktu tunggu',
   },
   board: {
-    ko: (n: string) => `${n}번 승차`,
+    ko: (n: string) => `${n}번`,
     en: (n: string) => `Board ${n}`,
     ja: (n: string) => `${n}番 乗車`,
     zh: (n: string) => `乘坐 ${n} 路`,
@@ -81,7 +93,7 @@ const T = {
     id: (n: string) => `Naik ${n}`,
   },
   transfer: {
-    ko: (n: string) => `${n}번 환승`,
+    ko: (n: string) => `${n}번`,
     en: (n: string) => `Transfer ${n}`,
     ja: (n: string) => `${n}番 乗換`,
     zh: (n: string) => `换乘 ${n} 路`,
@@ -141,6 +153,8 @@ interface Props {
   route: ShopRoute;
   destination: string;
   lang: Lang;
+  /** Rentcar airport-shuttle row — rendered first when set. */
+  showShuttle?: boolean;
 }
 
 function buildTimeline(route: ShopRoute, destination: string, lang: Lang): TimelineNode[] {
@@ -185,10 +199,16 @@ function buildTimeline(route: ShopRoute, destination: string, lang: Lang): Timel
   return nodes;
 }
 
-export function JejuAirportDirections({ route, destination, lang }: Props): JSX.Element | null {
+export function JejuAirportDirections({
+  route,
+  destination,
+  lang,
+  showShuttle = false,
+}: Props): JSX.Element | null {
   if (typeof route.distanceKm !== 'number' || !Number.isFinite(route.distanceKm)) return null;
 
   const carMin = route.durationMin;
+  const shuttleMin = route.durationMin;
   const bikeMin = shopRentcarBikeMin(route);
   const walkMin = shopRentcarWalkMin(route);
   const transit = route.transit;
@@ -197,93 +217,109 @@ export function JejuAirportDirections({ route, destination, lang }: Props): JSX.
 
   return (
     <div className={styles.wrap}>
-      <div className={styles.summary}>
-        <div className={styles.distanceRow}>
-          <p className={styles.distance}>
-            {pick(T.fromAirport, lang)}{' '}
-            <span className={styles.distanceKm}>{route.distanceKm!.toFixed(1)}</span> km
-          </p>
-          <p className={styles.roadNote}>{pick(T.roadNote, lang)}</p>
-        </div>
+      <p className={styles.distance}>
+        {pick(T.fromAirport, lang)}{' '}
+        <span className={styles.distanceKm}>{route.distanceKm.toFixed(1)}</span> km
+      </p>
 
-        <div className={styles.modes}>
-          {typeof carMin === 'number' && Number.isFinite(carMin) && (
-            <div className={styles.modeRow}>
-              <span className={styles.modeLead}>
-                <span className={styles.modeIcon} aria-hidden="true">🚗</span>
-                <span className={styles.modeLabel}>{pick(T.car, lang)}</span>
+      <div className={styles.modeList}>
+        {showShuttle && (
+          <div className={styles.shuttleCard}>
+            <div className={styles.modeHead}>
+              <span className={styles.modeHeadLeft}>
+                <span className={styles.modeIcon} aria-hidden="true">🚌</span>
+                <span className={styles.modeLabel}>{pick(T.shuttle, lang)}</span>
               </span>
-              <span className={styles.modeTime}>{pick(T.aboutMin, lang)(carMin)}</span>
+              {typeof shuttleMin === 'number' && Number.isFinite(shuttleMin) && (
+                <span className={`${styles.modeTime} ${styles.modeTimeAccent}`}>
+                  {pick(T.aboutMin, lang)(shuttleMin)}
+                </span>
+              )}
             </div>
-          )}
-          {bikeMin != null && (
-            <div className={styles.modeRow}>
-              <span className={styles.modeLead}>
-                <span className={styles.modeIcon} aria-hidden="true">🚲</span>
-                <span className={styles.modeLabel}>{pick(T.bike, lang)}</span>
-              </span>
-              <span className={styles.modeTime}>{pick(T.aboutMin, lang)(bikeMin)}</span>
-            </div>
-          )}
-          {walkMin != null && (
-            <div className={styles.modeRow}>
-              <span className={styles.modeLead}>
-                <span className={styles.modeIcon} aria-hidden="true">🚶</span>
-                <span className={styles.modeLabel}>{pick(T.walk, lang)}</span>
-              </span>
-              <span className={styles.modeTime}>{pick(T.aboutMin, lang)(walkMin)}</span>
-            </div>
-          )}
-        </div>
-      </div>
-
-      {showBus && timeline.length > 0 && (
-        <div className={styles.busCard}>
-          <div className={styles.busHead}>
-            <span className={styles.busHeadLeft}>
-              <span className={styles.modeIcon} aria-hidden="true">🚌</span>
-              {pick(T.bus, lang)}
-            </span>
-            <span className={styles.busHeadMeta}>
-              <span className={styles.busHeadTime}>{pick(T.aboutMin, lang)(transit!.totalMin!)}</span>
-              <span className={styles.busHeadNote}>{pick(T.waitExcluded, lang)}</span>
-            </span>
+            <p className={styles.shuttleNote}>
+              <span className={styles.shuttleBullet} aria-hidden="true" />
+              {pick(T.shuttleNote, lang)}
+            </p>
           </div>
+        )}
 
-          <div className={styles.timeline}>
-            {timeline.map((node) => (
-              <div
-                key={node.key}
-                className={`${styles.stop} ${node.dashed ? styles.stopDashed : ''} ${node.last ? styles.stopLast : ''} ${node.kind === 'dest' ? styles.stopDest : ''}`}
-              >
-                <div className={styles.rail}>
-                  <span
-                    className={`${styles.dot} ${node.kind === 'dest' ? styles.dotHollow : ''}`}
-                    aria-hidden="true"
-                  />
-                </div>
-                <div className={styles.stopBody}>
-                  <div className={styles.stopTop}>
-                    <p className={`${styles.stopName} ${node.kind === 'dest' ? styles.stopNameDest : ''}`}>
-                      {node.name}
-                    </p>
-                    {node.pill && (
-                      <span className={`${styles.pill} ${node.pill.dark ? styles.pillDark : ''}`}>
-                        {node.pill.label}
-                      </span>
-                    )}
+        {typeof carMin === 'number' && Number.isFinite(carMin) && (
+          <div className={styles.modeHead}>
+            <span className={styles.modeHeadLeft}>
+              <span className={styles.modeIcon} aria-hidden="true">🚗</span>
+              <span className={styles.modeLabel}>{pick(T.car, lang)}</span>
+            </span>
+            <span className={styles.modeTime}>{pick(T.aboutMin, lang)(carMin)}</span>
+          </div>
+        )}
+
+        {showBus && timeline.length > 0 && (
+          <div className={styles.busCard}>
+            <div className={styles.modeHead}>
+              <span className={styles.modeHeadLeft}>
+                <span className={styles.modeIcon} aria-hidden="true">🚌</span>
+                <span className={styles.modeLabel}>{pick(T.bus, lang)}</span>
+              </span>
+              <span className={`${styles.modeTime} ${styles.modeTimeAccent}`}>
+                {pick(T.aboutMin, lang)(transit!.totalMin!)}
+              </span>
+            </div>
+
+            <div className={styles.timeline}>
+              {timeline.map((node) => (
+                <div
+                  key={node.key}
+                  className={`${styles.stop} ${node.dashed ? styles.stopDashed : ''} ${node.last ? styles.stopLast : ''} ${node.kind === 'dest' ? styles.stopDest : ''}`}
+                >
+                  <div className={styles.rail}>
+                    <span
+                      className={`${styles.dot} ${node.kind === 'dest' ? styles.dotHollow : ''}`}
+                      aria-hidden="true"
+                    />
                   </div>
-                  {node.meta && <p className={styles.stopMeta}>{node.meta}</p>}
+                  <div className={styles.stopBody}>
+                    <div className={styles.stopTop}>
+                      <p className={`${styles.stopName} ${node.kind === 'dest' ? styles.stopNameDest : ''}`}>
+                        {node.name}
+                      </p>
+                      {node.pill && (
+                        <span className={`${styles.pill} ${node.pill.dark ? styles.pillDark : ''}`}>
+                          {node.pill.label}
+                        </span>
+                      )}
+                    </div>
+                    {node.meta && <p className={styles.stopMeta}>{node.meta}</p>}
+                  </div>
                 </div>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
 
-          {transit?.basedOn && (
-            <p className={styles.busFoot}>{pick(T.footnote, lang)(transit.basedOn)}</p>
-          )}
-        </div>
-      )}
+            {transit?.basedOn && (
+              <p className={styles.busFoot}>{pick(T.footnote, lang)(transit.basedOn)}</p>
+            )}
+          </div>
+        )}
+
+        {bikeMin != null && (
+          <div className={styles.modeHead}>
+            <span className={styles.modeHeadLeft}>
+              <span className={styles.modeIcon} aria-hidden="true">🚲</span>
+              <span className={styles.modeLabel}>{pick(T.bike, lang)}</span>
+            </span>
+            <span className={styles.modeTime}>{pick(T.aboutMin, lang)(bikeMin)}</span>
+          </div>
+        )}
+
+        {walkMin != null && (
+          <div className={styles.modeHead}>
+            <span className={styles.modeHeadLeft}>
+              <span className={styles.modeIcon} aria-hidden="true">🚶</span>
+              <span className={styles.modeLabel}>{pick(T.walk, lang)}</span>
+            </span>
+            <span className={styles.modeTime}>{pick(T.aboutMin, lang)(walkMin)}</span>
+          </div>
+        )}
+      </div>
     </div>
   );
 }

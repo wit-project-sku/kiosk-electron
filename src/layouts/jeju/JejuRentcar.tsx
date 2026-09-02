@@ -1,9 +1,8 @@
 /**
  * 제주공항 (W006) 렌트카 — Figma 6297:76578 / 6297:76391 (제주>하영=렌트카=공항-01).
  *
- * One scrolling column under the 700px header: `#렌터카하우스` tagged companies
- * first, then shuttle filter chips (전체 / 공항 셔틀 / 셔틀 없음), then the
- * filtered catalogue. Shuttle vs road comes from `route.guideType`.
+ * Search + filter chips (전체 / 공항 내 / 공항 셔틀 / 셔틀 없음), then a
+ * single filtered catalogue. `#렌터카하우스` shops are reached via 공항 내.
  */
 import { useLayoutEffect, useMemo, useRef, useState } from 'react';
 import type { KioskController } from '@renderer/hooks/useKioskController';
@@ -24,6 +23,7 @@ import {
   shopRentcarGuideDistanceKm,
   shopRentcarGuideModeLabel,
   shopRentcarName,
+  shopRentcarRouteMeta,
   shopRentcarSecondCategory,
   shopsForBase,
 } from '@renderer/lib/shops';
@@ -106,6 +106,17 @@ const FILTER_ALL = {
   ko: '전체', en: 'All', ja: 'すべて', zh: '全部', vi: 'Tất cả', th: 'ทั้งหมด', ru: 'Все', id: 'Semua',
 };
 
+const FILTER_INSIDE = {
+  ko: '공항 내',
+  en: 'Inside airport',
+  ja: '空港内',
+  zh: '机场内',
+  vi: 'Trong sân bay',
+  th: 'ในสนามบิน',
+  ru: 'В аэропорту',
+  id: 'Di bandara',
+};
+
 const FILTER_SHUTTLE = {
   ko: '공항 셔틀',
   en: 'Airport shuttle',
@@ -140,38 +151,30 @@ const RENTCAR_HOUSE_ROUTE = {
   id: 'Gerbang 2 Lantai 1 → Rent-a-Car House',
 };
 
-const HOUSE_HEADING = {
-  ko: (n: number) => `공항 안에서 바로 ・ 렌터카하우스 ${n}곳`,
-  en: (n: number) => `Directly in the airport ・ Rent-a-Car House ${n} locations`,
-  ja: (n: number) => `空港内ですぐ ・ レンタカーハウス ${n}件`,
-  zh: (n: number) => `机场内直达 ・ 租车之家 ${n}家`,
-  vi: (n: number) => `Ngay trong sân bay ・ Rent-a-Car House ${n} địa điểm`,
-  th: (n: number) => `ในสนามบินเลย ・ Rent-a-Car House ${n} แห่ง`,
-  ru: (n: number) => `Прямо в аэропорту ・ Rent-a-Car House — ${n} точек`,
-  id: (n: number) => `Langsung di bandara ・ Rent-a-Car House ${n} lokasi`,
-};
+type RentcarFilter = 'all' | 'inside' | 'shuttle' | 'noShuttle';
 
-type ShuttleFilter = 'all' | 'shuttle' | 'noShuttle';
+const RENTCAR_FILTERS: RentcarFilter[] = ['all', 'inside', 'shuttle', 'noShuttle'];
 
-const SHUTTLE_FILTERS: ShuttleFilter[] = ['all', 'shuttle', 'noShuttle'];
-
-const FILTER_LABELS: Record<ShuttleFilter, Record<string, string>> = {
+const FILTER_LABELS: Record<RentcarFilter, Record<string, string>> = {
   all: FILTER_ALL,
+  inside: FILTER_INSIDE,
   shuttle: FILTER_SHUTTLE,
   noShuttle: FILTER_NO_SHUTTLE,
 };
 
 type RentcarBadgeVariant = 'primary' | 'shuttle' | 'noShuttle' | 'ferry';
 
-/** Compact card pitch: 300 card + 60 gap. */
-const SCROLL_STEP = 360;
+/** Compact card pitch: 384 card + 60 gap. */
+const SCROLL_STEP = 444;
 
 /** Low-reach list top — under mode bar + header (Figma 6561:80628 template). */
 const LIST_TOP_LOW = 837;
 /** Gap between the list bottom edge and the pinned controls block. */
 const LOW_CONTROLS_GAP = 100;
+/** Breathing room under the filter chips (♿ foot controls). */
+const CONTROLS_BOTTOM_PAD = 200;
 /** List viewport height — one filter row at the foot (same as JejuListScreen lodging). */
-const LOW_LIST_HEIGHT = 2501;
+const LOW_LIST_HEIGHT = 2501 - CONTROLS_BOTTOM_PAD;
 const LOW_CONTROLS_TOP = LIST_TOP_LOW + LOW_LIST_HEIGHT + LOW_CONTROLS_GAP;
 
 const KEYBOARD_HEIGHT = 1000;
@@ -190,7 +193,7 @@ export function JejuRentcar({ controller }: Props): JSX.Element {
   const lowReach = useAccessibilityStore((s) => s.lowReach);
   const [query, setQuery] = useState('');
   const [focused, setFocused] = useState(false);
-  const [shuttleFilter, setShuttleFilter] = useState<ShuttleFilter>('all');
+  const [rentcarFilter, setRentcarFilter] = useState<RentcarFilter>('all');
   const [canScroll, setCanScroll] = useState(false);
 
   const scrollBy = (delta: number): void =>
@@ -206,37 +209,38 @@ export function JejuRentcar({ controller }: Props): JSX.Element {
     return searchShops(baseShops, trimmed, lang, 999, { rentcar: true });
   }, [baseShops, query, lang]);
 
-  const houseShops = useMemo(
-    () => catalogShops.filter((s) => shopHasHashtag(s, RENTCAR_HOUSE_TAG)),
-    [catalogShops],
-  );
-
-  const houseIds = useMemo(() => new Set(houseShops.map((s) => s.id)), [houseShops]);
-
-  const otherShops = useMemo(
-    () => catalogShops.filter((s) => !houseIds.has(s.id)),
-    [catalogShops, houseIds],
-  );
-
-  const visibleOthers = useMemo(() => {
-    if (shuttleFilter === 'all') return otherShops;
-    if (shuttleFilter === 'shuttle') return otherShops.filter(shopHasRentcarShuttle);
-    return otherShops.filter(shopHasRentcarNoShuttle);
-  }, [otherShops, shuttleFilter]);
+  const isInsideAirport = (shop: Shop): boolean => shopHasHashtag(shop, RENTCAR_HOUSE_TAG);
 
   const filterCounts = useMemo(
     () => ({
-      all: otherShops.length,
-      shuttle: otherShops.filter(shopHasRentcarShuttle).length,
-      noShuttle: otherShops.filter(shopHasRentcarNoShuttle).length,
+      all: catalogShops.length,
+      inside: catalogShops.filter(isInsideAirport).length,
+      shuttle: catalogShops.filter((s) => shopHasRentcarShuttle(s) && !isInsideAirport(s)).length,
+      noShuttle: catalogShops.filter(shopHasRentcarNoShuttle).length,
     }),
-    [otherShops],
+    [catalogShops],
   );
+
+  const visibleShops = useMemo(() => {
+    switch (rentcarFilter) {
+      case 'inside':
+        return catalogShops.filter(isInsideAirport);
+      case 'shuttle':
+        return catalogShops.filter((s) => shopHasRentcarShuttle(s) && !isInsideAirport(s));
+      case 'noShuttle':
+        return catalogShops.filter(shopHasRentcarNoShuttle);
+      default: {
+        const inside = catalogShops.filter(isInsideAirport);
+        const rest = catalogShops.filter((s) => !isInsideAirport(s));
+        return [...inside, ...rest];
+      }
+    }
+  }, [catalogShops, rentcarFilter]);
 
   useLayoutEffect(() => {
     const el = scrollRef.current;
     setCanScroll(!!el && el.scrollHeight > el.clientHeight + 1);
-  }, [houseShops.length, visibleOthers.length, lang, shuttleFilter, query, lowReach]);
+  }, [visibleShops.length, lang, rentcarFilter, query, lowReach]);
 
   const applyKey = (action: KeyAction): void => {
     const c = composer.current;
@@ -288,11 +292,8 @@ export function JejuRentcar({ controller }: Props): JSX.Element {
     controller.navigate('detail', TITLE);
   };
 
-  const cardBadge = (
-    shop: Shop,
-    forceDesk = false,
-  ): { label: string; variant: RentcarBadgeVariant } | null => {
-    if (forceDesk || shopHasHashtag(shop, RENTCAR_HOUSE_TAG)) {
+  const cardBadge = (shop: Shop): { label: string; variant: RentcarBadgeVariant } | null => {
+    if (isInsideAirport(shop)) {
       return { label: pick(DESK_BADGE, lang), variant: 'primary' };
     }
     if (shopHasRentcarFerry(shop)) {
@@ -307,17 +308,20 @@ export function JejuRentcar({ controller }: Props): JSX.Element {
     return null;
   };
 
-  const renderCards = (
-    list: Shop[],
-    {
-      forceDeskBadge = false,
-      routeLine,
-      house = false,
-    }: { forceDeskBadge?: boolean; routeLine?: string; house?: boolean } = {},
-  ): JSX.Element => (
+  const cardRouteLine = (shop: Shop): string | undefined => {
+    if (isInsideAirport(shop)) return pick(RENTCAR_HOUSE_ROUTE, lang);
+    const meta = shopRentcarRouteMeta(shop, lang);
+    return meta || undefined;
+  };
+
+  const cardFooterLine = (shop: Shop): string => shop.tel?.trim() ?? '';
+
+  const renderCards = (list: Shop[]): JSX.Element => (
     <div className={styles.list}>
       {list.map((shop) => {
-        const badge = cardBadge(shop, forceDeskBadge);
+        const badge = cardBadge(shop);
+        const routeLine = cardRouteLine(shop);
+        const footerLine = cardFooterLine(shop);
         return (
           <JejuShopCard
             key={shop.id}
@@ -326,10 +330,10 @@ export function JejuRentcar({ controller }: Props): JSX.Element {
             query={query}
             compact
             rentcarApi
-            house={house}
             badge={badge?.label}
             badgeVariant={badge?.variant}
             routeLine={routeLine}
+            footerLine={footerLine}
             onClick={() => openDetail(shop)}
           />
         );
@@ -352,20 +356,22 @@ export function JejuRentcar({ controller }: Props): JSX.Element {
   );
 
   const filterControls =
-    otherShops.length > 0 ? (
+    baseShops.length > 0 ? (
       <div className={styles.filters}>
-        {SHUTTLE_FILTERS.map((filter) => (
+        {RENTCAR_FILTERS.map((filter) => (
           <button
             key={filter}
             type="button"
-            className={`${styles.chip} ${filter === shuttleFilter ? styles.chipActive : ''}`}
+            className={`${styles.chip} ${filter === rentcarFilter ? styles.chipActive : ''}`}
             onClick={() => {
-              setShuttleFilter(filter);
+              setRentcarFilter(filter);
               resetScroll();
             }}
           >
             <span className={styles.chipLabel}>{pick(FILTER_LABELS[filter], lang)}</span>
-            <span className={styles.chipCount}>{filterCounts[filter]}</span>
+            {filter !== 'all' && (
+              <span className={styles.chipCount}>({filterCounts[filter]})</span>
+            )}
           </button>
         ))}
       </div>
@@ -385,24 +391,13 @@ export function JejuRentcar({ controller }: Props): JSX.Element {
       <p className={styles.empty}>{pick(SEARCH_NO_RESULT, lang)(query.trim())}</p>
     ) : (
       <>
-        {houseShops.length > 0 && (
-          <div className={styles.houseSection}>
-            <p className={styles.houseHeading}>{pick(HOUSE_HEADING, lang)(houseShops.length)}</p>
-            {renderCards(houseShops, {
-              forceDeskBadge: true,
-              routeLine: pick(RENTCAR_HOUSE_ROUTE, lang),
-              house: true,
-            })}
-          </div>
-        )}
-
         {!lowReach && filterControls}
 
-        {visibleOthers.length > 0 ? (
-          renderCards(visibleOthers)
-        ) : otherShops.length > 0 ? (
+        {visibleShops.length > 0 ? (
+          renderCards(visibleShops)
+        ) : (
           <p className={styles.empty}>{pick(NO_MATCH, lang)}</p>
-        ) : null}
+        )}
       </>
     );
 

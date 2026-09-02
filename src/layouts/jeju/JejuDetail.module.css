@@ -16,35 +16,55 @@
 }
 
 /*
- * ── 다음 장소 (AI course only) ──────────────────────────────────────────
- * Figma 6289:58439 lays the page's body out as one 1820-wide column at y700
- * with a 70px gap: 상세 card (h2133) · chevron (h39) · 다음 장소 card (h515),
- * ending at y3527. The pieces are absolutely positioned here because the 상세
- * card is, so the two y values below are that stack resolved:
- *   700 + 2133 + 70 = 2903   chevron   (78×39 after rotation)
- *   2903 +   39 + 70 = 3012   card
+ * ── AI course + 다음 장소 ───────────────────────────────────────────────
+ * Figma 6289:58439 stacks 상세 · chevron · 다음 장소 in one 1820-wide column
+ * with 70px gaps. The detail card grows with content, so the column scrolls
+ * as a whole rather than pinning the follow-on pieces at fixed y values.
+ * Top + height are set inline in JejuDetail.tsx (3840 − top fills to the foot).
  */
+.courseScroll {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: auto;
+  box-sizing: border-box;
+  overflow-x: hidden;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  /* Scrollbar sits in the right gutter (JejuSearch .scroll). */
+  padding: 0 136px 80px 170px;
+}
+
+.courseScroll::-webkit-scrollbar {
+  width: 34.32px;
+}
+
+.courseScroll::-webkit-scrollbar-thumb {
+  background: var(--kiosk-primary, #ff7f0f);
+  border-radius: 17.16px;
+}
+
+.courseScroll::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.courseColumn {
+  width: 1820px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 70px;
+}
 
 /*
  * The frame draws the shared chevron rotated -90° into a down arrow, so it is
  * rotated here rather than re-exported. The export is 49×88 — the 39×78 vector
- * plus the 5px its 10px stroke bleeds on each side — and is placed on the
- * centre of the 78×39 visual box (1080, 2922.5) so the rotation lands the box
- * exactly on y2903–2942.
+ * plus the 5px its 10px stroke bleeds on each side.
  */
 .nextChevron {
-  position: absolute;
-  left: 1055.5px;
-  top: 2878.5px;
   width: 49px;
   height: 88px;
+  flex-shrink: 0;
   transform: rotate(-90deg);
   pointer-events: none;
-}
-
-/* 1793 wide (set by the component) centred on the page: (2160 − 1793) / 2. */
-.nextCard {
-  position: absolute;
-  left: 183.5px;
-  top: 3012px;
 }

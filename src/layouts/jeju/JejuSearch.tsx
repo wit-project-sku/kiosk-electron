@@ -124,6 +124,7 @@ export function JejuSearch({ controller }: Props): JSX.Element {
       rating: shop.naverRating != null ? String(shop.naverRating) : '',
       instagram: '',
       blogReviews: shop.naverLink ?? '',
+      rentcarRoute: shop.route ?? null,
     });
     controller.navigate('detail', '검색 상세');
   };
