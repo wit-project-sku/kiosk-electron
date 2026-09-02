@@ -168,20 +168,28 @@ def fit_plane_ransac(
     return normal, -float(normal @ centroid)
 
 
-# How wide a vertical plane must run before it counts as a wall rather than a
-# slice through somebody. Shoulders are ~0.5 m and a person with arms out
-# reaches ~1.6 m, but only a wall stays flat across that span — an outstretched
-# arm curves away from any plane through the torso long before this.
-MIN_WALL_WIDTH_M = 1.8
+# How wide a vertical plane must run before it counts as a wall.
+#
+# 2.5 m is set by what it must NOT strip rather than by what a wall looks like.
+# Two visitors standing side by side are coplanar and about 1.9 m across, and
+# stripping them removes both people from the frame — so the bar sits above any
+# group a kiosk photographs and below a real wall, which ran 3.9 m in the scene
+# this was built for.
+MIN_WALL_WIDTH_M = 2.5
 
 # ...and how far it must run vertically. Within the body band a wall spans most
 # of the 2 m; a ceiling caught edge-on by a vertical plane spans almost nothing.
 MIN_WALL_HEIGHT_M = 0.8
 
 # How much of its own bounding box a plane must fill to be a real surface.
-# A wall comes out near 1.0 even with a visitor standing in front of part of it;
+# A synthetic wall comes out near 1.0, but a REAL one is patchy: stereo drops
+# out on flat paint, and the visitor standing in front occludes a column of it.
+# 0.28 leaves room for that while still rejecting the case this exists for — a
+# vertical plane catching a ceiling strip plus a slice of somebody, which fills
+# well under 0.2 of its box. Set at 0.5 it silently stopped stripping real
+# walls, and the visitor went back to being merged into one.
 # coplanar points that merely happen to line up fill almost none of theirs.
-MIN_WALL_COVERAGE = 0.5
+MIN_WALL_COVERAGE = 0.30
 
 
 def strip_vertical_planes(
