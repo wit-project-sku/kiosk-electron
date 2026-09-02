@@ -9,7 +9,10 @@
  *         580s 200 apart at x400; it is now the same two-pill component the
  *         events tabs use)
  *   940   floor row (was 920 — JejuSubTabRow's shared band, overridden here)
- *   1172  category chips 1820×375 at x170 — 5 × 340×170 per row, 30/35 gaps
+ *   1172  category chips 1820×580 at x170 — 5 × 340×170 per row, 30/35 gaps.
+ *         THREE rows now, not the frame's two: ten of the fifteen chips are
+ *         AirportFacilityData_Jeju's own BaseCategory values (see JejuHelp.tsx),
+ *         and 15 over 5 is 3. 375 → 580, so everything under it drops 205.
  *   1697  map 1820×1383 at x170
  *
  * The category chips are the frame's own `R>상단 카테고리-5개*2`, shared with
@@ -69,8 +72,10 @@
 }
 
 /* ── Categories (6219:98787) ──
-   Two rows of five, each `justify-between` over 1820 — which is the frame's own
-   30px gap (1820 − 5 × 340 = 120, over 4 gaps). */
+   Three rows of five, each `justify-between` over 1820 — which is the frame's
+   own 30px gap (1820 − 5 × 340 = 120, over 4 gaps). Figma drew two rows for its
+   ten chips; there are fifteen now (see CATEGORIES in JejuHelp.tsx), so the
+   block is 3 × 170 + 2 × 35 = 580 tall against the frame's 375. */
 .cats {
   position: absolute;
   left: 170px;
@@ -91,81 +96,155 @@
   width: 340px;
 }
 
+/*
+ * The chips are no longer labelled by hand, so they can no longer be sized by
+ * hand either: ten of them now carry BaseCategory straight out of the sheet, in
+ * whichever of the eight languages is on screen. Those strings are long and
+ * nobody drew a pill for them — 금융・보험・환전 alone is ~350px of Korean at the
+ * component's 50px, on a 340px pill, and its English reads "Finance・Insurance・
+ * Currency Exchange".
+ *
+ * So this row (and only this row — the terminal pills keep the component's 50px)
+ * takes a size the sheet cannot outgrow. 36px over up to four lines is 158px
+ * inside the pill's 170, and `anywhere` lets the Korean names break at the ・
+ * they are joined on, which is where they read best anyway. `pre-line` from the
+ * component stays: 교통약자\n편의시설 still splits where the frame splits it.
+ */
+.cats .pill {
+  font-size: 36px;
+  line-height: 1.1;
+  overflow-wrap: anywhere;
+}
+
 /* ── Map (6219:98788) ──
-   The frame's export is only 799×607 for this 1820×1383 slot, so it is drawn
-   at ~2.3× and will look soft until a higher-resolution map is supplied. */
+   Figma reserves 1820×1383 at 170,1697 — a 1.32:1 box, drawn for a 1.32:1
+   placeholder that filled it. The six real 한국공항공사 plans are 2.03:1 to 3.08:1
+   (국내선 4F alone is 1.25:1), so fitted into that box the widest of them draws
+   only 1820×591 and floats in the MIDDLE of it: ~400px of dead slot between the
+   chips and the map, pushing it down the page for no reason.
+
+   So the box keeps the frame's own x and width — the 170px gutters are the
+   page's rhythm and the map is not the one element that gets to break them —
+   and only what the placeholder's shape dictated is changed:
+
+     top    1825  (was 1697) — 73px under the chips, and the plan is TOP-aligned
+                   rather than centred, which is the half of this that actually
+                   closes the gap. It was 1620 while the chips were two rows; the
+                   third row moved it 205 down, not the reasoning.
+     height 1500  (was 1383) — what 국내선 4F, the one upright plan, needs at this
+                   width: 1820×1456. Every other plan is width-bound long before
+                   it reaches this, so more height would buy nothing.
+
+   The plans were also re-cut to their own ink, which is where the real size came
+   from: 국제선 1F was using 47% of its canvas and now draws 1.55× larger inside
+   the same box. See the notes in JejuHelp.tsx. */
 .map {
   position: absolute;
   left: 170px;
-  top: 1697px;
+  top: 1825px;
   width: 1820px;
-  height: 1383px;
-  overflow: hidden;
+  height: 1500px;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
 }
 
-.map img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
+/*
+ * The plan's own box — what `top`/`left` percentages on a pin resolve against.
+ *
+ * It shrink-wraps the <img>, and the img is capped at 100% of the slot in both
+ * axes with `auto` on the other, so the box IS the drawn plan at its own aspect
+ * and never the empty slot around it. That is what lets a pin be stored as a
+ * fraction of the ARTWORK and stay on its pictogram across six aspects — an
+ * `object-fit: contain` on a full-size img would letterbox identically but
+ * leave the pin measuring against the slot, i.e. against the bars too.
+ */
+.plan {
+  position: relative;
+  max-width: 100%;
+  max-height: 100%;
+}
+
+.plan img {
   display: block;
+  width: auto;
+  height: auto;
+  max-width: 100%;
+  max-height: 100%;
+}
+
+/* ── Facility hotspots ──
+   The pictogram is painted into the plan, so this adds no art of its own: a
+   transparent target CENTRED on it, carrying the marker below.
+
+   The target is the marker plus a constant 90px of slop, NOT a multiple of it.
+   A pictogram is ~38px here and needs a target far larger than itself to be hit
+   on a 2160-wide kiosk, but scaling the whole target with `--pin-scale` would
+   put a 330px slab on 국내선 4F — and the plans set pictograms in rows barely
+   30px apart (the 국제선 3F shop row, the 국내선 2F 편의점 strip), where an
+   oversized target just swallows its neighbour's taps. Constant slop gives both
+   plans the same comfortable margin instead. */
+.pin {
+  position: absolute;
+  width: calc(30px * var(--pin-scale, 1) + 90px);
+  height: calc(30px * var(--pin-scale, 1) + 90px);
+  margin: calc(-15px * var(--pin-scale, 1) - 45px) 0 0 calc(-15px * var(--pin-scale, 1) - 45px);
+  padding: 0;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/*
+ * The 지도 핀 the selected chip drops on a pictogram (ico-map-pin, 176×268).
+ *
+ * `bottom: 50%` puts the marker's TIP on the button's centre — that is, exactly
+ * on the pictogram — and the body stands above it. Pointing down at the symbol
+ * rather than sitting on top of it is the whole trick: the plans identify a
+ * facility BY its symbol (the 남녀+휠체어 plate, the 기저귀 교환대 plate, the ₩,
+ * the 커피잔), so a marker that covered it would take the answer away and leave
+ * only a colour.
+ *
+ * 30×46 keeps the art's own 176:268 ratio and is deliberately SMALLER than the
+ * ~38px pictogram it points at. A marker that matches or beats the symbol's own
+ * size stops reading as a pointer and starts reading as a blob — and with a
+ * dozen of them on one floor they crowd the drawing they are supposed to be
+ * annotating.
+ *
+ * `--pin-scale` then holds that relationship on the two plans drawn at a
+ * different scale — 국제선 1F at 69px and 국내선 4F at 118px — by growing the
+ * marker AND its hit target with them. See AirportMap.pinScale. It is set on
+ * `.plan`, so it lands on both.
+ */
+.pinMarker {
+  position: absolute;
+  left: 50%;
+  bottom: 50%;
+  width: calc(30px * var(--pin-scale, 1));
+  height: calc(46px * var(--pin-scale, 1));
+  object-fit: contain;
+  /* Scales from the TIP, so a press cannot move the point being indicated. */
+  transform: translateX(-50%);
+  transform-origin: 50% 100%;
+  filter: drop-shadow(0 2px 3px rgba(0, 0, 0, 0.3));
+  transition: transform 120ms ease-out;
+  pointer-events: none;
+}
+
+.pin:active .pinMarker {
+  transform: translateX(-50%) scale(1.18);
 }
 
 /* ── 현위치 (6219:98771) ──
    Where the kiosk itself stands, drawn ON the map: a 41×61 pin with the label
-   centred under it. Positioned relative to `.map`, not the artboard, so the
-   `here` coordinates a map declares are map-local and stay right whatever y the
-   map slot moves to.
+   centred under it. Positioned relative to `.plan` — the drawn plan, not the
+   slot — so a map's `here` is a fraction of the ARTWORK, like a pin, and lands
+   in the same place whatever aspect the plan has and wherever the slot moves.
 
-   Safe to place by percentage-free absolute px: the 799×607 source and the
-   1820×1383 slot are the same 1.316 aspect, so `object-fit: cover` scales
-   without cropping and the pin lands where Figma puts it. */
-/* ── Facility hotspots ──
-   The dots and their captions are painted into the map PNG, so these add no
-   art: a transparent 130px target centred on the drawn dot (which is only ~32px
-   across at this scale — too small to hit reliably on a 2160-wide kiosk). The
-   :active halo is the only thing that ever shows, so a press is acknowledged
-   before the 상세 screen swaps in. */
-.pin {
-  position: absolute;
-  width: 130px;
-  height: 130px;
-  margin: -65px 0 0 -65px;
-  padding: 0;
-  border: none;
-  border-radius: 50%;
-  background: transparent;
-  cursor: pointer;
-  -webkit-tap-highlight-color: transparent;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.pin:active {
-  background: rgba(255, 127, 15, 0.28);
-}
-
-/*
- * The orange dot for the selected chip, drawn OVER the plan's black one.
- *
- * The plan paints its dots into the PNG, so there is nothing to recolour — this
- * covers one instead. 34px because the source dots measure 13–14px across in
- * the 799×607 export and the map is drawn at 1820 wide (×2.2778 ≈ 31px), plus a
- * ~1.5px margin each side so no dark anti-aliased rim shows around the orange.
- * Keep it under ~40px: the plan's captions sit only ~23px below a dot's centre.
- */
-.pinDot {
-  width: 34px;
-  height: 34px;
-  border-radius: 50%;
-  background: var(--kiosk-primary, #ff7f0f);
-  pointer-events: none;
-}
-
-/* The box IS the 41×61 pin, anchored at its TIP (bottom centre) — that is the
-   point on the map that means "you are here", so a map's `here` is a map
-   position rather than the corner of a graphic. The label hangs out of flow
-   beneath it so a long translation cannot move the pin. */
+   The box IS the pin, anchored at its TIP (bottom centre): that is the point on
+   the map that means "you are here", rather than the corner of a graphic. The
+   label hangs out of flow beneath it so a long translation cannot move the pin. */
 .here {
   position: absolute;
   width: 41px;
@@ -197,11 +276,11 @@
   white-space: nowrap;
 }
 
-/* Only 국제선 / 1F / 화장실 is drawn; every other combination lands here. */
+/* A floor of the building we hold no plan for — 국제선 2F today. */
 .empty {
   position: absolute;
   left: 170px;
-  top: 1697px;
+  top: 1825px;
   width: 1820px;
   margin: 0;
   padding-top: 600px;
@@ -212,7 +291,6 @@
   text-align: center;
 }
 
-
 /* ────────────────────────────────────────────────────────────────────────────
  * LOW-REACH (♿) — Figma 6422:44067.
  *
@@ -220,9 +298,16 @@
  * pickers go to the foot, in the order they are used —
  *
  *   1379  map (was 1697)
- *   2912  terminal pills (was 700)
- *   3152  floor row (was 940)
- *   3384  category chips (was 1172)
+ *   2707  terminal pills (was 700)
+ *   2947  floor row (was 940)
+ *   3179  category chips (was 1172)
+ *
+ * All three pickers are 205 above the y-values Figma gives (2912 / 3152 / 3384),
+ * for the reason the standard layout moves its map down by the same 205: the
+ * chips are three rows now. Here they sit at the FOOT of the page, so the extra
+ * row cannot push down — 3384 + 580 ends at 3964, off the 3840 artboard — and
+ * the stack rises instead. The gaps inside it are Figma's, untouched; the map
+ * above gives up the height, 1450 → 1248.
  *
  * This page carries no banner normally, so it asks the frame for one with
  * `lowReachBanner`; the frame then draws it at y0 and moves the header down as
@@ -230,21 +315,31 @@
  * 언어선택 — the same 4px class of hand-nudge already normalised in
  * JejuPageFrame.module.css, so the shared 573 stands.
  * ──────────────────────────────────────────────────────────────────────────── */
+/* The map rises above the pickers here, so its box runs from y1379 down to the
+   terminal pills at y2707 — 1248 tall, leaving the same ~80px breathing space
+   the standard layout keeps under the chips. 국내선 4F is the one plan tall
+   enough to be capped by this rather than by the width, so it is the one that
+   pays for the third chip row; every other plan is width-bound long before it
+   reaches this height and draws exactly as it did. */
 .mapLow,
 .emptyLow {
   top: 1379px;
 }
 
+.mapLow {
+  height: 1248px;
+}
+
 .terminalsLow {
-  top: 2912px;
+  top: 2707px;
 }
 
 /* (0,3,0): must beat BOTH JejuSubTabRow's `.row` and this file's own
    `.floors.floors` (0,2,0), whichever order the bundler emits them in. */
 .floors.floorsLow.floorsLow {
-  top: 3152px;
+  top: 2947px;
 }
 
 .catsLow {
-  top: 3384px;
+  top: 3179px;
 }

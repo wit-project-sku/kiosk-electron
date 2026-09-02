@@ -29,6 +29,7 @@ const OSAEK_SHEET_ID = '1_CkWFXfB7ud0sJw-cnIWGvFlTzF12UxDuNylp5HkOiw';
 const HWASEONG_SHEET_ID = '14aWRWrJXPC_J-W4GpZqa_g-3fDjjUsy6BpAhDg8OvVU';
 /** W006 제주공항 content sheet (tabs suffixed _Jeju).
  *  Tabs: ShopData_Jeju · AICategory_Jeju · Localization_Jeju ·
+ *  AirportFacilityData_Jeju ·
  *  VideoSubtitle_Jeju_하영 · VideoSubtitle_Jeju_유산 · three 규칙 reference tabs.
  *  Only the two middle tabs are generated here — ShopData is served by the shops
  *  API (kioskId=7) and VideoSubtitle by the subtitles API, same as every other
@@ -554,6 +555,101 @@ ${body}
   return cats.length;
 }
 
+/**
+ * W006 제주공항 공항시설 (AirportFacilityData_Jeju) — the 도와줘 '하영' map's data.
+ *
+ * Unlike every other tab here, the eight languages sit in ONE contiguous block
+ * per field (ko en jp ch vn th ru id), so `lang8` reads them positionally rather
+ * than through `trail`/`findLangCols`. Columns:
+ *   0 NO · 1 ShopID ("제주국제공항=국내선=01") · 2-9 ShopName · 10-17 BaseCategory
+ *   18-25 Location ("1F 일반" / "2F 면세") · 26 OpeningHours_Kr · 27 PhoneNumber_Kr
+ *   28-35 MainProduct
+ *
+ * `terminal` and `floor` are DERIVED, not columns of their own: the terminal is
+ * the middle segment of the ShopID and the floor is the leading token of the
+ * Korean Location. Both are what the map keys off (MAPS/PINS in JejuHelp), so
+ * deriving them here means the renderer never re-parses a Korean string.
+ *
+ * Rows whose terminal or floor cannot be read are DROPPED with a warning rather
+ * than defaulted — a facility filed onto the wrong floor plan is worse on a
+ * wayfinding kiosk than one that is missing.
+ */
+const JEJU_TERMINALS = { 국내선: 'domestic', 국제선: 'international' };
+
+/** Eight consecutive language cells starting at `start`, in sheet order. */
+const lang8 = (r, start) => {
+  const out = {
+    ko: clean(r[start]),
+    en: clean(r[start + 1]),
+    ja: clean(r[start + 2]),
+    zh: clean(r[start + 3]),
+  };
+  ['vi', 'th', 'ru', 'id'].forEach((lang, i) => {
+    const v = clean(r[start + 4 + i]);
+    if (v) out[lang] = v;
+  });
+  return out;
+};
+
+async function genAirportFacilitiesJeju() {
+  const rows = await loadTab('AirportFacilityData_Jeju', JEJU_SHEET_ID);
+  const facilities = [];
+  let dropped = 0;
+  for (const r of rows.slice(1)) {
+    const name = lang8(r, 2);
+    if (!name.ko) continue; // blank row
+
+    const terminal = JEJU_TERMINALS[clean(r[1]).split('=')[1] ?? ''];
+    const location = lang8(r, 18);
+    const floor = (location.ko.match(/^(\d)F/) ?? [])[1];
+    if (!terminal || !floor) {
+      console.warn(`  ! [jeju] dropped "${name.ko}" — terminal/floor unreadable from "${clean(r[1])}" / "${location.ko}"`);
+      dropped += 1;
+      continue;
+    }
+
+    facilities.push({
+      terminal,
+      floor: `${floor}F`,
+      name,
+      category: lang8(r, 10),
+      location,
+      openTime: clean(r[26]),
+      tel: clean(r[27]),
+      mainProduct: lang8(r, 28),
+    });
+  }
+
+  const body = facilities.map((f) => `  ${JSON.stringify(f)},`).join('\n');
+  const out = `${BANNER}import type { LangText } from './types';
+
+/** One row of AirportFacilityData_Jeju. terminal/floor are derived from the
+ *  ShopID and Location columns so they line up with the map keys in JejuHelp. */
+export interface AirportFacility {
+  terminal: 'domestic' | 'international';
+  /** '1F' … '4F'. */
+  floor: string;
+  name: LangText;
+  /** BaseCategory — this is what the 도와줘 '하영' chips are built from. */
+  category: LangText;
+  /** e.g. "1F 일반" / "2F 면세" — the zone within the floor. */
+  location: LangText;
+  /** Korean only in the sheet. */
+  openTime: string;
+  /** Korean only in the sheet. */
+  tel: string;
+  mainProduct: LangText;
+}
+
+/** W006 제주공항 facilities, in sheet order (which the map's pin pairing relies on). */
+export const AIRPORT_FACILITIES_JEJU: AirportFacility[] = [
+${body}
+];
+`;
+  await writeFile(join(DATA_DIR, 'airportFacilities-jeju.generated.ts'), out, 'utf8');
+  return { count: facilities.length, dropped };
+}
+
 // ─── 전국시장 (nationwide markets) — single sheet, grouped by province ──────────
 async function genNationwideMarkets() {
   // Cols: 0 Num, 1 사진여부, 2-5 name ko/en/jp/cn, 6-9 province, 10-13 district,
@@ -611,8 +707,12 @@ async function main() {
   if (JEJU_SHEET_ID) {
     const locJ = await genLocalizationJeju();
     const catsJ = await genAiCategoriesJeju();
+    const facJ = await genAirportFacilitiesJeju();
     console.log(`✓ [jeju] localization: ${locJ} keys`);
     console.log(`✓ [jeju] aiCategories: ${catsJ}`);
+    console.log(
+      `✓ [jeju] airportFacilities: ${facJ.count}${facJ.dropped ? ` (${facJ.dropped} dropped)` : ''}`,
+    );
   } else {
     console.log('– [jeju] skipped (JEJU_SHEET_ID not set)');
   }
