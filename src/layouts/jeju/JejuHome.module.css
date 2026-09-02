@@ -359,7 +359,7 @@
 }
 .cardMarket .cardTitle { left: 57px; top: 108px; }
 .cardMarket .cardSub   { left: 57px; top: 182px; }
-.cardMarket .cardArt   { left: 352px; top: 47px; width: 140px; height: 216px; }
+.cardMarket .cardArt   { left: 362px; top: 47px; width: 140px; height: 216px; }
 
 /* Card 3 — 제주도 이벤트. NORMALISED: Figma has title x40 / subtitle x50.8;
    both render left-aligned in the design, so both use 40. */
@@ -656,7 +656,7 @@
  *   운항 정보 더보기    955             1798   ┘ with no compression. Both live in
  *                                              JejuFlightBoard.module.css.
  *   검색장             1136            1942   (and 2000→1910 wide, at x125)
- *   feature cards     1407  h310      2176   h250 (at x170, w1860, AI card 706)
+ *   feature cards     1407  h310      2176   h250 (same x120/w1926 horiz as std)
  *   tile panel        1772  h1494     2478   h810   (at x150, w1860)
  *   tile grid         1821  h1396     2544   h678   (at x188, w1792, 6 cols)
  *   tile art          300×300         230×230, label at 260 not 335
@@ -738,34 +738,28 @@
 
 .langBtnLow { left: 1730px; }
 
-/* 1860 wide, justify-between over 706 + 540 + 540 → two 37px gaps, i.e. card
-   lefts 0 / 743 / 1320. All three drop to 250 tall, so their contents move up:
-   titles to 74/78, subs to 148/152, and each card's art shrinks to fit.
-   NORMALISED: the AI subtitle sits at x410.42 in Figma against the title's
-   x401.01; both are left-aligned, so both use 401 (same call as standard). */
+/* Same horizontal layout as `.cards` — only the band top and card height drop
+   in ♿. Title/sub/art tops (and art heights) shift up to fit 250px cards. */
 .cardsLow {
-  left: 170px;
+  left: 120px;
   top: 2176px;
-  width: 1860px;
+  width: 1926px;
   height: 250px;
 }
 
 .cardsLow .card { height: 250px; }
 
-.cardsLow .cardAi { width: 706px; }
-.cardsLow .cardAi .cardTitle { left: 401px; top: 74px; }
-.cardsLow .cardAi .cardSub   { left: 401px; top: 148px; }
-.cardsLow .cardAi .cardArt   { left: 56px; top: 31px; width: 222px; height: 191px; }
+.cardsLow .cardAi .cardTitle { top: 74px; }
+.cardsLow .cardAi .cardSub   { top: 148px; }
+.cardsLow .cardAi .cardArt   { top: 31px; height: 191px; }
 
-.cardsLow .cardMarket { left: 743px; }
-.cardsLow .cardMarket .cardTitle { left: 57px; top: 78px; }
-.cardsLow .cardMarket .cardSub   { left: 57px; top: 152px; }
-.cardsLow .cardMarket .cardArt   { left: 337px; top: 45px; width: 109px; height: 169px; }
+.cardsLow .cardMarket .cardTitle { top: 78px; }
+.cardsLow .cardMarket .cardSub   { top: 152px; }
+.cardsLow .cardMarket .cardArt   { top: 45px; height: 169px; }
 
-.cardsLow .cardEvents { left: 1320px; }
-.cardsLow .cardEvents .cardTitle { left: 40px; top: 78px; }
-.cardsLow .cardEvents .cardSub   { left: 40px; top: 152px; }
-.cardsLow .cardEvents .cardArt   { left: 354px; top: 60px; width: 143px; height: 143px; }
+.cardsLow .cardEvents .cardTitle { top: 78px; }
+.cardsLow .cardEvents .cardSub   { top: 152px; }
+.cardsLow .cardEvents .cardArt   { top: 60px; height: 143px; }
 
 .panelLow {
   left: 150px;

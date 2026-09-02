@@ -40,6 +40,20 @@ import tamnaIos from '@renderer/assets/photos/jeju/localpay/tamna-ios.png';
 
 type TabId = 'onnuri' | 'tamna';
 
+/**
+ * 탐나는전 card — block positions (card-relative px).
+ * English keeps the tuned layout; other languages use separate tops.
+ */
+const TAMNA_BLOCK_TOP = {
+  en: { head: 40, kwonjong: 760, apply: 1390, useRow: 1970 },
+  locale: { head: 100, kwonjong: 630, apply: 1380, useRow: 1900 },
+} as const;
+
+type TamnaBlockTop = { head: number; kwonjong: number; apply: number; useRow: number };
+
+const tamnaBlockTop = (lang: Lang): TamnaBlockTop =>
+  lang === 'en' ? TAMNA_BLOCK_TOP.en : TAMNA_BLOCK_TOP.locale;
+
 interface Content {
   tabs: Record<TabId, string>;
   onnuri: {
@@ -518,6 +532,7 @@ export function JejuLocalpay({ controller }: Props): JSX.Element {
   // (zh_cn / zh_tw / es), exactly as every other 제주 screen's label maps do;
   // `withSheet` then lets Localization_Jeju override whatever it has filled.
   const c = withSheet(pick(CONTENT, lang), lang);
+  const tamnaTop = tamnaBlockTop(lang);
 
   /*
    * ♿ re-lays this page out rather than shifting it, so almost every positioned
@@ -627,8 +642,8 @@ export function JejuLocalpay({ controller }: Props): JSX.Element {
       ) : (
         /* ── 탐나는전 (6249:32310) ── */
         <section className={card(styles.cardTamna, styles.cardTamnaLow)}>
-          {/* No low-reach variant: the head is at top 100 in both layouts. */}
-          <div className={styles.tamnaHead}>
+          {/* Head + lower blocks: tops from `TAMNA_BLOCK_TOP` per language. */}
+          <div className={styles.tamnaHead} style={{ top: tamnaTop.head }}>
             <img className={styles.tamnaLogo} src={tamnaLogo} alt="" draggable={false} />
             <div className={styles.tamnaIntro}>
               <p className={styles.h60}>{c.tamna.introH}</p>
@@ -636,7 +651,7 @@ export function JejuLocalpay({ controller }: Props): JSX.Element {
             </div>
           </div>
 
-          <div className={low(styles.kwonjong, styles.kwonjongLow)}>
+          <div className={styles.kwonjong} style={{ top: tamnaTop.kwonjong }}>
             <p className={styles.h60}>{c.tamna.kwonjongH}</p>
             <div className={styles.kwonjongPanel} />
             <img
@@ -666,12 +681,12 @@ export function JejuLocalpay({ controller }: Props): JSX.Element {
             <div className={`${styles.kwDivider} ${styles.kwDividerRight}`} />
           </div>
 
-          <div className={low(styles.apply, styles.applyLow)}>
+          <div className={styles.apply} style={{ top: tamnaTop.apply }}>
             <p className={styles.h60}>{c.tamna.applyH}</p>
             <div>{rich(c.tamna.applyBody)}</div>
           </div>
 
-          <div className={low(styles.useRow, styles.useRowLow)}>
+          <div className={styles.useRow} style={{ top: tamnaTop.useRow }}>
             <div className={styles.useText}>
               <p className={styles.h60}>{c.tamna.useH}</p>
               <div>{rich(c.tamna.useBody)}</div>

@@ -293,38 +293,41 @@
   object-fit: contain;
 }
 
-/* ── 탐나는전 card (6249:32310) ── */
+/* ── 탐나는전 card (6249:32310) ──
+   Head top is per-language in JejuLocalpay.tsx (`TAMNA_BLOCK_TOP`). */
 .tamnaHead {
   position: absolute;
   left: 128px;
-  top: 100px;
-  display: flex;
-  align-items: center;
-  gap: 61px;
+  width: 1720px;
 }
 
+/* Pinned to the head block's top-left — not flex-centred with the intro copy,
+   which grows with translation and used to pull the logo down. */
 .tamnaLogo {
-  flex: 0 0 auto;
+  position: absolute;
+  left: 0;
+  top: 0;
   width: 260px;
   height: 387.687px;
   object-fit: contain;
 }
 
 .tamnaIntro {
+  margin-left: 321px; /* logo 260 + Figma gap 61 */
   width: 1331px;
   display: flex;
   flex-direction: column;
-  gap: 20px;
+  gap: 14px;
 }
 
 /* ── 상품권 권종 (6249:32316) ──
+   Block tops are per-language in JejuLocalpay.tsx (`TAMNA_BLOCK_TOP`).
    Three artworks straddling a grey plate: they start ABOVE its top edge and each
    one is a different height, which is why they are placed individually rather
    than laid out in a row. */
 .kwonjong {
   position: absolute;
   left: 40px;
-  top: 637px;
   width: 1740px;
   height: 617px;
 }
@@ -379,18 +382,16 @@
 .apply {
   position: absolute;
   left: 40px;
-  top: 1360px;
   width: 1740px;
   display: flex;
   flex-direction: column;
-  gap: 20px;
+  gap: 14px;
 }
 
 /* ── 탐나는전 사용처 + store QRs (6249:32331) ── */
 .useRow {
   position: absolute;
   left: 40px;
-  top: 1900px;
   width: 1740px;
   height: 196px;
   display: flex;
@@ -402,7 +403,7 @@
   width: 1169px;
   display: flex;
   flex-direction: column;
-  gap: 20px;
+  gap: 14px;
 }
 
 .stores {
@@ -465,7 +466,7 @@
  *   tab row              700             3437
  *   온누리 intro card      944  h1002      1041  h997
  *   온누리 digital card    1998 h1194      2069  h1123
- *   탐나는전 card          944  h2250      1041  h2147
+ *   탐나는전 card          944  h2250      1041  h2250
  *
  * ── What the redraw changed, beyond the chrome ──
  *
@@ -495,15 +496,15 @@
  * 권종 block (panel 150/100 1441×517, artworks 218/60, 632/77, 1144/100, labels
  * on 431.5/870.5/1322.5, dividers at 632/1109), and both store cards down to the
  * two QRs' different insets (34/26 193×191 and 33/21 196×196) and their 227
- * label. 탐나는전's head block does not move either — top 100 in both layouts —
- * so it has no low-reach rule at all. Only the values listed below move.
+ * label. 탐나는전 internals are card-relative and identical in both layouts —
+ * block tops per language in `TAMNA_BLOCK_TOP` (JejuLocalpay.tsx).
  * ──────────────────────────────────────────────────────────────────────────── */
 
 .tabsLow { top: 3437px; }
 
 .cardIntroLow   { top: 1041px; height: 997px; }
 .cardDigitalLow { top: 2069px; height: 1123px; }
-.cardTamnaLow   { top: 1041px; height: 2147px; }
+.cardTamnaLow   { top: 1041px; height: 2250px; }
 
 /* ── 온누리 intro card (6326:80288) ── */
 .introTextLow  { top: 75px; }
@@ -525,10 +526,3 @@
 .biLow          { top: 771px; }
 .qrPlateLow     { top: 756px; }
 .qrImageLow     { top: 771.34px; }
-
-/* ── 탐나는전 card (6326:80335) ──
-   The head keeps its place; the three blocks below it climb steadily (−38, −76,
-   −114) as the card tightens by 103. */
-.kwonjongLow  { top: 599px; }
-.applyLow     { top: 1247px; }
-.useRowLow    { top: 1757px; }

@@ -17,7 +17,7 @@ import { pick, type Lang } from '@renderer/lib/i18n';
 import { padImages } from '@renderer/lib/shops';
 import { jejuIconUrl } from '@renderer/assets/icons/jeju';
 import { ImageLightbox } from '../components/ImageLightbox';
-import { JejuRentcarDirections } from './JejuRentcarDirections';
+import { JejuAirportDirections } from './JejuAirportDirections';
 import styles from './JejuSpotDetailCard.module.css';
 
 /** Photo slots in the gallery — the Figma draws a fixed 2×2. */
@@ -124,6 +124,8 @@ export function JejuSpotDetailCard({
   const guideDistance =
     guide && guide.distanceKm != null ? `${guide.distanceKm.toFixed(1)} km` : null;
   const showShuttlePanel = isRentcar && guide?.isShuttle;
+  const showFerryPanel = isRentcar && guide?.isFerry && !guide?.isShuttle;
+  const showAirportDirections = isRentcar && route && !showFerryPanel;
   // 뭐먹지/뭐사지/숙박안내 상세 — Figma revision drops the copy + hashtag block.
   const hideDescTags = item.from === 'eat' || item.from === 'shop' || item.from === 'lodging';
   const showShopRoute =
@@ -166,6 +168,18 @@ export function JejuSpotDetailCard({
                 <p className={styles.rentcarGuideNote}>{pick(RENTCAR_SHUTTLE_NOTE, lang)}</p>
               </div>
             </div>
+          ) : showFerryPanel && guide ? (
+            <div className={styles.rentcarGuide}>
+              <p className={styles.rentcarGuideTitle}>{pick(RENTCAR_HOW_TO, lang)}</p>
+              <div className={styles.rentcarGuideMeta}>
+                <p className={styles.rentcarGuideRow}>
+                  <span className={styles.rentcarGuideIcon} aria-hidden="true">
+                    ⛴️
+                  </span>
+                  <span>{guide.modeLabel}</span>
+                </p>
+              </div>
+            </div>
           ) : !isRentcar ? (
             <div className={single ? styles.photosSingle : styles.photos}>
               {Array.from({ length: slots }, (_, i) => (
@@ -185,9 +199,9 @@ export function JejuSpotDetailCard({
 
           {showShuttlePanel && route && <div className={styles.rentcarGuideDivider} aria-hidden="true" />}
 
-          {isRentcar && route && (
-            <div className={styles.rentcarDirections}>
-              <JejuRentcarDirections route={route} destination={item.name} lang={lang} />
+          {showAirportDirections && (
+            <div className={styles.airportDirections}>
+              <JejuAirportDirections route={route} destination={item.name} lang={lang} />
             </div>
           )}
         </div>
@@ -195,8 +209,8 @@ export function JejuSpotDetailCard({
         {showShopRoute && route && (
           <>
             <div className={styles.divider} />
-            <div className={styles.rentcarDirections}>
-              <JejuRentcarDirections route={route} destination={item.name} lang={lang} />
+            <div className={styles.airportDirections}>
+              <JejuAirportDirections route={route} destination={item.name} lang={lang} />
             </div>
           </>
         )}

@@ -1,9 +1,10 @@
 /**
- * Rentcar 상세 — 제주공항에서 업체까지 가는 방법 (Figma directions panel).
+ * Shared shop 상세 — 제주공항에서 업체까지 가는 방법 (Figma directions panel).
  *
- * Car / bike / walk summary rows, then a bus timeline when `transit.status`
- * is FOUND. Shuttle shops keep the peach panel above this; this block always
- * sits under the title (or under the shuttle panel when present).
+ * Used on 렌트카, 뭐먹지, 뭐사지, 숙박안내 detail. Car / bike / walk summary
+ * rows, then a bus timeline when `transit.status` is FOUND. Rentcar shuttle
+ * shops keep the peach panel above this; the block sits under the title (or
+ * under the shuttle panel when present).
  */
 import type { Lang } from '@renderer/lib/i18n';
 import { pick } from '@renderer/lib/i18n';
@@ -14,7 +15,7 @@ import {
   shopTransitLegBoardStop,
 } from '@renderer/lib/shops';
 import type { ShopRoute, ShopTransitLeg } from '@shared/types/shop';
-import styles from './JejuRentcarDirections.module.css';
+import styles from './JejuAirportDirections.module.css';
 
 const T = {
   fromAirport: {
@@ -184,7 +185,7 @@ function buildTimeline(route: ShopRoute, destination: string, lang: Lang): Timel
   return nodes;
 }
 
-export function JejuRentcarDirections({ route, destination, lang }: Props): JSX.Element | null {
+export function JejuAirportDirections({ route, destination, lang }: Props): JSX.Element | null {
   if (typeof route.distanceKm !== 'number' || !Number.isFinite(route.distanceKm)) return null;
 
   const carMin = route.durationMin;

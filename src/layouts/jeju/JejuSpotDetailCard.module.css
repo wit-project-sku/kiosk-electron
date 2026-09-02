@@ -214,8 +214,8 @@
   margin: 10px 0;
 }
 
-/* Airport directions (JejuRentcarDirections) — tune box + inner scale here. */
-.rentcarDirections {
+/* Airport directions (JejuAirportDirections) — tune box + inner scale here. */
+.airportDirections {
   width: 100%;
   box-sizing: border-box;
 }

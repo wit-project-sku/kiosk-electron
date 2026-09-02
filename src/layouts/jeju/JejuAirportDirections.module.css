@@ -1,14 +1,14 @@
 /*
- * Rentcar 상세 — 제주공항 directions panel (car/bike/walk + bus timeline).
+ * Shared shop 상세 — 제주공항 directions panel (car/bike/walk + bus timeline).
  *
- * Outer box spacing lives in JejuSpotDetailCard `.rentcarDirections`.
+ * Outer box spacing lives in JejuSpotDetailCard `.airportDirections`.
  * Font/spacing tokens below — adjust these to resize the whole block.
  */
 .wrap {
   --dir-distance: 62px;
   --dir-road-note: 34px;
   --dir-mode: 48px;
-  --dir-mode-icon: 48px;
+  --dir-mode-icon: 60px;
   --dir-bus-label: 52px;
   --dir-bus-time: 62px;
   --dir-bus-note: 34px;

@@ -48,6 +48,8 @@ export interface DetailItem {
     distanceKm: number | null;
     /** When true, shows the airport-shuttle footnote under the mode row. */
     isShuttle?: boolean;
+    /** When true, shows the ferry-only how-to row (no distance / directions). */
+    isFerry?: boolean;
   };
   /** Full witteria `route` — drives the airport directions panel on rentcar 상세. */
   rentcarRoute?: ShopRoute | null;

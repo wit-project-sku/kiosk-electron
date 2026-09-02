@@ -89,7 +89,8 @@
   white-space: pre-line;
 }
 
-/* ── Summary bar: 4 stats separated by 3 hairlines ── */
+/* ── Summary bar: 4 stats separated by 3 hairlines.
+   Col flex 3:2:3:2 → hairlines at 30% · 50% · 80% of the bar width. */
 .summary {
   position: absolute;
   left: 170px;
@@ -100,13 +101,25 @@
   background: var(--kiosk-primary, #ff7f0f);
   display: flex;
   align-items: center;
+  --stat-wide: 3;
+  --stat-narrow: 2;
 }
 
 .stat {
-  flex: 1 1 0;
   min-width: 0;
   text-align: center;
   color: #fff;
+}
+
+/* DOM: stat · sep · stat · sep · stat · sep · stat */
+.summary > .stat:nth-child(1),
+.summary > .stat:nth-child(5) {
+  flex: var(--stat-wide) 1 0;
+}
+
+.summary > .stat:nth-child(3),
+.summary > .stat:nth-child(7) {
+  flex: var(--stat-narrow) 1 0;
 }
 
 .statLabel {

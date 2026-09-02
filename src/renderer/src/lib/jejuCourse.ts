@@ -1,6 +1,7 @@
 import type { Shop } from '@shared/types/shop';
 import type { JejuCourseKey, JejuTransport } from '@shared/types/jejuCourse';
 import { stripPrefix } from '@renderer/lib/shops';
+import { pick, type Lang } from '@renderer/lib/i18n';
 
 /**
  * Turns the 제주 questionnaire's answers into what
@@ -115,15 +116,98 @@ const DIFFICULTY = ['', '쉬움', '보통', '어려움'];
 export const difficultyLabel = (level: number): string =>
   DIFFICULTY[level] ?? DIFFICULTY[DIFFICULTY.length - 1]!;
 
+/** Rail letter → the header subtitle, e.g. A코스 / Course A. */
+const COURSE_RAIL: Record<string, Partial<Record<Lang, string>>> = {
+  A: {
+    ko: 'A코스', en: 'Course A', ja: 'Aコース', zh: 'A路线',
+    vi: 'Lộ trình A', th: 'คอร์ส A', ru: 'Маршрут A', id: 'Rute A',
+  },
+  B: {
+    ko: 'B코스', en: 'Course B', ja: 'Bコース', zh: 'B路线',
+    vi: 'Lộ trình B', th: 'คอร์ส B', ru: 'Маршрут B', id: 'Rute B',
+  },
+  C: {
+    ko: 'C코스', en: 'Course C', ja: 'Cコース', zh: 'C路线',
+    vi: 'Lộ trình C', th: 'คอร์ส C', ru: 'Маршрут C', id: 'Rute C',
+  },
+};
+
+const DAY_PART: Partial<Record<Lang, (day: number) => string>> = {
+  ko: (d) => `${d}일차`,
+  en: (d) => `Day ${d}`,
+  ja: (d) => `${d}日目`,
+  zh: (d) => `第${d}天`,
+  vi: (d) => `Ngày ${d}`,
+  th: (d) => `วันที่ ${d}`,
+  ru: (d) => `День ${d}`,
+  id: (d) => `Hari ${d}`,
+};
+
+/** Header subtitle on the course detail and AI spot detail — "A코스 - 1일차". */
+export function jejuCourseDayTitle(letter: string, day: number, lang: Lang): string {
+  const rail = pick(COURSE_RAIL[letter] ?? { ko: `${letter}코스` }, lang);
+  const fmt = DAY_PART[lang] ?? DAY_PART.en ?? DAY_PART.ko;
+  const dayPart = fmt ? fmt(day) : `${day}`;
+  return `${rail} - ${dayPart}`;
+}
+
+const ABOUT_PREFIX: Partial<Record<Lang, string>> = {
+  ko: '약 ',
+  en: 'Approx. ',
+  ja: '約',
+  zh: '约 ',
+  vi: 'Khoảng ',
+  th: 'ประมาณ ',
+  ru: 'Около ',
+  id: 'Sekitar ',
+};
+
 /**
- * Minutes as Korean duration text — 30 → "30분", 60 → "1시간",
- * 150 → "2시간 30분". Used for both the course total and each spot's stay.
+ * Minutes as duration text — 30 → "30분" / "30 min", 60 → "1시간" / "1 hr".
+ * Used for both the course total and each spot's stay.
  */
-export function minutesLabel(total: number): string {
+export function minutesLabel(total: number, lang: Lang = 'ko'): string {
   const mins = Math.max(0, Math.round(total));
   const h = Math.floor(mins / 60);
   const m = mins % 60;
-  if (h === 0) return `${m}분`;
-  if (m === 0) return `${h}시간`;
-  return `${h}시간 ${m}분`;
+
+  if (lang === 'ko') {
+    if (h === 0) return `${m}분`;
+    if (m === 0) return `${h}시간`;
+    return `${h}시간 ${m}분`;
+  }
+
+  if (h === 0) {
+    return pick(
+      {
+        en: `${m} min`, ja: `${m}分`, zh: `${m} 分钟`, vi: `${m} phút`,
+        th: `${m} นาที`, ru: `${m} мин`, id: `${m} menit`,
+      },
+      lang,
+    );
+  }
+  if (m === 0) {
+    return pick(
+      {
+        en: `${h} hr`, ja: `${h}時間`, zh: `${h} 小时`, vi: `${h} giờ`,
+        th: `${h} ชม.`, ru: `${h} ч`, id: `${h} jam`,
+      },
+      lang,
+    );
+  }
+  return pick(
+    {
+      en: `${h} hr ${m} min`, ja: `${h}時間${m}分`, zh: `${h} 小时 ${m} 分钟`,
+      vi: `${h} giờ ${m} phút`, th: `${h} ชม. ${m} นาที`, ru: `${h} ч ${m} мин`,
+      id: `${h} jam ${m} menit`,
+    },
+    lang,
+  );
+}
+
+/** "약 30분" / "Approx. 30 min" — summary-bar totals from the API. */
+export function aboutMinutesLabel(total: number, lang: Lang): string {
+  if (lang === 'ko') return `약 ${minutesLabel(total, lang)}`;
+  const prefix = pick(ABOUT_PREFIX, lang);
+  return `${prefix}${minutesLabel(total, lang)}`;
 }

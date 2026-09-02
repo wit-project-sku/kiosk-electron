@@ -27,6 +27,7 @@ import {
   shopRentcarSecondCategory,
   shopsForBase,
 } from '@renderer/lib/shops';
+import { useAccessibilityStore } from '@renderer/store/accessibilityStore';
 import { JejuPageFrame } from './JejuPageFrame';
 import { JejuScrollHint } from './JejuScrollHint';
 import { JejuShopCard } from './JejuShopCard';
@@ -165,6 +166,20 @@ type RentcarBadgeVariant = 'primary' | 'shuttle' | 'noShuttle' | 'ferry';
 /** Compact card pitch: 300 card + 60 gap. */
 const SCROLL_STEP = 360;
 
+/** Low-reach list top — under mode bar + header (Figma 6561:80628 template). */
+const LIST_TOP_LOW = 837;
+/** Gap between the list bottom edge and the pinned controls block. */
+const LOW_CONTROLS_GAP = 100;
+/** List viewport height — one filter row at the foot (same as JejuListScreen lodging). */
+const LOW_LIST_HEIGHT = 2501;
+const LOW_CONTROLS_TOP = LIST_TOP_LOW + LOW_LIST_HEIGHT + LOW_CONTROLS_GAP;
+
+const KEYBOARD_HEIGHT = 1000;
+/** Standard: search row ends ~y882 under the 700px header. */
+const KEYBOARD_TOP = 882;
+/** Low-reach: keyboard sits above the pinned search row at the foot. */
+const KEYBOARD_TOP_LOW = LOW_CONTROLS_TOP - KEYBOARD_HEIGHT;
+
 export function JejuRentcar({ controller }: Props): JSX.Element {
   const lang = useLanguageStore((s) => s.currentLanguage);
   const setDetail = useDetailStore((s) => s.setItem);
@@ -172,6 +187,7 @@ export function JejuRentcar({ controller }: Props): JSX.Element {
 
   const composer = useRef(new HangulComposer());
   const scrollRef = useRef<HTMLDivElement>(null);
+  const lowReach = useAccessibilityStore((s) => s.lowReach);
   const [query, setQuery] = useState('');
   const [focused, setFocused] = useState(false);
   const [shuttleFilter, setShuttleFilter] = useState<ShuttleFilter>('all');
@@ -220,7 +236,7 @@ export function JejuRentcar({ controller }: Props): JSX.Element {
   useLayoutEffect(() => {
     const el = scrollRef.current;
     setCanScroll(!!el && el.scrollHeight > el.clientHeight + 1);
-  }, [houseShops.length, visibleOthers.length, lang, shuttleFilter, query]);
+  }, [houseShops.length, visibleOthers.length, lang, shuttleFilter, query, lowReach]);
 
   const applyKey = (action: KeyAction): void => {
     const c = composer.current;
@@ -265,6 +281,7 @@ export function JejuRentcar({ controller }: Props): JSX.Element {
         modeLabel: shopRentcarGuideModeLabel(shop, lang),
         distanceKm: shopRentcarGuideDistanceKm(shop),
         isShuttle: shopHasRentcarShuttle(shop),
+        isFerry: shopHasRentcarFerry(shop),
       },
       rentcarRoute: shop.route ?? null,
     });
@@ -320,65 +337,99 @@ export function JejuRentcar({ controller }: Props): JSX.Element {
     </div>
   );
 
-  return (
-    <JejuPageFrame controller={controller} title={TITLE} showBanner={false}>
-      <div className={styles.scroll} ref={scrollRef}>
-        <div className={styles.searchRow}>
-          <div className={styles.searchField} role="button" onClick={() => setFocused(true)}>
-            <span className={`${styles.searchText} ${query ? styles.searchValue : ''}`}>
-              {query || pick(SEARCH_PLACEHOLDER, lang)}
-              {focused && <span className={styles.caret} />}
-            </span>
-            {jejuIconUrl('ico-search') && (
-              <img src={jejuIconUrl('ico-search')} alt="" className={styles.searchIcon} draggable={false} />
-            )}
-          </div>
-        </div>
-
-        {baseShops.length === 0 ? (
-          <p className={styles.empty}>{pick(NO_DATA, lang)}</p>
-        ) : catalogShops.length === 0 ? (
-          <p className={styles.empty}>{pick(SEARCH_NO_RESULT, lang)(query.trim())}</p>
-        ) : (
-          <>
-            {houseShops.length > 0 && (
-              <div className={styles.houseSection}>
-                <p className={styles.houseHeading}>{pick(HOUSE_HEADING, lang)(houseShops.length)}</p>
-                {renderCards(houseShops, {
-                  forceDeskBadge: true,
-                  routeLine: pick(RENTCAR_HOUSE_ROUTE, lang),
-                  house: true,
-                })}
-              </div>
-            )}
-
-            {otherShops.length > 0 && (
-              <div className={styles.filters}>
-                {SHUTTLE_FILTERS.map((filter) => (
-                  <button
-                    key={filter}
-                    type="button"
-                    className={`${styles.chip} ${filter === shuttleFilter ? styles.chipActive : ''}`}
-                    onClick={() => {
-                      setShuttleFilter(filter);
-                      resetScroll();
-                    }}
-                  >
-                    <span className={styles.chipLabel}>{pick(FILTER_LABELS[filter], lang)}</span>
-                    <span className={styles.chipCount}>{filterCounts[filter]}</span>
-                  </button>
-                ))}
-              </div>
-            )}
-
-            {visibleOthers.length > 0 ? (
-              renderCards(visibleOthers)
-            ) : otherShops.length > 0 ? (
-              <p className={styles.empty}>{pick(NO_MATCH, lang)}</p>
-            ) : null}
-          </>
+  const searchControl = (
+    <div className={styles.searchRow}>
+      <div className={styles.searchField} role="button" onClick={() => setFocused(true)}>
+        <span className={`${styles.searchText} ${query ? styles.searchValue : ''}`}>
+          {query || pick(SEARCH_PLACEHOLDER, lang)}
+          {focused && <span className={styles.caret} />}
+        </span>
+        {jejuIconUrl('ico-search') && (
+          <img src={jejuIconUrl('ico-search')} alt="" className={styles.searchIcon} draggable={false} />
         )}
       </div>
+    </div>
+  );
+
+  const filterControls =
+    otherShops.length > 0 ? (
+      <div className={styles.filters}>
+        {SHUTTLE_FILTERS.map((filter) => (
+          <button
+            key={filter}
+            type="button"
+            className={`${styles.chip} ${filter === shuttleFilter ? styles.chipActive : ''}`}
+            onClick={() => {
+              setShuttleFilter(filter);
+              resetScroll();
+            }}
+          >
+            <span className={styles.chipLabel}>{pick(FILTER_LABELS[filter], lang)}</span>
+            <span className={styles.chipCount}>{filterCounts[filter]}</span>
+          </button>
+        ))}
+      </div>
+    ) : null;
+
+  const controls = (
+    <>
+      {searchControl}
+      {filterControls}
+    </>
+  );
+
+  const catalogBody =
+    baseShops.length === 0 ? (
+      <p className={styles.empty}>{pick(NO_DATA, lang)}</p>
+    ) : catalogShops.length === 0 ? (
+      <p className={styles.empty}>{pick(SEARCH_NO_RESULT, lang)(query.trim())}</p>
+    ) : (
+      <>
+        {houseShops.length > 0 && (
+          <div className={styles.houseSection}>
+            <p className={styles.houseHeading}>{pick(HOUSE_HEADING, lang)(houseShops.length)}</p>
+            {renderCards(houseShops, {
+              forceDeskBadge: true,
+              routeLine: pick(RENTCAR_HOUSE_ROUTE, lang),
+              house: true,
+            })}
+          </div>
+        )}
+
+        {!lowReach && filterControls}
+
+        {visibleOthers.length > 0 ? (
+          renderCards(visibleOthers)
+        ) : otherShops.length > 0 ? (
+          <p className={styles.empty}>{pick(NO_MATCH, lang)}</p>
+        ) : null}
+      </>
+    );
+
+  return (
+    /* No banner. ♿ follows the 2026-08-26 mode-bar revision (6561:80628): bar at
+       the top, header at y113; search + shuttle filters pin to the foot. */
+    <JejuPageFrame
+      controller={controller}
+      title={TITLE}
+      showBanner={false}
+      lowReachModeBar
+      lowReachShift={113}
+    >
+      <div
+        className={`${styles.scroll} ${lowReach ? styles.scrollLow : ''}`}
+        style={lowReach ? { height: LOW_LIST_HEIGHT } : undefined}
+        ref={scrollRef}
+      >
+        {!lowReach && searchControl}
+        {catalogBody}
+      </div>
+
+      {lowReach && (
+        <div className={styles.controlsLow} style={{ top: LOW_CONTROLS_TOP }}>
+          {controls}
+        </div>
+      )}
 
       {canScroll && (
         <>
@@ -415,14 +466,16 @@ export function JejuRentcar({ controller }: Props): JSX.Element {
         </>
       )}
 
-      <JejuScrollHint onUp={() => scrollBy(-SCROLL_STEP)} onDown={() => scrollBy(SCROLL_STEP)} />
+      {!lowReach && (
+        <JejuScrollHint onUp={() => scrollBy(-SCROLL_STEP)} onDown={() => scrollBy(SCROLL_STEP)} />
+      )}
 
       <FloatingKeyboard
         open={focused}
         onKey={applyKey}
         onClose={() => setFocused(false)}
         lang={lang}
-        top={882}
+        top={lowReach ? KEYBOARD_TOP_LOW : KEYBOARD_TOP}
       />
     </JejuPageFrame>
   );

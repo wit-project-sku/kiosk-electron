@@ -26,6 +26,29 @@
   padding: 0 136px 80px 170px;
 }
 
+/*
+ * Low-reach (♿) — mode-bar revision template 6561:80628, same geometry as
+ * JejuListScreen (lodging, one chip row). The list viewport drops to y837;
+ * search + shuttle filters pin to the foot where a seated visitor can reach
+ * them. Height is set inline — see LOW_LIST_HEIGHT in JejuRentcar.tsx.
+ */
+.scrollLow {
+  top: 837px;
+  bottom: auto;
+  height: 2501px;
+  padding-bottom: 0;
+}
+
+.controlsLow {
+  position: absolute;
+  left: 170px;
+  top: 3438px;
+  width: 1820px;
+  display: flex;
+  flex-direction: column;
+  gap: 50px;
+}
+
 .scroll::-webkit-scrollbar {
   width: 34.32px;
 }
