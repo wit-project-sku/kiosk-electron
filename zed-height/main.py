@@ -252,8 +252,36 @@ def _stdin_reader(commands: queue.Queue) -> None:
     commands.put({"cmd": "__eof__"})
 
 
+def calibration_matches_mount(camera: ZedCamera, floor: FloorFrame) -> bool:
+    """Is the saved floor still the floor, given where the camera is NOW?
+
+    A calibration describes the floor in CAMERA coordinates, so it is only valid
+    for the orientation it was taken in. Re-mount the camera — even just turning
+    it 90° on its bracket, which 제주 does — and the stored plane goes on
+    describing a surface that is now vertical. Nothing then looks like a person
+    and every capture reports null, with nothing to say why.
+
+    The IMU settles it in one frame: the stored normal must still agree with
+    gravity. Cheap, and it converts a silent dead feature into a line in the log
+    that names the fix.
+    """
+    for _ in range(10):
+        frame = camera.grab()
+        if frame is None or frame.gravity is None:
+            continue
+        return plane_is_plausible_floor(floor, frame.gravity)
+    return True  # no IMU reading — cannot judge, so do not block
+
+
 def run_service(camera: ZedCamera) -> int:
     floor = load_calibration()
+    if floor is not None and not calibration_matches_mount(camera, floor):
+        log(
+            "calibration does not match how the camera is mounted now — it was "
+            "taken at a different orientation. Nothing will be measured until "
+            "you recalibrate. Run: npm run height:calibrate"
+        )
+        floor = None
     emit(
         type="ready",
         calibrated=floor is not None,
