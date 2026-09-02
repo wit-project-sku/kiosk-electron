@@ -34,17 +34,6 @@ const RENTCAR_HOW_TO = {
   id: 'Cara menuju',
 };
 
-const RENTCAR_SHUTTLE_NOTE = {
-  ko: '공항에서 업체 셔틀버스로 이동합니다',
-  en: 'Take the company shuttle bus from the airport',
-  ja: '空港から各社シャトルバスで移動します',
-  zh: '从机场乘坐各公司班车前往',
-  vi: 'Di chuyển bằng xe đưa của công ty từ sân bay',
-  th: 'เดินทางด้วยรถรับส่งของบริษัทจากสนามบิน',
-  ru: 'Доберитесь на шаттле компании от аэропорта',
-  id: 'Naik shuttle perusahaan dari bandara',
-};
-
 /**
  * One 주소/영업시간/전화 icon: an 85×85 slot with the glyph drawn at the size
  * Figma gives it (see .infoIconSlot). Renders nothing when the export is
@@ -87,6 +76,13 @@ interface Props {
    * differ in the gallery and the name box, nothing else.
    */
   gallery?: 'grid' | 'single';
+  /**
+   * AI 코스 상세 with a 다음 장소 stop: the card rides in a page-level scroll
+   * column instead of sitting at a fixed absolute y with its own max-height scroll.
+   */
+  flow?: boolean;
+  /** In-card scroll cap — JejuDetail passes artboard foot − top in ♿. */
+  maxScrollHeight?: number;
   lang?: Lang;
 }
 
@@ -94,6 +90,8 @@ export function JejuSpotDetailCard({
   item,
   top = 700,
   gallery = 'grid',
+  flow = false,
+  maxScrollHeight,
   lang = 'ko',
 }: Props): JSX.Element {
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
@@ -118,36 +116,43 @@ export function JejuSpotDetailCard({
 
   const guide = item.rentcarGuide;
   const route = item.rentcarRoute;
-  const guideDistance =
-    guide && guide.distanceKm != null ? `${guide.distanceKm.toFixed(1)} km` : null;
-  const showShuttlePanel = isRentcar && guide?.isShuttle;
+  const showShuttleDirections = isRentcar && guide?.isShuttle;
   const showFerryPanel = isRentcar && guide?.isFerry && !guide?.isShuttle;
-  const showAirportDirections = isRentcar && route && !showFerryPanel;
-  // 뭐먹지/뭐사지/숙박안내/AI 코스(ai_detail) — no copy + hashtag block.
-  const hideDescTags =
+  // AI 코스·뭐먹지·뭐사지·숙박·검색 상세 — 설명·태그·평점을 directions 위에 표시.
+  const routeDetailFrom =
     item.from === 'eat' ||
     item.from === 'shop' ||
     item.from === 'lodging' ||
+    item.from === 'search' ||
     item.from === 'ai_detail';
   const showShopRoute =
-    hideDescTags &&
     route != null &&
     typeof route.distanceKm === 'number' &&
-    Number.isFinite(route.distanceKm);
+    Number.isFinite(route.distanceKm) &&
+    routeDetailFrom;
+  const showDirectionsPanel =
+    (isRentcar && route && !showFerryPanel) ||
+    showShopRoute;
   const cardFixedScroll =
-    item.from === 'ai_detail' ||
-    item.from === 'eat' ||
-    item.from === 'shop' ||
-    item.from === 'lodging' ||
-    item.from === 'rentcar';
-  const cardFixedScrollTall =
-    item.from === 'eat' || item.from === 'shop' || item.from === 'lodging' || item.from === 'rentcar';
+    !flow &&
+    (routeDetailFrom ||
+    item.from === 'rentcar');
+  const cardFixedScrollTall = !flow && (routeDetailFrom || item.from === 'rentcar');
+
+  const cardRouteDetail = routeDetailFrom || item.from === 'rentcar';
 
   return (
     <>
       <div
-        className={`${styles.card} ${isRentcar ? styles.cardRentcar : ''} ${cardFixedScroll ? styles.cardFixedScroll : ''} ${cardFixedScrollTall ? styles.cardFixedScrollTall : ''}`}
-        style={{ top }}
+        className={`${styles.card} ${flow ? styles.cardFlow : ''} ${cardRouteDetail ? styles.cardRouteDetail : ''} ${cardFixedScroll ? styles.cardFixedScroll : ''} ${cardFixedScrollTall ? styles.cardFixedScrollTall : ''}`}
+        style={
+          flow
+            ? undefined
+            : {
+                top,
+                ...(maxScrollHeight != null ? { maxHeight: maxScrollHeight } : {}),
+              }
+        }
       >
         {/* ── Name + gallery / rentcar route guide ── */}
         <div className={styles.head}>
@@ -161,23 +166,7 @@ export function JejuSpotDetailCard({
             )}
           </div>
 
-          {showShuttlePanel && guide ? (
-            <div className={styles.rentcarGuide}>
-              <p className={styles.rentcarGuideTitle}>{pick(RENTCAR_HOW_TO, lang)}</p>
-              <div className={styles.rentcarGuideMeta}>
-                <p className={styles.rentcarGuideRow}>
-                  <span className={styles.rentcarGuideIcon} aria-hidden="true">
-                    🚌
-                  </span>
-                  <span>
-                    {guide.modeLabel}
-                    {guideDistance && <> · {guideDistance}</>}
-                  </span>
-                </p>
-                <p className={styles.rentcarGuideNote}>{pick(RENTCAR_SHUTTLE_NOTE, lang)}</p>
-              </div>
-            </div>
-          ) : showFerryPanel && guide ? (
+          {showFerryPanel && guide ? (
             <div className={styles.rentcarGuide}>
               <p className={styles.rentcarGuideTitle}>{pick(RENTCAR_HOW_TO, lang)}</p>
               <div className={styles.rentcarGuideMeta}>
@@ -205,24 +194,7 @@ export function JejuSpotDetailCard({
               ))}
             </div>
           ) : null}
-
-          {showShuttlePanel && route && <div className={styles.rentcarGuideDivider} aria-hidden="true" />}
-
-          {showAirportDirections && (
-            <div className={styles.airportDirections}>
-              <JejuAirportDirections route={route} destination={item.name} lang={lang} />
-            </div>
-          )}
         </div>
-
-        {showShopRoute && route && (
-          <>
-            <div className={styles.divider} />
-            <div className={styles.airportDirections}>
-              <JejuAirportDirections route={route} destination={item.name} lang={lang} />
-            </div>
-          </>
-        )}
 
         <div className={styles.divider} />
 
@@ -264,15 +236,9 @@ export function JejuSpotDetailCard({
 
         {!isRentcar && (
           <>
-            {!hideDescTags && (
-              <>
-                <div className={styles.divider} />
-                {item.description && <p className={styles.desc}>{item.description}</p>}
-                {item.tags && <p className={styles.tags}>{item.tags}</p>}
-              </>
-            )}
-
-            {!hideDescTags && <div className={styles.divider} />}
+            <div className={styles.divider} />
+            {item.description && <p className={styles.desc}>{item.description}</p>}
+            {item.tags && <p className={styles.tags}>{item.tags}</p>}
 
             {/* ── Naver rating ──
                 The Figma also draws an Instagram follower count (#127K) and a blog
@@ -307,6 +273,20 @@ export function JejuSpotDetailCard({
                 )}
               </div>
             )}
+          </>
+        )}
+
+        {showDirectionsPanel && route && (
+          <>
+            <div className={styles.divider} />
+            <div className={styles.airportDirections}>
+              <JejuAirportDirections
+                route={route}
+                destination={item.name}
+                lang={lang}
+                showShuttle={showShuttleDirections}
+              />
+            </div>
           </>
         )}
       </div>

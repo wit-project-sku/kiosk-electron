@@ -171,8 +171,10 @@ const SCROLL_STEP = 444;
 const LIST_TOP_LOW = 837;
 /** Gap between the list bottom edge and the pinned controls block. */
 const LOW_CONTROLS_GAP = 100;
+/** Breathing room under the filter chips (♿ foot controls). */
+const CONTROLS_BOTTOM_PAD = 200;
 /** List viewport height — one filter row at the foot (same as JejuListScreen lodging). */
-const LOW_LIST_HEIGHT = 2501;
+const LOW_LIST_HEIGHT = 2501 - CONTROLS_BOTTOM_PAD;
 const LOW_CONTROLS_TOP = LIST_TOP_LOW + LOW_LIST_HEIGHT + LOW_CONTROLS_GAP;
 
 const KEYBOARD_HEIGHT = 1000;
@@ -213,7 +215,7 @@ export function JejuRentcar({ controller }: Props): JSX.Element {
     () => ({
       all: catalogShops.length,
       inside: catalogShops.filter(isInsideAirport).length,
-      shuttle: catalogShops.filter(shopHasRentcarShuttle).length,
+      shuttle: catalogShops.filter((s) => shopHasRentcarShuttle(s) && !isInsideAirport(s)).length,
       noShuttle: catalogShops.filter(shopHasRentcarNoShuttle).length,
     }),
     [catalogShops],
@@ -224,7 +226,7 @@ export function JejuRentcar({ controller }: Props): JSX.Element {
       case 'inside':
         return catalogShops.filter(isInsideAirport);
       case 'shuttle':
-        return catalogShops.filter(shopHasRentcarShuttle);
+        return catalogShops.filter((s) => shopHasRentcarShuttle(s) && !isInsideAirport(s));
       case 'noShuttle':
         return catalogShops.filter(shopHasRentcarNoShuttle);
       default: {

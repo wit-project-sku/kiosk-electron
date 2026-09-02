@@ -460,11 +460,10 @@ export function JejuAiDetail({ controller }: Props): JSX.Element {
   const lowReach = useAccessibilityStore((s) => s.lowReach);
 
   /**
-   * Adds the ♿ row-top override to a class, and nothing otherwise.
+   * Adds the ♿ row-top override to a class (+113px mode-bar drop).
    *
-   * The standard frame is the 2026-08-26 re-stack (6516:73138) and the ♿ frame
-   * (6418:11330) is still on the layout before it, so seven rows sit at two
-   * different heights. See the *Low block at the foot of the stylesheet.
+   * Standard frame is 6516:73138; ♿ uses the mode-bar revision (bar only, no
+   * banner) — see the *Low block at the foot of the stylesheet.
    */
   /* Both params are `string | undefined` because that is how CSS Module lookups
      are typed here — see DayArrow's `className` for the same. */
@@ -699,6 +698,9 @@ export function JejuAiDetail({ controller }: Props): JSX.Element {
       bannerFallback="banner-detail"
       showBanner={false}
       onBack={() => controller.navigate('ai_result', '뒤로')}
+      /* Mode-bar revision: bar + header shift only — no promo banner in ♿. */
+      lowReachModeBar
+      lowReachShift={113}
     >
       <p className={low(styles.tags, styles.tagsLow)}>{pick(meta.tags, lang)}</p>
       <p className={low(styles.desc, styles.descLow)}>{pick(meta.desc, lang)}</p>
@@ -716,11 +718,10 @@ export function JejuAiDetail({ controller }: Props): JSX.Element {
       </div>
 
       {/* The questionnaire echoed back, between the summary bar and the DAY row
-          (6516:73323). Standard frame only — the ♿ frame has no such row. Every
-          value is stored KOREAN (see JejuAiSearch's submit), which is how the
-          frame draws them; empty slots (deep-link, idle reset) drop out. */}
-      {!lowReach && picks.length > 0 && (
-        <div className={styles.picks}>
+          (6516:73323). Every value is stored KOREAN (see JejuAiSearch's submit),
+          which is how the frame draws them; empty slots drop out. */}
+      {picks.length > 0 && (
+        <div className={low(styles.picks, styles.picksLow)}>
           {pickLabels.map((label, i) => (
             <span key={i} className={styles.pick}>{label}</span>
           ))}

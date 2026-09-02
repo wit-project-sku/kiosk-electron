@@ -73,37 +73,19 @@ interface Course {
 /**
  * The three courses are authored editorial content — names, copy, hashtags and
  * illustrations all come from the Figma, not from the shops API or the picked
- * interests.
- *
- * ★ Translated HERE, in all eight languages (2026-08-27). Localization_Jeju
- * carries no row for a course NAME, subtitle or hashtag set — only
- * `CCourseDesc3` and a single `CCourseTags`, neither of which covers A or B —
- * so the whole card read Korean in every language, on a page the visitor
- * reaches by answering four fully localized questions. Authored copy is the
- * honest stand-in until the sheet carries the rows; `desc` already prefers the
- * sheet where it has one, and the rest can move the same way once CCourse* is
- * filled out per course.
+ * interests. Card blurbs prefer Localization_Jeju `ACourseDesc3` /
+ * `BCourseDesc3` / `CCourseDesc3`; the rest of each card is authored here.
  *
  * `titleKo` stays flat and Korean because it is NOT display text: it is the
  * label `navigate()` records and the string the detail screen matches on.
  */
 /**
- * The card blurb, from Localization_Jeju `CCourseDesc1..3` — positional, so
- * A→1, B→2, C→3 and the authored Korean stands wherever the row is absent.
- *
- * ★ Only `CCourseDesc3` exists today (가족·체험, 8/8 languages); 1 and 2 have
- * never been written and 4 is an empty row. Wiring all three anyway is the
- * point: the moment the operator fills 1 and 2 the page localizes with no
- * release. Until then C is translated and A/B read Korean, which is the same
- * partly-filled state every other sheet-backed screen here lives with.
- *
- * `tags` is deliberately NOT wired. The sheet has ONE `CCourseTags` row and it
- * holds C's own "#가족 #체험 #즐거움" — pinning it to all three cards would
- * put the family hashtags on the nature and food courses. It needs to become
- * CCourseTags1..3 in the sheet before it can be used.
+ * The card blurb — sheet row per course; authored `course.desc` is the fallback.
  */
+const COURSE_DESC_KEYS = ['ACourseDesc3', 'BCourseDesc3', 'CCourseDesc3'] as const;
+
 const courseDesc = (course: Course, i: number, lang: Lang): string =>
-  sheetText(`CCourseDesc${i + 1}`, lang, course.desc);
+  sheetText(COURSE_DESC_KEYS[i], lang, course.desc);
 
 const COURSES: Course[] = [
   {
@@ -258,8 +240,9 @@ export function JejuAiResult({ controller }: Props): JSX.Element {
   };
 
   return (
-    /* Mode-bar revision (6326:82014): header at y113, all three cards a pure
-       +531 (868/1628/2385 → 1399/2159/2916, measured), no banner in low-reach. */
+    /* Mode-bar revision with the promo kept under the bar — header at y686.
+       Body shift +623 pulls the block up 80px so the subtitle sits closer to
+       the pills (~41px); cards at y1546 / y2306 / y3063. */
     <JejuPageFrame
       controller={controller}
       title="'제주' 뭐하지 (AI 검색)"
@@ -267,11 +250,9 @@ export function JejuAiResult({ controller }: Props): JSX.Element {
       bannerFallback="banner-detail"
       onBack={() => controller.navigate('ai_search', '뒤로')}
       lowReachModeBar
-      lowReachShift={113}
-      /* 476, not the old 531: the standard cards moved down 55 and the ♿ frame
-         did not — its three cards are still measured at 1399/2159/2916, so the
-         shift absorbs the difference (923 + 476 = 1399). */
-      lowReachBodyShift={476}
+      lowReachBarBanner
+      lowReachShift={686}
+      lowReachBodyShift={623}
     >
       {picks.length > 0 && (
         <div className={`${styles.picks} ${lowReach ? styles.picksLow : ''}`}>

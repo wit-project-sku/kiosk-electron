@@ -39,6 +39,8 @@
   left: 170px;
   top: 3438px;
   width: 1820px;
+  box-sizing: border-box;
+  padding-bottom: 40px;
   display: flex;
   flex-direction: column;
   gap: 50px;

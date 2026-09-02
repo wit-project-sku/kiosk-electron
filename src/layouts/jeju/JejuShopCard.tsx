@@ -123,7 +123,14 @@ export function JejuShopCard({
         </span>
         {compact ? (
           <>
-            {routeSummary ? <p className={styles.route}>{mark(routeSummary)}</p> : null}
+            {routeSummary ? (
+              <>
+                <span className={styles.compactGap} aria-hidden="true" />
+                <p className={styles.route}>{mark(routeSummary)}</p>
+                <span className={styles.compactGap} aria-hidden="true" />
+              </>
+            ) : null}
+            <span className={styles.compactSpacer} aria-hidden="true" />
             {footerSummary ? <p className={styles.footer}>{mark(footerSummary)}</p> : null}
           </>
         ) : (

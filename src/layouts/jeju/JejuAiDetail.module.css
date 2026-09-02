@@ -14,9 +14,8 @@
  * echoing the questionnaire; and the DAY row and list moved down
  * (1300 → 1436, 1423 → 1575).
  *
- * ♿ IS NOT ON THIS REVISION. Its frame (6418:11330) still draws the old stack,
- * so the *Low rules at the foot of this file put those seven rows back rather
- * than guessing where a revised ♿ frame would place them.
+ * ♿ uses the mode-bar revision (bar at y0, header at y113, no banner). The
+ * *Low rules at the foot drop every row by the bar height (113px).
  *
  * The numbered circles at x170 are rows of the list itself rather than discs
  * pinned to the page, so each one always sits beside the card it numbers. It
@@ -249,9 +248,7 @@
    DAY row: 인원 · 기간 · 이동수단 and the picked 즐길 거리, same six values
    JejuAiResult shows one screen earlier. Centred, h120 pills at 45px (the
    course-picker's are h130 at 50px — the two rows are drawn at different
-   sizes, so neither borrows the other's).
-
-   Standard frame only: the ♿ frame (6418:11330) has no such row. */
+   sizes, so neither borrows the other's). */
 .picks {
   position: absolute;
   left: 170px;
@@ -289,21 +286,17 @@
 
 /*
  * ── LOW-REACH (♿) row tops ────────────────────────────────────────────
- * Everything above is the STANDARD frame as re-stacked on 2026-08-26
- * (6516:73138). The ♿ frame (6418:11330) has NOT been revised, so it keeps the
- * geometry it was actually measured against rather than a guess — these seven
- * rules restore it. They must stay after the rules they override: both are
- * single-class selectors, so source order is what decides.
- *
- * The pill row has no ♿ counterpart and simply is not drawn there.
+ * Mode-bar revision (same as JejuDetail · JejuListScreen): the 113px bar at
+ * y0, header at y113, no promo banner — each row drops by the bar height.
  */
-.tagsLow { top: 677px; }
-.descLow { top: 785px; }
-.summaryLow { top: 955px; }
-.dayLow { top: 1160px; }
-.dayArrowLow { top: 1151px; }
+.tagsLow { top: calc(670px + 113px); }
+.descLow { top: calc(786px + 113px); }
+.summaryLow { top: calc(909px + 113px); }
+.picksLow { top: calc(1095px + 113px); }
+.dayLow { top: calc(1296px + 113px); }
+.dayArrowLow { top: calc(1287px + 113px); }
 
 .listLow {
-  top: 1283px;
-  max-height: calc(3840px - 1283px);
+  top: calc(1435px + 113px);
+  max-height: calc(3840px - 1435px - 113px);
 }
