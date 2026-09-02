@@ -39,12 +39,12 @@ import styles from './JejuHello.module.css';
 import tiktokIcon from '@renderer/assets/photos/jeju/hello/tiktok.png';
 import instaIcon from '@renderer/assets/photos/jeju/hello/insta.png';
 import qrHayoung from '@renderer/assets/photos/jeju/hello/qr-hayoung.png';
-import hobbyKpop from '@renderer/assets/photos/jeju/hello/hobby-kpop.jpg';
+import hobbyKpop from '@renderer/assets/photos/jeju/hello/hobby-kpop.png';
 import hobbyRunning from '@renderer/assets/photos/jeju/hello/hobby-running.jpg';
-import hobbyTennis from '@renderer/assets/photos/jeju/hello/hobby-tennis.jpg';
-import healthNeck from '@renderer/assets/photos/jeju/hello/health-neck.jpg';
+import hobbyTennis from '@renderer/assets/photos/jeju/hello/hobby-tennis.png';
+import healthNeck from '@renderer/assets/photos/jeju/hello/health-neck.png';
 import healthWaist from '@renderer/assets/photos/jeju/hello/health-waist.jpg';
-import healthRefresh from '@renderer/assets/photos/jeju/hello/health-refresh.jpg';
+import healthRefresh from '@renderer/assets/photos/jeju/hello/health-refresh.png';
 // 유산's own six topic photos (W008), exported 1:1 with the 842×1509 slot from
 // the frames listed in TOPICS_BY_MASCOT. 하영's are the six above.
 import qrYusan from '@renderer/assets/photos/jeju/hello/qr-yusan.png';

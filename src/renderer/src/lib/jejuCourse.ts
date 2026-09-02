@@ -143,12 +143,20 @@ const DAY_PART: Partial<Record<Lang, (day: number) => string>> = {
   id: (d) => `Hari ${d}`,
 };
 
+function formatDayPart(day: number, lang: Lang): string {
+  const fmt = DAY_PART[lang] ?? DAY_PART.en ?? DAY_PART.ko;
+  return fmt ? fmt(day) : `${day}`;
+}
+
+/** Course display name plus day — e.g. "자연·유산 탐방 코스 - 1일차". */
+export function jejuCourseNameWithDay(name: string, day: number, lang: Lang): string {
+  return `${name} - ${formatDayPart(day, lang)}`;
+}
+
 /** Header subtitle on the course detail and AI spot detail — "A코스 - 1일차". */
 export function jejuCourseDayTitle(letter: string, day: number, lang: Lang): string {
   const rail = pick(COURSE_RAIL[letter] ?? { ko: `${letter}코스` }, lang);
-  const fmt = DAY_PART[lang] ?? DAY_PART.en ?? DAY_PART.ko;
-  const dayPart = fmt ? fmt(day) : `${day}`;
-  return `${rail} - ${dayPart}`;
+  return `${rail} - ${formatDayPart(day, lang)}`;
 }
 
 const ABOUT_PREFIX: Partial<Record<Lang, string>> = {

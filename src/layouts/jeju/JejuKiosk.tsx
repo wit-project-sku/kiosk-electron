@@ -88,10 +88,8 @@ const WEB_SCREENS: readonly WebScreen[] = [
     subtitleStar: false,
   },
   {
-    // 탐나오 (제주공공플랫폼) — the same treatment WIT Store gets: the live site
-    // in a <webview> under 제주's own header/nav/banner. No subtitle is passed:
-    // 탐나오 has no SubHeader_* row in Localization_Jeju, and JejuHeader hides
-    // the row when neither a prop nor the sheet supplies one.
+    // 탐나오 (제주공공플랫폼) — live site in a <webview>. Subtitle from
+    // Localization_Jeju `Tamnao_Subtitle` via TITLE_KEYS (see i18n.ts).
     screen: 'tamnao',
     url: WEB_EMBED_URLS.tamnao,
     title: '탐나오',

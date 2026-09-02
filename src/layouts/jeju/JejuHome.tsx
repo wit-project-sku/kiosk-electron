@@ -162,30 +162,33 @@ const TILE_LABEL_KEYS: Partial<Record<string, string>> = {
 };
 
 /**
- * The descriptive second line under each tile/card title, added to
- * Localization_Jeju as `SubButton_*` on 2026-08-13. Same resolution as the
- * titles: sheet first, authored `sub` as the fallback.
+ * The descriptive second line under each tile/card title — Localization_Jeju
+ * `MainButton_*_Subtext` rows (2026-09). Same resolution as the titles: sheet
+ * first, authored `sub` as the fallback.
  *
  * 제주 is the only layout with two-line home tiles — Insadong/Osan/Hwaseong draw
  * a single label — so this map has no counterpart on the other kiosks.
+ *
+ * `MainButton_ToBuy` is the one sheet key spelled `SubText` (capital T); match it
+ * verbatim.
  */
 const TILE_SUB_KEYS: Partial<Record<string, string>> = {
-  eat: 'SubButton_ToEat',
-  shop: 'SubButton_ToBuy',
-  lodging: 'SubButton_Accommodation',
-  taxfree: 'SubButton_TaxFree',
-  about: 'SubButton_Here',
-  hello: 'SubButton_Greeting',
-  help: 'SubButton_ToHelp',
-  rentcar: 'SubButton_RentCar',
-  cruise: 'SubButton_Cruise',
-  exchange: 'SubButton_Exchange',
-  donation: 'SubButton_Donation',
-  localpay: 'SubButton_LocalCurrency',
-  tamnao: 'SubButton_Tamnao',
-  ai_search: 'SubButton_AI',
-  market: 'SubButton_Goods',
-  events: 'SubButton_Event',
+  eat: 'MainButton_ToEat_Subtext',
+  shop: 'MainButton_ToBuy_SubText',
+  lodging: 'MainButton_Accommodation_Subtext',
+  taxfree: 'MainButton_TaxFree_Subtext',
+  about: 'MainButton_Here_Subtext',
+  hello: 'MainButton_Greeting_Subtext',
+  help: 'MainButton_ToHelp_Subtext',
+  rentcar: 'MainButton_RentCar_Subtext',
+  cruise: 'MainButton_Cruise_Subtext',
+  exchange: 'MainButton_Exchange_Subtext',
+  donation: 'MainButton_Donation_Subtext',
+  localpay: 'MainButton_LocalCurrency_Subtext',
+  tamnao: 'MainButton_Tamnao_Subtext',
+  ai_search: 'MainButton_AI_Subtext',
+  market: 'MainButton_Goods_Subtext',
+  events: 'MainButton_Event_Subtext',
 };
 
 /** A `<b>`-and-newline run, as the sheet's NoticeContent stores it. */
@@ -436,7 +439,7 @@ export function JejuHome({ controller }: Props): JSX.Element {
     if (!key) return authored;
     // `t()` answers the sheet's Korean for a language it has no cell for, and the
     // key itself when the row is gone entirely — the latter is what the fallback
-    // is for. SubButton_Transport is authored blank in the sheet, so guard '' too.
+    // is for. An empty cell in a Subtext row falls back to the authored sub.
     const value = t(key, lang);
     return !value || value === key ? authored : value;
   };

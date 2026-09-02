@@ -291,12 +291,17 @@ const TITLE_KEYS: Record<string, TitleKeySpec> = {
   "안녕 '유산'": { title: 'MainButton_Greeting', sub: 'Greeting_Introduce' },
   "도와줘 ‘유산’": { title: 'MainButton_ToHelp', sub: 'SubHeader_ToHelp' },
   "제주도 이벤트": { title: 'MainButton_Event', sub: 'SubHeader_Event' },
-  "렌트카": { title: 'MainButton_RentCar' },
-  "운항정보": { title: 'MainButton_Cruise' },
-  // NOTE: 검색 is deliberately NOT mapped. The 제주 sheet's only search key is
-  // `Main_Search`, whose value is the home search-bar PLACEHOLDER
-  // ("제주도에 대해 검색해보세요!") — mapping it here would print that whole
-  // sentence as the page title. 검색 resolves through SCREEN_TITLES instead.
+  "렌트카": { title: 'MainButton_RentCar', sub: 'RentCar_Subtitle' },
+  탐나오: { title: 'MainButton_Tamnao', sub: 'Tamnao_Subtitle' },
+  // W006 reads MainButton_Airplane_Schedule, W007 MainButton_Cruise — same header
+  // id (운항정보), different title rows. OP_Schedule_Subtitle is the page copy.
+  "운항정보": {
+    title: ['MainButton_Airplane_Schedule', 'MainButton_Cruise'],
+    sub: 'OP_Schedule_Subtitle',
+  },
+  // Title stays on SCREEN_TITLES — `Main_Search` is the home-bar placeholder, not
+  // this page's name. Search_Result_Subtitle is the header description row.
+  검색: { title: '검색', sub: 'Search_Result_Subtitle' },
 };
 
 /**

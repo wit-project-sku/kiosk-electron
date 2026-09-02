@@ -88,8 +88,6 @@ interface Props {
    */
   gallery?: 'grid' | 'single';
   lang?: Lang;
-  /** 뭐먹지/뭐사지/숙박안내 — card lives in JejuDetail's scroll column. */
-  scrollable?: boolean;
 }
 
 export function JejuSpotDetailCard({
@@ -97,7 +95,6 @@ export function JejuSpotDetailCard({
   top = 700,
   gallery = 'grid',
   lang = 'ko',
-  scrollable = false,
 }: Props): JSX.Element {
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
 
@@ -126,19 +123,31 @@ export function JejuSpotDetailCard({
   const showShuttlePanel = isRentcar && guide?.isShuttle;
   const showFerryPanel = isRentcar && guide?.isFerry && !guide?.isShuttle;
   const showAirportDirections = isRentcar && route && !showFerryPanel;
-  // 뭐먹지/뭐사지/숙박안내 상세 — Figma revision drops the copy + hashtag block.
-  const hideDescTags = item.from === 'eat' || item.from === 'shop' || item.from === 'lodging';
+  // 뭐먹지/뭐사지/숙박안내/AI 코스(ai_detail) — no copy + hashtag block.
+  const hideDescTags =
+    item.from === 'eat' ||
+    item.from === 'shop' ||
+    item.from === 'lodging' ||
+    item.from === 'ai_detail';
   const showShopRoute =
     hideDescTags &&
     route != null &&
     typeof route.distanceKm === 'number' &&
     Number.isFinite(route.distanceKm);
+  const cardFixedScroll =
+    item.from === 'ai_detail' ||
+    item.from === 'eat' ||
+    item.from === 'shop' ||
+    item.from === 'lodging' ||
+    item.from === 'rentcar';
+  const cardFixedScrollTall =
+    item.from === 'eat' || item.from === 'shop' || item.from === 'lodging' || item.from === 'rentcar';
 
   return (
     <>
       <div
-        className={`${styles.card} ${isRentcar ? styles.cardRentcar : ''} ${hideDescTags || isRentcar ? styles.cardAuto : ''} ${scrollable ? styles.cardInScroll : ''}`}
-        style={scrollable ? undefined : { top }}
+        className={`${styles.card} ${isRentcar ? styles.cardRentcar : ''} ${cardFixedScroll ? styles.cardFixedScroll : ''} ${cardFixedScrollTall ? styles.cardFixedScrollTall : ''}`}
+        style={{ top }}
       >
         {/* ── Name + gallery / rentcar route guide ── */}
         <div className={styles.head}>

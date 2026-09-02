@@ -435,13 +435,13 @@ const SHEET_KEYS = {
     note: 'LocalCurrency_desc_7',
   },
   tamna: {
-    introH: 'LocalCurrency_desc_10',
-    introBody: 'LocalCurrency_desc_11',
-    kwonjongH: 'LocalCurrency_desc_12',
-    applyH: 'LocalCurrency_desc_13',
-    applyBody: 'LocalCurrency_desc_14',
-    useH: 'LocalCurrency_desc_15',
-    useBody: 'LocalCurrency_desc_16',
+    introH: 'LocalCurrency_desc_11',
+    introBody: 'LocalCurrency_desc_12',
+    kwonjongH: 'LocalCurrency_desc_13',
+    applyH: 'LocalCurrency_desc_14',
+    applyBody: 'LocalCurrency_desc_15',
+    useH: 'LocalCurrency_desc_16',
+    useBody: 'LocalCurrency_desc_17',
   },
 } as const;
 
@@ -524,10 +524,10 @@ export function JejuLocalpay({ controller }: Props): JSX.Element {
   const lang = useLanguageStore((s) => s.currentLanguage);
   const lowReach = useAccessibilityStore((s) => s.lowReach);
   /**
-   * 온누리상품권 leads the tab row (left); 탐나는전 is second. The row order
+   * 탐나는전 leads the tab row (left); 온누리상품권 is second. The row order
    * below is the drawn order, so the first entry is also the landing tab.
    */
-  const [tab, setTab] = useState<TabId>('onnuri');
+  const [tab, setTab] = useState<TabId>('tamna');
   // `pick` falls back to Korean for the language codes this copy does not carry
   // (zh_cn / zh_tw / es), exactly as every other 제주 screen's label maps do;
   // `withSheet` then lets Localization_Jeju override whatever it has filled.
@@ -567,7 +567,7 @@ export function JejuLocalpay({ controller }: Props): JSX.Element {
       lowReachShift={116}
     >
       <div className={low(styles.tabs, styles.tabsLow)}>
-        {(['onnuri', 'tamna'] as const).map((id) => (
+        {(['tamna', 'onnuri'] as const).map((id) => (
           <button
             key={id}
             type="button"

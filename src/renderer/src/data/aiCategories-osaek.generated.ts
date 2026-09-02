@@ -19,7 +19,7 @@ export const AI_CATEGORIES_OSAEK: LangText[] = [
   {"ko":"수산/건어물","en":"Seafood","ja":"水産/乾物","zh":"水产/干货","vi":"Hải sản/ Khô hải sản","th":"อาหารทะเล","ru":"Морепродукты","id":"Makanan Laut"},
   {"ko":"인삼/약재","en":"Ginseng/Herbs","ja":"高麗人参/薬材","zh":"人参/药材","vi":"Nhân sâm/ Thảo dược","th":"3. โสม/สมุนไพร","ru":"3. Женьшень/Травы","id":"Ginseng/Herbal"},
   {"ko":"기름/방앗간","en":"Oil/Mill","ja":"油/搾油","zh":"油/榨油","vi":"Dầu ăn/ Sản phẩm xay xát","th":"น้ำมัน/โรงสี","ru":"Масло/Мельница","id":"Minyak/Mill"},
-  {"ko":"떡/두부","en":"Rice Cakes/Tofu","ja":"餅/豆腐","zh":"年糕/豆腐","vi":"Bánh giầy/ Đậu phụ","th":"7. ขนมข้าว/เต้าหู้","ru":"7. Рисовые лепешки/Тофу","id":"Kue Beras/Tahu"},
+  {"ko":"떡/두부","en":"Rice Cakes/Tofu","ja":"餅/豆腐","zh":"年糕/豆腐","vi":"Bánh giầy/ Đậu phụ","th":"7. ขนมข้าว/เต้าหู้","ru":"7. Рисовые лепешки/Тофу","id":"Perkedel Beras/Tahu"},
   {"ko":"건강","en":"Health","ja":"健康","zh":"健康","vi":"Sức khỏe","th":"สุขภาพ","ru":"3. Здоровье","id":"Kesehatan"},
   {"ko":"뷰티/미용","en":"Beauty","ja":"美容","zh":"美容","vi":"Làm đẹp/ Mỹ phẩm","th":"ความงาม","ru":"Красота","id":"Kecantikan"},
   {"ko":"의류","en":"Clothing","ja":"衣類","zh":"服装","vi":"Quần áo","th":"เสื้อผ้า","ru":"4. Одежда","id":"Pakaian"},

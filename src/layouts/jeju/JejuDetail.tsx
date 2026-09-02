@@ -131,20 +131,9 @@ export function JejuDetail({ controller }: Props): JSX.Element {
    * The 다음 장소 card under the 상세 plate (6289:58438 → 6516:72906). Only the
    * AI course ever sets `courseNext`, and only when the day has a stop left.
    * Hidden in ♿ — the re-stack would push the follow-on card off the artboard.
-   * 뭐먹지/뭐사지/숙박안내 instead scroll inside `.scroll` / `.scrollLow`.
+   * keeps a max h-2133 card that shrinks when shorter and scrolls inside.
    */
   const next = lowReach ? undefined : item.courseNext;
-  const shopListDetail = item.from === 'eat' || item.from === 'shop' || item.from === 'lodging';
-
-  const detailCard = (
-    <JejuSpotDetailCard
-      item={item}
-      top={chrome.cardTop}
-      gallery={chrome.gallery}
-      lang={lang}
-      scrollable={shopListDetail}
-    />
-  );
 
   return (
     /* This page's ♿ frame (6336:100864, 검색-03) is on the 2026-08-26 mode-bar
@@ -171,11 +160,7 @@ export function JejuDetail({ controller }: Props): JSX.Element {
       lowReachBodyShift={687}
       lowReachBarBanner
     >
-      {shopListDetail ? (
-        <div className={`${styles.scroll} ${lowReach ? styles.scrollLow : ''}`}>{detailCard}</div>
-      ) : (
-        detailCard
-      )}
+      <JejuSpotDetailCard item={item} top={chrome.cardTop} gallery={chrome.gallery} lang={lang} />
 
       {next && (
         <>
