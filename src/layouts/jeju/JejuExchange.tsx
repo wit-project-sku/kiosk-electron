@@ -201,7 +201,7 @@ export function JejuExchange({ controller }: Props): JSX.Element {
 
   /** Opens on 실시간 환율, the left-hand tab — see TABS. */
   const [tab, setTab] = useState<TabId>('live');
-  const [fromUnit, setFromUnit] = useState('JPY(100)');
+  const [fromUnit, setFromUnit] = useState('USD');
   const [toUnit, setToUnit] = useState('KRW');
   const [digits, setDigits] = useState('1000');
   const [picker, setPicker] = useState<Picker>(null);
@@ -316,16 +316,14 @@ export function JejuExchange({ controller }: Props): JSX.Element {
         <>
           <div className={`${styles.basePill} ${lowReach ? styles.basePillLow : ''}`}>
             <span className={styles.basePillLabel}>
-                {exchangeText('Exchange_desc_1', lang, BASE_LABEL)}
-              </span>
+              {exchangeText('Exchange_desc_1', lang, BASE_LABEL)}
+            </span>
             <span className={styles.basePillRate}>
               {oneUnit === undefined
                 ? `1 ${from.ccy} = — ${to.ccy}`
                 : `1 ${from.ccy} = ${formatAmount(oneUnit)} ${to.ccy}`}
             </span>
-            {/* Third line, low-reach only — the standard 212-tall pill has no
-                room for it (see .basePillStamp). */}
-            {lowReach && asOf !== undefined && (
+            {asOf !== undefined && (
               <span className={styles.basePillStamp}>{pick(AS_OF, lang).replace('{t}', asOf)}</span>
             )}
           </div>

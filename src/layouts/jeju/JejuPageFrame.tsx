@@ -154,7 +154,7 @@ export function JejuPageFrame({
       <div className={styles.bgBase} />
       {bg && <img src={bg} alt="" className={styles.bgImage} draggable={false} />}
 
-      {modeBar && <div className={styles.modeBar}>지금은 베리어프리 모드입니다.</div>}
+      {modeBar && <div className={styles.modeBar}>지금은 배리어프리 모드입니다.</div>}
 
       {heroSrc && (
         <div className={styles.hero}>

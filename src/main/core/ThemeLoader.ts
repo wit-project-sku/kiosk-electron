@@ -17,6 +17,7 @@ const THEME_FILES: Record<KioskLayoutId, string> = {
   HWASEONG: 'hwaseong.json',
   JEJU_AIRPORT: 'jeju-airport.json',
   JEJU_HERITAGE: 'jeju-heritage.json',
+  KADA: 'kada.json',
 };
 
 function themesDirectory(): string {
@@ -112,6 +113,20 @@ const FALLBACK_COLORS: Record<KioskLayoutId, KioskTheme['colors']> = {
     textMuted: '#999999',
     accent: '#ff7f0f',
   },
+  // KADA W202 — the only DARK theme in the fleet. `background` is the top of the
+  // Figma page gradient (#102135 → #215252), not white, because every KADA screen
+  // is a dark full-bleed artwork: a white --kiosk-bg would flash between screens
+  // and letterbox the artboard in white on a non-2160×3840 panel.
+  KADA: {
+    primary: '#d2ae4f',
+    primaryHover: '#bf9c42',
+    secondary: '#215252',
+    background: '#102135',
+    surface: '#16293f',
+    text: '#ffffff',
+    textMuted: '#878b91',
+    accent: '#ffa69c',
+  },
 };
 
 function fallbackTheme(layout: KioskLayoutId): KioskTheme {
@@ -122,6 +137,7 @@ function fallbackTheme(layout: KioskLayoutId): KioskTheme {
     HWASEONG: 'hwaseong',
     JEJU_AIRPORT: 'jeju-airport',
     JEJU_HERITAGE: 'jeju-heritage',
+    KADA: 'kada',
   };
   const NAME_MAP: Record<KioskLayoutId, string> = {
     INSADONG: 'Insadong',
@@ -130,6 +146,7 @@ function fallbackTheme(layout: KioskLayoutId): KioskTheme {
     HWASEONG: '화성휴게소',
     JEJU_AIRPORT: '제주공항',
     JEJU_HERITAGE: '세계자연유산본부',
+    KADA: 'Korea-ASEAN Digital Academy',
   };
   const theme: KioskTheme = {
     id: ID_MAP[layout] ?? layout.toLowerCase(),

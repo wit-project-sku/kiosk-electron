@@ -58,10 +58,10 @@ const MORE = {
 const COLUMNS = {
   time: 410,
   airline: 750,
-  destination: 1110,
-  kind: 1370,
-  gate: 1550,
-  status: 1720,
+  destination: 1150,
+  kind: 1410,
+  gate: 1570,
+  status: 1730,
 } as const;
 
 const HEADS: Record<keyof typeof COLUMNS, Partial<Record<Lang, string>>> = {

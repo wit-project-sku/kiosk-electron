@@ -232,9 +232,9 @@
 .prose {
   position: absolute;
   left: 75px;
-  top: 1049px;
+  top: 1000px;
   width: 1669px;
-  height: 872px;
+  height: 1020px;
   overflow-y: auto;
   overflow-x: hidden;
   scrollbar-width: none;

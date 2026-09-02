@@ -200,7 +200,9 @@ export function InsadongHome({ controller }: InsadongHomeProps): JSX.Element {
   const tiles: HomeTile[] = useMemo(
     () => [
       AI_TILE,
-      getKioskLocation(kioskId).secondTile,
+      // Optional since KADA (W202) has no home grid — every INSADONG-family
+      // location still defines it, so this filter never fires here.
+      ...(getKioskLocation(kioskId).secondTile ? [getKioskLocation(kioskId).secondTile as HomeTile] : []),
       ...TILES_BEFORE_SLOT14,
       hasDonation ? DONATION_TILE : MAP_TILE,
       ...TILES_AFTER_SLOT14,
@@ -354,10 +356,11 @@ export function InsadongHome({ controller }: InsadongHomeProps): JSX.Element {
 
         <div className={styles.bottomRow}>
           {bottomBarSrc && <img className={styles.bottomBarBg} src={bottomBarSrc} alt="" draggable={false} />}
-          <button type="button" className={styles.kdramaItem} onClick={() => navigate('kdrama', 'K-DRAMA')}>
+          {/* K-DRAMA 준비중: keeps its full colour, but is not tappable. */}
+          <div className={`${styles.kdramaItem} ${styles.kdramaSoon}`} aria-disabled="true">
             <span className={styles.kdramaIcon}>{iconUrl('kdrama') && <img src={iconUrl('kdrama')} alt="" draggable={false} />}</span>
-            <span className={styles.navLabel}>{pick(KDRAMA_LABEL, lang)}</span>
-          </button>
+            <span className={styles.navLabel}>{withComingSoon(pick(KDRAMA_LABEL, lang), lang)}</span>
+          </div>
           <button type="button" className={styles.cameraBtn} onClick={startPhoto} aria-label="AI 한복 촬영">
             {cameraSrc && <img src={cameraSrc} alt="" draggable={false} />}
           </button>

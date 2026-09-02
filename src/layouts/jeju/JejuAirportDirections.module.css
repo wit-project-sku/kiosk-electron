@@ -1,0 +1,280 @@
+/*
+ * Shared shop 상세 — 제주공항 directions panel (car/bike/walk + bus timeline).
+ *
+ * Outer box spacing lives in JejuSpotDetailCard `.airportDirections`.
+ * Font/spacing tokens below — adjust these to resize the whole block.
+ */
+.wrap {
+  --dir-distance: 62px;
+  --dir-road-note: 34px;
+  --dir-mode: 48px;
+  --dir-mode-icon: 60px;
+  --dir-bus-label: 52px;
+  --dir-bus-time: 62px;
+  --dir-bus-note: 34px;
+  --dir-stop-name: 48px;
+  --dir-stop-dest: 52px;
+  --dir-stop-meta: 40px;
+  --dir-pill: 36px;
+  --dir-foot: 34px;
+
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 44px;
+}
+
+.summary {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.distanceRow {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 24px 40px;
+}
+
+.distance {
+  margin: 0;
+  flex: 0 1 auto;
+  font-size: var(--dir-distance);
+  font-weight: 700;
+  line-height: 1.2;
+  color: #333;
+}
+
+.distanceKm {
+  font-weight: 700;
+}
+
+.roadNote {
+  margin: 0;
+  flex: 0 1 auto;
+  font-size: var(--dir-road-note);
+  font-weight: 400;
+  line-height: 1.2;
+  color: #999;
+}
+
+.modes {
+  display: flex;
+  flex-direction: column;
+  gap: 40px;
+  padding-top: 32px;
+}
+
+.modeRow {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+}
+
+.modeLead {
+  display: inline-flex;
+  align-items: center;
+  gap: 20px;
+  flex: 0 0 calc(var(--dir-mode-icon) + 20px + 24ch);
+  width: calc(var(--dir-mode-icon) + 20px + 24ch);
+  box-sizing: border-box;
+}
+
+.modeLabel {
+  font-size: var(--dir-mode);
+  font-weight: 600;
+  line-height: 1;
+  color: #333;
+  white-space: nowrap;
+}
+
+.modeIcon {
+  font-size: var(--dir-mode-icon);
+  line-height: 1;
+}
+
+.modeTime {
+  font-size: var(--dir-mode);
+  font-weight: 600;
+  line-height: 1;
+  color: #333;
+  white-space: nowrap;
+}
+
+/* ── Bus card ── */
+.busCard {
+  box-sizing: border-box;
+  width: 100%;
+  padding: 55px 60px 50px;
+  border-radius: 45px;
+  background: #fff5eb;
+  display: flex;
+  flex-direction: column;
+  gap: 44px;
+}
+
+.busHead {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 12px 120px;
+}
+
+.busHeadMeta {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 32px;
+}
+
+.busHeadLeft {
+  display: inline-flex;
+  align-items: center;
+  gap: 16px;
+  font-size: var(--dir-bus-label);
+  font-weight: 700;
+  line-height: 1;
+  color: #333;
+}
+
+.busHeadLeft .modeIcon {
+  font-size: var(--dir-mode-icon);
+}
+
+.busHeadTime {
+  font-size: var(--dir-bus-time);
+  font-weight: 700;
+  line-height: 1;
+  color: var(--kiosk-primary, #ff7f0f);
+}
+
+.busHeadNote {
+  font-size: var(--dir-bus-note);
+  font-weight: 400;
+  line-height: 1.2;
+  color: #999;
+}
+
+/* ── Timeline ── */
+.timeline {
+  display: flex;
+  flex-direction: column;
+  padding-top: 32px;
+}
+
+.stop {
+  display: flex;
+  align-items: stretch;
+  gap: 32px;
+  min-height: 0;
+}
+
+.rail {
+  flex: 0 0 auto;
+  width: 36px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  position: relative;
+}
+
+.dot {
+  flex: 0 0 auto;
+  width: 40px;
+  height: 40px;
+  margin-top: 12px;
+  border-radius: 50%;
+  background: var(--kiosk-primary, #ff7f0f);
+}
+
+.dotHollow {
+  width: 40px;
+  height: 40px;
+  margin-top: 12px;
+  box-sizing: border-box;
+  background: #fff5eb;
+  border: 5px solid var(--kiosk-primary, #ff7f0f);
+}
+
+.stop:not(.stopLast) .rail::after {
+  content: '';
+  flex: 1 1 auto;
+  width: 4px;
+  min-height: 28px;
+  margin-top: 10px;
+  border-radius: 2px;
+  background: #ddd;
+}
+
+.stopDashed:not(.stopLast) .rail::after {
+  width: 0;
+  background: none;
+  border-left: 4px dashed #bbb;
+  border-radius: 0;
+}
+
+.stopBody {
+  flex: 1 1 auto;
+  min-width: 0;
+  padding-bottom: 36px;
+}
+
+.stopLast .stopBody {
+  padding-bottom: 0;
+}
+
+.stopTop {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 20px;
+}
+
+.stopName {
+  margin: 0;
+  flex: 1 1 auto;
+  min-width: 0;
+  font-size: var(--dir-stop-name);
+  font-weight: 700;
+  line-height: 1.25;
+  color: #333;
+}
+
+.stopNameDest {
+  font-size: var(--dir-stop-dest);
+  font-weight: 700;
+  color: var(--kiosk-primary, #ff7f0f);
+}
+
+.stopMeta {
+  margin: 14px 0 0;
+  font-size: var(--dir-stop-meta);
+  font-weight: 400;
+  line-height: 1.2;
+  color: #999;
+}
+
+.pill {
+  flex: 0 0 auto;
+  box-sizing: border-box;
+  padding: 18px 28px;
+  border-radius: 60px;
+  background: var(--kiosk-primary, #ff7f0f);
+  font-size: var(--dir-pill);
+  font-weight: 600;
+  line-height: 1;
+  color: #fff;
+  white-space: nowrap;
+}
+
+.pillDark {
+  background: #333;
+}
+
+.busFoot {
+  margin: 0;
+  font-size: var(--dir-foot);
+  font-weight: 400;
+  line-height: 1.35;
+  color: #999;
+}

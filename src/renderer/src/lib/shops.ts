@@ -1,5 +1,6 @@
 import type { Lang } from '@renderer/lib/i18n';
-import type { Shop } from '@shared/types/shop';
+import { pick } from '@renderer/lib/i18n';
+import type { Shop, ShopBusStop, ShopRoute, ShopTransitLeg } from '@shared/types/shop';
 
 type Suffix = 'Kr' | 'En' | 'Jp' | 'Ch' | 'Vn' | 'Id' | 'Th' | 'Ru';
 // All 8 UI languages map to their shop-field suffix. The witteria shops API
@@ -32,6 +33,189 @@ const field = (s: Shop, base: string, lang: Lang, fallback: string): string =>
 export const shopName = (s: Shop, lang: Lang): string => field(s, 'shopName', lang, s.shopNameKr);
 export const shopAddress = (s: Shop, lang: Lang): string => field(s, 'address', lang, s.addressKr);
 export const shopHashtag = (s: Shop, lang: Lang): string => field(s, 'hashTag', lang, s.hashTagKr);
+
+/** True when the shop's Korean hashtag line includes `#tag` (with or without `#`). */
+export function shopHasHashtag(s: Shop, tag: string): boolean {
+  const bare = tag.replace(/^#+/, '');
+  return (s.hashTagKr ?? '')
+    .split(/\s+/)
+    .filter(Boolean)
+    .some((token) => token.replace(/^#+/, '') === bare);
+}
+
+/** Normalized witteria rentcar `route.guideType` (`SHUTTLE`, `ROAD`, `FERRY`, …). */
+export function shopRentcarGuideType(shop: Shop): string | null {
+  const guideType = shop.route?.guideType;
+  if (typeof guideType !== 'string' || !guideType.trim()) return null;
+  return guideType.trim().toUpperCase();
+}
+
+/** `route.guideType === SHUTTLE` — airport shuttle available. */
+export function shopHasRentcarShuttle(shop: Shop): boolean {
+  return shopRentcarGuideType(shop) === 'SHUTTLE';
+}
+
+/** `route.guideType === ROAD` — no airport shuttle (self-drive from the kiosk). */
+export function shopHasRentcarRoad(shop: Shop): boolean {
+  return shopRentcarGuideType(shop) === 'ROAD';
+}
+
+/** Non-shuttle rentcar rows — `ROAD` plus ferry-access `FERRY` (셔틀 없음 filter). */
+export function shopHasRentcarNoShuttle(shop: Shop): boolean {
+  const guideType = shopRentcarGuideType(shop);
+  return guideType === 'ROAD' || guideType === 'FERRY';
+}
+
+/** True when the shop's Korean address mentions 우도 (ferry-access rentcar). */
+export function shopHasUdoAddress(s: Shop): boolean {
+  return (s.addressKr ?? '').includes('우도');
+}
+
+/** Ferry-access rentcar (`FERRY` guide or 우도 address). */
+export function shopHasRentcarFerry(shop: Shop): boolean {
+  return shopRentcarGuideType(shop) === 'FERRY' || shopHasUdoAddress(shop);
+}
+
+const RENTCAR_GUIDE_SHUTTLE = {
+  ko: '공항 셔틀 이용', en: 'Airport shuttle', ja: '空港シャトル利用', zh: '机场班车',
+  vi: 'Xe đưa sân bay', th: 'รถรับส่งสนามบิน', ru: 'Аэропортный шаттл', id: 'Antar-jemput bandara',
+};
+
+const RENTCAR_GUIDE_WALK = {
+  ko: '도보 이용', en: 'On foot', ja: '徒歩', zh: '步行',
+  vi: 'Đi bộ', th: 'เดิน', ru: 'Пешком', id: 'Jalan kaki',
+};
+
+const RENTCAR_GUIDE_FERRY = {
+  ko: '배편 이용', en: 'Ferry access', ja: 'フェリー利用', zh: '渡轮',
+  vi: 'Đi phà', th: 'เรือข้ามฟาก', ru: 'На пароме', id: 'Akses feri',
+};
+
+/** Rentcar detail route line — how to reach the shop from the kiosk. */
+export function shopRentcarGuideModeLabel(shop: Shop, lang: Lang): string {
+  if (shopHasRentcarShuttle(shop)) return pick(RENTCAR_GUIDE_SHUTTLE, lang);
+  if (shopHasRentcarFerry(shop)) return pick(RENTCAR_GUIDE_FERRY, lang);
+  if (shopHasRentcarRoad(shop)) return pick(RENTCAR_GUIDE_WALK, lang);
+  return pick(RENTCAR_GUIDE_WALK, lang);
+}
+
+export function shopRentcarGuideDistanceKm(shop: Shop): number | null {
+  const km = shop.route?.distanceKm;
+  return typeof km === 'number' && Number.isFinite(km) ? km : null;
+}
+
+type StopLangSuffix = 'Kr' | 'En' | 'Jp' | 'Ch';
+
+/** Rentcar route/transit API ships Kr · En · Jp · Ch only — other UI langs → En. */
+const RENTCAR_API_LANG: Record<string, StopLangSuffix> = {
+  ko: 'Kr',
+  en: 'En',
+  ja: 'Jp',
+  zh: 'Ch',
+  zh_cn: 'Ch',
+  zh_tw: 'Ch',
+};
+
+function rentcarApiSuffix(lang: Lang): StopLangSuffix {
+  return RENTCAR_API_LANG[lang] ?? 'En';
+}
+
+function rentcarShopField(s: Shop, base: string, lang: Lang): string {
+  const suffix = rentcarApiSuffix(lang);
+  const primary = s[`${base}${suffix}` as keyof Shop] as string | null | undefined;
+  if (typeof primary === 'string' && primary.trim()) return primary;
+  const en = s[`${base}En` as keyof Shop] as string | null | undefined;
+  if (typeof en === 'string' && en.trim()) return en;
+  const kr = s[`${base}Kr` as keyof Shop] as string | null | undefined;
+  return typeof kr === 'string' ? kr : '';
+}
+
+/** Rentcar shop name — API has Kr/En/Jp/Ch; vi/th/ru/id/… fall back to En. */
+export const shopRentcarName = (s: Shop, lang: Lang): string => rentcarShopField(s, 'shopName', lang);
+
+export const shopRentcarAddress = (s: Shop, lang: Lang): string => rentcarShopField(s, 'address', lang);
+
+export const shopRentcarSecondCategory = (s: Shop, lang: Lang): string =>
+  stripPrefix(rentcarShopField(s, 'secondCategory', lang) || (s.secondCategoryKr ?? ''));
+
+function rentcarNamedField(
+  record: Record<string, unknown>,
+  prefix: string,
+  krKey: string,
+  lang: Lang,
+): string {
+  const suffix = rentcarApiSuffix(lang);
+  const primary = record[`${prefix}${suffix}`];
+  if (typeof primary === 'string' && primary.trim()) return primary;
+  const en = record[`${prefix}En`];
+  if (typeof en === 'string' && en.trim()) return en;
+  const kr = record[krKey];
+  return typeof kr === 'string' ? kr : '';
+}
+
+/** Localized transit-leg boarding stop — En fallback for unsupported UI langs. */
+export function shopTransitLegBoardStop(leg: ShopTransitLeg, lang: Lang): string {
+  return rentcarNamedField(leg as unknown as Record<string, unknown>, 'boardStopName', 'boardStopNameKr', lang);
+}
+
+/** Localized alighting bus stop — En fallback for unsupported UI langs. */
+export function shopBusStopName(stop: ShopBusStop, lang: Lang): string {
+  return rentcarNamedField(stop as unknown as Record<string, unknown>, 'name', 'nameKr', lang);
+}
+
+/** Minutes for the bike row when `bikeable` — API field first, else distance estimate. */
+export function shopRentcarBikeMin(route: ShopRoute): number | null {
+  if (!route.bikeable) return null;
+  if (typeof route.bikeMin === 'number' && Number.isFinite(route.bikeMin)) return route.bikeMin;
+  const km = route.distanceKm;
+  if (typeof km !== 'number' || !Number.isFinite(km)) return null;
+  return Math.max(1, Math.round((km / 15) * 60));
+}
+
+/** Minutes for the walk row when `walkable` — API field first, else distance estimate. */
+export function shopRentcarWalkMin(route: ShopRoute): number | null {
+  if (!route.walkable) return null;
+  if (typeof route.walkMin === 'number' && Number.isFinite(route.walkMin)) return route.walkMin;
+  const km = route.distanceKm;
+  if (typeof km !== 'number' || !Number.isFinite(km)) return null;
+  return Math.max(1, Math.round((km / 5) * 60));
+}
+
+/**
+ * Rentcar list line from `route` + `tel`.
+ * e.g. `5.5 km ・ 차로 15분 ・ 064-751-8000`
+ */
+export function shopRentcarRouteSummary(s: Shop, lang: Lang): string {
+  const parts: string[] = [];
+  const route = s.route;
+  if (route) {
+    const { distanceKm, durationMin } = route;
+    if (typeof distanceKm === 'number' && Number.isFinite(distanceKm)) {
+      parts.push(`${distanceKm.toFixed(1)} km`);
+    }
+    if (typeof durationMin === 'number' && Number.isFinite(durationMin)) {
+      const drive = DRIVE_DURATION[lang]?.(durationMin) ?? DRIVE_DURATION.ko(durationMin);
+      parts.push(drive);
+    }
+  }
+  const tel = s.tel?.trim();
+  if (tel) parts.push(tel);
+  return parts.join(' ・ ');
+}
+
+const DRIVE_DURATION: Record<Lang, (min: number) => string> = {
+  ko: (min) => `차로 ${min}분`,
+  en: (min) => `${min} min by car`,
+  ja: (min) => `車で${min}分`,
+  zh: (min) => `驾车 ${min} 分钟`,
+  zh_cn: (min) => `驾车 ${min} 分钟`,
+  zh_tw: (min) => `駕車 ${min} 分鐘`,
+  vi: (min) => `${min} phút lái xe`,
+  th: (min) => `ขับรถ ${min} นาที`,
+  ru: (min) => `${min} мин на машине`,
+  id: (min) => `${min} menit berkendara`,
+  es: (min) => `${min} min en coche`,
+};
 export const shopDescription = (s: Shop, lang: Lang): string => field(s, 'description', lang, s.descriptionKr);
 export const shopSecondCategory = (s: Shop, lang: Lang): string =>
   stripPrefix(field(s, 'secondCategory', lang, s.secondCategoryKr ?? ''));
@@ -51,15 +235,25 @@ export const shopCategoryLabel = (s: Shop, lang: Lang): string =>
  * Free-text search across name/tag/description (live + KR), ranked by where the
  * match lands: title first, then hashtag, then description/category/address.
  */
-export function searchShops(shops: Shop[], query: string, lang: Lang, limit = 60): Shop[] {
+export function searchShops(
+  shops: Shop[],
+  query: string,
+  lang: Lang,
+  limit = 60,
+  opts?: { rentcar?: boolean },
+): Shop[] {
   const q = query.trim().toLowerCase();
   if (!q) return [];
 
   const scored: Array<{ shop: Shop; rank: number }> = [];
   for (const s of shops) {
-    const title = `${shopName(s, lang)} ${s.shopNameKr}`.toLowerCase();
+    const title = opts?.rentcar
+      ? `${shopRentcarName(s, lang)} ${s.shopNameKr ?? ''} ${s.shopNameEn ?? ''}`.toLowerCase()
+      : `${shopName(s, lang)} ${s.shopNameKr}`.toLowerCase();
     const tag = `${shopHashtag(s, lang)} ${s.hashTagKr}`.toLowerCase();
-    const rest = `${shopDescription(s, lang)} ${shopSecondCategory(s, lang)} ${shopAddress(s, lang)} ${s.addressKr}`.toLowerCase();
+    const rest = opts?.rentcar
+      ? `${shopRentcarAddress(s, lang)} ${s.addressKr ?? ''} ${s.addressEn ?? ''}`.toLowerCase()
+      : `${shopDescription(s, lang)} ${shopSecondCategory(s, lang)} ${shopAddress(s, lang)} ${s.addressKr}`.toLowerCase();
 
     // 1 = title, 2 = tag, 3 = description/other; lower is better.
     const rank = title.includes(q) ? 1 : tag.includes(q) ? 2 : rest.includes(q) ? 3 : 0;

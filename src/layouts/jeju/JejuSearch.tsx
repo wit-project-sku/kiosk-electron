@@ -17,6 +17,7 @@ import { useSearchStore } from '@renderer/store/searchStore';
 import { useDetailStore } from '@renderer/store/detailStore';
 import { useShopStore } from '@renderer/store/shopStore';
 import { pick } from '@renderer/lib/i18n';
+import { ui } from '@renderer/lib/uiText';
 import {
   searchShops,
   shopAddress,
@@ -133,7 +134,16 @@ export function JejuSearch({ controller }: Props): JSX.Element {
        NOTHING moves — header, search row, list and scroll discs all repeat
        their standard positions (measured on the 1:1 render; the frame's
        staggered scroll-disc group coords are paste slop). */
-    <JejuPageFrame controller={controller} title="검색" showBanner={false} lowReachModeBar>
+    <JejuPageFrame
+      controller={controller}
+      title="검색"
+      /* Passed as a prop, not mapped in i18n: 검색 is Insadong's, 오산's and
+         화성's header id too, and those three draw no description row at all —
+         a shared mapping would give all of them one. See EXTRA_SUBTITLE_KEYS. */
+      subtitle={ui('searchSubtitle', lang)}
+      showBanner={false}
+      lowReachModeBar
+    >
       <div className={styles.scroll} ref={scrollRef}>
         <div className={styles.searchRow}>
           <div className={styles.searchField} role="button" onClick={() => setFocused(true)}>

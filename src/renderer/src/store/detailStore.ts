@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import type { KioskScreenId } from '@shared/types/kiosk';
+import type { ShopRoute } from '@shared/types/shop';
 
 /**
  * The stop AFTER the one being shown, when the detail was opened from an AI
@@ -40,6 +41,18 @@ export interface DetailItem {
   palaceIndex?: number;
   /** AI course only — the next stop of the same day. See CourseNextSpot. */
   courseNext?: CourseNextSpot;
+  /** Rentcar detail — replaces the photo gallery with the route guide panel. */
+  rentcarGuide?: {
+    /** e.g. 공항 셔틀 이용 / 도보 이용 / 배편 이용 */
+    modeLabel: string;
+    distanceKm: number | null;
+    /** When true, shows the airport-shuttle footnote under the mode row. */
+    isShuttle?: boolean;
+    /** When true, shows the ferry-only how-to row (no distance / directions). */
+    isFerry?: boolean;
+  };
+  /** Full witteria `route` — drives the airport directions panel on rentcar 상세. */
+  rentcarRoute?: ShopRoute | null;
 }
 
 interface DetailState {

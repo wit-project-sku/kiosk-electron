@@ -65,7 +65,7 @@ const RELATIVE_DAYS: Record<'today' | 'tomorrow', Partial<Record<Lang, string>>>
     vi: 'Hôm nay', th: 'วันนี้', ru: 'Сегодня', id: 'Hari ini',
   },
   tomorrow: {
-    ko: '내일', en: 'Tom.', ja: '明日', zh: '明天',
+    ko: '내일', en: 'Tmr', ja: '明日', zh: '明天',
     vi: 'Mai', th: 'พรุ่งนี้', ru: 'Завтра', id: 'Besok',
   },
 };

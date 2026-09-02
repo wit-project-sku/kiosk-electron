@@ -8,7 +8,8 @@ import type { LangText } from './types';
  *  LocalizationSyncParser.VENUE_MASCOTS. */
 export const LOCALIZATION_JEJU_HERITAGE_OVERRIDES: Record<string, LangText> = {
   "MainButton_Greeting": {"ko":"안녕 '유산'","en":"Hello 'YUSAN'","ja":"こんにちは 'YUSAN'","zh":"你好 'YUSAN'","vi":"Chào 'YUSAN'","th":"สวัสดี 'YUSAN'","ru":"Привет, 'YUSAN'","id":"Halo 'YUSAN'"},
-  "MainButton_ToHelp": {"ko":"도와줘'유산'","en":"Help","ja":"ヘルプとサービスです","zh":"请帮忙","vi":"Giúp với 'YUSAN'","th":"ช่วยด้วย 'YUSAN'","ru":"Помощь","id":"Tolong 'YUSAN'"},
+  "MainButton_Greeting_Subtext": {"ko":"유산 소개","en":"Introduction to YUSAN","ja":"YUSANの紹介","zh":"YUSAN介绍","vi":"Giới thiệu về YUSAN","th":"แนะนำ YUSAN","ru":"Знакомство с YUSAN","id":"Pengenalan YUSAN"},
+  "MainButton_ToHelp": {"ko":"도와줘 '유산'","en":"Help","ja":"ヘルプとサービスです","zh":"请帮忙","vi":"Giúp với 'YUSAN'","th":"ช่วยด้วย 'YUSAN'","ru":"Помощь","id":"Tolong 'YUSAN'"},
   "Greeting_Introduce": {"ko":"* 안녕하세요! 마스코트 '유산'를 소개할게요!","en":"Hello! Let me introduce our mascot, 'Yusan'!","ja":"*こんにちは！マスコット「ハヨン」を紹介します！","zh":"大家好！让我来介绍一下我们的吉祥物“夏英”！","vi":"Xin chào! Cho phép tôi giới thiệu linh vật của chúng ta, 'Yusan'!","th":"สวัสดี! ขอแนะนำมาสคอตของเรา 'ฮายอง' ค่ะ!","ru":"Здравствуйте! Позвольте представить вам нашего талисмана, Хаён!","id":"Halo! Izinkan saya memperkenalkan maskot kami, 'Yusan'!"},
   "Greeting_Category1": {"ko":"유산' 소개","en":"Yusan's Introduction","ja":"ハヨンの紹介","zh":"夏荣的介绍","vi":"Lời giới thiệu của Yusan","th":"การแนะนำตัวของฮายอง","ru":"Вступление Хаён","id":"Perkenalan Yusan"},
   "Greeting_Category2": {"ko":"유산' 취미생활","en":"Yusan's hobbies","ja":"ハヨン「趣味生活」","zh":"Yusan的爱好","vi":"Sở thích của Yusan","th":"งานอดิเรกของฮายอง","ru":"Хобби Хаён","id":"Hobi Yusan"},

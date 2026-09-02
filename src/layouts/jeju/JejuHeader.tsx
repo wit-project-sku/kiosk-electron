@@ -8,7 +8,8 @@
 import { useMemo } from 'react';
 import type { KioskController } from '@renderer/hooks/useKioskController';
 import { jejuIconUrl } from '@renderer/assets/icons/jeju';
-import { screenSubtitle, screenTitle, useLang } from '@renderer/lib/i18n';
+import { screenSubtitle, screenTitle, useLang, type Lang } from '@renderer/lib/i18n';
+import { ui } from '@renderer/lib/uiText';
 import styles from './JejuHeader.module.css';
 
 const DAY_NAMES = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
@@ -21,16 +22,24 @@ function formatDate(d: Date): string {
 }
 
 /**
- * Shown when a page has no description of its own — the literal string the
- * Figma frames draw in this slot.
+ * Shown when a page has no description of its own.
  *
- * Deliberately NOT localized and deliberately not hidden: every 제주 frame
- * reserves this row, so an empty one leaves the header looking short and
- * unfinished, and the visible placeholder is also what makes a missing sheet
- * row obvious on the device. Pages resolve past it as soon as they have copy —
- * an explicit `subtitle` prop, or a SubHeader_* row for their title id.
+ * Still deliberately not hidden: every 제주 frame reserves this row, so an empty
+ * one leaves the header looking short and unfinished. Pages resolve past it as
+ * soon as they have copy — an explicit `subtitle` prop, a SubHeader_ or
+ * _Subtitle row for their title id, or an EXTRA_SUBTITLE_KEYS entry.
+ *
+ * ★ This USED to be the Figma's literal 페이지 설명문, unlocalized, on the
+ * argument that a visible placeholder makes a missing sheet row obvious on the
+ * device. It did — 렌트카, 운항정보, 상세 and 탐나오 all shipped showing it, and
+ * every one of them turned out to HAVE a sheet row that was simply never mapped
+ * (see i18n's TITLE_KEYS). Those four are wired now, and a visitor should not be
+ * reading a designer's placeholder in any case, so this is a real sentence in
+ * all eight languages. The trade is deliberate and worth naming: a future
+ * unmapped page will now look finished rather than broken, so a new 제주 page
+ * needs its `sub` checked at review rather than spotted on the panel.
  */
-const SUBTITLE_FALLBACK = '페이지 설명문';
+const subtitleFallback = (lang: Lang): string => ui('pageSubtitleFallback', lang);
 
 /** Drop a leading "* " marker the sheet prefixes most descriptions with. */
 const stripStar = (s: string): string => s.replace(/^\s*\*\s*/, '');
@@ -42,7 +51,7 @@ interface Props {
   title: string;
   /**
    * Subtitle under the title row. Explicit prop wins, else the sheet's subtitle
-   * for this title id, else the Figma's own placeholder — see SUBTITLE_FALLBACK.
+   * for this title id, else the generic line — see {@link subtitleFallback}.
    */
   subtitle?: string;
   /** Override the home-button action (e.g. the shared photo workflow). */
@@ -88,7 +97,7 @@ export function JejuHeader({
   // unknown ids fall through unchanged (which is every id until the sheet lands).
   const localizedTitle = screenTitle(title, lang);
   // `||`, not `??`: a sheet row that exists with an EMPTY cell resolves to '',
-  // which is just as missing as undefined and should show the placeholder too.
+  // which is just as missing as undefined and should fall through too.
   //
   // The leading "*" is stripped because this row already DRAWS a star (the
   // Figma star.svg beside the text). Most SubHeader_* cells are authored with a
@@ -96,7 +105,7 @@ export function JejuHeader({
   // rendered as two stars side by side. Stripping here rather than editing the
   // sheet keeps the cells usable by anything that has no star of its own, and
   // is the same `clean()` treatment JejuLanguage already applies to its labels.
-  const resolvedSubtitle = stripStar(subtitle || screenSubtitle(title, lang) || SUBTITLE_FALLBACK);
+  const resolvedSubtitle = stripStar(subtitle || screenSubtitle(title, lang) || subtitleFallback(lang));
 
   const goHome = onHome ?? ((): void => controller?.navigate('home', '홈'));
   const goBack = onBack ?? goHome;

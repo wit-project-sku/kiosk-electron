@@ -9,12 +9,8 @@
  * Split into buttons so each is a touch target; the 60/60 padding + 60/90
  * separator margins reproduce the run's own 120-before / 150-after gaps.
  *
- * The idle ink is #999 on all three of those, but 여객터미널's 운항정보
- * (6420:23807, 국제항 ㅣ 연안항) draws it in #1a1a1a. Callers override it with
- * `--jeju-subtab-idle` on the row rather than by reaching into `.item` from
- * another module — an equal-specificity cross-file override whose winner depends
- * on bundler stylesheet order, which is the trap `.tabsLow.tabsLow` exists for
- * in JejuAbout.
+ * The idle ink is gray-07 (#1a1a1a) on the current frames; older exports used
+ * #999. Callers can still override with `--jeju-subtab-idle` on the row.
  */
 .row {
   position: absolute;
@@ -25,6 +21,8 @@
   display: flex;
   align-items: center;
   justify-content: center;
+  font-family: Pretendard, 'Noto Sans KR', sans-serif;
+  font-style: normal;
 }
 
 .item {
@@ -32,17 +30,24 @@
   padding: 0 60px;
   border: none;
   background: none;
+  font-family: inherit;
   font-size: 60px;
+  font-style: normal;
   font-weight: 600;
-  line-height: 1;
-  color: var(--jeju-subtab-idle, #999);
+  line-height: normal;
+  color: var(--jeju-subtab-idle, #1a1a1a);
   white-space: nowrap;
   cursor: pointer;
   -webkit-tap-highlight-color: transparent;
 }
 
 .itemActive {
+  font-family: inherit;
+  font-size: 60px;
+  font-style: normal;
   font-weight: 900;
+  line-height: normal;
+  text-align: center;
   color: var(--kiosk-primary, #ff7f0f);
 }
 
@@ -57,10 +62,12 @@
  */
 .sep {
   margin: 0 var(--jeju-subtab-sep-after, 90px) 0 var(--jeju-subtab-sep-before, 60px);
+  font-family: inherit;
   font-size: 60px;
+  font-style: normal;
   font-weight: 600;
-  line-height: 1;
-  color: var(--jeju-subtab-idle, #999);
+  line-height: normal;
+  color: var(--jeju-subtab-idle, #1a1a1a);
 }
 
 .compact {

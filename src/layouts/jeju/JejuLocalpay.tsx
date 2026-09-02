@@ -40,6 +40,20 @@ import tamnaIos from '@renderer/assets/photos/jeju/localpay/tamna-ios.png';
 
 type TabId = 'onnuri' | 'tamna';
 
+/**
+ * 탐나는전 card — block positions (card-relative px).
+ * English keeps the tuned layout; other languages use separate tops.
+ */
+const TAMNA_BLOCK_TOP = {
+  en: { head: 40, kwonjong: 760, apply: 1390, useRow: 1970 },
+  locale: { head: 100, kwonjong: 630, apply: 1380, useRow: 1900 },
+} as const;
+
+type TamnaBlockTop = { head: number; kwonjong: number; apply: number; useRow: number };
+
+const tamnaBlockTop = (lang: Lang): TamnaBlockTop =>
+  lang === 'en' ? TAMNA_BLOCK_TOP.en : TAMNA_BLOCK_TOP.locale;
+
 interface Content {
   tabs: Record<TabId, string>;
   onnuri: {
@@ -419,17 +433,64 @@ const SHEET_KEYS = {
     usageH: 'LocalCurrency_desc_8',
     usageBody: 'LocalCurrency_desc_9',
     note: 'LocalCurrency_desc_7',
+    bullets: 'LocalCurrency_desc_10',
   },
   tamna: {
-    introH: 'LocalCurrency_desc_10',
-    introBody: 'LocalCurrency_desc_11',
-    kwonjongH: 'LocalCurrency_desc_12',
-    applyH: 'LocalCurrency_desc_13',
-    applyBody: 'LocalCurrency_desc_14',
-    useH: 'LocalCurrency_desc_15',
-    useBody: 'LocalCurrency_desc_16',
+    introH: 'LocalCurrency_desc_11',
+    introBody: 'LocalCurrency_desc_12',
+    kwonjongH: 'LocalCurrency_desc_13',
+    applyH: 'LocalCurrency_desc_14',
+    applyBody: 'LocalCurrency_desc_15',
+    useH: 'LocalCurrency_desc_16',
+    useBody: 'LocalCurrency_desc_17',
   },
 } as const;
+
+/**
+ * Rows whose Korean is this page's, but whose OTHER seven columns still hold
+ * copy from a different screen — desc_10 answers "Search for the name of the
+ * company you booked", desc_11 "All", desc_12 "Desk inside the airport",
+ * desc_13 "Airport Shuttle", desc_14 "No shuttle". Re-read against the live
+ * Localization_Jeju tab on 2026-09-02; the generated table matches it, so this
+ * is the SHEET's own state, not a stale sync.
+ *
+ * {@link sheetText} takes any non-empty cell for the visitor's language, so
+ * without this set an English visitor on 탐나는전 reads those strings verbatim.
+ * Korean still follows the sheet; the other seven languages fall back to the
+ * authored translation in {@link CONTENT}. DELETE a key from here as soon as its
+ * language columns are refilled — while it is listed the sheet cannot drive that
+ * row's translations.
+ */
+const KO_ONLY_ROWS = new Set<string>([
+  'LocalCurrency_desc_10',
+  'LocalCurrency_desc_11',
+  'LocalCurrency_desc_12',
+  'LocalCurrency_desc_13',
+  'LocalCurrency_desc_14',
+]);
+
+/**
+ * Split the sheet's bullet cell into the frame's four lines.
+ *
+ * desc_10 stores all four benefits in ONE cell: every line is prefixed "・ " and
+ * the separator is a literal backslash-n the author typed, FOLLOWED by a real
+ * newline. The list renderer draws its own "·" marker, so both the marker and
+ * separator come off here. A cell that does not yield exactly four lines is
+ * ignored and the authored four stand — the card's height is fixed and the
+ * .bullets block already overflows it (see the KNOWN note in the CSS).
+ */
+function sheetBullets(
+  cell: string,
+  authored: Content['onnuri']['bullets'],
+): Content['onnuri']['bullets'] {
+  const lines = cell
+    .split(/\\n|\n/)
+    .map((line) => line.replace(/^\s*[・·•*]\s*/, '').trim())
+    .filter(Boolean);
+  return lines.length === authored.length
+    ? (lines as unknown as Content['onnuri']['bullets'])
+    : authored;
+}
 
 /**
  * Re-split a sheet heading into the frame's [orange, black] pair.
@@ -466,7 +527,9 @@ function withSheet(c: Content, lang: Lang): Content {
    * entirely — returns copy rather than ''.
    */
   const s = (key: string, fallback: string): string =>
-    sheetText(key, lang, { ko: fallback, [lang]: fallback });
+    KO_ONLY_ROWS.has(key) && lang !== 'ko'
+      ? fallback
+      : sheetText(key, lang, { ko: fallback, [lang]: fallback });
   const k = SHEET_KEYS;
   const digital = k.onnuri.digitalBody
     .map((key, i) => s(key, c.onnuri.digitalBody.split('\n')[i] ?? ''))
@@ -488,6 +551,7 @@ function withSheet(c: Content, lang: Lang): Content {
       usageH: s(k.onnuri.usageH, c.onnuri.usageH),
       usageBody: s(k.onnuri.usageBody, c.onnuri.usageBody),
       note: s(k.onnuri.note, c.onnuri.note),
+      bullets: sheetBullets(s(k.onnuri.bullets, ''), c.onnuri.bullets),
     },
     tamna: {
       ...c.tamna,
@@ -510,17 +574,17 @@ export function JejuLocalpay({ controller }: Props): JSX.Element {
   const lang = useLanguageStore((s) => s.currentLanguage);
   const lowReach = useAccessibilityStore((s) => s.lowReach);
   /**
-   * 탐나는전 is the LANDING tab (2026-08-27, by request). It is
-   * 제주특별자치도's own currency, so on a 제주 kiosk it is the one a visitor is
-   * most likely to be asking about; 온누리상품권 is the national voucher and
-   * moves to the right. The row order below matches, so the active tab is the
-   * left one on arrival rather than the right.
+   * 탐나는전 leads the tab row (left); 온누리상품권 is second. 제주's own local
+   * currency is what visitors come to this screen for, so it is also the landing
+   * tab. The Figma frames draw 온누리 first — deliberately not followed. The row
+   * order below is the drawn order, so the first entry is the landing tab.
    */
   const [tab, setTab] = useState<TabId>('tamna');
   // `pick` falls back to Korean for the language codes this copy does not carry
   // (zh_cn / zh_tw / es), exactly as every other 제주 screen's label maps do;
   // `withSheet` then lets Localization_Jeju override whatever it has filled.
   const c = withSheet(pick(CONTENT, lang), lang);
+  const tamnaTop = tamnaBlockTop(lang);
 
   /*
    * ♿ re-lays this page out rather than shifting it, so almost every positioned
@@ -630,8 +694,8 @@ export function JejuLocalpay({ controller }: Props): JSX.Element {
       ) : (
         /* ── 탐나는전 (6249:32310) ── */
         <section className={card(styles.cardTamna, styles.cardTamnaLow)}>
-          {/* No low-reach variant: the head is at top 100 in both layouts. */}
-          <div className={styles.tamnaHead}>
+          {/* Head + lower blocks: tops from `TAMNA_BLOCK_TOP` per language. */}
+          <div className={styles.tamnaHead} style={{ top: tamnaTop.head }}>
             <img className={styles.tamnaLogo} src={tamnaLogo} alt="" draggable={false} />
             <div className={styles.tamnaIntro}>
               <p className={styles.h60}>{c.tamna.introH}</p>
@@ -639,7 +703,7 @@ export function JejuLocalpay({ controller }: Props): JSX.Element {
             </div>
           </div>
 
-          <div className={low(styles.kwonjong, styles.kwonjongLow)}>
+          <div className={styles.kwonjong} style={{ top: tamnaTop.kwonjong }}>
             <p className={styles.h60}>{c.tamna.kwonjongH}</p>
             <div className={styles.kwonjongPanel} />
             <img
@@ -669,12 +733,12 @@ export function JejuLocalpay({ controller }: Props): JSX.Element {
             <div className={`${styles.kwDivider} ${styles.kwDividerRight}`} />
           </div>
 
-          <div className={low(styles.apply, styles.applyLow)}>
+          <div className={styles.apply} style={{ top: tamnaTop.apply }}>
             <p className={styles.h60}>{c.tamna.applyH}</p>
             <div>{rich(c.tamna.applyBody)}</div>
           </div>
 
-          <div className={low(styles.useRow, styles.useRowLow)}>
+          <div className={styles.useRow} style={{ top: tamnaTop.useRow }}>
             <div className={styles.useText}>
               <p className={styles.h60}>{c.tamna.useH}</p>
               <div>{rich(c.tamna.useBody)}</div>

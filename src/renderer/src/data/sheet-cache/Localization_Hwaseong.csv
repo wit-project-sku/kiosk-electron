@@ -28,7 +28,7 @@ O","お
 "1705","MainButton_SAMap","화성휴게소 지도","","Map","Map","Bản đồ khu vực nghỉ ngơi Hwaseong","Peta Area Istirahat Hwaseong","แผนที่จุดพักรถฮวาซอง","Карта зоны отдыха Хвасон","",""
 "10","MainButton_Exchange","환율","Exchange","為替レート情報","汇率信息","tỷ giá hối đoái","kurs","อัตราแลกเปลี่ยน","обменный курс","",""
 "1700","MainButton_ServiceArea","전국휴게소","Service Area","Service Area","Service Area","Khu vực nghỉ ngơi quốc gia","Area peristirahatan nasional","จุดพักรถแห่งชาติ","Национальные зоны отдыха","",""
-"1702","MainButton_Property","문화재(준비중)","Korea Property","Korea Property","Korea Property","Di sản văn hóa (Đang trong quá trình chuẩn bị)","Warisan Budaya (Dalam tahap persiapan)","มรดกทางวัฒนธรรม (อยู่ระหว่างการจัดทำ)","Культурное наследие (в процессе подготовки)","",""
+"1702","MainButton_Property","문화재(준비중)","Korea Property","Korea Property","Korea Property","Di sản văn hóa (Đang trong quá trình chuẩn bị)","Warisan Budaya (Sedang dalam persiapan)","มรดกทางวัฒนธรรม (อยู่ระหว่างการจัดทำ)","Культурное наследие (в процессе подготовки)","",""
 "1701","MainButton_KCulture","K-컬쳐(준비중)","K-Culture(Preparing)","K-Culture(Preparing)","K-Culture(Preparing)","Văn hóa K-pop (Sắp ra mắt)","K-Culture (Segera Hadir)","วัฒนธรรมเกาหลี (เร็วๆ นี้)","K-Culture (Скоро)","",""
 "4","MainButton_MarketPaper","지역화폐","Local Currency","ちいきの おかね","地区货币","tiền tệ địa phương","mata uang lokal","สกุลเงินท้องถิ่น","местная валюта","",""
 "14","MainButton_SmartTour","스마트관광(준비중)","Smart Tourism (Preparing)","スマート観光（準備中）","智慧旅游（准备中）","Du lịch thông minh (Đang trong quá trình phát triển)","Pariwisata Cerdas (Dalam pengembangan)","การท่องเที่ยวอัจฉริยะ (อยู่ระหว่างการพัฒนา)","«Умный туризм» (в стадии разработки)","",""
@@ -109,11 +109,11 @@ Các tiện ích khác: Có phòng cho con bú, cửa hàng tiện lợi, trạm
 
 Thông tin vị trí
 
-Tuyến đường: Đường cao tốc Bờ Tây (Quốc lộ số 15)
+Tuyến đường: Đường cao tốc bờ Tây (Quốc lộ số 15)
 
 Vị trí: Paltan-myeon, Hwaseong-si, Gyeonggi-do
 
-Hướng về Mokpo: Trạm dừng chân tiếp theo là Trạm dừng chân Haengdamdo","Pengisian Bahan Bakar & Pengisian Daya: Tersedia SPBU EX-OIL, SPBU LPG, dan stasiun pengisian daya EV.
+Hướng về Mokpo: Trạm dừng chân tiếp theo là Trạm dừng chân Haengdamdo","Pengisian Bahan Bakar & Pengisian Daya: Tersedia SPBU EX-OIL, SPBU LPG, dan stasiun pengisian daya kendaraan listrik.
 
 Fasilitas Lainnya: Tersedia ruang menyusui, minimarket, pengisi daya Hi-Pass, pusat bisnis, dll.
 
@@ -123,9 +123,9 @@ Rute: Jalan Tol Pantai Barat (Jalan Tol No. 15)
 
 Lokasi: Paltan-myeon, Hwaseong-si, Gyeonggi-do
 
-Menuju Mokpo: Area istirahat berikutnya adalah Area Istirahat Haengdamdo","สถานีเติมน้ำมันและชาร์จ: มีสถานีบริการน้ำมัน EX-OIL, สถานีเติมแก๊ส LPG และสถานีชาร์จรถยนต์ไฟฟ้า
+Menuju Mokpo: Area istirahat berikutnya adalah Area Istirahat Haengdamdo","สถานีเติมน้ำมันและชาร์จ: มีสถานีบริการน้ำมัน EX-OIL สถานีเติมแก๊ส LPG และสถานีชาร์จรถยนต์ไฟฟ้าให้บริการ
 
-สิ่งอำนวยความสะดวกอื่นๆ: ห้องให้นมบุตร, ร้านสะดวกซื้อ, เครื่องชาร์จ Hi-Pass, ศูนย์ธุรกิจ ฯลฯ
+สิ่งอำนวยความสะดวกอื่นๆ: ห้องให้นมบุตร ร้านสะดวกซื้อ เครื่องชาร์จ Hi-Pass ศูนย์ธุรกิจ ฯลฯ มีให้บริการ
 
 >ข้อมูลสถานที่ตั้ง
 
@@ -175,23 +175,23 @@ Menuju Mokpo: Area istirahat berikutnya adalah Area Istirahat Haengdamdo","ส�
 "83","Greeting_Hobby_First_Content","과제랑 전공 서적에 파묻혀 지내지만 스케치북에 아이디어를 채울 때면 세상 행복해. 
 나만의 디자인으로 새로운 가치를 만드는 열정 가득한 캠퍼스 라이프를 즐기는 중이야!","I love singing and dancing like an idol—I can't resist moving to the beat! I'm also passionate about café and restaurant hopping, sharing the trendiest dessert spots and hidden gems with my friends and followers.","課題に追われる日々だけど、スケッチブックをアイデアで満たす時は最高に幸せ。自分だけのデザインで新しい価値を作る、情熱的なキャンパスライフを満喫中だよ！","虽然经常埋头于作业，但在素描本上填满创意时最幸福。正通过自己的设计创造新价值，享受充满激情的校园生活！","Tôi dành cả ngày vùi đầu vào bài tập và sách giáo khoa, nhưng tôi cảm thấy vô cùng hạnh phúc khi lấp đầy cuốn sổ phác thảo của mình bằng những ý tưởng.
 
-Tôi đang tận hưởng cuộc sống sinh viên đầy nhiệt huyết, tạo ra giá trị mới thông qua những thiết kế của riêng mình!","Saya menghabiskan hari-hari saya tenggelam dalam tugas dan buku pelajaran, tetapi saya merasa sangat bahagia ketika saya mengisi buku sketsa saya dengan ide-ide.
+Tôi đang tận hưởng cuộc sống sinh viên đầy nhiệt huyết, tạo ra những giá trị mới bằng những thiết kế độc đáo của riêng mình!","Saya menghabiskan hari-hari saya tenggelam dalam tugas dan buku pelajaran, tetapi saya merasa sangat bahagia ketika saya mengisi buku sketsa saya dengan ide-ide.
 
-Saya menikmati kehidupan kampus yang penuh semangat, menciptakan nilai baru melalui desain saya sendiri!","ฉันใช้เวลาส่วนใหญ่ไปกับการทำการบ้านและอ่านตำราเรียน แต่ฉันรู้สึกมีความสุขอย่างเหลือเชื่อเมื่อได้เติมไอเดียลงในสมุดสเก็ตช์ของฉัน
+Saya menikmati kehidupan kampus yang penuh semangat, menciptakan nilai baru dengan desain unik saya sendiri!","ฉันใช้เวลาส่วนใหญ่ไปกับการทำการบ้านและอ่านตำราเรียน แต่ฉันรู้สึกมีความสุขอย่างเหลือเชื่อเมื่อได้เติมไอเดียลงในสมุดสเก็ตช์ของฉัน
 
-ฉันสนุกกับชีวิตในมหาวิทยาลัยที่เต็มไปด้วยความกระตือรือร้น และสร้างคุณค่าใหม่ๆ ผ่านงานออกแบบของตัวเอง!","Я провожу дни, заваленная заданиями и учебниками, но чувствую себя невероятно счастливой, когда заполняю свой скетчбук идеями.
+ฉันสนุกกับชีวิตในมหาวิทยาลัยที่เต็มไปด้วยความกระตือรือร้น สร้างสรรค์สิ่งใหม่ๆ ด้วยการออกแบบที่เป็นเอกลักษณ์ของตัวเอง!","Я провожу дни, заваленная заданиями и учебниками, но чувствую себя невероятно счастливой, когда заполняю свой скетчбук идеями.
 
-Я наслаждаюсь насыщенной студенческой жизнью, создавая новые ценности с помощью собственных проектов!","",""
+Я наслаждаюсь насыщенной студенческой жизнью, создавая новые ценности с помощью своих уникальных проектов!","",""
 "84","Greeting_Hobby_Second","> 모델로서의 휴","HUE the Model","モデルとしてのヒュー","作为模特的 HUE","Hugh với tư cách là người mẫu","Hugh sebagai model","ฮิวจ์ในฐานะนายแบบ","Хью как модель","",""
 "85","Greeting_Hobby_Second_Content","카메라 앞에서는 누구보다 프로페셔널하게! 'with' 스마트 키오스크랑 세련된 매력을 뽐내며 전 세계에 영감을 주는 글로벌 라이프스타일 디렉터를 꿈꾸고 있어.","Always professional in front of the camera! Showcasing chic vibes with 'with' SmartKiosks, dreaming of becoming a global lifestyle director who inspires the world.","カメラの前では誰よりもプロフェッショナルに！「with」スマートキオスクと一緒に洗練された魅力を放ち、世界にインスピレーションを与えるグローバルライフスタイルディレクターを夢見てるんだ。","镜头前比谁都专业！与 'with' 智能售货机一起展现干练魅力，梦想成为能给全世界带来灵感的全球生活方式总监。","Chuyên nghiệp hơn bất kỳ ai khác trước ống kính! Tôi mơ ước trở thành một giám đốc phong cách sống toàn cầu, truyền cảm hứng cho thế giới, thể hiện sự quyến rũ tinh tế thông qua các ki-ốt thông minh.","Lebih profesional dari siapa pun di depan kamera! Saya bermimpi menjadi direktur gaya hidup global yang menginspirasi dunia, menampilkan pesona yang canggih dengan kios pintar 'with'.","มืออาชีพกว่าใครๆ เมื่ออยู่หน้ากล้อง! ฉันฝันอยากเป็นผู้อำนวยการด้านไลฟ์สไตล์ระดับโลก ที่สร้างแรงบันดาลใจให้โลก ด้วยการนำเสนอเสน่ห์อันหรูหราผ่านตู้คีออสก์อัจฉริยะ","Я профессиональнее всех остальных перед камерой! Мечтаю стать глобальным директором по стилю жизни, который вдохновляет мир, демонстрируя утонченный шарм с помощью современных киосков.","",""
-"86","Greeting_Hobby_Third","> 운동을 좋아하는 휴","Active HUE","運動大好きなヒュー","热爱运动的 HUE","Hugh, người thích tập thể dục","Hugh, yang suka berolahraga","ฮิวจ์ ผู้ชื่นชอบการออกกำลังกาย","Хью, который любит заниматься спортом.","",""
+"86","Greeting_Hobby_Third","> 운동을 좋아하는 휴","Active HUE","運動大好きなヒュー","热爱运动的 HUE","Hugh, người thích tập thể dục","Hugh yang suka berolahraga","ฮิวจ์ผู้ชื่นชอบการออกกำลังกาย","Хью, который любит заниматься спортом.","",""
 "87","Greeting_Hobby_Third_Content","테니스랑 골프는 내 갓생 루틴의 핵심이야. 스트레스 쌓일 땐 연습실에서 K-POP 댄스로 땀 쫙 빼고 나면 지치지 않는 에너지가 다시 풀충전되는 기분이라 너무 즐거워!
 최근에는 런닝을 시작했어요 우리 함게 달려보아요","Tennis and golf are core to my ""God-saeng"" routine. Dancing to K-POP in the studio helps me destress and fully recharges my energy—it's so much fun!
 I've started running lately—let's run together!","テニスとゴルフは私の「ガッセン」ルーティンの要。ストレスが溜まった時は練習室でK-POPダンスを踊って汗を流せば、エネルギーがフルチャージされる気分で本当に楽しいよ！
 さいきんは らんにんぐを はじめました！ いっしょに はしりましょう。","网球和高尔夫是我“极简自律”生活的核心。压力大时在练习室跳 K-POP 舞蹈挥洒汗水，感觉能量瞬间充满，真的超级开心！
 最近我开始跑步啦！我们一起奔跑吧。","Quần vợt và golf là cốt lõi trong ""cuộc sống thần thánh"" của tôi. Khi căng thẳng, tôi rất thích đổ mồ hôi khi nhảy K-POP ở phòng tập; cảm giác như năng lượng dồi dào của tôi được nạp đầy trở lại!
 
-Gần đây tôi bắt đầu chạy bộ. Cùng chạy với nhau nhé!","Tenis dan golf adalah inti dari rutinitas ""kehidupan rohani"" saya. Saat stres, saya sangat menikmati berolahraga sambil menari K-POP di ruang latihan; rasanya energi saya yang tak habis-habisnya terisi penuh!
+Gần đây tôi bắt đầu chạy bộ. Cùng chạy với nhau nhé!","Tenis dan golf adalah inti dari rutinitas ""kehidupan rohani"" saya. Saat stres, saya sangat menikmati berolahraga dengan menari K-POP di ruang latihan; rasanya energi saya yang tak habis-habisnya terisi penuh!
 
 Baru-baru ini saya mulai berlari. Mari kita lari bersama!","เทนนิสและกอล์ฟเป็นหัวใจหลักของกิจวัตร ""ชีวิตที่แสนสุข"" ของฉัน เวลาเครียด ฉันชอบไปออกกำลังกายด้วยการเต้น K-POP ในห้องซ้อม รู้สึกเหมือนพลังงานที่ไม่มีวันหมดของฉันได้รับการเติมเต็มอย่างเต็มที่!
 
@@ -256,7 +256,7 @@ Bagaimana kalau beristirahat sejenak?","การยืดเหยียดร�
 "117","MarketPaper_Onnuri","온누리 상품권","Onnuri Gift Certificate","おんぬり しょうひんけん","稳楼里商品券","Phiếu quà tặng Onnuri","Sertifikat Hadiah Onnuri","บัตรของขวัญ Onnuri","Подарочные сертификаты Onnuri","",""
 "117","MarketPaper_Onnuri_Content","「온누리상품권」","「Onnuri Gift Certificate」","「おんぬり しょうひんけん」","「稳楼里商品券」","Phiếu quà tặng Onnuri","Sertifikat Hadiah Onnuri","บัตรของขวัญ Onnuri","Подарочный сертификат Onnuri","",""
 "117","MarketPaper_Onnuri_Content_1","온누리 상품권이란?","What is Onnuri Gift Certificate?","おんぬり しょうひんけんとは？","什么是稳楼里商品券？","Phiếu quà tặng Onnuri là gì?","Apa itu Sertifikat Hadiah Onnuri?","บัตรของขวัญ Onnuri คืออะไร?","Что такое подарочный сертификат Onnuri?","",""
-"117","MarketPaper_Onnuri_Content_1_1","전국 16개 금융기관에서 5천원, 1만원, 3만원권 단위로 구매하여 사용하는 온누리상품권","Onnuri Gift Certificates available in 5,000, 10,000, and 30,000 won denominations at 16 banks nationwide.","ぜんこく じゅうろくの きんゆう きかんで ごせんうぉん、いちまんうぉん、さんまんうぉん たんいで かって つかう おんぬり しょうひんけん","可在全国16家金融机构购买，面额分为5千、1万、3万韩元的稳楼里商品券。","Phiếu quà tặng Onnuri, được mua và sử dụng với các mệnh giá 5.000, 10.000 và 30.000 won tại 16 tổ chức tài chính trên toàn quốc.","Sertifikat Hadiah Onnuri, dapat dibeli dan digunakan dalam nominal 5.000, 10.000, dan 30.000 won di 16 lembaga keuangan di seluruh negeri.","บัตรของขวัญ Onnuri สามารถซื้อและใช้ได้ในราคา 5,000, 10,000 และ 30,000 วอน ที่สถาบันการเงิน 16 แห่งทั่วประเทศ","Подарочные сертификаты Onnuri номиналом 5000, 10000 и 30000 вон были приобретены и использованы в 16 финансовых учреждениях по всей стране.","",""
+"117","MarketPaper_Onnuri_Content_1_1","전국 16개 금융기관에서 5천원, 1만원, 3만원권 단위로 구매하여 사용하는 온누리상품권","Onnuri Gift Certificates available in 5,000, 10,000, and 30,000 won denominations at 16 banks nationwide.","ぜんこく じゅうろくの きんゆう きかんで ごせんうぉん、いちまんうぉん、さんまんうぉん たんいで かって つかう おんぬり しょうひんけん","可在全国16家金融机构购买，面额分为5千、1万、3万韩元的稳楼里商品券。","Phiếu quà tặng Onnuri, được mua và sử dụng với các mệnh giá 5.000, 10.000 và 30.000 won tại 16 tổ chức tài chính trên toàn quốc.","Sertifikat Hadiah Onnuri, dapat dibeli dan digunakan dalam nominal 5.000, 10.000, dan 30.000 won di 16 lembaga keuangan di seluruh negeri.","บัตรของขวัญ Onnuri สามารถซื้อและใช้ได้ในราคา 5,000, 10,000 และ 30,000 วอน ที่สถาบันการเงิน 16 แห่งทั่วประเทศ","Подарочные сертификаты Onnuri номиналом 5000, 10000 и 30000 вон, приобретенные и использованные в 16 финансовых учреждениях по всей стране.","",""
 "117","MarketPaper_Onnuri_Content_2","지류상품권 권종","Paper voucher denominations","かみの しょうひんけんの しゅるい","纸质商品券面额","Các mệnh giá phiếu quà tặng bằng giấy","Nominal sertifikat hadiah kertas","มูลค่าของบัตรของขวัญกระดาษ","номиналы бумажных подарочных сертификатов","",""
 "117","MarketPaper_Onnuri_Content_3","디지털 온누리상품권이란?","What is Digital Onnuri Gift Certificate?","でじたある おんぬり しょうひんけんとは？","什么是数字稳楼里商品券？","Phiếu quà tặng điện tử Onnuri là gì?","Apa itu Sertifikat Hadiah Digital Onnuri?","บัตรของขวัญดิจิทัล Onnuri คืออะไร?","Что такое цифровой подарочный сертификат Onnuri?","",""
 "117","MarketPaper_Onnuri_Content_3_1","디지털 온누리상품권 앱 설치 후 기존 갖고 있는 카드를 등록하고 금액 충전 후, 실물카드 또는 QR코드 결제 방식으로 이용 가능한 온누리상품권","An Onnuri Gift Certificate that can be used via physical card or QR code after installing the Digital Onnuri App, registering your existing card, and charging the balance.","でじたある おんぬり しょうひんけん あぷりを いれ、もっている かあどを とうろくして おかねを いれたあと、かあどや きゅうあある こおどで つかえる おんぬり しょうひんけん","安装数字稳楼里商品券App并绑定现有银行卡充值后，可通过实体卡或二维码支付使用的稳楼里商品券。","Sau khi cài đặt ứng dụng Phiếu quà tặng điện tử Onnuri, đăng ký thẻ hiện có và nạp tiền vào tài khoản, bạn có thể sử dụng Phiếu quà tặng Onnuri thông qua thẻ vật lý hoặc thanh toán bằng mã QR.","Setelah menginstal aplikasi Sertifikat Hadiah Digital Onnuri, daftarkan kartu Anda yang sudah ada, dan isi ulang saldo, Anda dapat menggunakan Sertifikat Hadiah Onnuri melalui kartu fisik atau pembayaran kode QR.","หลังจากติดตั้งแอปพลิเคชันบัตรของขวัญดิจิทัล Onnuri แล้ว ให้ลงทะเบียนบัตรที่มีอยู่ของคุณและเติมเงิน คุณสามารถใช้บัตรของขวัญ Onnuri ผ่านบัตรจริงหรือการชำระเงินด้วยรหัส QR ได้","После установки приложения Digital Onnuri Gift Certificate, регистрации существующей карты и пополнения баланса вы сможете использовать подарочный сертификат Onnuri с помощью физической карты или QR-кода.","",""
@@ -272,22 +272,23 @@ Bagaimana kalau beristirahat sejenak?","การยืดเหยียดร�
 ","華城市内でのみ使用できるカード型の地域通貨です。
 伝統市場および年商10億ウォン以下の小規模店舗で使用できます。京畿地域通貨APPを通じて、いつでもどこでも簡単にチャージや残高管理が可能です。","是在华城市内使用的卡型地域货币。
 可在传统市场及年销售额10亿韩元以下的小微企业店铺使用。通过“京畿地域货币”APP即可随时随地方便地充值和管理余额。
-","Đây là loại tiền tệ địa phương dạng thẻ, chỉ có thể sử dụng trong phạm vi thành phố Hwaseong.
+","Đây là loại tiền tệ địa phương dạng thẻ, chỉ sử dụng được trong phạm vi thành phố Hwaseong.
 
 Thẻ có thể được sử dụng tại các chợ truyền thống và các cửa hàng kinh doanh nhỏ có doanh thu hàng năm từ 1 tỷ won trở xuống. Bạn có thể dễ dàng nạp tiền và quản lý số dư thông qua ứng dụng Tiền tệ địa phương Gyeonggi.","Ini adalah mata uang lokal berbentuk kartu yang hanya dapat digunakan di Kota Hwaseong.
 
-Mata uang ini dapat digunakan di pasar tradisional dan toko-toko usaha kecil dengan penjualan tahunan sebesar 1 miliar KRW atau kurang. Anda dapat dengan mudah mengisi ulang dan mengelola saldo Anda melalui aplikasi Mata Uang Lokal Gyeonggi.","นี่คือสกุลเงินท้องถิ่นแบบบัตรที่สามารถใช้ได้เฉพาะภายในเมืองฮวาซองเท่านั้น
+Mata uang ini dapat digunakan di pasar tradisional dan toko-toko usaha kecil dengan penjualan tahunan sebesar 1 miliar KRW atau kurang. Anda dapat dengan mudah mengisi ulang dan mengelola saldo Anda melalui aplikasi Mata Uang Lokal Gyeonggi.","นี่คือสกุลเงินท้องถิ่นแบบบัตรที่ใช้ได้เฉพาะภายในเมืองฮวาซองเท่านั้น
 
-สามารถใช้ได้ที่ตลาดสดและร้านค้าขนาดเล็กที่มียอดขายต่อปีไม่เกิน 1 พันล้านวอน คุณสามารถเติมเงินและจัดการยอดคงเหลือได้อย่างง่ายดายผ่านแอปพลิเคชันสกุลเงินท้องถิ่นคยองกี","Это местная валюта в виде карты, которую можно использовать только в городе Хвасон.
+สามารถใช้ได้ที่ตลาดสดและร้านค้าขนาดเล็กที่มียอดขายต่อปีไม่เกิน 1 พันล้านวอน คุณสามารถเติมเงินและจัดการยอดคงเหลือได้อย่างง่ายดายผ่านแอปพลิเคชันสกุลเงินท้องถิ่นคยองกี","Это местная валюта в виде карты, которую можно использовать только в пределах города Хвасон.
 
-Её можно использовать на традиционных рынках и в небольших магазинах с годовым оборотом в 1 миллиард вон или меньше. Пополнять баланс и управлять им можно легко через приложение Gyeonggi Local Currency.","",""
+Ее можно использовать на традиционных рынках и в небольших магазинах с годовым объемом продаж в 1 миллиард вон или меньше. Пополнять и управлять балансом можно легко через приложение Gyeonggi Local Currency.","",""
 "118","MarketPaper_Osaekjeon_Content_2","누구나 신청 가능 하나요?","Who can apply?","誰でも申請できますか？","谁可以申请？","Ai cũng có thể đăng ký?","Apakah siapa saja bisa mendaftar?","ใครๆ ก็สมัครได้ใช่ไหม?","Подать заявку может любой желающий?","",""
 "118","MarketPaper_Osaekjeon_Content_2_1","본인 명의의 은행계좌를 가진 만 14세 이상이면 누구나 신청 가능합니다.
 거주지와 상관없이 화성시 내 소비를 통해 인센티브 혜택을 받고 싶은 분들은 모바일 APP 또는 관내 농협에서 신청해 주세요.","Anyone aged 14 or older with a bank account in their name can apply.
 Regardless of where you live, if you want to receive incentives by spending in Hwaseong, you can apply. Please apply via the Mobile APP (Gyeonggi Local Currency) or local NH Bank branches.
 ","<b>本人名義の銀行口座を持つ満14歳以上なら申請可能です。</b>
 オサン資金の流出を防ぎ、地域経済を活性化させます。
-<b>居住地に関係なく、オサンで消費し追加ポイントを受けたい方なら誰でも申請できます。</b>","只要是年满14周岁且拥有本人名下银行账户的人均可申请。
+<b>居住地に関係なく、オサンで消費し追加ポイントを受けたい方なら誰でも申請できます。</b>
+","只要是年满14周岁且拥有本人名下银行账户的人均可申请。
 无论居住地在哪里，只要想在华城市消费并享受奖励优惠，均可申请。请通过手机APP（京畿地域货币）或市内农协银行申请。
 ","Bất kỳ ai từ 14 tuổi trở lên có tài khoản ngân hàng đứng tên mình đều đủ điều kiện đăng ký.
 
@@ -313,7 +314,8 @@ Apply via <b>mobile app (Gyeonggi Local Currency App)</b> or at <b>NH Nonghyup B
 Available only at small business stores with annual sales of 1 billion KRW or less.
 It is a local currency for Hwaseong that can be used at gas stations, markets, leisure facilities (gyms), clinics, convenience stores, academies, salons, and veterinary hospitals.","年商10億ウォン以下の小規模店舗でのみ使用可能です。
 ガソリンスタンド、伝統市場、レジャー施設（ジム）、病院、コンビニ、塾、美容院、動物病院などで使用できる華城市の市場通貨です。","百货商场、大型超市、连锁超市（SSM）、直营连锁店及娱乐场所/博彩业均不可使用。
-<b>仅限年销售额10亿韩元以下的小商户使用。</b>","Hướng dẫn sử dụng
+<b>仅限年销售额10亿韩元以下的小商户使用。</b>
+","Hướng dẫn sử dụng
 
 Áp dụng cho các cơ sở kinh doanh nhỏ có doanh thu hàng năm từ 1 tỷ won trở xuống.
 
@@ -342,8 +344,8 @@ Yang dibatasi: Toko serba ada, hypermarket, tempat hiburan, usaha dengan penjual
 病院・医院（歯科、韓医院など）、コンビニ、学園（補習・技能）、眼鏡店、美容院、動物病院など。
 ","仅限在年销售额10亿韩元以下的小微企业店铺使用。
 这是可在加油站、传统市场、健身房、诊所、便利店、补习班、美容院、动物医院等场所使用的华城市市场货币。","Trạm xăng · Chợ truyền thống · Khu phố thương mại · Cơ sở kinh doanh giải trí (phòng tập thể dục, phòng tập Pilates, bể bơi, sân tập golf, sân bowling) · Bệnh viện và phòng khám (phòng khám nha khoa, phòng khám y học cổ truyền Hàn Quốc, v.v.) · Cửa hàng tiện lợi · Học viện (học viện dạy nghề, trung tâm dạy kèm, v.v.) · Y tế và vệ sinh công cộng (cửa hàng kính mắt, thẩm mỹ viện, v.v.) · Các cơ sở y tế khác (phòng khám thú y, v.v.)","Pompa bensin · Pasar tradisional · Kawasan komersial gang · Bisnis rekreasi (pusat kebugaran, studio Pilates, kolam renang, lapangan latihan golf, arena bowling) · Rumah sakit dan klinik (klinik gigi, klinik pengobatan Korea, dll.) · Toko serba ada · Akademi (akademi kejuruan, akademi bimbingan belajar, dll.) · Kesehatan dan kebersihan masyarakat (ahli kacamata, salon kecantikan, dll.) · Lembaga medis lainnya (klinik hewan, dll.)","สถานีบริการน้ำมัน · ตลาดแบบดั้งเดิม · ย่านการค้าในซอย · สถานประกอบการเพื่อการพักผ่อนหย่อนใจ (เช่น โรงยิม สตูดิโอพิลาทิส สระว่ายน้ำ สนามฝึกซ้อมกอล์ฟ สนามโบว์ลิ่ง) · โรงพยาบาลและคลินิก (เช่น คลินิกทันตกรรม คลินิกแพทย์แผนเกาหลี เป็นต้น) · ร้านสะดวกซื้อ · สถาบันการศึกษา (เช่น สถาบันอาชีวศึกษา สถาบันกวดวิชา เป็นต้น) · สถานพยาบาลและสุขอนามัย (เช่น ร้านแว่นตา ร้านเสริมสวย เป็นต้น) · สถานพยาบาลอื่นๆ (เช่น คลินิกสัตวแพทย์ เป็นต้น)","Автозаправочные станции · Традиционные рынки · Торговые кварталы в переулках · Развлекательные заведения (тренажерные залы, студии пилатеса, бассейны, поля для гольфа, боулинг) · Больницы и клиники (стоматологические клиники, клиники корейской медицины и т. д.) · Магазины шаговой доступности · Академии (профессиональные училища, учебные центры и т. д.) · Центры общественного здравоохранения и гигиены (офтальмологи, салоны красоты и т. д.) · Другие медицинские учреждения (ветеринарные клиники и т. д.)","",""
-"126","MarketPaper_SubHeader","화성시에서 사용할 수 있는 지역화폐 입니다.","A local currency that can be used in Hwaseong City.","ふぁそんしで つかえる ちいきの おかねです。","这是可以在华城市使用的地区货币。","Đây là đơn vị tiền tệ địa phương có thể được sử dụng tại thành phố Hwaseong.","Ini adalah mata uang lokal yang dapat digunakan di Kota Hwaseong.","นี่คือสกุลเงินท้องถิ่นที่สามารถใช้ได้ในเมืองฮวาซอง","Это местная валюта, которую можно использовать в городе Хвасон.","",""
-"127","MarketPaper_ButtonText","준비중","Coming soon","準備中","敬请期待","chuẩn bị","mempersiapkan","เตรียม","подготовка","",""
+"126","MarketPaper_SubHeader","화성시에서 사용할 수 있는 지역화폐 입니다.","A local currency that can be used in Hwaseong City.","ふぁそんしで つかえる ちいきの おかねです。","这是可以在华城市使用的地区货币。","Đây là đơn vị tiền tệ địa phương được sử dụng tại thành phố Hwaseong.","Ini adalah mata uang lokal yang dapat digunakan di Kota Hwaseong.","นี่คือสกุลเงินท้องถิ่นที่สามารถใช้ได้ในเมืองฮวาซอง","Это местная валюта, которую можно использовать в городе Хвасон.","",""
+"127","MarketPaper_ButtonText","준비중","Coming soon","準備中","敬请期待","chuẩn bị","mempersiapkan","เตรียมการ","подготовка","",""
 "128","Photo_HanbokTry","<AR 한복체험>  ","<AR Hanbok Try-On>","<AR 韓服 体験>","<AR 韩服 体验>","Trải nghiệm Hanbok AR","Pengalaman Hanbok AR","ประสบการณ์ AR Hanbok","AR Hanbok Experience","",""
 "1621","SubHeader_Photo","한복에서 브랜드의상 & K-컬처의상까지 체험하세요 ","Try Hanbok, casuals, brands & K-culture fits!","韓服から日常着、ブランドやKカルチャー衣装までフル体験！","尽情体验韩服、日常穿搭、品牌及K-culture服饰！","Khám phá mọi thứ từ Hanbok đến quần áo hàng hiệu và trang phục mang đậm văn hóa K-pop.","Temukan berbagai pilihan, mulai dari Hanbok hingga pakaian bermerek dan busana budaya Korea.","สัมผัสประสบการณ์ทุกอย่าง ตั้งแต่ชุดฮันบก เสื้อผ้าแบรนด์เนม ไปจนถึงเครื่องแต่งกายสไตล์วัฒนธรรมเกาหลี","Здесь вы найдете все: от традиционной корейской одежды ханбок до брендовой одежды и нарядов в стиле корейской культуры.","",""
 "129","Photo_HanbokSelect","한복/의상 선택하기","Choose Hanbok","韓服を選ぶ","选择韩服","Chọn Hanbok/Trang phục","Pilih Hanbok/Pakaian","เลือกชุดฮันบก/ชุดแต่งกาย","Выберите ханбок/костюм","",""
@@ -361,7 +363,7 @@ Yang dibatasi: Toko serba ada, hypermarket, tempat hiburan, usaha dengan penjual
 "132","Photo_TakePhoto","사진 촬영","Take Photo","写真を撮る","拍照","Chụp ảnh","Mengambil foto","ถ่ายรูป","Фотографирование","",""
 "1391","Photo_SelectAlone","사진촬영 (혼자찍기)","Solo Shot","ひとりで撮影","单人拍摄","Nhiếp ảnh (Tự chụp ảnh)","Fotografi (Mengambil foto sendiri)","การถ่ายภาพ (การถ่ายภาพด้วยตนเอง)","Фотографирование (самостоятельная фотосъемка)","",""
 "1392","Photo_SelectTogether","사진촬영 (with '휴')","With ‘HUE’","「HUE」と一緒に","与“HUE”一起","Buổi chụp ảnh (cùng với 'Hyu')","Sesi foto (dengan 'Hyu')","ถ่ายภาพ (กับ 'ฮยู')","Фотосессия (с Хью)","",""
-"133","Photo_TakePhotoContent","• 사진촬영 버튼을 누르고 좌측 카메라에 얼굴을 바라봐주세요.  
+"133","Photo_TakePhotoContent","사진촬영 버튼을 누르고 좌측 카메라에 얼굴을 바라봐주세요.  
    10초후 촬영이 시작됩니다. 결과물은 QR을 통해 핸드폰에 저장하세요   ","• Press the photo button and look into the left camera.
 The photo will be taken in 10 seconds. The result will appear on both the left and front screens.","• 「写真を撮る」ボタンを押して、左側のカメラを見てください。
 5秒後に撮影が始まります。写真は左と正面の画面に表示されます。","• 点击拍照按钮，然后看向左边的摄像头。

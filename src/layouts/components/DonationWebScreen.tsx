@@ -22,9 +22,9 @@ interface DonationWebScreenProps {
  * Fullscreen embed of the WIT Global donation web app. Covers the entire artboard
  * so it reads as a native kiosk page.
  *
- * Shared by every layout that runs 기부 (Insadong/Osan/Hwaseong). All of them pass
- * the same WEB_EMBED_URLS.donation: the embed looks identical on every kiosk by
- * design (see that constant).
+ * Shared by every layout that runs 기부 (Insadong/Osan/Hwaseong/Jeju). Callers
+ * pass donationUrl(kioskId) so the donation app gets the right per-site
+ * `kiosk` query (W003→1, W004→4, W005→5, W006–W008→6).
  *
  * Preload-independent bridge (robust against webview preload quirks):
  *   guest -> host : donation app console.log's KIOSK_TAG + json; we catch it on

@@ -17,7 +17,7 @@ import { HanbokSelect, type CaptureMode } from './HanbokSelect';
 import { JejuHanbokSelect } from '../jeju/JejuHanbokSelect';
 import { JejuSpotDiffGame } from '../jeju/JejuSpotDiffGame';
 import { usePhotoChrome } from './photoChrome';
-import { RESULT } from './photoTexts';
+import { RESULT, RESULT_KADA } from './photoTexts';
 import styles from './PhotoWorkflow.module.css';
 
 /** Where the 굿즈제작 button's QR points. */
@@ -51,7 +51,7 @@ export function PhotoWorkflow(): JSX.Element {
   const hasPayment = getKioskLocation(kioskId).hasCardTerminal;
   const rotating = useRotatingBanner();
   const chrome = usePhotoChrome();
-  const { isHwaseong, icon, Header, photoTitle, banner: chromeBanner } = chrome;
+  const { isHwaseong, isKada, icon, Header, photoTitle, banner: chromeBanner } = chrome;
   // Osan/Hwaseong have their own single promo banner; insadong rotates through several.
   const banner = chromeBanner ?? rotating;
   const [goodsQrOpen, setGoodsQrOpen] = useState(false);
@@ -281,7 +281,7 @@ export function PhotoWorkflow(): JSX.Element {
 
   // ── Result (NO-PAYMENT kiosks W001/W002/W005): show the result image + QR to save ──
   if (phase === 'result') {
-    const c = pick(RESULT, lang);
+    const c = pick(isKada ? RESULT_KADA : RESULT, lang);
     const imageUrl = resultUrl ?? (resultFileName ? generatedUrl(resultFileName) : '');
     const saveUrl = `${SAVE_BASE}${encodeURIComponent(imageUrl)}`;
 
@@ -296,7 +296,11 @@ export function PhotoWorkflow(): JSX.Element {
           icon('bg') && <img className={styles.bg} src={icon('bg')} alt="" draggable={false} />
         )}
 
-        <Header title={photoTitle} onHome={handleReset} subtitle={c.subtitle} />
+        {/* onBack mirrors onHome: the result is the end of the flow, so back and
+            home both mean "leave it". A no-op for the other four headers, which
+            already fall back to onHome — but KadaHeader draws no arrow at all
+            without it, which is what left this screen without one. */}
+        <Header title={photoTitle} onHome={handleReset} onBack={handleReset} subtitle={c.subtitle} />
 
         <div className={styles.resultContent}>
           <div className={styles.resultStep}>
@@ -319,14 +323,32 @@ export function PhotoWorkflow(): JSX.Element {
             <div className={styles.resultQr}>
               <QRCodeSVG value={saveUrl} level="M" style={{ width: '100%', height: '100%' }} />
             </div>
+            {/* KADA's frame points an arrow from the QR at the buttons — the same
+                glyph the payment kiosks already draw between those two. */}
+            {isKada && (
+              <svg className={styles.payArrow} viewBox="0 0 76 86" fill="none" aria-hidden="true">
+                <path
+                  d="M70 43 H8 M32 19 L6 43 L32 67"
+                  stroke="var(--photo-accent, #fe6c50)"
+                  strokeWidth="9"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+              </svg>
+            )}
             <div className={styles.resultButtons}>
               <button type="button" className={styles.resultBtn} onClick={() => setSaveQrOpen(true)}>
                 {c.save}
               </button>
-              <button type="button" className={`${styles.resultBtn} ${styles.resultBtnAlt}`} onClick={() => setGoodsQrOpen(true)}>
-                {c.goods}
-              </button>
-              <button type="button" className={styles.resultBtn} onClick={handleReset}>
+              {/* 굿즈제작 opens insarang.kr — a Korean storefront with nothing behind
+                  it for a Hanoi visitor, so KADA ships Save + Retake only, and its
+                  Retake takes the grey this third slot used to hold. */}
+              {!isKada && (
+                <button type="button" className={`${styles.resultBtn} ${styles.resultBtnAlt}`} onClick={() => setGoodsQrOpen(true)}>
+                  {c.goods}
+                </button>
+              )}
+              <button type="button" className={isKada ? `${styles.resultBtn} ${styles.resultBtnAlt}` : styles.resultBtn} onClick={handleReset}>
                 {c.retake}
               </button>
             </div>
@@ -343,14 +365,22 @@ export function PhotoWorkflow(): JSX.Element {
           </div>
         </div>
 
-        <div className={styles.leftNav}>
-          <button type="button" className={styles.leftNavBtn} onClick={handleReset} aria-label="홈으로">
-            {icon('home-btn') && <img src={icon('home-btn')} alt="" draggable={false} />}
-          </button>
-          <button type="button" className={styles.leftNavBtn} onClick={handleReset} aria-label="뒤로">
-            {icon('back-arrow') && <img src={icon('back-arrow')} alt="" draggable={false} />}
-          </button>
-        </div>
+        {/* KADA draws home and back in its header, and closes the screen with the
+            partner logo bar instead of this floating pair. */}
+        {isKada ? (
+          icon('partner-bar') && (
+            <img className={styles.kadaPartnerBar} src={icon('partner-bar')} alt="" draggable={false} />
+          )
+        ) : (
+          <div className={styles.leftNav}>
+            <button type="button" className={styles.leftNavBtn} onClick={handleReset} aria-label="홈으로">
+              {icon('home-btn') && <img src={icon('home-btn')} alt="" draggable={false} />}
+            </button>
+            <button type="button" className={styles.leftNavBtn} onClick={handleReset} aria-label="뒤로">
+              {icon('back-arrow') && <img src={icon('back-arrow')} alt="" draggable={false} />}
+            </button>
+          </div>
+        )}
 
         {banner && (
           <button type="button" className={styles.banner} onClick={handleReset} aria-label="가상 한복 체험">

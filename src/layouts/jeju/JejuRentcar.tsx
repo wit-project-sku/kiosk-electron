@@ -1,40 +1,39 @@
 /**
  * 제주공항 (W006) 렌트카 — Figma 6297:76578 / 6297:76391 (제주>하영=렌트카=공항-01).
  *
- * The same screen as JejuListScreen with the second-category chip grid left
- * out: the frame draws the identical 초성 index over the identical
- * `R>리스트-사진4개` card at the identical 590 pitch, so the shared
- * `JejuChosungRow`, `JejuShopCard` and shop→detail path are reused verbatim.
- *
- * ★ 2026-08-24: the free-text search field this screen used to carry is GONE
- * from the design — the redraw indexes the 112 rental companies by the leading
- * consonant of their name instead, exactly like 뭐먹지 / 뭐사지 / 숙박안내. The
- * old node (6217:95726) was deleted from the Figma file rather than edited.
- * That took the on-screen keyboard with it; nothing else about the screen moved.
+ * One scrolling column under the 700px header: `#렌터카하우스` tagged companies
+ * first, then shuttle filter chips (전체 / 공항 셔틀 / 셔틀 없음), then the
+ * filtered catalogue. Shuttle vs road comes from `route.guideType`.
  */
-import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
+import { useLayoutEffect, useMemo, useRef, useState } from 'react';
 import type { KioskController } from '@renderer/hooks/useKioskController';
 import type { Shop } from '@shared/types/shop';
 import { jejuIconUrl } from '@renderer/assets/icons/jeju';
-import { leadingChosung, type Chosung } from '@renderer/lib/chosung';
 import { useLanguageStore } from '@renderer/store/languageStore';
 import { useDetailStore } from '@renderer/store/detailStore';
 import { useShopStore } from '@renderer/store/shopStore';
 import { pick } from '@renderer/lib/i18n';
 import {
-  shopAddress,
-  shopDescription,
-  shopHashtag,
-  shopImages,
-  shopName,
-  shopSecondCategory,
+  searchShops,
+  shopHasHashtag,
+  shopHasRentcarFerry,
+  shopHasRentcarNoShuttle,
+  shopHasRentcarRoad,
+  shopHasRentcarShuttle,
+  shopRentcarAddress,
+  shopRentcarGuideDistanceKm,
+  shopRentcarGuideModeLabel,
+  shopRentcarName,
+  shopRentcarSecondCategory,
   shopsForBase,
 } from '@renderer/lib/shops';
 import { useAccessibilityStore } from '@renderer/store/accessibilityStore';
-import { JejuChosungRow } from './JejuChosungRow';
 import { JejuPageFrame } from './JejuPageFrame';
 import { JejuScrollHint } from './JejuScrollHint';
 import { JejuShopCard } from './JejuShopCard';
+import { FloatingKeyboard } from '../insadong/keyboard/FloatingKeyboard';
+import { HangulComposer } from '../insadong/keyboard/hangul';
+import type { KeyAction } from '../insadong/keyboard/VirtualKeyboard';
 import styles from './JejuRentcar.module.css';
 
 interface Props {
@@ -44,34 +43,6 @@ interface Props {
 /** Header title id — localized by JejuHeader. */
 const TITLE = '렌트카';
 
-/**
- * Base category (witteria `baseCategoryKr`).
- *
- * ★ It is the bare '렌트카' — NOT '제주 렌트카'. This screen guessed the prefixed
- * form for as long as the category did not exist, reasoning from 제주's other
- * four (제주 뭐하지 / 제주 뭐먹지 / 제주 뭐사지 / 숙박안내) that it keys on the
- * location prefix. The rows have since been published and they do not: verified
- * 2026-08-14 against `/api/shops?kioskId=7`, stage carries **112 rows under
- * '렌트카'**. Note 숙박안내 is unprefixed too, so the prefix was never the rule.
- *
- * The guess is why this page showed 준비중입니다 with the data sitting in the
- * cache the whole time — `shopsForBase` matched nothing.
- *
- * ── On the API's new `baseCategoryKr` query parameter ─────────────────
- * Deliberately NOT used. Measured on 2026-08-14: passing it changes nothing on
- * either environment — `&baseCategoryKr=렌트카` and `&baseCategoryKr=zzzz` both
- * return the identical full catalogue (422 rows on stage, 310 on prod), so the
- * server is ignoring it, exactly like the outfit endpoint ignores
- * `categoryName`. Even once it works, this screen would gain nothing: the whole
- * catalogue is already cached in SQLite for offline use, so filtering it here is
- * instant and works with the network down, while a per-screen request would be
- * slower and would blank the page on an airport network hiccup.
- *
- * ★ PROD HAS NO 렌트카 ROWS YET (310 rows, four categories) — only stage does.
- * Nothing more is needed on this side when they land: the catalogue refresh
- * already runs on launch and nightly, so the page fills itself. Until then a
- * production kiosk keeps showing 준비중입니다 (NO_DATA), which is correct.
- */
 const BASE_CATEGORY = '렌트카';
 
 const NO_DATA = {
@@ -80,152 +51,386 @@ const NO_DATA = {
 };
 
 const NO_MATCH = {
-  ko: '검색 결과가 없습니다', en: 'No results', ja: '検索結果がありません', zh: '没有搜索结果',
-  vi: 'Không có kết quả', th: 'ไม่พบผลลัพธ์', ru: 'Ничего не найдено', id: 'Tidak ada hasil',
+  ko: '조건에 맞는 업체가 없습니다', en: 'No matching companies', ja: '該当する店舗がありません',
+  zh: '没有符合条件的商户', vi: 'Không có công ty phù hợp', th: 'ไม่พบบริษัทที่ตรงเงื่อนไข',
+  ru: 'Нет подходящих компаний', id: 'Tidak ada perusahaan yang cocok',
 };
 
-/**
- * 14 × 124.57 = 1744, this frame's x208–1952 for the ㄱ…ㅎ run (6297:76742).
- * Wider than the 1686 the standard list screens use — and identical to their
- * low-reach frames — because the row is the only thing in this column and is
- * drawn at the full content width.
- */
-const CHOSUNG_CELL = 1744 / 14;
+const SEARCH_PLACEHOLDER = {
+  ko: '예약하신 업체명을 검색하세요',
+  en: 'Search your reserved company',
+  ja: '予約した会社名を検索してください',
+  zh: '搜索您预约的公司名称',
+  vi: 'Tìm kiếm tên công ty đã đặt',
+  th: 'ค้นหาชื่อบริษัทที่จองไว้',
+  ru: 'Найдите забронированную компанию',
+  id: 'Cari nama perusahaan yang dipesan',
+};
 
-/**
- * How far one ▲▼ press moves: exactly one card. 530 card + 60 gap = the same 590
- * pitch JejuListScreen steps by, because both frames draw the same
- * `R>리스트-사진4개` card — so a press lands the next row where the last one was
- * rather than part-way through a card.
- */
-const SCROLL_STEP = 590;
+const SEARCH_NO_RESULT = {
+  ko: (q: string) => `'${q}' 검색 결과가 없습니다`,
+  en: (q: string) => `No results for '${q}'`,
+  ja: (q: string) => `「${q}」の検索結果がありません`,
+  zh: (q: string) => `没有'${q}'的搜索结果`,
+  vi: (q: string) => `Không có kết quả cho '${q}'`,
+  th: (q: string) => `ไม่พบผลลัพธ์สำหรับ '${q}'`,
+  ru: (q: string) => `Нет результатов по '${q}'`,
+  id: (q: string) => `Tidak ada hasil untuk '${q}'`,
+};
+
+const RENTCAR_HOUSE_TAG = '렌터카하우스';
+
+const DESK_BADGE = {
+  ko: '공항 내 데스크',
+  en: 'Airport desk',
+  ja: '空港内デスク',
+  zh: '机场内服务台',
+  vi: 'Quầy trong sân bay',
+  th: 'เคาน์เตอร์ในสนามบิน',
+  ru: 'Стойка в аэропорту',
+  id: 'Meja di bandara',
+};
+
+const FERRY_BADGE = {
+  ko: '배편 이용',
+  en: 'Ferry access',
+  ja: 'フェリー利用',
+  zh: '需乘渡轮',
+  vi: 'Đi phà',
+  th: 'ใช้เรือข้ามฟาก',
+  ru: 'На пароме',
+  id: 'Akses feri',
+};
+
+const FILTER_ALL = {
+  ko: '전체', en: 'All', ja: 'すべて', zh: '全部', vi: 'Tất cả', th: 'ทั้งหมด', ru: 'Все', id: 'Semua',
+};
+
+const FILTER_SHUTTLE = {
+  ko: '공항 셔틀',
+  en: 'Airport shuttle',
+  ja: '空港シャトル',
+  zh: '机场班车',
+  vi: 'Xe đưa sân bay',
+  th: 'รถรับส่งสนามบิน',
+  ru: 'Аэропортный шаттл',
+  id: 'Antar-jemput bandara',
+};
+
+const FILTER_NO_SHUTTLE = {
+  ko: '셔틀 없음',
+  en: 'No shuttle',
+  ja: 'シャトルなし',
+  zh: '无班车',
+  vi: 'Không có xe đưa',
+  th: 'ไม่มีรถรับส่ง',
+  ru: 'Без шаттла',
+  id: 'Tanpa antar-jemput',
+};
+
+/** Fixed wayfinding line for `#렌터카하우스` cards — never the API km/time row. */
+const RENTCAR_HOUSE_ROUTE = {
+  ko: '1층 2번 게이트 → 렌터카하우스',
+  en: '1F Gate 2 → Rent-a-Car House',
+  ja: '1階2番ゲート → レンタカーハウス',
+  zh: '1层2号门 → 租车之家',
+  vi: 'Cổng số 2 tầng 1 → Rent-a-Car House',
+  th: 'ประตู 2 ชั้น 1 → Rent-a-Car House',
+  ru: 'Выход 2, 1-й этаж → Rent-a-Car House',
+  id: 'Gerbang 2 Lantai 1 → Rent-a-Car House',
+};
+
+const HOUSE_HEADING = {
+  ko: (n: number) => `공항 안에서 바로 ・ 렌터카하우스 ${n}곳`,
+  en: (n: number) => `Directly in the airport ・ Rent-a-Car House ${n} locations`,
+  ja: (n: number) => `空港内ですぐ ・ レンタカーハウス ${n}件`,
+  zh: (n: number) => `机场内直达 ・ 租车之家 ${n}家`,
+  vi: (n: number) => `Ngay trong sân bay ・ Rent-a-Car House ${n} địa điểm`,
+  th: (n: number) => `ในสนามบินเลย ・ Rent-a-Car House ${n} แห่ง`,
+  ru: (n: number) => `Прямо в аэропорту ・ Rent-a-Car House — ${n} точек`,
+  id: (n: number) => `Langsung di bandara ・ Rent-a-Car House ${n} lokasi`,
+};
+
+type ShuttleFilter = 'all' | 'shuttle' | 'noShuttle';
+
+const SHUTTLE_FILTERS: ShuttleFilter[] = ['all', 'shuttle', 'noShuttle'];
+
+const FILTER_LABELS: Record<ShuttleFilter, Record<string, string>> = {
+  all: FILTER_ALL,
+  shuttle: FILTER_SHUTTLE,
+  noShuttle: FILTER_NO_SHUTTLE,
+};
+
+type RentcarBadgeVariant = 'primary' | 'shuttle' | 'noShuttle' | 'ferry';
+
+/** Compact card pitch: 300 card + 60 gap. */
+const SCROLL_STEP = 360;
+
+/** Low-reach list top — under mode bar + header (Figma 6561:80628 template). */
+const LIST_TOP_LOW = 837;
+/** Gap between the list bottom edge and the pinned controls block. */
+const LOW_CONTROLS_GAP = 100;
+/** List viewport height — one filter row at the foot (same as JejuListScreen lodging). */
+const LOW_LIST_HEIGHT = 2501;
+const LOW_CONTROLS_TOP = LIST_TOP_LOW + LOW_LIST_HEIGHT + LOW_CONTROLS_GAP;
+
+const KEYBOARD_HEIGHT = 1000;
+/** Standard: search row ends ~y882 under the 700px header. */
+const KEYBOARD_TOP = 882;
+/** Low-reach: keyboard sits above the pinned search row at the foot. */
+const KEYBOARD_TOP_LOW = LOW_CONTROLS_TOP - KEYBOARD_HEIGHT;
 
 export function JejuRentcar({ controller }: Props): JSX.Element {
   const lang = useLanguageStore((s) => s.currentLanguage);
-  const lowReach = useAccessibilityStore((s) => s.lowReach);
   const setDetail = useDetailStore((s) => s.setItem);
   const shops = useShopStore((s) => s.shops);
 
+  const composer = useRef(new HangulComposer());
   const scrollRef = useRef<HTMLDivElement>(null);
-  const [jamo, setJamo] = useState<Chosung | null>(null);
-  /**
-   * The 초성 row is a KOREAN-only control: it filters on the leading jamo of the
-   * shop's Korean name, so on any other language it is a row of glyphs the
-   * visitor cannot read filtering on a name they are not being shown. Hidden
-   * outside Korean, exactly as JejuAbout's 관광명소 grid does it.
-   */
-  const showChosung = lang === 'ko';
-
-  /**
-   * Leaving Korean must also drop an ACTIVE filter, not just the control —
-   * otherwise a visitor who taps ㅅ and then switches to English is left on a
-   * short list with no visible reason and no way to clear it.
-   */
-  useEffect(() => {
-    if (!showChosung && jamo !== null) setJamo(null);
-  }, [showChosung, jamo]);
+  const lowReach = useAccessibilityStore((s) => s.lowReach);
+  const [query, setQuery] = useState('');
+  const [focused, setFocused] = useState(false);
+  const [shuttleFilter, setShuttleFilter] = useState<ShuttleFilter>('all');
+  const [canScroll, setCanScroll] = useState(false);
 
   const scrollBy = (delta: number): void =>
     scrollRef.current?.scrollBy({ top: delta, behavior: 'smooth' });
 
-  /**
-   * The ▲▼ pair appears only when the list actually overflows.
-   *
-   * JejuListScreen draws its pair unconditionally, which is fine there — its
-   * chip filters always leave a long list. This screen's single 초성 filter
-   * routinely narrows 112 rows to one or none, and a round button that visibly
-   * does nothing on a kiosk gets pressed repeatedly and reads as a frozen
-   * machine. Same rule, and the same reasoning, as JejuAbout.
-   *
-   * `useLayoutEffect` so the decision is made from the measured DOM in the same
-   * frame the list changes in — a `useEffect` shows the buttons for one frame
-   * after a filter empties the list.
-   */
-  const [canScroll, setCanScroll] = useState(false);
+  const resetScroll = (): void => scrollRef.current?.scrollTo({ top: 0 });
 
   const baseShops = useMemo(() => shopsForBase(shops, BASE_CATEGORY), [shops]);
 
-  const visible = useMemo(() => {
-    // The 초성 row indexes the shop NAME, and always the Korean one: the buckets
-    // are Korean consonants, so filtering a translated name would empty the list
-    // for every non-Korean visitor.
-    if (!jamo) return baseShops;
-    return baseShops.filter((s) => leadingChosung(shopName(s, 'ko')) === jamo);
-  }, [baseShops, jamo]);
+  const catalogShops = useMemo(() => {
+    const trimmed = query.trim();
+    if (!trimmed) return baseShops;
+    return searchShops(baseShops, trimmed, lang, 999, { rentcar: true });
+  }, [baseShops, query, lang]);
 
-  // Re-measure whenever the list length changes (a filter) or the language does
-  // (translated names wrap differently, so the same rows can be a different height).
+  const houseShops = useMemo(
+    () => catalogShops.filter((s) => shopHasHashtag(s, RENTCAR_HOUSE_TAG)),
+    [catalogShops],
+  );
+
+  const houseIds = useMemo(() => new Set(houseShops.map((s) => s.id)), [houseShops]);
+
+  const otherShops = useMemo(
+    () => catalogShops.filter((s) => !houseIds.has(s.id)),
+    [catalogShops, houseIds],
+  );
+
+  const visibleOthers = useMemo(() => {
+    if (shuttleFilter === 'all') return otherShops;
+    if (shuttleFilter === 'shuttle') return otherShops.filter(shopHasRentcarShuttle);
+    return otherShops.filter(shopHasRentcarNoShuttle);
+  }, [otherShops, shuttleFilter]);
+
+  const filterCounts = useMemo(
+    () => ({
+      all: otherShops.length,
+      shuttle: otherShops.filter(shopHasRentcarShuttle).length,
+      noShuttle: otherShops.filter(shopHasRentcarNoShuttle).length,
+    }),
+    [otherShops],
+  );
+
   useLayoutEffect(() => {
     const el = scrollRef.current;
     setCanScroll(!!el && el.scrollHeight > el.clientHeight + 1);
-  }, [visible.length, lang]);
+  }, [houseShops.length, visibleOthers.length, lang, shuttleFilter, query, lowReach]);
+
+  const applyKey = (action: KeyAction): void => {
+    const c = composer.current;
+    switch (action.type) {
+      case 'jamo':
+        c.inputJamo(action.value);
+        break;
+      case 'literal':
+        c.inputLiteral(action.value);
+        break;
+      case 'space':
+        c.inputLiteral(' ');
+        break;
+      case 'backspace':
+        c.backspace();
+        break;
+      case 'enter':
+        setFocused(false);
+        setQuery(c.value);
+        resetScroll();
+        return;
+    }
+    setQuery(c.value);
+  };
 
   const openDetail = (shop: Shop): void => {
     setDetail({
       from: 'rentcar',
       title: TITLE,
-      name: shopName(shop, lang),
-      category: shopSecondCategory(shop, lang),
-      photos: shopImages(shop),
-      address: shopAddress(shop, lang),
+      name: shopRentcarName(shop, lang),
+      category: shopRentcarSecondCategory(shop, lang),
+      photos: [],
+      address: shopRentcarAddress(shop, lang),
       hours: shop.openTime ?? '',
       phone: shop.tel ?? '',
-      description: shopDescription(shop, lang),
-      tags: shopHashtag(shop, lang),
-      rating: shop.naverRating != null ? String(shop.naverRating) : '',
+      description: '',
+      tags: '',
+      rating: '',
       instagram: '',
       blogReviews: shop.naverLink ?? '',
+      rentcarGuide: {
+        modeLabel: shopRentcarGuideModeLabel(shop, lang),
+        distanceKm: shopRentcarGuideDistanceKm(shop),
+        isShuttle: shopHasRentcarShuttle(shop),
+        isFerry: shopHasRentcarFerry(shop),
+      },
+      rentcarRoute: shop.route ?? null,
     });
     controller.navigate('detail', TITLE);
   };
 
-  const chosungRow = !showChosung ? null : (
-    <JejuChosungRow
-      className={`${styles.chosung} ${lowReach ? styles.chosungLow : ''}`}
-      cellWidth={CHOSUNG_CELL}
-      value={jamo}
-      onChange={(next) => {
-        setJamo(next);
-        // Re-filtering leaves the view scrolled into rows that no longer exist.
-        scrollRef.current?.scrollTo({ top: 0 });
-      }}
-    />
+  const cardBadge = (
+    shop: Shop,
+    forceDesk = false,
+  ): { label: string; variant: RentcarBadgeVariant } | null => {
+    if (forceDesk || shopHasHashtag(shop, RENTCAR_HOUSE_TAG)) {
+      return { label: pick(DESK_BADGE, lang), variant: 'primary' };
+    }
+    if (shopHasRentcarFerry(shop)) {
+      return { label: pick(FERRY_BADGE, lang), variant: 'ferry' };
+    }
+    if (shopHasRentcarShuttle(shop)) {
+      return { label: pick(FILTER_SHUTTLE, lang), variant: 'shuttle' };
+    }
+    if (shopHasRentcarRoad(shop)) {
+      return { label: pick(FILTER_NO_SHUTTLE, lang), variant: 'noShuttle' };
+    }
+    return null;
+  };
+
+  const renderCards = (
+    list: Shop[],
+    {
+      forceDeskBadge = false,
+      routeLine,
+      house = false,
+    }: { forceDeskBadge?: boolean; routeLine?: string; house?: boolean } = {},
+  ): JSX.Element => (
+    <div className={styles.list}>
+      {list.map((shop) => {
+        const badge = cardBadge(shop, forceDeskBadge);
+        return (
+          <JejuShopCard
+            key={shop.id}
+            shop={shop}
+            lang={lang}
+            query={query}
+            compact
+            rentcarApi
+            house={house}
+            badge={badge?.label}
+            badgeVariant={badge?.variant}
+            routeLine={routeLine}
+            onClick={() => openDetail(shop)}
+          />
+        );
+      })}
+    </div>
   );
 
-  return (
-    // No banner: the card list runs to the bottom of the artboard in this frame.
-    <JejuPageFrame controller={controller} title={TITLE} showBanner={false}>
-      {/* The 초성 row scrolls with the cards normally; in low-reach it is pulled
-          out of the column and pinned to the foot — see .chosungLow. */}
-      {lowReach && chosungRow}
-
-      <div
-        className={`${styles.scroll} ${lowReach ? styles.scrollLow : ''}`}
-        ref={scrollRef}
-      >
-        {!lowReach && chosungRow}
-
-        {visible.length > 0 ? (
-          <div className={styles.list}>
-            {visible.map((shop) => (
-              <JejuShopCard
-                key={shop.id}
-                shop={shop}
-                lang={lang}
-                onClick={() => openDetail(shop)}
-              />
-            ))}
-          </div>
-        ) : (
-          <p className={styles.empty}>
-            {pick(baseShops.length === 0 ? NO_DATA : NO_MATCH, lang)}
-          </p>
+  const searchControl = (
+    <div className={styles.searchRow}>
+      <div className={styles.searchField} role="button" onClick={() => setFocused(true)}>
+        <span className={`${styles.searchText} ${query ? styles.searchValue : ''}`}>
+          {query || pick(SEARCH_PLACEHOLDER, lang)}
+          {focused && <span className={styles.caret} />}
+        </span>
+        {jejuIconUrl('ico-search') && (
+          <img src={jejuIconUrl('ico-search')} alt="" className={styles.searchIcon} draggable={false} />
         )}
       </div>
+    </div>
+  );
 
-      {/* Right-margin ▲▼ pair, outside the scrolling region so it stays put
-          while the list moves under it — the same control, at the same
-          coordinates, as JejuListScreen and JejuSearch. */}
+  const filterControls =
+    otherShops.length > 0 ? (
+      <div className={styles.filters}>
+        {SHUTTLE_FILTERS.map((filter) => (
+          <button
+            key={filter}
+            type="button"
+            className={`${styles.chip} ${filter === shuttleFilter ? styles.chipActive : ''}`}
+            onClick={() => {
+              setShuttleFilter(filter);
+              resetScroll();
+            }}
+          >
+            <span className={styles.chipLabel}>{pick(FILTER_LABELS[filter], lang)}</span>
+            <span className={styles.chipCount}>{filterCounts[filter]}</span>
+          </button>
+        ))}
+      </div>
+    ) : null;
+
+  const controls = (
+    <>
+      {searchControl}
+      {filterControls}
+    </>
+  );
+
+  const catalogBody =
+    baseShops.length === 0 ? (
+      <p className={styles.empty}>{pick(NO_DATA, lang)}</p>
+    ) : catalogShops.length === 0 ? (
+      <p className={styles.empty}>{pick(SEARCH_NO_RESULT, lang)(query.trim())}</p>
+    ) : (
+      <>
+        {houseShops.length > 0 && (
+          <div className={styles.houseSection}>
+            <p className={styles.houseHeading}>{pick(HOUSE_HEADING, lang)(houseShops.length)}</p>
+            {renderCards(houseShops, {
+              forceDeskBadge: true,
+              routeLine: pick(RENTCAR_HOUSE_ROUTE, lang),
+              house: true,
+            })}
+          </div>
+        )}
+
+        {!lowReach && filterControls}
+
+        {visibleOthers.length > 0 ? (
+          renderCards(visibleOthers)
+        ) : otherShops.length > 0 ? (
+          <p className={styles.empty}>{pick(NO_MATCH, lang)}</p>
+        ) : null}
+      </>
+    );
+
+  return (
+    /* No banner. ♿ follows the 2026-08-26 mode-bar revision (6561:80628): bar at
+       the top, header at y113; search + shuttle filters pin to the foot. */
+    <JejuPageFrame
+      controller={controller}
+      title={TITLE}
+      showBanner={false}
+      lowReachModeBar
+      lowReachShift={113}
+    >
+      <div
+        className={`${styles.scroll} ${lowReach ? styles.scrollLow : ''}`}
+        style={lowReach ? { height: LOW_LIST_HEIGHT } : undefined}
+        ref={scrollRef}
+      >
+        {!lowReach && searchControl}
+        {catalogBody}
+      </div>
+
+      {lowReach && (
+        <div className={styles.controlsLow} style={{ top: LOW_CONTROLS_TOP }}>
+          {controls}
+        </div>
+      )}
+
       {canScroll && (
         <>
           <button
@@ -261,10 +466,17 @@ export function JejuRentcar({ controller }: Props): JSX.Element {
         </>
       )}
 
-      {/* Bottom-right ▲▼ (Group 1707482775, x2040 y3543) — the frame's corner
-          triangles, now a real scroll control; see JejuScrollHint. Only visible
-          here because this frame carries no banner. */}
-      <JejuScrollHint onUp={() => scrollBy(-SCROLL_STEP)} onDown={() => scrollBy(SCROLL_STEP)} />
+      {!lowReach && (
+        <JejuScrollHint onUp={() => scrollBy(-SCROLL_STEP)} onDown={() => scrollBy(SCROLL_STEP)} />
+      )}
+
+      <FloatingKeyboard
+        open={focused}
+        onKey={applyKey}
+        onClose={() => setFocused(false)}
+        lang={lang}
+        top={lowReach ? KEYBOARD_TOP_LOW : KEYBOARD_TOP}
+      />
     </JejuPageFrame>
   );
 }

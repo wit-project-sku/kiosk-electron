@@ -13,7 +13,7 @@ import type { KioskId, KioskLayoutId, KioskScreenId } from '../types/kiosk';
  * is electron-store (see KioskConfigStore), set per machine via provision-kiosk.ps1.
  * There is NO env override; one build serves every location.
  */
-export type KioskLocationCode = 'W001' | 'W002' | 'W003' | 'W004' | 'W005' | 'W006' | 'W007' | 'W008';
+export type KioskLocationCode = 'W001' | 'W002' | 'W003' | 'W004' | 'W005' | 'W006' | 'W007' | 'W008' | 'W202';
 
 export interface KioskLocationTile {
   screen: KioskScreenId;
@@ -43,8 +43,14 @@ export interface KioskLocation {
   /** React layout family — W001/W002 = INSADONG, W003 = NAM_INSADONG (separable
    *  design), W006/W007 = JEJU_AIRPORT (one 제주 design, two venues). */
   layout: KioskLayoutId;
-  /** The 2nd home-grid tile (the only home difference between locations). */
-  secondTile: KioskLocationTile;
+  /**
+   * The 2nd home-grid tile (the only home difference between locations).
+   *
+   * Optional because not every venue HAS a home grid: KADA (W202) draws a
+   * single bespoke home screen with one destination, so there is no slot for
+   * this to fill. Only InsadongHome consumes it.
+   */
+  secondTile?: KioskLocationTile;
   /** Has a physical card-payment terminal (남인사마당 W003, 오색시장 W004). */
   hasCardTerminal: boolean;
   /**
@@ -91,10 +97,11 @@ export interface KioskLocation {
    *
    * That has since been re-filed. Re-checked 2026-08-24: `?kioskId=6` now returns
    * the 310 rows, every one carrying `kioskId: 6`, and 7 and 8 answer with the
-   * same rows — the whole 제주 fleet reads one catalogue. W006's override is
-   * therefore redundant but still correct, so it stays rather than being changed
-   * on a live fleet; W007 needs none. Do NOT copy the override onto a new 제주
-   * kiosk without re-checking which number actually carries the rows.
+   * same rows — the whole 제주 fleet reads one catalogue. W006 uses its plain
+   * W-code number (6) so `/api/shops?route` distances match 제주공항; the old
+   * `shopApiKioskId: 7` override was dropped once 6 carried the rows again.
+   * Do NOT copy an override onto a new 제주 kiosk without re-checking which
+   * number actually carries the rows and the right route origin.
    *
    * This is SHOP-ONLY. The per-kiosk endpoints (`/api/kiosks/{n}/banners`,
    * `/buttons`, `/subtitles`, stats, update-command) still key off the W-code
@@ -123,6 +130,14 @@ const JEJU_TERMINAL_COORDS: GeoCoordinates = { lat: 33.5237, lon: 126.5427 };
  *  site at provisioning if the kiosk lands elsewhere in the complex. */
 const JEJU_HERITAGE_COORDS: GeoCoordinates = { lat: 33.4557, lon: 126.7126 };
 
+/**
+ * KADA W202 — Học viện Công nghệ Bưu chính Viễn thông (PTIT), Hà Đông, Hà Nội.
+ * The first deployment outside Korea, so this is the only entry whose weather
+ * query leaves the KMA's coverage; OpenWeatherMap answers for Hanoi the same way
+ * it does for the domestic venues.
+ */
+const KADA_COORDS: GeoCoordinates = { lat: 20.9806, lon: 105.7876 };
+
 const INSARANG_TILE: KioskLocationTile = { screen: 'insarang', label: '인사랑(준비중)', icon: 'insarang' };
 const MARKET_TILE: KioskLocationTile = { screen: 'market', label: '위드마켓', icon: 'market' };
 
@@ -149,7 +164,7 @@ export const KIOSK_LOCATIONS: Record<KioskLocationCode, KioskLocation> = {
   // then it sent 인사('2'), so 같이찍기 photos composited the Insadong character
   // while the screen next to them said "사진촬영 (with '하영')" — the UI has always
   // promised 하영 (see Photo_SelectTogether and the two 하영 home tiles).
-  W006: { code: 'W006', name: '제주공항', layout: 'JEJU_AIRPORT', secondTile: MARKET_TILE, hasCardTerminal: true, hasDonation: true, aiCompanion: '5', coordinates: JEJU_AIRPORT_COORDS, shopApiKioskId: 7, cameraRotation: 90 },
+  W006: { code: 'W006', name: '제주공항', layout: 'JEJU_AIRPORT', secondTile: MARKET_TILE, hasCardTerminal: true, hasDonation: true, aiCompanion: '5', coordinates: JEJU_AIRPORT_COORDS, cameraRotation: 90 },
   // 제주국제여객터미널 W007 — the CMS name is `#W007-제주시=제주국제여객터미널`. It runs
   // the SAME design as 제주공항: one JEJU_AIRPORT layout, one Localization_Jeju tab,
   // the same 하영 mascot rows, the same 310-row 제주 shop catalogue.
@@ -159,9 +174,8 @@ export const KIOSK_LOCATIONS: Record<KioskLocationCode, KioskLocation> = {
   // position 4 is 크루즈 운항 where W006 has 렌트카. Everything else — 기부 (hence
   // hasDonation), 탐나오, 지역화폐, TAX-FREE, the two 하영 tiles — is identical.
   //
-  // No `shopApiKioskId`: `/api/shops?kioskId=7` already answers with the 제주
-  // catalogue (310 rows), so the plain W-code number is right here. W006 keeps its
-  // override for the reason recorded on the `shopApiKioskId` field above.
+  // No `shopApiKioskId`: `/api/shops?kioskId=7` answers with the same 제주
+  // catalogue as 6/8; the plain W-code number (7) is right for this terminal.
   // `aiCompanion` is 하영('5'), exactly like W006 — same venue mascot, same
   // Localization_Jeju rows, and the two were always meant to move together.
   W007: { code: 'W007', name: '제주국제여객터미널', layout: 'JEJU_AIRPORT', secondTile: MARKET_TILE, hasCardTerminal: true, hasDonation: true, aiCompanion: '5', coordinates: JEJU_TERMINAL_COORDS, cameraRotation: 90 },
@@ -190,6 +204,21 @@ export const KIOSK_LOCATIONS: Record<KioskLocationCode, KioskLocation> = {
   // compositing 하영 would contradict the one rule this layout exists to enforce.
   // Revisit when Digicon ships a 유산 code.
   W008: { code: 'W008', name: '세계자연유산본부', layout: 'JEJU_HERITAGE', secondTile: MARKET_TILE, hasCardTerminal: true, hasDonation: true, aiCompanion: '2', coordinates: JEJU_HERITAGE_COORDS, cameraRotation: 90 },
+  // KADA W202 — Korea-ASEAN Digital Academy, Vietnam Chapter (PTIT, Hà Nội).
+  //
+  // The first NON-KOREAN deployment, and the first that is not a tourism kiosk.
+  // It is deliberately the thinnest entry in this table:
+  //   · no `secondTile`      — the KADA home is one bespoke screen, not a grid
+  //   · hasCardTerminal false — no TL-3800 ships with this machine
+  //   · hasDonation false     — 기부 is a Korean-market flow with no VN equivalent
+  //
+  // `aiCompanion` is 인사('2'). That is NOT a considered choice of character so
+  // much as the only safe one: Digicon's `together_with` enum has no KADA code,
+  // and '2' is what the AR server already defaults to when the field is absent,
+  // so sending it changes nothing. The KADA photo screen never offers 같이찍기
+  // (see KadaKiosk's PHOTO_MODES), so no visitor should ever see a composited
+  // mascot here — revisit only if that flow is switched on for this venue.
+  W202: { code: 'W202', name: 'Korea-ASEAN Digital Academy', layout: 'KADA', hasCardTerminal: false, hasDonation: false, aiCompanion: '2', coordinates: KADA_COORDS, cameraRotation: 0 },
 };
 
 /**
@@ -199,6 +228,15 @@ export const KIOSK_LOCATIONS: Record<KioskLocationCode, KioskLocation> = {
  */
 export function isJejuLayout(layout: KioskLayoutId): boolean {
   return layout === 'JEJU_AIRPORT' || layout === 'JEJU_HERITAGE';
+}
+
+/**
+ * True for the KADA design family (W202). Used wherever a subsystem built for
+ * the Korean venues has to be switched OFF rather than reconfigured — the CMS
+ * localization sheets, the buttons/banners catalogues, the 8-language selector.
+ */
+export function isKadaLayout(layout: KioskLayoutId): boolean {
+  return layout === 'KADA';
 }
 
 /** Resolve a location by kiosk id, falling back to W001 (북인사마당). */
