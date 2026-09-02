@@ -64,12 +64,37 @@ CROWN_MAX_SLABS = 4
 # it is a few percent, and correctly ignored.
 CROWN_TAPER_FRACTION = 0.25
 
+# How much empty height may sit inside one body before it counts as a gap.
+# 3 slabs is 6 cm — enough for hair or a dark fringe dropping out of a stereo
+# depth map, far less than the tens of centimetres between a head and whatever
+# is above it. See `estimate_crown`.
+MAX_CROWN_GAP_SLABS = 3
+
 # Floor-plane cell size for separating one visitor from another.
 CLUSTER_CELL_M = 0.15
 # A body point is attributed to a cluster if it stands within this of the
 # cluster's footprint centre — wide enough to catch outstretched arms.
 CLUSTER_RADIUS_M = 0.60
 MIN_CLUSTER_POINTS = 40
+
+# ── Telling a person from a room ───────────────────────────────────────────
+# A cluster of points above the floor is not automatically a visitor. Walls,
+# counters, pillars and furniture are all "above the floor", and in an indoor
+# scene they are the LARGEST such cluster by a wide margin — a first version of
+# this measured an office wall as a confident 230 cm visitor.
+#
+# Two cheap shape tests separate them, and neither needs a model:
+
+# How wide a standing person's TORSO footprint can be on the floor. A shoulder
+# span is ~0.5 m; 1.2 m leaves room for a heavy coat, a bag, or someone standing
+# at an angle, while a wall or counter runs to several metres.
+MAX_SUBJECT_FOOTPRINT_M = 1.2
+
+# A cluster whose crown lands at the very top of the body band never stopped —
+# it ran past where a person ends, so it is a wall or a pillar reaching the
+# ceiling, not a very tall visitor. Anything genuinely person-shaped resolves
+# below this.
+CEILING_REJECT_M = MAX_BODY_M - 2 * SLAB_M
 
 
 @dataclass(frozen=True)
@@ -92,13 +117,58 @@ def _slab_counts(heights: np.ndarray) -> tuple[np.ndarray, int]:
     return np.bincount(idx - lo, minlength=hi - lo), lo
 
 
-def estimate_crown(heights: np.ndarray) -> float | None:
+def body_top(heights: np.ndarray) -> float | None:
+    """Where the visitor's own mass stops, from the FULL cluster.
+
+    Indoors there is almost always something directly above a person's head — a
+    ceiling, a light fitting, a shelf — sitting inside the narrow head column
+    and still below MAX_BODY_M. A crown search that simply takes the highest
+    dense slab measures that instead, reads as a plausible 210-225 cm, and
+    drifts as the visitor shifts. That is exactly how it presented on the first
+    real-room test.
+
+    What separates them is CONTINUITY, and continuity has to be judged on the
+    whole cluster rather than the head column, because the column is sparse at
+    torso height by construction (a torso's surface projects to a wider radius
+    than the column's). So: start inside the torso band, which is certainly
+    body, and walk up until a real gap appears.
+
+    Returns the height where the body ends, or None if there is no torso.
+    """
+    counts, base = _slab_counts(heights)
+    if counts.size == 0:
+        return None
+
+    lo = int(TORSO_BAND_M[0] / SLAB_M) - base
+    hi = int(TORSO_BAND_M[1] / SLAB_M) - base
+    occupied = counts >= MIN_SLAB_POINTS
+    torso = np.flatnonzero(occupied[max(lo, 0) : max(hi, 0)])
+    if torso.size == 0:
+        return None
+
+    top = int(torso[-1]) + max(lo, 0)
+    gap = 0
+    for j in range(top + 1, counts.size):
+        if occupied[j]:
+            top = j
+            gap = 0
+        else:
+            gap += 1
+            if gap > MAX_CROWN_GAP_SLABS:
+                break
+    return (base + top + 1) * SLAB_M
+
+
+def estimate_crown(heights: np.ndarray, limit_m: float | None = None) -> float | None:
     """Height in metres of the top of the head, or None if no body is present.
 
     `heights` must already be restricted to the head column — see the module
     docstring. The density reference is the column's OWN typical slab, which
     here means a typical slab through head and neck; scaling against it is what
     lets a single threshold work at any standing distance.
+
+    `limit_m` is where the body stopped (see `body_top`); nothing above it is
+    considered, which is what keeps a ceiling out of the answer.
     """
     counts, base = _slab_counts(heights)
     if counts.size == 0:
@@ -110,7 +180,12 @@ def estimate_crown(heights: np.ndarray) -> float | None:
     reference = float(np.median(occupied))
 
     strict = max(float(MIN_SLAB_POINTS), HEAD_SLAB_FRACTION * reference)
-    solid = np.flatnonzero(counts >= strict)
+    passing = counts >= strict
+    if limit_m is not None:
+        # Nothing above where the body demonstrably stopped. See `body_top`.
+        slab_tops = (np.arange(counts.size) + base + 1) * SLAB_M
+        passing = passing & (slab_tops <= limit_m + 1e-9)
+    solid = np.flatnonzero(passing)
     if solid.size == 0:
         return None
     top = int(solid[-1])
@@ -163,15 +238,30 @@ def find_subjects(
     centres = _cluster_centres(xy[torso])
 
     subjects: list[Subject] = []
-    for centre in centres:
+    for centre, footprint in centres:
+        # A person's torso stands on a small patch of floor. A wall, counter or
+        # pillar does not, and indoors it is otherwise the most convincing
+        # "subject" in the scene — see MAX_SUBJECT_FOOTPRINT_M.
+        if footprint > MAX_SUBJECT_FOOTPRINT_M:
+            continue
+
         offset = np.linalg.norm(xy - centre, axis=1)
         near = offset <= CLUSTER_RADIUS_M
         if int(near.sum()) < MIN_CLUSTER_POINTS:
             continue
-        # The crown is searched in the head column only; the wider cluster is
-        # still what establishes that a person is standing here at all.
-        crown = estimate_crown(h[offset <= HEAD_COLUMN_RADIUS_M])
+        # Two stages, because each answers a question the other cannot:
+        # the full cluster is continuous, so it says where the BODY stops (and
+        # thus excludes a ceiling); the narrow column excludes raised arms, so
+        # it says where the HEAD is within that.
+        limit = body_top(h[near])
+        if limit is None:
+            continue
+        crown = estimate_crown(h[offset <= HEAD_COLUMN_RADIUS_M], limit_m=limit)
         if crown is None:
+            continue
+        # Ran to the top of the body band without ever thinning out: not a
+        # person, something that carries on past where a head would stop.
+        if crown >= CEILING_REJECT_M:
             continue
         subjects.append(
             Subject(
@@ -185,15 +275,20 @@ def find_subjects(
     return subjects
 
 
-def _cluster_centres(xy: np.ndarray) -> list[np.ndarray]:
-    """Grid flood-fill on the floor plane. Returns one centroid per cluster."""
+def _cluster_centres(xy: np.ndarray) -> list[tuple[np.ndarray, float]]:
+    """Grid flood-fill on the floor plane.
+
+    Returns one `(centroid, footprint)` per cluster, where footprint is the
+    larger side of its bounding box on the floor — the measurement that tells a
+    standing person from a wall. See MAX_SUBJECT_FOOTPRINT_M.
+    """
     cells = np.floor(xy / CLUSTER_CELL_M).astype(int)
     occupied: dict[tuple[int, int], list[int]] = {}
     for i, cell in enumerate(map(tuple, cells)):
         occupied.setdefault(cell, []).append(i)
 
     seen: set[tuple[int, int]] = set()
-    centres: list[np.ndarray] = []
+    clusters: list[tuple[np.ndarray, float]] = []
     for cell in occupied:
         if cell in seen:
             continue
@@ -209,8 +304,10 @@ def _cluster_centres(xy: np.ndarray) -> list[np.ndarray]:
                         seen.add(nb)
                         stack.append(nb)
         if len(members) >= MIN_CLUSTER_POINTS:
-            centres.append(xy[members].mean(axis=0))
-    return centres
+            pts = xy[members]
+            footprint = float((pts.max(axis=0) - pts.min(axis=0)).max())
+            clusters.append((pts.mean(axis=0), footprint))
+    return clusters
 
 
 def summarise(samples: list[float]) -> tuple[float, float] | None:

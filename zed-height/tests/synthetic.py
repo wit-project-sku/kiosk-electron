@@ -89,3 +89,47 @@ def place(
     # Camera 1.4 m above the floor, visitor "distance_m" in front of it.
     shifted = points - np.array([0.0, distance_m, 1.4])
     return shifted @ (rz @ rx).T
+
+
+def wall(rng: np.random.Generator, distance_m: float = 2.6, width_m: float = 4.0) -> np.ndarray:
+    """A flat vertical surface running from the floor past head height.
+
+    The thing a first version of this estimator confidently measured as a 230 cm
+    visitor. Indoors it is the largest above-the-floor cluster in the scene, so
+    any person-detection worth having has to reject it.
+    """
+    area = width_m * 2.6
+    n = int(area * DENSITY)
+    x = rng.uniform(-width_m / 2, width_m / 2, n)
+    z = rng.uniform(0.0, 2.6, n)
+    return np.stack([x, np.full(n, distance_m), z], axis=1)
+
+
+def counter(rng: np.random.Generator, centre_xy=(0.9, 0.0), height_m: float = 1.1) -> np.ndarray:
+    """A waist-high counter — wide, flat-topped, and standing on the floor."""
+    return _cylinder(rng, 0.5, 0.0, height_m, centre_xy)
+
+
+def gravity_in_camera_frame(tilt_deg: float = 0.0, roll_deg: float = 90.0) -> np.ndarray:
+    """The IMU reading a camera placed by `place()` would report.
+
+    World up is +z; an accelerometer at rest reads +g along it. Rotating that by
+    the same transform `place` applies gives what the real sensor would say, so
+    tests constrain the plane fit exactly the way the kiosk does.
+    """
+    return place(np.array([[0.0, 0.0, 9.81]]), tilt_deg=tilt_deg, roll_deg=roll_deg)[0] - place(
+        np.zeros((1, 3)), tilt_deg=tilt_deg, roll_deg=roll_deg
+    )[0]
+
+
+def ceiling(rng: np.random.Generator, height_m: float = 2.45, extent: float = 3.0) -> np.ndarray:
+    """A ceiling above the scene.
+
+    Indoors this sits directly over the visitor's head, inside the head column,
+    and under MAX_BODY_M — so a crown search that takes the highest passing slab
+    measures the ceiling instead of the person. It reads as a plausible
+    210-225 cm, which is how it went unnoticed until a real room was tried.
+    """
+    n = int(extent * extent * 4 * 2_000)
+    xy = rng.uniform(-extent, extent, size=(n, 2))
+    return np.column_stack([xy, np.full(n, height_m)])

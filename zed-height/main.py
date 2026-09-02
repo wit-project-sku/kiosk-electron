@@ -59,6 +59,7 @@ for _stream in (sys.stdout, sys.stderr):
 from estimator import Subject, find_subjects, summarise
 from geometry import (
     FloorFrame,
+    camera_is_above,
     finite_points,
     fit_plane_ransac,
     orient_up,
@@ -128,13 +129,19 @@ def calibrate(camera: ZedCamera) -> FloorFrame:
         points = finite_points(frame.points)
         if len(points) < 1000:
             continue
-        fit = fit_plane_ransac(points)
-        if fit is None:
-            continue
-        candidate = orient_up(*fit)
         if frame.gravity is not None:
             gravity = frame.gravity
+        # Gravity constrains the SEARCH, not just the result. Indoors a wall
+        # covers more of the depth image than the visible floor does, so an
+        # unconstrained fit lands on the wall — see fit_plane_ransac.
+        fit = fit_plane_ransac(points, gravity=gravity)
+        if fit is None:
+            continue
+        candidate = orient_up(*fit, gravity=gravity)
         if not plane_is_plausible_floor(candidate, gravity):
+            continue
+        # Level and gravity-aligned, but above the camera: a ceiling.
+        if not camera_is_above(candidate):
             continue
         fits.append(candidate)
 

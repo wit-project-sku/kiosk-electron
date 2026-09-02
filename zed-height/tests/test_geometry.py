@@ -3,18 +3,33 @@ import pytest
 
 from estimator import estimate_crown, find_subjects, summarise
 from geometry import FloorFrame, fit_plane_ransac, orient_up, plane_is_plausible_floor
-from tests.synthetic import floor, person, place
+from tests.synthetic import (
+    ceiling,
+    counter,
+    floor,
+    gravity_in_camera_frame,
+    person,
+    place,
+    wall,
+)
 
 ZONE = (0.8, 3.5)
 
 
 def build(rng, *people, roll_deg=90.0, tilt_deg=0.0, distance_m=2.0):
-    """A camera-frame cloud of a floor plus some visitors, and its fitted frame."""
+    """A camera-frame cloud of a floor plus some visitors, and its fitted frame.
+
+    Gravity is passed to the fit exactly as `calibrate()` does on real hardware.
+    Without it a scene containing a wall fits the WALL — it carries more points
+    than the visible floor — and every height afterwards is nonsense. Leaving it
+    out here would make the suite easier to pass and less like production.
+    """
     world = np.concatenate([floor(rng), *people], axis=0)
     cam = place(world, tilt_deg=tilt_deg, roll_deg=roll_deg, distance_m=distance_m)
-    fit = fit_plane_ransac(cam, rng=rng)
+    g = gravity_in_camera_frame(tilt_deg, roll_deg)
+    fit = fit_plane_ransac(cam, rng=rng, gravity=g)
     assert fit is not None
-    return cam, orient_up(*fit)
+    return cam, orient_up(*fit, gravity=g)
 
 
 def test_plane_fit_recovers_up_through_a_ninety_degree_mount():
@@ -126,3 +141,74 @@ def test_summary_median_ignores_bad_frames():
 
 def test_summary_refuses_too_few_frames():
     assert summarise([1.7, 1.7]) is None
+
+
+def test_a_wall_is_not_a_visitor():
+    """The bug this suite exists to prevent recurring.
+
+    A room's walls are the largest above-the-floor cluster in any indoor scene.
+    The first version of the estimator measured an office wall as a confident
+    230 cm visitor — the top of the body band, because it never stopped.
+    """
+    rng = np.random.default_rng(21)
+    cam, frame = build(rng, wall(rng))
+    assert find_subjects(frame, cam, *ZONE) == []
+
+
+def test_a_visitor_is_still_found_with_a_wall_behind_them():
+    rng = np.random.default_rng(22)
+    cam, frame = build(rng, person(rng, height_m=1.79), wall(rng, distance_m=3.2))
+    subjects = find_subjects(frame, cam, *ZONE)
+    assert len(subjects) == 1
+    assert subjects[0].height_m == pytest.approx(1.79, abs=0.03)
+
+
+def test_furniture_is_not_a_visitor():
+    """A counter is person-height and stands on the floor, but is far too wide."""
+    rng = np.random.default_rng(23)
+    cam, frame = build(rng, counter(rng))
+    assert find_subjects(frame, cam, *ZONE) == []
+
+
+def test_a_visitor_beside_furniture_is_measured_alone():
+    rng = np.random.default_rng(24)
+    cam, frame = build(rng, person(rng, height_m=1.62), counter(rng, centre_xy=(1.1, 0.0)))
+    subjects = find_subjects(frame, cam, *ZONE)
+    assert len(subjects) == 1
+    assert subjects[0].height_m == pytest.approx(1.62, abs=0.03)
+
+
+def test_the_ceiling_is_not_the_top_of_the_visitor():
+    """Found on real hardware: an office ceiling read as a 212-224 cm visitor.
+
+    The ceiling is directly above the head, inside the head column, and below
+    MAX_BODY_M. Only its separation from the body distinguishes it.
+    """
+    rng = np.random.default_rng(31)
+    cam, frame = build(rng, person(rng, height_m=1.79), ceiling(rng))
+    subjects = find_subjects(frame, cam, *ZONE)
+    assert len(subjects) == 1
+    assert subjects[0].height_m == pytest.approx(1.79, abs=0.03)
+
+
+def test_a_low_ceiling_still_does_not_become_the_visitor():
+    rng = np.random.default_rng(32)
+    cam, frame = build(rng, person(rng, height_m=1.62), ceiling(rng, height_m=2.15))
+    subjects = find_subjects(frame, cam, *ZONE)
+    assert len(subjects) == 1
+    assert subjects[0].height_m == pytest.approx(1.62, abs=0.03)
+
+
+def test_a_full_room_measures_only_the_person():
+    """Everything at once — the scene the kiosk actually stands in."""
+    rng = np.random.default_rng(33)
+    cam, frame = build(
+        rng,
+        person(rng, height_m=1.74, raised_arm_to=2.0),
+        wall(rng, distance_m=3.4),
+        ceiling(rng),
+        counter(rng, centre_xy=(1.2, 0.0)),
+    )
+    subjects = find_subjects(frame, cam, *ZONE)
+    assert len(subjects) == 1
+    assert subjects[0].height_m == pytest.approx(1.74, abs=0.03)

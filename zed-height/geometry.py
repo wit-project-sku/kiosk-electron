@@ -98,16 +98,38 @@ def fit_plane_ransac(
     iterations: int = 200,
     tolerance_m: float = 0.02,
     rng: np.random.Generator | None = None,
+    gravity: np.ndarray | None = None,
+    max_tilt_deg: float = 20.0,
 ) -> tuple[np.ndarray, float] | None:
     """RANSAC plane fit. Returns (unit normal, offset) or None.
 
     Preferred over the SDK's own `find_floor_plane` for one reason: it behaves
     identically against synthetic data, so the calibration step is testable
     without hardware and does not shift under a ZED SDK upgrade.
+
+    ── Why `gravity` matters more than it looks ───────────────────────────
+    RANSAC finds the plane with the most points on it, and indoors that is
+    frequently NOT the floor. A wall a couple of metres away fills far more of
+    a depth image than the strip of floor the camera can see, so a plain fit
+    lands on the wall, "up" comes out horizontal, and every height afterwards is
+    nonsense. Rejecting that afterwards is not enough — the fit has already
+    thrown away the floor.
+
+    So the IMU's gravity vector is used as a CONSTRAINT during the search: any
+    candidate plane more than `max_tilt_deg` from horizontal is never considered
+    in the first place. Without a gravity reading the search is unconstrained,
+    which is the old behaviour.
     """
     if len(points) < 3:
         return None
     rng = rng or np.random.default_rng(0)
+
+    up: np.ndarray | None = None
+    if gravity is not None:
+        g = np.asarray(gravity, dtype=float)
+        if np.linalg.norm(g) > 1e-6:
+            up = g / np.linalg.norm(g)
+    min_cos = np.cos(np.deg2rad(max_tilt_deg))
 
     best_inliers: np.ndarray | None = None
     best_count = 0
@@ -120,7 +142,15 @@ def fit_plane_ransac(
         if norm < 1e-9:
             continue
         normal = normal / norm
+        # Not level enough to be a floor — a wall, a door, a desk side.
+        if up is not None and abs(float(normal @ up)) < min_cos:
+            continue
         offset = -float(normal @ a)
+        # Level, but ABOVE the camera: a ceiling. Just as flat and just as
+        # tempting to RANSAC, and indoors it often carries more points than the
+        # sliver of floor in view.
+        if up is not None and not camera_is_above(orient_up(normal, offset, up)):
+            continue
         inliers = np.abs(points @ normal + offset) < tolerance_m
         count = int(inliers.sum())
         if count > best_count:
@@ -138,15 +168,47 @@ def fit_plane_ransac(
     return normal, -float(normal @ centroid)
 
 
-def orient_up(normal: np.ndarray, offset: float) -> FloorFrame:
-    """Flip the plane so "up" is the side the camera is on.
+def orient_up(normal: np.ndarray, offset: float, gravity: np.ndarray | None = None) -> FloorFrame:
+    """Point the plane's normal at the sky.
 
-    The camera sits at the origin and is always above the floor, so the sign of
-    the origin's signed distance settles it. Mount-agnostic by construction.
+    With a `gravity` reading this is exact: an accelerometer at rest measures
+    proper acceleration, which points UP, so the normal is flipped to agree with
+    it. That distinction matters more than it sounds — a CEILING is as flat and
+    as level as a floor, and fits just as well. Orienting by gravity leaves a
+    ceiling's normal pointing up too, which then puts the camera *below* the
+    plane and gives it a negative offset, so it can be recognised and rejected
+    (see `camera_is_above`). Orienting by "whichever side the camera is on"
+    cannot tell them apart at all: it silently turns a ceiling into an
+    upside-down floor, and every height afterwards is measured downwards from
+    it.
+
+    Without gravity it falls back to assuming the camera is above the plane,
+    which is the old behaviour and right whenever the plane really is the floor.
     """
+    if gravity is not None:
+        g = np.asarray(gravity, dtype=float)
+        if np.linalg.norm(g) > 1e-6:
+            up = g / np.linalg.norm(g)
+            if float(normal @ up) < 0:
+                return FloorFrame(normal=-normal, offset=-offset)
+            return FloorFrame(normal=normal, offset=offset)
     if offset < 0:
         return FloorFrame(normal=-normal, offset=-offset)
     return FloorFrame(normal=normal, offset=offset)
+
+
+# A camera mounted lower than this is not looking at a kiosk floor; a "floor"
+# found above the camera is a ceiling.
+MIN_CAMERA_HEIGHT_M = 0.30
+
+
+def camera_is_above(frame: FloorFrame) -> bool:
+    """Is the camera above this plane, i.e. can it be the floor?
+
+    The camera sits at the origin, so its height above the plane is exactly the
+    offset. A ceiling — correctly oriented by gravity — yields a negative one.
+    """
+    return frame.offset >= MIN_CAMERA_HEIGHT_M
 
 
 def plane_is_plausible_floor(
