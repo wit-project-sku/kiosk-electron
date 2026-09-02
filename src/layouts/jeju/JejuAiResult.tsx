@@ -82,10 +82,14 @@ interface Course {
 /**
  * The card blurb — sheet row per course; authored `course.desc` is the fallback.
  */
-const COURSE_DESC_KEYS = ['ACourseDesc3', 'BCourseDesc3', 'CCourseDesc3'] as const;
+const COURSE_DESC_KEY: Record<string, string> = {
+  nature: 'ACourseDesc3',
+  food: 'BCourseDesc3',
+  family: 'CCourseDesc3',
+};
 
-const courseDesc = (course: Course, i: number, lang: Lang): string =>
-  sheetText(COURSE_DESC_KEYS[i], lang, course.desc);
+const courseDesc = (course: Course, lang: Lang): string =>
+  sheetText(COURSE_DESC_KEY[course.key] ?? 'ACourseDesc3', lang, course.desc);
 
 const COURSES: Course[] = [
   {
@@ -274,7 +278,7 @@ export function JejuAiResult({ controller }: Props): JSX.Element {
 
           <span className={styles.courseSubtitle}>{pick(course.subtitle, lang)}</span>
           <span className={styles.courseTitle}>{pick(course.title, lang)}</span>
-          <span className={styles.desc}>{courseDesc(course, i, lang)}</span>
+          <span className={styles.desc}>{courseDesc(course, lang)}</span>
           <span className={styles.tags}>{pick(course.tags, lang)}</span>
 
           {jejuIconUrl(course.icon) && (
