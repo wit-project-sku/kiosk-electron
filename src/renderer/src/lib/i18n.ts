@@ -307,9 +307,9 @@ const TITLE_KEYS: Record<string, TitleKeySpec> = {
     title: ['MainButton_Airplane_Schedule', 'MainButton_Cruise'],
     sub: 'OP_Schedule_Subtitle',
   },
-  // Title stays on SCREEN_TITLES — `Main_Search` is the home-bar placeholder, not
-  // this page's name. Search_Result_Subtitle is the header description row.
-  검색: { title: '검색', sub: 'Search_Result_Subtitle' },
+  // Header id stays `검색`; title/sub come from Localization_Jeju. `Main_Search`
+  // is the home search-bar placeholder — not this page's title.
+  검색: { title: 'Search_Result_Title', sub: 'Search_Result_Subtitle' },
 };
 
 /**

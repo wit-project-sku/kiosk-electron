@@ -425,7 +425,7 @@ function rich(text: string): ReactNode {
  * "10% 할인가" / "최대 보유한도금액" / "200만원" is absent until someone adds them.
  */
 const SHEET_KEYS = {
-  tabs: { onnuri: 'LocalCurrency_Tab_1', tamna: 'LocalCurrency_Tab_2' },
+  tabs: { tamna: 'LocalCurrency_Tab_2', onnuri: 'LocalCurrency_Tab_1' },
   onnuri: {
     introBody: 'LocalCurrency_desc_2',
     paperLabel: 'LocalCurrency_desc_3',
