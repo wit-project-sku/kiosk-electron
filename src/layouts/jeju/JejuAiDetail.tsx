@@ -30,14 +30,10 @@
  * EVERY number is the authored placeholder again — see COURSE_META. The two
  * paths are never mixed: real numbers or authored ones, never half of each.
  *
- * ── The arrows page the LIST, they do not scroll it ─────────────────
- * A day can hold nine scheduled spots and the frame draws four, so the extra
- * ones have to go somewhere. They are PAGED, not scrolled: the ← → pair beside
- * the DAY label walks a flat run of pages, four cards each, and a day simply
- * contributes as many pages as it needs before the next day starts. That is
- * what the buttons are for — the design put them there precisely so this page
- * would never need a scrollbar, and a kiosk's spot list should not be something
- * a visitor has to drag.
+ * ── The arrows switch DAYS; the list scrolls within a day ─────────────
+ * Every stop scheduled for the visible day is drawn in one list. When a day
+ * holds more cards than fit below the DAY row, the list scrolls — the ← →
+ * pair only moves between days, never between pages of the same day.
  *
  * ★ One deliberate difference from the design on the API path: the summary's
  * third stat reads 이동시간 (real, summed `travelMinutes`) rather than the
@@ -45,9 +41,8 @@
  * authored "약 18Km" beside three real numbers is worse than an honest fourth.
  * The fallback path keeps 이동거리, where it is authored alongside the rest.
  */
-import { Fragment, useCallback, useEffect, useMemo, useState } from 'react';
+import { Fragment, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { CSSProperties } from 'react';
-import { QRCodeSVG } from 'qrcode.react';
 import type { KioskController } from '@renderer/hooks/useKioskController';
 import type { Shop } from '@shared/types/shop';
 import type { JejuCourse, JejuCourseSpot } from '@shared/types/jejuCourse';
@@ -75,7 +70,7 @@ import {
   courseLetter,
   difficultyLabel,
   interestCodes,
-  jejuCourseDayTitle,
+  jejuCourseNameWithDay,
   minutesLabel,
   aboutMinutesLabel,
   nightCount,
@@ -93,15 +88,11 @@ interface Props {
 }
 
 /**
- * Cards on one page — the four numbered stops the design draws, and the four
- * the numbered rail is sized for.
- *
- * It is a PAGE size, not a day size. The server schedules as many spots in a
- * day as its time budget allows (nine on day 1 of a two-day 자연 course, checked
- * 2026-08-25); those become three pages of this size rather than one long
- * scroll. The offline fallback still builds exactly one page per day.
+ * Offline fallback: up to this many spots drawn per day when the API is down.
+ * The live schedule is not capped here — every spot the server returns for the
+ * day lands in the scrollable list.
  */
-const SPOTS_PER_PAGE = 4;
+const OFFLINE_SPOTS_PER_DAY = 4;
 
 /**
  * Days on the OFFLINE fallback, from the 체류 기간 answer. The API returns its
@@ -114,52 +105,16 @@ const DAYS_BY_STAY: Record<string, number> = {
   '3박 이상': 4,
 };
 
-/* ── QR block under the itinerary — ♿ ONLY ────────────────────────────
-   The standard frame (6516:73138) puts the QR on the DAY row at a fixed y1395,
-   so none of this arithmetic applies there any more; it survives for the ♿
-   frame (6418:11330), which still draws the QR under the last card.
-
-   Derived from .listLow in the CSS (top 1423, height 2240) and the spot card
-   (height 515, gap 50), so the QR tracks the ACTUAL number of cards rather than
-   a baked y. It moves in BOTH directions: a thin day holds fewer cards than the
-   design's four and the QR rises to meet them, while a scheduled day can hold
-   nine — more than the list's 2240 viewport shows — and the QR would otherwise
-   be pushed off the artboard entirely. See `qrTopFor` for the clamp that stops
-   it. */
-const LIST_TOP = 1423;
 const CARD_HEIGHT = 515;
 const CARD_GAP = 50;
-/** Gap between the last card's bottom edge and the QR. */
-const QR_GAP = 30;
-/** The kiosk artboard. Nothing may be drawn below it — the frame clips. */
-const ARTBOARD_HEIGHT = 3840;
-/** QR frame side, and the round day arrow's, so the low-reach pair can centre on that row. */
-const QR_SIZE = 150;
-const ARROW_SIZE = 85;
-// The horizontal anchor is CSS-side: .qrRow uses `right: 172px`, which is
-// 2160 − (the cards' right edge at 1988), so the QR's right edge sits on the
-// cards'. Keep the two in step if the list geometry moves.
+const DISC_SIZE = 105;
 
-/**
- * Top of the QR row for `n` spot cards, never past the artboard.
- *
- * The floor of the clamp is where the QR's own bottom edge meets 3840 — this
- * page draws no banner, so that is the last usable row. Four cards land on the
- * design's own 3663 and the clamp is inert; nine cards would put it at 3843,
- * three past the edge and clipped, so it settles on 3690 just under the list's
- * scrolling viewport (which ends at 3663) instead.
- */
-const qrTopFor = (n: number): number =>
-  Math.min(
-    LIST_TOP + n * CARD_HEIGHT + Math.max(0, n - 1) * CARD_GAP + QR_GAP,
-    ARTBOARD_HEIGHT - QR_SIZE,
-  );
+/** Dashed rail height: from the first numbered disc to the last. */
+const railHeightFor = (n: number): number =>
+  n <= 1 ? 0 : (n - 1) * (CARD_HEIGHT + CARD_GAP);
 
-/**
- * Top of the low-reach day pager: vertically centred on the QR row, which is
- * where Figma 6418:11330 draws it (measured y3695 against a QR row at y3663).
- */
-const bottomPagerTopFor = (n: number): number => qrTopFor(n) + (QR_SIZE - ARROW_SIZE) / 2;
+/** Vertical offset of the first disc's centre inside a stop row. */
+const RAIL_TOP = (CARD_HEIGHT - DISC_SIZE) / 2 + DISC_SIZE / 2;
 
 /**
  * One round day-pager button — an 85px disc with a white chevron, #ff7f0f while
@@ -224,19 +179,6 @@ const T = {
     th: 'ไม่พบสถานที่สำหรับเส้นทางนี้\nลองเปลี่ยนความสนใจดู',
     ru: 'Места для маршрута не найдены.\nПопробуйте другие интересы.',
     id: 'Tidak ada tempat untuk rute ini.\nCoba minat yang lain.',
-  },
-  /** Label beside the QR under the last spot card. No sheet key exists for it
-   *  (Localization_Jeju has no 모바일 row), so it is authored here in all eight
-   *  languages — the pattern this file already uses for `empty`. */
-  viewOnMobile: {
-    ko: '모바일에서 확인하기',
-    en: 'View on your phone',
-    ja: 'スマホで確認する',
-    zh: '在手机上查看',
-    vi: 'Xem trên điện thoại',
-    th: 'ดูบนมือถือ',
-    ru: 'Открыть на телефоне',
-    id: 'Lihat di ponsel',
   },
 };
 
@@ -478,15 +420,13 @@ interface Stop {
   /** Null on the offline fallback, where there is no schedule to attach. */
   spot: JejuCourseSpot | null;
   /**
-   * The disc number — the stop's position within its DAY, not within its page.
-   * Page two of day one therefore reads 5·6·7·8, which is the whole point: the
-   * numbers name the itinerary, and paging is only how it is shown.
+   * The disc number — the stop's position within its DAY.
    */
   number: number;
 }
 
-/** One screenful: four cards at most, all belonging to the same day. */
-interface Page {
+/** One day's full itinerary — every scheduled stop, scrollable together. */
+interface DayItinerary {
   day: number;
   stops: Stop[];
 }
@@ -514,8 +454,9 @@ export function JejuAiDetail({ controller }: Props): JSX.Element {
   const totalTimeLabel = sheetText('TotalStayTime', lang, { ko: '총 소요시간' });
 
   const meta = COURSE_META[courseKey] ?? COURSE_META.nature!;
-  /** Index into `pages`, not a day number — a day can span several pages. */
-  const [pageIndex, setPageIndex] = useState(0);
+  /** Index into `days` — the ← → pair steps days, not pages within a day. */
+  const [dayIndex, setDayIndex] = useState(0);
+  const listRef = useRef<HTMLDivElement>(null);
   const lowReach = useAccessibilityStore((s) => s.lowReach);
 
   /**
@@ -596,98 +537,55 @@ export function JejuAiDetail({ controller }: Props): JSX.Element {
   // Offline only. Built for the whole trip and sliced per day so a spot never
   // appears twice; cheap enough not to gate on `course`.
   const fallbackSpots = useMemo(
-    () => buildSpots(interests, shops, SPOTS_PER_PAGE * fallbackDays),
+    () => buildSpots(interests, shops, OFFLINE_SPOTS_PER_DAY * fallbackDays),
     [interests, shops, fallbackDays],
   );
 
   /**
-   * The whole itinerary, cut into pages the arrows walk.
-   *
-   * A scheduled spot whose `shopId` is not in the catalogue is dropped rather
-   * than drawn as an empty card — the whole card is built from that row. In
-   * practice every id resolves (13/13 checked 2026-08-25 against
-   * `/api/shops?kioskId=6`); this is the guard for a catalogue that has not
-   * caught up with a newly-added place. A day left with no drawable stop still
-   * contributes ONE page, so the pager cannot skip a day silently.
+   * The itinerary grouped by day. Every stop the server scheduled for a day is
+   * kept together — the list below scrolls when there are more than fit on
+   * screen, rather than splitting a day across several pages.
    */
-  const pages: Page[] = useMemo(() => {
-    const out: Page[] = [];
-
+  const days: DayItinerary[] = useMemo(() => {
     if (course) {
-      for (const scheduled of course.schedule) {
-        const stops = scheduled.spots
+      return course.schedule.map((scheduled) => ({
+        day: scheduled.day,
+        stops: scheduled.spots
           .map((spot): Stop | null => {
             const shop = shopById.get(spot.shopId);
             return shop ? { shop, spot, number: spot.order } : null;
           })
-          .filter((stop): stop is Stop => stop !== null);
-        if (stops.length === 0) {
-          out.push({ day: scheduled.day, stops: [] });
-          continue;
-        }
-        for (let i = 0; i < stops.length; i += SPOTS_PER_PAGE) {
-          out.push({ day: scheduled.day, stops: stops.slice(i, i + SPOTS_PER_PAGE) });
-        }
-      }
-      return out;
+          .filter((stop): stop is Stop => stop !== null),
+      }));
     }
 
-    // Offline: exactly one page per day, which is what this page always drew.
-    for (let d = 1; d <= fallbackDays; d += 1) {
-      out.push({
-        day: d,
-        stops: fallbackSpots
-          .slice((d - 1) * SPOTS_PER_PAGE, d * SPOTS_PER_PAGE)
-          .map((shop, i) => ({ shop, spot: null, number: i + 1 })),
-      });
-    }
-    return out;
+    return Array.from({ length: fallbackDays }, (_, i) => ({
+      day: i + 1,
+      stops: fallbackSpots
+        .slice(i * OFFLINE_SPOTS_PER_DAY, (i + 1) * OFFLINE_SPOTS_PER_DAY)
+        .map((shop, j) => ({ shop, spot: null, number: j + 1 })),
+    }));
   }, [course, shopById, fallbackSpots, fallbackDays]);
 
   useEffect(() => {
-    // A shorter run than the page being viewed (a re-request, or the catalogue
-    // arriving late) must not leave the pager past the end.
-    setPageIndex((i) => Math.max(0, Math.min(i, pages.length - 1)));
-  }, [pages]);
+    setDayIndex((i) => Math.max(0, Math.min(i, days.length - 1)));
+  }, [days]);
 
-  const page = pages[pageIndex];
-  const stops = page?.stops ?? [];
-  /** The day the visible page belongs to — what the DAY label and header show. */
-  const day = page?.day ?? 1;
-  /** The header's course+day line, e.g. "A코스 - 1일차". */
-  const courseDayTitle = jejuCourseDayTitle(meta.label, day, lang);
+  useEffect(() => {
+    listRef.current?.scrollTo(0, 0);
+  }, [dayIndex]);
 
-  const goPrevPage = useCallback(() => setPageIndex((i) => Math.max(0, i - 1)), []);
-  const goNextPage = useCallback(
-    () => setPageIndex((i) => Math.min(pages.length - 1, i + 1)),
-    [pages.length],
-  );
+  const currentDay = days[dayIndex];
+  const stops = currentDay?.stops ?? [];
+  /** The day number the visible list belongs to — what the DAY label shows. */
+  const day = currentDay?.day ?? 1;
+  /** The header's course+day line, e.g. "자연·유산 탐방 코스 - 1일차". */
+  const courseDayTitle = jejuCourseNameWithDay(pick(meta.title, lang), day, lang);
 
-  /**
-   * Destination for the 모바일에서 확인하기 QR.
-   *
-   * TODO(제주 W006): there is no per-course mobile page anywhere in this project,
-   * so nothing exists that "the course on your phone" could point at. Until one
-   * does, this scans to the FIRST spot of the day — which matches what the sheet
-   * promises for this screen (SubHeader_AICourse: "QR을 핸드폰으로 찍으시면 길을
-   * 안내해드려요"). Point it at the real course URL the moment there is one.
-   *
-   * `naverLink` is the same field JejuSpotDetailCard scans, and it is validated
-   * the same way: rows carry blanks and occasional non-URLs.
-   */
-  const firstLink = stops[0]?.shop.naverLink ?? '';
-  const qrLink = /^https?:\/\//i.test(firstLink) ? firstLink : null;
-
-  /**
-   * Every stop of the VISIBLE DAY, in itinerary order.
-   *
-   * Paging is a display device — a day that does not fit in the list's 2240px
-   * viewport spills onto further pages — so anything that follows the itinerary
-   * rather than the screen has to walk this, not `stops`.
-   */
-  const dayStops = useMemo(
-    () => pages.filter((p) => p.day === day).flatMap((p) => p.stops),
-    [pages, day],
+  const goPrevDay = useCallback(() => setDayIndex((i) => Math.max(0, i - 1)), []);
+  const goNextDay = useCallback(
+    () => setDayIndex((i) => Math.min(days.length - 1, i + 1)),
+    [days.length],
   );
 
   /** How long the visitor spends here: the schedule's, or the authored placeholder offline. */
@@ -702,33 +600,17 @@ export function JejuAiDetail({ controller }: Props): JSX.Element {
   const hardnessOf = (stop: Stop): string => {
     const grade = stop.spot ? difficultyLabel(stop.spot.difficulty) : meta.spotDifficulty;
     if (!grade) return '';
-    // Was the Korean literal `난이도 ${grade}` — built from the same two tables
-    // the summary bar uses, so the word and its label localize together.
     return `${pick(STAT_LABEL.difficulty, lang)} ${pick(DIFFICULTY_WORD[grade] ?? { ko: grade }, lang)}`;
   };
 
   /** Falls back to the shared no-image placeholder, like the list and detail cards. */
   const photoOf = (stop: Stop): string => shopImages(stop.shop)[0] ?? jejuIconUrl('noimage') ?? '';
 
-  /**
-   * The DetailItem for `dayStops[i]`, with the stop AFTER it attached as
-   * `courseNext` — which is what JejuDetail draws as the 다음 장소 card under the
-   * 상세 plate (Figma 6289:58438 / 6516:72906). Recursive, so that card opens a
-   * detail carrying the one after it and a visitor can walk the whole day
-   * without returning here.
-   *
-   * Scoped to the DAY, deliberately: the detail's header subtitle is
-   * "A코스 - 1일차", so a card that quietly crossed into the next day would be
-   * captioned with the wrong one. The last stop of a day simply has no card.
-   *
-   * Built on demand rather than memoised — the depth is the day's spot count
-   * (nine at the worst observed) and it runs once per tap.
-   */
   const detailFor = (i: number): DetailItem | undefined => {
-    const stop = dayStops[i];
+    const stop = stops[i];
     if (!stop) return undefined;
     const { shop, spot } = stop;
-    const nextStop = dayStops[i + 1];
+    const nextStop = stops[i + 1];
     const nextItem = detailFor(i + 1);
     return {
       from: 'ai_detail',
@@ -753,6 +635,7 @@ export function JejuAiDetail({ controller }: Props): JSX.Element {
       rating: shop.naverRating != null ? String(shop.naverRating) : '',
       instagram: '',
       blogReviews: shop.naverLink ?? '',
+      rentcarRoute: shop.route ?? null,
       ...(nextStop && nextItem
         ? { courseNext: { dwell: dwellOf(nextStop), difficulty: hardnessOf(nextStop), item: nextItem } }
         : {}),
@@ -760,10 +643,7 @@ export function JejuAiDetail({ controller }: Props): JSX.Element {
   };
 
   const openSpot = (stop: Stop): void => {
-    // Identity lookup, not an index: `pages` holds one Stop object per stop and
-    // `dayStops` re-lists those same objects, so the tapped card is found even
-    // though the visible page is only a slice of the day.
-    const item = detailFor(dayStops.indexOf(stop));
+    const item = detailFor(stops.indexOf(stop));
     if (!item) return;
     setDetail(item);
     controller.navigate('detail', '코스 상세');
@@ -820,8 +700,6 @@ export function JejuAiDetail({ controller }: Props): JSX.Element {
       showBanner={false}
       onBack={() => controller.navigate('ai_result', '뒤로')}
     >
-      <p className={styles.title}>{pick(meta.title, lang)}</p>
-      <div className={styles.rule} />
       <p className={low(styles.tags, styles.tagsLow)}>{pick(meta.tags, lang)}</p>
       <p className={low(styles.desc, styles.descLow)}>{pick(meta.desc, lang)}</p>
 
@@ -849,14 +727,12 @@ export function JejuAiDetail({ controller }: Props): JSX.Element {
         </div>
       )}
 
-      {/* The pager. Always drawn — greyed at the ends, exactly as the Figma
-          shows the left one on the first screen — so the row never reflows.
-          It steps a PAGE at a time, which is a day boundary only when the day
-          fits on one page; see `pages`. */}
+      {/* The day pager. Always drawn — greyed at the ends on DAY 1 / the last
+          day — so the row never reflows. */}
       <DayArrow
         dir="prev"
-        disabled={pageIndex <= 0}
-        onClick={goPrevPage}
+        disabled={dayIndex <= 0}
+        onClick={goPrevDay}
         className={low(styles.dayPrev, styles.dayArrowLow)}
         lang={lang}
       />
@@ -865,97 +741,42 @@ export function JejuAiDetail({ controller }: Props): JSX.Element {
 
       <DayArrow
         dir="next"
-        disabled={pageIndex >= pages.length - 1}
-        onClick={goNextPage}
+        disabled={dayIndex >= days.length - 1}
+        onClick={goNextDay}
         className={low(styles.dayNext, styles.dayArrowLow)}
         lang={lang}
       />
 
-      {/* Nothing at all while the schedule is in flight: the empty copy tells
-          the visitor to change their interests, which would be wrong advice for
-          a course that is simply still arriving. */}
       {loading ? null : stops.length === 0 ? (
         <p className={styles.empty}>{pick(T.empty, lang)}</p>
       ) : (
-        <>
-          <div className={low(styles.rail, styles.railLow)} />
-
-          {/* ── The itinerary ──
-              Each numbered disc rides INSIDE the row with its own card rather
-              than being pinned to the page at a computed y. It had to move: the
-              four discs the design draws were fixed to the list's first four
-              rows, which was exact while this page built its own four-spot day
-              and wrong the moment a day could span pages — page two opens on
-              stops 5·6·7·8, and a disc nailed to row one can only ever say 1.
-              Flex centring reproduces the design's own offset exactly: a 105
-              disc centred on a 515 card is the 1628 against a list top of 1423
-              that the old STOP_TOP encoded. */}
-          <div className={low(styles.list, styles.listLow)}>
-            {stops.map((stop, i) => (
-              <div key={`${i}-${stop.shop.id}`} className={styles.stopRow}>
-                <span className={styles.stop}>{stop.number}</span>
-                {/* 1678, not the detail screen's 1793: the numbered disc and its
-                    35px gap take the first 140px of the list's 1818 gutter. */}
-                <JejuCourseSpotCard
-                  width={1678}
-                  photo={photoOf(stop)}
-                  name={shopName(stop.shop, lang)}
-                  category={shopSecondCategory(stop.shop, lang)}
-                  address={shopAddress(stop.shop, lang)}
-                  description={shopDescription(stop.shop, lang)}
-                  dwell={dwellOf(stop)}
-                  difficulty={hardnessOf(stop)}
-                  onClick={() => openSpot(stop)}
-                />
-              </div>
-            ))}
-          </div>
-
-          {/* 모바일에서 확인하기 — label left, QR right, the QR's right edge flush
-              with the cards' right edge and 30px below the last card.
-              Rendered only when there is a real destination: a QR that scans to
-              nothing is worse than no QR, which is how JejuSpotDetailCard treats
-              its own. See `qrLink`. */}
-          {qrLink && (
+        <div
+          ref={listRef}
+          className={low(styles.list, styles.listLow)}
+        >
+          {stops.length > 1 && (
             <div
-              className={styles.qrRow}
-              /* Standard: a fixed y1395 on the DAY row, set in the CSS. ♿ still
-                 hangs it off the last card, so only that layout computes a top. */
-              style={lowReach ? { top: qrTopFor(stops.length) } : undefined}
-            >
-              <span className={styles.qrLabel}>{pick(T.viewOnMobile, lang)}</span>
-              <span className={styles.qrFrame}>
-                <QRCodeSVG className={styles.qrCode} value={qrLink} bgColor="#ffffff" fgColor="#000000" level="M" />
-              </span>
+              className={styles.rail}
+              style={{ top: RAIL_TOP, height: railHeightFor(stops.length) }}
+            />
+          )}
+          {stops.map((stop, i) => (
+            <div key={`${i}-${stop.shop.id}`} className={styles.stopRow}>
+              <span className={styles.stop}>{stop.number}</span>
+              <JejuCourseSpotCard
+                width={1678}
+                photo={photoOf(stop)}
+                name={shopName(stop.shop, lang)}
+                category={shopSecondCategory(stop.shop, lang)}
+                address={shopAddress(stop.shop, lang)}
+                description={shopDescription(stop.shop, lang)}
+                dwell={dwellOf(stop)}
+                difficulty={hardnessOf(stop)}
+                onClick={() => openSpot(stop)}
+              />
             </div>
-          )}
-
-          {/* Low-reach day pager — the same two buttons repeated at the foot of
-              the page. Only for the ♿ layout: this page cannot be shifted down
-              the way JejuLanguage is (its list already runs to y3663), so the
-              reachable control is duplicated rather than moved. Multi-day
-              courses only; on a one-day course both ends are dead. */}
-          {lowReach && pages.length > 1 && (
-            <>
-              <DayArrow
-                dir="prev"
-                disabled={pageIndex <= 0}
-                onClick={goPrevPage}
-                className={styles.dayPrevBottom}
-                style={{ top: bottomPagerTopFor(stops.length) }}
-                lang={lang}
-              />
-              <DayArrow
-                dir="next"
-                disabled={pageIndex >= pages.length - 1}
-                onClick={goNextPage}
-                className={styles.dayNextBottom}
-                style={{ top: bottomPagerTopFor(stops.length) }}
-                lang={lang}
-              />
-            </>
-          )}
-        </>
+          ))}
+        </div>
       )}
     </JejuPageFrame>
   );

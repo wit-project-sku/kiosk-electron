@@ -25,7 +25,7 @@
  */
 
 /* ── Tabs (6249:32357 / 32290) ──
-   온누리상품권 leads; 탐나는전 is second. Both frames centre the row at x400. */
+   탐나는전 leads; 온누리상품권 is second. Both frames centre the row at x400. */
 .tabs {
   position: absolute;
   left: 400px;
@@ -38,13 +38,31 @@
 }
 
 .tab {
-  composes: pill from './JejuPill.module.css';
+  flex: 0 0 580px;
   width: 580px;
+  height: 170px;
+  box-sizing: border-box;
+  padding: 0 16px;
+  border: none;
+  border-radius: 42.9px;
+  background: #fff;
+  font-size: 50px;
+  font-weight: 500;
+  line-height: 1;
+  color: #999;
+  white-space: pre-line;
+  overflow: hidden;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
 }
 
 /* Picked: the solid brand plate with white Bold type (6249:32297 / 32360) —
    NOT JejuPill's pale #ffeac7-with-ring pillActive. This page's frames were the
-   last drawing that old picked look; the re-read replaced it. */
+   last drawing that old picked look; the re-read replaced it.
+
+   Defined inline (not `composes: pill`) so .tabActive always wins — composed
+   JejuPill rules were overriding background/color and the landing tab looked
+   idle even when tab === 'tamna'. */
 .tabActive {
   border: none;
   background: var(--kiosk-primary, #ff7f0f);

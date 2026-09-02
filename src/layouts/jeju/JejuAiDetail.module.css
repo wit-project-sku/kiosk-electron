@@ -3,17 +3,16 @@
  * 6289:55320 / 6289:55078 (-03-2).
  *
  * Fixed chrome down to the DAY row, then a paged spot list:
- *   693  course title (90px)       810  rule (w874)      824  hashtags
- *   926  course description        1049 summary bar (h150, r75)
- *   1235 answer pills (h130)       1395 QR row (h150, right)
- *   1427 DAY pager  1436 DAY label
- *   1575 spot list (four cards, 2210)   1880 timeline rail
+ *   670  hashtags (course title moved to header subtitle)
+ *   786  course description         909 summary bar (h150, r75)
+ *   1095 answer pills (h130)
+ *   1287 DAY pager  1296 DAY label
+ *   1435 scrollable spot list (all stops for the day)   rail inside list
  *
  * WHAT THE RE-STACK CHANGED, against the 2026-08-24 layout it replaces: the
  * summary bar rose 46 (1095 → 1049) to open a slot at 1235 for a row of pills
- * echoing the questionnaire; the QR came OFF the foot of the list and onto the
- * DAY row at a fixed y1395, so it no longer tracks the card count; and the DAY
- * row and list moved down (1300 → 1436, 1423 → 1575).
+ * echoing the questionnaire; and the DAY row and list moved down
+ * (1300 → 1436, 1423 → 1575).
  *
  * ♿ IS NOT ON THIS REVISION. Its frame (6418:11330) still draws the old stack,
  * so the *Low rules at the foot of this file put those seven rows back rather
@@ -21,10 +20,8 @@
  *
  * The numbered circles at x170 are rows of the list itself rather than discs
  * pinned to the page, so each one always sits beside the card it numbers. It
- * has to work that way now the list is PAGED: the server schedules as many
- * spots in a day as the time budget allows (nine on day 1 of a two-day 자연
- * course), those spill onto further pages, and page two of a day opens on stops
- * 5·6·7·8 — which a disc fixed at the first row could never say.
+ * has to work that way now the list scrolls: every stop for the day is drawn
+ * in one column and the visitor scrolls when there are more than fit on screen.
  *
  * NORMALISED: the hashtag line's Figma box is centred on x1124.5 while the
  * title, rule and description above it are all on 1080; it is centred here.
@@ -32,35 +29,10 @@
  * is the frame where the label has to sit between the two arrow buttons
  * (1291..1376), and it centres on them exactly.
  */
-.title {
-  position: absolute;
-  left: 0;
-  top: 693px;
-  width: 2160px;
-  margin: 0;
-  font-size: 90px;
-  font-weight: 700;
-  line-height: 1;
-  color: #000;
-  text-align: center;
-}
-
-/* Underline beneath the course title. The 제주 primary, not the #e8e8e8 grey the
-   other rules on this page use — this one is an accent, not a separator. */
-.rule {
-  position: absolute;
-  left: 50%;
-  top: 810px;
-  width: 874px;
-  height: 3px;
-  transform: translateX(-50%);
-  background: var(--kiosk-primary, #ff7f0f);
-}
-
 .tags {
   position: absolute;
   left: 0;
-  top: 824px;
+  top: 670px;
   width: 2160px;
   margin: 0;
   font-size: 45px;
@@ -77,7 +49,7 @@
 .desc {
   position: absolute;
   left: 50%;
-  top: 926px;
+  top: 786px;
   width: 1820px;
   transform: translateX(-50%);
   margin: 0;
@@ -94,7 +66,7 @@
 .summary {
   position: absolute;
   left: 170px;
-  top: 1049px;
+  top: 909px;
   width: 1820px;
   height: 150px;
   border-radius: 75px;
@@ -158,7 +130,7 @@
   position: absolute;
   pointer-events: none;
   left: 0;
-  top: 1436px;
+  top: 1296px;
   width: 2160px;
   margin: 0;
   font-size: 68px;
@@ -168,14 +140,10 @@
   text-align: center;
 }
 
-/* ── Day swiper: 85×85 round chevron buttons either side of the DAY label ──
-   The redesign (6418:11330) replaced the old bare 59×68 triangles with filled
-   circles carrying a white chevron: #ff7f0f when the day exists, #999 when it
-   does not — the frame shows the left one grey on DAY 1. x866 / x1209, y1427
-   (6418:11598/11599); symmetric about x1080. */
+/* ── Day swiper: 85×85 round chevron buttons either side of the DAY label ── */
 .dayArrow {
   position: absolute;
-  top: 1427px;
+  top: 1287px;
   width: 85px;
   height: 85px;
   padding: 0;
@@ -192,17 +160,6 @@
 .dayPrev { left: 866px; }
 .dayNext { left: 1209px; }
 
-/* ── Low-reach day pager ──
-   A SECOND copy of the same two buttons at the foot of the page, drawn only
-   while the ♿ layout is on. This page is far too tall to shift the way
-   JejuLanguage does, so the accessible affordance is a reachable DUPLICATE of
-   the control rather than a moved one: a seated visitor can page the days
-   without reaching y1291. The pair is centred on the artboard (85 + 30 gap +
-   85 = 200 → x980 / x1095) and `top` is set inline, centred on the QR row so
-   it tracks the real card count — see bottomPagerTopFor() in the TSX.
-   Measured off the 1:1 render of Figma 6418:11330 at y3695. */
-.dayPrevBottom { left: 980px; }
-.dayNextBottom { left: 1095px; }
 
 .dayArrowIcon {
   display: block;
@@ -210,17 +167,14 @@
   height: 100%;
 }
 
-/* ── Timeline rail: dashed line + numbered stops ──
-   Circles sit at x170; the dashed line (Figma x222, y1880, h1687) runs behind
-   them. */
+/* ── Timeline rail: dashed line through the numbered stops (inside .list). */
 .rail {
   position: absolute;
-  left: 220px;
-  top: 1880px;
+  left: 50px;
   width: 5px;
-  height: 1687px;
   border-left: 5px dashed var(--kiosk-primary, #ff7f0f);
   opacity: 0.5;
+  pointer-events: none;
 }
 
 /*
@@ -248,27 +202,27 @@
   text-align: center;
 }
 
-/* ── Spot list — PAGED, never scrolled ── */
+/* ── Spot list — all stops for the day, scrollable ── */
 .list {
   position: absolute;
-  /* Starts at the disc gutter rather than the card edge, because the discs are
-     rows of this list now — the cards still begin at the design's 310. */
   left: 170px;
-  top: 1575px;
+  top: 1435px;
   width: 1818px;
-  /* Exactly four cards: 4×515 + 3×50. */
-  height: 2210px;
+  max-height: calc(3840px - 1435px);
   display: flex;
   flex-direction: column;
   gap: 50px;
-  /*
-   * Deliberately NOT scrollable. Four cards (4×515 + 3×50 = 2210) fit inside
-   * this box, and a day with more spots than that is paged by the ← → pair
-   * beside the DAY label rather than dragged — that is what those buttons are
-   * for. `hidden` is the backstop: nothing here should ever exceed the box, and
-   * if something does it must be visibly wrong rather than quietly scrollable.
-   */
-  overflow: hidden;
+  padding-bottom: 100px;
+  box-sizing: border-box;
+  overflow-x: hidden;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+
+.list::-webkit-scrollbar {
+  width: 0;
+  height: 0;
 }
 
 /* The spot card itself (the 515px white plate) moved to
@@ -276,62 +230,11 @@
    under the spot detail too. Only the list geometry above is still here. */
 
 
-/* ── 모바일에서 확인하기 QR ─────────────────────────────────────────────
-   Anchored by `right`, not `left`, so the QR's right edge lines up with the
-   cards' right edge (310 + 1678 = 1988 → 2160 − 1988 = 172) no matter how wide
-   the label runs — a left-anchored row would drift as the label is translated.
-   (The frame puts it at 1985; the 3px is Figma's own centring rounding, and
-   sitting flush with the cards is what the row is for.)
-
-   The 2026-08-26 pass moved it OFF the foot of the list and onto the DAY row —
-   a fixed y1395, no longer a function of how many cards the page drew. ♿ still
-   has it under the last card and sets `top` inline; see qrTopFor(). */
-.qrRow {
-  position: absolute;
-  right: 172px;
-  top: 1395px;
-  display: flex;
-  align-items: center;
-  gap: 32px;
-}
-
-.qrLabel {
-  font-size: 40px;
-  font-weight: 700;
-  line-height: 1;
-  letter-spacing: 0.4px;
-  color: #5d5d5d;
-  white-space: nowrap;
-}
-
-/* A bare 150×150 code — NO orange frame. That stroke belongs to the 상세 card's
-   QR (JejuSpotDetailCard), not to this one; this screen draws the code straight
-   onto the page. */
-.qrFrame {
-  flex: 0 0 auto;
-  width: 150px;
-  height: 150px;
-  box-sizing: border-box;
-  background: #fff;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-/* Quiet zone: 117 inside the 150 box leaves 16.5px of white on each side —
-   the same margin the old bordered frame gave, so scan reliability is
-   unchanged by dropping the border. */
-.qrCode {
-  width: 117px;
-  height: 117px;
-  display: block;
-}
-
 /* ── Empty state ── */
 .empty {
   position: absolute;
   left: 310px;
-  top: 1700px;
+  top: 1560px;
   width: 1678px;
   margin: 0;
   font-size: 55px;
@@ -352,7 +255,7 @@
 .picks {
   position: absolute;
   left: 170px;
-  top: 1235px;
+  top: 1095px;
   width: 1820px;
   height: 130px;
   display: flex;
@@ -394,14 +297,13 @@
  *
  * The pill row has no ♿ counterpart and simply is not drawn there.
  */
-.tagsLow { top: 831px; }
-.descLow { top: 925px; }
-.summaryLow { top: 1095px; }
-.dayLow { top: 1300px; }
-.dayArrowLow { top: 1291px; }
-.railLow { top: 1705px; }
+.tagsLow { top: 677px; }
+.descLow { top: 785px; }
+.summaryLow { top: 955px; }
+.dayLow { top: 1160px; }
+.dayArrowLow { top: 1151px; }
 
 .listLow {
-  top: 1423px;
-  height: 2240px;
+  top: 1283px;
+  max-height: calc(3840px - 1283px);
 }

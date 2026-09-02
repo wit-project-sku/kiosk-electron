@@ -12,9 +12,8 @@
   left: 170px;
   top: 700px;
   width: 1820px;
-  /* Default Figma height for 검색 / AI-course frames. Rentcar and the
-     뭐먹지·뭐사지·숙박안내 revisions use `.cardAuto` so the plate grows with
-     the route panel instead of clipping or leaving a fixed void. */
+  /* Default Figma height for 검색 상세. Scrollable variants use `.cardFixedScroll`
+     (max h-2133) or `.cardFixedScrollTall` (max h-2400) and shrink when shorter. */
   height: 2133px;
   box-sizing: border-box;
   /* Top-anchored 28px below the border, NOT centred. The card was
@@ -136,17 +135,30 @@
   display: block;
 }
 
-/* Content-driven height — rentcar + 뭐먹지/뭐사지/숙박안내 상세. */
-.cardAuto {
+/* In-card scroll — grows with content up to a cap, then scrolls inside. */
+.cardFixedScroll {
   height: auto;
   min-height: 0;
+  max-height: 2133px;
+  overflow-x: hidden;
+  overflow-y: auto;
 }
 
-/* Inside JejuDetail's scroll viewport — normal flow, not artboard-absolute. */
-.cardInScroll {
-  position: relative;
-  left: auto;
-  top: auto;
+.cardFixedScrollTall {
+  max-height: 2400px;
+}
+
+.cardFixedScroll::-webkit-scrollbar {
+  width: 34.32px;
+}
+
+.cardFixedScroll::-webkit-scrollbar-thumb {
+  background: var(--kiosk-primary, #ff7f0f);
+  border-radius: 17.16px;
+}
+
+.cardFixedScroll::-webkit-scrollbar-track {
+  background: transparent;
 }
 
 .cardRentcar .head {

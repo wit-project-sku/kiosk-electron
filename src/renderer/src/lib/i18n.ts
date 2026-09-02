@@ -299,24 +299,17 @@ const TITLE_KEYS: Record<string, TitleKeySpec> = {
   "안녕 '유산'": { title: 'MainButton_Greeting', sub: 'Greeting_Introduce' },
   "도와줘 ‘유산’": { title: 'MainButton_ToHelp', sub: 'SubHeader_ToHelp' },
   "제주도 이벤트": { title: 'MainButton_Event', sub: 'SubHeader_Event' },
-  // ── The four descriptions that used to print 페이지 설명문 ──────────────
-  // Each of these ids carried a title mapping but no `sub`, so JejuHeader fell
-  // through to its Figma placeholder. The sheet HAS a row for every one of them;
-  // it was simply never wired up. RentCar_Subtitle and Tamnao_Subtitle are
-  // Korean-only, so SUBTITLE_OVERRIDES fills their other seven languages;
-  // OP_Schedule_Subtitle and SubHeader_Detail are already 8/8.
   "렌트카": { title: 'MainButton_RentCar', sub: 'RentCar_Subtitle' },
-  "운항정보": { title: 'MainButton_Cruise', sub: 'OP_Schedule_Subtitle' },
-  // 상세 is NOT mapped here even though 제주's sheet has SubHeader_Detail: 상세 is
-  // also Insadong's and 오산's header id for their own detail pages, and this map
-  // is shared by every layout. JejuDetail resolves that key itself (its
-  // `detailSubtitle`), so the copy reaches 제주's page and nobody else's.
-  //
-  // NOTE: 검색 is deliberately NOT mapped either. The 제주 sheet's only search key
-  // is `Main_Search`, whose value is the home search-bar PLACEHOLDER
-  // ("제주도에 대해 검색해보세요!") — mapping it would print that whole sentence as
-  // the page title. 검색 resolves through SCREEN_TITLES instead, and its
-  // description comes from JejuSearch as a prop.
+  탐나오: { title: 'MainButton_Tamnao', sub: 'Tamnao_Subtitle' },
+  // W006 reads MainButton_Airplane_Schedule, W007 MainButton_Cruise — same header
+  // id (운항정보), different title rows. OP_Schedule_Subtitle is the page copy.
+  "운항정보": {
+    title: ['MainButton_Airplane_Schedule', 'MainButton_Cruise'],
+    sub: 'OP_Schedule_Subtitle',
+  },
+  // Header id stays `검색`; title/sub come from Localization_Jeju. `Main_Search`
+  // is the home search-bar placeholder — not this page's title.
+  검색: { title: 'Search_Result_Title', sub: 'Search_Result_Subtitle' },
 };
 
 /**
