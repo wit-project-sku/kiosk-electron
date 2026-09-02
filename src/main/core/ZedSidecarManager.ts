@@ -28,6 +28,7 @@ import { join } from 'node:path';
 import { spawn, type ChildProcess } from 'node:child_process';
 import { app } from 'electron';
 import { createLogger } from './logger';
+import { NdjsonBuffer } from './ndjson';
 
 const log = createLogger('zed-sidecar');
 
@@ -61,8 +62,7 @@ export class ZedSidecarManager {
   private stopped = false;
   private consecutiveFailures = 0;
   private gaveUp = false;
-  /** Partial stdout line carried across chunk boundaries. */
-  private buffer = '';
+  private readonly buffer = new NdjsonBuffer();
   private readonly listeners = new Set<EventListener>();
 
   subscribe(listener: EventListener): () => void {
@@ -128,7 +128,9 @@ export class ZedSidecarManager {
 
       child.on('exit', (code) => {
         this.child = null;
-        this.buffer = '';
+        // Whatever it was midway through writing is incomplete by definition;
+        // keeping it would prepend garbage to the replacement's first line.
+        this.buffer.reset();
         if (this.stopped) {
           log.info('Height sidecar stopped');
           return;
@@ -166,27 +168,16 @@ export class ZedSidecarManager {
     }
   }
 
-  /**
-   * Split stdout into protocol lines.
-   *
-   * Buffered across chunks because a pipe splits wherever it likes, and a
-   * result arriving as two writes must not be parsed as two broken ones.
-   */
+  /** Turn stdout into protocol events. Reassembly lives in NdjsonBuffer. */
   private onStdout(chunk: string): void {
-    this.buffer += chunk;
-    const lines = this.buffer.split('\n');
-    this.buffer = lines.pop() ?? '';
-
-    for (const line of lines) {
-      const trimmed = line.trim();
-      if (!trimmed) continue;
+    for (const line of this.buffer.push(chunk)) {
       let event: SidecarEvent;
       try {
-        event = JSON.parse(trimmed) as SidecarEvent;
+        event = JSON.parse(line) as SidecarEvent;
       } catch {
         // Anything unparseable on stdout is a sidecar bug (diagnostics belong on
         // stderr), but it must never take the supervisor down with it.
-        log.warn('Unparseable line from height sidecar', { line: trimmed.slice(0, 200) });
+        log.warn('Unparseable line from height sidecar', { line: line.slice(0, 200) });
         continue;
       }
       for (const listener of this.listeners) {

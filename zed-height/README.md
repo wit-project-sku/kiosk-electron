@@ -61,7 +61,7 @@ IMU's gravity vector is used only to reject a fit that landed on a wall.
 ## Check it against real people
 
 ```
-python main.py --selftest
+npm run height:camera
 ```
 
 Prints a live per-frame estimate, a running median, and the subject count. Stand
@@ -124,11 +124,30 @@ length is the whole reason a median works.
 
 `geometry.py` and `estimator.py` take plain numpy arrays and know nothing about
 the SDK, so the measurement itself is tested against synthetic bodies on a
-machine with no camera and no CUDA:
+machine with no camera and no CUDA.
+
+| command | needs a ZED? | |
+|---|---|---|
+| `npm run height:test` | no | the measurement maths, against synthetic bodies |
+| `npm run height:selftest` | no | the app-side plumbing (`scripts/height-selftest.mjs`) |
+| `npm run height:calibrate` | **yes** | fit and save the floor plane |
+| `npm run height:camera` | **yes** | live estimates, to check against a tape measure |
+
+Only `height:selftest` is pure Node. The three `python` ones run whatever `python`
+resolves to on PATH, which on a developer machine is very often **not** the
+interpreter with numpy and pyzed in it — a `No module named pytest` from
+`height:test` almost always means PATH, not a broken test. Point them at the
+right one, or make a local venv for the two that need no camera:
 
 ```
-python -m pytest tests -q
+cd zed-height
+python -m venv .venv
+.venv\Scripts\python -m pip install numpy pytest
+.venv\Scripts\python -m pytest tests -q
 ```
+
+On a kiosk the interpreter must be the one the ZED SDK's `get_python_api.py`
+installed pyzed into; `HEIGHT_PYTHON` tells the app which that is.
 
 `tests/synthetic.py` builds bodies of known height at constant surface density,
 which is what makes them a fair test: the estimator's premise is that a slab

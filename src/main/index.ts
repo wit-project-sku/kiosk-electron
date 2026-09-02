@@ -258,6 +258,10 @@ async function bootstrap(): Promise<void> {
   // missing ZED SDK, an unplugged camera or a crashed child costs a null height
   // and never touches the photo flow.
   container.height.start();
+  // 키 측정 rows are one per capture, so unlike 유동인구's hourly buckets they grow
+  // with how busy the kiosk is. Pruned on the same 02:00 pass that refreshes
+  // content, rather than on a scheduler of its own.
+  container.sync.addNightTask(() => container.height.pruneOldMeasurements());
 
   // Refresh sheet content into SQLite in the background on every launch (in
   // addition to the 02:00 night sync). The current window already rendered from

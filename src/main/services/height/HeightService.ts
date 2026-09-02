@@ -8,9 +8,21 @@ import type { HeightRepository } from '@main/database/repositories/HeightReposit
 // Local-time helpers, shared with 유동인구. Same reasoning applies here: "which
 // hour did this visitor come through" is a question about the wall clock behind
 // the kiosk, and bucketing in UTC would split every Korean day across two dates.
-import { localDateOf, localIso } from '@main/services/footfall/time';
+import { localDateDaysBefore, localDateOf, localIso } from '@main/services/footfall/time';
+import { finiteOrNull, isCameraLive, toMeasurement } from './captureWindow';
 
 const log = createLogger('height');
+
+/**
+ * How long a measurement is kept. Matches FOOTFALL_RETENTION_DAYS — the two are
+ * the same kind of anonymous venue analytics and there is no reason for a kiosk
+ * to hold one longer than the other.
+ *
+ * This table is one row per capture rather than 유동인구's one row per hour, so
+ * it grows with how busy the kiosk is; at a few hundred photos a day that is
+ * housekeeping rather than disk pressure, but unbounded is still wrong.
+ */
+const RETENTION_DAYS = 180;
 
 /**
  * 키 측정 — anonymous visitor-height analytics. 제주 only.
@@ -84,11 +96,30 @@ export class HeightService {
   onPhotoWorkflowChanged(state: PhotoWorkflowState): void {
     if (!this.enabled) return;
 
-    const cameraLive = state.phase === 'preview' || state.phase === 'countdown';
+    const cameraLive = isCameraLive(state.phase);
     if (cameraLive === this.sampling) return;
 
     this.sampling = cameraLive;
     this.sidecar.send({ cmd: cameraLive ? 'start' : 'stop' });
+  }
+
+  /**
+   * Drop measurements past the retention window.
+   *
+   * Registered as a night task rather than run on a timer of its own: the
+   * nightly sync already owns "things the kiosk does at 02:00 when nobody is
+   * using it", and a DELETE over an indexed column is not worth a second
+   * scheduler. Best-effort — a failed prune is not worth waking anyone for, and
+   * tomorrow's run will clear the same rows.
+   */
+  async pruneOldMeasurements(): Promise<void> {
+    if (!this.enabled) return;
+    try {
+      const removed = this.repo.pruneBefore(localDateDaysBefore(RETENTION_DAYS));
+      if (removed > 0) log.info('Pruned old height measurements', { removed });
+    } catch (error) {
+      log.warn('Height prune failed', error);
+    }
   }
 
   private onSidecarEvent(event: SidecarEvent): void {
@@ -97,7 +128,7 @@ export class HeightService {
         this.runtime = {
           ...this.runtime,
           calibrated: Boolean(event['calibrated']),
-          cameraHeightM: numberOrNull(event['cameraHeightM']),
+          cameraHeightM: finiteOrNull(event['cameraHeightM']),
           lastError: null,
         };
         log.info('Height sidecar ready', {
@@ -116,7 +147,7 @@ export class HeightService {
         this.runtime = {
           ...this.runtime,
           calibrated: true,
-          cameraHeightM: numberOrNull(event['cameraHeightM']),
+          cameraHeightM: finiteOrNull(event['cameraHeightM']),
         };
         log.info('ZED floor calibrated', { cameraHeightM: this.runtime.cameraHeightM });
         break;
@@ -168,16 +199,3 @@ export class HeightService {
   }
 }
 
-function numberOrNull(value: unknown): number | null {
-  return typeof value === 'number' && Number.isFinite(value) ? value : null;
-}
-
-function toMeasurement(event: SidecarEvent): HeightMeasurement {
-  return {
-    heightCm: numberOrNull(event['heightCm']),
-    confidence: typeof event['confidence'] === 'number' ? event['confidence'] : 0,
-    samples: typeof event['samples'] === 'number' ? event['samples'] : 0,
-    subjects: typeof event['subjects'] === 'number' ? event['subjects'] : 0,
-    reason: typeof event['reason'] === 'string' ? event['reason'] : null,
-  };
-}
