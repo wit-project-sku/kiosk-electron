@@ -340,3 +340,47 @@ def test_two_visitors_in_front_of_a_wall_are_both_found():
     subjects = find_subjects(frame, cam, *ZONE)
     assert len(subjects) == 2
     assert sorted(round(s.height_m, 2) for s in subjects) == pytest.approx([1.58, 1.81], abs=0.03)
+
+
+@pytest.mark.parametrize("distance_m", [1.5, 2.0, 2.5, 3.0, 3.5])
+@pytest.mark.parametrize("truth", [1.55, 1.79, 1.95])
+def test_the_whole_standing_range_a_visitor_might_choose(distance_m, truth):
+    """제주 stands outdoors, so how far back a visitor stands is THEIR choice.
+
+    There is no marked spot to tune to and no narrow band to hide behind: the
+    estimate has to hold across the entire zone, for a short adult and a tall
+    one. Point density falls with the square of distance, so the far end is
+    where this fails first — that is the whole reason zed.py retrieves a
+    1280x720 cloud rather than 640x360.
+    """
+    rng = np.random.default_rng(71)
+    cam, frame = build(rng, person(rng, height_m=truth), distance_m=distance_m)
+    subjects = find_subjects(frame, cam, *ZONE)
+    assert len(subjects) == 1
+    assert subjects[0].height_m == pytest.approx(truth, abs=0.03)
+
+
+@pytest.mark.parametrize("distance_m", [2.0, 3.0])
+def test_a_visitor_outdoors_with_a_passer_by_behind_them(distance_m):
+    """Outdoors there is no wall, but there are other people.
+
+    Both are found; which one the app records is Session.result's decision, not
+    this function's.
+    """
+    rng = np.random.default_rng(72)
+    # The passer-by must be FURTHER from the camera than the visitor, which
+    # means further along -y in world space, not nearer along +y.
+    cam, frame = build(
+        rng,
+        person(rng, height_m=1.76),
+        person(rng, height_m=1.68, centre_xy=(1.4, -0.5)),
+        distance_m=distance_m,
+    )
+    subjects = find_subjects(frame, cam, *ZONE)
+    # Nearest first — the visitor at the kiosk, not the one walking past. How
+    # MANY come back depends on where the passer-by falls relative to the zone,
+    # and at 3 m they are already beyond it; what must hold at every distance is
+    # which one comes first.
+    assert subjects
+    assert subjects[0].height_m == pytest.approx(1.76, abs=0.03)
+    assert all(s.distance_m >= subjects[0].distance_m for s in subjects)
