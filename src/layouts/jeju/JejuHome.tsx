@@ -32,7 +32,7 @@ import { useLanguageStore } from '@renderer/store/languageStore';
 import { useSearchStore } from '@renderer/store/searchStore';
 import { weatherIconUrl, weatherIconName } from '@renderer/assets/weather';
 import type { Lang } from '@renderer/lib/i18n';
-import { t, sheetText } from '@renderer/lib/loc';
+import { t, tPlain, sheetText } from '@renderer/lib/loc';
 import { DONATION_COMING_SOON, withComingSoon } from '@shared/config/donation';
 import { JejuFlightBoard } from './JejuFlightBoard';
 import { JejuSailingBoard } from './JejuSailingBoard';
@@ -124,8 +124,11 @@ const noticeText = (lang: Lang): string => {
  * receiving the Korean label, because that string is the analytics label and is
  * joined against the `buttons` table (see buttonCatalog).
  *
- * 탐나오 and the home's own 운항 정보 board have no MainButton_* row in the sheet,
- * so they keep their authored labels.
+ * The home's own 운항 정보 board has no MainButton_* row in the sheet, so it keeps
+ * its authored label. 탐나오 now HAS one, and the sheet has already caught up with
+ * the two-tab redraw: MainButton_Tamnao reads 탐나오·제주큐랑 in all eight
+ * languages, so the tile says the pair even though `navigate()` still receives
+ * the CMS's 탐나오.
  *
  * MainButton_Cruise / SubButton_Cruise (운항정보 · 입·출항 정보) serve DOUBLE duty
  * and that is correct: on 제주공항 they title the 운항정보 page (see i18n's
@@ -162,33 +165,48 @@ const TILE_LABEL_KEYS: Partial<Record<string, string>> = {
 };
 
 /**
- * The descriptive second line under each tile/card title — Localization_Jeju
- * `MainButton_*_Subtext` rows (2026-09). Same resolution as the titles: sheet
- * first, authored `sub` as the fallback.
+ * The descriptive second line under each tile/card title. Same resolution as the
+ * titles: sheet first, authored `sub` as the fallback.
  *
  * 제주 is the only layout with two-line home tiles — Insadong/Osan/Hwaseong draw
  * a single label — so this map has no counterpart on the other kiosks.
  *
- * `MainButton_ToBuy` is the one sheet key spelled `SubText` (capital T); match it
- * verbatim.
+ * ★ The sheet spells these `MainButton_*_Subtext`, NOT `SubButton_*`. This map
+ * asked for the latter and so EVERY entry missed: `t()` handed the key back,
+ * `fromSheet` read that as "no row" and fell through to the authored Korean, and
+ * the second line was hardcoded in all eight languages while looking wired.
+ * Localization_Jeju carries 13 `_Subtext` rows, all filled 8/8, and no
+ * `SubButton_*` at all (checked against localization-jeju.generated.ts).
+ *
+ * Both spellings are listed because the sheet has USED both — sync-sheet.mjs's
+ * venue tie-break still documents SubButton_Greeting / SubButton_ToHelp /
+ * SubButton_Accommodation as duplicated rows, which is what the tab held before
+ * the rename. First hit wins, the same way i18n's TITLE_KEYS resolves its own
+ * candidate lists, so a rename in either direction keeps working.
+ *
+ * Note 뭐사지's key really is `_SubText` with a capital T — the one row that
+ * breaks the pattern, and that is the sheet's spelling, not a typo here.
+ *
+ * 탐나오 has no subtitle row: `Tamnao_Subtitle` is that PAGE's subheader (prefixed
+ * "* ", English cell empty), not the tile's second line, so the tile keeps its
+ * authored 제주공공플랫폼.
  */
-const TILE_SUB_KEYS: Partial<Record<string, string>> = {
-  eat: 'MainButton_ToEat_Subtext',
-  shop: 'MainButton_ToBuy_SubText',
-  lodging: 'MainButton_Accommodation_Subtext',
-  taxfree: 'MainButton_TaxFree_Subtext',
-  about: 'MainButton_Here_Subtext',
-  hello: 'MainButton_Greeting_Subtext',
-  help: 'MainButton_ToHelp_Subtext',
-  rentcar: 'MainButton_RentCar_Subtext',
-  cruise: 'MainButton_Cruise_Subtext',
-  exchange: 'MainButton_Exchange_Subtext',
-  donation: 'MainButton_Donation_Subtext',
-  localpay: 'MainButton_LocalCurrency_Subtext',
-  tamnao: 'MainButton_Tamnao_Subtext',
-  ai_search: 'MainButton_AI_Subtext',
-  market: 'MainButton_Goods_Subtext',
-  events: 'MainButton_Event_Subtext',
+const TILE_SUB_KEYS: Partial<Record<string, string | readonly string[]>> = {
+  eat: ['MainButton_ToEat_Subtext', 'SubButton_ToEat'],
+  shop: ['MainButton_ToBuy_SubText', 'SubButton_ToBuy'],
+  lodging: ['MainButton_Accommodation_Subtext', 'SubButton_Accommodation'],
+  taxfree: ['MainButton_TaxFree_Subtext', 'SubButton_TaxFree'],
+  about: ['MainButton_Here_Subtext', 'SubButton_Here'],
+  hello: ['MainButton_Greeting_Subtext', 'SubButton_Greeting'],
+  help: ['MainButton_ToHelp_Subtext', 'SubButton_ToHelp'],
+  rentcar: ['MainButton_RentCar_Subtext', 'SubButton_RentCar'],
+  cruise: ['MainButton_Cruise_Subtext', 'SubButton_Cruise'],
+  exchange: ['MainButton_Exchange_Subtext', 'SubButton_Exchange'],
+  donation: ['MainButton_Donation_Subtext', 'SubButton_Donation'],
+  localpay: ['MainButton_LocalCurrency_Subtext', 'SubButton_LocalCurrency'],
+  ai_search: ['MainButton_AI_Subtext', 'SubButton_AI'],
+  market: ['MainButton_Goods_Subtext', 'SubButton_Goods'],
+  events: ['MainButton_Event_Subtext', 'SubButton_Event'],
 };
 
 /** A `<b>`-and-newline run, as the sheet's NoticeContent stores it. */
@@ -429,25 +447,41 @@ export function JejuHome({ controller }: Props): JSX.Element {
     : jejuIconUrl('weather-sun');
 
   const donationPending = DONATION_COMING_SOON;
-  /** Resolve one of the two tile lines: the sheet's value, else the authored one. */
+  /**
+   * Resolve one of the two tile lines: the sheet's value, else the authored one.
+   *
+   * A map entry may list SEVERAL keys — the sheet has spelled the subtitle rows
+   * two different ways (see TILE_SUB_KEYS) — and the first that resolves wins.
+   * Only ONE is ever present in a given table, so the order is a spelling
+   * fallback rather than a precedence rule, the same shape i18n's TITLE_KEYS uses
+   * for the same reason.
+   */
   const fromSheet = (
-    map: Partial<Record<string, string>>,
+    map: Partial<Record<string, string | readonly string[]>>,
     screen: string,
     authored: string,
+    resolve: (key: string, lang: Lang) => string = t,
   ): string => {
-    const key = map[screen];
-    if (!key) return authored;
-    // `t()` answers the sheet's Korean for a language it has no cell for, and the
-    // key itself when the row is gone entirely — the latter is what the fallback
-    // is for. An empty cell in a Subtext row falls back to the authored sub.
-    const value = t(key, lang);
-    return !value || value === key ? authored : value;
+    const spec = map[screen];
+    if (!spec) return authored;
+    for (const key of typeof spec === 'string' ? [spec] : spec) {
+      // `t()` answers the sheet's Korean for a language it has no cell for, and
+      // the key itself when the row is gone entirely — the latter is what the
+      // fallback is for. Some rows are authored blank, so guard '' too.
+      const value = resolve(key, lang);
+      if (value && value !== key) return value;
+    }
+    return authored;
   };
   /** Display label: the sheet's when the tile has a key, else the authored one. */
   const labelFor = (screen: string, authored: string): string =>
     fromSheet(TILE_LABEL_KEYS, screen, authored);
+  /* `tPlain` for the second line: several Localization rows are authored as
+     bullet lines ("* …") and that marker is spreadsheet formatting, not copy —
+     rendering it under a tile title shows a stray glyph whose shape changes with
+     the language. Titles keep `t()`; none of them carry a marker. */
   const subFor = (screen: string, authored: string): string =>
-    fromSheet(TILE_SUB_KEYS, screen, authored);
+    fromSheet(TILE_SUB_KEYS, screen, authored, tPlain);
   const tileLabel = (tile: Tile): string => {
     const base = labelFor(tile.screen, tile.label);
     return tile.screen === 'donation' && donationPending ? withComingSoon(base, lang) : base;

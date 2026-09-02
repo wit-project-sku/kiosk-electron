@@ -201,7 +201,7 @@ export function JejuExchange({ controller }: Props): JSX.Element {
 
   /** Opens on 실시간 환율, the left-hand tab — see TABS. */
   const [tab, setTab] = useState<TabId>('live');
-  const [fromUnit, setFromUnit] = useState('JPY(100)');
+  const [fromUnit, setFromUnit] = useState('USD');
   const [toUnit, setToUnit] = useState('KRW');
   const [digits, setDigits] = useState('1000');
   const [picker, setPicker] = useState<Picker>(null);

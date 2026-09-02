@@ -142,18 +142,11 @@ export function HanbokSelect({ onCapture, onHome, countdownActive = false }: Han
   // Camera-direction popup (shown while the photo is captured/sent to AI) —
   // Osan and Hwaseong each have their own uploaded image; insadong uses the camera-folder asset.
   const camPopupSrc = ((isOsan || isHwaseong || isKada) && icon('camera-popup')) || cameraIconUrl('camera-popup');
-  // The outfit catalogue AND its tab row, from the API (SQLite-cached, loaded
-  // at first use and refreshed on the nightly sync — see outfitStore /
-  // OutfitService). Falls back to the bundled PNGs on a kiosk that has never
-  // synced, keyed exactly like API content, so there is one lookup path here.
+  // The outfit catalogue AND its tab row, from SQLite (preloaded at app boot by
+  // outfitStore — see App.tsx / OutfitService). Falls back to bundled PNGs on a
+  // kiosk that has never synced.
   const byCategory = useOutfitStore((s) => s.byCategory);
   const categories = useOutfitStore((s) => s.categories);
-  const loadOutfits = useOutfitStore((s) => s.load);
-  const reloadOutfits = useOutfitStore((s) => s.reload);
-  useEffect(() => {
-    void loadOutfits();
-    return window.api.events.onOutfitsChanged(() => void reloadOutfits());
-  }, [loadOutfits, reloadOutfits]);
 
   // Labels are resolved here so a language switch relabels the row without
   // touching the selection — `id` is the filter code, never a label.

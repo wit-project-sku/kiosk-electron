@@ -105,6 +105,7 @@ import {
 } from '@renderer/lib/outfitCategories';
 import { cameraIconUrl } from '@renderer/assets/icons/insadong/camera';
 import { pick, useLang } from '@renderer/lib/i18n';
+import { useAccessibilityStore } from '@renderer/store/accessibilityStore';
 import { jejuMascot, type JejuMascot } from './jejuMascot';
 /* The privacy modal and the camera-direction popup are identical on every
    layout, so their styles are reused from the shared step rather than copied. */
@@ -308,6 +309,8 @@ export function JejuHanbokSelect({
 }: Props): JSX.Element {
   const lang = useLang();
   const rotating = useRotatingBanner();
+  const lowReach = useAccessibilityStore((s) => s.lowReach);
+  const toggleLowReach = useAccessibilityStore((s) => s.toggleLowReach);
   const { icon, Header, photoTitle, banner: chromeBanner } = usePhotoChrome();
   const banner = chromeBanner ?? rotating;
   const camPopupSrc = icon('camera-popup') || cameraIconUrl('camera-popup');
@@ -323,12 +326,6 @@ export function JejuHanbokSelect({
   // the bundled PNGs on a kiosk that has never synced — see outfitStore.
   const byCategory = useOutfitStore((s) => s.byCategory);
   const categories = useOutfitStore((s) => s.categories);
-  const loadOutfits = useOutfitStore((s) => s.load);
-  const reloadOutfits = useOutfitStore((s) => s.reload);
-  useEffect(() => {
-    void loadOutfits();
-    return window.api.events.onOutfitsChanged(() => void reloadOutfits());
-  }, [loadOutfits, reloadOutfits]);
 
   /**
    * The tab row: exactly the registered categories, in the operator's
@@ -487,6 +484,8 @@ export function JejuHanbokSelect({
   const pageBg = icon('bg-page') || icon('bg');
 
   const star = jejuIconUrl('star');
+  const accessibilityIcon =
+    (lowReach ? jejuIconUrl('ico-accessibility-on') : undefined) ?? jejuIconUrl('ico-accessibility');
   /**
    * Which tab owns step ② — the 제주 one, wherever the operator has put it.
    *
@@ -566,6 +565,35 @@ export function JejuHanbokSelect({
           <div className={styles.banner}>
             <img src={banner} alt="" draggable={false} />
           </div>
+        )}
+
+        <div className={styles.leftNav}>
+          {jejuIconUrl('nav-left') && (
+            <img src={jejuIconUrl('nav-left')} alt="" className={styles.leftNavImg} draggable={false} />
+          )}
+          <button
+            type="button"
+            className={`${styles.leftNavZone} ${styles.leftNavHome}`}
+            onClick={onHome}
+            aria-label="홈"
+          />
+          <button
+            type="button"
+            className={`${styles.leftNavZone} ${styles.leftNavBack}`}
+            onClick={() => setInfoOpen(false)}
+            aria-label="뒤로"
+          />
+        </div>
+        {accessibilityIcon && (
+          <button
+            type="button"
+            className={styles.accessibility}
+            onClick={toggleLowReach}
+            aria-label="저상 화면"
+            aria-pressed={lowReach}
+          >
+            <img src={accessibilityIcon} alt="" className={styles.accessibilityImg} draggable={false} />
+          </button>
         )}
       </div>
     );
@@ -799,6 +827,35 @@ export function JejuHanbokSelect({
         <div className={styles.banner}>
           <img src={banner} alt="" draggable={false} />
         </div>
+      )}
+
+      <div className={styles.leftNav}>
+        {jejuIconUrl('nav-left') && (
+          <img src={jejuIconUrl('nav-left')} alt="" className={styles.leftNavImg} draggable={false} />
+        )}
+        <button
+          type="button"
+          className={`${styles.leftNavZone} ${styles.leftNavHome}`}
+          onClick={onHome}
+          aria-label="홈"
+        />
+        <button
+          type="button"
+          className={`${styles.leftNavZone} ${styles.leftNavBack}`}
+          onClick={onHome}
+          aria-label="뒤로"
+        />
+      </div>
+      {accessibilityIcon && (
+        <button
+          type="button"
+          className={styles.accessibility}
+          onClick={toggleLowReach}
+          aria-label="저상 화면"
+          aria-pressed={lowReach}
+        >
+          <img src={accessibilityIcon} alt="" className={styles.accessibilityImg} draggable={false} />
+        </button>
       )}
 
       {/* Camera-direction popup — shown while capturing / generating. */}

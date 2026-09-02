@@ -162,6 +162,36 @@ async function fetchCatalogue(): Promise<Pick<OutfitState, 'byCategory' | 'categ
 }
 
 /**
+ * Warm the browser cache with outfit card images in the background so the picker
+ * renders instantly after the catalogue metadata is in memory. Runs deferred at
+ * idle priority — same pattern as {@link prefetchShopThumbnails}.
+ */
+function prefetchOutfitImages(byCategory: Record<string, PickerOutfit[]>): void {
+  const seen = new Set<string>();
+  const urls: string[] = [];
+  for (const list of Object.values(byCategory)) {
+    for (const o of list) {
+      if (o.url && !seen.has(o.url)) {
+        seen.add(o.url);
+        urls.push(o.url);
+      }
+    }
+  }
+  if (urls.length === 0) return;
+
+  const run = (): void => {
+    for (const url of urls) {
+      const img = new Image();
+      img.decoding = 'async';
+      img.src = url;
+    }
+  };
+  const ric = (globalThis as { requestIdleCallback?: (cb: () => void) => void }).requestIdleCallback;
+  if (ric) ric(run);
+  else setTimeout(run, 500);
+}
+
+/**
  * The AR 한복 outfit catalogue, from the SQLite-cached API data.
  *
  * Outfits used to be a build-time PNG glob, so adding one meant redeploying
@@ -182,22 +212,28 @@ export const useOutfitStore = create<OutfitState>((set, get) => ({
   load: async () => {
     if (get().loaded) return;
     const next = await fetchCatalogue();
-    if (next) set({ ...next, loaded: true });
-    else {
+    if (next) {
+      set({ ...next, loaded: true });
+      prefetchOutfitImages(next.byCategory);
+    } else {
       // Never leave the picker empty: without cards there is no way to take a
       // photo at all, which is worse than showing last release's outfits.
       console.warn('[outfitStore] load() failed — using the bundled catalogue');
+      const byCategory = bundledCatalogue();
       set({
-        byCategory: bundledCatalogue(),
+        byCategory,
         categories: bundledCategories(),
         fallback: true,
         loaded: true,
       });
+      prefetchOutfitImages(byCategory);
     }
   },
   reload: async () => {
     const next = await fetchCatalogue();
-    if (next) set({ ...next, loaded: true });
-    else console.warn('[outfitStore] reload() failed — keeping the current catalogue');
+    if (next) {
+      set({ ...next, loaded: true });
+      prefetchOutfitImages(next.byCategory);
+    } else console.warn('[outfitStore] reload() failed — keeping the current catalogue');
   },
 }));

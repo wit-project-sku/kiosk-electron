@@ -33,11 +33,20 @@
  * black glyphs the map calls 기타 cover five sheet categories at once. GROUPS is
  * that many-to-one, written the other way round.
  *
- * Five chips have NO sheet rows at all — 화장실, 흡연실, 유아휴게실, 교통약자
- * 편의시설, 유실물센터 are pictograms the airport draws and the shop list does not
- * carry. They keep working exactly as they did: their pins open the card built
- * from what the map knows. Dropping them would delete ~30 working pins and leave
- * the home screen's 화장실 button with nowhere to land.
+ * ── The chip row is the sheet's, and ONLY the sheet's (2026-09-02) ──────────
+ * HELP_CHIPS used to be a hand-written list of fifteen: the sheet's ten
+ * categories plus five pictogram-only chips (화장실, 흡연실, 유아휴게실, 교통약자
+ * 편의시설, 유실물센터) the shop list has never carried. It is now derived from
+ * AirportFacilityData_Jeju outright, so the sheet alone decides what chips
+ * exist, what they are called in eight languages, and in what order.
+ *
+ * The five are GONE, deliberately, and at a cost worth stating: 36 of the 148
+ * pins on the floor plans carry one of those categories, and with no chip to
+ * light them they no longer draw. Their coordinates are LEFT IN PINS rather than
+ * deleted — they are the plans' own geometry, they cost nothing while inert, and
+ * they light again the day the sheet grows a matching category and GROUPS gains
+ * a row for it. The home screen's 화장실 button no longer names a chip either; it
+ * opens this page on whatever the sheet leads with (see JejuKiosk).
  */
 import {
   AIRPORT_FACILITIES_JEJU,
@@ -65,33 +74,6 @@ const GROUPS: Record<string, readonly string[]> = {
   기타: ['기타', '교통・렌터카', '항공사', '라운지・휴식', '의료'],
 };
 
-/**
- * The chip row, 5 per line over 3 lines.
- *
- * 화장실 leads because the home screen's own 화장실 button opens this page on it,
- * and because a visitor looking for one should not have to read past 라운지 to
- * find it. The other four pictogram chips sit together on the last line with
- * 기타, which is where a catch-all belongs; the sheet's ten run in between,
- * everyday-first.
- */
-export const HELP_CHIPS = [
-  '화장실',
-  '안내・관광・호텔',
-  '식당',
-  '카페・디저트',
-  '쇼핑',
-  '금융・보험・환전',
-  '항공사',
-  '교통・렌터카',
-  '라운지・휴식',
-  '의료',
-  '흡연실',
-  '유아휴게실',
-  '교통약자\n편의시설',
-  '유실물센터',
-  '기타',
-];
-
 /** Sheet-category label lookup, built once from the first row carrying each. */
 const CHIP_LABELS: Record<string, LangText> = {};
 for (const f of AIRPORT_FACILITIES_JEJU) {
@@ -99,24 +81,37 @@ for (const f of AIRPORT_FACILITIES_JEJU) {
 }
 
 /**
- * A BaseCategory the sheet uses that no chip offers, and no group routes.
+ * The chip row — every BaseCategory AirportFacilityData_Jeju uses, and nothing
+ * else. Ten today, 5 per line over 2 lines.
  *
- * This is the one way the sheet can grow that the screen cannot absorb on its
- * own: a new category typed into AirportFacilityData_Jeju arrives with its own
- * eight translations and needs nothing here to be LABELLED, but it still needs a
- * chip in HELP_CHIPS to be reachable and an entry in GROUPS to say which
- * pictogram stands for it. Without both, its rows are simply invisible on the
- * map — silently, which is why this says so out loud at startup.
+ * ORDER IS THE SHEET'S: first appearance going down its rows, which is the order
+ * of its own NO column. That makes chip order something an operator can change
+ * by moving a row, with no release — the same bargain as the labels — and it is
+ * why no ordering is imposed here. A category typed into the sheet becomes a
+ * chip, translated, at the next sync; one deleted from every row stops being one.
+ *
+ * The one thing a new category still needs from code is a GROUPS entry saying
+ * which pictogram stands for it. Without that its rows sit on no pin — which is
+ * what the startup warning below is for.
+ */
+export const HELP_CHIPS: readonly string[] = Object.keys(CHIP_LABELS);
+
+/**
+ * A BaseCategory the sheet uses that no pin group routes.
+ *
+ * This is the one way the sheet can now grow that the screen cannot absorb on
+ * its own. A new category arrives with its eight translations AND its chip for
+ * free — HELP_CHIPS is built from the sheet — but until GROUPS says which
+ * pictogram stands for it, that chip lights nothing at all. The failure is
+ * silent on the panel, so it is said out loud at startup instead.
  */
 const routed = new Set(Object.values(GROUPS).flat());
-const unreachable = Object.keys(CHIP_LABELS).filter(
-  (ko) => !HELP_CHIPS.includes(ko) || !routed.has(ko),
-);
+const unreachable = HELP_CHIPS.filter((ko) => !routed.has(ko));
 if (unreachable.length > 0) {
   console.warn(
-    '[airportFacilities] AirportFacilityData_Jeju categories no chip can reach:',
+    '[airportFacilities] AirportFacilityData_Jeju categories no pictogram stands for:',
     unreachable.join(', '),
-    '— add them to HELP_CHIPS and to a GROUPS entry.',
+    '— add each to a GROUPS entry.',
   );
 }
 
@@ -125,8 +120,9 @@ if (unreachable.length > 0) {
  *
  * A sheet category is localized BY THE SHEET, which is the point of keying the
  * chips off it — a new category appears translated the day it is typed in, with
- * nothing to add here. The five pictogram chips fall through to the bundled
- * FACILITY_LABELS table, as they always did.
+ * nothing to add here. Every chip is a sheet category now, so the FACILITY_LABELS
+ * fallback is only reached by a caller passing something that is not a chip (a
+ * stale `initialCategory`, say); it is kept for exactly that.
  */
 export function chipLabel(chip: string, lang: Lang): string {
   const fromSheet = CHIP_LABELS[chip];

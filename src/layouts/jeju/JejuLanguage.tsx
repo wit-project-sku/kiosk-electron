@@ -22,9 +22,15 @@ interface Props {
 const clean = (s: string): string => s.replace(/^\s*\*\s*/, '');
 
 /**
- * Pill code + display name per language. Names are the ones drawn in the Jeju
- * Figma, which differ from Hwaseong's map in two places: ID reads 인도네시아어
- * (not "Indonesia") and CN reads 中國語.
+ * Pill code + display name per language.
+ *
+ * Every name is the language's ENDONYM — what it calls itself — so a visitor who
+ * reads no Korean can still find their own row. The Jeju Figma draws ID as
+ * 인도네시아어, the one entry written in Korean; deliberately not followed, since
+ * an Indonesian speaker cannot read the label that is meant to identify their
+ * language. "Indonesia" is also what Hwaseong, Insadong and Osan already draw.
+ *
+ * CN still reads 中國語 as the Jeju Figma has it, where the other layouts differ.
  */
 const LANG_META: Record<SupportedLanguage, { code: string; name: string }> = {
   ko:    { code: 'KR', name: '한국어' },
@@ -36,7 +42,7 @@ const LANG_META: Record<SupportedLanguage, { code: string; name: string }> = {
   vi:    { code: 'VN', name: 'Tiếng Việt' },
   th:    { code: 'TH', name: 'ภาษาไทย' },
   ru:    { code: 'RU', name: 'Русский' },
-  id:    { code: 'ID', name: '인도네시아어' },
+  id:    { code: 'ID', name: 'Indonesia' },
   es:    { code: 'ES', name: 'Español' },
 };
 

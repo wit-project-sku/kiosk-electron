@@ -158,18 +158,27 @@ const FLOORS: Record<TerminalId, ReadonlyArray<{ id: FloorId; label: string }>> 
 /**
  * Category chips, five per row.
  *
- * ★ These are no longer the frame's own ten (6219:98787). Ten of the fifteen are
- * the BaseCategory values of AirportFacilityData_Jeju, so the SHEET decides both
- * what a chip is and what it is called in eight languages; the other five are
- * the pictograms the shop list does not carry (화장실, 흡연실, 유아휴게실,
- * 교통약자 편의시설, 유실물센터), which keep the frame's own labels. The list, and
- * the reasoning behind its order, live in lib/airportFacilities.
+ * ★ ENTIRELY THE SHEET'S, since 2026-09-02: every chip is a BaseCategory value
+ * of AirportFacilityData_Jeju, so the sheet decides what a chip is, what it is
+ * called in eight languages, and what order they come in. Nothing is listed in
+ * code. The five pictogram-only chips this row used to carry (화장실, 흡연실,
+ * 유아휴게실, 교통약자 편의시설, 유실물센터) are gone with the hard-coded list —
+ * see lib/airportFacilities for what that costs the pins below.
  *
- * Fifteen chips is three rows where Figma drew two, so the map below moves down
- * by one row in both layouts — see .cats / .map in the CSS.
+ * Ten chips is two rows, which is what Figma drew (6219:98787); the third row
+ * the fifteen needed is gone again, so the map goes back up 205 to its 1620.
+ * That number follows CATEGORIES.length and is NOT fixed — an eleventh category
+ * in the sheet makes three rows again and .map has to move back down. See the
+ * note on .cats in the CSS.
  */
 const CATEGORIES = HELP_CHIPS;
 const PER_ROW = 5;
+const CATEGORY_ROWS = Math.ceil(CATEGORIES.length / PER_ROW);
+
+/** One-line chip caption — Figma draws every label nowrap at 50px (6393:59030). */
+function chipLine(chip: string, lang: Lang): string {
+  return chipLabel(chip, lang).replace(/\s*\n\s*/g, '·');
+}
 
 /**
  * One tappable facility on a map.
@@ -579,11 +588,15 @@ const YOU_ARE_HERE = {
 interface Props {
   controller: KioskController;
   /**
-   * Chip lit on arrival. The home screen's 화장실 button opens this same page —
-   * there is no separate toilet screen — and passes '화장실' so the visitor lands
-   * on the toilets rather than having to find the chip. Stated explicitly rather
-   * than leaning on 화장실 happening to be `CATEGORIES[0]`, which is a frame
-   * ordering that can change. An unknown id falls back to the first chip.
+   * Chip lit on arrival; an unknown id falls back to the first chip.
+   *
+   * NOTHING PASSES THIS TODAY. It carried '화장실' from the home screen's 화장실
+   * button, which opened this page straight on the toilets — but 화장실 is not a
+   * BaseCategory the sheet uses, so it stopped being a chip when CATEGORIES
+   * became the sheet's (see lib/airportFacilities) and the button now opens the
+   * page plain. Kept, not deleted: it is the one way to deep-link into a chip,
+   * the guard below already answers a stale value, and 화장실 becomes passable
+   * again the moment the sheet carries rows for it.
    */
   initialCategory?: string;
 }
@@ -739,7 +752,7 @@ export function JejuHelp({ controller, initialCategory }: Props): JSX.Element {
       />
 
       <div className={`${styles.cats} ${lowReach ? styles.catsLow : ''}`}>
-        {[0, PER_ROW].map((start) => (
+        {Array.from({ length: CATEGORY_ROWS }, (_, row) => row * PER_ROW).map((start) => (
           <div key={start} className={styles.catRow}>
             {CATEGORIES.slice(start, start + PER_ROW).map((id) => (
               <button
@@ -751,7 +764,7 @@ export function JejuHelp({ controller, initialCategory }: Props): JSX.Element {
                   setCategory(id);
                 }}
               >
-                {chipLabel(id, lang)}
+                <span className={styles.pillLabel}>{chipLine(id, lang)}</span>
               </button>
             ))}
           </div>

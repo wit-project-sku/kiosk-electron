@@ -39,7 +39,7 @@ O","ข้อมูล
 Н
 Ф
 О","","","","","",""
-"31","NoticeContent","'WITH' (WIT AI Tourism Hardware) 가 설치 되었습니다. 많은 이용부탁드려요 ","‘WITH’ (WIT AI Tourism Hardware) is now at Osaek Market. Please use it!","「WITH」（WIT AI Tourism Hardware）が設置されました。ぜひご利用ください。","“五色市场”已安装“WITH”（WIT AI旅游硬件）。欢迎使用！","Sản phẩm ‘WITH’ (WIT AI Tourism Hardware) hiện đã có mặt tại chợ Osaek. Mời bạn sử dụng!","‘WITH’ (WIT AI Tourism Hardware) kini tersedia di Pasar Osaek. Silakan gunakan!","‘WITH’ (WIT AI Tourism Hardware) พร้อมให้บริการแล้วที่ตลาดโอแซก โปรดใช้บริการด้วย!","«WITH» (WIT AI Tourism Hardware) теперь находится на рынке Осаек. Пожалуйста, пользуйтесь им!","","","","","",""
+"31","NoticeContent","'WITH' (WIT AI Tourism Hardware) 가 설치 되었습니다. 많은 이용부탁드려요 ","‘WITH’ (WIT AI Tourism Hardware) is now at Osaek Market. Please use it!","「WITH」（WIT AI Tourism Hardware）が設置されました。ぜひご利用ください。","“五色市场”已安装“WITH”（WIT AI旅游硬件）。欢迎使用！","Sản phẩm ‘WITH’ (WIT AI Tourism Hardware) hiện đã có mặt tại chợ Osaek. Mời bạn sử dụng!","‘WITH’ (WIT AI Tourism Hardware) kini tersedia di Pasar Osaek. Silakan gunakan!","‘WITH’ (WIT AI Tourism Hardware) พร้อมให้บริการแล้วที่ตลาดโอแซก โปรดใช้บริการด้วย!","Компания ‘WITH’ (WIT AI Tourism Hardware) теперь представлена ​​на рынке Осаек. Пожалуйста, воспользуйтесь ею!","","","","","",""
 "26","Event_Today","오늘의 행사","Today's Events","今日のイベント","今日的活动","Sự kiện hôm nay","Peristiwa Hari Ini","เหตุการณ์วันนี้","События сегодняшнего дня","","","","","",""
 "27","Event_Week","이번주 행사","This Week's Events","今週のイベント","本周活动","Các sự kiện trong tuần này","Peristiwa Minggu Ini","กิจกรรมประจำสัปดาห์นี้","События этой недели","","","","","",""
 "28","Event_Upcomming","예정 행사","Upcomming Events","予定イベント","即将举行的活动","Các sự kiện sắp tới","Acara Mendatang","กิจกรรมที่จะเกิดขึ้น","Предстоящие события","","","","","",""
@@ -99,7 +99,7 @@ Pada tahun 2013, namanya diubah menjadi ""Pasar Osaek,"" menambahkan identitas m
 "59","Greeting_Name","본명","Name","名前","姓名","Tên","Nama","ชื่อ","Имя","","","","","",""
 "60","Greeting_NameContent","정이","JEONG-I","JEONG-I","JEONG-I","JEONG-I","JEONG-I","จองอี","ЧОН-И","","","","","",""
 "61","Greeting_BirthDay","출생","Date of Birth","生年月日","出生日期","Ngày sinh","Tanggal lahir","วันเกิด","Дата рождения","","","","","",""
-"62","Greeting_BirthDayContent","2006년 7월 31일","7월 31, 2006","2006年7月31日","2006年7月31日","Ngày 31 tháng 7 năm 2006","31 Juli 2006","7 มีนาคม 31, 2549","7–31 сентября 2006 г.","","","","","",""
+"62","Greeting_BirthDayContent","2006년 7월 31일","7월 31, 2006","2006年7月31日","2006年7月31日","Ngày 31 tháng 7 năm 2006","31 Juli 2006","7 มีนาคม 31, 2549","7–31 октября 2006 г.","","","","","",""
 "63","Greeting_HomeTown","사는곳","Hometown","出身地","家乡","Quê hương","Kota asal","บ้านเกิด","Родной город","","","","","",""
 "64","Greeting_HomeTownContent","대한민국 경기도 ","Gyeonggi Province, South Korea","大韓民国 京畿道 ","韩国京畿道乌","Tỉnh Kyunggi, Hàn Quốc","Provinsi Gyeonggi, Korea Selatan","จังหวัดคย็องกี ประเทศเกาหลีใต้","Провинция Кёнгидо, Южная Корея","","","","","",""
 "65","Greeting_Nationality","국적","Nationality","国籍","国籍","Quốc tịch","Kebangsaan","สัญชาติ","Национальность","","","","","",""
@@ -120,8 +120,8 @@ Pada tahun 2013, namanya diubah menjadi ""Pasar Osaek,"" menambahkan identitas m
 "78","Greeting_FutureHopeContent","한국 전통문화를 현대 청년 라이프스타일과 연결해 세계적으로 한국을 대표하는 문화 트렌드세터","To be a cultural trendsetter who bridges traditional Korean culture with modern youth lifestyle, representing Korea globally","韓国伝統文化を現代の若者ライフスタイルと結び付け、世界に韓国を代表する文化トレンドセッターになること","把韩国传统文化与现代青年生活方式相结合，成为向世界代表韩国的文化潮流引领者","Trở thành người tiên phong về văn hóa, kết nối văn hóa truyền thống Hàn Quốc với lối sống hiện đại của giới trẻ, đại diện cho Hàn Quốc trên toàn cầu.","Menjadi pelopor tren budaya yang menjembatani budaya tradisional Korea dengan gaya hidup anak muda modern, serta mewakili Korea di kancah global.","เพื่อเป็นผู้นำเทรนด์ทางวัฒนธรรมที่เชื่อมโยงวัฒนธรรมเกาหลีแบบดั้งเดิมเข้ากับวิถีชีวิตของคนรุ่นใหม่ในยุคปัจจุบัน และเป็นตัวแทนของเกาหลีในระดับโลก","Быть законодателем культурных тенденций, объединяющим традиционную корейскую культуру с современным молодежным образом жизни, представляя Корею на мировой арене.","","","","","",""
 "79","Greeting_Introdution","소개","Intro","紹介","介绍","Giới thiệu","Pendahuluan","บทนำ","Введение","","","","","",""
 "80","Greeting_IntrodutionContent","저는 MZ 대학생입니다. K-POP, 미식 탐험, 세련된 카페, 테니스, 골프를 좋아해요 . SNS로 일상을 공유하며 친구들과 수다떠는걸 좋아해요. 요즘 K-컨텐츠에 많은 관심이 있어요 그리고 특히나 전통시장의 매력을 알리고 있습니다. ","I’m an MZ college student who loves K-POP, food adventures, stylish cafes, tennis, and golf.
-I enjoy sharing life on SNS and chatting with friends. Lately, I’m very interested in K-content and promoting traditional markets.","私は21歳の大学生です。K-POP、美食探し、おしゃれなカフェ、ゴルフが大好きです。SNSで日常をシェアしながら京畿道の魅力を紹介しています。伝統市場や韓国の大学生活について何でも聞いてください！","我今年21岁，是一名大学生。喜欢K-POP、美食探店、时尚咖啡馆和高尔夫。平时在社交媒体分享生活，展示京畿道的魅力。关于传统市场和韩国大学生活，尽管来问我！","Tôi là sinh viên đại học khu vực MZ, yêu thích K-POP, những chuyến phiêu lưu ẩm thực, các quán cà phê sành điệu, tennis và golf.
-Tôi thích chia sẻ cuộc sống trên mạng xã hội và trò chuyện với bạn bè. Gần đây, tôi rất quan tâm đến nội dung K-pop và việc quảng bá các thị trường truyền thống.","Saya seorang mahasiswa MZ yang menyukai K-POP, petualangan kuliner, kafe-kafe bergaya, tenis, dan golf.
+I enjoy sharing life on SNS and chatting with friends. Lately, I’m very interested in K-content and promoting traditional markets.","私は21歳の大学生です。K-POP、美食探し、おしゃれなカフェ、ゴルフが大好きです。SNSで日常をシェアしながら京畿道の魅力を紹介しています。伝統市場や韓国の大学生活について何でも聞いてください！","我今年21岁，是一名大学生。喜欢K-POP、美食探店、时尚咖啡馆和高尔夫。平时在社交媒体分享生活，展示京畿道的魅力。关于传统市场和韩国大学生活，尽管来问我！","Tôi là sinh viên đại học tại Zimbabwe, yêu thích K-POP, những chuyến phiêu lưu ẩm thực, các quán cà phê sành điệu, tennis và golf.
+Tôi thích chia sẻ cuộc sống trên mạng xã hội và trò chuyện với bạn bè. Gần đây, tôi rất quan tâm đến nội dung Hàn Quốc và việc quảng bá các thị trường truyền thống.","Saya seorang mahasiswa MZ yang menyukai K-POP, petualangan kuliner, kafe-kafe bergaya, tenis, dan golf.
 Saya senang berbagi kehidupan di SNS dan mengobrol dengan teman-teman. Akhir-akhir ini, saya sangat tertarik dengan konten K-pop dan mempromosikan pasar tradisional.","ฉันเป็นนักศึกษามหาวิทยาลัยในมาเลเซียที่ชื่นชอบ K-POP การผจญภัยด้านอาหาร คาเฟ่เก๋ๆ เทนนิส และกอล์ฟ
 ฉันชอบแบ่งปันเรื่องราวชีวิตบนโซเชียลมีเดียและพูดคุยกับเพื่อนๆ ช่วงนี้ฉันสนใจคอนเทนต์เกาหลีและการส่งเสริมตลาดดั้งเดิมเป็นพิเศษ","Я студентка MZ College, обожаю K-POP, гастрономические приключения, стильные кафе, теннис и гольф.
 Мне нравится делиться моментами из жизни в социальных сетях и общаться с друзьями. В последнее время меня очень интересует корейский контент и продвижение традиционных рынков.","","","","","",""
@@ -247,7 +247,7 @@ Market days: 3rd, 8th, 13th, 18th, 23rd, 28th each month.","Jeong-I、五色市�
 
 Ngày chợ: 3, 8, 13, 18, 23, 28 mỗi tháng.","Mari berkenalan dengan Jeong-I, maskot AI Pasar Osaek, melalui [WITH]!
 Hari pasar: tanggal 3, 8, 13, 18, 23, 28 setiap bulan.","พบกับจองอี มาสคอต AI ของตลาดโอแซก ผ่านทาง [WITH]!
-วันทำการตลาด: วันที่ 3, 8, 13, 18, 23, 28 ของทุกเดือน","Познакомьтесь с Чон-И, ИИ-талисманом рынка Осаек, через [WITH]!
+วันทำการตลาด: วันที่ 3, 8, 13, 18, 23, 28 ของทุกเดือน","Познакомьтесь с Чон-И, искусственным интеллектом-талисманом рынка Осаек, через [WITH]!
 Рыночные дни: 3, 8, 13, 18, 23, 28 числа каждого месяца.","","","","","",""
 "108","Transport_MapContent_2","WITH' (WIT AI Smart-Tourism Hardware Platform) 설치장소","WITH' (WIT AI Smart-Tourism Hardware Platform) ","WITH' (WIT AI Smart-Tourism Hardware Platform) ","WITH' (WIT AI Smart-Tourism Hardware Platform) ","'WITH' (Nền tảng phần cứng du lịch thông minh WIT AI)","WITH' (Platform Perangkat Keras Pariwisata Cerdas AI WIT)","WITH' (แพลตฟอร์มฮาร์ดแวร์การท่องเที่ยวอัจฉริยะ WITH AI)","WITH' (WIT AI Smart-Tourism Hardware Platform)","","","","","",""
 "109","Transport_MapContent_3","오색시장 메인사거리  (오색시장 상인회 앞)"," "," "," ","#VALUE!","","","","","","","","",""
@@ -338,7 +338,7 @@ Terhubung dengan Aplikasi Mata Uang Lokal Gyeonggi untuk pengisian ulang dan pen
 ","<b>Это местная валюта в виде карты, которую можно использовать только в пределах Осана.</b>
 Можно использовать в любом магазине Осана с терминалом для IC-карт, за исключением крупных супермаркетов, корпоративных сетей, развлекательных заведений, игорных заведений и франчайзинговых штаб-квартир за пределами Осана.
 
-<b>Доступно в любом месте города с терминалом для IC-карт.</b>
+Доступно в любом месте города с терминалом для IC-карт.</b>
 Связано с приложением Gyeonggi Local Currency для удобного пополнения счета и управления балансом в любое время и в любом месте.
 
 ","","","","","",""
@@ -409,8 +409,8 @@ Chỉ có hiệu lực tại các doanh nghiệp nhỏ có doanh thu hàng năm 
 病院・医院（歯科、韓医院など）、コンビニ、学園（補習・技能）、眼鏡店、美容院、動物病院など。
 ","例如: 加油站、传统市场、社区商店、休闲设施（健身房、普拉提、游泳馆、高尔夫练习场、保龄球馆）、
 医院/诊所（牙科、韩医馆等）、便利店、培训机构、眼镜行、美容院、动物医院等。
-","Ví dụ: trạm xăng, chợ truyền thống, cửa hàng địa phương, cơ sở giải trí (câu lạc bộ thể dục, pilates, bể bơi, sân golf, sân bowling), bệnh viện & phòng khám (nha sĩ, phòng khám Đông y, v.v.), cửa hàng tiện lợi, học viện (dạy kèm, dạy kỹ năng), cửa hàng kính mắt, thẩm mỹ viện, phòng khám thú y, v.v.","Contoh: pom bensin, pasar tradisional, toko lokal, fasilitas rekreasi (klub kebugaran, pilates, kolam renang, lapangan golf, arena bowling), rumah sakit & klinik (dokter gigi, klinik oriental, dll.), toko serba ada, akademi (bimbingan belajar, keterampilan), toko kacamata, salon kecantikan, klinik hewan, dll.","ตัวอย่างเช่น: ปั๊มน้ำมัน, ตลาดแบบดั้งเดิม, ร้านค้าท้องถิ่น, สถานที่พักผ่อนหย่อนใจ (ฟิตเนสคลับ, พิลาทิส, สระว่ายน้ำ, สนามกอล์ฟ, ลานโบว์ลิ่ง), โรงพยาบาลและคลินิก (ทันตแพทย์, คลินิกแผนตะวันออก ฯลฯ), ร้านสะดวกซื้อ, สถาบัน (ติวเตอร์, ฝึกทักษะ), ร้านแว่นตา, ร้านเสริมสวย, คลินิกสัตวแพทย์ ฯลฯ","Примеры: автозаправочные станции, традиционные рынки, местные магазины, развлекательные заведения (фитнес-клубы, пилатес, бассейны, поля для гольфа, боулинг), больницы и клиники (стоматологические клиники, клиники восточной медицины и т. д.), магазины товаров повседневного спроса, академии (репетиторство, обучение навыкам), магазины оптики, салоны красоты, ветеринарные клиники и т. д.","","","","","",""
-"126","MarketPaper_SubHeader","오산시장에서 사용할 수 있는 시장화폐 입니다.","A market currency that can be used at Osan Market.","おさん いちばで つかえる いちばの おかねです。","这是可以在乌山市场使用的市场货币。","Một loại tiền tệ thị trường có thể được sử dụng tại chợ Osan.","Mata uang pasar yang dapat digunakan di Pasar Osan.","สกุลเงินที่ใช้ได้ในตลาดโอซาน","Рыночная валюта, которую можно использовать на рынке Осан.","","","","","",""
+","Ví dụ: trạm xăng, chợ truyền thống, cửa hàng địa phương, cơ sở giải trí (câu lạc bộ thể dục, pilates, bể bơi, sân golf, sân bowling), bệnh viện & phòng khám (nha sĩ, phòng khám Đông y, v.v.), cửa hàng tiện lợi, học viện (dạy kèm, dạy kỹ năng), cửa hàng kính mắt, thẩm mỹ viện, phòng khám thú y, v.v.","Contoh: pom bensin, pasar tradisional, toko lokal, fasilitas rekreasi (klub kebugaran, pilates, kolam renang, lapangan golf, arena bowling), rumah sakit & klinik (dokter gigi, klinik pengobatan tradisional, dll.), toko serba ada, akademi (bimbingan belajar, keterampilan), toko kacamata, salon kecantikan, klinik hewan, dll.","ตัวอย่างเช่น: ปั๊มน้ำมัน, ตลาดแบบดั้งเดิม, ร้านค้าท้องถิ่น, สถานที่พักผ่อนหย่อนใจ (ฟิตเนสคลับ, พิลาทิส, สระว่ายน้ำ, สนามกอล์ฟ, ลานโบว์ลิ่ง), โรงพยาบาลและคลินิก (ทันตแพทย์, คลินิกแผนตะวันออก ฯลฯ), ร้านสะดวกซื้อ, สถาบัน (ติวเตอร์, ฝึกทักษะ), ร้านแว่นตา, ร้านเสริมสวย, คลินิกสัตวแพทย์ ฯลฯ","Примеры: автозаправочные станции, традиционные рынки, местные магазины, развлекательные заведения (фитнес-клубы, пилатес, бассейны, поля для гольфа, боулинг), больницы и клиники (стоматологические клиники, клиники восточной медицины и т. д.), магазины товаров повседневного спроса, академии (репетиторство, обучение навыкам), магазины оптики, салоны красоты, ветеринарные клиники и т. д.","","","","","",""
+"126","MarketPaper_SubHeader","오산시장에서 사용할 수 있는 시장화폐 입니다.","A market currency that can be used at Osan Market.","おさん いちばで つかえる いちばの おかねです。","这是可以在乌山市场使用的市场货币。","Một loại tiền tệ có thể sử dụng tại chợ Osan.","Mata uang pasar yang dapat digunakan di Pasar Osan.","สกุลเงินที่ใช้ได้ในตลาดโอซาน","Рыночная валюта, которую можно использовать на рынке Осан.","","","","","",""
 "127","MarketPaper_ButtonText","준비중","Coming soon","準備中","敬请期待","Sắp ra mắt","Segera hadir","เร็วๆ นี้","Вскоре","","","","","",""
 "128","Photo_HanbokTry","<AR 한복체험>  ","<AR Hanbok Try-On>","<AR 韓服 体験>","<AR 韩服 体验>","<AR Hanbok Try-On>","<AR Hanbok Try-On>","<AR Hanbok Try-On>","<AR Hanbok Try-On>","","","","","",""
 "129","Photo_HanbokSelect","한복/의상 선택하기","Choose Hanbok","韓服を選ぶ","选择韩服","Chọn Hanbok","Pilih Hanbok","เลือกฮันบก","Выберите ханбок","","","","","",""
@@ -625,14 +625,13 @@ Kontak: company@witworldwide.com
 ข้อมูลส่วนบุคคลจะถูกลบอย่างปลอดภัยเมื่อวัตถุประสงค์ในการเก็บรวบรวมเสร็จสิ้น หากผู้ใช้ยกเลิกหรือหยุดใช้บริการ ข้อมูลจะถูกลบ ยกเว้นในกรณีที่กฎหมายกำหนดให้ต้องเก็บรักษาไว้
 
 4. การเปิดเผยข้อมูลแก่บุคคลที่สาม
-โดยทั่วไปแล้ว ข้อมูลจะไม่ถูกเปิดเผยแก่บุคคลที่สาม ยกเว้นในกรณีที่กฎหมายกำหนด หรือเปิดเผยเพียงเล็กน้อยแก่พันธมิตรผู้ให้บริการสำหรับฟีเจอร์และโปรโมชั่น หรือได้รับความยินยอมจากผู้ใช้ก่อน
+โดยทั่วไปแล้ว ข้อมูลจะไม่ถูกเปิดเผยแก่บุคคลที่สาม ยกเว้นในกรณีที่กฎหมายกำหนด หรือเปิดเผยเพียงเล็กน้อยกับพันธมิตรผู้ให้บริการสำหรับฟีเจอร์และโปรโมชั่น หรือได้รับความยินยอมจากผู้ใช้ก่อน
 
 5. มาตรการรักษาความปลอดภัย
 เราเข้ารหัสข้อมูลส่วนบุคคลสำหรับการจัดเก็บและการส่ง จำกัดการเข้าถึงเฉพาะเจ้าหน้าที่และพันธมิตรที่ได้รับอนุญาต และดำเนินการตรวจสอบและอัปเดตความปลอดภัยเป็นประจำ
 
 6. การเปลี่ยนแปลงนโยบายความเป็นส่วนตัว
 นโยบายนี้อาจเปลี่ยนแปลงได้ตามการเปลี่ยนแปลงทางกฎหมายหรือบริการ
-
 การอัปเดตทั้งหมดจะแจ้งให้ทราบผ่านแอปหรือเว็บไซต์
 
 7. ผู้จัดการข้อมูลส่วนบุคคล
@@ -653,7 +652,7 @@ Kontak: company@witworldwide.com
 Информация, как правило, не передается третьим лицам, за исключением случаев, когда это требуется по закону, передается в минимальном объеме партнерам по сервису для функций и рекламных акций, или с предварительного согласия пользователя.
 
 5. Меры безопасности
-Мы шифруем персональные данные для хранения и передачи, ограничиваем доступ к ним уполномоченному персоналу и партнерам, а также регулярно проводим проверки и обновления безопасности.
+Мы шифруем персональные данные для хранения и передачи, ограничиваем доступ к ним уполномоченному персоналу и партнерам, а также проводим регулярные проверки и обновления безопасности.
 
 6. Изменения в Политике конфиденциальности
 Данная политика может быть изменена в соответствии с изменениями в законодательстве или в предоставляемых услугах.
@@ -720,7 +719,7 @@ Kontak: company@witworldwide.com
   상점에서 받은 영수증을 준비하시고 언어를 선택해보세요 ","*The Tax-Free refund reduces what you need to do at the airport.
   Prepare your receipt and choose your language.","*TaxFree返金で空港手続き이 줄어요。
   レシートを用意して言語を選んでください。","*TaxFree退税功能可以减少您在机场办理的手续。
-  请准备好商店给您的收据，并选择语言","*Chương trình hoàn thuế miễn phí giúp giảm bớt thủ tục tại sân bay.
+  请准备好商店给您的收据，并选择语言","*Hoàn thuế miễn phí giúp giảm bớt thủ tục tại sân bay.
 
 Hãy chuẩn bị biên lai và chọn ngôn ngữ của bạn.","*Pengembalian pajak bebas mengurangi hal-hal yang perlu Anda lakukan di bandara.
 Siapkan tanda terima Anda dan pilih bahasa Anda.","*การขอคืนภาษีแบบปลอดภาษีจะช่วยลดขั้นตอนที่คุณต้องทำที่สนามบิน
@@ -730,7 +729,7 @@ Siapkan tanda terima Anda dan pilih bahasa Anda.","*การขอคืนภ�
 "160","AI_SubmitButton","정이'에게 추천받기","Get recommendations from Jeong-i","ジョンイからおすすめをもらう","向Jeong-i获取推荐","Nhận đề xuất từ ​​Jeong-i","Dapatkan rekomendasi dari Jeong-i","รับคำแนะนำจากจองอี","Получите рекомендации от Чон-и.","","","","","",""
 "161","AI_CourseContent_1","•  맞춤 코스가 준비되었어요!","•  A personalized course is ready for you!","•  あなただけのカスタムコースが準備できました！","•  为你定制的专属路线已经准备好了！","• Một khóa học được thiết kế riêng dành cho bạn đã sẵn sàng!","• Kursus yang dipersonalisasi siap untuk Anda!","• หลักสูตรส่วนบุคคลพร้อมสำหรับคุณแล้ว!","• Для вас готов индивидуальный курс!","","","","","",""
 "162","AI_CourseContent_2","맞춤 코스에 따라 오색 시장을 즐겨보세요.","Enjoy Osaek Market with your personalized course","あなた専用のコースに沿ってオセク市場を楽しんでみてください","按照为你定制的路线，尽情畅游五色市场吧！","Hãy tận hưởng Chợ Osaek với lộ trình cá nhân hóa của bạn.","Nikmati Pasar Osaek dengan paket wisata yang dipersonalisasi untuk Anda.","เพลิดเพลินไปกับตลาดโอซาเอกพร้อมคอร์สเรียนส่วนตัวของคุณ","Насладитесь рынком Осаек, выбрав индивидуальный маршрут.","","","","","",""
-"163","Search_NoContent","콘텐츠 없음","No matching results","コンテンツがありません","暂无内容","Không tìm thấy kết quả phù hợp","Tidak ada hasil yang cocok.","ไม่พบผลลัพธ์ที่ตรงกัน","Результаты поиска отсутствуют.","","","","","",""
+"163","Search_NoContent","콘텐츠 없음","No matching results","コンテンツがありません","暂无内容","Không tìm thấy kết quả phù hợp","Tidak ada hasil yang cocok.","ไม่พบผลลัพธ์ที่ตรงกัน","Результаты поиска не найдены","","","","","",""
 "167","Taxfree_Apply","세금 환급 신청","Tax-Free","免税申請","申请退税","Miễn thuế","Bebas Pajak","ปลอดภาษี","Без налогов","","","","","",""
 "168","Taxfree_Introduce","텍스프리 소개","About Tax-Free","免税サービス案内","免税服务介绍","Về chính sách miễn thuế","Tentang Bebas Pajak","เกี่ยวกับภาษีปลอดภาษี","О компании TaxFree","","","","","",""
 "169","Taxfree_Enroll","텍스프리 가맹점 신청","Apply Tax-Free","免税加盟店申請","申请免税加盟店","Đăng ký miễn thuế","Ajukan Permohonan Bebas Pajak","สมัครโดยไม่เสียภาษี","Подать заявку без уплаты налогов","","","","","",""
@@ -755,6 +754,6 @@ Siapkan tanda terima Anda dan pilih bahasa Anda.","*การขอคืนภ�
 "188","MainButton_Promotion","취사병이벤트","","","","Sự kiện nấu ăn","Acara memasak","กิจกรรมทำอาหาร","Кулинарное мероприятие","","","","","",""
 "189","Header_Promotion","티빙 오리지널 취사병 전설이 되다","","","","Phim gốc của TVING: Người đầu bếp trở thành huyền thoại","TVING Original: Sang Koki Menjadi Legenda","รายการต้นฉบับจาก TVING: เชฟผู้กลายเป็นตำนาน","Оригинальный сериал канала TVING: Повар становится легендой","","","","","",""
 "190","SubHeader_Promotion","이벤트에 참가 해보세요.","","","","Hãy thử tham gia sự kiện này.","Cobalah berpartisipasi dalam acara tersebut.","ลองเข้าร่วมกิจกรรมดูสิ","Попробуйте принять участие в мероприятии.","","","","","",""
-"191","Promotion_Introduce","> 이벤트 소개 <","","","","Giới thiệu sự kiện <","Pengantar Acara <","แนะนำงานกิจกรรม <","Введение в мероприятие <","","","","","",""
+"191","Promotion_Introduce","> 이벤트 소개 <","","","","Giới thiệu sự kiện <","Pengantar Acara <","แนะนำกิจกรรม <","Введение в мероприятие <","","","","","",""
 "192","Promotion_Participate","> 이벤트 참여 <","","","","Tham gia sự kiện <","> Ikuti Acara <","> เข้าร่วมกิจกรรม <","> Примите участие в мероприятии <","","","","","",""
 "193","Promotion_Reward","> 이벤트 상품 <","","","","Giải thưởng sự kiện <","Hadiah Acara <","รางวัลกิจกรรม <","Призы мероприятия <","","","","","",""

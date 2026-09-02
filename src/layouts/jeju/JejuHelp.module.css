@@ -9,10 +9,13 @@
  *         580s 200 apart at x400; it is now the same two-pill component the
  *         events tabs use)
  *   940   floor row (was 920 — JejuSubTabRow's shared band, overridden here)
- *   1172  category chips 1820×580 at x170 — 5 × 340×170 per row, 30/35 gaps.
- *         THREE rows now, not the frame's two: ten of the fifteen chips are
- *         AirportFacilityData_Jeju's own BaseCategory values (see JejuHelp.tsx),
- *         and 15 over 5 is 3. 375 → 580, so everything under it drops 205.
+ *   1172  category chips 1820×375 at x170 — 5 × 340×170 per row, 30/35 gaps.
+ *         TWO rows, the frame's own count: the chips are exactly
+ *         AirportFacilityData_Jeju's BaseCategory values (ten of them today, see
+ *         JejuHelp.tsx) and 10 over 5 is 2. The row count follows the SHEET, so
+ *         an eleventh category makes three rows (580 tall) and everything under
+ *         this has to drop 205 again — which is where .map's 1825 came from
+ *         while the list was fifteen chips long.
  *   1697  map 1820×1383 at x170
  *
  * The category chips are the frame's own `R>상단 카테고리-5개*2`, shared with
@@ -72,10 +75,16 @@
 }
 
 /* ── Categories (6219:98787) ──
-   Three rows of five, each `justify-between` over 1820 — which is the frame's
-   own 30px gap (1820 − 5 × 340 = 120, over 4 gaps). Figma drew two rows for its
-   ten chips; there are fifteen now (see CATEGORIES in JejuHelp.tsx), so the
-   block is 3 × 170 + 2 × 35 = 580 tall against the frame's 375. */
+   Rows of five, each `justify-between` over 1820 — which is the frame's own 30px
+   gap (1820 − 5 × 340 = 120, over 4 gaps). TWO rows today (2 × 170 + 35 = 375,
+   the frame's own height), because CATEGORIES is now exactly the sheet's ten
+   BaseCategory values.
+
+   ★ This height is not fixed — it is ceil(n / 5) rows of 170 with 35 between,
+   and n is however many categories AirportFacilityData_Jeju uses. The block has
+   no height of its own (it is a flex column, so it takes what the rows need),
+   but .map below DOES have a hard top, so an eleventh category silently grows
+   this into the map. Move .map to 1825 if that day comes. */
 .cats {
   position: absolute;
   left: 170px;
@@ -84,6 +93,8 @@
   display: flex;
   flex-direction: column;
   gap: 35px;
+  font-family: Pretendard, 'Noto Sans KR', sans-serif;
+  font-style: normal;
 }
 
 .catRow {
@@ -92,28 +103,49 @@
   justify-content: space-between;
 }
 
-.cats .pill {
-  width: 340px;
-}
-
 /*
- * The chips are no longer labelled by hand, so they can no longer be sized by
- * hand either: ten of them now carry BaseCategory straight out of the sheet, in
- * whichever of the eight languages is on screen. Those strings are long and
- * nobody drew a pill for them — 금융・보험・환전 alone is ~350px of Korean at the
- * component's 50px, on a 340px pill, and its English reads "Finance・Insurance・
- * Currency Exchange".
- *
- * So this row (and only this row — the terminal pills keep the component's 50px)
- * takes a size the sheet cannot outgrow. 36px over up to four lines is 158px
- * inside the pill's 170, and `anywhere` lets the Korean names break at the ・
- * they are joined on, which is where they read best anyway. `pre-line` from the
- * component stays: 교통약자\n편의시설 still splits where the frame splits it.
+ * Sheet-driven category chips (AirportFacilityData_Jeju BaseCategory values).
+ * Figma 6393:59030 / I6771:66722: every label is 50px Pretendard on ONE line
+ * (`whitespace-nowrap`, `overflow-clip` on the 340×170 plate). The shared
+ * JejuPill sets `white-space: pre-line` for other pages — overridden here.
  */
 .cats .pill {
-  font-size: 36px;
-  line-height: 1.1;
-  overflow-wrap: anywhere;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 340px;
+  height: 170px;
+  box-sizing: border-box;
+  padding: 0 10px;
+  font-family: inherit;
+  font-size: 50px;
+  font-style: normal;
+  font-weight: 500;
+  line-height: 1;
+  text-align: center;
+  color: #999;
+  white-space: nowrap;
+  overflow: hidden;
+}
+
+.cats .pillLabel {
+  display: block;
+  max-width: 100%;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: clip;
+}
+
+.cats .pillActive {
+  border: none;
+  background: #fff;
+  font-family: inherit;
+  font-size: 50px;
+  font-style: normal;
+  font-weight: 700;
+  line-height: 1;
+  text-align: center;
+  color: var(--kiosk-primary, #ff7f0f);
 }
 
 /* ── Map (6219:98788) ──
@@ -127,10 +159,12 @@
    page's rhythm and the map is not the one element that gets to break them —
    and only what the placeholder's shape dictated is changed:
 
-     top    1825  (was 1697) — 73px under the chips, and the plan is TOP-aligned
+     top    1620  (was 1697) — 73px under the chips, and the plan is TOP-aligned
                    rather than centred, which is the half of this that actually
-                   closes the gap. It was 1620 while the chips were two rows; the
-                   third row moved it 205 down, not the reasoning.
+                   closes the gap. It sat at 1825 while a hard-coded fifteenth
+                   chip forced a third row of chips; the sheet-only ten are two
+                   rows again, so it is back to 1620. The 205 is the row, not the
+                   reasoning — see .cats.
      height 1500  (was 1383) — what 국내선 4F, the one upright plan, needs at this
                    width: 1820×1456. Every other plan is width-bound long before
                    it reaches this, so more height would buy nothing.
@@ -141,7 +175,7 @@
 .map {
   position: absolute;
   left: 170px;
-  top: 1825px;
+  top: 1620px;
   width: 1820px;
   height: 1500px;
   display: flex;

@@ -28,8 +28,8 @@ O","お
 "1705","MainButton_SAMap","화성휴게소 지도","","Map","Map","Bản đồ khu vực nghỉ ngơi Hwaseong","Peta Area Istirahat Hwaseong","แผนที่จุดพักรถฮวาซอง","Карта зоны отдыха Хвасон","",""
 "10","MainButton_Exchange","환율","Exchange","為替レート情報","汇率信息","tỷ giá hối đoái","kurs","อัตราแลกเปลี่ยน","обменный курс","",""
 "1700","MainButton_ServiceArea","전국휴게소","Service Area","Service Area","Service Area","Khu vực nghỉ ngơi quốc gia","Area peristirahatan nasional","จุดพักรถแห่งชาติ","Национальные зоны отдыха","",""
-"1702","MainButton_Property","문화재(준비중)","Korea Property","Korea Property","Korea Property","Di sản văn hóa (Đang trong quá trình chuẩn bị)","Warisan Budaya (Dalam tahap persiapan)","มรดกทางวัฒนธรรม (อยู่ระหว่างการจัดทำ)","Культурное наследие (в процессе подготовки)","",""
-"1701","MainButton_KCulture","K-컬쳐(준비중)","K-Culture(Preparing)","K-Culture(Preparing)","K-Culture(Preparing)","Văn hóa K-pop (Sắp ra mắt)","K-Culture (Segera Hadir)","วัฒนธรรมเกาหลี (เร็วๆ นี้)","K-Culture (Скоро)","",""
+"1702","MainButton_Property","문화재(준비중)","Korea Property","Korea Property","Korea Property","Di sản văn hóa (Đang trong quá trình chuẩn bị)","Warisan Budaya (Sedang dalam persiapan)","มรดกทางวัฒนธรรม (อยู่ระหว่างการจัดทำ)","Культурное наследие (в процессе подготовки)","",""
+"1701","MainButton_KCulture","K-컬쳐(준비중)","K-Culture(Preparing)","K-Culture(Preparing)","K-Culture(Preparing)","Văn hóa Hàn Quốc (Sắp ra mắt)","K-Culture (Segera Hadir)","วัฒนธรรมเกาหลี (เร็วๆ นี้)","K-Culture (Скоро)","",""
 "4","MainButton_MarketPaper","지역화폐","Local Currency","ちいきの おかね","地区货币","tiền tệ địa phương","mata uang lokal","สกุลเงินท้องถิ่น","местная валюта","",""
 "14","MainButton_SmartTour","스마트관광(준비중)","Smart Tourism (Preparing)","スマート観光（準備中）","智慧旅游（准备中）","Du lịch thông minh (Đang trong quá trình phát triển)","Pariwisata Cerdas (Dalam pengembangan)","การท่องเที่ยวอัจฉริยะ (อยู่ระหว่างการพัฒนา)","«Умный туризм» (в стадии разработки)","",""
 "","MainButton_WC","화장실","Toilet","トイレ","廁所","Nhà vệ sinh","Toilet","ห้องน้ำ","Туалет","",""
@@ -40,7 +40,7 @@ O","お
 "52","Here_HistoryContent","자연 친화적 공간: 화성휴게소(특히 목포 방향)는 꽃길 미술공원이나 '해넘이 공원' 등 자연을 즐길 수 있는 산책로가 잘 조성되어 있습니다. 장거리 운전 중 가볍게 걷거나 스트레칭을 하기 좋습니다. 깔끔하고 현대적인 화장실 인테리어와 외관으로 이용객들의 만족도가 높은 편입니다.","Eco-Friendly Space: Enjoy walking trails like 'Flower Path Art Park' and 'Sunset Park,' perfect for a light walk or stretching during a long drive.
 Clean & Modern: Highly rated for its modern exterior and clean restrooms.","自然に優しい空間: 「花の道美術公園」や「夕日公園」などの散策路があり、長距離運転中のストレッチに最適です。
 快適な環境: 清潔でモダンなトイレと外観が利用客から好評です。","亲近自然的空间: 设有“花路美术公园”和“日落公园”等散步小径，非常适合在长途驾驶中散步或做拉伸运动。
-舒适的环境: 干净现代的洗手间和外观设计深受旅客好评。","Không gian thân thiện với thiên nhiên: Khu nghỉ dưỡng Hwaseong (đặc biệt là hướng Mokpo) có những con đường đi bộ được xây dựng tốt, nơi bạn có thể tận hưởng thiên nhiên, chẳng hạn như Công viên Nghệ thuật Đường Hoa và 'Công viên Hoàng hôn'. Đây là nơi lý tưởng để đi bộ nhẹ nhàng hoặc giãn cơ trong những chuyến đi đường dài. Mức độ hài lòng của người dùng nhìn chung cao nhờ nội thất và ngoại thất nhà vệ sinh sạch sẽ và hiện đại.","Ruang ramah lingkungan: Area Istirahat Hwaseong (khususnya arah Mokpo) memiliki jalur pejalan kaki yang tertata rapi di mana Anda dapat menikmati alam, seperti Taman Seni Jalur Bunga dan 'Taman Matahari Terbenam'. Sangat ideal untuk berjalan-jalan santai atau meregangkan badan setelah berkendara jarak jauh. Kepuasan pengguna umumnya tinggi karena interior dan eksterior toilet yang bersih dan modern.","พื้นที่เป็นมิตรกับธรรมชาติ: จุดพักรถฮวาซอง (โดยเฉพาะฝั่งมุ่งหน้าไปยังมกโพ) มีเส้นทางเดินที่จัดไว้อย่างดี ซึ่งคุณสามารถเพลิดเพลินกับธรรมชาติได้ เช่น สวนศิลปะเส้นทางดอกไม้ และ 'สวนชมพระอาทิตย์ตก' เหมาะสำหรับการเดินเล่นเบาๆ หรือยืดเส้นยืดสายระหว่างการขับรถทางไกล ความพึงพอใจของผู้ใช้โดยทั่วไปสูง เนื่องจากห้องน้ำมีความสะอาดและทันสมัยทั้งภายในและภายนอก","Зона отдыха Хвасон (особенно в направлении Мокпо) отличается хорошо обустроенными пешеходными дорожками, где можно насладиться природой, такими как Художественный парк «Цветочная тропа» и «Парк заката». Это идеальное место для неспешной прогулки или разминки во время длительной поездки на автомобиле. В целом, уровень удовлетворенности пользователей высок благодаря чистоте и современному внутреннему и внешнему виду туалетов.","",""
+舒适的环境: 干净现代的洗手间和外观设计深受旅客好评。","Không gian thân thiện với thiên nhiên: Khu nghỉ dưỡng Hwaseong (đặc biệt là hướng Mokpo) có những con đường đi bộ được xây dựng tốt, nơi bạn có thể tận hưởng thiên nhiên, chẳng hạn như Công viên Nghệ thuật Đường Hoa và 'Công viên Hoàng hôn'. Đây là nơi lý tưởng để đi bộ nhẹ nhàng hoặc giãn cơ trong những chuyến đi đường dài. Mức độ hài lòng của người dùng nhìn chung cao nhờ nội thất và ngoại thất nhà vệ sinh sạch sẽ và hiện đại.","Ruang ramah lingkungan: Area Istirahat Hwaseong (khususnya arah Mokpo) memiliki jalur pejalan kaki yang tertata rapi di mana Anda dapat menikmati alam, seperti Taman Seni Jalur Bunga dan 'Taman Matahari Terbenam'. Sangat ideal untuk berjalan-jalan santai atau meregangkan badan setelah berkendara jarak jauh. Kepuasan pengguna umumnya tinggi karena interior dan eksterior toilet yang bersih dan modern.","พื้นที่เป็นมิตรกับธรรมชาติ: จุดพักรถฮวาซอง (โดยเฉพาะฝั่งมุ่งหน้าไปยังมกโพ) มีเส้นทางเดินที่จัดไว้อย่างดี ซึ่งคุณสามารถเพลิดเพลินกับธรรมชาติได้ เช่น สวนศิลปะเส้นทางดอกไม้ และ 'สวนชมพระอาทิตย์ตก' เหมาะสำหรับการเดินเล่นเบาๆ หรือยืดเส้นยืดสายระหว่างการขับรถทางไกล ความพึงพอใจของผู้ใช้โดยทั่วไปสูง เนื่องจากห้องน้ำมีความสะอาดและทันสมัยทั้งภายในและภายนอก","Зона отдыха Хвасон (особенно в направлении Мокпо) отличается хорошо обустроенными пешеходными дорожками, где можно насладиться природой, такими как Парк цветочных композиций и «Парк заката». Это идеальное место для неспешной прогулки или разминки во время длительной поездки на автомобиле. В целом, уровень удовлетворенности пользователей высок благодаря чистоте и современному внутреннему и внешнему виду туалетов.","",""
 "53","Here_Culture","대표 먹거리 (시그니처 메뉴)","Signature Foods","代表グルメ (シグネチャーメニュー)","代表美食（特色菜单）","Các món ăn đặc trưng","Hidangan andalan","เมนูเด่น","Фирменные блюда","",""
 "54","Here_CultureContent","순대국밥: 국물 깊이부터 장난 아님. 
 건더기 폼 미쳤고, 고속도로 달리다 쌓인 
@@ -66,7 +66,7 @@ Toppingnya terlihat luar biasa, dan supnya terasa mengenyangkan, langsung menghi
 
 Anda pasti bisa menghabiskan seluruh mangkuknya!
 
-Sundubu Cheonggukjang: Kelembutan yang sempurna, menggabungkan rasa gurih yang kaya khas Cheonggukjang dengan tahu lembut yang mengembang.
+Sundubu Cheonggukjang: Kelembutan yang sempurna, menggabungkan rasa gurih yang khas dari Cheonggukjang dengan tahu lembut yang mengembang.
 
 Rasa umaminya luar biasa, menjadikannya pengisap nasi yang akan dinikmati semua orang dan dengan mudah menghabiskan semangkuk nasi.","ซุนแดกุกบับ: น้ำซุปเข้มข้นมาก ไม่ธรรมดาเลย
 
@@ -105,7 +105,7 @@ Other Facilities: Nursing room, convenience store, Hi-Pass recharge, and busines
   京畿道华城市八滩面。
   下一站: 行淡岛休息站","Trạm xăng & sạc điện: Có trạm xăng EX-OIL, trạm nạp khí LPG và trạm sạc xe điện.
 
-Các tiện ích khác: Có phòng cho con bú, cửa hàng tiện lợi, trạm sạc Hi-Pass, trung tâm thương mại, v.v.
+Các tiện ích khác: Có phòng cho con bú, cửa hàng tiện lợi, trạm sạc Hi-Pass, trung tâm dịch vụ doanh nhân, v.v.
 
 Thông tin vị trí
 
@@ -152,7 +152,7 @@ Menuju Mokpo: Area istirahat berikutnya adalah Area Istirahat Haengdamdo","ส�
 "59","Greeting_Name","이름","Name","名前","姓名","tên","nama","ชื่อ","имя","",""
 "60","Greeting_NameContent","휴 (HUE)","HUE","HUE","HUE","Màu sắc","Warna","ฮิว","Оттенок","",""
 "61","Greeting_BirthDay","출생","Date of Birth","生年月日","出生日期","sinh","kelahiran","การเกิด","рождение","",""
-"62","Greeting_BirthDayContent","2006년 3월 19일","March 19, 2006","2006年3月19日","2006年3月19日","Ngày 19 tháng 3 năm 2006","19 Maret 2006","19 มีนาคม 2549","19 марта 2006 г.","",""
+"62","Greeting_BirthDayContent","2006년 3월 19일","March 19, 2006","2006年3月19日","2006年3月19日","Ngày 19 tháng 3 năm 2006","19 Maret 2006","วันที่ 19 มีนาคม พ.ศ. 2549","19 марта 2006 г.","",""
 "63","Greeting_HomeTown","출신","Background","出身地","家乡","tự nhiên","warga asli","พื้นเมือง","родной","",""
 "64","Greeting_HomeTownContent","대한민국","Gyeonggi-do","きょんぎど","京畿道","Hàn Quốc","Korea","เกาหลี","Корея","",""
 "65","Greeting_Nationality","국적","Nationality","国籍","国籍","quốc tịch","kebangsaan","สัญชาติ","национальность","",""
@@ -162,15 +162,15 @@ Menuju Mokpo: Area istirahat berikutnya adalah Area Istirahat Haengdamdo","ส�
 "69","Greeting_MBTI","MBTI","MBTI","MBTI","MBTI","MBTI","MBTI","MBTI","MBTI","",""
 "70","Greeting_MBTIContent","ENTP (당당하고 창의적인)","ENTP","ENTP","ENTP","ENTP (Tự tin và Sáng tạo)","ENTP (Percaya Diri dan Kreatif)","ENTP (มั่นใจและสร้างสรรค์)","ENTP (Уверенный и Креативный)","",""
 "71","Greeting_BodyInfo","신체","Body","体型","身材","thân hình","tubuh","ร่างกาย","тело","",""
-"72","Greeting_BodyInfoContent","170cm, 34-25-35, 240mm (몸무게는 비밀…)","170cm, 34-25-35, 240mm (Weight is a secret!)","170cm, 34-25-35, 240mm (体重は秘密！)","170cm, 34-25-35, 240mm (体重是秘密哦！)","170cm, 34-25-35, 240mm (Cân nặng là bí mật…)","170cm, 34-25-35, 240mm (Beratnya dirahasiakan…)","ส่วนสูง 170 ซม., รอบอก 34-25-35, รอบเอว 240 มม. (น้ำหนักเป็นความลับ…)","170 см, 34-25-35, 240 мм (Вес — секрет…)","",""
+"72","Greeting_BodyInfoContent","170cm, 34-25-35, 240mm (몸무게는 비밀…)","170cm, 34-25-35, 240mm (Weight is a secret!)","170cm, 34-25-35, 240mm (体重は秘密！)","170cm, 34-25-35, 240mm (体重是秘密哦！)","170cm, 34-25-35, 240mm (Cân nặng là bí mật…)","170cm, 34-25-35, 240mm (Beratnya dirahasiakan…)","ส่วนสูง 170 ซม., รอบอก 34-25-35, ความกว้าง 240 มม. (น้ำหนักเป็นความลับ…)","170 см, 34-25-35, 240 мм (Вес — секрет…)","",""
 "73","Greeting_Hobby","특기","Specialties","特技","特长","Kỹ năng đặc biệt","Keahlian khusus","ทักษะพิเศษ","Особый навык","",""
 "74","Greeting_HobbyContent","다양한 나라의 언어 능력, 댄스, 노래 등","Multilingual skills, dancing, singing, etc.","多様な言語能力、ダンス、歌など","多国语言能力、舞蹈、唱歌等","Khả năng ngoại ngữ từ nhiều quốc gia, khiêu vũ, ca hát, v.v.","Kemampuan berbahasa dari berbagai negara, menari, menyanyi, dan lain sebagainya.","ทักษะด้านภาษาจากหลากหลายประเทศ การเต้นรำ การร้องเพลง เป็นต้น","Знание языков разных стран, танцы, пение и т.д.","",""
 "75","Greeting_Specialty","취미","Hobbies","趣味","兴趣","sở thích","hobi","งานอดิเรก","хобби","",""
 "76","Greeting_SpecialtyContent","K-POP 댄스, 맛집 탐방, 디저트 카페 방문, 테니스, 골프","K-POP dance, food tours, tennis, golf","K-POPダンス、グルメ巡り、デザートカフェ巡り、テニス、ゴルフ","K-POP 舞蹈、美食探店、探访甜点咖啡馆、网球、高尔夫","Nhảy K-POP, đi ăn ở các nhà hàng nổi tiếng, đi quán cà phê tráng miệng, chơi tennis, chơi golf.","Tarian K-POP, mengunjungi restoran terkenal, mengunjungi kafe makanan penutup, tenis, golf","การเต้น K-POP, การไปทานอาหารที่ร้านอาหารชื่อดัง, การไปร้านขนมหวาน, เทนนิส, กอล์ฟ","Танцы K-POP, посещение известных ресторанов, посещение кафе-кондитерских, теннис, гольф.","",""
-"77","Greeting_FutureHope","장래희망","Dream","将来の夢","志向","khát vọng tương lai","aspirasi masa depan","ความปรารถนาในอนาคต","будущие устремления","",""
+"77","Greeting_FutureHope","장래희망","Dream","将来の夢","志向","ước mơ tương lai","mimpi masa depan","ความฝันในอนาคต","мечты о будущем","",""
 "78","Greeting_FutureHopeContent","글로벌 라이프스타일 디렉터이자 영향력 있는 홍보모델, 전 세계에 선한 영향력을 전하는 인플루언서","Global lifestyle director and influential promotional model, influencer spreading positive influence ","グローバルライフスタイルディレクター兼影響力のある広報モデル、世界に良い影響を与えるインフルエンサー","全球生活方式总监及有影响力的宣传模特，向全世界传递正能量的博主","Một giám đốc phong cách sống toàn cầu, người mẫu quảng cáo có sức ảnh hưởng và người truyền cảm hứng lan tỏa ảnh hưởng tích cực trên toàn thế giới.","Seorang direktur gaya hidup global, model promosi berpengaruh, dan influencer yang menyebarkan pengaruh positif di seluruh dunia.","ผู้อำนวยการด้านไลฟ์สไตล์ระดับโลก นางแบบโฆษณาที่มีอิทธิพล และอินฟลูเอนเซอร์ที่เผยแพร่อิทธิพลเชิงบวกไปทั่วโลก","Глобальный директор по стилю жизни, влиятельная промоутерская модель и инфлюенсер, распространяющая позитивное влияние по всему миру.","",""
 "79","Greeting_Introdution","자기소개","Bio","自己紹介","自我介绍","Tự giới thiệu","Perkenalan diri","แนะนำตัว","Самопредставление","",""
-"80","Greeting_IntrodutionContent","디자인 전공하는 20살 대학생 휴(HUE)입니다. 미국에서 10년 살다 온 경험을 살려 4개국어를 구사하며, 현재 고속도로 휴게소 홍보모델로 활동하고 있습니다.","I'm HUE, a 20-year-old design student. Using my 10 years of experience living in the US, I speak four languages and currently work as a promotional model for highway rest areas.","デザインを専攻している20歳の大学生、ヒュー(HUE)です。アメリカでの10年の経験を活かして4ヶ国語を操り、現在は高速道路サービスエリアの広報モデルとして活動しています。","我是设计专业的20岁大学生 HUE。凭借在美国生活10年的经验，我能流利使用4国语言，目前担任高速公路休息站的宣传模特。","Tôi là Huế, 20 tuổi, sinh viên đại học chuyên ngành thiết kế. Với kinh nghiệm sống tại Hoa Kỳ 10 năm, tôi nói được bốn thứ tiếng và hiện đang làm người mẫu quảng cáo cho các trạm dừng chân trên đường cao tốc.","Saya Hue, seorang mahasiswi berusia 20 tahun jurusan desain. Berdasarkan pengalaman saya tinggal di Amerika Serikat selama 10 tahun, saya berbicara empat bahasa dan saat ini bekerja sebagai model promosi untuk tempat istirahat di jalan raya.","ฉันชื่อฮิว อายุ 20 ปี เป็นนักศึกษาวิทยาลัย สาขาออกแบบ จากประสบการณ์การใช้ชีวิตในสหรัฐอเมริกา 10 ปี ฉันพูดได้สี่ภาษา และปัจจุบันทำงานเป็นนางแบบประชาสัมพันธ์ให้กับจุดพักรถริมทางหลวง","Меня зовут Хью, мне 20 лет, я студентка колледжа, изучаю дизайн. Благодаря своему десятилетнему опыту жизни в Соединенных Штатах, я говорю на четырех языках и в настоящее время работаю рекламной моделью на придорожных зонах отдыха.","",""
+"80","Greeting_IntrodutionContent","디자인 전공하는 20살 대학생 휴(HUE)입니다. 미국에서 10년 살다 온 경험을 살려 4개국어를 구사하며, 현재 고속도로 휴게소 홍보모델로 활동하고 있습니다.","I'm HUE, a 20-year-old design student. Using my 10 years of experience living in the US, I speak four languages and currently work as a promotional model for highway rest areas.","デザインを専攻している20歳の大学生、ヒュー(HUE)です。アメリカでの10年の経験を活かして4ヶ国語を操り、現在は高速道路サービスエリアの広報モデルとして活動しています。","我是设计专业的20岁大学生 HUE。凭借在美国生活10年的经验，我能流利使用4国语言，目前担任高速公路休息站的宣传模特。","Tôi là Huế, 20 tuổi, sinh viên đại học chuyên ngành thiết kế. Với kinh nghiệm sống tại Hoa Kỳ 10 năm, tôi nói được bốn thứ tiếng và hiện đang làm người mẫu quảng cáo cho các trạm dừng chân trên đường cao tốc.","Saya Hue, seorang mahasiswi berusia 20 tahun jurusan desain. Berdasarkan pengalaman saya tinggal di Amerika Serikat selama 10 tahun, saya berbicara empat bahasa dan saat ini bekerja sebagai model promosi untuk tempat istirahat di jalan raya.","ฉันชื่อฮิว อายุ 20 ปี เป็นนักศึกษาวิทยาลัย สาขาออกแบบ จากประสบการณ์การใช้ชีวิตในสหรัฐอเมริกา 10 ปี ฉันพูดได้สี่ภาษา และปัจจุบันทำงานเป็นนางแบบประชาสัมพันธ์ให้กับจุดพักรถริมทางหลวง","Меня зовут Хью, мне 20 лет, я студентка факультета дизайна. Благодаря своему десятилетнему опыту жизни в США, я говорю на четырех языках и в настоящее время работаю рекламной моделью на придорожных зонах отдыха.","",""
 "82","Greeting_Hobby_First","> 디자인 공부하는 휴","HUE the Design Student","デザインを学ぶヒュー","学习设计的 HUE","Nghiên cứu thiết kế","Mempelajari desain","การศึกษาด้านการออกแบบ","Изучение дизайна","",""
 "83","Greeting_Hobby_First_Content","과제랑 전공 서적에 파묻혀 지내지만 스케치북에 아이디어를 채울 때면 세상 행복해. 
 나만의 디자인으로 새로운 가치를 만드는 열정 가득한 캠퍼스 라이프를 즐기는 중이야!","I love singing and dancing like an idol—I can't resist moving to the beat! I'm also passionate about café and restaurant hopping, sharing the trendiest dessert spots and hidden gems with my friends and followers.","課題に追われる日々だけど、スケッチブックをアイデアで満たす時は最高に幸せ。自分だけのデザインで新しい価値を作る、情熱的なキャンパスライフを満喫中だよ！","虽然经常埋头于作业，但在素描本上填满创意时最幸福。正通过自己的设计创造新价值，享受充满激情的校园生活！","Tôi dành cả ngày vùi đầu vào bài tập và sách giáo khoa, nhưng tôi cảm thấy vô cùng hạnh phúc khi lấp đầy cuốn sổ phác thảo của mình bằng những ý tưởng.
@@ -189,16 +189,16 @@ Saya menikmati kehidupan kampus yang penuh semangat, menciptakan nilai baru deng
 최근에는 런닝을 시작했어요 우리 함게 달려보아요","Tennis and golf are core to my ""God-saeng"" routine. Dancing to K-POP in the studio helps me destress and fully recharges my energy—it's so much fun!
 I've started running lately—let's run together!","テニスとゴルフは私の「ガッセン」ルーティンの要。ストレスが溜まった時は練習室でK-POPダンスを踊って汗を流せば、エネルギーがフルチャージされる気分で本当に楽しいよ！
 さいきんは らんにんぐを はじめました！ いっしょに はしりましょう。","网球和高尔夫是我“极简自律”生活的核心。压力大时在练习室跳 K-POP 舞蹈挥洒汗水，感觉能量瞬间充满，真的超级开心！
-最近我开始跑步啦！我们一起奔跑吧。","Quần vợt và golf là cốt lõi trong cuộc sống thường nhật tuyệt vời của tôi. Khi căng thẳng, tôi rất thích đổ mồ hôi bằng cách nhảy K-POP ở phòng tập; cảm giác như năng lượng dồi dào của tôi được nạp đầy trở lại!
+最近我开始跑步啦！我们一起奔跑吧。","Quần vợt và golf là cốt lõi trong ""cuộc sống thần thánh"" của tôi. Khi căng thẳng, tôi rất thích đổ mồ hôi khi nhảy K-POP ở phòng tập; cảm giác như năng lượng dồi dào của tôi được nạp đầy trở lại!
 
-Gần đây tôi bắt đầu chạy bộ. Cùng chạy với nhau nhé!","Tenis dan golf adalah inti dari rutinitas hidup saya yang luar biasa. Saat stres, saya sangat menikmati berolahraga dengan menari K-POP di ruang latihan; rasanya energi saya yang tak pernah habis terisi penuh!
+Gần đây tôi bắt đầu chạy bộ. Cùng chạy với nhau nhé!","Tenis dan golf adalah inti dari rutinitas ""kehidupan rohani"" saya. Saat stres, saya sangat menikmati berolahraga dengan menari K-POP di ruang latihan; rasanya energi saya yang tak habis-habisnya terisi penuh!
 
-Baru-baru ini saya mulai berlari. Mari kita lari bersama!","เทนนิสและกอล์ฟเป็นหัวใจหลักของกิจวัตรประจำวันอันแสนวิเศษของฉัน เวลาเครียด ฉันชอบไปออกกำลังกายด้วยการเต้น K-POP ในห้องซ้อม รู้สึกเหมือนพลังงานที่ไม่มีวันหมดของฉันได้รับการเติมเต็มอย่างเต็มที่!
+Baru-baru ini saya mulai berlari. Mari kita lari bersama!","เทนนิสและกอล์ฟเป็นหัวใจหลักของกิจวัตร ""ชีวิตที่แสนสุข"" ของฉัน เวลาเครียด ฉันชอบไปออกกำลังกายด้วยการเต้น K-POP ในห้องซ้อม รู้สึกเหมือนพลังงานที่ไม่มีวันหมดของฉันได้รับการเติมเต็มอย่างเต็มที่!
 
-เมื่อเร็วๆ นี้ฉันเริ่มวิ่งแล้ว มาวิ่งด้วยกันเถอะ!","Теннис и гольф — основа моей потрясающей жизни. Когда я испытываю стресс, мне очень нравится хорошенько попотеть, танцуя K-POP в тренировочном зале; это как будто моя неиссякаемая энергия полностью восстанавливается!
+เมื่อเร็วๆ นี้ฉันเริ่มวิ่งแล้ว มาวิ่งด้วยกันเถอะ!","Теннис и гольф — основа моей ""божественной"" жизни. Когда я испытываю стресс, мне очень нравится хорошенько попотеть, танцуя K-POP в тренировочном зале; это как будто моя неиссякаемая энергия полностью восстанавливается!
 
 Недавно я начала бегать. Давайте побегаем вместе!","",""
-"89","Greeting_Stretching_First","뻐근한 목과 어깨를 위한 스트레칭 타임","Stretching time for stiff neck and shoulders","せなかの つかれに さようなら！ えねるぎい あっぷ すとれっちの じかん","告别腰背疲劳！活力满满的拉伸时间","Bài tập giãn cơ giúp giảm cứng cổ và vai.","Waktu peregangan untuk leher dan bahu yang kaku","ช่วงเวลาแห่งการยืดกล้ามเนื้อสำหรับอาการคอและไหล่แข็ง","Растяжка при затекшей шее и плечах.","",""
+"89","Greeting_Stretching_First","뻐근한 목과 어깨를 위한 스트레칭 타임","Stretching time for stiff neck and shoulders","せなかの つかれに さようなら！ えねるぎい あっぷ すとれっちの じかん","告别腰背疲劳！活力满满的拉伸时间","Bài tập giãn cơ giúp giảm cứng cổ và vai.","Waktu peregangan untuk leher dan bahu yang kaku","ช่วงเวลาแห่งการยืดกล้ามเนื้อสำหรับอาการคอและไหล่แข็ง","Время для растяжки при затекшей шее и плечах","",""
 "90","Greeting_Stretching_First_Content","오랜 시간 핸들 잡느라 굳어버린 목이랑 어깨, 지금 휴(HUE)랑 같이 가볍게 돌려보면서 리프레시해봐요.
 화면 속 저를 따라 천천히 움직이다 보면 어느새 머리까지 맑아지는 기분을 느낄 수 있을 거예요.","Let’s take a moment to relax your stiff neck and tired shoulders with HUE. Just follow my simple moves on the screen to refresh both your body and mind before you hit the road again. A quick stretch will make your journey much more vibrant and enjoyable!","ひゅと いっしょの すとれっちは こしの いたみを とるのに さいこうです。もっと かるくて たのしい たびの ために、いっしょに えねるぎいを じゅうでん しましょう。","和Hue一起拉伸是缓解腰背疲劳的最佳方式。让我们一起补充能量，享受更加轻松愉快的旅途吧！","Hãy thư giãn cổ và vai, vốn đang bị cứng do cầm vô lăng quá lâu, bằng cách nhẹ nhàng xoay chúng theo hướng dẫn của HUE ngay bây giờ.
 
@@ -206,7 +206,7 @@ Khi bạn từ từ di chuyển cùng tôi trên màn hình, bạn sẽ cảm th
 
 Saat Anda perlahan bergerak bersama saya di layar, Anda akan merasakan pikiran Anda menjadi jernih sebelum Anda menyadarinya.","ผ่อนคลายคอและไหล่ที่ตึงจากการถือพวงมาลัยมานาน ด้วยการหมุนเบาๆ ไปพร้อมกับ HUE ในตอนนี้
 
-ขณะที่คุณค่อยๆ ขยับไปพร้อมกับฉันบนหน้าจอ คุณจะพบว่าจิตใจของคุณปลอดโปร่งขึ้นโดยไม่รู้ตัว","Освежите шею и плечи, затекшие от долгого сидения за рулем, мягко вращая их с помощью HUE.
+ขณะที่คุณค่อยๆ ขยับไปพร้อมกับฉันบนหน้าจอ คุณจะพบว่าจิตใจของคุณปลอดโปร่งขึ้นโดยไม่รู้ตัว","Освежите шею и плечи, затекшие от долгого сидения за рулем, мягко вращая их с помощью HUE прямо сейчас.
 
 По мере того, как вы будете медленно двигаться вместе со мной по экрану, вы очень скоро почувствуете, как проясняется ваш разум.","",""
 "91","Greeting_Stretching_Second","허리 피로 싹! 에너지 업 스트레칭 타임","Focus on Legs & Back~","エネルギーアップストレッチタイム","全身活力ストレッチタイム","Tạm biệt chứng đau lưng! Thời gian giãn cơ giúp tăng cường năng lượng.","Ucapkan Selamat Tinggal pada Kelelahan Punggung! Waktu Peregangan untuk Meningkatkan Energi","บอกลาอาการปวดหลัง! ช่วงเวลาแห่งการยืดเหยียดเพื่อเพิ่มพลังงาน","Попрощайтесь с усталостью спины! Время для растяжки, заряжающее энергией.","",""
@@ -237,7 +237,7 @@ Mari kita coba beberapa latihan sederhana bersama dengan ‘Hue’.","เมื�
 
 Nạp lại năng lượng và bắt đầu chuyến đi với nhiều hứng khởi hơn.
 
-Sao không thử nghỉ ngơi một chút nhỉ?","Peregangan tidak hanya menyegarkan tubuh tetapi juga pikiran Anda!
+Sao không thử nghỉ ngơi một chút nhỉ?","Peregangan tidak hanya menyegarkan tubuh, tetapi juga pikiran Anda!
 
 Isi ulang energi Anda dan berpetualanglah dengan lebih banyak kegembiraan.
 
@@ -367,7 +367,7 @@ The photo will be taken in 10 seconds. The result will appear on both the left a
 5秒後に撮影が始まります。写真は左と正面の画面に表示されます。","• 点击拍照按钮，然后看向左边的摄像头。
 5秒后将开始拍照，结果将显示在左侧和前方的屏幕上。","• Nhấn nút chụp ảnh và nhìn vào camera bên trái.
 
-Quá trình ghi hình sẽ bắt đầu sau 10 giây. Lưu kết quả vào điện thoại của bạn qua mã QR.","• Tekan tombol pengambilan foto dan lihat ke kamera di sebelah kiri.
+Quá trình ghi hình sẽ bắt đầu sau 10 giây. Lưu kết quả vào điện thoại của bạn thông qua mã QR.","• Tekan tombol pengambilan foto dan lihat ke kamera di sebelah kiri.
 
 Perekaman akan dimulai setelah 10 detik. Simpan hasilnya ke ponsel Anda melalui kode QR.","• กดปุ่มถ่ายภาพและมองไปที่กล้องทางด้านซ้าย
 
@@ -738,7 +738,7 @@ A special Hanbok event is coming soon, so stay tuned!","QRを読み込んでス�
 韓服イベントも準備中なので、たくさん参加してね！","きゅーあーるを よみこんで すまほに ほぞんし、
 えすえぬえすで しぇあして みてね！","Hãy lưu mã QR vào điện thoại và chia sẻ trên các nền tảng mạng xã hội khác nhau. Một sự kiện về việc mặc Hanbok hiện đang được chuẩn bị, vì vậy chúng tôi rất mong chờ sự tham gia của các bạn.","Simpan kode QR ke ponsel Anda dan bagikan di berbagai platform media sosial. Sebuah acara terkait pemakaian Hanbok sedang dipersiapkan, jadi kami menantikan partisipasi Anda.","บันทึกคิวอาร์โค้ดลงในโทรศัพท์มือถือของคุณแล้วแชร์บนแพลตฟอร์มโซเชียลมีเดียต่างๆ ขณะนี้กำลังมีการเตรียมจัดกิจกรรมเกี่ยวกับการสวมชุดฮันบก เราจึงหวังเป็นอย่างยิ่งว่าคุณจะเข้าร่วม","Сохраните QR-код на свой мобильный телефон и поделитесь им в различных социальных сетях. В настоящее время готовится мероприятие, посвященное ношению ханбока, поэтому мы с нетерпением ждем вашего участия.","",""
 "140","HanbokExplain_HanbokDesigner"," 'WITH' 에 AR착장 한복은 대한민국의 한복 명인 
-디자이너 선생님이 제공해주신 한복입니다.  ","The AR hanbok on ‘WITH’  is provided by Korea’s master designer.","「WITH」のAR韓服は、韓国の名匠パク・スルニョ氏提供です。","“WITH”上的AR韩服由韩国韩服大师朴述女提供。","Bộ Hanbok mà người mặc trong phim 'WITH' sử dụng công nghệ AR là một thiết kế của một nhà thiết kế bậc thầy đến từ Hàn Quốc.","Hanbok yang dikenakan oleh AR dalam 'WITH' adalah Hanbok yang disediakan oleh seorang desainer ternama dari Korea Selatan.","ชุดฮันบกที่สวมใส่ในภาพยนตร์เรื่อง 'WITH' ซึ่งใช้เทคโนโลยี AR นั้น เป็นชุดฮันบกที่ออกแบบโดยดีไซเนอร์ชื่อดังจากเกาหลีใต้","Ханбок, в котором используется технология дополненной реальности (AR) в фильме «WITH», был предоставлен выдающимся дизайнером из Южной Кореи.","",""
+디자이너 선생님이 제공해주신 한복입니다.  ","The AR hanbok on ‘WITH’  is provided by Korea’s master designer.","「WITH」のAR韓服は、韓国の名匠パク・スルニョ氏提供です。","“WITH”上的AR韩服由韩国韩服大师朴述女提供。","Bộ Hanbok mà người mặc trong phim 'WITH' sử dụng công nghệ AR là một thiết kế của một nhà thiết kế bậc thầy đến từ Hàn Quốc.","Hanbok yang dikenakan oleh pengguna AR dalam 'WITH' adalah Hanbok yang disediakan oleh seorang desainer ternama dari Korea Selatan.","ชุดฮันบกที่สวมใส่ในภาพยนตร์เรื่อง 'WITH' ใช้เทคโนโลยี AR นั้น เป็นชุดฮันบกที่ออกแบบโดยดีไซเนอร์ชื่อดังจากเกาหลีใต้","Ханбок, в котором используется технология дополненной реальности (AR) в фильме «WITH», был предоставлен выдающимся дизайнером из Южной Кореи.","",""
 "141","HanbokExplain_HanbokExplainContent","한복은 한국 전통 의복으로, 오랜 역사와 전통을 가진 옷입니다.
 한복은 고유의 아름다움과 독특한 디자인으로 한국 문화를 대표하는  상징 중 하나로 
 여겨지며, 특별한 행사나 명절 때 주로 착용됩니다. 
@@ -864,13 +864,13 @@ Silakan siapkan struk pembelian dari toko dan pilih bahasa Anda.","เราช�
 "1599","SubHeader_SAMap","화성유게소에 오신걸 환영합니다. 지도를 보고 찾아가세요 ","Welcome! Please check the map to find your way.","ちずを みて さがして みて ください。","欢迎来到华城休息站！请查看地图寻找路线。","Chào mừng đến với Hwaseong Yugeso. Vui lòng sử dụng bản đồ để tìm đường.","Selamat datang di Hwaseong Yugeso. Silakan gunakan peta untuk menemukan jalan Anda.","ยินดีต้อนรับสู่ฮวาซอง ยูเกโซ โปรดใช้แผนที่เพื่อหาทางไป","Добро пожаловать в Хвасон Югесо. Пожалуйста, воспользуйтесь картой, чтобы найти дорогу.","",""
 "160","AI_SubmitButton","휴'에게 추천받기","Get recommendations from Hue","ひゅーに おすすめして もらう","获取Hue的推荐","Nhận lời giới thiệu từ Hugh","Dapatkan rekomendasi dari Hugh","ขอคำแนะนำจากฮิวจ์","Получите рекомендацию от Хью.","",""
 "161","AI_CourseContent_1","맞춤 코스가 준비되었어요!","•  A personalized course is ready for you!","•  あなただけのカスタムコースが準備できました！","•  为你定制的专属路线已经准备好了！","Khóa học được thiết kế riêng đã sẵn sàng!","Kursus yang disesuaikan sudah siap!","หลักสูตรที่ปรับแต่งเฉพาะบุคคลพร้อมแล้ว!","Индивидуальный курс готов!","",""
-"162","AI_CourseContent_2","맞춤 코스에 따라 오색 시장을 즐겨보세요.","Enjoy Osaek Market with your personalized course","あなた専用のコースに沿ってオセク市場を楽しんでみてください","按照为你定制的路线，尽情畅游五色市场吧！","Hãy tận hưởng Chợ Osaek theo lộ trình được thiết kế riêng cho bạn.","Nikmati Pasar Osaek sesuai dengan rencana perjalanan yang telah Anda pilih.","เพลิดเพลินไปกับตลาดโอซาเอกตามเส้นทางที่คุณกำหนดเอง","Насладитесь посещением рынка Осаек в соответствии с выбранным вами маршрутом.","",""
+"162","AI_CourseContent_2","맞춤 코스에 따라 오색 시장을 즐겨보세요.","Enjoy Osaek Market with your personalized course","あなた専用のコースに沿ってオセク市場を楽しんでみてください","按照为你定制的路线，尽情畅游五色市场吧！","Hãy tận hưởng Chợ Osaek theo lộ trình được thiết kế riêng.","Nikmati Pasar Osaek sesuai dengan rencana perjalanan yang disesuaikan.","เพลิดเพลินไปกับตลาดโอแซกตามเส้นทางที่ปรับแต่งได้ตามความต้องการของคุณ","Насладитесь посещением рынка Осаек в рамках индивидуально разработанного маршрута.","",""
 "163","Search_NoContent","콘텐츠 없음","No matching results","コンテンツがありません","暂无内容","Không có nội dung","Tidak ada konten","ไม่มีเนื้อหา","Нет контента","",""
-"167","Taxfree_Apply","세금 환급 신청","Tax-Free","免税申請","申请退税","đơn xin hoàn thuế","permohonan pengembalian pajak","คำขอคืนภาษี","заявление на возврат налога","",""
+"167","Taxfree_Apply","세금 환급 신청","Tax-Free","免税申請","申请退税","Đơn xin hoàn thuế","Permohonan pengembalian pajak","คำขอคืนภาษี","Заявление на возврат налогов","",""
 "168","Taxfree_Introduce","텍스프리 소개","About Tax-Free","免税サービス案内","免税服务介绍","Giới thiệu về chương trình Miễn thuế","Pengantar Bebas Pajak","บทนำสู่การปลอดภาษี","Введение в систему TaxFree","",""
 "169","Taxfree_Enroll","텍스프리 가맹점 신청","Apply Tax-Free","免税加盟店申請","申请免税加盟店","Đơn đăng ký thương gia miễn thuế","Aplikasi Pedagang Bebas Pajak","ใบสมัครผู้ค้าปลอดภาษี","Приложение для торговых предприятий, освобожденных от налогов","",""
 "170","Province_1","서울","Seoul","そうる","首尔","Seoul","Seoul","โซล","Сеул","",""
-"171","Province_2","경기도","Gyeonggi-do","きょんぎど","京畿道","gyeonggi-do","Kota Gyeonggi","จังหวัดคยองกี","провинция Кёнгидо","",""
+"171","Province_2","경기도","Gyeonggi-do","きょんぎど","京畿道","gyeonggi-do","Kota Gyeonggi","จังหวัดคยองกี","Кёнгидо","",""
 "172","Province_3","인천","Incheon","いんちょん","仁川","Incheon","Incheon","อินชอน","Инчхон","",""
 "173","Province_4","강원도","Gangwon-do","かんうぉんど","江原道","Gangwon-do","Gangwon-do","คังวอนโด","Канвондо","",""
 "174","Province_5","충청남도","Chungcheongnam-do","ちゅんちょんなむど","忠清南道","Chungcheongnam-do","Chungcheongnam-do","ชุงชองนัมโด","Чхунчхоннамдо","",""

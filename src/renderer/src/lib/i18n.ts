@@ -277,6 +277,14 @@ const TITLE_KEYS: Record<string, TitleKeySpec> = {
   // entries above — 제주's sheet carries the same key names, and bundledTable()
   // has already picked the 제주 table by then, so they land on 제주's own copy.
   "'제주' 뭐하지 (AI 검색)": { title: 'MainButton_AI', sub: 'SubHeader_AISearch' },
+  // 탐나오&제주큐랑 (6493:118287). The sheet has already caught up with that
+  // frame's two-tab redraw — MainButton_Tamnao reads 탐나오·제주큐랑 in all eight
+  // languages — so the header follows the sheet, not the id, and the visitor sees
+  // the SAME string the home tile shows (both resolve the one key). Note the
+  // sheet joins the pair with a middle dot where the frame draws "&".
+  // Tamnao_Subtitle is Korean-only in the sheet; SUBTITLE_OVERRIDES carries the
+  // other seven, so mapping it no longer means printing Korean to everyone.
+  "탐나오&제주큐랑": { title: 'MainButton_Tamnao', sub: 'Tamnao_Subtitle' },
   "'제주' 뭐먹지?": { title: 'MainButton_ToEat', sub: 'SubHeader_ToEat' },
   "'제주' 뭐사지?": { title: 'MainButton_ToBuy', sub: 'SubHeader_ToBuy' },
   // NOT SubHeader_Attraction (that is Insadong's key and 제주's sheet has no such
@@ -370,6 +378,12 @@ export function screenTitle(id: string, lang: Lang): string {
  *  lib/uiText.ts, which enforces all eight languages at compile time. */
 const EXTRA_SUBTITLE_KEYS: Record<string, UiTextKey> = {
   위드마켓: 'withMarketSubtitle',
+  // NOTE 검색 is NOT here, though it has no sheet row either. This map is keyed
+  // by header id and consulted by EVERY layout's header, while 검색 is a page
+  // Insadong, 오산 and 화성 all draw too — those three render no description row
+  // at all today, and an entry here would silently give all three one. 제주's
+  // 검색 passes the copy as a `subtitle` prop instead (see JejuSearch), which
+  // reaches exactly the page it was written for.
 };
 
 /**
@@ -393,6 +407,33 @@ const SUBTITLE_OVERRIDES: Record<string, Partial<Record<Lang, string>>> = {
     th: 'เงินท้องถิ่นที่ใช้ได้บนเกาะเชจู',
     ru: 'Местные платёжные средства, которые принимают на острове Чеджу.',
     id: 'Mata uang daerah yang bisa dipakai di Pulau Jeju.',
+  },
+  /* 렌트카. The sheet writes only the Korean ("* 아래 리스트를 클릭하시면 상세한
+     정보를 얻을 수 있어요"); these are that line in the other seven. DELETE an
+     entry the moment its cell is filled in the sheet — `tExact` already prefers
+     the sheet, so a filled cell makes the line here dead weight, not a conflict. */
+  RentCar_Subtitle: {
+    ko: '아래 리스트를 클릭하시면 상세한 정보를 얻을 수 있어요.',
+    en: 'Tap an item in the list below to see the full details.',
+    ja: '下のリストをタップすると詳しい情報をご覧いただけます。',
+    zh: '点击下方列表即可查看详细信息。',
+    vi: 'Chạm vào mục trong danh sách bên dưới để xem thông tin chi tiết.',
+    th: 'แตะรายการด้านล่างเพื่อดูข้อมูลโดยละเอียด',
+    ru: 'Нажмите на пункт списка ниже, чтобы увидеть подробности.',
+    id: 'Ketuk item pada daftar di bawah untuk melihat detail lengkapnya.',
+  },
+  /* 탐나오&제주큐랑. The sheet's Korean is singular ("* 제주여행 공공플랫폼
+     홈페이지입니다") and predates the two-tab redraw, so these seven say
+     platformS — true of the page either way. Same delete-when-filled rule. */
+  Tamnao_Subtitle: {
+    ko: '제주여행 공공플랫폼 홈페이지입니다.',
+    en: 'The public platforms for Jeju travel information.',
+    ja: '済州旅行の公共プラットフォームのホームページです。',
+    zh: '这里是济州旅游公共平台的官方网站。',
+    vi: 'Các nền tảng công cộng về thông tin du lịch Jeju.',
+    th: 'แพลตฟอร์มสาธารณะสำหรับข้อมูลท่องเที่ยวเชจู',
+    ru: 'Государственные платформы с туристической информацией о Чеджу.',
+    id: 'Platform publik untuk informasi wisata Jeju.',
   },
 };
 
