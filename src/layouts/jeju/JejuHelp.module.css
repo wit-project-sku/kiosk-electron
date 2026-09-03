@@ -206,7 +206,21 @@
   background: #fff;
 }
 
-.plan img {
+/*
+ * ★ `>` — the DIRECT child, i.e. the floor plan itself and nothing else.
+ *
+ * This was `.plan img`, which also matched the pin markers and the 현위치 icon
+ * (both are <img> inside `.plan`) — and at (0,1,1) it OUTRANKED `.pinMarker`
+ * and `.hereIcon` at (0,1,0), so `width/height: auto; max-*: 100%` won and the
+ * marker was sized by its hit target instead of by its own rule. That target is
+ * `22px * --pin-scale + 90`, so the marker came out 82×125 on 국제선 1F and
+ * 98×150 on 국내선 4F — the "why is the pin so big, and bigger on some floors"
+ * the operator kept reporting (2026-09-03). It is also why BOTH earlier
+ * shrinks (30×46 → 22×34) changed nothing on screen: the declarations were
+ * never the ones in force. The markers are grandchildren, so the child
+ * combinator excludes them and the fix needs no specificity war.
+ */
+.plan > img {
   display: block;
   width: auto;
   height: auto;
@@ -250,13 +264,22 @@
  * the 커피잔), so a marker that covered any of it would take the answer away
  * and leave only a colour.
  *
- * 22×34 keeps the art's own 176:268 ratio and is deliberately SMALLER than the
- * ~38px baseline pictogram (shrunk from 30×46, which read as covering the
- * symbol). A marker that matches or beats the symbol's own size stops reading
- * as a pointer and starts reading as a blob — and with a dozen of them on one
- * floor they crowd the drawing they are supposed to be annotating.
+ * 19×29 keeps the art's own 176:268 ratio and is deliberately SMALLER than the
+ * ~38px baseline pictogram. A marker that matches or beats the symbol's own
+ * size stops reading as a pointer and starts reading as a blob — and with a
+ * dozen of them on one floor they crowd the drawing they are supposed to be
+ * annotating. But it still has to be FOUND from standing distance on a 2160px
+ * panel, which is the other wall: 15×23 (the first pass at the operator's
+ * "make it small") went too far and read as a speck.
  *
- * 22×34 is CONSTANT, on every plan (2026-09-03). The marker used to be
+ * So: 29 is about 75% of the baseline symbol's height — an arrow pointing at
+ * something rather than a badge sitting on it, and still legible across the
+ * room. The sequence, all against 국제선 1F at 1:1: 30×46 and 22×34 (neither of
+ * which ever reached the screen — see `.plan > img`), then 15×23 (too small),
+ * now 19×29. These two numbers are the whole knob — keep the 176:268 ratio and
+ * nothing else has to move.
+ *
+ * The size is CONSTANT, on every plan (2026-09-03). The marker used to be
  * multiplied by `--pin-scale` so it kept its size RELATIVE to the symbol on the
  * large-pictogram plans — which put a 54–94px pin over 국제선 1F, 국내선 4F and
  * both 여객터미널 maps, and that read as exactly the blob the paragraph above
@@ -270,8 +293,8 @@
   position: absolute;
   left: 50%;
   bottom: calc(50% + 24px * var(--pin-scale, 1));
-  width: 22px;
-  height: 34px;
+  width: 19px;
+  height: 29px;
   object-fit: contain;
   /* Scales from the TIP, so a press cannot move the point being indicated. */
   transform: translateX(-50%);
@@ -340,10 +363,29 @@
    (top-aligned, centred) INSIDE the transform, so `.plan`'s max-width/height
    still resolve against the slot and the unzoomed page measures exactly as it
    did before the viewport existed. Origin 0,0 because MapZoomPan's clamp
-   arithmetic is written against the slot's top-left corner. */
+   arithmetic is written against the slot's top-left corner.
+
+   ★ The margin around the drawing lives HERE, not on `.map` and not on `.plan`
+   (2026-09-03, operator: the plan read as pressed against both edges of its
+   slot). Not `.plan`, because a pin is stored as a fraction of `.plan`'s box
+   and padding there would move every one of them off its pictogram. Not `.map`,
+   because MapZoomPan clamps the pan against `el.clientWidth/clientHeight` —
+   the viewport's PADDING box — so padding on the viewport would let the plan
+   be dragged that far past its own slot. On the layer, with `border-box`, the
+   layer still measures exactly the slot the clamp assumes and only `.plan`'s
+   max-width/height see the smaller box.
+
+   The plans were re-cut to their ink before import, which is what made this
+   visible at all: they used to carry their own blank paper. */
 .zoomLayer {
   width: 100%;
   height: 100%;
+  box-sizing: border-box;
+  /* 80 top/bottom, 50 left/right — the vertical pair was 40 and read tight
+     against the chips above and the pills below (operator, 2026-09-03). Only
+     국내선 4F, the one upright plan, is capped by this rather than by the
+     width; every other plan is width-bound and draws exactly as it did. */
+  padding: 80px 50px;
   display: flex;
   align-items: flex-start;
   justify-content: center;
@@ -403,6 +445,24 @@
 
 .mapLow {
   height: 1248px;
+}
+
+/*
+ * ★ BOTTOM-aligned here, where the standard layout is top-aligned.
+ *
+ * The pickers are under the map in this layout, and every plan but 국내선 4F is
+ * width-bound: 국제선 1F draws about 570 tall inside a 1248 slot, so a
+ * top-aligned plan left ~600px of empty paper between itself and the terminal
+ * pills it belongs to — the map floated at the top of the page while the
+ * controls sat at the foot (operator, 2026-09-03). Aligning to the slot's
+ * BOTTOM puts the drawing directly above the row that filters it and moves the
+ * slack up under the header, where there is nothing to separate.
+ *
+ * The standard layout keeps flex-start for the mirror-image reason: there the
+ * pickers are ABOVE and the map hangs off them.
+ */
+.mapLow .zoomLayer {
+  align-items: flex-end;
 }
 
 .terminalsLow {
