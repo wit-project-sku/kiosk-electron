@@ -42,8 +42,35 @@
  * declares the facilities drawn on it, and tapping one opens the shared detail
  * card. That frame is what makes the pins necessary — it is the 도와줘 flow's own
  * detail and nothing else on this page could reach it.
+ *
+ * ── W007 draws ITS OWN building (2026-09-03) ────────────────────────────────
+ * 제주국제여객터미널 runs this same page (one JEJU_AIRPORT layout — see
+ * kioskLocations), and until now it showed the AIRPORT's floor plans to visitors
+ * standing in the FERRY terminal. It now has its own pair of plans, supplied
+ * ko+en like the airport's: the 대합실 (매표소·개찰구·상가) and the 출국장 — the
+ * zone the hall plan itself greys out as 통제구역, drawn on the same building
+ * outline. They are two ZONES of one storey, not two storeys: the plans carry no
+ * floor lettering at all and no 층 is claimed for them, so the terminal venue
+ * shows the zone pair on the top pill row and drops the floor row entirely —
+ * the same honesty rule as 국제선's missing 2F, applied to a building whose
+ * floor numbers we do not know.
+ *
+ * AirportFacilityData_Jeju has NO 여객터미널 rows, so every terminal pin is a
+ * map-only card (chip title + venue line) — exactly what an unpaired airport
+ * pictogram already opens. The day the sheet grows terminal rows, the pairing
+ * machinery below picks them up; the pins are already swept.
  */
-import { useMemo, useState, type CSSProperties } from 'react';
+import {
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type CSSProperties,
+  type PointerEvent as ReactPointerEvent,
+  type ReactNode,
+  type WheelEvent as ReactWheelEvent,
+} from 'react';
+import { getKioskLocation } from '@shared/config/kioskLocations';
 import type { KioskController } from '@renderer/hooks/useKioskController';
 import { jejuIconUrl } from '@renderer/assets/icons/jeju';
 import { useDetailStore } from '@renderer/store/detailStore';
@@ -55,6 +82,7 @@ import { pickText } from '@renderer/data/types';
 import {
   assignFacilities,
   chipLabel,
+  facilityImageUrl,
   HELP_CHIPS,
   type AirportFacility,
   type AssignedPin,
@@ -84,6 +112,10 @@ import mapInternational1f from '@renderer/assets/photos/jeju/help/map-internatio
 import mapInternational1fEn from '@renderer/assets/photos/jeju/help/map-international-1f-en.png';
 import mapInternational3f from '@renderer/assets/photos/jeju/help/map-international-3f.png';
 import mapInternational3fEn from '@renderer/assets/photos/jeju/help/map-international-3f-en.png';
+import mapTerminalHall from '@renderer/assets/photos/jeju/help/map-terminal-hall.png';
+import mapTerminalHallEn from '@renderer/assets/photos/jeju/help/map-terminal-hall-en.png';
+import mapTerminalDeparture from '@renderer/assets/photos/jeju/help/map-terminal-departure.png';
+import mapTerminalDepartureEn from '@renderer/assets/photos/jeju/help/map-terminal-departure-en.png';
 
 type TerminalId = 'international' | 'domestic';
 type FloorId = '1F' | '2F' | '3F' | '4F';
@@ -246,14 +278,19 @@ interface AirportMap {
   here?: { x: number; y: number };
   /**
    * How large this plan draws its pictograms, relative to the ~38px the domestic
-   * 1F/2F/3F plans put on screen — the marker is multiplied by it so that it
-   * keeps the same relationship to the symbol it points at on every plan.
+   * 1F/2F/3F plans put on screen.
    *
    * The plans are not drawn to one scale. Measured on screen at 1820 wide:
-   * 국내선 1F 38px · 2F 36px · 3F 38px · 국제선 3F 35px — but 국제선 1F 60px and
-   * 국내선 4F 103px, because those two cover much less floor and so are drawn
-   * nearly three times larger. A single marker size that suits the first four
-   * vanishes under a 4F pictogram; one that suits 4F swamps the others.
+   * 국내선 1F 38px · 2F 36px · 3F 38px · 국제선 3F 35px — but 국제선 1F 60px,
+   * 국내선 4F 103px and the 여객터미널 pair ~93px, because those cover much less
+   * floor and so are drawn far larger.
+   *
+   * What it scales is only what the symbol's size genuinely dictates: the
+   * marker's LIFT (a taller symbol needs the tip higher up to clear it) and the
+   * tap target (which has to cover the symbol). The marker's own 22×34 box is
+   * deliberately CONSTANT — it used to scale too, and on the large-pictogram
+   * plans that drew a 54–94px pin that covered the map instead of pointing at
+   * it. See .pinMarker in the CSS.
    */
   pinScale?: number;
 }
@@ -504,6 +541,112 @@ const PINS: Record<string, FacilityPin[]> = {
   ],
 };
 
+type PortZoneId = 'hall' | 'departure';
+
+/**
+ * 제주국제여객터미널 (W007)'s two maps, on the pill row where the airport puts its
+ * terminals. Zones of one storey, not floors — see the header note. 대합실 first:
+ * it is where the kiosk's visitors physically are, and the 출국장 plan itself
+ * draws that hall as faded context.
+ */
+const PORT_ZONES = [
+  {
+    id: 'hall',
+    label: {
+      ko: '대합실',
+      en: 'Waiting Hall',
+      ja: '待合室',
+      zh: '候船大厅',
+      vi: 'Sảnh chờ',
+      th: 'ห้องโถงพักคอย',
+      ru: 'Зал ожидания',
+      id: 'Ruang Tunggu',
+    },
+  },
+  {
+    id: 'departure',
+    label: {
+      ko: '출국장',
+      en: 'Departure Hall',
+      ja: '出国ロビー',
+      zh: '出境大厅',
+      vi: 'Sảnh xuất cảnh',
+      th: 'โถงขาออก',
+      ru: 'Зал отправления',
+      id: 'Aula Keberangkatan',
+    },
+  },
+] as const satisfies ReadonlyArray<{ id: PortZoneId; label: Record<string, string> }>;
+
+/**
+ * The terminal plans, same shape as MAPS. Both were supplied edge-to-edge (no
+ * re-cut needed — the ink runs the full canvas, unlike the airport set), and the
+ * ko/en of each pair share one canvas so PINS coordinates serve both.
+ *
+ * pinScale: these plans set their plates far larger than the airport baseline —
+ * 대합실 draws them 170px on a 3307-wide canvas (≈94px at the slot's 1820, vs the
+ * ~38px the domestic plans put on screen) and 출국장 168px on 3309 (≈92px).
+ */
+const PORT_MAPS: Record<PortZoneId, AirportMap> = {
+  hall: { src: mapTerminalHall, srcEn: mapTerminalHallEn, pinScale: 2.45 },
+  departure: { src: mapTerminalDeparture, srcEn: mapTerminalDepartureEn, pinScale: 2.4 },
+};
+
+/**
+ * Where the terminal plans draw their facilities — swept off the artwork the
+ * same way as PINS (plates by colour, glyphs as ink blobs; centres are the
+ * measured cluster centres, as fractions of the canvas).
+ *
+ * The 기타 sweep here is mostly the port's OFFICES — 한국해운조합, 국립수산물품질
+ * 관리원, KOMERI, the 여객선 desks, 출입국심사 — because that is what this
+ * building draws where the airport draws AEDs and lockers. No sheet row names
+ * any of them (see the header note), so they open under the 기타 chip as-is.
+ */
+const PORT_PINS: Record<PortZoneId, FacilityPin[]> = {
+  // 화장실 3 · 유아휴게실 1 · 안내소 1 · 편의점 4 · 식음료 2 · 기타 9
+  hall: [
+    // 화장실
+    { x: 0.6656, y: 0.2682, category: '화장실' },
+    { x: 0.319, y: 0.4672, category: '화장실' },
+    { x: 0.9577, y: 0.8018, category: '화장실' },
+    // 유아휴게실
+    { x: 0.3184, y: 0.2491, category: '유아휴게실' },
+    // 안내소 — the green ⓘ plate by the 개찰구
+    { x: 0.5721, y: 0.2679, category: '안내소' },
+    // 편의점 — the four 쇼핑백 glyphs (매점/상가)
+    { x: 0.0983, y: 0.2693, category: '편의점' },
+    { x: 0.1923, y: 0.4245, category: '편의점' },
+    { x: 0.4073, y: 0.5203, category: '편의점' },
+    { x: 0.5727, y: 0.6057, category: '편의점' },
+    // 식음료
+    { x: 0.3695, y: 0.4974, category: '식음료' },
+    { x: 0.4974, y: 0.5674, category: '식음료' },
+    // 기타 — 휴게의자, 한국해운조합, 여객선사 3, 접수데스크, 의무실(+),
+    // 국립수산물품질관리원, KOMERI
+    { x: 0.3668, y: 0.2557, category: '기타' },
+    { x: 0.4276, y: 0.2476, category: '기타' },
+    { x: 0.4917, y: 0.2738, category: '기타' },
+    { x: 0.8564, y: 0.2745, category: '기타' },
+    { x: 0.5355, y: 0.5873, category: '기타' },
+    { x: 0.9465, y: 0.4374, category: '기타' },
+    { x: 0.9471, y: 0.5125, category: '기타' },
+    { x: 0.9459, y: 0.5718, category: '기타' },
+    { x: 0.9459, y: 0.7277, category: '기타' },
+  ],
+  // 화장실 1 · 기타 6
+  departure: [
+    // 화장실
+    { x: 0.8099, y: 0.168, category: '화장실' },
+    // 기타 — 데스크 3, 문화재청, 출입국심사 2
+    { x: 0.7461, y: 0.0593, category: '기타' },
+    { x: 0.7999, y: 0.0435, category: '기타' },
+    { x: 0.8525, y: 0.0538, category: '기타' },
+    { x: 0.8852, y: 0.168, category: '기타' },
+    { x: 0.9519, y: 0.1721, category: '기타' },
+    { x: 0.9568, y: 0.2797, category: '기타' },
+  ],
+};
+
 const COMING_SOON = {
   ko: '준비중입니다',
   en: 'Coming soon',
@@ -572,6 +715,24 @@ const AIRPORT = {
   id: 'Bandara Internasional Jeju',
 };
 
+/** W007's venue name — kioskLocations' 제주국제여객터미널, localized. */
+const PORT_TERMINAL = {
+  ko: '제주국제여객터미널',
+  en: 'Jeju International Passenger Terminal',
+  ja: '済州国際旅客ターミナル',
+  zh: '济州国际客运码头',
+  vi: 'Bến tàu khách quốc tế Jeju',
+  th: 'ท่าเรือโดยสารนานาชาติเชจู',
+  ru: 'Международный пассажирский терминал Чеджу',
+  id: 'Terminal Penumpang Internasional Jeju',
+};
+
+/** placeLine's terminal-venue twin: venue + zone, since no floor is claimed. */
+function portPlaceLine(zone: PortZoneId, lang: Lang): string {
+  const z = PORT_ZONES.find((x) => x.id === zone)!;
+  return `${pick(PORT_TERMINAL, lang)} ${pick(z.label, lang)}`;
+}
+
 /** 6219:98773 — the label under the 현위치 pin. */
 const YOU_ARE_HERE = {
   ko: '현위치',
@@ -583,6 +744,196 @@ const YOU_ARE_HERE = {
   ru: 'Вы здесь',
   id: 'Lokasi Anda',
 };
+
+/** Zoom bounds. 1 is the fitted plan; 4 reads the smallest lettering on the
+ *  densest plan (국내선 3F) without turning into pixel soup. */
+const MIN_SCALE = 1;
+const MAX_SCALE = 4;
+/** Below this much finger travel a gesture is a TAP and the pins keep it. */
+const TAP_SLOP = 12;
+/** Double-tap window/radius, and the scale the first double-tap jumps to. */
+const DOUBLE_TAP_MS = 300;
+const DOUBLE_TAP_RADIUS = 60;
+const DOUBLE_TAP_SCALE = 2.2;
+
+interface ViewState {
+  s: number;
+  tx: number;
+  ty: number;
+}
+
+/**
+ * Pinch-zoom + drag-pan viewport for the floor plan (2026-09-03, by request).
+ *
+ * Hand-rolled on pointer events rather than a library: the kiosk is a touch
+ * panel, the content is one absolutely-positioned box with live BUTTONS in it
+ * (the pins), and the whole requirement is pinch, pan-while-zoomed, double-tap
+ * and a wheel fallback for the dev machine — less code than configuring a
+ * generic pan-zoom dependency around the pins' tap targets.
+ *
+ * What it guarantees:
+ *   · The pins stay tappable. No pointer capture is taken (capture would
+ *     re-target the up/click at this element and the buttons would never
+ *     fire), and a gesture only swallows the click behind it when the finger
+ *     actually travelled (> TAP_SLOP) or a double-tap just zoomed — see
+ *     onClickCapture.
+ *   · The plan can never be dragged out of its slot: translate is clamped to
+ *     [slot·(1−scale), 0] on both axes, which at scale 1 pins it to (0,0) —
+ *     so the unzoomed page is exactly the page as it was.
+ *   · Double-tap toggles: zoom in about the tapped point, or all the way back
+ *     out. (On a PIN the first tap already opens 상세, so the toggle is in
+ *     practice a gesture for the map's empty paper — that is fine.)
+ *
+ * Transformed WHOLE: the pins and the 현위치 marker ride the same transform as
+ * the artwork, so a marker keeps pointing at its pictogram at every scale.
+ * The `key` its caller passes doubles as the reset: a new plan (floor, zone,
+ * or language switch) remounts this and starts back at fitted.
+ */
+function MapZoomPan({ className, children }: { className: string; children: ReactNode }): JSX.Element {
+  const viewportRef = useRef<HTMLDivElement | null>(null);
+  const [view, setView] = useState<ViewState>({ s: 1, tx: 0, ty: 0 });
+  /** Mirror of `view` for handlers that must read it without a stale closure. */
+  const viewRef = useRef(view);
+  viewRef.current = view;
+  /** Live fingers on the glass, by pointerId, in viewport coordinates. */
+  const pointers = useRef(new Map<number, { x: number; y: number }>());
+  /** The pinch as it stood when the second finger landed. */
+  const pinch = useRef<{ dist: number; s: number } | null>(null);
+  const moved = useRef(0);
+  const suppressClick = useRef(false);
+  const lastTap = useRef({ t: 0, x: 0, y: 0 });
+
+  const clamp = (v: ViewState): ViewState => {
+    const el = viewportRef.current;
+    const s = Math.min(MAX_SCALE, Math.max(MIN_SCALE, v.s));
+    if (!el) return { s, tx: 0, ty: 0 };
+    return {
+      s,
+      tx: Math.min(0, Math.max(el.clientWidth * (1 - s), v.tx)),
+      ty: Math.min(0, Math.max(el.clientHeight * (1 - s), v.ty)),
+    };
+  };
+
+  /** Rescale about a viewport point, so what is under the finger stays put. */
+  const zoomAt = (x: number, y: number, nextS: number): void => {
+    setView((v) => {
+      const s = Math.min(MAX_SCALE, Math.max(MIN_SCALE, nextS));
+      return clamp({ s, tx: x - ((x - v.tx) / v.s) * s, ty: y - ((y - v.ty) / v.s) * s });
+    });
+  };
+
+  const local = (e: { clientX: number; clientY: number }): { x: number; y: number } => {
+    const r = viewportRef.current!.getBoundingClientRect();
+    return { x: e.clientX - r.left, y: e.clientY - r.top };
+  };
+
+  // A finger lifted OUTSIDE the viewport never sends it a pointerup (no
+  // capture, see above), and a pointer left in the map would turn the next
+  // one-finger drag into a phantom pinch. The window sees every up.
+  useEffect(() => {
+    const drop = (e: PointerEvent): void => {
+      pointers.current.delete(e.pointerId);
+      if (pointers.current.size < 2) pinch.current = null;
+      if (pointers.current.size === 0) moved.current = 0;
+    };
+    window.addEventListener('pointerup', drop);
+    window.addEventListener('pointercancel', drop);
+    return () => {
+      window.removeEventListener('pointerup', drop);
+      window.removeEventListener('pointercancel', drop);
+    };
+  }, []);
+
+  const onPointerDown = (e: ReactPointerEvent): void => {
+    pointers.current.set(e.pointerId, local(e));
+    if (pointers.current.size === 2) {
+      const [a, b] = [...pointers.current.values()] as [{ x: number; y: number }, { x: number; y: number }];
+      pinch.current = { dist: Math.hypot(a.x - b.x, a.y - b.y), s: viewRef.current.s };
+    }
+  };
+
+  const onPointerMove = (e: ReactPointerEvent): void => {
+    const prev = pointers.current.get(e.pointerId);
+    if (!prev) return;
+    const now = local(e);
+    pointers.current.set(e.pointerId, now);
+    if (pointers.current.size === 2 && pinch.current) {
+      const [a, b] = [...pointers.current.values()] as [{ x: number; y: number }, { x: number; y: number }];
+      const dist = Math.hypot(a.x - b.x, a.y - b.y);
+      moved.current += Math.abs(dist - pinch.current.dist * (viewRef.current.s / pinch.current.s));
+      zoomAt((a.x + b.x) / 2, (a.y + b.y) / 2, pinch.current.s * (dist / pinch.current.dist));
+    } else if (pointers.current.size === 1) {
+      const dx = now.x - prev.x;
+      const dy = now.y - prev.y;
+      moved.current += Math.hypot(dx, dy);
+      // Nothing to pan at scale 1 — the clamp would zero it anyway, this just
+      // skips the render.
+      if (viewRef.current.s > 1) setView((v) => clamp({ ...v, tx: v.tx + dx, ty: v.ty + dy }));
+    }
+  };
+
+  const onPointerUp = (e: ReactPointerEvent): void => {
+    if (!pointers.current.delete(e.pointerId)) return;
+    if (pointers.current.size < 2) pinch.current = null;
+    if (moved.current > TAP_SLOP) {
+      suppressClick.current = true;
+    } else if (pointers.current.size === 0) {
+      const now = local(e);
+      const t = Date.now();
+      const tap = lastTap.current;
+      if (t - tap.t < DOUBLE_TAP_MS && Math.hypot(now.x - tap.x, now.y - tap.y) < DOUBLE_TAP_RADIUS) {
+        if (viewRef.current.s > 1.05) setView({ s: 1, tx: 0, ty: 0 });
+        else zoomAt(now.x, now.y, DOUBLE_TAP_SCALE);
+        suppressClick.current = true;
+        lastTap.current = { t: 0, x: 0, y: 0 };
+      } else {
+        lastTap.current = { t, x: now.x, y: now.y };
+      }
+    }
+    if (pointers.current.size === 0) moved.current = 0;
+  };
+
+  const onPointerCancel = (e: ReactPointerEvent): void => {
+    pointers.current.delete(e.pointerId);
+    if (pointers.current.size < 2) pinch.current = null;
+    if (pointers.current.size === 0) moved.current = 0;
+  };
+
+  /** The kiosk has no wheel; this is for the dev machine, where a mouse cannot
+   *  pinch. Anchored at the cursor like the pinch is at its midpoint. */
+  const onWheel = (e: ReactWheelEvent): void => {
+    const p = local(e);
+    zoomAt(p.x, p.y, viewRef.current.s * (e.deltaY < 0 ? 1.15 : 1 / 1.15));
+  };
+
+  return (
+    <div
+      ref={viewportRef}
+      className={`${className} ${styles.zoomable}`}
+      onPointerDown={onPointerDown}
+      onPointerMove={onPointerMove}
+      onPointerUp={onPointerUp}
+      onPointerCancel={onPointerCancel}
+      onWheel={onWheel}
+      onClickCapture={(e) => {
+        // A drag or a zoom is not a tap: the click the browser synthesises
+        // behind it must not open whatever pin the finger happened to end on.
+        if (suppressClick.current) {
+          suppressClick.current = false;
+          e.preventDefault();
+          e.stopPropagation();
+        }
+      }}
+    >
+      <div
+        className={styles.zoomLayer}
+        style={{ transform: `translate(${view.tx}px, ${view.ty}px) scale(${view.s})` }}
+      >
+        {children}
+      </div>
+    </div>
+  );
+}
 
 interface Props {
   controller: KioskController;
@@ -605,8 +956,12 @@ export function JejuHelp({ controller, initialCategory }: Props): JSX.Element {
   const lowReach = useAccessibilityStore((s) => s.lowReach);
   const shops = useShopStore((s) => s.shops);
   const setDetail = useDetailStore((s) => s.setItem);
+  // W007 shows its own building; every other 제주 kiosk keeps the airport plans.
+  // Non-reactive on purpose, like jejuMascot: the id is provisioned per machine.
+  const atPort = getKioskLocation(controller.kioskId).code === 'W007';
   const [terminal, setTerminal] = useState<TerminalId>('international');
   const [floor, setFloor] = useState<FloorId>('1F');
+  const [zone, setZone] = useState<PortZoneId>('hall');
   const [category, setCategory] = useState(
     initialCategory && CATEGORIES.includes(initialCategory) ? initialCategory : CATEGORIES[0]!,
   );
@@ -619,7 +974,7 @@ export function JejuHelp({ controller, initialCategory }: Props): JSX.Element {
   };
 
   const floors = FLOORS[terminal];
-  const map = MAPS[`${terminal}-${floor}`];
+  const map = atPort ? PORT_MAPS[zone] : MAPS[`${terminal}-${floor}`];
   const here = jejuIconUrl('ico-here');
   const marker = jejuIconUrl('ico-map-pin');
 
@@ -632,9 +987,14 @@ export function JejuHelp({ controller, initialCategory }: Props): JSX.Element {
    * chip draws it. Recomputed only when the floor changes — the pairing is a
    * property of the floor, not of the chip in hand or the language on screen.
    */
+  // 'port' matches no sheet terminal, so every terminal pin comes back with its
+  // group's fallback chip and no row — the map-only card. See the header note.
   const assigned = useMemo(
-    () => assignFacilities(terminal, floor, PINS[`${terminal}-${floor}`] ?? []),
-    [terminal, floor],
+    () =>
+      atPort
+        ? assignFacilities('port', zone, PORT_PINS[zone])
+        : assignFacilities(terminal, floor, PINS[`${terminal}-${floor}`] ?? []),
+    [atPort, terminal, floor, zone],
   );
 
   /** The pictograms the selected chip marks — every other one stays as drawn. */
@@ -661,10 +1021,11 @@ export function JejuHelp({ controller, initialCategory }: Props): JSX.Element {
    * Three sources, in descending order of what they know:
    *
    *   1. the AirportFacilityData_Jeju row the pin was paired with — the name,
-   *      category, zone, hours, phone and products, all eight languages;
-   *   2. the witteria row of the same Korean name, for the three things the
-   *      sheet has no column for: photos, the 네이버 rating and its link (the
-   *      card's QR). Absent today; see BASE_CATEGORY;
+   *      category, zone, hours, phone and products, all eight languages — plus
+   *      the bundled resources/help photo shot for exactly that row;
+   *   2. the witteria row of the same Korean name, for what neither has: the
+   *      네이버 rating and its link (the card's QR), and any further photos.
+   *      Absent today; see BASE_CATEGORY;
    *   3. the map itself, for a pictogram neither named — its chip and its floor,
    *      which is exactly as much as the plan says about it.
    *
@@ -676,7 +1037,17 @@ export function JejuHelp({ controller, initialCategory }: Props): JSX.Element {
     const wanted = facility?.name.ko ?? pin.shop ?? pin.label ?? chip;
     const shop = facilities.find((s) => s.shopNameKr === wanted);
 
-    track({ facility: wanted, terminal, floor, category });
+    // The bundled resources/help photo of the sheet row, named by its terminal
+    // and per-terminal number (see facilityImageUrl). It leads: it is OUR shot
+    // of exactly this facility, where the witteria photos are a name-matched
+    // guess that does not exist yet (see BASE_CATEGORY).
+    const facilityPhoto = facility && facilityImageUrl(facility);
+
+    track(
+      atPort
+        ? { facility: wanted, zone, category }
+        : { facility: wanted, terminal, floor, category },
+    );
 
     setDetail({
       from: 'help',
@@ -691,12 +1062,14 @@ export function JejuHelp({ controller, initialCategory }: Props): JSX.Element {
       // The row's OWN category, not the chip — they are the same string whenever
       // the sheet named the pin, and where it did not the chip is all there is.
       category: chipLabel(facility?.category.ko ?? chip, lang).replace('\n', ' '),
-      photos: shop ? shopImages(shop) : [],
+      photos: [...(facilityPhoto ? [facilityPhoto] : []), ...(shop ? shopImages(shop) : [])],
       address: facility
         ? zoneLine(terminal, facility, lang)
         : shop
           ? shopAddress(shop, lang)
-          : placeLine(terminal, floor, lang),
+          : atPort
+            ? portPlaceLine(zone, lang)
+            : placeLine(terminal, floor, lang),
       hours: facility?.openTime ?? shop?.openTime ?? '',
       phone: facility ? telOf(facility) : (shop?.tel ?? ''),
       description: facility
@@ -727,28 +1100,47 @@ export function JejuHelp({ controller, initialCategory }: Props): JSX.Element {
       onBack={() => controller.navigate('home', '뒤로')}
     >
       <div className={`${styles.terminals} ${lowReach ? styles.terminalsLow : ''}`}>
-        {TERMINALS.map(({ id, label }) => (
-          <button
-            key={id}
-            type="button"
-            className={`${styles.pill} ${id === terminal ? styles.pillActive : ''}`}
-            onClick={() => pickTerminal(id)}
-          >
-            {pick(label, lang)}
-          </button>
-        ))}
+        {atPort
+          ? PORT_ZONES.map(({ id, label }) => (
+              <button
+                key={id}
+                type="button"
+                className={`${styles.pill} ${id === zone ? styles.pillActive : ''}`}
+                onClick={() => {
+                  track({ zone: id });
+                  setZone(id);
+                }}
+              >
+                {pick(label, lang)}
+              </button>
+            ))
+          : TERMINALS.map(({ id, label }) => (
+              <button
+                key={id}
+                type="button"
+                className={`${styles.pill} ${id === terminal ? styles.pillActive : ''}`}
+                onClick={() => pickTerminal(id)}
+              >
+                {pick(label, lang)}
+              </button>
+            ))}
       </div>
 
-      {/* This page's floor band is on y940, not the shared row's y920. */}
-      <JejuSubTabRow
-        className={`${styles.floors} ${lowReach ? styles.floorsLow : ''}`}
-        items={floors}
-        value={floor}
-        onChange={(id) => {
-          track({ floor: id });
-          setFloor(id);
-        }}
-      />
+      {/* This page's floor band is on y940, not the shared row's y920. The
+          terminal venue draws NO floor row — its two maps are zones of one
+          storey whose 층 the plans never state, so no number is invented; the
+          band stays empty rather than carrying a guess. */}
+      {!atPort && (
+        <JejuSubTabRow
+          className={`${styles.floors} ${lowReach ? styles.floorsLow : ''}`}
+          items={floors}
+          value={floor}
+          onChange={(id) => {
+            track({ floor: id });
+            setFloor(id);
+          }}
+        />
+      )}
 
       <div className={`${styles.cats} ${lowReach ? styles.catsLow : ''}`}>
         {Array.from({ length: CATEGORY_ROWS }, (_, row) => row * PER_ROW).map((start) => (
@@ -771,13 +1163,13 @@ export function JejuHelp({ controller, initialCategory }: Props): JSX.Element {
       </div>
 
       {map && planSrc ? (
-        <div className={`${styles.map} ${lowReach ? styles.mapLow : ''}`}>
-          {/* `key` on the plan so a terminal/floor/language change remounts the
-              <img>: the plans have different aspects, and a reused element
-              keeps the old one's box until the new file decodes. */}
+        /* `key` on the VIEWPORT so a terminal/floor/zone/language change
+           remounts everything inside: the plans have different aspects (a
+           reused <img> keeps the old one's box until the new file decodes),
+           and a zoom held from one plan means nothing on the next. */
+        <MapZoomPan key={planSrc} className={`${styles.map} ${lowReach ? styles.mapLow : ''}`}>
           <div
             className={styles.plan}
-            key={planSrc}
             style={{ '--pin-scale': map.pinScale ?? 1 } as CSSProperties}
           >
             <img src={planSrc} alt="" draggable={false} />
@@ -816,7 +1208,7 @@ export function JejuHelp({ controller, initialCategory }: Props): JSX.Element {
               </div>
             )}
           </div>
-        </div>
+        </MapZoomPan>
       ) : (
         <p className={`${styles.empty} ${lowReach ? styles.emptyLow : ''}`}>
           {pick(COMING_SOON, lang)}
