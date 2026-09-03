@@ -75,10 +75,14 @@
 }
 
 /* ── Categories (6219:98787) ──
-   Rows of five, each `justify-between` over 1820 — which is the frame's own 30px
-   gap (1820 − 5 × 340 = 120, over 4 gaps). TWO rows today (2 × 170 + 35 = 375,
-   the frame's own height), because CATEGORIES is now exactly the sheet's ten
-   BaseCategory values.
+   Rows of five at a fixed 30px gap (1820 − 5 × 340 = 120, over 4 gaps). TWO
+   rows today (2 × 170 + 35 = 375, the frame's own height), because CATEGORIES
+   is now exactly the sheet's BaseCategory values.
+
+   `gap: 30` + flex-start (NOT space-between): a short last row — four chips
+   when the sheet has nine categories — must keep the same 30px pitch and
+   left edge as a full row. space-between would stretch those four across
+   1820 and leave a large hole between each pill.
 
    ★ This height is not fixed — it is ceil(n / 5) rows of 170 with 35 between,
    and n is however many categories AirportFacilityData_Jeju uses. The block has
@@ -100,50 +104,64 @@
 .catRow {
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: flex-start;
+  gap: 30px;
 }
 
 /*
  * Sheet-driven category chips (AirportFacilityData_Jeju BaseCategory values).
- * Figma 6393:59030 / I6771:66722: every label is 50px Pretendard on ONE line
- * (`whitespace-nowrap`, `overflow-clip` on the 340×170 plate). The shared
- * JejuPill sets `white-space: pre-line` for other pages — overridden here.
+ * Figma 6393:59030 / I6771:66722: 340×170, 50px Pretendard, overflow-clip,
+ * shrink-0. Korean short labels sit on one line; longer sheet / translation
+ * labels (금융·보험·환전, Finance·Insurance·Currency Exchange) wrap to two
+ * lines inside the plate — they must NOT grow the pill, which is what used to
+ * crash the 5-up row when `nowrap` made min-content wider than 340.
+ *
+ * The shared JejuPill sets `white-space: pre-line` for other pages — overridden
+ * here. Picked chrome (5px orange rule + #ffeac7) stays on JejuPill.pillActive.
  */
 .cats .pill {
   display: flex;
+  flex: 0 0 340px;
   align-items: center;
   justify-content: center;
   width: 340px;
+  max-width: 340px;
+  min-width: 0;
   height: 170px;
   box-sizing: border-box;
-  padding: 0 10px;
+  padding: 0 12px;
   font-family: inherit;
   font-size: 50px;
   font-style: normal;
   font-weight: 500;
-  line-height: 1;
+  line-height: 1.15;
   text-align: center;
   color: #999;
-  white-space: nowrap;
+  white-space: normal;
+  word-break: keep-all;
+  overflow-wrap: anywhere;
   overflow: hidden;
 }
 
 .cats .pillLabel {
-  display: block;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
   max-width: 100%;
-  white-space: nowrap;
   overflow: hidden;
-  text-overflow: clip;
+  line-height: 1.15;
+  white-space: normal;
+  word-break: keep-all;
+  overflow-wrap: anywhere;
+  text-align: center;
 }
 
 .cats .pillActive {
-  border: none;
-  background: #fff;
   font-family: inherit;
   font-size: 50px;
   font-style: normal;
   font-weight: 700;
-  line-height: 1;
+  line-height: 1.15;
   text-align: center;
   color: var(--kiosk-primary, #ff7f0f);
 }

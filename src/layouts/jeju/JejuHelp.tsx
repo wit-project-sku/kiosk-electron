@@ -206,9 +206,19 @@ const CATEGORIES = HELP_CHIPS;
 const PER_ROW = 5;
 const CATEGORY_ROWS = Math.ceil(CATEGORIES.length / PER_ROW);
 
-/** One-line chip caption — Figma draws every label nowrap at 50px (6393:59030). */
+/**
+ * Chip caption for the 340×170 plates (Figma 6393:59030 / I6771:66722).
+ *
+ * Sheet categories use the wide ideographic `・`; Figma draws the thin `·`.
+ * Soft-break after each separator so a long label (금융·보험·환전, or any
+ * translation) wraps at a natural cut inside the plate instead of stretching
+ * the pill past 340px.
+ */
 function chipLine(chip: string, lang: Lang): string {
-  return chipLabel(chip, lang).replace(/\s*\n\s*/g, '·');
+  return chipLabel(chip, lang)
+    .replace(/\s*\n\s*/g, '·')
+    .replace(/[・･]/g, '·')
+    .replace(/·/g, '·\u200b');
 }
 
 /**
