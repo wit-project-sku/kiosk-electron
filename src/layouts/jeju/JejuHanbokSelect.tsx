@@ -603,7 +603,10 @@ export function JejuHanbokSelect({
     <div className={styles.root}>
       {pageBg && <img src={pageBg} alt="" className={styles.bg} draggable={false} />}
 
-      <Header title={photoTitle} onHome={onHome} />
+      {/* Title only — the description row is dropped on this page by request
+          (2026-09-03); without the flag JejuHeader would draw the sheet's
+          subtitle for 'AR 한복체험', or the generic fallback line. */}
+      <Header title={photoTitle} onHome={onHome} subtitleHidden />
 
       <>
         {/* ── ① 의상 선택하기 ── */}

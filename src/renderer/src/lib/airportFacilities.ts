@@ -162,6 +162,42 @@ export function facilitiesOn(terminal: string, floor: string): AirportFacility[]
 }
 
 /**
+ * Each row's number WITHIN ITS TERMINAL, in sheet order — 국내선 1..71 and
+ * 국제선 1..29 today. This is the sheet's own per-terminal NO column re-derived
+ * from row order (the generated file keeps sheet order and carries no NO field),
+ * and it is what the facility photos under resources/help are named by.
+ */
+const FACILITY_NO = new Map<AirportFacility, number>();
+{
+  const counters: Record<string, number> = {};
+  for (const f of AIRPORT_FACILITIES_JEJU) {
+    counters[f.terminal] = (counters[f.terminal] ?? 0) + 1;
+    FACILITY_NO.set(f, counters[f.terminal]!);
+  }
+}
+
+/**
+ * The bundled photo of a facility row, or undefined for a row this build has
+ * never seen (it can only be one that did not come from AIRPORT_FACILITIES_JEJU).
+ *
+ * The photos live in `resources/help`, one per sheet row, named
+ * `제주국제공항=<국내선|국제선>=<NN>.jpg` — the airport, the row's terminal, and
+ * its two-digit per-terminal number. They are served over `appres://help/`
+ * (see main/core/appResourceProtocol.ts), which resolves against the repo's
+ * resources/ in dev and the install directory's in a packaged build, so the
+ * same URL works in both. A number with no file behind it 404s and the card's
+ * <img> simply draws nothing — same as a row the sheet gained after the photos
+ * were shot.
+ */
+export function facilityImageUrl(facility: AirportFacility): string | undefined {
+  const no = FACILITY_NO.get(facility);
+  if (no == null) return undefined;
+  const terminalKo = facility.terminal === 'domestic' ? '국내선' : '국제선';
+  const file = `제주국제공항=${terminalKo}=${String(no).padStart(2, '0')}.jpg`;
+  return `appres://help/${encodeURIComponent(file)}`;
+}
+
+/**
  * Pair a floor's pins with that floor's rows, and say which chip draws each pin.
  *
  * Runs per pin group. Named pins (`shop`) are bound first and take their row out

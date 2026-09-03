@@ -10,7 +10,8 @@
  *                        "숙박안내 > 상세"                node 6212:55305
  *                        with the card 164px lower
  *   · from 도와줘 하영   → "여기는 제주도"                  node 6219:99127
- *                        one photo, card at y863
+ *                        card at y863 (the frame draws 사진1개; the grid is
+ *                        used instead — see chromeFor)
  * The card itself is the same component in all of them, so it lives in
  * JejuSpotDetailCard and this file only resolves chrome + navigation.
  *
@@ -91,9 +92,15 @@ function chromeFor(
   // 도와줘 '하영' > 상세 (6219:99127) is the one frame that does NOT compose
   // "<page> > 상세": it carries the bare title "여기는 제주도", drawn that way in
   // the frame even though the frame is named 제주>도와줘 하영=상세 and sits beside
-  // the 공항 map. Implemented as drawn. It is also the only detail using the
-  // 사진1개 variant from this screen, with the card at y863.
-  if (from === 'help') return { title: '여기는 제주도', cardTop: 863, gallery: 'single' };
+  // the 공항 map. The card keeps the frame's y863.
+  //
+  // The frame draws the 사진1개 variant, but the GRID is used instead — a
+  // deliberate deviation (2026-09-03): a facility has exactly ONE bundled photo
+  // (see resources/help), and one small photo blown up to the 1215×685 slot
+  // reads worse than the same 2×2 every other detail shows, with the shared
+  // no-image placeholder in the empty slots. The two variants are the same
+  // height (693 vs 685), so nothing below the gallery moves.
+  if (from === 'help') return { title: '여기는 제주도', cardTop: 863 };
 
   // "<page> > 상세" is composed HERE, from two already-localized halves, rather
   // than handed to JejuHeader as one id: a composed string matches no

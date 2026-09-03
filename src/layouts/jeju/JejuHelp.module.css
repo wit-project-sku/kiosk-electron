@@ -197,6 +197,13 @@
   position: relative;
   max-width: 100%;
   max-height: 100%;
+  /* The white paper behind the drawing. The airport plans BAKE their white into
+     the PNG so this was invisible under them; the 여객터미널 pair is transparent
+     outside its ink, and without this the page's background illustration showed
+     through the plan (2026-09-03). Painted here — on the box the plan actually
+     occupies — rather than on the slot, so the plate hugs the artwork exactly
+     the way the airport's baked-in white does. */
+  background: #fff;
 }
 
 .plan img {
@@ -211,7 +218,8 @@
    The pictogram is painted into the plan, so this adds no art of its own: a
    transparent target CENTRED on it, carrying the marker below.
 
-   The target is the marker plus a constant 90px of slop, NOT a multiple of it.
+   The target is the symbol's scaled footprint plus a constant 90px of slop,
+   NOT a multiple of it.
    A pictogram is ~38px here and needs a target far larger than itself to be hit
    on a 2160-wide kiosk, but scaling the whole target with `--pin-scale` would
    put a 330px slab on 국내선 4F — and the plans set pictograms in rows barely
@@ -220,9 +228,9 @@
    plans the same comfortable margin instead. */
 .pin {
   position: absolute;
-  width: calc(30px * var(--pin-scale, 1) + 90px);
-  height: calc(30px * var(--pin-scale, 1) + 90px);
-  margin: calc(-15px * var(--pin-scale, 1) - 45px) 0 0 calc(-15px * var(--pin-scale, 1) - 45px);
+  width: calc(22px * var(--pin-scale, 1) + 90px);
+  height: calc(22px * var(--pin-scale, 1) + 90px);
+  margin: calc(-11px * var(--pin-scale, 1) - 45px) 0 0 calc(-11px * var(--pin-scale, 1) - 45px);
   padding: 0;
   border: none;
   background: transparent;
@@ -233,30 +241,37 @@
 /*
  * The 지도 핀 the selected chip drops on a pictogram (ico-map-pin, 176×268).
  *
- * `bottom: 50%` puts the marker's TIP on the button's centre — that is, exactly
- * on the pictogram — and the body stands above it. Pointing down at the symbol
- * rather than sitting on top of it is the whole trick: the plans identify a
+ * The marker stands ABOVE the pictogram, tip down: `bottom: 50%` alone would
+ * rest the tip on the button's centre — the middle of the symbol — and the
+ * pin's lower half would still lie over its top. The extra `24px * scale`
+ * lifts the tip past the symbol's upper edge, so the plate stays fully
+ * readable under it. That readability is the whole trick: the plans identify a
  * facility BY its symbol (the 남녀+휠체어 plate, the 기저귀 교환대 plate, the ₩,
- * the 커피잔), so a marker that covered it would take the answer away and leave
- * only a colour.
+ * the 커피잔), so a marker that covered any of it would take the answer away
+ * and leave only a colour.
  *
- * 30×46 keeps the art's own 176:268 ratio and is deliberately SMALLER than the
- * ~38px pictogram it points at. A marker that matches or beats the symbol's own
- * size stops reading as a pointer and starts reading as a blob — and with a
- * dozen of them on one floor they crowd the drawing they are supposed to be
- * annotating.
+ * 22×34 keeps the art's own 176:268 ratio and is deliberately SMALLER than the
+ * ~38px baseline pictogram (shrunk from 30×46, which read as covering the
+ * symbol). A marker that matches or beats the symbol's own size stops reading
+ * as a pointer and starts reading as a blob — and with a dozen of them on one
+ * floor they crowd the drawing they are supposed to be annotating.
  *
- * `--pin-scale` then holds that relationship on the two plans drawn at a
- * different scale — 국제선 1F at 69px and 국내선 4F at 118px — by growing the
- * marker AND its hit target with them. See AirportMap.pinScale. It is set on
- * `.plan`, so it lands on both.
+ * 22×34 is CONSTANT, on every plan (2026-09-03). The marker used to be
+ * multiplied by `--pin-scale` so it kept its size RELATIVE to the symbol on the
+ * large-pictogram plans — which put a 54–94px pin over 국제선 1F, 국내선 4F and
+ * both 여객터미널 maps, and that read as exactly the blob the paragraph above
+ * warns about (operator feedback, same date). A pointer does not need to grow
+ * with what it points at; it needs to stay clearly smaller than it. So
+ * `--pin-scale` now scales only what the SYMBOL's size genuinely dictates —
+ * the lift below (a taller symbol needs the tip higher to clear it) and the
+ * hit target above — and never the marker's own box.
  */
 .pinMarker {
   position: absolute;
   left: 50%;
-  bottom: 50%;
-  width: calc(30px * var(--pin-scale, 1));
-  height: calc(46px * var(--pin-scale, 1));
+  bottom: calc(50% + 24px * var(--pin-scale, 1));
+  width: 22px;
+  height: 34px;
   object-fit: contain;
   /* Scales from the TIP, so a press cannot move the point being indicated. */
   transform: translateX(-50%);
@@ -308,6 +323,32 @@
   line-height: 1.35;
   text-align: center;
   white-space: nowrap;
+}
+
+/* ── Zoom viewport (see MapZoomPan in the TSX) ──
+   Laid ON TOP of `.map`: same slot, plus what a pinch-zoomable box needs.
+   `touch-action: none` is what hands the two-finger gesture to our pointer
+   handlers instead of the browser; `overflow: hidden` keeps the scaled plan
+   inside the slot the page reserved for it. */
+.zoomable {
+  overflow: hidden;
+  touch-action: none;
+  cursor: grab;
+}
+
+/* The transformed layer. Fills the slot and re-creates `.map`'s own centring
+   (top-aligned, centred) INSIDE the transform, so `.plan`'s max-width/height
+   still resolve against the slot and the unzoomed page measures exactly as it
+   did before the viewport existed. Origin 0,0 because MapZoomPan's clamp
+   arithmetic is written against the slot's top-left corner. */
+.zoomLayer {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  transform-origin: 0 0;
+  will-change: transform;
 }
 
 /* A floor of the building we hold no plan for — 국제선 2F today. */
