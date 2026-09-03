@@ -29,6 +29,8 @@
   height: 206px;
   border-radius: 45px;
   background: rgba(255, 255, 255, 0.5);
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
 }
 
 /*

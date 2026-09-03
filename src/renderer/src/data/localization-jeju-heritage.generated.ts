@@ -14,6 +14,8 @@ export const LOCALIZATION_JEJU_HERITAGE_OVERRIDES: Record<string, LangText> = {
   "Greeting_Category1": {"ko":"유산' 소개","en":"Yusan's Introduction","ja":"ハヨンの紹介","zh":"夏荣的介绍","vi":"Lời giới thiệu của Yusan","th":"การแนะนำตัวของฮายอง","ru":"Вступление Хаён","id":"Perkenalan Yusan"},
   "Greeting_Category2": {"ko":"유산' 취미생활","en":"Yusan's hobbies","ja":"ハヨン「趣味生活」","zh":"Yusan的爱好","vi":"Sở thích của Yusan","th":"งานอดิเรกของฮายอง","ru":"Хобби Хаён","id":"Hobi Yusan"},
   "Greeting_Category3": {"ko":"유산' 건강습관","en":"Yusan's healthy habits","ja":"ハヨンの健康習慣","zh":"Yusan的健康习惯","vi":"Những thói quen lành mạnh của Yusan","th":"นิสัยรักสุขภาพของฮายอง","ru":"Здоровые привычки Хаён","id":"Kebiasaan sehat Yusan"},
+  "Greeting_Hashtag1": {"ko":"유산","en":"Yusan","ja":"ハヨン","zh":"夏荣","vi":"Hayeong","th":"ฮายอง (Hayeong)","ru":"Хаён","id":"Hayeong"},
+  "Greeting_Hashtag2": {"ko":"안녕하영","en":"HiYusan","ja":"アンニョンハヨン","zh":"安宁哈英","vi":"HiYusan","th":"อันนยองฮายอง","ru":"Аннёнихаён","id":"HiYusan"},
   "Greeting_NameContent": {"ko":"유산","en":"Yusan","ja":"ハヨン","zh":"夏荣","vi":"Hayeong","th":"ฮายอง (Hayeong)","ru":"Хаён","id":"Hayeong"},
   "Photo_SelectTogether": {"ko":"사진촬영 (with '유산')","en":"With ‘Yusan’","ja":"写真撮影（with '遺産'）","zh":"照片拍摄（与“流产”有关）","vi":"Buổi chụp ảnh (với chủ đề 'Sảy thai')","th":"ถ่ายภาพ (กับ 'การแท้งบุตร')","ru":"Фотосессия (с фильмом «Выкидыш»)","id":"Sesi foto (dengan 'Keguguran')"},
 };

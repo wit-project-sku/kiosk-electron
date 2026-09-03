@@ -2,7 +2,7 @@
  * 여기는 제주도 — Figma nodes 6212:59045 (역사) and 6212:59093 (문화).
  *
  * 역사:
- *   979   history panel — gallery + intro row, timeline bar, scrollable epoch prose
+ *   979   history panel — gallery + intro, timeline, epoch prose (scrolls as one)
  *
  * 문화 shares the tab row, then one white panel wrapping an intro and four cards:
  *   979   panel 1818 wide at x170 — title + intro, then 2×2 card grid inside
@@ -30,7 +30,10 @@
   overflow: hidden;
 }
 
-/* ── 역사 panel ── */
+/* ── 역사 panel ──
+   Same contract as 문화: the white plate scrolls as a whole (gallery, intro,
+   timeline, epoch prose). The epoch block used to be the only scroller, which
+   stranded the visitor mid-page under a fixed gallery. */
 .historyPanel {
   position: absolute;
   left: 170px;
@@ -41,16 +44,20 @@
   border-radius: 42.9px;
   background: #fff;
   padding: 60px 100px 74px;
-  overflow: hidden;
-  display: flex;
-  flex-direction: column;
+  overflow-x: hidden;
+  overflow-y: auto;
+  scrollbar-width: none;
+}
+
+.historyPanel::-webkit-scrollbar {
+  width: 0;
+  height: 0;
 }
 
 .historyIntroRow {
   display: flex;
   align-items: flex-start;
   gap: 48px;
-  flex-shrink: 0;
   margin-bottom: 56px;
 }
 
@@ -137,7 +144,6 @@
 }
 
 .historyFlow {
-  flex-shrink: 0;
   margin: 0 0 40px;
 }
 
@@ -199,17 +205,7 @@
 }
 
 .historyProse {
-  flex: 1;
-  min-height: 0;
-  overflow-x: hidden;
-  overflow-y: auto;
   padding-top: 48px;
-  scrollbar-width: none;
-}
-
-.historyProse::-webkit-scrollbar {
-  width: 0;
-  height: 0;
 }
 
 .historyProse p {
@@ -287,21 +283,19 @@
   row-gap: 72px;
 }
 
-/* Same pill chrome as the tab row: r42.9, white, flat. The frame exports it as
-   a flattened SVG carrying a 5px #e8e8e8 stroke and no shadow, but the 제주
-   direction is borderless card plates and buttons throughout — the stroke is
-   dropped here as it is everywhere else on the layout (user call,
-   2026-08-26). Content still sits at card-rel 78 / 54; the padding carries the
-   5px the border used to, so nothing moved when the stroke went. */
+/* White plates with a strong drop shadow (no stroke) — the border used to
+   draw the edge; the shadow does that job now, and reads better on the white
+   panel behind. `overflow` stays off the plate so the shadow is not clipped;
+   the photo crop still clips inside `.cardPhoto`. */
 .card {
   width: 100%;
   height: 890px;
   box-sizing: border-box;
   padding: 54px 48px 0;
-  border: 1px solid #c8c8c8;
+  border: none;
   border-radius: 42.9px;
   background: #fff;
-  overflow: hidden;
+  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.1), 0 2px 8px rgba(0, 0, 0, 0.06);
 }
 
 .cardPhoto {

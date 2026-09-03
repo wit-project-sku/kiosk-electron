@@ -239,6 +239,13 @@
   pointer-events: none;
 }
 
+/* ♿: header drops +686 (mode bar + promo); the shared EventDetailScreen still
+   draws at standing y (card 1090), so the host rides the same offset or the
+   plate sits under the lowered header. */
+.detailHostLow {
+  transform: translateY(400px);
+}
+
 .listEmpty {
   margin: 300px 0 0;
   font-size: 60px;
@@ -575,4 +582,10 @@
    the artboard or the modal would sit over a live control. */
 .overlayLow {
   height: 3840px;
+}
+
+/* ♿: ride the same +686 the header takes (mode bar + promo), so the card sits
+   over the lowered MBTI block instead of under the standing header band. */
+.modalLow {
+  top: 1602px;
 }

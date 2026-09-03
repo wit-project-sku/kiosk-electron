@@ -10,7 +10,8 @@
   pointer-events: none;
 }
 
-/* White card — 1820×1825 at top 1090, r80, border 5 #e8e8e8, soft shadow. */
+/* White card — 1820×1825 at top 1090, r80. Edge is a soft drop shadow
+   (no #e8e8e8 stroke); same treatment as 여기는 제주도 문화 cards. */
 .card {
   position: absolute;
   left: 50%;
@@ -20,9 +21,9 @@
   width: 1820px;
   height: 1825px;
   background: #ffffff;
-  border: 5px solid #e8e8e8;
+  border: none;
   border-radius: 80px;
-  box-shadow: 0 4px 4px rgba(0, 0, 0, 0.25);
+  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.1), 0 2px 8px rgba(0, 0, 0, 0.06);
 }
 
 /* Loading / error state centered in the card. */
