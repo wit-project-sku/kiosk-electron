@@ -43,6 +43,7 @@ import { JejuFlights } from './JejuFlights';
 import { JejuCruise } from './JejuCruise';
 import { JejuExchange } from './JejuExchange';
 import { JejuRentcar } from './JejuRentcar';
+import { useJejuKeypad } from './keypad/useJejuKeypad';
 
 /** Theme the shared AR 한복 photo workflow with the 제주 orange (#ff7f0f, the
  *  Figma `[제주] main 01` token). photoChrome.tsx resolves Jeju's icons, header
@@ -129,6 +130,9 @@ export function JejuKiosk(): JSX.Element {
   useSailingSync();
   useExchangeSync();
   const hasDonation = useHasDonationTile(controller.kioskId);
+  // 배리어프리 키패드 (JD-KP100) — arrow/OK/back control of every 제주 screen.
+  // 제주 only: no other venue has the hardware. See the hook's header.
+  useJejuKeypad(controller);
 
   const cur = controller.screen;
 
@@ -209,6 +213,11 @@ export function JejuKiosk(): JSX.Element {
         return (
           <div
             key={web.screen}
+            // Collapsed to 0×0 but still laid out, so this layer's own header
+            // and tab row keep real rects that the keypad's spatial search
+            // would otherwise treat as landing spots on a screen the visitor
+            // cannot see. See spatialNav's collectTargets.
+            data-keypad-inert={active ? undefined : ''}
             style={
               active
                 ? { position: 'absolute', inset: 0, zIndex: 1 }
@@ -257,6 +266,8 @@ export function JejuKiosk(): JSX.Element {
           const active = !controller.photoActive && cur === 'donation';
           return (
             <div
+              // Same reason as the web layers above — see that comment.
+              data-keypad-inert={active ? undefined : ''}
               style={
                 active
                   ? { position: 'absolute', inset: 0, zIndex: 2 }

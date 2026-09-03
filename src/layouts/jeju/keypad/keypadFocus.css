@@ -1,0 +1,60 @@
+/*
+ * Focus ring for the 제주 barrier-free keypad (JNM JD-KP100).
+ *
+ * A plain global stylesheet, not a CSS module, for two reasons: the ring is
+ * applied to elements all over the 제주 tree that this file has no other
+ * relationship with, and it has to beat a reset it cannot name (below).
+ *
+ * Scoped twice over, so nothing here can reach a screen it should not:
+ *  - `body.jeju-keypad` is set by useJejuKeypad, which only 제주 mounts, and
+ *    only while the visitor is actually using the pad (it comes off on touch).
+ *  - `[data-keypad-focus]` is set on exactly one element at a time.
+ */
+
+/*
+ * `!important` is load-bearing here, not laziness.
+ *
+ * KioskScreenImage.module.css opens with a blanket `.viewport :focus,
+ * .viewport :focus-visible { outline: none }` — the right call for a
+ * touchscreen, where a stray focus ring after a tap is just noise. That rule
+ * lives in a CSS module, so its class name is hashed at build time and a global
+ * sheet like this one cannot name it to out-specify it. Overriding by weight is
+ * the only route, and this is the narrower, more deliberate rule of the two.
+ */
+body.jeju-keypad [data-keypad-focus] {
+  /*
+   * Three rings, because one colour cannot survive every 제주 background. The
+   * screens run cream, white, photographic banners and solid #ff7f0f orange,
+   * and a ring that vanishes on any of them is worse than no ring at all:
+   *
+   *   white  — hugs the element, so the ring reads against the orange tiles
+   *   orange — the 제주 accent, reads against cream and white
+   *   dark   — outermost halo, reads against everything including photography
+   *
+   * Widths are in artboard px (1 CSS px = 1 Figma px inside .artboard), so the
+   * ring scales with the kiosk exactly like the button it is drawn around.
+   */
+  outline: 10px solid #ff7f0f !important;
+  outline-offset: 5px !important;
+  box-shadow:
+    0 0 0 5px rgba(255, 255, 255, 0.95),
+    0 0 0 20px rgba(0, 0, 0, 0.28) !important;
+
+  /*
+   * Outline follows the element's own border-radius, so a rounded tile gets a
+   * rounded ring for free. A square element gets a barely-rounded one, which
+   * looks intentional rather than like a mistake.
+   */
+  border-radius: inherit;
+
+  /* Lift the ring above neighbouring tiles so it is never half-covered. */
+  position: relative;
+  z-index: 40;
+}
+
+/*
+ * The ring is drawn by the attribute above, never by `:focus` — so on a screen
+ * where the pad has focused something and the visitor then touches the panel,
+ * the ring disappears with the body class and no orphan `:focus` outline is
+ * left behind on the element the browser still considers focused.
+ */
