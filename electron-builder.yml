@@ -34,6 +34,12 @@ extraResources:
   # tag and .wasm fetch are both blocked. Regenerate with `npm run vendor:mediapipe`.
   - from: resources/mediapipe
     to: mediapipe
+  # 제주 도와줘 '하영' facility photos, one per AirportFacilityData_Jeju row,
+  # named `제주국제공항=<국내선|국제선>=<NN>.jpg` where NN is the row's number
+  # within its terminal in sheet order. Served over appres://help/ so the detail
+  # card can show them from the install dir in a packaged build.
+  - from: resources/help
+    to: help
   # NOTE: display/attract videos are intentionally NOT bundled. They are large and
   # pre-downloaded per kiosk into an EXTERNAL folder (C:\KioskVideos by default, or
   # KIOSK_VIDEOS_DIR) that lives OUTSIDE the install dir, so an auto-update never
