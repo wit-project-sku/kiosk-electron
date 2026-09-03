@@ -25,16 +25,30 @@
   font-family: 'Noto Sans KR', sans-serif;
 }
 
-/* Unrotated camera (PHOTO_CAMERA_ROTATION 0/180): the frame fills the screen
-   directly. The mirror is screen-space — the camera faces the visitor, so
-   without it "raise your RIGHT hand" points them the wrong way. The rotation
-   half of the transform comes inline from the component, off the constant. */
+/* Unrotated camera (cameraRotation 0/180): the frame fills the screen directly.
+   The mirror is screen-space — the camera faces the visitor, so without it
+   "raise your RIGHT hand" points them the wrong way. The rotation half of the
+   transform comes inline from the component, off the constant.
+
+   `fill`, NOT `cover`: the frame is stretched to the screen's own width and
+   height, so the WHOLE frame is shown and none of it is cropped. `cover` (what
+   this was) crops whatever does not match the screen's aspect, which zoomed the
+   제주 feed in and cut the edges off — and since the overlay's pose figure is
+   what tells the visitor where to stand, a cropped preview asks them to frame
+   themselves against something that is not the frame.
+
+   `fill` distorts rather than letterboxes when the two aspects disagree. That
+   is the deliberate choice for a kiosk: the screen must be full, and a black
+   band down the side of a purpose-built display looks broken to a visitor in a
+   way that a couple of percent of stretch does not. Today it costs nothing —
+   the Elgato is portrait 1080x1920 and the display is portrait, so the aspects
+   already match and `fill` changes no pixel. */
 .feed {
   position: absolute;
   inset: 0;
   width: 100%;
   height: 100%;
-  object-fit: cover;
+  object-fit: fill;
 }
 
 /*

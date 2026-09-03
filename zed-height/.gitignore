@@ -1,0 +1,10 @@
+# Per-machine floor calibration — written by `main.py --calibrate`, and correct
+# only for the camera on THAT kiosk. Never share it between machines.
+calibration.json
+
+# Local dev interpreter. The kiosk uses the system Python the ZED SDK's
+# get_python_api.py installed pyzed into, not a venv.
+.venv/
+
+__pycache__/
+.pytest_cache/

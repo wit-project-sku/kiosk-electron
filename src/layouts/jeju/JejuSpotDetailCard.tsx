@@ -13,8 +13,8 @@
 import { useState } from 'react';
 import { QRCodeSVG } from 'qrcode.react';
 import type { DetailItem } from '@renderer/store/detailStore';
-import { type Lang } from '@renderer/lib/i18n';
-import { padImages } from '@renderer/lib/shops';
+import { pick, type Lang } from '@renderer/lib/i18n';
+import { padImages, shopOpenTime } from '@renderer/lib/shops';
 import { jejuIconUrl } from '@renderer/assets/icons/jeju';
 import { ImageLightbox } from '../components/ImageLightbox';
 import { JejuAirportDirections } from './JejuAirportDirections';
@@ -98,7 +98,9 @@ export function JejuSpotDetailCard({
   const hasRating = Number.isFinite(ratingValue) && ratingValue > 0;
   const filledStars = Math.round(ratingValue);
   const showRatings = hasRating || !!item.instagram;
-  const hours = [item.hours, item.breaktime ? `(${item.breaktime})` : ''].filter((h) => h.trim());
+  const hoursRaw = shopOpenTime(item.hours);
+  const breakRaw = item.breaktime ? shopOpenTime(item.breaktime) : '';
+  const hours = [hoursRaw, breakRaw ? `(${breakRaw})` : ''].filter((h) => h.trim());
   /** 사진1개 draws exactly one slot; 사진4개 always draws four. */
   const slots = single ? 1 : PHOTOS;
   const photos = padImages(realPhotos, jejuIconUrl('noimage'), slots);

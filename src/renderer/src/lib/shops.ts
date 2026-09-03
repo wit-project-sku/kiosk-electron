@@ -226,6 +226,25 @@ const DRIVE_DURATION: Record<Lang, (min: number) => string> = {
   es: (min) => `${min} min en coche`,
 };
 export const shopDescription = (s: Shop, lang: Lang): string => field(s, 'description', lang, s.descriptionKr);
+
+/**
+ * Display-ready opening hours from `Shop.openTime`.
+ *
+ * The witteria API sometimes sends the literal string `null : null` when
+ * start/end times are missing on the backend. Swap those tokens for `-` and
+ * collapse an all-missing value to a single dash so the detail card never
+ * draws the word "null".
+ */
+export function shopOpenTime(openTime: string | null | undefined): string {
+  if (openTime == null) return '';
+  const trimmed = openTime.trim();
+  if (!trimmed) return '';
+
+  const sanitized = trimmed.replace(/\bnull\b/gi, '-').replace(/\s+/g, ' ').trim();
+  if (!/[0-9가-힣a-zA-Z]/.test(sanitized)) return '-';
+
+  return sanitized;
+}
 export const shopSecondCategory = (s: Shop, lang: Lang): string =>
   stripPrefix(field(s, 'secondCategory', lang, s.secondCategoryKr ?? ''));
 export const shopBaseCategory = (s: Shop, lang: Lang): string =>
