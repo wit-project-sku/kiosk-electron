@@ -22,9 +22,9 @@
  * 국내선 4F carries no lettering at all, so it has no `srcEn` and serves both.
  *
  * 국제선 has no 2층 plan — 한국공항공사 supplied no 국외 2F drawing, and the sheet
- * files no facility there either — so that storey is no longer offered at all.
- * The terminal's two passenger levels are the building's 1층 and 3층, and they
- * are the two chips: 1F, and the 3층 plan drawn as 2F. See FLOORS.
+ * files no facility there either — so that storey is not offered at all: the
+ * floor row is 1F ㅣ 3F, with a gap where 2F would be. The 3층 plan keeps its own
+ * number rather than sliding down into the gap; see FLOORS for why that matters.
  *
  * If a 국외 2F plan ever arrives, `map-international-2f{,-en}.png` plus one MAPS
  * entry, one PINS block and one FLOORS row puts the storey back.
@@ -119,27 +119,25 @@ const TERMINALS = [
 ] as const satisfies ReadonlyArray<{ id: TerminalId; label: Record<string, string> }>;
 
 /**
- * The floors each terminal offers, as a chip LABEL over the id everything else
- * keys off. 국내선 runs 1–4F, so the frame's fixed 1F ㅣ 2F ㅣ 3F no longer stands
- * for both rows.
+ * The floors each terminal offers. 국내선 runs 1–4F and 국제선 is 1F and 3F, so
+ * the two rows differ and the frame's fixed 1F ㅣ 2F ㅣ 3F stands for neither.
  *
- * ── 국제선 is two chips, and the second one says 2F (2026-09-02) ─────────────
- * The terminal has passenger levels on the building's 1층 and 3층 — arrivals
- * below, departures above — and nothing on 2층 that a visitor is sent to. So the
- * row that used to read 1F ㅣ 2F ㅣ 3F offered one floor with no plan (준비중,
- * because 한국공항공사 supplied no 국외 2F drawing) and one floor the visitor had
- * to skip past to reach. It now reads 1F ㅣ 2F: two chips, both with a map.
+ * ── 국제선 skips 2F; it does not rename 3F (2026-09-03) ─────────────────────
+ * The terminal's passenger levels are the building's 1층 and 3층 — arrivals
+ * below, departures above. There is nothing on 2층 a visitor is sent to,
+ * 한국공항공사 supplied no 국외 2F drawing, and the sheet files no facility on that
+ * storey, so the chip for it is simply gone. The row reads 1F ㅣ 3F.
  *
- * The second chip is LABELLED '2F' but its id stays '3F', and that split is the
- * whole point — `id` is what MAPS, PINS and the sheet's own `floor` column are
- * keyed by, so the plan, its pins and its 100 rows all keep working untouched
- * and no data has to be restated to match a renamed chip.
+ * It briefly read 1F ㅣ 2F, with the 3층 plan relabelled as the terminal's second
+ * floor. That was WRONG and is reverted: the number on the chip has to be the
+ * number on the building. The plan's own lettering says 3층/3F, the sheet's zone
+ * column says "3F 면세", and every sign a visitor looks up at in 제주공항 says 3층
+ * — a chip reading 2F contradicted all three and would have sent someone up one
+ * flight short. A gap in the row is honest about a floor that has nothing on it;
+ * a renumbered floor is not.
  *
- * Be aware of what the label cannot reach, because it does not lie about it: the
- * plan carries 3층/3F in its own lettering, and a 상세 card opened from this chip
- * prints the sheet's own zone ("3F 면세"). Both are the building's storey number,
- * which is what the airport's signage says once a visitor looks up from the
- * kiosk — so they agree with 제주공항 and only disagree with the chip.
+ * So `label` matches `id` everywhere again, and the split between them is unused
+ * — kept only because JejuSubTabRow's shape has it.
  */
 const FLOORS: Record<TerminalId, ReadonlyArray<{ id: FloorId; label: string }>> = {
   domestic: [
@@ -148,10 +146,11 @@ const FLOORS: Record<TerminalId, ReadonlyArray<{ id: FloorId; label: string }>> 
     { id: '3F', label: '3F' },
     { id: '4F', label: '4F' },
   ],
+  // No 2F: the storey exists in the building but holds nothing this screen can
+  // show — no plan, no facility rows. See above.
   international: [
     { id: '1F', label: '1F' },
-    // The 3층 plan, drawn as this terminal's second floor. See above.
-    { id: '3F', label: '2F' },
+    { id: '3F', label: '3F' },
   ],
 };
 
