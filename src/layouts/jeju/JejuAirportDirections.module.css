@@ -9,9 +9,12 @@
   --dir-road-note: 34px;
   --dir-mode: 48px;
   --dir-mode-time: 55px;
-  --dir-mode-time-left: 410px;
+  --dir-mode-time-left: 430px;
   --dir-mode-icon: 80px;
-  --dir-mode-icon-gap: 16px;
+  --dir-mode-icon-gap: 36px;
+  --dir-rail-width: 40px;
+  --dir-icon-line-x: calc(var(--dir-card-pad-x) + var(--dir-mode-icon) / 2);
+  --dir-timeline-gap: 40px;
   --dir-shuttle-note: 36px;
   --dir-card-pad-x: 60px;
   --dir-card-pad-y: 55px;
@@ -144,14 +147,16 @@
   background: var(--dir-card-bg);
   display: flex;
   flex-direction: column;
-  gap: 44px;
+  gap: 0;
 }
 
 /* ── Timeline ── */
 .timeline {
   display: flex;
   flex-direction: column;
-  padding: 32px var(--dir-card-pad-x) 0;
+  margin-top: var(--dir-timeline-gap);
+  padding: 0 var(--dir-card-pad-x) 0;
+  padding-left: calc(var(--dir-icon-line-x) - var(--dir-rail-width) / 2);
 }
 
 .stop {
@@ -163,7 +168,7 @@
 
 .rail {
   flex: 0 0 auto;
-  width: 36px;
+  width: var(--dir-rail-width);
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -225,7 +230,7 @@
   display: flex;
   align-items: center;
   flex-wrap: wrap;
-  gap: 20px;
+  gap: 60px;
 }
 
 .stopName {
@@ -275,7 +280,7 @@
 }
 
 .busFoot {
-  margin: 0;
+  margin: 44px 0 0;
   padding: 0 var(--dir-card-pad-x);
   font-size: var(--dir-foot);
   font-weight: 400;

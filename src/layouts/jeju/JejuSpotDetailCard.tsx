@@ -13,7 +13,7 @@
 import { useState } from 'react';
 import { QRCodeSVG } from 'qrcode.react';
 import type { DetailItem } from '@renderer/store/detailStore';
-import { pick, type Lang } from '@renderer/lib/i18n';
+import { type Lang } from '@renderer/lib/i18n';
 import { padImages, shopOpenTime } from '@renderer/lib/shops';
 import { jejuIconUrl } from '@renderer/assets/icons/jeju';
 import { ImageLightbox } from '../components/ImageLightbox';
@@ -22,17 +22,6 @@ import styles from './JejuSpotDetailCard.module.css';
 
 /** Photo slots in the gallery — the Figma draws a fixed 2×2. */
 const PHOTOS = 4;
-
-const RENTCAR_HOW_TO = {
-  ko: '가는 방법',
-  en: 'How to get there',
-  ja: '行き方',
-  zh: '前往方式',
-  vi: 'Cách đi',
-  th: 'วิธีเดินทาง',
-  ru: 'Как добраться',
-  id: 'Cara menuju',
-};
 
 /**
  * One 주소/영업시간/전화 icon: an 85×85 slot with the glyph drawn at the size
@@ -119,7 +108,7 @@ export function JejuSpotDetailCard({
   const guide = item.rentcarGuide;
   const route = item.rentcarRoute;
   const showShuttleDirections = isRentcar && guide?.isShuttle;
-  const showFerryPanel = isRentcar && guide?.isFerry && !guide?.isShuttle;
+  const showFerryDirections = isRentcar && guide?.isFerry && !guide?.isShuttle;
   // AI 코스·뭐먹지·뭐사지·숙박·검색 상세 — 설명·태그·평점을 directions 위에 표시.
   const routeDetailFrom =
     item.from === 'eat' ||
@@ -133,20 +122,22 @@ export function JejuSpotDetailCard({
     Number.isFinite(route.distanceKm) &&
     routeDetailFrom;
   const showDirectionsPanel =
-    (isRentcar && route && !showFerryPanel) ||
+    (isRentcar && (showShuttleDirections || showFerryDirections || route)) ||
     showShopRoute;
-  const cardFixedScroll =
-    !flow &&
-    (routeDetailFrom ||
-    item.from === 'rentcar');
-  const cardFixedScrollTall = !flow && (routeDetailFrom || item.from === 'rentcar');
-
-  const cardRouteDetail = routeDetailFrom || item.from === 'rentcar';
+  const routeDetailCard = routeDetailFrom || isRentcar;
+  const scrollInsideCard = !flow && routeDetailCard;
 
   return (
     <>
       <div
-        className={`${styles.card} ${flow ? styles.cardFlow : ''} ${cardRouteDetail ? styles.cardRouteDetail : ''} ${cardFixedScroll ? styles.cardFixedScroll : ''} ${cardFixedScrollTall ? styles.cardFixedScrollTall : ''}`}
+        className={[
+          styles.card,
+          flow && styles.cardFlow,
+          routeDetailCard && styles.cardRouteDetail,
+          scrollInsideCard && styles.cardFixedScroll,
+        ]
+          .filter(Boolean)
+          .join(' ')}
         style={
           flow
             ? undefined
@@ -168,19 +159,7 @@ export function JejuSpotDetailCard({
             )}
           </div>
 
-          {showFerryPanel && guide ? (
-            <div className={styles.rentcarGuide}>
-              <p className={styles.rentcarGuideTitle}>{pick(RENTCAR_HOW_TO, lang)}</p>
-              <div className={styles.rentcarGuideMeta}>
-                <p className={styles.rentcarGuideRow}>
-                  <span className={styles.rentcarGuideIcon} aria-hidden="true">
-                    ⛴️
-                  </span>
-                  <span>{guide.modeLabel}</span>
-                </p>
-              </div>
-            </div>
-          ) : !isRentcar ? (
+          {!isRentcar ? (
             <div className={single ? styles.photosSingle : styles.photos}>
               {Array.from({ length: slots }, (_, i) => (
                 <button
@@ -278,7 +257,7 @@ export function JejuSpotDetailCard({
           </>
         )}
 
-        {showDirectionsPanel && route && (
+        {showDirectionsPanel && (route || showFerryDirections) && (
           <>
             <div className={styles.divider} />
             <div className={styles.airportDirections}>
@@ -287,6 +266,8 @@ export function JejuSpotDetailCard({
                 destination={item.name}
                 lang={lang}
                 showShuttle={showShuttleDirections}
+                showFerry={showFerryDirections}
+                ferryModeLabel={guide?.modeLabel}
               />
             </div>
           </>

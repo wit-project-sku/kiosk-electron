@@ -12,8 +12,8 @@
   left: 170px;
   top: 700px;
   width: 1820px;
-  /* Default Figma height for 검색 상세. Scrollable variants use `.cardFixedScroll`
-     (max h-2133) or `.cardFixedScrollTall` (max h-2400) and shrink when shorter. */
+  /* Default Figma height for 검색 상세. Route-detail variants use
+     `.cardFixedScroll` (max h-2450) and shrink when shorter. */
   height: 2133px;
   box-sizing: border-box;
   /* Top-anchored 28px below the border, NOT centred. The card was
@@ -136,7 +136,6 @@
 }
 
 /* In-card scroll — grows with content up to a cap, then scrolls inside. */
-/* AI 코스 상세 + 다음 장소 — card grows in a page-level scroll column. */
 .cardFlow {
   position: relative;
   left: auto;
@@ -150,13 +149,9 @@
 .cardFixedScroll {
   height: auto;
   min-height: 0;
-  max-height: 2133px;
+  max-height: 2450px;
   overflow-x: hidden;
   overflow-y: auto;
-}
-
-.cardFixedScrollTall {
-  max-height: 2450px;
 }
 
 .cardFixedScroll::-webkit-scrollbar {
@@ -195,67 +190,6 @@
   min-width: 0;
   height: auto;
   aspect-ratio: 16 / 9;
-}
-
-/* ── Shuttle “가는 방법” panel (공항 셔틀 이용) ── */
-.rentcarGuide {
-  box-sizing: border-box;
-  width: 100%;
-  padding: 55px 50px;
-  border-radius: 45px;
-  background: #fff5eb;
-  display: flex;
-  flex-direction: column;
-  gap: 28px;
-}
-
-.rentcarGuideTitle {
-  margin: 0;
-  font-size: 55px;
-  font-weight: 700;
-  line-height: 1;
-  color: var(--kiosk-primary, #ff7f0f);
-}
-
-.rentcarGuideMeta {
-  display: flex;
-  flex-direction: column;
-  gap: 14px;
-}
-
-.rentcarGuideRow {
-  margin: 0;
-  display: flex;
-  align-items: center;
-  gap: 16px;
-  padding: 20px 0;
-  font-size: 52px;
-  font-weight: 700;
-  line-height: 1.2;
-  color: #333;
-}
-
-.rentcarGuideIcon {
-  flex: 0 0 auto;
-  font-size: 50px;
-  line-height: 1;
-}
-
-.rentcarGuideNote {
-  margin: 0;
-  font-size: 42px;
-  font-weight: 500;
-  line-height: 1.3;
-  color: #999;
-}
-
-/* Divider between shuttle panel and 제주공항에서… directions block. */
-.rentcarGuideDivider {
-  width: 100%;
-  height: 2.145px;
-  background: #e8e8e8;
-  flex: none;
-  margin: 10px 0;
 }
 
 /* Airport directions (JejuAirportDirections) — tune box + inner scale here. */
