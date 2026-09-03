@@ -13,7 +13,7 @@
 import { useState } from 'react';
 import { QRCodeSVG } from 'qrcode.react';
 import type { DetailItem } from '@renderer/store/detailStore';
-import { pick, type Lang } from '@renderer/lib/i18n';
+import { type Lang } from '@renderer/lib/i18n';
 import { padImages, shopOpenTime } from '@renderer/lib/shops';
 import { jejuIconUrl } from '@renderer/assets/icons/jeju';
 import { ImageLightbox } from '../components/ImageLightbox';
