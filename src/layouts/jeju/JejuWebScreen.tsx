@@ -13,11 +13,11 @@
  * HwaseongWebScreen.
  */
 import { useEffect, useRef, useState } from 'react';
+import { QRCodeSVG } from 'qrcode.react';
 import type { KioskController } from '@renderer/hooks/useKioskController';
 import { useLanguageStore } from '@renderer/store/languageStore';
 import { pick } from '@renderer/lib/i18n';
 import { trackEvent } from '@renderer/lib/analytics';
-import { jejuIconUrl } from '@renderer/assets/icons/jeju';
 import { JejuPageFrame } from './JejuPageFrame';
 import styles from './JejuWebScreen.module.css';
 
@@ -75,7 +75,8 @@ interface Props {
   /**
    * 탐나오&제주큐랑 only (6516:71785): the "모바일에서 확인하기" QR row under the
    * panel, plus that frame's own panel metrics. One flag for both — see
-   * `.bodyTamnao`.
+   * `.bodyTamnao`. The QR is generated from the ACTIVE tab's url, so it always
+   * sends the phone to the site the visitor is looking at.
    */
   showMobileQr?: boolean;
   /**
@@ -182,6 +183,8 @@ export function JejuWebScreen({
   /* Guard the id against a `tabs` list that changed under a stale selection, so
      a mismatch falls back to the landing tab instead of hiding every pane. */
   const active = sites.some((t) => t.id === tab) ? tab : landing.id;
+  /* What the 모바일에서 확인하기 QR encodes: the site currently on screen. */
+  const activeUrl = sites.find((t) => t.id === active)?.url ?? '';
 
   /* `screen: 'tamnao'` because that is the only screen with a tab row — the row
      does not draw at all without `tabs`. Give this a prop if a second one lands. */
@@ -230,19 +233,24 @@ export function JejuWebScreen({
         )}
       </div>
 
-      {showMobileQr && (
+      {showMobileQr && activeUrl && (
         <div className={styles.qrRow}>
           <div className={styles.qrDivider} />
           <p className={styles.qrText}>{pick(MOBILE_QR, lang)}</p>
           <div className={styles.qrBox}>
-            {jejuIconUrl('qr-tamnao') && (
-              <img
-                className={styles.qrImg}
-                src={jejuIconUrl('qr-tamnao')}
-                alt=""
-                draggable={false}
-              />
-            )}
+            {/* Generated per tab rather than a fixed export: the row sits under
+                whichever site is showing, so 탐나오 hands over tamnao.com and
+                제주큐랑 hands over jejuqrang.com. `key` forces a fresh SVG on a
+                tab change. 150px is the frame's own QR size — see .qrImg. */}
+            <QRCodeSVG
+              key={activeUrl}
+              className={styles.qrImg}
+              value={activeUrl}
+              size={150}
+              bgColor="#ffffff"
+              fgColor="#000000"
+              level="M"
+            />
           </div>
         </div>
       )}
