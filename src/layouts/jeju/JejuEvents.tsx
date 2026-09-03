@@ -267,34 +267,44 @@ export function JejuEvents({ controller }: Props): JSX.Element {
               <EventDetailScreen eventId={detailId} accent="#ff7f0f" />
             </div>
           ) : (
-            <div className={low(styles.listScroll, styles.listScrollLow)}>
-              <div className={styles.list}>
-                {items.map((event) => (
-                  <button
-                    key={event.eventId}
-                    type="button"
-                    className={styles.card}
-                    onClick={() => setDetailId(event.eventId)}
-                  >
-                    {/* The plate is always drawn: it is the design's empty-image
-                        state and also what shows while a photo loads. */}
-                    <span className={styles.cardThumb}>
-                      {event.mainImage && (
-                        <img src={event.mainImage} alt="" draggable={false} loading="lazy" />
-                      )}
-                    </span>
-                    <span className={styles.cardTitle}>{event.title}</span>
-                    <span className={styles.cardVenue}>{event.location}</span>
-                  </button>
-                ))}
+            <>
+              <div className={low(styles.listScroll, styles.listScrollLow)}>
+                <div className={styles.list}>
+                  {items.map((event) => (
+                    <button
+                      key={event.eventId}
+                      type="button"
+                      className={styles.card}
+                      onClick={() => setDetailId(event.eventId)}
+                    >
+                      {/* The plate is always drawn: it is the design's empty-image
+                          state and also what shows while a photo loads. */}
+                      <span className={styles.cardThumb}>
+                        {event.mainImage && (
+                          <img src={event.mainImage} alt="" draggable={false} loading="lazy" />
+                        )}
+                      </span>
+                      <span className={styles.cardTitle}>{event.title}</span>
+                      <span className={styles.cardVenue}>{event.location}</span>
+                    </button>
+                  ))}
+                </div>
+
+                {!loading && items.length === 0 && (
+                  <p className={styles.listEmpty}>
+                    {error ? '이벤트를 불러오지 못했습니다.' : '등록된 이벤트가 없습니다.'}
+                  </p>
+                )}
               </div>
 
-              {!loading && items.length === 0 && (
-                <p className={styles.listEmpty}>
-                  {error ? '이벤트를 불러오지 못했습니다.' : '등록된 이벤트가 없습니다.'}
+              {/* Localization_Jeju `Event_Source` — attribution under the grid.
+                  Hidden when the list fetch failed. */}
+              {!error && (
+                <p className={low(styles.listSource, styles.listSourceLow)}>
+                  {sheetText('Event_Source', lang)}
                 </p>
               )}
-            </div>
+            </>
           )}
         </>
       ) : (

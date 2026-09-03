@@ -138,14 +138,14 @@
 .chip {
   box-sizing: border-box;
   flex: 0 0 auto;
-  width: 340px;
+  min-width: 340px;
   max-width: 100%;
   height: 170px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: 8px;
-  padding: 0;
+  padding: 0 40px;
   border: none;
   border-radius: 40px;
   background: #fff;
