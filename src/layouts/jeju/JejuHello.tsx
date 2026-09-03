@@ -25,6 +25,7 @@
 import { Fragment, useState } from 'react';
 import type { KioskController } from '@renderer/hooks/useKioskController';
 import { jejuIconUrl } from '@renderer/assets/icons/jeju';
+import helloVideo from '@renderer/assets/videos/jeju/hello-hayoung.mp4';
 import { useLanguageStore } from '@renderer/store/languageStore';
 import { pick, type Lang } from '@renderer/lib/i18n';
 import { sheetText } from '@renderer/lib/loc';
@@ -578,11 +579,28 @@ export function JejuHello({ controller }: Props): JSX.Element {
     setTopic((prev) => ({ ...prev, [parent]: id }));
   };
 
-  /**
-   * Neither mascot has a portrait export — 하영's frame and 유산's 6432:47434
-   * both draw a bare #D9D9D9 circle, which `.portrait` reproduces. The slot
-   * picks the art up automatically once `hello-portrait` lands in the icon
-   * folder; a second mascot's portrait will need a per-mascot key here.
+/**
+   * The circle is a VIDEO now (2026-09-03), not the grey #D9D9D9 disc the frame
+   * draws and not the still that never arrived.
+   *
+   * ★ It is IMPORTED, so Vite emits it into the renderer bundle and
+   * electron-builder's `files: out/**` ships it. That is the whole point and it
+   * is worth being explicit about, because the obvious home for a kiosk video is
+   * the wrong one here: `resources/videos` is gitignored, is NOT in
+   * extraResources, and resolves to `C:\KioskVideos` on a packaged Windows
+   * machine — a per-machine manual drop for the huge 2nd-monitor attract reels
+   * (see appPaths.videos). A 7.4 MB UI clip that has to survive `npm run
+   * build:win` belongs in the bundle instead, where a release carries it with no
+   * provisioning step at all. It is also in `asarUnpack` so it plays from a real
+   * file rather than through the asar layer.
+   *
+   * `portrait` is kept as the poster: it stays undefined until someone drops
+   * `hello-portrait` into the icon folder, and then it fills the circle for the
+   * moment before the first frame paints instead of a grey flash.
+   *
+   * TODO(제주 W008): the clip is 하영's, so a 유산 machine plays it — the same
+   * stand-in the portrait slot and the SNS QR already are (see the file header).
+   * A per-mascot key goes here when 유산's own clip is shot.
    */
   const portrait = jejuIconUrl('hello-portrait');
 
@@ -626,7 +644,21 @@ export function JejuHello({ controller }: Props): JSX.Element {
       {tab === 'profile' && (
         <div className={`${styles.card} ${heritage} ${lowReach ? styles.cardLow : ''}`}>
           <div className={styles.portrait}>
-            {portrait && <img src={portrait} alt="" draggable={false} />}
+            {/* Muted + playsInline so Chromium will autoplay it at all: an
+                unmuted clip is blocked by the autoplay policy and would sit on
+                its first frame. No controls — there is nothing to control on a
+                looping portrait, and a visitor cannot pause it by design. */}
+            <video
+              className={styles.portraitVideo}
+              src={helloVideo}
+              poster={portrait}
+              autoPlay
+              loop
+              muted
+              playsInline
+              preload="auto"
+              disablePictureInPicture
+            />
           </div>
 
           <div className={styles.profile}>
