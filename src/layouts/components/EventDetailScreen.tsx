@@ -286,13 +286,29 @@ interface InfoRow {
   lines: string[];
 }
 
+/**
+ * The 기간 line: "start ~ end" when the admin filled both in.
+ *
+ * The dates are nullable and this row used to interpolate them raw, so an event
+ * saved with neither drew the string "null ~ null" on the kiosk — the one row of
+ * the six not going through the `?? '-'` the others use.
+ *
+ * A single date is shown ALONE rather than as "2026-09-01 ~". Only one end being
+ * filled in is ambiguous — a one-day event, or a run with no announced finish —
+ * and a bare date is the reading that is not wrong either way, where a dangling
+ * tilde asserts the second one.
+ */
+function periodLine(d: EventDetail): string {
+  const start = d.startDate?.trim();
+  const end = d.endDate?.trim();
+  if (start && end) return `${start} ~ ${end}`;
+  return start || end || '-';
+}
+
 /** The fixed 6 rows of the Figma spec — empty values render as '-' (not hidden). */
 function infoRows(d: EventDetail, lang: Lang): InfoRow[] {
   const price = d.price ?? (d.isFree === true ? t('Transport_Free', lang) : null);
-  const start = d.startDate?.trim() || '';
-  const end = d.endDate?.trim() || '';
-  const range = start || end ? `${start || '-'} ~ ${end || '-'}` : '-';
-  const period = [range, ...(d.eventTime ? [d.eventTime] : [])];
+  const period = [periodLine(d), ...(d.eventTime ? [d.eventTime] : [])];
   return [
     { label: ui('eventPlace', lang), lines: [d.location || '-'] },
     { label: ui('eventPeriod', lang), lines: period },

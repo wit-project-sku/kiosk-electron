@@ -179,7 +179,11 @@ async function bootstrap(): Promise<void> {
   // it refreshes nightly too — a background retired today disappears from the
   // 제주 outfit screen without waiting for the next reboot.
   container.sync.addNightTask(() =>
-    container.backgrounds.refresh().then(() => {
+    container.backgrounds.refresh().then(async () => {
+      // Mirror the tiles BEFORE telling the renderer, so the reload it triggers
+      // already reads local files instead of re-fetching every one. Nothing is
+      // on screen at 02:00, so there is no reason to show the set early here.
+      await container.backgrounds.cacheImages();
       windowManager?.broadcast(IpcEvents.BackgroundsChanged, null);
     }),
   );
@@ -187,7 +191,8 @@ async function bootstrap(): Promise<void> {
   // refreshes nightly like the banners — a new outfit appears on the picker
   // without a rebuild, which is the whole point of moving it off the bundle.
   container.sync.addNightTask(() =>
-    container.outfits.refresh().then(() => {
+    container.outfits.refresh().then(async () => {
+      await container.outfits.cacheImages();
       windowManager?.broadcast(IpcEvents.OutfitsChanged, null);
     }),
   );
@@ -293,7 +298,13 @@ async function bootstrap(): Promise<void> {
   });
   // Refresh the AR 배경 테마 set from the witteria API into SQLite (background),
   // then tell the renderer to reload — same first-launch reason as the banners.
-  void container.backgrounds.refresh().then(() => {
+  void container.backgrounds.refresh().then(async () => {
+    // Broadcast FIRST at boot, then mirror: the picker should open on whatever
+    // is already known rather than wait behind a download. The second broadcast
+    // swaps the tiles onto local files once they land, and costs the renderer
+    // only a re-read of SQLite.
+    windowManager?.broadcast(IpcEvents.BackgroundsChanged, null);
+    await container.backgrounds.cacheImages();
     windowManager?.broadcast(IpcEvents.BackgroundsChanged, null);
   });
   // 틀린그림찾기 rounds for the AR 한복 waiting game. No broadcast: the renderer
@@ -302,7 +313,9 @@ async function bootstrap(): Promise<void> {
   void container.spotDiff.refresh();
   // The outfit catalogue, on the other hand, IS on screen as soon as someone
   // taps AR 한복체험, so the renderer is told when it lands.
-  void container.outfits.refresh().then(() => {
+  void container.outfits.refresh().then(async () => {
+    windowManager?.broadcast(IpcEvents.OutfitsChanged, null);
+    await container.outfits.cacheImages();
     windowManager?.broadcast(IpcEvents.OutfitsChanged, null);
   });
 

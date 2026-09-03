@@ -26,6 +26,7 @@ import { ShopService } from './services/ShopService';
 import { ButtonLayoutService } from './services/ButtonLayoutService';
 import { BannerService } from './services/BannerService';
 import { BackgroundService } from './services/BackgroundService';
+import { RemoteImageCache } from './services/RemoteImageCache';
 import { AttractionService } from './services/AttractionService';
 import { SpotDiffService } from './services/SpotDiffService';
 import { OutfitService } from './services/OutfitService';
@@ -125,10 +126,13 @@ export function createContainer(): AppContainer {
   const shops = new ShopService(cache, kiosk);
   const buttons = new ButtonLayoutService(cache, kiosk);
   const banners = new BannerService(cache, kiosk);
-  const backgrounds = new BackgroundService(cache, kiosk);
+  // Shared by both screens that draw CMS imagery on the AR 한복체험 picker, so
+  // one directory and one prune covers outfit cards and 배경 테마 tiles alike.
+  const remoteImages = new RemoteImageCache();
+  const backgrounds = new BackgroundService(cache, kiosk, remoteImages);
   const attractions = new AttractionService(cache, kiosk);
   const spotDiff = new SpotDiffService(cache);
-  const outfits = new OutfitService(cache, kiosk);
+  const outfits = new OutfitService(cache, kiosk, remoteImages);
   // No cache dependency: every recommendation is a fresh POST. It only needs
   // the kiosk so it can stamp `kioskId` on the request itself.
   const jejuCourse = new JejuCourseService(kiosk);

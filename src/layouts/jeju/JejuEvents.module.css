@@ -454,8 +454,54 @@
   -webkit-line-clamp: 2;
 }
 
+/* ── Close (6760:37439) ──
+   A circle-and-X centred in the card, 1207 below its top edge — the design puts
+   it at page y2123 against a card top of 916, and the card is page-centred, so
+   centring inside the card lands on the same point.
+
+   The art is a COMPLETE button: the orange ring is baked into the SVG, so it is
+   rendered directly rather than wrapped in a CSS circle — the same rule this
+   layout's home/back exports follow (see assets/icons/jeju/index.ts).
+
+   129 rather than the node's 125, because the export's own box is 128.699: the
+   4.29 ring stroke overflows the node's bounds, which is what Figma's
+   inset-[0_-2.96%_-2.96%_0] on the inner image describes. Sizing to the node
+   would shave the ring; the ~2px this shifts the circle off-centre is invisible
+   at this artboard's scale.
+
+   No low-reach override: ♿ moves the page around this card but not the card
+   itself, so the one rule serves both (only .overlayLow differs). */
+.modalClose {
+  position: absolute;
+  left: 50%;
+  top: 1207px;
+  width: 129px;
+  height: 129px;
+  transform: translateX(-50%);
+  padding: 0;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.modalCloseIcon {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  transition: transform 120ms ease-out;
+}
+
+/* Press feedback: the dim behind the card is still tappable, so this button has
+   to read as the deliberate way out rather than as decoration. */
+.modalClose:active .modalCloseIcon {
+  transform: scale(1.08);
+}
+
 /* The redesign has no QR inside the results card — 6308:78956 holds only the
-   two event columns. `.modalQr` / `.modalQrLabel` went with it. */
+   two event columns and this close button. `.modalQr` / `.modalQrLabel` went
+   with it. */
 
 .modalEmpty {
   position: absolute;

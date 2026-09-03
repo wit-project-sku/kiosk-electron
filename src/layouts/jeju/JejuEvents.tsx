@@ -17,9 +17,10 @@ import { Fragment, useMemo, useState } from 'react';
 import { isOk } from '@shared/types/result';
 import type { EventCategory, EventRecommendation, EventRegion } from '@shared/types/events';
 import type { KioskController } from '@renderer/hooks/useKioskController';
+import { jejuIconUrl } from '@renderer/assets/icons/jeju';
 import { useEvents } from '@renderer/hooks/useEvents';
 import { EventDetailScreen } from '@layouts/components/EventDetailScreen';
-import { useLang } from '@renderer/lib/i18n';
+import { pick, useLang } from '@renderer/lib/i18n';
 import type { Lang } from '@renderer/lib/i18n';
 import { sheetText, t } from '@renderer/lib/loc';
 import { useAccessibilityStore } from '@renderer/store/accessibilityStore';
@@ -32,6 +33,22 @@ interface Props {
 
 /** API region for every recommendation call on this kiosk. */
 const REGION: EventRegion = 'JEJU';
+
+/**
+ * The close button's accessible name. Authored here rather than pulled from
+ * Localization_Jeju because the sheet carries no close/닫기 row — the button is
+ * new with 6760:37439 — and an unanswered `t()` would render the raw key.
+ */
+const CLOSE_LABEL = {
+  ko: '닫기',
+  en: 'Close',
+  ja: '閉じる',
+  zh: '关闭',
+  vi: 'Đóng',
+  th: 'ปิด',
+  ru: 'Закрыть',
+  id: 'Tutup',
+};
 
 /**
  * Two tabs — 제주도 (API region JEJU) and MBTI. The previous frames drew three
@@ -132,6 +149,7 @@ const RESULT_SLOTS = 2;
 
 export function JejuEvents({ controller }: Props): JSX.Element {
   const lang = useLang();
+  const closeIcon = jejuIconUrl('ico-close');
   const [tab, setTab] = useState('REGION');
   const [category, setCategory] = useState<EventCategory>('ALL');
   const [detailId, setDetailId] = useState<number | null>(null);
@@ -343,8 +361,11 @@ export function JejuEvents({ controller }: Props): JSX.Element {
           </p>
 
           {status === 'results' && (
-            // Figma node 6173:100721 — two columns and no close button, so
-            // tapping the dim is the only dismiss, as designed.
+            // Figma node 6308:78956 — two columns over a close button
+            // (6760:37439). Tapping the dim still dismisses and is unchanged;
+            // the button makes that exit VISIBLE, which is what the redesign is
+            // for — a visitor at a kiosk has no reason to guess that the dark
+            // area around a card is tappable.
             <div
               className={low(styles.overlay, styles.overlayLow)}
               role="presentation"
@@ -354,6 +375,24 @@ export function JejuEvents({ controller }: Props): JSX.Element {
                 className={`${styles.modal} ${lowReach ? styles.modalLow : ''}`}
                 onClick={(e) => e.stopPropagation()}
               >
+                {/* Outside the results/empty branch on purpose: a card saying
+                    "추천 결과가 없습니다" is the one a visitor most wants out of. */}
+                <button
+                  type="button"
+                  className={styles.modalClose}
+                  onClick={() => setStatus('idle')}
+                  aria-label={pick(CLOSE_LABEL, lang)}
+                >
+                  {closeIcon && (
+                    <img
+                      src={closeIcon}
+                      alt=""
+                      className={styles.modalCloseIcon}
+                      draggable={false}
+                    />
+                  )}
+                </button>
+
                 {results.length > 0 ? (
                   <>
                     {/* The design lays out exactly two slots; extra results the
@@ -376,7 +415,7 @@ export function JejuEvents({ controller }: Props): JSX.Element {
                       </div>
                     ))}
                     {/* No QR here: 6308:78956 draws the card with the two event
-                        columns and nothing else. */}
+                        columns and the close button, and nothing else. */}
                   </>
                 ) : (
                   // "없습니다", not "불러오지 못했습니다": `results` is empty both

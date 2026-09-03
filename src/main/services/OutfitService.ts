@@ -9,6 +9,7 @@ import { fallbackOutfitLabels, uniformOutfitLabels } from '@shared/constants/out
 import { createLogger } from '@main/core/logger';
 import type { LocalCacheService } from '@main/services/LocalCacheService';
 import type { KioskService } from '@main/services/KioskService';
+import type { RemoteImageCache } from '@main/services/RemoteImageCache';
 
 const log = createLogger('outfit-service');
 const CACHE_KEY = 'outfits';
@@ -79,6 +80,12 @@ export class OutfitService {
   constructor(
     private readonly cache: LocalCacheService,
     private readonly kiosk: KioskService,
+    /**
+     * Optional so every existing test and any caller that only wants the
+     * catalogue can build one without a filesystem. Absent means "serve the
+     * remote urls", which is what this class did before the mirror existed.
+     */
+    private readonly images?: RemoteImageCache,
   ) {}
 
   private base(): string {
@@ -112,6 +119,29 @@ export class OutfitService {
     return `${url}${url.includes('?') ? '&' : '?'}kioskId=${this.kiosk.kioskNum()}`;
   }
 
+  /**
+   * Every image url the catalogue references, for warming and pruning the
+   * on-disk mirror. Read off the RAW rows, not `list()`, so an outfit filtered
+   * out for this kiosk is not left behind on disk by the prune.
+   */
+  private imageUrls(): string[] {
+    const rows = this.cache.get(CACHE_KEY)?.data?.['outfits'];
+    if (!Array.isArray(rows)) return [];
+    return (rows as KioskOutfit[]).map((o) => o.imageUrl).filter(Boolean);
+  }
+
+  /**
+   * Mirror the catalogue's card images locally, then drop the ones the CMS has
+   * retired. Fire-and-forget: the catalogue is already cached and usable by the
+   * time this runs, and a failure only costs the speed-up.
+   */
+  async cacheImages(): Promise<void> {
+    if (!this.images) return;
+    const urls = this.imageUrls();
+    await this.images.warm(urls);
+    await this.images.prune(urls);
+  }
+
   /** Cached outfits for THIS kiosk. Empty until the first successful refresh. */
   list(): KioskOutfit[] {
     const rows = this.cache.get(CACHE_KEY)?.data?.['outfits'];
@@ -124,9 +154,11 @@ export class OutfitService {
     // An empty kioskIds is treated as "everywhere" rather than "nowhere" — the
     // failure mode of hiding the whole catalogue is far worse than showing one
     // extra outfit.
-    return (rows as KioskOutfit[]).filter(
-      (o) => o.kioskIds.length === 0 || o.kioskIds.includes(kioskNum),
-    );
+    return (rows as KioskOutfit[])
+      .filter((o) => o.kioskIds.length === 0 || o.kioskIds.includes(kioskNum))
+      // Point each card at its local mirror when one exists. Falls back to the
+      // remote url untouched, so a cold cache behaves exactly as before.
+      .map((o) => (this.images ? { ...o, imageUrl: this.images.localize(o.imageUrl) } : o));
   }
 
   /** Cached category tabs, in API order. */
