@@ -25,6 +25,14 @@
   padding: 0 136px 80px 170px;
 }
 
+/*
+ * Low-reach (♿) — mode bar at y0, header at y113; the scroll column drops to
+ * match (700 → 813). Scroll buttons stay at their standard y (fixed reach).
+ */
+.scrollLow {
+  top: 813px;
+}
+
 .scroll::-webkit-scrollbar {
   width: 34.32px;
 }

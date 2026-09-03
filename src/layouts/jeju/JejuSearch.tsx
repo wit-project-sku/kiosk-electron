@@ -12,6 +12,7 @@ import { useRef, useState } from 'react';
 import type { KioskController } from '@renderer/hooks/useKioskController';
 import type { Shop } from '@shared/types/shop';
 import { jejuIconUrl } from '@renderer/assets/icons/jeju';
+import { useAccessibilityStore } from '@renderer/store/accessibilityStore';
 import { useLanguageStore } from '@renderer/store/languageStore';
 import { useSearchStore } from '@renderer/store/searchStore';
 import { useDetailStore } from '@renderer/store/detailStore';
@@ -68,6 +69,10 @@ const T = {
 
 /** One scroll-button press moves by a card + its gap. */
 const SCROLL_STEP = 590;
+/** Mode-bar revision — header and body content drop by the bar height. */
+const MODE_BAR = 113;
+const KEYBOARD_TOP = 882;
+const KEYBOARD_TOP_LOW = KEYBOARD_TOP + MODE_BAR;
 
 export function JejuSearch({ controller }: Props): JSX.Element {
   const lang = useLanguageStore((s) => s.currentLanguage);
@@ -75,6 +80,7 @@ export function JejuSearch({ controller }: Props): JSX.Element {
   const setStoreQuery = useSearchStore((s) => s.setQuery);
   const setDetail = useDetailStore((s) => s.setItem);
   const shops = useShopStore((s) => s.shops);
+  const lowReach = useAccessibilityStore((s) => s.lowReach);
 
   const composer = useRef(new HangulComposer());
   const seeded = useRef(false);
@@ -130,11 +136,8 @@ export function JejuSearch({ controller }: Props): JSX.Element {
   };
 
   return (
-    /* This page's ♿ frame (6336:100835, 검색-02) is on the 2026-08-26 mode-bar
-       revision, and it is the degenerate case: the bar overlays the top and
-       NOTHING moves — header, search row, list and scroll discs all repeat
-       their standard positions (measured on the 1:1 render; the frame's
-       staggered scroll-disc group coords are paste slop). */
+    /* Mode-bar revision (6336:100835): bar at y0, header at y113 — content
+       drops +113 with the header (JejuListScreen). */
     <JejuPageFrame
       controller={controller}
       title="검색"
@@ -144,8 +147,12 @@ export function JejuSearch({ controller }: Props): JSX.Element {
       subtitle={ui('searchSubtitle', lang)}
       showBanner={false}
       lowReachModeBar
+      lowReachShift={MODE_BAR}
     >
-      <div className={styles.scroll} ref={scrollRef}>
+      <div
+        className={`${styles.scroll} ${lowReach ? styles.scrollLow : ''}`}
+        ref={scrollRef}
+      >
         <div className={styles.searchRow}>
           <div className={styles.searchField} role="button" onClick={() => setFocused(true)}>
             <span className={`${styles.searchText} ${query ? styles.searchValue : ''}`}>
@@ -203,7 +210,7 @@ export function JejuSearch({ controller }: Props): JSX.Element {
         onKey={applyKey}
         onClose={() => setFocused(false)}
         lang={lang}
-        top={882}
+        top={lowReach ? KEYBOARD_TOP_LOW : KEYBOARD_TOP}
       />
     </JejuPageFrame>
   );

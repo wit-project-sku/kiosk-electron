@@ -150,11 +150,14 @@ interface TimelineNode {
 }
 
 interface Props {
-  route: ShopRoute;
+  route?: ShopRoute | null;
   destination: string;
   lang: Lang;
   /** Rentcar airport-shuttle row — rendered first when set. */
   showShuttle?: boolean;
+  /** Rentcar ferry access — shuttle slot with ferry icon + label only. */
+  showFerry?: boolean;
+  ferryModeLabel?: string;
 }
 
 function buildTimeline(route: ShopRoute, destination: string, lang: Lang): TimelineNode[] {
@@ -204,8 +207,29 @@ export function JejuAirportDirections({
   destination,
   lang,
   showShuttle = false,
+  showFerry = false,
+  ferryModeLabel,
 }: Props): JSX.Element | null {
-  if (typeof route.distanceKm !== 'number' || !Number.isFinite(route.distanceKm)) return null;
+  if (showFerry && ferryModeLabel) {
+    return (
+      <div className={styles.wrap}>
+        <div className={styles.modeList}>
+          <div className={styles.shuttleCard}>
+            <div className={styles.modeHead}>
+              <span className={styles.modeHeadLeft}>
+                <span className={styles.modeIcon} aria-hidden="true">
+                  ⛴️
+                </span>
+                <span className={styles.modeLabel}>{ferryModeLabel}</span>
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (!route || typeof route.distanceKm !== 'number' || !Number.isFinite(route.distanceKm)) return null;
 
   const carMin = route.durationMin;
   const shuttleMin = route.durationMin;
