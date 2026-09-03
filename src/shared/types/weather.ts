@@ -50,7 +50,7 @@ export interface WeatherDayForecast {
  * in the main process; the renderer reads the cached value over IPC.
  */
 export interface WeatherForecast {
-  /** Today first, then each following local date — at most six. */
+  /** Today first, then each following local date — at most six from the API. */
   days: WeatherDayForecast[];
   /** Resolved city name. */
   city: string;

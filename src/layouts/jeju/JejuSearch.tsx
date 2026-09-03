@@ -8,7 +8,7 @@
  * Data + behaviour are the shared shop path (searchShops / shopName / … /
  * detailStore) that OsanSearch uses; only the presentation is Jeju's.
  */
-import { useRef, useState } from 'react';
+import { useMemo, useRef, useState } from 'react';
 import type { KioskController } from '@renderer/hooks/useKioskController';
 import type { Shop } from '@shared/types/shop';
 import { jejuIconUrl } from '@renderer/assets/icons/jeju';
@@ -92,7 +92,12 @@ export function JejuSearch({ controller }: Props): JSX.Element {
   const scrollRef = useRef<HTMLDivElement>(null);
   const [query, setQuery] = useState(initialQuery);
   const [focused, setFocused] = useState(false);
-  const results = searchShops(shops, query, lang);
+  // Relevance first (searchShops), then more photos first (4 → 3 → 2 → 1 → 0).
+  // Stable within the same count so title/tag/description ranking still holds.
+  const results = useMemo(() => {
+    const found = searchShops(shops, query, lang);
+    return [...found].sort((a, b) => shopImages(b).length - shopImages(a).length);
+  }, [shops, query, lang]);
 
   const applyKey = (action: KeyAction): void => {
     const c = composer.current;
@@ -186,7 +191,7 @@ export function JejuSearch({ controller }: Props): JSX.Element {
 
       <button
         type="button"
-        className={`${styles.scrollBtn} ${styles.scrollUp}`}
+        className={`${styles.scrollBtn} ${styles.scrollUp} ${lowReach ? styles.scrollUpLow : ''}`}
         onClick={() => scrollBy(-SCROLL_STEP)}
         aria-label="위로"
       >
@@ -196,7 +201,7 @@ export function JejuSearch({ controller }: Props): JSX.Element {
       </button>
       <button
         type="button"
-        className={`${styles.scrollBtn} ${styles.scrollDown}`}
+        className={`${styles.scrollBtn} ${styles.scrollDown} ${lowReach ? styles.scrollDownLow : ''}`}
         onClick={() => scrollBy(SCROLL_STEP)}
         aria-label="아래로"
       >

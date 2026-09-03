@@ -75,10 +75,14 @@
 }
 
 /* ── Categories (6219:98787) ──
-   Rows of five, each `justify-between` over 1820 — which is the frame's own 30px
-   gap (1820 − 5 × 340 = 120, over 4 gaps). TWO rows today (2 × 170 + 35 = 375,
-   the frame's own height), because CATEGORIES is now exactly the sheet's ten
-   BaseCategory values.
+   Rows of five at a fixed 30px gap (1820 − 5 × 340 = 120, over 4 gaps). TWO
+   rows today (2 × 170 + 35 = 375, the frame's own height), because CATEGORIES
+   is now exactly the sheet's BaseCategory values.
+
+   `gap: 30` + flex-start (NOT space-between): a short last row — four chips
+   when the sheet has nine categories — must keep the same 30px pitch and
+   left edge as a full row. space-between would stretch those four across
+   1820 and leave a large hole between each pill.
 
    ★ This height is not fixed — it is ceil(n / 5) rows of 170 with 35 between,
    and n is however many categories AirportFacilityData_Jeju uses. The block has
@@ -100,50 +104,64 @@
 .catRow {
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: flex-start;
+  gap: 30px;
 }
 
 /*
  * Sheet-driven category chips (AirportFacilityData_Jeju BaseCategory values).
- * Figma 6393:59030 / I6771:66722: every label is 50px Pretendard on ONE line
- * (`whitespace-nowrap`, `overflow-clip` on the 340×170 plate). The shared
- * JejuPill sets `white-space: pre-line` for other pages — overridden here.
+ * Figma 6393:59030 / I6771:66722: 340×170, 50px Pretendard, overflow-clip,
+ * shrink-0. Korean short labels sit on one line; longer sheet / translation
+ * labels (금융·보험·환전, Finance·Insurance·Currency Exchange) wrap to two
+ * lines inside the plate — they must NOT grow the pill, which is what used to
+ * crash the 5-up row when `nowrap` made min-content wider than 340.
+ *
+ * The shared JejuPill sets `white-space: pre-line` for other pages — overridden
+ * here. Picked chrome (5px orange rule + #ffeac7) stays on JejuPill.pillActive.
  */
 .cats .pill {
   display: flex;
+  flex: 0 0 340px;
   align-items: center;
   justify-content: center;
   width: 340px;
+  max-width: 340px;
+  min-width: 0;
   height: 170px;
   box-sizing: border-box;
-  padding: 0 10px;
+  padding: 0 12px;
   font-family: inherit;
   font-size: 50px;
   font-style: normal;
   font-weight: 500;
-  line-height: 1;
+  line-height: 1.15;
   text-align: center;
   color: #999;
-  white-space: nowrap;
+  white-space: normal;
+  word-break: keep-all;
+  overflow-wrap: anywhere;
   overflow: hidden;
 }
 
 .cats .pillLabel {
-  display: block;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
   max-width: 100%;
-  white-space: nowrap;
   overflow: hidden;
-  text-overflow: clip;
+  line-height: 1.15;
+  white-space: normal;
+  word-break: keep-all;
+  overflow-wrap: anywhere;
+  text-align: center;
 }
 
 .cats .pillActive {
-  border: none;
-  background: #fff;
   font-family: inherit;
   font-size: 50px;
   font-style: normal;
   font-weight: 700;
-  line-height: 1;
+  line-height: 1.15;
   text-align: center;
   color: var(--kiosk-primary, #ff7f0f);
 }
@@ -264,20 +282,12 @@
  * the 커피잔), so a marker that covered any of it would take the answer away
  * and leave only a colour.
  *
- * 19×29 keeps the art's own 176:268 ratio and is deliberately SMALLER than the
- * ~38px baseline pictogram. A marker that matches or beats the symbol's own
- * size stops reading as a pointer and starts reading as a blob — and with a
- * dozen of them on one floor they crowd the drawing they are supposed to be
- * annotating. But it still has to be FOUND from standing distance on a 2160px
- * panel, which is the other wall: 15×23 (the first pass at the operator's
- * "make it small") went too far and read as a speck.
- *
- * So: 29 is about 75% of the baseline symbol's height — an arrow pointing at
- * something rather than a badge sitting on it, and still legible across the
- * room. The sequence, all against 국제선 1F at 1:1: 30×46 and 22×34 (neither of
- * which ever reached the screen — see `.plan > img`), then 15×23 (too small),
- * now 19×29. These two numbers are the whole knob — keep the 176:268 ratio and
- * nothing else has to move.
+ * 37×56 keeps the art's own 176:268 ratio. Still meant as a pointer rather than
+ * a badge on the symbol, but large enough to find from standing distance on a
+ * 2160px panel. The sequence, all against 국제선 1F at 1:1: 30×46 and 22×34
+ * (neither of which ever reached the screen — see `.plan > img`), then 15×23 /
+ * 19×29 / 27×41 (still too small), now 37×56. These two numbers are the whole
+ * knob — keep the 176:268 ratio and nothing else has to move.
  *
  * The size is CONSTANT, on every plan (2026-09-03). The marker used to be
  * multiplied by `--pin-scale` so it kept its size RELATIVE to the symbol on the
@@ -293,8 +303,8 @@
   position: absolute;
   left: 50%;
   bottom: calc(50% + 24px * var(--pin-scale, 1));
-  width: 19px;
-  height: 29px;
+  width: 37px;
+  height: 56px;
   object-fit: contain;
   /* Scales from the TIP, so a press cannot move the point being indicated. */
   transform: translateX(-50%);

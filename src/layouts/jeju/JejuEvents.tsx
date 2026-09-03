@@ -55,15 +55,30 @@ const CLOSE_LABEL = {
  * (종로구 / 인사동 / MBTI, Insadong districts left over from the source file) and
  * this file cut them down to two; the redesign agrees, and 6212:54808 now draws
  * exactly these two. `.tab` is flex:1, so a third would re-space the row.
+ *
+ * The region tab label is authored as 제주도 (not the sheet's Event_Tab_Jeju):
+ * operators asked to show 제주도 even when the sheet/CMS still says 제주시.
+ * MBTI is a loan word with no row of its own and needs none.
  */
-const TABS: Array<{ id: string; key?: string; label: string }> = [
-  // The sheet spells it 제주시 (Event_Tab_Jeju, 8/8 languages); the frame drew
-  // 제주도. The sheet wins — it is the operator's word for their own region —
-  // and the authored label stays as the fallback. MBTI is a loan word with no
-  // row of its own and needs none.
-  { id: 'REGION', key: 'Event_Tab_Jeju', label: '제주도' },
+const TABS: Array<{ id: string; label: string }> = [
+  { id: 'REGION', label: '제주도' },
   { id: 'MBTI', label: 'MBTI' },
 ];
+
+/**
+ * Attribution under the event list. Paste the confirmed feed credit here when
+ * the operator names it — empty string hides the line.
+ */
+const EVENT_DATA_SOURCE: Partial<Record<Lang, string>> = {
+  ko: '',
+  en: '',
+  ja: '',
+  zh: '',
+  vi: '',
+  th: '',
+  ru: '',
+  id: '',
+};
 
 /**
  * Category chips under the region tabs (Figma 6052:46478). Labels come from the
@@ -229,7 +244,7 @@ export function JejuEvents({ controller }: Props): JSX.Element {
             className={`${styles.tab} ${tab === tb.id ? styles.tabActive : ''}`}
             onClick={() => selectTab(tb.id)}
           >
-            {tb.key ? sheetText(tb.key, lang, { ko: tb.label }) : tb.label}
+            {tb.label}
           </button>
         ))}
       </div>

@@ -240,8 +240,8 @@ export class WeatherService {
       const json = (await res.json()) as OwmForecastResponse;
 
       // 40 entries × 3h = 120h ahead, which straddles six local dates whenever
-      // the fetch lands after 00:00 — exactly the six rows the panel draws. The
-      // last one is a partial day; it still carries both half-day glyphs.
+      // the fetch lands after 00:00. The 제주 panel draws seven rows; the seventh
+      // is a date-only placeholder when the window does not reach it.
       const days: WeatherDayForecast[] = bucketByLocalDate(json)
         .slice(0, FORECAST_DAYS)
         .map((bucket) => {

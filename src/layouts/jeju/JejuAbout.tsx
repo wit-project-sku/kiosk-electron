@@ -693,7 +693,7 @@ export function JejuAbout({ controller }: Props): JSX.Element {
         <>
           <button
             type="button"
-            className={`${styles.scrollBtn} ${styles.scrollUp}`}
+            className={`${styles.scrollBtn} ${styles.scrollUp} ${lowReach ? styles.scrollUpLow : ''}`}
             onClick={() => scrollBy(-SCROLL_STEP[tab])}
             aria-label="위로"
           >
@@ -703,7 +703,7 @@ export function JejuAbout({ controller }: Props): JSX.Element {
           </button>
           <button
             type="button"
-            className={`${styles.scrollBtn} ${styles.scrollDown}`}
+            className={`${styles.scrollBtn} ${styles.scrollDown} ${lowReach ? styles.scrollDownLow : ''}`}
             onClick={() => scrollBy(SCROLL_STEP[tab])}
             aria-label="아래로"
           >

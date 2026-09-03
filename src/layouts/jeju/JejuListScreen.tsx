@@ -201,7 +201,10 @@ export function JejuListScreen({ screen, controller }: Props): JSX.Element {
     // are Korean consonants, so filtering a translated name would empty the list
     // for every non-Korean visitor.
     if (jamo) list = list.filter((s) => leadingChosung(shopName(s, 'ko')) === jamo);
-    return list;
+    // More photos first (4 → 3 → 2 → 1 → 0). Stable within the same count so
+    // catalogue / 초성 order holds — same idea as Insadong floating imaged
+    // shops, but ranked by how many photos the shop actually has.
+    return [...list].sort((a, b) => shopImages(b).length - shopImages(a).length);
   }, [baseShops, activeKr, jamo]);
 
   const scrollBy = (delta: number): void =>
@@ -321,7 +324,7 @@ export function JejuListScreen({ screen, controller }: Props): JSX.Element {
 
       <button
         type="button"
-        className={`${styles.scrollBtn} ${styles.scrollUp}`}
+        className={`${styles.scrollBtn} ${styles.scrollUp} ${lowReach ? styles.scrollUpLow : ''}`}
         onClick={() => scrollBy(-SCROLL_STEP)}
         aria-label="위로"
       >
@@ -336,7 +339,7 @@ export function JejuListScreen({ screen, controller }: Props): JSX.Element {
       </button>
       <button
         type="button"
-        className={`${styles.scrollBtn} ${styles.scrollDown}`}
+        className={`${styles.scrollBtn} ${styles.scrollDown} ${lowReach ? styles.scrollDownLow : ''}`}
         onClick={() => scrollBy(SCROLL_STEP)}
         aria-label="아래로"
       >

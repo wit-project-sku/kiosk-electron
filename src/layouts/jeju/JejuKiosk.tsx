@@ -175,13 +175,13 @@ export function JejuKiosk(): JSX.Element {
   ) : cur === 'hello' ? (
     <JejuHello controller={controller} />
   ) : cur === 'help' || cur === 'restroom' ? (
-    // 화장실 has no screen of its own: the home button opens 도와줘 '하영'. It used
-    // to arrive with the 화장실 chip already lit, but that chip is gone — the row
-    // is now exactly AirportFacilityData_Jeju's BaseCategory values and the sheet
-    // carries no 화장실 rows (see lib/airportFacilities). Passing it would resolve
-    // to the first chip anyway, so it is not passed: the page opens plain, and
-    // this becomes `initialCategory="화장실"` again the day the sheet lists them.
-    <JejuHelp controller={controller} />
+    // 화장실 is always the lead chip when the sheet lists it. The home 화장실
+    // button still passes it explicitly so a future reorder cannot leave that
+    // shortcut on a different chip; plain 도와줘 falls through to CATEGORIES[0].
+    <JejuHelp
+      controller={controller}
+      initialCategory={cur === 'restroom' ? '화장실' : undefined}
+    />
   ) : cur === 'localpay' ? (
     <JejuLocalpay controller={controller} />
   ) : // WIT Store · 탐나오 · 기부 all render from the pre-warmed layers below, so
