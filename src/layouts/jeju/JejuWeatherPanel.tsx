@@ -17,6 +17,7 @@ import type {
   WeatherForecast,
   WeatherSnapshot,
 } from '@shared/types/weather';
+import { jejuIconUrl } from '@renderer/assets/icons/jeju';
 import { weatherIconUrl, weatherIconName } from '@renderer/assets/weather';
 import type { Lang } from '@renderer/lib/i18n';
 import styles from './JejuWeatherPanel.module.css';
@@ -29,7 +30,34 @@ interface Props {
   onClose: () => void;
 }
 
-/** Rows the frame draws. The panel height is authored for exactly six. */
+/**
+ * The close button's accessible name. Authored here, like HEADS below, because
+ * this frame has no Localization_Jeju rows yet — an unanswered `t()` would show
+ * the raw key. It replaces a hardcoded Korean "닫기" that every language saw.
+ */
+const CLOSE_LABEL: Partial<Record<Lang, string>> = {
+  ko: '닫기',
+  en: 'Close',
+  ja: '閉じる',
+  zh: '关闭',
+  vi: 'Đóng',
+  th: 'ปิด',
+  ru: 'Закрыть',
+  id: 'Tutup',
+};
+
+/**
+ * Rows drawn. The panel height is authored for exactly this many.
+ *
+ * SIX, though the frame now draws seven (6516:74521 repeats a 일 row, same label
+ * and same 08.25 date as the one above it — a duplicated placeholder). Six is
+ * the ceiling of the DATA, not of the design: OpenWeatherMap's 5-day/3-hour
+ * outlook spans today plus five more local dates, WeatherService caps at
+ * FORECAST_DAYS = 6, and WeatherForecast.days is documented "at most six". A
+ * seventh row would render "--˚ / --˚" and two blank glyph slots every day of
+ * the year, so it is not drawn. It needs a different forecast endpoint, not a
+ * taller panel.
+ */
 const ROWS = 6;
 
 /* Row geometry, panel-relative. The frame repeats one 357-tall row every 461px
@@ -188,19 +216,40 @@ function Glyph({ slot }: { slot: Slot | null }): JSX.Element | null {
 
 export function JejuWeatherPanel({ forecast, current, lang, onClose }: Props): JSX.Element {
   const rows = buildRows(forecast, current, lang);
+  const closeIcon = jejuIconUrl('ico-close');
 
   return (
     <div className={styles.layer}>
-      {/* The frame draws no scrim and no close control: the panel simply sits
-          over the home screen, with the top bar, the left nav and the bottom
-          action row still showing around it. Tapping any of that bare screen is
-          the way back, so the dismiss target is invisible and sits BEHIND the
-          panel — taps on the panel itself never reach it. */}
-      <button type="button" className={styles.dismiss} onClick={onClose} aria-label="닫기" />
+      {/* The frame draws no scrim: the panel simply sits over the home screen,
+          with the top bar, the left nav and the bottom action row still showing
+          around it. Tapping any of that bare screen is still the way back, so
+          the dismiss target is invisible and sits BEHIND the panel — taps on the
+          panel itself never reach it, and reach the close button instead. */}
+      <button
+        type="button"
+        className={styles.dismiss}
+        onClick={onClose}
+        aria-label={pick(CLOSE_LABEL, lang)}
+      />
 
       <div className={styles.panel} role="dialog" aria-label="제주 날씨">
         {/* 오늘 sits on its own lighter card; the column heads live inside it. */}
         <div className={styles.todayCard} />
+
+        {/* 6760:18767 — the visible way out, added in the redesign. The bare
+            home screen around the panel stays tappable and unchanged; this is
+            what a visitor can actually SEE to press, which the surrounding
+            screen never advertised. */}
+        <button
+          type="button"
+          className={styles.close}
+          onClick={onClose}
+          aria-label={pick(CLOSE_LABEL, lang)}
+        >
+          {closeIcon && (
+            <img src={closeIcon} alt="" className={styles.closeIcon} draggable={false} />
+          )}
+        </button>
 
         <span className={`${styles.head} ${styles.headMorning}`}>{pick(HEADS.morning, lang)}</span>
         <span className={`${styles.head} ${styles.headAfternoon}`}>
