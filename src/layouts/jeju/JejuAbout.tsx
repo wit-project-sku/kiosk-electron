@@ -251,7 +251,7 @@ const NO_MATCH = {
 };
 
 /**
- * How far one ▲▼ press moves, per tab: about four lines of 역사 prose, one
+ * How far one ▲▼ press moves, per tab: about half a 역사 panel screenful, one
  * 문화 card row (890 card + 72 gap), or one 관광명소 row (730 card + 60 gap).
  */
 const SCROLL_STEP: Record<TabId, number> = {
@@ -276,8 +276,8 @@ export function JejuAbout({ controller }: Props): JSX.Element {
   /** The 관광명소 drill-down; null is the card grid. */
   const [spot, setSpot] = useState<Shop | null>(null);
 
-  /** Whichever region the active tab scrolls — the 문화 panel, the 역사 prose
-   *  (below the timeline), or the 관광명소 grid. Only one is mounted at a time. */
+  /** Whichever region the active tab scrolls — the 문화 / 역사 panel as a whole,
+   *  or the 관광명소 grid. Only one is mounted at a time. */
   const lowReach = useAccessibilityStore((s) => s.lowReach);
   const scrollRef = useRef<HTMLDivElement>(null);
 
@@ -412,10 +412,9 @@ export function JejuAbout({ controller }: Props): JSX.Element {
 
   /**
    * The ▲▼ pair is drawn on all three frames (6212:59090 / 59149 / 59320) as it
-   * is on every 제주 content page, but on two of them it would have nothing to
-   * move: the 문화 panel scrolls as a whole when content overflows; 역사 keeps
-   * the gallery and timeline fixed and scrolls only the epoch prose below; and
-   * 관광명소 does as soon as there are more than six attractions.
+   * is on every 제주 content page. 역사 and 문화 scroll their panels as a whole
+   * when content overflows; 관광명소 does as soon as there are more than six
+   * attractions.
    */
   const [canScroll, setCanScroll] = useState(false);
   useLayoutEffect(() => {
@@ -510,7 +509,10 @@ export function JejuAbout({ controller }: Props): JSX.Element {
       )}
 
       {tab === 'history' && (
-        <div className={`${styles.historyPanel} ${lowReach ? styles.historyPanelLow : ''}`}>
+        <div
+          ref={scrollRef}
+          className={`${styles.historyPanel} ${lowReach ? styles.historyPanelLow : ''}`}
+        >
           <div className={styles.historyIntroRow}>
             <div className={styles.historyGallery}>
               <div className={styles.historyThumbs}>
@@ -600,7 +602,7 @@ export function JejuAbout({ controller }: Props): JSX.Element {
             </section>
           )}
 
-          <div className={styles.historyProse} ref={scrollRef}>
+          <div className={styles.historyProse}>
             {historyEpochs.length > 0 ? (
               historyEpochs.map((e) => (
                 <section key={e.key} className={styles.epoch}>

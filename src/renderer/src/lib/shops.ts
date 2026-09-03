@@ -31,7 +31,16 @@ const field = (s: Shop, base: string, lang: Lang, fallback: string): string =>
   (s[`${base}${sfx(lang)}` as keyof Shop] as string | null) || fallback || '';
 
 export const shopName = (s: Shop, lang: Lang): string => field(s, 'shopName', lang, s.shopNameKr);
-export const shopAddress = (s: Shop, lang: Lang): string => field(s, 'address', lang, s.addressKr);
+/**
+ * Shop address for display.
+ *
+ * Non-Korean UI always uses the English line. Per-language address cells are
+ * often empty or poorly romanized, and operators want one Latin address on
+ * every translated detail (and list) screen rather than falling back to Korean
+ * or a half-filled ja/zh/… cell.
+ */
+export const shopAddress = (s: Shop, lang: Lang): string =>
+  lang === 'ko' ? field(s, 'address', 'ko', s.addressKr) : field(s, 'address', 'en', s.addressKr);
 export const shopHashtag = (s: Shop, lang: Lang): string => field(s, 'hashTag', lang, s.hashTagKr);
 
 /** True when the shop's Korean hashtag line includes `#tag` (with or without `#`). */
@@ -133,7 +142,9 @@ function rentcarShopField(s: Shop, base: string, lang: Lang): string {
 /** Rentcar shop name — API has Kr/En/Jp/Ch; vi/th/ru/id/… fall back to En. */
 export const shopRentcarName = (s: Shop, lang: Lang): string => rentcarShopField(s, 'shopName', lang);
 
-export const shopRentcarAddress = (s: Shop, lang: Lang): string => rentcarShopField(s, 'address', lang);
+/** Rentcar address — same English-for-non-Korean rule as {@link shopAddress}. */
+export const shopRentcarAddress = (s: Shop, lang: Lang): string =>
+  rentcarShopField(s, 'address', lang === 'ko' ? 'ko' : 'en');
 
 export const shopRentcarSecondCategory = (s: Shop, lang: Lang): string =>
   stripPrefix(rentcarShopField(s, 'secondCategory', lang) || (s.secondCategoryKr ?? ''));

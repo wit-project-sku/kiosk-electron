@@ -159,10 +159,20 @@ export function JejuFlightBoard({ controller, lang }: Props): JSX.Element {
   const lowReach = useAccessibilityStore((s) => s.lowReach);
   const departures = useJejuDepartures();
   const lead = departures[0];
+  const openFlights = (): void => controller.navigate('flights', FLIGHTS_TITLE);
 
   return (
     <>
-      <div className={`${styles.board} ${lowReach ? styles.boardLow : ''}`}>
+      {/* The whole panel is the tap target, not just 더보기 below it — a visitor
+          reaching for the row they are reading gets the same 운항정보 page. It
+          stays a div with role=button because the title is a <p>, which a real
+          <button> may not contain (same call as JejuSailingBoard). */}
+      <div
+        className={`${styles.board} ${lowReach ? styles.boardLow : ''}`}
+        role="button"
+        aria-label={pick(TITLE, lang)}
+        onClick={openFlights}
+      >
         <p className={styles.title}>{pick(TITLE, lang)}</p>
         <div className={styles.rule} />
 
@@ -185,7 +195,7 @@ export function JejuFlightBoard({ controller, lang }: Props): JSX.Element {
       <button
         type="button"
         className={`${styles.more} ${lowReach ? styles.moreLow : ''}`}
-        onClick={() => controller.navigate('flights', FLIGHTS_TITLE)}
+        onClick={openFlights}
       >
         <span className={styles.chevron} />
         <span className={styles.moreText}>{pick(MORE, lang)}</span>

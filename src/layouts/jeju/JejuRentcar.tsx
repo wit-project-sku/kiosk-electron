@@ -180,8 +180,9 @@ const LOW_CONTROLS_TOP = LIST_TOP_LOW + LOW_LIST_HEIGHT + LOW_CONTROLS_GAP;
 const KEYBOARD_HEIGHT = 1000;
 /** Standard: search row ends ~y882 under the 700px header. */
 const KEYBOARD_TOP = 882;
-/** Low-reach: keyboard sits above the pinned search row at the foot. */
-const KEYBOARD_TOP_LOW = LOW_CONTROLS_TOP - KEYBOARD_HEIGHT;
+/** Low-reach: lift above the pinned search/filter row (not flush against it). */
+const KEYBOARD_GAP_LOW = 200;
+const KEYBOARD_TOP_LOW = LOW_CONTROLS_TOP - KEYBOARD_HEIGHT - KEYBOARD_GAP_LOW;
 
 export function JejuRentcar({ controller }: Props): JSX.Element {
   const lang = useLanguageStore((s) => s.currentLanguage);

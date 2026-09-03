@@ -63,10 +63,10 @@ const LANG_CODE: Record<string, string> = {
  * from the sheet entirely.
  */
 const NOTICE_FALLBACK = {
-  ko: '9월 제주는 살이 통통하게 오른 은갈치와 고등어 같은 가을 해산물과 상큼한 황금향이 맛과 향이 가장 뛰어난 제철입니다.',
-  en: 'September in Jeju is peak season for plump autumn seafood — silver hairtail and mackerel — and for fragrant, tangy golden hallabong.',
-  ja: '9月の済州は、身の締まったタチウオやサバなどの秋の海の幸と、爽やかな黄金香が最も美味しい旬の季節です。',
-  zh: '九月的济州岛，正是肉质肥美的带鱼、青花鱼等秋季海鲜与清甜黄金香最当季的时节。',
+  ko: '<b>9월 제주</b>는 살이 통통하게 오른 은갈치와 고등어 같은 가을 해산물과 상큼한 황금향이 맛과 향이 가장 뛰어난 제철입니다.',
+  en: '<b>September in Jeju</b> is peak season for plump autumn seafood — silver hairtail and mackerel — and for fragrant, tangy golden hallabong.',
+  ja: '<b>9月の済州</b>は、身の締まったタチウオやサバなどの秋の海の幸と、爽やかな黄金香が最も美味しい旬の季節です。',
+  zh: '<b>九月的济州岛</b>，正是肉质肥美的带鱼、青花鱼等秋季海鲜与清甜黄金香最当季的时节。',
 };
 
 const SEARCH_PLACEHOLDER_FALLBACK = {
@@ -112,6 +112,9 @@ const homeText = (key: string, lang: Lang): string => sheetText(key, lang, FALLB
  * back to the undated `NoticeContent` the screen has always shown, which is why
  * filling a row is all the operator has to do and clearing one is safe. Uses the
  * kiosk's local month, the same clock the header's date line reads.
+ *
+ * Bold comes from literal `<b>…</b>` in the sheet cell — `parseNotice` turns
+ * those into `<b>` runs; `.noticeText b` carries weight 700.
  */
 const noticeText = (lang: Lang): string => {
   const monthly = sheetText(`NoticeContent -${new Date().getMonth() + 1}`, lang);
@@ -187,9 +190,8 @@ const TILE_LABEL_KEYS: Partial<Record<string, string>> = {
  * Note 뭐사지's key really is `_SubText` with a capital T — the one row that
  * breaks the pattern, and that is the sheet's spelling, not a typo here.
  *
- * 탐나오 has no subtitle row: `Tamnao_Subtitle` is that PAGE's subheader (prefixed
- * "* ", English cell empty), not the tile's second line, so the tile keeps its
- * authored 제주공공플랫폼.
+ * 탐나오's tile second line is `MainButton_Tamnao_Subtext`. `Tamnao_Subtitle` is
+ * the PAGE subheader (prefixed "* "), not this map.
  */
 const TILE_SUB_KEYS: Partial<Record<string, string | readonly string[]>> = {
   eat: ['MainButton_ToEat_Subtext', 'SubButton_ToEat'],
@@ -204,6 +206,7 @@ const TILE_SUB_KEYS: Partial<Record<string, string | readonly string[]>> = {
   exchange: ['MainButton_Exchange_Subtext', 'SubButton_Exchange'],
   donation: ['MainButton_Donation_Subtext', 'SubButton_Donation'],
   localpay: ['MainButton_LocalCurrency_Subtext', 'SubButton_LocalCurrency'],
+  tamnao: 'MainButton_Tamnao_Subtext',
   ai_search: ['MainButton_AI_Subtext', 'SubButton_AI'],
   market: ['MainButton_Goods_Subtext', 'SubButton_Goods'],
   events: ['MainButton_Event_Subtext', 'SubButton_Event'],
