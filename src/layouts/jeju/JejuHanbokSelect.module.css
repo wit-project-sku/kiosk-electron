@@ -861,6 +861,16 @@
   -webkit-tap-highlight-color: transparent;
 }
 
+/* Barrier-free side controls — Figma 6442:105429 (same tops as JejuPageFrame /
+   JejuHome). */
+.rootLowReach .leftNav {
+  top: 2163px;
+}
+
+.rootLowReach .accessibility {
+  top: 2403px;
+}
+
 .leftNavHome { top: 0; }
 .leftNavBack { top: 120px; }
 

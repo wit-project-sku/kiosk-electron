@@ -206,6 +206,14 @@
   top: 2223px;
 }
 
+/* Barrier-free: Figma 6442:105429 right-hand ▲▼ (same tops as the home frame). */
+.scrollUpLow {
+  top: 2223px;
+}
+.scrollDownLow {
+  top: 2428px;
+}
+
 /* One asset for both: `scroll-arrow` points right, so each end rotates it.
    Same trick as the two sibling screens — do not add a second export. */
 .scrollBtnImg {

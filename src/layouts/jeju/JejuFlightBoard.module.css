@@ -32,23 +32,12 @@
 }
 
 /*
- * LOW-REACH (♿) — Figma 6442:105429 at (155, 1575), re-read 2026-08-26 after
- * the design revision added the 113px mode bar up top.
- *
- * The board rides INSIDE the 공지 panel, and that panel moves 297 → 1140 without
- * resizing (still 2000×750), so the board moves with it rigidly: +843, no
- * compression. That is unlike most of the low-reach home, which also shrinks —
- * see the table in JejuHome.module.css.
- *
- * Everything else about the board is untouched, and that is measured, not
- * assumed: the low-reach frame repeats 1850×206 at left 155, the title at 57/76,
- * the rule at 336 × 1462, and all six column axes to within the same 1px the
- * standard board records — time 412, airline 731, destination 1095.5, kind 1320,
- * gate 1507.5, status 1718 (header 1720 / 탑승최종 1715, split as before). Type
- * sizes match too: title 55, heads 38, values 45, 더보기 38.
+ * LOW-REACH (♿) — Figma 6442:105429 at (155, 1570), re-read 2026-09-03.
+ * Board lives inside the taller 공지 panel (y1066 h885); chrome is otherwise
+ * unchanged (1850×206, title 55, heads 38, values 45).
  */
 .boardLow {
-  top: 1575px;
+  top: 1570px;
 }
 
 .title {
@@ -166,14 +155,11 @@
 }
 
 /*
- * The same +843 the board takes. Confirmed on two independent anchors in
- * 6442:105429 rather than inferred from the board: the 운항 정보 더보기 text sits
- * at y1817 against the standard 974, and its triangle group at y1806 against
- * 963 — both exactly 843. The padded hit area keeps its 8px lead over the
- * triangle box, so `top` is 955 + 843.
+ * Figma 6442:105429: 더보기 chevron group at y1830; hit area keeps the same
+ * 8px lead over the triangle box as standing (955 vs 963).
  */
 .moreLow {
-  top: 1798px;
+  top: 1822px;
 }
 
 /*

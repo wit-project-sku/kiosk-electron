@@ -19,10 +19,9 @@
   -webkit-tap-highlight-color: transparent;
 }
 
-/* Low-reach rides the 공지 panel's +843 (2026-08 revision — was +837), same as
-   더보기 below; see JejuFlightBoard.module.css. */
+/* Low-reach — Figma 6442:105429 (same slot as JejuFlightBoard). */
 .boardLow {
-  top: 1575px;
+  top: 1570px;
 }
 
 .title {
@@ -125,7 +124,7 @@
 }
 
 .moreLow {
-  top: 1798px;
+  top: 1822px;
 }
 
 .chevron {
