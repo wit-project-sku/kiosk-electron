@@ -95,25 +95,31 @@ export interface JejuMascot {
   bio: JejuMascotBio;
 }
 
-/** 하영 — W006 제주공항 / W007 제주국제여객터미널. Figma 6217:94591 and siblings. */
+/**
+ * W006 제주공항 / W007 제주국제여객터미널 display copy.
+ *
+ * Internal id stays `hayoung` (assets, pin groups, CMS still key on that
+ * mascot). Visitor-facing Korean hardcodes say 제주 — Localization_Jeju /
+ * CMS button_type rows are untouched and still win when filled.
+ */
 const HAYOUNG: JejuMascot = {
   id: 'hayoung',
-  ko: '하영',
-  roman: 'HAYOUNG',
-  mixed: 'Hayoung',
-  ja: 'ハヨン',
-  ru: 'Хаён',
-  helloTitle: "안녕 '하영'",
-  helpTitle: '도와줘 ‘하영’',
-  introLine: "안녕하세요! 마스코트 '하영'를 소개할게요!",
-  hashtags: ['#HAYOUNG', '#하영', '#안녕하영'],
+  ko: '제주',
+  roman: 'JEJU',
+  mixed: 'Jeju',
+  ja: 'チェジュ',
+  ru: 'Чеджу',
+  helloTitle: "안녕 '제주'",
+  helpTitle: '도와줘 ‘제주’',
+  introLine: "안녕하세요! 마스코트 '제주'를 소개할게요!",
+  hashtags: ['#JEJU', '#제주', '#안녕제주'],
   bio: {
-    // The sheet is authoritative for 하영 — these are the fallbacks the page has
-    // always carried, verbatim from the frame's text nodes (6217:94601–94633).
+    // The sheet is authoritative when filled — these are only the hardcode
+    // fallbacks (6217:94601–94633 shape, name swapped to 제주).
     // One known disagreement: Greeting_MBTIContent says ENTP where the frame
     // said ENFP, and the kiosk correctly shows the sheet's ENTP.
     fromSheet: true,
-    name: '하영(Hayoung)',
+    name: '제주(Jeju)',
     born: '2006년 3월 19일',
     from: '제주특별자치도 제주시',
     nationality: '대한민국',

@@ -1,16 +1,18 @@
 /**
  * 제주 날씨 — Figma node 6516:74521 (제주>홈), the overlay the home weather card
- * opens. Six rows of 오늘 · 내일 · the next four weekdays, each with a morning and
- * an afternoon glyph and the day's 최저 / 최고.
+ * opens. Seven rows of 오늘 · 내일 · the next five weekdays, each with a morning
+ * and an afternoon glyph and the day's 최저 / 최고. The close button (6760:18767)
+ * sits in the gap between the last row's 오전 / 오후 columns.
  *
  * Every position/size in JejuWeatherPanel.module.css is the exact Figma value,
- * measured against the isolated render of node 6516:74520 (the group holding the
- * frosted panel, the 오늘 card, the four rules and the six rows).
+ * measured against node 6516:74520 (frosted panel + 오늘 card + rules + rows)
+ * and its sibling last-row / close nodes on the same frame.
  *
  * The data is OpenWeatherMap's 5-day/3-hour outlook, folded into per-day buckets
  * in WeatherService — see `WeatherForecast`. It reaches here through
  * `useWeatherSync` like the current snapshot does; nothing is fetched in the
- * renderer.
+ * renderer. The API covers at most six local dates, so the seventh row is often
+ * a date-only placeholder.
  */
 import type {
   WeatherDayForecast,
@@ -47,25 +49,22 @@ const CLOSE_LABEL: Partial<Record<Lang, string>> = {
 };
 
 /**
- * Rows drawn. The panel height is authored for exactly this many.
- *
- * SIX, though the frame now draws seven (6516:74521 repeats a 일 row, same label
- * and same 08.25 date as the one above it — a duplicated placeholder). Six is
- * the ceiling of the DATA, not of the design: OpenWeatherMap's 5-day/3-hour
- * outlook spans today plus five more local dates, WeatherService caps at
- * FORECAST_DAYS = 6, and WeatherForecast.days is documented "at most six". A
- * seventh row would render "--˚ / --˚" and two blank glyph slots every day of
- * the year, so it is not drawn. It needs a different forecast endpoint, not a
- * taller panel.
+ * Rows drawn. The panel height is authored for exactly this many — Figma
+ * 6516:74521 draws seven (오늘 · 내일 · five weekdays). OpenWeatherMap's
+ * 5-day/3-hour outlook only fills six local dates (WeatherService
+ * FORECAST_DAYS = 6); the seventh row falls back to a date-only placeholder
+ * via {@link buildRows}.
  */
-const ROWS = 6;
+const ROWS = 7;
 
 /* Row geometry, panel-relative. The frame repeats one 357-tall row every 461px
    from y178; the rules are taken literally from their own nodes rather than
    derived from that step (Figma has them a few px off it). */
 const ROW_TOP = 178;
 const ROW_STEP = 461;
-const RULE_TOPS = [1054, 1515, 1979, 2443] as const;
+/* Between rows 2/3 … 6/7 — the 오늘 card separates the first two, so no rule
+   there. Page y 1356 / 1817 / 2281 / 2745 / 3206 minus panel origin 302. */
+const RULE_TOPS = [1054, 1515, 1979, 2443, 2904] as const;
 
 /**
  * Column headers and the two relative day names. There are no Localization_Jeju
@@ -156,22 +155,21 @@ interface Row {
 }
 
 /**
- * Six rows starting at today, whether or not the outlook reaches that far.
+ * Seven rows starting at today, whether or not the outlook reaches that far.
  *
  * The dates come from the clock rather than from the payload so a cached outlook
  * that went stale overnight still labels its rows honestly — days that have
  * already passed drop out and the tail fills with date-only placeholders instead
  * of drawing yesterday under 오늘.
  *
- * Two tails the 5-day/3-hour endpoint cannot fill, both narrow and both handled
- * here rather than left as a blank row:
+ * Tails the 5-day/3-hour endpoint cannot fill, handled here rather than left as
+ * a blank row:
  *
  *  - Late evening, when the list holds nothing further for today: 오늘 borrows
  *    its glyphs from the live snapshot. The day's 최저/최고 stay blank — the
  *    current reading is not a range and must not be drawn as one.
- *  - Just after midnight, when the 120-hour window only spans five dates: the
- *    sixth row has no data at all and shows as a date alone. The window slides
- *    off that state within a few hours, and the kiosks reboot at 02:00 anyway.
+ *  - The sixth and seventh rows near the edge of the 120-hour window: date-only
+ *    placeholders until the next refresh. The kiosks reboot at 02:00 anyway.
  */
 function buildRows(
   forecast: WeatherForecast | null,
@@ -236,10 +234,10 @@ export function JejuWeatherPanel({ forecast, current, lang, onClose }: Props): J
         {/* 오늘 sits on its own lighter card; the column heads live inside it. */}
         <div className={styles.todayCard} />
 
-        {/* 6760:18767 — the visible way out, added in the redesign. The bare
-            home screen around the panel stays tappable and unchanged; this is
-            what a visitor can actually SEE to press, which the surrounding
-            screen never advertised. */}
+        {/* 6760:18767 — the visible way out, centred in the last row's
+            오전 / 오후 gap as the frame draws it. The bare home screen around
+            the panel stays tappable and unchanged; this is what a visitor can
+            actually SEE to press. */}
         <button
           type="button"
           className={styles.close}
@@ -257,10 +255,10 @@ export function JejuWeatherPanel({ forecast, current, lang, onClose }: Props): J
         </span>
         <span className={`${styles.head} ${styles.headRange}`}>{pick(HEADS.range, lang)}</span>
 
-        {/* Four rules, between rows 2/3, 3/4, 4/5 and 5/6 — the 오늘 card is what
-            separates the first two, so no rule is drawn there. */}
-        {[0, 1, 2, 3].map((i) => (
-          <div key={i} className={styles.rule} style={{ top: RULE_TOPS[i] }} />
+        {/* Five rules, between rows 2/3 … 6/7 — the 오늘 card is what separates
+            the first two, so no rule is drawn there. */}
+        {RULE_TOPS.map((top, i) => (
+          <div key={i} className={styles.rule} style={{ top }} />
         ))}
 
         {rows.map((row, i) => (

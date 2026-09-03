@@ -14,7 +14,7 @@
 "11","MainButton_Transport","교통안내","Transportation","交通案内","交通指南","Vận tải","Angkutan","การขนส่ง","Транспорт","","","","","",""
 "1604","MainButton_KCulture","K Culture(준비중)","K Culture(Preparing)","K Culture(Preparing)","K Culture(Preparing)","K Culture (Đang chuẩn bị)","Kultur K (Persiapan)","K Culture (การเตรียม)","K-культура (подготовка)","","","","","",""
 "4","MainButton_MarketPaper","시장화폐","Market Currency","市場通貨","市场货币","Tiền tệ thị trường","Mata Uang Pasar","สกุลเงินตลาด","Рыночная валюта","","","","","",""
-"14","MainButton_SmartTour","스마트관광(준비중)","Smart Tourism (Preparing)","スマート観光（準備中）","智慧旅游（准备中）","Du lịch thông minh (Đang chuẩn bị)","Pariwisata Cerdas (Persiapan)","การท่องเที่ยวอัจฉริยะ (กำลังเตรียมการ)","«Умный туризм» (подготовка)","","","","","",""
+"14","MainButton_SmartTour","스마트관광(준비중)","Smart Tourism (Preparing)","スマート観光（準備中）","智慧旅游（准备中）","Du lịch thông minh (Chuẩn bị)","Pariwisata Cerdas (Persiapan)","การท่องเที่ยวอัจฉริยะ (กำลังเตรียมการ)","«Умный туризм» (подготовка)","","","","","",""
 "","MainButton_Donation","기부","Donation","寄付","捐款","Quyên góp","Donasi","บริจาค","Пожертвование","","","","","",""
 "16","MainButton_WC","화장실","Toilet","トイレ","廁所","Nhà vệ sinh","Toilet","ห้องน้ำ","Туалет","","","","","",""
 "12","MainButton_TraditionalMarket","전국시장(준비중)","Korea Market (Preparing)","伝統市場（準備中）","传统市场（准备中）","Thị trường Hàn Quốc (Đang chuẩn bị)","Pasar Korea (Persiapan)","ตลาดเกาหลี (กำลังเตรียมการ)","Корейский рынок (в процессе подготовки)","","","","","",""
@@ -85,7 +85,7 @@ Pada tahun 2013, namanya diubah menjadi ""Pasar Osaek,"" menambahkan identitas m
 ","ตลาดโอแซกในโอซาน ปรากฏครั้งแรกในหนังสือประวัติศาสตร์ฮวาซอง กวอลเยจี ที่ตีพิมพ์ในรัชสมัยของพระเจ้าจองโจ ปีที่ 16 (1792) ซึ่งแสดงให้เห็นถึงประเพณีอันยาวนานและร่ำรวย
 อย่างเป็นทางการ ในปี 1914 ตลาดแห่งนี้ได้เริ่มดำเนินการในสถานที่ปัจจุบันภายใต้ชื่อ ""ตลาดกลางโอซาน""
 ในปี 2013 ได้เปลี่ยนชื่อเป็น ""ตลาดโอแซก"" เพื่อเพิ่มความทันสมัยให้กับตลาด
-","Рынок Осаек в Осане впервые упоминается в «Хвасон Гвеолльеджи», изданном в 16-м году правления короля Чонджо (1792), что свидетельствует о его давних и богатых традициях.
+","Рынок Осаек в Осане впервые упоминается в «Хвасон Гвеолльеджи», изданном в 16 году правления короля Чонджо (1792), что свидетельствует о его давних и богатых традициях.
 Официально он начал свою работу в 1914 году на своем нынешнем месте под названием «Центральный рынок Осана».
 В 2013 году он был переименован в «Рынок Осаек», что придало ему современный облик.
 
@@ -147,11 +147,11 @@ Aku senang menemukan kafe makanan penutup tersembunyi dan restoran paling trendi
 Посещение кафе и ресторанов — моя страсть!
 Мне нравится открывать для себя скрытые кафе-кондитерские и самые модные рестораны города, делясь своими находками с друзьями и подписчиками.","","","","","",""
 "84","Greeting_Hobby_Second","골프는 나의 힐링 타임!","Golf is my healing time!","ゴルフは私の癒しの時間！","高尔夫是我的疗愈时光！","Chơi golf là khoảng thời gian giúp tôi thư giãn!","Golf adalah waktu penyembuhan saya!","การเล่นกอล์ฟคือช่วงเวลาแห่งการเยียวยาของฉัน!","Гольф – это мое время для восстановления сил!","","","","","",""
-"85","Greeting_Hobby_Second_Content","저 요즘 골프를 배우고 있어요!  필드에서 공을 치고 걷는 게 신나고, 자연 속에서 운동하는 느낌이 좋아요. 집중해서 스윙할 때는 마음이 차분해지고, 성취감을 느낄 수 있어요. 친구들이랑 함께 라운딩하면 더 즐겁고, 배운 기술을 바로 써먹을 수 있어 뿌듯해요!","I’ve started learning golf!  Playing on the course is exciting, and I love exercising in nature. Focusing on my swing feels calming, and it’s rewarding. Playing with friends is fun and satisfying!.","最近ゴルフを習い始めました！ コースでプレーするのは楽しく、自然の中で運動するのが気持ちいいです。 スイングに集中すると心が落ち着き、達成感があります。 友達と一緒にラウンドするとさらに楽しいです！","我最近开始学高尔夫！ 在球场上打球很刺激，喜欢在大自然中运动的感觉。 专注挥杆时心情很平静，也能获得成就感。 和朋友一起打更开心，学到的技巧也能马上用上！。","Tôi bắt đầu học chơi golf rồi! Chơi trên sân golf thật thú vị, và tôi thích tập thể dục giữa thiên nhiên. Tập trung vào cú đánh giúp tôi cảm thấy thư thái và hài lòng. Chơi cùng bạn bè cũng vui và thỏa mãn nữa!","Aku sudah mulai belajar golf! Bermain di lapangan sangat menyenangkan, dan aku suka berolahraga di alam. Berfokus pada ayunan terasa menenangkan, dan itu memuaskan. Bermain dengan teman-teman itu menyenangkan dan memuaskan!","ฉันเริ่มเรียนกอล์ฟแล้ว! การเล่นในสนามเป็นเรื่องน่าตื่นเต้น และฉันชอบออกกำลังกายท่ามกลางธรรมชาติ การจดจ่ออยู่กับการสวิงทำให้รู้สึกสงบ และรู้สึกคุ้มค่า การเล่นกับเพื่อนๆ ก็สนุกและน่าพึงพอใจ!","Я начала учиться играть в гольф! Игра на поле — это захватывающе, и мне нравится заниматься спортом на природе. Сосредоточение на ударе успокаивает и приносит удовлетворение. Играть с друзьями — это весело и приятно!","","","","","",""
+"85","Greeting_Hobby_Second_Content","저 요즘 골프를 배우고 있어요!  필드에서 공을 치고 걷는 게 신나고, 자연 속에서 운동하는 느낌이 좋아요. 집중해서 스윙할 때는 마음이 차분해지고, 성취감을 느낄 수 있어요. 친구들이랑 함께 라운딩하면 더 즐겁고, 배운 기술을 바로 써먹을 수 있어 뿌듯해요!","I’ve started learning golf!  Playing on the course is exciting, and I love exercising in nature. Focusing on my swing feels calming, and it’s rewarding. Playing with friends is fun and satisfying!.","最近ゴルフを習い始めました！ コースでプレーするのは楽しく、自然の中で運動するのが気持ちいいです。 スイングに集中すると心が落ち着き、達成感があります。 友達と一緒にラウンドするとさらに楽しいです！","我最近开始学高尔夫！ 在球场上打球很刺激，喜欢在大自然中运动的感觉。 专注挥杆时心情很平静，也能获得成就感。 和朋友一起打更开心，学到的技巧也能马上用上！。","Tôi bắt đầu học chơi golf rồi! Chơi trên sân golf thật thú vị, và tôi thích tập thể dục giữa thiên nhiên. Tập trung vào cú đánh giúp tôi cảm thấy thư thái và hài lòng. Chơi cùng bạn bè cũng vui và thỏa mãn nữa!","Aku sudah mulai belajar golf! Bermain di lapangan sangat menyenangkan, dan aku suka berolahraga di alam. Berfokus pada ayunan terasa menenangkan, dan itu memuaskan. Bermain dengan teman-teman itu menyenangkan dan memuaskan!","ฉันเริ่มเรียนกอล์ฟแล้ว! การเล่นในสนามเป็นเรื่องน่าตื่นเต้น และฉันชอบออกกำลังกายท่ามกลางธรรมชาติ การจดจ่ออยู่กับการสวิงทำให้รู้สึกสงบ และรู้สึกคุ้มค่า การเล่นกับเพื่อนๆ ก็สนุกและน่าพึงพอใจ!","Я начала учиться играть в гольф! Игра на поле — это захватывающе, и мне нравится заниматься спортом на природе. Сосредоточение на своем ударе успокаивает и приносит удовлетворение. Играть с друзьями — это весело и приятно!","","","","","",""
 "86","Greeting_Hobby_Third","테니스는 나의 스트레스 해소법!","Tennis is my way of relieving stress!","テニスは私のストレス解消法！","网球是我缓解压力的方式！","Chơi tennis là cách tôi giải tỏa căng thẳng!","Tenis adalah cara saya untuk menghilangkan stres!","เทนนิสคือวิธีคลายเครียดของฉัน!","Теннис — мой способ снять стресс!","","","","","",""
 "87","Greeting_Hobby_Third_Content","저 요즘 테니스 배우고 있어요!  처음엔 라켓 잡기도 힘들고 공 맞추기도 어려웠는데, 조금씩 감이 생기더라고요. 운동하면서 스트레스 풀리고, 땀 흘리는 게 재밌어요. 친구들이랑 치면 신나고, 배운 걸 바로 써먹을 수 있어 뿌듯해요!","I’ve been learning tennis!  At first it was hard, but I’m getting the hang of it. It’s fun, relieves stress, and playing with friends is exciting!","最近テニスを習っています！ 最初は大変でしたが、少しずつ感覚がつかめました。 運動でストレス発散できて、友達とやると楽しいです。","我最近在学网球！
 刚开始很难，但慢慢上手了。
-运动减压，和朋友一起打更有趣！","Tôi đang học chơi tennis! Lúc đầu hơi khó, nhưng giờ tôi đã quen dần rồi. Môn này rất vui, giúp giảm căng thẳng, và chơi cùng bạn bè thì thật thú vị!","Aku sedang belajar tenis! Awalnya sulit, tapi aku mulai menguasainya. Ini menyenangkan, menghilangkan stres, dan bermain bersama teman-teman itu seru!","ฉันกำลังเรียนเทนนิสอยู่! ตอนแรกมันยาก แต่ตอนนี้ฉันเริ่มจับทางได้แล้ว มันสนุกดี ช่วยคลายเครียด และการได้เล่นกับเพื่อนๆ ก็ตื่นเต้นมาก!","Я начала учиться играть в теннис! Сначала было сложно, но я постепенно осваиваюсь. Это весело, снимает стресс, и играть с друзьями — это здорово!","","","","","",""
+运动减压，和朋友一起打更有趣！","Tôi đang học chơi tennis! Lúc đầu hơi khó, nhưng giờ tôi đã quen dần rồi. Môn này rất vui, giúp giảm căng thẳng, và chơi cùng bạn bè thì thật thú vị!","Aku sedang belajar tenis! Awalnya sulit, tapi aku mulai menguasainya. Permainan ini menyenangkan, menghilangkan stres, dan bermain bersama teman-teman sangat mengasyikkan!","ฉันกำลังเรียนเทนนิสอยู่! ตอนแรกมันยาก แต่ตอนนี้ฉันเริ่มจับทางได้แล้ว มันสนุกดี ช่วยคลายเครียด และการได้เล่นกับเพื่อนๆ ก็ตื่นเต้นมาก!","Я начала учиться играть в теннис! Сначала было сложно, но я постепенно осваиваюсь. Это весело, снимает стресс, и играть с друзьями — это здорово!","","","","","",""
 "88","Greeting_Category3","스트레칭 고고~","Let’s go stretch~
 ","ストレッチ~","拉伸走 ~","Cùng đi giãn cơ nào!
 ","Ayo kita peregangan~
@@ -163,7 +163,7 @@ Aku senang menemukan kafe makanan penutup tersembunyi dan restoran paling trendi
 (ข้อความต้นฉบับไม่ชัดเจน จึงไม่ได้แปล)","Пойдём разомнёмся~
 
 ","","","","","",""
-"89","Greeting_Stretching_First","정이랑 함께 가볍게 스트레칭 해요!","Let’s do some light stretching together with Jeong-i!","ジョンイと一緒に軽くストレッチしましょう！","和Jeong-i一起轻松拉伸吧！","Cùng Jeong-i thực hiện một vài động tác giãn cơ nhẹ nhé!","Mari kita lakukan peregangan ringan bersama Jeong-i!","มาลองยืดเหยียดกล้ามเนื้อเบาๆ กับจองอีกันเถอะ!","Давайте вместе с Чон-и немного поразомнемся!","","","","","",""
+"89","Greeting_Stretching_First","정이랑 함께 가볍게 스트레칭 해요!","Let’s do some light stretching together with Jeong-i!","ジョンイと一緒に軽くストレッチしましょう！","和Jeong-i一起轻松拉伸吧！","Cùng Jeong-i thực hiện một vài động tác giãn cơ nhẹ nhé!","Mari kita lakukan peregangan ringan bersama Jeong-i!","มาลองยืดเหยียดกล้ามเนื้อเบาๆ ไปพร้อมกับจองอีกันเถอะ!","Давайте вместе с Чон-и немного поразомнемся!","","","","","",""
 "90","Greeting_Stretching_First_Content","오랜 시간 걷기 전에, 잠깐! 저를 따라 가볍게 몸을 풀어볼까요? 
 기분도 리프레시~ 에너지도 업!
 화면 속 저를 따라 천천히 따라 해보세요. 
@@ -189,9 +189,9 @@ Ikuti saja petunjuk di layar— Anda akan lebih menikmati kunjungan ke Pasar Osa
 มาเริ่มยืดเหยียดเบาๆ เพื่อให้สดชื่นและมีพลังกันเถอะ
 ทำตามที่ฉันบอกบนหน้าจอเลย—
 คุณจะสนุกกับการเที่ยวตลาดโอแซกมากขึ้นหลังจากยืดเหยียดร่างกายแล้ว!","Перед долгой прогулкой сделайте паузу!
-Давайте немного потянемся, чтобы освежиться и зарядиться энергией.
+Давайте немного потянемся, чтобы освежиться и набраться сил.
 Просто следуйте за мной на экране —
-после хорошей разминки вы получите еще больше удовольствия от поездки на рынок Осаек!","","","","","",""
+после хорошей разминки вы получите еще больше удовольствия от посещения рынка Осаек!","","","","","",""
 "91","Greeting_Stretching_Second","피로 예방!
 ","Fatigue prevention!","疲労予防！","疲劳预防！","Ngăn ngừa mệt mỏi!","Pencegahan kelelahan!","ป้องกันความเหนื่อยล้า!","Профилактика усталости!","","","","","",""
 "92","Greeting_Stretching_Second_Content","계속 걷다 보면 다리와 허리에 피로가 쌓여요. 
@@ -294,7 +294,7 @@ Hari pasar: tanggal 3, 8, 13, 18, 23, 28 setiap bulan.","พบกับจอ�
 "117","MarketPaper_Onnuri_Content_3_2","상품권 금액의 10% 할인가로 충전 가능! 최대 보유한도금액은 200만원입니다.","Recharge at a 10% discount! The maximum holding limit is 2 million won.","しょうひんけんの じゅっぱあせんと わりびきで ちゃあじ できる！ さいだい ほゆう げんどがくは にひゃくまんうぉんです。","可享受10%折扣充值！最大持有金额为200万韩元。","Nạp tiền với ưu đãi giảm giá 10%! Giới hạn nạp tối đa là 2 triệu won.","Isi ulang dengan diskon 10%! Batas isi ulang maksimal 2 juta won.","เติมเงินรับส่วนลด 10%! วงเงินสูงสุด 2 ล้านวอน","Пополните счет со скидкой 10%! Максимальный лимит пополнения — 2 миллиона вон.","","","","","",""
 "117","MarketPaper_Onnuri_Content_3_3","※ 단, 예산소진 상황에 따라 특별판매 내용 및 기간이 변경될 수 있습니다.","※ Note: Special sale details and periods are subject to change depending on budget exhaustion.","※ ただし、よさんが なくなり しだい、とくべつ はんばいの ないようや きかんが かわる ことが あります。","※ 注：特别销售内容及期限可能会根据预算消耗情况有所变更。","※ Lưu ý: Chi tiết và thời gian khuyến mãi đặc biệt có thể thay đổi tùy thuộc vào ngân sách hiện có.","※ Catatan: Detail dan periode penjualan khusus dapat berubah tergantung pada ketersediaan anggaran.","※ หมายเหตุ: รายละเอียดและระยะเวลาของโปรโมชั่นพิเศษอาจมีการเปลี่ยนแปลงได้ ขึ้นอยู่กับงบประมาณที่มีอยู่","※ Примечание: Условия и сроки проведения специальных распродаж могут быть изменены в зависимости от исчерпания бюджета.","","","","","",""
 "117","MarketPaper_Onnuri_Content_4","온누리상품권 사용처","Where to use Onnuri Gift Certificates","おんぬり しょうひんけんが つかえる ところ","稳楼里商品券使用处","Phiếu quà tặng Onnuri có thể được sử dụng ở đâu?","Di mana menggunakan Sertifikat Hadiah Onnuri?","สามารถใช้บัตรของขวัญ Onnuri ได้ที่ไหนบ้าง","Где использовать подарочные сертификаты Onnuri","","","","","",""
-"117","MarketPaper_Onnuri_Content_4_1","온누리상품권 가맹점 스티커가 있는 곳에서 사용이 가능합니다.","Can be used at places with the Onnuri Gift Certificate affiliated store sticker.","おんぬり しょうひんけん かめいてん すてっかあが ある ところで つかえます。","可在贴有稳楼里商品券加盟店贴纸的地方使用。","Có thể sử dụng tại các cửa hàng có dán tem phiếu quà tặng Onnuri.","Dapat digunakan di tempat-tempat yang memiliki stiker toko afiliasi Sertifikat Hadiah Onnuri.","สามารถใช้ได้ที่ร้านค้าที่มีสติกเกอร์ร้านค้าพันธมิตรของ Onnuri Gift Certificate","Можно использовать в местах, где есть наклейка магазина-партнера подарочного сертификата Onnuri.","","","","","",""
+"117","MarketPaper_Onnuri_Content_4_1","온누리상품권 가맹점 스티커가 있는 곳에서 사용이 가능합니다.","Can be used at places with the Onnuri Gift Certificate affiliated store sticker.","おんぬり しょうひんけん かめいてん すてっかあが ある ところで つかえます。","可在贴有稳楼里商品券加盟店贴纸的地方使用。","Có thể sử dụng tại các cửa hàng có dán tem cửa hàng liên kết với chương trình Phiếu quà tặng Onnuri.","Dapat digunakan di tempat-tempat yang memiliki stiker toko afiliasi Sertifikat Hadiah Onnuri.","สามารถใช้ได้ที่ร้านค้าที่มีสติกเกอร์ร้านค้าพันธมิตรของ Onnuri Gift Certificate","Можно использовать в местах, где есть наклейка магазина-партнера подарочного сертификата Onnuri.","","","","","",""
 "118","MarketPaper_Osaekjeon","오색전","Osaekjeon","オセクジョン","五色钱","Osaekjeon","Osaekjeon","โอแซกจอน","Осаекджон","","","","","",""
 "118","MarketPaper_Osaekjeon_Content","오산화폐「오색전」","Osan Currency “Osaekjeon”
 ","オサン地域通貨「オセクジョン」","乌山市地域货币“五色钱","Tiền tệ Osan “Osaekjeon”
@@ -304,7 +304,8 @@ Hari pasar: tanggal 3, 8, 13, 18, 23, 28 setiap bulan.","พบกับจอ�
 ","สกุลเงินโอซาน “โอแซกจอน”
 
 (Osan Currency “Osaekjeon”)
-","Валюта Осана «Осэкчжон»
+
+(หมายเหตุ: ตัวเลข","Валюта Осана «Осэкчжон»
 
 ","","","","","",""
 "118","MarketPaper_Osaekjeon_Content_1","오산화폐 오색전이란?","What is Osaekjeon?","オセクジョンとは？","什么是五色钱？","Osaekjeon là gì?","Apa itu Osaekjeon?","โอแซกจอนคืออะไร?","Что такое Осаекджон?","","","","","",""
@@ -414,7 +415,7 @@ Chỉ có hiệu lực tại các doanh nghiệp nhỏ có doanh thu hàng năm 
 "127","MarketPaper_ButtonText","준비중","Coming soon","準備中","敬请期待","Sắp ra mắt","Segera hadir","เร็วๆ นี้","Вскоре","","","","","",""
 "128","Photo_HanbokTry","<AR 한복체험>  ","<AR Hanbok Try-On>","<AR 韓服 体験>","<AR 韩服 体验>","<AR Hanbok Try-On>","<AR Hanbok Try-On>","<AR Hanbok Try-On>","<Примерка ханбока AR>","","","","","",""
 "129","Photo_HanbokSelect","한복/의상 선택하기","Choose Hanbok","韓服を選ぶ","选择韩服","Chọn Hanbok","Pilih Hanbok","เลือกฮันบก","Выберите ханбок","","","","","",""
-"130","Photo_HanbokSelectContent","• 원하시는 의상을 고르고 선택 완료 버튼을 누른뒤 사진촬영 버튼을 눌러주세요 ","• Please choose your desired costume and press the ""Complete Selection"" button","• お好きな衣装を選んで「選択完了」ボタンを押してください","• 请选择您喜欢的服装，然后点击“完成选择”按钮","• Vui lòng chọn trang phục bạn muốn và nhấn nút ""Hoàn tất lựa chọn"".","• Silakan pilih kostum yang Anda inginkan dan tekan tombol ""Selesaikan Pilihan"".","• กรุณาเลือกชุดที่ต้องการแล้วกดปุ่ม ""เลือกชุดทั้งหมด""","• Пожалуйста, выберите желаемый костюм и нажмите кнопку «Завершить выбор».","","","","","",""
+"130","Photo_HanbokSelectContent","• 원하시는 의상을 고르고 선택 완료 버튼을 누른뒤 사진촬영 버튼을 눌러주세요 ","• Please choose your desired costume and press the ""Complete Selection"" button","• お好きな衣装を選んで「選択完了」ボタンを押してください","• 请选择您喜欢的服装，然后点击“完成选择”按钮","• Vui lòng chọn trang phục bạn muốn và nhấn nút ""Hoàn tất lựa chọn"".","• Silakan pilih kostum yang Anda inginkan dan tekan tombol ""Selesaikan Pilihan"".","• กรุณาเลือกชุดที่ต้องการแล้วกดปุ่ม ""เลือกให้ครบ""","• Пожалуйста, выберите желаемый костюм и нажмите кнопку «Завершить выбор».","","","","","",""
 "17","Hanbok_1","여자 한복","W>Hanbok","女性用韓服","女式韩服","Hanbok","Hanbok","W>ฮันบก","Ханбок","","","","","",""
 "18","Hanbok_2","여자 모델","M>Model        ","女性モデル","女性模特","M>Mô hình","M>Model","ม>โมเดล","М>Модель","","","","","",""
 "19","Hanbok_3","남자 한복","W>Hanbok","男性用韓服","男式韩服","Hanbok","Hanbok","W>ฮันบก","Ханбок","","","","","",""
@@ -625,13 +626,14 @@ Kontak: company@witworldwide.com
 ข้อมูลส่วนบุคคลจะถูกลบอย่างปลอดภัยเมื่อวัตถุประสงค์ในการเก็บรวบรวมเสร็จสิ้น หากผู้ใช้ยกเลิกหรือหยุดใช้บริการ ข้อมูลจะถูกลบ ยกเว้นในกรณีที่กฎหมายกำหนดให้ต้องเก็บรักษาไว้
 
 4. การเปิดเผยข้อมูลแก่บุคคลที่สาม
-โดยทั่วไปแล้ว ข้อมูลจะไม่ถูกเปิดเผยแก่บุคคลที่สาม ยกเว้นในกรณีที่กฎหมายกำหนด หรือเปิดเผยเพียงเล็กน้อยกับพันธมิตรผู้ให้บริการสำหรับฟีเจอร์และโปรโมชั่น หรือได้รับความยินยอมจากผู้ใช้ก่อน
+โดยทั่วไปแล้ว ข้อมูลจะไม่ถูกเปิดเผยแก่บุคคลที่สาม ยกเว้นในกรณีที่กฎหมายกำหนด หรือเปิดเผยเพียงเล็กน้อยแก่พันธมิตรผู้ให้บริการสำหรับฟีเจอร์และโปรโมชั่น หรือได้รับความยินยอมจากผู้ใช้ก่อน
 
 5. มาตรการรักษาความปลอดภัย
 เราเข้ารหัสข้อมูลส่วนบุคคลสำหรับการจัดเก็บและการส่ง จำกัดการเข้าถึงเฉพาะเจ้าหน้าที่และพันธมิตรที่ได้รับอนุญาต และดำเนินการตรวจสอบและอัปเดตความปลอดภัยเป็นประจำ
 
 6. การเปลี่ยนแปลงนโยบายความเป็นส่วนตัว
 นโยบายนี้อาจเปลี่ยนแปลงได้ตามการเปลี่ยนแปลงทางกฎหมายหรือบริการ
+
 การอัปเดตทั้งหมดจะแจ้งให้ทราบผ่านแอปหรือเว็บไซต์
 
 7. ผู้จัดการข้อมูลส่วนบุคคล
@@ -667,7 +669,7 @@ Kontak: company@witworldwide.com
 "137","Photo_QRExplain","사진을 저장하려면 <color=#1A4D7E>QR을 카메라로 찍어주세요!</color>","To save your photo, <color=#1A4D7E>scan the QR!</color>","写真を保存するには<color=#1A4D7E>QRコードをスキャンしてください！</color>","若要保存照片，请<color=#1A4D7E>扫描二维码！</color>","Để lưu ảnh của bạn, <color=#1A4D7E>quét mã QR!</color>","Untuk menyimpan foto Anda, <color=#1A4D7E>pindai kode QR!</color>","เพื่อบันทึกรูปภาพของคุณ โปรดสแกนคิวอาร์โค้ด!","Чтобы сохранить фотографию, отсканируйте QR-код!","","","","","",""
 "138","Photo_Save","저장하기","Save","保存","保存","Cứu","Menyimpan","บันทึก","Сохранять","","","","","",""
 "139","Photo_Home","다시찍기","Try Again","再撮影","重拍","Thử lại","Coba Lagi","ลองอีกครั้ง","Попробуйте еще раз","","","","","",""
-"1391","Photo_SelectAlone","혼자 찍기","Solo Shot","ひとりで撮影","单人拍摄","Ảnh chụp riêng","Foto Solo","ภาพถ่ายเดี่ยว","Одиночный кадр","","","","","",""
+"1391","Photo_SelectAlone","혼자 찍기","Solo Shot","ひとりで撮影","单人拍摄","Ảnh chụp riêng lẻ","Foto Solo","ภาพถ่ายเดี่ยว","Одиночный кадр","","","","","",""
 "1392","Photo_SelectTogether","‘정이’와 함께","With ‘Jeong-i’","「Jeong-i」と一緒に","与“Jeong-i”一起","Với 'Jeong-i'","Dengan ‘Jeong-i’","กับ 'จองอี'","С «Чон-и»","","","","","",""
 "1393","Photo_SNS","QR을 통해서 내 핸드폰에 저장하고 다양한 SNS에 올려보세요 
 한복 착장에 관한 이벤트가 준비중이니 많은 참여 바랍니다. ","","","","Hãy lưu mã QR vào điện thoại và chia sẻ trên các nền tảng mạng xã hội khác nhau. Một sự kiện về việc mặc Hanbok hiện đang được chuẩn bị, vì vậy chúng tôi rất mong chờ sự tham gia của các bạn.","Simpan kode QR ke ponsel Anda dan bagikan di berbagai platform media sosial. Sebuah acara terkait pemakaian Hanbok sedang dipersiapkan, jadi kami menantikan partisipasi Anda.","บันทึกคิวอาร์โค้ดลงในโทรศัพท์มือถือของคุณแล้วแชร์บนแพลตฟอร์มโซเชียลมีเดียต่างๆ ขณะนี้กำลังมีการเตรียมจัดกิจกรรมเกี่ยวกับการสวมชุดฮันบก เราจึงหวังเป็นอย่างยิ่งว่าคุณจะเข้าร่วม","Сохраните QR-код на свой мобильный телефон и поделитесь им в различных социальных сетях. В настоящее время готовится мероприятие, посвященное ношению ханбока, поэтому мы с нетерпением ждем вашего участия.","","","","","",""
@@ -714,7 +716,7 @@ Kontak: company@witworldwide.com
 "155","SubHeader_Exchange","* 환영합니다. 오늘의 환율 정보입니다. ","* Welcome. Here is today’s exchange rate","* ようこそ。本日の為替情報です","* 欢迎您。以下是今日汇率信息","Chào mừng. Đây là tỷ giá hối đoái hôm nay.","Selamat datang. Berikut adalah nilai tukar hari ini.","* ยินดีต้อนรับ นี่คืออัตราแลกเปลี่ยนของวันนี้","* Добро пожаловать. Вот сегодняшний обменный курс.","","","","","",""
 "156","SubHeader_Detail","* QR을 핸드폰으로 찍으시면 길을 안내해드려요","* Scan the QR with your phone. We’ll guide you","* スマホでQRを読み取ってください。ご案内します","* 用手机扫QR码，我们导航","* Quét mã QR bằng điện thoại của bạn. Chúng tôi sẽ hướng dẫn bạn.","* Pindai kode QR dengan ponsel Anda. Kami akan memandu Anda.","* สแกนคิวอาร์โค้ดด้วยโทรศัพท์ของคุณ เราจะแนะนำคุณต่อไป","* Отсканируйте QR-код с помощью телефона. Мы вам поможем.","","","","","",""
 "157","SubHeader_Detail_Event","* QR코드로 이벤트의 상세정보를 확인하세요","* Scan the QR code for event details","* QRコードでイベントの詳細を確認してください","* 扫描二维码查看活动详情","* Quét mã QR để xem chi tiết sự kiện","* Pindai kode QR untuk detail acara","* สแกนคิวอาร์โค้ดเพื่อดูรายละเอียดกิจกรรม","* Отсканируйте QR-код, чтобы узнать подробности мероприятия.","","","","","",""
-"159","SubHeader_Transport","* 오색 시장을 올수 있는 다양한 방법을 알려드릴게요 ","* Let me show you the different ways you can get to Osaek Market","オセク市場へのさまざまなアクセス方法をご案内します","我来告诉你前往五色市场的多种方式","* Để tôi chỉ cho bạn những cách khác nhau để đến Chợ Osaek.","* Izinkan saya menunjukkan berbagai cara yang dapat Anda gunakan untuk menuju Pasar Osaek","* ผมจะแสดงวิธีต่างๆ ที่คุณสามารถเดินทางไปยังตลาดโอซาเอกได้","* Позвольте мне показать вам различные способы добраться до рынка Осаек.","","","","","",""
+"159","SubHeader_Transport","* 오색 시장을 올수 있는 다양한 방법을 알려드릴게요 ","* Let me show you the different ways you can get to Osaek Market","オセク市場へのさまざまなアクセス方法をご案内します","我来告诉你前往五色市场的多种方式","* Để tôi chỉ cho bạn những cách khác nhau để đến Chợ Osaek.","* Izinkan saya menunjukkan berbagai cara yang dapat Anda gunakan untuk menuju Pasar Osaek","* ผมจะแสดงวิธีต่างๆ ที่คุณสามารถเดินทางไปยังตลาดโอแซกได้","* Позвольте мне показать вам различные способы добраться до рынка Осаек.","","","","","",""
 "159","SubHeader_TaxFree","*TaxFree 리펀드 기능을 통해 공항하는 업무를 줄여 드립니다. 
   상점에서 받은 영수증을 준비하시고 언어를 선택해보세요 ","*The Tax-Free refund reduces what you need to do at the airport.
   Prepare your receipt and choose your language.","*TaxFree返金で空港手続き이 줄어요。
@@ -752,7 +754,7 @@ Siapkan tanda terima Anda dan pilih bahasa Anda.","*การขอคืนภ�
 "186","Province_17","제주도","Jeju-do","ちぇじゅど","济州岛","Jeju-do","Jeju-do","เกาะเชจู","Чеджудо","","","","","",""
 "187","SmartTour_RecommendContentShowMore","더보기","See more","もっと みる","查看更多","Xem thêm","Lihat selengkapnya","ดูเพิ่มเติม","Смотрите больше","","","","","",""
 "188","MainButton_Promotion","취사병이벤트","","","","Sự kiện nấu ăn","Acara memasak","กิจกรรมทำอาหาร","Кулинарное мероприятие","","","","","",""
-"189","Header_Promotion","티빙 오리지널 취사병 전설이 되다","","","","Phim gốc của TVING: Người đầu bếp trở thành huyền thoại","TVING Original: Sang Koki Menjadi Legenda","รายการต้นฉบับจาก TVING: เชฟผู้กลายเป็นตำนาน","Оригинальный сериал канала TVING: Повар становится легендой","","","","","",""
+"189","Header_Promotion","티빙 오리지널 취사병 전설이 되다","","","","Phim gốc của TVING: Người đầu bếp trở thành huyền thoại","TVING Original: Sang Koki Menjadi Legenda","รายการต้นฉบับจาก TVING: เชฟผู้กลายเป็นตำนาน","Оригинальный сериал TVING: Повар становится легендой","","","","","",""
 "190","SubHeader_Promotion","이벤트에 참가 해보세요.","","","","Hãy thử tham gia sự kiện này.","Cobalah berpartisipasi dalam acara tersebut.","ลองเข้าร่วมกิจกรรมดูสิ","Попробуйте принять участие в мероприятии.","","","","","",""
 "191","Promotion_Introduce","> 이벤트 소개 <","","","","Giới thiệu sự kiện <","Pengantar Acara <","แนะนำงานกิจกรรม <","Введение в мероприятие <","","","","","",""
 "192","Promotion_Participate","> 이벤트 참여 <","","","","Tham gia sự kiện <","> Ikuti Acara <","> เข้าร่วมกิจกรรม <","> Примите участие в мероприятии <","","","","","",""

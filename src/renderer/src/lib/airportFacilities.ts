@@ -67,6 +67,7 @@ export type { AirportFacility };
  * the pin coordinates never have to be re-keyed when the sheet's taxonomy moves.
  */
 const GROUPS: Record<string, readonly string[]> = {
+  화장실: ['화장실'],
   식음료: ['카페・디저트', '식당'],
   편의점: ['쇼핑'],
   '은행·환전': ['금융・보험・환전'],
@@ -82,19 +83,22 @@ for (const f of AIRPORT_FACILITIES_JEJU) {
 
 /**
  * The chip row — every BaseCategory AirportFacilityData_Jeju uses, and nothing
- * else. Ten today, 5 per line over 2 lines.
+ * else.
  *
- * ORDER IS THE SHEET'S: first appearance going down its rows, which is the order
- * of its own NO column. That makes chip order something an operator can change
- * by moving a row, with no release — the same bargain as the labels — and it is
- * why no ordering is imposed here. A category typed into the sheet becomes a
- * chip, translated, at the next sync; one deleted from every row stops being one.
+ * ORDER: 화장실 is always the first chip (left of row 1) when the sheet lists
+ * it — operators asked for that fixed lead-in; everything else follows the
+ * sheet's first-appearance order (its NO column), so an operator can still
+ * reshuffle the rest by moving rows, with no release.
  *
  * The one thing a new category still needs from code is a GROUPS entry saying
  * which pictogram stands for it. Without that its rows sit on no pin — which is
  * what the startup warning below is for.
  */
-export const HELP_CHIPS: readonly string[] = Object.keys(CHIP_LABELS);
+const RESTROOM_CHIP = '화장실';
+const sheetChips = Object.keys(CHIP_LABELS);
+export const HELP_CHIPS: readonly string[] = sheetChips.includes(RESTROOM_CHIP)
+  ? [RESTROOM_CHIP, ...sheetChips.filter((c) => c !== RESTROOM_CHIP)]
+  : sheetChips;
 
 /**
  * A BaseCategory the sheet uses that no pin group routes.
