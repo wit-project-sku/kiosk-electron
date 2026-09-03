@@ -201,9 +201,12 @@ export function JejuExchange({ controller }: Props): JSX.Element {
 
   /** Opens on 실시간 환율, the left-hand tab — see TABS. */
   const [tab, setTab] = useState<TabId>('live');
+  /* The calculator opens on 1 USD → KRW: the visitor's first read is the plain
+     unit rate, and any other amount is a multiple of what they already see. A
+     bigger seed (it was 1000) only has to be cleared before they can type. */
   const [fromUnit, setFromUnit] = useState('USD');
   const [toUnit, setToUnit] = useState('KRW');
-  const [digits, setDigits] = useState('1000');
+  const [digits, setDigits] = useState('1');
   const [picker, setPicker] = useState<Picker>(null);
   const [keypad, setKeypad] = useState(false);
 
