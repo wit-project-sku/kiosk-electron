@@ -140,6 +140,7 @@ export function JejuPageFrame({
         shifted && !modeBar ? styles.rootLowReach : '',
         heroSrc ? styles.rootLowReachHero : '',
         shifted && lowReachSelfLayout ? styles.rootBodyUnshifted : '',
+        lowReach ? styles.lowReachSideControls : '',
       ]
         .filter(Boolean)
         .join(' ')}

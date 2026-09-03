@@ -31,8 +31,9 @@
  * containing block for ImageLightbox's `position: fixed`, which currently
  * resolves against the artboard.
  *
- * The left rail does NOT move (y2043 in both frames): it is already within reach
- * and it is what you tap to leave the variant again.
+ * The left rail used to stay put at y2043; Figma 6442:105429 (홈 ♿) now draws
+ * it at y2163 with ♿ at y2403, and every low-reach page that opts into
+ * `.lowReachSideControls` follows those tops.
  *
  * NORMALISED to 573. 언어선택 states 573/1273 outright, and 573 is the banner's
  * own height, so the header lands flush under it. The 상세 low-reach frames
@@ -206,6 +207,20 @@
 
 .leftNavHome { top: 0; }
 .leftNavBack { top: 120px; }
+
+/*
+ * Barrier-free side controls — Figma 6442:105429 (제주 홈 ♿). Left rail at
+ * y2163 (home+back) and ♿ at y2403; right-hand ▲▼ siblings use the same band
+ * (2223 / 2428). Every 제주 page that opts into `.lowReachSideControls` shares
+ * these tops so seated reach matches the home frame.
+ */
+.lowReachSideControls .leftNav {
+  top: 2163px;
+}
+
+.lowReachSideControls .accessibility {
+  top: 2403px;
+}
 
 /* The ♿ toggle. Sits apart from .leftNav because the rail art (nav-left.svg)
    covers only the home/back pair; this third icon is its own asset in Figma. */

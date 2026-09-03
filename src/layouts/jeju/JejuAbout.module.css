@@ -580,6 +580,10 @@
 .scrollUp   { top: 2103px; }
 .scrollDown { top: 2223px; }
 
+/* Barrier-free: Figma 6442:105429 right-hand ▲▼ (same tops as the home frame). */
+.scrollUpLow   { top: 2223px; }
+.scrollDownLow { top: 2428px; }
+
 .scrollBtnImg {
   width: 100%;
   height: 100%;
