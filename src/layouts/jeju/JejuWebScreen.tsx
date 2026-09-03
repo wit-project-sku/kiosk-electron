@@ -39,13 +39,22 @@ type WebviewEl = HTMLElement & {
  * page wants 1900px against this panel's 1820 and simply vanished past the
  * right edge, with no scrollbar to hint that anything was missing. A styled
  * horizontal bar on the pages that need one is the correct outcome.
+ *
+ * `zoom: 1.5` enlarges the guest page so it reads at a comfortable size on the
+ * 4K kiosk panel. CSS `zoom` (not `transform: scale`) is used here because it
+ * expands the layout box itself, so scrolling, hit-testing and the scrollbar
+ * track all reflect the zoomed dimensions without extra JS.
  */
-const EMBED_CHROME_CSS = [
+const SCROLLBAR_CSS = [
   '::-webkit-scrollbar{width:26px;height:26px}',
   '::-webkit-scrollbar-track{background:transparent}',
   '::-webkit-scrollbar-thumb{background:#ff7f0f;border-radius:13px}',
   '::-webkit-scrollbar-corner{background:transparent}',
 ].join('');
+
+/** 탐나오&제주큐랑 전용 — 1.5× 확대. WIT Store는 이 CSS를 쓰지 않는다. */
+const EMBED_CHROME_CSS_ZOOMED = `html{zoom:1.5}${SCROLLBAR_CSS}`;
+const EMBED_CHROME_CSS = SCROLLBAR_CSS;
 
 /** One embedded site. A screen draws a tab per entry once it has more than one. */
 export interface EmbedTab {
@@ -125,8 +134,17 @@ const NO_URL = {
  * own effect — the alternative, swapping `src` on a single webview, makes the
  * guest boot, fetch and repaint on every tab press while the visitor watches.
  */
-function EmbedPane({ url, active }: { url: string; active: boolean }): JSX.Element {
+function EmbedPane({
+  url,
+  active,
+  zoomed = false,
+}: {
+  url: string;
+  active: boolean;
+  zoomed?: boolean;
+}): JSX.Element {
   const webviewRef = useRef<WebviewEl | null>(null);
+  const css = zoomed ? EMBED_CHROME_CSS_ZOOMED : EMBED_CHROME_CSS;
 
   // Re-applied per document: insertCSS lives only for the document that was
   // loaded when it ran. `did-navigate-in-page` covers the in-app routes these
@@ -136,7 +154,7 @@ function EmbedPane({ url, active }: { url: string; active: boolean }): JSX.Eleme
     if (!wv) return;
 
     const apply = (): void => {
-      wv.insertCSS?.(EMBED_CHROME_CSS)?.catch(() => {});
+      wv.insertCSS?.(css)?.catch(() => {});
     };
     wv.addEventListener('dom-ready', apply);
     wv.addEventListener('did-navigate', apply);
@@ -146,7 +164,7 @@ function EmbedPane({ url, active }: { url: string; active: boolean }): JSX.Eleme
       wv.removeEventListener('did-navigate', apply);
       wv.removeEventListener('did-navigate-in-page', apply);
     };
-  }, []);
+  }, [css]);
 
   return (
     <div className={active ? styles.pane : styles.paneHidden}>
@@ -224,7 +242,15 @@ export function JejuWebScreen({
 
       <div className={`${styles.body} ${showMobileQr ? styles.bodyTamnao : ''}`}>
         {sites.some((t) => t.url) ? (
-          sites.map((t) => <EmbedPane key={t.id} url={t.url} active={t.id === active} />)
+          sites.map((t) => (
+            <EmbedPane
+              key={t.id}
+              url={t.url}
+              active={t.id === active}
+              /* 탐나오&제주큐랑 패널만 1.5× 확대 — WIT Store는 원 배율 유지. */
+              zoomed={showMobileQr}
+            />
+          ))
         ) : (
           <div className={styles.placeholder}>
             <p className={styles.placeholderTitle}>{title}</p>
