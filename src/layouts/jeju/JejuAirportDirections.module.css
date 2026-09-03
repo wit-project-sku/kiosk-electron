@@ -9,7 +9,7 @@
   --dir-road-note: 34px;
   --dir-mode: 48px;
   --dir-mode-time: 55px;
-  --dir-mode-time-left: 430px;
+  --dir-mode-time-left: 530px;
   --dir-mode-icon: 80px;
   --dir-mode-icon-gap: 36px;
   --dir-rail-width: 40px;
@@ -230,7 +230,8 @@
   display: flex;
   align-items: center;
   flex-wrap: wrap;
-  gap: 60px;
+  column-gap: 30px;
+  row-gap: 12px;
 }
 
 .stopName {
@@ -260,8 +261,8 @@
 .pill {
   flex: 0 0 auto;
   box-sizing: border-box;
-  width: 234px;
-  padding: 18px 0;
+  width: auto;
+  padding: 18px 36px;
   border-radius: 60px;
   background: var(--kiosk-primary, #ff7f0f);
   font-size: var(--dir-pill);
