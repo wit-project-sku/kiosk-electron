@@ -66,21 +66,6 @@ const TABS: Array<{ id: string; label: string }> = [
 ];
 
 /**
- * Attribution under the event list. Paste the confirmed feed credit here when
- * the operator names it — empty string hides the line.
- */
-const EVENT_DATA_SOURCE: Partial<Record<Lang, string>> = {
-  ko: '',
-  en: '',
-  ja: '',
-  zh: '',
-  vi: '',
-  th: '',
-  ru: '',
-  id: '',
-};
-
-/**
  * Category chips under the region tabs (Figma 6052:46478). Labels come from the
  * localization table by key. Localization_Jeju now carries all four itself, so
  * `t()` answers from the 제주 rows rather than falling through to Insadong's.
