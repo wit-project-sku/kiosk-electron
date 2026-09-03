@@ -53,7 +53,7 @@ const SCROLLBAR_CSS = [
 ].join('');
 
 /** 탐나오&제주큐랑 전용 — 2.3× 확대. WIT Store는 이 CSS를 쓰지 않는다. */
-const EMBED_CHROME_CSS_ZOOMED = `html{zoom:2.3x}${SCROLLBAR_CSS}`;
+const EMBED_CHROME_CSS_ZOOMED = `html{zoom:2.3}${SCROLLBAR_CSS}`;
 const EMBED_CHROME_CSS = SCROLLBAR_CSS;
 
 /** One embedded site. A screen draws a tab per entry once it has more than one. */
