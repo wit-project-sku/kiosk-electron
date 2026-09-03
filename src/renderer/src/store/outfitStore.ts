@@ -162,16 +162,35 @@ async function fetchCatalogue(): Promise<Pick<OutfitState, 'byCategory' | 'categ
 }
 
 /**
+ * Decoded outfit cards, held for the life of the app.
+ *
+ * The reference is the POINT of this array. The prefetch below used to create an
+ * Image, set `src` and drop it, which left nothing alive: the decoded bitmap was
+ * collected immediately and every remount — every tab change, every re-entry to
+ * the picker — had to decode again, and re-request if the CMS's `Cache-Control`
+ * did not cover it. Holding the Image keeps the decode, so switching tabs paints
+ * from memory.
+ *
+ * Bounded by the catalogue (~100 cards at card size), and the picker is the only
+ * thing that grows it — a kiosk that never opens AR 한복체험 allocates nothing.
+ */
+const warmed = new Map<string, HTMLImageElement>();
+
+/**
  * Warm the browser cache with outfit card images in the background so the picker
  * renders instantly after the catalogue metadata is in memory. Runs deferred at
  * idle priority — same pattern as {@link prefetchShopThumbnails}.
+ *
+ * Cheap now that OutfitService hands back `media://remote/` urls for anything
+ * mirrored to disk (see RemoteImageCache): those are served locally with an
+ * immutable Cache-Control, so this is a decode rather than a download.
  */
 function prefetchOutfitImages(byCategory: Record<string, PickerOutfit[]>): void {
   const seen = new Set<string>();
   const urls: string[] = [];
   for (const list of Object.values(byCategory)) {
     for (const o of list) {
-      if (o.url && !seen.has(o.url)) {
+      if (o.url && !seen.has(o.url) && !warmed.has(o.url)) {
         seen.add(o.url);
         urls.push(o.url);
       }
@@ -184,6 +203,9 @@ function prefetchOutfitImages(byCategory: Record<string, PickerOutfit[]>): void 
       const img = new Image();
       img.decoding = 'async';
       img.src = url;
+      // Retained on purpose — see `warmed`. Dropping it here is what made the
+      // picker reload its cards on every tab change.
+      warmed.set(url, img);
     }
   };
   const ric = (globalThis as { requestIdleCallback?: (cb: () => void) => void }).requestIdleCallback;

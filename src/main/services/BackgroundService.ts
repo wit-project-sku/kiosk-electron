@@ -2,6 +2,7 @@ import type { KioskBackground } from '@shared/types/background';
 import { createLogger } from '@main/core/logger';
 import type { LocalCacheService } from '@main/services/LocalCacheService';
 import type { KioskService } from '@main/services/KioskService';
+import type { RemoteImageCache } from '@main/services/RemoteImageCache';
 
 const log = createLogger('background-service');
 const CACHE_KEY = 'backgrounds';
@@ -13,10 +14,17 @@ const DEFAULT_API_BASE = 'https://api-v3.witteria.com';
  * Refreshed on launch AND during the nightly sync — the assigned set is CMS
  * content that an operator can swap mid-day, exactly like the promo banners.
  *
- * The renderer shows each background's remote `imageUrl` directly (Chromium's
- * disk cache keeps it offline after first paint), already ordered by
+ * The renderer shows each background's `imageUrl` directly, already ordered by
  * `sortOrder`, and hands the chosen `backgroundId` onward — the compositing
  * itself happens on a separate server.
+ *
+ * That url is rewritten to a LOCAL `media://remote/` one when RemoteImageCache
+ * holds a copy. This used to claim "Chromium's disk cache keeps it offline after
+ * first paint", which was a bet on a `Cache-Control` header the witteria API
+ * owns: when it does not send a useful one, every remount of the 배경 테마 tiles
+ * costs a round trip, and an offline kiosk shows nothing at all. Mirroring the
+ * bytes is what makes the offline promise above actually hold — see
+ * RemoteImageCache.
  *
  * ── An empty list is DATA, not a failure ──────────────────────────────
  * A branch that does not use backgrounds gets `data: []` (not a 404), so an
@@ -38,7 +46,23 @@ export class BackgroundService {
   constructor(
     private readonly cache: LocalCacheService,
     private readonly kiosk: KioskService,
+    /** Optional — absent means "serve the remote urls", the old behaviour. */
+    private readonly images?: RemoteImageCache,
   ) {}
+
+  /**
+   * Mirror the tile images locally, then drop any the CMS has retired.
+   * Fire-and-forget, after the set itself is already cached.
+   */
+  async cacheImages(): Promise<void> {
+    if (!this.images) return;
+    // rawList, NOT list: list() hands back the already-localized urls, which
+    // warm() would skip and prune() would read as "nothing is referenced" —
+    // deleting the entire mirror on the first run after it was built.
+    const urls = this.rawList().map((b) => b.imageUrl).filter(Boolean);
+    await this.images.warm(urls);
+    await this.images.prune(urls);
+  }
 
   private baseUrl(): string {
     if (process.env['BACKGROUNDS_API_URL']) return process.env['BACKGROUNDS_API_URL'];
@@ -47,10 +71,18 @@ export class BackgroundService {
   }
 
   /** Cached backgrounds (from the last successful refresh), in display order. */
-  list(): KioskBackground[] {
+  /** The cached set exactly as the API sent it — remote urls, un-rewritten. */
+  private rawList(): KioskBackground[] {
     const cached = this.cache.get(CACHE_KEY);
     const backgrounds = cached?.data?.['backgrounds'];
     return Array.isArray(backgrounds) ? (backgrounds as KioskBackground[]) : [];
+  }
+
+  list(): KioskBackground[] {
+    if (!this.images) return this.rawList();
+    // Point each tile at its local mirror when one exists; the remote url passes
+    // through untouched otherwise, so a cold cache behaves exactly as before.
+    return this.rawList().map((b) => ({ ...b, imageUrl: this.images!.localize(b.imageUrl) }));
   }
 
   /** Pull the background set assigned to this kiosk and cache it. */
