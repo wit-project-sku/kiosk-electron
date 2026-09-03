@@ -19,6 +19,14 @@ export interface PhotoHeaderProps {
   onBack?: () => void;
   subtitle?: string;
   /**
+   * Drop the description row under the title. Like `navDisabled` below, only
+   * JejuHeader honours it — its header otherwise resolves a subtitle from the
+   * sheet (or a generic fallback) even when none is passed, which is what the
+   * AR 한복체험 page uses this to switch off. A no-op on the other headers, which
+   * draw a subtitle only when one is explicitly given.
+   */
+  subtitleHidden?: boolean;
+  /**
    * Grey out 홈/뒤로 and stop them responding.
    *
    * ★ Only JejuHeader honours this — it is the only location with a screen that

@@ -38,6 +38,9 @@ function formatDate(d: Date): string {
  * all eight languages. The trade is deliberate and worth naming: a future
  * unmapped page will now look finished rather than broken, so a new 제주 page
  * needs its `sub` checked at review rather than spotted on the panel.
+ *
+ * (All of this is about a page with MISSING copy. A page that must draw no
+ * description at all says so with `subtitleHidden` — see that prop.)
  */
 const subtitleFallback = (lang: Lang): string => ui('pageSubtitleFallback', lang);
 
@@ -67,6 +70,16 @@ interface Props {
   /** Draw the ★ before the subtitle. The WIT Store frame omits it. */
   subtitleStar?: boolean;
   /**
+   * Drop the description row entirely — no sheet lookup, no fallback line.
+   *
+   * This is NOT for a page with missing copy (those fall through to the sheet
+   * and then the generic line — see {@link subtitleFallback}); it is for a page
+   * told to carry no description at all. AR 한복체험 is the one such page today
+   * (operator request, 2026-09-03): its header reads title-only, and the row
+   * below simply does not render.
+   */
+  subtitleHidden?: boolean;
+  /**
    * Grey out 홈/뒤로 and make them inert. For screens the visitor must not leave
    * mid-way — currently only 틀린그림찾기, which plays over a photo that is
    * already generating, where a stray 홈 tap resets the session and throws that
@@ -88,6 +101,7 @@ export function JejuHeader({
   onBack,
   subtitleColor,
   subtitleStar = true,
+  subtitleHidden = false,
   navDisabled = false,
 }: Props): JSX.Element {
   const today = useMemo(() => formatDate(new Date()), []);
@@ -150,7 +164,7 @@ export function JejuHeader({
         </button>
       </div>
 
-      {resolvedSubtitle && (
+      {!subtitleHidden && resolvedSubtitle && (
         <div className={styles.subtitle}>
           {subtitleStar && jejuIconUrl('star') && (
             <img src={jejuIconUrl('star')} alt="" className={styles.subtitleStar} draggable={false} />
