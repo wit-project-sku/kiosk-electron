@@ -289,7 +289,10 @@ interface InfoRow {
 /** The fixed 6 rows of the Figma spec — empty values render as '-' (not hidden). */
 function infoRows(d: EventDetail, lang: Lang): InfoRow[] {
   const price = d.price ?? (d.isFree === true ? t('Transport_Free', lang) : null);
-  const period = [`${d.startDate} ~ ${d.endDate}`, ...(d.eventTime ? [d.eventTime] : [])];
+  const start = d.startDate?.trim() || '';
+  const end = d.endDate?.trim() || '';
+  const range = start || end ? `${start || '-'} ~ ${end || '-'}` : '-';
+  const period = [range, ...(d.eventTime ? [d.eventTime] : [])];
   return [
     { label: ui('eventPlace', lang), lines: [d.location || '-'] },
     { label: ui('eventPeriod', lang), lines: period },

@@ -3,9 +3,10 @@
  *
  * One page for both 제주 mascots: 하영 on W006/W007, 유산 on W008 (jejuMascot).
  * Everything NAMED after the mascot — title, tab fallbacks, name fallback,
- * hashtags — resolves through the mascot; the biography VALUES stay sheet-driven
- * (Greeting_*Content), so 유산's profile appears the moment the operators add
- * 유산 rows to Localization_Jeju (the venue tie-break already prefers them on a
+ * hashtags — resolves through the mascot; pills 2–3 also read Greeting_Hashtag1/2
+ * from the sheet. The biography VALUES stay sheet-driven (Greeting_*Content), so
+ * 유산's profile appears the moment the operators add 유산 rows to
+ * Localization_Jeju (the venue tie-break already prefers them on a
  * JEJU_HERITAGE machine). TODO(제주 W008): the ART is still 하영's — portrait
  * (hello-portrait), hobby/health photos and the SNS QR (qr-hayoung) — swap in
  * 유산 exports when the designer supplies them, until then W008 shows 하영's.
@@ -150,7 +151,7 @@ const DETAILS = [
   { label: L.about, key: 'Greeting_IntrodutionContent', field: 'about' },
 ] as const satisfies ReadonlyArray<{ label: unknown; key: string; field: keyof JejuMascotBio }>;
 
-// Hashtags moved to the mascot itself — see jejuMascot's `hashtags`.
+// Hashtag pills 2–3 resolve via Greeting_Hashtag1/2 in HelloFooter.
 
 /**
  * One sub-tab of 취미생활 or 건강습관: a photo, a title and a line or two of copy.
@@ -433,12 +434,43 @@ const SOCIAL_BRANDS: ReadonlyArray<{ id: string; icon: string }> = [
 /**
  * Hashtag pills + SNS tiles. Both built tabs draw the identical 1582×100 row;
  * only which card it sits in, and so its `top`, differs.
+ *
+ * Pill 0 stays the roman brand (`#HAYOUNG` / `#YUSAN`). Pills 1 and 2 come from
+ * Localization_Jeju `Greeting_Hashtag1` / `Greeting_Hashtag2` (heritage table on
+ * W008), with the mascot's authored tags as fallback.
  */
-function HelloFooter({ mascot, position }: { mascot: JejuMascot; position: string | undefined }): JSX.Element {
+function hashPill(raw: string): string {
+  const bare = raw.replace(/^#+/, '').trim();
+  return bare ? `#${bare}` : '';
+}
+
+function HelloFooter({
+  mascot,
+  position,
+  lang,
+}: {
+  mascot: JejuMascot;
+  position: string | undefined;
+  lang: Lang;
+}): JSX.Element {
   const { qr, framed } = QR_BY_MASCOT[mascot.id];
+  const tags = [
+    mascot.hashtags[0] ?? '',
+    hashPill(
+      sheetText('Greeting_Hashtag1', lang, {
+        ko: (mascot.hashtags[1] ?? '').replace(/^#+/, ''),
+      }),
+    ),
+    hashPill(
+      sheetText('Greeting_Hashtag2', lang, {
+        ko: (mascot.hashtags[2] ?? '').replace(/^#+/, ''),
+      }),
+    ),
+  ].filter(Boolean);
+
   return (
     <div className={`${styles.footer} ${position}`}>
-      {mascot.hashtags.map((h) => (
+      {tags.map((h) => (
         <span key={h} className={styles.hashtag}>
           {h}
         </span>
@@ -536,7 +568,7 @@ function TopicPanel({
           <p className={`${styles.empty} ${styles.emptyTopic}`}>{emptyLabel}</p>
         )}
 
-        <HelloFooter mascot={mascot} position={`${styles.footerTopic} ${heritage}`} />
+        <HelloFooter mascot={mascot} lang={lang} position={`${styles.footerTopic} ${heritage}`} />
       </div>
     </>
   );
@@ -661,7 +693,7 @@ export function JejuHello({ controller }: Props): JSX.Element {
             ))}
           </div>
 
-          <HelloFooter mascot={mascot} position={`${styles.footerProfile} ${heritage}`} />
+          <HelloFooter mascot={mascot} lang={lang} position={`${styles.footerProfile} ${heritage}`} />
         </div>
       )}
     </JejuPageFrame>

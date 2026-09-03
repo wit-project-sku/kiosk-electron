@@ -245,7 +245,7 @@ export function JejuEvents({ controller }: Props): JSX.Element {
             // layer (only the map re-enables), but JejuPageFrame's `.body > *`
             // rule would force it back to `auto` at equal specificity and let it
             // swallow every tap on the header underneath.
-            <div className={styles.detailHost}>
+            <div className={low(styles.detailHost, styles.detailHostLow)}>
               <EventDetailScreen eventId={detailId} accent="#ff7f0f" />
             </div>
           ) : (
@@ -350,7 +350,10 @@ export function JejuEvents({ controller }: Props): JSX.Element {
               role="presentation"
               onClick={() => setStatus('idle')}
             >
-              <div className={styles.modal} onClick={(e) => e.stopPropagation()}>
+              <div
+                className={`${styles.modal} ${lowReach ? styles.modalLow : ''}`}
+                onClick={(e) => e.stopPropagation()}
+              >
                 {results.length > 0 ? (
                   <>
                     {/* The design lays out exactly two slots; extra results the
