@@ -216,10 +216,41 @@ interface Run {
 }
 
 /**
+ * The bold and break markers the sheet's own authors type.
+ *
+ * Deliberately FORGIVING about how the tag is written, because these are typed
+ * into a spreadsheet cell by hand and not by anything that validates them: case
+ * is ignored (`<B>` reads the same as `<b>`), inner padding is allowed
+ * (`< / b >`), and `<strong>` is accepted as a synonym. Every form that misses
+ * this pattern renders as literal angle brackets on the home screen, which is
+ * the failure this is guarding against.
+ */
+const BOLD_TAG = /<\s*\/?\s*(?:b|strong)\s*>/i;
+const CLOSING_TAG = /<\s*\//;
+const BREAK_TAG = /^<\s*br\s*\/?\s*>$/i;
+const NOTICE_TOKENS = /(<\s*\/?\s*(?:b|strong)\s*>|<\s*br\s*\/?\s*>|\n)/gi;
+
+/**
  * Split the notice into bold/plain runs. The sheet authors it with literal
  * `<b>…</b>` markers, which would otherwise render as visible tag text.
  * `.noticeText b` already carries the 700 weight, so the markup maps straight
  * onto the design.
+ *
+ * ── An opening tag TOGGLES, it does not just switch on ──────────────────────
+ * `<b>제주<b> 여행` — a second opening tag where a closing one was meant — is a
+ * normal thing to find in a hand-typed cell, and taking it literally would set
+ * bold once and never clear it, running the weight to the end of the notice.
+ * So `<b>` flips the state rather than setting it, which reads the mistyped form
+ * the way it was obviously meant AND leaves every well-formed one unchanged:
+ * `<b>A</b> B <b>C</b>` toggles on/off/on/off exactly as before.
+ *
+ * ── What is NOT markup stays text ───────────────────────────────────────────
+ * Only these tags are consumed. Anything else between angle brackets is left
+ * alone as ordinary text, which is load-bearing rather than lazy: the sheets
+ * carry `<AR 한복체험>` and `<Примерка ханбока AR>` as literal copy, and a
+ * generic tag-stripper (or `dangerouslySetInnerHTML`) would silently eat them.
+ * `<color=#FE6C50>` appears in other keys too and would likewise pass through as
+ * text if it ever landed here — see the summary if that needs supporting.
  *
  * The sheet's `\n` / `<br/>` breaks become plain spaces rather than <br>: the
  * Korean cell hard-wraps at FOUR lines, but this card's slot is THREE — the
@@ -236,13 +267,16 @@ interface Run {
 function parseNotice(text: string): Run[] {
   const runs: Run[] = [];
   let bold = false;
-  for (const tok of text.split(/(<b>|<\/b>|<br\s*\/?>|\n)/g)) {
+  for (const tok of text.split(NOTICE_TOKENS)) {
     if (!tok) continue;
-    if (tok === '<b>') { bold = true; continue; }
-    if (tok === '</b>') { bold = false; continue; }
+    if (BOLD_TAG.test(tok)) {
+      // A close always clears; an open flips. See the note above.
+      bold = CLOSING_TAG.test(tok) ? false : !bold;
+      continue;
+    }
     // A break is a word boundary, not a nbsp — HTML collapses the run of
     // whitespace this leaves next to the sheet's own trailing spaces.
-    if (tok === '\n' || /^<br\s*\/?>$/.test(tok)) { runs.push({ text: ' ' }); continue; }
+    if (tok === '\n' || BREAK_TAG.test(tok)) { runs.push({ text: ' ' }); continue; }
     runs.push(bold ? { text: tok, bold: true } : { text: tok });
   }
   return runs;
