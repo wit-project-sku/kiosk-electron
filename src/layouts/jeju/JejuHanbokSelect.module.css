@@ -924,3 +924,194 @@
 .privacyModalJeju {
   width: 1820px;
 }
+
+/* ── ♿ 베리어프리 (low-reach) layout ──────────────────────────────────────
+ * Figma 6327:85598 (every tab EXCEPT 제주), 6422:25455 and 6418:10583 (the 제주
+ * tab — the two frames are one theme tile picked and none picked, so they share
+ * a single geometry).
+ *
+ * Turned on by the ♿ button on the left nav rail — the third and last control
+ * there, under 홈 and 뒤로 — which until now toggled `lowReach` on a page that
+ * had no low-reach layout to switch to. It is a property of whoever is standing
+ * at the machine, so it clears on the idle reset (accessibilityStore).
+ *
+ * ★ The shape is the 2026-08-26 revision every other 제주 page already uses: a
+ * 113px orange mode bar over the top of the page, the header dropped under it
+ * (`--jeju-shift`, read by JejuHeader), and NO promo banner. What is specific to
+ * this page is where the body goes: the whole reachable stack — steps, tabs,
+ * cards, capture buttons — moves DOWN into the visitor's reach, and the one
+ * block that moves the other way is the 사진촬영안내 card, which gives up the
+ * bottom of the page and takes the band right under the header at y945. It is
+ * read-only text plus the 한복 설명 button, so it is the only thing on the page
+ * that can afford to sit out of reach.
+ *
+ * y map — condition A, every tab except 제주 (6327:85598):
+ *      0…113   mode bar
+ *    945…1445  사진촬영안내 card
+ *   1690…1795  ① 의상 선택하기          (standard 594)
+ *   1835…1882  ★ subtitle               (739)
+ *   1927…2302  category tabs, 2 rows    (844)
+ *   2362…2482  sub-category chips       (1266)
+ *   2542…3355  outfit cells, TWO rows   (1447; 415 pitch — see below)
+ *   3375…3525  capture buttons          (2347)
+ *
+ * y map — condition B, the 제주 tab (6422:25455 · 6418:10583):
+ *      0…113   mode bar
+ *    945…1445  사진촬영안내 card
+ *   1689…1794  ① 의상 / 테마 선택하기   — ONE heading, see the component
+ *   1834…1881  ★ subtitle
+ *   1939…2314  category tabs, 2 rows
+ *   2385…2776  outfit cells, ONE row
+ *   2806…3486  background themes (340×680 tiles on a 30 gap)
+ *   3557…3707  capture buttons
+ *
+ * The left nav rail and the ♿ button do NOT move: the standard layout already
+ * draws them at y2043/2163/2283, which is where the low-reach frames draw them
+ * too — they were placed within reach to begin with.
+ */
+.rootLowReach {
+  /* JejuHeader's own `top` reads this, so the header block follows the mode bar
+     down without this file knowing anything about the header's internals. */
+  --jeju-shift: 113px;
+}
+
+.modeBar {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 2160px;
+  height: 113px;
+  z-index: 3;
+  background: var(--kiosk-primary, #ff7f0f);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 68px;
+  font-weight: 700;
+  line-height: 1;
+  color: #fff;
+}
+
+/* The 한복 설명 sub-page has no low-reach frame of its own; it scrolls, so
+   clearing the mode bar is the whole adjustment it needs. */
+.rootLowReach .infoContent {
+  top: 812px; /* 699 + the bar's 113 */
+}
+
+/* ── Common to both conditions ── */
+/* Overrides `.guideLanding` as well (two classes beat one), so the card lands
+   at 945 whichever tab drew it. */
+.rootLowReach .guide {
+  top: 945px;
+}
+
+/* ── Condition A — every tab except 제주 (6327:85598) ── */
+.rootLowReach .stepOutfit {
+  top: 1690px;
+}
+
+.rootLowReach .subtitle {
+  top: 1835px;
+}
+
+.rootLowReach .cats {
+  top: 1927px;
+}
+
+.rootLowReach .subcats {
+  top: 2362px;
+}
+
+.rootLowReach .outfits,
+.rootLowReach .emptyCat {
+  top: 2542px;
+}
+
+/*
+ * ★ A 415 pitch, not the standard 441.
+ *
+ * The low-reach frames draw the two rows as bare 350 cards on a 65 gap, from
+ * before the 2026-08-27 redraw hung a NAME under every card. Dropping the name
+ * here would make the same catalogue read differently in the two modes, so the
+ * name stays and the 65 absorbs it: 16 of gap + 25 of type = 41, leaving 24
+ * between the caption and the next row. Swiper's Grid puts row 2 at
+ * slideHeight + spaceBetween, and spaceBetween is the design's 17 COLUMN gap,
+ * so the slide carries 398 to land row 2 on the drawn 415 — the same trick
+ * `.outfitsGrid .outfitSlide` plays with 424 for the standard layout.
+ */
+.rootLowReach .outfitsGrid {
+  height: 813px; /* 2 × 398 + the 17 between the rows */
+}
+
+.rootLowReach .outfitsGrid .outfitSlide {
+  height: 398px !important;
+}
+
+.rootLowReach .captureRowGuide {
+  top: 3375px;
+}
+
+/* ── Condition B — the 제주 tab (6422:25455 · 6418:10583) ──
+   Listed after condition A on purpose: both classes sit on the root, so equal
+   specificity leaves source order to decide and these win on the 제주 tab. */
+.rootLowReachTheme .stepOutfit {
+  top: 1689px;
+}
+
+.rootLowReachTheme .subtitle {
+  top: 1834px;
+}
+
+.rootLowReachTheme .cats {
+  top: 1939px;
+}
+
+/*
+ * The chip row, and `--lr-sub` with it, is the one thing these frames do NOT
+ * draw: 제주 registers no sub-categories, so the frame closes the band and puts
+ * the outfit row 71px under the tabs. The row is CMS content and the operator
+ * can add one tomorrow, at which point there is nowhere for it to go — so the
+ * band re-opens at 2344 and everything under it shifts 110 (the component sets
+ * `--lr-sub`, 0 otherwise) — enough for a 30px gap either side of the row, and
+ * the capture buttons still land at 3667…3817, inside the artboard.
+ */
+.rootLowReachTheme .subcats {
+  top: 2344px;
+}
+
+.rootLowReachTheme .outfits,
+.rootLowReachTheme .emptyCat {
+  top: calc(2385px + var(--lr-sub, 0px));
+}
+
+/* 340×680 tiles on a 30 gap — five across the same 1820 column (5 × 340 +
+   4 × 30). The standard layout's are 350×700 on 18. */
+.rootLowReachTheme .themes,
+.rootLowReachTheme .emptyThemes {
+  top: calc(2806px + var(--lr-sub, 0px));
+  height: 680px;
+}
+
+.rootLowReachTheme .themes {
+  gap: 30px;
+}
+
+.rootLowReachTheme .theme {
+  flex: 0 0 340px;
+  width: 340px;
+  height: 680px;
+}
+
+/* Figma's own y inside the shorter tile (312 of 680), and the same 5px
+   compensation the standard rule makes for the picked tile's rule. */
+.rootLowReachTheme .themeLabel {
+  top: 312px;
+}
+
+.rootLowReachTheme .themeActive .themeLabel {
+  top: 307px;
+}
+
+.rootLowReachTheme .captureRow {
+  top: calc(3557px + var(--lr-sub, 0px));
+}
