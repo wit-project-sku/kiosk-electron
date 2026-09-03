@@ -11,6 +11,7 @@ import { useBannerStore } from '@renderer/store/bannerStore';
 import { useBackgroundStore } from '@renderer/store/backgroundStore';
 import { useOutfitStore } from '@renderer/store/outfitStore';
 import { KioskSwitcher } from '@renderer/components/kiosk/KioskSwitcher';
+import { KeypadProbe } from '@renderer/components/kiosk/KeypadProbe';
 import { FootfallCounter } from '@renderer/features/footfall/FootfallCounter';
 
 /**
@@ -95,6 +96,10 @@ export function App(): JSX.Element {
       {/* DEV_MODE only (see .env): in-app W001–W005 location switcher. Renders
           null on every normal deployment, so no layout is affected. */}
       <KioskSwitcher />
+      {/* DEV_MODE only: temporary diagnostic that prints what each key on the
+          제주 barrier-free keypad (JD-KP100) actually emits. Delete once the
+          real key map exists — see KeypadProbe's header. */}
+      <KeypadProbe />
       {/* 유동인구 — counts people walking past, invisibly. Renders a single
           transparent pixel and nothing else; it yields the camera whenever the
           photo flow needs it (see FootfallService). */}
