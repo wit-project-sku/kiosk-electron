@@ -167,7 +167,9 @@ const SCREEN_TITLES: Record<string, Partial<Record<Lang, string>>> = {
   // resolves to Insadong's own "여기는 인사동" through the fallback table.
   '여기는 제주도': { en: 'This is Jeju', ja: 'ここは済州島', zh: '这里是济州岛', vi: 'Đây là Jeju', th: 'ที่นี่คือเชจู', ru: 'Это Чеджудо', id: 'Ini Jeju' },
   // Curly quotes, as the frame writes it (6219:98770) — the straight-quote form
-  // is Insadong's own '도와줘 ‘인사’' above.
+  // is Insadong's own '도와줘 ‘인사’' above. Hardcoded display id is now 제주
+  // (jejuMascot); keep the old 하영 key so any stale caller still localizes.
+  '도와줘 ‘제주’': { en: 'Help', ja: 'ヘルプ', zh: '帮助', vi: 'Trợ giúp', th: 'ช่วยเหลือ', ru: 'Помощь', id: 'Bantuan' },
   '도와줘 ‘하영’': { en: 'Help', ja: 'ヘルプ', zh: '帮助', vi: 'Trợ giúp', th: 'ช่วยเหลือ', ru: 'Помощь', id: 'Bantuan' },
   // W008 세계자연유산본부's mascot spelling of the same page (see jejuMascot).
   '도와줘 ‘유산’': { en: 'Help', ja: 'ヘルプ', zh: '帮助', vi: 'Trợ giúp', th: 'ช่วยเหลือ', ru: 'Помощь', id: 'Bantuan' },
@@ -291,6 +293,11 @@ const TITLE_KEYS: Record<string, TitleKeySpec> = {
   // row) — 제주 writes this page's description as Here_IsJeju. With the wrong key
   // the header printed the Figma placeholder 페이지 설명문 on the device.
   "여기는 제주도": { title: 'MainButton_Here', sub: 'Here_IsJeju' },
+  // Hardcoded page ids from jejuMascot (제주). Sheet cells still decide the
+  // visible string via MainButton_*; these keys only route the lookup.
+  "안녕 '제주'": { title: 'MainButton_Greeting', sub: 'Greeting_Introduce' },
+  "도와줘 ‘제주’": { title: 'MainButton_ToHelp', sub: 'SubHeader_ToHelp' },
+  // Stale 하영 ids — kept so CMS analytics labels / older callers still resolve.
   "안녕 '하영'": { title: 'MainButton_Greeting', sub: 'Greeting_Introduce' },
   "도와줘 ‘하영’": { title: 'MainButton_ToHelp', sub: 'SubHeader_ToHelp' },
   // W008 세계자연유산본부 passes the 유산 spellings (jejuMascot) — the KEYS are the

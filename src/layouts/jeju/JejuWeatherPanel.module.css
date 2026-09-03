@@ -1,8 +1,10 @@
 /*
  * 제주 날씨 overlay — Figma node 6516:74520, the group the home weather card
- * opens over 제주>홈. Page coordinates: the frosted panel is 2000×2942 at
+ * opens over 제주>홈. Page coordinates: the frosted panel is 2000×3407 at
  * (81, 302); everything inside is panel-relative, so the numbers below are the
- * Figma values minus that origin.
+ * Figma values minus that origin. The seventh row and close button are siblings
+ * of that group on frame 6516:74521; their positions are still measured from
+ * the same panel origin.
  */
 
 .layer {
@@ -17,19 +19,23 @@
 }
 
 /* Invisible dismiss target covering the page BEHIND the panel — see the note in
-   JejuWeatherPanel.tsx. The frame has no close button; tapping the bare screen
-   around the panel is the way out. */
+   JejuWeatherPanel.tsx. Tapping the bare screen around the panel is still a way
+   out; the visible close button is the advertised one. */
 /* ── Close (6760:18767) ──
    The same circle-and-X the 제주도 이벤트 MBTI card uses (both nodes are named
    "Frame 1392"), so it is the same exported asset — see ico-close.svg.
 
-   Centred on the panel, as the frame centres it. 129 rather than the node's 125
-   because the export's box is 128.699: the 4.29 ring stroke overflows the node's
-   bounds, which is what Figma's inset-[0_-2.96%_-2.96%_0] describes. */
+   Centred on the panel, as the frame centres it (page x 1018 → panel mid).
+   Page y 3518 − panel origin 302 = 3216. 129 rather than the node's 125 because
+   the export's box is 128.699: the 4.29 ring stroke overflows the node's
+   bounds, which is what Figma's inset-[0_-2.96%_-2.96%_0] describes.
+
+   The frame lays it across the seventh row's band, in the gap between the 오전
+   and 오후 columns — not below the list. */
 .close {
   position: absolute;
   left: 50%;
-  top: 2876px;
+  top: 3216px;
   width: 129px;
   height: 129px;
   transform: translateX(-50%);
@@ -38,6 +44,8 @@
   background: transparent;
   cursor: pointer;
   -webkit-tap-highlight-color: transparent;
+  /* Above the last row's glyphs so the X stays tappable. */
+  z-index: 1;
 }
 
 .closeIcon {
@@ -74,19 +82,9 @@
   left: 81px;
   top: 302px;
   width: 2000px;
-  /*
-   * 3071, not the 2942 that six rows and their trailing 102px came to: the
-   * close button (6760:18767) needs a home, and it gets its own 129 added under
-   * the last row rather than being laid over it.
-   *
-   * The frame does lay it over — it draws SEVEN rows and drops the button
-   * across the last one's band, in the gap between the 오전 and 오후 columns.
-   * That seventh row cannot be filled here (see ROWS in the .tsx), so this panel
-   * ends one row earlier, and with the row gone there is no band to hide the
-   * button in — it sits below the rows instead, keeping the frame's own 66px
-   * bottom margin. 2840 (last row) + 36 gap + 129 button + 66 = 3071.
-   */
-  height: 3071px;
+  /* Figma 6516:74169 — 2000×3407. Covers seven 357-tall rows (step 461 from
+     y178) plus the close button that sits in the last row's 오전/오후 gap. */
+  height: 3407px;
   border-radius: 45px;
   background: rgba(237, 233, 226, 0.9);
   backdrop-filter: blur(15px);

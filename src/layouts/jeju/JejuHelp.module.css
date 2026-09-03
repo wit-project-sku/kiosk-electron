@@ -282,20 +282,12 @@
  * the 커피잔), so a marker that covered any of it would take the answer away
  * and leave only a colour.
  *
- * 19×29 keeps the art's own 176:268 ratio and is deliberately SMALLER than the
- * ~38px baseline pictogram. A marker that matches or beats the symbol's own
- * size stops reading as a pointer and starts reading as a blob — and with a
- * dozen of them on one floor they crowd the drawing they are supposed to be
- * annotating. But it still has to be FOUND from standing distance on a 2160px
- * panel, which is the other wall: 15×23 (the first pass at the operator's
- * "make it small") went too far and read as a speck.
- *
- * So: 29 is about 75% of the baseline symbol's height — an arrow pointing at
- * something rather than a badge sitting on it, and still legible across the
- * room. The sequence, all against 국제선 1F at 1:1: 30×46 and 22×34 (neither of
- * which ever reached the screen — see `.plan > img`), then 15×23 (too small),
- * now 19×29. These two numbers are the whole knob — keep the 176:268 ratio and
- * nothing else has to move.
+ * 37×56 keeps the art's own 176:268 ratio. Still meant as a pointer rather than
+ * a badge on the symbol, but large enough to find from standing distance on a
+ * 2160px panel. The sequence, all against 국제선 1F at 1:1: 30×46 and 22×34
+ * (neither of which ever reached the screen — see `.plan > img`), then 15×23 /
+ * 19×29 / 27×41 (still too small), now 37×56. These two numbers are the whole
+ * knob — keep the 176:268 ratio and nothing else has to move.
  *
  * The size is CONSTANT, on every plan (2026-09-03). The marker used to be
  * multiplied by `--pin-scale` so it kept its size RELATIVE to the symbol on the
@@ -311,8 +303,8 @@
   position: absolute;
   left: 50%;
   bottom: calc(50% + 24px * var(--pin-scale, 1));
-  width: 19px;
-  height: 29px;
+  width: 37px;
+  height: 56px;
   object-fit: contain;
   /* Scales from the TIP, so a press cannot move the point being indicated. */
   transform: translateX(-50%);

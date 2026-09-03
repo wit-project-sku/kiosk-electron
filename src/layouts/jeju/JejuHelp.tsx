@@ -297,7 +297,7 @@ interface AirportMap {
    *
    * What it scales is only what the symbol's size genuinely dictates: the
    * marker's LIFT (a taller symbol needs the tip higher up to clear it) and the
-   * tap target (which has to cover the symbol). The marker's own 22×34 box is
+   * tap target (which has to cover the symbol). The marker's own 37×56 box is
    * deliberately CONSTANT — it used to scale too, and on the large-pictogram
    * plans that drew a 54–94px pin that covered the map instead of pointing at
    * it. See .pinMarker in the CSS.

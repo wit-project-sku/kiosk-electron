@@ -595,6 +595,7 @@ async function genAirportFacilitiesJeju() {
   const rows = await loadTab('AirportFacilityData_Jeju', JEJU_SHEET_ID);
   const facilities = [];
   let dropped = 0;
+  let chipOnly = 0;
   for (const r of rows.slice(1)) {
     const name = lang8(r, 2);
     if (!name.ko) continue; // blank row
@@ -602,15 +603,25 @@ async function genAirportFacilitiesJeju() {
     const terminal = JEJU_TERMINALS[clean(r[1]).split('=')[1] ?? ''];
     const location = lang8(r, 18);
     const floor = (location.ko.match(/^(\d)F/) ?? [])[1];
-    if (!terminal || !floor) {
-      console.warn(`  ! [jeju] dropped "${name.ko}" — terminal/floor unreadable from "${clean(r[1])}" / "${location.ko}"`);
+    // Terminal is required (ShopID middle segment). Floor comes from Location —
+    // when operators add a BaseCategory chip without filing a floor (화장실
+    // today: empty Location on 국내선=72 / 국제선=30), KEEP the row with an
+    // empty floor so HELP_CHIPS still learns the category and its eight
+    // translations. facilitiesOn() never matches '', so these never land on a
+    // pin; the plan's own pictograms light them via assignFacilities Pass 3.
+    if (!terminal) {
+      console.warn(`  ! [jeju] dropped "${name.ko}" — terminal unreadable from "${clean(r[1])}"`);
       dropped += 1;
       continue;
+    }
+    if (!floor) {
+      console.warn(`  ! [jeju] "${name.ko}" has no floor — kept for chip catalog only (${clean(r[1])})`);
+      chipOnly += 1;
     }
 
     facilities.push({
       terminal,
-      floor: `${floor}F`,
+      floor: floor ? `${floor}F` : '',
       name,
       category: lang8(r, 10),
       location,
@@ -624,10 +635,12 @@ async function genAirportFacilitiesJeju() {
   const out = `${BANNER}import type { LangText } from './types';
 
 /** One row of AirportFacilityData_Jeju. terminal/floor are derived from the
- *  ShopID and Location columns so they line up with the map keys in JejuHelp. */
+ *  ShopID and Location columns so they line up with the map keys in JejuHelp.
+ *  \`floor\` may be '' for chip-catalog-only rows (a BaseCategory with no
+ *  Location yet) — those never pair onto a pin. */
 export interface AirportFacility {
   terminal: 'domestic' | 'international';
-  /** '1F' … '4F'. */
+  /** '1F' … '4F', or '' when the sheet row carries no Location. */
   floor: string;
   name: LangText;
   /** BaseCategory — this is what the 도와줘 '하영' chips are built from. */
@@ -647,7 +660,7 @@ ${body}
 ];
 `;
   await writeFile(join(DATA_DIR, 'airportFacilities-jeju.generated.ts'), out, 'utf8');
-  return { count: facilities.length, dropped };
+  return { count: facilities.length, dropped, chipOnly };
 }
 
 // ─── 전국시장 (nationwide markets) — single sheet, grouped by province ──────────
@@ -711,7 +724,9 @@ async function main() {
     console.log(`✓ [jeju] localization: ${locJ} keys`);
     console.log(`✓ [jeju] aiCategories: ${catsJ}`);
     console.log(
-      `✓ [jeju] airportFacilities: ${facJ.count}${facJ.dropped ? ` (${facJ.dropped} dropped)` : ''}`,
+      `✓ [jeju] airportFacilities: ${facJ.count}` +
+        `${facJ.chipOnly ? ` (${facJ.chipOnly} chip-only)` : ''}` +
+        `${facJ.dropped ? ` (${facJ.dropped} dropped)` : ''}`,
     );
   } else {
     console.log('– [jeju] skipped (JEJU_SHEET_ID not set)');
