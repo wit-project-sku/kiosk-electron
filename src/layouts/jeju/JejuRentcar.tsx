@@ -273,32 +273,6 @@ export function JejuRentcar({ controller }: Props): JSX.Element {
     setQuery(c.value);
   };
 
-  const openDetail = (shop: Shop): void => {
-    setDetail({
-      from: 'rentcar',
-      title: TITLE,
-      name: shopRentcarName(shop, lang),
-      category: shopRentcarSecondCategory(shop, lang),
-      photos: [],
-      address: shopRentcarAddress(shop, lang),
-      hours: shop.openTime ?? '',
-      phone: shop.tel ?? '',
-      description: '',
-      tags: '',
-      rating: '',
-      instagram: '',
-      blogReviews: shop.naverLink ?? '',
-      rentcarGuide: {
-        modeLabel: shopRentcarGuideModeLabel(shop, lang),
-        distanceKm: shopRentcarGuideDistanceKm(shop),
-        isShuttle: shopHasRentcarShuttle(shop),
-        isFerry: shopHasRentcarFerry(shop),
-      },
-      rentcarRoute: shop.route ?? null,
-    });
-    controller.navigate('detail', TITLE);
-  };
-
   const cardBadge = (shop: Shop): { label: string; variant: RentcarBadgeVariant } | null => {
     if (isInsideAirport(shop)) {
       return {
@@ -325,6 +299,36 @@ export function JejuRentcar({ controller }: Props): JSX.Element {
       };
     }
     return null;
+  };
+
+  const openDetail = (shop: Shop): void => {
+    const inside = isInsideAirport(shop);
+    const badge = cardBadge(shop);
+    setDetail({
+      from: 'rentcar',
+      title: TITLE,
+      name: shopRentcarName(shop, lang),
+      category: shopRentcarSecondCategory(shop, lang),
+      photos: [],
+      address: shopRentcarAddress(shop, lang),
+      hours: shop.openTime ?? '',
+      phone: shop.tel ?? '',
+      description: '',
+      tags: '',
+      rating: '',
+      instagram: '',
+      blogReviews: shop.naverLink ?? '',
+      rentcarGuide: {
+        modeLabel: shopRentcarGuideModeLabel(shop, lang),
+        distanceKm: shopRentcarGuideDistanceKm(shop),
+        isShuttle: shopHasRentcarShuttle(shop),
+        isFerry: shopHasRentcarFerry(shop),
+      },
+      rentcarRoute: shop.route ?? null,
+      rentcarHouse: inside,
+      rentcarBadge: inside ? badge?.label : undefined,
+    });
+    controller.navigate('detail', TITLE);
   };
 
   const cardRouteLine = (shop: Shop): string | undefined => {

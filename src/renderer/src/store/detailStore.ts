@@ -53,6 +53,13 @@ export interface DetailItem {
   };
   /** Full witteria `route` — drives the airport directions panel on rentcar 상세. */
   rentcarRoute?: ShopRoute | null;
+  /**
+   * `#렌터카하우스` (공항 내 데스크) — detail shows the list chip + floor-plan
+   * map instead of the km directions panel.
+   */
+  rentcarHouse?: boolean;
+  /** Chip label for `rentcarHouse` (e.g. 공항 내 데스크). */
+  rentcarBadge?: string;
 }
 
 interface DetailState {
