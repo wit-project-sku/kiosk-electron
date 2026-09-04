@@ -306,6 +306,7 @@ export function JejuRentcar({ controller }: Props): JSX.Element {
     const badge = cardBadge(shop);
     setDetail({
       from: 'rentcar',
+      shopId: shop.id,
       title: TITLE,
       name: shopRentcarName(shop, lang),
       category: shopRentcarSecondCategory(shop, lang),

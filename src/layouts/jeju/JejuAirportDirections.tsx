@@ -13,6 +13,7 @@ import {
   shopTransitLegBoardStop,
 } from '@renderer/lib/shops';
 import type { ShopRoute, ShopTransitLeg } from '@shared/types/shop';
+import type { ReactNode } from 'react';
 import styles from './JejuAirportDirections.module.css';
 
 const T = {
@@ -158,6 +159,8 @@ interface Props {
   /** Rentcar ferry access — shuttle slot with ferry icon + label only. */
   showFerry?: boolean;
   ferryModeLabel?: string;
+  /** Optional save-QR, pinned to the top-right of the orange bus/shuttle card. */
+  qr?: ReactNode;
 }
 
 function buildTimeline(route: ShopRoute, destination: string, lang: Lang): TimelineNode[] {
@@ -209,12 +212,14 @@ export function JejuAirportDirections({
   showShuttle = false,
   showFerry = false,
   ferryModeLabel,
+  qr,
 }: Props): JSX.Element | null {
   if (showFerry && ferryModeLabel) {
     return (
       <div className={styles.wrap}>
         <div className={styles.modeList}>
           <div className={styles.shuttleCard}>
+            {qr ? <div className={styles.cardQr}>{qr}</div> : null}
             <div className={styles.modeHead}>
               <span className={styles.modeHeadLeft}>
                 <span className={styles.modeIcon} aria-hidden="true">
@@ -238,6 +243,9 @@ export function JejuAirportDirections({
   const transit = route.transit;
   const showBus = transit?.status === 'FOUND' && typeof transit.totalMin === 'number';
   const timeline = buildTimeline(route, destination, lang);
+  /** Prefer the orange bus card; otherwise the shuttle plate. */
+  const qrOnBus = Boolean(qr && showBus && timeline.length > 0);
+  const qrOnShuttle = Boolean(qr && !qrOnBus && showShuttle);
 
   return (
     <div className={styles.wrap}>
@@ -249,6 +257,7 @@ export function JejuAirportDirections({
       <div className={styles.modeList}>
         {showShuttle && (
           <div className={styles.shuttleCard}>
+            {qrOnShuttle ? <div className={styles.cardQr}>{qr}</div> : null}
             <div className={styles.modeHead}>
               <span className={styles.modeHeadLeft}>
                 <span className={styles.modeIcon} aria-hidden="true">🚌</span>
@@ -279,6 +288,7 @@ export function JejuAirportDirections({
 
         {showBus && timeline.length > 0 && (
           <div className={styles.busCard}>
+            {qrOnBus ? <div className={styles.cardQr}>{qr}</div> : null}
             <div className={styles.modeHead}>
               <span className={styles.modeHeadLeft}>
                 <span className={styles.modeIcon} aria-hidden="true">🚌</span>

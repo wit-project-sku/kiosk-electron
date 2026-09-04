@@ -121,6 +121,7 @@ export function JejuSearch({ controller }: Props): JSX.Element {
   const openDetail = (shop: Shop): void => {
     setDetail({
       from: 'search',
+      shopId: shop.id,
       // The detail header reads "검색 > 상세" per the Figma, so the source label
       // is the screen name — not the shop's base category.
       title: '검색',

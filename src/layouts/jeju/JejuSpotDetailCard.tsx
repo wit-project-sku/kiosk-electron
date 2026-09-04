@@ -10,11 +10,12 @@
  * antialiasing.) Only the page header changes, so the callers own that and
  * share this. Same split Osan uses with OsanSpotDetailCard.
  */
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { QRCodeSVG } from 'qrcode.react';
 import type { DetailItem } from '@renderer/store/detailStore';
 import { pick, type Lang } from '@renderer/lib/i18n';
 import { padImages, shopOpenTime } from '@renderer/lib/shops';
+import { buildDetailCardSaveUrlForQr } from '@renderer/lib/detailCardSave';
 import { jejuIconUrl } from '@renderer/assets/icons/jeju';
 import mapRentalcarHouse from '@renderer/assets/photos/jeju/help/map-rentalcar-house.png';
 import { ImageLightbox } from '../components/ImageLightbox';
@@ -148,6 +149,29 @@ export function JejuSpotDetailCard({
     ((isRentcar && (showShuttleDirections || showFerryDirections || route)) || showShopRoute);
   const routeDetailCard = routeDetailFrom || isRentcar;
   const scrollInsideCard = !flow && routeDetailCard;
+
+  /** Phone save QR — only when the 가는 방법 panel is shown (not 렌터카하우스). */
+  const saveQrUrl = useMemo(() => {
+    if (!showDirectionsPanel || item.shopId == null) return null;
+    return buildDetailCardSaveUrlForQr({
+      lang,
+      from: item.from,
+      shopId: item.shopId,
+      showShuttle: showShuttleDirections || undefined,
+      showFerry: showFerryDirections || undefined,
+      ferryModeLabel: showFerryDirections ? guide?.modeLabel : undefined,
+      route: route ?? null,
+    });
+  }, [
+    showDirectionsPanel,
+    lang,
+    item.from,
+    item.shopId,
+    showShuttleDirections,
+    showFerryDirections,
+    guide?.modeLabel,
+    route,
+  ]);
 
   return (
     <>
@@ -324,6 +348,19 @@ export function JejuSpotDetailCard({
                 showShuttle={showShuttleDirections}
                 showFerry={showFerryDirections}
                 ferryModeLabel={guide?.modeLabel}
+                qr={
+                  saveQrUrl ? (
+                    <QRCodeSVG
+                      value={saveQrUrl}
+                      size={145}
+                      level="M"
+                      includeMargin
+                      bgColor="#ffffff"
+                      fgColor="#000000"
+                      style={{ width: 145, height: 145, display: 'block' }}
+                    />
+                  ) : undefined
+                }
               />
             </div>
           </>

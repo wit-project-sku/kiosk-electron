@@ -225,6 +225,7 @@ const LOW_CHOSUNG_CELL = 124.57;
  */
 const toDetailItem = (s: Shop, lang: Lang): DetailItem => ({
   from: 'about',
+  shopId: s.id,
   title: '여기는 제주도',
   name: shopName(s, lang),
   category: shopCategoryLabel(s, lang),

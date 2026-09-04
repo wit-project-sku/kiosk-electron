@@ -229,7 +229,7 @@
   aspect-ratio: 16 / 9;
 }
 
-/* Airport directions (JejuAirportDirections) — tune box + inner scale here. */
+/* Airport directions (JejuAirportDirections) — QR lives inside the orange bus card. */
 .airportDirections {
   width: 100%;
   box-sizing: border-box;

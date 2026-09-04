@@ -23,6 +23,8 @@ export interface CourseNextSpot {
 export interface DetailItem {
   /** Source screen to return to + header label (e.g. '숙박안내'). */
   from: KioskScreenId;
+  /** Witteria shop id — used by the detail-save QR payload when present. */
+  shopId?: number;
   title: string;
   name: string;
   category: string;
