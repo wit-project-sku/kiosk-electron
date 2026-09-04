@@ -285,8 +285,6 @@
 }
 
 .cardRouteDetail .desc {
-  min-height: 140px;
-  max-height: 140px;
   font-size: 48px;
   line-height: 1.25;
 }
@@ -332,18 +330,11 @@
 }
 
 /* ── Description + tags ── */
-/* Figma fixes this block at h-220 — two lines of copy plus an empty trailing
-   paragraph — so the rest of the card sits at the same y whatever the shop's
-   description length. Fixed (not min-height) for the same reason the card is:
-   the card has no room to absorb a longer block, so a rambling description
-   clips at three lines rather than pushing the ratings row out of the card.
-   Without the 220 the block is ~78px short and the rows below it ride up. */
+/* Height follows the copy — short blurbs leave no empty plate under the text,
+   and longer ones push tags / ratings down instead of clipping. */
 .desc {
   margin: 0;
   width: 100%;
-  min-height: 220px;
-  max-height: 220px;
-  overflow: hidden;
   font-size: 55px;
   font-weight: 400;
   line-height: 1.3;

@@ -296,15 +296,16 @@ const TITLE_KEYS: Record<string, TitleKeySpec> = {
   // Hardcoded page ids from jejuMascot (제주). Sheet cells still decide the
   // visible string via MainButton_*; these keys only route the lookup.
   "안녕 '제주'": { title: 'MainButton_Greeting', sub: 'Greeting_Introduce' },
-  "도와줘 ‘제주’": { title: 'MainButton_ToHelp', sub: 'SubHeader_ToHelp' },
+  // Help_Subtitle is the map-tap copy; SubHeader_ToHelp is Insadong's search-result line.
+  "도와줘 ‘제주’": { title: 'MainButton_ToHelp', sub: 'Help_Subtitle' },
   // Stale 하영 ids — kept so CMS analytics labels / older callers still resolve.
   "안녕 '하영'": { title: 'MainButton_Greeting', sub: 'Greeting_Introduce' },
-  "도와줘 ‘하영’": { title: 'MainButton_ToHelp', sub: 'SubHeader_ToHelp' },
+  "도와줘 ‘하영’": { title: 'MainButton_ToHelp', sub: 'Help_Subtitle' },
   // W008 세계자연유산본부 passes the 유산 spellings (jejuMascot) — the KEYS are the
   // same because the sheet's mascot tie-break already answers per-layout, so the
   // header shows the 유산 row on a JEJU_HERITAGE machine and 하영's elsewhere.
   "안녕 '유산'": { title: 'MainButton_Greeting', sub: 'Greeting_Introduce' },
-  "도와줘 ‘유산’": { title: 'MainButton_ToHelp', sub: 'SubHeader_ToHelp' },
+  "도와줘 ‘유산’": { title: 'MainButton_ToHelp', sub: 'Help_Subtitle' },
   "제주도 이벤트": { title: 'MainButton_Event', sub: 'SubHeader_Event' },
   "렌트카": { title: 'MainButton_RentCar', sub: 'RentCar_Subtitle' },
   탐나오: { title: 'MainButton_Tamnao', sub: 'Tamnao_Subtitle' },

@@ -10,9 +10,24 @@ import type { CSSProperties, ReactNode } from 'react';
 import type { KioskController } from '@renderer/hooks/useKioskController';
 import { jejuIconUrl } from '@renderer/assets/icons/jeju';
 import { useRotatingBanner } from '@renderer/hooks/useRotatingBanner';
+import { sheetText } from '@renderer/lib/loc';
+import type { Lang } from '@renderer/lib/i18n';
 import { useAccessibilityStore } from '@renderer/store/accessibilityStore';
+import { useLanguageStore } from '@renderer/store/languageStore';
 import { JejuHeader } from './JejuHeader';
 import styles from './JejuPageFrame.module.css';
+
+/** Fallback — sheet `BarrierFree_Title`. */
+const BARRIER_FREE: Partial<Record<Lang, string>> = {
+  ko: '지금은 배리어프리 모드입니다.',
+  en: 'Currently in Barrier-Free Mode.',
+  ja: '現在はバリアフリーモードです。',
+  zh: '现在是无障碍模式。',
+  vi: 'Hiện tại là chế độ không rào cản.',
+  th: 'ขณะนี้อยู่ในโหมดไร้อุปสรรค',
+  ru: 'В настоящее время используется безбарьерный режим.',
+  id: 'Saat ini dalam mode bebas hambatan.',
+};
 
 interface Props {
   controller: KioskController;
@@ -108,6 +123,8 @@ export function JejuPageFrame({
 
   const lowReach = useAccessibilityStore((s) => s.lowReach);
   const toggleLowReach = useAccessibilityStore((s) => s.toggleLowReach);
+  const lang = useLanguageStore((s) => s.currentLanguage) as Lang;
+  const barrierFreeTitle = sheetText('BarrierFree_Title', lang, BARRIER_FREE);
   /*
    * The variant re-stacks the page around the banner, so it only applies to
    * pages that HAVE one. `showBanner` is exactly the right test and not a
@@ -155,7 +172,7 @@ export function JejuPageFrame({
       <div className={styles.bgBase} />
       {bg && <img src={bg} alt="" className={styles.bgImage} draggable={false} />}
 
-      {modeBar && <div className={styles.modeBar}>지금은 배리어프리 모드입니다.</div>}
+      {modeBar && <div className={styles.modeBar}>{barrierFreeTitle}</div>}
 
       {heroSrc && (
         <div className={styles.hero}>

@@ -11,7 +11,8 @@ import { jejuIconUrl } from '@renderer/assets/icons/jeju';
 import { useLanguageStore } from '@renderer/store/languageStore';
 import { useDetailStore } from '@renderer/store/detailStore';
 import { useShopStore } from '@renderer/store/shopStore';
-import { pick } from '@renderer/lib/i18n';
+import { pick, type Lang } from '@renderer/lib/i18n';
+import { sheetText } from '@renderer/lib/loc';
 import {
   searchShops,
   shopHasHashtag,
@@ -45,6 +46,9 @@ const TITLE = '렌트카';
 
 const BASE_CATEGORY = '렌트카';
 
+const rentText = (key: string, lang: Lang, fallback: Partial<Record<Lang, string>>): string =>
+  sheetText(key, lang, fallback);
+
 const NO_DATA = {
   ko: '준비중입니다', en: 'Coming soon', ja: '準備中です', zh: '准备中',
   vi: 'Đang chuẩn bị', th: 'กำลังเตรียมการ', ru: 'Готовится', id: 'Segera hadir',
@@ -56,15 +60,16 @@ const NO_MATCH = {
   ru: 'Нет подходящих компаний', id: 'Tidak ada perusahaan yang cocok',
 };
 
+/** Fallback — sheet `RentCar_Search`. */
 const SEARCH_PLACEHOLDER = {
   ko: '예약하신 업체명을 검색하세요',
-  en: 'Search your reserved company',
-  ja: '予約した会社名を検索してください',
-  zh: '搜索您预约的公司名称',
-  vi: 'Tìm kiếm tên công ty đã đặt',
-  th: 'ค้นหาชื่อบริษัทที่จองไว้',
-  ru: 'Найдите забронированную компанию',
-  id: 'Cari nama perusahaan yang dipesan',
+  en: 'Search for the name of the company you booked with',
+  ja: '予約した業者名を検索してください',
+  zh: '搜索您预订的公司名称',
+  vi: 'Tìm kiếm tên công ty bạn đã đặt trước',
+  th: 'ค้นหาชื่อบริษัทที่คุณจองไว้',
+  ru: 'Найдите название компании, в которой вы забронировали',
+  id: 'Cari nama perusahaan yang Anda pesan',
 };
 
 const SEARCH_NO_RESULT = {
@@ -80,63 +85,57 @@ const SEARCH_NO_RESULT = {
 
 const RENTCAR_HOUSE_TAG = '렌터카하우스';
 
-const DESK_BADGE = {
+/** Fallback — sheet `RentCar_Category2` (chip + badge). */
+const FILTER_INSIDE = {
   ko: '공항 내 데스크',
-  en: 'Airport desk',
+  en: 'Airport Desk',
   ja: '空港内デスク',
-  zh: '机场内服务台',
+  zh: '机场内柜台',
   vi: 'Quầy trong sân bay',
-  th: 'เคาน์เตอร์ในสนามบิน',
+  th: 'โต๊ะภายในสนามบิน',
   ru: 'Стойка в аэропорту',
-  id: 'Meja di bandara',
+  id: 'Meja di Bandara',
 };
 
+/** Fallback — sheet `RentCar_Category5`. */
 const FERRY_BADGE = {
   ko: '배편 이용',
-  en: 'Ferry access',
-  ja: 'フェリー利用',
-  zh: '需乘渡轮',
-  vi: 'Đi phà',
-  th: 'ใช้เรือข้ามฟาก',
+  en: 'By Ferry',
+  ja: '船便利用',
+  zh: '乘船',
+  vi: 'Sử dụng phà',
+  th: 'โดยเรือเฟอร์รี่',
   ru: 'На пароме',
-  id: 'Akses feri',
+  id: 'Menggunakan Feri',
 };
 
+/** Fallback — sheet `RentCar_Category1`. */
 const FILTER_ALL = {
-  ko: '전체', en: 'All', ja: 'すべて', zh: '全部', vi: 'Tất cả', th: 'ทั้งหมด', ru: 'Все', id: 'Semua',
+  ko: '전체', en: 'All', ja: '全体', zh: '全部', vi: 'Tất cả', th: 'ทั้งหมด', ru: 'Все', id: 'Semua',
 };
 
-const FILTER_INSIDE = {
-  ko: '공항 내',
-  en: 'Inside airport',
-  ja: '空港内',
-  zh: '机场内',
-  vi: 'Trong sân bay',
-  th: 'ในสนามบิน',
-  ru: 'В аэропорту',
-  id: 'Di bandara',
-};
-
+/** Fallback — sheet `RentCar_Category3`. */
 const FILTER_SHUTTLE = {
   ko: '공항 셔틀',
-  en: 'Airport shuttle',
+  en: 'Airport Shuttle',
   ja: '空港シャトル',
   zh: '机场班车',
-  vi: 'Xe đưa sân bay',
+  vi: 'Xe buýt đưa đón sân bay',
   th: 'รถรับส่งสนามบิน',
-  ru: 'Аэропортный шаттл',
-  id: 'Antar-jemput bandara',
+  ru: 'Трансфер из аэропорта',
+  id: 'Antar-Jemput Bandara',
 };
 
+/** Fallback — sheet `RentCar_Category4`. */
 const FILTER_NO_SHUTTLE = {
   ko: '셔틀 없음',
-  en: 'No shuttle',
+  en: 'No Shuttle',
   ja: 'シャトルなし',
   zh: '无班车',
-  vi: 'Không có xe đưa',
+  vi: 'Không có xe đưa đón',
   th: 'ไม่มีรถรับส่ง',
-  ru: 'Без шаттла',
-  id: 'Tanpa antar-jemput',
+  ru: 'Нет трансфера',
+  id: 'Tidak Ada Antar-Jemput',
 };
 
 /** Fixed wayfinding line for `#렌터카하우스` cards — never the API km/time row. */
@@ -155,7 +154,14 @@ type RentcarFilter = 'all' | 'inside' | 'shuttle' | 'noShuttle';
 
 const RENTCAR_FILTERS: RentcarFilter[] = ['all', 'inside', 'shuttle', 'noShuttle'];
 
-const FILTER_LABELS: Record<RentcarFilter, Record<string, string>> = {
+const FILTER_SHEET_KEYS: Record<RentcarFilter, string> = {
+  all: 'RentCar_Category1',
+  inside: 'RentCar_Category2',
+  shuttle: 'RentCar_Category3',
+  noShuttle: 'RentCar_Category4',
+};
+
+const FILTER_LABELS: Record<RentcarFilter, Partial<Record<Lang, string>>> = {
   all: FILTER_ALL,
   inside: FILTER_INSIDE,
   shuttle: FILTER_SHUTTLE,
@@ -295,16 +301,28 @@ export function JejuRentcar({ controller }: Props): JSX.Element {
 
   const cardBadge = (shop: Shop): { label: string; variant: RentcarBadgeVariant } | null => {
     if (isInsideAirport(shop)) {
-      return { label: pick(DESK_BADGE, lang), variant: 'primary' };
+      return {
+        label: rentText('RentCar_Category2', lang, FILTER_INSIDE),
+        variant: 'primary',
+      };
     }
     if (shopHasRentcarFerry(shop)) {
-      return { label: pick(FERRY_BADGE, lang), variant: 'ferry' };
+      return {
+        label: rentText('RentCar_Category5', lang, FERRY_BADGE),
+        variant: 'ferry',
+      };
     }
     if (shopHasRentcarShuttle(shop)) {
-      return { label: pick(FILTER_SHUTTLE, lang), variant: 'shuttle' };
+      return {
+        label: rentText('RentCar_Category3', lang, FILTER_SHUTTLE),
+        variant: 'shuttle',
+      };
     }
     if (shopHasRentcarRoad(shop)) {
-      return { label: pick(FILTER_NO_SHUTTLE, lang), variant: 'noShuttle' };
+      return {
+        label: rentText('RentCar_Category4', lang, FILTER_NO_SHUTTLE),
+        variant: 'noShuttle',
+      };
     }
     return null;
   };
@@ -346,7 +364,7 @@ export function JejuRentcar({ controller }: Props): JSX.Element {
     <div className={styles.searchRow}>
       <div className={styles.searchField} role="button" onClick={() => setFocused(true)}>
         <span className={`${styles.searchText} ${query ? styles.searchValue : ''}`}>
-          {query || pick(SEARCH_PLACEHOLDER, lang)}
+          {query || rentText('RentCar_Search', lang, SEARCH_PLACEHOLDER)}
           {focused && <span className={styles.caret} />}
         </span>
         {jejuIconUrl('ico-search') && (
@@ -369,7 +387,9 @@ export function JejuRentcar({ controller }: Props): JSX.Element {
               resetScroll();
             }}
           >
-            <span className={styles.chipLabel}>{pick(FILTER_LABELS[filter], lang)}</span>
+            <span className={styles.chipLabel}>
+              {rentText(FILTER_SHEET_KEYS[filter], lang, FILTER_LABELS[filter])}
+            </span>
             {filter !== 'all' && (
               <span className={styles.chipCount}>({filterCounts[filter]})</span>
             )}

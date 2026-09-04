@@ -84,6 +84,16 @@ const SEARCH_PLACEHOLDER_FALLBACK = {
 const FALLBACKS: Record<string, Partial<Record<Lang, string>>> = {
   NoticeContent: NOTICE_FALLBACK,
   Main_Search: SEARCH_PLACEHOLDER_FALLBACK,
+  BarrierFree_Title: {
+    ko: '지금은 배리어프리 모드입니다.',
+    en: 'Currently in Barrier-Free Mode.',
+    ja: '現在はバリアフリーモードです。',
+    zh: '现在是无障碍模式。',
+    vi: 'Hiện tại là chế độ không rào cản.',
+    th: 'ขณะนี้อยู่ในโหมดไร้อุปสรรค',
+    ru: 'В настоящее время используется безбарьерный режим.',
+    id: 'Saat ini dalam mode bebas hambatan.',
+  },
 };
 
 /**
@@ -559,7 +569,7 @@ export function JejuHome({ controller }: Props): JSX.Element {
       )}
 
       {lowReach && (
-        <div className={styles.modeBar}>지금은 배리어프리 모드입니다.</div>
+        <div className={styles.modeBar}>{homeText('BarrierFree_Title', lang)}</div>
       )}
       {lowReach && jejuIconUrl('banner-page') && (
         <div className={styles.hero}>

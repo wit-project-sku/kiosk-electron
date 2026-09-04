@@ -11,7 +11,7 @@ export const AI_CATEGORIES_OSAEK: LangText[] = [
   {"ko":"차이나","en":"Chinese Cuisine","ja":"中華料理","zh":"中餐","vi":"Món Trung Quốc","th":"3. อาหารจีน","ru":"3. Китайская кухня","id":"Masakan Cina"},
   {"ko":"동남아","en":"Southeast Asian Cuisine","ja":"東南アジア料理","zh":"东南亚美食","vi":"Món ăn Đông Nam Á","th":"2. อาหารเอเชียตะวันออกเฉียงใต้","ru":"2. Юго-восточноазиатская кухня","id":"Masakan Asia Tenggara"},
   {"ko":"찌개류/국류","en":"Stews/Soups","ja":"チゲ/スープ","zh":"炖菜/汤","vi":"Các món canh & súp","th":"4. สตูว์/ซุป","ru":"4 вида рагу/супа","id":"Aneka Sup/ Kuah"},
-  {"ko":"족발/만두","en":"Pig’s Trotters/Dumplings","ja":"豚足/餃子","zh":"猪蹄/饺子","vi":"Chân giò heo/ Sủi cảo","th":"ขาหมู/เกี๊ยว 5 อย่าง","ru":"5. Свиные ножки/пельмени","id":"Kaki Babi/Pangsit"},
+  {"ko":"족발/만두","en":"Pig’s Trotters/Dumplings","ja":"豚足/餃子","zh":"猪蹄/饺子","vi":"Chân giò heo/ Sủi cảo","th":"เกี๊ยวหมู 5 ชิ้น","ru":"5. Свиные ножки/пельмени","id":"Kaki Babi/Pangsit"},
   {"ko":"치킨/강정","en":"Chicken/Fried Chicken","ja":"チキン/カンジョン","zh":"炸鸡/酥鸡","vi":"Gà rán/ Gà sốt chua ngọt","th":"ไก่/ไก่ทอด","ru":"6. Курица/Жареная курица","id":"Ayam/Ayam Goreng"},
   {"ko":"야채/과일","en":"Vegetables/Fruits","ja":"果物/野菜","zh":"水果/蔬菜","vi":"Rau củ/ Trái cây","th":"ผัก/ผลไม้","ru":"1. Овощи/Фрукты","id":"Sayuran/Buah-buahan"},
   {"ko":"채소/농산","en":"Vegetables/Agricultural","ja":"野菜/農産物","zh":"蔬菜/农产","vi":"Rau xanh/ Nông sản","th":"2. ผัก/สินค้าเกษตร","ru":"2. Овощи/Сельскохозяйственные культуры","id":"Sayuran/Pertanian"},
@@ -26,7 +26,7 @@ export const AI_CATEGORIES_OSAEK: LangText[] = [
   {"ko":"신발","en":"Shoes","ja":"靴","zh":"鞋","vi":"Giày dép","th":"รองเท้า","ru":"Shoes","id":"5 Sepatu"},
   {"ko":"패션잡화","en":"Accessories","ja":"服飾雑貨","zh":"配饰","vi":"Phụ kiện thời trang","th":"อุปกรณ์เสริม","ru":"6. Аксессуары","id":"Aksesoris"},
   {"ko":"생활용품","en":"Household","ja":"生活用品","zh":"生活用品","vi":"Đồ dùng sinh hoạt","th":"ครัวเรือน","ru":"Домохозяйство","id":"7 Rumah Tangga"},
-  {"ko":"문구","en":"Stationery","ja":"文具","zh":"文具","vi":"Văn phòng phẩm","th":"8. เครื่องเขียน","ru":"Канцелярские товары","id":"Alat Tulis"},
+  {"ko":"문구","en":"Stationery","ja":"文具","zh":"文具","vi":"Văn phòng phẩm","th":"เครื่องเขียน","ru":"Канцелярские товары","id":"Alat Tulis"},
   {"ko":"가구","en":"Furniture","ja":"家具","zh":"家具","vi":"Nội thất","th":"เฟอร์นิเจอร์","ru":"1. Мебель","id":"Perabot"},
   {"ko":"인테리어/수리","en":"Interior/Repair","ja":"インテリア/修理","zh":"家居/维修","vi":"Trang trí nội thất/ Sửa chữa","th":"9. งานตกแต่งภายใน/ซ่อมแซม","ru":"9. Интерьер/Ремонт","id":"Interior/Perbaikan"},
 ];

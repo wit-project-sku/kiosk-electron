@@ -78,6 +78,7 @@ import { useAccessibilityStore } from '@renderer/store/accessibilityStore';
 import { useLanguageStore } from '@renderer/store/languageStore';
 import { useShopStore } from '@renderer/store/shopStore';
 import { pick, type Lang } from '@renderer/lib/i18n';
+import { sheetText } from '@renderer/lib/loc';
 import { pickText } from '@renderer/data/types';
 import {
   assignFacilities,
@@ -120,35 +121,44 @@ import mapTerminalDepartureEn from '@renderer/assets/photos/jeju/help/map-termin
 type TerminalId = 'international' | 'domestic';
 type FloorId = '1F' | '2F' | '3F' | '4F';
 
-/** Terminal pills in frame order (6219:98779 / 98783). */
+/** Terminal pills in frame order (6219:98779 / 98783). Sheet: Help_International / Help_Domestic. */
 const TERMINALS = [
   {
     id: 'international',
+    sheetKey: 'Help_International',
     label: {
       ko: '국제선',
       en: 'International',
       ja: '国際線',
-      zh: '国际航线',
-      vi: 'Quốc tế',
-      th: 'ระหว่างประเทศ',
-      ru: 'Международные',
-      id: 'Internasional',
+      zh: '国际线',
+      vi: 'Chuyến bay quốc tế',
+      th: 'เที่ยวบินระหว่างประเทศ',
+      ru: 'Международные рейсы',
+      id: 'Penerbangan Internasional',
     },
   },
   {
     id: 'domestic',
+    sheetKey: 'Help_Domestic',
     label: {
       ko: '국내선',
       en: 'Domestic',
       ja: '国内線',
-      zh: '国内航线',
-      vi: 'Nội địa',
-      th: 'ในประเทศ',
-      ru: 'Внутренние',
-      id: 'Domestik',
+      zh: '国内线',
+      vi: 'Chuyến bay nội địa',
+      th: 'เที่ยวบินในประเทศ',
+      ru: 'Внутренние рейсы',
+      id: 'Penerbangan Domestik',
     },
   },
-] as const satisfies ReadonlyArray<{ id: TerminalId; label: Record<string, string> }>;
+] as const satisfies ReadonlyArray<{
+  id: TerminalId;
+  sheetKey: string;
+  label: Record<string, string>;
+}>;
+
+const terminalLabel = (t: (typeof TERMINALS)[number], lang: Lang): string =>
+  sheetText(t.sheetKey, lang, t.label);
 
 /**
  * The floors each terminal offers. 국내선 runs 1–4F and 국제선 is 1F and 3F, so
@@ -692,7 +702,7 @@ const BASE_CATEGORY = '제주 도와줘';
  *  named it — an unpaired pictogram knows only its terminal and its floor. */
 function placeLine(terminal: TerminalId, floor: FloorId, lang: Lang): string {
   const t = TERMINALS.find((x) => x.id === terminal)!;
-  return `${pick(AIRPORT, lang)} ${pick(t.label, lang)} ${floor}`;
+  return `${pick(AIRPORT, lang)} ${terminalLabel(t, lang)} ${floor}`;
 }
 
 /**
@@ -704,7 +714,7 @@ function placeLine(terminal: TerminalId, floor: FloorId, lang: Lang): string {
  */
 function zoneLine(terminal: TerminalId, facility: AirportFacility, lang: Lang): string {
   const t = TERMINALS.find((x) => x.id === terminal)!;
-  return `${pick(AIRPORT, lang)} ${pick(t.label, lang)} ${pickText(facility.location, lang)}`;
+  return `${pick(AIRPORT, lang)} ${terminalLabel(t, lang)} ${pickText(facility.location, lang)}`;
 }
 
 /** The sheet writes "-" where a facility has no telephone (every ATM, most desks);
@@ -1124,14 +1134,14 @@ export function JejuHelp({ controller, initialCategory }: Props): JSX.Element {
                 {pick(label, lang)}
               </button>
             ))
-          : TERMINALS.map(({ id, label }) => (
+          : TERMINALS.map((t) => (
               <button
-                key={id}
+                key={t.id}
                 type="button"
-                className={`${styles.pill} ${id === terminal ? styles.pillActive : ''}`}
-                onClick={() => pickTerminal(id)}
+                className={`${styles.pill} ${t.id === terminal ? styles.pillActive : ''}`}
+                onClick={() => pickTerminal(t.id)}
               >
-                {pick(label, lang)}
+                {terminalLabel(t, lang)}
               </button>
             ))}
       </div>
