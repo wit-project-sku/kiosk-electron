@@ -243,6 +243,7 @@ export function JejuWeatherPanel({ forecast, current, lang, onClose }: Props): J
           className={styles.close}
           onClick={onClose}
           aria-label={pick(CLOSE_LABEL, lang)}
+          data-pad-dismiss
         >
           {closeIcon && (
             <img src={closeIcon} alt="" className={styles.closeIcon} draggable={false} />
