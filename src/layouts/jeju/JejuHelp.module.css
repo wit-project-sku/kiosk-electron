@@ -1,27 +1,13 @@
 /*
- * 도와줘 '하영' — Figma node 6393:59030 (제주>도와줘 하영-01=공항), the
- * 2026-08-24 redesign of 6219:98767. The 상세 behind a pin is 6219:99127 —
- * `R>검색상세-사진1개` at y863, which JejuDetail already produces for `from:
- * 'help'`.
+ * 도와줘 '제주' — Figma 6819:9769 (국제선) / 6862:9953 (국내선), redraw of
+ * 6393:59030 / 6219:98767. Detail behind a pin/card is 6219:99127.
  *
- * Three stacked pickers over one map — every band moved:
- *   700   terminal pills 1193×170 at x483.5 — two 565×170, 63 apart (was two
- *         580s 200 apart at x400; it is now the same two-pill component the
- *         events tabs use)
- *   940   floor row (was 920 — JejuSubTabRow's shared band, overridden here)
- *   1172  category chips 1820×375 at x170 — 5 × 340×170 per row, 30/35 gaps.
- *         TWO rows, the frame's own count: the chips are exactly
- *         AirportFacilityData_Jeju's BaseCategory values (ten of them today, see
- *         JejuHelp.tsx) and 10 over 5 is 2. The row count follows the SHEET, so
- *         an eleventh category makes three rows (580 tall) and everything under
- *         this has to drop 205 again — which is where .map's 1825 came from
- *         while the list was fifteen chips long.
- *   1697  map 1820×1383 at x170
- *
- * The category chips are the frame's own `R>상단 카테고리-5개*2`, shared with
- * 지역화폐's tabs, so their look lives in JejuPill.module.css and only the widths
- * are set here. The TERMINAL pills are a different component and take their own
- * picked style below.
+ * One scrolling column under the 700px header (same rhythm as JejuListScreen):
+ *   pickers   terminal pills + floor row (gap 70) + category chips
+ *   map       1820×813, radius 58
+ *   list      1820×384 cards, 52px gap
+ * Major sections are 150 apart; the column itself is px 170 with the scrollbar
+ * carved out of the right gutter.
  */
 .pill {
   composes: pill from './JejuPill.module.css';
@@ -31,72 +17,87 @@
   composes: pillActive from './JejuPill.module.css';
 }
 
-/* ── Terminal (6412:75786) ──
-   The two-pill `R>컴포넌트=코스추천-카테고리`, centred.
-
-   Two-tab row. 2 × 565 + a 200 gap = 1330, so left = (2160 − 1330) / 2 = 415.
-   200 is the gap every other two-tab 제주 page already uses (운항정보, 크루즈
-   운항, 지역화폐 — all 580 pills at gap 200); this row was still on the old 63.
-   Widening the band rather than shrinking the pills is what keeps them on
-   Figma's 565. */
-.terminals {
+.scroll {
   position: absolute;
-  left: 415px;
+  left: 0;
+  right: 0;
   top: 700px;
-  width: 1330px;
-  height: 170px;
+  bottom: 0;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 150px;
+  overflow-x: hidden;
+  overflow-y: auto;
+  padding: 0 136px 80px 170px;
+}
+
+.scroll::-webkit-scrollbar {
+  width: 34.32px;
+}
+
+.scroll::-webkit-scrollbar-thumb {
+  background: var(--kiosk-primary, #ff7f0f);
+  border-radius: 17.16px;
+}
+
+.scroll::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+/* Terminal + floor stack — Figma gap 70 between the two bands. */
+.pickers {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 70px;
+  width: 100%;
+  flex: 0 0 auto;
+}
+
+/* ── Terminal (6819:9778) ──
+   Two 565×170 pills, gap 63 — Figma's own `R>컴포넌트=코스추천-카테고리`. */
+.terminals {
   display: flex;
   align-items: center;
-  gap: 200px;
+  justify-content: center;
+  gap: 63px;
+  width: 100%;
+  height: 170px;
+  flex: 0 0 auto;
 }
 
 .terminals .pill {
   width: 565px;
 }
 
-/* Picked terminal: the solid brand plate with white Bold type — NOT the pale
-   #ffeac7 plate the category chips below keep. The two rows are different Figma
-   components and the redesign moved only this one. */
+/* Picked terminal: solid brand plate + white Bold — not the pale chip style. */
 .terminals .pillActive {
   border: none;
   background: var(--kiosk-primary, #ff7f0f);
   color: #fff;
 }
 
-/* ── Floors (6393:59048) ──
-   JejuSubTabRow puts its band at y920 for 안녕 '하영'; this page draws it at 940.
-
-   Doubled selector on purpose: `.row` in JejuSubTabRow.module.css also sets
-   `top`, and at equal specificity the winner is whichever module the bundler
-   emits last — which is not something this page should depend on. `.floors
-   .floors` is (0,2,0) and beats it deterministically, without !important. */
+/* Floors ride inside the scroll column — override JejuSubTabRow's absolute band. */
 .floors.floors {
-  top: 940px;
+  position: relative;
+  top: auto;
+  left: auto;
+  right: auto;
+  width: 100%;
+  flex: 0 0 auto;
 }
 
-/* ── Categories (6219:98787) ──
-   Rows of five at a fixed 30px gap (1820 − 5 × 340 = 120, over 4 gaps). TWO
-   rows today (2 × 170 + 35 = 375, the frame's own height), because CATEGORIES
-   is now exactly the sheet's BaseCategory values.
-
-   `gap: 30` + flex-start (NOT space-between): a short last row — four chips
-   when the sheet has nine categories — must keep the same 30px pitch and
-   left edge as a full row. space-between would stretch those four across
-   1820 and leave a large hole between each pill.
-
-   ★ This height is not fixed — it is ceil(n / 5) rows of 170 with 35 between,
-   and n is however many categories AirportFacilityData_Jeju uses. The block has
-   no height of its own (it is a flex column, so it takes what the rows need),
-   but .map below DOES have a hard top, so an eleventh category silently grows
-   this into the map. Move .map to 1825 if that day comes. */
+/* ── Categories (R>상단 카테고리-5개*2) ──
+   Five 340×170 per row, col gap 30 / row gap 35. Short last rows keep the
+   left edge (flex-start), not space-between. */
 .cats {
-  position: absolute;
-  left: 170px;
-  top: 1172px;
-  width: 1820px;
   display: flex;
   flex-direction: column;
   gap: 35px;
+  width: 1820px;
+  flex: 0 0 auto;
   font-family: Pretendard, 'Noto Sans KR', sans-serif;
   font-style: normal;
 }
@@ -108,17 +109,6 @@
   gap: 30px;
 }
 
-/*
- * Sheet-driven category chips (AirportFacilityData_Jeju BaseCategory values).
- * Figma 6393:59030 / I6771:66722: 340×170, 50px Pretendard, overflow-clip,
- * shrink-0. Korean short labels sit on one line; longer sheet / translation
- * labels (금융·보험·환전, Finance·Insurance·Currency Exchange) wrap to two
- * lines inside the plate — they must NOT grow the pill, which is what used to
- * crash the 5-up row when `nowrap` made min-content wider than 340.
- *
- * The shared JejuPill sets `white-space: pre-line` for other pages — overridden
- * here. Picked chrome (5px orange rule + #ffeac7) stays on JejuPill.pillActive.
- */
 .cats .pill {
   display: flex;
   flex: 0 0 340px;
@@ -166,78 +156,29 @@
   color: var(--kiosk-primary, #ff7f0f);
 }
 
-/* ── Map (6219:98788) ──
-   Figma reserves 1820×1383 at 170,1697 — a 1.32:1 box, drawn for a 1.32:1
-   placeholder that filled it. The six real 한국공항공사 plans are 2.03:1 to 3.08:1
-   (국내선 4F alone is 1.25:1), so fitted into that box the widest of them draws
-   only 1820×591 and floats in the MIDDLE of it: ~400px of dead slot between the
-   chips and the map, pushing it down the page for no reason.
-
-   So the box keeps the frame's own x and width — the 170px gutters are the
-   page's rhythm and the map is not the one element that gets to break them —
-   and only what the placeholder's shape dictated is changed:
-
-     top    1620  (was 1697) — 73px under the chips, and the plan is TOP-aligned
-                   rather than centred, which is the half of this that actually
-                   closes the gap. It sat at 1825 while a hard-coded fifteenth
-                   chip forced a third row of chips; the sheet-only ten are two
-                   rows again, so it is back to 1620. The 205 is the row, not the
-                   reasoning — see .cats.
-     height 1500  (was 1383) — what 국내선 4F, the one upright plan, needs at this
-                   width: 1820×1456. Every other plan is width-bound long before
-                   it reaches this, so more height would buy nothing.
-
-   The plans were also re-cut to their own ink, which is where the real size came
-   from: 국제선 1F was using 47% of its canvas and now draws 1.55× larger inside
-   the same box. See the notes in JejuHelp.tsx. */
+/* ── Map (6819:10197) — 1820×813, radius 58 ── */
 .map {
-  position: absolute;
-  left: 170px;
-  top: 1620px;
+  position: relative;
+  left: auto;
+  top: auto;
   width: 1820px;
-  height: 1500px;
+  height: 813px;
+  flex: 0 0 auto;
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   justify-content: center;
+  border-radius: 58px;
+  background: #fff;
+  overflow: hidden;
 }
 
-/*
- * The plan's own box — what `top`/`left` percentages on a pin resolve against.
- *
- * It shrink-wraps the <img>, and the img is capped at 100% of the slot in both
- * axes with `auto` on the other, so the box IS the drawn plan at its own aspect
- * and never the empty slot around it. That is what lets a pin be stored as a
- * fraction of the ARTWORK and stay on its pictogram across six aspects — an
- * `object-fit: contain` on a full-size img would letterbox identically but
- * leave the pin measuring against the slot, i.e. against the bars too.
- */
 .plan {
   position: relative;
   max-width: 100%;
   max-height: 100%;
-  /* The white paper behind the drawing. The airport plans BAKE their white into
-     the PNG so this was invisible under them; the 여객터미널 pair is transparent
-     outside its ink, and without this the page's background illustration showed
-     through the plan (2026-09-03). Painted here — on the box the plan actually
-     occupies — rather than on the slot, so the plate hugs the artwork exactly
-     the way the airport's baked-in white does. */
   background: #fff;
 }
 
-/*
- * ★ `>` — the DIRECT child, i.e. the floor plan itself and nothing else.
- *
- * This was `.plan img`, which also matched the pin markers and the 현위치 icon
- * (both are <img> inside `.plan`) — and at (0,1,1) it OUTRANKED `.pinMarker`
- * and `.hereIcon` at (0,1,0), so `width/height: auto; max-*: 100%` won and the
- * marker was sized by its hit target instead of by its own rule. That target is
- * `22px * --pin-scale + 90`, so the marker came out 82×125 on 국제선 1F and
- * 98×150 on 국내선 4F — the "why is the pin so big, and bigger on some floors"
- * the operator kept reporting (2026-09-03). It is also why BOTH earlier
- * shrinks (30×46 → 22×34) changed nothing on screen: the declarations were
- * never the ones in force. The markers are grandchildren, so the child
- * combinator excludes them and the fix needs no specificity war.
- */
 .plan > img {
   display: block;
   width: auto;
@@ -246,18 +187,6 @@
   max-height: 100%;
 }
 
-/* ── Facility hotspots ──
-   The pictogram is painted into the plan, so this adds no art of its own: a
-   transparent target CENTRED on it, carrying the marker below.
-
-   The target is the symbol's scaled footprint plus a constant 90px of slop,
-   NOT a multiple of it.
-   A pictogram is ~38px here and needs a target far larger than itself to be hit
-   on a 2160-wide kiosk, but scaling the whole target with `--pin-scale` would
-   put a 330px slab on 국내선 4F — and the plans set pictograms in rows barely
-   30px apart (the 국제선 3F shop row, the 국내선 2F 편의점 strip), where an
-   oversized target just swallows its neighbour's taps. Constant slop gives both
-   plans the same comfortable margin instead. */
 .pin {
   position: absolute;
   width: calc(22px * var(--pin-scale, 1) + 90px);
@@ -270,35 +199,6 @@
   -webkit-tap-highlight-color: transparent;
 }
 
-/*
- * The 지도 핀 the selected chip drops on a pictogram (ico-map-pin, 176×268).
- *
- * The marker stands ABOVE the pictogram, tip down: `bottom: 50%` alone would
- * rest the tip on the button's centre — the middle of the symbol — and the
- * pin's lower half would still lie over its top. The extra `24px * scale`
- * lifts the tip past the symbol's upper edge, so the plate stays fully
- * readable under it. That readability is the whole trick: the plans identify a
- * facility BY its symbol (the 남녀+휠체어 plate, the 기저귀 교환대 plate, the ₩,
- * the 커피잔), so a marker that covered any of it would take the answer away
- * and leave only a colour.
- *
- * 37×56 keeps the art's own 176:268 ratio. Still meant as a pointer rather than
- * a badge on the symbol, but large enough to find from standing distance on a
- * 2160px panel. The sequence, all against 국제선 1F at 1:1: 30×46 and 22×34
- * (neither of which ever reached the screen — see `.plan > img`), then 15×23 /
- * 19×29 / 27×41 (still too small), now 37×56. These two numbers are the whole
- * knob — keep the 176:268 ratio and nothing else has to move.
- *
- * The size is CONSTANT, on every plan (2026-09-03). The marker used to be
- * multiplied by `--pin-scale` so it kept its size RELATIVE to the symbol on the
- * large-pictogram plans — which put a 54–94px pin over 국제선 1F, 국내선 4F and
- * both 여객터미널 maps, and that read as exactly the blob the paragraph above
- * warns about (operator feedback, same date). A pointer does not need to grow
- * with what it points at; it needs to stay clearly smaller than it. So
- * `--pin-scale` now scales only what the SYMBOL's size genuinely dictates —
- * the lift below (a taller symbol needs the tip higher to clear it) and the
- * hit target above — and never the marker's own box.
- */
 .pinMarker {
   position: absolute;
   left: 50%;
@@ -306,7 +206,6 @@
   width: 37px;
   height: 56px;
   object-fit: contain;
-  /* Scales from the TIP, so a press cannot move the point being indicated. */
   transform: translateX(-50%);
   transform-origin: 50% 100%;
   filter: drop-shadow(0 2px 3px rgba(0, 0, 0, 0.3));
@@ -318,15 +217,6 @@
   transform: translateX(-50%) scale(1.18);
 }
 
-/* ── 현위치 (6219:98771) ──
-   Where the kiosk itself stands, drawn ON the map: a 41×61 pin with the label
-   centred under it. Positioned relative to `.plan` — the drawn plan, not the
-   slot — so a map's `here` is a fraction of the ARTWORK, like a pin, and lands
-   in the same place whatever aspect the plan has and wherever the slot moves.
-
-   The box IS the pin, anchored at its TIP (bottom centre): that is the point on
-   the map that means "you are here", rather than the corner of a graphic. The
-   label hangs out of flow beneath it so a long translation cannot move the pin. */
 .here {
   position: absolute;
   width: 41px;
@@ -348,8 +238,6 @@
   left: 50%;
   transform: translateX(-50%);
   margin: 0;
-  /* Figma's own red, not the kiosk orange: the marker has to read against a map
-     whose pins and route line are already coloured. */
   color: #f00;
   font-size: 30px;
   font-weight: 600;
@@ -358,59 +246,30 @@
   white-space: nowrap;
 }
 
-/* ── Zoom viewport (see MapZoomPan in the TSX) ──
-   Laid ON TOP of `.map`: same slot, plus what a pinch-zoomable box needs.
-   `touch-action: none` is what hands the two-finger gesture to our pointer
-   handlers instead of the browser; `overflow: hidden` keeps the scaled plan
-   inside the slot the page reserved for it. */
 .zoomable {
   overflow: hidden;
   touch-action: none;
   cursor: grab;
 }
 
-/* The transformed layer. Fills the slot and re-creates `.map`'s own centring
-   (top-aligned, centred) INSIDE the transform, so `.plan`'s max-width/height
-   still resolve against the slot and the unzoomed page measures exactly as it
-   did before the viewport existed. Origin 0,0 because MapZoomPan's clamp
-   arithmetic is written against the slot's top-left corner.
-
-   ★ The margin around the drawing lives HERE, not on `.map` and not on `.plan`
-   (2026-09-03, operator: the plan read as pressed against both edges of its
-   slot). Not `.plan`, because a pin is stored as a fraction of `.plan`'s box
-   and padding there would move every one of them off its pictogram. Not `.map`,
-   because MapZoomPan clamps the pan against `el.clientWidth/clientHeight` —
-   the viewport's PADDING box — so padding on the viewport would let the plan
-   be dragged that far past its own slot. On the layer, with `border-box`, the
-   layer still measures exactly the slot the clamp assumes and only `.plan`'s
-   max-width/height see the smaller box.
-
-   The plans were re-cut to their ink before import, which is what made this
-   visible at all: they used to carry their own blank paper. */
 .zoomLayer {
   width: 100%;
   height: 100%;
   box-sizing: border-box;
-  /* 80 top/bottom, 50 left/right — the vertical pair was 40 and read tight
-     against the chips above and the pills below (operator, 2026-09-03). Only
-     국내선 4F, the one upright plan, is capped by this rather than by the
-     width; every other plan is width-bound and draws exactly as it did. */
-  padding: 80px 50px;
+  padding: 40px 50px;
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   justify-content: center;
   transform-origin: 0 0;
   will-change: transform;
 }
 
-/* A floor of the building we hold no plan for — 국제선 2F today. */
 .empty {
-  position: absolute;
-  left: 170px;
-  top: 1825px;
+  position: relative;
   width: 1820px;
   margin: 0;
-  padding-top: 600px;
+  padding: 200px 0;
+  flex: 0 0 auto;
   font-size: 60px;
   font-weight: 500;
   line-height: 1.3;
@@ -418,73 +277,156 @@
   text-align: center;
 }
 
+/* ── Result cards under the map (6862:9971) ──
+   1820×384 white plates; name · category · location · phone. */
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: 52px;
+  width: 1820px;
+  flex: 0 0 auto;
+}
+
+.card {
+  box-sizing: border-box;
+  width: 1820px;
+  min-height: 384px;
+  margin: 0;
+  padding: 65px 45px;
+  border: none;
+  border-radius: 42.9px;
+  background: #fff;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 40px;
+  text-align: left;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  font-family: Pretendard, 'Noto Sans KR', sans-serif;
+}
+
+.card:active {
+  transform: scale(0.995);
+}
+
+.cardNameRow {
+  display: flex;
+  align-items: center;
+  gap: 40px;
+  min-width: 0;
+  max-width: 100%;
+}
+
+.cardName {
+  margin: 0;
+  font-size: 68px;
+  font-weight: 600;
+  line-height: 1;
+  color: #2b2b2b;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.cardCat {
+  display: flex;
+  align-items: center;
+  gap: 21.45px;
+  flex: 0 0 auto;
+  font-size: 52px;
+  font-weight: 400;
+  line-height: 1;
+  color: #999;
+  white-space: nowrap;
+}
+
+.cardDot {
+  width: 17px;
+  height: 17px;
+  border-radius: 50%;
+  background: var(--kiosk-primary, #ff7f0f);
+  flex: 0 0 auto;
+}
+
+.cardMeta {
+  margin: 0;
+  font-size: 48px;
+  font-weight: 500;
+  line-height: 1;
+  color: #999;
+}
+
 /* ────────────────────────────────────────────────────────────────────────────
  * LOW-REACH (♿) — Figma 6422:44067.
  *
- * The page turns over: the map rises to the top of the body and all THREE
- * pickers go to the foot, in the order they are used —
+ * Mode-bar + promo (JejuPageFrame lowReachModeBar + lowReachBarBanner +
+ * lowReachShift={686}): bar y0–113, banner 113–686, header at 686.
+ * Body stays unshifted; this page lays itself out:
  *
- *   1379  map (was 1697)
- *   2707  terminal pills (was 700)
- *   2947  floor row (was 940)
- *   3179  category chips (was 1172)
- *
- * All three pickers are 205 above the y-values Figma gives (2912 / 3152 / 3384),
- * for the reason the standard layout moves its map down by the same 205: the
- * chips are three rows now. Here they sit at the FOOT of the page, so the extra
- * row cannot push down — 3384 + 580 ends at 3964, off the 3840 artboard — and
- * the stack rises instead. The gaps inside it are Figma's, untouched; the map
- * above gives up the height, 1450 → 1248.
- *
- * This page carries no banner normally, so it asks the frame for one with
- * `lowReachBanner`; the frame then draws it at y0 and moves the header down as
- * usual. Figma puts the header on 577 here against the 573 it states for
- * 언어선택 — the same 4px class of hand-nudge already normalised in
- * JejuPageFrame.module.css, so the shared 573 stands.
+ *   1379  map+list scroll viewport 1820×1364 (gap 50 inside — Figma 6876:66036)
+ *   2829  pickers (terminals → floors → cats), within seated reach
+ *   2223 / 2343  right-hand ▲▼ (Figma 6876:66670 / 66671)
  * ──────────────────────────────────────────────────────────────────────────── */
-/* The map rises above the pickers here, so its box runs from y1379 down to the
-   terminal pills at y2707 — 1248 tall, leaving the same ~80px breathing space
-   the standard layout keeps under the chips. 국내선 4F is the one plan tall
-   enough to be capped by this rather than by the width, so it is the one that
-   pays for the third chip row; every other plan is width-bound long before it
-   reaches this height and draws exactly as it did. */
-.mapLow,
-.emptyLow {
+.scrollLow {
   top: 1379px;
+  bottom: auto;
+  height: 1364px;
+  gap: 50px;
+  padding-bottom: 40px;
 }
 
-.mapLow {
-  height: 1248px;
+.controlsLow {
+  position: absolute;
+  left: 170px;
+  top: 2829px;
+  width: 1820px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 70px;
 }
 
-/*
- * ★ BOTTOM-aligned here, where the standard layout is top-aligned.
- *
- * The pickers are under the map in this layout, and every plan but 국내선 4F is
- * width-bound: 국제선 1F draws about 570 tall inside a 1248 slot, so a
- * top-aligned plan left ~600px of empty paper between itself and the terminal
- * pills it belongs to — the map floated at the top of the page while the
- * controls sat at the foot (operator, 2026-09-03). Aligning to the slot's
- * BOTTOM puts the drawing directly above the row that filters it and moves the
- * slack up under the header, where there is nothing to separate.
- *
- * The standard layout keeps flex-start for the mirror-image reason: there the
- * pickers are ABOVE and the map hangs off them.
- */
-.mapLow .zoomLayer {
-  align-items: flex-end;
+.controlsLow .cats {
+  width: 100%;
 }
 
-.terminalsLow {
-  top: 2707px;
+.controlsLow .floors.floors {
+  width: 100%;
 }
 
-/* (0,3,0): must beat BOTH JejuSubTabRow's `.row` and this file's own
-   `.floors.floors` (0,2,0), whichever order the bundler emits them in. */
-.floors.floorsLow.floorsLow {
-  top: 2947px;
+/* Right-hand ▲▼ — same asset/rotation as JejuListScreen; tops from 6422:44067. */
+.scrollBtn {
+  position: absolute;
+  left: 2027px;
+  width: 85px;
+  height: 85px;
+  padding: 0;
+  border: none;
+  background: none;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
 }
 
-.catsLow {
-  top: 3179px;
+.scrollUp {
+  top: 2223px;
+}
+
+.scrollDown {
+  top: 2343px;
+}
+
+.scrollBtnImg {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  pointer-events: none;
+}
+
+.scrollUp .scrollBtnImg {
+  transform: rotate(90deg);
+}
+
+.scrollDown .scrollBtnImg {
+  transform: rotate(-90deg);
 }

@@ -53,6 +53,11 @@ export interface DetailItem {
   };
   /** Full witteria `route` — drives the airport directions panel on rentcar 상세. */
   rentcarRoute?: ShopRoute | null;
+  /**
+   * Optional floor-plan image under the description — 도와줘 '제주' 상세
+   * (6219:99127) draws the terminal/floor plan the facility was opened from.
+   */
+  mapImage?: string;
 }
 
 interface DetailState {

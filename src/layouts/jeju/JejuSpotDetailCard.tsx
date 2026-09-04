@@ -126,6 +126,7 @@ export function JejuSpotDetailCard({
     showShopRoute;
   const routeDetailCard = routeDetailFrom || isRentcar;
   const scrollInsideCard = !flow && routeDetailCard;
+  const hasFloorMap = Boolean(item.mapImage);
 
   return (
     <>
@@ -135,6 +136,7 @@ export function JejuSpotDetailCard({
           flow && styles.cardFlow,
           routeDetailCard && styles.cardRouteDetail,
           scrollInsideCard && styles.cardFixedScroll,
+          hasFloorMap && styles.cardWithMap,
         ]
           .filter(Boolean)
           .join(' ')}
@@ -150,7 +152,14 @@ export function JejuSpotDetailCard({
         {/* ── Name + gallery / rentcar route guide ── */}
         <div className={styles.head}>
           <div className={styles.nameRow}>
-            <p className={`${styles.name} ${single ? styles.nameBoxed : ''}`}>{item.name}</p>
+            {/* 사진1개 used to force a 700px centred name box; 도와줘 상세
+                (6219:99127) draws the title flush-left with the category tight
+                beside it (42.9px), so help skips that box. */}
+            <p
+              className={`${styles.name} ${single && item.from !== 'help' ? styles.nameBoxed : ''}`}
+            >
+              {item.name}
+            </p>
             {item.category && (
               <span className={styles.cat}>
                 <span className={styles.dot} />
@@ -220,6 +229,12 @@ export function JejuSpotDetailCard({
             <div className={styles.divider} />
             {item.description && <p className={styles.desc}>{item.description}</p>}
             {item.tags && <p className={styles.tags}>{item.tags}</p>}
+
+            {item.mapImage && (
+              <div className={styles.detailMap}>
+                <img src={item.mapImage} alt="" draggable={false} />
+              </div>
+            )}
 
             {/* ── Naver rating ──
                 The Figma also draws an Instagram follower count (#127K) and a blog
