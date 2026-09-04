@@ -312,6 +312,31 @@ export class FlightService {
     const json = await readPortalJson(res);
     const header = json.response?.header;
     const code = String(header?.resultCode ?? '');
+
+    // What KAC actually returned, at two levels of detail.
+    //
+    // The summary is `info` so it survives into the packaged kiosk's log file
+    // (file level is `info` there) — enough to tell "the feed is answering and
+    // returning 43 rows" from "the feed is answering with nothing", which is
+    // the question worth asking remotely.
+    //
+    // The whole body is `debug`, which the console prints in dev and the
+    // packaged build drops. 100 rows every two minutes would otherwise churn
+    // through the 10MB file rotation for data nobody is reading.
+    //
+    // Note `base` and `qs`, never `url` — that one carries the service key.
+    const items = json.response?.body?.items;
+    log.info('KAC flight response', {
+      endpoint: base,
+      query: Object.fromEntries(qs),
+      httpStatus: res.status,
+      resultCode: code || '(none)',
+      resultMsg: header?.resultMsg ?? '',
+      totalCount: json.response?.body?.totalCount ?? '(none)',
+      itemCount: Array.isArray(items) ? items.length : items ? 1 : 0,
+    });
+    log.debug('KAC flight response body', json.response?.body);
+
     if (code && code !== '00' && code !== '0000') {
       throw new Error(`KAC ${code}: ${header?.resultMsg ?? ''}`);
     }

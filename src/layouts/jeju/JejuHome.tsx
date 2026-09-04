@@ -34,6 +34,8 @@ import { weatherIconUrl, weatherIconName } from '@renderer/assets/weather';
 import type { Lang } from '@renderer/lib/i18n';
 import { t, tPlain, sheetText } from '@renderer/lib/loc';
 import { DONATION_COMING_SOON, withComingSoon } from '@shared/config/donation';
+import { WeatherEffects } from '@layouts/components/weather/WeatherEffects';
+import { useWeatherFxPreviewHandlers } from '@layouts/components/weather/useWeatherFxPreviewHandlers';
 import { JejuFlightBoard } from './JejuFlightBoard';
 import { JejuSailingBoard } from './JejuSailingBoard';
 import { JejuWeatherPanel } from './JejuWeatherPanel';
@@ -442,6 +444,10 @@ export function JejuHome({ controller }: Props): JSX.Element {
     onIdle: () => setWeatherOpen(false),
   });
   const playWeatherVideo = useWeatherVideo();
+  const weatherFx = useWeatherFxPreviewHandlers(() => {
+    playWeatherVideo();
+    setWeatherOpen((open) => !open);
+  });
   const lang = useLanguageStore((s) => s.currentLanguage);
   const setStoreQuery = useSearchStore((s) => s.setQuery);
 
@@ -597,10 +603,11 @@ export function JejuHome({ controller }: Props): JSX.Element {
           role="button"
           aria-label="제주 날씨"
           aria-expanded={weatherOpen}
-          onClick={() => {
-            playWeatherVideo();
-            setWeatherOpen((open) => !open);
-          }}
+          onClick={weatherFx.onClick}
+          onPointerDown={weatherFx.onPointerDown}
+          onPointerUp={weatherFx.onPointerUp}
+          onPointerLeave={weatherFx.onPointerLeave}
+          onPointerCancel={weatherFx.onPointerCancel}
         >
           <span className={styles.weatherTemp}>
             {weather ? `${Math.round(weather.tempC)}˚` : '--˚'}
@@ -788,6 +795,8 @@ export function JejuHome({ controller }: Props): JSX.Element {
           />
         </button>
       )}
+
+      <WeatherEffects />
 
       {/* 날씨 panel — the weather card's overlay. Its layer is z-index 20, over
           the whole (unlayered) home screen; the keyboard below is 2000, so it

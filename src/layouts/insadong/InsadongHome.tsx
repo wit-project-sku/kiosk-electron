@@ -14,6 +14,8 @@ import { useRotatingBanner } from '@renderer/hooks/useRotatingBanner';
 import { useHasDonationTile, useOrderedTiles, type TileKey } from '@renderer/lib/buttonLayout';
 import { DONATION_COMING_SOON, withComingSoon } from '@shared/config/donation';
 import { t } from '@renderer/lib/loc';
+import { WeatherEffects } from '@layouts/components/weather/WeatherEffects';
+import { useWeatherFxPreviewHandlers } from '@layouts/components/weather/useWeatherFxPreviewHandlers';
 import { FloatingKeyboard } from './keyboard/FloatingKeyboard';
 import { HangulComposer } from './keyboard/hangul';
 import type { KeyAction } from './keyboard/VirtualKeyboard';
@@ -187,6 +189,7 @@ export function InsadongHome({ controller }: InsadongHomeProps): JSX.Element {
   const { navigate, startPhoto, kioskId } = controller;
   const weather = useWeatherStore((s) => s.weather);
   const playWeatherVideo = useWeatherVideo();
+  const weatherFx = useWeatherFxPreviewHandlers(playWeatherVideo);
   const lang = useLanguageStore((s) => s.currentLanguage);
 
   // Sheet-driven (Localization_Insa): NoticeContent = body, Notice = vertical badge.
@@ -301,7 +304,11 @@ export function InsadongHome({ controller }: InsadongHomeProps): JSX.Element {
           <button
             type="button"
             className={styles.weather}
-            onClick={playWeatherVideo}
+            onClick={weatherFx.onClick}
+            onPointerDown={weatherFx.onPointerDown}
+            onPointerUp={weatherFx.onPointerUp}
+            onPointerLeave={weatherFx.onPointerLeave}
+            onPointerCancel={weatherFx.onPointerCancel}
             aria-label="오늘 날씨 영상"
           >
             {weatherSrc && <img className={styles.weatherGlyph} src={weatherSrc} alt="" draggable={false} />}
@@ -376,6 +383,8 @@ export function InsadongHome({ controller }: InsadongHomeProps): JSX.Element {
           </button>
         )}
       </div>
+
+      <WeatherEffects />
 
       <InsadongLeftNav
         onHome={() => navigate('home', 'Home')}

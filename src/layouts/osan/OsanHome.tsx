@@ -1,6 +1,8 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import type { KioskScreenId, SupportedLanguage } from '@shared/types/kiosk';
 import { SearchIcon } from '@layouts/components/SearchIcon';
+import { WeatherEffects } from '@layouts/components/weather/WeatherEffects';
+import { useWeatherFxPreviewHandlers } from '@layouts/components/weather/useWeatherFxPreviewHandlers';
 import type { KioskController } from '@renderer/hooks/useKioskController';
 import { trackEvent } from '@renderer/lib/analytics';
 import { useLanguageStore } from '@renderer/store/languageStore';
@@ -225,6 +227,7 @@ export function OsanHome({ controller }: OsanHomeProps): JSX.Element {
   const { navigate, startPhoto, kioskId } = controller;
   const weather = useWeatherStore((s) => s.weather);
   const playWeatherVideo = useWeatherVideo();
+  const weatherFx = useWeatherFxPreviewHandlers(playWeatherVideo);
   const lang = useLanguageStore((s) => s.currentLanguage);
 
   const noticeLines = parseNotice(t('NoticeContent', lang));
@@ -327,7 +330,11 @@ export function OsanHome({ controller }: OsanHomeProps): JSX.Element {
             <button
               type="button"
               className={styles.weather}
-              onClick={playWeatherVideo}
+              onClick={weatherFx.onClick}
+              onPointerDown={weatherFx.onPointerDown}
+              onPointerUp={weatherFx.onPointerUp}
+              onPointerLeave={weatherFx.onPointerLeave}
+              onPointerCancel={weatherFx.onPointerCancel}
               aria-label="오늘 날씨 영상"
             >
               {weatherSrc && (
@@ -461,6 +468,8 @@ export function OsanHome({ controller }: OsanHomeProps): JSX.Element {
           </button>
         )}
       </div>
+
+      <WeatherEffects />
 
       {/* Left nav — home + back */}
       <OsanLeftNav

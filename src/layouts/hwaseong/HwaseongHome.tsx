@@ -12,6 +12,8 @@ import { useApiTileRows, useHasDonationTile, type TileKey } from '@renderer/lib/
 import { DONATION_COMING_SOON, withComingSoon } from '@shared/config/donation';
 import { t } from '@renderer/lib/loc';
 import { SearchIcon } from '@layouts/components/SearchIcon';
+import { WeatherEffects } from '@layouts/components/weather/WeatherEffects';
+import { useWeatherFxPreviewHandlers } from '@layouts/components/weather/useWeatherFxPreviewHandlers';
 import { FloatingKeyboard } from '../insadong/keyboard/FloatingKeyboard';
 
 /** Search-bar language button → the current language's display code. */
@@ -189,6 +191,7 @@ function TileView({ tile, label, onClick, disabled }: { tile: HomeTile; label: s
 export function HwaseongHome({ controller }: Props): JSX.Element {
   const weather = useWeatherStore((s) => s.weather);
   const playWeatherVideo = useWeatherVideo();
+  const weatherFx = useWeatherFxPreviewHandlers(playWeatherVideo);
   const today = useMemo(() => formatDate(new Date()), []);
   const lang = useLanguageStore((s) => s.currentLanguage);
   // Sheet-driven (Localization_Hwaseong): NoticeContent = body, Notice = vertical badge.
@@ -318,7 +321,11 @@ export function HwaseongHome({ controller }: Props): JSX.Element {
             className={styles.weatherCard}
             role="button"
             aria-label="오늘 날씨 영상"
-            onClick={playWeatherVideo}
+            onClick={weatherFx.onClick}
+            onPointerDown={weatherFx.onPointerDown}
+            onPointerUp={weatherFx.onPointerUp}
+            onPointerLeave={weatherFx.onPointerLeave}
+            onPointerCancel={weatherFx.onPointerCancel}
           >
             {weatherIcon && (
               <img src={weatherIcon} alt="" className={styles.weatherIconImg} draggable={false} />
@@ -422,6 +429,8 @@ export function HwaseongHome({ controller }: Props): JSX.Element {
             )}
         </div>
       </div>
+
+      <WeatherEffects />
 
       <HwaseongLeftNav onHome={() => controller.navigate('home')} />
 
