@@ -62,6 +62,11 @@ export interface DetailItem {
   rentcarHouse?: boolean;
   /** Chip label for `rentcarHouse` (e.g. 공항 내 데스크). */
   rentcarBadge?: string;
+  /**
+   * Optional floor-plan image under the description — 도와줘 '제주' 상세
+   * (6219:99127) draws the terminal/floor plan the facility was opened from.
+   */
+  mapImage?: string;
 }
 
 interface DetailState {

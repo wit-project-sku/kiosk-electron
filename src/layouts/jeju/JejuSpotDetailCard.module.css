@@ -143,6 +143,45 @@
   height: 685px;
 }
 
+/* 도와줘 상세 floor plan under the description (6219:99127 / 6876:63256). */
+.detailMap {
+  width: 100%;
+  aspect-ratio: 1820 / 813;
+  border-radius: 58px;
+  overflow: hidden;
+  background: #fff;
+  flex: 0 0 auto;
+}
+
+.detailMap img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+/* Help detail with an in-card floor plan — grow past the default 2133 plate. */
+.cardWithMap {
+  height: auto;
+  min-height: 2133px;
+  max-height: 2906px;
+  overflow-x: hidden;
+  overflow-y: auto;
+}
+
+.cardWithMap::-webkit-scrollbar {
+  width: 34.32px;
+}
+
+.cardWithMap::-webkit-scrollbar-thumb {
+  background: var(--kiosk-primary, #ff7f0f);
+  border-radius: 17.16px;
+}
+
+.cardWithMap::-webkit-scrollbar-track {
+  background: transparent;
+}
+
 /* The other difference: 사진1개 puts the name in a fixed 700px box and centres
    the text in it, where 사진4개 lets it sit flush against the content edge.
    Compare Figma's own renders — 을지정육 (6212:55208) starts at the card's left

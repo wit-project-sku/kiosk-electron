@@ -149,6 +149,7 @@ export function JejuSpotDetailCard({
     ((isRentcar && (showShuttleDirections || showFerryDirections || route)) || showShopRoute);
   const routeDetailCard = routeDetailFrom || isRentcar;
   const scrollInsideCard = !flow && routeDetailCard;
+  const hasFloorMap = Boolean(item.mapImage);
 
   /** Phone save QR — only when the 가는 방법 panel is shown (not 렌터카하우스). */
   const saveQrUrl = useMemo(() => {
@@ -181,6 +182,7 @@ export function JejuSpotDetailCard({
           flow && styles.cardFlow,
           routeDetailCard && styles.cardRouteDetail,
           scrollInsideCard && styles.cardFixedScroll,
+          hasFloorMap && styles.cardWithMap,
         ]
           .filter(Boolean)
           .join(' ')}
@@ -271,6 +273,12 @@ export function JejuSpotDetailCard({
             <div className={styles.divider} />
             {item.description && <p className={styles.desc}>{item.description}</p>}
             {item.tags && <p className={styles.tags}>{item.tags}</p>}
+
+            {item.mapImage && (
+              <div className={styles.detailMap}>
+                <img src={item.mapImage} alt="" draggable={false} />
+              </div>
+            )}
 
             {/* ── Naver rating ──
                 The Figma also draws an Instagram follower count (#127K) and a blog
