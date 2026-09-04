@@ -332,9 +332,20 @@ export function JejuExchange({ controller }: Props): JSX.Element {
           </div>
 
           {/* Closes whichever overlay is open. Sits under them, over everything
-              else, so the fields below can't be tapped through it. */}
+              else, so the fields below can't be tapped through it.
+
+              `data-pad-dismiss` is what the barrier-free keypad's ✕ presses
+              while either overlay is up, so ✕ closes the calculator's keypad or
+              the currency picker before it means "leave this screen". See
+              keypad/useJejuKeypad. */}
           {overlayOpen && (
-            <button type="button" className={styles.backdrop} aria-label="닫기" onClick={closeOverlays} />
+            <button
+              type="button"
+              className={styles.backdrop}
+              aria-label="닫기"
+              data-pad-dismiss
+              onClick={closeOverlays}
+            />
           )}
 
           {/* ── 금액 ── */}
@@ -415,15 +426,21 @@ export function JejuExchange({ controller }: Props): JSX.Element {
                     key={row}
                     className={`${styles.keyRow} ${row === 1 ? styles.keyRowTall : ''}`}
                   >
+                    {/* `data-vk-digit` — the barrier-free keypad's own number
+                        keys type straight into this one, the same marker the
+                        search keyboard carries. A visitor entering an amount
+                        has a number pad under their hand; making them arrow
+                        across this grid instead would be absurd. See
+                        jeju/keypad/useJejuKeypad. */}
                     {KEYS.slice(row * 3, row * 3 + 3).map((k) => (
-                      <button key={k} type="button" className={styles.key} onClick={() => pressKey(k)}>
+                      <button key={k} type="button" className={styles.key} data-vk-digit={k} onClick={() => pressKey(k)}>
                         {k}
                       </button>
                     ))}
                   </div>
                 ))}
                 <div className={`${styles.keyRow} ${styles.keyRowShort}`}>
-                  <button type="button" className={styles.key} onClick={() => pressKey('0')}>
+                  <button type="button" className={styles.key} data-vk-digit="0" onClick={() => pressKey('0')}>
                     0
                   </button>
                   <button type="button" className={styles.key} onClick={backspace} aria-label="지우기">

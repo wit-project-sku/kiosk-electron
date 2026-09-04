@@ -392,6 +392,7 @@ export function JejuEvents({ controller }: Props): JSX.Element {
                   className={styles.modalClose}
                   onClick={() => setStatus('idle')}
                   aria-label={pick(CLOSE_LABEL, lang)}
+                  data-pad-dismiss
                 >
                   {closeIcon && (
                     <img

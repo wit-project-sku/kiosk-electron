@@ -980,6 +980,7 @@ export function JejuHanbokSelect({
                 className={shared.privacyClose}
                 onClick={() => setPrivacyOpen(false)}
                 aria-label="닫기"
+                data-pad-dismiss
               >
                 <svg
                   className={shared.privacyCloseIcon}
