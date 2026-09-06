@@ -16,6 +16,13 @@ const AIRPORT_KIOSK = 'W006';
 const AIRPORT_CODE = 'CJU';
 const PAGE_SIZE = 100;
 const MAX_PAGES = 10;
+/**
+ * Cold-start board window (hours ahead of "now"). A first install has no SQLite
+ * cache, so fetching 지금−30분…23:59 can mean many KAC pages before anything
+ * paints. Cap the first successful fetch at this horizon, emit with gates
+ * already merged, then immediately expand to end-of-day.
+ */
+const INITIAL_WINDOW_HOURS = 3;
 
 /** 15158625 GW: 출발 오퍼레이션은 루트(`/flight-status`)가 아니라 `/depart`. */
 const DEP_URL = 'https://apis.data.go.kr/B551178/flight-status/depart';
@@ -78,12 +85,21 @@ interface PortalResponse {
  * caches them, and refreshes every two minutes. Network stays in main; the
  * renderer only reads the snapshot over IPC. Gated to W006 (제주공항) so the
  * passenger terminal kiosk does not spend the shared 5,000/day quota.
+ *
+ * Cold start (no cache): first pull is limited to the next
+ * {@link INITIAL_WINDOW_HOURS}, then expands to 23:59 once that snapshot emits.
  */
 export class FlightService {
   private current: JejuFlightSnapshot | null = null;
   private timer: ReturnType<typeof setInterval> | null = null;
   private cacheHydrated = false;
   private warnedNoKey = false;
+  /**
+   * True until the first successful network snapshot (or a cache hydrate).
+   * While true, `refresh` asks KAC for only the next {@link INITIAL_WINDOW_HOURS}
+   * instead of the full day, then expands immediately afterward.
+   */
+  private useNarrowWindow = true;
   private apronMaps: StandMaps | null = null;
   /** `/info` gate index — fills KE (and others) that the apron feed omits. */
   private infoMaps: StandMaps | null = null;
@@ -132,6 +148,9 @@ export class FlightService {
         departures: data.departures,
         arrivals: data.arrivals,
       };
+      // Cached rows are already a full (or prior) day — skip the narrow first pass
+      // so a refresh does not shrink the board back to the next few hours.
+      this.useNarrowWindow = false;
       this.emit();
     }
   }
@@ -168,7 +187,8 @@ export class FlightService {
       return;
     }
 
-    const { ymd, fromHm, toHm } = seoulWindow();
+    const narrow = this.useNarrowWindow;
+    const { ymd, fromHm, toHm } = seoulWindow(narrow ? INITIAL_WINDOW_HOURS : undefined);
 
     try {
       const infoPromise = this.ensureInfoMaps(serviceKey, ymd);
@@ -225,12 +245,17 @@ export class FlightService {
       };
       this.current = snapshot;
       this.cache.upsert(CACHE_KEY, snapshot as unknown as Record<string, unknown>, 'kac-flights');
+      // Narrow only until the first successful snapshot — failures keep retrying
+      // the short window so a cold start does not jump to a full-day pull.
+      this.useNarrowWindow = false;
       this.emit();
       const withGate = departures.filter((d) => d.gate).length;
       const withBelt = arrivals.filter((a) => a.belt).length;
       log.info('Jeju flights updated', {
         departures: departures.length,
         arrivals: arrivals.length,
+        window: `${fromHm}-${toHm}`,
+        narrow,
         infoGates: this.infoMaps?.gates.size ?? 0,
         detailBelts: this.detailMaps?.belts.size ?? 0,
         apronGates: this.apronMaps?.gates.size ?? 0,
@@ -238,6 +263,12 @@ export class FlightService {
         matchedGates: withGate,
         matchedBelts: withBelt,
       });
+      // Cold start showed the near horizon with stands already filled; expand to
+      // 23:59 now so the 운항정보 list is complete without waiting for the 2-min tick.
+      // `/info`·`/detail`·apron maps are still warm, so this pass is mostly dep/arr pages.
+      if (narrow) {
+        await this.refresh();
+      }
     } catch (error) {
       log.warn('Jeju flight fetch failed (keeping last snapshot)', error);
     }
@@ -558,8 +589,12 @@ export class FlightService {
   }
 }
 
-/** 오늘(서울) 기준, 예정시각 from_time ~ 23:59 — 지난 편은 30분 버퍼로 제외. */
-function seoulWindow(): { ymd: string; fromHm: string; toHm: string } {
+/**
+ * 오늘(서울) 기준 예정시각 창.
+ * - from: 지금 − 30분 (지난 편 버퍼)
+ * - to: `hoursAhead`가 있으면 지금 + N시간 (당일 23:59로 클램프), 없으면 23:59
+ */
+function seoulWindow(hoursAhead?: number): { ymd: string; fromHm: string; toHm: string } {
   const now = new Date();
   const parts = new Intl.DateTimeFormat('en-GB', {
     timeZone: 'Asia/Seoul',
@@ -574,10 +609,17 @@ function seoulWindow(): { ymd: string; fromHm: string; toHm: string } {
   const ymd = `${grab('year')}${grab('month')}${grab('day')}`;
   const hour = Number(grab('hour'));
   const minute = Number(grab('minute'));
-  const fromMin = Math.max(0, hour * 60 + minute - 30);
-  const fromH = String(Math.floor(fromMin / 60)).padStart(2, '0');
-  const fromM = String(fromMin % 60).padStart(2, '0');
-  return { ymd, fromHm: `${fromH}${fromM}`, toHm: '2359' };
+  const nowMin = hour * 60 + minute;
+  const fromMin = Math.max(0, nowMin - 30);
+  const endOfDay = 23 * 60 + 59;
+  const toMin =
+    hoursAhead != null ? Math.min(endOfDay, nowMin + hoursAhead * 60) : endOfDay;
+  const hm = (totalMin: number): string => {
+    const h = String(Math.floor(totalMin / 60)).padStart(2, '0');
+    const m = String(totalMin % 60).padStart(2, '0');
+    return `${h}${m}`;
+  };
+  return { ymd, fromHm: hm(fromMin), toHm: hm(toMin) };
 }
 
 async function readPortalJson(res: Response): Promise<PortalResponse> {

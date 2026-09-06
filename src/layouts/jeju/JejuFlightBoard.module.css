@@ -96,6 +96,9 @@
 
 .empty {
   position: absolute;
+  /* Past the 출발시각 axis (410) so the long loading/empty line sits in the
+     open data band rather than crowding the 운항 정보 title. */
+  left: 780px;
   top: 118px;
   font-size: 40px;
   font-weight: 400;

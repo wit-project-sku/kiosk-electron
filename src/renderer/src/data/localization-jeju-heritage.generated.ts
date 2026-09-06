@@ -7,8 +7,8 @@ import type { LangText } from './types';
  *  LOCALIZATION_JEJU by loc.ts; mirrors the runtime split in
  *  LocalizationSyncParser.VENUE_MASCOTS. */
 export const LOCALIZATION_JEJU_HERITAGE_OVERRIDES: Record<string, LangText> = {
-  "MainButton_Greeting": {"ko":"안녕 '유산'","en":"Hello 'Jeju'","ja":"こんにちは 'Jeju'","zh":"你好 'Jeju'","vi":"Chào 'Jeju'","th":"สวัสดี 'Jeju'","ru":"Привет, 'Jeju'","id":"Halo 'Jeju'"},
+  "MainButton_Greeting": {"ko":"안녕 '유산'","en":"Hello 'Yusan'","ja":"こんにちは 'Jeju'","zh":"你好 'Yusan'","vi":"Chào 'Yusan'","th":"สวัสดี 'Yusan'","ru":"Привет, 'Yusan'","id":"Halo 'Yusan'"},
   "MainButton_Greeting_Subtext": {"ko":"유산 소개","en":"Introduction to YUSAN","ja":"YUSANの紹介","zh":"YUSAN介绍","vi":"Giới thiệu về YUSAN","th":"แนะนำ YUSAN","ru":"Знакомство с YUSAN","id":"Pengenalan YUSAN"},
-  "MainButton_ToHelp": {"ko":"도와줘 '유산'","en":"Help","ja":"ヘルプとサービスです","zh":"请帮忙","vi":"Giúp với 'Jeju'","th":"ช่วยด้วย 'Jeju'","ru":"Помощь","id":"Tolong 'Jeju'"},
+  "MainButton_ToHelp": {"ko":"도와줘 '유산'","en":"Help 'Yusan'","ja":"ヘルプとサービスです","zh":"请帮忙","vi":"Giúp với 'Yusan'","th":"ช่วยด้วย 'Yusan'","ru":"Помощь","id":"Tolong 'Yusan'"},
   "Photo_SelectTogether": {"ko":"사진촬영 (with '유산')","en":"With ‘Yusan’","ja":"写真撮影（with '遺産'）","zh":"照片拍摄（与“流产”有关）","vi":"Buổi chụp ảnh (với chủ đề 'Sảy thai')","th":"ถ่ายภาพ (กับ 'การแท้งบุตร')","ru":"Фотосессия (с фильмом «Выкидыш»)","id":"Sesi foto (dengan 'Keguguran')"},
 };

@@ -613,6 +613,7 @@ export function JejuAiDetail({ controller }: Props): JSX.Element {
     const nextItem = detailFor(i + 1);
     return {
       from: 'ai_detail',
+      shopId: shop.id,
       // JejuDetail shows this as the header SUBTITLE for AI-course spots, so it
       // carries the course + day rather than a generic label.
       title: courseDayTitle,

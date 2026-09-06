@@ -22,6 +22,7 @@
  */
 import { useMemo } from 'react';
 import type { Lang } from '@renderer/lib/i18n';
+import { sheetText } from '@renderer/lib/loc';
 import { useFlightStore } from '@renderer/store/flightStore';
 import type { RawJejuArrival, RawJejuDeparture } from '@shared/types/jejuFlight';
 
@@ -108,8 +109,9 @@ const STATUS_ALIASES: Record<string, FlightStatusId> = {
   '출발': 'departed', departed: 'departed', gone: 'departed',
   // arrived
   '도착': 'arrived', '착륙': 'arrived', arrived: 'arrived', landed: 'arrived',
-  // cancelled
-  '결항': 'cancelled', '취소': 'cancelled', cancelled: 'cancelled', canceled: 'cancelled',
+  // cancelled — 한국공항공사 also emits 사전결항 (advance cancel) on arrivals
+  '결항': 'cancelled', '사전결항': 'cancelled', '취소': 'cancelled',
+  cancelled: 'cancelled', canceled: 'cancelled',
 };
 
 /**
@@ -121,11 +123,18 @@ const STATUS_ALIASES: Record<string, FlightStatusId> = {
  *    en route — rows 4 onward have no 현황 text at all.
  *  - a word we do not recognise → `scheduled`. Showing a neutral 출발예정 for an
  *    unknown status is safe; guessing 결항 or 지연 for one is not.
+ *
+ * Exception: any feed string that contains 결항 (사전결항, 기상결항, …) is
+ * cancelled even when it is not an exact alias — falling through to 출발예정
+ * would hide a real disruption.
  */
 export function normalizeFlightStatus(raw: string | undefined): FlightStatusId | undefined {
   if (!raw || !raw.trim()) return undefined;
   const key = raw.replace(/\s+/g, '').toLowerCase();
-  return STATUS_ALIASES[key] ?? 'scheduled';
+  const exact = STATUS_ALIASES[key];
+  if (exact) return exact;
+  if (key.includes('결항') || key.includes('cancel')) return 'cancelled';
+  return 'scheduled';
 }
 
 export function flightStatusLabel(status: FlightStatusId, lang: Lang): string {
@@ -154,8 +163,8 @@ const KIND_LABEL: Record<FlightKind, Partial<Record<Lang, string>>> = {
 };
 
 export function flightKindLabel(kind: FlightKind, lang: Lang): string {
-  const map = KIND_LABEL[kind];
-  return map[lang] ?? map.ko ?? kind;
+  const key = kind === 'international' ? 'Help_International' : 'Help_Domestic';
+  return sheetText(key, lang, KIND_LABEL[kind]);
 }
 
 /** What every flight row carries, whichever direction it is going. */

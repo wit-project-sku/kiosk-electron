@@ -98,7 +98,7 @@ import 'swiper/css/free-mode';
 import { usePhotoChrome } from '../photo/photoChrome';
 import { HANBOK_INFO, PRIVACY } from '../photo/photoTexts';
 import hanbokInfo from '@renderer/assets/photos/insadong/hanbok/hanbok-info.png';
-import { t } from '@renderer/lib/loc';
+import { t, sheetText } from '@renderer/lib/loc';
 import type { CaptureMode } from '../photo/HanbokSelect';
 import { useOutfitStore } from '@renderer/store/outfitStore';
 import type { PickerOutfit } from '@renderer/store/outfitStore';
@@ -114,7 +114,7 @@ import {
   outfitSubCategoryLabel,
 } from '@renderer/lib/outfitCategories';
 import { cameraIconUrl } from '@renderer/assets/icons/insadong/camera';
-import { pick, useLang } from '@renderer/lib/i18n';
+import { pick, useLang, type Lang } from '@renderer/lib/i18n';
 import { useAccessibilityStore } from '@renderer/store/accessibilityStore';
 import { jejuMascot, type JejuMascot } from './jejuMascot';
 /* The privacy modal and the camera-direction popup are identical on every
@@ -319,15 +319,18 @@ const NO_BACKGROUNDS = {
 };
 
 /**
- * The ♿ mode bar's own line. Korean only, and a literal rather than a t() call,
- * because that is what every other 제주 page draws (JejuPageFrame.modeBar,
- * JejuHome.modeBar) — the sheet's BarrierFree_Title row has the same Korean and
- * empty cells in all seven other languages, so routing it through t() would
- * blank the bar for a non-Korean visitor. Figma spells it 베리어프리; the
- * shipped pages spell it 배리어프리, and one page reading differently from the
- * rest is worse than either spelling.
+ * ♿ mode bar — Localization_Jeju `BarrierFree_Title` (all eight languages).
  */
-const BARRIER_FREE = '지금은 배리어프리 모드입니다.';
+const BARRIER_FREE: Partial<Record<Lang, string>> = {
+  ko: '지금은 배리어프리 모드입니다.',
+  en: 'Currently in Barrier-Free Mode.',
+  ja: '現在はバリアフリーモードです。',
+  zh: '现在是无障碍模式。',
+  vi: 'Hiện tại là chế độ không rào cản.',
+  th: 'ขณะนี้อยู่ในโหมดไร้อุปสรรค',
+  ru: 'В настоящее время используется безбарьерный режим.',
+  id: 'Saat ini dalam mode bebas hambatan.',
+};
 
 const PRIVACY_LINK = {
   ko: '[개인정보처리방침]',
@@ -597,7 +600,7 @@ export function JejuHanbokSelect({
         {pageBg && <img src={pageBg} alt="" className={styles.bg} draggable={false} />}
         {/* This page has no low-reach frame of its own — it is a scrolling text
             page — so ♿ gives it the mode bar and clears the bar's 113. */}
-        {lowReach && <div className={styles.modeBar}>{BARRIER_FREE}</div>}
+        {lowReach && <div className={styles.modeBar}>{sheetText('BarrierFree_Title', lang, BARRIER_FREE)}</div>}
         <Header
           title={t('MainButton_Hanbok', lang)}
           onHome={onHome}
@@ -676,7 +679,7 @@ export function JejuHanbokSelect({
     >
       {pageBg && <img src={pageBg} alt="" className={styles.bg} draggable={false} />}
 
-      {lowReach && <div className={styles.modeBar}>{BARRIER_FREE}</div>}
+      {lowReach && <div className={styles.modeBar}>{sheetText('BarrierFree_Title', lang, BARRIER_FREE)}</div>}
 
       {/* Title only — the description row is dropped on this page by request
           (2026-09-03); without the flag JejuHeader would draw the sheet's

@@ -10,18 +10,38 @@
  * antialiasing.) Only the page header changes, so the callers own that and
  * share this. Same split Osan uses with OsanSpotDetailCard.
  */
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { QRCodeSVG } from 'qrcode.react';
 import type { DetailItem } from '@renderer/store/detailStore';
-import { type Lang } from '@renderer/lib/i18n';
+import { pick, type Lang } from '@renderer/lib/i18n';
 import { padImages, shopOpenTime } from '@renderer/lib/shops';
+import { buildDetailCardSaveUrlForQr } from '@renderer/lib/detailCardSave';
 import { jejuIconUrl } from '@renderer/assets/icons/jeju';
+import mapRentalcarHouse from '@renderer/assets/photos/jeju/help/map-rentalcar-house.png';
 import { ImageLightbox } from '../components/ImageLightbox';
 import { JejuAirportDirections } from './JejuAirportDirections';
 import styles from './JejuSpotDetailCard.module.css';
 
 /** Photo slots in the gallery — the Figma draws a fixed 2×2. */
 const PHOTOS = 4;
+
+/**
+ * Pin tip on `map-rentalcar-house` (fractions of the map box).
+ * Aimed at GATE 2 — tweak these freely; the tip sits on (x, y).
+ */
+const RENTCAR_HOUSE_PIN = { x: 0.405, y: 0.35 };
+
+/** Replaces the km directions heading on 렌터카하우스 detail. */
+const RENTCAR_HOUSE_HEADING = {
+  ko: '1층 2번 게이트',
+  en: '1F Gate 2',
+  ja: '1階2番ゲート',
+  zh: '1层2号门',
+  vi: 'Cổng số 2 tầng 1',
+  th: 'ประตู 2 ชั้น 1',
+  ru: 'Выход 2, 1-й этаж',
+  id: 'Gerbang 2 Lantai 1',
+};
 
 /**
  * One 주소/영업시간/전화 icon: an 85×85 slot with the glyph drawn at the size
@@ -86,6 +106,7 @@ export function JejuSpotDetailCard({
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
 
   const isRentcar = item.from === 'rentcar' && item.rentcarGuide != null;
+  const isRentcarHouse = isRentcar && !!item.rentcarHouse;
   const single = !isRentcar && gallery === 'single';
   // Real photos drive the lightbox and the tap targets; the grid is padded to
   // its slot count with the shared no-image placeholder so an item with no
@@ -104,11 +125,12 @@ export function JejuSpotDetailCard({
   /** 사진1개 draws exactly one slot; 사진4개 always draws four. */
   const slots = single ? 1 : PHOTOS;
   const photos = padImages(realPhotos, jejuIconUrl('noimage'), slots);
+  const mapPin = jejuIconUrl('ico-map-pin');
 
   const guide = item.rentcarGuide;
   const route = item.rentcarRoute;
-  const showShuttleDirections = isRentcar && guide?.isShuttle;
-  const showFerryDirections = isRentcar && guide?.isFerry && !guide?.isShuttle;
+  const showShuttleDirections = isRentcar && !isRentcarHouse && guide?.isShuttle;
+  const showFerryDirections = isRentcar && !isRentcarHouse && guide?.isFerry && !guide?.isShuttle;
   // AI 코스·뭐먹지·뭐사지·숙박·검색 상세 — 설명·태그·평점을 directions 위에 표시.
   const routeDetailFrom =
     item.from === 'eat' ||
@@ -121,12 +143,36 @@ export function JejuSpotDetailCard({
     typeof route.distanceKm === 'number' &&
     Number.isFinite(route.distanceKm) &&
     routeDetailFrom;
+  // 렌터카하우스 skips the km directions panel — floor plan map instead.
   const showDirectionsPanel =
-    (isRentcar && (showShuttleDirections || showFerryDirections || route)) ||
-    showShopRoute;
+    !isRentcarHouse &&
+    ((isRentcar && (showShuttleDirections || showFerryDirections || route)) || showShopRoute);
   const routeDetailCard = routeDetailFrom || isRentcar;
   const scrollInsideCard = !flow && routeDetailCard;
   const hasFloorMap = Boolean(item.mapImage);
+
+  /** Phone save QR — only when the 가는 방법 panel is shown (not 렌터카하우스). */
+  const saveQrUrl = useMemo(() => {
+    if (!showDirectionsPanel || item.shopId == null) return null;
+    return buildDetailCardSaveUrlForQr({
+      lang,
+      from: item.from,
+      shopId: item.shopId,
+      showShuttle: showShuttleDirections || undefined,
+      showFerry: showFerryDirections || undefined,
+      ferryModeLabel: showFerryDirections ? guide?.modeLabel : undefined,
+      route: route ?? null,
+    });
+  }, [
+    showDirectionsPanel,
+    lang,
+    item.from,
+    item.shopId,
+    showShuttleDirections,
+    showFerryDirections,
+    guide?.modeLabel,
+    route,
+  ]);
 
   return (
     <>
@@ -151,20 +197,18 @@ export function JejuSpotDetailCard({
       >
         {/* ── Name + gallery / rentcar route guide ── */}
         <div className={styles.head}>
-          <div className={styles.nameRow}>
-            {/* 사진1개 used to force a 700px centred name box; 도와줘 상세
-                (6219:99127) draws the title flush-left with the category tight
-                beside it (42.9px), so help skips that box. */}
-            <p
-              className={`${styles.name} ${single && item.from !== 'help' ? styles.nameBoxed : ''}`}
-            >
-              {item.name}
-            </p>
-            {item.category && (
-              <span className={styles.cat}>
-                <span className={styles.dot} />
-                {item.category}
-              </span>
+          <div className={`${styles.nameRow} ${item.rentcarBadge ? styles.nameRowWithBadge : ''}`}>
+            <div className={styles.nameRowLeft}>
+              <p className={`${styles.name} ${single ? styles.nameBoxed : ''}`}>{item.name}</p>
+              {item.category && (
+                <span className={styles.cat}>
+                  <span className={styles.dot} />
+                  {item.category}
+                </span>
+              )}
+            </div>
+            {item.rentcarBadge && (
+              <span className={styles.houseBadge}>{item.rentcarBadge}</span>
             )}
           </div>
 
@@ -272,6 +316,35 @@ export function JejuSpotDetailCard({
           </>
         )}
 
+        {isRentcarHouse && (
+          <>
+            <div className={styles.divider} />
+            <div className={styles.houseMap}>
+              <p className={styles.houseMapHeading}>{pick(RENTCAR_HOUSE_HEADING, lang)}</p>
+              <div className={styles.houseMapFrame}>
+                <img
+                  src={mapRentalcarHouse}
+                  alt=""
+                  className={styles.houseMapImg}
+                  draggable={false}
+                />
+                {mapPin && (
+                  <img
+                    src={mapPin}
+                    alt=""
+                    className={styles.houseMapPin}
+                    style={{
+                      left: `${RENTCAR_HOUSE_PIN.x * 100}%`,
+                      top: `${RENTCAR_HOUSE_PIN.y * 100}%`,
+                    }}
+                    draggable={false}
+                  />
+                )}
+              </div>
+            </div>
+          </>
+        )}
+
         {showDirectionsPanel && (route || showFerryDirections) && (
           <>
             <div className={styles.divider} />
@@ -283,6 +356,19 @@ export function JejuSpotDetailCard({
                 showShuttle={showShuttleDirections}
                 showFerry={showFerryDirections}
                 ferryModeLabel={guide?.modeLabel}
+                qr={
+                  saveQrUrl ? (
+                    <QRCodeSVG
+                      value={saveQrUrl}
+                      size={145}
+                      level="M"
+                      includeMargin
+                      bgColor="#ffffff"
+                      fgColor="#000000"
+                      style={{ width: 145, height: 145, display: 'block' }}
+                    />
+                  ) : undefined
+                }
               />
             </div>
           </>

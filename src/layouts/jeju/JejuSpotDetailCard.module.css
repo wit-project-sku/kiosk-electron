@@ -54,6 +54,43 @@
   min-width: 0;
 }
 
+/* 렌터카하우스 — name/category left, list chip (공항 내 데스크) flush right. */
+.nameRowWithBadge {
+  width: 100%;
+  justify-content: space-between;
+  gap: 24px;
+}
+
+.nameRowLeft {
+  display: flex;
+  align-items: center;
+  gap: 42.9px;
+  min-width: 0;
+  flex: 1 1 auto;
+}
+
+.nameRowLeft .name {
+  min-width: 0;
+}
+
+.houseBadge {
+  flex: 0 0 auto;
+  box-sizing: border-box;
+  width: 395px;
+  height: 97px;
+  border-radius: 60px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 48px;
+  font-weight: 500;
+  line-height: 1;
+  white-space: nowrap;
+  background: var(--kiosk-primary, #ff7f0f);
+  color: #fff;
+  pointer-events: none;
+}
+
 .name {
   margin: 0;
   font-size: 85px;
@@ -231,10 +268,56 @@
   aspect-ratio: 16 / 9;
 }
 
-/* Airport directions (JejuAirportDirections) — tune box + inner scale here. */
+/* Airport directions (JejuAirportDirections) — QR lives inside the orange bus card. */
 .airportDirections {
   width: 100%;
   box-sizing: border-box;
+}
+
+/* 렌터카하우스 floor plan — full content width, pin tip on GATE 2. */
+.houseMap {
+  width: 100%;
+  box-sizing: border-box;
+  /* Vertical breathing room around the plan. */
+  padding: 56px 0 100px;
+  border-radius: 32px;
+  background: #fff;
+  display: flex;
+  flex-direction: column;
+  gap: 40px;
+}
+
+/* Same role as JejuAirportDirections `.distance` ("제주공항에서 N km"). */
+.houseMapHeading {
+  margin: 0;
+  font-size: 50px;
+  font-weight: 700;
+  line-height: 1.2;
+  color: var(--kiosk-primary, #ff7f0f);
+}
+
+/* Image + pin share this box so pin % stays relative to the plan, not the pad. */
+.houseMapFrame {
+  position: relative;
+  width: 100%;
+}
+
+.houseMapImg {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+/* Same ico-map-pin as 도와줘. Tip sits on (left, top); tweak RENTCAR_HOUSE_PIN. */
+.houseMapPin {
+  position: absolute;
+  width: 90px;
+  height: 137px;
+  object-fit: contain;
+  transform: translate(-50%, -100%);
+  transform-origin: 50% 100%;
+  filter: drop-shadow(0 2px 3px rgba(0, 0, 0, 0.3));
+  pointer-events: none;
 }
 
 .divider {
@@ -256,7 +339,7 @@
 .infoList {
   display: flex;
   flex-direction: column;
-  gap: 40px;
+  gap: 30px;
   min-width: 0;
 }
 
@@ -324,8 +407,6 @@
 }
 
 .cardRouteDetail .desc {
-  min-height: 140px;
-  max-height: 140px;
   font-size: 48px;
   line-height: 1.25;
 }
@@ -351,10 +432,12 @@
 }
 
 .qr {
-  width: 340px;
-  height: 340px;
+  width: 280px;
+  height: 280px;
   box-sizing: border-box;
   flex: 0 0 auto;
+  /* Pull off the card's right edge a bit so it sits closer to the info text. */
+  margin-right: 60px;
   border: 4.29px solid var(--kiosk-primary, #ff7f0f);
   border-radius: 25px;
   background: #fff;
@@ -363,26 +446,19 @@
   justify-content: center;
 }
 
-/* Figma insets the code to ~66% of the plate. */
+/* Insets the code to ~66% of the plate (same ratio as the previous 224/340). */
 .qrCode {
-  width: 224px;
-  height: 224px;
+  width: 198px;
+  height: 198px;
   display: block;
 }
 
 /* ── Description + tags ── */
-/* Figma fixes this block at h-220 — two lines of copy plus an empty trailing
-   paragraph — so the rest of the card sits at the same y whatever the shop's
-   description length. Fixed (not min-height) for the same reason the card is:
-   the card has no room to absorb a longer block, so a rambling description
-   clips at three lines rather than pushing the ratings row out of the card.
-   Without the 220 the block is ~78px short and the rows below it ride up. */
+/* Height follows the copy — short blurbs leave no empty plate under the text,
+   and longer ones push tags / ratings down instead of clipping. */
 .desc {
   margin: 0;
   width: 100%;
-  min-height: 220px;
-  max-height: 220px;
-  overflow: hidden;
   font-size: 55px;
   font-weight: 400;
   line-height: 1.3;

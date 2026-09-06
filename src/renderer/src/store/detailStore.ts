@@ -23,6 +23,8 @@ export interface CourseNextSpot {
 export interface DetailItem {
   /** Source screen to return to + header label (e.g. '숙박안내'). */
   from: KioskScreenId;
+  /** Witteria shop id — used by the detail-save QR payload when present. */
+  shopId?: number;
   title: string;
   name: string;
   category: string;
@@ -53,6 +55,13 @@ export interface DetailItem {
   };
   /** Full witteria `route` — drives the airport directions panel on rentcar 상세. */
   rentcarRoute?: ShopRoute | null;
+  /**
+   * `#렌터카하우스` (공항 내 데스크) — detail shows the list chip + floor-plan
+   * map instead of the km directions panel.
+   */
+  rentcarHouse?: boolean;
+  /** Chip label for `rentcarHouse` (e.g. 공항 내 데스크). */
+  rentcarBadge?: string;
   /**
    * Optional floor-plan image under the description — 도와줘 '제주' 상세
    * (6219:99127) draws the terminal/floor plan the facility was opened from.
