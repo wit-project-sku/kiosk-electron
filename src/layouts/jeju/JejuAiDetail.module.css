@@ -1,18 +1,25 @@
 /*
- * 제주 AI 코스 상세 — Figma node 6516:73138 (-03-1), the 2026-08-26 re-stack of
- * 6289:55320 / 6289:55078 (-03-2).
+ * 제주 AI 코스 상세 — Figma node 6760:18772 (제주>제주모하지(AI검색)-04-1), the
+ * 2026-09-07 re-stack of 6516:73138 (-03-1).
  *
  * Fixed chrome down to the DAY row, then a paged spot list:
- *   670  hashtags (course title moved to header subtitle)
- *   786  course description         909 summary bar (h150, r75)
- *   1095 answer pills (h130)
- *   1287 DAY pager  1296 DAY label
- *   1435 scrollable spot list (all stops for the day)   rail inside list
+ *   592  header QR (x1836, 150²)
+ *   667  hashtags (course title is the header subtitle)
+ *   769  summary bar (h150, r75)
+ *   955  answer pills (h130)
+ *   1128 전체보기 / 선택보기 (x1418 / x1720, 268×120)
+ *   1147 DAY pager  1156 DAY label
+ *   1295 scrollable spot list (all stops for the day)   rail inside list
  *
- * WHAT THE RE-STACK CHANGED, against the 2026-08-24 layout it replaces: the
- * summary bar rose 46 (1095 → 1049) to open a slot at 1235 for a row of pills
- * echoing the questionnaire; and the DAY row and list moved down
- * (1300 → 1436, 1423 → 1575).
+ * WHAT THE RE-STACK CHANGED against 6516:73138: the course DESCRIPTION that sat
+ * at y786 is GONE from the frame — the hashtag line runs straight into the
+ * summary bar — and every row below the hashtags rose by exactly 140 to close
+ * the gap it left (909→769, 1095→955, 1296→1156, 1435→1295). New in the frame:
+ * the header QR and the 전체보기 / 선택보기 pair.
+ *
+ * The ← → day pager is NOT drawn in -04-1. It stays because a multi-day course
+ * would otherwise have no way to reach day 2, and the two new pills sit to its
+ * right exactly where the frame puts them.
  *
  * ♿ uses the mode-bar revision (bar at y0, header at y113, no banner). The
  * *Low rules at the foot drop every row by the bar height (113px).
@@ -23,15 +30,33 @@
  * in one column and the visitor scrolls when there are more than fit on screen.
  *
  * NORMALISED: the hashtag line's Figma box is centred on x1124.5 while the
- * title, rule and description above it are all on 1080; it is centred here.
- * -03-1 puts the DAY label at y1308 and -03-2 at y1300; 1300 wins because that
- * is the frame where the label has to sit between the two arrow buttons
- * (1291..1376), and it centres on them exactly.
+ * title and rule above it are on 1080; it is centred here. And -04-1 draws the
+ * DAY label at y1156, which centres on 1190 — the pager buttons it has to sit
+ * between run 1147..1232 (centre 1189.5) and the two pills 1128..1248 (1188),
+ * so all three rows land on the same optical line.
  */
+/* ── Header QR (6858:69235) — x1836, y592, 150² ──────────────────────────
+   Lives in the page BODY rather than the header so it rides the ♿ shift with
+   everything else. The header band it reaches under is `pointer-events: none`,
+   so painting under it costs the QR no taps. */
+.qr {
+  position: absolute;
+  left: 1836px;
+  top: 592px;
+  width: 150px;
+  height: 150px;
+}
+
+.qrCode {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
 .tags {
   position: absolute;
   left: 0;
-  top: 670px;
+  top: 667px;
   width: 2160px;
   margin: 0;
   font-size: 45px;
@@ -41,62 +66,37 @@
   text-align: center;
 }
 
-/* Figma sizes this box at 1632; kept at the full 1820 content column so each
-   `\n`-separated line stays on one line even if the bundled face runs wider
-   than Figma's. Centred text in a wider centred box renders identically, so
-   this only ever buys slack against an unwanted wrap into the summary bar. */
-.desc {
-  position: absolute;
-  left: 50%;
-  top: 786px;
-  width: 1820px;
-  transform: translateX(-50%);
-  margin: 0;
-  font-size: 38px;
-  font-weight: 500;
-  line-height: 1.3;
-  color: #5d5d5d;
-  text-align: center;
-  white-space: pre-line;
-}
-
 /* ── Summary bar: 4 stats separated by 3 hairlines.
-   Col flex 3:2:3:2 → hairlines at 30% · 50% · 80% of the bar width. */
+   -04-1 makes the four columns EQUAL — the stat captions sit on 397.5 · 852.5 ·
+   1307.5 · 1762.5 and the hairlines exactly between them on 625 · 1080 · 1535,
+   i.e. quarters of the 170…1990 bar. (-03-1 ran them 3:2:3:2, which put the
+   outer two rules 91px off where this frame draws them.) */
 .summary {
   position: absolute;
   left: 170px;
-  top: 909px;
+  top: 769px;
   width: 1820px;
   height: 150px;
   border-radius: 75px;
   background: var(--kiosk-primary, #ff7f0f);
   display: flex;
   align-items: center;
-  --stat-wide: 3;
-  --stat-narrow: 2;
 }
 
+/* DOM: stat · sep · stat · sep · stat · sep · stat — the hairlines are 3px
+   each, so an equal `flex: 1` share leaves the four columns within 3px of the
+   frame's 455. */
 .stat {
+  flex: 1 1 0;
   min-width: 0;
   text-align: center;
   color: #fff;
 }
 
-/* DOM: stat · sep · stat · sep · stat · sep · stat */
-.summary > .stat:nth-child(1),
-.summary > .stat:nth-child(5) {
-  flex: var(--stat-wide) 1 0;
-}
-
-.summary > .stat:nth-child(3),
-.summary > .stat:nth-child(7) {
-  flex: var(--stat-narrow) 1 0;
-}
-
 .statLabel {
   display: block;
   font-size: 25px;
-  font-weight: 500;
+  font-weight: 700;
   line-height: 1.3;
 }
 
@@ -129,7 +129,7 @@
   position: absolute;
   pointer-events: none;
   left: 0;
-  top: 1296px;
+  top: 1156px;
   width: 2160px;
   margin: 0;
   font-size: 68px;
@@ -142,7 +142,7 @@
 /* ── Day swiper: 85×85 round chevron buttons either side of the DAY label ── */
 .dayArrow {
   position: absolute;
-  top: 1287px;
+  top: 1147px;
   width: 85px;
   height: 85px;
   padding: 0;
@@ -159,6 +159,41 @@
 .dayPrev { left: 866px; }
 .dayNext { left: 1209px; }
 
+/* ── 전체보기 / 선택보기 (6858:69231 · 6858:69233) ────────────────────────
+   268×120 white pills at x1418 / x1720, to the right of the day pager.
+
+   The frame draws BOTH grey because it only ever shows one state. The pair is a
+   toggle, so the picked one needs a selected look, and it takes the kiosk's own
+   — the orange plate with white text that JejuAiSearch's .chipSelected and
+   .tileSelected already use one screen earlier. It was a text-colour swap
+   first, which on a 45px label at kiosk viewing distance read as no change at
+   all: on a one-day course, where the two views hold the same list, the recolour
+   was the ONLY feedback a tap produced. */
+.scopeBtn {
+  position: absolute;
+  top: 1128px;
+  width: 268px;
+  height: 120px;
+  padding: 0;
+  border: none;
+  border-radius: 45px;
+  background: #fff;
+  font-size: 45px;
+  font-weight: 700;
+  line-height: 1;
+  color: #999;
+  text-align: center;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.scopeAll { left: 1418px; }
+.scopeDay { left: 1720px; }
+
+.scopeBtnOn {
+  background: var(--kiosk-primary, #ff7f0f);
+  color: #fff;
+}
 
 .dayArrowIcon {
   display: block;
@@ -166,7 +201,33 @@
   height: 100%;
 }
 
-/* ── Timeline rail: dashed line through the numbered stops (inside .list). */
+/* One day's stops. The rail is absolute against THIS box, so 전체보기 draws a
+   separate rail per day rather than one line running through the day captions;
+   in 선택보기 there is a single group and the geometry is unchanged. */
+.stopGroup {
+  position: relative;
+  flex: none;
+  display: flex;
+  flex-direction: column;
+  gap: 50px;
+}
+
+/* 전체보기 only: names the day a group of cards belongs to. The frame has no
+   such row — it draws one day at a time — but with every day in one scroll the
+   boundary has to be named. Aligned with the card's own x (disc 105 + gap 35).
+   Drawn only when there IS more than one day: a lone "DAY 1" caption under a
+   "DAY 1" label reads as a duplicate, not as a heading. */
+.dayGroup {
+  flex: none;
+  margin: 0;
+  padding-left: 140px;
+  font-size: 45px;
+  font-weight: 700;
+  line-height: 1;
+  color: #616161;
+}
+
+/* ── Timeline rail: dashed line through the numbered stops (inside .stopGroup). */
 .rail {
   position: absolute;
   left: 50px;
@@ -205,9 +266,9 @@
 .list {
   position: absolute;
   left: 170px;
-  top: 1435px;
+  top: 1295px;
   width: 1818px;
-  max-height: calc(3840px - 1435px);
+  max-height: calc(3840px - 1295px);
   display: flex;
   flex-direction: column;
   gap: 50px;
@@ -233,7 +294,7 @@
 .empty {
   position: absolute;
   left: 310px;
-  top: 1560px;
+  top: 1420px;
   width: 1678px;
   margin: 0;
   font-size: 55px;
@@ -252,7 +313,7 @@
 .picks {
   position: absolute;
   left: 170px;
-  top: 1095px;
+  top: 955px;
   width: 1820px;
   height: 130px;
   display: flex;
@@ -289,14 +350,15 @@
  * Mode-bar revision (same as JejuDetail · JejuListScreen): the 113px bar at
  * y0, header at y113, no promo banner — each row drops by the bar height.
  */
-.tagsLow { top: calc(670px + 113px); }
-.descLow { top: calc(786px + 113px); }
-.summaryLow { top: calc(909px + 113px); }
-.picksLow { top: calc(1095px + 113px); }
-.dayLow { top: calc(1296px + 113px); }
-.dayArrowLow { top: calc(1287px + 113px); }
+.qrLow { top: calc(592px + 113px); }
+.tagsLow { top: calc(667px + 113px); }
+.summaryLow { top: calc(769px + 113px); }
+.picksLow { top: calc(955px + 113px); }
+.scopeLow { top: calc(1128px + 113px); }
+.dayLow { top: calc(1156px + 113px); }
+.dayArrowLow { top: calc(1147px + 113px); }
 
 .listLow {
-  top: calc(1435px + 113px);
-  max-height: calc(3840px - 1435px - 113px);
+  top: calc(1295px + 113px);
+  max-height: calc(3840px - 1295px - 113px);
 }

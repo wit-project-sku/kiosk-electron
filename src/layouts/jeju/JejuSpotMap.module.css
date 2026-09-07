@@ -1,0 +1,276 @@
+/*
+ * 관광명소 지도 — Figma node 6876:62701, 1812 × 767 at the head of the grid
+ * column. The frame draws it square-cornered and flush to the column, so it is
+ * NOT given the cards' 42.905px radius.
+ *
+ * Everything here is artboard px (the 2160-wide artboard, CSS-scaled to the
+ * panel), which is why the touch targets look oversized in source: a 110px
+ * control is a normal thumb-sized button on the physical screen.
+ */
+/* Size is set inline — the grid map is 1812×767 (6876:62701) and the 상세
+   card's is 1514×631 (6876:62703). */
+.map {
+  position: relative;
+  flex: none;
+  overflow: hidden;
+  /* The sea colour OSM's own tiles use, so a tile that has not landed yet reads
+     as water rather than as a hole. */
+  background: #aad3df;
+  /* We own every gesture — stop the browser panning the page or the grid under
+     the finger while the map is being dragged. */
+  touch-action: none;
+  cursor: grab;
+  user-select: none;
+}
+
+.dragging {
+  cursor: grabbing;
+}
+
+/* Size is set inline, not here: zoom is continuous, so a tile is drawn at
+   TILE_PX scaled by the fractional part of the zoom — see mapTiles. */
+.tile {
+  position: absolute;
+  pointer-events: none;
+}
+
+/* ── Pins ────────────────────────────────────────────────────────────
+   `left`/`top` are set inline to the pin's TIP, so the glyph is translated up
+   and left off its own box rather than centred on it. */
+.pin {
+  position: absolute;
+  width: 84px;
+  height: 100px;
+  transform: translate(-50%, -100%);
+  padding: 0;
+  border: none;
+  background: none;
+  color: var(--kiosk-primary, #ff7f0f);
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  /* Above the tiles, below the callout. */
+  z-index: 2;
+}
+
+.pinGlyph {
+  display: block;
+  width: 100%;
+  height: 100%;
+  filter: drop-shadow(0 6px 10px rgba(0, 0, 0, 0.35));
+}
+
+/* The selected pin grows about its own tip and goes dark, so it stays the one
+   marker you can find after the callout covers the pins around it. */
+.pinActive {
+  width: 116px;
+  height: 138px;
+  color: #232323;
+  z-index: 4;
+}
+
+/* Name under the pin. Only drawn while few enough markers are on screen that
+   the labels cannot collide — see LABEL_LIMIT. */
+.pinLabel {
+  position: absolute;
+  left: 50%;
+  top: 100%;
+  transform: translateX(-50%);
+  margin-top: 6px;
+  max-width: 420px;
+  padding: 8px 20px;
+  border-radius: 30px;
+  background: rgba(255, 255, 255, 0.92);
+  font-size: 32px;
+  font-weight: 500;
+  line-height: 1.2;
+  color: #333;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  pointer-events: none;
+}
+
+/* ── Cluster bubble ──────────────────────────────────────────────────
+   Centred ON the mean position (not tip-anchored like a pin) because it stands
+   for a group rather than for one coordinate. */
+.cluster {
+  position: absolute;
+  width: 128px;
+  height: 128px;
+  transform: translate(-50%, -50%);
+  box-sizing: border-box;
+  padding: 0;
+  border: 8px solid #fff;
+  border-radius: 50%;
+  background: var(--kiosk-primary, #ff7f0f);
+  box-shadow: 0 6px 14px rgba(0, 0, 0, 0.3);
+  font-family: inherit;
+  font-size: 48px;
+  font-weight: 700;
+  line-height: 1;
+  color: #fff;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  z-index: 3;
+}
+
+/* ── Callout ─────────────────────────────────────────────────────────
+   Anchored above the selected pin's tip, clear of the enlarged pin (138px). */
+.callout {
+  position: absolute;
+  width: 640px;
+  transform: translate(-50%, calc(-100% - 154px));
+  box-sizing: border-box;
+  display: flex;
+  gap: 24px;
+  align-items: center;
+  padding: 22px;
+  border: none;
+  border-radius: 32px;
+  background: #fff;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.28);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  z-index: 5;
+}
+
+.calloutPhoto {
+  width: 160px;
+  height: 160px;
+  flex: none;
+  border-radius: 20px;
+  overflow: hidden;
+  background: #f2ede6;
+}
+
+.calloutPhoto img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.calloutBody {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  /* Without this the flex item refuses to shrink and the ellipsis never fires. */
+  min-width: 0;
+}
+
+.calloutName {
+  font-size: 44px;
+  font-weight: 600;
+  line-height: 1.2;
+  color: #232323;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.calloutAddress {
+  font-size: 32px;
+  font-weight: 400;
+  line-height: 1.3;
+  color: #777;
+  /* Two lines then clip — a 제주 address runs long and the callout is fixed. */
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* ── Overlay chrome ──────────────────────────────────────────────────── */
+
+/* How many attractions the map is showing — the number the grid below now
+   lists. Always on, so the link between the map and the grid is visible before
+   the visitor has moved anything. */
+.count {
+  position: absolute;
+  left: 36px;
+  top: 36px;
+  padding: 16px 34px;
+  border-radius: 44px;
+  background: rgba(255, 255, 255, 0.94);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.18);
+  font-size: 38px;
+  font-weight: 600;
+  line-height: 1;
+  color: #232323;
+  pointer-events: none;
+  /* Above the markers, with the rest of the chrome: a pin near the top-left
+     corner would otherwise paint over the count on its own map. */
+  z-index: 6;
+}
+
+/* Only while the map is off its fitted view — it IS the "you are filtered"
+   indicator as much as it is the way back. */
+.resetBtn {
+  position: absolute;
+  right: 36px;
+  top: 36px;
+  padding: 16px 40px;
+  border: none;
+  border-radius: 44px;
+  background: var(--kiosk-primary, #ff7f0f);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.22);
+  font-family: inherit;
+  font-size: 38px;
+  font-weight: 700;
+  line-height: 1;
+  color: #fff;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  z-index: 6;
+}
+
+.controls {
+  position: absolute;
+  right: 36px;
+  bottom: 36px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  z-index: 6;
+}
+
+.ctrl {
+  box-sizing: border-box;
+  width: 110px;
+  height: 110px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  border: 5px solid #e8e8e8;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  font-family: inherit;
+  font-size: 64px;
+  font-weight: 700;
+  line-height: 1;
+  color: var(--kiosk-primary, #ff7f0f);
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.ctrl:disabled {
+  color: #c4c4c4;
+  cursor: default;
+}
+
+/* OSM's tile usage policy requires visible attribution. */
+.attribution {
+  position: absolute;
+  left: 16px;
+  bottom: 10px;
+  padding: 4px 14px;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.75);
+  font-size: 24px;
+  color: #555;
+  pointer-events: none;
+}

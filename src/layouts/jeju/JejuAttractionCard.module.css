@@ -45,6 +45,17 @@
   -webkit-tap-highlight-color: transparent;
 }
 
+/*
+ * Selected from the map. The card keeps its borderless plate (see above) and
+ * takes the ring as an inset shadow instead of a border, so gaining it does not
+ * change the card's box and shove the rest of the grid row sideways.
+ */
+.cardActive {
+  box-shadow:
+    inset 0 0 0 6px var(--kiosk-primary, #ff7f0f),
+    0 10px 26px rgba(255, 127, 15, 0.28);
+}
+
 .photo {
   width: 509px;
   height: 297px;

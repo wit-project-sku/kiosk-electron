@@ -130,6 +130,40 @@
   justify-content: center;
 }
 
+/* ── 사진4개 row variant (6876:17161) ──
+   The 2026-09 관광명소 상세 lays the four photos across in ONE row of 388×218
+   instead of the 2×2 the other detail screens draw. Figma hand-drags them to
+   384–391 wide and 216–220 tall; those are drags, not intent, so all four are
+   drawn identically and `space-between` distributes what the row leaves — the
+   frame's own gaps come out at ~50 and the card's slightly wider column at ~59,
+   which is the difference between a 1703 and a 1730 content box, not a change
+   of design. */
+.photosRow {
+  display: flex;
+  justify-content: space-between;
+  width: 100%;
+}
+
+.photosRow .photo {
+  width: 388px;
+  height: 218px;
+}
+
+/* ── 상세 map (6876:62703) ──
+   A full-width slot centring the 1514-wide map; JejuSpotMap sizes itself. */
+.spotMap {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  flex: 0 0 auto;
+}
+
+/* With the map above it, the frame separates the name from the photos by its
+   column's own 62 rather than the 42.9 the other detail screens use. */
+.headRow {
+  gap: 62px;
+}
+
 /* ── 사진1개 variant (6212:59361) ──
    The same card with one 1215×685 photo instead of the 2×2. Only two nodes
    differ from 사진4개, and this is one of them. */

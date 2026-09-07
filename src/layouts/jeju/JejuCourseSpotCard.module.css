@@ -118,16 +118,25 @@
   -webkit-line-clamp: 2;
 }
 
+/*
+ * The two per-stop stats. -04-1 labels both values ("머무는 시간 : 2-3시간",
+ * "난이도 : 쉬움"), which in Korean fills the 875 body column to within ~40px —
+ * the frame's own spacing. A longer language would run past the plate, so the
+ * row is allowed to shrink and the text ellipsises inside it rather than
+ * spilling out over the card's edge.
+ */
 .spotMeta {
   display: flex;
   align-items: center;
   gap: 60px;
+  min-width: 0;
 }
 
 .metaItem {
   display: flex;
   align-items: center;
   gap: 20px;
+  min-width: 0;
 }
 
 .metaIcon {
@@ -143,4 +152,6 @@
   line-height: 1;
   color: #333;
   white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }

@@ -543,6 +543,19 @@
   background: transparent;
 }
 
+/*
+ * The scroller's single flow child — Figma 6876:17133, a 1812-wide column with
+ * a 60px gap, holding the map and then the card grid. The gap is the SAME 60
+ * the grid uses between its own rows, so the map reads as the first row of the
+ * list rather than as a separate band above it.
+ */
+.spotColumn {
+  width: 1812px;
+  display: flex;
+  flex-direction: column;
+  gap: 60px;
+}
+
 /* 1812 = 3 × 580 + 2 × 36. `auto` rows rather than a fixed 730 so a card that
    grows (long address, extra hours line) takes its row with it — see
    JejuAttractionCard's min-height. */
@@ -593,7 +606,6 @@
 
 .scrollUp .scrollBtnImg   { transform: rotate(90deg); }
 .scrollDown .scrollBtnImg { transform: rotate(-90deg); }
-
 
 /* ────────────────────────────────────────────────────────────────────────────
  * LOW-REACH (♿) — Figma 6289:70215 (역사) · 6289:70264 (문화) ·

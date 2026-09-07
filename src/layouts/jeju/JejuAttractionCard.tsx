@@ -19,15 +19,37 @@ interface Props {
   hours: string[];
   /** First photo, or undefined while the shop has none; the slot stays. */
   photo?: string;
+  /**
+   * The shop id, published as `data-spot-id`. It is how the page finds this card
+   * in the scrolled grid when the visitor taps the matching pin on the map —
+   * there is no ref to forward through a plain <button>, and a wrapper element
+   * would take the grid cell away from the card and stop it stretching.
+   */
+  spotId?: number;
+  /** Selected on the map — draws the ring that ties the pin to this card. */
+  active?: boolean;
   onClick: () => void;
 }
 
-export function JejuAttractionCard({ name, address, hours, photo, onClick }: Props): JSX.Element {
+export function JejuAttractionCard({
+  name,
+  address,
+  hours,
+  photo,
+  spotId,
+  active = false,
+  onClick,
+}: Props): JSX.Element {
   const marker = jejuIconUrl('ico-marker');
   const alarm = jejuIconUrl('ico-alarm');
 
   return (
-    <button type="button" className={styles.card} onClick={onClick}>
+    <button
+      type="button"
+      className={`${styles.card} ${active ? styles.cardActive : ''}`}
+      data-spot-id={spotId}
+      onClick={onClick}
+    >
       <div className={styles.photo}>
         {/* The shared no-image placeholder when the shop carries no photo —
             same asset the other locations fall back to. */}
