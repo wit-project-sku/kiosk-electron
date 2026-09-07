@@ -1,8 +1,8 @@
 /**
  * Build the direction-fe save URL from the kiosk detail view.
  *
- * Sparse QR:
- *   https://host/?id={shopId}&lang=ko&from=eat&r=36.7,56,t52,3008,20,40,w3
+ * Sparse QR (screen key first — direction-fe hosts multiple kiosk pages):
+ *   https://host/?shopdirection&id={shopId}&lang=ko&from=eat&r=36.7,56,t52,3008,20,40,w3
  *
  * Phone loads photos from GET /api/shops/{id}, and bus stop names from
  * GET /api/shop-route?id=&kioskId=. Korean text must not go in the QR.
@@ -60,7 +60,7 @@ function encodeRouteParam(route: ShopRoute | null | undefined): string | null {
   return parts.join(',');
 }
 
-/** Short query-only URL — no hash, no Korean text. */
+/** Short query-only URL — no hash, no Korean text. Leading `shopdirection` marks this screen. */
 export function buildDetailCardSaveUrlForQr(
   input: DetailCardSaveInput,
   origin = DETAIL_SAVE_ORIGIN,
@@ -83,5 +83,5 @@ export function buildDetailCardSaveUrlForQr(
     if (input.ferryModeLabel) q.set('fl', String(input.ferryModeLabel).slice(0, 20));
   }
 
-  return `${root}/?${q.toString()}`;
+  return `${root}/?shopdirection&${q.toString()}`;
 }
