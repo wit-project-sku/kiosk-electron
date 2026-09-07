@@ -36,13 +36,13 @@ import {
   shopHashtag,
   shopImages,
   shopName,
+  shopOpenTime,
   shopSecondCategory,
   shopsForBase,
 } from '@renderer/lib/shops';
 import { JejuChosungRow } from './JejuChosungRow';
 import { useAccessibilityStore } from '@renderer/store/accessibilityStore';
 import { JejuPageFrame } from './JejuPageFrame';
-import { JejuScrollHint } from './JejuScrollHint';
 import { JejuShopCard } from './JejuShopCard';
 import styles from './JejuListScreen.module.css';
 
@@ -201,7 +201,10 @@ export function JejuListScreen({ screen, controller }: Props): JSX.Element {
     // are Korean consonants, so filtering a translated name would empty the list
     // for every non-Korean visitor.
     if (jamo) list = list.filter((s) => leadingChosung(shopName(s, 'ko')) === jamo);
-    return list;
+    // More photos first (4 → 3 → 2 → 1 → 0). Stable within the same count so
+    // catalogue / 초성 order holds — same idea as Insadong floating imaged
+    // shops, but ranked by how many photos the shop actually has.
+    return [...list].sort((a, b) => shopImages(b).length - shopImages(a).length);
   }, [baseShops, activeKr, jamo]);
 
   const scrollBy = (delta: number): void =>
@@ -213,6 +216,7 @@ export function JejuListScreen({ screen, controller }: Props): JSX.Element {
   const openDetail = (shop: Shop): void => {
     setDetail({
       from: screen,
+      shopId: shop.id,
       // Verbatim: the detail header reads "'제주' 뭐먹지? > 상세" (6212:55208) /
       // "'제주' 뭐사지? > 상세" (6212:55257), quotes and question mark included.
       // JejuDetail appends the " > 상세".
@@ -221,13 +225,14 @@ export function JejuListScreen({ screen, controller }: Props): JSX.Element {
       category: shopSecondCategory(shop, lang),
       photos: shopImages(shop),
       address: shopAddress(shop, lang),
-      hours: shop.openTime ?? '',
+      hours: shopOpenTime(shop.openTime),
       phone: shop.tel ?? '',
       description: shopDescription(shop, lang),
       tags: shopHashtag(shop, lang),
       rating: shop.naverRating != null ? String(shop.naverRating) : '',
       instagram: '',
       blogReviews: shop.naverLink ?? '',
+      rentcarRoute: shop.route ?? null,
     });
     controller.navigate('detail', TITLE[screen]);
   };
@@ -320,7 +325,7 @@ export function JejuListScreen({ screen, controller }: Props): JSX.Element {
 
       <button
         type="button"
-        className={`${styles.scrollBtn} ${styles.scrollUp}`}
+        className={`${styles.scrollBtn} ${styles.scrollUp} ${lowReach ? styles.scrollUpLow : ''}`}
         onClick={() => scrollBy(-SCROLL_STEP)}
         aria-label="위로"
       >
@@ -335,7 +340,7 @@ export function JejuListScreen({ screen, controller }: Props): JSX.Element {
       </button>
       <button
         type="button"
-        className={`${styles.scrollBtn} ${styles.scrollDown}`}
+        className={`${styles.scrollBtn} ${styles.scrollDown} ${lowReach ? styles.scrollDownLow : ''}`}
         onClick={() => scrollBy(SCROLL_STEP)}
         aria-label="아래로"
       >
@@ -349,14 +354,14 @@ export function JejuListScreen({ screen, controller }: Props): JSX.Element {
         )}
       </button>
 
-      {/* Bottom-right ▲▼ pair (6212:55250 / 6212:55201) — the frames' corner
-          triangles, a real scroll control since 2026-08-24 (they read as
-          buttons and were pressed as buttons); see JejuScrollHint. Only visible
-          here because these frames carry no banner, and dropped in low-reach
-          with the rest of the standard-layout controls. */}
-      {!lowReach && (
-        <JejuScrollHint onUp={() => scrollBy(-SCROLL_STEP)} onDown={() => scrollBy(SCROLL_STEP)} />
-      )}
+      {/* The frames' bottom-right ▲▼ pair (6212:55250 / 6212:55201) used to be
+          drawn here as a second scroll control (JejuScrollHint). Removed
+          2026-09-03 by request: these three screens ALSO carry the right-hand
+          ▲▼ circles above, at the visitor's own eye level, and two controls
+          doing exactly the same thing in two corners is one too many. The
+          corner triangles are the further away and the smaller of the pair, so
+          they are the ones that go. JejuScrollHint itself stays — 렌트카 still
+          renders it. */}
     </JejuPageFrame>
   );
 }

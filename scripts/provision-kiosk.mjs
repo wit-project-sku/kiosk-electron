@@ -33,6 +33,9 @@ const PRESETS = {
   // W008 세계자연유산본부 gets its OWN layout — same 제주 design, but the shared
   // Localization_Jeju tab is split per layout on the mascot (유산, not 하영).
   W008: { kioskId: 'W008', layout: 'JEJU_HERITAGE' },
+  // W202 KADA — Korea-ASEAN Digital Academy, Vietnam Chapter (PTIT, Hà Nội).
+  // The only non-Korean deployment; its own layout, five screens, EN/VN.
+  W202: { kioskId: 'W202', layout: 'KADA' },
 };
 
 const VALID_LAYOUTS = new Set(['INSADONG', 'NAM_INSADONG', 'OSAN', 'HWASEONG', 'JEJU_AIRPORT', 'JEJU_HERITAGE']);
@@ -80,7 +83,7 @@ function printUsage() {
   console.log(`
 Provision kiosk identity (kiosk-config.json)
 
-  node scripts/provision-kiosk.mjs <W001|W002|W003|W004|W005|W006|W007|W008>
+  node scripts/provision-kiosk.mjs <W001|W002|W003|W004|W005|W006|W007|W008|W202>
   node scripts/provision-kiosk.mjs --kiosk-id W005 --layout HWASEONG
   node scripts/provision-kiosk.mjs W001 --data-dir "C:\\Custom\\Kiosk App"
 

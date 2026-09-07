@@ -111,7 +111,7 @@
 
 .desc {
   top: 416px;
-  width: 600px;
+  width: 460px;
   font-size: 38px;
   font-weight: 500;
   /* 1.44, not the design's literal 1.3: Figma draws the two lines as separate
@@ -157,9 +157,9 @@
 }
 
 /*
- * LOW-REACH (♿) — Figma 6326:82014, the mode-bar revision. Same cards, same
- * pills; only the row is CENTRED there and sits at page y1199, which is 723
- * before the +476 body shift.
+ * LOW-REACH (♿) — mode bar + promo under the bar (y113–686), header at y686.
+ * Pills centred at page y1346 (= body y723 + shift 623); card tops unchanged
+ * in body coords — body shift lands them at y1546 / y2306 / y3063.
  */
 .picksLow {
   left: 0;

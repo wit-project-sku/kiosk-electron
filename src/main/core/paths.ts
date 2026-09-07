@@ -38,6 +38,18 @@ class AppPaths {
     return ensureDir(join(this.userData, 'thumbnails'));
   }
 
+  /**
+   * Locally mirrored copies of remote CMS images — AR 한복 outfit cards and
+   * 배경 테마 tiles. Written by RemoteImageCache, served as `media://remote/`.
+   *
+   * userData rather than one of the fixed C:\ folders that photos and videos
+   * use: this is a derived cache, not content. Deleting it costs one re-download
+   * and nothing else, so it belongs where an uninstall will take it with them.
+   */
+  get remoteImages(): string {
+    return ensureDir(join(this.userData, 'remote-images'));
+  }
+
   /** Directory for log files (electron-log default location mirror). */
   get logs(): string {
     return ensureDir(join(this.userData, 'logs'));

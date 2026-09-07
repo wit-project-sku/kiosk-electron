@@ -22,6 +22,16 @@ import '@fontsource/pretendard/900.css';
 import '@fontsource/poppins/600.css';
 import '@fontsource/poppins/700.css';
 import '@fontsource/poppins/800.css';
+// KADA (W202). Manuale is the Figma title serif; Noto Sans (NOT Noto Sans KR,
+// which is sharded for Hangul and carries no Vietnamese subset) supplies the
+// eyebrow, badge labels and the EN/VN pill. Both fontsource packages ship a
+// `vietnamese` unicode-range face, which is what makes the diacritics in
+// "Lễ Khai mạc Chính thức" render instead of tofu. ~120KB combined, so they are
+// loaded for the whole fleet rather than code-split for one layout.
+import '@fontsource/manuale/700.css';
+import '@fontsource/noto-sans/400.css';
+import '@fontsource/noto-sans/700.css';
+import '@fontsource/noto-sans/800.css';
 import { App } from './App';
 import { ErrorBoundary } from './components/shared/ErrorBoundary/ErrorBoundary';
 import { hydrateInitialState } from './bootstrap';

@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef } from 'react';
 import type { KioskScreenId } from '@shared/types/kiosk';
 import { useAccessibilityStore } from '@renderer/store/accessibilityStore';
+import { useLanguageStore } from '@renderer/store/languageStore';
 import { useKioskStore } from '@renderer/store/kioskStore';
 import { usePhotoStore } from '@renderer/store/photoStore';
 import { localIso, recordMenuTouch, trackEvent } from '@renderer/lib/analytics';
@@ -176,6 +177,7 @@ export function useKioskController(): KioskController {
     if (useAccessibilityStore.getState().lowReach) {
       useAccessibilityStore.getState().setLowReach(false);
     }
+    void useLanguageStore.getState().setLanguage('ko');
     if (from === 'home' && !inPhoto) return;
     if (inPhoto) {
       void window.api.photo.reset();

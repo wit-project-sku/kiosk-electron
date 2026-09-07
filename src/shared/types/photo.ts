@@ -70,7 +70,13 @@ export interface PhotoOption {
 export interface CameraDeviceInfo {
   deviceId: string;
   label: string;
-  vendor: 'elgato' | 'usb' | 'unknown';
+  /**
+   * 'depth' is a DEPTH SENSOR, not a photo camera — today the 제주 kiosks' ZED
+   * 2i, which measures visitor height headlessly and must never be opened by
+   * `getUserMedia`. It is enumerated (an operator listing the kiosk's cameras
+   * should see it) but excluded from selection. See CameraService.
+   */
+  vendor: 'elgato' | 'usb' | 'depth' | 'unknown';
 }
 
 /** Runtime workflow state — lives in main process, synced via IPC. */

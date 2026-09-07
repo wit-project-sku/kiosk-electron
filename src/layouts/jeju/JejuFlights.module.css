@@ -6,11 +6,12 @@
  * Inside KioskArtboard 1 CSS px = 1 Figma px (2160×3840), so every value here
  * is the exact number read out of the design.
  *
- * y map:
+ * y map (with 편명 search band under the tabs):
  *    0…700   JejuHeader (JejuPageFrame; subtitle ends 619)
  *  714…884   출발 / 도착 tabs
- * 1021…1170  orange column-header plate
- *   1270     first row's text; rows repeat every 255, rule at row+155
+ *  960…1142  편명 search field (Rentcar-identical 1350×182)
+ * 1212…1361  orange column-header plate
+ *   1461     first row's text; rows repeat every 255, rule at row+155
  *
  * The two frames differ ONLY in three column labels (출발시각/도착시각,
  * 목적지/출발지, 탑승구/수하물수취대) and which side of the flight the data
@@ -24,19 +25,22 @@
  * the 출발/도착 tabs drop to the bottom of the artboard, within reach, and the
  * table slides up 159 into the space they leave (the same −159 JejuCruise
  * measured off its Figma low-reach frames — the two boards were drawn from one
- * master; keep them in step):
+ * master; keep them in step). The 편명 search parks just above the tabs so it
+ * stays reachable too:
  *
  *              standard   low-reach
  *   tabs           714      3467.5
- *   header plate  1021       862     ┐
- *   header text   1071       912     │ all −159
- *   rows top      1170      1011     │
- *   first row     1270      1111     ┘
+ *   search         960      3261.5
+ *   header plate  1212      1053     ┐
+ *   header text   1262      1103     │ all −159 from the search-shifted board
+ *   rows top      1361      1202     │
+ *   first row     1461      1302     ┘
  *
- * No 국제항ㅣ연안항 band here, so the scroll viewport stops at the tab row
- * (bottom: 372.5) rather than clearing a second control row under it.
+ * Scroll viewport stops above the search+tab stack (bottom: 578.5).
  */
 
+/* Space reserved for the 편명 search band under the tabs. Plate / heads /
+   scroll all ride this far below the original Figma y. */
 /* ── Tabs ───────────────────────────────────────────────────────────── */
 /*
  * Two-pill picker (left 400, w 1360, two 580px pills, 200px gutter).
@@ -88,27 +92,93 @@
   box-shadow: 0 6px 18px rgba(255, 127, 15, 0.35);
 }
 
+/* ── 편명 search — same 1350×182 field as JejuRentcar / JejuSearch ───── */
+.search {
+  position: absolute;
+  left: 405px;
+  top: 960px;
+  width: 1350px;
+  height: 182px;
+  box-sizing: border-box;
+  padding: 55px 75px;
+  border: 4.29px solid var(--kiosk-primary, #ff7f0f);
+  border-radius: 120px;
+  background: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Parks just above the foot tabs (3467.5 − 24 gap − 182). */
+.searchLow {
+  top: 3261.5px;
+}
+
+.searchText {
+  flex: 1 1 auto;
+  min-width: 0;
+  font-size: 60.06px;
+  font-weight: 500;
+  line-height: 1;
+  text-align: left;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: #999;
+}
+
+.searchValue {
+  color: #232323;
+  font-weight: 600;
+}
+
+.caret {
+  display: inline-block;
+  width: 4px;
+  height: 62px;
+  margin-left: 6px;
+  vertical-align: middle;
+  background: var(--kiosk-primary, #ff7f0f);
+  animation: jejuFlightsCaret 1s step-end infinite;
+}
+
+@keyframes jejuFlightsCaret {
+  50% {
+    opacity: 0;
+  }
+}
+
+.searchIcon {
+  flex: 0 0 auto;
+  width: 71px;
+  height: 68px;
+  object-fit: contain;
+}
+
 /* ── Column-header plate (6412:76007) ──────────────────────────────────
    WIDER than the 1820 content band on purpose — Figma centres a 1880×150 pill
-   (radius 74.5 = half the height) 30px proud of the rows each side. */
+   (radius 74.5 = half the height) 30px proud of the rows each side.
+   y sits ~70 below the Rentcar-sized search field. */
 .headPlate {
   position: absolute;
   left: 100px;
-  top: 1021px;
+  top: 1212px;
   width: 1960px;
   height: 149px;
   border-radius: 72px;
   background: var(--kiosk-primary, #ff7f0f);
 }
 
-/* Identical plate, 159 higher — same −159 as JejuCruise's low-reach board. */
+/* Search-shifted plate, then −159 like JejuCruise's low-reach board. */
 .headPlateLow {
-  top: 862px;
+  top: 1053px;
 }
 
 .head {
   position: absolute;
-  top: 1071px;
+  top: 1262px;
   font-size: 45px;
   font-weight: 600;
   line-height: 1;
@@ -116,15 +186,15 @@
   white-space: nowrap;
 }
 
-/* Rides the plate: 50 below its top, exactly as at 1021/1071. */
+/* Rides the plate: 50 below its top. */
 .headLow {
-  top: 912px;
+  top: 1103px;
 }
 
 /* ── Scrolling rows ─────────────────────────────────────────────────── */
 /*
  * Starts where the plate ends so the column headers stay put. The 100px lead-in
- * puts the first row's text on Figma's 1329.
+ * puts the first row's text on the search-shifted first-row y.
  *
  * Rows are normal-flow blocks (their cells are absolute inside them) — padding
  * on an absolutely-positioned container would NOT move absolute children, since
@@ -134,22 +204,19 @@
   position: absolute;
   left: 0;
   right: 0;
-  top: 1170px;
+  top: 1361px;
   bottom: 0;
   overflow-x: hidden;
   overflow-y: auto;
 }
 
 /*
- * Low-reach: starts where the raised plate ends (862 + 149) so the same 100px
- * lead-in lands the first row's text on 1111, and stops at the tab row instead
- * of the artboard floor — otherwise long lists would scroll under the controls
- * that were just moved down there. The 120px `.rows` tail keeps a gap between
- * the last rule and the 출발/도착 pills at full scroll.
+ * Low-reach: starts where the raised plate ends (1053 + 149), and stops above
+ * the search+tab foot stack so long lists do not scroll under the controls.
  */
 .scrollLow {
-  top: 1011px;
-  bottom: 372.5px;
+  top: 1202px;
+  bottom: 578.5px;
 }
 
 .rows {

@@ -14,6 +14,7 @@ import {
   parseNumberInRange,
 } from '@shared/config/footfall';
 import { createLogger } from '@main/core/logger';
+import { getKioskLayout, isKadaLayout } from '@shared/config/kioskLocations';
 import type { KioskService } from '@main/services/KioskService';
 import type { CameraService } from '@main/services/camera/CameraService';
 import type {
@@ -91,7 +92,21 @@ export class FootfallService {
     private readonly kiosk: KioskService,
     private readonly camera: CameraService,
   ) {
-    this.enabled = process.env['FOOTFALL_ENABLED'] !== 'false';
+    /*
+     * 유동인구 counting is opt-OUT everywhere except KADA, where it is opt-IN.
+     *
+     * W202 is a two-week opening-ceremony kiosk in Hanoi with no footfall
+     * mandate, and leaving the fleet default on would have it run the MediaPipe
+     * person detector against the camera all day and POST hourly counts to
+     * `/api/kiosks/9/...`, which does not exist. It also shares that camera with
+     * the K-CULTURE CHALLENGE flow, so the cost buys nothing and risks
+     * something. An explicit FOOTFALL_ENABLED=true still turns it on if the
+     * venue ever asks for the numbers.
+     */
+    const layout = getKioskLayout(kiosk.getConfig().kioskId);
+    this.enabled = isKadaLayout(layout)
+      ? process.env['FOOTFALL_ENABLED'] === 'true'
+      : process.env['FOOTFALL_ENABLED'] !== 'false';
     this.tuning = {
       ...DEFAULT_FOOTFALL_TUNING,
       targetFps: parseNumberInRange(

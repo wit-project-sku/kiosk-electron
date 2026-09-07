@@ -51,7 +51,12 @@ export function createMainWindow(bootstrap: BootstrapData): BrowserWindow {
   window.once('ready-to-show', () => {
     window.show();
     window.focus(); // keep the touch screen foremost
-    if (is.dev) window.webContents.openDevTools({ mode: 'detach' });
+    // `activate: false` so the detached DevTools window does NOT take focus.
+    // It used to, on every dev launch, and a detached window holding focus
+    // means the kiosk window receives no keys — which makes 제주's keypad (and
+    // any keyboard standing in for it) look broken on the dev machine when the
+    // handling is fine. See useJejuKeypad.
+    if (is.dev) window.webContents.openDevTools({ mode: 'detach', activate: false });
   });
 
   window.webContents.setWindowOpenHandler((details) => {

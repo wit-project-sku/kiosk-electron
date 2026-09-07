@@ -1,0 +1,175 @@
+/*
+ * KADA (W202) header — Figma 5403:11277.
+ *
+ * Every length here is a LITERAL Figma pixel: this renders inside KioskArtboard,
+ * a real 2160×3840 box scaled to the panel, so 1 CSS px = 1 Figma px. Do not
+ * convert these to rem/% — the artboard, not the viewport, is the unit.
+ */
+
+/*
+ * The band is 2160×700 with no background, and on the outfit screen the photo
+ * flow's own .content starts at y594 — so the bottom ~106px of this box sits
+ * over live content. `pointer-events: none` stops an invisible full-width strip
+ * from swallowing taps there; the two controls opt back in.
+ */
+.header {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 2160px;
+  height: 700px;
+  z-index: 3;
+  pointer-events: none;
+}
+
+.header .navBtn,
+.header .pill {
+  pointer-events: auto;
+}
+
+/* Home (170,312) and back (1815,312), both 175×175. The circle is baked into
+   the SVG export — ico-home is a filled gold disc, ico-back a gold ring — so
+   there is no CSS circle here to disagree with the art. */
+.navBtn {
+  position: absolute;
+  display: block; /* also applied to a <span> when the arrow is inert */
+  top: 312px;
+  width: 175px;
+  height: 175px;
+  padding: 0;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* The decorative arrow on the home screen — looks identical, does nothing, and
+   must not claim to be pressable. */
+span.navBtn {
+  cursor: default;
+}
+
+.navBtn img {
+  display: block;
+  width: 175px;
+  height: 175px;
+}
+
+.navBtn:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
+
+/*
+ * Language pill — Figma 4497:4921 at (845,332), 470×145, r72, 5px #D2AE4F.
+ *
+ * 470×145 OUTER, border included — `box-sizing` is set explicitly because this
+ * project has no global border-box reset, and content-box made the pill 480px
+ * with 235px halves, which no longer lined up with the 240px sliding plate.
+ * `position: relative` makes it the plate's containing block; without it the
+ * plate resolved against the header and only happened to look right.
+ */
+.pill {
+  position: absolute;
+  box-sizing: border-box;
+  top: 332px;
+  left: 845px;
+  width: 470px;
+  height: 145px;
+  border: 5px solid #d2ae4f;
+  border-radius: 72px;
+  display: flex;
+  overflow: hidden;
+}
+
+/*
+ * The gold plate behind the active language: 240px of the 470px pill, flush to
+ * whichever end is active. Offset by the 5px border so x0 is the pill's OUTER
+ * left edge — the plate then spans 0–240 for EN and 230–470 for VN, centring on
+ * 120 / 350, exactly where the two 230px-wide labels centre.
+ */
+.pillPlate {
+  position: absolute;
+  box-sizing: border-box;
+  top: -5px;
+  left: -5px;
+  width: 240px;
+  height: 145px;
+  border-radius: 72px;
+  background: #d2ae4f;
+  transition: transform 180ms ease;
+}
+
+.pillPlate[data-lang='en'] {
+  transform: translateX(0);
+}
+
+.pillPlate[data-lang='vi'] {
+  transform: translateX(230px);
+}
+
+.pillBtn {
+  position: relative;
+  box-sizing: border-box;
+  flex: 1 0 0;
+  height: 135px;
+  padding: 0;
+  border: none;
+  background: transparent;
+  font-family: 'Noto Sans', var(--kiosk-font, sans-serif);
+  font-size: 68px;
+  font-weight: 400;
+  line-height: 1;
+  color: #d2ae4f;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition: color 180ms ease;
+}
+
+.pillBtn[data-active='true'] {
+  color: #ffffff;
+}
+
+/*
+ * Centre slot — Figma's 검색필드, (409,312) 1342×182 inside the 1820-wide title
+ * row. The row is `justify-between` over home(175) + field(1342) + back(175),
+ * which leaves 64px gaps: 170+175+64 = 409, and 409+1342+64 = 1815, the back
+ * button's left edge. Holds the page wordmark; the pill sits in the same box on
+ * the home screen, centred inside it.
+ */
+.title {
+  position: absolute;
+  top: 312px;
+  left: 409px;
+  width: 1342px;
+  height: 182px;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'Pretendard', 'Noto Sans', var(--kiosk-font, sans-serif);
+  font-size: 78px;
+  font-weight: 700;
+  line-height: 1;
+  color: #ffffff;
+  text-align: center;
+  white-space: nowrap;
+}
+
+/* 서브타이틀 slot (y559, h60). Unused by KADA's own screens — see KadaHeaderProps. */
+.caption {
+  position: absolute;
+  top: 559px;
+  left: 170px;
+  width: 1820px;
+  height: 60px;
+  margin: 0;
+  font-family: 'Noto Sans', var(--kiosk-font, sans-serif);
+  font-size: 60px;
+  font-weight: 400;
+  line-height: 60px;
+  color: #878b91;
+  text-align: center;
+  white-space: nowrap;
+  overflow: hidden;
+}

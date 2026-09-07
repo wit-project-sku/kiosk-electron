@@ -1,8 +1,12 @@
 /**
- * 제주 AI 코스 상세 — Figma node 6516:73138 (제주>제주모하지(AI검색)-03-1), the
- * 2026-08-26 re-stack of 6289:55320 (-03-1) / 6289:55078 (-03-2). See the
- * stylesheet header for what moved; the one thing that is new rather than moved
- * is the row of answer pills under the summary bar.
+ * 제주 AI 코스 상세 — Figma node 6760:18772 (제주>제주모하지(AI검색)-04-1), the
+ * 2026-09-07 re-stack of 6516:73138 (-03-1). See the stylesheet header for the
+ * coordinates; what is new rather than moved is the header QR, the
+ * 전체보기 / 선택보기 pair beside the DAY row, and the labelled per-stop stats
+ * ("머무는 시간 : 2-3시간" rather than a bare "2-3시간"). What is GONE is the
+ * course description that sat between the hashtags and the summary bar — the
+ * frame runs the one straight into the other, so `CourseMeta.desc` is authored
+ * and carried but no longer drawn.
  *
  * Shows the course chosen on JejuAiResult: its title/description/hashtags, a
  * summary bar, and the numbered spot itinerary.
@@ -30,14 +34,10 @@
  * EVERY number is the authored placeholder again — see COURSE_META. The two
  * paths are never mixed: real numbers or authored ones, never half of each.
  *
- * ── The arrows page the LIST, they do not scroll it ─────────────────
- * A day can hold nine scheduled spots and the frame draws four, so the extra
- * ones have to go somewhere. They are PAGED, not scrolled: the ← → pair beside
- * the DAY label walks a flat run of pages, four cards each, and a day simply
- * contributes as many pages as it needs before the next day starts. That is
- * what the buttons are for — the design put them there precisely so this page
- * would never need a scrollbar, and a kiosk's spot list should not be something
- * a visitor has to drag.
+ * ── The arrows switch DAYS; the list scrolls within a day ─────────────
+ * Every stop scheduled for the visible day is drawn in one list. When a day
+ * holds more cards than fit below the DAY row, the list scrolls — the ← →
+ * pair only moves between days, never between pages of the same day.
  *
  * ★ One deliberate difference from the design on the API path: the summary's
  * third stat reads 이동시간 (real, summed `travelMinutes`) rather than the
@@ -45,7 +45,7 @@
  * authored "약 18Km" beside three real numbers is worse than an honest fourth.
  * The fallback path keeps 이동거리, where it is authored alongside the rest.
  */
-import { Fragment, useCallback, useEffect, useMemo, useState } from 'react';
+import { Fragment, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { CSSProperties } from 'react';
 import { QRCodeSVG } from 'qrcode.react';
 import type { KioskController } from '@renderer/hooks/useKioskController';
@@ -59,7 +59,7 @@ import { useShopStore } from '@renderer/store/shopStore';
 import { useDetailStore } from '@renderer/store/detailStore';
 import type { DetailItem } from '@renderer/store/detailStore';
 import { useLanguageStore } from '@renderer/store/languageStore';
-import { sheetText, t } from '@renderer/lib/loc';
+import { sheetText } from '@renderer/lib/loc';
 import type { Lang } from '@renderer/lib/i18n';
 import { pick } from '@renderer/lib/i18n';
 import {
@@ -75,12 +75,16 @@ import {
   courseLetter,
   difficultyLabel,
   interestCodes,
+  jejuCourseNameWithDay,
   minutesLabel,
+  aboutMinutesLabel,
   nightCount,
   partySize,
   todayIso,
   transportCode,
 } from '@renderer/lib/jejuCourse';
+import { localizeJejuAiPick } from '@renderer/lib/jejuAiPicksLabel';
+import { buildAiCourseSaveUrlForQr } from '@renderer/lib/aiCourseSave';
 import { JejuPageFrame } from './JejuPageFrame';
 import { JejuCourseSpotCard } from './JejuCourseSpotCard';
 import styles from './JejuAiDetail.module.css';
@@ -90,15 +94,11 @@ interface Props {
 }
 
 /**
- * Cards on one page — the four numbered stops the design draws, and the four
- * the numbered rail is sized for.
- *
- * It is a PAGE size, not a day size. The server schedules as many spots in a
- * day as its time budget allows (nine on day 1 of a two-day 자연 course, checked
- * 2026-08-25); those become three pages of this size rather than one long
- * scroll. The offline fallback still builds exactly one page per day.
+ * Offline fallback: up to this many spots drawn per day when the API is down.
+ * The live schedule is not capped here — every spot the server returns for the
+ * day lands in the scrollable list.
  */
-const SPOTS_PER_PAGE = 4;
+const OFFLINE_SPOTS_PER_DAY = 4;
 
 /**
  * Days on the OFFLINE fallback, from the 체류 기간 answer. The API returns its
@@ -111,52 +111,24 @@ const DAYS_BY_STAY: Record<string, number> = {
   '3박 이상': 4,
 };
 
-/* ── QR block under the itinerary — ♿ ONLY ────────────────────────────
-   The standard frame (6516:73138) puts the QR on the DAY row at a fixed y1395,
-   so none of this arithmetic applies there any more; it survives for the ♿
-   frame (6418:11330), which still draws the QR under the last card.
+/**
+ * Header QR (6858:69235) — FALLBACK only, for the window before the catalogue
+ * lands and there is no itinerary to encode. The real value is built per course
+ * by `buildAiCourseSaveUrlForQr`, which carries the scheduled stops so the
+ * phone draws the course actually on screen rather than a bare landing page.
+ */
+const COURSE_QR_FALLBACK_URL = 'https://direction-fe.vercel.app/ai';
 
-   Derived from .listLow in the CSS (top 1423, height 2240) and the spot card
-   (height 515, gap 50), so the QR tracks the ACTUAL number of cards rather than
-   a baked y. It moves in BOTH directions: a thin day holds fewer cards than the
-   design's four and the QR rises to meet them, while a scheduled day can hold
-   nine — more than the list's 2240 viewport shows — and the QR would otherwise
-   be pushed off the artboard entirely. See `qrTopFor` for the clamp that stops
-   it. */
-const LIST_TOP = 1423;
 const CARD_HEIGHT = 515;
 const CARD_GAP = 50;
-/** Gap between the last card's bottom edge and the QR. */
-const QR_GAP = 30;
-/** The kiosk artboard. Nothing may be drawn below it — the frame clips. */
-const ARTBOARD_HEIGHT = 3840;
-/** QR frame side, and the round day arrow's, so the low-reach pair can centre on that row. */
-const QR_SIZE = 150;
-const ARROW_SIZE = 85;
-// The horizontal anchor is CSS-side: .qrRow uses `right: 172px`, which is
-// 2160 − (the cards' right edge at 1988), so the QR's right edge sits on the
-// cards'. Keep the two in step if the list geometry moves.
+const DISC_SIZE = 105;
 
-/**
- * Top of the QR row for `n` spot cards, never past the artboard.
- *
- * The floor of the clamp is where the QR's own bottom edge meets 3840 — this
- * page draws no banner, so that is the last usable row. Four cards land on the
- * design's own 3663 and the clamp is inert; nine cards would put it at 3843,
- * three past the edge and clipped, so it settles on 3690 just under the list's
- * scrolling viewport (which ends at 3663) instead.
- */
-const qrTopFor = (n: number): number =>
-  Math.min(
-    LIST_TOP + n * CARD_HEIGHT + Math.max(0, n - 1) * CARD_GAP + QR_GAP,
-    ARTBOARD_HEIGHT - QR_SIZE,
-  );
+/** Dashed rail height: from the first numbered disc to the last. */
+const railHeightFor = (n: number): number =>
+  n <= 1 ? 0 : (n - 1) * (CARD_HEIGHT + CARD_GAP);
 
-/**
- * Top of the low-reach day pager: vertically centred on the QR row, which is
- * where Figma 6418:11330 draws it (measured y3695 against a QR row at y3663).
- */
-const bottomPagerTopFor = (n: number): number => qrTopFor(n) + (QR_SIZE - ARROW_SIZE) / 2;
+/** Vertical offset of the first disc's centre inside a stop row. */
+const RAIL_TOP = (CARD_HEIGHT - DISC_SIZE) / 2 + DISC_SIZE / 2;
 
 /**
  * One round day-pager button — an 85px disc with a white chevron, #ff7f0f while
@@ -169,6 +141,7 @@ function DayArrow({
   onClick,
   className,
   style,
+  lang,
 }: {
   dir: 'prev' | 'next';
   disabled: boolean;
@@ -176,6 +149,7 @@ function DayArrow({
   /** Optional because CSS Module lookups are typed `string | undefined` here. */
   className?: string;
   style?: CSSProperties;
+  lang: Lang;
 }): JSX.Element {
   return (
     <button
@@ -184,7 +158,7 @@ function DayArrow({
       onClick={onClick}
       disabled={disabled}
       style={style}
-      aria-label={dir === 'prev' ? '이전 날짜' : '다음 날짜'}
+      aria-label={dir === 'prev' ? pick(T.arrowPrev, lang) : pick(T.arrowNext, lang)}
     >
       <svg className={styles.dayArrowIcon} viewBox="0 0 85 85" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
         <circle cx="42.5" cy="42.5" r="42.5" fill={disabled ? '#999999' : '#FF7F0F'} />
@@ -202,6 +176,27 @@ function DayArrow({
 }
 
 const T = {
+  arrowPrev: {
+    ko: '이전', en: 'Previous', ja: '前へ', zh: '上一页',
+    vi: 'Trước', th: 'ก่อนหน้า', ru: 'Назад', id: 'Sebelumnya',
+  },
+  arrowNext: {
+    ko: '다음', en: 'Next', ja: '次へ', zh: '下一页',
+    vi: 'Tiếp', th: 'ถัดไป', ru: 'Далее', id: 'Berikutnya',
+  },
+  /**
+   * 전체보기 / 선택보기 (6858:69231 · 6858:69233). Localization_Jeju has no row
+   * for either — same gap STAT_LABEL below documents — so both are authored in
+   * the eight languages the kiosk ships.
+   */
+  viewAll: {
+    ko: '전체보기', en: 'View all', ja: 'すべて表示', zh: '查看全部',
+    vi: 'Xem tất cả', th: 'ดูทั้งหมด', ru: 'Показать всё', id: 'Lihat semua',
+  },
+  viewDay: {
+    ko: '선택보기', en: 'Selected day', ja: '選択日のみ', zh: '仅所选日',
+    vi: 'Ngày đã chọn', th: 'เฉพาะวันที่เลือก', ru: 'Выбранный день', id: 'Hari terpilih',
+  },
   empty: {
     ko: '코스에 담을 장소를 찾지 못했어요.\n관심사를 바꿔 다시 검색해보세요.',
     en: 'No places found for this course.\nTry different interests.',
@@ -212,19 +207,6 @@ const T = {
     ru: 'Места для маршрута не найдены.\nПопробуйте другие интересы.',
     id: 'Tidak ada tempat untuk rute ini.\nCoba minat yang lain.',
   },
-  /** Label beside the QR under the last spot card. No sheet key exists for it
-   *  (Localization_Jeju has no 모바일 row), so it is authored here in all eight
-   *  languages — the pattern this file already uses for `empty`. */
-  viewOnMobile: {
-    ko: '모바일에서 확인하기',
-    en: 'View on your phone',
-    ja: 'スマホで確認する',
-    zh: '在手机上查看',
-    vi: 'Xem trên điện thoại',
-    th: 'ดูบนมือถือ',
-    ru: 'Открыть на телефоне',
-    id: 'Lihat di ponsel',
-  },
 };
 
 interface CourseMeta {
@@ -232,6 +214,12 @@ interface CourseMeta {
   label: string;
   title: Partial<Record<Lang, string>>;
   tags: Partial<Record<Lang, string>>;
+  /**
+   * NOT DRAWN by -04-1 — the frame runs the hashtags straight into the summary
+   * bar and has no room for a paragraph. Kept because it is authored editorial
+   * copy in all eight languages that the -03 frames did draw and a later frame
+   * may again; deleting it would mean re-translating it to restore the row.
+   */
   desc: Partial<Record<Lang, string>>;
   /**
    * OFFLINE FALLBACK ONLY. These are the authored placeholders this page used
@@ -241,11 +229,11 @@ interface CourseMeta {
    * reach the network still has to draw a course — but nothing on the API path
    * may read them, or the bar would mix a real number with an invented one.
    */
-  duration: string;
-  distance: string;
+  duration: Partial<Record<Lang, string>>;
+  distance: Partial<Record<Lang, string>>;
   difficulty: string;
   /** Per-spot placeholders, same caveat. */
-  spotDuration: string;
+  spotDuration: Partial<Record<Lang, string>>;
   spotDifficulty: string;
 }
 
@@ -264,6 +252,11 @@ interface CourseMeta {
  * that every layout calls. Localizing those is a separate change to that lib.
  */
 const STAT_LABEL = {
+  /** Per-stop only — the card reads "머무는 시간 : 2-3시간" in -04-1. */
+  dwell: {
+    ko: '머무는 시간', en: 'Time here', ja: '滞在時間', zh: '停留时间',
+    vi: 'Thời gian ở lại', th: 'เวลาที่แวะ', ru: 'Время на месте', id: 'Waktu di sini',
+  },
   transport: {
     ko: '이동수단', en: 'Getting around', ja: '移動手段', zh: '交通方式',
     vi: 'Phương tiện', th: 'การเดินทาง', ru: 'Транспорт', id: 'Transportasi',
@@ -298,21 +291,8 @@ const DIFFICULTY_WORD: Record<string, Partial<Record<Lang, string>>> = {
   },
 };
 
-/**
- * The visitor's 이동수단 answer, localized.
- *
- * aiStore deliberately keeps every answer in KOREAN — it is what the course and
- * shop matching downstream key on (see JejuAiSearch) — so the stored value has
- * to be mapped back to a label for display. The four Korean words are the
- * fallbacks JejuAiSearch authors against Transportation_1..4, in that order.
- */
-const TRANSPORT_KO = ['도보', '자전거', '대중교통', '자동차'];
-const transportLabel = (ko: string, lang: Lang): string => {
-  const i = TRANSPORT_KO.indexOf(ko);
-  if (i < 0) return ko;
-  const value = t(`Transportation_${i + 1}`, lang);
-  return value.startsWith('Transportation_') ? ko : value;
-};
+/** The visitor's 이동수단 answer, localized — same path as the pick chips. */
+const transportLabel = (ko: string, lang: Lang): string => localizeJejuAiPick(ko, lang);
 
 const COURSE_META: Record<string, CourseMeta> = {
   nature: {
@@ -338,10 +318,19 @@ const COURSE_META: Record<string, CourseMeta> = {
       ru: 'Маршрут, соединяющий природу Чеджу с его историей и наследием.\nНе спеша пройдите вдоль открытого моря, оремов и старых деревень.',
       id: 'Rute yang memadukan panorama alam dengan sejarah dan warisan Jeju.\nNikmati perlahan laut lepas, oreum, dan desa-desa tradisional.',
     },
-    duration: '약 4~5시간',
-    distance: '약 18Km',
+    duration: {
+      ko: '약 4~5시간', en: 'Approx. 4–5 hrs', ja: '約4〜5時間', zh: '约 4–5 小时',
+      vi: 'Khoảng 4–5 giờ', th: 'ประมาณ 4–5 ชม.', ru: 'Около 4–5 ч', id: 'Sekitar 4–5 jam',
+    },
+    distance: {
+      ko: '약 18Km', en: 'Approx. 18 km', ja: '約18km', zh: '约 18 公里',
+      vi: 'Khoảng 18 km', th: 'ประมาณ 18 กม.', ru: 'Около 18 км', id: 'Sekitar 18 km',
+    },
     difficulty: '쉬움',
-    spotDuration: '2-3시간',
+    spotDuration: {
+      ko: '2-3시간', en: '2–3 hrs', ja: '2〜3時間', zh: '2–3 小时',
+      vi: '2–3 giờ', th: '2–3 ชม.', ru: '2–3 ч', id: '2–3 jam',
+    },
     spotDifficulty: '쉬움',
   },
   food: {
@@ -367,10 +356,19 @@ const COURSE_META: Record<string, CourseMeta> = {
       ru: 'Маршрут для местных вкусов и атмосферы Чеджу.\nНе спеша загляните туда, куда возвращаются сами островитяне.',
       id: 'Rute berbasis lokal yang penuh cita rasa dan suasana Jeju.\nNikmati perlahan tempat makan dan ruang favorit warga setempat.',
     },
-    duration: '약 4~5시간',
-    distance: '약 15Km',
+    duration: {
+      ko: '약 4~5시간', en: 'Approx. 4–5 hrs', ja: '約4〜5時間', zh: '约 4–5 小时',
+      vi: 'Khoảng 4–5 giờ', th: 'ประมาณ 4–5 ชม.', ru: 'Около 4–5 ч', id: 'Sekitar 4–5 jam',
+    },
+    distance: {
+      ko: '약 15Km', en: 'Approx. 15 km', ja: '約15km', zh: '约 15 公里',
+      vi: 'Khoảng 15 km', th: 'ประมาณ 15 กม.', ru: 'Около 15 км', id: 'Sekitar 15 km',
+    },
     difficulty: '쉬움',
-    spotDuration: '1-2시간',
+    spotDuration: {
+      ko: '1-2시간', en: '1–2 hrs', ja: '1〜2時間', zh: '1–2 小时',
+      vi: '1–2 giờ', th: '1–2 ชม.', ru: '1–2 ч', id: '1–2 jam',
+    },
     spotDifficulty: '쉬움',
   },
   family: {
@@ -396,10 +394,19 @@ const COURSE_META: Record<string, CourseMeta> = {
       ru: 'Маршрут впечатлений для всей семьи.\nКаждая остановка подходит и детям, и взрослым.',
       id: 'Rute pengalaman yang bisa dinikmati seluruh keluarga.\nSetiap perhentian cocok untuk anak maupun orang dewasa.',
     },
-    duration: '약 5~6시간',
-    distance: '약 22Km',
+    duration: {
+      ko: '약 5~6시간', en: 'Approx. 5–6 hrs', ja: '約5〜6時間', zh: '约 5–6 小时',
+      vi: 'Khoảng 5–6 giờ', th: 'ประมาณ 5–6 ชม.', ru: 'Около 5–6 ч', id: 'Sekitar 5–6 jam',
+    },
+    distance: {
+      ko: '약 22Km', en: 'Approx. 22 km', ja: '約22km', zh: '约 22 公里',
+      vi: 'Khoảng 22 km', th: 'ประมาณ 22 กม.', ru: 'Около 22 км', id: 'Sekitar 22 km',
+    },
     difficulty: '보통',
-    spotDuration: '2-3시간',
+    spotDuration: {
+      ko: '2-3시간', en: '2–3 hrs', ja: '2〜3時間', zh: '2–3 小时',
+      vi: '2–3 giờ', th: '2–3 ชม.', ru: '2–3 ч', id: '2–3 jam',
+    },
     spotDifficulty: '쉬움',
   },
 };
@@ -451,15 +458,13 @@ interface Stop {
   /** Null on the offline fallback, where there is no schedule to attach. */
   spot: JejuCourseSpot | null;
   /**
-   * The disc number — the stop's position within its DAY, not within its page.
-   * Page two of day one therefore reads 5·6·7·8, which is the whole point: the
-   * numbers name the itinerary, and paging is only how it is shown.
+   * The disc number — the stop's position within its DAY.
    */
   number: number;
 }
 
-/** One screenful: four cards at most, all belonging to the same day. */
-interface Page {
+/** One day's full itinerary — every scheduled stop, scrollable together. */
+interface DayItinerary {
   day: number;
   stops: Stop[];
 }
@@ -485,19 +490,27 @@ export function JejuAiDetail({ controller }: Props): JSX.Element {
    * need a placeholder the sheet does not have.
    */
   const totalTimeLabel = sheetText('TotalStayTime', lang, { ko: '총 소요시간' });
-  const dayWord = sheetText('dayLapsed', lang, { ko: '일차' });
 
   const meta = COURSE_META[courseKey] ?? COURSE_META.nature!;
-  /** Index into `pages`, not a day number — a day can span several pages. */
-  const [pageIndex, setPageIndex] = useState(0);
+  /** Index into `days` — the ← → pair steps days, not pages within a day. */
+  const [dayIndex, setDayIndex] = useState(0);
+  /**
+   * 전체보기 / 선택보기 (6858:69231 · 6858:69233).
+   *
+   * 선택보기 is the page as it was: one day at a time, stepped with the pager.
+   * 전체보기 puts every scheduled day in the one scroll, captioned by day, and
+   * parks the pager — there is no single current day to step away from.
+   */
+  const [scope, setScope] = useState<'day' | 'all'>('day');
+  const allDays = scope === 'all';
+  const listRef = useRef<HTMLDivElement>(null);
   const lowReach = useAccessibilityStore((s) => s.lowReach);
 
   /**
-   * Adds the ♿ row-top override to a class, and nothing otherwise.
+   * Adds the ♿ row-top override to a class (+113px mode-bar drop).
    *
-   * The standard frame is the 2026-08-26 re-stack (6516:73138) and the ♿ frame
-   * (6418:11330) is still on the layout before it, so seven rows sit at two
-   * different heights. See the *Low block at the foot of the stylesheet.
+   * Standard frame is 6516:73138; ♿ uses the mode-bar revision (bar only, no
+   * banner) — see the *Low block at the foot of the stylesheet.
    */
   /* Both params are `string | undefined` because that is how CSS Module lookups
      are typed here — see DayArrow's `className` for the same. */
@@ -505,7 +518,14 @@ export function JejuAiDetail({ controller }: Props): JSX.Element {
     [base, lowReach ? lowClass : ''].filter(Boolean).join(' ');
 
   /** The questionnaire, echoed under the summary bar — see the row in the JSX. */
-  const picks = [visitors, stay, transport, ...interests].filter(Boolean);
+  const picks = useMemo(
+    () => [visitors, stay, transport, ...interests].filter(Boolean),
+    [visitors, stay, transport, interests],
+  );
+  const pickLabels = useMemo(
+    () => picks.map((p) => localizeJejuAiPick(p, lang)),
+    [picks, lang],
+  );
 
   /** The scheduled course, or null while it loads and after a failed call. */
   const [course, setCourse] = useState<JejuCourse | null>(null);
@@ -563,142 +583,101 @@ export function JejuAiDetail({ controller }: Props): JSX.Element {
   // Offline only. Built for the whole trip and sliced per day so a spot never
   // appears twice; cheap enough not to gate on `course`.
   const fallbackSpots = useMemo(
-    () => buildSpots(interests, shops, SPOTS_PER_PAGE * fallbackDays),
+    () => buildSpots(interests, shops, OFFLINE_SPOTS_PER_DAY * fallbackDays),
     [interests, shops, fallbackDays],
   );
 
   /**
-   * The whole itinerary, cut into pages the arrows walk.
-   *
-   * A scheduled spot whose `shopId` is not in the catalogue is dropped rather
-   * than drawn as an empty card — the whole card is built from that row. In
-   * practice every id resolves (13/13 checked 2026-08-25 against
-   * `/api/shops?kioskId=6`); this is the guard for a catalogue that has not
-   * caught up with a newly-added place. A day left with no drawable stop still
-   * contributes ONE page, so the pager cannot skip a day silently.
+   * The itinerary grouped by day. Every stop the server scheduled for a day is
+   * kept together — the list below scrolls when there are more than fit on
+   * screen, rather than splitting a day across several pages.
    */
-  const pages: Page[] = useMemo(() => {
-    const out: Page[] = [];
-
+  const days: DayItinerary[] = useMemo(() => {
     if (course) {
-      for (const scheduled of course.schedule) {
-        const stops = scheduled.spots
+      return course.schedule.map((scheduled) => ({
+        day: scheduled.day,
+        stops: scheduled.spots
           .map((spot): Stop | null => {
             const shop = shopById.get(spot.shopId);
             return shop ? { shop, spot, number: spot.order } : null;
           })
-          .filter((stop): stop is Stop => stop !== null);
-        if (stops.length === 0) {
-          out.push({ day: scheduled.day, stops: [] });
-          continue;
-        }
-        for (let i = 0; i < stops.length; i += SPOTS_PER_PAGE) {
-          out.push({ day: scheduled.day, stops: stops.slice(i, i + SPOTS_PER_PAGE) });
-        }
-      }
-      return out;
+          .filter((stop): stop is Stop => stop !== null),
+      }));
     }
 
-    // Offline: exactly one page per day, which is what this page always drew.
-    for (let d = 1; d <= fallbackDays; d += 1) {
-      out.push({
-        day: d,
-        stops: fallbackSpots
-          .slice((d - 1) * SPOTS_PER_PAGE, d * SPOTS_PER_PAGE)
-          .map((shop, i) => ({ shop, spot: null, number: i + 1 })),
-      });
-    }
-    return out;
+    return Array.from({ length: fallbackDays }, (_, i) => ({
+      day: i + 1,
+      stops: fallbackSpots
+        .slice(i * OFFLINE_SPOTS_PER_DAY, (i + 1) * OFFLINE_SPOTS_PER_DAY)
+        .map((shop, j) => ({ shop, spot: null, number: j + 1 })),
+    }));
   }, [course, shopById, fallbackSpots, fallbackDays]);
 
   useEffect(() => {
-    // A shorter run than the page being viewed (a re-request, or the catalogue
-    // arriving late) must not leave the pager past the end.
-    setPageIndex((i) => Math.max(0, Math.min(i, pages.length - 1)));
-  }, [pages]);
+    setDayIndex((i) => Math.max(0, Math.min(i, days.length - 1)));
+  }, [days]);
 
-  const page = pages[pageIndex];
-  const stops = page?.stops ?? [];
-  /** The day the visible page belongs to — what the DAY label and header show. */
-  const day = page?.day ?? 1;
-  /** The header's course+day line, e.g. "A코스 - 1일차". */
-  const courseDayTitle = `${meta.label}코스 - ${day}${dayWord}`;
+  useEffect(() => {
+    listRef.current?.scrollTo(0, 0);
+  }, [dayIndex, scope]);
 
-  const goPrevPage = useCallback(() => setPageIndex((i) => Math.max(0, i - 1)), []);
-  const goNextPage = useCallback(
-    () => setPageIndex((i) => Math.min(pages.length - 1, i + 1)),
-    [pages.length],
+  const currentDay = days[dayIndex];
+  const stops = currentDay?.stops ?? [];
+  /** The day number the visible list belongs to — what the DAY label shows. */
+  const day = currentDay?.day ?? 1;
+  /** Every stop 전체보기 shows, or just the visible day's under 선택보기. */
+  const visibleStops = allDays ? days.flatMap((d) => d.stops) : stops;
+  /** "DAY 1", or the whole span while 전체보기 is on. */
+  const dayLabel = allDays && days.length > 1 ? `DAY 1-${days.length}` : `DAY ${day}`;
+  /** The header's course+day line, e.g. "자연·유산 탐방 코스 - 1일차". */
+  const courseDayTitle = jejuCourseNameWithDay(pick(meta.title, lang), day, lang);
+
+  const goPrevDay = useCallback(() => setDayIndex((i) => Math.max(0, i - 1)), []);
+  const goNextDay = useCallback(
+    () => setDayIndex((i) => Math.min(days.length - 1, i + 1)),
+    [days.length],
   );
 
   /**
-   * Destination for the 모바일에서 확인하기 QR.
-   *
-   * TODO(제주 W006): there is no per-course mobile page anywhere in this project,
-   * so nothing exists that "the course on your phone" could point at. Until one
-   * does, this scans to the FIRST spot of the day — which matches what the sheet
-   * promises for this screen (SubHeader_AICourse: "QR을 핸드폰으로 찍으시면 길을
-   * 안내해드려요"). Point it at the real course URL the moment there is one.
-   *
-   * `naverLink` is the same field JejuSpotDetailCard scans, and it is validated
-   * the same way: rows carry blanks and occasional non-URLs.
+   * How long the visitor spends here: the schedule's, or the authored
+   * placeholder offline. -04-1 LABELS it — "머무는 시간 : 2-3시간" — where the
+   * -03 frames drew the bare value; the same card is used for the 다음 장소 row
+   * under the spot detail, so that one gains the label too.
    */
-  const firstLink = stops[0]?.shop.naverLink ?? '';
-  const qrLink = /^https?:\/\//i.test(firstLink) ? firstLink : null;
+  const dwellOf = (stop: Stop): string => {
+    const value = stop.spot ? minutesLabel(stop.spot.dwellMinutes, lang) : pick(meta.spotDuration, lang);
+    return `${pick(STAT_LABEL.dwell, lang)} : ${value}`;
+  };
 
   /**
-   * Every stop of the VISIBLE DAY, in itinerary order.
-   *
-   * Paging is a display device — a day that does not fit in the list's 2240px
-   * viewport spills onto further pages — so anything that follows the itinerary
-   * rather than the screen has to walk this, not `stops`.
-   */
-  const dayStops = useMemo(
-    () => pages.filter((p) => p.day === day).flatMap((p) => p.stops),
-    [pages, day],
-  );
-
-  /** How long the visitor spends here: the schedule's, or the authored placeholder offline. */
-  const dwellOf = (stop: Stop): string =>
-    stop.spot ? minutesLabel(stop.spot.dwellMinutes) : meta.spotDuration;
-
-  /**
-   * "난이도 X". An ungraded SCHEDULED spot draws no row rather than a wrong one —
+   * "난이도 : X" — colon-separated in -04-1, to match the dwell stat beside it.
+   * An ungraded SCHEDULED spot draws no row rather than a wrong one:
    * `difficulty: 0` is the normalizer's "the server gave none". Offline there is
    * no schedule to grade, so the authored placeholder stands in.
    */
   const hardnessOf = (stop: Stop): string => {
     const grade = stop.spot ? difficultyLabel(stop.spot.difficulty) : meta.spotDifficulty;
     if (!grade) return '';
-    // Was the Korean literal `난이도 ${grade}` — built from the same two tables
-    // the summary bar uses, so the word and its label localize together.
-    return `${pick(STAT_LABEL.difficulty, lang)} ${pick(DIFFICULTY_WORD[grade] ?? { ko: grade }, lang)}`;
+    return `${pick(STAT_LABEL.difficulty, lang)} : ${pick(DIFFICULTY_WORD[grade] ?? { ko: grade }, lang)}`;
   };
 
   /** Falls back to the shared no-image placeholder, like the list and detail cards. */
   const photoOf = (stop: Stop): string => shopImages(stop.shop)[0] ?? jejuIconUrl('noimage') ?? '';
 
   /**
-   * The DetailItem for `dayStops[i]`, with the stop AFTER it attached as
-   * `courseNext` — which is what JejuDetail draws as the 다음 장소 card under the
-   * 상세 plate (Figma 6289:58438 / 6516:72906). Recursive, so that card opens a
-   * detail carrying the one after it and a visitor can walk the whole day
-   * without returning here.
-   *
-   * Scoped to the DAY, deliberately: the detail's header subtitle is
-   * "A코스 - 1일차", so a card that quietly crossed into the next day would be
-   * captioned with the wrong one. The last stop of a day simply has no card.
-   *
-   * Built on demand rather than memoised — the depth is the day's spot count
-   * (nine at the worst observed) and it runs once per tap.
+   * `list` is the day the tapped stop belongs to, not the whole itinerary: the
+   * 다음 장소 chain the detail screen walks must stop at the end of ITS day, and
+   * under 전체보기 the day is no longer implied by `stops`.
    */
-  const detailFor = (i: number): DetailItem | undefined => {
-    const stop = dayStops[i];
+  const detailFor = (list: Stop[], i: number): DetailItem | undefined => {
+    const stop = list[i];
     if (!stop) return undefined;
     const { shop, spot } = stop;
-    const nextStop = dayStops[i + 1];
-    const nextItem = detailFor(i + 1);
+    const nextStop = list[i + 1];
+    const nextItem = detailFor(list, i + 1);
     return {
       from: 'ai_detail',
+      shopId: shop.id,
       // JejuDetail shows this as the header SUBTITLE for AI-course spots, so it
       // carries the course + day rather than a generic label.
       title: courseDayTitle,
@@ -720,21 +699,47 @@ export function JejuAiDetail({ controller }: Props): JSX.Element {
       rating: shop.naverRating != null ? String(shop.naverRating) : '',
       instagram: '',
       blogReviews: shop.naverLink ?? '',
+      rentcarRoute: shop.route ?? null,
       ...(nextStop && nextItem
         ? { courseNext: { dwell: dwellOf(nextStop), difficulty: hardnessOf(nextStop), item: nextItem } }
         : {}),
     };
   };
 
-  const openSpot = (stop: Stop): void => {
-    // Identity lookup, not an index: `pages` holds one Stop object per stop and
-    // `dayStops` re-lists those same objects, so the tapped card is found even
-    // though the visible page is only a slice of the day.
-    const item = detailFor(dayStops.indexOf(stop));
+  const openSpot = (list: Stop[], stop: Stop): void => {
+    const item = detailFor(list, list.indexOf(stop));
     if (!item) return;
     setDetail(item);
     controller.navigate('detail', '코스 상세');
   };
+
+  /** One day's stops — its own dashed rail, then a numbered row per stop. */
+  const stopGroup = (list: Stop[], keyPrefix: string): JSX.Element => (
+    <div className={styles.stopGroup}>
+      {list.length > 1 && (
+        <div
+          className={styles.rail}
+          style={{ top: RAIL_TOP, height: railHeightFor(list.length) }}
+        />
+      )}
+      {list.map((stop, i) => (
+        <div key={`${keyPrefix}-${i}-${stop.shop.id}`} className={styles.stopRow}>
+          <span className={styles.stop}>{stop.number}</span>
+          <JejuCourseSpotCard
+            width={1678}
+            photo={photoOf(stop)}
+            name={shopName(stop.shop, lang)}
+            category={shopSecondCategory(stop.shop, lang)}
+            address={shopAddress(stop.shop, lang)}
+            description={shopDescription(stop.shop, lang)}
+            dwell={dwellOf(stop)}
+            difficulty={hardnessOf(stop)}
+            onClick={() => openSpot(list, stop)}
+          />
+        </div>
+      ))}
+    </div>
+  );
 
   /**
    * The summary bar. Four slots either way, and the two paths never mix:
@@ -750,9 +755,9 @@ export function JejuAiDetail({ controller }: Props): JSX.Element {
     const chosenTransport = transportLabel(transport || '자동차', lang);
     if (!course) {
       return [
-        { label: totalTimeLabel, value: meta.duration },
+        { label: totalTimeLabel, value: pick(meta.duration, lang) },
         { label: pick(STAT_LABEL.transport, lang), value: chosenTransport },
-        { label: pick(STAT_LABEL.distance, lang), value: meta.distance },
+        { label: pick(STAT_LABEL.distance, lang), value: pick(meta.distance, lang) },
         {
           label: pick(STAT_LABEL.difficulty, lang),
           value: pick(DIFFICULTY_WORD[meta.difficulty] ?? { ko: meta.difficulty }, lang),
@@ -764,9 +769,9 @@ export function JejuAiDetail({ controller }: Props): JSX.Element {
       0,
     );
     return [
-      { label: totalTimeLabel, value: `약 ${minutesLabel(course.totalMinutes)}` },
+      { label: totalTimeLabel, value: aboutMinutesLabel(course.totalMinutes, lang) },
       { label: pick(STAT_LABEL.transport, lang), value: chosenTransport },
-      { label: pick(STAT_LABEL.travel, lang), value: minutesLabel(travel) },
+      { label: pick(STAT_LABEL.travel, lang), value: minutesLabel(travel, lang) },
       {
         label: pick(STAT_LABEL.difficulty, lang),
         value: (() => {
@@ -777,6 +782,43 @@ export function JejuAiDetail({ controller }: Props): JSX.Element {
     ];
   }, [course, transport, meta, totalTimeLabel, lang]);
 
+  /**
+   * The header QR's payload — the itinerary on screen, as shopIds and numbers.
+   * Rebuilt with `days`, so switching DAY does not change it: the phone gets
+   * the whole trip either way, and 전체보기 / 선택보기 is a kiosk-side view.
+   */
+  const courseQrUrl = useMemo(
+    () =>
+      buildAiCourseSaveUrlForQr({
+        lang,
+        course: courseLetter(courseKey),
+        transport: transportCode(transport),
+        party: partySize(visitors),
+        nights: nightCount(stay),
+        interests: interestCodes(interests, shops),
+        visitDate: todayIso(),
+        days: days.map((d) => ({
+          day: d.day,
+          stops: d.stops.map((stop) => ({
+            shopId: stop.shop.id,
+            dwellMinutes: stop.spot?.dwellMinutes ?? null,
+            difficulty: stop.spot?.difficulty ?? null,
+          })),
+        })),
+        totalMinutes: course?.totalMinutes ?? null,
+        // Summed the same way the summary bar sums it; absent offline, where the
+        // phone falls back to this course's authored 이동거리 instead.
+        travelMinutes: course
+          ? course.schedule.reduce(
+              (sum, d) => sum + d.spots.reduce((n, spot) => n + (spot.travelMinutes ?? 0), 0),
+              0,
+            )
+          : null,
+        difficulty: course?.difficulty ?? null,
+      }) ?? COURSE_QR_FALLBACK_URL,
+    [lang, courseKey, transport, visitors, stay, interests, shops, days, course],
+  );
+
   return (
     <JejuPageFrame
       controller={controller}
@@ -786,11 +828,26 @@ export function JejuAiDetail({ controller }: Props): JSX.Element {
       bannerFallback="banner-detail"
       showBanner={false}
       onBack={() => controller.navigate('ai_result', '뒤로')}
+      /* Mode-bar revision: bar + header shift only — no promo banner in ♿. */
+      lowReachModeBar
+      lowReachShift={113}
     >
-      <p className={styles.title}>{pick(meta.title, lang)}</p>
-      <div className={styles.rule} />
+      {/* Header QR (x1836, y592) — the mobile AI-course view. */}
+      <div className={low(styles.qr, styles.qrLow)}>
+        <QRCodeSVG
+          className={styles.qrCode}
+          value={courseQrUrl}
+          size={150}
+          level="M"
+          includeMargin
+          bgColor="#ffffff"
+          fgColor="#000000"
+        />
+      </div>
+
+      {/* -04-1 runs the hashtags straight into the summary bar — the course
+          description the -03 frames drew between them is gone. */}
       <p className={low(styles.tags, styles.tagsLow)}>{pick(meta.tags, lang)}</p>
-      <p className={low(styles.desc, styles.descLow)}>{pick(meta.desc, lang)}</p>
 
       <div className={low(styles.summary, styles.summaryLow)}>
         {stats.map((s, i) => (
@@ -805,120 +862,83 @@ export function JejuAiDetail({ controller }: Props): JSX.Element {
       </div>
 
       {/* The questionnaire echoed back, between the summary bar and the DAY row
-          (6516:73323). Standard frame only — the ♿ frame has no such row. Every
-          value is stored KOREAN (see JejuAiSearch's submit), which is how the
-          frame draws them; empty slots (deep-link, idle reset) drop out. */}
-      {!lowReach && picks.length > 0 && (
-        <div className={styles.picks}>
-          {picks.map((p, i) => (
-            <span key={i} className={styles.pick}>{p}</span>
+          (6516:73323). Every value is stored KOREAN (see JejuAiSearch's submit),
+          which is how the frame draws them; empty slots drop out. */}
+      {picks.length > 0 && (
+        <div className={low(styles.picks, styles.picksLow)}>
+          {pickLabels.map((label, i) => (
+            <span key={i} className={styles.pick}>{label}</span>
           ))}
         </div>
       )}
 
-      {/* The pager. Always drawn — greyed at the ends, exactly as the Figma
-          shows the left one on the first screen — so the row never reflows.
-          It steps a PAGE at a time, which is a day boundary only when the day
-          fits on one page; see `pages`. */}
+      {/* The day pager. Always drawn — greyed at the ends on DAY 1 / the last
+          day, and throughout 전체보기 where there is no single current day — so
+          the row never reflows. */}
       <DayArrow
         dir="prev"
-        disabled={pageIndex <= 0}
-        onClick={goPrevPage}
+        disabled={allDays || dayIndex <= 0}
+        onClick={goPrevDay}
         className={low(styles.dayPrev, styles.dayArrowLow)}
+        lang={lang}
       />
 
-      <p className={low(styles.day, styles.dayLow)}>DAY {day}</p>
+      <p className={low(styles.day, styles.dayLow)}>{dayLabel}</p>
 
       <DayArrow
         dir="next"
-        disabled={pageIndex >= pages.length - 1}
-        onClick={goNextPage}
+        disabled={allDays || dayIndex >= days.length - 1}
+        onClick={goNextDay}
         className={low(styles.dayNext, styles.dayArrowLow)}
+        lang={lang}
       />
 
-      {/* Nothing at all while the schedule is in flight: the empty copy tells
-          the visitor to change their interests, which would be wrong advice for
-          a course that is simply still arriving. */}
-      {loading ? null : stops.length === 0 ? (
+      {/* 전체보기 / 선택보기 — the frame's two pills, right of the pager.
+
+          ★ On a ONE-DAY course the two views hold the same list by definition,
+          so the only thing a tap can change is the pills themselves. That is
+          the common case, not an edge one: JejuAiSearch opens on 당일치기 and a
+          visitor who leaves 체류 기간 alone gets a single day. Hence the loud
+          selected plate — with a text-only recolour the page looked dead. */}
+      <button
+        type="button"
+        className={low(
+          `${styles.scopeBtn} ${styles.scopeAll} ${allDays ? styles.scopeBtnOn : ''}`,
+          styles.scopeLow,
+        )}
+        aria-pressed={allDays}
+        onClick={() => setScope('all')}
+      >
+        {pick(T.viewAll, lang)}
+      </button>
+      <button
+        type="button"
+        className={low(
+          `${styles.scopeBtn} ${styles.scopeDay} ${allDays ? '' : styles.scopeBtnOn}`,
+          styles.scopeLow,
+        )}
+        aria-pressed={!allDays}
+        onClick={() => setScope('day')}
+      >
+        {pick(T.viewDay, lang)}
+      </button>
+
+      {loading ? null : visibleStops.length === 0 ? (
         <p className={styles.empty}>{pick(T.empty, lang)}</p>
       ) : (
-        <>
-          <div className={low(styles.rail, styles.railLow)} />
-
-          {/* ── The itinerary ──
-              Each numbered disc rides INSIDE the row with its own card rather
-              than being pinned to the page at a computed y. It had to move: the
-              four discs the design draws were fixed to the list's first four
-              rows, which was exact while this page built its own four-spot day
-              and wrong the moment a day could span pages — page two opens on
-              stops 5·6·7·8, and a disc nailed to row one can only ever say 1.
-              Flex centring reproduces the design's own offset exactly: a 105
-              disc centred on a 515 card is the 1628 against a list top of 1423
-              that the old STOP_TOP encoded. */}
-          <div className={low(styles.list, styles.listLow)}>
-            {stops.map((stop, i) => (
-              <div key={`${i}-${stop.shop.id}`} className={styles.stopRow}>
-                <span className={styles.stop}>{stop.number}</span>
-                {/* 1678, not the detail screen's 1793: the numbered disc and its
-                    35px gap take the first 140px of the list's 1818 gutter. */}
-                <JejuCourseSpotCard
-                  width={1678}
-                  photo={photoOf(stop)}
-                  name={shopName(stop.shop, lang)}
-                  category={shopSecondCategory(stop.shop, lang)}
-                  address={shopAddress(stop.shop, lang)}
-                  description={shopDescription(stop.shop, lang)}
-                  dwell={dwellOf(stop)}
-                  difficulty={hardnessOf(stop)}
-                  onClick={() => openSpot(stop)}
-                />
-              </div>
-            ))}
-          </div>
-
-          {/* 모바일에서 확인하기 — label left, QR right, the QR's right edge flush
-              with the cards' right edge and 30px below the last card.
-              Rendered only when there is a real destination: a QR that scans to
-              nothing is worse than no QR, which is how JejuSpotDetailCard treats
-              its own. See `qrLink`. */}
-          {qrLink && (
-            <div
-              className={styles.qrRow}
-              /* Standard: a fixed y1395 on the DAY row, set in the CSS. ♿ still
-                 hangs it off the last card, so only that layout computes a top. */
-              style={lowReach ? { top: qrTopFor(stops.length) } : undefined}
-            >
-              <span className={styles.qrLabel}>{pick(T.viewOnMobile, lang)}</span>
-              <span className={styles.qrFrame}>
-                <QRCodeSVG className={styles.qrCode} value={qrLink} bgColor="#ffffff" fgColor="#000000" level="M" />
-              </span>
-            </div>
-          )}
-
-          {/* Low-reach day pager — the same two buttons repeated at the foot of
-              the page. Only for the ♿ layout: this page cannot be shifted down
-              the way JejuLanguage is (its list already runs to y3663), so the
-              reachable control is duplicated rather than moved. Multi-day
-              courses only; on a one-day course both ends are dead. */}
-          {lowReach && pages.length > 1 && (
-            <>
-              <DayArrow
-                dir="prev"
-                disabled={pageIndex <= 0}
-                onClick={goPrevPage}
-                className={styles.dayPrevBottom}
-                style={{ top: bottomPagerTopFor(stops.length) }}
-              />
-              <DayArrow
-                dir="next"
-                disabled={pageIndex >= pages.length - 1}
-                onClick={goNextPage}
-                className={styles.dayNextBottom}
-                style={{ top: bottomPagerTopFor(stops.length) }}
-              />
-            </>
-          )}
-        </>
+        <div
+          ref={listRef}
+          className={low(styles.list, styles.listLow)}
+        >
+          {allDays
+            ? days.map((d) => (
+                <Fragment key={d.day}>
+                  {days.length > 1 && <p className={styles.dayGroup}>DAY {d.day}</p>}
+                  {stopGroup(d.stops, `d${d.day}`)}
+                </Fragment>
+              ))
+            : stopGroup(stops, `d${day}`)}
+        </div>
       )}
     </JejuPageFrame>
   );

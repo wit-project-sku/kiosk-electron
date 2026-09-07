@@ -24,6 +24,9 @@ const log = createLogger('security');
  * can't be enumerated as a fixed allowlist). Images/media can't execute code, so
  * this stays safe while script/connect stay off the network entirely.
  *
+ * `appres:` in img-src is the 도와줘 '하영' facility photos (resources/help),
+ * which the detail card renders straight off the install directory.
+ *
  * `appres:` in script-src/connect-src is the MediaPipe hand-gesture runtime on
  * 제주's camera screen: `FilesetResolver` injects a <script> for the WASM loader
  * and fetches the `.wasm` next to it, and a packaged renderer runs from `file://`
@@ -41,7 +44,7 @@ const log = createLogger('security');
  * for JavaScript, which `'unsafe-eval'` would.
  */
 const PRODUCTION_CSP =
-  "default-src 'self'; img-src 'self' https: media: data: blob:; " +
+  "default-src 'self'; img-src 'self' https: media: appres: data: blob:; " +
   "media-src 'self' https: media: blob:; " +
   "style-src 'self' 'unsafe-inline'; " +
   "script-src 'self' appres: 'wasm-unsafe-eval'; " +

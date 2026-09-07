@@ -17,11 +17,13 @@ import { Fragment, useMemo, useState } from 'react';
 import { isOk } from '@shared/types/result';
 import type { EventCategory, EventRecommendation, EventRegion } from '@shared/types/events';
 import type { KioskController } from '@renderer/hooks/useKioskController';
+import { jejuIconUrl } from '@renderer/assets/icons/jeju';
 import { useEvents } from '@renderer/hooks/useEvents';
 import { EventDetailScreen } from '@layouts/components/EventDetailScreen';
-import { useLang } from '@renderer/lib/i18n';
+import { pick, useLang } from '@renderer/lib/i18n';
 import type { Lang } from '@renderer/lib/i18n';
 import { sheetText, t } from '@renderer/lib/loc';
+import { useAccessibilityStore } from '@renderer/store/accessibilityStore';
 import { JejuPageFrame } from './JejuPageFrame';
 import styles from './JejuEvents.module.css';
 
@@ -33,17 +35,33 @@ interface Props {
 const REGION: EventRegion = 'JEJU';
 
 /**
+ * The close button's accessible name. Authored here rather than pulled from
+ * Localization_Jeju because the sheet carries no close/닫기 row — the button is
+ * new with 6760:37439 — and an unanswered `t()` would render the raw key.
+ */
+const CLOSE_LABEL = {
+  ko: '닫기',
+  en: 'Close',
+  ja: '閉じる',
+  zh: '关闭',
+  vi: 'Đóng',
+  th: 'ปิด',
+  ru: 'Закрыть',
+  id: 'Tutup',
+};
+
+/**
  * Two tabs — 제주도 (API region JEJU) and MBTI. The previous frames drew three
  * (종로구 / 인사동 / MBTI, Insadong districts left over from the source file) and
  * this file cut them down to two; the redesign agrees, and 6212:54808 now draws
  * exactly these two. `.tab` is flex:1, so a third would re-space the row.
+ *
+ * The region tab label is authored as 제주도 (not the sheet's Event_Tab_Jeju):
+ * operators asked to show 제주도 even when the sheet/CMS still says 제주시.
+ * MBTI is a loan word with no row of its own and needs none.
  */
-const TABS: Array<{ id: string; key?: string; label: string }> = [
-  // The sheet spells it 제주시 (Event_Tab_Jeju, 8/8 languages); the frame drew
-  // 제주도. The sheet wins — it is the operator's word for their own region —
-  // and the authored label stays as the fallback. MBTI is a loan word with no
-  // row of its own and needs none.
-  { id: 'REGION', key: 'Event_Tab_Jeju', label: '제주도' },
+const TABS: Array<{ id: string; label: string }> = [
+  { id: 'REGION', label: '제주도' },
   { id: 'MBTI', label: 'MBTI' },
 ];
 
@@ -131,6 +149,7 @@ const RESULT_SLOTS = 2;
 
 export function JejuEvents({ controller }: Props): JSX.Element {
   const lang = useLang();
+  const closeIcon = jejuIconUrl('ico-close');
   const [tab, setTab] = useState('REGION');
   const [category, setCategory] = useState<EventCategory>('ALL');
   const [detailId, setDetailId] = useState<number | null>(null);
@@ -138,6 +157,13 @@ export function JejuEvents({ controller }: Props): JSX.Element {
   const axisLabels = useMemo(() => mbtiLabels(lang), [lang]);
   const [status, setStatus] = useState<'idle' | 'loading' | 'results'>('idle');
   const [results, setResults] = useState<EventRecommendation[]>([]);
+  /* ♿ re-lays this page out rather than shifting it — the tab row moves to the
+     foot of the artboard and the MBTI content follows it down — so almost every
+     positioned element takes a second class. See the low-reach block at the end
+     of JejuEvents.module.css for the y map. */
+  const lowReach = useAccessibilityStore((s) => s.lowReach);
+  /* Params are optional because CSS Module lookups are typed `string | undefined`. */
+  const low = (base?: string, alt?: string): string => `${base ?? ''} ${lowReach ? alt ?? '' : ''}`;
 
   const isMbti = tab === 'MBTI';
   // Passing a null region on the MBTI tab skips the fetch entirely.
@@ -188,8 +214,14 @@ export function JejuEvents({ controller }: Props): JSX.Element {
       title="제주도 이벤트"
       bannerFallback="banner-detail"
       onBack={goBack}
+      /* ♿ 6532:39157: the mode-bar shape with the promo KEPT under the bar, so
+         the header lands at 113 + 573 = 686. The body shift stays 0 — this page
+         positions its own low-reach body (see the CSS). */
+      lowReachModeBar
+      lowReachBarBanner
+      lowReachShift={686}
     >
-      <div className={styles.tabs}>
+      <div className={low(styles.tabs, styles.tabsLow)}>
         {TABS.map((tb) => (
           <button
             key={tb.id}
@@ -197,7 +229,7 @@ export function JejuEvents({ controller }: Props): JSX.Element {
             className={`${styles.tab} ${tab === tb.id ? styles.tabActive : ''}`}
             onClick={() => selectTab(tb.id)}
           >
-            {tb.key ? sheetText(tb.key, lang, { ko: tb.label }) : tb.label}
+            {tb.label}
           </button>
         ))}
       </div>
@@ -207,7 +239,7 @@ export function JejuEvents({ controller }: Props): JSX.Element {
           {/* One centred line, "전체 ㅣ 공연 ㅣ 전시 ㅣ 기타" — the ㅣ separators
               are real glyphs in the design, drawn between the labels rather
               than as a border, so they are rendered as inert spans. */}
-          <div className={styles.chips}>
+          <div className={low(styles.chips, styles.chipsLow)}>
             {CATEGORY_TABS.map((c, i) => (
               <Fragment key={c.value}>
                 {i > 0 && <span className={styles.chipSep}>ㅣ</span>}
@@ -231,43 +263,53 @@ export function JejuEvents({ controller }: Props): JSX.Element {
             // layer (only the map re-enables), but JejuPageFrame's `.body > *`
             // rule would force it back to `auto` at equal specificity and let it
             // swallow every tap on the header underneath.
-            <div className={styles.detailHost}>
+            <div className={low(styles.detailHost, styles.detailHostLow)}>
               <EventDetailScreen eventId={detailId} accent="#ff7f0f" />
             </div>
           ) : (
-            <div className={styles.listScroll}>
-              <div className={styles.list}>
-                {items.map((event) => (
-                  <button
-                    key={event.eventId}
-                    type="button"
-                    className={styles.card}
-                    onClick={() => setDetailId(event.eventId)}
-                  >
-                    {/* The plate is always drawn: it is the design's empty-image
-                        state and also what shows while a photo loads. */}
-                    <span className={styles.cardThumb}>
-                      {event.mainImage && (
-                        <img src={event.mainImage} alt="" draggable={false} loading="lazy" />
-                      )}
-                    </span>
-                    <span className={styles.cardTitle}>{event.title}</span>
-                    <span className={styles.cardVenue}>{event.location}</span>
-                  </button>
-                ))}
+            <>
+              <div className={low(styles.listScroll, styles.listScrollLow)}>
+                <div className={styles.list}>
+                  {items.map((event) => (
+                    <button
+                      key={event.eventId}
+                      type="button"
+                      className={styles.card}
+                      onClick={() => setDetailId(event.eventId)}
+                    >
+                      {/* The plate is always drawn: it is the design's empty-image
+                          state and also what shows while a photo loads. */}
+                      <span className={styles.cardThumb}>
+                        {event.mainImage && (
+                          <img src={event.mainImage} alt="" draggable={false} loading="lazy" />
+                        )}
+                      </span>
+                      <span className={styles.cardTitle}>{event.title}</span>
+                      <span className={styles.cardVenue}>{event.location}</span>
+                    </button>
+                  ))}
+                </div>
+
+                {!loading && items.length === 0 && (
+                  <p className={styles.listEmpty}>
+                    {error ? '이벤트를 불러오지 못했습니다.' : '등록된 이벤트가 없습니다.'}
+                  </p>
+                )}
               </div>
 
-              {!loading && items.length === 0 && (
-                <p className={styles.listEmpty}>
-                  {error ? '이벤트를 불러오지 못했습니다.' : '등록된 이벤트가 없습니다.'}
+              {/* Localization_Jeju `Event_Source` — attribution under the grid.
+                  Hidden when the list fetch failed. */}
+              {!error && (
+                <p className={low(styles.listSource, styles.listSourceLow)}>
+                  {sheetText('Event_Source', lang)}
                 </p>
               )}
-            </div>
+            </>
           )}
         </>
       ) : (
         <>
-          <div className={styles.grid}>
+          <div className={low(styles.grid, styles.gridLow)}>
             {MBTI_GRID.map((letter) => (
               <button
                 key={letter}
@@ -282,12 +324,16 @@ export function JejuEvents({ controller }: Props): JSX.Element {
           </div>
 
           {status === 'loading' ? (
-            <div className={`${styles.cta} ${styles.ctaLoading}`}>
+            <div className={`${low(styles.cta, styles.ctaLow)} ${styles.ctaLoading}`}>
               <span className={styles.spinner} />
               결과 로딩중..
             </div>
           ) : (
-            <button type="button" className={styles.cta} onClick={() => void getResults()}>
+            <button
+              type="button"
+              className={low(styles.cta, styles.ctaLow)}
+              onClick={() => void getResults()}
+            >
               {sheetText('Event_MBTI_results', lang, { ko: '추천 결과 보기' })}
             </button>
           )}
@@ -298,7 +344,7 @@ export function JejuEvents({ controller }: Props): JSX.Element {
               reconstructed: the phrase moves inside the sentence in every other
               language, so locating it would be a guess. Korean-only copy in all
               eight languages was the worse trade. */}
-          <p className={styles.desc}>
+          <p className={low(styles.desc, styles.descLow)}>
             {[
               sheetText('Event_MBTI_guide1', lang, {
                 ko: 'MBTI 성향과 취향을 반영해<br/>제주도 이벤트를 맞춤 추천해드립니다!',
@@ -325,10 +371,39 @@ export function JejuEvents({ controller }: Props): JSX.Element {
           </p>
 
           {status === 'results' && (
-            // Figma node 6173:100721 — two columns and no close button, so
-            // tapping the dim is the only dismiss, as designed.
-            <div className={styles.overlay} role="presentation" onClick={() => setStatus('idle')}>
-              <div className={styles.modal} onClick={(e) => e.stopPropagation()}>
+            // Figma node 6308:78956 — two columns over a close button
+            // (6760:37439). Tapping the dim still dismisses and is unchanged;
+            // the button makes that exit VISIBLE, which is what the redesign is
+            // for — a visitor at a kiosk has no reason to guess that the dark
+            // area around a card is tappable.
+            <div
+              className={low(styles.overlay, styles.overlayLow)}
+              role="presentation"
+              onClick={() => setStatus('idle')}
+            >
+              <div
+                className={`${styles.modal} ${lowReach ? styles.modalLow : ''}`}
+                onClick={(e) => e.stopPropagation()}
+              >
+                {/* Outside the results/empty branch on purpose: a card saying
+                    "추천 결과가 없습니다" is the one a visitor most wants out of. */}
+                <button
+                  type="button"
+                  className={styles.modalClose}
+                  onClick={() => setStatus('idle')}
+                  aria-label={pick(CLOSE_LABEL, lang)}
+                  data-pad-dismiss
+                >
+                  {closeIcon && (
+                    <img
+                      src={closeIcon}
+                      alt=""
+                      className={styles.modalCloseIcon}
+                      draggable={false}
+                    />
+                  )}
+                </button>
+
                 {results.length > 0 ? (
                   <>
                     {/* The design lays out exactly two slots; extra results the
@@ -351,7 +426,7 @@ export function JejuEvents({ controller }: Props): JSX.Element {
                       </div>
                     ))}
                     {/* No QR here: 6308:78956 draws the card with the two event
-                        columns and nothing else. */}
+                        columns and the close button, and nothing else. */}
                   </>
                 ) : (
                   // "없습니다", not "불러오지 못했습니다": `results` is empty both

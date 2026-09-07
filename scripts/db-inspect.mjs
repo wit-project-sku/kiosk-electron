@@ -6,6 +6,7 @@
 //   node scripts/db-inspect.mjs <table>               # dump rows of <table> from kiosk.db
 //   node scripts/db-inspect.mjs <table> <limit>       # dump up to <limit> rows
 //   node scripts/db-inspect.mjs outbox --payment      # dump from the payment outbox DB
+//   node scripts/db-inspect.mjs --beta                # inspect the BETA install instead
 //
 // Read-only: safe to run while the kiosk app is open (WAL allows readers).
 
@@ -13,12 +14,17 @@ import { DatabaseSync } from 'node:sqlite';
 import { join } from 'node:path';
 import process from 'node:process';
 
-const userData = join(process.env.APPDATA ?? '', 'kiosk-app');
+// Production and beta keep completely separate state (see
+// src/main/core/appIdentity.ts), so the inspector has to be told which one.
+// Default is production, matching the installed app most kiosks run.
+const beta = process.argv.includes('--beta');
+const userData = join(process.env.APPDATA ?? '', beta ? 'kiosk-app-beta' : 'kiosk-app');
 const KIOSK_DB = join(userData, 'data', 'kiosk.db');
 const OUTBOX_DB = join(userData, 'payment-agent', 'outbox.sqlite');
 
 const args = process.argv.slice(2);
 const payment = args.includes('--payment');
+console.log(`[db-inspect] ${beta ? 'BETA' : 'production'} -> ${userData}`);
 const positional = args.filter((a) => !a.startsWith('--'));
 const table = positional[0];
 const limit = Number(positional[1] ?? 50);

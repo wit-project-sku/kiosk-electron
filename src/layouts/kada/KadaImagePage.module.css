@@ -1,0 +1,77 @@
+/* KADA (W202) partner page. Literal artboard px — see KadaHome.module.css. */
+
+.screen {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  /* Matches the top of the page artwork's own gradient, so the screen is never
+     bare during the frame before a 2 MB export decodes. */
+  background: linear-gradient(180deg, #102135 71.154%, #215252 100%);
+}
+
+/*
+ * Covers the top 700px of the artwork so every page carries the SAME live
+ * header, whether or not its Figma frame had one baked in. #102135 is not an
+ * approximation here: KADA-BG holds that exact flat navy until 71.154% of
+ * 3840 = y2732, so the band is indistinguishable from what it hides.
+ *
+ * Below the header (z-index 3) but above the artwork and its hotspots, so the
+ * rail's topmost entry at y740 is still reachable.
+ */
+.headerBand {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 2160px;
+  height: 700px;
+  background: #102135;
+  z-index: 1;
+  pointer-events: none;
+}
+
+/*
+ * Partner logo bar, drawn only for the one artwork variant that lacks it
+ * (Figma Group 1000004486 at (170,3535), 1820×141). Above the artwork but
+ * below the header band, and inert — it is decoration, not a control.
+ */
+.partnerBar {
+  position: absolute;
+  left: 170px;
+  top: 3535px;
+  width: 1820px;
+  height: 141px;
+  object-fit: contain;
+  z-index: 1;
+  pointer-events: none;
+}
+
+/* ── Missing-artwork placeholder ───────────────────────────────────────── */
+
+.missing {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 80px;
+  font-family: 'Noto Sans', var(--kiosk-font, sans-serif);
+  text-align: center;
+}
+
+.missingTitle {
+  margin: 0;
+  font-size: 180px;
+  font-weight: 700;
+  line-height: 1;
+  color: #d2ae4f;
+  letter-spacing: 0.04em;
+}
+
+.missingHint {
+  margin: 0;
+  font-size: 56px;
+  font-weight: 400;
+  line-height: 1.5;
+  color: #878b91;
+}

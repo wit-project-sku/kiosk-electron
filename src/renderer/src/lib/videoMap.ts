@@ -103,6 +103,12 @@ const VIDEO_SET_BY_LAYOUT: Record<KioskLayoutId, VideoSet> = {
   HWASEONG: 'hwaseong',
   JEJU_AIRPORT: 'jeju',
   JEJU_HERITAGE: 'jeju', // one 제주 video set — the mascot split is text-only
+  // KADA W202 gets its OWN set rather than borrowing insadong's, even though
+  // resources/videos/kada/ does not exist yet. Pointing it at 'insadong' would
+  // put 인사동 AI-model clips and Korean subtitles on Monitor 2 in Hanoi; an
+  // empty set resolves no clips, so the customer display stays on its attract
+  // slideshow until KADA footage is dropped into that folder.
+  KADA: 'kada',
 };
 
 /** Which video set a kiosk's own subtitle entries belong to — the caller
@@ -283,6 +289,9 @@ const SCREEN_KEYS_BY_LAYOUT: Record<KioskLayoutId, LayoutScreenKeys> = {
   // `jeju` video set is empty, so every lookup returns no clips either way.
   JEJU_AIRPORT: { map: {}, inherit: true },
   JEJU_HERITAGE: { map: {}, inherit: true },
+  // KADA has five screens and no video set, so there is nothing to map and
+  // nothing worth inheriting — Insadong's screen names do not exist here.
+  KADA: { map: {}, inherit: false },
 };
 
 // Every kiosk carries a dedicated ChangeLanguage_* clip per UI language (all 8),

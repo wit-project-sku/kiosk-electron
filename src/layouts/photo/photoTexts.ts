@@ -268,3 +268,40 @@ export const PRIVACY: Partial<Record<Lang, PrivacyPolicy>> = {
     ],
   },
 };
+
+/**
+ * KADA (W202) result copy — Figma 4649:6069 (Save Photo).
+ *
+ * A separate table rather than more rows in RESULT, for two reasons. The strings
+ * differ (that frame words the hint and the note its own way), and more
+ * importantly RESULT's second note line advertises a 한복 dress-up event at the
+ * Insadong venue — copy that must not appear on a kiosk in Hanoi. KADA's note is
+ * one line, as the frame draws it.
+ *
+ * Only en/vi: those are the only two languages this venue offers (KADA_LANGS),
+ * and `pick()` resolves either directly.
+ *
+ * `subtitle` is empty because the KADA header carries the venue wordmark and no
+ * caption — KadaHeader renders nothing for a falsy subtitle. `goods` is unused:
+ * the 굿즈제작 button points at insarang.kr and is not rendered on this venue.
+ */
+export const RESULT_KADA: Partial<Record<Lang, ResultCopy>> = {
+  en: {
+    subtitle: '',
+    step: 'Save Photo',
+    saveHint: { lead: 'To save the photo, ', accent: 'please scan the QR code.' },
+    note: ['Scan the QR code to save it to your phone and share it on various social media platforms.'],
+    save: 'Save',
+    goods: '',
+    retake: 'Retake',
+  },
+  vi: {
+    subtitle: '',
+    step: 'Lưu ảnh',
+    saveHint: { lead: 'Để lưu ảnh, ', accent: 'vui lòng quét mã QR.' },
+    note: ['Quét mã QR để lưu ảnh vào điện thoại của bạn và chia sẻ lên các nền tảng mạng xã hội.'],
+    save: 'Lưu',
+    goods: '',
+    retake: 'Chụp lại',
+  },
+};

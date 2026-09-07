@@ -10,12 +10,13 @@
  */
 
 import { app, BrowserWindow, protocol } from 'electron';
-import { electronApp, optimizer } from '@electron-toolkit/utils';
+import { optimizer } from '@electron-toolkit/utils';
 import { APP_NAME } from '@shared/constants';
 import { IpcEvents } from '@shared/ipc/channels';
 import { initLogger, createLogger } from './core/logger';
 import { loadEnvFile } from './core/env';
 import { enforceSingleInstance, suppressEmbedAuthDialog } from './core/security';
+import { applyAppIdentity, appDisplayName } from './core/appIdentity';
 import { MEDIA_SCHEME_PRIVILEGES, registerMediaProtocol } from './core/mediaProtocol';
 import {
   APP_RESOURCE_SCHEME_PRIVILEGES,
@@ -27,6 +28,7 @@ import { getKioskLocation } from '@shared/config/kioskLocations';
 import { database } from './database/Database';
 import { createContainer, getContainer } from './container';
 import { WindowManager } from './windows/WindowManager';
+import { languageStore } from './core/LanguageStore';
 import { registerIpcHandlers } from './ipc/registerIpc';
 import type { AppContainer } from './container';
 import {
@@ -78,8 +80,25 @@ function seedLocalContent(container: AppContainer): void {
 app.commandLine.appendSwitch('disk-cache-size', '536870912');
 
 loadEnvFile();
+
+// ★ IDENTITY BEFORE EVERYTHING — before the logger, before the lock, before
+// whenReady. On a BETA build this repoints `userData`, and that directory holds
+// kiosk.db, the provisioned kioskId, the log file and the SingletonLock taken
+// below. Beta installs alongside production (electron-builder.beta.yml), so
+// anything resolving `userData` ahead of this line would land in production's
+// tree — and beta would then exit on startup, having found "itself" running.
+//
+// It sits above `initLogger()` because electron-log resolves its file path on
+// the FIRST WRITE and initLogger's own banner line is that write. Only
+// `loadEnvFile()` must precede it, for UPDATE_CHANNEL.
+//
+// A PRODUCTION build is unaffected: it keeps the `kiosk-app` directory it has
+// always used. See core/appIdentity.ts for why that matters.
+const identity = applyAppIdentity();
+
 initLogger();
 const log = createLogger('main');
+log.info('App identity', identity);
 
 let windowManager: WindowManager | null = null;
 const paymentAgent = new PaymentAgentManager();
@@ -100,8 +119,10 @@ if (!hasLock) {
 async function bootstrap(): Promise<void> {
   await app.whenReady();
 
-  electronApp.setAppUserModelId('com.kioskapp.desktop');
-  app.setName(APP_NAME);
+  // Display name only — `userData` was already fixed by applyAppIdentity(), so
+  // varying this per channel is safe. "Kiosk App Beta" is what a support ticket
+  // and the window title report on a side-by-side install.
+  app.setName(appDisplayName(APP_NAME));
 
   // F12 toggles devtools in dev; ignored in production builds.
   app.on('browser-window-created', (_event, window) => {
@@ -158,7 +179,11 @@ async function bootstrap(): Promise<void> {
   // it refreshes nightly too — a background retired today disappears from the
   // 제주 outfit screen without waiting for the next reboot.
   container.sync.addNightTask(() =>
-    container.backgrounds.refresh().then(() => {
+    container.backgrounds.refresh().then(async () => {
+      // Mirror the tiles BEFORE telling the renderer, so the reload it triggers
+      // already reads local files instead of re-fetching every one. Nothing is
+      // on screen at 02:00, so there is no reason to show the set early here.
+      await container.backgrounds.cacheImages();
       windowManager?.broadcast(IpcEvents.BackgroundsChanged, null);
     }),
   );
@@ -166,7 +191,8 @@ async function bootstrap(): Promise<void> {
   // refreshes nightly like the banners — a new outfit appears on the picker
   // without a rebuild, which is the whole point of moving it off the bundle.
   container.sync.addNightTask(() =>
-    container.outfits.refresh().then(() => {
+    container.outfits.refresh().then(async () => {
+      await container.outfits.cacheImages();
       windowManager?.broadcast(IpcEvents.OutfitsChanged, null);
     }),
   );
@@ -177,6 +203,9 @@ async function bootstrap(): Promise<void> {
 
   windowManager = new WindowManager(container);
   registerIpcHandlers(container, windowManager);
+  // Every launch starts in Korean; the visitor's in-session choice is cleared on
+  // the next restart or idle timeout (see useKioskController.handleIdle).
+  languageStore.set('ko');
   windowManager.bootstrap();
 
   // Begin weather polling after the window subscription is wired so the first
@@ -228,6 +257,17 @@ async function bootstrap(): Promise<void> {
   // later uploads the whole backlog on the first night.
   container.footfallUploader.start();
 
+  // 키 측정 — the headless ZED height sidecar. 제주 only; the service checks the
+  // layout itself and does nothing anywhere else, so there is no condition here
+  // to keep in sync with one inside it. Best-effort in every direction: a
+  // missing ZED SDK, an unplugged camera or a crashed child costs a null height
+  // and never touches the photo flow.
+  container.height.start();
+  // 키 측정 rows are one per capture, so unlike 유동인구's hourly buckets they grow
+  // with how busy the kiosk is. Pruned on the same 02:00 pass that refreshes
+  // content, rather than on a scheduler of its own.
+  container.sync.addNightTask(() => container.height.pruneOldMeasurements());
+
   // Refresh sheet content into SQLite in the background on every launch (in
   // addition to the 02:00 night sync). The current window already rendered from
   // the last-synced/bundled data; the next bootstrap picks up these results.
@@ -258,7 +298,13 @@ async function bootstrap(): Promise<void> {
   });
   // Refresh the AR 배경 테마 set from the witteria API into SQLite (background),
   // then tell the renderer to reload — same first-launch reason as the banners.
-  void container.backgrounds.refresh().then(() => {
+  void container.backgrounds.refresh().then(async () => {
+    // Broadcast FIRST at boot, then mirror: the picker should open on whatever
+    // is already known rather than wait behind a download. The second broadcast
+    // swaps the tiles onto local files once they land, and costs the renderer
+    // only a re-read of SQLite.
+    windowManager?.broadcast(IpcEvents.BackgroundsChanged, null);
+    await container.backgrounds.cacheImages();
     windowManager?.broadcast(IpcEvents.BackgroundsChanged, null);
   });
   // 틀린그림찾기 rounds for the AR 한복 waiting game. No broadcast: the renderer
@@ -267,7 +313,9 @@ async function bootstrap(): Promise<void> {
   void container.spotDiff.refresh();
   // The outfit catalogue, on the other hand, IS on screen as soon as someone
   // taps AR 한복체험, so the renderer is told when it lands.
-  void container.outfits.refresh().then(() => {
+  void container.outfits.refresh().then(async () => {
+    windowManager?.broadcast(IpcEvents.OutfitsChanged, null);
+    await container.outfits.cacheImages();
     windowManager?.broadcast(IpcEvents.OutfitsChanged, null);
   });
 
@@ -300,6 +348,9 @@ app.on('before-quit', () => {
     // would drop up to a minute of 유동인구 every single night.
     getContainer().footfall.stop();
     getContainer().footfallUploader.stop();
+    // Kills the Python child. Without this it outlives the app and keeps the
+    // ZED open, so the next launch cannot claim the camera.
+    getContainer().height.stop();
   } catch {
     // Container may not exist if startup failed; ignore.
   }

@@ -48,12 +48,28 @@ export function ImageLightbox({
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent): void => {
-      if (e.key === 'Escape') onClose();
-      else if (e.key === 'ArrowLeft') swiper?.slidePrev();
-      else if (e.key === 'ArrowRight') swiper?.slideNext();
+      // `preventDefault` on the three keys this owns, so 제주's barrier-free
+      // keypad stands off them: its handler skips anything already handled
+      // nearer the event, and without this a ◀ press would slide the gallery
+      // AND move the keypad's focus ring behind it at the same time.
+      if (e.key === 'Escape') {
+        e.preventDefault();
+        onClose();
+      } else if (e.key === 'ArrowLeft') {
+        e.preventDefault();
+        swiper?.slidePrev();
+      } else if (e.key === 'ArrowRight') {
+        e.preventDefault();
+        swiper?.slideNext();
+      }
     };
-    window.addEventListener('keydown', onKey);
-    return () => window.removeEventListener('keydown', onKey);
+    // CAPTURE phase, which is what makes the `preventDefault` above count.
+    // 제주's keypad listens on this same window and mounts long before this
+    // lightbox does, so in the bubble phase its handler would run FIRST and
+    // have moved its focus ring before this one ever saw the key. Capture runs
+    // ahead of every bubble listener regardless of who registered first.
+    window.addEventListener('keydown', onKey, true);
+    return () => window.removeEventListener('keydown', onKey, true);
   }, [onClose, swiper]);
 
   if (images.length === 0) return null;
@@ -62,7 +78,9 @@ export function ImageLightbox({
 
   return (
     <div className={styles.overlay} style={{ '--lb-accent': accent } as CSSProperties} role="dialog" aria-modal="true">
-      <button type="button" className={styles.close} onClick={onClose} aria-label="닫기">
+      {/* `data-pad-dismiss`: 제주's keypad ✕ closes the lightbox instead of
+          leaving the screen underneath it. See jeju/keypad/useJejuKeypad. */}
+      <button type="button" className={styles.close} onClick={onClose} aria-label="닫기" data-pad-dismiss>
         <svg viewBox="0 0 24 24" aria-hidden="true">
           <path d="M6 6 L18 18 M18 6 L6 18" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" />
         </svg>

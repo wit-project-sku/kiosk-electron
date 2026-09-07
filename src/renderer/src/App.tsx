@@ -9,6 +9,7 @@ import { useAttractionStore } from '@renderer/store/attractionStore';
 import { useButtonStore } from '@renderer/store/buttonStore';
 import { useBannerStore } from '@renderer/store/bannerStore';
 import { useBackgroundStore } from '@renderer/store/backgroundStore';
+import { useOutfitStore } from '@renderer/store/outfitStore';
 import { KioskSwitcher } from '@renderer/components/kiosk/KioskSwitcher';
 import { FootfallCounter } from '@renderer/features/footfall/FootfallCounter';
 
@@ -69,6 +70,17 @@ export function App(): JSX.Element {
     void useBackgroundStore.getState().load();
     const off = window.api.events.onBackgroundsChanged(() => {
       void useBackgroundStore.getState().reload();
+    });
+    return off;
+  }, []);
+
+  // Load the AR 한복 outfit catalogue from SQLite at boot (main refreshes the API
+  // on launch + nightly). Pre-warming here means the picker opens instantly
+  // instead of waiting for the first IPC round-trip when someone taps AR 한복체험.
+  useEffect(() => {
+    void useOutfitStore.getState().load();
+    const off = window.api.events.onOutfitsChanged(() => {
+      void useOutfitStore.getState().reload();
     });
     return off;
   }, []);

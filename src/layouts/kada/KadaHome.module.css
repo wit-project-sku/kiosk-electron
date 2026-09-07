@@ -1,0 +1,305 @@
+/*
+ * KADA (W202) home — Figma 5403:11277.
+ *
+ * Coordinates are LITERAL Figma pixels on the 2160×3840 artboard (see
+ * KioskScreenImage: 1 CSS px = 1 Figma px inside KioskArtboard). The Figma group
+ * is 2624 wide because the horizon arc bleeds past both edges; the screen itself
+ * starts at the group's x=170, and every value below is already screen-relative.
+ */
+
+.screen {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  /*
+   * The CSS gradient is a PAINT-BEHIND, not the design: it approximates
+   * KADA-BG (4315:64824) so the screen is never bare navy-on-white during the
+   * one frame before home-bg.png decodes. The exported PNG on top is the real
+   * background — Figma's gradient has an eased midpoint the two-stop CSS
+   * version cannot express.
+   */
+  background: linear-gradient(180deg, #102135 71.154%, #215252 100%);
+}
+
+/*
+ * KADA-BG (4315:64824), exported 2168×3848 for a 2160×3840 node — Figma adds
+ * bleed for the node's drop shadow. Stretched to the artboard rather than
+ * positioned at that bleed offset: the source is a smooth vertical gradient, so
+ * a 0.2% scale is invisible, and it cannot be knocked out of alignment by a
+ * re-export whose bleed differs. This is what KioskScreenImage does for every
+ * other flattened screen in the app.
+ *
+ * Named plainly `bg` because the shared photo workflow asks its location's icon
+ * resolver for exactly that name (HanbokSelect's icon('bg')) — one asset backs
+ * both this screen and the AR screens, which is right: they are the same page.
+ */
+.bg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: fill;
+  pointer-events: none;
+}
+
+/* ── Title lock-up ─────────────────────────────────────────────────────── */
+
+/* Ellipse 14 — the thin gradient ring the title sits inside. */
+.ring {
+  position: absolute;
+  left: 256px;
+  top: 919px;
+  width: 1648px;
+  height: 1648px;
+}
+
+.eyebrow {
+  position: absolute;
+  left: 526px;
+  top: 1088px;
+  width: 1109px;
+  height: 65px;
+  margin: 0;
+  font-family: 'Noto Sans', var(--kiosk-font, sans-serif);
+  font-size: 48px;
+  font-weight: 800;
+  line-height: 65px;
+  color: #878b91;
+  text-align: center;
+  white-space: nowrap;
+}
+
+/*
+ * "Korea-ASEAN / Digital Academy" — 240px Manuale Bold. Figma gives the block
+ * 690px for two lines, i.e. 345px of leading each; that ratio is what keeps the
+ * two lines inside the ring, so it is set explicitly rather than left to the
+ * font's own `normal`.
+ */
+.title {
+  position: absolute;
+  left: 215px;
+  top: 1115px;
+  width: 1731px;
+  height: 690px;
+  margin: 0;
+  font-family: 'Manuale', 'Noto Sans', serif;
+  font-size: 240px;
+  font-weight: 700;
+  line-height: 345px;
+  color: #d2ae4f;
+  text-align: center;
+  white-space: nowrap;
+}
+
+.title span {
+  display: block;
+}
+
+.dividerTop {
+  position: absolute;
+  left: 432px;
+  top: 1813px;
+  width: 1296px;
+  height: 3px;
+}
+
+.strapline {
+  position: absolute;
+  left: 675px;
+  top: 1816px;
+  width: 811px;
+  height: 276px;
+  margin: 0;
+  font-family: 'Manuale', 'Noto Sans', serif;
+  font-size: 64px;
+  font-weight: 700;
+  line-height: 92px;
+  color: #d2ae4f;
+  text-align: center;
+  white-space: nowrap;
+}
+
+.strapline span {
+  display: block;
+}
+
+.dividerBottom {
+  position: absolute;
+  left: 432px;
+  top: 2118px;
+  width: 1296px;
+  height: 3px;
+}
+
+/* ── Partner wordmark row (y≈2150–2222) ────────────────────────────────── */
+
+/*
+ * Each wordmark is sized by its OWN rule below, never by a shared `img` rule:
+ * a descendant selector like `.logos img` outranks the single-class rules and
+ * would resize all five to the same box (it did — the PNGs came out 2160×3840,
+ * PTIT's red mark sweeping across the whole screen). `.logos` is a plain
+ * grouping element with no box of its own; the children position against
+ * `.screen`, which is why their coordinates are screen-absolute.
+ */
+.logoAkcf,
+.logoPtit,
+.logoSku,
+.logoWit,
+.logoNipa {
+  position: absolute;
+  display: block;
+  object-fit: contain;
+}
+
+.logoAkcf {
+  left: 522px;
+  top: 2170px;
+  width: 265px;
+  height: 52px;
+}
+
+/* The NIPA mark exports as two stacked vector groups (4376:65981 / 4376:65988):
+   the wordmark, then a 8.5%-tall strip flush to the bottom of the same box. */
+.logoNipa {
+  left: 810px;
+  top: 2152px;
+  width: 145.73px;
+  height: 87.08px;
+}
+
+/*
+ * Sized in absolute px, not by insets. An <img> is a REPLACED element: with
+ * `width: auto` it takes its intrinsic width and the opposing inset is simply
+ * dropped, so Figma's inset-pairs do not constrain it the way they do a <div>.
+ * These are the same boxes Figma describes (145.73×87.08 minus the insets),
+ * resolved once here.
+ */
+.logoNipa img:first-child {
+  position: absolute;
+  left: 0.95px;
+  top: 0;
+  width: 144.78px;
+  height: 74.52px;
+}
+
+.logoNipa img:last-child {
+  position: absolute;
+  left: 0;
+  top: 79.63px;
+  width: 139.84px;
+  height: 7.45px;
+}
+
+.logoPtit {
+  left: 993px;
+  top: 2150px;
+  width: 74px;
+  height: 92px;
+}
+
+.logoSku {
+  left: 1092px;
+  top: 2164px;
+  width: 299px;
+  height: 65px;
+}
+
+.logoWit {
+  left: 1416px;
+  top: 2153px;
+  width: 292px;
+  height: 86px;
+}
+
+/* ── Orbiting partner badges ───────────────────────────────────────────── */
+
+/*
+ * Figma group 4492:276, exported whole (2626×1082 for a 2624×1080.65 node —
+ * ~1px of stroke bleed on each edge, which the offsets below absorb).
+ *
+ * This replaced thirteen separately-placed layers: the horizon arc, two glow
+ * discs, three tilted orbit rings, five badge discs and five badge labels. The
+ * composite is not a shortcut — the badges overlap their rings at hand-tuned
+ * depths and the arc passes BETWEEN them, so re-stacking it from parts meant
+ * re-deriving a z-order Figma already resolved, and every re-export risked a
+ * different answer. Nothing here is interactive or localised (the five labels
+ * are acronyms, identical in both languages), so there is nothing to gain by
+ * keeping the pieces apart.
+ *
+ * The group is WIDER than the screen: it starts at x −170 because the arc
+ * bleeds past both edges, which is why .screen clips.
+ */
+.orbit {
+  position: absolute;
+  left: -171px;
+  top: 2677.7px;
+  width: 2626px;
+  height: 1082px;
+  pointer-events: none;
+}
+
+/* ── K-CULTURE CHALLENGE ───────────────────────────────────────────────── */
+
+/*
+ * No press-scale anywhere in KADA.
+ *
+ * A `transform: scale()` on :active reads as the whole control lurching in and
+ * back out on a 2160×3840 panel, where a 4% shrink is ~12px of travel on a
+ * 306px button — it looked like a glitch rather than feedback. The touch
+ * highlight is suppressed too (-webkit-tap-highlight-color), so presses are
+ * acknowledged by what the tap DOES, not by animating the button.
+ */
+
+
+/*
+ * One tap target covering both the ring and its label (Figma draws them as
+ * separate layers, but they are one button to a visitor). The box is the union
+ * of the ring (927,3238 306²) and the label (939,3572 283×130).
+ */
+.photo {
+  position: absolute;
+  left: 927px;
+  top: 3238px;
+  width: 306px;
+  height: 464px;
+  padding: 0;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.photoRing {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 306px;
+  height: 306px;
+}
+
+.photoIcon {
+  position: absolute;
+  left: 64px;
+  top: 63px;
+  width: 180px;
+  height: 180px;
+}
+
+.photoLabel {
+  position: absolute;
+  left: 12px;
+  top: 334px;
+  width: 283px;
+  height: 130px;
+  font-family: 'Noto Sans', var(--kiosk-font, sans-serif);
+  font-size: 48px;
+  font-weight: 700;
+  line-height: 65px;
+  color: #ffa69c;
+  text-align: center;
+  white-space: nowrap;
+}
+
+.photoLabel span {
+  display: block;
+}

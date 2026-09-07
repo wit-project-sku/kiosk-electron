@@ -105,6 +105,10 @@ export class WindowManager {
     // Auto-open the customer display if a second monitor is present.
     if (this.hasSecondaryDisplay()) {
       this.openDisplayWindow();
+      // The touch window keeps the keyboard. It is the only window with key
+      // handling in it — 제주's barrier-free keypad enumerates as a USB
+      // keyboard, so whichever window holds focus is the one the pad drives.
+      this.focusMain();
     }
   }
 

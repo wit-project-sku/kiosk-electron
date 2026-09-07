@@ -1,0 +1,57 @@
+# Beta build identity — everything else is inherited from electron-builder.yml.
+#
+# ── Why this file exists ──────────────────────────────────────────────
+# The office has ONE kiosk and both channels have to be testable on it. With a
+# single identity that is impossible: NSIS keys its uninstall entry off `appId`,
+# so installing beta over production is treated as an UPGRADE of the same app
+# rather than a second app — changing the install folder does not help.
+#
+# Four things had to differ for the two to coexist. Three are here; the fourth
+# (the runtime `userData` directory, which carries kiosk.db, the kioskId and the
+# singleton lock) is in src/main/core/appIdentity.ts, because Electron resolves
+# it at runtime rather than from this file.
+#
+#   appId        → separate NSIS uninstall entry, separate Start-menu entry
+#   productName  → separate install directory and shortcut name
+#   win.icon     → tellable apart at 16px in the taskbar
+#   app name     → separate %APPDATA% tree  (appIdentity.ts)
+#
+# The update FEED already worked before this change: release.yml force-writes
+# UPDATE_CHANNEL per channel, so a beta install follows beta.yml and production
+# follows latest.yml. Separate appIds simply keep their update chains apart too.
+#
+# ── Usage ─────────────────────────────────────────────────────────────
+#   npm run build:win:beta                    (local)
+#   npx electron-builder --win --config electron-builder.beta.yml   (CI)
+#
+# `extends` is resolved by electron-builder relative to this file, so the base
+# config stays the single source of truth for everything not listed below.
+extends: ./electron-builder.yml
+
+# ★ Baked into the PACKAGED package.json, and it is what the runtime reads to
+# decide whether to redirect `userData` (see core/appIdentity.ts). It must be a
+# property of the BUILD, not of the shipped `.env`: a local
+# `npm run build:win:beta` carries the developer's own .env, and if that said
+# UPDATE_CHANNEL=latest the app would install under the beta identity while
+# still pointing at production's database — two apps, one kiosk.db. CI never hit
+# that (it force-writes UPDATE_CHANNEL from the same `prerelease` input that
+# selects this file), but a local build would have.
+extraMetadata:
+  buildChannel: beta
+
+appId: com.kioskapp.desktop.beta
+productName: witworldwide-beta
+copyright: Copyright © 2026 witworldwide
+
+# release/<version>-beta so a local beta build never overwrites the production
+# artifacts sitting in release/<version>.
+directories:
+  output: release/${version}-beta
+  buildResources: build
+
+win:
+  # The orange BETA mark — build/icon-beta.ico, generated from the production
+  # icon by `npm run icon:beta`. The two apps sit side by side in the Start menu
+  # and on the taskbar, where a name is truncated but a colour is not, so the
+  # difference is carried by colour rather than by the wordmark.
+  icon: build/icon-beta.ico

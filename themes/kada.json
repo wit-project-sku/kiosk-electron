@@ -1,0 +1,25 @@
+{
+  "_comment": "W202 Korea-ASEAN Digital Academy (Vietnam Chapter, PTIT Hà Nội). Colours read from Figma node 5403:11277 — page gradient #102135 (71.154%) → #215252, gold #D2AE4F for the title/home/back/language chrome, coral #FFA69C for the K-CULTURE CHALLENGE camera button, muted #878B91 for the eyebrow line. This is the fleet's only DARK theme, so `background` is the gradient's top colour rather than white. Type is Manuale (the Figma title serif, bundled via @fontsource/manuale) with Noto Sans behind it for the Vietnamese diacritics Manuale does not cover.",
+  "id": "kada",
+  "name": "Korea-ASEAN Digital Academy",
+  "colors": {
+    "primary": "#d2ae4f",
+    "primaryHover": "#bf9c42",
+    "secondary": "#215252",
+    "background": "#102135",
+    "surface": "#16293f",
+    "text": "#ffffff",
+    "textMuted": "#878b91",
+    "accent": "#ffa69c"
+  },
+  "typography": {
+    "fontFamily": "'Noto Sans', 'Noto Sans KR', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
+    "headingSize": "2.5rem",
+    "bodySize": "1.125rem",
+    "buttonSize": "1.25rem"
+  },
+  "spacing": {
+    "screenPadding": "2rem",
+    "buttonGap": "1rem"
+  }
+}

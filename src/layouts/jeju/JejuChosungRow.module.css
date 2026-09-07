@@ -8,6 +8,8 @@
   display: flex;
   align-items: center;
   justify-content: center;
+  font-family: Pretendard, 'Noto Sans KR', sans-serif;
+  font-style: normal;
 }
 
 .jamo {
@@ -21,18 +23,21 @@
   display: flex;
   align-items: center;
   justify-content: center;
+  font-family: inherit;
   font-size: 60px;
-  /* Pretendard Bold — 6212:55191 draws every letter at 700, not the 600 the
-     text node's own base style claims. */
-  font-weight: 700;
-  line-height: 1;
-  color: #000;
+  font-style: normal;
+  font-weight: 600;
+  line-height: normal;
+  color: #1a1a1a;
   cursor: pointer;
   -webkit-tap-highlight-color: transparent;
 }
 
-/* Figma draws the row with no selected state, so the active letter uses the
-   brand colour every other control on this kiosk uses. */
 .jamoActive {
+  font-family: inherit;
+  font-size: 60px;
+  font-style: normal;
+  font-weight: 900;
+  line-height: normal;
   color: var(--kiosk-primary, #ff7f0f);
 }

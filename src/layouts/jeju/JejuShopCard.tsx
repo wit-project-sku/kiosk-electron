@@ -15,6 +15,9 @@ import {
   shopHashtag,
   shopImages,
   shopName,
+  shopRentcarName,
+  shopRentcarRouteSummary,
+  shopRentcarSecondCategory,
   shopSecondCategory,
 } from '@renderer/lib/shops';
 import { highlightMatch } from '@renderer/lib/highlightMatch';
@@ -24,47 +27,132 @@ import styles from './JejuShopCard.module.css';
 /** Thumbnails per card — the Figma draws a fixed 2×2 grid. */
 const THUMBS = 4;
 
+type RentcarBadgeVariant = 'primary' | 'shuttle' | 'noShuttle' | 'ferry';
+
+function rentcarBadgeClass(variant: RentcarBadgeVariant): string {
+  switch (variant) {
+    case 'shuttle':
+      return styles.badgeShuttle || styles.badge || '';
+    case 'noShuttle':
+      return styles.badgeNoShuttle || styles.badge || '';
+    case 'ferry':
+      return styles.badgeFerry || styles.badge || '';
+    default:
+      return styles.badgePrimary || styles.badge || '';
+  }
+}
+
 interface Props {
   shop: Shop;
   lang: Lang;
   /** When set, occurrences are drawn in the brand colour (search only). */
   query?: string;
+  /** 렌트카 list: text-only row — no photo grid, no hashtag line, shorter plate. */
+  compact?: boolean;
+  /** Rentcar API fields (Kr/En/Jp/Ch only) — other UI langs fall back to En. */
+  rentcarApi?: boolean;
+  /** Optional top-right badge (렌터카하우스 "공항 내 데스크" chip). */
+  badge?: string;
+  /** Badge colour — rentcar compact list variants. */
+  badgeVariant?: RentcarBadgeVariant;
+  /** 렌트카 compact row override — e.g. 렌터카하우스 wayfinding line. */
+  routeLine?: string;
+  /** 렌트카 compact bottom row — tel, or km · drive · tel. */
+  footerLine?: string;
   onClick: () => void;
 }
 
-export function JejuShopCard({ shop, lang, query = '', onClick }: Props): JSX.Element {
+export function JejuShopCard({
+  shop,
+  lang,
+  query = '',
+  compact = false,
+  rentcarApi = false,
+  badge,
+  badgeVariant = 'primary',
+  routeLine,
+  footerLine,
+  onClick,
+}: Props): JSX.Element {
   // Real photos first, then the shared no-image placeholder — the same asset
   // (byte-identical noimage.png) and the same padImages() the other three
   // locations use, so a shop with no photos reads as "no photo" instead of an
   // empty tinted tile.
   const images = padImages(shopImages(shop), jejuIconUrl('noimage'), THUMBS);
+  const routeSummary = compact ? routeLine : '';
+  const footerSummary = compact ? footerLine ?? (routeLine == null ? shopRentcarRouteSummary(shop, lang) : '') : '';
+  const displayName = rentcarApi ? shopRentcarName(shop, lang) : shopName(shop, lang);
+  const displayCategory = rentcarApi
+    ? shopRentcarSecondCategory(shop, lang)
+    : shopSecondCategory(shop, lang);
   const mark = (text: string): ReturnType<typeof highlightMatch> | string =>
     query ? highlightMatch(text, query, styles.hl) : text;
 
   return (
-    <button type="button" className={styles.card} onClick={onClick}>
-      <span className={styles.info}>
-        <span className={styles.nameRow}>
-          <span className={styles.name}>{mark(shopName(shop, lang))}</span>
-          <span className={styles.cat}>
-            <span className={styles.dot} />
-            {shopSecondCategory(shop, lang)}
-          </span>
+    <button
+      type="button"
+      className={`${styles.card} ${compact ? styles.cardCompact : ''}`}
+      onClick={onClick}
+    >
+      <span className={`${styles.info} ${compact ? styles.infoCompact : ''}`}>
+        <span className={`${styles.nameRow} ${compact ? styles.nameRowCompact : ''}`}>
+          {compact ? (
+            <>
+              <span className={styles.nameRowLeft}>
+                <span className={styles.name}>{mark(displayName)}</span>
+                {displayCategory && (
+                  <span className={styles.cat}>
+                    <span className={styles.dot} />
+                    {displayCategory}
+                  </span>
+                )}
+              </span>
+              {badge ? (
+                <span className={`${styles.badge} ${rentcarBadgeClass(badgeVariant)}`}>{badge}</span>
+              ) : null}
+            </>
+          ) : (
+            <>
+              <span className={styles.name}>{mark(displayName)}</span>
+              <span className={styles.cat}>
+                <span className={styles.dot} />
+                {displayCategory}
+              </span>
+            </>
+          )}
         </span>
-        <p className={styles.address}>{mark(shopAddress(shop, lang))}</p>
-        <p className={styles.desc}>{mark(shopDescription(shop, lang))}</p>
-        <p className={styles.tags}>{mark(shopHashtag(shop, lang))}</p>
+        {compact ? (
+          <>
+            {routeSummary ? (
+              <>
+                <span className={styles.compactGap} aria-hidden="true" />
+                <p className={styles.route}>{mark(routeSummary)}</p>
+                <span className={styles.compactGap} aria-hidden="true" />
+              </>
+            ) : null}
+            <span className={styles.compactSpacer} aria-hidden="true" />
+            {footerSummary ? <p className={styles.footer}>{mark(footerSummary)}</p> : null}
+          </>
+        ) : (
+          <>
+            <p className={styles.address}>{mark(shopAddress(shop, lang))}</p>
+            <p className={styles.desc}>{mark(shopDescription(shop, lang))}</p>
+            <p className={styles.tags}>{mark(shopHashtag(shop, lang))}</p>
+          </>
+        )}
       </span>
 
-      {/* Always four slots so the 2×2 grid holds its shape; padImages fills the
-          spare ones with the no-image placeholder. */}
-      <span className={styles.photos}>
-        {Array.from({ length: THUMBS }, (_, j) => (
-          <span key={j} className={styles.thumb}>
-            {images[j] && <img src={images[j]} alt="" draggable={false} loading="lazy" />}
-          </span>
-        ))}
-      </span>
+      {!compact && (
+        /* Always four slots so the 2×2 grid holds its shape; padImages fills the
+           spare ones with the no-image placeholder. */
+        <span className={styles.photos}>
+          {Array.from({ length: THUMBS }, (_, j) => (
+            <span key={j} className={styles.thumb}>
+              {images[j] && <img src={images[j]} alt="" draggable={false} loading="lazy" />}
+            </span>
+          ))}
+        </span>
+      )}
     </button>
   );
 }

@@ -46,6 +46,11 @@ const NEW_LANG_COLS: Record<KioskLayoutId, Array<{ lang: SupportedLanguage; inde
   HWASEONG: OSAEK_HWASEONG_NEW,
   JEJU_AIRPORT: INSA_NEW,
   JEJU_HERITAGE: INSA_NEW, // same Localization_Jeju tab, same column order
+  // KADA W202 has no Localization tab at all (see CONTENT_SHEETS), so there are
+  // no extra language columns to map. The parser never runs for this layout —
+  // the transport skips it on the empty sheetId — and an empty list keeps that
+  // true by construction rather than by borrowing another venue's column order.
+  KADA: [],
 };
 
 /**

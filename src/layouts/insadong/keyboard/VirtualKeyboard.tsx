@@ -64,8 +64,14 @@ export function VirtualKeyboard({ onKey, lang, lightBackspace = false }: Virtual
     <div className={styles.keyboard}>
       {/* Row 1: numbers + backspace (the only dark key) */}
       <div className={styles.row}>
+        {/* `data-vk-digit` is how 제주's barrier-free keypad types: its own number
+            row maps straight onto this one, so a visitor fills in a phone number
+            from the pad instead of arrowing across the keyboard ten times. An
+            attribute rather than the key's label, which restyling or localizing
+            could change under it. Purely a marker — no styling or behaviour hangs
+            off it, and every other layout ignores it. See jeju/keypad/useJejuKeypad. */}
         {NUM_ROW.map((n) => (
-          <button key={n} type="button" className={styles.key} onClick={() => onKey({ type: 'literal', value: n })}>
+          <button key={n} type="button" className={styles.key} data-vk-digit={n} onClick={() => onKey({ type: 'literal', value: n })}>
             {n}
           </button>
         ))}

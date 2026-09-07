@@ -40,6 +40,18 @@ const UI_TEXT = {
     ru: '← На главную',
     id: '← Beranda',
   },
+  // Accessible name for a bare camera button — used where the design draws a
+  // glyph with no visible label (KADA's 한복 설명 capture button).
+  takePhoto: {
+    ko: '사진 촬영',
+    en: 'Take photo',
+    ja: '写真撮影',
+    zh: '拍照',
+    vi: 'Chụp ảnh',
+    th: 'ถ่ายภาพ',
+    ru: 'Сделать фото',
+    id: 'Ambil foto',
+  },
   loading: {
     ko: '불러오는 중..',
     en: 'Loading..',
@@ -270,6 +282,51 @@ const UI_TEXT = {
     th: 'มาดูสินค้าที่ลดราคาเฉพาะที่หน้างานเท่านั้น!',
     ru: 'Посмотрите товары со скидкой, доступной только здесь!',
     id: 'Lihat produk yang diskonnya hanya tersedia di lokasi!',
+  },
+
+  // ── 제주 page-header descriptions ──────────────────────────────────────
+  // The row under a 제주 header title. Sheet copy wins wherever a page HAS a
+  // SubHeader_ or _Subtitle row (see i18n's TITLE_KEYS); these are the two cases
+  // the sheet does not cover, plus the last-resort line that replaced the Figma
+  // placeholder 페이지 설명문.
+
+  /**
+   * 제주 검색 — passed by JejuSearch as a `subtitle` prop rather than mapped in
+   * i18n, because 검색 is also Insadong's, 오산's and 화성's header id and those
+   * pages draw no description row (see EXTRA_SUBTITLE_KEYS).
+   *
+   * No sheet row to use: Localization_Jeju's only search key is `Main_Search`,
+   * the home search-bar PLACEHOLDER, and mapping that would print "제주도에 대해
+   * 검색해보세요!" as this page's description. Worded off the sheet's own
+   * 뭐먹지/뭐사지/숙박 rows, which say the same thing about their result lists,
+   * minus the (길찾기) that belongs to those pages.
+   */
+  searchSubtitle: {
+    ko: '검색결과를 클릭하시면 상세정보를 보실 수 있어요.',
+    en: 'Tap a search result to see its details.',
+    ja: '検索結果をタップすると詳細をご覧いただけます。',
+    zh: '点击搜索结果即可查看详细信息。',
+    vi: 'Chạm vào kết quả tìm kiếm để xem thông tin chi tiết.',
+    th: 'แตะผลการค้นหาเพื่อดูรายละเอียด',
+    ru: 'Нажмите на результат поиска, чтобы увидеть подробности.',
+    id: 'Ketuk hasil pencarian untuk melihat detailnya.',
+  },
+
+  /**
+   * Last resort for a 제주 page with no description from any source — what the
+   * header used to print the Figma's literal 페이지 설명문 for. Written to be
+   * true of EVERY page under this header, since that is the only thing an
+   * unmapped id can be assumed to be.
+   */
+  pageSubtitleFallback: {
+    ko: '제주 여행에 필요한 정보를 확인해 보세요.',
+    en: 'Find the information you need for your trip to Jeju.',
+    ja: '済州旅行に必要な情報をご確認ください。',
+    zh: '查看济州旅行所需的各类信息。',
+    vi: 'Xem những thông tin bạn cần cho chuyến đi Jeju.',
+    th: 'ดูข้อมูลที่คุณต้องการสำหรับการเดินทางในเชจู',
+    ru: 'Здесь вы найдёте информацию, нужную для поездки по Чеджу.',
+    id: 'Temukan informasi yang Anda perlukan untuk perjalanan ke Jeju.',
   },
 } satisfies Record<string, Record<LocalizedLang, string>>;
 

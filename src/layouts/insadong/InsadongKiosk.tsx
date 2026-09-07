@@ -2,7 +2,7 @@ import { useEffect } from 'react';
 import { useKioskController } from '@renderer/hooks/useKioskController';
 import { useWeatherSync } from '@renderer/hooks/useWeatherSync';
 import { useExchangeSync } from '@renderer/hooks/useExchangeSync';
-import { WEB_EMBED_URLS } from '@shared/constants/webEmbeds';
+import { WEB_EMBED_URLS, donationUrl } from '@shared/constants/webEmbeds';
 import { DONATION_COMING_SOON } from '@shared/config/donation';
 import { useHasDonationTile } from '@renderer/lib/buttonLayout';
 import { iconUrl } from '@renderer/assets/icons/insadong';
@@ -210,7 +210,7 @@ export function InsadongKiosk(): JSX.Element {
                 : { position: 'absolute', top: 0, left: 0, width: 0, height: 0, overflow: 'hidden', pointerEvents: 'none', zIndex: 0 }
             }
           >
-            <DonationWebScreen url={WEB_EMBED_URLS.donation} controller={controller} />
+            <DonationWebScreen url={donationUrl(controller.kioskId)} controller={controller} />
           </div>
         );
       })()}

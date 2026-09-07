@@ -29,7 +29,12 @@ export function KioskArtboard({ children }: { children?: ReactNode }): JSX.Eleme
 
   return (
     <div className={styles.viewport}>
-      <div ref={ref} className={styles.artboard}>
+      {/* `data-kiosk-artboard` marks the kiosk's own design space. 제주's keypad
+          navigation scopes its search for landing spots to it, so the pad can
+          never walk into the app-level chrome mounted beside the layout in
+          App.tsx (KioskSwitcher's dev drawer). Purely a marker — no styling
+          hangs off it. */}
+      <div ref={ref} className={styles.artboard} data-kiosk-artboard>
         {children}
       </div>
     </div>

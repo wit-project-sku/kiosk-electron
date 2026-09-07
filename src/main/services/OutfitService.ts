@@ -9,6 +9,7 @@ import { fallbackOutfitLabels, uniformOutfitLabels } from '@shared/constants/out
 import { createLogger } from '@main/core/logger';
 import type { LocalCacheService } from '@main/services/LocalCacheService';
 import type { KioskService } from '@main/services/KioskService';
+import type { RemoteImageCache } from '@main/services/RemoteImageCache';
 
 const log = createLogger('outfit-service');
 const CACHE_KEY = 'outfits';
@@ -79,6 +80,12 @@ export class OutfitService {
   constructor(
     private readonly cache: LocalCacheService,
     private readonly kiosk: KioskService,
+    /**
+     * Optional so every existing test and any caller that only wants the
+     * catalogue can build one without a filesystem. Absent means "serve the
+     * remote urls", which is what this class did before the mirror existed.
+     */
+    private readonly images?: RemoteImageCache,
   ) {}
 
   private base(): string {
@@ -98,18 +105,60 @@ export class OutfitService {
     return `${this.base()}/api/categories/outfits`;
   }
 
+  /**
+   * Append `kioskId` to an endpoint, respecting a query string it may already
+   * have (both URLs are env-overridable, and an override may carry one).
+   *
+   * Passing it is what makes the server do the work this class used to do
+   * badly: it returns only outfits ASSIGNED to this kiosk AND inside their
+   * operating period, and only categories that actually have one — so an event
+   * category stops arriving as an empty tab once its run ends. The client-side
+   * filter in list() stays as a backstop for an override that drops the param.
+   */
+  private withKioskId(url: string): string {
+    return `${url}${url.includes('?') ? '&' : '?'}kioskId=${this.kiosk.kioskNum()}`;
+  }
+
+  /**
+   * Every image url the catalogue references, for warming and pruning the
+   * on-disk mirror. Read off the RAW rows, not `list()`, so an outfit filtered
+   * out for this kiosk is not left behind on disk by the prune.
+   */
+  private imageUrls(): string[] {
+    const rows = this.cache.get(CACHE_KEY)?.data?.['outfits'];
+    if (!Array.isArray(rows)) return [];
+    return (rows as KioskOutfit[]).map((o) => o.imageUrl).filter(Boolean);
+  }
+
+  /**
+   * Mirror the catalogue's card images locally, then drop the ones the CMS has
+   * retired. Fire-and-forget: the catalogue is already cached and usable by the
+   * time this runs, and a failure only costs the speed-up.
+   */
+  async cacheImages(): Promise<void> {
+    if (!this.images) return;
+    const urls = this.imageUrls();
+    await this.images.warm(urls);
+    await this.images.prune(urls);
+  }
+
   /** Cached outfits for THIS kiosk. Empty until the first successful refresh. */
   list(): KioskOutfit[] {
     const rows = this.cache.get(CACHE_KEY)?.data?.['outfits'];
     if (!Array.isArray(rows)) return [];
     const kioskNum = this.kiosk.kioskNum();
-    // Assignment is per-kiosk, so an outfit not assigned here must not show up.
+    // Belt and braces: the fetch now sends `kioskId`, so the server has already
+    // dropped anything not assigned here (and anything outside its operating
+    // period, which this filter cannot see). This still runs because
+    // OUTFITS_API_URL can override the endpoint with one that drops the param.
     // An empty kioskIds is treated as "everywhere" rather than "nowhere" — the
     // failure mode of hiding the whole catalogue is far worse than showing one
     // extra outfit.
-    return (rows as KioskOutfit[]).filter(
-      (o) => o.kioskIds.length === 0 || o.kioskIds.includes(kioskNum),
-    );
+    return (rows as KioskOutfit[])
+      .filter((o) => o.kioskIds.length === 0 || o.kioskIds.includes(kioskNum))
+      // Point each card at its local mirror when one exists. Falls back to the
+      // remote url untouched, so a cold cache behaves exactly as before.
+      .map((o) => (this.images ? { ...o, imageUrl: this.images.localize(o.imageUrl) } : o));
   }
 
   /** Cached category tabs, in API order. */
@@ -158,7 +207,7 @@ export class OutfitService {
     const seen = new Set<number>();
 
     for (let page = 1; page <= MAX_PAGES; page += 1) {
-      const url = `${this.outfitsUrl()}?pageNum=${page}&pageSize=${PAGE_SIZE}`;
+      const url = this.withKioskId(`${this.outfitsUrl()}?pageNum=${page}&pageSize=${PAGE_SIZE}`);
       const res = await fetch(url);
       if (!res.ok) throw new Error(`HTTP ${res.status} on page ${page}`);
       const json = (await res.json()) as { data?: Record<string, unknown> };
@@ -194,7 +243,7 @@ export class OutfitService {
    * answer and `refresh()` keeps them when this returns empty.
    */
   private async fetchCategories(): Promise<OutfitCategory[]> {
-    for (const url of [this.categoriesUrl(), this.legacyCategoriesUrl()]) {
+    for (const url of [this.withKioskId(this.categoriesUrl()), this.legacyCategoriesUrl()]) {
       try {
         const res = await fetch(url);
         if (!res.ok) throw new Error(`HTTP ${res.status}`);

@@ -23,8 +23,9 @@ const ALLOWED: SupportedLanguage[] = ['ko', 'en', 'ja', 'zh', 'vi', 'th', 'ru', 
 const clampLang = (l: SupportedLanguage): SupportedLanguage => (ALLOWED.includes(l) ? l : 'ko');
 
 /**
- * Current language state. Persisted via electron-store in the main process.
- * Language changes are instantaneous (no network) but persist across restarts.
+ * Current language state. Synced to electron-store in the main process so all
+ * windows stay in step during a session. Resets to Korean on app launch and on
+ * idle timeout (see main/index.ts and useKioskController.handleIdle).
  */
 export const useLanguageStore = create<LanguageState>((set, get) => ({
   currentLanguage: 'ko',

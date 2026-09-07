@@ -91,8 +91,14 @@ export interface EventDetail {
   eventId: number;
   title: string;
   location: string;
-  startDate: string;
-  endDate: string;
+  /**
+   * Nullable in practice, whatever the endpoint's docs say: the admin can save
+   * an event with no dates, and the detail endpoint then sends `null` for both.
+   * Typed honestly because the one place that reads them printed the literal
+   * "null ~ null" on the kiosk while they were `string` — see infoRows.
+   */
+  startDate: string | null;
+  endDate: string | null;
   eventTime: string | null;
   eventCategory: string;
   orgName: string | null;

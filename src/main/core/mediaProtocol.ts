@@ -9,6 +9,7 @@
  *   media://asset/<storedFileName>     -> original media file
  *   media://thumb/<storedFileName>     -> generated thumbnail
  *   media://generated/<storedFileName> -> AI photo result
+ *   media://remote/<sha1>.<ext>        -> mirrored CMS image (RemoteImageCache)
  *
  * CORS / origin:
  *   `corsEnabled: true` is required with `supportFetchAPI` so remote webview
@@ -103,7 +104,7 @@ async function serveMedia(request: Request): Promise<Response> {
     }
 
     const url = new URL(request.url);
-    const kind = url.hostname; // 'asset' | 'thumb' | 'generated' | 'video'
+    const kind = url.hostname; // 'asset' | 'thumb' | 'generated' | 'video' | 'remote'
     const fileName = decodeURIComponent(url.pathname).replace(/^\/+/, '');
     const baseDir =
       kind === 'thumb'
@@ -112,7 +113,9 @@ async function serveMedia(request: Request): Promise<Response> {
           ? appPaths.generated
           : kind === 'video'
             ? appPaths.videos
-            : appPaths.media;
+            : kind === 'remote'
+              ? appPaths.remoteImages
+              : appPaths.media;
 
     const filePath = resolveSafe(baseDir, fileName);
     if (!filePath) {

@@ -1,21 +1,13 @@
 /*
- * 도와줘 '하영' — Figma node 6393:59030 (제주>도와줘 하영-01=공항), the
- * 2026-08-24 redesign of 6219:98767. The 상세 behind a pin is 6219:99127 —
- * `R>검색상세-사진1개` at y863, which JejuDetail already produces for `from:
- * 'help'`.
+ * 도와줘 '제주' — Figma 6819:9769 (국제선) / 6862:9953 (국내선), redraw of
+ * 6393:59030 / 6219:98767. Detail behind a pin/card is 6219:99127.
  *
- * Three stacked pickers over one map — every band moved:
- *   700   terminal pills 1193×170 at x483.5 — two 565×170, 63 apart (was two
- *         580s 200 apart at x400; it is now the same two-pill component the
- *         events tabs use)
- *   940   floor row (was 920 — JejuSubTabRow's shared band, overridden here)
- *   1172  category chips 1820×375 at x170 — 5 × 340×170 per row, 30/35 gaps
- *   1697  map 1820×1383 at x170
- *
- * The category chips are the frame's own `R>상단 카테고리-5개*2`, shared with
- * 지역화폐's tabs, so their look lives in JejuPill.module.css and only the widths
- * are set here. The TERMINAL pills are a different component and take their own
- * picked style below.
+ * One scrolling column under the 700px header (same rhythm as JejuListScreen):
+ *   pickers   terminal pills + floor row (gap 70) + category chips
+ *   map       1820×813, radius 58
+ *   list      1820×384 cards, 52px gap
+ * Major sections are 150 apart; the column itself is px 170 with the scrollbar
+ * carved out of the right gutter.
  */
 .pill {
   composes: pill from './JejuPill.module.css';
@@ -25,147 +17,209 @@
   composes: pillActive from './JejuPill.module.css';
 }
 
-/* ── Terminal (6412:75786) ──
-   The two-pill `R>컴포넌트=코스추천-카테고리`, centred.
-
-   Two-tab row. 2 × 565 + a 200 gap = 1330, so left = (2160 − 1330) / 2 = 415.
-   200 is the gap every other two-tab 제주 page already uses (운항정보, 크루즈
-   운항, 지역화폐 — all 580 pills at gap 200); this row was still on the old 63.
-   Widening the band rather than shrinking the pills is what keeps them on
-   Figma's 565. */
-.terminals {
+.scroll {
   position: absolute;
-  left: 415px;
+  left: 0;
+  right: 0;
   top: 700px;
-  width: 1330px;
-  height: 170px;
+  bottom: 0;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 150px;
+  overflow-x: hidden;
+  overflow-y: auto;
+  padding: 0 136px 80px 170px;
+}
+
+.scroll::-webkit-scrollbar {
+  width: 34.32px;
+}
+
+.scroll::-webkit-scrollbar-thumb {
+  background: var(--kiosk-primary, #ff7f0f);
+  border-radius: 17.16px;
+}
+
+.scroll::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+/* Terminal + floor stack — Figma gap 70 between the two bands. */
+.pickers {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 70px;
+  width: 100%;
+  flex: 0 0 auto;
+}
+
+/* ── Terminal (6819:9778) ──
+   Two 565×170 pills, gap 63 — Figma's own `R>컴포넌트=코스추천-카테고리`. */
+.terminals {
   display: flex;
   align-items: center;
-  gap: 200px;
+  justify-content: center;
+  gap: 63px;
+  width: 100%;
+  height: 170px;
+  flex: 0 0 auto;
 }
 
 .terminals .pill {
   width: 565px;
 }
 
-/* Picked terminal: the solid brand plate with white Bold type — NOT the pale
-   #ffeac7 plate the category chips below keep. The two rows are different Figma
-   components and the redesign moved only this one. */
+/* Picked terminal: solid brand plate + white Bold — not the pale chip style. */
 .terminals .pillActive {
   border: none;
   background: var(--kiosk-primary, #ff7f0f);
   color: #fff;
 }
 
-/* ── Floors (6393:59048) ──
-   JejuSubTabRow puts its band at y920 for 안녕 '하영'; this page draws it at 940.
-
-   Doubled selector on purpose: `.row` in JejuSubTabRow.module.css also sets
-   `top`, and at equal specificity the winner is whichever module the bundler
-   emits last — which is not something this page should depend on. `.floors
-   .floors` is (0,2,0) and beats it deterministically, without !important. */
+/* Floors ride inside the scroll column — override JejuSubTabRow's absolute band. */
 .floors.floors {
-  top: 940px;
+  position: relative;
+  top: auto;
+  left: auto;
+  right: auto;
+  width: 100%;
+  flex: 0 0 auto;
 }
 
-/* ── Categories (6219:98787) ──
-   Two rows of five, each `justify-between` over 1820 — which is the frame's own
-   30px gap (1820 − 5 × 340 = 120, over 4 gaps). */
+/* ── Categories (R>상단 카테고리-5개*2) ──
+   Five 340×170 per row, col gap 30 / row gap 35. Short last rows keep the
+   left edge (flex-start), not space-between. */
 .cats {
-  position: absolute;
-  left: 170px;
-  top: 1172px;
-  width: 1820px;
   display: flex;
   flex-direction: column;
   gap: 35px;
+  width: 1820px;
+  flex: 0 0 auto;
+  font-family: Pretendard, 'Noto Sans KR', sans-serif;
+  font-style: normal;
 }
 
 .catRow {
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: flex-start;
+  gap: 30px;
 }
 
 .cats .pill {
+  display: flex;
+  flex: 0 0 340px;
+  align-items: center;
+  justify-content: center;
   width: 340px;
-}
-
-/* ── Map (6219:98788) ──
-   The frame's export is only 799×607 for this 1820×1383 slot, so it is drawn
-   at ~2.3× and will look soft until a higher-resolution map is supplied. */
-.map {
-  position: absolute;
-  left: 170px;
-  top: 1697px;
-  width: 1820px;
-  height: 1383px;
+  max-width: 340px;
+  min-width: 0;
+  height: 170px;
+  box-sizing: border-box;
+  padding: 0 12px;
+  font-family: inherit;
+  font-size: 50px;
+  font-style: normal;
+  font-weight: 500;
+  line-height: 1.15;
+  text-align: center;
+  color: #999;
+  white-space: normal;
+  word-break: keep-all;
+  overflow-wrap: anywhere;
   overflow: hidden;
 }
 
-.map img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  display: block;
+.cats .pillLabel {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  max-width: 100%;
+  overflow: hidden;
+  line-height: 1.15;
+  white-space: normal;
+  word-break: keep-all;
+  overflow-wrap: anywhere;
+  text-align: center;
 }
 
-/* ── 현위치 (6219:98771) ──
-   Where the kiosk itself stands, drawn ON the map: a 41×61 pin with the label
-   centred under it. Positioned relative to `.map`, not the artboard, so the
-   `here` coordinates a map declares are map-local and stay right whatever y the
-   map slot moves to.
+.cats .pillActive {
+  font-family: inherit;
+  font-size: 50px;
+  font-style: normal;
+  font-weight: 700;
+  line-height: 1.15;
+  text-align: center;
+  color: var(--kiosk-primary, #ff7f0f);
+}
 
-   Safe to place by percentage-free absolute px: the 799×607 source and the
-   1820×1383 slot are the same 1.316 aspect, so `object-fit: cover` scales
-   without cropping and the pin lands where Figma puts it. */
-/* ── Facility hotspots ──
-   The dots and their captions are painted into the map PNG, so these add no
-   art: a transparent 130px target centred on the drawn dot (which is only ~32px
-   across at this scale — too small to hit reliably on a 2160-wide kiosk). The
-   :active halo is the only thing that ever shows, so a press is acknowledged
-   before the 상세 screen swaps in. */
-.pin {
-  position: absolute;
-  width: 130px;
-  height: 130px;
-  margin: -65px 0 0 -65px;
-  padding: 0;
-  border: none;
-  border-radius: 50%;
-  background: transparent;
-  cursor: pointer;
-  -webkit-tap-highlight-color: transparent;
+/* ── Map (6819:10197) — 1820×813, radius 58
+   국내선 4F overrides height inline (see AirportMap.height) — its plan is
+   upright 1.25:1 and needs ~1456px or the drawing clips inside this plate. */
+.map {
+  position: relative;
+  left: auto;
+  top: auto;
+  width: 1820px;
+  height: 813px;
+  flex: 0 0 auto;
   display: flex;
   align-items: center;
   justify-content: center;
+  border-radius: 58px;
+  background: #fff;
+  overflow: hidden;
 }
 
-.pin:active {
-  background: rgba(255, 127, 15, 0.28);
+/* Sized by the <img>, not the slot — pin left/top % are fractions of THIS box. */
+.plan {
+  position: relative;
+  max-width: 100%;
+  max-height: 100%;
+  background: #fff;
 }
 
-/*
- * The orange dot for the selected chip, drawn OVER the plan's black one.
- *
- * The plan paints its dots into the PNG, so there is nothing to recolour — this
- * covers one instead. 34px because the source dots measure 13–14px across in
- * the 799×607 export and the map is drawn at 1820 wide (×2.2778 ≈ 31px), plus a
- * ~1.5px margin each side so no dark anti-aliased rim shows around the orange.
- * Keep it under ~40px: the plan's captions sit only ~23px below a dot's centre.
- */
-.pinDot {
-  width: 34px;
-  height: 34px;
-  border-radius: 50%;
-  background: var(--kiosk-primary, #ff7f0f);
+.plan > img {
+  display: block;
+  width: auto;
+  height: auto;
+  max-width: 100%;
+  max-height: 100%;
+}
+
+.pin {
+  position: absolute;
+  width: calc(22px * var(--pin-scale, 1) + 90px);
+  height: calc(22px * var(--pin-scale, 1) + 90px);
+  margin: calc(-11px * var(--pin-scale, 1) - 45px) 0 0 calc(-11px * var(--pin-scale, 1) - 45px);
+  padding: 0;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.pinMarker {
+  position: absolute;
+  left: 50%;
+  bottom: calc(50% + 24px * var(--pin-scale, 1));
+  width: 37px;
+  height: 56px;
+  object-fit: contain;
+  transform: translateX(-50%);
+  transform-origin: 50% 100%;
+  filter: drop-shadow(0 2px 3px rgba(0, 0, 0, 0.3));
+  transition: transform 120ms ease-out;
   pointer-events: none;
 }
 
-/* The box IS the 41×61 pin, anchored at its TIP (bottom centre) — that is the
-   point on the map that means "you are here", so a map's `here` is a map
-   position rather than the corner of a graphic. The label hangs out of flow
-   beneath it so a long translation cannot move the pin. */
+.pin:active .pinMarker {
+  transform: translateX(-50%) scale(1.18);
+}
+
 .here {
   position: absolute;
   width: 41px;
@@ -187,8 +241,6 @@
   left: 50%;
   transform: translateX(-50%);
   margin: 0;
-  /* Figma's own red, not the kiosk orange: the marker has to read against a map
-     whose pins and route line are already coloured. */
   color: #f00;
   font-size: 30px;
   font-weight: 600;
@@ -197,14 +249,30 @@
   white-space: nowrap;
 }
 
-/* Only 국제선 / 1F / 화장실 is drawn; every other combination lands here. */
+.zoomable {
+  overflow: hidden;
+  touch-action: none;
+  cursor: grab;
+}
+
+.zoomLayer {
+  width: 100%;
+  height: 100%;
+  box-sizing: border-box;
+  padding: 40px 50px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transform-origin: 0 0;
+  will-change: transform;
+}
+
 .empty {
-  position: absolute;
-  left: 170px;
-  top: 1697px;
+  position: relative;
   width: 1820px;
   margin: 0;
-  padding-top: 600px;
+  padding: 200px 0;
+  flex: 0 0 auto;
   font-size: 60px;
   font-weight: 500;
   line-height: 1.3;
@@ -212,39 +280,156 @@
   text-align: center;
 }
 
+/* ── Result cards under the map (6862:9971) ──
+   1820×384 white plates; name · category · location · phone. */
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: 52px;
+  width: 1820px;
+  flex: 0 0 auto;
+}
+
+.card {
+  box-sizing: border-box;
+  width: 1820px;
+  min-height: 384px;
+  margin: 0;
+  padding: 65px 45px;
+  border: none;
+  border-radius: 42.9px;
+  background: #fff;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 40px;
+  text-align: left;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  font-family: Pretendard, 'Noto Sans KR', sans-serif;
+}
+
+.card:active {
+  transform: scale(0.995);
+}
+
+.cardNameRow {
+  display: flex;
+  align-items: center;
+  gap: 40px;
+  min-width: 0;
+  max-width: 100%;
+}
+
+.cardName {
+  margin: 0;
+  font-size: 68px;
+  font-weight: 600;
+  line-height: 1;
+  color: #2b2b2b;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.cardCat {
+  display: flex;
+  align-items: center;
+  gap: 21.45px;
+  flex: 0 0 auto;
+  font-size: 52px;
+  font-weight: 400;
+  line-height: 1;
+  color: #999;
+  white-space: nowrap;
+}
+
+.cardDot {
+  width: 17px;
+  height: 17px;
+  border-radius: 50%;
+  background: var(--kiosk-primary, #ff7f0f);
+  flex: 0 0 auto;
+}
+
+.cardMeta {
+  margin: 0;
+  font-size: 48px;
+  font-weight: 500;
+  line-height: 1;
+  color: #999;
+}
 
 /* ────────────────────────────────────────────────────────────────────────────
  * LOW-REACH (♿) — Figma 6422:44067.
  *
- * The page turns over: the map rises to the top of the body and all THREE
- * pickers go to the foot, in the order they are used —
+ * Mode-bar + promo (JejuPageFrame lowReachModeBar + lowReachBarBanner +
+ * lowReachShift={686}): bar y0–113, banner 113–686, header at 686.
+ * Body stays unshifted; this page lays itself out:
  *
- *   1379  map (was 1697)
- *   2912  terminal pills (was 700)
- *   3152  floor row (was 940)
- *   3384  category chips (was 1172)
- *
- * This page carries no banner normally, so it asks the frame for one with
- * `lowReachBanner`; the frame then draws it at y0 and moves the header down as
- * usual. Figma puts the header on 577 here against the 573 it states for
- * 언어선택 — the same 4px class of hand-nudge already normalised in
- * JejuPageFrame.module.css, so the shared 573 stands.
+ *   1379  map+list scroll viewport 1820×1364 (gap 50 inside — Figma 6876:66036)
+ *   2829  pickers (terminals → floors → cats), within seated reach
+ *   2223 / 2343  right-hand ▲▼ (Figma 6876:66670 / 66671)
  * ──────────────────────────────────────────────────────────────────────────── */
-.mapLow,
-.emptyLow {
+.scrollLow {
   top: 1379px;
+  bottom: auto;
+  height: 1364px;
+  gap: 50px;
+  padding-bottom: 40px;
 }
 
-.terminalsLow {
-  top: 2912px;
+.controlsLow {
+  position: absolute;
+  left: 170px;
+  top: 2829px;
+  width: 1820px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 70px;
 }
 
-/* (0,3,0): must beat BOTH JejuSubTabRow's `.row` and this file's own
-   `.floors.floors` (0,2,0), whichever order the bundler emits them in. */
-.floors.floorsLow.floorsLow {
-  top: 3152px;
+.controlsLow .cats {
+  width: 100%;
 }
 
-.catsLow {
-  top: 3384px;
+.controlsLow .floors.floors {
+  width: 100%;
+}
+
+/* Right-hand ▲▼ — same asset/rotation as JejuListScreen; tops from 6422:44067. */
+.scrollBtn {
+  position: absolute;
+  left: 2027px;
+  width: 85px;
+  height: 85px;
+  padding: 0;
+  border: none;
+  background: none;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.scrollUp {
+  top: 2223px;
+}
+
+.scrollDown {
+  top: 2343px;
+}
+
+.scrollBtnImg {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  pointer-events: none;
+}
+
+.scrollUp .scrollBtnImg {
+  transform: rotate(90deg);
+}
+
+.scrollDown .scrollBtnImg {
+  transform: rotate(-90deg);
 }

@@ -44,11 +44,20 @@ export function createDisplayWindow(options: DisplayWindowOptions): BrowserWindo
   applyWebContentsSecurity(window.webContents, rendererUrl());
 
   window.once('ready-to-show', () => {
-    window.show();
-    // On a real 2-monitor kiosk, bring it forward on its own screen. On a single
-    // monitor (dev), don't steal focus from the touch/main window — otherwise the
-    // fullscreen display covers it and the operator can't see the kiosk.
-    if (!is.dev && screen.getAllDisplays().length > 1) window.focus();
+    // `showInactive`, never `show` + `focus`. It draws on its own monitor either
+    // way, and keyboard focus is not this window's to take:
+    //
+    //  - on a single monitor (dev) a focused fullscreen display covers the
+    //    kiosk and the operator cannot see it;
+    //  - on a real 2-monitor kiosk it used to call `focus()` here, which handed
+    //    the KEYBOARD to a window that has no keyboard handling in it. 제주's
+    //    barrier-free keypad is an ordinary USB keyboard, so from boot every
+    //    press went to display.html and the pad appeared to be dead hardware.
+    //    Nothing ever gave focus back, because nothing ever took it away.
+    //
+    // The customer display is a passive surface — images, video, slideshows —
+    // and has never needed focus for anything.
+    window.showInactive();
   });
 
   const devUrl = rendererUrl();

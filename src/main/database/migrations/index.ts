@@ -8,6 +8,7 @@ import { migration004 } from './004_photo_sessions';
 import { migration005 } from './005_translations';
 import { migration006 } from './006_default_translations';
 import { migration007 } from './007_footfall';
+import { migration008 } from './008_height_measurements';
 
 const log = createLogger('migrations');
 
@@ -23,6 +24,7 @@ const MIGRATIONS: Migration[] = [
   migration005,
   migration006,
   migration007,
+  migration008,
 ];
 
 function getCurrentVersion(db: BetterSqlite3.Database): number {

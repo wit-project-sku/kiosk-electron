@@ -34,7 +34,13 @@ export function FloatingKeyboard({ open, onKey, onClose, lang, lightBackspace, t
 
   return (
     <>
-      <div className={styles.backdrop} onClick={onClose} />
+      {/* `data-pad-dismiss` is how 제주's barrier-free keypad closes this tray:
+          its ✕ presses whatever carries the marker before it means "go back".
+          Deliberately NOT a <button> or [role="button"] — the backdrop covers
+          the whole artboard, and making it focusable would give the keypad's
+          arrows a full-screen landing spot to fall into. Every other layout
+          ignores the attribute. See jeju/keypad/useJejuKeypad. */}
+      <div className={styles.backdrop} data-pad-dismiss onClick={onClose} />
       {/* preventDefault on mousedown keeps the tap from clearing focus/selection
           or triggering any default action (no flicker, no refresh). */}
       <div

@@ -236,7 +236,7 @@
   font-weight: 700;
   font-size: 68px;
   line-height: 1;
-  color: #333;
+  color: var(--photo-step-title, #333);
   text-align: center;
 }
 
@@ -269,8 +269,8 @@
   margin: 0;
   margin-top: 40px;
   font-weight: 700;
-  font-size: 58px;
-  color: #1a1a1a;
+  font-size: var(--photo-hint-size, 58px);
+  color: var(--photo-result-hint, #1a1a1a);
   text-align: center;
 }
 
@@ -289,7 +289,7 @@
   font-weight: 400;
   font-size: 60px;
   line-height: 1;
-  color: #616161;
+  color: var(--photo-result-note, #616161);
   text-align: center;
 }
 
@@ -304,8 +304,8 @@
 
 .resultQr {
   flex: none;
-  width: 200px;
-  height: 200px;
+  width: var(--photo-qr-size, 200px);
+  height: var(--photo-qr-size, 200px);
   border: 4px solid var(--photo-accent, #fe6c50);
   border-radius: 24px;
   background: #ffffff;
@@ -400,4 +400,19 @@
   font-weight: 700;
   font-size: 60px;
   color: #1a1a1a;
+}
+
+/* ── KADA (W202) result furniture — Figma 4649:6069 ────────────────────────
+ * Group 1000004486 at (170,3535), 1820×141 — the same partner bar the 한복 설명
+ * screen carries, closing the page where the other venues float a home/back
+ * pair. Only rendered on W202; see PhotoWorkflow's isKada branch.
+ */
+.kadaPartnerBar {
+  position: absolute;
+  left: 170px;
+  top: 3535px;
+  width: 1820px;
+  height: 141px;
+  object-fit: contain;
+  pointer-events: none;
 }

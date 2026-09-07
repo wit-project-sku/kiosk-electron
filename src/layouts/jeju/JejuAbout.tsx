@@ -3,28 +3,35 @@
  *
  * Three tabs (역사 / 문화 / 관광명소). Each tab is its own Figma frame with its
  * OWN layout, not a shared template — only 역사 uses the white panel:
- *   역사        6212:59045  one 1818×2100 panel: carousel + filmstrip + prose
- *   문화        6212:59093  no panel; four 806×1014 cards, 2×2 on the background
- *   관광명소     6212:59152  no panel; 초성 index over a scrolling 3-wide card grid
+ *   역사        6212:59045  white panel: gallery + intro, timeline bar, epoch prose
+ *   문화        6212:59093  one white panel: intro + four 806×1014 shadowed cards
+ *   관광명소     6212:59152  no panel; 초성 index over a scrolling 3-wide card grid,
+ *                           opened by the 1812×767 map (6876:62701) at its head
  * The tab row is the only thing all three share, and it is the same row on all
  * three frames.
+ *
+ * The map is not decoration: it FILTERS the grid the way Airbnb's does. It opens
+ * fitted to every pin (no filtering), and once the visitor pans or zooms, the
+ * cards narrow to what is on screen — see `mapIds` and JejuSpotMap. The frame
+ * places it inside the scroller, so it scrolls away as the list is read.
  *
  * 관광명소 drills down IN PLACE (6212:59326): tapping a card swaps the grid for
  * the shared 상세 card, keeping this page's header, tabs and 초성 row. It is not
  * the `detail` screen — that one composes its own "<page> > 상세" header and
  * would come back to the 역사 tab, losing where the visitor was.
  */
-import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
+import { Fragment, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import type { KioskController } from '@renderer/hooks/useKioskController';
 import { jejuIconUrl } from '@renderer/assets/icons/jeju';
 import type { Shop } from '@shared/types/shop';
+import type { Attraction } from '@shared/types/attraction';
 import { isOk } from '@shared/types/result';
 import type { DetailItem } from '@renderer/store/detailStore';
 import { useLanguageStore } from '@renderer/store/languageStore';
 import { useShopStore } from '@renderer/store/shopStore';
 import { useAttractionStore } from '@renderer/store/attractionStore';
 import { pick, type Lang } from '@renderer/lib/i18n';
-import { hasLoc, sheetText } from '@renderer/lib/loc';
+import { hasLoc, sheetText, t, tExact } from '@renderer/lib/loc';
 import { leadingChosung, type Chosung } from '@renderer/lib/chosung';
 import {
   shopAddress,
@@ -41,6 +48,7 @@ import { useAccessibilityStore } from '@renderer/store/accessibilityStore';
 import { JejuChosungRow } from './JejuChosungRow';
 import { JejuPageFrame } from './JejuPageFrame';
 import { JejuSpotDetailCard } from './JejuSpotDetailCard';
+import { JejuSpotMap, type MapSpot } from './JejuSpotMap';
 import { JejuTabRow } from './JejuTabRow';
 import styles from './JejuAbout.module.css';
 
@@ -77,11 +85,8 @@ const TABS = [
   { id: 'culture', key: 'Here_Culture', label: { ko: '문화', en: 'Culture', ja: '文化', zh: '文化', vi: 'Văn hóa', th: 'วัฒนธรรม', ru: 'Культура', id: 'Budaya' } },
 ] as const satisfies ReadonlyArray<{ id: TabId; key: string; label: Record<string, string> }>;
 
-// Copy resolution is `sheetText` from lib/loc — sheet cell for this language,
-// then the authored fallback for the same language, then Korean. Localization_Jeju
-// fills Here_History / Here_Culture / Here_Attraction in all eight languages but
-// the long-form Here_HistoryContent / Here_CultureContent_* in Korean only, so
-// the per-language order is what keeps a partly-translated sheet honest.
+// Copy resolution is `t()` from lib/loc — Localization_Jeju fills the about-tab
+// keys in all eight languages.
 
 const COMING_SOON = {
   ko: '준비중입니다',
@@ -104,44 +109,19 @@ const COMING_SOON = {
  * were up to 4096px for a 361px slot). They are the design's own content, but
  * they are stock, so swap in licensed 제주 photography before launch.
  */
-const HERO_W = 825;
 const GALLERY = [
-  { src: history1, w: 825 },
-  { src: history2, w: 315 },
-  { src: history3, w: 315 },
-  { src: history4, w: 361 },
-  { src: history5, w: 314 },
-  { src: history6, w: 280 },
+  { src: history1 },
+  { src: history2 },
+  { src: history3 },
+  { src: history4 },
+  { src: history5 },
+  { src: history6 },
 ];
-/** The filmstrip is the five non-hero photos, in frame order (6212:59055). */
-const STRIP = [1, 2, 3, 4, 5];
+/** Vertical filmstrip beside the hero — indices 1..5 in frame order. */
+const THUMBS = [1, 2, 3, 4, 5];
 
-/**
- * 역사 copy — now read from Localization_Jeju `Here_HistoryContent`, so an edit
- * in the sheet reaches the kiosk on the next night sync with no rebuild.
- *
- * The literal below stays as the fallback for a missing key ONLY. It is the same
- * ~900 characters the frame's text node draws (6212:59051), verified identical
- * to the sheet's Korean cell on 2026-08-13.
- *
- * TODO(제주 W006): the sheet has this key in KOREAN ONLY, so every other language
- * still shows the Korean — which is at least correct. The seven translations
- * belong in the sheet's own columns, reviewed by a person; nothing more is
- * needed on this side once they land.
- *
- * TODO(sheet): the cell is ONE 459-character run with no line breaks, while the
- * frame — and the fallback below — draw THREE paragraphs. `.prose` is
- * `white-space: pre-wrap`, so it renders exactly what the cell holds: the copy
- * is right and the paragraphing is gone. The two breaks belong back in the cell
- * (Alt+Enter before "제주는 섬이라는 환경 속에서…" and "오늘날 제주도는 한라산…").
- * Deliberately NOT reconstructed here — the sheet stores no marker to split on,
- * so any code-side split would be a guess about where a sentence ends.
- */
-const HISTORY_FALLBACK_KO = `제주도는 화산 활동으로 만들어진 섬으로, 오래전부터 독특한 자연환경 속에서 고유한 문화를 발전시켜 왔습니다. 고대에는 탐라국이라는 독립적인 해양국가가 존재했으며, 바다를 통해 한반도와 중국·일본 등과 교류했습니다. 이후 고려 시대에 편입되면서 '제주'라는 이름이 사용되기 시작했고, 조선 시대에는 유배지로 활용되며 독특한 지역문화가 형성되었습니다.
-
-제주는 섬이라는 환경 속에서 해녀 문화, 돌하르방, 돌담, 제주 방언 등 고유한 생활문화를 발전시켰습니다. 일제강점기에는 일본의 군사 거점으로 이용되며 많은 어려움을 겪었고, 해방 이후에는 제주 4·3 사건이라는 아픈 현대사를 지나왔습니다.
-
-오늘날 제주도는 한라산, 오름, 용암동굴 등 아름다운 자연유산과 전통문화가 어우러진 대한민국 대표 관광지로 자리 잡았습니다. 과거의 역사와 제주 사람들의 삶이 함께 이어지며, 자연과 문화가 공존하는 특별한 섬으로 사랑받고 있습니다.`;
+/** Timeline emoji — one per stage (1=선사 … 6=현재). Paste from the design sheet. */
+const HISTORY_FLOW_EMOJI = ['🪨', '👑', '🏯', '📜', '🇰🇷', ' 🌋'] as const;
 
 /**
  * 문화 cards (6212:59098), in frame order — reading order is row-major, so the
@@ -156,15 +136,9 @@ const HISTORY_FALLBACK_KO = `제주도는 화산 활동으로 만들어진 섬�
  * (Unsplash originals, re-encoded from 19MB to 445KB; two were 4096px wide for a
  * 650px slot). Swap in licensed 제주 photography before launch.
  *
- * The TITLE and BODY of each card now come from Localization_Jeju
- * (Here_CultureContent_N_title / Here_CultureContent_N, numbered in this same
- * frame order). The strings below are the fallback for a missing key, verified
- * identical to the sheet's Korean cells on 2026-08-13. The PHOTO and its crop
- * stay here: they are bundled assets and a layout property of the frame, not
- * content anyone edits in a spreadsheet.
- *
- * TODO(제주 W006): the sheet has these eight keys in KOREAN ONLY, so the cards
- * still read Korean in every language. That is a sheet task now, not a code one.
+ * Title and body copy come from Localization_Jeju (`Here_CultureContent_N_title`
+ * / `Here_CultureContent_N`). Photos and crop anchors stay here — bundled assets,
+ * not sheet content.
  */
 const CULTURE = [
   {
@@ -173,8 +147,6 @@ const CULTURE = [
     focus: 'center',
     titleKey: 'Here_CultureContent_1_title',
     bodyKey: 'Here_CultureContent_1',
-    title: '해녀 문화',
-    body: '제주의 대표적인 여성 공동체 문화로, 물질을 통해 바다에서 해산물을 채취하며 가족과 지역을 지켜왔습니다. 강인한 삶과 공동체 정신을 담은 문화로 유네스코 인류무형문화유산에 등재되었습니다.',
   },
   {
     id: 'stone',
@@ -182,8 +154,6 @@ const CULTURE = [
     focus: 'bottom',
     titleKey: 'Here_CultureContent_2_title',
     bodyKey: 'Here_CultureContent_2',
-    title: '돌 문화',
-    body: '화산섬 제주에서는 현무암을 활용한 돌담, 돌하르방 등 독특한 돌 문화가 발달했습니다. 바람을 막고 삶을 지켜온 제주 사람들의 지혜가 담겨 있습니다.',
   },
   {
     id: 'living',
@@ -191,8 +161,6 @@ const CULTURE = [
     focus: 'bottom',
     titleKey: 'Here_CultureContent_3_title',
     bodyKey: 'Here_CultureContent_3',
-    title: '제주 생활문화',
-    body: '자연환경에 적응하며 형성된 제주만의 전통생활문화입니다. 강한 바람을 견디는 초가집과 돌담 마을은 제주 사람들의 지혜와 삶의 방식을 보여줍니다.',
   },
   {
     id: 'food',
@@ -200,8 +168,6 @@ const CULTURE = [
     focus: 'top',
     titleKey: 'Here_CultureContent_4_title',
     bodyKey: 'Here_CultureContent_4',
-    title: '제주 음식문화',
-    body: '제주의 청정 자연이 키워낸 신선한 식재료로 다양한 향토음식을 즐길 수 있습니다. 흑돼지, 갈치, 감귤 등 제주를 대표하는 먹거리는 여행객들이 꼭 경험하는 미식 문화입니다.',
   },
 ] as const satisfies ReadonlyArray<{
   id: string;
@@ -209,8 +175,6 @@ const CULTURE = [
   focus: 'top' | 'center' | 'bottom';
   titleKey: string;
   bodyKey: string;
-  title: string;
-  body: string;
 }>;
 
 /**
@@ -248,6 +212,21 @@ const CHOSUNG_BAND = 82;
 /** The 상세 card sits at y1047 here, clearing the tab and 초성 rows. */
 const DETAIL_TOP = 1047;
 
+/**
+ * Where the 상세 card has to stop.
+ *
+ * The 2026-09 frame (6212:59326) draws the plate 2775 tall from y1052, which
+ * runs it to 3827 — 560px UNDER the banner it also draws at y3267. That is the
+ * frame overlapping itself, not a card that is meant to be read behind a
+ * banner, so the card is capped at the banner instead and scrolls inside. Same
+ * line the grid stops on (`.spots` bottom: 573).
+ *
+ * Low-reach has no banner; its content floor is the 3190 the frames bottom the
+ * card out on, clear of the tab row that moved to y3434.
+ */
+const DETAIL_FOOT = 3267;
+const LOW_DETAIL_FOOT = 3190;
+
 /*
  * Low-reach y values — Figma 6289:70215 / 70264 / 70323 / 70496, re-read
  * 2026-08-26 on the mode-bar revision (bar at y0–113, header y113, no banner).
@@ -269,6 +248,7 @@ const LOW_CHOSUNG_CELL = 124.57;
  */
 const toDetailItem = (s: Shop, lang: Lang): DetailItem => ({
   from: 'about',
+  shopId: s.id,
   title: '여기는 제주도',
   name: shopName(s, lang),
   category: shopCategoryLabel(s, lang),
@@ -283,6 +263,39 @@ const toDetailItem = (s: Shop, lang: Lang): DetailItem => ({
   blogReviews: s.naverLink ?? '',
 });
 
+/**
+ * Coordinates for the map, when the row carries them.
+ *
+ * `Attraction` has `latitude`/`longitude`; the `Shop` fallback catalogue does
+ * not, and neither type is narrowed at this point (`spots` is `Shop[]` either
+ * way). So this reads them off optionally rather than asserting — a kiosk on the
+ * fallback list gets no coordinates, no map, and the plain grid it has always
+ * had, instead of a crash or an empty map of the Atlantic.
+ *
+ * Zero is rejected along with null: the CMS writes 0/0 for a row nobody has
+ * geocoded, and a pin in the Gulf of Guinea would drag the fit-to-bounds view
+ * off 제주 for every other pin on the map.
+ */
+const spotCoords = (s: Shop): { lat: number; lng: number } | null => {
+  const { latitude, longitude } = s as Partial<Attraction>;
+  if (typeof latitude !== 'number' || typeof longitude !== 'number') return null;
+  if (!Number.isFinite(latitude) || !Number.isFinite(longitude)) return null;
+  if (latitude === 0 && longitude === 0) return null;
+  return { lat: latitude, lng: longitude };
+};
+
+/** The grid is empty because the MAP is narrowed, not because the filter is. */
+const NO_MATCH_IN_VIEW = {
+  ko: '이 지역에는 관광명소가 없습니다',
+  en: 'No attractions in this area',
+  ja: 'このエリアに観光名所はありません',
+  zh: '该区域没有旅游景点',
+  vi: 'Không có điểm tham quan trong khu vực này',
+  th: 'ไม่มีสถานที่ท่องเที่ยวในบริเวณนี้',
+  ru: 'В этой области нет достопримечательностей',
+  id: 'Tidak ada objek wisata di area ini',
+};
+
 const NO_MATCH = {
   ko: '조건에 맞는 관광명소가 없습니다',
   en: 'No attractions match',
@@ -295,12 +308,12 @@ const NO_MATCH = {
 };
 
 /**
- * How far one ▲▼ press moves, per tab: about four lines of 역사 prose, or one
- * 관광명소 row (730 card + 60 gap). 문화 never scrolls — see `canScroll`.
+ * How far one ▲▼ press moves, per tab: about half a 역사 panel screenful, one
+ * 문화 card row (890 card + 72 gap), or one 관광명소 row (730 card + 60 gap).
  */
 const SCROLL_STEP: Record<TabId, number> = {
   history: 260,
-  culture: 0,
+  culture: 962,
   attractions: 790,
 };
 
@@ -319,9 +332,19 @@ export function JejuAbout({ controller }: Props): JSX.Element {
   const [jamo, setJamo] = useState<Chosung | null>(null);
   /** The 관광명소 drill-down; null is the card grid. */
   const [spot, setSpot] = useState<Shop | null>(null);
+  /**
+   * The ids the map is showing, or null for "the map is not narrowing anything"
+   * — its opening fit-to-all view, and after 전체 보기. The two are different
+   * states, not the same one: null keeps rows that carry NO coordinates in the
+   * grid, where an id list (even one holding every located row) drops them,
+   * which is right once the visitor has asked "what is in this area".
+   */
+  const [mapIds, setMapIds] = useState<number[] | null>(null);
+  /** The pin whose callout is open — also the card wearing the ring. */
+  const [pinned, setPinned] = useState<number | null>(null);
 
-  /** Whichever region the active tab scrolls — the 역사 prose or the 관광명소
-   *  grid. Only one is mounted at a time, so one ref serves both. */
+  /** Whichever region the active tab scrolls — the 문화 / 역사 panel as a whole,
+   *  or the 관광명소 grid. Only one is mounted at a time. */
   const lowReach = useAccessibilityStore((s) => s.lowReach);
   const scrollRef = useRef<HTMLDivElement>(null);
 
@@ -373,11 +396,27 @@ export function JejuAbout({ controller }: Props): JSX.Element {
     for (let i = 1; ; i += 1) {
       const key = `Here_HistoryContent_${i}`;
       if (!hasLoc(key)) break;
-      const body = sheetText(key, lang);
+      const body = tExact(key, lang);
       if (!body) continue;
-      // The title row lags the body — _1_epoch is Korean-only today — so it is
-      // optional and falls back to Korean rather than suppressing the epoch.
-      out.push({ key, title: sheetText(`${key}_epoch`, lang), body });
+      out.push({ key, title: t(`${key}_epoch`, lang), body });
+    }
+    return out;
+  }, [lang]);
+
+  /** Timeline bar — epoch label + one-line summary per stage (1..6). */
+  const historyFlow = useMemo(() => {
+    const out: Array<{ key: string; epoch: string; summary: string }> = [];
+    for (let i = 1; ; i += 1) {
+      const key = `Here_HistoryContent_${i}`;
+      const epochKey = `${key}_epoch`;
+      if (!hasLoc(epochKey)) break;
+      const epoch = t(epochKey, lang);
+      if (!epoch) continue;
+      out.push({
+        key,
+        epoch,
+        summary: t(`${key}_summary`, lang),
+      });
     }
     return out;
   }, [lang]);
@@ -439,23 +478,68 @@ export function JejuAbout({ controller }: Props): JSX.Element {
   }, [spots, jamo, serverFiltered]);
 
   /**
+   * What the map pins: the 초성-filtered set, narrowed to rows that can be
+   * placed. Deliberately NOT the viewport-filtered list below — feeding the map
+   * its own output would refit it to whatever it last showed and it would walk
+   * itself into a corner on every pan.
+   */
+  const mapSpots = useMemo<MapSpot[]>(
+    () =>
+      visibleSpots.flatMap((s) => {
+        const at = spotCoords(s);
+        if (!at) return [];
+        return [
+          {
+            id: s.id,
+            lat: at.lat,
+            lng: at.lng,
+            name: shopName(s, lang),
+            address: shopAddress(s, lang),
+            photo: shopImages(s)[0],
+          },
+        ];
+      }),
+    [visibleSpots, lang],
+  );
+
+  /**
+   * The cards. The map narrows them Airbnb-style once it is off its fitted view;
+   * until then this is `visibleSpots` unchanged.
+   */
+  const listedSpots = useMemo(() => {
+    if (!mapIds) return visibleSpots;
+    const inView = new Set(mapIds);
+    return visibleSpots.filter((s) => inView.has(s.id));
+  }, [visibleSpots, mapIds]);
+
+  /**
+   * Tapping a pin brings its card to the middle of the grid. `offsetTop` is
+   * measured against `.spots` (the scroll box is the nearest positioned
+   * ancestor) and is unaffected by how far it is already scrolled, so this is
+   * the absolute destination rather than a delta.
+   */
+  useEffect(() => {
+    const box = scrollRef.current;
+    if (pinned === null || !box) return;
+    const card = box.querySelector<HTMLElement>(`[data-spot-id="${pinned}"]`);
+    if (!card) return;
+    box.scrollTo({
+      top: Math.max(0, card.offsetTop - box.clientHeight / 2 + card.offsetHeight / 2),
+      behavior: 'smooth',
+    });
+  }, [pinned, listedSpots]);
+
+  /**
    * The ▲▼ pair is drawn on all three frames (6212:59090 / 59149 / 59320) as it
-   * is on every 제주 content page, but on two of them it would have nothing to
-   * move: the 역사 copy fits the 872px box in Korean with 0px to spare
-   * (measured), and 문화's four cards end at y3079, well clear of the banner at
-   * y3267. Showing a control that does nothing is worse than not showing it, so
-   * it appears only when the region actually overflows — which 역사 will once
-   * the translations land, since they run longer than the Korean, and 관광명소
-   * does as soon as there are more than six attractions.
+   * is on every 제주 content page. 역사 and 문화 scroll their panels as a whole
+   * when content overflows; 관광명소 does as soon as there are more than six
+   * attractions.
    */
   const [canScroll, setCanScroll] = useState(false);
   useLayoutEffect(() => {
     const el = scrollRef.current;
     setCanScroll(!!el && el.scrollHeight > el.clientHeight + 1);
-  }, [tab, lang, spot, visibleSpots.length]);
-
-  const step = (delta: number): void =>
-    setHero((i) => (i + delta + GALLERY.length) % GALLERY.length);
+  }, [tab, lang, spot, listedSpots.length, historyEpochs.length, historyFlow.length]);
 
   const scrollBy = (delta: number): void =>
     scrollRef.current?.scrollBy({ top: delta, behavior: 'smooth' });
@@ -477,14 +561,32 @@ export function JejuAbout({ controller }: Props): JSX.Element {
     setSpot(s);
   };
 
+  /** Open the 상세 from a map callout, which knows an id and not a row. */
+  const openSpotById = (id: number): void => {
+    const found = visibleSpots.find((s) => s.id === id);
+    if (found) openSpot(found);
+  };
+
+  const detailTop = lowReach
+    ? LOW_CONTENT_TOP
+    : showChosung
+      ? DETAIL_TOP
+      : DETAIL_TOP - CHOSUNG_BAND;
+
+  /**
+   * The 상세 card's own map pin. Memoised on the VALUES rather than rebuilt
+   * inline: the card refits its map whenever this object's identity changes, so
+   * a fresh one each render would snap a panned map back on every keystroke of
+   * state elsewhere on the page.
+   */
+  const detailMap = useMemo(() => (spot ? spotCoords(spot) : null), [spot]);
+
   /** Back closes the drill-down first — leaving the page from inside it would
    *  drop the visitor home from two levels down in one press. */
   const goBack = (): void => {
     if (spot) setSpot(null);
     else controller.navigate('home', '뒤로');
   };
-
-  const arrow = jejuIconUrl('arrow-gallery');
 
   return (
     /* No banner override in STANDARD: this frame carries the same 상점 검색
@@ -508,88 +610,154 @@ export function JejuAbout({ controller }: Props): JSX.Element {
         className={lowReach ? styles.tabsLow : undefined}
       />
 
-      {/* 문화 (6212:59098) draws no panel — the four cards sit on the page
-          background, so the grid replaces the panel rather than filling it. */}
       {tab === 'culture' && (
-        <div className={`${styles.cards} ${lowReach ? styles.cardsLow : ''}`}>
-          {CULTURE.map(({ id, photo, focus, titleKey, bodyKey, title, body }) => (
-            <article key={id} className={styles.card}>
-              <div className={styles.cardPhoto}>
-                <img
-                  src={photo}
-                  alt=""
-                  style={{ objectPosition: focus }}
-                  draggable={false}
-                  loading="lazy"
-                />
-              </div>
-              <h3 className={styles.cardTitle}>
-                {/* Figma draws a ▼ rotated −90° rather than ▶ — the two glyphs
-                    are not the same size in Noto Sans, so keep the rotation. */}
-                <span className={styles.cardMarker} aria-hidden="true">
-                  ▼
-                </span>
-                {sheetText(titleKey, lang, { ko: title })}
-              </h3>
-              <p className={styles.cardBody}>{sheetText(bodyKey, lang, { ko: body })}</p>
-            </article>
-          ))}
+        <div
+          ref={scrollRef}
+          className={`${styles.culturePanel} ${lowReach ? styles.culturePanelLow : ''}`}
+        >
+          <header className={styles.cultureHeader}>
+            <h2 className={styles.cultureTitle}>
+              <span className={styles.cultureBullet} aria-hidden="true">
+                ●
+              </span>
+              {t('Here_Jeju_1_Culture', lang)}
+            </h2>
+            <p className={styles.cultureIntro}>
+              {t('Here_Jeju_1_CultureContent', lang)}
+            </p>
+          </header>
+
+          <div className={styles.cards}>
+            {CULTURE.map(({ id, photo, focus, titleKey, bodyKey }) => (
+              <article key={id} className={styles.card}>
+                <div className={styles.cardPhoto}>
+                  <img
+                    src={photo}
+                    alt=""
+                    style={{ objectPosition: focus }}
+                    draggable={false}
+                    loading="lazy"
+                  />
+                </div>
+                <h3 className={styles.cardTitle}>{t(titleKey, lang)}</h3>
+                <p className={styles.cardBody}>{t(bodyKey, lang)}</p>
+              </article>
+            ))}
+          </div>
         </div>
       )}
 
       {tab === 'history' && (
-        <div className={`${styles.panel} ${lowReach ? styles.panelLow : ''}`}>
-          <div className={styles.heroRow}>
-            <button
-              type="button"
-              className={styles.navBtn}
-              onClick={() => step(-1)}
-              aria-label="이전 사진"
-            >
-              {arrow && <img src={arrow} alt="" className={styles.navPrev} draggable={false} />}
-            </button>
-
-            <div className={styles.hero} style={{ width: HERO_W }}>
-              <img src={GALLERY[hero]!.src} alt="" draggable={false} />
+        <div
+          ref={scrollRef}
+          className={`${styles.historyPanel} ${lowReach ? styles.historyPanelLow : ''}`}
+        >
+          <div className={styles.historyIntroRow}>
+            <div className={styles.historyGallery}>
+              <div className={styles.historyThumbs}>
+                {THUMBS.map((i) => (
+                  <button
+                    key={i}
+                    type="button"
+                    className={`${styles.historyThumb} ${hero === i ? styles.historyThumbActive : ''}`}
+                    onClick={() => setHero(i)}
+                    aria-label={`사진 ${i + 1}`}
+                  >
+                    <img src={GALLERY[i]!.src} alt="" draggable={false} loading="lazy" />
+                  </button>
+                ))}
+              </div>
+              <div className={styles.historyHero}>
+                <img src={GALLERY[hero]!.src} alt="" draggable={false} />
+              </div>
             </div>
 
-            <button
-              type="button"
-              className={styles.navBtn}
-              onClick={() => step(1)}
-              aria-label="다음 사진"
-            >
-              {arrow && <img src={arrow} alt="" className={styles.navNext} draggable={false} />}
-            </button>
+            <div className={styles.historyIntro}>
+              <h2 className={styles.sectionTitle}>
+                <span className={styles.sectionBullet} aria-hidden="true">
+                  ●
+                </span>
+                {t('Here_Jeju_2_Culture', lang)}
+              </h2>
+              <p className={styles.historyIntroBody}>
+                {t('Here_Jeju_2_CultureContent', lang)}
+              </p>
+            </div>
           </div>
 
-          {/* Filmstrip — each tile keeps the width Figma gives it, so the row
-              reads as a set of differently-proportioned photos, not a grid. */}
-          <div className={styles.strip}>
-            {STRIP.map((i) => (
-              <button
-                key={i}
-                type="button"
-                className={styles.thumb}
-                style={{ width: GALLERY[i]!.w }}
-                onClick={() => setHero(i)}
-                aria-label={`사진 ${i + 1}`}
-              >
-                <img src={GALLERY[i]!.src} alt="" draggable={false} loading="lazy" />
-              </button>
-            ))}
-          </div>
+          {historyFlow.length > 0 && (
+            <section className={styles.historyFlow}>
+              <h2 className={styles.sectionTitle}>
+                <span className={styles.sectionBullet} aria-hidden="true">
+                  ●
+                </span>
+                {t('Here_HistoryFlow', lang)}
+              </h2>
+              <div className={styles.historyFlowBar}>
+                {historyFlow.map((item, index) => (
+                  <div
+                    key={`${item.key}-emoji`}
+                    className={styles.historyFlowEmojiSlot}
+                    style={{ gridColumn: index * 2 + 1, gridRow: 1 }}
+                  >
+                    {HISTORY_FLOW_EMOJI[index] && (
+                      <span className={styles.historyFlowEmoji} aria-hidden="true">
+                        {HISTORY_FLOW_EMOJI[index]}
+                      </span>
+                    )}
+                  </div>
+                ))}
 
-          <div className={styles.prose} ref={scrollRef}>
+                {historyFlow.map((item, index) => (
+                  <Fragment key={item.key}>
+                    {index > 0 && (
+                      <span
+                        className={styles.historyFlowArrow}
+                        style={{ gridColumn: index * 2, gridRow: 2 }}
+                        aria-hidden="true"
+                      >
+                        ›
+                      </span>
+                    )}
+                    <span
+                      className={styles.historyFlowEpoch}
+                      style={{ gridColumn: index * 2 + 1, gridRow: 2 }}
+                    >
+                      {item.epoch}
+                    </span>
+                  </Fragment>
+                ))}
+
+                {historyFlow.map((item, index) => (
+                  <p
+                    key={`${item.key}-summary`}
+                    className={styles.historyFlowSummary}
+                    style={{ gridColumn: index * 2 + 1, gridRow: 3 }}
+                  >
+                    {item.summary}
+                  </p>
+                ))}
+              </div>
+            </section>
+          )}
+
+          <div className={styles.historyProse}>
             {historyEpochs.length > 0 ? (
               historyEpochs.map((e) => (
                 <section key={e.key} className={styles.epoch}>
-                  {e.title && <h3 className={styles.epochTitle}>{e.title}</h3>}
+                  {e.title && (
+                    <h3 className={styles.epochTitle}>
+                      <span className={styles.sectionBullet} aria-hidden="true">
+                        ●
+                      </span>
+                      {e.title}
+                    </h3>
+                  )}
                   <p>{e.body}</p>
                 </section>
               ))
             ) : (
-              <p>{sheetText('Here_HistoryContent', lang, { ko: HISTORY_FALLBACK_KO })}</p>
+              <p>{t('Here_HistoryContent_1', lang)}</p>
             )}
           </div>
         </div>
@@ -611,6 +779,11 @@ export function JejuAbout({ controller }: Props): JSX.Element {
                 // the visitor back on the grid. Re-filtering would otherwise also
                 // leave the view scrolled into a list that no longer exists.
                 setSpot(null);
+                // The map refits itself to the new set and reports null a beat
+                // later; clearing here means the grid is never briefly narrowed
+                // by the OLD viewport against the NEW 초성 list.
+                setMapIds(null);
+                setPinned(null);
                 scrollRef.current?.scrollTo({ top: 0 });
               }}
               cellWidth={CHOSUNG_CELL}
@@ -618,43 +791,81 @@ export function JejuAbout({ controller }: Props): JSX.Element {
           )}
 
           {spot ? (
-            /* 상세 (6212:59326) — the shared card in its 사진1개 variant, in
-               place of the grid. The 초성 row above it stays, exactly as the
-               frame draws it — and where there is no row, the card takes that
-               band too rather than floating below a gap. */
+            /* 상세 (6212:59326) — the shared card in place of the grid. The 초성
+               row above it stays, exactly as the frame draws it — and where
+               there is no row, the card takes that band too rather than
+               floating below a gap.
+               The 2026-09 revision opens the card with a map of the attraction
+               and lays its four photos across in one row, where it used to be
+               the 사진1개 variant with no map. */
             <JejuSpotDetailCard
               item={toDetailItem(spot, lang)}
-              top={lowReach ? LOW_CONTENT_TOP : showChosung ? DETAIL_TOP : DETAIL_TOP - CHOSUNG_BAND}
-              gallery="single"
+              top={detailTop}
+              gallery="row"
+              map={detailMap}
+              maxScrollHeight={(lowReach ? LOW_DETAIL_FOOT : DETAIL_FOOT) - detailTop}
+              lang={lang}
             />
           ) : (
             <div
-              className={[styles.spots, showChosung ? '' : styles.spotsNoChosung, lowReach ? styles.spotsLow : '']
+              className={[
+                styles.spots,
+                showChosung ? '' : styles.spotsNoChosung,
+                lowReach ? styles.spotsLow : '',
+              ]
                 .filter(Boolean)
                 .join(' ')}
               ref={scrollRef}
             >
-              {visibleSpots.length > 0 ? (
-                <div className={styles.spotGrid}>
-                  {visibleSpots.map((s) => (
-                    <JejuAttractionCard
-                      key={s.id}
-                      name={shopName(s, lang)}
-                      address={shopAddress(s, lang)}
-                      // The shops API carries one `openTime` string; the frame's
-                      // third row shows a second (breaktime) line, which needs an
-                      // API field that does not exist yet.
-                      hours={s.openTime ? [s.openTime] : []}
-                      photo={shopImages(s)[0]}
-                      onClick={() => openSpot(s)}
-                    />
-                  ))}
-                </div>
-              ) : (
-                <p className={styles.empty}>
-                  {pick(spots.length === 0 ? COMING_SOON : NO_MATCH, lang)}
-                </p>
-              )}
+              {/* 6876:17133 — map then card rows, one 60px column. The map is
+                  INSIDE the scroller as the frame draws it, so it scrolls away
+                  once the visitor is reading the list rather than pinning 767px
+                  of the panel open for the whole run. */}
+              <div className={styles.spotColumn}>
+                {mapSpots.length > 0 && (
+                  <JejuSpotMap
+                    spots={mapSpots}
+                    activeId={pinned}
+                    onSelect={setPinned}
+                    onOpen={openSpotById}
+                    onViewportChange={setMapIds}
+                    lang={lang}
+                  />
+                )}
+
+                {listedSpots.length > 0 ? (
+                  <div className={styles.spotGrid}>
+                    {listedSpots.map((s) => (
+                      <JejuAttractionCard
+                        key={s.id}
+                        spotId={s.id}
+                        active={s.id === pinned}
+                        name={shopName(s, lang)}
+                        address={shopAddress(s, lang)}
+                        // The shops API carries one `openTime` string; the frame's
+                        // third row shows a second (breaktime) line, which needs an
+                        // API field that does not exist yet.
+                        hours={s.openTime ? [s.openTime] : []}
+                        photo={shopImages(s)[0]}
+                        onClick={() => openSpot(s)}
+                      />
+                    ))}
+                  </div>
+                ) : (
+                  <p className={styles.empty}>
+                    {pick(
+                      spots.length === 0
+                        ? COMING_SOON
+                        : visibleSpots.length > 0
+                          ? // There ARE matches, the map is just not looking at
+                            // them — say so, and leave 전체 보기 as the way back.
+                            NO_MATCH_IN_VIEW
+                          : NO_MATCH,
+                      lang,
+                    )}
+                  </p>
+                )}
+              </div>
             </div>
           )}
         </>
@@ -664,7 +875,7 @@ export function JejuAbout({ controller }: Props): JSX.Element {
         <>
           <button
             type="button"
-            className={`${styles.scrollBtn} ${styles.scrollUp}`}
+            className={`${styles.scrollBtn} ${styles.scrollUp} ${lowReach ? styles.scrollUpLow : ''}`}
             onClick={() => scrollBy(-SCROLL_STEP[tab])}
             aria-label="위로"
           >
@@ -674,7 +885,7 @@ export function JejuAbout({ controller }: Props): JSX.Element {
           </button>
           <button
             type="button"
-            className={`${styles.scrollBtn} ${styles.scrollDown}`}
+            className={`${styles.scrollBtn} ${styles.scrollDown} ${lowReach ? styles.scrollDownLow : ''}`}
             onClick={() => scrollBy(SCROLL_STEP[tab])}
             aria-label="아래로"
           >

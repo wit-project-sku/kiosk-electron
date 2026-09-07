@@ -1,0 +1,311 @@
+/*
+ * Shared shop 상세 — 제주공항 directions panel (car/bike/walk + bus timeline).
+ *
+ * Outer box spacing lives in JejuSpotDetailCard `.airportDirections`.
+ * Font/spacing tokens below — adjust these to resize the whole block.
+ */
+.wrap {
+  --dir-distance: 50px;
+  --dir-road-note: 34px;
+  --dir-mode: 48px;
+  --dir-mode-time: 55px;
+  --dir-mode-time-left: 530px;
+  --dir-mode-icon: 80px;
+  --dir-mode-icon-gap: 36px;
+  --dir-rail-width: 40px;
+  --dir-icon-line-x: calc(var(--dir-card-pad-x) + var(--dir-mode-icon) / 2);
+  --dir-timeline-gap: 40px;
+  --dir-shuttle-note: 36px;
+  --dir-card-pad-x: 60px;
+  --dir-card-pad-y: 55px;
+  --dir-card-radius: 80px;
+  --dir-stop-name: 50px;
+  --dir-stop-dest: 50px;
+  --dir-stop-meta: 40px;
+  --dir-pill: 50px;
+  --dir-foot: 34px;
+  --dir-card-bg: #ffeac7;
+
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 44px;
+}
+
+.distance {
+  margin: 0;
+  font-size: var(--dir-distance);
+  font-weight: 700;
+  line-height: 1.2;
+  color: var(--kiosk-primary, #ff7f0f);
+}
+
+.distanceKm {
+  font-weight: 700;
+}
+
+.modeList {
+  display: flex;
+  flex-direction: column;
+  gap: 40px;
+}
+
+/* Icon · label on the left; time pinned at --dir-mode-time-left. */
+.modeHead {
+  position: relative;
+  display: flex;
+  align-items: center;
+  width: 100%;
+  min-height: var(--dir-mode-icon);
+  box-sizing: border-box;
+  padding: 0 var(--dir-card-pad-x);
+}
+
+.modeHeadLeft {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--dir-mode-icon-gap);
+  flex: 0 1 auto;
+  min-width: 0;
+}
+
+.modeIcon {
+  flex: 0 0 auto;
+  font-size: var(--dir-mode-icon);
+  line-height: 1;
+}
+
+.modeLabel {
+  font-size: var(--dir-mode);
+  font-weight: 700;
+  line-height: 1;
+  color: #333;
+  white-space: nowrap;
+}
+
+.modeTime {
+  position: absolute;
+  left: var(--dir-mode-time-left);
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: var(--dir-mode-time);
+  font-weight: 600;
+  line-height: 1;
+  color: #333;
+  white-space: nowrap;
+}
+
+.modeTimeAccent {
+  font-weight: 700;
+  color: var(--kiosk-primary, #ff7f0f);
+}
+
+/* Car / bike / walk — time only muted (label stays black). */
+.modeList > .modeHead .modeTime {
+  color: #999;
+}
+
+/* ── Shuttle card ── */
+.shuttleCard {
+  position: relative;
+  box-sizing: border-box;
+  width: 100%;
+  padding: var(--dir-card-pad-y) 0;
+  border-radius: var(--dir-card-radius);
+  background: var(--dir-card-bg);
+  display: flex;
+  flex-direction: column;
+  gap: 48px;
+}
+
+.shuttleNote {
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 0 var(--dir-card-pad-x);
+  padding-left: calc(var(--dir-card-pad-x) + var(--dir-mode-icon) + var(--dir-mode-icon-gap));
+  font-size: var(--dir-shuttle-note);
+  font-weight: 400;
+  line-height: 1.35;
+  color: #999;
+}
+
+.shuttleBullet {
+  flex: 0 0 auto;
+  width: var(--dir-shuttle-note);
+  height: var(--dir-shuttle-note);
+  border-radius: 50%;
+  background: var(--kiosk-primary, #ff7f0f);
+}
+
+/* ── Bus card ── */
+.busCard {
+  position: relative;
+  box-sizing: border-box;
+  width: 100%;
+  padding: var(--dir-card-pad-y) 0 50px;
+  border-radius: var(--dir-card-radius);
+  background: var(--dir-card-bg);
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+/* Save-image QR — top-right of the orange bus/shuttle plate. */
+.cardQr {
+  position: absolute;
+  top: 40px;
+  right: 50px;
+  z-index: 2;
+  width: 160px;
+  height: 160px;
+  box-sizing: border-box;
+  padding: 8px;
+  border-radius: 16px;
+  background: #fff;
+  border: 3px solid var(--kiosk-primary, #ff7f0f);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+}
+
+/* ── Timeline ── */
+.timeline {
+  display: flex;
+  flex-direction: column;
+  margin-top: var(--dir-timeline-gap);
+  padding: 0 var(--dir-card-pad-x) 0;
+  padding-left: calc(var(--dir-icon-line-x) - var(--dir-rail-width) / 2);
+}
+
+.stop {
+  display: flex;
+  align-items: stretch;
+  gap: 32px;
+  min-height: 0;
+}
+
+.rail {
+  flex: 0 0 auto;
+  width: var(--dir-rail-width);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  position: relative;
+}
+
+.dot {
+  flex: 0 0 auto;
+  width: 40px;
+  height: 40px;
+  margin-top: 12px;
+  border-radius: 50%;
+  background: var(--kiosk-primary, #ff7f0f);
+}
+
+.dotHollow {
+  width: 40px;
+  height: 40px;
+  margin-top: 12px;
+  box-sizing: border-box;
+  background: var(--dir-card-bg);
+  border: 5px solid var(--kiosk-primary, #ff7f0f);
+}
+
+.stop:not(.stopLast) .rail::after {
+  content: '';
+  flex: 1 1 auto;
+  width: 4px;
+  min-height: 28px;
+  margin-top: 10px;
+  border-radius: 2px;
+  background: var(--kiosk-primary, #ff7f0f);
+}
+
+.stopDashed:not(.stopLast) .rail::after {
+  width: 4px;
+  background: repeating-linear-gradient(
+    to bottom,
+    var(--kiosk-primary, #ff7f0f) 0,
+    var(--kiosk-primary, #ff7f0f) 28px,
+    transparent 28px,
+    transparent 48px
+  );
+  border: none;
+  border-radius: 0;
+}
+
+.stopBody {
+  flex: 1 1 auto;
+  min-width: 0;
+  padding-bottom: 36px;
+}
+
+.stopLast .stopBody {
+  padding-bottom: 0;
+}
+
+.stopTop {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  column-gap: 30px;
+  row-gap: 12px;
+}
+
+.stopName {
+  margin: 0;
+  flex: 0 1 auto;
+  min-width: 0;
+  font-size: var(--dir-stop-name);
+  font-weight: 700;
+  line-height: 1.25;
+  color: #333;
+}
+
+.stopNameDest {
+  font-size: var(--dir-stop-dest);
+  font-weight: 700;
+  color: var(--kiosk-primary, #ff7f0f);
+}
+
+.stopMeta {
+  margin: 14px 0 0;
+  font-size: var(--dir-stop-meta);
+  font-weight: 400;
+  line-height: 1.2;
+  color: #999;
+}
+
+.pill {
+  flex: 0 0 auto;
+  box-sizing: border-box;
+  width: auto;
+  padding: 18px 36px;
+  border-radius: 60px;
+  background: var(--kiosk-primary, #ff7f0f);
+  font-size: var(--dir-pill);
+  font-weight: 700;
+  line-height: 1;
+  color: #fff;
+  white-space: nowrap;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+
+.pillDark {
+  background: #333;
+}
+
+.busFoot {
+  margin: 44px 0 0;
+  padding: 0 var(--dir-card-pad-x);
+  font-size: var(--dir-foot);
+  font-weight: 400;
+  line-height: 1.35;
+  color: #999;
+}

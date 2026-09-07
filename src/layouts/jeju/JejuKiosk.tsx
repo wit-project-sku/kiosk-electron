@@ -8,7 +8,7 @@
  * The shared flows are already wired and need no Jeju-specific code:
  *  - PhotoWorkflow (한복/사진) — themed via CSS vars, see PHOTO_THEME below and
  *    photoChrome.tsx for the per-layout header/icon resolution.
- *  - DonationWebScreen (기부) — W006 has hasDonation, one URL for every kiosk.
+ *  - DonationWebScreen (기부) — W006 has hasDonation; URL via donationUrl(kioskId).
  */
 import type { CSSProperties } from 'react';
 import type { KioskScreenId } from '@shared/types/kiosk';
@@ -17,7 +17,7 @@ import { useWeatherSync } from '@renderer/hooks/useWeatherSync';
 import { useFlightSync } from '@renderer/hooks/useFlightSync';
 import { useSailingSync } from '@renderer/hooks/useSailingSync';
 import { useExchangeSync } from '@renderer/hooks/useExchangeSync';
-import { WEB_EMBED_URLS } from '@shared/constants/webEmbeds';
+import { WEB_EMBED_URLS, donationUrl } from '@shared/constants/webEmbeds';
 import { DONATION_COMING_SOON } from '@shared/config/donation';
 import { useHasDonationTile } from '@renderer/lib/buttonLayout';
 import { KioskArtboard } from '../components/KioskScreenImage';
@@ -37,12 +37,13 @@ import { JejuAbout } from './JejuAbout';
 import { JejuHello } from './JejuHello';
 import { JejuHelp } from './JejuHelp';
 import { JejuLocalpay } from './JejuLocalpay';
-import { JejuWebScreen } from './JejuWebScreen';
+import { JejuWebScreen, type EmbedTab } from './JejuWebScreen';
 import { JejuEvents } from './JejuEvents';
 import { JejuFlights } from './JejuFlights';
 import { JejuCruise } from './JejuCruise';
 import { JejuExchange } from './JejuExchange';
 import { JejuRentcar } from './JejuRentcar';
+import { useJejuKeypad } from './keypad/useJejuKeypad';
 
 /** Theme the shared AR 한복 photo workflow with the 제주 orange (#ff7f0f, the
  *  Figma `[제주] main 01` token). photoChrome.tsx resolves Jeju's icons, header
@@ -61,7 +62,9 @@ const PHOTO_THEME = {
  * its site from scratch. Mounting one only when its screen is current means the
  * visitor taps the tile and stares at an empty panel while that happens; the
  * other kiosks keep it in the DOM from boot so the site is already painted when
- * they arrive. Two guests run here (witteria + tamnao), both idle after load.
+ * they arrive. Three guests run here (witteria + tamnao + jejuqrang — the last
+ * two are the tabs of one screen, and both stay mounted so switching tabs does
+ * not restart a guest), all idle after load.
  */
 interface WebScreen {
   screen: Extract<KioskScreenId, 'market' | 'tamnao'>;
@@ -72,8 +75,12 @@ interface WebScreen {
   subtitle?: string;
   subtitleColor?: string;
   subtitleStar?: boolean;
-  /** 탐나오 only — the QR row + that frame's panel metrics. */
+  /** 탐나오&제주큐랑 only — the QR row + that frame's panel metrics. */
   showMobileQr?: boolean;
+  /** Several sites behind a tab row — see JejuWebScreen's `tabs`. */
+  tabs?: readonly EmbedTab[];
+  /** Off for a frame whose content runs past the banner at y3267. */
+  showBanner?: boolean;
 }
 
 const WEB_SCREENS: readonly WebScreen[] = [
@@ -88,16 +95,25 @@ const WEB_SCREENS: readonly WebScreen[] = [
     subtitleStar: false,
   },
   {
-    // 탐나오 (제주공공플랫폼) — the same treatment WIT Store gets: the live site
-    // in a <webview> under 제주's own header/nav/banner. No subtitle is passed:
-    // 탐나오 has no SubHeader_* row in Localization_Jeju, and JejuHeader hides
-    // the row when neither a prop nor the sheet supplies one.
+    // 탐나오&제주큐랑 — the same treatment WIT Store gets: the live sites in a
+    // <webview> under 제주's own header/nav. 6493:118287 turned what was one
+    // 탐나오 page into a two-tab one, so the header title is the pair and the
+    // tile still opens on 탐나오. No subtitle is passed: neither site has a
+    // SubHeader_* row in Localization_Jeju, and JejuHeader falls back to the
+    // frame's own 페이지 설명문 placeholder, which is what 6493:118287 draws.
     screen: 'tamnao',
     url: WEB_EMBED_URLS.tamnao,
-    title: '탐나오',
-    // 6219:105645 hangs a "모바일에서 확인하기" QR under the panel so a visitor
+    title: '탐나오&제주큐랑',
+    tabs: [
+      { id: 'tamnao', label: '탐나오', url: WEB_EMBED_URLS.tamnao },
+      { id: 'jejuqrang', label: '제주큐랑', url: WEB_EMBED_URLS.jejuqrang },
+    ],
+    // 6516:71785 hangs a "모바일에서 확인하기" QR under the panel so a visitor
     // can carry the site away on their phone. WIT Store's frame has no such row.
     showMobileQr: true,
+    // The panel (973 + 2291) and that QR row end at y3592, so there is no room
+    // left for the y3267 banner — and 6493:118287 draws none.
+    showBanner: false,
   },
 ];
 
@@ -114,6 +130,9 @@ export function JejuKiosk(): JSX.Element {
   useSailingSync();
   useExchangeSync();
   const hasDonation = useHasDonationTile(controller.kioskId);
+  // 배리어프리 키패드 (JD-KP100) — arrow/OK/back control of every 제주 screen.
+  // 제주 only: no other venue has the hardware. See the hook's header.
+  useJejuKeypad(controller);
 
   const cur = controller.screen;
 
@@ -156,9 +175,13 @@ export function JejuKiosk(): JSX.Element {
   ) : cur === 'hello' ? (
     <JejuHello controller={controller} />
   ) : cur === 'help' || cur === 'restroom' ? (
-    // 화장실 has no screen of its own: the home button opens 도와줘 '하영' with the
-    // 화장실 chip already lit, which is that page's first category anyway.
-    <JejuHelp controller={controller} initialCategory={cur === 'restroom' ? '화장실' : undefined} />
+    // 화장실 is always the lead chip when the sheet lists it. The home 화장실
+    // button still passes it explicitly so a future reorder cannot leave that
+    // shortcut on a different chip; plain 도와줘 falls through to CATEGORIES[0].
+    <JejuHelp
+      controller={controller}
+      initialCategory={cur === 'restroom' ? '화장실' : undefined}
+    />
   ) : cur === 'localpay' ? (
     <JejuLocalpay controller={controller} />
   ) : // WIT Store · 탐나오 · 기부 all render from the pre-warmed layers below, so
@@ -185,11 +208,16 @@ export function JejuKiosk(): JSX.Element {
         would sit on top of the home screen. Same reason Insadong and Osan do it
         this way.
       */}
-      {WEB_SCREENS.map(({ screen, url, title, subtitle, subtitleColor, subtitleStar, showMobileQr }) => {
-        const active = !controller.photoActive && cur === screen;
+      {WEB_SCREENS.map((web) => {
+        const active = !controller.photoActive && cur === web.screen;
         return (
           <div
-            key={screen}
+            key={web.screen}
+            // Collapsed to 0×0 but still laid out, so this layer's own header
+            // and tab row keep real rects that the keypad's spatial search
+            // would otherwise treat as landing spots on a screen the visitor
+            // cannot see. See spatialNav's collectTargets.
+            data-keypad-inert={active ? undefined : ''}
             style={
               active
                 ? { position: 'absolute', inset: 0, zIndex: 1 }
@@ -207,12 +235,14 @@ export function JejuKiosk(): JSX.Element {
           >
             <JejuWebScreen
               controller={controller}
-              title={title}
-              subtitle={subtitle}
-              subtitleColor={subtitleColor}
-              subtitleStar={subtitleStar}
-              url={url}
-              showMobileQr={showMobileQr}
+              title={web.title}
+              subtitle={web.subtitle}
+              subtitleColor={web.subtitleColor}
+              subtitleStar={web.subtitleStar}
+              url={web.url}
+              showMobileQr={web.showMobileQr}
+              tabs={web.tabs}
+              showBanner={web.showBanner}
             />
           </div>
         );
@@ -236,6 +266,8 @@ export function JejuKiosk(): JSX.Element {
           const active = !controller.photoActive && cur === 'donation';
           return (
             <div
+              // Same reason as the web layers above — see that comment.
+              data-keypad-inert={active ? undefined : ''}
               style={
                 active
                   ? { position: 'absolute', inset: 0, zIndex: 2 }
@@ -251,7 +283,7 @@ export function JejuKiosk(): JSX.Element {
                     }
               }
             >
-              <DonationWebScreen url={WEB_EMBED_URLS.donation} controller={controller} />
+              <DonationWebScreen url={donationUrl(controller.kioskId)} controller={controller} />
             </div>
           );
         })()}

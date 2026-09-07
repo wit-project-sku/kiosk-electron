@@ -12,6 +12,7 @@ import { LocalCacheRepository } from './database/repositories/LocalCacheReposito
 import { FailedRequestRepository } from './database/repositories/FailedRequestRepository';
 import { PhotoSessionRepository } from './database/repositories/PhotoSessionRepository';
 import { FootfallRepository } from './database/repositories/FootfallRepository';
+import { HeightRepository } from './database/repositories/HeightRepository';
 import { TranslationRepository } from './database/repositories/TranslationRepository';
 import { ImageService } from './services/ImageService';
 import { SettingsService } from './services/SettingsService';
@@ -25,6 +26,7 @@ import { ShopService } from './services/ShopService';
 import { ButtonLayoutService } from './services/ButtonLayoutService';
 import { BannerService } from './services/BannerService';
 import { BackgroundService } from './services/BackgroundService';
+import { RemoteImageCache } from './services/RemoteImageCache';
 import { AttractionService } from './services/AttractionService';
 import { SpotDiffService } from './services/SpotDiffService';
 import { OutfitService } from './services/OutfitService';
@@ -48,6 +50,8 @@ import { ImageHostService } from './services/photo/ImageHostService';
 import { PhotoWorkflowService } from './services/photo/PhotoWorkflowService';
 import { FootfallService } from './services/footfall/FootfallService';
 import { FootfallUploader } from './services/footfall/FootfallUploader';
+import { HeightService } from './services/height/HeightService';
+import { ZedSidecarManager } from './core/ZedSidecarManager';
 import { UpdateService } from './updater/UpdateService';
 import { UpdateCommandService } from './updater/UpdateCommandService';
 
@@ -93,6 +97,8 @@ export interface AppContainer {
   footfall: FootfallService;
   /** Nightly 21:30 push of the day's 유동인구 counts. */
   footfallUploader: FootfallUploader;
+  /** 키 측정 — anonymous ZED height analytics, 제주 only. Inert everywhere else. */
+  height: HeightService;
 }
 
 let container: AppContainer | null = null;
@@ -110,6 +116,7 @@ export function createContainer(): AppContainer {
   const photoSessionRepo = new PhotoSessionRepository(database);
   const translationRepo = new TranslationRepository(database);
   const footfallRepo = new FootfallRepository(database);
+  const heightRepo = new HeightRepository(database);
 
   const kiosk = new KioskService();
   const analytics = new AnalyticsService(analyticsRepo, kiosk);
@@ -119,10 +126,13 @@ export function createContainer(): AppContainer {
   const shops = new ShopService(cache, kiosk);
   const buttons = new ButtonLayoutService(cache, kiosk);
   const banners = new BannerService(cache, kiosk);
-  const backgrounds = new BackgroundService(cache, kiosk);
+  // Shared by both screens that draw CMS imagery on the AR 한복체험 picker, so
+  // one directory and one prune covers outfit cards and 배경 테마 tiles alike.
+  const remoteImages = new RemoteImageCache();
+  const backgrounds = new BackgroundService(cache, kiosk, remoteImages);
   const attractions = new AttractionService(cache, kiosk);
   const spotDiff = new SpotDiffService(cache);
-  const outfits = new OutfitService(cache, kiosk);
+  const outfits = new OutfitService(cache, kiosk, remoteImages);
   // No cache dependency: every recommendation is a fresh POST. It only needs
   // the kiosk so it can stamp `kioskId` on the request itself.
   const jejuCourse = new JejuCourseService(kiosk);
@@ -160,6 +170,14 @@ export function createContainer(): AppContainer {
   photoWorkflow.subscribe((state) => footfall.onPhotoWorkflowChanged(state));
   display.subscribe((state) => footfall.onDisplayStateChanged(state));
   const footfallUploader = new FootfallUploader(footfallRepo, kiosk, footfall);
+
+  // 키 측정. Subscribes to the same workflow broadcast 유동인구 does, for the same
+  // reason: the capture pipeline stays unaware that anything else is watching,
+  // and nothing it does can be delayed or failed by what happens here. Unlike
+  // 유동인구 this needs no camera arbitration at all — the ZED is a second,
+  // physically separate device that the photo path never opens.
+  const height = new HeightService(new ZedSidecarManager(), heightRepo, kiosk);
+  photoWorkflow.subscribe((state) => height.onPhotoWorkflowChanged(state));
 
   // The remote "update now" trigger drives the SAME updater instance as the
   // weekly scheduler, so both paths share one state machine (no double download,
@@ -211,6 +229,7 @@ export function createContainer(): AppContainer {
     updateCommands,
     footfall,
     footfallUploader,
+    height,
   };
 
   return container;

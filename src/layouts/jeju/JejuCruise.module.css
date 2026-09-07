@@ -94,16 +94,9 @@
 }
 
 /* ── 국제항 ㅣ 연안항 ────────────────────────────────────────────────────
- * The shared JejuSubTabRow already draws this band at y920 in 60px, weight 600
- * idle / 900 active with the brand orange on the active item. The one thing it
- * does not match is the idle INK: 안녕 '하영' and 도와줘 '하영' grey theirs out at
- * #999, while this frame draws the unpicked 연안항 and the ㅣ in #1a1a1a
- * (gray 07). Handed over as a custom property so the shared component keeps its
- * default and no other page moves. */
+ * Shared JejuSubTabRow at y920. Even separator margins so the ㅣ lands on the
+ * artboard centre line (1079.5) rather than the shared 60/90 default. */
 .ports {
-  --jeju-subtab-idle: #1a1a1a;
-  /* Even gaps, so the ㅣ lands on the artboard centre line the frame draws it on
-     (1079.5) rather than the 15px-left the shared 60/90 default gives. */
   --jeju-subtab-sep-before: 80px;
   --jeju-subtab-sep-after: 80px;
 }

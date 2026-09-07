@@ -19,9 +19,16 @@
 # Tip: launch the app once first so its data folder exists, then run this,
 # then restart the app.
 
+#
+# -Beta provisions the SIDE-BY-SIDE beta install (%APPDATA%\kiosk-app-beta)
+# instead of production (%APPDATA%\kiosk-app). The two builds keep completely
+# separate state, so each needs provisioning once — see
+# src/main/core/appIdentity.ts and electron-builder.beta.yml.
+
 param(
   [Parameter(Mandatory = $true)][string]$KioskId,
-  [int]$ShopId = 0
+  [int]$ShopId = 0,
+  [switch]$Beta
 )
 
 $id = $KioskId.ToUpper()
@@ -30,9 +37,11 @@ if ($id -notmatch '^W\d{3}$') {
   exit 1
 }
 
-# Electron's userData dir derives from the package name ("kiosk-app"), but older
-# notes used "Kiosk App" — detect whichever the app actually created.
-$candidates = @('kiosk-app', 'Kiosk App') | ForEach-Object { Join-Path $env:APPDATA $_ }
+# Production's userData dir is Electron's default, derived from the package name
+# ("kiosk-app"); an older Electron briefly used "Kiosk App", so that fossil is
+# still probed. The beta build sets its own path explicitly (kiosk-app-beta).
+$names = if ($Beta) { @('kiosk-app-beta') } else { @('kiosk-app', 'Kiosk App') }
+$candidates = $names | ForEach-Object { Join-Path $env:APPDATA $_ }
 $dir = $candidates | Where-Object { Test-Path (Join-Path $_ 'data\kiosk.db') } | Select-Object -First 1
 if (-not $dir) { $dir = $candidates | Where-Object { Test-Path $_ } | Select-Object -First 1 }
 if (-not $dir) {
@@ -52,4 +61,4 @@ if ($ShopId -gt 0) {
 
 Write-Host "OK -> $file"
 Write-Host $json
-Write-Host "Now restart the Kiosk App."
+Write-Host ("Now restart " + $(if ($Beta) { 'Kiosk App Beta' } else { 'the Kiosk App' }) + ".")

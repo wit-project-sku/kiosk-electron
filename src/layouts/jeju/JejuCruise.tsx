@@ -33,6 +33,7 @@ import { useState } from 'react';
 import type { KioskController } from '@renderer/hooks/useKioskController';
 import { pick, useLang } from '@renderer/lib/i18n';
 import type { Lang } from '@renderer/lib/i18n';
+import { sheetText } from '@renderer/lib/loc';
 import {
   displaySailingTime,
   hasTimeChange,
@@ -46,6 +47,9 @@ import { useAccessibilityStore } from '@renderer/store/accessibilityStore';
 import { JejuPageFrame } from './JejuPageFrame';
 import { JejuSubTabRow } from './JejuSubTabRow';
 import styles from './JejuCruise.module.css';
+
+const opText = (key: string, lang: Lang, fallback: Partial<Record<Lang, string>>): string =>
+  sheetText(key, lang, fallback);
 
 interface Props {
   controller: KioskController;
@@ -64,9 +68,14 @@ export type SailingDirection = 'departure' | 'arrival';
  */
 export const CRUISE_TITLE = '운항정보';
 
-const TABS: ReadonlyArray<{ id: SailingDirection; label: Partial<Record<Lang, string>> }> = [
+const TABS: ReadonlyArray<{
+  id: SailingDirection;
+  sheetKey: string;
+  label: Partial<Record<Lang, string>>;
+}> = [
   {
     id: 'departure',
+    sheetKey: 'OP_Schedule_Tab_1',
     label: {
       ko: '출발', en: 'Departures', ja: '出発', zh: '出发',
       vi: 'Đi', th: 'ขาออก', ru: 'Отправление', id: 'Berangkat',
@@ -74,6 +83,7 @@ const TABS: ReadonlyArray<{ id: SailingDirection; label: Partial<Record<Lang, st
   },
   {
     id: 'arrival',
+    sheetKey: 'OP_Schedule_Tab_2',
     label: {
       ko: '도착', en: 'Arrivals', ja: '到着', zh: '到达',
       vi: 'Đến', th: 'ขาเข้า', ru: 'Прибытие', id: 'Tiba',
@@ -81,7 +91,8 @@ const TABS: ReadonlyArray<{ id: SailingDirection; label: Partial<Record<Lang, st
   },
 ];
 
-/** 국제항 ㅣ 연안항 — which of 제주항's two passenger terminals. See SailingPort. */
+/** 국제항 ㅣ 연안항 — which of 제주항's two passenger terminals. See SailingPort.
+ *  No Localization_Jeju keys for these berth labels yet. */
 const PORTS: ReadonlyArray<{ id: SailingPort; label: Partial<Record<Lang, string>> }> = [
   {
     id: 'international',
@@ -130,6 +141,7 @@ const EMPTY = {
 interface Column {
   key: string;
   x: number;
+  sheetKey: string;
   head: Partial<Record<Lang, string>>;
 }
 
@@ -168,20 +180,20 @@ const COL_STATUS = {
 
 const COLUMNS: Record<SailingDirection, Column[]> = {
   departure: [
-    { key: 'time',     x: 285.5,  head: COL_TIME_DEPARTURE },
-    { key: 'duration', x: 515,    head: COL_DURATION },
-    { key: 'ship',     x: 840,    head: COL_SHIP },
-    { key: 'route',    x: 1260,   head: COL_ROUTE },
-    { key: 'place',    x: 1630,   head: COL_PLACE_DEPARTURE },
-    { key: 'status',   x: 1918.5, head: COL_STATUS },
+    { key: 'time',     x: 285.5,  sheetKey: 'OP_Schedule_Info_col1', head: COL_TIME_DEPARTURE },
+    { key: 'duration', x: 515,    sheetKey: 'OP_Schedule_Info_col8', head: COL_DURATION },
+    { key: 'ship',     x: 840,    sheetKey: 'OP_Schedule_Info_col9', head: COL_SHIP },
+    { key: 'route',    x: 1260,   sheetKey: 'OP_Schedule_Info_col10', head: COL_ROUTE },
+    { key: 'place',    x: 1630,   sheetKey: 'OP_Schedule_Info_col11', head: COL_PLACE_DEPARTURE },
+    { key: 'status',   x: 1918.5, sheetKey: 'OP_Schedule_Info_col6', head: COL_STATUS },
   ],
   arrival: [
-    { key: 'time',     x: 285.5,  head: COL_TIME_ARRIVAL },
-    { key: 'duration', x: 515,    head: COL_DURATION },
-    { key: 'ship',     x: 840,    head: COL_SHIP },
-    { key: 'route',    x: 1260,   head: COL_ROUTE },
-    { key: 'place',    x: 1630,   head: COL_PLACE_ARRIVAL },
-    { key: 'status',   x: 1918.5, head: COL_STATUS },
+    { key: 'time',     x: 285.5,  sheetKey: 'OP_Schedule_Info_col12', head: COL_TIME_ARRIVAL },
+    { key: 'duration', x: 515,    sheetKey: 'OP_Schedule_Info_col8', head: COL_DURATION },
+    { key: 'ship',     x: 840,    sheetKey: 'OP_Schedule_Info_col9', head: COL_SHIP },
+    { key: 'route',    x: 1260,   sheetKey: 'OP_Schedule_Info_col10', head: COL_ROUTE },
+    { key: 'place',    x: 1630,   sheetKey: 'OP_Schedule_Info_col13', head: COL_PLACE_ARRIVAL },
+    { key: 'status',   x: 1918.5, sheetKey: 'OP_Schedule_Info_col6', head: COL_STATUS },
   ],
 };
 
@@ -238,7 +250,7 @@ export function JejuCruise({ controller }: Props): JSX.Element {
             aria-pressed={direction === tab.id}
             onClick={() => setDirection(tab.id)}
           >
-            {pick(tab.label, lang)}
+            {opText(tab.sheetKey, lang, tab.label)}
           </button>
         ))}
       </div>
@@ -257,14 +269,14 @@ export function JejuCruise({ controller }: Props): JSX.Element {
           className={`${low(styles.head, styles.headLow)} ${styles.cellCentred}`}
           style={{ left: col.x }}
         >
-          {pick(col.head, lang)}
+          {opText(col.sheetKey, lang, col.head)}
         </span>
       ))}
 
       <div className={low(styles.scroll, styles.scrollLow)}>
         <div className={styles.rows}>
           {rows.length === 0 ? (
-            <p className={styles.empty}>{pick(EMPTY, lang)}</p>
+            <p className={styles.empty}>{opText('OP_Schedule_Result', lang, EMPTY)}</p>
           ) : (
             rows.map((row) => (
               <div key={row.id} className={styles.row}>

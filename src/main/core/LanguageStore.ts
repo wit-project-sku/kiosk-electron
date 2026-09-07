@@ -24,7 +24,8 @@ function getStore(): Store<LanguageConfig> {
 
 /**
  * Language preference persistence via electron-store.
- * Survives restarts and is synced to the renderer via IPC.
+ * Keeps operator + customer displays in sync during a session; reset to Korean
+ * on every app launch and idle timeout.
  */
 export const languageStore = {
   get(): SupportedLanguage {

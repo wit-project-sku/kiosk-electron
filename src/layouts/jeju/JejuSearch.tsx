@@ -8,15 +8,17 @@
  * Data + behaviour are the shared shop path (searchShops / shopName / … /
  * detailStore) that OsanSearch uses; only the presentation is Jeju's.
  */
-import { useRef, useState } from 'react';
+import { useMemo, useRef, useState } from 'react';
 import type { KioskController } from '@renderer/hooks/useKioskController';
 import type { Shop } from '@shared/types/shop';
 import { jejuIconUrl } from '@renderer/assets/icons/jeju';
+import { useAccessibilityStore } from '@renderer/store/accessibilityStore';
 import { useLanguageStore } from '@renderer/store/languageStore';
 import { useSearchStore } from '@renderer/store/searchStore';
 import { useDetailStore } from '@renderer/store/detailStore';
 import { useShopStore } from '@renderer/store/shopStore';
 import { pick } from '@renderer/lib/i18n';
+import { ui } from '@renderer/lib/uiText';
 import {
   searchShops,
   shopAddress,
@@ -67,6 +69,10 @@ const T = {
 
 /** One scroll-button press moves by a card + its gap. */
 const SCROLL_STEP = 590;
+/** Mode-bar revision — header and body content drop by the bar height. */
+const MODE_BAR = 113;
+const KEYBOARD_TOP = 882;
+const KEYBOARD_TOP_LOW = KEYBOARD_TOP + MODE_BAR;
 
 export function JejuSearch({ controller }: Props): JSX.Element {
   const lang = useLanguageStore((s) => s.currentLanguage);
@@ -74,6 +80,7 @@ export function JejuSearch({ controller }: Props): JSX.Element {
   const setStoreQuery = useSearchStore((s) => s.setQuery);
   const setDetail = useDetailStore((s) => s.setItem);
   const shops = useShopStore((s) => s.shops);
+  const lowReach = useAccessibilityStore((s) => s.lowReach);
 
   const composer = useRef(new HangulComposer());
   const seeded = useRef(false);
@@ -85,7 +92,12 @@ export function JejuSearch({ controller }: Props): JSX.Element {
   const scrollRef = useRef<HTMLDivElement>(null);
   const [query, setQuery] = useState(initialQuery);
   const [focused, setFocused] = useState(false);
-  const results = searchShops(shops, query, lang);
+  // Relevance first (searchShops), then more photos first (4 → 3 → 2 → 1 → 0).
+  // Stable within the same count so title/tag/description ranking still holds.
+  const results = useMemo(() => {
+    const found = searchShops(shops, query, lang);
+    return [...found].sort((a, b) => shopImages(b).length - shopImages(a).length);
+  }, [shops, query, lang]);
 
   const applyKey = (action: KeyAction): void => {
     const c = composer.current;
@@ -109,6 +121,7 @@ export function JejuSearch({ controller }: Props): JSX.Element {
   const openDetail = (shop: Shop): void => {
     setDetail({
       from: 'search',
+      shopId: shop.id,
       // The detail header reads "검색 > 상세" per the Figma, so the source label
       // is the screen name — not the shop's base category.
       title: '검색',
@@ -123,18 +136,29 @@ export function JejuSearch({ controller }: Props): JSX.Element {
       rating: shop.naverRating != null ? String(shop.naverRating) : '',
       instagram: '',
       blogReviews: shop.naverLink ?? '',
+      rentcarRoute: shop.route ?? null,
     });
     controller.navigate('detail', '검색 상세');
   };
 
   return (
-    /* This page's ♿ frame (6336:100835, 검색-02) is on the 2026-08-26 mode-bar
-       revision, and it is the degenerate case: the bar overlays the top and
-       NOTHING moves — header, search row, list and scroll discs all repeat
-       their standard positions (measured on the 1:1 render; the frame's
-       staggered scroll-disc group coords are paste slop). */
-    <JejuPageFrame controller={controller} title="검색" showBanner={false} lowReachModeBar>
-      <div className={styles.scroll} ref={scrollRef}>
+    /* Mode-bar revision (6336:100835): bar at y0, header at y113 — content
+       drops +113 with the header (JejuListScreen). */
+    <JejuPageFrame
+      controller={controller}
+      title="검색"
+      /* Passed as a prop, not mapped in i18n: 검색 is Insadong's, 오산's and
+         화성's header id too, and those three draw no description row at all —
+         a shared mapping would give all of them one. See EXTRA_SUBTITLE_KEYS. */
+      subtitle={ui('searchSubtitle', lang)}
+      showBanner={false}
+      lowReachModeBar
+      lowReachShift={MODE_BAR}
+    >
+      <div
+        className={`${styles.scroll} ${lowReach ? styles.scrollLow : ''}`}
+        ref={scrollRef}
+      >
         <div className={styles.searchRow}>
           <div className={styles.searchField} role="button" onClick={() => setFocused(true)}>
             <span className={`${styles.searchText} ${query ? styles.searchValue : ''}`}>
@@ -168,7 +192,7 @@ export function JejuSearch({ controller }: Props): JSX.Element {
 
       <button
         type="button"
-        className={`${styles.scrollBtn} ${styles.scrollUp}`}
+        className={`${styles.scrollBtn} ${styles.scrollUp} ${lowReach ? styles.scrollUpLow : ''}`}
         onClick={() => scrollBy(-SCROLL_STEP)}
         aria-label="위로"
       >
@@ -178,7 +202,7 @@ export function JejuSearch({ controller }: Props): JSX.Element {
       </button>
       <button
         type="button"
-        className={`${styles.scrollBtn} ${styles.scrollDown}`}
+        className={`${styles.scrollBtn} ${styles.scrollDown} ${lowReach ? styles.scrollDownLow : ''}`}
         onClick={() => scrollBy(SCROLL_STEP)}
         aria-label="아래로"
       >
@@ -192,7 +216,7 @@ export function JejuSearch({ controller }: Props): JSX.Element {
         onKey={applyKey}
         onClose={() => setFocused(false)}
         lang={lang}
-        top={882}
+        top={lowReach ? KEYBOARD_TOP_LOW : KEYBOARD_TOP}
       />
     </JejuPageFrame>
   );

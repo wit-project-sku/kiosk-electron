@@ -1,22 +1,25 @@
 /**
  * 제주 날씨 — Figma node 6516:74521 (제주>홈), the overlay the home weather card
- * opens. Six rows of 오늘 · 내일 · the next four weekdays, each with a morning and
- * an afternoon glyph and the day's 최저 / 최고.
+ * opens. Seven rows of 오늘 · 내일 · the next five weekdays, each with a morning
+ * and an afternoon glyph and the day's 최저 / 최고. The close button (6760:18767)
+ * sits in the gap between the last row's 오전 / 오후 columns.
  *
  * Every position/size in JejuWeatherPanel.module.css is the exact Figma value,
- * measured against the isolated render of node 6516:74520 (the group holding the
- * frosted panel, the 오늘 card, the four rules and the six rows).
+ * measured against node 6516:74520 (frosted panel + 오늘 card + rules + rows)
+ * and its sibling last-row / close nodes on the same frame.
  *
  * The data is OpenWeatherMap's 5-day/3-hour outlook, folded into per-day buckets
  * in WeatherService — see `WeatherForecast`. It reaches here through
  * `useWeatherSync` like the current snapshot does; nothing is fetched in the
- * renderer.
+ * renderer. The API covers at most six local dates, so the seventh row is often
+ * a date-only placeholder.
  */
 import type {
   WeatherDayForecast,
   WeatherForecast,
   WeatherSnapshot,
 } from '@shared/types/weather';
+import { jejuIconUrl } from '@renderer/assets/icons/jeju';
 import { weatherIconUrl, weatherIconName } from '@renderer/assets/weather';
 import type { Lang } from '@renderer/lib/i18n';
 import styles from './JejuWeatherPanel.module.css';
@@ -29,15 +32,39 @@ interface Props {
   onClose: () => void;
 }
 
-/** Rows the frame draws. The panel height is authored for exactly six. */
-const ROWS = 6;
+/**
+ * The close button's accessible name. Authored here, like HEADS below, because
+ * this frame has no Localization_Jeju rows yet — an unanswered `t()` would show
+ * the raw key. It replaces a hardcoded Korean "닫기" that every language saw.
+ */
+const CLOSE_LABEL: Partial<Record<Lang, string>> = {
+  ko: '닫기',
+  en: 'Close',
+  ja: '閉じる',
+  zh: '关闭',
+  vi: 'Đóng',
+  th: 'ปิด',
+  ru: 'Закрыть',
+  id: 'Tutup',
+};
+
+/**
+ * Rows drawn. The panel height is authored for exactly this many — Figma
+ * 6516:74521 draws seven (오늘 · 내일 · five weekdays). OpenWeatherMap's
+ * 5-day/3-hour outlook only fills six local dates (WeatherService
+ * FORECAST_DAYS = 6); the seventh row falls back to a date-only placeholder
+ * via {@link buildRows}.
+ */
+const ROWS = 7;
 
 /* Row geometry, panel-relative. The frame repeats one 357-tall row every 461px
    from y178; the rules are taken literally from their own nodes rather than
    derived from that step (Figma has them a few px off it). */
 const ROW_TOP = 178;
 const ROW_STEP = 461;
-const RULE_TOPS = [1054, 1515, 1979, 2443] as const;
+/* Between rows 2/3 … 6/7 — the 오늘 card separates the first two, so no rule
+   there. Page y 1356 / 1817 / 2281 / 2745 / 3206 minus panel origin 302. */
+const RULE_TOPS = [1054, 1515, 1979, 2443, 2904] as const;
 
 /**
  * Column headers and the two relative day names. There are no Localization_Jeju
@@ -65,7 +92,7 @@ const RELATIVE_DAYS: Record<'today' | 'tomorrow', Partial<Record<Lang, string>>>
     vi: 'Hôm nay', th: 'วันนี้', ru: 'Сегодня', id: 'Hari ini',
   },
   tomorrow: {
-    ko: '내일', en: 'Tom.', ja: '明日', zh: '明天',
+    ko: '내일', en: 'Tmr', ja: '明日', zh: '明天',
     vi: 'Mai', th: 'พรุ่งนี้', ru: 'Завтра', id: 'Besok',
   },
 };
@@ -128,22 +155,21 @@ interface Row {
 }
 
 /**
- * Six rows starting at today, whether or not the outlook reaches that far.
+ * Seven rows starting at today, whether or not the outlook reaches that far.
  *
  * The dates come from the clock rather than from the payload so a cached outlook
  * that went stale overnight still labels its rows honestly — days that have
  * already passed drop out and the tail fills with date-only placeholders instead
  * of drawing yesterday under 오늘.
  *
- * Two tails the 5-day/3-hour endpoint cannot fill, both narrow and both handled
- * here rather than left as a blank row:
+ * Tails the 5-day/3-hour endpoint cannot fill, handled here rather than left as
+ * a blank row:
  *
  *  - Late evening, when the list holds nothing further for today: 오늘 borrows
  *    its glyphs from the live snapshot. The day's 최저/최고 stay blank — the
  *    current reading is not a range and must not be drawn as one.
- *  - Just after midnight, when the 120-hour window only spans five dates: the
- *    sixth row has no data at all and shows as a date alone. The window slides
- *    off that state within a few hours, and the kiosks reboot at 02:00 anyway.
+ *  - The sixth and seventh rows near the edge of the 120-hour window: date-only
+ *    placeholders until the next refresh. The kiosks reboot at 02:00 anyway.
  */
 function buildRows(
   forecast: WeatherForecast | null,
@@ -188,19 +214,41 @@ function Glyph({ slot }: { slot: Slot | null }): JSX.Element | null {
 
 export function JejuWeatherPanel({ forecast, current, lang, onClose }: Props): JSX.Element {
   const rows = buildRows(forecast, current, lang);
+  const closeIcon = jejuIconUrl('ico-close');
 
   return (
     <div className={styles.layer}>
-      {/* The frame draws no scrim and no close control: the panel simply sits
-          over the home screen, with the top bar, the left nav and the bottom
-          action row still showing around it. Tapping any of that bare screen is
-          the way back, so the dismiss target is invisible and sits BEHIND the
-          panel — taps on the panel itself never reach it. */}
-      <button type="button" className={styles.dismiss} onClick={onClose} aria-label="닫기" />
+      {/* The frame draws no scrim: the panel simply sits over the home screen,
+          with the top bar, the left nav and the bottom action row still showing
+          around it. Tapping any of that bare screen is still the way back, so
+          the dismiss target is invisible and sits BEHIND the panel — taps on the
+          panel itself never reach it, and reach the close button instead. */}
+      <button
+        type="button"
+        className={styles.dismiss}
+        onClick={onClose}
+        aria-label={pick(CLOSE_LABEL, lang)}
+      />
 
       <div className={styles.panel} role="dialog" aria-label="제주 날씨">
         {/* 오늘 sits on its own lighter card; the column heads live inside it. */}
         <div className={styles.todayCard} />
+
+        {/* 6760:18767 — the visible way out, centred in the last row's
+            오전 / 오후 gap as the frame draws it. The bare home screen around
+            the panel stays tappable and unchanged; this is what a visitor can
+            actually SEE to press. */}
+        <button
+          type="button"
+          className={styles.close}
+          onClick={onClose}
+          aria-label={pick(CLOSE_LABEL, lang)}
+          data-pad-dismiss
+        >
+          {closeIcon && (
+            <img src={closeIcon} alt="" className={styles.closeIcon} draggable={false} />
+          )}
+        </button>
 
         <span className={`${styles.head} ${styles.headMorning}`}>{pick(HEADS.morning, lang)}</span>
         <span className={`${styles.head} ${styles.headAfternoon}`}>
@@ -208,10 +256,10 @@ export function JejuWeatherPanel({ forecast, current, lang, onClose }: Props): J
         </span>
         <span className={`${styles.head} ${styles.headRange}`}>{pick(HEADS.range, lang)}</span>
 
-        {/* Four rules, between rows 2/3, 3/4, 4/5 and 5/6 — the 오늘 card is what
-            separates the first two, so no rule is drawn there. */}
-        {[0, 1, 2, 3].map((i) => (
-          <div key={i} className={styles.rule} style={{ top: RULE_TOPS[i] }} />
+        {/* Five rules, between rows 2/3 … 6/7 — the 오늘 card is what separates
+            the first two, so no rule is drawn there. */}
+        {RULE_TOPS.map((top, i) => (
+          <div key={i} className={styles.rule} style={{ top }} />
         ))}
 
         {rows.map((row, i) => (

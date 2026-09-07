@@ -3,9 +3,10 @@
  *
  * One page for both 제주 mascots: 하영 on W006/W007, 유산 on W008 (jejuMascot).
  * Everything NAMED after the mascot — title, tab fallbacks, name fallback,
- * hashtags — resolves through the mascot; the biography VALUES stay sheet-driven
- * (Greeting_*Content), so 유산's profile appears the moment the operators add
- * 유산 rows to Localization_Jeju (the venue tie-break already prefers them on a
+ * hashtags — resolves through the mascot; pills 2–3 also read Greeting_Hashtag1/2
+ * from the sheet. The biography VALUES stay sheet-driven (Greeting_*Content), so
+ * 유산's profile appears the moment the operators add 유산 rows to
+ * Localization_Jeju (the venue tie-break already prefers them on a
  * JEJU_HERITAGE machine). TODO(제주 W008): the ART is still 하영's — portrait
  * (hello-portrait), hobby/health photos and the SNS QR (qr-hayoung) — swap in
  * 유산 exports when the designer supplies them, until then W008 shows 하영's.
@@ -25,6 +26,7 @@
 import { Fragment, useState } from 'react';
 import type { KioskController } from '@renderer/hooks/useKioskController';
 import { jejuIconUrl } from '@renderer/assets/icons/jeju';
+import helloVideo from '@renderer/assets/videos/jeju/hello-hayoung.mp4';
 import { useLanguageStore } from '@renderer/store/languageStore';
 import { pick, type Lang } from '@renderer/lib/i18n';
 import { sheetText } from '@renderer/lib/loc';
@@ -39,12 +41,12 @@ import styles from './JejuHello.module.css';
 import tiktokIcon from '@renderer/assets/photos/jeju/hello/tiktok.png';
 import instaIcon from '@renderer/assets/photos/jeju/hello/insta.png';
 import qrHayoung from '@renderer/assets/photos/jeju/hello/qr-hayoung.png';
-import hobbyKpop from '@renderer/assets/photos/jeju/hello/hobby-kpop.jpg';
+import hobbyKpop from '@renderer/assets/photos/jeju/hello/hobby-kpop.png';
 import hobbyRunning from '@renderer/assets/photos/jeju/hello/hobby-running.jpg';
-import hobbyTennis from '@renderer/assets/photos/jeju/hello/hobby-tennis.jpg';
-import healthNeck from '@renderer/assets/photos/jeju/hello/health-neck.jpg';
+import hobbyTennis from '@renderer/assets/photos/jeju/hello/hobby-tennis.png';
+import healthNeck from '@renderer/assets/photos/jeju/hello/health-neck.png';
 import healthWaist from '@renderer/assets/photos/jeju/hello/health-waist.jpg';
-import healthRefresh from '@renderer/assets/photos/jeju/hello/health-refresh.jpg';
+import healthRefresh from '@renderer/assets/photos/jeju/hello/health-refresh.png';
 // 유산's own six topic photos (W008), exported 1:1 with the 842×1509 slot from
 // the frames listed in TOPICS_BY_MASCOT. 하영's are the six above.
 import qrYusan from '@renderer/assets/photos/jeju/hello/qr-yusan.png';
@@ -150,7 +152,7 @@ const DETAILS = [
   { label: L.about, key: 'Greeting_IntrodutionContent', field: 'about' },
 ] as const satisfies ReadonlyArray<{ label: unknown; key: string; field: keyof JejuMascotBio }>;
 
-// Hashtags moved to the mascot itself — see jejuMascot's `hashtags`.
+// Hashtag pills 2–3 resolve via Greeting_Hashtag1/2 in HelloFooter.
 
 /**
  * One sub-tab of 취미생활 or 건강습관: a photo, a title and a line or two of copy.
@@ -433,12 +435,43 @@ const SOCIAL_BRANDS: ReadonlyArray<{ id: string; icon: string }> = [
 /**
  * Hashtag pills + SNS tiles. Both built tabs draw the identical 1582×100 row;
  * only which card it sits in, and so its `top`, differs.
+ *
+ * Pill 0 stays the roman brand (`#HAYOUNG` / `#YUSAN`). Pills 1 and 2 come from
+ * Localization_Jeju `Greeting_Hashtag1` / `Greeting_Hashtag2` (heritage table on
+ * W008), with the mascot's authored tags as fallback.
  */
-function HelloFooter({ mascot, position }: { mascot: JejuMascot; position: string | undefined }): JSX.Element {
+function hashPill(raw: string): string {
+  const bare = raw.replace(/^#+/, '').trim();
+  return bare ? `#${bare}` : '';
+}
+
+function HelloFooter({
+  mascot,
+  position,
+  lang,
+}: {
+  mascot: JejuMascot;
+  position: string | undefined;
+  lang: Lang;
+}): JSX.Element {
   const { qr, framed } = QR_BY_MASCOT[mascot.id];
+  const tags = [
+    mascot.hashtags[0] ?? '',
+    hashPill(
+      sheetText('Greeting_Hashtag1', lang, {
+        ko: (mascot.hashtags[1] ?? '').replace(/^#+/, ''),
+      }),
+    ),
+    hashPill(
+      sheetText('Greeting_Hashtag2', lang, {
+        ko: (mascot.hashtags[2] ?? '').replace(/^#+/, ''),
+      }),
+    ),
+  ].filter(Boolean);
+
   return (
     <div className={`${styles.footer} ${position}`}>
-      {mascot.hashtags.map((h) => (
+      {tags.map((h) => (
         <span key={h} className={styles.hashtag}>
           {h}
         </span>
@@ -536,7 +569,7 @@ function TopicPanel({
           <p className={`${styles.empty} ${styles.emptyTopic}`}>{emptyLabel}</p>
         )}
 
-        <HelloFooter mascot={mascot} position={`${styles.footerTopic} ${heritage}`} />
+        <HelloFooter mascot={mascot} lang={lang} position={`${styles.footerTopic} ${heritage}`} />
       </div>
     </>
   );
@@ -578,11 +611,28 @@ export function JejuHello({ controller }: Props): JSX.Element {
     setTopic((prev) => ({ ...prev, [parent]: id }));
   };
 
-  /**
-   * Neither mascot has a portrait export — 하영's frame and 유산's 6432:47434
-   * both draw a bare #D9D9D9 circle, which `.portrait` reproduces. The slot
-   * picks the art up automatically once `hello-portrait` lands in the icon
-   * folder; a second mascot's portrait will need a per-mascot key here.
+/**
+   * The circle is a VIDEO now (2026-09-03), not the grey #D9D9D9 disc the frame
+   * draws and not the still that never arrived.
+   *
+   * ★ It is IMPORTED, so Vite emits it into the renderer bundle and
+   * electron-builder's `files: out/**` ships it. That is the whole point and it
+   * is worth being explicit about, because the obvious home for a kiosk video is
+   * the wrong one here: `resources/videos` is gitignored, is NOT in
+   * extraResources, and resolves to `C:\KioskVideos` on a packaged Windows
+   * machine — a per-machine manual drop for the huge 2nd-monitor attract reels
+   * (see appPaths.videos). A 7.4 MB UI clip that has to survive `npm run
+   * build:win` belongs in the bundle instead, where a release carries it with no
+   * provisioning step at all. It is also in `asarUnpack` so it plays from a real
+   * file rather than through the asar layer.
+   *
+   * `portrait` is kept as the poster: it stays undefined until someone drops
+   * `hello-portrait` into the icon folder, and then it fills the circle for the
+   * moment before the first frame paints instead of a grey flash.
+   *
+   * TODO(제주 W008): the clip is 하영's, so a 유산 machine plays it — the same
+   * stand-in the portrait slot and the SNS QR already are (see the file header).
+   * A per-mascot key goes here when 유산's own clip is shot.
    */
   const portrait = jejuIconUrl('hello-portrait');
 
@@ -626,7 +676,21 @@ export function JejuHello({ controller }: Props): JSX.Element {
       {tab === 'profile' && (
         <div className={`${styles.card} ${heritage} ${lowReach ? styles.cardLow : ''}`}>
           <div className={styles.portrait}>
-            {portrait && <img src={portrait} alt="" draggable={false} />}
+            {/* Muted + playsInline so Chromium will autoplay it at all: an
+                unmuted clip is blocked by the autoplay policy and would sit on
+                its first frame. No controls — there is nothing to control on a
+                looping portrait, and a visitor cannot pause it by design. */}
+            <video
+              className={styles.portraitVideo}
+              src={helloVideo}
+              poster={portrait}
+              autoPlay
+              loop
+              muted
+              playsInline
+              preload="auto"
+              disablePictureInPicture
+            />
           </div>
 
           <div className={styles.profile}>
@@ -661,7 +725,7 @@ export function JejuHello({ controller }: Props): JSX.Element {
             ))}
           </div>
 
-          <HelloFooter mascot={mascot} position={`${styles.footerProfile} ${heritage}`} />
+          <HelloFooter mascot={mascot} lang={lang} position={`${styles.footerProfile} ${heritage}`} />
         </div>
       )}
     </JejuPageFrame>

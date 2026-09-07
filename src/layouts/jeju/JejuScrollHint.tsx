@@ -11,9 +11,14 @@
  * is grown to ~130×120 around its triangle — the same treatment JejuHelp gives
  * its map pins.
  *
- * Shared by JejuRentcar and JejuListScreen (identical corner, identical
- * coordinates); the PARENT owns when to render it — 렌트카/list frames drop it
- * in low-reach, where the controls move to the foot of the page.
+ * JejuRentcar is the only caller left: the three list screens (뭐먹지 / 뭐사지 /
+ * 숙박안내) dropped it on 2026-09-03 because they also carry the right-hand ▲▼
+ * circles at eye level and two scroll controls in two corners is one too many.
+ * 렌트카 draws that same pair, so it has the same duplication and is a candidate
+ * for the same removal — left alone here only because it was not asked for.
+ *
+ * The PARENT owns when to render it — 렌트카 drops it in low-reach, where the
+ * controls move to the foot of the page.
  */
 import { jejuIconUrl } from '@renderer/assets/icons/jeju';
 import styles from './JejuScrollHint.module.css';

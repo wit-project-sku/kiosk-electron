@@ -77,6 +77,16 @@
  * The 사진촬영안내 card is on EVERY condition — the 제주 tab drops it into the
  * banner band (and draws no banner), every other tab hangs it above the banner
  * — so the 한복 설명 page is reachable from anywhere.
+ *
+ * ── ♿ 베리어프리 (Figma 6327:85598 · 6422:25455 · 6418:10583) ─────────
+ * The ♿ button on the left rail — the third and last control there — now has a
+ * layout to switch to. Both tab conditions get one, and they differ from each
+ * other the same way the standard ones do (제주: one outfit row plus the theme
+ * band; everything else: two outfit rows and the chip band). The whole reachable
+ * stack drops into the visitor's reach, the 사진촬영안내 card takes the band
+ * under the header instead of the bottom of the page, the promo banner goes, and
+ * 제주's two steps become one heading. The measurements live in the CSS's two y
+ * maps; what the markup decides is listed at `lowReachTheme` below.
  */
 import { useEffect, useMemo, useState } from 'react';
 import { Camera } from 'lucide-react';
@@ -88,7 +98,7 @@ import 'swiper/css/free-mode';
 import { usePhotoChrome } from '../photo/photoChrome';
 import { HANBOK_INFO, PRIVACY } from '../photo/photoTexts';
 import hanbokInfo from '@renderer/assets/photos/insadong/hanbok/hanbok-info.png';
-import { t } from '@renderer/lib/loc';
+import { t, sheetText } from '@renderer/lib/loc';
 import type { CaptureMode } from '../photo/HanbokSelect';
 import { useOutfitStore } from '@renderer/store/outfitStore';
 import type { PickerOutfit } from '@renderer/store/outfitStore';
@@ -104,7 +114,8 @@ import {
   outfitSubCategoryLabel,
 } from '@renderer/lib/outfitCategories';
 import { cameraIconUrl } from '@renderer/assets/icons/insadong/camera';
-import { pick, useLang } from '@renderer/lib/i18n';
+import { pick, useLang, type Lang } from '@renderer/lib/i18n';
+import { useAccessibilityStore } from '@renderer/store/accessibilityStore';
 import { jejuMascot, type JejuMascot } from './jejuMascot';
 /* The privacy modal and the camera-direction popup are identical on every
    layout, so their styles are reused from the shared step rather than copied. */
@@ -223,6 +234,23 @@ const STEP_OUTFIT = {
   id: 'Pilih busana',
 };
 
+/**
+ * The ♿ 베리어프리 heading for the 제주 tab, which is ONE step there instead of
+ * two: 6422:25455 / 6418:10583 draw a single ① 의상 / 테마 선택하기 and no ②
+ * badge at all, because the low-reach stack has no room for a second heading
+ * between the outfit row and the theme band. Same two choices, one label.
+ */
+const STEP_OUTFIT_THEME = {
+  ko: '의상 / 테마 선택하기',
+  en: 'Choose an outfit / background',
+  ja: '衣装 / テーマを選ぶ',
+  zh: '选择服装 / 主题',
+  vi: 'Chọn trang phục / phông nền',
+  th: 'เลือกชุด / ธีม',
+  ru: 'Выбор наряда и фона',
+  id: 'Pilih busana / tema',
+};
+
 const STEP_THEME = {
   ko: '배경 테마 선택하기',
   en: 'Choose a background',
@@ -290,6 +318,20 @@ const NO_BACKGROUNDS = {
   id: 'Latar sedang disiapkan.',
 };
 
+/**
+ * ♿ mode bar — Localization_Jeju `BarrierFree_Title` (all eight languages).
+ */
+const BARRIER_FREE: Partial<Record<Lang, string>> = {
+  ko: '지금은 배리어프리 모드입니다.',
+  en: 'Currently in Barrier-Free Mode.',
+  ja: '現在はバリアフリーモードです。',
+  zh: '现在是无障碍模式。',
+  vi: 'Hiện tại là chế độ không rào cản.',
+  th: 'ขณะนี้อยู่ในโหมดไร้อุปสรรค',
+  ru: 'В настоящее время используется безбарьерный режим.',
+  id: 'Saat ini dalam mode bebas hambatan.',
+};
+
 const PRIVACY_LINK = {
   ko: '[개인정보처리방침]',
   en: '[Privacy Policy]',
@@ -308,6 +350,8 @@ export function JejuHanbokSelect({
 }: Props): JSX.Element {
   const lang = useLang();
   const rotating = useRotatingBanner();
+  const lowReach = useAccessibilityStore((s) => s.lowReach);
+  const toggleLowReach = useAccessibilityStore((s) => s.toggleLowReach);
   const { icon, Header, photoTitle, banner: chromeBanner } = usePhotoChrome();
   const banner = chromeBanner ?? rotating;
   const camPopupSrc = icon('camera-popup') || cameraIconUrl('camera-popup');
@@ -323,12 +367,6 @@ export function JejuHanbokSelect({
   // the bundled PNGs on a kiosk that has never synced — see outfitStore.
   const byCategory = useOutfitStore((s) => s.byCategory);
   const categories = useOutfitStore((s) => s.categories);
-  const loadOutfits = useOutfitStore((s) => s.load);
-  const reloadOutfits = useOutfitStore((s) => s.reload);
-  useEffect(() => {
-    void loadOutfits();
-    return window.api.events.onOutfitsChanged(() => void reloadOutfits());
-  }, [loadOutfits, reloadOutfits]);
 
   /**
    * The tab row: exactly the registered categories, in the operator's
@@ -487,6 +525,8 @@ export function JejuHanbokSelect({
   const pageBg = icon('bg-page') || icon('bg');
 
   const star = jejuIconUrl('star');
+  const accessibilityIcon =
+    (lowReach ? jejuIconUrl('ico-accessibility-on') : undefined) ?? jejuIconUrl('ico-accessibility');
   /**
    * Which tab owns step ② — the 제주 one, wherever the operator has put it.
    *
@@ -518,6 +558,29 @@ export function JejuHanbokSelect({
   /** Tiles, or the 준비 중 message in the same 1820×700 band. */
   const hasBackgrounds = backgrounds.length > 0;
 
+  /**
+   * ── ♿ 베리어프리 ───────────────────────────────────────────────────────
+   * The ♿ button on the left rail has always toggled `lowReach`; this page had
+   * nothing to switch to until 6327:85598 (every tab but 제주) and 6422:25455 /
+   * 6418:10583 (the 제주 tab) arrived. The geometry is entirely in the CSS — see
+   * the y maps there. Only three things are decisions the markup has to make.
+   *
+   * ① The 제주 tab is ONE step in low-reach, not two: the frames draw a single
+   *    ① 의상 / 테마 선택하기 and no ② badge, since there is no room for a
+   *    second heading between the outfit row and the theme band.
+   */
+  const lowReachTheme = lowReach && isThemeTab;
+  /**
+   * ② The chip band the 제주 low-reach frames leave out. 제주 registers no
+   *    sub-categories today, so the frame closes the band; the row is CMS
+   *    content and the operator can add one, so `--lr-sub` re-opens it and
+   *    pushes the outfit row, the theme band and the capture buttons down 110 —
+   *    a 30px gap either side of the row, with the buttons still landing inside
+   *    the 3840 artboard (3667…3817).
+   */
+  const lowReachSubShift = lowReachTheme && subs.length > 0 ? '110px' : '0px';
+  /* ③ No promo banner on either condition — see the render. */
+
   // ── 한복 설명 (opened from the 사진촬영안내 card) ──
   // Same content and chrome as the shared step's page, so it reuses those
   // styles rather than re-authoring them; 뒤로 in JejuHeader closes it.
@@ -533,14 +596,17 @@ export function JejuHanbokSelect({
       .flatMap((name) => byCategory[name] ?? [])
       .filter((o) => Boolean(o.url) && !brokenCodes.has(o.code));
     return (
-      <div className={styles.root}>
+      <div className={`${styles.root} ${lowReach ? styles.rootLowReach : ''}`}>
         {pageBg && <img src={pageBg} alt="" className={styles.bg} draggable={false} />}
+        {/* This page has no low-reach frame of its own — it is a scrolling text
+            page — so ♿ gives it the mode bar and clears the bar's 113. */}
+        {lowReach && <div className={styles.modeBar}>{sheetText('BarrierFree_Title', lang, BARRIER_FREE)}</div>}
         <Header
           title={t('MainButton_Hanbok', lang)}
           onHome={onHome}
           onBack={() => setInfoOpen(false)}
         />
-        <div className={shared.infoContent}>
+        <div className={`${shared.infoContent} ${styles.infoContent}`}>
           <div className={shared.infoCarousel}>
             {allHanbok.map((o, i) => (
               <div
@@ -567,21 +633,73 @@ export function JejuHanbokSelect({
             <img src={banner} alt="" draggable={false} />
           </div>
         )}
+
+        <div className={styles.leftNav}>
+          {jejuIconUrl('nav-left') && (
+            <img src={jejuIconUrl('nav-left')} alt="" className={styles.leftNavImg} draggable={false} />
+          )}
+          <button
+            type="button"
+            className={`${styles.leftNavZone} ${styles.leftNavHome}`}
+            onClick={onHome}
+            aria-label="홈"
+          />
+          <button
+            type="button"
+            className={`${styles.leftNavZone} ${styles.leftNavBack}`}
+            onClick={() => setInfoOpen(false)}
+            aria-label="뒤로"
+          />
+        </div>
+        {accessibilityIcon && (
+          <button
+            type="button"
+            className={styles.accessibility}
+            onClick={toggleLowReach}
+            aria-label="저상 화면"
+            aria-pressed={lowReach}
+          >
+            <img src={accessibilityIcon} alt="" className={styles.accessibilityImg} draggable={false} />
+          </button>
+        )}
       </div>
     );
   }
 
   return (
-    <div className={styles.root}>
+    <div
+      className={[
+        styles.root,
+        lowReach ? styles.rootLowReach : '',
+        lowReachTheme ? styles.rootLowReachTheme : '',
+      ]
+        .filter(Boolean)
+        .join(' ')}
+      style={lowReach ? ({ '--lr-sub': lowReachSubShift } as React.CSSProperties) : undefined}
+    >
       {pageBg && <img src={pageBg} alt="" className={styles.bg} draggable={false} />}
 
-      <Header title={photoTitle} onHome={onHome} />
+      {lowReach && <div className={styles.modeBar}>{sheetText('BarrierFree_Title', lang, BARRIER_FREE)}</div>}
+
+      {/* Title only — the description row is dropped on this page by request
+          (2026-09-03); without the flag JejuHeader would draw the sheet's
+          subtitle for 'AR 한복체험', or the generic fallback line.
+          ★ Dropped in ♿ too, even though all three low-reach frames still show
+          the header component's own 페이지 설명문 placeholder: that is the
+          instance's default, not copy anyone wrote, and the request was about
+          the page rather than about one of its layouts. */}
+      <Header title={photoTitle} onHome={onHome} subtitleHidden />
 
       <>
         {/* ── ① 의상 선택하기 ── */}
         <div className={`${styles.step} ${styles.stepOutfit}`}>
           <span className={styles.stepBadge}>1</span>
-          <p className={styles.stepTitle}>{pick(STEP_OUTFIT, lang)}</p>
+          {/* ♿ on the 제주 tab this ONE heading covers both choices — the ②
+              badge below is not drawn there. Every other condition keeps the
+              standard 의상 선택하기. */}
+          <p className={styles.stepTitle}>
+            {pick(lowReachTheme ? STEP_OUTFIT_THEME : STEP_OUTFIT, lang)}
+          </p>
         </div>
         <div className={styles.subtitle}>
           {star && <img src={star} alt="" className={styles.subtitleStar} draggable={false} />}
@@ -694,10 +812,13 @@ export function JejuHanbokSelect({
              banner's band — see .guideLanding). ── */}
         {isThemeTab && (
           <>
-            <div className={`${styles.step} ${styles.stepTheme}`}>
-              <span className={styles.stepBadge}>2</span>
-              <p className={styles.stepTitle}>{pick(STEP_THEME, lang)}</p>
-            </div>
+            {/* ♿ folds this heading into step ①'s label — see STEP_OUTFIT_THEME. */}
+            {!lowReach && (
+              <div className={`${styles.step} ${styles.stepTheme}`}>
+                <span className={styles.stepBadge}>2</span>
+                <p className={styles.stepTitle}>{pick(STEP_THEME, lang)}</p>
+              </div>
+            )}
             {/* Plates are the API's 9:16 previews; `object-fit: cover` fits
                   them to the design's 340×680 tile, under the 20% black wash
                   that carries the white name (see `.theme::after` in the CSS).
@@ -794,11 +915,44 @@ export function JejuHanbokSelect({
       </>
 
       {/* No banner on the landing outfit view — its 사진촬영안내 card occupies
-          the banner band (6258:48575/48469 draw none). */}
-      {banner && !isThemeTab && (
+          the banner band (6258:48575/48469 draw none).
+
+          ♿ drops it on EVERY condition: none of the three low-reach frames
+          carries one, and the band it would sit in (y3267) now holds the
+          capture buttons on the 제주 tab. */}
+      {banner && !isThemeTab && !lowReach && (
         <div className={styles.banner}>
           <img src={banner} alt="" draggable={false} />
         </div>
+      )}
+
+      <div className={styles.leftNav}>
+        {jejuIconUrl('nav-left') && (
+          <img src={jejuIconUrl('nav-left')} alt="" className={styles.leftNavImg} draggable={false} />
+        )}
+        <button
+          type="button"
+          className={`${styles.leftNavZone} ${styles.leftNavHome}`}
+          onClick={onHome}
+          aria-label="홈"
+        />
+        <button
+          type="button"
+          className={`${styles.leftNavZone} ${styles.leftNavBack}`}
+          onClick={onHome}
+          aria-label="뒤로"
+        />
+      </div>
+      {accessibilityIcon && (
+        <button
+          type="button"
+          className={styles.accessibility}
+          onClick={toggleLowReach}
+          aria-label="저상 화면"
+          aria-pressed={lowReach}
+        >
+          <img src={accessibilityIcon} alt="" className={styles.accessibilityImg} draggable={false} />
+        </button>
       )}
 
       {/* Camera-direction popup — shown while capturing / generating. */}
@@ -829,6 +983,7 @@ export function JejuHanbokSelect({
                 className={shared.privacyClose}
                 onClick={() => setPrivacyOpen(false)}
                 aria-label="닫기"
+                data-pad-dismiss
               >
                 <svg
                   className={shared.privacyCloseIcon}

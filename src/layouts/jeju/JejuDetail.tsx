@@ -9,8 +9,9 @@
  *     /숙박안내            "'제주' 뭐사지? > 상세"          node 6212:55257
  *                        "숙박안내 > 상세"                node 6212:55305
  *                        with the card 164px lower
- *   · from 도와줘 하영   → "여기는 제주도"                  node 6219:99127
- *                        one photo, card at y863
+ *   · from 도와줘 제주   → "도와줘 '제주'"                   node 6219:99127
+ *                        card at y700, 사진1개 gallery + floor plan
+ *                        (see chromeFor)
  * The card itself is the same component in all of them, so it lives in
  * JejuSpotDetailCard and this file only resolves chrome + navigation.
  *
@@ -40,6 +41,11 @@ const T = {
     ru: 'Нет данных для отображения', id: 'Tidak ada informasi untuk ditampilkan',
   },
 };
+
+/** Artboard height — scroll viewports are sized to its foot. */
+const ARTBOARD = 3840;
+/** Mode-bar revision: header drops by the bar height; content follows (JejuListScreen). */
+const MODE_BAR = 113;
 
 /**
  * The 상세 page description, straight from Localization_Jeju.
@@ -75,15 +81,18 @@ function chromeFor(
   // than the default #909090 — 6289:58438 draws it the darker grey, matching the
   // course screen this spot was opened from (JejuAiDetail passes the same).
   if (from === 'ai_detail') {
-    return { title: "'제주' 뭐하지 (AI 검색)", subtitle: title, subtitleColor: '#616161' };
+    return {
+      title: "'제주' 뭐하지 (AI 검색)",
+      subtitle: title,
+      subtitleColor: '#616161',
+      cardTop: 720,
+    };
   }
 
-  // 도와줘 '하영' > 상세 (6219:99127) is the one frame that does NOT compose
-  // "<page> > 상세": it carries the bare title "여기는 제주도", drawn that way in
-  // the frame even though the frame is named 제주>도와줘 하영=상세 and sits beside
-  // the 공항 map. Implemented as drawn. It is also the only detail using the
-  // 사진1개 variant from this screen, with the card at y863.
-  if (from === 'help') return { title: '여기는 제주도', cardTop: 863, gallery: 'single' };
+  // 도와줘 '제주' > 상세 (6219:99127) keeps the help page title (not
+  // "<page> > 상세"), uses the 사진1개 gallery, and butts the card under the
+  // header at y700 — matching the redraw that sits beside the airport map.
+  if (from === 'help') return { title, cardTop: 700, gallery: 'single' };
 
   // "<page> > 상세" is composed HERE, from two already-localized halves, rather
   // than handed to JejuHeader as one id: a composed string matches no
@@ -93,11 +102,11 @@ function chromeFor(
   // finished string through untouched.
   const detail = `${screenTitle(title, lang)} > ${screenTitle('상세', lang)}`;
 
-  // The 뭐먹지/뭐사지/숙박안내/렌트카 frames drop the card 164px (6212:55208 /
-  // 6212:55257 / 6212:55305 / 6217:95707); 검색 and the AI course butt it
-  // against the header. Same card, different y — see JejuSpotDetailCard's `top`.
-  if (from === 'eat' || from === 'shop' || from === 'lodging' || from === 'rentcar') {
-    return { title: detail, cardTop: 864 };
+  // The 뭐먹지/뭐사지/숙박안내 frames drop the card 164px (6212:55208 /
+  // 6212:55257 / 6212:55305); 검색 and the AI course butt it against the
+  // 렌트카·뭐먹지·뭐사지·숙박안내 상세 — 카드를 y760에 둔다.
+  if (from === 'rentcar' || from === 'eat' || from === 'shop' || from === 'lodging' || from === 'search') {
+    return { title: detail, cardTop: 720 };
   }
   return { title: detail };
 }
@@ -116,9 +125,16 @@ export function JejuDetail({ controller }: Props): JSX.Element {
       <JejuPageFrame
         controller={controller}
         title="상세"
+        /* Same description the loaded page carries. Without it this state fell
+           through to JejuHeader's generic line — 상세 is not in TITLE_KEYS (it is
+           Insadong's and 오산's header id too, so a shared mapping would light up
+           their detail pages as well), and resolving it here keeps the key on
+           the one page it was written for. */
+        subtitle={detailSubtitle(lang)}
         showBanner={false}
         onBack={goBack}
         lowReachModeBar
+        lowReachShift={MODE_BAR}
       >
         <p className={styles.empty}>{pick(T.missing, lang)}</p>
       </JejuPageFrame>
@@ -126,67 +142,78 @@ export function JejuDetail({ controller }: Props): JSX.Element {
   }
 
   const chrome = chromeFor(item.from, item.title, lang);
+  const isHelp = item.from === 'help';
 
   /*
    * The 다음 장소 card under the 상세 plate (6289:58438 → 6516:72906). Only the
    * AI course ever sets `courseNext`, and only when the day has a stop left.
-   *
-   * NOT drawn in ♿: that layout re-stacks this page by +687 (see the frame
-   * props below), which would put the card at y3699–4214 — off the 3840
-   * artboard. The revised low-reach frame for -04 has not arrived, so the
-   * standard layout gets the card and ♿ keeps the plain detail until it does.
+   * When present, the 상세 card · chevron · 다음 장소 card stack in one scroll
+   * column — normal and ♿ alike — so a tall detail card never hides the follow-on.
    */
-  const next = lowReach ? undefined : item.courseNext;
+  const next = item.courseNext;
+  const cardTop = chrome.cardTop ?? 700;
+  /* ♿: most detail pages only carry the 113 mode bar, so content is nudged
+     +113 in markup. 도와줘 상세 (6297:74899) keeps the promo under the bar —
+     header at 686, card at 1387 — via lowReachBarBanner + body shift 687, so
+     the card stays at its standing top and the frame moves the body. */
+  const contentTop = lowReach && !isHelp ? cardTop + MODE_BAR : cardTop;
+  /* Help ♿ card viewport is 2318 tall at y1387 (6297:74899); others fill to
+     the artboard foot from contentTop. */
+  const scrollHeight = lowReach && isHelp ? 2318 : ARTBOARD - contentTop;
 
   return (
-    /* This page's ♿ frame (6336:100864, 검색-03) is on the 2026-08-26 mode-bar
-       revision: header at y687 and the card riding the same +687 (y700 → y1387,
-       measured). The y687 is exactly bar (113) + promo banner (573) + Figma's
-       1px round-up — the banner STAYS at the top here, under the bar
-       (lowReachBarBanner; user-confirmed 2026-08-26 — the frame carries the
-       slot for the bar and banner, not the nodes themselves). */
+    /* Default ♿: mode bar only (6336:100864). Help ♿: mode bar + promo
+       (6297:74899), same trio as 도와줘 list / 이벤트. */
     <JejuPageFrame
       controller={controller}
       title={chrome.title}
       subtitle={chrome.subtitle ?? detailSubtitle(lang)}
       subtitleColor={chrome.subtitleColor}
-      /* The 다음 장소 card ends at y3527 and the banner starts at y3267, so the
-         page gives the banner up whenever it draws one — the same trade the AI
-         search page makes. Without a next stop nothing changes. In ♿ the card
-         never draws (see `next`), so showBanner is true there and the banner
-         moves to its under-the-bar slot. */
-      showBanner={!next}
+      /* The 다음 장소 stack can run past y3267, so the page gives the banner up
+         whenever it draws one — the same trade the AI search page makes.
+         Help keeps showBanner off in standing layout but asks for the promo
+         in ♿ via lowReachBanner (see drawBanner). */
+      showBanner={!next && !isHelp}
       bannerFallback="banner-detail"
       onBack={goBack}
+      lowReachBanner={isHelp}
       lowReachModeBar
-      lowReachShift={687}
-      lowReachBodyShift={687}
-      lowReachBarBanner
+      lowReachBarBanner={isHelp}
+      lowReachShift={isHelp ? 686 : MODE_BAR}
+      lowReachBodyShift={isHelp ? 687 : 0}
     >
-      <JejuSpotDetailCard item={item} top={chrome.cardTop} gallery={chrome.gallery} />
-
-      {next && (
-        <>
-          {jejuIconUrl('ico-chevron') && (
-            <img src={jejuIconUrl('ico-chevron')} alt="" className={styles.nextChevron} draggable={false} />
-          )}
-          {/* Tapping it swaps the store item rather than navigating: this IS the
-              detail screen, so the next stop is the same page with new content —
-              and `from` travels with the item, so 뒤로 still returns to the
-              course list however far down the day a visitor has walked. */}
-          <JejuCourseSpotCard
-            width={1793}
-            className={styles.nextCard}
-            photo={next.item.photos[0] ?? jejuIconUrl('noimage') ?? ''}
-            name={next.item.name}
-            category={next.item.category}
-            address={next.item.address}
-            description={next.item.description}
-            dwell={next.dwell}
-            difficulty={next.difficulty}
-            onClick={() => setItem(next.item)}
-          />
-        </>
+      {next ? (
+        <div className={styles.courseScroll} style={{ top: contentTop, height: scrollHeight }}>
+          <div className={styles.courseColumn}>
+            <JejuSpotDetailCard item={item} flow gallery={chrome.gallery} lang={lang} />
+            {jejuIconUrl('ico-chevron') && (
+              <img src={jejuIconUrl('ico-chevron')} alt="" className={styles.nextChevron} draggable={false} />
+            )}
+            {/* Tapping it swaps the store item rather than navigating: this IS the
+                detail screen, so the next stop is the same page with new content —
+                and `from` travels with the item, so 뒤로 still returns to the
+                course list however far down the day a visitor has walked. */}
+            <JejuCourseSpotCard
+              width={1793}
+              photo={next.item.photos[0] ?? jejuIconUrl('noimage') ?? ''}
+              name={next.item.name}
+              category={next.item.category}
+              address={next.item.address}
+              description={next.item.description}
+              dwell={next.dwell}
+              difficulty={next.difficulty}
+              onClick={() => setItem(next.item)}
+            />
+          </div>
+        </div>
+      ) : (
+        <JejuSpotDetailCard
+          item={item}
+          top={contentTop}
+          maxScrollHeight={lowReach ? scrollHeight : undefined}
+          gallery={chrome.gallery}
+          lang={lang}
+        />
       )}
     </JejuPageFrame>
   );
