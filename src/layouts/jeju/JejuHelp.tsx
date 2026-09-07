@@ -315,6 +315,13 @@ interface AirportMap {
    * it. See .pinMarker in the CSS.
    */
   pinScale?: number;
+  /**
+   * White slot height in px. Default is the Figma 813; taller upright plans
+   * (국내선 4F at 1.25:1) need more or the drawing is clipped by `.map`'s
+   * overflow. Sized so the plan fills the 1820-wide slot after `.zoomLayer`'s
+   * 40×50 padding: content width 1720 → height = 1720 × (h/w) + 80.
+   */
+  height?: number;
 }
 
 const MAPS: Record<string, AirportMap> = {
@@ -322,7 +329,9 @@ const MAPS: Record<string, AirportMap> = {
   'domestic-2F': { src: mapDomestic2f, srcEn: mapDomestic2fEn },
   'domestic-3F': { src: mapDomestic3f, srcEn: mapDomestic3fEn },
   // No `srcEn`: 국내선 4F is the one plan with no lettering on it.
-  'domestic-4F': { src: mapDomestic4f, pinScale: 2.75 },
+  // 2958×2367 (1.25:1) — upright vs the wide 1–3F plans; raise the slot so
+  // the drawing is not clipped inside the default 813-tall plate.
+  'domestic-4F': { src: mapDomestic4f, pinScale: 2.75, height: 1456 },
   'international-1F': {
     src: mapInternational1f,
     srcEn: mapInternational1fEn,
@@ -356,28 +365,28 @@ const PINS: Record<string, FacilityPin[]> = {
   // 화장실 3  ·  안내소 3  ·  식음료 6  ·  편의점 2  ·  은행·환전 4  ·  흡연실 1  ·  유아휴게실 1  ·  교통약자 편의시설 3  ·  기타 12
   'domestic-1F': [
     // 화장실
-    { x: 0.1114, y: 0.3866, category: '화장실' },
+    { x: 0.1114, y: 0.4066, category: '화장실' },
     { x: 0.3232, y: 0.0828, category: '화장실' },
     { x: 0.8286, y: 0.2113, category: '화장실' },
     // 안내소
-    { x: 0.0411, y: 0.6737, category: '안내소' },
-    { x: 0.3657, y: 0.1698, category: '안내소' },
-    { x: 0.8618, y: 0.2154, category: '안내소' },
+    { x: 0.0411, y: 0.7137, category: '안내소' },
+    { x: 0.3657, y: 0.1798, category: '안내소' },
+    { x: 0.8618, y: 0.2254, category: '안내소' },
     // 식음료
-    { x: 0.1961, y: 0.2113, category: '식음료' },
-    { x: 0.222, y: 0.1819, category: '식음료' },
-    { x: 0.2405, y: 0.143, category: '식음료' },
-    { x: 0.3019, y: 0.3827, category: '식음료' },
-    { x: 0.7301, y: 0.3833, category: '식음료' },
-    { x: 0.766, y: 0.2167, category: '식음료' },
+    { x: 0.1961, y: 0.2313, category: '식음료' },
+    { x: 0.222, y: 0.1919, category: '식음료' },
+    { x: 0.2405, y: 0.153, category: '식음료' },
+    { x: 0.3019, y: 0.4127, category: '식음료' },
+    { x: 0.7301, y: 0.4033, category: '식음료' },
+    { x: 0.766, y: 0.2367, category: '식음료' },
     // 편의점
-    { x: 0.2071, y: 0.6523, category: '편의점' },
-    { x: 0.8186, y: 0.384, category: '편의점' },
+    { x: 0.2071, y: 0.6923, category: '편의점' },
+    { x: 0.8186, y: 0.404, category: '편의점' },
     // 은행·환전
-    { x: 0.0736, y: 0.5211, category: '은행·환전' },
-    { x: 0.1564, y: 0.3257, category: '은행·환전' },
-    { x: 0.1603, y: 0.8377, category: '은행·환전' },
-    { x: 0.29, y: 0.0808, category: '은행·환전' },
+    { x: 0.0736, y: 0.5611, category: '은행·환전' },
+    { x: 0.1564, y: 0.3557, category: '은행·환전' },
+    { x: 0.1603, y: 0.8977, category: '은행·환전' },
+    { x: 0.29, y: 0.0908, category: '은행·환전' },
     // 흡연실
     { x: 0.9806, y: 0.3137, category: '흡연실' },
     // 유아휴게실
@@ -387,18 +396,18 @@ const PINS: Record<string, FacilityPin[]> = {
     { x: 0.3657, y: 0.0828, category: '교통약자\n편의시설' },
     { x: 0.7922, y: 0.2113, category: '교통약자\n편의시설' },
     // 기타
-    { x: 0.1357, y: 0.2956, category: '기타' },
-    { x: 0.1758, y: 0.7841, category: '기타' },
-    { x: 0.2144, y: 0.4489, category: '기타' },
-    { x: 0.3429, y: 0.3846, category: '기타' },
-    { x: 0.3655, y: 0.3846, category: '기타' },
-    { x: 0.3974, y: 0.3846, category: '기타' },
+    { x: 0.1357, y: 0.3156, category: '기타' },
+    { x: 0.1758, y: 0.8341, category: '기타' },
+    { x: 0.2144, y: 0.4789, category: '기타' },
+    { x: 0.3429, y: 0.4146, category: '기타' },
+    { x: 0.3655, y: 0.4146, category: '기타' },
+    { x: 0.3974, y: 0.4146, category: '기타' },
     { x: 0.4767, y: 0.1056, category: '기타' },
     { x: 0.529, y: 0.0441, category: '기타' },
-    { x: 0.576, y: 0.3324, category: '기타' },
-    { x: 0.5998, y: 0.3887, category: '기타' },
+    { x: 0.576, y: 0.3524, category: '기타' },
+    { x: 0.5998, y: 0.4087, category: '기타' },
     { x: 0.7019, y: 0.1062, category: '기타' },
-    { x: 0.7743, y: 0.4622, category: '기타' },
+    { x: 0.7743, y: 0.5022, category: '기타' },
   ],
   // 화장실 5  ·  식음료 7  ·  편의점 7  ·  은행·환전 1  ·  유아휴게실 2  ·  교통약자 편의시설 2  ·  기타 5
   'domestic-2F': [
@@ -480,50 +489,50 @@ const PINS: Record<string, FacilityPin[]> = {
   // 화장실 2  ·  식음료 7  ·  교통약자 편의시설 2  ·  기타 2
   'domestic-4F': [
     // 화장실
-    { x: 0.3818, y: 0.3754, category: '화장실' },
-    { x: 0.8306, y: 0.0715, category: '화장실' },
+    { x: 0.3818, y: 0.3854, category: '화장실' },
+    { x: 0.8306, y: 0.0815, category: '화장실' },
     // 식음료
-    { x: 0.21, y: 0.6416, category: '식음료' },
-    { x: 0.4114, y: 0.7937, category: '식음료' },
-    { x: 0.5415, y: 0.5587, category: '식음료' },
-    { x: 0.5543, y: 0.1779, category: '식음료' },
-    { x: 0.676, y: 0.3762, category: '식음료' },
-    { x: 0.7098, y: 0.0816, category: '식음료' },
-    { x: 0.8688, y: 0.3217, category: '식음료' },
+    { x: 0.21, y: 0.6616, category: '식음료' },
+    { x: 0.4114, y: 0.8137, category: '식음료' },
+    { x: 0.5415, y: 0.5787, category: '식음료' },
+    { x: 0.5543, y: 0.1979, category: '식음료' },
+    { x: 0.676, y: 0.3962, category: '식음료' },
+    { x: 0.7098, y: 0.1016, category: '식음료' },
+    { x: 0.8688, y: 0.3417, category: '식음료' },
     // 교통약자 편의시설
     { x: 0.3189, y: 0.5064, category: '교통약자\n편의시설' },
     { x: 0.9401, y: 0.0715, category: '교통약자\n편의시설' },
     // 기타
-    { x: 0.5015, y: 0.3462, category: '기타' },
-    { x: 0.7308, y: 0.1779, category: '기타' },
+    { x: 0.5015, y: 0.3662, category: '기타' },
+    { x: 0.7308, y: 0.1979, category: '기타' },
   ],
   // 안내소 5  ·  식음료 2  ·  편의점 1  ·  은행·환전 3  ·  교통약자 편의시설 2  ·  유실물센터 1  ·  기타 4
   'international-1F': [
     // 안내소
-    { x: 0.14, y: 0.7699, category: '안내소' },
-    { x: 0.1793, y: 0.7699, category: '안내소' },
-    { x: 0.2184, y: 0.7699, category: '안내소' },
-    { x: 0.4104, y: 0.2454, category: '안내소' },
-    { x: 0.5169, y: 0.7665, category: '안내소' },
+    { x: 0.14, y: 0.8899, category: '안내소' },
+    { x: 0.1793, y: 0.8899, category: '안내소' },
+    { x: 0.2184, y: 0.8899, category: '안내소' },
+    { x: 0.4104, y: 0.2854, category: '안내소' },
+    { x: 0.5169, y: 0.8899, category: '안내소' },
     // 식음료
-    { x: 0.7683, y: 0.7612, category: '식음료' },
-    { x: 0.8979, y: 0.7699, category: '식음료' },
+    { x: 0.7683, y: 0.8912, category: '식음료' },
+    { x: 0.8979, y: 0.9009, category: '식음료' },
     // 편의점
-    { x: 0.9338, y: 0.2014, category: '편의점' },
+    { x: 0.9338, y: 0.2414, category: '편의점' },
     // 은행·환전
-    { x: 0.5106, y: 0.4364, category: '은행·환전' },
-    { x: 0.709, y: 0.7648, category: '은행·환전' },
-    { x: 0.8962, y: 0.2014, category: '은행·환전' },
+    { x: 0.5106, y: 0.5064, category: '은행·환전' },
+    { x: 0.709, y: 0.8848, category: '은행·환전' },
+    { x: 0.8962, y: 0.2414, category: '은행·환전' },
     // 교통약자 편의시설
     { x: 0.3094, y: 0.6394, category: '교통약자\n편의시설' },
     { x: 0.6824, y: 0.3475, category: '교통약자\n편의시설' },
     // 유실물센터
     { x: 0.1971, y: 0.5556, category: '유실물센터' },
     // 기타
-    { x: 0.0563, y: 0.4813, category: '기타' },
-    { x: 0.1322, y: 0.484, category: '기타' },
-    { x: 0.4696, y: 0.2447, category: '기타' },
-    { x: 0.6821, y: 0.5384, category: '기타' },
+    { x: 0.0563, y: 0.5613, category: '기타' },
+    { x: 0.1322, y: 0.5584, category: '기타' },
+    { x: 0.4696, y: 0.2847, category: '기타' },
+    { x: 0.6821, y: 0.6184, category: '기타' },
   ],
   // 화장실 3  ·  안내소 3  ·  식음료 5  ·  편의점 7  ·  은행·환전 2  ·  유아휴게실 1  ·  기타 5
   'international-3F': [
@@ -811,7 +820,15 @@ interface ViewState {
  * The `key` its caller passes doubles as the reset: a new plan (floor, zone,
  * or language switch) remounts this and starts back at fitted.
  */
-function MapZoomPan({ className, children }: { className: string; children: ReactNode }): JSX.Element {
+function MapZoomPan({
+  className,
+  style,
+  children,
+}: {
+  className: string;
+  style?: CSSProperties;
+  children: ReactNode;
+}): JSX.Element {
   const viewportRef = useRef<HTMLDivElement | null>(null);
   const [view, setView] = useState<ViewState>({ s: 1, tx: 0, ty: 0 });
   /** Mirror of `view` for handlers that must read it without a stale closure. */
@@ -932,6 +949,7 @@ function MapZoomPan({ className, children }: { className: string; children: Reac
     <div
       ref={viewportRef}
       className={`${className} ${styles.zoomable}`}
+      style={style}
       onPointerDown={onPointerDown}
       onPointerMove={onPointerMove}
       onPointerUp={onPointerUp}
@@ -1210,7 +1228,11 @@ export function JejuHelp({ controller, initialCategory }: Props): JSX.Element {
     }
     const src = planSrc;
     return (
-      <MapZoomPan key={src} className={styles.map ?? ''}>
+      <MapZoomPan
+        key={src}
+        className={styles.map ?? ''}
+        style={map.height ? { height: map.height } : undefined}
+      >
         <div
           className={styles.plan}
           style={{ '--pin-scale': map.pinScale ?? 1 } as CSSProperties}
