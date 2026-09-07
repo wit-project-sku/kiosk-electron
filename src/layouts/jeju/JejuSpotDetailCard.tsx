@@ -360,12 +360,11 @@ export function JejuSpotDetailCard({
                   saveQrUrl ? (
                     <QRCodeSVG
                       value={saveQrUrl}
-                      size={145}
-                      level="M"
-                      includeMargin
+                      size={152}
+                      level="L"
                       bgColor="#ffffff"
                       fgColor="#000000"
-                      style={{ width: 145, height: 145, display: 'block' }}
+                      style={{ width: 152, height: 152, display: 'block' }}
                     />
                   ) : undefined
                 }

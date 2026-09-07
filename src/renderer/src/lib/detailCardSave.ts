@@ -2,9 +2,10 @@
  * Build the direction-fe save URL from the kiosk detail view.
  *
  * Sparse QR (screen key first — direction-fe hosts multiple kiosk pages):
- *   https://host/?shopdirection&id={shopId}&lang=ko&from=eat&r=36.7,56,t52,3008,20,40,w3
+ *   https://host/?shopdirection&id={shopId}&lang=ko
+ *   (+ optional from / s / f / fl — route numbers come from shop-route API on phone)
  *
- * Phone loads photos from GET /api/shops/{id}, and bus stop names from
+ * Phone loads photos from GET /api/shops/{id}, and route from
  * GET /api/shop-route?id=&kioskId=. Korean text must not go in the QR.
  */
 import type { ShopRoute } from '@shared/types/shop';
@@ -17,6 +18,7 @@ export interface DetailCardSaveInput {
   showShuttle?: boolean;
   showFerry?: boolean;
   ferryModeLabel?: string;
+  /** Kept for call-site compatibility; not encoded into the QR (API supplies route). */
   route?: ShopRoute | null;
 }
 
@@ -24,43 +26,7 @@ export const DETAIL_SAVE_ORIGIN =
   (import.meta as ImportMeta & { env?: Record<string, string> }).env?.['VITE_DETAIL_SAVE_ORIGIN'] ||
   'http://localhost:5174';
 
-/** Compact ASCII route (numbers only). Keep in sync with direction-fe `parseRouteParam`. */
-function encodeRouteParam(route: ShopRoute | null | undefined): string | null {
-  if (!route || typeof route.distanceKm !== 'number' || !Number.isFinite(route.distanceKm)) {
-    return null;
-  }
-
-  const parts: string[] = [
-    String(Number(route.distanceKm.toFixed(1))),
-    String(Math.round(route.durationMin ?? 0)),
-  ];
-
-  if (typeof route.bikeMin === 'number' && Number.isFinite(route.bikeMin)) {
-    parts.push(`b${Math.round(route.bikeMin)}`);
-  }
-  if (typeof route.walkMin === 'number' && Number.isFinite(route.walkMin)) {
-    parts.push(`p${Math.round(route.walkMin)}`);
-  }
-
-  const transit = route.transit;
-  if (transit?.status === 'FOUND' && typeof transit.totalMin === 'number') {
-    parts.push(`t${Math.round(transit.totalMin)}`);
-    for (const leg of (transit.legs ?? []).slice(0, 2)) {
-      const num = String(leg.routeNum ?? '').replace(/[^0-9A-Za-z-]/g, '').slice(0, 8);
-      if (!num) continue;
-      parts.push(num, String(Math.round(leg.rideStops ?? 0)), String(Math.round(leg.rideMin ?? 0)));
-    }
-  }
-
-  const walk = route.busStop?.walkMin;
-  if (typeof walk === 'number' && Number.isFinite(walk)) {
-    parts.push(`w${Math.round(walk)}`);
-  }
-
-  return parts.join(',');
-}
-
-/** Short query-only URL — no hash, no Korean text. Leading `shopdirection` marks this screen. */
+/** Short query-only URL — no hash, no Korean text, no route payload. */
 export function buildDetailCardSaveUrlForQr(
   input: DetailCardSaveInput,
   origin = DETAIL_SAVE_ORIGIN,
@@ -71,11 +37,11 @@ export function buildDetailCardSaveUrlForQr(
   const q = new URLSearchParams({
     id: String(input.shopId),
     lang: input.lang,
-    from: input.from || 'eat',
   });
 
-  const r = encodeRouteParam(input.route);
-  if (r) q.set('r', r);
+  // Default entry is eat — omit to keep the QR sparse.
+  const from = (input.from || 'eat').trim();
+  if (from && from !== 'eat') q.set('from', from);
 
   if (input.showShuttle) q.set('s', '1');
   if (input.showFerry) {
