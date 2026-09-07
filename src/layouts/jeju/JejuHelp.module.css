@@ -156,7 +156,9 @@
   color: var(--kiosk-primary, #ff7f0f);
 }
 
-/* ── Map (6819:10197) — 1820×813, radius 58 ── */
+/* ── Map (6819:10197) — 1820×813, radius 58
+   국내선 4F overrides height inline (see AirportMap.height) — its plan is
+   upright 1.25:1 and needs ~1456px or the drawing clips inside this plate. */
 .map {
   position: relative;
   left: auto;
@@ -172,6 +174,7 @@
   overflow: hidden;
 }
 
+/* Sized by the <img>, not the slot — pin left/top % are fractions of THIS box. */
 .plan {
   position: relative;
   max-width: 100%;
