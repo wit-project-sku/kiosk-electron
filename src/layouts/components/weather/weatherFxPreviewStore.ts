@@ -9,18 +9,18 @@ export type WeatherFxPreview = WeatherEffectMode | null;
 
 /** Cycle order for the weather-box long-press tester. */
 export const WEATHER_FX_PREVIEW_CYCLE: WeatherEffectMode[] = [
+  'sun',
   'clouds',
   'rain',
   'storm',
   'snow',
-  'none', // sunny — soft rays only
 ];
 
 interface WeatherFxPreviewState {
   preview: WeatherFxPreview;
   setPreview: (preview: WeatherFxPreview) => void;
   /**
-   * Advance preview: clouds → rain → storm → snow → sun → live (cleared).
+   * Advance preview: sun → clouds → rain → storm → snow → live (cleared).
    * Returns the new preview value (`null` = following live weather again).
    */
   cyclePreview: () => WeatherFxPreview;
@@ -32,8 +32,8 @@ export const useWeatherFxPreviewStore = create<WeatherFxPreviewState>((set, get)
   cyclePreview: () => {
     const cur = get().preview;
     const list = WEATHER_FX_PREVIEW_CYCLE;
-    // After sunny, drop the override so the real sky drives FX again.
-    if (cur === 'none') {
+    // If on the last mode (snow), drop the override so the real sky drives FX again.
+    if (cur === 'snow') {
       set({ preview: null });
       return null;
     }
@@ -46,6 +46,8 @@ export const useWeatherFxPreviewStore = create<WeatherFxPreviewState>((set, get)
 
 export function weatherFxLabel(mode: WeatherEffectMode): string {
   switch (mode) {
+    case 'sun':
+      return 'SUNNY';
     case 'clouds':
       return 'CLOUDS';
     case 'rain':
@@ -55,6 +57,6 @@ export function weatherFxLabel(mode: WeatherEffectMode): string {
     case 'snow':
       return 'SNOW';
     case 'none':
-      return 'SUN';
+      return 'CLEAR';
   }
 }

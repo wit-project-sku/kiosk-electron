@@ -1,8 +1,8 @@
 import { weatherIconName } from '@renderer/assets/weather';
 import type { WeatherSnapshot } from '@shared/types/weather';
 
-/** Ambient home-screen weather FX. Clear/sunny stays empty so the photo bg wins. */
-export type WeatherEffectMode = 'none' | 'clouds' | 'rain' | 'storm' | 'snow';
+/** Ambient home-screen weather FX modes. */
+export type WeatherEffectMode = 'none' | 'sun' | 'clouds' | 'rain' | 'storm' | 'snow';
 
 /**
  * Map the live snapshot to an ambient FX mode. Same glyph rules as the weather
@@ -14,6 +14,8 @@ export function weatherEffectMode(
   if (!weather) return 'none';
   const glyph = weatherIconName(weather.icon, weather.main);
   switch (glyph) {
+    case 'sun':
+      return 'sun';
     case 'cloud':
     case 'sun_cloud':
       return 'clouds';
@@ -24,6 +26,6 @@ export function weatherEffectMode(
     case 'cloud_snow':
       return 'snow';
     default:
-      return 'none';
+      return 'sun';
   }
 }

@@ -1,193 +1,267 @@
-import { useCallback, useEffect, useRef } from 'react';
+import { useEffect, useRef } from 'react';
+import { createCloudTexture } from './weatherTextures';
 import styles from './WeatherEffects.module.css';
 
-interface CloudState {
+interface CloudInstance {
   id: number;
-  homeY: number;
-  scale: number;
-  speed: number;
-  variant: 0 | 1 | 2;
-  opacity: number;
-  px: number;
-  py: number;
+  x: number;
+  y: number;
   vx: number;
   vy: number;
+  homeY: number;
+  scale: number;
+  opacity: number;
+  variant: 0 | 1 | 2 | 3;
   poke: number;
-  el: HTMLDivElement | null;
+  tilt: number;
+  phase: number;
+  isDragging: boolean;
+  ox: number;
+  oy: number;
 }
 
 interface CloudFieldProps {
-  /** Fewer / softer clouds for partly-cloudy (`sun_cloud`). */
   light?: boolean;
 }
 
-function seedClouds(light: boolean, w: number, h: number): CloudState[] {
-  const count = light ? 4 : 6;
-  return Array.from({ length: count }, (_, i) => {
-    const scale = light ? 0.24 + (i % 3) * 0.05 : 0.28 + (i % 4) * 0.06;
-    const homeY = 0.03 + (i % 3) * 0.065 + (i > 3 ? 0.09 : 0);
-    const speed = 0.007 + (i % 3) * 0.0035 + Math.random() * 0.003;
-    return {
-      id: i,
-      homeY,
-      scale,
-      speed,
-      variant: (i % 3) as 0 | 1 | 2,
-      // Bumped visibility vs the original soft wash.
-      opacity: light ? 0.72 + (i % 2) * 0.1 : 0.8 + (i % 3) * 0.08,
-      px: ((i * 0.19 + 0.04) % 1.05) * w,
-      py: homeY * h,
-      vx: speed * w,
-      vy: (Math.random() - 0.5) * 4,
-      poke: 0,
-      el: null,
-    };
-  });
-}
-
-function paintCloud(c: CloudState, w: number): void {
-  if (!c.el) return;
-  const width = c.scale * w;
-  const squash = 1 - c.poke * 0.1;
-  const stretch = 1 + c.poke * 0.07;
-  c.el.style.width = `${width}px`;
-  c.el.style.height = `${width * 0.48}px`;
-  c.el.style.opacity = String(c.opacity);
-  c.el.style.transform = `translate(${c.px}px, ${c.py}px) scale(${stretch}, ${squash})`;
-}
-
 /**
- * Soft layered CSS clouds (original design) — drift, drag, tap-to-puff.
- * Slightly more opaque than the first pass so they read clearly on busy home art.
+ * Realistic Textured Cloud Layer.
+ * Renders volumetric cumulus billows with directional sunlight rims, shaded bellies,
+ * multi-depth parallax, thermal float, and fluid touch squash/stretch interaction.
  */
 export function CloudField({ light = false }: CloudFieldProps): JSX.Element {
-  const layerRef = useRef<HTMLDivElement>(null);
-  const cloudsRef = useRef<CloudState[]>([]);
-  const sizeRef = useRef({ w: 2160, h: 3840 });
-  const dragRef = useRef<{
-    id: number;
-    ox: number;
-    oy: number;
-    lastAx: number;
-    lastAy: number;
-    moved: boolean;
-  } | null>(null);
-
-  const artboardPoint = useCallback((clientX: number, clientY: number) => {
-    const layer = layerRef.current;
-    if (!layer) return { ax: 0, ay: 0 };
-    const rect = layer.getBoundingClientRect();
-    return {
-      ax: (clientX - rect.left) * (layer.clientWidth / rect.width),
-      ay: (clientY - rect.top) * (layer.clientHeight / rect.height),
-    };
-  }, []);
+  const canvasRef = useRef<HTMLCanvasElement>(null);
 
   useEffect(() => {
-    const layer = layerRef.current;
-    if (!layer) return;
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d', { alpha: true });
+    if (!ctx) return;
 
-    const rebuild = (): void => {
-      const w = layer.clientWidth || 2160;
-      const h = layer.clientHeight || 3840;
-      sizeRef.current = { w, h };
-      layer.replaceChildren();
-      cloudsRef.current = seedClouds(light, w, h);
-      for (const c of cloudsRef.current) {
-        const el = document.createElement('div');
-        const variantClass =
-          c.variant === 0 ? styles.cloudV0 : c.variant === 1 ? styles.cloudV1 : styles.cloudV2;
-        el.className = `${styles.cloud ?? ''} ${variantClass ?? ''}`;
-        el.setAttribute('role', 'presentation');
-        for (const name of [styles.puffA, styles.puffB, styles.puffC, styles.puffD, styles.puffE]) {
-          if (!name) continue;
-          const puff = document.createElement('span');
-          puff.className = name;
-          el.appendChild(puff);
-        }
-        el.addEventListener('pointerdown', (e) => {
-          e.stopPropagation();
-          el.setPointerCapture(e.pointerId);
-          const { ax, ay } = artboardPoint(e.clientX, e.clientY);
-          dragRef.current = {
-            id: c.id,
-            ox: ax - c.px,
-            oy: ay - c.py,
-            lastAx: ax,
-            lastAy: ay,
-            moved: false,
-          };
-          c.poke = 1;
-          c.vx *= 0.15;
-          c.vy = 0;
-        });
-        el.addEventListener('pointermove', (e) => {
-          const drag = dragRef.current;
-          if (!drag || drag.id !== c.id) return;
-          e.stopPropagation();
-          const { ax, ay } = artboardPoint(e.clientX, e.clientY);
-          if (Math.hypot(ax - drag.lastAx, ay - drag.lastAy) > 3) drag.moved = true;
-          drag.lastAx = ax;
-          drag.lastAy = ay;
-          c.px = ax - drag.ox;
-          c.py = Math.max(0, Math.min(sizeRef.current.h * 0.55, ay - drag.oy));
-          c.vx = 0;
-          c.vy = 0;
-          paintCloud(c, sizeRef.current.w);
-        });
-        const endDrag = (e: PointerEvent): void => {
-          const drag = dragRef.current;
-          if (!drag || drag.id !== c.id) return;
-          e.stopPropagation();
-          dragRef.current = null;
-          const base = c.speed * sizeRef.current.w;
-          c.vx = drag.moved ? base * (0.7 + Math.random() * 0.9) : base * 1.85;
-          c.vy = drag.moved ? (Math.random() - 0.5) * 22 : (Math.random() - 0.5) * 32;
-          if (!drag.moved) c.poke = 1;
-        };
-        el.addEventListener('pointerup', endDrag);
-        el.addEventListener('pointercancel', endDrag);
-        c.el = el;
-        layer.appendChild(el);
-        paintCloud(c, w);
-      }
-    };
-
-    rebuild();
-    const ro = new ResizeObserver(rebuild);
-    ro.observe(layer);
-
+    let w = 0;
+    let h = 0;
     let raf = 0;
     let last = performance.now();
-    const tick = (now: number): void => {
+    let disposed = false;
+
+    // Pre-render 4 cloud archetype textures
+    const textures: HTMLCanvasElement[] = [
+      createCloudTexture(768, 0), // Hero cumulus billow
+      createCloudTexture(768, 1), // Wind-swept cumulus
+      createCloudTexture(768, 2), // Fluffy cloud cluster
+      createCloudTexture(768, 3), // High-altitude cirrus veil
+    ];
+
+    const clouds: CloudInstance[] = [];
+    const dragTarget = { id: -1, ox: 0, oy: 0, moved: false };
+
+    // Seed realistic multi-layered clouds
+    const seed = (): void => {
+      clouds.length = 0;
+      // High-altitude background wisps (slower, softer, distant)
+      const distantCount = light ? 2 : 3;
+      for (let i = 0; i < distantCount; i++) {
+        const scale = 0.28 + (i % 2) * 0.08;
+        const homeY = 0.03 + i * 0.06;
+        clouds.push({
+          id: i,
+          x: ((i * 0.45 + 0.1) % 1) * w,
+          y: homeY * h,
+          vx: (0.003 + (i % 2) * 0.002) * w,
+          vy: 0,
+          homeY,
+          scale,
+          opacity: light ? 0.45 : 0.60,
+          variant: 3, // cirrus
+          poke: 0,
+          tilt: 0,
+          phase: i * 2.1,
+          isDragging: false,
+          ox: 0,
+          oy: 0,
+        });
+      }
+
+      // Midground volumetric cumulus clouds (main feature clouds)
+      const midCount = light ? 3 : 5;
+      for (let i = 0; i < midCount; i++) {
+        const id = distantCount + i;
+        const variant = (i % 3) as 0 | 1 | 2;
+        const scale = light ? 0.32 + (i % 3) * 0.06 : 0.38 + (i % 3) * 0.08;
+        const homeY = 0.05 + (i % 3) * 0.065 + (i >= 3 ? 0.07 : 0);
+        const speed = 0.007 + (i % 3) * 0.0035;
+        clouds.push({
+          id,
+          x: ((i * 0.26 + 0.05) % 1.1) * w,
+          y: homeY * h,
+          vx: speed * w,
+          vy: 0,
+          homeY,
+          scale,
+          opacity: light ? 0.78 : 0.92,
+          variant,
+          poke: 0,
+          tilt: 0,
+          phase: id * 1.5,
+          isDragging: false,
+          ox: 0,
+          oy: 0,
+        });
+      }
+    };
+
+    const toLocal = (clientX: number, clientY: number): { x: number; y: number } => {
+      const rect = canvas.getBoundingClientRect();
+      return {
+        x: ((clientX - rect.left) / rect.width) * w,
+        y: ((clientY - rect.top) / rect.height) * h,
+      };
+    };
+
+    const resize = (): void => {
+      const parent = canvas.parentElement;
+      if (!parent) return;
+      w = parent.clientWidth;
+      h = parent.clientHeight;
+      if (w < 2 || h < 2) return;
+      const dpr = Math.min(window.devicePixelRatio || 1, 2);
+      canvas.width = Math.floor(w * dpr);
+      canvas.height = Math.floor(h * dpr);
+      canvas.style.width = `${w}px`;
+      canvas.style.height = `${h}px`;
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      if (clouds.length === 0) seed();
+    };
+
+    // Pointer events for tactile cloud drag, squash, and puff
+    const onPointerDown = (e: PointerEvent): void => {
+      const p = toLocal(e.clientX, e.clientY);
+      // Check top-down (foreground clouds first)
+      for (let i = clouds.length - 1; i >= 0; i--) {
+        const c = clouds[i]!;
+        const tex = textures[c.variant]!;
+        const cw = c.scale * w;
+        const ch = cw * (tex.height / tex.width);
+        const left = c.x - cw * 0.5;
+        const top = c.y - ch * 0.5;
+        if (p.x >= left && p.x <= left + cw && p.y >= top && p.y <= top + ch) {
+          dragTarget.id = c.id;
+          dragTarget.ox = p.x - c.x;
+          dragTarget.oy = p.y - c.y;
+          dragTarget.moved = false;
+          c.isDragging = true;
+          c.poke = 1.0;
+          c.vx *= 0.15;
+          return;
+        }
+      }
+    };
+
+    const onPointerMove = (e: PointerEvent): void => {
+      if (dragTarget.id < 0) return;
+      const p = toLocal(e.clientX, e.clientY);
+      const c = clouds.find((item) => item.id === dragTarget.id);
+      if (!c) return;
+
+      const newX = p.x - dragTarget.ox;
+      const newY = Math.max(h * 0.02, Math.min(h * 0.55, p.y - dragTarget.oy));
+      if (Math.hypot(newX - c.x, newY - c.y) > 4) dragTarget.moved = true;
+      c.tilt = Math.max(-0.15, Math.min(0.15, (newX - c.x) * 0.005));
+      c.x = newX;
+      c.y = newY;
+    };
+
+    const onPointerUp = (): void => {
+      if (dragTarget.id >= 0) {
+        const c = clouds.find((item) => item.id === dragTarget.id);
+        if (c) {
+          c.isDragging = false;
+          c.poke = 1.0;
+          // Impart gentle fling velocity
+          const baseSpeed = (c.variant === 3 ? 0.004 : 0.009) * w;
+          c.vx = dragTarget.moved ? baseSpeed * 1.5 : baseSpeed * 1.8;
+        }
+      }
+      dragTarget.id = -1;
+    };
+
+    window.addEventListener('pointerdown', onPointerDown);
+    window.addEventListener('pointermove', onPointerMove);
+    window.addEventListener('pointerup', onPointerUp);
+    window.addEventListener('pointercancel', onPointerUp);
+
+    const step = (now: number): void => {
+      if (disposed) return;
       const dt = Math.min((now - last) / 1000, 0.05);
       last = now;
-      const { w, h } = sizeRef.current;
-      for (const c of cloudsRef.current) {
-        if (!dragRef.current || dragRef.current.id !== c.id) {
-          c.px += c.vx * dt;
-          c.py += c.vy * dt;
-          c.vy += Math.sin(now * 0.0006 + c.id) * 2 * dt;
-          c.vy *= 0.995;
-          const margin = c.scale * w * 0.5;
-          if (c.px > w + margin) c.px = -margin;
-          if (c.px < -margin * 1.1) c.px = w + margin * 0.2;
-          c.py += (c.homeY * h - c.py) * 0.15 * dt;
-        }
-        if (c.poke > 0) c.poke = Math.max(0, c.poke - dt * 2.4);
-        paintCloud(c, w);
+
+      if (w < 2 || h < 2) {
+        raf = requestAnimationFrame(step);
+        return;
       }
-      raf = requestAnimationFrame(tick);
+
+      ctx.clearRect(0, 0, w, h);
+
+      for (const c of clouds) {
+        const tex = textures[c.variant]!;
+        const cw = c.scale * w;
+        const ch = cw * (tex.height / tex.width);
+
+        if (!c.isDragging) {
+          // Horizontal drift with subtle speed modulation
+          c.x += c.vx * dt;
+          // Gentle thermal bobbing (sine oscillation + home pull)
+          c.y += Math.sin(now * 0.0006 + c.phase) * 6 * dt;
+          c.y += (c.homeY * h - c.y) * 0.14 * dt;
+          c.tilt *= Math.pow(0.1, dt);
+
+          // Wrap around canvas edges with smooth entry
+          if (c.x > w + cw * 0.55) {
+            c.x = -cw * 0.55;
+          }
+        }
+
+        // Decay poke squash/stretch
+        if (c.poke > 0) {
+          c.poke = Math.max(0, c.poke - dt * 2.2);
+        }
+
+        const squash = 1 - c.poke * 0.08;
+        const stretch = 1 + c.poke * 0.06;
+
+        ctx.save();
+        ctx.translate(c.x, c.y);
+        ctx.rotate(c.tilt);
+        ctx.scale(stretch, squash);
+        ctx.globalAlpha = c.opacity;
+
+        // Subtle soft drop-shadow for depth separation over light background
+        ctx.shadowColor = 'rgba(70, 95, 130, 0.12)';
+        ctx.shadowBlur = Math.round(cw * 0.05);
+        ctx.shadowOffsetY = Math.round(cw * 0.025);
+
+        ctx.drawImage(tex, -cw * 0.5, -ch * 0.5, cw, ch);
+        ctx.restore();
+      }
+
+      raf = requestAnimationFrame(step);
     };
-    raf = requestAnimationFrame(tick);
+
+    resize();
+    const ro = new ResizeObserver(resize);
+    if (canvas.parentElement) ro.observe(canvas.parentElement);
+    raf = requestAnimationFrame(step);
 
     return () => {
+      disposed = true;
       cancelAnimationFrame(raf);
       ro.disconnect();
-      layer.replaceChildren();
-      cloudsRef.current = [];
+      window.removeEventListener('pointerdown', onPointerDown);
+      window.removeEventListener('pointermove', onPointerMove);
+      window.removeEventListener('pointerup', onPointerUp);
+      window.removeEventListener('pointercancel', onPointerUp);
     };
-  }, [light, artboardPoint]);
+  }, [light]);
 
-  return <div ref={layerRef} className={styles.cloudLayer} aria-hidden />;
+  return <canvas ref={canvasRef} className={styles.cloudCanvas} aria-hidden />;
 }
