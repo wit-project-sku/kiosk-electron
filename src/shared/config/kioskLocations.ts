@@ -169,6 +169,10 @@ export const KIOSK_LOCATIONS: Record<KioskLocationCode, KioskLocation> = {
   // 오색시장 also has a physical card-payment terminal (like 남인사마당 W003), so it
   // takes the payment result flow (위드마켓 webview + save QR, result image on Monitor 2).
   W004: { code: 'W004', name: '오산시 오색시장', layout: 'OSAN', secondTile: MARKET_TILE, hasCardTerminal: true, hasDonation: true, aiCompanion: '3', coordinates: OSAN_COORDS, cameraRotation: 0 },
+  // 화성휴게소's TL-3800 exists for the 기부 (donation) app ONLY — unlike W003/W004
+  // the terminal does NOT put the photo flow onto the 위드마켓 result screen; its
+  // photo result stays the plain image + save QR (see PhotoWorkflow's
+  // showsMarketResult).
   W005: { code: 'W005', name: '화성휴게소', layout: 'HWASEONG', secondTile: INSARANG_TILE, hasCardTerminal: true, hasDonation: true, aiCompanion: '4', coordinates: HWASEONG_COORDS, cameraRotation: 0 },
   // 제주공항 W006 — has a TL-3800 terminal and runs 기부, like W003–W005.
   // TODO(제주): `secondTile` is provisional — the home grid is redefined by the

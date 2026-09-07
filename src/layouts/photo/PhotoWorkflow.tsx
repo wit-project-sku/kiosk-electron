@@ -52,6 +52,12 @@ export function PhotoWorkflow(): JSX.Element {
   const rotating = useRotatingBanner();
   const chrome = usePhotoChrome();
   const { isHwaseong, isKada, icon, Header, photoTitle, banner: chromeBanner } = chrome;
+  // 위드마켓 result gate. `hasCardTerminal` alone is the wrong test: 화성휴게소
+  // W005 got a TL-3800 for the 기부 (donation) app, not for the store, so its
+  // photo result must stay the plain image + save QR like the no-payment
+  // kiosks — only venues that pair the terminal WITH the store webview take
+  // the 위드마켓 result screen.
+  const showsMarketResult = hasPayment && !isHwaseong;
   // Osan/Hwaseong have their own single promo banner; insadong rotates through several.
   const banner = chromeBanner ?? rotating;
   const [goodsQrOpen, setGoodsQrOpen] = useState(false);
@@ -199,8 +205,8 @@ export function PhotoWorkflow(): JSX.Element {
     return <HanbokSelect onHome={handleReset} onCapture={handleCapture} countdownActive={capturing} />;
   }
 
-  // ── Result (PAYMENT kiosks W003/W004): WIT Store on Monitor 1; result image big on Monitor 2 ──
-  if (phase === 'result' && hasPayment) {
+  // ── Result (MARKET kiosks W003/W004/제주): WIT Store on Monitor 1; result image big on Monitor 2 ──
+  if (phase === 'result' && showsMarketResult) {
     const imageUrl = resultUrl ?? (resultFileName ? generatedUrl(resultFileName) : '');
     const saveUrl = `${SAVE_BASE}${encodeURIComponent(imageUrl)}`;
     return (
@@ -279,7 +285,8 @@ export function PhotoWorkflow(): JSX.Element {
     );
   }
 
-  // ── Result (NO-PAYMENT kiosks W001/W002/W005): show the result image + QR to save ──
+  // ── Result (W001/W002/W005 + KADA): show the result image + QR to save.
+  //    W005 lands here DESPITE its card terminal — see showsMarketResult above. ──
   if (phase === 'result') {
     const c = pick(isKada ? RESULT_KADA : RESULT, lang);
     const imageUrl = resultUrl ?? (resultFileName ? generatedUrl(resultFileName) : '');
