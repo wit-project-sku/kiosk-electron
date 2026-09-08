@@ -3,7 +3,8 @@
  * 2026-09-07 re-stack of 6516:73138 (-03-1).
  *
  * Fixed chrome down to the DAY row, then a paged spot list:
- *   592  header QR (x1836, 150²)
+ *   550  header QR (x1780, 210² incl. border — the frame draws 150² at
+ *        x1836/y592; see .qr for why it had to grow)
  *   667  hashtags (course title is the header subtitle)
  *   769  summary bar (h150, r75)
  *   955  answer pills (h130)
@@ -17,9 +18,10 @@
  * the gap it left (909→769, 1095→955, 1296→1156, 1435→1295). New in the frame:
  * the header QR and the 전체보기 / 선택보기 pair.
  *
- * The ← → day pager is NOT drawn in -04-1. It stays because a multi-day course
- * would otherwise have no way to reach day 2, and the two new pills sit to its
- * right exactly where the frame puts them.
+ * The ← → day pager is NOT drawn in -04-1. It stays — a multi-day course would
+ * otherwise have no way to reach day 2 — and the two new pills sit to its right
+ * exactly where the frame puts them. The pills do not touch the pager: they
+ * filter the day's stops by the visitor's 즐길 거리, see .scopeBtn.
  *
  * ♿ uses the mode-bar revision (bar at y0, header at y113, no banner). The
  * *Low rules at the foot drop every row by the bar height (113px).
@@ -35,16 +37,36 @@
  * between run 1147..1232 (centre 1189.5) and the two pills 1128..1248 (1188),
  * so all three rows land on the same optical line.
  */
-/* ── Header QR (6858:69235) — x1836, y592, 150² ──────────────────────────
+/* ── Header QR (6858:69235) ──────────────────────────────────────────────
    Lives in the page BODY rather than the header so it rides the ♿ shift with
    everything else. The header band it reaches under is `pointer-events: none`,
-   so painting under it costs the QR no taps. */
+   so painting under it costs the QR no taps.
+
+   ★ BIGGER THAN THE FRAME'S 150², deliberately. The payload is the whole
+   itinerary (see buildAiCourseSaveUrlForQr): a 4-day course is a ~286-char URL,
+   which is a 61-module QR at level L. Inside 150px with the 4-module quiet zone
+   that is 2.05px per module, and the artboard is then scaled by
+   min(innerWidth/2160, innerHeight/3840) — so a phone was being asked to read
+   modules barely a pixel wide. 210² with the quiet zone moved out into this
+   box's padding gives 170px of actual code, ~2.8px per module, and the card
+   still sits in the frame's corner: right edge on the 1990 content column,
+   bottom 9px clear of the summary bar at y769.
+
+   The border is the ask, not decoration — it also frames the white quiet zone
+   so the code reads against the page's warm background. */
 .qr {
   position: absolute;
-  left: 1836px;
-  top: 592px;
-  width: 150px;
-  height: 150px;
+  left: 1780px;
+  top: 550px;
+  width: 210px;
+  height: 210px;
+  box-sizing: border-box;
+  /* 14px ≈ 5 modules at this density — the spec asks 4, and the border must
+     sit OUTSIDE that or it eats into the quiet zone. */
+  padding: 14px;
+  border: 6px solid var(--kiosk-primary, #ff7f0f);
+  border-radius: 24px;
+  background: #fff;
 }
 
 .qrCode {
@@ -162,13 +184,17 @@
 /* ── 전체보기 / 선택보기 (6858:69231 · 6858:69233) ────────────────────────
    268×120 white pills at x1418 / x1720, to the right of the day pager.
 
-   The frame draws BOTH grey because it only ever shows one state. The pair is a
-   toggle, so the picked one needs a selected look, and it takes the kiosk's own
-   — the orange plate with white text that JejuAiSearch's .chipSelected and
-   .tileSelected already use one screen earlier. It was a text-colour swap
-   first, which on a 45px label at kiosk viewing distance read as no change at
-   all: on a one-day course, where the two views hold the same list, the recolour
-   was the ONLY feedback a tap produced. */
+   전체보기 is the whole scheduled day; 선택보기 keeps only the stops whose
+   category is one the visitor actually picked on 즐길 거리. The itinerary is
+   NOT all picks — both the recommender and the offline fallback top the day up
+   with whatever fits the time budget — so without this the page shows places
+   the visitor never asked for and has no way to hide them.
+
+   The frame draws BOTH pills grey because it only ever shows one state. The
+   picked one takes the kiosk's own selected look — the orange plate with white
+   text that JejuAiSearch's .chipSelected and .tileSelected use one screen
+   earlier — because a text-only recolour on a 45px label reads as no change at
+   all at kiosk viewing distance. */
 .scopeBtn {
   position: absolute;
   top: 1128px;
@@ -201,33 +227,7 @@
   height: 100%;
 }
 
-/* One day's stops. The rail is absolute against THIS box, so 전체보기 draws a
-   separate rail per day rather than one line running through the day captions;
-   in 선택보기 there is a single group and the geometry is unchanged. */
-.stopGroup {
-  position: relative;
-  flex: none;
-  display: flex;
-  flex-direction: column;
-  gap: 50px;
-}
-
-/* 전체보기 only: names the day a group of cards belongs to. The frame has no
-   such row — it draws one day at a time — but with every day in one scroll the
-   boundary has to be named. Aligned with the card's own x (disc 105 + gap 35).
-   Drawn only when there IS more than one day: a lone "DAY 1" caption under a
-   "DAY 1" label reads as a duplicate, not as a heading. */
-.dayGroup {
-  flex: none;
-  margin: 0;
-  padding-left: 140px;
-  font-size: 45px;
-  font-weight: 700;
-  line-height: 1;
-  color: #616161;
-}
-
-/* ── Timeline rail: dashed line through the numbered stops (inside .stopGroup). */
+/* ── Timeline rail: dashed line through the numbered stops (inside .list). */
 .rail {
   position: absolute;
   left: 50px;
@@ -350,7 +350,7 @@
  * Mode-bar revision (same as JejuDetail · JejuListScreen): the 113px bar at
  * y0, header at y113, no promo banner — each row drops by the bar height.
  */
-.qrLow { top: calc(592px + 113px); }
+.qrLow { top: calc(550px + 113px); }
 .tagsLow { top: calc(667px + 113px); }
 .summaryLow { top: calc(769px + 113px); }
 .picksLow { top: calc(955px + 113px); }

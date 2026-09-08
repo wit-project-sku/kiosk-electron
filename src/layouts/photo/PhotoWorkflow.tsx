@@ -66,24 +66,21 @@ export function PhotoWorkflow(): JSX.Element {
   usePhotoWorkflow();
 
   // ── 제주 waiting game gate ──────────────────────────────────────────────
-  // 제주 CAN fill the AI wait with 틀린그림찾기 instead of a static popup, and when
-  // it does the result is gated on the GAME rather than the clock:
-  // `GENERATING_MIN_MS` in photo.handlers is a 60s floor, so the photo can land
-  // while someone is still hunting, and `gameDone` is what lets the result
-  // screen through.
+  // 제주 fills the AI wait with 틀린그림찾기 instead of a static popup, and the
+  // result is gated on the GAME, not on the clock: `GENERATING_MIN_MS` in
+  // photo.handlers is a 60s floor, so the photo can land while someone is still
+  // hunting. `gameDone` is what actually lets the result screen through.
   //
-  // DISABLED 2026-08-24 at the user's request — the wait shows the
-  // camera-direction popup again, exactly as it did before the game landed.
-  // This one flag is the whole switch: the puzzle prefetch below stops asking
-  // for rounds, the Monitor 2 deferral stops holding the big screen back, and
-  // the render block further down falls through to the 한복 capture screen,
-  // which already draws that popup through `generating`. So the result now
-  // hands over the moment it is ready instead of waiting for a player.
-  //
-  // To bring the game back, restore `chrome.isJeju` — nothing else was removed.
-  // Typed `boolean` rather than left as the `false` literal so the branches it
-  // guards do not narrow to unreachable code.
-  const playsWaitingGame: boolean = false;
+  // Off between 2026-08-24 and 2026-09-08 at the user's request, then restored
+  // on the same one-flag switch the disable note described — it is genuinely the
+  // whole thing. Everything downstream reads it: the puzzle prefetch below only
+  // asks for rounds when it is true, the Monitor 2 deferral only holds the big
+  // screen back when it is true, and the render block further down falls through
+  // to the 한복 capture screen (which draws the camera-direction popup through
+  // `generating`) when it is false. Flip it to `false` to go back to the popup;
+  // keep the `boolean` annotation either way, so the branches it guards do not
+  // narrow to unreachable code.
+  const playsWaitingGame: boolean = chrome.isJeju;
   const [gameDone, setGameDone] = useState(false);
   const deferredRef = useRef(false);
 

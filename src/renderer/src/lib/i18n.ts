@@ -166,6 +166,11 @@ const SCREEN_TITLES: Record<string, Partial<Record<Lang, string>>> = {
   // 여기는 제주도 is kept out of TITLE_KEYS for the same reason: MainButton_Here
   // resolves to Insadong's own "여기는 인사동" through the fallback table.
   '여기는 제주도': { en: 'This is Jeju', ja: 'ここは済州島', zh: '这里是济州岛', vi: 'Đây là Jeju', th: 'ที่นี่คือเชจู', ru: 'Это Чеджудо', id: 'Ini Jeju' },
+  // W008's 제주세계유산 page header (JejuHeritage, Figma 6908:51916). No sheet
+  // row exists for it yet, so the hand map is what localizes the pill.
+  '제주 유네스코 유산': { en: 'Jeju UNESCO Heritage', ja: '済州ユネスコ遺産', zh: '济州联合国教科文组织遗产', vi: 'Di sản UNESCO Jeju', th: 'มรดกยูเนสโกเชจู', ru: 'Наследие ЮНЕСКО Чеджу', id: 'Warisan UNESCO Jeju' },
+  // W008's 거문오름 예약 page header (JejuGeomun, Figma 6935:69555) — same deal.
+  '거문오름 예약': { en: 'Geomunoreum Reservation', ja: 'コムンオルム予約', zh: '拒文岳预约', vi: 'Đặt chỗ Geomunoreum', th: 'จองคอมุนออรึม', ru: 'Бронирование Комунорым', id: 'Reservasi Geomunoreum' },
   // Curly quotes, as the frame writes it (6219:98770) — the straight-quote form
   // is Insadong's own '도와줘 ‘인사’' above. Hardcoded display id is now 제주
   // (jejuMascot); keep the old 하영 key so any stale caller still localizes.

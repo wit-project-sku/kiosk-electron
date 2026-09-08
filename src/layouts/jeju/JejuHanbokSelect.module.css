@@ -143,6 +143,13 @@
  * 3006) and a third row would draw straight over the outfit cards. `--cat-cols`
  * is set inline by the component; the width below is the design's own
  * arithmetic, so 4 columns still resolve to exactly 420.
+ *
+ * ★ The GAP is per column count, because the design's two drawn counts do not
+ * share one. 4 columns is 420 on a 46.67 gap (the older 8-tab frame); the
+ * 2026-09-08 redraw (6258:48134 · 48469) draws 10 tabs as 5 × 350 justified
+ * across the same 1820, which is a 17.5 gap. Both are "space-between in 1820"
+ * with a drawn button width, so the gap is what has to move — see `.catsTight`,
+ * which carries the 5-column value and everything above it.
  */
 .cats {
   position: absolute;
@@ -196,15 +203,33 @@
 }
 
 /*
- * Five or more columns: the button is ~327 wide, so the type steps down and the
- * side padding with it. Measured, not guessed — the longest label the CMS ships
- * today is "Повседневное" (`m=everyday`, ru) at 288px, and 46px type inside a
- * 10px padding leaves a 307px content box, so it lands on ONE line. At 50px it
- * was 317 and broke mid-word, orphaning a single letter on the second line.
+ * Five or more columns — the count the 2026-09-08 frames actually draw, and the
+ * one prod is on (nine registered categories → 5). The design's own numbers:
+ * 350-wide buttons justified across the 1820, so the gap is (1820 − 5×350) / 4.
+ */
+.catsTight {
+  --cat-gap: 17.5px;
+}
+
+/*
+ * The design's 50px, which fits BECAUSE the button is the design's 350 — but
+ * only just, so the padding is what gives way rather than the type.
+ *
+ * Measured in Pretendard (the face jeju-airport.json leads with, and which does
+ * carry Cyrillic — so this label really is drawn in it, not in the Noto Sans KR
+ * behind it): the longest label the CMS ships is "Повседневное" (`m=everyday`,
+ * ru) at 344.2px, against 316.7px at the 46px this used to be. A 350 button
+ * therefore holds it at the drawn size with 5.8px to spare, and the 10px padding
+ * a side that the 46px version could afford would put it back over.
+ *
+ * 2px is a guard against sub-pixel differences between browsers, not a design
+ * value — the frame gives the label no padding at all. Anything longer than
+ * ~346px WRAPS rather than clipping (`.cat` is deliberately two-line-capable at
+ * 170px tall); re-measure here if a longer label appears.
  */
 .catsTight .cat {
-  font-size: 46px;
-  padding: 0 10px;
+  font-size: 50px;
+  padding: 0 2px;
 }
 
 .catActive {
@@ -280,6 +305,29 @@
   background: #ffeac7;
   font-weight: 700;
   color: var(--kiosk-primary, #ff7f0f);
+}
+
+/*
+ * "WITH의 모든 한복은 박술녀 한복입니다." — the attribution the 2026-09-08 redraw
+ * hung off the END of the chip row (6258:48134 · 6862:10120). It is on the 한복
+ * tab only; 6258:48469 draws the same row on 제주 without it, which is what ties
+ * it to the category rather than to the row.
+ *
+ * ★ It FLOWS after the chips instead of taking the design's absolute x. Figma
+ * centres it at 1364 — 146 past its own 279-wide 남자 한복 chip — but the chips
+ * are CMS labels in eight languages and grow past that 279 (see `.subcat`), so a
+ * fixed x would let a long pair run underneath it. The margin reproduces the
+ * drawn 146 gap against the drawn chips (the row's own 40 gap makes up the
+ * rest) and simply follows them when they are wider.
+ */
+.subcatNote {
+  margin: 0 0 0 106px;
+  flex: 0 0 auto;
+  font-size: 50px;
+  font-weight: 500;
+  line-height: 1;
+  color: #999;
+  white-space: nowrap;
 }
 
 /* ── 사진촬영안내 card — EVERY condition, two positions ────────────────── */
@@ -708,6 +756,25 @@
 
 /* Picked: the wash comes off — the frame draws the chosen tile unwashed. */
 .themeActive::after {
+  background: none;
+}
+
+/*
+ * The 배경 없음 tile — first in the row, and the one the frame draws SELECTED
+ * (6258:48469 · 6420:24489: a bare white 350×700 r45 plate under the 5px orange
+ * rule, no photo and no name).
+ *
+ * It is the null pick made visible. `backgroundId` has always started null and
+ * always meant "send change_background=false", but until now nothing on the
+ * page stood for it: every tile set an id and none of them cleared it, so a
+ * visitor who tapped a scene had no way back to the plain template. The tile is
+ * that way back, and being active by default is simply the default state drawn.
+ *
+ * Never washed. `.theme::after` tones the photo tiles so their white names
+ * stay readable; over a bare white plate the same 20% black just reads as a
+ * greyed-out, unavailable tile — the opposite of what this one is.
+ */
+.themeNone::after {
   background: none;
 }
 

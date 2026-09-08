@@ -1,0 +1,441 @@
+/*
+ * 거문오름 예약 (geomun) — Figma 6935:69555 (거문오름 소개 tab) and 6935:69554
+ * (탐방 안내 tab). One page, three 580×170 pills (JejuTabRow's own shape and
+ * states, so the row is the shared component); only the content column under
+ * the pills changes per tab.
+ *
+ * Geometry, standard layout (both frames' content sits 8–16px off the artboard
+ * origin — the coordinates here are re-based to the standard 170 column):
+ *   pill row   y700 (JejuTabRow's own position)
+ *   content    one scroll column y920 → y3267 (the 상점 검색 promo banner's top
+ *              edge, which both frames draw). 소개 fits (foot 2863); 안내 runs
+ *              to 3457 — the frame overlaps its own banner, so the column
+ *              scrolls, same call JejuAbout makes for its over-tall 상세.
+ *
+ * The 소개 panel keeps Figma's absolute placement (photo left, fact column
+ * right, three feature columns over hairline dividers); the 안내 panel is flow —
+ * its rows are stacked with the frame's own ~50px rhythm so the sheet can grow
+ * a line without overlap.
+ */
+
+/* The panel + notice column, hidden scrollbar, ▲▼ as the control. */
+.scroller {
+  position: absolute;
+  left: 170px;
+  top: 920px;
+  width: 1820px;
+  bottom: 573px;
+  overflow-x: hidden;
+  overflow-y: auto;
+  scrollbar-width: none;
+  display: flex;
+  flex-direction: column;
+  gap: 50px;
+}
+
+.scroller::-webkit-scrollbar {
+  width: 0;
+  height: 0;
+}
+
+/* ── 거문오름 소개 (6935:69555) ─────────────────────────────────────────── */
+
+.introPanel {
+  position: relative;
+  width: 100%;
+  height: 1342px;
+  flex: none;
+  border-radius: 45px;
+  background: #fff;
+}
+
+/* 6900:50334 — the export carries baked cutout blocks from overlapping layers;
+   the frame hides them by drawing the source at 113.46% × 125.3% and clipping,
+   so the same crop is reproduced here rather than object-fit. */
+.introPhoto {
+  position: absolute;
+  left: 47px;
+  top: 65px;
+  width: 1062px;
+  height: 452px;
+  border-radius: 40px;
+  overflow: hidden;
+  background: #f2ede6;
+}
+
+.introPhoto img {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 113.46%;
+  height: 125.3%;
+  max-width: none;
+}
+
+.factLabel {
+  position: absolute;
+  left: 1141px;
+  margin: 0;
+  font-size: 38px;
+  font-weight: 700;
+  line-height: 1.3;
+  color: #000;
+}
+
+.factBody {
+  position: absolute;
+  left: 1141px;
+  margin: 0;
+  width: 600px;
+  font-size: 38px;
+  font-weight: 400;
+  line-height: 1.3;
+  color: #000;
+  white-space: pre-line;
+}
+
+.featTitle {
+  position: absolute;
+  left: 47px;
+  top: 632px;
+  margin: 0;
+  font-size: 45px;
+  font-weight: 700;
+  line-height: 1;
+  color: #1a1a1a;
+}
+
+/* Line 113 — 3px solid #e8e8e8, 569 tall from y715 (panel coords). */
+.featDivider {
+  position: absolute;
+  top: 715px;
+  height: 569px;
+  width: 0;
+  border-left: 3px solid #e8e8e8;
+}
+
+.featIcon {
+  position: absolute;
+  object-fit: contain;
+  pointer-events: none;
+}
+
+.featText {
+  position: absolute;
+  top: 1003px;
+  margin: 0;
+  font-size: 38px;
+  font-weight: 400;
+  line-height: 1.3;
+  color: #1a1a1a;
+  text-align: center;
+  word-break: keep-all;
+  overflow-wrap: break-word;
+}
+
+/* ── 문의/주의 box — both frames draw the identical 1820×551 (6909:53075) ── */
+
+.notice {
+  position: relative;
+  width: 100%;
+  height: 551px;
+  flex: none;
+  box-sizing: border-box;
+  border: 5px solid var(--kiosk-primary, #ff7f0f);
+  border-radius: 45px;
+  background: #fff;
+}
+
+/* Children measure from the frame's outer edge; absolute children of a bordered
+   box position from inside the border, so every coordinate below is Figma − 5. */
+.noticePhone {
+  position: absolute;
+  left: 46px;
+  top: 40px;
+  width: 85px;
+  height: 85px;
+}
+
+.noticeCall {
+  position: absolute;
+  left: 140px;
+  top: 53px;
+  margin: 0;
+  font-size: 45px;
+  font-weight: 700;
+  line-height: 1.3;
+  color: var(--kiosk-primary, #ff7f0f);
+  white-space: nowrap;
+}
+
+.noticeCallHours {
+  font-size: 38px;
+  font-weight: 400;
+}
+
+.noticeBadge {
+  position: absolute;
+  width: 58px;
+  height: 58px;
+  border-radius: 50%;
+  background: var(--kiosk-primary, #ff7f0f);
+  color: #fff;
+  font-size: 45px;
+  font-weight: 900;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.noticeHeading {
+  position: absolute;
+  margin: 0;
+  font-size: 45px;
+  font-weight: 700;
+  line-height: 1.3;
+  color: var(--kiosk-primary, #ff7f0f);
+  white-space: nowrap;
+}
+
+/* Line 115 — 1px solid brand orange between the two lists. */
+.noticeDivider {
+  position: absolute;
+  left: 905px;
+  top: 179px;
+  height: 308px;
+  width: 0;
+  border-left: 1px solid var(--kiosk-primary, #ff7f0f);
+}
+
+.noticeList {
+  position: absolute;
+  top: 278px;
+  margin: 0;
+  padding-left: 48px;
+  font-size: 32px;
+  font-weight: 400;
+  color: #1a1a1a;
+}
+
+.noticeList li {
+  line-height: 1.3;
+  margin-bottom: 5px;
+}
+
+/* ── 탐방 안내 (6935:69554) — the flow panel ──────────────────────────────── */
+
+.guidePanel {
+  box-sizing: border-box;
+  width: 100%;
+  flex: none;
+  border-radius: 45px;
+  background: #fff;
+  padding: 50px 51px;
+}
+
+/* The grey summary plate at the panel head (6908:51965). */
+.guideBar {
+  box-sizing: border-box;
+  border-radius: 45px;
+  background: #e8e8e8;
+  padding: 30px 37px;
+}
+
+.guideBar ul {
+  margin: 0;
+  padding-left: 57px;
+  font-size: 38px;
+  font-weight: 500;
+  color: #1a1a1a;
+}
+
+.guideBar li {
+  line-height: 1.3;
+}
+
+.guideRow {
+  display: flex;
+  align-items: flex-start;
+  gap: 27px;
+  margin-top: 50px;
+}
+
+.guideLabel {
+  flex: none;
+  width: 160px;
+  margin: 0;
+  font-size: 45px;
+  font-weight: 700;
+  line-height: 1.2;
+  color: #1a1a1a;
+  word-break: keep-all;
+}
+
+.guideList {
+  margin: 0;
+  padding-left: 57px;
+  font-size: 38px;
+  font-weight: 400;
+  color: #1a1a1a;
+  min-width: 0;
+}
+
+.guideList li {
+  line-height: 1.3;
+  /* The reservation bullets carry authored line breaks (例 rows, ※ rows). */
+  white-space: pre-line;
+}
+
+/* Orange Medium runs inside the reservation bullets (6908:51976). */
+.em {
+  color: var(--kiosk-primary, #ff7f0f);
+  font-weight: 500;
+}
+
+.guideFeeTitle {
+  margin: 50px 0 0;
+  font-size: 45px;
+  font-weight: 700;
+  line-height: 1;
+  color: #1a1a1a;
+}
+
+.guideFeeNote {
+  font-size: 38px;
+  font-weight: 400;
+}
+
+/* ── 탐방료 table (6910:156528) ── */
+.feeTable {
+  box-sizing: border-box;
+  width: 1147px;
+  margin: 27px 0 0 187px;
+  border-radius: 16px;
+  background: #fff;
+  box-shadow: 0 12px 32px rgba(18, 44, 67, 0.05);
+  overflow: hidden;
+}
+
+.feeTitleBar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20px 32px;
+  border-bottom: 1px solid #d9e4ec;
+}
+
+.feeTitleBadge {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 0;
+  font-size: 25px;
+  color: #1a1a1a;
+}
+
+.feeTitleBadge::before {
+  content: '';
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--kiosk-primary, #ff7f0f);
+}
+
+.feeUnit {
+  margin: 0;
+  font-size: 14px;
+  color: #748a9c;
+}
+
+.feeGrid {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+}
+
+.feeCell {
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-right: 1px solid #d9e4ec;
+  border-bottom: 1px solid #d9e4ec;
+  margin: 0;
+  color: #1a1a1a;
+  font-weight: 700;
+  text-align: center;
+}
+
+/* The rightmost cell of each visual row drops its right rule. */
+.feeLast {
+  border-right: none;
+}
+
+.feeHead {
+  grid-column: span 2;
+  height: 90px;
+  background: #ffeac7;
+  font-size: 28px;
+}
+
+.feeSub {
+  height: 80px;
+  background: #fdf6ee;
+  font-size: 24px;
+}
+
+.feePrice {
+  height: 100px;
+  background: #fff;
+  font-size: 26px;
+  border-bottom: none;
+}
+
+.guideExempt {
+  font-size: 35px;
+  padding-left: 52px;
+}
+
+/* ── 탐방 예약 — no frame yet; the 준비중 hold every unbuilt tab shows ────── */
+.reserveHold {
+  flex: 1;
+  min-height: 800px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 24px;
+}
+
+.reserveHoldText {
+  margin: 0;
+  font-size: 70px;
+  font-weight: 500;
+  color: #b4b4b4;
+}
+
+/* Right-hand ▲▼ — same chrome position as the other 제주 content pages. */
+.scrollBtn {
+  position: absolute;
+  left: 2027px;
+  width: 85px;
+  height: 85px;
+  padding: 0;
+  border: none;
+  background: none;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.scrollUp   { top: 2103px; }
+.scrollDown { top: 2223px; }
+
+.scrollBtnImg {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  pointer-events: none;
+}
+
+.scrollUp .scrollBtnImg   { transform: rotate(90deg); }
+.scrollDown .scrollBtnImg { transform: rotate(-90deg); }

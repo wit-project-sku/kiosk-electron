@@ -2,7 +2,7 @@
  * 제주 AI 코스 상세 — Figma node 6760:18772 (제주>제주모하지(AI검색)-04-1), the
  * 2026-09-07 re-stack of 6516:73138 (-03-1). See the stylesheet header for the
  * coordinates; what is new rather than moved is the header QR, the
- * 전체보기 / 선택보기 pair beside the DAY row, and the labelled per-stop stats
+ * 전체보기 / 선택보기 filter beside the DAY row, and the labelled per-stop stats
  * ("머무는 시간 : 2-3시간" rather than a bare "2-3시간"). What is GONE is the
  * course description that sat between the hashtags and the summary bar — the
  * frame runs the one straight into the other, so `CourseMeta.desc` is authored
@@ -193,9 +193,24 @@ const T = {
     ko: '전체보기', en: 'View all', ja: 'すべて表示', zh: '查看全部',
     vi: 'Xem tất cả', th: 'ดูทั้งหมด', ru: 'Показать всё', id: 'Lihat semua',
   },
-  viewDay: {
-    ko: '선택보기', en: 'Selected day', ja: '選択日のみ', zh: '仅所选日',
-    vi: 'Ngày đã chọn', th: 'เฉพาะวันที่เลือก', ru: 'Выбранный день', id: 'Hari terpilih',
+  viewPicked: {
+    ko: '선택보기', en: 'My picks', ja: '選択のみ', zh: '仅所选',
+    vi: 'Mục đã chọn', th: 'เฉพาะที่เลือก', ru: 'Только выбранное', id: 'Pilihan saya',
+  },
+  /**
+   * 선택보기 with nothing in the day matching. NOT the same as an empty day:
+   * the schedule worked, the filter just left nothing, so the copy must not
+   * send the visitor back to redo a search that succeeded.
+   */
+  emptyPicked: {
+    ko: '이 날에는 선택한 즐길 거리와 맞는 장소가 없어요.',
+    en: 'Nothing on this day matches the interests you picked.',
+    ja: 'この日には選んだ楽しみ方に合う場所がありません。',
+    zh: '这一天没有符合所选体验项目的地点。',
+    vi: 'Ngày này không có địa điểm nào khớp với sở thích bạn đã chọn.',
+    th: 'วันนี้ไม่มีสถานที่ที่ตรงกับกิจกรรมที่คุณเลือก',
+    ru: 'В этот день нет мест, соответствующих вашим интересам.',
+    id: 'Tidak ada tempat di hari ini yang cocok dengan minat pilihan Anda.',
   },
   empty: {
     ko: '코스에 담을 장소를 찾지 못했어요.\n관심사를 바꿔 다시 검색해보세요.',
@@ -495,14 +510,18 @@ export function JejuAiDetail({ controller }: Props): JSX.Element {
   /** Index into `days` — the ← → pair steps days, not pages within a day. */
   const [dayIndex, setDayIndex] = useState(0);
   /**
-   * 전체보기 / 선택보기 (6858:69231 · 6858:69233).
+   * 전체보기 / 선택보기 (6858:69231 · 6858:69233) — a CATEGORY filter over the
+   * day's stops, not a day switch; the ← → pager still owns the days.
    *
-   * 선택보기 is the page as it was: one day at a time, stepped with the pager.
-   * 전체보기 puts every scheduled day in the one scroll, captioned by day, and
-   * parks the pager — there is no single current day to step away from.
+   * The itinerary is not made up only of the visitor's picks. The recommender
+   * fills each day to its time budget and the offline fallback tops up with
+   * "anything left" outright (see buildSpots), so a day routinely carries stops
+   * in categories the visitor never chose. 전체보기 shows the schedule as
+   * planned — it is the default, because that is the course the AI built —
+   * and 선택보기 drops everything that does not match a picked 즐길 거리.
    */
-  const [scope, setScope] = useState<'day' | 'all'>('day');
-  const allDays = scope === 'all';
+  const [scope, setScope] = useState<'all' | 'picked'>('all');
+  const onlyPicked = scope === 'picked';
   const listRef = useRef<HTMLDivElement>(null);
   const lowReach = useAccessibilityStore((s) => s.lowReach);
 
@@ -622,13 +641,28 @@ export function JejuAiDetail({ controller }: Props): JSX.Element {
   }, [dayIndex, scope]);
 
   const currentDay = days[dayIndex];
-  const stops = currentDay?.stops ?? [];
+  /* Memoised because `?? []` would otherwise hand `pickedStops` a fresh array
+     every render and defeat its own memo. */
+  const stops = useMemo(() => currentDay?.stops ?? [], [currentDay]);
   /** The day number the visible list belongs to — what the DAY label shows. */
   const day = currentDay?.day ?? 1;
-  /** Every stop 전체보기 shows, or just the visible day's under 선택보기. */
-  const visibleStops = allDays ? days.flatMap((d) => d.stops) : stops;
-  /** "DAY 1", or the whole span while 전체보기 is on. */
-  const dayLabel = allDays && days.length > 1 ? `DAY 1-${days.length}` : `DAY ${day}`;
+  /**
+   * The day narrowed to the picked 즐길 거리. `catMatches` is the same predicate
+   * the offline builder uses to CHOOSE a shop for a category, so a stop it put
+   * in for an interest always survives the filter that interest implies.
+   *
+   * With no interests stored (a deep link, or an idle reset that cleared the
+   * store) there is nothing to filter by, so 선택보기 is a no-op rather than an
+   * empty page.
+   */
+  const pickedStops = useMemo(
+    () =>
+      interests.length === 0
+        ? stops
+        : stops.filter((stop) => interests.some((cat) => catMatches(stop.shop, cat))),
+    [stops, interests],
+  );
+  const visibleStops = onlyPicked ? pickedStops : stops;
   /** The header's course+day line, e.g. "자연·유산 탐방 코스 - 1일차". */
   const courseDayTitle = jejuCourseNameWithDay(pick(meta.title, lang), day, lang);
 
@@ -712,34 +746,6 @@ export function JejuAiDetail({ controller }: Props): JSX.Element {
     setDetail(item);
     controller.navigate('detail', '코스 상세');
   };
-
-  /** One day's stops — its own dashed rail, then a numbered row per stop. */
-  const stopGroup = (list: Stop[], keyPrefix: string): JSX.Element => (
-    <div className={styles.stopGroup}>
-      {list.length > 1 && (
-        <div
-          className={styles.rail}
-          style={{ top: RAIL_TOP, height: railHeightFor(list.length) }}
-        />
-      )}
-      {list.map((stop, i) => (
-        <div key={`${keyPrefix}-${i}-${stop.shop.id}`} className={styles.stopRow}>
-          <span className={styles.stop}>{stop.number}</span>
-          <JejuCourseSpotCard
-            width={1678}
-            photo={photoOf(stop)}
-            name={shopName(stop.shop, lang)}
-            category={shopSecondCategory(stop.shop, lang)}
-            address={shopAddress(stop.shop, lang)}
-            description={shopDescription(stop.shop, lang)}
-            dwell={dwellOf(stop)}
-            difficulty={hardnessOf(stop)}
-            onClick={() => openSpot(list, stop)}
-          />
-        </div>
-      ))}
-    </div>
-  );
 
   /**
    * The summary bar. Four slots either way, and the two paths never mix:
@@ -832,14 +838,25 @@ export function JejuAiDetail({ controller }: Props): JSX.Element {
       lowReachModeBar
       lowReachShift={113}
     >
-      {/* Header QR (x1836, y592) — the mobile AI-course view. */}
+      {/* Header QR — the itinerary, opened on the visitor's phone.
+
+          Every prop here is about being READABLE off a screen, not pretty:
+           · level L, because a QR on glass is never scratched or creased and
+             the error correction only costs modules. `boostLevel` is on by
+             default, so it still lifts to M/Q for free whenever the payload
+             leaves room within the same version.
+           · marginSize 0 — the 4-module quiet zone is the card's own padding
+             instead, which hands those modules' width back to the code.
+           · crispEdges, because antialiased module borders at ~2.8px are what
+             turn a QR into grey mush once the artboard is scaled down. */}
       <div className={low(styles.qr, styles.qrLow)}>
         <QRCodeSVG
           className={styles.qrCode}
           value={courseQrUrl}
-          size={150}
-          level="M"
-          includeMargin
+          size={170}
+          level="L"
+          marginSize={0}
+          shapeRendering="crispEdges"
           bgColor="#ffffff"
           fgColor="#000000"
         />
@@ -873,40 +890,35 @@ export function JejuAiDetail({ controller }: Props): JSX.Element {
       )}
 
       {/* The day pager. Always drawn — greyed at the ends on DAY 1 / the last
-          day, and throughout 전체보기 where there is no single current day — so
-          the row never reflows. */}
+          day — so the row never reflows. The 전체보기 / 선택보기 pair beside it
+          filters WITHIN the day and leaves the pager alone. */}
       <DayArrow
         dir="prev"
-        disabled={allDays || dayIndex <= 0}
+        disabled={dayIndex <= 0}
         onClick={goPrevDay}
         className={low(styles.dayPrev, styles.dayArrowLow)}
         lang={lang}
       />
 
-      <p className={low(styles.day, styles.dayLow)}>{dayLabel}</p>
+      <p className={low(styles.day, styles.dayLow)}>DAY {day}</p>
 
       <DayArrow
         dir="next"
-        disabled={allDays || dayIndex >= days.length - 1}
+        disabled={dayIndex >= days.length - 1}
         onClick={goNextDay}
         className={low(styles.dayNext, styles.dayArrowLow)}
         lang={lang}
       />
 
-      {/* 전체보기 / 선택보기 — the frame's two pills, right of the pager.
-
-          ★ On a ONE-DAY course the two views hold the same list by definition,
-          so the only thing a tap can change is the pills themselves. That is
-          the common case, not an edge one: JejuAiSearch opens on 당일치기 and a
-          visitor who leaves 체류 기간 alone gets a single day. Hence the loud
-          selected plate — with a text-only recolour the page looked dead. */}
+      {/* 전체보기 / 선택보기 — the frame's two pills, right of the pager: the
+          whole scheduled day, or only the stops matching a picked 즐길 거리. */}
       <button
         type="button"
         className={low(
-          `${styles.scopeBtn} ${styles.scopeAll} ${allDays ? styles.scopeBtnOn : ''}`,
+          `${styles.scopeBtn} ${styles.scopeAll} ${onlyPicked ? '' : styles.scopeBtnOn}`,
           styles.scopeLow,
         )}
-        aria-pressed={allDays}
+        aria-pressed={!onlyPicked}
         onClick={() => setScope('all')}
       >
         {pick(T.viewAll, lang)}
@@ -914,30 +926,53 @@ export function JejuAiDetail({ controller }: Props): JSX.Element {
       <button
         type="button"
         className={low(
-          `${styles.scopeBtn} ${styles.scopeDay} ${allDays ? '' : styles.scopeBtnOn}`,
+          `${styles.scopeBtn} ${styles.scopeDay} ${onlyPicked ? styles.scopeBtnOn : ''}`,
           styles.scopeLow,
         )}
-        aria-pressed={!allDays}
-        onClick={() => setScope('day')}
+        aria-pressed={onlyPicked}
+        onClick={() => setScope('picked')}
       >
-        {pick(T.viewDay, lang)}
+        {pick(T.viewPicked, lang)}
       </button>
 
       {loading ? null : visibleStops.length === 0 ? (
-        <p className={styles.empty}>{pick(T.empty, lang)}</p>
+        /* A day with no stops at all is the "we found nothing" case; a day whose
+           stops were all filtered out is a different sentence, and saying the
+           first there would send the visitor back to redo a search that worked. */
+        <p className={styles.empty}>{pick(stops.length === 0 ? T.empty : T.emptyPicked, lang)}</p>
       ) : (
         <div
           ref={listRef}
           className={low(styles.list, styles.listLow)}
         >
-          {allDays
-            ? days.map((d) => (
-                <Fragment key={d.day}>
-                  {days.length > 1 && <p className={styles.dayGroup}>DAY {d.day}</p>}
-                  {stopGroup(d.stops, `d${d.day}`)}
-                </Fragment>
-              ))
-            : stopGroup(stops, `d${day}`)}
+          {visibleStops.length > 1 && (
+            <div
+              className={styles.rail}
+              style={{ top: RAIL_TOP, height: railHeightFor(visibleStops.length) }}
+            />
+          )}
+          {visibleStops.map((stop, i) => (
+            <div key={`${i}-${stop.shop.id}`} className={styles.stopRow}>
+              {/* The stop's own place in the DAY, not its row here: under
+                  선택보기 the numbers read 1 · 3 · 4, which is the honest
+                  statement that this is a subset of the planned day. */}
+              <span className={styles.stop}>{stop.number}</span>
+              <JejuCourseSpotCard
+                width={1678}
+                photo={photoOf(stop)}
+                name={shopName(stop.shop, lang)}
+                category={shopSecondCategory(stop.shop, lang)}
+                address={shopAddress(stop.shop, lang)}
+                description={shopDescription(stop.shop, lang)}
+                dwell={dwellOf(stop)}
+                difficulty={hardnessOf(stop)}
+                /* The 다음 장소 chain follows what is ON SCREEN, so under
+                   선택보기 it walks the filtered day rather than re-introducing
+                   the stops the visitor just hid. */
+                onClick={() => openSpot(visibleStops, stop)}
+              />
+            </div>
+          ))}
         </div>
       )}
     </JejuPageFrame>

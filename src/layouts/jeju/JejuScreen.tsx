@@ -38,6 +38,10 @@ const SCREEN_LABELS: Partial<Record<KioskScreenId, string>> = {
   localpay: '지역화폐',
   market: '위드마켓',
   events: '제주도 이벤트',
+  // W008 세계자연유산본부's one 2026-09 home tile (Figma 6792:126444) still
+  // scaffolded — 제주세계유산 and 거문오름 예약 have their real pages now
+  // (JejuHeritage / JejuGeomun).
+  heritage_center: '제주세계유산센터',
   kdrama: 'K-DRAMA',
   restroom: '화장실',
   search: '검색',

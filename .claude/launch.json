@@ -1,0 +1,12 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "workloom-renderer",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["--prefix", "C:/Users/isroi/OneDrive/Desktop/crm/desktop_app", "run", "dev:renderer", "--", "--port", "5183", "--strictPort"],
+      "port": 5183,
+      "autoPort": false
+    }
+  ]
+}
