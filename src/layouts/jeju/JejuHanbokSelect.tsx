@@ -78,6 +78,16 @@
  * banner band (and draws no banner), every other tab hangs it above the banner
  * — so the 한복 설명 page is reachable from anywhere.
  *
+ * ── 2026-09-08 redraw (6258:48134 · 48469) ───────────────────────────
+ * Both frames re-issued; every y in the CSS's map still checks out against them,
+ * so only three things actually moved:
+ *   · the tab row is drawn as 10 tabs in 5 × 350 columns rather than 8 in 4 ×
+ *     420, which is a different GAP — see `.catsTight` in the CSS.
+ *   · the chip row gained the 박술녀 attribution on the 한복 tab
+ *     (HANBOK_BRAND_NOTE below).
+ *   · step ② gained a leading 배경 없음 tile, drawn selected — the null pick
+ *     made visible, and the only way back to it once a scene is tapped.
+ *
  * ── ♿ 베리어프리 (Figma 6327:85598 · 6422:25455 · 6418:10583) ─────────
  * The ♿ button on the left rail — the third and last control there — now has a
  * layout to switch to. Both tab conditions get one, and they differ from each
@@ -98,7 +108,7 @@ import 'swiper/css/free-mode';
 import { usePhotoChrome } from '../photo/photoChrome';
 import { HANBOK_INFO, PRIVACY } from '../photo/photoTexts';
 import hanbokInfo from '@renderer/assets/photos/insadong/hanbok/hanbok-info.png';
-import { t } from '@renderer/lib/loc';
+import { t, sheetText } from '@renderer/lib/loc';
 import type { CaptureMode } from '../photo/HanbokSelect';
 import { useOutfitStore } from '@renderer/store/outfitStore';
 import type { PickerOutfit } from '@renderer/store/outfitStore';
@@ -114,7 +124,7 @@ import {
   outfitSubCategoryLabel,
 } from '@renderer/lib/outfitCategories';
 import { cameraIconUrl } from '@renderer/assets/icons/insadong/camera';
-import { pick, useLang } from '@renderer/lib/i18n';
+import { pick, useLang, type Lang } from '@renderer/lib/i18n';
 import { useAccessibilityStore } from '@renderer/store/accessibilityStore';
 import { jejuMascot, type JejuMascot } from './jejuMascot';
 /* The privacy modal and the camera-direction popup are identical on every
@@ -301,6 +311,42 @@ const NO_OUTFITS = {
 };
 
 /**
+ * The attribution the 2026-09-08 redraw hung off the end of the chip row
+ * (6258:48134 · 6862:10120) — 한복 tab only, see `isHanbokCategory`.
+ *
+ * Authored here AND looked up by key: the sheet has no `Photo_HanbokBrandNote`
+ * row today (its only 박술녀 copy is the long 한복 설명 paragraph), so these
+ * carry the page until an operator adds one. Same shape as `BARRIER_FREE`.
+ */
+const HANBOK_BRAND_NOTE: Partial<Record<Lang, string>> = {
+  ko: 'WITH의 모든 한복은 박술녀 한복입니다.',
+  en: 'Every hanbok at WITH is a Park Sul-nyeo hanbok.',
+  ja: 'WITHの韓服はすべてパク・スルニョ韓服です。',
+  zh: 'WITH的所有韩服均为朴述女韩服。',
+  vi: 'Mọi hanbok tại WITH đều là hanbok Park Sul-nyeo.',
+  th: 'ฮันบกทุกชุดของ WITH เป็นฮันบกของพัคซุลนยอ',
+  ru: 'Весь ханбок в WITH — от Пак Суль Нё.',
+  id: 'Semua hanbok di WITH adalah hanbok Park Sul-nyeo.',
+};
+
+/**
+ * The 배경 없음 tile's accessible name. The frame draws the tile with no label
+ * at all (a bare plate is the whole point — it stands for "no scene"), so this
+ * is never painted; it is what the tile answers to for assistive tech and for
+ * anyone reading the DOM in QA.
+ */
+const NO_BACKGROUND_TILE: Partial<Record<Lang, string>> = {
+  ko: '배경 없음',
+  en: 'No background',
+  ja: '背景なし',
+  zh: '无背景',
+  vi: 'Không dùng phông nền',
+  th: 'ไม่ใช้พื้นหลัง',
+  ru: 'Без фона',
+  id: 'Tanpa latar',
+};
+
+/**
  * Step ②'s empty state — a kiosk with no ACTIVE background assigned to it.
  *
  * Worded like NO_OUTFITS on purpose: both are "the operator has not put content
@@ -319,15 +365,18 @@ const NO_BACKGROUNDS = {
 };
 
 /**
- * The ♿ mode bar's own line. Korean only, and a literal rather than a t() call,
- * because that is what every other 제주 page draws (JejuPageFrame.modeBar,
- * JejuHome.modeBar) — the sheet's BarrierFree_Title row has the same Korean and
- * empty cells in all seven other languages, so routing it through t() would
- * blank the bar for a non-Korean visitor. Figma spells it 베리어프리; the
- * shipped pages spell it 배리어프리, and one page reading differently from the
- * rest is worse than either spelling.
+ * ♿ mode bar — Localization_Jeju `BarrierFree_Title` (all eight languages).
  */
-const BARRIER_FREE = '지금은 배리어프리 모드입니다.';
+const BARRIER_FREE: Partial<Record<Lang, string>> = {
+  ko: '지금은 배리어프리 모드입니다.',
+  en: 'Currently in Barrier-Free Mode.',
+  ja: '現在はバリアフリーモードです。',
+  zh: '现在是无障碍模式。',
+  vi: 'Hiện tại là chế độ không rào cản.',
+  th: 'ขณะนี้อยู่ในโหมดไร้อุปสรรค',
+  ru: 'В настоящее время используется безбарьерный режим.',
+  id: 'Saat ini dalam mode bebas hambatan.',
+};
 
 const PRIVACY_LINK = {
   ko: '[개인정보처리방침]',
@@ -597,7 +646,7 @@ export function JejuHanbokSelect({
         {pageBg && <img src={pageBg} alt="" className={styles.bg} draggable={false} />}
         {/* This page has no low-reach frame of its own — it is a scrolling text
             page — so ♿ gives it the mode bar and clears the bar's 113. */}
-        {lowReach && <div className={styles.modeBar}>{BARRIER_FREE}</div>}
+        {lowReach && <div className={styles.modeBar}>{sheetText('BarrierFree_Title', lang, BARRIER_FREE)}</div>}
         <Header
           title={t('MainButton_Hanbok', lang)}
           onHome={onHome}
@@ -676,7 +725,7 @@ export function JejuHanbokSelect({
     >
       {pageBg && <img src={pageBg} alt="" className={styles.bg} draggable={false} />}
 
-      {lowReach && <div className={styles.modeBar}>{BARRIER_FREE}</div>}
+      {lowReach && <div className={styles.modeBar}>{sheetText('BarrierFree_Title', lang, BARRIER_FREE)}</div>}
 
       {/* Title only — the description row is dropped on this page by request
           (2026-09-03); without the flag JejuHeader would draw the sheet's
@@ -750,6 +799,12 @@ export function JejuHanbokSelect({
                 {outfitSubCategoryLabel(sc, lang)}
               </button>
             ))}
+            {/* 한복 only — 6258:48469 draws the same row on 제주 without it. */}
+            {isHanbokCategory(categoryId) && (
+              <p className={styles.subcatNote}>
+                {sheetText('Photo_HanbokBrandNote', lang, HANBOK_BRAND_NOTE)}
+              </p>
+            )}
           </div>
         )}
 
@@ -829,6 +884,18 @@ export function JejuHanbokSelect({
               <p className={styles.emptyThemes}>{pick(NO_BACKGROUNDS, lang)}</p>
             ) : (
               <div className={styles.themes}>
+                {/* 배경 없음 — the null pick, drawn first and active by default
+                    exactly as the frame shows it. Also the ONLY way back to the
+                    plain template once a scene has been tapped. */}
+                <button
+                  type="button"
+                  className={`${styles.theme} ${styles.themeNone} ${
+                    backgroundId === null ? styles.themeActive : ''
+                  }`}
+                  aria-pressed={backgroundId === null}
+                  aria-label={pick(NO_BACKGROUND_TILE, lang)}
+                  onClick={() => setBackgroundId(null)}
+                />
                 {backgrounds.map((bg) => {
                   const on = bg.backgroundId === backgroundId;
                   return (

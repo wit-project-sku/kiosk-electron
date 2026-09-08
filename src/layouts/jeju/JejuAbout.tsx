@@ -5,9 +5,15 @@
  * OWN layout, not a shared template — only 역사 uses the white panel:
  *   역사        6212:59045  white panel: gallery + intro, timeline bar, epoch prose
  *   문화        6212:59093  one white panel: intro + four 806×1014 shadowed cards
- *   관광명소     6212:59152  no panel; 초성 index over a scrolling 3-wide card grid
+ *   관광명소     6212:59152  no panel; 초성 index over a scrolling 3-wide card grid,
+ *                           opened by the 1812×767 map (6876:62701) at its head
  * The tab row is the only thing all three share, and it is the same row on all
  * three frames.
+ *
+ * The map is not decoration: it FILTERS the grid the way Airbnb's does. It opens
+ * fitted to every pin (no filtering), and once the visitor pans or zooms, the
+ * cards narrow to what is on screen — see `mapIds` and JejuSpotMap. The frame
+ * places it inside the scroller, so it scrolls away as the list is read.
  *
  * 관광명소 drills down IN PLACE (6212:59326): tapping a card swaps the grid for
  * the shared 상세 card, keeping this page's header, tabs and 초성 row. It is not
@@ -18,6 +24,7 @@ import { Fragment, useEffect, useLayoutEffect, useMemo, useRef, useState } from 
 import type { KioskController } from '@renderer/hooks/useKioskController';
 import { jejuIconUrl } from '@renderer/assets/icons/jeju';
 import type { Shop } from '@shared/types/shop';
+import type { Attraction } from '@shared/types/attraction';
 import { isOk } from '@shared/types/result';
 import type { DetailItem } from '@renderer/store/detailStore';
 import { useLanguageStore } from '@renderer/store/languageStore';
@@ -41,6 +48,7 @@ import { useAccessibilityStore } from '@renderer/store/accessibilityStore';
 import { JejuChosungRow } from './JejuChosungRow';
 import { JejuPageFrame } from './JejuPageFrame';
 import { JejuSpotDetailCard } from './JejuSpotDetailCard';
+import { JejuSpotMap, type MapSpot } from './JejuSpotMap';
 import { JejuTabRow } from './JejuTabRow';
 import styles from './JejuAbout.module.css';
 
@@ -204,6 +212,21 @@ const CHOSUNG_BAND = 82;
 /** The 상세 card sits at y1047 here, clearing the tab and 초성 rows. */
 const DETAIL_TOP = 1047;
 
+/**
+ * Where the 상세 card has to stop.
+ *
+ * The 2026-09 frame (6212:59326) draws the plate 2775 tall from y1052, which
+ * runs it to 3827 — 560px UNDER the banner it also draws at y3267. That is the
+ * frame overlapping itself, not a card that is meant to be read behind a
+ * banner, so the card is capped at the banner instead and scrolls inside. Same
+ * line the grid stops on (`.spots` bottom: 573).
+ *
+ * Low-reach has no banner; its content floor is the 3190 the frames bottom the
+ * card out on, clear of the tab row that moved to y3434.
+ */
+const DETAIL_FOOT = 3267;
+const LOW_DETAIL_FOOT = 3190;
+
 /*
  * Low-reach y values — Figma 6289:70215 / 70264 / 70323 / 70496, re-read
  * 2026-08-26 on the mode-bar revision (bar at y0–113, header y113, no banner).
@@ -225,6 +248,7 @@ const LOW_CHOSUNG_CELL = 124.57;
  */
 const toDetailItem = (s: Shop, lang: Lang): DetailItem => ({
   from: 'about',
+  shopId: s.id,
   title: '여기는 제주도',
   name: shopName(s, lang),
   category: shopCategoryLabel(s, lang),
@@ -238,6 +262,39 @@ const toDetailItem = (s: Shop, lang: Lang): DetailItem => ({
   instagram: '',
   blogReviews: s.naverLink ?? '',
 });
+
+/**
+ * Coordinates for the map, when the row carries them.
+ *
+ * `Attraction` has `latitude`/`longitude`; the `Shop` fallback catalogue does
+ * not, and neither type is narrowed at this point (`spots` is `Shop[]` either
+ * way). So this reads them off optionally rather than asserting — a kiosk on the
+ * fallback list gets no coordinates, no map, and the plain grid it has always
+ * had, instead of a crash or an empty map of the Atlantic.
+ *
+ * Zero is rejected along with null: the CMS writes 0/0 for a row nobody has
+ * geocoded, and a pin in the Gulf of Guinea would drag the fit-to-bounds view
+ * off 제주 for every other pin on the map.
+ */
+const spotCoords = (s: Shop): { lat: number; lng: number } | null => {
+  const { latitude, longitude } = s as Partial<Attraction>;
+  if (typeof latitude !== 'number' || typeof longitude !== 'number') return null;
+  if (!Number.isFinite(latitude) || !Number.isFinite(longitude)) return null;
+  if (latitude === 0 && longitude === 0) return null;
+  return { lat: latitude, lng: longitude };
+};
+
+/** The grid is empty because the MAP is narrowed, not because the filter is. */
+const NO_MATCH_IN_VIEW = {
+  ko: '이 지역에는 관광명소가 없습니다',
+  en: 'No attractions in this area',
+  ja: 'このエリアに観光名所はありません',
+  zh: '该区域没有旅游景点',
+  vi: 'Không có điểm tham quan trong khu vực này',
+  th: 'ไม่มีสถานที่ท่องเที่ยวในบริเวณนี้',
+  ru: 'В этой области нет достопримечательностей',
+  id: 'Tidak ada objek wisata di area ini',
+};
 
 const NO_MATCH = {
   ko: '조건에 맞는 관광명소가 없습니다',
@@ -275,6 +332,16 @@ export function JejuAbout({ controller }: Props): JSX.Element {
   const [jamo, setJamo] = useState<Chosung | null>(null);
   /** The 관광명소 drill-down; null is the card grid. */
   const [spot, setSpot] = useState<Shop | null>(null);
+  /**
+   * The ids the map is showing, or null for "the map is not narrowing anything"
+   * — its opening fit-to-all view, and after 전체 보기. The two are different
+   * states, not the same one: null keeps rows that carry NO coordinates in the
+   * grid, where an id list (even one holding every located row) drops them,
+   * which is right once the visitor has asked "what is in this area".
+   */
+  const [mapIds, setMapIds] = useState<number[] | null>(null);
+  /** The pin whose callout is open — also the card wearing the ring. */
+  const [pinned, setPinned] = useState<number | null>(null);
 
   /** Whichever region the active tab scrolls — the 문화 / 역사 panel as a whole,
    *  or the 관광명소 grid. Only one is mounted at a time. */
@@ -411,6 +478,58 @@ export function JejuAbout({ controller }: Props): JSX.Element {
   }, [spots, jamo, serverFiltered]);
 
   /**
+   * What the map pins: the 초성-filtered set, narrowed to rows that can be
+   * placed. Deliberately NOT the viewport-filtered list below — feeding the map
+   * its own output would refit it to whatever it last showed and it would walk
+   * itself into a corner on every pan.
+   */
+  const mapSpots = useMemo<MapSpot[]>(
+    () =>
+      visibleSpots.flatMap((s) => {
+        const at = spotCoords(s);
+        if (!at) return [];
+        return [
+          {
+            id: s.id,
+            lat: at.lat,
+            lng: at.lng,
+            name: shopName(s, lang),
+            address: shopAddress(s, lang),
+            photo: shopImages(s)[0],
+          },
+        ];
+      }),
+    [visibleSpots, lang],
+  );
+
+  /**
+   * The cards. The map narrows them Airbnb-style once it is off its fitted view;
+   * until then this is `visibleSpots` unchanged.
+   */
+  const listedSpots = useMemo(() => {
+    if (!mapIds) return visibleSpots;
+    const inView = new Set(mapIds);
+    return visibleSpots.filter((s) => inView.has(s.id));
+  }, [visibleSpots, mapIds]);
+
+  /**
+   * Tapping a pin brings its card to the middle of the grid. `offsetTop` is
+   * measured against `.spots` (the scroll box is the nearest positioned
+   * ancestor) and is unaffected by how far it is already scrolled, so this is
+   * the absolute destination rather than a delta.
+   */
+  useEffect(() => {
+    const box = scrollRef.current;
+    if (pinned === null || !box) return;
+    const card = box.querySelector<HTMLElement>(`[data-spot-id="${pinned}"]`);
+    if (!card) return;
+    box.scrollTo({
+      top: Math.max(0, card.offsetTop - box.clientHeight / 2 + card.offsetHeight / 2),
+      behavior: 'smooth',
+    });
+  }, [pinned, listedSpots]);
+
+  /**
    * The ▲▼ pair is drawn on all three frames (6212:59090 / 59149 / 59320) as it
    * is on every 제주 content page. 역사 and 문화 scroll their panels as a whole
    * when content overflows; 관광명소 does as soon as there are more than six
@@ -420,7 +539,7 @@ export function JejuAbout({ controller }: Props): JSX.Element {
   useLayoutEffect(() => {
     const el = scrollRef.current;
     setCanScroll(!!el && el.scrollHeight > el.clientHeight + 1);
-  }, [tab, lang, spot, visibleSpots.length, historyEpochs.length, historyFlow.length]);
+  }, [tab, lang, spot, listedSpots.length, historyEpochs.length, historyFlow.length]);
 
   const scrollBy = (delta: number): void =>
     scrollRef.current?.scrollBy({ top: delta, behavior: 'smooth' });
@@ -441,6 +560,26 @@ export function JejuAbout({ controller }: Props): JSX.Element {
     });
     setSpot(s);
   };
+
+  /** Open the 상세 from a map callout, which knows an id and not a row. */
+  const openSpotById = (id: number): void => {
+    const found = visibleSpots.find((s) => s.id === id);
+    if (found) openSpot(found);
+  };
+
+  const detailTop = lowReach
+    ? LOW_CONTENT_TOP
+    : showChosung
+      ? DETAIL_TOP
+      : DETAIL_TOP - CHOSUNG_BAND;
+
+  /**
+   * The 상세 card's own map pin. Memoised on the VALUES rather than rebuilt
+   * inline: the card refits its map whenever this object's identity changes, so
+   * a fresh one each render would snap a panned map back on every keystroke of
+   * state elsewhere on the page.
+   */
+  const detailMap = useMemo(() => (spot ? spotCoords(spot) : null), [spot]);
 
   /** Back closes the drill-down first — leaving the page from inside it would
    *  drop the visitor home from two levels down in one press. */
@@ -640,6 +779,11 @@ export function JejuAbout({ controller }: Props): JSX.Element {
                 // the visitor back on the grid. Re-filtering would otherwise also
                 // leave the view scrolled into a list that no longer exists.
                 setSpot(null);
+                // The map refits itself to the new set and reports null a beat
+                // later; clearing here means the grid is never briefly narrowed
+                // by the OLD viewport against the NEW 초성 list.
+                setMapIds(null);
+                setPinned(null);
                 scrollRef.current?.scrollTo({ top: 0 });
               }}
               cellWidth={CHOSUNG_CELL}
@@ -647,43 +791,81 @@ export function JejuAbout({ controller }: Props): JSX.Element {
           )}
 
           {spot ? (
-            /* 상세 (6212:59326) — the shared card in its 사진1개 variant, in
-               place of the grid. The 초성 row above it stays, exactly as the
-               frame draws it — and where there is no row, the card takes that
-               band too rather than floating below a gap. */
+            /* 상세 (6212:59326) — the shared card in place of the grid. The 초성
+               row above it stays, exactly as the frame draws it — and where
+               there is no row, the card takes that band too rather than
+               floating below a gap.
+               The 2026-09 revision opens the card with a map of the attraction
+               and lays its four photos across in one row, where it used to be
+               the 사진1개 variant with no map. */
             <JejuSpotDetailCard
               item={toDetailItem(spot, lang)}
-              top={lowReach ? LOW_CONTENT_TOP : showChosung ? DETAIL_TOP : DETAIL_TOP - CHOSUNG_BAND}
-              gallery="single"
+              top={detailTop}
+              gallery="row"
+              map={detailMap}
+              maxScrollHeight={(lowReach ? LOW_DETAIL_FOOT : DETAIL_FOOT) - detailTop}
+              lang={lang}
             />
           ) : (
             <div
-              className={[styles.spots, showChosung ? '' : styles.spotsNoChosung, lowReach ? styles.spotsLow : '']
+              className={[
+                styles.spots,
+                showChosung ? '' : styles.spotsNoChosung,
+                lowReach ? styles.spotsLow : '',
+              ]
                 .filter(Boolean)
                 .join(' ')}
               ref={scrollRef}
             >
-              {visibleSpots.length > 0 ? (
-                <div className={styles.spotGrid}>
-                  {visibleSpots.map((s) => (
-                    <JejuAttractionCard
-                      key={s.id}
-                      name={shopName(s, lang)}
-                      address={shopAddress(s, lang)}
-                      // The shops API carries one `openTime` string; the frame's
-                      // third row shows a second (breaktime) line, which needs an
-                      // API field that does not exist yet.
-                      hours={s.openTime ? [s.openTime] : []}
-                      photo={shopImages(s)[0]}
-                      onClick={() => openSpot(s)}
-                    />
-                  ))}
-                </div>
-              ) : (
-                <p className={styles.empty}>
-                  {pick(spots.length === 0 ? COMING_SOON : NO_MATCH, lang)}
-                </p>
-              )}
+              {/* 6876:17133 — map then card rows, one 60px column. The map is
+                  INSIDE the scroller as the frame draws it, so it scrolls away
+                  once the visitor is reading the list rather than pinning 767px
+                  of the panel open for the whole run. */}
+              <div className={styles.spotColumn}>
+                {mapSpots.length > 0 && (
+                  <JejuSpotMap
+                    spots={mapSpots}
+                    activeId={pinned}
+                    onSelect={setPinned}
+                    onOpen={openSpotById}
+                    onViewportChange={setMapIds}
+                    lang={lang}
+                  />
+                )}
+
+                {listedSpots.length > 0 ? (
+                  <div className={styles.spotGrid}>
+                    {listedSpots.map((s) => (
+                      <JejuAttractionCard
+                        key={s.id}
+                        spotId={s.id}
+                        active={s.id === pinned}
+                        name={shopName(s, lang)}
+                        address={shopAddress(s, lang)}
+                        // The shops API carries one `openTime` string; the frame's
+                        // third row shows a second (breaktime) line, which needs an
+                        // API field that does not exist yet.
+                        hours={s.openTime ? [s.openTime] : []}
+                        photo={shopImages(s)[0]}
+                        onClick={() => openSpot(s)}
+                      />
+                    ))}
+                  </div>
+                ) : (
+                  <p className={styles.empty}>
+                    {pick(
+                      spots.length === 0
+                        ? COMING_SOON
+                        : visibleSpots.length > 0
+                          ? // There ARE matches, the map is just not looking at
+                            // them — say so, and leave 전체 보기 as the way back.
+                            NO_MATCH_IN_VIEW
+                          : NO_MATCH,
+                      lang,
+                    )}
+                  </p>
+                )}
+              </div>
             </div>
           )}
         </>

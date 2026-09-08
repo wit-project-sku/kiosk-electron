@@ -1,10 +1,11 @@
 /**
- * 도와줘 '하영' — Figma node 6219:98767 (제주>도와줘 하영-01=공항).
+ * 도와줘 '제주' — Figma nodes 6819:9769 (국제선) / 6862:9953 (국내선), the
+ * redraw of 6219:98767 / 6393:59030. Low-reach (♿) is 6422:44067.
  *
  * The 제주공항 facility finder: pick a terminal, a floor and a category, and the
- * matching airport map is shown. Unlike the other layouts' 도와줘 screens
- * (InsadongHelp/OsanHelp/HwaseongHelp), which list shops from the witteria API,
- * this one is a map browser — 제주's frame draws no list at all.
+ * matching airport map is shown with a result-card list under it. Unlike the
+ * other layouts' 도와줘 screens (InsadongHelp/OsanHelp/HwaseongHelp), which list
+ * shops from the witteria API, this one is a map + sheet browser.
  *
  * Every chip shares one screen and one floor plan; only the DATA differs. The
  * terminal and floor pick the plan, and the category chip decides which of that
@@ -38,10 +39,10 @@
  * 1820-wide slot. The slot keeps that width and only moves up the page; see
  * .map.
  *
- * The map is also this screen's only way OUT to 상세 (6219:99127): each map
- * declares the facilities drawn on it, and tapping one opens the shared detail
- * card. That frame is what makes the pins necessary — it is the 도와줘 flow's own
- * detail and nothing else on this page could reach it.
+ * The map pins AND the result cards under the map both open 상세 (6219:99127):
+ * each map declares the facilities drawn on it, and the list under it repeats
+ * the selected category's sheet rows (or the marked pins when the sheet has
+ * none). That frame is the 도와줘 flow's own detail.
  *
  * ── W007 draws ITS OWN building (2026-09-03) ────────────────────────────────
  * 제주국제여객터미널 runs this same page (one JEJU_AIRPORT layout — see
@@ -78,10 +79,12 @@ import { useAccessibilityStore } from '@renderer/store/accessibilityStore';
 import { useLanguageStore } from '@renderer/store/languageStore';
 import { useShopStore } from '@renderer/store/shopStore';
 import { pick, type Lang } from '@renderer/lib/i18n';
+import { sheetText } from '@renderer/lib/loc';
 import { pickText } from '@renderer/data/types';
 import {
   assignFacilities,
   chipLabel,
+  facilitiesOn,
   facilityImageUrl,
   HELP_CHIPS,
   type AirportFacility,
@@ -120,35 +123,44 @@ import mapTerminalDepartureEn from '@renderer/assets/photos/jeju/help/map-termin
 type TerminalId = 'international' | 'domestic';
 type FloorId = '1F' | '2F' | '3F' | '4F';
 
-/** Terminal pills in frame order (6219:98779 / 98783). */
+/** Terminal pills in frame order (6219:98779 / 98783). Sheet: Help_International / Help_Domestic. */
 const TERMINALS = [
   {
     id: 'international',
+    sheetKey: 'Help_International',
     label: {
       ko: '국제선',
       en: 'International',
       ja: '国際線',
-      zh: '国际航线',
-      vi: 'Quốc tế',
-      th: 'ระหว่างประเทศ',
-      ru: 'Международные',
-      id: 'Internasional',
+      zh: '国际线',
+      vi: 'Chuyến bay quốc tế',
+      th: 'เที่ยวบินระหว่างประเทศ',
+      ru: 'Международные рейсы',
+      id: 'Penerbangan Internasional',
     },
   },
   {
     id: 'domestic',
+    sheetKey: 'Help_Domestic',
     label: {
       ko: '국내선',
       en: 'Domestic',
       ja: '国内線',
-      zh: '国内航线',
-      vi: 'Nội địa',
-      th: 'ในประเทศ',
-      ru: 'Внутренние',
-      id: 'Domestik',
+      zh: '国内线',
+      vi: 'Chuyến bay nội địa',
+      th: 'เที่ยวบินในประเทศ',
+      ru: 'Внутренние рейсы',
+      id: 'Penerbangan Domestik',
     },
   },
-] as const satisfies ReadonlyArray<{ id: TerminalId; label: Record<string, string> }>;
+] as const satisfies ReadonlyArray<{
+  id: TerminalId;
+  sheetKey: string;
+  label: Record<string, string>;
+}>;
+
+const terminalLabel = (t: (typeof TERMINALS)[number], lang: Lang): string =>
+  sheetText(t.sheetKey, lang, t.label);
 
 /**
  * The floors each terminal offers. 국내선 runs 1–4F and 국제선 is 1F and 3F, so
@@ -303,6 +315,13 @@ interface AirportMap {
    * it. See .pinMarker in the CSS.
    */
   pinScale?: number;
+  /**
+   * White slot height in px. Default is the Figma 813; taller upright plans
+   * (국내선 4F at 1.25:1) need more or the drawing is clipped by `.map`'s
+   * overflow. Sized so the plan fills the 1820-wide slot after `.zoomLayer`'s
+   * 40×50 padding: content width 1720 → height = 1720 × (h/w) + 80.
+   */
+  height?: number;
 }
 
 const MAPS: Record<string, AirportMap> = {
@@ -310,7 +329,9 @@ const MAPS: Record<string, AirportMap> = {
   'domestic-2F': { src: mapDomestic2f, srcEn: mapDomestic2fEn },
   'domestic-3F': { src: mapDomestic3f, srcEn: mapDomestic3fEn },
   // No `srcEn`: 국내선 4F is the one plan with no lettering on it.
-  'domestic-4F': { src: mapDomestic4f, pinScale: 2.75 },
+  // 2958×2367 (1.25:1) — upright vs the wide 1–3F plans; raise the slot so
+  // the drawing is not clipped inside the default 813-tall plate.
+  'domestic-4F': { src: mapDomestic4f, pinScale: 2.75, height: 1456 },
   'international-1F': {
     src: mapInternational1f,
     srcEn: mapInternational1fEn,
@@ -344,28 +365,28 @@ const PINS: Record<string, FacilityPin[]> = {
   // 화장실 3  ·  안내소 3  ·  식음료 6  ·  편의점 2  ·  은행·환전 4  ·  흡연실 1  ·  유아휴게실 1  ·  교통약자 편의시설 3  ·  기타 12
   'domestic-1F': [
     // 화장실
-    { x: 0.1114, y: 0.3866, category: '화장실' },
+    { x: 0.1114, y: 0.4066, category: '화장실' },
     { x: 0.3232, y: 0.0828, category: '화장실' },
     { x: 0.8286, y: 0.2113, category: '화장실' },
     // 안내소
-    { x: 0.0411, y: 0.6737, category: '안내소' },
-    { x: 0.3657, y: 0.1698, category: '안내소' },
-    { x: 0.8618, y: 0.2154, category: '안내소' },
+    { x: 0.0411, y: 0.7137, category: '안내소' },
+    { x: 0.3657, y: 0.1798, category: '안내소' },
+    { x: 0.8618, y: 0.2254, category: '안내소' },
     // 식음료
-    { x: 0.1961, y: 0.2113, category: '식음료' },
-    { x: 0.222, y: 0.1819, category: '식음료' },
-    { x: 0.2405, y: 0.143, category: '식음료' },
-    { x: 0.3019, y: 0.3827, category: '식음료' },
-    { x: 0.7301, y: 0.3833, category: '식음료' },
-    { x: 0.766, y: 0.2167, category: '식음료' },
+    { x: 0.1961, y: 0.2313, category: '식음료' },
+    { x: 0.222, y: 0.1919, category: '식음료' },
+    { x: 0.2405, y: 0.153, category: '식음료' },
+    { x: 0.3019, y: 0.4127, category: '식음료' },
+    { x: 0.7301, y: 0.4033, category: '식음료' },
+    { x: 0.766, y: 0.2367, category: '식음료' },
     // 편의점
-    { x: 0.2071, y: 0.6523, category: '편의점' },
-    { x: 0.8186, y: 0.384, category: '편의점' },
+    { x: 0.2071, y: 0.6923, category: '편의점' },
+    { x: 0.8186, y: 0.404, category: '편의점' },
     // 은행·환전
-    { x: 0.0736, y: 0.5211, category: '은행·환전' },
-    { x: 0.1564, y: 0.3257, category: '은행·환전' },
-    { x: 0.1603, y: 0.8377, category: '은행·환전' },
-    { x: 0.29, y: 0.0808, category: '은행·환전' },
+    { x: 0.0736, y: 0.5611, category: '은행·환전' },
+    { x: 0.1564, y: 0.3557, category: '은행·환전' },
+    { x: 0.1603, y: 0.8977, category: '은행·환전' },
+    { x: 0.29, y: 0.0908, category: '은행·환전' },
     // 흡연실
     { x: 0.9806, y: 0.3137, category: '흡연실' },
     // 유아휴게실
@@ -375,18 +396,18 @@ const PINS: Record<string, FacilityPin[]> = {
     { x: 0.3657, y: 0.0828, category: '교통약자\n편의시설' },
     { x: 0.7922, y: 0.2113, category: '교통약자\n편의시설' },
     // 기타
-    { x: 0.1357, y: 0.2956, category: '기타' },
-    { x: 0.1758, y: 0.7841, category: '기타' },
-    { x: 0.2144, y: 0.4489, category: '기타' },
-    { x: 0.3429, y: 0.3846, category: '기타' },
-    { x: 0.3655, y: 0.3846, category: '기타' },
-    { x: 0.3974, y: 0.3846, category: '기타' },
+    { x: 0.1357, y: 0.3156, category: '기타' },
+    { x: 0.1758, y: 0.8341, category: '기타' },
+    { x: 0.2144, y: 0.4789, category: '기타' },
+    { x: 0.3429, y: 0.4146, category: '기타' },
+    { x: 0.3655, y: 0.4146, category: '기타' },
+    { x: 0.3974, y: 0.4146, category: '기타' },
     { x: 0.4767, y: 0.1056, category: '기타' },
     { x: 0.529, y: 0.0441, category: '기타' },
-    { x: 0.576, y: 0.3324, category: '기타' },
-    { x: 0.5998, y: 0.3887, category: '기타' },
+    { x: 0.576, y: 0.3524, category: '기타' },
+    { x: 0.5998, y: 0.4087, category: '기타' },
     { x: 0.7019, y: 0.1062, category: '기타' },
-    { x: 0.7743, y: 0.4622, category: '기타' },
+    { x: 0.7743, y: 0.5022, category: '기타' },
   ],
   // 화장실 5  ·  식음료 7  ·  편의점 7  ·  은행·환전 1  ·  유아휴게실 2  ·  교통약자 편의시설 2  ·  기타 5
   'domestic-2F': [
@@ -468,50 +489,50 @@ const PINS: Record<string, FacilityPin[]> = {
   // 화장실 2  ·  식음료 7  ·  교통약자 편의시설 2  ·  기타 2
   'domestic-4F': [
     // 화장실
-    { x: 0.3818, y: 0.3754, category: '화장실' },
-    { x: 0.8306, y: 0.0715, category: '화장실' },
+    { x: 0.3818, y: 0.3854, category: '화장실' },
+    { x: 0.8306, y: 0.0815, category: '화장실' },
     // 식음료
-    { x: 0.21, y: 0.6416, category: '식음료' },
-    { x: 0.4114, y: 0.7937, category: '식음료' },
-    { x: 0.5415, y: 0.5587, category: '식음료' },
-    { x: 0.5543, y: 0.1779, category: '식음료' },
-    { x: 0.676, y: 0.3762, category: '식음료' },
-    { x: 0.7098, y: 0.0816, category: '식음료' },
-    { x: 0.8688, y: 0.3217, category: '식음료' },
+    { x: 0.21, y: 0.6616, category: '식음료' },
+    { x: 0.4114, y: 0.8137, category: '식음료' },
+    { x: 0.5415, y: 0.5787, category: '식음료' },
+    { x: 0.5543, y: 0.1979, category: '식음료' },
+    { x: 0.676, y: 0.3962, category: '식음료' },
+    { x: 0.7098, y: 0.1016, category: '식음료' },
+    { x: 0.8688, y: 0.3417, category: '식음료' },
     // 교통약자 편의시설
     { x: 0.3189, y: 0.5064, category: '교통약자\n편의시설' },
     { x: 0.9401, y: 0.0715, category: '교통약자\n편의시설' },
     // 기타
-    { x: 0.5015, y: 0.3462, category: '기타' },
-    { x: 0.7308, y: 0.1779, category: '기타' },
+    { x: 0.5015, y: 0.3662, category: '기타' },
+    { x: 0.7308, y: 0.1979, category: '기타' },
   ],
   // 안내소 5  ·  식음료 2  ·  편의점 1  ·  은행·환전 3  ·  교통약자 편의시설 2  ·  유실물센터 1  ·  기타 4
   'international-1F': [
     // 안내소
-    { x: 0.14, y: 0.7699, category: '안내소' },
-    { x: 0.1793, y: 0.7699, category: '안내소' },
-    { x: 0.2184, y: 0.7699, category: '안내소' },
-    { x: 0.4104, y: 0.2454, category: '안내소' },
-    { x: 0.5169, y: 0.7665, category: '안내소' },
+    { x: 0.14, y: 0.8899, category: '안내소' },
+    { x: 0.1793, y: 0.8899, category: '안내소' },
+    { x: 0.2184, y: 0.8899, category: '안내소' },
+    { x: 0.4104, y: 0.2854, category: '안내소' },
+    { x: 0.5169, y: 0.8899, category: '안내소' },
     // 식음료
-    { x: 0.7683, y: 0.7612, category: '식음료' },
-    { x: 0.8979, y: 0.7699, category: '식음료' },
+    { x: 0.7683, y: 0.8912, category: '식음료' },
+    { x: 0.8979, y: 0.9009, category: '식음료' },
     // 편의점
-    { x: 0.9338, y: 0.2014, category: '편의점' },
+    { x: 0.9338, y: 0.2414, category: '편의점' },
     // 은행·환전
-    { x: 0.5106, y: 0.4364, category: '은행·환전' },
-    { x: 0.709, y: 0.7648, category: '은행·환전' },
-    { x: 0.8962, y: 0.2014, category: '은행·환전' },
+    { x: 0.5106, y: 0.5064, category: '은행·환전' },
+    { x: 0.709, y: 0.8848, category: '은행·환전' },
+    { x: 0.8962, y: 0.2414, category: '은행·환전' },
     // 교통약자 편의시설
     { x: 0.3094, y: 0.6394, category: '교통약자\n편의시설' },
     { x: 0.6824, y: 0.3475, category: '교통약자\n편의시설' },
     // 유실물센터
     { x: 0.1971, y: 0.5556, category: '유실물센터' },
     // 기타
-    { x: 0.0563, y: 0.4813, category: '기타' },
-    { x: 0.1322, y: 0.484, category: '기타' },
-    { x: 0.4696, y: 0.2447, category: '기타' },
-    { x: 0.6821, y: 0.5384, category: '기타' },
+    { x: 0.0563, y: 0.5613, category: '기타' },
+    { x: 0.1322, y: 0.5584, category: '기타' },
+    { x: 0.4696, y: 0.2847, category: '기타' },
+    { x: 0.6821, y: 0.6184, category: '기타' },
   ],
   // 화장실 3  ·  안내소 3  ·  식음료 5  ·  편의점 7  ·  은행·환전 2  ·  유아휴게실 1  ·  기타 5
   'international-3F': [
@@ -692,7 +713,7 @@ const BASE_CATEGORY = '제주 도와줘';
  *  named it — an unpaired pictogram knows only its terminal and its floor. */
 function placeLine(terminal: TerminalId, floor: FloorId, lang: Lang): string {
   const t = TERMINALS.find((x) => x.id === terminal)!;
-  return `${pick(AIRPORT, lang)} ${pick(t.label, lang)} ${floor}`;
+  return `${pick(AIRPORT, lang)} ${terminalLabel(t, lang)} ${floor}`;
 }
 
 /**
@@ -704,7 +725,7 @@ function placeLine(terminal: TerminalId, floor: FloorId, lang: Lang): string {
  */
 function zoneLine(terminal: TerminalId, facility: AirportFacility, lang: Lang): string {
   const t = TERMINALS.find((x) => x.id === terminal)!;
-  return `${pick(AIRPORT, lang)} ${pick(t.label, lang)} ${pickText(facility.location, lang)}`;
+  return `${pick(AIRPORT, lang)} ${terminalLabel(t, lang)} ${pickText(facility.location, lang)}`;
 }
 
 /** The sheet writes "-" where a facility has no telephone (every ATM, most desks);
@@ -799,7 +820,15 @@ interface ViewState {
  * The `key` its caller passes doubles as the reset: a new plan (floor, zone,
  * or language switch) remounts this and starts back at fitted.
  */
-function MapZoomPan({ className, children }: { className: string; children: ReactNode }): JSX.Element {
+function MapZoomPan({
+  className,
+  style,
+  children,
+}: {
+  className: string;
+  style?: CSSProperties;
+  children: ReactNode;
+}): JSX.Element {
   const viewportRef = useRef<HTMLDivElement | null>(null);
   const [view, setView] = useState<ViewState>({ s: 1, tx: 0, ty: 0 });
   /** Mirror of `view` for handlers that must read it without a stale closure. */
@@ -920,6 +949,7 @@ function MapZoomPan({ className, children }: { className: string; children: Reac
     <div
       ref={viewportRef}
       className={`${className} ${styles.zoomable}`}
+      style={style}
       onPointerDown={onPointerDown}
       onPointerMove={onPointerMove}
       onPointerUp={onPointerUp}
@@ -1010,6 +1040,19 @@ export function JejuHelp({ controller, initialCategory }: Props): JSX.Element {
   /** The pictograms the selected chip marks — every other one stays as drawn. */
   const activePins = assigned.filter((a) => a.chip === category);
 
+  /**
+   * Result cards under the map (6819:9769 / 6862:9953).
+   *
+   * Prefer the sheet rows for this floor + category — that is the directory the
+   * new frames draw. When the sheet has none (pictogram-only chips, or a floor
+   * whose rows have not landed yet), fall back to the marked pins so the list
+   * still matches what the map is pointing at.
+   */
+  const sheetList = useMemo(() => {
+    if (atPort) return [];
+    return facilitiesOn(terminal, floor).filter((f) => f.category.ko === category);
+  }, [atPort, terminal, floor, category]);
+
   const facilities = useMemo(() => shopsForBase(shops, BASE_CATEGORY), [shops]);
 
   /**
@@ -1026,7 +1069,7 @@ export function JejuHelp({ controller, initialCategory }: Props): JSX.Element {
   };
 
   /**
-   * Open 도와줘 '하영' > 상세 (6219:99127) for a pin.
+   * Open 도와줘 '제주' > 상세 (6219:99127) for a pin or a list card.
    *
    * Three sources, in descending order of what they know:
    *
@@ -1043,14 +1086,15 @@ export function JejuHelp({ controller, initialCategory }: Props): JSX.Element {
    * JejuSpotDetailCard), so a card shows what is actually known about the place
    * and no more.
    */
-  const openPin = ({ pin, chip, facility }: AssignedPin<FacilityPin>): void => {
-    const wanted = facility?.name.ko ?? pin.shop ?? pin.label ?? chip;
+  const openDetail = (args: {
+    chip: string;
+    facility?: AirportFacility;
+    pin?: FacilityPin;
+  }): void => {
+    const { chip, facility, pin } = args;
+    const wanted = facility?.name.ko ?? pin?.shop ?? pin?.label ?? chip;
     const shop = facilities.find((s) => s.shopNameKr === wanted);
 
-    // The bundled resources/help photo of the sheet row, named by its terminal
-    // and per-terminal number (see facilityImageUrl). It leads: it is OUR shot
-    // of exactly this facility, where the witteria photos are a name-matched
-    // guess that does not exist yet (see BASE_CATEGORY).
     const facilityPhoto = facility && facilityImageUrl(facility);
 
     track(
@@ -1061,16 +1105,14 @@ export function JejuHelp({ controller, initialCategory }: Props): JSX.Element {
 
     setDetail({
       from: 'help',
-      // Named in the visitor's own language; the Korean form is only what the
-      // witteria row above was looked up by.
       name: facility
         ? pickText(facility.name, lang)
         : shop
           ? shopName(shop, lang)
-          : pinLabel(pin, chip, lang),
-      title: '여기는 제주도',
-      // The row's OWN category, not the chip — they are the same string whenever
-      // the sheet named the pin, and where it did not the chip is all there is.
+          : pin
+            ? pinLabel(pin, chip, lang)
+            : chipLabel(chip, lang).replace('\n', ' '),
+      title: jejuMascot().helpTitle,
       category: chipLabel(facility?.category.ko ?? chip, lang).replace('\n', ' '),
       photos: [...(facilityPhoto ? [facilityPhoto] : []), ...(shop ? shopImages(shop) : [])],
       address: facility
@@ -1090,26 +1132,34 @@ export function JejuHelp({ controller, initialCategory }: Props): JSX.Element {
       tags: shop ? shopHashtag(shop, lang) : '',
       rating: shop?.naverRating != null ? String(shop.naverRating) : '',
       instagram: '',
-      // Carries the Naver LINK, not a review count — see JejuDetail.
       blogReviews: shop?.naverLink ?? '',
+      // Floor plan of the terminal/floor this facility was opened from — Figma
+      // 6219:99127 draws it under the description on the help detail card.
+      mapImage: planSrc,
     });
     controller.navigate('detail', `도와줘 ${jejuMascot().ko} 상세`);
   };
 
-  return (
-    // No banner in the standard layout: the frame runs the background
-    // illustration to the bottom. The low-reach frame DOES open with one, so
-    // the page asks for it — see .mapLow and friends.
-    <JejuPageFrame
-      controller={controller}
-      title={jejuMascot().helpTitle}
-      showBanner={false}
-      lowReachBanner
-      lowReachSelfLayout
-      bannerFallback="banner-detail"
-      onBack={() => controller.navigate('home', '뒤로')}
-    >
-      <div className={`${styles.terminals} ${lowReach ? styles.terminalsLow : ''}`}>
+  const openPin = (a: AssignedPin<FacilityPin>): void => {
+    openDetail({ chip: a.chip, facility: a.facility, pin: a.pin });
+  };
+
+  /** Location line on a list card — the sheet zone when known, else the floor. */
+  const cardPlace = (facility?: AirportFacility): string => {
+    if (facility) return pickText(facility.location, lang) || placeLine(terminal, floor, lang);
+    if (atPort) return portPlaceLine(zone, lang);
+    return placeLine(terminal, floor, lang);
+  };
+
+  const cardName = (facility?: AirportFacility, pin?: FacilityPin, chip: string = category): string => {
+    if (facility) return pickText(facility.name, lang);
+    if (pin) return pinLabel(pin, chip, lang);
+    return chipLabel(chip, lang).replace('\n', ' ');
+  };
+
+  const pickers = (
+    <>
+      <div className={styles.terminals}>
         {atPort
           ? PORT_ZONES.map(({ id, label }) => (
               <button
@@ -1124,25 +1174,21 @@ export function JejuHelp({ controller, initialCategory }: Props): JSX.Element {
                 {pick(label, lang)}
               </button>
             ))
-          : TERMINALS.map(({ id, label }) => (
+          : TERMINALS.map((t) => (
               <button
-                key={id}
+                key={t.id}
                 type="button"
-                className={`${styles.pill} ${id === terminal ? styles.pillActive : ''}`}
-                onClick={() => pickTerminal(id)}
+                className={`${styles.pill} ${t.id === terminal ? styles.pillActive : ''}`}
+                onClick={() => pickTerminal(t.id)}
               >
-                {pick(label, lang)}
+                {terminalLabel(t, lang)}
               </button>
             ))}
       </div>
 
-      {/* This page's floor band is on y940, not the shared row's y920. The
-          terminal venue draws NO floor row — its two maps are zones of one
-          storey whose 층 the plans never state, so no number is invented; the
-          band stays empty rather than carrying a guess. */}
       {!atPort && (
         <JejuSubTabRow
-          className={`${styles.floors} ${lowReach ? styles.floorsLow : ''}`}
+          className={styles.floors}
           items={floors}
           value={floor}
           onChange={(id) => {
@@ -1151,78 +1197,199 @@ export function JejuHelp({ controller, initialCategory }: Props): JSX.Element {
           }}
         />
       )}
+    </>
+  );
 
-      <div className={`${styles.cats} ${lowReach ? styles.catsLow : ''}`}>
-        {Array.from({ length: CATEGORY_ROWS }, (_, row) => row * PER_ROW).map((start) => (
-          <div key={start} className={styles.catRow}>
-            {CATEGORIES.slice(start, start + PER_ROW).map((id) => (
+  const categoryChips = (
+    <div className={styles.cats}>
+      {Array.from({ length: CATEGORY_ROWS }, (_, row) => row * PER_ROW).map((start) => (
+        <div key={start} className={styles.catRow}>
+          {CATEGORIES.slice(start, start + PER_ROW).map((id) => (
+            <button
+              key={id}
+              type="button"
+              className={`${styles.pill} ${id === category ? styles.pillActive : ''}`}
+              onClick={() => {
+                track({ category: id });
+                setCategory(id);
+              }}
+            >
+              <span className={styles.pillLabel}>{chipLine(id, lang)}</span>
+            </button>
+          ))}
+        </div>
+      ))}
+    </div>
+  );
+
+  const mapBlock = (() => {
+    if (!map || !planSrc) {
+      return <p className={styles.empty}>{pick(COMING_SOON, lang)}</p>;
+    }
+    const src = planSrc;
+    return (
+      <MapZoomPan
+        key={src}
+        className={styles.map ?? ''}
+        style={map.height ? { height: map.height } : undefined}
+      >
+        <div
+          className={styles.plan}
+          style={{ '--pin-scale': map.pinScale ?? 1 } as CSSProperties}
+        >
+          <img src={src} alt="" draggable={false} />
+
+          {activePins.map((a) => (
+            <button
+              key={`${a.pin.x},${a.pin.y}`}
+              type="button"
+              className={styles.pin}
+              style={at(a.pin, lang)}
+              onClick={() => openPin(a)}
+              aria-label={
+                a.facility ? pickText(a.facility.name, lang) : pinLabel(a.pin, a.chip, lang)
+              }
+            >
+              {marker && (
+                <img src={marker} alt="" className={styles.pinMarker} draggable={false} />
+              )}
+            </button>
+          ))}
+
+          {map.here && here && (
+            <div
+              className={styles.here}
+              style={{ left: `${map.here.x * 100}%`, top: `${map.here.y * 100}%` }}
+            >
+              <img src={here} alt="" className={styles.hereIcon} draggable={false} />
+              <p className={styles.hereLabel}>{pick(YOU_ARE_HERE, lang)}</p>
+            </div>
+          )}
+        </div>
+      </MapZoomPan>
+    );
+  })();
+
+  const listBlock = (
+    <div className={styles.list}>
+      {sheetList.length > 0
+        ? sheetList.map((facility) => {
+            const tel = telOf(facility);
+            return (
               <button
-                key={id}
+                key={`${facility.name.ko}-${facility.location.ko}-${facility.tel}`}
                 type="button"
-                className={`${styles.pill} ${id === category ? styles.pillActive : ''}`}
-                onClick={() => {
-                  track({ category: id });
-                  setCategory(id);
-                }}
+                className={styles.card}
+                onClick={() => openDetail({ chip: category, facility })}
               >
-                <span className={styles.pillLabel}>{chipLine(id, lang)}</span>
+                <div className={styles.cardNameRow}>
+                  <p className={styles.cardName}>{cardName(facility)}</p>
+                  <span className={styles.cardCat}>
+                    <span className={styles.cardDot} />
+                    {chipLabel(facility.category.ko, lang).replace('\n', ' ')}
+                  </span>
+                </div>
+                <p className={styles.cardMeta}>{cardPlace(facility)}</p>
+                {tel ? <p className={styles.cardMeta}>{tel}</p> : null}
               </button>
-            ))}
-          </div>
-        ))}
-      </div>
-
-      {map && planSrc ? (
-        /* `key` on the VIEWPORT so a terminal/floor/zone/language change
-           remounts everything inside: the plans have different aspects (a
-           reused <img> keeps the old one's box until the new file decodes),
-           and a zoom held from one plan means nothing on the next. */
-        <MapZoomPan key={planSrc} className={`${styles.map} ${lowReach ? styles.mapLow : ''}`}>
-          <div
-            className={styles.plan}
-            style={{ '--pin-scale': map.pinScale ?? 1 } as CSSProperties}
-          >
-            <img src={planSrc} alt="" draggable={false} />
-
-            {/* The pictograms for the selected chip. The plan paints each one
-                already, so the marker points DOWN AT it from above rather than
-                covering it — the symbol is how a visitor tells a toilet from a
-                nursery, and hiding it would leave only a colour. The button is
-                the tap target and the route to 상세. */}
-            {activePins.map((a) => (
+            );
+          })
+        : activePins.map((a) => {
+            const tel = a.facility ? telOf(a.facility) : '';
+            return (
               <button
                 key={`${a.pin.x},${a.pin.y}`}
                 type="button"
-                className={styles.pin}
-                style={at(a.pin, lang)}
+                className={styles.card}
                 onClick={() => openPin(a)}
-                aria-label={
-                  a.facility ? pickText(a.facility.name, lang) : pinLabel(a.pin, a.chip, lang)
-                }
               >
-                {marker && (
-                  <img src={marker} alt="" className={styles.pinMarker} draggable={false} />
-                )}
+                <div className={styles.cardNameRow}>
+                  <p className={styles.cardName}>{cardName(a.facility, a.pin, a.chip)}</p>
+                  <span className={styles.cardCat}>
+                    <span className={styles.cardDot} />
+                    {chipLabel(a.facility?.category.ko ?? a.chip, lang).replace('\n', ' ')}
+                  </span>
+                </div>
+                <p className={styles.cardMeta}>{cardPlace(a.facility)}</p>
+                {tel ? <p className={styles.cardMeta}>{tel}</p> : null}
               </button>
-            ))}
+            );
+          })}
+    </div>
+  );
 
-            {/* 현위치 (6219:98771). Drawn only when the map says where the kiosk
-                is — a pin at a guessed position is worse than no pin. */}
-            {map.here && here && (
-              <div
-                className={styles.here}
-                style={{ left: `${map.here.x * 100}%`, top: `${map.here.y * 100}%` }}
-              >
-                <img src={here} alt="" className={styles.hereIcon} draggable={false} />
-                <p className={styles.hereLabel}>{pick(YOU_ARE_HERE, lang)}</p>
-              </div>
-            )}
+  const scrollRef = useRef<HTMLDivElement | null>(null);
+  const SCROLL_STEP = 500;
+
+  const scrollBy = (dy: number): void => {
+    scrollRef.current?.scrollBy({ top: dy, behavior: 'smooth' });
+  };
+
+  return (
+    // No banner in the standard layout: the frame runs the background
+    // illustration to the bottom. ♿ (6422:44067) opens with the mode bar +
+    // promo, header at 686, map/list scroll above, pickers at the foot.
+    <JejuPageFrame
+      controller={controller}
+      title={jejuMascot().helpTitle}
+      showBanner={false}
+      lowReachBanner
+      lowReachModeBar
+      lowReachBarBanner
+      lowReachShift={686}
+      bannerFallback="banner-detail"
+      onBack={() => controller.navigate('home', '뒤로')}
+    >
+      {lowReach ? (
+        <>
+          <div ref={scrollRef} className={`${styles.scroll} ${styles.scrollLow}`}>
+            {mapBlock}
+            {listBlock}
           </div>
-        </MapZoomPan>
+          <div className={styles.controlsLow}>
+            {pickers}
+            {categoryChips}
+          </div>
+          <button
+            type="button"
+            className={`${styles.scrollBtn} ${styles.scrollUp}`}
+            onClick={() => scrollBy(-SCROLL_STEP)}
+            aria-label="위로"
+          >
+            {jejuIconUrl('scroll-arrow') && (
+              <img
+                src={jejuIconUrl('scroll-arrow')}
+                alt=""
+                className={styles.scrollBtnImg}
+                draggable={false}
+              />
+            )}
+          </button>
+          <button
+            type="button"
+            className={`${styles.scrollBtn} ${styles.scrollDown}`}
+            onClick={() => scrollBy(SCROLL_STEP)}
+            aria-label="아래로"
+          >
+            {jejuIconUrl('scroll-arrow') && (
+              <img
+                src={jejuIconUrl('scroll-arrow')}
+                alt=""
+                className={styles.scrollBtnImg}
+                draggable={false}
+              />
+            )}
+          </button>
+        </>
       ) : (
-        <p className={`${styles.empty} ${lowReach ? styles.emptyLow : ''}`}>
-          {pick(COMING_SOON, lang)}
-        </p>
+        <div className={styles.scroll}>
+          <div className={styles.pickers}>
+            {pickers}
+          </div>
+          {categoryChips}
+          {mapBlock}
+          {listBlock}
+        </div>
       )}
     </JejuPageFrame>
   );

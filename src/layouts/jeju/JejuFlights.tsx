@@ -23,14 +23,21 @@
  * Live data: `useJejuDepartures` / `useJejuArrivals` read the KAC snapshot
  * mirrored by `useFlightSync` (see FlightService).
  *
+ * 편명 search: Rentcar-style field under the tabs + FloatingKeyboard; filters
+ * `flightNo` with case/space-insensitive partial match. Switching 출발/도착
+ * clears the query and closes the keyboard.
+ *
  * ♿ low-reach: same "controls to the foot" shape as the terminal's JejuCruise —
- * the 출발/도착 tabs drop to the artboard floor and the board slides up 159 into
- * the space. All of it is positional (`*Low` classes); see the CSS header.
+ * the 출발/도착 tabs (and the search field above them) drop to the artboard
+ * floor and the board slides up 159 into the space. All of it is positional
+ * (`*Low` classes); see the CSS header.
  */
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import type { KioskController } from '@renderer/hooks/useKioskController';
+import { jejuIconUrl } from '@renderer/assets/icons/jeju';
 import { pick, useLang } from '@renderer/lib/i18n';
 import type { Lang } from '@renderer/lib/i18n';
+import { sheetText } from '@renderer/lib/loc';
 import {
   dashIfEmpty,
   displayTime,
@@ -44,8 +51,16 @@ import {
 } from '@renderer/lib/jejuFlight';
 import type { JejuFlightBase } from '@renderer/lib/jejuFlight';
 import { useAccessibilityStore } from '@renderer/store/accessibilityStore';
+import { useFlightStore } from '@renderer/store/flightStore';
+import { FloatingKeyboard } from '../insadong/keyboard/FloatingKeyboard';
+import { HangulComposer } from '../insadong/keyboard/hangul';
+import type { KeyAction } from '../insadong/keyboard/VirtualKeyboard';
 import { JejuPageFrame } from './JejuPageFrame';
 import styles from './JejuFlights.module.css';
+
+/** Localization_Jeju cell, with the authored map as the per-language fallback. */
+const opText = (key: string, lang: Lang, fallback: Partial<Record<Lang, string>>): string =>
+  sheetText(key, lang, fallback);
 
 interface Props {
   controller: KioskController;
@@ -56,9 +71,21 @@ export type FlightDirection = 'departure' | 'arrival';
 /** Korean id handed to JejuHeader / navigate() — also the analytics label. */
 export const FLIGHTS_TITLE = '운항정보';
 
-const TABS: ReadonlyArray<{ id: FlightDirection; label: Partial<Record<Lang, string>> }> = [
+const KEYBOARD_HEIGHT = 1000;
+/** Below the standard search field (ends ~1142). */
+const KEYBOARD_TOP = 1200;
+/** Lift above the foot search row (3261.5) with the same gap Rentcar uses. */
+const KEYBOARD_GAP_LOW = 200;
+const KEYBOARD_TOP_LOW = 3261.5 - KEYBOARD_HEIGHT - KEYBOARD_GAP_LOW;
+
+const TABS: ReadonlyArray<{
+  id: FlightDirection;
+  sheetKey: string;
+  label: Partial<Record<Lang, string>>;
+}> = [
   {
     id: 'departure',
+    sheetKey: 'OP_Schedule_Tab_1',
     label: {
       ko: '출발', en: 'Departures', ja: '出発', zh: '出发',
       vi: 'Đi', th: 'ขาออก', ru: 'Вылет', id: 'Berangkat',
@@ -66,6 +93,7 @@ const TABS: ReadonlyArray<{ id: FlightDirection; label: Partial<Record<Lang, str
   },
   {
     id: 'arrival',
+    sheetKey: 'OP_Schedule_Tab_2',
     label: {
       ko: '도착', en: 'Arrivals', ja: '到着', zh: '到达',
       vi: 'Đến', th: 'ขาเข้า', ru: 'Прилёт', id: 'Tiba',
@@ -73,11 +101,37 @@ const TABS: ReadonlyArray<{ id: FlightDirection; label: Partial<Record<Lang, str
   },
 ];
 
+/** Authored fallbacks — Localization_Jeju `OP_Schedule_*` wins when filled. */
 const EMPTY = {
   ko: '표시할 운항 정보가 없습니다.', en: 'No flight information to show.',
   ja: '表示できる運航情報はありません。', zh: '暂无航班信息。',
   vi: 'Không có thông tin chuyến bay.', th: 'ไม่มีข้อมูลเที่ยวบิน',
   ru: 'Нет информации о рейсах.', id: 'Tidak ada informasi penerbangan.',
+};
+
+const LOADING = {
+  ko: '운항 정보를 불러오는 중입니다.',
+  en: 'Loading flight information…',
+  ja: '運航情報を読み込み中です。',
+  zh: '正在加载航班信息…',
+  vi: 'Đang tải thông tin chuyến bay…',
+  th: 'กำลังโหลดข้อมูลเที่ยวบิน…',
+  ru: 'Загрузка рейсов…',
+  id: 'Memuat informasi penerbangan…',
+};
+
+const SEARCH_PLACEHOLDER = {
+  ko: '편명을 검색해보세요', en: 'Search for the flight number',
+  ja: '便名を検索してください。', zh: '请搜索航班号。',
+  vi: 'Vui lòng tìm kiếm số hiệu chuyến bay.', th: 'โปรดค้นหาหมายเลขเที่ยวบิน',
+  ru: 'Пожалуйста, введите номер рейса.', id: 'Silakan cari nomor penerbangan.',
+};
+
+const NO_RESULT = {
+  ko: '해당 편명을 찾을 수 없습니다.', en: 'Flight number not found.',
+  ja: '該当する便名が見つかりません。', zh: '找不到该航班号。',
+  vi: 'Không tìm thấy số hiệu chuyến bay.', th: 'ไม่พบหมายเลขเที่ยวบินดังกล่าว',
+  ru: 'Номер рейса не найден.', id: 'Nomor penerbangan tidak ditemukan.',
 };
 
 /**
@@ -90,11 +144,15 @@ const EMPTY = {
  * the header inks drift off it by up to 18px (탑승구 centres on 1655.5 in 출발
  * and 1666 in 도착 against the cells' fixed 1673.5), and a column cannot wander
  * between tabs, so headers take the cells' axis too. NORMALISED.
+ *
+ * `sheetKey` maps to Localization_Jeju `OP_Schedule_Info_col*`. 출발지 has no
+ * sheet row yet — only the authored `head` fallback.
  */
 interface Column {
   key: string;
   x: number;
   centred: boolean;
+  sheetKey?: string;
   head: Partial<Record<Lang, string>>;
 }
 
@@ -114,6 +172,7 @@ const COL_DESTINATION = {
   ko: '목적지', en: 'Destination', ja: '目的地', zh: '目的地',
   vi: 'Điểm đến', th: 'ปลายทาง', ru: 'Назначение', id: 'Tujuan',
 };
+/** No Localization_Jeju key yet — keep authored until the sheet adds one. */
 const COL_ORIGIN = {
   ko: '출발지', en: 'Origin', ja: '出発地', zh: '出发地',
   vi: 'Nơi đi', th: 'ต้นทาง', ru: 'Откуда', id: 'Asal',
@@ -142,20 +201,20 @@ const COL_STATUS = {
 
 const COLUMNS: Record<FlightDirection, Column[]> = {
   departure: [
-    { key: 'time',    x: 280,    centred: true, head: COL_TIME_DEPARTURE },
-    { key: 'airline', x: 670,    centred: true, head: COL_AIRLINE },
-    { key: 'place',   x: 1140, centred: true,  head: COL_DESTINATION },
-    { key: 'kind',    x: 1500, centred: true,  head: COL_KIND },
-    { key: 'stand',   x: 1700, centred: true,  head: COL_GATE },
-    { key: 'status',  x: 1915, centred: true,  head: COL_STATUS },
+    { key: 'time',    x: 280,  centred: true, sheetKey: 'OP_Schedule_Info_col1', head: COL_TIME_DEPARTURE },
+    { key: 'airline', x: 670,  centred: true, sheetKey: 'OP_Schedule_Info_col2', head: COL_AIRLINE },
+    { key: 'place',   x: 1140, centred: true, sheetKey: 'OP_Schedule_Info_col3', head: COL_DESTINATION },
+    { key: 'kind',    x: 1500, centred: true, sheetKey: 'OP_Schedule_Info_col4', head: COL_KIND },
+    { key: 'stand',   x: 1700, centred: true, sheetKey: 'OP_Schedule_Info_col5', head: COL_GATE },
+    { key: 'status',  x: 1915, centred: true, sheetKey: 'OP_Schedule_Info_col6', head: COL_STATUS },
   ],
   arrival: [
-    { key: 'time',    x: 280,    centred: true, head: COL_TIME_ARRIVAL },
-    { key: 'airline', x: 670,    centred: true, head: COL_AIRLINE },
-    { key: 'place',   x: 1140, centred: true,  head: COL_ORIGIN },
-    { key: 'kind',    x: 1500, centred: true,  head: COL_KIND },
-    { key: 'stand',   x: 1700, centred: true,  head: COL_BELT },
-    { key: 'status',  x: 1915, centred: true,  head: COL_STATUS },
+    { key: 'time',    x: 280,  centred: true, sheetKey: 'OP_Schedule_Info_col12', head: COL_TIME_ARRIVAL },
+    { key: 'airline', x: 670,  centred: true, sheetKey: 'OP_Schedule_Info_col2', head: COL_AIRLINE },
+    { key: 'place',   x: 1140, centred: true, head: COL_ORIGIN },
+    { key: 'kind',    x: 1500, centred: true, sheetKey: 'OP_Schedule_Info_col4', head: COL_KIND },
+    { key: 'stand',   x: 1700, centred: true, sheetKey: 'OP_Schedule_Info_col7', head: COL_BELT },
+    { key: 'status',  x: 1915, centred: true, sheetKey: 'OP_Schedule_Info_col6', head: COL_STATUS },
   ],
 };
 
@@ -166,26 +225,84 @@ interface Row {
   stand: string;
 }
 
+/** Strip spaces and fold case so `1141` hits `KE1141`. */
+function normalizeFlightNo(value: string): string {
+  return value.replace(/\s+/g, '').toLowerCase();
+}
+
 export function JejuFlights({ controller }: Props): JSX.Element {
   const lang = useLang();
   const lowReach = useAccessibilityStore((s) => s.lowReach);
   const [direction, setDirection] = useState<FlightDirection>('departure');
+  const [query, setQuery] = useState('');
+  const [focused, setFocused] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
+  const composer = useRef(new HangulComposer());
 
+  const snapshot = useFlightStore((s) => s.snapshot);
   const departures = useJejuDepartures();
   const arrivals = useJejuArrivals();
+  const isLoading = snapshot === null;
 
   useEffect(() => {
     scrollRef.current?.scrollTo(0, 0);
-  }, [direction]);
+  }, [direction, query]);
 
-  const rows: Row[] =
-    direction === 'departure'
-      ? departures.map((d) => ({ flight: d, place: d.destination, stand: d.gate }))
-      : arrivals.map((a) => ({ flight: a, place: a.origin, stand: a.belt }));
+  const allRows: Row[] = useMemo(
+    () =>
+      direction === 'departure'
+        ? departures.map((d) => ({ flight: d, place: d.destination, stand: d.gate }))
+        : arrivals.map((a) => ({ flight: a, place: a.origin, stand: a.belt })),
+    [direction, departures, arrivals],
+  );
+
+  const rows = useMemo(() => {
+    const needle = normalizeFlightNo(query);
+    if (!needle) return allRows;
+    return allRows.filter((row) => normalizeFlightNo(row.flight.flightNo).includes(needle));
+  }, [allRows, query]);
 
   const columns = COLUMNS[direction];
   const timeColX = columns.find((c) => c.key === 'time')?.x ?? 300;
+
+  const clearSearch = (): void => {
+    composer.current.reset('');
+    setQuery('');
+    setFocused(false);
+  };
+
+  const selectTab = (id: FlightDirection): void => {
+    setDirection(id);
+    clearSearch();
+  };
+
+  const openSearch = (): void => {
+    composer.current.reset(query);
+    setFocused(true);
+  };
+
+  const applyKey = (action: KeyAction): void => {
+    const c = composer.current;
+    switch (action.type) {
+      case 'jamo':
+        c.inputJamo(action.value);
+        break;
+      case 'literal':
+        c.inputLiteral(action.value);
+        break;
+      case 'space':
+        c.inputLiteral(' ');
+        break;
+      case 'backspace':
+        c.backspace();
+        break;
+      case 'enter':
+        setFocused(false);
+        setQuery(c.value);
+        return;
+    }
+    setQuery(c.value);
+  };
 
   /*
    * ♿ only moves things on this page — every size, weight and colour is shared
@@ -215,6 +332,14 @@ export function JejuFlights({ controller }: Props): JSX.Element {
     }
   };
 
+  const emptyCopy = isLoading
+    ? opText('OP_Schedule_Loading', lang, LOADING)
+    : allRows.length === 0
+      ? opText('OP_Schedule_Result', lang, EMPTY)
+      : opText('OP_Schedule_Search_Result', lang, NO_RESULT);
+
+  const searchPlaceholder = opText('OP_Schedule_Search_placeholder', lang, SEARCH_PLACEHOLDER);
+
   return (
     <JejuPageFrame
       controller={controller}
@@ -229,11 +354,26 @@ export function JejuFlights({ controller }: Props): JSX.Element {
             type="button"
             className={`${styles.tab} ${direction === tab.id ? styles.tabActive : ''}`}
             aria-pressed={direction === tab.id}
-            onClick={() => setDirection(tab.id)}
+            onClick={() => selectTab(tab.id)}
           >
-            {pick(tab.label, lang)}
+            {opText(tab.sheetKey, lang, tab.label)}
           </button>
         ))}
+      </div>
+
+      <div
+        className={low(styles.search, styles.searchLow)}
+        role="button"
+        aria-label={searchPlaceholder}
+        onClick={openSearch}
+      >
+        <span className={`${styles.searchText} ${query ? styles.searchValue : ''}`}>
+          {query || searchPlaceholder}
+          {focused && <span className={styles.caret} />}
+        </span>
+        {jejuIconUrl('ico-search') && (
+          <img src={jejuIconUrl('ico-search')} alt="" className={styles.searchIcon} draggable={false} />
+        )}
       </div>
 
       <div className={low(styles.headPlate, styles.headPlateLow)} />
@@ -243,16 +383,25 @@ export function JejuFlights({ controller }: Props): JSX.Element {
           className={`${low(styles.head, styles.headLow)} ${col.centred ? styles.cellCentred : ''}`}
           style={{ left: col.x }}
         >
-          {pick(col.head, lang)}
+          {col.sheetKey ? opText(col.sheetKey, lang, col.head) : pick(col.head, lang)}
         </span>
       ))}
 
       <div className={low(styles.scroll, styles.scrollLow)} ref={scrollRef}>
         <div key={direction} className={styles.rows}>
           {rows.length === 0 ? (
-            <p className={styles.empty}>{pick(EMPTY, lang)}</p>
+            <p className={styles.empty}>{emptyCopy}</p>
           ) : (
-            rows.map((row) => (
+            rows.map((row) => {
+              const tintStatus =
+                (direction === 'arrival' && row.flight.status === 'arrived') ||
+                (direction === 'departure' && row.flight.status === 'final')
+                  ? row.flight.status
+                  : undefined;
+              const tintColor = tintStatus
+                ? flightStatusColor(tintStatus)
+                : undefined;
+              return (
               <div key={`${direction}-${row.flight.id}`} className={styles.row}>
                 {columns.map((col) => (
                   <span
@@ -260,9 +409,11 @@ export function JejuFlights({ controller }: Props): JSX.Element {
                     className={`${styles.cell} ${col.centred ? styles.cellCentred : ''} ${col.key === 'status' ? styles.cellStatus : ''}`}
                     style={{
                       left: col.x,
-                      ...(col.key === 'status' && row.flight.status
-                        ? { color: flightStatusColor(row.flight.status) }
-                        : null),
+                      ...(tintColor
+                        ? { color: tintColor }
+                        : col.key === 'status' && row.flight.status
+                          ? { color: flightStatusColor(row.flight.status) }
+                          : null),
                     }}
                   >
                     {cellText(col, row)}
@@ -278,10 +429,19 @@ export function JejuFlights({ controller }: Props): JSX.Element {
                 )}
                 <div className={styles.rowRule} />
               </div>
-            ))
+              );
+            })
           )}
         </div>
       </div>
+
+      <FloatingKeyboard
+        open={focused}
+        onKey={applyKey}
+        onClose={() => setFocused(false)}
+        lang={lang}
+        top={lowReach ? KEYBOARD_TOP_LOW : KEYBOARD_TOP}
+      />
     </JejuPageFrame>
   );
 }

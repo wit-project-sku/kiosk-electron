@@ -10,18 +10,43 @@
  * antialiasing.) Only the page header changes, so the callers own that and
  * share this. Same split Osan uses with OsanSpotDetailCard.
  */
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { QRCodeSVG } from 'qrcode.react';
 import type { DetailItem } from '@renderer/store/detailStore';
-import { type Lang } from '@renderer/lib/i18n';
+import { pick, type Lang } from '@renderer/lib/i18n';
 import { padImages, shopOpenTime } from '@renderer/lib/shops';
+import { buildDetailCardSaveUrlForQr } from '@renderer/lib/detailCardSave';
 import { jejuIconUrl } from '@renderer/assets/icons/jeju';
+import mapRentalcarHouse from '@renderer/assets/photos/jeju/help/map-rentalcar-house.png';
 import { ImageLightbox } from '../components/ImageLightbox';
 import { JejuAirportDirections } from './JejuAirportDirections';
+import { JejuSpotMap, type MapSpot } from './JejuSpotMap';
 import styles from './JejuSpotDetailCard.module.css';
 
 /** Photo slots in the gallery — the Figma draws a fixed 2×2. */
 const PHOTOS = 4;
+
+/** The 상세 map, Figma 6876:62703 — 1514 × 631, centred in the card column. */
+const SPOT_MAP_W = 1514;
+const SPOT_MAP_H = 631;
+
+/**
+ * Pin tip on `map-rentalcar-house` (fractions of the map box).
+ * Aimed at GATE 2 — tweak these freely; the tip sits on (x, y).
+ */
+const RENTCAR_HOUSE_PIN = { x: 0.405, y: 0.35 };
+
+/** Replaces the km directions heading on 렌터카하우스 detail. */
+const RENTCAR_HOUSE_HEADING = {
+  ko: '1층 2번 게이트',
+  en: '1F Gate 2',
+  ja: '1階2番ゲート',
+  zh: '1层2号门',
+  vi: 'Cổng số 2 tầng 1',
+  th: 'ประตู 2 ชั้น 1',
+  ru: 'Выход 2, 1-й этаж',
+  id: 'Gerbang 2 Lantai 1',
+};
 
 /**
  * One 주소/영업시간/전화 icon: an 85×85 slot with the glyph drawn at the size
@@ -60,11 +85,23 @@ interface Props {
    */
   top?: number;
   /**
-   * Which Figma variant to draw: `R>검색상세-사진4개` (the 2×2 gallery, every
-   * detail screen) or `R>검색상세-사진1개` (one big photo, 관광명소). The two
-   * differ in the gallery and the name box, nothing else.
+   * Which Figma variant to draw:
+   *   `grid`   `R>검색상세-사진4개` — the 2×2 of 575×324, every detail screen
+   *   `single` `R>검색상세-사진1개` — one 1215×685 photo, and the name boxed
+   *   `row`    the 2026-09 관광명소 상세 (6876:17161) — four 388×218 across
+   * They differ in the gallery and the name box, nothing else.
    */
-  gallery?: 'grid' | 'single';
+  gallery?: 'grid' | 'single' | 'row';
+  /**
+   * Draw the 상세 map (6876:62703) above the name, pinned here. Opt-in rather
+   * than always-on: the frame that added it is 관광명소's, and the other five
+   * screens sharing this card (검색 / AI 코스 / 뭐먹지 / 뭐사지 / 숙박) draw no
+   * map. Null or absent leaves the card exactly as it was.
+   *
+   * Only `Attraction` rows carry coordinates, so this is null for most callers
+   * whether they pass it or not.
+   */
+  map?: { lat: number; lng: number } | null;
   /**
    * AI 코스 상세 with a 다음 장소 stop: the card rides in a page-level scroll
    * column instead of sitting at a fixed absolute y with its own max-height scroll.
@@ -79,6 +116,7 @@ export function JejuSpotDetailCard({
   item,
   top = 700,
   gallery = 'grid',
+  map = null,
   flow = false,
   maxScrollHeight,
   lang = 'ko',
@@ -86,7 +124,9 @@ export function JejuSpotDetailCard({
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
 
   const isRentcar = item.from === 'rentcar' && item.rentcarGuide != null;
+  const isRentcarHouse = isRentcar && !!item.rentcarHouse;
   const single = !isRentcar && gallery === 'single';
+  const photoRow = !isRentcar && gallery === 'row';
   // Real photos drive the lightbox and the tap targets; the grid is padded to
   // its slot count with the shared no-image placeholder so an item with no
   // photos shows the same thing every other location shows.
@@ -104,11 +144,35 @@ export function JejuSpotDetailCard({
   /** 사진1개 draws exactly one slot; 사진4개 always draws four. */
   const slots = single ? 1 : PHOTOS;
   const photos = padImages(realPhotos, jejuIconUrl('noimage'), slots);
+  const mapPin = jejuIconUrl('ico-map-pin');
+
+  /**
+   * The one pin on the 상세 map. Memoised because JejuSpotMap refits whenever
+   * the array's IDENTITY changes — a fresh array each render would snap the map
+   * back to its opening view every time the card re-rendered, so a visitor who
+   * panned it would never get to keep the pan.
+   */
+  const spotMapPins = useMemo<MapSpot[]>(
+    () =>
+      map == null
+        ? []
+        : [
+            {
+              id: item.shopId ?? 0,
+              lat: map.lat,
+              lng: map.lng,
+              name: item.name,
+              address: item.address,
+            },
+          ],
+    [map, item.shopId, item.name, item.address],
+  );
+  const showSpotMap = spotMapPins.length > 0 && !isRentcar;
 
   const guide = item.rentcarGuide;
   const route = item.rentcarRoute;
-  const showShuttleDirections = isRentcar && guide?.isShuttle;
-  const showFerryDirections = isRentcar && guide?.isFerry && !guide?.isShuttle;
+  const showShuttleDirections = isRentcar && !isRentcarHouse && guide?.isShuttle;
+  const showFerryDirections = isRentcar && !isRentcarHouse && guide?.isFerry && !guide?.isShuttle;
   // AI 코스·뭐먹지·뭐사지·숙박·검색 상세 — 설명·태그·평점을 directions 위에 표시.
   const routeDetailFrom =
     item.from === 'eat' ||
@@ -121,11 +185,39 @@ export function JejuSpotDetailCard({
     typeof route.distanceKm === 'number' &&
     Number.isFinite(route.distanceKm) &&
     routeDetailFrom;
+  // 렌터카하우스 skips the km directions panel — floor plan map instead.
   const showDirectionsPanel =
-    (isRentcar && (showShuttleDirections || showFerryDirections || route)) ||
-    showShopRoute;
+    !isRentcarHouse &&
+    ((isRentcar && (showShuttleDirections || showFerryDirections || route)) || showShopRoute);
   const routeDetailCard = routeDetailFrom || isRentcar;
-  const scrollInsideCard = !flow && routeDetailCard;
+  // The map adds 631 + its gap to the column — well past the plate's default
+  // 2133 — so a card carrying one always scrolls inside rather than growing off
+  // the bottom of the artboard.
+  const scrollInsideCard = !flow && (routeDetailCard || showSpotMap);
+  const hasFloorMap = Boolean(item.mapImage);
+
+  /** Phone save QR — only when the 가는 방법 panel is shown (not 렌터카하우스). */
+  const saveQrUrl = useMemo(() => {
+    if (!showDirectionsPanel || item.shopId == null) return null;
+    return buildDetailCardSaveUrlForQr({
+      lang,
+      from: item.from,
+      shopId: item.shopId,
+      showShuttle: showShuttleDirections || undefined,
+      showFerry: showFerryDirections || undefined,
+      ferryModeLabel: showFerryDirections ? guide?.modeLabel : undefined,
+      route: route ?? null,
+    });
+  }, [
+    showDirectionsPanel,
+    lang,
+    item.from,
+    item.shopId,
+    showShuttleDirections,
+    showFerryDirections,
+    guide?.modeLabel,
+    route,
+  ]);
 
   return (
     <>
@@ -135,6 +227,7 @@ export function JejuSpotDetailCard({
           flow && styles.cardFlow,
           routeDetailCard && styles.cardRouteDetail,
           scrollInsideCard && styles.cardFixedScroll,
+          hasFloorMap && styles.cardWithMap,
         ]
           .filter(Boolean)
           .join(' ')}
@@ -147,20 +240,42 @@ export function JejuSpotDetailCard({
               }
         }
       >
+        {/* ── 상세 map (6876:62703) ──
+            Opens the card on 관광명소, above the name. One inert pin on the
+            attraction, pannable and zoomable; it drives no list, so it carries
+            neither the count pill nor 전체 보기 — see JejuSpotMap. */}
+        {showSpotMap && (
+          <div className={styles.spotMap}>
+            <JejuSpotMap
+              spots={spotMapPins}
+              width={SPOT_MAP_W}
+              height={SPOT_MAP_H}
+              lang={lang}
+            />
+          </div>
+        )}
+
         {/* ── Name + gallery / rentcar route guide ── */}
-        <div className={styles.head}>
-          <div className={styles.nameRow}>
-            <p className={`${styles.name} ${single ? styles.nameBoxed : ''}`}>{item.name}</p>
-            {item.category && (
-              <span className={styles.cat}>
-                <span className={styles.dot} />
-                {item.category}
-              </span>
+        <div className={`${styles.head} ${photoRow ? styles.headRow : ''}`}>
+          <div className={`${styles.nameRow} ${item.rentcarBadge ? styles.nameRowWithBadge : ''}`}>
+            <div className={styles.nameRowLeft}>
+              <p className={`${styles.name} ${single ? styles.nameBoxed : ''}`}>{item.name}</p>
+              {item.category && (
+                <span className={styles.cat}>
+                  <span className={styles.dot} />
+                  {item.category}
+                </span>
+              )}
+            </div>
+            {item.rentcarBadge && (
+              <span className={styles.houseBadge}>{item.rentcarBadge}</span>
             )}
           </div>
 
           {!isRentcar ? (
-            <div className={single ? styles.photosSingle : styles.photos}>
+            <div
+              className={single ? styles.photosSingle : photoRow ? styles.photosRow : styles.photos}
+            >
               {Array.from({ length: slots }, (_, i) => (
                 <button
                   key={i}
@@ -221,6 +336,12 @@ export function JejuSpotDetailCard({
             {item.description && <p className={styles.desc}>{item.description}</p>}
             {item.tags && <p className={styles.tags}>{item.tags}</p>}
 
+            {item.mapImage && (
+              <div className={styles.detailMap}>
+                <img src={item.mapImage} alt="" draggable={false} />
+              </div>
+            )}
+
             {/* ── Naver rating ──
                 The Figma also draws an Instagram follower count (#127K) and a blog
                 review count (블로그 리뷰 1,502개). The shops API carries NEITHER —
@@ -257,6 +378,35 @@ export function JejuSpotDetailCard({
           </>
         )}
 
+        {isRentcarHouse && (
+          <>
+            <div className={styles.divider} />
+            <div className={styles.houseMap}>
+              <p className={styles.houseMapHeading}>{pick(RENTCAR_HOUSE_HEADING, lang)}</p>
+              <div className={styles.houseMapFrame}>
+                <img
+                  src={mapRentalcarHouse}
+                  alt=""
+                  className={styles.houseMapImg}
+                  draggable={false}
+                />
+                {mapPin && (
+                  <img
+                    src={mapPin}
+                    alt=""
+                    className={styles.houseMapPin}
+                    style={{
+                      left: `${RENTCAR_HOUSE_PIN.x * 100}%`,
+                      top: `${RENTCAR_HOUSE_PIN.y * 100}%`,
+                    }}
+                    draggable={false}
+                  />
+                )}
+              </div>
+            </div>
+          </>
+        )}
+
         {showDirectionsPanel && (route || showFerryDirections) && (
           <>
             <div className={styles.divider} />
@@ -268,6 +418,18 @@ export function JejuSpotDetailCard({
                 showShuttle={showShuttleDirections}
                 showFerry={showFerryDirections}
                 ferryModeLabel={guide?.modeLabel}
+                qr={
+                  saveQrUrl ? (
+                    <QRCodeSVG
+                      value={saveQrUrl}
+                      size={152}
+                      level="L"
+                      bgColor="#ffffff"
+                      fgColor="#000000"
+                      style={{ width: 152, height: 152, display: 'block' }}
+                    />
+                  ) : undefined
+                }
               />
             </div>
           </>

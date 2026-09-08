@@ -52,6 +52,12 @@ export function PhotoWorkflow(): JSX.Element {
   const rotating = useRotatingBanner();
   const chrome = usePhotoChrome();
   const { isHwaseong, isKada, icon, Header, photoTitle, banner: chromeBanner } = chrome;
+  // 위드마켓 result gate. `hasCardTerminal` alone is the wrong test: 화성휴게소
+  // W005 got a TL-3800 for the 기부 (donation) app, not for the store, so its
+  // photo result must stay the plain image + save QR like the no-payment
+  // kiosks — only venues that pair the terminal WITH the store webview take
+  // the 위드마켓 result screen.
+  const showsMarketResult = hasPayment && !isHwaseong;
   // Osan/Hwaseong have their own single promo banner; insadong rotates through several.
   const banner = chromeBanner ?? rotating;
   const [goodsQrOpen, setGoodsQrOpen] = useState(false);
@@ -60,24 +66,21 @@ export function PhotoWorkflow(): JSX.Element {
   usePhotoWorkflow();
 
   // ── 제주 waiting game gate ──────────────────────────────────────────────
-  // 제주 CAN fill the AI wait with 틀린그림찾기 instead of a static popup, and when
-  // it does the result is gated on the GAME rather than the clock:
-  // `GENERATING_MIN_MS` in photo.handlers is a 60s floor, so the photo can land
-  // while someone is still hunting, and `gameDone` is what lets the result
-  // screen through.
+  // 제주 fills the AI wait with 틀린그림찾기 instead of a static popup, and the
+  // result is gated on the GAME, not on the clock: `GENERATING_MIN_MS` in
+  // photo.handlers is a 60s floor, so the photo can land while someone is still
+  // hunting. `gameDone` is what actually lets the result screen through.
   //
-  // DISABLED 2026-08-24 at the user's request — the wait shows the
-  // camera-direction popup again, exactly as it did before the game landed.
-  // This one flag is the whole switch: the puzzle prefetch below stops asking
-  // for rounds, the Monitor 2 deferral stops holding the big screen back, and
-  // the render block further down falls through to the 한복 capture screen,
-  // which already draws that popup through `generating`. So the result now
-  // hands over the moment it is ready instead of waiting for a player.
-  //
-  // To bring the game back, restore `chrome.isJeju` — nothing else was removed.
-  // Typed `boolean` rather than left as the `false` literal so the branches it
-  // guards do not narrow to unreachable code.
-  const playsWaitingGame: boolean = false;
+  // Off between 2026-08-24 and 2026-09-08 at the user's request, then restored
+  // on the same one-flag switch the disable note described — it is genuinely the
+  // whole thing. Everything downstream reads it: the puzzle prefetch below only
+  // asks for rounds when it is true, the Monitor 2 deferral only holds the big
+  // screen back when it is true, and the render block further down falls through
+  // to the 한복 capture screen (which draws the camera-direction popup through
+  // `generating`) when it is false. Flip it to `false` to go back to the popup;
+  // keep the `boolean` annotation either way, so the branches it guards do not
+  // narrow to unreachable code.
+  const playsWaitingGame: boolean = chrome.isJeju;
   const [gameDone, setGameDone] = useState(false);
   const deferredRef = useRef(false);
 
@@ -199,8 +202,8 @@ export function PhotoWorkflow(): JSX.Element {
     return <HanbokSelect onHome={handleReset} onCapture={handleCapture} countdownActive={capturing} />;
   }
 
-  // ── Result (PAYMENT kiosks W003/W004): WIT Store on Monitor 1; result image big on Monitor 2 ──
-  if (phase === 'result' && hasPayment) {
+  // ── Result (MARKET kiosks W003/W004/제주): WIT Store on Monitor 1; result image big on Monitor 2 ──
+  if (phase === 'result' && showsMarketResult) {
     const imageUrl = resultUrl ?? (resultFileName ? generatedUrl(resultFileName) : '');
     const saveUrl = `${SAVE_BASE}${encodeURIComponent(imageUrl)}`;
     return (
@@ -279,7 +282,8 @@ export function PhotoWorkflow(): JSX.Element {
     );
   }
 
-  // ── Result (NO-PAYMENT kiosks W001/W002/W005): show the result image + QR to save ──
+  // ── Result (W001/W002/W005 + KADA): show the result image + QR to save.
+  //    W005 lands here DESPITE its card terminal — see showsMarketResult above. ──
   if (phase === 'result') {
     const c = pick(isKada ? RESULT_KADA : RESULT, lang);
     const imageUrl = resultUrl ?? (resultFileName ? generatedUrl(resultFileName) : '');

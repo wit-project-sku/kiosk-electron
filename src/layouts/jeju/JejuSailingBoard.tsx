@@ -10,8 +10,8 @@
  * open that page.
  */
 import type { KioskController } from '@renderer/hooks/useKioskController';
-import { pick } from '@renderer/lib/i18n';
 import type { Lang } from '@renderer/lib/i18n';
+import { sheetText } from '@renderer/lib/loc';
 import { CRUISE_TITLE } from './JejuCruise';
 import {
   displaySailingTime,
@@ -25,19 +25,25 @@ import { useAccessibilityStore } from '@renderer/store/accessibilityStore';
 import { useSailingStore } from '@renderer/store/sailingStore';
 import styles from './JejuSailingBoard.module.css';
 
+const opText = (key: string, lang: Lang, fallback: Partial<Record<Lang, string>>): string =>
+  sheetText(key, lang, fallback);
+
 interface Props {
   controller: KioskController;
   lang: Lang;
 }
 
+/** Fallback — sheet `CruiseSchedule` (여객터미널). */
 const TITLE = {
   ko: '운항 정보', en: 'Sailings', ja: '運航情報', zh: '航运信息',
   vi: 'Chuyến tàu', th: 'ข้อมูลเรือ', ru: 'Рейсы', id: 'Pelayaran',
 };
 
+/** Fallback — sheet `Schedule_More`. */
 const MORE = {
-  ko: '운항 정보 더보기', en: 'More sailings', ja: '運航情報をもっと見る', zh: '查看更多航运',
-  vi: 'Xem thêm chuyến tàu', th: 'ดูเรือเพิ่มเติม', ru: 'Больше рейсов', id: 'Lihat pelayaran lain',
+  ko: '운항 정보 더보기', en: 'More flight information', ja: '運航情報をもっと見る', zh: '查看更多航班信息',
+  vi: 'Xem thêm thông tin chuyến bay', th: 'ดูข้อมูลเที่ยวบินเพิ่มเติม', ru: 'Больше информации о рейсах',
+  id: 'Lihat lebih banyak informasi penerbangan',
 };
 
 const COLUMNS = {
@@ -48,6 +54,15 @@ const COLUMNS = {
   place: 1500,
   status: 1718,
 } as const;
+
+const HEAD_KEYS: Record<keyof typeof COLUMNS, string> = {
+  time: 'OP_Schedule_Info_col1',
+  duration: 'OP_Schedule_Info_col8',
+  ship: 'OP_Schedule_Info_col9',
+  route: 'OP_Schedule_Info_col10',
+  place: 'OP_Schedule_Info_col11',
+  status: 'OP_Schedule_Info_col6',
+};
 
 const HEADS: Record<keyof typeof COLUMNS, Partial<Record<Lang, string>>> = {
   time: {
@@ -149,7 +164,10 @@ export function JejuSailingBoard({ controller, lang }: Props): JSX.Element {
   const lead = useJejuDepartureSailings()[0];
   const isLoading = snapshot === null;
 
-  const emptyMessage = isLoading ? LOADING : EMPTY;
+  const emptyMessage = isLoading
+    ? opText('OP_Schedule_Loading', lang, LOADING)
+    : opText('OP_Schedule_Result', lang, EMPTY);
+  const title = opText('CruiseSchedule', lang, TITLE);
   const openSailings = (): void => controller.navigate('cruise', CRUISE_TITLE);
 
   return (
@@ -161,15 +179,15 @@ export function JejuSailingBoard({ controller, lang }: Props): JSX.Element {
       <div
         className={`${styles.board} ${lowReach ? styles.boardLow : ''}`}
         role="button"
-        aria-label={pick(TITLE, lang)}
+        aria-label={title}
         onClick={openSailings}
       >
-        <p className={styles.title}>{pick(TITLE, lang)}</p>
+        <p className={styles.title}>{title}</p>
         <div className={styles.rule} />
 
         {(Object.keys(COLUMNS) as (keyof typeof COLUMNS)[]).map((key) => (
           <span key={key} className={styles.head} style={{ left: COLUMNS[key] }}>
-            {pick(HEADS[key], lang)}
+            {opText(HEAD_KEYS[key], lang, HEADS[key])}
           </span>
         ))}
 
@@ -177,7 +195,7 @@ export function JejuSailingBoard({ controller, lang }: Props): JSX.Element {
           <SailingCells sailing={lead} lang={lang} />
         ) : (
           <span className={styles.empty} style={{ left: COLUMNS.time }}>
-            {pick(emptyMessage, lang)}
+            {emptyMessage}
           </span>
         )}
       </div>
@@ -188,7 +206,7 @@ export function JejuSailingBoard({ controller, lang }: Props): JSX.Element {
         onClick={openSailings}
       >
         <span className={styles.chevron} />
-        <span className={styles.moreText}>{pick(MORE, lang)}</span>
+        <span className={styles.moreText}>{opText('Schedule_More', lang, MORE)}</span>
       </button>
     </>
   );

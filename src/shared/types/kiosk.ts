@@ -155,8 +155,16 @@ export type KioskScreenId =
   // 제주국제여객터미널 (W007) — the one home tile W006 does not have. It takes
   // 렌트카's grid slot (line 6 position 4), so the two are mutually exclusive:
   // exactly one of them is rendered per venue. See JejuHome's VENUE_TILE.
-  // W008 세계자연유산본부 draws it too (its CMS grid is W007's, not W006's).
+  // W008 세계자연유산본부 used to draw it too; the 2026-09 redesign (6792:126444)
+  // put 거문오름 예약 in that cell, so the tile is W007-only again.
   | 'cruise'       // 크루즈 운항 → the ferry sailing board (JejuCruise)
+  // 세계자연유산본부 (W008) — the three tiles its 2026-09 home redesign added
+  // (Figma 6792:126444). They replace 숙박안내 / 크루즈 운항 / 지역화폐 on that
+  // grid only; W006/W007 keep the shared ids. No screens are built for them yet,
+  // so all three fall through to the JejuScreen scaffold until their frames land.
+  | 'heritage'        // 제주세계유산
+  | 'geomun'          // 거문오름 예약
+  | 'heritage_center' // 제주세계유산센터
   // Not a home tile — reached from the home 운항 정보 board's `더보기`.
   | 'flights'      // 운항정보 (출발/도착 전체 보기)
   // ── KADA (W202) ─────────────────────────────────────────────────────────

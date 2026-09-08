@@ -216,6 +216,7 @@ export function JejuListScreen({ screen, controller }: Props): JSX.Element {
   const openDetail = (shop: Shop): void => {
     setDetail({
       from: screen,
+      shopId: shop.id,
       // Verbatim: the detail header reads "'제주' 뭐먹지? > 상세" (6212:55208) /
       // "'제주' 뭐사지? > 상세" (6212:55257), quotes and question mark included.
       // JejuDetail appends the " > 상세".

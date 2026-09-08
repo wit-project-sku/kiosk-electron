@@ -6,17 +6,22 @@
  * countdown — see the camera branch in CustomerDisplay.
  *
  * ★ ONE OVERLAY IMAGE since 2026-08-24: the designer shipped the whole guide
- * as a single transparent PNG (repo root icons/"Group 1707482852 (1).png",
+ * as a single transparent PNG (repo root icons/"Group 1707482852 (2).png",
  * 2155×3739) — the frosted header plate with its title, the no-glasses line,
- * the two gesture chips AND the glowing pose figure are all baked into it. It
+ * the two gesture chips AND the glowing body art are all baked into it. It
  * is stretched over the full-screen camera feed exactly as delivered
  * ("put as it is"), which also means the copy on it is KOREAN ONLY — the
  * per-language strings the old built-up header carried are gone with it.
  *
+ * Re-exported 2026-09-08: the full-height pose figure is gone — the body art
+ * is now just the glowing 손 icon (upper right) over the footprint arc — and
+ * the header band is shorter. Every hard-coded position in the CSS moved with
+ * it; see the re-export note at the top of the stylesheet.
+ *
  * ── The live countdown ────────────────────────────────────────────────
  * The design bakes "'10'" into the title, but the number must count. The
  * shipped copy of the image (assets/icons/jeju/capture-guide.png) has the two
- * DIGITS patched out — the 460…594×195…288 ink filled with the header plate's
+ * DIGITS patched out — the 459…594×120…215 ink filled with the header plate's
  * own rgba(112,117,129,.7) — leaving the baked quotes standing, and `.count`
  * renders the live number into that slot. Quotes stay baked so a one-digit
  * count simply centres between them, the way a re-typeset title could not.

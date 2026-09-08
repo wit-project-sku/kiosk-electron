@@ -9,9 +9,9 @@
  *     /숙박안내            "'제주' 뭐사지? > 상세"          node 6212:55257
  *                        "숙박안내 > 상세"                node 6212:55305
  *                        with the card 164px lower
- *   · from 도와줘 하영   → "여기는 제주도"                  node 6219:99127
- *                        card at y863 (the frame draws 사진1개; the grid is
- *                        used instead — see chromeFor)
+ *   · from 도와줘 제주   → "도와줘 '제주'"                   node 6219:99127
+ *                        card at y700, 사진1개 gallery + floor plan
+ *                        (see chromeFor)
  * The card itself is the same component in all of them, so it lives in
  * JejuSpotDetailCard and this file only resolves chrome + navigation.
  *
@@ -89,18 +89,10 @@ function chromeFor(
     };
   }
 
-  // 도와줘 '하영' > 상세 (6219:99127) is the one frame that does NOT compose
-  // "<page> > 상세": it carries the bare title "여기는 제주도", drawn that way in
-  // the frame even though the frame is named 제주>도와줘 하영=상세 and sits beside
-  // the 공항 map. The card keeps the frame's y863.
-  //
-  // The frame draws the 사진1개 variant, but the GRID is used instead — a
-  // deliberate deviation (2026-09-03): a facility has exactly ONE bundled photo
-  // (see resources/help), and one small photo blown up to the 1215×685 slot
-  // reads worse than the same 2×2 every other detail shows, with the shared
-  // no-image placeholder in the empty slots. The two variants are the same
-  // height (693 vs 685), so nothing below the gallery moves.
-  if (from === 'help') return { title: '여기는 제주도', cardTop: 863 };
+  // 도와줘 '제주' > 상세 (6219:99127) keeps the help page title (not
+  // "<page> > 상세"), uses the 사진1개 gallery, and butts the card under the
+  // header at y700 — matching the redraw that sits beside the airport map.
+  if (from === 'help') return { title, cardTop: 700, gallery: 'single' };
 
   // "<page> > 상세" is composed HERE, from two already-localized halves, rather
   // than handed to JejuHeader as one id: a composed string matches no
@@ -150,6 +142,7 @@ export function JejuDetail({ controller }: Props): JSX.Element {
   }
 
   const chrome = chromeFor(item.from, item.title, lang);
+  const isHelp = item.from === 'help';
 
   /*
    * The 다음 장소 card under the 상세 plate (6289:58438 → 6516:72906). Only the
@@ -159,27 +152,35 @@ export function JejuDetail({ controller }: Props): JSX.Element {
    */
   const next = item.courseNext;
   const cardTop = chrome.cardTop ?? 700;
-  /* ♿ moves only the header via lowReachShift; content top and scroll height
-     are re-laid here (same split as JejuListScreen — no body shift). */
-  const contentTop = lowReach ? cardTop + MODE_BAR : cardTop;
-  const scrollHeight = ARTBOARD - contentTop;
+  /* ♿: most detail pages only carry the 113 mode bar, so content is nudged
+     +113 in markup. 도와줘 상세 (6297:74899) keeps the promo under the bar —
+     header at 686, card at 1387 — via lowReachBarBanner + body shift 687, so
+     the card stays at its standing top and the frame moves the body. */
+  const contentTop = lowReach && !isHelp ? cardTop + MODE_BAR : cardTop;
+  /* Help ♿ card viewport is 2318 tall at y1387 (6297:74899); others fill to
+     the artboard foot from contentTop. */
+  const scrollHeight = lowReach && isHelp ? 2318 : ARTBOARD - contentTop;
 
   return (
-    /* This page's ♿ frame (6336:100864, 검색-03) uses the mode-bar revision:
-       bar at y0, header at y113 — no promo banner in ♿. Content drops +113
-       under the header (y720 → y833) and the scroll viewport fills to y3840. */
+    /* Default ♿: mode bar only (6336:100864). Help ♿: mode bar + promo
+       (6297:74899), same trio as 도와줘 list / 이벤트. */
     <JejuPageFrame
       controller={controller}
       title={chrome.title}
       subtitle={chrome.subtitle ?? detailSubtitle(lang)}
       subtitleColor={chrome.subtitleColor}
       /* The 다음 장소 stack can run past y3267, so the page gives the banner up
-         whenever it draws one — the same trade the AI search page makes. */
-      showBanner={!next}
+         whenever it draws one — the same trade the AI search page makes.
+         Help keeps showBanner off in standing layout but asks for the promo
+         in ♿ via lowReachBanner (see drawBanner). */
+      showBanner={!next && !isHelp}
       bannerFallback="banner-detail"
       onBack={goBack}
+      lowReachBanner={isHelp}
       lowReachModeBar
-      lowReachShift={MODE_BAR}
+      lowReachBarBanner={isHelp}
+      lowReachShift={isHelp ? 686 : MODE_BAR}
+      lowReachBodyShift={isHelp ? 687 : 0}
     >
       {next ? (
         <div className={styles.courseScroll} style={{ top: contentTop, height: scrollHeight }}>

@@ -11,6 +11,9 @@
  * control (955) are both positioned in Figma coordinates. 더보기 opens
  * 제주>운항정보 (JejuFlights), the full 출발/도착 board.
  *
+ * Copy: Localization_Jeju `FlightSchedule` / `OP_Schedule_*` via sheetText, with
+ * the authored maps below as per-language fallbacks.
+ *
  * ♿ low-reach moves both down 837 with the 공지 panel they sit in. The flag is
  * read from the store here rather than passed down from JejuHome: the board is
  * positioned in page coordinates that only this file knows, so a `lowReach` prop
@@ -18,8 +21,8 @@
  * JejuRentcar and JejuCruise make.
  */
 import type { KioskController } from '@renderer/hooks/useKioskController';
-import { pick } from '@renderer/lib/i18n';
 import type { Lang } from '@renderer/lib/i18n';
+import { sheetText } from '@renderer/lib/loc';
 import { FLIGHTS_TITLE } from './JejuFlights';
 import {
   displayTime,
@@ -32,6 +35,7 @@ import {
 } from '@renderer/lib/jejuFlight';
 import type { JejuDeparture } from '@renderer/lib/jejuFlight';
 import { useAccessibilityStore } from '@renderer/store/accessibilityStore';
+import { useFlightStore } from '@renderer/store/flightStore';
 import styles from './JejuFlightBoard.module.css';
 
 interface Props {
@@ -39,14 +43,20 @@ interface Props {
   lang: Lang;
 }
 
+const opText = (key: string, lang: Lang, fallback: Partial<Record<Lang, string>>): string =>
+  sheetText(key, lang, fallback);
+
+/** Fallback — sheet `FlightSchedule` (제주공항). */
 const TITLE = {
   ko: '운항 정보', en: 'Departures', ja: '運航情報', zh: '航班信息',
   vi: 'Chuyến bay', th: 'ข้อมูลเที่ยวบิน', ru: 'Вылеты', id: 'Keberangkatan',
 };
 
+/** Fallback — sheet `Schedule_More`. */
 const MORE = {
-  ko: '운항 정보 더보기', en: 'More departures', ja: '運航情報をもっと見る', zh: '查看更多航班',
-  vi: 'Xem thêm chuyến bay', th: 'ดูเที่ยวบินเพิ่มเติม', ru: 'Больше рейсов', id: 'Lihat penerbangan lain',
+  ko: '운항 정보 더보기', en: 'More flight information', ja: '運航情報をもっと見る', zh: '查看更多航班信息',
+  vi: 'Xem thêm thông tin chuyến bay', th: 'ดูข้อมูลเที่ยวบินเพิ่มเติม', ru: 'Больше информации о рейсах',
+  id: 'Lihat lebih banyak informasi penerbangan',
 };
 
 /**
@@ -63,6 +73,15 @@ const COLUMNS = {
   gate: 1570,
   status: 1730,
 } as const;
+
+const HEAD_KEYS: Record<keyof typeof COLUMNS, string> = {
+  time: 'OP_Schedule_Info_col1',
+  airline: 'OP_Schedule_Info_col2',
+  destination: 'OP_Schedule_Info_col3',
+  kind: 'OP_Schedule_Info_col4',
+  gate: 'OP_Schedule_Info_col5',
+  status: 'OP_Schedule_Info_col6',
+};
 
 const HEADS: Record<keyof typeof COLUMNS, Partial<Record<Lang, string>>> = {
   time: {
@@ -144,7 +163,7 @@ function FlightCells({ departure, lang }: { departure: JejuDeparture; lang: Lang
   );
 }
 
-const EMPTY_LEAD = {
+const LOADING = {
   ko: '운항 정보를 불러오는 중입니다.',
   en: 'Loading flight information…',
   ja: '運航情報を読み込み中です。',
@@ -155,10 +174,25 @@ const EMPTY_LEAD = {
   id: 'Memuat informasi penerbangan…',
 };
 
+const EMPTY = {
+  ko: '표시할 운항 정보가 없습니다.', en: 'No flight information to show.',
+  ja: '表示できる運航情報はありません。', zh: '暂无航班信息。',
+  vi: 'Không có thông tin chuyến bay.', th: 'ไม่มีข้อมูลเที่ยวบิน',
+  ru: 'Нет информации о рейсах.', id: 'Tidak ada informasi penerbangan.',
+};
+
 export function JejuFlightBoard({ controller, lang }: Props): JSX.Element {
   const lowReach = useAccessibilityStore((s) => s.lowReach);
+  const snapshot = useFlightStore((s) => s.snapshot);
   const departures = useJejuDepartures();
   const lead = departures[0];
+  // Same loading/empty split as JejuSailingBoard: null snapshot = still fetching
+  // the first KAC board (gates included); empty arrays after that = nothing to show.
+  const isLoading = snapshot === null;
+  const emptyMessage = isLoading
+    ? opText('OP_Schedule_Loading', lang, LOADING)
+    : opText('OP_Schedule_Result', lang, EMPTY);
+  const title = opText('FlightSchedule', lang, TITLE);
   const openFlights = (): void => controller.navigate('flights', FLIGHTS_TITLE);
 
   return (
@@ -170,23 +204,23 @@ export function JejuFlightBoard({ controller, lang }: Props): JSX.Element {
       <div
         className={`${styles.board} ${lowReach ? styles.boardLow : ''}`}
         role="button"
-        aria-label={pick(TITLE, lang)}
+        aria-label={title}
         onClick={openFlights}
       >
-        <p className={styles.title}>{pick(TITLE, lang)}</p>
+        <p className={styles.title}>{title}</p>
         <div className={styles.rule} />
 
         {(Object.keys(COLUMNS) as (keyof typeof COLUMNS)[]).map((key) => (
           <span key={key} className={styles.head} style={{ left: COLUMNS[key] }}>
-            {pick(HEADS[key], lang)}
+            {opText(HEAD_KEYS[key], lang, HEADS[key])}
           </span>
         ))}
 
         {lead ? (
           <FlightCells departure={lead} lang={lang} />
         ) : (
-          <span className={styles.empty} style={{ left: COLUMNS.time }}>
-            {pick(EMPTY_LEAD, lang)}
+          <span className={styles.empty}>
+            {emptyMessage}
           </span>
         )}
       </div>
@@ -198,7 +232,7 @@ export function JejuFlightBoard({ controller, lang }: Props): JSX.Element {
         onClick={openFlights}
       >
         <span className={styles.chevron} />
-        <span className={styles.moreText}>{pick(MORE, lang)}</span>
+        <span className={styles.moreText}>{opText('Schedule_More', lang, MORE)}</span>
       </button>
     </>
   );

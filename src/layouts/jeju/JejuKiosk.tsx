@@ -34,6 +34,8 @@ import { JejuDetail } from './JejuDetail';
 import { JejuListScreen } from './JejuListScreen';
 import { JejuTaxFree } from './JejuTaxFree';
 import { JejuAbout } from './JejuAbout';
+import { JejuHeritage } from './JejuHeritage';
+import { JejuGeomun } from './JejuGeomun';
 import { JejuHello } from './JejuHello';
 import { JejuHelp } from './JejuHelp';
 import { JejuLocalpay } from './JejuLocalpay';
@@ -172,6 +174,12 @@ export function JejuKiosk(): JSX.Element {
     <JejuTaxFree controller={controller} />
   ) : cur === 'about' ? (
     <JejuAbout controller={controller} />
+  ) : cur === 'heritage' ? (
+    // W008's 제주세계유산 home tile (6792:126444) → 제주 유네스코 유산.
+    <JejuHeritage controller={controller} />
+  ) : cur === 'geomun' ? (
+    // W008's 거문오름 예약 home tile → 소개/안내 tabs (6935:69555 / 69554).
+    <JejuGeomun controller={controller} />
   ) : cur === 'hello' ? (
     <JejuHello controller={controller} />
   ) : cur === 'help' || cur === 'restroom' ? (

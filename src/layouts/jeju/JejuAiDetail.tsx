@@ -1,8 +1,12 @@
 /**
- * 제주 AI 코스 상세 — Figma node 6516:73138 (제주>제주모하지(AI검색)-03-1), the
- * 2026-08-26 re-stack of 6289:55320 (-03-1) / 6289:55078 (-03-2). See the
- * stylesheet header for what moved; the one thing that is new rather than moved
- * is the row of answer pills under the summary bar.
+ * 제주 AI 코스 상세 — Figma node 6760:18772 (제주>제주모하지(AI검색)-04-1), the
+ * 2026-09-07 re-stack of 6516:73138 (-03-1). See the stylesheet header for the
+ * coordinates; what is new rather than moved is the header QR, the
+ * 전체보기 / 선택보기 filter beside the DAY row, and the labelled per-stop stats
+ * ("머무는 시간 : 2-3시간" rather than a bare "2-3시간"). What is GONE is the
+ * course description that sat between the hashtags and the summary bar — the
+ * frame runs the one straight into the other, so `CourseMeta.desc` is authored
+ * and carried but no longer drawn.
  *
  * Shows the course chosen on JejuAiResult: its title/description/hashtags, a
  * summary bar, and the numbered spot itinerary.
@@ -43,6 +47,7 @@
  */
 import { Fragment, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { CSSProperties } from 'react';
+import { QRCodeSVG } from 'qrcode.react';
 import type { KioskController } from '@renderer/hooks/useKioskController';
 import type { Shop } from '@shared/types/shop';
 import type { JejuCourse, JejuCourseSpot } from '@shared/types/jejuCourse';
@@ -79,6 +84,7 @@ import {
   transportCode,
 } from '@renderer/lib/jejuCourse';
 import { localizeJejuAiPick } from '@renderer/lib/jejuAiPicksLabel';
+import { buildAiCourseSaveUrlForQr } from '@renderer/lib/aiCourseSave';
 import { JejuPageFrame } from './JejuPageFrame';
 import { JejuCourseSpotCard } from './JejuCourseSpotCard';
 import styles from './JejuAiDetail.module.css';
@@ -104,6 +110,14 @@ const DAYS_BY_STAY: Record<string, number> = {
   '2박 3일': 3,
   '3박 이상': 4,
 };
+
+/**
+ * Header QR (6858:69235) — FALLBACK only, for the window before the catalogue
+ * lands and there is no itinerary to encode. The real value is built per course
+ * by `buildAiCourseSaveUrlForQr`, which carries the scheduled stops so the
+ * phone draws the course actually on screen rather than a bare landing page.
+ */
+const COURSE_QR_FALLBACK_URL = 'https://direction-fe.vercel.app/ai';
 
 const CARD_HEIGHT = 515;
 const CARD_GAP = 50;
@@ -170,6 +184,34 @@ const T = {
     ko: '다음', en: 'Next', ja: '次へ', zh: '下一页',
     vi: 'Tiếp', th: 'ถัดไป', ru: 'Далее', id: 'Berikutnya',
   },
+  /**
+   * 전체보기 / 선택보기 (6858:69231 · 6858:69233). Localization_Jeju has no row
+   * for either — same gap STAT_LABEL below documents — so both are authored in
+   * the eight languages the kiosk ships.
+   */
+  viewAll: {
+    ko: '전체보기', en: 'View all', ja: 'すべて表示', zh: '查看全部',
+    vi: 'Xem tất cả', th: 'ดูทั้งหมด', ru: 'Показать всё', id: 'Lihat semua',
+  },
+  viewPicked: {
+    ko: '선택보기', en: 'My picks', ja: '選択のみ', zh: '仅所选',
+    vi: 'Mục đã chọn', th: 'เฉพาะที่เลือก', ru: 'Только выбранное', id: 'Pilihan saya',
+  },
+  /**
+   * 선택보기 with nothing in the day matching. NOT the same as an empty day:
+   * the schedule worked, the filter just left nothing, so the copy must not
+   * send the visitor back to redo a search that succeeded.
+   */
+  emptyPicked: {
+    ko: '이 날에는 선택한 즐길 거리와 맞는 장소가 없어요.',
+    en: 'Nothing on this day matches the interests you picked.',
+    ja: 'この日には選んだ楽しみ方に合う場所がありません。',
+    zh: '这一天没有符合所选体验项目的地点。',
+    vi: 'Ngày này không có địa điểm nào khớp với sở thích bạn đã chọn.',
+    th: 'วันนี้ไม่มีสถานที่ที่ตรงกับกิจกรรมที่คุณเลือก',
+    ru: 'В этот день нет мест, соответствующих вашим интересам.',
+    id: 'Tidak ada tempat di hari ini yang cocok dengan minat pilihan Anda.',
+  },
   empty: {
     ko: '코스에 담을 장소를 찾지 못했어요.\n관심사를 바꿔 다시 검색해보세요.',
     en: 'No places found for this course.\nTry different interests.',
@@ -187,6 +229,12 @@ interface CourseMeta {
   label: string;
   title: Partial<Record<Lang, string>>;
   tags: Partial<Record<Lang, string>>;
+  /**
+   * NOT DRAWN by -04-1 — the frame runs the hashtags straight into the summary
+   * bar and has no room for a paragraph. Kept because it is authored editorial
+   * copy in all eight languages that the -03 frames did draw and a later frame
+   * may again; deleting it would mean re-translating it to restore the row.
+   */
   desc: Partial<Record<Lang, string>>;
   /**
    * OFFLINE FALLBACK ONLY. These are the authored placeholders this page used
@@ -219,6 +267,11 @@ interface CourseMeta {
  * that every layout calls. Localizing those is a separate change to that lib.
  */
 const STAT_LABEL = {
+  /** Per-stop only — the card reads "머무는 시간 : 2-3시간" in -04-1. */
+  dwell: {
+    ko: '머무는 시간', en: 'Time here', ja: '滞在時間', zh: '停留时间',
+    vi: 'Thời gian ở lại', th: 'เวลาที่แวะ', ru: 'Время на месте', id: 'Waktu di sini',
+  },
   transport: {
     ko: '이동수단', en: 'Getting around', ja: '移動手段', zh: '交通方式',
     vi: 'Phương tiện', th: 'การเดินทาง', ru: 'Транспорт', id: 'Transportasi',
@@ -456,6 +509,19 @@ export function JejuAiDetail({ controller }: Props): JSX.Element {
   const meta = COURSE_META[courseKey] ?? COURSE_META.nature!;
   /** Index into `days` — the ← → pair steps days, not pages within a day. */
   const [dayIndex, setDayIndex] = useState(0);
+  /**
+   * 전체보기 / 선택보기 (6858:69231 · 6858:69233) — a CATEGORY filter over the
+   * day's stops, not a day switch; the ← → pager still owns the days.
+   *
+   * The itinerary is not made up only of the visitor's picks. The recommender
+   * fills each day to its time budget and the offline fallback tops up with
+   * "anything left" outright (see buildSpots), so a day routinely carries stops
+   * in categories the visitor never chose. 전체보기 shows the schedule as
+   * planned — it is the default, because that is the course the AI built —
+   * and 선택보기 drops everything that does not match a picked 즐길 거리.
+   */
+  const [scope, setScope] = useState<'all' | 'picked'>('all');
+  const onlyPicked = scope === 'picked';
   const listRef = useRef<HTMLDivElement>(null);
   const lowReach = useAccessibilityStore((s) => s.lowReach);
 
@@ -572,12 +638,31 @@ export function JejuAiDetail({ controller }: Props): JSX.Element {
 
   useEffect(() => {
     listRef.current?.scrollTo(0, 0);
-  }, [dayIndex]);
+  }, [dayIndex, scope]);
 
   const currentDay = days[dayIndex];
-  const stops = currentDay?.stops ?? [];
+  /* Memoised because `?? []` would otherwise hand `pickedStops` a fresh array
+     every render and defeat its own memo. */
+  const stops = useMemo(() => currentDay?.stops ?? [], [currentDay]);
   /** The day number the visible list belongs to — what the DAY label shows. */
   const day = currentDay?.day ?? 1;
+  /**
+   * The day narrowed to the picked 즐길 거리. `catMatches` is the same predicate
+   * the offline builder uses to CHOOSE a shop for a category, so a stop it put
+   * in for an interest always survives the filter that interest implies.
+   *
+   * With no interests stored (a deep link, or an idle reset that cleared the
+   * store) there is nothing to filter by, so 선택보기 is a no-op rather than an
+   * empty page.
+   */
+  const pickedStops = useMemo(
+    () =>
+      interests.length === 0
+        ? stops
+        : stops.filter((stop) => interests.some((cat) => catMatches(stop.shop, cat))),
+    [stops, interests],
+  );
+  const visibleStops = onlyPicked ? pickedStops : stops;
   /** The header's course+day line, e.g. "자연·유산 탐방 코스 - 1일차". */
   const courseDayTitle = jejuCourseNameWithDay(pick(meta.title, lang), day, lang);
 
@@ -587,32 +672,46 @@ export function JejuAiDetail({ controller }: Props): JSX.Element {
     [days.length],
   );
 
-  /** How long the visitor spends here: the schedule's, or the authored placeholder offline. */
-  const dwellOf = (stop: Stop): string =>
-    stop.spot ? minutesLabel(stop.spot.dwellMinutes, lang) : pick(meta.spotDuration, lang);
+  /**
+   * How long the visitor spends here: the schedule's, or the authored
+   * placeholder offline. -04-1 LABELS it — "머무는 시간 : 2-3시간" — where the
+   * -03 frames drew the bare value; the same card is used for the 다음 장소 row
+   * under the spot detail, so that one gains the label too.
+   */
+  const dwellOf = (stop: Stop): string => {
+    const value = stop.spot ? minutesLabel(stop.spot.dwellMinutes, lang) : pick(meta.spotDuration, lang);
+    return `${pick(STAT_LABEL.dwell, lang)} : ${value}`;
+  };
 
   /**
-   * "난이도 X". An ungraded SCHEDULED spot draws no row rather than a wrong one —
+   * "난이도 : X" — colon-separated in -04-1, to match the dwell stat beside it.
+   * An ungraded SCHEDULED spot draws no row rather than a wrong one:
    * `difficulty: 0` is the normalizer's "the server gave none". Offline there is
    * no schedule to grade, so the authored placeholder stands in.
    */
   const hardnessOf = (stop: Stop): string => {
     const grade = stop.spot ? difficultyLabel(stop.spot.difficulty) : meta.spotDifficulty;
     if (!grade) return '';
-    return `${pick(STAT_LABEL.difficulty, lang)} ${pick(DIFFICULTY_WORD[grade] ?? { ko: grade }, lang)}`;
+    return `${pick(STAT_LABEL.difficulty, lang)} : ${pick(DIFFICULTY_WORD[grade] ?? { ko: grade }, lang)}`;
   };
 
   /** Falls back to the shared no-image placeholder, like the list and detail cards. */
   const photoOf = (stop: Stop): string => shopImages(stop.shop)[0] ?? jejuIconUrl('noimage') ?? '';
 
-  const detailFor = (i: number): DetailItem | undefined => {
-    const stop = stops[i];
+  /**
+   * `list` is the day the tapped stop belongs to, not the whole itinerary: the
+   * 다음 장소 chain the detail screen walks must stop at the end of ITS day, and
+   * under 전체보기 the day is no longer implied by `stops`.
+   */
+  const detailFor = (list: Stop[], i: number): DetailItem | undefined => {
+    const stop = list[i];
     if (!stop) return undefined;
     const { shop, spot } = stop;
-    const nextStop = stops[i + 1];
-    const nextItem = detailFor(i + 1);
+    const nextStop = list[i + 1];
+    const nextItem = detailFor(list, i + 1);
     return {
       from: 'ai_detail',
+      shopId: shop.id,
       // JejuDetail shows this as the header SUBTITLE for AI-course spots, so it
       // carries the course + day rather than a generic label.
       title: courseDayTitle,
@@ -641,8 +740,8 @@ export function JejuAiDetail({ controller }: Props): JSX.Element {
     };
   };
 
-  const openSpot = (stop: Stop): void => {
-    const item = detailFor(stops.indexOf(stop));
+  const openSpot = (list: Stop[], stop: Stop): void => {
+    const item = detailFor(list, list.indexOf(stop));
     if (!item) return;
     setDetail(item);
     controller.navigate('detail', '코스 상세');
@@ -689,6 +788,43 @@ export function JejuAiDetail({ controller }: Props): JSX.Element {
     ];
   }, [course, transport, meta, totalTimeLabel, lang]);
 
+  /**
+   * The header QR's payload — the itinerary on screen, as shopIds and numbers.
+   * Rebuilt with `days`, so switching DAY does not change it: the phone gets
+   * the whole trip either way, and 전체보기 / 선택보기 is a kiosk-side view.
+   */
+  const courseQrUrl = useMemo(
+    () =>
+      buildAiCourseSaveUrlForQr({
+        lang,
+        course: courseLetter(courseKey),
+        transport: transportCode(transport),
+        party: partySize(visitors),
+        nights: nightCount(stay),
+        interests: interestCodes(interests, shops),
+        visitDate: todayIso(),
+        days: days.map((d) => ({
+          day: d.day,
+          stops: d.stops.map((stop) => ({
+            shopId: stop.shop.id,
+            dwellMinutes: stop.spot?.dwellMinutes ?? null,
+            difficulty: stop.spot?.difficulty ?? null,
+          })),
+        })),
+        totalMinutes: course?.totalMinutes ?? null,
+        // Summed the same way the summary bar sums it; absent offline, where the
+        // phone falls back to this course's authored 이동거리 instead.
+        travelMinutes: course
+          ? course.schedule.reduce(
+              (sum, d) => sum + d.spots.reduce((n, spot) => n + (spot.travelMinutes ?? 0), 0),
+              0,
+            )
+          : null,
+        difficulty: course?.difficulty ?? null,
+      }) ?? COURSE_QR_FALLBACK_URL,
+    [lang, courseKey, transport, visitors, stay, interests, shops, days, course],
+  );
+
   return (
     <JejuPageFrame
       controller={controller}
@@ -702,8 +838,33 @@ export function JejuAiDetail({ controller }: Props): JSX.Element {
       lowReachModeBar
       lowReachShift={113}
     >
+      {/* Header QR — the itinerary, opened on the visitor's phone.
+
+          Every prop here is about being READABLE off a screen, not pretty:
+           · level L, because a QR on glass is never scratched or creased and
+             the error correction only costs modules. `boostLevel` is on by
+             default, so it still lifts to M/Q for free whenever the payload
+             leaves room within the same version.
+           · marginSize 0 — the 4-module quiet zone is the card's own padding
+             instead, which hands those modules' width back to the code.
+           · crispEdges, because antialiased module borders at ~2.8px are what
+             turn a QR into grey mush once the artboard is scaled down. */}
+      <div className={low(styles.qr, styles.qrLow)}>
+        <QRCodeSVG
+          className={styles.qrCode}
+          value={courseQrUrl}
+          size={170}
+          level="L"
+          marginSize={0}
+          shapeRendering="crispEdges"
+          bgColor="#ffffff"
+          fgColor="#000000"
+        />
+      </div>
+
+      {/* -04-1 runs the hashtags straight into the summary bar — the course
+          description the -03 frames drew between them is gone. */}
       <p className={low(styles.tags, styles.tagsLow)}>{pick(meta.tags, lang)}</p>
-      <p className={low(styles.desc, styles.descLow)}>{pick(meta.desc, lang)}</p>
 
       <div className={low(styles.summary, styles.summaryLow)}>
         {stats.map((s, i) => (
@@ -729,7 +890,8 @@ export function JejuAiDetail({ controller }: Props): JSX.Element {
       )}
 
       {/* The day pager. Always drawn — greyed at the ends on DAY 1 / the last
-          day — so the row never reflows. */}
+          day — so the row never reflows. The 전체보기 / 선택보기 pair beside it
+          filters WITHIN the day and leaves the pager alone. */}
       <DayArrow
         dir="prev"
         disabled={dayIndex <= 0}
@@ -748,21 +910,52 @@ export function JejuAiDetail({ controller }: Props): JSX.Element {
         lang={lang}
       />
 
-      {loading ? null : stops.length === 0 ? (
-        <p className={styles.empty}>{pick(T.empty, lang)}</p>
+      {/* 전체보기 / 선택보기 — the frame's two pills, right of the pager: the
+          whole scheduled day, or only the stops matching a picked 즐길 거리. */}
+      <button
+        type="button"
+        className={low(
+          `${styles.scopeBtn} ${styles.scopeAll} ${onlyPicked ? '' : styles.scopeBtnOn}`,
+          styles.scopeLow,
+        )}
+        aria-pressed={!onlyPicked}
+        onClick={() => setScope('all')}
+      >
+        {pick(T.viewAll, lang)}
+      </button>
+      <button
+        type="button"
+        className={low(
+          `${styles.scopeBtn} ${styles.scopeDay} ${onlyPicked ? styles.scopeBtnOn : ''}`,
+          styles.scopeLow,
+        )}
+        aria-pressed={onlyPicked}
+        onClick={() => setScope('picked')}
+      >
+        {pick(T.viewPicked, lang)}
+      </button>
+
+      {loading ? null : visibleStops.length === 0 ? (
+        /* A day with no stops at all is the "we found nothing" case; a day whose
+           stops were all filtered out is a different sentence, and saying the
+           first there would send the visitor back to redo a search that worked. */
+        <p className={styles.empty}>{pick(stops.length === 0 ? T.empty : T.emptyPicked, lang)}</p>
       ) : (
         <div
           ref={listRef}
           className={low(styles.list, styles.listLow)}
         >
-          {stops.length > 1 && (
+          {visibleStops.length > 1 && (
             <div
               className={styles.rail}
-              style={{ top: RAIL_TOP, height: railHeightFor(stops.length) }}
+              style={{ top: RAIL_TOP, height: railHeightFor(visibleStops.length) }}
             />
           )}
-          {stops.map((stop, i) => (
+          {visibleStops.map((stop, i) => (
             <div key={`${i}-${stop.shop.id}`} className={styles.stopRow}>
+              {/* The stop's own place in the DAY, not its row here: under
+                  선택보기 the numbers read 1 · 3 · 4, which is the honest
+                  statement that this is a subset of the planned day. */}
               <span className={styles.stop}>{stop.number}</span>
               <JejuCourseSpotCard
                 width={1678}
@@ -773,7 +966,10 @@ export function JejuAiDetail({ controller }: Props): JSX.Element {
                 description={shopDescription(stop.shop, lang)}
                 dwell={dwellOf(stop)}
                 difficulty={hardnessOf(stop)}
-                onClick={() => openSpot(stop)}
+                /* The 다음 장소 chain follows what is ON SCREEN, so under
+                   선택보기 it walks the filtered day rather than re-introducing
+                   the stops the visitor just hid. */
+                onClick={() => openSpot(visibleStops, stop)}
               />
             </div>
           ))}

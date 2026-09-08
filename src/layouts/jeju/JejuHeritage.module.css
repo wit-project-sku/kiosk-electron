@@ -1,0 +1,259 @@
+/*
+ * 제주 유네스코 유산 (heritage) — the 2026-09-08 revision: 6942:51016 (세계지질공원
+ * state; 6908:51920 / 51916 are redrawn to the same template). Supersedes the
+ * first cut of this file.
+ *
+ * What the revision changed:
+ *   · the intro line (now 35px) gained a 153px QR badge on its right
+ *   · the white panel became an ACCORDION — collapsed it shows the quote and
+ *     the first lines of body over a fade-out, with a 더보기 pill; body type
+ *     went 38 → 45 and the quote wears a 6px orange left rule
+ *   · the card region is two 730 rows (1617–3127), the ※ 출처 line sits under
+ *     it, and the 상점 검색 promo banner is BACK at y3267
+ *
+ * Geometry, standard layout:
+ *   intro+QR   170/700 × 1820, row height 153
+ *   pill row   y903, four 420×170 pills
+ *   scroll     one column y1123 → y3127: accordion panel, then the card grid.
+ *              The frames pin the panel and scroll only the cards, but the
+ *              expanded accordion has nowhere to grow in a pinned layout, so
+ *              the column scrolls as a whole — at rest (collapsed) it renders
+ *              the frame exactly: panel at 1123, first card row at 1617.
+ *   source     the ※ 출처 line at y3160, fixed between column foot and banner
+ */
+
+/* Intro line + QR badge (6942:51446). */
+.introRow {
+  position: absolute;
+  left: 170px;
+  top: 700px;
+  width: 1820px;
+  height: 153px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 60px;
+}
+
+.intro {
+  width: 1564px;
+  margin: 0;
+  font-size: 35px;
+  font-weight: 400;
+  line-height: 1.3;
+  color: #000;
+  word-break: keep-all;
+  overflow-wrap: break-word;
+}
+
+/* 153px white plate, 4.29px brand border, r25, QR centred inside (6942:51448). */
+.qrBadge {
+  box-sizing: border-box;
+  flex: none;
+  width: 153px;
+  height: 153px;
+  border: 4.29px solid var(--kiosk-primary, #ff7f0f);
+  border-radius: 25px;
+  background: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.qrBadge svg {
+  width: 123px;
+  height: 123px;
+  display: block;
+}
+
+/* Four 420×170 pills over 1820 — orange-on-white idle (unchanged from v1). */
+.tabs {
+  position: absolute;
+  left: 170px;
+  top: 903px;
+  width: 1820px;
+  height: 170px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.tab {
+  width: 420px;
+  height: 170px;
+  box-sizing: border-box;
+  padding: 0 18px;
+  border: none;
+  border-radius: 42.9px;
+  background: #fff;
+  font-size: 50px;
+  font-weight: 500;
+  line-height: 1.1;
+  overflow: hidden;
+  overflow-wrap: anywhere;
+  color: var(--kiosk-primary, #ff7f0f);
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.tabActive {
+  background: var(--kiosk-primary, #ff7f0f);
+  font-weight: 700;
+  color: #fff;
+}
+
+/* The accordion panel + card grid, one hidden-scrollbar column. Foot at 3127 —
+   the frames' card region ends there, above the ※ 출처 line and the banner. */
+.scroller {
+  position: absolute;
+  left: 170px;
+  top: 1123px;
+  width: 1820px;
+  bottom: 713px;
+  overflow-x: hidden;
+  overflow-y: auto;
+  scrollbar-width: none;
+  display: flex;
+  flex-direction: column;
+  gap: 50px;
+}
+
+.scroller::-webkit-scrollbar {
+  width: 0;
+  height: 0;
+}
+
+/* ── Accordion — Description (6942:51462) ── */
+.panel {
+  box-sizing: border-box;
+  width: 100%;
+  flex: none;
+  border-radius: 68px;
+  background: #fff;
+  padding: 60px 73px;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  align-items: flex-start;
+}
+
+/* The tab's lead line — brand Bold 45 behind a 6px orange rule (6942:51464). */
+.quote {
+  margin: 0;
+  box-sizing: border-box;
+  width: 100%;
+  border-left: 6px solid var(--kiosk-primary, #ff7f0f);
+  padding-left: 40px;
+  font-size: 45px;
+  font-weight: 700;
+  line-height: 1.3;
+  color: var(--kiosk-primary, #ff7f0f);
+  word-break: keep-all;
+  overflow-wrap: break-word;
+}
+
+/* Body run — clipped behind the fade while collapsed. */
+.panelBody {
+  position: relative;
+  width: 100%;
+}
+
+.panelBodyCollapsed {
+  /* Two 45px/1.3 lines, as the collapsed frames show. */
+  max-height: 118px;
+  overflow: hidden;
+}
+
+/* 6942:51468 — white fade over the clipped run. */
+.fade {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 118px;
+  background: linear-gradient(to bottom, rgba(255, 255, 255, 0), #fff);
+  pointer-events: none;
+}
+
+.heading {
+  margin: 50px 0 0;
+  font-size: 45px;
+  font-weight: 700;
+  line-height: 1.3;
+  color: #1a1a1a;
+  word-break: keep-all;
+  overflow-wrap: break-word;
+}
+
+.para {
+  margin: 0;
+  font-size: 45px;
+  font-weight: 400;
+  line-height: 1.3;
+  color: #1a1a1a;
+  word-break: keep-all;
+  overflow-wrap: break-word;
+}
+
+/* 더보기 / 접기 pill (6942:51469). */
+.readMore {
+  border: none;
+  border-radius: 40px;
+  background: var(--kiosk-primary, #ff7f0f);
+  padding: 24px 48px;
+  font-size: 45px;
+  font-weight: 700;
+  color: #fff;
+  white-space: nowrap;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* 580 cards ×3 + 36 gaps = 1812 inside the 1820 column; rows 50 apart. */
+.cards {
+  display: grid;
+  grid-template-columns: repeat(3, 580px);
+  column-gap: 36px;
+  row-gap: 50px;
+}
+
+/* ※ 출처 (6942:51602) — fixed between the card region and the banner. */
+.source {
+  position: absolute;
+  left: 170px;
+  right: 170px;
+  top: 3160px;
+  margin: 0;
+  text-align: center;
+  font-size: 38px;
+  font-weight: 300;
+  letter-spacing: 0.38px;
+  color: #000;
+}
+
+/* Right-hand ▲▼ — the revision draws them mid-right at the same chrome tops
+   every other 제주 content page uses. */
+.scrollBtn {
+  position: absolute;
+  left: 2027px;
+  width: 85px;
+  height: 85px;
+  padding: 0;
+  border: none;
+  background: none;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.scrollUp   { top: 2103px; }
+.scrollDown { top: 2223px; }
+
+.scrollBtnImg {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  pointer-events: none;
+}
+
+.scrollUp .scrollBtnImg   { transform: rotate(90deg); }
+.scrollDown .scrollBtnImg { transform: rotate(-90deg); }

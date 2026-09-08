@@ -86,6 +86,16 @@ const SEARCH_PLACEHOLDER_FALLBACK = {
 const FALLBACKS: Record<string, Partial<Record<Lang, string>>> = {
   NoticeContent: NOTICE_FALLBACK,
   Main_Search: SEARCH_PLACEHOLDER_FALLBACK,
+  BarrierFree_Title: {
+    ko: '지금은 배리어프리 모드입니다.',
+    en: 'Currently in Barrier-Free Mode.',
+    ja: '現在はバリアフリーモードです。',
+    zh: '现在是无障碍模式。',
+    vi: 'Hiện tại là chế độ không rào cản.',
+    th: 'ขณะนี้อยู่ในโหมดไร้อุปสรรค',
+    ru: 'В настоящее время используется безбарьерный режим.',
+    id: 'Saat ini dalam mode bebas hambatan.',
+  },
 };
 
 /**
@@ -359,6 +369,9 @@ interface TileMascot {
 const HAYOUNG_LABELS: TileMascot = { hello: "안녕 '하영'", helloSub: '하영 소개', help: "도와줘 '하영'" };
 const YUSAN_LABELS: TileMascot = { hello: "안녕 '유산'", helloSub: '유산 소개', help: "도와줘 '유산'" };
 
+/** Shared by every venue's grid — see the plate note on {@link Tile}. */
+const TAMNAO_TILE: Tile = { screen: 'tamnao', label: '탐나오', sub: '제주공공플랫폼', icon: 'tile-tamnao', plate: '#e8534c' };
+
 /** The 12 grid tiles, in Figma reading order (4 columns × 3 rows). */
 const tilesWith = (venue: Tile, m: TileMascot = HAYOUNG_LABELS): Tile[] => [
   { screen: 'eat',      label: "'제주'뭐먹지", sub: '맛집 추천',      icon: 'tile-eat'      },
@@ -371,7 +384,7 @@ const tilesWith = (venue: Tile, m: TileMascot = HAYOUNG_LABELS): Tile[] => [
   venue,
   { screen: 'exchange', label: '환율',         sub: '환율계산기',     icon: 'tile-exchange' },
   { screen: 'donation', label: '기부',         sub: '교복 기부',      icon: 'tile-donation' },
-  { screen: 'tamnao',   label: '탐나오',       sub: '제주공공플랫폼', icon: 'tile-tamnao', plate: '#e8534c' },
+  TAMNAO_TILE,
   { screen: 'localpay', label: '지역화폐',     sub: '탐나는전',       icon: 'tile-localpay' },
 ];
 
@@ -384,8 +397,40 @@ const tilesWith = (venue: Tile, m: TileMascot = HAYOUNG_LABELS): Tile[] => [
  */
 const TILES_AIRPORT = tilesWith(RENTCAR_TILE);
 const TILES_TERMINAL = tilesWith(CRUISE_TILE);
-// W008 세계자연유산본부 — W007's grid (크루즈 운항, not 렌트카) with the 유산 tiles.
-const TILES_HERITAGE = tilesWith(CRUISE_TILE, YUSAN_LABELS);
+
+/**
+ * W008 세계자연유산본부 — no longer W007's grid. The 2026-09 redesign (Figma
+ * 6792:126444) dropped 숙박안내 / 크루즈 운항 / 지역화폐 and put three venue-own
+ * tiles in their cells: 제주세계유산 (row 1), 거문오름 예약 (row 2 — the slot the
+ * per-venue tile used to fill), 제주세계유산센터 (row 3, sliding 탐나오 to the
+ * last cell). Written out in full because the venue now differs in FOUR slots,
+ * which is past what tilesWith's single venue parameter can say.
+ *
+ * The frame's own tile subtitles are stale placeholders (면세혜택 under eleven of
+ * twelve tiles), so the three new subs here are authored, not transcribed. All
+ * three icons are the designer's exports with the plate baked in (same pattern as
+ * every other tile-*.png). None of the three has a CMS `buttons` row or a
+ * MainButton_* sheet key yet — until those land, clicks log label-only (see
+ * buttonCatalog's W008 note) and the grid keeps this authored order.
+ *
+ * heritage opens JejuHeritage (제주 유네스코 유산, 6908:51916) and geomun opens
+ * JejuGeomun (6935:69555); heritage_center still falls through to the
+ * JejuScreen scaffold in JejuKiosk until its frame lands.
+ */
+const TILES_HERITAGE: Tile[] = [
+  { screen: 'eat',      label: "'제주'뭐먹지",   sub: '맛집 추천',        icon: 'tile-eat'      },
+  { screen: 'shop',     label: "'제주'뭐사지",   sub: '쇼핑 추천',        icon: 'tile-shop'     },
+  { screen: 'heritage', label: '제주세계유산',    sub: '유네스코 세계유산', icon: 'tile-heritage' },
+  { screen: 'taxfree',  label: 'TAX-FREE',      sub: '면세혜택',         icon: 'tile-taxfree'  },
+  { screen: 'about',    label: '여기는 제주도',   sub: '관광지 추천',      icon: 'tile-about'    },
+  { screen: 'hello',    label: YUSAN_LABELS.hello, sub: YUSAN_LABELS.helloSub, icon: 'tile-hello' },
+  { screen: 'help',     label: YUSAN_LABELS.help, sub: '편의시설 안내',    icon: 'tile-help'     },
+  { screen: 'geomun',   label: '거문오름 예약',   sub: '탐방 예약',        icon: 'tile-geomun'   },
+  { screen: 'exchange', label: '환율',           sub: '환율계산기',       icon: 'tile-exchange' },
+  { screen: 'donation', label: '기부',           sub: '교복 기부',        icon: 'tile-donation' },
+  { screen: 'heritage_center', label: '제주세계유산센터', sub: '센터 안내', icon: 'tile-heritage-center' },
+  TAMNAO_TILE,
+];
 
 /**
  * Which grid a 제주 kiosk draws, by kiosk id.
@@ -565,7 +610,7 @@ export function JejuHome({ controller }: Props): JSX.Element {
       )}
 
       {lowReach && (
-        <div className={styles.modeBar}>지금은 배리어프리 모드입니다.</div>
+        <div className={styles.modeBar}>{homeText('BarrierFree_Title', lang)}</div>
       )}
       {lowReach && jejuIconUrl('banner-page') && (
         <div className={styles.hero}>

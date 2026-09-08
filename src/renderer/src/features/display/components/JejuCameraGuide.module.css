@@ -3,7 +3,7 @@
  * image (2026-08-24). Every location draws this screen.
  *
  * The overlay is the designer's own transparent export (repo root
- * icons/"Group 1707482852 (1).png" → assets/icons/jeju/capture-guide.png with
+ * icons/"Group 1707482852 (2).png" → assets/icons/jeju/capture-guide.png with
  * the countdown digits patched out — see .count). Its 2155×3739 canvas is
  * stretched to the 2160×3840 artboard ("fully fit"), a 0.2%/2.7% stretch that
  * is invisible at glass distance; every position below is the image coordinate
@@ -12,7 +12,14 @@
  * Layer order: feed → overlay → live numeral / badges. The overlay's header
  * band is a baked rgba(112,117,129,.7) frost, so the feed dims through it and
  * the white baked type stays readable; its body is fully transparent apart
- * from the glowing pose figure.
+ * from the glowing 손 icon and the footprint arc.
+ *
+ * ── 2026-09-08 re-export ──────────────────────────────────────────────
+ * The designer dropped the full-height pose figure and tightened the header,
+ * so every screen-space number below moved: the frost band now ends at image
+ * y 698 (screen 718) instead of 899 (924), and the body art is the 손 icon at
+ * image y 932…1588 / x 1308…1960 plus the unchanged footprint arc at y 3218…
+ * 3700. The badges sit in the gap between the band and that icon.
  */
 .root {
   position: relative;
@@ -33,7 +40,7 @@
    `fill`, NOT `cover`: the frame is stretched to the screen's own width and
    height, so the WHOLE frame is shown and none of it is cropped. `cover` (what
    this was) crops whatever does not match the screen's aspect, which zoomed the
-   제주 feed in and cut the edges off — and since the overlay's pose figure is
+   제주 feed in and cut the edges off — and since the overlay's footprint arc is
    what tells the visitor where to stand, a cropped preview asks them to frame
    themselves against something that is not the frame.
 
@@ -77,17 +84,21 @@
 /*
  * The live countdown numeral, inside the overlay's baked quotes.
  *
- * The shipped overlay has the digit ink (image px 460…594 × 195…288) replaced
+ * The shipped overlay has the digit ink (image px 459…594 × 120…215) replaced
  * with the header plate's own colour; this element re-fills that slot. The
- * numbers, mapped image→screen: slot centre x 526 → 527, digit ink 195…288 →
- * 200…296. 128px Bold Noto measures its "10" ink at 96×137 (canvas
+ * numbers, mapped image→screen: slot centre x 526 → 527, digit ink 120…215 →
+ * 123…221. 128px Bold Noto measures its "10" ink at 96×137 (canvas
  * actualBoundingBox), matching the baked 96×134 to a pixel or two.
  * Re-measure if the overlay is re-exported.
+ *
+ * The baked quotes are the fixed landmark either side of the slot: they sit at
+ * image x 424…447 and 605…628, and columns 449…458 / 595…604 are pure plate,
+ * which is where the patch is cut so no quote antialiasing is clipped.
  */
 .count {
   position: absolute;
   left: 527px;
-  top: 190px;
+  top: 114px;
   transform: translateX(-50%);
   height: 116px;
   margin: 0;
@@ -114,7 +125,7 @@
    watching for, so this states the truth just under the header band. */
 .autoStart {
   position: absolute;
-  top: 960px;
+  top: 750px;
   left: 50%;
   transform: translateX(-50%);
   margin: 0;
@@ -132,10 +143,11 @@
 /* ── 일시정지 badge ──────────────────────────────────────────────────── */
 /* Near the top of the feed rather than centred on it: the middle of the frame
    is where the visitor's own face is, and covering that is exactly what they
-   are standing there to look at. */
+   are standing there to look at. Bottom lands at 944, clearing the overlay's
+   손 icon (screen y 957) — keep it above that if the font size changes. */
 .pausedBadge {
   position: absolute;
-  top: 1030px;
+  top: 776px;
   left: 50%;
   transform: translateX(-50%);
   display: flex;
