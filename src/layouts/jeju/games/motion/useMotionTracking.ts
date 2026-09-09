@@ -209,6 +209,14 @@ export interface MotionDiagnostics {
   /** Inference passes run since the camera opened. */
   frames: number;
   /**
+   * Whether the pose model is actually available.
+   *
+   * `loading` for more than a few seconds means the frame loop is running but
+   * has nothing to run — which looks exactly like an empty room in every other
+   * field, and was the real fault on 제주.
+   */
+  model: 'loading' | 'ready' | 'failed';
+  /**
    * The camera has stopped delivering NEW frames.
    *
    * `videoWidth` stays set on a stalled stream, so a dead feed and an empty
@@ -302,6 +310,7 @@ export function useMotionTracking({ enabled }: Options): MotionTracking {
     modelH: 0,
     rotation,
     settled: false,
+    model: 'loading',
     poses: 0,
     quality: 0,
     size: 0,
@@ -309,6 +318,8 @@ export function useMotionTracking({ enabled }: Options): MotionTracking {
     frames: 0,
     stalled: false,
   });
+  /** Throttle for the blind-tracking log — see the note where it is emitted. */
+  const loggedAtRef = useRef(0);
   /** Rolling peak, decayed so it reflects the last few seconds, not the session. */
   const peakRef = useRef({ value: 0, at: 0 });
   /** Frame-liveness: the video's own clock, and when it last moved. */
@@ -516,12 +527,38 @@ export function useMotionTracking({ enabled }: Options): MotionTracking {
           cameraH: videoElement.videoHeight,
           modelW: tracker.frameW,
           modelH: tracker.frameH,
+          model: tracker.modelState,
           rotation: rotationRef.current,
           settled: orientationLockedRef.current,
           poses: poses.length,
           quality: bestQuality,
           size,
         };
+
+        // ── The same numbers, in the log ──────────────────────────────
+        //
+        // The on-screen panel needs somebody standing at the kiosk to read it.
+        // This is for the case nobody is: a 제주 machine in an airport whose
+        // motion games have quietly stopped detecting anyone, with a support
+        // call days later and no way to reconstruct why.
+        //
+        // Self-limiting on purpose. It says nothing at all while tracking is
+        // working, and at most once a second while it is not — so a healthy
+        // kiosk logs zero lines from here, and a broken one logs exactly enough
+        // to diagnose without drowning the file it shares with everything else.
+        // `spyRendererConsole` routes it into the same log as the main process
+        // (see main/core/logger.ts).
+        if (!now.detected && started - loggedAtRef.current > 1000) {
+          loggedAtRef.current = started;
+          // eslint-disable-next-line no-console
+          console.info(
+            `[motion] no player · cam ${videoElement.videoWidth}x${videoElement.videoHeight}` +
+              ` · model ${tracker.frameW}x${tracker.frameH} rot ${rotationRef.current}` +
+              `${orientationLockedRef.current ? '' : ' (probing)'}` +
+              ` · poses ${poses.length} q ${bestQuality.toFixed(2)} peak ${peakRef.current.value.toFixed(2)}` +
+              ` · frames ${live.frames}${stalled ? ' STALLED' : ''}`,
+          );
+        }
 
         setStatus(
           !now.detected
@@ -612,14 +649,31 @@ export function useMotionTracking({ enabled }: Options): MotionTracking {
         videoElement.srcObject = stream;
         await videoElement.play();
 
-        await tracker.load();
-        if (cancelled) return;
         tracker.resetClock();
-
         retryIndex = 0;
         lastAt = 0;
         setStatus('no-player');
+
+        // ── Start the loop NOW, before the model is ready ──────────────
+        //
+        // This used to `await tracker.load()` first, and that was the fault
+        // behind "the games never detect anyone": when the load hung, the loop
+        // never ran a single iteration. The camera was open and the preview was
+        // live — the stream is attached above — so the only visible symptom was
+        // that nobody was ever found, and the diagnostic panel read CAM 0×0 /
+        // FRAMES 0 because the code that fills those had never executed.
+        //
+        // `detect()` returns [] while the landmarker is null, so ticking early
+        // is harmless: the loop spins, reports liveness, and starts finding
+        // people the moment the model arrives. It also means a model that never
+        // loads degrades to "sees nobody" WITH a diagnostic saying why, instead
+        // of a silent freeze.
         tick();
+
+        void tracker.load().catch(() => {
+          // Already reported through `modelState`; the loop keeps running and
+          // the panel says the model failed rather than showing an empty room.
+        });
       } catch {
         // The camera may well have opened and the MODEL have been what failed.
         // Letting that stream live would mean the retry opens a second one — and

@@ -24,6 +24,9 @@
  *                   kioskLocations.
  *   CAM 2560×720    the ZED was opened. Should be impossible (excluded by
  *                   label and by aspect) — if it happens, that guard failed.
+ *   NET loading     the model never became available — the loop is running but
+ *                   has nothing to run. Looks identical to an empty room in
+ *                   every other field; this is the one that says otherwise.
  *   POSE 0          nobody found at all.
  *   POSE 1 Q 0.2    somebody found, but a poor pose — usually a sideways frame.
  *   SIZE            apparent size; drives the step-closer / step-back hints.
@@ -108,7 +111,7 @@ export function MotionDiagnostics({ diagnostics, healthy }: Props): JSX.Element 
       </p>
       <p className={styles.diagRow}>
         MODEL {d.modelW}×{d.modelH} · ROT {d.rotation}
-        {d.settled ? '' : ' (probing)'}
+        {d.settled ? '' : ' (probing)'} · NET {d.model}
       </p>
       <p className={styles.diagRow}>
         POSE {d.poses} · Q {d.quality.toFixed(2)} · SIZE {d.size.toFixed(2)}
@@ -121,6 +124,11 @@ export function MotionDiagnostics({ diagnostics, healthy }: Props): JSX.Element 
         PEAK Q {d.peakQuality.toFixed(2)} · FRAMES {d.frames}
         {d.stalled ? ' · STREAM STALLED' : ''}
       </p>
+      {d.model !== 'ready' && (
+        <p className={styles.diagHint}>
+          {d.model === 'failed' ? '⚠ Pose model failed to load' : '⚠ Pose model still loading'}
+        </p>
+      )}
       {stalled && <p className={styles.diagHint}>⚠ Camera stream not advancing</p>}
       {suspectRotation && !stalled && (
         <p className={styles.diagHint}>⚠ Check the Elgato&apos;s rotation in Windows</p>

@@ -20,7 +20,17 @@
  */
 import type { FallingItem, Particle, ScorePop } from '../gameTypes';
 
-/** The play field, in artboard px — matches GameShell's `.field` box. */
+/**
+ * The play field, in artboard px — matches GameShell's `.field` box.
+ *
+ * ★ THESE ARE THE TOUCH GAME'S DIMENSIONS. The motion version of this game runs
+ * on the customer display at 1980×3120 and exports its OWN FIELD_W/FIELD_H from
+ * `motion/body-catch/useBodyCatch`. Importing these there sizes the canvas
+ * 1060px shorter than the world being drawn into it: the basket sits below the
+ * bottom edge and never appears, while fruit still scores, because collisions
+ * are computed in world space and do not care how big the canvas is. That was a
+ * real bug on 제주 — take the constants from the engine, not from here.
+ */
 export const FIELD_W = 1900;
 export const FIELD_H = 2060;
 

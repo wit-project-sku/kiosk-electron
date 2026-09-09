@@ -17,11 +17,18 @@ import { pick, useLang } from '@renderer/lib/i18n';
 import type { MotionGameProps } from '../../gameTypes';
 import { GameHud } from '../../components/GameHud';
 import { GameResult } from '../../components/GameResult';
-import { FIELD_H, FIELD_W } from '../../tangerine-catch/catchRender';
 import { MOTION } from '../motionText';
 import { useMotionTracking } from '../useMotionTracking';
 import { MotionStage } from '../components/MotionStage';
-import { useBodyCatch } from './useBodyCatch';
+// FIELD_* comes from the ENGINE, never from catchRender.
+//
+// It used to come from catchRender, which is the TOUCH game's field (1900×2060),
+// while this game's physics run at 1980×3120. The canvas backing store was
+// therefore 1060px shorter than the world drawn into it, so the basket — which
+// sits at y=2700 — was clipped off the bottom and simply never appeared, and
+// fruit vanished near the bottom edge while still scoring, because collisions
+// are computed in world space and do not care how big the canvas is.
+import { FIELD_H, FIELD_W, useBodyCatch } from './useBodyCatch';
 import styles from './BodyCatch.module.css';
 
 /** How long the "move left and right" reminder stays up once play begins. */

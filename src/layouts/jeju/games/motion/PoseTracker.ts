@@ -81,15 +81,43 @@ async function create(delegate: 'GPU' | 'CPU'): Promise<PoseLandmarker> {
   });
 }
 
+/**
+ * How long the GPU delegate gets before we stop waiting for it.
+ *
+ * ══ A TRY/CATCH DOES NOT CATCH A HANG ═════════════════════════════════
+ * This used to be a bare `try { GPU } catch { CPU }`, which handles a delegate
+ * that REFUSES and does nothing at all for one that never answers. On the 제주
+ * machine it never answered: the model load sat unresolved, and because the
+ * frame loop was started after awaiting it, the loop never ran a single
+ * iteration. The camera was open and the preview was live — the stream is
+ * attached before this — so everything looked fine except that nothing was ever
+ * detected, and the diagnostic panel showed CAM 0×0 / FRAMES 0 because the code
+ * that fills those numbers had never executed.
+ *
+ * Six seconds is far longer than a real GPU init (~1s here) and far shorter
+ * than a visitor's patience.
+ */
+const GPU_LOAD_TIMEOUT_MS = 6000;
+
+function withTimeout<T>(work: Promise<T>, ms: number, label: string): Promise<T> {
+  return Promise.race([
+    work,
+    new Promise<T>((_, reject) => {
+      setTimeout(() => reject(new Error(`${label} timed out after ${ms}ms`)), ms);
+    }),
+  ]);
+}
+
 function load(): Promise<PoseLandmarker> {
   trackerPromise ??= (async () => {
     try {
       // GPU keeps a lite pass near 10 ms here. CPU is several times that and
-      // competes with the attract video's decode for the same cores.
-      return await create('GPU');
+      // competes with the attract video's decode for the same cores — but a CPU
+      // pass that RUNS beats a GPU pass that never starts.
+      return await withTimeout(create('GPU'), GPU_LOAD_TIMEOUT_MS, 'GPU pose delegate');
     } catch {
-      // An unavailable GPU delegate must not disable the games — same fallback
-      // PersonDetector makes, for the same reason.
+      // An unavailable — or unresponsive — GPU delegate must not disable the
+      // games. Same fallback PersonDetector makes, for the same reason.
       return await create('CPU');
     }
   })().catch((error) => {
@@ -126,6 +154,8 @@ const WORK_LONG_EDGE = 720;
 
 export class PoseTracker {
   private landmarker: PoseLandmarker | null = null;
+  /** What the model is doing. Surfaced on the diagnostic panel. */
+  modelState: 'loading' | 'ready' | 'failed' = 'loading';
   /**
    * The frame the model actually sees: the camera's, scaled down and — if the
    * venue's camera is bolted sideways — turned upright.
@@ -159,8 +189,21 @@ export class PoseTracker {
    */
   private clock = 0;
 
+  /**
+   * Begin loading the shared landmarker.
+   *
+   * The caller must NOT block its frame loop on this — see the note on
+   * {@link GPU_LOAD_TIMEOUT_MS}. `detect()` returns [] until this resolves, so
+   * the loop is free to run (and to report diagnostics) from the first frame.
+   */
   async load(): Promise<void> {
-    this.landmarker = await load();
+    try {
+      this.landmarker = await load();
+      this.modelState = 'ready';
+    } catch {
+      this.modelState = 'failed';
+      throw new Error('Pose model failed to load');
+    }
   }
 
   get ready(): boolean {
