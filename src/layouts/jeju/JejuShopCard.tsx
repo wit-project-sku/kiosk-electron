@@ -59,6 +59,11 @@ interface Props {
   routeLine?: string;
   /** 렌트카 compact bottom row — tel, or km · drive · tel. */
   footerLine?: string;
+  /**
+   * 뭐먹지·뭐사지·숙박 목록만. `fromAssociation`이 true면 이름 오른쪽 점을
+   * 협회 녹색으로 그린다.
+   */
+  associationDot?: boolean;
   onClick: () => void;
 }
 
@@ -72,6 +77,7 @@ export function JejuShopCard({
   badgeVariant = 'primary',
   routeLine,
   footerLine,
+  associationDot = false,
   onClick,
 }: Props): JSX.Element {
   // Real photos first, then the shared no-image placeholder — the same asset
@@ -87,6 +93,8 @@ export function JejuShopCard({
     : shopSecondCategory(shop, lang);
   const mark = (text: string): ReturnType<typeof highlightMatch> | string =>
     query ? highlightMatch(text, query, styles.hl) : text;
+  const dotClass =
+    associationDot && shop.fromAssociation ? `${styles.dot} ${styles.dotAssociation}` : styles.dot;
 
   return (
     <button
@@ -102,7 +110,7 @@ export function JejuShopCard({
                 <span className={styles.name}>{mark(displayName)}</span>
                 {displayCategory && (
                   <span className={styles.cat}>
-                    <span className={styles.dot} />
+                    <span className={dotClass} />
                     {displayCategory}
                   </span>
                 )}
@@ -115,7 +123,7 @@ export function JejuShopCard({
             <>
               <span className={styles.name}>{mark(displayName)}</span>
               <span className={styles.cat}>
-                <span className={styles.dot} />
+                <span className={dotClass} />
                 {displayCategory}
               </span>
             </>

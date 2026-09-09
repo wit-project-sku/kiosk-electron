@@ -480,6 +480,25 @@
   justify-content: center;
 }
 
+.qrWithCaption {
+  flex-direction: column;
+  justify-content: flex-start;
+  align-self: center;
+  height: auto;
+  gap: 4px;
+  padding: 18px 0 6px;
+}
+
+.qrCaption {
+  margin: 0;
+  font-size: 28px;
+  font-weight: 500;
+  line-height: 1;
+  color: #333;
+  text-align: center;
+  white-space: nowrap;
+}
+
 /* Insets the code to ~66% of the plate (same ratio as the previous 224/340). */
 .qrCode {
   width: 198px;

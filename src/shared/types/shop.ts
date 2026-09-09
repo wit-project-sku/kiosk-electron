@@ -126,6 +126,8 @@ export interface Shop {
   descriptionRu?: string;
   openTime: string | null;
   tel: string | null;
+  /** Association member — list name-dot is drawn in the association green. */
+  fromAssociation?: boolean;
   naverLink: string | null;
   naverRating: number | null;
   images: ShopImage[];

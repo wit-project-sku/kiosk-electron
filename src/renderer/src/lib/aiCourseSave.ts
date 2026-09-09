@@ -58,9 +58,10 @@ export interface AiCourseSaveInput {
   difficulty?: number | null;
 }
 
-/** Same override as detailCardSave, but this QR has always had a real default. */
+/** Same override as detailCardSave. Static `import.meta.env.VITE_*` so Vite inlines it. */
+const AI_COURSE_SAVE_ORIGIN_ENV = import.meta.env.VITE_DETAIL_SAVE_ORIGIN;
 export const AI_COURSE_SAVE_ORIGIN =
-  (import.meta as ImportMeta & { env?: Record<string, string> }).env?.['VITE_DETAIL_SAVE_ORIGIN'] ||
+  (typeof AI_COURSE_SAVE_ORIGIN_ENV === 'string' && AI_COURSE_SAVE_ORIGIN_ENV.trim()) ||
   'https://direction-fe.vercel.app';
 
 /**
