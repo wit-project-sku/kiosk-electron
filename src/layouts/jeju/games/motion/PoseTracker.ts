@@ -135,6 +135,16 @@ export class PoseTracker {
    */
   private work: HTMLCanvasElement | null = null;
   private workCtx: CanvasRenderingContext2D | null = null;
+
+  /**
+   * Size of the frame the model was last shown, AFTER any rotation.
+   *
+   * The distance estimate needs it: shoulder span is normalized to this frame,
+   * and comparing it against a threshold means knowing what shape the frame
+   * was. See `apparentSize` in poseMath.
+   */
+  frameW = 0;
+  frameH = 0;
   /**
    * MediaPipe's VIDEO mode requires strictly increasing timestamps and throws
    * on a repeat. Video currentTime is not reliable for this (it repeats while
@@ -214,6 +224,8 @@ export class PoseTracker {
       canvas.width = w;
       canvas.height = h;
     }
+    this.frameW = w;
+    this.frameH = h;
 
     ctx.save();
     ctx.translate(w / 2, h / 2);

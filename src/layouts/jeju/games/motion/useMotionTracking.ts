@@ -49,8 +49,10 @@ import { useKioskStore } from '@renderer/store/kioskStore';
 import { PoseTracker } from './PoseTracker';
 import { emptyTrackingState, type PlayerTrackingState, type TrackingStatus } from './poseTypes';
 import {
+  apparentSize,
   expandRange,
   isInPlayArea,
+  poseQuality,
   smoothToward,
   toBodyLandmarks,
   torsoCenter,
@@ -105,8 +107,24 @@ const LOCK_RADIUS = 0.28;
  * Deliberately wide. These drive a coaching line, not a refusal — the game
  * still starts and still tracks in the grey zone either side.
  */
-const SHOULDERS_TOO_CLOSE = 0.55;
-const SHOULDERS_TOO_FAR = 0.11;
+/**
+ * Apparent size (see `apparentSize`) outside which the visitor is coached to
+ * move. Measured against the frame's SHORTER edge, so these hold whatever
+ * shape the camera delivers.
+ *
+ * Deliberately very wide. These now drive ONLY a coaching line — nothing here
+ * can stop a game starting, because the previous version could, and a wrong
+ * estimate then trapped a visitor being told to step closer while standing
+ * right in front of the camera.
+ */
+const SIZE_TOO_CLOSE = 0.8;
+const SIZE_TOO_FAR = 0.07;
+
+/**
+ * Pose quality good enough to settle the orientation on. Below this the frame
+ * is probably not the right way up — see `poseQuality`.
+ */
+const GOOD_POSE = 0.55;
 
 /**
  * How long to accept seeing nobody before suspecting the frame is the wrong way
@@ -146,6 +164,42 @@ interface Options {
   enabled: boolean;
 }
 
+/**
+ * What the tracker can tell an OPERATOR about why it is not seeing anyone.
+ *
+ * ══ WHY THIS IS ON SCREEN AND NOT IN A LOG ════════════════════════════
+ * When these games fail they fail silently: the gate simply never opens. From
+ * in front of the kiosk that looks identical whether the camera is the wrong
+ * one, delivering the wrong shape, mounted the wrong way up, or working
+ * perfectly with nobody in the room. Nobody can report a useful bug from
+ * "it says stand in front and I am standing in front", and the person who can
+ * read a log is not the person standing at the kiosk.
+ *
+ * So after a long enough failure the calibration screen shows this. It is the
+ * difference between "the games are broken" and "the camera is 1920×1080, so
+ * Windows lost its rotation".
+ */
+export interface MotionDiagnostics {
+  /** The device that was actually opened. Empty until permission is granted. */
+  label: string;
+  /** Frame as the CAMERA delivers it. Landscape on 제주 means a lost setting. */
+  cameraW: number;
+  cameraH: number;
+  /** Frame as the MODEL sees it, after rotation and downscaling. */
+  modelW: number;
+  modelH: number;
+  /** Rotation actually applied — may differ from config if the probe moved it. */
+  rotation: CameraRotation;
+  /** Whether the probe has settled. */
+  settled: boolean;
+  /** People the model returned this frame. */
+  poses: number;
+  /** Best pose quality this frame, 0..1. Low means "not a person, upright". */
+  quality: number;
+  /** Apparent size, 0..1 of the frame's short edge. Drives the distance hints. */
+  size: number;
+}
+
 export interface MotionTracking {
   /**
    * The rotation actually being applied to the frame right now.
@@ -171,6 +225,11 @@ export interface MotionTracking {
   status: TrackingStatus;
   /** Reset the lock and the smoothing. Called when a game (re)starts. */
   recalibrate: () => void;
+  /**
+   * Live diagnostics. A REF — it is rewritten 20 times a second and only ever
+   * read by a component that polls it while it is on screen.
+   */
+  diagnostics: RefObject<MotionDiagnostics>;
 }
 
 /** Pick the venue camera, never the ZED. Same two-way exclusion as elsewhere. */
@@ -204,8 +263,29 @@ export function useMotionTracking({ enabled }: Options): MotionTracking {
   const rotationRef = useRef<CameraRotation>(rotation);
   /** performance.now() of the last frame that contained ANY pose. */
   const lastPoseAtRef = useRef(0);
-  /** Latched once a pose has been seen — the probe stops for good. */
+  /** Latched once the orientation is settled — the probe stops for good. */
   const orientationLockedRef = useRef(false);
+  /** Best (rotation, quality) seen so far while probing. */
+  const bestSeenRef = useRef<{ rotation: CameraRotation; quality: number }>({
+    rotation,
+    quality: 0,
+  });
+  /** How many orientations the probe has tried this session. */
+  const triedRef = useRef(0);
+  /** Latest apparent size, for the diagnostic readout. */
+  const sizeRef = useRef(0);
+  const diagnosticsRef = useRef<MotionDiagnostics>({
+    label: '',
+    cameraW: 0,
+    cameraH: 0,
+    modelW: 0,
+    modelH: 0,
+    rotation,
+    settled: false,
+    poses: 0,
+    quality: 0,
+    size: 0,
+  });
 
   const recalibrate = useCallback((): void => {
     lockXRef.current = null;
@@ -228,6 +308,8 @@ export function useMotionTracking({ enabled }: Options): MotionTracking {
     rotationRef.current = rotation;
     orientationLockedRef.current = false;
     lastPoseAtRef.current = 0;
+    triedRef.current = 0;
+    bestSeenRef.current = { rotation, quality: 0 };
     // Captured now rather than read in cleanup: by then the ref may point at a
     // different element, and clearing the wrong one leaves this stream attached
     // to nothing that can release it. Same reasoning as useFootfallCounter.
@@ -251,22 +333,54 @@ export function useMotionTracking({ enabled }: Options): MotionTracking {
         const prev = playerRef.current;
 
         // ── Orientation probe ──
-        // Only while nothing has ever been found, and only while the camera is
-        // genuinely delivering frames — a stalled stream is not a wrong-way-up
-        // stream, and cycling rotations because a cable fell out would just
-        // hide the real fault.
+        //
+        // Scores each orientation rather than accepting the first that returns
+        // anything. MediaPipe hands back a pose for a person lying sideways
+        // too — a bad one — and the earlier version locked onto exactly that,
+        // then spent the rest of the session reading nonsense out of it.
+        //
+        // Runs only while the orientation is unsettled, and only while the
+        // camera is genuinely delivering frames: a stalled stream is not a
+        // wrong-way-up stream, and cycling rotations because a cable fell out
+        // would hide the real fault.
         const framesFlowing = videoElement.readyState >= 2 && videoElement.videoWidth > 0;
-        if (poses.length > 0) {
-          lastPoseAtRef.current = started;
-          orientationLockedRef.current = true;
-        } else if (!orientationLockedRef.current && framesFlowing) {
+        const bestQuality = poses.reduce(
+          (acc, pose) => Math.max(acc, poseQuality(toBodyLandmarks(pose.landmarks, 0))),
+          0,
+        );
+
+        if (!orientationLockedRef.current && framesFlowing) {
           if (lastPoseAtRef.current === 0) lastPoseAtRef.current = started;
-          if (started - lastPoseAtRef.current > ORIENTATION_PROBE_MS) {
-            lastPoseAtRef.current = started;
-            const next = ((rotationRef.current + 90) % 360) as CameraRotation;
-            rotationRef.current = next;
-            setEffectiveRotation(next);
+
+          if (bestQuality >= GOOD_POSE) {
+            // Unmistakably a person, the right way up. Settle here.
+            orientationLockedRef.current = true;
+            bestSeenRef.current = { rotation: rotationRef.current, quality: bestQuality };
+          } else {
+            if (bestQuality > bestSeenRef.current.quality) {
+              bestSeenRef.current = { rotation: rotationRef.current, quality: bestQuality };
+            }
+            if (started - lastPoseAtRef.current > ORIENTATION_PROBE_MS) {
+              lastPoseAtRef.current = started;
+              triedRef.current += 1;
+              if (triedRef.current >= 4) {
+                // All four seen and none was convincing — a room with nobody in
+                // it looks exactly like this. Settle on whichever scored best
+                // (the configured one, if nothing ever scored) and stop
+                // cycling, so a visitor who walks up later is not met with a
+                // preview spinning through orientations.
+                orientationLockedRef.current = true;
+                rotationRef.current = bestSeenRef.current.rotation;
+                setEffectiveRotation(bestSeenRef.current.rotation);
+              } else {
+                const next = ((rotationRef.current + 90) % 360) as CameraRotation;
+                rotationRef.current = next;
+                setEffectiveRotation(next);
+              }
+            }
           }
+        } else if (bestQuality > 0) {
+          lastPoseAtRef.current = started;
         }
 
         // ── Pick the locked player out of what we can see ──
@@ -340,17 +454,32 @@ export function useMotionTracking({ enabled }: Options): MotionTracking {
         }
 
         // ── Status, for the coaching overlay ──
-        // Ordered by what the visitor should fix FIRST. Distance beats
-        // sideways position because a cropped visitor cannot be tracked at all,
-        // whereas one standing off-centre is merely near the edge of the field.
+        // Ordered by what the visitor should fix first. None of these can stop
+        // a game starting any more — see the note in MotionCalibration.
         const now = playerRef.current;
-        const span = now.width;
+        const size = now.landmarks
+          ? apparentSize(now.landmarks, tracker.frameW, tracker.frameH)
+          : 0;
+        sizeRef.current = size;
+        diagnosticsRef.current = {
+          ...diagnosticsRef.current,
+          cameraW: videoElement.videoWidth,
+          cameraH: videoElement.videoHeight,
+          modelW: tracker.frameW,
+          modelH: tracker.frameH,
+          rotation: rotationRef.current,
+          settled: orientationLockedRef.current,
+          poses: poses.length,
+          quality: bestQuality,
+          size,
+        };
+
         setStatus(
           !now.detected
             ? 'no-player'
-            : span > SHOULDERS_TOO_CLOSE
+            : size > SIZE_TOO_CLOSE
               ? 'too-close'
-              : span > 0 && span < SHOULDERS_TOO_FAR
+              : size > 0 && size < SIZE_TOO_FAR
                 ? 'too-far'
                 : now.people > 1
                   ? 'crowded'
@@ -421,6 +550,12 @@ export function useMotionTracking({ enabled }: Options): MotionTracking {
           return;
         }
         stream = opened;
+        diagnosticsRef.current = {
+          ...diagnosticsRef.current,
+          // Empty until camera permission has been granted at least once —
+          // itself a useful thing to see on the readout.
+          label: opened.getVideoTracks()[0]?.label ?? '',
+        };
 
         if (!videoElement) throw new Error('No video element');
         videoElement.srcObject = stream;
@@ -474,5 +609,12 @@ export function useMotionTracking({ enabled }: Options): MotionTracking {
     };
   }, [enabled, rotation]);
 
-  return { videoRef, player: playerRef, status, rotation: effectiveRotation, recalibrate };
+  return {
+    videoRef,
+    player: playerRef,
+    status,
+    rotation: effectiveRotation,
+    recalibrate,
+    diagnostics: diagnosticsRef,
+  };
 }

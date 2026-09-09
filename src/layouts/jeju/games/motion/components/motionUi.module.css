@@ -474,3 +474,40 @@
   width: 1980px;
   height: 3120px;
 }
+
+/* ── Diagnostics ───────────────────────────────────────────────────────
+   Operator-facing, and shown only after the gate has failed for long enough
+   that a visitor is not being served anyway. Monospace and small: this is a
+   readout, not part of the design, and it should look like one so nobody
+   mistakes it for something a visitor is meant to act on. */
+.diag {
+  position: absolute;
+  left: 50%;
+  bottom: 90px;
+  transform: translateX(-50%);
+  z-index: 27;
+  padding: 28px 48px;
+  border-radius: 28px;
+  background: rgba(0, 0, 0, 0.62);
+  border: 3px solid rgba(255, 255, 255, 0.14);
+  font-family: 'Consolas', 'Courier New', monospace;
+  text-align: center;
+}
+
+.diagRow {
+  margin: 0;
+  font-size: 38px;
+  line-height: 1.5;
+  color: rgba(255, 255, 255, 0.72);
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+}
+
+.diagHint {
+  margin: 14px 0 0;
+  font-size: 40px;
+  font-weight: 700;
+  line-height: 1.3;
+  color: #ffb020;
+  white-space: nowrap;
+}

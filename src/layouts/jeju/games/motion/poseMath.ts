@@ -317,3 +317,77 @@ export function isInPlayArea(state: PlayerTrackingState): boolean {
   // than saying nothing.
   return state.centerX > 0.04 && state.centerX < 0.96;
 }
+
+/**
+ * How much this pose looks like a real person standing in front of a kiosk.
+ *
+ * ══ WHY THIS EXISTS ═══════════════════════════════════════════════════
+ * MediaPipe does not answer "is anyone there" with a yes or a no. Handed a
+ * frame with a person lying sideways in it — which is exactly what a camera
+ * whose rotation setting has been lost produces — it will still return a pose:
+ * a low-confidence skeleton draped over whatever it found, with joints in
+ * implausible places.
+ *
+ * The orientation probe cannot treat that as success. If it does, it locks onto
+ * the wrong orientation on the first frame, and everything downstream reads the
+ * garbage: a nonsense shoulder span becomes "step closer", forever, to a
+ * visitor who is already close. That was a real failure on the floor.
+ *
+ * So the probe asks how GOOD the pose is, and only settles for a plausible one.
+ *
+ * Three things have to hold for a real standing visitor, and none of them holds
+ * reliably for a skeleton fitted to a sideways body:
+ *   · both shoulders actually visible, not inferred;
+ *   · the shoulder line roughly level — a standing person's is, a sideways
+ *     one's is nearly vertical;
+ *   · a plausible apparent size.
+ */
+export function poseQuality(landmarks: readonly BodyLandmark[]): number {
+  const ls = landmarks[LM.LEFT_SHOULDER];
+  const rs = landmarks[LM.RIGHT_SHOULDER];
+  if (!ls || !rs) return 0;
+
+  // Confidence in the two joints everything else is measured from.
+  const vis = Math.min(ls.visibility, rs.visibility);
+  if (vis < MIN_VISIBILITY) return 0;
+
+  const dx = Math.abs(ls.x - rs.x);
+  const dy = Math.abs(ls.y - rs.y);
+  if (dx < 0.01) return 0;
+
+  // Level-ness. A standing person's shoulders are near-horizontal; a body lying
+  // on its side has them near-vertical, which is the signal that the frame is
+  // the wrong way up. Full marks below ~30° of tilt, nothing past ~60°.
+  const tilt = Math.atan2(dy, dx);
+  const level = Math.max(0, Math.min(1, (Math.PI / 3 - tilt) / (Math.PI / 3 - Math.PI / 6)));
+
+  // A torso, if we can see one, is strong corroboration.
+  const hips = meanOf(landmarks, [LM.LEFT_HIP, LM.RIGHT_HIP], MIN_VISIBILITY);
+  const torso = hips ? 1 : 0.75;
+
+  return vis * level * torso;
+}
+
+/**
+ * Apparent size of the visitor, independent of the frame's shape.
+ *
+ * Shoulder span as a fraction of frame WIDTH is not comparable between a
+ * portrait frame and a landscape one — the same person at the same distance
+ * scores roughly half as much in landscape, which is enough to trip a
+ * "step closer" threshold tuned on portrait. Measuring against the frame's
+ * SHORTER edge removes the frame's shape from the answer.
+ *
+ * Returns 0 when there is nothing to measure.
+ */
+export function apparentSize(
+  landmarks: readonly BodyLandmark[],
+  frameW: number,
+  frameH: number,
+): number {
+  const ls = landmarks[LM.LEFT_SHOULDER];
+  const rs = landmarks[LM.RIGHT_SHOULDER];
+  if (!ls || !rs || ls.visibility < MIN_VISIBILITY || rs.visibility < MIN_VISIBILITY) return 0;
+  if (!frameW || !frameH) return 0;
+  const spanPx = Math.abs(ls.x - rs.x) * frameW;
+  return spanPx / Math.min(frameW, frameH);
+}

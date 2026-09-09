@@ -114,7 +114,13 @@ export function MotionStage({
 
       <div className={styles.displayField}>{children}</div>
 
-      {calibrating && <MotionCalibration status={tracking.status} onReady={onReady} />}
+      {calibrating && (
+        <MotionCalibration
+          status={tracking.status}
+          diagnostics={tracking.diagnostics}
+          onReady={onReady}
+        />
+      )}
 
       {/* Rendered on EVERY phase, always the same element — see the header;
           this is the single most important line in the file. It is only VISIBLE

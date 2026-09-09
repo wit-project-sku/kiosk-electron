@@ -26,10 +26,12 @@
  * says so here and the remote offers the way out; drawing a button on the big
  * screen would only invite someone to walk up and press the glass.
  */
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, type RefObject } from 'react';
+import type { MotionDiagnostics as Diagnostics } from '../useMotionTracking';
 import { pick, useLang } from '@renderer/lib/i18n';
 import { MOTION } from '../motionText';
 import type { TrackingStatus } from '../poseTypes';
+import { MotionDiagnostics } from './MotionDiagnostics';
 import styles from './motionUi.module.css';
 
 /**
@@ -42,11 +44,13 @@ const HOLD_MS = 1200;
 
 interface Props {
   status: TrackingStatus;
+  /** Live tracker numbers, for the operator readout when this screen sticks. */
+  diagnostics: RefObject<Diagnostics>;
   /** Fired once, after a player has been held for {@link HOLD_MS}. */
   onReady: () => void;
 }
 
-export function MotionCalibration({ status, onReady }: Props): JSX.Element {
+export function MotionCalibration({ status, diagnostics, onReady }: Props): JSX.Element {
   const lang = useLang();
   const firedRef = useRef(false);
 
@@ -64,9 +68,23 @@ export function MotionCalibration({ status, onReady }: Props): JSX.Element {
     status === 'crowded' ||
     status === 'too-close' ||
     status === 'too-far';
-  // ...but only a visitor at a WORKABLE distance should start a run, or the
-  // game begins with a controller that cannot track them.
-  const present = seen && status !== 'too-close' && status !== 'too-far';
+  /**
+   * Seeing someone is ENOUGH to start. Distance never blocks.
+   *
+   * It used to, and that was the bug reported from the floor: "it keeps saying
+   * come closer and I am already close". A distance estimate can be wrong for
+   * reasons the visitor cannot do anything about — a mis-detected pose, an
+   * unexpected frame aspect — and when a wrong estimate GATES the game, the
+   * visitor is stuck being told to fix something that is not broken, with no
+   * way past it. The game never starts, so the play field never appears, which
+   * is also why the basket was "missing": it was behind this screen the whole
+   * time.
+   *
+   * So distance is coaching and only coaching. Someone slightly too close still
+   * plays — a little worse, and with a line on screen telling them how to make
+   * it better.
+   */
+  const present = seen;
   const [held, setHeld] = useState(false);
 
   useEffect(() => {
@@ -155,6 +173,10 @@ export function MotionCalibration({ status, onReady }: Props): JSX.Element {
           </div>
         )}
       </div>
+
+      {/* Shows only after this screen has failed for long enough that the
+          visitor is not being served anyway — see the component. */}
+      <MotionDiagnostics diagnostics={diagnostics} healthy={seen} />
     </div>
   );
 }
