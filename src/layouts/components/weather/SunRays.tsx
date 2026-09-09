@@ -106,6 +106,27 @@ export function SunRays({ vivid = false }: { vivid?: boolean }): JSX.Element {
       }
     };
 
+    /**
+     * The sun's rest position sits EXACTLY on the weather card's icon: the home
+     * screen marks that <img> with data-weather-sun-anchor and we read its live
+     * rect (which tracks low-reach layout shifts and any kiosk CSS scaling).
+     * Layouts without an anchor keep the old upper-right estimate.
+     */
+    const measureHome = (): void => {
+      const anchor = document.querySelector('[data-weather-sun-anchor]');
+      const cr = canvas.getBoundingClientRect();
+      if (anchor && cr.width > 2 && cr.height > 2) {
+        const r = anchor.getBoundingClientRect();
+        if (r.width > 2) {
+          sun.homeX = ((r.left + r.width / 2 - cr.left) / cr.width) * w;
+          sun.homeY = ((r.top + r.height / 2 - cr.top) / cr.height) * h;
+          return;
+        }
+      }
+      sun.homeX = w * 0.82;
+      sun.homeY = h * 0.085;
+    };
+
     const resize = (): void => {
       const parent = canvas.parentElement;
       if (!parent) return;
@@ -119,9 +140,7 @@ export function SunRays({ vivid = false }: { vivid?: boolean }): JSX.Element {
       canvas.style.height = `${h}px`;
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
 
-      // Home position for Jeju: upper right sun near the weather card
-      sun.homeX = w * 0.82;
-      sun.homeY = h * 0.085;
+      measureHome();
       if (!sun.dragging) {
         sun.x = sun.homeX;
         sun.y = sun.homeY;
@@ -173,6 +192,7 @@ export function SunRays({ vivid = false }: { vivid?: boolean }): JSX.Element {
     hit.addEventListener('pointercancel', onUp);
 
     let last = performance.now();
+    let frame = 0;
     const step = (now: number): void => {
       if (disposed) return;
       const dt = Math.min((now - last) / 1000, 0.05);
@@ -183,6 +203,10 @@ export function SunRays({ vivid = false }: { vivid?: boolean }): JSX.Element {
         raf = requestAnimationFrame(step);
         return;
       }
+
+      // Re-anchor to the weather icon about once a second — the card moves when
+      // low-reach mode toggles, and the anchor may mount after this canvas does.
+      if (frame++ % 60 === 0) measureHome();
 
       if (!sun.dragging) {
         sun.x += (sun.homeX - sun.x) * 0.03;

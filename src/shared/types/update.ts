@@ -4,8 +4,18 @@
  * touches electron-updater directly (see the preload bridge).
  */
 
-/** Release channel. Production kiosks use `latest`; testing kiosks use `beta`. */
-export type UpdateChannel = 'latest' | 'beta';
+/**
+ * Release channel.
+ *
+ *   latest — production kiosks (`main`, normal GitHub releases, latest.yml)
+ *   beta   — testing kiosks    (`develop_1`, pre-releases, beta.yml)
+ *   lab    — experimental      (`advanced-ui`, pre-releases, lab.yml)
+ *
+ * All three install SIDE BY SIDE on one machine (separate appId / productName /
+ * userData — see main/core/appIdentity.ts), so the office kiosk can run and
+ * test every channel at once.
+ */
+export type UpdateChannel = 'latest' | 'beta' | 'lab';
 
 /**
  * Coarse state machine the UI renders from:

@@ -1,0 +1,116 @@
+/*
+ * 감귤 받기 — the field.
+ *
+ * The scenery is CSS and the game is canvas. Splitting them that way means the
+ * per-frame draw only ever touches things that actually move: the sky, the sea,
+ * the oreum silhouette and the grove never enter the frame budget at all, and
+ * the canvas above them stays transparent.
+ */
+
+.field {
+  position: absolute;
+  inset: 0;
+  border-radius: 56px;
+  overflow: hidden;
+  /* The canvas is the target; nothing inside may swallow the drag. */
+  touch-action: none;
+  cursor: pointer;
+  box-shadow: 0 30px 80px rgba(120, 80, 30, 0.14);
+}
+
+/* A 제주 morning: sea haze at the top, warm light toward the grove. */
+.sky {
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(
+      1200px 700px at 78% 8%,
+      rgba(255, 236, 179, 0.85) 0%,
+      rgba(255, 236, 179, 0) 65%
+    ),
+    linear-gradient(180deg, #d6efff 0%, #eaf6ff 42%, #fdf3e2 78%, #f7e9cf 100%);
+}
+
+/* Hallasan and its oreum, flattened into two bands so the falling fruit always
+   has a calm ground to read against. Inline SVG in a data URI: one paint, no
+   request, and it scales with the artboard. */
+.hills {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 720px;
+  background-repeat: no-repeat;
+  background-size: 100% 100%;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1900 720' preserveAspectRatio='none'><path d='M0 300 C 260 190 420 250 640 170 C 820 105 980 150 1180 220 C 1400 296 1620 240 1900 300 L1900 720 L0 720 Z' fill='%23bfe0c2'/></svg>");
+}
+
+/* Second band drawn separately so the two greens can be tuned independently —
+   a single multi-path SVG makes that a string edit every time. */
+.hillsFront {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 430px;
+  background-repeat: no-repeat;
+  background-size: 100% 100%;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1900 430' preserveAspectRatio='none'><path d='M0 210 C 280 140 500 200 780 170 C 1060 140 1300 205 1560 185 C 1720 172 1830 196 1900 208 L1900 430 L0 430 Z' fill='%237fbd8c'/></svg>");
+}
+
+/* 밭담 — the low basalt field walls, as a dashed band along the bottom edge.
+   Repeating-linear-gradient rather than elements: it is texture, not content. */
+.wall {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 76px;
+  background: repeating-linear-gradient(
+    90deg,
+    #6f6f6f 0px,
+    #6f6f6f 46px,
+    #8a8a8a 46px,
+    #8a8a8a 52px,
+    #5f5f5f 52px,
+    #5f5f5f 96px,
+    #8a8a8a 96px,
+    #8a8a8a 102px
+  );
+  opacity: 0.55;
+}
+
+.canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  /* Pointer events belong to the field wrapper, which owns the drag maths. */
+  pointer-events: none;
+}
+
+/* Nudge shown until the first drag, then dropped by the component. */
+.dragHint {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 470px;
+  text-align: center;
+  font-size: 54px;
+  font-weight: 700;
+  color: rgba(80, 55, 25, 0.55);
+  animation: hintBob 1.8s ease-in-out infinite;
+  pointer-events: none;
+}
+
+@keyframes hintBob {
+  0%,
+  100% {
+    transform: translateY(0);
+    opacity: 0.75;
+  }
+  50% {
+    transform: translateY(-18px);
+    opacity: 1;
+  }
+}

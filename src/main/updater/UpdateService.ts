@@ -11,7 +11,7 @@
  *    the weekly cadence resumes. The window state is persisted, so this survives
  *    restarts and never re-checks needlessly between windows.
  *
- *  - Beta (`beta`): checks immediately on startup and then every
+ *  - Test channels (`beta`, `lab`): check immediately on startup and then every
  *    UPDATE_BETA_INTERVAL_MIN minutes (default 15) so testers get builds fast.
  *
  * Common to both: downloads run in the background (kiosk keeps operating), the
@@ -37,7 +37,7 @@ import log from 'electron-log/main';
 const { autoUpdater } = electronUpdater;
 import { createLogger } from '@main/core/logger';
 import type { UpdateChannel, UpdateStatus } from '@shared/types/update';
-import { resolveUpdateChannel } from './updateChannel';
+import { isPrereleaseChannel, resolveUpdateChannel } from './updateChannel';
 import {
   describeSchedule,
   nextWeeklyWindow,
@@ -177,7 +177,10 @@ export class UpdateService {
     autoUpdater.autoDownload = true; // background download
     autoUpdater.autoInstallOnAppQuit = true; // safety net: applies on the nightly reboot
     autoUpdater.channel = this.channel;
-    autoUpdater.allowPrerelease = this.channel === 'beta';
+    // Every non-production channel publishes GitHub PRE-releases, so this must
+    // be true for beta AND lab. With it false, the provider falls back to
+    // `/releases/latest` — which excludes pre-releases — and installs PRODUCTION.
+    autoUpdater.allowPrerelease = isPrereleaseChannel(this.channel);
     // MUST come after `channel`. electron-updater's channel SETTER forces
     // `allowDowngrade = true` (AppUpdater.js: "allowDowngrade will be
     // automatically set to true. If this behavior is not suitable for you,

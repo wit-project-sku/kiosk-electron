@@ -1,0 +1,196 @@
+/*
+ * 모션 게임 리모컨 — what the TOUCH screen shows while the big screen plays.
+ *
+ * Artboard px on the 2160×3840 board.
+ *
+ * ── The design brief for this screen is one sentence ──────────────────
+ * The visitor is NOT looking at it. They are two metres back, facing the
+ * customer display, moving their body. So this screen is not a game view and
+ * must not compete with one: it says which game is running, points upward, and
+ * keeps one enormous button within reach of whoever wants to stop.
+ *
+ * Everything here is therefore oversized even by kiosk standards — the score is
+ * read in a glance on the way past, not studied.
+ */
+
+.root {
+  position: absolute;
+  inset: 0;
+  width: 2160px;
+  height: 3840px;
+  overflow: hidden;
+  font-family: var(--kiosk-font, 'Noto Sans KR', 'Noto Sans', sans-serif);
+}
+
+.bg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  pointer-events: none;
+}
+
+/* ── "Look up" ─────────────────────────────────────────────────────────
+   The single most important thing on this screen: the game is somewhere else.
+   The arrow animates upward continuously, which is the part that actually gets
+   read from the corner of an eye. */
+.lookUp {
+  position: absolute;
+  left: 0;
+  top: 760px;
+  width: 2160px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 24px;
+}
+
+.lookArrow {
+  font-size: 200px;
+  line-height: 1;
+  animation: lookUp 1.6s ease-in-out infinite;
+}
+
+@keyframes lookUp {
+  0%,
+  100% {
+    transform: translateY(14px);
+    opacity: 0.55;
+  }
+  50% {
+    transform: translateY(-22px);
+    opacity: 1;
+  }
+}
+
+.lookLine {
+  margin: 0;
+  font-size: 76px;
+  font-weight: 800;
+  line-height: 1.2;
+  color: #333;
+  text-align: center;
+  padding: 0 160px;
+}
+
+/* ── Which game ────────────────────────────────────────────────────────── */
+.gameCard {
+  position: absolute;
+  left: 240px;
+  top: 1180px;
+  width: 1680px;
+  padding: 60px;
+  box-sizing: border-box;
+  border-radius: 56px;
+  background: #fff;
+  box-shadow: 0 22px 60px rgba(120, 90, 40, 0.16);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 26px;
+}
+
+.gameGlyph {
+  font-size: 180px;
+  line-height: 1;
+}
+
+.gameName {
+  margin: 0;
+  font-size: 76px;
+  font-weight: 800;
+  line-height: 1.1;
+  color: #333;
+  text-align: center;
+}
+
+/* ── Live score ────────────────────────────────────────────────────────── */
+.scoreLabel {
+  margin: 0;
+  font-size: 46px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  color: #9a9a9a;
+}
+
+.scoreValue {
+  font-size: 240px;
+  font-weight: 800;
+  line-height: 1;
+  color: var(--kiosk-primary, #ff7f0f);
+  font-variant-numeric: tabular-nums;
+}
+
+/* ── Coaching, mirrored from the big screen ───────────────────────────
+   The visitor cannot always see why the game stalled — this repeats it where
+   a companion standing at the kiosk can read it out. */
+.coach {
+  position: absolute;
+  left: 240px;
+  top: 2320px;
+  width: 1680px;
+  padding: 34px 60px;
+  box-sizing: border-box;
+  border-radius: 999px;
+  background: rgba(35, 35, 35, 0.86);
+  color: #fff;
+  font-size: 54px;
+  font-weight: 800;
+  line-height: 1.2;
+  text-align: center;
+  animation: coachIn 260ms ease;
+}
+
+@keyframes coachIn {
+  from {
+    opacity: 0;
+    transform: translateY(-18px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ── Controls ──────────────────────────────────────────────────────────
+   One row, bottom of the reachable band. During play there is exactly one
+   button (그만하기); at the result there are three. */
+.actions {
+  position: absolute;
+  left: 0;
+  top: 2560px;
+  width: 2160px;
+  padding: 0 200px;
+  box-sizing: border-box;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 34px;
+}
+
+/* The final total, shown once the run is over. */
+.finalCard {
+  position: absolute;
+  left: 240px;
+  top: 1180px;
+  width: 1680px;
+  padding: 70px 60px;
+  box-sizing: border-box;
+  border-radius: 56px;
+  background: #fff;
+  box-shadow: 0 22px 60px rgba(120, 90, 40, 0.16);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+}
+
+.finalTitle {
+  margin: 0;
+  font-size: 68px;
+  font-weight: 800;
+  color: #333;
+  text-align: center;
+}

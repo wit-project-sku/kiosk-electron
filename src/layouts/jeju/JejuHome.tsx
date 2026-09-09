@@ -658,7 +658,14 @@ export function JejuHome({ controller }: Props): JSX.Element {
             {weather ? `${Math.round(weather.tempC)}˚` : '--˚'}
           </span>
           {weatherIcon && (
-            <img src={weatherIcon} alt="" className={styles.weatherIcon} draggable={false} />
+            <img
+              src={weatherIcon}
+              alt=""
+              className={styles.weatherIcon}
+              draggable={false}
+              /* The ambient sun animation (SunRays) rests exactly on this icon. */
+              data-weather-sun-anchor
+            />
           )}
         </div>
       </div>

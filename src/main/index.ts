@@ -82,11 +82,12 @@ app.commandLine.appendSwitch('disk-cache-size', '536870912');
 loadEnvFile();
 
 // ★ IDENTITY BEFORE EVERYTHING — before the logger, before the lock, before
-// whenReady. On a BETA build this repoints `userData`, and that directory holds
-// kiosk.db, the provisioned kioskId, the log file and the SingletonLock taken
-// below. Beta installs alongside production (electron-builder.beta.yml), so
-// anything resolving `userData` ahead of this line would land in production's
-// tree — and beta would then exit on startup, having found "itself" running.
+// whenReady. On a BETA or LAB build this repoints `userData`, and that directory
+// holds kiosk.db, the provisioned kioskId, the log file and the SingletonLock
+// taken below. Both install alongside production (electron-builder.<channel>.yml),
+// so anything resolving `userData` ahead of this line would land in production's
+// tree — and the test build would then exit on startup, having found "itself"
+// running.
 //
 // It sits above `initLogger()` because electron-log resolves its file path on
 // the FIRST WRITE and initLogger's own banner line is that write. Only
@@ -225,7 +226,7 @@ async function bootstrap(): Promise<void> {
 
   // Background auto-update (electron-updater + GitHub Releases). Packaged builds
   // only. Production checks on a weekly maintenance window (UPDATE_DAY/UPDATE_TIME,
-  // with missed-window catch-up on startup); beta polls every few minutes.
+  // with missed-window catch-up on startup); beta and lab poll every few minutes.
   // Downloads in the background, and restarts to install only while the kiosk is
   // idle (never mid photo/payment) — nightly reboot is the guaranteed fallback.
   // Channel + schedule come from UPDATE_CHANNEL / UPDATE_* (see .env).

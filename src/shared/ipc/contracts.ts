@@ -30,6 +30,11 @@ import type {
 } from '../types/data';
 import type { CachedContent, KioskConfig, KioskTheme } from '../types/kiosk';
 import type {
+  MotionGameId,
+  MotionGameReport,
+  MotionGameState,
+} from '../types/motionGame';
+import type {
   CameraDeviceInfo,
   PhotoOption,
   PhotoWorkflowState,
@@ -319,6 +324,24 @@ export interface IpcContract {
     response: Result<PhotoWorkflowState>;
   };
 
+  /** 제주 모션 게임 — Monitor 1 drives, Monitor 2 plays. */
+  [IpcChannels.MotionGet]: {
+    request: void;
+    response: Result<MotionGameState>;
+  };
+  [IpcChannels.MotionStart]: {
+    request: { game: MotionGameId };
+    response: Result<MotionGameState>;
+  };
+  [IpcChannels.MotionReport]: {
+    request: MotionGameReport;
+    response: Result<MotionGameState>;
+  };
+  [IpcChannels.MotionStop]: {
+    request: void;
+    response: Result<MotionGameState>;
+  };
+
   /** AR 한복 outfits + category tabs (cached; bundled fallback when empty). */
   [IpcChannels.OutfitsGet]: {
     request: void;
@@ -498,6 +521,7 @@ export interface IpcEventPayloads {
   [IpcEvents.OutfitsChanged]: null;
   [IpcEvents.UpdateStatusChanged]: UpdateStatus;
   [IpcEvents.FootfallRuntimeChanged]: FootfallRuntime;
+  [IpcEvents.MotionGameChanged]: MotionGameState;
 }
 
 export type EventChannel = keyof IpcEventPayloads;

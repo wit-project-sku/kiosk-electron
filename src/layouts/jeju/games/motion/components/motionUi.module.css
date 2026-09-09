@@ -1,0 +1,402 @@
+/*
+ * Shared chrome for the 제주 motion games — camera preview, calibration gate,
+ * coaching banner.
+ *
+ * Artboard px on the 2160×3840 board, same as every other 제주 screen.
+ *
+ * ── Everything here is sized to be read from two metres ───────────────
+ * These games are played from ARM'S LENGTH AND THEN SOME: the visitor has to
+ * stand far enough back for a camera to see their torso, which is roughly twice
+ * the distance they read the touch games from. Nothing below is smaller than
+ * 48px, the coaching lines are 64px, and every one of them is paired with a
+ * glyph big enough to carry the meaning with the text ignored entirely.
+ */
+
+/* ── Camera preview ────────────────────────────────────────────────────
+   The visitor has to be able to SEE that the kiosk can see them — it is the
+   only thing that makes a camera-controlled game feel controllable rather than
+   haunted. Small and in the corner during play; large and central during
+   calibration. */
+.preview {
+  position: relative;
+  border-radius: 40px;
+  overflow: hidden;
+  background: #1b1b1b;
+  box-shadow: 0 18px 50px rgba(0, 0, 0, 0.25);
+}
+
+.previewVideo {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  /* Mirrored, to match the control mapping in poseMath — the player must see
+     themselves as in a mirror or the whole thing feels inverted. The rotation
+     is applied by the caller through --mp-rotate, because the 제주 camera is
+     bolted on its side. */
+  transform: scaleX(-1) rotate(var(--mp-rotate, 0deg));
+}
+
+/* A camera whose frame is rotated a quarter turn has to be scaled to cover the
+   box after turning, or it letterboxes with the box's own aspect. */
+.previewQuarter .previewVideo {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* Body outline the visitor lines themselves up with during calibration. */
+.silhouette {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+}
+
+.silhouetteSvg {
+  width: 62%;
+  height: 82%;
+  opacity: 0.55;
+}
+
+/* Turns green the moment a player is locked. */
+.silhouetteLocked .silhouetteSvg {
+  opacity: 0.9;
+}
+
+/* The live horizontal marker — proof that the game is following THEM. */
+.tracker {
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  height: 14px;
+  width: 100%;
+  background: rgba(255, 255, 255, 0.18);
+  pointer-events: none;
+}
+
+.trackerDot {
+  position: absolute;
+  top: 50%;
+  width: 90px;
+  height: 90px;
+  margin: -45px 0 0 -45px;
+  border-radius: 50%;
+  background: var(--kiosk-primary, #ff7f0f);
+  box-shadow: 0 0 30px rgba(255, 127, 15, 0.8);
+  /* No CSS transition: the position is already smoothed in poseMath, and a
+     second filter here would add lag the player can feel. */
+}
+
+/* ── Calibration gate ──────────────────────────────────────────────────
+   Full-screen. Does not advance until a player is actually locked, which is
+   what makes these games playable with no touchscreen at all.
+
+   Laid out with explicit artboard coordinates rather than flexbox because the
+   camera preview is NOT part of this subtree — it is a single persistent
+   element positioned by MotionStage, since remounting a <video> would detach
+   the stream. The gate therefore has to leave a hole for it at 900…2300 and
+   place its own copy around that. */
+/* Dark, because this only ever renders on the customer display, whose ground
+   is the dark MotionStage gradient. A pale scrim here — which is what the touch
+   games use — washes the white title out and reads as a rendering fault. */
+.gate {
+  position: absolute;
+  inset: 0;
+  z-index: 25;
+  background: rgba(16, 14, 24, 0.9);
+  backdrop-filter: blur(8px);
+}
+
+/* The band under the preview hole. */
+.gateBody {
+  position: absolute;
+  left: 0;
+  top: 2380px;
+  width: 2160px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 44px;
+  padding: 0 160px;
+  box-sizing: border-box;
+}
+
+.gateGlyph {
+  font-size: 190px;
+  line-height: 1;
+  animation: gateWave 1.8s ease-in-out infinite;
+}
+
+@keyframes gateWave {
+  0%,
+  100% {
+    transform: rotate(-12deg);
+  }
+  50% {
+    transform: rotate(14deg);
+  }
+}
+
+.gateLine {
+  margin: 0;
+  max-width: 1700px;
+  text-align: center;
+  font-size: 82px;
+  font-weight: 800;
+  line-height: 1.2;
+  color: #fff;
+}
+
+.gateReady {
+  /* Lifted from the #2f9e5f the touch games use: on a dark ground that green
+     is too low-contrast to read as the "you're in" signal it has to be. */
+  color: #3ddc84;
+  animation: gatePop 520ms cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+@keyframes gatePop {
+  0% {
+    transform: scale(0.6);
+    opacity: 0;
+  }
+  60% {
+    transform: scale(1.12);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+.gateSub {
+  margin: 0;
+  font-size: 56px;
+  font-weight: 700;
+  color: #b9b3c4;
+  text-align: center;
+}
+
+/* ── Coaching banner, shown DURING play ────────────────────────────────
+   Deliberately an overlay rather than a layout element: it appears and vanishes
+   as tracking comes and goes, and anything that reflows the play field while a
+   game is running would be worse than the problem it reports. */
+.coach {
+  position: absolute;
+  left: 50%;
+  top: 90px;
+  transform: translateX(-50%);
+  z-index: 12;
+  display: flex;
+  align-items: center;
+  gap: 30px;
+  padding: 30px 66px;
+  border-radius: 999px;
+  background: rgba(35, 35, 35, 0.82);
+  color: #fff;
+  font-size: 60px;
+  font-weight: 800;
+  line-height: 1;
+  white-space: nowrap;
+  box-shadow: 0 16px 44px rgba(0, 0, 0, 0.3);
+  animation: coachIn 260ms ease;
+  pointer-events: none;
+}
+
+.coachGlyph {
+  font-size: 76px;
+  line-height: 1;
+}
+
+@keyframes coachIn {
+  from {
+    opacity: 0;
+    transform: translateX(-50%) translateY(-24px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+}
+
+/* ── Camera unavailable ────────────────────────────────────────────────
+   The kiosk must never trap a visitor on a dead camera screen. */
+.dead {
+  position: absolute;
+  inset: 0;
+  z-index: 26;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 48px;
+  background: rgba(16, 14, 24, 0.97);
+  text-align: center;
+  padding: 0 160px;
+}
+
+.deadGlyph {
+  font-size: 200px;
+  line-height: 1;
+}
+
+/* The small "your body is the controller" demo on the calibration screen. */
+.howTo {
+  display: flex;
+  align-items: center;
+  gap: 44px;
+  font-size: 64px;
+  font-weight: 800;
+  color: var(--kiosk-primary, #ff7f0f);
+}
+
+.howToArrow {
+  animation: howToSlide 1.6s ease-in-out infinite;
+}
+
+.howToArrowRight {
+  animation-delay: 0.8s;
+}
+
+@keyframes howToSlide {
+  0%,
+  100% {
+    transform: translateX(0);
+    opacity: 0.5;
+  }
+  50% {
+    transform: translateX(-26px);
+    opacity: 1;
+  }
+}
+
+/* ── Where the ONE persistent preview sits, per phase ──────────────────
+   There is exactly one <video> on a motion-game screen and it never unmounts
+   while the screen is alive: remounting it would detach the MediaStream and
+   leave MediaPipe reading a dead element. So the preview does not move between
+   subtrees — it stays a child of MotionStage and only changes these
+   coordinates, in artboard px on the 2160×3840 board.
+
+   Both are absolutely positioned against the artboard root, which is why the
+   in-game position looks arbitrary: 174 = the field's own left (130) plus its
+   44px inset, and 2696 = the field's bottom minus the preview's height and the
+   same inset. */
+.previewGate {
+  position: absolute;
+  left: 540px;
+  top: 900px;
+  width: 1080px;
+  height: 1400px;
+  z-index: 26;
+  transition:
+    left 420ms cubic-bezier(0.22, 1, 0.36, 1),
+    top 420ms cubic-bezier(0.22, 1, 0.36, 1),
+    width 420ms cubic-bezier(0.22, 1, 0.36, 1),
+    height 420ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+/* The shrink to the corner IS the transition between calibration and play —
+   the visitor watches the thing that was verifying them become the thing that
+   confirms it still is. */
+.previewPip {
+  position: absolute;
+  left: 174px;
+  top: 2696px;
+  width: 330px;
+  height: 440px;
+  z-index: 12;
+  border: 8px solid rgba(255, 255, 255, 0.85);
+  transition:
+    left 420ms cubic-bezier(0.22, 1, 0.36, 1),
+    top 420ms cubic-bezier(0.22, 1, 0.36, 1),
+    width 420ms cubic-bezier(0.22, 1, 0.36, 1),
+    height 420ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+/* Turns red while the player is out of view, so the reason the game slowed is
+   attached to the thing that caused it. */
+.previewLost {
+  border-color: #e5484d;
+  animation: previewPulse 1s ease-in-out infinite;
+}
+
+@keyframes previewPulse {
+  0%,
+  100% {
+    box-shadow: 0 18px 50px rgba(0, 0, 0, 0.25);
+  }
+  50% {
+    box-shadow:
+      0 18px 50px rgba(0, 0, 0, 0.25),
+      0 0 0 14px rgba(229, 72, 77, 0.28);
+  }
+}
+
+/* ── The Monitor 2 shell ───────────────────────────────────────────────
+   The customer display uses the SAME 2160×3840 KioskArtboard as the touch
+   screen, so these are the same artboard px as everywhere else — but the
+   furniture is different, because this surface has no touch and no navigation.
+   There is no header, no banner and no button: the whole board is the game.
+
+   y map:
+      0 …  120   (nothing — the big screen has no chrome to hang)
+    140 …  260   game title
+    290 …  360   one-line how-to
+    430 …  600   HUD
+    660 … 3780   the play field, which is nearly the entire board
+
+   The field is far taller than the touch games' because it does not have to
+   share the board with a header, a banner or a set of buttons. */
+.displayRoot {
+  position: absolute;
+  inset: 0;
+  width: 2160px;
+  height: 3840px;
+  overflow: hidden;
+  font-family: var(--kiosk-font, 'Noto Sans KR', 'Noto Sans', sans-serif);
+  background: linear-gradient(180deg, #12101c 0%, #241f33 60%, #17131f 100%);
+  user-select: none;
+  -webkit-user-select: none;
+  /* Belt and braces: nothing here is a touch target, and the customer display
+     is not a touchscreen at all on most installs. */
+  pointer-events: none;
+}
+
+.displayTitle {
+  position: absolute;
+  left: 0;
+  top: 140px;
+  width: 2160px;
+  margin: 0;
+  font-size: 120px;
+  font-weight: 800;
+  line-height: 1;
+  color: #fff;
+  text-align: center;
+  text-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+}
+
+.displaySubtitle {
+  position: absolute;
+  left: 0;
+  top: 292px;
+  width: 2160px;
+  margin: 0;
+  padding: 0 160px;
+  box-sizing: border-box;
+  font-size: 64px;
+  font-weight: 700;
+  line-height: 1.2;
+  color: var(--kiosk-primary, #ff7f0f);
+  text-align: center;
+}
+
+.displayField {
+  position: absolute;
+  left: 90px;
+  top: 660px;
+  width: 1980px;
+  height: 3120px;
+}

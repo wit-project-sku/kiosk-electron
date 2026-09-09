@@ -1,15 +1,17 @@
 import { useEffect, useRef } from 'react';
 import {
-  createBokehDiscTexture,
   createFrostBorderTexture,
+  createSnowClumpTexture,
   createSnowflakeTexture,
   createSnowPuffTexture,
 } from './weatherTextures';
+import { createObstacleTracker } from './screenObstacles';
 import styles from './WeatherEffects.module.css';
 
 interface Snowflake {
   x: number;
   y: number;
+  py: number;
   vx: number;
   vy: number;
   r: number;
@@ -19,16 +21,37 @@ interface Snowflake {
   flutterPhase: number;
   flutterSpeed: number;
   opacity: number;
+  tex: number; // index into the flake texture set
 }
 
+/** Loose snow kicked up when a flake settles or a finger brushes a pile. */
+interface SnowPuff {
+  x: number;
+  y: number;
+  vx: number;
+  vy: number;
+  r: number;
+  life: number;
+}
+
+/** Accumulated snow lying on top of one UI element, as a column heightmap. */
+interface SnowPile {
+  heights: Float32Array;
+  colW: number;
+}
+
+const COL_W = 12;
+const MAX_PILE = 24;
+
 /**
- * Photorealistic Snow & Frost Simulation.
- * Features:
- * - Macro-photographic 6-fold dendritic ice crystal snowflakes spinning in 3D.
- * - Foreground optical bokeh defocus discs and soft snow clumps.
- * - Background winter flurry creating deep atmospheric dimension.
- * - Subtle frost crystallization along the kiosk borders.
- * - Interactive pointer wake stirring a swirling snow vortex.
+ * Real snowfall.
+ * - Flakes are irregular multi-lobed clumps (with the occasional dendritic
+ *   crystal), not circles: three parallax depths, gusty wind, per-flake
+ *   fluttering descent and tumbling.
+ * - Snow is PHYSICAL: flakes that land on a button or tile settle and build a
+ *   soft pile along its top edge, which slowly melts; brushing a finger across
+ *   a pile sweeps the snow off in a puff.
+ * - A swipe still stirs the whole flurry (wind vortex).
  */
 export function SnowCanvas(): JSX.Element {
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -45,17 +68,27 @@ export function SnowCanvas(): JSX.Element {
     let last = performance.now();
     let disposed = false;
 
-    // Pre-generate crystalline textures
-    const crystalTex0 = createSnowflakeTexture(192, 0);
-    const crystalTex1 = createSnowflakeTexture(192, 1);
-    const puffTex = createSnowPuffTexture(128);
-    const bokehTex = createBokehDiscTexture(160, 'rgba(215, 235, 255, 0.75)');
+    // Texture set: 0-3 irregular clumps, 4 distant powder puff, 5-6 crystals.
+    const flakeTex: HTMLCanvasElement[] = [
+      createSnowClumpTexture(96, 1),
+      createSnowClumpTexture(96, 2),
+      createSnowClumpTexture(96, 3),
+      createSnowClumpTexture(96, 4),
+      createSnowPuffTexture(96),
+      createSnowflakeTexture(160, 0),
+      createSnowflakeTexture(160, 1),
+    ];
+    const puffTex = createSnowPuffTexture(96);
     const frostCorner = createFrostBorderTexture(600);
 
     const flakes: Snowflake[] = [];
-    const count = 460;
+    const puffs: SnowPuff[] = [];
+    const count = 420;
     let wind = 10;
     let targetWind = wind;
+
+    const obstacles = createObstacleTracker(canvas, () => ({ w, h }));
+    const piles = new Map<Element, SnowPile>();
 
     const ptr = { x: 0, y: 0, px: 0, py: 0, down: false, vortexX: 0, vortexY: 0 };
 
@@ -67,37 +100,69 @@ export function SnowCanvas(): JSX.Element {
       };
     };
 
+    const pileFor = (el: Element, width: number): SnowPile => {
+      const cols = Math.max(2, Math.ceil(width / COL_W));
+      let pile = piles.get(el);
+      if (!pile || pile.heights.length !== cols) {
+        pile = { heights: new Float32Array(cols), colW: width / cols };
+        piles.set(el, pile);
+      } else {
+        pile.colW = width / cols;
+      }
+      return pile;
+    };
+
     const spawnFlake = (anywhere = false): void => {
       const depth = Math.random();
-      let r = 4;
-      let vy = 40;
+      let r: number;
+      let vy: number;
+      let tex: number;
 
-      if (depth > 0.88) {
-        // Foreground optical bokeh blur
-        r = 20 + Math.random() * 26;
-        vy = 75 + Math.random() * 65;
+      if (depth > 0.82) {
+        // Near, big soft clumps drifting past the "camera".
+        r = 9 + Math.random() * 8;
+        vy = 110 + Math.random() * 70;
+        tex = Math.floor(Math.random() * 4);
       } else if (depth >= 0.35) {
-        // Crisp macro hexagonal dendritic crystal
-        r = 9 + Math.random() * 15;
-        vy = 45 + Math.random() * 50;
+        // Mid field: clumps, with a rare crisp crystal for detail.
+        r = 5 + Math.random() * 6;
+        vy = 65 + Math.random() * 55;
+        tex = Math.random() < 0.08 ? 5 + Math.floor(Math.random() * 2) : Math.floor(Math.random() * 4);
       } else {
-        // Distant powder flurry
-        r = 3.5 + Math.random() * 5;
-        vy = 30 + Math.random() * 40;
+        // Distant powder.
+        r = 2 + Math.random() * 3.5;
+        vy = 35 + Math.random() * 35;
+        tex = 4;
       }
 
-      flakes.push({
+      const flake: Snowflake = {
         x: Math.random() * (w + 200) - 100,
-        y: anywhere ? Math.random() * h : -Math.random() * 60,
+        y: anywhere ? Math.random() * h : -30 - Math.random() * 60,
+        py: 0,
         vx: (Math.random() - 0.5) * 20,
         vy,
         r,
         rot: Math.random() * Math.PI * 2,
-        spin: (Math.random() - 0.5) * 1.5,
+        spin: (Math.random() - 0.5) * 1.6,
         depth,
         flutterPhase: Math.random() * Math.PI * 2,
-        flutterSpeed: 1.5 + Math.random() * 2.5,
-        opacity: 0.65 + depth * 0.35,
+        flutterSpeed: 1.2 + Math.random() * 2.2,
+        opacity: 0.55 + depth * 0.45,
+        tex,
+      };
+      flake.py = flake.y;
+      flakes.push(flake);
+    };
+
+    const spawnPuff = (x: number, y: number, vx: number, vy: number): void => {
+      if (puffs.length > 90) return;
+      puffs.push({
+        x,
+        y,
+        vx: vx + (Math.random() - 0.5) * 90,
+        vy: vy - Math.random() * 60,
+        r: 3 + Math.random() * 5,
+        life: 0.5 + Math.random() * 0.4,
       });
     };
 
@@ -115,8 +180,27 @@ export function SnowCanvas(): JSX.Element {
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
 
       if (flakes.length === 0) {
-        for (let i = 0; i < count; i++) {
-          spawnFlake(true);
+        for (let i = 0; i < count; i++) spawnFlake(true);
+      }
+      obstacles.refresh();
+    };
+
+    /** Brush accumulated snow off any pile under the finger. */
+    const brushPiles = (x: number, y: number, dx: number, dy: number): void => {
+      for (const rect of obstacles.rects) {
+        if (x < rect.x - 20 || x > rect.x + rect.w + 20) continue;
+        const pile = piles.get(rect.el);
+        if (!pile) continue;
+        const col = Math.floor((x - rect.x) / pile.colW);
+        if (col < 0 || col >= pile.heights.length) continue;
+        const surf = rect.y - pile.heights[col]!;
+        if (Math.abs(y - surf) > 60) continue;
+        for (let c = Math.max(0, col - 3); c <= Math.min(pile.heights.length - 1, col + 3); c++) {
+          const removed = Math.min(pile.heights[c]!, 10);
+          if (removed > 1 && Math.random() < 0.5) {
+            spawnPuff(rect.x + (c + 0.5) * pile.colW, rect.y - pile.heights[c]!, dx * 4, dy * 4);
+          }
+          pile.heights[c] = pile.heights[c]! - removed;
         }
       }
     };
@@ -140,6 +224,7 @@ export function SnowCanvas(): JSX.Element {
         const dy = ptr.y - ptr.py;
         ptr.vortexX += dx * 6;
         ptr.vortexY += dy * 6;
+        brushPiles(ptr.x, ptr.y, dx, dy);
       }
     };
 
@@ -163,31 +248,30 @@ export function SnowCanvas(): JSX.Element {
       }
 
       if (Math.random() < dt * 0.4) {
-        targetWind = 12 + (Math.random() - 0.4) * 35;
+        targetWind = 12 + (Math.random() - 0.4) * 60;
       }
       wind += (targetWind - wind) * Math.min(1, dt * 1.2);
       ptr.vortexX *= Math.pow(0.08, dt);
       ptr.vortexY *= Math.pow(0.08, dt);
 
-      while (flakes.length < count) {
-        spawnFlake(false);
-      }
+      while (flakes.length < count) spawnFlake(false);
 
       ctx.clearRect(0, 0, w, h);
 
-      // ── 1. Winter Atmospheric Chill Wash ──
+      // ── 1. Winter atmospheric wash — a cool overcast veil that dims the
+      // scene just enough for white snow to read against light backgrounds. ──
       const winterTint = ctx.createLinearGradient(0, 0, 0, h);
-      winterTint.addColorStop(0, 'rgba(215, 232, 248, 0.06)');
-      winterTint.addColorStop(1, 'rgba(195, 218, 240, 0.04)');
+      winterTint.addColorStop(0, 'rgba(96, 122, 158, 0.13)');
+      winterTint.addColorStop(0.5, 'rgba(120, 145, 178, 0.09)');
+      winterTint.addColorStop(1, 'rgba(140, 162, 190, 0.07)');
       ctx.fillStyle = winterTint;
       ctx.fillRect(0, 0, w, h);
 
-      // ── 2. Delicate Screen Border Frost Crystallization ──
+      // ── 2. Border frost crystallization — kept faint: at full strength the
+      // fern branches read as cobwebs on the light kiosk background. ──
       ctx.save();
-      ctx.globalAlpha = 0.45;
-      // Top-Left corner
+      ctx.globalAlpha = 0.18;
       ctx.drawImage(frostCorner, 0, 0, 450, 450);
-      // Top-Right corner (flipped horizontally)
       ctx.save();
       ctx.translate(w, 0);
       ctx.scale(-1, 1);
@@ -195,19 +279,54 @@ export function SnowCanvas(): JSX.Element {
       ctx.restore();
       ctx.restore();
 
-      // ── 3. Update & Draw Snowflakes ──
+      const rects = obstacles.rects;
+
+      // ── 3. Update & draw snowflakes (with settling) ──
       for (let i = flakes.length - 1; i >= 0; i--) {
         const f = flakes[i]!;
+        f.py = f.y;
 
         f.flutterPhase += f.flutterSpeed * dt;
-        const flutterX = Math.sin(f.flutterPhase) * (20 + f.r * 1.2);
+        const flutterX = Math.sin(f.flutterPhase) * (16 + f.r * 1.4);
 
         f.y += f.vy * dt;
-        f.x += (wind + flutterX + ptr.vortexX * f.depth) * dt;
+        f.x += (wind * (0.4 + f.depth * 0.8) + flutterX + ptr.vortexX * f.depth) * dt;
         f.rot += f.spin * dt;
 
-        // 3D axial tumble foreshortening
-        const tiltX = Math.cos(now * 0.0012 + f.flutterPhase) * 0.35 + 0.65;
+        // Settle onto UI objects: near/mid flakes land on the current snow
+        // surface (button top minus pile height) and become part of the pile.
+        if (f.depth >= 0.35) {
+          let settled = false;
+          for (const rect of rects) {
+            if (f.x < rect.x || f.x > rect.x + rect.w) continue;
+            const pile = pileFor(rect.el, rect.w);
+            const col = Math.min(
+              pile.heights.length - 1,
+              Math.max(0, Math.floor((f.x - rect.x) / pile.colW)),
+            );
+            const surf = rect.y - pile.heights[col]!;
+            if (f.py <= surf && f.y >= surf) {
+              const add = f.r * 0.4;
+              pile.heights[col] = Math.min(MAX_PILE, pile.heights[col]! + add);
+              if (col > 0) {
+                pile.heights[col - 1] = Math.min(MAX_PILE, pile.heights[col - 1]! + add * 0.4);
+              }
+              if (col < pile.heights.length - 1) {
+                pile.heights[col + 1] = Math.min(MAX_PILE, pile.heights[col + 1]! + add * 0.4);
+              }
+              if (f.r > 8) spawnPuff(f.x, surf, f.vx * 0.3, -20);
+              settled = true;
+              break;
+            }
+          }
+          if (settled) {
+            flakes.splice(i, 1);
+            continue;
+          }
+        }
+
+        // 3D axial tumble foreshortening.
+        const tiltX = Math.cos(now * 0.0012 + f.flutterPhase) * 0.3 + 0.7;
 
         ctx.save();
         ctx.translate(f.x, f.y);
@@ -215,27 +334,93 @@ export function SnowCanvas(): JSX.Element {
         ctx.scale(tiltX, 1.0);
         ctx.globalAlpha = f.opacity;
 
-        if (f.depth > 0.88) {
-          // Large foreground optical bokeh defocus disc
-          const size = f.r * 2.4;
-          ctx.drawImage(bokehTex, -size * 0.5, -size * 0.5, size, size);
-        } else if (f.depth >= 0.35) {
-          // Sharp dendritic hexagonal ice crystal
-          const size = f.r * 2.1;
-          const tex = f.depth > 0.6 ? crystalTex0 : crystalTex1;
-          ctx.drawImage(tex, -size * 0.5, -size * 0.5, size, size);
+        const tex = flakeTex[f.tex]!;
+        if (f.depth > 0.82) {
+          // Near clumps render slightly enlarged & translucent — cheap defocus.
+          const size = f.r * 2.8;
+          ctx.globalAlpha = f.opacity * 0.85;
+          ctx.drawImage(tex, -size / 2, -size / 2, size, size);
         } else {
-          // Background soft snow speck
-          const size = f.r * 2.0;
-          ctx.drawImage(puffTex, -size * 0.5, -size * 0.5, size, size);
+          const size = f.r * 2.2;
+          ctx.drawImage(tex, -size / 2, -size / 2, size, size);
         }
-
         ctx.restore();
 
         if (f.y > h + 40 || f.x < -150 || f.x > w + 150) {
           flakes.splice(i, 1);
           spawnFlake(false);
         }
+      }
+
+      // ── 4. Snow piles resting on the UI ──
+      for (const rect of rects) {
+        const pile = piles.get(rect.el);
+        if (!pile) continue;
+
+        // Slow melt keeps piles alive but never lets them cake permanently.
+        let maxH = 0;
+        for (let c = 0; c < pile.heights.length; c++) {
+          pile.heights[c] = Math.max(0, pile.heights[c]! - (0.3 + pile.heights[c]! * 0.012) * dt);
+          if (pile.heights[c]! > maxH) maxH = pile.heights[c]!;
+        }
+        if (maxH < 0.8) continue;
+
+        // Smooth heightmap outline along the element's top edge. The crest
+        // polyline is traced twice: once closed for the fill, once open for a
+        // cool crest stroke that keeps the drift visible on white tiles.
+        const traceCrest = (): void => {
+          ctx.moveTo(rect.x, rect.y - pile.heights[0]! * 0.4);
+          for (let c = 0; c < pile.heights.length; c++) {
+            const cx = rect.x + (c + 0.5) * pile.colW;
+            const cy = rect.y - pile.heights[c]!;
+            const nx = rect.x + Math.min(pile.heights.length, c + 1.5) * pile.colW;
+            const ncy = rect.y - (pile.heights[Math.min(pile.heights.length - 1, c + 1)] ?? 0);
+            ctx.quadraticCurveTo(cx, cy, (cx + nx) / 2, (cy + ncy) / 2);
+          }
+        };
+
+        ctx.save();
+        ctx.beginPath();
+        ctx.moveTo(rect.x, rect.y + 3);
+        traceCrest();
+        ctx.lineTo(rect.x + rect.w, rect.y + 3);
+        ctx.closePath();
+
+        const g = ctx.createLinearGradient(0, rect.y - MAX_PILE, 0, rect.y + 3);
+        g.addColorStop(0, 'rgba(255, 255, 255, 0.98)');
+        g.addColorStop(0.7, 'rgba(242, 248, 255, 0.92)');
+        g.addColorStop(1, 'rgba(205, 224, 245, 0.75)');
+        ctx.fillStyle = g;
+        ctx.shadowColor = 'rgba(105, 135, 175, 0.45)';
+        ctx.shadowBlur = 8;
+        ctx.shadowOffsetY = 3;
+        ctx.fill();
+
+        ctx.shadowColor = 'transparent';
+        ctx.beginPath();
+        traceCrest();
+        ctx.strokeStyle = 'rgba(175, 200, 228, 0.75)';
+        ctx.lineWidth = 1.5;
+        ctx.stroke();
+        ctx.restore();
+      }
+
+      // ── 5. Kicked-up snow dust ──
+      for (let i = puffs.length - 1; i >= 0; i--) {
+        const p = puffs[i]!;
+        p.life -= dt;
+        if (p.life <= 0) {
+          puffs.splice(i, 1);
+          continue;
+        }
+        p.vy += 160 * dt;
+        p.x += p.vx * dt;
+        p.y += p.vy * dt;
+        const size = p.r * 2.4;
+        ctx.save();
+        ctx.globalAlpha = Math.min(1, p.life * 2) * 0.8;
+        ctx.drawImage(puffTex, p.x - size / 2, p.y - size / 2, size, size);
+        ctx.restore();
       }
 
       raf = requestAnimationFrame(step);
@@ -250,6 +435,7 @@ export function SnowCanvas(): JSX.Element {
       disposed = true;
       cancelAnimationFrame(raf);
       ro.disconnect();
+      obstacles.dispose();
       window.removeEventListener('pointerdown', onPointerDown);
       window.removeEventListener('pointermove', onPointerMove);
       window.removeEventListener('pointerup', onPointerUp);

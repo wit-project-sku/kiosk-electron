@@ -1,0 +1,92 @@
+/*
+ * 몸으로 감귤 받기 — the field.
+ *
+ * The scenery is the same CSS sky/hills the touch catch game uses (imported via
+ * composes below) so the two read as one game with two controllers; only the
+ * camera picture-in-picture and the stall dimming are new here.
+ */
+
+.field {
+  position: absolute;
+  inset: 0;
+  border-radius: 56px;
+  overflow: hidden;
+  box-shadow: 0 30px 80px rgba(120, 80, 30, 0.14);
+  /* Nothing in a motion game is a touch target. Blocking the gesture outright
+     stops a curious visitor's tap from scrolling the artboard mid-run. */
+  touch-action: none;
+}
+
+.sky {
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(
+      1200px 700px at 78% 8%,
+      rgba(255, 236, 179, 0.85) 0%,
+      rgba(255, 236, 179, 0) 65%
+    ),
+    linear-gradient(180deg, #d6efff 0%, #eaf6ff 42%, #fdf3e2 78%, #f7e9cf 100%);
+}
+
+.hills {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 720px;
+  background-repeat: no-repeat;
+  background-size: 100% 100%;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1900 720' preserveAspectRatio='none'><path d='M0 300 C 260 190 420 250 640 170 C 820 105 980 150 1180 220 C 1400 296 1620 240 1900 300 L1900 720 L0 720 Z' fill='%23bfe0c2'/></svg>");
+}
+
+.hillsFront {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 430px;
+  background-repeat: no-repeat;
+  background-size: 100% 100%;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1900 430' preserveAspectRatio='none'><path d='M0 210 C 280 140 500 200 780 170 C 1060 140 1300 205 1560 185 C 1720 172 1830 196 1900 208 L1900 430 L0 430 Z' fill='%237fbd8c'/></svg>");
+}
+
+.canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
+/* The "your body moves the basket" reminder, shown for the opening seconds. */
+.hint {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 520px;
+  text-align: center;
+  font-size: 60px;
+  font-weight: 800;
+  color: rgba(80, 55, 25, 0.62);
+  pointer-events: none;
+  animation: hintFade 1.6s ease-in-out infinite;
+}
+
+@keyframes hintFade {
+  0%,
+  100% {
+    opacity: 0.55;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+/* The 감귤 마스터 badge on the score card. */
+.badge {
+  margin: 0;
+  font-size: 52px;
+  font-weight: 800;
+  color: #e88c00;
+}

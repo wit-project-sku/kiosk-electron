@@ -1,0 +1,62 @@
+# Lab build identity — everything else is inherited from electron-builder.yml.
+#
+# ── Why this file exists ──────────────────────────────────────────────
+# Lab is the THIRD channel (production / beta / lab), cut from `advanced-ui` for
+# experimental work that is not ready for the beta kiosks. It has to install
+# alongside BOTH of the others on the one office machine, and NSIS keys its
+# uninstall entry off `appId`, so a distinct identity is the only way to get a
+# third app rather than an upgrade of one of the first two.
+#
+# Same four separations as beta. Three are here; the fourth (the runtime
+# `userData` directory, which carries kiosk.db, the kioskId and the singleton
+# lock) is in src/main/core/appIdentity.ts, because Electron resolves it at
+# runtime rather than from this file.
+#
+#   appId        → separate NSIS uninstall entry, separate Start-menu entry
+#   productName  → separate install directory and shortcut name
+#   win.icon     → tellable apart at 16px in the taskbar
+#   app name     → separate %APPDATA% tree  (appIdentity.ts)
+#
+# The update FEED needs no trickery here, unlike beta. `lab` is a CUSTOM channel
+# name as far as electron-updater is concerned, and its GitHub provider only
+# special-cases "alpha"/"beta": with `channel = 'lab'` its feed walk matches
+# tags whose prerelease id is exactly `lab` and nothing else. So a lab kiosk can
+# never be captured by a stable release the way a beta kiosk could (see the
+# "Resolve version" comment in .github/workflows/release.yml), and a lab release
+# sitting at the top of the feed is skipped by beta kiosks as a foreign channel.
+#
+# ── Usage ─────────────────────────────────────────────────────────────
+#   npm run build:win:lab                     (local)
+#   npx electron-builder --win --config electron-builder.lab.yml   (CI)
+#
+# `extends` is resolved by electron-builder relative to this file, so the base
+# config stays the single source of truth for everything not listed below.
+extends: ./electron-builder.yml
+
+# ★ Baked into the PACKAGED package.json, and it is what the runtime reads to
+# decide whether to redirect `userData` (see core/appIdentity.ts). It must be a
+# property of the BUILD, not of the shipped `.env`: a local
+# `npm run build:win:lab` carries the developer's own .env, and if that said
+# UPDATE_CHANNEL=latest the app would install under the lab identity while
+# still pointing at production's database — two apps, one kiosk.db. CI never hits
+# that (it force-writes UPDATE_CHANNEL from the same input that selects this
+# file), but a local build would.
+extraMetadata:
+  buildChannel: lab
+
+appId: com.kioskapp.desktop.lab
+productName: witworldwide-lab
+copyright: Copyright © 2026 witworldwide
+
+# release/<version>-lab so a local lab build never overwrites the production or
+# beta artifacts sitting in release/<version> and release/<version>-beta.
+directories:
+  output: release/${version}-lab
+  buildResources: build
+
+win:
+  # The green LAB mark — build/icon-lab.ico, generated from the production icon
+  # by `npm run icon:lab`. Three apps now sit side by side in the Start menu and
+  # on the taskbar, where a name is truncated but a colour is not, so the
+  # difference is carried by colour: navy production, orange beta, green lab.
+  icon: build/icon-lab.ico

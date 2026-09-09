@@ -99,12 +99,17 @@ export function createRealisticCloudTexture(size = 768, variant: 0 | 1 | 2 | 3 =
     });
   }
 
-  // 1. Render core volumetric billows with light transport simulation
+  // 1. Render core volumetric billows with light transport simulation.
+  // Billows are clamped INSIDE the texture bitmap — a gaussian that crosses the
+  // canvas edge gets cut flat, which is exactly the "straight vertical cloud
+  // edge" artifact. Anything too large to fit is shrunk to fit instead.
   for (const b of billows) {
-    const cx = b.x * w;
-    const cy = b.y * h;
-    const r = b.r * w;
+    let r = b.r * w;
     if (r < 2) continue;
+    const maxR = Math.min(w, h) * 0.46;
+    if (r > maxR) r = maxR;
+    const cx = Math.min(Math.max(b.x * w, r + 2), w - r - 2);
+    const cy = Math.min(Math.max(b.y * h, r + 2), h - r - 2);
 
     // Sunlight direction: coming from top/top-right
     const lightOffsetX = -r * 0.25;
@@ -692,6 +697,117 @@ export function createSnowflakeTexture(size = 192, variant: 0 | 1 = 0): HTMLCanv
   ctx.fill();
 
   ctx.restore();
+  return c;
+}
+
+/**
+ * Motion-blurred falling rain streak, drawn head-down.
+ * A real raindrop photographed at screen shutter speeds is a thin translucent
+ * line with a slightly brighter head — not a teardrop. The texture is vertical;
+ * the canvas rotates it along the drop's velocity vector so wind visibly tilts
+ * the rain.
+ */
+export function createRainStreakTexture(width = 12, height = 256): HTMLCanvasElement {
+  const c = document.createElement('canvas');
+  c.width = width;
+  c.height = height;
+  const ctx = c.getContext('2d')!;
+  const cx = width / 2;
+  ctx.clearRect(0, 0, width, height);
+
+  // Tapering body: transparent tail → dense near the head. Cool slate-blue so
+  // the streak stays visible against the kiosks' light backgrounds.
+  const body = ctx.createLinearGradient(cx, 0, cx, height);
+  body.addColorStop(0, 'rgba(110, 145, 190, 0)');
+  body.addColorStop(0.55, 'rgba(105, 140, 185, 0.45)');
+  body.addColorStop(0.88, 'rgba(120, 158, 205, 0.85)');
+  body.addColorStop(1, 'rgba(165, 200, 240, 0.95)');
+  ctx.fillStyle = body;
+  ctx.beginPath();
+  ctx.moveTo(cx - width * 0.08, 0);
+  ctx.lineTo(cx + width * 0.08, 0);
+  ctx.lineTo(cx + width * 0.3, height * 0.94);
+  ctx.quadraticCurveTo(cx, height * 1.02, cx - width * 0.3, height * 0.94);
+  ctx.closePath();
+  ctx.fill();
+
+  // Small refractive head glint.
+  const head = ctx.createRadialGradient(cx, height * 0.94, 0, cx, height * 0.94, width * 0.5);
+  head.addColorStop(0, 'rgba(255, 255, 255, 0.95)');
+  head.addColorStop(1, 'rgba(230, 244, 255, 0)');
+  ctx.fillStyle = head;
+  ctx.beginPath();
+  ctx.arc(cx, height * 0.94, width * 0.5, 0, Math.PI * 2);
+  ctx.fill();
+  return c;
+}
+
+/**
+ * Irregular real-world snowflake clump. Snow at viewing distance is not a
+ * circle and not a perfect dendrite — it is a ragged cluster of stuck-together
+ * crystals. Built from several offset soft gaussian lobes so every variant has
+ * a different silhouette.
+ */
+export function createSnowClumpTexture(size = 96, seed = 1): HTMLCanvasElement {
+  const c = document.createElement('canvas');
+  c.width = size;
+  c.height = size;
+  const ctx = c.getContext('2d')!;
+  const cx = size / 2;
+  const cy = size / 2;
+  ctx.clearRect(0, 0, size, size);
+
+  const rand = makePrng(seed * 971 + 137);
+  const lobes = 5 + Math.floor(rand() * 3);
+  type Lobe = { x: number; y: number; r: number };
+  const placed: Lobe[] = [];
+  for (let i = 0; i < lobes; i++) {
+    const ang = rand() * Math.PI * 2;
+    const dist = rand() * size * 0.16;
+    placed.push({
+      x: cx + Math.cos(ang) * dist,
+      y: cy + Math.sin(ang) * dist,
+      r: size * (0.12 + rand() * 0.14),
+    });
+  }
+
+  // Cool under-shadow first — real snow reads against a LIGHT sky because its
+  // underside is shaded blue-grey; without this, white-on-white disappears.
+  for (const l of placed) {
+    const s = ctx.createRadialGradient(l.x + 1, l.y + size * 0.03, 0, l.x + 1, l.y + size * 0.03, l.r * 1.05);
+    s.addColorStop(0, 'rgba(148, 172, 205, 0.5)');
+    s.addColorStop(0.7, 'rgba(148, 172, 205, 0.2)');
+    s.addColorStop(1, 'rgba(148, 172, 205, 0)');
+    ctx.fillStyle = s;
+    ctx.beginPath();
+    ctx.arc(l.x + 1, l.y + size * 0.03, l.r * 1.05, 0, Math.PI * 2);
+    ctx.fill();
+  }
+
+  for (const l of placed) {
+    const g = ctx.createRadialGradient(l.x - l.r * 0.2, l.y - l.r * 0.25, 0, l.x, l.y, l.r);
+    g.addColorStop(0, `rgba(255, 255, 255, ${0.9 + rand() * 0.1})`);
+    g.addColorStop(0.55, 'rgba(250, 253, 255, 0.7)');
+    g.addColorStop(1, 'rgba(240, 248, 255, 0)');
+    ctx.fillStyle = g;
+    ctx.beginPath();
+    ctx.arc(l.x, l.y, l.r, 0, Math.PI * 2);
+    ctx.fill();
+  }
+
+  // A couple of hard micro-glints so close flakes sparkle.
+  ctx.fillStyle = 'rgba(255, 255, 255, 0.95)';
+  for (let i = 0; i < 2; i++) {
+    ctx.beginPath();
+    ctx.arc(
+      cx + (rand() - 0.5) * size * 0.2,
+      cy + (rand() - 0.5) * size * 0.2,
+      size * 0.035,
+      0,
+      Math.PI * 2,
+    );
+    ctx.fill();
+  }
   return c;
 }
 

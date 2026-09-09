@@ -6,8 +6,8 @@ name: release-production
 # (UPDATE_CHANNEL=latest) pick it up automatically.
 #
 # Runtime config comes from the `production` GitHub Environment (live URLs + live
-# keys). Restrict that environment's deployment branches to main so a push to
-# develop_1 can never read production credentials.
+# keys). Restrict that environment's deployment branches to main so a push to a
+# test branch can never read production credentials.
 #
 # A release is cut when the package.json version changes: if a release already
 # exists for the current version, the run is a no-op (see release.yml).
@@ -22,8 +22,6 @@ jobs:
   release:
     uses: ./.github/workflows/release.yml
     with:
-      prerelease: false
-      channel_label: live
-      release_type: release
+      update_channel: latest
       environment: production
     secrets: inherit

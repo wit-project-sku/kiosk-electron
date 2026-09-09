@@ -2,19 +2,20 @@
  * Who this build says it is — and, through that, WHERE it keeps its data.
  *
  * ── The problem this solves ───────────────────────────────────────────
- * Production and beta have to be installable on the SAME kiosk (the office has
- * one machine and both channels need testing). electron-builder.beta.yml gives
- * the beta build its own `appId`, `productName` and icon, which separates the
- * installer, the install directory and the Start-menu entry. It cannot separate
- * the RUNTIME state: `userData` is resolved by Electron at launch, and
- * everything that makes a kiosk *that* kiosk lives under it —
+ * Production, beta and lab have to be installable on the SAME kiosk (the office
+ * has one machine and every channel needs testing). The per-channel
+ * electron-builder configs give each build its own `appId`, `productName` and
+ * icon, which separates the installer, the install directory and the Start-menu
+ * entry. They cannot separate the RUNTIME state: `userData` is resolved by
+ * Electron at launch, and everything that makes a kiosk *that* kiosk lives
+ * under it —
  *
  *   data/kiosk.db          the whole SQLite cache
  *   kiosk-config.json      the provisioned kioskId  ← two builds sharing this
  *   logs/ · media/         is what makes them one kiosk instead of two
  *   SingletonLock          the file `requestSingleInstanceLock()` takes
  *
- * Without this module the beta install would adopt production's database and
+ * Without this module a test install would adopt production's database and
  * kiosk identity, and — because the singleton lock is just a file in that same
  * directory — would exit on startup believing itself already running.
  *
@@ -32,13 +33,13 @@
  * path and only ever set the display name. (The stale `Kiosk App` tree is a
  * fossil from an older Electron where it did move.)
  *
- * Hoisting that call above `whenReady()` to make it work for beta would ALSO
- * make it work for production, relocating every deployed kiosk from `kiosk-app`
- * to `Kiosk App` on the next auto-update: fresh empty database, unprovisioned
- * kioskId, lost logs, across the whole fleet.
+ * Hoisting that call above `whenReady()` to make it work for a test channel
+ * would ALSO make it work for production, relocating every deployed kiosk from
+ * `kiosk-app` to `Kiosk App` on the next auto-update: fresh empty database,
+ * unprovisioned kioskId, lost logs, across the whole fleet.
  *
  * So production is left EXACTLY as it is — no early `setName`, same
- * `kiosk-app` directory it has always used — and only the beta build is
+ * `kiosk-app` directory it has always used — and only the test builds are
  * redirected, with an explicit `setPath` that states the directory outright
  * instead of deriving it from a name. Nothing about the production path depends
  * on this file.
@@ -58,24 +59,36 @@ import { join } from 'node:path';
 import { app } from 'electron';
 import { electronApp } from '@electron-toolkit/utils';
 import { APP_ID } from '@shared/constants';
+import type { UpdateChannel } from '@shared/types/update';
 import { resolveUpdateChannel } from '@main/updater/updateChannel';
 
-/**
- * Beta's own `%APPDATA%` directory. A sibling of production's `kiosk-app`, named
- * so the two sort next to each other when someone is looking for a log file.
- */
-const BETA_USER_DATA_DIR = 'kiosk-app-beta';
+interface ChannelIdentity {
+  /** The `%APPDATA%` tree — a sibling of production's `kiosk-app`, named so the
+   *  installs sort next to each other when someone is hunting for a log file. */
+  userDataDir: string;
+  /** Appended to APP_ID for the AppUserModelID. MUST match `appId` in the
+   *  matching electron-builder config, or Windows groups the taskbar button and
+   *  the toast notifications under an application that is not the one running. */
+  appIdSuffix: string;
+  /** Suffix on the window/process display name. Cosmetic only. */
+  displaySuffix: string;
+}
 
 /**
- * Beta's AppUserModelID. MUST match `appId` in electron-builder.beta.yml, or
- * Windows groups the taskbar button and the toast notifications under an
- * application that is not the one running.
+ * The side-by-side identity of each non-production channel.
+ *
+ * `latest` is deliberately absent: production takes NO redirection at all, which
+ * is what guarantees the deployed fleet keeps its existing `kiosk-app` tree.
+ * Adding a channel is adding a row here plus an `electron-builder.<ch>.yml`.
  */
-const BETA_APP_ID = `${APP_ID}.beta`;
+const CHANNEL_IDENTITY: Record<Exclude<UpdateChannel, 'latest'>, ChannelIdentity> = {
+  beta: { userDataDir: 'kiosk-app-beta', appIdSuffix: '.beta', displaySuffix: 'Beta' },
+  lab: { userDataDir: 'kiosk-app-lab', appIdSuffix: '.lab', displaySuffix: 'Lab' },
+};
 
 /**
- * `buildChannel` from the PACKAGED package.json, written by
- * electron-builder.beta.yml's `extraMetadata`. Empty for a production build and
+ * `buildChannel` from the PACKAGED package.json, written by the per-channel
+ * electron-builder config's `extraMetadata`. Empty for a production build and
  * in dev, where the repo's package.json carries no such field.
  *
  * Read from `app.getAppPath()` so it resolves inside the asar when packaged.
@@ -95,21 +108,27 @@ function packagedBuildChannel(): string {
 }
 
 /**
- * True when this build IS the beta build.
+ * Which channel's identity this process should wear.
  *
  * ★ The BUILD decides first, the `.env` only second. `buildChannel` is stamped
- * in by electron-builder.beta.yml and cannot drift; `UPDATE_CHANNEL` is shipped
- * config that can. Keying identity off the env alone meant a local
- * `npm run build:win:beta` against a developer .env reading
+ * in by the per-channel electron-builder config and cannot drift;
+ * `UPDATE_CHANNEL` is shipped config that can. Keying identity off the env alone
+ * meant a local `npm run build:win:beta` against a developer .env reading
  * `UPDATE_CHANNEL=latest` would install under the beta name and icon while
  * `setPath` stayed silent — so both apps would share production's kiosk.db and
  * its singleton lock, which is the exact failure this module exists to prevent.
  *
- * UPDATE_CHANNEL is kept as the fallback so `npm run dev` can still exercise the
- * beta path without packaging anything.
+ * UPDATE_CHANNEL is kept as the fallback so `npm run dev` can still exercise a
+ * test-channel path without packaging anything.
  */
-export const isBetaBuild = (): boolean =>
-  packagedBuildChannel() === 'beta' || resolveUpdateChannel() === 'beta';
+export function resolveBuildChannel(): UpdateChannel {
+  const stamped = packagedBuildChannel();
+  if (stamped && stamped in CHANNEL_IDENTITY) return stamped as UpdateChannel;
+  return resolveUpdateChannel();
+}
+
+/** True when this build carries a side-by-side (non-production) identity. */
+export const isSideBySideBuild = (): boolean => resolveBuildChannel() !== 'latest';
 
 /**
  * Point this process at its own state directory, and tell Windows which app it
@@ -117,21 +136,28 @@ export const isBetaBuild = (): boolean =>
  *
  * A production build is a no-op apart from the AppUserModelID it already set.
  *
- * Returns what it resolved, so a support ticket can say which of the two
- * installs produced the log it is quoting.
+ * Returns what it resolved, so a support ticket can say which of the installs
+ * produced the log it is quoting.
  */
-export function applyAppIdentity(): { appId: string; userData: string; beta: boolean } {
-  const beta = isBetaBuild();
+export function applyAppIdentity(): {
+  appId: string;
+  userData: string;
+  channel: UpdateChannel;
+  sideBySide: boolean;
+} {
+  const channel = resolveBuildChannel();
+  const identity = channel === 'latest' ? null : CHANNEL_IDENTITY[channel];
 
-  if (beta) {
+  if (identity) {
     // `appData` is %APPDATA% (roaming) — the parent Electron would have used
-    // anyway, so beta lands beside production rather than somewhere new.
-    app.setPath('userData', join(app.getPath('appData'), BETA_USER_DATA_DIR));
+    // anyway, so a test build lands beside production rather than somewhere new.
+    app.setPath('userData', join(app.getPath('appData'), identity.userDataDir));
   }
 
-  electronApp.setAppUserModelId(beta ? BETA_APP_ID : APP_ID);
+  const appId = identity ? `${APP_ID}${identity.appIdSuffix}` : APP_ID;
+  electronApp.setAppUserModelId(appId);
 
-  return { appId: beta ? BETA_APP_ID : APP_ID, userData: app.getPath('userData'), beta };
+  return { appId, userData: app.getPath('userData'), channel, sideBySide: identity !== null };
 }
 
 /**
@@ -140,5 +166,6 @@ export function applyAppIdentity(): { appId: string; userData: string; beta: boo
  * precisely why it is safe to vary it per channel.
  */
 export function appDisplayName(baseName: string): string {
-  return isBetaBuild() ? `${baseName} Beta` : baseName;
+  const channel = resolveBuildChannel();
+  return channel === 'latest' ? baseName : `${baseName} ${CHANNEL_IDENTITY[channel].displaySuffix}`;
 }

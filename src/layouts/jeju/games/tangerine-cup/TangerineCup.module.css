@@ -1,0 +1,375 @@
+/*
+ * 감귤은 어디에? — the table, the cups and the reveal.
+ *
+ * Artboard px inside GameShell's 1900×2060 field.
+ *
+ * ── How the transforms are divided ────────────────────────────────────
+ * Two nested elements, and the split is load-bearing:
+ *
+ *   .cup   — horizontal position ONLY, written imperatively by the engine
+ *            (translateX) and animated by WAAPI during a swap.
+ *   .lift  — vertical position only, driven by CSS classes for the reveal and
+ *            the opening peek.
+ *
+ * If both lived on one element the CSS class would clobber the engine's inline
+ * transform every time a cup was raised, and the cup would teleport back to
+ * slot 0. Keep them separate.
+ */
+
+.stage {
+  position: absolute;
+  inset: 0;
+  border-radius: 56px;
+  overflow: hidden;
+  background:
+    radial-gradient(
+      1100px 620px at 50% 22%,
+      rgba(255, 242, 214, 0.95) 0%,
+      rgba(255, 242, 214, 0) 70%
+    ),
+    linear-gradient(180deg, #fdf6ea 0%, #f7ebd8 62%, #eddcc2 100%);
+  touch-action: none;
+  box-shadow: 0 30px 80px rgba(140, 100, 40, 0.14);
+}
+
+/* The table the cups stand on — a warm band with a soft front edge, so the
+   cups read as sitting on something rather than floating on a gradient. */
+.table {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 1440px;
+  height: 620px;
+  background: linear-gradient(180deg, #d9b483 0%, #c69a63 22%, #b3874f 100%);
+}
+
+.tableEdge {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 1440px;
+  height: 26px;
+  background: linear-gradient(180deg, #f0d3a6 0%, #d9b483 100%);
+}
+
+/* ── Prompt ────────────────────────────────────────────────────────────
+   One line, always in the same place, so the visitor's eye never has to hunt
+   for the instruction between phases. */
+.prompt {
+  position: absolute;
+  left: 0;
+  top: 70px;
+  width: 100%;
+  margin: 0;
+  text-align: center;
+  font-size: 82px;
+  font-weight: 800;
+  line-height: 1.1;
+  color: #333;
+}
+
+.promptAccent {
+  color: var(--kiosk-primary, #ff7f0f);
+}
+
+/* Keyed re-mount on every phase change replays this, which is what makes the
+   change of instruction register on a screen nobody is reading closely. */
+.promptIn {
+  animation: promptIn 420ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+@keyframes promptIn {
+  from {
+    opacity: 0;
+    transform: translateY(-26px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ── Cups ──────────────────────────────────────────────────────────────
+   `left: 0` plus a negative margin means translateX carries the SLOT CENTRE,
+   which is the number the engine actually reasons about. */
+.cup {
+  position: absolute;
+  left: 0;
+  top: 700px;
+  width: 420px;
+  margin-left: -210px;
+  z-index: 2;
+  will-change: transform;
+  /* No CSS transition here — the swap is a WAAPI animation, and a transition
+     would fight it and smear the landing. */
+}
+
+.cupTappable {
+  cursor: pointer;
+}
+
+.lift {
+  position: relative;
+  width: 100%;
+  transform: translateY(0);
+  transition: transform 560ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+/* Raised — the opening peek, and the reveal. */
+.liftUp {
+  transform: translateY(-330px) rotate(-7deg);
+}
+
+/* The tap itself. Short and small; the big movement is the reveal that follows. */
+.cupTappable:active .lift {
+  transform: translateY(-26px) scale(0.97);
+  transition-duration: 120ms;
+}
+
+.cupArt {
+  display: block;
+  width: 100%;
+  height: auto;
+  pointer-events: none;
+  filter: drop-shadow(0 26px 30px rgba(90, 60, 20, 0.32));
+}
+
+/* Contact shadow, separate from the cup so it can stay on the table while the
+   cup lifts off it. */
+.cupShadow {
+  position: absolute;
+  left: 0;
+  top: 1400px;
+  width: 380px;
+  height: 66px;
+  margin-left: -190px;
+  border-radius: 50%;
+  background: rgba(90, 60, 20, 0.26);
+  filter: blur(14px);
+  z-index: 1;
+  transition:
+    transform 560ms cubic-bezier(0.22, 1, 0.36, 1),
+    opacity 560ms ease;
+}
+
+/* Lifted cup: its shadow shrinks and fades, which is most of what sells the
+   height. */
+.cupShadowUp {
+  transform: scale(0.7);
+  opacity: 0.4;
+}
+
+/* The cup the visitor picked, when it turns out to be empty. A short shake,
+   then it stays up so they can see for themselves that nothing is under it.
+   Applied to .cupArt, not the cup or the lift: those two already carry
+   transforms that this would overwrite, and animating margin instead would put
+   a layout pass in the middle of the reveal. */
+.cupWrong .cupArt {
+  animation: cupShake 460ms ease;
+}
+
+@keyframes cupShake {
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+  20% {
+    transform: translateX(-26px);
+  }
+  50% {
+    transform: translateX(22px);
+  }
+  80% {
+    transform: translateX(-14px);
+  }
+}
+
+/* ── The fruit ─────────────────────────────────────────────────────────
+   Rendered only during the peek and the reveal — never during the shuffle, so
+   there is no z-index accident that can leak the answer. */
+.fruit {
+  position: absolute;
+  left: 0;
+  top: 1200px;
+  width: 220px;
+  height: 220px;
+  margin-left: -110px;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 420ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.fruitArt {
+  width: 100%;
+  height: 100%;
+  filter: drop-shadow(0 16px 24px rgba(120, 70, 10, 0.4));
+}
+
+.fruitPop {
+  animation: fruitPop 700ms cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+@keyframes fruitPop {
+  0% {
+    transform: scale(0.5);
+  }
+  55% {
+    transform: scale(1.28);
+  }
+  100% {
+    transform: scale(1.1);
+  }
+}
+
+/* A glow ring behind the revealed fruit, so the answer is unmissable from a
+   distance even with the sound off. */
+.fruitGlow {
+  position: absolute;
+  inset: -60px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(255, 200, 60, 0.75) 0%, rgba(255, 200, 60, 0) 68%);
+  animation: glowPulse 1.4s ease-in-out infinite;
+  pointer-events: none;
+}
+
+@keyframes glowPulse {
+  0%,
+  100% {
+    transform: scale(1);
+    opacity: 0.8;
+  }
+  50% {
+    transform: scale(1.18);
+    opacity: 1;
+  }
+}
+
+/* ── Verdict line ──────────────────────────────────────────────────────── */
+.verdict {
+  position: absolute;
+  left: 0;
+  bottom: 260px;
+  width: 100%;
+  margin: 0;
+  text-align: center;
+  font-size: 92px;
+  font-weight: 800;
+  line-height: 1.15;
+  animation: verdictIn 460ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.verdictGood {
+  color: #2f9e5f;
+}
+
+.verdictBad {
+  color: #e08a2a;
+}
+
+.verdictSub {
+  position: absolute;
+  left: 0;
+  bottom: 180px;
+  width: 100%;
+  margin: 0;
+  text-align: center;
+  font-size: 54px;
+  font-weight: 700;
+  color: #7a5b2e;
+}
+
+@keyframes verdictIn {
+  from {
+    opacity: 0;
+    transform: translateY(30px) scale(0.9);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* The +100, floating up out of the revealed cup. */
+.plus {
+  position: absolute;
+  left: 0;
+  top: 1000px;
+  width: 100%;
+  text-align: center;
+  font-size: 120px;
+  font-weight: 800;
+  color: var(--kiosk-primary, #ff7f0f);
+  text-shadow: 0 6px 0 #fff;
+  pointer-events: none;
+  animation: plusFloat 1.6s ease-out forwards;
+}
+
+@keyframes plusFloat {
+  0% {
+    opacity: 0;
+    transform: translateY(40px) scale(0.6);
+  }
+  22% {
+    opacity: 1;
+    transform: translateY(0) scale(1.1);
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-220px) scale(1);
+  }
+}
+
+/* ── Round dots ────────────────────────────────────────────────────────── */
+.rounds {
+  position: absolute;
+  left: 0;
+  bottom: 60px;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 26px;
+}
+
+.roundDot {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  border: 6px solid #d8c8ac;
+  background: rgba(255, 255, 255, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 34px;
+  font-weight: 800;
+  color: #b09a76;
+  transition: all 260ms ease;
+}
+
+.roundDotNow {
+  border-color: var(--kiosk-primary, #ff7f0f);
+  background: #fff;
+  transform: scale(1.16);
+  color: var(--kiosk-primary, #ff7f0f);
+}
+
+.roundDotGood {
+  border-color: #2f9e5f;
+  background: #2f9e5f;
+  color: #fff;
+}
+
+.roundDotBad {
+  border-color: #e0b58a;
+  background: #f0dcc6;
+  color: #a98453;
+}
+
+/* Round dots again, on the result card. */
+.resultRounds {
+  display: flex;
+  gap: 22px;
+  justify-content: center;
+}

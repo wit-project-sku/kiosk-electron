@@ -6,13 +6,17 @@
  *      UPDATE_DAY   (default Friday)   — day name or 0–6 (0=Sun)
  *      UPDATE_TIME  (default 17:00)    — HH:MM, local kiosk time
  *
- *  Beta (`beta`) — a fast polling INTERVAL so testers get builds quickly:
+ *  Test channels (`beta`, `lab`) — a fast polling INTERVAL so testers get
+ *  builds quickly. Both share one knob deliberately: lab mirrors beta, and a
+ *  second interval var would be one more thing to keep in step across the two
+ *  installs that sit on the same office kiosk.
  *      UPDATE_BETA_INTERVAL_MIN (default 15) — minutes between checks
  *
  * All times are LOCAL to the kiosk (Date getters/setters are local time).
  */
 
 import type { UpdateChannel } from '@shared/types/update';
+import { isPrereleaseChannel } from './updateChannel';
 
 export interface WeeklySchedule {
   kind: 'weekly';
@@ -39,7 +43,7 @@ const DAY_ALIASES: Record<string, number> = {
   sat: 6, saturday: 6,
 };
 
-/** Beta poll interval bounds (minutes). Spec asks for ~10–20; allow a bit wider. */
+/** Test-channel poll interval bounds (minutes). Spec asks for ~10–20; allow a bit wider. */
 const BETA_MIN_MINUTES = 5;
 const BETA_MAX_MINUTES = 240;
 const BETA_DEFAULT_MINUTES = 15;
@@ -79,7 +83,8 @@ function parseIntervalMinutes(raw: string | undefined, fallback: number): number
 
 /** Resolve the schedule for a channel from the environment. */
 export function resolveUpdateSchedule(channel: UpdateChannel): UpdateSchedule {
-  if (channel === 'beta') {
+  // beta AND lab poll; only production waits for the weekly window.
+  if (isPrereleaseChannel(channel)) {
     const minutes = parseIntervalMinutes(process.env['UPDATE_BETA_INTERVAL_MIN'], BETA_DEFAULT_MINUTES);
     return { kind: 'interval', intervalMs: minutes * 60_000 };
   }

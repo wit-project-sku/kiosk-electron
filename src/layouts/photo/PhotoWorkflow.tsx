@@ -15,7 +15,7 @@ import { trackEvent } from '@renderer/lib/analytics';
 import { resolveButton } from '@renderer/lib/buttonCatalog';
 import { HanbokSelect, type CaptureMode } from './HanbokSelect';
 import { JejuHanbokSelect } from '../jeju/JejuHanbokSelect';
-import { JejuSpotDiffGame } from '../jeju/JejuSpotDiffGame';
+import { JejuWaitingGames } from '../jeju/games/JejuWaitingGames';
 import { usePhotoChrome } from './photoChrome';
 import { RESULT, RESULT_KADA } from './photoTexts';
 import styles from './PhotoWorkflow.module.css';
@@ -32,7 +32,7 @@ const SAVE_BASE = 'https://withphoto.vercel.app/?imageUrl=';
  * Phase map:
  *   clothing / style  → HanbokSelect (outfit selection, no popup)
  *   preview / countdown → camera-popup.png only (nothing else)
- *   generating        → camera popup; 제주 plays 틀린그림찾기 instead
+ *   generating        → camera popup; 제주 opens the 게임존 instead
  *   result            → WIT Store webview (Monitor 2 shows result image),
  *                       gated on the 제주 game finishing — see the gate below
  */
@@ -66,7 +66,8 @@ export function PhotoWorkflow(): JSX.Element {
   usePhotoWorkflow();
 
   // ── 제주 waiting game gate ──────────────────────────────────────────────
-  // 제주 fills the AI wait with 틀린그림찾기 instead of a static popup, and the
+  // 제주 fills the AI wait with the 게임존 — a menu of games, see
+  // jeju/games/JejuWaitingGames — instead of a static popup, and the
   // result is gated on the GAME, not on the clock: `GENERATING_MIN_MS` in
   // photo.handlers is a 60s floor, so the photo can land while someone is still
   // hunting. `gameDone` is what actually lets the result screen through.
@@ -165,7 +166,7 @@ export function PhotoWorkflow(): JSX.Element {
     }
   };
 
-  // ── 제주 only: 틀린그림찾기 while the AI works ─────────────────────────────
+  // ── 제주 only: the 게임존 while the AI works ───────────────────────────────
   // Deliberately ahead of the capture block, which would otherwise keep drawing
   // the camera-direction popup through `generating`. Note the second clause: the
   // game also survives INTO the result phase, which is what makes the finished
@@ -180,7 +181,7 @@ export function PhotoWorkflow(): JSX.Element {
     (phase === 'generating' || (phase === 'result' && !gameDone))
   ) {
     return (
-      <JejuSpotDiffGame
+      <JejuWaitingGames
         rounds={gameRounds}
         aiReady={phase === 'result'}
         onFinish={handleGameFinish}

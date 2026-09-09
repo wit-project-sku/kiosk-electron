@@ -7,8 +7,8 @@ export const APP_NAME = 'Kiosk App';
 
 /**
  * Windows AppUserModelID and electron-builder `appId`. Keep in step with
- * electron-builder.yml — the beta build appends ".beta" to both this and
- * APP_NAME so it installs and stores its data separately (see
+ * electron-builder.yml — the test builds append ".beta" / ".lab" to both this
+ * and APP_NAME so each installs and stores its data separately (see
  * main/core/appIdentity.ts).
  */
 export const APP_ID = 'com.kioskapp.desktop';

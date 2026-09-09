@@ -17,6 +17,8 @@ import { PHOTO_COUNTDOWN_SECONDS } from '@shared/constants/photoOptions';
 import type { WeatherPlayKey } from '@shared/config/weatherVideo';
 import spinnerImg from '@renderer/assets/spinner.svg';
 import { KioskArtboard } from '@layouts/components/KioskScreenImage';
+import { JejuMotionDisplay } from '@layouts/jeju/games/motion/JejuMotionDisplay';
+import { useMotionGameState } from '@layouts/jeju/games/motion/useMotionGameState';
 import { Slideshow } from './components/Slideshow';
 import { VideoWall } from './components/VideoWall';
 import { AiModelVideoWall } from './components/AiModelVideoWall';
@@ -214,7 +216,18 @@ export function CustomerDisplay(): JSX.Element {
   /** The venue's mount rotation — 90 on 제주, 0 (upright) everywhere else. */
   const cameraRotation = kioskId ? getCameraRotation(kioskId as KioskId) : 0;
 
-  const cameraEnabled = state.mode === 'camera' || state.mode === 'countdown';
+  // ── 제주 모션 게임 ─────────────────────────────────────────────────────
+  // The camera games run HERE, on the big screen, because that is the screen
+  // the camera faces and the one a visitor standing back can actually see. The
+  // touch window only chooses one and then acts as its remote.
+  const motion = useMotionGameState();
+
+  // Never both. A running motion game has the camera open for pose tracking,
+  // and this window opening it a second time is exactly the failure
+  // FootfallService exists to prevent — on Windows the second opener inherits
+  // the first one's negotiated format.
+  const cameraEnabled =
+    (state.mode === 'camera' || state.mode === 'countdown') && motion.game === null;
   const { videoRef, capture } = useKioskCamera({
     deviceId: state.cameraDeviceId,
     enabled: cameraEnabled,
@@ -280,6 +293,18 @@ export function CustomerDisplay(): JSX.Element {
     const timer = setTimeout(() => void window.api.photo.resumeCountdown(), GESTURE_HELD_FALLBACK_MS);
     return () => clearTimeout(timer);
   }, [gestureGate]);
+
+  // A running motion game takes the WHOLE screen and every other branch below
+  // is skipped. Returning early rather than layering it over the stage is
+  // deliberate: the game owns the camera, and leaving the display's own camera
+  // preview mounted underneath would be a second opener of the same device.
+  if (motion.game) {
+    return (
+      <KioskArtboard>
+        <JejuMotionDisplay game={motion.game} runId={motion.runId} />
+      </KioskArtboard>
+    );
+  }
 
   return (
     <KioskArtboard>

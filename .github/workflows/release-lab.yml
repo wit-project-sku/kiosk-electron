@@ -1,0 +1,50 @@
+name: release-lab
+
+# Experimental channel (lab). Fires on every push to advanced-ui (a merged PR is
+# a push). Publishes a GitHub PRE-release two MINORS ahead of the newest stable
+# release (5.0.20 stable -> 5.2.0-lab.<run_number>), with `lab.yml` metadata.
+# Lab kiosks (UPDATE_CHANNEL=lab) pick it up automatically.
+#
+# ── Why lab is the SAFEST of the three channels ───────────────────────
+# `lab` is a CUSTOM channel as far as electron-updater is concerned — its GitHub
+# provider only special-cases "alpha" and "beta". Reading its feed walk
+# (GitHubProvider.getLatestVersion, 6.8.x):
+#
+#   shouldFetchVersion = !currentChannel || ["alpha","beta"].includes(currentChannel)
+#   isCustomChannel    = hrefChannel !== null && !["alpha","beta"].includes(hrefChannel)
+#
+# With `channel = 'lab'`, shouldFetchVersion is FALSE, so the branch that lets a
+# beta kiosk accidentally resolve a STABLE release can never fire. A lab kiosk
+# matches only tags whose prerelease id is exactly `lab`. In the other direction,
+# a lab release sitting at the top of the feed is `isCustomChannel` to a beta
+# kiosk, which skips it and keeps walking. So adding this channel cannot disturb
+# either existing one, and production — which uses /releases/latest, excluding
+# pre-releases — never sees it at all.
+#
+# ── Install ───────────────────────────────────────────────────────────
+# The lab build has its own appId / productName / icon (green LAB mark) and its
+# own %APPDATA%\kiosk-app-lab tree, so it installs as a THIRD app beside
+# production and beta on the one office kiosk. Each install is provisioned
+# separately:  .\provision-kiosk.ps1 -KioskId W006 -Lab
+#
+# ── Config ────────────────────────────────────────────────────────────
+# Runtime config is deliberately SHARED with beta: the same `beta` GitHub
+# Environment supplies staging URLs and test keys, so lab needs no second copy of
+# those secrets to keep in sync. ★ That environment's "deployment branches" rule
+# must therefore allow `advanced-ui` as well as `develop_1` — without it the run
+# still succeeds but every secret resolves empty and the installer ships
+# .env.example defaults with no API keys.
+on:
+  push:
+    branches: [advanced-ui]
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    uses: ./.github/workflows/release.yml
+    with:
+      update_channel: lab
+      environment: beta
+    secrets: inherit

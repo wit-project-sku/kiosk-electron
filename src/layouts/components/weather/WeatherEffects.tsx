@@ -71,7 +71,7 @@ export function WeatherEffects(): JSX.Element | null {
   };
 
   return (
-    <div className={styles.layer}>
+    <div className={styles.layer} data-weather-fx-layer>
       {/* ── Sun & Crepuscular God-Rays ── */}
       {mode === 'sun' && <SunRays vivid={preview != null} />}
 

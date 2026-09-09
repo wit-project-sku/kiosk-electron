@@ -1,0 +1,167 @@
+/*
+ * 화산석 피하기 — the field.
+ *
+ * A 제주 volcanic evening: warm dark sky, 한라산 on the horizon, drifting smoke.
+ * Darker than the other two games on purpose — it is the only one with a fail
+ * state, and the change of light is what tells the visitor the stakes changed
+ * without a word of copy.
+ */
+
+.field {
+  position: absolute;
+  inset: 0;
+  border-radius: 56px;
+  overflow: hidden;
+  box-shadow: 0 30px 80px rgba(60, 30, 10, 0.24);
+  touch-action: none;
+}
+
+.sky {
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(900px 600px at 50% 92%, rgba(255, 120, 30, 0.32) 0%, rgba(255, 120, 30, 0) 70%),
+    linear-gradient(180deg, #2b2440 0%, #4a3350 34%, #8a4a45 68%, #c2683f 100%);
+}
+
+/* 한라산, flat and dark against the glow. */
+.mountain {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 760px;
+  background-repeat: no-repeat;
+  background-size: 100% 100%;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1900 760' preserveAspectRatio='none'><path d='M0 470 C 300 430 520 380 760 250 L 900 170 L 1000 215 L 1140 250 C 1380 370 1600 430 1900 470 L1900 760 L0 760 Z' fill='%23241d33'/></svg>");
+}
+
+/* The oreum line in front, one shade lighter so the ridge reads. */
+.foothills {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 330px;
+  background-repeat: no-repeat;
+  background-size: 100% 100%;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1900 330' preserveAspectRatio='none'><path d='M0 210 C 260 150 460 190 700 165 C 980 136 1200 196 1460 176 C 1650 162 1790 186 1900 200 L1900 330 L0 330 Z' fill='%231a1526'/></svg>");
+}
+
+/* Slow volcanic haze. Two blurred blobs on long drifts — cheap, and enough to
+   stop the sky reading as a flat gradient. */
+.haze {
+  position: absolute;
+  left: -20%;
+  bottom: 240px;
+  width: 60%;
+  height: 420px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(255, 150, 60, 0.16) 0%, rgba(255, 150, 60, 0) 70%);
+  animation: hazeDrift 26s linear infinite;
+  pointer-events: none;
+}
+
+.hazeB {
+  left: auto;
+  right: -25%;
+  bottom: 420px;
+  width: 52%;
+  height: 360px;
+  animation-duration: 34s;
+  animation-direction: reverse;
+}
+
+@keyframes hazeDrift {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(120%);
+  }
+}
+
+.canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
+/* A red vignette on the frame the player is struck. Keyed re-mount replays it. */
+.impact {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: radial-gradient(
+    circle at 50% 78%,
+    rgba(229, 72, 77, 0) 40%,
+    rgba(229, 72, 77, 0.5) 100%
+  );
+  animation: impactFlash 620ms ease-out forwards;
+}
+
+@keyframes impactFlash {
+  0% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+
+/* Lives, drawn over the field rather than in the HUD row: at a glance the
+   player needs them next to the action, not up beside the score. */
+.lives {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 40px;
+  display: flex;
+  justify-content: center;
+  gap: 24px;
+  font-size: 84px;
+  line-height: 1;
+  pointer-events: none;
+  text-shadow: 0 6px 18px rgba(0, 0, 0, 0.45);
+}
+
+/* The heart that was just lost gets one beat of attention on its way out. */
+.lifeLost {
+  animation: lifeLost 620ms ease-out;
+}
+
+@keyframes lifeLost {
+  0% {
+    transform: scale(1.5);
+    filter: brightness(2);
+  }
+  100% {
+    transform: scale(1);
+    filter: none;
+  }
+}
+
+.hint {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 560px;
+  text-align: center;
+  font-size: 60px;
+  font-weight: 800;
+  color: rgba(255, 255, 255, 0.72);
+  pointer-events: none;
+  animation: hintFade 1.6s ease-in-out infinite;
+}
+
+@keyframes hintFade {
+  0%,
+  100% {
+    opacity: 0.5;
+  }
+  50% {
+    opacity: 1;
+  }
+}

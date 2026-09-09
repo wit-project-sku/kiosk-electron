@@ -158,6 +158,16 @@ const api: KioskBridge = {
     releaseResultDisplay: () => invoke(IpcChannels.PhotoReleaseResultDisplay),
     reset: () => invoke(IpcChannels.PhotoReset),
   },
+  /**
+   * 제주 모션 게임. Monitor 1 starts/stops, Monitor 2 reports; both read the
+   * result off `onMotionGameChanged`.
+   */
+  motion: {
+    get: () => invoke(IpcChannels.MotionGet),
+    start: (game) => invoke(IpcChannels.MotionStart, { game }),
+    report: (report) => invoke(IpcChannels.MotionReport, report),
+    stop: () => invoke(IpcChannels.MotionStop),
+  },
   outfits: {
     get: () => invoke(IpcChannels.OutfitsGet),
   },
@@ -247,6 +257,7 @@ const api: KioskBridge = {
     onSyncStatsChanged: (listener) => subscribe(IpcEvents.SyncStatsChanged, listener),
     onContentChanged: (listener) => subscribe(IpcEvents.ContentChanged, listener),
     onPhotoWorkflowChanged: (listener) => subscribe(IpcEvents.PhotoWorkflowChanged, listener),
+    onMotionGameChanged: (listener) => subscribe(IpcEvents.MotionGameChanged, listener),
     onLanguageChanged: (listener) => subscribe(IpcEvents.LanguageChanged, listener),
     onWeatherChanged: (listener) => subscribe(IpcEvents.WeatherChanged, listener),
     onWeatherForecastChanged: (listener) =>

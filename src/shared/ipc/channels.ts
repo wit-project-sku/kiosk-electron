@@ -78,6 +78,13 @@ export const IpcChannels = {
   PhotoReleaseResultDisplay: 'photo:releaseResultDisplay',
   PhotoReset: 'photo:reset',
 
+  // 제주 모션 게임 — driven from the touch screen, played on the customer
+  // display. See shared/types/motionGame.ts for why this crosses processes.
+  MotionGet: 'motion:get',
+  MotionStart: 'motion:start',
+  MotionReport: 'motion:report',
+  MotionStop: 'motion:stop',
+
   // 틀린그림찾기 — the mini-game played on the touch screen while the AR 한복
   // photo generates (제주 W006).
   SpotDiffGetRound: 'spotDiff:getRound',
@@ -205,6 +212,11 @@ export const IpcEvents = {
    * releases or re-opens its stream on this.
    */
   FootfallRuntimeChanged: 'event:footfall:runtimeChanged',
+  /**
+   * A 모션 게임 started, progressed or ended. Monitor 2 mounts and drives the
+   * game from this; Monitor 1 draws its remote from the same payload.
+   */
+  MotionGameChanged: 'event:motion:changed',
 } as const;
 
 export type IpcEventChannel = (typeof IpcEvents)[keyof typeof IpcEvents];

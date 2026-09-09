@@ -1,21 +1,25 @@
 name: release
 
-# Reusable build+publish pipeline shared by both channels. The two thin caller
-# workflows (release-production.yml / release-beta.yml) only differ in inputs, so
-# the channels share all logic while staying completely isolated.
+# Reusable build+publish pipeline shared by every channel. The thin caller
+# workflows (release-production.yml / release-beta.yml / release-lab.yml) differ
+# only in inputs, so the channels share all logic while staying completely
+# isolated.
+#
+# ★ There are only TWO inputs, and everything else is DERIVED from the channel
+# below. That is deliberate: the earlier shape passed `prerelease`,
+# `channel_label` and `release_type` separately, which let a caller state a
+# combination that cannot be true (prerelease + releaseType=release), and each
+# had to be repeated correctly in three different steps. Adding a channel is now
+# a six-line caller file plus a row in the case statements here.
 on:
   workflow_call:
     inputs:
-      prerelease:
-        description: 'Publish as a GitHub pre-release (beta channel)'
-        required: true
-        type: boolean
-      channel_label:
-        description: 'Filename channel label (live | beta)'
-        required: true
-        type: string
-      release_type:
-        description: 'electron-builder publish.releaseType (release | prerelease)'
+      update_channel:
+        description: >-
+          Release channel: latest (production) | beta | lab. Decides the version
+          scheme, the electron-updater metadata file (latest.yml / beta.yml /
+          lab.yml), the GitHub release type, the build identity config and the
+          UPDATE_CHANNEL baked into the shipped .env.
         required: true
         type: string
       environment:
@@ -31,9 +35,14 @@ jobs:
     runs-on: windows-latest
     # Binds this job to a GitHub Environment, so `secrets.KIOSK_ENV` (and the two
     # service-account secrets) resolve to THAT environment's values. This is what
-    # gives develop_1 staging config and main production config from one pipeline.
-    # Configure each environment's "deployment branches" rule so only the matching
-    # branch can use it (beta -> develop_1, production -> main).
+    # gives the test branches staging config and main production config from one
+    # pipeline. Configure each environment's "deployment branches" rule so only
+    # the matching branches can use it:
+    #   production -> main
+    #   beta       -> develop_1, advanced-ui   (lab reuses the beta config)
+    # ★ If `advanced-ui` is NOT in the beta environment's branch rule, the lab
+    # build still SUCCEEDS but every secret resolves empty, so it silently ships
+    # .env.example defaults with no API keys. Green pipeline, inert kiosk.
     # NOTE: do NOT add required reviewers to these environments — a release would
     # then hang waiting for manual approval instead of publishing.
     environment: ${{ inputs.environment }}
@@ -49,16 +58,45 @@ jobs:
           node-version: 20
           cache: npm
 
+      # Everything the rest of the job needs, derived ONCE from the channel so
+      # the individual steps never re-derive it (and never disagree).
+      #
+      #   prerelease   GitHub release type. Only `latest` is a normal release.
+      #   label        filename token for win.artifactName (live | beta | lab).
+      #   config       side-by-side build identity — own appId / productName /
+      #                icon / %APPDATA% tree, so a test build installs NEXT TO
+      #                production instead of upgrading it. Empty for production.
+      #   minor_bump   how far ahead of the newest stable this channel's version
+      #                sits. See "Resolve version" for why it is not zero.
+      - name: Resolve channel
+        id: ch
+        shell: bash
+        run: |
+          case "${{ inputs.update_channel }}" in
+            latest) PRE=false; LABEL=live; CFG="";                                    BUMP=0 ;;
+            beta)   PRE=true;  LABEL=beta; CFG="--config electron-builder.beta.yml";  BUMP=1 ;;
+            lab)    PRE=true;  LABEL=lab;  CFG="--config electron-builder.lab.yml";   BUMP=2 ;;
+            *) echo "::error::Unknown update_channel '${{ inputs.update_channel }}' (expected latest | beta | lab)"; exit 1 ;;
+          esac
+          {
+            echo "prerelease=$PRE"
+            echo "label=$LABEL"
+            echo "config=$CFG"
+            echo "minor_bump=$BUMP"
+            echo "release_type=$([ "$PRE" = true ] && echo prerelease || echo release)"
+          } >> "$GITHUB_OUTPUT"
+
       # `npm ci` runs the postinstall (electron-builder install-app-deps), which
       # ABI-rebuilds the native modules (better-sqlite3, serialport) for Electron.
       - name: Install dependencies
         run: npm ci
 
       # Resolve the version to publish and decide whether to publish at all.
-      #  - beta:  <pkg>-beta.<run_number>  (always unique -> always publishes)
-      #  - prod:  <pkg>                    (skips if that release already exists,
-      #                                     so you cut a release by bumping the
-      #                                     package.json version — no manual step)
+      #  - test channels: <stable minor + bump>.0-<channel>.<run_number>
+      #                   (always unique -> always publishes)
+      #  - production:    <pkg>  (skips if that release already exists, so you cut
+      #                   a release by bumping the package.json version — no
+      #                   manual step)
       - name: Resolve version
         id: ver
         shell: bash
@@ -66,27 +104,38 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           BASE=$(node -p "require('./package.json').version")
-          if [ "${{ inputs.prerelease }}" = "true" ]; then
-            # A beta MUST outrank the newest stable release, so it is a prerelease
-            # of the next MINOR: 5.0.18 stable -> 5.1.0-beta.N.
+          if [ "${{ steps.ch.outputs.prerelease }}" = "true" ]; then
+            # A test build MUST outrank the newest stable release, so it is a
+            # prerelease of a LATER MINOR: 5.0.18 stable -> 5.1.0-beta.N (bump 1)
+            # or 5.2.0-lab.N (bump 2).
             #
             # The obvious `${BASE}-beta.N` is broken in BOTH directions, because
             # `5.0.18-beta.10` is semver-LOWER than `5.0.18`:
             #  1. GitHub's release feed is ordered by version, so the stable
             #     release sits ABOVE every beta. electron-updater's GitHub
-            #     provider walks that feed and takes the FIRST entry whose tag is
-            #     not another channel's prerelease — a STABLE tag passes that
-            #     test — so a beta kiosk resolves the stable tag, 404s on
-            #     `beta.yml` there, silently falls back to `latest.yml`, and
-            #     installs PRODUCTION. Verified live: v5.0.18 is the first feed
-            #     entry, ahead of v5.0.18-beta.10.
+            #     provider walks that feed and — for the channels it knows,
+            #     "alpha" and "beta" — takes the FIRST entry that is not another
+            #     channel's prerelease; a STABLE tag passes that test. So a beta
+            #     kiosk resolved the stable tag, 404'd on `beta.yml` there,
+            #     silently fell back to `latest.yml`, and installed PRODUCTION.
+            #     Verified live: v5.0.18 was the first feed entry, ahead of
+            #     v5.0.18-beta.10.
             #  2. Even reaching a beta, `5.0.18 > 5.0.18-beta.N` makes moving to
             #     production a legitimate "upgrade" no flag can refuse.
-            # Being a MINOR ahead puts the beta first in the feed and above the
-            # stable in semver, which is what keeps a beta kiosk on beta. A whole
-            # minor (not a patch) because production cuts releases by bumping the
-            # patch — 5.0.19 would collide with a 5.0.19-beta.N lane on the very
-            # next production release and hand every test kiosk to production again.
+            # Being a MINOR ahead puts the test build first in the feed and above
+            # the stable in semver, which is what keeps a beta kiosk on beta. A
+            # whole minor (not a patch) because production cuts releases by
+            # bumping the patch — 5.0.19 would collide with a 5.0.19-beta.N lane
+            # on the very next production release and hand every test kiosk to
+            # production again.
+            #
+            # ★ `lab` sits a FURTHER minor ahead (bump 2), and this is belt-and-
+            # braces rather than load-bearing: `lab` is a CUSTOM channel to
+            # electron-updater, whose feed walk therefore matches ONLY tags whose
+            # prerelease id is exactly `lab`. A lab kiosk cannot be captured by a
+            # stable or a beta release the way a beta kiosk could. The extra
+            # minor just keeps the two lanes from ever sharing a base version, so
+            # `5.2.0-beta.N` and `5.2.0-lab.N` never sit adjacent in the feed.
             STABLE=$(gh release view --json tagName -q .tagName 2>/dev/null || echo "")
             FULL=$(node -e '
               const parse = (v) => (v || "0.0.0").replace(/^v/, "").split("-")[0].split(".").map(Number);
@@ -94,9 +143,10 @@ jobs:
               const stable = parse(process.argv[2]);
               const cmp = (a, b) => a[0] - b[0] || a[1] - b[1] || a[2] - b[2];
               const [major, minor] = cmp(pkg, stable) >= 0 ? pkg : stable;
-              console.log(`${major}.${minor + 1}.0-beta.${process.argv[3]}`);
-            ' "$BASE" "$STABLE" "${{ github.run_number }}")
-            echo "Beta version $FULL (package.json $BASE, newest stable release ${STABLE:-none})."
+              const bump = Number(process.argv[5]);
+              console.log(`${major}.${minor + bump}.0-${process.argv[4]}.${process.argv[3]}`);
+            ' "$BASE" "$STABLE" "${{ github.run_number }}" "${{ inputs.update_channel }}" "${{ steps.ch.outputs.minor_bump }}")
+            echo "${{ inputs.update_channel }} version $FULL (package.json $BASE, newest stable release ${STABLE:-none})."
             npm version "$FULL" --no-git-tag-version --allow-same-version
             echo "skip=false" >> "$GITHUB_OUTPUT"
           else
@@ -114,7 +164,7 @@ jobs:
 
       # Materialize the REAL runtime config from the ENVIRONMENT's secrets, so a
       # published installer is fully functional. Because the secrets are scoped to
-      # the environment, develop_1 builds get staging URLs + test keys and main
+      # the environment, the test branches get staging URLs + test keys and main
       # builds get production URLs + live keys — from one shared pipeline, with
       # nothing committed to the (public) repo.
       #
@@ -136,7 +186,7 @@ jobs:
             printf '%s\n' "$KIOSK_ENV" > .env
             echo "Injected .env from the '${{ inputs.environment }}' environment ($(grep -cE '^[A-Z_0-9]+=' .env) keys)."
           else
-            echo "No KIOSK_ENV in the '${{ inputs.environment }}' environment — falling back to .env.example (weather/exim/sheets will be inert)."
+            echo "::warning::No KIOSK_ENV in the '${{ inputs.environment }}' environment — falling back to .env.example (weather/exim/sheets will be inert). If this is the lab channel, check that 'advanced-ui' is allowed by that environment's deployment-branch rule."
           fi
           if [ -n "$GOOGLE_SA" ]; then
             printf '%s' "$GOOGLE_SA" > secrets/service-account.json
@@ -158,7 +208,6 @@ jobs:
         if: steps.ver.outputs.skip == 'false'
         shell: bash
         run: |
-          CH=$([ "${{ inputs.prerelease }}" = "true" ] && echo beta || echo latest)
           # Base the placeholder on the committed .env.example (all non-secret
           # operational defaults present, secrets blank) so the build is
           # structurally complete even without a KIOSK_ENV secret.
@@ -166,21 +215,22 @@ jobs:
             cp .env.example .env 2>/dev/null || : > .env
             echo "Note: no real .env — using .env.example defaults (no API keys; auto-update still works)."
           fi
-          # Force the update channel to match THIS workflow (production=latest, beta=beta).
+          # Force the update channel to match THIS workflow. This is the single
+          # line that keeps a kiosk on the feed its installer was built for.
           grep -v '^UPDATE_CHANNEL=' .env > .env.tmp 2>/dev/null || true
           mv -f .env.tmp .env 2>/dev/null || true
-          echo "UPDATE_CHANNEL=$CH" >> .env
-          # DEV_MODE: true on beta/develop_1 builds, false on production/main builds.
-          DEV_MODE_VAL=$([ "${{ inputs.prerelease }}" = "true" ] && echo true || echo false)
+          echo "UPDATE_CHANNEL=${{ inputs.update_channel }}" >> .env
+          # DEV_MODE: true on every test channel, false on production/main builds.
+          DEV_MODE_VAL=${{ steps.ch.outputs.prerelease }}
           grep -v '^DEV_MODE=' .env > .env.tmp 2>/dev/null || true
           mv -f .env.tmp .env 2>/dev/null || true
           echo "DEV_MODE=$DEV_MODE_VAL" >> .env
-          echo "Injected DEV_MODE=$DEV_MODE_VAL (prerelease=${{ inputs.prerelease }})"
+          echo "Injected UPDATE_CHANNEL=${{ inputs.update_channel }} DEV_MODE=$DEV_MODE_VAL"
           mkdir -p secrets
           [ -f secrets/service-account.json ] || echo '{}' > secrets/service-account.json
           [ -f secrets/service-account-osaek.json ] || echo '{}' > secrets/service-account-osaek.json
 
-      # Build + package + generate latest.yml/beta.yml + .blockmap + publish.
+      # Build + package + generate <channel>.yml/.blockmap + publish.
       - name: Build and publish
         if: steps.ver.outputs.skip == 'false'
         shell: bash
@@ -191,7 +241,7 @@ jobs:
           BUILD_VER: R${{ github.run_number }}
           BUILD_DATE: ${{ steps.ver.outputs.date }}
           KIOSK_LOC: all
-          CHANNEL: ${{ inputs.channel_label }}
+          CHANNEL: ${{ steps.ch.outputs.label }}
           RELEASE_DATE: ${{ steps.ver.outputs.dateDot }}
           # Windows code signing — OPTIONAL. Add these two repo secrets to enable
           # signing with zero workflow changes; empty = unsigned (current state).
@@ -203,13 +253,13 @@ jobs:
           # it from a `-beta.N` version: both earlier pre-releases shipped
           # `latest.yml` (verified 2026-08-03), so `beta.yml` 404s and every
           # UPDATE_CHANNEL=beta kiosk dies with ERR_UPDATER_CHANNEL_FILE_NOT_FOUND.
-          CH=$([ "${{ inputs.prerelease }}" = "true" ] && echo beta || echo latest)
-          # Beta builds carry their OWN identity (appId / productName / icon) so
-          # they install ALONGSIDE production rather than upgrading it — the
-          # office has one kiosk and both channels have to be testable on it.
-          # See electron-builder.beta.yml; the matching runtime half (the
-          # %APPDATA% tree and the singleton lock) is in core/appIdentity.ts.
-          CFG=$([ "${{ inputs.prerelease }}" = "true" ] && echo "--config electron-builder.beta.yml" || echo "")
-          npx electron-builder --win --publish always $CFG \
-            -c.publish.releaseType=${{ inputs.release_type }} \
-            -c.publish.channel=$CH
+          #
+          # The config file (empty for production) carries the side-by-side build
+          # identity, so beta and lab install ALONGSIDE production rather than
+          # upgrading it — the office has one kiosk and every channel has to be
+          # testable on it. See electron-builder.{beta,lab}.yml; the matching
+          # runtime half (the %APPDATA% tree and the singleton lock) is in
+          # core/appIdentity.ts.
+          npx electron-builder --win --publish always ${{ steps.ch.outputs.config }} \
+            -c.publish.releaseType=${{ steps.ch.outputs.release_type }} \
+            -c.publish.channel=${{ inputs.update_channel }}

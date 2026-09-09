@@ -42,7 +42,7 @@ const WASM_SRC = join(ROOT, 'node_modules', '@mediapipe', 'tasks-vision', 'wasm'
 const WASM_FILES = ['vision_wasm_internal.js', 'vision_wasm_internal.wasm'];
 
 /**
- * The two models this app runs, both off the same vendored WASM runtime.
+ * The three models this app runs, all off the same vendored WASM runtime.
  *
  * 1. Hand landmarks — 21 points per hand. The open-palm / closed-fist
  *    classification is ours (see `lib/handGesture.ts`), so the heavier canned
@@ -53,6 +53,17 @@ const WASM_FILES = ['vision_wasm_internal.js', 'vision_wasm_internal.wasm'];
  *    90-label `labels.txt` that `categoryAllowlist: ['person']` resolves
  *    against; a bare .tflite without that metadata would load and then match
  *    nothing.
+ * 3. Pose landmarks — 33 body points, for 제주's motion games (see
+ *    `layouts/jeju/games/motion/`). EfficientDet cannot serve these: it reports
+ *    a bounding box, and a box tells you where a person is but nothing about
+ *    where their arms are, which is the entire 포즈 챌린지 game.
+ *
+ *    The LITE build, deliberately. `full` is meaningfully more accurate and
+ *    two-to-three times the inference cost, and this machine has no discrete
+ *    GPU and is decoding a 4K attract video on the same cores. Lite at 20 fps
+ *    tracks a torso and a pair of arms perfectly well at kiosk distance, which
+ *    is all three games ask of it. Swap the URL if a venue ever needs finger-
+ *    level precision — nothing else has to change.
  */
 const MODELS = [
   {
@@ -62,6 +73,10 @@ const MODELS = [
   {
     file: 'efficientdet_lite0.tflite',
     url: 'https://storage.googleapis.com/mediapipe-models/object_detector/efficientdet_lite0/float32/1/efficientdet_lite0.tflite',
+  },
+  {
+    file: 'pose_landmarker_lite.task',
+    url: 'https://storage.googleapis.com/mediapipe-models/pose_landmarker/pose_landmarker_lite/float16/1/pose_landmarker_lite.task',
   },
 ];
 
