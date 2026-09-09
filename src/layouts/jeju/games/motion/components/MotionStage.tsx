@@ -34,9 +34,6 @@
  * know that a second screen exists.
  */
 import { useEffect, useRef, type ReactNode } from 'react';
-import { getCameraRotation } from '@shared/config/kioskLocations';
-import type { KioskId } from '@shared/types/kiosk';
-import { useKioskStore } from '@renderer/store/kioskStore';
 import { GameCountdown } from '../../components/GameCountdown';
 import type { MotionPhase } from '../poseTypes';
 import type { MotionTracking } from '../useMotionTracking';
@@ -69,8 +66,6 @@ interface Props {
   children: ReactNode;
   /** The score card, or null while playing. */
   result?: ReactNode;
-  /** True while the player is out of view — rings the preview red. */
-  lost?: boolean;
 }
 
 export function MotionStage({
@@ -86,10 +81,11 @@ export function MotionStage({
   hud,
   children,
   result,
-  lost = false,
 }: Props): JSX.Element {
-  const kioskId = useKioskStore((s) => s.config.kioskId);
-  const rotation = getCameraRotation(kioskId as KioskId);
+  // The preview shows `tracking.rotation`, not the venue config: the tracker's
+  // orientation probe can overrule the config (see useMotionTracking), and a
+  // probed-into-place camera must not leave the visitor watching themselves
+  // sideways while the game tracks them correctly.
   const calibrating = phase === 'calibrating';
 
   /**
@@ -112,6 +108,7 @@ export function MotionStage({
     <div className={`${styles.displayRoot} ${shared.onDark}`}>
       <h1 className={styles.displayTitle}>{title}</h1>
       <p className={styles.displaySubtitle}>{subtitle}</p>
+      <span className={styles.displayRule} aria-hidden />
 
       {hud}
 
@@ -119,24 +116,23 @@ export function MotionStage({
 
       {calibrating && <MotionCalibration status={tracking.status} onReady={onReady} />}
 
-      {/* Rendered on EVERY phase, always the same element. See the header —
-          this is the single most important line in the file. Hidden only when
-          the camera never opened, where there is nothing to show. */}
-      {tracking.status !== 'unavailable' && (
-        <CameraPreview
-          videoRef={tracking.videoRef}
-          rotation={rotation}
-          silhouette={calibrating}
-          locked={
-            tracking.status === 'tracking' ||
-            tracking.status === 'out-of-area' ||
-            tracking.status === 'crowded'
-          }
-          className={`${calibrating ? styles.previewGate : styles.previewPip} ${
-            lost && !calibrating ? styles.previewLost : ''
-          }`}
-        />
-      )}
+      {/* Rendered on EVERY phase, always the same element — see the header;
+          this is the single most important line in the file. It is only VISIBLE
+          during calibration, where the visitor needs to see themselves to line
+          up. Once the game starts it shrinks to a transparent pixel that keeps
+          decoding (see `.previewHidden`), because unmounting it would detach
+          the stream the tracker is reading. */}
+      <CameraPreview
+        videoRef={tracking.videoRef}
+        rotation={tracking.rotation}
+        silhouette={calibrating}
+        locked={
+          tracking.status === 'tracking' ||
+          tracking.status === 'out-of-area' ||
+          tracking.status === 'crowded'
+        }
+        className={calibrating ? styles.previewGate : styles.previewHidden}
+      />
 
       {phase === 'countdown' && <GameCountdown onDone={onCountdownDone} hint={countdownHint} />}
 

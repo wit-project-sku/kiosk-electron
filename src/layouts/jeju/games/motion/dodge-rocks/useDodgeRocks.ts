@@ -337,13 +337,17 @@ export function useDodgeRocks(player: React.RefObject<PlayerTrackingState>): Dod
 
         // ── Draw ──
         ctx.clearRect(0, 0, FIELD_W, FIELD_H);
-        ctx.globalAlpha = lost ? 0.4 : 1;
+        // Same rule as 감귤 받기: the hazards dim while tracking is lost, the
+        // PLAYER never does. The figure is how a visitor works out that the
+        // game is about them, and fading it is what makes a stalled game look
+        // like a broken one.
+        ctx.globalAlpha = lost ? 0.35 : 1;
         for (const s of smoke) drawSmoke(ctx, s);
         for (const rock of rocks) drawRock(ctx, rock);
+        ctx.globalAlpha = 1;
         // Blink through the invulnerability window, so its length is legible.
         const blink = invulnerable && Math.floor(now / 110) % 2 === 0;
         if (!blink) drawPlayer(ctx, playerXRef.current, flashRef.current);
-        ctx.globalAlpha = 1;
         for (const p of pops) drawDodgePop(ctx, p.x, p.y, p.life, p.maxLife);
       },
       [player, level],

@@ -348,12 +348,15 @@ export function useBodyCatch(player: React.RefObject<PlayerTrackingState>): Body
         }
 
         ctx.clearRect(0, 0, FIELD_W, FIELD_H);
-        // Dimmed while stalled, so the reason the game has gone quiet is
-        // visible at a glance rather than only stated in the coaching banner.
-        ctx.globalAlpha = lost ? 0.4 : 1;
+        // The FALLING objects dim while the player is out of view, so the reason
+        // the game went quiet is visible at a glance. The BASKET never does: it
+        // is the thing the visitor is looking for to understand what the game
+        // wants from them, and a faded basket over a faded field is what
+        // "nothing here catches the fruit" looks like from the floor.
+        ctx.globalAlpha = lost ? 0.35 : 1;
         for (const item of items) drawItem(ctx, item);
-        drawBasket(ctx, basketRef.current, liftRef.current, BASKET_Y);
         ctx.globalAlpha = 1;
+        drawBasket(ctx, basketRef.current, liftRef.current, BASKET_Y);
         for (const p of parts) drawParticle(ctx, p);
         for (const pop of pops) drawScorePop(ctx, pop);
       },

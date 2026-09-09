@@ -54,7 +54,19 @@ export function MotionCalibration({ status, onReady }: Props): JSX.Element {
   // 'out-of-area' and 'crowded'. Those are coaching problems, not reasons to
   // refuse to start: a visitor standing slightly too far left should be told so
   // DURING the game, not left staring at a gate that will not open.
-  const present = status === 'tracking' || status === 'out-of-area' || status === 'crowded';
+  // Anyone the camera can SEE counts as present — including someone standing
+  // too close or too far. Those are coaching problems with a specific fix, and
+  // refusing to open the gate for them is exactly the dead end reported from
+  // the floor: a visitor standing right there, being told to stand there.
+  const seen =
+    status === 'tracking' ||
+    status === 'out-of-area' ||
+    status === 'crowded' ||
+    status === 'too-close' ||
+    status === 'too-far';
+  // ...but only a visitor at a WORKABLE distance should start a run, or the
+  // game begins with a controller that cannot track them.
+  const present = seen && status !== 'too-close' && status !== 'too-far';
   const [held, setHeld] = useState(false);
 
   useEffect(() => {
@@ -89,9 +101,24 @@ export function MotionCalibration({ status, onReady }: Props): JSX.Element {
 
   return (
     <div className={styles.gate}>
+      <span className={styles.gateGlow} aria-hidden />
       <div className={styles.gateBody}>
         {status === 'starting' ? (
           <p className={styles.gateSub}>{pick(MOTION.starting, lang)}</p>
+        ) : status === 'too-close' ? (
+          <>
+            <span className={styles.gateGlyph} aria-hidden>
+              🔙
+            </span>
+            <p className={styles.gateLine}>{pick(MOTION.stepBack, lang)}</p>
+          </>
+        ) : status === 'too-far' ? (
+          <>
+            <span className={styles.gateGlyph} aria-hidden>
+              🔜
+            </span>
+            <p className={styles.gateLine}>{pick(MOTION.stepCloser, lang)}</p>
+          </>
         ) : present ? (
           <p className={`${styles.gateLine} ${styles.gateReady}`}>✓ {pick(MOTION.ready, lang)}</p>
         ) : (
@@ -100,12 +127,23 @@ export function MotionCalibration({ status, onReady }: Props): JSX.Element {
               👋
             </span>
             <p className={styles.gateLine}>{pick(MOTION.stepInFront, lang)}</p>
+            {/* The other half of the floor complaint: visitors assumed they had
+                to fit their whole body in and kept backing away. */}
+            <p className={styles.gateSub}>{pick(MOTION.standHere, lang)}</p>
           </>
+        )}
+
+        {/* The wait made visible. Keyed on `present` so stepping out and back
+            restarts the bar rather than leaving a stale half-full one. */}
+        {present && !held && (
+          <div className={styles.holdTrack}>
+            <span key={String(present)} className={styles.holdFill} />
+          </div>
         )}
 
         {/* The whole instruction, as a picture. A visitor who reads none of the
             text above still learns what the game wants from these two arrows. */}
-        {!held && (
+        {!seen && (
           <div className={styles.howTo}>
             <span className={styles.howToArrow} aria-hidden>
               ←

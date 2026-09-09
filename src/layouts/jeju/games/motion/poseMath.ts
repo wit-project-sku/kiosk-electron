@@ -4,20 +4,19 @@
  * Pure functions, no state, no DOM — everything here is testable in isolation
  * and none of it knows a camera exists.
  *
- * ── The two coordinate corrections, and why both are mandatory ────────
- * MediaPipe reports points in RAW FRAME space: whatever the sensor sends, in
- * whatever orientation it is bolted to the wall. On 제주 that frame is neither
- * upright nor the way round the player expects, and skipping either correction
- * produces a game that is subtly, maddeningly wrong rather than obviously
- * broken.
+ * ── Rotation is NOT done here any more ────────────────────────────────
+ * It used to be, and that was the wrong place. A pose model has to be handed an
+ * UPRIGHT frame or it will not find a person at all, so the turn now happens
+ * before inference, on PoseTracker's own canvas — by the time landmarks reach
+ * this file they are already the right way up. Turning them again here would
+ * undo it.
  *
- *  1. ROTATION. The 제주 cameras are mounted sideways (`cameraRotation: 90`, see
- *     kioskLocations). The raw frame is landscape with the content lying on its
- *     side, so a player's real-world LEFT–RIGHT movement appears as UP–DOWN in
- *     the data. Reading `landmark.x` straight would give a controller that
- *     responds to crouching.
+ * `toUpright` therefore only mirrors, and keeps its rotation argument solely so
+ * a venue whose frames arrive pre-rotated by some other path can still be
+ * handled without a second function.
  *
- *  2. MIRRORING. The player is looking at a screen, not through a window. A
+ * ── Mirroring, which IS mandatory ─────────────────────────────────────
+ *     The player is looking at a screen, not through a window. A
  *     camera sees their left hand on the frame's right. If the game moved the
  *     basket the way the raw data says, stepping right would move it left —
  *     the single most disorienting thing a body-controlled game can do. Every

@@ -44,7 +44,6 @@ export function DodgeRocks(_props: MotionGameProps): JSX.Element {
       onReady={game.ready}
       onCountdownDone={game.begin}
       countdownHint={pick(MOTION.moveLeftRight, lang)}
-      lost={game.stalled}
       hud={
         <GameHud
           top={430}

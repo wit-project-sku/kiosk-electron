@@ -91,11 +91,36 @@
    same module, and adding a `dark` prop to four components to say one thing
    would be four chances to forget it. */
 .onDark .hudLabel {
-  color: #a49dae;
+  color: rgba(255, 255, 255, 0.5);
+  font-size: 36px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
 }
 
 .onDark .hudValue {
   color: #fff;
+  font-size: 96px;
+  letter-spacing: -0.02em;
+}
+
+/* Each end of the row sits on its own glass pill. On a dark screen read from
+   several metres, a number needs a ground to sit on or it floats. */
+.onDark .hudCell {
+  gap: 10px;
+}
+
+.onDark .hudCell:not(:empty) {
+  padding: 22px 44px;
+  border-radius: 34px;
+  background: rgba(255, 255, 255, 0.07);
+  box-shadow: inset 0 0 0 2px rgba(255, 255, 255, 0.08);
+}
+
+/* The middle cell is often empty; an empty pill is worse than no pill. */
+.onDark .hudCell:empty {
+  padding: 0;
+  background: none;
+  box-shadow: none;
 }
 
 .onDark .countdown {

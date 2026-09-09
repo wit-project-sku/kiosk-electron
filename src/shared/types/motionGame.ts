@@ -33,6 +33,10 @@ export type MotionTrackingStatus =
   | 'starting'
   | 'no-player'
   | 'tracking'
+  /** Seen, but standing so close the camera has cropped their shoulders off. */
+  | 'too-close'
+  /** Seen, but far enough away that the pose is too small to track reliably. */
+  | 'too-far'
   | 'out-of-area'
   | 'crowded'
   | 'unavailable';

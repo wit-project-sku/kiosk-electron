@@ -91,6 +91,53 @@ const LOSS_GRACE_MS = 420;
  */
 const LOCK_RADIUS = 0.28;
 
+/**
+ * Shoulder span, as a fraction of frame width, outside which the visitor is
+ * standing at a distance the camera cannot work with.
+ *
+ * This is the number that answers the real complaint from the floor — "it says
+ * stand in front and I AM standing there". Usually they were too close: at
+ * arm's length from a portrait camera the frame is all torso, the shoulders
+ * fall outside it, and a pose either fails or comes back as an unusable
+ * fragment. Saying "step back" is the entire fix, and it needs a measurement to
+ * say it from.
+ *
+ * Deliberately wide. These drive a coaching line, not a refusal — the game
+ * still starts and still tracks in the grey zone either side.
+ */
+const SHOULDERS_TOO_CLOSE = 0.55;
+const SHOULDERS_TOO_FAR = 0.11;
+
+/**
+ * How long to accept seeing nobody before suspecting the frame is the wrong way
+ * up, and trying the next quarter turn.
+ *
+ * ══ WHY THE GAMES SECOND-GUESS THEIR OWN CONFIG ═══════════════════════
+ * `cameraRotation` says how far the RAW frame must be turned to stand upright,
+ * and on 제주 it is 0 — the Elgato is physically mounted 90° left, but the
+ * rotation is applied by the Windows driver, so the frame already arrives
+ * upright. Exactly one of the two may rotate; the operator chose the driver.
+ * See the field's doc comment in kioskLocations.
+ *
+ * The problem is that half of that agreement is NOT in the build. A driver
+ * update, an OS reimage or a swapped camera drops the Windows setting silently,
+ * and then the frame arrives sideways while the config still says 0. For the AR
+ * photo that produces a sideways picture — visible, obvious, someone reports it.
+ * For these games it produces NOTHING: a pose model handed a person lying down
+ * finds no person, so the calibration gate simply never opens and there is
+ * nothing on screen to suggest a camera setting is to blame.
+ *
+ * So rather than trust one number that can silently go stale, the tracker
+ * checks. If frames are flowing and no pose has been found for this long, it
+ * tries the next quarter turn. Four probes covers every orientation in under
+ * ten seconds, and the moment a pose appears the rotation is locked for the
+ * rest of the session.
+ *
+ * This costs nothing when the config is right — the first orientation tried IS
+ * the configured one, and a visitor who steps up is found immediately.
+ */
+const ORIENTATION_PROBE_MS = 2200;
+
 /** Backoff for a camera that will not open. Mirrors useFootfallCounter's. */
 const RETRY_DELAYS_MS = [1_500, 3_000, 8_000];
 
@@ -100,6 +147,15 @@ interface Options {
 }
 
 export interface MotionTracking {
+  /**
+   * The rotation actually being applied to the frame right now.
+   *
+   * Normally the venue's configured `cameraRotation`, but the orientation probe
+   * can change it — see {@link ORIENTATION_PROBE_MS}. The preview reads this
+   * rather than the config so what the visitor sees matches what the model is
+   * being shown.
+   */
+  rotation: CameraRotation;
   /** Attach to the (hidden or previewed) <video> the stream feeds. */
   videoRef: RefObject<HTMLVideoElement | null>;
   /**
@@ -136,18 +192,30 @@ export function useMotionTracking({ enabled }: Options): MotionTracking {
   const videoRef = useRef<HTMLVideoElement>(null);
   const playerRef = useRef<PlayerTrackingState>(emptyTrackingState());
   const [status, setStatus] = useState<TrackingStatus>('starting');
+  /** The orientation in force. Starts at the venue's config; the probe may move it. */
+  const [effectiveRotation, setEffectiveRotation] = useState<CameraRotation>(rotation);
 
   /** Where the lock was last seen, for the proximity test. Null = unlocked. */
   const lockXRef = useRef<number | null>(null);
   /** Smoothed values, kept out of the state object so a dropped frame coasts. */
   const smoothXRef = useRef(0.5);
   const smoothYRef = useRef(0.5);
+  /** The orientation the frame is actually turned by. See the probe below. */
+  const rotationRef = useRef<CameraRotation>(rotation);
+  /** performance.now() of the last frame that contained ANY pose. */
+  const lastPoseAtRef = useRef(0);
+  /** Latched once a pose has been seen — the probe stops for good. */
+  const orientationLockedRef = useRef(false);
 
   const recalibrate = useCallback((): void => {
     lockXRef.current = null;
     smoothXRef.current = 0.5;
     smoothYRef.current = 0.5;
     playerRef.current = emptyTrackingState();
+    // The orientation is NOT reset. Once the probe has found the one that works
+    // on this machine it is right for every game that follows, and re-probing
+    // per run would spend the first seconds of each one cycling through
+    // orientations the tracker already knows are wrong.
   }, []);
 
   useEffect(() => {
@@ -157,6 +225,9 @@ export function useMotionTracking({ enabled }: Options): MotionTracking {
     }
 
     let cancelled = false;
+    rotationRef.current = rotation;
+    orientationLockedRef.current = false;
+    lastPoseAtRef.current = 0;
     // Captured now rather than read in cleanup: by then the ref may point at a
     // different element, and clearing the wrong one leaves this stream attached
     // to nothing that can release it. Same reasoning as useFootfallCounter.
@@ -176,8 +247,27 @@ export function useMotionTracking({ enabled }: Options): MotionTracking {
       lastAt = started;
 
       try {
-        const poses = tracker.detect(videoElement);
+        const poses = tracker.detect(videoElement, rotationRef.current);
         const prev = playerRef.current;
+
+        // ── Orientation probe ──
+        // Only while nothing has ever been found, and only while the camera is
+        // genuinely delivering frames — a stalled stream is not a wrong-way-up
+        // stream, and cycling rotations because a cable fell out would just
+        // hide the real fault.
+        const framesFlowing = videoElement.readyState >= 2 && videoElement.videoWidth > 0;
+        if (poses.length > 0) {
+          lastPoseAtRef.current = started;
+          orientationLockedRef.current = true;
+        } else if (!orientationLockedRef.current && framesFlowing) {
+          if (lastPoseAtRef.current === 0) lastPoseAtRef.current = started;
+          if (started - lastPoseAtRef.current > ORIENTATION_PROBE_MS) {
+            lastPoseAtRef.current = started;
+            const next = ((rotationRef.current + 90) % 360) as CameraRotation;
+            rotationRef.current = next;
+            setEffectiveRotation(next);
+          }
+        }
 
         // ── Pick the locked player out of what we can see ──
         let best: {
@@ -191,7 +281,11 @@ export function useMotionTracking({ enabled }: Options): MotionTracking {
         let bestDistance = Infinity;
 
         for (const pose of poses) {
-          const landmarks = toBodyLandmarks(pose.landmarks, rotation);
+          // 0, NOT the venue rotation: PoseTracker already turned the frame
+          // upright before inference, so these landmarks are the right way up
+          // and only the mirror is left to apply. Turning them again here is
+          // the bug this comment exists to prevent.
+          const landmarks = toBodyLandmarks(pose.landmarks, 0);
           const centre = torsoCenter(landmarks);
           if (!centre) continue;
 
@@ -246,15 +340,23 @@ export function useMotionTracking({ enabled }: Options): MotionTracking {
         }
 
         // ── Status, for the coaching overlay ──
+        // Ordered by what the visitor should fix FIRST. Distance beats
+        // sideways position because a cropped visitor cannot be tracked at all,
+        // whereas one standing off-centre is merely near the edge of the field.
         const now = playerRef.current;
+        const span = now.width;
         setStatus(
           !now.detected
             ? 'no-player'
-            : now.people > 1
-              ? 'crowded'
-              : isInPlayArea(now)
-                ? 'tracking'
-                : 'out-of-area',
+            : span > SHOULDERS_TOO_CLOSE
+              ? 'too-close'
+              : span > 0 && span < SHOULDERS_TOO_FAR
+                ? 'too-far'
+                : now.people > 1
+                  ? 'crowded'
+                  : isInPlayArea(now)
+                    ? 'tracking'
+                    : 'out-of-area',
         );
       } catch {
         // One bad frame (a stream that died between the readyState check and the
@@ -279,13 +381,23 @@ export function useMotionTracking({ enabled }: Options): MotionTracking {
             // small stream is what keeps this cheap beside everything else on
             // screen. 30 fps because we sample it at 20 — asking for 15 would
             // mean every other inference saw a repeated frame.
+            // ── DEVICE ONLY. No size, no aspect, no orientation. ──
+            //
+            // This asked for 640×480 and that was a real bug on the 제주 floor.
+            // The Elgato there is configured PORTRAIT in Windows (1080×1920),
+            // so a landscape request makes Chromium scale and CROP to
+            // approximate the shape it was told to want: the visitor arrives
+            // zoomed in, their shoulders fall outside the frame, and pose
+            // detection finds nobody. The symptom is not "the camera is wrong",
+            // it is a calibration gate that never opens however long someone
+            // stands there.
+            //
+            // `useKioskCamera` learned this exact lesson for the AR photo — see
+            // the note there. The camera's native mode is the only correct
+            // request; PoseTracker scales the frame down on its own canvas, so
+            // asking for a small one buys nothing anyway.
             candidate = await navigator.mediaDevices.getUserMedia({
-              video: {
-                deviceId: { exact: deviceId },
-                width: { ideal: 640 },
-                height: { ideal: 480 },
-                frameRate: { ideal: 30 },
-              },
+              video: { deviceId: { exact: deviceId } },
               audio: false,
             });
           } catch {
@@ -354,11 +466,13 @@ export function useMotionTracking({ enabled }: Options): MotionTracking {
       // it, and it has to happen here, synchronously, not on some later frame.
       stream?.getTracks().forEach((t) => t.stop());
       if (videoElement) videoElement.srcObject = null;
-      // Drop every trace of the person who was just in front of the camera.
+      // Drop every trace of the person who was just in front of the camera —
+      // including the frame buffer the model was reading.
+      tracker.dispose();
       playerRef.current = emptyTrackingState();
       lockXRef.current = null;
     };
   }, [enabled, rotation]);
 
-  return { videoRef, player: playerRef, status, recalibrate };
+  return { videoRef, player: playerRef, status, rotation: effectiveRotation, recalibrate };
 }

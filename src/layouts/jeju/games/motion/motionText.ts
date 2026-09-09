@@ -131,6 +131,38 @@ export const MOTION = {
     ru: 'Пожалуйста, играйте по одному',
     id: 'Satu pemain saja',
   } as Str,
+  /** The line that answers "I AM standing here" — they were too close. */
+  stepBack: {
+    ko: '조금 뒤로 물러나 주세요',
+    en: 'Step back a little',
+    ja: '少し後ろに下がってください',
+    zh: '请稍微后退一点',
+    vi: 'Hãy lùi lại một chút',
+    th: 'ถอยหลังอีกนิด',
+    ru: 'Отойдите немного назад',
+    id: 'Mundur sedikit',
+  } as Str,
+  stepCloser: {
+    ko: '조금 앞으로 와주세요',
+    en: 'Come a little closer',
+    ja: '少し前に来てください',
+    zh: '请稍微靠近一点',
+    vi: 'Hãy lại gần hơn một chút',
+    th: 'เข้ามาใกล้อีกนิด',
+    ru: 'Подойдите чуть ближе',
+    id: 'Mendekat sedikit',
+  } as Str,
+  /** Shown under the silhouette so the visitor knows where to stand. */
+  standHere: {
+    ko: '전신이 다 보이지 않아도 괜찮아요',
+    en: "Your whole body doesn't need to fit",
+    ja: '全身が入らなくても大丈夫です',
+    zh: '不用露出全身也可以',
+    vi: 'Không cần lộ toàn thân',
+    th: 'ไม่ต้องเห็นทั้งตัวก็ได้',
+    ru: 'Всё тело показывать не нужно',
+    id: 'Tidak perlu seluruh tubuh terlihat',
+  } as Str,
   moveLeftRight: {
     ko: '좌우로 움직이세요',
     en: 'Move left and right',

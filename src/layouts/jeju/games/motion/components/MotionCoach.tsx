@@ -30,9 +30,13 @@ export function MotionCoach({ status }: Props): JSX.Element | null {
   const { glyph, line } =
     status === 'no-player'
       ? { glyph: '👤', line: pick(MOTION.backIntoView, lang) }
-      : status === 'out-of-area'
-        ? { glyph: '↔️', line: pick(MOTION.moveIntoArea, lang) }
-        : { glyph: '🧍', line: pick(MOTION.onePlayer, lang) };
+      : status === 'too-close'
+        ? { glyph: '🔙', line: pick(MOTION.stepBack, lang) }
+        : status === 'too-far'
+          ? { glyph: '🔜', line: pick(MOTION.stepCloser, lang) }
+          : status === 'out-of-area'
+            ? { glyph: '↔️', line: pick(MOTION.moveIntoArea, lang) }
+            : { glyph: '🧍', line: pick(MOTION.onePlayer, lang) };
 
   return (
     // Keyed on the status so a change of problem replays the entrance rather

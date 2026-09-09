@@ -85,17 +85,28 @@ export function MotionRemote({
         ? pick(MOTION.poseName, lang)
         : pick(MOTION.dodgeName, lang);
 
-  /** Repeat whatever the big screen is coaching, for a companion to read out. */
+  /**
+   * Repeat whatever the big screen is coaching.
+   *
+   * Not redundancy: the player is facing away from this screen, and the person
+   * who can read it is whoever is standing at the kiosk with them. "Step back a
+   * bit" said out loud by a friend fixes the problem faster than any amount of
+   * text on a screen the player is not looking at.
+   */
   const coach =
     state.tracking === 'no-player'
       ? `👤 ${pick(MOTION.backIntoView, lang)}`
-      : state.tracking === 'out-of-area'
-        ? `↔️ ${pick(MOTION.moveIntoArea, lang)}`
-        : state.tracking === 'crowded'
-          ? `🧍 ${pick(MOTION.onePlayer, lang)}`
-          : state.tracking === 'unavailable'
-            ? `📷 ${pick(MOTION.cameraOff, lang)}`
-            : null;
+      : state.tracking === 'too-close'
+        ? `🔙 ${pick(MOTION.stepBack, lang)}`
+        : state.tracking === 'too-far'
+          ? `🔜 ${pick(MOTION.stepCloser, lang)}`
+          : state.tracking === 'out-of-area'
+            ? `↔️ ${pick(MOTION.moveIntoArea, lang)}`
+            : state.tracking === 'crowded'
+              ? `🧍 ${pick(MOTION.onePlayer, lang)}`
+              : state.tracking === 'unavailable'
+                ? `📷 ${pick(MOTION.cameraOff, lang)}`
+                : null;
 
   return (
     <div className={styles.root}>
@@ -107,6 +118,7 @@ export function MotionRemote({
             ⬆️
           </span>
           <p className={styles.lookLine}>{pick(MOTION.lookAtBigScreen, lang)}</p>
+          <span className={styles.lookRule} aria-hidden />
         </div>
       )}
 
@@ -125,8 +137,20 @@ export function MotionRemote({
             {game ? GLYPH[game] : '🎮'}
           </span>
           <p className={styles.gameName}>{name}</p>
-          <p className={styles.scoreLabel}>{pick(TEXT.score, lang)}</p>
-          <span className={styles.scoreValue}>{state.score}</span>
+          {/* Before a run starts there is no score to show, and a big fat 0 on
+              the remote reads as "you are doing badly" rather than "we are
+              waiting for you". */}
+          {state.phase === 'playing' || state.phase === 'result' ? (
+            <>
+              <p className={styles.scoreLabel}>{pick(TEXT.score, lang)}</p>
+              <span className={styles.scoreValue}>{state.score}</span>
+            </>
+          ) : (
+            <p className={styles.waiting}>
+              <span className={styles.waitingDot} aria-hidden />
+              {pick(MOTION.stepInFront, lang)}
+            </p>
+          )}
         </div>
       )}
 
