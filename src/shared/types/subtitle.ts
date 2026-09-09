@@ -25,10 +25,28 @@ export const VIDEO_SETS = [
 /** Which bundled video set a kiosk plays from (resources/videos/<set>/). */
 export type VideoSet = (typeof VIDEO_SETS)[number];
 
-/** Real .mp4 file names present on disk, per video set. Listed at runtime by
- *  the main process (IPC VideosList) so newly-added videos are picked up without
- *  a rebuild — there is no build-time file manifest. */
-export type VideoFilesBySet = Record<VideoSet, string[]>;
+/**
+ * Folders still READ under the videos root that no kiosk is assigned to.
+ *
+ * `jeju` is the single folder all three 제주 venues shared before the airport /
+ * terminal / heritage split. Every 제주 machine already in the field has its
+ * footage there, and an auto-update ships code, not file moves — so dropping
+ * the name would black out those second monitors the moment they updated.
+ * The legacy folder is folded into each 제주 set at load (see initVideoFiles),
+ * with the venue's own folder winning, so moving the files is a cleanup rather
+ * than a migration anyone has to perform on a deadline.
+ */
+export const LEGACY_VIDEO_SETS = ['jeju'] as const;
+export type LegacyVideoSet = (typeof LEGACY_VIDEO_SETS)[number];
+
+/** Every folder the main process lists under the videos root. */
+export const VIDEO_FOLDERS = [...VIDEO_SETS, ...LEGACY_VIDEO_SETS] as const;
+export type VideoFolder = VideoSet | LegacyVideoSet;
+
+/** Real .mp4 file names present on disk, per folder. Listed at runtime by the
+ *  main process (IPC VideosList) so newly-added videos are picked up without a
+ *  rebuild — there is no build-time file manifest. */
+export type VideoFilesBySet = Record<VideoFolder, string[]>;
 
 export interface SubtitleLangText {
   ko: string;

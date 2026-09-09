@@ -18,7 +18,6 @@ import type { WeatherPlayKey } from '@shared/config/weatherVideo';
 import spinnerImg from '@renderer/assets/spinner.svg';
 import { KioskArtboard } from '@layouts/components/KioskScreenImage';
 import { Slideshow } from './components/Slideshow';
-import { VideoWall } from './components/VideoWall';
 import { AiModelVideoWall } from './components/AiModelVideoWall';
 import { JejuCameraGuide } from './components/JejuCameraGuide';
 import styles from './CustomerDisplay.module.css';
@@ -177,8 +176,19 @@ export function CustomerDisplay(): JSX.Element {
   }, [weatherKey, weatherClips.length, kioskId]);
   // Osaek (W004) and Hwaseong (W005) don't use the PARK SUL NYEO brand logo.
   const noBrandLogo = kioskId === 'W004' || kioskId === 'W005';
-  // Generic-wall fallback URLs for the active kiosk's video set (W004 → osaek).
+  // Generic-wall fallback for the active kiosk's video set (W004 → osaek): every
+  // file in the folder, with no captions, shown when no subtitle entry resolved.
+  //
+  // Rendered through the SAME double-buffered wall as the real clips rather than
+  // a plain <video>: the old VideoWall keyed its element on the src, so each
+  // advance tore down and rebuilt the element and the screen went black while
+  // the next file loaded. On a 1080x1920 kiosk reel that gap reads as the video
+  // being stuck. Captions are empty strings, so the wall draws none.
   const displayVideos = useMemo(() => displayVideosFor(kioskId), [kioskId, dataVersion]);
+  const displayClips = useMemo(
+    () => displayVideos.map((url) => ({ url, subtitle: '', label: '' })),
+    [displayVideos],
+  );
 
   useEffect(() => {
     if (state.mode === 'generating') {
@@ -305,8 +315,8 @@ export function CustomerDisplay(): JSX.Element {
               playOnce={weatherClips.length > 0}
               onDone={() => setWeatherKey(null)}
             />
-          ) : displayVideos.length > 0 ? (
-            <VideoWall videos={displayVideos} />
+          ) : displayClips.length > 0 ? (
+            <AiModelVideoWall clips={displayClips} hideLabel />
           ) : assets.length > 0 ? (
             <Slideshow assets={assets} intervalMs={settings.slideshowIntervalMs} />
           ) : (

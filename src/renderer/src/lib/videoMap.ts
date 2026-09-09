@@ -3,7 +3,7 @@ import { changeLanguagePlayKey } from '@shared/config/languages';
 import { getKioskLocation, isJejuLayout } from '@shared/config/kioskLocations';
 import type { KioskId, KioskLayoutId } from '@shared/types/kiosk';
 import { pickText } from '@renderer/data/types';
-import { VIDEO_SETS, type VideoEntry, type VideoFilesBySet, type VideoSet } from '@shared/types/subtitle';
+import { LEGACY_VIDEO_SETS, VIDEO_SETS, type VideoEntry, type VideoFilesBySet, type VideoSet } from '@shared/types/subtitle';
 import { VIDEO_SUBTITLES_JEJU } from '@renderer/data/videoSubtitles-jeju.generated';
 
 /**
@@ -33,31 +33,60 @@ const norm = (s: string): string => s.toLowerCase().replace(/\.mp4$/, '').replac
 const emptyBySet = <T,>(make: () => T): Record<VideoSet, T> =>
   Object.fromEntries(VIDEO_SETS.map((s) => [s, make()])) as Record<VideoSet, T>;
 
-const FILES_BY_SET: VideoFilesBySet = emptyBySet<string[]>(() => []);
-const FILE_BY_NORM: Record<VideoSet, Map<string, string>> = emptyBySet(() => new Map());
+/**
+ * One real file, and the folder it actually lives in.
+ *
+ * The two can differ: a 제주 set inherits the pre-split shared `jeju` folder, so
+ * a clip belonging to `jeju-airport` may still be sitting under `jeju/`. The
+ * `media://` URL has to name the folder the bytes are in, not the set that
+ * claims them, or it 404s.
+ */
+interface VideoFile {
+  folder: string;
+  name: string;
+}
+
+const FILES_BY_SET: Record<VideoSet, VideoFile[]> = emptyBySet<VideoFile[]>(() => []);
+const FILE_BY_NORM: Record<VideoSet, Map<string, VideoFile>> = emptyBySet(() => new Map());
+
+/** The sets that inherit the pre-split shared 제주 folder (see LEGACY_VIDEO_SETS). */
+const JEJU_SETS: readonly VideoSet[] = ['jeju-airport', 'jeju-terminal', 'jeju-heritage'];
+
+const mediaUrl = (f: VideoFile): string => `media://video/${f.folder}/${encodeURIComponent(f.name)}`;
 
 /**
  * Load the real on-disk video file names (from IPC VideosList) so subtitle
  * entries and the attract wall resolve against files that actually exist right
  * now. Idempotent; call again to refresh after a sync.
+ *
+ * A 제주 set is its OWN folder plus whatever is still sitting in the pre-split
+ * shared `jeju` folder. Own files win on a name clash, so populating
+ * `jeju-airport` progressively shadows the shared copies one clip at a time
+ * rather than requiring the whole folder to be moved in one go.
  */
 export function initVideoFiles(bySet: VideoFilesBySet): void {
+  const legacy = LEGACY_VIDEO_SETS.flatMap((folder) =>
+    (bySet[folder] ?? []).map((name) => ({ folder, name })),
+  );
   for (const set of VIDEO_SETS) {
-    const files = bySet[set] ?? [];
-    FILES_BY_SET[set] = files;
-    FILE_BY_NORM[set] = new Map(files.map((f) => [norm(f), f]));
+    const own: VideoFile[] = (bySet[set] ?? []).map((name) => ({ folder: set, name }));
+    const inherited = JEJU_SETS.includes(set)
+      ? legacy.filter((f) => !own.some((o) => norm(o.name) === norm(f.name)))
+      : [];
+    FILES_BY_SET[set] = [...own, ...inherited];
+    FILE_BY_NORM[set] = new Map(FILES_BY_SET[set].map((f) => [norm(f.name), f]));
   }
 }
 
-/** Real file names for a set (for the generic attract wall). */
-export function filesForSet(set: VideoSet): string[] {
-  return FILES_BY_SET[set];
+/** Every playable video URL in a set, in listing order (generic attract wall). */
+export function videoUrlsForSet(set: VideoSet): string[] {
+  return FILES_BY_SET[set].map(mediaUrl);
 }
 
 /** Resolve a sheet file stem to a media:// URL within the kiosk's video set. */
 function resolveUrl(stem: string, set: VideoSet): string | null {
   const file = FILE_BY_NORM[set].get(norm(stem));
-  return file ? `media://video/${set}/${encodeURIComponent(file)}` : null;
+  return file ? mediaUrl(file) : null;
 }
 
 function buildByKey(entries: VideoEntry[]): Map<string, VideoEntry[]> {
@@ -174,6 +203,25 @@ export function initSubtitles(entries: VideoEntry[], kioskId?: KioskId): void {
     console.warn(
       `[videoMap] ${dropped.length}/${entries.length} subtitles dropped — no local video in "${set}"`,
       dropped,
+    );
+  }
+
+  // NOTHING matched, yet the folder has videos in it. This is the one failure
+  // that looks like a design decision from the outside: the display quietly
+  // falls back to the generic attract wall, which has no captions and does not
+  // follow the touch screen, so it reads as "subtitles are broken and the video
+  // is stuck" rather than "these file names don't line up". Print both lists
+  // side by side — the answer is always visible in the first two rows.
+  if (matched.length === 0 && FILES_BY_SET[set].length > 0) {
+    console.error(
+      `[videoMap] NO subtitle matched any video in "${set}". The clip names in the ` +
+        `subtitle data and the files on disk are different — compare these two lists. ` +
+        `Until they agree the customer display shows the generic wall: no subtitles, ` +
+        `and the same loop on every screen.`,
+      {
+        expectedByData: entries.slice(0, 10).map((e) => `${e.file}.mp4`),
+        foundOnDisk: FILES_BY_SET[set].slice(0, 10).map((f) => `${f.folder}/${f.name}`),
+      },
     );
   }
 
