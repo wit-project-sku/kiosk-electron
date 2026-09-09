@@ -36,6 +36,18 @@ const SPOT_MAP_H = 631;
  */
 const RENTCAR_HOUSE_PIN = { x: 0.405, y: 0.35 };
 
+/** Caption under the address QR on 렌터카 상세. */
+const RENTCAR_ADDRESS_QR_LABEL = {
+  ko: '주소 보기',
+  en: 'View address',
+  ja: '住所を見る',
+  zh: '查看地址',
+  vi: 'Xem địa chỉ',
+  th: 'ดูที่อยู่',
+  ru: 'Адрес',
+  id: 'Lihat alamat',
+};
+
 /** Replaces the km directions heading on 렌터카하우스 detail. */
 const RENTCAR_HOUSE_HEADING = {
   ko: '1층 2번 게이트',
@@ -324,8 +336,11 @@ export function JejuSpotDetailCard({
           </div>
 
           {qrLink && (
-            <div className={styles.qr}>
+            <div className={`${styles.qr} ${isRentcar ? styles.qrWithCaption : ''}`}>
               <QRCodeSVG className={styles.qrCode} value={qrLink} bgColor="#ffffff" fgColor="#000000" />
+              {isRentcar && (
+                <span className={styles.qrCaption}>{pick(RENTCAR_ADDRESS_QR_LABEL, lang)}</span>
+              )}
             </div>
           )}
         </div>

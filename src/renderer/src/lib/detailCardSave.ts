@@ -22,9 +22,16 @@ export interface DetailCardSaveInput {
   route?: ShopRoute | null;
 }
 
+/**
+ * Must be a static `import.meta.env.VITE_*` read — Vite only inlines those.
+ * Bracket access is left as `undefined` in the packaged renderer, so a
+ * localhost fallback made every Windows QR point at this machine.
+ * Same production default as `aiCourseSave`.
+ */
+const DETAIL_SAVE_ORIGIN_ENV = import.meta.env.VITE_DETAIL_SAVE_ORIGIN;
 export const DETAIL_SAVE_ORIGIN =
-  (import.meta as ImportMeta & { env?: Record<string, string> }).env?.['VITE_DETAIL_SAVE_ORIGIN'] ||
-  'http://localhost:5174';
+  (typeof DETAIL_SAVE_ORIGIN_ENV === 'string' && DETAIL_SAVE_ORIGIN_ENV.trim()) ||
+  'https://direction-fe.vercel.app';
 
 /** Short query-only URL — no hash, no Korean text, no route payload. */
 export function buildDetailCardSaveUrlForQr(

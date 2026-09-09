@@ -393,13 +393,13 @@ export function JejuFlights({ controller }: Props): JSX.Element {
             <p className={styles.empty}>{emptyCopy}</p>
           ) : (
             rows.map((row) => {
-              const tintStatus =
+              // Whole-row accent on this board only: 출발예정 (not 탑승최종) / 도착.
+              // Jeju main, not the home board's green 탑승최종 token.
+              const highlightRow =
                 (direction === 'arrival' && row.flight.status === 'arrived') ||
-                (direction === 'departure' && row.flight.status === 'final')
-                  ? row.flight.status
-                  : undefined;
-              const tintColor = tintStatus
-                ? flightStatusColor(tintStatus)
+                (direction === 'departure' && row.flight.status === 'scheduled');
+              const tintColor = highlightRow
+                ? 'var(--kiosk-primary, #ff7f0f)'
                 : undefined;
               return (
               <div key={`${direction}-${row.flight.id}`} className={styles.row}>

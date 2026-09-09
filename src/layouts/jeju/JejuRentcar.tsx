@@ -236,11 +236,8 @@ export function JejuRentcar({ controller }: Props): JSX.Element {
         return catalogShops.filter((s) => shopHasRentcarShuttle(s) && !isInsideAirport(s));
       case 'noShuttle':
         return catalogShops.filter(shopHasRentcarNoShuttle);
-      default: {
-        const inside = catalogShops.filter(isInsideAirport);
-        const rest = catalogShops.filter((s) => !isInsideAirport(s));
-        return [...inside, ...rest];
-      }
+      default:
+        return catalogShops;
     }
   }, [catalogShops, rentcarFilter]);
 

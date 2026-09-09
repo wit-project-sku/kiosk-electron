@@ -314,6 +314,7 @@ export function JejuListScreen({ screen, controller }: Props): JSX.Element {
                 key={shop.id}
                 shop={shop}
                 lang={lang}
+                associationDot
                 onClick={() => openDetail(shop)}
               />
             ))}

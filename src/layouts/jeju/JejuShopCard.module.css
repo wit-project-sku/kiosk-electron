@@ -68,6 +68,10 @@
   flex: 0 0 auto;
 }
 
+.dotAssociation {
+  background: #2e7d32;
+}
+
 .address,
 .desc,
 .tags,
