@@ -19,8 +19,8 @@
  * other directly, and neither is the source of truth.
  */
 
-/** The three camera games. Mirrors the renderer's JejuGameId motion members. */
-export type MotionGameId = 'body-catch' | 'pose' | 'dodge';
+/** The camera games. Mirrors the renderer's JejuGameId motion members. */
+export type MotionGameId = 'body-catch' | 'jeju-run';
 
 /**
  * How the tracker is doing, as Monitor 2 reports it.

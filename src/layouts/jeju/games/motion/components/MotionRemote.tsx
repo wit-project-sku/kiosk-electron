@@ -43,8 +43,7 @@ interface Props {
 
 const GLYPH: Record<MotionGameId, string> = {
   'body-catch': '🙆',
-  pose: '🕺',
-  dodge: '🌋',
+  'jeju-run': '🐴',
 };
 
 export function MotionRemote({
@@ -95,12 +94,7 @@ export function MotionRemote({
     onAward(game, state.finalScore);
   }, [game, state.finalScore, state.runId, onAward]);
 
-  const name =
-    game === 'body-catch'
-      ? pick(MOTION.catchName, lang)
-      : game === 'pose'
-        ? pick(MOTION.poseName, lang)
-        : pick(MOTION.dodgeName, lang);
+  const name = game === 'jeju-run' ? pick(MOTION.runName, lang) : pick(MOTION.catchName, lang);
 
   /**
    * Repeat whatever the big screen is coaching.

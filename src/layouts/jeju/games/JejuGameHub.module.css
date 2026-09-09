@@ -9,7 +9,7 @@
  *  900 …  960   👆 터치 게임          (section label)
  *  980 … 1660   three touch cards     (row of 3)
  * 1720 … 1780   📷 모션 게임          (section label)
- * 1800 … 2480   three motion cards    (row of 3)
+ * 1800 … 2480   two motion cards      (row of 2)
  * 2560 … 2710   JEJU POINTS
  * 2760 … 2990   photo status / 사진 보기
  * 3267 … 3840   banner
@@ -57,8 +57,30 @@
   top: 980px;
 }
 
+/* Two camera games, so this row is a PAIR rather than a third row of three —
+   a two-card row centred on the same 1800px width reads as deliberate, whereas
+   two cards in a three-column grid look like one failed to load. */
 .rowMotion {
   top: 1800px;
+  grid-template-columns: repeat(2, 1fr);
+}
+
+/* Wider cards can afford the plate and the name at the touch row's scale. */
+.rowMotion .cardName {
+  font-size: 58px;
+}
+
+.rowMotion .cardDesc {
+  font-size: 38px;
+}
+
+.rowMotion .plate {
+  width: 270px;
+  height: 270px;
+}
+
+.rowMotion .plate .plateGlyph {
+  font-size: 150px;
 }
 
 .card {

@@ -32,14 +32,14 @@ export type JejuGameId = TouchGameId | MotionGameId;
  * narrowing is what stops a motion id being passed to a touch-only view.
  */
 export function isMotionGame(id: JejuGameId): id is MotionGameId {
-  return id === 'body-catch' || id === 'pose' || id === 'dodge';
+  return id === 'body-catch' || id === 'jeju-run';
 }
 
 /**
  * What the TOUCH screen is showing.
  *
- * Note this is not simply `'hub' | JejuGameId`: the three motion games never
- * render on this screen at all. Choosing one puts it on the customer display
+ * Note this is not simply `'hub' | JejuGameId`: the motion games never render
+ * on this screen at all. Choosing one puts it on the customer display
  * and switches this window to `'motion'` — the remote. See MotionRemote.
  */
 export type JejuGameView = 'hub' | TouchGameId | 'motion';

@@ -1,0 +1,57 @@
+/*
+ * 조랑말 달리기 — the field.
+ *
+ * Almost empty on purpose: the engine draws the entire board itself, sky and
+ * all, into one canvas at its own GAME_W×GAME_H. There is no scenery here to
+ * layer behind it, unlike the other motion game.
+ */
+
+.field {
+  position: absolute;
+  inset: 0;
+  border-radius: 56px;
+  overflow: hidden;
+  background: #16121c;
+  box-shadow: 0 30px 80px rgba(40, 25, 60, 0.28);
+  touch-action: none;
+}
+
+/* The canvas' backing store is the engine's full 2160×3840 board while this box
+   is the stage's field, so it is letterboxed to fit rather than stretched —
+   `contain`, not `cover`. A stretched runner would put the jump arc and the
+   obstacle bands at different scales, and those are tuned against each other. */
+.canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  pointer-events: none;
+}
+
+/* The two moves, shown for the opening seconds. Side by side because they are a
+   pair — a visitor needs to know there are exactly two things to do. */
+.hint {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 90px;
+  display: flex;
+  justify-content: center;
+  gap: 90px;
+  font-size: 58px;
+  font-weight: 800;
+  color: rgba(255, 255, 255, 0.78);
+  pointer-events: none;
+  animation: hintFade 1.8s ease-in-out infinite;
+}
+
+@keyframes hintFade {
+  0%,
+  100% {
+    opacity: 0.6;
+  }
+  50% {
+    opacity: 1;
+  }
+}

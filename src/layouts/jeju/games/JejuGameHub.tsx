@@ -63,10 +63,10 @@ const TOUCH_CARDS: Omit<CardSpec, 'name' | 'desc'>[] = [
   { id: 'spotdiff', glyph: '🔍', tint: '#e6f1fb' },
 ];
 
+/** The camera games. 포즈 챌린지 and 화산석 피하기 were dropped. */
 const MOTION_CARDS: Omit<CardSpec, 'name' | 'desc'>[] = [
   { id: 'body-catch', glyph: '🙆', tint: '#ffe8d0' },
-  { id: 'pose', glyph: '🕺', tint: '#efe4fb' },
-  { id: 'dodge', glyph: '🌋', tint: '#ffe0d6' },
+  { id: 'jeju-run', glyph: '🐴', tint: '#e8e2f5' },
 ];
 
 export function JejuGameHub({
@@ -85,8 +85,7 @@ export function JejuGameHub({
     cup: { name: pick(TEXT.cupName, lang), desc: pick(TEXT.cupDesc, lang) },
     spotdiff: { name: pick(TEXT.spotDiffName, lang), desc: pick(TEXT.spotDiffDesc, lang) },
     'body-catch': { name: pick(MOTION.catchName, lang), desc: pick(MOTION.catchDesc, lang) },
-    pose: { name: pick(MOTION.poseName, lang), desc: pick(MOTION.poseDesc, lang) },
-    dodge: { name: pick(MOTION.dodgeName, lang), desc: pick(MOTION.dodgeDesc, lang) },
+    'jeju-run': { name: pick(MOTION.runName, lang), desc: pick(MOTION.runDesc, lang) },
   };
 
   const renderCard = (

@@ -17,8 +17,7 @@
  */
 import type { MotionGameId } from '@shared/types/motionGame';
 import { BodyCatch } from './body-catch/BodyCatch';
-import { PoseChallenge } from './pose-challenge/PoseChallenge';
-import { DodgeRocks } from './dodge-rocks/DodgeRocks';
+import { JejuRun } from './jeju-run/JejuRun';
 
 interface Props {
   game: MotionGameId;
@@ -29,10 +28,8 @@ export function JejuMotionDisplay({ game, runId }: Props): JSX.Element {
   switch (game) {
     case 'body-catch':
       return <BodyCatch key={runId} runId={runId} />;
-    case 'pose':
-      return <PoseChallenge key={runId} runId={runId} />;
-    case 'dodge':
-      return <DodgeRocks key={runId} runId={runId} />;
+    case 'jeju-run':
+      return <JejuRun key={runId} runId={runId} />;
     default: {
       // A game id main knows about and this switch does not. Rendering nothing
       // is the safe reading — the remote still offers a way out.
