@@ -110,12 +110,19 @@ export interface RawPose {
  * Longest edge of the frame actually handed to the model.
  *
  * The 제주 Elgato runs PORTRAIT at 1080×1920 and we now open it at its native
- * mode (see the note in useMotionTracking), which is far more pixels than a
- * pose pass needs — the model letterboxes to 256 internally regardless. Scaling
- * to this on our own canvas keeps the per-frame cost flat whatever camera a
- * venue has, and costs one drawImage.
+ * mode (see the note in useMotionTracking), which is more pixels than a pose
+ * pass needs. Scaling to this on our own canvas keeps the per-frame cost flat
+ * whatever camera a venue has, and costs one drawImage.
+ *
+ * ── Why not smaller ───────────────────────────────────────────────────
+ * The model letterboxes its input into a SQUARE. A 9:16 portrait frame
+ * therefore lands in a narrow column down the middle of that square — at a 480
+ * long edge the whole frame is only ~144px wide inside it, and a person
+ * standing back from the kiosk is a fraction of that. 720 keeps the column wide
+ * enough for a torso to survive the letterbox, and the extra cost is one larger
+ * drawImage at 20fps, not extra inference.
  */
-const WORK_LONG_EDGE = 480;
+const WORK_LONG_EDGE = 720;
 
 export class PoseTracker {
   private landmarker: PoseLandmarker | null = null;

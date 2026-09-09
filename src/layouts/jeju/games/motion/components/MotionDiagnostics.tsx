@@ -51,7 +51,7 @@ const POLL_MS = 400;
 
 interface Props {
   diagnostics: RefObject<Diagnostics>;
-  /** Reset the delay whenever the tracker starts getting somewhere. */
+  /** True while the tracker is getting somewhere. Delays the first appearance. */
   healthy: boolean;
 }
 
@@ -59,14 +59,25 @@ export function MotionDiagnostics({ diagnostics, healthy }: Props): JSX.Element 
   const [show, setShow] = useState(false);
   const [, setTick] = useState(0);
 
+  /**
+   * ── Once shown, it STAYS shown ────────────────────────────────────────
+   *
+   * The first version hid itself the moment anyone was detected, which made it
+   * almost useless: it could only ever appear while detection was failing, so
+   * it always printed POSE 0 — including when the operator was standing right
+   * in front of it, because by then it had already hidden.
+   *
+   * The whole point is to answer "what happens when I step in", and that needs
+   * the numbers to keep updating while someone does exactly that. So `healthy`
+   * now only delays the FIRST appearance; after that it latches on for the rest
+   * of the calibration screen, and the operator can walk in and out and watch
+   * POSE / Q / SIZE move.
+   */
   useEffect(() => {
-    if (healthy) {
-      setShow(false);
-      return;
-    }
+    if (show || healthy) return;
     const id = setTimeout(() => setShow(true), SHOW_AFTER_MS);
     return () => clearTimeout(id);
-  }, [healthy]);
+  }, [healthy, show]);
 
   // Poll rather than subscribe: the source is a ref written 20×/s, and a human
   // reading numbers off a wall does not need them at that rate.
@@ -81,6 +92,10 @@ export function MotionDiagnostics({ diagnostics, healthy }: Props): JSX.Element 
   if (!d) return null;
 
   const landscape = d.cameraW > d.cameraH;
+  // A stalled stream looks exactly like an empty room to the model, and is the
+  // one fault that is invisible from the picture: the preview shows a frozen
+  // frame, which a passer-by reads as a still image rather than a dead feed.
+  const stalled = d.stalled;
   // The single most likely fault on this fleet, called out by name rather than
   // left for someone to infer from two numbers.
   const suspectRotation = landscape && d.poses === 0;
@@ -98,7 +113,16 @@ export function MotionDiagnostics({ diagnostics, healthy }: Props): JSX.Element 
       <p className={styles.diagRow}>
         POSE {d.poses} · Q {d.quality.toFixed(2)} · SIZE {d.size.toFixed(2)}
       </p>
-      {suspectRotation && (
+      {/* The best pose seen in the last few seconds. A detection that flickers
+          for two frames is invisible in the live row above but is the single
+          most useful thing to know — it means the model CAN see the person and
+          the problem is stability, not blindness. */}
+      <p className={styles.diagRow}>
+        PEAK Q {d.peakQuality.toFixed(2)} · FRAMES {d.frames}
+        {d.stalled ? ' · STREAM STALLED' : ''}
+      </p>
+      {stalled && <p className={styles.diagHint}>⚠ Camera stream not advancing</p>}
+      {suspectRotation && !stalled && (
         <p className={styles.diagHint}>⚠ Check the Elgato&apos;s rotation in Windows</p>
       )}
     </div>

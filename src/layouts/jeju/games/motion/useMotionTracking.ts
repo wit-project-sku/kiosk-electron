@@ -198,6 +198,26 @@ export interface MotionDiagnostics {
   quality: number;
   /** Apparent size, 0..1 of the frame's short edge. Drives the distance hints. */
   size: number;
+  /**
+   * Best pose quality in the last few seconds.
+   *
+   * A detection that flickers for two frames never shows in `quality`, but it
+   * is the most useful fact there is: it means the model CAN see the person and
+   * the problem is stability, not blindness.
+   */
+  peakQuality: number;
+  /** Inference passes run since the camera opened. */
+  frames: number;
+  /**
+   * The camera has stopped delivering NEW frames.
+   *
+   * `videoWidth` stays set on a stalled stream, so a dead feed and an empty
+   * room produce identical numbers everywhere else — this is the one field that
+   * tells them apart. A paused or stalled <video> hands MediaPipe the same
+   * frame forever, and if that frame is the black one the device opened on, the
+   * model correctly reports nobody, for ever.
+   */
+  stalled: boolean;
 }
 
 export interface MotionTracking {
@@ -285,7 +305,14 @@ export function useMotionTracking({ enabled }: Options): MotionTracking {
     poses: 0,
     quality: 0,
     size: 0,
+    peakQuality: 0,
+    frames: 0,
+    stalled: false,
   });
+  /** Rolling peak, decayed so it reflects the last few seconds, not the session. */
+  const peakRef = useRef({ value: 0, at: 0 });
+  /** Frame-liveness: the video's own clock, and when it last moved. */
+  const videoTimeRef = useRef({ time: -1, changedAt: 0, frames: 0 });
 
   const recalibrate = useCallback((): void => {
     lockXRef.current = null;
@@ -461,8 +488,30 @@ export function useMotionTracking({ enabled }: Options): MotionTracking {
           ? apparentSize(now.landmarks, tracker.frameW, tracker.frameH)
           : 0;
         sizeRef.current = size;
+        // ── Liveness ──
+        // `currentTime` advances only while the element is actually decoding.
+        // A stream that opened and then died keeps its dimensions, so this is
+        // the only thing that separates "nobody there" from "nothing arriving".
+        const vt = videoElement.currentTime;
+        const live = videoTimeRef.current;
+        live.frames += 1;
+        if (vt !== live.time) {
+          live.time = vt;
+          live.changedAt = started;
+        }
+        const stalled = live.changedAt > 0 && started - live.changedAt > 1500;
+
+        // Rolling peak over ~4s, so a brief detection is still visible to
+        // whoever is reading the panel a moment later.
+        if (bestQuality > peakRef.current.value || started - peakRef.current.at > 4000) {
+          peakRef.current = { value: bestQuality, at: started };
+        }
+
         diagnosticsRef.current = {
           ...diagnosticsRef.current,
+          peakQuality: peakRef.current.value,
+          frames: live.frames,
+          stalled,
           cameraW: videoElement.videoWidth,
           cameraH: videoElement.videoHeight,
           modelW: tracker.frameW,
@@ -550,6 +599,8 @@ export function useMotionTracking({ enabled }: Options): MotionTracking {
           return;
         }
         stream = opened;
+        peakRef.current = { value: 0, at: 0 };
+        videoTimeRef.current = { time: -1, changedAt: 0, frames: 0 };
         diagnosticsRef.current = {
           ...diagnosticsRef.current,
           // Empty until camera permission has been granted at least once —
