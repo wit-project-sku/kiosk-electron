@@ -226,6 +226,28 @@ export const MOTION = {
     ru: 'Смотрите на большой экран сверху!',
     id: 'Lihat layar besar di atas!',
   } as Str,
+  /** Offered mid-game when the photo lands — see MotionRemote. */
+  keepPlaying: {
+    ko: '계속 놀기',
+    en: 'Keep playing',
+    ja: '遊び続ける',
+    zh: '继续玩',
+    vi: 'Chơi tiếp',
+    th: 'เล่นต่อ',
+    ru: 'Продолжить игру',
+    id: 'Lanjut main',
+  } as Str,
+  photoWaiting: {
+    ko: '사진은 여기서 기다릴게요',
+    en: 'Your photo will wait here',
+    ja: '写真はここで待っています',
+    zh: '照片会在这里等您',
+    vi: 'Ảnh sẽ đợi bạn ở đây',
+    th: 'ภาพจะรออยู่ตรงนี้',
+    ru: 'Фото подождёт здесь',
+    id: 'Foto Anda menunggu di sini',
+  } as Str,
+
   /** The one control available while a motion game runs. */
   stopGame: {
     ko: '그만하기',

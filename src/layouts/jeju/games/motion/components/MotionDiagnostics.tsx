@@ -24,6 +24,9 @@
  *                   kioskLocations.
  *   CAM 2560×720    the ZED was opened. Should be impossible (excluded by
  *                   label and by aspect) — if it happens, that guard failed.
+ *   STARTS > 1      the camera is being reopened in a retry loop, which resets
+ *                   FRAMES each time — a loop that looks stuck at 1 is usually
+ *                   this, not a loop that stopped.
  *   NET loading     the model never became available — the loop is running but
  *                   has nothing to run. Looks identical to an empty room in
  *                   every other field; this is the one that says otherwise.
@@ -121,9 +124,10 @@ export function MotionDiagnostics({ diagnostics, healthy }: Props): JSX.Element 
           most useful thing to know — it means the model CAN see the person and
           the problem is stability, not blindness. */}
       <p className={styles.diagRow}>
-        PEAK Q {d.peakQuality.toFixed(2)} · FRAMES {d.frames}
+        PEAK Q {d.peakQuality.toFixed(2)} · FRAMES {d.frames} · STARTS {d.starts}
         {d.stalled ? ' · STREAM STALLED' : ''}
       </p>
+      {d.lastError !== '' && <p className={styles.diagRow}>ERR {d.lastError.slice(0, 40)}</p>}
       {d.model !== 'ready' && (
         <p className={styles.diagHint}>
           {d.model === 'failed' ? '⚠ Pose model failed to load' : '⚠ Pose model still loading'}

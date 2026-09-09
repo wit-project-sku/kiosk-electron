@@ -209,6 +209,16 @@ export interface MotionDiagnostics {
   /** Inference passes run since the camera opened. */
   frames: number;
   /**
+   * How many times the camera has been (re)opened.
+   *
+   * Should be 1. Anything higher means `start()` is failing and retrying, which
+   * resets the frame counter each time and produces the very confusing reading
+   * of a loop that has "only ever run once" — see FRAMES.
+   */
+  starts: number;
+  /** Why the last start failed, if one did. Empty when nothing has gone wrong. */
+  lastError: string;
+  /**
    * Whether the pose model is actually available.
    *
    * `loading` for more than a few seconds means the frame loop is running but
@@ -310,6 +320,8 @@ export function useMotionTracking({ enabled }: Options): MotionTracking {
     modelH: 0,
     rotation,
     settled: false,
+    starts: 0,
+    lastError: '',
     model: 'loading',
     poses: 0,
     quality: 0,
@@ -636,6 +648,10 @@ export function useMotionTracking({ enabled }: Options): MotionTracking {
           return;
         }
         stream = opened;
+        diagnosticsRef.current = {
+          ...diagnosticsRef.current,
+          starts: diagnosticsRef.current.starts + 1,
+        };
         peakRef.current = { value: 0, at: 0 };
         videoTimeRef.current = { time: -1, changedAt: 0, frames: 0 };
         diagnosticsRef.current = {
@@ -674,7 +690,11 @@ export function useMotionTracking({ enabled }: Options): MotionTracking {
           // Already reported through `modelState`; the loop keeps running and
           // the panel says the model failed rather than showing an empty room.
         });
-      } catch {
+      } catch (error) {
+        diagnosticsRef.current = {
+          ...diagnosticsRef.current,
+          lastError: error instanceof Error ? error.message : String(error),
+        };
         // The camera may well have opened and the MODEL have been what failed.
         // Letting that stream live would mean the retry opens a second one — and
         // on Windows the second open of a busy device is the one that fails.

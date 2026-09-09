@@ -138,14 +138,45 @@ export function JejuWaitingGames({ rounds, aiReady, onFinish, onHome }: Props): 
     };
   }, [resetPoints]);
 
+  // ── The motion games, which live on the OTHER screen ──────────────────
+  const motion = useMotionGameState();
+
+  /**
+   * A motion game in progress, with somebody actually in front of the camera.
+   *
+   * This is ACTIVITY, and the idle rescue has to know it. See the effect below.
+   */
+  const motionInPlay =
+    motion.game !== null &&
+    motion.phase !== 'result' &&
+    motion.tracking !== 'no-player' &&
+    motion.tracking !== 'unavailable';
+
   // ── The idle rescue ───────────────────────────────────────────────────
+  //
+  // ★ A MOTION GAME IS NOT IDLE.
+  //
+  // This used to measure activity as TOUCH alone, which is exactly wrong for
+  // the camera games: the visitor is two metres back playing with their body
+  // and will not touch this screen for the whole run. So the sweep counted the
+  // entire game as idle, and the instant the photo landed at 60s it decided
+  // nobody was there and yanked the screen away mid-play. That is the reported
+  // "as soon as the image arrived it quit the game".
+  //
+  // Body movement now counts. The sweep still rescues a kiosk somebody has
+  // genuinely walked away from — `motionInPlay` goes false the moment the
+  // tracker stops seeing anyone.
   useEffect(() => {
     if (!aiReady) return;
     const id = setInterval(() => {
+      if (motionInPlay) {
+        lastTouchRef.current = Date.now();
+        return;
+      }
       if (Date.now() - lastTouchRef.current >= IDLE_RELEASE_MS) handOver();
     }, 2000);
     return () => clearInterval(id);
-  }, [aiReady, handOver]);
+  }, [aiReady, handOver, motionInPlay]);
 
   const handleAward = useCallback(
     (game: JejuGameId, points: number) => {
@@ -157,9 +188,6 @@ export function JejuWaitingGames({ rounds, aiReady, onFinish, onHome }: Props): 
     },
     [award, aiReady, kioskId],
   );
-
-  // ── The motion games, which live on the OTHER screen ──────────────────
-  const motion = useMotionGameState();
 
   const backToHub = useCallback(() => setView('hub'), []);
 

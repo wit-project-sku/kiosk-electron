@@ -19,7 +19,7 @@
  * becomes JEJU POINTS — Monitor 2 has no points store and no business having
  * one. Banked exactly once per run, keyed on runId; see the effect.
  */
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { pick, useLang } from '@renderer/lib/i18n';
 import type { MotionGameId, MotionGameState } from '@shared/types/motionGame';
 import { usePhotoChrome } from '../../../../photo/photoChrome';
@@ -61,6 +61,23 @@ export function MotionRemote({
 
   const game = state.game;
   const finished = state.phase === 'result';
+
+  /**
+   * The photo landed WHILE they were playing.
+   *
+   * ── Why this is an offer and not an action ────────────────────────────
+   * The AI result used to take the screen the moment it arrived, killing a run
+   * mid-play. That is the worst possible timing: the visitor is two metres back
+   * with their arms up, and the thing they were doing vanishes without them
+   * having touched anything.
+   *
+   * The photo is not going anywhere — the workflow holds it until this screen
+   * hands over — so the right move is to TELL them and let them choose. Dismiss
+   * it and the run finishes normally; the result card then offers the photo
+   * again, by which point they are done and it is the obvious next thing.
+   */
+  const [dismissed, setDismissed] = useState(false);
+  const offerPhoto = aiReady && !finished && !dismissed && state.phase === 'playing';
 
   /**
    * Bank the total once per run.
@@ -154,9 +171,24 @@ export function MotionRemote({
         </div>
       )}
 
+      {offerPhoto && (
+        <div className={styles.photoOffer}>
+          <p className={styles.photoOfferTitle}>📸 {pick(TEXT.photoReady, lang)}</p>
+          <p className={styles.photoOfferSub}>{pick(MOTION.photoWaiting, lang)}</p>
+          <div className={styles.photoOfferActions}>
+            <GameButton variant="primary" onClick={onSeePhoto}>
+              {pick(TEXT.seePhoto, lang)}
+            </GameButton>
+            <GameButton variant="ghost" onClick={() => setDismissed(true)}>
+              {pick(MOTION.keepPlaying, lang)}
+            </GameButton>
+          </div>
+        </div>
+      )}
+
       {/* Keyed so a change of problem replays the entrance rather than silently
           swapping the words. */}
-      {!finished && coach && (
+      {!finished && !offerPhoto && coach && (
         <div key={state.tracking} className={styles.coach}>
           {coach}
         </div>
