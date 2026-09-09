@@ -1,19 +1,20 @@
 import type { Lang } from '@renderer/lib/i18n';
 import { changeLanguagePlayKey } from '@shared/config/languages';
-import { getKioskLocation } from '@shared/config/kioskLocations';
+import { getKioskLocation, isJejuLayout } from '@shared/config/kioskLocations';
 import type { KioskId, KioskLayoutId } from '@shared/types/kiosk';
 import { pickText } from '@renderer/data/types';
 import { VIDEO_SETS, type VideoEntry, type VideoFilesBySet, type VideoSet } from '@shared/types/subtitle';
+import { VIDEO_SUBTITLES_JEJU } from '@renderer/data/videoSubtitles-jeju.generated';
 
 /**
  * Resolves the AI-model display videos for each kiosk screen, from that
- * location's VideoSubtitle tab (Insa / Osaek / Hwaseong / Jeju). The customer
- * display plays the clip(s) for the current screen (looping forever); `Default`
- * is the idle/attract sequence.
+ * location's VideoSubtitle tab (Insa / Osaek / Hwaseong / 제주's VideoSubtitle_귤이).
+ * The customer display plays the clip(s) for the current screen (looping
+ * forever); `Default` is the idle/attract sequence.
  *
- * Everything per-location is keyed off two tables — {@link VIDEO_SET_BY_LAYOUT}
- * and {@link SCREEN_KEYS_BY_LAYOUT} — so adding a location is two entries, not a
- * new branch in every lookup.
+ * Everything per-location is keyed off three tables — {@link VIDEO_SET_BY_LAYOUT}
+ * (+ its {@link VIDEO_SET_BY_KIOSK} exceptions) and {@link SCREEN_KEYS_BY_LAYOUT} —
+ * so adding a location is a couple of entries, not a new branch in every lookup.
  */
 
 export interface DisplayClip {
@@ -83,9 +84,12 @@ function buildByButton(entries: VideoEntry[]): Map<number, VideoEntry[]> {
 }
 
 // Mutable maps, one per video set — populated by initSubtitles() when the API
-// responds. The API (via SQLite offline cache) is the single source of truth for
-// subtitles; there is no build-time sheet fallback. Empty until the first
-// successful fetch, so a never-synced kiosk with no network shows no clips until
+// responds. The API (via SQLite offline cache) is the source of truth for
+// subtitles wherever it HAS them. 제주 (W006–W008) is the one place it does not:
+// /api/kiosks/{6,7,8}/subtitles answer with 21 buttons and zero subtitle rows,
+// so those kiosks read the build-time table generated from VideoSubtitle_귤이
+// instead (see bundledSubtitles below). Empty until whichever source applies has
+// loaded, so a never-synced non-제주 kiosk with no network shows no clips until
 // it reaches the API once.
 let BY_KEY: Record<VideoSet, Map<string, VideoEntry[]>> = emptyBySet(() => new Map());
 
@@ -101,8 +105,8 @@ const VIDEO_SET_BY_LAYOUT: Record<KioskLayoutId, VideoSet> = {
   NAM_INSADONG: 'insadong',
   OSAN: 'osaek',
   HWASEONG: 'hwaseong',
-  JEJU_AIRPORT: 'jeju',
-  JEJU_HERITAGE: 'jeju', // one 제주 video set — the mascot split is text-only
+  JEJU_AIRPORT: 'jeju-airport',
+  JEJU_HERITAGE: 'jeju-heritage',
   // KADA W202 gets its OWN set rather than borrowing insadong's, even though
   // resources/videos/kada/ does not exist yet. Pointing it at 'insadong' would
   // put 인사동 AI-model clips and Korean subtitles on Monitor 2 in Hanoi; an
@@ -111,11 +115,26 @@ const VIDEO_SET_BY_LAYOUT: Record<KioskLayoutId, VideoSet> = {
   KADA: 'kada',
 };
 
+/**
+ * Per-KIOSK overrides, consulted before the layout table.
+ *
+ * Layout is the right granularity everywhere except 제주: W006 제주공항 and W007
+ * 제주국제여객터미널 deliberately share the JEJU_AIRPORT layout (one design, one
+ * sheet, one mascot) but must NOT share footage — the airport reels are about
+ * 항공편/탑승구 and the terminal's about 여객선/뱃길. So the venue that diverges
+ * from its layout's default is named here rather than being given a layout id
+ * it does not need.
+ */
+const VIDEO_SET_BY_KIOSK: Partial<Record<KioskId, VideoSet>> = {
+  W007: 'jeju-terminal',
+};
+
 /** Which video set a kiosk's own subtitle entries belong to — the caller
  *  already knows this (it fetched `/api/kiosks/{thisKiosk}/subtitles`), so
  *  entries are assigned directly instead of guessed from the file name. */
 export function videoSetFor(kioskId?: KioskId): VideoSet {
-  return kioskId == null ? 'insadong' : VIDEO_SET_BY_LAYOUT[getKioskLocation(kioskId).layout];
+  if (kioskId == null) return 'insadong';
+  return VIDEO_SET_BY_KIOSK[kioskId] ?? VIDEO_SET_BY_LAYOUT[getKioskLocation(kioskId).layout];
 }
 
 /**
@@ -132,19 +151,51 @@ export function videoSetFor(kioskId?: KioskId): VideoSet {
 export function initSubtitles(entries: VideoEntry[], kioskId?: KioskId): void {
   const set = videoSetFor(kioskId);
   const matched: VideoEntry[] = [];
+  const dropped: string[] = [];
 
   for (const e of entries) {
+    // Sheet-sourced entries may name the ONE set they belong to (VideoSubtitle_귤이's
+    // `비디오 폴더명` column — one tab, three 제주 venues). Silently skip another
+    // venue's row: it is not a misconfiguration, so it must not warn.
+    if (e.set && e.set !== set) continue;
     if (FILE_BY_NORM[set].has(norm(e.file))) matched.push(e);
-    // Entry's video file stem matches no bundled local file — drop it, but
-    // log so a bad admin edit / unbundled video is visible instead of the
-    // subtitle just silently never appearing.
-    else console.warn('[videoMap] subtitle dropped — no local video match', { key: e.key, file: e.file, set });
+    else dropped.push(`${e.key}=${e.file}`);
+  }
+
+  // Entries whose video file stem matches no local file are dropped, but listed
+  // so a bad admin edit / a clip that never made it onto this machine is visible
+  // instead of the subtitle just silently never appearing.
+  //
+  // ONE grouped warning, not one per entry: 제주 kiosks are handed the whole
+  // VideoSubtitle_귤이 table (78 rows for all three venues) and load their
+  // footage folder by folder, so a machine mid-rollout would otherwise open with
+  // seventy near-identical console lines and bury everything else.
+  if (dropped.length > 0) {
+    console.warn(
+      `[videoMap] ${dropped.length}/${entries.length} subtitles dropped — no local video in "${set}"`,
+      dropped,
+    );
   }
 
   if (matched.length === 0) return;
   // Replace only this set's maps (the call is idempotent per set).
   BY_KEY = { ...BY_KEY, [set]: buildByKey(matched) };
   BY_BUTTON = { ...BY_BUTTON, [set]: buildByButton(matched) };
+}
+
+/**
+ * The build-time subtitle table for `kioskId`, or `[]` when that kiosk has none.
+ *
+ * A LAST RESORT, used only when `/api/kiosks/{n}/subtitles` came back with no
+ * rows — the caller checks, this does not. Only 제주 has one: W006–W008 are the
+ * kiosks whose CMS carries buttons but no clips, so without it their second
+ * monitor plays nothing on any screen. Every other location's API answers with
+ * its full VideoSubtitle tab, and giving them a stale bundled copy to fall back
+ * on would hide a broken sync instead of showing it.
+ */
+export function bundledSubtitles(kioskId?: KioskId): VideoEntry[] {
+  if (kioskId == null) return [];
+  return isJejuLayout(getKioskLocation(kioskId).layout) ? VIDEO_SUBTITLES_JEJU : [];
 }
 
 function clipsForKey(
@@ -252,6 +303,86 @@ const HWASEONG_SCREEN_TO_VIDEO_KEY: Record<string, string> = {
 };
 
 /**
+ * 제주 (W006 공항 / W007 여객터미널 / W008 세계자연유산본부) screen→key mapping,
+ * transcribed from VideoSubtitle_귤이's `Key (개발)` + `재생조건(Condition)` columns.
+ *
+ * `inherit: false`, like Hwaseong: the 제주 home grid is its own (렌트카 · 탐나오 ·
+ * 지역화폐 · 크루즈 운항 · 운항정보 have no Insadong equivalent, and 미술관/고궁/
+ * 교통안내 have no 제주 one), so falling through to the Insadong names would map
+ * screens this venue does not have and miss the ones it does.
+ *
+ * The sheet's `-N` suffixes are the CLIP INDEX within one key, not distinct
+ * keys — `Default-1`…`Default-10` is the ten-clip 기본화면 rotation — so the
+ * generator strips them (see scripts/sync-sheet.mjs JEJU_KEY_ALIASES) and the
+ * names below are the stripped forms.
+ *
+ * Deliberately absent, because no 제주 screen reports them: `Search_Enter`
+ * (검색어 입력 후 엔터 — JejuSearch has no result sub-state); `Photo` /
+ * `Photo_SelectHanbok` / `Photo_Complete` (the whole AR flow reports one `photo`
+ * screen, and the display asks for it while COMPOSITING — hence Photo_Creating
+ * below, the same choice every other layout makes); and `Donation_Category` /
+ * `Donation_Detail` (기부 is a fullscreen webview, and its three sheet rows all
+ * carry the same `기본화면 -> 기부 (기본 3편 순환)` condition, so `Donation` alone
+ * covers the screen). Those rows still generate — they simply never resolve,
+ * exactly like any other kiosk's unreachable sheet row.
+ */
+const JEJU_SCREEN_TO_VIDEO_KEY: Record<string, string> = {
+  home:             'Default',
+  search:           'Search',
+  search_detail:    'Search_Detail',
+  detail:           'Default',      // generic detail — context comes from `<from>_detail`
+  language:         'Default',      // overridden per-lang in screenKey()
+
+  ai_search:        'AISearch',
+  ai_result:        'AISearch_Category',
+  ai_detail:        'AISearch_Detail',
+
+  events:           'Event',
+  events_category:  'Event_Category',
+
+  eat:              'ToEat',
+  eat_category:     'ToEat_Category',
+  eat_detail:       'ToEat_Detail',
+  shop:             'ToBuy',
+  shop_category:    'ToBuy_Category',
+  shop_detail:      'ToBuy_Detail',
+  lodging:          'ToStay',
+  lodging_category: 'ToStay_Category',
+  lodging_detail:   'ToStay_Detail',
+
+  taxfree:          'TaxFree',
+  about:            'Here',
+  exchange:         'Exchange',
+  restroom:         'Toilet',
+  donation:         'Donation',
+  // 위드마켓 and K-DRAMA are wired but silent: their sheet rows carry no file
+  // name yet, so the generator skips them and these resolve to the Default idle
+  // sequence. Filling `파일명` in VideoSubtitle_귤이 is all it takes — no code change.
+  market:           'Market',
+  kdrama:           'KDrama',
+
+  hello:            'Greeting',
+  hello_hobby:      'Greeting_Hobby',
+  hello_stretch:    'Greeting_Stretching',
+  help:             'ToHelp',
+  help_category:    'ToHelp_Category',
+  help_detail:      'ToHelp_Detail',
+
+  // 제주-only home tiles.
+  rentcar:          'RentCar',
+  tamnao:           'Tamnao',
+  localpay:         'MarketPaper',
+  // 운항정보 — the airport board is 항공편, the terminal's is 여객선. Both venues
+  // reach the same `flights` / `cruise` screens, and each machine only has its
+  // own clips on disk, so the unmatched key simply resolves to nothing there.
+  flights:          'FlightInfo',
+  cruise:           'FerryInfo',
+
+  photo:            'Photo_Creating',
+  hanbok_explain:   'HanbokExplain',
+};
+
+/**
  * Osan (W004) screen→key overrides — the home grid reorders several screens, so
  * a few resolve to different VideoSubtitle_Osaek keys than Insadong:
  *  - museum = 지역화폐 (시장화폐) → MarketPaper (not the gallery)
@@ -283,12 +414,12 @@ const SCREEN_KEYS_BY_LAYOUT: Record<KioskLayoutId, LayoutScreenKeys> = {
   NAM_INSADONG: { map: {}, inherit: true },
   OSAN: { map: OSAN_SCREEN_TO_VIDEO_KEY, inherit: true },
   HWASEONG: { map: HWASEONG_SCREEN_TO_VIDEO_KEY, inherit: false },
-  // TODO(제주 W006): once the Jeju home grid + VideoSubtitle_Jeju tab exist, give
-  // this its own map (and set inherit:false if the grid diverges like Hwaseong's).
-  // Until then it reads the base Insadong screen names, which is harmless — the
-  // `jeju` video set is empty, so every lookup returns no clips either way.
-  JEJU_AIRPORT: { map: {}, inherit: true },
-  JEJU_HERITAGE: { map: {}, inherit: true },
+  // Both 제주 layouts read the SAME map: VideoSubtitle_귤이 is one tab for all
+  // three venues, and the grid differences between them (렌트카 vs 크루즈 운항,
+  // W008's 제주세계유산 trio) are extra screens, not different keys for the same
+  // screen. What differs per venue is the video SET, above.
+  JEJU_AIRPORT: { map: JEJU_SCREEN_TO_VIDEO_KEY, inherit: false },
+  JEJU_HERITAGE: { map: JEJU_SCREEN_TO_VIDEO_KEY, inherit: false },
   // KADA has five screens and no video set, so there is nothing to map and
   // nothing worth inheriting — Insadong's screen names do not exist here.
   KADA: { map: {}, inherit: false },

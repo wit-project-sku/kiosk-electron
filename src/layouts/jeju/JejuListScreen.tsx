@@ -177,6 +177,14 @@ export function JejuListScreen({ screen, controller }: Props): JSX.Element {
       ? tabs
       : DEFAULT_TABS[screen].map((label) => ({ kr: label, label: catLabel(label, lang) }));
 
+  // Tell the customer display a category is open, so it plays the drill-in clip
+  // (`shop_category` → ToBuy_Category) instead of staying on the tile's own.
+  // navigate() only ever reported the top-level screen, exactly as on Insadong /
+  // Osan / Hwaseong, whose list screens each do this.
+  useEffect(() => {
+    if (activeKr) void window.api.kiosk.setScreen(`${screen}_category`);
+  }, [activeKr, screen]);
+
   /*
    * Low-reach geometry follows the chip ROW COUNT, because the controls sit at
    * the foot and a shorter chip block gives the list back the space:

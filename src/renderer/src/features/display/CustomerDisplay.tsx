@@ -11,7 +11,7 @@ import { usePhotoStore } from '@renderer/store/photoStore';
 import { trackEvent } from '@renderer/lib/analytics';
 import { displayVideosFor } from '@renderer/assets/videos';
 import { cameraIconUrl } from '@renderer/assets/icons/insadong/camera';
-import { clipsForPlayKey, clipsForScreen, initSubtitles, initVideoFiles } from '@renderer/lib/videoMap';
+import { bundledSubtitles, clipsForPlayKey, clipsForScreen, initSubtitles, initVideoFiles } from '@renderer/lib/videoMap';
 import { getCameraRotation, getKioskLocation, isJejuLayout } from '@shared/config/kioskLocations';
 import { PHOTO_COUNTDOWN_SECONDS } from '@shared/constants/photoOptions';
 import type { WeatherPlayKey } from '@shared/config/weatherVideo';
@@ -100,16 +100,23 @@ export function CustomerDisplay(): JSX.Element {
       const id = r.value.kioskConfig.kioskId as KioskId;
       setKioskId(id);
       // Freshly load, on every launch: (1) the real on-disk video file list,
-      // THEN (2) this kiosk's API subtitles. Order matters — initSubtitles drops
-      // any entry whose video file isn't known, so the file list must be loaded
-      // first. Both replace the initially-empty maps; there is no hardcoded/
-      // build-time data. Needs the resolved kioskId so entries land in the right
-      // set. Bump dataVersion afterwards so the clip lookups recompute.
+      // THEN (2) this kiosk's subtitles. Order matters — initSubtitles drops any
+      // entry whose video file isn't known, so the file list must be loaded
+      // first. Needs the resolved kioskId so entries land in the right set.
+      // Bump dataVersion afterwards so the clip lookups recompute.
+      //
+      // The API wins whenever it HAS rows. It does not for 제주 (W006–W008):
+      // /api/kiosks/{6,7,8}/subtitles answers with buttons and an empty subtitle
+      // list, so those fall back to the table generated from VideoSubtitle_귤이.
+      // The check is on rows, not on the request succeeding — an offline kiosk
+      // whose SQLite cache is also empty is the same situation.
       void (async () => {
         const vr = await window.api.videos.list();
         if (isOk(vr) && vr.value) initVideoFiles(vr.value);
         const sr = await window.api.subtitles.get();
-        if (isOk(sr) && sr.value) initSubtitles(sr.value, id);
+        const fromApi = isOk(sr) && sr.value ? sr.value : [];
+        const entries = fromApi.length > 0 ? fromApi : bundledSubtitles(id);
+        if (entries.length > 0) initSubtitles(entries, id);
         setDataVersion((v) => v + 1);
       })();
     });

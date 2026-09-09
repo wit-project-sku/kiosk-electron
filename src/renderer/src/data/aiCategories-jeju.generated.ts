@@ -18,7 +18,7 @@ export const AI_CATEGORIES_JEJU: LangText[] = [
   {"ko":"막걸리","en":"Makgeolli","ja":"マッコリ","zh":"马格利酒","vi":"Makgeolli","th":"มักเกอลี","ru":"Макгеолли","id":"Makgeolli"},
   {"ko":"전통주","en":"Traditional Liquor","ja":"伝統株","zh":"传统酒","vi":"Rượu truyền thống","th":"13.สุราแบบดั้งเดิม","ru":"13. Традиционный алкогольный напиток","id":"Minuman Keras Tradisional"},
   {"ko":"해녀 체험","en":"Haenyeo Experience","ja":"海女体験","zh":"海女经历","vi":"Trải nghiệm Haenyeo","th":"ประสบการณ์ 14-Haenyeo","ru":"Опыт Хэнё","id":"Pengalaman Haenyeo"},
-  {"ko":"감귤 체험","en":"Tangerine Experience","ja":"柑橘系の体験","zh":"橘子体验","vi":"Trải nghiệm 15 quả quýt","th":"ประสบการณ์ส้มแมนดาริน 15 ชนิด","ru":"Мандариновый опыт","id":"Pengalaman Jeruk Mandarin 15-"},
+  {"ko":"감귤 체험","en":"Tangerine Experience","ja":"柑橘系の体験","zh":"橘子体验","vi":"Trải nghiệm 15 quả quýt","th":"ประสบการณ์ส้มแมนดาริน 15 ชนิด","ru":"Tangerine Experience","id":"Pengalaman Jeruk Mandarin 15-Jeruk"},
   {"ko":"승마 체험","en":"Horseback Riding Experience","ja":"乗馬体験","zh":"16次骑马体验","vi":"Trải nghiệm cưỡi ngựa 16 ngày","th":"ประสบการณ์ขี่ม้า 16 ครั้ง","ru":"Программа верховой езды на 16 лошадях","id":"Pengalaman Berkuda 16 Hari"},
   {"ko":"레저·엑티비티","en":"Leisure & Activities","ja":"レジャー・アクティビティ","zh":"休闲与活动","vi":"Giải trí & Hoạt động","th":"17. กิจกรรมยามว่างและสันทนาการ","ru":"17. Досуг и развлечения","id":"Rekreasi & Aktivitas"},
   {"ko":"K-POP 체험","en":"K-POP Experience","ja":"K-POP体験","zh":"K-POP体验","vi":"Trải nghiệm K-POP 18 tuổi","th":"ประสบการณ์ K-POP 18 แบบ","ru":"K-POP Experience","id":"Pengalaman K-POP 18 tahun"},
@@ -31,7 +31,7 @@ export const AI_CATEGORIES_JEJU: LangText[] = [
   {"ko":"제주 기념품","en":"Jeju Souvenirs","ja":"済州のお土産","zh":"济州岛纪念品","vi":"25 món quà lưu niệm Jeju","th":"ของที่ระลึกจากเกาะเชจู 25 ชิ้น","ru":"25 сувениров с острова Чеджу","id":"25 Suvenir Jeju"},
   {"ko":"공예품","en":"Crafts","ja":"工芸品","zh":"工艺品","vi":"Thủ công mỹ nghệ","th":"งานฝีมือ","ru":"Ремесла","id":"26 Kerajinan Tangan"},
   {"ko":"전통시장","en":"Traditional Market","ja":"伝統市場","zh":"传统市场","vi":"Chợ truyền thống","th":"ตลาดแบบดั้งเดิม","ru":"27. Традиционный рынок","id":"Pasar Tradisional"},
-  {"ko":"전시관·문화공간","en":"Exhibition Halls · Cultural Spaces","ja":"展示館・文化空間","zh":"展览馆·文化空间","vi":"28 phòng triển lãm · Không gian văn hóa","th":"ห้องจัดแสดงนิทรรศการ · พื้นที่ทางวัฒนธรรม","ru":"28 выставочных залов · Культурные пространства","id":"Aula Pameran · Ruang Budaya"},
+  {"ko":"전시관·문화공간","en":"Exhibition Halls · Cultural Spaces","ja":"展示館・文化空間","zh":"28个展览馆·文化空间","vi":"28 phòng triển lãm · Không gian văn hóa","th":"ห้องจัดแสดงนิทรรศการ · พื้นที่ทางวัฒนธรรม","ru":"28 выставочных залов · Культурные пространства","id":"Aula Pameran · Ruang Budaya"},
   {"ko":"로컬샵","en":"Local Shop","ja":"ローカルショップ","zh":"本地商店","vi":"Cửa hàng địa phương","th":"ร้านค้าท้องถิ่น","ru":"Местный магазин","id":"Toko Lokal"},
   {"ko":"기타","en":"Others","ja":"その他","zh":"其他","vi":"Khác","th":"อื่นๆ","ru":"Другие","id":"30 Lainnya"},
 ];

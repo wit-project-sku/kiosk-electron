@@ -18,6 +18,7 @@
  * NOTE on the data: `DetailItem.blogReviews` is not a review count — it carries
  * the shop's Naver link, which is what the card turns into a QR.
  */
+import { useEffect } from 'react';
 import type { KioskController } from '@renderer/hooks/useKioskController';
 import { jejuIconUrl } from '@renderer/assets/icons/jeju';
 import { useAccessibilityStore } from '@renderer/store/accessibilityStore';
@@ -119,6 +120,14 @@ export function JejuDetail({ controller }: Props): JSX.Element {
 
   // Back returns to the screen the item came from, not home.
   const goBack = (): void => controller.navigate(item?.from ?? 'search', '뒤로');
+
+  // Tell the customer display WHICH detail this is (e.g. `eat_detail` →
+  // ToEat_Detail). navigate() only reported the generic 'detail' screen, which
+  // maps to the idle sequence. Same effect InsadongDetail / OsanDetail carry.
+  const from = item?.from;
+  useEffect(() => {
+    if (from) void window.api.kiosk.setScreen(`${from}_detail`);
+  }, [from]);
 
   if (!item) {
     return (

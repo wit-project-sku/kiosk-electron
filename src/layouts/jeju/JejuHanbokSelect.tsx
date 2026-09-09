@@ -483,6 +483,13 @@ export function JejuHanbokSelect({
   const [privacyOpen, setPrivacyOpen] = useState(false);
   const [infoOpen, setInfoOpen] = useState(false);
 
+  // 한복 설명 plays its own display clip (HanbokExplain); the AR selection page
+  // stays on 'photo'. Mirrors the shared HanbokSelect's effect — 제주 draws its
+  // own picker, so it needs its own copy.
+  useEffect(() => {
+    void window.api.kiosk.setScreen(infoOpen ? 'hanbok_explain' : 'photo');
+  }, [infoOpen]);
+
   // Cards whose image fails to load are dropped rather than left as empty boxes.
   const [brokenCodes, setBrokenCodes] = useState<Set<string>>(new Set());
   const markBroken = (code: string): void => setBrokenCodes((s) => new Set(s).add(code));

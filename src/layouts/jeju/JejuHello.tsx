@@ -23,7 +23,7 @@
  * mascots, but 제주 draws its own frame (JejuPageFrame chrome, tab row at y700,
  * one 1820×2160 card), so it is a sibling rather than a fork of those.
  */
-import { Fragment, useState } from 'react';
+import { Fragment, useEffect, useState } from 'react';
 import type { KioskController } from '@renderer/hooks/useKioskController';
 import { jejuIconUrl } from '@renderer/assets/icons/jeju';
 import helloVideo from '@renderer/assets/videos/jeju/hello-hayoung.mp4';
@@ -594,6 +594,15 @@ export function JejuHello({ controller }: Props): JSX.Element {
     hobbies: TOPICS_BY_MASCOT[mascot.id].hobbies.topics[0]!.id,
     health: TOPICS_BY_MASCOT[mascot.id].health.topics[0]!.id,
   }));
+
+  // Switch the customer-display video per tab (소개 / 취미생활 / 건강습관), the
+  // way InsadongHello and OsanHello do. The SUB-tab is deliberately not reported:
+  // VideoSubtitle_귤이 gives each tab three clips and the display cycles them, so
+  // there is nothing finer to select.
+  useEffect(() => {
+    const key = tab === 'hobbies' ? 'hello_hobby' : tab === 'health' ? 'hello_stretch' : 'hello';
+    void window.api.kiosk.setScreen(key);
+  }, [tab]);
 
   const select = (id: TabId): void => {
     trackEvent({

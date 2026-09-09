@@ -3,8 +3,24 @@
 import { LANGUAGES, type LocalizedLang } from '@shared/config/languages';
 
 /** Every bundled video set, in one place — iterate this instead of re-listing the
- *  names, so adding a location's set is a single edit. */
-export const VIDEO_SETS = ['insadong', 'osaek', 'hwaseong', 'jeju', 'kada'] as const;
+ *  names, so adding a location's set is a single edit.
+ *
+ *  제주 is THREE sets, not one. W006 제주공항 and W007 제주국제여객터미널 share a
+ *  layout and a content sheet, but not their footage: the airport reels talk
+ *  about 항공편/탑승구 and the terminal's about 여객선/뱃길 (see the FlightInfo_*
+ *  vs FerryInfo_* rows of VideoSubtitle_귤이). One shared `jeju` folder would
+ *  put flight clips on a ferry terminal's second monitor, so each venue reads
+ *  its own folder and W008 세계자연유산본부 (mascot 유산, its own tab) gets a
+ *  third — empty until 유산 footage exists, which simply plays nothing. */
+export const VIDEO_SETS = [
+  'insadong',
+  'osaek',
+  'hwaseong',
+  'jeju-airport',
+  'jeju-terminal',
+  'jeju-heritage',
+  'kada',
+] as const;
 
 /** Which bundled video set a kiosk plays from (resources/videos/<set>/). */
 export type VideoSet = (typeof VIDEO_SETS)[number];
@@ -44,6 +60,19 @@ export interface VideoEntry {
   /** API sort order within the owning button/autoSubtitles list. Optional for
    *  the same cache-compat reason; used to pick a button's primary clip. */
   sortOrder?: number;
+  /**
+   * The ONE video set this entry belongs to, when the source says so.
+   *
+   * The API never does — its `videoFileName` carries a folder prefix that
+   * `extractStem` throws away, because a kiosk only ever fetches its own
+   * `/subtitles` and every row in that response is by definition its own.
+   * The 제주 sheet is the exception: VideoSubtitle_귤이 is ONE tab serving three
+   * venues, and its `비디오 폴더명 (운영)` column is where an operator says a row
+   * is airport-only or terminal-only. Left undefined the entry is offered to
+   * whichever 제주 venue is running and kept only if the video file is actually
+   * on that machine — the same file-existence filter every other kiosk uses.
+   */
+  set?: VideoSet;
 }
 
 // ── Raw API response shapes ────────────────────────────────────────────────
