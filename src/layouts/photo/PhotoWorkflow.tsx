@@ -258,7 +258,14 @@ export function PhotoWorkflow(): JSX.Element {
             step of the AR flow rather than a separate shop, and the picker and
             the waiting game above it already carry that title. `photoTitle` is
             the same string those two use. */}
-        <Header title={photoTitle} onHome={handleReset} />
+        {/* `subtitleHidden` because THIS page supplies its own description
+            below. JejuHeader resolves a subtitle from the sheet (or the generic
+            fallback) even when none is passed, and `.subtitle` and
+            `.marketSubtitle` are both absolute at top 559 — so without it the
+            two descriptions render on the same line, on top of each other. The
+            한복 picker already passes it for the same reason
+            (JejuHanbokSelect). A no-op on the other locations' headers. */}
+        <Header title={photoTitle} onHome={handleReset} subtitleHidden />
 
         <p className={styles.marketSubtitle}>{pick(MARKET_SUBTITLE, lang)}</p>
 

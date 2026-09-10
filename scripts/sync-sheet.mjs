@@ -11,12 +11,12 @@
  *   (W004 오색시장: *_Osaek tabs;  W005 화성휴게소: *_Hwaseong tabs — separate sheets)
  *   NationwideMarkets (전국시장, own sheet) → src/.../nationwideMarkets.generated.ts
  *
- * NOTE: VideoSubtitle_* is NOT generated here, with ONE exception. Subtitles are
+ * NOTE: VideoSubtitle_* is NOT generated here — for ANY location. Subtitles are
  * fetched live from the witteria API (SubtitleService → /api/kiosks/{id}/subtitles)
- * and cached in SQLite. The exception is 제주: ids 6/7/8 answer that endpoint with
- * no subtitle rows at all, so VideoSubtitle_귤이 → videoSubtitles-jeju.generated.ts
- * is generated as the floor under those three kiosks. The API still wins whenever
- * it has rows.
+ * and cached in SQLite; the API is the single source of truth. (제주 used to
+ * have a generated fallback table while its CMS carried no clips; retired
+ * 2026-09-11 — the renderer's normalizeClipIndexKeys now adapts the CMS's raw
+ * sheet-style playKeys instead.)
  *
  * Raw CSVs are cached under src/renderer/src/data/sheet-cache/ so the build
  * still works offline; pass --offline to regenerate from the cache only.
@@ -34,8 +34,8 @@ const HWASEONG_SHEET_ID = '14aWRWrJXPC_J-W4GpZqa_g-3fDjjUsy6BpAhDg8OvVU';
  *  Tabs: ShopData_Jeju · AICategory_Jeju · Localization_Jeju ·
  *  AirportFacilityData_Jeju ·
  *  VideoSubtitle_귤이 · VideoSubtitle_Jeju_유산 · three 규칙 reference tabs.
- *  ShopData is served by the shops API (kioskId=6); of the rest, everything but
- *  VideoSubtitle_Jeju_유산 (still carries no file names) is generated here.
+ *  ShopData is served by the shops API (kioskId=6) and the VideoSubtitle_* tabs
+ *  by the subtitles API (see NOTE above); the rest is generated here.
  *  Mirrored in the runtime sync
  *  (src/main/services/sync/GoogleSheetsSyncTransport.ts CONTENT_SHEETS). */
 const JEJU_SHEET_ID = '1A90MnKneWksKeL2zEcCUn75JKbnMFj7-OBmQsTkI72I';
@@ -666,181 +666,6 @@ ${body}
   return { count: facilities.length, dropped, chipOnly };
 }
 
-// ─── W006–W008 제주 AI모델 영상 자막 (VideoSubtitle_귤이) ──────────────────────
-//
-// The ONE VideoSubtitle tab that IS generated here. Every other location's is
-// not, because /api/kiosks/{n}/subtitles serves it — but the three 제주 kiosks
-// answer that endpoint with 21 buttons and ZERO subtitle rows (re-checked
-// 2026-09-09 for ids 6, 7 and 8), so without this table their second monitor
-// has no clip for any screen at all. SubtitleService still runs and still wins
-// the moment the CMS is populated; this is the floor under it, not a bypass.
-//
-// Row 0 is a banner ("운영팀> 1번 모니터> AI모델 영상 자막 + 우측상단 표기"), row 1
-// is the header. Columns are resolved BY NAME for the same reason PalaceInfo's
-// are: this tab carries TWO identical 8-language blocks (the subtitle line, then
-// the 우측상단 서브타이틀) and a positional read that slipped by one block would
-// put the right-hand caption under every clip without failing.
-
-/** Sheet language header → app code. The tab's own order is KR EN JP CN VN ID
- *  TH RU; resolving by name means a reorder cannot silently scramble it. */
-const JEJU_VS_LANGS = { KR: 'ko', EN: 'en', JP: 'ja', CN: 'zh', VN: 'vi', ID: 'id', TH: 'th', RU: 'ru' };
-
-/** The video sets a 제주 row may be scoped to — mirrors VIDEO_SETS in
- *  src/shared/types/subtitle.ts. */
-const JEJU_VIDEO_SETS = ['jeju-airport', 'jeju-terminal', 'jeju-heritage'];
-
-/**
- * Sheet `Key (개발)` → app playKey, for the rows where the two differ.
- *
- * Two kinds of entry live here:
- *   · TYPOS and prose spellings the app cannot match — `FlightInf-2`,
- *     `k=drama`, `Rent Car`, `To eat Market`.
- *   · `-N` suffixes that mean a DIFFERENT SCREEN rather than the next clip of
- *     the same one. Most do mean the next clip (`Default-1`…`-10` is the
- *     ten-clip 기본화면 rotation, `TaxFree-1`…`-4` the four TAX-FREE steps), and
- *     those are handled by the generic strip below. These few are not: the
- *     Condition column reads 관심사 선택 / 추천 코스 확인 for AISearch-2/-3, 숙소
- *     목록 / 숙소 상세 for ToStay-2/-3, and 이벤트 -> 카테고리 선택 for Event-3.
- *
- * The 취미생활 / 건강습관 sub-tabs (Greeting-2-N / Greeting-3-N) collapse onto the
- * app's two tab keys — the kiosk reports which TAB is open, not which sub-tab,
- * so all three clips of a tab cycle on it.
- */
-const JEJU_KEY_ALIASES = {
-  'FlightInf-2': 'FlightInfo',
-  'WITH Market': 'Market',
-  'Rent Car': 'RentCar',
-  'k=drama': 'KDrama',
-  'To eat Market': 'ToEat',
-  'To eat Market_Category': 'ToEat_Category',
-  'To eat Market_Detail': 'ToEat_Detail',
-  'AISearch-2': 'AISearch_Category',
-  'AISearch-3': 'AISearch_Detail',
-  'Event-3': 'Event_Category',
-  'ToStay-2': 'ToStay_Category',
-  'ToStay-3': 'ToStay_Detail',
-};
-
-/** Sheet key → app playKey. Aliases first, then the 취미/건강습관 sub-tab
- *  collapse, then the generic trailing clip index. */
-function jejuPlayKey(raw) {
-  const key = clean(raw);
-  if (JEJU_KEY_ALIASES[key]) return JEJU_KEY_ALIASES[key];
-  if (/^Greeting-2(-\d+)?$/.test(key)) return 'Greeting_Hobby';
-  if (/^Greeting-3(-\d+)?$/.test(key)) return 'Greeting_Stretching';
-  return key.replace(/-\d+$/, '');
-}
-
-/**
- * Header row → column indices. Throws rather than guessing, because every
- * failure mode here is silent: a missed 파일명 column yields entries with no
- * video (dropped, monitor stays on the attract loop) and a missed language block
- * yields the wrong caption under every clip.
- */
-function resolveJejuVideoCols(header) {
-  const at = (test) => header.findIndex((h) => test(clean(h)));
-  const key = at((h) => /^Key\b/i.test(h));
-  const fileDev = at((h) => /파일명/.test(h) && /개발/.test(h));
-  const fileOps = at((h) => /파일명/.test(h) && /운영/.test(h));
-  const folder = at((h) => /폴더/.test(h));
-
-  // Both 8-language blocks, in sheet order: the first is the subtitle line, the
-  // second the 우측상단 label.
-  const langCols = [];
-  header.forEach((raw, i) => {
-    const code = JEJU_VS_LANGS[clean(raw).toUpperCase()];
-    if (code) langCols.push({ code, i });
-  });
-  const main = langCols.slice(0, 8);
-  const rightTop = langCols.slice(8, 16);
-
-  const missing = [];
-  if (key < 0) missing.push('Key (개발)');
-  if (fileDev < 0) missing.push('파일명 (개발)');
-  if (main.length !== 8) missing.push(`subtitle languages (found ${main.length}/8)`);
-  if (rightTop.length !== 8) missing.push(`우측상단 languages (found ${rightTop.length}/8)`);
-  if (missing.length > 0) {
-    throw new Error(
-      `VideoSubtitle_귤이: could not locate [${missing.join(', ')}] by header name. The tab's ` +
-        `header row changed — update resolveJejuVideoCols / JEJU_VS_LANGS in scripts/sync-sheet.mjs. ` +
-        `Do NOT fall back to column positions.`,
-    );
-  }
-  return { key, fileDev, fileOps, folder, main, rightTop };
-}
-
-/** 8-language object from a resolved `[{code, i}]` block. ko/en/ja/zh are always
- *  emitted (SubtitleLangText requires them); vi/th/ru/id only when filled. */
-function jejuLangBlock(r, block) {
-  const out = { ko: '', en: '', ja: '', zh: '' };
-  for (const { code, i } of block) {
-    const v = clean(r[i]);
-    if (v || code in out) out[code] = v;
-  }
-  return out;
-}
-
-async function genVideoSubtitlesJeju() {
-  const rows = await loadTab('VideoSubtitle_귤이', JEJU_SHEET_ID);
-  const cols = resolveJejuVideoCols(rows[1] ?? []);
-
-  const entries = [];
-  let noVideo = 0;
-  let unknownFolder = 0;
-  rows.slice(2).forEach((r, i) => {
-    const rawKey = clean(r[cols.key]);
-    if (!rawKey || /^Key\b/i.test(rawKey)) return;
-    // 운영 (the name the file actually ships under) wins over 개발 once filled.
-    const file = (cols.fileOps >= 0 ? clean(r[cols.fileOps]) : '') || clean(r[cols.fileDev]);
-    if (!file) {
-      // A planned row whose clip has not been shot yet (위드마켓 and K-DRAMA as
-      // of 2026-09-09). Counted, not warned — the sheet is the backlog too.
-      noVideo += 1;
-      return;
-    }
-    const entry = {
-      key: jejuPlayKey(rawKey),
-      file,
-      subtitle: jejuLangBlock(r, cols.main),
-      label: jejuLangBlock(r, cols.rightTop),
-      sortOrder: i,
-    };
-    // `비디오 폴더명 (운영)` scopes a row to ONE venue's folder. Empty today, so
-    // every row is offered to all three 제주 kiosks and kept only where the video
-    // file is actually on that machine (initSubtitles' file-existence filter).
-    const folder = cols.folder >= 0 ? clean(r[cols.folder]) : '';
-    if (folder) {
-      if (JEJU_VIDEO_SETS.includes(folder)) entry.set = folder;
-      else {
-        console.warn(`  ! [jeju] "${rawKey}" names unknown video folder "${folder}" — ignoring`);
-        unknownFolder += 1;
-      }
-    }
-    entries.push(entry);
-  });
-
-  const body = entries.map((e) => `  ${JSON.stringify(e)},`).join('\n');
-  const out = `${BANNER}import type { VideoEntry } from '@shared/types/subtitle';
-
-/**
- * W006–W008 제주 AI-model clip subtitles, from the VideoSubtitle_귤이 tab.
- *
- * Used ONLY when /api/kiosks/{6,7,8}/subtitles returns no subtitle rows, which
- * is the case today — the CMS carries the 제주 buttons but none of their clips.
- * A populated API response wins outright; see CustomerDisplay.
- *
- * No entry has a buttonId (the sheet has no DB ids), so these resolve through
- * the screen→playKey map in videoMap.ts rather than the by-button path the API
- * rows use.
- */
-export const VIDEO_SUBTITLES_JEJU: VideoEntry[] = [
-${body}
-];
-`;
-  await writeFile(join(DATA_DIR, 'videoSubtitles-jeju.generated.ts'), out, 'utf8');
-  return { count: entries.length, noVideo, unknownFolder };
-}
-
 // ─── 전국시장 (nationwide markets) — single sheet, grouped by province ──────────
 async function genNationwideMarkets() {
   // Cols: 0 Num, 1 사진여부, 2-5 name ko/en/jp/cn, 6-9 province, 10-13 district,
@@ -899,18 +724,12 @@ async function main() {
     const locJ = await genLocalizationJeju();
     const catsJ = await genAiCategoriesJeju();
     const facJ = await genAirportFacilitiesJeju();
-    const vidJ = await genVideoSubtitlesJeju();
     console.log(`✓ [jeju] localization: ${locJ} keys`);
     console.log(`✓ [jeju] aiCategories: ${catsJ}`);
     console.log(
       `✓ [jeju] airportFacilities: ${facJ.count}` +
         `${facJ.chipOnly ? ` (${facJ.chipOnly} chip-only)` : ''}` +
         `${facJ.dropped ? ` (${facJ.dropped} dropped)` : ''}`,
-    );
-    console.log(
-      `✓ [jeju] videoSubtitles: ${vidJ.count}` +
-        `${vidJ.noVideo ? ` (${vidJ.noVideo} rows with no video yet)` : ''}` +
-        `${vidJ.unknownFolder ? ` (${vidJ.unknownFolder} unknown folder)` : ''}`,
     );
   } else {
     console.log('– [jeju] skipped (JEJU_SHEET_ID not set)');

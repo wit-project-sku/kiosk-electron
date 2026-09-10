@@ -507,6 +507,25 @@ export function JejuAbout({ controller }: Props): JSX.Element {
    * The cards. The map narrows them Airbnb-style once it is off its fitted view;
    * until then this is `visibleSpots` unchanged.
    */
+  /**
+   * Whether this kiosk's catalogue can be mapped AT ALL — not whether the
+   * current filter matched anything.
+   *
+   * The two are different and the map used to be gated on the wrong one
+   * (`mapSpots.length > 0`), so picking a 초성 with no attractions behind it took
+   * the map away with the cards. That reads as the page breaking: the map is
+   * this tab's furniture and the way back to the rest of the island, and the
+   * visitor loses it exactly when they need it to recover from a dead-end
+   * filter.
+   *
+   * Still gated on SOMETHING, because a kiosk running the `Shop` fallback
+   * catalogue has no coordinates on any row (see spotCoords) — there a map
+   * could never draw a pin, and the plain grid is what that kiosk has always
+   * had. Reading the UNFILTERED `spots` is what separates "this catalogue has
+   * no coordinates" from "this letter has no matches".
+   */
+  const mappable = useMemo(() => spots.some((s) => spotCoords(s) !== null), [spots]);
+
   const listedSpots = useMemo(() => {
     if (!mapIds) return visibleSpots;
     const inView = new Set(mapIds);
@@ -826,7 +845,10 @@ export function JejuAbout({ controller }: Props): JSX.Element {
                   once the visitor is reading the list rather than pinning 767px
                   of the panel open for the whole run. */}
               <div className={styles.spotColumn}>
-                {mapSpots.length > 0 && (
+                {/* `mappable`, NOT `mapSpots.length` — an empty 초성 keeps the map,
+                    which fitView already handles by centring on 제주 with no
+                    pins rather than fitting to nothing. */}
+                {mappable && (
                   <JejuSpotMap
                     spots={mapSpots}
                     activeId={pinned}

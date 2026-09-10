@@ -4,7 +4,6 @@ import { getKioskLocation, isJejuLayout } from '@shared/config/kioskLocations';
 import type { KioskId, KioskLayoutId } from '@shared/types/kiosk';
 import { pickText } from '@renderer/data/types';
 import { LEGACY_VIDEO_SETS, VIDEO_SETS, type VideoEntry, type VideoFilesBySet, type VideoSet } from '@shared/types/subtitle';
-import { VIDEO_SUBTITLES_JEJU } from '@renderer/data/videoSubtitles-jeju.generated';
 
 /**
  * Resolves the AI-model display videos for each kiosk screen, from that
@@ -113,13 +112,12 @@ function buildByButton(entries: VideoEntry[]): Map<number, VideoEntry[]> {
 }
 
 // Mutable maps, one per video set — populated by initSubtitles() when the API
-// responds. The API (via SQLite offline cache) is the source of truth for
-// subtitles wherever it HAS them. 제주 (W006–W008) is the one place it does not:
-// /api/kiosks/{6,7,8}/subtitles answer with 21 buttons and zero subtitle rows,
-// so those kiosks read the build-time table generated from VideoSubtitle_귤이
-// instead (see bundledSubtitles below). Empty until whichever source applies has
-// loaded, so a never-synced non-제주 kiosk with no network shows no clips until
-// it reaches the API once.
+// responds. The API (via its SQLite offline cache) is the ONLY source of
+// subtitle data — there is no bundled sheet fallback. Empty until it has
+// loaded, so a never-synced kiosk with no network shows no clips (the generic
+// attract wall) until it reaches the API once. 제주 (W006–W008) is currently in
+// that state in production: /api/kiosks/{6,7,8}/subtitles answers with 21
+// buttons and zero subtitle rows until the CMS rollout lands.
 let BY_KEY: Record<VideoSet, Map<string, VideoEntry[]>> = emptyBySet(() => new Map());
 
 // Same entries indexed by owning `buttons.id` — lets a top-level home tile resolve
@@ -183,9 +181,9 @@ export function initSubtitles(entries: VideoEntry[], kioskId?: KioskId): void {
   const dropped: string[] = [];
 
   for (const e of entries) {
-    // Sheet-sourced entries may name the ONE set they belong to (VideoSubtitle_귤이's
-    // `비디오 폴더명` column — one tab, three 제주 venues). Silently skip another
-    // venue's row: it is not a misconfiguration, so it must not warn.
+    // An entry may name the ONE set it belongs to (older SQLite-cached rows
+    // from the retired sheet table carried this; the API itself never does).
+    // Silently skip another venue's row: not a misconfiguration, so no warn.
     if (e.set && e.set !== set) continue;
     if (FILE_BY_NORM[set].has(norm(e.file))) matched.push(e);
     else dropped.push(`${e.key}=${e.file}`);
@@ -195,10 +193,9 @@ export function initSubtitles(entries: VideoEntry[], kioskId?: KioskId): void {
   // so a bad admin edit / a clip that never made it onto this machine is visible
   // instead of the subtitle just silently never appearing.
   //
-  // ONE grouped warning, not one per entry: 제주 kiosks are handed the whole
-  // VideoSubtitle_귤이 table (78 rows for all three venues) and load their
-  // footage folder by folder, so a machine mid-rollout would otherwise open with
-  // seventy near-identical console lines and bury everything else.
+  // ONE grouped warning, not one per entry: a machine mid-rollout can be missing
+  // dozens of files and would otherwise open with dozens of near-identical
+  // console lines that bury everything else.
   if (dropped.length > 0) {
     console.warn(
       `[videoMap] ${dropped.length}/${entries.length} subtitles dropped — no local video in "${set}"`,
@@ -232,18 +229,84 @@ export function initSubtitles(entries: VideoEntry[], kioskId?: KioskId): void {
 }
 
 /**
- * The build-time subtitle table for `kioskId`, or `[]` when that kiosk has none.
- *
- * A LAST RESORT, used only when `/api/kiosks/{n}/subtitles` came back with no
- * rows — the caller checks, this does not. Only 제주 has one: W006–W008 are the
- * kiosks whose CMS carries buttons but no clips, so without it their second
- * monitor plays nothing on any screen. Every other location's API answers with
- * its full VideoSubtitle tab, and giving them a stale bundled copy to fall back
- * on would hide a broken sync instead of showing it.
+ * 제주 CMS playKey → app playKey, for the rows where the suffix does NOT mean
+ * "the next clip of the same key". The CMS carries the sheet's keys verbatim,
+ * including its typos and its handful of `-N` suffixes that name a DIFFERENT
+ * SCREEN (the 재생조건 column reads 관심사 선택 / 추천 코스 확인 for
+ * AISearch-2/-3, 숙소 목록 / 숙소 상세 for ToStay-2/-3, 이벤트 → 카테고리 선택
+ * for Event-3). Every other `-N` really is the clip index (`Default-1`…`-10`,
+ * `TaxFree-1`…`-4`) and is handled generically below. Mirrors what
+ * scripts/sync-sheet.mjs's JEJU_KEY_ALIASES did at generation time; harmless
+ * when the CMS keys are already clean (nothing matches).
  */
-export function bundledSubtitles(kioskId?: KioskId): VideoEntry[] {
-  if (kioskId == null) return [];
-  return isJejuLayout(getKioskLocation(kioskId).layout) ? VIDEO_SUBTITLES_JEJU : [];
+const JEJU_API_KEY_ALIASES: Record<string, string> = {
+  'FlightInf-2': 'FlightInfo',
+  'WITH Market': 'Market',
+  'Rent Car': 'RentCar',
+  'k=drama': 'KDrama',
+  'To eat Market': 'ToEat',
+  'To eat Market_Category': 'ToEat_Category',
+  'To eat Market_Detail': 'ToEat_Detail',
+  'AISearch-2': 'AISearch_Category',
+  'AISearch-3': 'AISearch_Detail',
+  'Event-3': 'Event_Category',
+  'ToStay-2': 'ToStay_Category',
+  'ToStay-3': 'ToStay_Detail',
+};
+
+/**
+ * Normalize 제주 API playKeys to the form this module addresses.
+ *
+ * The CMS carries the sheet's keys verbatim — `Default-1`…`Default-10`,
+ * `TaxFree-1`…`-4` — where the trailing `-N` is the clip INDEX within one key,
+ * not a distinct key. Left unstripped, `Default` resolves nothing and every
+ * `Key#N` tab lookup misses. The suffix is also the ONLY reliable ordering:
+ * the API returns rows alphabetically (`Default-1`, `Default-10`, `Default-2`,
+ * …) with sortOrder 0 on every row — so it becomes the entry's sortOrder and
+ * each key's clips are re-sorted numerically (the home cycle and `Key#N`
+ * addressing both depend on it).
+ *
+ * Resolution per key: exact alias first (suffixes that mean a different
+ * screen, and typos — see JEJU_API_KEY_ALIASES), then the Greeting sub-tab
+ * collapse (`Greeting-2-N` → `Greeting_Hobby`, `-3-N` → `Greeting_Stretching`;
+ * the kiosk reports the TAB, not the sub-tab, so a tab's clips cycle on it),
+ * then the generic clip-index strip.
+ *
+ * 제주 layouts only: the `-N` convention is VideoSubtitle_귤이's, and other
+ * venues' live keys must not be rewritten on the chance one ends in a dash-number.
+ */
+export function normalizeClipIndexKeys(entries: VideoEntry[], kioskId?: KioskId): VideoEntry[] {
+  if (kioskId == null || !isJejuLayout(getKioskLocation(kioskId).layout)) return entries;
+
+  const normalizeOne = (e: VideoEntry): VideoEntry => {
+    const raw = e.key.trim();
+    const alias = JEJU_API_KEY_ALIASES[raw];
+    if (alias) return { ...e, key: alias };
+    let m = /^Greeting-2(?:-(\d+))?$/.exec(raw);
+    if (m) return { ...e, key: 'Greeting_Hobby', sortOrder: m[1] ? Number(m[1]) : e.sortOrder };
+    m = /^Greeting-3(?:-(\d+))?$/.exec(raw);
+    if (m) return { ...e, key: 'Greeting_Stretching', sortOrder: m[1] ? Number(m[1]) : e.sortOrder };
+    m = /-(\d+)$/.exec(raw);
+    if (m) return { ...e, key: raw.slice(0, -m[0].length), sortOrder: Number(m[1]) };
+    return raw === e.key ? e : { ...e, key: raw };
+  };
+
+  // Group by normalized key (first-appearance order), sorting each key's clips
+  // by their index. Cross-key order is irrelevant (buildByKey regroups), but
+  // within-key order is what the home cycle and `Key#N` addressing read.
+  const groups = new Map<string, VideoEntry[]>();
+  for (const e of entries) {
+    const n = normalizeOne(e);
+    const list = groups.get(n.key) ?? [];
+    list.push(n);
+    groups.set(n.key, list);
+  }
+  const out: VideoEntry[] = [];
+  for (const list of groups.values()) {
+    list.sort((a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0));
+    out.push(...list);
+  }
+  return out;
 }
 
 function clipsForKey(
@@ -368,10 +431,10 @@ const HWASEONG_SCREEN_TO_VIDEO_KEY: Record<string, string> = {
  * 교통안내 have no 제주 one), so falling through to the Insadong names would map
  * screens this venue does not have and miss the ones it does.
  *
- * The sheet's `-N` suffixes are the CLIP INDEX within one key, not distinct
- * keys — `Default-1`…`Default-10` is the ten-clip 기본화면 rotation — so the
- * generator strips them (see scripts/sync-sheet.mjs JEJU_KEY_ALIASES) and the
- * names below are the stripped forms.
+ * The CMS's `-N` suffixes are the CLIP INDEX within one key, not distinct
+ * keys — `Default-1`…`Default-10` is the ten-clip 기본화면 rotation — so
+ * normalizeClipIndexKeys strips them at load (see JEJU_API_KEY_ALIASES for the
+ * exceptions) and the names below are the stripped forms.
  *
  * Deliberately absent, because no 제주 screen reports them: `Donation_Category` /
  * `Donation_Detail` (기부 is a fullscreen webview, and its three sheet rows all
@@ -639,7 +702,12 @@ export function clipsForScreen(
 
   // Top-level home button → resolve its clip by DB id (API-driven). Sub-state
   // screens (category/detail/hello tabs) carry no buttonId, so they skip this.
-  if (buttonId != null) {
+  //
+  // NOT on 제주: its sheet files several tab/stage clips under one key and the
+  // screen map addresses them by position (`TaxFree#1`, `Here#2`, …) per the
+  // 재생조건 column. The by-button path would return the whole key group — all
+  // four TAX-FREE stage clips cycling on entry — so the map stays authoritative.
+  if (buttonId != null && !isJejuLayout(layoutOf(kioskId))) {
     const byId = clipsForButton(buttonId, lang, set);
     if (byId.length > 0) return byId;
     // else fall through: this button has no API-associated clip → legacy map.

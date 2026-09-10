@@ -73,9 +73,10 @@ export class SubtitleService {
       this.cache.upsert(CACHE_KEY, { entries }, 'subtitles');
       log.info('Subtitles loaded from API', { count: entries.length });
     } catch (err) {
-      // Keep whatever we hydrated from cache; renderer falls back to bundled
-      // static data only if there is nothing cached either.
-      log.warn('Subtitle fetch failed (keeping cached/static)', { error: String(err) });
+      // Keep whatever we hydrated from cache. There is no bundled fallback —
+      // with nothing cached either, the customer display shows the generic
+      // uncaptioned attract wall until the API is reachable.
+      log.warn('Subtitle fetch failed (keeping cached)', { error: String(err) });
     }
   }
 }

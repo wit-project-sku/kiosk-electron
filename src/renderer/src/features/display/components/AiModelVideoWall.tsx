@@ -78,6 +78,22 @@ export function AiModelVideoWall({
       eng.current.cleanup();
       eng.current.cleanup = null;
     }
+
+    // The front layer is already playing this exact file (screens often share a
+    // clip — e.g. two pages that both resolve Default): adopt the new list in
+    // place instead of reloading the same bytes into the back layer. The switch
+    // is instant, the video doesn't restart, and only the caption swaps.
+    const frontEl = elOf(frontLayer);
+    if (frontEl && frontEl.src === clip.url) {
+      frontEl.loop = !playOnce && list.length <= 1;
+      if (frontEl.paused) void frontEl.play().catch(() => {});
+      eng.current.clips = list;
+      eng.current.index = index;
+      setActive(clip);
+      preloadNext(frontLayer, list, index);
+      return;
+    }
+
     el.loop = !playOnce && list.length <= 1;
     if (el.src !== clip.url) {
       el.src = clip.url;
@@ -92,11 +108,30 @@ export function AiModelVideoWall({
       setActive(clip);
       preloadNext(back, list, index);
     };
-    if (el.readyState >= 3 /* HAVE_FUTURE_DATA */) {
+    if (el.readyState >= 2 /* HAVE_CURRENT_DATA */) {
       reveal();
     } else {
-      el.addEventListener('canplay', reveal, { once: true });
-      eng.current.cleanup = () => el.removeEventListener('canplay', reveal);
+      // loadeddata + canplay: whichever the decoder reports first reveals — on
+      // local files loadeddata often lands noticeably before canplay, which is
+      // the difference between an instant cut and a visible wait.
+      const handlers: Array<[keyof HTMLVideoElementEventMap, () => void]> = [];
+      const detach = (): void => {
+        for (const [ev, fn] of handlers) el.removeEventListener(ev, fn);
+        eng.current.cleanup = null;
+      };
+      const onReady = (): void => {
+        detach();
+        reveal();
+      };
+      const onError = (): void => {
+        detach();
+        // A broken/missing file must not wedge the wall: give up on this
+        // transition and keep whatever is playing.
+        console.warn('[wall] clip failed to load — keeping the current video', clip.url);
+      };
+      handlers.push(['loadeddata', onReady], ['canplay', onReady], ['error', onError]);
+      for (const [ev, fn] of handlers) el.addEventListener(ev, fn);
+      eng.current.cleanup = detach;
     }
   };
 
@@ -137,6 +172,11 @@ export function AiModelVideoWall({
 
   const onEnded = (layer: 'a' | 'b'): void => {
     if (layer !== front) return; // only the visible layer advances the cycle
+    // A screen-change transition is mid-load on the back layer: let it finish
+    // instead of hijacking that buffer for the OLD list's next clip. Without
+    // this the wall kept cycling the previous screen's videos whenever a clip
+    // ended during the load — which read as the switch taking seconds.
+    if (eng.current.cleanup) return;
     const list = eng.current.clips;
     // One-shot list (the weather clip): walk to the end, then hand back.
     if (playOnce) {

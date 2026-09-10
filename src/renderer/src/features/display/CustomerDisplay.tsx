@@ -11,7 +11,7 @@ import { usePhotoStore } from '@renderer/store/photoStore';
 import { trackEvent } from '@renderer/lib/analytics';
 import { displayVideosFor } from '@renderer/assets/videos';
 import { cameraIconUrl } from '@renderer/assets/icons/insadong/camera';
-import { bundledSubtitles, clipsForPlayKey, clipsForScreen, initSubtitles, initVideoFiles } from '@renderer/lib/videoMap';
+import { clipsForPlayKey, clipsForScreen, initSubtitles, initVideoFiles, normalizeClipIndexKeys } from '@renderer/lib/videoMap';
 import { getCameraRotation, getKioskLocation, isJejuLayout } from '@shared/config/kioskLocations';
 import { PHOTO_COUNTDOWN_SECONDS } from '@shared/constants/photoOptions';
 import type { WeatherPlayKey } from '@shared/config/weatherVideo';
@@ -104,17 +104,18 @@ export function CustomerDisplay(): JSX.Element {
       // first. Needs the resolved kioskId so entries land in the right set.
       // Bump dataVersion afterwards so the clip lookups recompute.
       //
-      // The API wins whenever it HAS rows. It does not for 제주 (W006–W008):
-      // /api/kiosks/{6,7,8}/subtitles answers with buttons and an empty subtitle
-      // list, so those fall back to the table generated from VideoSubtitle_귤이.
-      // The check is on rows, not on the request succeeding — an offline kiosk
-      // whose SQLite cache is also empty is the same situation.
+      // The API (via its SQLite offline cache) is the ONLY subtitle source —
+      // the Google-Sheet fallback table is retired. 제주 playKeys arrive in the
+      // CMS's raw sheet form (`Default-1`…`-10`, alias keys), so they are
+      // normalized to the keys this app addresses before loading. If the API
+      // has no rows (제주's CMS is empty until its rollout lands), the display
+      // falls back to the generic uncaptioned attract wall.
       void (async () => {
         const vr = await window.api.videos.list();
         if (isOk(vr) && vr.value) initVideoFiles(vr.value);
         const sr = await window.api.subtitles.get();
         const fromApi = isOk(sr) && sr.value ? sr.value : [];
-        const entries = fromApi.length > 0 ? fromApi : bundledSubtitles(id);
+        const entries = normalizeClipIndexKeys(fromApi, id);
         if (entries.length > 0) initSubtitles(entries, id);
         setDataVersion((v) => v + 1);
       })();
@@ -174,8 +175,11 @@ export function CustomerDisplay(): JSX.Element {
       });
     }
   }, [weatherKey, weatherClips.length, kioskId]);
-  // Osaek (W004) and Hwaseong (W005) don't use the PARK SUL NYEO brand logo.
-  const noBrandLogo = kioskId === 'W004' || kioskId === 'W005';
+  // The PARK SUL NYEO brand logo belongs to the 인사동 kiosks (W001–W003) only —
+  // every other venue (Osaek, Hwaseong, 제주, KADA) shows no brand mark on the
+  // video wall.
+  const kioskLayout = kioskId ? getKioskLocation(kioskId as KioskId).layout : null;
+  const noBrandLogo = kioskLayout !== 'INSADONG' && kioskLayout !== 'NAM_INSADONG';
   // Generic-wall fallback for the active kiosk's video set (W004 → osaek): every
   // file in the folder, with no captions, shown when no subtitle entry resolved.
   //

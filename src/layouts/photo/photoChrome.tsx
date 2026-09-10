@@ -61,6 +61,24 @@ export interface PhotoChrome {
  * right assets/header from the active kiosk layout. Osan/Hwaseong reuse insadong's
  * hanbok CONTENT (outfit images) but their own THEME (bg/header/icons/colours).
  */
+/**
+ * Photo-flow icon name → the 제주 asset that actually carries that art.
+ *
+ * The rail asks for insadong's names (`home-btn` / `back-arrow`), 제주 ships
+ * neither, and the resolver below falls through to insadong — which draws its
+ * home button as a SOLID #fe6c50 coral disc. Beside 제주's own ♿ button in
+ * #ff7f0f, the rail read as one button in the wrong brand colour.
+ *
+ * 제주 does have the pair, under the names its header uses: hdr-home.svg is
+ * filled #FF7F0F and hdr-back.svg is the white outline twin. Aliasing here fixes
+ * every photo screen that draws the rail, not just the one it was noticed on,
+ * and leaves the other locations untouched.
+ */
+const JEJU_PHOTO_ICON_ALIASES: Record<string, string> = {
+  'home-btn': 'hdr-home',
+  'back-arrow': 'hdr-back',
+};
+
 export function usePhotoChrome(): PhotoChrome {
   const kioskId = useKioskStore((s) => s.config.kioskId);
   const layout = getKioskLocation(kioskId).layout;
@@ -74,7 +92,7 @@ export function usePhotoChrome(): PhotoChrome {
     : isHwaseong
       ? (name: string) => hwaseongIconUrl(name) ?? iconUrl(name)
       : isJeju
-        ? (name: string) => jejuIconUrl(name) ?? iconUrl(name)
+        ? (name: string) => jejuIconUrl(JEJU_PHOTO_ICON_ALIASES[name] ?? name) ?? iconUrl(name)
         : isKada
           ? // KADA ships no AR-screen art of its own — only the home furniture in
             // assets/icons/kada. Everything the capture/result steps ask for
