@@ -19,7 +19,7 @@ const log = createLogger('shop-normalize');
  * entry point for this data and roughly a dozen screens reading it, and the next
  * screen someone writes will not remember to guard. Fields the type declares as
  * `string | null` (baseCategory / secondCategory / aiCategory / openTime / tel /
- * naverLink / naverRating) are left alone — their null is meaningful and the
+ * naverLink / homepage / naverRating) are left alone — their null is meaningful and the
  * filters compare against it.
  */
 

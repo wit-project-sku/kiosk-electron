@@ -16,7 +16,7 @@
   gap: 50px;
   overflow-x: hidden;
   overflow-y: auto;
-  /* The 34.32 scrollbar is carved out of the right margin so the content column
+  /* The 28px scrollbar is carved out of the right margin so the content column
      stays exactly 1820 — same trick as JejuListScreen. */
   padding: 0 136px 80px 170px;
 }
@@ -47,12 +47,12 @@
 }
 
 .scroll::-webkit-scrollbar {
-  width: 34.32px;
+  width: 28px;
 }
 
 .scroll::-webkit-scrollbar-thumb {
   background: var(--kiosk-primary, #ff7f0f);
-  border-radius: 17.16px;
+  border-radius: 14px;
 }
 
 .scroll::-webkit-scrollbar-track {

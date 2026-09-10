@@ -377,12 +377,12 @@
 /* House scrollbar. Figma insets it 40px from the panel edge; a CSS scrollbar
    always rides the padding-box edge, so it sits flush instead. NORMALISED. */
 .dropdown::-webkit-scrollbar {
-  width: 34.32px;
+  width: 28px;
 }
 
 .dropdown::-webkit-scrollbar-thumb {
   background: var(--kiosk-primary, #ff7f0f);
-  border-radius: 17.16px;
+  border-radius: 14px;
 }
 
 .dropdown::-webkit-scrollbar-track {
@@ -613,12 +613,12 @@
 }
 
 .liveScroll::-webkit-scrollbar {
-  width: 34.32px;
+  width: 28px;
 }
 
 .liveScroll::-webkit-scrollbar-thumb {
   background: var(--kiosk-primary, #ff7f0f);
-  border-radius: 17.16px;
+  border-radius: 14px;
 }
 
 .liveScroll::-webkit-scrollbar-track {

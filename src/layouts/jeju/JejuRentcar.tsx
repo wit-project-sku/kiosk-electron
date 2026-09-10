@@ -317,6 +317,7 @@ export function JejuRentcar({ controller }: Props): JSX.Element {
       rating: '',
       instagram: '',
       blogReviews: shop.naverLink ?? '',
+      homepageUrl: shop.homepage?.trim() || undefined,
       rentcarGuide: {
         modeLabel: shopRentcarGuideModeLabel(shop, lang),
         distanceKm: shopRentcarGuideDistanceKm(shop),
