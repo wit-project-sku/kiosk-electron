@@ -38,6 +38,18 @@
  * it isn't drawing a game in progress. Those live in the empty band under the
  * pictures and at the two ends of the progress line — see the CSS header.
  *
+ * ── ♿ 베리어프리 (Figma 6980:17652) ─────────────────────
+ * The ♿ control on the left rail now has a layout to switch to. It was drawn
+ * and wired here from the start, but only ever chose its own icon — pressing it
+ * toggled the store and left this screen on the standing layout, which is the
+ * one thing a low-reach visitor could not use.
+ *
+ * The frame is the fleet's banner variant: mode bar at y0, the 573 promo moved
+ * from the foot to flush under it, the header under the banner, and the body
+ * dropped into reach. All of it lives in the CSS's `.rootLowReach` block; what
+ * the markup decides is only that the bar exists. The left rail does NOT move —
+ * the frame keeps it at y2163, where it already was.
+ *
  * ── Nothing here may throw the photo away ─────────────────────────────
  * Two departures from every other 제주 page, both the same rule: while the AI is
  * working, this screen has no destructive exit.
@@ -54,12 +66,30 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import type { CSSProperties, PointerEvent as ReactPointerEvent } from 'react';
 import { Lightbulb, Heart, Timer } from 'lucide-react';
 import type { SpotDiffRound, SpotDiffSpot } from '@shared/types/spotDiff';
-import { pick, useLang } from '@renderer/lib/i18n';
+import { pick, useLang, type Lang } from '@renderer/lib/i18n';
+import { sheetText } from '@renderer/lib/loc';
 import { trackEvent } from '@renderer/lib/analytics';
 import { useKioskStore } from '@renderer/store/kioskStore';
 import { useAccessibilityStore } from '@renderer/store/accessibilityStore';
 import { usePhotoChrome } from '../photo/photoChrome';
+import { modeBarVars } from './lowReach';
 import styles from './JejuSpotDiffGame.module.css';
+
+/**
+ * The ♿ bar's copy. Sheet-first (`BarrierFree_Title`) with this as the
+ * fallback, exactly as JejuHanbokSelect does it — the same one string on every
+ * 제주 low-reach screen, so it must not drift between them.
+ */
+const BARRIER_FREE: Partial<Record<Lang, string>> = {
+  ko: '지금은 배리어프리 모드입니다.',
+  en: 'Currently in Barrier-Free Mode.',
+  ja: '現在はバリアフリーモードです。',
+  zh: '现在是无障碍模式。',
+  vi: 'Hiện tại là chế độ không rào cản.',
+  th: 'ขณะนี้อยู่ในโหมดไร้อุปสรรค',
+  ru: 'В настоящее время используется безбарьерный режим.',
+  id: 'Saat ini dalam mode bebas hambatan.',
+};
 
 /** Wrong taps allowed before the round is lost. */
 const MAX_LIVES = 5;
@@ -613,23 +643,38 @@ export function JejuSpotDiffGame({ rounds, aiReady, onFinish, onHome }: Props): 
   );
 
   return (
-    <div className={styles.root}>
+    <div
+      className={`${styles.root} ${lowReach ? styles.rootLowReach : ''}`}
+      style={modeBarVars}
+    >
       {/* `bg-page` is the illustrated 제주 plate 6258:78631 draws; `bg` is the
           BLANK #faf7f2 one the home screen uses. Both resolve and both are
           2160×3840, so asking for the wrong one loses the artwork silently —
           same slip as JejuHanbokSelect had. `bg` stays as the fallback. */}
       {pageBg && <img className={styles.bg} src={pageBg} alt="" draggable={false} />}
 
+      {/* ♿ 6980:17652 — the bar the whole low-reach stack hangs off. The header
+          follows it down through `--jeju-shift` (see .rootLowReach in the CSS);
+          everything else is re-placed there against the frame's own y map. */}
+      {lowReach && (
+        <div className={styles.modeBar}>{sheetText('BarrierFree_Title', lang, BARRIER_FREE)}</div>
+      )}
+
       <Header title={photoTitle} onHome={onHome} onBack={onHome} navDisabled={navLocked} />
 
       {/* ── Left rail: 홈 · 뒤로 · ♿ (6258:78631, x50/y2163) ──
           홈 and 뒤로 carry `navLocked` exactly as the header's pair does — while
-          the photo is generating a tap there would discard it. The ♿ toggle is
-          never locked: it throws nothing away.
+          the photo is generating a tap there would discard it. Both the
+          `disabled` attribute AND a nulled `onClick`: a disabled button
+          dispatches no click at all, so the lock does not depend on anything
+          sitting over the rail. (It briefly LOOKED like it did — `.board` was
+          covering all three buttons until `.leftNav` got its z-index; see the
+          CSS. That covered the ♿ toggle too, which is the one control here
+          that is never locked, because it throws nothing away.)
 
-          As on the 위드마켓 result, the toggle does not reflow THIS screen — the
-          game has no low-reach layout — but the flag is global and the icon
-          swaps to its active art, so the press is acknowledged. */}
+          The toggle now reflows this screen — 6980:17652, see `.rootLowReach`.
+          It used to only swap its own icon, which is what the 위드마켓 result
+          still does. */}
       <div className={styles.leftNav}>
         <button
           type="button"

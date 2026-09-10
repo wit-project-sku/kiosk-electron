@@ -182,13 +182,19 @@ export function JejuDetail({ controller }: Props): JSX.Element {
       subtitle={chrome.subtitle ?? detailSubtitle(lang)}
       subtitleColor={chrome.subtitleColor}
       /* The 다음 장소 stack can run past y3267, so the page gives the banner up
-         whenever it draws one — the same trade the AI search page makes.
-         Help keeps showBanner off in standing layout but asks for the promo
-         in ♿ via lowReachBanner (see drawBanner). */
-      showBanner={!next && !isHelp}
+         whenever it draws one — the same trade the AI search page makes. That
+         is the ONLY reason a 상세 page goes without one now.
+         ★ 도와줘 상세 used to be a second reason (`!isHelp`), from the frame that
+         ran the background illustration to the foot. The redraw puts the promo
+         back — 6219:99127 draws it at y3267, 2160×573, under the 15px #f49c56
+         rule that is already baked into banner-detail.png's top edge — which is
+         the same change JejuHelp's own list page took. `lowReachBanner` went
+         with it: that flag exists for a page with NO banner normally, and help
+         now has one in both layouts. `next` is never set from help (only the AI
+         course sets courseNext), so this is unconditional there. */
+      showBanner={!next}
       bannerFallback="banner-detail"
       onBack={goBack}
-      lowReachBanner={isHelp}
       lowReachModeBar
       lowReachBarBanner={isHelp}
       lowReachShift={isHelp ? belowModeBar(LOW_REACH_BANNER_HEIGHT) : MODE_BAR}

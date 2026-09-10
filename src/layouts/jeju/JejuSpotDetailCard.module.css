@@ -231,11 +231,23 @@
   pointer-events: none;
 }
 
-/* Help detail with an in-card floor plan — grow past the default 2133 plate. */
+/*
+ * Help detail with an in-card floor plan — grow past the default 2133 plate.
+ *
+ * ★ 2567, not the 2906 this carried. 6219:99127's card node reports an outer
+ * 1781 and an inner 2906, neither of which is what it DRAWS: the 1:1 render puts
+ * the white plate at 700…3265.8, so the plate is 2567 and its foot is exactly
+ * where the promo banner starts (y3267). 2906 let the card run 339px under the
+ * banner — invisible only for as long as the page drew no banner, which is the
+ * bug this pairs with (see showBanner in JejuDetail).
+ *
+ * ♿ is unaffected: JejuDetail hands that layout its own 2318 inline, and an
+ * inline max-height beats this one.
+ */
 .cardWithMap {
   height: auto;
   min-height: 2133px;
-  max-height: 2906px;
+  max-height: 2567px;
   overflow-x: hidden;
   overflow-y: auto;
 }

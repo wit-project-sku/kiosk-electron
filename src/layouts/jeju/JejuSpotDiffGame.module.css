@@ -116,6 +116,24 @@
   display: flex;
   flex-direction: column;
   gap: 35px;
+  /*
+   * ★ ABOVE the board, or the rail is not tappable at all.
+   *
+   * `.board` is `left: 0; width: 2160px` — full-bleed, so its transparent
+   * gutters reach over this rail — and it comes AFTER the rail in the markup.
+   * Two positioned siblings with no z-index between them means the later one
+   * wins, so the board was swallowing every tap on the rail:
+   *
+   *   standing  board 1286…2482 vs rail 2163…2488 → 홈 and 뒤로 fully covered,
+   *             ♿ covered for 79 of its 85px (only 2482…2488 responded)
+   *   ♿        board 2016…3212 → all three buttons covered outright
+   *
+   * It read as a ♿-only bug because 홈 and 뒤로 are deliberately inert while
+   * the photo generates (`navLocked`), so nobody could tell they were dead for
+   * a second reason. 4 keeps the rail over the board and the mode bar (3) and
+   * under the outcome overlay (10), which must still cover it.
+   */
+  z-index: 4;
 }
 
 .leftNavBtn {
@@ -256,9 +274,26 @@
      this element by the component; these two resolve the plate's box once so
      the arithmetic is written down in exactly one place. */
   --sd-slot-w: 818px;
-  /* 1774 = 3060 (top of the actions row) − 1286, so a very tall round cannot
-     grow down into the buttons. The frame's own art resolves to 1196. */
-  --sd-slot-h: min(1774px, calc(818px / var(--sd-aspect)));
+  /*
+   * PINNED to the frame's 1196, so the pair is always the 1703×1196 board
+   * 6980:17652 draws (131/92) — two 818 plates and the 67 gap.
+   *
+   * It was derived from the round's own art (`818 / --sd-aspect`) to avoid grey
+   * letterboxing, but that traded a fixed layout for a jumping one: a 4/3 round
+   * resolved to 613 and the board rendered barely half its drawn height, sitting
+   * high with a hole beneath it. A stable board reads better than a snug one on
+   * a screen the visitor only looks at for 60s.
+   *
+   * The PICTURE is untouched by this — `.panel` below still fits inside the
+   * plate by arithmetic and holds `--sd-aspect` exactly. That is not cosmetic:
+   * `hitSpot()` maps a tap through `round.aspect`, so a picture stretched or
+   * cropped to the plate would land every tap on the wrong place. A round whose
+   * art is not 0.684 letterboxes inside the plate instead, which is the right
+   * trade — grey edges cost nothing, a broken hit test costs the game.
+   *
+   * 1286 + 1196 = 2482, still clear of the actions row at 3060.
+   */
+  --sd-slot-h: 1196px;
 }
 
 .slot {
@@ -497,6 +532,94 @@
   object-fit: cover;
   display: block;
 }
+
+/* ── ♿ 베리어프리 (Figma 6980:17652) ──────────────────────
+ *
+ * The ♿ button on the left rail finally has a layout to switch to — until now
+ * it toggled the store and this screen carried on drawing the standing one.
+ *
+ * The shape is the fleet's banner variant: the mode bar takes y0, the 573 promo
+ * moves from the FOOT to flush under it, and the header lands under the banner
+ * at bar + 573 — the same stack 도와줘 상세 and the 도와줘 list use, so the
+ * offset is composed from lowReach.ts rather than re-measured here. The header
+ * follows on its own: JejuHeader's `top` reads `--jeju-shift`.
+ *
+ * y map (from the frame):
+ *      0…146    mode bar
+ *    146…719    banner — flush under the bar
+ *    719…1419   header (Component 29, 700 tall)
+ *   1419…1524   ③ 잠시만 기다려주세요! — FLUSH under the header, where the
+ *                standing frame leaves a 200px gap
+ *   1677…1742   기다리는 동안 틀린 그림을 찾아보세요!
+ *   1790…1855   n/5 progress
+ *   2016…3212   the 1703×1196 board (x230 — the same centred pair)
+ *   2163…2488   left rail — UNCHANGED, it was already within reach
+ *
+ * The three body rows all move by exactly +730 off their standing y; only the
+ * step row does not, because the frame closes the gap under the header there.
+ */
+.rootLowReach {
+  /* JejuHeader's own `top` reads this, so the header block follows the bar and
+     the banner down without this file knowing anything about its internals. */
+  --jeju-shift: calc(var(--jeju-mode-bar) + 573px);
+}
+
+.modeBar {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 2160px;
+  /* Shared with home, JejuPageFrame and JejuHanbokSelect — see lowReach.ts. */
+  height: var(--jeju-mode-bar);
+  z-index: 3;
+  background: var(--kiosk-primary, #ff7f0f);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 68px;
+  font-weight: 700;
+  line-height: 1;
+  color: #fff;
+}
+
+/* The promo leaves the foot for the band under the bar. It stays inert here for
+   the same reason it is inert in the standing layout — see `.banner`. */
+.rootLowReach .banner {
+  top: var(--jeju-mode-bar);
+}
+
+.rootLowReach .step {
+  top: 1419px;
+}
+
+.rootLowReach .prompt {
+  top: 1677px;
+}
+
+.rootLowReach .status {
+  top: 1790px;
+}
+
+.rootLowReach .board {
+  top: 2016px;
+}
+
+/*
+ * ★ NOT from the frame — 6980:17652 is one static state and draws no 힌트 /
+ * 그만하기 row, exactly as the standing frame draws none.
+ *
+ * The band under the board (3212…3840) is free because the promo has gone to
+ * the top, and low-reach exists to put controls where a seated visitor can
+ * reach them — so the row goes LOW in it rather than tucking under the board.
+ * 3557 is the one y the fleet has already agreed on for a primary action row in
+ * this mode (JejuHanbokSelect's ♿ capture row, 6327:85598), so it is borrowed
+ * rather than invented: 3557…3707, clear of the board by 345 and of the foot
+ * by 133. Replace with the real thing if a frame for this state lands.
+ */
+.rootLowReach .actions {
+  top: 3557px;
+}
+
 
 /* ── Outcome overlay ────────────────────────────────────────────────────
    No frame for this state; built from the same tokens as the rest. */
