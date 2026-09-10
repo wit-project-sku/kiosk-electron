@@ -16,9 +16,11 @@ import { useEffect, useRef, useState } from 'react';
 import { QRCodeSVG } from 'qrcode.react';
 import type { KioskController } from '@renderer/hooks/useKioskController';
 import { useLanguageStore } from '@renderer/store/languageStore';
+import { useAccessibilityStore } from '@renderer/store/accessibilityStore';
 import { pick } from '@renderer/lib/i18n';
 import { trackEvent } from '@renderer/lib/analytics';
 import { JejuPageFrame } from './JejuPageFrame';
+import { belowModeBar } from './lowReach';
 import styles from './JejuWebScreen.module.css';
 
 /** The slice of Electron's WebviewTag this screen drives. */
@@ -193,6 +195,15 @@ export function JejuWebScreen({
   showBanner = true,
 }: Props): JSX.Element {
   const lang = useLanguageStore((s) => s.currentLanguage);
+  /*
+   * ♿ is scoped to the 탐나오&제주큐랑 composition (6778:69905), which is the
+   * only shape with a low-reach frame — the same flag that already selects this
+   * screen's other 탐나오-specific metrics. WIT Store keeps ♿ as the no-op it
+   * has always been here: it has no low-reach frame yet, and inventing one would
+   * mean guessing where its panel goes.
+   */
+  const lowReach = useAccessibilityStore((s) => s.lowReach);
+  const lowTamnao = lowReach && showMobileQr;
   /* One code path for both shapes: a screen without `tabs` is a screen with one
      unlabelled site, and the row below only draws when there is a choice. */
   const landing: EmbedTab = tabs?.[0] ?? { id: 'main', label: '', url };
@@ -224,9 +235,15 @@ export function JejuWebScreen({
       showBanner={showBanner}
       bannerFallback="banner-detail"
       onBack={() => controller.navigate('home', '뒤로')}
+      /* Header flush under the bar (the frame's y146), and the body left
+         unshifted — the three blocks below carry the frame's own absolute
+         tops rather than riding a single offset, because two of them swap
+         ends between the layouts. */
+      lowReachModeBar={showMobileQr}
+      lowReachShift={belowModeBar()}
     >
       {sites.length > 1 && (
-        <div className={styles.tabs}>
+        <div className={`${styles.tabs} ${lowTamnao ? styles.tabsLow : ''}`}>
           {sites.map((t) => (
             <button
               key={t.id}
@@ -240,7 +257,11 @@ export function JejuWebScreen({
         </div>
       )}
 
-      <div className={`${styles.body} ${showMobileQr ? styles.bodyTamnao : ''}`}>
+      <div
+        className={[styles.body, showMobileQr ? styles.bodyTamnao : '', lowTamnao ? styles.bodyTamnaoLow : '']
+          .filter(Boolean)
+          .join(' ')}
+      >
         {sites.some((t) => t.url) ? (
           sites.map((t) => (
             <EmbedPane
@@ -260,7 +281,7 @@ export function JejuWebScreen({
       </div>
 
       {showMobileQr && activeUrl && (
-        <div className={styles.qrRow}>
+        <div className={`${styles.qrRow} ${lowTamnao ? styles.qrRowLow : ''}`}>
           <div className={styles.qrDivider} />
           <p className={styles.qrText}>{pick(MOBILE_QR, lang)}</p>
           <div className={styles.qrBox}>

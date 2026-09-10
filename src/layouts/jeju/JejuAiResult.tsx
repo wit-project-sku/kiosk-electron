@@ -20,6 +20,7 @@ import { localizeJejuAiPick } from '@renderer/lib/jejuAiPicksLabel';
 import { sheetText } from '@renderer/lib/loc';
 import { JejuPageFrame } from './JejuPageFrame';
 import styles from './JejuAiResult.module.css';
+import { belowModeBar, LOW_REACH_BANNER_HEIGHT } from './lowReach';
 
 interface Props {
   controller: KioskController;
@@ -244,9 +245,10 @@ export function JejuAiResult({ controller }: Props): JSX.Element {
   };
 
   return (
-    /* Mode-bar revision with the promo kept under the bar — header at y686.
-       Body shift +623 pulls the block up 80px so the subtitle sits closer to
-       the pills (~41px); cards at y1546 / y2306 / y3063. */
+    /* Mode-bar revision with the promo kept under the bar — header flush under
+       it at bar + 573 (the frame's y686). The body shift rides 63px HIGHER than
+       the header so the subtitle sits closer to the pills (~41px); the frame's
+       623 against its 113 bar. Cards at y1546 / y2306 / y3063. */
     <JejuPageFrame
       controller={controller}
       title="'제주' 뭐하지 (AI 검색)"
@@ -255,8 +257,8 @@ export function JejuAiResult({ controller }: Props): JSX.Element {
       onBack={() => controller.navigate('ai_search', '뒤로')}
       lowReachModeBar
       lowReachBarBanner
-      lowReachShift={686}
-      lowReachBodyShift={623}
+      lowReachShift={belowModeBar(LOW_REACH_BANNER_HEIGHT)}
+      lowReachBodyShift={belowModeBar(LOW_REACH_BANNER_HEIGHT - 63)}
     >
       {picks.length > 0 && (
         <div className={`${styles.picks} ${lowReach ? styles.picksLow : ''}`}>

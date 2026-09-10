@@ -9,8 +9,11 @@
  *    794…899   ③ 잠시만 기다려주세요!            (step row, left 180)
  *    947…1012  기다리는 동안 틀린 그림을 찾아보세요!  (#FF7F0F, centred)
  *   1060…1125  n/5 progress                     (centred)
- *   1200…2072  picture A  — 1730×872, r40, #d9d9d9 plate
- *   2166…3038  picture B  — same box, 94px gap
+ *   1286…      the two pictures SIDE BY SIDE — 1703 wide overall (2 × 818,
+ *              67 gap), square corners, #d9d9d9 plate; the height follows the
+ *              round's aspect and the frame's own art makes it 1196
+ *   2163…2488  left rail — 홈 · 뒤로 · ♿
+ *   3060…3210  hint / 그만하기
  *   3267…3840  banner
  *
  * ── What the frame does NOT draw ──────────────────────────────────────
@@ -94,6 +97,51 @@
   text-align: center;
 }
 
+/* ── Left rail: 홈 · 뒤로 · ♿ ─────────────────────────────────────────────
+ * 6258:78631 draws Group 1707482734 at x50/y2163 — 85px controls on a 35px gap,
+ * 홈 and 뒤로 as one 205-tall pair with the ♿ toggle 35px under it, for 325
+ * overall. Every other 제주 page carries the same rail; this screen was the one
+ * that had none.
+ *
+ * 홈 and 뒤로 are DIMMED AND INERT while the photo is generating — the same
+ * `navLocked` the header's pair already honours, and for the same reason: a tap
+ * there discards a photo the visitor has already posed for. The ♿ toggle is not
+ * locked; it throws nothing away.
+ */
+.leftNav {
+  position: absolute;
+  left: 50px;
+  top: 2163px;
+  width: 85px;
+  display: flex;
+  flex-direction: column;
+  gap: 35px;
+}
+
+.leftNavBtn {
+  width: 85px;
+  height: 85px;
+  padding: 0;
+  border: none;
+  background: none;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.leftNavBtn img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  display: block;
+  pointer-events: none;
+}
+
+/* Matches the header pair's locked look — see `navLocked`. */
+.leftNavBtnLocked {
+  opacity: 0.35;
+  cursor: default;
+}
+
 /* ── Progress line ──────────────────────────────────────────────────────
    The frame draws only the centred "1/5". Lives and the clock take the two
    ends of the same line: three equal columns inside the picture's own 252px
@@ -104,7 +152,9 @@
   top: 1060px;
   width: 2160px;
   height: 65px;
-  padding: 0 252px;
+  /* (2160 − 1703) / 2 — the pair's own margin, so the lives and the clock sit
+     over the outer edges of the two pictures and the counter stays centred. */
+  padding: 0 228px;
   box-sizing: border-box;
   display: flex;
   align-items: center;
@@ -170,30 +220,61 @@
 }
 
 /* ── The two pictures ───────────────────────────────────────────────────
-   `.slot` is the frame's grey plate: a FIXED 1730×872 box that never moves, so
-   the board cannot shift under a finger mid-tap. `.panel` is the picture inside
-   it, sized to the image's own ratio — the plate shows through as a margin when
-   a puzzle isn't 1730:872. Taps and markers are bound to `.panel`, never to the
-   plate, so the mapping stays right whatever the CMS uploads. */
-.slot {
+ * The 2026-09-10 redraw (6980:17652) puts them SIDE BY SIDE. They used to be
+ * stacked — 1730×872 at y1200 and y2166 — and the pair now sits on one row:
+ * 1703 wide overall, two 818 plates with a 67 gap, centred on the artboard.
+ *
+ * ── Where the plate's HEIGHT comes from ───────────────────────────────
+ * The frame draws the pair 1196 tall, but that number is not a constant — it
+ * is the frame's own sample art (818 / 0.684). The CMS uploads whatever it
+ * likes and `SpotDiffService` defaults to 4/3, so hard-coding 1196 would
+ * letterbox every landscape round inside 580px of grey. The height is derived
+ * from the round's aspect instead, which reproduces the frame EXACTLY for the
+ * portrait art it was drawn against and fits every other ratio just as well.
+ *
+ * `.board` top-anchors the pair on the frame's own y1286 — 161px under the foot
+ * of the progress line. It was centred in the band below the progress line for
+ * one pass, which pushed the pictures ~200px further down than the frame draws
+ * them; 6258:78631 settles it.
+ *
+ * `.slot` is still the grey plate and `.panel` still the picture fitted inside
+ * it, and taps and markers are still bound to `.panel` and never to the plate,
+ * so the coordinate mapping is unchanged. With the height derived the two
+ * normally coincide; the fit-inside arithmetic stays because the clamp below
+ * can still make the plate the larger box.
+ */
+.board {
   position: absolute;
-  left: 252px;
-  width: 1730px;
-  height: 872px;
-  border-radius: 40px;
+  left: 0;
+  top: 1286px;
+  width: 2160px;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  gap: 67px;
+  /* Read by both plates and by the panels inside them. `--sd-aspect` is set on
+     this element by the component; these two resolve the plate's box once so
+     the arithmetic is written down in exactly one place. */
+  --sd-slot-w: 818px;
+  /* 1774 = 3060 (top of the actions row) − 1286, so a very tall round cannot
+     grow down into the buttons. The frame's own art resolves to 1196. */
+  --sd-slot-h: min(1774px, calc(818px / var(--sd-aspect)));
+}
+
+.slot {
+  position: relative;
+  flex: 0 0 auto;
+  width: var(--sd-slot-w);
+  height: var(--sd-slot-h);
+  /* Square corners. The plate carried a 40px radius from the pre-redraw frame,
+     which rounded the artwork's own corners off; 6258:78631 draws the pictures
+     with hard edges. Nothing else in this stack rounds them — `.panel` never
+     did — so this is the only place it had to come off. */
   background: #d9d9d9;
   overflow: hidden;
   display: flex;
   align-items: center;
   justify-content: center;
-}
-
-.slotA {
-  top: 1200px;
-}
-
-.slotB {
-  top: 2166px;
 }
 
 .panel {
@@ -207,8 +288,8 @@
    * reads this element's rect. Taking the min on both axes against the plate's
    * known 1730×872 holds the ratio exactly at any aspect.
    */
-  width: min(100%, calc(872px * var(--sd-aspect)));
-  height: min(100%, calc(1730px / var(--sd-aspect)));
+  width: min(100%, calc(var(--sd-slot-h) * var(--sd-aspect)));
+  height: min(100%, calc(var(--sd-slot-w) / var(--sd-aspect)));
   /* Stated rather than inherited from the global reset: the sizing above is
      exact arithmetic against the plate, and a border under content-box would
      push past it and let flex shrink the width back. */

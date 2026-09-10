@@ -12,6 +12,39 @@ interface WebviewConsoleEvent {
 interface WebviewExec {
   executeJavaScript(code: string): Promise<unknown>;
 }
+interface WebviewNavigateEvent {
+  url: string;
+}
+
+/**
+ * Guest hash route → the screen id the customer display resolves a clip from.
+ *
+ * The donation app is a HashRouter SPA, so every inner page has its own URL
+ * (`…#/campaigns`) and the host can read it off `did-navigate-in-page` without
+ * the guest cooperating — no bridge message, no change to that repo.
+ *
+ * VideoSubtitle_귀이 authors exactly three 기부 clips — Donation,
+ * Donation_Category, Donation_Detail — and the app's campaign LIST and campaign
+ * DETAIL are what those two names describe. The 학교 branch is the same journey
+ * with a different beneficiary, so its list/detail pages ride the same two
+ * clips by analogy rather than sitting on the entry clip for the whole flow;
+ * trim these sets to just the campaign pair if the sheet ever says otherwise.
+ *
+ * Everything else — amount, payment, message, certificate, complete — has no
+ * clip of its own and stays on the entry one.
+ */
+const DONATION_LIST_ROUTES = new Set(['/campaigns', '/school', '/school-wall']);
+const DONATION_DETAIL_ROUTES = new Set(['/campaign', '/school-detail', '/school-wall-detail']);
+
+function donationScreenFor(rawUrl: string): string {
+  const hash = rawUrl.split('#')[1] ?? '';
+  // Drop a query and any trailing slash so `/campaign?id=3` and `/campaign/`
+  // both match the bare route.
+  const path = (hash.split('?')[0] ?? '').replace(/\/+$/, '') || '/';
+  if (DONATION_DETAIL_ROUTES.has(path)) return 'donation_detail';
+  if (DONATION_LIST_ROUTES.has(path)) return 'donation_category';
+  return 'donation';
+}
 
 interface DonationWebScreenProps {
   url: string;
@@ -188,9 +221,27 @@ export function DonationWebScreen({ url, controller }: DonationWebScreenProps): 
       }
     });
 
+    /*
+     * Follow the guest's own navigation so Monitor 2 plays the clip for the page
+     * the visitor is actually on. Deduped because a HashRouter fires on every
+     * in-page move, and most of them map to the same screen id.
+     */
+    let reported = 'donation';
+    const onNavigate = (event: Event): void => {
+      const next = donationScreenFor((event as unknown as WebviewNavigateEvent).url ?? '');
+      if (next === reported) return;
+      reported = next;
+      void window.api.kiosk.setScreen(next);
+    };
+
     el.addEventListener('console-message', onConsole as EventListener);
+    // `-in-page` covers the hash routes; the plain event covers a full reload.
+    el.addEventListener('did-navigate-in-page', onNavigate as EventListener);
+    el.addEventListener('did-navigate', onNavigate as EventListener);
     return () => {
       el.removeEventListener('console-message', onConsole as EventListener);
+      el.removeEventListener('did-navigate-in-page', onNavigate as EventListener);
+      el.removeEventListener('did-navigate', onNavigate as EventListener);
       offWorkflow();
     };
   }, [controller]);

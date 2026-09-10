@@ -178,6 +178,8 @@
 }
 
 /* 도와줘 상세 floor plan under the description (6219:99127 / 6876:63256). */
+/* The floor-plan plate — 6219:99127 draws it `aspect-[1820/813] rounded-[58px]`
+   at the card's full content width. */
 .detailMap {
   width: 100%;
   aspect-ratio: 1820 / 813;
@@ -185,13 +187,48 @@
   overflow: hidden;
   background: #fff;
   flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
-.detailMap img {
+/* Sized BY the plan image, not by the plate: the marker's left/top percentages
+   are fractions of this box, so it has to be the drawing's own rectangle. With
+   the image stretched to the plate under `object-fit: contain` instead, every
+   pin would sit off by half the letterbox — the plans are 2.2–3.1 aspect
+   against the plate's 2.24, so there is always a band on one axis. Mirrors
+   JejuHelp's .plan, which is why both screens land the pin on the same spot. */
+.detailPlan {
+  position: relative;
+  max-width: 100%;
+  max-height: 100%;
+}
+
+/* The PLAN image only — addressed by class, not as `.detailPlan > img`. That
+   selector also matched the pin sitting beside it and, at (0,1,1) against the
+   pin's (0,1,0), overrode its 37×56 with `width/height: auto` — which draws the
+   marker art at its intrinsic 176×268, five times the size it should be. */
+.detailPlanImg {
   display: block;
-  width: 100%;
-  height: 100%;
+  width: auto;
+  height: auto;
+  max-width: 100%;
+  max-height: 100%;
+}
+
+/* The marker, tip-down on the facility. `translate(-50%, -100%)` puts the point
+   of the pin ON the coordinate rather than the middle of the glyph — the same
+   37×56 art the map screen drops on its pins, at the same drawn size, since the
+   plan renders about as wide here (1730) as it does there. Inert: this one
+   marks the place the card is already about, so there is nothing to tap. */
+.detailPin {
+  position: absolute;
+  width: 37px;
+  height: 56px;
   object-fit: contain;
+  transform: translate(-50%, -100%);
+  filter: drop-shadow(0 2px 3px rgba(0, 0, 0, 0.3));
+  pointer-events: none;
 }
 
 /* Help detail with an in-card floor plan — grow past the default 2133 plate. */
@@ -216,15 +253,27 @@
   background: transparent;
 }
 
-/* The other difference: 사진1개 puts the name in a fixed 700px box and centres
-   the text in it, where 사진4개 lets it sit flush against the content edge.
-   Compare Figma's own renders — 을지정육 (6212:55208) starts at the card's left
-   padding, GS25 종로인사점 (6212:59361) is indented by the centring. */
-.nameBoxed {
-  flex: 0 0 700px;
-  width: 700px;
-  text-align: center;
-}
+/*
+ * ── The 사진1개 name box, REMOVED on purpose — do not restore it ───────────
+ *
+ * 6212:59361 / 6219:99127 draw this variant's name in a fixed 700px box with
+ * the text CENTRED in it (`w-[700px] text-center`), and that is what this file
+ * used to reproduce. It only looks right for the one name the mock happens to
+ * carry: "GS25 종로인사점" at 85px is very nearly 700px wide, so it fills the
+ * box and reads as flush-left by coincidence.
+ *
+ * Every name 도와줘 '제주' actually opens is far shorter — 달달커피, 화장실,
+ * a chip label — and the centring then does two visible wrongs at once: it
+ * indents the title away from the card's left padding, breaking the vertical
+ * line it should hold with the address / hours / phone / description rows
+ * below, and it strands the • category out at x745 because the 700 box is
+ * reserved whether the name uses it or not.
+ *
+ * So the name is flush-left and shrink-to-fit in BOTH gallery variants now, and
+ * the category follows at the row's own 42.9 gap. `.name` already ellipsises
+ * under `min-width: 0`, so a genuinely long name still yields to the category
+ * rather than shoving it off the card.
+ */
 
 .photo {
   width: 575px;

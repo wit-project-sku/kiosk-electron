@@ -67,6 +67,21 @@ export interface DetailItem {
    * (6219:99127) draws the terminal/floor plan the facility was opened from.
    */
   mapImage?: string;
+  /**
+   * Where this facility SITS on {@link mapImage}, as fractions of the plan
+   * image (0–1 on each axis) — the same coordinate space JejuHelp's own pins
+   * use, so the two screens mark the identical spot.
+   *
+   * Resolved at open time, which is also when the plan is chosen: the plans
+   * come in Korean and Latin editions whose artwork is laid out differently, so
+   * a pin carries an `en` twin and the right one depends on the language in
+   * hand. Storing the ALREADY-RESOLVED pair keeps the card from having to know
+   * that — the same way every other field here is resolved before it lands.
+   *
+   * Absent for a facility the plan draws no pictogram for, in which case the
+   * card simply shows the plan unmarked.
+   */
+  mapPin?: { x: number; y: number };
 }
 
 interface DetailState {

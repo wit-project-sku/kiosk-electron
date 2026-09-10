@@ -373,20 +373,26 @@
   height: 398px;
 }
 
-/* Figma draws this as a <li> with `list-disc` and a 102px indent: the marker
-   sits at 45 and the label starts at 102. */
+/*
+ * Figma draws this as a <li> with `list-disc` and a 102px indent, so the marker
+ * is the browser's own disc at 68px Noto Sans Bold and its size is not written
+ * down anywhere in the file. Measured off the 1:1 render of 6422:24785 instead:
+ * the dot's ink is x81…100 y75–96 in the card, i.e. 20px at a card-relative 41
+ * (the card's own 40 of padding makes up the rest). 41 + 20 + 41 still lands the
+ * label on the drawn 102.
+ */
 .guideTitle {
   position: absolute;
-  left: 45px;
+  left: 41px;
   top: 0;
   display: flex;
   align-items: center;
-  gap: 39px;
+  gap: 41px;
 }
 
 .guideDot {
-  width: 18px;
-  height: 18px;
+  width: 20px;
+  height: 20px;
   flex: 0 0 auto;
   border-radius: 50%;
   background: var(--kiosk-primary, #ff7f0f);
@@ -410,20 +416,35 @@
   gap: 20px;
 }
 
+/*
+ * Flush with the top of the row — 6422:24791 is `items-start` and hangs the
+ * star at y0, which the render confirms (ink y169…204 against the row's own
+ * 168.64). The 6px nudge that used to be here was centring it against a 50px
+ * line box; the line box is 65 now, and re-centring on that would drop the star
+ * 8px below where the frame draws it.
+ */
 .guideStar {
   width: 40px;
   height: 40px;
   flex: 0 0 auto;
   object-fit: contain;
-  margin-top: 6px;
 }
 
+/*
+ * ★ 65, not the 50 this carried — the 2026-09-08 redraw (6258:48134,
+ * `leading-[65px]` on 6422:24793) opened the three lines up, and the render
+ * measures the pitch at exactly 65 (ink at y180 / 245 / 310 in the card). The
+ * copy is CMS text and the sheet's longest 제주 translation is 3 lines, so the
+ * block grows from 150 to 195 and still clears `.guidePrivacy` at 351.44 by a
+ * comfortable margin. A 4-line translation would collide — it would have at 50
+ * as well, so the risk is not new, but it is 65px closer now.
+ */
 .guideLines {
   display: flex;
   flex-direction: column;
   font-size: 47px;
   font-weight: 700;
-  line-height: 50px;
+  line-height: 65px;
   color: #909090;
   white-space: nowrap;
 }
@@ -962,6 +983,105 @@
   pointer-events: none;
 }
 
+/* ── 한복 설명 page (Figma 6258:49124) ──────────────────────
+ *
+ * 제주's own frame for the page behind the 사진촬영안내 card, and NOT the shared
+ * step's scrolling column (`../photo/HanbokSelect.module.css .infoContent`,
+ * which is what this drew until 2026-09-09). Two hand-placed blocks in the same
+ * 1820 column the picker uses, both clearing the banner — so nothing scrolls:
+ *
+ *   700…1532   outfit strip, TWO rows of five — the picker's own 391 cell
+ *               (350 plate + 16 + 25 name) on the drawn 441 pitch, which is why
+ *               only the strip's `top` is re-declared below
+ *  1583…2957   한복설명 card, 1820 × 1374
+ *  3267…3840   banner — `.banner`, unchanged and drawn on this page
+ *
+ * The frame types the card in Noto Sans where the rest of the page is
+ * Pretendard; that is the component sheet's default rather than a choice made
+ * for this card, so the family stays on `--kiosk-font` like every other 제주
+ * block and only the sizes below are taken from the frame.
+ */
+.infoOutfits {
+  /* Beats `.outfits`' 1447 on source order — same specificity, declared later.
+     left / width / height stay the picker's. */
+  top: 700px;
+}
+
+.infoCard {
+  position: absolute;
+  left: 170px;
+  top: 1583px;
+  width: 1820px;
+  height: 1374px;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  /*
+   * 88 top, not the frame's literal `padding: 100px 40px`: the frame centres a
+   * fixed 1069 content box inside the 1374, which lands the heading at a card-
+   * relative 88 and the body at 205. Our body is CMS-length copy in eight
+   * languages, so it is pinned to the top instead of centred — pinning at the
+   * frame's own 88/52 puts the Korean page exactly where 49124 draws it and
+   * lets a longer translation grow downward into the slack (the Korean copy
+   * uses 892 of the 1198 available) rather than drifting the heading upward.
+   * The 4px the frame insets both blocks by is folded into the 40 → 44.
+   */
+  padding: 88px 44px;
+  gap: 52px;
+  background: #fff;
+  border: 2.145px solid #e8e8e8;
+  border-radius: 45px;
+  box-shadow: 0 21.45px 21.45px rgba(143, 147, 157, 0.1);
+}
+
+.infoHeading {
+  margin: 0;
+  font-size: 65px;
+  font-weight: 700;
+  line-height: 1;
+  color: #333;
+}
+
+/*
+ * The frame separates the three paragraphs with an empty 50px line rather than
+ * a margin, so 50 is the gap.
+ *
+ * `overflow-y` is the safety valve, not part of the frame: the copy is
+ * translated into eight languages and only the Korean one was measured against
+ * the 1374. A language that runs long scrolls inside the card instead of
+ * spilling out of it, which is what the fixed height would otherwise clip.
+ */
+.infoBody {
+  flex: 1 1 auto;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 50px;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+.infoBody::-webkit-scrollbar {
+  width: 34px;
+}
+
+.infoBody::-webkit-scrollbar-thumb {
+  background: var(--kiosk-primary, #ff7f0f);
+  border-radius: 21.45px;
+}
+
+.infoPara {
+  margin: 0;
+  font-size: 50px;
+  font-weight: 400;
+  line-height: 1.5;
+  /* The frame's own tracking — −0.05em at 50px. */
+  letter-spacing: -2.5px;
+  color: #000;
+}
+
+
 /* ── Banner ─────────────────────────────────────────────────────────── */
 .banner {
   position: absolute;
@@ -1048,8 +1168,9 @@
  */
 .rootLowReach {
   /* JejuHeader's own `top` reads this, so the header block follows the mode bar
-     down without this file knowing anything about the header's internals. */
-  --jeju-shift: 113px;
+     down without this file knowing anything about the header's internals. Flush
+     against the bar, so it is the bar's height — not a copy of the number. */
+  --jeju-shift: var(--jeju-mode-bar);
 }
 
 .modeBar {
@@ -1057,7 +1178,8 @@
   left: 0;
   top: 0;
   width: 2160px;
-  height: 113px;
+  /* Shared with home and JejuPageFrame — see lowReach.ts. */
+  height: var(--jeju-mode-bar);
   z-index: 3;
   background: var(--kiosk-primary, #ff7f0f);
   display: flex;
@@ -1069,10 +1191,16 @@
   color: #fff;
 }
 
-/* The 한복 설명 sub-page has no low-reach frame of its own; it scrolls, so
-   clearing the mode bar is the whole adjustment it needs. */
-.rootLowReach .infoContent {
-  top: 812px; /* 699 + the bar's 113 */
+/* The 한복 설명 sub-page has no low-reach frame of its own, so ♿ moves it the
+   one way the bar demands: both blocks drop by the bar's height, keeping their
+   own 700 / 1583 relative to it. The card still clears the banner — it ends at
+   1583 + 145.759 + 1374 = 3102.76, against the banner's 3267. */
+.rootLowReach .infoOutfits {
+  top: calc(700px + var(--jeju-mode-bar));
+}
+
+.rootLowReach .infoCard {
+  top: calc(1583px + var(--jeju-mode-bar));
 }
 
 /* ── Common to both conditions ── */

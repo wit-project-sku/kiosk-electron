@@ -7,8 +7,11 @@
  *
  * One screen, two tabs — 실시간 환율 on the left and open by default, 환율계산기
  * on the right:
- *   실시간 환율  the same read-only rate list the other three layouts already
- *                ship (identical row: white pill, 170 flag, 60px label/rate)
+ *   실시간 환율  a read-only rate list — white pill, 60px label/rate. The
+ *                2026-09-09 redraw of 6219:99645 tightened the row to 210 on a
+ *                250 pitch with a 150 flag and hung a "…기준" stamp above it;
+ *                the ♿ frame 6326:84606 kept the 230/170/270 row, so the two
+ *                layouts no longer share the pill's size. See the CSS.
  *   환율계산기   amount + currency → converted amount, with a numeric keypad and
  *                a currency dropdown per field
  *
@@ -42,6 +45,7 @@ import sarFlag from '@renderer/assets/photos/insadong/exchange/sar.svg';
 import { useAccessibilityStore } from '@renderer/store/accessibilityStore';
 import { JejuPageFrame } from './JejuPageFrame';
 import styles from './JejuExchange.module.css';
+import { belowModeBar, LOW_REACH_BANNER_HEIGHT } from './lowReach';
 
 interface Props {
   controller: KioskController;
@@ -120,6 +124,38 @@ const RESULT_LABEL = {
   vi: 'Quy đổi:', th: 'แลกเปลี่ยน:', ru: 'Обмен:', id: 'Konversi:',
 };
 
+/*
+ * Placeholders for the two empty fields. The calculator used to open on a
+ * seeded `1`, which reads as a real entry a visitor has to clear before they
+ * can type — and the 기준 환율 pill above already states the 1-unit rate, so the
+ * seed was showing the same number twice. Both fields now open empty and say
+ * what they are instead.
+ *
+ * The pair is deliberately asymmetric: 금액 is tappable, so its hint is an
+ * instruction, while 환전 is read-only (`.fieldResult` sets cursor:default), so
+ * its hint explains that the number arrives by itself rather than inviting a
+ * tap that does nothing.
+ *
+ * Authored here rather than pulled from Localization_Jeju: the sheet has no key
+ * for either string (Exchange_desc_2/_desc_3 are lower-cased prose — see
+ * `exchangeText`). Covers all 11 SupportedLanguage values, not just the 8 in
+ * languageStore's ALLOWED, so enabling zh_cn / zh_tw / es needs nothing here;
+ * `pick` falls back to ko for anything missing anyway.
+ */
+const AMOUNT_PLACEHOLDER = {
+  ko: '금액을 입력하세요', en: 'Enter amount', ja: '金額を入力してください',
+  zh: '请输入金额', zh_cn: '请输入金额', zh_tw: '請輸入金額',
+  vi: 'Nhập số tiền', th: 'กรอกจำนวนเงิน', ru: 'Введите сумму',
+  id: 'Masukkan jumlah', es: 'Ingrese el importe',
+};
+
+const RESULT_PLACEHOLDER = {
+  ko: '자동으로 계산됩니다', en: 'Calculated automatically', ja: '自動で計算されます',
+  zh: '自动计算', zh_cn: '自动计算', zh_tw: '自動計算',
+  vi: 'Tự động tính', th: 'คำนวณอัตโนมัติ', ru: 'Рассчитается автоматически',
+  id: 'Dihitung otomatis', es: 'Se calcula automáticamente',
+};
+
 /**
  * Localized sheet string with the authored table behind it — the same
  * `sheetText` contract JejuHome and JejuAbout use, so an operator edit reaches
@@ -170,7 +206,8 @@ function unitSize(unit: string): number {
 
 const KEYS = ['1', '2', '3', '4', '5', '6', '7', '8', '9'];
 
-/** Group digits for display. `''` shows as `0`, matching an empty kiosk field. */
+/** Group digits for display. Never called with `''` — an empty field draws
+ *  AMOUNT_PLACEHOLDER instead — but the `|| '0'` keeps it total. */
 function groupDigits(digits: string): string {
   const n = Number(digits || '0');
   return n.toLocaleString('en-US');
@@ -201,12 +238,13 @@ export function JejuExchange({ controller }: Props): JSX.Element {
 
   /** Opens on 실시간 환율, the left-hand tab — see TABS. */
   const [tab, setTab] = useState<TabId>('live');
-  /* The calculator opens on 1 USD → KRW: the visitor's first read is the plain
-     unit rate, and any other amount is a multiple of what they already see. A
-     bigger seed (it was 1000) only has to be cleared before they can type. */
+  /* The calculator opens on USD → KRW with the amount EMPTY. The unit rate a
+     seeded `1` used to show is already on the 기준 환율 pill above, so the seed
+     bought nothing and cost the visitor a backspace before they could type;
+     the field shows AMOUNT_PLACEHOLDER instead. */
   const [fromUnit, setFromUnit] = useState('USD');
   const [toUnit, setToUnit] = useState('KRW');
-  const [digits, setDigits] = useState('1');
+  const [digits, setDigits] = useState('');
   const [picker, setPicker] = useState<Picker>(null);
   const [keypad, setKeypad] = useState(false);
 
@@ -282,7 +320,8 @@ export function JejuExchange({ controller }: Props): JSX.Element {
    * everything else is a per-element class. The two tabs take DIFFERENT frame
    * shapes — 실시간 환율 drops the promo banner and starts its header at y116 so
    * the rate list gets the banner's height, while 환율계산기 keeps the banner
-   * under the mode bar and starts at y686. See the .rootLow comment block.
+   * under the mode bar and starts at bar + 573 (the frame's y686). See the
+   * .rootLow comment block.
    */
   const lowReach = useAccessibilityStore((s) => s.lowReach);
   const lowShift = lowReach ? styles.rootLow : '';
@@ -295,7 +334,9 @@ export function JejuExchange({ controller }: Props): JSX.Element {
       onBack={() => controller.navigate('home', '뒤로')}
       lowReachModeBar
       lowReachBarBanner={tab === 'calc'}
-      lowReachShift={tab === 'calc' ? 686 : 116}
+      // 실시간 환율 sits FLUSH on the bar — 6326:84606 puts its header at 146
+        // against the bar's own 145.759. It was carrying a 3px gap.
+        lowReachShift={tab === 'calc' ? belowModeBar(LOW_REACH_BANNER_HEIGHT) : belowModeBar()}
     >
       <div className={lowShift}>
       <div className={`${styles.tabs} ${lowReach ? styles.tabsLow : ''}`}>
@@ -308,6 +349,9 @@ export function JejuExchange({ controller }: Props): JSX.Element {
             onClick={() => {
               closeOverlays();
               setTab(t.id);
+              /* VideoSubtitle_귀이 files a clip per TAB — see the 재생조건 column and the
+                 Key#N entries in videoMap. */
+              void window.api.kiosk.setScreen(`exchange_${t.id}`);
             }}
           >
             {exchangeText(t.key, lang, t.label)}
@@ -356,9 +400,24 @@ export function JejuExchange({ controller }: Props): JSX.Element {
             onClick={openKeypad}
             aria-label={pick(AMOUNT_LABEL, lang)}
           />
-          <p className={`${styles.value} ${styles.valueAmount}`}>
-            {groupDigits(digits)}
-            {keypad && <span className={styles.caretBar} />}
+          <p
+            className={`${styles.value} ${styles.valueAmount} ${
+              digits === '' ? styles.placeholder : ''
+            }`}
+          >
+            {/* Caret LEADS the placeholder and TRAILS a typed number, which is
+                where a real text input puts it in each state. */}
+            {digits === '' ? (
+              <>
+                {keypad && <span className={styles.caretBar} />}
+                {pick(AMOUNT_PLACEHOLDER, lang)}
+              </>
+            ) : (
+              <>
+                {groupDigits(digits)}
+                {keypad && <span className={styles.caretBar} />}
+              </>
+            )}
           </p>
           <button
             type="button"
@@ -379,8 +438,19 @@ export function JejuExchange({ controller }: Props): JSX.Element {
           {/* ── 환전 ── */}
           <p className={`${styles.fieldLabel} ${styles.labelResult}`}>{pick(RESULT_LABEL, lang)}</p>
           <div className={`${styles.field} ${styles.fieldResult}`} />
-          <p className={`${styles.value} ${styles.valueResult}`}>
-            {result === undefined ? '—' : formatAmount(result)}
+          <p
+            className={`${styles.value} ${styles.valueResult} ${
+              digits === '' ? styles.placeholder : ''
+            }`}
+          >
+            {/* An empty 금액 leaves nothing to convert, so this shows its own
+                hint rather than a 0. The '—' is still the MISSING-RATE case:
+                an amount was typed but the feed has no row for the pair. */}
+            {digits === ''
+              ? pick(RESULT_PLACEHOLDER, lang)
+              : result === undefined
+                ? '—'
+                : formatAmount(result)}
           </p>
           <button
             type="button"
@@ -422,10 +492,7 @@ export function JejuExchange({ controller }: Props): JSX.Element {
               <div className={styles.keypadScrim} />
               <div className={styles.keys}>
                 {[0, 1, 2].map((row) => (
-                  <div
-                    key={row}
-                    className={`${styles.keyRow} ${row === 1 ? styles.keyRowTall : ''}`}
-                  >
+                  <div key={row} className={styles.keyRow}>
                     {/* `data-vk-digit` — the barrier-free keypad's own number
                         keys type straight into this one, the same marker the
                         search keyboard carries. A visitor entering an amount
@@ -459,23 +526,38 @@ export function JejuExchange({ controller }: Props): JSX.Element {
           )}
         </>
       ) : (
-        <div className={`${styles.liveScroll} ${lowReach ? styles.liveScrollLow : ''}`}>
-          {exchange ? (
-            <div className={styles.liveList}>
-              {liveRows.map((r) => (
-                <div key={r.unit} className={styles.liveRow}>
-                  <span className={styles.liveLeft}>
-                    <img src={r.flag} alt="" className={styles.ccyFlag} draggable={false} />
-                    <span className={styles.liveLabel}>{r.label}</span>
-                  </span>
-                  <span className={styles.liveRate}>{r.rateText}</span>
-                </div>
-              ))}
-            </div>
-          ) : (
-            <p className={styles.empty}>{pick(NO_RATES, lang)}</p>
+        <>
+          {/* The snapshot's age, the same stamp the calculator wears inside its
+              기준 환율 pill (6516:74148). Only drawn when there IS a snapshot —
+              on the 환율 정보를 불러오지 못했습니다 screen it would be dating
+              nothing. Standard layout only: the ♿ frame 6326:84606 starts its
+              list at y816, flush under the header, with no room for it. */}
+          {exchange && asOf !== undefined && !lowReach && (
+            <p className={styles.liveStamp}>{pick(AS_OF, lang).replace('{t}', asOf)}</p>
           )}
-        </div>
+          <div className={`${styles.liveScroll} ${lowReach ? styles.liveScrollLow : ''}`}>
+            {exchange ? (
+              <div className={styles.liveList}>
+                {liveRows.map((r) => (
+                  <div key={r.unit} className={styles.liveRow}>
+                    <span className={styles.liveLeft}>
+                      <img
+                        src={r.flag}
+                        alt=""
+                        className={`${styles.ccyFlag} ${styles.liveFlag}`}
+                        draggable={false}
+                      />
+                      <span className={styles.liveLabel}>{r.label}</span>
+                    </span>
+                    <span className={styles.liveRate}>{r.rateText}</span>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p className={styles.empty}>{pick(NO_RATES, lang)}</p>
+            )}
+          </div>
+        </>
       )}
       </div>
     </JejuPageFrame>

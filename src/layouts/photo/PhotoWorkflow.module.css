@@ -43,6 +43,25 @@
 
 /* ── Result: WIT Store webview ─────────────────────────────────────────── */
 /* Header is provided by InsadongHeader (top 0 → 699px).                  */
+/*
+ * 위드마켓 sub-title — 6980:17803 (서브타이틀, y559). Sits between the header
+ * and the store panel's y700, so a wrapped second line still clears the panel.
+ * #8b7355 is the frame's own colour and NOT the #909090 the other 제주 page
+ * descriptions use, so it is written out rather than tokenised.
+ */
+.marketSubtitle {
+  position: absolute;
+  left: 170px;
+  top: 559px;
+  width: 1820px;
+  margin: 0;
+  font-size: 60px;
+  font-weight: 400;
+  line-height: 1;
+  color: #8b7355;
+  text-align: center;
+}
+
 .marketBody {
   position: absolute;
   top: 699px;
@@ -155,6 +174,18 @@
   display: flex;
   flex-direction: column;
   gap: 35px;
+}
+
+/*
+ * 제주 only. 6980:17803 puts the rail at x50/y2163 with a THIRD control (the ♿
+ * toggle) under 홈 and 뒤로, which is where every other 제주 page draws it; the
+ * shared x21/y1995 pair above stays for W003/W004, whose own frames put it
+ * there. Doubled so it beats `.leftNav` regardless of the order CSS modules
+ * emit the two rules in.
+ */
+.leftNavJeju.leftNavJeju {
+  left: 50px;
+  top: 2163px;
 }
 
 .leftNavBtn {

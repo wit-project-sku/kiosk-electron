@@ -45,6 +45,7 @@ import { useAccessibilityStore } from '@renderer/store/accessibilityStore';
 import { JejuPageFrame } from './JejuPageFrame';
 import { JejuShopCard } from './JejuShopCard';
 import styles from './JejuListScreen.module.css';
+import { belowModeBar } from './lowReach';
 
 /** The screens this one file serves. */
 export type JejuListScreenId = Extract<KioskScreenId, 'eat' | 'shop' | 'lodging'>;
@@ -299,7 +300,7 @@ export function JejuListScreen({ screen, controller }: Props): JSX.Element {
       title={TITLE[screen]}
       showBanner={false}
       lowReachModeBar
-      lowReachShift={113}
+      lowReachShift={belowModeBar()}
     >
       <div
         className={`${styles.scroll} ${lowReach ? styles.scrollLow : ''}`}

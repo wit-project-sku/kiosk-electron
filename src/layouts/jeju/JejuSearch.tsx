@@ -34,6 +34,7 @@ import { FloatingKeyboard } from '../insadong/keyboard/FloatingKeyboard';
 import { HangulComposer } from '../insadong/keyboard/hangul';
 import type { KeyAction } from '../insadong/keyboard/VirtualKeyboard';
 import styles from './JejuSearch.module.css';
+import { belowModeBar } from './lowReach';
 
 interface Props {
   controller: KioskController;
@@ -70,7 +71,7 @@ const T = {
 /** One scroll-button press moves by a card + its gap. */
 const SCROLL_STEP = 590;
 /** Mode-bar revision — header and body content drop by the bar height. */
-const MODE_BAR = 113;
+const MODE_BAR = belowModeBar();
 const KEYBOARD_TOP = 882;
 const KEYBOARD_TOP_LOW = KEYBOARD_TOP + MODE_BAR;
 
@@ -106,11 +107,17 @@ export function JejuSearch({ controller }: Props): JSX.Element {
       case 'literal':   c.inputLiteral(action.value); break;
       case 'space':     c.inputLiteral(' ');          break;
       case 'backspace': c.backspace();                break;
-      case 'enter':
-        setStoreQuery(c.value.trim());
+      case 'enter': {
+        const entered = c.value.trim();
+        setStoreQuery(entered);
         setFocused(false);
         setQuery(c.value);
+        /* VideoSubtitle_귀이, 재생조건 "검색창 -> 검색어 입력 후 엔터":
+           Search_Enter plays while the result list is up. Clearing the query
+           hands the display back to the screen's own Search clip. */
+        void window.api.kiosk.setScreen(entered ? 'search_enter' : 'search');
         return;
+      }
     }
     setQuery(c.value);
   };

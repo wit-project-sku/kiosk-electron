@@ -87,6 +87,7 @@ import {
   facilitiesOn,
   facilityImageUrl,
   HELP_CHIPS,
+  RESTROOM_CHIP,
   type AirportFacility,
   type AssignedPin,
 } from '@renderer/lib/airportFacilities';
@@ -119,26 +120,21 @@ import mapTerminalHall from '@renderer/assets/photos/jeju/help/map-terminal-hall
 import mapTerminalHallEn from '@renderer/assets/photos/jeju/help/map-terminal-hall-en.png';
 import mapTerminalDeparture from '@renderer/assets/photos/jeju/help/map-terminal-departure.png';
 import mapTerminalDepartureEn from '@renderer/assets/photos/jeju/help/map-terminal-departure-en.png';
+import { belowModeBar, LOW_REACH_BANNER_HEIGHT } from './lowReach';
 
 type TerminalId = 'international' | 'domestic';
 type FloorId = '1F' | '2F' | '3F' | '4F';
 
-/** Terminal pills in frame order (6219:98779 / 98783). Sheet: Help_International / Help_Domestic. */
+/**
+ * Terminal pills, LEFT to RIGHT. Sheet: Help_Domestic / Help_International.
+ *
+ * 국내선 leads and is the landing tab (see the `terminal` state below) — the
+ * order 6862:9953 draws, and the older 6219:98779 / 98783 pair had it the other
+ * way round. Array order IS the on-screen order: the row `.map`s this straight
+ * out, and nothing indexes it (both lookups are by id), so the two move together
+ * by editing here alone.
+ */
 const TERMINALS = [
-  {
-    id: 'international',
-    sheetKey: 'Help_International',
-    label: {
-      ko: '국제선',
-      en: 'International',
-      ja: '国際線',
-      zh: '国际线',
-      vi: 'Chuyến bay quốc tế',
-      th: 'เที่ยวบินระหว่างประเทศ',
-      ru: 'Международные рейсы',
-      id: 'Penerbangan Internasional',
-    },
-  },
   {
     id: 'domestic',
     sheetKey: 'Help_Domestic',
@@ -151,6 +147,20 @@ const TERMINALS = [
       th: 'เที่ยวบินในประเทศ',
       ru: 'Внутренние рейсы',
       id: 'Penerbangan Domestik',
+    },
+  },
+  {
+    id: 'international',
+    sheetKey: 'Help_International',
+    label: {
+      ko: '국제선',
+      en: 'International',
+      ja: '国際線',
+      zh: '国际线',
+      vi: 'Chuyến bay quốc tế',
+      th: 'เที่ยวบินระหว่างประเทศ',
+      ru: 'Международные рейсы',
+      id: 'Penerbangan Internasional',
     },
   },
 ] as const satisfies ReadonlyArray<{
@@ -999,7 +1009,8 @@ export function JejuHelp({ controller, initialCategory }: Props): JSX.Element {
   // W007 shows its own building; every other 제주 kiosk keeps the airport plans.
   // Non-reactive on purpose, like jejuMascot: the id is provisioned per machine.
   const atPort = getKioskLocation(controller.kioskId).code === 'W007';
-  const [terminal, setTerminal] = useState<TerminalId>('international');
+  /* Opens on 국내선 — the first pill, and the one 6862:9953 draws picked. */
+  const [terminal, setTerminal] = useState<TerminalId>('domestic');
   const [floor, setFloor] = useState<FloorId>('1F');
   const [zone, setZone] = useState<PortZoneId>('hall');
   const [category, setCategory] = useState(
@@ -1095,6 +1106,23 @@ export function JejuHelp({ controller, initialCategory }: Props): JSX.Element {
     const wanted = facility?.name.ko ?? pin?.shop ?? pin?.label ?? chip;
     const shop = facilities.find((s) => s.shopNameKr === wanted);
 
+    /*
+     * The pictogram this place sits on, for the plan the 상세 card draws.
+     *
+     * A tap on the MAP already hands us its pin. A tap on a LIST CARD does not
+     * — the card is a sheet row — so the row is looked back up in `assigned`,
+     * the same pairing that decided which pictogram lights for this chip. Both
+     * sides read the identical AIRPORT_FACILITIES_JEJU objects (assignFacilities
+     * and the list both come from `facilitiesOn`), so identity is the right test
+     * and needs no name matching.
+     *
+     * `at()`'s language rule is applied HERE rather than in the card: the Korean
+     * and Latin plans are drawn differently, and the pin's `en` twin is what
+     * lands on the Latin one.
+     */
+    const cardPin = pin ?? assigned.find((a) => a.facility != null && a.facility === facility)?.pin;
+    const detailPin = cardPin && (lang === 'ko' ? cardPin : (cardPin.en ?? cardPin));
+
     const facilityPhoto = facility && facilityImageUrl(facility);
 
     track(
@@ -1136,6 +1164,8 @@ export function JejuHelp({ controller, initialCategory }: Props): JSX.Element {
       // Floor plan of the terminal/floor this facility was opened from — Figma
       // 6219:99127 draws it under the description on the help detail card.
       mapImage: planSrc,
+      // … and WHERE on that plan this place is, so the card can mark it.
+      mapPin: detailPin ? { x: detailPin.x, y: detailPin.y } : undefined,
     });
     controller.navigate('detail', `도와줘 ${jejuMascot().ko} 상세`);
   };
@@ -1212,6 +1242,26 @@ export function JejuHelp({ controller, initialCategory }: Props): JSX.Element {
               onClick={() => {
                 track({ category: id });
                 setCategory(id);
+                /*
+                 * Advance the customer display to the drill-in clip
+                 * (help_category → ToHelp_Category), which this screen was not
+                 * reporting at all — OsanHelp does it, JejuListScreen does it for
+                 * eat/shop/lodging, and the clip has been sitting in
+                 * VideoSubtitle_귀이 unreachable.
+                 *
+                 * On a PRESS, not in an effect on `category`. Osan runs it as an
+                 * effect because its chips come from the shops API, so ToHelp
+                 * still plays for the load; Jeju's come from CATEGORIES[0]
+                 * synchronously, so an effect would fire on mount and ToHelp
+                 * would never be seen at all. Both clips stay reachable this way.
+                 *
+                 * Not guarded on the 화장실 deep link the way Osan's is: there the
+                 * guard exists because the tile lands on a chip WITHOUT a press,
+                 * and a press here is the visitor leaving 화장실 for another
+                 * category, at which point the Toilet clip is no longer what they
+                 * are looking at.
+                 */
+                void window.api.kiosk.setScreen('help_category');
               }}
             >
               <span className={styles.pillLabel}>{chipLine(id, lang)}</span>
@@ -1270,6 +1320,21 @@ export function JejuHelp({ controller, initialCategory }: Props): JSX.Element {
     );
   })();
 
+  /**
+   * 화장실 is MAP-ONLY — the pins already answer the only question a visitor
+   * has ("where is the nearest one"), and the sheet's rows behind this chip hold
+   * a name and a category and nothing else, so the cards render "화장실 · 화장실"
+   * over an empty 위치/전화 line. Every other chip keeps its directory: theirs are
+   * real rows, and the list is how a visitor reads hours and a phone number
+   * without hunting for the pin.
+   *
+   * Gated on the chip rather than on "are the rows blank?" on purpose — the
+   * blankness is what the operators intend for toilets, not a data gap waiting
+   * to be filled, and a row that gains a location later should not make the
+   * list reappear on its own.
+   */
+  const showList = category !== RESTROOM_CHIP;
+
   const listBlock = (
     <div className={styles.list}>
       {sheetList.length > 0
@@ -1326,17 +1391,20 @@ export function JejuHelp({ controller, initialCategory }: Props): JSX.Element {
   };
 
   return (
-    // No banner in the standard layout: the frame runs the background
-    // illustration to the bottom. ♿ (6422:44067) opens with the mode bar +
-    // promo, header at 686, map/list scroll above, pickers at the foot.
+    // The 2026-09-09 frame (6862:9953) PUTS THE PROMO BACK in the standard
+    // layout — 2160×573 at y3267, under a 15px #f49c56 rule that is already
+    // baked into banner-detail.png's top edge, so the slot needs no extra rule.
+    // The earlier frame ran the background illustration to the bottom instead,
+    // which is why this was `showBanner={false}`. `.scroll` now ends at 3267 to
+    // keep the last result card out from under it.
+    // ♿ (6422:44067) is unchanged: mode bar + promo, header at bar+573,
+    // map/list scroll above, pickers at the foot.
     <JejuPageFrame
       controller={controller}
       title={jejuMascot().helpTitle}
-      showBanner={false}
-      lowReachBanner
       lowReachModeBar
       lowReachBarBanner
-      lowReachShift={686}
+      lowReachShift={belowModeBar(LOW_REACH_BANNER_HEIGHT)}
       bannerFallback="banner-detail"
       onBack={() => controller.navigate('home', '뒤로')}
     >
@@ -1344,7 +1412,7 @@ export function JejuHelp({ controller, initialCategory }: Props): JSX.Element {
         <>
           <div ref={scrollRef} className={`${styles.scroll} ${styles.scrollLow}`}>
             {mapBlock}
-            {listBlock}
+            {showList && listBlock}
           </div>
           <div className={styles.controlsLow}>
             {pickers}
@@ -1388,7 +1456,7 @@ export function JejuHelp({ controller, initialCategory }: Props): JSX.Element {
           </div>
           {categoryChips}
           {mapBlock}
-          {listBlock}
+          {showList && listBlock}
         </div>
       )}
     </JejuPageFrame>

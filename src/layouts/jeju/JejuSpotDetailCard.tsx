@@ -271,7 +271,9 @@ export function JejuSpotDetailCard({
         <div className={`${styles.head} ${photoRow ? styles.headRow : ''}`}>
           <div className={`${styles.nameRow} ${item.rentcarBadge ? styles.nameRowWithBadge : ''}`}>
             <div className={styles.nameRowLeft}>
-              <p className={`${styles.name} ${single ? styles.nameBoxed : ''}`}>{item.name}</p>
+              {/* Flush left in both variants — see the .nameBoxed note in the CSS
+                  for why the frame's centred 700px box is deliberately not here. */}
+              <p className={styles.name}>{item.name}</p>
               {item.category && (
                 <span className={styles.cat}>
                   <span className={styles.dot} />
@@ -351,9 +353,31 @@ export function JejuSpotDetailCard({
             {item.description && <p className={styles.desc}>{item.description}</p>}
             {item.tags && <p className={styles.tags}>{item.tags}</p>}
 
+            {/* Floor plan under the description (6219:99127), marked with the
+                place this card is about.
+                The <img> sizes the inner box rather than filling the outer one,
+                so `item.mapPin`'s fractions land on the PLAN and not on the
+                letterboxing `contain` leaves around it — the plans run 2.2–3.1
+                aspect against this slot's 2.24, so there is always some. Same
+                arrangement as JejuHelp's own .map/.plan, which is what makes the
+                two screens mark the identical spot. */}
             {item.mapImage && (
               <div className={styles.detailMap}>
-                <img src={item.mapImage} alt="" draggable={false} />
+                <div className={styles.detailPlan}>
+                  <img src={item.mapImage} alt="" className={styles.detailPlanImg} draggable={false} />
+                  {/* `mapPin` is the marker ART (ico-map-pin, shared with the
+                      lat/lng 상세 map below and with JejuHelp's own pins);
+                      `item.mapPin` is WHERE to put it. */}
+                  {item.mapPin && mapPin && (
+                    <img
+                      src={mapPin}
+                      alt=""
+                      className={styles.detailPin}
+                      style={{ left: `${item.mapPin.x * 100}%`, top: `${item.mapPin.y * 100}%` }}
+                      draggable={false}
+                    />
+                  )}
+                </div>
               </div>
             )}
 

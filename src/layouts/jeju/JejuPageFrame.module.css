@@ -53,11 +53,15 @@
  * The 2026-08-26 REVISION of the low-reach shapes — Figma 6286:24611 (언어선택),
  * 6336:100835 (검색-02), 6336:100864 (검색-03), as they stand now (the designer
  * edits frames in place). The 573 promo banner is gone from low-reach entirely;
- * the 113px mode bar below overlays the top instead, and each page drops its
+ * the mode bar below overlays the top instead, and each page drops its
  * header/body by ITS OWN measured offsets, which ride in as JejuPageFrame's
  * lowReachShift / lowReachBodyShift props and land as inline --jeju-shift /
- * --jeju-body-shift (언어선택 113/420 · 검색 상세 687/687 · 검색 0/0). Opt-in per
+ * --jeju-body-shift (언어선택 bar/420 · 검색 상세 bar+573 · 검색 0/0). Opt-in per
  * page via `lowReachModeBar`; flip each page over as its revised frame arrives.
+ *
+ * The frames measured that bar at 113 here and 191 on the home screen. The
+ * offsets above no longer carry either number: the pages pass `belowModeBar()`
+ * (see lowReach.ts), so a re-measured bar moves every header that sits on it.
  *
  * Same bar as JejuHome's — the frames draw #232323 on #999, but the standing
  * direction (2026-08-26) is white on the brand orange, on every 베리어프리
@@ -68,7 +72,10 @@
   left: 0;
   top: 0;
   width: 2160px;
-  height: 113px;
+  /* Was 113 here and 191 on the home screen. Single source: lowReach.ts, landing
+     as the root's inline --jeju-mode-bar. Everything below that is flush with
+     the bar reads the same var instead of restating the number. */
+  height: var(--jeju-mode-bar);
   background: var(--kiosk-primary, #ff7f0f);
   display: flex;
   align-items: center;
@@ -93,7 +100,9 @@
  * (y1906) and CTA (y3432) did NOT move — that part lives in JejuAiSearch.
  */
 .rootLowReachHero {
-  --jeju-shift: 1072px;
+  /* 1072 = the bar + the hero's 959; written as the sum so a re-measured bar
+     carries the header with it. */
+  --jeju-shift: calc(var(--jeju-mode-bar) + 959px);
   --jeju-body-shift: 0px;
 }
 
@@ -109,7 +118,8 @@
   --jeju-body-shift: 0px;
 }
 
-/* The hero banner itself: 2160×959 at y113, under the mode bar. The 2026-08-26
+/* The hero banner itself: 2160×959, flush under the mode bar (the frame's
+   y113). The 2026-08-26
    revision dropped the 30px #f49c56 rules the old 1181-tall hero carried —
    verified on the render: no #f49c56 at either edge (unlike the HOME hero,
    whose frame keeps its rules). The artwork is exported at 1536×857, squarer
@@ -117,7 +127,7 @@
 .hero {
   position: absolute;
   left: 0;
-  top: 113px;
+  top: var(--jeju-mode-bar);
   width: 2160px;
   height: 959px;
   overflow: hidden;
@@ -259,10 +269,11 @@
 }
 
 /* Mode-bar shape with the banner kept (lowReachBarBanner): the 573 promo sits
-   flush under the 113px bar — 113 + 573 = 686, one round-up short of the y687
-   header the 검색 상세 frame draws. */
+   flush under the bar, and the header lands under the banner at bar + 573 —
+   `belowModeBar(LOW_REACH_BANNER_HEIGHT)` on the page side, which is where the
+   frames' 686 (and the 검색 상세 frame's one-px-rounder 687) came from. */
 .bannerBelowBar {
-  top: 113px;
+  top: var(--jeju-mode-bar);
 }
 
 .bannerImg {

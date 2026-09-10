@@ -36,6 +36,7 @@ import { FloatingKeyboard } from '../insadong/keyboard/FloatingKeyboard';
 import { HangulComposer } from '../insadong/keyboard/hangul';
 import type { KeyAction } from '../insadong/keyboard/VirtualKeyboard';
 import styles from './JejuRentcar.module.css';
+import { belowModeBar } from './lowReach';
 
 interface Props {
   controller: KioskController;
@@ -432,7 +433,7 @@ export function JejuRentcar({ controller }: Props): JSX.Element {
       title={TITLE}
       showBanner={false}
       lowReachModeBar
-      lowReachShift={113}
+      lowReachShift={belowModeBar()}
     >
       <div
         className={`${styles.scroll} ${lowReach ? styles.scrollLow : ''}`}

@@ -34,12 +34,15 @@
 }
 
 /*
- * LOW-REACH (♿) — Figma 6442:105429 at (155, 1570), re-read 2026-09-03.
+ * LOW-REACH (♿) — Figma 6442:105429 at (155, 1502), re-read 2026-09-10.
+ *
+ * The card moved up 68 with the rest of the upper block when the mode bar came
+ * down from 191 to 145.759 — see the table in JejuHome.module.css.
  * Board lives inside the taller 공지 panel (y1066 h885); chrome is otherwise
  * unchanged (1850×206, title 55, heads 38, values 45).
  */
 .boardLow {
-  top: 1570px;
+  top: 1502px;
 }
 
 .title {
@@ -160,11 +163,13 @@
 }
 
 /*
- * Figma 6442:105429: 더보기 chevron group at y1830; hit area keeps the same
- * 8px lead over the triangle box as standing (955 vs 963).
+ * Figma 6442:105429: 더보기 triangle box at y1762; hit area keeps the same 8px
+ * lead over it as standing (955 vs 963). Cross-checks on the label — .moreText
+ * sits +19 inside the hit area, and 1754 + 19 = 1773, which is exactly where the
+ * frame draws "운항 정보 더보기".
  */
 .moreLow {
-  top: 1822px;
+  top: 1754px;
 }
 
 /*
