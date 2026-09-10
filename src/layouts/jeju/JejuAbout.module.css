@@ -12,7 +12,7 @@
  *   920   초성 index row 1686×72 at x208 (fixed — the filter, not content)
  *   1002  scroll viewport, down to the banner at 3267
  *   1052  first card row: 3 × 580 at x170/786/1402, 36 col gap, 60 row gap
- *   2126  the viewport's own 34.32px scrollbar (Rectangle 4227)
+ *   2126  the viewport's own 28px scrollbar (Rectangle 4227)
  */
 
 /* The tab row (6212:59067) lives in JejuTabRow — 안녕 '하영' draws the same one. */
@@ -78,7 +78,7 @@
   height: 94px;
   padding: 0;
   border: 3px solid transparent;
-  border-radius: 12px;
+  border-radius: 17.16px;
   overflow: hidden;
   background: #f2ede6;
   cursor: pointer;
@@ -506,7 +506,7 @@
 
 /* Starts under the 초성 row and runs to the banner. Padding places the first
    card row at y1052 and keeps the grid's left edge on Figma's x170.
-   The 34.32px scrollbar is drawn at the element's right BORDER edge — outside
+   The 28px scrollbar is drawn at the element's right BORDER edge — outside
    padding-right — which is exactly Figma's x2126 (2160 − 34.32). */
 .spots {
   position: absolute;
@@ -531,12 +531,12 @@
 }
 
 .spots::-webkit-scrollbar {
-  width: 34.32px;
+  width: 28px;
 }
 
 .spots::-webkit-scrollbar-thumb {
   background: var(--kiosk-primary, #ff7f0f);
-  border-radius: 17.16px;
+  border-radius: 14px;
 }
 
 .spots::-webkit-scrollbar-track {

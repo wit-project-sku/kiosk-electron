@@ -27,6 +27,9 @@
  * `flightNo` with case/space-insensitive partial match. Switching 출발/도착
  * clears the query and closes the keyboard.
  *
+ * 목적지 / 출발지 column header opens a dropdown of every distinct place in
+ * the loaded board; picking one filters the rows (combined with 편명 search).
+ *
  * ♿ low-reach: same "controls to the foot" shape as the terminal's JejuCruise —
  * the 출발/도착 tabs (and the search field above them) drop to the artboard
  * floor and the board slides up 159 into the space. All of it is positional
@@ -134,6 +137,22 @@ const NO_RESULT = {
   ru: 'Номер рейса не найден.', id: 'Nomor penerbangan tidak ditemukan.',
 };
 
+const PLACE_ALL = {
+  ko: '전체', en: 'All', ja: 'すべて', zh: '全部',
+  vi: 'Tất cả', th: 'ทั้งหมด', ru: 'Все', id: 'Semua',
+};
+
+const PLACE_NO_RESULT = {
+  ko: '해당 조건의 운항 정보가 없습니다.',
+  en: 'No flights match this filter.',
+  ja: '条件に合う運航情報はありません。',
+  zh: '没有符合条件的航班。',
+  vi: 'Không có chuyến bay phù hợp.',
+  th: 'ไม่มีเที่ยวบินที่ตรงเงื่อนไข',
+  ru: 'Нет рейсов по фильтру.',
+  id: 'Tidak ada penerbangan yang cocok.',
+};
+
 /**
  * A column: where its centre axis sits.
  *
@@ -236,6 +255,9 @@ export function JejuFlights({ controller }: Props): JSX.Element {
   const [direction, setDirection] = useState<FlightDirection>('departure');
   const [query, setQuery] = useState('');
   const [focused, setFocused] = useState(false);
+  /** `null` = show every place. Cleared when the 출발/도착 tab changes. */
+  const [placeFilter, setPlaceFilter] = useState<string | null>(null);
+  const [placeOpen, setPlaceOpen] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
   const composer = useRef(new HangulComposer());
 
@@ -246,7 +268,7 @@ export function JejuFlights({ controller }: Props): JSX.Element {
 
   useEffect(() => {
     scrollRef.current?.scrollTo(0, 0);
-  }, [direction, query]);
+  }, [direction, query, placeFilter]);
 
   const allRows: Row[] = useMemo(
     () =>
@@ -256,14 +278,33 @@ export function JejuFlights({ controller }: Props): JSX.Element {
     [direction, departures, arrivals],
   );
 
+  const placeOptions = useMemo(() => {
+    const set = new Set<string>();
+    for (const row of allRows) {
+      const p = row.place.trim();
+      if (p) set.add(p);
+    }
+    return Array.from(set).sort((a, b) => a.localeCompare(b, 'ko'));
+  }, [allRows]);
+
+  useEffect(() => {
+    if (placeFilter && !placeOptions.includes(placeFilter)) {
+      setPlaceFilter(null);
+    }
+  }, [placeFilter, placeOptions]);
+
   const rows = useMemo(() => {
     const needle = normalizeFlightNo(query);
-    if (!needle) return allRows;
-    return allRows.filter((row) => normalizeFlightNo(row.flight.flightNo).includes(needle));
-  }, [allRows, query]);
+    return allRows.filter((row) => {
+      if (placeFilter && row.place !== placeFilter) return false;
+      if (needle && !normalizeFlightNo(row.flight.flightNo).includes(needle)) return false;
+      return true;
+    });
+  }, [allRows, query, placeFilter]);
 
   const columns = COLUMNS[direction];
   const timeColX = columns.find((c) => c.key === 'time')?.x ?? 300;
+  const placeColX = columns.find((c) => c.key === 'place')?.x ?? 1140;
 
   const clearSearch = (): void => {
     composer.current.reset('');
@@ -274,11 +315,24 @@ export function JejuFlights({ controller }: Props): JSX.Element {
   const selectTab = (id: FlightDirection): void => {
     setDirection(id);
     clearSearch();
+    setPlaceFilter(null);
+    setPlaceOpen(false);
   };
 
   const openSearch = (): void => {
+    setPlaceOpen(false);
     composer.current.reset(query);
     setFocused(true);
+  };
+
+  const togglePlaceMenu = (): void => {
+    setFocused(false);
+    setPlaceOpen((open) => !open);
+  };
+
+  const pickPlace = (value: string | null): void => {
+    setPlaceFilter(value);
+    setPlaceOpen(false);
   };
 
   const applyKey = (action: KeyAction): void => {
@@ -336,9 +390,12 @@ export function JejuFlights({ controller }: Props): JSX.Element {
     ? opText('OP_Schedule_Loading', lang, LOADING)
     : allRows.length === 0
       ? opText('OP_Schedule_Result', lang, EMPTY)
-      : opText('OP_Schedule_Search_Result', lang, NO_RESULT);
+      : placeFilter && !normalizeFlightNo(query)
+        ? pick(PLACE_NO_RESULT, lang)
+        : opText('OP_Schedule_Search_Result', lang, NO_RESULT);
 
   const searchPlaceholder = opText('OP_Schedule_Search_placeholder', lang, SEARCH_PLACEHOLDER);
+  const placeAllLabel = pick(PLACE_ALL, lang);
 
   return (
     <JejuPageFrame
@@ -377,15 +434,78 @@ export function JejuFlights({ controller }: Props): JSX.Element {
       </div>
 
       <div className={low(styles.headPlate, styles.headPlateLow)} />
-      {columns.map((col) => (
-        <span
-          key={`${direction}-${col.key}`}
-          className={`${low(styles.head, styles.headLow)} ${col.centred ? styles.cellCentred : ''}`}
-          style={{ left: col.x }}
-        >
-          {col.sheetKey ? opText(col.sheetKey, lang, col.head) : pick(col.head, lang)}
-        </span>
-      ))}
+      {columns.map((col) => {
+        if (col.key === 'place') {
+          const title = col.sheetKey ? opText(col.sheetKey, lang, col.head) : pick(col.head, lang);
+          return (
+            <button
+              key={`${direction}-${col.key}`}
+              type="button"
+              className={`${low(styles.head, styles.headLow)} ${styles.headPlace} ${styles.cellCentred}`}
+              style={{ left: col.x }}
+              aria-expanded={placeOpen}
+              aria-haspopup="listbox"
+              aria-label={title}
+              onClick={togglePlaceMenu}
+            >
+              <span className={styles.headPlaceLabel}>{title}</span>
+              <span
+                className={`${styles.headPlaceCaret} ${placeFilter ? styles.headPlaceCaretActive : ''}`}
+                aria-hidden="true"
+              >
+                ▼
+              </span>
+            </button>
+          );
+        }
+        return (
+          <span
+            key={`${direction}-${col.key}`}
+            className={`${low(styles.head, styles.headLow)} ${col.centred ? styles.cellCentred : ''}`}
+            style={{ left: col.x }}
+          >
+            {col.sheetKey ? opText(col.sheetKey, lang, col.head) : pick(col.head, lang)}
+          </span>
+        );
+      })}
+
+      {placeOpen && (
+        <>
+          <button
+            type="button"
+            className={styles.placeBackdrop}
+            aria-label="Close"
+            onClick={() => setPlaceOpen(false)}
+          />
+          <div
+            className={low(styles.placeDropdown, styles.placeDropdownLow)}
+            style={{ left: placeColX }}
+            role="listbox"
+          >
+            <button
+              type="button"
+              className={`${styles.placeOption} ${placeFilter == null ? styles.placeOptionActive : ''}`}
+              role="option"
+              aria-selected={placeFilter == null}
+              onClick={() => pickPlace(null)}
+            >
+              {placeAllLabel}
+            </button>
+            {placeOptions.map((place) => (
+              <button
+                key={place}
+                type="button"
+                className={`${styles.placeOption} ${placeFilter === place ? styles.placeOptionActive : ''}`}
+                role="option"
+                aria-selected={placeFilter === place}
+                onClick={() => pickPlace(place)}
+              >
+                {place}
+              </button>
+            ))}
+          </div>
+        </>
+      )}
 
       <div className={low(styles.scroll, styles.scrollLow)} ref={scrollRef}>
         <div key={direction} className={styles.rows}>

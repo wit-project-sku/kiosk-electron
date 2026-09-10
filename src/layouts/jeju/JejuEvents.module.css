@@ -123,7 +123,7 @@
 }
 
 /* ── Event card grid (list tab) ──
-   The grid scrolls; the 34.32px orange bar is Figma's, now at x2128 (it was
+   The grid scrolls; the 24px orange bar is Figma's, now at x2128 (it was
    x2080). The container runs to the artboard edge so the bar sits flush right
    at 2125.68 — the design's 2128 is measured inside a 2162-wide frame and its
    own bar overhangs the 2160 artboard by 2.3px. The padding absorbs the width
@@ -147,12 +147,12 @@
 }
 
 .listScroll::-webkit-scrollbar {
-  width: 34.32px;
+  width: 28px;
 }
 
 .listScroll::-webkit-scrollbar-thumb {
   background: var(--kiosk-primary, #ff7f0f);
-  border-radius: 17.16px;
+  border-radius: 14px;
 }
 
 .listScroll::-webkit-scrollbar-track {
