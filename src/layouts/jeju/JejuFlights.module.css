@@ -191,6 +191,121 @@
   top: 1103px;
 }
 
+/* 목적지 / 출발지 — same header ink as siblings, white ▼ on the right. */
+.headPlace {
+  display: inline-flex;
+  align-items: center;
+  gap: 14px;
+  margin: 0;
+  padding: 0;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  /* Do not use `font: inherit` — it would wipe `.head`'s 45/600/#fff. */
+  font-family: inherit;
+  font-size: 45px;
+  font-weight: 600;
+  line-height: 1;
+  color: #fff;
+  white-space: nowrap;
+}
+
+.headPlaceLabel {
+  font-size: 45px;
+  font-weight: 600;
+  line-height: 1;
+  color: #fff;
+  white-space: nowrap;
+}
+
+.headPlaceCaret {
+  flex: 0 0 auto;
+  font-size: 40px;
+  font-weight: 700;
+  line-height: 1;
+  color: #fff;
+  transform: translateY(2px);
+}
+
+.headPlaceCaretActive {
+  opacity: 0.85;
+}
+
+.placeBackdrop {
+  position: absolute;
+  inset: 0;
+  z-index: 6;
+  margin: 0;
+  padding: 0;
+  border: none;
+  background: transparent;
+  cursor: default;
+}
+
+.placeDropdown {
+  position: absolute;
+  top: 1375px;
+  width: 560px;
+  max-height: 1800px;
+  box-sizing: border-box;
+  padding: 36px 28px;
+  border: 5px solid #ffeac7;
+  border-radius: 48px;
+  background: #fff;
+  overflow-x: hidden;
+  overflow-y: auto;
+  z-index: 7;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  transform: translateX(-50%);
+  box-shadow: 0 12px 36px rgba(0, 0, 0, 0.12);
+}
+
+.placeDropdownLow {
+  top: 1216px;
+}
+
+.placeDropdown::-webkit-scrollbar {
+  width: 28px;
+}
+
+.placeDropdown::-webkit-scrollbar-thumb {
+  background: var(--kiosk-primary, #ff7f0f);
+  border-radius: 14px;
+}
+
+.placeDropdown::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.placeOption {
+  flex: 0 0 auto;
+  min-height: 80px;
+  width: 100%;
+  box-sizing: border-box;
+  padding: 20px 24px;
+  border: none;
+  border-radius: 28px;
+  background: none;
+  font-size: 45px;
+  font-weight: 600;
+  line-height: 1.2;
+  color: #999;
+  text-align: left;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.placeOptionActive {
+  background: var(--kiosk-primary, #ff7f0f);
+  color: #fff;
+}
+
 /* ── Scrolling rows ─────────────────────────────────────────────────── */
 /*
  * Starts where the plate ends so the column headers stay put. The 100px lead-in
@@ -226,12 +341,12 @@
 
 /* House scrollbar — identical to JejuListScreen / JejuAbout / JejuEvents. */
 .scroll::-webkit-scrollbar {
-  width: 34.32px;
+  width: 28px;
 }
 
 .scroll::-webkit-scrollbar-thumb {
   background: var(--kiosk-primary, #ff7f0f);
-  border-radius: 17.16px;
+  border-radius: 14px;
 }
 
 .scroll::-webkit-scrollbar-track {

@@ -48,6 +48,21 @@ const RENTCAR_ADDRESS_QR_LABEL = {
   id: 'Lihat alamat',
 };
 
+/**
+ * Caption under the homepage QR on 렌터카 상세.
+ * URL comes from shop `homepage` via `DetailItem.homepageUrl`.
+ */
+const RENTCAR_HOMEPAGE_QR_LABEL = {
+  ko: '홈페이지',
+  en: 'Homepage',
+  ja: 'ホームページ',
+  zh: '主页',
+  vi: 'Trang chủ',
+  th: 'โฮมเพจ',
+  ru: 'Сайт',
+  id: 'Beranda',
+};
+
 /** Replaces the km directions heading on 렌터카하우스 detail. */
 const RENTCAR_HOUSE_HEADING = {
   ko: '1층 2번 게이트',
@@ -146,6 +161,10 @@ export function JejuSpotDetailCard({
   // Only a real URL becomes a QR; the shops API leaves this empty for many rows.
   // `blogReviews` carries the Naver link, not a review count — see JejuDetail.
   const qrLink = /^https?:\/\//i.test(item.blogReviews) ? item.blogReviews : null;
+  const homepageQrUrl =
+    item.homepageUrl && /^https?:\/\//i.test(item.homepageUrl.trim())
+      ? item.homepageUrl.trim()
+      : null;
   const ratingValue = parseFloat(item.rating);
   const hasRating = Number.isFinite(ratingValue) && ratingValue > 0;
   const filledStars = Math.round(ratingValue);
@@ -337,13 +356,34 @@ export function JejuSpotDetailCard({
             )}
           </div>
 
-          {qrLink && (
-            <div className={`${styles.qr} ${isRentcar ? styles.qrWithCaption : ''}`}>
-              <QRCodeSVG className={styles.qrCode} value={qrLink} bgColor="#ffffff" fgColor="#000000" />
-              {isRentcar && (
-                <span className={styles.qrCaption}>{pick(RENTCAR_ADDRESS_QR_LABEL, lang)}</span>
-              )}
-            </div>
+          {isRentcar ? (
+            (homepageQrUrl || qrLink) && (
+              <div className={styles.qrGroup}>
+                {homepageQrUrl && (
+                  <div className={`${styles.qr} ${styles.qrWithCaption}`}>
+                    <QRCodeSVG
+                      className={styles.qrCode}
+                      value={homepageQrUrl}
+                      bgColor="#ffffff"
+                      fgColor="#000000"
+                    />
+                    <span className={styles.qrCaption}>{pick(RENTCAR_HOMEPAGE_QR_LABEL, lang)}</span>
+                  </div>
+                )}
+                {qrLink && (
+                  <div className={`${styles.qr} ${styles.qrWithCaption}`}>
+                    <QRCodeSVG className={styles.qrCode} value={qrLink} bgColor="#ffffff" fgColor="#000000" />
+                    <span className={styles.qrCaption}>{pick(RENTCAR_ADDRESS_QR_LABEL, lang)}</span>
+                  </div>
+                )}
+              </div>
+            )
+          ) : (
+            qrLink && (
+              <div className={styles.qr}>
+                <QRCodeSVG className={styles.qrCode} value={qrLink} bgColor="#ffffff" fgColor="#000000" />
+              </div>
+            )
           )}
         </div>
 

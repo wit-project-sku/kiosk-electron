@@ -241,12 +241,12 @@
 }
 
 .cardWithMap::-webkit-scrollbar {
-  width: 34.32px;
+  width: 28px;
 }
 
 .cardWithMap::-webkit-scrollbar-thumb {
   background: var(--kiosk-primary, #ff7f0f);
-  border-radius: 17.16px;
+  border-radius: 14px;
 }
 
 .cardWithMap::-webkit-scrollbar-track {
@@ -314,12 +314,12 @@
 }
 
 .cardFixedScroll::-webkit-scrollbar {
-  width: 34.32px;
+  width: 28px;
 }
 
 .cardFixedScroll::-webkit-scrollbar-thumb {
   background: var(--kiosk-primary, #ff7f0f);
-  border-radius: 17.16px;
+  border-radius: 14px;
 }
 
 .cardFixedScroll::-webkit-scrollbar-track {
@@ -529,10 +529,24 @@
   justify-content: center;
 }
 
+/* Rentcar: homepage QR (left) + address QR (right). */
+.qrGroup {
+  display: flex;
+  flex: 0 0 auto;
+  align-items: flex-start;
+  gap: 24px;
+  margin-right: 60px;
+}
+
+.qrGroup .qr {
+  margin-right: 0;
+}
+
 .qrWithCaption {
   flex-direction: column;
   justify-content: flex-start;
   align-self: center;
+  width: 260px;
   height: auto;
   gap: 4px;
   padding: 18px 0 6px;
