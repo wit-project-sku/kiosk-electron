@@ -529,6 +529,19 @@
   justify-content: center;
 }
 
+/* Rentcar: homepage QR (left) + address QR (right). */
+.qrGroup {
+  display: flex;
+  flex: 0 0 auto;
+  align-items: flex-start;
+  gap: 24px;
+  margin-right: 60px;
+}
+
+.qrGroup .qr {
+  margin-right: 0;
+}
+
 .qrWithCaption {
   flex-direction: column;
   justify-content: flex-start;

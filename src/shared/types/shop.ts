@@ -129,6 +129,8 @@ export interface Shop {
   /** Association member — list name-dot is drawn in the association green. */
   fromAssociation?: boolean;
   naverLink: string | null;
+  /** Shop homepage URL — rentcar detail “홈페이지” QR when set. */
+  homepage?: string | null;
   naverRating: number | null;
   images: ShopImage[];
   /** Present on rentcar rows — distance/duration from the kiosk. */

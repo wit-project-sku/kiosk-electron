@@ -39,6 +39,11 @@ export interface DetailItem {
   rating: string;
   instagram: string;
   blogReviews: string;
+  /**
+   * Rentcar 상세 “홈페이지” QR — from shop `homepage`. Absent when the shop
+   * has no homepage; the plate is then omitted.
+   */
+  homepageUrl?: string;
   /** When set, the palace detail re-reads PALACES[palaceIndex] for live language switching. */
   palaceIndex?: number;
   /** AI course only — the next stop of the same day. See CourseNextSpot. */
