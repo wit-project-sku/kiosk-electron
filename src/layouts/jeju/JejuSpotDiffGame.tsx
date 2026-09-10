@@ -57,6 +57,7 @@ import type { SpotDiffRound, SpotDiffSpot } from '@shared/types/spotDiff';
 import { pick, useLang } from '@renderer/lib/i18n';
 import { trackEvent } from '@renderer/lib/analytics';
 import { useKioskStore } from '@renderer/store/kioskStore';
+import { useAccessibilityStore } from '@renderer/store/accessibilityStore';
 import { usePhotoChrome } from '../photo/photoChrome';
 import styles from './JejuSpotDiffGame.module.css';
 
@@ -314,6 +315,12 @@ export function JejuSpotDiffGame({ rounds, aiReady, onFinish, onHome }: Props): 
   const lang = useLang();
   const kioskId = useKioskStore((s) => s.config.kioskId);
   const { icon, Header, photoTitle, banner } = usePhotoChrome();
+  /* The rail's ♿ control — see the rail markup for what it does and does not
+     affect on this screen. */
+  const lowReach = useAccessibilityStore((s) => s.lowReach);
+  const toggleLowReach = useAccessibilityStore((s) => s.toggleLowReach);
+  const accessibilityIcon =
+    (lowReach ? icon('ico-accessibility-on') : undefined) ?? icon('ico-accessibility');
   const pageBg = icon('bg-page') || icon('bg');
 
   /** Which board of `rounds` is in play; a replay advances it. */
@@ -550,20 +557,12 @@ export function JejuSpotDiffGame({ rounds, aiReady, onFinish, onHome }: Props): 
     });
   };
 
-  /** One of the frame's two grey plates, with the picture fitted inside it. */
-  const renderSlot = (
-    panel: number,
-    slotClass: string | undefined,
-    src: string | undefined,
-  ): JSX.Element => (
-    <div className={`${styles.slot} ${slotClass ?? ''}`}>
+  /** One of the two grey plates, with the picture fitted inside it. Position is
+   *  the row's business (see `.board`) — this only draws the plate. */
+  const renderSlot = (panel: number, src: string | undefined): JSX.Element => (
+    <div className={styles.slot}>
       {round && src ? (
-        <div
-          className={styles.panel}
-          // Drives the fit-inside arithmetic in the CSS — see the note on .panel.
-          style={{ '--sd-aspect': String(round.aspect) } as CSSProperties}
-          onPointerDown={handlePanelTap(panel)}
-        >
+        <div className={styles.panel} onPointerDown={handlePanelTap(panel)}>
           <img className={styles.panelImg} src={src} alt="" draggable={false} />
 
           {round.spots
@@ -623,6 +622,46 @@ export function JejuSpotDiffGame({ rounds, aiReady, onFinish, onHome }: Props): 
 
       <Header title={photoTitle} onHome={onHome} onBack={onHome} navDisabled={navLocked} />
 
+      {/* ── Left rail: 홈 · 뒤로 · ♿ (6258:78631, x50/y2163) ──
+          홈 and 뒤로 carry `navLocked` exactly as the header's pair does — while
+          the photo is generating a tap there would discard it. The ♿ toggle is
+          never locked: it throws nothing away.
+
+          As on the 위드마켓 result, the toggle does not reflow THIS screen — the
+          game has no low-reach layout — but the flag is global and the icon
+          swaps to its active art, so the press is acknowledged. */}
+      <div className={styles.leftNav}>
+        <button
+          type="button"
+          className={`${styles.leftNavBtn} ${navLocked ? styles.leftNavBtnLocked : ''}`}
+          onClick={navLocked ? undefined : onHome}
+          disabled={navLocked}
+          aria-label="홈으로"
+        >
+          {icon('home-btn') && <img src={icon('home-btn')} alt="" draggable={false} />}
+        </button>
+        <button
+          type="button"
+          className={`${styles.leftNavBtn} ${navLocked ? styles.leftNavBtnLocked : ''}`}
+          onClick={navLocked ? undefined : onHome}
+          disabled={navLocked}
+          aria-label="뒤로"
+        >
+          {icon('back-arrow') && <img src={icon('back-arrow')} alt="" draggable={false} />}
+        </button>
+        {accessibilityIcon && (
+          <button
+            type="button"
+            className={styles.leftNavBtn}
+            onClick={toggleLowReach}
+            aria-label="저상 화면"
+            aria-pressed={lowReach}
+          >
+            <img src={accessibilityIcon} alt="" draggable={false} />
+          </button>
+        )}
+      </div>
+
       {/* ── ③ 잠시만 기다려주세요! ── */}
       <div className={styles.step}>
         <span className={styles.stepBadge}>{STEP_NUMBER}</span>
@@ -655,8 +694,18 @@ export function JejuSpotDiffGame({ rounds, aiReady, onFinish, onHome }: Props): 
         </div>
       </div>
 
-      {renderSlot(0, styles.slotA, round?.originalUrl)}
-      {renderSlot(1, styles.slotB, round?.modifiedUrl)}
+      {/* Side by side since 6980:17652 — they were stacked before. `--sd-aspect`
+          rides the ROW rather than each panel: the plate's height is derived
+          from it too, so the plate and the picture inside it resolve from one
+          value. The 4/3 fallback matches SpotDiffService's own default and only
+          shows for the frame before a round arrives. */}
+      <div
+        className={styles.board}
+        style={{ '--sd-aspect': String(round?.aspect ?? 4 / 3) } as CSSProperties}
+      >
+        {renderSlot(0, round?.originalUrl)}
+        {renderSlot(1, round?.modifiedUrl)}
+      </div>
 
       <div className={styles.actions}>
         <button

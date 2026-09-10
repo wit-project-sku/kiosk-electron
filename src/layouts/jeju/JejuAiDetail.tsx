@@ -88,6 +88,7 @@ import { buildAiCourseSaveUrlForQr } from '@renderer/lib/aiCourseSave';
 import { JejuPageFrame } from './JejuPageFrame';
 import { JejuCourseSpotCard } from './JejuCourseSpotCard';
 import styles from './JejuAiDetail.module.css';
+import { belowModeBar } from './lowReach';
 
 interface Props {
   controller: KioskController;
@@ -836,7 +837,7 @@ export function JejuAiDetail({ controller }: Props): JSX.Element {
       onBack={() => controller.navigate('ai_result', '뒤로')}
       /* Mode-bar revision: bar + header shift only — no promo banner in ♿. */
       lowReachModeBar
-      lowReachShift={113}
+      lowReachShift={belowModeBar()}
     >
       {/* Header QR — the itinerary, opened on the visitor's phone.
 

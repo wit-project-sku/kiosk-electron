@@ -19,7 +19,7 @@
  * The 운항 정보 board was redrawn with six columns and three 현황 conditions
  * (탑승중 / 지연 / 탑승최종) — it lives in JejuFlightBoard.tsx.
  */
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState, type ReactElement } from 'react';
 import { IDLE_TIMEOUT_MS, type KioskController } from '@renderer/hooks/useKioskController';
 import { useInactivityReset } from '@renderer/hooks/useInactivityReset';
 import type { KioskScreenId } from '@shared/types/kiosk';
@@ -30,13 +30,16 @@ import { useWeatherStore } from '@renderer/store/weatherStore';
 import { useWeatherVideo } from '@renderer/hooks/useWeatherVideo';
 import { useLanguageStore } from '@renderer/store/languageStore';
 import { useSearchStore } from '@renderer/store/searchStore';
+import { usePhotoStore } from '@renderer/store/photoStore';
 import { weatherIconUrl, weatherIconName } from '@renderer/assets/weather';
 import type { Lang } from '@renderer/lib/i18n';
 import { t, tPlain, sheetText } from '@renderer/lib/loc';
 import { DONATION_COMING_SOON, withComingSoon } from '@shared/config/donation';
+import { JEJU_OUTFIT_CATEGORY } from './JejuHanbokSelect';
 import { JejuFlightBoard } from './JejuFlightBoard';
 import { JejuSailingBoard } from './JejuSailingBoard';
 import { JejuWeatherPanel } from './JejuWeatherPanel';
+import { modeBarVars } from './lowReach';
 import { FloatingKeyboard } from '../insadong/keyboard/FloatingKeyboard';
 import { HangulComposer } from '../insadong/keyboard/hangul';
 import type { KeyAction } from '../insadong/keyboard/VirtualKeyboard';
@@ -221,6 +224,66 @@ const TILE_SUB_KEYS: Partial<Record<string, string | readonly string[]>> = {
   market: ['MainButton_Goods_Subtext', 'SubButton_Goods'],
   events: ['MainButton_Event_Subtext', 'SubButton_Event'],
 };
+
+/**
+ * Dwell time on each half of a paired tile title, in ms. Long enough to read
+ * and re-read the name at kiosk distance; short enough that a visitor walking
+ * past the grid still sees both within one pass.
+ */
+const TILE_TITLE_CYCLE_MS = 4_500;
+
+/**
+ * The middle dot the sheet pairs two names with — U+00B7 in ko/en/zh/vi/th/ru/id
+ * and U+30FB in ja, with or without spaces around it. Surrounding whitespace is
+ * eaten with the dot so the halves need no trimming.
+ */
+const TITLE_PAIR_SEPARATOR = /\s*[·・]\s*/;
+
+/** The halves of a paired title, or a single-element list for an ordinary one. */
+const titleParts = (label: string): string[] => {
+  const parts = label.split(TITLE_PAIR_SEPARATOR).filter(Boolean);
+  return parts.length > 1 ? parts : [label];
+};
+
+/**
+ * A tile title that names TWO things — MainButton_Tamnao reads 탐나오·제주큐랑
+ * in all eight languages, and it is the only such row today — shown one name at
+ * a time instead of wrapped onto a second line.
+ *
+ * Low-reach narrows every tile from 300px to 230px (`.tileLow`), and the pair
+ * does not fit that column on one line in ANY language: it wrapped, and since
+ * `.tileTextLow` is a fixed box that starts 260px down a 303px tile, the second
+ * row ran off the bottom of the tile. Alternating the halves keeps the single
+ * row the frame draws.
+ *
+ * Only the DISPLAY splits. `navigate()` still receives the CMS's 탐나오 (see
+ * TILE_LABEL_KEYS), so the analytics label and the buttons-table join are
+ * untouched by this.
+ *
+ * The timer is per-tile and starts on mount, so the halves of different tiles
+ * would not be in step if the sheet ever pairs a second one — that is fine, and
+ * cheaper than a shared clock the whole grid would re-render on.
+ */
+function CyclingTileTitle({ label }: { label: string }): ReactElement {
+  const parts = useMemo(() => titleParts(label), [label]);
+  const [index, setIndex] = useState(0);
+
+  useEffect(() => {
+    setIndex(0);
+    if (parts.length < 2) return;
+    const id = setInterval(() => setIndex((i) => (i + 1) % parts.length), TILE_TITLE_CYCLE_MS);
+    return () => clearInterval(id);
+  }, [parts]);
+
+  const shown = parts[index] ?? parts[0] ?? label;
+  /* `key` restarts the fade on every swap — without it React reuses the node,
+     the animation never re-runs and the name changes in one hard cut. */
+  return (
+    <span key={`${shown}-${index}`} className={parts.length > 1 ? styles.tileTitleCycle : undefined}>
+      {shown}
+    </span>
+  );
+}
 
 /** A `<b>`-and-newline run, as the sheet's NoticeContent stores it. */
 interface Run {
@@ -489,6 +552,8 @@ export function JejuHome({ controller }: Props): JSX.Element {
   const playWeatherVideo = useWeatherVideo();
   const lang = useLanguageStore((s) => s.currentLanguage);
   const setStoreQuery = useSearchStore((s) => s.setQuery);
+  /** Hands the 제주 tab to the outfit picker — see `openJejuOutfits`. */
+  const setInitialCategory = usePhotoStore((s) => s.setInitialCategory);
 
   const [now, setNow] = useState(() => new Date());
   useEffect(() => {
@@ -523,6 +588,28 @@ export function JejuHome({ controller }: Props): JSX.Element {
   function go(screen: KioskScreenId, label: string): void {
     controller.navigate(screen, label);
   }
+
+  /**
+   * JEJU ISLAND → the AR 한복체험 outfit picker, opened on the 제주 tab.
+   *
+   * NOT `go()`: the picker is a step INSIDE the photo workflow (PhotoWorkflow →
+   * JejuHanbokSelect), not a screen `navigate()` can address, so it opens the
+   * same way 사진촬영 does. `startPhoto` files its own analytics.
+   *
+   * The tab is handed over through photoStore, which the picker reads once its
+   * row has arrived from the API and then clears — the same relay 이벤트 참여
+   * uses to land on 프로모션 (InsadongKdrama). It is the registered CODE, not
+   * the 제주 label: the label is the operator's Korean display name, editable
+   * in the admin web and absent in the other seven languages.
+   *
+   * Without it the picker opens on whatever tab leads the row, which is 제주
+   * only while 제주 has outfits — an empty catalogue sorts it LAST and the
+   * button would quietly land on 한복.
+   */
+  const openJejuOutfits = (): void => {
+    setInitialCategory(JEJU_OUTFIT_CATEGORY);
+    controller.startPhoto();
+  };
 
   const weatherIcon = weather
     ? weatherIconUrl(weatherIconName(weather.icon, weather.main))
@@ -583,8 +670,9 @@ export function JejuHome({ controller }: Props): JSX.Element {
   const tiles = TILES_BY_KIOSK[controller.kioskId] ?? TILES_AIRPORT;
   const orderedTiles = useOrderedTiles(controller.kioskId, tiles, jejuTileKey);
 
-  /* Low-reach: 191px mode bar + 573px 한복 promo, then the frame's own
-     coordinates — see the block at the foot of JejuHome.module.css. */
+  /* Low-reach: the shared mode bar (lowReach.ts) + a 573px 한복 promo flush
+     under it, then the frame's own coordinates — see the block at the foot of
+     JejuHome.module.css. */
   const lowReach = useAccessibilityStore((s) => s.lowReach);
   const toggleLowReach = useAccessibilityStore((s) => s.toggleLowReach);
   /* Params are optional because CSS Module lookups are typed `string | undefined`. */
@@ -598,7 +686,9 @@ export function JejuHome({ controller }: Props): JSX.Element {
     (lowReach ? jejuIconUrl('ico-accessibility-on') : undefined) ?? jejuIconUrl('ico-accessibility');
 
   return (
-    <div className={styles.root}>
+    /* --jeju-mode-bar sizes the ♿ bar and places the 한복 hero flush under it;
+       one value shared with every sub-page frame (see lowReach.ts). */
+    <div className={styles.root} style={modeBarVars}>
       {jejuIconUrl('bg') && (
         <img src={jejuIconUrl('bg')} alt="" className={styles.bgImage} draggable={false} />
       )}
@@ -742,7 +832,11 @@ export function JejuHome({ controller }: Props): JSX.Element {
                 <span className={styles.tileArtMissing}>{tile.label[0]}</span>
               )}
               <span className={low(styles.tileText, styles.tileTextLow)}>
-                <span className={styles.tileTitle}>{tileLabel(tile)}</span>
+                <span className={styles.tileTitle}>
+                  {/* Low-reach only: at 300px the pair still fits one line, so the
+                     full label stays on the standard grid. */}
+                  {lowReach ? <CyclingTileTitle label={tileLabel(tile)} /> : tileLabel(tile)}
+                </span>
                 <span className={styles.tileSub}>{subFor(tile.screen, tile.sub)}</span>
               </span>
             </button>
@@ -751,23 +845,30 @@ export function JejuHome({ controller }: Props): JSX.Element {
       </div>
 
       {/* ── Bottom actions — low-reach shifts +79 (Figma 6442:105429) ── */}
-      {/* K-DRAMA is DISABLED for now — the screen behind it is not ready. Only
-          the click is off: no dim, no colour change, so the art stays exactly
-          as the frame draws it (`disabled` alone would take Chrome's UA fade).
-          Re-enable by restoring `onClick={() => go('kdrama', 'K-DRAMA')}`. */}
+      {/* JEJU ISLAND — replaces the K-DRAMA button, which sat here permanently
+          disabled because the screen behind it was never built. Opens the AR
+          한복체험 picker on the 제주 tab (see `openJejuOutfits`). */}
       <button
         type="button"
-        className={low(styles.kdrama, styles.kdramaLow)}
-        disabled
-        aria-disabled="true"
-        aria-label="K-DRAMA"
+        className={low(styles.arJeju, styles.arJejuLow)}
+        onClick={openJejuOutfits}
+        aria-label="JEJU ISLAND"
       >
-        {jejuIconUrl('btn-kdrama') && (
-          <img src={jejuIconUrl('btn-kdrama')} alt="" className={styles.actionImg} draggable={false} />
+        {jejuIconUrl('btn-jeju-island') && (
+          <img
+            src={jejuIconUrl('btn-jeju-island')}
+            alt=""
+            className={styles.actionImg}
+            draggable={false}
+          />
         )}
       </button>
-      <span className={low(`${styles.actionLabel} ${styles.labelKdrama}`, styles.actionLabelLow)}>
-        K-DRAMA
+      {/* Not localized, and not a sheet key: JEJU ISLAND is a Latin wordmark
+          that reads the same in all eight languages — the same treatment the
+          header's own JEJUDO ISLAND lockup gets, and what K-DRAMA had here.
+          화장실 next door DOES come from the sheet, because it is a word. */}
+      <span className={low(`${styles.actionLabel} ${styles.labelArJeju}`, styles.actionLabelLow)}>
+        JEJU ISLAND
       </span>
 
       <button
@@ -840,7 +941,6 @@ export function JejuHome({ controller }: Props): JSX.Element {
       {weatherOpen && (
         <JejuWeatherPanel
           forecast={forecast}
-          current={weather}
           lang={lang}
           onClose={() => setWeatherOpen(false)}
         />

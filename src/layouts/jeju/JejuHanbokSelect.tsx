@@ -126,6 +126,7 @@ import {
 import { cameraIconUrl } from '@renderer/assets/icons/insadong/camera';
 import { pick, useLang, type Lang } from '@renderer/lib/i18n';
 import { useAccessibilityStore } from '@renderer/store/accessibilityStore';
+import { modeBarVars } from './lowReach';
 import { jejuMascot, type JejuMascot } from './jejuMascot';
 /* The privacy modal and the camera-direction popup are identical on every
    layout, so their styles are reused from the shared step rather than copied. */
@@ -190,6 +191,14 @@ const isHanbokCategory = (name: string): boolean => /^(?:[wm]=)?hann?bok$/i.test
  * admin web and absent in the other seven languages.
  */
 const JEJU_CATEGORY = 'jeju';
+
+/**
+ * The same tab, spelled as the API registers it — what a caller hands to
+ * `photoStore.setInitialCategory` to open this picker on 제주. Exported so the
+ * home screen's JEJU ISLAND button cannot drift from `JEJU_CATEGORY` above;
+ * the two are compared case-insensitively, so only the spelling travels.
+ */
+export const JEJU_OUTFIT_CATEGORY = 'Jeju';
 
 /**
  * Tab-row geometry. Figma 6258:48134 draws 8 tabs as 2 rows of 4 — 420-wide
@@ -466,8 +475,13 @@ export function JejuHanbokSelect({
     const landing = tabs[0] as Tab;
     if (initialCategory) {
       // The caller names the tab in Korean (`프로모션`), which is a label rather
-      // than a code, so both are accepted.
-      const match = tabs.find((t) => t.id === initialCategory || t.ko === initialCategory);
+      // than a code, so both are accepted. The CODE compares case-insensitively
+      // — the rest of this file already lower-cases before matching it (see
+      // JEJU_CATEGORY and the `tabs` reorder), and an operator who registers
+      // `jeju` rather than `Jeju` should not silently drop the caller on the
+      // landing tab. The label is matched as authored.
+      const wanted = initialCategory.toLowerCase();
+      const match = tabs.find((t) => t.id.toLowerCase() === wanted || t.ko === initialCategory);
       setCategoryId((match ?? landing).id);
       setInitialCategory(null);
       return;
@@ -634,9 +648,18 @@ export function JejuHanbokSelect({
   const lowReachSubShift = lowReachTheme && subs.length > 0 ? '110px' : '0px';
   /* ③ No promo banner on either condition — see the render. */
 
-  // ── 한복 설명 (opened from the 사진촬영안내 card) ──
-  // Same content and chrome as the shared step's page, so it reuses those
-  // styles rather than re-authoring them; 뒤로 in JejuHeader closes it.
+  /*
+   * ── 한복 설명 (opened from the 사진촬영안내 card) ──
+   *
+   * 제주 has its OWN frame for this page — 6258:49124 — and it is not the
+   * shared step's: it hand-places two blocks in the same 1820 column the picker
+   * uses, both of which fit the 3840 artboard above the banner, so the page does
+   * not scroll and its outfit strip is the picker's own two-row grid rather than
+   * the shared 478×490 carousel. See the `한복 설명 page` block in the CSS for
+   * the y map. The copy is still the fleet-wide `HANBOK_INFO`, and the privacy
+   * modal and camera popup below still come from the shared sheet; 뒤로 in
+   * JejuHeader closes the page.
+   */
   if (infoOpen) {
     const info = pick(HANBOK_INFO, lang);
     // Walk the catalogue's OWN keys rather than probing for names we guessed:
@@ -649,36 +672,68 @@ export function JejuHanbokSelect({
       .flatMap((name) => byCategory[name] ?? [])
       .filter((o) => Boolean(o.url) && !brokenCodes.has(o.code));
     return (
-      <div className={`${styles.root} ${lowReach ? styles.rootLowReach : ''}`}>
+      <div className={`${styles.root} ${lowReach ? styles.rootLowReach : ''}`} style={modeBarVars}>
         {pageBg && <img src={pageBg} alt="" className={styles.bg} draggable={false} />}
-        {/* This page has no low-reach frame of its own — it is a scrolling text
-            page — so ♿ gives it the mode bar and clears the bar's 113. */}
+        {/* This page has no low-reach frame of its own — so ♿ gives it the mode
+            bar and pushes both blocks past the bar's height (the `.rootLowReach`
+            calcs on `.infoOutfits` / `.infoCard`, off --jeju-mode-bar). */}
         {lowReach && <div className={styles.modeBar}>{sheetText('BarrierFree_Title', lang, BARRIER_FREE)}</div>}
         <Header
           title={t('MainButton_Hanbok', lang)}
           onHome={onHome}
           onBack={() => setInfoOpen(false)}
         />
-        <div className={`${shared.infoContent} ${styles.infoContent}`}>
-          <div className={shared.infoCarousel}>
+        {/*
+         * The strip is the PICKER's card, not a page-local one: 6258:49124 draws
+         * the same 350 plate on the same 391 cell and 441 pitch as 48326, two
+         * rows of five across the 1820 column, each with the outfit's name under
+         * it — so it reuses `.outfits` / `.outfitsGrid` / `.outfit` and moves
+         * only the strip's top (`.infoOutfits`). It replaces the free-scrolling
+         * 478×490 row the shared step draws, which was never this frame.
+         *
+         * Swiper for the same reason the picker uses it: the frame draws exactly
+         * ten cards and the catalogue carries twice that (22 한복 outfits on stage),
+         * so the eleventh onward has to be reachable by drag.
+         *
+         * Nothing here is tappable — this is the explanation page, and the
+         * capture happens on the picker — so the plate is a plain div. The first
+         * card carries the frame's orange/cream fill as a still life: it is what
+         * 49124 draws, not a selection anyone made or can change.
+         */}
+        {allHanbok.length > 0 && (
+          <Swiper
+            className={`${styles.outfits} ${styles.outfitsGrid} ${styles.infoOutfits}`}
+            modules={[Grid, FreeMode]}
+            grid={{ rows: 2, fill: 'row' }}
+            slidesPerView={CARDS_PER_VIEW}
+            spaceBetween={CARD_GAP}
+            freeMode
+          >
             {allHanbok.map((o, i) => (
-              <div
-                key={o.code}
-                className={`${shared.infoThumb} ${i === 0 ? shared.infoThumbSel : ''}`}
-              >
-                <img src={o.url} alt="" draggable={false} onError={() => markBroken(o.code)} />
-              </div>
+              <SwiperSlide key={o.code} className={styles.outfitSlide}>
+                <div className={`${styles.outfit} ${i === 0 ? styles.outfitActive : ''}`}>
+                  <img
+                    src={o.url}
+                    alt=""
+                    className={styles.outfitImg}
+                    draggable={false}
+                    decoding="async"
+                    onError={() => markBroken(o.code)}
+                  />
+                </div>
+                <p className={styles.outfitName}>{outfitLabel(o, lang)}</p>
+              </SwiperSlide>
             ))}
-          </div>
-          <div className={shared.infoCard}>
-            <p className={shared.infoHeading}>{info.heading}</p>
-            <div className={shared.infoBody}>
-              {info.paragraphs.map((p, i) => (
-                <p key={i} className={shared.infoPara}>
-                  {p}
-                </p>
-              ))}
-            </div>
+          </Swiper>
+        )}
+        <div className={styles.infoCard}>
+          <p className={styles.infoHeading}>{info.heading}</p>
+          <div className={styles.infoBody}>
+            {info.paragraphs.map((p, i) => (
+              <p key={i} className={styles.infoPara}>
+                {p}
+              </p>
+            ))}
           </div>
         </div>
         {banner && (
@@ -728,7 +783,11 @@ export function JejuHanbokSelect({
       ]
         .filter(Boolean)
         .join(' ')}
-      style={lowReach ? ({ '--lr-sub': lowReachSubShift } as React.CSSProperties) : undefined}
+      style={
+        lowReach
+          ? ({ ...modeBarVars, '--lr-sub': lowReachSubShift } as React.CSSProperties)
+          : modeBarVars
+      }
     >
       {pageBg && <img src={pageBg} alt="" className={styles.bg} draggable={false} />}
 

@@ -62,6 +62,7 @@ import cultureHaenyeo from '@renderer/assets/photos/jeju/about/culture-haenyeo.j
 import cultureStone from '@renderer/assets/photos/jeju/about/culture-stone.jpg';
 import cultureLiving from '@renderer/assets/photos/jeju/about/culture-living.jpg';
 import cultureFood from '@renderer/assets/photos/jeju/about/culture-food.jpg';
+import { belowModeBar } from './lowReach';
 
 type TabId = 'history' | 'culture' | 'attractions';
 
@@ -551,6 +552,9 @@ export function JejuAbout({ controller }: Props): JSX.Element {
     });
     setTab(id);
     setSpot(null);
+    /* VideoSubtitle_귀이 files a clip per TAB — see the 재생조건 column and the
+       Key#N entries in videoMap. */
+    void window.api.kiosk.setScreen(`about_${id}`);
   };
 
   const openSpot = (s: Shop): void => {
@@ -591,7 +595,7 @@ export function JejuAbout({ controller }: Props): JSX.Element {
   return (
     /* No banner override in STANDARD: this frame carries the same 상점 검색
        promo as 상세. ♿ is on the 2026-08-26 mode-bar revision (all four state
-       frames): bar at the top, header y113, banner gone, content self-laid-out
+       frames): bar at the top, header flush under it (the frame's y113), banner gone, content self-laid-out
        below — so the body shift stays 0 (lowReachSelfLayout's job, and the
        mode-bar default). */
     <JejuPageFrame
@@ -601,7 +605,7 @@ export function JejuAbout({ controller }: Props): JSX.Element {
       onBack={goBack}
       lowReachSelfLayout
       lowReachModeBar
-      lowReachShift={113}
+      lowReachShift={belowModeBar()}
     >
       <JejuTabRow
         tabs={TABS.map(({ id, key, label }) => ({ id, label: sheetText(key, lang, label) }))}

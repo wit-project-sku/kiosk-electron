@@ -26,15 +26,21 @@
  * composition.
  *
  * 973 + 2291 + the QR row = 3592, past the y3267 a page banner would occupy,
- * which is why this screen passes showBanner={false} — see JejuWebScreen. That
- * also makes ♿ a no-op here (JejuPageFrame only re-stacks pages that HAVE a
- * banner), which is correct: shifting this layout down 573 would run it off the
- * 3840 artboard. Its low-reach frame is still to come from Figma.
+ * which is why this screen passes showBanner={false} — see JejuWebScreen.
  */
 .bodyTamnao {
   top: 973px;
   height: 2291px;
   border-radius: 63px;
+}
+
+/* ♿ (6778:69905) — the low-reach frame this file said was still to come.
+   The panel keeps its 1820×2291 at x170 and only drops 973 → 1032; what
+   actually re-stacks around it is the other two blocks, which SWAP ends: the QR
+   row comes up above the panel and the tab row goes to the foot, within seated
+   reach. See .qrRowLow / .tabsLow. */
+.bodyTamnaoLow {
+  top: 1032px;
 }
 
 /* ── Tab row — 6493:118322 ──
@@ -51,6 +57,13 @@
   display: flex;
   align-items: center;
   gap: 200px;
+}
+
+/* ♿: the same 1360-wide row, moved from above the panel to the foot of the
+   artboard (6778:69905) — the one control on this screen, put where a seated
+   visitor can reach it. Width, gap and both pill treatments are unchanged. */
+.tabsLow {
+  top: 3440px;
 }
 
 .tab {
@@ -100,6 +113,13 @@
   top: 3373px;
   width: 1820px;
   height: 219px;
+}
+
+/* ♿: above the panel instead of below it, tucked into the header's own bottom
+   padding (the header runs 146–846 and draws nothing past its subtitle at 765).
+   Same 1820×219 box and the same divider/text/QR inside it — only `top` moves. */
+.qrRowLow {
+  top: 813px;
 }
 
 .qrDivider {

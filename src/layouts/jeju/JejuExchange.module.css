@@ -20,8 +20,9 @@
  * 1244…1651  금액 field              │  calculator tab (Figma coords)
  * 1743…1905  swap button             │
  * 1855…2267  환전 field              ┘
- * 2326…3283  numeric keypad overlay  (only while the amount field is focused)
- *  970…3267  실시간 환율 list         (live tab)
+ * 2326…3264  numeric keypad overlay  (only while the amount field is focused)
+ *  900…940   26.08.30. 19:30 기준 stamp  ┐  live tab
+ *  970…3267  실시간 환율 list            ┘
  */
 
 /* ── Tabs ───────────────────────────────────────────────────────────── */
@@ -79,14 +80,15 @@
 /* ── 기준 환율 pill ─────────────────────────────────────────────────── */
 /*
  * 794×283 — shared with the low-reach calculator frames (6460:117343). Standard
- * layout sits at y980 (20px above the old y1000 hand-place); ♿ overrides top only
- * via .basePillLow. Calculator fields use Figma's original y values.
+ * layout sits at y985, which is where 6412:76438 now draws it (it was a y980
+ * hand-place, itself 20px above an older y1000); ♿ overrides top only via
+ * .basePillLow. Calculator fields use Figma's original y values.
  */
 .basePill {
   position: absolute;
   left: 50%;
   transform: translateX(-50%);
-  top: 980px;
+  top: 985px;
   min-width: 794px;
   height: 283px;
   box-sizing: border-box;
@@ -102,8 +104,8 @@
   white-space: nowrap;
 }
 
-/* Three lines top-aligned: Figma puts them at 33 / 123 / 201 relative to the
-   pill. The stamp is absolute at 201 — 12px into the rate's 90px leading. */
+/* Three lines top-aligned: Figma puts the label at 33 and the rate at 123
+   relative to the pill, each on a 90px line, so the pair ends at 213. */
 .basePillLabel {
   font-size: 50px;
   font-weight: 600;
@@ -116,12 +118,19 @@
   line-height: 90px;
 }
 
-/* "26.08.30. 19:30 기준" — when the snapshot was fetched. */
+/*
+ * "26.08.30. 19:30 기준" — when the snapshot was fetched. 219, off 6412:76438
+ * (pill y985, stamp y1204), which clears the 213 the two lines above end on.
+ * The older frames drew 201 — 12px INTO the rate's leading — and this rule
+ * carried a hand-picked 212 to dodge that overlap; the redraw settles it.
+ * 6460:117395 still draws the ♿ copy at 201, which is the frame that was not
+ * revisited, so both layouts take the standard's 219.
+ */
 .basePillStamp {
   position: absolute;
   left: 0;
   right: 0;
-  top: 212px;
+  top: 219px;
   font-size: 40px;
   font-weight: 400;
   line-height: 1;
@@ -201,6 +210,27 @@
   top: calc(2087px + var(--jeju-exch-shift, 0px) + var(--jeju-exch-calc-shift, 0px)); /* centre 2132 − 45 */
 }
 
+/*
+ * Empty-field hint, in place of the number. Sized 60/#999 against the value's
+ * own 90/#000 so it reads as a label and can't be mistaken for an entry — the
+ * mistake the seeded `1` used to invite.
+ *
+ * Goes ON `.value` as a modifier, NOT on a span inside it. As a child it would
+ * bring a SECOND strut into the line box — a 60px font baseline-aligned against
+ * the parent's 90px one — and the union of the two measures 102.8px against the
+ * 90px the number occupies, which drops the hint 6.4px below the centre. One
+ * strut, one 90px box, same centre as the number it stands in for.
+ *
+ * line-height holds at the value's 90px rather than following the font down:
+ * `.value` is positioned on the field's centre MINUS 45 (half of 90), so a 60px
+ * line box would ride 15px high inside the pill.
+ */
+.placeholder {
+  font-size: 60px;
+  line-height: 90px;
+  color: #999; /* 글씨-main */
+}
+
 /* The caret blinks only while the keypad is open, so it is obvious which field
    the keys are typing into — the design has no other focus affordance. */
 .caretBar {
@@ -208,7 +238,13 @@
   width: 6px;
   height: 90px;
   margin-left: 10px;
-  vertical-align: -12px;
+  /* `top`, not a -12px baseline nudge. The bar is an inline-block exactly as
+     tall as the line box, so aligning it to the box's top fills that box
+     without extending it; dangling it 12px below the baseline pushed the line
+     box ~8px taller, nudging the number down as the keypad opened and back up
+     as it closed. Same 90px bar, no jump — and it keeps the empty field's
+     placeholder on its centre too. */
+  vertical-align: top;
   background: var(--kiosk-primary, #ff7f0f);
   animation: blink 1s steps(1, end) infinite;
 }
@@ -400,7 +436,8 @@
   left: 0;
   top: calc(2326px + var(--jeju-exch-calc-shift, 0px));
   width: 2160px;
-  height: 957px;
+  /* 938 = the 860 key block + a symmetric 39 above and below. */
+  height: 938px;
   z-index: 3;
 }
 
@@ -414,7 +451,7 @@
 .keys {
   position: absolute;
   left: 155px;
-  top: 36px; /* 2362 − 2326 */
+  top: 39px; /* 2365 − 2326 */
   width: 1850px;
   display: flex;
   flex-direction: column;
@@ -429,12 +466,11 @@
   width: 100%;
 }
 
-/* Figma draws row 2 at 230 tall — the keys stay 200 and gain 15px of slack top
-   and bottom. Reproduced rather than evened out: it is what puts rows 3 and 4
-   on their drawn y. */
-.keyRowTall {
-  height: 230px;
-}
+/* Row 2 used to be drawn 230 tall — 200 of key plus 15px of slack top and
+   bottom — and that slack was reproduced here because it was what put rows 3
+   and 4 on their drawn y. The redraw evens the grid out: all four rows are 200
+   on a 20px gap in both layouts (6219:99284 and 6876:66759), so the block is a
+   flat 4 × 200 + 3 × 20 = 860 and the override is gone. */
 
 /* Row 4 is 0 + backspace only, right-aligned inside the 1850 column. */
 .keyRowShort {
@@ -471,7 +507,16 @@
 }
 
 /* ── 실시간 환율 list ───────────────────────────────────────────────── */
-/* Starts 270 below the tabs and runs to the banner. */
+/*
+ * The 2026-09-09 redraw of 6219:99645 tightened the standard list: the row is
+ * 210 tall on a 250 pitch (was 230 on 270) and its flag 150 (was 170), which
+ * buys roughly one extra pill in the same 2298px of scroll. The BARRIER-FREE
+ * frame 6326:84606 was NOT redrawn — re-read at the same time, it still boxes
+ * every row 230 with a 170 flag on a 270 pitch — so the old figures live on as
+ * .rootLow overrides at the foot of this file rather than being replaced.
+ *
+ * Starts 270 below the tabs and runs to the banner.
+ */
 .liveScroll {
   position: absolute;
   left: 0;
@@ -482,20 +527,42 @@
   overflow-y: auto;
 }
 
+/*
+ * "26.08.30. 19:30 기준" — 6516:74148, added by the same redraw. Right-aligned
+ * on x1990, the list's own right margin, 30px of air above the first pill. The
+ * calculator carries the same stamp inside its 기준 환율 pill; this is the live
+ * tab's copy of it.
+ */
+.liveStamp {
+  position: absolute;
+  right: 170px;
+  top: 900px;
+  width: 369px;
+  margin: 0;
+  font-size: 40px;
+  font-weight: 400;
+  line-height: 1;
+  color: #999; /* 글씨-main */
+  text-align: right;
+  white-space: nowrap;
+}
+
 .liveList {
   display: flex;
   flex-direction: column;
-  gap: 40px; /* 270 pitch − 230 row */
+  gap: 40px; /* 250 pitch − 210 row */
   padding: 0 170px 60px;
 }
 
 .liveRow {
-  flex: 0 0 230px;
-  height: 230px;
+  flex: 0 0 210px;
+  height: 210px;
   box-sizing: border-box;
-  /* Figma writes py-40 on a 230-tall row while its flag is 170 — the two don't
+  /* Figma writes py-40 on a 210-tall row while its flag is 150 — the two don't
      both fit, and the render shows the flag whole, so the padding is the value
-     that gives: 30 top and bottom is exactly what centres a 170 flag in 230. */
+     that gives: 30 top and bottom is exactly what centres a 150 flag in 210.
+     (The same 30 fell out of the pre-redraw 230/170 pair, so this line is
+     unchanged — only the numbers it is derived from moved.) */
   padding: 30px 65px;
   /* Borderless. The 2026-08-27 redraw of 6326:84606 dropped the 2.145px #d9d9d9
      hairline an earlier pass had probed off the older render of the same node —
@@ -508,10 +575,23 @@
   justify-content: space-between;
 }
 
+/* Fixed 560 (Figma's own `w-[560px]`), not shrink-to-fit: the label column has
+   to be the same width on every row or the 원 amounts stop lining up when one
+   country's name runs long. */
 .liveLeft {
+  flex: 0 0 560px;
   display: flex;
   align-items: center;
   gap: 42.9px;
+  overflow: hidden;
+}
+
+/* 150, against the 170 the calculator and its dropdown still draw — the live
+   row is the only place the redraw shrank the flag, so it overrides .ccyFlag
+   instead of moving it. */
+.liveFlag {
+  width: 150px;
+  height: 150px;
 }
 
 .liveLabel {
@@ -610,8 +690,16 @@
   top: 1460px;
 }
 
+/*
+ * 6876:66749 draws the ♿ keypad at 2824, flush against the bottom edge of the
+ * 환전 field — but that frame draws its fields at +557 while this file
+ * normalises the low-reach block to +573 (see .rootLow). At +573 the field's
+ * bottom edge is 2840, so the drawn 2824 would run 16px UNDER it and put the
+ * scrim over the field. 2840 keeps the flush join the redraw asks for, on the
+ * shift this file actually uses. Scrim foot lands at 3778, inside the artboard.
+ */
 .keypadLow {
-  top: 2883px;
+  top: 2840px;
 }
 
 /*
@@ -624,9 +712,19 @@
   height: 1240px;
 }
 
-/* 실시간 환율 list: 970 → 816, flush under the header and ending 253px clear of
-   the tab row (Figma boxes it 816…3185 with no banner beneath it). */
+/* 실시간 환율 list: 970 → 856, 10px under the header's foot (the bar's 145.759
+   plus a 700 header = 846) and ending 121px clear of the tab row. 6326:84606
+   boxes it 856…3317 with no banner beneath it; it was 816…3185 before the
+   redraw. */
 .liveScrollLow {
-  top: 816px;
-  bottom: 655px;
+  top: 856px;
+  bottom: 523px;
 }
+
+/*
+ * The row is NOT overridden here. 6326:84606 was redrawn (2026-09-10) onto the
+ * standard row — 210 tall, 150 flag, 250 pitch, the same figures the standard
+ * frame carries — so the 230/170/270 pair this block used to restate is gone
+ * and both layouts now share one rule. Re-read the frame before adding an
+ * override back: for one pass the two genuinely differed.
+ */

@@ -56,6 +56,7 @@ import ysHobbyTennis from '@renderer/assets/photos/jeju/hello/yusan-hobby-tennis
 import ysHealthNeck from '@renderer/assets/photos/jeju/hello/yusan-health-neck.jpg';
 import ysHealthWaist from '@renderer/assets/photos/jeju/hello/yusan-health-waist.jpg';
 import ysHealthRefresh from '@renderer/assets/photos/jeju/hello/yusan-health-refresh.jpg';
+import { belowModeBar } from './lowReach';
 
 type TabId = 'profile' | 'hobbies' | 'health';
 /** The two sub-tabbed tabs; `profile` has no sub-tabs. */
@@ -657,7 +658,7 @@ export function JejuHello({ controller }: Props): JSX.Element {
       onBack={() => controller.navigate('home', '뒤로')}
       lowReachSelfLayout
       lowReachModeBar
-      lowReachShift={113}
+      lowReachShift={belowModeBar()}
     >
       <JejuTabRow
         tabs={helloTabs(mascot).map(({ id, key, label: fb }) => ({

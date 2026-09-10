@@ -15,6 +15,7 @@ import type { Lang } from '@renderer/lib/i18n';
 import { useAccessibilityStore } from '@renderer/store/accessibilityStore';
 import { useLanguageStore } from '@renderer/store/languageStore';
 import { JejuHeader } from './JejuHeader';
+import { modeBarVars } from './lowReach';
 import styles from './JejuPageFrame.module.css';
 
 /** Fallback — sheet `BarrierFree_Title`. */
@@ -64,9 +65,14 @@ interface Props {
   lowReachSelfLayout?: boolean;
   /**
    * Draw the page banner at the top in LOW-REACH even though the standard
-   * layout has none (`showBanner={false}`). 도와줘 '하영' is bannerless normally
-   * but its low-reach frame opens with the 573 promo, and the header follows it
-   * down exactly as it does for the pages that always carry one.
+   * layout has none (`showBanner={false}`). 도와줘 상세 gives its banner up
+   * whenever it draws a 다음 장소 stack, yet its low-reach frame opens with the
+   * 573 promo, and the header follows it down exactly as it does for the pages
+   * that always carry one.
+   *
+   * 도와줘 '하영' itself used to be the case this was written for; its
+   * 2026-09-09 frame carries the promo in BOTH layouts, so it just keeps the
+   * default `showBanner` now.
    */
   lowReachBanner?: boolean;
   /**
@@ -165,8 +171,16 @@ export function JejuPageFrame({
          as inline vars — inline beats every class above, which is intended. */
       style={
         modeBar
-          ? ({ '--jeju-shift': `${lowReachShift}px`, '--jeju-body-shift': `${lowReachBodyShift}px` } as CSSProperties)
-          : undefined
+          ? ({
+              ...modeBarVars,
+              '--jeju-shift': `${lowReachShift}px`,
+              '--jeju-body-shift': `${lowReachBodyShift}px`,
+            } as CSSProperties)
+          : /* Unconditional on purpose: --jeju-mode-bar has no CSS-side default,
+               and `.hero` reads it whenever `lowReachHero` is set — which today
+               always comes with the bar, but would silently collapse the hero to
+               the top of the artboard on any page that took one without it. */
+            modeBarVars
       }
     >
       <div className={styles.bgBase} />

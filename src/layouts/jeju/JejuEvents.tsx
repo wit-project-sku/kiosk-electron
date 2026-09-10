@@ -26,6 +26,7 @@ import { sheetText, t } from '@renderer/lib/loc';
 import { useAccessibilityStore } from '@renderer/store/accessibilityStore';
 import { JejuPageFrame } from './JejuPageFrame';
 import styles from './JejuEvents.module.css';
+import { belowModeBar, LOW_REACH_BANNER_HEIGHT } from './lowReach';
 
 interface Props {
   controller: KioskController;
@@ -177,6 +178,11 @@ export function JejuEvents({ controller }: Props): JSX.Element {
   const selectCategory = (value: EventCategory): void => {
     setCategory(value);
     setDetailId(null);
+    /* VideoSubtitle_귀이, 재생조건 "이벤트 -> 카테고리 선택": Event_Category.
+       ALL is the unfiltered list rather than a category, so it hands the display
+       back to the screen's own Event clip — otherwise entering the page (which
+       starts on ALL) and pressing ALL would report two different things. */
+    void window.api.kiosk.setScreen(value === 'ALL' ? 'events' : 'events_category');
   };
 
   // Back closes an open event detail first; from the list it leaves the screen.
@@ -215,11 +221,11 @@ export function JejuEvents({ controller }: Props): JSX.Element {
       bannerFallback="banner-detail"
       onBack={goBack}
       /* ♿ 6532:39157: the mode-bar shape with the promo KEPT under the bar, so
-         the header lands at 113 + 573 = 686. The body shift stays 0 — this page
+         the header lands at bar + 573 (the frame's 686). The body shift stays 0 — this page
          positions its own low-reach body (see the CSS). */
       lowReachModeBar
       lowReachBarBanner
-      lowReachShift={686}
+      lowReachShift={belowModeBar(LOW_REACH_BANNER_HEIGHT)}
     >
       <div className={low(styles.tabs, styles.tabsLow)}>
         {TABS.map((tb) => (

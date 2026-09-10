@@ -13,12 +13,23 @@
  * Provisioning is idempotent (safe to run on every launch) and Windows-only;
  * on other platforms every method is a no-op. Self-provisioning means the
  * fleet no longer depends on an operator remembering to run the .bat files.
+ *
+ * Three schedules exist, and a build only ever provisions ONE of them:
+ *
+ *   production, most kiosks   02:00 reboot                 KioskAutoRestart
+ *   production, W004/6/7/8    22:00 종료 + 08:00 시작       KioskShutdownAt10PM
+ *                                                          KioskStartAt8AM
+ *   beta (develop_1)          09:00 reboot                 KioskBetaAutoRestart
+ *
+ * The names are distinct on purpose: both channels install side by side on the
+ * office machine and Scheduled Task / Run-key names are machine-global.
  */
 
 import { execFile } from 'node:child_process';
 import { promisify } from 'node:util';
 import { app } from 'electron';
 import { createLogger } from './logger';
+import { isBetaBuild } from './appIdentity';
 
 const exec = promisify(execFile);
 const log = createLogger('power');
@@ -56,6 +67,33 @@ const OPERATING_HOURS_START_TASK = 'KioskStartAt8AM';
 const OPERATING_HOURS_SHUTDOWN_TIME = '22:00';
 const OPERATING_HOURS_START_TIME = '08:00';
 
+/**
+ * ── BETA (develop_1) power schedule ───────────────────────────────────
+ * The beta channel does NOT take part in either production schedule. It gets a
+ * single daily REBOOT at 09:00 — "turn off and turn on" in one step, in the
+ * morning, while someone is actually there to look at the machine.
+ *
+ * ★ Why a reboot and not the 22:00 종료 / 08:00 시작 pair: Windows can WAKE a
+ * sleeping PC from a scheduled task but cannot power on a fully powered-off
+ * (S5) one — that needs the BIOS "Power On by RTC Alarm". A beta box that shuts
+ * down at 22:00 on a desk with no RTC alarm configured is simply gone until
+ * someone presses the button. `shutdown /r` never leaves the machine off, so
+ * the testing kiosk is always reachable.
+ *
+ * ★ Why its own task and Run-key NAMES: beta and production are installed side
+ * by side on the office machine (see core/appIdentity.ts). Scheduled Task names
+ * and HKCU\...\Run value names are MACHINE-global, so with the shared names
+ * below a beta launch would silently overwrite production's tasks — repointing
+ * the 08:00 start at the beta exe — and `ensureOperatingHoursPowerCycle` would
+ * even /delete production's 2AM reboot. Namespacing keeps the two channels'
+ * power schedules completely independent: nothing in the beta branch reads,
+ * writes or deletes a production-named task.
+ */
+const BETA_RESTART_TASK = 'KioskBetaAutoRestart';
+const BETA_RESTART_TIME = '09:00';
+/** Beta's own Run value name, so it cannot clobber production's auto-start. */
+const BETA_AUTORUN_KEY = 'KioskAppBeta';
+
 function isWindows(): boolean {
   return process.platform === 'win32';
 }
@@ -65,6 +103,11 @@ function startTime(): string {
   const hh = String(RESTART_HOUR).padStart(2, '0');
   const mm = String(RESTART_MINUTE).padStart(2, '0');
   return `${hh}:${mm}`;
+}
+
+/** The Run value name this build owns — never the other channel's. */
+function autoRunKey(): string {
+  return isBetaBuild() ? BETA_AUTORUN_KEY : AUTORUN_KEY;
 }
 
 /**
@@ -80,7 +123,7 @@ function configureAutoStart(): void {
   try {
     app.setLoginItemSettings({
       openAtLogin: true,
-      name: AUTORUN_KEY,
+      name: autoRunKey(),
       path: app.getPath('exe'),
       args: [],
     });
@@ -93,7 +136,7 @@ function configureAutoStart(): void {
 function disableAutoStart(): void {
   if (!isWindows()) return;
   try {
-    app.setLoginItemSettings({ openAtLogin: false, name: AUTORUN_KEY });
+    app.setLoginItemSettings({ openAtLogin: false, name: autoRunKey() });
     log.info('Auto-start on login disabled');
   } catch (error) {
     log.warn('Failed to disable auto-start', error);
@@ -180,6 +223,105 @@ async function ensureOperatingHoursPowerCycle(): Promise<void> {
   }
 }
 
+/**
+ * BETA ONLY: a single daily reboot at 09:00. `/f` makes it idempotent, so every
+ * launch just refreshes the existing task.
+ *
+ * Touches nothing production owns — see the BETA constants block above.
+ */
+async function ensureBetaRestartTask(): Promise<void> {
+  if (!isWindows() || !app.isPackaged) return;
+  try {
+    await exec('schtasks', [
+      '/create',
+      '/tn', BETA_RESTART_TASK,
+      '/tr', 'shutdown /r /f /t 0',
+      '/sc', 'daily',
+      '/st', BETA_RESTART_TIME,
+      '/f',
+    ]);
+    log.info('Beta reboot scheduled', { task: BETA_RESTART_TASK, at: BETA_RESTART_TIME });
+  } catch (error) {
+    log.warn('Failed to schedule beta reboot', error);
+  }
+}
+
+async function removeBetaRestartTask(): Promise<void> {
+  if (!isWindows()) return;
+  await exec('schtasks', ['/delete', '/tn', BETA_RESTART_TASK, '/f']).catch(() => {});
+}
+
+/**
+ * True when the named Scheduled Task's action runs THIS build's exe — i.e. the
+ * task was registered by this install and not by the other channel.
+ *
+ * `schtasks /query /xml` is the only channel-safe way to ask: a task name alone
+ * says nothing about who wrote it. Used to retire tasks an OLDER beta build
+ * created under the production names, without ever deleting production's.
+ */
+async function taskRunsThisBuild(task: string): Promise<boolean> {
+  try {
+    const { stdout } = await exec('schtasks', ['/query', '/tn', task, '/xml', 'ONE']);
+    return stdout.toLowerCase().includes(app.getPath('exe').toLowerCase());
+  } catch {
+    // Task absent or unreadable — treat as "not ours" and leave it alone.
+    return false;
+  }
+}
+
+/**
+ * One-time migration for beta boxes provisioned by an OLDER beta build, which
+ * wrote the operating-hours pair under the production task names and so is
+ * still shutting the machine down at 22:00 — the exact thing this change
+ * removes for beta.
+ *
+ * ★ Only fires when `KioskStartAt8AM` provably launches the BETA exe. The two
+ * tasks are always written together by `ensureOperatingHoursPowerCycle`, so a
+ * beta-owned start task means the paired 22:00 shutdown is beta's too. If the
+ * start task points at production's exe (or is absent) nothing is deleted —
+ * production keeps its schedule untouched.
+ *
+ * `KioskAutoRestart` (the 02:00 reboot) is deliberately NOT cleaned up: its
+ * action is a bare `shutdown /r`, identical for both channels, so there is no
+ * way to prove it is beta's. A stale 02:00 reboot on a beta box is harmless —
+ * the machine comes back up either way.
+ */
+async function retireLegacyBetaPowerCycle(): Promise<void> {
+  if (!isWindows() || !app.isPackaged) return;
+  if (!(await taskRunsThisBuild(OPERATING_HOURS_START_TASK))) return;
+  for (const task of [OPERATING_HOURS_START_TASK, OPERATING_HOURS_SHUTDOWN_TASK]) {
+    await exec('schtasks', ['/delete', '/tn', task, '/f']).catch(() => {});
+  }
+  log.info('Retired legacy beta-owned 22:00/08:00 power cycle', {
+    replacedBy: BETA_RESTART_TASK,
+    at: BETA_RESTART_TIME,
+  });
+}
+
+/**
+ * Same migration for the auto-start Run key: an older beta build registered
+ * itself under production's `KioskApp` value, overwriting production's path.
+ * Remove that entry only when it still points at the beta exe — production's
+ * own entry, if present, is left alone and it re-registers on its next launch.
+ */
+function retireLegacyBetaAutoStart(): void {
+  if (!isWindows() || !app.isPackaged) return;
+  try {
+    const exePath = app.getPath('exe');
+    const stale = app
+      .getLoginItemSettings({ path: exePath })
+      .launchItems?.some(
+        (item) =>
+          item.name === AUTORUN_KEY && item.path?.toLowerCase() === exePath.toLowerCase(),
+      );
+    if (!stale) return;
+    app.setLoginItemSettings({ openAtLogin: false, name: AUTORUN_KEY, path: exePath });
+    log.info('Retired legacy beta entry under production Run key', { key: AUTORUN_KEY });
+  } catch (error) {
+    log.warn('Failed to retire legacy beta auto-start entry', error);
+  }
+}
+
 async function removeOperatingHoursPowerCycle(): Promise<void> {
   if (!isWindows()) return;
   for (const task of [OPERATING_HOURS_SHUTDOWN_TASK, OPERATING_HOURS_START_TASK]) {
@@ -202,6 +344,18 @@ export async function setupKioskPower(kioskId?: string): Promise<void> {
     return;
   }
   configureAutoStart();
+
+  // ★ BETA (develop_1) branches FIRST and returns — the beta channel's power
+  // schedule is a single 09:00 reboot regardless of which kioskId the test box
+  // happens to be provisioned as, and nothing below this point may run for it.
+  // Every production task/key name is left completely untouched.
+  if (isBetaBuild()) {
+    retireLegacyBetaAutoStart();
+    await retireLegacyBetaPowerCycle();
+    await ensureBetaRestartTask();
+    return;
+  }
+
   // W004/W006/W007 use an operating-hours power cycle (08:00 시작 / 22:00 종료);
   // every other kiosk keeps the fleet-wide 2AM reboot.
   if (kioskId != null && OPERATING_HOURS_KIOSK_IDS.has(kioskId)) {
@@ -218,6 +372,13 @@ export async function setupKioskPower(kioskId?: string): Promise<void> {
  */
 export async function teardownKioskPower(): Promise<void> {
   disableAutoStart();
+  // Each channel tears down only what it provisioned. A beta uninstall that
+  // deleted the production task names would leave a production install on the
+  // same machine with no reboot and no operating-hours cycle at all.
+  if (isBetaBuild()) {
+    await removeBetaRestartTask();
+    return;
+  }
   await removeRestartTask();
   await removeOperatingHoursPowerCycle();
 }

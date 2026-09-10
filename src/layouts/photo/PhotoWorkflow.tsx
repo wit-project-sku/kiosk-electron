@@ -8,6 +8,7 @@ import { usePhotoWorkflow } from '@renderer/hooks/usePhotoWorkflow';
 import { useSpotDiffRounds } from '@renderer/hooks/useSpotDiffRound';
 import { usePhotoStore } from '@renderer/store/photoStore';
 import { useKioskStore } from '@renderer/store/kioskStore';
+import { useAccessibilityStore } from '@renderer/store/accessibilityStore';
 import { generatedUrl } from '@renderer/lib/media';
 import { pick, useLang } from '@renderer/lib/i18n';
 import { ui } from '@renderer/lib/uiText';
@@ -17,7 +18,7 @@ import { HanbokSelect, type CaptureMode } from './HanbokSelect';
 import { JejuHanbokSelect } from '../jeju/JejuHanbokSelect';
 import { JejuSpotDiffGame } from '../jeju/JejuSpotDiffGame';
 import { usePhotoChrome } from './photoChrome';
-import { RESULT, RESULT_KADA } from './photoTexts';
+import { MARKET_SUBTITLE, RESULT, RESULT_KADA } from './photoTexts';
 import styles from './PhotoWorkflow.module.css';
 
 /** Where the 굿즈제작 button's QR points. */
@@ -51,7 +52,13 @@ export function PhotoWorkflow(): JSX.Element {
   const hasPayment = getKioskLocation(kioskId).hasCardTerminal;
   const rotating = useRotatingBanner();
   const chrome = usePhotoChrome();
-  const { isHwaseong, isKada, icon, Header, photoTitle, banner: chromeBanner } = chrome;
+  const { isHwaseong, isJeju, isKada, icon, Header, photoTitle, banner: chromeBanner } = chrome;
+  // The 위드마켓 rail's ♿ toggle (제주 only) — see the button for what it does
+  // and does not affect on this screen.
+  const lowReach = useAccessibilityStore((s) => s.lowReach);
+  const toggleLowReach = useAccessibilityStore((s) => s.toggleLowReach);
+  const accessibilityIcon =
+    (lowReach ? icon('ico-accessibility-on') : undefined) ?? icon('ico-accessibility');
   // 위드마켓 result gate. `hasCardTerminal` alone is the wrong test: 화성휴게소
   // W005 got a TL-3800 for the 기부 (donation) app, not for the store, so its
   // photo result must stay the plain image + save QR like the no-payment
@@ -106,6 +113,36 @@ export function PhotoWorkflow(): JSX.Element {
     if (phase === 'generating' || phase === 'result') return;
     setGameDone(false);
     deferredRef.current = false;
+  }, [phase]);
+
+  /*
+   * Tell the customer display WHICH STAGE of the AR flow is on screen.
+   *
+   * 제주's VideoSubtitle_귀이 authors a clip per stage and its 재생조건 column
+   * names each one — 의상 선택 → Photo, 촬영 가이드 → Photo_SelectHanbok,
+   * AI 합성 대기 → Photo_Creating (3편 순환), 합성 완료 → Photo_Complete — and
+   * the flow reported a single `photo` screen for all four, so three of those
+   * clips could never play.
+   *
+   * Harmless on the other layouts by construction: their maps resolve all four
+   * ids to the Photo_Creating they already showed for `photo` (see videoMap),
+   * so this changes what 제주 plays and nothing else.
+   *
+   * `idle` is skipped — that is the flow not running, and the screen behind it
+   * owns the display then (see handleReset).
+   */
+  useEffect(() => {
+    const stage =
+      phase === 'clothing' || phase === 'style'
+        ? 'photo'
+        : phase === 'preview' || phase === 'countdown'
+          ? 'photo_guide'
+          : phase === 'generating'
+            ? 'photo_creating'
+            : phase === 'result'
+              ? 'photo_complete'
+              : null;
+    if (stage) void window.api.kiosk.setScreen(stage);
   }, [phase]);
 
   const handleGameFinish = useCallback(() => {
@@ -217,7 +254,13 @@ export function PhotoWorkflow(): JSX.Element {
           icon('bg') && <img className={styles.bg} src={icon('bg')} alt="" draggable={false} />
         )}
 
-        <Header title="위드마켓" onHome={handleReset} />
+        {/* 6980:17803 titles this page AR 한복체험, not 위드마켓 — it is the last
+            step of the AR flow rather than a separate shop, and the picker and
+            the waiting game above it already carry that title. `photoTitle` is
+            the same string those two use. */}
+        <Header title={photoTitle} onHome={handleReset} />
+
+        <p className={styles.marketSubtitle}>{pick(MARKET_SUBTITLE, lang)}</p>
 
         <div className={styles.marketBody}>
           {WEB_EMBED_URLS.market ? (
@@ -250,13 +293,32 @@ export function PhotoWorkflow(): JSX.Element {
           </button>
         </div>
 
-        <div className={styles.leftNav}>
+        <div className={`${styles.leftNav} ${isJeju ? styles.leftNavJeju : ''}`}>
           <button type="button" className={styles.leftNavBtn} onClick={handleReset} aria-label="홈으로">
             {icon('home-btn') && <img src={icon('home-btn')} alt="" draggable={false} />}
           </button>
           <button type="button" className={styles.leftNavBtn} onClick={handleReset} aria-label="뒤로">
             {icon('back-arrow') && <img src={icon('back-arrow')} alt="" draggable={false} />}
           </button>
+          {/* The rail's third control, which 6980:17803 draws and this screen
+              did not have. 제주 only — W003/W004 have no ♿ mode at all.
+
+              NOTE it changes nothing on THIS page: the market result has no
+              low-reach layout of its own. It is still worth drawing, because
+              the flag is global and 다시찍기 goes back to the picker, which does
+              have one — and the icon swaps to its active art either way, so the
+              press is acknowledged. */}
+          {isJeju && accessibilityIcon && (
+            <button
+              type="button"
+              className={styles.leftNavBtn}
+              onClick={toggleLowReach}
+              aria-label="저상 화면"
+              aria-pressed={lowReach}
+            >
+              <img src={accessibilityIcon} alt="" draggable={false} />
+            </button>
+          )}
         </div>
 
         {banner && (

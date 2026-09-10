@@ -19,9 +19,10 @@
   -webkit-tap-highlight-color: transparent;
 }
 
-/* Low-reach — Figma 6442:105429 (same slot as JejuFlightBoard). */
+/* Low-reach — Figma 6442:105429 (same slot as JejuFlightBoard), which the
+   2026-09-10 re-read moved up 68 with the whole upper block. */
 .boardLow {
-  top: 1570px;
+  top: 1502px;
 }
 
 .title {
@@ -124,7 +125,7 @@
 }
 
 .moreLow {
-  top: 1822px;
+  top: 1754px;
 }
 
 .chevron {

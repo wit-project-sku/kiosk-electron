@@ -94,7 +94,14 @@ for (const f of AIRPORT_FACILITIES_JEJU) {
  * which pictogram stands for it. Without that its rows sit on no pin — which is
  * what the startup warning below is for.
  */
-const RESTROOM_CHIP = '화장실';
+/**
+ * Exported because it is not only an ORDER rule: JejuHelp draws this one chip
+ * map-only. The sheet's two 화장실 rows (국내선 · 국제선) carry a name and a
+ * category and nothing else — no floor, location, hours or phone — so the
+ * directory cards under the plan read "화장실 · 화장실" over a blank line. The
+ * pins are the answer for toilets; the list is not.
+ */
+export const RESTROOM_CHIP = '화장실';
 const sheetChips = Object.keys(CHIP_LABELS);
 export const HELP_CHIPS: readonly string[] = sheetChips.includes(RESTROOM_CHIP)
   ? [RESTROOM_CHIP, ...sheetChips.filter((c) => c !== RESTROOM_CHIP)]

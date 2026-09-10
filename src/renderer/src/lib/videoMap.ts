@@ -285,6 +285,12 @@ const SCREEN_TO_VIDEO_KEY: Record<string, string> = {
   // Language screen is handled separately in clipsForScreen using the `lang`
   // param to pick ChangeLanguage_KR/EN/JP/CH — no static entry here.
   photo: 'Photo_Creating',
+  /* The AR flow's later stages. Only 제주 splits them (its sheet authors a clip
+     per stage); everywhere else they resolve to the same Photo_Creating the
+     flow has always shown, so reporting them changes nothing here. */
+  photo_guide: 'Photo_Creating',
+  photo_creating: 'Photo_Creating',
+  photo_complete: 'Photo_Creating',
 
   // Category sub-state (broadcast by list screens when a category tab is active).
   eat_category: 'ToEat_Category',
@@ -346,6 +352,9 @@ const HWASEONG_SCREEN_TO_VIDEO_KEY: Record<string, string> = {
   exchange:            'Exchange',
   rest_info:           'Default',
   photo:               'Photo_Creating',
+  photo_guide:         'Photo_Creating',
+  photo_creating:      'Photo_Creating',
+  photo_complete:      'Photo_Creating',
   hanbok_explain:      'HanbokExplain',
   search_detail:       'Search_Detail',
 };
@@ -364,11 +373,7 @@ const HWASEONG_SCREEN_TO_VIDEO_KEY: Record<string, string> = {
  * generator strips them (see scripts/sync-sheet.mjs JEJU_KEY_ALIASES) and the
  * names below are the stripped forms.
  *
- * Deliberately absent, because no 제주 screen reports them: `Search_Enter`
- * (검색어 입력 후 엔터 — JejuSearch has no result sub-state); `Photo` /
- * `Photo_SelectHanbok` / `Photo_Complete` (the whole AR flow reports one `photo`
- * screen, and the display asks for it while COMPOSITING — hence Photo_Creating
- * below, the same choice every other layout makes); and `Donation_Category` /
+ * Deliberately absent, because no 제주 screen reports them: `Donation_Category` /
  * `Donation_Detail` (기부 is a fullscreen webview, and its three sheet rows all
  * carry the same `기본화면 -> 기부 (기본 3편 순환)` condition, so `Donation` alone
  * covers the screen). Those rows still generate — they simply never resolve,
@@ -377,6 +382,10 @@ const HWASEONG_SCREEN_TO_VIDEO_KEY: Record<string, string> = {
 const JEJU_SCREEN_TO_VIDEO_KEY: Record<string, string> = {
   home:             'Default',
   search:           'Search',
+  // 결과 목록이 뜼 상태 — the sheet's own 재생조건 for this row. JejuSearch
+  // reports it from the keyboard's Enter, and drops back to `search` when the
+  // query is cleared, so both clips stay reachable.
+  search_enter:     'Search_Enter',
   search_detail:    'Search_Detail',
   detail:           'Default',      // generic detail — context comes from `<from>_detail`
   language:         'Default',      // overridden per-lang in screenKey()
@@ -398,11 +407,43 @@ const JEJU_SCREEN_TO_VIDEO_KEY: Record<string, string> = {
   lodging_category: 'ToStay_Category',
   lodging_detail:   'ToStay_Detail',
 
-  taxfree:          'TaxFree',
-  about:            'Here',
-  exchange:         'Exchange',
+  /*
+   * Per-TAB clips, addressed by position within their key — see splitClipIndex.
+   * The 재생조건 column names the tab each one belongs to, and the landing entry
+   * repeats whichever clip that page opens on.
+   *
+   * TAX-FREE: -1 진입 · -4 가맹점 안내. Its -2 (리펀드 진행) and -3 (처리 완료)
+   * are steps INSIDE the third-party refund web app the 환급신청 tab embeds, which
+   * the kiosk cannot observe — so 소개 and 환급신청 both hold the entry clip.
+   */
+  taxfree:          'TaxFree#1',
+  taxfree_merchant: 'TaxFree#4',
+  // 앱 탭 순서는 관광명소 · 역사 · 문화, the sheet's Here-1/2/3 are
+  // 관광명소/역사/문화 — matched by MEANING, not by position.
+  about:              'Here#1',
+  about_attractions:  'Here#1',
+  about_history:      'Here#2',
+  about_culture:      'Here#3',
+  // Exchange-1 환율계산기 · -2 실시간 환율. The page opens on 실시간.
+  exchange:         'Exchange#2',
+  exchange_calc:    'Exchange#1',
+  exchange_live:    'Exchange#2',
   restroom:         'Toilet',
-  donation:         'Donation',
+  /*
+   * 기부 is a fullscreen webview onto the WIT Global donation app, and these
+   * three keys are its PAGES, not a cycle: the sheet's Key column spells them
+   * Donation / Donation_Category / Donation_Detail, and the app really does have
+   * a campaign list and a campaign detail behind its entry screen.
+   *
+   * (Its 재생조건 column reads "기본 3편 순환" on all three rows and its 설명
+   * calls them 1·2·3편째 of one key — written before those pages existed. The
+   * Key column and the app agree, so the pages win.)
+   *
+   * DonationWebScreen reports these off the guest's own hash route; see there.
+   */
+  donation:          'Donation',
+  donation_category: 'Donation_Category',
+  donation_detail:   'Donation_Detail',
   // 위드마켓 and K-DRAMA are wired but silent: their sheet rows carry no file
   // name yet, so the generator skips them and these resolve to the Default idle
   // sequence. Filling `파일명` in VideoSubtitle_귤이 is all it takes — no code change.
@@ -419,14 +460,30 @@ const JEJU_SCREEN_TO_VIDEO_KEY: Record<string, string> = {
   // 제주-only home tiles.
   rentcar:          'RentCar',
   tamnao:           'Tamnao',
-  localpay:         'MarketPaper',
+  // MarketPaper-1 온누리상품권 · -2 탐나는전. The page opens on 탐나는전.
+  localpay:         'MarketPaper#2',
+  localpay_onnuri:  'MarketPaper#1',
+  localpay_tamna:   'MarketPaper#2',
   // 운항정보 — the airport board is 항공편, the terminal's is 여객선. Both venues
   // reach the same `flights` / `cruise` screens, and each machine only has its
   // own clips on disk, so the unmatched key simply resolves to nothing there.
   flights:          'FlightInfo',
   cruise:           'FerryInfo',
 
-  photo:            'Photo_Creating',
+  /*
+   * The AR flow, one key per STAGE — VideoSubtitle_귀이 authors four and its
+   * 재생조건 column names each: 촬영 버튼(의상 선택) → Photo, 촬영 가이드 →
+   * Photo_SelectHanbok, AI 합성 대기(3편 순환) → Photo_Creating, 합성 완료 →
+   * Photo_Complete.
+   *
+   * This screen used to report `photo` for the whole flow, which resolved to
+   * Photo_Creating throughout — so GYULI=Photo-1, -2 and -4 were shot and
+   * synced and never played. PhotoWorkflow now reports the stage it is on.
+   */
+  photo:            'Photo',
+  photo_guide:      'Photo_SelectHanbok',
+  photo_creating:   'Photo_Creating',
+  photo_complete:   'Photo_Complete',
   hanbok_explain:   'HanbokExplain',
 };
 
@@ -532,6 +589,29 @@ function clipsForButton(buttonId: number, lang: Lang, set: VideoSet): DisplayCli
  *     the API has no clip association for) — a safety net so nothing regresses.
  *  4. Default idle sequence.
  */
+/**
+ * `Key#N` — one clip WITHIN a key, 1-based, in sheet order.
+ *
+ * VideoSubtitle_귀이 files a clip per TAB under a single key and distinguishes
+ * them only in its 재생조건 column: TaxFree-1…4 are the TAX-FREE page's stages,
+ * Here-1…3 its three tabs, Exchange-1/2 and MarketPaper-1/2 their two. The
+ * generator strips the `-N` suffix (it is the clip INDEX, not a key), so all of
+ * them arrive grouped under one key in sheet order — which is exactly what makes
+ * addressing them by position sound.
+ *
+ * Without this a tab press could only ever start the whole key cycling, so the
+ * screen would rotate through every tab's clip regardless of which tab is open.
+ *
+ * An index past the end falls through to the Default sequence like any other
+ * unresolved key, so a sheet that loses a row degrades instead of going blank.
+ */
+function splitClipIndex(key: string): { key: string; clip: number | null } {
+  const hash = key.indexOf('#');
+  if (hash < 0) return { key, clip: null };
+  const n = Number(key.slice(hash + 1));
+  return { key: key.slice(0, hash), clip: Number.isFinite(n) && n > 0 ? n : null };
+}
+
 export function clipsForScreen(
   screen: string,
   lang: Lang,
@@ -541,6 +621,17 @@ export function clipsForScreen(
   const set = videoSetFor(kioskId);
   const byKey = BY_KEY[set];
 
+  /*
+   * The picked language's own clip — eight keys, eight files, chosen from `lang`
+   * rather than a static map entry.
+   *
+   * It LOOPS while the visitor stays on 언어선택, and that is deliberate:
+   * VideoSubtitle_귀이's 재생조건 says 직후 1회 재생, but the operators asked
+   * (2026-09-10) to keep it repeating instead. Playing once would need
+   * AiModelVideoWall's `playOnce` + an `onDone` handing back to Default — the
+   * way the weather clips already work — so do NOT "fix" this to match the
+   * sheet without asking; the divergence is the answer, not an oversight.
+   */
   if (screen === 'language') {
     const clips = clipsForKey(byKey, changeLanguagePlayKey(lang), lang, set);
     return clips.length > 0 ? clips : clipsForKey(byKey, 'Default', lang, set);
@@ -554,8 +645,9 @@ export function clipsForScreen(
     // else fall through: this button has no API-associated clip → legacy map.
   }
 
-  const key = screenKey(screen, lang, layoutOf(kioskId));
-  const clips = clipsForKey(byKey, key, lang, set);
+  const { key, clip } = splitClipIndex(screenKey(screen, lang, layoutOf(kioskId)));
+  const all = clipsForKey(byKey, key, lang, set);
+  const clips = clip == null ? all : all.slice(clip - 1, clip);
   return clips.length > 0 ? clips : clipsForKey(byKey, 'Default', lang, set);
 }
 

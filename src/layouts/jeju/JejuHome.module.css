@@ -501,13 +501,24 @@
   word-break: break-word;
 }
 
-/* ── Bottom action row: K-DRAMA / 사진촬영 / 화장실 ───────────────────── */
-.kdrama {
+/* ── Bottom action row: JEJU ISLAND / 사진촬영 / 화장실 ───────────────── */
+/*
+ * The slot K-DRAMA used to hold. That button was a 381×235 rounded rect and
+ * permanently disabled — the screen behind it was never built — and it now
+ * carries the JEJU ISLAND badge into the AR 한복체험 picker instead.
+ *
+ * The art is a CIRCLE, so the box follows 화장실 rather than the old rect:
+ * 233×234 on the same 3389 top, which puts its foot on the row's shared 3623.
+ * Horizontally it keeps the slot's own centre (x494.5, where the K-DRAMA art
+ * and its caption were both centred) rather than the old left edge, so the
+ * button does not slide left inside a row whose other two members did not move.
+ */
+.arJeju {
   position: absolute;
-  left: 304px;
-  top: 3388px;
-  width: 381px;
-  height: 235px;
+  left: 378px;
+  top: 3389px;
+  width: 233px;
+  height: 234px;
   padding: 0;
   border: none;
   background: none;
@@ -543,8 +554,7 @@
 
 /* Same baked-corner problem as .tileArt — these three sit directly on the page
    background, so their grey corners are the most visible of the lot. Each is
-   clipped to its own Figma shape: K-DRAMA is a 50px rounded rect, 사진촬영 and
-   화장실 are ellipses filling their box. */
+   clipped to its own shape; all three are ellipses filling their box. */
 .actionImg {
   width: 100%;
   height: 100%;
@@ -552,7 +562,8 @@
   pointer-events: none;
 }
 
-.kdrama .actionImg { border-radius: 50px; }
+/* All three are ellipses now — the 50px rounded rect went with K-DRAMA. */
+.arJeju .actionImg,
 .camera .actionImg,
 .restroom .actionImg { border-radius: 50%; }
 
@@ -567,7 +578,10 @@
   text-align: center;
 }
 
-.labelKdrama {
+
+/* Centred on x494, the same centre .arJeju sits on — this is the old
+   .labelKdrama box, kept because the button kept the slot's centre too. */
+.labelArJeju {
   left: 294px;
   width: 400px;
 }
@@ -635,21 +649,24 @@
 
 
 /* ────────────────────────────────────────────────────────────────────────────
- * LOW-REACH (♿) — Figma 6442:105429, re-read 2026-09-03.
+ * LOW-REACH (♿) — Figma 6442:105429, re-read 2026-09-10.
  *
- * Opens with a 191px mode bar ("지금은 배리어프리 모드입니다.") and a 573px
- * 한복 promo banner under it (y191–764). Everything below is re-laid at the
+ * Opens with the shared mode bar ("지금은 배리어프리 모드입니다.") and a 573px
+ * 한복 promo banner flush under it. This frame drew the bar 191 tall and the
+ * sub-page frames drew theirs 113; the kiosk now uses ONE height for both —
+ * lowReach.ts's MODE_BAR_HEIGHT, arriving as --jeju-mode-bar — so the banner
+ * reads its top off the bar rather than a literal. Everything below is re-laid at the
  * frame's own coordinates — not a rigid +shift of the standing page. The bar
  * keeps white text on brand-orange #ff7f0f (standing product direction). The
  * tile grid stays 6×2 with a single 400-weight label per tile.
  *
  *                     standard        low-reach
- *   mode bar          —               0      h191
- *   hero (한복 promo)  —               191    h573
- *   top bar           125             879
- *   공지 panel         297  h750      1066   h885
- *   운항 정보 board     732             1570   ┐ JejuFlightBoard / JejuSailingBoard
- *   운항 정보 더보기    955             1822   ┘
+ *   mode bar          —               0      h(bar)
+ *   hero (한복 promo)  —               (bar)  h573
+ *   top bar           125             817
+ *   공지 panel         297  h750      998    h885
+ *   운항 정보 board     732             1502   ┐ JejuFlightBoard / JejuSailingBoard
+ *   운항 정보 더보기    955             1754   ┘
  *   검색장             1136            2024   (1910 wide at x125; no home icon)
  *   feature cards     1407  h310      2253   h250 (x170 / w1860)
  *   tile panel        1772  h1494     2555   h810
@@ -666,7 +683,10 @@
   left: 0;
   top: 0;
   width: 2160px;
-  height: 191px;
+  /* Was a hardcoded 191 — the one bar on the kiosk that did not agree with the
+     other sixteen. Height now comes from lowReach.ts via the root's inline
+     --jeju-mode-bar, so home and the sub-pages cannot drift apart again. */
+  height: var(--jeju-mode-bar);
   background: var(--kiosk-primary, #ff7f0f);
   display: flex;
   align-items: center;
@@ -682,7 +702,8 @@
 .hero {
   position: absolute;
   left: 0;
-  top: 191px;
+  /* Flush under the bar — follows it rather than restating its height. */
+  top: var(--jeju-mode-bar);
   width: 2160px;
   height: 573px;
   overflow: hidden;
@@ -697,10 +718,18 @@
   pointer-events: none;
 }
 
-.topBarLow { top: 879px; }
+/*
+ * The upper block rides UP in the 2026-09-10 re-read: the bar came down from
+ * 191 to 145.759 and the designer re-flowed everything between the hero and the
+ * search row rather than absorbing the 45px in one gap. Top bar 879 → 817,
+ * 공지 panel 1066 → 998, and the flight board follows in
+ * JejuFlightBoard.module.css (1570 → 1502, 더보기 1822 → 1754). Nothing at or
+ * below the search row (2024) moved.
+ */
+.topBarLow { top: 817px; }
 
 .noticeLow {
-  top: 1066px;
+  top: 998px;
   height: 885px;
 }
 
@@ -794,7 +823,24 @@
 .tileTextLow .tileTitle { font-weight: 400; }
 .tileTextLow .tileSub { display: none; }
 
-.kdramaLow { top: 3467px; }
+/* One half of a paired title (탐나오·제주큐랑) while it is being cycled — see
+   CyclingTileTitle. `nowrap` is what makes the fix hold: the wrap it prevents is
+   the bug, and a single half is short enough to clear the 230px low-reach
+   column in every language. Scoped to this span, NOT to `.tileTitle`, so the
+   long ordinary labels (TAX-FREE, "'제주'뭐먹지") keep wrapping inside their own
+   tile instead of spilling over their neighbours. */
+.tileTitleCycle {
+  display: inline-block;
+  white-space: nowrap;
+  animation: jejuTileTitleFade 400ms ease-out;
+}
+
+@keyframes jejuTileTitleFade {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+.arJejuLow { top: 3468px; }
 .cameraLow { top: 3417px; }
 .restroomLow { top: 3468px; }
 .actionLabelLow { top: 3727px; }

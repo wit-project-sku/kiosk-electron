@@ -37,6 +37,7 @@ import tamnaMobile from '@renderer/assets/photos/jeju/localpay/tamna-mobile.png'
 import tamnaPaper from '@renderer/assets/photos/jeju/localpay/tamna-paper.png';
 import tamnaAndroid from '@renderer/assets/photos/jeju/localpay/tamna-android.png';
 import tamnaIos from '@renderer/assets/photos/jeju/localpay/tamna-ios.png';
+import { belowModeBar } from './lowReach';
 
 type TabId = 'onnuri' | 'tamna';
 
@@ -604,6 +605,9 @@ export function JejuLocalpay({ controller }: Props): JSX.Element {
       payload: { screen: 'localpay', tab: id, kioskId: controller.kioskId },
     });
     setTab(id);
+    /* VideoSubtitle_귀이 files a clip per TAB — see the 재생조건 column and the
+       Key#N entries in videoMap. */
+    void window.api.kiosk.setScreen(`localpay_${id}`);
   };
 
   return (
@@ -612,11 +616,12 @@ export function JejuLocalpay({ controller }: Props): JSX.Element {
       controller={controller}
       title="지역화폐"
       bannerFallback="banner-detail"
-      /* ♿: the 113px mode bar replaces the promo banner entirely and the header
-         drops to y116. The body stays at 0 — the cards below carry their own
+      /* ♿: the mode bar replaces the promo banner entirely and the header sits
+         3px under it (the frame's y116 against its 113 bar — now derived, see
+         lowReach.ts). The body stays at 0 — the cards below carry their own
          low-reach coordinates. */
       lowReachModeBar
-      lowReachShift={116}
+      lowReachShift={belowModeBar(3)}
     >
       <div className={low(styles.tabs, styles.tabsLow)}>
         {(['tamna', 'onnuri'] as const).map((id) => (

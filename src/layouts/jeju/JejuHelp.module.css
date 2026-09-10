@@ -17,17 +17,35 @@
   composes: pillActive from './JejuPill.module.css';
 }
 
+/*
+ * The scrolling body — Figma 6862:9953's `6862:9957`, a centred column at y700
+ * holding pickers · category chips · map · result cards.
+ *
+ * GAP 50, not the 150 this carried: the 2026-09-09 frame tightens the whole
+ * stack, which is what puts the map at y1497 instead of y1697 and leaves the
+ * last card clear of the promo. Every block's own internal gaps (70 in
+ * .pickers, 35 in .cats, 52 in .list) are unchanged — only the spacing BETWEEN
+ * the four blocks moved.
+ *
+ * `bottom: 573px` stops the viewport at the promo banner's top edge (3840 −
+ * 573 = 3267), so a scrolled card can never slide under it. The 80px bottom
+ * padding is the frame's own clearance between the last card and the banner.
+ *
+ * Right padding is 136 against the left's 170 on purpose: the 34.32px scrollbar
+ * makes up the difference (136 + 34.32 ≈ 170), so the 1820-wide blocks stay
+ * centred on the artboard.
+ */
 .scroll {
   position: absolute;
   left: 0;
   right: 0;
   top: 700px;
-  bottom: 0;
+  bottom: 573px;
   box-sizing: border-box;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 150px;
+  gap: 50px;
   overflow-x: hidden;
   overflow-y: auto;
   padding: 0 136px 80px 170px;
@@ -79,7 +97,10 @@
   color: #fff;
 }
 
-/* Floors ride inside the scroll column — override JejuSubTabRow's absolute band. */
+/* Floors ride inside the scroll column — override JejuSubTabRow's absolute band.
+   Idle ink is #999 here, not the shared row's #1a1a1a default: 6862:9953 draws
+   the unpicked floors and both ㅣ separators in 글씨-main (#999), against the
+   Black orange 1F. That is the override hook the shared row documents. */
 .floors.floors {
   position: relative;
   top: auto;
@@ -87,6 +108,7 @@
   right: auto;
   width: 100%;
   flex: 0 0 auto;
+  --jeju-subtab-idle: #999;
 }
 
 /* ── Categories (R>상단 카테고리-5개*2) ──
@@ -259,7 +281,15 @@
   width: 100%;
   height: 100%;
   box-sizing: border-box;
-  padding: 40px 50px;
+  /* Inset of the plan inside its white card (1820×813, or the 1456-tall
+     국내선 4F). Was 40/50, which read as
+     the plan touching the card's edges — the corners especially, where the 58px
+     radius cuts in. The plans are 2.2–3.1 aspect against the card's 2.4, so the
+     wide ones (2F/3F) had slack to give horizontally and only the taller 1F
+     plans lose height by this.
+     Note it rides INSIDE the transform, so it zooms with the plan — the inset
+     is the resting frame, not a hard gutter. */
+  padding: 64px 88px;
   display: flex;
   align-items: center;
   justify-content: center;

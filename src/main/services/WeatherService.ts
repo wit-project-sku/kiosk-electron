@@ -1,10 +1,19 @@
 import type {
   WeatherDayForecast,
   WeatherForecast,
+  WeatherSiteDay,
+  WeatherSiteForecast,
   WeatherSnapshot,
 } from '@shared/types/weather';
+import type { KioskId } from '@shared/types/kiosk';
 import { createLogger } from '@main/core/logger';
-import { getKioskCoordinates } from '@shared/config/kioskLocations';
+import {
+  getKioskCoordinates,
+  getKioskLayout,
+  isJejuLayout,
+  type GeoCoordinates,
+} from '@shared/config/kioskLocations';
+import { JEJU_WEATHER_SITES, type WeatherSite } from '@shared/config/weatherSites';
 import type { KioskService } from './KioskService';
 import type { LocalCacheService } from './LocalCacheService';
 
@@ -108,6 +117,32 @@ function bucketByLocalDate(json: OwmForecastResponse): DayBucket[] {
   return [...buckets.values()];
 }
 
+/** The query string both endpoints take, for one point on the map. */
+const weatherQuery = ({ lat, lon }: GeoCoordinates, apiKey: string): string =>
+  `lat=${lat}&lon=${lon}&units=metric&lang=en&appid=${apiKey}`;
+
+/**
+ * One bucket as ONE column-cell of the 제주 날씨 panel — the day's low/high and
+ * a SINGLE glyph, where {@link WeatherDayForecast} keeps two.
+ *
+ * Afternoon first, morning as the fallback. The panel's columns are places now
+ * rather than halves of the day, so each cell has room for one reading, and the
+ * 15:00 slot is the one a multi-day outlook is conventionally summarised by.
+ * The fallback is not hypothetical: the last date in the 120-hour window is
+ * often reached in the morning only, and today's bucket has no morning left in
+ * it after noon.
+ */
+function toSiteDay(bucket: DayBucket): WeatherSiteDay {
+  const slot = bucket.afternoon ?? bucket.morning;
+  return {
+    date: bucket.date,
+    minC: Math.round(bucket.minC),
+    maxC: Math.round(bucket.maxC),
+    icon: slot?.icon ?? '',
+    main: slot?.main ?? '',
+  };
+}
+
 /**
  * Fetches current weather and the 5-day/3-hour outlook from OpenWeatherMap,
  * caches both locally, and refreshes every 30 minutes. All network lives here in
@@ -118,6 +153,12 @@ function bucketByLocalDate(json: OwmForecastResponse): DayBucket[] {
 export class WeatherService {
   private current: WeatherSnapshot | null = null;
   private forecast: WeatherForecast | null = null;
+  /**
+   * Last good outlook per 제주 site, held across refreshes so ONE site failing
+   * keeps its column instead of blanking it — the same "keep the last outlook"
+   * rule the whole-forecast fetch follows, applied per column.
+   */
+  private siteForecasts: WeatherSiteForecast[] | null = null;
   private timer: ReturnType<typeof setInterval> | null = null;
   private warnedNoKey = false;
   private readonly listeners = new Set<WeatherListener>();
@@ -139,6 +180,11 @@ export class WeatherService {
     const forecastData = cachedForecast?.data as Partial<WeatherForecast> | undefined;
     if (forecastData && Array.isArray(forecastData.days) && forecastData.days.length > 0) {
       this.forecast = forecastData as WeatherForecast;
+      // A row cached before `sites` existed simply has none; the panel draws its
+      // columns empty until the first refresh fills them.
+      if (Array.isArray(forecastData.sites) && forecastData.sites.length > 0) {
+        this.siteForecasts = forecastData.sites as WeatherSiteForecast[];
+      }
     }
     void this.refresh();
     this.timer = setInterval(() => void this.refresh(), REFRESH_MS);
@@ -193,12 +239,115 @@ export class WeatherService {
 
     // Coordinates follow the running kiosk's physical location (화성휴게소 for W005,
     // 오색시장 for W004, Insadong otherwise) — derived from the provisioned kioskId.
-    const { lat, lon } = getKioskCoordinates(this.kiosk.getConfig().kioskId);
-    const query = `lat=${lat}&lon=${lon}&units=metric&lang=en&appid=${apiKey}`;
+    const kioskId = this.kiosk.getConfig().kioskId;
+    const query = weatherQuery(getKioskCoordinates(kioskId), apiKey);
 
-    // The two calls are independent: a failing outlook must not drop the current
-    // snapshot the home card reads, and vice versa.
-    await Promise.all([this.refreshCurrent(query), this.refreshForecast(query)]);
+    /*
+     * Three independent fetches: a failing outlook must not drop the current
+     * snapshot the home card reads, and vice versa; the 제주 site columns are a
+     * third that must not take either of them down.
+     *
+     * Cost, since this is now up to five calls rather than two: on a 제주 kiosk
+     * that is 5 every 30 min = 240/day, against OpenWeatherMap's free tier of
+     * 60/minute and 1M/month. Everywhere else it stays at 2.
+     */
+    const [, outlook, sites] = await Promise.all([
+      this.refreshCurrent(query),
+      this.fetchOutlook(query),
+      this.fetchSites(apiKey, kioskId),
+    ]);
+
+    if (sites) this.siteForecasts = sites;
+    /*
+     * Published once, after BOTH have settled, so the panel never paints a frame
+     * carrying this refresh's days beside the previous refresh's columns.
+     *
+     * The second branch is the outlook failing while the sites answered: the
+     * columns are the whole panel now, so they are still worth publishing
+     * against the days we already hold rather than being dropped for a fetch
+     * nothing currently draws.
+     */
+    if (outlook) this.publishForecast(outlook.days, outlook.city);
+    else if (sites && this.forecast) {
+      this.publishForecast(this.forecast.days, this.forecast.city);
+    }
+  }
+
+  /**
+   * The 제주 날씨 panel's three columns, or null off 제주 / when every site
+   * failed. No other layout draws the panel, so no other kiosk pays for these.
+   *
+   * A site that answers replaces its column; a site that does not keeps the one
+   * it had, so a single flaky request cannot blank a column that was fine a
+   * moment ago. The order is `JEJU_WEATHER_SITES`', which is the order the frame
+   * draws 제주시 · 서귀포시 · 성산 in.
+   */
+  private async fetchSites(
+    apiKey: string,
+    kioskId: KioskId,
+  ): Promise<WeatherSiteForecast[] | null> {
+    if (!isJejuLayout(getKioskLayout(kioskId))) return null;
+
+    const fetched = await Promise.all(
+      JEJU_WEATHER_SITES.map((site) => this.fetchSite(site, apiKey)),
+    );
+    const held = new Map((this.siteForecasts ?? []).map((s) => [s.id, s]));
+    const sites = JEJU_WEATHER_SITES.map(
+      (site, i) => fetched[i] ?? held.get(site.id) ?? null,
+    ).filter((s): s is WeatherSiteForecast => s !== null);
+
+    if (sites.length === 0) {
+      log.warn('Weather site outlook empty for every 제주 site (keeping last columns)');
+      return null;
+    }
+    return sites;
+  }
+
+  /** One site's outlook, or null when it could not be fetched or was unusable. */
+  private async fetchSite(site: WeatherSite, apiKey: string): Promise<WeatherSiteForecast | null> {
+    try {
+      const url = `https://api.openweathermap.org/data/2.5/forecast?${weatherQuery(site.coordinates, apiKey)}`;
+      const res = await fetch(url);
+      if (!res.ok) {
+        log.warn('Weather site fetch returned non-OK', { site: site.id, status: res.status });
+        return null;
+      }
+      const json = (await res.json()) as OwmForecastResponse;
+      const days = bucketByLocalDate(json).slice(0, FORECAST_DAYS).map(toSiteDay);
+      if (days.length === 0) {
+        log.warn('Weather site had no usable entries', { site: site.id });
+        return null;
+      }
+      return { id: site.id, city: json.city?.name ?? site.name, days };
+    } catch (error) {
+      log.warn('Weather site fetch failed', { site: site.id }, error);
+      return null;
+    }
+  }
+
+  /**
+   * Compose, cache and emit. Split out of the outlook fetch because the outlook
+   * and the site columns arrive separately and both have to land in ONE
+   * `WeatherForecast` — the renderer sees a single object.
+   */
+  private publishForecast(days: WeatherDayForecast[], city: string): void {
+    const forecast: WeatherForecast = {
+      days,
+      city,
+      fetchedAt: new Date().toISOString(),
+      ...(this.siteForecasts ? { sites: this.siteForecasts } : {}),
+    };
+    this.forecast = forecast;
+    this.cache.upsert(
+      FORECAST_CACHE_KEY,
+      forecast as unknown as Record<string, unknown>,
+      'weather',
+    );
+    this.emitForecast();
+    log.info('Weather forecast updated', {
+      days: days.length,
+      sites: this.siteForecasts?.length ?? 0,
+    });
   }
 
   private async refreshCurrent(query: string): Promise<void> {
@@ -230,12 +379,24 @@ export class WeatherService {
     }
   }
 
-  private async refreshForecast(query: string): Promise<void> {
+  /**
+   * The KIOSK's own multi-day outlook — fetched, not published: `refresh` lands
+   * it and the site columns in one object (see {@link publishForecast}).
+   *
+   * ★ Nothing currently DRAWS these days. The 제주 날씨 panel was their only
+   * consumer and its 2026-09-09 redraw moved it onto `sites`, so this is now the
+   * general-purpose outlook rather than one screen's data source. It is kept
+   * because it is the only outlook the other seven venues have, and because a
+   * cached row without it fails this service's own hydration check.
+   */
+  private async fetchOutlook(
+    query: string,
+  ): Promise<{ days: WeatherDayForecast[]; city: string } | null> {
     try {
       const res = await fetch(`https://api.openweathermap.org/data/2.5/forecast?${query}`);
       if (!res.ok) {
         log.warn('Weather forecast fetch returned non-OK', { status: res.status });
-        return;
+        return null;
       }
       const json = (await res.json()) as OwmForecastResponse;
 
@@ -262,24 +423,13 @@ export class WeatherService {
 
       if (days.length === 0) {
         log.warn('Weather forecast had no usable entries (keeping last outlook)');
-        return;
+        return null;
       }
 
-      const forecast: WeatherForecast = {
-        days,
-        city: json.city?.name ?? '',
-        fetchedAt: new Date().toISOString(),
-      };
-      this.forecast = forecast;
-      this.cache.upsert(
-        FORECAST_CACHE_KEY,
-        forecast as unknown as Record<string, unknown>,
-        'weather',
-      );
-      this.emitForecast();
-      log.info('Weather forecast updated', { days: days.length });
+      return { days, city: json.city?.name ?? '' };
     } catch (error) {
       log.warn('Weather forecast fetch failed (keeping last outlook)', error);
+      return null;
     }
   }
 }

@@ -30,6 +30,7 @@ import { JejuPageFrame } from './JejuPageFrame';
 import { JejuCourseSpotCard } from './JejuCourseSpotCard';
 import { JejuSpotDetailCard } from './JejuSpotDetailCard';
 import styles from './JejuDetail.module.css';
+import { belowModeBar, LOW_REACH_BANNER_HEIGHT } from './lowReach';
 
 interface Props {
   controller: KioskController;
@@ -46,7 +47,7 @@ const T = {
 /** Artboard height — scroll viewports are sized to its foot. */
 const ARTBOARD = 3840;
 /** Mode-bar revision: header drops by the bar height; content follows (JejuListScreen). */
-const MODE_BAR = 113;
+const MODE_BAR = belowModeBar();
 
 /**
  * The 상세 page description, straight from Localization_Jeju.
@@ -161,10 +162,12 @@ export function JejuDetail({ controller }: Props): JSX.Element {
    */
   const next = item.courseNext;
   const cardTop = chrome.cardTop ?? 700;
-  /* ♿: most detail pages only carry the 113 mode bar, so content is nudged
-     +113 in markup. 도와줘 상세 (6297:74899) keeps the promo under the bar —
-     header at 686, card at 1387 — via lowReachBarBanner + body shift 687, so
-     the card stays at its standing top and the frame moves the body. */
+  /* ♿: most detail pages only carry the mode bar, so content is nudged past
+     it in markup (MODE_BAR, which is the bar's own height — lowReach.ts).
+     도와줘 상세 (6297:74899) keeps the promo under the bar — header at
+     bar+573, card at 1387 — via lowReachBarBanner + a body shift one px
+     rounder, so the card stays at its standing top and the frame moves the
+     body. The frame measured those two as 686/687 against a 113 bar. */
   const contentTop = lowReach && !isHelp ? cardTop + MODE_BAR : cardTop;
   /* Help ♿ card viewport is 2318 tall at y1387 (6297:74899); others fill to
      the artboard foot from contentTop. */
@@ -188,8 +191,8 @@ export function JejuDetail({ controller }: Props): JSX.Element {
       lowReachBanner={isHelp}
       lowReachModeBar
       lowReachBarBanner={isHelp}
-      lowReachShift={isHelp ? 686 : MODE_BAR}
-      lowReachBodyShift={isHelp ? 687 : 0}
+      lowReachShift={isHelp ? belowModeBar(LOW_REACH_BANNER_HEIGHT) : MODE_BAR}
+      lowReachBodyShift={isHelp ? belowModeBar(LOW_REACH_BANNER_HEIGHT + 1) : 0}
     >
       {next ? (
         <div className={styles.courseScroll} style={{ top: contentTop, height: scrollHeight }}>

@@ -1,10 +1,26 @@
 /*
- * 제주 날씨 overlay — Figma node 6516:74520, the group the home weather card
- * opens over 제주>홈. Page coordinates: the frosted panel is 2000×3407 at
- * (81, 302); everything inside is panel-relative, so the numbers below are the
- * Figma values minus that origin. The seventh row and close button are siblings
- * of that group on frame 6516:74521; their positions are still measured from
- * the same panel origin.
+ * 제주 날씨 overlay — Figma node 6873:16213, the group the home weather card
+ * opens over 제주>홈 (frame 6516:74521). Page coordinates: the frosted panel is
+ * 2000×3407 at (80, 295); everything inside is panel-relative, so the numbers
+ * below are the Figma values minus that origin.
+ *
+ * ── What the 2026-09-09 redraw moved ────────────────────────────────
+ * The panel box and the 오늘 card are unchanged (2000×3407 · 1861×497), and the
+ * origin only shifted 1/7px. Everything BETWEEN them is new, because the three
+ * columns stopped being 오전 / 오후 / 최저·최고 for one place and became three
+ * PLACES — 제주시 · 서귀포시 · 성산 — each carrying its own glyph and its own
+ * low/high. So:
+ *   · two 280×357 glyph boxes became three 208×200 ones;
+ *   · the single 100px 최저/최고 pair on the right became three 50px pairs, one
+ *     centred under each glyph;
+ *   · the row pitch dropped from 461 to 444 and the rules moved with it.
+ *
+ * y map, panel-relative:
+ *     90…587   오늘 card (holds the column heads and the first row)
+ *    132       column heads
+ *    245       row 1 glyph top · then 687 / 1131 / 1575 / 2019 / 2463 / 2907
+ *   1056…2832  five rules, on the rows' own 444 pitch
+ *   3269…3386  close button
  */
 
 .layer {
@@ -21,45 +37,6 @@
 /* Invisible dismiss target covering the page BEHIND the panel — see the note in
    JejuWeatherPanel.tsx. Tapping the bare screen around the panel is still a way
    out; the visible close button is the advertised one. */
-/* ── Close (6760:18767) ──
-   The same circle-and-X the 제주도 이벤트 MBTI card uses (both nodes are named
-   "Frame 1392"), so it is the same exported asset — see ico-close.svg.
-
-   Centred on the panel, as the frame centres it (page x 1018 → panel mid).
-   Page y 3518 − panel origin 302 = 3216. 129 rather than the node's 125 because
-   the export's box is 128.699: the 4.29 ring stroke overflows the node's
-   bounds, which is what Figma's inset-[0_-2.96%_-2.96%_0] describes.
-
-   The frame lays it across the seventh row's band, in the gap between the 오전
-   and 오후 columns — not below the list. */
-.close {
-  position: absolute;
-  left: 50%;
-  top: 3216px;
-  width: 129px;
-  height: 129px;
-  transform: translateX(-50%);
-  padding: 0;
-  border: none;
-  background: transparent;
-  cursor: pointer;
-  -webkit-tap-highlight-color: transparent;
-  /* Above the last row's glyphs so the X stays tappable. */
-  z-index: 1;
-}
-
-.closeIcon {
-  display: block;
-  width: 100%;
-  height: 100%;
-  object-fit: contain;
-  transition: transform 120ms ease-out;
-}
-
-.close:active .closeIcon {
-  transform: scale(1.08);
-}
-
 .dismiss {
   position: absolute;
   inset: 0;
@@ -79,11 +56,9 @@
  */
 .panel {
   position: absolute;
-  left: 81px;
-  top: 302px;
+  left: 80px;
+  top: 295px;
   width: 2000px;
-  /* Figma 6516:74169 — 2000×3407. Covers seven 357-tall rows (step 461 from
-     y178) plus the close button that sits in the last row's 오전/오후 gap. */
   height: 3407px;
   border-radius: 45px;
   background: rgba(237, 233, 226, 0.9);
@@ -93,7 +68,9 @@
 }
 
 /* 오늘's lighter card. It reaches above the first row to take in the column
-   heads, which is why the frame draws no rule between rows 1 and 2. */
+   heads, which is why the frame draws no rule between rows 1 and 2. Its own
+   42.9 blur is the frame's (6873:16215) — it reads as a brighter pane over the
+   panel's already-blurred ground, not as a flat white wash. */
 .todayCard {
   position: absolute;
   left: 70px;
@@ -102,32 +79,45 @@
   height: 497px;
   border-radius: 45px;
   background: rgba(255, 255, 255, 0.5);
+  backdrop-filter: blur(42.9px);
+  -webkit-backdrop-filter: blur(42.9px);
 }
 
-/* ── Column heads ───────────────────────────────────────────────────── */
+/* ── Columns ─────────────────────────────────────────────────────────
+ * One custom property per column — the axis the frame draws that place's head,
+ * glyph and temperatures on (page x 770 / 1253 / 1717). Everything in the
+ * column is positioned off it, so a column moves as one.
+ *
+ * The three are NOT evenly pitched: 483 then 464. That is the frame's own
+ * spacing (heads and glyphs agree on it to the pixel), not slop worth
+ * normalising — the day label on the left is what the first gap is making room
+ * for.
+ */
+.col1 {
+  --col: 690px;
+}
+
+.col2 {
+  --col: 1173px;
+}
+
+.col3 {
+  --col: 1637px;
+}
+
+/* ── Column heads (제주시 · 서귀포시 · 성산) ─────────────────────────
+   The frame draws 성산 5px lower than the other two; normalised to 132, since
+   nothing distinguishes that column but the slop. */
 .head {
   position: absolute;
+  left: var(--col);
+  top: 132px;
+  transform: translateX(-50%);
   font-size: 38px;
   font-weight: 400;
   line-height: 1;
   color: #999; /* 글씨-main */
   white-space: nowrap;
-}
-
-.headMorning {
-  left: 697px;
-  top: 132px;
-}
-
-.headAfternoon {
-  left: 1154px;
-  top: 132px;
-}
-
-/* The one head the frame sets 5px lower than the other two. */
-.headRange {
-  left: 1598px;
-  top: 137px;
 }
 
 /* Figma "Line 106": a 3px #C8BDA9 rule inset 111 from the panel edge — the same
@@ -140,14 +130,18 @@
   background: #c8bda9;
 }
 
-/* ── One day ────────────────────────────────────────────────────────── */
-/* 357 tall — the height of the taller (afternoon) glyph box, which is what sets
-   the row. `top` comes from the TSX. */
+/* ── One day ─────────────────────────────────────────────────────────
+ * 294 tall: the 200 glyph, then the temperatures at 244 with a 50px line. `top`
+ * comes from the TSX and is the row's GLYPH top, which is the one anchor all
+ * seven rows agree on — the frame hand-nudges 오늘's and 내일's day labels 12
+ * and 7px off the offsets the other five share, so those two are drawn on the
+ * shared template rather than reproducing the nudge.
+ */
 .row {
   position: absolute;
   left: 0;
   width: 2000px;
-  height: 357px;
+  height: 294px;
 }
 
 /*
@@ -158,7 +152,7 @@
 .day {
   position: absolute;
   left: 157px;
-  top: 137px;
+  top: 82px;
   width: 126px;
   font-size: 68px;
   font-weight: 700;
@@ -171,7 +165,8 @@
 .date {
   position: absolute;
   left: 167px;
-  top: 229px;
+  top: 174px;
+  width: 106px;
   font-size: 38px;
   font-weight: 400;
   line-height: 1;
@@ -179,29 +174,28 @@
   white-space: nowrap;
 }
 
+/* One place's cell: the glyph, and that place's low/high under it. */
+.cell {
+  position: absolute;
+  left: calc(var(--col) - 104px);
+  top: 0;
+  width: 208px;
+  height: 294px;
+}
+
 /*
- * Both glyph slots are one fixed 280×357 box with `contain`, centred on the axis
- * the frame draws each half-day's art on (795 / 1257.5 in page coordinates).
+ * 208×200 with `contain`, the box the frame draws every glyph in.
  *
- * The frame itself sizes every glyph by hand and does not agree with itself —
- * 04 lands at 265×256 (0.88× its source), 03 at 277×357 (0.89×) and the 내일
- * sun_cloud at 345×239 (1.10×). A single box reproduces the two 0.88× glyphs to
- * within a few px and keeps the whole column consistent, which the hand-sized
- * version is not.
+ * The frame sizes them by hand and does not quite agree with itself across the
+ * 21 cells; a single box reproduces the drawn size to within a pixel or two and
+ * keeps the three columns consistent, which the hand-sized version is not.
  */
 .glyphSlot {
   position: absolute;
+  left: 0;
   top: 0;
-  width: 280px;
-  height: 357px;
-}
-
-.glyphMorning {
-  left: 580px;
-}
-
-.glyphAfternoon {
-  left: 1038px;
+  width: 208px;
+  height: 200px;
 }
 
 .glyph {
@@ -210,33 +204,76 @@
   object-fit: contain;
 }
 
-/* ── 최저 / 최고 ────────────────────────────────────────────────────── */
-.min,
-.max {
+/* ── 최저 / 최고, per place ──────────────────────────────────────────
+ * The frame writes the three parts at fixed x (min, then the slash 80 on, then
+ * the max 33 after that) and the group lands centred on the column axis. Drawn
+ * as a centred flex row instead so it stays centred when the digits are not the
+ * frame's own two per number — `-5˚` in winter, `--˚` for a cell the outlook
+ * does not reach.
+ */
+.temps {
   position: absolute;
-  top: 129px;
-  font-size: 100px;
-  font-weight: 700;
+  left: 50%;
+  top: 244px;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: baseline;
+  font-size: 50px;
   line-height: 1;
   white-space: nowrap;
 }
 
 .min {
-  left: 1466px;
+  font-weight: 700;
   color: #3172e7;
 }
 
 .max {
-  left: 1712px;
+  font-weight: 700;
   color: #cd3534;
 }
 
+/* The frame's own 33px gutter between the two numbers, carried by the slash. */
 .slash {
-  position: absolute;
-  left: 1653px;
-  top: 144px;
-  font-size: 70px;
+  width: 33px;
   font-weight: 400;
-  line-height: 1;
   color: #999; /* 글씨-main */
+  text-align: center;
+}
+
+/* ── Close (6876:16416) ──
+   The same circle-and-X the 제주도 이벤트 MBTI card uses, so it is the same
+   exported asset — see ico-close.svg.
+
+   ★ NOT centred on the panel: the frame puts it at calc(50% + 68.5px) of the
+   2160 artboard, which is 68.5px right of the panel's own middle. That reads
+   like a slip rather than a decision — the previous frame centred it — but it
+   is what 6876:16416 and its 7000:18980 duplicate both draw, so it is
+   reproduced here. Deleting the offset is a one-line change if it turns out to
+   be slop. */
+.close {
+  position: absolute;
+  left: 1010px;
+  top: 3269px;
+  width: 117px;
+  height: 117px;
+  padding: 0;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  /* Above the last row's glyphs so the X stays tappable. */
+  z-index: 1;
+}
+
+.closeIcon {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  transition: transform 120ms ease-out;
+}
+
+.close:active .closeIcon {
+  transform: scale(1.08);
 }
