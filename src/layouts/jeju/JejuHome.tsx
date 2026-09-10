@@ -146,10 +146,10 @@ const noticeText = (lang: Lang): string => {
  * languages, so the tile says the pair even though `navigate()` still receives
  * the CMS's 탐나오.
  *
- * MainButton_Cruise / SubButton_Cruise (운항정보 · 입·출항 정보) serve DOUBLE duty
- * and that is correct: on 제주공항 they title the 운항정보 page (see i18n's
- * TITLE_KEYS), and on 여객터미널 they also label the 크루즈 운항 tile that opens
- * the ferry board. The sheet files both under "유산문화센터, 여객선터미널에 적용".
+ * MainButton_Cruise / SubButton_Cruise (운항정보 · 입·출항 정보) label the
+ * 크루즈 운항 home tile on 여객터미널. The opened ferry board's header uses
+ * CRUISE_TITLE → OP_Schedule_Title (see i18n TITLE_KEYS). On 제주공항 the
+ * 운항정보 page still titles via MainButton_Airplane_Schedule.
  * Note the tile therefore READS 운항정보 while `navigate()` still receives
  * 크루즈 운항 — the CMS's button_type, and the only string the analytics join
  * matches on.

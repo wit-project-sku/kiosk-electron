@@ -224,7 +224,7 @@ const COLUMNS: Record<FlightDirection, Column[]> = {
     { key: 'airline', x: 670,  centred: true, sheetKey: 'OP_Schedule_Info_col2', head: COL_AIRLINE },
     { key: 'place',   x: 1140, centred: true, sheetKey: 'OP_Schedule_Info_col3', head: COL_DESTINATION },
     { key: 'kind',    x: 1500, centred: true, sheetKey: 'OP_Schedule_Info_col4', head: COL_KIND },
-    { key: 'stand',   x: 1700, centred: true, sheetKey: 'OP_Schedule_Info_col5', head: COL_GATE },
+    { key: 'stand',   x: 1710, centred: true, sheetKey: 'OP_Schedule_Info_col5', head: COL_GATE },
     { key: 'status',  x: 1915, centred: true, sheetKey: 'OP_Schedule_Info_col6', head: COL_STATUS },
   ],
   arrival: [
@@ -232,7 +232,7 @@ const COLUMNS: Record<FlightDirection, Column[]> = {
     { key: 'airline', x: 670,  centred: true, sheetKey: 'OP_Schedule_Info_col2', head: COL_AIRLINE },
     { key: 'place',   x: 1140, centred: true, head: COL_ORIGIN },
     { key: 'kind',    x: 1500, centred: true, sheetKey: 'OP_Schedule_Info_col4', head: COL_KIND },
-    { key: 'stand',   x: 1700, centred: true, sheetKey: 'OP_Schedule_Info_col7', head: COL_BELT },
+    { key: 'stand',   x: 1710, centred: true, sheetKey: 'OP_Schedule_Info_col7', head: COL_BELT },
     { key: 'status',  x: 1915, centred: true, sheetKey: 'OP_Schedule_Info_col6', head: COL_STATUS },
   ],
 };

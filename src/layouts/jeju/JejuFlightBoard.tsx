@@ -52,9 +52,9 @@ const TITLE = {
   vi: 'Chuyến bay', th: 'ข้อมูลเที่ยวบิน', ru: 'Вылеты', id: 'Keberangkatan',
 };
 
-/** Fallback — sheet `Schedule_More`. */
+/** Fallback — sheet `Schedule_More_Flight`. */
 const MORE = {
-  ko: '운항 정보 더보기', en: 'More flight information', ja: '運航情報をもっと見る', zh: '查看更多航班信息',
+  ko: '항공편 정보 더보기', en: 'More flight information', ja: '運航情報をもっと見る', zh: '查看更多航班信息',
   vi: 'Xem thêm thông tin chuyến bay', th: 'ดูข้อมูลเที่ยวบินเพิ่มเติม', ru: 'Больше информации о рейсах',
   id: 'Lihat lebih banyak informasi penerbangan',
 };
@@ -232,7 +232,7 @@ export function JejuFlightBoard({ controller, lang }: Props): JSX.Element {
         onClick={openFlights}
       >
         <span className={styles.chevron} />
-        <span className={styles.moreText}>{opText('Schedule_More', lang, MORE)}</span>
+        <span className={styles.moreText}>{opText('Schedule_More_Flight', lang, MORE)}</span>
       </button>
     </>
   );

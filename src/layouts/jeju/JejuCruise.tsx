@@ -58,15 +58,13 @@ interface Props {
 export type SailingDirection = 'departure' | 'arrival';
 
 /**
- * Korean id handed to JejuHeader / navigate() — also the analytics label.
+ * Header id handed to JejuHeader / navigate().
  *
- * The same string the airport board uses, and deliberately so: i18n's TITLE_KEYS
- * already maps 운항정보 → `MainButton_Cruise`, and Localization_Jeju files that
- * row under "유산문화센터, 여객선터미널에 적용" — this venue's own row. The two
- * boards never run on one machine, so sharing the id shares the translation
- * rather than colliding.
+ * Matches the CMS `button_type` for the home cruise tile. i18n maps it to
+ * `OP_Schedule_Title` (not MainButton_Cruise — that labels the home tile). The
+ * sheet's Korean for OP_Schedule_Title is still 운항정보.
  */
-export const CRUISE_TITLE = '운항정보';
+export const CRUISE_TITLE = '크루즈 운항';
 
 const TABS: ReadonlyArray<{
   id: SailingDirection;
