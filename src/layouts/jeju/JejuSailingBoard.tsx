@@ -39,14 +39,15 @@ const TITLE = {
   vi: 'Chuyến tàu', th: 'ข้อมูลเรือ', ru: 'Рейсы', id: 'Pelayaran',
 };
 
-/** Fallback — sheet `Schedule_More`. */
+/** Fallback — sheet `Schedule_More_Cruise`. */
 const MORE = {
-  ko: '운항 정보 더보기', en: 'More flight information', ja: '運航情報をもっと見る', zh: '查看更多航班信息',
-  vi: 'Xem thêm thông tin chuyến bay', th: 'ดูข้อมูลเที่ยวบินเพิ่มเติม', ru: 'Больше информации о рейсах',
-  id: 'Lihat lebih banyak informasi penerbangan',
+  ko: '운항 정보 더보기', en: 'More Operation information', ja: '運行情報の詳細', zh: '更多运营信息',
+  vi: 'Thêm thông tin vận hành', th: 'ข้อมูลการดำเนินงานเพิ่มเติม', ru: 'Дополнительная информация об операции',
+  id: 'Lihat lebih banyak informasi pelayaran',
 };
 
-const COLUMNS = {
+/** Korean column centres — original layout. */
+const COLUMNS_KO = {
   time: 412,
   duration: 580,
   ship: 840,
@@ -55,7 +56,22 @@ const COLUMNS = {
   status: 1718,
 } as const;
 
-const HEAD_KEYS: Record<keyof typeof COLUMNS, string> = {
+/** Non-Korean — right-shifted under the shorter `.ruleEn` band. */
+const COLUMNS_EN = {
+  time: 530,
+  duration: 740,
+  ship: 960,
+  route: 1220,
+  place: 1500,
+  status: 1708,
+} as const;
+
+type ColumnKey = keyof typeof COLUMNS_KO;
+type Columns = { readonly [K in ColumnKey]: number };
+
+const columnsFor = (lang: Lang): Columns => (lang === 'ko' ? COLUMNS_KO : COLUMNS_EN);
+
+const HEAD_KEYS: Record<ColumnKey, string> = {
   time: 'OP_Schedule_Info_col1',
   duration: 'OP_Schedule_Info_col8',
   ship: 'OP_Schedule_Info_col9',
@@ -64,7 +80,7 @@ const HEAD_KEYS: Record<keyof typeof COLUMNS, string> = {
   status: 'OP_Schedule_Info_col6',
 };
 
-const HEADS: Record<keyof typeof COLUMNS, Partial<Record<Lang, string>>> = {
+const HEADS: Record<ColumnKey, Partial<Record<Lang, string>>> = {
   time: {
     ko: '출발시각', en: 'Departs', ja: '出発時刻', zh: '出发时间',
     vi: 'Giờ đi', th: 'เวลาออก', ru: 'Отправление', id: 'Berangkat',
@@ -91,46 +107,54 @@ const HEADS: Record<keyof typeof COLUMNS, Partial<Record<Lang, string>>> = {
   },
 };
 
-function SailingCells({ sailing, lang }: { sailing: JejuSailing; lang: Lang }): JSX.Element {
+function SailingCells({
+  sailing,
+  lang,
+  columns,
+}: {
+  sailing: JejuSailing;
+  lang: Lang;
+  columns: Columns;
+}): JSX.Element {
   const retimed = hasTimeChange(sailing);
 
   return (
     <>
       <span
         className={`${styles.value} ${retimed ? styles.valueRetimed : ''}`}
-        style={{ left: COLUMNS.time }}
+        style={{ left: columns.time }}
       >
         {displaySailingTime(sailing)}
       </span>
       {retimed && (
-        <span className={styles.timeWas} style={{ left: COLUMNS.time }}>
+        <span className={styles.timeWas} style={{ left: columns.time }}>
           {sailing.scheduledTime}
         </span>
       )}
 
-      <span className={styles.value} style={{ left: COLUMNS.duration }}>
+      <span className={styles.value} style={{ left: columns.duration }}>
         {sailing.duration}
       </span>
-      <span className={styles.value} style={{ left: COLUMNS.ship }}>
+      <span className={styles.value} style={{ left: columns.ship }}>
         {sailing.shipName}
       </span>
-      <span className={styles.value} style={{ left: COLUMNS.route }}>
+      <span className={styles.value} style={{ left: columns.route }}>
         {sailing.route}
       </span>
-      <span className={styles.value} style={{ left: COLUMNS.place }}>
+      <span className={styles.value} style={{ left: columns.place }}>
         {sailing.place}
       </span>
 
       {sailing.status && (
         <span
           className={`${styles.value} ${styles.valueStatus}`}
-          style={{ left: COLUMNS.status, color: sailingStatusColor(sailing.status) }}
+          style={{ left: columns.status, color: sailingStatusColor(sailing.status) }}
         >
           {sailingStatusLabel(sailing.status, lang)}
         </span>
       )}
       {sailing.note && (
-        <span className={styles.note} style={{ left: COLUMNS.status }}>
+        <span className={styles.note} style={{ left: columns.status }}>
           {sailing.note}
         </span>
       )}
@@ -169,6 +193,8 @@ export function JejuSailingBoard({ controller, lang }: Props): JSX.Element {
     : opText('OP_Schedule_Result', lang, EMPTY);
   const title = opText('CruiseSchedule', lang, TITLE);
   const openSailings = (): void => controller.navigate('cruise', CRUISE_TITLE);
+  const columns = columnsFor(lang);
+  const compact = lang !== 'ko';
 
   return (
     <>
@@ -183,18 +209,18 @@ export function JejuSailingBoard({ controller, lang }: Props): JSX.Element {
         onClick={openSailings}
       >
         <p className={styles.title}>{title}</p>
-        <div className={styles.rule} />
+        <div className={`${styles.rule}${compact ? ` ${styles.ruleEn}` : ''}`} />
 
-        {(Object.keys(COLUMNS) as (keyof typeof COLUMNS)[]).map((key) => (
-          <span key={key} className={styles.head} style={{ left: COLUMNS[key] }}>
+        {(Object.keys(columns) as ColumnKey[]).map((key) => (
+          <span key={key} className={styles.head} style={{ left: columns[key] }}>
             {opText(HEAD_KEYS[key], lang, HEADS[key])}
           </span>
         ))}
 
         {lead ? (
-          <SailingCells sailing={lead} lang={lang} />
+          <SailingCells sailing={lead} lang={lang} columns={columns} />
         ) : (
-          <span className={styles.empty} style={{ left: COLUMNS.time }}>
+          <span className={styles.empty} style={{ left: columns.time }}>
             {emptyMessage}
           </span>
         )}
@@ -206,7 +232,7 @@ export function JejuSailingBoard({ controller, lang }: Props): JSX.Element {
         onClick={openSailings}
       >
         <span className={styles.chevron} />
-        <span className={styles.moreText}>{opText('Schedule_More', lang, MORE)}</span>
+        <span className={styles.moreText}>{opText('Schedule_More_Cruise', lang, MORE)}</span>
       </button>
     </>
   );

@@ -2,6 +2,10 @@
  * 제주국제여객터미널 (W007) home 운항 정보 board — same frame slot as
  * JejuFlightBoard.module.css, with six sailing columns.
  *
+ * Korean keeps the original rule/column band. Every other language uses
+ * `.ruleEn` + right-shifted axes in the TSX — longer non-KO headers need room
+ * left of the first column.
+ *
  * The 국제항 ㅣ 연안항 sub-tab row that used to sit above the panel is gone; the
  * berth filter lives on the 운항정보 page (JejuCruise) now. Nothing else moved —
  * every element here is absolutely positioned, so removing it left no gap to
@@ -38,6 +42,7 @@
   white-space: nowrap;
 }
 
+/* Default (Korean): original band under the six columns. */
 .rule {
   position: absolute;
   left: 330px;
@@ -45,6 +50,12 @@
   width: 1462px;
   height: 3px;
   background: #c8bda9;
+}
+
+/* Non-Korean — right-anchored, shortened from the left for longer headers. */
+.ruleEn {
+  left: 430px;
+  width: 1382px;
 }
 
 .head,

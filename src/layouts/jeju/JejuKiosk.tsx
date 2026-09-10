@@ -107,8 +107,8 @@ const WEB_SCREENS: readonly WebScreen[] = [
     url: WEB_EMBED_URLS.tamnao,
     title: '탐나오&제주큐랑',
     tabs: [
-      { id: 'tamnao', label: '탐나오', url: WEB_EMBED_URLS.tamnao },
-      { id: 'jejuqrang', label: '제주큐랑', url: WEB_EMBED_URLS.jejuqrang },
+      { id: 'tamnao', label: '탐나오', labelKey: 'Tamnao_Tab', url: WEB_EMBED_URLS.tamnao },
+      { id: 'jejuqrang', label: '제주큐랑', labelKey: 'JejuQurang_Tab', url: WEB_EMBED_URLS.jejuqrang },
     ],
     // 6516:71785 hangs a "모바일에서 확인하기" QR under the panel so a visitor
     // can carry the site away on their phone. WIT Store's frame has no such row.

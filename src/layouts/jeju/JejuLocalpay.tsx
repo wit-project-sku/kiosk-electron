@@ -671,7 +671,16 @@ export function JejuLocalpay({ controller }: Props): JSX.Element {
               <div>{rich(c.onnuri.usageBody)}</div>
             </div>
 
-            <div className={low(styles.beige, styles.beigeLow)} />
+            {/* Yellow plate grows with note + bullets. BI / QR / mascot stay on
+                the card's original absolute anchors. */}
+            <div className={low(styles.beige, styles.beigeLow)}>
+              <p className={styles.beigeNote}>{c.onnuri.note}</p>
+              <ul className={styles.bullets}>
+                {c.onnuri.bullets.map((b, i) => (
+                  <li key={`onnuri-bullet-${i}`}>· {b}</li>
+                ))}
+              </ul>
+            </div>
             {/* AFTER .beige, as the frame stacks them (32390 → 32392): the
                 mascots' feet stand ON the beige plate, not under it. */}
             <img
@@ -680,12 +689,6 @@ export function JejuLocalpay({ controller }: Props): JSX.Element {
               alt=""
               draggable={false}
             />
-            <p className={low(styles.beigeNote, styles.beigeNoteLow)}>{c.onnuri.note}</p>
-            <ul className={low(styles.bullets, styles.bulletsLow)}>
-              {c.onnuri.bullets.map((b) => (
-                <li key={b}>· {b}</li>
-              ))}
-            </ul>
             <img className={low(styles.bi, styles.biLow)} src={onnuriBi} alt="" draggable={false} />
             <div className={low(styles.qrPlate, styles.qrPlateLow)} />
             <img

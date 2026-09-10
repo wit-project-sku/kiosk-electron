@@ -283,7 +283,7 @@ const TITLE_KEYS: Record<string, TitleKeySpec> = {
   // 지역화폐/환율/언어선택/숙박안내/TAX-FREE/상세 already resolve through the shared
   // entries above — 제주's sheet carries the same key names, and bundledTable()
   // has already picked the 제주 table by then, so they land on 제주's own copy.
-  "'제주' 뭐하지 (AI 검색)": { title: 'MainButton_AI', sub: 'SubHeader_AISearch' },
+  "'제주' 뭐하지 (AI 검색)": { title: 'Jeju_Todo_Title', sub: 'SubHeader_AISearch' },
   // 탐나오&제주큐랑 (6493:118287). The sheet has already caught up with that
   // frame's two-tab redraw — MainButton_Tamnao reads 탐나오·제주큐랑 in all eight
   // languages — so the header follows the sheet, not the id, and the visitor sees
@@ -314,10 +314,17 @@ const TITLE_KEYS: Record<string, TitleKeySpec> = {
   "제주도 이벤트": { title: 'MainButton_Event', sub: 'SubHeader_Event' },
   "렌트카": { title: 'MainButton_RentCar', sub: 'RentCar_Subtitle' },
   탐나오: { title: 'MainButton_Tamnao', sub: 'Tamnao_Subtitle' },
-  // W006 reads MainButton_Airplane_Schedule, W007 MainButton_Cruise — same header
-  // id (운항정보), different title rows. OP_Schedule_Subtitle is the page copy.
+  // W006 공항 board keeps MainButton_Airplane_Schedule. W007/W008 ferry board
+  // uses a separate header id (see CRUISE_TITLE) → OP_Schedule_Title. Subtitle
+  // stays OP_Schedule_Subtitle on both.
   "운항정보": {
-    title: ['MainButton_Airplane_Schedule', 'MainButton_Cruise'],
+    title: 'MainButton_Airplane_Schedule',
+    sub: 'OP_Schedule_Subtitle',
+  },
+  // JejuCruise / JejuSailingBoard (여객터미널·유산). Korean sheet cell is still
+  // 운항정보; the id just routes the lookup away from the airport button row.
+  "크루즈 운항": {
+    title: 'OP_Schedule_Title',
     sub: 'OP_Schedule_Subtitle',
   },
   // Header id stays `검색`; title/sub come from Localization_Jeju. `Main_Search`
