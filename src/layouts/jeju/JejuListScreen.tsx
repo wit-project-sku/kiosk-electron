@@ -210,10 +210,15 @@ export function JejuListScreen({ screen, controller }: Props): JSX.Element {
     // are Korean consonants, so filtering a translated name would empty the list
     // for every non-Korean visitor.
     if (jamo) list = list.filter((s) => leadingChosung(shopName(s, 'ko')) === jamo);
-    // More photos first (4 → 3 → 2 → 1 → 0). Stable within the same count so
-    // catalogue / 초성 order holds — same idea as Insadong floating imaged
-    // shops, but ranked by how many photos the shop actually has.
-    return [...list].sort((a, b) => shopImages(b).length - shopImages(a).length);
+    // Association members float to the top (filter chips / 초성 included), then
+    // more photos first (4 → 3 → 2 → 1 → 0). Stable within the same rank so
+    // catalogue order holds — same idea as Insadong floating imaged shops, but
+    // ranked by association then photo count.
+    return [...list].sort((a, b) => {
+      const assoc = Number(!!b.fromAssociation) - Number(!!a.fromAssociation);
+      if (assoc !== 0) return assoc;
+      return shopImages(b).length - shopImages(a).length;
+    });
   }, [baseShops, activeKr, jamo]);
 
   const scrollBy = (delta: number): void =>

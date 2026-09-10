@@ -18,6 +18,7 @@ import type { KioskController } from '@renderer/hooks/useKioskController';
 import { useLanguageStore } from '@renderer/store/languageStore';
 import { useAccessibilityStore } from '@renderer/store/accessibilityStore';
 import { pick } from '@renderer/lib/i18n';
+import { sheetText } from '@renderer/lib/loc';
 import { trackEvent } from '@renderer/lib/analytics';
 import { JejuPageFrame } from './JejuPageFrame';
 import { belowModeBar } from './lowReach';
@@ -69,12 +70,12 @@ const EMBED_CHROME_CSS_ZOOMED = `html{zoom:${TAMNAO_ZOOM} !important}${SCROLLBAR
 export interface EmbedTab {
   id: string;
   /**
-   * Tab label. Left in Korean deliberately: 탐나오 and 제주큐랑 are the BRAND
-   * NAMES of two Korean sites, and this screen's header title has never been
-   * localized either (neither id is in i18n's TITLE_KEYS). A translated label
-   * would name something the visitor then cannot find on the site itself.
+   * Korean fallback label. Prefer `labelKey` (Localization_Jeju) when the sheet
+   * has a row — Tamnao_Tab / JejuQurang_Tab for this screen.
    */
   label: string;
+  /** Localization_Jeju key for the tab label. */
+  labelKey?: string;
   url: string;
 }
 
@@ -279,7 +280,7 @@ export function JejuWebScreen({
               className={`${styles.tab} ${t.id === active ? styles.tabActive : ''}`}
               onClick={() => select(t.id)}
             >
-              {t.label}
+              {t.labelKey ? sheetText(t.labelKey, lang, { ko: t.label }) : t.label}
             </button>
           ))}
         </div>

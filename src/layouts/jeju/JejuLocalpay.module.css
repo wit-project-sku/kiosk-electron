@@ -86,8 +86,8 @@
   background: #fff;
 }
 
-.cardIntro   { top: 944px;  height: 1002px; }
-.cardDigital { top: 1998px; height: 1194px; }
+.cardIntro   { top: 944px;  height: 900px; }
+.cardDigital { top: 1896px; min-height: 1194px; height: auto; }
 .cardTamna   { top: 944px;  height: 2250px; }
 
 /* ── Shared type ── */
@@ -150,7 +150,7 @@
 .paperPanel {
   position: absolute;
   left: 50%;
-  top: 414px;
+  top: 330px;
   width: 1740px;
   height: 537.676px;
   margin-left: -7px;
@@ -233,26 +233,29 @@
   object-fit: contain;
 }
 
+/* Yellow plate — in-flow so the white digital card grows with it.
+   margin-top clears the absolute digitalText / usageBlock band (Figma top 673). */
 .beige {
-  position: absolute;
-  left: 50%;
-  top: 673px;
+  position: relative;
   width: 1748px;
-  height: 456px;
-  transform: translateX(-50%);
+  min-height: 456px;
+  height: auto;
+  margin: 673px auto 50px;
+  box-sizing: border-box;
+  padding: 45px 0 40px 14px;
   border-radius: 20px;
   background: #ffeac7;
+  display: flex;
+  flex-direction: column;
+  gap: 42px;
 }
 
 /* Figma nowraps this line. Left wrapping here: it is the longest single line on
    the page and every translation runs longer than the Korean, so nowrap would
    push it out of the card. */
 .beigeNote {
-  position: absolute;
-  left: 57px;
-  top: 718px;
+  margin: 0 0 0 7px;
   width: 1155px;
-  margin: 0;
   font-size: 30px;
   font-weight: 400;
   line-height: 1.3;
@@ -265,12 +268,9 @@
    before the BI sticker at x1245 and the frame's own tracking applied to the
    whole list, which keeps all four on one line each. */
 .bullets {
-  position: absolute;
-  left: 50px;
-  top: 799px;
-  width: 1190px;
   margin: 0;
   padding: 0;
+  width: 1190px;
   list-style: none;
   font-size: 40px;
   font-weight: 600;
@@ -520,13 +520,13 @@
 
 .tabsLow { top: 3437px; }
 
-.cardIntroLow   { top: 1041px; height: 997px; }
-.cardDigitalLow { top: 2069px; height: 1123px; }
+.cardIntroLow   { top: 1041px; height: 895px; }
+.cardDigitalLow { top: 1967px; min-height: 1123px; height: auto; }
 .cardTamnaLow   { top: 1041px; height: 2250px; }
 
 /* ── 온누리 intro card (6326:80288) ── */
 .introTextLow  { top: 75px; }
-.paperPanelLow { top: 422px; }
+.paperPanelLow { top: 338px; }
 
 /* ── 온누리 digital card (6326:80296) ──
    The card loses 71px, and it does not lose it evenly: the two text blocks move
@@ -536,11 +536,7 @@
 .digitalTextLow { top: 78px; }
 .usageBlockLow  { top: 476px; }
 .mascotLow      { top: 395px; }
-.beigeLow       { top: 661px; height: 425px; }
-.beigeNoteLow   { top: 706px; }
-/* Width stays the widened 1190, not the frame's 1155 — the reason above .bullets
-   still holds, and 50 + 1190 clears the BI sticker at x1245. */
-.bulletsLow     { top: 787px; }
+.beigeLow       { margin-top: 661px; min-height: 425px; }
 .biLow          { top: 771px; }
 .qrPlateLow     { top: 756px; }
 .qrImageLow     { top: 771.34px; }

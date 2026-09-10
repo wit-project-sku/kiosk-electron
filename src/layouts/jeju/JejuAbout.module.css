@@ -286,12 +286,15 @@
 /* White plates with a strong drop shadow (no stroke) — the border used to
    draw the edge; the shadow does that job now, and reads better on the white
    panel behind. `overflow` stays off the plate so the shadow is not clipped;
-   the photo crop still clips inside `.cardPhoto`. */
+   the photo crop still clips inside `.cardPhoto`.
+   Height grows with the body copy (longer locales overflowed the fixed 890);
+   the panel scrolls as a whole when the 2×2 grid exceeds the viewport. */
 .card {
   width: 100%;
-  height: 890px;
+  min-height: 890px;
+  height: auto;
   box-sizing: border-box;
-  padding: 54px 48px 0;
+  padding: 54px 48px 54px;
   border: none;
   border-radius: 42.9px;
   background: #fff;

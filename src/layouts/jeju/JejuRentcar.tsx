@@ -30,7 +30,6 @@ import {
 } from '@renderer/lib/shops';
 import { useAccessibilityStore } from '@renderer/store/accessibilityStore';
 import { JejuPageFrame } from './JejuPageFrame';
-import { JejuScrollHint } from './JejuScrollHint';
 import { JejuShopCard } from './JejuShopCard';
 import { FloatingKeyboard } from '../insadong/keyboard/FloatingKeyboard';
 import { HangulComposer } from '../insadong/keyboard/hangul';
@@ -484,10 +483,6 @@ export function JejuRentcar({ controller }: Props): JSX.Element {
             )}
           </button>
         </>
-      )}
-
-      {!lowReach && (
-        <JejuScrollHint onUp={() => scrollBy(-SCROLL_STEP)} onDown={() => scrollBy(SCROLL_STEP)} />
       )}
 
       <FloatingKeyboard
