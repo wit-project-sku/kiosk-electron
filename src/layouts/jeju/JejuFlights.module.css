@@ -221,7 +221,7 @@
 
 .headPlaceCaret {
   flex: 0 0 auto;
-  font-size: 36px;
+  font-size: 40px;
   font-weight: 700;
   line-height: 1;
   color: #fff;
@@ -246,7 +246,7 @@
 .placeDropdown {
   position: absolute;
   top: 1375px;
-  width: 660px;
+  width: 560px;
   max-height: 1800px;
   box-sizing: border-box;
   padding: 36px 28px;
@@ -282,17 +282,17 @@
 
 .placeOption {
   flex: 0 0 auto;
-  min-height: 150px;
+  min-height: 80px;
   width: 100%;
   box-sizing: border-box;
-  padding: 40px 24px;
+  padding: 20px 24px;
   border: none;
   border-radius: 28px;
   background: none;
-  font-size: 56px;
+  font-size: 45px;
   font-weight: 600;
   line-height: 1.2;
-  color: #333;
+  color: #999;
   text-align: left;
   white-space: nowrap;
   overflow: hidden;
@@ -302,8 +302,8 @@
 }
 
 .placeOptionActive {
-  background: #fff3e0;
-  color: var(--kiosk-primary, #ff7f0f);
+  background: var(--kiosk-primary, #ff7f0f);
+  color: #fff;
 }
 
 /* ── Scrolling rows ─────────────────────────────────────────────────── */

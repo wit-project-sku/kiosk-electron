@@ -26,14 +26,14 @@ import styles from './JejuWebScreen.module.css';
 /** The slice of Electron's WebviewTag this screen drives. */
 type WebviewEl = HTMLElement & {
   insertCSS?: (css: string) => Promise<string>;
+  removeInsertedCSS?: (key: string) => Promise<void>;
 };
 
 /**
  * Chrome injected into every embedded site.
  *
- * The scrollbar is drawn to match the kiosk's own lists (JejuEvents' .listScroll
- * is a 34.32px track with a #ff7f0f thumb) instead of Chromium's 15px grey bar,
- * which reads as a desktop artefact on a 4K touch panel.
+ * The scrollbar is drawn to match the kiosk's own lists instead of Chromium's
+ * grey bar, which reads as a desktop artefact on a 4K touch panel.
  *
  * There is deliberately NO `overflow-x: hidden` here. It was tried, and it does
  * not prevent horizontal overflow — it only makes the overflowing content
@@ -42,21 +42,28 @@ type WebviewEl = HTMLElement & {
  * right edge, with no scrollbar to hint that anything was missing. A styled
  * horizontal bar on the pages that need one is the correct outcome.
  *
- * `zoom: 1.5` enlarges the guest page so it reads at a comfortable size on the
- * 4K kiosk panel. CSS `zoom` (not `transform: scale`) is used here because it
- * expands the layout box itself, so scrolling, hit-testing and the scrollbar
- * track all reflect the zoomed dimensions without extra JS.
+ * `zoom` (탐나오&제주큐랑 only) enlarges the guest page. CSS `zoom` also scales
+ * scrollbar thickness, so zoomed panes inject a smaller CSS width that lands
+ * near the intended on-screen size after zoom.
  */
-const SCROLLBAR_CSS = [
-  '::-webkit-scrollbar{width:26px;height:26px}',
-  '::-webkit-scrollbar-track{background:transparent}',
-  '::-webkit-scrollbar-thumb{background:#ff7f0f;border-radius:13px}',
-  '::-webkit-scrollbar-corner{background:transparent}',
-].join('');
+const SCROLLBAR_CSS = (widthPx: number): string =>
+  [
+    `::-webkit-scrollbar{width:${widthPx}px !important;height:${widthPx}px !important}`,
+    '::-webkit-scrollbar-track{background:transparent !important}',
+    `::-webkit-scrollbar-thumb{background:#ff7f0f !important;border-radius:${Math.round(widthPx / 2)}px !important}`,
+    '::-webkit-scrollbar-corner{background:transparent !important}',
+  ].join('');
 
-/** 탐나오&제주큐랑 전용 — 2.3× 확대. WIT Store는 이 CSS를 쓰지 않는다. */
-const EMBED_CHROME_CSS_ZOOMED = `html{zoom:2.3}${SCROLLBAR_CSS}`;
-const EMBED_CHROME_CSS = SCROLLBAR_CSS;
+/** WIT Store — house track (no page zoom). */
+const EMBED_CHROME_CSS = SCROLLBAR_CSS(26);
+
+/** 탐나오&제주큐랑 page zoom. */
+const TAMNAO_ZOOM = 2.3;
+/** Desired on-screen scrollbar thickness after zoom. */
+const TAMNAO_SCROLLBAR_SCREEN_PX = 18;
+const TAMNAO_SCROLLBAR_CSS_PX = Math.max(6, Math.round(TAMNAO_SCROLLBAR_SCREEN_PX / TAMNAO_ZOOM));
+
+const EMBED_CHROME_CSS_ZOOMED = `html{zoom:${TAMNAO_ZOOM} !important}${SCROLLBAR_CSS(TAMNAO_SCROLLBAR_CSS_PX)}`;
 
 /** One embedded site. A screen draws a tab per entry once it has more than one. */
 export interface EmbedTab {
@@ -150,21 +157,42 @@ function EmbedPane({
 
   // Re-applied per document: insertCSS lives only for the document that was
   // loaded when it ran. `did-navigate-in-page` covers the in-app routes these
-  // sites use, which never fire `did-navigate`.
+  // sites use, which never fire `did-navigate`. Also re-run immediately when
+  // `css` changes (HMR / zoom tweak) — listeners alone would leave the old
+  // thickness until the next navigation.
   useEffect(() => {
     const wv = webviewRef.current;
     if (!wv) return;
 
+    let cssKey: string | undefined;
+    let cancelled = false;
+
     const apply = (): void => {
-      wv.insertCSS?.(css)?.catch(() => {});
+      void (async () => {
+        try {
+          if (cssKey && wv.removeInsertedCSS) {
+            await wv.removeInsertedCSS(cssKey);
+          }
+          const next = await wv.insertCSS?.(css);
+          if (!cancelled && next) cssKey = next;
+        } catch {
+          /* guest may not be ready yet — next navigate event retries */
+        }
+      })();
     };
+
+    apply();
     wv.addEventListener('dom-ready', apply);
     wv.addEventListener('did-navigate', apply);
     wv.addEventListener('did-navigate-in-page', apply);
     return () => {
+      cancelled = true;
       wv.removeEventListener('dom-ready', apply);
       wv.removeEventListener('did-navigate', apply);
       wv.removeEventListener('did-navigate-in-page', apply);
+      if (cssKey && wv.removeInsertedCSS) {
+        void wv.removeInsertedCSS(cssKey).catch(() => {});
+      }
     };
   }, [css]);
 
