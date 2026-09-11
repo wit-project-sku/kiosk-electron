@@ -4,6 +4,12 @@
   inset: 0;
   /* Whitish base so any momentary gap reads as a soft flash, never black. */
   background: #f6f6f6;
+  /* Its own stacking context, so the two video layers' z-index (1/2) and the
+     captions' (3) order only each other. Without it the front layer's
+     z-index: 2 competed with the wall's SIBLINGS and painted over anything the
+     screen draws on top of the wall — the generating screen's 60s spinner and
+     countdown vanished under the waiting clip. */
+  isolation: isolate;
 }
 
 .video {
