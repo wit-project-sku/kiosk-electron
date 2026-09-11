@@ -22,7 +22,7 @@ import { sheetText } from '@renderer/lib/loc';
 import { ui, type UiTextKey } from '@renderer/lib/uiText';
 import { trackEvent } from '@renderer/lib/analytics';
 import { JejuPageFrame } from './JejuPageFrame';
-import { belowModeBar } from './lowReach';
+import { belowModeBar, LOW_REACH_BANNER_HEIGHT } from './lowReach';
 import styles from './JejuWebScreen.module.css';
 
 /** The slice of Electron's WebviewTag this screen drives. */
@@ -244,11 +244,13 @@ export function JejuWebScreen({
 }: Props): JSX.Element {
   const lang = useLanguageStore((s) => s.currentLanguage);
   /*
-   * ♿ is scoped to the 탐나오&제주큐랑 composition (6778:69905), which is the
-   * only shape with a low-reach frame — the same flag that already selects this
-   * screen's other 탐나오-specific metrics. WIT Store keeps ♿ as the no-op it
-   * has always been here: it has no low-reach frame yet, and inventing one would
-   * mean guessing where its panel goes.
+   * ♿ draws the 베리어프리 mode bar on BOTH web screens, like every other 제주
+   * page, but only 탐나오&제주큐랑 (6778:69905) has its own low-reach frame —
+   * the same flag that already selects this screen's other 탐나오-specific
+   * metrics, so `lowTamnao` moves its tab row / panel / QR row. WIT Store has no
+   * low-reach frame, so it keeps the re-stack it has always had (the 573 promo
+   * banner at the top, the page pushed down under it) with the bar added above:
+   * the banner sits under the bar, and the header and panel under the banner.
    */
   const lowReach = useAccessibilityStore((s) => s.lowReach);
   const lowTamnao = lowReach && showMobileQr;
@@ -283,12 +285,18 @@ export function JejuWebScreen({
       showBanner={showBanner}
       bannerFallback="banner-detail"
       onBack={() => controller.navigate('home', '뒤로')}
-      /* Header flush under the bar (the frame's y146), and the body left
-         unshifted — the three blocks below carry the frame's own absolute
-         tops rather than riding a single offset, because two of them swap
-         ends between the layouts. */
-      lowReachModeBar={showMobileQr}
-      lowReachShift={belowModeBar()}
+      /* 탐나오: header flush under the bar (the frame's y146), and the body left
+         unshifted — its three blocks carry the frame's own absolute tops rather
+         than riding a single offset, because two of them swap ends between the
+         layouts.
+         WIT Store: the promo banner is kept flush under the bar, and the header
+         and the store panel drop below it (bar + 573 = 719). The panel lands on
+         1419…3669, the same lowered position the old banner re-stack gave it
+         plus the bar, and still inside the 3840 artboard. */
+      lowReachModeBar
+      lowReachBarBanner={!showMobileQr}
+      lowReachShift={showMobileQr ? belowModeBar() : belowModeBar(LOW_REACH_BANNER_HEIGHT)}
+      lowReachBodyShift={showMobileQr ? 0 : belowModeBar(LOW_REACH_BANNER_HEIGHT)}
     >
       {sites.length > 1 && (
         <div className={`${styles.tabs} ${lowTamnao ? styles.tabsLow : ''}`}>
