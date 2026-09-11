@@ -29,12 +29,14 @@
 import { Fragment, useLayoutEffect, useRef, useState } from 'react';
 import type { KioskController } from '@renderer/hooks/useKioskController';
 import { jejuIconUrl } from '@renderer/assets/icons/jeju';
+import { useAccessibilityStore } from '@renderer/store/accessibilityStore';
 import { useLanguageStore } from '@renderer/store/languageStore';
 import { pick, type Lang } from '@renderer/lib/i18n';
 import { sheetText } from '@renderer/lib/loc';
 import { trackEvent } from '@renderer/lib/analytics';
 import { JejuPageFrame } from './JejuPageFrame';
 import { JejuTabRow } from './JejuTabRow';
+import { belowModeBar, LOW_REACH_BANNER_HEIGHT } from './lowReach';
 import styles from './JejuGeomun.module.css';
 
 import geomunPhoto from '@renderer/assets/photos/jeju/geomun/geomun-photo.png';
@@ -262,6 +264,7 @@ interface Props {
 
 export function JejuGeomun({ controller }: Props): JSX.Element {
   const lang = useLanguageStore((s) => s.currentLanguage) as Lang;
+  const lowReach = useAccessibilityStore((s) => s.lowReach);
   // Lands on 거문오름 소개, not the pill row's first tab: 탐방 예약 has no frame
   // yet and opening on a 준비중 hold would read as a broken page.
   const [tab, setTab] = useState<TabId>('intro');
@@ -274,7 +277,7 @@ export function JejuGeomun({ controller }: Props): JSX.Element {
     const el = scrollRef.current;
     el?.scrollTo({ top: 0 });
     setCanScroll(!!el && el.scrollHeight > el.clientHeight + 1);
-  }, [tab, lang]);
+  }, [tab, lang, lowReach]);
 
   const scrollBy = (delta: number): void =>
     scrollRef.current?.scrollBy({ top: delta, behavior: 'smooth' });
@@ -301,7 +304,9 @@ export function JejuGeomun({ controller }: Props): JSX.Element {
       <span className={styles.noticeBadge} style={{ left: 46, top: 161 }} aria-hidden="true">
         !
       </span>
-      <p className={styles.noticeHeading} style={{ left: 131, top: 164 }}>
+      {/* Widths end at each column's own list edge (26 + 854 / 932 + 766), so a
+          long heading wraps inside its column instead of crossing the divider. */}
+      <p className={styles.noticeHeading} style={{ left: 131, top: 164, width: 749 }}>
         {text({ key: 'Geomun_Caution_Title', ko: '탐방시 주의사항' })}
       </p>
       <ul className={styles.noticeList} style={{ left: 26, width: 854 }}>
@@ -315,7 +320,7 @@ export function JejuGeomun({ controller }: Props): JSX.Element {
       <span className={styles.noticeBadge} style={{ left: 952, top: 160 }} aria-hidden="true">
         !
       </span>
-      <p className={styles.noticeHeading} style={{ left: 1037, top: 163 }}>
+      <p className={styles.noticeHeading} style={{ left: 1037, top: 163, width: 661 }}>
         {text({ key: 'Geomun_Prohibit_Title', ko: '탐방시 금지사항' })}
       </p>
       <ul className={styles.noticeList} style={{ left: 932, width: 766 }}>
@@ -328,16 +333,28 @@ export function JejuGeomun({ controller }: Props): JSX.Element {
 
   return (
     /* banner-detail: both frames foot out on the 상점 검색 promo, not the 한복
-       one. No ♿ frame yet — with the standard banner on, low-reach re-stacks
-       the page the generic way every carded page does. */
-    <JejuPageFrame controller={controller} title={TITLE} bannerFallback="banner-detail">
+       one. ♿ is the mode-bar revision (6942:49674 / 6942:49728): bar at the
+       top, the 573 promo kept flush under it, header at bar + 573, and the body
+       self-laid-out — content column at y1385, pill row at the foot. */
+    <JejuPageFrame
+      controller={controller}
+      title={TITLE}
+      bannerFallback="banner-detail"
+      lowReachModeBar
+      lowReachBarBanner
+      lowReachShift={belowModeBar(LOW_REACH_BANNER_HEIGHT)}
+    >
       <JejuTabRow
         tabs={TABS.map(({ id, key, label }) => ({ id, label: sheetText(key, lang, label) }))}
         value={tab}
         onChange={select}
+        className={lowReach ? styles.tabsLow : undefined}
       />
 
-      <div className={styles.scroller} ref={scrollRef}>
+      <div
+        className={`${styles.scroller} ${lowReach ? styles.scrollerLow : ''}`}
+        ref={scrollRef}
+      >
         {tab === 'intro' && (
           <>
             <div className={styles.introPanel}>
@@ -493,7 +510,7 @@ export function JejuGeomun({ controller }: Props): JSX.Element {
         <>
           <button
             type="button"
-            className={`${styles.scrollBtn} ${styles.scrollUp}`}
+            className={`${styles.scrollBtn} ${styles.scrollUp} ${lowReach ? styles.scrollUpLow : ''}`}
             onClick={() => scrollBy(-SCROLL_STEP)}
             aria-label="위로"
           >
@@ -503,7 +520,7 @@ export function JejuGeomun({ controller }: Props): JSX.Element {
           </button>
           <button
             type="button"
-            className={`${styles.scrollBtn} ${styles.scrollDown}`}
+            className={`${styles.scrollBtn} ${styles.scrollDown} ${lowReach ? styles.scrollDownLow : ''}`}
             onClick={() => scrollBy(SCROLL_STEP)}
             aria-label="아래로"
           >

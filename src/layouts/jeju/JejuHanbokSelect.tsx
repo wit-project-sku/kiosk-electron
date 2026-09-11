@@ -85,8 +85,9 @@
  *     420, which is a different GAP — see `.catsTight` in the CSS.
  *   · the chip row gained the 박술녀 attribution on the 한복 tab
  *     (HANBOK_BRAND_NOTE below).
- *   · step ② gained a leading 배경 없음 tile, drawn selected — the null pick
- *     made visible, and the only way back to it once a scene is tapped.
+ *   · step ② gained a leading 배경 없음 tile there — since DROPPED (2026-09-11)
+ *     to match 6530:10400, which draws photo tiles only: the blank plate read
+ *     as a broken first image. A second tap on the picked tile clears it.
  *
  * ── ♿ 베리어프리 (Figma 6327:85598 · 6422:25455 · 6418:10583) ─────────
  * The ♿ button on the left rail — the third and last control there — now has a
@@ -108,7 +109,7 @@ import 'swiper/css/free-mode';
 import { usePhotoChrome } from '../photo/photoChrome';
 import { HANBOK_INFO, PRIVACY } from '../photo/photoTexts';
 import hanbokInfo from '@renderer/assets/photos/insadong/hanbok/hanbok-info.png';
-import { t, sheetText } from '@renderer/lib/loc';
+import { t, sheetText, tExact } from '@renderer/lib/loc';
 import type { CaptureMode } from '../photo/HanbokSelect';
 import { useOutfitStore } from '@renderer/store/outfitStore';
 import type { PickerOutfit } from '@renderer/store/outfitStore';
@@ -336,23 +337,6 @@ const HANBOK_BRAND_NOTE: Partial<Record<Lang, string>> = {
   th: 'ฮันบกทุกชุดของ WITH เป็นฮันบกของพัคซุลนยอ',
   ru: 'Весь ханбок в WITH — от Пак Суль Нё.',
   id: 'Semua hanbok di WITH adalah hanbok Park Sul-nyeo.',
-};
-
-/**
- * The 배경 없음 tile's accessible name. The frame draws the tile with no label
- * at all (a bare plate is the whole point — it stands for "no scene"), so this
- * is never painted; it is what the tile answers to for assistive tech and for
- * anyone reading the DOM in QA.
- */
-const NO_BACKGROUND_TILE: Partial<Record<Lang, string>> = {
-  ko: '배경 없음',
-  en: 'No background',
-  ja: '背景なし',
-  zh: '无背景',
-  vi: 'Không dùng phông nền',
-  th: 'ไม่ใช้พื้นหลัง',
-  ru: 'Без фона',
-  id: 'Tanpa latar',
 };
 
 /**
@@ -800,7 +784,9 @@ export function JejuHanbokSelect({
           the header component's own 페이지 설명문 placeholder: that is the
           instance's default, not copy anyone wrote, and the request was about
           the page rather than about one of its layouts. */}
-      <Header title={photoTitle} onHome={onHome} subtitleHidden />
+      {/* The title is Localization_Jeju's Photo_HanbokTry ("AR 한복체험"); the
+          shared photo chrome's literal only covers an empty cell. */}
+      <Header title={tExact('Photo_HanbokTry', lang) || photoTitle} onHome={onHome} subtitleHidden />
 
       <>
         {/* ── ① 의상 선택하기 ── */}
@@ -950,18 +936,11 @@ export function JejuHanbokSelect({
               <p className={styles.emptyThemes}>{pick(NO_BACKGROUNDS, lang)}</p>
             ) : (
               <div className={styles.themes}>
-                {/* 배경 없음 — the null pick, drawn first and active by default
-                    exactly as the frame shows it. Also the ONLY way back to the
-                    plain template once a scene has been tapped. */}
-                <button
-                  type="button"
-                  className={`${styles.theme} ${styles.themeNone} ${
-                    backgroundId === null ? styles.themeActive : ''
-                  }`}
-                  aria-pressed={backgroundId === null}
-                  aria-label={pick(NO_BACKGROUND_TILE, lang)}
-                  onClick={() => setBackgroundId(null)}
-                />
+                {/* Photo tiles only, first scene first — 6530:10400. There is
+                    no blank 배경 없음 plate any more: it drew as an empty white
+                    box at the head of the row. Tapping the picked tile again
+                    clears it instead, which is the way back to the plain
+                    template (the null pick → change_background=false). */}
                 {backgrounds.map((bg) => {
                   const on = bg.backgroundId === backgroundId;
                   return (
@@ -970,7 +949,7 @@ export function JejuHanbokSelect({
                       type="button"
                       className={`${styles.theme} ${on ? styles.themeActive : ''}`}
                       aria-pressed={on}
-                      onClick={() => setBackgroundId(bg.backgroundId)}
+                      onClick={() => setBackgroundId(on ? null : bg.backgroundId)}
                     >
                       <img
                         src={bg.imageUrl}

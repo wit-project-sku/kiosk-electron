@@ -7,6 +7,14 @@
  * 2026-08-24: the tab row is the only thing the redesign touched — labels drop
  * 60→50, the picked tab steps up to Bold, and the orange ring comes off. The
  * panel and its coordinates are unchanged.
+ *
+ * ♿ — Figma 7058:20102 (2026-09-10). Same panel, same tabs, re-stacked:
+ *   0      mode bar (shared, lowReach.ts)
+ *   167    header, 21px under the bar
+ *   951    panel, still 1820×2290 at x202
+ *   3435   tab row, 1814 wide, CENTRED at x173 (the standing frame's x197 is a
+ *          24px nudge this frame drops)
+ *   —      no banner: the frame runs the background to the foot
  */
 
 /* The panel sits at x202, NOT the 170 every other 제주 page uses: the frame
@@ -22,6 +30,12 @@
   border-radius: 42.9px;
   background: #fff;
   overflow: hidden;
+}
+
+/* ♿: the panel keeps its box and only drops — 951 + 2290 = 3241 clears the
+   tab row at 3435. The artwork inside is the same export either way. */
+.panelLow {
+  top: 951px;
 }
 
 /* One stacking slot inside the panel — the webview, or an artwork page. */
@@ -96,6 +110,12 @@
   justify-content: space-between;
 }
 
+/* ♿: moved to the foot, within seated reach, and centred. */
+.tabsLow {
+  left: 173px;
+  top: 3435px;
+}
+
 .tab {
   width: 580px;
   height: 170px;
@@ -118,9 +138,11 @@
   /* Figma draws every label on one 50px line, which only Korean manages:
      "Регистрация торговой точки" runs past the 544px of inner width. So the
      label wraps — 1.2 leaves two lines inside the 170px pill — and clips rather
-     than spilling past the plate. */
+     than spilling past the plate. keep-all breaks Korean at spaces, not
+     mid-word. */
   line-height: 1.2;
   overflow: hidden;
+  word-break: keep-all;
   overflow-wrap: anywhere;
   color: var(--kiosk-primary, #ff7f0f);
   cursor: pointer;

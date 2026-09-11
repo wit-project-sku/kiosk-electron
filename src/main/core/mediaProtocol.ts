@@ -9,7 +9,7 @@
  *   media://asset/<storedFileName>     -> original media file
  *   media://thumb/<storedFileName>     -> generated thumbnail
  *   media://generated/<storedFileName> -> AI photo result
- *   media://remote/<sha1>.<ext>        -> mirrored CMS image (RemoteImageCache)
+ *   media://remote/<scope>/<sha1>.<ext> -> mirrored CMS image (RemoteImageCache)
  *
  * CORS / origin:
  *   `corsEnabled: true` is required with `supportFetchAPI` so remote webview

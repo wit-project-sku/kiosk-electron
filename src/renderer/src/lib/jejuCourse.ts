@@ -24,6 +24,14 @@ const COURSE_LETTERS: Record<string, JejuCourseKey> = {
   nature: 'A',
   food: 'B',
   family: 'C',
+  /*
+   * ★ 쇼핑·로컬 체험 has no letter of its own — the API takes A/B/C only and
+   * JejuCourseService coerces anything else to A (자연·유산). It borrows B, the
+   * course whose own tags already read #로컬, and the landing sends 즐길 거리
+   * 제주 기념품 · 전통시장 · 로컬샵 with it, which the API guarantees to fit into
+   * the day. Give it its own letter the moment the API grows a 'D'.
+   */
+  shop: 'B',
 };
 
 export const courseLetter = (courseKey: string): JejuCourseKey =>

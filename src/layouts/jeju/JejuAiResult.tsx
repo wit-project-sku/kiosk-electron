@@ -54,7 +54,7 @@ const T = {
   },
 };
 
-interface Course {
+export interface Course {
   /** Stable key stored on aiStore for the detail screen. */
   key: string;
   /** Rail label — A코스 / B코스 / C코스. */
@@ -92,7 +92,8 @@ const COURSE_DESC_KEY: Record<string, string> = {
 const courseDesc = (course: Course, lang: Lang): string =>
   sheetText(COURSE_DESC_KEY[course.key] ?? 'ACourseDesc3', lang, course.desc);
 
-const COURSES: Course[] = [
+/** Also drawn by the 뭐하지 landing's course cards (JejuAiSearch) — one source for both. */
+export const COURSES: Course[] = [
   {
     key: 'nature',
     label: {
@@ -214,8 +215,16 @@ const COURSES: Course[] = [
  */
 const CARD_TOPS = [923, 1683, 2440];
 
+/**
+ * The card body's left edge (.courseTitle / .tags in the CSS). `art.left −
+ * BODY_LEFT` is how far a title or tag line can run before it reaches the
+ * card's illustration, so it is where those two wrap.
+ */
+const BODY_LEFT = 269;
+
 export function JejuAiResult({ controller }: Props): JSX.Element {
   const setCourse = useAiStore((s) => s.setCourse);
+  const setResumeQuestions = useAiStore((s) => s.setResumeQuestions);
   const lang = useLanguageStore((s) => s.currentLanguage);
   const lowReach = useAccessibilityStore((s) => s.lowReach);
 
@@ -252,9 +261,15 @@ export function JejuAiResult({ controller }: Props): JSX.Element {
     <JejuPageFrame
       controller={controller}
       title="'제주' 뭐하지 (AI 검색)"
-      subtitle={pick(T.subtitle, lang)}
+      subtitle={sheetText('Course_Subtitle', lang, T.subtitle)}
       bannerFallback="banner-detail"
-      onBack={() => controller.navigate('ai_search', '뒤로')}
+      /* Back to the questionnaire this visitor just filled in, not to the course
+         picker in front of it: this page is only reached through AI 맞춤 추천
+         코스, so the questions are the step they came from. */
+      onBack={() => {
+        setResumeQuestions(true);
+        controller.navigate('ai_search', '뒤로');
+      }}
       lowReachModeBar
       lowReachBarBanner
       lowReachShift={belowModeBar(LOW_REACH_BANNER_HEIGHT)}
@@ -279,9 +294,15 @@ export function JejuAiResult({ controller }: Props): JSX.Element {
           <span className={styles.courseLabel}>{pick(course.label, lang)}</span>
 
           <span className={styles.courseSubtitle}>{pick(course.subtitle, lang)}</span>
-          <span className={styles.courseTitle}>{pick(course.title, lang)}</span>
-          <span className={styles.desc}>{courseDesc(course, lang)}</span>
-          <span className={styles.tags}>{pick(course.tags, lang)}</span>
+          <span className={styles.courseTitle} style={{ maxWidth: course.art.left - BODY_LEFT }}>
+            {pick(course.title, lang)}
+          </span>
+          <span className={styles.desc} style={{ maxWidth: course.art.left - BODY_LEFT }}>
+            {courseDesc(course, lang)}
+          </span>
+          <span className={styles.tags} style={{ maxWidth: course.art.left - BODY_LEFT }}>
+            {pick(course.tags, lang)}
+          </span>
 
           {jejuIconUrl(course.icon) && (
             <img

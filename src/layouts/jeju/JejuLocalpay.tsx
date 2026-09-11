@@ -11,7 +11,7 @@
  * The 온누리 tab is TWO stacked cards (1002 + 1194); 탐나는전 is one tall card
  * (2250). That is the frames' own structure, not a layout choice.
  */
-import { useState, type ReactNode } from 'react';
+import { useState, type CSSProperties, type ReactNode } from 'react';
 import type { KioskController } from '@renderer/hooks/useKioskController';
 import { useLanguageStore } from '@renderer/store/languageStore';
 import { pick, type Lang } from '@renderer/lib/i18n';
@@ -42,18 +42,13 @@ import { belowModeBar } from './lowReach';
 type TabId = 'onnuri' | 'tamna';
 
 /**
- * 탐나는전 card — block positions (card-relative px).
- * English keeps the tuned layout; other languages use separate tops.
+ * 탐나는전 card — block tops (card-relative px), KOREAN ONLY. Every other
+ * language stacks the same blocks in normal flow instead (`flow` in the
+ * component, the FLOW MODE block in the CSS), which is also what retired the
+ * English-only tops that used to sit here: they moved the blocks and the copy
+ * still overran them.
  */
-const TAMNA_BLOCK_TOP = {
-  en: { head: 40, kwonjong: 700, apply: 1380, useRow: 1970 },
-  locale: { head: 100, kwonjong: 630, apply: 1380, useRow: 1900 },
-} as const;
-
-type TamnaBlockTop = { head: number; kwonjong: number; apply: number; useRow: number };
-
-const tamnaBlockTop = (lang: Lang): TamnaBlockTop =>
-  lang === 'en' ? TAMNA_BLOCK_TOP.en : TAMNA_BLOCK_TOP.locale;
+const TAMNA_BLOCK_TOP = { head: 100, kwonjong: 630, apply: 1380, useRow: 1900 } as const;
 
 interface Content {
   tabs: Record<TabId, string>;
@@ -585,7 +580,21 @@ export function JejuLocalpay({ controller }: Props): JSX.Element {
   // (zh_cn / zh_tw / es), exactly as every other 제주 screen's label maps do;
   // `withSheet` then lets Localization_Jeju override whatever it has filled.
   const c = withSheet(pick(CONTENT, lang), lang);
-  const tamnaTop = tamnaBlockTop(lang);
+  /**
+   * ★ Korean keeps the frames' hand-placed layout; every other language FLOWS.
+   *
+   * The frames pin each block at a fixed y inside a card of fixed height, and
+   * those numbers only fit the Korean copy — translations overran their slots by
+   * up to 168px and printed onto the next block (the KNOWN note in the CSS). In
+   * flow mode the same blocks stack in normal flow, each card grows to what it
+   * holds (never below its drawn height), and the cards sit in a scroll box that
+   * ends above the banner (♿: above the tab row), so a long translation scrolls
+   * rather than running under it. Korean renders exactly as before.
+   */
+  const flow = lang !== 'ko';
+  /** Korean places its 탐나는전 blocks by hand; flow mode must not. */
+  const tamnaTop = (block: keyof typeof TAMNA_BLOCK_TOP): CSSProperties | undefined =>
+    flow ? undefined : { top: TAMNA_BLOCK_TOP[block] };
 
   /*
    * ♿ re-lays this page out rather than shifting it, so almost every positioned
@@ -598,6 +607,9 @@ export function JejuLocalpay({ controller }: Props): JSX.Element {
      differ, which is what `variantLow` carries. */
   const card = (variant?: string, variantLow?: string): string =>
     `${styles.card} ${low(variant, variantLow)}`;
+  /** Flow mode's scroll box around the cards; Korean draws them straight in. */
+  const cards = (node: ReactNode): ReactNode =>
+    flow ? <div className={low(styles.scroll, styles.scrollLow)}>{node}</div> : node;
 
   const select = (id: TabId): void => {
     trackEvent({
@@ -636,7 +648,8 @@ export function JejuLocalpay({ controller }: Props): JSX.Element {
         ))}
       </div>
 
-      {tab === 'onnuri' ? (
+      {cards(
+        tab === 'onnuri' ? (
         <>
           {/* ── 온누리상품권이란? + 지류상품권 권종 (6249:32378) ── */}
           <section className={card(styles.cardIntro, styles.cardIntroLow)}>
@@ -671,36 +684,42 @@ export function JejuLocalpay({ controller }: Props): JSX.Element {
               <div>{rich(c.onnuri.usageBody)}</div>
             </div>
 
-            <div className={low(styles.beige, styles.beigeLow)} />
-            {/* AFTER .beige, as the frame stacks them (32390 → 32392): the
-                mascots' feet stand ON the beige plate, not under it. */}
-            <img
-              className={low(styles.mascot, styles.mascotLow)}
-              src={onnuriMascot}
-              alt=""
-              draggable={false}
-            />
-            <p className={low(styles.beigeNote, styles.beigeNoteLow)}>{c.onnuri.note}</p>
-            <ul className={low(styles.bullets, styles.bulletsLow)}>
-              {c.onnuri.bullets.map((b) => (
-                <li key={b}>· {b}</li>
-              ))}
-            </ul>
-            <img className={low(styles.bi, styles.biLow)} src={onnuriBi} alt="" draggable={false} />
-            <div className={low(styles.qrPlate, styles.qrPlateLow)} />
-            <img
-              className={low(styles.qrImage, styles.qrImageLow)}
-              src={onnuriQr}
-              alt=""
-              draggable={false}
-            />
+            {/* The #ffeac7 plate and everything drawn on it. In Korean this
+                wrapper has no position, so every child still places itself
+                against the card exactly as before; in flow mode it is the
+                plate's own box, and the note and bullets flow inside it. */}
+            <div className={low(styles.beigeGroup, styles.beigeGroupLow)}>
+              <div className={low(styles.beige, styles.beigeLow)} />
+              {/* AFTER .beige, as the frame stacks them (32390 → 32392): the
+                  mascots' feet stand ON the beige plate, not under it. */}
+              <img
+                className={low(styles.mascot, styles.mascotLow)}
+                src={onnuriMascot}
+                alt=""
+                draggable={false}
+              />
+              <p className={low(styles.beigeNote, styles.beigeNoteLow)}>{c.onnuri.note}</p>
+              <ul className={low(styles.bullets, styles.bulletsLow)}>
+                {c.onnuri.bullets.map((b) => (
+                  <li key={b}>· {b}</li>
+                ))}
+              </ul>
+              <img className={low(styles.bi, styles.biLow)} src={onnuriBi} alt="" draggable={false} />
+              <div className={low(styles.qrPlate, styles.qrPlateLow)} />
+              <img
+                className={low(styles.qrImage, styles.qrImageLow)}
+                src={onnuriQr}
+                alt=""
+                draggable={false}
+              />
+            </div>
           </section>
         </>
       ) : (
         /* ── 탐나는전 (6249:32310) ── */
         <section className={card(styles.cardTamna, styles.cardTamnaLow)}>
-          {/* Head + lower blocks: tops from `TAMNA_BLOCK_TOP` per language. */}
-          <div className={styles.tamnaHead} style={{ top: tamnaTop.head }}>
+          {/* Korean: tops from `TAMNA_BLOCK_TOP`. Flow mode: none — they stack. */}
+          <div className={styles.tamnaHead} style={tamnaTop('head')}>
             <img className={styles.tamnaLogo} src={tamnaLogo} alt="" draggable={false} />
             <div className={styles.tamnaIntro}>
               <p className={styles.h60}>{c.tamna.introH}</p>
@@ -708,7 +727,7 @@ export function JejuLocalpay({ controller }: Props): JSX.Element {
             </div>
           </div>
 
-          <div className={styles.kwonjong} style={{ top: tamnaTop.kwonjong }}>
+          <div className={styles.kwonjong} style={tamnaTop('kwonjong')}>
             <p className={styles.h60}>{c.tamna.kwonjongH}</p>
             <div className={styles.kwonjongPanel} />
             <img
@@ -738,12 +757,12 @@ export function JejuLocalpay({ controller }: Props): JSX.Element {
             <div className={`${styles.kwDivider} ${styles.kwDividerRight}`} />
           </div>
 
-          <div className={styles.apply} style={{ top: tamnaTop.apply }}>
+          <div className={styles.apply} style={tamnaTop('apply')}>
             <p className={styles.h60}>{c.tamna.applyH}</p>
             <div>{rich(c.tamna.applyBody)}</div>
           </div>
 
-          <div className={styles.useRow} style={{ top: tamnaTop.useRow }}>
+          <div className={styles.useRow} style={tamnaTop('useRow')}>
             <div className={styles.useText}>
               <p className={styles.h60}>{c.tamna.useH}</p>
               <div>{rich(c.tamna.useBody)}</div>
@@ -771,7 +790,7 @@ export function JejuLocalpay({ controller }: Props): JSX.Element {
             </div>
           </div>
         </section>
-      )}
+      ))}
     </JejuPageFrame>
   );
 }

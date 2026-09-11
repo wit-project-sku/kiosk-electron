@@ -50,22 +50,28 @@
 
 /* flex:1 so the row always fills the column — the two tabs land on Figma's
    exact 580. Borderless: the idle pill is a plain white plate (`none`, not
-   omitted — these are <button>s and would otherwise take Chrome's UA bevel). */
+   omitted — these are <button>s and would otherwise take Chrome's UA bevel).
+   The sheet's labels run long in several languages (ru "Курсы валют в режиме
+   реального времени"), so a label wraps inside the pill instead of spilling
+   past it: the pill keeps its 170, up to three lines at 1.1 (165) fit, and the
+   button centres them. The 30px side padding only shows once a label wraps. */
 .tab {
   flex: 1 1 0;
   height: 170px;
   min-width: 0;
   box-sizing: border-box;
-  padding: 0;
+  padding: 0 30px;
   border: none;
   border-radius: 42.9px;
   background: #fff;
   font-size: 50px;
   font-weight: 500;
-  line-height: 1;
+  line-height: 1.1;
   color: #999; /* 글씨-main */
   text-align: center;
-  white-space: nowrap;
+  white-space: normal;
+  word-break: keep-all;
+  overflow-wrap: anywhere;
   cursor: pointer;
   -webkit-tap-highlight-color: transparent;
 }
@@ -139,6 +145,8 @@
 }
 
 /* ── Amount / result fields ─────────────────────────────────────────── */
+/* Wraps inside its 512 rather than running on — a second line still ends 17
+   above its field (1244 + 120 < 1381, 1855 + 120 < 1997). */
 .fieldLabel {
   position: absolute;
   left: 280px;
@@ -148,7 +156,9 @@
   font-weight: 500;
   line-height: 1;
   color: #000;
-  white-space: nowrap;
+  white-space: normal;
+  word-break: keep-all;
+  overflow-wrap: anywhere;
 }
 
 .labelAmount {
@@ -185,7 +195,12 @@
 
 /* Positioned against the artboard, not the field, so the numbers sit on the
    fields' vertical centres (Figma boxes them 1464/104 and 2076/113 — both
-   centre on the field's own 1516/2132) regardless of the field's padding. */
+   centre on the field's own 1516/2132) regardless of the field's padding.
+   Hung FROM that centre (translateY(-50%)) rather than from centre − 45, so an
+   entry or hint too long for the 1050 slot wraps to a second line that stays
+   inside the 270 pill (180 of it) instead of being cut to "…" — or running
+   under the currency flag at 1423. One line lands exactly where the old
+   top-anchored one did. */
 .value {
   position: absolute;
   left: 307px;
@@ -196,18 +211,19 @@
   line-height: 1;
   color: #000;
   text-align: left;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  transform: translateY(-50%);
+  white-space: normal;
+  word-break: keep-all;
+  overflow-wrap: anywhere;
   pointer-events: none;
 }
 
 .valueAmount {
-  top: calc(1471px + var(--jeju-exch-shift, 0px) + var(--jeju-exch-calc-shift, 0px)); /* centre 1516 − 45 */
+  top: calc(1516px + var(--jeju-exch-shift, 0px) + var(--jeju-exch-calc-shift, 0px)); /* field centre */
 }
 
 .valueResult {
-  top: calc(2087px + var(--jeju-exch-shift, 0px) + var(--jeju-exch-calc-shift, 0px)); /* centre 2132 − 45 */
+  top: calc(2132px + var(--jeju-exch-shift, 0px) + var(--jeju-exch-calc-shift, 0px)); /* field centre */
 }
 
 /*
@@ -221,9 +237,10 @@
  * 90px the number occupies, which drops the hint 6.4px below the centre. One
  * strut, one 90px box, same centre as the number it stands in for.
  *
- * line-height holds at the value's 90px rather than following the font down:
- * `.value` is positioned on the field's centre MINUS 45 (half of 90), so a 60px
- * line box would ride 15px high inside the pill.
+ * line-height holds at the value's 90px rather than following the font down,
+ * so the hint and the number it stands in for share one 90px line box — the
+ * box the 90px caret bar fills (see `.caretBar`) and that `.value` hangs from
+ * the field's centre.
  */
 .placeholder {
   font-size: 60px;
@@ -532,12 +549,16 @@
  * on x1990, the list's own right margin, 30px of air above the first pill. The
  * calculator carries the same stamp inside its 기준 환율 pill; this is the live
  * tab's copy of it.
+ *
+ * min-width, not width: a longer translation (vi "Tính đến …") grows leftward
+ * from that right margin on one line instead of spilling past it — the first
+ * pill is only 30 below, so it cannot take a second line.
  */
 .liveStamp {
   position: absolute;
   right: 170px;
   top: 900px;
-  width: 369px;
+  min-width: 369px;
   margin: 0;
   font-size: 40px;
   font-weight: 400;
@@ -577,13 +598,14 @@
 
 /* Fixed 560 (Figma's own `w-[560px]`), not shrink-to-fit: the label column has
    to be the same width on every row or the 원 amounts stop lining up when one
-   country's name runs long. */
+   country's name runs long. No `overflow: hidden`: all it ever did was clip a
+   label that outgrew 560. Such a label now runs on into the open middle of the
+   pill, and the rate (pinned right, 700+ away) stays lined up either way. */
 .liveLeft {
   flex: 0 0 560px;
   display: flex;
   align-items: center;
   gap: 42.9px;
-  overflow: hidden;
 }
 
 /* 150, against the 170 the calculator and its dropdown still draw — the live

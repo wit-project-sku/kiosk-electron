@@ -8,8 +8,18 @@
  * frame runs the one straight into the other, so `CourseMeta.desc` is authored
  * and carried but no longer drawn.
  *
- * Shows the course chosen on JejuAiResult: its title/description/hashtags, a
- * summary bar, and the numbered spot itinerary.
+ * ── The 2026-09-10 redraw (7038:18453, also named -04-1) ────────────────
+ * The DAY row and 전체보기 / 선택보기 moved up, the answer pills moved under
+ * them onto the card column, and the summary bar reads 총 소요시간 · 이동거리 ·
+ * 방문 인원/ 일정 · 이동수단 (see `stats`). The itinerary grew a second card: a
+ * stop the visitor did not pick draws as the compact 289px "추천 코스" card
+ * (see `isPicked`). On the AI 맞춤 route the header now names the course the
+ * way the landing card does — "AI 맞춤 추천 코스 - 1일차", in Bold.
+ *
+ * Shows the course a questionnaire sent — a themed card's own course, or the
+ * AI 맞춤 course whose letter JejuAiSearch derives from the picks (the A/B/C
+ * chooser that used to pick it is out of the flow since 2026-09-11): its
+ * title/hashtags, a summary bar, and the numbered spot itinerary.
  *
  * WHERE THE CONTENT COMES FROM — worth reading before changing anything:
  *  - Course title / description / hashtags: authored (same source as the course
@@ -45,7 +55,7 @@
  * authored "약 18Km" beside three real numbers is worse than an honest fourth.
  * The fallback path keeps 이동거리, where it is authored alongside the rest.
  */
-import { Fragment, useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { Fragment, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import type { CSSProperties } from 'react';
 import { QRCodeSVG } from 'qrcode.react';
 import type { KioskController } from '@renderer/hooks/useKioskController';
@@ -120,16 +130,28 @@ const DAYS_BY_STAY: Record<string, number> = {
  */
 const COURSE_QR_FALLBACK_URL = 'https://direction-fe.vercel.app/ai';
 
+/** Row heights: the full 515 plate, and 7038:18453's compact 289 "추천 코스" card.
+ *  Both are MINIMUMS now (a wrapped name or address grows a card), so these
+ *  only stand in for the rail until the rows have been measured. */
 const CARD_HEIGHT = 515;
+const COMPACT_HEIGHT = 289;
 const CARD_GAP = 50;
-const DISC_SIZE = 105;
 
-/** Dashed rail height: from the first numbered disc to the last. */
-const railHeightFor = (n: number): number =>
-  n <= 1 ? 0 : (n - 1) * (CARD_HEIGHT + CARD_GAP);
-
-/** Vertical offset of the first disc's centre inside a stop row. */
-const RAIL_TOP = (CARD_HEIGHT - DISC_SIZE) / 2 + DISC_SIZE / 2;
+/**
+ * The dashed rail, from the first numbered disc's centre to the last one's.
+ *
+ * Measured off the ACTUAL rows now that two card heights share the list: each
+ * disc is centred on its own card, so the rail starts half the first row down
+ * and ends half the last row up. The old `(n - 1) × 565` assumed every row was a
+ * full plate and would overshoot past the last disc whenever a compact card sat
+ * in the day. For an all-full day this is exactly that old number.
+ */
+const railFor = (heights: number[]): { top: number; height: number } => {
+  if (heights.length <= 1) return { top: 0, height: 0 };
+  const first = heights[0]! / 2;
+  const span = heights.slice(0, -1).reduce((sum, h) => sum + h + CARD_GAP, 0);
+  return { top: first, height: span - first + heights[heights.length - 1]! / 2 };
+};
 
 /**
  * One round day-pager button — an 85px disc with a white chevron, #ff7f0f while
@@ -176,7 +198,50 @@ function DayArrow({
   );
 }
 
+/**
+ * What the header calls the AI 맞춤 route's course — "AI 맞춤 추천 코스 - 1일차",
+ * as this page's own frame (7038:18453) draws it. It used to borrow the landing
+ * card's title; the landing renamed that card 커스텀 코스 (7088:23517) and this
+ * frame did not follow, so the detail keeps its own copy.
+ */
+const AI_COURSE_NAME = {
+  ko: 'AI 맞춤 추천 코스', en: 'AI Custom Course', ja: 'AIおすすめコース', zh: 'AI定制推荐路线',
+  vi: 'Lộ trình gợi ý AI', th: 'เส้นทางแนะนำโดย AI', ru: 'Маршрут от ИИ', id: 'Rute Rekomendasi AI',
+};
+
+/**
+ * The themed courses' own Localization_Jeju rows: each is named (ACourseDesc2
+ * "자연·유산 탐방 코스") and tagged (ACourseTags "#자연 #유산 #힐링") there. The
+ * sheet is the source; COURSE_META's copy only fills a cell it leaves empty.
+ * 쇼핑·로컬 has no row — the API has no D course — so it stays authored, as does
+ * the AI 맞춤 route's name (AI_COURSE_NAME).
+ */
+const COURSE_SHEET_LETTER: Partial<Record<string, 'A' | 'B' | 'C'>> = {
+  nature: 'A',
+  food: 'B',
+  family: 'C',
+};
+
+const courseSheetText = (
+  courseKey: string,
+  field: 'Desc2' | 'Tags',
+  lang: Lang,
+  authored: Partial<Record<Lang, string>>,
+): string => {
+  const letter = COURSE_SHEET_LETTER[courseKey];
+  return letter ? sheetText(`${letter}Course${field}`, lang, authored) : pick(authored, lang);
+};
+
 const T = {
+  /**
+   * The compact card's pill (7038:18453) — a stop the recommender added rather
+   * than one the visitor picked. Short on purpose in every language: the pill
+   * is a fixed 214px at 50px type, and "추천 코스" is what fills it in Korean.
+   */
+  recommended: {
+    ko: '추천 코스', en: 'AI pick', ja: 'おすすめ', zh: '推荐',
+    vi: 'Gợi ý', th: 'แนะนำ', ru: 'Совет', id: 'Saran',
+  },
   arrowPrev: {
     ko: '이전', en: 'Previous', ja: '前へ', zh: '上一页',
     vi: 'Trước', th: 'ก่อนหน้า', ru: 'Назад', id: 'Sebelumnya',
@@ -268,6 +333,11 @@ interface CourseMeta {
  * that every layout calls. Localizing those is a separate change to that lib.
  */
 const STAT_LABEL = {
+  /** 7038:18453's third slot — the party size and the stay, as answered. */
+  partyStay: {
+    ko: '방문 인원/ 일정', en: 'Group / Stay', ja: '人数 / 日程', zh: '人数 / 行程',
+    vi: 'Số người / Lịch', th: 'จำนวนคน / กำหนดการ', ru: 'Гости / Срок', id: 'Orang / Jadwal',
+  },
   /** Per-stop only — the card reads "머무는 시간 : 2-3시간" in -04-1. */
   dwell: {
     ko: '머무는 시간', en: 'Time here', ja: '滞在時間', zh: '停留时间',
@@ -311,6 +381,50 @@ const DIFFICULTY_WORD: Record<string, Partial<Record<Lang, string>>> = {
 const transportLabel = (ko: string, lang: Lang): string => localizeJejuAiPick(ko, lang);
 
 const COURSE_META: Record<string, CourseMeta> = {
+  /**
+   * 쇼핑·로컬 체험 — the landing's fourth themed card. Title and tags authored to
+   * match its card; the offline placeholders are 자연·유산's, since nothing about
+   * a shopping day is authored anywhere yet and they are only ever drawn when
+   * the API is unreachable. Requests course B (see COURSE_LETTERS).
+   */
+  shop: {
+    label: 'B',
+    title: {
+      ko: '쇼핑·로컬 체험 코스', en: 'Shopping & Local', ja: 'ショッピング・ローカル体験コース',
+      zh: '购物·当地体验路线', vi: 'Mua sắm & Trải nghiệm địa phương',
+      th: 'เส้นทางช้อปปิ้งและท้องถิ่น', ru: 'Шопинг и местный колорит', id: 'Belanja & Pengalaman Lokal',
+    },
+    tags: {
+      ko: '#쇼핑 #로컬 #기념품', en: '#Shopping #Local #Souvenirs', ja: '#ショッピング #ローカル #お土産',
+      zh: '#购物 #本地 #纪念品', vi: '#Muasắm #Địaphương #Quàlưuniệm',
+      th: '#ช้อปปิ้ง #ท้องถิ่น #ของที่ระลึก', ru: '#Шопинг #Местное #Сувениры',
+      id: '#Belanja #Lokal #Suvenir',
+    },
+    desc: {
+      ko: '제주의 시장과 로컬샵을 둘러보며 기념품과 특산품을 만나는 코스입니다.',
+      en: "A course through Jeju's markets and local shops for souvenirs and specialties.",
+      ja: '済州の市場やローカルショップを巡り、お土産や特産品に出会うコースです。',
+      zh: '游览济州市场与本地小店，挑选纪念品和特产的路线。',
+      vi: 'Hành trình dạo chợ và cửa hàng địa phương Jeju để mua quà và đặc sản.',
+      th: 'เส้นทางเดินตลาดและร้านท้องถิ่นของเชจู เพื่อซื้อของฝากและของขึ้นชื่อ',
+      ru: 'Маршрут по рынкам и местным лавкам Чеджу за сувенирами и деликатесами.',
+      id: 'Rute menyusuri pasar dan toko lokal Jeju untuk suvenir dan produk khas.',
+    },
+    duration: {
+      ko: '약 4~5시간', en: 'Approx. 4–5 hrs', ja: '約4〜5時間', zh: '约 4–5 小时',
+      vi: 'Khoảng 4–5 giờ', th: 'ประมาณ 4–5 ชม.', ru: 'Около 4–5 ч', id: 'Sekitar 4–5 jam',
+    },
+    distance: {
+      ko: '약 18Km', en: 'Approx. 18 km', ja: '約18km', zh: '约 18 公里',
+      vi: 'Khoảng 18 km', th: 'ประมาณ 18 กม.', ru: 'Около 18 км', id: 'Sekitar 18 km',
+    },
+    difficulty: '쉬움',
+    spotDuration: {
+      ko: '2-3시간', en: '2–3 hrs', ja: '2〜3時間', zh: '2–3 小时',
+      vi: '2–3 giờ', th: '2–3 ชม.', ru: '2–3 ч', id: '2–3 jam',
+    },
+    spotDifficulty: '쉬움',
+  },
   nature: {
     label: 'A',
     title: {
@@ -487,6 +601,15 @@ interface DayItinerary {
 
 export function JejuAiDetail({ controller }: Props): JSX.Element {
   const courseKey = useAiStore((s) => s.course);
+  const entry = useAiStore((s) => s.entry);
+  const setResumeQuestions = useAiStore((s) => s.setResumeQuestions);
+  /**
+   * A themed course (Figma 7058:22277): opened from a themed card through its
+   * own questionnaire, which asks no 즐길 거리. So the page has nothing to filter
+   * on and nothing to echo — no 전체보기 / 선택보기, no answer pills, every stop
+   * the full plate — and the list rises into the band they leave (1295 → 1139).
+   */
+  const themed = entry === 'theme';
   const interests = useAiStore((s) => s.interests);
   const transport = useAiStore((s) => s.transport);
   const stay = useAiStore((s) => s.stay);
@@ -522,7 +645,7 @@ export function JejuAiDetail({ controller }: Props): JSX.Element {
    * and 선택보기 drops everything that does not match a picked 즐길 거리.
    */
   const [scope, setScope] = useState<'all' | 'picked'>('all');
-  const onlyPicked = scope === 'picked';
+  const onlyPicked = !themed && scope === 'picked';
   const listRef = useRef<HTMLDivElement>(null);
   const lowReach = useAccessibilityStore((s) => s.lowReach);
 
@@ -656,16 +779,63 @@ export function JejuAiDetail({ controller }: Props): JSX.Element {
    * store) there is nothing to filter by, so 선택보기 is a no-op rather than an
    * empty page.
    */
-  const pickedStops = useMemo(
-    () =>
-      interests.length === 0
-        ? stops
-        : stops.filter((stop) => interests.some((cat) => catMatches(stop.shop, cat))),
-    [stops, interests],
+  /**
+   * Whether a stop is one the visitor picked — its category matches a 즐길 거리
+   * they chose. The rest are the recommender's fill-ins: 7038:18453 draws those
+   * as the compact "추천 코스" card, and 선택보기 hides them.
+   *
+   * The API marks neither kind (JejuCourseSpot has no such field), so this is
+   * the same category match 선택보기 has always filtered on. With no picks at all
+   * — a themed course from the landing — every stop is the course's own, and
+   * they all draw full.
+   */
+  const isPicked = useCallback(
+    (stop: Stop): boolean =>
+      // Themed: every stop is the course's own — even 쇼핑·로컬, whose preset
+      // 즐길 거리 would otherwise mark the non-shopping stops compact.
+      themed || interests.length === 0 || interests.some((cat) => catMatches(stop.shop, cat)),
+    [interests, themed],
   );
+  const pickedStops = useMemo(() => stops.filter(isPicked), [stops, isPicked]);
   const visibleStops = onlyPicked ? pickedStops : stops;
-  /** The header's course+day line, e.g. "자연·유산 탐방 코스 - 1일차". */
-  const courseDayTitle = jejuCourseNameWithDay(pick(meta.title, lang), day, lang);
+  /**
+   * The rows' real heights, for the rail. A card only STARTS at 515 / 289 — a
+   * name, address or description that wraps grows it — and the rail has to end
+   * on the last disc wherever that now sits. Measured in a layout effect, so
+   * the corrected rail is what first paints; until then (and for a day whose
+   * stop count has not been measured yet) the drawn heights stand in.
+   */
+  const [rowHeights, setRowHeights] = useState<number[]>([]);
+  useLayoutEffect(() => {
+    const list = listRef.current;
+    if (loading || !list) return undefined;
+    const rows = Array.from(list.querySelectorAll<HTMLElement>('[data-stop-row]'));
+    const measure = (): void => {
+      const next = rows.map((row) => row.offsetHeight);
+      setRowHeights((prev) =>
+        prev.length === next.length && prev.every((h, i) => h === next[i]) ? prev : next,
+      );
+    };
+    measure();
+    const observer = new ResizeObserver(measure);
+    rows.forEach((row) => observer.observe(row));
+    return () => observer.disconnect();
+  }, [visibleStops, loading]);
+  const rail = railFor(
+    rowHeights.length === visibleStops.length
+      ? rowHeights
+      : visibleStops.map((stop) => (isPicked(stop) ? CARD_HEIGHT : COMPACT_HEIGHT)),
+  );
+  /**
+   * The header's course+day line. The AI 맞춤 route names the course the way
+   * this frame does — "AI 맞춤 추천 코스 - 1일차" (7038:18453); a themed course
+   * takes its name from the sheet — "자연·유산 탐방 코스 - 1일차".
+   */
+  const courseDayTitle = jejuCourseNameWithDay(
+    entry === 'custom' ? pick(AI_COURSE_NAME, lang) : courseSheetText(courseKey, 'Desc2', lang, meta.title),
+    day,
+    lang,
+  );
 
   const goPrevDay = useCallback(() => setDayIndex((i) => Math.max(0, i - 1)), []);
   const goNextDay = useCallback(
@@ -749,26 +919,35 @@ export function JejuAiDetail({ controller }: Props): JSX.Element {
   };
 
   /**
-   * The summary bar. Four slots either way, and the two paths never mix:
+   * The summary bar, in 7038:18453's order: 총 소요시간 · 이동거리 · 방문 인원/
+   * 일정 · 이동수단. Four slots either way, and the two paths never mix:
    * scheduled → every number is the server's, offline → every number is the
-   * authored placeholder. 이동수단 is the visitor's own answer on both.
+   * authored placeholder. The last two are the visitor's own answers on both.
    *
-   * The third slot is where the paths differ by name as well as value: the API
+   * The second slot is where the paths differ by name as well as value: the API
    * returns travel MINUTES and no distance at all, so it reads 이동시간 there
-   * and keeps the design's 이동거리 only on the authored path. Totals are for
-   * the whole course, not the visible day — the DAY pager sits below the bar.
+   * and keeps the design's 이동거리 only on the authored path. 난이도 left the
+   * bar in this redraw; every card still carries its own. Totals are for the
+   * whole course, not the visible day — the DAY pager sits below the bar.
    */
-  const stats: Array<{ label: string; value: string }> = useMemo(() => {
+  const stats: Array<{ label: string; value: string; lg?: boolean }> = useMemo(() => {
     const chosenTransport = transportLabel(transport || '자동차', lang);
+    /* The visitor's own two answers, localized like the pick pills. A themed
+       course was never asked either question, so it reads a dash rather than
+       the defaults its request quietly fell back on. */
+    const partyStay =
+      [visitors, stay]
+        .filter(Boolean)
+        .map((answer) => localizeJejuAiPick(answer, lang))
+        .join(' / ') || '-';
+    const partyStat = { label: pick(STAT_LABEL.partyStay, lang), value: partyStay, lg: true };
+    const transportStat = { label: pick(STAT_LABEL.transport, lang), value: chosenTransport };
     if (!course) {
       return [
         { label: totalTimeLabel, value: pick(meta.duration, lang) },
-        { label: pick(STAT_LABEL.transport, lang), value: chosenTransport },
         { label: pick(STAT_LABEL.distance, lang), value: pick(meta.distance, lang) },
-        {
-          label: pick(STAT_LABEL.difficulty, lang),
-          value: pick(DIFFICULTY_WORD[meta.difficulty] ?? { ko: meta.difficulty }, lang),
-        },
+        partyStat,
+        transportStat,
       ];
     }
     const travel = course.schedule.reduce(
@@ -777,17 +956,11 @@ export function JejuAiDetail({ controller }: Props): JSX.Element {
     );
     return [
       { label: totalTimeLabel, value: aboutMinutesLabel(course.totalMinutes, lang) },
-      { label: pick(STAT_LABEL.transport, lang), value: chosenTransport },
       { label: pick(STAT_LABEL.travel, lang), value: minutesLabel(travel, lang) },
-      {
-        label: pick(STAT_LABEL.difficulty, lang),
-        value: (() => {
-          const word = difficultyLabel(course.difficulty) || meta.difficulty;
-          return pick(DIFFICULTY_WORD[word] ?? { ko: word }, lang);
-        })(),
-      },
+      partyStat,
+      transportStat,
     ];
-  }, [course, transport, meta, totalTimeLabel, lang]);
+  }, [course, transport, visitors, stay, meta, totalTimeLabel, lang]);
 
   /**
    * The header QR's payload — the itinerary on screen, as shopIds and numbers.
@@ -832,9 +1005,17 @@ export function JejuAiDetail({ controller }: Props): JSX.Element {
       title="'제주' 뭐하지 (AI 검색)"
       subtitle={courseDayTitle}
       subtitleColor="#616161"
+      subtitleBold
       bannerFallback="banner-detail"
       showBanner={false}
-      onBack={() => controller.navigate('ai_result', '뒤로')}
+      /* Both routes come here straight from a questionnaire — the A/B/C
+         chooser is out of the flow — so 뒤로 reopens the one the visitor filled
+         in: the themed page on the same theme, or the full AI 맞춤 page
+         (JejuAiSearch reads entry + course on resume). */
+      onBack={() => {
+        setResumeQuestions(true);
+        controller.navigate('ai_search', '뒤로');
+      }}
       /* Mode-bar revision: bar + header shift only — no promo banner in ♿. */
       lowReachModeBar
       lowReachShift={belowModeBar()}
@@ -865,27 +1046,34 @@ export function JejuAiDetail({ controller }: Props): JSX.Element {
 
       {/* -04-1 runs the hashtags straight into the summary bar — the course
           description the -03 frames drew between them is gone. */}
-      <p className={low(styles.tags, styles.tagsLow)}>{pick(meta.tags, lang)}</p>
+      <p className={low(styles.tags, styles.tagsLow)}>{courseSheetText(courseKey, 'Tags', lang, meta.tags)}</p>
 
       <div className={low(styles.summary, styles.summaryLow)}>
         {stats.map((s, i) => (
           <Fragment key={s.label}>
             {i > 0 && <span className={styles.statSep} />}
             <span className={styles.stat}>
-              <span className={styles.statLabel}>{s.label}</span>
+              <span className={s.lg ? `${styles.statLabel} ${styles.statLabelLg}` : styles.statLabel}>
+                {s.label}
+              </span>
               <span className={styles.statValue}>{s.value}</span>
             </span>
           </Fragment>
         ))}
       </div>
 
-      {/* The questionnaire echoed back, between the summary bar and the DAY row
-          (6516:73323). Every value is stored KOREAN (see JejuAiSearch's submit),
-          which is how the frame draws them; empty slots drop out. */}
-      {picks.length > 0 && (
+      {/* The questionnaire echoed back — UNDER the DAY row since 7038:18453 (it
+          sat between the summary bar and the DAY row in 6516:73323). Every value
+          is stored KOREAN (see JejuAiSearch's submit), which is how the frame
+          draws them; empty slots drop out. */}
+      {!themed && picks.length > 0 && (
         <div className={low(styles.picks, styles.picksLow)}>
           {pickLabels.map((label, i) => (
-            <span key={i} className={styles.pick}>{label}</span>
+            <span key={i} className={lang === 'ko' ? styles.pick : `${styles.pick} ${styles.pickWrap}`}>
+              {/* A break opportunity after the middle dot, so 레저·액티비티 wraps
+                  the way the frame draws it — "레저·" over "액티비티". */}
+              {label.replace(/·/g, '·\u200b')}
+            </span>
           ))}
         </div>
       )}
@@ -912,7 +1100,10 @@ export function JejuAiDetail({ controller }: Props): JSX.Element {
       />
 
       {/* 전체보기 / 선택보기 — the frame's two pills, right of the pager: the
-          whole scheduled day, or only the stops matching a picked 즐길 거리. */}
+          whole scheduled day, or only the stops matching a picked 즐길 거리.
+          A themed course picked no 즐길 거리, so 7058:22277 draws neither. */}
+      {!themed && (
+      <>
       <button
         type="button"
         className={low(
@@ -935,6 +1126,8 @@ export function JejuAiDetail({ controller }: Props): JSX.Element {
       >
         {pick(T.viewPicked, lang)}
       </button>
+      </>
+      )}
 
       {loading ? null : visibleStops.length === 0 ? (
         /* A day with no stops at all is the "we found nothing" case; a day whose
@@ -944,22 +1137,26 @@ export function JejuAiDetail({ controller }: Props): JSX.Element {
       ) : (
         <div
           ref={listRef}
-          className={low(styles.list, styles.listLow)}
+          className={low(
+            themed ? `${styles.list} ${styles.listTheme}` : styles.list,
+            themed ? styles.listThemeLow : styles.listLow,
+          )}
         >
           {visibleStops.length > 1 && (
-            <div
-              className={styles.rail}
-              style={{ top: RAIL_TOP, height: railHeightFor(visibleStops.length) }}
-            />
+            <div className={styles.rail} style={{ top: rail.top, height: rail.height }} />
           )}
           {visibleStops.map((stop, i) => (
-            <div key={`${i}-${stop.shop.id}`} className={styles.stopRow}>
+            <div key={`${i}-${stop.shop.id}`} className={styles.stopRow} data-stop-row>
+              {/* Picked stops draw the full plate; the recommender's fill-ins the
+                  compact "추천 코스" card (7038:18453) — see isPicked. */}
               {/* The stop's own place in the DAY, not its row here: under
                   선택보기 the numbers read 1 · 3 · 4, which is the honest
                   statement that this is a subset of the planned day. */}
               <span className={styles.stop}>{stop.number}</span>
               <JejuCourseSpotCard
                 width={1678}
+                variant={isPicked(stop) ? 'full' : 'compact'}
+                badge={pick(T.recommended, lang)}
                 photo={photoOf(stop)}
                 name={shopName(stop.shop, lang)}
                 category={shopSecondCategory(stop.shop, lang)}

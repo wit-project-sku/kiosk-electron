@@ -113,22 +113,28 @@
   white-space: nowrap;
 }
 
+/* Wraps instead of ellipsising — values are sheet copy in eight languages.
+   1.2 leading so a wrapped value's lines don't touch; the -5px margins hold a
+   one-line value to the old 50px leading-none box, so a value that fits sits
+   exactly where it did. The column has ~290px spare above the divider. */
 .value {
-  margin: 0;
+  margin: -5px 0;
   font-size: 50px;
   font-weight: 400;
-  line-height: 1;
+  line-height: 1.2;
   color: #000;
   min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  white-space: normal;
+  word-break: keep-all;
+  overflow-wrap: anywhere;
 }
 
 /* The name is the one value on a plate: [제주] main 02 behind the brand orange.
-   No radius — Figma draws a bare rectangle. */
+   No radius — Figma draws a bare rectangle. min-height, so a name that ever
+   wraps grows the plate instead of overflowing it. */
 .namePlate {
-  height: 85px;
+  min-width: 0;
+  min-height: 85px;
   box-sizing: border-box;
   padding: 0 23.44px;
   display: inline-flex;
@@ -138,7 +144,9 @@
   font-weight: 700;
   line-height: 1;
   color: var(--kiosk-primary, #ff7f0f);
-  white-space: nowrap;
+  white-space: normal;
+  word-break: keep-all;
+  overflow-wrap: anywhere;
 }
 
 /* ── Divider (6217:94620) ── */
@@ -218,6 +226,11 @@
      with a small pad reproduces both the short tags and the long one. */
   padding: 0 16px;
   min-width: 322px;
+  /* Pills 2–3 are sheet copy: a long translation shrinks its pill (down to the
+     322 floor) and wraps inside it instead of shoving the socials off the row.
+     The row is a fixed 100 slot, so the pill keeps its height — two 50px lines
+     at leading-none fill it exactly. Tags that fit are unchanged. */
+  flex: 0 1 auto;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -227,7 +240,10 @@
   font-weight: 700;
   line-height: 1;
   color: #fff;
-  white-space: nowrap;
+  text-align: center;
+  white-space: normal;
+  word-break: keep-all;
+  overflow-wrap: anywhere;
 }
 
 .socials {
@@ -530,4 +546,241 @@
 .topicCardLow {
   top: 2781px;
   border: 2.145px solid #e8e8e8;
+}
+
+/* ────────────────────────────────────────────────────────────────────────────
+ * FLOW MODE — every language but Korean (`flow` in JejuHello / TopicPanel).
+ *
+ * Everything above pins each block at the y the KOREAN copy lands on, inside
+ * cards of fixed height: the 소개 card is a clipped 2160 and the topic caption
+ * card a 549 whose copy box was dragged until the Korean sat on two lines. A
+ * translation therefore ran over the block below it or was cut off at the edge.
+ * Here the same blocks stack in normal flow and the cards grow with them —
+ * never below their drawn heights, so copy that fits still looks like the
+ * frame. Korean never gets `.scroll` / `.topicStack`, so none of this reaches it.
+ * ──────────────────────────────────────────────────────────────────────────── */
+
+/* ── 소개: the card in a scroll box that ends above the banner ──
+   The box is wider than the card by a margin each side so the card's shadow is
+   not clipped, and the right margin also holds the 28px scrollbar, which only
+   appears once a translation really runs past the box. */
+.scroll {
+  position: absolute;
+  left: 140px; /* the card's 170 less the 30 margin */
+  top: 972px;
+  width: 1908px; /* 30 + 1820 + 30 + 28 */
+  height: 2265px; /* to 3237 — 30 above the banner at 3267 */
+  box-sizing: border-box;
+  padding: 0 58px 40px 30px;
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+.scroll::-webkit-scrollbar {
+  width: 28px;
+}
+
+.scroll::-webkit-scrollbar-thumb {
+  background: var(--kiosk-primary, #ff7f0f);
+  border-radius: 14px;
+}
+
+/* ♿: the card starts at 1025 and the tab row sits at the foot (3434). */
+.scrollLow {
+  top: 1025px;
+  height: 2379px; /* to 3404 — 30 above the tab row */
+}
+
+.scroll .card {
+  position: relative;
+  left: auto;
+  top: auto;
+  height: auto;
+  min-height: 2160px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  /* 2160 − the footer's 1974 − its 100: a card whose copy fits ends where the
+     frame's does. */
+  padding-bottom: 86px;
+}
+
+.scroll .card.profileHeritage {
+  min-height: 2106px;
+  padding-bottom: 65px; /* 2106 − 1941 − 100 */
+}
+
+/* The portrait stays pinned at (62, 65); the profile column flows beside it.
+   Its 850 floor is what puts the divider on the drawn 1080 (230 + 850) when the
+   rows are short, and lets the divider move down when a translation is not. */
+.scroll .profile,
+.scroll .divider,
+.scroll .details,
+.scroll .footer {
+  position: relative;
+  left: auto;
+  top: auto;
+  flex: none;
+}
+
+/* 673, not the frame's 733: at 1107 + 733 the column ends at 1840, 20 past the
+   card's own right edge, which the Korean values are short enough never to
+   reach. A translated value ("19 марта 2006 г.") was cut off there; this keeps
+   the column 40 inside the card instead. */
+/* The 40 of bottom padding sits INSIDE the 850 floor, so short rows still put
+   the divider on the drawn 1080; once a translation outgrows the floor it is
+   the least the last row (MBTI) ever sits above the divider. */
+.scroll .profile {
+  box-sizing: border-box;
+  width: 673px;
+  min-height: 850px;
+  padding-bottom: 40px;
+  margin: 230px 0 0 1107px;
+}
+
+.scroll .divider { margin-left: 44px; }
+
+/* 1156 − (1080 + 2.145): the frame's gap under the divider. */
+.scroll .details { margin: 74px 0 0 93px; }
+
+/* 50 under the detail block — both mascots' frames (1924 → 1974, 1891 → 1941). */
+.scroll .footer { margin: 50px 0 0 119px; }
+
+/*
+ * Label + value rows WRAP: when a translated label and its value do not fit
+ * side by side, the value drops onto its own line under the label and takes the
+ * row's full width. Rows that fit ("Имя  Чеджу", "MBTI  ENTP") stay one line.
+ *
+ * ★ The label is never squeezed. `flex: none` at its own width: beside a long
+ * value (자기소개 is a paragraph) a shrinkable label was squeezed in proportion
+ * to the value and ended up one letter wide ("О / с / е / б / е"), and a capped
+ * one split "Гражданств / о". `break-word` (not `anywhere`) so a label can only
+ * ever break inside a word if that word alone is wider than the whole row.
+ *
+ * The value's basis is the least width worth keeping it beside the label: 300
+ * in the 673 profile column, 600 in the 1635 detail rows — below that it reads
+ * better on its own line than as a ribbon of two-word lines.
+ */
+.scroll .row,
+.scroll .detailRow {
+  flex-wrap: wrap;
+  row-gap: 10px;
+}
+
+.scroll .label {
+  flex: none;
+  max-width: 100%;
+  white-space: normal;
+  word-break: keep-all;
+  overflow-wrap: break-word;
+}
+
+.scroll .row .value {
+  flex: 1 1 300px;
+}
+
+.scroll .detailRow .detailValue {
+  flex: 1 1 600px;
+}
+
+/* Hashtags + socials, both tabs. The frame's row is one fixed 100 line, so the
+   pinned layout lets a long pill shrink and wrap INSIDE itself — which breaks a
+   one-word translated tag mid-word ("#АннёниЧе / джу"). Here the pills keep
+   their width and the ROW wraps instead: the socials drop to a second line,
+   still right-aligned by their `margin-left: auto`. Tags that fit stay on one
+   line exactly as drawn. */
+.scroll .footer,
+.topicStack .footer {
+  height: auto;
+  min-height: 100px;
+  flex-wrap: wrap;
+  row-gap: 20px;
+}
+
+.scroll .hashtag,
+.topicStack .hashtag {
+  flex: none;
+}
+
+/* ── 취미생활 / 건강습관: photo and caption card as one column ──
+   From the photo's drawn top to the caption card's drawn BOTTOM edge (3219 on
+   both mascots; ♿ 2781 + 549 = 3330). `space-between` puts the photo on top
+   and the card on the bottom, so with copy that fits the gap between them is
+   exactly the frame's (80 on 취미생활, 43 on 건강습관). When the copy grows, the
+   card takes the gap first and then the photo's height — never the banner. */
+.topicStack {
+  position: absolute;
+  left: 0;
+  width: 2160px;
+  top: 1081px;
+  bottom: 621px; /* 3840 − 3219 */
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
+  gap: 40px; /* the least the photo and the card ever sit apart */
+}
+
+.topicStackLow {
+  top: 927px;
+  bottom: 510px; /* 3840 − 3330 */
+}
+
+/* 유산's photo box starts at 1060 and its card also ends on 3219. Two classes,
+   so this outranks `.topicStackLow` — exactly as `.topicPhoto.topicHeritage` /
+   `.topicCard.topicHeritage` outrank the ♿ tops in the pinned layout. */
+.topicStack.topicHeritage {
+  top: 1060px;
+  bottom: 621px;
+}
+
+/* The photo keeps its drawn width and gives up HEIGHT when it has to; its own
+   `overflow: hidden` lets it shrink below the image, and `cover` crops rather
+   than squashes. */
+.topicStack .topicPhoto {
+  position: relative;
+  left: auto;
+  top: auto;
+  transform: none;
+  flex: 0 1 auto;
+  min-height: 0;
+}
+
+.topicStack .topicCard {
+  position: relative;
+  left: auto;
+  top: auto;
+  flex: none;
+  height: auto;
+  min-height: 549px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  /* The frame's own insets: copy 56 down and 119 in, footer 67 off the bottom
+     (549 − 382 − 100). */
+  padding: 56px 119px 67px;
+}
+
+.topicStack .topicCard.topicHeritage {
+  min-height: 600px;
+  padding-top: 70px; /* 600 − 433 − 100 = the same 67 at the bottom */
+}
+
+.topicStack .topicText {
+  position: relative;
+  left: auto;
+  top: auto;
+  width: 100%;
+  /* The least room between the copy and the hashtags once it grows. */
+  margin-bottom: 40px;
+}
+
+/* Pinned to the card's bottom, as the frame draws it, whatever the copy's height. */
+.topicStack .footer {
+  position: relative;
+  left: auto;
+  top: auto;
+  flex: none;
+  margin-top: auto;
 }

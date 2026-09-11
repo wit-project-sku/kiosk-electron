@@ -71,6 +71,11 @@
   line-height: 1;
   color: var(--kiosk-primary, #ff7f0f);
   text-align: center;
+  /* Wraps inside the 208 rail ("Course" / "A"). keep-all holds Korean words
+     together; `anywhere` splits a single word wider than the rail itself (ru
+     Маршрут measures 284) instead of letting it spill across the panel edge. */
+  word-break: keep-all;
+  overflow-wrap: anywhere;
 }
 
 /* ── Card body (offsets are from the card's own top-left) ── */
@@ -83,13 +88,19 @@
   margin: 0;
 }
 
+/* Wraps inside the white panel (269 → 1749, the panel's own 61 inset on both
+   sides) rather than running on as one unbounded line. The longest authored
+   subtitle (ru) measures 834, so every current one is still a single line. */
 .courseSubtitle {
   top: 82px;
+  max-width: 1480px;
   font-size: 45px;
   font-weight: 500;
   line-height: 1;
   color: #999;
-  white-space: nowrap;
+  white-space: normal;
+  word-break: keep-all;
+  overflow-wrap: anywhere;
 }
 
 /* Press feedback, authored — the redesign draws all three subtitles grey, so
@@ -99,19 +110,32 @@
   color: var(--kiosk-primary, #ff7f0f);
 }
 
-/* 82 + the 45px subtitle + Figma's 40px column gap. */
+/* 82 + the 45px subtitle + Figma's 40px column gap.
+
+   Its max-width comes inline — the room to the card's own illustration
+   (art.left − 269) — and past it the title wraps rather than running across
+   the art. Every Korean title fits that room on one line (757/795 · 571/695 ·
+   571/774, measured at 90px Bold), so none of them moves; the longer languages
+   take two lines, which end by y347, clear of the desc at 416. */
 .courseTitle {
   top: 167px;
   font-size: 90px;
   font-weight: 700;
   line-height: 1;
   color: #333;
-  white-space: nowrap;
+  white-space: normal;
+  word-break: keep-all;
+  overflow-wrap: anywhere;
 }
 
+/* No fixed 460 width any more: its max-width comes inline as the room to the
+   illustration, like .courseTitle and .tags. At 460 the authored copy already
+   wrapped to a third line in most languages (ko 자연·유산's first line measures
+   480, ja / ru / vi up to 608), which ran into the tags at 564. Every line fits
+   the room — and stays clear of the art — so each blurb is back to the two
+   authored lines the design draws. */
 .desc {
   top: 416px;
-  width: 460px;
   font-size: 38px;
   font-weight: 500;
   /* 1.44, not the design's literal 1.3: Figma draws the two lines as separate
@@ -125,14 +149,23 @@
   white-space: pre-line;
 }
 
+/* No fixed 600 width any more: like .courseTitle its max-width comes inline
+   as the room to the illustration, and a longer tag line wraps instead of
+   running across the art (ru / vi did, on 맛집·감성 and 가족·체험). Korean
+   (≤ 445) is untouched.
+
+   1.15 rather than 1.3, with `top` moved down by the 3.9px of half-leading
+   that drops: a single line sits exactly where 1.3 at 564 drew it, while a
+   second line now ends at 688 — inside the 697 plate instead of 2px past it. */
 .tags {
-  top: 564px;
-  width: 600px;
+  top: 567.9px;
   font-size: 52px;
   font-weight: 400;
-  line-height: 1.3;
+  line-height: 1.15;
   color: var(--kiosk-primary, #ff7f0f);
-  white-space: nowrap;
+  white-space: normal;
+  word-break: keep-all;
+  overflow-wrap: anywhere;
 }
 
 /*

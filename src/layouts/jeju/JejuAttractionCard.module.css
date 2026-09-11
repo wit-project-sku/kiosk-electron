@@ -86,10 +86,14 @@
   font-weight: 500;
   line-height: 1.3;
   color: #333;
-  /* One line: a second 65px line would push the hours past the drawn card. */
-  overflow: hidden;
-  white-space: nowrap;
-  text-overflow: ellipsis;
+  /* Wraps rather than ellipsising — every name is shown whole. A second 65px
+     line pushes the hours down and grows the card past the drawn 730 (it is a
+     `min-height`, see .card), and the grid row grows with it. `keep-all`
+     breaks Korean at spaces, not mid-word; `anywhere` rescues a single token
+     longer than the line. */
+  white-space: normal;
+  word-break: keep-all;
+  overflow-wrap: anywhere;
 }
 
 .info {

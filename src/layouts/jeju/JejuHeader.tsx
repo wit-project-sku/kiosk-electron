@@ -69,6 +69,9 @@ interface Props {
   subtitleColor?: string;
   /** Draw the ★ before the subtitle. The WIT Store frame omits it. */
   subtitleStar?: boolean;
+  /** Draw the subtitle Bold. The AI course detail's "… - 1일차" line
+   *  (7038:18453) is the one frame that sets it at 700. */
+  subtitleBold?: boolean;
   /**
    * Drop the description row entirely — no sheet lookup, no fallback line.
    *
@@ -101,6 +104,7 @@ export function JejuHeader({
   onBack,
   subtitleColor,
   subtitleStar = true,
+  subtitleBold = false,
   subtitleHidden = false,
   navDisabled = false,
 }: Props): JSX.Element {
@@ -169,7 +173,17 @@ export function JejuHeader({
           {subtitleStar && jejuIconUrl('star') && (
             <img src={jejuIconUrl('star')} alt="" className={styles.subtitleStar} draggable={false} />
           )}
-          <p className={styles.subtitleText} style={subtitleColor ? { color: subtitleColor } : undefined}>
+          <p
+            className={styles.subtitleText}
+            style={
+              subtitleColor || subtitleBold
+                ? {
+                    ...(subtitleColor ? { color: subtitleColor } : {}),
+                    ...(subtitleBold ? { fontWeight: 700 } : {}),
+                  }
+                : undefined
+            }
+          >
             {resolvedSubtitle}
           </p>
         </div>

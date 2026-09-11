@@ -30,6 +30,14 @@ interface Props {
   difficulty: string;
   /** Plate width in artboard px; see the CSS note on .spot. */
   width: number;
+  /**
+   * 'compact' is 7038:18453's 289px "추천 코스" card: the orange pill, name,
+   * address and the two stats — no photo, no description. The AI course detail
+   * draws it for a stop the visitor did not pick. Default 'full'.
+   */
+  variant?: 'full' | 'compact';
+  /** The compact card's pill label ("추천 코스"). Unused by 'full'. */
+  badge?: string;
   className?: string;
   style?: CSSProperties;
   onClick: () => void;
@@ -44,10 +52,56 @@ export function JejuCourseSpotCard({
   dwell,
   difficulty,
   width,
+  variant = 'full',
+  badge = '',
   className,
   style,
   onClick,
 }: Props): JSX.Element {
+  const marker = jejuIconUrl('ico-marker');
+  const durationIcon = jejuIconUrl('ico-duration');
+  const difficultyIcon = jejuIconUrl('ico-difficulty');
+
+  if (variant === 'compact') {
+    return (
+      <button
+        type="button"
+        className={[styles.spot, styles.spotCompact, className].filter(Boolean).join(' ')}
+        style={{ width, ...style }}
+        onClick={onClick}
+      >
+        <span className={styles.compactBadge}>{badge}</span>
+
+        <span className={styles.compactNameRow}>
+          <p className={styles.compactName}>{name}</p>
+          <p className={styles.spotTag}>{category}</p>
+        </span>
+
+        <span className={`${styles.spotAddrRow} ${styles.compactAddr}`}>
+          {marker && <img src={marker} alt="" className={styles.spotAddrIcon} draggable={false} />}
+          <p className={styles.spotAddr}>{address}</p>
+        </span>
+
+        <span className={`${styles.spotMeta} ${styles.compactMeta}`}>
+          <span className={styles.metaItem}>
+            {durationIcon && (
+              <img src={durationIcon} alt="" className={styles.metaIcon} draggable={false} />
+            )}
+            <span className={styles.metaText}>{dwell}</span>
+          </span>
+          {difficulty && (
+            <span className={styles.metaItem}>
+              {difficultyIcon && (
+                <img src={difficultyIcon} alt="" className={styles.metaIcon} draggable={false} />
+              )}
+              <span className={styles.metaText}>{difficulty}</span>
+            </span>
+          )}
+        </span>
+      </button>
+    );
+  }
+
   return (
     <button
       type="button"

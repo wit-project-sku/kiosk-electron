@@ -40,6 +40,7 @@ import { JejuFlightBoard } from './JejuFlightBoard';
 import { JejuSailingBoard } from './JejuSailingBoard';
 import { JejuWeatherPanel } from './JejuWeatherPanel';
 import { modeBarVars } from './lowReach';
+import { useFitText } from './fitText';
 import { FloatingKeyboard } from '../insadong/keyboard/FloatingKeyboard';
 import { HangulComposer } from '../insadong/keyboard/hangul';
 import type { KeyAction } from '../insadong/keyboard/VirtualKeyboard';
@@ -656,6 +657,9 @@ export function JejuHome({ controller }: Props): JSX.Element {
     return tile.screen === 'donation' && donationPending ? withComingSoon(base, lang) : base;
   };
   const noticeRuns = parseNotice(noticeText(lang));
+  const noticeBody = noticeRuns.map((run, i) =>
+    run.bold ? <b key={i}>{run.text}</b> : <span key={i}>{run.text}</span>,
+  );
 
   /**
    * Grid order from the buttons CMS (`/api/kiosks/{6,7}/buttons`), falling back to
@@ -684,6 +688,34 @@ export function JejuHome({ controller }: Props): JSX.Element {
      (Figma image 503); fall back to the idle art until the asset lands. */
   const accessibilityIcon =
     (lowReach ? jejuIconUrl('ico-accessibility-on') : undefined) ?? jejuIconUrl('ico-accessibility');
+
+  /**
+   * ── Other languages ─────────────────────────────────────────────────────
+   * Korean is laid out exactly as the frame draws it. Every other language runs
+   * longer — this month's notice is 118 characters in Korean and 213 in Russian —
+   * and three blocks here have nowhere to grow: the notice sits in a fixed band
+   * above the 운항 정보 board, the feature cards are 310 tall, and a tile's text
+   * has only the gap above the next row's plate. So in `wide` mode each block's
+   * text WRAPS through the whole band it has (see the "Other languages" notes at
+   * the foot of the CSS), and only copy that still outgrows it is scaled down —
+   * by one factor per block, so the twelve tiles (and the three cards) keep one
+   * text size as a set. Nothing is clamped. See fitText.ts.
+   */
+  const wide = lang !== 'ko';
+  const noticeRef = useRef<HTMLDivElement>(null);
+  const cardsRef = useRef<HTMLDivElement>(null);
+  const gridRef = useRef<HTMLDivElement>(null);
+  /* Everything the three fits depend on — re-fit when any of it changes. */
+  const fitKey = [
+    lang,
+    lowReach,
+    noticeRuns.map((r) => r.text).join(''),
+    CARDS.map((c) => labelFor(c.screen, c.label) + subFor(c.screen, c.sub)).join('|'),
+    orderedTiles.map((tile) => tileLabel(tile) + subFor(tile.screen, tile.sub)).join('|'),
+  ].join('§');
+  useFitText(noticeRef, styles.noticeLead, wide, 0.7, fitKey);
+  useFitText(cardsRef, styles.cardText, wide, 0.75, fitKey);
+  useFitText(gridRef, styles.tileText, wide, 0.7, fitKey);
 
   return (
     /* --jeju-mode-bar sizes the ♿ bar and places the 한복 hero flush under it;
@@ -715,12 +747,23 @@ export function JejuHome({ controller }: Props): JSX.Element {
 
       {/* ── 공지 card + weather ── */}
       <div className={low(styles.notice, styles.noticeLow)}>
-        <div className={styles.noticeLead}>
-          <div className={styles.noticeRule} />
-          <p className={styles.noticeText}>
-            {noticeRuns.map((run, i) => (run.bold ? <b key={i}>{run.text}</b> : <span key={i}>{run.text}</span>))}
-          </p>
-        </div>
+        {wide ? (
+          /* Non-Korean: the frame's 1060 width (Figma 7058:22669) in the taller
+             band the panel really has, ending 60 above the board; the rule
+             follows the text's own height; type scales down only for copy that
+             still outgrows the band. Never clamped — see .noticeLeadWide. */
+          <div className={`${styles.noticeLead} ${styles.noticeLeadWide}`} ref={noticeRef}>
+            <div className={styles.noticeRow}>
+              <div className={styles.noticeRule} />
+              <p className={`${styles.noticeText} ${styles.noticeTextWide}`}>{noticeBody}</p>
+            </div>
+          </div>
+        ) : (
+          <div className={styles.noticeLead}>
+            <div className={styles.noticeRule} />
+            <p className={styles.noticeText}>{noticeBody}</p>
+          </div>
+        )}
 
         {/* Tapping the weather opens the 날씨 panel (Figma 6516:74521) on this
             screen AND plays today's condition clip on the customer display
@@ -787,26 +830,44 @@ export function JejuHome({ controller }: Props): JSX.Element {
       </div>
 
       {/* ── Three feature cards ── */}
-      <div className={low(styles.cards, styles.cardsLow)}>
-        {CARDS.map((card) => (
-          <button
-            key={card.screen}
-            type="button"
-            className={`${styles.card} ${styles[card.variant]}`}
-            onClick={() => go(card.screen, card.label)}
-          >
-            <span className={styles.cardTitle}>{labelFor(card.screen, card.label)}</span>
-            <span className={styles.cardSub}>{subFor(card.screen, card.sub)}</span>
-            {jejuIconUrl(card.icon) && (
-              <img src={jejuIconUrl(card.icon)} alt="" className={styles.cardArt} draggable={false} />
-            )}
-          </button>
-        ))}
+      <div className={low(styles.cards, styles.cardsLow)} ref={cardsRef}>
+        {CARDS.map((card) => {
+          const title = <span className={styles.cardTitle}>{labelFor(card.screen, card.label)}</span>;
+          const sub = <span className={styles.cardSub}>{subFor(card.screen, card.sub)}</span>;
+          return (
+            <button
+              key={card.screen}
+              type="button"
+              className={`${styles.card} ${styles[card.variant]}`}
+              onClick={() => go(card.screen, card.label)}
+            >
+              {/* Non-Korean: title and subtitle as ONE column centred in the
+                  card (7058:22669, "크기 넘으면 단 내리기"), so a title that
+                  wraps pushes its subtitle down instead of running past the art
+                  or out of the card — see .cardText. Korean keeps the frame's
+                  two pinned lines. */}
+              {wide ? (
+                <span className={styles.cardText}>
+                  {title}
+                  {sub}
+                </span>
+              ) : (
+                <>
+                  {title}
+                  {sub}
+                </>
+              )}
+              {jejuIconUrl(card.icon) && (
+                <img src={jejuIconUrl(card.icon)} alt="" className={styles.cardArt} draggable={false} />
+              )}
+            </button>
+          );
+        })}
       </div>
 
       {/* ── Menu grid ── */}
       <div className={low(styles.panel, styles.panelLow)} />
-      <div className={low(styles.grid, styles.gridLow)}>
+      <div className={low(styles.grid, styles.gridLow)} ref={gridRef}>
         {orderedTiles.map((tile, i) => {
           const art = jejuIconUrl(tile.icon);
           const disabled = tile.screen === 'donation' && donationPending;
@@ -831,7 +892,9 @@ export function JejuHome({ controller }: Props): JSX.Element {
               ) : (
                 <span className={styles.tileArtMissing}>{tile.label[0]}</span>
               )}
-              <span className={low(styles.tileText, styles.tileTextLow)}>
+              {/* Non-Korean: the text box spans the whole gap above the next
+                  row, and the grid's type is fitted to it — see .tileTextFit. */}
+              <span className={`${low(styles.tileText, styles.tileTextLow)} ${wide ? styles.tileTextFit : ''}`}>
                 <span className={styles.tileTitle}>
                   {/* Low-reach only: at 300px the pair still fits one line, so the
                      full label stays on the standard grid. */}

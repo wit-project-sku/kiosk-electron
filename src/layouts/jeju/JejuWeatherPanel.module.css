@@ -15,12 +15,20 @@
  *     centred under each glyph;
  *   · the row pitch dropped from 461 to 444 and the rules moved with it.
  *
+ * And the 2026-09-10 one: seven rows became SIX (오늘 · 내일 · four weekdays —
+ * the seventh was one more date than the outlook can ever fill). The frame
+ * spends the freed height on air rather than on bigger cells: rows 3–6 now
+ * repeat every 528, with four rules between them instead of five, and the close
+ * button moved up into the space the last row left and got its own heavier
+ * glyph (see `.close`). The panel box, the 오늘 card, the column heads and
+ * every cell's geometry are untouched.
+ *
  * y map, panel-relative:
  *     90…587   오늘 card (holds the column heads and the first row)
  *    132       column heads
- *    245       row 1 glyph top · then 687 / 1131 / 1575 / 2019 / 2463 / 2907
- *   1056…2832  five rules, on the rows' own 444 pitch
- *   3269…3386  close button
+ *    245       row 1 glyph top · then 728 / 1181 / 1709 / 2237 / 2765
+ *   1102…2645  four rules, on the rows' own 528 pitch
+ *   3218…3335  close button
  */
 
 .layer {
@@ -107,17 +115,24 @@
 
 /* ── Column heads (제주시 · 서귀포시 · 성산) ─────────────────────────
    The frame draws 성산 5px lower than the other two; normalised to 132, since
-   nothing distinguishes that column but the slop. */
+   nothing distinguishes that column but the slop.
+   Capped at 440 (the tighter 464 column pitch, less a gutter) and allowed to
+   wrap, so a long translated place name stays over its own column; a second
+   line ends at 208, clear of the row-1 glyphs at 245. */
 .head {
   position: absolute;
   left: var(--col);
   top: 132px;
+  max-width: 440px;
   transform: translateX(-50%);
   font-size: 38px;
   font-weight: 400;
   line-height: 1;
   color: #999; /* 글씨-main */
-  white-space: nowrap;
+  text-align: center;
+  white-space: normal;
+  word-break: keep-all;
+  overflow-wrap: anywhere;
 }
 
 /* Figma "Line 106": a 3px #C8BDA9 rule inset 111 from the panel edge — the same
@@ -133,9 +148,11 @@
 /* ── One day ─────────────────────────────────────────────────────────
  * 294 tall: the 200 glyph, then the temperatures at 244 with a 50px line. `top`
  * comes from the TSX and is the row's GLYPH top, which is the one anchor all
- * seven rows agree on — the frame hand-nudges 오늘's and 내일's day labels 12
- * and 7px off the offsets the other five share, so those two are drawn on the
- * shared template rather than reproducing the nudge.
+ * six rows agree on. The day LABEL does not: three of the six sit at glyph + 82,
+ * and the frame hand-nudges the other three off it — 오늘 12px up, 내일 7 down,
+ * and the third weekday row 41 up. All six are drawn on the shared template
+ * rather than reproducing the nudges; copying a 41px offset into one row of six
+ * would make that row the odd one out for no reason the design states.
  */
 .row {
   position: absolute;
@@ -242,19 +259,23 @@
 }
 
 /* ── Close (6876:16416) ──
-   The same circle-and-X the 제주도 이벤트 MBTI card uses, so it is the same
-   exported asset — see ico-close.svg.
+   ★ Its OWN glyph — ico-close-weather.svg, exported from this node — and NOT
+   the ico-close.svg the 제주도 이벤트 MBTI card uses. Both are an orange ring
+   and an X, which is why the panel used to borrow the MBTI one, but the
+   2026-09-10 node is a different drawing: a 7px stroke against 4.29, a ring
+   that fills its own 117 box, and an X whose second stroke is steeper than the
+   first. Restyling the shared asset instead would have changed the MBTI card.
 
-   ★ NOT centred on the panel: the frame puts it at calc(50% + 68.5px) of the
-   2160 artboard, which is 68.5px right of the panel's own middle. That reads
-   like a slip rather than a decision — the previous frame centred it — but it
-   is what 6876:16416 and its 7000:18980 duplicate both draw, so it is
-   reproduced here. Deleting the offset is a one-line change if it turns out to
-   be slop. */
+   ★ NOT centred on the panel: the frame puts it at page x 1078, 56.5px right
+   of the panel's own middle (the previous frame had it 68.5 right, and its
+   7000:18980 duplicate is gone). It reads like a slip rather than a decision,
+   but both frames agree it is off-centre, so it is reproduced: page
+   (1078, 3513) minus the panel origin. Deleting the offset is a one-line change
+   if it turns out to be slop. */
 .close {
   position: absolute;
-  left: 1010px;
-  top: 3269px;
+  left: 998px;
+  top: 3218px;
   width: 117px;
   height: 117px;
   padding: 0;

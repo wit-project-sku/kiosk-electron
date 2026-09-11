@@ -84,6 +84,11 @@
   font-weight: 700;
   line-height: 1;
   color: #fff;
+  /* A translation wider than the board wraps to a centred second line — two
+     68px lines (136) still fit the 146 bar. */
+  text-align: center;
+  word-break: keep-all;
+  overflow-wrap: anywhere;
 }
 
 /*

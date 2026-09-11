@@ -95,20 +95,27 @@
   color: #fff;
 }
 
+/* Wraps rather than running off the column: the heading is translated into
+   eight languages. Two lines (136) still clear the row under either step. */
 .stepTitle {
+  min-width: 0;
+  max-width: 1693px; /* 1820 − the 105 badge − the 21.45 gap */
   margin: 0;
   font-size: 68px;
   font-weight: 700;
   line-height: 1;
   color: #333;
-  white-space: nowrap;
+  white-space: normal;
+  word-break: keep-all;
+  overflow-wrap: anywhere;
 }
 
 .subtitle {
   position: absolute;
   left: 210px; /* 170 + the row's own 40 padding */
   top: 739px;
-  height: 47px;
+  max-width: 1780px; /* the 1820 column less that 40 */
+  min-height: 47px;
   display: flex;
   align-items: center;
   gap: 20px;
@@ -121,13 +128,17 @@
   flex: 0 0 auto;
 }
 
+/* Wraps inside the column; a second line (to 833) still clears the tabs at 844. */
 .subtitleText {
+  min-width: 0;
   margin: 0;
   font-size: 47px;
   font-weight: 700;
   line-height: 1;
   color: #909090;
-  white-space: nowrap;
+  white-space: normal;
+  word-break: keep-all;
+  overflow-wrap: anywhere;
 }
 
 /* ── Category tabs ──────────────────────────────────────────────────── */
@@ -344,9 +355,13 @@
   left: 170px;
   top: 2565px;
   width: 1820px;
-  height: 500px;
+  /* A floor, not a size: the card grows when a translation wraps (see
+     `.guideMain`). The drawn 65 of padding was never really in effect — the
+     398.44 column overflowed the 370 it left and centred itself 50.78 from the
+     top — so that is the padding now, and a one-line card still measures 500. */
+  min-height: 500px;
   box-sizing: border-box;
-  padding: 65px 40px;
+  padding: 50.78px 40px;
   /* Flat plate — no outline, no shadow (2026-08-24 direction). */
   border: none;
   border-radius: 42.9px;
@@ -364,13 +379,21 @@
   top: 3210px;
 }
 
-/* The left column is a 1429×398 block with three absolutely-placed rows —
-   Figma stacks them at 0 / 117.64 / 351.44 inside it. */
+/*
+ * The left column: Figma stacks three rows at 0 / 117.64 / 351.44 inside a
+ * 1429×398 block. They FLOW rather than being absolutely placed, so a
+ * translation that wraps pushes the rows under it down (and grows the card)
+ * instead of printing over them. With one-line copy the flow lands every row on
+ * the drawn y: the title's 68 line box + 49.64 puts the sub-block at 117.64,
+ * and the privacy link is pinned to the bottom of the 398.44 box (351.44 + 47).
+ */
 .guideMain {
-  position: relative;
   flex: 0 0 1429px;
   width: 1429px;
-  height: 398px;
+  min-height: 398.44px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
 }
 
 /*
@@ -382,9 +405,8 @@
  * label on the drawn 102.
  */
 .guideTitle {
-  position: absolute;
-  left: 41px;
-  top: 0;
+  max-width: calc(100% - 41px);
+  margin-left: 41px;
   display: flex;
   align-items: center;
   gap: 41px;
@@ -399,18 +421,20 @@
 }
 
 .guideTitleText {
+  min-width: 0;
   margin: 0;
   font-size: 68px;
   font-weight: 700;
   line-height: 1;
   color: var(--kiosk-primary, #ff7f0f);
-  white-space: nowrap;
+  white-space: normal;
+  word-break: keep-all;
+  overflow-wrap: anywhere;
 }
 
 .guideSub {
-  position: absolute;
-  left: 40px;
-  top: 117.64px;
+  max-width: calc(100% - 40px);
+  margin: 49.64px 0 0 40px;
   display: flex;
   align-items: flex-start;
   gap: 20px;
@@ -446,14 +470,20 @@
   font-weight: 700;
   line-height: 65px;
   color: #909090;
-  white-space: nowrap;
+  min-width: 0;
+  /* Each line wraps on its own; a longer translation now pushes the privacy
+     link down (see `.guideMain`) instead of running under it. */
+  white-space: normal;
+  word-break: keep-all;
+  overflow-wrap: anywhere;
 }
 
+/* Pinned to the column's bottom by `margin-top: auto`. The 20 of top padding
+   is only the floor between it and a sub-block long enough to reach it — at
+   the drawn size the label still sits on 351.44. */
 .guidePrivacy {
-  position: absolute;
-  left: 42.9px;
-  top: 351.44px;
-  padding: 0;
+  margin: auto 0 0 42.9px;
+  padding: 20px 0 0;
   border: none;
   background: none;
   font-size: 47px;
@@ -464,9 +494,13 @@
   -webkit-tap-highlight-color: transparent;
 }
 
+/* 235 is the disc. The column may widen to 311 — the slack the 1740 content
+   width leaves beside the 1429 column — so a translated label wraps inside
+   that rather than spilling over the text to its left. */
 .guideInfo {
-  flex: 0 0 235px;
-  width: 235px;
+  flex: 0 0 auto;
+  min-width: 235px;
+  max-width: 311px;
   padding: 0;
   border: none;
   background: none;
@@ -513,12 +547,15 @@
 }
 
 .guideInfoLabel {
+  max-width: 100%;
   font-size: 47px;
   font-weight: 600;
   line-height: 1;
   color: #333;
   text-align: center;
-  white-space: nowrap;
+  white-space: normal;
+  word-break: keep-all;
+  overflow-wrap: anywhere;
 }
 
 /* ── Outfit cards ───────────────────────────────────────────────────── */
@@ -541,12 +578,15 @@
  * assigned. Every other tab takes that space back as TWO rows — the same 391
  * cell on a 441 pitch (1447/1888, 6258:48326).
  */
+/* 408, not the 391 cell: the 17 down to step ② (1855) is room for an outfit
+   name that wraps to a second line — Swiper clips at its own box, so without
+   it the second line would be cut off (see `.outfitName`). */
 .outfits {
   position: absolute;
   left: 170px;
   top: 1447px;
   width: 1820px;
-  height: 391px;
+  height: 408px;
 }
 
 /* Two rows: 865 = 2 × 424 padded slides + the 17 Swiper puts between them —
@@ -656,23 +696,28 @@
  * already leads with, so no family is set here.
  *
  * The name is the operator's (`name` on the outfit row, e.g. "global_5.7") —
- * neither length-checked nor translated server-side, so it is held to ONE line
- * and ellipsised. Letting it wrap would push row 2 of the two-row grid off its
- * 441 pitch and into the capture buttons.
+ * neither length-checked nor translated server-side, so it WRAPS rather than
+ * being ellipsised — every name is shown in full. It overflows the fixed slide
+ * downward instead of resizing it, so row 2 stays on its pitch: the 20 line
+ * pitch plus 2.5 on top keeps a one-line name exactly where the 25 box drew it
+ * (centre 12.5), and a two-line one ends 42.5 under the gap — inside the
+ * room each strip leaves below it (`.outfits`, the 424 grid slide, the ♿ grid).
  */
 .outfitName {
   width: 100%;
-  height: 25px;
+  min-height: 25px;
+  box-sizing: border-box;
   margin: 16px 0 0;
+  padding-top: 2.5px;
   flex: 0 0 auto;
   font-size: 25px;
   font-weight: 400;
-  line-height: 25px;
+  line-height: 20px;
   color: rgba(0, 0, 0, 0.3);
   text-align: center;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  white-space: normal;
+  word-break: keep-all;
+  overflow-wrap: anywhere;
 }
 
 .emptyCat {
@@ -780,25 +825,6 @@
   background: none;
 }
 
-/*
- * The 배경 없음 tile — first in the row, and the one the frame draws SELECTED
- * (6258:48469 · 6420:24489: a bare white 350×700 r45 plate under the 5px orange
- * rule, no photo and no name).
- *
- * It is the null pick made visible. `backgroundId` has always started null and
- * always meant "send change_background=false", but until now nothing on the
- * page stood for it: every tile set an id and none of them cleared it, so a
- * visitor who tapped a scene had no way back to the plain template. The tile is
- * that way back, and being active by default is simply the default state drawn.
- *
- * Never washed. `.theme::after` tones the photo tiles so their white names
- * stay readable; over a bare white plate the same 20% black just reads as a
- * greyed-out, unavailable tile — the opposite of what this one is.
- */
-.themeNone::after {
-  background: none;
-}
-
 /* Figma sets the 45px Bold WHITE name on the tile's vertical centre (box
    319.12, normal leading — centre 347 of 700). Figma's own box is left-aligned
    and inset 46.32, which its one sample name overflows anyway; centred on the
@@ -806,11 +832,16 @@
    frame: white type on an unwashed photo (the picked state) can vanish on a
    bright sky, and the shadow is the cheapest way to keep the name legible
    without re-adding the veil the redraw removed. */
+/* ★ Wraps, centred on the drawn line's middle (319 + 55/2 = 346.5): a one-line
+   name lands on the drawn 319 exactly, and a longer one ("Hallasan and
+   Tangerine Grove") opens up and down around it instead of running off both
+   edges of the 350 tile. */
 .themeLabel {
   position: absolute;
-  left: 0;
-  right: 0;
-  top: 319px;
+  left: 24px;
+  right: 24px;
+  top: 346.5px;
+  transform: translateY(-50%);
   z-index: 1;
   margin: 0;
   font-size: 45px;
@@ -818,7 +849,9 @@
   line-height: 55px; /* Figma's own box — `normal` renders 65 and drifts low */
   color: #fff;
   text-align: center;
-  white-space: nowrap;
+  white-space: normal;
+  word-break: keep-all;
+  overflow-wrap: anywhere;
   text-shadow: 0 2px 12px rgba(0, 0, 0, 0.45);
 }
 
@@ -826,7 +859,7 @@
    rule would push the name to a visual 324 — compensated back to the drawn
    319, exactly as `.outfitActive .outfitImg` does for the card. */
 .themeActive .themeLabel {
-  top: 314px;
+  top: 341.5px;
 }
 
 /*
@@ -886,9 +919,14 @@
   gap: 30px;
   font-size: 58px;
   font-weight: 700;
-  line-height: 1;
+  /* Two lines of 58 at 1.1 (128) fit the 150 button, so a long translation of
+     "사진촬영(with '하영')" wraps inside it instead of overflowing both ends. */
+  line-height: 1.1;
   color: #e9e9e9;
-  white-space: nowrap;
+  text-align: center;
+  white-space: normal;
+  word-break: keep-all;
+  overflow-wrap: anywhere;
   cursor: pointer;
   -webkit-tap-highlight-color: transparent;
 }
@@ -1018,16 +1056,20 @@
   flex-direction: column;
   align-items: stretch;
   /*
-   * 88 top, not the frame's literal `padding: 100px 40px`: the frame centres a
-   * fixed 1069 content box inside the 1374, which lands the heading at a card-
-   * relative 88 and the body at 205. Our body is CMS-length copy in eight
-   * languages, so it is pinned to the top instead of centred — pinning at the
-   * frame's own 88/52 puts the Korean page exactly where 49124 draws it and
-   * lets a longer translation grow downward into the slack (the Korean copy
-   * uses 892 of the 1198 available) rather than drifting the heading upward.
-   * The 4px the frame insets both blocks by is folded into the 40 → 44.
+   * 43 top, so the heading sits as far from the card's top edge as from its
+   * left: measured on the rendered card, the Korean heading's ink is 48px in
+   * from the left edge and — at 43 — 48px down from the top (it was 93 at the
+   * frame's 88, twice the side gap; the difference is the glyphs' own space
+   * above the ink at line-height 1). Other languages land within ±6px of equal,
+   * as their glyphs sit a little higher or lower in the line.
+   *
+   * The body stays pinned under the heading (52 gap) rather than centred, since
+   * it is CMS-length copy in eight languages; a longer translation grows down
+   * into the slack. The bottom keeps 88 so the scrolling body ends clear of the
+   * card's foot. Sides are 44 — the frame's 40 plus the 4px it insets both
+   * blocks by.
    */
-  padding: 88px 44px;
+  padding: 43px 44px 88px;
   gap: 52px;
   background: #fff;
   border: 2.145px solid #e8e8e8;
@@ -1245,7 +1287,9 @@
  * `.outfitsGrid .outfitSlide` plays with 424 for the standard layout.
  */
 .rootLowReach .outfitsGrid {
-  height: 813px; /* 2 × 398 + the 17 between the rows */
+  /* 2 × 398 + the 17 between the rows, plus 11 so a two-line name under row 2
+     (ending 415 + 408.5) is not clipped; still ends 3366, above capture's 3375. */
+  height: 824px;
 }
 
 .rootLowReach .outfitsGrid .outfitSlide {
@@ -1310,11 +1354,11 @@
 /* Figma's own y inside the shorter tile (312 of 680), and the same 5px
    compensation the standard rule makes for the picked tile's rule. */
 .rootLowReachTheme .themeLabel {
-  top: 312px;
+  top: 339.5px; /* 312 + 55/2 — the centre, as the standard rule uses */
 }
 
 .rootLowReachTheme .themeActive .themeLabel {
-  top: 307px;
+  top: 334.5px;
 }
 
 .rootLowReachTheme .captureRow {

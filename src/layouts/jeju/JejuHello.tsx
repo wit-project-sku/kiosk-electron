@@ -23,7 +23,7 @@
  * mascots, but 제주 draws its own frame (JejuPageFrame chrome, tab row at y700,
  * one 1820×2160 card), so it is a sibling rather than a fork of those.
  */
-import { Fragment, useEffect, useState } from 'react';
+import { Fragment, useEffect, useState, type ReactNode } from 'react';
 import type { KioskController } from '@renderer/hooks/useKioskController';
 import { jejuIconUrl } from '@renderer/assets/icons/jeju';
 import helloVideo from '@renderer/assets/videos/jeju/hello-hayoung.mp4';
@@ -533,6 +533,26 @@ function TopicPanel({
     ? { width: Math.round(lowBase.width * 1.15), height: Math.round(lowBase.height * 1.15) }
     : photo;
 
+  /**
+   * ★ Korean keeps the frames' hand-placed photo and caption card; every other
+   * language FLOWS (see `flow` in JejuHello). The card is a fixed 549 with its
+   * footer pinned inside it and the copy in a box the designer dragged until the
+   * KOREAN sat on two lines, 48px above the banner — so a translation ran over
+   * the hashtags and had nowhere to grow. In flow mode the photo and the card
+   * are one column between the photo's top and the card's drawn bottom edge:
+   * the card grows with its copy, and the photo gives up height (cropped by
+   * `cover`, never squashed) rather than the card running into the banner.
+   */
+  const flow = lang !== 'ko';
+  const stack = (node: ReactNode): ReactNode =>
+    flow ? (
+      <div className={`${styles.topicStack} ${heritage} ${lowReach ? styles.topicStackLow : ''}`}>
+        {node}
+      </div>
+    ) : (
+      node
+    );
+
   return (
     <>
       <JejuSubTabRow
@@ -542,6 +562,7 @@ function TopicPanel({
         className={lowReach ? styles.subTabsLow : undefined}
       />
 
+      {stack(<>
       {current.photo && (
         <div
           className={`${styles.topicPhoto} ${heritage} ${lowReach ? styles.topicPhotoLow : ''}`}
@@ -562,7 +583,12 @@ function TopicPanel({
             <p className={styles.topicTitle}>
               {greet(mascot, current.titleKey, lang, { ko: current.title })}
             </p>
-            <p className={styles.topicBody} style={{ width: current.bodyWidth }}>
+            {/* The per-frame width is a Korean line-breaking decision; flow
+                mode lets the copy take the card's full column instead. */}
+            <p
+              className={styles.topicBody}
+              style={flow ? undefined : { width: current.bodyWidth }}
+            >
               {greet(mascot, current.bodyKey, lang, { ko: current.body })}
             </p>
           </div>
@@ -572,6 +598,7 @@ function TopicPanel({
 
         <HelloFooter mascot={mascot} lang={lang} position={`${styles.footerTopic} ${heritage}`} />
       </div>
+      </>)}
     </>
   );
 }
@@ -646,6 +673,22 @@ export function JejuHello({ controller }: Props): JSX.Element {
    */
   const portrait = jejuIconUrl('hello-portrait');
 
+  /**
+   * ★ Korean keeps the 소개 frame's hand-placed card; every other language
+   * FLOWS. The card is a fixed 2160 with `overflow: hidden` and its divider,
+   * detail rows and footer pinned at Korean y's, so a translation either ran
+   * over the block under it or was clipped at the card's edge. In flow mode the
+   * same blocks stack, the card grows with them (never below its drawn height),
+   * and it sits in a scroll box that ends above the banner (♿: the tab row).
+   */
+  const flow = lang !== 'ko';
+  const scrollBox = (node: ReactNode): ReactNode =>
+    flow ? (
+      <div className={`${styles.scroll} ${lowReach ? styles.scrollLow : ''}`}>{node}</div>
+    ) : (
+      node
+    );
+
   return (
     /* ♿ is on the 2026-08-26 mode-bar revision (6558:79587 / 6297:74010): bar
        at the top, header y113, no banner; the page self-positions its content
@@ -683,7 +726,7 @@ export function JejuHello({ controller }: Props): JSX.Element {
         />
       )}
 
-      {tab === 'profile' && (
+      {tab === 'profile' && scrollBox(
         <div className={`${styles.card} ${heritage} ${lowReach ? styles.cardLow : ''}`}>
           <div className={styles.portrait}>
             {/* Muted + playsInline so Chromium will autoplay it at all: an

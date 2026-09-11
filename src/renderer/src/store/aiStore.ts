@@ -21,6 +21,30 @@ interface AiState {
   stay: string;
   transport: string;
   setAnswers: (answers: { visitors: string; stay: string; transport: string }) => void;
+  /**
+   * How the visitor entered the 제주 course flow from the 뭐하지 landing (Figma
+   * 7019:17890): 'custom' through AI 맞춤 추천 코스 → questionnaire → result →
+   * detail, 'theme' by tapping a themed course card straight into the detail.
+   * Decides where 뒤로 lands from the detail. '' before any entry, and on
+   * every other layout.
+   */
+  entry: '' | 'custom' | 'theme';
+  setEntry: (entry: '' | 'custom' | 'theme') => void;
+  /**
+   * One-shot: set by the result page's 뒤로 so the landing re-opens on the
+   * questionnaire the visitor just filled in rather than on the course picker.
+   * JejuAiSearch consumes and clears it on mount — a fresh entry from home never
+   * sets it, so home always lands on the picker.
+   */
+  resumeQuestions: boolean;
+  setResumeQuestions: (resume: boolean) => void;
+  /**
+   * The 지역 picked on the themed questionnaire's map (Figma 7088:24139), as a
+   * JejuRegionId. ★ STORED, NOT SENT: the recommend API has no region field —
+   * see jejuRegionMap.ts for why nothing is guessed onto the wire.
+   */
+  region: string;
+  setRegion: (region: string) => void;
 }
 
 /** Carries the AI-search selections from the questionnaire into the result page. */
@@ -33,4 +57,10 @@ export const useAiStore = create<AiState>((set) => ({
   stay: '',
   transport: '',
   setAnswers: (answers) => set(answers),
+  entry: '',
+  setEntry: (entry) => set({ entry }),
+  resumeQuestions: false,
+  setResumeQuestions: (resumeQuestions) => set({ resumeQuestions }),
+  region: '',
+  setRegion: (region) => set({ region }),
 }));

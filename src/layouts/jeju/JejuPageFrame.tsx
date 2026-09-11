@@ -101,6 +101,8 @@ interface Props {
   subtitleColor?: string;
   /** Draw the ★ before the subtitle (WIT Store omits it). */
   subtitleStar?: boolean;
+  /** Bold subtitle — see JejuHeader. */
+  subtitleBold?: boolean;
   children?: ReactNode;
 }
 
@@ -120,6 +122,7 @@ export function JejuPageFrame({
   lowReachBarBanner = false,
   subtitleColor,
   subtitleStar,
+  subtitleBold,
   children,
 }: Props): JSX.Element {
   // Live API banner when one is active, else this page's bundled promo.
@@ -201,6 +204,7 @@ export function JejuPageFrame({
         onBack={onBack}
         subtitleColor={subtitleColor}
         subtitleStar={subtitleStar}
+        subtitleBold={subtitleBold}
       />
 
       <div className={styles.body}>{children}</div>

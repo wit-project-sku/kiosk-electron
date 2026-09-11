@@ -113,7 +113,11 @@
 
 /* ── Categories (R>상단 카테고리-5개*2) ──
    Five 340×170 per row, col gap 30 / row gap 35. Short last rows keep the
-   left edge (flex-start), not space-between. */
+   left edge (flex-start), not space-between.
+
+   Labels are never clamped: two lines (and three, at 1.15 × 50 = 172) fit the
+   170 plate as drawn; anything longer grows the plate, and the row stretches
+   its siblings to match so the grid stays even. */
 .cats {
   display: flex;
   flex-direction: column;
@@ -126,11 +130,13 @@
 
 .catRow {
   display: flex;
-  align-items: center;
+  align-items: stretch;
   justify-content: flex-start;
   gap: 30px;
 }
 
+/* `height: auto` + `overflow: visible` undo the composed JejuPill's fixed 170
+   and clip, so a long label grows its plate instead of being cut. */
 .cats .pill {
   display: flex;
   flex: 0 0 340px;
@@ -139,7 +145,8 @@
   width: 340px;
   max-width: 340px;
   min-width: 0;
-  height: 170px;
+  height: auto;
+  min-height: 170px;
   box-sizing: border-box;
   padding: 0 12px;
   font-family: inherit;
@@ -152,15 +159,11 @@
   white-space: normal;
   word-break: keep-all;
   overflow-wrap: anywhere;
-  overflow: hidden;
+  overflow: visible;
 }
 
 .cats .pillLabel {
-  display: -webkit-box;
-  -webkit-box-orient: vertical;
-  -webkit-line-clamp: 2;
   max-width: 100%;
-  overflow: hidden;
   line-height: 1.15;
   white-space: normal;
   word-break: keep-all;
@@ -351,27 +354,35 @@
   max-width: 100%;
 }
 
+/* Name and category share the row; either may shrink and wrap onto a second
+   line rather than ellipsise or run into the other. The card is min-height,
+   so it grows to fit. */
 .cardName {
+  flex: 0 1 auto;
+  min-width: 0;
   margin: 0;
   font-size: 68px;
   font-weight: 600;
   line-height: 1;
   color: #2b2b2b;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  white-space: normal;
+  word-break: keep-all;
+  overflow-wrap: anywhere;
 }
 
 .cardCat {
   display: flex;
   align-items: center;
   gap: 21.45px;
-  flex: 0 0 auto;
+  flex: 0 1 auto;
+  min-width: 0;
   font-size: 52px;
   font-weight: 400;
   line-height: 1;
   color: #999;
-  white-space: nowrap;
+  white-space: normal;
+  word-break: keep-all;
+  overflow-wrap: anywhere;
 }
 
 .cardDot {

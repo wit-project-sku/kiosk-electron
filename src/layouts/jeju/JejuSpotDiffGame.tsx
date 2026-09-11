@@ -67,7 +67,7 @@ import type { CSSProperties, PointerEvent as ReactPointerEvent } from 'react';
 import { Lightbulb, Heart, Timer } from 'lucide-react';
 import type { SpotDiffRound, SpotDiffSpot } from '@shared/types/spotDiff';
 import { pick, useLang, type Lang } from '@renderer/lib/i18n';
-import { sheetText } from '@renderer/lib/loc';
+import { sheetText, tExact } from '@renderer/lib/loc';
 import { trackEvent } from '@renderer/lib/analytics';
 import { useKioskStore } from '@renderer/store/kioskStore';
 import { useAccessibilityStore } from '@renderer/store/accessibilityStore';
@@ -660,7 +660,14 @@ export function JejuSpotDiffGame({ rounds, aiReady, onFinish, onHome }: Props): 
         <div className={styles.modeBar}>{sheetText('BarrierFree_Title', lang, BARRIER_FREE)}</div>
       )}
 
-      <Header title={photoTitle} onHome={onHome} onBack={onHome} navDisabled={navLocked} />
+      {/* Same title as the AR 한복 steps before it: Localization_Jeju's
+          Photo_HanbokTry, with the shared photo chrome's literal as fallback. */}
+      <Header
+        title={tExact('Photo_HanbokTry', lang) || photoTitle}
+        onHome={onHome}
+        onBack={onHome}
+        navDisabled={navLocked}
+      />
 
       {/* ── Left rail: 홈 · 뒤로 · ♿ (6258:78631, x50/y2163) ──
           홈 and 뒤로 carry `navLocked` exactly as the header's pair does — while

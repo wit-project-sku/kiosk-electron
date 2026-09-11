@@ -102,12 +102,22 @@
   white-space: nowrap;
 }
 
+/* Category labels are localized: a label too long for the row shrinks and
+   wraps instead of pushing the row past the artboard. The row is top-aligned,
+   so a second line grows downward (~72px) — still clear of the grid at 1088
+   (and of the artboard foot in ♿). The ㅣ separators stay one glyph. */
 .chip {
+  flex: 0 1 auto;
+  min-width: 0;
+  white-space: normal;
+  word-break: keep-all;
+  overflow-wrap: anywhere;
   cursor: pointer;
   -webkit-tap-highlight-color: transparent;
 }
 
 .chipSep {
+  flex: none;
   pointer-events: none;
   user-select: none;
 }
@@ -163,9 +173,11 @@
   display: grid;
   grid-template-columns: repeat(3, 483.767px);
   column-gap: 130.35px;
-  /* Fixed row pitch, so rows land on Figma's 1088 / 1952 however tall a title
-     wraps — a two-line title can never push the next row down. */
-  grid-auto-rows: 864px;
+  /* 864 row pitch, so rows land on Figma's 1088 / 1952 — a two-line title
+     fits inside it and never pushes the next row down. It is a FLOOR, not a
+     clamp: titles are no longer ellipsised, and a row whose title runs to a
+     third line grows (the grid scrolls) rather than overlapping the next. */
+  grid-auto-rows: minmax(864px, auto);
   row-gap: 0;
 }
 
@@ -211,12 +223,10 @@
   font-weight: 700;
   line-height: 1.15;
   color: #000;
-  /* Two lines then ellipsis — the 181px below the image holds two title lines
-     plus the venue without spilling into the next row. */
-  overflow: hidden;
-  display: -webkit-box;
-  -webkit-box-orient: vertical;
-  -webkit-line-clamp: 2;
+  /* Full title, wrapped — no ellipsis. The 181px below the image holds two
+     title lines plus the venue; a longer title grows its row (see .list). */
+  word-break: keep-all;
+  overflow-wrap: anywhere;
 }
 
 .cardVenue {
@@ -225,9 +235,8 @@
   font-weight: 500;
   line-height: 1;
   color: #999;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  word-break: keep-all;
+  overflow-wrap: anywhere;
 }
 
 /* Restores the shared event detail's own pointer model (see JejuEvents.tsx):
@@ -351,6 +360,11 @@
   font-size: 50px;
   font-weight: 700;
   line-height: 1;
+  /* A translated label wraps inside the 500×120 box — two 50px lines fit the
+     110 inside the border — without splitting a Korean word. */
+  text-align: center;
+  word-break: keep-all;
+  overflow-wrap: anywhere;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -465,10 +479,10 @@
   font-weight: 700;
   line-height: 1.3;
   color: #000;
-  overflow: hidden;
-  display: -webkit-box;
-  -webkit-box-orient: vertical;
-  -webkit-line-clamp: 2;
+  /* Full title, no clamp. The column has ~410px below the image before the
+     card's foot (the close button sits BETWEEN the columns, not under them). */
+  word-break: keep-all;
+  overflow-wrap: anywhere;
 }
 
 /* ── Close (6760:37439) ──

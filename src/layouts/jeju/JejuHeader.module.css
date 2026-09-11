@@ -113,7 +113,14 @@
 }
 
 /* The title "field" is a transparent pill in the design — it carries the
-   rounded shape and padding but no fill or border. */
+   rounded shape and padding but no fill or border.
+
+   Titles are localized, so a long one WRAPS instead of running out under the
+   홈/뒤로 buttons. The box stays 182 (the row is a fixed slot) and centres the
+   text, so a second line spills into the 50px padding rather than moving
+   anything: two 86px lines are 172 of the 182. A one-line title sits exactly
+   where it did — the extra leading splits evenly around a centred line (86,
+   not 1.1 = 85.8, which rounds the glyphs ~1px high; measured in Chrome). */
 .title {
   flex: 0 0 auto;
   width: 1342px;
@@ -127,10 +134,12 @@
   margin: 0;
   font-size: 78px;
   font-weight: 700;
-  line-height: 1;
+  line-height: 86px;
   color: #000;
   text-align: center;
-  white-space: nowrap;
+  white-space: normal;
+  word-break: keep-all;
+  overflow-wrap: anywhere;
 }
 
 /* ── Subtitle (y559, h60) — star + description, centred on the 1820 column ── */
@@ -153,11 +162,20 @@
   flex: 0 0 auto;
 }
 
+/* Sheet copy in eight languages: wraps rather than running off the 1820 column.
+   The row stays 60 tall and centres the text, so a second line overhangs it
+   ~36px each way — clear of the title row above (ends 494) and the page body
+   below (700). One line is unmoved; 1.1 leading splits evenly around it. */
 .subtitleText {
+  flex: 0 1 auto;
+  min-width: 0;
   margin: 0;
   font-size: 60px;
   font-weight: 400;
-  line-height: 1;
+  line-height: 1.1;
   color: #909090;
-  white-space: nowrap;
+  text-align: center;
+  white-space: normal;
+  word-break: keep-all;
+  overflow-wrap: anywhere;
 }

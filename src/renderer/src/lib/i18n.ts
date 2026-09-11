@@ -283,7 +283,13 @@ const TITLE_KEYS: Record<string, TitleKeySpec> = {
   // 지역화폐/환율/언어선택/숙박안내/TAX-FREE/상세 already resolve through the shared
   // entries above — 제주's sheet carries the same key names, and bundledTable()
   // has already picked the 제주 table by then, so they land on 제주's own copy.
-  "'제주' 뭐하지 (AI 검색)": { title: 'MainButton_AI', sub: 'SubHeader_AISearch' },
+  // The AI 검색 pages read their OWN rows. They were mapped to MainButton_AI —
+  // the home TILE's label ("'제주' 뭐하지", en "To do (AI)") — and to
+  // SubHeader_AISearch, Insadong's "3개의 카테고리" line, so the header never
+  // showed what Localization_Jeju writes for this page. The id is passed by the
+  // questionnaires, the course detail and an AI spot's 상세; the landing and the
+  // detail pass their own description (Course_Subtitle / the course + day).
+  "'제주' 뭐하지 (AI 검색)": { title: 'Jeju_Todo_Title', sub: 'Jeju_Todo_Subtitle' },
   // 탐나오&제주큐랑 (6493:118287). The sheet has already caught up with that
   // frame's two-tab redraw — MainButton_Tamnao reads 탐나오·제주큐랑 in all eight
   // languages — so the header follows the sheet, not the id, and the visitor sees

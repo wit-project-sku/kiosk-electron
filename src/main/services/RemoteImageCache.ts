@@ -25,10 +25,21 @@ const log = createLogger('remote-image-cache');
  * control: both are a bet on a response header owned by someone else.
  *
  * So the bytes are copied here instead, and `localize()` rewrites the URL to
- * `media://remote/<sha1>.<ext>`. That scheme is served from local disk with
- * `Cache-Control: public, max-age=31536000, immutable` (see mediaProtocol), so
- * after the first sync the picker costs no network at all — which also makes
+ * `media://remote/<scope>/<sha1>.<ext>`. That scheme is served from local disk
+ * with `Cache-Control: public, max-age=31536000, immutable` (see mediaProtocol),
+ * so after the first sync the picker costs no network at all — which also makes
  * the offline promise both services already advertise actually true.
+ *
+ * ── One instance, one directory, one owner ─────────────────────────────────
+ * ★ Every caller gets its OWN instance and its own `<scope>` subdirectory.
+ * BackgroundService and OutfitService used to share one instance over one flat
+ * directory, and `prune()` deletes everything its caller did not list — so each
+ * service's prune read the other's images as retired. On every sync the outfit
+ * prune ran last and deleted the 배경 테마 tiles ~1.5s after the renderer had
+ * been pointed at their `media://` urls, which drew step ② as empty plates; the
+ * background prune in turn deleted all 72 outfit cards, so they were
+ * re-downloaded on every boot. With a directory per scope a prune can only ever
+ * see its own files.
  *
  * ── Failure is always soft ─────────────────────────────────────────────────
  * `localize()` returns the REMOTE url unchanged when there is no local copy, so
@@ -42,19 +53,29 @@ export class RemoteImageCache {
   private loaded = false;
 
   /**
+   * @param scope The one caller this instance mirrors for — its subdirectory
+   *   under `remote-images/` and its segment in the `media://remote/` url. Must
+   *   be unique per caller; two instances on one scope reintroduce the
+   *   cross-prune described above.
+   */
+  constructor(private readonly scope: string) {}
+
+  /**
    * Resolved lazily rather than in the constructor: `appPaths` reads Electron's
    * userData, which is only valid once the app is ready, and the container is
    * built early enough for that to matter.
    */
   private get dir(): string {
-    const dir = appPaths.remoteImages;
+    const dir = join(appPaths.remoteImages, this.scope);
     if (!this.loaded) {
       this.loaded = true;
+      sweepUnscopedFiles();
       try {
+        mkdirSync(dir, { recursive: true });
         for (const name of readdirSync(dir)) this.present.add(name);
-        log.info('Remote image cache opened', { files: this.present.size });
+        log.info('Remote image cache opened', { scope: this.scope, files: this.present.size });
       } catch (error) {
-        log.warn('Could not read the remote image cache directory', error);
+        log.warn('Could not read the remote image cache directory', { scope: this.scope, error });
       }
     }
     return dir;
@@ -72,7 +93,7 @@ export class RemoteImageCache {
     const dir = this.dir;
     for (const ext of CANDIDATE_EXT) {
       const name = fileNameFor(remoteUrl, ext);
-      if (this.present.has(name)) return `media://remote/${name}`;
+      if (this.present.has(name)) return `media://remote/${this.scope}/${name}`;
     }
     void dir; // touched above to force the lazy directory read
     return remoteUrl;
@@ -101,6 +122,7 @@ export class RemoteImageCache {
         } catch (error) {
           failed += 1;
           log.warn('Could not cache a remote image', {
+            scope: this.scope,
             url,
             error: error instanceof Error ? error.message : String(error),
           });
@@ -109,7 +131,7 @@ export class RemoteImageCache {
     });
     await Promise.all(workers);
 
-    log.info('Remote image cache warmed', { added, failed, total: wanted.length });
+    log.info('Remote image cache warmed', { scope: this.scope, added, failed, total: wanted.length });
     return added;
   }
 
@@ -118,7 +140,8 @@ export class RemoteImageCache {
    *
    * The CMS retires outfits and background sets, and without this their images
    * would accumulate on a kiosk that never reinstalls. Only ever removes files
-   * this cache wrote — the directory holds nothing else.
+   * from THIS scope's directory — which holds nothing another caller wrote, so
+   * `urls` only has to be complete for this caller.
    */
   async prune(urls: readonly string[]): Promise<number> {
     const keep = new Set<string>();
@@ -135,10 +158,12 @@ export class RemoteImageCache {
         this.present.delete(name);
         removed += 1;
       } catch (error) {
-        log.warn('Could not prune a cached image', { name, error });
+        log.warn('Could not prune a cached image', { scope: this.scope, name, error });
       }
     }
-    if (removed > 0) log.info('Pruned cached images the CMS no longer lists', { removed });
+    if (removed > 0) {
+      log.info('Pruned cached images the CMS no longer lists', { scope: this.scope, removed });
+    }
     return removed;
   }
 
@@ -169,6 +194,38 @@ export class RemoteImageCache {
     this.present.add(name);
     return true;
   }
+}
+
+/** Once per process — see sweepUnscopedFiles. */
+let unscopedSwept = false;
+
+/**
+ * Delete the loose files the pre-scope cache wrote straight into
+ * `remote-images/`.
+ *
+ * No url points at them any more — `localize()` only ever answers with a
+ * `<scope>/` path — so on a kiosk that never reinstalls they would sit there
+ * forever. Only FILES at the root are touched; the scope directories are left
+ * to their own instances. Safe to run before any renderer read: the first
+ * `localize()` is what triggers it, and it can only hand out scoped urls.
+ */
+function sweepUnscopedFiles(): void {
+  if (unscopedSwept) return;
+  unscopedSwept = true;
+  const root = appPaths.remoteImages;
+  let names: string[];
+  try {
+    names = readdirSync(root, { withFileTypes: true })
+      .filter((entry) => entry.isFile())
+      .map((entry) => entry.name);
+  } catch {
+    return;
+  }
+  if (names.length === 0) return;
+  void Promise.allSettled(names.map((name) => unlink(join(root, name)))).then((results) => {
+    const removed = results.filter((r) => r.status === 'fulfilled').length;
+    log.info('Swept the unscoped image mirror', { removed, found: names.length });
+  });
 }
 
 /** How many downloads run at once during a warm. */

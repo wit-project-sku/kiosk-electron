@@ -232,15 +232,20 @@
   -webkit-tap-highlight-color: transparent;
 }
 
+/* Placeholder (sheet copy) or the typed query — wraps rather than ellipsising,
+   so the whole query and the caret stay visible. The field is a fixed 182
+   slot; the text is centred in it, so a second line spills into the 55px
+   padding (two lines at 1.1 are 132 of the 182) and a single line sits exactly
+   where it did. */
 .searchText {
   flex: 1 1 auto;
   min-width: 0;
   font-size: 60.06px;
   font-weight: 500;
-  line-height: 1;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  line-height: 1.1;
+  white-space: normal;
+  word-break: keep-all;
+  overflow-wrap: anywhere;
 }
 
 .searchPlaceholder {
@@ -586,9 +591,13 @@
   width: 400px;
 }
 
+/* Widened from 142 (1678…1820) to 400 on the SAME centre, x1749 — the same
+   box .labelArJeju uses. MainButton_WC is translated, and "Restroom" /
+   "Nhà vệ sinh" did not fit 142: they wrapped mid-word or ran off-centre.
+   화장실 still centres on 1749, so Korean is unchanged. */
 .labelRestroom {
-  left: 1678px;
-  width: 142px;
+  left: 1549px;
+  width: 400px;
 }
 
 /* ── Left nav (home / back) + accessibility ─────────────────────────── */
@@ -852,4 +861,145 @@
 
 .accessibilityLow {
   top: 2403px;
+}
+
+/* ── Other languages (Figma 7058:22669 — the annotated 제주>홈) ────────────
+ *
+ * The frame is the Korean home with three red notes for what a longer
+ * language may do. Every rule here is reached only through a class the TSX
+ * adds when lang !== 'ko', so the Korean screen is untouched.
+ *
+ * 1. Notice — "최대 4줄까지, 날짜랑 간격 최대 60": the frame's own 1060 width
+ *    (vs 977). Four 70px lines centred on the lead's 242 band land on
+ *    392…672 — exactly the note's red box — which is the frame's 60px gap
+ *    above the 운항 정보 board at 732. NOT clamped: the whole notice is always
+ *    shown. A fifth line (357…707) still clears the board, only with a 25px
+ *    gap instead of 60; a sixth would touch it, so the copy must stay within
+ *    five lines — an authoring limit, not something CSS hides.
+ */
+.noticeTextWide {
+  width: 1060px;
+  font-size: calc(60px * var(--fit, 1));
+  line-height: calc(70px * var(--fit, 1));
+}
+
+/*
+ * 1b. …and the band it sits in. Four lines is the frame's limit, and the live
+ *    translations run to six, seven, eight (ru 213 / id 242 characters against
+ *    Korean's 118): centred on the Korean 242 band they were clipped by the
+ *    panel's top edge AND ran into the board. So non-Korean text gets the band
+ *    the panel really has — 40 under its top down to the note's 60 above the
+ *    board (rel 40…375) — centred in it, with the orange rule following the
+ *    text's own height rather than the Korean band's. Copy that still does not
+ *    fit is scaled down (`--fit`, set by useFitText; never below 0.7 → 42px).
+ *    Never clamped: the whole notice is always shown.
+ */
+.noticeLeadWide {
+  top: 40px;
+  height: 335px;
+}
+
+/* ♿: the same band in the taller low-reach panel — 12 lower at the top, as the
+   Korean lead is (126 vs 114), and 60 above the board at rel 504. */
+.noticeLow .noticeLeadWide {
+  top: 52px;
+  height: 392px;
+}
+
+.noticeRow {
+  display: flex;
+  align-items: stretch;
+  gap: 42.565px;
+}
+
+.noticeRow .noticeRule {
+  height: auto;
+}
+
+/*
+ * 3. Feature cards — "크기 넘으면 단 내리기". The frame marks it on 제주도
+ *    이벤트; 뭐하지 and 위드마켓 overflow the same way in a long language. Title
+ *    and subtitle become ONE column, centred in the card between 20px insets and
+ *    bounded by the art (or, on 뭐하지, the card edge), so a title that wraps
+ *    pushes its subtitle down. The two lines used to be pinned separately, and
+ *    a wrapping title had to grow away from its subtitle — "Чем заняться на
+ *    острове Чеджу" and "Hal-hal yang dapat dilakukan di Jeju" climbed out of
+ *    the top of the 뭐하지 card. A one-line title lands within a few px of the
+ *    Korean line. If a column still outgrows its card, all three cards' type
+ *    scales down together (`--fit` on .cards, ≥ 0.75).
+ */
+.cardText {
+  position: absolute;
+  top: 20px;
+  bottom: 20px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: calc(29px * var(--fit, 1)); /* Korean: subtitle 178 − title foot 149 */
+}
+
+/* Wrap at word boundaries only — never inside a word ("Мероприяти / е").
+   A word too long for the column is caught by the fit instead, which scales
+   the cards down until it fits (fitText.ts checks width as well as height).
+   `normal`, not `keep-all`: this block is never Korean, and keep-all would turn
+   a Japanese or Chinese title into one unbreakable run. */
+.cardText .cardTitle,
+.cardText .cardSub {
+  position: static;
+  white-space: normal;
+  word-break: normal;
+  overflow-wrap: normal;
+}
+
+.cardText .cardTitle {
+  font-size: calc(45px * var(--fit, 1));
+  line-height: 1.02; /* 46 on 45 — the leading the frame's wrap note uses */
+}
+
+.cardText .cardSub {
+  font-size: calc(38px * var(--fit, 1));
+  line-height: 1.1;
+}
+
+/* Column x is the Korean title's; the width stops 44 short of 뭐하지's edge and
+   35+ short of the art on the other two. */
+.cardAi .cardText     { left: 356px; width: 270px; }
+.cardMarket .cardText { left: 57px;  width: 260px; }
+.cardEvents .cardText { left: 50px;  width: 280px; }
+
+.cardsLow .cardAi .cardText     { left: 401px; width: 265px; }
+.cardsLow .cardMarket .cardText { width: 250px; }
+.cardsLow .cardEvents .cardText { width: 270px; }
+
+/*
+ * 4. Tiles — no note in the frame, but a long language needs one: "Что мне
+ *    стоит купить на острове Чеджу?" is four lines in the 300 column, and with
+ *    its subtitle it ran 139px past the tile onto the next row's plate. The grid
+ *    cannot grow (the bottom action row is pinned under it), so the text gets
+ *    the whole gap it DOES have — from under the plate (335) to 10 above the
+ *    next row's plate (482); ♿ 260…364 — and wraps there. Only if a tile still
+ *    outgrows that does the grid's type scale down, all twelve by the same
+ *    factor so the grid keeps one text size (`--fit` on .grid, ≥ 0.7).
+ */
+.tileTextFit {
+  height: 147px;
+}
+
+.tileTextLow.tileTextFit {
+  height: 104px;
+}
+
+/* Word boundaries only, as on the cards: a label word too wide for the 300
+   column shrinks the grid (the fit checks width) instead of being split. */
+.tileTextFit .tileTitle {
+  font-size: calc(38px * var(--fit, 1));
+  word-break: normal;
+  overflow-wrap: normal;
+}
+
+.tileTextFit .tileSub {
+  margin-top: calc(14px * var(--fit, 1));
+  font-size: calc(25px * var(--fit, 1));
+  word-break: normal;
+  overflow-wrap: normal;
 }

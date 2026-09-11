@@ -17,7 +17,9 @@ import { QRCodeSVG } from 'qrcode.react';
 import type { KioskController } from '@renderer/hooks/useKioskController';
 import { useLanguageStore } from '@renderer/store/languageStore';
 import { useAccessibilityStore } from '@renderer/store/accessibilityStore';
-import { pick } from '@renderer/lib/i18n';
+import { pick, type Lang } from '@renderer/lib/i18n';
+import { sheetText } from '@renderer/lib/loc';
+import { ui, type UiTextKey } from '@renderer/lib/uiText';
 import { trackEvent } from '@renderer/lib/analytics';
 import { JejuPageFrame } from './JejuPageFrame';
 import { belowModeBar } from './lowReach';
@@ -69,21 +71,39 @@ const EMBED_CHROME_CSS_ZOOMED = `html{zoom:${TAMNAO_ZOOM} !important}${SCROLLBAR
 export interface EmbedTab {
   id: string;
   /**
-   * Tab label. Left in Korean deliberately: 탐나오 and 제주큐랑 are the BRAND
-   * NAMES of two Korean sites, and this screen's header title has never been
-   * localized either (neither id is in i18n's TITLE_KEYS). A translated label
-   * would name something the visitor then cannot find on the site itself.
+   * Localization_Jeju key for the tab label (Tamnao_Tab / JejuQurang_Tab). The
+   * sheet names both sites in all eight languages — "Tamnao", "タムナオ" — and
+   * wins wherever its cell is filled; see {@link tabLabel}.
    */
-  label: string;
+  labelKey?: string;
+  /** The authored label per language: what shows where the sheet's cell is
+   *  empty, or before a kiosk has synced a row the bundled copy lacks. */
+  label: Partial<Record<Lang, string>>;
   url: string;
 }
+
+/**
+ * A tab's label: the sheet's cell for this language, else the authored one.
+ * A leading or trailing "·" is trimmed — the sheet's zh cells were split out of
+ * MainButton_Tamnao's "塔姆瑙·济州岛古兰" and each kept the joining dot
+ * ("塔姆瑙·" / "·济州岛古兰"), which would print on a tab of its own.
+ */
+const tabLabel = (tab: EmbedTab, lang: Lang): string =>
+  (tab.labelKey ? sheetText(tab.labelKey, lang, tab.label) : pick(tab.label, lang)).replace(
+    /^\s*·\s*|\s*·\s*$/g,
+    '',
+  );
 
 interface Props {
   controller: KioskController;
   /** Header title (Korean id — localized by JejuHeader). */
   title: string;
-  /** Header subtitle; omit to fall back to the sheet. */
-  subtitle?: string;
+  /**
+   * Header subtitle, from uiText (all eight languages) — for a screen whose
+   * description has no sheet row, as WIT Store's does not. Omit to fall back to
+   * the sheet (탐나오&제주큐랑 → Tamnao_Subtitle).
+   */
+  subtitleKey?: UiTextKey;
   /** The single embedded site. Ignored when `tabs` is given. */
   url: string;
   /** Subtitle colour — WIT Store uses the store's brown. */
@@ -214,7 +234,7 @@ function EmbedPane({
 export function JejuWebScreen({
   controller,
   title,
-  subtitle,
+  subtitleKey,
   url,
   subtitleColor,
   subtitleStar,
@@ -234,7 +254,7 @@ export function JejuWebScreen({
   const lowTamnao = lowReach && showMobileQr;
   /* One code path for both shapes: a screen without `tabs` is a screen with one
      unlabelled site, and the row below only draws when there is a choice. */
-  const landing: EmbedTab = tabs?.[0] ?? { id: 'main', label: '', url };
+  const landing: EmbedTab = tabs?.[0] ?? { id: 'main', label: {}, url };
   const sites: readonly EmbedTab[] = tabs?.length ? tabs : [landing];
   const [tab, setTab] = useState(landing.id);
   /* Guard the id against a `tabs` list that changed under a stale selection, so
@@ -257,7 +277,7 @@ export function JejuWebScreen({
     <JejuPageFrame
       controller={controller}
       title={title}
-      subtitle={subtitle}
+      subtitle={subtitleKey ? ui(subtitleKey, lang) : undefined}
       subtitleColor={subtitleColor}
       subtitleStar={subtitleStar}
       showBanner={showBanner}
@@ -279,7 +299,7 @@ export function JejuWebScreen({
               className={`${styles.tab} ${t.id === active ? styles.tabActive : ''}`}
               onClick={() => select(t.id)}
             >
-              {t.label}
+              {tabLabel(t, lang)}
             </button>
           ))}
         </div>

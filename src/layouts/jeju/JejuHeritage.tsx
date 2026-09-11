@@ -44,6 +44,7 @@ import { useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { QRCodeSVG } from 'qrcode.react';
 import type { KioskController } from '@renderer/hooks/useKioskController';
 import { jejuIconUrl } from '@renderer/assets/icons/jeju';
+import { useAccessibilityStore } from '@renderer/store/accessibilityStore';
 import type { Shop } from '@shared/types/shop';
 import type { Attraction } from '@shared/types/attraction';
 import type { DetailItem } from '@renderer/store/detailStore';
@@ -65,6 +66,7 @@ import { trackEvent } from '@renderer/lib/analytics';
 import { JejuAttractionCard } from './JejuAttractionCard';
 import { JejuPageFrame } from './JejuPageFrame';
 import { JejuSpotDetailCard } from './JejuSpotDetailCard';
+import { belowModeBar, LOW_REACH_BANNER_HEIGHT } from './lowReach';
 import styles from './JejuHeritage.module.css';
 
 type TabId = 'biosphere' | 'natural' | 'geopark' | 'intangible';
@@ -304,6 +306,12 @@ const ATTRACTION_BASE_CATEGORY = '제주 뭐하지';
 const DETAIL_TOP = 1123;
 const CONTENT_FOOT = 3127;
 
+/** ♿ drill-down band — where the card column sits in each low-reach shape
+ *  (6942:52400 / 6952:53995), footing out 50 above the foot tab pills. */
+const LOW_DETAIL_TOP = 1272;
+const LOW_DETAIL_TOP_BANNER = 2058;
+const LOW_CONTENT_FOOT = 3485;
+
 /** 더보기 / 접기 on the accordion pill (6942:51470). */
 const READ_MORE = {
   ko: '더보기', en: 'Read more', ja: 'もっと見る', zh: '查看更多',
@@ -336,6 +344,7 @@ interface Props {
 
 export function JejuHeritage({ controller }: Props): JSX.Element {
   const lang = useLanguageStore((s) => s.currentLanguage) as Lang;
+  const lowReach = useAccessibilityStore((s) => s.lowReach);
   const shops = useShopStore((s) => s.shops);
   const attractions = useAttractionStore((s) => s.attractions);
   const [tabId, setTabId] = useState<TabId>(TABS[0]!.id);
@@ -376,11 +385,19 @@ export function JejuHeritage({ controller }: Props): JSX.Element {
     [tab, rowFor],
   );
 
+  /**
+   * ♿: a tab whose sites fit one 3-card row keeps the 573 promo under the mode
+   * bar and shows a single-row viewport (6952:53995, 인류무형문화유산); a taller
+   * tab gives the banner up for a second card row (6942:52400, 생물권). The
+   * header shift follows whichever the active tab draws.
+   */
+  const singleRow = cards.length <= 3;
+
   const [canScroll, setCanScroll] = useState(false);
   useLayoutEffect(() => {
     const el = scrollRef.current;
     setCanScroll(!!el && el.scrollHeight > el.clientHeight + 1);
-  }, [tabId, lang, open, expanded]);
+  }, [tabId, lang, open, expanded, lowReach]);
 
   const scrollBy = (delta: number): void =>
     scrollRef.current?.scrollBy({ top: delta, behavior: 'smooth' });
@@ -450,94 +467,160 @@ export function JejuHeritage({ controller }: Props): JSX.Element {
     [open],
   );
 
+  const detailTop = lowReach
+    ? singleRow
+      ? LOW_DETAIL_TOP_BANNER
+      : LOW_DETAIL_TOP
+    : DETAIL_TOP;
+
+  /* The four category pills — at y903 normally, in the foot group in ♿. */
+  const tabPills = (
+    <div className={`${styles.tabs} ${lowReach ? styles.tabsLow : ''}`}>
+      {TABS.map(({ id, labelKey, label }) => (
+        <button
+          key={id}
+          type="button"
+          className={`${styles.tab} ${id === tabId ? styles.tabActive : ''}`}
+          onClick={() => select(id)}
+        >
+          {sheetText(labelKey, lang, label)}
+        </button>
+      ))}
+    </div>
+  );
+
+  /* Accordion (6942:51462): the quote stays visible; the body run is clipped
+     behind the fade until 더보기 opens it. A tab with no quote simply collapses
+     to its first body lines. In ♿ it sits pinned in the foot group, so the
+     expanded run scrolls inside a cap instead of growing without bound. */
+  const panel = (
+    <div className={styles.panel}>
+      {tab.blocks
+        .filter((b) => b.kind === 'quote')
+        .map((b) => (
+          <p key={b.key} className={styles.quote}>
+            {sheetText(b.key, lang, { ko: b.ko })}
+          </p>
+        ))}
+      <div
+        className={`${styles.panelBody} ${
+          expanded ? (lowReach ? styles.panelBodyLowScroll : '') : styles.panelBodyCollapsed
+        }`}
+      >
+        {tab.blocks
+          .filter((b) => b.kind !== 'quote')
+          .map((b) => (
+            <p key={b.key} className={b.kind === 'heading' ? styles.heading : styles.para}>
+              {sheetText(b.key, lang, { ko: b.ko })}
+            </p>
+          ))}
+        {!expanded && <div className={styles.fade} />}
+      </div>
+      <button
+        type="button"
+        className={styles.readMore}
+        onClick={() => setExpanded((v) => !v)}
+        aria-expanded={expanded}
+      >
+        {expanded ? `${pick(COLLAPSE, lang)} ▲` : `${pick(READ_MORE, lang)} ▼`}
+      </button>
+    </div>
+  );
+
+  const cardGrid = (
+    <div className={styles.cards}>
+      {cards.map(({ site, row }) => (
+        <JejuAttractionCard
+          key={site.name}
+          name={row ? shopName(row, lang) : site.name}
+          address={row ? shopAddress(row, lang) : site.address}
+          hours={row?.openTime ? [row.openTime] : []}
+          photo={row ? shopImages(row)[0] : undefined}
+          onClick={() => openSite(site, row)}
+        />
+      ))}
+    </div>
+  );
+
   return (
     /* banner-detail: the revision foots every state out on the 상점 검색 promo,
-       the same artwork 여기는 제주도 carries. */
-    <JejuPageFrame controller={controller} title={TITLE} onBack={goBack} bannerFallback="banner-detail">
-      <div className={styles.introRow}>
+       the same artwork 여기는 제주도 carries. ♿ is the mode-bar revision
+       (6942:52400 / 6952:53995): bar at the top, banner kept under it only on a
+       single-row tab, header dropped by bar (+banner), body self-laid-out. */
+    <JejuPageFrame
+      controller={controller}
+      title={TITLE}
+      onBack={goBack}
+      bannerFallback="banner-detail"
+      lowReachModeBar
+      lowReachBarBanner={singleRow}
+      lowReachShift={belowModeBar(singleRow ? LOW_REACH_BANNER_HEIGHT : 0)}
+    >
+      <div className={`${styles.introRow} ${lowReach ? styles.introRowLow : ''}`}>
         <p className={styles.intro}>{sheetText('Heritage_Intro', lang, { ko: INTRO_KO })}</p>
         <div className={styles.qrBadge}>
           <QRCodeSVG value={HERITAGE_QR_URL} level="M" bgColor="#fff" fgColor="#000" />
         </div>
       </div>
 
-      <div className={styles.tabs}>
-        {TABS.map(({ id, labelKey, label }) => (
-          <button
-            key={id}
-            type="button"
-            className={`${styles.tab} ${id === tabId ? styles.tabActive : ''}`}
-            onClick={() => select(id)}
-          >
-            {sheetText(labelKey, lang, label)}
-          </button>
-        ))}
-      </div>
+      {!lowReach && tabPills}
 
       {open ? (
         <JejuSpotDetailCard
           item={detailItem(open.site, open.row)}
-          top={DETAIL_TOP}
+          top={detailTop}
           gallery="row"
           map={detailMap}
-          maxScrollHeight={CONTENT_FOOT - DETAIL_TOP}
+          maxScrollHeight={(lowReach ? LOW_CONTENT_FOOT : CONTENT_FOOT) - detailTop}
           lang={lang}
         />
+      ) : lowReach ? (
+        /* ♿: the ※ 출처 line heads the card column and the accordion moves to
+           the foot group, so the scroller holds ONLY the cards. */
+        <div
+          className={`${styles.scroller} ${
+            singleRow ? styles.scrollerLowBanner : styles.scrollerLow
+          }`}
+          ref={scrollRef}
+        >
+          {cardGrid}
+        </div>
       ) : (
         <div className={styles.scroller} ref={scrollRef}>
-          {/* Accordion (6942:51462): the quote stays visible; the body run is
-              clipped behind the fade until 더보기 opens it. A tab with no quote
-              simply collapses to its first body lines. */}
-          <div className={styles.panel}>
-            {tab.blocks
-              .filter((b) => b.kind === 'quote')
-              .map((b) => (
-                <p key={b.key} className={styles.quote}>
-                  {sheetText(b.key, lang, { ko: b.ko })}
-                </p>
-              ))}
-            <div className={`${styles.panelBody} ${expanded ? '' : styles.panelBodyCollapsed}`}>
-              {tab.blocks
-                .filter((b) => b.kind !== 'quote')
-                .map((b) => (
-                  <p key={b.key} className={b.kind === 'heading' ? styles.heading : styles.para}>
-                    {sheetText(b.key, lang, { ko: b.ko })}
-                  </p>
-                ))}
-              {!expanded && <div className={styles.fade} />}
-            </div>
-            <button
-              type="button"
-              className={styles.readMore}
-              onClick={() => setExpanded((v) => !v)}
-              aria-expanded={expanded}
-            >
-              {expanded ? `${pick(COLLAPSE, lang)} ▲` : `${pick(READ_MORE, lang)} ▼`}
-            </button>
-          </div>
-
-          <div className={styles.cards}>
-            {cards.map(({ site, row }) => (
-              <JejuAttractionCard
-                key={site.name}
-                name={row ? shopName(row, lang) : site.name}
-                address={row ? shopAddress(row, lang) : site.address}
-                hours={row?.openTime ? [row.openTime] : []}
-                photo={row ? shopImages(row)[0] : undefined}
-                onClick={() => openSite(site, row)}
-              />
-            ))}
-          </div>
+          {panel}
+          {cardGrid}
         </div>
       )}
 
-      <p className={styles.source}>{SOURCE}</p>
+      {!(lowReach && open) && (
+        <p
+          className={`${styles.source} ${
+            lowReach ? (singleRow ? styles.sourceLowBanner : styles.sourceLow) : ''
+          }`}
+        >
+          {SOURCE}
+        </p>
+      )}
+
+      {lowReach && (
+        /* Accordion + pills at the foot, within seated reach. Collapsed it sits
+           at the frames' y2940; expanded (or with only the pills left while the
+           상세 is open) it anchors to the foot and grows upward. */
+        <div
+          className={`${styles.bottomGroupLow} ${
+            expanded || open ? styles.bottomGroupLowFoot : ''
+          }`}
+        >
+          {!open && panel}
+          {tabPills}
+        </div>
+      )}
 
       {canScroll && !open && (
         <>
           <button
             type="button"
-            className={`${styles.scrollBtn} ${styles.scrollUp}`}
+            className={`${styles.scrollBtn} ${styles.scrollUp} ${lowReach ? styles.scrollUpLow : ''}`}
             onClick={() => scrollBy(-SCROLL_STEP)}
             aria-label="위로"
           >
@@ -547,7 +630,7 @@ export function JejuHeritage({ controller }: Props): JSX.Element {
           </button>
           <button
             type="button"
-            className={`${styles.scrollBtn} ${styles.scrollDown}`}
+            className={`${styles.scrollBtn} ${styles.scrollDown} ${lowReach ? styles.scrollDownLow : ''}`}
             onClick={() => scrollBy(SCROLL_STEP)}
             aria-label="아래로"
           >

@@ -17,11 +17,13 @@
  * measured room-left, worst language: digitalText −14, usageBlock −12 (hidden
  * UNDER .beige, which paints after it), bullets −78, tamnaHead −168 (ru, lands
  * on the 상품권 권종 heading), apply −8 (ru). `.bullets` never went through the
- * sheet, so that one has always overflowed. Deliberately not fixed here: the
- * remedy moves this frame's own coordinates and was split into its own task.
- * The page does NOT scroll (JejuPageFrame .root is 3840 / overflow hidden), and
- * the 2026-08-24 slide-down (cards now end 3192/3194, banner 3267) leaves only
- * ~74px free above the banner — TIGHTER than when this note was measured.
+ * sheet, so that one has always overflowed.
+ *
+ * FIXED 2026-09-11 by FLOW MODE (the block at the end of this file): every
+ * language but Korean stacks these blocks in normal flow, the cards grow with
+ * their copy, and they scroll inside a box that ends above the banner. The
+ * coordinates below are therefore Korean's alone, and Korean still renders
+ * exactly by them.
  */
 
 /* ── Tabs (6249:32357 / 32290) ──
@@ -544,3 +546,182 @@
 .biLow          { top: 771px; }
 .qrPlateLow     { top: 756px; }
 .qrImageLow     { top: 771.34px; }
+
+/* ────────────────────────────────────────────────────────────────────────────
+ * FLOW MODE — every language but Korean (`flow` in the .tsx).
+ *
+ * Everything above hand-places each block at a fixed y inside a card of fixed
+ * height, and those numbers are the KOREAN copy's: translations overran their
+ * slots by up to 168px (the KNOWN note at the top). Rather than another table
+ * of per-language tops — English had one, and it still clipped — the same
+ * blocks stack in normal flow here: each card is a column that grows with its
+ * copy, never below the frame's own height, and the cards sit in a scroll box
+ * that stops short of the banner (♿: of the tab row at the foot). Korean never
+ * gets `.scroll`, so no rule below can reach it.
+ *
+ * Gaps are the frame's wherever the Korean render pins them (52 between the
+ * 온누리 cards, the plate's own insets, 133 above 누구나 신청…) and round
+ * numbers where the frame only fixed a y that the Korean copy fell short of.
+ * ──────────────────────────────────────────────────────────────────────────── */
+.scroll {
+  position: absolute;
+  left: 170px;
+  top: 944px;
+  /* The 1820 cards plus a gutter for the scrollbar, which only appears once a
+     translation really does run past the box. */
+  width: 1860px;
+  height: 2293px; /* to 3237 — 30 above the banner at 3267 */
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 52px; /* 1998 − (944 + 1002): the frame's gap between the 온누리 cards */
+}
+
+.scroll::-webkit-scrollbar {
+  width: 28px;
+}
+
+.scroll::-webkit-scrollbar-thumb {
+  background: var(--kiosk-primary, #ff7f0f);
+  border-radius: 14px;
+}
+
+/* ♿: cards from 1041, and the tab row sits at the foot (3437). */
+.scrollLow {
+  top: 1041px;
+  height: 2366px; /* to 3407 — 30 above the tab row */
+  gap: 31px; /* 2069 − (1041 + 997) */
+}
+
+/* A column that grows with its copy. `flex: none` matters: with the min-heights
+   below, a shrinkable card would be squeezed back to its minimum inside the
+   fixed-height scroll box and its copy would spill out again. */
+.scroll .card {
+  position: relative;
+  left: auto;
+  top: auto;
+  flex: none;
+  height: auto;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+.scroll .cardIntro      { min-height: 1002px; padding: 50px 40px; }
+.scroll .cardDigital    { min-height: 1194px; padding: 50px 36px 65px; }
+.scroll .cardTamna      { min-height: 2250px; padding: 100px 40px; }
+.scroll .cardIntroLow   { min-height: 997px;  padding-top: 75px; }
+.scroll .cardDigitalLow { min-height: 1123px; padding-top: 78px; }
+
+/* Blocks that were absolutely placed take their place in the column instead.
+   Relative rather than static, so the ones with pinned parts inside — the 지류
+   panel's label and photo, the head's logo, the 권종 artwork, the store cards —
+   keep those parts where the frame draws them, measured from the block. */
+.scroll .introText,
+.scroll .paperPanel,
+.scroll .digitalText,
+.scroll .usageBlock,
+.scroll .beigeNote,
+.scroll .bullets,
+.scroll .tamnaHead,
+.scroll .kwonjong,
+.scroll .apply,
+.scroll .useRow {
+  position: relative;
+  left: auto;
+  top: auto;
+  flex: none;
+}
+
+/* ── 온누리 intro card ── */
+/* The frame's −7 off-centre survives; so does its 537.676 height, since the
+   label and photo are placed inside it. */
+.scroll .paperPanel {
+  margin: 60px 0 0 -7px;
+  transform: none;
+}
+
+/* ── 온누리 digital card ── */
+/* The mascot stands 54 above the 사용처 block (see `.mascot` below), so 60 here
+   is what keeps its head off the last line of the paragraph above. */
+.scroll .usageBlock {
+  margin-top: 60px;
+}
+
+/* The plate as a real box: the note and bullets flow inside it and it grows
+   with them. Its children are measured from its own corner, i.e. the frame's
+   card-relative value minus the plate's (36, 673). */
+.scroll .beigeGroup {
+  position: relative;
+  flex: none;
+  width: 1748px;
+  min-height: 456px;
+  margin-top: 73px;
+  box-sizing: border-box;
+  padding: 45px 0 40px;
+}
+
+.scroll .beigeGroupLow {
+  min-height: 425px;
+}
+
+.scroll .beige {
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  transform: none;
+}
+
+/* Feet on the plate's top edge, as the frame stands them (407 − 673). */
+.scroll .mascot  { left: 1218px; top: -266px; }
+
+.scroll .beigeNote { margin-left: 21px; }
+.scroll .bullets   { margin: 42px 0 0 14px; }
+
+/* Translated benefits wrap, so hang the "· " the item text starts with: a second
+   line lines up with the words, not under the dot. Korean fits on one line each
+   and never gets this rule. */
+.scroll .bullets li {
+  padding-left: 0.55em;
+  text-indent: -0.55em;
+}
+
+.scroll .bi      { left: 1209px;    top: 110px; }
+.scroll .qrPlate { left: 1456px;    top: 95px; }
+.scroll .qrImage { left: 1472.07px; top: 110.34px; }
+
+/* ── 탐나는전 card ── */
+/* The logo is pinned inside the head, so the head is at least as tall as the
+   logo when the intro beside it is short. 88 + 321 + 1331 = the 1740 column. */
+.scroll .tamnaHead {
+  width: 1652px;
+  min-height: 387.687px;
+  margin-left: 88px;
+}
+
+.scroll .kwonjong { margin-top: 50px; }
+
+/* The three 권종 names get a column's width instead of the frame's 107 / 133,
+   which fit 카드형 / 모바일형 but not "Dạng di động". Still centred on the same
+   x; 380 stays clear of the neighbouring label (centres 439+ apart). */
+.scroll .kwLabel { width: 380px; }
+
+.scroll .apply { margin-top: 133px; }
+
+/* Tall enough for the 300 store cards instead of letting them overhang a 196
+   row, so the row's height is real and the card ends under it. */
+.scroll .useRow {
+  height: auto;
+  min-height: 300px;
+  margin-top: 100px;
+}
+
+.scroll .useText {
+  flex: 1 1 auto;
+  min-width: 0;
+  max-width: 1169px;
+}

@@ -156,16 +156,24 @@
   height: 85px;
 }
 
+/* Centred on the phone icon (40 + 85/2) instead of top-anchored at 53, and
+   allowed to wrap (was nowrap): one line still lands at exactly 53
+   (82.25 − 58.5/2), while a translation that needs two grows both ways
+   (23.75…140.75) and stays clear of the ! rows at 160. */
 .noticeCall {
   position: absolute;
   left: 140px;
-  top: 53px;
+  right: 46px;
+  top: 82.25px;
+  transform: translateY(-50%);
   margin: 0;
   font-size: 45px;
   font-weight: 700;
   line-height: 1.3;
   color: var(--kiosk-primary, #ff7f0f);
-  white-space: nowrap;
+  white-space: normal;
+  word-break: keep-all;
+  overflow-wrap: anywhere;
 }
 
 .noticeCallHours {
@@ -195,7 +203,12 @@
   font-weight: 700;
   line-height: 1.3;
   color: var(--kiosk-primary, #ff7f0f);
-  white-space: nowrap;
+  /* Wraps (was nowrap) inside the width the markup gives each heading — its
+     own list's right edge — so a long translation cannot cross the divider at
+     905 or spill out of the box; a second line still foots above the list. */
+  white-space: normal;
+  word-break: keep-all;
+  overflow-wrap: anywhere;
 }
 
 /* Line 115 — 1px solid brand orange between the two lists. */
@@ -439,3 +452,26 @@
 
 .scrollUp .scrollBtnImg   { transform: rotate(90deg); }
 .scrollDown .scrollBtnImg { transform: rotate(-90deg); }
+
+/* ────────────────────────────────────────────────────────────────────────────
+ * 베리어프리 (♿, mode-bar shape) — Figma 6942:49674 (소개) / 6942:49728 (안내).
+ * Bar at the top, the 573 promo kept under it, header at bar + 573 (the
+ * frames' 681); the content column drops to y1385 and the pill row moves to
+ * the foot. Content foots at 3336, 50 above the y3434 pills.
+ * ──────────────────────────────────────────────────────────────────────────── */
+
+/* Doubled class on purpose — `.tabs` (top: 700px) lives in JejuTabRow's own
+   module, so a single class in a DIFFERENT file would tie on specificity and
+   the bundler's stylesheet order would decide. Same trick as JejuAbout. */
+.tabsLow.tabsLow {
+  top: 3434px;
+}
+
+.scrollerLow {
+  top: 1385px;
+  bottom: 504px;
+}
+
+/* Barrier-free right-hand ▲▼ — the shared 6442:105429 band, as JejuAbout. */
+.scrollUpLow   { top: 2223px; }
+.scrollDownLow { top: 2428px; }

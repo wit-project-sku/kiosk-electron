@@ -67,6 +67,10 @@
   gap: var(--dir-mode-icon-gap);
   flex: 0 1 auto;
   min-width: 0;
+  /* Stops 24px short of the time pinned at --dir-mode-time-left (measured from
+     the padding edge; this box starts at the pad), so a long label wraps onto
+     a second line instead of running under the time. */
+  max-width: calc(var(--dir-mode-time-left) - var(--dir-card-pad-x) - 24px);
 }
 
 .modeIcon {
@@ -75,12 +79,17 @@
   line-height: 1;
 }
 
+/* Wraps (see .modeHeadLeft); .modeHead's min-height grows around two lines and
+   keeps the icon and time centred on them. */
 .modeLabel {
+  min-width: 0;
   font-size: var(--dir-mode);
   font-weight: 700;
-  line-height: 1;
+  line-height: 1.15;
   color: #333;
-  white-space: nowrap;
+  white-space: normal;
+  word-break: keep-all;
+  overflow-wrap: anywhere;
 }
 
 .modeTime {
@@ -279,10 +288,13 @@
   color: #999;
 }
 
+/* A pill that doesn't fit beside the stop name drops to its own line first
+   (`.stopTop` wraps); only one wider than the whole column wraps its text. */
 .pill {
   flex: 0 0 auto;
   box-sizing: border-box;
   width: auto;
+  max-width: 100%;
   padding: 18px 36px;
   border-radius: 60px;
   background: var(--kiosk-primary, #ff7f0f);
@@ -290,7 +302,9 @@
   font-weight: 700;
   line-height: 1;
   color: #fff;
-  white-space: nowrap;
+  white-space: normal;
+  word-break: keep-all;
+  overflow-wrap: anywhere;
   display: inline-flex;
   align-items: center;
   justify-content: center;

@@ -27,7 +27,9 @@ import { taxfreeUrl } from '@shared/constants/webEmbeds';
 import { taxFreePageImg, preloadTaxFreePages } from '../components/taxFreePages';
 import type { TaxfreeVariant } from '../components/taxFreePages';
 import { useHideEmbedScrollbars } from '../components/useHideEmbedScrollbars';
+import { useAccessibilityStore } from '@renderer/store/accessibilityStore';
 import { JejuPageFrame } from './JejuPageFrame';
+import { belowModeBar } from './lowReach';
 import styles from './JejuTaxFree.module.css';
 
 type TabId = 'refund' | 'intro' | 'merchant';
@@ -96,6 +98,7 @@ const VARIANT: TaxfreeVariant = 'wit';
 export function JejuTaxFree({ controller }: Props): JSX.Element {
   const lang = useLanguageStore((s) => s.currentLanguage);
   const [tab, setTab] = useState<TabId>('refund');
+  const lowReach = useAccessibilityStore((st) => st.lowReach);
   // 소개 is two pages, flipped by the chevrons drawn into the artwork.
   const [introPage, setIntroPage] = useState(0);
 
@@ -134,8 +137,13 @@ export function JejuTaxFree({ controller }: Props): JSX.Element {
       }
       bannerFallback="banner-detail"
       onBack={() => controller.navigate('home', '뒤로')}
+      /* ♿ (7058:20102): header 21px under the bar (the frame's y167), body
+         unshifted — the panel and tab row carry their own low-reach tops.
+         No lowReachBarBanner, so the promo drops out, as the frame draws. */
+      lowReachModeBar
+      lowReachShift={belowModeBar(21)}
     >
-      <div className={styles.panel}>
+      <div className={`${styles.panel} ${lowReach ? styles.panelLow : ''}`}>
         {/* The refund web app stays mounted so it is warm the first time the
             tab is opened; hidden rather than unmounted for the same reason. */}
         <div
@@ -188,7 +196,7 @@ export function JejuTaxFree({ controller }: Props): JSX.Element {
         )}
       </div>
 
-      <div className={styles.tabs}>
+      <div className={`${styles.tabs} ${lowReach ? styles.tabsLow : ''}`}>
         {TABS.map(({ id, key }) => (
           <button
             key={id}

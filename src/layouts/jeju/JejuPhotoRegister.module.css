@@ -71,7 +71,11 @@
   font-weight: 400;
   line-height: 1;
   color: #636363;
-  white-space: nowrap;
+  /* Wraps (was nowrap) inside its 406 slot; a second line still clears the
+     field below (258 + 2 × 60 = 378, 3px into its 5px rim at most). */
+  white-space: normal;
+  word-break: keep-all;
+  overflow-wrap: anywhere;
 }
 
 .labelNation {
@@ -155,8 +159,12 @@
 .consent {
   position: absolute;
   left: 293px;
+  /* Bounded at 등록하기's right edge (1910) so a long consent line wraps inside
+     the column instead of running off the artboard; the row grows down into
+     the 98px gap above 등록하기 (three 48px lines still foot at 1568). */
+  right: 250px;
   top: 1424px;
-  height: 88px;
+  min-height: 88px;
   z-index: 6;
   display: flex;
   align-items: center;
@@ -195,12 +203,18 @@
   font-weight: 700;
   line-height: 1;
   color: #d0d2d3;
-  white-space: nowrap;
+  flex: 1 1 auto;
+  min-width: 0;
+  white-space: normal;
+  word-break: keep-all;
+  overflow-wrap: anywhere;
 }
 
 /* The bracketed policy label is its own tap target — it opens the modal
    instead of toggling the checkbox. */
 .policyLink {
+  /* Keeps its natural width — the consent sentence beside it is what wraps. */
+  flex: none;
   padding: 0;
   border: none;
   background: none;

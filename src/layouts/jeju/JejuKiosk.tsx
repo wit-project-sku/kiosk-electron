@@ -20,6 +20,7 @@ import { useExchangeSync } from '@renderer/hooks/useExchangeSync';
 import { WEB_EMBED_URLS, donationUrl } from '@shared/constants/webEmbeds';
 import { DONATION_COMING_SOON } from '@shared/config/donation';
 import { useHasDonationTile } from '@renderer/lib/buttonLayout';
+import type { UiTextKey } from '@renderer/lib/uiText';
 import { KioskArtboard } from '../components/KioskScreenImage';
 import { DonationWebScreen } from '../components/DonationWebScreen';
 import { PhotoWorkflow } from '../photo/PhotoWorkflow';
@@ -74,7 +75,8 @@ interface WebScreen {
   /** Header title id — JejuHeader localizes it (see i18n TITLE_KEYS). */
   title: string;
   /** Omit to let the sheet supply it, or hide the row when it has none. */
-  subtitle?: string;
+  /** Description from uiText, in all eight languages — see JejuWebScreen. */
+  subtitleKey?: UiTextKey;
   subtitleColor?: string;
   subtitleStar?: boolean;
   /** 탐나오&제주큐랑 only — the QR row + that frame's panel metrics. */
@@ -85,6 +87,22 @@ interface WebScreen {
   showBanner?: boolean;
 }
 
+/*
+ * 탐나오&제주큐랑 tab labels. Localization_Jeju carries both (Tamnao_Tab /
+ * JejuQurang_Tab, 8/8) and is the source; these are the fallback, the sheet's
+ * own words, for a cell left empty or a kiosk that has not synced the rows yet
+ * (the bundled copy predates them).
+ */
+const TAMNAO_TAB = {
+  ko: '탐나오', en: 'Tamnao', ja: 'タムナオ', zh: '塔姆瑙',
+  vi: 'Tamnao', th: 'Tamnao', ru: 'Тамнао', id: 'Tamnao',
+};
+
+const JEJU_QURANG_TAB = {
+  ko: '제주큐랑', en: 'Jeju Qurang', ja: '済州キュラン', zh: '济州岛古兰',
+  vi: 'Jeju Qurang', th: 'Jeju Qurang', ru: 'Чеджу Куранг', id: 'Jeju Qurang',
+};
+
 const WEB_SCREENS: readonly WebScreen[] = [
   {
     screen: 'market',
@@ -92,7 +110,10 @@ const WEB_SCREENS: readonly WebScreen[] = [
     // 제주's own chrome for this screen — Figma 6050:149556 titles it "WIT Store"
     // with the store's brown subtitle and no ★, unlike Insadong/Osan's 위드마켓.
     title: 'WIT Store',
-    subtitle: '오직 현장에서만 할인받을 수 있는 상품들을 확인해보세요!',
+    // No sheet row for this line, so it is uiText's withMarketSubtitle — the
+    // same sentence in all eight languages. It was a Korean literal, which every
+    // visitor read in Korean.
+    subtitleKey: 'withMarketSubtitle',
     subtitleColor: '#8b7355',
     subtitleStar: false,
   },
@@ -107,8 +128,8 @@ const WEB_SCREENS: readonly WebScreen[] = [
     url: WEB_EMBED_URLS.tamnao,
     title: '탐나오&제주큐랑',
     tabs: [
-      { id: 'tamnao', label: '탐나오', url: WEB_EMBED_URLS.tamnao },
-      { id: 'jejuqrang', label: '제주큐랑', url: WEB_EMBED_URLS.jejuqrang },
+      { id: 'tamnao', labelKey: 'Tamnao_Tab', label: TAMNAO_TAB, url: WEB_EMBED_URLS.tamnao },
+      { id: 'jejuqrang', labelKey: 'JejuQurang_Tab', label: JEJU_QURANG_TAB, url: WEB_EMBED_URLS.jejuqrang },
     ],
     // 6516:71785 hangs a "모바일에서 확인하기" QR under the panel so a visitor
     // can carry the site away on their phone. WIT Store's frame has no such row.
@@ -244,7 +265,7 @@ export function JejuKiosk(): JSX.Element {
             <JejuWebScreen
               controller={controller}
               title={web.title}
-              subtitle={web.subtitle}
+              subtitleKey={web.subtitleKey}
               subtitleColor={web.subtitleColor}
               subtitleStar={web.subtitleStar}
               url={web.url}

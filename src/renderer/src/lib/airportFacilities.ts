@@ -85,10 +85,13 @@ for (const f of AIRPORT_FACILITIES_JEJU) {
  * The chip row — every BaseCategory AirportFacilityData_Jeju uses, and nothing
  * else.
  *
- * ORDER: 화장실 is always the first chip (left of row 1) when the sheet lists
- * it — operators asked for that fixed lead-in; everything else follows the
- * sheet's first-appearance order (its NO column), so an operator can still
- * reshuffle the rest by moving rows, with no release.
+ * ORDER: 화장실 is always the first chip (left of row 1) and 기타 always the
+ * last (end of the final row) when the sheet lists them — operators asked for
+ * both fixed ends. 기타 is the catch-all, so it belongs after every named
+ * category; left to sheet order it landed 4th, because its first row happens to
+ * sit early in the tab. Everything between follows the sheet's first-appearance
+ * order (its NO column), so an operator can still reshuffle the middle by
+ * moving rows, with no release.
  *
  * The one thing a new category still needs from code is a GROUPS entry saying
  * which pictogram stands for it. Without that its rows sit on no pin — which is
@@ -102,10 +105,16 @@ for (const f of AIRPORT_FACILITIES_JEJU) {
  * pins are the answer for toilets; the list is not.
  */
 export const RESTROOM_CHIP = '화장실';
+/** The catch-all category — pinned to the END of the chip row; see ORDER above. */
+const OTHER_CHIP = '기타';
 const sheetChips = Object.keys(CHIP_LABELS);
-export const HELP_CHIPS: readonly string[] = sheetChips.includes(RESTROOM_CHIP)
-  ? [RESTROOM_CHIP, ...sheetChips.filter((c) => c !== RESTROOM_CHIP)]
-  : sheetChips;
+const pinnedFirst = sheetChips.includes(RESTROOM_CHIP) ? [RESTROOM_CHIP] : [];
+const pinnedLast = sheetChips.includes(OTHER_CHIP) ? [OTHER_CHIP] : [];
+export const HELP_CHIPS: readonly string[] = [
+  ...pinnedFirst,
+  ...sheetChips.filter((c) => c !== RESTROOM_CHIP && c !== OTHER_CHIP),
+  ...pinnedLast,
+];
 
 /**
  * A BaseCategory the sheet uses that no pin group routes.

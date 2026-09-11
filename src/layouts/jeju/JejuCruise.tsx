@@ -143,6 +143,18 @@ interface Column {
   x: number;
   sheetKey: string;
   head: Partial<Record<Lang, string>>;
+  /**
+   * Widest the header may run before it wraps: the distance to the nearer
+   * neighbouring axis (the plate's end, for 현황), so two heads at their caps
+   * can at most meet halfway between their axes.
+   */
+  headMax: number;
+  /**
+   * Row cells' wrap width, TEXT columns only, sized off what the cells carry
+   * while keeping neighbouring text boxes apart. Absent = the value never wraps
+   * (시각 and 소요시간 are both `HH:mm`).
+   */
+  cellMax?: number;
 }
 
 const COL_TIME_DEPARTURE = {
@@ -180,20 +192,20 @@ const COL_STATUS = {
 
 const COLUMNS: Record<SailingDirection, Column[]> = {
   departure: [
-    { key: 'time',     x: 285.5,  sheetKey: 'OP_Schedule_Info_col1', head: COL_TIME_DEPARTURE },
-    { key: 'duration', x: 515,    sheetKey: 'OP_Schedule_Info_col8', head: COL_DURATION },
-    { key: 'ship',     x: 840,    sheetKey: 'OP_Schedule_Info_col9', head: COL_SHIP },
-    { key: 'route',    x: 1260,   sheetKey: 'OP_Schedule_Info_col10', head: COL_ROUTE },
-    { key: 'place',    x: 1630,   sheetKey: 'OP_Schedule_Info_col11', head: COL_PLACE_DEPARTURE },
-    { key: 'status',   x: 1918.5, sheetKey: 'OP_Schedule_Info_col6', head: COL_STATUS },
+    { key: 'time',     x: 285.5,  sheetKey: 'OP_Schedule_Info_col1', head: COL_TIME_DEPARTURE, headMax: 229 },
+    { key: 'duration', x: 515,    sheetKey: 'OP_Schedule_Info_col8', head: COL_DURATION, headMax: 229 },
+    { key: 'ship',     x: 840,    sheetKey: 'OP_Schedule_Info_col9', head: COL_SHIP, headMax: 325, cellMax: 460 },
+    { key: 'route',    x: 1260,   sheetKey: 'OP_Schedule_Info_col10', head: COL_ROUTE, headMax: 370, cellMax: 340 },
+    { key: 'place',    x: 1630,   sheetKey: 'OP_Schedule_Info_col11', head: COL_PLACE_DEPARTURE, headMax: 288, cellMax: 320 },
+    { key: 'status',   x: 1918.5, sheetKey: 'OP_Schedule_Info_col6', head: COL_STATUS, headMax: 183, cellMax: 290 },
   ],
   arrival: [
-    { key: 'time',     x: 285.5,  sheetKey: 'OP_Schedule_Info_col12', head: COL_TIME_ARRIVAL },
-    { key: 'duration', x: 515,    sheetKey: 'OP_Schedule_Info_col8', head: COL_DURATION },
-    { key: 'ship',     x: 840,    sheetKey: 'OP_Schedule_Info_col9', head: COL_SHIP },
-    { key: 'route',    x: 1260,   sheetKey: 'OP_Schedule_Info_col10', head: COL_ROUTE },
-    { key: 'place',    x: 1630,   sheetKey: 'OP_Schedule_Info_col13', head: COL_PLACE_ARRIVAL },
-    { key: 'status',   x: 1918.5, sheetKey: 'OP_Schedule_Info_col6', head: COL_STATUS },
+    { key: 'time',     x: 285.5,  sheetKey: 'OP_Schedule_Info_col12', head: COL_TIME_ARRIVAL, headMax: 229 },
+    { key: 'duration', x: 515,    sheetKey: 'OP_Schedule_Info_col8', head: COL_DURATION, headMax: 229 },
+    { key: 'ship',     x: 840,    sheetKey: 'OP_Schedule_Info_col9', head: COL_SHIP, headMax: 325, cellMax: 460 },
+    { key: 'route',    x: 1260,   sheetKey: 'OP_Schedule_Info_col10', head: COL_ROUTE, headMax: 370, cellMax: 340 },
+    { key: 'place',    x: 1630,   sheetKey: 'OP_Schedule_Info_col13', head: COL_PLACE_ARRIVAL, headMax: 288, cellMax: 320 },
+    { key: 'status',   x: 1918.5, sheetKey: 'OP_Schedule_Info_col6', head: COL_STATUS, headMax: 183, cellMax: 290 },
   ],
 };
 
@@ -267,7 +279,7 @@ export function JejuCruise({ controller }: Props): JSX.Element {
         <span
           key={col.key}
           className={`${low(styles.head, styles.headLow)} ${styles.cellCentred}`}
-          style={{ left: col.x }}
+          style={{ left: col.x, maxWidth: col.headMax }}
         >
           {opText(col.sheetKey, lang, col.head)}
         </span>
@@ -284,20 +296,25 @@ export function JejuCruise({ controller }: Props): JSX.Element {
                   <span
                     key={col.key}
                     className={`${styles.cell} ${styles.cellCentred} ${
-                      col.key === 'status' ? styles.cellStatus : ''
-                    }`}
+                      col.cellMax ? styles.cellWrap : ''
+                    } ${col.key === 'status' ? styles.cellStatus : ''}`}
                     style={{
                       left: col.x,
+                      maxWidth: col.cellMax,
                       ...(col.key === 'status' && row.status
                         ? { color: sailingStatusColor(row.status) }
                         : null),
                     }}
                   >
                     {cellText(col, row)}
+                    {/* The 결항 note rides inside 현황 so a wrapped status
+                        pushes it down instead of overprinting it. */}
+                    {col.key === 'status' && row.note && (
+                      <span className={styles.note}>{row.note}</span>
+                    )}
                   </span>
                 ))}
                 {hasTimeChange(row) && <span className={styles.timeWas}>{row.scheduledTime}</span>}
-                {row.note && <span className={styles.note}>{row.note}</span>}
                 <div className={styles.rowRule} />
               </div>
             ))

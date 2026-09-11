@@ -60,7 +60,11 @@
   width: 1350px;
   height: 182px;
   box-sizing: border-box;
-  padding: 55px 75px;
+  /* No vertical padding (it was 55): the field is flex-centred, so one line
+     lands exactly where the padding put it, and a query too long for one line
+     wraps to a second (or third) inside the drawn 182 rather than ellipsising.
+     The height stays fixed — the keyboard opens at y882, flush under it. */
+  padding: 0 75px;
   border: 4.29px solid var(--kiosk-primary, #ff7f0f);
   border-radius: 120px;
   background: #fff;
@@ -78,9 +82,11 @@
   font-weight: 600;
   line-height: 1;
   text-align: left;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  /* Wraps instead of ellipsising: the end of the query — and the caret after
+     it — has to stay visible while it is being typed. */
+  white-space: normal;
+  word-break: keep-all;
+  overflow-wrap: anywhere;
   color: #999;
 }
 

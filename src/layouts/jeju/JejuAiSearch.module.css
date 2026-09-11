@@ -50,13 +50,19 @@
   background: #000;
 }
 
+/* Wraps rather than running on past the 1820 column (the longest heading, vi
+   이동수단, measures 834). The label box stays h76 and centres its content, so
+   a second line would spill evenly above and below it — still clear of the
+   chip row 136px down. */
 .labelText {
   margin: 0;
   font-size: 76px;
   font-weight: 600;
   line-height: 1;
   color: #000;
-  white-space: nowrap;
+  white-space: normal;
+  word-break: keep-all;
+  overflow-wrap: anywhere;
 }
 
 /* ── Chip rows ──
@@ -96,6 +102,11 @@
   font-weight: 500;
   line-height: 1;
   color: #999;
+  /* Sheet copy in eight languages on fixed-width chips: a long label wraps
+     inside the 193 plate (three 60px lines still fit), never mid-word in
+     Korean, and a word wider than the chip splits rather than spilling. */
+  word-break: keep-all;
+  overflow-wrap: anywhere;
   cursor: pointer;
   -webkit-tap-highlight-color: transparent;
 }
@@ -149,11 +160,16 @@
      pair that agrees.) */
   line-height: 1;
   text-align: center;
-  /* `pre`, not `pre-line`: the two-line labels (제주\n향토음식) carry a literal
-     newline, but nothing may auto-wrap. Figma sets these nowrap and lets the
-     longest ones (K-POP 체험, 오름·트레킹) run to the tile's edge — with
-     pre-line and any horizontal padding, K-POP 체험 breaks into "K-POP 체 / 험". */
-  white-space: pre;
+  /* `pre-wrap`: the two-line labels (제주\n향토음식) keep their literal newline,
+     and a label too wide for the tile now wraps inside it instead of spilling
+     onto its neighbour. Every current Korean label fits one 268 line — the
+     widest, 갈치·고등어 / 오름·트레킹 / K-POP 체험, measure 243–244 at 47px
+     Bold — so none of them changes. `keep-all` makes a longer one break at its
+     space ("K-POP / 체험"), never mid-word ("K-POP 체 / 험"), and there is still
+     no horizontal padding to take away the width those need. */
+  white-space: pre-wrap;
+  word-break: keep-all;
+  overflow-wrap: anywhere;
   cursor: pointer;
   -webkit-tap-highlight-color: transparent;
 }
@@ -166,6 +182,9 @@
    so its tuned line breaks are untouched. */
 .tileWrap {
   white-space: normal;
+  /* Back to normal line breaking — .tile's keep-all is for Korean; ja / zh / th
+     break between characters or words that have no spaces. */
+  word-break: normal;
   overflow-wrap: anywhere;
   padding: 0 14px;
   font-size: 40px;
@@ -207,4 +226,307 @@
 .ctaDisabled {
   background: #999;
   cursor: default;
+}
+
+/* ── Course picker — the landing (Figma 7088:23517, redraw of 7019:17890) ──
+ *
+ * What a visitor sees FIRST on '제주' 뭐하지: the 커스텀 코스 card that leads into
+ * the full questionnaire, and four 추천코스 cards that each open their themed
+ * questionnaire. Same `.root` column (x170, 1820 wide), so every x below is the
+ * frame's page x minus 170.
+ *
+ * y map (from the frame, confirmed on its 1:1 render):
+ *    700…760   *모든 추천코스는 … — the orange note, Bold since this redraw
+ *    897       I 커스텀 코스  — section heading, new
+ *   1033…1515  the 커스텀 코스 card, 1678×482 (was 1810×510 at y853)
+ *   1616       I 추천코스     — section heading, new
+ *   1752…2234  row 1: 자연·유산 · 맛집·감성, 780×482 cards (were 880×608)
+ *   2296…2778  row 2: 쇼핑·로컬 · 가족·체험 — the two swapped places
+ *   3267…3840  promo banner
+ *
+ * NORMALISED, measured on the render: the frame draws the 쇼핑·로컬 plate 771.8
+ * wide where the other three are 780 — its right edge 9px short of the 자연·유산
+ * plate above it. It takes 780 here so the grid's right edges line up.
+ * Everything INSIDE a course card stays per-card (see THEMES): the frame places
+ * each illustration and its text block by hand, and they differ by up to 49px.
+ */
+.pickNote {
+  position: absolute;
+  /* Centred on page x1108, not the artboard's 1080: the frame aligns it with the
+     subtitle's TEXT, which sits right of centre because its ★ leads it. */
+  left: 938px;
+  /* 694, not the frame's 700: the 1.2 line-height below adds 6px of half-leading
+     above the glyphs, and 694 puts the Korean line's ink on the frame's own
+     y703 (measured on the 1:1 render). */
+  top: 694px;
+  transform: translateX(-50%);
+  /* An explicit width, not shrink-to-fit: from left 938 an auto box could only
+     grow 882px before wrapping, which would break even the Korean line. 1760
+     holds the Korean on one line and lets the longer translations wrap inside
+     the column instead of running off it. */
+  width: 1760px;
+  margin: 0;
+  font-size: 60px;
+  font-weight: 700;
+  line-height: 1.2;
+  color: var(--kiosk-primary, #ff7f0f);
+  text-align: center;
+}
+
+/* I 커스텀 코스 · I 추천코스 — SemiBold 76, gray 07. The "I" is the frame's own
+   text, not a drawn rule. */
+.sectionHead {
+  position: absolute;
+  left: 86px;
+  margin: 0;
+  font-size: 76px;
+  font-weight: 600;
+  line-height: 1;
+  color: #1a1a1a;
+  /* Wraps rather than running on; the longest (th) measures 823 of the 1734
+     the column leaves it, so in practice it is always one line. */
+  white-space: normal;
+  word-break: keep-all;
+  overflow-wrap: anywhere;
+}
+
+/* x260, 4px right of the 추천코스 heading and of the column — the frame's own
+   placement, kept (the render's ink starts at 265 vs 261). */
+.headCustom {
+  left: 90px;
+  top: 897px;
+}
+
+.headRecommended {
+  top: 1616px;
+}
+
+/* Shared plate: white, r80, the frame's own soft drop. */
+.bigCard,
+.courseCard {
+  position: absolute;
+  box-sizing: border-box;
+  padding: 0;
+  border: none;
+  background: #fff;
+  border-radius: 80px;
+  box-shadow: 0 21.45px 49.2px rgba(143, 147, 157, 0.1);
+  text-align: left;
+  font-family: inherit;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.bigCard {
+  left: 86px;
+  top: 1033px;
+  width: 1678px;
+  height: 482px;
+  /* The 5px brand rule is drawn INSIDE the plate, as Figma's border-5 is, and as
+     an inset shadow rather than a border so the children below keep the frame's
+     outer-box coordinates. */
+  box-shadow:
+    inset 0 0 0 5px var(--kiosk-primary, #ff7f0f),
+    0 21.45px 49.2px rgba(143, 147, 157, 0.1);
+}
+
+/* The frame's row is 1431 wide, centred in the 1678 plate (x123) and on its
+   height (329-tall art → y77): art, 86 gap, the 598 text column, the arrow. */
+.bigArt {
+  position: absolute;
+  left: 123px;
+  top: 77px;
+  width: 282px;
+  height: 329px;
+  object-fit: contain;
+  pointer-events: none;
+}
+
+/* sub → title → desc at 112 / 180 / 280 — the render's ink sits at 115 / 185 /
+   288, each line's own cap offset below those boxes. */
+.bigText {
+  position: absolute;
+  left: 491px; /* 123 + 282 + 86 */
+  top: 112px;
+  width: 598px;
+  display: flex;
+  flex-direction: column;
+  gap: 30px;
+}
+
+.bigSub,
+.courseSub {
+  margin: 0;
+  font-size: 38px;
+  font-weight: 500;
+  line-height: 1;
+  color: #999; /* 글씨-main */
+}
+
+/* One line up to the arrow, then a second rather than running under it: the
+   title may outrun the 598 column (vi 608, th 719 — as it always has, with 370
+   to spare before the arrow), so it sizes to its text and only wraps past 928
+   (1459 arrow − 491 column − a 40 gap). */
+.bigTitle {
+  margin: 0;
+  width: max-content;
+  max-width: 928px;
+  font-size: 70px;
+  font-weight: 700;
+  line-height: 1;
+  color: #333;
+  white-space: normal;
+  word-break: keep-all;
+  overflow-wrap: anywhere;
+}
+
+/* Two authored lines in Korean at 1.3 (this redraw — it was 1); other
+   languages wrap inside the column. */
+.bigDesc {
+  margin: 0;
+  font-size: 38px;
+  font-weight: 500;
+  line-height: 1.3;
+  color: #999;
+  white-space: pre-line;
+}
+
+/* The frame's arrow group is the left-pointing course arrow turned 180° —
+   90px now, its strokes unscaled (see arrow-course-90.svg). */
+.bigArrow {
+  position: absolute;
+  left: 1459px; /* 491 + 598 + 370 */
+  top: 196.5px; /* centred on the 329 row: 77 + (329 − 90) / 2 */
+  width: 90px;
+  height: 90px;
+  transform: rotate(180deg);
+  pointer-events: none;
+}
+
+/* ── The four course cards ── */
+.courseGrid {
+  position: absolute;
+  left: 86px;
+  top: 1752px;
+  width: 1678px;
+  display: grid;
+  grid-template-columns: 780px 780px;
+  column-gap: 118px;
+  row-gap: 62px;
+}
+
+.courseCard {
+  position: relative;
+  width: 780px;
+  height: 482px;
+}
+
+/* Box per card — set inline from THEMES, as the frame places each illustration
+   by hand. */
+.courseArt {
+  position: absolute;
+  object-fit: contain;
+  pointer-events: none;
+}
+
+/* Per-card left/top/width come inline from THEMES. No arrow on these cards any
+   more: the frame's arrow nodes export as a white disc with an EMPTY chevron
+   group — white on a white plate, and the 1:1 render has no ink there at all. */
+.courseText {
+  position: absolute;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+/* Korean fits its text box on one line, as the frame sets it (375/396 ·
+   332/348 · 367/370 · 297/368, measured); should a longer one ever come in it
+   wraps at a space rather than running past the plate. The other languages
+   wrap inside the card too (see .courseTextWrap). */
+.courseSub {
+  white-space: normal;
+  word-break: keep-all;
+  overflow-wrap: anywhere;
+}
+
+.courseTitle {
+  margin: 0;
+  font-size: 70px;
+  font-weight: 700;
+  line-height: 1.3;
+  color: #333;
+  white-space: pre-line;
+  overflow-wrap: anywhere;
+}
+
+/* Other languages only (the TSX adds .courseTextWrap when lang !== 'ko'), in
+   the spirit of the frame's own notes for them (7058:22669, "font 45 / 단
+   내리기"): at 70px the longest words — ru "впечатления", id "Pengalaman" —
+   are wider than their 348…396 text boxes and split mid-word, and ja / vi 쇼핑·
+   로컬 titles ran to four lines past the plate. 56px fits every word whole and
+   keeps every title to three lines (ending ≤ y430 of the 482 plate). There is
+   no line clamp: a future longer string is shown whole on a fourth line rather
+   than cut off. A wrapped sub gets 1.2 so its two lines don't touch; both go
+   back to normal line breaking (keep-all is for Korean — ja / zh / th break
+   without spaces). */
+.courseTextWrap .courseSub {
+  white-space: normal;
+  word-break: normal;
+  line-height: 1.2;
+}
+
+.courseTextWrap .courseTitle {
+  font-size: 56px;
+}
+
+/* ── Themed questionnaire (Figma 6336:67302) ────────────────────────────
+ *
+ * What a themed card opens: the region map on top, then 방문 인원 · 체류 기간 ·
+ * 이동수단 and the CTA — no 즐길 거리, because the theme already says what the
+ * day is for. Same `.root` column, so x is the frame's page x − 170.
+ *
+ * y map (from the frame, confirmed on its 1:1 render):
+ *    699…1515  region map, 1484×816, centred (page x338)
+ *   1615 / 1751  방문 인원 label / chips
+ *   2044 / 2180  체류 기간
+ *   2473 / 2609  이동수단
+ *   2902…3080  코스 추천받기
+ *   3267…3840  promo banner — this variant keeps it
+ */
+.regionMap {
+  position: absolute;
+  left: 168px;
+  top: 699px;
+  width: 1484px;
+  height: 816px;
+}
+
+.regionMap svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+
+/* The painted shape is the hit area — see jejuRegionMap.ts. */
+.region {
+  cursor: pointer;
+  transition: fill 120ms ease-out;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.regionLabel {
+  position: absolute;
+  transform: translateX(-50%);
+  margin: 0;
+  font-size: 50px;
+  font-weight: 600;
+  line-height: 1;
+  color: #fff;
+  white-space: nowrap;
+  pointer-events: none;
+}
+
+.ctaTheme {
+  top: 2902px;
 }

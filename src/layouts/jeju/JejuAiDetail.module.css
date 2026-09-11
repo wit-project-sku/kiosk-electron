@@ -7,9 +7,23 @@
  *        x1836/y592; see .qr for why it had to grow)
  *   667  hashtags (course title is the header subtitle)
  *   769  summary bar (h150, r75)
- *   955  answer pills (h130)
- *   1128 전체보기 / 선택보기 (x1418 / x1720, 268×120)
- *   1147 DAY pager  1156 DAY label
+ *   943  전체보기 / 선택보기 (x1418 / x1720, 268×120)
+ *   960  DAY pager   969 DAY label
+ *   1134 answer pills (x310, h130, 268-wide pills on a 300 pitch)
+
+ * ── The 2026-09-10 redraw (7038:18453, also named -04-1) ─────────────
+ * Two rows swapped places and the list grew a second card:
+ *   · the DAY row and the 전체보기 / 선택보기 pair moved UP into the band the
+ *     answer pills had (1128/1147/1156 → 943/960/969), and the pills moved DOWN
+ *     under them to 1134, now starting at x310 — the card column — and clipped
+ *     at its 1678 width like the frame's own row;
+ *   · stops the visitor did not pick are drawn as the compact 289px "추천 코스"
+ *     card instead of the full 515px plate (see JejuCourseSpotCard's compact
+ *     variant, and `isPicked` in the component);
+ *   · the summary bar reads 총 소요시간 · 이동거리 · 방문 인원/ 일정 · 이동수단 —
+ *     난이도 left the bar (it stays on every card), 방문 인원/일정 came in.
+ * The summary bar (769) and the list (1295) did not move.
+ *
  *   1295 scrollable spot list (all stops for the day)   rail inside list
  *
  * WHAT THE RE-STACK CHANGED against 6516:73138: the course DESCRIPTION that sat
@@ -122,14 +136,23 @@
   line-height: 1.3;
 }
 
+/* The 방문 인원/ 일정 label — the frame sets this one at 28 against the
+   others' 25, because it is the longest of the four. */
+.statLabelLg {
+  font-size: 28px;
+}
+
 .statValue {
   display: block;
   font-size: 45px;
   font-weight: 600;
   line-height: 1.3;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  /* Wraps instead of ellipsising — a long localized answer (방문 인원/ 일정 in
+     ru or vi) takes a second line. The bar stays h150 (the 전체보기 pair sits
+     24px under it): label 32.5 + two 58.5 lines = 149.5, so two still fit. */
+  white-space: normal;
+  word-break: keep-all;
+  overflow-wrap: anywhere;
 }
 
 .statSep {
@@ -151,7 +174,7 @@
   position: absolute;
   pointer-events: none;
   left: 0;
-  top: 1156px;
+  top: 969px;
   width: 2160px;
   margin: 0;
   font-size: 68px;
@@ -164,7 +187,7 @@
 /* ── Day swiper: 85×85 round chevron buttons either side of the DAY label ── */
 .dayArrow {
   position: absolute;
-  top: 1147px;
+  top: 960px;
   width: 85px;
   height: 85px;
   padding: 0;
@@ -197,7 +220,7 @@
    all at kiosk viewing distance. */
 .scopeBtn {
   position: absolute;
-  top: 1128px;
+  top: 943px;
   width: 268px;
   height: 120px;
   padding: 0;
@@ -209,6 +232,11 @@
   line-height: 1;
   color: #999;
   text-align: center;
+  /* A long label (ru Только выбранное) wraps to two 45px lines inside the fixed
+     268×120 pill — every word fits, the longest measuring 260 — and a word
+     wider than the pill would split rather than spill. */
+  word-break: keep-all;
+  overflow-wrap: anywhere;
   cursor: pointer;
   -webkit-tap-highlight-color: transparent;
 }
@@ -312,14 +340,25 @@
    sizes, so neither borrows the other's). */
 .picks {
   position: absolute;
-  left: 170px;
-  top: 955px;
-  width: 1820px;
+  /* 7038:18453: under the DAY row, on the card column (x310, 1678 wide), and
+     left-aligned. The frame clips the row at the column edge; it scrolls here
+     instead, so a clipped last pill is still reachable by a swipe — at rest it
+     looks exactly like the frame. */
+  left: 310px;
+  top: 1134px;
+  width: 1678px;
   height: 130px;
   display: flex;
   align-items: center;
-  justify-content: center;
+  justify-content: flex-start;
   gap: 32px;
+  overflow-x: auto;
+  overflow-y: hidden;
+  scrollbar-width: none;
+}
+
+.picks::-webkit-scrollbar {
+  display: none;
 }
 
 .pick {
@@ -328,10 +367,13 @@
      1812 of the 1820 column, so a longer language has to wrap rather than push
      the last pill off the page — which is what the frame's own 레저·액티비티
      pill already does. */
-  flex: 0 1 auto;
-  min-width: 208px;
+  /* The frame's own fixed 268 — every pill the same width, the two-line
+     레저·액티비티 wrapping inside it (the component inserts the break
+     opportunity after the dot). */
+  flex: 0 0 auto;
+  width: 268px;
   height: 120px;
-  padding: 0 60px;
+  padding: 0 16px;
   border-radius: 45px;
   background: #fff;
   display: flex;
@@ -342,7 +384,17 @@
   line-height: 1.1;
   color: var(--kiosk-primary, #ff7f0f);
   text-align: center;
+  word-break: keep-all;
   overflow-wrap: anywhere;
+}
+
+/* Non-Korean labels only — the same trade JejuAiSearch's .tileWrap makes: the
+   268 pill is sized to the Korean, and a longer language wraps at a smaller
+   size inside it rather than spilling past its edge. */
+.pickWrap {
+  font-size: 34px;
+  /* .pick's keep-all is for Korean; ja / zh / th break without spaces. */
+  word-break: normal;
 }
 
 /*
@@ -353,12 +405,26 @@
 .qrLow { top: calc(550px + 113px); }
 .tagsLow { top: calc(667px + 113px); }
 .summaryLow { top: calc(769px + 113px); }
-.picksLow { top: calc(955px + 113px); }
-.scopeLow { top: calc(1128px + 113px); }
-.dayLow { top: calc(1156px + 113px); }
-.dayArrowLow { top: calc(1147px + 113px); }
+.picksLow { top: calc(1134px + 113px); }
+.scopeLow { top: calc(943px + 113px); }
+.dayLow { top: calc(969px + 113px); }
+.dayArrowLow { top: calc(960px + 113px); }
 
 .listLow {
   top: calc(1295px + 113px);
   max-height: calc(3840px - 1295px - 113px);
+}
+
+/* ── Themed course (Figma 7058:22277) ────────────────────────────────────
+   No 전체보기 / 선택보기 and no answer pills on a themed course, so the list
+   rises into the band they leave: its first card at 1139, the frame's own y.
+   Declared last so it wins over .list / .listLow at equal specificity. */
+.listTheme {
+  top: 1139px;
+  max-height: calc(3840px - 1139px);
+}
+
+.listThemeLow {
+  top: calc(1139px + 113px);
+  max-height: calc(3840px - 1139px - 113px);
 }

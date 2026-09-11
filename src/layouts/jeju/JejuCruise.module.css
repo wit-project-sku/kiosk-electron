@@ -68,21 +68,27 @@
   top: 3467.5px;
 }
 
+/* A label too long for the pill wraps inside it rather than spilling past it:
+   the pill keeps its 170 (the sub-tab band sits 49 below), two lines at 1.1
+   take 110 of it and the button centres them. The 30px side padding only
+   shows once a label wraps. */
 .tab {
   flex: 0 0 580px;
   width: 580px;
   height: 170px;
   box-sizing: border-box;
-  padding: 0;
+  padding: 0 30px;
   border: none;
   border-radius: 42.9px;
   background: #fff;
   font-size: 50px;
   font-weight: 500;
-  line-height: 1;
+  line-height: 1.1;
   color: #999;
   text-align: center;
-  white-space: nowrap;
+  white-space: normal;
+  word-break: keep-all;
+  overflow-wrap: anywhere;
   cursor: pointer;
   -webkit-tap-highlight-color: transparent;
 }
@@ -130,19 +136,28 @@
   top: 921px;
 }
 
+/* Hung from its CENTRE (1130 + 45/2), not its top, so a head that wraps to
+   two lines grows up and down around the plate's middle instead of hanging off
+   its foot; one line lands exactly where the 1130-top one did. Wrap width is
+   capped per column (`headMax` in the TSX). The transform lives on
+   `.head.cellCentred` below. */
 .head {
   position: absolute;
-  top: 1130px;
+  top: 1152.5px;
   font-size: 45px;
   font-weight: 600;
-  line-height: 1;
+  line-height: 1.1;
   color: #fff;
-  white-space: nowrap;
+  text-align: center;
+  white-space: normal;
+  word-break: keep-all;
+  overflow-wrap: anywhere;
 }
 
-/* Rides the plate: 50 below its top, exactly as at 1080/1130. */
+/* Rides the plate: text top 50 below its top, exactly as at 1080/1130 — i.e.
+   centred on 993.5. */
 .headLow {
-  top: 971px;
+  top: 993.5px;
 }
 
 /* ── Scrolling rows ─────────────────────────────────────────────────── */
@@ -196,24 +211,42 @@
 }
 
 /* Figma repeats the row group every 255 with its rule 155 in — so the block is
-   255 tall and the rule is NOT centred in it. */
+   255 tall and the rule is NOT centred in it.
+
+   255 is a MINIMUM, not a fixed pitch: the cells stack in one grid area
+   (instead of being absolutely positioned) so the row takes its height from
+   them. Anything up to 119 tall — one line, the struck time or the 결항 note
+   under it, or a name wrapped to two lines (100) — leaves the row at exactly
+   255 with the rule at 155; more pushes the row, and its rule, down rather
+   than running over them. padding-bottom 136 = 255 − 119, so the rule always
+   clears the tallest cell by at least the 36 the note clears it by today. */
 .row {
   position: relative;
-  height: 255px;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  min-height: 255px;
+  box-sizing: border-box;
+  padding-bottom: 136px;
 }
 
+/* Hung off the row's foot so it rides down with a taller row: 255 − 155 − 3. */
 .rowRule {
   position: absolute;
   left: 170px;
-  top: 155px;
+  bottom: 97px;
   width: 1820px;
   height: 3px;
   background: #c8bda9;
 }
 
+/* In flow (grid area 1/1, shrink-wrapped to the start) so the row can size to
+   it; `position: relative` plus the inline `left` then slides it onto its axis
+   exactly where the absolute version sat. */
 .cell {
-  position: absolute;
-  top: 0;
+  position: relative;
+  grid-area: 1 / 1;
+  justify-self: start;
+  align-self: start;
   font-size: 50px;
   font-weight: 600;
   line-height: 1;
@@ -221,10 +254,25 @@
   white-space: nowrap;
 }
 
+/* Text columns (선박명 · 항로 · 장소 · 현황): wrap inside the column's
+   `cellMax` (TSX) instead of running into the next column. The two `HH:mm`
+   columns keep `.cell`'s nowrap. */
+.cellWrap {
+  text-align: center;
+  white-space: normal;
+  word-break: keep-all;
+  overflow-wrap: anywhere;
+}
+
 /* Every column is centred; the axis rides in `left`. See COLUMNS in the TSX for
    how each axis was measured. */
 .cellCentred {
   transform: translateX(-50%);
+}
+
+/* Heads are also hung from their vertical centre (see `.head`). */
+.head.cellCentred {
+  transform: translate(-50%, -50%);
 }
 
 /* 현황 is the one cell drawn full Bold (6420:23848) — its colour comes from
@@ -234,26 +282,29 @@
 }
 
 /* Why a sailing is 결항 — 기상악화 at 1853/1411 on the 1330 row, i.e. 81 below
-   the row's text, centred on the 현황 axis (1853 + 132/2 = 1919). */
+   the row's text, centred on the 현황 axis (1853 + 132/2 = 1919).
+   Rendered INSIDE the 현황 cell, as a block under the status word, so it
+   follows that word down when it wraps instead of being overprinted by it:
+   31 = 81 − the 50px status line. The cell's text-align centres it. */
 .note {
-  position: absolute;
-  left: 1918.5px;
-  top: 81px;
-  transform: translateX(-50%);
+  display: block;
+  margin-top: 31px;
   font-size: 38px;
   font-weight: 400;
   line-height: 1;
   color: var(--kiosk-primary, #ff7f0f);
-  white-space: nowrap;
 }
 
 /* The re-timed sailing's original time. The leading time does NOT move up — the
    struck one simply hangs below it on the time column's axis (16:05 at 241/1664
-   on the 1585 row: 79 below, centring on ≈285.5). */
+   on the 1585 row: 79 below, centring on ≈285.5). In flow like `.cell`. */
 .timeWas {
-  position: absolute;
+  position: relative;
+  grid-area: 1 / 1;
+  justify-self: start;
+  align-self: start;
   left: 285.5px;
-  top: 79px;
+  margin-top: 79px;
   transform: translateX(-50%);
   font-size: 38px;
   font-weight: 400;

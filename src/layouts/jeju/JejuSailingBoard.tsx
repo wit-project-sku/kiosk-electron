@@ -55,6 +55,17 @@ const COLUMNS = {
   status: 1718,
 } as const;
 
+/**
+ * Wrap widths on the same axes — see JejuFlightBoard's HEAD_MAX / VALUE_MAX.
+ * Heads: the distance to the nearer neighbouring axis (the title's / board's
+ * edge for the outer two). Values: only the TEXT columns wrap; the time and the
+ * `HH:mm` duration never do. 현황's width also bounds the 결항 note under it.
+ */
+const HEAD_MAX: Record<keyof typeof COLUMNS, number> = {
+  time: 168, duration: 168, ship: 260, route: 310, place: 218, status: 218,
+};
+const VALUE_MAX = { ship: 380, route: 300, place: 230, status: 220 } as const;
+
 const HEAD_KEYS: Record<keyof typeof COLUMNS, string> = {
   time: 'OP_Schedule_Info_col1',
   duration: 'OP_Schedule_Info_col8',
@@ -111,26 +122,39 @@ function SailingCells({ sailing, lang }: { sailing: JejuSailing; lang: Lang }): 
       <span className={styles.value} style={{ left: COLUMNS.duration }}>
         {sailing.duration}
       </span>
-      <span className={styles.value} style={{ left: COLUMNS.ship }}>
+      <span
+        className={`${styles.value} ${styles.valueWrap}`}
+        style={{ left: COLUMNS.ship, maxWidth: VALUE_MAX.ship }}
+      >
         {sailing.shipName}
       </span>
-      <span className={styles.value} style={{ left: COLUMNS.route }}>
+      <span
+        className={`${styles.value} ${styles.valueWrap}`}
+        style={{ left: COLUMNS.route, maxWidth: VALUE_MAX.route }}
+      >
         {sailing.route}
       </span>
-      <span className={styles.value} style={{ left: COLUMNS.place }}>
+      <span
+        className={`${styles.value} ${styles.valueWrap}`}
+        style={{ left: COLUMNS.place, maxWidth: VALUE_MAX.place }}
+      >
         {sailing.place}
       </span>
 
       {sailing.status && (
         <span
-          className={`${styles.value} ${styles.valueStatus}`}
-          style={{ left: COLUMNS.status, color: sailingStatusColor(sailing.status) }}
+          className={`${styles.value} ${styles.valueStatus} ${styles.valueWrap}`}
+          style={{
+            left: COLUMNS.status,
+            maxWidth: VALUE_MAX.status,
+            color: sailingStatusColor(sailing.status),
+          }}
         >
           {sailingStatusLabel(sailing.status, lang)}
         </span>
       )}
       {sailing.note && (
-        <span className={styles.note} style={{ left: COLUMNS.status }}>
+        <span className={styles.note} style={{ left: COLUMNS.status, maxWidth: VALUE_MAX.status }}>
           {sailing.note}
         </span>
       )}
@@ -182,11 +206,11 @@ export function JejuSailingBoard({ controller, lang }: Props): JSX.Element {
         aria-label={title}
         onClick={openSailings}
       >
-        <p className={styles.title}>{title}</p>
+        <p className={lang === 'ko' ? styles.title : `${styles.title} ${styles.titleWrap}`}>{title}</p>
         <div className={styles.rule} />
 
         {(Object.keys(COLUMNS) as (keyof typeof COLUMNS)[]).map((key) => (
-          <span key={key} className={styles.head} style={{ left: COLUMNS[key] }}>
+          <span key={key} className={styles.head} style={{ left: COLUMNS[key], maxWidth: HEAD_MAX[key] }}>
             {opText(HEAD_KEYS[key], lang, HEADS[key])}
           </span>
         ))}

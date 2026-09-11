@@ -74,6 +74,18 @@ const COLUMNS = {
   status: 1730,
 } as const;
 
+/**
+ * Wrap widths on the same axes. Heads: the distance to the nearer neighbouring
+ * axis (the title's / board's edge for the outer two), so two capped heads can
+ * at most meet halfway. Values: only the TEXT columns wrap, sized off what they
+ * carry — 아시아나항공(OZ8900) needs ~440 on one line — without letting
+ * neighbouring boxes overlap; the time and the gate code never wrap.
+ */
+const HEAD_MAX: Record<keyof typeof COLUMNS, number> = {
+  time: 200, airline: 340, destination: 260, kind: 160, gate: 160, status: 160,
+};
+const VALUE_MAX = { airline: 480, destination: 260, kind: 250, status: 220 } as const;
+
 const HEAD_KEYS: Record<keyof typeof COLUMNS, string> = {
   time: 'OP_Schedule_Info_col1',
   airline: 'OP_Schedule_Info_col2',
@@ -132,16 +144,28 @@ function FlightCells({ departure, lang }: { departure: JejuDeparture; lang: Lang
         </span>
       )}
 
-      <span className={styles.value} style={{ left: COLUMNS.airline }}>
+      <span
+        className={`${styles.value} ${styles.valueWrap}`}
+        style={{ left: COLUMNS.airline, maxWidth: VALUE_MAX.airline }}
+      >
         {departure.airline}
+        {/* A break point before "(" — keep-all leaves 아시아나항공(OZ8900) no
+            other place to wrap but the middle of the flight number. */}
+        <wbr />
         <span className={styles.flightNo}>({departure.flightNo})</span>
       </span>
 
-      <span className={styles.value} style={{ left: COLUMNS.destination }}>
+      <span
+        className={`${styles.value} ${styles.valueWrap}`}
+        style={{ left: COLUMNS.destination, maxWidth: VALUE_MAX.destination }}
+      >
         {departure.destination}
       </span>
 
-      <span className={styles.value} style={{ left: COLUMNS.kind }}>
+      <span
+        className={`${styles.value} ${styles.valueWrap}`}
+        style={{ left: COLUMNS.kind, maxWidth: VALUE_MAX.kind }}
+      >
         {flightKindLabel(departure.kind, lang)}
       </span>
 
@@ -151,9 +175,10 @@ function FlightCells({ departure, lang }: { departure: JejuDeparture; lang: Lang
 
       {/* Empty 현황 → "-" (same rule as JejuFlights). */}
       <span
-        className={`${styles.value} ${styles.valueStatus}`}
+        className={`${styles.value} ${styles.valueStatus} ${styles.valueWrap}`}
         style={{
           left: COLUMNS.status,
+          maxWidth: VALUE_MAX.status,
           ...(departure.status ? { color: flightStatusColor(departure.status) } : null),
         }}
       >
@@ -207,11 +232,11 @@ export function JejuFlightBoard({ controller, lang }: Props): JSX.Element {
         aria-label={title}
         onClick={openFlights}
       >
-        <p className={styles.title}>{title}</p>
+        <p className={lang === 'ko' ? styles.title : `${styles.title} ${styles.titleWrap}`}>{title}</p>
         <div className={styles.rule} />
 
         {(Object.keys(COLUMNS) as (keyof typeof COLUMNS)[]).map((key) => (
-          <span key={key} className={styles.head} style={{ left: COLUMNS[key] }}>
+          <span key={key} className={styles.head} style={{ left: COLUMNS[key], maxWidth: HEAD_MAX[key] }}>
             {opText(HEAD_KEYS[key], lang, HEADS[key])}
           </span>
         ))}

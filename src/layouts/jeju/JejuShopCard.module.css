@@ -2,10 +2,15 @@
  * 제주 shop list card — Figma component `4030:74958` (R>리스트-사진4개).
  * 1820×530, r42.9, borderless, padding 65/45. Info column 1120 (gap 40),
  * photo column 570 (2×2 of 270×150 at r21.45, gap 30).
+ *
+ * Every text line WRAPS rather than ellipsising — the copy is CMS content in
+ * eight languages and must be shown whole. The 530 (384 compact) is therefore a
+ * floor, not a clamp: a card whose copy fits looks exactly as drawn, a longer
+ * one grows, and the in-flow list column below makes room for it.
  */
 .card {
   width: 1820px;
-  height: 530px;
+  min-height: 530px;
   box-sizing: border-box;
   padding: 65px 45px;
   /* No border, no shadow — Figma draws a plain white rounded plate. `border: none`
@@ -38,26 +43,33 @@
   min-width: 0;
 }
 
+/* Name and category share one row; both may shrink and wrap so a long one
+   takes a second line instead of running into the other. */
 .name {
+  flex: 0 1 auto;
+  min-width: 0;
   font-size: 68px;
   font-weight: 600;
   line-height: 1;
   color: #2b2b2b;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  white-space: normal;
+  word-break: keep-all;
+  overflow-wrap: anywhere;
 }
 
 .cat {
   display: flex;
   align-items: center;
   gap: 21.45px;
-  flex: 0 0 auto;
+  flex: 0 1 auto;
+  min-width: 0;
   font-size: 52px;
   font-weight: 400;
   line-height: 1;
   color: #999;
-  white-space: nowrap;
+  white-space: normal;
+  word-break: keep-all;
+  overflow-wrap: anywhere;
 }
 
 .dot {
@@ -72,15 +84,16 @@
   background: #2e7d32;
 }
 
+/* No line clamps — each line shows its full text and wraps (see the header). */
 .address,
 .desc,
 .tags,
 .route,
 .footer {
   margin: 0;
-  overflow: hidden;
-  display: -webkit-box;
-  -webkit-box-orient: vertical;
+  white-space: normal;
+  word-break: keep-all;
+  overflow-wrap: anywhere;
 }
 
 .route {
@@ -88,7 +101,6 @@
   font-weight: 500;
   line-height: 1;
   color: #999;
-  -webkit-line-clamp: 1;
   flex: 0 0 auto;
 }
 
@@ -97,7 +109,6 @@
   font-weight: 500;
   line-height: 1;
   color: #999;
-  -webkit-line-clamp: 1;
   flex: 0 0 auto;
 }
 
@@ -106,7 +117,6 @@
   font-weight: 500;
   line-height: 1;
   color: #999;
-  -webkit-line-clamp: 1;
 }
 
 .desc {
@@ -114,7 +124,6 @@
   font-weight: 500;
   line-height: 1.2;
   color: #2b2b2b;
-  -webkit-line-clamp: 2;
 }
 
 .tags {
@@ -122,7 +131,6 @@
   font-weight: 400;
   line-height: 1;
   color: #999;
-  -webkit-line-clamp: 1;
 }
 
 /* Query match highlight (search only). */
@@ -157,7 +165,7 @@
 
 /* 렌트카 list — name · category / route / footer (JejuRentcar `compact`). */
 .cardCompact {
-  height: 384px;
+  min-height: 384px;
   padding: 60px 45px;
   align-items: stretch;
 }
@@ -187,7 +195,6 @@
   gap: 24px;
   flex: 1;
   min-width: 0;
-  overflow: hidden;
 }
 
 .nameRowLeft .name {
@@ -209,13 +216,18 @@
   gap: 24px;
 }
 
-/* 렌터카 list — badge chip beside the shop name (JejuRentcar `compact`). */
+/* 렌터카 list — badge chip beside the shop name (JejuRentcar `compact`).
+   Fixed 395 wide; a longer (translated) label wraps inside it, centred, rather
+   than spilling over the name. Two 48px lines at leading-none fill the 97
+   exactly; min-height lets a third grow the chip instead of clipping. The side
+   padding only matters once a label wraps — it keeps the text off the pill's
+   rounded ends; a short label stays centred where it was. */
 .badge {
   flex: 0 0 auto;
   box-sizing: border-box;
   width: 395px;
-  height: 97px;
-  padding: 0;
+  min-height: 97px;
+  padding: 0 24px;
   border-radius: 60px;
   display: inline-flex;
   align-items: center;
@@ -223,7 +235,10 @@
   font-size: 48px;
   font-weight: 500;
   line-height: 1;
-  white-space: nowrap;
+  text-align: center;
+  white-space: normal;
+  word-break: keep-all;
+  overflow-wrap: anywhere;
   pointer-events: none;
 }
 

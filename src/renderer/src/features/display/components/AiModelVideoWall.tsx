@@ -26,11 +26,13 @@ interface AiModelVideoWallProps {
  * - Several clips auto-advance on `ended`, wrapping — this is how the sheet's
  *   numbered home videos (기본화면_1…10) cycle.
  * - `playOnce` opts out of both: the list runs through once and reports `onDone`.
- * - The hidden back layer always has the NEXT clip preloaded, so advancing is an
- *   instant cut with no black frame. On a screen change the old clip keeps
- *   playing until the new one can play, so navigation switches fast and smooth.
+ * - The back layer always has the NEXT clip preloaded, so advancing is an
+ *   instant cut with no black frame. On a screen change the swap happens
+ *   IMMEDIATELY: the layers switch by z-order, and since a <video> paints
+ *   nothing until its first frame is decoded, the outgoing clip (still playing
+ *   underneath) covers exactly the decode gap — no wait, no blank.
  *
- * Visibility is driven by React state (`front`); the video `src` is set
+ * Stacking is driven by React state (`front`); the video `src` is set
  * imperatively so React never clears it on re-render.
  */
 export function AiModelVideoWall({
@@ -67,8 +69,14 @@ export function AiModelVideoWall({
     }
   };
 
-  // Reveal clips[index] on the back layer once it can play (the old layer stays
-  // visible until then → no black/slow gap).
+  // Cut to clips[index] IMMEDIATELY on the back layer — no waiting.
+  //
+  // The two layers are stacked by z-order (front on top), and a <video> paints
+  // nothing until its first frame is decoded, so the outgoing clip — still
+  // playing on the layer underneath — stays on screen for exactly the frames
+  // the decoder needs and not one more. The switch is as fast as physically
+  // possible: caption and state flip on the spot, the new picture lands the
+  // instant it exists, and there is never a blank or a stuck old video.
   const transitionTo = (list: DisplayClip[], index: number, frontLayer: 'a' | 'b'): void => {
     const clip = list[index];
     const back: 'a' | 'b' = frontLayer === 'a' ? 'b' : 'a';
@@ -81,8 +89,8 @@ export function AiModelVideoWall({
 
     // The front layer is already playing this exact file (screens often share a
     // clip — e.g. two pages that both resolve Default): adopt the new list in
-    // place instead of reloading the same bytes into the back layer. The switch
-    // is instant, the video doesn't restart, and only the caption swaps.
+    // place instead of reloading the same bytes into the back layer. The video
+    // doesn't restart; only the caption swaps.
     const frontEl = elOf(frontLayer);
     if (frontEl && frontEl.src === clip.url) {
       frontEl.loop = !playOnce && list.length <= 1;
@@ -98,22 +106,22 @@ export function AiModelVideoWall({
     if (el.src !== clip.url) {
       el.src = clip.url;
       el.load();
-    }
-    const reveal = (): void => {
-      el.currentTime = 0;
-      void el.play().catch(() => {});
-      eng.current.clips = list;
-      eng.current.index = index;
-      setFront(back);
-      setActive(clip);
-      preloadNext(back, list, index);
-    };
-    if (el.readyState >= 2 /* HAVE_CURRENT_DATA */) {
-      reveal();
     } else {
-      // loadeddata + canplay: whichever the decoder reports first reveals — on
-      // local files loadeddata often lands noticeably before canplay, which is
-      // the difference between an instant cut and a visible wait.
+      // Reusing the layer's preloaded file — rewind in case it played before.
+      el.currentTime = 0;
+    }
+    void el.play().catch(() => {});
+    eng.current.clips = list;
+    eng.current.index = index;
+    setFront(back);
+    setActive(clip);
+
+    // Preload the FOLLOWING clip only once the new front is actually rendering:
+    // until its first frame, the old front is the visible under-layer, and
+    // repointing that layer's src early would blank the screen.
+    if (el.readyState >= 2 /* HAVE_CURRENT_DATA */) {
+      preloadNext(back, list, index);
+    } else {
       const handlers: Array<[keyof HTMLVideoElementEventMap, () => void]> = [];
       const detach = (): void => {
         for (const [ev, fn] of handlers) el.removeEventListener(ev, fn);
@@ -121,13 +129,13 @@ export function AiModelVideoWall({
       };
       const onReady = (): void => {
         detach();
-        reveal();
+        preloadNext(back, list, index);
       };
       const onError = (): void => {
         detach();
-        // A broken/missing file must not wedge the wall: give up on this
-        // transition and keep whatever is playing.
-        console.warn('[wall] clip failed to load — keeping the current video', clip.url);
+        // A broken/missing file: the transparent front leaves the old clip
+        // visible underneath. Log it — the screen shows the previous video.
+        console.warn('[wall] clip failed to load — previous video stays visible', clip.url);
       };
       handlers.push(['loadeddata', onReady], ['canplay', onReady], ['error', onError]);
       for (const [ev, fn] of handlers) el.addEventListener(ev, fn);
@@ -172,10 +180,8 @@ export function AiModelVideoWall({
 
   const onEnded = (layer: 'a' | 'b'): void => {
     if (layer !== front) return; // only the visible layer advances the cycle
-    // A screen-change transition is mid-load on the back layer: let it finish
-    // instead of hijacking that buffer for the OLD list's next clip. Without
-    // this the wall kept cycling the previous screen's videos whenever a clip
-    // ended during the load — which read as the switch taking seconds.
+    // The front's own data hasn't loaded yet (cleanup = its pending listeners) —
+    // an `ended` here would be a stale event; the load path finishes the job.
     if (eng.current.cleanup) return;
     const list = eng.current.clips;
     // One-shot list (the weather clip): walk to the end, then hand back.

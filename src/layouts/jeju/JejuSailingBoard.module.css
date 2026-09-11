@@ -55,11 +55,20 @@
   transform: translateX(-50%);
 }
 
+/* Hung from its CENTRE — the old single line's middle, 38 + 38/2 — so a head
+   that wraps to two lines (76) fills 19…95, still clear of the rule at 97,
+   while one line lands exactly where the 38-top one did. Wrap width is capped
+   per column (HEAD_MAX in the TSX). */
 .head {
-  top: 38px;
+  top: 57px;
+  transform: translate(-50%, -50%);
   font-size: 38px;
   font-weight: 600;
   color: #c8bda9;
+  text-align: center;
+  white-space: normal;
+  word-break: keep-all;
+  overflow-wrap: anywhere;
 }
 
 .value {
@@ -73,6 +82,19 @@
   font-weight: 500;
 }
 
+/* 선박명 · 항로 · 장소 · 현황 are text, so they wrap inside the column's
+   VALUE_MAX (TSX) rather than running into the next column. Two lines (90)
+   fill 118…208 against the 206 board — the glyphs' own leading keeps the ink
+   inside it. The time and the duration keep the shared nowrap. */
+.valueWrap {
+  text-align: center;
+  white-space: normal;
+  word-break: keep-all;
+  overflow-wrap: anywhere;
+}
+
+/* Wraps at the board's edge if a translation outruns it; two 40px lines end
+   at 198, inside the 206 board. */
 .empty {
   position: absolute;
   top: 118px;
@@ -80,7 +102,9 @@
   font-weight: 400;
   line-height: 1;
   color: #999;
-  white-space: nowrap;
+  white-space: normal;
+  word-break: keep-all;
+  overflow-wrap: anywhere;
 }
 
 .valueRetimed {
@@ -100,6 +124,8 @@
   transform: translateX(-50%);
 }
 
+/* Why the lead sailing is 결항, under 현황. Wraps at the status column's
+   width (VALUE_MAX in the TSX) rather than running off along the board. */
 .note {
   position: absolute;
   top: 168px;
@@ -107,7 +133,10 @@
   font-weight: 400;
   line-height: 1;
   color: #ff7f0f;
-  white-space: nowrap;
+  text-align: center;
+  white-space: normal;
+  word-break: keep-all;
+  overflow-wrap: anywhere;
   transform: translateX(-50%);
 }
 
@@ -139,15 +168,40 @@
   border-top: 38.25px solid var(--kiosk-primary, #ff7f0f);
 }
 
+/* Sized to its text rather than a fixed 360 — same call as JejuFlightBoard:
+   the 공지 panel is empty to the right of the control, so a long translation
+   stays on one line there, and only past 1000 (the panel's inner edge) wraps. */
 .moreText {
   position: absolute;
   left: 96px;
   top: 19px;
-  width: 360px;
+  width: max-content;
+  max-width: 1000px;
   font-size: 38px;
   font-weight: 500;
   line-height: 1;
   color: var(--kiosk-primary, #ff7f0f);
   text-align: left;
-  white-space: nowrap;
+  white-space: normal;
+  word-break: keep-all;
+  overflow-wrap: anywhere;
+}
+
+/*
+ * Other languages (same slot as the flight board) (Figma 7058:22669, the annotated 제주>홈) — "font 45 / 단
+ * 내리기": the title drops to 45px and wraps inside the note's 242×96 box at
+ * 57/60 instead of running 55px past its 242 width into the header columns.
+ * Two lines at 48 fill the 96; a title that fits on one line is centred in it.
+ * Added only when lang !== 'ko' — Korean keeps its 55px single line.
+ */
+.titleWrap {
+  top: 60px;
+  height: 96px;
+  display: flex;
+  align-items: center;
+  font-size: 45px;
+  line-height: 48px;
+  white-space: normal;
+  word-break: keep-all;
+  overflow-wrap: anywhere;
 }

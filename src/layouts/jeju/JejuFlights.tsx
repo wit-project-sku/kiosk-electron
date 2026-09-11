@@ -173,6 +173,19 @@ interface Column {
   centred: boolean;
   sheetKey?: string;
   head: Partial<Record<Lang, string>>;
+  /**
+   * Widest the header may run before it wraps: the distance to the nearer
+   * neighbouring axis (the plate's end, for the outer two), so two heads at
+   * their caps can at most meet halfway between their axes.
+   */
+  headMax: number;
+  /**
+   * Row cells' wrap width, TEXT columns only. Sized off what the cells carry
+   * rather than the axis pitch — 아시아나항공(OZ8900) needs ~475 on one line —
+   * while keeping neighbouring text boxes apart. Absent = the value never
+   * wraps (times, gate / belt codes).
+   */
+  cellMax?: number;
 }
 
 const COL_TIME_DEPARTURE = {
@@ -220,20 +233,20 @@ const COL_STATUS = {
 
 const COLUMNS: Record<FlightDirection, Column[]> = {
   departure: [
-    { key: 'time',    x: 280,  centred: true, sheetKey: 'OP_Schedule_Info_col1', head: COL_TIME_DEPARTURE },
-    { key: 'airline', x: 670,  centred: true, sheetKey: 'OP_Schedule_Info_col2', head: COL_AIRLINE },
-    { key: 'place',   x: 1140, centred: true, sheetKey: 'OP_Schedule_Info_col3', head: COL_DESTINATION },
-    { key: 'kind',    x: 1500, centred: true, sheetKey: 'OP_Schedule_Info_col4', head: COL_KIND },
-    { key: 'stand',   x: 1700, centred: true, sheetKey: 'OP_Schedule_Info_col5', head: COL_GATE },
-    { key: 'status',  x: 1915, centred: true, sheetKey: 'OP_Schedule_Info_col6', head: COL_STATUS },
+    { key: 'time',    x: 280,  centred: true, sheetKey: 'OP_Schedule_Info_col1', head: COL_TIME_DEPARTURE, headMax: 340 },
+    { key: 'airline', x: 670,  centred: true, sheetKey: 'OP_Schedule_Info_col2', head: COL_AIRLINE, headMax: 390, cellMax: 480 },
+    { key: 'place',   x: 1140, centred: true, sheetKey: 'OP_Schedule_Info_col3', head: COL_DESTINATION, headMax: 360, cellMax: 400 },
+    { key: 'kind',    x: 1500, centred: true, sheetKey: 'OP_Schedule_Info_col4', head: COL_KIND, headMax: 200, cellMax: 300 },
+    { key: 'stand',   x: 1700, centred: true, sheetKey: 'OP_Schedule_Info_col5', head: COL_GATE, headMax: 200 },
+    { key: 'status',  x: 1915, centred: true, sheetKey: 'OP_Schedule_Info_col6', head: COL_STATUS, headMax: 215, cellMax: 290 },
   ],
   arrival: [
-    { key: 'time',    x: 280,  centred: true, sheetKey: 'OP_Schedule_Info_col12', head: COL_TIME_ARRIVAL },
-    { key: 'airline', x: 670,  centred: true, sheetKey: 'OP_Schedule_Info_col2', head: COL_AIRLINE },
-    { key: 'place',   x: 1140, centred: true, head: COL_ORIGIN },
-    { key: 'kind',    x: 1500, centred: true, sheetKey: 'OP_Schedule_Info_col4', head: COL_KIND },
-    { key: 'stand',   x: 1700, centred: true, sheetKey: 'OP_Schedule_Info_col7', head: COL_BELT },
-    { key: 'status',  x: 1915, centred: true, sheetKey: 'OP_Schedule_Info_col6', head: COL_STATUS },
+    { key: 'time',    x: 280,  centred: true, sheetKey: 'OP_Schedule_Info_col12', head: COL_TIME_ARRIVAL, headMax: 340 },
+    { key: 'airline', x: 670,  centred: true, sheetKey: 'OP_Schedule_Info_col2', head: COL_AIRLINE, headMax: 390, cellMax: 480 },
+    { key: 'place',   x: 1140, centred: true, head: COL_ORIGIN, headMax: 360, cellMax: 400 },
+    { key: 'kind',    x: 1500, centred: true, sheetKey: 'OP_Schedule_Info_col4', head: COL_KIND, headMax: 200, cellMax: 300 },
+    { key: 'stand',   x: 1700, centred: true, sheetKey: 'OP_Schedule_Info_col7', head: COL_BELT, headMax: 200 },
+    { key: 'status',  x: 1915, centred: true, sheetKey: 'OP_Schedule_Info_col6', head: COL_STATUS, headMax: 215, cellMax: 290 },
   ],
 };
 
@@ -373,7 +386,9 @@ export function JejuFlights({ controller }: Props): JSX.Element {
   const cellText = (col: Column, row: Row): string => {
     switch (col.key) {
       case 'time':    return displayTime(row.flight);
-      case 'airline': return `${row.flight.airline}(${row.flight.flightNo})`;
+      // U+200B: a break point before "(" — keep-all leaves 아시아나항공(OZ8900)
+      // no other place to wrap but the middle of the flight number.
+      case 'airline': return `${row.flight.airline}\u200B(${row.flight.flightNo})`;
       case 'place':   return row.place;
       case 'kind':    return flightKindLabel(row.flight.kind, lang);
       case 'stand':
@@ -442,7 +457,7 @@ export function JejuFlights({ controller }: Props): JSX.Element {
               key={`${direction}-${col.key}`}
               type="button"
               className={`${low(styles.head, styles.headLow)} ${styles.headPlace} ${styles.cellCentred}`}
-              style={{ left: col.x }}
+              style={{ left: col.x, maxWidth: col.headMax }}
               aria-expanded={placeOpen}
               aria-haspopup="listbox"
               aria-label={title}
@@ -462,7 +477,7 @@ export function JejuFlights({ controller }: Props): JSX.Element {
           <span
             key={`${direction}-${col.key}`}
             className={`${low(styles.head, styles.headLow)} ${col.centred ? styles.cellCentred : ''}`}
-            style={{ left: col.x }}
+            style={{ left: col.x, maxWidth: col.headMax }}
           >
             {col.sheetKey ? opText(col.sheetKey, lang, col.head) : pick(col.head, lang)}
           </span>
@@ -526,9 +541,10 @@ export function JejuFlights({ controller }: Props): JSX.Element {
                 {columns.map((col) => (
                   <span
                     key={`${direction}-${col.key}`}
-                    className={`${styles.cell} ${col.centred ? styles.cellCentred : ''} ${col.key === 'status' ? styles.cellStatus : ''}`}
+                    className={`${styles.cell} ${col.centred ? styles.cellCentred : ''} ${col.cellMax ? styles.cellWrap : ''} ${col.key === 'status' ? styles.cellStatus : ''}`}
                     style={{
                       left: col.x,
+                      maxWidth: col.cellMax,
                       ...(tintColor
                         ? { color: tintColor }
                         : col.key === 'status' && row.flight.status

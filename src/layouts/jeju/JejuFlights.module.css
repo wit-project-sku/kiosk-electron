@@ -64,23 +64,29 @@
 }
 
 /* `border: none`, not omitted — these are <button>s and would otherwise take
-   Chrome's UA outset bevel. */
+   Chrome's UA outset bevel.
+   A label too long for the pill wraps inside it rather than spilling past it:
+   the pill keeps its 170 (the search field sits 76 below), two lines at 1.1
+   take 110 of it and the button centres them. The 30px side padding only
+   shows once a label wraps. */
 .tab {
   flex: 0 0 580px;
   width: 580px;
   height: 170px;
   box-sizing: border-box;
-  padding: 0;
+  padding: 0 30px;
   border: none;
   border-radius: 42.9px;
   background: #fff;
   box-shadow: 0 6px 18px rgba(0, 0, 0, 0.08);
   font-size: 50px;
   font-weight: 500;
-  line-height: 1;
+  line-height: 1.1;
   color: #a0a0a0;
   text-align: center;
-  white-space: nowrap;
+  white-space: normal;
+  word-break: keep-all;
+  overflow-wrap: anywhere;
   cursor: pointer;
   -webkit-tap-highlight-color: transparent;
 }
@@ -100,7 +106,11 @@
   width: 1350px;
   height: 182px;
   box-sizing: border-box;
-  padding: 55px 75px;
+  /* 20 top/bottom rather than Figma's 55: one line is centred exactly as
+     before, and the smaller inset lets a placeholder that wraps fit two lines
+     at 1.1 (132) inside the fixed 182 — the header plate sits 70 below, so
+     this field cannot grow. */
+  padding: 20px 75px;
   border: 4.29px solid var(--kiosk-primary, #ff7f0f);
   border-radius: 120px;
   background: #fff;
@@ -121,11 +131,12 @@
   min-width: 0;
   font-size: 60.06px;
   font-weight: 500;
-  line-height: 1;
+  line-height: 1.1;
   text-align: left;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  /* Wraps — never "…". See .search for how the field makes room. */
+  white-space: normal;
+  word-break: keep-all;
+  overflow-wrap: anywhere;
   color: #999;
 }
 
@@ -176,19 +187,27 @@
   top: 1053px;
 }
 
+/* Hung from its CENTRE (1262 + 45/2), not its top, so a head that wraps to
+   two lines grows up and down around the plate's middle instead of hanging off
+   its foot; one line lands exactly where the 1262-top one did. Wrap width is
+   capped per column (`headMax` in the TSX). The transform lives on
+   `.head.cellCentred` below. */
 .head {
   position: absolute;
-  top: 1262px;
+  top: 1284.5px;
   font-size: 45px;
   font-weight: 600;
-  line-height: 1;
+  line-height: 1.1;
   color: #fff;
-  white-space: nowrap;
+  text-align: center;
+  white-space: normal;
+  word-break: keep-all;
+  overflow-wrap: anywhere;
 }
 
-/* Rides the plate: 50 below its top. */
+/* Rides the plate: text top 50 below its top — i.e. centred on 1125.5. */
 .headLow {
-  top: 1103px;
+  top: 1125.5px;
 }
 
 /* 목적지 / 출발지 — same header ink as siblings, white ▼ on the right. */
@@ -208,15 +227,19 @@
   font-weight: 600;
   line-height: 1;
   color: #fff;
-  white-space: nowrap;
 }
 
+/* Wraps inside the button's `headMax`, ▼ staying centred beside it. */
 .headPlaceLabel {
+  min-width: 0;
   font-size: 45px;
   font-weight: 600;
-  line-height: 1;
+  line-height: 1.1;
   color: #fff;
-  white-space: nowrap;
+  text-align: center;
+  white-space: normal;
+  word-break: keep-all;
+  overflow-wrap: anywhere;
 }
 
 .headPlaceCaret {
@@ -294,9 +317,10 @@
   line-height: 1.2;
   color: #999;
   text-align: left;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  /* A long place name wraps and the option grows (min-height, column flex). */
+  white-space: normal;
+  word-break: keep-all;
+  overflow-wrap: anywhere;
   cursor: pointer;
   -webkit-tap-highlight-color: transparent;
 }
@@ -354,24 +378,42 @@
 }
 
 /* Figma repeats the row group every 255 with its rule 155 in — so the block is
-   255 tall and the rule is NOT centred in it. */
+   255 tall and the rule is NOT centred in it.
+
+   255 is a MINIMUM, not a fixed pitch: the cells stack in one grid area
+   (instead of being absolutely positioned) so the row takes its height from
+   them. Anything up to 119 tall — one line, the struck time under it (foot at
+   105), or a name wrapped to two lines (100) — leaves the row at exactly 255
+   with the rule at 155; more pushes the row, and its rule, down rather than
+   running over them. padding-bottom 136 = 255 − 119, so the rule always
+   clears the tallest cell by at least 36 (JejuCruise's note clearance). */
 .row {
   position: relative;
-  height: 255px;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  min-height: 255px;
+  box-sizing: border-box;
+  padding-bottom: 136px;
 }
 
+/* Hung off the row's foot so it rides down with a taller row: 255 − 155 − 3. */
 .rowRule {
   position: absolute;
   left: 170px;
-  top: 155px;
+  bottom: 97px;
   width: 1820px;
   height: 3px;
   background: #c8bda9;
 }
 
+/* In flow (grid area 1/1, shrink-wrapped to the start) so the row can size to
+   it; `position: relative` plus the inline `left` then slides it onto its axis
+   exactly where the absolute version sat. */
 .cell {
-  position: absolute;
-  top: 0;
+  position: relative;
+  grid-area: 1 / 1;
+  justify-self: start;
+  align-self: start;
   font-size: 50px;
   font-weight: 600;
   line-height: 1;
@@ -379,9 +421,24 @@
   white-space: nowrap;
 }
 
+/* Text columns (항공사/편명 · 목적지/출발지 · 구분 · 현황): wrap inside the
+   column's `cellMax` (TSX) instead of running into the next column. Times and
+   gate / belt codes keep `.cell`'s nowrap. */
+.cellWrap {
+  text-align: center;
+  white-space: normal;
+  word-break: keep-all;
+  overflow-wrap: anywhere;
+}
+
 /* Centred columns carry their axis in `left` and use translateX(-50%). */
 .cellCentred {
   transform: translateX(-50%);
+}
+
+/* Heads are also hung from their vertical centre (see `.head`). */
+.head.cellCentred {
+  transform: translate(-50%, -50%);
 }
 
 .cellStatus {
@@ -391,10 +448,14 @@
 /* The re-timed flight's original time. Unlike the home board, the leading time
    does NOT move up here — the struck one simply hangs below it, centred on the
    time column's axis (16:05 at 237/1412 centres on 284.5 ≈ the column's 285.5;
-   the 도착 frame draws it 5px higher at 1407 — slop, 출발's own 83 ships). */
+   the 도착 frame draws it 5px higher at 1407 — slop, 출발's own 83 ships).
+   In flow like `.cell`. */
 .timeWas {
-  position: absolute;
-  top: 65px;
+  position: relative;
+  grid-area: 1 / 1;
+  justify-self: start;
+  align-self: start;
+  margin-top: 65px;
   font-size: 40px;
   font-weight: 400;
   line-height: 1;

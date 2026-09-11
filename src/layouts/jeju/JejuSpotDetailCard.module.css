@@ -77,7 +77,11 @@
   flex: 0 0 auto;
   box-sizing: border-box;
   width: 395px;
-  height: 97px;
+  /* min-height + wrapping: the label is the sheet's RentCar_Category2 in eight
+     languages, so a long one takes a second line inside the 395 chip (the row
+     grows with it) instead of spilling past its ends. */
+  min-height: 97px;
+  padding: 0 24px;
   border-radius: 60px;
   display: inline-flex;
   align-items: center;
@@ -85,7 +89,10 @@
   font-size: 48px;
   font-weight: 500;
   line-height: 1;
-  white-space: nowrap;
+  text-align: center;
+  white-space: normal;
+  word-break: keep-all;
+  overflow-wrap: anywhere;
   background: var(--kiosk-primary, #ff7f0f);
   color: #fff;
   pointer-events: none;
@@ -97,21 +104,30 @@
   font-weight: 700;
   line-height: 1;
   color: #333;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  /* Wraps rather than ellipsising — the whole name, on as many lines as it
+     needs; the head column grows with it. */
+  flex: 0 1 auto;
+  min-width: 0;
+  white-space: normal;
+  word-break: keep-all;
+  overflow-wrap: anywhere;
 }
 
+/* Shrinkable and wrapping too: the category is CMS text in eight languages,
+   and an unshrinkable one would squeeze the name beside it to nothing. */
 .cat {
   display: flex;
   align-items: center;
   gap: 21.45px;
-  flex: 0 0 auto;
+  flex: 0 1 auto;
+  min-width: 0;
   font-size: 51px;
   font-weight: 400;
   line-height: 1;
   color: #999;
-  white-space: nowrap;
+  white-space: normal;
+  word-break: keep-all;
+  overflow-wrap: anywhere;
 }
 
 .dot {
@@ -282,9 +298,9 @@
  * reserved whether the name uses it or not.
  *
  * So the name is flush-left and shrink-to-fit in BOTH gallery variants now, and
- * the category follows at the row's own 42.9 gap. `.name` already ellipsises
- * under `min-width: 0`, so a genuinely long name still yields to the category
- * rather than shoving it off the card.
+ * the category follows at the row's own 42.9 gap. `.name` wraps under
+ * `min-width: 0`, so a genuinely long name takes a second line rather than
+ * shoving the category off the card.
  */
 
 .photo {
@@ -492,9 +508,11 @@
   line-height: 1;
   color: #333;
   min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  /* Wraps — a long address or hours line takes a second line beside its
+     icon instead of an ellipsis; .infoList shrinks to leave the QR its room. */
+  white-space: normal;
+  word-break: keep-all;
+  overflow-wrap: anywhere;
 }
 
 .cardRouteDetail .infoText {

@@ -76,6 +76,10 @@
   top: 100%;
   transform: translateX(-50%);
   margin-top: 6px;
+  /* One line up to 420, then a second rather than an ellipsis. The explicit
+     `max-content` matters: this box hangs off an 84px pin, so shrink-to-fit
+     alone would give it ~42px and wrap every word. */
+  width: max-content;
   max-width: 420px;
   padding: 8px 20px;
   border-radius: 30px;
@@ -84,9 +88,10 @@
   font-weight: 500;
   line-height: 1.2;
   color: #333;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  text-align: center;
+  white-space: normal;
+  word-break: keep-all;
+  overflow-wrap: anywhere;
   pointer-events: none;
 }
 
@@ -156,7 +161,8 @@
   display: flex;
   flex-direction: column;
   gap: 12px;
-  /* Without this the flex item refuses to shrink and the ellipsis never fires. */
+  /* Without this the flex item refuses to shrink below its text, and a long
+     name runs out of the callout instead of wrapping inside it. */
   min-width: 0;
 }
 
@@ -165,21 +171,21 @@
   font-weight: 600;
   line-height: 1.2;
   color: #232323;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  white-space: normal;
+  word-break: keep-all;
+  overflow-wrap: anywhere;
 }
 
+/* In full — a 제주 address runs long. The callout is anchored by its FOOT
+   (translate −100% above the pin), so extra lines grow it upward. */
 .calloutAddress {
   font-size: 32px;
   font-weight: 400;
   line-height: 1.3;
   color: #777;
-  /* Two lines then clip — a 제주 address runs long and the callout is fixed. */
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
+  white-space: normal;
+  word-break: keep-all;
+  overflow-wrap: anywhere;
 }
 
 /* ── Overlay chrome ──────────────────────────────────────────────────── */

@@ -90,6 +90,7 @@
   font-weight: 500;
   line-height: 1.1;
   overflow: hidden;
+  word-break: keep-all;
   overflow-wrap: anywhere;
   color: var(--kiosk-primary, #ff7f0f);
   cursor: pointer;
@@ -204,7 +205,10 @@
   font-size: 45px;
   font-weight: 700;
   color: #fff;
-  white-space: nowrap;
+  text-align: center;
+  white-space: normal;
+  word-break: keep-all;
+  overflow-wrap: anywhere;
   cursor: pointer;
   -webkit-tap-highlight-color: transparent;
 }
@@ -257,3 +261,75 @@
 
 .scrollUp .scrollBtnImg   { transform: rotate(90deg); }
 .scrollDown .scrollBtnImg { transform: rotate(-90deg); }
+
+/* ────────────────────────────────────────────────────────────────────────────
+ * 베리어프리 (♿, mode-bar shape) — Figma 6942:52400 (생물권: banner gone, two
+ * card rows) / 6952:53995 (인류무형: 573 promo kept under the bar, one row).
+ * The header rides --jeju-shift (bar, or bar + banner); the body lays itself
+ * out: ※ 출처 heads the card column, the accordion + pills move to the foot.
+ * Card region foots out at ~2890 in both frames; only its top differs.
+ * ──────────────────────────────────────────────────────────────────────────── */
+
+/* Intro + QR keep their 700 offset under the shifted header (frames' 813/1386). */
+.introRowLow {
+  top: calc(var(--jeju-shift, 0px) + 700px);
+}
+
+/* ※ 출처 heads the card column instead of footing the page. */
+.sourceLow       { top: 1272px; }
+.sourceLowBanner { top: 2058px; }
+
+/* Cards only — two 730 rows + the 50 gap (6942:52400)… */
+.scrollerLow {
+  top: 1379px;
+  bottom: auto;
+  height: 1510px;
+}
+
+/* …or a single row under the kept banner (6952:53995). */
+.scrollerLowBanner {
+  top: 2165px;
+  bottom: auto;
+  height: 730px;
+}
+
+/* The pills join the foot group's flow instead of the y903 band. */
+.tabsLow {
+  position: static;
+  width: 100%;
+}
+
+/* Accordion + pills, pinned low for seated reach. Collapsed the group heads at
+   the frames' 2940; expanded (or pills-only while the 상세 is open) it anchors
+   to the foot and grows upward instead of pushing the pills off-screen. */
+.bottomGroupLow {
+  position: absolute;
+  left: 170px;
+  width: 1820px;
+  top: 2940px;
+  display: flex;
+  flex-direction: column;
+  gap: 50px;
+}
+
+.bottomGroupLowFoot {
+  top: auto;
+  bottom: 135px;
+}
+
+/* Expanded body scrolls inside a cap — the foot-anchored group may not grow
+   past the intro row above it (banner variant's intro foots at ~1572). */
+.panelBodyLowScroll {
+  max-height: 1500px;
+  overflow-y: auto;
+  scrollbar-width: none;
+}
+
+.panelBodyLowScroll::-webkit-scrollbar {
+  width: 0;
+  height: 0;
+}
+
+/* Barrier-free right-hand ▲▼ — the shared 6442:105429 band, as JejuAbout. */
+.scrollUpLow   { top: 2223px; }
+.scrollDownLow { top: 2428px; }

@@ -19,6 +19,7 @@ import { useDetailStore } from '@renderer/store/detailStore';
 import { useShopStore } from '@renderer/store/shopStore';
 import { pick } from '@renderer/lib/i18n';
 import { ui } from '@renderer/lib/uiText';
+import { tExact } from '@renderer/lib/loc';
 import {
   searchShops,
   shopAddress,
@@ -154,10 +155,11 @@ export function JejuSearch({ controller }: Props): JSX.Element {
     <JejuPageFrame
       controller={controller}
       title="검색"
-      /* Passed as a prop, not mapped in i18n: 검색 is Insadong's, 오산's and
-         화성's header id too, and those three draw no description row at all —
-         a shared mapping would give all of them one. See EXTRA_SUBTITLE_KEYS. */
-      subtitle={ui('searchSubtitle', lang)}
+      /* Localization_Jeju's Search_Result_Subtitle — the page's own row, 8/8.
+         The authored line only covers an empty cell. Passed as a prop rather
+         than left to the header so that fallback stays on this page: 검색 is
+         Insadong's, 오산's and 화성's header id too (see EXTRA_SUBTITLE_KEYS). */
+      subtitle={tExact('Search_Result_Subtitle', lang) || ui('searchSubtitle', lang)}
       showBanner={false}
       lowReachModeBar
       lowReachShift={MODE_BAR}

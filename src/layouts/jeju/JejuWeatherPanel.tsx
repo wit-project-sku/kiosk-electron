@@ -55,32 +55,33 @@ const CLOSE_LABEL: Partial<Record<Lang, string>> = {
 };
 
 /**
- * Rows drawn. The panel height is authored for exactly this many — Figma
- * 6873:16213 draws seven (오늘 · 내일 · five weekdays). OpenWeatherMap's
- * 5-day/3-hour outlook only fills six local dates (WeatherService
- * FORECAST_DAYS = 6); the seventh row falls back to a date-only placeholder
- * via {@link buildRows}.
+ * Rows drawn. Figma 6873:16213 draws SIX since the 2026-09-10 redraw (오늘 ·
+ * 내일 · four weekdays) — it drew seven before, one more date than the data
+ * could ever fill. Six is exactly WeatherService's FORECAST_DAYS, the local
+ * dates a 5-day/3-hour outlook straddles, so a fresh outlook now fills every
+ * row. A row can still come up empty (a stale cache, a fetch that lands before
+ * the window reaches day six) — see {@link buildRows}.
  */
-const ROWS = 7;
+const ROWS = 6;
 
 /*
  * Row bands, panel-relative, taken literally from their own nodes rather than
- * derived from a step: the frame repeats one row every 444px from y687 but
- * places 오늘 — the row that sits inside the 오늘 card — 2px off that grid. Each
- * value is the row's GLYPH top; everything else in the row is offset from it in
- * the CSS.
+ * derived from a step: rows 3–6 repeat every 528px from y1181, but 오늘 (inside
+ * its card) and 내일 sit off that grid — 483 then 453 apart. Each value is the
+ * row's GLYPH top (page y 540 / 1023 / 1476 / 2004 / 2532 / 3060, minus the
+ * panel origin 295); everything else in the row is offset from it in the CSS.
  */
-const ROW_TOPS = [245, 687, 1131, 1575, 2019, 2463, 2907] as const;
+const ROW_TOPS = [245, 728, 1181, 1709, 2237, 2765] as const;
 
 /*
- * Between rows 2/3 … 6/7 — the 오늘 card separates the first two, so no rule
- * there. Page y 1351 / 1795 / 2239 / 2683 / 3127, minus the panel origin 295,
- * minus 3 more: Figma's `Line 106` is a zero-height node whose 3px stroke is
- * drawn ABOVE its y (`inset-[-3px_0_0_0]`), so the ink starts three px higher
- * than the node does. Confirmed against the 1:1 render, which puts the first
- * rule's ink at 1052.
+ * Between rows 2/3 … 5/6 — the 오늘 card separates the first two, so no rule
+ * there. Page y 1400 / 1887 / 2415 / 2943, minus the panel origin 295, minus 3
+ * more: Figma's `Line 106` is a zero-height node whose 3px stroke is drawn
+ * ABOVE its y (`inset-[-3px_0_0_0]`), so the ink starts three px higher than
+ * the node does. Confirmed against the render of the 2026-09-10 frame, which
+ * puts the first rule's ink at 1100.7.
  */
-const RULE_TOPS = [1053, 1497, 1941, 2385, 2829] as const;
+const RULE_TOPS = [1102, 1589, 2117, 2645] as const;
 
 /**
  * Column heads. There are no Localization_Jeju keys for this frame yet, so the
@@ -156,7 +157,7 @@ interface Row {
 }
 
 /**
- * Seven rows starting at today, whether or not the outlook reaches that far.
+ * Six rows starting at today, whether or not the outlook reaches that far.
  *
  * The dates come from the clock rather than from the payload, so a cached
  * outlook that went stale overnight still labels its rows honestly — days that
@@ -165,8 +166,8 @@ interface Row {
  *
  * A cell is null whenever that site has nothing for that date, which covers all
  * of: a kiosk that never fetched sites, a cache row from before they existed, a
- * site whose request failed, and the seventh row that the 120-hour window does
- * not reach. The frame has no empty state, so such a cell draws no glyph and
+ * site whose request failed, and a last row the 120-hour window has not reached
+ * yet. The frame has no empty state, so such a cell draws no glyph and
  * dashes for the temperatures — never a neighbouring site's numbers.
  */
 function buildRows(forecast: WeatherForecast | null, lang: Lang): Row[] {
@@ -215,7 +216,9 @@ const COLUMNS = {
 
 export function JejuWeatherPanel({ forecast, lang, onClose }: Props): JSX.Element {
   const rows = buildRows(forecast, lang);
-  const closeIcon = jejuIconUrl('ico-close');
+  // This panel's own close glyph (6876:16416), not the shared ico-close.svg —
+  // the 2026-09-10 node is a heavier drawing; see `.close` in the CSS.
+  const closeIcon = jejuIconUrl('ico-close-weather');
 
   return (
     <div className={styles.layer}>

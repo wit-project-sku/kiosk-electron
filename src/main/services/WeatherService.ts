@@ -401,8 +401,8 @@ export class WeatherService {
       const json = (await res.json()) as OwmForecastResponse;
 
       // 40 entries × 3h = 120h ahead, which straddles six local dates whenever
-      // the fetch lands after 00:00. The 제주 panel draws seven rows; the seventh
-      // is a date-only placeholder when the window does not reach it.
+      // the fetch lands after 00:00. The site outlook (fetchSite) takes the same
+      // six, which is also the six rows the 제주 panel draws.
       const days: WeatherDayForecast[] = bucketByLocalDate(json)
         .slice(0, FORECAST_DAYS)
         .map((bucket) => {
