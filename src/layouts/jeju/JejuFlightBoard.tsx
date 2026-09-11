@@ -34,6 +34,8 @@ import {
   useJejuDepartures,
 } from '@renderer/lib/jejuFlight';
 import type { JejuDeparture } from '@renderer/lib/jejuFlight';
+import { flightAirlineLabel } from '@renderer/lib/jejuAirlines';
+import { flightPlaceLabel } from '@renderer/lib/jejuAirportPlaces';
 import { useAccessibilityStore } from '@renderer/store/accessibilityStore';
 import { useFlightStore } from '@renderer/store/flightStore';
 import styles from './JejuFlightBoard.module.css';
@@ -114,6 +116,8 @@ const HEADS: Record<keyof typeof COLUMNS, Partial<Record<Lang, string>>> = {
  * One departure's six value cells. Shared by the board's lead row and the
  * expanded list so a re-timed flight is drawn the same way in both — the
  * vertical offsets are the only difference and they come from the CSS.
+ *
+ * `lang` is already Korean-or-English (`boardLang` from the parent).
  */
 function FlightCells({ departure, lang }: { departure: JejuDeparture; lang: Lang }): JSX.Element {
   const retimed = hasTimeChange(departure);
@@ -133,12 +137,12 @@ function FlightCells({ departure, lang }: { departure: JejuDeparture; lang: Lang
       )}
 
       <span className={styles.value} style={{ left: COLUMNS.airline }}>
-        {departure.airline}
+        {flightAirlineLabel(departure.airline, departure.flightNo, lang)}
         <span className={styles.flightNo}>({departure.flightNo})</span>
       </span>
 
       <span className={styles.value} style={{ left: COLUMNS.destination }}>
-        {departure.destination}
+        {flightPlaceLabel(departure.destination, lang)}
       </span>
 
       <span className={styles.value} style={{ left: COLUMNS.kind }}>
@@ -186,13 +190,15 @@ export function JejuFlightBoard({ controller, lang }: Props): JSX.Element {
   const snapshot = useFlightStore((s) => s.snapshot);
   const departures = useJejuDepartures();
   const lead = departures[0];
+  /** Board chrome + cells: Korean or English only (matches JejuFlights). */
+  const boardLang: Lang = lang === 'ko' ? 'ko' : 'en';
   // Same loading/empty split as JejuSailingBoard: null snapshot = still fetching
   // the first KAC board (gates included); empty arrays after that = nothing to show.
   const isLoading = snapshot === null;
   const emptyMessage = isLoading
-    ? opText('OP_Schedule_Loading', lang, LOADING)
-    : opText('OP_Schedule_Result', lang, EMPTY);
-  const title = opText('FlightSchedule', lang, TITLE);
+    ? opText('OP_Schedule_Loading', boardLang, LOADING)
+    : opText('OP_Schedule_Result', boardLang, EMPTY);
+  const title = opText('FlightSchedule', boardLang, TITLE);
   const openFlights = (): void => controller.navigate('flights', FLIGHTS_TITLE);
 
   return (
@@ -212,12 +218,12 @@ export function JejuFlightBoard({ controller, lang }: Props): JSX.Element {
 
         {(Object.keys(COLUMNS) as (keyof typeof COLUMNS)[]).map((key) => (
           <span key={key} className={styles.head} style={{ left: COLUMNS[key] }}>
-            {opText(HEAD_KEYS[key], lang, HEADS[key])}
+            {opText(HEAD_KEYS[key], boardLang, HEADS[key])}
           </span>
         ))}
 
         {lead ? (
-          <FlightCells departure={lead} lang={lang} />
+          <FlightCells departure={lead} lang={boardLang} />
         ) : (
           <span className={styles.empty}>
             {emptyMessage}
@@ -232,7 +238,7 @@ export function JejuFlightBoard({ controller, lang }: Props): JSX.Element {
         onClick={openFlights}
       >
         <span className={styles.chevron} />
-        <span className={styles.moreText}>{opText('Schedule_More_Flight', lang, MORE)}</span>
+        <span className={styles.moreText}>{opText('Schedule_More_Flight', boardLang, MORE)}</span>
       </button>
     </>
   );
