@@ -24,6 +24,10 @@
  * The 현황 cell is BLANK when the operator has published no status — that is the
  * design, not a fallback. See `normalizeSailingStatus`.
  *
+ * Non-Korean languages force English for the column headers and list cells
+ * (place / route / ship / status via local maps — the feed is Korean-only).
+ * Tabs / berth filter stay in the visitor's selected language.
+ *
  * ♿ low-reach: 6420:23158 (출발) / 6420:23243 (도착). Nothing about the table
  * changes — the two control rows drop to the foot of the artboard and the board
  * slides up 159 into the space. All of it is positional, so it lives in the
@@ -43,6 +47,11 @@ import {
   useJejuDepartureSailings,
 } from '@renderer/lib/jejuSailing';
 import type { JejuSailing, SailingPort } from '@renderer/lib/jejuSailing';
+import {
+  sailingPlaceLabel,
+  sailingRouteLabel,
+  sailingShipLabel,
+} from '@renderer/lib/jejuSailingPlaces';
 import { useAccessibilityStore } from '@renderer/store/accessibilityStore';
 import { JejuPageFrame } from './JejuPageFrame';
 import { JejuSubTabRow } from './JejuSubTabRow';
@@ -178,25 +187,27 @@ const COL_STATUS = {
 
 const COLUMNS: Record<SailingDirection, Column[]> = {
   departure: [
-    { key: 'time',     x: 285.5,  sheetKey: 'OP_Schedule_Info_col1', head: COL_TIME_DEPARTURE },
-    { key: 'duration', x: 515,    sheetKey: 'OP_Schedule_Info_col8', head: COL_DURATION },
-    { key: 'ship',     x: 840,    sheetKey: 'OP_Schedule_Info_col9', head: COL_SHIP },
-    { key: 'route',    x: 1260,   sheetKey: 'OP_Schedule_Info_col10', head: COL_ROUTE },
-    { key: 'place',    x: 1630,   sheetKey: 'OP_Schedule_Info_col11', head: COL_PLACE_DEPARTURE },
-    { key: 'status',   x: 1918.5, sheetKey: 'OP_Schedule_Info_col6', head: COL_STATUS },
+    { key: 'time',     x: 290,  sheetKey: 'OP_Schedule_Info_col1', head: COL_TIME_DEPARTURE },
+    { key: 'duration', x: 530,    sheetKey: 'OP_Schedule_Info_col8', head: COL_DURATION },
+    { key: 'ship',     x: 860,    sheetKey: 'OP_Schedule_Info_col9', head: COL_SHIP },
+    { key: 'route',    x: 1300,   sheetKey: 'OP_Schedule_Info_col10', head: COL_ROUTE },
+    { key: 'place',    x: 1670,   sheetKey: 'OP_Schedule_Info_col11', head: COL_PLACE_DEPARTURE },
+    { key: 'status',   x: 1910, sheetKey: 'OP_Schedule_Info_col6', head: COL_STATUS },
   ],
   arrival: [
-    { key: 'time',     x: 285.5,  sheetKey: 'OP_Schedule_Info_col12', head: COL_TIME_ARRIVAL },
-    { key: 'duration', x: 515,    sheetKey: 'OP_Schedule_Info_col8', head: COL_DURATION },
-    { key: 'ship',     x: 840,    sheetKey: 'OP_Schedule_Info_col9', head: COL_SHIP },
-    { key: 'route',    x: 1260,   sheetKey: 'OP_Schedule_Info_col10', head: COL_ROUTE },
-    { key: 'place',    x: 1630,   sheetKey: 'OP_Schedule_Info_col13', head: COL_PLACE_ARRIVAL },
-    { key: 'status',   x: 1918.5, sheetKey: 'OP_Schedule_Info_col6', head: COL_STATUS },
+    { key: 'time',     x: 290,  sheetKey: 'OP_Schedule_Info_col12', head: COL_TIME_ARRIVAL },
+    { key: 'duration', x: 530,    sheetKey: 'OP_Schedule_Info_col8', head: COL_DURATION },
+    { key: 'ship',     x: 860,    sheetKey: 'OP_Schedule_Info_col9', head: COL_SHIP },
+    { key: 'route',    x: 1300,   sheetKey: 'OP_Schedule_Info_col10', head: COL_ROUTE },
+    { key: 'place',    x: 1670,   sheetKey: 'OP_Schedule_Info_col13', head: COL_PLACE_ARRIVAL },
+    { key: 'status',   x: 1910, sheetKey: 'OP_Schedule_Info_col6', head: COL_STATUS },
   ],
 };
 
 export function JejuCruise({ controller }: Props): JSX.Element {
   const lang = useLang();
+  /** Board chrome (columns + row labels) is Korean or English only. */
+  const boardLang: Lang = lang === 'ko' ? 'ko' : 'en';
   const lowReach = useAccessibilityStore((s) => s.lowReach);
   const [direction, setDirection] = useState<SailingDirection>('departure');
   const [port, setPort] = useState<SailingPort>('international');
@@ -223,11 +234,11 @@ export function JejuCruise({ controller }: Props): JSX.Element {
     switch (col.key) {
       case 'time':     return displaySailingTime(row);
       case 'duration': return row.duration;
-      case 'ship':     return row.shipName;
-      case 'route':    return row.route;
-      case 'place':    return row.place;
+      case 'ship':     return sailingShipLabel(row.shipName, boardLang);
+      case 'route':    return sailingRouteLabel(row.route, boardLang);
+      case 'place':    return sailingPlaceLabel(row.place, boardLang);
       // Blank when nothing is published — see the header comment.
-      case 'status':   return row.status ? sailingStatusLabel(row.status, lang) : '';
+      case 'status':   return row.status ? sailingStatusLabel(row.status, boardLang) : '';
       default:         return '';
     }
   };
@@ -267,14 +278,14 @@ export function JejuCruise({ controller }: Props): JSX.Element {
           className={`${low(styles.head, styles.headLow)} ${styles.cellCentred}`}
           style={{ left: col.x }}
         >
-          {opText(col.sheetKey, lang, col.head)}
+          {opText(col.sheetKey, boardLang, col.head)}
         </span>
       ))}
 
       <div className={low(styles.scroll, styles.scrollLow)}>
         <div className={styles.rows}>
           {rows.length === 0 ? (
-            <p className={styles.empty}>{opText('OP_Schedule_Result', lang, EMPTY)}</p>
+            <p className={styles.empty}>{opText('OP_Schedule_Result', boardLang, EMPTY)}</p>
           ) : (
             rows.map((row) => (
               <div key={row.id} className={styles.row}>
