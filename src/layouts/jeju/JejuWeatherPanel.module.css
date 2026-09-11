@@ -261,10 +261,12 @@
 /* ── Close (6876:16416) ──
    ★ Its OWN glyph — ico-close-weather.svg, exported from this node — and NOT
    the ico-close.svg the 제주도 이벤트 MBTI card uses. Both are an orange ring
-   and an X, which is why the panel used to borrow the MBTI one, but the
-   2026-09-10 node is a different drawing: a 7px stroke against 4.29, a ring
-   that fills its own 117 box, and an X whose second stroke is steeper than the
-   first. Restyling the shared asset instead would have changed the MBTI card.
+   and an X, which is why the panel used to borrow the MBTI one, but this node
+   is a different drawing: a 7px stroke against 4.29, a ring that fills its own
+   117 box, and — re-exported 2026-09-11 — a SYMMETRIC X centred in the ring,
+   both strokes spanning 36…81. (The 2026-09-10 export had the second stroke
+   steeper and off-centre; the node was redrawn since.) Restyling the shared
+   asset instead would have changed the MBTI card.
 
    ★ NOT centred on the panel: the frame puts it at page x 1078, 56.5px right
    of the panel's own middle (the previous frame had it 68.5 right, and its

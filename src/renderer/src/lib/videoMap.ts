@@ -111,13 +111,12 @@ function buildByButton(entries: VideoEntry[]): Map<number, VideoEntry[]> {
   return m;
 }
 
-// Mutable maps, one per video set — populated by initSubtitles() when the API
-// responds. The API (via its SQLite offline cache) is the ONLY source of
-// subtitle data — there is no bundled sheet fallback. Empty until it has
-// loaded, so a never-synced kiosk with no network shows no clips (the generic
-// attract wall) until it reaches the API once. 제주 (W006–W008) is currently in
-// that state in production: /api/kiosks/{6,7,8}/subtitles answers with 21
-// buttons and zero subtitle rows until the CMS rollout lands.
+// Mutable maps, one per video set — populated by initSubtitles() once main's
+// SubtitleService answers. Its source is the CMS API (SQLite-cached), with one
+// exception: a 제주 kiosk whose API has no rows gets its VideoSubtitle Google
+// Sheet tab instead, read at runtime (production still answers W006–W008 with
+// zero rows). There is no bundled table, so a never-synced kiosk with no
+// network shows no clips (the generic attract wall) until it reaches one once.
 let BY_KEY: Record<VideoSet, Map<string, VideoEntry[]>> = emptyBySet(() => new Map());
 
 // Same entries indexed by owning `buttons.id` — lets a top-level home tile resolve

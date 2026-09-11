@@ -104,12 +104,12 @@ export function CustomerDisplay(): JSX.Element {
       // first. Needs the resolved kioskId so entries land in the right set.
       // Bump dataVersion afterwards so the clip lookups recompute.
       //
-      // The API (via its SQLite offline cache) is the ONLY subtitle source —
-      // the Google-Sheet fallback table is retired. 제주 playKeys arrive in the
-      // CMS's raw sheet form (`Default-1`…`-10`, alias keys), so they are
-      // normalized to the keys this app addresses before loading. If the API
-      // has no rows (제주's CMS is empty until its rollout lands), the display
-      // falls back to the generic uncaptioned attract wall.
+      // Entries come from main (SubtitleService, SQLite-cached): the CMS API,
+      // or — on a 제주 kiosk whose CMS has no rows — the venue's VideoSubtitle
+      // Google Sheet tab, read at runtime. Either way 제주 playKeys arrive in
+      // raw sheet form (`Default-1`…`-10`, alias keys), so they are normalized
+      // to the keys this app addresses before loading. Only when neither has
+      // rows does the display fall back to the generic uncaptioned attract wall.
       void (async () => {
         const vr = await window.api.videos.list();
         if (isOk(vr) && vr.value) initVideoFiles(vr.value);

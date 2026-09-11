@@ -13,10 +13,11 @@
  *
  * NOTE: VideoSubtitle_* is NOT generated here — for ANY location. Subtitles are
  * fetched live from the witteria API (SubtitleService → /api/kiosks/{id}/subtitles)
- * and cached in SQLite; the API is the single source of truth. (제주 used to
- * have a generated fallback table while its CMS carried no clips; retired
- * 2026-09-11 — the renderer's normalizeClipIndexKeys now adapts the CMS's raw
- * sheet-style playKeys instead.)
+ * and cached in SQLite. (제주 used to have a generated fallback table while its
+ * CMS carried no clips; retired 2026-09-11. A 제주 kiosk whose API has no rows
+ * now reads its VideoSubtitle tab at RUNTIME instead — SubtitleService →
+ * JejuSubtitleSheet — and the renderer's normalizeClipIndexKeys adapts the raw
+ * sheet-style playKeys from either source.)
  *
  * Raw CSVs are cached under src/renderer/src/data/sheet-cache/ so the build
  * still works offline; pass --offline to regenerate from the cache only.

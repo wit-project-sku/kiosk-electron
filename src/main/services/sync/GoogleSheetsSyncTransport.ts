@@ -49,6 +49,15 @@ const CONTENT_SHEETS: Record<KioskLayoutId, ContentSheet> = {
 };
 
 /**
+ * The content spreadsheet for a layout (`''` when it has none). Exported for
+ * services that read another tab of the same sheet — SubtitleService's 제주
+ * VideoSubtitle fallback — so the sheet id stays defined in one place.
+ */
+export function contentSheetIdFor(layout: KioskLayoutId): string {
+  return CONTENT_SHEETS[layout].sheetId;
+}
+
+/**
  * Google Sheets transport — optional cloud enhancement, not required for operation.
  *
  * Night sync only (02:00 AM). When credentials are not configured the kiosk runs

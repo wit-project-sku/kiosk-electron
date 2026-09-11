@@ -85,6 +85,7 @@ import {
   assignFacilities,
   chipLabel,
   facilitiesOn,
+  chipsForTerminal,
   facilityImageUrl,
   HELP_CHIPS,
   RESTROOM_CHIP,
@@ -218,15 +219,24 @@ const FLOORS: Record<TerminalId, ReadonlyArray<{ id: FloorId; label: string }>> 
  * 유아휴게실, 교통약자 편의시설, 유실물센터) are gone with the hard-coded list —
  * see lib/airportFacilities for what that costs the pins below.
  *
- * Ten chips is two rows, which is what Figma drew (6219:98787); the third row
- * the fifteen needed is gone again, so the map goes back up 205 to its 1620.
- * That number follows CATEGORIES.length and is NOT fixed — an eleventh category
- * in the sheet makes three rows again and .map has to move back down. See the
- * note on .cats in the CSS.
+ * ★ PER TERMINAL (2026-09-11): each tab draws only the categories ITS rows use
+ * — the sheet splits them by the ShopID's 국내선 / 국제선. Today that is ten
+ * chips on 국내선 and eight on 국제선, which has no 항공사 or 라운지・휴식 rows;
+ * both tabs used to draw all ten, and those two opened an empty list on 국제선.
+ * See chipsForTerminal.
+ *
+ * Ten chips is two rows, which is what Figma drew (6219:98787), and eight is
+ * two as well (5 + 3, left-aligned), so the map stays at its 1620 on both tabs.
+ * The row count follows the tab's own list and is NOT fixed — a terminal that
+ * reaches eleven categories makes three rows and .map has to move back down.
+ * See the note on .cats in the CSS.
  */
 const CATEGORIES = HELP_CHIPS;
 const PER_ROW = 5;
-const CATEGORY_ROWS = Math.ceil(CATEGORIES.length / PER_ROW);
+const TERMINAL_CHIPS: Record<TerminalId, readonly string[]> = {
+  domestic: chipsForTerminal('domestic'),
+  international: chipsForTerminal('international'),
+};
 
 /**
  * Chip caption for the 340×170 plates (Figma 6393:59030 / I6771:66722).
@@ -1013,9 +1023,14 @@ export function JejuHelp({ controller, initialCategory }: Props): JSX.Element {
   const [terminal, setTerminal] = useState<TerminalId>('domestic');
   const [floor, setFloor] = useState<FloorId>('1F');
   const [zone, setZone] = useState<PortZoneId>('hall');
-  const [category, setCategory] = useState(
-    initialCategory && CATEGORIES.includes(initialCategory) ? initialCategory : CATEGORIES[0]!,
-  );
+  /* The chips a view draws: the terminal's own categories. The ferry terminal
+     (W007) matches no sheet terminal — none of its pins has a row — so it keeps
+     the whole list, as it always has. */
+  const chipsFor = (t: TerminalId): readonly string[] => (atPort ? CATEGORIES : TERMINAL_CHIPS[t]);
+  const [category, setCategory] = useState(() => {
+    const landing = chipsFor('domestic');
+    return initialCategory && landing.includes(initialCategory) ? initialCategory : landing[0]!;
+  });
 
   const track = (payload: Record<string, string>): void => {
     trackEvent({
@@ -1025,6 +1040,8 @@ export function JejuHelp({ controller, initialCategory }: Props): JSX.Element {
   };
 
   const floors = FLOORS[terminal];
+  const chips = chipsFor(terminal);
+  const categoryRows = Math.ceil(chips.length / PER_ROW);
   const map = atPort ? PORT_MAPS[zone] : MAPS[`${terminal}-${floor}`];
   const here = jejuIconUrl('ico-here');
   const marker = jejuIconUrl('ico-map-pin');
@@ -1077,6 +1094,10 @@ export function JejuHelp({ controller, initialCategory }: Props): JSX.Element {
     track({ terminal: id });
     setTerminal(id);
     if (!FLOORS[id].some((f) => f.id === floor)) setFloor(FLOORS[id][0]!.id);
+    /* Same for the chip: keep it when the other terminal has the category (쇼핑
+       is on both), else land on that terminal's first — 항공사 has no 국제선 rows. */
+    const next = chipsFor(id);
+    if (!next.includes(category)) setCategory(next[0]!);
   };
 
   /**
@@ -1232,9 +1253,9 @@ export function JejuHelp({ controller, initialCategory }: Props): JSX.Element {
 
   const categoryChips = (
     <div className={styles.cats}>
-      {Array.from({ length: CATEGORY_ROWS }, (_, row) => row * PER_ROW).map((start) => (
+      {Array.from({ length: categoryRows }, (_, row) => row * PER_ROW).map((start) => (
         <div key={start} className={styles.catRow}>
-          {CATEGORIES.slice(start, start + PER_ROW).map((id) => (
+          {chips.slice(start, start + PER_ROW).map((id) => (
             <button
               key={id}
               type="button"
@@ -1251,7 +1272,7 @@ export function JejuHelp({ controller, initialCategory }: Props): JSX.Element {
                  *
                  * On a PRESS, not in an effect on `category`. Osan runs it as an
                  * effect because its chips come from the shops API, so ToHelp
-                 * still plays for the load; Jeju's come from CATEGORIES[0]
+                 * still plays for the load; Jeju's come from the tab's first chip
                  * synchronously, so an effect would fire on mount and ToHelp
                  * would never be seen at all. Both clips stay reachable this way.
                  *

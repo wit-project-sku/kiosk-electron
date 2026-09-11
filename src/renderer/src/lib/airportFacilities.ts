@@ -117,6 +117,24 @@ export const HELP_CHIPS: readonly string[] = [
 ];
 
 /**
+ * The chips ONE terminal draws: HELP_CHIPS, in its order, narrowed to the
+ * categories that terminal's own rows use.
+ *
+ * The sheet splits its rows by terminal (the ShopID's 국내선 / 국제선), and the
+ * two do not carry the same categories — 국제선 has no 항공사 and no 라운지・휴식
+ * rows today. Drawing HELP_CHIPS on both tabs gave 국제선 two chips that could
+ * only ever open an empty list. Built from the rows, so a category appears on a
+ * tab the day the sheet gives that terminal a row for it, and leaves when the
+ * last one goes.
+ */
+export function chipsForTerminal(terminal: string): readonly string[] {
+  const used = new Set(
+    AIRPORT_FACILITIES_JEJU.filter((f) => f.terminal === terminal).map((f) => f.category.ko),
+  );
+  return HELP_CHIPS.filter((c) => used.has(c));
+}
+
+/**
  * A BaseCategory the sheet uses that no pin group routes.
  *
  * This is the one way the sheet can now grow that the screen cannot absorb on
