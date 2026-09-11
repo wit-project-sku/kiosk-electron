@@ -242,7 +242,6 @@
   transform: rotate(-90deg);
 }
 
-/* The bottom-right corner ▲▼ (Group 1707482775) lives in JejuScrollHint. */
 .empty {
   flex: none;
   margin: 0;

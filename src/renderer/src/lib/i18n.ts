@@ -320,10 +320,17 @@ const TITLE_KEYS: Record<string, TitleKeySpec> = {
   "제주도 이벤트": { title: 'MainButton_Event', sub: 'SubHeader_Event' },
   "렌트카": { title: 'MainButton_RentCar', sub: 'RentCar_Subtitle' },
   탐나오: { title: 'MainButton_Tamnao', sub: 'Tamnao_Subtitle' },
-  // W006 reads MainButton_Airplane_Schedule, W007 MainButton_Cruise — same header
-  // id (운항정보), different title rows. OP_Schedule_Subtitle is the page copy.
+  // W006 공항 board keeps MainButton_Airplane_Schedule. W007/W008 ferry board
+  // uses a separate header id (see CRUISE_TITLE) → OP_Schedule_Title. Subtitle
+  // stays OP_Schedule_Subtitle on both.
   "운항정보": {
-    title: ['MainButton_Airplane_Schedule', 'MainButton_Cruise'],
+    title: 'MainButton_Airplane_Schedule',
+    sub: 'OP_Schedule_Subtitle',
+  },
+  // JejuCruise / JejuSailingBoard (여객터미널·유산). Korean sheet cell is still
+  // 운항정보; the id just routes the lookup away from the airport button row.
+  "크루즈 운항": {
+    title: 'OP_Schedule_Title',
     sub: 'OP_Schedule_Subtitle',
   },
   // Header id stays `검색`; title/sub come from Localization_Jeju. `Main_Search`

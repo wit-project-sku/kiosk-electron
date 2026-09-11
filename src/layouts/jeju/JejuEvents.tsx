@@ -57,13 +57,12 @@ const CLOSE_LABEL = {
  * this file cut them down to two; the redesign agrees, and 6212:54808 now draws
  * exactly these two. `.tab` is flex:1, so a third would re-space the row.
  *
- * The region tab label is authored as 제주도 (not the sheet's Event_Tab_Jeju):
- * operators asked to show 제주도 even when the sheet/CMS still says 제주시.
+ * Region label from Localization_Jeju `Event_Tab_Jeju` (fallback 제주도).
  * MBTI is a loan word with no row of its own and needs none.
  */
-const TABS: Array<{ id: string; label: string }> = [
-  { id: 'REGION', label: '제주도' },
-  { id: 'MBTI', label: 'MBTI' },
+const TABS: Array<{ id: string; key: string | null; label: string }> = [
+  { id: 'REGION', key: 'Event_Tab_Jeju', label: '제주도' },
+  { id: 'MBTI', key: null, label: 'MBTI' },
 ];
 
 /**
@@ -235,7 +234,7 @@ export function JejuEvents({ controller }: Props): JSX.Element {
             className={`${styles.tab} ${tab === tb.id ? styles.tabActive : ''}`}
             onClick={() => selectTab(tb.id)}
           >
-            {tb.label}
+            {tb.key ? sheetText(tb.key, lang, { ko: tb.label }) : tb.label}
           </button>
         ))}
       </div>

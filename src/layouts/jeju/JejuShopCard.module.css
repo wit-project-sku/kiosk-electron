@@ -50,7 +50,8 @@
   min-width: 0;
   font-size: 68px;
   font-weight: 600;
-  line-height: 1;
+  /* >1 so Latin descenders (g, y, p) are not clipped by overflow:hidden. */
+  line-height: 1.2;
   color: #2b2b2b;
   white-space: normal;
   word-break: keep-all;
@@ -81,7 +82,7 @@
 }
 
 .dotAssociation {
-  background: #2e7d32;
+  background: #fe6c50;
 }
 
 /* No line clamps — each line shows its full text and wraps (see the header). */

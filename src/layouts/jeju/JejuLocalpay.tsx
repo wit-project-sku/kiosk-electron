@@ -684,12 +684,23 @@ export function JejuLocalpay({ controller }: Props): JSX.Element {
               <div>{rich(c.onnuri.usageBody)}</div>
             </div>
 
-            {/* The #ffeac7 plate and everything drawn on it. In Korean this
-                wrapper has no position, so every child still places itself
-                against the card exactly as before; in flow mode it is the
-                plate's own box, and the note and bullets flow inside it. */}
-            <div className={low(styles.beigeGroup, styles.beigeGroupLow)}>
-              <div className={low(styles.beige, styles.beigeLow)} />
+            {/* The #ffeac7 plate and what is drawn on it. The plate is in
+                normal flow and grows with the note and bullets inside it; the
+                mascot, BI sticker and QR stay absolutely placed. In Korean this
+                wrapper has no position (and the plate's top margin collapses
+                through it), so they still anchor on the card exactly as the
+                frame draws them. In flow mode (every other language) it is
+                positioned, so they ride along with the plate when the copy
+                above it grows — see `.scroll .beigeGroup` in the CSS. */}
+            <div className={styles.beigeGroup}>
+              <div className={low(styles.beige, styles.beigeLow)}>
+                <p className={styles.beigeNote}>{c.onnuri.note}</p>
+                <ul className={styles.bullets}>
+                  {c.onnuri.bullets.map((b, i) => (
+                    <li key={`onnuri-bullet-${i}`}>· {b}</li>
+                  ))}
+                </ul>
+              </div>
               {/* AFTER .beige, as the frame stacks them (32390 → 32392): the
                   mascots' feet stand ON the beige plate, not under it. */}
               <img
@@ -698,12 +709,6 @@ export function JejuLocalpay({ controller }: Props): JSX.Element {
                 alt=""
                 draggable={false}
               />
-              <p className={low(styles.beigeNote, styles.beigeNoteLow)}>{c.onnuri.note}</p>
-              <ul className={low(styles.bullets, styles.bulletsLow)}>
-                {c.onnuri.bullets.map((b) => (
-                  <li key={b}>· {b}</li>
-                ))}
-              </ul>
               <img className={low(styles.bi, styles.biLow)} src={onnuriBi} alt="" draggable={false} />
               <div className={low(styles.qrPlate, styles.qrPlateLow)} />
               <img

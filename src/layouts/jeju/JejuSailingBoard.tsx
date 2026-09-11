@@ -21,6 +21,7 @@ import {
   useJejuDepartureSailings,
 } from '@renderer/lib/jejuSailing';
 import type { JejuSailing } from '@renderer/lib/jejuSailing';
+import { sailingPlaceLabel, sailingRouteLabel, sailingShipLabel } from '@renderer/lib/jejuSailingPlaces';
 import { useAccessibilityStore } from '@renderer/store/accessibilityStore';
 import { useSailingStore } from '@renderer/store/sailingStore';
 import styles from './JejuSailingBoard.module.css';
@@ -35,38 +36,67 @@ interface Props {
 
 /** Fallback — sheet `CruiseSchedule` (여객터미널). */
 const TITLE = {
-  ko: '운항 정보', en: 'Sailings', ja: '運航情報', zh: '航运信息',
+  ko: '운항 정보', en: 'Operation information', ja: '運航情報', zh: '航运信息',
   vi: 'Chuyến tàu', th: 'ข้อมูลเรือ', ru: 'Рейсы', id: 'Pelayaran',
 };
 
-/** Fallback — sheet `Schedule_More`. */
+/** Fallback — sheet `Schedule_More_Cruise`. */
 const MORE = {
-  ko: '운항 정보 더보기', en: 'More flight information', ja: '運航情報をもっと見る', zh: '查看更多航班信息',
-  vi: 'Xem thêm thông tin chuyến bay', th: 'ดูข้อมูลเที่ยวบินเพิ่มเติม', ru: 'Больше информации о рейсах',
-  id: 'Lihat lebih banyak informasi penerbangan',
+  ko: '운항 정보 더보기', en: 'More Operation information', ja: '運行情報の詳細', zh: '更多运营信息',
+  vi: 'Thêm thông tin vận hành', th: 'ข้อมูลการดำเนินงานเพิ่มเติม', ru: 'Дополнительная информация об операции',
+  id: 'Lihat lebih banyak informasi pelayaran',
 };
 
-const COLUMNS = {
+/** Korean column centres — original layout. */
+const COLUMNS_KO = {
   time: 412,
-  duration: 580,
+  duration: 590,
   ship: 840,
   route: 1190,
   place: 1500,
   status: 1718,
 } as const;
 
-/**
- * Wrap widths on the same axes — see JejuFlightBoard's HEAD_MAX / VALUE_MAX.
- * Heads: the distance to the nearer neighbouring axis (the title's / board's
- * edge for the outer two). Values: only the TEXT columns wrap; the time and the
- * `HH:mm` duration never do. 현황's width also bounds the 결항 note under it.
- */
-const HEAD_MAX: Record<keyof typeof COLUMNS, number> = {
-  time: 168, duration: 168, ship: 260, route: 310, place: 218, status: 218,
-};
-const VALUE_MAX = { ship: 380, route: 300, place: 230, status: 220 } as const;
+/** Non-Korean — nudged left toward the Korean band now that the title wraps. */
+const COLUMNS_EN = {
+  time: 450,
+  duration: 640,
+  ship: 930,
+  route: 1260,
+  place: 1490,
+  status: 1710,
+} as const;
 
-const HEAD_KEYS: Record<keyof typeof COLUMNS, string> = {
+type ColumnKey = keyof typeof COLUMNS_KO;
+type Columns = { readonly [K in ColumnKey]: number };
+
+const columnsFor = (lang: Lang): Columns => (lang === 'ko' ? COLUMNS_KO : COLUMNS_EN);
+
+/**
+ * Wrap widths on those axes — see JejuFlightBoard's HEAD_MAX / VALUE_MAX. One
+ * set per column layout, because the English axes sit differently.
+ *
+ * Heads: the distance to the nearer neighbouring axis (the rule's edge for the
+ * outer two). Values: only the TEXT columns wrap — the time and the `HH:mm`
+ * duration never do — each within what its neighbours leave it, so two long
+ * cells cannot overlap. 현황's width also bounds the 결항 note under it.
+ */
+type ValueKey = 'ship' | 'route' | 'place' | 'status';
+interface WrapWidths {
+  head: Record<ColumnKey, number>;
+  value: Record<ValueKey, number>;
+}
+const WRAP_KO: WrapWidths = {
+  head: { time: 168, duration: 178, ship: 250, route: 310, place: 218, status: 218 },
+  value: { ship: 380, route: 300, place: 230, status: 220 },
+};
+const WRAP_EN: WrapWidths = {
+  head: { time: 190, duration: 190, ship: 290, route: 230, place: 220, status: 164 },
+  value: { ship: 340, route: 280, place: 180, status: 220 },
+};
+const wrapFor = (lang: Lang): WrapWidths => (lang === 'ko' ? WRAP_KO : WRAP_EN);
+
+const HEAD_KEYS: Record<ColumnKey, string> = {
   time: 'OP_Schedule_Info_col1',
   duration: 'OP_Schedule_Info_col8',
   ship: 'OP_Schedule_Info_col9',
@@ -75,7 +105,7 @@ const HEAD_KEYS: Record<keyof typeof COLUMNS, string> = {
   status: 'OP_Schedule_Info_col6',
 };
 
-const HEADS: Record<keyof typeof COLUMNS, Partial<Record<Lang, string>>> = {
+const HEADS: Record<ColumnKey, Partial<Record<Lang, string>>> = {
   time: {
     ko: '출발시각', en: 'Departs', ja: '出発時刻', zh: '出发时间',
     vi: 'Giờ đi', th: 'เวลาออก', ru: 'Отправление', id: 'Berangkat',
@@ -102,51 +132,65 @@ const HEADS: Record<keyof typeof COLUMNS, Partial<Record<Lang, string>>> = {
   },
 };
 
-function SailingCells({ sailing, lang }: { sailing: JejuSailing; lang: Lang }): JSX.Element {
+/**
+ * One departure's six value cells.
+ *
+ * `lang` is already Korean-or-English (`boardLang` from the parent).
+ */
+function SailingCells({
+  sailing,
+  lang,
+  columns,
+}: {
+  sailing: JejuSailing;
+  lang: Lang;
+  columns: Columns;
+}): JSX.Element {
   const retimed = hasTimeChange(sailing);
+  const wrap = wrapFor(lang);
 
   return (
     <>
       <span
         className={`${styles.value} ${retimed ? styles.valueRetimed : ''}`}
-        style={{ left: COLUMNS.time }}
+        style={{ left: columns.time }}
       >
         {displaySailingTime(sailing)}
       </span>
       {retimed && (
-        <span className={styles.timeWas} style={{ left: COLUMNS.time }}>
+        <span className={styles.timeWas} style={{ left: columns.time }}>
           {sailing.scheduledTime}
         </span>
       )}
 
-      <span className={styles.value} style={{ left: COLUMNS.duration }}>
+      <span className={styles.value} style={{ left: columns.duration }}>
         {sailing.duration}
       </span>
       <span
         className={`${styles.value} ${styles.valueWrap}`}
-        style={{ left: COLUMNS.ship, maxWidth: VALUE_MAX.ship }}
+        style={{ left: columns.ship, maxWidth: wrap.value.ship }}
       >
-        {sailing.shipName}
+        {sailingShipLabel(sailing.shipName, lang)}
       </span>
       <span
         className={`${styles.value} ${styles.valueWrap}`}
-        style={{ left: COLUMNS.route, maxWidth: VALUE_MAX.route }}
+        style={{ left: columns.route, maxWidth: wrap.value.route }}
       >
-        {sailing.route}
+        {sailingRouteLabel(sailing.route, lang)}
       </span>
       <span
         className={`${styles.value} ${styles.valueWrap}`}
-        style={{ left: COLUMNS.place, maxWidth: VALUE_MAX.place }}
+        style={{ left: columns.place, maxWidth: wrap.value.place }}
       >
-        {sailing.place}
+        {sailingPlaceLabel(sailing.place, lang)}
       </span>
 
       {sailing.status && (
         <span
           className={`${styles.value} ${styles.valueStatus} ${styles.valueWrap}`}
           style={{
-            left: COLUMNS.status,
-            maxWidth: VALUE_MAX.status,
+            left: columns.status,
+            maxWidth: wrap.value.status,
             color: sailingStatusColor(sailing.status),
           }}
         >
@@ -154,7 +198,7 @@ function SailingCells({ sailing, lang }: { sailing: JejuSailing; lang: Lang }): 
         </span>
       )}
       {sailing.note && (
-        <span className={styles.note} style={{ left: COLUMNS.status, maxWidth: VALUE_MAX.status }}>
+        <span className={styles.note} style={{ left: columns.status, maxWidth: wrap.value.status }}>
           {sailing.note}
         </span>
       )}
@@ -187,12 +231,22 @@ export function JejuSailingBoard({ controller, lang }: Props): JSX.Element {
   // the first one is the next sailing out of 제주항, whichever berth it leaves.
   const lead = useJejuDepartureSailings()[0];
   const isLoading = snapshot === null;
+  /** Board chrome + cells: Korean or English only (matches JejuFlightBoard). */
+  const boardLang: Lang = lang === 'ko' ? 'ko' : 'en';
 
   const emptyMessage = isLoading
-    ? opText('OP_Schedule_Loading', lang, LOADING)
-    : opText('OP_Schedule_Result', lang, EMPTY);
-  const title = opText('CruiseSchedule', lang, TITLE);
+    ? opText('OP_Schedule_Loading', boardLang, LOADING)
+    : opText('OP_Schedule_Result', boardLang, EMPTY);
+  const titleRaw = opText('CruiseSchedule', boardLang, TITLE);
+  /** English stacks onto two lines so the rule can reach further left. */
+  const title =
+    boardLang === 'en' && !titleRaw.includes('\n')
+      ? titleRaw.replace(/\s+/, '\n')
+      : titleRaw;
   const openSailings = (): void => controller.navigate('cruise', CRUISE_TITLE);
+  const columns = columnsFor(boardLang);
+  const compact = boardLang !== 'ko';
+  const wrap = wrapFor(boardLang);
 
   return (
     <>
@@ -203,22 +257,22 @@ export function JejuSailingBoard({ controller, lang }: Props): JSX.Element {
       <div
         className={`${styles.board} ${lowReach ? styles.boardLow : ''}`}
         role="button"
-        aria-label={title}
+        aria-label={titleRaw}
         onClick={openSailings}
       >
-        <p className={lang === 'ko' ? styles.title : `${styles.title} ${styles.titleWrap}`}>{title}</p>
-        <div className={styles.rule} />
+        <p className={`${styles.title}${compact ? ` ${styles.titleEn}` : ''}`}>{title}</p>
+        <div className={`${styles.rule}${compact ? ` ${styles.ruleEn}` : ''}`} />
 
-        {(Object.keys(COLUMNS) as (keyof typeof COLUMNS)[]).map((key) => (
-          <span key={key} className={styles.head} style={{ left: COLUMNS[key], maxWidth: HEAD_MAX[key] }}>
-            {opText(HEAD_KEYS[key], lang, HEADS[key])}
+        {(Object.keys(columns) as ColumnKey[]).map((key) => (
+          <span key={key} className={styles.head} style={{ left: columns[key], maxWidth: wrap.head[key] }}>
+            {opText(HEAD_KEYS[key], boardLang, HEADS[key])}
           </span>
         ))}
 
         {lead ? (
-          <SailingCells sailing={lead} lang={lang} />
+          <SailingCells sailing={lead} lang={boardLang} columns={columns} />
         ) : (
-          <span className={styles.empty} style={{ left: COLUMNS.time }}>
+          <span className={styles.empty} style={{ left: columns.time }}>
             {emptyMessage}
           </span>
         )}
@@ -230,7 +284,7 @@ export function JejuSailingBoard({ controller, lang }: Props): JSX.Element {
         onClick={openSailings}
       >
         <span className={styles.chevron} />
-        <span className={styles.moreText}>{opText('Schedule_More', lang, MORE)}</span>
+        <span className={styles.moreText}>{opText('Schedule_More_Cruise', boardLang, MORE)}</span>
       </button>
     </>
   );

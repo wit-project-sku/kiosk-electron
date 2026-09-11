@@ -126,7 +126,7 @@ export interface Shop {
   descriptionRu?: string;
   openTime: string | null;
   tel: string | null;
-  /** Association member — list name-dot is drawn in the association green. */
+  /** Association member — list name-dot uses the Insadong primary (#FE6C50). */
   fromAssociation?: boolean;
   naverLink: string | null;
   /** Shop homepage URL — rentcar detail “홈페이지” QR when set. */

@@ -378,8 +378,9 @@
 .topicText {
   position: absolute;
   left: 119px;
+  right: 119px;
   top: 56px;
-  width: 1188px;
+  width: auto;
   display: flex;
   flex-direction: column;
   gap: 25px;
@@ -394,9 +395,13 @@
   word-break: keep-all;
 }
 
-/* The width comes from the data, not from here: each frame drags this one box
-   until its copy sits on two lines (1188 / 1233 / 1584), so it routinely
-   overflows the 1188 column it lives in. The widest still clears the card. */
+/* 건강습관 목·어깨 / 기분전환 — non-Korean titles run longer than the Korean
+   line; drop a step so they still fit the white caption card. */
+.topicTitleCompact {
+  font-size: 48px;
+}
+
+/* Same column as .topicTitle — fills .topicText (equal card insets). */
 .topicBody {
   margin: 0;
   font-size: 50px;
@@ -406,10 +411,10 @@
   /* K-POP's copy carries its own line break between the two sentences. */
   white-space: pre-line;
   /* NO `keep-all` here, unlike the 소개 details and the 관광명소 address: this is
-     prose in a box the designer already widened to its limit, and Figma itself
-     breaks 덜어보세요 mid-word to keep 기분전환 on two lines. Measured across all
-     six captions, default breaking matches every mock; `keep-all` matches five
-     and pushes 기분전환 to three lines. */
+     prose in a shared caption column, and Figma itself breaks 덜어보세요 mid-word
+     to keep 기분전환 on two lines. Measured across all six captions, default
+     breaking matches every mock; `keep-all` matches five and pushes 기분전환 to
+     three lines. */
 }
 
 /* The 건강습관 tab is not drawn, and neither are 골프 / 테니스. */
@@ -767,9 +772,13 @@
   padding-top: 70px; /* 600 − 433 − 100 = the same 67 at the bottom */
 }
 
+/* `right: auto` too: the pinned .topicText now spans the card with left AND
+   right insets, and a leftover `right` on a relative box would shift it 119
+   left instead of sizing it. */
 .topicStack .topicText {
   position: relative;
   left: auto;
+  right: auto;
   top: auto;
   width: 100%;
   /* The least room between the copy and the hashtags once it grows. */

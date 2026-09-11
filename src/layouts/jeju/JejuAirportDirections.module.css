@@ -9,7 +9,7 @@
   --dir-road-note: 34px;
   --dir-mode: 48px;
   --dir-mode-time: 55px;
-  --dir-mode-time-left: 530px;
+  --dir-mode-time-gap: 90px;
   --dir-mode-icon: 80px;
   --dir-mode-icon-gap: 36px;
   --dir-rail-width: 40px;
@@ -50,9 +50,8 @@
   gap: 40px;
 }
 
-/* Icon · label on the left; time pinned at --dir-mode-time-left. */
+/* Icon · label, then time 90px to the right of the label. */
 .modeHead {
-  position: relative;
   display: flex;
   align-items: center;
   width: 100%;
@@ -65,7 +64,7 @@
   display: inline-flex;
   align-items: center;
   gap: var(--dir-mode-icon-gap);
-  flex: 0 1 auto;
+  flex: 0 0 auto;
   min-width: 0;
   /* Stops 24px short of the time pinned at --dir-mode-time-left (measured from
      the padding edge; this box starts at the pad), so a long label wraps onto
@@ -93,10 +92,8 @@
 }
 
 .modeTime {
-  position: absolute;
-  left: var(--dir-mode-time-left);
-  top: 50%;
-  transform: translateY(-50%);
+  flex: 0 0 auto;
+  margin-left: var(--dir-mode-time-gap);
   font-size: var(--dir-mode-time);
   font-weight: 600;
   line-height: 1;

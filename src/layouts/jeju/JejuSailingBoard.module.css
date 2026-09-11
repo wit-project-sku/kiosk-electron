@@ -2,6 +2,10 @@
  * 제주국제여객터미널 (W007) home 운항 정보 board — same frame slot as
  * JejuFlightBoard.module.css, with six sailing columns.
  *
+ * Korean keeps the original rule/column band. English wraps the title onto
+ * two lines (`.titleEn`) so the rule/columns can sit closer to the Korean
+ * left edge via `.ruleEn` + `COLUMNS_EN`.
+ *
  * The 국제항 ㅣ 연안항 sub-tab row that used to sit above the panel is gone; the
  * berth filter lives on the 운항정보 page (JejuCruise) now. Nothing else moved —
  * every element here is absolutely positioned, so removing it left no gap to
@@ -38,6 +42,15 @@
   white-space: nowrap;
 }
 
+/* English — "Operation / information" stacked so the data band can start left. */
+.titleEn {
+  top: 48px;
+  line-height: 1.15;
+  white-space: pre-line;
+  text-align: center;
+}
+
+/* Default (Korean): original band under the six columns. */
 .rule {
   position: absolute;
   left: 330px;
@@ -45,6 +58,12 @@
   width: 1462px;
   height: 3px;
   background: #c8bda9;
+}
+
+/* Non-Korean — still a touch right of Korean, but closer now that the title wraps. */
+.ruleEn {
+  left: 350px;
+  width: 1442px;
 }
 
 .head,
@@ -182,25 +201,6 @@
   line-height: 1;
   color: var(--kiosk-primary, #ff7f0f);
   text-align: left;
-  white-space: normal;
-  word-break: keep-all;
-  overflow-wrap: anywhere;
-}
-
-/*
- * Other languages (same slot as the flight board) (Figma 7058:22669, the annotated 제주>홈) — "font 45 / 단
- * 내리기": the title drops to 45px and wraps inside the note's 242×96 box at
- * 57/60 instead of running 55px past its 242 width into the header columns.
- * Two lines at 48 fill the 96; a title that fits on one line is centred in it.
- * Added only when lang !== 'ko' — Korean keeps its 55px single line.
- */
-.titleWrap {
-  top: 60px;
-  height: 96px;
-  display: flex;
-  align-items: center;
-  font-size: 45px;
-  line-height: 48px;
   white-space: normal;
   word-break: keep-all;
   overflow-wrap: anywhere;

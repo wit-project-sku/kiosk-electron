@@ -88,8 +88,8 @@
   background: #fff;
 }
 
-.cardIntro   { top: 944px;  height: 1002px; }
-.cardDigital { top: 1998px; height: 1194px; }
+.cardIntro   { top: 944px;  height: 900px; }
+.cardDigital { top: 1896px; min-height: 1194px; height: auto; }
 .cardTamna   { top: 944px;  height: 2250px; }
 
 /* ── Shared type ── */
@@ -152,7 +152,7 @@
 .paperPanel {
   position: absolute;
   left: 50%;
-  top: 414px;
+  top: 330px;
   width: 1740px;
   height: 537.676px;
   margin-left: -7px;
@@ -235,26 +235,29 @@
   object-fit: contain;
 }
 
+/* Yellow plate — in-flow so the white digital card grows with it.
+   margin-top clears the absolute digitalText / usageBlock band (Figma top 673). */
 .beige {
-  position: absolute;
-  left: 50%;
-  top: 673px;
+  position: relative;
   width: 1748px;
-  height: 456px;
-  transform: translateX(-50%);
+  min-height: 456px;
+  height: auto;
+  margin: 673px auto 50px;
+  box-sizing: border-box;
+  padding: 45px 0 40px 14px;
   border-radius: 20px;
   background: #ffeac7;
+  display: flex;
+  flex-direction: column;
+  gap: 42px;
 }
 
 /* Figma nowraps this line. Left wrapping here: it is the longest single line on
    the page and every translation runs longer than the Korean, so nowrap would
    push it out of the card. */
 .beigeNote {
-  position: absolute;
-  left: 57px;
-  top: 718px;
+  margin: 0 0 0 7px;
   width: 1155px;
-  margin: 0;
   font-size: 30px;
   font-weight: 400;
   line-height: 1.3;
@@ -267,12 +270,9 @@
    before the BI sticker at x1245 and the frame's own tracking applied to the
    whole list, which keeps all four on one line each. */
 .bullets {
-  position: absolute;
-  left: 50px;
-  top: 799px;
-  width: 1190px;
   margin: 0;
   padding: 0;
+  width: 1190px;
   list-style: none;
   font-size: 40px;
   font-weight: 600;
@@ -522,13 +522,13 @@
 
 .tabsLow { top: 3437px; }
 
-.cardIntroLow   { top: 1041px; height: 997px; }
-.cardDigitalLow { top: 2069px; height: 1123px; }
+.cardIntroLow   { top: 1041px; height: 895px; }
+.cardDigitalLow { top: 1967px; min-height: 1123px; height: auto; }
 .cardTamnaLow   { top: 1041px; height: 2250px; }
 
 /* ── 온누리 intro card (6326:80288) ── */
 .introTextLow  { top: 75px; }
-.paperPanelLow { top: 422px; }
+.paperPanelLow { top: 338px; }
 
 /* ── 온누리 digital card (6326:80296) ──
    The card loses 71px, and it does not lose it evenly: the two text blocks move
@@ -538,11 +538,7 @@
 .digitalTextLow { top: 78px; }
 .usageBlockLow  { top: 476px; }
 .mascotLow      { top: 395px; }
-.beigeLow       { top: 661px; height: 425px; }
-.beigeNoteLow   { top: 706px; }
-/* Width stays the widened 1190, not the frame's 1155 — the reason above .bullets
-   still holds, and 50 + 1190 clears the BI sticker at x1245. */
-.bulletsLow     { top: 787px; }
+.beigeLow       { margin-top: 661px; min-height: 425px; }
 .biLow          { top: 771px; }
 .qrPlateLow     { top: 756px; }
 .qrImageLow     { top: 771.34px; }
@@ -610,10 +606,11 @@
   align-items: flex-start;
 }
 
-.scroll .cardIntro      { min-height: 1002px; padding: 50px 40px; }
+/* Floors are the Korean cards' own heights (900 / 1194 / 2250; ♿ 895 / 1123). */
+.scroll .cardIntro      { min-height: 900px;  padding: 50px 40px; }
 .scroll .cardDigital    { min-height: 1194px; padding: 50px 36px 65px; }
 .scroll .cardTamna      { min-height: 2250px; padding: 100px 40px; }
-.scroll .cardIntroLow   { min-height: 997px;  padding-top: 75px; }
+.scroll .cardIntroLow   { min-height: 895px;  padding-top: 75px; }
 .scroll .cardDigitalLow { min-height: 1123px; padding-top: 78px; }
 
 /* Blocks that were absolutely placed take their place in the column instead.
@@ -624,8 +621,6 @@
 .scroll .paperPanel,
 .scroll .digitalText,
 .scroll .usageBlock,
-.scroll .beigeNote,
-.scroll .bullets,
 .scroll .tamnaHead,
 .scroll .kwonjong,
 .scroll .apply,
@@ -651,36 +646,25 @@
   margin-top: 60px;
 }
 
-/* The plate as a real box: the note and bullets flow inside it and it grows
-   with them. Its children are measured from its own corner, i.e. the frame's
-   card-relative value minus the plate's (36, 673). */
+/* The plate and its pinned art as one positioned box, 73 under the 사용처
+   block. The plate (`.beige`) already flows and grows with its note and
+   bullets in every language; here it only drops the 673 top margin that places
+   it in the Korean card, and the mascot / BI / QR are measured from this box's
+   corner instead of the card's — the frame's card-relative value minus the
+   plate's (36, 673). */
 .scroll .beigeGroup {
   position: relative;
   flex: none;
   width: 1748px;
-  min-height: 456px;
   margin-top: 73px;
-  box-sizing: border-box;
-  padding: 45px 0 40px;
-}
-
-.scroll .beigeGroupLow {
-  min-height: 425px;
 }
 
 .scroll .beige {
-  left: 0;
-  top: 0;
-  width: 100%;
-  height: 100%;
-  transform: none;
+  margin: 0;
 }
 
 /* Feet on the plate's top edge, as the frame stands them (407 − 673). */
 .scroll .mascot  { left: 1218px; top: -266px; }
-
-.scroll .beigeNote { margin-left: 21px; }
-.scroll .bullets   { margin: 42px 0 0 14px; }
 
 /* Translated benefits wrap, so hang the "· " the item text starts with: a second
    line lines up with the words, not under the dot. Korean fits on one line each
