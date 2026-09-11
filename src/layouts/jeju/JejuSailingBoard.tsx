@@ -21,6 +21,7 @@ import {
   useJejuDepartureSailings,
 } from '@renderer/lib/jejuSailing';
 import type { JejuSailing } from '@renderer/lib/jejuSailing';
+import { sailingPlaceLabel, sailingRouteLabel, sailingShipLabel } from '@renderer/lib/jejuSailingPlaces';
 import { useAccessibilityStore } from '@renderer/store/accessibilityStore';
 import { useSailingStore } from '@renderer/store/sailingStore';
 import styles from './JejuSailingBoard.module.css';
@@ -35,7 +36,7 @@ interface Props {
 
 /** Fallback — sheet `CruiseSchedule` (여객터미널). */
 const TITLE = {
-  ko: '운항 정보', en: 'Sailings', ja: '運航情報', zh: '航运信息',
+  ko: '운항 정보', en: 'Operation information', ja: '運航情報', zh: '航运信息',
   vi: 'Chuyến tàu', th: 'ข้อมูลเรือ', ru: 'Рейсы', id: 'Pelayaran',
 };
 
@@ -49,21 +50,21 @@ const MORE = {
 /** Korean column centres — original layout. */
 const COLUMNS_KO = {
   time: 412,
-  duration: 580,
+  duration: 590,
   ship: 840,
   route: 1190,
   place: 1500,
   status: 1718,
 } as const;
 
-/** Non-Korean — right-shifted under the shorter `.ruleEn` band. */
+/** Non-Korean — nudged left toward the Korean band now that the title wraps. */
 const COLUMNS_EN = {
-  time: 530,
-  duration: 740,
-  ship: 960,
-  route: 1220,
-  place: 1500,
-  status: 1708,
+  time: 450,
+  duration: 640,
+  ship: 930,
+  route: 1260,
+  place: 1490,
+  status: 1710,
 } as const;
 
 type ColumnKey = keyof typeof COLUMNS_KO;
@@ -107,6 +108,11 @@ const HEADS: Record<ColumnKey, Partial<Record<Lang, string>>> = {
   },
 };
 
+/**
+ * One departure's six value cells.
+ *
+ * `lang` is already Korean-or-English (`boardLang` from the parent).
+ */
 function SailingCells({
   sailing,
   lang,
@@ -136,13 +142,13 @@ function SailingCells({
         {sailing.duration}
       </span>
       <span className={styles.value} style={{ left: columns.ship }}>
-        {sailing.shipName}
+        {sailingShipLabel(sailing.shipName, lang)}
       </span>
       <span className={styles.value} style={{ left: columns.route }}>
-        {sailing.route}
+        {sailingRouteLabel(sailing.route, lang)}
       </span>
       <span className={styles.value} style={{ left: columns.place }}>
-        {sailing.place}
+        {sailingPlaceLabel(sailing.place, lang)}
       </span>
 
       {sailing.status && (
@@ -187,14 +193,21 @@ export function JejuSailingBoard({ controller, lang }: Props): JSX.Element {
   // the first one is the next sailing out of 제주항, whichever berth it leaves.
   const lead = useJejuDepartureSailings()[0];
   const isLoading = snapshot === null;
+  /** Board chrome + cells: Korean or English only (matches JejuFlightBoard). */
+  const boardLang: Lang = lang === 'ko' ? 'ko' : 'en';
 
   const emptyMessage = isLoading
-    ? opText('OP_Schedule_Loading', lang, LOADING)
-    : opText('OP_Schedule_Result', lang, EMPTY);
-  const title = opText('CruiseSchedule', lang, TITLE);
+    ? opText('OP_Schedule_Loading', boardLang, LOADING)
+    : opText('OP_Schedule_Result', boardLang, EMPTY);
+  const titleRaw = opText('CruiseSchedule', boardLang, TITLE);
+  /** English stacks onto two lines so the rule can reach further left. */
+  const title =
+    boardLang === 'en' && !titleRaw.includes('\n')
+      ? titleRaw.replace(/\s+/, '\n')
+      : titleRaw;
   const openSailings = (): void => controller.navigate('cruise', CRUISE_TITLE);
-  const columns = columnsFor(lang);
-  const compact = lang !== 'ko';
+  const columns = columnsFor(boardLang);
+  const compact = boardLang !== 'ko';
 
   return (
     <>
@@ -205,20 +218,20 @@ export function JejuSailingBoard({ controller, lang }: Props): JSX.Element {
       <div
         className={`${styles.board} ${lowReach ? styles.boardLow : ''}`}
         role="button"
-        aria-label={title}
+        aria-label={titleRaw}
         onClick={openSailings}
       >
-        <p className={styles.title}>{title}</p>
+        <p className={`${styles.title}${compact ? ` ${styles.titleEn}` : ''}`}>{title}</p>
         <div className={`${styles.rule}${compact ? ` ${styles.ruleEn}` : ''}`} />
 
         {(Object.keys(columns) as ColumnKey[]).map((key) => (
           <span key={key} className={styles.head} style={{ left: columns[key] }}>
-            {opText(HEAD_KEYS[key], lang, HEADS[key])}
+            {opText(HEAD_KEYS[key], boardLang, HEADS[key])}
           </span>
         ))}
 
         {lead ? (
-          <SailingCells sailing={lead} lang={lang} columns={columns} />
+          <SailingCells sailing={lead} lang={boardLang} columns={columns} />
         ) : (
           <span className={styles.empty} style={{ left: columns.time }}>
             {emptyMessage}
@@ -232,7 +245,7 @@ export function JejuSailingBoard({ controller, lang }: Props): JSX.Element {
         onClick={openSailings}
       >
         <span className={styles.chevron} />
-        <span className={styles.moreText}>{opText('Schedule_More_Cruise', lang, MORE)}</span>
+        <span className={styles.moreText}>{opText('Schedule_More_Cruise', boardLang, MORE)}</span>
       </button>
     </>
   );

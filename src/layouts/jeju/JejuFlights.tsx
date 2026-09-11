@@ -30,10 +30,9 @@
  * 목적지 / 출발지 column header opens a dropdown of every distinct place in
  * the loaded board; picking one filters the rows (combined with 편명 search).
  *
- * ♿ low-reach: same "controls to the foot" shape as the terminal's JejuCruise —
- * the 출발/도착 tabs (and the search field above them) drop to the artboard
- * floor and the board slides up 159 into the space. All of it is positional
- * (`*Low` classes); see the CSS header.
+ * Non-Korean languages force English for the column headers and list cells
+ * (place / kind / status / airline via local + IATA map — the feed has no Eng
+ * airline field). Tabs / search stay in the visitor's selected language.
  */
 import { useEffect, useMemo, useRef, useState } from 'react';
 import type { KioskController } from '@renderer/hooks/useKioskController';
@@ -53,6 +52,8 @@ import {
   useJejuDepartures,
 } from '@renderer/lib/jejuFlight';
 import type { JejuFlightBase } from '@renderer/lib/jejuFlight';
+import { flightAirlineLabel } from '@renderer/lib/jejuAirlines';
+import { flightPlaceLabel } from '@renderer/lib/jejuAirportPlaces';
 import { useAccessibilityStore } from '@renderer/store/accessibilityStore';
 import { useFlightStore } from '@renderer/store/flightStore';
 import { FloatingKeyboard } from '../insadong/keyboard/FloatingKeyboard';
@@ -251,6 +252,8 @@ function normalizeFlightNo(value: string): string {
 
 export function JejuFlights({ controller }: Props): JSX.Element {
   const lang = useLang();
+  /** Board chrome (columns + row labels) is Korean or English only. */
+  const boardLang: Lang = lang === 'ko' ? 'ko' : 'en';
   const lowReach = useAccessibilityStore((s) => s.lowReach);
   const [direction, setDirection] = useState<FlightDirection>('departure');
   const [query, setQuery] = useState('');
@@ -284,8 +287,11 @@ export function JejuFlights({ controller }: Props): JSX.Element {
       const p = row.place.trim();
       if (p) set.add(p);
     }
-    return Array.from(set).sort((a, b) => a.localeCompare(b, 'ko'));
-  }, [allRows]);
+    const locale = boardLang === 'ko' ? 'ko' : 'en';
+    return Array.from(set).sort((a, b) =>
+      flightPlaceLabel(a, boardLang).localeCompare(flightPlaceLabel(b, boardLang), locale),
+    );
+  }, [allRows, boardLang]);
 
   useEffect(() => {
     if (placeFilter && !placeOptions.includes(placeFilter)) {
@@ -373,14 +379,15 @@ export function JejuFlights({ controller }: Props): JSX.Element {
   const cellText = (col: Column, row: Row): string => {
     switch (col.key) {
       case 'time':    return displayTime(row.flight);
-      case 'airline': return `${row.flight.airline}(${row.flight.flightNo})`;
-      case 'place':   return row.place;
-      case 'kind':    return flightKindLabel(row.flight.kind, lang);
+      case 'airline':
+        return `${flightAirlineLabel(row.flight.airline, row.flight.flightNo, boardLang)}(${row.flight.flightNo})`;
+      case 'place':   return flightPlaceLabel(row.place, boardLang);
+      case 'kind':    return flightKindLabel(row.flight.kind, boardLang);
       case 'stand':
         return direction === 'departure' ? formatGate(row.stand) : dashIfEmpty(row.stand);
       case 'status':
         return row.flight.status
-          ? flightStatusLabel(row.flight.status, lang)
+          ? flightStatusLabel(row.flight.status, boardLang)
           : '-';
       default:        return '';
     }
@@ -395,7 +402,7 @@ export function JejuFlights({ controller }: Props): JSX.Element {
         : opText('OP_Schedule_Search_Result', lang, NO_RESULT);
 
   const searchPlaceholder = opText('OP_Schedule_Search_placeholder', lang, SEARCH_PLACEHOLDER);
-  const placeAllLabel = pick(PLACE_ALL, lang);
+  const placeAllLabel = pick(PLACE_ALL, boardLang);
 
   return (
     <JejuPageFrame
@@ -436,7 +443,9 @@ export function JejuFlights({ controller }: Props): JSX.Element {
       <div className={low(styles.headPlate, styles.headPlateLow)} />
       {columns.map((col) => {
         if (col.key === 'place') {
-          const title = col.sheetKey ? opText(col.sheetKey, lang, col.head) : pick(col.head, lang);
+          const title = col.sheetKey
+            ? opText(col.sheetKey, boardLang, col.head)
+            : pick(col.head, boardLang);
           return (
             <button
               key={`${direction}-${col.key}`}
@@ -464,7 +473,7 @@ export function JejuFlights({ controller }: Props): JSX.Element {
             className={`${low(styles.head, styles.headLow)} ${col.centred ? styles.cellCentred : ''}`}
             style={{ left: col.x }}
           >
-            {col.sheetKey ? opText(col.sheetKey, lang, col.head) : pick(col.head, lang)}
+            {col.sheetKey ? opText(col.sheetKey, boardLang, col.head) : pick(col.head, boardLang)}
           </span>
         );
       })}
@@ -500,7 +509,7 @@ export function JejuFlights({ controller }: Props): JSX.Element {
                 aria-selected={placeFilter === place}
                 onClick={() => pickPlace(place)}
               >
-                {place}
+                {flightPlaceLabel(place, boardLang)}
               </button>
             ))}
           </div>
