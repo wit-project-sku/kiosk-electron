@@ -1,5 +1,12 @@
 import type { Shop } from '@shared/types/shop';
-import type { JejuCourseKey, JejuTransport } from '@shared/types/jejuCourse';
+import type {
+  JejuCourse,
+  JejuCourseDay,
+  JejuCourseKey,
+  JejuCourseSpot,
+  JejuPickerPlan,
+  JejuTransport,
+} from '@shared/types/jejuCourse';
 import { stripPrefix } from '@renderer/lib/shops';
 import { pick, type Lang } from '@renderer/lib/i18n';
 
@@ -103,6 +110,66 @@ export function interestCodes(interests: string[], shops: Shop[]): string[] {
     if (key && !byStripped.has(key)) byStripped.set(key, raw);
   }
   return interests.map((i) => byStripped.get(i) ?? i);
+}
+
+/** Minutes past midnight as a clock — 544 → "09:04". */
+export function clockLabel(minutes: number): string {
+  const m = Math.max(0, Math.round(minutes));
+  return `${String(Math.floor(m / 60) % 24).padStart(2, '0')}:${String(m % 60).padStart(2, '0')}`;
+}
+
+/**
+ * A 커스텀 코스 picker plan in the shape the course detail already draws.
+ *
+ * The detail was built for /recommend's `JejuCourse`; the picker returns the
+ * same stops with more to say (waits, costs, per-tile states). Only what the
+ * detail reads is carried over:
+ *  - days the trip never reached are left out — the picker answers with every
+ *    day of the 체류 기간, and an empty trailing day would page to a blank list;
+ *  - 난이도 comes from the catalogue row (the picker does not grade), and a shop
+ *    with no grade reads 0, which the detail already shows as no label;
+ *  - 영업시간 is the catalogue's own `openTime` text — the picker already
+ *    scheduled the visit inside those hours, so showing them is safe.
+ * The course letter is meaningless here and fixed to 'A'.
+ */
+export function pickerPlanToCourse(plan: JejuPickerPlan, shops: Shop[]): JejuCourse | null {
+  const byId = new Map(shops.map((shop) => [shop.id, shop]));
+  const gradeOf = (shopId: number): number => {
+    const grade = (byId.get(shopId) as { difficulty?: unknown } | undefined)?.difficulty;
+    return typeof grade === 'number' ? grade : 0;
+  };
+  const meanGrade = (spots: JejuCourseSpot[]): number => {
+    const graded = spots.map((s) => s.difficulty).filter((g) => g > 0);
+    return graded.length ? Math.round(graded.reduce((a, b) => a + b, 0) / graded.length) : 0;
+  };
+
+  const schedule: JejuCourseDay[] = plan.days
+    .filter((day) => day.stops.length > 0)
+    .map((day) => {
+      const spots: JejuCourseSpot[] = day.stops.map((stop) => ({
+        shopId: stop.shopId,
+        order: stop.order,
+        travelMinutes: stop.travelMinutes,
+        arriveMin: stop.arriveMin,
+        leaveMin: stop.leaveMin,
+        dwellMinutes: stop.dwellMinutes,
+        difficulty: gradeOf(stop.shopId),
+        openTimeText: byId.get(stop.shopId)?.openTime?.trim() || null,
+        viewAnchor: stop.viewAnchor,
+      }));
+      return { day: day.day, spotCount: spots.length, minutes: day.usedMinutes, difficulty: meanGrade(spots), spots };
+    });
+  if (schedule.length === 0) return null;
+
+  return {
+    course: 'A',
+    days: schedule.length,
+    totalSpots: schedule.reduce((n, day) => n + day.spots.length, 0),
+    totalMinutes: plan.usedMinutes,
+    difficulty: meanGrade(schedule.flatMap((day) => day.spots)),
+    unmetInterests: [],
+    schedule,
+  };
 }
 
 /** Today, as the API's `visitDate` — local date, never UTC. */

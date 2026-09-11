@@ -31,16 +31,61 @@ interface Props {
   /** Plate width in artboard px; see the CSS note on .spot. */
   width: number;
   /**
-   * 'compact' is 7038:18453's 289px "추천 코스" card: the orange pill, name,
-   * address and the two stats — no photo, no description. The AI course detail
-   * draws it for a stop the visitor did not pick. Default 'full'.
+   * 'compact' is the 311px "추천 코스" card (7038:18453, 289px there; 311 since
+   * 7128:72710): the orange pill, name, address and the two stats — no photo,
+   * no description. The AI course detail draws it for a stop the visitor did
+   * not pick. Default 'full'.
    */
   variant?: 'full' | 'compact';
-  /** The compact card's pill label ("추천 코스"). Unused by 'full'. */
+  /**
+   * The "추천 코스" pill. Always drawn by 'compact'; on 'full' it is drawn
+   * beside the name only when given — 7128:72710's EXPANDED recommended stop,
+   * which keeps saying it was the recommender's pick once it is opened up.
+   */
   badge?: string;
+  /**
+   * 7128:72710's 펼치기 / 접기 control. Given, 'compact' draws "펼치기 ⌄" in its
+   * bottom-right corner and 'full' draws "접기 ⌃" at the end of its stats row;
+   * tapping it calls `onToggle` INSTEAD of `onClick`, so the rest of the plate
+   * still opens the spot. Omitted, neither card draws it (the 다음 장소 card).
+   */
+  toggle?: { label: string; onToggle: () => void };
   className?: string;
   style?: CSSProperties;
   onClick: () => void;
+}
+
+/**
+ * The 펼치기 / 접기 pill. A span rather than a nested <button> — a button may
+ * not contain another — that swallows its own tap so the plate's `onClick`
+ * (open the spot) does not also fire.
+ */
+function ToggleChip({
+  label,
+  onToggle,
+  expanded,
+  className,
+}: {
+  label: string;
+  onToggle: () => void;
+  expanded: boolean;
+  className?: string;
+}): JSX.Element {
+  const icon = jejuIconUrl(expanded ? 'ico-chevron-up' : 'ico-chevron-down');
+  return (
+    <span
+      role="button"
+      aria-expanded={expanded}
+      className={[styles.toggle, className].filter(Boolean).join(' ')}
+      onClick={(e) => {
+        e.stopPropagation();
+        onToggle();
+      }}
+    >
+      <span className={styles.toggleText}>{label}</span>
+      {icon && <img src={icon} alt="" className={styles.toggleIcon} draggable={false} />}
+    </span>
+  );
 }
 
 export function JejuCourseSpotCard({
@@ -54,6 +99,7 @@ export function JejuCourseSpotCard({
   width,
   variant = 'full',
   badge = '',
+  toggle,
   className,
   style,
   onClick,
@@ -98,6 +144,15 @@ export function JejuCourseSpotCard({
             </span>
           )}
         </span>
+
+        {toggle && (
+          <ToggleChip
+            label={toggle.label}
+            onToggle={toggle.onToggle}
+            expanded={false}
+            className={styles.toggleCompact}
+          />
+        )}
       </button>
     );
   }
@@ -118,7 +173,14 @@ export function JejuCourseSpotCard({
       <span className={styles.spotBody}>
         <span className={styles.spotTop}>
           <span className={styles.spotNameRow}>
-            <p className={styles.spotName}>{name}</p>
+            {badge ? (
+              <span className={styles.spotNameBadged}>
+                <p className={styles.spotName}>{name}</p>
+                <span className={`${styles.compactBadge} ${styles.nameBadge}`}>{badge}</span>
+              </span>
+            ) : (
+              <p className={styles.spotName}>{name}</p>
+            )}
             <p className={styles.spotTag}>{category}</p>
           </span>
 
@@ -132,7 +194,7 @@ export function JejuCourseSpotCard({
           <p className={styles.spotDesc}>{description}</p>
         </span>
 
-        <span className={styles.spotMeta}>
+        <span className={toggle ? `${styles.spotMeta} ${styles.spotMetaToggle}` : styles.spotMeta}>
           <span className={styles.metaItem}>
             {jejuIconUrl('ico-duration') && (
               <img src={jejuIconUrl('ico-duration')} alt="" className={styles.metaIcon} draggable={false} />
@@ -147,6 +209,7 @@ export function JejuCourseSpotCard({
               <span className={styles.metaText}>{difficulty}</span>
             </span>
           )}
+          {toggle && <ToggleChip label={toggle.label} onToggle={toggle.onToggle} expanded />}
         </span>
       </span>
     </button>

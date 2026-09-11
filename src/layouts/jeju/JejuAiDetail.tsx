@@ -16,6 +16,14 @@
  * (see `isPicked`). On the AI 맞춤 route the header now names the course the
  * way the landing card does — "AI 맞춤 추천 코스 - 1일차", in Bold.
  *
+ * ── The 2026-09-11 redraw (7058:21462 선택보기 · 7128:72710 전체보기) ─────
+ * Three additions, nothing moved: a travel-time pill ("15분") on the rail
+ * between each pair of discs (see `legs`); the compact "추천 코스" card grew to
+ * 311 with a 펼치기 pill that opens it into the full plate — the pill beside the
+ * name, 접기 in the stats row (see `expanded`); and the full plate's address and
+ * stats went Bold. The AI 맞춤 route's header reads "커스텀 코스 - 1일차" now,
+ * matching the landing card (AI_COURSE_NAME).
+ *
  * Shows the course a questionnaire sent — a themed card's own course, or the
  * AI 맞춤 course whose letter JejuAiSearch derives from the picks (the A/B/C
  * chooser that used to pick it is out of the flow since 2026-09-11): its
@@ -85,6 +93,7 @@ import {
   courseLetter,
   difficultyLabel,
   interestCodes,
+  pickerPlanToCourse,
   jejuCourseNameWithDay,
   minutesLabel,
   aboutMinutesLabel,
@@ -130,27 +139,44 @@ const DAYS_BY_STAY: Record<string, number> = {
  */
 const COURSE_QR_FALLBACK_URL = 'https://direction-fe.vercel.app/ai';
 
-/** Row heights: the full 515 plate, and 7038:18453's compact 289 "추천 코스" card.
- *  Both are MINIMUMS now (a wrapped name or address grows a card), so these
- *  only stand in for the rail until the rows have been measured. */
+/** Row heights: the full 515 plate, and the compact "추천 코스" card (311 since
+ *  7128:72710). Both are MINIMUMS now (a wrapped name or address grows a card),
+ *  so these only stand in for the rail until the rows have been measured. */
 const CARD_HEIGHT = 515;
-const COMPACT_HEIGHT = 289;
+const COMPACT_HEIGHT = 311;
 const CARD_GAP = 50;
+
+/**
+ * OFFLINE FALLBACK ONLY — the "15분" the frames draw between stops, for the
+ * no-API path that has no schedule to time. Same standing as COURSE_META's
+ * per-spot placeholders: the API path reads each stop's own `travelMinutes`.
+ */
+const OFFLINE_TRAVEL_MINUTES = 15;
+
+/**
+ * Each numbered disc's centre, measured from the list's top. A disc is centred
+ * on its own card, so the next one is half this row, the gap and half the next
+ * row further down.
+ */
+const discCenters = (heights: number[]): number[] => {
+  const centers: number[] = [];
+  heights.forEach((h, i) => {
+    centers.push(i === 0 ? h / 2 : centers[i - 1]! + heights[i - 1]! / 2 + CARD_GAP + h / 2);
+  });
+  return centers;
+};
 
 /**
  * The dashed rail, from the first numbered disc's centre to the last one's.
  *
- * Measured off the ACTUAL rows now that two card heights share the list: each
- * disc is centred on its own card, so the rail starts half the first row down
- * and ends half the last row up. The old `(n - 1) × 565` assumed every row was a
- * full plate and would overshoot past the last disc whenever a compact card sat
- * in the day. For an all-full day this is exactly that old number.
+ * Measured off the ACTUAL rows now that two card heights share the list — the
+ * old `(n - 1) × 565` assumed every row was a full plate and overshot past the
+ * last disc whenever a compact card sat in the day.
  */
 const railFor = (heights: number[]): { top: number; height: number } => {
   if (heights.length <= 1) return { top: 0, height: 0 };
-  const first = heights[0]! / 2;
-  const span = heights.slice(0, -1).reduce((sum, h) => sum + h + CARD_GAP, 0);
-  return { top: first, height: span - first + heights[heights.length - 1]! / 2 };
+  const centers = discCenters(heights);
+  return { top: centers[0]!, height: centers[centers.length - 1]! - centers[0]! };
 };
 
 /**
@@ -199,14 +225,15 @@ function DayArrow({
 }
 
 /**
- * What the header calls the AI 맞춤 route's course — "AI 맞춤 추천 코스 - 1일차",
- * as this page's own frame (7038:18453) draws it. It used to borrow the landing
- * card's title; the landing renamed that card 커스텀 코스 (7088:23517) and this
- * frame did not follow, so the detail keeps its own copy.
+ * What the header calls the AI 맞춤 route's course — "커스텀 코스 - 1일차" in
+ * 7128:72710. 7038:18453 (and 7058:21462) still read "AI 맞춤 추천 코스"; the
+ * landing renamed its card 커스텀 코스 (7088:23517) and the latest detail frame
+ * followed, so the two screens name the route the same way again. Same words
+ * as JejuAiSearch's AI_CARD title in every language.
  */
 const AI_COURSE_NAME = {
-  ko: 'AI 맞춤 추천 코스', en: 'AI Custom Course', ja: 'AIおすすめコース', zh: 'AI定制推荐路线',
-  vi: 'Lộ trình gợi ý AI', th: 'เส้นทางแนะนำโดย AI', ru: 'Маршрут от ИИ', id: 'Rute Rekomendasi AI',
+  ko: '커스텀 코스', en: 'Custom Course', ja: 'カスタムコース', zh: '定制路线',
+  vi: 'Lộ trình tùy chỉnh', th: 'เส้นทางแบบกำหนดเอง', ru: 'Свой маршрут', id: 'Rute Kustom',
 };
 
 /**
@@ -241,6 +268,15 @@ const T = {
   recommended: {
     ko: '추천 코스', en: 'AI pick', ja: 'おすすめ', zh: '推荐',
     vi: 'Gợi ý', th: 'แนะนำ', ru: 'Совет', id: 'Saran',
+  },
+  /** 7128:72710's 펼치기 / 접기 pill on a recommended stop's card. */
+  expand: {
+    ko: '펼치기', en: 'More', ja: '開く', zh: '展开',
+    vi: 'Mở rộng', th: 'ขยาย', ru: 'Развернуть', id: 'Buka',
+  },
+  collapse: {
+    ko: '접기', en: 'Less', ja: '閉じる', zh: '收起',
+    vi: 'Thu gọn', th: 'ย่อ', ru: 'Свернуть', id: 'Tutup',
   },
   arrowPrev: {
     ko: '이전', en: 'Previous', ja: '前へ', zh: '上一页',
@@ -614,6 +650,8 @@ export function JejuAiDetail({ controller }: Props): JSX.Element {
   const transport = useAiStore((s) => s.transport);
   const stay = useAiStore((s) => s.stay);
   const visitors = useAiStore((s) => s.visitors);
+  /** 커스텀 코스: the plan the visitor built tap by tap — see the loading effect. */
+  const pickerPlan = useAiStore((s) => s.pickerPlan);
   const shops = useShopStore((s) => s.shops);
   const setDetail = useDetailStore((s) => s.setItem);
   const lang = useLanguageStore((s) => s.currentLanguage) as Lang;
@@ -646,6 +684,20 @@ export function JejuAiDetail({ controller }: Props): JSX.Element {
    */
   const [scope, setScope] = useState<'all' | 'picked'>('all');
   const onlyPicked = !themed && scope === 'picked';
+  /**
+   * Recommended stops the visitor opened with 펼치기 (7128:72710), by shop id —
+   * the recommender schedules a shop once per course, so the id is enough. A
+   * new course starts with every one collapsed (see the `days` effect).
+   */
+  const [expanded, setExpanded] = useState<ReadonlySet<number>>(() => new Set());
+  const toggleExpanded = useCallback((shopId: number) => {
+    setExpanded((prev) => {
+      const next = new Set(prev);
+      if (next.has(shopId)) next.delete(shopId);
+      else next.add(shopId);
+      return next;
+    });
+  }, []);
   const listRef = useRef<HTMLDivElement>(null);
   const lowReach = useAccessibilityStore((s) => s.lowReach);
 
@@ -694,6 +746,15 @@ export function JejuAiDetail({ controller }: Props): JSX.Element {
       setLoading(false);
       return;
     }
+    // 커스텀 코스: draw the plan the visitor built tap by tap on the questionnaire
+    // (POST /api/jeju/courses/picker) — the same places and times they watched
+    // fill the day. /recommend would schedule a different course, and keeps
+    // only three interests. It stays the fallback when the picker was down.
+    if (entry === 'custom' && pickerPlan) {
+      setCourse(pickerPlanToCourse(pickerPlan, shops));
+      setLoading(false);
+      return;
+    }
     let cancelled = false;
     setLoading(true);
     void window.api.jejuCourse
@@ -716,7 +777,7 @@ export function JejuAiDetail({ controller }: Props): JSX.Element {
     return () => {
       cancelled = true;
     };
-  }, [courseKey, transport, visitors, stay, interests, shops]);
+  }, [courseKey, transport, visitors, stay, interests, shops, entry, pickerPlan]);
 
   /** Days the OFFLINE fallback runs for, from the 체류 기간 answer. */
   const fallbackDays = DAYS_BY_STAY[stay] ?? 1;
@@ -758,6 +819,7 @@ export function JejuAiDetail({ controller }: Props): JSX.Element {
 
   useEffect(() => {
     setDayIndex((i) => Math.max(0, Math.min(i, days.length - 1)));
+    setExpanded(new Set());
   }, [days]);
 
   useEffect(() => {
@@ -821,11 +883,31 @@ export function JejuAiDetail({ controller }: Props): JSX.Element {
     rows.forEach((row) => observer.observe(row));
     return () => observer.disconnect();
   }, [visibleStops, loading]);
-  const rail = railFor(
+  const heights =
     rowHeights.length === visibleStops.length
       ? rowHeights
-      : visibleStops.map((stop) => (isPicked(stop) ? CARD_HEIGHT : COMPACT_HEIGHT)),
-  );
+      : visibleStops.map((stop) =>
+          isPicked(stop) || expanded.has(stop.shop.id) ? CARD_HEIGHT : COMPACT_HEIGHT,
+        );
+  const rail = railFor(heights);
+  /**
+   * The travel-time pills on the rail (7058:21462 · 7128:72710, "15분") — one
+   * per leg, centred on the rail halfway between the two discs it joins.
+   *
+   * `travelMinutes` is the time from the PREVIOUS stop, so a leg reads the
+   * later stop's value. Under 선택보기 two neighbouring rows can be 1 and 3:
+   * there was no such leg (the route goes through 2), so that gap gets no pill
+   * rather than a number for a trip nobody makes. A zero is the normalizer's
+   * "the server gave none" and draws nothing either.
+   */
+  const centers = discCenters(heights);
+  const legs = visibleStops.slice(1).map((next, i) => {
+    const prev = visibleStops[i]!;
+    if (next.number !== prev.number + 1) return null;
+    const minutes = next.spot ? next.spot.travelMinutes : OFFLINE_TRAVEL_MINUTES;
+    if (!(minutes > 0)) return null;
+    return { top: (centers[i]! + centers[i + 1]!) / 2, label: minutesLabel(minutes, lang) };
+  });
   /**
    * The header's course+day line. The AI 맞춤 route names the course the way
    * this frame does — "AI 맞춤 추천 코스 - 1일차" (7038:18453); a themed course
@@ -1020,24 +1102,24 @@ export function JejuAiDetail({ controller }: Props): JSX.Element {
       lowReachModeBar
       lowReachShift={belowModeBar()}
     >
-      {/* Header QR — the itinerary, opened on the visitor's phone.
-
-          Every prop here is about being READABLE off a screen, not pretty:
+      {/* Header QR — the itinerary, opened on the visitor's phone. The frame's
+          116² white square (7128:73046), so the code has to stay readable at
+          that size:
            · level L, because a QR on glass is never scratched or creased and
              the error correction only costs modules. `boostLevel` is on by
              default, so it still lifts to M/Q for free whenever the payload
              leaves room within the same version.
-           · marginSize 0 — the 4-module quiet zone is the card's own padding
-             instead, which hands those modules' width back to the code.
-           · crispEdges, because antialiased module borders at ~2.8px are what
+           · marginSize 4 — the spec's quiet zone, drawn inside the 116 the way
+             the frame's own QR insets its code.
+           · crispEdges, because antialiased module borders at ~1.7px are what
              turn a QR into grey mush once the artboard is scaled down. */}
       <div className={low(styles.qr, styles.qrLow)}>
         <QRCodeSVG
           className={styles.qrCode}
           value={courseQrUrl}
-          size={170}
+          size={116}
           level="L"
-          marginSize={0}
+          marginSize={4}
           shapeRendering="crispEdges"
           bgColor="#ffffff"
           fgColor="#000000"
@@ -1145,32 +1227,56 @@ export function JejuAiDetail({ controller }: Props): JSX.Element {
           {visibleStops.length > 1 && (
             <div className={styles.rail} style={{ top: rail.top, height: rail.height }} />
           )}
-          {visibleStops.map((stop, i) => (
-            <div key={`${i}-${stop.shop.id}`} className={styles.stopRow} data-stop-row>
-              {/* Picked stops draw the full plate; the recommender's fill-ins the
-                  compact "추천 코스" card (7038:18453) — see isPicked. */}
-              {/* The stop's own place in the DAY, not its row here: under
-                  선택보기 the numbers read 1 · 3 · 4, which is the honest
-                  statement that this is a subset of the planned day. */}
-              <span className={styles.stop}>{stop.number}</span>
-              <JejuCourseSpotCard
-                width={1678}
-                variant={isPicked(stop) ? 'full' : 'compact'}
-                badge={pick(T.recommended, lang)}
-                photo={photoOf(stop)}
-                name={shopName(stop.shop, lang)}
-                category={shopSecondCategory(stop.shop, lang)}
-                address={shopAddress(stop.shop, lang)}
-                description={shopDescription(stop.shop, lang)}
-                dwell={dwellOf(stop)}
-                difficulty={hardnessOf(stop)}
-                /* The 다음 장소 chain follows what is ON SCREEN, so under
-                   선택보기 it walks the filtered day rather than re-introducing
-                   the stops the visitor just hid. */
-                onClick={() => openSpot(visibleStops, stop)}
-              />
-            </div>
-          ))}
+          {legs.map(
+            (leg, i) =>
+              leg && (
+                <span key={`leg-${i}`} className={styles.leg} style={{ top: leg.top }}>
+                  {leg.label}
+                </span>
+              ),
+          )}
+          {visibleStops.map((stop, i) => {
+            const picked = isPicked(stop);
+            const open = !picked && expanded.has(stop.shop.id);
+            return (
+              <div key={`${i}-${stop.shop.id}`} className={styles.stopRow} data-stop-row>
+                {/* Picked stops draw the full plate; the recommender's fill-ins the
+                    compact "추천 코스" card with 펼치기, which opens it into the full
+                    plate — pill beside the name, 접기 in the stats row
+                    (7128:72710). See isPicked. */}
+                {/* The stop's own place in the DAY, not its row here: under
+                    선택보기 the numbers read 1 · 3 · 4, which is the honest
+                    statement that this is a subset of the planned day. */}
+                <span className={styles.stop}>{stop.number}</span>
+                <JejuCourseSpotCard
+                  width={1678}
+                  variant={picked || open ? 'full' : 'compact'}
+                  /* The full plate's frame padding in this list — .listCard. */
+                  className={picked || open ? styles.listCard : undefined}
+                  badge={picked ? undefined : pick(T.recommended, lang)}
+                  toggle={
+                    picked
+                      ? undefined
+                      : {
+                          label: pick(open ? T.collapse : T.expand, lang),
+                          onToggle: () => toggleExpanded(stop.shop.id),
+                        }
+                  }
+                  photo={photoOf(stop)}
+                  name={shopName(stop.shop, lang)}
+                  category={shopSecondCategory(stop.shop, lang)}
+                  address={shopAddress(stop.shop, lang)}
+                  description={shopDescription(stop.shop, lang)}
+                  dwell={dwellOf(stop)}
+                  difficulty={hardnessOf(stop)}
+                  /* The 다음 장소 chain follows what is ON SCREEN, so under
+                     선택보기 it walks the filtered day rather than re-introducing
+                     the stops the visitor just hid. */
+                  onClick={() => openSpot(visibleStops, stop)}
+                />
+              </div>
+            );
+          })}
         </div>
       )}
     </JejuPageFrame>

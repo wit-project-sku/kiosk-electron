@@ -7,6 +7,12 @@ import type {
   JejuCourseKey,
   JejuCourseRecommendQuery,
   JejuCourseSpot,
+  JejuPickerDay,
+  JejuPickerOption,
+  JejuPickerPlan,
+  JejuPickerQuery,
+  JejuPickerStatus,
+  JejuPickerStop,
 } from '@shared/types/jejuCourse';
 
 const log = createLogger('jeju-course-service');
@@ -17,6 +23,12 @@ const DEFAULT_API_BASE = 'https://api-v3.witteria.com';
  * screen. Same budget as the events grid.
  */
 const REQUEST_TIMEOUT_MS = 8000;
+/**
+ * The picker runs on every tap, and a tile that takes seconds to react reads
+ * as broken. Stage answers in ~60 ms (p95 ~100 ms), so 3 s only ever trips on
+ * a real outage — and then the screen keeps the tiles usable without it.
+ */
+const PICKER_TIMEOUT_MS = 3000;
 
 /**
  * 제주 AI 코스 추천 — a live pass-through to `POST /api/jeju/courses/recommend`.
@@ -32,8 +44,12 @@ const REQUEST_TIMEOUT_MS = 8000;
  * VALIDATION AppError, which the AI course screen treats like any other failure
  * and falls back to its own client-side itinerary.
  *
+ * Also the 커스텀 코스 picker (`picker`) — same pass-through shape, one call
+ * per 즐길 거리 tap. See JejuPickerPlan.
+ *
  * Env:
- *   JEJU_COURSE_API_URL — full endpoint override (wins if set)
+ *   JEJU_COURSE_API_URL — full /recommend endpoint override (wins if set)
+ *   JEJU_PICKER_API_URL — full /picker endpoint override (wins if set)
  *   WITTERIA_API_BASE   — shared API base, default https://api-v3.witteria.com
  */
 export class JejuCourseService {
@@ -43,6 +59,62 @@ export class JejuCourseService {
     if (process.env['JEJU_COURSE_API_URL']) return process.env['JEJU_COURSE_API_URL'];
     const base = (process.env['WITTERIA_API_BASE'] || DEFAULT_API_BASE).replace(/\/+$/, '');
     return `${base}/api/jeju/courses/recommend`;
+  }
+
+  private pickerEndpoint(): string {
+    if (process.env['JEJU_PICKER_API_URL']) return process.env['JEJU_PICKER_API_URL'];
+    const base = (process.env['WITTERIA_API_BASE'] || DEFAULT_API_BASE).replace(/\/+$/, '');
+    return `${base}/api/jeju/courses/picker`;
+  }
+
+  /**
+   * The whole 커스텀 코스 plan for the taps so far, plus every tile's state.
+   * Throws AppError on network, HTTP or shape failure; the API's 400s carry a
+   * Korean message (e.g. "이동수단은 WALK·BIKE·TRANSIT·CAR 중 하나여야 합니다.")
+   * that is logged as the reason.
+   */
+  async picker(query: JejuPickerQuery): Promise<JejuPickerPlan> {
+    const url = this.pickerEndpoint();
+    const body = {
+      kioskId: this.kiosk.kioskNum(),
+      transport: query.transport,
+      party: query.party,
+      nights: query.nights,
+      visitDate: query.visitDate,
+      picks: query.picks,
+      ...(query.categories ? { categories: query.categories } : {}),
+    };
+
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), PICKER_TIMEOUT_MS);
+    try {
+      const res = await fetch(url, {
+        method: 'POST',
+        // Korean category names travel in the body — see recommend().
+        headers: { 'Content-Type': 'application/json; charset=utf-8' },
+        body: JSON.stringify(body),
+        signal: controller.signal,
+      });
+      const json = (await res.json().catch(() => null)) as
+        | { success?: boolean; message?: string; data?: unknown }
+        | null;
+      if (!res.ok || !json?.success || !json.data) {
+        throw new Error(json?.message ?? `HTTP ${res.status}`);
+      }
+      const plan = normalizePlan(json.data);
+      if (!plan) throw new Error('Unexpected API shape');
+      return plan;
+    } catch (error) {
+      log.warn('Jeju picker failed', {
+        url,
+        kioskId: this.kiosk.kioskNum(),
+        picks: query.picks.length,
+        error: error instanceof Error ? error.message : String(error),
+      });
+      throw new AppError('UNKNOWN', 'Failed to update the Jeju custom course.');
+    } finally {
+      clearTimeout(timer);
+    }
   }
 
   /**
@@ -191,5 +263,89 @@ function normalizeCourse(data: unknown): JejuCourse | null {
       ? (d['unmetInterests'] as unknown[]).filter((v): v is string => typeof v === 'string')
       : [],
     schedule,
+  };
+}
+
+/* ── Picker response ─────────────────────────────────────────────────── */
+
+const PICKER_STATUSES: readonly JejuPickerStatus[] = [
+  'OK', 'PICKED', 'DAY_OFF', 'CLOSED', 'NO_TIME', 'OUT_OF_RANGE', 'NO_PLACES',
+];
+const numOrNull = (v: unknown): number | null => (typeof v === 'number' ? v : null);
+const rowsOf = (v: unknown): Record<string, unknown>[] =>
+  Array.isArray(v) ? (v.filter((r) => r && typeof r === 'object') as Record<string, unknown>[]) : [];
+
+/** A stop without a shopId cannot be drawn — the card is built from the catalogue row. */
+function normalizePickerStop(r: Record<string, unknown>, index: number): JejuPickerStop | null {
+  if (typeof r['shopId'] !== 'number' || typeof r['aiCategory'] !== 'string') return null;
+  return {
+    order: num(r['order'], index + 1),
+    aiCategory: r['aiCategory'],
+    shopId: r['shopId'],
+    travelMinutes: num(r['travelMinutes']),
+    travelKm: num(r['travelKm']),
+    waitMinutes: num(r['waitMinutes']),
+    dwellMinutes: num(r['dwellMinutes']),
+    arriveMin: num(r['arriveMin']),
+    leaveMin: num(r['leaveMin']),
+    costMinutes: num(r['costMinutes']),
+    viewAnchor: text(r['viewAnchor']),
+  };
+}
+
+function normalizePickerDay(r: Record<string, unknown>, index: number): JejuPickerDay {
+  return {
+    day: num(r['day'], index + 1),
+    date: typeof r['date'] === 'string' ? r['date'] : '',
+    startMin: num(r['startMin'], 540),
+    endMin: num(r['endMin'], 1260),
+    budgetMinutes: num(r['budgetMinutes'], 720),
+    usedMinutes: num(r['usedMinutes']),
+    remainingMinutes: num(r['remainingMinutes']),
+    stops: rowsOf(r['stops'])
+      .map((s, i) => normalizePickerStop(s, i))
+      .filter((s): s is JejuPickerStop => s !== null),
+  };
+}
+
+/**
+ * A row with a status this build does not know is dropped rather than guessed
+ * at: the tile then simply has no row, and the screen treats it as not
+ * tappable — the safe reading of a state it cannot interpret.
+ */
+function normalizePickerOption(r: Record<string, unknown>): JejuPickerOption | null {
+  const status = r['status'];
+  if (typeof r['aiCategory'] !== 'string' || !PICKER_STATUSES.includes(status as JejuPickerStatus)) return null;
+  return {
+    aiCategory: r['aiCategory'],
+    enabled: r['enabled'] === true,
+    status: status as JejuPickerStatus,
+    costMinutes: numOrNull(r['costMinutes']),
+    shopId: numOrNull(r['shopId']),
+    day: numOrNull(r['day']),
+    arriveMin: numOrNull(r['arriveMin']),
+  };
+}
+
+function normalizePlan(data: unknown): JejuPickerPlan | null {
+  if (!data || typeof data !== 'object') return null;
+  const d = data as Record<string, unknown>;
+  const days = rowsOf(d['days']).map((r, i) => normalizePickerDay(r, i));
+  if (days.length === 0) return null;
+  return {
+    visitDate: typeof d['visitDate'] === 'string' ? d['visitDate'] : '',
+    dayCount: days.length,
+    budgetMinutes: num(d['budgetMinutes'], days.length * 720),
+    usedMinutes: num(d['usedMinutes']),
+    remainingMinutes: num(d['remainingMinutes']),
+    currentDay: num(d['currentDay'], 1),
+    full: d['full'] === true,
+    days,
+    categories: rowsOf(d['categories'])
+      .map(normalizePickerOption)
+      .filter((o): o is JejuPickerOption => o !== null),
+    dropped: rowsOf(d['dropped'])
+      .filter((r) => typeof r['aiCategory'] === 'string')
+      .map((r) => ({ aiCategory: r['aiCategory'] as string, reason: typeof r['reason'] === 'string' ? r['reason'] : '' })),
   };
 }

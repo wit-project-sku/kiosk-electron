@@ -37,16 +37,19 @@
   background: #f2ede6;
 }
 
-/* min-heights plus gaps: at the drawn size space-between still places every
-   row exactly where it did (each gap is smaller than the free space it shares
-   out), and once a row wraps the gap is the floor that keeps it off the next. */
+/* The frame's own stack: the 287 text block, 60, the 58 stats row — 405, which
+   is 6 more than the 399 the plate's padding leaves, so the frame centres it
+   and it overhangs 3px top and bottom (name row at y62, stats at 409…467 on
+   the 1:1 render). The -3px margins reproduce exactly that without growing the
+   plate past 515; a wrapped row still grows it, as before. */
 .spotBody {
   width: 875px;
   min-height: 399px;
+  margin: -3px 0;
   display: flex;
   flex-direction: column;
-  justify-content: space-between;
-  gap: 30px;
+  justify-content: center;
+  gap: 60px;
   min-width: 0;
 }
 
@@ -82,11 +85,18 @@
 }
 
 /* Shrinkable and wrapping too: the category is CMS text in eight languages,
-   and an unshrinkable one would squeeze the name beside it to nothing. */
+   and an unshrinkable one would squeeze the name beside it to nothing.
+   break-word, not anywhere: it still splits a word too long for the row, but
+   does not count as a break opportunity when the row shares out space — so a
+   one-word tag ("#Наследие") keeps its word whole and the name beside it
+   wraps instead of the tag breaking into "#Наследи / е". That needs the flex
+   item's AUTOMATIC minimum (its longest word), so no `min-width: 0` here; the
+   max-width caps that minimum too, so a freak one-word tag can never take
+   more than half the row from the name. */
 .spotTag {
   margin: 0;
   flex: 0 1 auto;
-  min-width: 0;
+  max-width: 50%;
   font-size: 52px;
   font-weight: 400;
   line-height: 1;
@@ -94,7 +104,7 @@
   text-align: right;
   white-space: normal;
   word-break: keep-all;
-  overflow-wrap: anywhere;
+  overflow-wrap: break-word;
 }
 
 .spotAddrRow {
@@ -111,10 +121,12 @@
   object-fit: contain;
 }
 
+/* Bold on the full plate since 7058:21462 / 7128:72710 (Pretendard Bold 38);
+   the compact card keeps Regular — see .spotCompact below. */
 .spotAddr {
   margin: 0;
   font-size: 38px;
-  font-weight: 400;
+  font-weight: 700;
   line-height: 1;
   color: #333;
   min-width: 0;
@@ -123,11 +135,12 @@
   overflow-wrap: anywhere;
 }
 
-/* In full — no longer clamped to two lines; the plate grows with it. */
+/* In full — no longer clamped to two lines; the plate grows with it.
+   Bold 38 #999, as 7058:21462 / 7128:72710 set it. */
 .spotDesc {
   margin: 0;
   font-size: 38px;
-  font-weight: 400;
+  font-weight: 700;
   line-height: 1.3;
   color: #999;
   white-space: normal;
@@ -145,8 +158,16 @@
 .spotMeta {
   display: flex;
   align-items: center;
-  gap: 60px;
+  gap: 43px;
   min-width: 0;
+}
+
+/* 난이도 starts 451 into the column on every card in the frames (a w231 box +
+   220 gap on the full and compact plates), whatever the width of the dwell
+   text before it: 408 + the 43 gap. A min-width, so a longer language still
+   pushes it along rather than overlapping. */
+.spotMeta > .metaItem:first-child {
+  min-width: 408px;
 }
 
 .metaItem {
@@ -178,19 +199,24 @@
  */
 .spotCompact {
   position: relative;
-  min-height: 289px;
-  /* Left 334 = the frame's text column; right 70 = 1678 − 334 − its 1274 width. */
-  padding: 31px 70px 36px 334px;
+  /* 311 since 7128:72710 (was 289): the rows are where they were, the plate
+     simply runs 22px further under the stats row — room for 펼치기. */
+  min-height: 311px;
+  /* Left 334 = the frame's text column; right 70 = 1678 − 334 − its 1274 width.
+     Bottom 58 = 311 − the stats row's foot at 253. */
+  padding: 31px 70px 58px 334px;
   display: flex;
   flex-direction: column;
   align-items: flex-start;
   gap: 0;
 }
 
+/* 57/111 in 7128:72710 — level with the address row now, where 7038:18453 had
+   it up by the name at 57/36. */
 .compactBadge {
   position: absolute;
   left: 57px;
-  top: 36px;
+  top: 111px;
   width: 214px;
   height: 73px;
   border-radius: 32.5px;
@@ -236,20 +262,125 @@
   max-width: 1274px;
 }
 
-/* y195 = the address row's foot (134 + its 51px icon) + 10. */
+/* y195 = the address row's foot (134 + its 51px icon) + 10. Stops short of the
+   펼치기 pill in the corner — centred on 1546.5, so the widest label
+   ("Развернуть", 231) starts at ~1431 on the plate = 1097 into this column —
+   so a long localized stat wraps instead of running under it. */
 .compactMeta {
   margin-top: 10px;
   min-height: 58px;
-  max-width: 1274px;
+  max-width: 1070px;
 }
 
 .metaText {
   font-size: 38px;
-  font-weight: 400;
+  font-weight: 700;
   line-height: 1;
   color: #333;
   min-width: 0;
   white-space: normal;
   word-break: keep-all;
   overflow-wrap: anywhere;
+}
+
+/* The compact card's address and stats are Pretendard Regular in 7128:72710;
+   only the full plate's went Bold. */
+.spotCompact .spotAddr,
+.spotCompact .metaText {
+  font-weight: 400;
+}
+
+/*
+ * ── Expanded "추천 코스" stop (7128:72710) ────────────────────────────────
+ * A recommended stop the visitor opened with 펼치기 draws the full plate, with
+ * the 214×73 pill beside its name (the frame puts it 392 in from the name's
+ * start, i.e. ~22 past a 68px 뱅크시 전시회) and 접기 at the end of the stats
+ * row, which tightens to the frame's 43 gap to make room for it.
+ */
+/* Wraps: when the name and the pill do not fit side by side (a longer
+   language) the pill drops under the name, rather than the pill squeezing the
+   name until it splits mid-word. Korean fits on one line, as drawn. */
+.spotNameBadged {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px 22px;
+  min-width: 0;
+}
+
+.nameBadge {
+  position: static;
+  flex: none;
+}
+
+/* The frame's row exactly: dwell in a 410 slot, 43, 난이도 in a 252 slot (icon
+   left, text right), 43, 접기 — so 접기 starts 748 into the column. That is
+   878 wide in an 875 column; the frame lets it run into the plate's right
+   padding, and so does this (it borrows 60 of the 69, which also leaves room
+   for the slightly wider Noto Sans KR that draws when Pretendard is not
+   installed). A longer language still wraps inside the row. */
+.spotMetaToggle {
+  column-gap: 43px;
+  row-gap: 20px;
+  flex-wrap: wrap;
+  margin-right: -60px;
+}
+
+.spotMetaToggle > .metaItem:first-child {
+  min-width: 410px;
+}
+
+.spotMetaToggle > .metaItem:nth-child(2) {
+  min-width: 252px;
+  justify-content: space-between;
+}
+
+/*
+ * 펼치기 / 접기 — #ffeac7 pill, Bold 25 orange, a 24px chevron 12 after it,
+ * padding 14/24, r30, and a 0 2 4 rgba(0,0,0,.08) drop shadow.
+ *
+ * The ::after widens the hit area by 24px all round: drawn at 53px tall the pill
+ * is a small target on a floor-standing screen, and the stray tap it misses
+ * lands on the plate and opens the spot instead.
+ */
+.toggle {
+  position: relative;
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 24px;
+  border-radius: 30px;
+  background: #ffeac7;
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.08));
+  cursor: pointer;
+}
+
+.toggle::after {
+  content: '';
+  position: absolute;
+  inset: -24px;
+}
+
+.toggleText {
+  font-size: 25px;
+  font-weight: 700;
+  line-height: 1;
+  color: var(--kiosk-primary, #ff7f0f);
+  white-space: nowrap;
+}
+
+.toggleIcon {
+  width: 24px;
+  height: 24px;
+  flex: none;
+}
+
+/* The collapsed card's corner: bottom 55, centred on 1546.5 of the 1678 plate
+   — the frame's own calc(50% + 707.5px) + translateX(-50%). */
+.toggleCompact {
+  position: absolute;
+  left: calc(50% + 707.5px);
+  bottom: 55px;
+  transform: translateX(-50%);
 }

@@ -147,6 +147,8 @@ export const IpcChannels = {
 
   // 제주 AI 코스 추천 (live POST; 제주 kiosks only)
   JejuCourseRecommend: 'jejuCourse:recommend',
+  // 제주 커스텀 코스 picker (live POST per 즐길 거리 tap; 제주 kiosks only)
+  JejuCoursePicker: 'jejuCourse:picker',
 
   // Auto-update (electron-updater). Status is read-only; check/install are
   // optional operator nudges — updating is otherwise fully automatic.

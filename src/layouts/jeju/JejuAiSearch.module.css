@@ -172,6 +172,45 @@
   overflow-wrap: anywhere;
   cursor: pointer;
   -webkit-tap-highlight-color: transparent;
+  /* Label on top, the picker's caption under it (see .tileCaption). With no
+     caption the label sits exactly where it did — a column of one. */
+  flex-direction: column;
+  gap: 12px;
+}
+
+.tileLabel {
+  display: block;
+}
+
+/* The picker's line under a tile's label: "+1시간 4분" on a tile that fits,
+   the arrival ("09:04", "DAY 2 · 10:00") on a picked one, and the reason on a
+   greyed one ("휴무일", "영업 종료", "시간 부족" …). Small and plain grey, so the
+   label keeps the tile; it wraps rather than spilling past the 268 plate. */
+.tileCaption {
+  display: block;
+  max-width: 244px;
+  font-size: 30px;
+  font-weight: 600;
+  line-height: 1.1;
+  color: #999;
+  white-space: normal;
+  word-break: keep-all;
+  overflow-wrap: anywhere;
+}
+
+/* Greyed: the picker says this tile no longer fits (and it is `disabled`, so
+   taps do nothing). Flat grey plate, muted label, no lift — clearly out of
+   play next to the white tiles, but still readable, because the caption says
+   why. The explicit colour also beats the UA's own :disabled button colour. */
+.tileOff {
+  background: #f1f1f1;
+  box-shadow: none;
+  color: #c4c4c4;
+  cursor: default;
+}
+
+.tileOff .tileCaption {
+  color: #9a9a9a;
 }
 
 /* Non-Korean labels only. The `pre` above is sized to the Figma's Korean, which
@@ -199,6 +238,63 @@
 .tileSelected {
   background: var(--kiosk-primary, #ff7f0f);
   color: #fff;
+}
+
+.tileSelected .tileCaption {
+  color: rgba(255, 255, 255, 0.9);
+}
+
+/* ── 커스텀 코스 time gauge ──
+   Right of the 즐길 거리 heading, on the heading's own 76px row (the TSX sets
+   `top`), so the grid below does not move. The heading measures at most 834
+   (vi), and the gauge keeps to the right 900 of the 1820 column, so the two
+   never meet. The bar is the day being planned; the text is what is left on it
+   ("DAY 1/2 · 10시간 56분 남음"), or a short notice for a moment. */
+.gauge {
+  position: absolute;
+  right: 0;
+  height: 76px;
+  max-width: 900px;
+  display: flex;
+  align-items: center;
+  gap: 28px;
+}
+
+.gaugeBar {
+  flex: 0 0 auto;
+  width: 320px;
+  height: 24px;
+  border-radius: 12px;
+  background: #e6e6e6;
+  overflow: hidden;
+}
+
+.gaugeFill {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: var(--kiosk-primary, #ff7f0f);
+  transition: width 200ms ease-out;
+}
+
+.gaugeText {
+  font-size: 44px;
+  font-weight: 700;
+  line-height: 1;
+  color: var(--kiosk-primary, #ff7f0f);
+  white-space: nowrap;
+}
+
+/* "빠진 곳: …" — the same slot, in plain dark type so it reads as news, not as
+   the running total. */
+.gaugeNotice {
+  color: #333;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .gaugeFill {
+    transition: none;
+  }
 }
 
 /* ── CTA ── */

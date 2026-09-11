@@ -36,11 +36,28 @@
  * to the questions it came from, in the right variant (aiStore.resumeQuestions
  * + aiStore.entry / course).
  */
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import type { KioskController } from '@renderer/hooks/useKioskController';
 import { useAccessibilityStore } from '@renderer/store/accessibilityStore';
 import { useAiStore } from '@renderer/store/aiStore';
 import { useLanguageStore } from '@renderer/store/languageStore';
+import { useShopStore } from '@renderer/store/shopStore';
+import { isOk } from '@shared/types/result';
+import type {
+  JejuPickerOption,
+  JejuPickerPlan,
+  JejuPickerQuery,
+  JejuPickerStatus,
+} from '@shared/types/jejuCourse';
+import {
+  clockLabel,
+  interestCodes,
+  minutesLabel,
+  nightCount,
+  partySize,
+  todayIso,
+  transportCode,
+} from '@renderer/lib/jejuCourse';
 import { pick } from '@renderer/lib/i18n';
 import type { Lang } from '@renderer/lib/i18n';
 import { sheetText, t } from '@renderer/lib/loc';
@@ -66,8 +83,79 @@ interface Props {
   controller: KioskController;
 }
 
-/** How many 즐길 거리 tiles a visitor may pick — matches the other kiosks. */
-const MAX_INTERESTS = 3;
+/*
+ * ── 커스텀 코스 picker — POST /api/jeju/courses/picker ──────────────────
+ *
+ * The 즐길 거리 grid is no longer "pick three". Every tap adds one real place —
+ * the one the visitor can reach soonest that is open that date and for the
+ * whole stay — and takes its travel, wait and stay out of a 09:00–21:00 day;
+ * the answer says which tiles still fit, so the rest grey out. There is no cap:
+ * the day is the cap. Tap order is the route. Rules: JejuPickerPlan.
+ *
+ * None of this copy is in Localization_Jeju yet, so it is authored in the eight
+ * languages here, the way SECTION is.
+ */
+
+/** Why a tile is greyed out — the small line under its label. */
+const TILE_REASON: Record<Exclude<JejuPickerStatus, 'OK' | 'PICKED'>, Partial<Record<Lang, string>>> = {
+  DAY_OFF: {
+    ko: '휴무일', en: 'Closed that day', ja: '定休日', zh: '休息日',
+    vi: 'Ngày nghỉ', th: 'วันหยุด', ru: 'Выходной', id: 'Hari libur',
+  },
+  CLOSED: {
+    ko: '영업 종료', en: 'Closed by then', ja: '営業終了', zh: '已打烊',
+    vi: 'Đã đóng cửa', th: 'ปิดแล้ว', ru: 'Уже закрыто', id: 'Sudah tutup',
+  },
+  NO_TIME: {
+    ko: '시간 부족', en: 'No time left', ja: '時間不足', zh: '时间不足',
+    vi: 'Không đủ giờ', th: 'เวลาไม่พอ', ru: 'Нет времени', id: 'Waktu kurang',
+  },
+  OUT_OF_RANGE: {
+    ko: '너무 멀어요', en: 'Too far', ja: '遠すぎます', zh: '太远',
+    vi: 'Quá xa', th: 'ไกลเกินไป', ru: 'Слишком далеко', id: 'Terlalu jauh',
+  },
+  NO_PLACES: {
+    ko: '장소 없음', en: 'None left', ja: '該当なし', zh: '无可选',
+    vi: 'Hết chỗ', th: 'ไม่มีสถานที่', ru: 'Нет мест', id: 'Tidak ada',
+  },
+};
+
+type Template = Partial<Record<Lang, (value: string) => string>>;
+const fill = (template: Template, lang: Lang, value: string): string =>
+  (template[lang] ?? template.en ?? template.ko)!(value);
+
+/** The gauge beside the 즐길 거리 heading — time left on the day being planned. */
+const REMAINING: Template = {
+  ko: (t) => `${t} 남음`, en: (t) => `${t} left`, ja: (t) => `残り ${t}`, zh: (t) => `剩余 ${t}`,
+  vi: (t) => `Còn ${t}`, th: (t) => `เหลือ ${t}`, ru: (t) => `Осталось ${t}`, id: (t) => `Sisa ${t}`,
+};
+
+/** Every tile is used up and the day is (nearly) spent. */
+const PLAN_FULL = {
+  ko: '일정이 가득 찼어요', en: 'Your plan is full', ja: '予定がいっぱいです', zh: '行程已满',
+  vi: 'Lịch trình đã kín', th: 'แผนเต็มแล้ว', ru: 'План заполнен', id: 'Rencana sudah penuh',
+};
+
+/**
+ * Every tile is used up but a real chunk of time is left — the places ran out,
+ * not the day (on foot or by bike, nothing more is in range). Saying "full"
+ * there would be wrong. See FULL_WITH_TIME_LEFT_MIN.
+ */
+const NO_MORE_PLACES = {
+  ko: '더 갈 수 있는 곳이 없어요', en: 'No more places to add', ja: 'これ以上行ける場所がありません',
+  zh: '没有更多可去的地方', vi: 'Không còn nơi để thêm', th: 'ไม่มีสถานที่ให้เพิ่มแล้ว',
+  ru: 'Больше некуда добавить', id: 'Tidak ada tempat lagi',
+};
+const FULL_WITH_TIME_LEFT_MIN = 60;
+
+/** Taps that stopped fitting after a change of 이동수단 / 인원 / 기간. */
+const DROPPED: Template = {
+  ko: (n) => `빠진 곳: ${n}`, en: (n) => `Removed: ${n}`, ja: (n) => `外れた項目: ${n}`,
+  zh: (n) => `已移除: ${n}`, vi: (n) => `Đã bỏ: ${n}`, th: (n) => `นำออก: ${n}`,
+  ru: (n) => `Убрано: ${n}`, id: (n) => `Dihapus: ${n}`,
+};
+/** How long the "빠진 곳" line stands in for the gauge text. */
+const NOTICE_MS = 4000;
 
 /**
  * Chip copy comes from Localization_Jeju (Visitor_* / StayTime_* /
@@ -99,6 +187,19 @@ const TRANSPORT = [
   { key: 'Transportation_3', label: '대중교통' },
   { key: 'Transportation_4', label: '자동차' },
 ];
+
+/**
+ * 이동수단 starts on 자동차 (the 4th chip), not the frame's first chip.
+ *
+ * On 도보 the picker only counts places within 2 km of the previous stop — the
+ * kiosk, for the first tap — so a visitor who never touched this row opened the
+ * 커스텀 코스 grid with most tiles already greyed "너무 멀어요" (21–24 of 30,
+ * measured on stage for kiosks 6·7·8; by car 28 of 30 are open). Most visitors
+ * to Jeju drive, and 자동차 is also what the course code has always assumed for
+ * an unanswered 이동수단 (see transportCode). The themed questionnaire shares
+ * this row, so it rests on the same chip.
+ */
+const DEFAULT_TRANSPORT = TRANSPORT.findIndex((t) => t.label === '자동차');
 
 /**
  * Section headings.
@@ -228,6 +329,15 @@ const INTERESTS: Interest[] = [
 /** The catalogue category tile `i` matches — the override, else the sheet's ko. */
 const interestCat = (i: number): string =>
   INTERESTS[i]?.cat ?? AI_CATEGORIES_JEJU[i]?.ko ?? '';
+
+/** The tile for a stored (stripped) category — the inverse of interestCat. */
+const tileIndexOf = (cat: string): number => INTERESTS.findIndex((_, i) => interestCat(i) === cat);
+
+/** A chip's index from its stored Korean label, or `fallback` when there is none. */
+const labelIndex = (list: readonly { label: string }[], label: string | undefined, fallback: number): number => {
+  const i = label ? list.findIndex((item) => item.label === label) : -1;
+  return i >= 0 ? i : fallback;
+};
 
 /**
  * Which of the API's three courses an AI 맞춤 request is sent as.
@@ -495,6 +605,16 @@ export function JejuAiSearch({ controller }: Props): JSX.Element {
   const setEntry = useAiStore((s) => s.setEntry);
   const setResumeQuestions = useAiStore((s) => s.setResumeQuestions);
   const setRegion = useAiStore((s) => s.setRegion);
+  const setPickerPlan = useAiStore((s) => s.setPickerPlan);
+  /**
+   * What the visitor had answered, when this mount is a return from the course
+   * detail (aiStore.resumeQuestions) — read once, before the effect below
+   * clears the flag. Null on a fresh entry.
+   */
+  const [resume] = useState(() => {
+    const ai = useAiStore.getState();
+    return ai.resumeQuestions ? ai : null;
+  });
 
   /**
    * 'pick' is the landing (Figma 7088:23517), 'questions' the questionnaire.
@@ -543,10 +663,19 @@ export function JejuAiSearch({ controller }: Props): JSX.Element {
     return cat ? aiCatLabel(cat, lang) : (meta?.ko ?? '');
   };
 
-  const [visitors, setVisitors] = useState(1); // 2명, as in the design
-  const [stay, setStay] = useState(0);
-  const [transport, setTransport] = useState(0);
-  const [interests, setInterests] = useState<Set<number>>(() => new Set([0]));
+  /* A fresh entry starts on the resting answers — 2명 (as in the design),
+     당일치기, 자동차 (see DEFAULT_TRANSPORT) — and NO tile picked: with a time
+     budget, a pre-picked tile would already have spent part of the day. A
+     return from the detail reopens exactly what the visitor left: the picker
+     replays the taps, so resetting the chips under them would silently drop
+     some. */
+  const [visitors, setVisitors] = useState(() => labelIndex(VISITORS, resume?.visitors, 1));
+  const [stay, setStay] = useState(() => labelIndex(STAY, resume?.stay, 0));
+  const [transport, setTransport] = useState(() => labelIndex(TRANSPORT, resume?.transport, DEFAULT_TRANSPORT));
+  /** 즐길 거리 tiles tapped, in TAP order — the order is the route. */
+  const [pickOrder, setPickOrder] = useState<number[]>(() =>
+    resume?.entry === 'custom' ? resume.interests.map(tileIndexOf).filter((i) => i >= 0) : [],
+  );
 
   const lowReach = useAccessibilityStore((s) => s.lowReach);
   /** Low-reach only: 1 = the three chip groups, 2 = 즐길 거리. See Y_LOW. */
@@ -563,18 +692,141 @@ export function JejuAiSearch({ controller }: Props): JSX.Element {
      empty — which is the grey CTA both "nothing picked" frames draw. */
   const onFirstStep = !themeKey && lowReach && step === 1;
   // The themed page has nothing that can be left empty.
-  const ctaDisabled = !themeKey && !onFirstStep && interests.size === 0;
+  const ctaDisabled = !themeKey && !onFirstStep && pickOrder.length === 0;
 
-  const toggleInterest = (i: number): void =>
-    setInterests((prev) => {
-      const next = new Set(prev);
-      if (next.has(i)) next.delete(i);
-      else if (next.size < MAX_INTERESTS) next.add(i);
-      return next;
+  /* ── The picker: one call per tap, and per changed chip ── */
+  const shops = useShopStore((s) => s.shops);
+  /**
+   * Each tile's category as the API matches it — prefix and all ("9-카페"),
+   * recovered from the catalogue (see interestCodes). A tile no shop carries
+   * (K-POP 체험) keeps its bare label and comes back NO_PLACES, which is true.
+   */
+  const tileCodes = useMemo(() => interestCodes(INTERESTS.map((_, i) => interestCat(i)), shops), [shops]);
+  /** DAY 1's date, fixed for the visit so two calls either side of midnight cannot disagree. */
+  const [visitDate] = useState(todayIso);
+  /** The picker only serves the 커스텀 코스 questions — never the landing or a themed page. */
+  const pickerOn = stage === 'questions' && !themeKey && shops.length > 0;
+  const query: JejuPickerQuery = useMemo(
+    () => ({
+      transport: transportCode(TRANSPORT[transport]!.label),
+      party: partySize(VISITORS[visitors]!.label),
+      nights: nightCount(STAY[stay]!.label),
+      visitDate,
+      picks: pickOrder.map((i) => tileCodes[i]!),
+      categories: tileCodes,
+    }),
+    [transport, visitors, stay, visitDate, pickOrder, tileCodes],
+  );
+  const queryKey = useMemo(() => JSON.stringify(query), [query]);
+  /** The newest answer, with the request it answers. */
+  const [answer, setAnswer] = useState<{ key: string; plan: JejuPickerPlan } | null>(null);
+  /**
+   * The last call failed (offline, timeout, API error). The tiles then stay
+   * tappable with no gauge rather than locking the visitor out, and the detail
+   * falls back to /recommend — see submit.
+   */
+  const [pickerDown, setPickerDown] = useState(false);
+  /** "빠진 곳: …" — stands in for the gauge text for NOTICE_MS. */
+  const [notice, setNotice] = useState<string | null>(null);
+  const submitting = useRef(false);
+
+  useEffect(() => {
+    if (!pickerOn) return;
+    let stale = false;
+    void window.api.jejuCourse.picker(query).then((res) => {
+      // Only the newest request is drawn. A later tap or chip made a newer one,
+      // and each request carries every tap, so an older answer is simply out of
+      // date — never merged.
+      if (stale) return;
+      if (!isOk(res)) {
+        setPickerDown(true);
+        return;
+      }
+      setPickerDown(false);
+      setAnswer({ key: queryKey, plan: res.value });
     });
+    return () => {
+      stale = true;
+    };
+  }, [pickerOn, query, queryKey]);
 
-  const submit = (): void => {
+  /** What the screen draws from: the newest answer, unless the picker is down. */
+  const plan = pickerDown ? null : (answer?.plan ?? null);
+  const optionByCat = useMemo(
+    () => new Map((plan?.categories ?? []).map((o) => [o.aiCategory, o])),
+    [plan],
+  );
+
+  /**
+   * A change of 이동수단 / 인원 / 기간 replays the same taps, and some may no
+   * longer fit. They leave the selection — so the tiles show what the plan
+   * really holds — and the gauge names them for a moment.
+   */
+  useEffect(() => {
+    if (!answer || answer.key !== queryKey || answer.plan.dropped.length === 0) return;
+    const gone = answer.plan.dropped.map((d) => tileCodes.indexOf(d.aiCategory)).filter((i) => i >= 0);
+    if (gone.length === 0) return;
+    setPickOrder((prev) => prev.filter((i) => !gone.includes(i)));
+    setNotice(fill(DROPPED, lang as Lang, gone.map((i) => tileLabel(i).replace(/\n/g, '')).join(' · ')));
+    // tileLabel only reads `lang`, which is listed.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [answer, queryKey, tileCodes, lang]);
+
+  useEffect(() => {
+    if (!notice) return;
+    const timer = setTimeout(() => setNotice(null), NOTICE_MS);
+    return () => clearTimeout(timer);
+  }, [notice]);
+
+  /**
+   * Tap: a picked tile always comes out. Otherwise, with an answer on screen,
+   * only a tile it calls OK can go in — a greyed tile does nothing. With no
+   * answer yet (first load, or the picker is down) every tile is tappable.
+   */
+  const toggleInterest = (i: number): void => {
+    if (pickOrder.includes(i)) {
+      setPickOrder((prev) => prev.filter((x) => x !== i));
+      return;
+    }
+    if (plan && optionByCat.get(tileCodes[i]!)?.status !== 'OK') return;
+    setPickOrder((prev) => [...prev, i]);
+  };
+
+  /** The small line under a tile's label: the time a tap adds, its arrival, or why it is off. */
+  const tileCaption = (option: JejuPickerOption | undefined, selected: boolean, off: boolean): string | null => {
+    if (!plan || !option) return null;
+    if (selected) {
+      // Picked but not answered yet (the newest tap) — nothing to say until it is.
+      if (option.status !== 'PICKED' || option.arriveMin === null) return null;
+      const time = clockLabel(option.arriveMin);
+      return plan.dayCount > 1 && option.day ? `DAY ${option.day} · ${time}` : time;
+    }
+    if (off) {
+      const reason = TILE_REASON[option.status as keyof typeof TILE_REASON] ?? TILE_REASON.NO_PLACES;
+      return pick(reason, lang);
+    }
+    if (option.costMinutes === null) return null;
+    const cost = `+${minutesLabel(option.costMinutes, lang as Lang)}`;
+    return option.day && option.day !== plan.currentDay ? `DAY ${option.day} ${cost}` : cost;
+  };
+
+  /** The gauge: how much of the day being planned is spent, and what is left. */
+  const gauge = useMemo(() => {
+    if (!plan) return null;
+    const day = plan.days[plan.currentDay - 1] ?? plan.days[0];
+    const percent = day ? Math.min(100, Math.round((day.usedMinutes / day.budgetMinutes) * 100)) : 0;
+    if (plan.full) {
+      return { percent, text: pick(plan.remainingMinutes >= FULL_WITH_TIME_LEFT_MIN ? NO_MORE_PLACES : PLAN_FULL, lang) };
+    }
+    const dayPart = plan.dayCount > 1 ? `DAY ${plan.currentDay}/${plan.dayCount} · ` : '';
+    return { percent, text: dayPart + fill(REMAINING, lang as Lang, minutesLabel(day?.remainingMinutes ?? 0, lang as Lang)) };
+  }, [plan, lang]);
+
+  const submit = async (): Promise<void> => {
+    if (submitting.current) return;
+    submitting.current = true;
     if (themeKey) {
+      setPickerPlan(null);
       /* A themed course goes straight to its detail (Figma 7058:22277) — there
          is no A/B/C chooser, the theme IS the course. It asked no 즐길 거리,
          except that 쇼핑·로컬 borrows course B and has to send its shopping
@@ -589,9 +841,25 @@ export function JejuAiSearch({ controller }: Props): JSX.Element {
       setEntry('theme');
       setCourse(themeKey);
       controller.navigate('ai_detail', themeTitleKo(themeKey));
+      submitting.current = false;
       return;
     }
-    setAiInterests([...interests].map(interestCat));
+    /* The detail draws the plan the visitor watched fill up. If the newest tap
+       is still unanswered, ask once more rather than hand over a plan one tap
+       behind. With the picker down the plan stays null and the detail falls
+       back to /recommend, as before this API existed. */
+    let finalPlan = answer && answer.key === queryKey && !pickerDown ? answer.plan : null;
+    if (!finalPlan && pickerOn && !pickerDown) {
+      const res = await window.api.jejuCourse.picker(query);
+      finalPlan = isOk(res) ? res.value : null;
+    }
+    // What the plan actually holds, in tap order — a last tap that no longer fit
+    // is not in it, and must not reach the detail's 선택보기 either.
+    const placed = finalPlan
+      ? finalPlan.days.flatMap((d) => d.stops.map((s) => tileCodes.indexOf(s.aiCategory))).filter((i) => i >= 0)
+      : pickOrder;
+    setPickerPlan(finalPlan);
+    setAiInterests(placed.map(interestCat));
     // The course detail's summary bar shows 이동수단, so every answer travels on
     // rather than only the interests. These stay KOREAN regardless of the UI
     // language — downstream matching is on the catalogue's Korean values.
@@ -602,14 +870,19 @@ export function JejuAiSearch({ controller }: Props): JSX.Element {
     });
     setEntry('custom');
     /* Straight to the course detail — the A/B/C chooser (JejuAiResult) is no
-       longer part of the AI 맞춤 route. The detail names it "AI 맞춤 추천 코스";
-       the letter the API needs follows the picks — see courseForInterests. */
-    setCourse(courseForInterests([...interests]));
+       longer part of the AI 맞춤 route. The course letter only still matters on
+       the /recommend fallback; it follows the picks — see courseForInterests. */
+    setCourse(courseForInterests(placed));
     controller.navigate('ai_detail', 'AI 맞춤 추천 코스');
+    submitting.current = false;
   };
 
   /** Step 1 advances to 즐길 거리; every other case submits. */
-  const onCta = onFirstStep ? (): void => setStep(2) : submit;
+  const onCta = onFirstStep
+    ? (): void => setStep(2)
+    : (): void => {
+        void submit();
+      };
 
   /**
    * On the low-reach 즐길 거리 step, 뒤로 means "back to the questions", not
@@ -638,6 +911,10 @@ export function JejuAiSearch({ controller }: Props): JSX.Element {
     setEntry('custom');
     setThemeKey(null);
     setStep(1);
+    // A new plan: nothing tapped, nothing answered, nothing to announce.
+    setPickOrder([]);
+    setAnswer(null);
+    setNotice(null);
     setStage('questions');
   };
 
@@ -652,7 +929,7 @@ export function JejuAiSearch({ controller }: Props): JSX.Element {
     setRegionPick(DEFAULT_REGION);
     setVisitors(1);
     setStay(0);
-    setTransport(0);
+    setTransport(DEFAULT_TRANSPORT);
     setStep(1);
     setStage('questions');
   };
@@ -880,12 +1157,30 @@ export function JejuAiSearch({ controller }: Props): JSX.Element {
           <span className={styles.labelBar} />
           <p className={styles.labelText}>{heading(SECTION.interests)}</p>
         </div>
+        {/* The time gauge, right of the heading on the same row: how much of the
+            day being planned is spent. A "빠진 곳" notice borrows its text for a
+            moment. Hidden while the picker is down — no numbers are better than
+            wrong ones. */}
+        {gauge && (
+          <div className={styles.gauge} style={{ top: y.interestsLabel }} role="status" aria-live="polite">
+            <span className={styles.gaugeBar}>
+              <span className={styles.gaugeFill} style={{ width: `${gauge.percent}%` }} />
+            </span>
+            <span className={notice ? `${styles.gaugeText} ${styles.gaugeNotice}` : styles.gaugeText}>
+              {notice ?? gauge.text}
+            </span>
+          </div>
+        )}
         <div className={styles.grid} style={{ top: lowReach ? GRID_TOP_LOW : GRID_TOP }}>
           {rows.map((row, r) => (
             <div key={r} className={styles.gridRow} style={{ top: r * GRID_ROW_STEP }}>
               {row.map((item, c) => {
                 const i = r * COLS + c;
-                const selected = interests.has(i);
+                const selected = pickOrder.includes(i);
+                const option = optionByCat.get(tileCodes[i]!);
+                // Greyed: the picker has answered and this tile does not fit.
+                const off = !selected && !!plan && option?.status !== 'OK';
+                const caption = tileCaption(option, selected, off);
                 return (
                   <button
                     key={interestCat(i) || i}
@@ -896,18 +1191,21 @@ export function JejuAiSearch({ controller }: Props): JSX.Element {
                     className={[
                       styles.tile,
                       selected ? styles.tileSelected : '',
+                      off ? styles.tileOff : '',
                       lang === 'ko' ? '' : styles.tileWrap,
                     ]
                       .filter(Boolean)
                       .join(' ')}
                     // The resting palette is per-tile, so it has to be inline —
-                    // but a picked tile is white on the brand plate, and an
-                    // inline colour would outrank .tileSelected. Dropping the
-                    // style entirely lets the class win without !important.
-                    style={selected ? undefined : { color: item.color }}
+                    // but a picked tile is white on the brand plate and an off
+                    // tile is grey, and an inline colour would outrank both.
+                    // Dropping the style lets the class win without !important.
+                    style={selected || off ? undefined : { color: item.color }}
+                    disabled={off}
                     onClick={() => toggleInterest(i)}
                   >
-                    {tileLabel(i)}
+                    <span className={styles.tileLabel}>{tileLabel(i)}</span>
+                    {caption && <span className={styles.tileCaption}>{caption}</span>}
                   </button>
                 );
               })}

@@ -1,4 +1,5 @@
 import { create } from 'zustand';
+import type { JejuPickerPlan } from '@shared/types/jejuCourse';
 
 interface AiState {
   /** Interest categories the user picked on the questionnaire (max 3, in order). */
@@ -45,6 +46,16 @@ interface AiState {
    */
   region: string;
   setRegion: (region: string) => void;
+  /**
+   * The 커스텀 코스 plan the picker built on the questionnaire
+   * (`POST /api/jeju/courses/picker`), as it stood when 코스 추천받기 was
+   * pressed. The course detail draws THIS instead of asking /recommend, so the
+   * visitor sees exactly the places and times they watched fill the day. Null
+   * when the picker was unreachable (the detail then falls back to /recommend),
+   * and on every themed route.
+   */
+  pickerPlan: JejuPickerPlan | null;
+  setPickerPlan: (plan: JejuPickerPlan | null) => void;
 }
 
 /** Carries the AI-search selections from the questionnaire into the result page. */
@@ -63,4 +74,6 @@ export const useAiStore = create<AiState>((set) => ({
   setResumeQuestions: (resumeQuestions) => set({ resumeQuestions }),
   region: '',
   setRegion: (region) => set({ region }),
+  pickerPlan: null,
+  setPickerPlan: (pickerPlan) => set({ pickerPlan }),
 }));

@@ -39,7 +39,12 @@ import type { CameraDeviceInfo, PhotoOption, PhotoWorkflowState } from '../types
 import type { SpotDiffRound } from '../types/spotDiff';
 import type { FootfallReport, FootfallRuntime, FootfallStats } from '../types/footfall';
 import type { OutfitCatalogue } from '../types/outfit';
-import type { JejuCourse, JejuCourseRecommendQuery } from '../types/jejuCourse';
+import type {
+  JejuCourse,
+  JejuCourseRecommendQuery,
+  JejuPickerPlan,
+  JejuPickerQuery,
+} from '../types/jejuCourse';
 import type { WeatherForecast, WeatherSnapshot } from '../types/weather';
 import type { JejuFlightSnapshot } from '../types/jejuFlight';
 import type { JejuSailingSnapshot } from '../types/jejuSailing';
@@ -192,6 +197,8 @@ export interface KioskBridge {
    */
   jejuCourse: {
     recommend(query: JejuCourseRecommendQuery): Promise<Result<JejuCourse>>;
+    /** 커스텀 코스: the plan for every tap so far, plus each tile's state. One call per tap. */
+    picker(query: JejuPickerQuery): Promise<Result<JejuPickerPlan>>;
   };
   language: {
     get(): Promise<Result<SupportedLanguage>>;

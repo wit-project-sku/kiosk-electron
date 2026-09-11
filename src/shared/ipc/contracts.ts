@@ -49,7 +49,12 @@ import type { KioskBanner } from '../types/banner';
 import type { KioskBackground } from '../types/background';
 import type { SpotDiffRound } from '../types/spotDiff';
 import type { OutfitCatalogue } from '../types/outfit';
-import type { JejuCourse, JejuCourseRecommendQuery } from '../types/jejuCourse';
+import type {
+  JejuCourse,
+  JejuCourseRecommendQuery,
+  JejuPickerPlan,
+  JejuPickerQuery,
+} from '../types/jejuCourse';
 import type {
   EventDetail,
   EventRecommendation,
@@ -436,6 +441,15 @@ export interface IpcContract {
   [IpcChannels.JejuCourseRecommend]: {
     request: JejuCourseRecommendQuery;
     response: Result<JejuCourse>;
+  };
+
+  /**
+   * 제주 커스텀 코스 picker — one live POST per 즐길 거리 tap, carrying every tap
+   * so far. `kioskId` is filled by JejuCourseService, as for /recommend.
+   */
+  [IpcChannels.JejuCoursePicker]: {
+    request: JejuPickerQuery;
+    response: Result<JejuPickerPlan>;
   };
 
   [IpcChannels.UpdateGetStatus]: {
