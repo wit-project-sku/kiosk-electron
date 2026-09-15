@@ -607,14 +607,18 @@ export function JejuHello({ controller }: Props): JSX.Element {
     health: TOPICS_BY_MASCOT[mascot.id].health.topics[0]!.id,
   }));
 
-  // Switch the customer-display video per tab (소개 / 취미생활 / 건강습관), the
-  // way InsadongHello and OsanHello do. The SUB-tab is deliberately not reported:
-  // VideoSubtitle_귤이 gives each tab three clips and the display cycles them, so
-  // there is nothing finer to select.
+  // Switch the customer-display video per tab AND sub-tab. VideoSubtitle_귤이's
+  // 재생조건 column gives every sub-tab its own clip — 취미 탭 → K-POP / 런닝 /
+  // 테니스 (Greeting-2-1…3), 건강습관 → 목·어깨 / 허리 / 기분전환 (Greeting-3-1…3)
+  // — so the display is told WHICH one, by the sub-tab's position in the mascot's
+  // table (the sheet's own order). Reporting only the tab left all three clips
+  // cycling whichever sub-tab was open.
+  const topicIndex =
+    tab === 'profile' ? 0 : TOPICS_BY_MASCOT[mascot.id][tab].topics.findIndex((t) => t.id === topic[tab]) + 1;
   useEffect(() => {
-    const key = tab === 'hobbies' ? 'hello_hobby' : tab === 'health' ? 'hello_stretch' : 'hello';
-    void window.api.kiosk.setScreen(key);
-  }, [tab]);
+    const base = tab === 'hobbies' ? 'hello_hobby' : tab === 'health' ? 'hello_stretch' : 'hello';
+    void window.api.kiosk.setScreen(tab === 'profile' || topicIndex < 1 ? base : `${base}_${topicIndex}`);
+  }, [tab, topicIndex]);
 
   const select = (id: TabId): void => {
     trackEvent({

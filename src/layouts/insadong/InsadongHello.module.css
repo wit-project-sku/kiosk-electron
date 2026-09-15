@@ -1,4 +1,7 @@
-/* 안녕 '인사' — 인사 mascot (profile / hobbies / stretching). Exact Figma px (2160×3840). */
+/* 안녕 '인사' — 인사 mascot (profile / hobbies / stretching). 2160×3840.
+   Tab row, spacing and type follow 안녕 '하영' (JejuHello.module.css): 580×170
+   tabs at y700, 50px labels/values, 60 / 700 topic titles, 100px hashtag and
+   social tiles. Insadong's own card, pills and colours are kept. */
 .bg {
   position: absolute;
   inset: 0;
@@ -8,9 +11,11 @@
   pointer-events: none;
 }
 
+/* The 28px scrollbar is carved out of the RIGHT margin so the 1820 column
+   stays centred. */
 .content {
   position: absolute;
-  top: 699px;
+  top: 700px;
   left: 0;
   right: 0;
   bottom: 573px;
@@ -18,76 +23,79 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 100px; /* Figma tab → card gap */
+  gap: 100px; /* tab → card gap */
   overflow-y: auto;
   overflow-x: hidden;
-  padding: 0 170px 40px;
+  padding: 0 136px 40px 170px;
   font-family: var(--kiosk-font, sans-serif);
 }
 
 .content::-webkit-scrollbar {
-  width: 34.32px;
+  width: 28px;
 }
 .content::-webkit-scrollbar-thumb {
   background: var(--kiosk-primary);
-  border-radius: 21.45px;
+  border-radius: 14px;
 }
 .content::-webkit-scrollbar-track {
   background: transparent;
 }
 
-/* ── Tabs ── */
+/* ── Tabs — three 580×170 pills over 1820 ── */
 .tabs {
   flex: none;
-  width: 1816.802px;
+  width: 1820px;
   display: flex;
   align-items: center;
   justify-content: space-between;
 }
 
+/* One 50px line in Korean; a longer translation wraps inside the pill. */
 .tab {
+  border: none;
+  outline: none;
   box-sizing: border-box;
-  width: 580px; /* Figma tab w579-580 */
+  width: 580px;
   height: 170px;
+  padding: 0 18px;
   display: flex;
   align-items: center;
   justify-content: center;
   background: #ffffff;
-  border: 5px solid #e8e8e8;
   border-radius: 42.9px;
   font-family: var(--kiosk-font, sans-serif);
   font-weight: 500;
   font-size: 50px;
+  line-height: 1.1;
   color: #999999;
-  cursor: pointer;
-  white-space: nowrap;
-  padding: 0 12px;
   text-align: center;
+  overflow: hidden;
+  overflow-wrap: anywhere;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
 }
 
 .tabSelected {
   background: var(--kiosk-secondary);
-  font-weight: 600; /* Figma: SemiBold */
+  font-weight: 700;
   color: var(--kiosk-primary);
 }
 
-/* ── Card (shared) — Figma: w1820, h2160 (all 3 tabs same height), gap 65,
-   px40 py65, border 5px, radius 42.9. */
+/* ── Card (shared) — w1820, h2160 (all 3 tabs same height), px40 py65,
+   radius 42.9. A flat plate: no outline, no shadow (제주 direction). */
 .card {
+  border: none;
+  outline: none;
   box-sizing: border-box;
   width: 1820px;
   height: 2160px;
   display: flex;
   flex-direction: column;
   align-items: flex-start;
-  /* Tighter section gap + smaller top padding so the footer (hashtags/social)
-     doesn't crash the card's bottom edge within the fixed 2160 height. */
   gap: 45px;
   padding: 50px 40px 65px;
   background: #ffffff;
-  border: 5px solid #e8e8e8;
   border-radius: 42.9px;
-  box-shadow: 0 21.45px 21.45px rgba(143, 147, 157, 0.1);
 }
 
 /* ===========================================================
@@ -102,7 +110,7 @@
 
 .portrait {
   flex: none;
-  width: 750px; /* Figma 750×750 */
+  width: 750px;
   height: 750px;
   border-radius: 50%;
   overflow: hidden;
@@ -117,53 +125,68 @@
 
 .infoCol {
   flex: 1;
+  min-width: 0;
   display: flex;
   flex-direction: column;
-  gap: 45px; /* Figma info col gap 45 */
+  gap: 45px;
 }
 
+/* Every label/value pair is `label + 40px gap + value`. */
 .nameRow {
   display: flex;
   align-items: center;
   gap: 40px;
+  min-width: 0;
 }
 
 .label {
   flex: none;
   font-weight: 700;
-  font-size: 60px;
+  font-size: 50px;
   color: #000000;
   line-height: 1;
 }
 
+/* The name is the one value on a plate; min-height so a wrapped name grows it. */
 .namePill {
   display: inline-flex;
   align-items: center;
+  box-sizing: border-box;
+  min-height: 85px;
+  min-width: 0;
   background: var(--kiosk-secondary);
   color: var(--kiosk-primary);
   font-weight: 700;
-  font-size: 58px;
-  padding: 14px 26px;
+  font-size: 50px;
+  padding: 0 23.44px;
   line-height: 1;
+  word-break: keep-all;
+  overflow-wrap: anywhere;
 }
 
 .field {
   display: flex;
   align-items: center;
+  gap: 40px;
+  min-width: 0;
 }
 .field .label {
-  width: 210px;
+  width: 170px;
 }
 
+/* Wraps instead of ellipsising — values are sheet copy in eight languages. */
 .value {
+  min-width: 0;
   font-weight: 400;
-  font-size: 58px;
+  font-size: 50px;
   color: #000000;
-  line-height: 1;
+  line-height: 1.2;
+  word-break: keep-all;
+  overflow-wrap: anywhere;
 }
 
 .divider {
-  height: 2px;
+  height: 2.145px;
   width: 100%;
   background: #e8e8e8;
 }
@@ -171,32 +194,38 @@
 .detailsCol {
   display: flex;
   flex-direction: column;
-  gap: 50px; /* Figma body col gap 50 */
+  gap: 30px;
 }
 
+/* Multi-line values wrap; the label stays on the first line. */
 .detail {
   display: flex;
   align-items: flex-start;
   gap: 40px;
+  min-width: 0;
 }
 .detail .label {
-  width: 230px;
+  width: 200px;
+  line-height: 1.3;
 }
 
 .detailValue {
   flex: 1;
+  min-width: 0;
   display: flex;
   flex-direction: column;
   font-weight: 400;
-  font-size: 58px; /* Figma body value 58 */
+  font-size: 50px;
   color: #000000;
   line-height: 1.3;
+  word-break: keep-all;
+  overflow-wrap: break-word;
 }
 
 /* ===========================================================
    TAB 2 — hobbies (alternating image side)
    =========================================================== */
-/* Figma: title + description top-align with the image (items-start), not centered. */
+/* Title + description top-align with the image. */
 .hobby {
   display: flex;
   align-items: flex-start;
@@ -209,6 +238,7 @@
 
 .hobbyText {
   flex: 1;
+  min-width: 0;
   display: flex;
   flex-direction: column;
   gap: 25px;
@@ -217,9 +247,10 @@
 .hobbyTitle {
   margin: 0;
   font-weight: 700;
-  font-size: 63px;
+  font-size: 60px;
   color: #000000;
   line-height: 1.3;
+  word-break: keep-all;
 }
 
 .hobbyBody {
@@ -275,9 +306,10 @@
 .stretchIntroTitle {
   margin: 0;
   font-weight: 700;
-  font-size: 63px;
+  font-size: 60px;
   color: #000000;
   line-height: 1.3;
+  word-break: keep-all;
 }
 
 .stretchIntroBody {
@@ -298,6 +330,7 @@
 
 .stretchSections {
   flex: 1;
+  min-width: 0;
   display: flex;
   flex-direction: column;
   gap: 64.35px;
@@ -312,9 +345,10 @@
 .stretchSecTitle {
   margin: 0;
   font-weight: 700;
-  font-size: 63px;
+  font-size: 60px;
   color: #000000;
   line-height: 1.3;
+  word-break: keep-all;
 }
 
 .stretchSecBody {
@@ -345,31 +379,38 @@
 .footer {
   display: flex;
   align-items: center;
-  gap: 30px;
+  gap: 40px;
   width: 1740px;
 }
 
+/* 100 tall with a 322 floor; a long translated tag shrinks to the floor and
+   wraps inside its pill instead of pushing the socials off the row. */
 .hashtag {
-  flex: none;
+  flex: 0 1 auto;
   box-sizing: border-box;
-  width: 322px;
-  height: 125px;
+  min-width: 322px;
+  height: 100px;
+  padding: 0 16px;
   display: flex;
   align-items: center;
   justify-content: center;
   background: var(--kiosk-primary);
   border-radius: 42.9px;
   font-weight: 700;
-  font-size: 51.48px;
+  font-size: 50px;
+  line-height: 1;
   color: #ffffff;
-  white-space: nowrap;
+  text-align: center;
+  white-space: normal;
+  word-break: keep-all;
+  overflow-wrap: anywhere;
 }
 
 .socials {
   margin-left: auto;
   display: flex;
   align-items: center;
-  gap: 25px; /* Figma social row gap 25 */
+  gap: 25px;
 }
 
 .social {
@@ -385,21 +426,22 @@
   gap: 25px;
 }
 
-/* Figma social icons / QR: 125×125, QR border 5px #f48570 r21.45. */
+/* Social icons / QR: 100×100 tiles, QR border 5px #f48570 r21.45. */
 .socialIcon {
   flex: none;
-  width: 125px;
-  height: 125px;
+  width: 100px;
+  height: 100px;
   object-fit: contain;
   border-radius: 21.45px;
 }
 
 .socialQr {
+  border: none;
+  outline: none;
   flex: none;
   box-sizing: border-box;
-  width: 125px;
-  height: 125px;
-  border: 5px solid #f48570;
+  width: 100px;
+  height: 100px;
   border-radius: 21.45px;
   background: #ffffff;
   padding: 10px;
@@ -419,6 +461,7 @@
 }
 
 .banner {
+  outline: none;
   position: absolute;
   left: 0;
   bottom: 0;

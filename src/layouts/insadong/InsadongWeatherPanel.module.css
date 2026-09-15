@@ -1,0 +1,242 @@
+/*
+ * 인사동 날씨 overlay — the 제주 날씨 panel (JejuWeatherPanel.module.css, Figma
+ * 6516:74521, 2026-09-14 redraw): the panel body is 2000×3239 at (80, 460), a
+ * 329-wide close tab rises from its top-right corner (page 1751…2080 from
+ * y297), and everything inside the body is panel-relative.
+ *
+ *    103…600   오늘 card (holds the column heads and the first row)
+ *    145       column heads 종로구 · 중구 · 강남구
+ *    258       row 1 glyph top · then 719 / 1172 / 1700 / 2228 / 2756
+ *   1093…2636  four rules
+ *   3173.5     ※ 출처 line (centre)
+ */
+.layer {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 2160px;
+  height: 3840px;
+  /* Above the home screen and the ♿ mode bar/banner (z 25), below the search
+     keyboard, which mounts after this. */
+  z-index: 30;
+  font-family: var(--kiosk-font, sans-serif);
+}
+
+/* Full-screen dismiss target behind the panel. It also BLURS the home screen:
+   the panel body starts at y460, so without this the notice copy and the
+   weather card above it (y297…460) stayed sharp around the close tab. */
+.dismiss {
+  outline: none;
+  position: absolute;
+  inset: 0;
+  padding: 0;
+  border: none;
+  background: none;
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Top-right corner square: that is where the close tab joins. */
+.panel {
+  position: absolute;
+  left: 80px;
+  top: 460px;
+  width: 2000px;
+  height: 3239px;
+  border-radius: 45px 0 45px 45px;
+  background: rgba(237, 233, 226, 0.9);
+  backdrop-filter: blur(15px);
+  -webkit-backdrop-filter: blur(15px);
+  overflow: hidden;
+}
+
+/* The close tab: the same frosted ground, 329 wide, flush with the panel's
+   right edge, top corners rounded, stopping where the body starts (297…460) so
+   the two translucent layers never overlap into a darker strip. */
+.tab {
+  position: absolute;
+  left: 1751px;
+  top: 297px;
+  width: 329px;
+  height: 163px;
+  border-radius: 45px 45px 0 0;
+  background: rgba(237, 233, 226, 0.9);
+  backdrop-filter: blur(15px);
+  -webkit-backdrop-filter: blur(15px);
+}
+
+.todayCard {
+  position: absolute;
+  left: 70px;
+  top: 103px;
+  width: 1861px;
+  height: 497px;
+  border-radius: 45px;
+  background: rgba(255, 255, 255, 0.5);
+  backdrop-filter: blur(42.9px);
+  -webkit-backdrop-filter: blur(42.9px);
+}
+
+/* ── Column axes (page x 770 / 1253 / 1717) — everything in a column is
+   positioned off its axis. ── */
+.col1 { --col: 690px; }
+.col2 { --col: 1173px; }
+.col3 { --col: 1637px; }
+
+/* Capped at 440 and allowed to wrap, so a long translated name stays over its
+   own column; a second line ends at 221, clear of the row-1 glyphs at 258. */
+.head {
+  position: absolute;
+  left: var(--col);
+  top: 145px;
+  max-width: 440px;
+  transform: translateX(-50%);
+  font-size: 38px;
+  font-weight: 400;
+  line-height: 1;
+  color: #999;
+  text-align: center;
+  white-space: normal;
+  word-break: keep-all;
+  overflow-wrap: anywhere;
+}
+
+.rule {
+  position: absolute;
+  left: 111px;
+  width: 1778px;
+  height: 3px;
+  background: #c8bda9;
+}
+
+/* ── One day: 294 tall — the 200 glyph, then the temperatures at 244 ── */
+.row {
+  position: absolute;
+  left: 0;
+  width: 2000px;
+  height: 294px;
+}
+
+.day {
+  position: absolute;
+  left: 157px;
+  top: 82px;
+  width: 126px;
+  font-size: 68px;
+  font-weight: 700;
+  line-height: 1;
+  color: #232323;
+  text-align: center;
+  white-space: nowrap;
+}
+
+.date {
+  position: absolute;
+  left: 167px;
+  top: 174px;
+  width: 106px;
+  font-size: 38px;
+  font-weight: 400;
+  line-height: 1;
+  color: #999;
+  white-space: nowrap;
+}
+
+/* One place's cell: the glyph, and that place's low/high under it. */
+.cell {
+  position: absolute;
+  left: calc(var(--col) - 104px);
+  top: 0;
+  width: 208px;
+  height: 294px;
+}
+
+.glyphSlot {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 208px;
+  height: 200px;
+}
+
+.glyph {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+/* 최저 / 최고, centred under the glyph. */
+.temps {
+  position: absolute;
+  left: 50%;
+  top: 244px;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: baseline;
+  font-size: 50px;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.min {
+  font-weight: 700;
+  color: #3172e7;
+}
+
+.max {
+  font-weight: 700;
+  color: #cd3534;
+}
+
+.slash {
+  width: 33px;
+  font-weight: 400;
+  color: #999;
+  text-align: center;
+}
+
+/* ── ※ 출처 — Light 38, #1A1A1A, centred at panel y3173.5 ── */
+.source {
+  position: absolute;
+  left: 50%;
+  top: 3173.5px;
+  transform: translate(-50%, -50%);
+  margin: 0;
+  font-size: 38px;
+  font-weight: 300;
+  line-height: normal;
+  letter-spacing: 0.38px;
+  color: #1a1a1a;
+  white-space: nowrap;
+}
+
+/* ── Close, in the tab — centred across its 329 width, 31 below its top.
+   An X on a white disc, in the brand colour. ── */
+.close {
+  outline: none;
+  position: absolute;
+  left: 106px;
+  top: 31px;
+  width: 117px;
+  height: 117px;
+  padding: 0;
+  border: none;
+  background: transparent;
+  color: var(--kiosk-primary);
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.closeIcon {
+  display: block;
+  width: 100%;
+  height: 100%;
+  fill: none;
+  transition: transform 120ms ease-out;
+}
+
+.close:active .closeIcon {
+  transform: scale(1.08);
+}

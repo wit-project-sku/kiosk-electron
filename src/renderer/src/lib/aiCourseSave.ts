@@ -2,8 +2,10 @@
  * Build the direction-fe `/ai` QR URL from the 제주 AI 코스 상세 screen.
  *
  * Sparse QR, same contract as detailCardSave:
- *   https://host/ai?c=A&t=CAR&p=2&n=3&v=250913&lang=ko&i=22.7.17
- *                 &tm=280&tv=95&g=1&d1=1612.150.1_1043.120.1&d2=...
+ *   https://host/ai?p=2&n=3&i=22.7.17&tm=280&tv=95&g=1
+ *                 &d1=1612.150.1_1043.120.1&d2=...
+ * (`c`, `t`, `p`, `n` and `lang` only when they differ from the phone's
+ * defaults A / CAR / 1 / 0 / ko — see buildAiCourseSaveUrlForQr.)
  *
  * The phone resolves every shopId against GET /api/shops/{id} for the name,
  * category, address, description and photo — exactly the fields
@@ -35,9 +37,19 @@ export interface AiCourseSaveDay {
   stops: AiCourseSaveStop[];
 }
 
+/**
+ * The course as the phone names it. A / B / C are the themed courses the API
+ * schedules; the two routes that are NOT one of those get their own code so the
+ * phone titles them correctly instead of borrowing a theme's name:
+ *   X — the 커스텀 코스 (AI 맞춤 추천 코스), built from the visitor's picks;
+ *   D — 쇼핑·로컬 체험, which requests course B but is not 맛집·감성.
+ * A phone page that predates X / D reads any unknown code as A.
+ */
+export type AiCourseQrCourse = JejuCourseKey | 'D' | 'X';
+
 export interface AiCourseSaveInput {
   lang: Lang;
-  course: JejuCourseKey;
+  course: AiCourseQrCourse;
   transport: JejuTransport;
   /** Group size and 박수 — the phone renders its own 「2명」/「3박 이상」 chips. */
   party: number;
@@ -76,12 +88,6 @@ function interestCode(aiCategoryKr: string): number | null {
   return Number.isFinite(n) && n > 0 ? n : null;
 }
 
-/** `2025-09-13` → `250913`. */
-function compactDate(iso: string): string | null {
-  const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec((iso ?? '').trim());
-  return m ? `${m[1]!.slice(2)}${m[2]}${m[3]}` : null;
-}
-
 /**
  * One day's stops as `shopId.dwell.difficulty`, joined by `_`. Trailing zeros
  * are trimmed, so an offline day is just ids: `1612_1043_998`.
@@ -108,16 +114,21 @@ export function buildAiCourseSaveUrlForQr(
   if (days.length === 0) return null;
 
   const root = origin.replace(/\/+$/, '');
-  const q = new URLSearchParams({
-    c: input.course,
-    t: input.transport,
-    p: String(Math.max(1, Math.round(input.party || 1))),
-    n: String(Math.max(0, Math.round(input.nights || 0))),
-    lang: input.lang,
-  });
-
-  const v = compactDate(input.visitDate);
-  if (v) q.set('v', v);
+  /*
+   * Every byte here is QR modules, and a denser code is one a phone cannot read
+   * off the kiosk glass (see `.qr` in JejuAiDetail.module.css). So a value the
+   * phone would assume anyway is left out: direction-fe's parseAiCourseParams
+   * reads a missing `c` as A, `t` as CAR, `p` as 1, `n` as 0 and `lang` as ko.
+   * `v` (the visit date) is not sent at all — the phone never reads it.
+   */
+  const q = new URLSearchParams();
+  const party = Math.max(1, Math.round(input.party || 1));
+  const nights = Math.max(0, Math.round(input.nights || 0));
+  if (input.course !== 'A') q.set('c', input.course);
+  if (input.transport !== 'CAR') q.set('t', input.transport);
+  if (party !== 1) q.set('p', String(party));
+  if (nights !== 0) q.set('n', String(nights));
+  if (input.lang !== 'ko') q.set('lang', input.lang);
 
   const codes = (input.interests ?? [])
     .map(interestCode)

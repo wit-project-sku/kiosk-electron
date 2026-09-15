@@ -3,17 +3,18 @@
  * 6289:54956 (the same screen with 2명 · 3박 이상 · 자동차 and three 즐길 거리
  * tiles picked), the 2026-08-24 redesign of 6050:142613.
  *
- * 선택영역 starts at y699 and stacks 5 blocks with a 100px gap. Each of the
- * first three blocks is [label 76 · gap 60 · chip row 193] = 329 tall:
+ * 선택영역 starts at y699 and stacks 5 blocks with a 50px gap (Figma 7229:100741
+ * closed it from 100). Each of the first three blocks is [label 76 · gap 60 ·
+ * chip row 193] = 329 tall; 즐길 거리 gained the day tabs (101) between its heading
+ * and its grid, 60 either side:
  *
  *   699  방문 인원 label      835  chips
- *   1128 체류 기간 label     1264  chips
- *   1557 이동수단 label      1693  chips
- *   1986 즐길 거리 label     2122  grid (5 rows, step 244, each h215)
- *   3413 CTA (h178)                        → content ends at y3591
+ *   1078 체류 기간 label     1214  chips
+ *   1457 이동수단 label      1593  chips
+ *   1836 즐길 거리 label     1972  day tabs (h101)    2133  grid (5 rows, step 244, each h215)
+ *   3374 CTA (h178)                        → content ends at y3552
  *
- * The geometry above is unchanged by the redesign — verified against
- * 6289:54958. What changed is the plate treatment: chips and tiles lost their
+ * The plate treatment below dates from the 2026-08-24 redesign (6289:54958). What changed is the plate treatment: chips and tiles lost their
  * #e8e8e8 hairline AND their drop shadow, and SELECTED now means a solid #FF7F0F
  * plate with white text (it was a pale #ffeac7 fill that kept the label's own
  * colour). Chip type dropped to Medium and the CTA from 68.64 to 60.
@@ -182,17 +183,16 @@
   display: block;
 }
 
-/* The picker's line under a tile's label: "+1시간 4분" on a tile that fits,
-   the arrival ("09:04", "DAY 2 · 10:00") on a picked one, and the reason on a
-   greyed one ("휴무일", "영업 종료", "시간 부족" …). Small and plain grey, so the
-   label keeps the tile; it wraps rather than spilling past the 268 plate. */
+/* A tile picked for ANOTHER day than the tab in view: the tile keeps its resting
+   look and names its day under the label ("2일차"). Small, in the brand colour,
+   so it reads as "already in the plan" without competing with the label. */
 .tileCaption {
   display: block;
   max-width: 244px;
   font-size: 30px;
-  font-weight: 600;
+  font-weight: 700;
   line-height: 1.1;
-  color: #999;
+  color: var(--kiosk-primary, #ff7f0f);
   white-space: normal;
   word-break: keep-all;
   overflow-wrap: anywhere;
@@ -200,17 +200,13 @@
 
 /* Greyed: the picker says this tile no longer fits (and it is `disabled`, so
    taps do nothing). Flat grey plate, muted label, no lift — clearly out of
-   play next to the white tiles, but still readable, because the caption says
-   why. The explicit colour also beats the UA's own :disabled button colour. */
+   play next to the white tiles. The explicit colour also beats the UA's own
+   :disabled button colour. */
 .tileOff {
   background: #f1f1f1;
   box-shadow: none;
   color: #c4c4c4;
   cursor: default;
-}
-
-.tileOff .tileCaption {
-  color: #9a9a9a;
 }
 
 /* Non-Korean labels only. The `pre` above is sized to the Figma's Korean, which
@@ -240,68 +236,75 @@
   color: #fff;
 }
 
-.tileSelected .tileCaption {
-  color: rgba(255, 255, 255, 0.9);
+/* ── 즐길 거리 day tabs (Figma 7229:100741 · day-tabs 7242:9774) ──
+   A 16-gap row of 101-tall pills under the heading (`top` from the TSX). Each is
+   the day's label, then its badge — the places the plan put on that day — when
+   it has any. Measured on the frame's render: 232 / 234 wide with a badge, 234
+   without, label 31–33 in, badge 10 after it, 57 round. */
+.dayTabs {
+  position: absolute;
+  left: 0;
+  display: flex;
+  gap: 16px;
 }
 
-/* ── 커스텀 코스 time gauge ──
-   Right of the 즐길 거리 heading, on the heading's own 76px row (the TSX sets
-   `top`), so the grid below does not move. The heading measures at most 834
-   (vi), and the gauge keeps to the right 900 of the 1820 column, so the two
-   never meet. The bar is the day being planned; the text is what is left on it
-   ("DAY 1/2 · 10시간 56분 남음"), or a short notice for a moment. */
-.gauge {
-  position: absolute;
-  right: 0;
-  height: 76px;
-  max-width: 900px;
+.dayTab {
+  flex: 0 0 auto;
+  /* 232, the frame's narrowest (1일차): a wider label or a badge grows past it
+     on its own, and a 234 floor pushed every later tab 2px right. */
+  min-width: 232px;
+  height: 101px;
+  box-sizing: border-box;
+  padding: 0 32px;
+  border: none;
+  border-radius: 999px;
+  background: #fff;
   display: flex;
   align-items: center;
-  gap: 28px;
-}
-
-.gaugeBar {
-  flex: 0 0 auto;
-  width: 320px;
-  height: 24px;
-  border-radius: 12px;
-  background: #e6e6e6;
-  overflow: hidden;
-}
-
-.gaugeFill {
-  display: block;
-  height: 100%;
-  border-radius: inherit;
-  background: var(--kiosk-primary, #ff7f0f);
-  transition: width 200ms ease-out;
-}
-
-.gaugeText {
-  font-size: 44px;
+  justify-content: center;
+  gap: 10px;
+  font-family: inherit;
+  font-size: 45px;
   font-weight: 700;
   line-height: 1;
-  color: var(--kiosk-primary, #ff7f0f);
+  color: #5e5e5e; /* gray 06 */
   white-space: nowrap;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
 }
 
-/* "빠진 곳: …" — the same slot, in plain dark type so it reads as news, not as
-   the running total. */
-.gaugeNotice {
-  color: #333;
+.dayTabActive {
+  background: var(--kiosk-primary, #ff7f0f);
+  color: #fff;
 }
 
-@media (prefers-reduced-motion: reduce) {
-  .gaugeFill {
-    transition: none;
-  }
+/* The count: [제주] main 02 (#FFEAC7) on a resting tab, white on the active one,
+   brand-orange figures on both. A pill, so two digits still fit. */
+.dayBadge {
+  min-width: 57px;
+  height: 57px;
+  box-sizing: border-box;
+  padding: 0 10px;
+  border-radius: 999px;
+  background: #ffeac7;
+  color: var(--kiosk-primary, #ff7f0f);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 45px;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.dayTabActive .dayBadge {
+  background: #fff;
 }
 
 /* ── CTA ── */
 .cta {
   position: absolute;
   left: 0;
-  top: 3413px;
+  top: 3374px;
   width: 1820px;
   height: 178.034px;
   padding: 0;

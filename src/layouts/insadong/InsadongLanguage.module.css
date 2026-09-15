@@ -1,4 +1,9 @@
-/* 언어선택 (4개국어) — exact Figma px (artboard 2160×3840). */
+/*
+ * 언어선택 — laid out like 제주's 언어선택 (JejuLanguage.module.css, Figma
+ * 6212:50714): from y700, label row → 65 → 현재 언어 card, 150 → 변경 언어
+ * label → 65 → a 2×4 grid of 875×320 cards (70 across, 100 down).
+ * Insadong's own card fill/border colours are kept.
+ */
 .bg {
   position: absolute;
   inset: 0;
@@ -8,12 +13,11 @@
   pointer-events: none;
 }
 
-/* 언어선택영역 (Figma 4167:87880): px170, column, centred, gap-150 between the
-   현재언어 and 변경언어 sections. Top-aligned (no justify-content:center) so a tall
-   list scrolls instead of clipping. */
+/* Top-aligned (no justify-content:center) so a tall list scrolls instead of
+   clipping. The 28px scrollbar is carved out of the right margin. */
 .area {
   position: absolute;
-  top: 699px;
+  top: 700px;
   left: 0;
   right: 0;
   bottom: 573px;
@@ -22,17 +26,17 @@
   flex-direction: column;
   align-items: center;
   gap: 150px;
-  padding: 0 170px;
+  padding: 0 136px 0 170px;
   overflow-y: auto;
   overflow-x: hidden;
 }
 
 .area::-webkit-scrollbar {
-  width: 34px;
+  width: 28px;
 }
 .area::-webkit-scrollbar-thumb {
   background: var(--kiosk-primary);
-  border-radius: 21.45px;
+  border-radius: 14px;
 }
 .area::-webkit-scrollbar-track {
   background: transparent;
@@ -43,17 +47,20 @@
   display: flex;
   flex-direction: column;
   gap: 65px;
-  width: 100%;
+  width: 1820px;
 }
 
+/* Section label: black bar + 76 / 600 heading. */
 .label {
   display: flex;
   align-items: center;
   gap: 30px;
   font-family: var(--kiosk-font, sans-serif);
   font-weight: 600;
-  font-size: 78px;
+  font-size: 76px;
+  line-height: 1;
   color: #000000;
+  white-space: nowrap;
 }
 
 .bar {
@@ -65,18 +72,20 @@
 }
 
 /* 변경언어 cards — 8 languages in a 2-column grid (4 left, 4 right), filled
-   column-major so col-1 = ko/en/ja/zh, col-2 = vi/th/ru/id. Figma 4167:177444. */
+   column-major so col-1 = ko/en/ja/zh, col-2 = vi/th/ru/id. */
 .list {
   display: grid;
-  grid-template-columns: 1fr 1fr;
-  grid-template-rows: repeat(4, auto);
+  grid-template-columns: 875px 875px;
+  grid-template-rows: repeat(4, 320px);
   grid-auto-flow: column;
-  column-gap: 60px;
+  column-gap: 70px;
   row-gap: 100px;
 }
 
-/* Language row card — Figma 5287:62226: w1820 h320, padding 55/60, radius 42.9. */
+/* Language card: h320, padding 55/60, radius 42.9. */
 .card {
+  border: none;
+  outline: none;
   box-sizing: border-box;
   width: 100%;
   height: 320px;
@@ -86,11 +95,11 @@
   gap: 20px;
   padding: 55px 60px;
   background: #ffffff;
-  border: 2.145px solid #e8e8e8;
   border-radius: 42.9px;
-  box-shadow: 0 21.45px 21.45px rgba(143, 147, 157, 0.1);
   font-family: var(--kiosk-font, sans-serif);
+  text-align: left;
   cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
 }
 
 /* Content row inside the card — fills height, pill+name left, check right. */
@@ -104,24 +113,23 @@
 
 .currentCard {
   background: var(--kiosk-secondary);
-  border-color: var(--kiosk-primary);
   cursor: default;
 }
 
-/* Figma: 현재 언어 name is pure black; the change cards use #333. */
+/* The 현재 언어 name is pure black; the change cards use #333. */
 .currentCard .langName {
   color: #000000;
 }
 
 .cardOn {
   background: var(--kiosk-secondary);
-  border-color: var(--kiosk-primary);
 }
 
 .cardLeft {
   display: flex;
   align-items: center;
-  gap: 40px;
+  gap: 42.9px;
+  min-width: 0;
 }
 
 /* Coded circle pill (KR / EN / JP / CN …) */
@@ -136,6 +144,7 @@
   font-family: var(--kiosk-font, sans-serif);
   font-weight: 700;
   font-size: 60px;
+  line-height: 1;
 }
 
 .pillOn {
@@ -144,16 +153,23 @@
 }
 
 .pillOff {
+  border: none;
+  outline: none;
   background: #ffffff;
-  border: 4px solid var(--kiosk-primary);
   color: var(--kiosk-primary);
 }
 
+/* 68 / 600. Line-height 1.5 so descenders (English "g", Русский "у") are not
+   cut; wraps rather than ellipsising if a name ever outgrows the card. */
 .langName {
+  min-width: 0;
   font-weight: 600;
   font-size: 68px;
+  line-height: 1.5;
   color: #333333;
-  white-space: nowrap;
+  white-space: normal;
+  word-break: keep-all;
+  overflow-wrap: anywhere;
 }
 
 .check {
@@ -161,9 +177,11 @@
   height: 115px;
   flex: none;
   object-fit: contain;
+  pointer-events: none;
 }
 
 .banner {
+  outline: none;
   position: absolute;
   left: 0;
   bottom: 0;

@@ -146,6 +146,12 @@ export interface JejuPickerQuery {
   nights: number;
   /** `YYYY-MM-DD` of DAY 1 — closed weekdays and 5일장 dates are checked per day. */
   visitDate: string;
+  /**
+   * When DAY 1 starts, minutes past midnight — the kiosk clock when the page
+   * opened, sent unchanged on every tap. Before 09:00 counts as 09:00; later
+   * days always start at 09:00.
+   */
+  startMin: number;
   /** Every tile tapped so far, whole trip, tap order — `aiCategoryKr` with its prefix. */
   picks: string[];
   /** The tiles on screen, so each gets a row back (a tile with no places reads NO_PLACES). */
@@ -176,9 +182,29 @@ export interface JejuPickerDay {
   endMin: number;
   budgetMinutes: number;
   usedMinutes: number;
-  /** Left on this day. A day the trip has moved past is closed — nothing can use it. */
+  /** Left on this day — a later tap that fits can still use it (days never close). */
+  remainingMinutes: number;
+  /** What the taps placed on this day. */
+  stops: JejuPickerStop[];
+  /**
+   * The first tapped day's categories again, at new places: after the stops of
+   * the last tapped day (unless it is the first tapped day), and as the whole
+   * of every empty day after it. Only for the result page — it is not in this
+   * day's minutes or the trip totals, and the tiles ignore it. Null otherwise,
+   * and always null from an API that does not send it yet.
+   */
+  repeat: JejuPickerRepeat | null;
+}
+
+export interface JejuPickerRepeat {
+  /** The day whose categories are repeated (DAY 1 unless it is empty). */
+  ofDay: number;
+  /** The whole day as shown — tapped and repeated stops — from its startMin. */
+  usedMinutes: number;
   remainingMinutes: number;
   stops: JejuPickerStop[];
+  /** Categories of `ofDay` with no place that fitted this day. */
+  skipped: { aiCategory: string; reason: string }[];
 }
 
 /** One row per tile. */
@@ -202,9 +228,9 @@ export interface JejuPickerPlan {
   dayCount: number;
   budgetMinutes: number;
   usedMinutes: number;
-  /** What a further tap can still use: the current day's leftover plus every later day. */
+  /** Every day's leftover together — days never close, so all of it can still be used. */
   remainingMinutes: number;
-  /** The day the next tap lands on first. */
+  /** The earliest day a tappable tile lands on (else the last day with stops). */
   currentDay: number;
   /** No tile can be tapped. With a lot of `remainingMinutes` left, places ran out, not time. */
   full: boolean;

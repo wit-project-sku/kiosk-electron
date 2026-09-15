@@ -8,33 +8,36 @@
   pointer-events: none;
 }
 
+/* One scrolling column under the 700 header, 50 between blocks (제주 rhythm);
+   the 28px scrollbar is carved out of the RIGHT margin so the 1820 column stays
+   centred. */
 .results {
   position: absolute;
-  top: 699px;
+  top: 700px;
   left: 0;
   right: 0;
   bottom: 573px;
   box-sizing: border-box;
   display: flex;
   flex-direction: column;
-  gap: 60px;
+  gap: 50px;
   overflow-y: auto;
   overflow-x: hidden;
-  padding: 0 170px;
+  padding: 0 136px 0 170px;
 }
 
 .results::-webkit-scrollbar {
-  width: 34.32px;
+  width: 28px;
 }
 .results::-webkit-scrollbar-thumb {
   background: var(--kiosk-primary);
-  border-radius: 21.45px;
+  border-radius: 14px;
 }
 .results::-webkit-scrollbar-track {
   background: transparent;
 }
 
-/* Category tabs (3, equal width) */
+/* Tab row — the 제주 three-pill row: 580×170 over 1820, 40 gaps. */
 .tabs {
   flex: none;
   display: flex;
@@ -44,20 +47,27 @@
 }
 
 .tab {
-  width: 579px;
+  border: none;
+  outline: none;
+  width: 580px;
   height: 170px;
   box-sizing: border-box;
+  padding: 0 18px;
   display: flex;
   align-items: center;
   justify-content: center;
   background: #ffffff;
-  border: 5px solid #e8e8e8;
   border-radius: 42.9px;
   font-family: var(--kiosk-font, sans-serif);
   font-weight: 500;
   font-size: 50px;
+  line-height: 1.1;
   color: #999999;
+  text-align: center;
+  overflow: hidden;
+  overflow-wrap: anywhere;
   cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
 }
 
 .tabSelected {
@@ -68,6 +78,8 @@
 
 /* Big content card */
 .card {
+  border: none;
+  outline: none;
   flex: none;
   width: 1820px;
   box-sizing: border-box;
@@ -79,9 +91,7 @@
      above the bottom banner (no scrollbar). */
   padding: 55px 40px 45px;
   background: #ffffff;
-  border: 5px solid #e8e8e8;
   border-radius: 42.9px;
-  box-shadow: 0 21.45px 21.45px rgba(143, 147, 157, 0.1);
 }
 
 /* Figma: 지하철/버스 title sits at the LEFT of the 1740 content row. */
@@ -179,7 +189,6 @@
   flex: none;
   border-radius: 42.9px;
   overflow: hidden;
-  box-shadow: 0 0 15.015px rgba(0, 0, 0, 0.15);
 }
 
 .appIcon img {
@@ -367,6 +376,7 @@
 }
 
 .banner {
+  outline: none;
   position: absolute;
   left: 0;
   bottom: 0;

@@ -64,12 +64,21 @@
    module at this size. It is drawn at the frame's size on request; if phones
    struggle to read it on the kiosk, the fix is a shorter payload, not a bigger
    square. */
+/* 7181:18186 (both 7058:21462 and 7058:22277): a 174² card at (1814, 554),
+   measured off the frame's 1:1 render — a 5px #FF7F0F border, ~22 corner
+   radius, and 14px of white between the border and the code, so 136px of code.
+   Kept at the frame's size by request (2026-09-14). The link it encodes is kept
+   as short as possible (aiCourseSave) because every character is modules. */
 .qr {
   position: absolute;
-  left: 1854px;
-  top: 597px;
-  width: 116px;
-  height: 116px;
+  left: 1814px;
+  top: 554px;
+  width: 174px;
+  height: 174px;
+  box-sizing: border-box;
+  padding: 14px;
+  border: 5px solid var(--kiosk-primary, #ff7f0f);
+  border-radius: 22px;
   background: #fff;
 }
 
@@ -240,6 +249,39 @@
   color: #fff;
 }
 
+/* ── Refresh (7181:18180, 추천코스 detail only) ─────────────────────────
+   A 120×120 white plate at (167, 942), r45, level with 전체보기 / 선택보기, with
+   the frame's 96px refresh-cw glyph centred in it. */
+.refreshBtn {
+  position: absolute;
+  left: 167px;
+  top: 942px;
+  width: 120px;
+  height: 120px;
+  padding: 0;
+  border: none;
+  border-radius: 45px;
+  background: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.refreshBtn:disabled {
+  cursor: default;
+  opacity: 0.5;
+}
+
+.refreshIcon {
+  width: 96px;
+  height: 96px;
+  flex: none;
+}
+
+.refreshLow { top: calc(942px + 113px); }
+
 .dayArrowIcon {
   display: block;
   width: 100%;
@@ -320,6 +362,52 @@
   text-align: center;
 }
 
+/*
+ * ── 커스텀 코스, DAY 1: disc 1 on the 즐길 거리 row (7058:21462) ────────
+ * The row is 1134…1264, so its centre line is y1199; the disc is centred on it
+ * at the rail's x (170, like every disc). Declared after .stop so `position`
+ * here wins. The stub is the rail from that disc down to the list's top edge
+ * (1199 → 1295), on the same x222 axis and the same 20/20 dash.
+ */
+.stopFixed {
+  position: absolute;
+  left: 170px;
+  top: 1146.5px;
+  z-index: 2;
+}
+
+.stopFixedLow { top: calc(1146.5px + 113px); }
+
+.railStub {
+  position: absolute;
+  left: 222px;
+  top: 1199px;
+  width: 5px;
+  height: 96px;
+  background: repeating-linear-gradient(
+    to bottom,
+    var(--kiosk-primary, #ff7f0f) 0 20px,
+    transparent 20px 40px
+  );
+  pointer-events: none;
+}
+
+.railStubLow { top: calc(1199px + 113px); }
+
+/* The list's rail picking up where the 96px stub left off: 96 is 16px into a
+   40px dash period, so the pattern is shifted to match and the dashes run on
+   unbroken across the list's top edge. */
+.railContinued {
+  background-position: 0 -16px;
+}
+
+/* Where the start row's disc would be when disc 1 sits on the 즐길 거리 row. */
+.stopSpacer {
+  flex: none;
+  width: 105px;
+  height: 105px;
+}
+
 /* ── Spot list — all stops for the day, scrollable ──
    The rows still start at x170 (disc) / x310 (card); the box itself starts 40
    further left with a 40px pad, because it scrolls and so clips at its own
@@ -357,6 +445,30 @@
    own 74 / 80 padding would squeeze the column to 853 and start it at 745.
    Two classes, so it wins over the card's `.spot` whatever order the two
    stylesheets load in. */
+/* ── Start-point row (7181:18213) ──
+   DAY 1's first row: a 1678×172 white plate, r40, the place's name centred in
+   Pretendard Bold 50 black. min-height so a long localized name wraps and
+   grows the plate instead of running out of it; the rail re-measures it. */
+.startCard {
+  flex: none;
+  box-sizing: border-box;
+  width: 1678px;
+  min-height: 172px;
+  padding: 30px 60px;
+  border-radius: 40px;
+  background: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 50px;
+  font-weight: 700;
+  line-height: 1.2;
+  color: #000;
+  text-align: center;
+  word-break: keep-all;
+  overflow-wrap: anywhere;
+}
+
 .stopRow > .listCard {
   padding-left: 63px;
   padding-right: 69px;
@@ -447,7 +559,7 @@
  * Mode-bar revision (same as JejuDetail · JejuListScreen): the 113px bar at
  * y0, header at y113, no promo banner — each row drops by the bar height.
  */
-.qrLow { top: calc(597px + 113px); }
+.qrLow { top: calc(554px + 113px); }
 .tagsLow { top: calc(667px + 113px); }
 .summaryLow { top: calc(769px + 113px); }
 .picksLow { top: calc(1134px + 113px); }

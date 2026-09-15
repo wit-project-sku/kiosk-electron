@@ -745,56 +745,61 @@ export function JejuHome({ controller }: Props): JSX.Element {
         <span className={styles.dateTime}>{clock}</span>
       </div>
 
-      {/* ── 공지 card + weather ── */}
-      <div className={low(styles.notice, styles.noticeLow)}>
-        {wide ? (
-          /* Non-Korean: the frame's 1060 width (Figma 7058:22669) in the taller
-             band the panel really has, ending 60 above the board; the rule
-             follows the text's own height; type scales down only for copy that
-             still outgrows the band. Never clamped — see .noticeLeadWide. */
-          <div className={`${styles.noticeLead} ${styles.noticeLeadWide}`} ref={noticeRef}>
-            <div className={styles.noticeRow}>
-              <div className={styles.noticeRule} />
-              <p className={`${styles.noticeText} ${styles.noticeTextWide}`}>{noticeBody}</p>
+      {/* 공지 card, its weather card and the 운항 정보 board — Figma's group
+          6516:74628. While the 날씨 popup is up the frame blurs exactly this
+          group (and nothing else on the home screen): see .noticeGroupBehind. */}
+      <div className={weatherOpen ? `${styles.noticeGroup} ${styles.noticeGroupBehind}` : styles.noticeGroup}>
+        {/* ── 공지 card + weather ── */}
+        <div className={low(styles.notice, styles.noticeLow)}>
+          {wide ? (
+            /* Non-Korean: the frame's 1060 width (Figma 7058:22669) in the taller
+               band the panel really has, ending 60 above the board; the rule
+               follows the text's own height; type scales down only for copy that
+               still outgrows the band. Never clamped — see .noticeLeadWide. */
+            <div className={`${styles.noticeLead} ${styles.noticeLeadWide}`} ref={noticeRef}>
+              <div className={styles.noticeRow}>
+                <div className={styles.noticeRule} />
+                <p className={`${styles.noticeText} ${styles.noticeTextWide}`}>{noticeBody}</p>
+              </div>
             </div>
-          </div>
-        ) : (
-          <div className={styles.noticeLead}>
-            <div className={styles.noticeRule} />
-            <p className={styles.noticeText}>{noticeBody}</p>
-          </div>
-        )}
-
-        {/* Tapping the weather opens the 날씨 panel (Figma 6516:74521) on this
-            screen AND plays today's condition clip on the customer display
-            (Weather_Rain/Cold/Sunny) — the clip is the behaviour the other
-            kiosks have always had, and it runs on the second monitor, so the
-            panel does not displace it. */}
-        <div
-          className={styles.weather}
-          role="button"
-          aria-label="제주 날씨"
-          aria-expanded={weatherOpen}
-          onClick={() => {
-            playWeatherVideo();
-            setWeatherOpen((open) => !open);
-          }}
-        >
-          <span className={styles.weatherTemp}>
-            {weather ? `${Math.round(weather.tempC)}˚` : '--˚'}
-          </span>
-          {weatherIcon && (
-            <img src={weatherIcon} alt="" className={styles.weatherIcon} draggable={false} />
+          ) : (
+            <div className={styles.noticeLead}>
+              <div className={styles.noticeRule} />
+              <p className={styles.noticeText}>{noticeBody}</p>
+            </div>
           )}
-        </div>
-      </div>
 
-      {/* ── 운항 정보 board — W006 flights, W007 ferry sailings ── */}
-      {controller.kioskId === 'W007' ? (
-        <JejuSailingBoard controller={controller} lang={lang} />
-      ) : (
-        <JejuFlightBoard controller={controller} lang={lang} />
-      )}
+          {/* Tapping the weather opens the 날씨 panel (Figma 6516:74521) on this
+              screen AND plays today's condition clip on the customer display
+              (Weather_Rain/Cold/Sunny) — the clip is the behaviour the other
+              kiosks have always had, and it runs on the second monitor, so the
+              panel does not displace it. */}
+          <div
+            className={styles.weather}
+            role="button"
+            aria-label="제주 날씨"
+            aria-expanded={weatherOpen}
+            onClick={() => {
+              playWeatherVideo();
+              setWeatherOpen((open) => !open);
+            }}
+          >
+            <span className={styles.weatherTemp}>
+              {weather ? `${Math.round(weather.tempC)}˚` : '--˚'}
+            </span>
+            {weatherIcon && (
+              <img src={weatherIcon} alt="" className={styles.weatherIcon} draggable={false} />
+            )}
+          </div>
+        </div>
+
+        {/* ── 운항 정보 board — W006 flights, W007 ferry sailings ── */}
+        {controller.kioskId === 'W007' ? (
+          <JejuSailingBoard controller={controller} lang={lang} />
+        ) : (
+          <JejuFlightBoard controller={controller} lang={lang} />
+        )}
+      </div>
 
       {/* ── Search row ── */}
       <div className={low(styles.searchRow, styles.searchRowLow)}>

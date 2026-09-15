@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import type { SupportedLanguage } from '@shared/types/kiosk';
 import type { KioskController } from '@renderer/hooks/useKioskController';
+import { useAccessibilityStore } from '@renderer/store/accessibilityStore';
 import { useLanguageStore } from '@renderer/store/languageStore';
 import { t } from '@renderer/lib/loc';
 import { iconUrl } from '@renderer/assets/icons/insadong';
@@ -91,6 +92,10 @@ export function InsadongTaxfree({ controller }: InsadongTaxfreeProps): JSX.Eleme
   const rootRef = useRef<HTMLDivElement>(null);
   const subtitleRef = useRef<HTMLDivElement>(null);
   const bodyLayout = useTaxfreeBodyLayout(rootRef, subtitleRef, lang);
+  // ♿ low-reach moves the page 719px down; the tab row rides up by 69 (see
+  // .tabsLow) and the body's foot follows it so the two keep their 64px gap.
+  const lowReach = useAccessibilityStore((s) => s.lowReach);
+  const bodyHeight = bodyLayout.height - (lowReach ? 69 : 0);
 
   // Pre-decode every tab image for the active language so switching tabs (esp.
   // the merchant tab) is instant — the component is always mounted (pre-warmed),
@@ -136,7 +141,7 @@ export function InsadongTaxfree({ controller }: InsadongTaxfreeProps): JSX.Eleme
         subtitleRef={subtitleRef}
       />
 
-      <div className={styles.body} style={{ top: bodyLayout.top, height: bodyLayout.height }}>
+      <div className={styles.body} style={{ top: bodyLayout.top, height: bodyHeight }}>
         {/* 텍스프리 소개 (intro): the static two-page info carousel. */}
         {activeTab === 'intro' && (
           <TaxRefundInfo lang={lang} onGoToWebview={() => setActiveTab('refund')} />
@@ -159,7 +164,7 @@ export function InsadongTaxfree({ controller }: InsadongTaxfreeProps): JSX.Eleme
         {activeTab === 'merchant' && <MerchantTab lang={lang} />}
       </div>
 
-      <div className={styles.tabs}>
+      <div className={`${styles.tabs} ${lowReach ? styles.tabsLow : ''}`}>
         {(['refund', 'intro', 'merchant'] as TabId[]).map((tab, i) => (
           <button
             key={tab}

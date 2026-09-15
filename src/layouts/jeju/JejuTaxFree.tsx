@@ -118,9 +118,13 @@ export function JejuTaxFree({ controller }: Props): JSX.Element {
     });
     setTab(id);
     if (id === 'intro') setIntroPage(0);
-    /* TaxFree-4 is the 가맹점 tab; -2/-3 are steps inside the 환급신청 webview, so
-       소개 and 환급신청 both stay on the entry clip. See videoMap. */
-    void window.api.kiosk.setScreen(id === 'merchant' ? 'taxfree_merchant' : 'taxfree');
+    /* 재생조건: 가맹점 안내 → TaxFree-4, 리펀드 진행 → TaxFree-2 (the 환급신청 tab,
+       where the refund is carried out). 소개 has no clip of its own and keeps the
+       entry clip. -3 (처리 완료) happens inside the embedded refund app, which the
+       kiosk cannot observe. See videoMap. */
+    void window.api.kiosk.setScreen(
+      id === 'merchant' ? 'taxfree_merchant' : id === 'refund' ? 'taxfree_refund' : 'taxfree',
+    );
   };
 
   return (

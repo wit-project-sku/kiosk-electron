@@ -50,6 +50,14 @@ interface Props {
    * still opens the spot. Omitted, neither card draws it (the 다음 장소 card).
    */
   toggle?: { label: string; onToggle: () => void };
+  /**
+   * The 2026-09-15 itinerary plate (7229:100396, on 7058:21462): 453 tall, a
+   * 496×319 photo, and ONE 1039-wide text column spread top to bottom — name ·
+   * #tag, the description (now above the address, 30px), the address, the
+   * stats. The course list opts in; the 다음 장소 card under the spot detail
+   * keeps the older plate until its own frame is redrawn.
+   */
+  slim?: boolean;
   className?: string;
   style?: CSSProperties;
   onClick: () => void;
@@ -100,6 +108,7 @@ export function JejuCourseSpotCard({
   variant = 'full',
   badge = '',
   toggle,
+  slim = false,
   className,
   style,
   onClick,
@@ -157,10 +166,49 @@ export function JejuCourseSpotCard({
     );
   }
 
+  const nameRow = (
+    <span className={styles.spotNameRow}>
+      {badge ? (
+        <span className={styles.spotNameBadged}>
+          <p className={styles.spotName}>{name}</p>
+          <span className={`${styles.compactBadge} ${styles.nameBadge}`}>{badge}</span>
+        </span>
+      ) : (
+        <p className={styles.spotName}>{name}</p>
+      )}
+      <p className={styles.spotTag}>{category}</p>
+    </span>
+  );
+
+  const addrRow = (
+    <span className={styles.spotAddrRow}>
+      {marker && <img src={marker} alt="" className={styles.spotAddrIcon} draggable={false} />}
+      <p className={styles.spotAddr}>{address}</p>
+    </span>
+  );
+
+  const meta = (
+    <span className={toggle ? `${styles.spotMeta} ${styles.spotMetaToggle}` : styles.spotMeta}>
+      <span className={styles.metaItem}>
+        {durationIcon && <img src={durationIcon} alt="" className={styles.metaIcon} draggable={false} />}
+        <span className={styles.metaText}>{dwell}</span>
+      </span>
+      {difficulty && (
+        <span className={styles.metaItem}>
+          {difficultyIcon && (
+            <img src={difficultyIcon} alt="" className={styles.metaIcon} draggable={false} />
+          )}
+          <span className={styles.metaText}>{difficulty}</span>
+        </span>
+      )}
+      {toggle && <ToggleChip label={toggle.label} onToggle={toggle.onToggle} expanded />}
+    </span>
+  );
+
   return (
     <button
       type="button"
-      className={[styles.spot, className].filter(Boolean).join(' ')}
+      className={[styles.spot, slim ? styles.spotSlim : '', className].filter(Boolean).join(' ')}
       style={{ width, ...style }}
       onClick={onClick}
     >
@@ -171,46 +219,25 @@ export function JejuCourseSpotCard({
       )}
 
       <span className={styles.spotBody}>
-        <span className={styles.spotTop}>
-          <span className={styles.spotNameRow}>
-            {badge ? (
-              <span className={styles.spotNameBadged}>
-                <p className={styles.spotName}>{name}</p>
-                <span className={`${styles.compactBadge} ${styles.nameBadge}`}>{badge}</span>
-              </span>
-            ) : (
-              <p className={styles.spotName}>{name}</p>
-            )}
-            <p className={styles.spotTag}>{category}</p>
-          </span>
-
-          <span className={styles.spotAddrRow}>
-            {jejuIconUrl('ico-marker') && (
-              <img src={jejuIconUrl('ico-marker')} alt="" className={styles.spotAddrIcon} draggable={false} />
-            )}
-            <p className={styles.spotAddr}>{address}</p>
-          </span>
-
-          <p className={styles.spotDesc}>{description}</p>
-        </span>
-
-        <span className={toggle ? `${styles.spotMeta} ${styles.spotMetaToggle}` : styles.spotMeta}>
-          <span className={styles.metaItem}>
-            {jejuIconUrl('ico-duration') && (
-              <img src={jejuIconUrl('ico-duration')} alt="" className={styles.metaIcon} draggable={false} />
-            )}
-            <span className={styles.metaText}>{dwell}</span>
-          </span>
-          {difficulty && (
-            <span className={styles.metaItem}>
-              {jejuIconUrl('ico-difficulty') && (
-                <img src={jejuIconUrl('ico-difficulty')} alt="" className={styles.metaIcon} draggable={false} />
-              )}
-              <span className={styles.metaText}>{difficulty}</span>
+        {slim ? (
+          /* 7229:100400 — one column, top to bottom: name · #tag, description,
+             address, stats. */
+          <>
+            {nameRow}
+            <p className={styles.spotDesc}>{description}</p>
+            {addrRow}
+            {meta}
+          </>
+        ) : (
+          <>
+            <span className={styles.spotTop}>
+              {nameRow}
+              {addrRow}
+              <p className={styles.spotDesc}>{description}</p>
             </span>
-          )}
-          {toggle && <ToggleChip label={toggle.label} onToggle={toggle.onToggle} expanded />}
-        </span>
+            {meta}
+          </>
+        )}
       </span>
     </button>
   );

@@ -124,8 +124,12 @@ export function clockLabel(minutes: number): string {
  * The detail was built for /recommend's `JejuCourse`; the picker returns the
  * same stops with more to say (waits, costs, per-tile states). Only what the
  * detail reads is carried over:
- *  - days the trip never reached are left out — the picker answers with every
- *    day of the 체류 기간, and an empty trailing day would page to a blank list;
+ *  - a day's `repeat` — the first tapped day's categories again at new places —
+ *    follows its own stops: on the last tapped day it tops the day up, on an
+ *    empty day after it it is the whole day, so a 2박 3일 visitor who tapped one
+ *    day's worth still gets three days;
+ *  - a day with neither stops nor a repeat is left out — it would page to a
+ *    blank list (an API that predates repeats sends none);
  *  - 난이도 comes from the catalogue row (the picker does not grade), and a shop
  *    with no grade reads 0, which the detail already shows as no label;
  *  - 영업시간 is the catalogue's own `openTime` text — the picker already
@@ -144,6 +148,12 @@ export function pickerPlanToCourse(plan: JejuPickerPlan, shops: Shop[]): JejuCou
   };
 
   const schedule: JejuCourseDay[] = plan.days
+    .map((day) => ({
+      day: day.day,
+      // A repeat follows the day's own stops (none on an empty day), and its minutes cover both.
+      stops: [...day.stops, ...(day.repeat?.stops ?? [])],
+      usedMinutes: day.repeat ? day.repeat.usedMinutes : day.usedMinutes,
+    }))
     .filter((day) => day.stops.length > 0)
     .map((day) => {
       const spots: JejuCourseSpot[] = day.stops.map((stop) => ({
@@ -165,11 +175,17 @@ export function pickerPlanToCourse(plan: JejuPickerPlan, shops: Shop[]): JejuCou
     course: 'A',
     days: schedule.length,
     totalSpots: schedule.reduce((n, day) => n + day.spots.length, 0),
-    totalMinutes: plan.usedMinutes,
+    totalMinutes: schedule.reduce((n, day) => n + day.minutes, 0),
     difficulty: meanGrade(schedule.flatMap((day) => day.spots)),
     unmetInterests: [],
     schedule,
   };
+}
+
+/** Now, as the picker's `startMin` — minutes past local midnight (13:05 → 785). */
+export function nowMinutes(): number {
+  const now = new Date();
+  return now.getHours() * 60 + now.getMinutes();
 }
 
 /** Today, as the API's `visitDate` — local date, never UTC. */

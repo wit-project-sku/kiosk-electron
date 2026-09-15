@@ -1,10 +1,11 @@
-import { useEffect } from 'react';
+import { useEffect, type CSSProperties } from 'react';
 import { useKioskController } from '@renderer/hooks/useKioskController';
 import { useWeatherSync } from '@renderer/hooks/useWeatherSync';
 import { useExchangeSync } from '@renderer/hooks/useExchangeSync';
 import { WEB_EMBED_URLS, donationUrl } from '@shared/constants/webEmbeds';
 import { DONATION_COMING_SOON } from '@shared/config/donation';
 import { useHasDonationTile } from '@renderer/lib/buttonLayout';
+import { useAccessibilityStore } from '@renderer/store/accessibilityStore';
 import { iconUrl } from '@renderer/assets/icons/insadong';
 import { kdramaAssetUrls } from '@renderer/assets/icons/insadong/kdrama';
 import { KioskArtboard } from '../components/KioskScreenImage';
@@ -30,6 +31,7 @@ import { InsadongEvents } from './InsadongEvents';
 import { InsadongTaxfree } from './InsadongTaxfree';
 import { InsadongKdrama } from './InsadongKdrama';
 import { InsadongScreen } from './InsadongScreen';
+import { InsadongLowReachTop, lowReachPageBox } from './InsadongLowReach';
 import { INSADONG_SCREENS } from './screenAssets';
 
 function readDebugFlag(): boolean {
@@ -72,6 +74,43 @@ function isWebScreen(s: string): s is WebScreenKey {
   return s === 'market';
 }
 
+/**
+ * Sub-pages whose body runs to the artboard foot instead of stopping at a
+ * bottom promo banner. In ♿ low-reach their box is only as tall as the room
+ * left under the moved header, so the last card stays reachable (see
+ * lowReachPageBox).
+ */
+const NO_BANNER_SCREENS: ReadonlySet<string> = new Set([
+  'eat', 'shop', 'lodging', 'help', 'restroom', 'museum', 'palace', 'about',
+]);
+
+/**
+ * The shared AR 한복 photo flow (PhotoWorkflow / HanbokSelect), flattened for
+ * Insadong: no outlines and no drop shadows on its tabs, outfit cards, panels,
+ * buttons, QR frames or pop-ups — except the SELECTED outfit card, which keeps a
+ * 5px ring in the primary colour so the pick is obvious. Other kiosks set none
+ * of these and keep their look.
+ */
+const PHOTO_THEME = {
+  '--photo-accent': 'var(--kiosk-primary)',
+  '--photo-tab-border-width': '0px',
+  '--photo-card-border-width': '0px',
+  '--photo-card-sel-border-width': '5px',
+  '--photo-card-shadow': 'none',
+  '--photo-panel-border-width': '0px',
+  '--photo-panel-shadow': 'none',
+  '--photo-button-shadow': 'none',
+  '--photo-cam-shadow': 'none',
+  '--photo-result-shadow': 'none',
+  '--photo-qr-border-width': '0px',
+  '--photo-modal-border-width': '0px',
+  '--photo-modal-shadow': 'none',
+} as CSSProperties;
+
+const HIDDEN_LAYER: CSSProperties = {
+  position: 'absolute', top: 0, left: 0, width: 0, height: 0, overflow: 'hidden', pointerEvents: 'none', zIndex: 0,
+};
+
 export function InsadongKiosk(): JSX.Element {
   const controller = useKioskController();
   const debug = readDebugFlag();
@@ -83,9 +122,16 @@ export function InsadongKiosk(): JSX.Element {
   const photoActive = controller.photoActive;
   const hasDonation = useHasDonationTile(controller.kioskId);
 
+  // 베리어프리 (♿ low-reach): mode bar + promo at the top, every page moved down
+  // under them. Not over the photo flow or the fullscreen donation app.
+  const lowReach = useAccessibilityStore((s) => s.lowReach);
+  const lowTop = lowReach && !photoActive && cur !== 'donation';
+
   // The "foreground" slot — null when a pre-warmed web screen is active.
   const foreground = photoActive ? (
-    <PhotoWorkflow />
+    <div style={{ position: 'absolute', inset: 0, ...PHOTO_THEME }}>
+      <PhotoWorkflow />
+    </div>
   ) : cur === 'home' ? (
     <InsadongHome controller={controller} debug={debug} />
   ) : cur === 'language' ? (
@@ -134,6 +180,13 @@ export function InsadongKiosk(): JSX.Element {
     <InsadongScreen screen={cur} controller={controller} debug={debug} />
   );
 
+  // Home re-lays itself out for low-reach; every other page is moved as a whole.
+  const pageBox = lowTop && cur !== 'home' ? lowReachPageBox(!NO_BANNER_SCREENS.has(cur)) : undefined;
+
+  /** An active pre-warmed layer — full artboard, or the moved ♿ box. */
+  const activeLayer = (zIndex: number): CSSProperties =>
+    lowTop ? { ...lowReachPageBox(true), zIndex } : { position: 'absolute', inset: 0, zIndex };
+
   return (
     <KioskArtboard>
       {/* Persistent background — stays mounted across navigation so the page
@@ -154,7 +207,7 @@ export function InsadongKiosk(): JSX.Element {
           }}
         />
       )}
-      {foreground}
+      {pageBox && foreground ? <div style={pageBox}>{foreground}</div> : foreground}
 
       {/*
         Pre-warmed web screens — always in the DOM so webview guest processes
@@ -166,54 +219,36 @@ export function InsadongKiosk(): JSX.Element {
       {WEB_SCREENS.map(({ screen, title, url, bodyHeight }) => {
         const active = !photoActive && cur === screen;
         return (
-          <div
-            key={screen}
-            style={
-              active
-                ? { position: 'absolute', inset: 0, zIndex: 1 }
-                : { position: 'absolute', top: 0, left: 0, width: 0, height: 0, overflow: 'hidden', pointerEvents: 'none', zIndex: 0 }
-            }
-          >
+          <div key={screen} style={active ? activeLayer(1) : HIDDEN_LAYER}>
             <InsadongWebScreen title={title} url={url} controller={controller} bodyHeight={bodyHeight} />
           </div>
         );
       })}
 
       {/* InsadongTaxfree has its own internal webview slots — always mount so they pre-warm. */}
-      {(() => {
-        const active = !photoActive && cur === 'taxfree';
-        return (
-          <div
-            style={
-              active
-                ? { position: 'absolute', inset: 0, zIndex: 1 }
-                : { position: 'absolute', top: 0, left: 0, width: 0, height: 0, overflow: 'hidden', pointerEvents: 'none', zIndex: 0 }
-            }
-          >
-            <InsadongTaxfree controller={controller} />
-          </div>
-        );
-      })()}
+      <div style={!photoActive && cur === 'taxfree' ? activeLayer(1) : HIDDEN_LAYER}>
+        <InsadongTaxfree controller={controller} />
+      </div>
+
+      {/* ♿ mode bar + promo banner, over the moved page. */}
+      {lowTop && <InsadongLowReachTop onBanner={() => controller.startPhoto()} />}
 
       {/* Donation web app — fullscreen embed, pre-warmed so it opens instantly.
           zIndex 2 so it covers the kiosk chrome and reads as a native page.
           Only mounted where 기부 exists (남인사마당 W003) AND is live: the layer loads
           the remote page immediately, so on a kiosk with no 기부 tile — or while
           기부 is 준비중 (unreachable) — it would sit there fetching for nothing. */}
-      {hasDonation && !DONATION_COMING_SOON && (() => {
-        const active = !photoActive && cur === 'donation';
-        return (
-          <div
-            style={
-              active
-                ? { position: 'absolute', inset: 0, zIndex: 2 }
-                : { position: 'absolute', top: 0, left: 0, width: 0, height: 0, overflow: 'hidden', pointerEvents: 'none', zIndex: 0 }
-            }
-          >
-            <DonationWebScreen url={donationUrl(controller.kioskId)} controller={controller} />
-          </div>
-        );
-      })()}
+      {hasDonation && !DONATION_COMING_SOON && (
+        <div
+          style={
+            !photoActive && cur === 'donation'
+              ? { position: 'absolute', inset: 0, zIndex: 2 }
+              : HIDDEN_LAYER
+          }
+        >
+          <DonationWebScreen url={donationUrl(controller.kioskId)} controller={controller} />
+        </div>
+      )}
     </KioskArtboard>
   );
 }

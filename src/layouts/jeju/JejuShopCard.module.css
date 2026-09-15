@@ -164,6 +164,48 @@
   display: block;
 }
 
+/* ── The 2026-09-14 list row (`twoPhotos`, 7212:65355) ──────────────────
+   뭐먹지 · 뭐사지 · 숙박. A 1820×390 plate: padding 40 top / 45 sides, and the
+   frame's 299-tall content row sits top-aligned in it, leaving 51 under — so the
+   info column (254 tall) centres on 40 + 22.5 and the photos on 40 + 69.5, as
+   drawn. min-height, like .card, so wrapped copy still grows the plate. */
+.cardList {
+  min-height: 390px;
+  padding: 40px 45px 51px;
+}
+
+/* 7212:65375 — two 288×160 slots, 30 apart (606 wide), right-aligned. */
+.photosRow {
+  flex: 0 0 auto;
+  width: 606px;
+  height: 160px;
+  display: flex;
+  justify-content: flex-end;
+  gap: 30px;
+}
+
+.thumbWide {
+  flex: none;
+  width: 288px;
+  height: 160px;
+  border-radius: 21.45px;
+  overflow: hidden;
+  background: #f2ede6;
+}
+
+.thumbWide img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+/* The empty left slot of a one-photo shop — the frame's plate is white on the
+   white card, i.e. nothing shows. */
+.thumbBlank {
+  background: transparent;
+}
+
 /* 렌트카 list — name · category / route / footer (JejuRentcar `compact`). */
 .cardCompact {
   min-height: 384px;

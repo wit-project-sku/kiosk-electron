@@ -35,10 +35,12 @@ const CONTENT_SHEETS: Record<KioskLayoutId, ContentSheet> = {
   NAM_INSADONG: { sheetId: INSADONG_SHEET_ID, localizationRange: 'Localization_Insa!A:L' },
   OSAN: { sheetId: OSAEK_SHEET_ID, localizationRange: 'Localization_Osaek!A:L' },
   HWASEONG: { sheetId: HWASEONG_SHEET_ID, localizationRange: 'Localization_Hwaseong!A:L' },
-  JEJU_AIRPORT: { sheetId: JEJU_SHEET_ID, localizationRange: 'Localization_Jeju!A:L' },
+  // Localization_Jeju_v2 (2026-09-14): the updated copy of Localization_Jeju — same
+  // header, columns and keys; the old tab is no longer read.
+  JEJU_AIRPORT: { sheetId: JEJU_SHEET_ID, localizationRange: 'Localization_Jeju_v2!A:L' },
   // Same tab as JEJU_AIRPORT on purpose — "#W6~8=제주_전체데이터" serves all three
   // 제주 venues; the mascot rows are split per layout in LocalizationSyncParser.
-  JEJU_HERITAGE: { sheetId: JEJU_SHEET_ID, localizationRange: 'Localization_Jeju!A:L' },
+  JEJU_HERITAGE: { sheetId: JEJU_SHEET_ID, localizationRange: 'Localization_Jeju_v2!A:L' },
   // KADA W202 has NO content spreadsheet, and is not waiting for one: its ten
   // strings are authored in layouts/kada/kadaText.ts because the venue has no
   // CMS and no one on site to maintain a tab (see that file). The empty sheetId

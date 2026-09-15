@@ -6,7 +6,7 @@
   width: 2160px;
   height: 3840px;
   overflow: hidden;
-  font-family: 'Noto Sans KR', 'Noto Sans', sans-serif;
+  font-family: var(--kiosk-font, 'Noto Sans KR', 'Noto Sans', sans-serif);
   background: #fff;
 }
 
@@ -133,7 +133,6 @@
   font-weight: 700;
   text-align: center;
   white-space: pre-wrap;
-  box-shadow: 0px 10px 7.5px rgba(0, 0, 0, 0.1), 0px 4px 3px rgba(0, 0, 0, 0.1);
 }
 
 /* "최종 결제 금액" header — Figma: bg #1f6aff, 600×140px, r=16 */
@@ -148,7 +147,6 @@
   align-items: center;
   justify-content: center;
   gap: 4px;
-  box-shadow: 0px 10px 7.5px rgba(0, 0, 0, 0.1), 0px 4px 3px rgba(0, 0, 0, 0.1);
 }
 
 /* Figma: main text 60px SemiBold */
@@ -184,11 +182,12 @@
 
 /* Item / refund amount cells — Figma: bg white, border 3.562px #e5e7eb, 430×115px, r=16 */
 .tdBase {
+  border: none;
+  outline: none;
   flex-shrink: 0;
   width: 430px;
   height: 115px;
   background: #ffffff;
-  border: 3.562px solid #e5e7eb;
   border-radius: 16px;
   display: flex;
   align-items: center;
@@ -197,16 +196,16 @@
   font-size: 40px;
   font-weight: 700;
   text-align: center;
-  box-shadow: 0px 4px 3px rgba(0, 0, 0, 0.1), 0px 2px 2px rgba(0, 0, 0, 0.1);
 }
 
 /* Final price cell — Figma: bg white, border 4.274px #1f6aff, 600×140px, r=19.2 */
 .tdFinal {
+  border: none;
+  outline: none;
   flex-shrink: 0;
   width: 600px;
   height: 140px;
   background: #ffffff;
-  border: 4.274px solid #1f6aff;
   border-radius: 19.2px;
   display: flex;
   align-items: center;
@@ -215,21 +214,20 @@
   font-size: 48px;
   font-weight: 700;
   text-align: center;
-  box-shadow: 0px 4.8px 3.6px rgba(0, 0, 0, 0.1), 0px 2.4px 2.4px rgba(0, 0, 0, 0.1);
 }
 
 /* Process card "환급 절차"
    Figma absolute y=2014px; body-relative=1370px; 1560×755px, r=30 */
 .processCard {
+  border: none;
+  outline: none;
   position: absolute;
   top: 1370px;
   left: 130px;
   width: 1560px;
   height: 755px;
   background: #ffffff;
-  border: 1.5px solid #d9d9d9;
   border-radius: 30px;
-  box-shadow: 0px 1.5px 4.5px rgba(116, 141, 113, 0.14);
   overflow: hidden;
 }
 
@@ -328,6 +326,7 @@
    image (chevron arrows + apply CTA). No visible chrome — the image already
    shows them; these just make the drawn buttons tappable. */
 .navHotspot {
+  outline: none;
   position: absolute;
   top: 38%;
   height: 24%;
@@ -344,6 +343,7 @@
 /* Over the blue "apply for tax refund" CTA on page 2.
    Measured from images: centered, ~17%–83% wide, ~76%–90% tall. */
 .applyHotspot {
+  outline: none;
   position: absolute;
   left: 17%;
   width: 66%;
@@ -377,7 +377,8 @@
 }
 
 .flowCard {
-  border: 2px solid #d0dff0;
+  border: none;
+  outline: none;
   border-radius: 28px;
   padding: 60px 50px;
   margin-bottom: 60px;
@@ -477,6 +478,7 @@
 }
 
 .applyBtn {
+  outline: none;
   display: block;
   width: 100%;
   height: 160px;
@@ -539,10 +541,10 @@
 }
 
 .merchantCard {
+  border: none;
+  outline: none;
   background: #ffffff;
-  border: 1.5px solid #d9d9d9;
   border-radius: 30px;
-  box-shadow: 0 8px 28px rgba(0, 0, 0, 0.05);
   padding: 70px;
   display: flex;
   align-items: flex-start;
@@ -609,10 +611,11 @@
 }
 
 .qrWrap {
+  border: none;
+  outline: none;
   flex-shrink: 0;
   width: 450px;
   height: 450px;
-  border: 5px solid #005278;
   border-radius: 20px;
   background: #fbfbfb;
   display: flex;
@@ -620,7 +623,6 @@
   justify-content: center;
   padding: 24px;
   box-sizing: border-box;
-  box-shadow: 0 6px 20px rgba(0, 82, 120, 0.12);
 }
 
 .qrImg {
@@ -689,7 +691,17 @@
   z-index: 6;
 }
 
+/* ♿ low-reach: the page sits 719px lower (under the mode bar + banner), so the
+   tab row rides up to stay on the artboard — 2930 + 719 + 170 = 3819. */
+.tabsLow {
+  top: 2930px;
+}
+
+/* 제주 TAX-FREE tab type: 50 / 500, Bold when picked; a long label wraps to a
+   second line inside the pill and never mid-word in Korean. */
 .tab {
+  border: none;
+  outline: none;
   box-sizing: border-box;
   width: 580px;
   height: 170px;
@@ -697,25 +709,29 @@
   align-items: center;
   justify-content: center;
   background: #ffffff;
-  border: 2.145px solid var(--kiosk-primary);
   border-radius: 42.905px;
-  box-shadow: 0 21.453px 42.905px rgba(143, 147, 157, 0.1);
   font-family: var(--kiosk-font, sans-serif);
   font-weight: 500;
-  font-size: 52px;
+  font-size: 50px;
   color: var(--kiosk-primary);
   cursor: pointer;
   text-align: center;
   padding: 0 18px;
   line-height: 1.2;
+  overflow: hidden;
+  word-break: keep-all;
+  overflow-wrap: anywhere;
+  -webkit-tap-highlight-color: transparent;
 }
 
 .tabSelected {
   background: var(--kiosk-primary);
   color: #ffffff;
+  font-weight: 700;
 }
 
 .banner {
+  outline: none;
   position: absolute;
   left: 0;
   top: 3267px;

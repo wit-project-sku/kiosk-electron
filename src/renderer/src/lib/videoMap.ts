@@ -239,7 +239,9 @@ export function initSubtitles(entries: VideoEntry[], kioskId?: KioskId): void {
  * when the CMS keys are already clean (nothing matches).
  */
 const JEJU_API_KEY_ALIASES: Record<string, string> = {
-  'FlightInf-2': 'FlightInfo',
+  // Typo in the sheet's Key column. Aliased WITH its index, so it still sorts as
+  // the second 운항정보 clip instead of jumping ahead of FlightInfo-1.
+  'FlightInf-2': 'FlightInfo-2',
   'WITH Market': 'Market',
   'Rent Car': 'RentCar',
   'k=drama': 'KDrama',
@@ -278,9 +280,10 @@ export function normalizeClipIndexKeys(entries: VideoEntry[], kioskId?: KioskId)
   if (kioskId == null || !isJejuLayout(getKioskLocation(kioskId).layout)) return entries;
 
   const normalizeOne = (e: VideoEntry): VideoEntry => {
-    const raw = e.key.trim();
-    const alias = JEJU_API_KEY_ALIASES[raw];
-    if (alias) return { ...e, key: alias };
+    const trimmed = e.key.trim();
+    // An alias can itself carry a clip index (`FlightInf-2` → `FlightInfo-2`), so
+    // it feeds the rules below rather than returning early.
+    const raw = JEJU_API_KEY_ALIASES[trimmed] ?? trimmed;
     let m = /^Greeting-2(?:-(\d+))?$/.exec(raw);
     if (m) return { ...e, key: 'Greeting_Hobby', sortOrder: m[1] ? Number(m[1]) : e.sortOrder };
     m = /^Greeting-3(?:-(\d+))?$/.exec(raw);
@@ -454,7 +457,13 @@ const JEJU_SCREEN_TO_VIDEO_KEY: Record<string, string> = {
 
   ai_search:        'AISearch',
   ai_result:        'AISearch_Category',
+  // 뭐하지 -> 관심사 선택: JejuAiSearch's questionnaire stage. Both stages share
+  // the `ai_search` screen, so the page reports this one itself.
+  ai_questions:     'AISearch_Category',
   ai_detail:        'AISearch_Detail',
+  // A course spot's 상세, opened from the course detail (JejuDetail reports
+  // `<from>_detail`) — still 추천 코스 확인, not the idle reel.
+  ai_detail_detail: 'AISearch_Detail',
 
   events:           'Event',
   events_category:  'Event_Category',
@@ -474,11 +483,13 @@ const JEJU_SCREEN_TO_VIDEO_KEY: Record<string, string> = {
    * The 재생조건 column names the tab each one belongs to, and the landing entry
    * repeats whichever clip that page opens on.
    *
-   * TAX-FREE: -1 진입 · -4 가맹점 안내. Its -2 (리펀드 진행) and -3 (처리 완료)
-   * are steps INSIDE the third-party refund web app the 환급신청 tab embeds, which
-   * the kiosk cannot observe — so 소개 and 환급신청 both hold the entry clip.
+   * TAX-FREE: -1 진입 · -2 리펀드 진행 (the 환급신청 tab, where the refund is
+   * carried out) · -4 가맹점 안내. 소개 has no clip of its own and keeps the entry
+   * clip. -3 (처리 완료) happens inside the embedded refund app, which the kiosk
+   * cannot observe, so it has no screen.
    */
   taxfree:          'TaxFree#1',
+  taxfree_refund:   'TaxFree#2',
   taxfree_merchant: 'TaxFree#4',
   // 앱 탭 순서는 관광명소 · 역사 · 문화, the sheet's Here-1/2/3 are
   // 관광명소/역사/문화 — matched by MEANING, not by position.
@@ -513,8 +524,17 @@ const JEJU_SCREEN_TO_VIDEO_KEY: Record<string, string> = {
   kdrama:           'KDrama',
 
   hello:            'Greeting',
+  // 안녕 '귤이' sub-tabs, one clip each (재생조건: 취미 탭 → K-POP / 런닝 / 테니스,
+  // 건강습관 → 목·어깨 / 허리 / 기분전환). JejuHello reports the sub-tab's position;
+  // the bare tab ids stay as a fallback that cycles the tab's clips.
   hello_hobby:      'Greeting_Hobby',
+  hello_hobby_1:    'Greeting_Hobby#1',
+  hello_hobby_2:    'Greeting_Hobby#2',
+  hello_hobby_3:    'Greeting_Hobby#3',
   hello_stretch:    'Greeting_Stretching',
+  hello_stretch_1:  'Greeting_Stretching#1',
+  hello_stretch_2:  'Greeting_Stretching#2',
+  hello_stretch_3:  'Greeting_Stretching#3',
   help:             'ToHelp',
   help_category:    'ToHelp_Category',
   help_detail:      'ToHelp_Detail',

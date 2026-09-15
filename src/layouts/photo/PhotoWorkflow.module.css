@@ -96,7 +96,7 @@
   height: 214.525px;
   padding: 36px;
   background: #ffffff;
-  border: 4.291px solid var(--photo-accent, #fe6c50);
+  border: var(--photo-qr-border-width, 4.291px) solid var(--photo-accent, #fe6c50);
   border-radius: 21.453px;
 }
 
@@ -118,7 +118,7 @@
   padding: 40px 30px;
   border: none;
   border-radius: 42.9px;
-  box-shadow: 0 21.45px 42.9px rgba(143, 147, 157, 0.1);
+  box-shadow: var(--photo-button-shadow, 0 21.45px 42.9px rgba(143, 147, 157, 0.1));
   font-family: var(--kiosk-font, sans-serif);
   font-weight: 700;
   font-size: 58px;
@@ -285,7 +285,7 @@
   border-radius: 32px;
   overflow: hidden;
   background: #ffffff;
-  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.12);
+  box-shadow: var(--photo-result-shadow, 0 20px 50px rgba(0, 0, 0, 0.12));
 }
 .resultPhoto img {
   width: 100%;
@@ -337,7 +337,7 @@
   flex: none;
   width: var(--photo-qr-size, 200px);
   height: var(--photo-qr-size, 200px);
-  border: 4px solid var(--photo-accent, #fe6c50);
+  border: var(--photo-qr-border-width, 4px) solid var(--photo-accent, #fe6c50);
   border-radius: 24px;
   background: #ffffff;
   /* Bigger inner padding → smaller QR while the box/border stay the same. */
@@ -393,9 +393,9 @@
      reaches 132px) instead of overlapping it. */
   padding: 170px 80px 80px;
   background: #ffffff;
-  border: 6px solid var(--photo-accent, #fe6c50);
+  border: var(--photo-modal-border-width, 6px) solid var(--photo-accent, #fe6c50);
   border-radius: 42.9px;
-  box-shadow: 0 30px 90px rgba(0, 0, 0, 0.3);
+  box-shadow: var(--photo-modal-shadow, 0 30px 90px rgba(0, 0, 0, 0.3));
 }
 
 .qrClose {

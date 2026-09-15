@@ -8,6 +8,7 @@ import type {
   JejuCourseRecommendQuery,
   JejuCourseSpot,
   JejuPickerDay,
+  JejuPickerRepeat,
   JejuPickerOption,
   JejuPickerPlan,
   JejuPickerQuery,
@@ -77,6 +78,8 @@ export class JejuCourseService {
     const url = this.pickerEndpoint();
     const body = {
       kioskId: this.kiosk.kioskNum(),
+      // An API that predates startMin ignores it and starts DAY 1 at 09:00.
+      startMin: query.startMin,
       transport: query.transport,
       party: query.party,
       nights: query.nights,
@@ -293,6 +296,27 @@ function normalizePickerStop(r: Record<string, unknown>, index: number): JejuPic
   };
 }
 
+const pickerStopsOf = (v: unknown): JejuPickerStop[] =>
+  rowsOf(v)
+    .map((s, i) => normalizePickerStop(s, i))
+    .filter((s): s is JejuPickerStop => s !== null);
+
+/** Absent (an API that predates repeats) or malformed reads as no repeat. */
+function normalizePickerRepeat(v: unknown): JejuPickerRepeat | null {
+  if (!v || typeof v !== 'object') return null;
+  const r = v as Record<string, unknown>;
+  if (typeof r['ofDay'] !== 'number') return null;
+  return {
+    ofDay: r['ofDay'],
+    usedMinutes: num(r['usedMinutes']),
+    remainingMinutes: num(r['remainingMinutes']),
+    stops: pickerStopsOf(r['stops']),
+    skipped: rowsOf(r['skipped'])
+      .filter((s) => typeof s['aiCategory'] === 'string')
+      .map((s) => ({ aiCategory: s['aiCategory'] as string, reason: typeof s['reason'] === 'string' ? s['reason'] : '' })),
+  };
+}
+
 function normalizePickerDay(r: Record<string, unknown>, index: number): JejuPickerDay {
   return {
     day: num(r['day'], index + 1),
@@ -302,9 +326,8 @@ function normalizePickerDay(r: Record<string, unknown>, index: number): JejuPick
     budgetMinutes: num(r['budgetMinutes'], 720),
     usedMinutes: num(r['usedMinutes']),
     remainingMinutes: num(r['remainingMinutes']),
-    stops: rowsOf(r['stops'])
-      .map((s, i) => normalizePickerStop(s, i))
-      .filter((s): s is JejuPickerStop => s !== null),
+    stops: pickerStopsOf(r['stops']),
+    repeat: normalizePickerRepeat(r['repeat']),
   };
 }
 

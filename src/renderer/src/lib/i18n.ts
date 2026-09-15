@@ -290,6 +290,11 @@ const TITLE_KEYS: Record<string, TitleKeySpec> = {
   // questionnaires, the course detail and an AI spot's 상세; the landing and the
   // detail pass their own description (Course_Subtitle / the course + day).
   "'제주' 뭐하지 (AI 검색)": { title: 'Jeju_Todo_Title', sub: 'Jeju_Todo_Subtitle' },
+  // The AI course DETAIL's own header since 7058:21462 (2026-09-15): "‘제주’ 뭐하지",
+  // without "(AI 검색)". That is the home tile's label, so it resolves the same
+  // row the tile does — MainButton_AI, filled in all eight languages. The
+  // questionnaires and an AI spot's 상세 keep the id above.
+  '‘제주’ 뭐하지': { title: 'MainButton_AI', sub: 'Jeju_Todo_Subtitle' },
   // 탐나오&제주큐랑 (6493:118287). The sheet has already caught up with that
   // frame's two-tab redraw — MainButton_Tamnao reads 탐나오·제주큐랑 in all eight
   // languages — so the header follows the sheet, not the id, and the visitor sees

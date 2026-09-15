@@ -42,19 +42,14 @@ import { useAccessibilityStore } from '@renderer/store/accessibilityStore';
 import { useAiStore } from '@renderer/store/aiStore';
 import { useLanguageStore } from '@renderer/store/languageStore';
 import { useShopStore } from '@renderer/store/shopStore';
+import { useKioskStore } from '@renderer/store/kioskStore';
 import { isOk } from '@shared/types/result';
-import type {
-  JejuPickerOption,
-  JejuPickerPlan,
-  JejuPickerQuery,
-  JejuPickerStatus,
-} from '@shared/types/jejuCourse';
+import type { JejuPickerPlan, JejuPickerQuery } from '@shared/types/jejuCourse';
 import {
-  clockLabel,
   interestCodes,
-  minutesLabel,
   nightCount,
   partySize,
+  nowMinutes,
   todayIso,
   transportCode,
 } from '@renderer/lib/jejuCourse';
@@ -96,66 +91,20 @@ interface Props {
  * languages here, the way SECTION is.
  */
 
-/** Why a tile is greyed out — the small line under its label. */
-const TILE_REASON: Record<Exclude<JejuPickerStatus, 'OK' | 'PICKED'>, Partial<Record<Lang, string>>> = {
-  DAY_OFF: {
-    ko: '휴무일', en: 'Closed that day', ja: '定休日', zh: '休息日',
-    vi: 'Ngày nghỉ', th: 'วันหยุด', ru: 'Выходной', id: 'Hari libur',
-  },
-  CLOSED: {
-    ko: '영업 종료', en: 'Closed by then', ja: '営業終了', zh: '已打烊',
-    vi: 'Đã đóng cửa', th: 'ปิดแล้ว', ru: 'Уже закрыто', id: 'Sudah tutup',
-  },
-  NO_TIME: {
-    ko: '시간 부족', en: 'No time left', ja: '時間不足', zh: '时间不足',
-    vi: 'Không đủ giờ', th: 'เวลาไม่พอ', ru: 'Нет времени', id: 'Waktu kurang',
-  },
-  OUT_OF_RANGE: {
-    ko: '너무 멀어요', en: 'Too far', ja: '遠すぎます', zh: '太远',
-    vi: 'Quá xa', th: 'ไกลเกินไป', ru: 'Слишком далеко', id: 'Terlalu jauh',
-  },
-  NO_PLACES: {
-    ko: '장소 없음', en: 'None left', ja: '該当なし', zh: '无可选',
-    vi: 'Hết chỗ', th: 'ไม่มีสถานที่', ru: 'Нет мест', id: 'Tidak ada',
-  },
-};
-
-type Template = Partial<Record<Lang, (value: string) => string>>;
-const fill = (template: Template, lang: Lang, value: string): string =>
-  (template[lang] ?? template.en ?? template.ko)!(value);
-
-/** The gauge beside the 즐길 거리 heading — time left on the day being planned. */
-const REMAINING: Template = {
-  ko: (t) => `${t} 남음`, en: (t) => `${t} left`, ja: (t) => `残り ${t}`, zh: (t) => `剩余 ${t}`,
-  vi: (t) => `Còn ${t}`, th: (t) => `เหลือ ${t}`, ru: (t) => `Осталось ${t}`, id: (t) => `Sisa ${t}`,
-};
-
-/** Every tile is used up and the day is (nearly) spent. */
-const PLAN_FULL = {
-  ko: '일정이 가득 찼어요', en: 'Your plan is full', ja: '予定がいっぱいです', zh: '行程已满',
-  vi: 'Lịch trình đã kín', th: 'แผนเต็มแล้ว', ru: 'План заполнен', id: 'Rencana sudah penuh',
-};
-
 /**
- * Every tile is used up but a real chunk of time is left — the places ran out,
- * not the day (on foot or by bike, nothing more is in range). Saying "full"
- * there would be wrong. See FULL_WITH_TIME_LEFT_MIN.
+ * The 즐길 거리 day tabs (Figma 7229:100741) and the note on a tile the plan put
+ * on another day — "1일차", "Day 2". The picker decides the day of every tap, so
+ * a tab is a VIEW of the plan, never a choice of where the next tap goes.
+ *
+ * (The time gauge, the "빠진 곳" notice and the per-tile captions — "+1시간 4분",
+ * "영업 종료" — are gone with this frame, which draws none of them: decided
+ * 2026-09-15. A greyed tile is still greyed and still not tappable.)
  */
-const NO_MORE_PLACES = {
-  ko: '더 갈 수 있는 곳이 없어요', en: 'No more places to add', ja: 'これ以上行ける場所がありません',
-  zh: '没有更多可去的地方', vi: 'Không còn nơi để thêm', th: 'ไม่มีสถานที่ให้เพิ่มแล้ว',
-  ru: 'Больше некуда добавить', id: 'Tidak ada tempat lagi',
+const DAY_TAB: Partial<Record<Lang, (n: number) => string>> = {
+  ko: (n) => `${n}일차`, en: (n) => `Day ${n}`, ja: (n) => `${n}日目`, zh: (n) => `第${n}天`,
+  vi: (n) => `Ngày ${n}`, th: (n) => `วันที่ ${n}`, ru: (n) => `День ${n}`, id: (n) => `Hari ${n}`,
 };
-const FULL_WITH_TIME_LEFT_MIN = 60;
-
-/** Taps that stopped fitting after a change of 이동수단 / 인원 / 기간. */
-const DROPPED: Template = {
-  ko: (n) => `빠진 곳: ${n}`, en: (n) => `Removed: ${n}`, ja: (n) => `外れた項目: ${n}`,
-  zh: (n) => `已移除: ${n}`, vi: (n) => `Đã bỏ: ${n}`, th: (n) => `นำออก: ${n}`,
-  ru: (n) => `Убрано: ${n}`, id: (n) => `Dihapus: ${n}`,
-};
-/** How long the "빠진 곳" line stands in for the gauge text. */
-const NOTICE_MS = 4000;
+const dayTabLabel = (n: number, lang: Lang): string => (DAY_TAB[lang] ?? DAY_TAB.ko)!(n);
 
 /**
  * Chip copy comes from Localization_Jeju (Visitor_* / StayTime_* /
@@ -296,20 +245,23 @@ const INTERESTS: Interest[] = [
   { color: '#f59993', ko: '제주\n향토음식' },
   { color: '#f59993' },                              // 한식
 
+  /* Colours from Figma 7229:100741, which regrouped the grid (see TILE_ORDER):
+     카페 · 제주특산품 · 차 · 술 are one purple band, the 체험 tiles one green. */
   { color: '#f59993' },                              // 한정식
-  { color: '#f59993' },                              // 호텔뷔페
-  { color: '#f59993' },                              // 카페
-  { color: '#ffa37e' },                              // 제주특산품
-  { color: '#82caa8' },                              // 전통차
-  { color: '#82caa8' },                              // 막걸리
+  { color: '#f59993', ko: '뷔페' },                  // 호텔뷔페 — the frame's label
+  { color: '#a9a3d9' },                              // 카페
+  { color: '#a9a3d9' },                              // 제주특산품
+  { color: '#a9a3d9' },                              // 전통차
+  { color: '#a9a3d9' },                              // 막걸리
 
-  // Figma has #81caa8 on this one and #82caa8 on its neighbours — normalised.
-  { color: '#82caa8' },                              // 전통주
-  { color: '#a9a3d9' },                              // 해녀 체험
-  { color: '#a9a3d9' },                              // 감귤 체험
-  { color: '#a9a3d9' },                              // 승마 체험
-  { color: '#a9a3d9', ko: '레저·\n액티비티', cat: '레저·액티비티' },
-  { color: '#6ea8eb' },                              // K-POP 체험
+  { color: '#a9a3d9' },                              // 전통주
+  { color: '#81caa8' },                              // 해녀 체험
+  { color: '#81caa8' },                              // 감귤 체험
+  { color: '#81caa8' },                              // 승마 체험
+  { color: '#81caa8', ko: '레저·\n액티비티', cat: '레저·액티비티' },
+  // Figma draws 바·펍·라운지 in this tile's slot; the sheet has no such category
+  // yet, so the sheet's K-POP 체험 keeps the slot, in that row's purple.
+  { color: '#a9a3d9' },                              // K-POP 체험
 
   { color: '#6ea8eb' },                              // 사진 촬영
   { color: '#6375bf' },                              // 자연명소
@@ -324,6 +276,21 @@ const INTERESTS: Interest[] = [
   { color: '#c89b7b', ko: '전시관·\n문화공간' },
   { color: '#c89b7b' },                              // 로컬샵
   { color: '#c89b7b' },                              // 기타
+];
+
+/**
+ * The grid's DISPLAY order, as sheet indices — Figma 7229:100741's rows:
+ *   흑돼지 … 한식 · 한정식 뷔페 + the 체험 tiles · 카페 특산품 차 술 (+ K-POP 체험 in
+ *   the frame's 바·펍·라운지 slot) · 사진 + 자연 · 쇼핑.
+ * INTERESTS and AI_CATEGORIES_JEJU stay in sheet order (they are joined by
+ * index); only where each tile is drawn follows the frame.
+ */
+const TILE_ORDER: readonly number[] = [
+  0, 1, 2, 3, 4, 5,
+  6, 7, 13, 14, 15, 16,
+  8, 9, 10, 11, 12, 17,
+  18, 19, 20, 21, 22, 23,
+  24, 25, 26, 27, 28, 29,
 ];
 
 /** The catalogue category tile `i` matches — the override, else the sheet's ko. */
@@ -359,10 +326,9 @@ const labelIndex = (list: readonly { label: string }[], label: string | undefine
 const COURSE_FOR_BAND: Record<string, 'nature' | 'food' | 'family'> = {
   '#6375bf': 'nature',
   '#f59993': 'food',
-  '#ffa37e': 'food',
-  '#82caa8': 'food',
+  '#a9a3d9': 'food', //   카페 · 특산품 · 차 · 술 (7229:100741's purple band)
   '#c89b7b': 'food',
-  '#a9a3d9': 'family',
+  '#81caa8': 'family', // 체험 (its green band)
   '#6ea8eb': 'family',
 };
 
@@ -377,15 +343,19 @@ const courseForInterests = (picked: number[]): 'nature' | 'food' | 'family' => {
 
 const COLS = 6;
 
-/** Row `top` for each block, in artboard px (see the CSS header comment). */
+/**
+ * Row `top` for each block, in artboard px (see the CSS header comment) —
+ * Figma 7229:100741, which closed the gap between blocks from 100 to 50 and put
+ * the day tabs between the 즐길 거리 heading and its grid.
+ */
 const Y = {
   visitorsLabel: 699,
   visitorsRow: 835,
-  stayLabel: 1128,
-  stayRow: 1264,
-  transportLabel: 1557,
-  transportRow: 1693,
-  interestsLabel: 1986,
+  stayLabel: 1078,
+  stayRow: 1214,
+  transportLabel: 1457,
+  transportRow: 1593,
+  interestsLabel: 1836,
 } as const;
 
 /**
@@ -428,14 +398,25 @@ const Y_LOW = {
   interestsLabel: 1906,
 } as const;
 
-/** Grid top, measured off each frame: 2122 standard, 2042 low-reach. */
-const GRID_TOP = 2122;
-const GRID_TOP_LOW = 2042;
+/**
+ * Day tabs, then the grid, each 60 under the block above: 1972 / 2133 on the
+ * standard frame (measured on 7229:100741's render). ♿ has no frame with the
+ * tabs yet, so its step 2 takes the same 60 · 101 · 60 under its own heading
+ * (1906): tabs at 2042 — where the grid used to start — and the grid 161 lower.
+ */
+const TABS_TOP = 1972;
+const TABS_TOP_LOW = 2042;
+const GRID_TOP = 2133;
+const GRID_TOP_LOW = 2203;
 
 const GRID_ROW_STEP = 244;
 
-/** CTA top: 3413 on the standard frame, 3432 on both low-reach ones. */
-const CTA_TOP_LOW = 3432;
+/**
+ * CTA top: 3374 on the standard frame (CSS). ♿: the grid now ends at 3394, so
+ * the CTA sits 50 under it at 3444 (it was 3432) and ends at 3622, clear of the
+ * artboard's foot; step 1 uses the same top.
+ */
+const CTA_TOP_LOW = 3444;
 
 /**
  * Step-1 CTA. Authored rather than fetched: Localization_Jeju has no row for it
@@ -487,17 +468,58 @@ const PICK_SUBTITLE = {
   vi: 'Hãy chọn lộ trình', th: 'กรุณาเลือกเส้นทาง', ru: 'Выберите маршрут', id: 'Silakan pilih rute',
 };
 
-/** The orange note — Bold, with the frame's leading asterisk since 7088:23517. */
-const PICK_NOTE = {
-  ko: '*모든 추천코스는 제주 공항을 기준으로 제작되었습니다.',
-  en: '*All recommended courses start from Jeju Airport.',
-  ja: '*すべてのおすすめコースは済州空港を起点に作成されています。',
-  zh: '*所有推荐路线均以济州机场为起点制作。',
-  vi: '*Tất cả lộ trình gợi ý đều lấy Sân bay Jeju làm điểm xuất phát.',
-  th: '*เส้นทางแนะนำทั้งหมดจัดทำโดยใช้สนามบินเชจูเป็นจุดเริ่มต้น',
-  ru: '*Все рекомендуемые маршруты составлены от аэропорта Чеджу.',
-  id: '*Semua rute rekomendasi dibuat dengan Bandara Jeju sebagai titik awal.',
+/**
+ * The orange note — Bold, with the frame's leading asterisk since 7088:23517.
+ *
+ * It names where every course on this page STARTS, and that is this kiosk: the
+ * course APIs (/recommend and /picker) measure DAY 1's first leg from the
+ * requesting kiosk's own coordinates — verified on stage 2026-09-14, 8 of 8
+ * first legs from kiosk 7 measure from the ferry terminal, none from the
+ * airport. The frame's copy only ever said 제주 공항, which was false on W007
+ * and W008, so the note is per kiosk. Keyed by kiosk id, not layout: W006 and
+ * W007 share JEJU_AIRPORT but start from different places. An id not listed
+ * keeps the frame's own airport copy.
+ */
+const PICK_NOTE_BY_KIOSK: Record<string, Partial<Record<Lang, string>>> = {
+  // W006 제주공항 — the frame's copy.
+  W006: {
+    ko: '*모든 추천코스는 제주 공항을 기준으로 제작되었습니다.',
+    en: '*All recommended courses start from Jeju Airport.',
+    ja: '*すべてのおすすめコースは済州空港を起点に作成されています。',
+    zh: '*所有推荐路线均以济州机场为起点制作。',
+    vi: '*Tất cả lộ trình gợi ý đều lấy Sân bay Jeju làm điểm xuất phát.',
+    th: '*เส้นทางแนะนำทั้งหมดจัดทำโดยใช้สนามบินเชจูเป็นจุดเริ่มต้น',
+    ru: '*Все рекомендуемые маршруты составлены от аэропорта Чеджу.',
+    id: '*Semua rute rekomendasi dibuat dengan Bandara Jeju sebagai titik awal.',
+  },
+  // W007 제주국제여객터미널. The Korean runs to two lines at 60px; the note has
+  // room for them above the 커스텀 코스 heading (694 + 2 × 72 = 838 < 897).
+  W007: {
+    ko: '*모든 추천코스는 제주국제여객터미널을 기준으로 제작되었습니다.',
+    en: '*All recommended courses start from Jeju International Ferry Terminal.',
+    ja: '*すべてのおすすめコースは済州国際旅客ターミナルを起点に作成されています。',
+    zh: '*所有推荐路线均以济州国际客运码头为起点制作。',
+    vi: '*Tất cả lộ trình gợi ý đều lấy Bến tàu khách quốc tế Jeju làm điểm xuất phát.',
+    th: '*เส้นทางแนะนำทั้งหมดจัดทำโดยใช้ท่าเรือโดยสารระหว่างประเทศเชจูเป็นจุดเริ่มต้น',
+    ru: '*Все рекомендуемые маршруты составлены от международного пассажирского терминала Чеджу.',
+    id: '*Semua rute rekomendasi dibuat dengan Terminal Penumpang Internasional Jeju sebagai titik awal.',
+  },
+  // W008 세계자연유산본부.
+  W008: {
+    ko: '*모든 추천코스는 세계자연유산본부를 기준으로 제작되었습니다.',
+    en: '*All recommended courses start from the World Natural Heritage Center.',
+    ja: '*すべてのおすすめコースは世界自然遺産本部を起点に作成されています。',
+    zh: '*所有推荐路线均以世界自然遗产本部为起点制作。',
+    vi: '*Tất cả lộ trình gợi ý đều lấy Trụ sở Di sản Thiên nhiên Thế giới làm điểm xuất phát.',
+    th: '*เส้นทางแนะนำทั้งหมดจัดทำโดยใช้สำนักงานมรดกโลกทางธรรมชาติเป็นจุดเริ่มต้น',
+    ru: '*Все рекомендуемые маршруты составлены от Центра всемирного природного наследия.',
+    id: '*Semua rute rekomendasi dibuat dengan Kantor Warisan Alam Dunia sebagai titik awal.',
+  },
 };
+
+/** This kiosk's note — the airport copy for any id the table does not list. */
+const pickNoteFor = (kioskId: string): Partial<Record<Lang, string>> =>
+  PICK_NOTE_BY_KIOSK[kioskId] ?? PICK_NOTE_BY_KIOSK.W006!;
 
 /**
  * The 커스텀 코스 card (7088:23517 renamed it from AI 맞춤 추천 코스). Its title
@@ -624,6 +646,14 @@ export function JejuAiSearch({ controller }: Props): JSX.Element {
   const [stage, setStage] = useState<'pick' | 'questions'>(() =>
     useAiStore.getState().resumeQuestions ? 'questions' : 'pick',
   );
+
+  /* Tell the customer display which stage is up: the picker is the tile's own
+     AISearch clip, the questionnaire is 재생조건 "뭐하지 -> 관심사 선택"
+     (AISearch-2). Both stages live on the one `ai_search` screen, so navigate()
+     alone could only ever report the first. */
+  useEffect(() => {
+    void window.api.kiosk.setScreen(stage === 'questions' ? 'ai_questions' : 'ai_search');
+  }, [stage]);
   /**
    * Set when the questionnaire is the THEMED one (Figma 6336:67302): the theme's
    * course key. null is the full AI 맞춤 questionnaire. A resume from a themed
@@ -643,6 +673,8 @@ export function JejuAiSearch({ controller }: Props): JSX.Element {
     setResumeQuestions(false);
   }, [setResumeQuestions]);
   const lang = useLanguageStore((s) => s.currentLanguage);
+  /** Which kiosk this is — the landing note names it as every course's start. */
+  const kioskId = useKioskStore((s) => s.config.kioskId);
 
   /** Sheet string, falling back to the authored copy when the key is absent. */
   const s = (key: string | null, authored: string): string => {
@@ -704,6 +736,12 @@ export function JejuAiSearch({ controller }: Props): JSX.Element {
   const tileCodes = useMemo(() => interestCodes(INTERESTS.map((_, i) => interestCat(i)), shops), [shops]);
   /** DAY 1's date, fixed for the visit so two calls either side of midnight cannot disagree. */
   const [visitDate] = useState(todayIso);
+  /**
+   * When DAY 1 starts — the clock as the page opened, fixed for the visit like
+   * visitDate: a clock read per tap would shift the plan between a tile's
+   * preview and its tap. A visitor at 13:00 gets 13:00–21:00 for DAY 1.
+   */
+  const [startMin] = useState(nowMinutes);
   /** The picker only serves the 커스텀 코스 questions — never the landing or a themed page. */
   const pickerOn = stage === 'questions' && !themeKey && shops.length > 0;
   const query: JejuPickerQuery = useMemo(
@@ -712,10 +750,11 @@ export function JejuAiSearch({ controller }: Props): JSX.Element {
       party: partySize(VISITORS[visitors]!.label),
       nights: nightCount(STAY[stay]!.label),
       visitDate,
+      startMin,
       picks: pickOrder.map((i) => tileCodes[i]!),
       categories: tileCodes,
     }),
-    [transport, visitors, stay, visitDate, pickOrder, tileCodes],
+    [transport, visitors, stay, visitDate, startMin, pickOrder, tileCodes],
   );
   const queryKey = useMemo(() => JSON.stringify(query), [query]);
   /** The newest answer, with the request it answers. */
@@ -726,8 +765,13 @@ export function JejuAiSearch({ controller }: Props): JSX.Element {
    * falls back to /recommend — see submit.
    */
   const [pickerDown, setPickerDown] = useState(false);
-  /** "빠진 곳: …" — stands in for the gauge text for NOTICE_MS. */
-  const [notice, setNotice] = useState<string | null>(null);
+  /** The day tab in view (1-based). Clamped to the stay's length below. */
+  const [viewDay, setViewDay] = useState(1);
+  /**
+   * The newest ADDED tile, until the picker says where it went — then the tabs
+   * jump to that day, so a tap is always seen landing.
+   */
+  const lastTap = useRef<number | null>(null);
   const submitting = useRef(false);
 
   useEffect(() => {
@@ -759,24 +803,23 @@ export function JejuAiSearch({ controller }: Props): JSX.Element {
 
   /**
    * A change of 이동수단 / 인원 / 기간 replays the same taps, and some may no
-   * longer fit. They leave the selection — so the tiles show what the plan
-   * really holds — and the gauge names them for a moment.
+   * longer fit. They leave the selection, so the tiles show what the plan
+   * really holds.
    */
   useEffect(() => {
     if (!answer || answer.key !== queryKey || answer.plan.dropped.length === 0) return;
     const gone = answer.plan.dropped.map((d) => tileCodes.indexOf(d.aiCategory)).filter((i) => i >= 0);
     if (gone.length === 0) return;
     setPickOrder((prev) => prev.filter((i) => !gone.includes(i)));
-    setNotice(fill(DROPPED, lang as Lang, gone.map((i) => tileLabel(i).replace(/\n/g, '')).join(' · ')));
-    // tileLabel only reads `lang`, which is listed.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [answer, queryKey, tileCodes, lang]);
+  }, [answer, queryKey, tileCodes]);
 
+  /** Follow the newest tap to the day the picker put it on. */
   useEffect(() => {
-    if (!notice) return;
-    const timer = setTimeout(() => setNotice(null), NOTICE_MS);
-    return () => clearTimeout(timer);
-  }, [notice]);
+    if (!answer || answer.key !== queryKey || lastTap.current === null) return;
+    const option = answer.plan.categories.find((o) => o.aiCategory === tileCodes[lastTap.current!]);
+    if (option?.status === 'PICKED' && option.day) setViewDay(option.day);
+    lastTap.current = null;
+  }, [answer, queryKey, tileCodes]);
 
   /**
    * Tap: a picked tile always comes out. Otherwise, with an answer on screen,
@@ -789,38 +832,14 @@ export function JejuAiSearch({ controller }: Props): JSX.Element {
       return;
     }
     if (plan && optionByCat.get(tileCodes[i]!)?.status !== 'OK') return;
+    lastTap.current = i;
     setPickOrder((prev) => [...prev, i]);
   };
 
-  /** The small line under a tile's label: the time a tap adds, its arrival, or why it is off. */
-  const tileCaption = (option: JejuPickerOption | undefined, selected: boolean, off: boolean): string | null => {
-    if (!plan || !option) return null;
-    if (selected) {
-      // Picked but not answered yet (the newest tap) — nothing to say until it is.
-      if (option.status !== 'PICKED' || option.arriveMin === null) return null;
-      const time = clockLabel(option.arriveMin);
-      return plan.dayCount > 1 && option.day ? `DAY ${option.day} · ${time}` : time;
-    }
-    if (off) {
-      const reason = TILE_REASON[option.status as keyof typeof TILE_REASON] ?? TILE_REASON.NO_PLACES;
-      return pick(reason, lang);
-    }
-    if (option.costMinutes === null) return null;
-    const cost = `+${minutesLabel(option.costMinutes, lang as Lang)}`;
-    return option.day && option.day !== plan.currentDay ? `DAY ${option.day} ${cost}` : cost;
-  };
-
-  /** The gauge: how much of the day being planned is spent, and what is left. */
-  const gauge = useMemo(() => {
-    if (!plan) return null;
-    const day = plan.days[plan.currentDay - 1] ?? plan.days[0];
-    const percent = day ? Math.min(100, Math.round((day.usedMinutes / day.budgetMinutes) * 100)) : 0;
-    if (plan.full) {
-      return { percent, text: pick(plan.remainingMinutes >= FULL_WITH_TIME_LEFT_MIN ? NO_MORE_PLACES : PLAN_FULL, lang) };
-    }
-    const dayPart = plan.dayCount > 1 ? `DAY ${plan.currentDay}/${plan.dayCount} · ` : '';
-    return { percent, text: dayPart + fill(REMAINING, lang as Lang, minutesLabel(day?.remainingMinutes ?? 0, lang as Lang)) };
-  }, [plan, lang]);
+  /** Days in the stay — the plan's, or the stay chip's own count before the first answer. */
+  const dayCount = plan?.dayCount ?? Math.min(nightCount(STAY[stay]!.label) + 1, 4);
+  /** The tab shown — a shorter stay pulls a later tab back to the last day. */
+  const activeDay = Math.min(viewDay, dayCount);
 
   const submit = async (): Promise<void> => {
     if (submitting.current) return;
@@ -902,8 +921,8 @@ export function JejuAiSearch({ controller }: Props): JSX.Element {
           setStage('pick');
         };
 
-  const rows = Array.from({ length: Math.ceil(INTERESTS.length / COLS) }, (_, r) =>
-    INTERESTS.slice(r * COLS, r * COLS + COLS),
+  const rows = Array.from({ length: Math.ceil(TILE_ORDER.length / COLS) }, (_, r) =>
+    TILE_ORDER.slice(r * COLS, r * COLS + COLS),
   );
 
   /** AI 맞춤 추천 코스 — into the full questionnaire, as the page used to open. */
@@ -914,7 +933,8 @@ export function JejuAiSearch({ controller }: Props): JSX.Element {
     // A new plan: nothing tapped, nothing answered, nothing to announce.
     setPickOrder([]);
     setAnswer(null);
-    setNotice(null);
+    setViewDay(1);
+    lastTap.current = null;
     setStage('questions');
   };
 
@@ -956,7 +976,7 @@ export function JejuAiSearch({ controller }: Props): JSX.Element {
         lowReachBodyShift={belowModeBar(LOW_REACH_BANNER_HEIGHT)}
       >
         <div className={styles.root}>
-          <p className={styles.pickNote}>{pick(PICK_NOTE, lang)}</p>
+          <p className={styles.pickNote}>{pick(pickNoteFor(kioskId), lang)}</p>
 
           <p className={`${styles.sectionHead} ${styles.headCustom}`}>I {pick(AI_CARD.title, lang)}</p>
 
@@ -1157,30 +1177,49 @@ export function JejuAiSearch({ controller }: Props): JSX.Element {
           <span className={styles.labelBar} />
           <p className={styles.labelText}>{heading(SECTION.interests)}</p>
         </div>
-        {/* The time gauge, right of the heading on the same row: how much of the
-            day being planned is spent. A "빠진 곳" notice borrows its text for a
-            moment. Hidden while the picker is down — no numbers are better than
-            wrong ones. */}
-        {gauge && (
-          <div className={styles.gauge} style={{ top: y.interestsLabel }} role="status" aria-live="polite">
-            <span className={styles.gaugeBar}>
-              <span className={styles.gaugeFill} style={{ width: `${gauge.percent}%` }} />
-            </span>
-            <span className={notice ? `${styles.gaugeText} ${styles.gaugeNotice}` : styles.gaugeText}>
-              {notice ?? gauge.text}
-            </span>
-          </div>
-        )}
+        {/* ── Day tabs (Figma 7229:100741, day-tabs 7242:9774) ──
+            One per day of the stay, badged with the places the plan put on that
+            day. The tab in view draws its day's picks orange; see the tiles. */}
+        <div
+          className={styles.dayTabs}
+          style={{ top: lowReach ? TABS_TOP_LOW : TABS_TOP }}
+          role="tablist"
+          aria-label={heading(SECTION.interests)}
+        >
+          {Array.from({ length: dayCount }, (_, d) => d + 1).map((day) => {
+            const count = plan?.days[day - 1]?.stops.length ?? 0;
+            const active = day === activeDay;
+            return (
+              <button
+                key={day}
+                type="button"
+                role="tab"
+                aria-selected={active}
+                className={active ? `${styles.dayTab} ${styles.dayTabActive}` : styles.dayTab}
+                onClick={() => setViewDay(day)}
+              >
+                <span>{dayTabLabel(day, lang as Lang)}</span>
+                {count > 0 && <span className={styles.dayBadge}>{count}</span>}
+              </button>
+            );
+          })}
+        </div>
         <div className={styles.grid} style={{ top: lowReach ? GRID_TOP_LOW : GRID_TOP }}>
           {rows.map((row, r) => (
             <div key={r} className={styles.gridRow} style={{ top: r * GRID_ROW_STEP }}>
-              {row.map((item, c) => {
-                const i = r * COLS + c;
-                const selected = pickOrder.includes(i);
+              {row.map((i) => {
+                const item = INTERESTS[i]!;
+                const picked = pickOrder.includes(i);
                 const option = optionByCat.get(tileCodes[i]!);
+                /* The day the plan put a picked tile on — null until the picker
+                   has answered for it (the newest tap). */
+                const placedDay = picked && option?.status === 'PICKED' ? option.day : null;
+                // Orange: picked for the day in view, or picked and not answered yet.
+                const selected = picked && (placedDay === null || placedDay === activeDay);
+                // Picked for another day: a normal tile that names that day (a tap still removes it).
+                const elsewhere = picked && !selected;
                 // Greyed: the picker has answered and this tile does not fit.
-                const off = !selected && !!plan && option?.status !== 'OK';
-                const caption = tileCaption(option, selected, off);
+                const off = !picked && !!plan && option?.status !== 'OK';
                 return (
                   <button
                     key={interestCat(i) || i}
@@ -1205,7 +1244,9 @@ export function JejuAiSearch({ controller }: Props): JSX.Element {
                     onClick={() => toggleInterest(i)}
                   >
                     <span className={styles.tileLabel}>{tileLabel(i)}</span>
-                    {caption && <span className={styles.tileCaption}>{caption}</span>}
+                    {elsewhere && placedDay !== null && (
+                      <span className={styles.tileCaption}>{dayTabLabel(placedDay, lang as Lang)}</span>
+                    )}
                   </button>
                 );
               })}

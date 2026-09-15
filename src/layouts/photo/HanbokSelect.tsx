@@ -13,7 +13,7 @@ import { hasLoc, t } from '@renderer/lib/loc';
 import { ui } from '@renderer/lib/uiText';
 import { usePhotoChrome } from './photoChrome';
 import { useOutfitStore } from '@renderer/store/outfitStore';
-import { outfitCategoryLabel } from '@renderer/lib/outfitCategories';
+import { outfitCategoryLabel, outfitLabel } from '@renderer/lib/outfitCategories';
 import hanbokInfo from '@renderer/assets/photos/insadong/hanbok/hanbok-info.png';
 import { HANBOK_INFO, PRIVACY } from './photoTexts';
 import styles from './HanbokSelect.module.css';
@@ -53,6 +53,18 @@ interface Tab {
  * all — see outfitStore's BUNDLED_CATEGORY_NAMES).
  */
 const HANBOK_INFO_CATS = ['w=hannbok', 'm=hanbok'];
+
+/**
+ * A 한복 category by its registered name, whatever spelling the operator used —
+ * `hanbok`, `hannbok`, `w=hannbok`, `m=hanbok` (JejuHanbokSelect's own test).
+ * The Insadong 한복 설명 walks the catalogue's keys with it instead of trusting
+ * the fixed pair above.
+ */
+const isHanbokCategory = (name: string): boolean => /^(?:[wm]=)?hann?bok$/i.test(name.trim());
+
+/** Insadong 한복 설명 strip — five 350 plates per view, 17 apart (제주's picker). */
+const INFO_CARDS_PER_VIEW = 5;
+const INFO_CARD_GAP = 17;
 
 /**
  * Tab-row geometry. The Figma frame draws 8 tabs as 2 rows of 4 (420-wide
@@ -212,8 +224,21 @@ export function HanbokSelect({ onCapture, onHome, countdownActive = false }: Han
     onCapture(mode, outfitKey);
   };
 
+  /** Insadong / 남인사마당 — the venues whose 한복 설명 follows 제주's frame. */
+  const isInsadong = !isOsan && !isHwaseong && !isKada;
+
   // 한복 설명 always shows ALL hanbok (여자 한복 + 남자 한복), never the last-picked tab.
-  const allHanbok = HANBOK_INFO_CATS.flatMap((name) => byCategory[name] ?? []).filter(isOk);
+  // Insadong walks the catalogue's OWN keys, as 제주 does, so whatever name the
+  // operator registered 한복 under is what gets drawn (sorted, for a stable order);
+  // the other venues keep the fixed pair.
+  const allHanbok = (
+    isInsadong
+      ? Object.keys(byCategory)
+          .filter(isHanbokCategory)
+          .sort()
+          .flatMap((name) => byCategory[name] ?? [])
+      : HANBOK_INFO_CATS.flatMap((name) => byCategory[name] ?? [])
+  ).filter(isOk);
 
   /** 2 rows, columns derived from the count — see TAB_ROWS. */
   const tabColumns = Math.max(TAB_MIN_COLUMNS, Math.ceil(tabs.length / TAB_ROWS));
@@ -237,33 +262,81 @@ export function HanbokSelect({ onCapture, onHome, countdownActive = false }: Han
         {/* KADA has no Localization sheet, so t() here would render the Korean
             fallback on a Hanoi kiosk — its header shows the venue wordmark. */}
         <Header title={isKada ? photoTitle : t(HANBOK_INFO_KEY, lang)} onHome={onHome} onBack={() => setInfoOpen(false)} />
-        <div className={styles.infoContent}>
-          <div
-            ref={infoDrag.ref}
-            className={styles.infoCarousel}
-            onPointerDown={infoDrag.onPointerDown}
-            onPointerMove={infoDrag.onPointerMove}
-            onPointerUp={infoDrag.onPointerUp}
-            onPointerLeave={infoDrag.onPointerLeave}
-            onClickCapture={infoDrag.onClickCapture}
-          >
-            {allHanbok.map((o, i) => (
-              <div key={o.code} className={`${styles.infoThumb} ${i === 0 ? styles.infoThumbSel : ''}`}>
-                <img src={o.url} alt="" draggable={false} decoding="async" onError={() => markBroken(o.code)} />
+        {isInsadong ? (
+          /*
+           * 제주's 한복 설명 frame (JejuHanbokSelect, 6258:49124): the picker-style
+           * outfit strip — two rows of five 350 plates, each with its name under
+           * it, dragged sideways for the rest — then the text card, its body pinned
+           * right under the heading rather than centred. Nothing here is tappable;
+           * the first card is drawn picked as a still life.
+           */
+          <>
+            {allHanbok.length > 0 && (
+              <Swiper
+                className={styles.infoOutfitsIns}
+                modules={[Grid, FreeMode]}
+                grid={{ rows: 2, fill: 'row' }}
+                slidesPerView={INFO_CARDS_PER_VIEW}
+                spaceBetween={INFO_CARD_GAP}
+                freeMode
+              >
+                {allHanbok.map((o, i) => (
+                  <SwiperSlide key={o.code} className={styles.infoOutfitSlideIns}>
+                    <div className={`${styles.infoOutfitIns} ${i === 0 ? styles.infoOutfitInsSel : ''}`}>
+                      <img
+                        src={o.url}
+                        alt=""
+                        className={styles.infoOutfitImgIns}
+                        draggable={false}
+                        decoding="async"
+                        onError={() => markBroken(o.code)}
+                      />
+                    </div>
+                    <p className={styles.infoOutfitNameIns}>{outfitLabel(o, lang)}</p>
+                  </SwiperSlide>
+                ))}
+              </Swiper>
+            )}
+            <div className={styles.infoCardIns}>
+              <p className={styles.infoHeading}>{info.heading}</p>
+              <div className={styles.infoBodyIns}>
+                {info.paragraphs.map((p, i) => (
+                  <p key={i} className={styles.infoPara}>
+                    {p}
+                  </p>
+                ))}
               </div>
-            ))}
-          </div>
-          <div className={styles.infoCard}>
-            <p className={styles.infoHeading}>{info.heading}</p>
-            <div className={styles.infoBody}>
-              {info.paragraphs.map((p, i) => (
-                <p key={i} className={styles.infoPara}>
-                  {p}
-                </p>
+            </div>
+          </>
+        ) : (
+          <div className={styles.infoContent}>
+            <div
+              ref={infoDrag.ref}
+              className={styles.infoCarousel}
+              onPointerDown={infoDrag.onPointerDown}
+              onPointerMove={infoDrag.onPointerMove}
+              onPointerUp={infoDrag.onPointerUp}
+              onPointerLeave={infoDrag.onPointerLeave}
+              onClickCapture={infoDrag.onClickCapture}
+            >
+              {allHanbok.map((o, i) => (
+                <div key={o.code} className={`${styles.infoThumb} ${i === 0 ? styles.infoThumbSel : ''}`}>
+                  <img src={o.url} alt="" draggable={false} decoding="async" onError={() => markBroken(o.code)} />
+                </div>
               ))}
             </div>
+            <div className={styles.infoCard}>
+              <p className={styles.infoHeading}>{info.heading}</p>
+              <div className={styles.infoBody}>
+                {info.paragraphs.map((p, i) => (
+                  <p key={i} className={styles.infoPara}>
+                    {p}
+                  </p>
+                ))}
+              </div>
+            </div>
           </div>
-        </div>
+        )}
 
         {/* Bottom nav bar. Hwaseong (Figma 휴_한복체험 하단네비) shows ONLY the centre
             camera button on the curved bar; other kiosks keep the 3-button bar.

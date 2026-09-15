@@ -2,7 +2,7 @@
 // Run `npm run sync:sheet` to refresh from the Google Sheet.
 import type { LangText } from './types';
 
-/** W008 세계자연유산본부 (JEJU_HERITAGE): the Localization_Jeju keys whose venue
+/** W008 세계자연유산본부 (JEJU_HERITAGE): the Localization_Jeju_v2 keys whose venue
  *  pick differs from W006's — i.e. the 유산-mascot rows. Overlaid on
  *  LOCALIZATION_JEJU by loc.ts; mirrors the runtime split in
  *  LocalizationSyncParser.VENUE_MASCOTS. */

@@ -1,4 +1,9 @@
-/* '인사' 뭐하지 (AI검색) — preference questionnaire, exact Figma px (artboard 2160×3840). */
+/*
+ * '인사' 뭐하지 (AI검색) — preference questionnaire, with the 제주 뭐하지
+ * questionnaire's type (JejuAiSearch.module.css): 76 / 600 section labels,
+ * 60 / 500 chips (700 picked), 47 / 700 tiles, a 60 / 700 CTA.
+ * Insadong's own chip/tile colours are kept.
+ */
 .bg {
   position: absolute;
   inset: 0;
@@ -8,11 +13,11 @@
   pointer-events: none;
 }
 
-/* Figma 선택영역: a FIXED 2568px area (top 699 → bottom 573) that the content
-   fills exactly — no scroll. gap 100, px 170, NO vertical padding. */
+/* 선택영역: a FIXED area (top 700 → bottom 573) that the content fills exactly —
+   no scroll. gap 100, px 170, NO vertical padding. */
 .content {
   position: absolute;
-  top: 699px;
+  top: 700px;
   left: 0;
   right: 0;
   bottom: 573px;
@@ -21,9 +26,19 @@
   flex-direction: column;
   align-items: center;
   gap: 100px;
-  overflow: hidden;
+  /* Fits exactly in the standard layout; in ♿ low-reach the page sits lower and
+     the area is shorter, so it scrolls rather than cutting the CTA off. The
+     scrollbar is hidden so it never narrows the 1820 column. */
+  overflow-x: hidden;
+  overflow-y: auto;
+  scrollbar-width: none;
   padding: 0 170px;
   font-family: var(--kiosk-font, sans-serif);
+}
+
+.content::-webkit-scrollbar {
+  width: 0;
+  height: 0;
 }
 
 .section {
@@ -34,15 +49,18 @@
   gap: 60px;
 }
 
+/* Wraps rather than running on past the 1820 column. */
 .sectionTitle {
   display: flex;
   align-items: center;
   gap: 30px;
   font-family: var(--kiosk-font, sans-serif);
-  font-weight: 700;
+  font-weight: 600;
   font-size: 76px;
   line-height: 1;
   color: #000000;
+  word-break: keep-all;
+  overflow-wrap: anywhere;
 }
 
 .bar {
@@ -53,36 +71,42 @@
   background: #000000;
 }
 
-/* 방문인원 / 체류시간 pills — Figma uses FIXED-width pills (per-pill width set
-   inline) spread with justify-between, which yields the uniform gaps (방문인원
-   14.8px, 체류시간 75.3px). Content-sized pills would overflow and lose the gaps. */
+/* 방문인원 / 체류시간 pills — FIXED-width pills (per-pill width set inline)
+   spread with justify-between, which yields the uniform gaps. */
 .pillRow {
   display: flex;
   align-items: center;
   justify-content: space-between;
 }
 
+/* A long translated label wraps inside the 193 plate (three 60px lines fit),
+   never mid-word in Korean. */
 .pill {
+  border: none;
+  outline: none;
   box-sizing: border-box;
-  height: 192px;
+  height: 193px;
+  padding: 0;
   display: flex;
   align-items: center;
   justify-content: center;
   background: #ffffff;
-  border: 5px solid #e8e8e8;
   border-radius: 45px;
   font-family: var(--kiosk-font, sans-serif);
-  font-weight: 700;
+  font-weight: 500;
   font-size: 60px;
   line-height: 1;
   color: #999999;
-  white-space: nowrap;
+  text-align: center;
+  word-break: keep-all;
+  overflow-wrap: anywhere;
   cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
 }
 
 .pillSel {
   background: var(--kiosk-secondary);
-  border-color: var(--kiosk-primary);
+  font-weight: 700;
   color: var(--kiosk-primary);
 }
 
@@ -95,6 +119,8 @@
 }
 
 .tile {
+  border: none;
+  outline: none;
   box-sizing: border-box;
   width: 268px;
   height: 215px;
@@ -103,14 +129,13 @@
   justify-content: center;
   padding: 0;
   background: #ffffff;
-  border: 5px solid #e8e8e8;
   border-radius: 45px;
   cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
 }
 
-/* Figma: text box is 237px wide (centred in the 268px tile) and wraps within
-   it — the px-78 frame padding is overridden by this width, so labels like
-   역사유적지 / 채식·비건 fit without overflowing. */
+/* Text box is 237px wide (centred in the 268px tile) and wraps within it, so
+   labels like 역사유적지 / 채식·비건 fit without overflowing. */
 .tileText {
   width: 237px;
   display: flex;
@@ -121,12 +146,12 @@
   line-height: 1;
   color: #c89b7b;
   text-align: center;
-  word-break: break-word;
+  word-break: keep-all;
+  overflow-wrap: anywhere;
 }
 
 .tileSel {
   background: var(--kiosk-secondary);
-  border-color: var(--kiosk-primary);
 }
 
 .tileSel .tileText {
@@ -135,24 +160,28 @@
 
 /* CTA */
 .cta {
+  outline: none;
   flex: none;
   width: 1816.802px;
   height: 178.034px;
   display: flex;
   align-items: center;
   justify-content: center;
+  padding: 0;
   background: var(--kiosk-primary);
   border: none;
   border-radius: 42.9px;
   font-family: var(--kiosk-font, sans-serif);
   font-weight: 700;
-  font-size: 68.64px;
+  font-size: 60px;
   line-height: 1;
   color: #ffffff;
   cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
 }
 
 .banner {
+  outline: none;
   position: absolute;
   left: 0;
   bottom: 0;

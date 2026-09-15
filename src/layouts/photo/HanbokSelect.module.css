@@ -120,7 +120,7 @@
   align-items: center;
   justify-content: center;
   background: var(--photo-card-bg, #ffffff);
-  border: 5px solid var(--photo-card-border, #e8e8e8);
+  border: var(--photo-tab-border-width, 5px) solid var(--photo-card-border, #e8e8e8);
   border-radius: 42.9px;
   font-family: var(--kiosk-font, sans-serif);
   font-weight: 500;
@@ -227,7 +227,7 @@
   background: #616161;
   border: none;
   border-radius: 42.9px;
-  box-shadow: 0 21.45px 42.9px rgba(143, 147, 157, 0.1);
+  box-shadow: var(--photo-button-shadow, 0 21.45px 42.9px rgba(143, 147, 157, 0.1));
   font-family: var(--kiosk-font, sans-serif);
   font-weight: 700;
   font-size: 58px;
@@ -565,7 +565,7 @@
   width: 100%;
   height: 100%;
   object-fit: contain;
-  filter: drop-shadow(0 12px 36px rgba(254, 108, 80, 0.35));
+  filter: var(--photo-cam-shadow, drop-shadow(0 12px 36px rgba(254, 108, 80, 0.35)));
 }
 
 /* Osan: navy circular camera button (matches the home page), white glyph. */
@@ -716,7 +716,7 @@
   background: #ffffff;
   border-radius: 42.9px;
   padding: 70px 80px 40px;
-  box-shadow: 0 30px 90px rgba(0, 0, 0, 0.25);
+  box-shadow: var(--photo-modal-shadow, 0 30px 90px rgba(0, 0, 0, 0.25));
 }
 
 .privacyHead {
@@ -849,4 +849,137 @@
 .captureBtnPrimary {
   background: var(--photo-capture-bg, #616161);
   color: var(--photo-capture-text, #e9e9e9);
+}
+
+/* ── Insadong 한복 설명 — 제주's frame (JejuHanbokSelect.module.css, 6258:49124) ─
+ * Only rendered on the Insadong venues (HanbokSelect's `isInsadong`). Two
+ * hand-placed blocks in the 1820 column instead of the scrolling .infoContent:
+ *
+ *    700…1565   outfit strip — two rows of five 350 plates (+16 + name) on a
+ *               441 pitch, dragged sideways for the rest
+ *   1583…2743   한복설명 card, body pinned under the heading; it ends above the
+ *               curved bottom bar (its art starts ~2770) and scrolls inside if
+ *               a translation runs long
+ *
+ * Surfaces read the same --photo-card-* / --photo-panel-* variables as the rest
+ * of this sheet, so the Insadong PHOTO_THEME (flat plates, primary ring on the
+ * picked card) applies here too.
+ */
+.infoOutfitsIns {
+  position: absolute;
+  left: 170px;
+  top: 700px;
+  width: 1820px;
+  height: 865px;
+}
+
+/* Keep a short list hugging the left edge (free-mode centres the wrapper). */
+.infoOutfitsIns :global(.swiper-wrapper) {
+  margin-left: 0;
+  margin-right: auto;
+}
+
+/* The slide is the cell: plate on top, name under it; 424 + the 17 gap lands
+   row 2 on the 441 pitch. */
+.infoOutfitSlideIns {
+  height: 424px !important;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.infoOutfitIns {
+  position: relative;
+  flex: none;
+  width: 100%;
+  height: 350px;
+  box-sizing: border-box;
+  background: var(--photo-card-bg, #ffffff);
+  border: var(--photo-card-border-width, 2.145px) solid var(--photo-card-border, #e8e8e8);
+  border-radius: 42.9px;
+  box-shadow: var(--photo-card-shadow, 0 21.45px 42.9px rgba(143, 147, 157, 0.1));
+}
+
+.infoOutfitInsSel {
+  background: var(--photo-card-sel-bg, var(--photo-accent-soft, var(--kiosk-secondary)));
+  border-color: var(--photo-accent, #fe6c50);
+  border-width: var(--photo-card-sel-border-width, var(--photo-card-border-width, 2.145px));
+}
+
+/* 143×276 render, centred in the plate whatever the ring's width. */
+.infoOutfitImgIns {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  width: 143px;
+  height: 276px;
+  object-fit: cover;
+  pointer-events: none;
+}
+
+/* The outfit's name, 16 under the plate: 25 Regular at 30% black, wrapping
+   rather than being cut. */
+.infoOutfitNameIns {
+  width: 100%;
+  min-height: 25px;
+  box-sizing: border-box;
+  margin: 16px 0 0;
+  padding-top: 2.5px;
+  flex: 0 0 auto;
+  font-family: var(--kiosk-font, sans-serif);
+  font-size: 25px;
+  font-weight: 400;
+  line-height: 20px;
+  color: rgba(0, 0, 0, 0.3);
+  text-align: center;
+  white-space: normal;
+  word-break: keep-all;
+  overflow-wrap: anywhere;
+}
+
+/* The text card: heading 43 from the top, body 52 under it (not centred). */
+.infoCardIns {
+  position: absolute;
+  left: 170px;
+  top: 1583px;
+  width: 1820px;
+  height: 1160px;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 52px;
+  padding: 43px 44px 60px;
+  background: var(--photo-panel-bg, #ffffff);
+  border: var(--photo-panel-border-width, 2.145px) solid var(--photo-panel-border, #e8e8e8);
+  border-radius: 45px;
+  box-shadow: var(--photo-panel-shadow, 0 21.45px 21.45px rgba(143, 147, 157, 0.1));
+  font-family: var(--kiosk-font, sans-serif);
+}
+
+/* Paragraphs 50 apart; scrolls inside the card if a translation runs long. */
+.infoBodyIns {
+  flex: 1 1 auto;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 50px;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+.infoBodyIns::-webkit-scrollbar {
+  width: 28px;
+}
+
+.infoBodyIns::-webkit-scrollbar-thumb {
+  background: var(--photo-accent, #fe6c50);
+  border-radius: 14px;
+}
+
+/* The frame's own tracking — −0.05em at 50px. */
+.infoBodyIns .infoPara {
+  letter-spacing: -2.5px;
 }

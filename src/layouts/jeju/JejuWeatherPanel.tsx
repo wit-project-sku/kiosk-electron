@@ -23,6 +23,12 @@
  * Every position/size in JejuWeatherPanel.module.css is the exact Figma value,
  * measured against node 6873:16213 (frosted panel + 오늘 card + rules + rows)
  * and its sibling row / close nodes on the same frame.
+ *
+ * ── The 2026-09-14 redraw ──────────────────────────────────────────
+ * The close button moved from the panel's foot into a tab rising from its
+ * top-right corner (7181:9853), the panel body starts lower to make room, and
+ * the foot now carries a "※ 출처" line — see SOURCE for why its wording differs
+ * from the frame's.
  */
 import type { WeatherForecast, WeatherSiteDay } from '@shared/types/weather';
 import { JEJU_WEATHER_SITES, type WeatherSiteId } from '@shared/config/weatherSites';
@@ -66,22 +72,41 @@ const ROWS = 6;
 
 /*
  * Row bands, panel-relative, taken literally from their own nodes rather than
- * derived from a step: rows 3–6 repeat every 528px from y1181, but 오늘 (inside
- * its card) and 내일 sit off that grid — 483 then 453 apart. Each value is the
- * row's GLYPH top (page y 540 / 1023 / 1476 / 2004 / 2532 / 3060, minus the
- * panel origin 295); everything else in the row is offset from it in the CSS.
+ * derived from a step: rows 3–6 repeat every 528px from y1172, but 오늘 (inside
+ * its card) and 내일 sit off that grid — 461 then 453 apart. Each value is the
+ * row's GLYPH top (page y 718 / 1179 / 1632 / 2160 / 2688 / 3216, minus the
+ * panel origin 460); everything else in the row is offset from it in the CSS.
  */
-const ROW_TOPS = [245, 728, 1181, 1709, 2237, 2765] as const;
+const ROW_TOPS = [258, 719, 1172, 1700, 2228, 2756] as const;
 
 /*
  * Between rows 2/3 … 5/6 — the 오늘 card separates the first two, so no rule
- * there. Page y 1400 / 1887 / 2415 / 2943, minus the panel origin 295, minus 3
+ * there. Page y 1556 / 2043 / 2571 / 3099, minus the panel origin 460, minus 3
  * more: Figma's `Line 106` is a zero-height node whose 3px stroke is drawn
  * ABOVE its y (`inset-[-3px_0_0_0]`), so the ink starts three px higher than
- * the node does. Confirmed against the render of the 2026-09-10 frame, which
- * puts the first rule's ink at 1100.7.
+ * the node does.
  */
-const RULE_TOPS = [1102, 1589, 2117, 2645] as const;
+const RULE_TOPS = [1093, 1580, 2108, 2636] as const;
+
+/*
+ * Each row's day LABEL top, from its own glyph top — the frame's values, row by
+ * row, not one template: 오늘 +70, 내일 +89, then +82 · +82 · +41 · +82 (page y
+ * 788 / 1268 / 1714 / 2242 / 2729 / 3298 against the glyph tops above). The
+ * date line always sits 92 under its label, in every row.
+ */
+const LABEL_OFFSETS = [70, 89, 82, 82, 41, 82] as const;
+const DATE_BELOW_LABEL = 92;
+
+/**
+ * The foot line (7181:9854). The frame reads "※ 출처: 한국문화정보원, VISIT JEJU"
+ * — the 유산 page's attribution, where it is true. This panel's numbers come
+ * from OpenWeather (WeatherService calls api.openweathermap.org), so the line
+ * names that instead: a public kiosk crediting the wrong source for its
+ * forecast is a factual error, not a style choice. Kept in one form in every
+ * language, like the 유산 page's line — it names a data provider, not visitor
+ * copy.
+ */
+const SOURCE = '※ 출처: OpenWeather';
 
 /**
  * Column heads. There are no Localization_Jeju keys for this frame yet, so the
@@ -234,13 +259,11 @@ export function JejuWeatherPanel({ forecast, lang, onClose }: Props): JSX.Elemen
         aria-label={pick(CLOSE_LABEL, lang)}
       />
 
-      <div className={styles.panel} role="dialog" aria-label="제주 날씨">
-        {/* 오늘 sits on its own lighter card; the column heads live inside it. */}
-        <div className={styles.todayCard} />
-
-        {/* 6876:16416 — the visible way out. The bare home screen around the
-            panel stays tappable and unchanged; this is what a visitor can
-            actually SEE to press. */}
+      {/* 7181:9853 — the tab rising from the panel's top-right corner, and the
+          visible way out in it (6876:16416). The bare home screen around the
+          panel stays tappable and unchanged; this is what a visitor can
+          actually SEE to press. */}
+      <div className={styles.tab}>
         <button
           type="button"
           className={styles.close}
@@ -252,9 +275,19 @@ export function JejuWeatherPanel({ forecast, lang, onClose }: Props): JSX.Elemen
             <img src={closeIcon} alt="" className={styles.closeIcon} draggable={false} />
           )}
         </button>
+      </div>
+
+      <div className={styles.panel} role="dialog" aria-label="제주 날씨">
+        {/* 오늘 sits on its own lighter card; the column heads live inside it. */}
+        <div className={styles.todayCard} />
 
         {JEJU_WEATHER_SITES.map((site) => (
-          <span key={site.id} className={`${styles.head} ${COLUMNS[site.id]}`}>
+          <span
+            key={site.id}
+            /* Korean takes the frame's own left-aligned boxes (see .headKo);
+               a longer translated name stays centred over its column. */
+            className={`${styles.head} ${COLUMNS[site.id]}${lang === 'ko' ? ` ${styles.headKo}` : ''}`}
+          >
             {pick(SITE_LABELS[site.id], lang)}
           </span>
         ))}
@@ -267,8 +300,17 @@ export function JejuWeatherPanel({ forecast, lang, onClose }: Props): JSX.Elemen
 
         {rows.map((row, i) => (
           <div key={row.key} className={styles.row} style={{ top: ROW_TOPS[i] }}>
-            <span className={styles.day}>{row.label}</span>
-            <span className={styles.date}>{row.date}</span>
+            {/* 오늘 / 내일 are left-aligned in the label box, the weekday
+                letters centred — as the frame sets them (see .dayRelative). */}
+            <span
+              className={i < 2 ? `${styles.day} ${styles.dayRelative}` : styles.day}
+              style={{ top: LABEL_OFFSETS[i] }}
+            >
+              {row.label}
+            </span>
+            <span className={styles.date} style={{ top: (LABEL_OFFSETS[i] ?? 82) + DATE_BELOW_LABEL }}>
+              {row.date}
+            </span>
 
             {row.cells.map(({ id, day }) => (
               <span key={id} className={`${styles.cell} ${COLUMNS[id]}`}>
@@ -284,6 +326,8 @@ export function JejuWeatherPanel({ forecast, lang, onClose }: Props): JSX.Elemen
             ))}
           </div>
         ))}
+
+        <p className={styles.source}>{SOURCE}</p>
       </div>
     </div>
   );

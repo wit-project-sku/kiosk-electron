@@ -32,7 +32,7 @@ const OSAEK_SHEET_ID = '1_CkWFXfB7ud0sJw-cnIWGvFlTzF12UxDuNylp5HkOiw';
 /** W005 화성휴게소 content sheet (tabs suffixed _Hwaseong). */
 const HWASEONG_SHEET_ID = '14aWRWrJXPC_J-W4GpZqa_g-3fDjjUsy6BpAhDg8OvVU';
 /** W006 제주공항 content sheet (tabs suffixed _Jeju).
- *  Tabs: ShopData_Jeju · AICategory_Jeju · Localization_Jeju ·
+ *  Tabs: ShopData_Jeju · AICategory_Jeju · Localization_Jeju_v2 ·
  *  AirportFacilityData_Jeju ·
  *  VideoSubtitle_귤이 · VideoSubtitle_Jeju_유산 · three 규칙 reference tabs.
  *  ShopData is served by the shops API (kioskId=6) and the VideoSubtitle_* tabs
@@ -485,7 +485,7 @@ function jejuVenueScore(r) {
 }
 
 async function genLocalizationJeju() {
-  const rows = await loadTab('Localization_Jeju', JEJU_SHEET_ID);
+  const rows = await loadTab('Localization_Jeju_v2', JEJU_SHEET_ID);
   /** One venue's picks — sign +1 keeps the 하영 rows (W006/W007), −1 keeps 유산's (W008). */
   const pickVenue = (sign) => {
     const entries = {};
@@ -509,7 +509,7 @@ async function genLocalizationJeju() {
     .join('\n');
   const out = `${BANNER}import type { LangText } from './types';
 
-/** W006 제주공항 UI strings keyed by their sheet \`Key\` (Localization_Jeju). */
+/** W006 제주공항 UI strings keyed by their sheet \`Key\` (Localization_Jeju_v2). */
 export const LOCALIZATION_JEJU: Record<string, LangText> = {
 ${body}
 };
@@ -525,7 +525,7 @@ ${body}
   const heritageBody = overrides.map(([k, v]) => `  ${JSON.stringify(k)}: ${JSON.stringify(v)},`).join('\n');
   const heritageOut = `${BANNER}import type { LangText } from './types';
 
-/** W008 세계자연유산본부 (JEJU_HERITAGE): the Localization_Jeju keys whose venue
+/** W008 세계자연유산본부 (JEJU_HERITAGE): the Localization_Jeju_v2 keys whose venue
  *  pick differs from W006's — i.e. the 유산-mascot rows. Overlaid on
  *  LOCALIZATION_JEJU by loc.ts; mirrors the runtime split in
  *  LocalizationSyncParser.VENUE_MASCOTS. */

@@ -123,6 +123,8 @@
 
 /* Quest / Reward card — centred on artboard, gold border, rounded corners */
 .cardImg {
+  border: none;
+  outline: none;
   position: absolute;
   left: 50%;
   top: 50%;
@@ -130,7 +132,6 @@
   width: 1404px;
   height: 1982px;
   border-radius: 79px;
-  border: 5px solid #e0bc50;
   object-fit: cover;
   z-index: 3;
   display: block;
@@ -145,6 +146,7 @@
    blurred border/fill so filter:blur doesn't affect the text label. */
 
 .goldBtnWrap {
+  outline: none;
   position: absolute;
   top: 2973px;
   height: 162px;
@@ -162,9 +164,10 @@
 
 /* Blurred border + frosted bg — separate layer so text stays sharp */
 .goldBtnBg {
+  border: none;
+  outline: none;
   position: absolute;
   inset: 0;
-  border: 5px solid #fac831;
   border-radius: 18px;
   background: rgba(224, 188, 80, 0.30);
   backdrop-filter: blur(2px);

@@ -76,6 +76,36 @@
   white-space: pre;
 }
 
+/*
+ * The 공지 card, its weather card and the 운항 정보 board, as ONE layer — Figma's
+ * group 6516:74628.
+ *
+ * Zero-size and pinned to the root's top-left, so its children keep the root as
+ * their coordinate origin either way — `filter` makes this box the containing
+ * block for them, and at (0, 0) that changes nothing — and so the wrapper itself
+ * never takes a tap.
+ */
+.noticeGroup {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 0;
+  height: 0;
+}
+
+/*
+ * While the 날씨 popup is open (Figma 6516:74521, 제주>홈-날씨), the frame gives
+ * this group — and only this group — a LAYER blur of 50 at 80% opacity. It is
+ * what shows, soft, between the top bar and the popup, left of its close tab,
+ * and through the popup's own frosted ground. 25px because Figma's blur radius
+ * is twice the CSS one: the same frame's background blur of 30 exports as
+ * `backdrop-blur-[15px]`, which is what the popup's panel uses.
+ */
+.noticeGroupBehind {
+  filter: blur(25px);
+  opacity: 0.8;
+}
+
 /* ── 공지 card (notice + weather) ───────────────────────────────────── */
 /*
  * The frosted panels (.notice, .weather, .panel and .board in the flight-board

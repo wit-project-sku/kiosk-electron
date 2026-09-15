@@ -183,7 +183,9 @@ export function JejuListScreen({ screen, controller }: Props): JSX.Element {
   // navigate() only ever reported the top-level screen, exactly as on Insadong /
   // Osan / Hwaseong, whose list screens each do this.
   useEffect(() => {
-    if (activeKr) void window.api.kiosk.setScreen(`${screen}_category`);
+    // Clearing the chip (tap it again — there is no 전체 chip) shows the whole list
+    // again, so the display goes back to the page's own clip.
+    void window.api.kiosk.setScreen(activeKr ? `${screen}_category` : screen);
   }, [activeKr, screen]);
 
   /*
@@ -211,13 +213,14 @@ export function JejuListScreen({ screen, controller }: Props): JSX.Element {
     // for every non-Korean visitor.
     if (jamo) list = list.filter((s) => leadingChosung(shopName(s, 'ko')) === jamo);
     // Association members float to the top (filter chips / 초성 included), then
-    // more photos first (4 → 3 → 2 → 1 → 0). Stable within the same rank so
-    // catalogue order holds — same idea as Insadong floating imaged shops, but
-    // ranked by association then photo count.
+    // more photos first. The row shows two photos (7212:65355), so a shop is
+    // ranked by the photos it can actually SHOW — 2 → 1 → 0; three or four rank
+    // like two. Stable within the same rank so catalogue order holds.
+    const shown = (s: Shop): number => Math.min(shopImages(s).length, 2);
     return [...list].sort((a, b) => {
       const assoc = Number(!!b.fromAssociation) - Number(!!a.fromAssociation);
       if (assoc !== 0) return assoc;
-      return shopImages(b).length - shopImages(a).length;
+      return shown(b) - shown(a);
     });
   }, [baseShops, activeKr, jamo]);
 
@@ -321,6 +324,8 @@ export function JejuListScreen({ screen, controller }: Props): JSX.Element {
                 shop={shop}
                 lang={lang}
                 associationDot
+                /* 7212:65355 — the 390 row with two photos (6391:57961 · 6212:55233 · 6391:58267). */
+                twoPhotos
                 onClick={() => openDetail(shop)}
               />
             ))}

@@ -13,11 +13,26 @@ import {
   isJejuLayout,
   type GeoCoordinates,
 } from '@shared/config/kioskLocations';
-import { JEJU_WEATHER_SITES, type WeatherSite } from '@shared/config/weatherSites';
+import {
+  INSADONG_WEATHER_SITES,
+  JEJU_WEATHER_SITES,
+  type WeatherSite,
+} from '@shared/config/weatherSites';
 import type { KioskService } from './KioskService';
 import type { LocalCacheService } from './LocalCacheService';
 
 const log = createLogger('weather-service');
+
+/**
+ * The place columns a kiosk's 날씨 panel draws, or null when its layout draws
+ * no panel. 제주 and Insadong each carry their own regional list.
+ */
+function weatherSitesFor(kioskId: KioskId): readonly WeatherSite<string>[] | null {
+  const layout = getKioskLayout(kioskId);
+  if (isJejuLayout(layout)) return JEJU_WEATHER_SITES;
+  if (layout === 'INSADONG' || layout === 'NAM_INSADONG') return INSADONG_WEATHER_SITES;
+  return null;
+}
 
 /** Refetch interval. 30 min keeps us well within OpenWeatherMap's free tier. */
 const REFRESH_MS = 30 * 60 * 1000;
@@ -274,37 +289,38 @@ export class WeatherService {
   }
 
   /**
-   * The 제주 날씨 panel's three columns, or null off 제주 / when every site
-   * failed. No other layout draws the panel, so no other kiosk pays for these.
+   * The 날씨 panel's three place columns, or null for a layout that draws no
+   * panel / when every site failed. 제주 kiosks fetch 제주시 · 서귀포시 · 성산,
+   * Insadong kiosks 종로구 · 중구 · 강남구 (see weatherSites.ts); no other layout
+   * draws the panel, so no other kiosk pays for these.
    *
    * A site that answers replaces its column; a site that does not keeps the one
    * it had, so a single flaky request cannot blank a column that was fine a
-   * moment ago. The order is `JEJU_WEATHER_SITES`', which is the order the frame
-   * draws 제주시 · 서귀포시 · 성산 in.
+   * moment ago. The order is the site list's, which is the order the panel
+   * draws its columns in.
    */
   private async fetchSites(
     apiKey: string,
     kioskId: KioskId,
   ): Promise<WeatherSiteForecast[] | null> {
-    if (!isJejuLayout(getKioskLayout(kioskId))) return null;
+    const siteList = weatherSitesFor(kioskId);
+    if (!siteList) return null;
 
-    const fetched = await Promise.all(
-      JEJU_WEATHER_SITES.map((site) => this.fetchSite(site, apiKey)),
-    );
+    const fetched = await Promise.all(siteList.map((site) => this.fetchSite(site, apiKey)));
     const held = new Map((this.siteForecasts ?? []).map((s) => [s.id, s]));
-    const sites = JEJU_WEATHER_SITES.map(
-      (site, i) => fetched[i] ?? held.get(site.id) ?? null,
-    ).filter((s): s is WeatherSiteForecast => s !== null);
+    const sites = siteList
+      .map((site, i) => fetched[i] ?? held.get(site.id) ?? null)
+      .filter((s): s is WeatherSiteForecast => s !== null);
 
     if (sites.length === 0) {
-      log.warn('Weather site outlook empty for every 제주 site (keeping last columns)');
+      log.warn('Weather site outlook empty for every site (keeping last columns)');
       return null;
     }
     return sites;
   }
 
   /** One site's outlook, or null when it could not be fetched or was unusable. */
-  private async fetchSite(site: WeatherSite, apiKey: string): Promise<WeatherSiteForecast | null> {
+  private async fetchSite(site: WeatherSite<string>, apiKey: string): Promise<WeatherSiteForecast | null> {
     try {
       const url = `https://api.openweathermap.org/data/2.5/forecast?${weatherQuery(site.coordinates, apiKey)}`;
       const res = await fetch(url);

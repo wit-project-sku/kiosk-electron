@@ -182,8 +182,9 @@
 }
 
 /* ── Map (6819:10197) — 1820×813, radius 58
-   국내선 4F overrides height inline (see AirportMap.height) — its plan is
-   upright 1.25:1 and needs ~1456px or the drawing clips inside this plate. */
+   Plans taller than this plate allows override the height inline (see
+   AirportMap.height): 국내선 1F 875, 국제선 1F 940, 국내선 4F 1456 — without it
+   the drawing's foot is clipped by the overflow below. */
 .map {
   position: relative;
   left: auto;

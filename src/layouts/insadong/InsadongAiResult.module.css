@@ -9,11 +9,11 @@
   pointer-events: none;
 }
 
-/* Fixed 2568px area (top 699 → bottom 573) that the content fills — no scroll,
-   like Figma. 40px top clears the selected-course peach cap (top: -40). */
+/* Fixed area (top 700 → bottom 573) that the content fills — no scroll, like
+   Figma. 40px top clears the selected-course peach cap (top: -40). */
 .content {
   position: absolute;
-  top: 699px;
+  top: 700px;
   left: 0;
   right: 0;
   bottom: 573px;
@@ -22,9 +22,17 @@
   flex-direction: column;
   align-items: center;
   gap: 65px;
-  overflow: hidden;
+  /* Scrolls (hidden scrollbar) when ♿ low-reach shortens the area. */
+  overflow-x: hidden;
+  overflow-y: auto;
+  scrollbar-width: none;
   padding: 40px 170px 0;
   font-family: var(--kiosk-font, sans-serif);
+}
+
+.content::-webkit-scrollbar {
+  width: 0;
+  height: 0;
 }
 
 /* ── Course header pills (A·B·C코스) ── */
@@ -38,21 +46,30 @@
   z-index: 2; /* above the peach folder cap */
 }
 
+/* Course label type from the 제주 course cards: 60 / 700, wrapping inside the
+   pill for a longer translation. */
 .tab {
+  border: none;
+  outline: none;
   box-sizing: border-box;
   width: 565px;
   height: 170px;
+  padding: 0 18px;
   display: flex;
   align-items: center;
   justify-content: center;
   background: #ffffff;
-  border: 5px solid #e8e8e8;
   border-radius: 42.9px;
   font-family: var(--kiosk-font, sans-serif);
   font-weight: 700;
-  font-size: 63px;
+  font-size: 60px;
+  line-height: 1.1;
   color: #616161;
+  text-align: center;
+  word-break: keep-all;
+  overflow-wrap: anywhere;
   cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
   transition: background 0.15s, border-color 0.15s, color 0.15s;
 }
 
@@ -74,6 +91,8 @@
 }
 
 .column {
+  border: none;
+  outline: none;
   box-sizing: border-box;
   width: 565px;
   display: flex;
@@ -82,12 +101,12 @@
   gap: 65px;
   padding: 65px 40px;
   background: #ffffff;
-  border: 5px solid #e8e8e8;
   border-radius: 42.9px;
 }
 
 /* ── A single recommended spot card (overview, clickable) ── */
 .spot {
+  outline: none;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -276,6 +295,8 @@
 }
 
 .wideCard {
+  border: none;
+  outline: none;
   box-sizing: border-box;
   width: 1700px;
   height: 515px;
@@ -285,7 +306,6 @@
   gap: 60px;
   padding: 65px 70px;
   background: #ffffff;
-  border: 5px solid #e8e8e8;
   border-radius: 42.9px;
   font-family: var(--kiosk-font, sans-serif);
   text-align: left;
@@ -363,6 +383,7 @@
 }
 
 .banner {
+  outline: none;
   position: absolute;
   left: 0;
   bottom: 0;

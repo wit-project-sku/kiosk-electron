@@ -336,16 +336,19 @@ interface AirportMap {
    */
   pinScale?: number;
   /**
-   * White slot height in px. Default is the Figma 813; taller upright plans
-   * (국내선 4F at 1.25:1) need more or the drawing is clipped by `.map`'s
-   * overflow. Sized so the plan fills the 1820-wide slot after `.zoomLayer`'s
-   * 40×50 padding: content width 1720 → height = 1720 × (h/w) + 80.
+   * White slot height in px. Default is the Figma 813, which leaves the plan
+   * 685px after `.zoomLayer`'s 64px top/bottom inset. The plan always draws at
+   * the full 1644 content width (its `max-height: 100%` has no definite height
+   * to resolve against), so any plan taller than 2.4:1 needs its own slot or its
+   * bottom is cut off by `.map`'s overflow: height = 1644 × (h/w) + 128.
    */
   height?: number;
 }
 
 const MAPS: Record<string, AirportMap> = {
-  'domestic-1F': { src: mapDomestic1f, srcEn: mapDomestic1fEn },
+  // 3640×1653 (2.20:1) draws 747 tall — at 813 its foot sat 2px off the card's
+  // edge, under the rounded corners. 875 gives it the same 64 inset as its top.
+  'domestic-1F': { src: mapDomestic1f, srcEn: mapDomestic1fEn, height: 875 },
   'domestic-2F': { src: mapDomestic2f, srcEn: mapDomestic2fEn },
   'domestic-3F': { src: mapDomestic3f, srcEn: mapDomestic3fEn },
   // No `srcEn`: 국내선 4F is the one plan with no lettering on it.
@@ -356,6 +359,9 @@ const MAPS: Record<string, AirportMap> = {
     src: mapInternational1f,
     srcEn: mapInternational1fEn,
     pinScale: 1.6,
+    // 3640×1797 (2.03:1) draws 812 tall — 63px more than the default 813 slot
+    // leaves, so its bottom row was cut off. 940 = 812 + the 64 inset above and below.
+    height: 940,
   },
   'international-3F': { src: mapInternational3f, srcEn: mapInternational3fEn },
 };
@@ -1097,7 +1103,11 @@ export function JejuHelp({ controller, initialCategory }: Props): JSX.Element {
     /* Same for the chip: keep it when the other terminal has the category (쇼핑
        is on both), else land on that terminal's first — 항공사 has no 국제선 rows. */
     const next = chipsFor(id);
-    if (!next.includes(category)) setCategory(next[0]!);
+    const chip = next.includes(category) ? category : next[0]!;
+    if (chip !== category) setCategory(chip);
+    /* 재생조건 "도와줘 -> 터미널·층·카테고리 선택": a terminal press is one of the
+       three picks that play ToHelp_Category (Toilet while 화장실 is the chip). */
+    void window.api.kiosk.setScreen(chip === RESTROOM_CHIP ? 'restroom' : 'help_category');
   };
 
   /**
@@ -1245,6 +1255,8 @@ export function JejuHelp({ controller, initialCategory }: Props): JSX.Element {
           onChange={(id) => {
             track({ floor: id });
             setFloor(id);
+            // Floor is the second of 터미널·층·카테고리 선택 — see pickTerminal.
+            void window.api.kiosk.setScreen(category === RESTROOM_CHIP ? 'restroom' : 'help_category');
           }}
         />
       )}
@@ -1282,7 +1294,8 @@ export function JejuHelp({ controller, initialCategory }: Props): JSX.Element {
                  * category, at which point the Toilet clip is no longer what they
                  * are looking at.
                  */
-                void window.api.kiosk.setScreen('help_category');
+                // 화장실 has its own clip (재생조건 "도와줘 '귤이' -> 화장실/흡연구역").
+                void window.api.kiosk.setScreen(id === RESTROOM_CHIP ? 'restroom' : 'help_category');
               }}
             >
               <span className={styles.pillLabel}>{chipLine(id, lang)}</span>
