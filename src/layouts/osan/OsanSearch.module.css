@@ -1,4 +1,10 @@
-/* 검색 (Osan) — same dimensions as InsadongSearch, navy accents. */
+/*
+ * 검색 (Osan) results — search bar + result cards, laid out like 제주's 검색
+ * (JejuSearch.module.css + JejuShopCard.module.css), as InsadongSearch: one
+ * scrolling column from y700, a 1350 field centred in the 1820 column, then
+ * 2×2-photo cards whose copy wraps. Osan's navy accents are kept; no borders
+ * or shadows.
+ */
 .bg {
   position: absolute;
   inset: 0;
@@ -8,9 +14,12 @@
   pointer-events: none;
 }
 
+/* top 700, gap 100 (search field → list), ends above the 573 banner. The 28px
+   scrollbar is carved out of the RIGHT margin so the content column stays
+   exactly 1820. */
 .results {
   position: absolute;
-  top: 699px;
+  top: 700px;
   left: 0;
   right: 0;
   bottom: 573px;
@@ -21,17 +30,21 @@
   gap: 100px;
   overflow-y: auto;
   overflow-x: hidden;
-  padding: 0 170px 80px;
+  padding: 0 136px 80px 170px;
 }
 
-.results::-webkit-scrollbar { width: 34px; }
+.results::-webkit-scrollbar {
+  width: 28px;
+}
 .results::-webkit-scrollbar-thumb {
   background: var(--kiosk-primary);
-  border-radius: 21.45px;
+  border-radius: 14px;
 }
-.results::-webkit-scrollbar-track { background: transparent; }
+.results::-webkit-scrollbar-track {
+  background: transparent;
+}
 
-/* Search re-entry row */
+/* ── Search bar ── */
 .searchRow {
   flex: none;
   width: 1820px;
@@ -41,21 +54,25 @@
   justify-content: center;
 }
 
+/* w1350 h182, rounded 120, px75. Flex-centred with no vertical padding, so a
+   query too long for one line wraps inside the 182 instead of being cut off. */
 .searchInput {
+  border: none;
+  outline: none;
   flex: none;
   width: 1350px;
-  height: 182px;
   box-sizing: border-box;
+  height: 182px;
   display: flex;
   align-items: center;
   justify-content: space-between;
+  gap: 20px;
+  padding: 0 75px;
   background: #ffffff;
-  border: 5px solid var(--kiosk-primary);
   border-radius: 120px;
-  padding: 55px 62px 55px 75px;
-  cursor: text;
-  overflow: hidden;
+  cursor: pointer;
   font-family: var(--kiosk-font, sans-serif);
+  -webkit-tap-highlight-color: transparent;
 }
 
 .inputTextWrap {
@@ -64,53 +81,60 @@
   display: flex;
   align-items: center;
   gap: 6px;
-  overflow: hidden;
 }
 
 .inputText,
 .inputPlaceholder {
   min-width: 0;
-  font-size: 60px;
+  font-size: 60.06px;
   font-weight: 600;
   line-height: 1;
-  white-space: nowrap;
-  overflow: hidden;
+  white-space: normal;
+  word-break: keep-all;
+  overflow-wrap: anywhere;
   text-align: left;
 }
 
 .inputText        { color: #232323; }
 .inputPlaceholder { color: #999999; }
 
-.searchIcon {
-  flex: none;
-  width: 80px;
-  height: 77px;
-  flex-shrink: 0;
-  color: var(--kiosk-primary);
-}
-
 .caret {
   flex: none;
-  width: 6px;
-  height: 68px;
+  width: 4px;
+  height: 62px;
   background: var(--kiosk-primary);
   animation: blink 1s step-end infinite;
 }
 
-@keyframes blink { 50% { opacity: 0; } }
+@keyframes blink {
+  50% {
+    opacity: 0;
+  }
+}
 
-/* Result list */
+.searchIcon {
+  flex: none;
+  width: 71px;
+  height: 68px;
+  color: var(--kiosk-primary);
+}
+
+/* List: w1820, gap 60 between cards. */
 .list {
   flex: none;
-  width: 100%;
+  width: 1820px;
   display: flex;
   flex-direction: column;
   gap: 60px;
 }
 
+/* Card R>리스트-사진4개: w1820, px45 py65, r42.9. 530 is a floor — a card with
+   longer copy grows. Inner: info ↔ photos(570), gap 40. */
 .card {
+  border: none;
+  outline: none;
   width: 100%;
-  height: 530px;
+  min-height: 530px;
   box-sizing: border-box;
   display: flex;
   align-items: center;
@@ -118,12 +142,10 @@
   gap: 40px;
   padding: 65px 45px;
   background: #ffffff;
-  border: 5px solid #e8e8e8;
   border-radius: 42.9px;
-  box-shadow: 0 21.45px 21.45px rgba(143, 147, 157, 0.1);
   text-align: left;
   cursor: pointer;
-  overflow: hidden;
+  -webkit-tap-highlight-color: transparent;
 }
 
 .info {
@@ -132,7 +154,6 @@
   display: flex;
   flex-direction: column;
   gap: 40px;
-  overflow: hidden;
   font-family: var(--kiosk-font, sans-serif);
 }
 
@@ -143,20 +164,37 @@
   min-width: 0;
 }
 
+/* Matched search-query text inside result cards — Osan primary colour. */
+.hl {
+  background: transparent;
+  color: var(--kiosk-primary);
+  font-weight: 700;
+}
+
+/* Every text line wraps — CMS copy in eight languages is shown whole. */
+.name,
+.cat,
+.address,
+.desc,
+.tags {
+  white-space: normal;
+  word-break: keep-all;
+  overflow-wrap: anywhere;
+}
+
 .name {
   flex: 0 1 auto;
   min-width: 0;
   font-weight: 600;
   font-size: 68px;
-  line-height: 1;
+  /* >1 so Latin descenders are not clipped. */
+  line-height: 1.2;
   color: #2b2b2b;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
 }
 
 .cat {
-  flex: none;
+  flex: 0 1 auto;
+  min-width: 0;
   display: flex;
   align-items: center;
   gap: 21.45px;
@@ -164,10 +202,10 @@
   font-size: 52px;
   line-height: 1;
   color: #999999;
-  white-space: nowrap;
 }
 
 .dot {
+  flex: 0 0 auto;
   width: 17px;
   height: 17px;
   border-radius: 50%;
@@ -180,9 +218,6 @@
   font-size: 48px;
   line-height: 1;
   color: #999999;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
 }
 
 .desc {
@@ -191,10 +226,6 @@
   font-size: 48px;
   line-height: 1.2;
   color: #2b2b2b;
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
 }
 
 .tags {
@@ -203,22 +234,19 @@
   font-size: 40px;
   line-height: 1;
   color: #999999;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
 }
 
-.hl { color: var(--kiosk-primary); font-weight: 700; }
-
+/* Thumbnails: 2×2 of 270×150. */
 .photos {
   width: 570px;
   flex: none;
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
+  grid-template-columns: 270px 270px;
   gap: 30px;
 }
 
 .thumb {
+  width: 270px;
   height: 150px;
   border-radius: 21.45px;
   overflow: hidden;
@@ -228,13 +256,17 @@
   width: 100%;
   height: 100%;
   object-fit: cover;
+  display: block;
 }
 
+/* Empty / prompt state. */
 .empty {
-  margin: auto;
+  flex: none;
+  margin: 120px 0 0;
   font-size: 60px;
+  font-weight: 500;
+  line-height: 1.3;
   color: #999999;
   text-align: center;
   font-family: var(--kiosk-font, sans-serif);
 }
-

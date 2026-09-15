@@ -1,12 +1,33 @@
+/**
+ * 환율 — the 제주 환율 page (JejuExchange.tsx, Figma 제주>환율) with 화성휴게소's
+ * header, colours and banner. One screen, two tabs:
+ *
+ *   실시간 환율  a read-only rate list — open by default
+ *   환율계산기   amount + currency → converted amount, with a numeric keypad
+ *                and a currency dropdown per field
+ *
+ * The keypad and the two dropdowns are mutually exclusive overlays — opening
+ * one closes the others, and a tap anywhere else closes all of them.
+ *
+ * ── Rate maths ────────────────────────────────────────────────────────
+ * `ExchangeRate.rate` is 매매기준율 in KRW per `unitSize` units, and the unit is
+ * baked into the Eximbank code: `JPY(100)` is quoted per 100, everything else
+ * per 1. KRW is NOT in the feed at all, so it is synthesized with rate 1. All
+ * conversion goes through `krwPerUnit` and nothing else divides.
+ */
+import { useMemo, useState } from 'react';
 import type { KioskController } from '@renderer/hooks/useKioskController';
 import { hwaseongIconUrl } from '@renderer/assets/icons/hwaseong';
-import { useLang } from '@renderer/lib/i18n';
+import { pick, useLang, type Lang } from '@renderer/lib/i18n';
+import { sheetText } from '@renderer/lib/loc';
 import { ui } from '@renderer/lib/uiText';
+import { useAccessibilityStore } from '@renderer/store/accessibilityStore';
 import { useExchangeStore } from '@renderer/store/exchangeStore';
+import korFlag from '@renderer/assets/photos/insadong/exchange/kor.png';
 import jpnFlag from '@renderer/assets/photos/insadong/exchange/jpn.svg';
 import usaFlag from '@renderer/assets/photos/insadong/exchange/usa.svg';
-import chyFlag from '@renderer/assets/photos/insadong/exchange/chy.svg';
 import eurFlag from '@renderer/assets/photos/insadong/exchange/eur.svg';
+import chyFlag from '@renderer/assets/photos/insadong/exchange/chy.svg';
 import gbpFlag from '@renderer/assets/photos/insadong/exchange/gbp.svg';
 import cadFlag from '@renderer/assets/photos/insadong/exchange/cad.svg';
 import hkgFlag from '@renderer/assets/photos/insadong/exchange/hkg.svg';
@@ -17,33 +38,213 @@ import { HwaseongBanner } from './HwaseongBanner';
 import { HwaseongLeftNav } from './HwaseongLeftNav';
 import styles from './HwaseongExchange.module.css';
 
-/** Currencies to show → API `cur_unit` + flag asset + display label. */
-const DISPLAY = [
-  { unit: 'JPY(100)', label: 'JPN (100¥)', flag: jpnFlag },
-  { unit: 'USD', label: 'USA (1$)', flag: usaFlag },
-  { unit: 'EUR', label: 'EUR (1€)', flag: eurFlag },
-  { unit: 'CNH', label: 'CHY (1¥)', flag: chyFlag },
-  { unit: 'GBP', label: 'GBP (1£)', flag: gbpFlag },
-  { unit: 'CAD', label: 'CAD (1$)', flag: cadFlag },
-  { unit: 'HKD', label: 'HKD (1$)', flag: hkgFlag },
-  { unit: 'THB', label: 'THB (1฿)', flag: thbFlag },
-  { unit: 'SAR', label: 'SAR (1﷼)', flag: sarFlag },
-];
-
 interface Props {
   controller: KioskController;
 }
 
-/** 환율 — live currency rates (same logic/data as the other kiosks, Figma style). */
+type TabId = 'calc' | 'live';
+/** Which field's dropdown is open, if any. */
+type Picker = 'from' | 'to' | null;
+
+interface Currency {
+  /** Eximbank `cur_unit` — the key into `ExchangeSnapshot.rates`. */
+  unit: string;
+  /** Code shown beside the flag in the calculator. */
+  ccy: string;
+  /** Row label in the 실시간 환율 list. */
+  label: string;
+  flag: string;
+}
+
+/** The nine listed currencies, plus KRW for the calculator. Codes are
+ *  Eximbank's, NOT ISO — Chinese yuan is `CNH`. */
+const CURRENCIES: Currency[] = [
+  { unit: 'KRW',      ccy: 'KRW', label: 'KOR (1₩)',   flag: korFlag },
+  { unit: 'JPY(100)', ccy: 'JPY', label: 'JPN (100¥)', flag: jpnFlag },
+  { unit: 'USD',      ccy: 'USD', label: 'USA (1$)',   flag: usaFlag },
+  { unit: 'EUR',      ccy: 'EUR', label: 'EUR (1€)',   flag: eurFlag },
+  { unit: 'CNH',      ccy: 'CNY', label: 'CHY (1¥)',   flag: chyFlag },
+  { unit: 'GBP',      ccy: 'GBP', label: 'GBP (1£)',   flag: gbpFlag },
+  { unit: 'CAD',      ccy: 'CAD', label: 'CAD (1$)',   flag: cadFlag },
+  { unit: 'HKD',      ccy: 'HKD', label: 'HKD (1$)',   flag: hkgFlag },
+  { unit: 'THB',      ccy: 'THB', label: 'THB (1฿)',   flag: thbFlag },
+  { unit: 'SAR',      ccy: 'SAR', label: 'SAR (1﷼)',   flag: sarFlag },
+];
+
+const byUnit = (unit: string): Currency =>
+  CURRENCIES.find((c) => c.unit === unit) ?? (CURRENCIES[0] as Currency);
+
+/** Drawn order; the first is the tab the page opens on. */
+const TABS: ReadonlyArray<{ id: TabId; key: string; label: Partial<Record<Lang, string>> }> = [
+  {
+    id: 'live',
+    key: 'Exchange_tab_2',
+    label: {
+      ko: '실시간 환율', en: 'Live Rates', ja: 'リアルタイム為替', zh: '实时汇率',
+      vi: 'Tỷ giá trực tiếp', th: 'อัตราเรียลไทม์', ru: 'Курсы валют', id: 'Kurs Terkini',
+    },
+  },
+  {
+    id: 'calc',
+    key: 'Exchange_tab_1',
+    label: {
+      ko: '환율계산기', en: 'Converter', ja: '為替計算機', zh: '汇率计算器',
+      vi: 'Máy tính tỷ giá', th: 'เครื่องคำนวณ', ru: 'Калькулятор', id: 'Kalkulator',
+    },
+  },
+];
+
+const AMOUNT_LABEL = {
+  ko: '금액:', en: 'Amount:', ja: '金額:', zh: '金额:',
+  vi: 'Số tiền:', th: 'จำนวนเงิน:', ru: 'Сумма:', id: 'Jumlah:',
+};
+
+const RESULT_LABEL = {
+  ko: '환전:', en: 'Converted:', ja: '換算:', zh: '兑换:',
+  vi: 'Quy đổi:', th: 'แลกเปลี่ยน:', ru: 'Обмен:', id: 'Konversi:',
+};
+
+const AMOUNT_PLACEHOLDER = {
+  ko: '금액을 입력하세요', en: 'Enter amount', ja: '金額を入力してください',
+  zh: '请输入金额', zh_cn: '请输入金额', zh_tw: '請輸入金額',
+  vi: 'Nhập số tiền', th: 'กรอกจำนวนเงิน', ru: 'Введите сумму',
+  id: 'Masukkan jumlah', es: 'Ingrese el importe',
+};
+
+const RESULT_PLACEHOLDER = {
+  ko: '자동으로 계산됩니다', en: 'Calculated automatically', ja: '自動で計算されます',
+  zh: '自动计算', zh_cn: '自动计算', zh_tw: '自動計算',
+  vi: 'Tự động tính', th: 'คำนวณอัตโนมัติ', ru: 'Рассчитается автоматически',
+  id: 'Dihitung otomatis', es: 'Se calcula automáticamente',
+};
+
+const BASE_LABEL = {
+  ko: '기준 환율', en: 'Base rate', ja: '基準為替レート', zh: '基准汇率',
+  vi: 'Tỷ giá cơ sở', th: 'อัตราอ้างอิง', ru: 'Базовый курс', id: 'Kurs dasar',
+};
+
+/** When the snapshot was fetched — `{t}` is the `26.08.30. 19:30` stamp. */
+const AS_OF = {
+  ko: '{t} 기준', en: 'As of {t}', ja: '{t} 基準', zh: '{t} 基准',
+  vi: 'Tính đến {t}', th: 'ณ {t}', ru: 'на {t}', id: 'Per {t}',
+};
+
+const NO_RATES = {
+  ko: '환율 정보를 불러오지 못했습니다.\n잠시 후 다시 시도해주세요.',
+  en: 'Exchange rates are unavailable.\nPlease try again shortly.',
+  ja: '為替レートを取得できませんでした。\nしばらくしてからお試しください。',
+  zh: '暂时无法获取汇率。\n请稍后再试。',
+  vi: 'Không tải được tỷ giá.\nVui lòng thử lại sau.',
+  th: 'ไม่สามารถโหลดอัตราแลกเปลี่ยนได้\nโปรดลองอีกครั้ง',
+  ru: 'Курсы валют недоступны.\nПопробуйте позже.',
+  id: 'Kurs tidak tersedia.\nSilakan coba lagi nanti.',
+};
+
+/** Localized sheet string, with the authored table behind it. */
+const exchangeText = (key: string, lang: Lang, fallback: Partial<Record<Lang, string>>): string =>
+  sheetText(key, lang, fallback);
+
+/** Eximbank bakes the quote size into the code: `JPY(100)` is per 100 yen. */
+function unitSize(unit: string): number {
+  return /\(100\)/.test(unit) ? 100 : 1;
+}
+
+const KEYS = ['1', '2', '3', '4', '5', '6', '7', '8', '9'];
+
+function groupDigits(digits: string): string {
+  return Number(digits || '0').toLocaleString('en-US');
+}
+
+/** Trim to at most 2 decimals, then group — 1,460,150 / 0.72 / 9.19. */
+function formatAmount(value: number): string {
+  if (!Number.isFinite(value)) return '—';
+  return value.toLocaleString('en-US', { maximumFractionDigits: 2 });
+}
+
+/** `fetchedAt` → `26.08.30. 19:30`. */
+function formatFetchedAt(iso: string | undefined): string | undefined {
+  if (!iso) return undefined;
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return undefined;
+  const p = (n: number): string => String(n).padStart(2, '0');
+  return `${p(d.getFullYear() % 100)}.${p(d.getMonth() + 1)}.${p(d.getDate())}. ${p(d.getHours())}:${p(d.getMinutes())}`;
+}
+
+/** 환율 — live currency rates + converter (same data as the other kiosks). */
 export function HwaseongExchange({ controller }: Props): JSX.Element {
+  const goHome = (): void => controller.navigate('home', 'Back');
   const lang = useLang();
   const exchange = useExchangeStore((s) => s.exchange);
+  const lowReach = useAccessibilityStore((s) => s.lowReach);
   const won = ui('won', lang);
 
-  const rows = DISPLAY.map((d) => {
-    const match = exchange?.rates.find((r) => r.code === d.unit);
-    return { ...d, rateText: match ? `${match.rateText}${won}` : '—' };
+  const [tab, setTab] = useState<TabId>('live');
+  const [fromUnit, setFromUnit] = useState('USD');
+  const [toUnit, setToUnit] = useState('KRW');
+  const [digits, setDigits] = useState('');
+  const [picker, setPicker] = useState<Picker>(null);
+  const [keypad, setKeypad] = useState(false);
+
+  /** KRW per ONE unit of `unit`; `undefined` when the feed has no row. */
+  const krwPerUnit = useMemo(() => {
+    return (unit: string): number | undefined => {
+      if (unit === 'KRW') return 1;
+      const row = exchange?.rates.find((r) => r.code === unit);
+      if (!row || !Number.isFinite(row.rate) || row.rate <= 0) return undefined;
+      return row.rate / unitSize(unit);
+    };
+  }, [exchange]);
+
+  const from = byUnit(fromUnit);
+  const to = byUnit(toUnit);
+  const fromRate = krwPerUnit(fromUnit);
+  const toRate = krwPerUnit(toUnit);
+
+  const convert = (value: number): number | undefined =>
+    fromRate !== undefined && toRate !== undefined ? (value * fromRate) / toRate : undefined;
+
+  const result = convert(Number(digits || '0'));
+  const oneUnit = convert(1);
+
+  const closeOverlays = (): void => {
+    setPicker(null);
+    setKeypad(false);
+  };
+
+  const openKeypad = (): void => {
+    setPicker(null);
+    setKeypad(true);
+  };
+
+  const openPicker = (which: Exclude<Picker, null>): void => {
+    setKeypad(false);
+    setPicker((cur) => (cur === which ? null : which));
+  };
+
+  const chooseCurrency = (unit: string): void => {
+    if (picker === 'from') setFromUnit(unit);
+    else if (picker === 'to') setToUnit(unit);
+    setPicker(null);
+  };
+
+  // Cap the entry so a leaned-on key can't overflow the 1050px value slot.
+  const pressKey = (key: string): void => setDigits((d) => (d.replace(/^0+/, '') + key).slice(0, 12));
+  const backspace = (): void => setDigits((d) => d.slice(0, -1));
+
+  /** Swap the two currencies; the typed amount stays as typed. */
+  const swap = (): void => {
+    setFromUnit(toUnit);
+    setToUnit(fromUnit);
+    closeOverlays();
+  };
+
+  const liveRows = CURRENCIES.filter((c) => c.unit !== 'KRW').map((c) => {
+    const row = exchange?.rates.find((r) => r.code === c.unit);
+    return { ...c, rateText: row ? `${row.rateText}${won}` : '—' };
   });
+
+  const overlayOpen = keypad || picker !== null;
+  const asOf = formatFetchedAt(exchange?.fetchedAt);
 
   return (
     <div className={styles.root}>
@@ -54,21 +255,177 @@ export function HwaseongExchange({ controller }: Props): JSX.Element {
 
       <HwaseongHeader controller={controller} title="환율" />
 
-      <div className={styles.results}>
-        <div className={styles.list}>
-          {rows.map((c) => (
-            <div key={c.unit} className={styles.row}>
-              <div className={styles.left}>
-                <img className={styles.flag} src={c.flag} alt="" draggable={false} />
-                <span className={styles.label}>{c.label}</span>
-              </div>
-              <span className={styles.rate}>{c.rateText}</span>
-            </div>
-          ))}
-        </div>
+      <div className={styles.tabs}>
+        {TABS.map((t) => (
+          <button
+            key={t.id}
+            type="button"
+            className={`${styles.tab} ${tab === t.id ? styles.tabActive : ''}`}
+            aria-pressed={tab === t.id}
+            onClick={() => {
+              closeOverlays();
+              setTab(t.id);
+            }}
+          >
+            {exchangeText(t.key, lang, t.label)}
+          </button>
+        ))}
       </div>
 
-      <HwaseongLeftNav onHome={() => controller.navigate('home', 'Back')} />
+      {tab === 'calc' ? (
+        <>
+          <div className={styles.basePill}>
+            <span className={styles.basePillLabel}>{exchangeText('Exchange_desc_1', lang, BASE_LABEL)}</span>
+            <span className={styles.basePillRate}>
+              {oneUnit === undefined
+                ? `1 ${from.ccy} = — ${to.ccy}`
+                : `1 ${from.ccy} = ${formatAmount(oneUnit)} ${to.ccy}`}
+            </span>
+            {asOf !== undefined && (
+              <span className={styles.basePillStamp}>{pick(AS_OF, lang).replace('{t}', asOf)}</span>
+            )}
+          </div>
+
+          {/* Closes whichever overlay is open; sits under them, over everything else. */}
+          {overlayOpen && (
+            <button type="button" className={styles.backdrop} aria-label="닫기" onClick={closeOverlays} />
+          )}
+
+          {/* ── 금액 ── */}
+          <p className={`${styles.fieldLabel} ${styles.labelAmount}`}>{pick(AMOUNT_LABEL, lang)}</p>
+          <button
+            type="button"
+            className={`${styles.field} ${styles.fieldAmount}`}
+            onClick={openKeypad}
+            aria-label={pick(AMOUNT_LABEL, lang)}
+          />
+          <p className={`${styles.value} ${styles.valueAmount} ${digits === '' ? styles.placeholder : ''}`}>
+            {digits === '' ? (
+              <>
+                {keypad && <span className={styles.caretBar} />}
+                {pick(AMOUNT_PLACEHOLDER, lang)}
+              </>
+            ) : (
+              <>
+                {groupDigits(digits)}
+                {keypad && <span className={styles.caretBar} />}
+              </>
+            )}
+          </p>
+          <button type="button" className={`${styles.ccyBtn} ${styles.ccyAmount}`} onClick={() => openPicker('from')}>
+            <img src={from.flag} alt="" className={styles.ccyFlag} draggable={false} />
+            <span className={styles.ccyCode}>{from.ccy}</span>
+          </button>
+          <p className={`${styles.caret} ${styles.caretAmount}`}>▼</p>
+
+          <button type="button" className={styles.swap} onClick={swap} aria-label="통화 바꾸기">
+            <svg className={styles.swapIcon} viewBox="0 0 162 162" aria-hidden="true">
+              <circle cx="81" cy="81" r="81" fill="currentColor" />
+              <path
+                d="M62 112V50M44 68l18-18 18 18M100 50v62M82 94l18 18 18-18"
+                fill="none"
+                stroke="#ffffff"
+                strokeWidth="9"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            </svg>
+          </button>
+
+          {/* ── 환전 ── */}
+          <p className={`${styles.fieldLabel} ${styles.labelResult}`}>{pick(RESULT_LABEL, lang)}</p>
+          <div className={`${styles.field} ${styles.fieldResult}`} />
+          <p className={`${styles.value} ${styles.valueResult} ${digits === '' ? styles.placeholder : ''}`}>
+            {digits === '' ? pick(RESULT_PLACEHOLDER, lang) : result === undefined ? '—' : formatAmount(result)}
+          </p>
+          <button type="button" className={`${styles.ccyBtn} ${styles.ccyResult}`} onClick={() => openPicker('to')}>
+            <img src={to.flag} alt="" className={styles.ccyFlag} draggable={false} />
+            <span className={styles.ccyCode}>{to.ccy}</span>
+          </button>
+          <p className={`${styles.caret} ${styles.caretResult}`}>▼</p>
+
+          {picker !== null && (
+            <div
+              className={[
+                styles.dropdown,
+                picker === 'from' ? styles.dropdownAmount : styles.dropdownResult,
+                picker === 'to' && lowReach ? styles.dropdownResultLow : '',
+              ].join(' ')}
+            >
+              {CURRENCIES.map((c) => (
+                <button key={c.unit} type="button" className={styles.option} onClick={() => chooseCurrency(c.unit)}>
+                  <img src={c.flag} alt="" className={styles.ccyFlag} draggable={false} />
+                  <span className={styles.ccyCode}>{c.ccy}</span>
+                  {c.unit === (picker === 'from' ? fromUnit : toUnit) && (
+                    <span className={styles.optionCaret} aria-hidden="true">
+                      ▼
+                    </span>
+                  )}
+                </button>
+              ))}
+            </div>
+          )}
+
+          {keypad && (
+            <div className={`${styles.keypad} ${lowReach ? styles.keypadLow : ''}`}>
+              <div className={styles.keypadScrim} />
+              <div className={styles.keys}>
+                {[0, 1, 2].map((row) => (
+                  <div key={row} className={styles.keyRow}>
+                    {KEYS.slice(row * 3, row * 3 + 3).map((k) => (
+                      <button key={k} type="button" className={styles.key} onClick={() => pressKey(k)}>
+                        {k}
+                      </button>
+                    ))}
+                  </div>
+                ))}
+                <div className={`${styles.keyRow} ${styles.keyRowShort}`}>
+                  <button type="button" className={styles.key} onClick={() => pressKey('0')}>
+                    0
+                  </button>
+                  <button type="button" className={styles.key} onClick={backspace} aria-label="지우기">
+                    <svg className={styles.keyIcon} viewBox="0 0 115 83" aria-hidden="true">
+                      <path
+                        d="M36 5h69a6 6 0 0 1 6 6v61a6 6 0 0 1-6 6H36L5 41.5z"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="6"
+                        strokeLinejoin="round"
+                      />
+                      <path d="M57 27l29 29M86 27L57 56" stroke="currentColor" strokeWidth="6" strokeLinecap="round" />
+                    </svg>
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+        </>
+      ) : (
+        <>
+          {exchange && asOf !== undefined && (
+            <p className={styles.liveStamp}>{pick(AS_OF, lang).replace('{t}', asOf)}</p>
+          )}
+          <div className={styles.liveScroll}>
+            {exchange ? (
+              <div className={styles.liveList}>
+                {liveRows.map((r) => (
+                  <div key={r.unit} className={styles.liveRow}>
+                    <span className={styles.liveLeft}>
+                      <img src={r.flag} alt="" className={`${styles.ccyFlag} ${styles.liveFlag}`} draggable={false} />
+                      <span className={styles.liveLabel}>{r.label}</span>
+                    </span>
+                    <span className={styles.liveRate}>{r.rateText}</span>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p className={styles.empty}>{pick(NO_RATES, lang)}</p>
+            )}
+          </div>
+        </>
+      )}
+
+      <HwaseongLeftNav onHome={goHome} />
 
       <HwaseongBanner onClick={() => controller.startPhoto()} />
     </div>

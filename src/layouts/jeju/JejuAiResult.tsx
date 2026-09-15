@@ -81,16 +81,10 @@ export interface Course {
  * label `navigate()` records and the string the detail screen matches on.
  */
 /**
- * The card blurb — sheet row per course; authored `course.desc` is the fallback.
+ * The card blurb. Localization_Jeju_v2 retired the per-course ACourseDesc3 /
+ * BCourseDesc3 / CCourseDesc3 rows, so it is the authored `course.desc` only.
  */
-const COURSE_DESC_KEY: Record<string, string> = {
-  nature: 'ACourseDesc3',
-  food: 'BCourseDesc3',
-  family: 'CCourseDesc3',
-};
-
-const courseDesc = (course: Course, lang: Lang): string =>
-  sheetText(COURSE_DESC_KEY[course.key] ?? 'ACourseDesc3', lang, course.desc);
+const courseDesc = (course: Course, lang: Lang): string => pick(course.desc, lang);
 
 /** Also drawn by the 뭐하지 landing's course cards (JejuAiSearch) — one source for both. */
 export const COURSES: Course[] = [
@@ -261,7 +255,7 @@ export function JejuAiResult({ controller }: Props): JSX.Element {
     <JejuPageFrame
       controller={controller}
       title="'제주' 뭐하지 (AI 검색)"
-      subtitle={sheetText('Course_Subtitle', lang, T.subtitle)}
+      subtitle={sheetText('Jeju_Todo_Subtitle1', lang, T.subtitle)}
       bannerFallback="banner-detail"
       /* Back to the questionnaire this visitor just filled in, not to the course
          picker in front of it: this page is only reached through AI 맞춤 추천

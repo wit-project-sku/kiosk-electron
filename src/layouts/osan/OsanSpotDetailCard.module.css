@@ -1,10 +1,12 @@
-/* Shared spot-detail card — the AI 검색상세 design (Figma node 4167:90939),
-   reused by the AI detail and every list/search 상세. Artboard 2160×3840. */
-/* Fixed area (top 699 → bottom 573) — the card fits without scrolling, like
-   Figma. The description/tags are line-clamped so long text can't force a scroll. */
+/* Shared spot-detail card — the AI 검색상세 design, reused by the AI detail and
+   every list/search 상세. Artboard 2160×3840. Spacing and text behaviour follow
+   the 제주 상세 card (JejuSpotDetailCard.module.css): name and category wrap,
+   info lines wrap beside their icons, 30 between info rows, a 280 QR plate. */
+/* Fixed area (top 700 → bottom 573) — the card fits without scrolling. The
+   description/tags are line-clamped so long text can't force a scroll. */
 .content {
   position: absolute;
-  top: 699px;
+  top: 700px;
   left: 0;
   right: 0;
   bottom: 573px;
@@ -12,12 +14,22 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  overflow: hidden;
+  /* Scrolls (hidden scrollbar) when ♿ low-reach shortens the area. */
+  overflow-x: hidden;
+  overflow-y: auto;
+  scrollbar-width: none;
   padding: 0 170px 60px;
   font-family: var(--kiosk-font, sans-serif);
 }
 
+.content::-webkit-scrollbar {
+  width: 0;
+  height: 0;
+}
+
 .card {
+  border: none;
+  outline: none;
   box-sizing: border-box;
   width: 1820px;
   display: flex;
@@ -25,7 +37,6 @@
   gap: 65px;
   padding: 26.98px 45px 100px;
   background: #ffffff;
-  border: 5px solid #e8e8e8;
   border-radius: 42.9px;
 }
 
@@ -40,24 +51,37 @@
   display: flex;
   align-items: center;
   gap: 42.9px;
+  min-width: 0;
 }
 
+/* Wraps rather than running off the card — the whole name, on as many lines as
+   it needs. */
 .title {
+  flex: 0 1 auto;
+  min-width: 0;
   margin: 0;
   font-weight: 700;
   font-size: 85px;
   color: #333333;
   line-height: 1;
+  white-space: normal;
+  word-break: keep-all;
+  overflow-wrap: anywhere;
 }
 
 .cat {
   display: flex;
   align-items: center;
   gap: 21.45px;
+  flex: 0 1 auto;
+  min-width: 0;
   font-weight: 400;
   font-size: 51px;
   color: #999999;
   line-height: 1;
+  white-space: normal;
+  word-break: keep-all;
+  overflow-wrap: anywhere;
 }
 
 .dot {
@@ -83,6 +107,8 @@
 }
 
 .galleryCell[data-clickable='true'] {
+  border: none;
+  outline: none;
   cursor: pointer;
   -webkit-tap-highlight-color: transparent;
 }
@@ -115,13 +141,15 @@
 .infoCol {
   display: flex;
   flex-direction: column;
-  gap: 40px;
+  gap: 30px;
+  min-width: 0;
 }
 
 .infoRow {
   display: flex;
   align-items: center;
   gap: 20px;
+  min-width: 0;
 }
 
 .infoIcon {
@@ -131,29 +159,38 @@
   object-fit: contain;
 }
 
+/* Wraps — a long address or hours line takes a second line beside its icon;
+   .infoCol shrinks to leave the QR its room. */
 .infoText {
+  min-width: 0;
   font-weight: 400;
   font-size: 55px;
   color: #333333;
-  line-height: 1; /* Figma: leading-none */
+  line-height: 1;
+  white-space: normal;
+  word-break: keep-all;
+  overflow-wrap: anywhere;
 }
 
 .infoTextCol {
   display: flex;
   flex-direction: column;
   gap: 20px;
+  min-width: 0;
 }
 
+/* 280 plate with the code inset to ~198 (the 제주 QR frame). */
 .qr {
+  border: none;
+  outline: none;
   flex: none;
   box-sizing: border-box;
-  width: 340px;
-  height: 340px;
-  border: 4.29px solid var(--kiosk-primary);
+  width: 280px;
+  height: 280px;
+  margin-right: 60px;
   border-radius: 25px;
   background: #ffffff;
-  /* QR sits inset inside the 340 box; larger padding = smaller code, box unchanged. */
-  padding: 78px;
+  padding: 41px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -173,7 +210,7 @@
   font-size: 55px;
   color: #333333;
   line-height: 1.3;
-  /* Figma allots h220 (~3 lines at 55px/1.3); clamp so the card always fits. */
+  /* ~3 lines at 55px/1.3; clamp so the card always fits. */
   display: -webkit-box;
   -webkit-line-clamp: 3;
   -webkit-box-orient: vertical;

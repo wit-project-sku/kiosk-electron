@@ -1,20 +1,22 @@
-/* 전국시장 — exact Figma (node 4167:173323). Region tabs + photo+QR cards. */
+/*
+ * 전국시장 / 전국 휴게소 (HwaseongMarketList) — region tabs + photo/QR cards,
+ * laid out like 제주's list pages as InsadongHelp's facility cards: one
+ * scrolling column under the 700 header, 5 × 340 region chips, then cards 52
+ * apart. Hwaseong's colours are kept; no borders or shadows.
+ */
+/* Fills whatever box the kiosk gives the page (the full artboard, or the
+   shorter ♿ low-reach box) so `bottom:` rules land at the artboard foot. */
 .root {
   position: absolute;
   inset: 0;
-  width: 2160px;
-  height: 3840px;
   overflow: hidden;
   background: #fff;
-  font-family: 'Noto Sans KR', 'Noto Sans', sans-serif;
+  font-family: var(--kiosk-font, sans-serif);
 }
 
 .bgBase {
   position: absolute;
-  left: 0;
-  top: 0;
-  width: 2160px;
-  height: 3840px;
+  inset: 0;
   background: #fff;
 }
 
@@ -27,106 +29,125 @@
   pointer-events: none;
 }
 
-/* Full-width scroll area → scrollbar in the outer padding (Figma thumb var(--kiosk-primary)). */
+/* top 700 → above the 573 banner, gap 50 (chips → first card). The 28px
+   scrollbar is carved out of the RIGHT margin so the column stays 1820. */
 .results {
   position: absolute;
-  top: 699px;
+  top: 700px;
   left: 0;
   right: 0;
   bottom: 573px;
   box-sizing: border-box;
-  padding: 0 136px 80px 170px;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 60px;
+  gap: 50px;
   overflow-y: auto;
   overflow-x: hidden;
-  scrollbar-gutter: stable;
+  padding: 0 136px 80px 170px;
 }
 
-.results::-webkit-scrollbar { width: 34.32px; }
-.results::-webkit-scrollbar-thumb { background: var(--kiosk-primary); border-radius: 21.45px; }
-.results::-webkit-scrollbar-track { background: transparent; }
+.results::-webkit-scrollbar {
+  width: 28px;
+}
+.results::-webkit-scrollbar-thumb {
+  background: var(--kiosk-primary);
+  border-radius: 14px;
+}
+.results::-webkit-scrollbar-track {
+  background: transparent;
+}
 
-/* ── Region tabs (340×170, 5 per row × 2, 30px gap, 35px row gap) ── */
+/* Region chips — a 5-column grid of 340×170 (30 / 35 gaps), short last row
+   kept to the left edge. */
 .tabs {
   flex: none;
   width: 1820px;
-  display: flex;
-  flex-wrap: wrap;
-  align-content: flex-start;
-  justify-content: flex-start;
-  gap: 35px 30px;
+  display: grid;
+  grid-template-columns: repeat(5, 340px);
+  column-gap: 30px;
+  row-gap: 35px;
 }
 
+/* One 50px line in Korean; longer translations wrap inside the plate, which
+   grows (the grid row stretches its siblings to match). */
 .tab {
+  border: none;
+  outline: none;
+  box-sizing: border-box;
   width: 340px;
-  height: 170px;
-  flex-shrink: 0;
+  min-height: 170px;
+  padding: 0 12px;
   display: flex;
   align-items: center;
   justify-content: center;
   background: #fff;
-  border: 5px solid #e8e8e8;
   border-radius: 42.9px;
-  box-shadow: 0 21.45px 42.9px rgba(143, 147, 157, 0.1);
-  font-size: 50px;
+  font-family: var(--kiosk-font, sans-serif);
   font-weight: 500;
+  font-size: 50px;
+  line-height: 1.15;
   color: #999;
-  line-height: 1;
+  text-align: center;
+  white-space: normal;
+  word-break: keep-all;
+  overflow-wrap: anywhere;
   cursor: pointer;
   -webkit-tap-highlight-color: transparent;
-  font-variation-settings: 'CTGR' 0, 'wdth' 100;
 }
 
 .tabSelected {
   background: var(--kiosk-secondary);
-  color: var(--kiosk-primary);
   font-weight: 700;
+  color: var(--kiosk-primary);
 }
 
-/* ── Market card: 1820×540, single 730×410 photo + info + 180 QR ── */
+/* Market card (single photo + info + QR) — the white 1820 plate itself. The
+   cards sit straight in .results (50 apart), so +2 makes the 52 of 제주's list.
+   540 is a floor — a card whose name wraps grows. */
 .card {
+  border: none;
+  outline: none;
   position: relative;
   flex: none;
   width: 1820px;
-  height: 540px;
+  min-height: 540px;
+  box-sizing: border-box;
   padding: 0;
-  border: none;
-  background: none;
+  background: #fff;
+  border-radius: 42.9px;
   text-align: left;
   cursor: pointer;
   -webkit-tap-highlight-color: transparent;
 }
 
+.card + .card {
+  margin-top: 2px;
+}
+
+/* Photo ↔ info, gap 60, padding 65 / 45. In flow, so the plate grows with it. */
 .cardInner {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 1820px;
   box-sizing: border-box;
+  width: 100%;
   display: flex;
+  align-items: flex-start;
   gap: 60px;
-  padding: 65px 40px;
-  background: #fff;
-  border: 2px solid #e8e8e8;
-  border-radius: 42.9px;
-  filter: drop-shadow(0 21.45px 21.45px rgba(143, 147, 157, 0.1));
+  padding: 65px 45px;
 }
 
 .thumb {
   width: 730px;
   height: 410px;
+  flex: none;
   border-radius: 42.9px;
   overflow: hidden;
-  flex-shrink: 0;
 }
 
 .thumb img {
   width: 100%;
   height: 100%;
   object-fit: cover;
+  display: block;
 }
 
 .thumbEmpty {
@@ -135,124 +156,108 @@
   background: #ededed;
 }
 
+/* padding-right 260 reserves the QR's column (180 + gap) so the single-line
+   address / hours / tags ellipsise before running underneath it. */
 .info {
-  width: 937.359px;
-  flex-shrink: 0;
+  flex: 1;
+  min-width: 0;
   display: flex;
   flex-direction: column;
   gap: 40px;
-  overflow: hidden;
-  /* Reserve the right edge for the absolutely-positioned QR (left:1587, w:180)
-     so the name/address/tags truncate before they run underneath it. */
-  box-sizing: border-box;
-  padding-right: 210px;
+  padding-right: 260px;
+  font-family: var(--kiosk-font, sans-serif);
 }
 
 .nameRow {
   display: flex;
   align-items: center;
-  gap: 42.9px;
+  gap: 40px;
   min-width: 0;
 }
 
+/* Name and region may wrap onto a second line rather than ellipsise. */
 .name {
   flex: 0 1 auto;
   min-width: 0;
-  font-size: 68px;
   font-weight: 600;
+  font-size: 68px;
+  line-height: 1.2;
   color: #2b2b2b;
-  line-height: 1;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  font-variation-settings: 'CTGR' 0, 'wdth' 100;
+  white-space: normal;
+  word-break: keep-all;
+  overflow-wrap: anywhere;
 }
 
 .region {
-  flex: none;
+  flex: 0 1 auto;
+  min-width: 0;
   display: flex;
   align-items: center;
   gap: 21.45px;
-  font-size: 52px;
   font-weight: 400;
-  color: #d9d9d9;
+  font-size: 52px;
   line-height: 1;
-  white-space: nowrap;
-  font-variation-settings: 'CTGR' 0, 'wdth' 100;
+  color: #d9d9d9;
+  white-space: normal;
+  word-break: keep-all;
+  overflow-wrap: anywhere;
 }
 
 .dot {
+  flex: 0 0 auto;
   width: 17px;
   height: 17px;
   border-radius: 50%;
   background: var(--kiosk-primary);
-  flex-shrink: 0;
 }
 
+/* The lower lines stay single-line: the QR sits in the card's bottom-right
+   corner, and a wrapped line would run underneath it. */
 .address {
   margin: 0;
-  font-size: 48px;
   font-weight: 500;
-  color: #d9d9d9;
+  font-size: 48px;
   line-height: 1;
+  color: #d9d9d9;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  font-variation-settings: 'CTGR' 0, 'wdth' 100;
 }
 
 .hours {
   margin: 0;
-  font-size: 49px;
   font-weight: 500;
-  color: #2b2b2b;
+  font-size: 48px;
   line-height: 1;
+  color: #2b2b2b;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  font-variation-settings: 'CTGR' 0, 'wdth' 100;
 }
 
 .tags {
   margin: 0;
-  font-size: 43px;
   font-weight: 400;
-  color: #d9d9d9;
+  font-size: 40px;
   line-height: 1;
+  color: #d9d9d9;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  font-variation-settings: 'CTGR' 0, 'wdth' 100;
 }
 
-/* QR — 180×180, 5px var(--kiosk-primary) border, radius 25, bottom-right of the card */
+/* QR — 180×180, rounded 25, bottom-right of the card (right 45 = card padding). */
 .qr {
+  border: none;
+  outline: none;
   position: absolute;
-  left: 1587px;
-  top: 304px;
+  right: 45px;
+  bottom: 46px;
+  box-sizing: border-box;
   width: 180px;
   height: 180px;
-  box-sizing: border-box;
-  border: 5px solid var(--kiosk-primary);
-  border-radius: 25px;
+  padding: 22px;
   background: #fff;
-  padding: 26px;
-}
-
-/* ── Bottom banner ── */
-.banner {
-  position: absolute;
-  top: 3267px;
-  left: 0;
-  width: 2160px;
-  height: 573px;
-  pointer-events: none;
-}
-
-.bannerImg {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  display: block;
-  pointer-events: none;
+  border-radius: 25px;
+  overflow: hidden;
 }

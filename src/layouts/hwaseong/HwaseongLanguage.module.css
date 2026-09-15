@@ -1,25 +1,23 @@
-/* ── Language screen — 화성휴게소 (W005) ─────────────────────────
-   All measurements in Figma px: 1 CSS px = 1 Figma px inside KioskArtboard.
-   Artboard: 2160 × 3840.
-───────────────────────────────────────────────────────────────── */
-
+/*
+ * 언어선택 (화성휴게소, W005) — laid out like 제주's 언어선택
+ * (JejuLanguage.module.css, Figma 6212:50714), as InsadongLanguage: from y700,
+ * label row → 65 → 현재 언어 card, 150 → 변경 언어 label → 65 → a 2×4 grid of
+ * 875×320 cards (70 across, 100 down). Hwaseong's fills are kept; no borders
+ * or shadows.
+ */
+/* Fills whatever box the kiosk gives the page (the full artboard, or the
+   shorter ♿ low-reach box) so `bottom:` rules land at the artboard foot. */
 .root {
   position: absolute;
   inset: 0;
-  width: 2160px;
-  height: 3840px;
   overflow: hidden;
-  font-family: 'Noto Sans KR', 'Noto Sans', sans-serif;
+  font-family: var(--kiosk-font, sans-serif);
 }
 
-/* ── Background ─────────────────────────────────────── */
 .bgBase {
   position: absolute;
+  inset: 0;
   background: #fff;
-  left: 0;
-  top: 0;
-  width: 2160px;
-  height: 3840px;
 }
 
 .bgImage {
@@ -31,182 +29,36 @@
   pointer-events: none;
 }
 
-/* ── Header (Component 29) ──────────────────────────── */
-/* h-700px  pt-125  pb-80  px-170  gap-65 (between inner rows and subtitle) */
-.header {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 2160px;
-  height: 700px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 125px 170px 80px;
-  gap: 65px;
-  box-sizing: border-box;
-}
-
-/* Inner rows container: flex-col gap-105 */
-.headerRows {
-  display: flex;
-  flex-direction: column;
-  gap: 105px;
-  width: 1820px;
-  flex-shrink: 0;
-}
-
-/* Row 1: HWASEONG SA + date */
-.headerTopRow {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  width: 1820px;
-  height: 82px;
-}
-
-.headerLeft {
-  display: flex;
-  align-items: center;
-  gap: 25.74px;
-  height: 82px;
-}
-
-.locationIcon {
-  width: 63px;
-  height: 82px;
-  object-fit: contain;
-  flex-shrink: 0;
-}
-
-.siteName {
-  font-size: 68px;
-  font-weight: 700;
-  color: var(--kiosk-primary);
-  white-space: nowrap;
-  line-height: 1;
-  font-variation-settings: 'CTGR' 0, 'wdth' 100;
-}
-
-.headerDate {
-  font-size: 68px;
-  font-weight: 700;
-  color: #232323;
-  white-space: nowrap;
-  line-height: 1;
-  font-variation-settings: 'CTGR' 0, 'wdth' 100;
-}
-
-/* Row 2: home icon | 언어선택 title | back icon */
-.headerTitleRow {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  width: 1820px;
-  height: 182px;
-}
-
-.headerHomeIcon {
-  width: 175px;
-  height: 175px;
-  object-fit: contain;
-  cursor: pointer;
-  flex-shrink: 0;
-  -webkit-tap-highlight-color: transparent;
-}
-
-.headerHomeIconBtn {
-  width: 175px;
-  height: 175px;
-  background: none;
-  border: none;
-  padding: 0;
-  cursor: pointer;
-  flex-shrink: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 50%;
-  background: var(--kiosk-primary);
-  -webkit-tap-highlight-color: transparent;
-}
-
-.headerTitleBox {
-  /* no bg, no border — transparent title label */
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 1342px;
-  height: 182px;
-  padding: 50px 75px;
-  border-radius: 117.974px;
-  box-sizing: border-box;
-}
-
-.headerTitleText {
-  font-size: 78px;
-  font-weight: 700;
-  color: #000;
-  text-align: center;
-  line-height: 1;
-  font-variation-settings: 'CTGR' 0, 'wdth' 100;
-}
-
-.headerBackBtn {
-  width: 175px;
-  height: 175px;
-  object-fit: contain;
-  cursor: pointer;
-  flex-shrink: 0;
-  -webkit-tap-highlight-color: transparent;
-}
-
-/* Subtitle: ★ 페이지 설명문 */
-.subtitle {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 12px;
-  width: 1820px;
-  flex-shrink: 0;
-}
-
-.subtitleStar {
-  font-size: 36px;
-  color: #909090;
-  line-height: 1;
-}
-
-.subtitleText {
-  font-size: 60.06px;
-  font-weight: 700;
-  color: #909090;
-  white-space: nowrap;
-  font-variation-settings: 'CTGR' 0, 'wdth' 100;
-}
-
-/* ── Language selection area ─────────────────────────
-   top-699, bottom-573 (above bottom nav+banner), px-170 */
+/* top 700 → above the 573 banner. Top-aligned (no justify-content:center) so a
+   tall list scrolls instead of clipping. The 28px scrollbar is carved out of
+   the right margin. */
 .area {
   position: absolute;
-  top: 699px;
+  top: 700px;
   left: 0;
   right: 0;
   bottom: 573px;
+  box-sizing: border-box;
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 150px;
-  padding: 0 170px;
+  padding: 0 136px 0 170px;
   overflow-y: auto;
   overflow-x: hidden;
-  box-sizing: border-box;
 }
 
-.area::-webkit-scrollbar { width: 0; }
+.area::-webkit-scrollbar {
+  width: 28px;
+}
+.area::-webkit-scrollbar-thumb {
+  background: var(--kiosk-primary);
+  border-radius: 14px;
+}
+.area::-webkit-scrollbar-track {
+  background: transparent;
+}
 
-/* Section (현재언어영역 / 변경언어영역) */
 .section {
   flex: none;
   display: flex;
@@ -215,7 +67,7 @@
   width: 1820px;
 }
 
-/* Section header: black bar + label */
+/* Section label: black bar + 76 / 600 heading. */
 .sectionLabel {
   display: flex;
   align-items: center;
@@ -231,16 +83,18 @@
 }
 
 .sectionLabelText {
-  font-size: 76px;
+  font-family: var(--kiosk-font, sans-serif);
   font-weight: 600;
-  color: #000;
+  font-size: 76px;
   line-height: 1;
+  color: #000;
   white-space: nowrap;
-  font-variation-settings: 'CTGR' 0, 'wdth' 100;
 }
 
-/* Current language card — bg var(--kiosk-secondary), border var(--kiosk-primary) */
+/* 현재 언어 card: h320, padding 55/60, radius 42.9. */
 .currentCard {
+  border: none;
+  outline: none;
   box-sizing: border-box;
   width: 100%;
   height: 320px;
@@ -249,80 +103,86 @@
   align-items: flex-start;
   padding: 55px 60px;
   background: var(--kiosk-secondary);
-  border: 2.145px solid var(--kiosk-primary);
   border-radius: 42.9px;
-  box-shadow: 0 21.45px 21.45px rgba(143, 147, 157, 0.1);
 }
 
-/* Card inner row */
+/* The 현재 언어 name is pure black; the change cards use #333. */
+.currentCard .langName {
+  color: #000;
+}
+
+/* Content row inside the card — fills height, pill+name left, check right. */
 .cardRow {
   width: 100%;
   flex: 1;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  overflow: hidden;
 }
 
 .cardLeft {
   display: flex;
   align-items: center;
-  gap: 40px;
+  gap: 42.9px;
+  min-width: 0;
 }
 
-/* Language pill (circle with 2-letter code) */
-.pillOn {
-  flex: none;
-  width: 170px;
-  height: 170px;
-  border-radius: 50%;
-  background: var(--kiosk-primary);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 60px;
-  font-weight: 700;
-  color: #fff;
-  font-variation-settings: 'CTGR' 0, 'wdth' 100;
-}
-
+/* Coded circle pill (KR / EN / JP / CN …) */
+.pillOn,
 .pillOff {
   flex: none;
   width: 170px;
   height: 170px;
-  border-radius: 50%;
-  background: #fff;
-  border: 4px solid var(--kiosk-primary);
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 60px;
+  border-radius: 50%;
+  font-family: var(--kiosk-font, sans-serif);
   font-weight: 700;
+  font-size: 60px;
+  line-height: 1;
+}
+
+.pillOn {
+  background: var(--kiosk-primary);
+  color: #fff;
+}
+
+.pillOff {
+  border: none;
+  outline: none;
+  background: #fff;
   color: var(--kiosk-primary);
-  font-variation-settings: 'CTGR' 0, 'wdth' 100;
 }
 
+/* 68 / 600. Line-height 1.5 so descenders (English "g", Русский "у") are not
+   cut; wraps rather than ellipsising if a name ever outgrows the card. */
 .langName {
-  font-size: 68px;
+  min-width: 0;
   font-weight: 600;
+  font-size: 68px;
+  line-height: 1.5;
   color: #333;
-  white-space: nowrap;
-  font-variation-settings: 'CTGR' 0, 'wdth' 100;
+  white-space: normal;
+  word-break: keep-all;
+  overflow-wrap: anywhere;
 }
 
-/* Change language list — 8 languages in a 2-column grid (4 left, 4 right),
-   filled column-major: col-1 = ko/en/ja/zh, col-2 = vi/th/ru/id. Figma 4167:177444. */
+/* 변경언어 cards — 8 languages in a 2-column grid (4 left, 4 right), filled
+   column-major so col-1 = ko/en/ja/zh, col-2 = vi/th/ru/id. */
 .list {
   display: grid;
-  grid-template-columns: 1fr 1fr;
-  grid-template-rows: repeat(4, auto);
+  grid-template-columns: 875px 875px;
+  grid-template-rows: repeat(4, 320px);
   grid-auto-flow: column;
-  column-gap: 60px;
+  column-gap: 70px;
   row-gap: 100px;
 }
 
-/* Unselected row card */
+/* Language card: h320, padding 55/60, radius 42.9. */
 .langCard {
+  border: none;
+  outline: none;
   box-sizing: border-box;
   width: 100%;
   height: 320px;
@@ -331,56 +191,35 @@
   align-items: flex-start;
   padding: 55px 60px;
   background: #fff;
-  border: 2.145px solid #e8e8e8;
   border-radius: 42.9px;
-  box-shadow: 0 21.45px 21.45px rgba(143, 147, 157, 0.1);
+  font-family: var(--kiosk-font, sans-serif);
+  text-align: left;
   cursor: pointer;
   -webkit-tap-highlight-color: transparent;
-  transition: background 0.15s, border-color 0.15s;
+  transition: background 0.15s;
 }
 
-/* Selected row card */
+/* Selected row card — fill colour only. */
 .langCardOn {
   background: var(--kiosk-secondary);
-  border-color: var(--kiosk-primary);
 }
 
-/* Checkmark icons */
-.checkOn {
-  flex: none;
-  width: 115px;
-  height: 115px;
-  border-radius: 50%;
-  background: var(--kiosk-primary);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
+/* Checkmark icons — 115 circles. */
+.checkOn,
 .checkOff {
   flex: none;
   width: 115px;
   height: 115px;
   border-radius: 50%;
-  background: #f0f0f0;
   display: flex;
   align-items: center;
   justify-content: center;
 }
 
-/* ── Bottom banner ───────────────────────────────────── */
-.bottomBanner {
-  position: absolute;
-  top: 3267px;
-  left: 0;
-  width: 2160px;
-  height: 573px;
+.checkOn {
+  background: var(--kiosk-primary);
 }
 
-.bottomBannerImg {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  display: block;
-  pointer-events: none;
+.checkOff {
+  background: #f0f0f0;
 }

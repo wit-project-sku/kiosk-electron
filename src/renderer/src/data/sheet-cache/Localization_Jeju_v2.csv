@@ -13,7 +13,7 @@
 "","NoticeContent -11","<b>11월 제주</b>는 새콤달콤한 <b>노지감귤</b>이 본격적인 제철을 맞고 살이 오른 <b>방어와 갈치</b> 등 겨울 해산물을 함께 즐기기 좋은 시기입니다.","November in Jeju is a great time to enjoy sweet tangerines and fresh winter seafood like yellowtail and hairtail.","11月の済州は、甘酸っぱい露地みかんが本格的な旬を迎え、脂がのったブリやタチウオなどの冬のシーフードを一緒に楽しむのに良い時期です。","11月的济州岛，酸甜可口的露地柑橘正式迎来旺季，是同时享受肥美黄尾鱼和带鱼等冬季海鲜的好时节。","Tháng 11 ở Jeju là thời điểm tuyệt vời để thưởng thức quýt ngọt cùng cá cam và cá hố mùa đông.","เดือนพฤศจิกายนในเชจูเป็นช่วงเวลาที่ดีในการเพลิดเพลินกับส้มแมนดารินที่กำลังออกผลเต็มที่ พร้อมกับอาหารทะเลฤดูหนาว เช่น ปลาหางเหลืองและปลาหางดาบที่อวบอ้วน","Ноябрь на Чеджу — время сладких мандаринов в разгар сезона, а также желтохвоста и рыбы-сабли.","November di Jeju waktu yang tepat untuk menikmati jeruk musim panen serta hidangan laut seperti yellowtail dan hairtail.","","","","","","","","","","","","","","","",""
 "","NoticeContent -12","<b>12월 제주</b>는 당도가 높아진 <b>노지감귤과 한라봉</b>이 익어가고 기름이 올라 맛있는 <b>방어와 겨울 해산물</b>을 맛보기 좋은 시기입니다.","December in Jeju is a great time to enjoy yellowtail, winter seafood, and sweet tangerines and Hallabong.","12月の済州は、糖度が高くなった露地みかんとハルラボンが熟し、脂がのって美味しいブリや冬のシーフードを味わうのに良い時期です。","12月的济州岛，糖度高的露地柑橘和汉拿峰逐渐成熟，也是品尝肥美黄尾鱼和冬季海鲜的好时节。","Tháng 12 ở Jeju là thời điểm tuyệt vời để thưởng thức quýt ngọt, Hallabong và cá cam mùa đông.","เดือนธันวาคมในเชจูเป็นช่วงเวลาที่ดีในการลิ้มรสปลาหางเหลืองและอาหารทะเลฤดูหนาวแสนอร่อย ในขณะที่ส้มแมนดารินและฮัลลาบงสุกงอมและมีความหวานสูง","Декабрь на Чеджу — отличное время для сладких мандаринов, халлабона, вкусного желтохвоста и зимних морепродуктов.","Desember di Jeju sangat cocok untuk menikmati jeruk manis, Hallabong, serta yellowtail dan hidangan laut musim dingin.","","","","","","","","","","","","","","","",""
 "","FlightSchedule","항공편 안내","Flight Info","フライトガイド","航班信息","Thông tin chuyến bay","ข้อมูลเที่ยวบิน","Информация о рейсах","Informasi Penerbangan","제주공항에 적용","","","","","","","","","","","","","","",""
-"","CruiseSchedule","운항 정보","Operation Info","運行情報","运营信息","Thông tin vận hành","ข้อมูลการดำเนินงาน","Информация об операции","Informasi Operasional","여객선터미널, 유산문화센터에 적용","","","","","","","","","","","","","","",""
+"","CruiseSchedule","운항 정보","Operation Info","運行情報","运营信息","Thông tin vận hành","ข้อมูลการดำเนินงาน","Информация об операции","Informasi Operasional","여객선터미널에 적용","","","","","","","","","","","","","","",""
 "","Schedule_More_Flight","항공편 정보 더보기","More flight information","運航情報をもっと見る","查看更多航班信息","Xem thêm thông tin chuyến bay","ดูข้อมูลเที่ยวบินเพิ่มเติม","Больше информации о рейсах","Lihat lebih banyak informasi penerbangan","","","","","","","","","","","","","","","",""
 "","Schedule_More_Cruise","운항 정보 더보기","More Operation information","運行情報の詳細","更多运营信息","Thêm thông tin vận hành","ข้อมูลการดำเนินงานเพิ่มเติม","Дополнительная информация об операции","Lihat informasi penerbangan selengkapnya","","","","","","","","","","","","","","","",""
 "","BarrierFree_Title","지금은 배리어프리 모드입니다.","Currently in Barrier-Free Mode.","現在はバリアフリーモードです。","现在是无障碍模式。","Hiện tại là chế độ không rào cản.","ขณะนี้อยู่ในโหมดไร้อุปสรรค","В настоящее время используется безбарьерный режим.","Saat ini dalam mode bebas hambatan.","","","","","","","","","","","","","","","",""
@@ -85,8 +85,29 @@
 "","OP_Schedule_Info_col11","출발장소","Depart. Place","出発場所","出发地","Nơi khởi hành","สถานที่ออกเดินทาง","Место отправления","Tempat Keberangkatan","","","","","","","","","","","","","","","",""
 "","OP_Schedule_Info_col12","도착시각","Arrival Time","到着時刻","到达时间","Giờ đến","เวลามาถึง","Время прибытия","Waktu Kedatangan","","","","","","","","","","","","","","","",""
 "","OP_Schedule_Info_col13","도착장소","Arrival Place","到着場所","到达地","Nơi đến","สถานที่มาถึง","Место прибытия","Tempat Kedatangan","","","","","","","","","","","","","","","",""
-"","Jeju_Todo_Title","제주' 뭐하지(AI검색)","What to do in Jeju (AI Search)","済州で何する（AI検索）","在济州岛做什么（AI搜索）","Làm gì ở Jeju (Tìm kiếm AI)","ทำอะไรในเชจู (ค้นหาด้วย AI)","Чем заняться на Чеджу (AI Поиск)","Apa yang harus dilakukan di Jeju (Pencarian AI)","","","","","","","","","","","","","","","",""
-"","Jeju_Todo_Subtitle","* 각 카테고리를 선택해 주세요","* Please select each category","* 各カテゴリーを選択してください","* 请选择各个类别","* Vui lòng chọn từng danh mục","* กรุณาเลือกแต่ละหมวดหมู่","* Пожалуйста, выберите каждую категорию","* Silakan pilih setiap kategori","","","","","","","","","","","","","","","",""
+"","Jeju_Todo_Title","제주' 뭐하지","What to do in Jeju","済州で何する","在济州岛做什么","Làm gì ở Jeju","ทำอะไรในเชจู","Чем заняться на Чеджу","Apa yang harus dilakukan di Jeju","","","","","","","","","","","","","","","",""
+"","Jeju_Todo_Subtitle1","코스를 선택해 주세요","","","","","","","","","","","","","","","","","","","","","","",""
+"","Jeju_Todo_Subtitle1-1","모든 추천코스는 제주 공항을 기준으로 제작되었습니다.","Please select a course","コースを選択してください","请选择路线","Vui lòng chọn khóa học","กรุณาเลือกหลักสูตร","Пожалуйста, выберите курс","Silakan pilih kursus","제주공항에 적용","","","","","","","","","","","","","","",""
+"","Jeju_Todo_Subtitle1-2","모든 추천코스는 제주항 여객터미널을 기준으로 제작되었습니다.","All recommended courses are based on Jeju Airport.","すべての推奨コースは済州空港を基準に作成されました。","所有推荐路线均以济州机场为基准制作。","Tất cả các khóa học được đề xuất đều dựa trên Sân bay Jeju.","หลักสูตรที่แนะนำทั้งหมดจัดทำขึ้นโดยอิงจากสนามบินเชจู","Все рекомендуемые курсы составлены на основе аэропорта Чеджу.","Semua kursus yang direkomendasikan didasarkan pada Bandara Jeju.","유산문화센터, 여객선터미널에 적용","","","","","","","","","","","","","","",""
+"","My_Course_title","나만의 코스","All recommended courses are based on Jeju Port Passenger Terminal.","すべての推奨コースは済州港旅客ターミナルを基準に作成されました。","所有推荐路线均以济州港客运站为基准制作。","Tất cả các khóa học được đề xuất đều dựa trên Nhà ga Hành khách Cảng Jeju.","หลักสูตรที่แนะนำทั้งหมดจัดทำขึ้นโดยอิงจากท่าเรือโดยสารเชจู","Все рекомендуемые курсы составлены на основе пассажирского терминала порта Чеджу.","Semua kursus yang direkomendasikan didasarkan pada Terminal Penumpang Pelabuhan Jeju.","","","","","","","","","","","","","","","",""
+"","My_Course_desc1","원하는 대로 골라 만드는","My own course","自分だけのコース","专属路线","Khóa học của riêng tôi","หลักสูตรของฉันเอง","Мой собственный курс","Kursus saya sendiri","","","","","","","","","","","","","","","",""
+"","My_Course_desc2","취향·동행·일정까지 원하는\n내가 원하는 여행 코스를 만들어 보세요.","Pick and choose as you like","思いのままに選んで作る","随心所欲挑选制作","Chọn và tạo theo ý muốn","เลือกและสร้างตามที่คุณต้องการ","Выбирайте и создавайте по своему желанию","Pilih dan buat sesuka Anda","","","","","","","","","","","","","","","",""
+"","Recommended_Course_title","추천코스","Create your own travel course according to your tastes, companions, and schedule.","好み・同行者・日程まで希望通り
+自分だけの旅行コースを作ってみてください。","根据您的喜好、同行者和日程
+制定您专属的旅行路线。","Tạo khóa học du lịch của riêng bạn
+tùy theo sở thích, bạn đồng hành và lịch trình của bạn.","สร้างหลักสูตรการเดินทางของคุณเอง
+ตามรสนิยม ผู้ร่วมเดินทาง และตารางเวลาของคุณ","Создайте свой собственный туристический курс
+в соответствии с вашими вкусами, попутчиками и расписанием.","Buat kursus perjalanan Anda sendiri
+sesuai dengan selera, teman perjalanan, dan jadwal Anda.","","","","","","","","","","","","","","","",""
+"","Recommended_Course_1_subtitle","자연과 유산을 따라 걷는","Recommended Course","おすすめコース","推荐路线","Khóa học được đề xuất","หลักสูตรที่แนะนำ","Рекомендуемый курс","Kursus yang direkomendasikan","","","","","","","","","","","","","","","",""
+"","Recommended_Course_1_title","자연·유산 탐방 코스","Walking along nature and heritage","自然と遺産に沿って歩く","漫步于自然与遗产之间","Đi bộ dọc theo thiên nhiên và di sản","เดินเล่นไปตามธรรมชาติและมรดก","Прогулка по природе и наследию","Berjalan menyusuri alam dan warisan","","","","","","","","","","","","","","","",""
+"","Recommended_Course_2_subtitle","미식과 감성을 즐기는","Nature and Heritage Exploration Course","自然・遺産探訪コース","自然·遗产探访路线","Khóa học Khám phá Thiên nhiên và Di sản","หลักสูตรสำรวจธรรมชาติและมรดก","Курс изучения природы и наследия","Kursus Eksplorasi Alam dan Warisan","","","","","","","","","","","","","","","",""
+"","Recommended_Course_2_title","맛집·감성 코스","Enjoying gastronomy and sensibility","美食と感性を楽しむ","享受美食与感性","Thưởng thức ẩm thực và sự nhạy cảm","เพลิดเพลินกับการทำอาหารและความรู้สึก","Наслаждаясь гастрономией и чувствительностью","Menikmati keahlian gastronomi dan sensibilitas","","","","","","","","","","","","","","","",""
+"","Recommended_Course_3_subtitle","지역의 매력을 발견하는","Gourmet & Sensibility Course","グルメ・感性コース","美食·感性路线","Khóa học Ẩm thực & Cảm xúc","หลักสูตรอาหารและอารมณ์","Курс для гурманов и чувствительности","Kursus Kuliner & Sensibilitas","","","","","","","","","","","","","","","",""
+"","Recommended_Course_3_title","쇼핑·로컬 체험 코스","Discovering the charm of the region","地域の魅力を発見する","发现地区的魅力","Khám phá sức hấp dẫn của khu vực","ค้นพบเสน่ห์ของภูมิภาค","Открывая очарование региона","Menemukan pesona daerah","","","","","","","","","","","","","","","",""
+"","Recommended_Course_4_subtitle","아이와 함께 즐기는","Shopping & Local Experience Course","ショッピング・ローカル体験コース","购物·当地体验路线","Khóa học Mua sắm & Trải nghiệm Địa phương","หลักสูตรช้อปปิ้งและประสบการณ์ท้องถิ่น","Курс шопинга и местного опыта","Kursus Belanja & Pengalaman Lokal","","","","","","","","","","","","","","","",""
+"","Recommended_Course_4_title","가족·체험 코스","Enjoying with children","子供と一緒に楽しむ","与孩子一起享受","Thưởng thức cùng trẻ em","เพลิดเพลินกับเด็กๆ","Наслаждаясь с детьми","Menikmati bersama anak-anak","","","","","","","","","","","","","","","",""
+"","Jeju_Todo_Subtitle2","* 각 카테고리를 선택해 주세요","Family & Experience Course","家族・体験コース","家庭·体验路线","Khóa học Gia đình & Trải nghiệm","หลักสูตรครอบครัวและประสบการณ์","Семейный курс и курс опыта","Kursus Keluarga & Pengalaman","","","","","","","","","","","","","","","",""
 "","Visitor_Title","방문 인원","Number of Visitors","訪問人数","访问人数","Số lượng khách","จำนวนผู้เยี่ยมชม","Количество посетителей","Jumlah Pengunjung","","","","","","","","","","","","","","","",""
 "","Visitor_1","1명","1 person","1人","1人","1 người","1 คน","1 гость","1 orang","","아이콘04","","","","","","","","","","","","","",""
 "","Visitor_2","2명","2 people","2人","2人","2 người","2 คน","2 гостя","2 orang","","아이콘04","","","","","","","","","","","","","",""
@@ -97,68 +118,34 @@
 "","StayTime_Title","체류 기간","Duration of Stay","滞在期間","停留时间","Thời gian lưu trú","ระยะเวลาการเข้าพัก","Продолжительность пребывания","Lama Menginap","","","","","","","","","","","","","","","",""
 "","StayTime_1","당일치기","Day trip","日帰り","一日游","Đi trong ngày","ไปเช้าเย็นกลับ","1 день","Sehari","","아이콘04","","","","","","","","","","","","","",""
 "","StayTime_2","1박 2일","1 night 2 days","1泊2日","1晚2天","1 đêm 2 ngày","1 คืน 2 วัน","1 ночь 2 дня","1 malam 2 hari","","아이콘04","","","","","","","","","","","","","",""
-"","StayTime_3","2박 3일","2 nights","2泊3日","2晚3天","2 đêm 3 ngày","2 คืน 3 วัน","2 ночи 3 дня","2 malam 3 hari","","아이콘04","","","","","","","","","","","","","",""
-"","StayTime_4","3박 이상","3+ nights","3泊以上","3晚或以上","3 đêm trở lên","3 คืนขึ้นไป","3+ ночей","3+ malam","","아이콘04","","","","","","","","","","","","","",""
+"","StayTime_3","2박 3일","2 night 3 days","2泊3日","2晚3天","2 đêm 3 ngày","2 คืน 3 วัน","2 ночи 3 дня","2 malam 3 hari","","아이콘04","","","","","","","","","","","","","",""
+"","StayTime_4","3박 4일","3 night 4 days","3泊4日","3晚4天","3 đêm 4 ngày","3 คืน 4 วัน","3 ночи 4 дня","3 malam 4 hari","","아이콘04","","","","","","","","","","","","","",""
 "","Transportation_Title","이동수단","Transportation","移動手段","交通工具","Phương tiện di chuyển","การคมนาคม","Транспорт","Transportasi","","","","","","","","","","","","","","","",""
-"","Transportation_1","도보","Walking","歩く","步行","Đi bộ","เดิน","Ходьба","Jalan kaki","","","","","","","","","","","","","","","",""
-"","Transportation_2","자전거","bicycle","自転車","自行车","xe đạp","จักรยาน","велосипед","sepeda","","","","","","","","","","","","","","","",""
-"","Transportation_3","대중교통","Public transit","公共交通機関","公共交通","Xe công cộng","ขนส่งสาธารณะ","Транспорт","Transportasi","","","","","","","","","","","","","","","",""
-"","Transportation_4","자동차","automobile","車","汽车","ô tô","รถยนต์","автомобиль","mobil","","","","","","","","","","","","","","","",""
+"","Transportation_1","도보","Day 1","1日目","第一天","Ngày 1","วันที่ 1","День 1","Hari ke-1","","","","","","","","","","","","","","","",""
+"","Transportation_2","자전거","Day 2","2日目","第二天","Ngày 2","วันที่ 2","День 2","Hari ke-2","","","","","","","","","","","","","","","",""
+"","Transportation_3","대중교통","Day 3","3日目","第三天","Ngày 3","วันที่ 3","День 3","Hari ke-3","","","","","","","","","","","","","","","",""
+"","Transportation_4","자동차","Day 4","4日目","第四天","Ngày 4","วันที่ 4","День 4","Hari ke-4","","","","","","","","","","","","","","","",""
 "","Things_to_enjoy","즐길 거리","Things to Enjoy","楽しみ","娱乐项目","Những điều thú vị","สิ่งที่น่าสนใจ","Развлечения","Hal-hal untuk Dinikmati","","","","","","","","","","","","","","","",""
+"","1st_day","1일차","","","","","","","","","","","","","","","","","","","","","","",""
+"","2nd_day","2일차","Get course recommendations","コースの推薦を受ける","获取路线推荐","Nhận đề xuất khóa học","รับคำแนะนำหลักสูตร","Получить рекомендации по курсу","Dapatkan rekomendasi kursus","","","","","","","","","","","","","","","",""
+"","3rd_day","3일차","","","","","","","","","","","","","","","","","","","","","","",""
+"","4th_day","4일차","","","","","","","","","","","","","","","","","","","","","","",""
 "","ShowDetailShop","업체 정보를 클릭하시면 상세 정보가 나와요","Click the store for details.","店舗情報をクリックすると詳細情報が表示されます。","点击商户信息即可查看详细信息。","Nhấn vào thông tin đơn vị để xem chi tiết","คลิกที่ข้อมูลร้านค้าเพื่อดูรายละเอียด","Нажмите на магазин для подробностей.","Klik info toko untuk lihat detailnya","","아이콘04","","","","","","","","","","","","","",""
-"","AI_SubmitButton","AI에게 추천받기","Get recommendations from AI","ジェジュからおすすめをもらう","向“夏荣(AI)”获取推荐","Nhận đề xuất từ AI","ขอคำแนะนำจาก AI","Получить рекомендации от AI","Dapatkan rekomendasi dari AI","","","","","","","","","","","","","","","",""
-"","Course_Subtitle","* 코스를 선택해 주세요","* Please select a course","* コースを選択してください","* 请选择路线","* Vui lòng chọn một khóa học","* กรุณาเลือกหลักสูตร","* Пожалуйста, выберите курс","* Silakan pilih kursus","","","","","","","","","","","","","","","",""
-"","ACourseDesc1","자연과 유산을 따라 걷는","Walking along nature and heritage","自然と遺産を歩く","沿着自然与遗产漫步","Đi dạo cùng thiên nhiên và di sản","เดินไปตามธรรมชาติและมรดก","Прогулка по природе и наследию","Berjalan menyusuri alam dan warisan","","","","","","","","","","","","","","","",""
-"","ACourseDesc2","자연·유산 탐방 코스","Nature & Heritage Exploration Course","自然・遺産探訪コース","自然与遗产探索路线","Khóa học khám phá thiên nhiên và di sản","หลักสูตรสำรวจธรรมชาติและมรดก","Курс исследования природы и наследия","Kursus Eksplorasi Alam & Warisan","","","","","","","","","","","","","","","",""
-"","ACourseDesc3","제주의 자연과 문화유산을 함께 둘러보는 힐링코스","Nature and heritage at a healing pace","済州の自然と文化遺産を一緒に巡るヒーリングコース","探索济州自然与文化遗产的治愈路线","Hành trình thiên nhiên và di sản, thư thái","ธรรมชาติและมรดก แบบผ่อนคลาย","Природа и наследие — спокойный маршрут","Alam dan warisan, santai dan menyembuhkan","","","","","","","","","","","","","","","",""
-"","ACourseLabel","A코스","Course A","Aコース","A路线","Khóa học A","หลักสูตร A","Курс А","Kursus A","","","","","","","","","","","","","","","",""
-"","ACourseTags","#자연 #유산 #힐링","#Nature #Heritage #Healing","#自然 #遺産 #ヒーリング","#自然 #遗产 #治愈","#Thiên_nhiên #Di_sản #Chữa_lành","#ธรรมชาติ #มรดก #การบำบัด","#Природа #Наследие #Исцеление","#Alam #Warisan #Penyembuhan","","","","","","","","","","","","","","","",""
-"","BCourseDesc1","미식과 감성을 즐기는","Enjoying gastronomy and sensibility","美食と感性を楽しむ","享受美食与情感","Thưởng thức ẩm thực và sự nhạy cảm","เพลิดเพลินกับการทำอาหารและความรู้สึก","Наслаждаясь гастрономией и чувственностью","Menikmati keahlian memasak dan kepekaan","","","","","","","","","","","","","","","",""
-"","BCourseDesc2","맛집·감성 코스","Gourmet & Sensibility Course","グルメ・感性コース","美食与情感路线","Khóa học Ẩm thực & Cảm xúc","หลักสูตรอาหารและอารมณ์","Курс гурмана и чувственности","Kursus Kuliner & Sensibilitas","","","","","","","","","","","","","","","",""
-"","BCourseDesc3","제주의 맛과 감성을 가득 담은 로컬 중심 코스","Local flavours and Jeju's own mood","済州の味と感性が詰まったローカルコース","充满济州风味与情感的本地特色路线","Hành trình hương vị và cảm xúc Jeju","รสชาติและบรรยากาศท้องถิ่นเชจู","Местные вкусы и настроение Чеджу","Cita rasa dan suasana lokal Jeju","","","","","","","","","","","","","","","",""
-"","BCourseLabel","B코스","Course B","Bコース","B路线","Khóa học B","หลักสูตร B","Курс B","Kursus B","","","","","","","","","","","","","","","",""
-"","BCourseTags","#미식 #감성 #로컬","#Gourmet #Sensibility #Local","#美食 #感性 #ローカル","#美食 #情感 #本地","#Ẩm_thực #Cảm_xúc #Địa_phương","#อาหาร #อารมณ์ #ท้องถิ่น","#Гурман #Чувственность #Местный","#Gourmet #Sensibilitas #Lokal","","","","","","","","","","","","","","","",""
-"","CCourseDesc1","아이와 함께 즐기는","Enjoying with children","子供と一緒に楽しむ","与孩子一起享受","Thưởng thức cùng trẻ em","สนุกสนานกับเด็กๆ","Наслаждаясь с детьми","Menikmati bersama anak-anak","","","","","","","","","","","","","","","",""
-"","CCourseDesc2","가족·체험 코스","Family & Experience Course","家族・体験コース","家庭与体验路线","Khóa học Gia đình & Trải nghiệm","หลักสูตรครอบครัวและประสบการณ์","Курс для семьи и впечатлений","Kursus Keluarga & Pengalaman","","","","","","","","","","","","","","","",""
-"","CCourseDesc3","온 가족이 함께 즐길 수 있는 체험 중심 코스","Hands-on fun for the whole family","家族全員が一緒に楽しめる体験中心コース","适合全家一起体验的体验式课程","Hành trình trải nghiệm cho cả nhà","กิจกรรมสนุกสำหรับทั้งครอบครัว","Маршрут впечатлений для всей семьи","Pengalaman seru untuk sekeluarga","","","","","","","","","","","","","","","",""
-"","CCourseLabel","C코스","Course C","Cコース","C路线","Khóa học C","หลักสูตร C","Курс C","Kursus C","","","","","","","","","","","","","","","",""
-"","CCourseTags","#가족 #체험 #즐거움","#Family #Experience #Fun","＃家族＃体験＃喜び","#家庭 #体验 #乐趣","#Gia đình #Trải nghiệm #Vui vẻ","#ครอบครัว #ประสบการณ์ #ความสนุก","#Семья #Впечатления #Веселье","#Keluarga #Pengalaman #Kesenangan","","","","","","","","","","","","","","","",""
-"","ACourse_Subtitle","제주의 아름다운 자연 경관과 역사·문화·유산을 함께 만날 수 있는 코스입니다.\n탁 트인 바다와 오름, 전통 마을을 천천히 둘러보며 여유로운 시간을 즐겨보세요.","This is a course where you can experience Jeju's beautiful natural scenery, history, culture, and heritage together.
-Enjoy a relaxing time slowly exploring the open sea, oreum, and traditional villages.","済州の美しい自然景観と歴史・文化・遺産を一緒に満喫できるコースです。
-広々とした海やオルム、伝統的な村をゆっくりと巡りながら、リラックスした時間をお楽しみください。","这是一条可以同时体验济州美丽自然风光、历史、文化和遗产的路线。
-您可以悠闲地漫步于广阔的大海、小火山和传统村落之间，享受轻松的时光。","Đây là một khóa học nơi bạn có thể cùng nhau trải nghiệm phong cảnh thiên nhiên, lịch sử, văn hóa và di sản tuyệt đẹp của Jeju.
-Hãy tận hưởng khoảng thời gian thư giãn từ từ khám phá vùng biển rộng mở, quặng mỏ và những ngôi làng truyền thống.","นี่คือหลักสูตรที่คุณจะได้สัมผัสกับทิวทัศน์ธรรมชาติ ประวัติศาสตร์ วัฒนธรรม และมรดกอันงดงามของเชจูไปพร้อมๆ กัน
-เพลิดเพลินกับช่วงเวลาพักผ่อนในการสำรวจทะเลเปิด แร่ และหมู่บ้านดั้งเดิมอย่างช้าๆ","Это курс, на котором вы сможете вместе познакомиться с красивыми природными пейзажами, историей, культурой и наследием Чеджу.
-Наслаждайтесь расслабляющим временем, медленно исследуя открытое море, орым и традиционные деревни.","Ini adalah kursus di mana Anda dapat menikmati pemandangan alam, sejarah, budaya, dan warisan Jeju yang indah bersama-sama.
-Nikmati waktu bersantai dengan menjelajahi laut lepas, oreum, dan desa tradisional secara perlahan.","","","","","","","","","","","","","","","",""
-"","BCourse_Subtitle","제주의 맛과 감성을 가득 담은 로컬 중심 코스입니다.\n현지인이 즐겨 찾는 맛집과 감성 공간을 천천히 둘러보세요.","This is a local-centered course full of Jeju's taste and sensibility.
-Take your time exploring the delicious restaurants and emotional spaces frequented by locals.","済州の味と感性をたっぷり詰め込んだローカル中心コースです。
-地元の人がよく訪れる美味しいレストランや感性的な空間をゆっくりと巡ってみてください。","这是一条充满济州风味与情感的本地特色路线。
-您可以慢慢探索当地人常去的美食餐厅和充满情感的空间。","Đây là một khóa học tập trung vào địa phương mang đậm hương vị và cảm xúc của Jeju.
-Hãy dành thời gian khám phá những nhà hàng ngon và không gian đầy cảm xúc thường được người dân địa phương lui tới.","นี่คือหลักสูตรที่เน้นท้องถิ่นซึ่งเต็มไปด้วยรสชาติและอารมณ์ของเชจู
-ใช้เวลาสำรวจร้านอาหารอร่อยๆ และพื้นที่ที่เต็มไปด้วยอารมณ์ซึ่งคนในพื้นที่แวะเวียนมาบ่อยๆ","Это местный курс, полный вкуса и чувственности Чеджу.
-Не торопитесь, исследуя вкусные рестораны и эмоциональные пространства, часто посещаемые местными жителями.","Ini adalah kursus yang berpusat pada lokal yang penuh dengan cita rasa dan kepekaan Jeju.
-Luangkan waktu Anda untuk menjelajahi restoran lezat dan ruang emosional yang sering dikunjungi oleh penduduk setempat.","","","","","","","","","","","","","","","",""
-"","CCourse_Subtitle","온 가족이 함께 즐길 수 있는 체험 중심 코스입니다.\n아이와 어른 모두 즐겁게 참여할 수 있는 장소로 구성했습니다.","This is an experience-centered course that the whole family can enjoy together.
-It is composed of places where both children and adults can happily participate.","家族全員が一緒に楽しめる体験中心コースです。
-子供も大人も楽しく参加できる場所で構成されています。","这是一条适合全家一起享受的体验型路线。
-由儿童和成人都能愉快参与的场所组成。","Đây là một khóa học lấy trải nghiệm làm trung tâm mà cả gia đình có thể cùng nhau tận hưởng.
-Nó bao gồm những nơi mà cả trẻ em và người lớn đều có thể vui vẻ tham gia.","นี่คือหลักสูตรที่เน้นประสบการณ์ซึ่งทั้งครอบครัวสามารถเพลิดเพลินร่วมกันได้
-ประกอบด้วยสถานที่ที่ทั้งเด็กและผู้ใหญ่สามารถมีส่วนร่วมได้อย่างมีความสุข","Это курс, ориентированный на опыт, которым может наслаждаться вся семья.
-Он состоит из мест, где могут с удовольствием участвовать как дети, так и взрослые.","Ini adalah kursus yang berpusat pada pengalaman yang dapat dinikmati oleh seluruh keluarga bersama-sama.
-Terdiri dari tempat-tempat di mana anak-anak dan orang dewasa dapat berpartisipasi dengan gembira.","","","","","","","","","","","","","","","",""
+"","SubmitButton","코스 추천받기","","","","","","","","","","","","","","","","","","","","","","",""
 "","TotalStayTime","총 소요시간","Total time","総時間","总时间","Tổng thời gian","เวลารวมทั้งหมด","Общее время","Total waktu yang","","","","","","","","","","","","","","","",""
 "","TotalTravelTime","이동시간","Travel Time","移動時間","旅行时间","Thời gian di chuyển","เวลาเดินทาง","Время в пути","Waktu Perjalanan","","","","","","","","","","","","","","","",""
 "","dayLapsed","일차","First","一次","第一的","Đầu tiên","อันดับแรก","Первый","Pertama","","","","","","","","","","","","","","","",""
 "","blogReview","블로그 리뷰","Blog Review","ブログレビュー","博客评论","Đánh giá trên blog","รีวิวบล็อก","Обзор блога","Ulasan Blog","","","","","","","","","","","","","","","",""
-"","Distance","이동거리","Travel Distance","移動距離","旅行距离","Khoảng cách di chuyển","ระยะทางเดินทาง","Расстояние поездки","Jarak Perjalanan","","","","","","","","","","","","","","","",""
-"","Minute","분","Minutes","分","分钟","Phút","นาที","Минуты","Menit","","","","","","","","","","","","","","","",""
+"","Distance","이동거리","Business Hours","営業時間","营业时间","Giờ làm việc","เวลาทำการ","Часы работы","Jam Operasional","","","","","","","","","","","","","","","",""
+"","Minute","분","Time spent","滞在時間","停留时间","Thời gian lưu trú","เวลาที่ใช้","Время пребывания","Waktu yang dihabiskan","","","","","","","","","","","","","","","",""
 "","Difficulty","난이도","Difficulty","難易度","难度","Độ khó","ความยาก","Сложность","Tingkat Kesulitan","","","","","","","","","","","","","","","",""
-"","Difficulty_easy","쉬움","Easy","簡単","简单","Dễ dàng","ง่าย","Легкий","Mudah","","","","","","","","","","","","","","","",""
+"","Difficulty_easy","쉬움","* Jeju, a place where wind and romance linger.","* 風とロマンがとどまる場所、済州です。","* 济州，风与浪漫驻足的地方。","* Jeju, nơi gió và sự lãng mạn đọng lại.","* เชจู สถานที่ที่สายลมและความโรแมนติกยังคงอยู่","* Чеджу, место, где задерживаются ветер и романтика.","* Jeju, tempat di mana angin dan romansa berlama-lama.","","","","","","","","","","","","","","","",""
 "","Difficulty_normal","중간","Medium","普通","中等","Trung bình","ปานกลาง","Средний","Sedang","","","","","","","","","","","","","","","",""
 "","Difficulty_hard","어려움","Hard","難しい","困难","Khó","ยาก","Сложный","Sulit","","","","","","","","","","","","","","","",""
+"","Open&closeTime","영업 시간","","","","","","","","","","","","","","","","","","","","","","",""
+"","TimeToAdjourn","머무는 시간","","","","","","","","","","","","","","","","","","","","","","",""
 "","Check_on_mobile","모바일에서 확인하기","Check on mobile","モバイルで確認する","在手机上查看","Kiểm tra trên thiết bị di động","ตรวจสอบบนมือถือ","Проверить на мобильном","Periksa di ponsel","","","","","","","","","","","","","","","",""
-"","Here_IsJeju","* 여기는 제주도입니다.","This is Jeju Island.","*ここは済州島です。","这里是济州岛。","Đây là đảo Jeju.","นี่คือเกาะเชจู","Это остров Чеджу.","Ini adalah Pulau Jeju.","","","","","","","","","","","","","","","",""
+"","Here_IsJeju","* 바람과 낭만이 머무는 곳, 제주입니다.","","","","","","","","","","","","","","","","","","","","","","",""
 "","Here_History","역사","history","歴史","历史","lịch sử","ประวัติศาสตร์","история","sejarah","","","","","","","","","","","","","","","",""
 "","Here_HistoryFlow","제주의 역사 흐름","The Flow of Jeju's History","済州の歴史の流れ","济州的历史发展","Dòng chảy lịch sử Jeju","ลำดับเหตุการณ์ทางประวัติศาสตร์ของเชจู","Ход истории Чеджу","Alur Sejarah Jeju","","","","","","","","","","","","","","","",""
 "","Here_HistoryContent_1_epoch","선사시대","Prehistoric Age","先史時代","史前时代","Thời tiền sử","ยุคก่อนประวัติศาสตร์","Доисторическая эпоха","Zaman Prasejarah","","","","","","","","","","","","","","","",""

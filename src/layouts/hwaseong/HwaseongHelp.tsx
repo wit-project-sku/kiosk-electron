@@ -101,7 +101,7 @@ export function HwaseongHelp({ controller, defaultTab, noScroll = false }: Props
 
       <HwaseongHeader controller={controller} title="도와줘 '휴'" />
 
-      <div className={styles.results} style={noScroll ? { overflowY: 'visible' } : undefined}>
+      <div className={`${styles.results} ${noScroll ? styles.noScroll : ''}`}>
         {/* Filter tabs — 2 rows × 5 (Figma 4167-172026) */}
         <div className={styles.filterBlock}>
           {[TABS_ROW1, TABS_ROW2].map((row, i) => (

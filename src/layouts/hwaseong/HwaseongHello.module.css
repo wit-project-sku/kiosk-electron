@@ -1,4 +1,7 @@
-/* 안녕 '휴' — exact Figma (nodes 4167:172656/726/767). Tabs + persona card. */
+/* 안녕 '휴' — 휴 mascot (profile / hobbies / stretching). 2160×3840.
+   Tab row, spacing and type follow 안녕 '하영' (JejuHello.module.css): 580×170
+   tabs at y700, 50px labels/values, 60 / 700 topic titles, 100px hashtag and
+   social tiles. 화성휴게소's own card, pills and colours are kept. */
 .root {
   position: absolute;
   inset: 0;
@@ -6,98 +9,130 @@
   height: 3840px;
   overflow: hidden;
   background: #fff;
-  font-family: 'Noto Sans KR', 'Noto Sans', sans-serif;
+  font-family: var(--kiosk-font, sans-serif);
 }
 
-.bgBase { position: absolute; left: 0; top: 0; width: 2160px; height: 3840px; background: #fff; }
-.bgImage { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; pointer-events: none; }
+.bgBase {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 2160px;
+  height: 3840px;
+  background: #fff;
+}
 
+.bgImage {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  pointer-events: none;
+}
+
+/* The 28px scrollbar is carved out of the RIGHT margin so the 1820 column
+   stays centred. */
 .results {
   position: absolute;
-  top: 699px;
+  top: 700px;
   left: 0;
   right: 0;
   bottom: 573px;
   box-sizing: border-box;
-  padding: 0 136px 40px 170px;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 100px;
+  gap: 100px; /* tab → card gap */
   overflow-y: auto;
   overflow-x: hidden;
-  scrollbar-gutter: stable;
+  padding: 0 136px 40px 170px;
+  font-family: var(--kiosk-font, sans-serif);
 }
 
-.results::-webkit-scrollbar { width: 34.32px; }
-.results::-webkit-scrollbar-thumb { background: var(--kiosk-primary); border-radius: 21.45px; }
-.results::-webkit-scrollbar-track { background: transparent; }
+.results::-webkit-scrollbar {
+  width: 28px;
+}
+.results::-webkit-scrollbar-thumb {
+  background: var(--kiosk-primary);
+  border-radius: 14px;
+}
+.results::-webkit-scrollbar-track {
+  background: transparent;
+}
 
-/* ── Tabs ── */
+/* ── Tabs — three 580×170 pills over 1820 ── */
 .tabs {
   flex: none;
   width: 1820px;
-  height: 170px;
   display: flex;
   align-items: center;
-  gap: 60px;
+  justify-content: space-between;
 }
 
+/* One 50px line in Korean; a longer translation wraps inside the pill. */
 .tab {
-  width: 566px;
+  border: none;
+  outline: none;
+  box-sizing: border-box;
+  width: 580px;
   height: 170px;
+  padding: 0 18px;
   display: flex;
   align-items: center;
   justify-content: center;
-  background: #fff;
-  border: 5px solid #e8e8e8;
+  background: #ffffff;
   border-radius: 42.9px;
-  font-size: 50px;
+  font-family: var(--kiosk-font, sans-serif);
   font-weight: 500;
-  color: #999;
-  line-height: 1;
+  font-size: 50px;
+  line-height: 1.1;
+  color: #999999;
+  text-align: center;
+  overflow: hidden;
+  overflow-wrap: anywhere;
   cursor: pointer;
   -webkit-tap-highlight-color: transparent;
-  white-space: nowrap;
 }
 
 .tabSelected {
   background: var(--kiosk-secondary);
-  color: var(--kiosk-primary);
   font-weight: 700;
+  color: var(--kiosk-primary);
 }
 
-/* ── Card ── */
+/* ── Card (shared) — w1820, h2160 floor on all 3 tabs, px40 py65, radius
+   42.9. A flat plate: no outline, no shadow (제주 direction). The floor is a
+   min-height so longer sheet copy grows the card instead of spilling out. */
 .card {
+  border: none;
+  outline: none;
   flex: none;
-  width: 1820px;
   box-sizing: border-box;
-  background: #fff;
-  border: 2.145px solid #e8e8e8;
-  border-radius: 42.9px;
-  filter: drop-shadow(0 21.45px 21.45px rgba(143, 147, 157, 0.1));
-  padding: 65px 40px;
+  width: 1820px;
+  min-height: 2160px;
   display: flex;
   flex-direction: column;
   align-items: flex-start;
-  gap: 60px;
+  gap: 45px;
+  padding: 50px 40px 65px;
+  background: #ffffff;
+  border-radius: 42.9px;
 }
 
-/* Per-tab card sizing (Figma). */
+/* Per-tab variants — kept as hooks; all three share the card above. */
 .cardIntro {
-  height: 2160px;
-  gap: 60px;
+  gap: 45px;
 }
 .cardHobby {
-  gap: 78px; /* height auto — grows with the alternating sections */
+  gap: 45px;
 }
 .cardStretch {
-  display: inline-flex;
-  height: 2145.35px;
-  gap: 65px;
+  gap: 45px;
 }
 
-/* ── Tab 1: intro profile ── */
+/* ===========================================================
+   TAB 1 — profile
+   =========================================================== */
 .topRow {
   display: flex;
   align-items: center;
@@ -106,13 +141,18 @@
 }
 
 .profilePhoto {
+  flex: none;
   width: 750px;
   height: 750px;
   border-radius: 50%;
   overflow: hidden;
-  flex-shrink: 0;
 }
-.profilePhoto img { width: 100%; height: 100%; object-fit: contain; object-position: center; }
+.profilePhoto img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  object-position: center;
+}
 
 .profileInfo {
   flex: 1;
@@ -122,69 +162,121 @@
   gap: 45px;
 }
 
-.nameRow { display: flex; align-items: center; gap: 40px; }
-
-.nameValue {
-  font-size: 58px;
-  font-weight: 700;
-  color: var(--kiosk-primary);
-  line-height: 1;
-  background: #f2fbff;
-  padding: 8px 14px;
+/* Every label/value pair is `label + 40px gap + value`. */
+.nameRow {
+  display: flex;
+  align-items: center;
+  gap: 40px;
+  min-width: 0;
 }
-.nameEn { font-weight: 600; }
 
-.infoRow { display: flex; align-items: baseline; gap: 40px; }
+/* The name is the one value on a plate; min-height so a wrapped name grows it. */
+.nameValue {
+  display: inline-flex;
+  align-items: center;
+  box-sizing: border-box;
+  min-height: 85px;
+  min-width: 0;
+  background: #f2fbff;
+  color: var(--kiosk-primary);
+  font-weight: 700;
+  font-size: 50px;
+  padding: 0 23.44px;
+  line-height: 1;
+  word-break: keep-all;
+  overflow-wrap: anywhere;
+}
+.nameEn {
+  font-weight: 600;
+}
+
+.infoRow {
+  display: flex;
+  align-items: center;
+  gap: 40px;
+  min-width: 0;
+}
 
 .infoLabel {
-  font-size: 60px;
+  flex: none;
   font-weight: 700;
-  color: #000;
+  font-size: 50px;
+  color: #000000;
   line-height: 1;
-  white-space: nowrap;
-  min-width: 220px;
-  flex-shrink: 0;
+  word-break: keep-all;
+  overflow-wrap: anywhere;
+}
+.infoRow .infoLabel {
+  width: 170px;
 }
 
+/* Wraps instead of ellipsising — values are sheet copy in eight languages. */
 .infoValue {
-  font-size: 58px;
+  min-width: 0;
   font-weight: 400;
-  color: #000;
-  line-height: 1;
-  white-space: nowrap;
+  font-size: 50px;
+  color: #000000;
+  line-height: 1.2;
+  word-break: keep-all;
+  overflow-wrap: anywhere;
 }
 
-.divider { width: 100%; height: 2.145px; background: #e8e8e8; flex: none; }
+.divider {
+  flex: none;
+  height: 2.145px;
+  width: 100%;
+  background: #e8e8e8;
+}
 
-.detailCol { display: flex; flex-direction: column; gap: 45px; width: 100%; }
-.detailRow { display: flex; align-items: flex-start; gap: 40px; }
+.detailCol {
+  display: flex;
+  flex-direction: column;
+  gap: 30px;
+  width: 100%;
+}
+
+/* Multi-line values wrap; the label stays on the first line. */
+.detailRow {
+  display: flex;
+  align-items: flex-start;
+  gap: 40px;
+  min-width: 0;
+}
 
 .detailLabel {
-  font-size: 60px;
+  flex: none;
+  width: 200px;
   font-weight: 700;
-  color: #000;
+  font-size: 50px;
+  color: #000000;
   line-height: 1.3;
-  white-space: nowrap;
-  flex-shrink: 0;
-  min-width: 240px;
+  word-break: keep-all;
+  overflow-wrap: anywhere;
 }
 
 .detailValue {
-  font-size: 58px;
+  flex: 1;
+  min-width: 0;
   font-weight: 400;
-  color: #000;
+  font-size: 50px;
+  color: #000000;
   line-height: 1.3;
   white-space: pre-wrap;
+  word-break: keep-all;
+  overflow-wrap: break-word;
 }
 
-/* ── Tab 2: hobby — alternating text+image ── */
+/* ===========================================================
+   TAB 2 — hobbies (alternating image side)
+   =========================================================== */
 .hobbySections {
   display: flex;
   flex-direction: column;
-  gap: 64.35px;
+  gap: 45px;
   width: 1740px;
 }
 
+/* Title + description top-align with the image. */
 .hobbyRow {
   display: flex;
   align-items: flex-start;
@@ -194,54 +286,59 @@
 
 .hobbyText {
   flex: 1;
+  min-width: 0;
   display: flex;
   flex-direction: column;
   gap: 25px;
-  min-width: 0;
 }
 
 .hobbyTitle {
   margin: 0;
-  font-size: 63px;
   font-weight: 700;
-  color: #000;
+  font-size: 60px;
+  color: #000000;
   line-height: 1.3;
+  word-break: keep-all;
 }
 
 .hobbyBody {
   margin: 0;
-  font-size: 50px;
   font-weight: 400;
+  font-size: 50px;
   color: #333;
-  line-height: 1.4;
+  line-height: 1.3;
+  word-break: keep-all;
+  overflow-wrap: break-word;
 }
 
 .hobbyImg {
+  flex: none;
+  display: block;
   width: 452px;
   height: 565px;
   border-radius: 45px;
   object-fit: cover;
   object-position: top;
-  flex-shrink: 0;
-  display: block;
 }
 
-/* ── Tab 3: stretch — sport photos row + text sections ── */
+/* ===========================================================
+   TAB 3 — stretching
+   =========================================================== */
 .sportImgRow {
+  flex: none;
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
   width: 1740px;
-  flex: none;
 }
 
 .sportImg {
+  display: block;
   width: 536px;
   height: 670px;
   border-radius: 45px;
   object-fit: cover;
   object-position: top;
-  display: block;
 }
 
 .stretchSection {
@@ -255,7 +352,7 @@
 .stretchBottomBlock {
   display: flex;
   align-items: flex-start;
-  gap: 60px;
+  gap: 100px;
   width: 1740px;
 }
 
@@ -268,74 +365,113 @@
 }
 
 .stretchImg {
+  flex: none;
+  display: block;
   width: 499px;
-  height: 650px;
-  border-radius: 45px;
+  height: 625px;
+  border-radius: 32.175px;
   object-fit: cover;
   object-position: top;
-  flex-shrink: 0;
-  display: block;
 }
 
-/* ── Footer: chips + social ── */
+/* ===========================================================
+   FOOTER — hashtags + social (TikTok/Instagram + QR)
+   =========================================================== */
 .footer {
+  flex: none;
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  width: 100%;
-  flex: none;
+  gap: 40px;
+  width: 1740px;
 }
 
 .chips {
+  flex: 0 1 auto;
+  min-width: 0;
   display: flex;
   align-items: center;
-  gap: 60px;
+  gap: 40px;
 }
 
+/* 100 tall with a 322 floor; a long translated tag shrinks to the floor and
+   wraps inside its pill instead of pushing the socials off the row. */
 .chip {
-  height: 124.409px;
-  min-width: 321px;
+  flex: 0 1 auto;
   box-sizing: border-box;
+  min-width: 322px;
+  height: 100px;
+  padding: 0 16px;
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 0 30px;
   background: var(--kiosk-primary);
   border-radius: 42.9px;
-  font-size: 51.48px;
   font-weight: 700;
-  color: #fff;
-  white-space: nowrap;
+  font-size: 50px;
+  line-height: 1;
+  color: #ffffff;
+  text-align: center;
+  white-space: normal;
+  word-break: keep-all;
+  overflow-wrap: anywhere;
 }
 
-.social { display: flex; align-items: center; gap: 21.45px; }
+.social {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 25px;
+}
 
+/* Social icons / QR: 100×100 tiles. */
 .socialIconWrap {
-  width: 124.409px;
-  height: 124.409px;
-  flex-shrink: 0;
+  flex: none;
+  width: 100px;
+  height: 100px;
   border-radius: 21.45px;
   overflow: hidden;
   display: flex;
   align-items: center;
   justify-content: center;
+}
+.socialIconWrap svg {
+  width: 100%;
+  height: 100%;
 }
 
 .socialQrWrap {
-  width: 124.409px;
-  height: 124.409px;
-  flex-shrink: 0;
-  border-radius: 21.45px;
-  border: 4.29px solid var(--kiosk-primary);
-  background: #fff;
+  border: none;
+  outline: none;
+  flex: none;
   box-sizing: border-box;
+  width: 100px;
+  height: 100px;
+  border-radius: 21.45px;
+  background: #ffffff;
+  padding: 10px;
   overflow: hidden;
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 6px;
+}
+.socialQrWrap svg {
+  width: 100%;
+  height: 100%;
 }
 
 /* ── Bottom banner ── */
-.banner { position: absolute; top: 3267px; left: 0; width: 2160px; height: 573px; pointer-events: none; }
-.bannerImg { width: 100%; height: 100%; object-fit: cover; display: block; pointer-events: none; }
+.banner {
+  position: absolute;
+  top: 3267px;
+  left: 0;
+  width: 2160px;
+  height: 573px;
+  pointer-events: none;
+}
+.bannerImg {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  pointer-events: none;
+}

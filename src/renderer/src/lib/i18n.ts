@@ -288,13 +288,15 @@ const TITLE_KEYS: Record<string, TitleKeySpec> = {
   // SubHeader_AISearch, Insadong's "3개의 카테고리" line, so the header never
   // showed what Localization_Jeju writes for this page. The id is passed by the
   // questionnaires, the course detail and an AI spot's 상세; the landing and the
-  // detail pass their own description (Course_Subtitle / the course + day).
-  "'제주' 뭐하지 (AI 검색)": { title: 'Jeju_Todo_Title', sub: 'Jeju_Todo_Subtitle' },
+  // detail pass their own description (Jeju_Todo_Subtitle1 / the course + day).
+  // Jeju_Todo_Subtitle2 is v2's "* 각 카테고리를 선택해 주세요" (the retired
+  // Jeju_Todo_Subtitle's copy under its new key).
+  "'제주' 뭐하지 (AI 검색)": { title: 'Jeju_Todo_Title', sub: 'Jeju_Todo_Subtitle2' },
   // The AI course DETAIL's own header since 7058:21462 (2026-09-15): "‘제주’ 뭐하지",
   // without "(AI 검색)". That is the home tile's label, so it resolves the same
   // row the tile does — MainButton_AI, filled in all eight languages. The
   // questionnaires and an AI spot's 상세 keep the id above.
-  '‘제주’ 뭐하지': { title: 'MainButton_AI', sub: 'Jeju_Todo_Subtitle' },
+  '‘제주’ 뭐하지': { title: 'MainButton_AI', sub: 'Jeju_Todo_Subtitle2' },
   // 탐나오&제주큐랑 (6493:118287). The sheet has already caught up with that
   // frame's two-tab redraw — MainButton_Tamnao reads 탐나오·제주큐랑 in all eight
   // languages — so the header follows the sheet, not the id, and the visitor sees

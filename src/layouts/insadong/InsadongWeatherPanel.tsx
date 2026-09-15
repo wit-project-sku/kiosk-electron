@@ -1,29 +1,33 @@
 /**
- * 인사동 날씨 — the overlay the home weather card opens. The same panel as 제주's
- * (JejuWeatherPanel, Figma 6516:74521, 2026-09-14 redraw): a frosted 2000-wide
- * panel over the home screen with its close button in a tab rising from the
- * top-right corner, 오늘 on its own lighter card, six day rows, three PLACE
- * columns — each place with its own glyph and its own low/high per day — and a
- * "※ 출처" line at the foot.
+ * 날씨 — the overlay the home weather card opens, shared by the Insadong,
+ * 오색시장 and 화성휴게소 kiosks. The same panel as 제주's (JejuWeatherPanel,
+ * Figma 6516:74521, 2026-09-14 redraw): a frosted 2000-wide panel over the home
+ * screen with its close button in a tab rising from the top-right corner, 오늘
+ * on its own lighter card, six day rows, three PLACE columns — each place with
+ * its own glyph and its own low/high per day — and a "※ 출처" line at the foot.
  *
- * The columns are 종로구 · 중구 · 강남구 (INSADONG_WEATHER_SITES), fed by
- * `WeatherForecast.sites`, which WeatherService fetches for the Insadong
- * layouts. A column whose site has not answered draws blank rather than
- * borrowing the kiosk's own `forecast.days`.
+ * The columns come from the kiosk's own site list (weatherSites.ts), fed by
+ * `WeatherForecast.sites`, which WeatherService fetches for these layouts. A
+ * column whose site has not answered draws blank rather than borrowing the
+ * kiosk's own `forecast.days`.
  */
 import type { WeatherForecast, WeatherSiteDay } from '@shared/types/weather';
-import { INSADONG_WEATHER_SITES, type InsadongWeatherSiteId } from '@shared/config/weatherSites';
+import { INSADONG_WEATHER_SITES, type WeatherSite } from '@shared/config/weatherSites';
 import { weatherIconUrl, weatherIconName } from '@renderer/assets/weather';
 import type { Lang } from '@renderer/lib/i18n';
 import styles from './InsadongWeatherPanel.module.css';
+
+type Labels = Partial<Record<Lang, string>>;
 
 interface Props {
   forecast: WeatherForecast | null;
   lang: Lang;
   onClose: () => void;
+  /** The three place columns, left to right. Defaults to Insadong's. */
+  sites?: readonly WeatherSite<string>[];
+  /** The dialog's accessible name. */
+  ariaLabel?: string;
 }
-
-type Labels = Partial<Record<Lang, string>>;
 
 const CLOSE_LABEL: Labels = {
   ko: '닫기', en: 'Close', ja: '閉じる', zh: '关闭',
@@ -44,8 +48,8 @@ const RULE_TOPS = [1093, 1580, 2108, 2636] as const;
  */
 const SOURCE = '※ 출처: OpenWeather';
 
-/** Column heads — no Localization_Insa rows for this panel yet. */
-const SITE_LABELS: Record<InsadongWeatherSiteId, Labels> = {
+/** Column heads by site id — no Localization rows for this panel yet. */
+const SITE_LABELS: Record<string, Labels> = {
   'jongno-gu': {
     ko: '종로구', en: 'Jongno-gu', ja: '鍾路区', zh: '钟路区',
     vi: 'Jongno-gu', th: 'จงโนกู', ru: 'Чонно-гу', id: 'Jongno-gu',
@@ -57,6 +61,22 @@ const SITE_LABELS: Record<InsadongWeatherSiteId, Labels> = {
   'gangnam-gu': {
     ko: '강남구', en: 'Gangnam-gu', ja: '江南区', zh: '江南区',
     vi: 'Gangnam-gu', th: 'คังนัมกู', ru: 'Каннам-гу', id: 'Gangnam-gu',
+  },
+  'osan-si': {
+    ko: '오산시', en: 'Osan', ja: '烏山市', zh: '乌山市',
+    vi: 'Osan', th: 'โอซาน', ru: 'Осан', id: 'Osan',
+  },
+  'hwaseong-si': {
+    ko: '화성시', en: 'Hwaseong', ja: '華城市', zh: '华城市',
+    vi: 'Hwaseong', th: 'ฮวาซอง', ru: 'Хвасон', id: 'Hwaseong',
+  },
+  'pyeongtaek-si': {
+    ko: '평택시', en: 'Pyeongtaek', ja: '平沢市', zh: '平泽市',
+    vi: 'Pyeongtaek', th: 'พย็องแท็ก', ru: 'Пхёнтхэк', id: 'Pyeongtaek',
+  },
+  'suwon-si': {
+    ko: '수원시', en: 'Suwon', ja: '水原市', zh: '水原市',
+    vi: 'Suwon', th: 'ซูวอน', ru: 'Сувон', id: 'Suwon',
   },
 };
 
@@ -77,14 +97,10 @@ const WEEKDAYS: Partial<Record<Lang, readonly string[]>> = {
   id: ['Min', 'Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab'],
 };
 
-/** Column axis per place, left to right. */
-const COLUMNS = {
-  'jongno-gu': styles.col1,
-  'jung-gu': styles.col2,
-  'gangnam-gu': styles.col3,
-} satisfies Record<InsadongWeatherSiteId, string | undefined>;
+/** Column axes, left to right — the frame draws exactly three places. */
+const COLUMNS = [styles.col1, styles.col2, styles.col3];
 
-const pick = (map: Labels, lang: Lang): string => map[lang] ?? map.ko ?? '';
+const pick = (map: Labels | undefined, lang: Lang): string => map?.[lang] ?? map?.ko ?? '';
 const pad2 = (n: number): string => String(n).padStart(2, '0');
 
 function dayLabel(date: Date, offset: number, lang: Lang): string {
@@ -94,7 +110,7 @@ function dayLabel(date: Date, offset: number, lang: Lang): string {
 }
 
 interface Cell {
-  id: InsadongWeatherSiteId;
+  id: string;
   day: WeatherSiteDay | null;
 }
 
@@ -110,8 +126,8 @@ interface Row {
  * outlook that went stale overnight leaves its past days unmatched, and a cell
  * with nothing for its date draws no glyph and dashes.
  */
-function buildRows(forecast: WeatherForecast | null, lang: Lang): Row[] {
-  const bySite = INSADONG_WEATHER_SITES.map((site) => ({
+function buildRows(forecast: WeatherForecast | null, lang: Lang, sites: readonly WeatherSite<string>[]): Row[] {
+  const bySite = sites.map((site) => ({
     id: site.id,
     days: new Map(
       (forecast?.sites?.find((s) => s.id === site.id)?.days ?? []).map((day) => [day.date, day]),
@@ -137,8 +153,15 @@ function Glyph({ day }: { day: WeatherSiteDay | null }): JSX.Element | null {
   return <img src={src} alt="" className={styles.glyph} draggable={false} />;
 }
 
-export function InsadongWeatherPanel({ forecast, lang, onClose }: Props): JSX.Element {
-  const rows = buildRows(forecast, lang);
+export function InsadongWeatherPanel({
+  forecast,
+  lang,
+  onClose,
+  sites = INSADONG_WEATHER_SITES,
+  ariaLabel = '날씨',
+}: Props): JSX.Element {
+  const columns = sites.slice(0, COLUMNS.length);
+  const rows = buildRows(forecast, lang, columns);
 
   return (
     <div className={styles.layer}>
@@ -156,12 +179,12 @@ export function InsadongWeatherPanel({ forecast, lang, onClose }: Props): JSX.El
         </button>
       </div>
 
-      <div className={styles.panel} role="dialog" aria-label="인사동 날씨">
+      <div className={styles.panel} role="dialog" aria-label={ariaLabel}>
         <div className={styles.todayCard} />
 
-        {INSADONG_WEATHER_SITES.map((site) => (
-          <span key={site.id} className={`${styles.head} ${COLUMNS[site.id]}`}>
-            {pick(SITE_LABELS[site.id], lang)}
+        {columns.map((site, i) => (
+          <span key={site.id} className={`${styles.head} ${COLUMNS[i]}`}>
+            {pick(SITE_LABELS[site.id], lang) || site.name}
           </span>
         ))}
 
@@ -174,8 +197,8 @@ export function InsadongWeatherPanel({ forecast, lang, onClose }: Props): JSX.El
             <span className={styles.day}>{row.label}</span>
             <span className={styles.date}>{row.date}</span>
 
-            {row.cells.map(({ id, day }) => (
-              <span key={id} className={`${styles.cell} ${COLUMNS[id]}`}>
+            {row.cells.map(({ id, day }, c) => (
+              <span key={id} className={`${styles.cell} ${COLUMNS[c]}`}>
                 <span className={styles.glyphSlot}>
                   <Glyph day={day} />
                 </span>

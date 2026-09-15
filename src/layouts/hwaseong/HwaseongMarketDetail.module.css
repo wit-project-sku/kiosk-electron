@@ -1,174 +1,202 @@
-/* 전국시장 상세 — exact Figma (node 4167:173281). gallery + info + QR + ratings. */
+/*
+ * 전국시장 상세 — gallery + info + QR + ratings, as the shared spot-detail card
+ * (insadong/SpotDetailCard.module.css), whose spacing and text behaviour follow
+ * the 제주 상세 card (JejuSpotDetailCard.module.css): name and category wrap,
+ * info lines wrap beside their icons, 30 between info rows, a 280 QR plate.
+ */
+/* Fills whatever box the kiosk gives the page (the full artboard, or the
+   shorter ♿ low-reach box) so `bottom:` rules land at the artboard foot. */
 .root {
   position: absolute;
   inset: 0;
-  width: 2160px;
-  height: 3840px;
   overflow: hidden;
   background: #fff;
-  font-family: 'Noto Sans KR', 'Noto Sans', sans-serif;
+  font-family: var(--kiosk-font, sans-serif);
 }
 
-.bgBase { position: absolute; left: 0; top: 0; width: 2160px; height: 3840px; background: #fff; }
+.bgBase { position: absolute; inset: 0; background: #fff; }
 .bgImage { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; pointer-events: none; }
 
+/* top 700 → above the 573 banner. Scrolls (hidden scrollbar) when the card
+   outgrows the area — e.g. when ♿ low-reach shortens it. */
 .content {
   position: absolute;
-  top: 699px;
+  top: 700px;
   left: 0;
   right: 0;
   bottom: 573px;
   box-sizing: border-box;
-  padding: 0 136px 80px 170px;
   display: flex;
   flex-direction: column;
   align-items: center;
-  overflow-y: auto;
   overflow-x: hidden;
-  scrollbar-gutter: stable;
+  overflow-y: auto;
+  scrollbar-width: none;
+  padding: 0 170px 60px;
+  font-family: var(--kiosk-font, sans-serif);
 }
 
-.content::-webkit-scrollbar { width: 34.32px; }
-.content::-webkit-scrollbar-thumb { background: var(--kiosk-primary); border-radius: 21.45px; }
-.content::-webkit-scrollbar-track { background: transparent; }
+.content::-webkit-scrollbar {
+  width: 0;
+  height: 0;
+}
 
+/* w1820, padding 100 / 45, 65 between blocks, r42.9. */
 .card {
+  border: none;
+  outline: none;
   flex: none;
-  width: 1820px;
   box-sizing: border-box;
-  background: #fff;
-  border: 5px solid #e8e8e8;
-  border-radius: 42.9px;
-  /* Figma: 48px from the card top to the title (was 100px). */
-  padding: 48px 45px 100px;
+  width: 1820px;
   display: flex;
   flex-direction: column;
   gap: 65px;
+  padding: 100px 45px;
+  background: #fff;
+  border-radius: 42.9px;
 }
 
-/* Title + gallery */
+/* ── Title + gallery ── */
 .head { display: flex; flex-direction: column; gap: 42.9px; }
 
-.titleRow { display: flex; align-items: center; gap: 42.9px; }
+.titleRow { display: flex; align-items: center; gap: 42.9px; min-width: 0; }
 
+/* Wraps rather than running off the card — the whole name, on as many lines as
+   it needs. */
 .title {
+  flex: 0 1 auto;
+  min-width: 0;
   margin: 0;
-  font-size: 85px;
   font-weight: 700;
+  font-size: 85px;
   color: #333;
   line-height: 1;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  font-variation-settings: 'CTGR' 0, 'wdth' 100;
+  white-space: normal;
+  word-break: keep-all;
+  overflow-wrap: anywhere;
 }
 
 .cat {
-  flex: none;
   display: flex;
   align-items: center;
   gap: 21.45px;
-  font-size: 51px;
+  flex: 0 1 auto;
+  min-width: 0;
   font-weight: 400;
+  font-size: 51px;
   color: #999;
   line-height: 1;
-  white-space: nowrap;
-  font-variation-settings: 'CTGR' 0, 'wdth' 100;
+  white-space: normal;
+  word-break: keep-all;
+  overflow-wrap: anywhere;
 }
 
-.dot { width: 17px; height: 17px; border-radius: 50%; background: var(--kiosk-primary); flex-shrink: 0; }
+.dot { flex: none; width: 17px; height: 17px; border-radius: 50%; background: var(--kiosk-primary); }
 
+/* 2×2 grid of 575×324 cells, gap 45, centred. */
 .gallery {
   display: grid;
   grid-template-columns: repeat(2, 575px);
-  justify-content: center;
   gap: 45px;
+  justify-content: center;
 }
 
 .cell { width: 575px; height: 324px; border-radius: 45px; overflow: hidden; }
-.cell img { width: 100%; height: 100%; object-fit: cover; }
+.cell img { width: 100%; height: 100%; object-fit: cover; display: block; }
 .cellEmpty { width: 100%; height: 100%; background: #ededed; }
 
-.divider { width: 100%; height: 2px; background: #e8e8e8; flex: none; }
+.divider { flex: none; width: 100%; height: 2.145px; background: #e8e8e8; }
 
-/* Info + QR */
-.infoRow { display: flex; align-items: center; justify-content: space-between; width: 100%; }
+/* ── Address / hours / phone + QR ── */
+.infoRow { display: flex; align-items: center; justify-content: space-between; gap: 40px; }
 
-.info { display: flex; flex-direction: column; gap: 40px; min-width: 0; }
+/* 30 between rows; shrinks to leave the QR its room. */
+.info { display: flex; flex-direction: column; gap: 30px; min-width: 0; }
 
-.line { display: flex; align-items: center; gap: 20px; }
+.line { display: flex; align-items: center; gap: 20px; min-width: 0; }
 
-.icon { width: 85px; height: 85px; flex-shrink: 0; }
+.icon { flex: none; width: 85px; height: 85px; }
 
-.infoCol { display: flex; flex-direction: column; gap: 20px; }
+.infoCol { display: flex; flex-direction: column; gap: 20px; min-width: 0; }
 
+/* Wraps — a long address or hours line takes a second line beside its icon. */
 .infoText {
-  font-size: 55px;
+  min-width: 0;
   font-weight: 400;
+  font-size: 55px;
   color: #333;
   line-height: 1;
-  white-space: nowrap;
-  font-variation-settings: 'CTGR' 0, 'wdth' 100;
+  white-space: normal;
+  word-break: keep-all;
+  overflow-wrap: anywhere;
 }
 
+/* 280 plate with the code inset to ~198 (the 제주 QR frame). */
 .qr {
-  width: 340px;
-  height: 340px;
+  border: none;
+  outline: none;
+  flex: none;
   box-sizing: border-box;
-  border: 4.29px solid var(--kiosk-primary);
+  width: 280px;
+  height: 280px;
+  margin-right: 60px;
   border-radius: 25px;
   background: #fff;
-  padding: 50px;
-  flex-shrink: 0;
+  padding: 41px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
-/* Description + tags */
+/* ── Description + tags ── */
 .desc {
   margin: 0;
-  font-size: 55px;
   font-weight: 400;
-  line-height: 1.3;
+  font-size: 55px;
   color: #333;
+  line-height: 1.3;
   white-space: pre-wrap;
-  font-variation-settings: 'CTGR' 0, 'wdth' 100;
+  /* ~3 lines at 55px/1.3, as the shared card. */
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
 }
 
 .tags {
   margin: 0;
-  font-size: 45px;
   font-weight: 400;
-  line-height: 1.5;
+  font-size: 45px;
   color: #616161;
-  font-variation-settings: 'CTGR' 0, 'wdth' 100;
+  line-height: 1.5;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
 }
 
-/* Ratings */
+/* ── Ratings ── left-aligned, 64.35 apart. */
 .ratings {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  justify-content: center;
+  justify-content: flex-start;
   gap: 64.35px;
 }
 
 .ratingItem { display: flex; align-items: center; gap: 21.45px; }
 
-.naver { width: 85.799px; height: 85.799px; flex-shrink: 0; border-radius: 50%; }
+.naver { flex: none; width: 85.799px; height: 85.799px; object-fit: contain; border-radius: 50%; }
 
-.stars { display: flex; align-items: center; gap: 2.14px; }
-.star { width: 42.9px; height: 42.9px; }
+.stars { display: flex; align-items: center; gap: 2px; }
+.star { width: 43px; height: 43px; }
 
 .ratingText {
-  font-size: 51.48px;
   font-weight: 400;
+  font-size: 51.48px;
   color: #333;
   line-height: 1.5;
   white-space: nowrap;
-  font-variation-settings: 'CTGR' 0, 'wdth' 100;
 }
 
-.vline { width: 2px; height: 43px; background: #ddd; flex-shrink: 0; }
-
-/* ── Bottom banner ── */
-.banner { position: absolute; top: 3267px; left: 0; width: 2160px; height: 573px; pointer-events: none; }
-.bannerImg { width: 100%; height: 100%; object-fit: cover; display: block; pointer-events: none; }
+.vline { flex: none; width: 2px; height: 43px; background: #ddd; }

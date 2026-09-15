@@ -129,7 +129,7 @@ const DAYS_BY_STAY: Record<string, number> = {
   '당일치기': 1,
   '1박 2일': 2,
   '2박 3일': 3,
-  '3박 이상': 4,
+  '3박 4일': 4,
 };
 
 /** Row heights: the full 515 plate, and the compact "추천 코스" card (311 since
@@ -266,16 +266,17 @@ const startPlaceLabel = (kioskId: string, lang: Lang): string => {
 };
 
 /**
- * The themed courses' own Localization_Jeju rows: each is named (ACourseDesc2
- * "자연·유산 탐방 코스") and tagged (ACourseTags "#자연 #유산 #힐링") there. The
- * sheet is the source; COURSE_META's copy only fills a cell it leaves empty.
- * 쇼핑·로컬 has no row — the API has no D course — so it stays authored, as does
- * the AI 맞춤 route's name (AI_COURSE_NAME).
+ * The themed courses' names, from Localization_Jeju_v2's `Recommended_Course_{n}_title`
+ * — the same rows the landing's cards read, numbered in the landing's order, so
+ * 쇼핑·로컬 now has one too. COURSE_META's copy only fills a cell the sheet leaves
+ * empty. The v2 tab retired the per-course A/B/C rows, tags included, so tags
+ * (`Tags`) are authored only; the AI 맞춤 route's name stays AI_COURSE_NAME.
  */
-const COURSE_SHEET_LETTER: Partial<Record<string, 'A' | 'B' | 'C'>> = {
-  nature: 'A',
-  food: 'B',
-  family: 'C',
+const COURSE_SHEET_NO: Partial<Record<string, number>> = {
+  nature: 1,
+  food: 2,
+  shop: 3,
+  family: 4,
 };
 
 const courseSheetText = (
@@ -284,8 +285,10 @@ const courseSheetText = (
   lang: Lang,
   authored: Partial<Record<Lang, string>>,
 ): string => {
-  const letter = COURSE_SHEET_LETTER[courseKey];
-  return letter ? sheetText(`${letter}Course${field}`, lang, authored) : pick(authored, lang);
+  const no = COURSE_SHEET_NO[courseKey];
+  return field === 'Desc2' && no
+    ? sheetText(`Recommended_Course_${no}_title`, lang, authored)
+    : pick(authored, lang);
 };
 
 const T = {
@@ -1067,7 +1070,7 @@ export function JejuAiDetail({ controller }: Props): JSX.Element {
    */
   const dwellOf = (stop: Stop): string => {
     const value = stop.spot ? minutesLabel(stop.spot.dwellMinutes, lang) : pick(meta.spotDuration, lang);
-    return `${pick(STAT_LABEL.dwell, lang)} : ${value}`;
+    return `${sheetText('TimeToAdjourn', lang, STAT_LABEL.dwell)} : ${value}`;
   };
 
   /**
@@ -1086,7 +1089,7 @@ export function JejuAiDetail({ controller }: Props): JSX.Element {
   const hoursOf = (stop: Stop): string => {
     const raw = (stop.spot ? stop.spot.openTimeText : stop.shop.openTime) ?? '';
     const text = raw.replace(/\s+/g, ' ').trim();
-    return text ? `${pick(STAT_LABEL.hours, lang)} ${text}` : '';
+    return text ? `${sheetText('Open&closeTime', lang, STAT_LABEL.hours)} ${text}` : '';
   };
 
   const hardnessOf = (stop: Stop): string => {

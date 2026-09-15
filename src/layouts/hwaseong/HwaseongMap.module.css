@@ -1,59 +1,81 @@
-/* 화성휴게소 지도 — Figma node 4167:170891. Artboard: 2160×3840px. */
+/*
+ * 화성휴게소 지도 — Figma node 4167:170891, laid out like the 인사동 지도 tab
+ * (InsadongTransport.module.css): one scrolling column under the 700 header,
+ * a flat 1820 card with a 60/700 centred intro over the 1740-wide map.
+ * Hwaseong's own colours are kept; no borders or shadows.
+ */
+
+/* Fills its box rather than a fixed 2160×3840, so in ♿ low-reach the
+   `bottom:` rules still end at the artboard foot. */
 .root {
   position: absolute;
   inset: 0;
-  width: 2160px;
-  height: 3840px;
   overflow: hidden;
   background: #fff;
-  font-family: 'Noto Sans KR', 'Noto Sans', sans-serif;
+  font-family: var(--kiosk-font, sans-serif);
 }
-.bgBase { position: absolute; left: 0; top: 0; width: 2160px; height: 3840px; background: #fff; }
+.bgBase { position: absolute; inset: 0; background: #fff; }
 .bgImage { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; pointer-events: none; }
 
-/* ── Results scroll area ── */
+/* One scrolling column under the 700 header, down to the 573 banner; the 28px
+   scrollbar is carved out of the RIGHT margin so the 1820 column stays centred.
+   The card fits in the standard layout; it scrolls in ♿ low-reach. */
 .results {
   position: absolute;
-  top: 699px;
+  top: 700px;
   left: 0;
   right: 0;
   bottom: 573px;
   box-sizing: border-box;
-  padding: 142px 136px 60px 170px;
+  padding: 0 136px 0 170px;
   display: flex;
   flex-direction: column;
   align-items: center;
+  gap: 50px;
   overflow-y: auto;
   overflow-x: hidden;
-  scrollbar-gutter: stable;
 }
-.results::-webkit-scrollbar { width: 34px; }
-.results::-webkit-scrollbar-thumb { background: var(--kiosk-primary); border-radius: 21.45px; }
-.results::-webkit-scrollbar-track { background: transparent; }
 
-/* ── Main card — Figma: bg-white border-5 #e8e8e8 rounded-42.9 pb-79 pt-100 ── */
+.results::-webkit-scrollbar {
+  width: 28px;
+}
+.results::-webkit-scrollbar-thumb {
+  background: var(--kiosk-primary);
+  border-radius: 14px;
+}
+.results::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+/* Big content card */
 .card {
+  border: none;
+  outline: none;
+  flex: none;
   width: 1820px;
   box-sizing: border-box;
-  background: #fff;
-  border: 5px solid #e8e8e8;
-  border-radius: 42.9px;
-  padding: 100px 40px 79px;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 52px;
+  gap: 60px;
+  padding: 55px 40px 45px;
+  background: #fff;
+  border-radius: 42.9px;
 }
 
-/* Subtitle — SemiBold 58px, center */
+/* Intro above the map — 60/700, centred, wraps. */
 .cardSubtitle {
   margin: 0;
-  font-size: 58px;
-  font-weight: 600;
-  color: #000;
+  width: 1740px;
+  max-width: 100%;
+  font-family: var(--kiosk-font, sans-serif);
+  font-size: 60px;
+  font-weight: 700;
   line-height: 1.5;
+  color: #000;
   text-align: center;
-  width: 100%;
+  word-break: keep-all;
+  overflow-wrap: anywhere;
 }
 
 /* Full floor-plan + legend image (uploaded). Fills the card's inner width. */
@@ -67,27 +89,36 @@
 /* Zoomable/pannable viewport — locked to the map image's aspect (1730×1437)
    so it fills the card width with no letterboxing. */
 .mapViewport {
+  border: none;
+  outline: none;
   width: 1740px;
   max-width: 100%;
+  flex: none;
   aspect-ratio: 1730 / 1437;
   border-radius: 20px;
 }
+
 .mapPlaceholder {
-  width: 1600px;
-  height: 658px;
+  border: none;
+  outline: none;
+  width: 1740px;
+  max-width: 100%;
+  height: 1550px;
+  flex: none;
   background: #f5f5f5;
-  border: 1px solid var(--kiosk-primary);
   border-radius: 20px;
   display: flex;
   align-items: center;
   justify-content: center;
 }
 .mapPlaceholderText {
-  font-size: 64px;
-  font-weight: 600;
+  font-family: var(--kiosk-font, sans-serif);
+  font-size: 60px;
+  font-weight: 700;
+  line-height: 1.5;
   color: #999;
 }
 
 /* ── Bottom banner ── */
-.banner { position: absolute; top: 3267px; left: 0; width: 2160px; height: 573px; pointer-events: none; }
+.banner { position: absolute; left: 0; bottom: 0; width: 2160px; height: 573px; pointer-events: none; }
 .bannerImg { width: 100%; height: 100%; object-fit: cover; display: block; }

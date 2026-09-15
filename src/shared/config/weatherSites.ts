@@ -31,6 +31,9 @@ export type WeatherSiteId = 'jeju-si' | 'seogwipo-si' | 'seongsan';
 /** Stable key for one 인사동 column. */
 export type InsadongWeatherSiteId = 'jongno-gu' | 'jung-gu' | 'gangnam-gu';
 
+/** Stable key for one 오색시장 (오산) or 화성휴게소 column — city halls nearby. */
+export type GyeonggiWeatherSiteId = 'osan-si' | 'hwaseong-si' | 'pyeongtaek-si' | 'suwon-si';
+
 export interface WeatherSite<Id extends string = WeatherSiteId> {
   id: Id;
   /** Korean name of the place, for logs. The drawn label is per-language. */
@@ -48,6 +51,18 @@ export const JEJU_WEATHER_SITES: readonly WeatherSite[] = [
   { id: 'seogwipo-si', name: '서귀포시', coordinates: { lat: 33.2541, lon: 126.5601 } },
   { id: 'seongsan', name: '성산', coordinates: { lat: 33.4589, lon: 126.937 } },
 ] as const;
+
+const OSAN_SI: WeatherSite<GyeonggiWeatherSiteId> = { id: 'osan-si', name: '오산시', coordinates: { lat: 37.1498, lon: 127.0772 } };
+const HWASEONG_SI: WeatherSite<GyeonggiWeatherSiteId> = { id: 'hwaseong-si', name: '화성시', coordinates: { lat: 37.1995, lon: 126.8315 } };
+const PYEONGTAEK_SI: WeatherSite<GyeonggiWeatherSiteId> = { id: 'pyeongtaek-si', name: '평택시', coordinates: { lat: 36.9921, lon: 127.1129 } };
+const SUWON_SI: WeatherSite<GyeonggiWeatherSiteId> = { id: 'suwon-si', name: '수원시', coordinates: { lat: 37.2636, lon: 127.0286 } };
+
+/** The 오색시장 (오산) home panel's three columns, left to right — the kiosk's own
+ *  city first, then its two neighbours. */
+export const OSAN_WEATHER_SITES: readonly WeatherSite<GyeonggiWeatherSiteId>[] = [OSAN_SI, HWASEONG_SI, PYEONGTAEK_SI];
+
+/** The 화성휴게소 home panel's three columns, left to right. */
+export const HWASEONG_WEATHER_SITES: readonly WeatherSite<GyeonggiWeatherSiteId>[] = [HWASEONG_SI, OSAN_SI, SUWON_SI];
 
 /** The Insadong home panel's three columns, left to right. */
 export const INSADONG_WEATHER_SITES: readonly WeatherSite<InsadongWeatherSiteId>[] = [

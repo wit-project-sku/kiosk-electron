@@ -1,5 +1,5 @@
-/* 교통안내 — exact Figma px (artboard 2160×3840). Navy var(--kiosk-primary). NO scroll:
-   the map is the flexible element and shrinks so everything fits the frame. */
+/* 교통안내 — artboard 2160×3840. Navy var(--kiosk-primary). The map is the
+   flexible element and shrinks so everything fits the frame. */
 .bg {
   position: absolute;
   inset: 0;
@@ -9,22 +9,37 @@
   pointer-events: none;
 }
 
+/* One column under the 700 header, 50 between blocks (제주 rhythm). It only
+   scrolls once the map can't shrink any further (♿ low-reach); the 28px
+   scrollbar is carved out of the RIGHT margin so the 1820 column stays at x170. */
 .results {
   position: absolute;
-  top: 699px;
+  top: 700px;
   left: 0;
   right: 0;
   bottom: 573px;
   box-sizing: border-box;
   display: flex;
   flex-direction: column;
-  align-items: center;
-  gap: 60px;
-  overflow: hidden;
-  padding: 0 170px 60px;
+  align-items: flex-start;
+  gap: 50px;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: 0 136px 60px 170px;
 }
 
-/* ── Category tabs — col gap35, w1820 ── */
+.results::-webkit-scrollbar {
+  width: 28px;
+}
+.results::-webkit-scrollbar-thumb {
+  background: var(--kiosk-primary);
+  border-radius: 14px;
+}
+.results::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+/* ── Category tabs — two rows (5 + 3) over 1820, col gap 35 ── */
 .tabs {
   flex: none;
   width: 1820px;
@@ -47,24 +62,32 @@
   width: 100%;
 }
 
+/* 제주 tab type: 50 / 500 (700 picked) on a 170-tall pill; five fit a row, so
+   each is 340 wide and a long translated label wraps inside it. */
 .tab {
+  border: none;
+  outline: none;
   box-sizing: border-box;
   width: 340px;
   height: 170px;
   flex: none;
+  padding: 0 18px;
   display: flex;
   align-items: center;
   justify-content: center;
   background: #ffffff;
-  border: 5px solid #e8e8e8;
   border-radius: 42.9px;
-  box-shadow: 0 21.45px 42.9px rgba(143, 147, 157, 0.1);
   font-family: var(--kiosk-font, sans-serif);
   font-weight: 500;
   font-size: 50px;
+  line-height: 1.1;
   color: #999999;
+  text-align: center;
+  overflow: hidden;
+  word-break: keep-all;
+  overflow-wrap: anywhere;
   cursor: pointer;
-  white-space: nowrap;
+  -webkit-tap-highlight-color: transparent;
 }
 
 .tabSelected {
@@ -73,14 +96,15 @@
   color: var(--kiosk-primary);
 }
 
-/* ── Content card — fills remaining height (no scroll) ── */
+/* ── Content card — fills remaining height ── */
 .card {
+  border: none;
+  outline: none;
   flex: 1 1 auto;
   min-height: 0;
   width: 1820px;
   box-sizing: border-box;
   background: #ffffff;
-  border: 5px solid #e8e8e8;
   border-radius: 42.9px;
   font-family: var(--kiosk-font, sans-serif);
 }
@@ -116,7 +140,7 @@
   display: flex;
   align-items: center;
   gap: 40px;
-  height: 80px;
+  min-height: 80px;
 }
 
 .transitHeading {
@@ -124,6 +148,8 @@
   font-size: 80px;
   color: #333333;
   line-height: 1;
+  word-break: keep-all;
+  overflow-wrap: anywhere;
 }
 
 .transitSub {
@@ -134,9 +160,12 @@
   font-size: 52px;
   color: #999999;
   line-height: 1;
+  word-break: keep-all;
+  overflow-wrap: anywhere;
 }
 
 .dot {
+  flex: none;
   width: 17px;
   height: 17px;
   border-radius: 50%;
@@ -239,6 +268,8 @@
   color: #333333;
   line-height: 1.5;
   text-align: center;
+  word-break: keep-all;
+  overflow-wrap: anywhere;
 }
 
 /* Market map: full body width, fills the remaining card height so it can be
@@ -252,9 +283,9 @@
   display: flex;
 }
 
-/* Street-tab map (빨강길·녹색길·미소거리·아름거리·맘스거리): fixed Figma-exact
-   size (width/height set inline), natural aspect, top-aligned. Centred within
-   the card (맘스거리 is a narrower 984px column). Pinch/drag to zoom. */
+/* Street-tab map (빨강길·녹색길·미소거리·아름거리·맘스거리): fixed size
+   (width/height set inline), natural aspect, top-aligned. Centred within the
+   card (맘스거리 is a narrower 984px column). Pinch/drag to zoom. */
 .streetMapWrap {
   /* grow:0 keeps short crops (빨강/녹색/미소) at their exact height; shrink:1
      lets the tall crops (아름/맘스) shrink to fit rather than clip the card. */
@@ -285,6 +316,8 @@
   line-height: 1.5;
   text-align: center;
   width: 1740px;
+  word-break: keep-all;
+  overflow-wrap: anywhere;
 }
 
 /* Street tabs (빨강길·녹색길·미소거리·아름거리·맘스거리): the map description
@@ -302,14 +335,16 @@
   text-align: center;
 }
 
+/* One row in Korean (“WITH”=WIT AI SMART KIOSK 설치장소); a longer translation
+   wraps inside the 1740 column instead of running past the card. */
 .kioskTitle {
   margin: 0;
   font-weight: 700;
   font-size: 60px;
   color: #333333;
   line-height: 1.4;
-  /* The full title (“WITH”=WIT AI SMART KIOSK 설치장소) stays on one row. */
-  white-space: nowrap;
+  word-break: keep-all;
+  overflow-wrap: anywhere;
 }
 
 .kioskLoc {
@@ -318,6 +353,8 @@
   font-size: 50px;
   color: #333333;
   line-height: 1.4;
+  word-break: keep-all;
+  overflow-wrap: anywhere;
 }
 
 /* ── Market-zone placeholder ── */
@@ -341,4 +378,3 @@
   font-size: 80px;
   color: #999999;
 }
-

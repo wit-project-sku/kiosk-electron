@@ -1,20 +1,23 @@
-/* 화성휴게소 상세 — exact Figma (node 4167:174694). Card 1820×2980, scrolls. */
+/*
+ * 화성휴게소 상세 — the shared spot-detail card (insadong/SpotDetailCard.module.css),
+ * whose spacing and text behaviour follow the 제주 상세 card
+ * (JejuSpotDetailCard.module.css): name and category wrap, info lines wrap
+ * beside their icons, 30 between info rows. The card is a flowing column (it
+ * was absolutely positioned at a fixed 2320) ending in Hwaseong's floor map.
+ */
+/* Fills whatever box the kiosk gives the page (the full artboard, or the
+   shorter ♿ low-reach box) so `bottom:` rules land at the artboard foot. */
 .root {
   position: absolute;
   inset: 0;
-  width: 2160px;
-  height: 3840px;
   overflow: hidden;
   background: #fff;
-  font-family: 'Noto Sans KR', 'Noto Sans', sans-serif;
+  font-family: var(--kiosk-font, sans-serif);
 }
 
 .bgBase {
   position: absolute;
-  left: 0;
-  top: 0;
-  width: 2160px;
-  height: 3840px;
+  inset: 0;
   background: #fff;
 }
 
@@ -27,100 +30,103 @@
   pointer-events: none;
 }
 
-/* Scroll area — full width so the scrollbar sits in the outer padding. */
+/* top 700 → above the 573 banner. The card (with its map) is taller than the
+   area, so it scrolls — with a hidden scrollbar. */
 .content {
   position: absolute;
-  top: 699px;
+  top: 700px;
   left: 0;
   right: 0;
   bottom: 573px;
   box-sizing: border-box;
-  padding: 0 136px 80px 170px;
   display: flex;
   flex-direction: column;
   align-items: center;
-  overflow-y: auto;
   overflow-x: hidden;
-  scrollbar-gutter: stable;
+  overflow-y: auto;
+  scrollbar-width: none;
+  padding: 0 170px 60px;
+  font-family: var(--kiosk-font, sans-serif);
 }
 
-.content::-webkit-scrollbar { width: 34.32px; }
-.content::-webkit-scrollbar-thumb { background: var(--kiosk-primary); border-radius: 21.45px; }
-.content::-webkit-scrollbar-track { background: transparent; }
+.content::-webkit-scrollbar {
+  width: 0;
+  height: 0;
+}
 
-/* Card — fixed Figma layout (children absolutely positioned). */
+/* w1820, padding 100 / 45, 65 between blocks, r42.9. */
 .card {
-  position: relative;
+  border: none;
+  outline: none;
   flex: none;
-  width: 1820px;
-  /* Ends just below the floor map (top 1560 + ~692) — no legend below it. */
-  height: 2320px;
-  background: #fff;
-  border: 5px solid #e8e8e8;
-  border-radius: 42.9px;
   box-sizing: border-box;
-}
-
-/* Title + gallery block — top 43, width 1730. Anchored to the same left edge
-   (40px) as .info / .desc / .dividerTop so the title's left start sits on the
-   exact same vertical line as the body text below (the gallery inside still
-   centres itself via its own justify-content). */
-.head {
-  position: absolute;
-  top: 43.48px;
-  left: 40px;
-  width: 1730px;
+  width: 1820px;
   display: flex;
   flex-direction: column;
-  gap: 40px;
+  gap: 65px;
+  padding: 100px 45px;
+  background: #fff;
+  border-radius: 42.9px;
+}
+
+/* ── Title + gallery ── */
+.head {
+  display: flex;
+  flex-direction: column;
+  gap: 42.9px;
 }
 
 .titleRow {
   display: flex;
   align-items: center;
   gap: 42.9px;
+  min-width: 0;
 }
 
+/* Wraps rather than running off the card — the whole name, on as many lines as
+   it needs. */
 .title {
+  flex: 0 1 auto;
+  min-width: 0;
   margin: 0;
-  font-size: 85px;
   font-weight: 700;
+  font-size: 85px;
   color: #333;
   line-height: 1;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  font-variation-settings: 'CTGR' 0, 'wdth' 100;
+  white-space: normal;
+  word-break: keep-all;
+  overflow-wrap: anywhere;
 }
 
 .cat {
-  flex: none;
   display: flex;
   align-items: center;
   gap: 21.45px;
-  font-size: 51px;
+  flex: 0 1 auto;
+  min-width: 0;
   font-weight: 400;
+  font-size: 51px;
   color: #999;
   line-height: 1;
-  white-space: nowrap;
-  font-variation-settings: 'CTGR' 0, 'wdth' 100;
+  white-space: normal;
+  word-break: keep-all;
+  overflow-wrap: anywhere;
 }
 
 .dot {
+  flex: none;
   width: 17px;
   height: 17px;
   border-radius: 50%;
   background: var(--kiosk-primary);
-  flex-shrink: 0;
 }
 
-/* 2×2 grid of 575×324 cells, gap 45, centred (Figma 174877) */
+/* 2×2 grid of 575×324 cells, gap 45, centred. */
 .gallery {
   display: grid;
   grid-template-columns: repeat(2, 575px);
-  justify-content: center;
   gap: 45px;
-  width: 100%;
+  justify-content: center;
 }
 
 .cell {
@@ -128,13 +134,13 @@
   height: 324px;
   border-radius: 45px;
   overflow: hidden;
-  flex-shrink: 0;
 }
 
 .cell img {
   width: 100%;
   height: 100%;
   object-fit: cover;
+  display: block;
 }
 
 .cellEmpty {
@@ -145,91 +151,63 @@
 
 .dividerTop,
 .dividerBottom {
-  position: absolute;
-  left: 40px;
-  width: 1730px;
-  height: 2px;
+  flex: none;
+  height: 2.145px;
+  width: 100%;
   background: #e8e8e8;
 }
 
-.dividerTop { top: 912.48px; }
-.dividerBottom { top: 1525.38px; left: 53px; }
-
-/* Address / hours */
+/* ── Address / hours ── 30 between rows. */
 .info {
-  position: absolute;
-  top: 951.38px;
-  left: 40px;
-  width: 1730px;
   display: flex;
   flex-direction: column;
-  gap: 40px;
+  gap: 30px;
+  min-width: 0;
 }
 
 .infoRow {
   display: flex;
   align-items: center;
   gap: 20px;
+  min-width: 0;
 }
 
 .infoIcon {
+  flex: none;
   width: 85px;
   height: 85px;
-  flex-shrink: 0;
 }
 
+/* Wraps — a long address or hours line takes a second line beside its icon. */
 .infoText {
-  font-size: 55px;
+  min-width: 0;
   font-weight: 400;
+  font-size: 55px;
   color: #333;
   line-height: 1;
-  font-variation-settings: 'CTGR' 0, 'wdth' 100;
+  white-space: normal;
+  word-break: keep-all;
+  overflow-wrap: anywhere;
 }
 
-/* Description */
+/* ── Description ── 55 / 1.3, clamped to 4 lines. */
 .desc {
-  position: absolute;
-  top: 1191.38px;
-  left: 40px;
-  width: 1730px;
   margin: 0;
-  font-size: 55px;
   font-weight: 400;
-  line-height: 1.3;
+  font-size: 55px;
   color: #333;
-  text-align: justify;
+  line-height: 1.3;
   display: -webkit-box;
   -webkit-line-clamp: 4;
   -webkit-box-orient: vertical;
   overflow: hidden;
-  font-variation-settings: 'CTGR' 0, 'wdth' 100;
 }
 
-/* 화성휴게소 floor map — newly uploaded image (1730×658). Keep its native
-   aspect so nothing distorts. It labels the shops/numbers itself (no legend). */
+/* 화성휴게소 floor map (1730×658) — the full card column at its native aspect,
+   so nothing distorts. It labels the shops/numbers itself (no legend). */
 .map {
-  position: absolute;
-  top: 1560px;
-  left: 0;
-  width: 1820px;
+  display: block;
+  width: 100%;
   aspect-ratio: 1730 / 658;
   object-fit: contain;
-}
-
-/* ── Bottom banner ── */
-.banner {
-  position: absolute;
-  top: 3267px;
-  left: 0;
-  width: 2160px;
-  height: 573px;
-  pointer-events: none;
-}
-
-.bannerImg {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  display: block;
-  pointer-events: none;
 }

@@ -101,7 +101,13 @@ const DAY_TAB: Partial<Record<Lang, (n: number) => string>> = {
   ko: (n) => `${n}일차`, en: (n) => `Day ${n}`, ja: (n) => `${n}日目`, zh: (n) => `第${n}天`,
   vi: (n) => `Ngày ${n}`, th: (n) => `วันที่ ${n}`, ru: (n) => `День ${n}`, id: (n) => `Hari ${n}`,
 };
-const dayTabLabel = (n: number, lang: Lang): string => (DAY_TAB[lang] ?? DAY_TAB.ko)!(n);
+/** Localization_Jeju_v2's day tabs (1일차 … 4일차). A 5th day has no row and keeps DAY_TAB. */
+const DAY_TAB_KEYS = ['1st_day', '2nd_day', '3rd_day', '4th_day'];
+const dayTabLabel = (n: number, lang: Lang): string => {
+  const authored = (DAY_TAB[lang] ?? DAY_TAB.ko)!(n);
+  const key = DAY_TAB_KEYS[n - 1];
+  return key ? sheetText(key, lang, { [lang]: authored }) : authored;
+};
 
 type Template = Partial<Record<Lang, (value: string) => string>>;
 const fill = (template: Template, lang: Lang, value: string): string =>
@@ -192,7 +198,8 @@ const STAY = [
   { key: 'StayTime_1', label: '당일치기' },
   { key: 'StayTime_2', label: '1박 2일' },
   { key: 'StayTime_3', label: '2박 3일' },
-  { key: 'StayTime_4', label: '3박 이상' },
+  // The sheet renamed this chip 3박 이상 → 3박 4일 (the API caps a trip at 4 days).
+  { key: 'StayTime_4', label: '3박 4일' },
 ];
 const TRANSPORT = [
   { key: 'Transportation_1', label: '도보' },
@@ -503,13 +510,9 @@ const NEXT_LABEL = {
 /**
  * The CTA once every question is answered — Figma 6289:54956's "코스 추천받기".
  *
- * Authored rather than read from AI_SubmitButton. That row still carries the
- * mascot wording on every venue's sheet ("제주에게 추천받기" here, "인사에게 …"
- * and "정이'에게 …" elsewhere), and a sheet row outranks authored copy in `s()`,
- * so reading it would keep the old label on every kiosk no matter what the
- * fallback said. The frame relabelled it once the course picker went in front of
- * the questions (7019:17890): this button now asks for COURSES, not for the
- * mascot. Point it back at a sheet key when the sheet grows a "코스 추천받기" row.
+ * Read from Localization_Jeju_v2's `SubmitButton` ("코스 추천받기"), the row the
+ * sheet added for this button — NOT the mascot-worded AI_SubmitButton, which
+ * the v2 tab retired. This table fills the languages the row leaves empty.
  */
 const SUBMIT_LABEL = {
   ko: '코스 추천받기',
@@ -524,11 +527,12 @@ const SUBMIT_LABEL = {
 
 /*
  * ── Course picker copy (Figma 7088:23517, redraw of 7019:17890) ──
- * None of it is in Localization_Jeju yet, so it is authored in all eight
- * languages here, the way NEXT_LABEL and SECTION are.
+ * Localization_Jeju_v2 carries this page's copy (Jeju_Todo_Subtitle1*,
+ * My_Course_*, Recommended_Course_*), so the sheet is the source everywhere
+ * below; these eight-language tables only fill the cells it leaves empty —
+ * most of those rows are Korean-only so far.
  */
-/** The landing's description. The sheet's Course_Subtitle is the source ("* 코스를
- *  선택해 주세요", 8/8); this only fills a cell it leaves empty. */
+/** The landing's description — `Jeju_Todo_Subtitle1` ("코스를 선택해 주세요"). */
 const PICK_SUBTITLE = {
   ko: '코스를 선택해주세요', en: 'Choose a course', ja: 'コースを選んでください', zh: '请选择路线',
   vi: 'Hãy chọn lộ trình', th: 'กรุณาเลือกเส้นทาง', ru: 'Выберите маршрут', id: 'Silakan pilih rute',
@@ -586,6 +590,26 @@ const PICK_NOTE_BY_KIOSK: Record<string, Partial<Record<Lang, string>>> = {
 /** This kiosk's note — the airport copy for any id the table does not list. */
 const pickNoteFor = (kioskId: string): Partial<Record<Lang, string>> =>
   PICK_NOTE_BY_KIOSK[kioskId] ?? PICK_NOTE_BY_KIOSK.W006!;
+
+/**
+ * The sheet's row for this kiosk's note: Jeju_Todo_Subtitle1-1 (제주 공항) and
+ * Jeju_Todo_Subtitle1-2 (제주항 여객터미널). The sheet marks 1-2 for the 유산 centre
+ * too, but its copy names the ferry terminal while W008's courses start at
+ * 세계자연유산본부 (see above), so W008 keeps its own authored note until the
+ * sheet has a row that names it.
+ */
+const PICK_NOTE_KEY: Record<string, string> = {
+  W006: 'Jeju_Todo_Subtitle1-1',
+  W007: 'Jeju_Todo_Subtitle1-2',
+};
+
+/** The orange note, with the frame's leading asterisk the sheet's copy omits. */
+const pickNoteText = (kioskId: string, lang: Lang): string => {
+  const authored = pickNoteFor(kioskId);
+  const key = PICK_NOTE_KEY[kioskId] ?? (PICK_NOTE_BY_KIOSK[kioskId] ? undefined : PICK_NOTE_KEY.W006);
+  const text = key ? sheetText(key, lang, authored) : pick(authored, lang);
+  return text.startsWith('*') ? text : `*${text}`;
+};
 
 /**
  * The 커스텀 코스 card (7088:23517 renamed it from AI 맞춤 추천 코스). Its title
@@ -685,6 +709,13 @@ const THEMES = [
     text: { left: 396, top: 121, width: 368 },
   },
 ] as const;
+
+/** Each card's Localization_Jeju_v2 row, `Recommended_Course_{n}_subtitle/_title` —
+ *  numbered in the frame's reading order, 쇼핑·로컬 included. */
+const THEME_SHEET_NO: Record<string, number> = { nature: 1, food: 2, shop: 3, family: 4 };
+
+/** Sheet copy may carry its line break as a literal "\n"; draw it as one. */
+const sheetLines = (text: string): string => text.replace(/\\n/g, '\n');
 
 export function JejuAiSearch({ controller }: Props): JSX.Element {
   const setAiInterests = useAiStore((s) => s.setInterests);
@@ -1074,7 +1105,7 @@ export function JejuAiSearch({ controller }: Props): JSX.Element {
       <JejuPageFrame
         controller={controller}
         title="'제주' 뭐하지 (AI 검색)"
-        subtitle={sheetText('Course_Subtitle', lang, PICK_SUBTITLE)}
+        subtitle={sheetText('Jeju_Todo_Subtitle1', lang, PICK_SUBTITLE)}
         bannerFallback="banner-detail"
         lowReachModeBar
         lowReachBarBanner
@@ -1082,29 +1113,32 @@ export function JejuAiSearch({ controller }: Props): JSX.Element {
         lowReachBodyShift={belowModeBar(LOW_REACH_BANNER_HEIGHT)}
       >
         <div className={styles.root}>
-          <p className={styles.pickNote}>{pick(pickNoteFor(kioskId), lang)}</p>
+          <p className={styles.pickNote}>{pickNoteText(kioskId, lang)}</p>
 
-          <p className={`${styles.sectionHead} ${styles.headCustom}`}>I {pick(AI_CARD.title, lang)}</p>
+          <p className={`${styles.sectionHead} ${styles.headCustom}`}>
+            I {sheetText('My_Course_title', lang, AI_CARD.title)}
+          </p>
 
           <button type="button" className={styles.bigCard} onClick={openCustom}>
             {aiArt && <img src={aiArt} alt="" className={styles.bigArt} draggable={false} />}
             <span className={styles.bigText}>
-              <span className={styles.bigSub}>{pick(AI_CARD.sub, lang)}</span>
-              <span className={styles.bigTitle}>{pick(AI_CARD.title, lang)}</span>
-              <span className={styles.bigDesc}>{pick(AI_CARD.desc, lang)}</span>
+              <span className={styles.bigSub}>{sheetText('My_Course_desc1', lang, AI_CARD.sub)}</span>
+              <span className={styles.bigTitle}>{sheetText('My_Course_title', lang, AI_CARD.title)}</span>
+              <span className={styles.bigDesc}>{sheetLines(sheetText('My_Course_desc2', lang, AI_CARD.desc))}</span>
             </span>
             {bigArrow && <img src={bigArrow} alt="" className={styles.bigArrow} draggable={false} />}
           </button>
 
           <p className={`${styles.sectionHead} ${styles.headRecommended}`}>
-            I {pick(RECOMMENDED_HEAD, lang)}
+            I {sheetText('Recommended_Course_title', lang, RECOMMENDED_HEAD)}
           </p>
 
           <div className={styles.courseGrid}>
             {THEMES.map((theme) => {
               const course = COURSES.find((c) => c.key === theme.key);
-              const sub = course ? pick(course.subtitle, lang) : pick(SHOP_COURSE.subtitle, lang);
-              const title = course ? pick(course.title, lang) : pick(SHOP_COURSE.title, lang);
+              const no = THEME_SHEET_NO[theme.key];
+              const sub = sheetText(`Recommended_Course_${no}_subtitle`, lang, course?.subtitle ?? SHOP_COURSE.subtitle);
+              const title = sheetText(`Recommended_Course_${no}_title`, lang, course?.title ?? SHOP_COURSE.title);
               const art = jejuIconUrl(theme.icon);
               return (
                 <button
@@ -1393,7 +1427,7 @@ export function JejuAiSearch({ controller }: Props): JSX.Element {
           {/* Figma 6289:54956's "코스 추천받기" — see SUBMIT_LABEL for why this no
               longer reads the sheet's mascot-worded AI_SubmitButton. The ♿
               step-1 "다음으로" is unchanged. */}
-          {onFirstStep ? pick(NEXT_LABEL, lang as Lang) : pick(SUBMIT_LABEL, lang as Lang)}
+          {onFirstStep ? pick(NEXT_LABEL, lang as Lang) : sheetText('SubmitButton', lang as Lang, SUBMIT_LABEL)}
         </button>
       </div>
     </JejuPageFrame>

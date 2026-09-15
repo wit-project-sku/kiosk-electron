@@ -14,8 +14,10 @@ import {
   type GeoCoordinates,
 } from '@shared/config/kioskLocations';
 import {
+  HWASEONG_WEATHER_SITES,
   INSADONG_WEATHER_SITES,
   JEJU_WEATHER_SITES,
+  OSAN_WEATHER_SITES,
   type WeatherSite,
 } from '@shared/config/weatherSites';
 import type { KioskService } from './KioskService';
@@ -25,12 +27,15 @@ const log = createLogger('weather-service');
 
 /**
  * The place columns a kiosk's 날씨 panel draws, or null when its layout draws
- * no panel. 제주 and Insadong each carry their own regional list.
+ * no panel. 제주, Insadong, 오색시장 and 화성휴게소 each carry their own regional
+ * list.
  */
 function weatherSitesFor(kioskId: KioskId): readonly WeatherSite<string>[] | null {
   const layout = getKioskLayout(kioskId);
   if (isJejuLayout(layout)) return JEJU_WEATHER_SITES;
   if (layout === 'INSADONG' || layout === 'NAM_INSADONG') return INSADONG_WEATHER_SITES;
+  if (layout === 'OSAN') return OSAN_WEATHER_SITES;
+  if (layout === 'HWASEONG') return HWASEONG_WEATHER_SITES;
   return null;
 }
 

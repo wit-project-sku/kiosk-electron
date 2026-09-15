@@ -62,12 +62,18 @@ export function lowReachPageBox(hasBottomBanner: boolean): CSSProperties {
 interface Props {
   /** Tap on the promo banner — the same AR 한복 entry the bottom banners open. */
   onBanner: () => void;
+  /**
+   * Bundled promo shown when the API has no live banner. Omitted on Insadong,
+   * which rotates the shared home banners; 오색시장 / 화성휴게소 pass their own.
+   */
+  bannerFallback?: string;
 }
 
-/** Mode bar + promo banner pinned to the top of the artboard. */
-export function InsadongLowReachTop({ onBanner }: Props): JSX.Element {
+/** Mode bar + promo banner pinned to the top of the artboard. Shared by the
+ *  Insadong, 오색시장 and 화성휴게소 kiosks. */
+export function InsadongLowReachTop({ onBanner, bannerFallback }: Props): JSX.Element {
   const lang = useLanguageStore((s) => s.currentLanguage) as Lang;
-  const banner = useRotatingBanner();
+  const banner = useRotatingBanner(bannerFallback);
 
   return (
     <div className={styles.top} style={modeBarVars}>

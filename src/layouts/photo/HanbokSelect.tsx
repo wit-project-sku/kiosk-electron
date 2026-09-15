@@ -224,8 +224,8 @@ export function HanbokSelect({ onCapture, onHome, countdownActive = false }: Han
     onCapture(mode, outfitKey);
   };
 
-  /** Insadong / 남인사마당 — the venues whose 한복 설명 follows 제주's frame. */
-  const isInsadong = !isOsan && !isHwaseong && !isKada;
+  /** Insadong / 남인사마당 / 오색시장 / 화성휴게소 — the venues whose 한복 설명 follows 제주's frame. */
+  const isInsadong = !isKada;
 
   // 한복 설명 always shows ALL hanbok (여자 한복 + 남자 한복), never the last-picked tab.
   // Insadong walks the catalogue's OWN keys, as 제주 does, so whatever name the

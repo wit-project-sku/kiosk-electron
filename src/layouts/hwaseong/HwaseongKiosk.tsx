@@ -3,10 +3,12 @@ import { useKioskController } from '@renderer/hooks/useKioskController';
 import { useWeatherSync } from '@renderer/hooks/useWeatherSync';
 import { useExchangeSync } from '@renderer/hooks/useExchangeSync';
 import { donationUrl } from '@shared/constants/webEmbeds';
+import { useAccessibilityStore } from '@renderer/store/accessibilityStore';
 import { hwaseongIconUrl } from '@renderer/assets/icons/hwaseong';
 import { KioskArtboard } from '../components/KioskScreenImage';
 import { DonationWebScreen } from '../components/DonationWebScreen';
 import { PhotoWorkflow } from '../photo/PhotoWorkflow';
+import { InsadongLowReachTop, lowReachPageBox } from '../insadong/InsadongLowReach';
 import { HwaseongExchange } from './HwaseongExchange';
 import { HwaseongHome } from './HwaseongHome';
 import { HwaseongLanguage } from './HwaseongLanguage';
@@ -52,13 +54,40 @@ const ITS_HIDE_CHROME_CSS = `
 
 const FOOD_TABS = ['한식', '한정식', '바베큐', '분식', '사찰음식'];
 
-/** Theme the shared AR 한복 photo workflow with the 화성휴게소 blue (var(--kiosk-primary)). */
+/**
+ * Theme the shared AR 한복 photo workflow with the 화성휴게소 blue (var(--kiosk-primary)).
+ *
+ * Flattened like Insadong/Osan: no outlines and no drop shadows on its tabs,
+ * outfit cards, panels, buttons, QR frames or pop-ups — except the SELECTED
+ * outfit card, which keeps a 5px ring in the primary colour.
+ */
 const PHOTO_THEME = {
   '--photo-accent': 'var(--kiosk-primary)',
   '--photo-accent-soft': 'var(--kiosk-secondary)',
   '--photo-tint': '#eef4fa',
   '--photo-accent-alt': '#616161',
+  '--photo-tab-border-width': '0px',
+  '--photo-card-border-width': '0px',
+  '--photo-card-sel-border-width': '5px',
+  '--photo-card-shadow': 'none',
+  '--photo-panel-border-width': '0px',
+  '--photo-panel-shadow': 'none',
+  '--photo-button-shadow': 'none',
+  '--photo-cam-shadow': 'none',
+  '--photo-result-shadow': 'none',
+  '--photo-qr-border-width': '0px',
+  '--photo-modal-border-width': '0px',
+  '--photo-modal-shadow': 'none',
 } as CSSProperties;
+
+/**
+ * Sub-pages whose body runs to the artboard foot instead of stopping at a
+ * bottom promo banner (they draw no HwaseongBanner). In ♿ low-reach their box
+ * is only as tall as the room left under the moved header (see lowReachPageBox).
+ */
+const NO_BANNER_SCREENS: ReadonlySet<string> = new Set([
+  'food_court', 'shop', 'tourism', 'help', 'restroom',
+]);
 
 export function HwaseongKiosk(): JSX.Element {
   const controller = useKioskController();
@@ -68,6 +97,11 @@ export function HwaseongKiosk(): JSX.Element {
   const cur = controller.screen;
   const photoActive = controller.photoActive;
   const detailFrom = useDetailStore((s) => s.item?.from);
+
+  // 베리어프리 (♿ low-reach): mode bar + promo at the top, every page moved down
+  // under them. Not over the photo flow or the fullscreen donation app.
+  const lowReach = useAccessibilityStore((s) => s.lowReach);
+  const lowTop = lowReach && !photoActive && cur !== 'donation';
 
   const foreground = photoActive ? (
     <div style={{ position: 'absolute', inset: 0, ...PHOTO_THEME }}>
@@ -121,6 +155,9 @@ export function HwaseongKiosk(): JSX.Element {
       <HwaseongScreen screen={cur} controller={controller} />
     );
 
+  // Home re-lays itself out for low-reach; every other page is moved as a whole.
+  const pageBox = lowTop && cur !== 'home' ? lowReachPageBox(!NO_BANNER_SCREENS.has(cur)) : undefined;
+
   return (
     <KioskArtboard>
       {hwaseongIconUrl('bg') && (
@@ -139,7 +176,12 @@ export function HwaseongKiosk(): JSX.Element {
           }}
         />
       )}
-      {foreground}
+      {pageBox ? <div style={pageBox}>{foreground}</div> : foreground}
+
+      {/* ♿ mode bar + promo banner, over the moved page. */}
+      {lowTop && (
+        <InsadongLowReachTop onBanner={() => controller.startPhoto()} bannerFallback={hwaseongIconUrl('fg-banner')} />
+      )}
     </KioskArtboard>
   );
 }

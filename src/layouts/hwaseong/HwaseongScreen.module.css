@@ -1,19 +1,16 @@
 /* Shared chrome for not-yet-designed 화성휴게소 pages. */
+/* Fills whatever box the kiosk gives the page (the full artboard, or the
+   shorter ♿ low-reach box) so `bottom:` rules land at the artboard foot. */
 .root {
   position: absolute;
   inset: 0;
-  width: 2160px;
-  height: 3840px;
   overflow: hidden;
-  font-family: 'Noto Sans KR', 'Noto Sans', sans-serif;
+  font-family: var(--kiosk-font, sans-serif);
 }
 
 .bgBase {
   position: absolute;
-  left: 0;
-  top: 0;
-  width: 2160px;
-  height: 3840px;
+  inset: 0;
   background: #fff;
 }
 
@@ -26,13 +23,13 @@
   pointer-events: none;
 }
 
-/* Body area — between header (699) and banner (573) */
+/* Body area — between the 700 header and the 573 banner. */
 .body {
   position: absolute;
-  top: 699px;
+  top: 700px;
   left: 0;
-  width: 2160px;
-  height: 2568px;
+  right: 0;
+  bottom: 573px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -43,7 +40,6 @@
   font-weight: 600;
   color: #909090;
   line-height: 1;
-  font-variation-settings: 'CTGR' 0, 'wdth' 100;
 }
 
 /* Bottom banner */

@@ -51,7 +51,7 @@ export interface AiCourseSaveInput {
   lang: Lang;
   course: AiCourseQrCourse;
   transport: JejuTransport;
-  /** Group size and 박수 — the phone renders its own 「2명」/「3박 이상」 chips. */
+  /** Group size and 박수 — the phone renders its own 「2명」/「3박 4일」 chips. */
   party: number;
   nights: number;
   /** `aiCategoryKr` values, prefix included ("22-섬 여행"). */

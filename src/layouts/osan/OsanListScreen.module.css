@@ -1,4 +1,9 @@
-/* OsanListScreen — same layout as InsadongListScreen, navy accents. */
+/*
+ * OsanListScreen (뭐먹지/뭐사지 식품·물품) — laid out like the 제주 category list
+ * (JejuListScreen.module.css / JejuShopCard.module.css), as InsadongListScreen:
+ * one scrolling column under the 700 header, 5 × 340 category chips, then 1820
+ * list rows. Osan's own navy chip/card colours are kept; no borders or shadows.
+ */
 .bg {
   position: absolute;
   inset: 0;
@@ -8,9 +13,11 @@
   pointer-events: none;
 }
 
+/* 검색결과: top 700, gap 50 (chips → list). The 28px scrollbar is carved out
+   of the RIGHT margin so the content column stays exactly 1820. */
 .results {
   position: absolute;
-  top: 699px;
+  top: 700px;
   left: 0;
   right: 0;
   bottom: 0;
@@ -18,48 +25,57 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 100px;
+  gap: 50px;
   overflow-y: auto;
   overflow-x: hidden;
-  padding: 0 170px 80px;
+  padding: 0 136px 80px 170px;
 }
 
-.results::-webkit-scrollbar { width: 34px; }
+.results::-webkit-scrollbar {
+  width: 28px;
+}
 .results::-webkit-scrollbar-thumb {
   background: var(--kiosk-primary);
-  border-radius: 21.45px;
+  border-radius: 14px;
 }
-.results::-webkit-scrollbar-track { background: transparent; }
+.results::-webkit-scrollbar-track {
+  background: transparent;
+}
 
-/* Category tabs — Figma R>상단 카테고리-5개*2: 5 per row, 30px gap, 35px row gap,
-   left-aligned wrap. 5×340 + 4×30 = 1820 → a full row fills the width exactly. */
+/* Category chips — a 5-column grid of 340×170 (30 / 35 gaps), whatever the
+   category count. */
 .tabs {
   flex: none;
-  display: flex;
-  flex-wrap: wrap;
-  align-content: flex-start;
-  justify-content: flex-start;
-  gap: 35px 30px;
   width: 1820px;
+  display: grid;
+  grid-template-columns: repeat(5, 340px);
+  column-gap: 30px;
+  row-gap: 35px;
 }
 
+/* One 50px line in Korean; longer translations wrap to a second line inside
+   the plate rather than painting outside it. */
 .tab {
+  border: none;
+  outline: none;
   box-sizing: border-box;
   width: 340px;
   height: 170px;
+  padding: 0 10px;
   display: flex;
   align-items: center;
   justify-content: center;
   background: #ffffff;
-  border: 5px solid #e8e8e8;
   border-radius: 42.9px;
-  box-shadow: 0 21.45px 42.9px rgba(143, 147, 157, 0.1);
   font-family: var(--kiosk-font, sans-serif);
   font-weight: 500;
   font-size: 50px;
+  line-height: 1.1;
   color: #999999;
   cursor: pointer;
-  white-space: nowrap;
+  overflow: hidden;
+  overflow-wrap: anywhere;
+  -webkit-tap-highlight-color: transparent;
 }
 
 .tabSelected {
@@ -68,7 +84,7 @@
   color: var(--kiosk-primary);
 }
 
-/* List */
+/* List: w1820, gap 60 between cards. */
 .list {
   flex: none;
   width: 1820px;
@@ -77,22 +93,25 @@
   gap: 60px;
 }
 
+/* 제주's list row (JejuShopCard .cardList, 7212:65355): a 1820×390 plate,
+   padding 40 top / 45 sides / 51 bottom, r42.9. min-height, so wrapped copy
+   still grows the plate. Inner: info ↔ photos(606), gap 40. */
 .card {
+  border: none;
+  outline: none;
   width: 100%;
-  height: 530px;
+  min-height: 390px;
   box-sizing: border-box;
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 40px;
-  padding: 65px 45px;
+  padding: 40px 45px 51px;
   background: #ffffff;
-  border: 5px solid #e8e8e8;
   border-radius: 42.9px;
-  box-shadow: 0 21.45px 21.45px rgba(143, 147, 157, 0.1);
   text-align: left;
   cursor: pointer;
-  overflow: hidden;
+  -webkit-tap-highlight-color: transparent;
 }
 
 .info {
@@ -101,7 +120,6 @@
   display: flex;
   flex-direction: column;
   gap: 40px;
-  overflow: hidden;
   font-family: var(--kiosk-font, sans-serif);
 }
 
@@ -112,21 +130,29 @@
   min-width: 0;
 }
 
+/* Name, category and address wrap — CMS copy in eight languages is shown whole. */
+.name,
+.cat,
+.address,
+.desc {
+  white-space: normal;
+  word-break: keep-all;
+  overflow-wrap: anywhere;
+}
+
 .name {
   flex: 0 1 auto;
   min-width: 0;
-  font-family: 'Noto Sans', 'Noto Sans KR', sans-serif;
   font-weight: 600;
   font-size: 68px;
-  line-height: 1; /* 100% */
+  /* >1 so Latin descenders are not clipped. */
+  line-height: 1.2;
   color: #2b2b2b;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
 }
 
 .cat {
-  flex: none;
+  flex: 0 1 auto;
+  min-width: 0;
   display: flex;
   align-items: center;
   gap: 21.45px;
@@ -134,10 +160,10 @@
   font-size: 52px;
   line-height: 1;
   color: #999999;
-  white-space: nowrap;
 }
 
 .dot {
+  flex: 0 0 auto;
   width: 17px;
   height: 17px;
   border-radius: 50%;
@@ -150,51 +176,48 @@
   font-size: 48px;
   line-height: 1;
   color: #999999;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
 }
 
+/* One line, cut with "…" — the list row shows a single-line description, as
+   제주's does; the whole text is on the 상세 page. */
 .desc {
   margin: 0;
   font-weight: 500;
   font-size: 48px;
   line-height: 1.2;
   color: #2b2b2b;
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
-}
-
-.tags {
-  margin: 0;
-  font-weight: 400;
-  font-size: 40px;
-  line-height: 1;
-  color: #999999;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 
-.photos {
-  width: 570px;
-  flex: none;
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
+/* Photos: ONE row of two 288×160 slots, 30 apart (606 wide), right-aligned —
+   제주's list row (JejuShopCard .photosRow, 7212:65375). */
+.photosRow {
+  flex: 0 0 auto;
+  width: 606px;
+  height: 160px;
+  display: flex;
+  justify-content: flex-end;
   gap: 30px;
 }
 
-.thumb {
-  height: 150px;
+.thumbWide {
+  flex: none;
+  width: 288px;
+  height: 160px;
   border-radius: 21.45px;
   overflow: hidden;
 }
 
-.thumb img {
+.thumbWide img {
   width: 100%;
   height: 100%;
   object-fit: cover;
+  display: block;
 }
 
+/* The empty left slot of a one-photo shop — nothing shows. */
+.thumbBlank {
+  background: transparent;
+}

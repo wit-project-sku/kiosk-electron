@@ -12,7 +12,6 @@ import {
   shopName,
   shopSecondCategory,
   shopsForBase,
-  padImages,
 } from '@renderer/lib/shops';
 import type { KioskScreenId } from '@shared/types/kiosk';
 import { OsanHeader } from './OsanHeader';
@@ -124,7 +123,12 @@ export function OsanListScreen({ title, controller }: OsanListScreenProps): JSX.
 
         <div className={styles.list}>
           {visible.map((shop) => {
-            const imgs = padImages(shopImages(shop), noImg, 4);
+            // 제주's list row (JejuShopCard `twoPhotos`): ONE row of two photos,
+            // right-aligned — a one-photo shop fills the right slot and leaves the
+            // left blank, a shop with none shows the no-image placeholder there.
+            const real = shopImages(shop).slice(0, 2);
+            const photos =
+              real.length >= 2 ? real : real.length === 1 ? ['', real[0]!] : ['', noImg ?? ''];
             return (
               <button
                 type="button"
@@ -142,12 +146,14 @@ export function OsanListScreen({ title, controller }: OsanListScreenProps): JSX.
                   </div>
                   <p className={styles.address}>{shopAddress(shop, lang)}</p>
                   <p className={styles.desc}>{shopDescription(shop, lang)}</p>
-                  <p className={styles.tags}>{shopHashtag(shop, lang)}</p>
                 </div>
-                <div className={styles.photos}>
-                  {imgs.map((src, j) => (
-                    <div key={j} className={styles.thumb}>
-                      <img src={src} alt="" draggable={false} loading="lazy" />
+                <div className={styles.photosRow}>
+                  {photos.map((src, j) => (
+                    <div
+                      key={j}
+                      className={src ? styles.thumbWide : `${styles.thumbWide} ${styles.thumbBlank}`}
+                    >
+                      {src && <img src={src} alt="" draggable={false} loading="lazy" />}
                     </div>
                   ))}
                 </div>

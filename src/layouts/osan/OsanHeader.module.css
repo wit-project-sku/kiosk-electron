@@ -1,28 +1,33 @@
-/* Osan header — same dimensions as InsadongHeader, navy #0e4e8c brand. */
-/* Top-pinned (flex-start) so the brand/title/back row sits at the SAME 130px
-   top as the home screen's brand row — no vertical "drop" when navigating.
-   (justify-center made it content-dependent, shifting between pages.) */
+/*
+ * Osan sub-page header — laid out on the 제주 header grid (JejuHeader
+ * .module.css, Figma Component 34), 2160×700, with the OSAEK MARKET navy brand.
+ * Rows sit at fixed y so a missing subtitle can't re-centre the block and shift
+ * the title:
+ *   row1 y125 h82 · row2 y312 h182 · subtitle y559 h60
+ */
 .header {
   position: absolute;
   top: 0;
   left: 0;
   width: 2160px;
   height: 700px;
-  display: flex;
-  flex-direction: column;
-  justify-content: flex-start;
-  align-items: center;
-  gap: 65px;
-  padding: 130px 170px 80px;
-  box-sizing: border-box;
   z-index: 5;
+  font-family: var(--kiosk-font, sans-serif);
+  /* The band is mostly empty (its top 125 is padding) and, in ♿ low-reach,
+     overlaps the promo banner above it — only the nav buttons take taps. */
+  pointer-events: none;
 }
 
+/* Header without subtitle is 574px tall. */
 .headerCompact {
   height: 574px;
 }
 
+/* Rows 1 + 2 as one block: 125 + 82 + 105 gap = 312, the 제주 title-row top. */
 .headerBlock {
+  position: absolute;
+  left: 170px;
+  top: 125px;
   width: 1820px;
   display: flex;
   flex-direction: column;
@@ -30,6 +35,7 @@
   gap: 105px;
 }
 
+/* ── Row 1: location + date (h82) ── */
 .topRow {
   width: 1820px;
   height: 82px;
@@ -46,12 +52,14 @@
   font-weight: 700;
   font-size: 68px;
   line-height: 1;
+  white-space: nowrap;
 }
 
 .pin {
   width: 63px;
   height: 82px;
-  aspect-ratio: 63 / 82;
+  object-fit: contain;
+  flex-shrink: 0;
 }
 
 .date {
@@ -59,8 +67,10 @@
   font-weight: 700;
   font-size: 68px;
   line-height: 1;
+  white-space: nowrap;
 }
 
+/* ── Row 2: home · title · back (h182) — 175 + 1342 + 175 over 1820. ── */
 .titleRow {
   width: 1820px;
   height: 182px;
@@ -70,6 +80,7 @@
 }
 
 .navBtn {
+  outline: none;
   width: 175px;
   height: 175px;
   flex: none;
@@ -77,6 +88,8 @@
   border: none;
   background: none;
   cursor: pointer;
+  pointer-events: auto;
+  -webkit-tap-highlight-color: transparent;
 }
 
 .navBtn img {
@@ -85,13 +98,26 @@
   object-fit: contain;
 }
 
+/* Localized titles WRAP inside the fixed 182 slot instead of running under the
+   nav buttons: two 86px lines are 172 of the 182, a single line is unmoved. */
 .title {
-  flex: 1;
+  flex: 0 0 auto;
+  width: 1342px;
+  height: 182px;
+  box-sizing: border-box;
+  padding: 50px 75px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   margin: 0;
-  text-align: center;
   font-weight: 700;
   font-size: 78px;
+  line-height: 86px;
   color: #000000;
+  text-align: center;
+  white-space: normal;
+  word-break: keep-all;
+  overflow-wrap: anywhere;
 }
 
 /* Promo (dark) page: white title. */
@@ -99,28 +125,41 @@
   color: #ffffff;
 }
 
+/* ── Subtitle (y559): ★ + description, centred on the 1820 column ──
+   min-height rather than a fixed 60 so a second line grows DOWN (to ~691, still
+   inside the 700 band) — TAX-FREE measures this row's bottom edge to place its
+   body (useTaxfreeBodyLayout). */
 .subtitle {
+  position: absolute;
+  left: 170px;
+  top: 559px;
+  width: 1820px;
+  min-height: 60px;
+  box-sizing: border-box;
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   justify-content: center;
-  gap: 20px;
+  gap: 14px;
 }
 
 .subtitleText {
-  font-size: 60.06px;
-  font-weight: 700;
+  flex: 0 1 auto;
+  min-width: 0;
+  font-size: 60px;
+  font-weight: 400;
   color: #909090;
-  line-height: 1.3;
-  max-width: 1640px;
+  line-height: 1.1;
   text-align: center;
   white-space: pre-line;
+  word-break: keep-all;
+  overflow-wrap: anywhere;
 }
 
 .star {
   color: var(--kiosk-primary);
-  font-size: 40px;
+  font-size: 36px;
+  line-height: 1;
   flex-shrink: 0;
-  margin-top: 12px;
 }
 
 /* TAX-FREE: breathing room below SubHeader_TaxFree (up to 2 lines). */
@@ -128,11 +167,7 @@
   margin-bottom: 40px;
 }
 
-/* TAX-FREE: use the full header row width so the subtitle wraps less often. */
+/* TAX-FREE: the subtitle already spans the full 1820 row. */
 .subtitleWide {
   width: 1820px;
-}
-
-.subtitleWide .subtitleText {
-  max-width: 1760px;
 }

@@ -1,4 +1,5 @@
-/* '정이' 모하지(AI 검색) 결과 — exact Figma (오산>정이모하지-02 overview / -03 selected). No scroll. */
+/* '정이' 모하지(AI 검색) 결과 — overview (3 course columns) / selected course
+   (folder panel). Same layout as InsadongAiResult. */
 .bg {
   position: absolute;
   inset: 0;
@@ -8,10 +9,11 @@
   pointer-events: none;
 }
 
-/* ── Overview (3 course columns) — Figma 선택영역 top 743, gap 65 ── */
+/* ── Overview (3 course columns) — fixed area (top 700 → bottom 573), gap 65.
+   40px top puts the tab row where the selected view's tab row sits. ── */
 .content {
   position: absolute;
-  top: 743px;
+  top: 700px;
   left: 0;
   right: 0;
   bottom: 573px;
@@ -20,15 +22,23 @@
   flex-direction: column;
   align-items: center;
   gap: 65px;
-  overflow: hidden;
-  padding: 0 128.699px;
+  /* Scrolls (hidden scrollbar) when ♿ low-reach shortens the area. */
+  overflow-x: hidden;
+  overflow-y: auto;
+  scrollbar-width: none;
+  padding: 40px 128.699px 0;
   font-family: var(--kiosk-font, sans-serif);
 }
 
-/* ── Selected course — Figma 선택영역 top 699 ── */
+.content::-webkit-scrollbar {
+  width: 0;
+  height: 0;
+}
+
+/* ── Selected course — same area ── */
 .contentSelected {
   position: absolute;
-  top: 699px;
+  top: 700px;
   left: 0;
   right: 0;
   bottom: 573px;
@@ -36,10 +46,18 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  overflow: hidden;
+  /* Scrolls (hidden scrollbar) when ♿ low-reach shortens the area. */
+  overflow-x: hidden;
+  overflow-y: auto;
+  scrollbar-width: none;
   padding: 50px 0 0; /* top clears the cap that rises 40px above the tabs */
   font-family: var(--kiosk-font, sans-serif);
   z-index: 1;
+}
+
+.contentSelected::-webkit-scrollbar {
+  width: 0;
+  height: 0;
 }
 
 /* Folder wrapper (Insadong style): holds the tab row + var(--kiosk-secondary) panel and
@@ -96,22 +114,30 @@
   justify-content: space-between;
 }
 
+/* Course label type from the 제주 course cards: 60 / 700, wrapping inside the
+   pill for a longer translation. */
 .tab {
+  border: none;
+  outline: none;
   box-sizing: border-box;
   width: 565px;
   height: 170px;
+  padding: 0 18px;
   display: flex;
   align-items: center;
   justify-content: center;
   background: #ffffff;
-  border: 2.145px solid #e8e8e8;
   border-radius: 42.9px;
-  box-shadow: 0 21.45px 42.9px rgba(143, 147, 157, 0.1);
   font-family: var(--kiosk-font, sans-serif);
   font-weight: 700;
-  font-size: 63px;
+  font-size: 60px;
+  line-height: 1.1;
   color: #616161;
+  text-align: center;
+  word-break: keep-all;
+  overflow-wrap: anywhere;
   cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
 }
 
 /* Selected course tab — same WHITE pill as the other tabs; the var(--kiosk-secondary) folder
@@ -133,6 +159,8 @@
 }
 
 .column {
+  border: none;
+  outline: none;
   box-sizing: border-box;
   width: 565px;
   display: flex;
@@ -141,12 +169,11 @@
   gap: 65px;
   padding: 65px 40px;
   background: #ffffff;
-  border: 2.145px solid #e8e8e8;
   border-radius: 42.9px;
-  box-shadow: 0 21.45px 21.45px rgba(143, 147, 157, 0.1);
 }
 
 .spot {
+  outline: none;
   width: 485px;
   display: flex;
   flex-direction: column;
@@ -286,6 +313,8 @@
 }
 
 .wideCard {
+  border: none;
+  outline: none;
   box-sizing: border-box;
   width: 1700px;
   display: flex;
@@ -294,8 +323,8 @@
   gap: 60px;
   padding: 65px 70px;
   background: #ffffff;
-  border: 2.145px solid #e8e8e8;
   border-radius: 42.9px;
+  font-family: var(--kiosk-font, sans-serif);
   cursor: pointer;
   text-align: left;
 }
@@ -367,10 +396,9 @@
   font-size: 47px;
   color: #999999;
   line-height: 1.3;
-  /* Figma: tags wrap to 2 lines inside the card body (not a single ellipsis line). */
+  /* Tags wrap to 2 lines inside the card body (not a single ellipsis line). */
   display: -webkit-box;
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
 }
-

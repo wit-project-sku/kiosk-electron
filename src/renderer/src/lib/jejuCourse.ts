@@ -98,7 +98,7 @@ const NIGHTS: Record<string, number> = {
   '당일치기': 0,
   '1박 2일': 1,
   '2박 3일': 2,
-  '3박 이상': 3,
+  '3박 4일': 3,
 };
 
 export const nightCount = (label: string): number => NIGHTS[label] ?? 0;

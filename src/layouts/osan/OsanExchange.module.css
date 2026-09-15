@@ -1,4 +1,19 @@
-/* 환율 — exact Figma px (artboard 2160×3840). */
+/*
+ * 환율 — the 제주 환율 page (JejuExchange.module.css, Figma 제주>환율) with
+ * 오색시장's colours and no borders or shadows. 1 CSS px = 1 Figma px.
+ *
+ * y map:
+ *    0…700    OsanHeader
+ *  700…870    실시간 환율 / 환율계산기 tabs
+ *  985…1268   기준 환율 pill           ┐
+ * 1244…1651   금액 field               │  calculator tab
+ * 1743…1905   swap button              │
+ * 1855…2267   환전 field               ┘
+ * 2326…3264   numeric keypad overlay   (only while the amount field is focused)
+ *  900…940    …기준 stamp              ┐  live tab
+ *  970…3267   실시간 환율 list          ┘
+ * 3267…3840   OsanBanner (styled in OsanBanner.module.css)
+ */
 .bg {
   position: absolute;
   inset: 0;
@@ -8,116 +23,516 @@
   pointer-events: none;
 }
 
-.results {
+/* ── Tabs — two 580×170 pills, gap 200, centred (left 400) ── */
+.tabs {
   position: absolute;
-  top: 699px;
-  left: 0;
-  right: 0;
-  bottom: 573px;
-  box-sizing: border-box;
+  left: 400px;
+  top: 700px;
+  width: 1360px;
+  height: 170px;
   display: flex;
-  flex-direction: column;
-  gap: 100px;
-  overflow-y: auto;
-  overflow-x: hidden;
-  padding: 0 170px 80px;
+  align-items: center;
+  gap: 200px;
 }
 
-.results::-webkit-scrollbar {
-  width: 34px;
-}
-.results::-webkit-scrollbar-thumb {
-  background: var(--kiosk-primary);
-  border-radius: 21.45px;
-}
-.results::-webkit-scrollbar-track {
-  background: transparent;
+/* A long label wraps inside the pill (three 50px lines at 1.1 fit the 170). */
+.tab {
+  flex: 1 1 0;
+  height: 170px;
+  min-width: 0;
+  box-sizing: border-box;
+  padding: 0 30px;
+  border: none;
+  outline: none;
+  border-radius: 42.9px;
+  background: #fff;
+  font-family: var(--kiosk-font, sans-serif);
+  font-size: 50px;
+  font-weight: 500;
+  line-height: 1.1;
+  color: #999;
+  text-align: center;
+  white-space: normal;
+  word-break: keep-all;
+  overflow-wrap: anywhere;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
 }
 
-/* Rate list — items centred, 40px apart (Figma 4167:99955). */
-.list {
-  flex: none;
+.tabActive {
+  background: var(--kiosk-secondary);
+  font-weight: 700;
+  color: var(--kiosk-primary);
+}
+
+/* ── 기준 환율 pill ─────────────────────────────────────────────────── */
+.basePill {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  top: 985px;
+  min-width: 794px;
+  height: 283px;
+  box-sizing: border-box;
+  padding: 33px 60px 0;
+  border-radius: 45px;
+  background: var(--kiosk-secondary);
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 40px;
-  width: 100%;
+  justify-content: flex-start;
+  font-family: var(--kiosk-font, sans-serif);
+  color: var(--kiosk-primary);
+  white-space: nowrap;
 }
 
-/* Currency pill row (Figma 5287:63634): w1820 px65 py40, border 5px #d9d9d9, r214.499. */
-.row {
-  flex: none;
+.basePillLabel {
+  font-size: 50px;
+  font-weight: 600;
+  line-height: 90px;
+}
+
+.basePillRate {
+  font-size: 60px;
+  font-weight: 700;
+  line-height: 90px;
+}
+
+.basePillStamp {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 219px;
+  font-size: 40px;
+  font-weight: 400;
+  line-height: 1;
+  color: #999;
+  text-align: center;
+}
+
+/* ── Amount / result fields ─────────────────────────────────────────── */
+.fieldLabel {
+  position: absolute;
+  left: 280px;
+  width: 512px;
+  margin: 0;
+  font-family: var(--kiosk-font, sans-serif);
+  font-size: 60px;
+  font-weight: 500;
+  line-height: 1;
+  color: #000;
+  white-space: normal;
+  word-break: keep-all;
+  overflow-wrap: anywhere;
+}
+
+.labelAmount { top: 1244px; }
+.labelResult { top: 1855px; }
+
+/* Full white pill, 1820×270. */
+.field {
+  position: absolute;
+  left: 172px;
+  width: 1820px;
+  height: 270px;
+  padding: 0;
+  border: none;
+  outline: none;
+  border-radius: 135px;
+  background: #fff;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.fieldAmount { top: 1381px; }
+
+.fieldResult {
+  top: 1997px;
+  cursor: default;
+}
+
+/* Hung from the field's vertical centre so a wrapped entry stays in the pill. */
+.value {
+  position: absolute;
+  left: 307px;
+  width: 1050px;
+  margin: 0;
+  font-family: var(--kiosk-font, sans-serif);
+  font-size: 90px;
+  font-weight: 500;
+  line-height: 1;
+  color: #000;
+  text-align: left;
+  transform: translateY(-50%);
+  white-space: normal;
+  word-break: keep-all;
+  overflow-wrap: anywhere;
+  pointer-events: none;
+}
+
+.valueAmount { top: 1516px; }
+.valueResult { top: 2132px; }
+
+/* Empty-field hint in place of the number — one 90px line box, same centre. */
+.placeholder {
+  font-size: 60px;
+  line-height: 90px;
+  color: #999;
+}
+
+/* Blinks only while the keypad is open. */
+.caretBar {
+  display: inline-block;
+  width: 6px;
+  height: 90px;
+  margin-left: 10px;
+  vertical-align: top;
+  background: var(--kiosk-primary);
+  animation: exchBlink 1s steps(1, end) infinite;
+}
+
+@keyframes exchBlink {
+  50% {
+    opacity: 0;
+  }
+}
+
+/* ── Currency picker button ─────────────────────────────────────────── */
+.ccyBtn {
+  position: absolute;
+  left: 1423px;
+  height: 170px;
+  padding: 0;
+  border: none;
+  outline: none;
+  background: none;
+  display: flex;
+  align-items: center;
+  gap: 42.9px;
+  font-family: var(--kiosk-font, sans-serif);
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.ccyAmount { top: 1431px; }
+.ccyResult { top: 2047px; }
+
+.ccyFlag {
+  width: 170px;
+  height: 170px;
+  border-radius: 50%;
+  object-fit: cover;
+  flex: 0 0 auto;
+}
+
+.ccyCode {
+  font-size: 60px;
+  font-weight: 500;
+  line-height: 1;
+  color: #333;
+  white-space: nowrap;
+}
+
+.caret {
+  position: absolute;
+  left: 1812px;
+  width: 57px;
+  margin: 0;
+  font-size: 68px;
+  font-weight: 400;
+  line-height: 1;
+  color: var(--kiosk-primary);
+  pointer-events: none;
+}
+
+.caretAmount { top: 1475px; }
+.caretResult { top: 2091px; }
+
+/* ── Swap ───────────────────────────────────────────────────────────── */
+.swap {
+  position: absolute;
+  left: 1028px;
+  top: 1743px;
+  width: 162px;
+  height: 162px;
+  padding: 0;
+  border: none;
+  outline: none;
+  background: none;
+  color: var(--kiosk-primary);
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.swapIcon {
+  display: block;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
+/* ── Currency dropdown — anchored to its field, rows on a 233 pitch ── */
+.dropdown {
+  position: absolute;
+  left: 1327px;
+  width: 680px;
+  height: 1700px;
   box-sizing: border-box;
+  padding: 74px 0 57px 92px;
+  border-radius: 160px;
+  background: #fff;
+  overflow-y: auto;
+  z-index: 3;
+  display: flex;
+  flex-direction: column;
+  gap: 63px;
+}
+
+.dropdownAmount { top: 1381px; }
+.dropdownResult { top: 1997px; }
+
+/* ♿: the page is moved down under the bar + banner, so the lower panel is
+   shortened to stay on the artboard (field top 1997 + 719 + 1100 < 3840). */
+.dropdownResultLow { height: 1100px; }
+
+/* ♿: the keypad rides up flush against the 환전 field's foot and drops its
+   39px top/bottom air, so the 860 key block ends on the artboard's edge. */
+.keypadLow {
+  top: 2260px;
+  height: 860px;
+}
+
+.keypadLow .keys {
+  top: 0;
+}
+
+.dropdown::-webkit-scrollbar {
+  width: 28px;
+}
+
+.dropdown::-webkit-scrollbar-thumb {
+  background: var(--kiosk-primary);
+  border-radius: 14px;
+}
+
+.dropdown::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.option {
+  position: relative;
+  flex: 0 0 170px;
+  width: 376px;
+  height: 170px;
+  padding: 0;
+  border: none;
+  outline: none;
+  background: none;
+  display: flex;
+  align-items: center;
+  gap: 42.9px;
+  font-family: var(--kiosk-font, sans-serif);
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* The ▼ marks the currently selected row. */
+.optionCaret {
+  position: absolute;
+  left: 406px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 68px;
+  font-weight: 400;
+  line-height: 1;
+  color: var(--kiosk-primary);
+  pointer-events: none;
+}
+
+/* Closes an open dropdown or the keypad on any tap outside them. */
+.backdrop {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  padding: 0;
+  border: none;
+  outline: none;
+  background: none;
+  cursor: default;
+}
+
+/* ── Numeric keypad ─────────────────────────────────────────────────── */
+.keypad {
+  position: absolute;
+  left: 0;
+  top: 2326px;
+  width: 2160px;
+  height: 938px;
+  z-index: 3;
+}
+
+.keypadScrim {
+  position: absolute;
+  inset: 0;
+  background: #c5c5c1;
+  opacity: 0.7;
+}
+
+.keys {
+  position: absolute;
+  left: 155px;
+  top: 39px;
+  width: 1850px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 20px;
+}
+
+.keyRow {
   display: flex;
   align-items: center;
   justify-content: space-between;
   width: 100%;
-  padding: 40px 65px;
-  background: #ffffff;
-  border: 5px solid #d9d9d9;
-  border-radius: 214.499px;
-  overflow: hidden;
+}
+
+/* Row 4 is 0 + backspace only, right-aligned inside the 1850 column. */
+.keyRowShort {
+  width: 1215px;
+}
+
+.key {
+  width: 580px;
+  height: 200px;
+  padding: 0;
+  border: none;
+  outline: none;
+  border-radius: 30px;
+  background: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--kiosk-font, sans-serif);
+  font-size: 130px;
+  font-weight: 500;
+  line-height: 1;
+  color: #000;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.key:active {
+  background: var(--kiosk-secondary);
+}
+
+.keyIcon {
+  width: 115px;
+  height: 83px;
+  pointer-events: none;
+}
+
+/* ── 실시간 환율 list ───────────────────────────────────────────────── */
+/* Starts 270 below the tabs and runs to the banner. */
+.liveScroll {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 970px;
+  bottom: 573px;
+  overflow-x: hidden;
+  overflow-y: auto;
+}
+
+/* Right-aligned on the list's right margin, 30px above the first pill. */
+.liveStamp {
+  position: absolute;
+  right: 170px;
+  top: 900px;
+  min-width: 369px;
+  margin: 0;
+  font-family: var(--kiosk-font, sans-serif);
+  font-size: 40px;
+  font-weight: 400;
+  line-height: 1;
+  color: #999;
+  text-align: right;
+  white-space: nowrap;
+}
+
+.liveList {
+  display: flex;
+  flex-direction: column;
+  gap: 40px;
+  padding: 0 170px 60px;
   font-family: var(--kiosk-font, sans-serif);
 }
 
-.left {
+/* 210 tall on a 250 pitch; 30 top and bottom centres a 150 flag. */
+.liveRow {
+  flex: 0 0 210px;
+  height: 210px;
+  box-sizing: border-box;
+  padding: 30px 65px;
+  border-radius: 214.499px;
+  background: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+/* Fixed 560 so the rates line up whatever the country name. */
+.liveLeft {
+  flex: 0 0 560px;
   display: flex;
   align-items: center;
   gap: 42.9px;
-  width: 560px;
 }
 
-/* Figma: a uniform circular flag (the source SVGs are rectangular, so cover-crop
-   to a circle keeps every currency the same size/shape regardless of aspect). */
-.flag {
-  width: 170px;
-  height: 170px;
-  flex: none;
-  border-radius: 50%;
-  object-fit: cover;
-  background: #ffffff;
-  border: 2px solid #e8e8e8;
+.liveFlag {
+  width: 150px;
+  height: 150px;
 }
 
-.label {
-  font-weight: 500;
+.liveLabel {
   font-size: 60px;
-  line-height: normal;
-  color: #333333;
-  text-align: center;
+  font-weight: 500;
+  line-height: 1;
+  color: #333;
   white-space: nowrap;
 }
 
-.rate {
-  flex: none;
+.liveRate {
   width: 354px;
-  height: 82px;
-  display: flex;
-  align-items: center;
-  justify-content: flex-end;
-  font-weight: 500;
   font-size: 60px;
-  line-height: normal;
-  color: #000000;
+  font-weight: 500;
+  line-height: 1;
+  color: #000;
+  text-align: right;
   white-space: nowrap;
 }
 
-.banner {
-  position: absolute;
-  left: 0;
-  bottom: 0;
-  width: 2160px;
-  height: 573px;
-  padding: 0;
-  border: none;
-  background: none;
-  cursor: pointer;
-  overflow: hidden;
+.liveScroll::-webkit-scrollbar {
+  width: 28px;
 }
 
-.banner img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  display: block;
+.liveScroll::-webkit-scrollbar-thumb {
+  background: var(--kiosk-primary);
+  border-radius: 14px;
+}
+
+.liveScroll::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+/* Shown when the Eximbank snapshot is missing. */
+.empty {
+  margin: 0;
+  padding: 200px 170px;
+  font-family: var(--kiosk-font, sans-serif);
+  font-size: 55px;
+  font-weight: 500;
+  line-height: 1.4;
+  color: #909090;
+  text-align: center;
+  white-space: pre-line;
 }

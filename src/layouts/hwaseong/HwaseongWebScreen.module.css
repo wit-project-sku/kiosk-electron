@@ -1,19 +1,19 @@
-/* Webview page chrome (화성휴게소). Webview body is 1820 × 2250, centred. */
+/* Webview screen (화성휴게소) — standard content chrome; only the body hosts the
+   <webview>. The panel sits where 제주's embedded-site panel does (x170, y700,
+   1820 wide). */
+
+/* Fills its box rather than a fixed 2160×3840, so in ♿ low-reach the
+   `bottom:` rules still end at the artboard foot. */
 .root {
   position: absolute;
   inset: 0;
-  width: 2160px;
-  height: 3840px;
   overflow: hidden;
-  font-family: 'Noto Sans KR', 'Noto Sans', sans-serif;
+  font-family: var(--kiosk-font, sans-serif);
 }
 
 .bgBase {
   position: absolute;
-  left: 0;
-  top: 0;
-  width: 2160px;
-  height: 3840px;
+  inset: 0;
   background: #fff;
 }
 
@@ -26,30 +26,38 @@
   pointer-events: none;
 }
 
-/* Body: 1820 × 2250, centred horizontally, just below the header (top 699). */
+/* Body = the area between the 700px header and the 573px banner.
+   An inline `bodyHeight` (전국도로교통상황 passes 2030 to crop the ITS footer gap)
+   wins over `bottom` — top + height over-constrain it, so bottom is ignored —
+   and max-height keeps that fixed height above the banner when the page is
+   moved down in ♿ low-reach. */
 .body {
   position: absolute;
-  top: 699px;
-  left: 50%;
-  transform: translateX(-50%);
+  top: 700px;
+  left: 170px;
   width: 1820px;
-  height: 2250px;
+  bottom: 573px;
+  max-height: calc(100% - 700px - 573px);
+  border-radius: 42.9px;
   overflow: hidden;
   background: #fff;
 }
 
+/* `display` must stay flex/inline-flex: Electron's <webview> iframe takes its
+   height from the flex stretch. */
 .embed {
+  display: inline-flex;
   width: 100%;
   height: 100%;
   border: none;
-  display: flex;
+  outline: none;
 }
 
 /* Bottom banner */
 .banner {
   position: absolute;
-  top: 3267px;
   left: 0;
+  bottom: 0;
   width: 2160px;
   height: 573px;
 }
