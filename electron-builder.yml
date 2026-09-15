@@ -77,6 +77,19 @@ extraResources:
   # OS-level touch/kiosk lockdown (disables edge-swipe, Win key, Task Manager).
   - from: scripts/lockdown-kiosk.ps1
     to: lockdown-kiosk.ps1
+  # Display-video optimizer, run by hand on a kiosk whose C:\KioskVideos clips
+  # make the customer display switch slowly (2160×3840 / ~200 Mbps / moov-at-end
+  # masters — the 제주 "video switch delay"). optimize-videos.ps1 runs the .mjs
+  # through the app's own exe (ELECTRON_RUN_AS_NODE), so the kiosk needs no
+  # Node install — only ffmpeg. Fixes files in place, same names, originals
+  # moved to C:\KioskVideos\_originals. diagnose-videos.mjs is the read-only
+  # check (same parser) for confirming what a folder holds before/after.
+  - from: scripts/reencode-videos.mjs
+    to: reencode-videos.mjs
+  - from: scripts/diagnose-videos.mjs
+    to: diagnose-videos.mjs
+  - from: scripts/optimize-videos.ps1
+    to: optimize-videos.ps1
   # 제주 ZED setup check + floor calibration, run by hand at a venue install.
   - from: scripts/provision-zed.ps1
     to: provision-zed.ps1

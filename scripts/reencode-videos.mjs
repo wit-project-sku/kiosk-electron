@@ -184,8 +184,26 @@ for (const set of sets) {
       continue;
     }
     mkdirSync(bakDir, { recursive: true });
-    renameSync(src, bak); // backup first — the original is never deleted
-    renameSync(tmp, src);
+    // backup first — the original is never deleted. A rename fails when the
+    // kiosk app is streaming that clip right now (Windows file lock): count it
+    // and move on; close the app (or run after the 02:00 reboot) and re-run.
+    try {
+      renameSync(src, bak);
+    } catch (err) {
+      unlinkSync(tmp);
+      console.log(` — FAILED, file in use? Close the kiosk app and re-run (${err.code ?? err.message})`);
+      failed++;
+      continue;
+    }
+    try {
+      renameSync(tmp, src);
+    } catch (err) {
+      renameSync(bak, src); // put the original back — never leave a gap
+      unlinkSync(tmp);
+      console.log(` — FAILED to swap in, original restored (${err.code ?? err.message})`);
+      failed++;
+      continue;
+    }
     console.log(
       ` → ${(statSync(src).size / 1e6).toFixed(1)}MB (was ${(info.fileSize / 1e6).toFixed(0)}MB)`,
     );
