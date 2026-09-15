@@ -254,9 +254,30 @@ export function JejuListScreen({ screen, controller }: Props): JSX.Element {
     controller.navigate('detail', TITLE[screen]);
   };
 
-  /* The category chips and the 초성 index. In the standard layout they scroll
-     with the cards; in low-reach they are pulled out of the scroller and pinned
-     to the foot of the page — same markup either way, see .controlsLow. */
+  const listBody =
+    visible.length > 0 ? (
+      <div className={styles.list}>
+        {visible.map((shop) => (
+          <JejuShopCard
+            key={shop.id}
+            shop={shop}
+            lang={lang}
+            associationDot
+            /* 7212:65355 — the 390 row with two photos (6391:57961 · 6212:55233 · 6391:58267). */
+            twoPhotos
+            onClick={() => openDetail(shop)}
+          />
+        ))}
+      </div>
+    ) : (
+      <p className={styles.empty}>
+        {baseShops.length === 0 ? '준비중입니다' : '조건에 맞는 상점이 없습니다'}
+      </p>
+    );
+
+  /* The category chips and the 초성 index — never scrolled away. In the
+     standard layout they are pinned above the scroller (.controlsTop); in
+     low-reach they are pinned to the foot of the page (.controlsLow). */
   const controls = (
     <>
       {/* `catsIdle` while nothing is picked — the whole row is drawn in the
@@ -310,36 +331,27 @@ export function JejuListScreen({ screen, controller }: Props): JSX.Element {
       lowReachModeBar
       lowReachShift={belowModeBar()}
     >
-      <div
-        className={`${styles.scroll} ${lowReach ? styles.scrollLow : ''}`}
-        style={lowReach ? { height: lowListHeight } : undefined}
-        ref={scrollRef}
-      >
-        {!lowReach && controls}
-        {visible.length > 0 ? (
-          <div className={styles.list}>
-            {visible.map((shop) => (
-              <JejuShopCard
-                key={shop.id}
-                shop={shop}
-                lang={lang}
-                associationDot
-                /* 7212:65355 — the 390 row with two photos (6391:57961 · 6212:55233 · 6391:58267). */
-                twoPhotos
-                onClick={() => openDetail(shop)}
-              />
-            ))}
+      {lowReach ? (
+        <>
+          <div
+            className={`${styles.scroll} ${styles.scrollLow}`}
+            style={{ height: lowListHeight }}
+            ref={scrollRef}
+          >
+            {listBody}
           </div>
-        ) : (
-          <p className={styles.empty}>
-            {baseShops.length === 0 ? '준비중입니다' : '조건에 맞는 상점이 없습니다'}
-          </p>
-        )}
-      </div>
-
-      {lowReach && (
-        <div className={styles.controlsLow} style={{ top: lowControlsTop }}>
-          {controls}
+          <div className={styles.controlsLow} style={{ top: lowControlsTop }}>
+            {controls}
+          </div>
+        </>
+      ) : (
+        /* Standard: the controls are pinned above the scroller rather than
+           scrolling with the cards — see .body. */
+        <div className={styles.body}>
+          <div className={styles.controlsTop}>{controls}</div>
+          <div className={styles.scroll} ref={scrollRef}>
+            {listBody}
+          </div>
         </div>
       )}
 

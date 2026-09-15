@@ -64,6 +64,49 @@
   gap: 50px;
 }
 
+/*
+ * Standard layout: the chips and 초성 row STAY PUT (by request, 2026-09-15) —
+ * they used to scroll away with the cards. `.body` takes the old `.scroll`
+ * slot (y700 → bottom) as a column: `.controlsTop` keeps its natural height
+ * (1 or 2 chip rows, 초성 only in Korean) and the scroller fills the rest, so
+ * the first card still opens on 1247 / 1042 and cards clip under the controls.
+ *
+ * `.controlsTop` pads like `.scroll` with the 28px scrollbar added to its right
+ * padding, so both 1820 columns centre on the same x. Its 50px bottom padding
+ * is the gap the scroller's flex column used to put before the list.
+ */
+.body {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 700px;
+  bottom: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.controlsTop {
+  flex: none;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 50px;
+  padding: 0 164px 50px 170px;
+}
+
+/* `scrollbar-gutter: stable` keeps the 28px carved out even when a short
+   (filtered) list does not overflow — otherwise the cards would re-centre 14px
+   right of the pinned chips above them. */
+.body > .scroll {
+  position: relative;
+  top: auto;
+  bottom: auto;
+  flex: 1 1 auto;
+  min-height: 0;
+  scrollbar-gutter: stable;
+}
+
 .scroll::-webkit-scrollbar {
   width: 28px;
 }

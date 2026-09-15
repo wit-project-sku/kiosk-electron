@@ -61,7 +61,7 @@ interface Props {
   footerLine?: string;
   /**
    * 뭐먹지·뭐사지·숙박 목록만. `fromAssociation`이 true면 이름 오른쪽 점을
-   * 인사동 메인 컬러(#FE6C50)로 그린다.
+   * 빨강(#FF3737)으로 그린다.
    */
   associationDot?: boolean;
   /**

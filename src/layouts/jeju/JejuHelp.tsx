@@ -846,6 +846,21 @@ interface ViewState {
  * The `key` its caller passes doubles as the reset: a new plan (floor, zone,
  * or language switch) remounts this and starts back at fitted.
  */
+/**
+ * The list card's right-hand photo (382×213). Rows are numbered to match the
+ * bundled help photos, but a few numbers have no file — a failed load drops
+ * the box so the card reads as text-only instead of showing a broken image.
+ */
+function CardPhoto({ src }: { src: string | undefined }): ReactNode {
+  const [failed, setFailed] = useState<string | undefined>(undefined);
+  if (!src || failed === src) return null;
+  return (
+    <span className={styles.cardPhotoBox}>
+      <img className={styles.cardPhoto} src={src} alt="" draggable={false} onError={() => setFailed(src)} />
+    </span>
+  );
+}
+
 function MapZoomPan({
   className,
   style,
@@ -1381,15 +1396,18 @@ export function JejuHelp({ controller, initialCategory }: Props): JSX.Element {
                 className={styles.card}
                 onClick={() => openDetail({ chip: category, facility })}
               >
-                <div className={styles.cardNameRow}>
-                  <p className={styles.cardName}>{cardName(facility)}</p>
-                  <span className={styles.cardCat}>
-                    <span className={styles.cardDot} />
-                    {chipLabel(facility.category.ko, lang).replace('\n', ' ')}
-                  </span>
+                <div className={styles.cardText}>
+                  <div className={styles.cardNameRow}>
+                    <p className={styles.cardName}>{cardName(facility)}</p>
+                    <span className={styles.cardCat}>
+                      <span className={styles.cardDot} />
+                      {chipLabel(facility.category.ko, lang).replace('\n', ' ')}
+                    </span>
+                  </div>
+                  <p className={styles.cardMeta}>{cardPlace(facility)}</p>
+                  {tel ? <p className={styles.cardMeta}>{tel}</p> : null}
                 </div>
-                <p className={styles.cardMeta}>{cardPlace(facility)}</p>
-                {tel ? <p className={styles.cardMeta}>{tel}</p> : null}
+                <CardPhoto src={facilityImageUrl(facility)} />
               </button>
             );
           })
@@ -1402,15 +1420,18 @@ export function JejuHelp({ controller, initialCategory }: Props): JSX.Element {
                 className={styles.card}
                 onClick={() => openPin(a)}
               >
-                <div className={styles.cardNameRow}>
-                  <p className={styles.cardName}>{cardName(a.facility, a.pin, a.chip)}</p>
-                  <span className={styles.cardCat}>
-                    <span className={styles.cardDot} />
-                    {chipLabel(a.facility?.category.ko ?? a.chip, lang).replace('\n', ' ')}
-                  </span>
+                <div className={styles.cardText}>
+                  <div className={styles.cardNameRow}>
+                    <p className={styles.cardName}>{cardName(a.facility, a.pin, a.chip)}</p>
+                    <span className={styles.cardCat}>
+                      <span className={styles.cardDot} />
+                      {chipLabel(a.facility?.category.ko ?? a.chip, lang).replace('\n', ' ')}
+                    </span>
+                  </div>
+                  <p className={styles.cardMeta}>{cardPlace(a.facility)}</p>
+                  {tel ? <p className={styles.cardMeta}>{tel}</p> : null}
                 </div>
-                <p className={styles.cardMeta}>{cardPlace(a.facility)}</p>
-                {tel ? <p className={styles.cardMeta}>{tel}</p> : null}
+                <CardPhoto src={a.facility ? facilityImageUrl(a.facility) : undefined} />
               </button>
             );
           })}

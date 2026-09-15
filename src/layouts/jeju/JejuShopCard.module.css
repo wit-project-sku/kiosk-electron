@@ -81,8 +81,10 @@
   flex: 0 0 auto;
 }
 
+/* Association members — #FF3737 red (was the #fe6c50 coral), so the dot reads
+   apart from the brand-orange one at a glance. */
 .dotAssociation {
-  background: #fe6c50;
+  background: #ff3737;
 }
 
 /* No line clamps — each line shows its full text and wraps (see the header). */

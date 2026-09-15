@@ -463,6 +463,10 @@ export function JejuFlights({ controller }: Props): JSX.Element {
           const title = col.sheetKey
             ? opText(col.sheetKey, boardLang, col.head)
             : pick(col.head, boardLang);
+          /* 7253:9751 (제주>운항정보=도착): once a place is picked the header
+             reads THAT place — "서울/김포▼" — instead of 목적지 / 출발지, so the
+             board says what it is filtered to. "전체" puts the title back. */
+          const placeLabel = placeFilter ? flightPlaceLabel(placeFilter, boardLang) : title;
           return (
             <button
               key={`${direction}-${col.key}`}
@@ -471,10 +475,10 @@ export function JejuFlights({ controller }: Props): JSX.Element {
               style={{ left: col.x, maxWidth: col.headMax }}
               aria-expanded={placeOpen}
               aria-haspopup="listbox"
-              aria-label={title}
+              aria-label={placeFilter ? `${title}: ${placeLabel}` : title}
               onClick={togglePlaceMenu}
             >
-              <span className={styles.headPlaceLabel}>{title}</span>
+              <span className={styles.headPlaceLabel}>{placeLabel}</span>
               <span
                 className={`${styles.headPlaceCaret} ${placeFilter ? styles.headPlaceCaretActive : ''}`}
                 aria-hidden="true"
