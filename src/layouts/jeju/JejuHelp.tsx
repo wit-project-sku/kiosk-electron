@@ -303,13 +303,12 @@ interface FacilityPin {
  * PINS uses. It travels with the map rather than living in the CSS because it is
  * a property of the drawing: a different floor plan puts it somewhere else.
  *
- * NO map carries `here` today. The 현위치 marker the old placeholder plan had was
- * positioned against THAT artwork, and the real plans are different drawings of
- * a different building — the marker's coordinate did not survive them, and where
- * in 제주공항 the kiosk physically stands is not something the plans say. A pin
- * at a guessed position is worse than no pin, so it is left off until someone
- * who can see the machine supplies the floor and the fraction; the marker
- * renders again the moment one entry gets a `here`.
+ * Only 국내선 1F carries one: the 2026-09 revision of that plan drew the kiosk's
+ * 현위치 pin beside GATE 3. The pin is taken off the artwork and its ground point
+ * (the bottom of its shadow ellipse) kept here, so the app draws the marker with
+ * a label in the visitor's language instead of a baked-in Korean one. The KO and
+ * EN plans put the pin in slightly different spots, so `hereEn` holds the Latin
+ * plan's position. Every other plan has no pin, so no marker is drawn on them.
  */
 interface AirportMap {
   /** The Korean plan. */
@@ -318,6 +317,8 @@ interface AirportMap {
    *  the plan carries no lettering and so reads the same in any language. */
   srcEn?: string;
   here?: { x: number; y: number };
+  /** `here` on `srcEn`, when the Latin plan draws the kiosk somewhere else. */
+  hereEn?: { x: number; y: number };
   /**
    * How large this plan draws its pictograms, relative to the ~38px the domestic
    * 1F/2F/3F plans put on screen.
@@ -348,7 +349,13 @@ interface AirportMap {
 const MAPS: Record<string, AirportMap> = {
   // 3640×1653 (2.20:1) draws 747 tall — at 813 its foot sat 2px off the card's
   // edge, under the rounded corners. 875 gives it the same 64 inset as its top.
-  'domestic-1F': { src: mapDomestic1f, srcEn: mapDomestic1fEn, height: 875 },
+  'domestic-1F': {
+    src: mapDomestic1f,
+    srcEn: mapDomestic1fEn,
+    here: { x: 0.2827, y: 0.6065 },
+    hereEn: { x: 0.3194, y: 0.5829 },
+    height: 875,
+  },
   'domestic-2F': { src: mapDomestic2f, srcEn: mapDomestic2fEn },
   'domestic-3F': { src: mapDomestic3f, srcEn: mapDomestic3fEn },
   // No `srcEn`: 국내선 4F is the one plan with no lettering on it.
@@ -1070,6 +1077,8 @@ export function JejuHelp({ controller, initialCategory }: Props): JSX.Element {
   /** The Korean plan for Korean, the Latin one for everything else — and the
    *  Korean one again when a plan has no Latin twin because it has no text. */
   const planSrc = map && (lang === 'ko' ? map.src : (map.srcEn ?? map.src));
+  /** The 현위치 point on whichever of the two plans `planSrc` picked. */
+  const hereAt = map && (planSrc === map.srcEn ? (map.hereEn ?? map.here) : map.here);
 
   /**
    * This floor's pins, each paired with the sheet row behind it and told which
@@ -1355,10 +1364,10 @@ export function JejuHelp({ controller, initialCategory }: Props): JSX.Element {
             </button>
           ))}
 
-          {map.here && here && (
+          {hereAt && here && (
             <div
               className={styles.here}
-              style={{ left: `${map.here.x * 100}%`, top: `${map.here.y * 100}%` }}
+              style={{ left: `${hereAt.x * 100}%`, top: `${hereAt.y * 100}%` }}
             >
               <img src={here} alt="" className={styles.hereIcon} draggable={false} />
               <p className={styles.hereLabel}>{pick(YOU_ARE_HERE, lang)}</p>
