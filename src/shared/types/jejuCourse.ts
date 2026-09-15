@@ -9,7 +9,11 @@
  * 제주 is separate because the constraints are: the islands need a ferry, the
  * 5일장 only stands on its market day, and a day has to fit travel time, opening
  * hours, closing days and party capacity inside one time budget. The server
- * schedules 220 places that carry coordinates and hands the itinerary back.
+ * schedules the 592 places that carry coordinates and hands the itinerary back.
+ *
+ * The route starts where the REQUESTING kiosk stands (since 2026-09-14): DAY 1's
+ * first `travelMinutes` / `travelKm` are measured from 제주국제공항, 제주항 여객터미널
+ * or 세계자연유산본부, so the three kiosks can get different courses.
  *
  * ── It is rule-based, not an LLM ──────────────────────────────────────
  * The same request gives the same course every time, which is what makes
@@ -17,8 +21,12 @@
  * got and asking for a different combination.
  *
  * Rules worth knowing, because the UI must not contradict them:
- *   · a day is cut at an 8-hour budget with no cap on the number of spots (the
- *     last day gets 5, for check-out and the trip home);
+ *   · a day holds at most 6 places inside a 12-hour budget, two of them kept
+ *     for lunch and dinner; the rest are spread to the evening, so 30–120 min
+ *     of slack between places is intended, not a gap;
+ *   · `region` confines the course to one 권역. The leg from the kiosk to it is
+ *     not a course leg: DAY 1's first spot comes back with `isApproach` and is
+ *     timed by transit (or car, if CAR was picked), with no distance cap;
  *   · days = nights + 1, capped at 4 (the server clamps; `nights: 9` still
  *     answers 4 days). Each morning starts from the previous day's last spot;
  *   · `interests` are the shop's `aiCategoryKr` VERBATIM, prefix and all —
@@ -38,12 +46,24 @@ export type JejuCourseKey = 'A' | 'B' | 'C';
 export type JejuTransport = 'WALK' | 'BIKE' | 'TRANSIT' | 'CAR';
 
 /**
+ * 권역, as the API spells it — the four regions of the themed questionnaire's
+ * map. Anything else 400s ("권역은 JEJU_CITY·EAST·WEST·SEOGWIPO 중 하나여야
+ * 합니다"). See `regionCode` in lib/jejuCourse for the map's ids.
+ */
+export type JejuRegion = 'JEJU_CITY' | 'EAST' | 'WEST' | 'SEOGWIPO';
+
+/**
  * What the renderer asks for. `kioskId` is deliberately absent: the main
  * process fills it from KioskService, so no screen has to know its own number
  * and none can send the wrong one.
  */
 export interface JejuCourseRecommendQuery {
   course: JejuCourseKey;
+  /**
+   * The 권역 picked on the themed map. Omitted, the course may range over the
+   * whole island. With it, `transport` means getting around INSIDE the region.
+   */
+  region?: JejuRegion;
   transport: JejuTransport;
   /** Group size. The server drops venues that cannot take this many. */
   party: number;
@@ -65,6 +85,24 @@ export interface JejuCourseSpot {
   order: number;
   /** Travel time from the previous stop (from the day's start, for order 1). */
   travelMinutes: number;
+  /** Distance of the same leg, km. 0 when the server gave none. */
+  travelKm: number;
+  /**
+   * The leg INTO the picked region, not a trip inside the course — only ever on
+   * a day's first spot. The screen reads it as "권역까지 이동". Also set without a
+   * region when the chosen transport cannot make a day around the kiosk
+   * (e.g. 도보 from 세계자연유산본부).
+   */
+  isApproach: boolean;
+  /** What the approach leg was timed with (e.g. TRANSIT / CAR); null otherwise. */
+  approachMode: string | null;
+  /** A picked 즐길 거리 place (true) or the recommender's own fill-in (false). */
+  isSelectedByUser: boolean;
+  /**
+   * A restaurant let in for a party of 10+ without its capacity check — show
+   * "단체는 사전 예약이 필요합니다" with it.
+   */
+  isReservationRequired: boolean;
   /** Minutes past midnight — 540 = 09:00. */
   arriveMin: number;
   leaveMin: number;

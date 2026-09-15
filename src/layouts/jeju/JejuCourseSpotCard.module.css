@@ -221,6 +221,72 @@
   justify-content: space-between;
 }
 
+/*
+ * The itinerary stats row since 7058:21462 / 7128:72710 (7229:100434):
+ * 영업 시간 in a 486 slot, 10, then 머무는 시간 in a 402 slot with the bars icon
+ * at its left and the text right-aligned — so the dwell text ends 898 into the
+ * 1039 column.
+ *
+ * The row never wraps. 영업 시간 is the server's free text ("Open 24 hours (water
+ * activities during summer season)"), so its slot is a fixed basis that can only
+ * SHRINK and its text is one line cut with "…" — the full hours are on the spot's
+ * 상세 card. 머무는 시간 is short and always drawn whole: it takes the width it
+ * needs (402 at least) and 영업 시간 gives that width up.
+ */
+.spotMeta.spotMetaHours {
+  flex-wrap: nowrap;
+  gap: 10px;
+}
+
+.spotMeta.spotMetaHours > .metaItemHours {
+  flex: 0 1 486px;
+  min-width: 0;
+}
+
+.spotMeta.spotMetaHours > .metaItemHours .metaText {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.spotMeta.spotMetaHours > .metaItemHours + .metaItem {
+  flex: 0 0 auto;
+  min-width: 402px;
+  justify-content: space-between;
+}
+
+.spotMeta.spotMetaHours > .metaItemHours + .metaItem .metaText {
+  white-space: nowrap;
+}
+
+/* Expanded 추천 코스 (7229:99295): the pair tightens to 463 · 10 · 402 and 접기
+   sits at the column's right end. */
+.spotSlim .spotMetaHours.spotMetaToggle {
+  justify-content: flex-start;
+}
+
+.spotMeta.spotMetaHours.spotMetaToggle > .metaItemHours {
+  flex-basis: 463px;
+}
+
+.spotSlim .spotMetaHours.spotMetaToggle > .toggle {
+  margin-left: auto;
+}
+
+/* The compact card's row (7229:99353) still starts 머무는 시간 451 into the
+   column, but "영업 시간 10:00-22:00" runs past the old 231 slot to ~15px short of
+   it — so the pair is 441 · 10 rather than 408 · 43, which would have pushed the
+   bars icon ~30px right of the frame. */
+.spotCompact .spotMeta.spotMetaHours > .metaItemHours {
+  flex-basis: 441px;
+}
+
+/* 머무는 시간 here is just the icon and its text, as drawn (7229:99359). */
+.spotCompact .spotMeta.spotMetaHours > .metaItemHours + .metaItem {
+  min-width: 0;
+  justify-content: flex-start;
+}
+
 .metaItem {
   display: flex;
   align-items: center;
@@ -233,6 +299,16 @@
   height: 58px;
   flex: 0 0 auto;
   object-fit: contain;
+}
+
+/* The bars glyph. Its SVG is cropped to its ink (34×41), where the clock's is a
+   full 58 box with ~8px of air, so filling the 58 slot drew the bars ~48×58 —
+   visibly bigger and taller than the clock beside it. The frames put it in the
+   same 58 slot with 8px padding at its natural 34×41 (7229:100441), which the
+   padding here reproduces: content box 34×41 at 8,8. */
+.metaIconBars {
+  box-sizing: border-box;
+  padding: 8px 16px 9px 8px;
 }
 
 /*

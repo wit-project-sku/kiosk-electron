@@ -28,6 +28,13 @@ interface Props {
   /** "난이도 쉬움". Empty draws no second stat — an ungraded spot gets no row
    *  rather than a wrong one. */
   difficulty: string;
+  /**
+   * "영업 시간 08:00-20:00". Given (even empty), the stats row is the itinerary
+   * one from 7058:21462 / 7128:72710 — hours by the clock, then `dwell` by the
+   * bars, no 난이도; an empty string draws no hours item. Omitted, the row stays
+   * `dwell` · `difficulty` (the 다음 장소 card under the spot detail).
+   */
+  hours?: string;
   /** Plate width in artboard px; see the CSS note on .spot. */
   width: number;
   /**
@@ -102,6 +109,7 @@ export function JejuCourseSpotCard({
   category,
   address,
   description,
+  hours,
   dwell,
   difficulty,
   width,
@@ -116,6 +124,37 @@ export function JejuCourseSpotCard({
   const marker = jejuIconUrl('ico-marker');
   const durationIcon = jejuIconUrl('ico-duration');
   const difficultyIcon = jejuIconUrl('ico-difficulty');
+
+  /* The two stats, in order. The itinerary row (hours given) keeps the frame's
+     icons in place — clock first, bars second — and moves the text under them. */
+  const itinerary = hours !== undefined;
+  const stats = (itinerary
+    ? [
+        { key: 'hours', icon: durationIcon, text: hours },
+        { key: 'dwell', icon: difficultyIcon, text: dwell },
+      ]
+    : [
+        { key: 'dwell', icon: durationIcon, text: dwell },
+        { key: 'difficulty', icon: difficultyIcon, text: difficulty },
+      ]
+  ).filter((s) => s.text);
+  const statItems = stats.map((s) => (
+    <span
+      key={s.key}
+      className={s.key === 'hours' ? `${styles.metaItem} ${styles.metaItemHours}` : styles.metaItem}
+      title={s.key === 'hours' ? s.text : undefined}
+    >
+      {s.icon && (
+        <img
+          src={s.icon}
+          alt=""
+          className={s.icon === difficultyIcon ? `${styles.metaIcon} ${styles.metaIconBars}` : styles.metaIcon}
+          draggable={false}
+        />
+      )}
+      <span className={styles.metaText}>{s.text}</span>
+    </span>
+  ));
 
   if (variant === 'compact') {
     return (
@@ -137,21 +176,12 @@ export function JejuCourseSpotCard({
           <p className={styles.spotAddr}>{address}</p>
         </span>
 
-        <span className={`${styles.spotMeta} ${styles.compactMeta}`}>
-          <span className={styles.metaItem}>
-            {durationIcon && (
-              <img src={durationIcon} alt="" className={styles.metaIcon} draggable={false} />
-            )}
-            <span className={styles.metaText}>{dwell}</span>
-          </span>
-          {difficulty && (
-            <span className={styles.metaItem}>
-              {difficultyIcon && (
-                <img src={difficultyIcon} alt="" className={styles.metaIcon} draggable={false} />
-              )}
-              <span className={styles.metaText}>{difficulty}</span>
-            </span>
-          )}
+        <span
+          className={[styles.spotMeta, styles.compactMeta, itinerary ? styles.spotMetaHours : '']
+            .filter(Boolean)
+            .join(' ')}
+        >
+          {statItems}
         </span>
 
         {toggle && (
@@ -188,19 +218,12 @@ export function JejuCourseSpotCard({
   );
 
   const meta = (
-    <span className={toggle ? `${styles.spotMeta} ${styles.spotMetaToggle}` : styles.spotMeta}>
-      <span className={styles.metaItem}>
-        {durationIcon && <img src={durationIcon} alt="" className={styles.metaIcon} draggable={false} />}
-        <span className={styles.metaText}>{dwell}</span>
-      </span>
-      {difficulty && (
-        <span className={styles.metaItem}>
-          {difficultyIcon && (
-            <img src={difficultyIcon} alt="" className={styles.metaIcon} draggable={false} />
-          )}
-          <span className={styles.metaText}>{difficulty}</span>
-        </span>
-      )}
+    <span
+      className={[styles.spotMeta, toggle ? styles.spotMetaToggle : '', itinerary ? styles.spotMetaHours : '']
+        .filter(Boolean)
+        .join(' ')}
+    >
+      {statItems}
       {toggle && <ToggleChip label={toggle.label} onToggle={toggle.onToggle} expanded />}
     </span>
   );

@@ -11,10 +11,11 @@
  * and 서부·한림 share 107px of height), and image buttons would steal each
  * other's taps along that seam.
  *
- * ★ STORED, NOT SENT. `POST /api/jeju/courses/recommend` takes no region, so the
- * pick is kept on aiStore and goes nowhere yet. Sending an unknown field could
- * make a strict validator reject every request; wire it in
- * lib/jejuCourse + JejuCourseService when the API grows the parameter.
+ * ★ SENT as `region` on `POST /api/jeju/courses/recommend`. The pick is kept on
+ * aiStore; JejuAiDetail turns the id into the API's 권역 with `regionCode`
+ * (lib/jejuCourse) — jeju-aewol → JEJU_CITY, east-seongsan → EAST,
+ * west-hallim → WEST, seogwipo-jungmun → SEOGWIPO. Keep that table in step with
+ * the ids below.
  */
 import type { Lang } from '@renderer/lib/i18n';
 

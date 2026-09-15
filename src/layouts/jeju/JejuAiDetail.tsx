@@ -99,6 +99,7 @@ import {
   aboutMinutesLabel,
   nightCount,
   partySize,
+  regionCode,
   todayIso,
   transportCode,
 } from '@renderer/lib/jejuCourse';
@@ -407,6 +408,11 @@ const STAT_LABEL = {
     ko: '방문 인원/ 일정', en: 'Group / Stay', ja: '人数 / 日程', zh: '人数 / 行程',
     vi: 'Số người / Lịch', th: 'จำนวนคน / กำหนดการ', ru: 'Гости / Срок', id: 'Orang / Jadwal',
   },
+  /** Per-stop, first in the card's stats row: "영업 시간 08:00-20:00" (7229:100439). */
+  hours: {
+    ko: '영업 시간', en: 'Hours', ja: '営業時間', zh: '营业时间',
+    vi: 'Giờ mở cửa', th: 'เวลาทำการ', ru: 'Часы работы', id: 'Jam buka',
+  },
   /** Per-stop only — the card reads "머무는 시간 : 2-3시간" in -04-1. */
   dwell: {
     ko: '머무는 시간', en: 'Time here', ja: '滞在時間', zh: '停留时间',
@@ -687,6 +693,8 @@ export function JejuAiDetail({ controller }: Props): JSX.Element {
   const visitors = useAiStore((s) => s.visitors);
   /** 커스텀 코스: the plan the visitor built tap by tap — see the loading effect. */
   const pickerPlan = useAiStore((s) => s.pickerPlan);
+  /** The region picked on the themed questionnaire's map (a JejuRegionId). */
+  const region = useAiStore((s) => s.region);
   const shops = useShopStore((s) => s.shops);
   const setDetail = useDetailStore((s) => s.setItem);
   const lang = useLanguageStore((s) => s.currentLanguage) as Lang;
@@ -780,6 +788,10 @@ export function JejuAiDetail({ controller }: Props): JSX.Element {
    * `excludeShops` is the re-recommendation lever, and since 7128:72710 the
    * themed page has the control that pulls it: the refresh button beside the DAY
    * row (see `refreshCourse`). Until it is tapped nothing is excluded.
+   *
+   * `region` is the 권역 picked on the themed map, and goes ONLY with a themed
+   * course: the 커스텀 코스 has no map, so a region left on aiStore by an earlier
+   * themed visit must not confine its fallback request.
    */
   useEffect(() => {
     // The catalogue is needed twice over — to recover each interest's prefix,
@@ -800,9 +812,11 @@ export function JejuAiDetail({ controller }: Props): JSX.Element {
     }
     let cancelled = false;
     setLoading(true);
+    const regionParam = entry === 'theme' ? regionCode(region) : undefined;
     void window.api.jejuCourse
       .recommend({
         course: courseLetter(courseKey),
+        ...(regionParam ? { region: regionParam } : {}),
         transport: transportCode(transport),
         party: partySize(visitors),
         nights: nightCount(stay),
@@ -821,7 +835,7 @@ export function JejuAiDetail({ controller }: Props): JSX.Element {
     return () => {
       cancelled = true;
     };
-  }, [courseKey, transport, visitors, stay, interests, shops, entry, pickerPlan, excludedShops]);
+  }, [courseKey, region, transport, visitors, stay, interests, shops, entry, pickerPlan, excludedShops]);
 
   /** Days the OFFLINE fallback runs for, from the 체류 기간 answer. */
   const fallbackDays = DAYS_BY_STAY[stay] ?? 1;
@@ -1062,6 +1076,19 @@ export function JejuAiDetail({ controller }: Props): JSX.Element {
    * `difficulty: 0` is the normalizer's "the server gave none". Offline there is
    * no schedule to grade, so the authored placeholder stands in.
    */
+  /**
+   * "영업 시간 08:00-20:00" — the first stat on the itinerary cards since
+   * 7058:21462 / 7128:72710 (dwell moved into the second slot, 난이도 left the
+   * card). Same source rule as the 상세 card's hours in openSpot: the server's
+   * `openTimeText`, where NULL means "only an estimate" and draws nothing; the
+   * offline path reads the shop's own `openTime`. Line breaks fold to one line.
+   */
+  const hoursOf = (stop: Stop): string => {
+    const raw = (stop.spot ? stop.spot.openTimeText : stop.shop.openTime) ?? '';
+    const text = raw.replace(/\s+/g, ' ').trim();
+    return text ? `${pick(STAT_LABEL.hours, lang)} ${text}` : '';
+  };
+
   const hardnessOf = (stop: Stop): string => {
     const grade = stop.spot ? difficultyLabel(stop.spot.difficulty) : meta.spotDifficulty;
     if (!grade) return '';
@@ -1446,6 +1473,7 @@ export function JejuAiDetail({ controller }: Props): JSX.Element {
                   category={shopSecondCategory(stop.shop, lang)}
                   address={shopAddress(stop.shop, lang)}
                   description={shopDescription(stop.shop, lang)}
+                  hours={hoursOf(stop)}
                   dwell={dwellOf(stop)}
                   difficulty={hardnessOf(stop)}
                   /* The 다음 장소 chain follows what is ON SCREEN, so under

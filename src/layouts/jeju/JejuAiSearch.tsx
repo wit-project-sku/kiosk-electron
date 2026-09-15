@@ -29,8 +29,8 @@
  *       (A / B / C); 쇼핑·로컬 borrows B and sends its shopping 즐길 거리 with it,
  *       since the API has no fourth letter — see SHOP_PRESET and COURSE_LETTERS.
  *
- * ★ The region pick is STORED, NOT SENT — the recommend API takes no region.
- *   See jejuRegionMap.ts.
+ * ★ The region pick is stored on aiStore and sent to /recommend as `region`
+ *   (JEJU_CITY · EAST · WEST · SEOGWIPO). See jejuRegionMap.ts.
  *
  * 뒤로 follows the stages: questions → picker → home. A course detail returns
  * to the questions it came from, in the right variant (aiStore.resumeQuestions
@@ -107,10 +107,11 @@ type Template = Partial<Record<Lang, (value: string) => string>>;
 const fill = (template: Template, lang: Lang, value: string): string =>
   (template[lang] ?? template.en ?? template.ko)!(value);
 
-/** The gauge on the tab row (Figma 7249:9687) — time left on the day in view. */
-const REMAINING: Template = {
-  ko: (t) => `${t} 남음`, en: (t) => `${t} left`, ja: (t) => `残り ${t}`, zh: (t) => `剩余 ${t}`,
-  vi: (t) => `Còn ${t}`, th: (t) => `เหลือ ${t}`, ru: (t) => `Осталось ${t}`, id: (t) => `Sisa ${t}`,
+/** The gauge on the tab row (Figma 7249:9687, "3시간 30분 소요") — time the
+ *  day in view already takes, i.e. the filled part of the bar. */
+const USED: Template = {
+  ko: (t) => `${t} 소요`, en: (t) => `${t} planned`, ja: (t) => `所要 ${t}`, zh: (t) => `需时 ${t}`,
+  vi: (t) => `Mất ${t}`, th: (t) => `ใช้เวลา ${t}`, ru: (t) => `Занято ${t}`, id: (t) => `Butuh ${t}`,
 };
 
 /** No tile fits the day any more and its time is (nearly) spent. */
@@ -920,7 +921,7 @@ export function JejuAiSearch({ controller }: Props): JSX.Element {
     setDayPicks((prev) => withDay(prev, d, [...(prev[d] ?? []), i]));
   };
 
-  /** The gauge: how much of the day in view is spent, and what is left of it. */
+  /** The gauge: how much of the day in view is spent, as a bar and as time. */
   const gauge = useMemo(() => {
     const day = plan?.days[0];
     if (!plan || !day) return null;
@@ -929,7 +930,7 @@ export function JejuAiSearch({ controller }: Props): JSX.Element {
     if (plan.full) {
       return { percent, text: pick(day.remainingMinutes >= FULL_WITH_TIME_LEFT_MIN ? NO_MORE_PLACES : PLAN_FULL, lang) };
     }
-    return { percent, text: fill(REMAINING, lang as Lang, minutesLabel(day.remainingMinutes, lang as Lang)) };
+    return { percent, text: fill(USED, lang as Lang, minutesLabel(day.usedMinutes, lang as Lang)) };
   }, [plan, lang]);
 
   const submit = async (): Promise<void> => {

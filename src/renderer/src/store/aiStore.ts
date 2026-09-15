@@ -41,8 +41,8 @@ interface AiState {
   setResumeQuestions: (resume: boolean) => void;
   /**
    * The 지역 picked on the themed questionnaire's map (Figma 7088:24139), as a
-   * JejuRegionId. ★ STORED, NOT SENT: the recommend API has no region field —
-   * see jejuRegionMap.ts for why nothing is guessed onto the wire.
+   * JejuRegionId. Sent to /recommend as the API's 권역 on themed courses only —
+   * see `regionCode` in lib/jejuCourse.
    */
   region: string;
   setRegion: (region: string) => void;

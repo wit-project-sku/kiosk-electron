@@ -19,6 +19,8 @@ export interface KioskButtonRef {
   buttonName: string;
   /** DB `button_type` — the Korean label, e.g. "화장실" (W001/W002 Insadong wording). */
   buttonType: string;
+  /** See Slot.typePrefix. */
+  typePrefix?: string;
 }
 
 interface Slot {
@@ -38,6 +40,14 @@ interface Slot {
    * see `donation`.
    */
   dynamicId?: true;
+  /**
+   * The fixed start of `type` for a row whose type carries operator copy — the
+   * 제주 mascot rows, 안녕 '하영' in production and 안녕 '귤이' on stage. When the
+   * exact type finds no row, the ONE row whose type starts with this is used, so
+   * renaming the mascot in the admin web does not drop the whole home grid to
+   * its built-in order. Several rows sharing the prefix identify nothing.
+   */
+  typePrefix?: string;
 }
 
 /**
@@ -210,8 +220,10 @@ const SLOT_OVERRIDES: Partial<Record<KioskId, Record<string, Slot>>> = {
     lodging: { position: 9, type: '숙박안내' },
     taxfree: { position: 10, type: 'TAX-FREE' },
     about: { position: 11, type: '여기는 제주도' },
-    hello: { position: 12, type: "안녕 '하영'" },
-    help: { position: 13, type: "도와줘 '하영'" },
+    // The mascot inside the quotes is operator copy — stage already reads 귤이
+    // where production reads 하영 — so these also match by the fixed prefix.
+    hello: { position: 12, type: "안녕 '하영'", typePrefix: "안녕 '" },
+    help: { position: 13, type: "도와줘 '하영'", typePrefix: "도와줘 '" },
     rentcar: { position: 14, type: '렌트카' },
     exchange: { position: 15, type: '환율' },
     // Same reason as the base 기부 slot: the id differs per API environment, so it
@@ -251,8 +263,10 @@ const SLOT_OVERRIDES: Partial<Record<KioskId, Record<string, Slot>>> = {
     lodging: { position: 9, type: '숙박안내' },
     taxfree: { position: 10, type: 'TAX-FREE' },
     about: { position: 11, type: '여기는 제주도' },
-    hello: { position: 12, type: "안녕 '하영'" },
-    help: { position: 13, type: "도와줘 '하영'" },
+    // The mascot inside the quotes is operator copy — stage already reads 귤이
+    // where production reads 하영 — so these also match by the fixed prefix.
+    hello: { position: 12, type: "안녕 '하영'", typePrefix: "안녕 '" },
+    help: { position: 13, type: "도와줘 '하영'", typePrefix: "도와줘 '" },
     cruise: { position: 14, type: '크루즈 운항' }, // ← the one row 제주공항 does not have
     exchange: { position: 15, type: '환율' },
     donation: { position: 16, type: '기부', suffix: '기부', dynamicId: true },
@@ -285,8 +299,8 @@ const SLOT_OVERRIDES: Partial<Record<KioskId, Record<string, Slot>>> = {
     lodging: { position: 9, type: '숙박안내' },
     taxfree: { position: 10, type: 'TAX-FREE' },
     about: { position: 11, type: '여기는 제주도' },
-    hello: { position: 12, type: "안녕 '유산'" }, // ← the mascot rows W006/W007 spell 하영
-    help: { position: 13, type: "도와줘 '유산'" },
+    hello: { position: 12, type: "안녕 '유산'", typePrefix: "안녕 '" }, // ← the mascot rows W006/W007 spell 하영
+    help: { position: 13, type: "도와줘 '유산'", typePrefix: "도와줘 '" },
     cruise: { position: 14, type: '크루즈 운항' },
     exchange: { position: 15, type: '환율' },
     donation: { position: 16, type: '기부', suffix: '기부', dynamicId: true },
@@ -310,7 +324,14 @@ export function resolveButton(kioskId: KioskId, key: string): KioskButtonRef | n
   // (useResolveButton matches by buttonType). Reading BUTTON_IDS[position] here
   // would hand back the id of whichever button really owns that slot.
   const id = slot.dynamicId ? null : BUTTON_IDS[kioskId]?.[slot.position] ?? null;
-  return { key, id, position: slot.position, buttonName: `#${kioskId}_${suffix}`, buttonType: slot.type };
+  return {
+    key,
+    id,
+    position: slot.position,
+    buttonName: `#${kioskId}_${suffix}`,
+    buttonType: slot.type,
+    ...(slot.typePrefix ? { typePrefix: slot.typePrefix } : {}),
+  };
 }
 
 /**

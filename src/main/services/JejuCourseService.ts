@@ -131,6 +131,9 @@ export class JejuCourseService {
     const body = {
       kioskId: this.kiosk.kioskNum(),
       course: query.course,
+      // Only when picked: no region means the whole island, and an empty string
+      // would 400 ("권역은 JEJU_CITY·EAST·WEST·SEOGWIPO 중 하나여야 합니다").
+      ...(query.region ? { region: query.region } : {}),
       transport: query.transport,
       party: query.party,
       nights: query.nights,
@@ -173,6 +176,7 @@ export class JejuCourseService {
       log.warn('Jeju course recommendation failed', {
         url,
         kioskId: this.kiosk.kioskNum(),
+        region: query.region ?? null,
         error: error instanceof Error ? error.message : String(error),
       });
       throw new AppError('UNKNOWN', 'Failed to build the Jeju course.');
@@ -207,6 +211,13 @@ function normalizeSpot(row: unknown, index: number): JejuCourseSpot | null {
     shopId,
     order: num(r['order'], index + 1),
     travelMinutes: num(r['travelMinutes']),
+    travelKm: num(r['travelKm']),
+    isApproach: r['isApproach'] === true,
+    approachMode: text(r['approachMode']),
+    // An API that predates the flag says nothing; reading that as "picked" keeps
+    // the old behaviour of treating every scheduled place as the visitor's own.
+    isSelectedByUser: r['isSelectedByUser'] !== false,
+    isReservationRequired: r['isReservationRequired'] === true,
     arriveMin: num(r['arriveMin']),
     leaveMin: num(r['leaveMin']),
     dwellMinutes: num(r['dwellMinutes']),

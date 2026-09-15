@@ -5,6 +5,7 @@ import type {
   JejuCourseKey,
   JejuCourseSpot,
   JejuPickerPlan,
+  JejuRegion,
   JejuTransport,
 } from '@shared/types/jejuCourse';
 import { stripPrefix } from '@renderer/lib/shops';
@@ -57,6 +58,21 @@ const TRANSPORTS: Record<string, JejuTransport> = {
 
 /** Unanswered falls to CAR, which is what the summary bar has always defaulted to. */
 export const transportCode = (label: string): JejuTransport => TRANSPORTS[label] ?? 'CAR';
+
+/**
+ * The themed map's region (a JejuRegionId from jejuRegionMap) → the API's 권역.
+ * The map's four shapes are 1:1 with the four codes. Anything unknown — no pick,
+ * or a stale value — yields undefined, and the request then goes without a
+ * region rather than with a guessed one (a wrong code would 400 the whole call).
+ */
+const REGIONS: Record<string, JejuRegion> = {
+  'jeju-aewol': 'JEJU_CITY',
+  'east-seongsan': 'EAST',
+  'west-hallim': 'WEST',
+  'seogwipo-jungmun': 'SEOGWIPO',
+};
+
+export const regionCode = (regionId: string): JejuRegion | undefined => REGIONS[regionId];
 
 /**
  * 방문 인원 chip → a party size.
@@ -160,6 +176,12 @@ export function pickerPlanToCourse(plan: JejuPickerPlan, shops: Shop[]): JejuCou
         shopId: stop.shopId,
         order: stop.order,
         travelMinutes: stop.travelMinutes,
+        travelKm: stop.travelKm,
+        // The picker has no regions and every stop is one the visitor tapped for.
+        isApproach: false,
+        approachMode: null,
+        isSelectedByUser: true,
+        isReservationRequired: false,
         arriveMin: stop.arriveMin,
         leaveMin: stop.leaveMin,
         dwellMinutes: stop.dwellMinutes,
