@@ -165,13 +165,30 @@ export function CustomerDisplay(): JSX.Element {
   // switch). Two tiers, both derived from the same screen map the wall resolves
   // through: the current screen's one-tap neighbours fully buffered, and every
   // screen's entry clip header-read. See ClipPrefetch for the mechanics.
+  //
+  // DEFERRED, never eager: warming that starts at the moment of the switch
+  // competes with the ONE load that matters — the incoming clip — and made the
+  // switch measurably worse on the 제주 kiosks. So the sibling tier waits until
+  // the screen has sat still (the visitor is reading the page; the wall's load
+  // is long done), and the broad tier waits until well after boot.
+  const [settledScreen, setSettledScreen] = useState<string>('home');
+  useEffect(() => {
+    const timer = setTimeout(() => setSettledScreen(kioskScreen), 1500);
+    return () => clearTimeout(timer);
+  }, [kioskScreen]);
+  const [warmAll, setWarmAll] = useState(false);
+  useEffect(() => {
+    if (dataVersion === 0) return;
+    const timer = setTimeout(() => setWarmAll(true), 8000);
+    return () => clearTimeout(timer);
+  }, [dataVersion]);
   const prefetchAuto = useMemo(
-    () => siblingClipUrls(kioskScreen, lang, kioskId).slice(0, 4),
-    [kioskScreen, lang, kioskId, dataVersion],
+    () => siblingClipUrls(settledScreen, lang, kioskId).slice(0, 4),
+    [settledScreen, lang, kioskId, dataVersion],
   );
   const prefetchMeta = useMemo(
-    () => allScreenEntryUrls(lang, kioskId).slice(0, 32),
-    [lang, kioskId, dataVersion],
+    () => (warmAll ? allScreenEntryUrls(lang, kioskId).slice(0, 32) : []),
+    [warmAll, lang, kioskId, dataVersion],
   );
 
   // Navigating away cancels a playing weather clip — the new screen's own video

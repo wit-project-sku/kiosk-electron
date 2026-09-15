@@ -24,7 +24,8 @@ interface AiModelVideoWallProps {
    * a screen change that lands on exactly it then swaps with a ready, decoded
    * layer — instant — and a different target simply overwrites the layer as
    * always. Ignored for multi-clip lists (the back layer is busy with the
-   * cycle) and for playOnce lists.
+   * cycle) and for playOnce lists. Pass it DEFERRED (only once the screen has
+   * settled): the whole point is to use idle time, never the switch itself.
    */
   preloadUrl?: string | null;
 }
@@ -67,19 +68,11 @@ export function AiModelVideoWall({
   const elOf = (l: 'a' | 'b'): HTMLVideoElement | null => (l === 'a' ? aRef.current : bRef.current);
 
   // Preload the next clip into the hidden back layer so advancing is instant.
+  // (A single clip loops natively and leaves the back layer idle — the
+  // DEFERRED preloadUrl effect below warms it then, never this call: at
+  // transition time the prediction is still the previous screen's.)
   const preloadNext = (frontLayer: 'a' | 'b', list: DisplayClip[], index: number): void => {
-    if (list.length <= 1) {
-      // A single clip loops natively, leaving the back layer IDLE — warm the
-      // predicted next screen's clip there instead (see the preloadUrl prop).
-      // Not for playOnce: its layer handling ends with the list.
-      const el = elOf(frontLayer === 'a' ? 'b' : 'a');
-      if (!playOnce && el && preloadUrl && el.src !== preloadUrl) {
-        el.loop = false;
-        el.src = preloadUrl;
-        el.load();
-      }
-      return;
-    }
+    if (list.length <= 1) return;
     // A playOnce list never wraps, so there is nothing to preload past the end.
     if (playOnce && index >= list.length - 1) return;
     const el = elOf(frontLayer === 'a' ? 'b' : 'a');
@@ -199,6 +192,24 @@ export function AiModelVideoWall({
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [sig]);
+
+  // The predicted-next warm-up arrives DEFERRED (CustomerDisplay only updates
+  // preloadUrl once the screen has settled, so warming never competes with the
+  // switch itself) — which means it changes without the clip signature
+  // changing, and the transition-time preloadNext call never sees it. React to
+  // the prop directly instead, but only while the back layer is truly idle: a
+  // single looping clip, no load in flight, and not a playOnce list.
+  useEffect(() => {
+    if (!preloadUrl || playOnce) return;
+    if (eng.current.clips.length !== 1 || eng.current.cleanup) return;
+    const el = elOf(front === 'a' ? 'b' : 'a');
+    if (el && el.src !== preloadUrl) {
+      el.loop = false;
+      el.src = preloadUrl;
+      el.load();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [preloadUrl]);
 
   const onEnded = (layer: 'a' | 'b'): void => {
     if (layer !== front) return; // only the visible layer advances the cycle
