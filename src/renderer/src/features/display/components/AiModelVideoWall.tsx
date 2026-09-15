@@ -131,10 +131,18 @@ export function AiModelVideoWall({
     setFront(back);
     setActive(clip);
 
-    // Preload the FOLLOWING clip only once the new front is actually rendering:
-    // until its first frame, the old front is the visible under-layer, and
-    // repointing that layer's src early would blank the screen.
+    // Once the new front is actually rendering, the covered layer's job is
+    // done — PAUSE it. Without this it kept playing (and, when looping,
+    // looping forever) invisibly underneath, decoding a whole second stream
+    // for nothing; on heavy clips that steals exactly the throughput the next
+    // switch needs. It must NOT pause before the new first frame exists (it is
+    // the visible under-layer masking the decode gap), and a later transition
+    // resumes it explicitly wherever it is reused.
+    //
+    // Preload the FOLLOWING clip on the same trigger: repointing the covered
+    // layer's src before the new frame renders would blank the screen.
     if (el.readyState >= 2 /* HAVE_CURRENT_DATA */) {
+      frontEl?.pause();
       preloadNext(back, list, index);
     } else {
       const handlers: Array<[keyof HTMLVideoElementEventMap, () => void]> = [];
@@ -144,6 +152,7 @@ export function AiModelVideoWall({
       };
       const onReady = (): void => {
         detach();
+        frontEl?.pause();
         preloadNext(back, list, index);
       };
       const onError = (): void => {
