@@ -11,7 +11,7 @@ import { usePhotoStore } from '@renderer/store/photoStore';
 import { trackEvent } from '@renderer/lib/analytics';
 import { displayVideosFor } from '@renderer/assets/videos';
 import { cameraIconUrl } from '@renderer/assets/icons/insadong/camera';
-import { clipsForPlayKey, clipsForScreen, initSubtitles, initVideoFiles, normalizeClipIndexKeys } from '@renderer/lib/videoMap';
+import { allScreenEntryUrls, clipsForPlayKey, clipsForScreen, initSubtitles, initVideoFiles, normalizeClipIndexKeys, siblingClipUrls } from '@renderer/lib/videoMap';
 import { getCameraRotation, getKioskLocation, isJejuLayout } from '@shared/config/kioskLocations';
 import { PHOTO_COUNTDOWN_SECONDS } from '@shared/constants/photoOptions';
 import type { WeatherPlayKey } from '@shared/config/weatherVideo';
@@ -19,6 +19,7 @@ import spinnerImg from '@renderer/assets/spinner.svg';
 import { KioskArtboard } from '@layouts/components/KioskScreenImage';
 import { Slideshow } from './components/Slideshow';
 import { AiModelVideoWall } from './components/AiModelVideoWall';
+import { ClipPrefetch } from './components/ClipPrefetch';
 import { JejuCameraGuide } from './components/JejuCameraGuide';
 import styles from './CustomerDisplay.module.css';
 
@@ -156,6 +157,21 @@ export function CustomerDisplay(): JSX.Element {
   const weatherClips = useMemo(
     () => (weatherKey ? clipsForPlayKey(weatherKey, lang, kioskId) : []),
     [weatherKey, lang, kioskId, dataVersion],
+  );
+
+  // Clip warming, so the wall's switch never starts from cold disk (the visible
+  // "video changes a beat after the touch screen" delay — reported on 제주,
+  // whose sheet gives every tab its own clip, so every tap is a real file
+  // switch). Two tiers, both derived from the same screen map the wall resolves
+  // through: the current screen's one-tap neighbours fully buffered, and every
+  // screen's entry clip header-read. See ClipPrefetch for the mechanics.
+  const prefetchAuto = useMemo(
+    () => siblingClipUrls(kioskScreen, lang, kioskId).slice(0, 4),
+    [kioskScreen, lang, kioskId, dataVersion],
+  );
+  const prefetchMeta = useMemo(
+    () => allScreenEntryUrls(lang, kioskId).slice(0, 32),
+    [lang, kioskId, dataVersion],
   );
 
   // Navigating away cancels a playing weather clip — the new screen's own video
@@ -318,6 +334,9 @@ export function CustomerDisplay(): JSX.Element {
               hideLogo={noBrandLogo}
               playOnce={weatherClips.length > 0}
               onDone={() => setWeatherKey(null)}
+              // Warm the likeliest next clip in the wall's idle back layer —
+              // a right guess makes the tab switch an instant layer swap.
+              preloadUrl={weatherClips.length > 0 ? null : prefetchAuto[0] ?? null}
             />
           ) : displayClips.length > 0 ? (
             <AiModelVideoWall clips={displayClips} hideLabel />
@@ -329,6 +348,10 @@ export function CustomerDisplay(): JSX.Element {
               <p className={styles.attractSub}>AI Photo Experience</p>
             </div>
           )}
+          {/* Hidden. Only while idling/navigating — the camera and generating
+              modes need the machine to themselves, and no screen changes
+              arrive during them anyway. */}
+          <ClipPrefetch auto={prefetchAuto} metadata={prefetchMeta} />
         </>
       )}
 

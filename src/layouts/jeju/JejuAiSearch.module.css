@@ -176,32 +176,53 @@
   /* Label on top, the picker's caption under it (see .tileCaption). With no
      caption the label sits exactly where it did — a column of one. */
   flex-direction: column;
-  gap: 12px;
+  gap: 5px;
+  /* Anchors the order badge (.tileOrder). */
+  position: relative;
 }
 
 .tileLabel {
   display: block;
 }
 
-/* A tile picked for ANOTHER day than the tab in view: the tile keeps its resting
-   look and names its day under the label ("2일차"). Small, in the brand colour,
-   so it reads as "already in the plan" without competing with the label. */
+/* The order badge on a tile picked for the day in view (Figma 7249:9682): a 57
+   white disc 17 / 13 in from the tile's corner, the tile's place in that day's
+   route in brand-orange Bold 50. */
+.tileOrder {
+  position: absolute;
+  left: 17px;
+  top: 13px;
+  width: 57px;
+  height: 57px;
+  border-radius: 50%;
+  background: #fff;
+  color: var(--kiosk-primary, #ff7f0f);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 50px;
+  font-weight: 700;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+/* "+1시간" under a tile that still fits the day — what a tap would add
+   (Figma 7249:9693): Regular 25, 글씨-main, 5 under the label. */
 .tileCaption {
   display: block;
   max-width: 244px;
-  font-size: 30px;
-  font-weight: 700;
-  line-height: 1.1;
-  color: var(--kiosk-primary, #ff7f0f);
+  font-size: 25px;
+  font-weight: 400;
+  line-height: 1.2;
+  color: #999;
   white-space: normal;
   word-break: keep-all;
   overflow-wrap: anywhere;
 }
 
-/* Greyed: the picker says this tile no longer fits (and it is `disabled`, so
-   taps do nothing). Flat grey plate, muted label, no lift — clearly out of
-   play next to the white tiles. The explicit colour also beats the UA's own
-   :disabled button colour. */
+/* Greyed: the picker says this tile no longer fits the day (and it is
+   `disabled`, so taps do nothing). Flat grey plate, muted label, no lift. The
+   explicit colour also beats the UA's own :disabled button colour. */
 .tileOff {
   background: #f1f1f1;
   box-shadow: none;
@@ -298,6 +319,51 @@
 
 .dayTabActive .dayBadge {
   background: #fff;
+}
+
+/* ── The day's time gauge (Figma 7249:9687) ──
+   Right of the tabs on their 101 row, 31 down (`top` from the TSX): a 441×40
+   #E8E8E8 track with the used part in brand orange, then what is left of the day
+   in gray 06 Bold 43. Right-anchored, so a longer translation grows leftwards
+   into the free middle of the row rather than off the page. */
+.dayGauge {
+  position: absolute;
+  right: 0;
+  height: 43px;
+  display: flex;
+  align-items: center;
+  gap: 19px;
+}
+
+.gaugeTrack {
+  flex: 0 0 auto;
+  width: 441px;
+  height: 40px;
+  border-radius: 20px;
+  background: #e8e8e8;
+  overflow: hidden;
+}
+
+.gaugeFill {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: var(--kiosk-primary, #ff7f0f);
+  transition: width 200ms ease-out;
+}
+
+.gaugeText {
+  font-size: 43px;
+  font-weight: 700;
+  line-height: 1;
+  color: #5e5e5e;
+  white-space: nowrap;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .gaugeFill {
+    transition: none;
+  }
 }
 
 /* ── CTA ── */

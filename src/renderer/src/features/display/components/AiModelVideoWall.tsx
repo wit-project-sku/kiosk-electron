@@ -17,6 +17,16 @@ interface AiModelVideoWallProps {
   playOnce?: boolean;
   /** Fires when a `playOnce` list reaches the end of its last clip. */
   onDone?: () => void;
+  /**
+   * The clip most likely to be asked for NEXT (e.g. the neighbouring tab's
+   * clip — see siblingClipUrls). While the current list is a single looping
+   * clip the back layer has nothing to preload, so it warms this URL instead;
+   * a screen change that lands on exactly it then swaps with a ready, decoded
+   * layer — instant — and a different target simply overwrites the layer as
+   * always. Ignored for multi-clip lists (the back layer is busy with the
+   * cycle) and for playOnce lists.
+   */
+  preloadUrl?: string | null;
 }
 
 /**
@@ -41,6 +51,7 @@ export function AiModelVideoWall({
   hideLogo = false,
   playOnce = false,
   onDone,
+  preloadUrl = null,
 }: AiModelVideoWallProps): JSX.Element | null {
   const aRef = useRef<HTMLVideoElement>(null);
   const bRef = useRef<HTMLVideoElement>(null);
@@ -57,7 +68,18 @@ export function AiModelVideoWall({
 
   // Preload the next clip into the hidden back layer so advancing is instant.
   const preloadNext = (frontLayer: 'a' | 'b', list: DisplayClip[], index: number): void => {
-    if (list.length <= 1) return;
+    if (list.length <= 1) {
+      // A single clip loops natively, leaving the back layer IDLE — warm the
+      // predicted next screen's clip there instead (see the preloadUrl prop).
+      // Not for playOnce: its layer handling ends with the list.
+      const el = elOf(frontLayer === 'a' ? 'b' : 'a');
+      if (!playOnce && el && preloadUrl && el.src !== preloadUrl) {
+        el.loop = false;
+        el.src = preloadUrl;
+        el.load();
+      }
+      return;
+    }
     // A playOnce list never wraps, so there is nothing to preload past the end.
     if (playOnce && index >= list.length - 1) return;
     const el = elOf(frontLayer === 'a' ? 'b' : 'a');

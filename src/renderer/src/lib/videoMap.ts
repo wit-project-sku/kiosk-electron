@@ -694,6 +694,19 @@ function splitClipIndex(key: string): { key: string; clip: number | null } {
   return { key: key.slice(0, hash), clip: Number.isFinite(n) && n > 0 ? n : null };
 }
 
+/**
+ * A screen's OWN clips — the map path of clipsForScreen without the Default
+ * fallback. Shared with the prefetch helpers below, which must know whether a
+ * screen really resolves something (a fallback URL would make every unfilled
+ * sheet row "prefetch" the idle reel that is already playing).
+ */
+function ownClipsForScreen(screen: string, lang: Lang, kioskId?: KioskId): DisplayClip[] {
+  const set = videoSetFor(kioskId);
+  const { key, clip } = splitClipIndex(screenKey(screen, lang, layoutOf(kioskId)));
+  const all = clipsForKey(BY_KEY[set], key, lang, set);
+  return clip == null ? all : all.slice(clip - 1, clip);
+}
+
 export function clipsForScreen(
   screen: string,
   lang: Lang,
@@ -732,10 +745,76 @@ export function clipsForScreen(
     // else fall through: this button has no API-associated clip → legacy map.
   }
 
-  const { key, clip } = splitClipIndex(screenKey(screen, lang, layoutOf(kioskId)));
-  const all = clipsForKey(byKey, key, lang, set);
-  const clips = clip == null ? all : all.slice(clip - 1, clip);
+  const clips = ownClipsForScreen(screen, lang, kioskId);
   return clips.length > 0 ? clips : clipsForKey(byKey, 'Default', lang, set);
+}
+
+/**
+ * Prefetch candidates — making the customer display's switch INSTANT.
+ *
+ * The wall's cut is only as fast as the incoming clip's first decoded frame:
+ * on a screen change the new file is opened, its moov parsed and its first
+ * GOP decoded, and until then the outgoing clip stays on screen. Venues whose
+ * clips decode instantly never notice; 제주's per-tab clips (`TaxFree#2`,
+ * `Here#3`, …) made the gap visible on every tab press. The cure is to have
+ * the likely-next files already warm before they are asked for, so the load
+ * pipeline starts from cache instead of cold disk.
+ *
+ * A screen's "family" is everything sharing its first name segment — exactly
+ * how this module names drill-in states (`taxfree`/`taxfree_refund`/
+ * `taxfree_merchant`, `about_history`, `hello_hobby_2`, `search_enter`) — so
+ * the family of the CURRENT screen is precisely the set of clips one tap can
+ * reach without going through home.
+ */
+const familyOf = (screen: string): string => screen.split('_', 1)[0]!;
+
+/** Every screen id the layout can report (own map + inherited base map). */
+function mappedScreens(layout: KioskLayoutId): string[] {
+  const { map, inherit } = SCREEN_KEYS_BY_LAYOUT[layout];
+  return [...new Set([...Object.keys(map), ...(inherit ? Object.keys(SCREEN_TO_VIDEO_KEY) : [])])];
+}
+
+/**
+ * URLs one tab press away from `screen` (same family), in map order, excluding
+ * clips the current screen already plays and the Default reel (already looping
+ * or a breath away from cache at all times). The first entry is the wall's
+ * back-layer warm candidate; the rest are cache-warmed by <ClipPrefetch>.
+ */
+export function siblingClipUrls(screen: string, lang: Lang, kioskId?: KioskId): string[] {
+  const layout = layoutOf(kioskId);
+  const set = videoSetFor(kioskId);
+  const fam = familyOf(screen);
+  const skip = new Set<string>([
+    ...ownClipsForScreen(screen, lang, kioskId).map((c) => c.url),
+    ...clipsForKey(BY_KEY[set], 'Default', lang, set).map((c) => c.url),
+  ]);
+  const urls: string[] = [];
+  for (const s of mappedScreens(layout)) {
+    if (s === screen || familyOf(s) !== fam) continue;
+    for (const c of ownClipsForScreen(s, lang, kioskId)) {
+      if (!skip.has(c.url) && !urls.includes(c.url)) urls.push(c.url);
+    }
+  }
+  return urls;
+}
+
+/**
+ * The ENTRY clip of every mapped screen (first clip only, deduped, Default
+ * excluded) — the metadata-prefetch tier, so a home-tile tap lands on a file
+ * whose header and moov are already read. Cheap enough to hold for the whole
+ * catalogue: metadata preload reads a few hundred KB per file, and for a
+ * non-faststart mp4 it is exactly the expensive tail-seek that would otherwise
+ * happen on the tap itself.
+ */
+export function allScreenEntryUrls(lang: Lang, kioskId?: KioskId): string[] {
+  const set = videoSetFor(kioskId);
+  const defaults = new Set(clipsForKey(BY_KEY[set], 'Default', lang, set).map((c) => c.url));
+  const urls: string[] = [];
+  for (const s of mappedScreens(layoutOf(kioskId))) {
+    const first = ownClipsForScreen(s, lang, kioskId)[0];
+    if (first && !defaults.has(first.url) && !urls.includes(first.url)) urls.push(first.url);
+  }
+  return urls;
 }
 
 /**

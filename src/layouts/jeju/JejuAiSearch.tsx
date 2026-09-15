@@ -44,9 +44,10 @@ import { useLanguageStore } from '@renderer/store/languageStore';
 import { useShopStore } from '@renderer/store/shopStore';
 import { useKioskStore } from '@renderer/store/kioskStore';
 import { isOk } from '@shared/types/result';
-import type { JejuPickerPlan, JejuPickerQuery } from '@shared/types/jejuCourse';
+import type { JejuPickerDay, JejuPickerPlan, JejuPickerQuery } from '@shared/types/jejuCourse';
 import {
   interestCodes,
+  minutesLabel,
   nightCount,
   partySize,
   nowMinutes,
@@ -92,19 +93,81 @@ interface Props {
  */
 
 /**
- * The 즐길 거리 day tabs (Figma 7229:100741) and the note on a tile the plan put
- * on another day — "1일차", "Day 2". The picker decides the day of every tap, so
- * a tab is a VIEW of the plan, never a choice of where the next tap goes.
- *
- * (The time gauge, the "빠진 곳" notice and the per-tile captions — "+1시간 4분",
- * "영업 종료" — are gone with this frame, which draws none of them: decided
- * 2026-09-15. A greyed tile is still greyed and still not tappable.)
+ * The 즐길 거리 day tabs (Figma 7229:100741). Each tab IS a day the visitor
+ * fills: a tap adds the tile to the day in view, and the same tile can be picked
+ * on several days (2026-09-15). See `dayPicks` and `dayQueries`.
  */
 const DAY_TAB: Partial<Record<Lang, (n: number) => string>> = {
   ko: (n) => `${n}일차`, en: (n) => `Day ${n}`, ja: (n) => `${n}日目`, zh: (n) => `第${n}天`,
   vi: (n) => `Ngày ${n}`, th: (n) => `วันที่ ${n}`, ru: (n) => `День ${n}`, id: (n) => `Hari ${n}`,
 };
 const dayTabLabel = (n: number, lang: Lang): string => (DAY_TAB[lang] ?? DAY_TAB.ko)!(n);
+
+type Template = Partial<Record<Lang, (value: string) => string>>;
+const fill = (template: Template, lang: Lang, value: string): string =>
+  (template[lang] ?? template.en ?? template.ko)!(value);
+
+/** The gauge on the tab row (Figma 7249:9687) — time left on the day in view. */
+const REMAINING: Template = {
+  ko: (t) => `${t} 남음`, en: (t) => `${t} left`, ja: (t) => `残り ${t}`, zh: (t) => `剩余 ${t}`,
+  vi: (t) => `Còn ${t}`, th: (t) => `เหลือ ${t}`, ru: (t) => `Осталось ${t}`, id: (t) => `Sisa ${t}`,
+};
+
+/** No tile fits the day any more and its time is (nearly) spent. */
+const PLAN_FULL = {
+  ko: '일정이 가득 찼어요', en: 'This day is full', ja: '予定がいっぱいです', zh: '行程已满',
+  vi: 'Ngày này đã kín', th: 'วันนี้เต็มแล้ว', ru: 'День заполнен', id: 'Hari ini sudah penuh',
+};
+
+/** No tile fits but real time is left — the places ran out, not the day. */
+const NO_MORE_PLACES = {
+  ko: '더 갈 수 있는 곳이 없어요', en: 'No more places to add', ja: 'これ以上行ける場所がありません',
+  zh: '没有更多可去的地方', vi: 'Không còn nơi để thêm', th: 'ไม่มีสถานที่ให้เพิ่มแล้ว',
+  ru: 'Больше некуда добавить', id: 'Tidak ada tempat lagi',
+};
+const FULL_WITH_TIME_LEFT_MIN = 60;
+
+/** Every day after the first starts at 09:00 (the picker's own day start). */
+const DAY_START_MIN = 540;
+
+/** `YYYY-MM-DD` plus `n` calendar days. UTC arithmetic on a date with no time, so no zone can shift it. */
+const addDaysIso = (iso: string, n: number): string => {
+  const [y, m, d] = iso.split('-').map(Number);
+  return new Date(Date.UTC(y!, m! - 1, d! + n)).toISOString().slice(0, 10);
+};
+
+/** "9-카페" → "카페": the API's category with its catalogue prefix dropped. */
+const stripCatPrefix = (cat: string): string => cat.replace(/^\d+-/, '');
+
+/** `days` with day `d`'s list replaced, growing the array when `d` is new. */
+const withDay = (days: number[][], d: number, list: number[]): number[][] => {
+  const next = days.slice();
+  while (next.length <= d) next.push([]);
+  next[d] = list;
+  return next;
+};
+
+/**
+ * The day plans as ONE trip, in the shape the course detail reads. Days keep
+ * their own dates and minutes; a day with no stops stays empty (the detail leaves
+ * it out) rather than repeating DAY 1 — the visitor chose each day.
+ */
+function mergeDayPlans(plans: JejuPickerPlan[], visitDate: string): JejuPickerPlan {
+  const days: JejuPickerDay[] = plans.map((p, d) => ({ ...p.days[0]!, day: d + 1, repeat: null }));
+  const sum = (f: (day: JejuPickerDay) => number): number => days.reduce((n, day) => n + f(day), 0);
+  return {
+    visitDate,
+    dayCount: days.length,
+    budgetMinutes: sum((day) => day.budgetMinutes),
+    usedMinutes: sum((day) => day.usedMinutes),
+    remainingMinutes: sum((day) => day.remainingMinutes),
+    currentDay: 1,
+    full: plans.every((p) => p.full),
+    days,
+    categories: [],
+    dropped: [],
+  };
+}
 
 /**
  * Chip copy comes from Localization_Jeju (Visitor_* / StayTime_* /
@@ -408,6 +471,8 @@ const TABS_TOP = 1972;
 const TABS_TOP_LOW = 2042;
 const GRID_TOP = 2133;
 const GRID_TOP_LOW = 2203;
+/** The gauge sits 31 down the 101-tall tab row (Figma 7249:9687). */
+const GAUGE_OFFSET = 31;
 
 const GRID_ROW_STEP = 244;
 
@@ -704,10 +769,22 @@ export function JejuAiSearch({ controller }: Props): JSX.Element {
   const [visitors, setVisitors] = useState(() => labelIndex(VISITORS, resume?.visitors, 1));
   const [stay, setStay] = useState(() => labelIndex(STAY, resume?.stay, 0));
   const [transport, setTransport] = useState(() => labelIndex(TRANSPORT, resume?.transport, DEFAULT_TRANSPORT));
-  /** 즐길 거리 tiles tapped, in TAP order — the order is the route. */
-  const [pickOrder, setPickOrder] = useState<number[]>(() =>
-    resume?.entry === 'custom' ? resume.interests.map(tileIndexOf).filter((i) => i >= 0) : [],
-  );
+  /**
+   * 즐길 거리 per DAY: dayPicks[d] is DAY d+1's tiles in tap order — the order is
+   * that day's route. Each day is its own list, so one tile can be picked on
+   * several days. A return from the detail reopens the days the visitor built.
+   */
+  const [dayPicks, setDayPicks] = useState<number[][]>(() => {
+    if (resume?.entry !== 'custom') return [];
+    const fromPlan = resume.pickerPlan?.days.map((day) =>
+      day.stops.map((stop) => tileIndexOf(stripCatPrefix(stop.aiCategory))).filter((i) => i >= 0),
+    );
+    return fromPlan && fromPlan.some((list) => list.length > 0)
+      ? fromPlan
+      : [resume.interests.map(tileIndexOf).filter((i) => i >= 0)];
+  });
+  /** Days in the stay — one tab each (min(nights + 1, 4), the picker's own rule). */
+  const dayCount = Math.min(nightCount(STAY[stay]!.label) + 1, 4);
 
   const lowReach = useAccessibilityStore((s) => s.lowReach);
   /** Low-reach only: 1 = the three chip groups, 2 = 즐길 거리. See Y_LOW. */
@@ -724,7 +801,7 @@ export function JejuAiSearch({ controller }: Props): JSX.Element {
      empty — which is the grey CTA both "nothing picked" frames draw. */
   const onFirstStep = !themeKey && lowReach && step === 1;
   // The themed page has nothing that can be left empty.
-  const ctaDisabled = !themeKey && !onFirstStep && pickOrder.length === 0;
+  const ctaDisabled = !themeKey && !onFirstStep && dayPicks.slice(0, dayCount).every((list) => list.length === 0);
 
   /* ── The picker: one call per tap, and per changed chip ── */
   const shops = useShopStore((s) => s.shops);
@@ -744,102 +821,116 @@ export function JejuAiSearch({ controller }: Props): JSX.Element {
   const [startMin] = useState(nowMinutes);
   /** The picker only serves the 커스텀 코스 questions — never the landing or a themed page. */
   const pickerOn = stage === 'questions' && !themeKey && shops.length > 0;
-  const query: JejuPickerQuery = useMemo(
-    () => ({
-      transport: transportCode(TRANSPORT[transport]!.label),
-      party: partySize(VISITORS[visitors]!.label),
-      nights: nightCount(STAY[stay]!.label),
-      visitDate,
-      startMin,
-      picks: pickOrder.map((i) => tileCodes[i]!),
-      categories: tileCodes,
-    }),
-    [transport, visitors, stay, visitDate, startMin, pickOrder, tileCodes],
+  /** The day tab in view (1-based) — the day a tap edits. */
+  const [viewDay, setViewDay] = useState(1);
+  /** A shorter stay pulls a later tab back to the last day. */
+  const activeDay = Math.min(viewDay, dayCount);
+  /**
+   * One picker request per DAY. The API plans a whole trip from one list, lets
+   * a category in once per trip and decides each tap's day itself — so to let a
+   * visitor fill 2일차 on purpose, and pick 흑돼지 on two days, each day is asked
+   * as its own 당일치기 on its own date: DAY 1 from the time the page opened,
+   * later days from 09:00. What that gives up against one trip call: a later day
+   * starts from the kiosk rather than from the previous day's last stop, and a
+   * category picked on two days can land on the same place.
+   */
+  const dayQueries: JejuPickerQuery[] = useMemo(
+    () =>
+      Array.from({ length: dayCount }, (_, d) => ({
+        transport: transportCode(TRANSPORT[transport]!.label),
+        party: partySize(VISITORS[visitors]!.label),
+        nights: 0,
+        visitDate: addDaysIso(visitDate, d),
+        startMin: d === 0 ? startMin : DAY_START_MIN,
+        picks: (dayPicks[d] ?? []).map((i) => tileCodes[i]!),
+        categories: tileCodes,
+      })),
+    [dayCount, transport, visitors, visitDate, startMin, dayPicks, tileCodes],
   );
-  const queryKey = useMemo(() => JSON.stringify(query), [query]);
-  /** The newest answer, with the request it answers. */
-  const [answer, setAnswer] = useState<{ key: string; plan: JejuPickerPlan } | null>(null);
+  const dayKeys = useMemo(() => dayQueries.map((q) => JSON.stringify(q)), [dayQueries]);
+  /** Each day's newest answer and the request it answers — drawn until the next one lands. */
+  const [dayAnswers, setDayAnswers] = useState<({ key: string; plan: JejuPickerPlan } | undefined)[]>([]);
+  /** The request last sent for each day; an older answer arriving late is ignored. */
+  const requested = useRef<string[]>([]);
   /**
    * The last call failed (offline, timeout, API error). The tiles then stay
    * tappable with no gauge rather than locking the visitor out, and the detail
    * falls back to /recommend — see submit.
    */
   const [pickerDown, setPickerDown] = useState(false);
-  /** The day tab in view (1-based). Clamped to the stay's length below. */
-  const [viewDay, setViewDay] = useState(1);
-  /**
-   * The newest ADDED tile, until the picker says where it went — then the tabs
-   * jump to that day, so a tap is always seen landing.
-   */
-  const lastTap = useRef<number | null>(null);
   const submitting = useRef(false);
 
   useEffect(() => {
     if (!pickerOn) return;
-    let stale = false;
-    void window.api.jejuCourse.picker(query).then((res) => {
-      // Only the newest request is drawn. A later tap or chip made a newer one,
-      // and each request carries every tap, so an older answer is simply out of
-      // date — never merged.
-      if (stale) return;
-      if (!isOk(res)) {
-        setPickerDown(true);
-        return;
-      }
-      setPickerDown(false);
-      setAnswer({ key: queryKey, plan: res.value });
+    dayQueries.forEach((q, d) => {
+      const key = dayKeys[d]!;
+      if (requested.current[d] === key) return;
+      requested.current[d] = key;
+      void window.api.jejuCourse.picker(q).then((res) => {
+        if (requested.current[d] !== key) return;
+        if (!isOk(res)) {
+          setPickerDown(true);
+          return;
+        }
+        setPickerDown(false);
+        setDayAnswers((prev) => {
+          const next = prev.slice();
+          next[d] = { key, plan: res.value };
+          return next;
+        });
+      });
     });
-    return () => {
-      stale = true;
-    };
-  }, [pickerOn, query, queryKey]);
+  }, [pickerOn, dayQueries, dayKeys]);
 
-  /** What the screen draws from: the newest answer, unless the picker is down. */
-  const plan = pickerDown ? null : (answer?.plan ?? null);
+  /** What the day in view draws from: its newest answer, unless the picker is down. */
+  const plan = pickerDown ? null : (dayAnswers[activeDay - 1]?.plan ?? null);
   const optionByCat = useMemo(
     () => new Map((plan?.categories ?? []).map((o) => [o.aiCategory, o])),
     [plan],
   );
+  /** The day in view's stops in route order — what the order badges count. */
+  const dayStops = plan?.days[0]?.stops ?? [];
 
   /**
-   * A change of 이동수단 / 인원 / 기간 replays the same taps, and some may no
-   * longer fit. They leave the selection, so the tiles show what the plan
-   * really holds.
+   * A change of 이동수단 / 인원 / 기간 replays each day's taps, and some may no
+   * longer fit their day. They leave that day's list, so the tiles show what the
+   * plan really holds.
    */
   useEffect(() => {
-    if (!answer || answer.key !== queryKey || answer.plan.dropped.length === 0) return;
-    const gone = answer.plan.dropped.map((d) => tileCodes.indexOf(d.aiCategory)).filter((i) => i >= 0);
-    if (gone.length === 0) return;
-    setPickOrder((prev) => prev.filter((i) => !gone.includes(i)));
-  }, [answer, queryKey, tileCodes]);
-
-  /** Follow the newest tap to the day the picker put it on. */
-  useEffect(() => {
-    if (!answer || answer.key !== queryKey || lastTap.current === null) return;
-    const option = answer.plan.categories.find((o) => o.aiCategory === tileCodes[lastTap.current!]);
-    if (option?.status === 'PICKED' && option.day) setViewDay(option.day);
-    lastTap.current = null;
-  }, [answer, queryKey, tileCodes]);
+    dayAnswers.forEach((answer, d) => {
+      if (!answer || answer.key !== dayKeys[d] || answer.plan.dropped.length === 0) return;
+      const gone = answer.plan.dropped.map((x) => tileCodes.indexOf(x.aiCategory)).filter((i) => i >= 0);
+      if (gone.length === 0) return;
+      setDayPicks((prev) => withDay(prev, d, (prev[d] ?? []).filter((i) => !gone.includes(i))));
+    });
+  }, [dayAnswers, dayKeys, tileCodes]);
 
   /**
-   * Tap: a picked tile always comes out. Otherwise, with an answer on screen,
-   * only a tile it calls OK can go in — a greyed tile does nothing. With no
-   * answer yet (first load, or the picker is down) every tile is tappable.
+   * Tap, on the day in view: a tile already picked THAT day comes out; otherwise,
+   * with an answer on screen, only a tile it calls OK goes in — a greyed tile does
+   * nothing. The same tile on another day is left alone either way.
    */
   const toggleInterest = (i: number): void => {
-    if (pickOrder.includes(i)) {
-      setPickOrder((prev) => prev.filter((x) => x !== i));
+    const d = activeDay - 1;
+    if ((dayPicks[d] ?? []).includes(i)) {
+      setDayPicks((prev) => withDay(prev, d, (prev[d] ?? []).filter((x) => x !== i)));
       return;
     }
     if (plan && optionByCat.get(tileCodes[i]!)?.status !== 'OK') return;
-    lastTap.current = i;
-    setPickOrder((prev) => [...prev, i]);
+    setDayPicks((prev) => withDay(prev, d, [...(prev[d] ?? []), i]));
   };
 
-  /** Days in the stay — the plan's, or the stay chip's own count before the first answer. */
-  const dayCount = plan?.dayCount ?? Math.min(nightCount(STAY[stay]!.label) + 1, 4);
-  /** The tab shown — a shorter stay pulls a later tab back to the last day. */
-  const activeDay = Math.min(viewDay, dayCount);
+  /** The gauge: how much of the day in view is spent, and what is left of it. */
+  const gauge = useMemo(() => {
+    const day = plan?.days[0];
+    if (!plan || !day) return null;
+    const percent =
+      day.budgetMinutes > 0 ? Math.min(100, Math.round((day.usedMinutes / day.budgetMinutes) * 100)) : 100;
+    if (plan.full) {
+      return { percent, text: pick(day.remainingMinutes >= FULL_WITH_TIME_LEFT_MIN ? NO_MORE_PLACES : PLAN_FULL, lang) };
+    }
+    return { percent, text: fill(REMAINING, lang as Lang, minutesLabel(day.remainingMinutes, lang as Lang)) };
+  }, [plan, lang]);
 
   const submit = async (): Promise<void> => {
     if (submitting.current) return;
@@ -863,20 +954,34 @@ export function JejuAiSearch({ controller }: Props): JSX.Element {
       submitting.current = false;
       return;
     }
-    /* The detail draws the plan the visitor watched fill up. If the newest tap
-       is still unanswered, ask once more rather than hand over a plan one tap
-       behind. With the picker down the plan stays null and the detail falls
-       back to /recommend, as before this API existed. */
-    let finalPlan = answer && answer.key === queryKey && !pickerDown ? answer.plan : null;
-    if (!finalPlan && pickerOn && !pickerDown) {
-      const res = await window.api.jejuCourse.picker(query);
-      finalPlan = isOk(res) ? res.value : null;
-    }
-    // What the plan actually holds, in tap order — a last tap that no longer fit
-    // is not in it, and must not reach the detail's 선택보기 either.
-    const placed = finalPlan
-      ? finalPlan.days.flatMap((d) => d.stops.map((s) => tileCodes.indexOf(s.aiCategory))).filter((i) => i >= 0)
-      : pickOrder;
+    /* The detail draws the days the visitor watched fill up. A day whose newest
+       tap is still unanswered is asked once more rather than handed over one tap
+       behind. With the picker down, or any day unanswered, the plan stays null
+       and the detail falls back to /recommend with every pick, as before. */
+    const plans =
+      pickerOn && !pickerDown
+        ? await Promise.all(
+            dayQueries.map(async (q, d) => {
+              const answer = dayAnswers[d];
+              if (answer && answer.key === dayKeys[d]) return answer.plan;
+              const res = await window.api.jejuCourse.picker(q);
+              return isOk(res) ? res.value : null;
+            }),
+          )
+        : [];
+    const finalPlan =
+      plans.length === dayCount && plans.every((p): p is JejuPickerPlan => p !== null)
+        ? mergeDayPlans(plans, visitDate)
+        : null;
+    // What the plan actually holds, day by day in route order — a tap that no
+    // longer fit is not in it, and must not reach the detail's 선택보기 either.
+    const placed = [
+      ...new Set(
+        finalPlan
+          ? finalPlan.days.flatMap((d) => d.stops.map((stop) => tileCodes.indexOf(stop.aiCategory))).filter((i) => i >= 0)
+          : dayPicks.slice(0, dayCount).flat(),
+      ),
+    ];
     setPickerPlan(finalPlan);
     setAiInterests(placed.map(interestCat));
     // The course detail's summary bar shows 이동수단, so every answer travels on
@@ -931,10 +1036,10 @@ export function JejuAiSearch({ controller }: Props): JSX.Element {
     setThemeKey(null);
     setStep(1);
     // A new plan: nothing tapped, nothing answered, nothing to announce.
-    setPickOrder([]);
-    setAnswer(null);
+    setDayPicks([]);
+    setDayAnswers([]);
+    requested.current = [];
     setViewDay(1);
-    lastTap.current = null;
     setStage('questions');
   };
 
@@ -1177,9 +1282,9 @@ export function JejuAiSearch({ controller }: Props): JSX.Element {
           <span className={styles.labelBar} />
           <p className={styles.labelText}>{heading(SECTION.interests)}</p>
         </div>
-        {/* ── Day tabs (Figma 7229:100741, day-tabs 7242:9774) ──
-            One per day of the stay, badged with the places the plan put on that
-            day. The tab in view draws its day's picks orange; see the tiles. */}
+        {/* ── Day tabs + gauge (Figma 7229:100741: day-tabs 7249:9656, gauge 7249:9687) ──
+            One tab per day of the stay, badged with the places that day holds.
+            The tab in view is the day the tiles edit; the gauge is its time. */}
         <div
           className={styles.dayTabs}
           style={{ top: lowReach ? TABS_TOP_LOW : TABS_TOP }}
@@ -1187,7 +1292,10 @@ export function JejuAiSearch({ controller }: Props): JSX.Element {
           aria-label={heading(SECTION.interests)}
         >
           {Array.from({ length: dayCount }, (_, d) => d + 1).map((day) => {
-            const count = plan?.days[day - 1]?.stops.length ?? 0;
+            const answer = dayAnswers[day - 1];
+            // The plan's count once it has answered for the day's taps, else the taps.
+            const fresh = !pickerDown && !!answer && answer.key === dayKeys[day - 1];
+            const count = fresh ? (answer.plan.days[0]?.stops.length ?? 0) : (dayPicks[day - 1]?.length ?? 0);
             const active = day === activeDay;
             return (
               <button
@@ -1204,22 +1312,39 @@ export function JejuAiSearch({ controller }: Props): JSX.Element {
             );
           })}
         </div>
+        {gauge && (
+          <div
+            className={styles.dayGauge}
+            style={{ top: (lowReach ? TABS_TOP_LOW : TABS_TOP) + GAUGE_OFFSET }}
+            role="status"
+            aria-live="polite"
+          >
+            <span className={styles.gaugeTrack}>
+              <span className={styles.gaugeFill} style={{ width: `${gauge.percent}%` }} />
+            </span>
+            <span className={styles.gaugeText}>{gauge.text}</span>
+          </div>
+        )}
         <div className={styles.grid} style={{ top: lowReach ? GRID_TOP_LOW : GRID_TOP }}>
           {rows.map((row, r) => (
             <div key={r} className={styles.gridRow} style={{ top: r * GRID_ROW_STEP }}>
               {row.map((i) => {
                 const item = INTERESTS[i]!;
-                const picked = pickOrder.includes(i);
-                const option = optionByCat.get(tileCodes[i]!);
-                /* The day the plan put a picked tile on — null until the picker
-                   has answered for it (the newest tap). */
-                const placedDay = picked && option?.status === 'PICKED' ? option.day : null;
-                // Orange: picked for the day in view, or picked and not answered yet.
-                const selected = picked && (placedDay === null || placedDay === activeDay);
-                // Picked for another day: a normal tile that names that day (a tap still removes it).
-                const elsewhere = picked && !selected;
-                // Greyed: the picker has answered and this tile does not fit.
-                const off = !picked && !!plan && option?.status !== 'OK';
+                const code = tileCodes[i]!;
+                const option = optionByCat.get(code);
+                const todays = dayPicks[activeDay - 1] ?? [];
+                // Picked for the day in view (the same tile may be picked on other days too).
+                const selected = todays.includes(i);
+                // Greyed: the day's picker has answered and this tile does not fit that day.
+                const off = !selected && !!plan && option?.status !== 'OK';
+                // Its place in the day's route — the plan's once answered, else the tap order.
+                const stopIndex = dayStops.findIndex((stop) => stop.aiCategory === code);
+                const order = selected ? (stopIndex >= 0 ? stopIndex + 1 : todays.indexOf(i) + 1) : 0;
+                // "+1시간" — what a tap would add to the day (Figma 7249:9693).
+                const cost =
+                  !selected && !off && option?.status === 'OK' && option.costMinutes !== null
+                    ? `+${minutesLabel(option.costMinutes, lang as Lang)}`
+                    : null;
                 return (
                   <button
                     key={interestCat(i) || i}
@@ -1243,10 +1368,9 @@ export function JejuAiSearch({ controller }: Props): JSX.Element {
                     disabled={off}
                     onClick={() => toggleInterest(i)}
                   >
+                    {order > 0 && <span className={styles.tileOrder}>{order}</span>}
                     <span className={styles.tileLabel}>{tileLabel(i)}</span>
-                    {elsewhere && placedDay !== null && (
-                      <span className={styles.tileCaption}>{dayTabLabel(placedDay, lang as Lang)}</span>
-                    )}
+                    {cost && <span className={styles.tileCaption}>{cost}</span>}
                   </button>
                 );
               })}
