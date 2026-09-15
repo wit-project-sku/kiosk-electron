@@ -143,6 +143,16 @@ const PLACE_ALL = {
   vi: 'Tất cả', th: 'ทั้งหมด', ru: 'Все', id: 'Semua',
 };
 
+/**
+ * The note after 전체 in the place dropdown — "전체(가나다순)" in 7038:18998, the
+ * smaller "(가나다순)" saying the places below are in alphabetical order (which
+ * `placeOptions` sorts them into, by the board language's own labels).
+ */
+const PLACE_ALL_NOTE = {
+  ko: '(가나다순)', en: '(A–Z)', ja: '(五十音順)', zh: '(按字母顺序)',
+  vi: '(A–Z)', th: '(ก–ฮ)', ru: '(А–Я)', id: '(A–Z)',
+};
+
 const PLACE_NO_RESULT = {
   ko: '해당 조건의 운항 정보가 없습니다.',
   en: 'No flights match this filter.',
@@ -520,6 +530,7 @@ export function JejuFlights({ controller }: Props): JSX.Element {
               onClick={() => pickPlace(null)}
             >
               {placeAllLabel}
+              <span className={styles.placeOptionNote}>{pick(PLACE_ALL_NOTE, boardLang)}</span>
             </button>
             {placeOptions.map((place) => (
               <button

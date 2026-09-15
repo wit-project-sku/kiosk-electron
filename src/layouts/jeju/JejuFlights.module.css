@@ -330,6 +330,13 @@
   color: #fff;
 }
 
+/* "(가나다순)" after 전체 — Pretendard Medium 32 beside the option's 45
+   (7038:19360); it takes the option's colour, so it turns white with 전체. */
+.placeOptionNote {
+  font-size: 32px;
+  font-weight: 500;
+}
+
 /* ── Scrolling rows ─────────────────────────────────────────────────── */
 /*
  * Starts where the plate ends so the column headers stay put. The 100px lead-in
