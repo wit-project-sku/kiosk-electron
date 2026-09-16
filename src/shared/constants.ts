@@ -13,10 +13,17 @@ export const APP_NAME = 'Kiosk App';
  */
 export const APP_ID = 'com.kioskapp.desktop';
 
+/**
+ * Witteria API base used when `WITTERIA_API_BASE` is unset — the PROD host.
+ * Stage is `https://api-stage-v3.witteria.com`; set the env var, don't edit this.
+ */
+export const DEFAULT_WITTERIA_API_BASE = 'https://api-v3.witteria.com';
+
 /** Default kiosk identity — override per deployment (W001/W002/W003). */
 export const DEFAULT_KIOSK_CONFIG: KioskConfig = {
   kioskId: 'W001',
   layout: 'INSADONG',
+  apiBase: DEFAULT_WITTERIA_API_BASE,
 };
 
 export const DEFAULT_SETTINGS: AppSettings = {

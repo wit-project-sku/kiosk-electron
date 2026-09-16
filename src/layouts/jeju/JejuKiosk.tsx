@@ -46,6 +46,7 @@ import { JejuFlights } from './JejuFlights';
 import { JejuCruise } from './JejuCruise';
 import { JejuExchange } from './JejuExchange';
 import { JejuRentcar } from './JejuRentcar';
+import { JejuFillme } from './fillme/JejuFillme';
 import { useJejuKeypad } from './keypad/useJejuKeypad';
 
 /** Theme the shared AR 한복 photo workflow with the 제주 orange (#ff7f0f, the
@@ -191,6 +192,10 @@ export function JejuKiosk(): JSX.Element {
     <JejuExchange controller={controller} />
   ) : cur === 'rentcar' ? (
     <JejuRentcar controller={controller} />
+  ) : cur === 'fillme' ? (
+    // AI 손톱 건강분석 — the home screen's JEJU ISLAND button. Its own camera
+    // (a USB nail camera), separate from 사진촬영's; see fillme/JejuFillme.tsx.
+    <JejuFillme controller={controller} />
   ) : cur === 'taxfree' ? (
     <JejuTaxFree controller={controller} />
   ) : cur === 'about' ? (

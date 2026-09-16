@@ -1,0 +1,271 @@
+.root {
+  position: absolute;
+  inset: 0;
+}
+
+/* 본문 y740~3350 — 넘치면 이 안에서만 스크롤한다 */
+.scroll {
+  position: absolute;
+  left: 0;
+  top: 740px;
+  width: 2160px;
+  height: 2610px;
+  overflow-y: auto;
+  padding: 40px 170px 80px;
+  scrollbar-width: none;
+  mask-image: linear-gradient(180deg, transparent 0, #000 40px, #000 calc(100% - 90px), transparent 100%);
+}
+
+/* QR 칸이 있으면 본문은 y3000 에서 끊고, 그 아래 QR 칸(y3025~3375)을 고정한다 */
+.scrollShort {
+  height: 2260px;
+}
+
+.scroll::-webkit-scrollbar {
+  display: none;
+}
+
+.summary {
+  padding: 90px 110px 110px;
+}
+
+.summaryHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 16px;
+  height: 100px;
+  padding: 0 44px;
+  border-radius: 50px;
+  background: var(--primary-tint);
+  color: var(--primary);
+  font-size: 52px;
+  font-weight: 700;
+}
+
+.date {
+  font-size: 46px;
+  font-weight: 500;
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.title {
+  margin-top: 64px;
+  font-size: 92px;
+  font-weight: 800;
+  line-height: 1.32;
+  letter-spacing: -0.02em;
+  color: var(--ink);
+}
+
+.desc {
+  margin-top: 56px;
+  padding-top: 56px;
+  border-top: 4px solid var(--line);
+  font-size: 58px;
+  font-weight: 500;
+  line-height: 1.65;
+  color: var(--ink-2);
+}
+
+.suppLabel {
+  margin-top: 110px;
+}
+
+/* 3열. 마지막 줄이 덜 차면 가운데로 모은다(5곳 = 3 + 2). */
+.supps {
+  margin-top: 56px;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 40px;
+}
+
+.supp {
+  width: 580px;
+  height: 560px;
+  border-radius: 60px;
+  background: #fff;
+  box-shadow: var(--shadow-card);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 44px;
+}
+
+.plate {
+  width: 300px;
+  height: 300px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+}
+
+.suppIcon {
+  width: 210px;
+  height: 210px;
+  object-fit: contain;
+}
+
+.pill {
+  color: var(--primary);
+}
+
+.suppName {
+  font-size: 64px;
+  font-weight: 700;
+  color: var(--ink);
+  text-align: center;
+  padding: 0 30px;
+}
+
+.empty {
+  margin-top: 200px;
+  text-align: center;
+  font-size: 64px;
+  font-weight: 600;
+  color: var(--muted);
+}
+
+.disclaimer {
+  margin-top: 80px;
+  border-radius: 45px;
+  background: rgba(245, 241, 239, 0.94);
+  display: flex;
+  align-items: flex-start;
+  gap: 26px;
+  padding: 50px 70px;
+  font-size: 46px;
+  font-weight: 500;
+  line-height: 1.55;
+  color: #6f6a66;
+}
+
+.disclaimer svg {
+  flex: 0 0 auto;
+  margin-top: 4px;
+  color: var(--muted);
+}
+
+/* ── 휴대폰으로 결과 받기(QR) y3025 · 350 ── */
+.qr {
+  position: absolute;
+  left: 170px;
+  top: 3025px;
+  width: 1820px;
+  height: 350px;
+  border-radius: 60px;
+  background: #fff;
+  box-shadow: var(--shadow-card);
+  display: flex;
+  align-items: center;
+  gap: 64px;
+  padding: 0 70px 0 30px;
+}
+
+.qrBox {
+  width: 290px;
+  height: 290px;
+  border-radius: 40px;
+  border: 5px solid var(--line);
+  display: grid;
+  place-items: center;
+  flex: 0 0 auto;
+  color: var(--muted);
+}
+
+.qrBoxError {
+  border-color: var(--danger-tint);
+  background: var(--danger-tint);
+  color: var(--danger);
+}
+
+.spinner {
+  width: 96px;
+  height: 96px;
+  border-radius: 50%;
+  border: 10px solid var(--primary-tint);
+  border-top-color: var(--primary);
+  animation: spin 0.9s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.qrText {
+  flex: 1;
+  min-width: 0;
+}
+
+.qrTitle {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  font-size: 68px;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+  color: var(--ink);
+}
+
+.qrTitle svg {
+  color: var(--primary);
+}
+
+.qrDesc {
+  margin-top: 22px;
+  font-size: 50px;
+  font-weight: 500;
+  line-height: 1.4;
+  color: var(--ink-2);
+}
+
+.qrExpiry {
+  margin-top: 18px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  font-size: 42px;
+  font-weight: 500;
+  color: var(--muted);
+}
+
+.qrRetry {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 16px;
+  height: 140px;
+  padding: 0 56px;
+  border: 5px solid var(--primary-line);
+  border-radius: 45px;
+  background: #fff;
+  color: var(--primary);
+  font-size: 56px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+/* 하단 버튼 y3413 */
+.actions {
+  position: absolute;
+  left: 170px;
+  top: 3413px;
+  width: 1820px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 40px;
+}
+
+.action {
+  width: 100%;
+}

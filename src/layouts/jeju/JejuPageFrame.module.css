@@ -223,6 +223,16 @@
 .leftNavHome { top: 0; }
 .leftNavBack { top: 120px; }
 
+/* navDisabled — the rail half of the treatment JejuHeader gives 홈/뒤로. Dimmed
+   and dead rather than hidden, for the reason spelled out on that prop. */
+.leftNavOff {
+  opacity: 0.3;
+}
+
+.leftNavOff .leftNavZone {
+  pointer-events: none;
+}
+
 /*
  * Barrier-free side controls — Figma 6442:105429 (제주 홈 ♿). Left rail at
  * y2163 (home+back) and ♿ at y2403; right-hand ▲▼ siblings use the same band

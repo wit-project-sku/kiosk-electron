@@ -103,6 +103,17 @@ interface Props {
   subtitleStar?: boolean;
   /** Bold subtitle — see JejuHeader. */
   subtitleBold?: boolean;
+  /**
+   * Grey out 홈/뒤로 — in the header AND on the left rail — and make them inert.
+   * For a screen the visitor must not leave mid-way: AI 손톱 건강분석 sets it while
+   * the analysis request is in flight, where a stray 홈 tap throws away two
+   * photos the visitor has already consented to send.
+   *
+   * JejuHeader has carried this for a while (틀린그림찾기 passes it directly);
+   * the frame forwards it so a page that uses the shared chrome does not lose
+   * the rail half of it. See that prop for why the buttons stay drawn.
+   */
+  navDisabled?: boolean;
   children?: ReactNode;
 }
 
@@ -123,6 +134,7 @@ export function JejuPageFrame({
   subtitleColor,
   subtitleStar,
   subtitleBold,
+  navDisabled = false,
   children,
 }: Props): JSX.Element {
   // Live API banner when one is active, else this page's bundled promo.
@@ -205,11 +217,12 @@ export function JejuPageFrame({
         subtitleColor={subtitleColor}
         subtitleStar={subtitleStar}
         subtitleBold={subtitleBold}
+        navDisabled={navDisabled}
       />
 
       <div className={styles.body}>{children}</div>
 
-      <div className={styles.leftNav}>
+      <div className={`${styles.leftNav} ${navDisabled ? styles.leftNavOff : ''}`}>
         {jejuIconUrl('nav-left') && (
           <img src={jejuIconUrl('nav-left')} alt="" className={styles.leftNavImg} draggable={false} />
         )}
@@ -217,12 +230,14 @@ export function JejuPageFrame({
           type="button"
           className={`${styles.leftNavZone} ${styles.leftNavHome}`}
           onClick={goHome}
+          disabled={navDisabled}
           aria-label="홈"
         />
         <button
           type="button"
           className={`${styles.leftNavZone} ${styles.leftNavBack}`}
           onClick={onBack ?? goHome}
+          disabled={navDisabled}
           aria-label="뒤로"
         />
       </div>

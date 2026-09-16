@@ -30,12 +30,10 @@ import { useWeatherStore } from '@renderer/store/weatherStore';
 import { useWeatherVideo } from '@renderer/hooks/useWeatherVideo';
 import { useLanguageStore } from '@renderer/store/languageStore';
 import { useSearchStore } from '@renderer/store/searchStore';
-import { usePhotoStore } from '@renderer/store/photoStore';
 import { weatherIconUrl, weatherIconName } from '@renderer/assets/weather';
 import type { Lang } from '@renderer/lib/i18n';
 import { t, tPlain, sheetText } from '@renderer/lib/loc';
 import { DONATION_COMING_SOON, withComingSoon } from '@shared/config/donation';
-import { JEJU_OUTFIT_CATEGORY } from './JejuHanbokSelect';
 import { JejuFlightBoard } from './JejuFlightBoard';
 import { JejuSailingBoard } from './JejuSailingBoard';
 import { JejuWeatherPanel } from './JejuWeatherPanel';
@@ -553,8 +551,6 @@ export function JejuHome({ controller }: Props): JSX.Element {
   const playWeatherVideo = useWeatherVideo();
   const lang = useLanguageStore((s) => s.currentLanguage);
   const setStoreQuery = useSearchStore((s) => s.setQuery);
-  /** Hands the 제주 tab to the outfit picker — see `openJejuOutfits`. */
-  const setInitialCategory = usePhotoStore((s) => s.setInitialCategory);
 
   const [now, setNow] = useState(() => new Date());
   useEffect(() => {
@@ -589,28 +585,6 @@ export function JejuHome({ controller }: Props): JSX.Element {
   function go(screen: KioskScreenId, label: string): void {
     controller.navigate(screen, label);
   }
-
-  /**
-   * JEJU ISLAND → the AR 한복체험 outfit picker, opened on the 제주 tab.
-   *
-   * NOT `go()`: the picker is a step INSIDE the photo workflow (PhotoWorkflow →
-   * JejuHanbokSelect), not a screen `navigate()` can address, so it opens the
-   * same way 사진촬영 does. `startPhoto` files its own analytics.
-   *
-   * The tab is handed over through photoStore, which the picker reads once its
-   * row has arrived from the API and then clears — the same relay 이벤트 참여
-   * uses to land on 프로모션 (InsadongKdrama). It is the registered CODE, not
-   * the 제주 label: the label is the operator's Korean display name, editable
-   * in the admin web and absent in the other seven languages.
-   *
-   * Without it the picker opens on whatever tab leads the row, which is 제주
-   * only while 제주 has outfits — an empty catalogue sorts it LAST and the
-   * button would quietly land on 한복.
-   */
-  const openJejuOutfits = (): void => {
-    setInitialCategory(JEJU_OUTFIT_CATEGORY);
-    controller.startPhoto();
-  };
 
   const weatherIcon = weather
     ? weatherIconUrl(weatherIconName(weather.icon, weather.main))
@@ -914,12 +888,17 @@ export function JejuHome({ controller }: Props): JSX.Element {
 
       {/* ── Bottom actions — low-reach shifts +79 (Figma 6442:105429) ── */}
       {/* JEJU ISLAND — replaces the K-DRAMA button, which sat here permanently
-          disabled because the screen behind it was never built. Opens the AR
-          한복체험 picker on the 제주 tab (see `openJejuOutfits`). */}
+          disabled because the screen behind it was never built.
+
+          It used to open the AR 한복체험 picker on the 제주 tab, i.e. a step
+          inside 사진촬영's flow reached from a second button. It now has a page
+          of its own: AI 손톱 건강분석 (FillMe), a plain `navigate()` like every
+          other destination on this screen. 사진촬영 next door is unchanged and
+          still opens the picker — on whatever tab leads the row. */}
       <button
         type="button"
         className={low(styles.arJeju, styles.arJejuLow)}
-        onClick={openJejuOutfits}
+        onClick={() => go('fillme', 'JEJU ISLAND')}
         aria-label="JEJU ISLAND"
       >
         {jejuIconUrl('btn-jeju-island') && (

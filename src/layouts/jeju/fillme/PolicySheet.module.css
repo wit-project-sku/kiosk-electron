@@ -1,0 +1,160 @@
+.overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 30;
+  background: rgba(35, 30, 27, 0.55);
+  display: grid;
+  place-items: center;
+}
+
+.panel {
+  width: 1940px;
+  height: 3360px;
+  border-radius: 80px;
+  background: #fff;
+  box-shadow: 0 40px 120px rgba(0, 0, 0, 0.25);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.head {
+  padding: 110px 120px 56px;
+  border-bottom: 4px solid var(--line);
+}
+
+.title {
+  font-size: 84px;
+  font-weight: 800;
+  color: var(--ink);
+}
+
+.sub {
+  margin-top: 22px;
+  font-size: 44px;
+  font-weight: 500;
+  color: var(--muted);
+}
+
+.body {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 70px 120px 90px;
+  font-size: 50px;
+  line-height: 1.7;
+  color: var(--ink-2);
+  scrollbar-width: none;
+}
+
+.body::-webkit-scrollbar {
+  display: none;
+}
+
+.summary {
+  border-radius: 45px;
+  background: var(--beige);
+  padding: 50px 60px;
+  display: flex;
+  flex-direction: column;
+  gap: 26px;
+}
+
+.row {
+  display: grid;
+  grid-template-columns: 260px 1fr;
+  gap: 30px;
+  font-size: 50px;
+  line-height: 1.5;
+}
+
+.row dt {
+  font-weight: 700;
+  color: var(--ink);
+}
+
+.row dd {
+  color: var(--ink-2);
+}
+
+.refuse {
+  margin-top: 44px;
+  font-size: 48px;
+  font-weight: 600;
+  color: var(--primary-press);
+}
+
+.fullTitle {
+  margin-top: 100px;
+  padding-top: 70px;
+  border-top: 4px solid var(--line);
+  font-size: 64px;
+  font-weight: 800;
+  color: var(--ink);
+}
+
+.section {
+  margin-top: 50px;
+}
+
+.section h4 {
+  margin: 0 0 20px;
+  font-size: 56px;
+  font-weight: 700;
+  color: var(--ink);
+}
+
+.section h5 {
+  margin: 24px 0 8px;
+  font-size: 52px;
+  font-weight: 700;
+  color: var(--ink);
+}
+
+.section p + p {
+  margin-top: 14px;
+}
+
+.bullet {
+  position: relative;
+  padding-left: 44px;
+}
+
+.bullet::before {
+  content: '';
+  position: absolute;
+  left: 8px;
+  top: 0.72em;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: var(--primary);
+}
+
+.actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 40px;
+  padding: 50px 120px 90px;
+  border-top: 4px solid var(--line);
+}
+
+.close,
+.agree {
+  height: 178px;
+  border: 0;
+  border-radius: 42.9px;
+  font-size: 64px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.close {
+  background: var(--beige);
+  color: var(--ink);
+}
+
+.agree {
+  background: var(--primary);
+  color: #fff;
+}

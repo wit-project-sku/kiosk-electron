@@ -65,6 +65,18 @@ export interface KioskConfig {
   layout: KioskLayoutId;
   /** Per-machine witteria shop-API id (set in electron-store); optional. */
   shopApiKioskId?: number;
+  /**
+   * Resolved witteria API base (`WITTERIA_API_BASE`, else the prod default), with
+   * no trailing slash — main's `witteriaApiBase()` is the single source.
+   *
+   * DERIVED, never persisted: like `layout`, `KioskConfigStore.get()` recomputes
+   * it every read, so a stale copy in electron-store can't pin a machine to the
+   * wrong host. It rides along here because main owns `process.env` and the
+   * renderer does not, and this config object is already hydrated into the
+   * renderer store on boot. Today its one reader is 제주's AI 손톱 건강분석,
+   * the only screen that calls our API from the renderer instead of over IPC.
+   */
+  apiBase: string;
 }
 
 /** Theme tokens loaded from local JSON — mapped to CSS custom properties. */
@@ -150,6 +162,10 @@ export type KioskScreenId =
   // `rest_info` overload — those exist only because those kiosks' CMS rows
   // happened to share a slot, and the alias makes every later reader guess.
   | 'rentcar'      // 렌트카 (간편 예약) — 제주공항 W006 only
+  // AI 손톱 건강분석 (FillMe). Not a grid tile: it is the bottom-row JEJU ISLAND
+  // button on the 제주 home, which used to open the AR 한복 outfit picker.
+  // See layouts/jeju/fillme/JejuFillme.tsx.
+  | 'fillme'
   | 'tamnao'       // 탐나오 (제주공공플랫폼)
   | 'localpay'     // 지역화폐 (탐나는전)
   // 제주국제여객터미널 (W007) — the one home tile W006 does not have. It takes

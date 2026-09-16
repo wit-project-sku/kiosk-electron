@@ -11,6 +11,7 @@
 import { app, session, shell, type WebContents } from 'electron';
 import { is } from '@electron-toolkit/utils';
 import { createLogger } from './logger';
+import { witteriaApiOrigin } from './apiBase';
 
 const log = createLogger('security');
 
@@ -34,6 +35,24 @@ const log = createLogger('security');
  * install-directory folders on its own allowlist — see `appResourceProtocol.ts`
  * for why it is a separate scheme from `media:` rather than a reuse of it.
  *
+ * The two `https://` origins in `connect-src` are 제주's AI 손톱 건강분석
+ * (`layouts/jeju/fillme`) — the ONE screen whose renderer talks to the network
+ * directly instead of going through main over IPC:
+ *   · `admin-v2.fillme.co.kr` — FillMe's own analysis API. A third party's
+ *     server, not ours, with no stage twin, so it is a constant on both sides
+ *     (see that feature's config.ts).
+ *   · the witteria API base — admin-be `domain/fillme`, which takes the result
+ *     image and hands back the phone link the result QR encodes. Computed from
+ *     `WITTERIA_API_BASE` rather than written out, so pointing a kiosk at stage
+ *     stays a one-line .env change: the CSP follows the same value the renderer
+ *     was handed (KioskConfig.apiBase). Writing the hosts out by hand here was
+ *     a trap — the two could drift, and a CSP block surfaces only as the
+ *     screen's generic "인터넷 연결이 원활하지 않아요".
+ * They are in the renderer rather than main because the flow is a browser one
+ * end to end: two `getUserMedia` frames captured in the renderer, drawn to
+ * canvas and sent as multipart — relaying those blobs through IPC would buy
+ * nothing and copy several MB per shot.
+ *
  * `'wasm-unsafe-eval'` is what actually lets that runtime COMPILE. A script-src
  * with neither it nor `'unsafe-eval'` refuses `WebAssembly.instantiate()`
  * outright, and the failure is doubly misleading: MediaPipe feature-detects SIMD
@@ -43,22 +62,28 @@ const log = createLogger('security');
  * permits WebAssembly only, and does NOT re-enable `eval()` or `new Function()`
  * for JavaScript, which `'unsafe-eval'` would.
  */
-const PRODUCTION_CSP =
+/** FillMe's analysis host — a fixed third-party origin, see the note above. */
+const FILLME_API_ORIGIN = 'https://admin-v2.fillme.co.kr';
+
+const productionCsp = (): string =>
   "default-src 'self'; img-src 'self' https: media: appres: data: blob:; " +
   "media-src 'self' https: media: blob:; " +
   "style-src 'self' 'unsafe-inline'; " +
   "script-src 'self' appres: 'wasm-unsafe-eval'; " +
-  "connect-src 'self' appres:";
+  `connect-src 'self' appres: ${FILLME_API_ORIGIN} ${witteriaApiOrigin()}`;
 
 let cspApplied = false;
 function applyProductionCsp(contents: WebContents): void {
   if (is.dev || cspApplied) return;
   cspApplied = true; // defaultSession is shared across windows — register once.
+  // Built once, not per response: the env cannot change while the app runs.
+  const csp = productionCsp();
+  log.info('Applying production CSP', { connectSrc: `${FILLME_API_ORIGIN} ${witteriaApiOrigin()}` });
   contents.session.webRequest.onHeadersReceived((details, callback) => {
     callback({
       responseHeaders: {
         ...details.responseHeaders,
-        'Content-Security-Policy': [PRODUCTION_CSP],
+        'Content-Security-Policy': [csp],
       },
     });
   });

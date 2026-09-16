@@ -9,6 +9,7 @@ import Store from 'electron-store';
 import type { KioskConfig } from '@shared/types/kiosk';
 import { DEFAULT_KIOSK_CONFIG } from '@shared/constants';
 import { getKioskLayout } from '@shared/config/kioskLocations';
+import { witteriaApiBase } from './apiBase';
 
 let store: Store<Partial<KioskConfig>> | null = null;
 
@@ -35,7 +36,8 @@ export const kioskConfigStore = {
     const kioskId = (s.get('kioskId') as string | undefined)?.trim() || DEFAULT_KIOSK_CONFIG.kioskId;
     const rawShopId = s.get('shopApiKioskId');
     const shopApiKioskId = Number.isFinite(Number(rawShopId)) ? Number(rawShopId) : undefined;
-    return { kioskId, layout: getKioskLayout(kioskId), shopApiKioskId };
+    // `apiBase` is derived like `layout`, not stored — see KioskConfig.apiBase.
+    return { kioskId, layout: getKioskLayout(kioskId), shopApiKioskId, apiBase: witteriaApiBase() };
   },
 
   update(changes: Partial<KioskConfig>): KioskConfig {
