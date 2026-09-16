@@ -171,32 +171,36 @@
 }
 
 /*
- * ── The 2026-09-15 itinerary plate (`slim`, 7229:100396 on 7058:21462) ──
- * 1678×453, padding 65 / 80 / 51 / 74 as before, but the frame centres a
- * 496 + 51 + 1039 = 1586 row inside a 1592 box that overhangs the padding, so
- * the photo lands at x43 and the column ends 49 from the right edge — the
- * padding below puts them there directly.
+ * ── The itinerary plate (`slim`, 7334:10358 on 7058:21462 · 7334:10178 on
+ * 7058:22277) ──
+ * 1588×416 since the 2026-09-16 redraw put the list on a white sheet: the plate
+ * lost 90 of width and 37 of height, and its photo shrank from 496×319 to
+ * 410×263. The text column is unchanged at 1039.
  *
- * The column is 319 tall like the photo, with its 313-tall stack (name row ·
- * description · address · stats, spread with space-between) at the top; the
- * 6px bottom margin keeps it the photo's height so both centre on the same line.
- * Every height is a min-height, so a wrapped line still grows the plate.
+ * The frame's own padding (65 / 80 / 51 / 74) no longer adds up inside the
+ * narrower plate — 410 + 51 + 1039 = 1500 leaves 88 — so the row is CENTRED
+ * instead: 44 either side, and 48 above and below the 319-tall column. That is
+ * what the frame draws; the numbers on its auto-layout are the old ones it kept.
+ *
+ * The column stays 319 tall with its 313-tall stack (name row · description ·
+ * address · stats, spread with space-between); it is now TALLER than the photo,
+ * and both centre on the plate's middle line. Every height is a min-height, so a
+ * wrapped line still grows the plate.
  */
 .spotSlim {
-  min-height: 453px;
-  padding-left: 43px;
-  padding-right: 49px;
+  min-height: 416px;
+  padding: 48px 44px;
 }
 
 .spotSlim .spotImg {
-  width: 496px;
-  height: 319px;
+  width: 410px;
+  height: 263px;
 }
 
 .spotSlim .spotBody {
   width: 1039px;
   min-height: 313px;
-  margin: 0 0 6px;
+  margin: 0;
   justify-content: space-between;
   gap: 12px;
 }

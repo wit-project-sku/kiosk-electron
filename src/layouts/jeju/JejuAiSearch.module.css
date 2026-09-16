@@ -3,16 +3,17 @@
  * 6289:54956 (the same screen with 2명 · 3박 이상 · 자동차 and three 즐길 거리
  * tiles picked), the 2026-08-24 redesign of 6050:142613.
  *
- * 선택영역 starts at y699 and stacks 5 blocks with a 50px gap (Figma 7229:100741
+ * 선택영역 starts at y822 and stacks 5 blocks with a 50px gap (Figma 7229:100741
  * closed it from 100). Each of the first three blocks is [label 76 · gap 60 ·
  * chip row 193] = 329 tall; 즐길 거리 gained the day tabs (101) between its heading
  * and its grid, 60 either side:
  *
- *   699  방문 인원 label      835  chips
- *   1078 체류 기간 label     1214  chips
- *   1457 이동수단 label      1593  chips
- *   1836 즐길 거리 label     1972  day tabs (h101)    2133  grid (5 rows, step 244, each h215)
- *   3374 CTA (h178)                        → content ends at y3552
+ *   700  hours note (7334:10548, .pickNote — what pushed everything below it down 123)
+ *   822  방문 인원 label      958  chips
+ *   1201 체류 기간 label     1337  chips
+ *   1580 이동수단 label      1716  chips
+ *   1959 즐길 거리 label     2095  day tabs (h101)    2256  grid (5 rows, step 244, each h215)
+ *   3497 CTA (h178)                        → content ends at y3675
  *
  * The plate treatment below dates from the 2026-08-24 redesign (6289:54958). What changed is the plate treatment: chips and tiles lost their
  * #e8e8e8 hairline AND their drop shadow, and SELECTED now means a solid #FF7F0F
@@ -120,11 +121,13 @@
   font-weight: 700;
 }
 
-/* ── 즐길 거리 grid: 5 rows × 6 columns of 268×215 ── */
+/* ── 즐길 거리 grid: 5 rows × 6 columns of 268×215 ──
+   `top` is set inline from GRID_TOP / GRID_TOP_LOW; the value here is the
+   standard frame's, so the rule reads the same as the map above. */
 .grid {
   position: absolute;
   left: 0;
-  top: 2122px;
+  top: 2256px;
   width: 1820px;
   height: 1191px;
 }
@@ -366,11 +369,14 @@
   }
 }
 
-/* ── CTA ── */
+/* ── CTA ──
+   3497 since 7229:100741's 2026-09-16 revision: the questions all moved down by
+   the 123 the hours note took at y700 (see Y in the component), so the plate
+   still sits 50 under the 즐길 거리 grid and ends at 3675, inside the artboard. */
 .cta {
   position: absolute;
   left: 0;
-  top: 3374px;
+  top: 3497px;
   width: 1820px;
   height: 178.034px;
   padding: 0;
@@ -393,6 +399,12 @@
   cursor: default;
 }
 
+/* ── The orange note (.pickNote) is shared ────────────────────────────────
+ * Two frames draw the same line in the same place: the landing's
+ * "*모든 추천코스는 …" (7088:23517) and the questionnaire's
+ * "*\"13:00\"부터 21:00까지 …" (7334:10548). Same x1108 centre, same y700, same
+ * orange Bold 60 — one rule serves both.
+ */
 /* ── Course picker — the landing (Figma 7088:23517, redraw of 7019:17890) ──
  *
  * What a visitor sees FIRST on '제주' 뭐하지: the 커스텀 코스 card that leads into
@@ -676,8 +688,32 @@
 /* The painted shape is the hit area — see jejuRegionMap.ts. */
 .region {
   cursor: pointer;
-  transition: fill 120ms ease-out;
+  transition: fill 120ms ease-out, opacity 120ms ease-out;
   -webkit-tap-highlight-color: transparent;
+}
+
+/* Two already picked (MAX_REGIONS): the rest dim and stop taking taps, the same
+   "no room left" the 즐길 거리 tiles draw. `pointer-events: none` rather than a
+   guard in the handler, so the shape does not even flash under a finger. */
+.regionOff {
+  opacity: 0.4;
+  cursor: default;
+  pointer-events: none;
+}
+
+/* The "up to two" line, in the 100px the frame leaves between the map's foot
+   (1515) and 방문 인원 (1615). Centred on the map, not the page. */
+.regionNote {
+  position: absolute;
+  left: 0;
+  top: 831px;
+  width: 100%;
+  margin: 0;
+  font-size: 45px;
+  font-weight: 600;
+  line-height: 1;
+  color: var(--kiosk-primary, #ff7f0f);
+  text-align: center;
 }
 
 .regionLabel {

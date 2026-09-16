@@ -64,6 +64,7 @@ import { COURSES } from './JejuAiResult';
 import {
   DEFAULT_REGION,
   HALLASAN,
+  MAX_REGIONS,
   ISLANDS,
   REGION_FILL,
   REGION_FILL_PICKED,
@@ -136,6 +137,34 @@ const FULL_WITH_TIME_LEFT_MIN = 60;
 
 /** Every day after the first starts at 09:00 (the picker's own day start). */
 const DAY_START_MIN = 540;
+/** …and every day ends at 21:00. Only the fallback for the note: once a day has
+ *  answered, the window drawn is the one the picker itself used (day.endMin). */
+const DAY_END_MIN = 1260;
+
+/** 780 → "13:00", the clock the note quotes. */
+const clock = (min: number): string =>
+  `${String(Math.floor(min / 60)).padStart(2, '0')}:${String(Math.round(min) % 60).padStart(2, '0')}`;
+
+/**
+ * The orange note over the questions (Figma 7334:10548) — the slice of the day
+ * the courses are built inside: `*"13:00"부터 21:00까지 이용 가능한 코스를
+ * 추천해드립니다.`
+ *
+ * It follows the DAY IN VIEW rather than stating one fixed window, because the
+ * two differ: DAY 1 runs from the clock as the page opened (09:00 at the
+ * earliest) and every later day from 09:00. The window is what greys the tiles
+ * out, so the sentence has to name the one actually in force.
+ */
+const HOURS_NOTE: Partial<Record<Lang, (from: string, to: string) => string>> = {
+  ko: (f, t) => `*“${f}”부터 ${t}까지 이용 가능한 코스를 추천해드립니다.`,
+  en: (f, t) => `*We recommend courses you can enjoy from “${f}” to ${t}.`,
+  ja: (f, t) => `*「${f}」から${t}まで利用できるコースをおすすめします。`,
+  zh: (f, t) => `*为您推荐“${f}”至${t}期间可游玩的路线。`,
+  vi: (f, t) => `*Chúng tôi gợi ý các lộ trình có thể đi từ “${f}” đến ${t}.`,
+  th: (f, t) => `*เราแนะนำเส้นทางที่เที่ยวได้ตั้งแต่ “${f}” ถึง ${t}`,
+  ru: (f, t) => `*Рекомендуем маршруты, доступные с «${f}» до ${t}.`,
+  id: (f, t) => `*Kami merekomendasikan rute yang bisa dinikmati dari “${f}” hingga ${t}.`,
+};
 
 /** `YYYY-MM-DD` plus `n` calendar days. UTC arithmetic on a date with no time, so no zone can shift it. */
 const addDaysIso = (iso: string, n: number): string => {
@@ -418,15 +447,20 @@ const COLS = 6;
  * Row `top` for each block, in artboard px (see the CSS header comment) —
  * Figma 7229:100741, which closed the gap between blocks from 100 to 50 and put
  * the day tabs between the 즐길 거리 heading and its grid.
+ *
+ * ★ The 2026-09-16 revision of the same frame opens the 선택영역 at 822 rather
+ * than 699: the hours note (7334:10548) now sits at y700, between the subtitle
+ * and the first heading. Every row below it — the CTA included — moved down by
+ * that same 123; the pitches within a block did not change. See HOURS_NOTE.
  */
 const Y = {
-  visitorsLabel: 699,
-  visitorsRow: 835,
-  stayLabel: 1078,
-  stayRow: 1214,
-  transportLabel: 1457,
-  transportRow: 1593,
-  interestsLabel: 1836,
+  visitorsLabel: 822,
+  visitorsRow: 958,
+  stayLabel: 1201,
+  stayRow: 1337,
+  transportLabel: 1580,
+  transportRow: 1716,
+  interestsLabel: 1959,
 } as const;
 
 /**
@@ -470,14 +504,15 @@ const Y_LOW = {
 } as const;
 
 /**
- * Day tabs, then the grid, each 60 under the block above: 1972 / 2133 on the
- * standard frame (measured on 7229:100741's render). ♿ has no frame with the
- * tabs yet, so its step 2 takes the same 60 · 101 · 60 under its own heading
- * (1906): tabs at 2042 — where the grid used to start — and the grid 161 lower.
+ * Day tabs, then the grid, each 60 under the block above: 2095 / 2256 on the
+ * standard frame (measured on 7229:100741's render — 123 lower since the hours
+ * note came in). ♿ has no frame with the tabs yet, so its step 2 takes the same
+ * 60 · 101 · 60 under its own heading (1906): tabs at 2042 — where the grid used
+ * to start — and the grid 161 lower. ♿ does not move: it draws no note.
  */
-const TABS_TOP = 1972;
+const TABS_TOP = 2095;
 const TABS_TOP_LOW = 2042;
-const GRID_TOP = 2133;
+const GRID_TOP = 2256;
 const GRID_TOP_LOW = 2203;
 /** The gauge sits 31 down the 101-tall tab row (Figma 7249:9687). */
 const GAUGE_OFFSET = 31;
@@ -485,7 +520,7 @@ const GAUGE_OFFSET = 31;
 const GRID_ROW_STEP = 244;
 
 /**
- * CTA top: 3374 on the standard frame (CSS). ♿: the grid now ends at 3394, so
+ * CTA top: 3497 on the standard frame (CSS, 123 lower since the hours note). ♿: the grid now ends at 3394, so
  * the CTA sits 50 under it at 3444 (it was 3432) and ends at 3622, clear of the
  * artboard's foot; step 1 uses the same top.
  */
@@ -585,6 +620,23 @@ const PICK_NOTE_BY_KIOSK: Record<string, Partial<Record<Lang, string>>> = {
     ru: '*Все рекомендуемые маршруты составлены от Центра всемирного природного наследия.',
     id: '*Semua rute rekomendasi dibuat dengan Kantor Warisan Alam Dunia sebagai titik awal.',
   },
+};
+
+/**
+ * The hint under the themed map. AUTHORED, and not in any frame: the map takes
+ * two regions since 2026-09-16, and a cap the visitor cannot see is a cap that
+ * reads as a broken tap on the third shape. It states the rule in one line in
+ * the gap the frame leaves between the map (…1515) and 방문 인원 (1615).
+ */
+const REGION_NOTE = {
+  ko: '*지역은 최대 2곳까지 선택할 수 있어요.',
+  en: '*You can pick up to two regions.',
+  ja: '*エリアは最大2か所まで選べます。',
+  zh: '*最多可选择两个区域。',
+  vi: '*Bạn có thể chọn tối đa hai khu vực.',
+  th: '*เลือกพื้นที่ได้สูงสุด 2 แห่ง',
+  ru: '*Можно выбрать не более двух районов.',
+  id: '*Anda dapat memilih maksimal dua wilayah.',
 };
 
 /** This kiosk's note — the airport copy for any id the table does not list. */
@@ -723,7 +775,7 @@ export function JejuAiSearch({ controller }: Props): JSX.Element {
   const setCourse = useAiStore((s) => s.setCourse);
   const setEntry = useAiStore((s) => s.setEntry);
   const setResumeQuestions = useAiStore((s) => s.setResumeQuestions);
-  const setRegion = useAiStore((s) => s.setRegion);
+  const setRegionsPicked = useAiStore((s) => s.setRegions);
   const setPickerPlan = useAiStore((s) => s.setPickerPlan);
   /**
    * What the visitor had answered, when this mount is a return from the course
@@ -760,11 +812,28 @@ export function JejuAiSearch({ controller }: Props): JSX.Element {
     const ai = useAiStore.getState();
     return ai.resumeQuestions && ai.entry === 'theme' ? ai.course : null;
   });
-  /** The region picked on the map. The frame's resting state has 동부 · 성산. */
-  const [region, setRegionPick] = useState<JejuRegionId>(() => {
+  /**
+   * The regions picked on the map, in tap order — one or two (MAX_REGIONS). The
+   * frame's resting state has 동부 · 성산 alone.
+   */
+  const [regions, setRegions] = useState<JejuRegionId[]>(() => {
     const ai = useAiStore.getState();
-    return ai.resumeQuestions && ai.region ? (ai.region as JejuRegionId) : DEFAULT_REGION;
+    return ai.resumeQuestions && ai.regions.length > 0 ? (ai.regions as JejuRegionId[]) : [DEFAULT_REGION];
   });
+  /** The map is full: the two unpicked shapes dim and stop taking taps. */
+  const regionsFull = regions.length >= MAX_REGIONS;
+  /**
+   * Tap on a region. It adds while there is room, and takes a picked one back
+   * out — except the last one: a themed course is always confined to somewhere,
+   * so the map can never be emptied. A tap on a dimmed shape does nothing,
+   * rather than silently dropping a pick the visitor made on purpose.
+   */
+  const toggleRegion = (id: JejuRegionId): void => {
+    setRegions((prev) => {
+      if (prev.includes(id)) return prev.length === 1 ? prev : prev.filter((x) => x !== id);
+      return prev.length >= MAX_REGIONS ? prev : [...prev, id];
+    });
+  };
   // One-shot: consumed as soon as it has chosen the stage above.
   useEffect(() => {
     setResumeQuestions(false);
@@ -952,6 +1021,18 @@ export function JejuAiSearch({ controller }: Props): JSX.Element {
     setDayPicks((prev) => withDay(prev, d, [...(prev[d] ?? []), i]));
   };
 
+  /**
+   * The hours note's window (7334:10548). The day in view's own, as the picker
+   * answered it; before its first answer — and whenever the picker is down —
+   * the same window the query asks for, so the note never contradicts the plan.
+   */
+  const hoursNote = useMemo(() => {
+    const day = plan?.days[0];
+    const from = day ? day.startMin : activeDay === 1 ? Math.max(startMin, DAY_START_MIN) : DAY_START_MIN;
+    const to = day ? day.endMin : DAY_END_MIN;
+    return (HOURS_NOTE[lang as Lang] ?? HOURS_NOTE.ko)!(clock(from), clock(to));
+  }, [plan, activeDay, startMin, lang]);
+
   /** The gauge: how much of the day in view is spent, as a bar and as time. */
   const gauge = useMemo(() => {
     const day = plan?.days[0];
@@ -979,7 +1060,7 @@ export function JejuAiSearch({ controller }: Props): JSX.Element {
         stay: STAY[stay]!.label,
         transport: TRANSPORT[transport]!.label,
       });
-      setRegion(region);
+      setRegionsPicked(regions);
       setEntry('theme');
       setCourse(themeKey);
       controller.navigate('ai_detail', themeTitleKo(themeKey));
@@ -1083,7 +1164,7 @@ export function JejuAiSearch({ controller }: Props): JSX.Element {
    */
   const openTheme = (key: string): void => {
     setThemeKey(key);
-    setRegionPick(DEFAULT_REGION);
+    setRegions([DEFAULT_REGION]);
     setVisitors(1);
     setStay(0);
     setTransport(DEFAULT_TRANSPORT);
@@ -1206,26 +1287,35 @@ export function JejuAiSearch({ controller }: Props): JSX.Element {
           /* ── 지역 — the region map (Figma 7088:24139) ──
              Each region is its own <path>, so a tap lands on the painted shape
              rather than an overlapping box. 한라산, the islets and the labels sit
-             on top with pointer events off, so they never swallow a tap. */
+             on top with pointer events off, so they never swallow a tap.
+
+             Up to TWO regions (MAX_REGIONS, 2026-09-16), so each shape is a
+             checkbox rather than a radio: with two held, the other two dim and
+             stop taking taps until one is given back. */
           <div className={styles.regionMap}>
             <svg
               viewBox={`0 0 ${REGION_MAP_SIZE.width} ${REGION_MAP_SIZE.height}`}
-              role="radiogroup"
+              role="group"
               aria-label="지역"
             >
-              {REGIONS.map((r) => (
-                <path
-                  key={r.id}
-                  className={styles.region}
-                  d={r.d}
-                  transform={`translate(${r.x} ${r.y})`}
-                  fill={region === r.id ? REGION_FILL_PICKED : REGION_FILL}
-                  role="radio"
-                  aria-checked={region === r.id}
-                  aria-label={pick(r.label, lang)}
-                  onClick={() => setRegionPick(r.id)}
-                />
-              ))}
+              {REGIONS.map((r) => {
+                const picked = regions.includes(r.id);
+                const off = !picked && regionsFull;
+                return (
+                  <path
+                    key={r.id}
+                    className={off ? `${styles.region} ${styles.regionOff}` : styles.region}
+                    d={r.d}
+                    transform={`translate(${r.x} ${r.y})`}
+                    fill={picked ? REGION_FILL_PICKED : REGION_FILL}
+                    role="checkbox"
+                    aria-checked={picked}
+                    aria-disabled={off}
+                    aria-label={pick(r.label, lang)}
+                    onClick={() => toggleRegion(r.id)}
+                  />
+                );
+              })}
               {ISLANDS.map((isle, i) => (
                 <path
                   key={i}
@@ -1246,8 +1336,16 @@ export function JejuAiSearch({ controller }: Props): JSX.Element {
                 {pick(r.label, lang)}
               </p>
             ))}
+            <p className={styles.regionNote}>{pick(REGION_NOTE, lang)}</p>
           </div>
         )}
+
+        {/* ── The hours note (7334:10548) ──
+            Sits at y700 between the subtitle and 방문 인원, in the same orange
+            Bold 60 as the landing's note (.pickNote). The themed questionnaire's
+            frame does not draw it, and ♿ has no band for it: its step 1 starts
+            at 1906, under a hero that owns everything above. */}
+        {!themeKey && !lowReach && <p className={styles.pickNote}>{hoursNote}</p>}
 
         {showChips && (
           <>

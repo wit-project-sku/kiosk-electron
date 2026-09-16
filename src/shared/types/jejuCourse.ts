@@ -62,8 +62,17 @@ export interface JejuCourseRecommendQuery {
   /**
    * The 권역 picked on the themed map. Omitted, the course may range over the
    * whole island. With it, `transport` means getting around INSIDE the region.
+   *
+   * Always the FIRST of `regions`, so a server that only knows this field still
+   * gets a course confined to somewhere the visitor picked.
    */
   region?: JejuRegion;
+  /**
+   * Every 권역 picked, in tap order — the map takes two since 2026-09-16. Sent
+   * only when there are two of them, so a single-region request is exactly the
+   * one this kiosk has always made.
+   */
+  regions?: JejuRegion[];
   transport: JejuTransport;
   /** Group size. The server drops venues that cannot take this many. */
   party: number;

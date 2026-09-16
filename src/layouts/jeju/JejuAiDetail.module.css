@@ -25,6 +25,17 @@
  *
  *   1295 scrollable spot list (all stops for the day)   rail inside list
  *
+ * ── The 2026-09-16 redraw (7058:21462), 커스텀 코스 ONLY ───────────
+ * The itinerary moved onto a white sheet and the day pager became a tab row.
+ * The themed detail (7128:72710 / 7058:22277) keeps every coordinate above; on
+ * this route they read:
+ *    959 answer pills, now the full 1820 column (were 1134 on the card column)
+ *   1139 날짜 네비게이션 — DAY 1/2/3 tabs (7334:10348), h120
+ *   1259 the sheet (7334:10355), white to y3840, top-right corner rounded
+ *   1353 the start-point plate (7334:10533), 1714 wide — fixed, and discless
+ *   1583 the list: discs x212, cards 1588 at x364 (1353 on a day with no plate)
+ * No 전체보기 / 선택보기 and no ← → here: the frame has neither.
+ *
  * WHAT THE RE-STACK CHANGED against 6516:73138: the course DESCRIPTION that sat
  * at y786 is GONE from the frame — the hashtag line runs straight into the
  * summary bar — and every row below the hashtags rose by exactly 140 to close
@@ -162,100 +173,94 @@
   background: #fff;
 }
 
-/*
- * ★ `pointer-events: none` is load-bearing, not tidiness. This label is a
- * FULL-WIDTH absolutely-positioned box (0…2160 at y1436…1504) painted after the
- * ← button (x866…951 at y1427…1512), so it covered it and swallowed every tap:
- * the back arrow was dead on every course, while → kept working purely because
- * it is drawn after the label. The label is never interactive, so it stops
- * taking hits at all rather than being pushed around with z-index.
- */
-.day {
+/* ── 날짜 네비게이션 (7334:10348) — the 커스텀 코스's day switch ──
+   A 1820×120 row of tabs at y1139, one per day, each taking an equal share of
+   the column. The day in view is a white tab with the 40px top corners, level
+   with the sheet at 1259 and one pixel into it, so the two read as one surface;
+   the rest are transparent with the sheet's own grey label.
+
+   It replaces the ← → pager on this route: the frame draws every day at once,
+   which on a 3-day course is one tap to any day rather than two. The themed
+   detail (7128:72710) still pages — its own frame is unchanged. */
+.dayTabs {
   position: absolute;
-  pointer-events: none;
-  left: 0;
-  top: 969px;
-  width: 2160px;
-  margin: 0;
-  font-size: 68px;
-  font-weight: 700;
-  line-height: 1;
-  color: #616161;
-  text-align: center;
-}
-
-/* ── Day swiper: 85×85 round chevron buttons either side of the DAY label ── */
-.dayArrow {
-  position: absolute;
-  top: 960px;
-  width: 85px;
-  height: 85px;
-  padding: 0;
-  border: none;
-  background: none;
-  cursor: pointer;
-  -webkit-tap-highlight-color: transparent;
-}
-
-.dayArrow:disabled {
-  cursor: default;
-}
-
-.dayPrev { left: 866px; }
-.dayNext { left: 1209px; }
-
-/* ── 전체보기 / 선택보기 (6858:69231 · 6858:69233) ────────────────────────
-   268×120 white pills at x1418 / x1720, to the right of the day pager.
-
-   전체보기 is the whole scheduled day; 선택보기 keeps only the stops whose
-   category is one the visitor actually picked on 즐길 거리. The itinerary is
-   NOT all picks — both the recommender and the offline fallback top the day up
-   with whatever fits the time budget — so without this the page shows places
-   the visitor never asked for and has no way to hide them.
-
-   The frame draws BOTH pills grey because it only ever shows one state. The
-   picked one takes the kiosk's own selected look — the orange plate with white
-   text that JejuAiSearch's .chipSelected and .tileSelected use one screen
-   earlier — because a text-only recolour on a 45px label reads as no change at
-   all at kiosk viewing distance. */
-.scopeBtn {
-  position: absolute;
-  top: 943px;
-  width: 268px;
+  left: 170px;
+  top: 1139px;
+  width: 1820px;
   height: 120px;
+  display: flex;
+  align-items: flex-end;
+}
+
+.dayTab {
+  flex: 1 1 0;
+  height: 119px;
   padding: 0;
   border: none;
-  border-radius: 45px;
-  background: #fff;
-  font-size: 45px;
+  border-radius: 40px 40px 0 0;
+  background: none;
+  font-size: 50px;
   font-weight: 700;
   line-height: 1;
   color: #999;
   text-align: center;
-  /* A long label (ru Только выбранное) wraps to two 45px lines inside the fixed
-     268×120 pill — every word fits, the longest measuring 260 — and a word
-     wider than the pill would split rather than spill. */
-  word-break: keep-all;
-  overflow-wrap: anywhere;
   cursor: pointer;
   -webkit-tap-highlight-color: transparent;
 }
 
-.scopeAll { left: 1418px; }
-.scopeDay { left: 1720px; }
-
-.scopeBtnOn {
-  background: var(--kiosk-primary, #ff7f0f);
-  color: #fff;
+.dayTabOn {
+  background: #fff;
+  color: var(--kiosk-primary, #ff7f0f);
 }
 
-/* ── Refresh (7181:18180, 추천코스 detail only) ─────────────────────────
-   A 120×120 white plate at (167, 942), r45, level with 전체보기 / 선택보기, with
-   the frame's 96px refresh-cw glyph centred in it. */
+.dayTabsLow { top: calc(1139px + 113px); }
+
+/* 7333:9575 — the 추천코스 carries no answer pills, so its whole stack sits
+   164 higher than the 커스텀 코스's: 975 tabs · 1095 sheet · 1189 plate · 1419 list. */
+.dayTabsTheme { top: 975px; }
+.dayTabsThemeLow { top: calc(975px + 113px); }
+
+/* ── The itinerary's sheet (7334:10355) ──
+   White from under the tabs to the foot of the artboard. Only the top-RIGHT
+   corner is rounded: the left one belongs to whichever tab is open, which is
+   how the frame draws it. Inert — nothing on the plate itself is tappable, and
+   the list above it must keep every tap. */
+.sheet {
+  position: absolute;
+  left: 170px;
+  top: 1259px;
+  width: 1820px;
+  height: calc(3840px - 1259px);
+  border-top-right-radius: 40px;
+  background: #fff;
+  pointer-events: none;
+}
+
+.sheetLow {
+  top: calc(1259px + 113px);
+  height: calc(3840px - 1259px - 113px);
+}
+
+/* 7334:9870 — the 추천코스's sheet, from under its own tab row. */
+.sheetTheme {
+  top: 1095px;
+  height: calc(3840px - 1095px);
+}
+
+.sheetThemeLow {
+  top: calc(1095px + 113px);
+  height: calc(3840px - 1095px - 113px);
+}
+
+/* ── Refresh (7229:100960, 추천코스 detail only) ──────────────────
+   A 120×120 white plate, r45, with the frame's 96px refresh-cw glyph centred
+   in it. At (170, 593) since the 2026-09-16 redraw — level with the hashtag
+   line, on the column's left edge: the row it used to share with
+   전체보기 / 선택보기 at 942 is the tab row's band now. */
 .refreshBtn {
   position: absolute;
-  left: 167px;
-  top: 942px;
+  left: 170px;
+  top: 593px;
   width: 120px;
   height: 120px;
   padding: 0;
@@ -280,13 +285,7 @@
   flex: none;
 }
 
-.refreshLow { top: calc(942px + 113px); }
-
-.dayArrowIcon {
-  display: block;
-  width: 100%;
-  height: 100%;
-}
+.refreshLow { top: calc(593px + 113px); }
 
 /* ── Timeline rail: dashed line through the numbered stops (inside .list).
    The frame's Line 105: 5px, solid #FF7F0F, 20 on / 20 off, at x222…227
@@ -334,15 +333,14 @@
 }
 
 /*
- * Row = [disc 105][gap 35][card 1678] = 1818, which is the design's own gutter:
- * the disc sits at x170 and the card at x310. Centred on the card, which is
- * where the design draws it.
+ * Row = [disc 105][gap 47][card 1588] = 1740, which is the sheet's own gutter:
+ * the disc sits at x212 and the card at x364, 38 inside the sheet's right edge.
  */
 .stopRow {
   flex: none;
   display: flex;
   align-items: center;
-  gap: 35px;
+  gap: 47px;
 }
 
 /* Positioned + z-index so the disc paints OVER the rail (an absolutely placed
@@ -362,62 +360,16 @@
   text-align: center;
 }
 
-/*
- * ── 커스텀 코스, DAY 1: disc 1 on the 즐길 거리 row (7058:21462) ────────
- * The row is 1134…1264, so its centre line is y1199; the disc is centred on it
- * at the rail's x (170, like every disc). Declared after .stop so `position`
- * here wins. The stub is the rail from that disc down to the list's top edge
- * (1199 → 1295), on the same x222 axis and the same 20/20 dash.
- */
-.stopFixed {
-  position: absolute;
-  left: 170px;
-  top: 1146.5px;
-  z-index: 2;
-}
-
-.stopFixedLow { top: calc(1146.5px + 113px); }
-
-.railStub {
-  position: absolute;
-  left: 222px;
-  top: 1199px;
-  width: 5px;
-  height: 96px;
-  background: repeating-linear-gradient(
-    to bottom,
-    var(--kiosk-primary, #ff7f0f) 0 20px,
-    transparent 20px 40px
-  );
-  pointer-events: none;
-}
-
-.railStubLow { top: calc(1199px + 113px); }
-
-/* The list's rail picking up where the 96px stub left off: 96 is 16px into a
-   40px dash period, so the pattern is shifted to match and the dashes run on
-   unbroken across the list's top edge. */
-.railContinued {
-  background-position: 0 -16px;
-}
-
-/* Where the start row's disc would be when disc 1 sits on the 즐길 거리 row. */
-.stopSpacer {
-  flex: none;
-  width: 105px;
-  height: 105px;
-}
-
 /* ── Spot list — all stops for the day, scrollable ──
-   The rows still start at x170 (disc) / x310 (card); the box itself starts 40
-   further left with a 40px pad, because it scrolls and so clips at its own
-   edge — and the travel pills centred on the x222.5 rail reach left of x170. */
+   Inset to the sheet: rows start at x212 (disc) / x364 (card), and the box
+   itself starts 40 further left with a 40px pad, because it scrolls and so clips
+   at its own edge — the travel pills centred on the x266.5 rail reach left of
+   the discs. Only `top` / `max-height` vary, per route and per day; see the four
+   .listCustom* / .listTheme* rules at the foot. */
 .list {
   position: absolute;
-  left: 130px;
-  top: 1295px;
-  width: 1858px;
-  max-height: calc(3840px - 1295px);
+  left: 172px;
+  width: 1780px;
   display: flex;
   flex-direction: column;
   gap: 50px;
@@ -435,24 +387,17 @@
   height: 0;
 }
 
-/* The spot card itself (the 515px white plate) moved to
-   JejuCourseSpotCard.module.css when the 2026-08-26 pass put the same card
-   under the spot detail too. Only the list geometry above is still here.
-
-   One override for the FULL plate in this list: the frame centres its
-   620 + 51 + 875 = 1546 row inside the plate, which puts the photo at x63 and
-   the text column at x734…1609 (the 1:1 render of 7128:72734) — the card's
-   own 74 / 80 padding would squeeze the column to 853 and start it at 745.
-   Two classes, so it wins over the card's `.spot` whatever order the two
-   stylesheets load in. */
-/* ── Start-point row (7181:18213) ──
-   DAY 1's first row: a 1678×172 white plate, r40, the place's name centred in
-   Pretendard Bold 50 black. min-height so a long localized name wraps and
-   grows the plate instead of running out of it; the rail re-measures it. */
+/* The spot card itself (the white plate) lives in
+   JejuCourseSpotCard.module.css — the 2026-08-26 pass put the same card under
+   the spot detail too, and the `slim` variant there is this list's 1588×416
+   plate. Only the list geometry above is still here. */
+/* ── Start-point plate, type and plate treatment (7334:9874) ──
+   Where DAY 1 sets off: a 172-tall white plate, r40, the place's name centred in
+   Pretendard Bold 50 black. min-height so a long localized name wraps and grows
+   the plate instead of running out of it. The width comes from .startPlate. */
 .startCard {
   flex: none;
   box-sizing: border-box;
-  width: 1678px;
   min-height: 172px;
   padding: 30px 60px;
   border-radius: 40px;
@@ -469,6 +414,24 @@
   overflow-wrap: anywhere;
 }
 
+/* ── Start-point plate (7334:10533) ──
+   The same card, lifted out of the list on the 커스텀 코스: a 1714-wide plate
+   centred on the sheet at y1353, with the frame's soft drop so it reads against
+   the white under it. It carries no disc — the day's first stop is disc 1. */
+.startPlate {
+  position: absolute;
+  left: 223px;
+  top: 1353px;
+  width: 1714px;
+  box-shadow: 5px 10px 5px rgba(0, 0, 0, 0.1);
+}
+
+.startPlateLow { top: calc(1353px + 113px); }
+
+/* 7334:9873 — the same plate on the 추천코스's sheet. */
+.startPlateTheme { top: 1189px; }
+.startPlateThemeLow { top: calc(1189px + 113px); }
+
 .stopRow > .listCard {
   padding-left: 63px;
   padding-right: 69px;
@@ -478,9 +441,9 @@
 /* ── Empty state ── */
 .empty {
   position: absolute;
-  left: 310px;
-  top: 1420px;
-  width: 1678px;
+  left: 364px;
+  top: 1700px;
+  width: 1588px;
   margin: 0;
   font-size: 55px;
   font-weight: 500;
@@ -497,13 +460,13 @@
    sizes, so neither borrows the other's). */
 .picks {
   position: absolute;
-  /* 7038:18453: under the DAY row, on the card column (x310, 1678 wide), and
-     left-aligned. The frame clips the row at the column edge; it scrolls here
-     instead, so a clipped last pill is still reachable by a swipe — at rest it
-     looks exactly like the frame. */
-  left: 310px;
-  top: 1134px;
-  width: 1678px;
+  /* 7058:21462: over the DAY tabs, on the full 1820 column, left-aligned. The
+     frame clips the row at the column edge; it scrolls here instead, so a
+     clipped last pill is still reachable by a swipe — at rest it looks exactly
+     like the frame. */
+  left: 170px;
+  top: 959px;
+  width: 1820px;
   height: 130px;
   display: flex;
   align-items: center;
@@ -562,26 +525,57 @@
 .qrLow { top: calc(554px + 113px); }
 .tagsLow { top: calc(667px + 113px); }
 .summaryLow { top: calc(769px + 113px); }
-.picksLow { top: calc(1134px + 113px); }
-.scopeLow { top: calc(943px + 113px); }
-.dayLow { top: calc(969px + 113px); }
-.dayArrowLow { top: calc(960px + 113px); }
+.picksLow { top: calc(959px + 113px); }
 
-.listLow {
-  top: calc(1295px + 113px);
-  max-height: calc(3840px - 1295px - 113px);
+
+/* ── 커스텀 코스 (7058:21462): under the start plate at 1583, or in its
+   place at 1353 on a day that has none (only DAY 1 sets off from the kiosk;
+   every later day starts from the previous day's last stop). ─────────── */
+.listCustom {
+  top: 1583px;
+  max-height: calc(3840px - 1583px);
 }
 
-/* ── Themed course (Figma 7058:22277) ────────────────────────────────────
-   No 전체보기 / 선택보기 and no answer pills on a themed course, so the list
-   rises into the band they leave: its first card at 1139, the frame's own y.
-   Declared last so it wins over .list / .listLow at equal specificity. */
+.listCustomLow {
+  top: calc(1583px + 113px);
+  max-height: calc(3840px - 1583px - 113px);
+}
+
+.listCustomTop {
+  top: 1353px;
+  max-height: calc(3840px - 1353px);
+}
+
+.listCustomTopLow {
+  top: calc(1353px + 113px);
+  max-height: calc(3840px - 1353px - 113px);
+}
+
+/* ── 추천코스 (7058:22277) ─────────────────────────────────
+   The same sheet as the 커스텀 코스, 164 higher: nothing sits between this
+   frame's summary bar and its tabs. Declared last so these tops win over
+   .listCustom at equal specificity. */
 .listTheme {
-  top: 1139px;
-  max-height: calc(3840px - 1139px);
+  top: 1419px;
+  max-height: calc(3840px - 1419px);
 }
 
 .listThemeLow {
-  top: calc(1139px + 113px);
-  max-height: calc(3840px - 1139px - 113px);
+  top: calc(1419px + 113px);
+  max-height: calc(3840px - 1419px - 113px);
+}
+
+.listThemeTop {
+  top: 1189px;
+  max-height: calc(3840px - 1189px);
+}
+
+.listThemeTopLow {
+  top: calc(1189px + 113px);
+  max-height: calc(3840px - 1189px - 113px);
+}
+
+/* The empty line on the 추천코스's sheet. */
+.emptyTheme {
+  top: 1536px;
 }

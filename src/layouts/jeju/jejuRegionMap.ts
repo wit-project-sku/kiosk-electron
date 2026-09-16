@@ -28,6 +28,13 @@ export const REGION_MAP_SIZE = { width: 1484, height: 816 } as const;
 export const REGION_FILL = '#C6D868';
 export const REGION_FILL_PICKED = '#B5DB99';
 
+/**
+ * How many the map takes. Two, since 2026-09-16 — a visitor who wants 동부 and
+ * 서귀포 can say so; the third tap does nothing and the unpicked shapes dim (see
+ * `.regionFull`), which is the same "no room left" the 즐길 거리 tiles draw.
+ */
+export const MAX_REGIONS = 2;
+
 /** The region the frame's resting state draws picked — see JejuAiSearch. */
 export const DEFAULT_REGION: JejuRegionId = 'east-seongsan';
 

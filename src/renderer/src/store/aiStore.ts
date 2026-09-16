@@ -40,12 +40,14 @@ interface AiState {
   resumeQuestions: boolean;
   setResumeQuestions: (resume: boolean) => void;
   /**
-   * The 지역 picked on the themed questionnaire's map (Figma 7088:24139), as a
-   * JejuRegionId. Sent to /recommend as the API's 권역 on themed courses only —
-   * see `regionCode` in lib/jejuCourse.
+   * The 지역 picked on the themed questionnaire's map (Figma 7088:24139), as
+   * JejuRegionIds — one or two of them, in tap order (2026-09-16: the map takes
+   * up to two). Sent to /recommend as the API's 권역 on themed courses only, and
+   * the API takes exactly ONE, so the first is the one that travels — see
+   * `regionCode` in lib/jejuCourse and the request in JejuAiDetail.
    */
-  region: string;
-  setRegion: (region: string) => void;
+  regions: string[];
+  setRegions: (regions: string[]) => void;
   /**
    * The 커스텀 코스 plan the picker built on the questionnaire
    * (`POST /api/jeju/courses/picker`), as it stood when 코스 추천받기 was
@@ -72,8 +74,8 @@ export const useAiStore = create<AiState>((set) => ({
   setEntry: (entry) => set({ entry }),
   resumeQuestions: false,
   setResumeQuestions: (resumeQuestions) => set({ resumeQuestions }),
-  region: '',
-  setRegion: (region) => set({ region }),
+  regions: [],
+  setRegions: (regions) => set({ regions }),
   pickerPlan: null,
   setPickerPlan: (pickerPlan) => set({ pickerPlan }),
 }));
