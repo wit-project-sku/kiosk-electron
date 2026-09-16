@@ -221,19 +221,39 @@
 .dayTabsThemeLow { top: calc(975px + 113px); }
 
 /* ── The itinerary's sheet (7334:10355) ──
-   White from under the tabs to the foot of the artboard. Only the top-RIGHT
-   corner is rounded: the left one belongs to whichever tab is open, which is
-   how the frame draws it. Inert — nothing on the plate itself is tappable, and
-   the list above it must keep every tap. */
+   White from under the tabs to the foot of the artboard. Inert — nothing on the
+   plate itself is tappable, and the list above it must keep every tap.
+
+   ── The corner under the open tab ──────────────────────────────
+   Both top corners are rounded here, and the one an EDGE tab sits on is squared
+   off by .sheetSquare* below. The frame only ever draws DAY 1 open, which is why
+   it shows a square top-left and a rounded top-right — not a fixed asymmetry but
+   the open tab's own 40px corner standing in for the sheet's.
+
+   It matters at the other end: with the LAST day open, the tab's square foot sat
+   over the sheet's curve and the join read as a step, white over white with the
+   page's orange showing through the notch. The tab carries the rounding on its
+   own side; the sheet gives it up, and the two read as one surface. */
 .sheet {
   position: absolute;
   left: 170px;
   top: 1259px;
   width: 1820px;
   height: calc(3840px - 1259px);
+  border-top-left-radius: 40px;
   border-top-right-radius: 40px;
   background: #fff;
   pointer-events: none;
+}
+
+/* Declared after .sheet so they win at equal specificity. A one-day course
+   opens its only tab across the whole row and takes both. */
+.sheetSquareLeft {
+  border-top-left-radius: 0;
+}
+
+.sheetSquareRight {
+  border-top-right-radius: 0;
 }
 
 .sheetLow {

@@ -1,137 +1,134 @@
+/*
+ * 정보 입력 — Figma 7334:54101 (7212:66381 의 다음 판). 2026-09-16 개편: 이 화면이
+ * 제주 설문(JejuAiSearch)과 같은 판을 쓴다 — 검은 막대 섹션 라벨, 흰 193 입력판,
+ * 860 칩 두 개, 1820 CTA.
+ *
+ * 54101 이 66381 에서 바꾼 것 두 가지: 폼이 1110 → 1089 로 21 올라갔고, 고르지 않은
+ * 성별 칩이 회색 판(흰 글씨)에서 흰 판(주황 글씨)이 되었다 — 이 화면의 다른 판과
+ * 같은 흰색이다.
+ *
+ * y 지도 (2160×3840 아트보드, 헤더 700):
+ *    700  촬영 완료 카드 (7334:54100, 1820×350 r40)
+ *   1089  나이 라벨      1210 입력판 (1820×193)
+ *   1448  키 · 몸무게 라벨 (x170 / x1130)   1584 입력판 두 개 (860×193)
+ *   1837  성별 라벨      1973 칩 두 개 (860×193)
+ *   2266  동의 한 줄 (7334:54219)
+ *   2399  다음으로 (7334:54001, 1820×178 r42.9)
+ *   3267  프로모션 배너 — 본문이 2577 에서 끝나므로 이 화면도 배너를 그린다.
+ *
+ * ── 시안과 다른 곳 ──────────────────────────────────────────────────────
+ *  · 시안은 x172/173/175 로 행마다 1~5px 씩 다르다. 제주의 다른 화면과 같이 170 /
+ *    1820 으로 맞췄다.
+ *  · 임신 여부는 시안에 없다. 분석 요청에 들어가는 값이라 지우지 않고 성별 아래에
+ *    두었고(2247), 그 때만 동의 줄과 CTA 가 그만큼 내려간다(.consentShift/.ctaShift).
+ *  · 촬영한 손 사진 미리보기(360×270 두 장)와 단계 표시(Stepper)는 시안이 그리지
+ *    않는다 — 카드가 그 자리(700…1050)를 쓴다.
+ */
 .root {
   position: absolute;
   inset: 0;
 }
 
-.stepper {
+/* ── 촬영 완료 카드 (7334:54100) ──
+   흰 판 1820×350 r40. 시안의 안쪽은 1677 짜리 한 줄(글 944 + 241 + 주황 버튼
+   492)라 카드 양쪽에 71.5 씩 남는다. 그 71.5 를 패딩으로 주고 글을 늨은 폭을
+   다 쓰게 했다 — 버튼은 시안과 같은 자리에 그대로 있고, 시안이 한 줄로
+   그린 설명문이 944 안에서 감기지 않는다(키오스크의 도플트 폭은 Pretendard
+   보다 넣다). */
+.done {
   position: absolute;
   left: 170px;
-  top: 740px;
+  top: 700px;
   width: 1820px;
-}
-
-/* ── 촬영 완료 카드 y910 ── */
-.shots {
-  position: absolute;
-  left: 170px;
-  top: 910px;
-  width: 1820px;
-  height: 380px;
-  border-radius: 60px;
+  height: 350px;
+  padding: 0 71.5px;
+  box-sizing: border-box;
+  border-radius: 40px;
   background: #fff;
   box-shadow: var(--shadow-card);
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0 60px 0 80px;
+  gap: 60px;
 }
 
-.shotsText {
+.doneText {
+  flex: 1 1 auto;
+  min-width: 0;
   display: flex;
   flex-direction: column;
-  gap: 18px;
+  gap: 21px;
 }
 
-.shotsTitle {
+.doneTitle {
   display: flex;
   align-items: center;
-  gap: 20px;
-  font-size: 68px;
-  font-weight: 800;
-  color: var(--ink);
+  gap: 18px;
+  font-size: 65px;
+  font-weight: 700;
+  line-height: 1.2;
+  color: #000;
 }
 
-.shotsCheck {
-  color: var(--primary);
+.doneSub {
+  font-size: 48px;
+  font-weight: 400;
+  line-height: 1.2;
+  color: #88847f;
+  /* 다른 언어가 오면 한 줄 더 쓰고 카드 안에서 줄바꿈한다. */
+  word-break: keep-all;
 }
 
-.shotsSub {
-  font-size: 46px;
-  font-weight: 500;
-  color: var(--muted);
-}
-
+/* 시안의 주황 알약 492×124 r51.5 (전에는 흰 판에 주황 테두리였다). */
 .retake {
-  margin-top: 16px;
-  align-self: flex-start;
+  flex: 0 0 auto;
+  width: 492px;
+  height: 124px;
+  padding: 0;
+  border: 0;
+  border-radius: 51.5px;
+  background: var(--primary);
+  color: #fff;
+  font-size: 48px;
+  font-weight: 500;
+  line-height: 1;
   display: inline-flex;
   align-items: center;
+  justify-content: center;
   gap: 16px;
-  height: 96px;
-  padding: 0 40px;
-  border: 4px solid var(--primary-line);
-  border-radius: 48px;
-  background: #fff;
-  color: var(--primary);
-  font-size: 46px;
-  font-weight: 700;
   cursor: pointer;
 }
 
-.thumbs {
-  display: flex;
-  gap: 30px;
+.retake:active {
+  transform: scale(0.98);
 }
 
-.thumb {
-  position: relative;
-  margin: 0;
-  width: 360px;
-  height: 270px;
-  border-radius: 36px;
-  overflow: hidden;
-  background: #2f2926;
-}
-
-.thumb img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  display: block;
-}
-
-.thumbEmpty {
-  display: block;
-  width: 100%;
-  height: 100%;
-}
-
-.thumb figcaption {
-  position: absolute;
-  left: 20px;
-  bottom: 20px;
-  padding: 8px 24px;
-  border-radius: 30px;
-  background: rgba(0, 0, 0, 0.55);
-  color: #fff;
-  font-size: 38px;
-  font-weight: 700;
-}
-
-/* ── 입력칸 ── */
-.age {
+/* ── 입력 행 ── */
+.age,
+.sex,
+.pregnant {
   position: absolute;
   left: 170px;
-  top: 1400px;
   width: 1820px;
 }
 
-.height {
-  position: absolute;
-  left: 170px;
-  top: 1770px;
-  width: 890px;
-}
-
+.height,
 .weight {
   position: absolute;
-  left: 1100px;
-  top: 1770px;
-  width: 890px;
+  top: 1448px;
+  width: 860px;
 }
 
+.age { top: 1089px; }
+.height { left: 170px; }
+.weight { left: 1130px; }
+.sex { top: 1837px; }
+/* 시안에 없는 행 — 성별 칩(…2166) 아래 60 */
+.pregnant { top: 2226px; }
+
+/* 라벨 → 입력판 간격: 시안은 나이만 45, 나머지는 60. */
 .input {
-  margin-top: 40px;
+  margin-top: 60px;
   width: 100%;
   height: 193px;
   border: 6px solid transparent;
@@ -143,6 +140,10 @@
   justify-content: space-between;
   padding: 0 64px;
   cursor: pointer;
+}
+
+.inputAge {
+  margin-top: 45px;
 }
 
 .inputFocused {
@@ -157,24 +158,23 @@
 .placeholder {
   display: inline-flex;
   align-items: center;
-  font-size: 78px;
-  font-weight: 700;
+  /* 시안 7334:54088 의 값: Medium 60, gray 07. */
+  font-size: 60px;
+  font-weight: 500;
   font-variant-numeric: tabular-nums;
 }
 
 .value {
-  color: var(--ink);
+  color: #1a1a1a;
 }
 
 .placeholder {
   color: #cfc8c3;
-  font-weight: 500;
-  font-size: 64px;
 }
 
 .caret {
   width: 6px;
-  height: 88px;
+  height: 72px;
   margin-left: 10px;
   background: var(--primary);
   animation: blink 1s steps(1) infinite;
@@ -186,48 +186,131 @@
   }
 }
 
+/* 단위는 판 오른쪽 끝 (7334:54018 "세" · 54073 "cm" · 54075 "kg"). */
 .unit {
-  font-size: 60px;
-  font-weight: 600;
-  color: var(--muted);
+  font-size: 50px;
+  font-weight: 500;
+  color: #999;
 }
 
+/* 범위를 벗어난 값만 알린다. 시안에 없는 줄이라 판 아래에 겹쳐 띄워, 아래 행을
+   밀지 않는다. */
 .error {
-  height: 56px;
-  margin-top: 14px;
-  font-size: 44px;
+  position: absolute;
+  left: 64px;
+  top: 100%;
+  margin-top: 12px;
+  font-size: 40px;
   font-weight: 600;
+  line-height: 1;
   color: var(--danger);
 }
 
-/* ── 성별 y2140 · 임신 y2510 ── */
-.sex {
-  position: absolute;
-  left: 170px;
-  top: 2140px;
-  width: 1820px;
-}
-
-.pregnant {
-  position: absolute;
-  left: 170px;
-  top: 2510px;
-  width: 1820px;
-}
-
+/* ── 성별 · 임신: 860 칩 두 개 ──
+   고르지 않은 칩은 이 화면의 다른 판과 같은 흰 판에 주황 글씨(7334:54788),
+   고른 칩은 주황 판에 흰 Bold. (66381 은 고르지 않은 칩을 회색으로 채웠고,
+   54101 이 그것을 되돌렸다.) */
 .choiceRow {
-  margin-top: 40px;
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 40px;
+  margin-top: 60px;
+  display: flex;
+  justify-content: space-between;
 }
 
 .choice {
-  width: 100%;
+  width: 860px;
+  height: 193px;
+  padding: 0;
+  border: 0;
+  border-radius: 45px;
+  background: #fff;
+  box-shadow: var(--shadow-chip);
+  color: var(--primary);
+  font-size: 60px;
+  font-weight: 500;
+  line-height: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 20px;
+  cursor: pointer;
 }
 
+.choiceOn {
+  background: var(--primary);
+  box-shadow: none;
+  color: #fff;
+  font-weight: 700;
+}
+
+.choice:active {
+  transform: scale(0.98);
+}
+
+/* ── 동의 한 줄 (7334:54219) ──
+   가운데 정렬, Bold 48. 시안은 고르지 않은 상태(#d0d2d3)만 그린다 — 동의하면
+   동그라미가 주황으로 차고 글자가 읽는 색으로 진해진다. */
+.consent {
+  position: absolute;
+  left: 170px;
+  top: 2266px;
+  width: 1820px;
+  height: 88px;
+  padding: 0;
+  border: 0;
+  background: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 20px;
+  font-size: 48px;
+  font-weight: 700;
+  line-height: 1;
+  color: #d0d2d3;
+  text-align: left;
+  cursor: pointer;
+}
+
+.consentBox {
+  flex: 0 0 auto;
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  background: #d0d2d3;
+  color: #fff;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.consentOn {
+  color: #88847f;
+}
+
+.consentOn .consentBox {
+  background: var(--primary);
+}
+
+/* [개인보호정책] — 누르면 방침 전문이 열린다. */
+.policy {
+  flex: 0 0 auto;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+/* ── CTA (7334:54001) ── */
 .cta {
   position: absolute;
   left: 170px;
-  top: 3413px;
+  top: 2399px;
+  /* 시안의 60 (ui.cta 의 64 를 덮는다). */
+  font-size: 60px;
 }
+
+/* 임신 여부가 보일 때: 두 줄이 그 블록(2226…2555) 아래로 내려간다. */
+.consentShift { top: 2634px; }
+.ctaShift { top: 2767px; }

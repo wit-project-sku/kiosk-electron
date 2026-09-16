@@ -1,8 +1,16 @@
+/**
+ * 정보 입력 — Figma 7212:66381. 좌표와 시안과 다른 곳은 스타일시트 머리말 참고.
+ *
+ * ★ 화면 안의 동의 한 줄("서비스 제공을 위해 이용자의 정보 수집을 동의합니다")은
+ *   시안이 이 화면에 새로 넣은 것이고, 다음 화면의 법정 동의 두 가지(개인정보
+ *   수집·이용 / 민감정보 수집·이용)를 대신하지 않는다 — 민감정보는 따로 받아야
+ *   한다. 그래서 이 줄은 '다음으로' 를 여는 문지기이고, 동의 화면은 그대로 있다.
+ *   두 가지를 이 화면으로 합치는 것은 법무 확인이 필요한 별개의 일이다.
+ */
 import type { JSX } from 'react';
 import type { Sex } from './api';
 import { FIELDS, type FieldKey } from './copy';
 import { Icon } from './Icon';
-import { Stepper } from './Stepper';
 import ui from './fillmeUi.module.css';
 import styles from './FillmeInfo.module.css';
 
@@ -14,11 +22,14 @@ export interface InfoValues {
 
 interface Props {
   values: InfoValues;
-  shots: { left: string | null; right: string | null };
   focused: FieldKey | null;
+  /** 화면 안 동의 줄. 체크해야 '다음으로' 가 열린다. */
+  agreed: boolean;
   onFocusField: (key: FieldKey) => void;
   onSex: (sex: Sex) => void;
   onPregnant: (value: boolean) => void;
+  onToggleAgree: () => void;
+  onOpenPolicy: () => void;
   onRetake: () => void;
   onNext: () => void;
 }
@@ -60,7 +71,14 @@ function NumberField({
       <p className={ui.sectionLabel}>{f.label}</p>
       <button
         type="button"
-        className={`${styles.input} ${focused ? styles.inputFocused : ''} ${invalid ? styles.inputInvalid : ''}`}
+        className={[
+          styles.input,
+          field === 'age' ? styles.inputAge : '',
+          focused ? styles.inputFocused : '',
+          invalid ? styles.inputInvalid : '',
+        ]
+          .filter(Boolean)
+          .join(' ')}
         onClick={onFocus}
         aria-label={`${f.label} 입력`}
       >
@@ -70,45 +88,41 @@ function NumberField({
         </span>
         <span className={styles.unit}>{f.unit}</span>
       </button>
-      <p className={styles.error}>{invalid ? `${f.min}~${f.max}${f.unit} 사이로 입력해 주세요` : ''}</p>
+      {invalid && <p className={styles.error}>{`${f.min}~${f.max}${f.unit} 사이로 입력해 주세요`}</p>}
     </div>
   );
 }
 
 export function FillmeInfo({
   values,
-  shots,
   focused,
+  agreed,
   onFocusField,
   onSex,
   onPregnant,
+  onToggleAgree,
+  onOpenPolicy,
   onRetake,
   onNext,
 }: Props): JSX.Element {
+  /* 임신 여부는 시안에 없는 행이다 — 보일 때만 동의 줄과 CTA 가 그만큼 내려간다. */
+  const askPregnant = values.sex === 'female';
+  const ready = infoValid(values) && agreed;
   return (
     <div className={styles.root}>
-      <Stepper className={styles.stepper} active={1} />
-
-      <section className={styles.shots}>
-        <div className={styles.shotsText}>
-          <p className={styles.shotsTitle}>
-            <Icon name="check" size={70} strokeWidth={3} className={styles.shotsCheck} />
+      {/* ── 촬영 완료 카드 (7334:54100) ── */}
+      <section className={styles.done}>
+        <div className={styles.doneText}>
+          <p className={styles.doneTitle}>
+            <Icon name="check" size={56} strokeWidth={3} />
             손톱 촬영이 끝났어요
           </p>
-          <p className={styles.shotsSub}>사진은 동의하기 전까지 키오스크에만 있어요</p>
-          <button type="button" className={styles.retake} onClick={onRetake}>
-            <Icon name="retry" size={52} strokeWidth={2.4} />
-            다시 촬영하기
-          </button>
+          <p className={styles.doneSub}>사진은 동의 전까지 키오스크에서만 가지고 있어요.</p>
         </div>
-        <div className={styles.thumbs}>
-          {(['left', 'right'] as const).map((hand) => (
-            <figure key={hand} className={styles.thumb}>
-              {shots[hand] ? <img src={shots[hand] ?? ''} alt="" /> : <span className={styles.thumbEmpty} />}
-              <figcaption>{hand === 'left' ? '왼손' : '오른손'}</figcaption>
-            </figure>
-          ))}
-        </div>
+        <button type="button" className={styles.retake} onClick={onRetake}>
+          <Icon name="retry" size={44} strokeWidth={2.4} />
+          다시 촬영하기
+        </button>
       </section>
 
       <NumberField
@@ -145,18 +159,18 @@ export function FillmeInfo({
             <button
               key={value}
               type="button"
-              className={`${ui.chip} ${styles.choice} ${values.sex === value ? ui.chipSelected : ''}`}
+              className={values.sex === value ? `${styles.choice} ${styles.choiceOn}` : styles.choice}
               onClick={() => onSex(value)}
               aria-pressed={values.sex === value}
             >
-              <Icon name={value} size={70} strokeWidth={2.4} />
+              <Icon name={value} size={60} strokeWidth={2.4} />
               {label}
             </button>
           ))}
         </div>
       </div>
 
-      {values.sex === 'female' && (
+      {askPregnant && (
         <div className={styles.pregnant}>
           <p className={ui.sectionLabel}>임신 중이거나 임신을 준비하고 있나요?</p>
           <div className={styles.choiceRow}>
@@ -169,7 +183,7 @@ export function FillmeInfo({
               <button
                 key={label}
                 type="button"
-                className={`${ui.chip} ${styles.choice} ${values.pregnant === value ? ui.chipSelected : ''}`}
+                className={values.pregnant === value ? `${styles.choice} ${styles.choiceOn}` : styles.choice}
                 onClick={() => onPregnant(value)}
                 aria-pressed={values.pregnant === value}
               >
@@ -180,8 +194,40 @@ export function FillmeInfo({
         </div>
       )}
 
-      <button type="button" className={`${ui.cta} ${styles.cta}`} disabled={!infoValid(values)} onClick={onNext}>
-        다음
+      {/* ── 동의 한 줄 (7334:54219) ── 방침을 여는 [개인보호정책] 은 줄 전체의 토글을
+          삼키지 않도록 자기 클릭만 멈춘다. */}
+      <button
+        type="button"
+        className={[styles.consent, agreed ? styles.consentOn : '', askPregnant ? styles.consentShift : '']
+          .filter(Boolean)
+          .join(' ')}
+        aria-pressed={agreed}
+        onClick={onToggleAgree}
+      >
+        <span className={styles.consentBox}>
+          <Icon name="check" size={40} strokeWidth={3} />
+        </span>
+        <span
+          className={styles.policy}
+          role="link"
+          tabIndex={0}
+          onClick={(e) => {
+            e.stopPropagation();
+            onOpenPolicy();
+          }}
+        >
+          [개인보호정책]
+        </span>
+        서비스 제공을 위해 이용자의 정보 수집을 동의합니다.
+      </button>
+
+      <button
+        type="button"
+        className={[ui.cta, styles.cta, askPregnant ? styles.ctaShift : ''].filter(Boolean).join(' ')}
+        disabled={!ready}
+        onClick={onNext}
+      >
+        다음으로
       </button>
     </div>
   );

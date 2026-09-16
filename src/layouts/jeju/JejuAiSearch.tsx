@@ -72,6 +72,7 @@ import {
   REGIONS,
   type JejuRegionId,
 } from './jejuRegionMap';
+import { useFitText } from './fitText';
 import { JejuPageFrame } from './JejuPageFrame';
 import styles from './JejuAiSearch.module.css';
 import { belowModeBar, LOW_REACH_BANNER_HEIGHT, LOW_REACH_HERO_HEIGHT } from './lowReach';
@@ -104,10 +105,18 @@ const DAY_TAB: Partial<Record<Lang, (n: number) => string>> = {
 };
 /** Localization_Jeju_v2's day tabs (1일차 … 4일차). A 5th day has no row and keeps DAY_TAB. */
 const DAY_TAB_KEYS = ['1st_day', '2nd_day', '3rd_day', '4th_day'];
+/**
+ * ⚠ KOREAN reads the sheet; every other language takes the table above.
+ * Checked 2026-09-16: 1st_day's en/ja/zh are empty and 2nd_day holds
+ * SubmitButton's copy, so the DAY 2 tab read "Get course recommendations" /
+ * "コースの推薦を受ける" / "获取路线推荐" — a whole sentence in a 232px pill. The
+ * same shift mis-fills Transportation_1…4 (see TRANSPORT_LABEL). Point this at
+ * the sheet again once those rows are corrected.
+ */
 const dayTabLabel = (n: number, lang: Lang): string => {
   const authored = (DAY_TAB[lang] ?? DAY_TAB.ko)!(n);
   const key = DAY_TAB_KEYS[n - 1];
-  return key ? sheetText(key, lang, { [lang]: authored }) : authored;
+  return key && lang === 'ko' ? sheetText(key, lang, { ko: authored }) : authored;
 };
 
 type Template = Partial<Record<Lang, (value: string) => string>>;
@@ -230,6 +239,26 @@ const STAY = [
   // The sheet renamed this chip 3박 이상 → 3박 4일 (the API caps a trip at 4 days).
   { key: 'StayTime_4', label: '3박 4일' },
 ];
+/**
+ * ⚠ Localization_Jeju's Transportation_1…4 rows are MIS-FILLED — checked
+ * 2026-09-16: every non-Korean column holds the DAY names instead, so the row
+ * read "Day 1 · Day 2 · Day 3 · Day 4" (en), "1日目 · 2日目 …" (ja) and so on in
+ * all seven languages, under a heading that says 이동수단. The Korean column is
+ * right, so the sheet is followed for ko and the labels below are drawn for
+ * every other language until the rows are fixed. Same defect in 1st_day…4th_day
+ * (see dayTabLabel) — one block of the sheet is shifted.
+ */
+const TRANSPORT_LABEL: Partial<Record<Lang, readonly string[]>> = {
+  ko: ['도보', '자전거', '대중교통', '자동차'],
+  en: ['Walking', 'Bicycle', 'Public transport', 'Car'],
+  ja: ['徒歩', '自転車', '公共交通', '車'],
+  zh: ['步行', '自行车', '公共交通', '汽车'],
+  vi: ['Đi bộ', 'Xe đạp', 'Phương tiện công cộng', 'Ô tô'],
+  th: ['เดิน', 'จักรยาน', 'ขนส่งสาธารณะ', 'รถยนต์'],
+  ru: ['Пешком', 'Велосипед', 'Общественный транспорт', 'Автомобиль'],
+  id: ['Jalan kaki', 'Sepeda', 'Transportasi umum', 'Mobil'],
+};
+
 const TRANSPORT = [
   { key: 'Transportation_1', label: '도보' },
   { key: 'Transportation_2', label: '자전거' },
@@ -392,6 +421,16 @@ const TILE_ORDER: readonly number[] = [
   18, 19, 20, 21, 22, 23,
   24, 25, 26, 27, 28, 29,
 ];
+
+/**
+ * The sheet leaks its own row NUMBER into a few translated category labels —
+ * "10 ผลิตภัณฑ์พิเศษจากเกาะเชจู", "17. Досуг и развлечения", "28 выставочных
+ * залов · Культурные пространства" (checked 2026-09-16, th/ru/zh mostly). On a
+ * 268px tile that number is both wrong and a wasted line, so a leading index is
+ * dropped: one or two digits, then a separator or a space. A number glued to a
+ * word ("16次骑马体验") is left alone — it cannot be told from real copy.
+ */
+const stripRowIndex = (label: string): string => label.replace(/^\s*\d{1,2}\s*[.)·–-]?\s+/, '');
 
 /** The catalogue category tile `i` matches — the override, else the sheet's ko. */
 const interestCat = (i: number): string =>
@@ -839,6 +878,23 @@ export function JejuAiSearch({ controller }: Props): JSX.Element {
     setResumeQuestions(false);
   }, [setResumeQuestions]);
   const lang = useLanguageStore((s) => s.currentLanguage);
+  /**
+   * ── The other seven languages ────────────────────────────────────────
+   * Every plate on this page is the Figma's Korean size: a 268 chip for "2명",
+   * a 268×215 tile for "해산물·회". The sheet's own copy for the same rows runs
+   * two to four times longer ("Horseback Riding Experience", "Общественный
+   * транспорт"), and at a fixed size it wrapped to four cramped lines, split
+   * words mid-way ("Photograph/y") or simply ran over the plate below.
+   *
+   * So each group shrinks as ONE: `useFitText` drops a single `--fit` on the
+   * group's root until every box in it fits, and the CSS multiplies the frame's
+   * own sizes by it. Two groups, because they are read as two blocks — a chip
+   * row a step smaller than the tiles reads as a design, a single odd chip reads
+   * as a bug. Korean passes `enabled: false` and is left exactly as the frame
+   * draws it, to the pixel.
+   */
+  const chipFitRef = useRef<HTMLDivElement>(null);
+  const gridFitRef = useRef<HTMLDivElement>(null);
   /** Which kiosk this is — the landing note names it as every course's start. */
   const kioskId = useKioskStore((s) => s.config.kioskId);
 
@@ -858,7 +914,7 @@ export function JejuAiSearch({ controller }: Props): JSX.Element {
     const meta = INTERESTS[i];
     if (lang === 'ko' && meta?.ko) return meta.ko;
     const cat = AI_CATEGORIES_JEJU[i];
-    return cat ? aiCatLabel(cat, lang) : (meta?.ko ?? '');
+    return cat ? stripRowIndex(aiCatLabel(cat, lang)) : (meta?.ko ?? '');
   };
 
   /* A fresh entry starts on the resting answers — 2명 (as in the design),
@@ -1172,6 +1228,14 @@ export function JejuAiSearch({ controller }: Props): JSX.Element {
     setStage('questions');
   };
 
+  /* The two fit groups (see chipFitRef). `min` is the floor each may fall to —
+     0.7 of 60 is a 42px chip, 0.55 of the tile's 40 is 22px — and nothing is
+     ever clipped: past the floor the label keeps its full length at that size.
+     The keys re-run the fit when the copy or the row count changes. */
+  const fitOn = lang !== 'ko';
+  useFitText(chipFitRef, styles.chip, fitOn, 0.7, `${lang}|${themeKey ?? ''}|${step}`);
+  useFitText(gridFitRef, styles.tile, fitOn, 0.5, `${lang}|${dayCount}|${activeDay}|${dayStops.length}`);
+
   if (stage === 'pick') {
     const aiArt = jejuIconUrl('ai-course-custom');
     const bigArrow = jejuIconUrl('arrow-course-90');
@@ -1345,10 +1409,14 @@ export function JejuAiSearch({ controller }: Props): JSX.Element {
             Bold 60 as the landing's note (.pickNote). The themed questionnaire's
             frame does not draw it, and ♿ has no band for it: its step 1 starts
             at 1906, under a hero that owns everything above. */}
-        {!themeKey && !lowReach && <p className={styles.pickNote}>{hoursNote}</p>}
+        {!themeKey && !lowReach && (
+          <p className={lang === 'ko' ? styles.pickNote : `${styles.pickNote} ${styles.pickNoteTight}`}>
+            {hoursNote}
+          </p>
+        )}
 
         {showChips && (
-          <>
+          <div ref={chipFitRef}>
         {/* ── 방문 인원 ── */}
         <div className={styles.label} style={{ top: y.visitorsLabel }}>
           <span className={styles.labelBar} />
@@ -1401,11 +1469,14 @@ export function JejuAiSearch({ controller }: Props): JSX.Element {
               className={`${styles.chip} ${transport === i ? styles.chipSelected : ''}`}
               onClick={() => setTransport(i)}
             >
-              {s(item.key, item.label)}
+              {/* Korean follows the sheet; the rest cannot — see TRANSPORT_LABEL. */}
+              {lang === 'ko'
+                ? s(item.key, item.label)
+                : ((TRANSPORT_LABEL[lang as Lang] ?? TRANSPORT_LABEL.ko)![i] ?? item.label)}
             </button>
           ))}
         </div>
-          </>
+          </div>
         )}
 
         {showInterests && (
@@ -1458,7 +1529,13 @@ export function JejuAiSearch({ controller }: Props): JSX.Element {
             <span className={styles.gaugeText}>{gauge.text}</span>
           </div>
         )}
-        <div className={styles.grid} style={{ top: lowReach ? GRID_TOP_LOW : GRID_TOP }}>
+        {/* `lang` so the tiles can hyphenate — see .tileWrap. */}
+        <div
+          ref={gridFitRef}
+          lang={lang}
+          className={styles.grid}
+          style={{ top: lowReach ? GRID_TOP_LOW : GRID_TOP }}
+        >
           {rows.map((row, r) => (
             <div key={r} className={styles.gridRow} style={{ top: r * GRID_ROW_STEP }}>
               {row.map((i) => {

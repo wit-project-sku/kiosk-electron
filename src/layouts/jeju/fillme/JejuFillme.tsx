@@ -76,7 +76,10 @@ const sleep = (ms: number): Promise<void> => new Promise((r) => setTimeout(r, ms
 const TITLES: Record<Screen, [string, string]> = {
   intro: ['AI 손톱 건강분석', 'FillMe와 함께하는 손톱 건강 체크 서비스예요'],
   capture: ['손톱 촬영', '안내에 따라 왼손, 오른손 순서로 올려 주세요'],
-  info: ['정보 입력', '정확한 분석을 위해 기본 정보를 입력해 주세요'],
+  /* 시안 7212:66381 은 이 화면의 제목을 기능 이름으로 적는다(검색창 자리의
+     "AI 손톱 건강 분석"). 설명문은 시안이 자리만 잡아 둔 "페이지 설명문" 이라 쓰던
+     문장을 그대로 둔다. */
+  info: ['AI 손톱 건강 분석', '정확한 분석을 위해 기본 정보를 입력해 주세요'],
   consent: ['개인정보 이용 동의', '동의해야 분석을 시작할 수 있어요'],
   analyzing: ['AI 분석 중', '잠시만 기다려 주세요'],
   result: ['AI 건강분석 결과', '나에게 맞는 영양 관리 방법을 확인해 보세요'],
@@ -92,6 +95,12 @@ export function JejuFillme({ controller }: Props): JSX.Element {
   const [shots, setShots] = useState<Record<Hand, Shot | null>>({ left: null, right: null });
   const [info, setInfo] = useState<InfoValues>({ nums: EMPTY_NUMS, sex: null, pregnant: null });
   const [agree, setAgree] = useState<Record<ConsentKey, boolean>>({ privacy: false, sensitive: false });
+  /**
+   * 정보 입력 화면 안의 동의 한 줄 (Figma 7212:66381 / 7334:54219). 다음 화면의
+   * 법정 동의 두 가지와 별개다 — 여기서는 '다음으로' 를 여는 문지기일 뿐이고,
+   * 개인정보·민감정보 동의는 그대로 동의 화면에서 받는다. FillmeInfo 머리말 참고.
+   */
+  const [infoAgreed, setInfoAgreed] = useState(false);
   const [keypad, setKeypad] = useState<FieldKey | null>(null);
   const [policy, setPolicy] = useState<ConsentKey | null>(null);
   const [progress, setProgress] = useState(0);
@@ -140,6 +149,7 @@ export function JejuFillme({ controller }: Props): JSX.Element {
     replaceShots({ left: null, right: null });
     setInfo({ nums: EMPTY_NUMS, sex: null, pregnant: null });
     setAgree({ privacy: false, sensitive: false });
+    setInfoAgreed(false);
     setKeypad(null);
     setPolicy(null);
     setProgress(0);
@@ -443,8 +453,10 @@ export function JejuFillme({ controller }: Props): JSX.Element {
       title={title}
       subtitle={subtitle}
       onBack={back}
-      /* 본문이 y3267 을 넘지 않는 첫 화면에만 배너가 들어간다 — 다른 제주 화면과 같은 규칙. */
-      showBanner={screen === 'intro'}
+      /* 본문이 y3267 을 넘지 않는 화면에만 배너가 들어간다 — 다른 제주 화면과 같은
+         규칙. 정보 입력은 2026-09-16 개편으로 본문이 2577 에서 끝나 배너가 들어왔다
+         (시안 7212:66381 도 그린다). */
+      showBanner={screen === 'intro' || screen === 'info'}
       /* 분석 중에는 떠날 수 없다: 홈 한 번에 이미 동의하고 보낸 사진 두 장이 버려진다. */
       navDisabled={screen === 'analyzing'}
     >
@@ -473,17 +485,23 @@ export function JejuFillme({ controller }: Props): JSX.Element {
         {screen === 'info' && (
           <FillmeInfo
             values={info}
-            shots={shotUrls}
             focused={keypad}
+            agreed={infoAgreed}
             onFocusField={setKeypad}
             onSex={(sex) => {
               setKeypad(null);
               setInfo((prev) => ({ ...prev, sex, pregnant: sex === 'female' ? prev.pregnant : null }));
             }}
             onPregnant={(value) => setInfo((prev) => ({ ...prev, pregnant: value }))}
+            onToggleAgree={() => {
+              setKeypad(null);
+              setInfoAgreed((prev) => !prev);
+            }}
+            /* 줄 안의 [개인보호정책] — 동의 화면과 같은 방침 전문을 연다. */
+            onOpenPolicy={() => setPolicy('privacy')}
             onRetake={() => startCapture(HANDS, 'info')}
             onNext={() => {
-              if (infoValid(info)) {
+              if (infoValid(info) && infoAgreed) {
                 setKeypad(null);
                 setScreen('consent');
               }
@@ -516,16 +534,8 @@ export function JejuFillme({ controller }: Props): JSX.Element {
         {keypad && screen === 'info' && (
           <Keypad field={keypad} onKey={pressKey} onNext={nextField} onClose={() => setKeypad(null)} />
         )}
-        {policy && (
-          <PolicySheet
-            target={policy}
-            onClose={() => setPolicy(null)}
-            onAgree={() => {
-              setAgree((prev) => ({ ...prev, [policy]: true }));
-              setPolicy(null);
-            }}
-          />
-        )}
+        {/* 읽기만 하는 창 (7334:54335) — 동의는 화면의 체크로만 받는다. */}
+        {policy && <PolicySheet target={policy} onClose={() => setPolicy(null)} />}
         {modalView}
         {showIdle && <IdleModal remaining={idleLeft ?? 0} onContinue={poke} />}
       </div>

@@ -5,18 +5,24 @@ import styles from './PolicySheet.module.css';
 interface Props {
   target: ConsentKey;
   onClose: () => void;
-  onAgree: () => void;
 }
 
-/** 동의 항목 요약 + 개인정보처리방침 전문. 전문은 스크롤로 읽는다. */
-export function PolicySheet({ target, onClose, onAgree }: Props): JSX.Element {
+/**
+ * 동의 항목 요약 + 개인정보처리방침 전문 — Figma 7334:54335. 전문은 스크롤로 읽는다.
+ *
+ * ★ 읽기만 하는 창이다: 시안이 '동의하기' 를 뺐고, 동의는 정보 입력 화면의 체크 줄과
+ *   동의 화면의 체크박스에서 받는다.
+ */
+export function PolicySheet({ target, onClose }: Props): JSX.Element {
   const consent = CONSENTS[target];
   return (
     <div className={styles.overlay}>
       <div className={styles.panel} role="dialog" aria-modal="true" aria-labelledby="policy-title">
         <header className={styles.head}>
+          {/* 시안의 제목은 읽는 문서의 이름이다 — 어느 동의에서 열었는지는 아래
+              요약 상자(수집 항목·이용 목적·보유 기간)가 말한다. */}
           <h2 id="policy-title" className={styles.title}>
-            {consent.title}
+            개인정보처리방침
           </h2>
           <p className={styles.sub}>{POLICY_SUB}</p>
         </header>
@@ -51,14 +57,9 @@ export function PolicySheet({ target, onClose, onAgree }: Props): JSX.Element {
           ))}
         </div>
 
-        <footer className={styles.actions}>
-          <button type="button" className={styles.close} onClick={onClose}>
-            닫기
-          </button>
-          <button type="button" className={styles.agree} onClick={onAgree}>
-            동의하기
-          </button>
-        </footer>
+        <button type="button" className={styles.close} onClick={onClose}>
+          닫기
+        </button>
       </div>
     </div>
   );

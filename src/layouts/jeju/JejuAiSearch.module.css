@@ -100,15 +100,19 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 60px;
+  /* The frame's 60, times the group's shrink factor — 1 in Korean, which is
+     what `useFitText` leaves when it is disabled (see the component). */
+  font-size: calc(60px * var(--fit, 1));
   font-weight: 500;
-  line-height: 1;
+  line-height: 1.1;
   color: #999;
+  padding: 0 16px;
   /* Sheet copy in eight languages on fixed-width chips: a long label wraps
-     inside the 193 plate (three 60px lines still fit), never mid-word in
-     Korean, and a word wider than the chip splits rather than spilling. */
+     inside the 193 plate, never mid-word in Korean, and only a word that cannot
+     fit the chip on its own is split — `anywhere` broke "Phương/tiện" and
+     "Photograph/y" while the line still had room. */
   word-break: keep-all;
-  overflow-wrap: anywhere;
+  overflow-wrap: break-word;
   cursor: pointer;
   -webkit-tap-highlight-color: transparent;
 }
@@ -155,7 +159,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 47px;
+  font-size: calc(47px * var(--fit, 1));
   font-weight: 700;
   /* Figma's leading, not a guess: a one-line label's text box is h47 at y84 and
      a two-line one h94 at y60 inside the 215 tile — both are `leading-none`.
@@ -214,7 +218,7 @@
 .tileCaption {
   display: block;
   max-width: 244px;
-  font-size: 25px;
+  font-size: calc(25px * var(--fit, 1));
   font-weight: 400;
   line-height: 1.2;
   color: #999;
@@ -242,11 +246,24 @@
 .tileWrap {
   white-space: normal;
   /* Back to normal line breaking — .tile's keep-all is for Korean; ja / zh / th
-     break between characters or words that have no spaces. */
+     break between characters or words that have no spaces. `break-word`, not
+     `anywhere`: a word is only split when it cannot fit the tile on its own, so
+     "Photography" stops breaking into "Photograph / y" the moment the group has
+     shrunk enough to hold it. */
   word-break: normal;
-  overflow-wrap: anywhere;
-  padding: 0 14px;
-  font-size: 40px;
+  overflow-wrap: break-word;
+  /* Hyphenation before shrinking: one 22-letter Russian word
+     ("достопримечательностей") is wider than the tile at any size the grid can
+     read at, and a hyphenated break costs the whole grid nothing while the
+     alternative is every tile a third smaller. Needs the element's own `lang`,
+     which the grid carries. Where Chromium has no dictionary this does nothing
+     and the shrink factor takes over, as before. */
+  hyphens: auto;
+  padding: 0 10px;
+  /* One step under the Korean 47 before the group's own shrink factor: the
+     other seven languages are wordy even at their best. */
+  font-size: calc(40px * var(--fit, 1));
+  line-height: 1.15;
 }
 
 /* Picked 즐길 거리 tiles take the solid brand plate and DROP their category
@@ -448,6 +465,16 @@
   line-height: 1.2;
   color: var(--kiosk-primary, #ff7f0f);
   text-align: center;
+}
+
+/* The same note over the QUESTIONS (7334:10548) has 128px between it and 방문
+   인원, where the landing has 200 and a heading that can take a second line. The
+   sheet's longest translation ("*Kami merekomendasikan rute yang bisa dinikmati
+   dari …") wraps at 60 and lands 16px inside the first heading, so every
+   non-Korean note is drawn a step smaller and fits on one line again. Korean
+   keeps the frame's 60. */
+.pickNoteTight {
+  font-size: 45px;
 }
 
 /* I 커스텀 코스 · I 추천코스 — SemiBold 76, gray 07. The "I" is the frame's own

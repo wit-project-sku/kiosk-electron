@@ -1221,16 +1221,29 @@ export function JejuAiDetail({ controller }: Props): JSX.Element {
         </div>
       )}
 
-      {/* ── The sheet the 커스텀 코스 itinerary sits on (7334:10355) ──
-          White from under the DAY tabs to the foot of the artboard, its top-right
-          corner rounded; the active tab above rounds the left one. Drawn before
-          the list so it paints under it, and inert so it swallows no taps. */}
+      {/* ── The sheet the itinerary sits on (7334:10355 · 7334:9870) ──
+          White from under the DAY tabs to the foot of the artboard. Drawn before
+          the list so it paints under it, and inert so it swallows no taps.
+
+          Its top corners follow the OPEN TAB: the tab already carries a 40px
+          corner on its own side, so the sheet gives that side up and the two
+          merge into one surface. Left it and the last day's tab met the sheet's
+          curve with a square foot — a step in the white edge with the page
+          showing through it. The frame only draws DAY 1 open, which is the
+          square-left / rounded-right it shows. */}
       <div
-        className={
-          themed
-            ? low(`${styles.sheet} ${styles.sheetTheme}`, styles.sheetThemeLow)
-            : low(styles.sheet, styles.sheetLow)
-        }
+        className={[
+          styles.sheet,
+          themed ? styles.sheetTheme : '',
+          lowReach ? (themed ? styles.sheetThemeLow : styles.sheetLow) : '',
+          /* No tabs drawn yet (a course still loading) — the sheet keeps both
+             its own corners rather than giving one up to a tab that is not
+             there. */
+          days.length > 0 && dayIndex === 0 ? styles.sheetSquareLeft : '',
+          days.length > 0 && dayIndex === days.length - 1 ? styles.sheetSquareRight : '',
+        ]
+          .filter(Boolean)
+          .join(' ')}
       />
 
       {/* 7229:100960 — the 추천코스 page's refresh: ask /recommend for a different
