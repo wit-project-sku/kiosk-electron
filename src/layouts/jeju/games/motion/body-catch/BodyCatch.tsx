@@ -1,5 +1,5 @@
 /**
- * 몸으로 감귤 받기 — the screen.
+ * 손으로 감귤 받기 — the screen.
  *
  * Everything camera-shaped (the gate, the preview, the countdown, the coaching
  * banner) belongs to {@link MotionStage}; everything game-shaped belongs to
@@ -52,9 +52,6 @@ export function BodyCatch(_props: MotionGameProps): JSX.Element {
     const id = setTimeout(() => setShowHint(false), HINT_MS);
     return () => clearTimeout(id);
   }, [game.phase]);
-
-  // A fresh run needs a fresh lock: the previous player may have walked off and
-  // the smoothing still holds their last position.
 
   return (
     <MotionStage

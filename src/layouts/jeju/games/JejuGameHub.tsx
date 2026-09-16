@@ -10,14 +10,19 @@
  * 틀린그림찾기 is still here. It is not replaced.
  *
  * ── Two kinds of game, and the split is the important part ────────────
- * The menu is grouped into 터치 게임 and 모션 게임, and they are NOT interleaved.
- * The difference between them is not a feature, it is a posture: one is played
- * with a finger while standing at the glass, the other requires stepping BACK
- * from the kiosk and moving your whole body in a public airport concourse. A
- * visitor deciding between them is really deciding whether they want to be seen
- * doing that, and burying a camera game among touch games would spring it on
- * them. The 📷 badge and the section heading exist to make that choice
- * deliberate.
+ * The menu is grouped into 터치 게임 and 손으로 하는 게임, and they are NOT
+ * interleaved. The difference between them is not a feature, it is what the
+ * kiosk is about to look at: one is played with a finger on the glass, the
+ * other turns a camera on the visitor. Burying a camera game among touch games
+ * would spring that on them. The 📷 badge and the section heading exist to make
+ * the choice deliberate.
+ *
+ * The gap used to be much wider — the camera games wanted the visitor to step
+ * back and move their whole body in a public concourse, which is a decision
+ * about whether they want to be SEEN doing it. They are played with one raised
+ * hand now (see HandTracker), which is most of why that argument softened, but
+ * not why the split remains: a camera is a camera, and it is still worth one
+ * deliberate tap.
  *
  * ── The photo is always on screen ─────────────────────────────────────
  * The status row under the cards is the only non-game element, and it is not
@@ -63,10 +68,17 @@ const TOUCH_CARDS: Omit<CardSpec, 'name' | 'desc'>[] = [
   { id: 'spotdiff', glyph: '🔍', tint: '#e6f1fb' },
 ];
 
-/** The camera games. 포즈 챌린지 and 화산석 피하기 were dropped. */
+/**
+ * The camera games. 포즈 챌린지 and 화산석 피하기 were dropped.
+ *
+ * ✋ rather than the 🙆 this card used to carry: both are played with ONE HAND
+ * now (see HandTracker), and the glyph is what a visitor actually reads off a
+ * card. A figure with its arms out promises a game that wants their whole body,
+ * which is the thing that made people walk away from these.
+ */
 const MOTION_CARDS: Omit<CardSpec, 'name' | 'desc'>[] = [
-  { id: 'body-catch', glyph: '🙆', tint: '#ffe8d0' },
-  { id: 'jeju-run', glyph: '🐴', tint: '#e8e2f5' },
+  { id: 'body-catch', glyph: '✋', tint: '#ffe8d0' },
+  { id: 'jeju-run', glyph: '🏃‍♀️', tint: '#e8e2f5' },
 ];
 
 export function JejuGameHub({

@@ -41,9 +41,10 @@ interface Props {
   onAward: (game: MotionGameId, points: number) => void;
 }
 
+/** Matches the hub's cards — see the note on MOTION_CARDS there. */
 const GLYPH: Record<MotionGameId, string> = {
-  'body-catch': '🙆',
-  'jeju-run': '🐴',
+  'body-catch': '✋',
+  'jeju-run': '🏃‍♀️',
 };
 
 export function MotionRemote({
@@ -106,7 +107,7 @@ export function MotionRemote({
    */
   const coach =
     state.tracking === 'no-player'
-      ? `👤 ${pick(MOTION.backIntoView, lang)}`
+      ? `👋 ${pick(MOTION.backIntoView, lang)}`
       : state.tracking === 'too-close'
         ? `🔙 ${pick(MOTION.stepBack, lang)}`
         : state.tracking === 'too-far'
@@ -148,6 +149,19 @@ export function MotionRemote({
             {game ? GLYPH[game] : '🎮'}
           </span>
           <p className={styles.gameName}>{name}</p>
+          {/* How to play, on the screen a companion is standing at. The player
+              is watching the big screen; the person beside them reading "hand
+              up to jump" out loud is often how the player actually learns it. */}
+          <div className={styles.howTo}>
+            {game === 'jeju-run' ? (
+              <>
+                <span>✋⬆️ {pick(MOTION.tutJumpSub, lang)}</span>
+                <span>✋⬇️ {pick(MOTION.tutDuckSub, lang)}</span>
+              </>
+            ) : (
+              <span>✋↔️ {pick(MOTION.moveLeftRight, lang)}</span>
+            )}
+          </div>
           {/* Before a run starts there is no score to show, and a big fat 0 on
               the remote reads as "you are doing badly" rather than "we are
               waiting for you". */}
@@ -159,7 +173,10 @@ export function MotionRemote({
           ) : (
             <p className={styles.waiting}>
               <span className={styles.waitingDot} aria-hidden />
-              {pick(MOTION.stepInFront, lang)}
+              {/* The same ask the big screen is making. These two lines must
+                  not drift: a companion reading this one out loud is often how
+                  the player learns what to do. */}
+              {pick(MOTION.raiseHand, lang)}
             </p>
           )}
         </div>

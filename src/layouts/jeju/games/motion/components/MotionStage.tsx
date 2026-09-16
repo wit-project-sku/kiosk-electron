@@ -12,7 +12,11 @@
  *
  * ══ WHY THE PREVIEW LIVES HERE AND NOWHERE ELSE ═══════════════════════
  * There is exactly ONE <video> element on a motion-game screen and it is
- * rendered here, once, for the whole life of the screen.
+ * rendered here, once, for the whole life of the screen. There is also exactly
+ * one camera pipeline behind it, and one `source` saying whether a hand or a
+ * body is steering — every screen that has to ASK the visitor for something
+ * (the gate, the coaching banner, the outline in the preview) reads that from
+ * here rather than guessing, so the three can never ask for different things.
  *
  * That is not tidiness, it is correctness. The MediaStream is attached to a
  * specific element by `useMotionTracking`, and MediaPipe reads frames from that
@@ -117,6 +121,7 @@ export function MotionStage({
       {calibrating && (
         <MotionCalibration
           status={tracking.status}
+          source={tracking.source}
           diagnostics={tracking.diagnostics}
           onReady={onReady}
         />
@@ -132,6 +137,10 @@ export function MotionStage({
         videoRef={tracking.videoRef}
         rotation={tracking.rotation}
         silhouette={calibrating}
+        // A palm to line up with, unless the tracker has already fallen back to
+        // a body — an outline is an instruction, and drawing the wrong one is
+        // worse than drawing none.
+        guide={tracking.source === 'body' ? 'body' : 'hand'}
         locked={
           tracking.status === 'tracking' ||
           tracking.status === 'out-of-area' ||
@@ -142,7 +151,9 @@ export function MotionStage({
 
       {phase === 'countdown' && <GameCountdown onDone={onCountdownDone} hint={countdownHint} />}
 
-      {phase === 'playing' && <MotionCoach status={tracking.status} />}
+      {phase === 'playing' && (
+        <MotionCoach status={tracking.status} source={tracking.source} />
+      )}
 
       {result}
     </div>

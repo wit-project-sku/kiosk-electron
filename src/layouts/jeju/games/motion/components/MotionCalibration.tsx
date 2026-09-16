@@ -3,16 +3,28 @@
  *
  * ══ THIS IS THE COMPONENT THAT MAKES THE GAMES TOUCHLESS ══════════════
  * The brief's rule is that a visitor never has to touch the screen to play. The
- * only way to honour that is for the game to start when a PERSON APPEARS rather
- * than when a button is pressed — so this gate holds until the tracker actually
- * locks somebody, then hands off to the countdown on its own.
+ * only way to honour that is for the game to start when a CONTROLLER APPEARS
+ * rather than when a button is pressed — so this gate holds until the tracker
+ * actually locks one, then hands off to the countdown on its own.
  *
- * ── Why a player must be held, not merely seen ────────────────────────
+ * ══ IT ASKS FOR A HAND ════════════════════════════════════════════════
+ * That is the ask, and this screen is most of how it lands: a visitor does what
+ * the screen tells them, so a gate still saying "step in front" produces
+ * somebody standing back with their arms at their sides, waiting, while the
+ * hand model sees nothing. The outline behind these words is an open palm and
+ * the glyph is a wave, because between them they carry the whole instruction
+ * for a visitor who reads no text at all.
+ *
+ * The BODY lines still exist and are shown only once the tracker has actually
+ * fallen back to a body — telling someone with full hands to raise one is the
+ * same dead end in the other direction.
+ *
+ * ── Why a controller must be held, not merely seen ────────────────────
  * 제주공항 is a concourse. People walk past this kiosk constantly, and a gate
  * that fired on the first locked frame would start a game for someone who is
  * already gone — the countdown would run into an empty room and the visitor who
  * finally did step up would arrive mid-game. {@link HOLD_MS} is the difference
- * between "somebody crossed the frame" and "somebody is standing here".
+ * between "a hand crossed the frame" and "somebody is here to play".
  *
  * ── It does not draw the camera ───────────────────────────────────────
  * The preview is a single persistent element owned by MotionStage — see the
@@ -35,22 +47,37 @@ import { MotionDiagnostics } from './MotionDiagnostics';
 import styles from './motionUi.module.css';
 
 /**
- * How long a player must stay locked before the game starts.
+ * How long a controller must stay locked before the game starts.
  *
- * Long enough to exclude someone walking past, short enough that a visitor who
- * has deliberately stepped up does not wonder whether it is broken.
+ * Long enough to exclude a hand that merely crossed the frame, short enough
+ * that a visitor who has deliberately raised one does not wonder whether it is
+ * broken. The bar under the words is this number made visible, which is what
+ * stops the wait reading as a failure.
  */
 const HOLD_MS = 1200;
 
 interface Props {
   status: TrackingStatus;
+  /**
+   * What is steering, or null while nothing is.
+   *
+   * Decides which instruction this screen gives. `null` means "nothing yet",
+   * and the gate asks for a HAND — the thing the games are built around — not
+   * for whichever input happened to be used last.
+   */
+  source: 'hand' | 'body' | null;
   /** Live tracker numbers, for the operator readout when this screen sticks. */
   diagnostics: RefObject<Diagnostics>;
-  /** Fired once, after a player has been held for {@link HOLD_MS}. */
+  /** Fired once, after a controller has been held for {@link HOLD_MS}. */
   onReady: () => void;
 }
 
-export function MotionCalibration({ status, diagnostics, onReady }: Props): JSX.Element {
+export function MotionCalibration({
+  status,
+  source,
+  diagnostics,
+  onReady,
+}: Props): JSX.Element {
   const lang = useLang();
   const firedRef = useRef(false);
 
@@ -117,6 +144,10 @@ export function MotionCalibration({ status, diagnostics, onReady }: Props): JSX.
     );
   }
 
+  // A body only ever steers as a FALLBACK, so seeing one is what licenses the
+  // body-shaped copy. Before anything is locked the gate asks for a hand.
+  const byBody = source === 'body';
+
   return (
     <div className={styles.gate}>
       <span className={styles.gateGlow} aria-hidden />
@@ -144,9 +175,9 @@ export function MotionCalibration({ status, diagnostics, onReady }: Props): JSX.
             <span className={styles.gateGlyph} aria-hidden>
               👋
             </span>
-            <p className={styles.gateLine}>{pick(MOTION.stepInFront, lang)}</p>
-            {/* The other half of the floor complaint: visitors assumed they had
-                to fit their whole body in and kept backing away. */}
+            <p className={styles.gateLine}>{pick(MOTION.raiseHand, lang)}</p>
+            {/* The other half of the floor complaint: visitors assume a camera
+                game wants all of them and keep backing away out of frame. */}
             <p className={styles.gateSub}>{pick(MOTION.standHere, lang)}</p>
           </>
         )}
@@ -160,13 +191,15 @@ export function MotionCalibration({ status, diagnostics, onReady }: Props): JSX.
         )}
 
         {/* The whole instruction, as a picture. A visitor who reads none of the
-            text above still learns what the game wants from these two arrows. */}
+            text above still learns what the game wants from these two arrows:
+            hold this up, move it side to side. The figure is a hand, and only
+            becomes a person once the tracker has actually fallen back to one. */}
         {!seen && (
           <div className={styles.howTo}>
             <span className={styles.howToArrow} aria-hidden>
               ←
             </span>
-            <span aria-hidden>🧍</span>
+            <span aria-hidden>{byBody ? '🧍' : '✋'}</span>
             <span className={`${styles.howToArrow} ${styles.howToArrowRight}`} aria-hidden>
               →
             </span>

@@ -27,12 +27,24 @@
  *   STARTS > 1      the camera is being reopened in a retry loop, which resets
  *                   FRAMES each time — a loop that looks stuck at 1 is usually
  *                   this, not a loop that stopped.
- *   NET loading     the model never became available — the loop is running but
+ *   NET loading     a model never became available — the loop is running but
  *                   has nothing to run. Looks identical to an empty room in
  *                   every other field; this is the one that says otherwise.
- *   POSE 0          nobody found at all.
+ *   HAND 0          no hand found. With a live stream and HAND-NET ready this
+ *                   is the commonest reading of all, and it is NOT a fault: it
+ *                   is a visitor who has not raised one. Watch it while someone
+ *                   holds a hand up — if it stays 0, the fault is real.
+ *   HAND 1 HQ 0.8   a hand found and good. The games are working.
+ *   SRC hand/body   which input is steering. `body` while somebody is visibly
+ *                   waving means the hand model is loaded but not finding it —
+ *                   check HAND-NET and the lighting before anything else.
+ *   POSE 0          nobody found at all. Expected, and cheap, while a hand is
+ *                   steering: the pose model is not run at all then.
  *   POSE 1 Q 0.2    somebody found, but a poor pose — usually a sideways frame.
  *   SIZE            apparent size; drives the step-closer / step-back hints.
+ *   ERR             the last exception the frame loop swallowed. Non-empty here
+ *                   with everything else looking healthy is the signature of a
+ *                   model rejecting its input — see nextFrameStamp.
  *
  * ── Why it is not hidden behind a debug flag ──────────────────────────
  * Because the moment it would be useful is a moment nobody can reach a build
@@ -104,7 +116,12 @@ export function MotionDiagnostics({ diagnostics, healthy }: Props): JSX.Element 
   const stalled = d.stalled;
   // The single most likely fault on this fleet, called out by name rather than
   // left for someone to infer from two numbers.
-  const suspectRotation = landscape && d.poses === 0;
+  //
+  // Suppressed while a hand is steering. The pose model is deliberately not run
+  // then, so POSE 0 is the expected reading and not a symptom — leaving this
+  // hint up would send an operator to check a Windows setting on a machine
+  // whose games are working perfectly.
+  const suspectRotation = landscape && d.poses === 0 && d.source !== 'hand';
 
   return (
     <div className={styles.diag}>
@@ -114,7 +131,13 @@ export function MotionDiagnostics({ diagnostics, healthy }: Props): JSX.Element 
       </p>
       <p className={styles.diagRow}>
         MODEL {d.modelW}×{d.modelH} · ROT {d.rotation}
-        {d.settled ? '' : ' (probing)'} · NET {d.model}
+        {d.settled ? '' : ' (probing)'} · NET {d.model} · HAND-NET {d.handModel}
+      </p>
+      {/* First, because it is the controller: a hand is what these games are
+          played with, and POSE below is the fallback's row. */}
+      <p className={styles.diagRow}>
+        HAND {d.hands} · HQ {d.handQuality.toFixed(2)} · HSIZE {d.handSize.toFixed(2)} · SRC{' '}
+        {d.source ?? 'none'}
       </p>
       <p className={styles.diagRow}>
         POSE {d.poses} · Q {d.quality.toFixed(2)} · SIZE {d.size.toFixed(2)}
@@ -128,6 +151,15 @@ export function MotionDiagnostics({ diagnostics, healthy }: Props): JSX.Element 
         {d.stalled ? ' · STREAM STALLED' : ''}
       </p>
       {d.lastError !== '' && <p className={styles.diagRow}>ERR {d.lastError.slice(0, 40)}</p>}
+      {/* The hand model first: a failure here takes the controller away, while
+          a failed pose model only costs the fallback and the rotation probe. */}
+      {d.handModel !== 'ready' && (
+        <p className={styles.diagHint}>
+          {d.handModel === 'failed'
+            ? '⚠ Hand model failed to load — games fall back to body control'
+            : '⚠ Hand model still loading'}
+        </p>
+      )}
       {d.model !== 'ready' && (
         <p className={styles.diagHint}>
           {d.model === 'failed' ? '⚠ Pose model failed to load' : '⚠ Pose model still loading'}

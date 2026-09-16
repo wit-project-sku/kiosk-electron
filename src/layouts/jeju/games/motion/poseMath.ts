@@ -7,9 +7,9 @@
  * ── Rotation is NOT done here any more ────────────────────────────────
  * It used to be, and that was the wrong place. A pose model has to be handed an
  * UPRIGHT frame or it will not find a person at all, so the turn now happens
- * before inference, on PoseTracker's own canvas — by the time landmarks reach
- * this file they are already the right way up. Turning them again here would
- * undo it.
+ * before inference, on FrameSource's canvas — by the time landmarks reach this
+ * file they are already the right way up. Turning them again here would undo
+ * it.
  *
  * `toUpright` therefore only mirrors, and keeps its rotation argument solely so
  * a venue whose frames arrive pre-rotated by some other path can still be
@@ -27,7 +27,7 @@
  *     someone's t-shirt. A control surface and a photograph want opposite
  *     things, and both are right.
  */
-import type { BodyLandmark, PlayerTrackingState } from './poseTypes';
+import type { BodyLandmark } from './poseTypes';
 import { LM } from './poseTypes';
 
 /** MediaPipe's raw landmark, before either correction. */
@@ -207,23 +207,20 @@ export function smoothToward(
 /**
  * Stretch the usable slice of the frame across the full play area.
  *
- * A visitor does not walk the entire width of the camera's view — they shuffle
- * a step either side of centre, which without this maps to the middle third of
- * the screen and makes the game feel unresponsive and the edges unreachable.
- * Rescaling the middle band to the full 0..1 means a comfortable sidestep
- * reaches the edge of the play field.
+ * Nobody sweeps the entire width of the camera's view. A visitor steering with
+ * a hand moves it comfortably either side of their body and a visitor steering
+ * with their torso shuffles a step — without this both map to the middle third
+ * of the screen, which makes the game feel unresponsive and the edges
+ * unreachable. Rescaling the middle band to the full 0..1 means a comfortable
+ * reach gets to the edge of the play field.
+ *
+ * The cost is that the result CLAMPS, so it can no longer say how near the edge
+ * of the FRAME the controller is. That question is asked of the raw value
+ * instead — see EDGE_MARGIN in useMotionTracking.
  */
 export function expandRange(x: number, band = 0.62): number {
   const lo = 0.5 - band / 2;
   return Math.max(0, Math.min(1, (x - lo) / band));
-}
-
-/** Is the player inside the band the games consider playable? */
-export function isInPlayArea(state: PlayerTrackingState): boolean {
-  // Deliberately wider than the play field itself. This drives a coaching
-  // message, and nagging someone who is only slightly off-centre would be worse
-  // than saying nothing.
-  return state.centerX > 0.04 && state.centerX < 0.96;
 }
 
 /**

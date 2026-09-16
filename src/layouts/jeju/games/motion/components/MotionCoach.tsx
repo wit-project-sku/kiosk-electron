@@ -18,9 +18,17 @@ import styles from './motionUi.module.css';
 
 interface Props {
   status: TrackingStatus;
+  /**
+   * What is steering, so the one line that differs between them can.
+   *
+   * "Raise your hand again" is the right prompt for a player whose hand left
+   * the frame and exactly the wrong one for a player who is steering with their
+   * body BECAUSE their hands are full — see the fallback in useMotionTracking.
+   */
+  source: 'hand' | 'body' | null;
 }
 
-export function MotionCoach({ status }: Props): JSX.Element | null {
+export function MotionCoach({ status, source }: Props): JSX.Element | null {
   const lang = useLang();
 
   // 'starting' is silent on purpose: it only occurs before the gate has opened,
@@ -29,7 +37,9 @@ export function MotionCoach({ status }: Props): JSX.Element | null {
 
   const { glyph, line } =
     status === 'no-player'
-      ? { glyph: '👤', line: pick(MOTION.backIntoView, lang) }
+      ? source === 'body'
+        ? { glyph: '👤', line: pick(MOTION.stepInFront, lang) }
+        : { glyph: '👋', line: pick(MOTION.backIntoView, lang) }
       : status === 'too-close'
         ? { glyph: '🔙', line: pick(MOTION.stepBack, lang) }
         : status === 'too-far'

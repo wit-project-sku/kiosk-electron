@@ -29,29 +29,260 @@
   pointer-events: none;
 }
 
-/* The two moves, shown for the opening seconds. Side by side because they are a
-   pair — a visitor needs to know there are exactly two things to do. */
-.hint {
+/* ── Practice card ─────────────────────────────────────────────────────
+   Top-centre of the field, over the empty sky and well clear of the runner and
+   the ground, so it never hides the thing it is teaching. */
+.tut {
+  position: absolute;
+  left: 50%;
+  top: 280px;
+  z-index: 6;
+  width: 1320px;
+  transform: translateX(-50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 26px;
+  padding: 56px 70px 64px;
+  border-radius: 64px;
+  border: 6px solid rgba(255, 255, 255, 0.18);
+  background: rgba(40, 32, 52, 0.92);
+  box-shadow: 0 30px 80px rgba(0, 0, 0, 0.35);
+  color: #fff;
+  text-align: center;
+  pointer-events: none;
+  animation: tutIn 420ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.tutPraise {
+  border-color: rgba(255, 255, 255, 0.4);
+  background: rgba(38, 150, 92, 0.94);
+}
+
+@keyframes tutIn {
+  from {
+    opacity: 0;
+    transform: translateX(-50%) translateY(-40px) scale(0.94);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0) scale(1);
+  }
+}
+
+.tutLine {
+  margin: 0;
+  font-size: 92px;
+  font-weight: 800;
+  line-height: 1.15;
+  /* Korean breaks between syllables by default, which orphaned "요!" on a line of
+     its own. Break between words instead, and balance the lines. */
+  word-break: keep-all;
+  text-wrap: balance;
+}
+
+.tutSub {
+  margin: 0;
+  word-break: keep-all;
+  font-size: 62px;
+  font-weight: 700;
+  color: #ffd27a;
+}
+
+.tutGlyph {
+  font-size: 190px;
+  line-height: 1;
+}
+
+/* The demonstration: a hand that performs the move, over and over, until they
+   copy it. The travel is deliberately LARGE — the commonest mistake is a raise
+   too small to cross the line, and the demo is where "how far" is first shown. */
+.tutDemo {
+  position: relative;
+  width: 260px;
+  height: 330px;
+}
+
+.tutHand {
+  position: absolute;
+  left: 50%;
+  font-size: 170px;
+  line-height: 1;
+  transform: translateX(-50%);
+}
+
+.tutHandUp {
+  animation: handUp 1.4s cubic-bezier(0.45, 0, 0.2, 1) infinite;
+}
+
+.tutHandDown {
+  animation: handDown 1.4s cubic-bezier(0.45, 0, 0.2, 1) infinite;
+}
+
+@keyframes handUp {
+  0%,
+  15% {
+    top: 160px;
+  }
+  55%,
+  80% {
+    top: 0;
+  }
+  100% {
+    top: 160px;
+  }
+}
+
+@keyframes handDown {
+  0%,
+  15% {
+    top: 0;
+  }
+  55%,
+  80% {
+    top: 160px;
+  }
+  100% {
+    top: 0;
+  }
+}
+
+/* ── Hand meter ────────────────────────────────────────────────────────
+   Right edge of the field, beside the sky above the runner, so she and the
+   meter can be taken in with one glance. */
+.meter {
+  position: absolute;
+  right: 150px;
+  /* Starts below the practice card's bottom edge (two lines of copy included),
+     so the two never overlap, and ends well above the ground line. */
+  top: 1180px;
+  z-index: 5;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 24px;
+  pointer-events: none;
+}
+
+.meterTrack {
+  position: relative;
+  width: 300px;
+  height: 940px;
+  border-radius: 48px;
+  border: 6px solid rgba(255, 255, 255, 0.2);
+  background: rgba(40, 32, 52, 0.8);
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.3);
+}
+
+.meterZone {
   position: absolute;
   left: 0;
   right: 0;
-  bottom: 90px;
   display: flex;
+  align-items: center;
   justify-content: center;
-  gap: 90px;
-  font-size: 58px;
-  font-weight: 800;
-  color: rgba(255, 255, 255, 0.78);
-  pointer-events: none;
-  animation: hintFade 1.8s ease-in-out infinite;
+  transition: background 120ms;
 }
 
-@keyframes hintFade {
+.meterJump {
+  border-radius: 42px 42px 0 0;
+  border-bottom: 8px dashed rgba(255, 255, 255, 0.6);
+  background: rgba(88, 196, 130, 0.22);
+}
+
+.meterDuck {
+  border-radius: 0 0 42px 42px;
+  border-top: 8px dashed rgba(255, 255, 255, 0.6);
+  background: rgba(96, 160, 240, 0.22);
+}
+
+/* Lit while the hand is past the line — the moment she is actually doing it,
+   which is what ties the hand to the result in the visitor's head. */
+.meterJump.meterZoneOn {
+  background: rgba(88, 196, 130, 0.9);
+}
+
+.meterDuck.meterZoneOn {
+  background: rgba(96, 160, 240, 0.9);
+}
+
+/* Labels sit OUTSIDE the track, to its left. Inside, the marker parked right on
+   top of a zone's label at exactly the moment that zone lit up — the one moment
+   the label mattered most. */
+.meterLabel {
+  position: absolute;
+  right: calc(100% + 30px);
+  font-size: 54px;
+  font-weight: 800;
+  color: #fff;
+  white-space: nowrap;
+  text-shadow: 0 3px 14px rgba(0, 0, 0, 0.7);
+}
+
+.meterRun .meterLabel {
+  color: rgba(255, 255, 255, 0.55);
+}
+
+/* The label of a lit zone takes that zone's colour, so the word and the light
+   read as one event. */
+.meterJump.meterZoneOn .meterLabel {
+  color: #7ee2a4;
+}
+
+.meterDuck.meterZoneOn .meterLabel {
+  color: #9cc8ff;
+}
+
+/* The practice run pointing at the zone it is asking for. */
+.meterPulse {
+  animation: meterPulse 1s ease-in-out infinite;
+}
+
+@keyframes meterPulse {
   0%,
   100% {
-    opacity: 0.6;
+    box-shadow: inset 0 0 0 0 rgba(255, 210, 122, 0);
   }
   50% {
-    opacity: 1;
+    box-shadow: inset 0 0 0 14px rgba(255, 210, 122, 0.95);
   }
+}
+
+.meterMarker {
+  position: absolute;
+  left: 50%;
+  width: 190px;
+  height: 190px;
+  margin-top: -95px;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+  /* Short enough to follow the hand without lag, long enough to hide the
+     tracker's 20Hz steps. */
+  transition:
+    top 60ms linear,
+    opacity 200ms;
+}
+
+.meterHand {
+  font-size: 120px;
+  line-height: 1;
+}
+
+/* No hand: the marker parks in the middle and fades, so the meter reads as
+   "waiting for you" rather than as a hand held perfectly still. */
+.meterLost .meterMarker {
+  opacity: 0.25;
+}
+
+.meterCaption {
+  margin: 0;
+  font-size: 48px;
+  font-weight: 700;
+  color: rgba(255, 255, 255, 0.85);
+  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
 }

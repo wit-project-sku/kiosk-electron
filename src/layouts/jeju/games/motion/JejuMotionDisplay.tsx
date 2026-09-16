@@ -8,6 +8,15 @@
  * component's subtree, so releasing them is React's job rather than a teardown
  * protocol nobody remembers to call.
  *
+ * ── The remount is load-bearing, and it used to be fatal ──────────────
+ * Because every run is a fresh mount, every run built a fresh PoseTracker
+ * around a landmarker that is a deliberate module-level singleton — and the
+ * tracker's MediaPipe frame clock restarted at zero while the landmarker's did
+ * not. MediaPipe rejects a timestamp that does not increase, so every frame of
+ * every run after the first threw inside the loop's catch and nobody was ever
+ * detected again: "play once and the camera games stop working". The clock now
+ * belongs to the models rather than to a tracker — see `nextFrameStamp`.
+ *
  * ── Why `key={runId}` is not optional ─────────────────────────────────
  * A visitor pressing 다시 하기 on the remote starts the SAME game again. Without
  * the key, `game` would not change between runs, React would keep the existing

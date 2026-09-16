@@ -2,11 +2,19 @@
  * Strings for the 제주 motion games, in the kiosk's eight languages.
  *
  * Separate from `gameText.ts` for the same reason the motion games are a
- * separate folder: these screens are read from two metres away by someone with
- * their hands in the air, so the copy is written to a different brief — three
- * words, an emoji that carries the meaning on its own, and nothing that needs
- * to be read twice. Keeping the two tables apart stops that voice leaking into
- * the touch games and vice versa.
+ * separate folder: these screens are on the CUSTOMER DISPLAY, read at a glance
+ * by someone whose attention is on their own raised hand, so the copy is
+ * written to a different brief — three words, an emoji that carries the meaning
+ * on its own, and nothing that needs to be read twice. Keeping the two tables
+ * apart stops that voice leaking into the touch games and vice versa.
+ *
+ * ── These lines are about a HAND now ──────────────────────────────────
+ * The games were re-aimed from the whole body to one raised hand (the reasoning
+ * is on HandTracker), and copy is most of what makes that land: a visitor does
+ * what the screen asks, so a screen still saying "step in front" produces
+ * somebody standing back with their arms down, waiting. The body-shaped lines
+ * that survive — `stepInFront`, `standHereBody` — are the FALLBACK's, shown
+ * only once the tracker has actually fallen back.
  *
  * ── Every one of these has to work as a GLANCE ────────────────────────
  * A visitor mid-game is not reading. The coaching lines especially (`stepInFront`,
@@ -20,75 +28,200 @@ type Str = Partial<Record<Lang, string>>;
 export const MOTION = {
   // ── Cards ─────────────────────────────────────────────────────────────
   catchName: {
-    ko: '몸으로 감귤 받기',
-    en: 'Body Tangerine Catch',
-    ja: '体でみかんキャッチ',
-    zh: '用身体接柑橘',
-    vi: 'Hứng Quýt Bằng Cơ Thể',
-    th: 'รับส้มด้วยร่างกาย',
-    ru: 'Лови мандарины телом',
-    id: 'Tangkap Jeruk dengan Tubuh',
+    ko: '손으로 감귤 받기',
+    en: 'Hand Tangerine Catch',
+    ja: '手でみかんキャッチ',
+    zh: '用手接柑橘',
+    vi: 'Hứng Quýt Bằng Tay',
+    th: 'รับส้มด้วยมือ',
+    ru: 'Лови мандарины рукой',
+    id: 'Tangkap Jeruk dengan Tangan',
   } as Str,
   catchDesc: {
-    ko: '몸을 움직여 감귤을 받으세요!',
-    en: 'Move your body to catch the tangerines!',
-    ja: '体を左右に動かしてみかんをキャッチ！',
-    zh: '左右移动身体接住柑橘！',
-    vi: 'Di chuyển cơ thể để hứng quýt!',
-    th: 'ขยับตัวซ้ายขวาเพื่อรับส้ม!',
-    ru: 'Двигайтесь и ловите мандарины!',
-    id: 'Gerakkan tubuh untuk menangkap jeruk!',
+    ko: '손을 좌우로 움직여 감귤을 받으세요!',
+    en: 'Move your hand left and right to catch them!',
+    ja: '手を左右に動かしてみかんをキャッチ！',
+    zh: '左右移动手掌接住柑橘！',
+    vi: 'Di chuyển tay sang trái phải để hứng quýt!',
+    th: 'ขยับมือซ้ายขวาเพื่อรับส้ม!',
+    ru: 'Двигайте рукой влево-вправо и ловите!',
+    id: 'Gerakkan tangan ke kiri-kanan untuk menangkap!',
   } as Str,
 
+  /**
+   * Renamed with the runner.
+   *
+   * It was 조랑말 달리기 / Jeju Pony Run, and the card is the promise the game
+   * has to keep: a visitor who taps a pony and gets a girl in jeans has been
+   * told the wrong thing about a game they chose on the strength of it. The new
+   * name is deliberately about the ACTION rather than a character, because
+   * nothing in this repo knows her name — give her one and this is the string
+   * to put it in.
+   */
   runName: {
-    ko: '조랑말 달리기',
-    en: 'Jeju Pony Run',
-    ja: '済州ポニーラン',
-    zh: '济州小马跑酷',
-    vi: 'Ngựa Jeju Chạy',
-    th: 'ม้าเชจูวิ่ง',
-    ru: 'Бег пони Чеджу',
-    id: 'Lari Kuda Jeju',
+    ko: '제주 달리기',
+    en: 'Jeju Run',
+    ja: '済州ラン',
+    zh: '济州跑酷',
+    vi: 'Chạy Jeju',
+    th: 'วิ่งเชจู',
+    ru: 'Бег по Чеджу',
+    id: 'Lari Jeju',
   } as Str,
   runDesc: {
-    ko: '뛰고 앉아서 장애물을 피하세요!',
-    en: 'Jump and crouch past the obstacles!',
-    ja: 'ジャンプとしゃがみで障害物を避けよう！',
-    zh: '跳跃和下蹲躲避障碍！',
-    vi: 'Nhảy và ngồi xuống để né chướng ngại!',
-    th: 'กระโดดและย่อตัวหลบสิ่งกีดขวาง!',
-    ru: 'Прыгайте и приседайте, избегая преград!',
-    id: 'Lompat dan jongkok hindari rintangan!',
+    ko: '손을 올리고 내려 장애물을 피하세요!',
+    en: 'Raise and lower your hand to dodge!',
+    ja: '手を上げ下げして障害物を避けよう！',
+    zh: '抬手落手躲避障碍！',
+    vi: 'Nâng và hạ tay để né chướng ngại!',
+    th: 'ยกมือขึ้นลงเพื่อหลบสิ่งกีดขวาง!',
+    ru: 'Поднимайте и опускайте руку, избегая преград!',
+    id: 'Angkat dan turunkan tangan untuk menghindar!',
   } as Str,
   runHowTo: {
-    ko: '점프하면 뛰고, 앉으면 숙여요',
-    en: 'Jump to leap, crouch to duck',
-    ja: 'ジャンプで跳び、しゃがんでよける',
-    zh: '起跳则跳跃，下蹲则低头',
-    vi: 'Nhảy để bật, ngồi để cúi',
-    th: 'กระโดดเพื่อกระโดด ย่อเพื่อหมอบ',
-    ru: 'Подпрыгните — прыжок, присядьте — уклон',
-    id: 'Lompat untuk melompat, jongkok untuk menunduk',
+    ko: '손을 올리면 점프, 내리면 숙여요',
+    en: 'Hand up to jump, hand down to duck',
+    ja: '手を上げて跳び、下げてよける',
+    zh: '抬手跳跃，落手低头',
+    vi: 'Nâng tay để nhảy, hạ tay để cúi',
+    th: 'ยกมือเพื่อกระโดด ลดมือเพื่อหมอบ',
+    ru: 'Рука вверх — прыжок, вниз — уклон',
+    id: 'Tangan naik melompat, turun menunduk',
   } as Str,
-  runJump: {
-    ko: '점프!',
-    en: 'JUMP!',
-    ja: 'ジャンプ！',
-    zh: '跳！',
-    vi: 'NHẢY!',
-    th: 'กระโดด!',
-    ru: 'ПРЫЖОК!',
-    id: 'LOMPAT!',
+  /**
+   * The countdown's one line, for the run.
+   *
+   * It used to repeat the controls, and that was the wrong thing to say at that
+   * moment: the 3·2·1 is when the baseline is MEASURED (see useJejuRun), so what
+   * the visitor needs to do during it is hold still — and where they hold their
+   * hand now is what "up" and "down" will be measured from.
+   */
+  runHoldStill: {
+    ko: '손을 가슴 앞에 들고 가만히 있어요',
+    en: 'Hold your hand in front of you — keep still',
+    ja: '手を胸の前に上げて、そのまま動かないで',
+    zh: '把手举在胸前，保持不动',
+    vi: 'Giơ tay trước ngực và giữ yên',
+    th: 'ยกมือไว้ตรงหน้าอกแล้วอยู่นิ่งๆ',
+    ru: 'Держите руку перед грудью — не двигайтесь',
+    id: 'Angkat tangan di depan dada — tahan diam',
   } as Str,
-  runDuck: {
-    ko: '앉기!',
-    en: 'CROUCH!',
-    ja: 'しゃがむ！',
-    zh: '下蹲！',
-    vi: 'NGỒI XUỐNG!',
-    th: 'ย่อตัว!',
-    ru: 'ПРИСЯДЬТЕ!',
-    id: 'JONGKOK!',
+
+  // ── Practice run ──────────────────────────────────────────────────────
+  // One move at a time, on an empty track. See RunTutorial in useJejuRun.
+  tutJump: {
+    ko: '손을 위로 쭉 올려보세요!',
+    en: 'Raise your hand up high!',
+    ja: '手を上にぐっと上げてみて！',
+    zh: '把手高高举起来！',
+    vi: 'Giơ tay lên thật cao!',
+    th: 'ยกมือขึ้นสูงๆ!',
+    ru: 'Поднимите руку вверх!',
+    id: 'Angkat tangan tinggi-tinggi!',
+  } as Str,
+  tutJumpSub: {
+    ko: '손을 올리면 점프해요',
+    en: 'Hand up = jump',
+    ja: '手を上げるとジャンプ',
+    zh: '抬手 = 跳跃',
+    vi: 'Giơ tay = nhảy',
+    th: 'ยกมือ = กระโดด',
+    ru: 'Рука вверх = прыжок',
+    id: 'Tangan naik = lompat',
+  } as Str,
+  tutDuck: {
+    ko: '이번엔 손을 아래로 내려보세요!',
+    en: 'Now lower your hand!',
+    ja: '今度は手を下げてみて！',
+    zh: '现在把手放低！',
+    vi: 'Giờ hạ tay xuống!',
+    th: 'คราวนี้ลดมือลง!',
+    ru: 'Теперь опустите руку!',
+    id: 'Sekarang turunkan tangan!',
+  } as Str,
+  tutDuckSub: {
+    ko: '손을 내리면 몸을 숙여요',
+    en: 'Hand down = duck',
+    ja: '手を下げるとしゃがむ',
+    zh: '落手 = 低头',
+    vi: 'Hạ tay = cúi người',
+    th: 'ลดมือ = หมอบ',
+    ru: 'Рука вниз = пригнуться',
+    id: 'Tangan turun = menunduk',
+  } as Str,
+  tutGood: {
+    ko: '잘했어요!',
+    en: 'Nice!',
+    ja: 'いいね！',
+    zh: '做得好！',
+    vi: 'Tốt lắm!',
+    th: 'เยี่ยม!',
+    ru: 'Отлично!',
+    id: 'Bagus!',
+  } as Str,
+  tutGo: {
+    ko: '이제 진짜 시작!',
+    en: 'Here we go!',
+    ja: 'さあ、本番スタート！',
+    zh: '正式开始！',
+    vi: 'Bắt đầu nào!',
+    th: 'เริ่มกันเลย!',
+    ru: 'Поехали!',
+    id: 'Ayo mulai!',
+  } as Str,
+  tutGoSub: {
+    ko: '돌은 점프 ⬆️  갈매기는 숙이기 ⬇️',
+    en: 'Jump the rocks ⬆️  Duck the gulls ⬇️',
+    ja: '石はジャンプ ⬆️  カモメはしゃがむ ⬇️',
+    zh: '石头跳过 ⬆️  海鸥低头 ⬇️',
+    vi: 'Nhảy qua đá ⬆️  Cúi tránh chim ⬇️',
+    th: 'หินให้กระโดด ⬆️  นกให้หมอบ ⬇️',
+    ru: 'Камни — прыжок ⬆️  Чайки — пригнуться ⬇️',
+    id: 'Batu lompati ⬆️  Camar tunduk ⬇️',
+  } as Str,
+
+  // ── Control meter ─────────────────────────────────────────────────────
+  // The three zones her hand can be in, labelled with what SHE does, not with
+  // what the hand does — the visitor already knows where their hand is.
+  meterJump: {
+    ko: '점프',
+    en: 'JUMP',
+    ja: 'ジャンプ',
+    zh: '跳跃',
+    vi: 'NHẢY',
+    th: 'กระโดด',
+    ru: 'ПРЫЖОК',
+    id: 'LOMPAT',
+  } as Str,
+  meterRun: {
+    ko: '달리기',
+    en: 'RUN',
+    ja: 'ラン',
+    zh: '奔跑',
+    vi: 'CHẠY',
+    th: 'วิ่ง',
+    ru: 'БЕГ',
+    id: 'LARI',
+  } as Str,
+  meterDuck: {
+    ko: '숙이기',
+    en: 'DUCK',
+    ja: 'しゃがむ',
+    zh: '低头',
+    vi: 'CÚI',
+    th: 'หมอบ',
+    ru: 'ПРИГНУТЬСЯ',
+    id: 'TUNDUK',
+  } as Str,
+  meterHand: {
+    ko: '내 손',
+    en: 'Your hand',
+    ja: 'あなたの手',
+    zh: '你的手',
+    vi: 'Tay bạn',
+    th: 'มือคุณ',
+    ru: 'Ваша рука',
+    id: 'Tangan Anda',
   } as Str,
   runResult: {
     ko: '잘 달렸어요!',
@@ -112,6 +245,26 @@ export const MOTION = {
   } as Str,
 
   // ── Calibration / coaching ────────────────────────────────────────────
+  /**
+   * The gate's headline, and now the whole instruction.
+   *
+   * It used to read "step in front of the screen", which was the right ask for
+   * a game played with a torso and is the wrong one for a game played with a
+   * hand: a visitor who steps back and waits is a visitor the hand model cannot
+   * see, holding still, doing exactly what the screen told them. The wave glyph
+   * beside it carries this on its own for anyone not reading.
+   */
+  raiseHand: {
+    ko: '한 손을 들어주세요',
+    en: 'Raise one hand',
+    ja: '片手を上げてください',
+    zh: '请举起一只手',
+    vi: 'Hãy giơ một tay lên',
+    th: 'ยกมือขึ้นหนึ่งข้าง',
+    ru: 'Поднимите одну руку',
+    id: 'Angkat satu tangan',
+  } as Str,
+  /** The old line, kept: it is what the BODY fallback should say. */
   stepInFront: {
     ko: '화면 앞에 서주세요',
     en: 'Step in front of the screen',
@@ -133,24 +286,24 @@ export const MOTION = {
     id: 'SIAP!',
   } as Str,
   backIntoView: {
-    ko: '화면 안으로 들어와 주세요',
-    en: 'Move back into view',
-    ja: '画面の中に戻ってください',
-    zh: '请回到画面中',
-    vi: 'Hãy vào lại khung hình',
-    th: 'กลับเข้ามาในจอด้วย',
-    ru: 'Вернитесь в кадр',
-    id: 'Kembali ke dalam layar',
+    ko: '손을 다시 들어주세요',
+    en: 'Raise your hand again',
+    ja: 'もう一度手を上げてください',
+    zh: '请再次举起手',
+    vi: 'Hãy giơ tay lên lại',
+    th: 'ยกมือขึ้นอีกครั้ง',
+    ru: 'Поднимите руку снова',
+    id: 'Angkat tangan lagi',
   } as Str,
   moveIntoArea: {
-    ko: '게임 영역 안으로 이동해 주세요',
-    en: 'Move back into the game area',
-    ja: 'ゲームエリアに戻ってください',
-    zh: '请回到游戏区域',
-    vi: 'Hãy vào lại khu vực chơi',
-    th: 'กลับเข้าพื้นที่เล่นด้วย',
-    ru: 'Вернитесь в игровую зону',
-    id: 'Kembali ke area permainan',
+    ko: '손을 화면 가운데로 옮겨주세요',
+    en: 'Bring your hand back to the middle',
+    ja: '手を画面の中央に戻してください',
+    zh: '请把手移回画面中间',
+    vi: 'Hãy đưa tay về giữa khung hình',
+    th: 'ขยับมือกลับมากลางจอ',
+    ru: 'Верните руку к центру кадра',
+    id: 'Kembalikan tangan ke tengah layar',
   } as Str,
   onePlayer: {
     ko: '한 명만 플레이해 주세요',
@@ -164,27 +317,44 @@ export const MOTION = {
   } as Str,
   /** The line that answers "I AM standing here" — they were too close. */
   stepBack: {
-    ko: '조금 뒤로 물러나 주세요',
-    en: 'Step back a little',
-    ja: '少し後ろに下がってください',
-    zh: '请稍微后退一点',
-    vi: 'Hãy lùi lại một chút',
-    th: 'ถอยหลังอีกนิด',
-    ru: 'Отойдите немного назад',
-    id: 'Mundur sedikit',
+    ko: '손을 조금 뒤로 빼주세요',
+    en: 'Move your hand back a little',
+    ja: '手を少し後ろに引いてください',
+    zh: '请把手稍微往后一点',
+    vi: 'Hãy đưa tay lùi lại một chút',
+    th: 'ถอยมือกลับอีกนิด',
+    ru: 'Отведите руку чуть дальше',
+    id: 'Tarik tangan sedikit ke belakang',
   } as Str,
   stepCloser: {
-    ko: '조금 앞으로 와주세요',
-    en: 'Come a little closer',
-    ja: '少し前に来てください',
-    zh: '请稍微靠近一点',
-    vi: 'Hãy lại gần hơn một chút',
-    th: 'เข้ามาใกล้อีกนิด',
-    ru: 'Подойдите чуть ближе',
-    id: 'Mendekat sedikit',
+    ko: '손을 조금 더 가까이 들어주세요',
+    en: 'Hold your hand a little closer',
+    ja: '手をもう少し近づけてください',
+    zh: '请把手举得近一点',
+    vi: 'Hãy giơ tay gần hơn một chút',
+    th: 'ยกมือเข้ามาใกล้อีกนิด',
+    ru: 'Поднесите руку чуть ближе',
+    id: 'Dekatkan tangan sedikit',
   } as Str,
-  /** Shown under the silhouette so the visitor knows where to stand. */
+  /**
+   * Shown under the hand outline.
+   *
+   * Answers the question the old copy created and the new copy inherits: people
+   * back away from a camera game because they assume it wants all of them. It
+   * does not — it wants a palm, and standing where they already are is right.
+   */
   standHere: {
+    ko: '그 자리에서 손만 들면 돼요',
+    en: 'Just your hand, from where you are',
+    ja: 'その場で手を上げるだけで大丈夫です',
+    zh: '就站在原地，举手即可',
+    vi: 'Chỉ cần giơ tay, đứng nguyên tại chỗ',
+    th: 'ยืนตรงนั้นแล้วยกมือก็พอ',
+    ru: 'Достаточно руки — стойте, где стоите',
+    id: 'Cukup tangan Anda, dari tempat Anda berdiri',
+  } as Str,
+  /** The body fallback's equivalent, for a visitor whose hands are full. */
+  standHereBody: {
     ko: '전신이 다 보이지 않아도 괜찮아요',
     en: "Your whole body doesn't need to fit",
     ja: '全身が入らなくても大丈夫です',
@@ -195,14 +365,14 @@ export const MOTION = {
     id: 'Tidak perlu seluruh tubuh terlihat',
   } as Str,
   moveLeftRight: {
-    ko: '좌우로 움직이세요',
-    en: 'Move left and right',
-    ja: '左右に動かしてください',
-    zh: '左右移动',
-    vi: 'Di chuyển sang trái phải',
-    th: 'ขยับซ้ายขวา',
-    ru: 'Двигайтесь влево и вправо',
-    id: 'Bergerak ke kiri dan kanan',
+    ko: '손을 좌우로 움직이세요',
+    en: 'Move your hand left and right',
+    ja: '手を左右に動かしてください',
+    zh: '左右移动手掌',
+    vi: 'Di chuyển tay sang trái phải',
+    th: 'ขยับมือซ้ายขวา',
+    ru: 'Двигайте рукой влево и вправо',
+    id: 'Gerakkan tangan ke kiri dan kanan',
   } as Str,
   cameraOff: {
     ko: '카메라를 사용할 수 없어요',

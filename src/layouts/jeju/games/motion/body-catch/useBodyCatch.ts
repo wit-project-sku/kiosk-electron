@@ -1,24 +1,38 @@
 /**
- * 몸으로 감귤 받기 — the engine.
+ * 손으로 감귤 받기 — the engine.
  *
  * The camera-controlled sibling of `tangerine-catch/useTangerineCatch`. It
  * REUSES that game's renderer wholesale (`catchRender`) — same basket, same
  * fruit, same particles — so the two catch games are visibly the same game with
  * two different controllers, which is exactly what they are.
  *
- * What it does NOT reuse is the tuning, and that is deliberate. A finger and a
- * torso are not the same input device:
+ * What it does NOT reuse is the tuning, and that is deliberate. A finger on
+ * glass and a hand in the air are not the same input device:
  *
- *   · A finger crosses the field in a fifth of a second. A body takes a stride,
- *     and the player has to decide, shift their weight and arrive. Everything
- *     here falls more slowly and spawns further apart.
- *   · A finger lands exactly where it is pointed. A torso centre wobbles by a
- *     few percent even when its owner is standing still, so the catch band is
- *     wider — see CATCH_PAD.
- *   · A finger never disappears. A body does, constantly — see the stall.
+ *   · A finger is where you put it. A hand has to be FOUND first, twenty times
+ *     a second, and the tracker's estimate wobbles by a percent or two even
+ *     when its owner is holding still — so the catch band is wider. See
+ *     CATCH_PAD.
+ *   · A finger crosses the field as fast as the arm can move it and stops dead.
+ *     A hand in the air overshoots, because there is nothing to stop it
+ *     against. Things fall slightly slower here to leave room for the
+ *     correction.
+ *   · A finger never disappears. A hand does, constantly — it turns edge-on, it
+ *     leaves the frame, it drops to scratch a nose. See the stall.
  *
- * Copying the touch tuning across would produce a game that looks identical and
- * is unplayable.
+ * ── Tuned for a HAND, not a torso ─────────────────────────────────────
+ * This game was originally steered by walking left and right (see HandTracker
+ * for why it no longer is), and the numbers below were tuned for that: a body
+ * takes a stride to cross the field, so everything fell slowly and sparsely
+ * enough to walk under. A raised hand is a far quicker instrument — much closer
+ * to the touch game's finger than to a torso — and against the old tuning the
+ * game was no longer a game, just a wait. The tiers now sit between the two,
+ * nearer the touch game's end.
+ *
+ * A body can still steer this (the tracker falls back for a visitor whose hands
+ * are full) and plays it at the old difficulty by a happier accident than it
+ * sounds: a stride is slower, but the fallback player is also standing further
+ * back, where the whole field is in their view at once.
  */
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { sfx } from '../../gameSound';
@@ -39,8 +53,9 @@ import {
  * NOT the touch game's 1900×2060. This one renders on the customer display,
  * where MotionStage gives the game nearly the whole 2160×3840 board — there is
  * no header, banner or button row to share it with. The extra height is the
- * point: a body is a slower controller than a finger, and a longer drop is what
- * gives the player time to actually walk under a falling tangerine.
+ * point: a camera controller is a less precise instrument than a fingertip, and
+ * a longer drop is what gives the player time to see where a tangerine is going
+ * and get their hand under it.
  */
 export const FIELD_W = 1980;
 export const FIELD_H = 3120;
@@ -60,11 +75,13 @@ const MAX_POPS = 8;
 /**
  * Extra half-width added to the basket's mouth for collision only.
  *
- * The brief asks for a forgiving zone and it is not a nicety: the tracked torso
- * centre drifts by a few percent of frame width from breathing and shoulder
- * roll alone, so a pixel-exact mouth would drop fruit the player was visibly
- * under. 70px on a 1900px field is roughly that drift, which makes the
- * difference invisible to a player and decisive for the ones they nearly miss.
+ * The brief asks for a forgiving zone and it is not a nicety: a tracked palm
+ * centre drifts by a percent or two of frame width from the model's own
+ * frame-to-frame disagreement, before the player has moved at all, and the
+ * range expansion in the tracker multiplies that by about 1.6 on its way to the
+ * field. A pixel-exact mouth would drop fruit the player was visibly under.
+ * 70px on a 1980px field is roughly that drift — invisible to a player, and
+ * decisive for the ones they nearly miss.
  */
 const CATCH_PAD = 70;
 
@@ -80,22 +97,22 @@ interface Tier {
 }
 
 /**
- * Three tiers over 30s, as the brief specifies. Slower and sparser throughout
- * than the touch game's — see the header.
+ * Three tiers over 30s, as the brief specifies. Still gentler than the touch
+ * game's, but much nearer to it than to the walking version — see the header.
  */
 const TIERS: { until: number; tier: Tier }[] = [
   // 0–10s. One thing at a time, drifting down. The visitor is still working out
-  // that their body is the controller; nothing here should punish that.
-  { until: 10, tier: { interval: 1.15, speed: [380, 470], golden: 0.08, rock: 0, concurrent: 3 } },
+  // that their hand is the controller; nothing here should punish that.
+  { until: 10, tier: { interval: 0.95, speed: [460, 580], golden: 0.08, rock: 0, concurrent: 4 } },
   // 10–20s. They have it now.
   {
     until: 20,
-    tier: { interval: 0.85, speed: [500, 640], golden: 0.11, rock: 0.12, concurrent: 5 },
+    tier: { interval: 0.7, speed: [620, 790], golden: 0.11, rock: 0.12, concurrent: 6 },
   },
   // 20–30s. The finish, with goldens worth chasing across the field.
   {
     until: Infinity,
-    tier: { interval: 0.62, speed: [640, 820], golden: 0.16, rock: 0.16, concurrent: 7 },
+    tier: { interval: 0.5, speed: [790, 1000], golden: 0.16, rock: 0.16, concurrent: 8 },
   },
 ];
 
@@ -239,9 +256,10 @@ export function useBodyCatch(player: React.RefObject<PlayerTrackingState>): Body
           setStalled(lost);
         }
 
-        // The body IS the controller. `centerX` is already smoothed, mirrored
-        // and range-expanded by the tracking layer, so this is a plain map onto
-        // the field — any further filtering here would only add lag.
+        // The hand IS the controller. `centerX` is already smoothed, mirrored
+        // and range-expanded by the tracking layer — and means the same thing
+        // if the tracker has fallen back to the body — so this is a plain map
+        // onto the field. Any further filtering here would only add lag.
         if (!lost) {
           basketRef.current =
             Math.max(0, Math.min(1, tracked.centerX)) * (FIELD_W - BASKET_W) + BASKET_W / 2;

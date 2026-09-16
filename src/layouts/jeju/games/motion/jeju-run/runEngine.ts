@@ -1,5 +1,5 @@
 /**
- * 조랑말 달리기 — the endless runner played while the AI renders the photo.
+ * 제주 달리기 — the endless runner played while the AI renders the photo.
  *
  * ── Where this came from ──────────────────────────────────────────────
  * Ported from the `test` branch's `features/game/dinoEngine.ts`, a Chrome
@@ -11,15 +11,41 @@
  * useMotionTracking).
  *
  * ── What was changed, and what deliberately was not ───────────────────
- * The theme is 제주: the runner is a 조랑말, the ground obstacles are 돌하르방
- * and 현무암, and the birds are 갈매기. All of that is COLOUR AND PIXEL SHAPE
- * ONLY.
+ * The theme is 제주: the ground obstacles are 돌하르방 and 현무암, the birds are
+ * 갈매기, and the runner is the kiosk's own character. All of that is COLOUR
+ * AND PIXEL SHAPE ONLY.
  *
- * Not one collision number moved. The obstacle Y-bands, the jump arc, the
- * speeds and the forgiveness inset are tuned against each other — the comments
- * below say exactly how, and how little slack there is — so restyling had to
- * stay strictly inside the boxes that were already there. A prettier obstacle
- * that shifts its band silently breaks the duck/jump distinction.
+ * ══ WHO THE RUNNER IS ════════════════════════════════════════════════
+ * The kiosk's character, as a rigged photograph — see runnerRig. The flat
+ * pixel figure in {@link drawPixelRunner} is the FALLBACK, drawn only if the
+ * photo or its cut-up fails: a game that renders no runner at all is far worse
+ * than one that renders a stylised one, and on a kiosk the asset pipeline is
+ * exactly the thing that breaks silently after a bad build.
+ *
+ * Both are drawn to the same boxes and the same ground line, so the fallback is
+ * a change of appearance and never a change of game.
+ *
+ * ══ THE NUMBERS THAT MOVED, AND WHY THEY ARE SAFE ═════════════════════
+ * Every VERTICAL number is untouched, and that is the important half: the
+ * obstacle Y-bands, DINO_H and DUCK_H are tuned against each other and against
+ * the forgiveness inset, and they are the entire duck-or-jump distinction. Move
+ * any of them and an obstacle silently becomes decorative — see obstacleFor.
+ * The crouched sprite is drawn to respect that too: her highest pixel sits ~18px
+ * below the bottom of the `bird_duck` band, so a gull that the box says she
+ * ducked visibly passes over her head.
+ *
+The two that moved are the WIDTHS, {@link DINO_W} (88 → 52 units) and
+ * {@link DUCK_W} (118 → 76), because the runner stopped being a long stocky
+ * pony and became a person. A person drawn 330px tall is nowhere near 303px
+ * wide, and a crouching one is not 406px long. Leaving either box at the pony's
+ * width would have killed the player from obstacles a hundred pixels clear of
+ * her — the exact "that didn't touch me" that makes a runner feel broken.
+ *
+ * Narrowing is the safe DIRECTION, which is why it was allowed at all. The jump
+ * arc is tuned so the runner outlasts the whole time an obstacle overlaps her,
+ * and that overlap is `(obstacle_w + runner_w) / speed`: a narrower runner is
+ * overlapped for FEWER steps, so the ~19 steps of timing slack documented on
+ * JUMP_V can only grow. Widening either would have needed the arc re-tuned.
  *
  * Deliberately framework-free: the whole thing is one canvas and one rAF loop,
  * so React never re-renders during play (the pose hook updates a ref, not state).
@@ -30,25 +56,39 @@
  * MediaPipe load.
  *
  * It fills Monitor 2 edge to edge (portrait 2160×3840), so the sprite geometry
- * below is authored in the original 88×96 dino units and multiplied by {@link S}.
- * Keeping the authored units means the proportions stay the ones that were
- * actually tuned, and only one number changes if the artboard ever does.
+ * below is authored in the original 96-unit dino height and multiplied by
+ * {@link S}. Keeping the authored units means the proportions stay the ones that
+ * were actually tuned, and only one number changes if the artboard ever does.
  */
+
+import { drawRiggedRunner, loadRunnerRig, type RunnerRig, type RunnerState } from './runnerRig';
 
 /** Logical play field — the full customer-display artboard. */
 export const GAME_W = 2160;
 export const GAME_H = 3840;
 
-/** Sprite scale: the dino was authored 88×96, and stands 330px tall here. */
+/** Sprite scale: the sprite is authored 96 units tall and stands 330px here. */
 const S = 3.4375;
 
 /** Ground line — everything stands on it. Low enough to leave a tall sky. */
 const GROUND_Y = 2750;
 
 const DINO_X = 380;
-const DINO_W = Math.round(88 * S); // 303
+/**
+ * 52 units, not the pony's 88 — a person is not as wide as she is tall.
+ *
+ * This is the only tuned number in the file that moved, and the header says at
+ * length why narrowing (and only narrowing) is safe against the jump arc.
+ *
+ * The drawing deliberately reaches PAST this box: her leading hand and front
+ * shoe extend to ~50 units against a forgiveness-inset right edge at 42. That
+ * is the inset doing its job — a leading toe clipping an obstacle should read
+ * as the near miss it is, not as a death.
+ */
+const DINO_W = Math.round(52 * S); // 179
 const DINO_H = Math.round(96 * S); // 330
-const DUCK_W = Math.round(118 * S); // 406
+/** 76 units, not the pony's 118 — a crouching person is not 406px long. */
+const DUCK_W = Math.round(76 * S); // 261
 const DUCK_H = Math.round(56 * S); // 193
 
 /**
@@ -75,6 +115,15 @@ const START_SPEED = 24;
 const MAX_SPEED = 52;
 const SPEED_RAMP = 0.0035;
 
+/**
+ * Physics steps in one full stride cycle (left foot down to left foot down).
+ *
+ * 24 steps is 0.4s at 60fps — about two strides a second, which is a jog rather
+ * than a sprint and is what her posture in the photograph can carry. Faster and
+ * the interpolation between four keyframes starts to strobe.
+ */
+const RUN_CYCLE_STEPS = 24;
+
 /** Score ticks up per pixel travelled. */
 const SCORE_PER_PX = 0.011;
 
@@ -88,29 +137,79 @@ const FORGIVENESS = Math.round(10 * S); // 34
 const INTRO_GRACE_STEPS = 45;
 
 /**
- * 제주 palette. The runner is a chestnut 조랑말, the ground obstacles are the
- * island's black basalt, and the birds are 갈매기 — white against a dark sky, so
- * they read at the top of a 3840px board from across a concourse.
+ * 제주 palette. The ground obstacles are the island's black basalt and the birds
+ * are 갈매기 — white against a dark sky, so they read at the top of a 3840px
+ * board from across a concourse.
  */
 const COLORS = {
   /** 현무암 ground line. */
   ground: '#6b6257',
-  /** 조랑말 — the stocky chestnut pony 제주 is known for. */
-  dino: '#8a5a33',
-  dinoDead: '#7d7167',
   /** 돌하르방 / basalt. */
   cactus: '#3f3a36',
   /** 갈매기. */
   bird: '#eef1f4',
   cloud: '#f3ede2',
   score: '#b9ad9c',
+  scoreLive: '#4a7fb5',
   accent: '#ff7f0f',
-  eye: '#241a12',
-  /** Mane and tail, so the pony is not one flat silhouette. */
-  mane: '#4a2f18',
   /** The gull's wing, one shade down so the flap is legible against the body. */
   birdWing: '#b9c2cc',
 } as const;
+
+/**
+ * The runner: the kiosk's own character, in her light-blue crop top and
+ * wide-leg denim.
+ *
+ * ── Pulled apart on purpose ───────────────────────────────────────────
+ * On the reference she is wearing almost exactly the same pale blue on top and
+ * bottom, which is lovely on a person and unreadable as a 330px sprite seen
+ * from across a concourse: the whole figure collapses into one blue smear with
+ * a dark blob on top. So the top is lifted and the denim dropped until the two
+ * separate, and the bare midriff between them — which is the thing that
+ * actually makes the silhouette hers — sits between two clearly different
+ * blues rather than inside one.
+ *
+ * Each garment also carries a shade one step down, used on her FAR side. A
+ * side-on figure with no shading reads as a paper cut-out; one stripe of
+ * shadow down the back half is enough to make her solid.
+ */
+const RUNNER = {
+  hair: '#1b1b26',
+  /** The streaming tail of hair, lifted so the motion reads separately. */
+  hairLo: '#343546',
+  skin: '#f0cdb4',
+  /** Crop top. Lifted off the denim — see above. */
+  top: '#cfe0f0',
+  topLo: '#a9c3dc',
+  /** Wide-leg denim. Dropped away from the top — see above. */
+  denim: '#8bafd3',
+  denimLo: '#7093ba',
+  shoe: '#f8fafc',
+  shoeLo: '#d3d9e2',
+  eye: '#241a12',
+} as const;
+
+/**
+ * Every part of her in one flat grey, for the death frame.
+ *
+ * The original greyed the pony by swapping one fill. She is eleven fills, so
+ * the swap happens on the palette rather than at each call site — which also
+ * means a colour added to RUNNER cannot forget to die.
+ */
+type RunnerPalette = Record<keyof typeof RUNNER, string>;
+
+const RUNNER_DEAD: RunnerPalette = {
+  hair: '#5f574e',
+  hairLo: '#6f675e',
+  skin: '#a09488',
+  top: '#9a9188',
+  topLo: '#8a8178',
+  denim: '#7d7167',
+  denimLo: '#6d6259',
+  shoe: '#b0a89f',
+  shoeLo: '#989087',
+  eye: '#3a332d',
+};
 
 type ObstacleKind = 'cactus_s' | 'cactus_l' | 'cactus_cluster' | 'bird_duck' | 'bird_jump';
 
@@ -147,6 +246,18 @@ export interface RunEngineHandle {
   jump: () => void;
   /** Hold the dino down. */
   setDucking: (ducking: boolean) => void;
+  /**
+   * Practice mode: she runs, jumps and ducks, but nothing spawns, the speed
+   * does not ramp and nothing scores.
+   *
+   * This is the tutorial's floor. A visitor who has never steered anything with
+   * a hand learns the two moves by doing them against an empty track, where
+   * getting it wrong costs nothing — rather than by crashing into the first
+   * 돌하르방 and being shown GAME OVER before they understood there was a game.
+   * Turning it off starts the real run from a score of zero with a clear gap
+   * before the first obstacle.
+   */
+  setPractice: (practice: boolean) => void;
   /**
    * Freeze the world without ending the run — used for the pre-run countdown,
    * and when the player steps out of the camera's view so walking away is never
@@ -196,7 +307,27 @@ function px(
   ctx.fillRect(x, y, w, h);
 }
 
-function drawDino(
+/**
+ * The FALLBACK runner: her likeness as flat rectangles.
+ *
+ * ══ WHY A HAND-DRAWN FIGURE EXISTS AT ALL ═════════════════════════════
+ * She is normally the rigged photograph (see runnerRig). This draws when that
+ * cannot: a missing or corrupt asset, a decode failure, a browser that refuses
+ * the canvas readback the cut-up needs. A runner game with no runner is not
+ * degraded, it is broken — and an asset failing quietly after a bad build is
+ * the most ordinary thing that can go wrong on a kiosk.
+ *
+ * So it is authored in the idiom of everything it shares the screen with — the
+ * 돌하르방, the 갈매기, the clouds are all flat rects — and readable by
+ * SILHOUETTE first: long dark hair streaming back, a cropped pale top, bare
+ * midriff, wide-leg denim, white trainers. At 330px on a 3840px board seen
+ * across a concourse, that silhouette is the whole likeness.
+ *
+ * Authored in units within a 52 × 96 box, origin at her top-left. Half-units are
+ * fine — `r` takes floats — which is what gives human proportions inside a grid
+ * that was laid out for a pony.
+ */
+function drawPixelRunner(
   ctx: CanvasRenderingContext2D,
   x: number,
   bottomY: number,
@@ -204,39 +335,149 @@ function drawDino(
   runFrame: number,
   dead: boolean,
 ): void {
-  const c = dead ? COLORS.dinoDead : COLORS.dino;
+  const c: RunnerPalette = dead ? RUNNER_DEAD : RUNNER;
   const top = bottomY - (ducking ? DUCK_H : DINO_H);
-  // Authored in 88×96 dino units; scaled to the artboard.
-  const r = (dx: number, dy: number, dw: number, dh: number, color: string = c): void =>
+  const r = (dx: number, dy: number, dw: number, dh: number, color: string): void =>
     px(ctx, x + dx * S, top + dy * S, dw * S, dh * S, color);
 
-  // ── Ducking: head down, legs tucked ──
-  // Every rectangle keeps the position and size it was tuned with; only the
-  // colours and two small additions (mane, tail hair) are new.
+  // ── Ducking: a deep crouch ──
+  //
+  // This was a forward slide first, to fill the pony's 118-unit box. It read as
+  // a pile of loose blocks: flat out and side-on, a head, an arm and a torso at
+  // the same height are one skin-and-blue smear, and nothing in it said "person"
+  // at a glance. Narrowing DUCK_W (see the header) bought the room to draw the
+  // pose a player actually expects instead — folded down over her knees, which
+  // is compact, unmistakably human, and unmistakably DUCKING.
+  //
+  // Her highest pixel is the crown at 8 units, ~27px below the top of the box,
+  // which leaves ~18px of daylight under the `bird_duck` band. That clearance is
+  // the whole reason the duck input exists, so check it against obstacleFor
+  // before moving anything in here upward.
+  //
+  // Every block overlaps its neighbour. With a figure this compressed, rects
+  // that merely touch read as a row of boxes rather than a body.
   if (ducking) {
-    r(0, 14, 26, 14, COLORS.mane); // tail hair
-    r(20, 8, 58, 30); // body
-    r(74, 6, 34, 22); // head
-    r(70, 22, 24, 8); // muzzle
-    r(96, 11, 8, 8, COLORS.eye); // eye
-    r(30, 38, 12, 18); // tucked legs
-    r(54, 38, 12, 18);
+    r(3, 20, 15, 12, c.hairLo); // hair, still carrying her speed
+    r(8, 13, 20, 17, c.hair);
+    r(20, 7, 18, 14, c.hair); // crown, tipped forward over the knees
+    r(30, 11, 16, 16, c.skin); // face, looking ahead down the track
+    r(33, 10, 11, 5, c.hair); // fringe, or she reads as bald from the front
+    r(41, 19, 3, 3, c.eye);
+    r(45, 20, 2, 3, c.skin); // nose
+    r(24, 23, 22, 17, c.top); // torso, folded forward
+    r(24, 23, 7, 17, c.topLo);
+    r(42, 26, 6, 11, c.topLo); // arm tucked in front of her
+    r(44, 32, 9, 8, c.skin);
+    r(28, 37, 15, 8, c.skin); // midriff
+    r(19, 41, 23, 15, c.denim); // hips, dropped low and back
+    r(19, 41, 5, 15, c.denimLo);
+    r(35, 39, 23, 14, c.denim); // thigh, folded forward
+    r(51, 45, 15, 11, c.denim); // shin, down to the leading foot
+    r(17, 48, 16, 8, c.shoe); // trailing foot
+    r(17, 54, 16, 2, c.shoeLo);
+    r(60, 47, 16, 9, c.shoe); // leading foot
+    r(60, 54, 16, 2, c.shoeLo);
     return;
   }
 
-  r(0, 40, 22, 16, COLORS.mane); // tail hair
-  r(14, 36, 46, 34); // barrel
-  r(50, 18, 20, 30); // neck
-  r(46, 16, 16, 26, COLORS.mane); // mane down the neck
-  r(58, 4, 30, 26); // head
-  r(52, 24, 26, 10); // muzzle
-  r(76, 11, 8, 8, COLORS.eye); // eye
-  r(52, 44, 13, 7); // near foreleg
+  // ── Hair, behind everything, tapering as it streams back ──
+  //
+  // Three pieces, not one. A single tall rectangle was the first attempt and it
+  // swallowed her: at 18 units wide it was as broad as her whole body, so the
+  // silhouette read as a dark cape with a face stuck to the front rather than a
+  // head with hair behind it. The crown is now its own small block over the
+  // skull, the length is a NARROWER column down her back, and the two streaming
+  // wisps taper — which is also the only part of the sprite that says "moving"
+  // during the frames when both feet happen to be down.
+  r(2, 22, 9, 8, c.hairLo); // far wisp
+  r(7, 16, 13, 13, c.hairLo);
+  r(19, 15, 13, 29, c.hair); // the length, neck to mid-back
+  r(24, 4, 10, 14, c.hair); // back of the skull
 
-  // Two-frame gallop; both legs plant while airborne or dead.
-  const stride = dead ? 0 : runFrame;
-  r(20, 68, 13, stride === 1 ? 20 : 28);
-  r(40, 68, 13, stride === 1 ? 28 : 20);
+  // ── Head ──
+  // Drawn AFTER the hair so the face sits in front of it. The face is a full
+  // 15 units — a sixth of her height — because a smaller one disappears into
+  // the hair at this scale, which is what the first pass got wrong.
+  r(30, 5, 14, 15, c.skin);
+  r(27, 3, 13, 6, c.hair); // fringe, forehead only
+  r(39, 12, 2.5, 2.5, c.eye);
+  r(43.5, 13, 2, 3, c.skin); // nose — the pixel that fixes which way she faces
+  r(31, 19, 7, 4, c.skin); // neck
+
+  // ── Crop top ──
+  r(26, 22, 16, 19, c.top);
+  r(26, 22, 5, 19, c.topLo); // her far side, in shade
+
+  // A last strand falling OVER the top, so the hair belongs to her rather than
+  // stopping at the collar.
+  r(20, 22, 7, 17, c.hair);
+
+  // ── Arms, counter-swinging with the legs ──
+  // Sleeves in the top's colour and forearms in skin: that is the three-quarter
+  // sleeve on the reference, and also the only way an arm reads as an arm at
+  // this size, because two tones tell you where the elbow is. The forearm block
+  // overlaps the upper arm rather than butting against it — see the slide.
+  //
+  // Both arms stay ON her: an earlier pass swung the far one out to x17, which
+  // at this scale is a hand floating in her hair rather than an arm.
+  if (runFrame === 0) {
+    r(40, 23, 6, 10, c.topLo); // near arm, elbow bent up in front
+    r(43, 18, 6, 9, c.skin);
+    r(22, 23, 5, 11, c.topLo); // far arm, swung down and back
+    r(19, 31, 6, 9, c.skin);
+  } else {
+    r(40, 23, 6, 11, c.topLo); // near arm, driven down and back
+    r(39, 31, 6, 9, c.skin);
+    r(23, 23, 5, 10, c.topLo); // far arm, coming through in front
+    r(24, 17, 6, 9, c.skin);
+  }
+
+  r(29, 40, 12, 8, c.skin); // midriff
+
+  // ── Denim ──
+  r(25, 47, 17, 14, c.denim);
+  r(25, 47, 5, 14, c.denimLo); // far side
+  r(25, 47, 17, 2, c.denimLo); // waistband
+
+  // ── Two-frame stride ──
+  //
+  // ══ A BENT KNEE IS WHAT MAKES HER RUN ═════════════════════════════
+  // The pony's gallop this replaces was two vertical legs of different lengths,
+  // and inheriting that was the first attempt here. On a quadruped it reads as
+  // a stride; on a person it reads as standing still with one leg shorter than
+  // the other, which is worse than no animation at all.
+  //
+  // So the planted leg runs straight down and the lifted one is drawn in TWO
+  // pieces — a thigh, then a shin displaced along the direction of travel. The
+  // step in the middle is the knee, and one stepped rect is the whole
+  // difference between a person running and a person standing.
+  //
+  // Whichever leg is planted is always drawn to y=96, which is what makes the
+  // sprite's bottom edge equal DINO_H — and therefore what keeps her standing
+  // ON the ground line rather than in it.
+  const planted = (dx: number, color: string, shoeDx: number): void => {
+    r(dx, 59, 11, 29, color);
+    r(shoeDx, 88, 15, 8, c.shoe);
+    r(shoeDx, 94, 15, 2, c.shoeLo);
+  };
+  const lifted = (thighDx: number, shinDx: number, color: string, shoeDx: number): void => {
+    r(thighDx, 59, 12, 13, color);
+    r(shinDx, 70, 11, 12, color);
+    r(shoeDx, 81, 14, 8, c.shoe);
+    r(shoeDx, 87, 14, 2, c.shoeLo);
+  };
+
+  if (dead) {
+    // Both feet down. Nothing about a crash should look like a stride.
+    planted(25, c.denimLo, 23);
+    planted(36, c.denim, 34);
+  } else if (runFrame === 0) {
+    planted(25, c.denimLo, 23); // far leg carries her
+    lifted(35, 39, c.denim, 38); // near leg driving forward
+  } else {
+    planted(36, c.denim, 34); // near leg carries her
+    lifted(25, 20, c.denimLo, 18); // far leg trailing behind
+  }
 }
 
 function drawObstacle(ctx: CanvasRenderingContext2D, o: Obstacle): void {
@@ -301,6 +542,16 @@ export function createRunEngine(
   canvas.width = GAME_W;
   canvas.height = GAME_H;
 
+  // The rig is a module-level singleton behind this call: the first game pays
+  // for the decode and the cut-up, every later one gets it for nothing. Not
+  // awaited — the loop starts immediately and draws the fallback for the frame
+  // or two before it arrives, which is also exactly what happens for good if it
+  // never does.
+  let rig: RunnerRig | null = null;
+  void loadRunnerRig().then((loaded) => {
+    rig = loaded;
+  });
+
   let raf: number | null = null;
   let running = false;
   let lastTime = 0;
@@ -312,10 +563,13 @@ export function createRunEngine(
   let ducking = false;
   let dead = false;
   let paused = false;
+  let practice = false;
   let runTick = 0;
 
   let speed = START_SPEED;
   let distance = 0;
+  /** Distance covered while it COUNTS — practice scrolls the world but not this. */
+  let scored = 0;
   let score = 0;
   let best = 0;
   let reportedScore = -1;
@@ -330,9 +584,11 @@ export function createRunEngine(
     ducking = false;
     dead = false;
     paused = false;
+    practice = false;
     runTick = 0;
     speed = START_SPEED;
     distance = 0;
+    scored = 0;
     score = 0;
     reportedScore = -1;
     obstacles = [];
@@ -399,10 +655,14 @@ export function createRunEngine(
     if (dead) return;
 
     runTick += 1;
-    speed = Math.min(MAX_SPEED, speed + SPEED_RAMP);
+    // The scenery always moves, so practice still LOOKS like running.
     distance += speed;
+    if (!practice) {
+      speed = Math.min(MAX_SPEED, speed + SPEED_RAMP);
+      scored += speed;
+    }
 
-    const next = Math.floor(distance * SCORE_PER_PX);
+    const next = Math.floor(scored * SCORE_PER_PX);
     if (next !== score) {
       score = next;
       if (score > best) best = score;
@@ -427,8 +687,10 @@ export function createRunEngine(
       }
     }
 
-    nextSpawnIn -= speed;
-    if (nextSpawnIn <= 0) spawn();
+    if (!practice) {
+      nextSpawnIn -= speed;
+      if (nextSpawnIn <= 0) spawn();
+    }
 
     for (const o of obstacles) {
       o.x -= speed;
@@ -467,7 +729,28 @@ export function createRunEngine(
     ctx.globalAlpha = 1;
 
     for (const o of obstacles) drawObstacle(ctx, o);
-    drawDino(ctx, DINO_X, GROUND_Y - dinoY, crouched(), Math.floor(runTick / 6) % 2, dead);
+
+    // ── The runner ──
+    // `runTick` counts physics steps, so the cycle is tied to distance covered
+    // rather than to wall-clock: she takes the same number of strides per metre
+    // however fast the board is painting, and her feet do not skate when the
+    // speed ramps.
+    const crouching = crouched();
+    const state: RunnerState = dead ? 'dead' : crouching ? 'duck' : dinoY > 0 ? 'jump' : 'run';
+    if (rig) {
+      drawRiggedRunner(
+        ctx,
+        rig,
+        DINO_X,
+        GROUND_Y - dinoY,
+        crouching ? DUCK_W : DINO_W,
+        DINO_H,
+        state,
+        runTick / RUN_CYCLE_STEPS,
+      );
+    } else {
+      drawPixelRunner(ctx, DINO_X, GROUND_Y - dinoY, crouching, Math.floor(runTick / 6) % 2, dead);
+    }
 
     // Score, top-right, monospace for a stable width.
     ctx.font = '600 132px ui-monospace, "SF Mono", Menlo, monospace';
@@ -475,7 +758,7 @@ export function createRunEngine(
     ctx.textBaseline = 'top';
     ctx.fillStyle = COLORS.score;
     if (best > 0) ctx.fillText(`HI ${String(best).padStart(5, '0')}`, GAME_W - 700, 150);
-    ctx.fillStyle = COLORS.dino;
+    ctx.fillStyle = COLORS.scoreLive;
     ctx.fillText(String(score).padStart(5, '0'), GAME_W - 150, 150);
 
     if (dead) {
@@ -535,6 +818,15 @@ export function createRunEngine(
     },
     setPaused(next: boolean): void {
       paused = next;
+    },
+    setPractice(next: boolean): void {
+      if (practice && !next) {
+        // Leaving practice: the same readable gap a fresh run opens with, so the
+        // first obstacle never arrives the instant the tutorial says "go".
+        nextSpawnIn = 1600;
+        obstacles = [];
+      }
+      practice = next;
     },
     getBest(): number {
       return best;

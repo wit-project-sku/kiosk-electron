@@ -59,16 +59,24 @@ export const TEXT = {
     ru: 'СЕНСОРНЫЕ ИГРЫ',
     id: 'GIM SENTUH',
   } as Str,
-  /** Section heading over the camera games — see the note in JejuGameHub. */
+  /**
+   * Section heading over the camera games — see the note in JejuGameHub.
+   *
+   * "손으로 하는 게임" rather than "몸으로", because the heading is the first
+   * thing that tells a visitor what they are signing up for, and what they are
+   * signing up for is no longer standing back and moving their whole body in an
+   * airport. Getting this wrong costs the games their audience before a card is
+   * ever tapped.
+   */
   motionGames: {
-    ko: '몸으로 하는 게임',
-    en: 'MOTION GAMES',
-    ja: '体で遊ぶゲーム',
-    zh: '体感游戏',
-    vi: 'TRÒ CHƠI VẬN ĐỘNG',
-    th: 'เกมขยับตัว',
-    ru: 'ИГРЫ ДВИЖЕНИЯ',
-    id: 'GIM GERAK',
+    ko: '손으로 하는 게임',
+    en: 'HAND GAMES',
+    ja: '手で遊ぶゲーム',
+    zh: '手势游戏',
+    vi: 'TRÒ CHƠI BẰNG TAY',
+    th: 'เกมใช้มือ',
+    ru: 'ИГРЫ ЖЕСТАМИ',
+    id: 'GIM TANGAN',
   } as Str,
 
   // ── Game cards ────────────────────────────────────────────────────────

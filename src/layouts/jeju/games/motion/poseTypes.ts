@@ -14,11 +14,15 @@
  * ends, {@link useMotionTracking} releases the camera and drops the state.
  */
 
+import type { HandGesture } from '@renderer/lib/handGesture';
+
 /**
  * One body point, already normalized and already turned upright — see
  * `toUpright` in poseMath. `x` 0..1 left→right AS THE PLAYER SEES IT (mirrored),
  * `y` 0..1 top→bottom.
  */
+export type { HandGesture } from '@renderer/lib/handGesture';
+
 export interface BodyLandmark {
   x: number;
   y: number;
@@ -67,24 +71,67 @@ export type { MotionTrackingStatus as TrackingStatus } from '@shared/types/motio
 export interface PlayerTrackingState {
   /** Is there a locked player right now (within the loss-grace window)? */
   detected: boolean;
-  /** 0..1, smoothed, mirrored. The horizontal controller for Catch and Dodge. */
+  /**
+   * What is actually driving the game, or null when nothing is.
+   *
+   * ── Games branch on this, they do not choose it ───────────────────────
+   * The tracker picks: a raised HAND wherever there is one, the BODY when there
+   * is not (see the fallback in useMotionTracking). A game never asks for one
+   * or the other — `centerX`/`centerY` mean the same thing either way — but the
+   * two move at very different scales, and a game with a movement THRESHOLD has
+   * to know which it is reading. Raising a hand crosses a third of the frame;
+   * jumping moves the shoulders by a twentieth of it. One threshold cannot
+   * serve both, and 제주 달리기 is the game that proves it.
+   */
+  source: 'hand' | 'body' | null;
+  /**
+   * 0..1, smoothed, mirrored, range-expanded. THE HORIZONTAL CONTROLLER.
+   *
+   * The palm centre when a hand is steering, the torso centre when the body is.
+   * Deliberately the same field for both: 감귤 받기 maps this onto the basket
+   * and has never needed to know which one it is reading.
+   */
   centerX: number;
-  /** 0..1, smoothed. Rarely used — the camera crops too tight to trust it. */
+  /**
+   * 0..1, smoothed, mirrored. THE VERTICAL CONTROLLER.
+   *
+   * The palm centre when a hand is steering, the shoulder line when the body
+   * is. Used against a baseline measured on this visitor during the countdown,
+   * never as an absolute — where a hand or a shoulder sits in the frame depends
+   * on the person's height and how far back they stood.
+   */
   centerY: number;
-  /** Shoulder span as a fraction of frame width — a rough "how close are they". */
+  /**
+   * Apparent size of whatever is steering, as a fraction of the frame's SHORT
+   * edge — palm width for a hand, shoulder span for a body. A rough "how close
+   * are they", and the only thing the distance coaching is computed from.
+   */
   width: number;
-  /** Hip-to-shoulder span, same units. */
+  /** Hip-to-shoulder span, same units. Zero while a hand is steering. */
   height: number;
   /** 0..1. How much the games should trust the numbers above. */
   confidence: number;
   /**
-   * The upright, mirrored 33-point pose, or null when nobody is locked.
+   * The open palm / closed fist the steering hand is holding, or null.
    *
-   * Only 포즈 챌린지 reads this. Catch and Dodge use `centerX` alone, which is
-   * why they keep working when half the landmarks are off-frame.
+   * Classified by the same `handGesture` code the capture screen's 손동작 게이트
+   * uses. No game requires it today — the controller is positional, which is
+   * legible without instructions — but it is the natural home for a discrete
+   * action, and it costs nothing to publish from a hand we have already found.
+   */
+  gesture: HandGesture | null;
+  /**
+   * The upright, mirrored 33-point pose, or null when no BODY is locked.
+   *
+   * Null throughout a hand-steered run: the pose model is not even run while a
+   * hand is visible. A game that reads this directly is a game that breaks the
+   * moment somebody plays the intended way — read `centerX`/`centerY`.
    */
   landmarks: BodyLandmark[] | null;
-  /** How many people the model saw this frame. >1 drives the 'crowded' hint. */
+  /**
+   * How many candidates the model saw this frame — hands while a hand steers,
+   * people while the body does. >1 drives the 'crowded' hint.
+   */
   people: number;
   /** performance.now() of the last frame that actually contained the player. */
   lastSeenAt: number;
@@ -94,11 +141,13 @@ export interface PlayerTrackingState {
 export function emptyTrackingState(): PlayerTrackingState {
   return {
     detected: false,
+    source: null,
     centerX: 0.5,
     centerY: 0.5,
     width: 0,
     height: 0,
     confidence: 0,
+    gesture: null,
     landmarks: null,
     people: 0,
     lastSeenAt: 0,
