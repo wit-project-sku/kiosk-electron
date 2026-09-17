@@ -1,11 +1,9 @@
 /**
- * 정보 입력 — Figma 7212:66381. 좌표와 시안과 다른 곳은 스타일시트 머리말 참고.
+ * 정보 입력 — Figma 7384:86828. 좌표와 시안과 다른 곳은 스타일시트 머리말 참고.
  *
- * ★ 화면 안의 동의 한 줄("서비스 제공을 위해 이용자의 정보 수집을 동의합니다")은
- *   시안이 이 화면에 새로 넣은 것이고, 다음 화면의 법정 동의 두 가지(개인정보
- *   수집·이용 / 민감정보 수집·이용)를 대신하지 않는다 — 민감정보는 따로 받아야
- *   한다. 그래서 이 줄은 '다음으로' 를 여는 문지기이고, 동의 화면은 그대로 있다.
- *   두 가지를 이 화면으로 합치는 것은 법무 확인이 필요한 별개의 일이다.
+ * ★ 화면 안의 동의 한 줄("서비스 제공을 위해 이용자의 정보 수집을 동의합니다")이 이
+ *   흐름의 유일한 동의다. 2026-09-17 요청으로 별도의 동의 화면(개인정보 수집·이용 /
+ *   민감정보 수집·이용 두 체크박스)을 뺐고, '다음으로' 는 곧바로 분석을 시작한다.
  */
 import type { JSX } from 'react';
 import type { Sex } from './api';
@@ -159,11 +157,18 @@ export function FillmeInfo({
             <button
               key={value}
               type="button"
-              className={values.sex === value ? `${styles.choice} ${styles.choiceOn}` : styles.choice}
+              className={
+                values.sex === value
+                  ? `${styles.choice} ${styles.choiceOn}`
+                  : `${styles.choice} ${styles.choiceSex}`
+              }
               onClick={() => onSex(value)}
               aria-pressed={values.sex === value}
             >
-              <Icon name={value} size={60} strokeWidth={2.4} />
+              {/* 시안의 기호 글자 그대로 (Bold 96). */}
+              <span className={styles.glyph} aria-hidden="true">
+                {value === 'male' ? '♂' : '♀'}
+              </span>
               {label}
             </button>
           ))}

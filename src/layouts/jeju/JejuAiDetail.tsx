@@ -34,7 +34,7 @@
  *   1353 the start-point plate (7334:10533), now fixed chrome INSIDE the sheet
  *        rather than the list's first row — so it carries no disc, and the
  *        day's first stop is disc 1 again
- *   1583 the list, inset to the sheet: discs at x212, cards 1588 wide at x364
+ *   1583 the list, inset to the sheet: discs at x212, cards 1588 wide at x347
  *
  * The 추천코스 detail (7058:22277) took the SAME treatment. It carries no answer
  * pills, so its whole stack sits 164 higher — 975 tabs · 1095 sheet · 1189 plate
@@ -349,11 +349,6 @@ const STAT_LABEL = {
   partyStay: {
     ko: '방문 인원/ 일정', en: 'Group / Stay', ja: '人数 / 日程', zh: '人数 / 行程',
     vi: 'Số người / Lịch', th: 'จำนวนคน / กำหนดการ', ru: 'Гости / Срок', id: 'Orang / Jadwal',
-  },
-  /** Per-stop, first in the card's stats row: "영업 시간 08:00-20:00" (7229:100439). */
-  hours: {
-    ko: '영업 시간', en: 'Hours', ja: '営業時間', zh: '营业时间',
-    vi: 'Giờ mở cửa', th: 'เวลาทำการ', ru: 'Часы работы', id: 'Jam buka',
   },
   /** Per-stop only — the card reads "머무는 시간 : 2-3시간" in -04-1. */
   dwell: {
@@ -944,13 +939,24 @@ export function JejuAiDetail({ controller }: Props): JSX.Element {
     const minutes = next.spot ? next.spot.travelMinutes : OFFLINE_TRAVEL_MINUTES;
     return minutes > 0 ? minutesLabel(minutes, lang) : null;
   };
+  /**
+   * The leg's distance under its time — "15분" over "1.1km" (7334:10527, the
+   * 2026-09-17 pass of 7058:21462). Both APIs send `travelKm` per stop; 0 is the
+   * normalizer's "none given", and the offline itinerary has no schedule, so
+   * those legs keep the one-line pill.
+   */
+  const legKmOf = (next: Stop): string | null => {
+    const km = next.spot?.travelKm ?? 0;
+    if (!(km > 0)) return null;
+    return `${km >= 100 ? Math.round(km) : km.toFixed(1)}km`;
+  };
   const listRail = rail;
   const legs = visibleStops.slice(1).map((next, i) => {
     const prev = visibleStops[i]!;
     if (next.number !== prev.number + 1) return null;
     const label = legOf(next);
     if (!label) return null;
-    return { top: (centers[i]! + centers[i + 1]!) / 2, label };
+    return { top: (centers[i]! + centers[i + 1]!) / 2, label, km: legKmOf(next) };
   });
   /**
    * The header's course+day line. The AI 맞춤 route names the course the way
@@ -981,16 +987,16 @@ export function JejuAiDetail({ controller }: Props): JSX.Element {
    * no schedule to grade, so the authored placeholder stands in.
    */
   /**
-   * "영업 시간 08:00-20:00" — the first stat on the itinerary cards since
-   * 7058:21462 / 7128:72710 (dwell moved into the second slot, 난이도 left the
-   * card). Same source rule as the 상세 card's hours in openSpot: the server's
-   * `openTimeText`, where NULL means "only an estimate" and draws nothing; the
-   * offline path reads the shop's own `openTime`. Line breaks fold to one line.
+   * "08:00-20:00" — the first stat on the itinerary cards. The 2026-09-17 pass
+   * of 7058:21462 / 7058:22277 dropped the "영업 시간" label the 09-15 frames
+   * drew in front of it: the clock icon says what the value is. Same source rule
+   * as the 상세 card's hours in openSpot: the server's `openTimeText`, where NULL
+   * means "only an estimate" and draws nothing; the offline path reads the
+   * shop's own `openTime`. Line breaks fold to one line.
    */
   const hoursOf = (stop: Stop): string => {
     const raw = (stop.spot ? stop.spot.openTimeText : stop.shop.openTime) ?? '';
-    const text = raw.replace(/\s+/g, ' ').trim();
-    return text ? `${sheetText('Open&closeTime', lang, STAT_LABEL.hours)} ${text}` : '';
+    return raw.replace(/\s+/g, ' ').trim();
   };
 
   const hardnessOf = (stop: Stop): string => {
@@ -1104,6 +1110,8 @@ export function JejuAiDetail({ controller }: Props): JSX.Element {
     () =>
       buildAiCourseSaveUrlForQr({
         lang,
+        // "W007" → 7: the phone names DAY 1's start plate from it.
+        kioskNum: Number(controller.kioskId.match(/\d+/)?.[0] ?? 6),
         // The phone titles the course from this code: the 커스텀 코스 and
         // 쇼핑·로컬 have their own (X / D) — sending the A / B they request
         // made the phone call them 자연·유산 / 맛집·감성.
@@ -1119,6 +1127,9 @@ export function JejuAiDetail({ controller }: Props): JSX.Element {
             shopId: stop.shop.id,
             dwellMinutes: stop.spot?.dwellMinutes ?? null,
             difficulty: stop.spot?.difficulty ?? null,
+            // The leg into the stop — the phone's "15분 / 1.1km" pill.
+            travelMinutes: stop.spot?.travelMinutes ?? null,
+            travelKm: stop.spot?.travelKm ?? null,
           })),
         })),
         totalMinutes: course?.totalMinutes ?? null,
@@ -1132,7 +1143,7 @@ export function JejuAiDetail({ controller }: Props): JSX.Element {
           : null,
         difficulty: course?.difficulty ?? null,
       }),
-    [lang, entry, courseKey, transport, visitors, stay, interests, shops, days, course],
+    [lang, entry, courseKey, transport, visitors, stay, interests, shops, days, course, controller.kioskId],
   );
 
   return (
@@ -1346,8 +1357,19 @@ export function JejuAiDetail({ controller }: Props): JSX.Element {
           {legs.map(
             (leg, i) =>
               leg && (
-                <span key={`leg-${i}`} className={styles.leg} style={{ top: leg.top }}>
-                  {leg.label}
+                <span
+                  key={`leg-${i}`}
+                  className={leg.km ? `${styles.leg} ${styles.legKm}` : styles.leg}
+                  style={{ top: leg.top }}
+                >
+                  {leg.km ? (
+                    <>
+                      <span className={styles.legLine}>{leg.label}</span>
+                      <span className={styles.legLine}>{leg.km}</span>
+                    </>
+                  ) : (
+                    leg.label
+                  )}
                 </span>
               ),
           )}

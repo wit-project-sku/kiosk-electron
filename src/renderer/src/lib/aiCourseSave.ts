@@ -2,14 +2,19 @@
  * Build the direction-fe `/ai` QR URL from the 제주 AI 코스 상세 screen.
  *
  * Sparse QR, same contract as detailCardSave:
- *   https://host/ai?p=2&n=3&i=22.7.17&tm=280&tv=95&g=1
- *                 &d1=1612.150.1_1043.120.1&d2=...
- * (`c`, `t`, `p`, `n` and `lang` only when they differ from the phone's
- * defaults A / CAR / 1 / 0 / ko — see buildAiCourseSaveUrlForQr.)
+ *   https://host/ai?p=2&n=3&i=22.7.17&tm=280&tv=95&g=1&k=7
+ *                 &d1=1612.150.1.15.11_1043.120.1.8.24&d2=...
+ * (`c`, `t`, `p`, `n`, `lang` and `k` only when they differ from the phone's
+ * defaults A / CAR / 1 / 0 / ko / 6 — see buildAiCourseSaveUrlForQr.)
+ *
+ * A stop is `shopId.dwell.difficulty.travel.km10`: its stay, its grade, and the
+ * leg INTO it — minutes and tenths of a km, the "15분 / 1.1km" pill the result
+ * page draws. Trailing zeros are trimmed, so an offline stop is just its id, and
+ * a phone page that predates the leg fields reads the first three as before.
  *
  * The phone resolves every shopId against GET /api/shops/{id} for the name,
- * category, address, description and photo — exactly the fields
- * JejuCourseSpotCard draws from `stop.shop`. NO KOREAN TEXT GOES IN THE QR.
+ * category, address, description, hours, coordinates and photo — exactly the
+ * fields JejuCourseSpotCard draws from `stop.shop`. NO KOREAN TEXT GOES IN THE QR.
  *
  * ── Why the RESULT travels, not the request ──────────────────────────
  * `POST /api/jeju/courses/recommend` is rule-based and deterministic, so it is
@@ -25,11 +30,14 @@
 import type { Lang } from '@renderer/lib/i18n';
 import type { JejuCourseKey, JejuTransport } from '@shared/types/jejuCourse';
 
-/** One scheduled stop. `dwellMinutes`/`difficulty` are absent offline. */
+/** One scheduled stop. Every number but `shopId` is absent offline. */
 export interface AiCourseSaveStop {
   shopId: number;
   dwellMinutes?: number | null;
   difficulty?: number | null;
+  /** The leg into this stop, as the schedule has it — the result page's pill. */
+  travelMinutes?: number | null;
+  travelKm?: number | null;
 }
 
 export interface AiCourseSaveDay {
@@ -68,6 +76,8 @@ export interface AiCourseSaveInput {
   totalMinutes?: number | null;
   travelMinutes?: number | null;
   difficulty?: number | null;
+  /** The kiosk's number (6 / 7 / 8) — the phone names DAY 1's start plate from it. */
+  kioskNum?: number;
 }
 
 /** Same override as detailCardSave. Static `import.meta.env.VITE_*` so Vite inlines it. */
@@ -75,6 +85,17 @@ const AI_COURSE_SAVE_ORIGIN_ENV = import.meta.env.VITE_DETAIL_SAVE_ORIGIN;
 export const AI_COURSE_SAVE_ORIGIN =
   (typeof AI_COURSE_SAVE_ORIGIN_ENV === 'string' && AI_COURSE_SAVE_ORIGIN_ENV.trim()) ||
   'https://direction-fe.vercel.app';
+
+/**
+ * Past this many characters the per-leg fields are left out. The header QR is
+ * drawn at the frame's fixed 136px, and every character is modules: a 1–2 day
+ * course keeps its legs (~180–280 chars), a long 3–4 day one drops them and the
+ * phone simply draws no leg pills — a QR that scans beats one that carries more.
+ */
+export const QR_TRAVEL_BUDGET = 300;
+
+/** The kiosk the phone assumes when `k` is absent — 제주국제공항. */
+const DEFAULT_KIOSK = 6;
 
 /**
  * "22-섬 여행" → 22. The prefix is the 1-based row of AI_CATEGORIES_JEJU, which
@@ -88,20 +109,21 @@ function interestCode(aiCategoryKr: string): number | null {
   return Number.isFinite(n) && n > 0 ? n : null;
 }
 
-/**
- * One day's stops as `shopId.dwell.difficulty`, joined by `_`. Trailing zeros
- * are trimmed, so an offline day is just ids: `1612_1043_998`.
- */
-function encodeDay(stops: AiCourseSaveStop[]): string {
+const whole = (v: number | null | undefined): number => Math.max(0, Math.round(v ?? 0));
+
+/** `1612.150.1.15.11` — trailing zeros trimmed, so offline it is just `1612`. */
+function encodeStop(stop: AiCourseSaveStop, withTravel: boolean): string {
+  const fields = [stop.shopId, whole(stop.dwellMinutes), whole(stop.difficulty)];
+  if (withTravel) fields.push(whole(stop.travelMinutes), whole((stop.travelKm ?? 0) * 10));
+  while (fields.length > 1 && fields[fields.length - 1] === 0) fields.pop();
+  return fields.join('.');
+}
+
+/** One day's stops, joined by `_`. */
+function encodeDay(stops: AiCourseSaveStop[], withTravel: boolean): string {
   return stops
     .filter((s) => Number.isFinite(s.shopId) && s.shopId > 0)
-    .map((s) => {
-      const dwell = Math.max(0, Math.round(s.dwellMinutes ?? 0));
-      const grade = Math.max(0, Math.round(s.difficulty ?? 0));
-      if (grade > 0) return `${s.shopId}.${dwell}.${grade}`;
-      if (dwell > 0) return `${s.shopId}.${dwell}`;
-      return String(s.shopId);
-    })
+    .map((s) => encodeStop(s, withTravel))
     .join('_');
 }
 
@@ -114,41 +136,49 @@ export function buildAiCourseSaveUrlForQr(
   if (days.length === 0) return null;
 
   const root = origin.replace(/\/+$/, '');
-  /*
-   * Every byte here is QR modules, and a denser code is one a phone cannot read
-   * off the kiosk glass (see `.qr` in JejuAiDetail.module.css). So a value the
-   * phone would assume anyway is left out: direction-fe's parseAiCourseParams
-   * reads a missing `c` as A, `t` as CAR, `p` as 1, `n` as 0 and `lang` as ko.
-   * `v` (the visit date) is not sent at all — the phone never reads it.
-   */
-  const q = new URLSearchParams();
-  const party = Math.max(1, Math.round(input.party || 1));
-  const nights = Math.max(0, Math.round(input.nights || 0));
-  if (input.course !== 'A') q.set('c', input.course);
-  if (input.transport !== 'CAR') q.set('t', input.transport);
-  if (party !== 1) q.set('p', String(party));
-  if (nights !== 0) q.set('n', String(nights));
-  if (input.lang !== 'ko') q.set('lang', input.lang);
 
-  const codes = (input.interests ?? [])
-    .map(interestCode)
-    .filter((n): n is number => n !== null);
-  if (codes.length > 0) q.set('i', codes.join('.'));
+  const build = (withTravel: boolean): string => {
+    /*
+     * Every byte here is QR modules, and a denser code is one a phone cannot read
+     * off the kiosk glass (see `.qr` in JejuAiDetail.module.css). So a value the
+     * phone would assume anyway is left out: direction-fe's parseAiCourseParams
+     * reads a missing `c` as A, `t` as CAR, `p` as 1, `n` as 0, `lang` as ko and
+     * `k` as 6. `v` (the visit date) is not sent at all — the phone never reads it.
+     */
+    const q = new URLSearchParams();
+    const party = Math.max(1, Math.round(input.party || 1));
+    const nights = Math.max(0, Math.round(input.nights || 0));
+    const kiosk = Math.round(input.kioskNum ?? DEFAULT_KIOSK);
+    if (input.course !== 'A') q.set('c', input.course);
+    if (input.transport !== 'CAR') q.set('t', input.transport);
+    if (party !== 1) q.set('p', String(party));
+    if (nights !== 0) q.set('n', String(nights));
+    if (input.lang !== 'ko') q.set('lang', input.lang);
+    if (kiosk > 0 && kiosk !== DEFAULT_KIOSK) q.set('k', String(kiosk));
 
-  if (typeof input.totalMinutes === 'number' && Number.isFinite(input.totalMinutes)) {
-    q.set('tm', String(Math.round(input.totalMinutes)));
-  }
-  if (typeof input.travelMinutes === 'number' && Number.isFinite(input.travelMinutes)) {
-    q.set('tv', String(Math.round(input.travelMinutes)));
-  }
-  if (typeof input.difficulty === 'number' && input.difficulty > 0) {
-    q.set('g', String(Math.round(input.difficulty)));
-  }
+    const codes = (input.interests ?? [])
+      .map(interestCode)
+      .filter((n): n is number => n !== null);
+    if (codes.length > 0) q.set('i', codes.join('.'));
 
-  for (const d of days) {
-    const encoded = encodeDay(d.stops);
-    if (encoded) q.set(`d${d.day}`, encoded);
-  }
+    if (typeof input.totalMinutes === 'number' && Number.isFinite(input.totalMinutes)) {
+      q.set('tm', String(Math.round(input.totalMinutes)));
+    }
+    if (typeof input.travelMinutes === 'number' && Number.isFinite(input.travelMinutes)) {
+      q.set('tv', String(Math.round(input.travelMinutes)));
+    }
+    if (typeof input.difficulty === 'number' && input.difficulty > 0) {
+      q.set('g', String(Math.round(input.difficulty)));
+    }
 
-  return `${root}/ai?${q.toString()}`;
+    for (const d of days) {
+      const encoded = encodeDay(d.stops, withTravel);
+      if (encoded) q.set(`d${d.day}`, encoded);
+    }
+
+    return `${root}/ai?${q.toString()}`;
+  };
+
+  const withLegs = build(true);
+  return withLegs.length <= QR_TRAVEL_BUDGET ? withLegs : build(false);
 }

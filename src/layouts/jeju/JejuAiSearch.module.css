@@ -341,35 +341,50 @@
   background: #fff;
 }
 
-/* ── The day's time gauge (Figma 7249:9687) ──
-   Right of the tabs on their 101 row, 31 down (`top` from the TSX): a 441×40
-   #E8E8E8 track with the used part in brand orange, then what is left of the day
-   in gray 06 Bold 43. Right-anchored, so a longer translation grows leftwards
-   into the free middle of the row rather than off the page. */
+/* ── Category reset (Figma 7397:9938) ──
+   The last item of the tab row, 16 after the last tab: a 96×96 white plate, r20,
+   top-aligned with the 101-tall tabs, and the frame's own 96 refresh-cw glyph
+   (ico-reset — a smaller drawing than the detail page's ico-refresh) filling it.
+   Dimmed while there is nothing picked to clear. */
+.dayReset {
+  flex: 0 0 auto;
+  align-self: flex-start;
+  width: 96px;
+  height: 96px;
+  padding: 0;
+  border: none;
+  border-radius: 20px;
+  background: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.dayReset:disabled {
+  cursor: default;
+  opacity: 0.5;
+}
+
+.dayResetIcon {
+  width: 96px;
+  height: 96px;
+  flex: none;
+}
+
+/* ── The day's time (Figma 7249:9687) ──
+   Right of the tabs on their 101 row, 31 down (`top` from the TSX): the day's
+   time in gray 06 Bold 43 — text only since the 2026-09-17 frame, which dropped
+   the 441×40 bar so the category reset fits at the end of the tab row.
+   Right-anchored, so a longer translation grows leftwards into the free middle
+   of the row rather than off the page. */
 .dayGauge {
   position: absolute;
   right: 0;
   height: 43px;
   display: flex;
   align-items: center;
-  gap: 19px;
-}
-
-.gaugeTrack {
-  flex: 0 0 auto;
-  width: 441px;
-  height: 40px;
-  border-radius: 20px;
-  background: #e8e8e8;
-  overflow: hidden;
-}
-
-.gaugeFill {
-  display: block;
-  height: 100%;
-  border-radius: inherit;
-  background: var(--kiosk-primary, #ff7f0f);
-  transition: width 200ms ease-out;
 }
 
 .gaugeText {
@@ -380,11 +395,6 @@
   white-space: nowrap;
 }
 
-@media (prefers-reduced-motion: reduce) {
-  .gaugeFill {
-    transition: none;
-  }
-}
 
 /* ── CTA ──
    3497 since 7229:100741's 2026-09-16 revision: the questions all moved down by

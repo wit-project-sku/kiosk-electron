@@ -887,35 +887,25 @@ export function JejuHome({ controller }: Props): JSX.Element {
       </div>
 
       {/* ── Bottom actions — low-reach shifts +79 (Figma 6442:105429) ── */}
-      {/* JEJU ISLAND — replaces the K-DRAMA button, which sat here permanently
-          disabled because the screen behind it was never built.
-
-          It used to open the AR 한복체험 picker on the 제주 tab, i.e. a step
-          inside 사진촬영's flow reached from a second button. It now has a page
-          of its own: AI 손톱 건강분석 (FillMe), a plain `navigate()` like every
-          other destination on this screen. 사진촬영 next door is unchanged and
-          still opens the picker — on whatever tab leads the row. */}
+      {/* 필미 — AI 손톱 건강분석 (FillMe). The slot was JEJU ISLAND, a placeholder
+          wordmark on a circle that already led here; the button now says what
+          it opens, with FillMe's own tile (icons/fillme.png → btn-fillme).
+          A plain `navigate()` like every other destination on this screen. */}
       <button
         type="button"
-        className={low(styles.arJeju, styles.arJejuLow)}
-        onClick={() => go('fillme', 'JEJU ISLAND')}
-        aria-label="JEJU ISLAND"
+        className={low(styles.fillme, styles.fillmeLow)}
+        onClick={() => go('fillme', '필미')}
+        aria-label={lang === 'ko' ? '필미' : 'FillMe'}
       >
-        {jejuIconUrl('btn-jeju-island') && (
-          <img
-            src={jejuIconUrl('btn-jeju-island')}
-            alt=""
-            className={styles.actionImg}
-            draggable={false}
-          />
+        {jejuIconUrl('btn-fillme') && (
+          <img src={jejuIconUrl('btn-fillme')} alt="" className={styles.actionImg} draggable={false} />
         )}
       </button>
-      {/* Not localized, and not a sheet key: JEJU ISLAND is a Latin wordmark
-          that reads the same in all eight languages — the same treatment the
-          header's own JEJUDO ISLAND lockup gets, and what K-DRAMA had here.
-          화장실 next door DOES come from the sheet, because it is a word. */}
-      <span className={low(`${styles.actionLabel} ${styles.labelArJeju}`, styles.actionLabelLow)}>
-        JEJU ISLAND
+      {/* A brand, not a sheet key: 필미 in Korean, FillMe everywhere else — the
+          name printed on the tile. 화장실 next door DOES come from the sheet,
+          because it is a word. */}
+      <span className={low(`${styles.actionLabel} ${styles.labelFillme}`, styles.actionLabelLow)}>
+        {lang === 'ko' ? '필미' : 'FillMe'}
       </span>
 
       <button

@@ -1,231 +1,245 @@
+/*
+ * 시작 화면 — Figma 7212:66398.
+ *
+ *    700  히어로 카드 1900×755 (x130), 흰 판 r130 · 1px #ffeac7 · 안쪽 130 · 사이 86
+ *           왼쪽: 배지 줄(AI 손톱 건강분석 · with · Fillme, 50) · 제목 ExtraBold 68 ·
+ *                 설명 Medium 38 #6e6e6e
+ *           오른쪽: 연주황 원 505 (주황 11 점선) 위에 손 508
+ *   1515  진행순서 라벨 (x130, 히어로와 같은 왼쪽선)
+ *   1651  단계 카드 셋 570 폭 · 사이 50 (1810 폭 가운데), 카드는 1694 부터
+ *           번호 원 105 가 카드 윗선에 걸친다 · 그림 원 281 · 제목 Bold 68 · 설명 38 #8e8e8e
+ *   2576  시작하기 1820×150
+ *   3267  배너
+ *
+ * ── 시안과 다른 곳 ──────────────────────────────────────────────────────
+ *  · 단계 줄과 시작하기는 시안에서 가운데보다 11~13 오른쪽이다. 가운데에 맞췄다
+ *    (단계 x175, 시작하기 x170). 히어로는 시안대로 1900 폭 x130.
+ *  · 시안 밖으로 빠진 것: 카드 아래 자물쇠 안내('촬영한 사진은 동의하기 전까지…' ·
+ *    '만 14세 미만은…'). 만 14세 미만 안내는 동의 화면에 그대로 있다.
+ */
 .root {
   position: absolute;
   inset: 0;
 }
 
-/* ── 히어로 카드 y780 ── */
+/* ── 히어로 카드 (7377:155057) ── */
 .hero {
   position: absolute;
-  left: 170px;
-  top: 780px;
-  width: 1820px;
-  height: 1060px;
+  left: 130px;
+  top: 700px;
+  width: 1900px;
+  height: 755px;
+  box-sizing: border-box;
+  padding: 130px;
+  border: 1px solid #ffeac7;
+  border-radius: 130px;
+  background: #fff;
+  filter: drop-shadow(0 43px 43px rgba(0, 0, 0, 0.05));
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  padding: 0 90px 0 120px;
-  overflow: hidden;
+  gap: 86px;
 }
 
 .heroText {
+  flex: 1 1 auto;
+  min-width: 0;
   display: flex;
   flex-direction: column;
-  gap: 56px;
-  width: 1040px;
+  align-items: flex-start;
+  gap: 50px;
 }
 
 .badges {
   display: flex;
   align-items: center;
-  gap: 30px;
+  gap: 22px;
 }
 
 .badge {
-  display: inline-flex;
-  align-items: center;
-  height: 96px;
-  padding: 0 44px;
-  border-radius: 48px;
-  background: var(--primary-tint);
-  color: var(--primary);
+  padding: 22px 43px;
+  border-radius: 43px;
+  background: #ffeac7;
+  color: #ff7f0f;
   font-size: 50px;
-  font-weight: 700;
+  font-weight: 800;
+  line-height: 1.2;
+  white-space: nowrap;
 }
 
 .with {
-  display: inline-flex;
-  align-items: center;
-  gap: 18px;
-  font-size: 44px;
-  font-weight: 600;
-  color: var(--muted);
+  font-size: 50px;
+  font-weight: 500;
+  line-height: 1.2;
+  color: #6e6e6e;
 }
 
-.logo {
-  height: 58px;
-  width: auto;
+.brand {
+  font-size: 50px;
+  font-weight: 800;
+  line-height: 1.2;
+  color: #2644da;
 }
 
 .title {
-  font-size: 108px;
+  margin: 0;
+  font-size: 68px;
   font-weight: 800;
-  line-height: 1.26;
-  letter-spacing: -0.02em;
-  color: var(--ink);
+  line-height: 95px;
+  color: #1e1e1e;
 }
 
 .title em {
   font-style: normal;
-  color: var(--primary);
+  color: #ff7f0f;
 }
 
 .desc {
-  font-size: 56px;
+  margin: 0;
+  font-size: 38px;
   font-weight: 500;
-  line-height: 1.5;
-  color: #6f6a66;
+  line-height: 50px;
+  color: #6e6e6e;
 }
 
+/* 오른쪽 그림 510×534 (7334:85139) — 점선 원 위에 손이 26 내려 앉는다. */
 .art {
   position: relative;
-  width: 600px;
-  height: 600px;
   flex: 0 0 auto;
-  display: grid;
-  place-items: center;
+  width: 510px;
+  height: 534px;
 }
 
-.ring {
+.artRing {
   position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
+  left: 2px;
+  top: 0;
+  width: 505px;
+  height: 505px;
+  box-sizing: border-box;
+  border: 11px dashed #ff7f0f;
+  border-radius: 50%;
+  background: #ffeac7;
 }
 
-.ringBase {
-  fill: #fff6ee;
-  stroke: #ffe3cb;
-  stroke-width: 5;
+.artHand {
+  position: absolute;
+  left: 0;
+  top: 26px;
+  width: 508px;
+  height: 508px;
+  object-fit: cover;
+  pointer-events: none;
 }
 
-.ringArcs {
-  fill: none;
-  stroke: var(--primary);
-  stroke-width: 3.2;
-  stroke-linecap: round;
-  stroke-dasharray: 14 11;
-  transform-origin: 60px 60px;
-  animation: spin 14s linear infinite;
-}
-
-.hand {
-  position: relative;
-  width: 430px;
-  height: 430px;
-  object-fit: contain;
-  filter: drop-shadow(0 30px 40px rgba(183, 120, 70, 0.18));
-}
-
-@keyframes spin {
-  to {
-    transform: rotate(360deg);
-  }
-}
-
-/* ── 진행 단계 y1930 ── */
+/* ── 진행순서 ── */
 .stepsLabel {
   position: absolute;
-  left: 170px;
-  top: 1930px;
+  left: 130px;
+  top: 1515px;
 }
 
 .steps {
   position: absolute;
-  left: 170px;
-  top: 2066px;
-  width: 1820px;
+  left: 175px; /* (2160 − 1810) / 2 */
+  top: 1651px;
+  width: 1810px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 40px;
+  grid-template-columns: repeat(3, 570px);
+  column-gap: 50px;
 }
 
-.stepCard {
+/* 번호 원이 카드 윗선(43 아래)에 걸치도록, 칸이 카드보다 43 먼저 시작한다. */
+.step {
   position: relative;
-  height: 600px;
-  border-radius: 60px;
-  background: #fff;
-  box-shadow: var(--shadow-card);
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  padding-top: 86px;
+  padding-top: 43px;
 }
 
 .stepNo {
   position: absolute;
-  left: 48px;
-  top: 44px;
-  width: 92px;
-  height: 92px;
+  left: 50%;
+  top: 0;
+  z-index: 1;
+  width: 105px;
+  height: 105px;
+  transform: translateX(-50%);
   border-radius: 50%;
-  display: grid;
-  place-items: center;
-  background: var(--primary);
+  background: #ff7f0f;
   color: #fff;
-  font-size: 52px;
-  font-weight: 800;
+  font-size: 65px;
+  font-weight: 700;
+  line-height: 105px;
+  text-align: center;
+}
+
+.stepCard {
+  box-sizing: border-box;
+  width: 570px;
+  padding: 108px 65px;
+  border: 1px solid #ffeac7;
+  border-radius: 108px;
+  background: #fff;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 65px;
 }
 
 .stepIcon {
-  width: 210px;
-  height: 210px;
+  width: 281px;
+  height: 281px;
   border-radius: 50%;
+  background: #ffeac7;
+  color: #ff7f0f;
   display: grid;
   place-items: center;
-  background: var(--primary-tint);
-  color: var(--primary);
+}
+
+.stepGlyph {
+  width: 130px;
+  height: 130px;
+}
+
+/* 결과 그림은 원까지 한 장이다. */
+.stepArt {
+  width: 281px;
+  height: 281px;
+}
+
+.stepText {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 33px;
+  text-align: center;
 }
 
 .stepTitle {
-  margin-top: 46px;
-  font-size: 66px;
+  margin: 0;
+  font-size: 68px;
   font-weight: 700;
-  color: var(--ink);
+  line-height: 1.2;
+  color: #1e1e1e;
 }
 
 .stepCaption {
-  margin-top: 22px;
-  font-size: 46px;
-  font-weight: 500;
+  margin: 0;
+  font-size: 38px;
+  font-weight: 400;
   line-height: 1.4;
-  color: var(--muted);
-  text-align: center;
+  color: #8e8e8e;
   white-space: pre-line;
+  word-break: keep-all;
 }
 
-/* ── 안내 y2716 ── */
-.notice {
-  position: absolute;
-  left: 170px;
-  top: 2716px;
-  width: 1820px;
-  height: 214px;
-  border-radius: 45px;
-  background: rgba(245, 241, 239, 0.92);
-  display: flex;
-  align-items: center;
-  gap: 44px;
-  padding: 0 70px;
-  font-size: 50px;
-  font-weight: 600;
-  line-height: 1.45;
-  color: #4a4541;
-}
-
-.noticeIcon {
-  color: var(--primary);
-  flex: 0 0 auto;
-}
-
-.noticeSub {
-  font-size: 44px;
-  font-weight: 500;
-  color: var(--muted);
-}
-
-/* ── CTA y2990 (배너 y3267 위) ── */
+/* ── 시작하기 (7334:85117) ── 1820×150 — ui.cta 의 178 · 64 를 덮는다. */
 .cta {
   position: absolute;
   left: 170px;
-  top: 2990px;
+  top: 2576px;
+  height: 150px;
+  font-size: 60px;
 }

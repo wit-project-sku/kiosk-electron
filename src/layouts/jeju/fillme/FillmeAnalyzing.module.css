@@ -1,3 +1,23 @@
+/*
+ * AI 분석 중 — Figma 7334:54793.
+ *
+ * 흰 카드 1820×2050 r53 (y753 … 2803). 카드 안 좌표:
+ *     78  제목 ExtraBold 64 #1a1a1a · 30 아래 단계 문구 Bold 40 #999
+ *    281  분석 판 1134×1048 r53, #fffdfb → #fff1e8 (가운데)
+ *           손 640×640 두 장(왼쪽은 좌우 반전) · 주황 격자 823² 4×4 · 스캔 빛줄기
+ *   1435  안내 Bold 40 #fd7e14 (두 줄)
+ *   1578  진행 막대 1463 (트랙 45 #e9ecef · 채움 #fd7e14 · 퍼센트 ExtraBold 38)
+ *   1718  단계 2×2 (칸 404×88 · 가로 146 · 세로 47, 아이콘 88 + 라벨 Bold 48)
+ * 카드가 2803 에서 끝나 배너(3267)가 들어간다.
+ *
+ * ── 시안과 다른 곳 ──────────────────────────────────────────────────────
+ *  · 카드 x 는 시안의 152 가 아니라 170 — 제주 화면의 기둥선에 맞췄다.
+ *  · 시안의 네 단계는 '손톱 색상 분석' 이 두 번 적혀 있다(복사 흔적). 실제 네 단계
+ *    (copy.ts ANALYZE_STEPS)를 그린다.
+ *  · 스캔 빛줄기는 시안이 y679 에 멈춰 그린 것을 격자 위아래로 오간다 — 분석 중임을
+ *    보여 주는 유일한 움직임이다. 움직임 줄이기 설정이면 시안 자리에 멈춘다.
+ *  · 시안 밖으로 빠진 것: 'Powered by FillMe' 줄, 카드 아래 시계 아이콘 안내.
+ */
 .root {
   position: absolute;
   inset: 0;
@@ -6,225 +26,225 @@
 .card {
   position: absolute;
   left: 170px;
-  top: 780px;
+  top: 753px;
   width: 1820px;
-  height: 2360px;
-  border-radius: 80px;
+  height: 2050px;
+  border-radius: 53px;
   background: #fff;
-  box-shadow: var(--shadow-card);
+  box-shadow:
+    0 32px 60px rgba(253, 126, 20, 0.07),
+    0 12px 24px rgba(253, 126, 20, 0.08);
+  overflow: hidden;
+}
+
+.texts {
+  position: absolute;
+  left: 20px;
+  right: 20px;
+  top: 78px;
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
-  padding-bottom: 40px;
+  gap: 30px;
+  text-align: center;
 }
 
-.ring {
-  position: relative;
-  width: 760px;
-  height: 760px;
-  display: grid;
-  place-items: center;
-  overflow: hidden;
-  border-radius: 50%;
+.title {
+  margin: 0;
+  font-size: 64px;
+  font-weight: 800;
+  line-height: 1.2;
+  color: #1a1a1a;
 }
 
-.ringSvg {
+.sub {
+  margin: 0;
+  font-size: 40px;
+  font-weight: 700;
+  line-height: 1.2;
+  color: #999;
+}
+
+/* ── 분석 판 (7334:84386) ── */
+.stage {
   position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-}
-
-.ringBase {
-  fill: #fff6ee;
-  stroke: #ffe3cb;
-  stroke-width: 5;
-}
-
-.ringArcs {
-  fill: none;
-  stroke: var(--primary);
-  stroke-width: 4;
-  stroke-linecap: round;
-  stroke-dasharray: 14 11;
-  transform-origin: 60px 60px;
-  animation: spin 2.8s linear infinite;
+  left: 343px; /* (1820 − 1134) / 2 */
+  top: 281px;
+  width: 1134px;
+  height: 1048px;
+  border-radius: 53px;
+  background: linear-gradient(90deg, #fffdfb, #fff1e8);
+  box-shadow:
+    0 32px 60px rgba(253, 126, 20, 0.07),
+    0 12px 24px rgba(253, 126, 20, 0.08);
+  overflow: hidden;
 }
 
 .hand {
-  position: relative;
-  width: 470px;
-  height: 470px;
-  object-fit: contain;
-}
-
-.scan {
   position: absolute;
-  left: 18%;
-  right: 18%;
-  height: 12px;
-  border-radius: 6px;
-  background: linear-gradient(90deg, transparent, rgba(255, 127, 15, 0.9), transparent);
-  box-shadow: 0 0 40px 14px rgba(255, 127, 15, 0.25);
-  animation: scan 1.8s ease-in-out infinite alternate;
+  top: 204px;
+  width: 640px;
+  height: 640px;
+  object-fit: cover;
+  pointer-events: none;
 }
 
-@keyframes spin {
-  to {
-    transform: rotate(360deg);
-  }
+/* 원본 그림은 엄지가 왼쪽 — 오른쪽 자리에 그대로, 왼쪽 자리에는 좌우로 뒤집어
+   두 엄지가 가운데를 보게 한다. */
+.handRight {
+  left: 476px;
+}
+
+.handLeft {
+  left: 70px;
+  transform: scaleX(-1);
+}
+
+/* 격자선 — 주황 45%, 2px 흐림. 위치는 컴포넌트가 준다. */
+.line {
+  position: absolute;
+  background: #ff7f0f;
+  opacity: 0.45;
+  filter: blur(2px);
+  pointer-events: none;
+}
+
+.lineH {
+  left: 174px;
+  width: 823px;
+  height: 1.286px;
+}
+
+.lineV {
+  top: 112px;
+  width: 1.286px;
+  height: 823px;
+}
+
+/* 스캔 빛줄기 (7334:84409) — 1116×10, 시안 자리는 가운데선 y679 · x42. */
+.beam {
+  position: absolute;
+  left: 42px;
+  top: 674px;
+  width: 1116px;
+  height: 10px;
+  pointer-events: none;
+  animation: scan 2.4s ease-in-out infinite alternate;
 }
 
 @keyframes scan {
   from {
-    top: 22%;
+    top: 107px; /* 격자 윗선 */
   }
   to {
-    top: 76%;
+    top: 930px; /* 격자 아랫선 */
   }
 }
 
-.title {
-  margin-top: 100px;
-  font-size: 96px;
-  font-weight: 800;
-  letter-spacing: -0.02em;
-  color: var(--ink);
-}
-
-.sub {
-  margin-top: 34px;
-  font-size: 62px;
-  font-weight: 600;
-  color: var(--primary);
-}
-
-.progress {
-  margin-top: 90px;
-  width: 1420px;
-  display: flex;
-  align-items: center;
-  gap: 44px;
-}
-
-.track {
-  flex: 1;
-  height: 40px;
-  border-radius: 20px;
-  background: #f1e9e3;
-  overflow: hidden;
-}
-
-.fill {
-  height: 100%;
-  border-radius: inherit;
-  background: linear-gradient(90deg, #ffa24f, var(--primary));
-  transition: width 0.25s linear;
-}
-
-.percent {
-  width: 190px;
-  text-align: right;
-  font-size: 76px;
-  font-weight: 800;
-  color: var(--primary);
-  font-variant-numeric: tabular-nums;
-}
-
-.steps {
-  margin-top: 100px;
-  width: 1180px;
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 50px 60px;
-}
-
-.step {
-  display: flex;
-  align-items: center;
-  gap: 30px;
-  font-size: 58px;
-  font-weight: 600;
-  color: #c2bab4;
-}
-
-.stepCheck {
-  width: 96px;
-  height: 96px;
-  border-radius: 50%;
-  display: grid;
-  place-items: center;
-  border: 6px solid #ece4de;
-  color: #fff;
-  flex: 0 0 auto;
-}
-
-.stepDot {
-  width: 24px;
-  height: 24px;
-  border-radius: 50%;
-  background: #ece4de;
-}
-
-.done {
-  color: var(--ink);
-}
-
-.done .stepCheck {
-  background: var(--primary);
-  border-color: var(--primary);
-}
-
-.current {
-  color: var(--primary);
-  font-weight: 700;
-}
-
-.current .stepCheck {
-  border-color: var(--primary);
-}
-
-.current .stepDot {
-  background: var(--primary);
-  animation: pulse 1s ease-in-out infinite;
-}
-
-@keyframes pulse {
-  50% {
-    transform: scale(0.55);
+@media (prefers-reduced-motion: reduce) {
+  .beam {
+    animation: none;
   }
 }
 
 .note {
   position: absolute;
-  left: 170px;
-  top: 3240px;
-  width: 1820px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 22px;
-  font-size: 52px;
-  font-weight: 600;
-  color: #7c7570;
+  left: 20px;
+  right: 20px;
+  top: 1435px;
+  margin: 0;
+  font-size: 40px;
+  font-weight: 700;
+  line-height: 1.2;
+  color: #fd7e14;
+  text-align: center;
 }
 
-.powered {
+/* ── 진행 막대 (7370:14313) ── */
+.progress {
   position: absolute;
-  left: 170px;
-  top: 3450px;
-  width: 1820px;
+  left: 178.5px; /* (1820 − 1463) / 2 */
+  top: 1578px;
+  width: 1463px;
+  height: 91px;
   display: flex;
   align-items: center;
-  justify-content: center;
-  gap: 20px;
-  font-size: 44px;
-  font-weight: 600;
-  color: var(--muted);
+  gap: 12px;
 }
 
-.powered img {
-  height: 60px;
-  width: auto;
+.track {
+  flex: 1;
+  height: 45px;
+  border-radius: 100px;
+  background: #e9ecef;
+  overflow: hidden;
+}
+
+.fill {
+  height: 100%;
+  border-radius: 100px;
+  background: #fd7e14;
+  transition: width 0.25s linear;
+}
+
+/* 폭을 잡아 두어 8% → 58% → 100% 로 자릿수가 바뀌어도 막대가 떨리지 않는다. */
+.percent {
+  min-width: 92px;
+  text-align: right;
+  font-size: 38px;
+  font-weight: 800;
+  line-height: 1.2;
+  color: #fd7e14;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+/* ── 단계 (7370:14317) ── */
+.steps {
+  position: absolute;
+  left: 433px; /* (1820 − 954) / 2 */
+  top: 1718px;
+  width: 954px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  grid-template-columns: 404px 404px;
+  column-gap: 146px;
+  row-gap: 47px;
+}
+
+.step {
+  position: relative;
+  height: 88px;
+}
+
+.stepIcon {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 88px;
+  height: 88px;
+}
+
+.stepLabel {
+  position: absolute;
+  left: 114px;
+  top: 20px;
+  font-size: 48px;
+  font-weight: 700;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.done {
+  color: #1a1a1a;
+}
+
+.current {
+  color: #ff7f0f;
+}
+
+.pending {
+  color: #999;
 }

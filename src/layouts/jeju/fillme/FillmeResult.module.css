@@ -1,116 +1,160 @@
+/*
+ * 분석 결과 — Figma 7334:83586.
+ *
+ *    700  요약 카드 1820 (흰 r40, 안쪽 50/100, 사이 30)
+ *           ◇ AI 건강 분석 알약 265×91 · 제목 Bold 68 · 1px #e5e5e5 · 설명 Medium 40 #666
+ *   1466  필요 영양 성분 (N가지) — 검은 막대 라벨 76, 개수 65 #999
+ *   1592  성분 카드 436×509 r45, 한 줄 셋 · 가로 50 · 세로 70, 1408 폭 가운데
+ *           회색 원 244 (#e8e8e8) · 이름 Bold 38 #111
+ *   2730  안내 (i 42 · Medium 38 #999) — 1448 폭 가운데
+ *   2823  QR 214.5 · 화살표 · 저장하기 650×150 주황 · 처음으로 650×150 #999 (1740 폭 양끝)
+ *   3267  배너
+ *
+ * 카드 · 라벨 · 성분은 한 기둥(y700…2680)에 흘려 쌓았다 — 설명이나 성분 수가 시안과
+ * 달라도 겹치지 않고, 넘치면 이 기둥 안에서만 스크롤한다. 안내와 버튼 줄은 배너 위에
+ * 고정이다.
+ *
+ * ── 시안과 다른 곳 ──────────────────────────────────────────────────────
+ *  · '75점 · 전반적으로 양호해요' 줄이 없다 — API 에 점수가 없다(컴포넌트 머리말).
+ *    그만큼 카드가 짧아 성분이 위로 올라온다.
+ *  · 카드 x 는 시안의 176 이 아니라 170.
+ *  · 성분 줄의 마지막 줄은 가운데 정렬 — 시안의 5개(3+2)를 그대로 일반화했다.
+ *  · 시안 밖으로 빠진 것: 날짜, 다시 촬영하기, QR 옆 설명·만료 시각 문구.
+ */
 .root {
   position: absolute;
   inset: 0;
 }
 
-/* 본문 y740~3350 — 넘치면 이 안에서만 스크롤한다 */
+/* ── 흐르는 기둥 y700…2680 ── */
 .scroll {
   position: absolute;
   left: 0;
-  top: 740px;
+  top: 700px;
   width: 2160px;
-  height: 2610px;
+  height: 1980px;
+  box-sizing: border-box;
+  padding: 0 170px 40px;
   overflow-y: auto;
-  padding: 40px 170px 80px;
   scrollbar-width: none;
-  mask-image: linear-gradient(180deg, transparent 0, #000 40px, #000 calc(100% - 90px), transparent 100%);
-}
-
-/* QR 칸이 있으면 본문은 y3000 에서 끊고, 그 아래 QR 칸(y3025~3375)을 고정한다 */
-.scrollShort {
-  height: 2260px;
+  display: flex;
+  flex-direction: column;
 }
 
 .scroll::-webkit-scrollbar {
   display: none;
 }
 
-.summary {
-  padding: 90px 110px 110px;
-}
-
-.summaryHead {
+/* ── 요약 카드 (7360:154990) ── */
+.card {
+  flex: 0 0 auto;
+  box-sizing: border-box;
+  width: 1820px;
+  padding: 50px 100px;
+  border-radius: 40px;
+  background: #fff;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
   display: flex;
-  align-items: center;
-  justify-content: space-between;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 30px;
 }
 
 .badge {
+  width: 265px;
+  height: 91px;
+  border-radius: 51.5px;
+  background: #ff7f0f;
+  color: #fff;
+  font-size: 35px;
+  font-weight: 500;
+  line-height: 1;
   display: inline-flex;
   align-items: center;
-  gap: 16px;
-  height: 100px;
-  padding: 0 44px;
-  border-radius: 50px;
-  background: var(--primary-tint);
-  color: var(--primary);
-  font-size: 52px;
-  font-weight: 700;
-}
-
-.date {
-  font-size: 46px;
-  font-weight: 500;
-  color: var(--muted);
-  font-variant-numeric: tabular-nums;
+  justify-content: center;
+  white-space: nowrap;
 }
 
 .title {
-  margin-top: 64px;
-  font-size: 92px;
-  font-weight: 800;
-  line-height: 1.32;
-  letter-spacing: -0.02em;
-  color: var(--ink);
+  margin: 0;
+  font-size: 68px;
+  font-weight: 700;
+  line-height: 1.4;
+  color: #1a1a1a;
+  word-break: keep-all;
+}
+
+.rule {
+  width: 100%;
+  height: 0;
+  margin: 0;
+  border: 0;
+  border-top: 1px solid #e5e5e5;
 }
 
 .desc {
-  margin-top: 56px;
-  padding-top: 56px;
-  border-top: 4px solid var(--line);
-  font-size: 58px;
+  margin: 0;
+  font-size: 40px;
   font-weight: 500;
-  line-height: 1.65;
-  color: var(--ink-2);
+  line-height: 1.6;
+  color: #666;
+  word-break: keep-all;
 }
 
-.suppLabel {
-  margin-top: 110px;
+/* ── 필요 영양 성분 ── */
+.sectionLabel {
+  flex: 0 0 auto;
+  margin-top: 50px;
 }
 
-/* 3열. 마지막 줄이 덜 차면 가운데로 모은다(5곳 = 3 + 2). */
-.supps {
-  margin-top: 56px;
+.sectionCount {
+  margin-left: 0.3em;
+  font-size: 65px;
+  font-weight: 600;
+  color: #999;
+}
+
+.grid {
+  flex: 0 0 auto;
+  align-self: center;
+  width: 1408px;
+  margin: 50px 0 0;
+  padding: 0;
+  list-style: none;
   display: flex;
   flex-wrap: wrap;
   justify-content: center;
-  gap: 40px;
+  column-gap: 50px;
+  row-gap: 70px;
 }
 
-.supp {
-  width: 580px;
-  height: 560px;
-  border-radius: 60px;
+.item {
+  box-sizing: border-box;
+  width: 436px;
+  height: 509px;
+  padding-top: 95px;
+  border-radius: 45px;
   background: #fff;
-  box-shadow: var(--shadow-card);
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
-  gap: 44px;
+  gap: 30px;
 }
 
-.plate {
-  width: 300px;
-  height: 300px;
+/* 시안의 회색 원 — 성분 그림이 그 안에 앉는다. */
+.disc {
+  width: 244px;
+  height: 244px;
   border-radius: 50%;
+  background: #e8e8e8;
   display: grid;
   place-items: center;
+  overflow: hidden;
 }
 
-.suppIcon {
-  width: 210px;
-  height: 210px;
+.ingredientIcon {
+  width: 170px;
+  height: 170px;
   object-fit: contain;
 }
 
@@ -118,81 +162,105 @@
   color: var(--primary);
 }
 
-.suppName {
-  font-size: 64px;
+.name {
+  width: 276px;
+  font-size: 38px;
   font-weight: 700;
-  color: var(--ink);
+  line-height: 1.2;
+  color: #111;
   text-align: center;
-  padding: 0 30px;
+  word-break: keep-all;
 }
 
-.empty {
-  margin-top: 200px;
-  text-align: center;
-  font-size: 64px;
-  font-weight: 600;
-  color: var(--muted);
+/* ── 아래 고정 줄 (7334:84996) ── */
+.bottom {
+  position: absolute;
+  left: 210px;
+  top: 2730px;
+  width: 1740px;
+  height: 307.5px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
 }
 
 .disclaimer {
-  margin-top: 80px;
-  border-radius: 45px;
-  background: rgba(245, 241, 239, 0.94);
+  margin: 0;
+  width: 1448px;
   display: flex;
   align-items: flex-start;
-  gap: 26px;
-  padding: 50px 70px;
-  font-size: 46px;
+  gap: 11px;
+  font-size: 38px;
   font-weight: 500;
-  line-height: 1.55;
-  color: #6f6a66;
+  line-height: 1.4;
+  color: #999;
 }
 
-.disclaimer svg {
+.infoIcon {
   flex: 0 0 auto;
-  margin-top: 4px;
-  color: var(--muted);
+  width: 42px;
+  height: 42px;
+  margin-top: 5px;
 }
 
-/* ── 휴대폰으로 결과 받기(QR) y3025 · 350 ── */
-.qr {
-  position: absolute;
-  left: 170px;
-  top: 3025px;
-  width: 1820px;
-  height: 350px;
-  border-radius: 60px;
-  background: #fff;
-  box-shadow: var(--shadow-card);
+.actions {
+  width: 1740px;
   display: flex;
   align-items: center;
-  gap: 64px;
-  padding: 0 70px 0 30px;
+  justify-content: space-between;
 }
 
-.qrBox {
-  width: 290px;
-  height: 290px;
-  border-radius: 40px;
-  border: 5px solid var(--line);
+/* 결과 QR 을 끈 기기: 처음으로만 오른쪽 자리에 남는다. */
+.actionsHomeOnly {
+  justify-content: flex-end;
+}
+
+/* QR 칸 214.5, 주황 테두리 4.29, r21.45 (7334:84986). */
+.qr {
+  box-sizing: border-box;
+  width: 214.5px;
+  height: 214.5px;
+  border: 4.29px solid #ff7f0f;
+  border-radius: 21.45px;
+  background: #fff;
   display: grid;
   place-items: center;
-  flex: 0 0 auto;
-  color: var(--muted);
 }
 
-.qrBoxError {
-  border-color: var(--danger-tint);
-  background: var(--danger-tint);
-  color: var(--danger);
+/* 저장하기를 누르면 QR 로 눈을 보낸다. */
+.qrNudge {
+  animation: nudge 0.9s ease-out 2;
+}
+
+@keyframes nudge {
+  0%,
+  100% {
+    transform: scale(1);
+    box-shadow: 0 0 0 0 rgba(255, 127, 15, 0);
+  }
+  40% {
+    transform: scale(1.08);
+    box-shadow: 0 0 0 18px rgba(255, 127, 15, 0.25);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .qrNudge {
+    animation: none;
+  }
+}
+
+.qrError {
+  color: #ff7f0f;
 }
 
 .spinner {
-  width: 96px;
-  height: 96px;
+  width: 90px;
+  height: 90px;
   border-radius: 50%;
-  border: 10px solid var(--primary-tint);
-  border-top-color: var(--primary);
+  border: 10px solid #ffe3cb;
+  border-top-color: #ff7f0f;
   animation: spin 0.9s linear infinite;
 }
 
@@ -202,70 +270,37 @@
   }
 }
 
-.qrText {
-  flex: 1;
-  min-width: 0;
+/* ← (7334:84987) */
+.arrow {
+  width: 75.46px;
+  height: 85.81px;
 }
 
-.qrTitle {
-  display: flex;
-  align-items: center;
-  gap: 20px;
-  font-size: 68px;
-  font-weight: 800;
-  letter-spacing: -0.01em;
-  color: var(--ink);
-}
-
-.qrTitle svg {
-  color: var(--primary);
-}
-
-.qrDesc {
-  margin-top: 22px;
-  font-size: 50px;
-  font-weight: 500;
-  line-height: 1.4;
-  color: var(--ink-2);
-}
-
-.qrExpiry {
-  margin-top: 18px;
-  display: flex;
-  align-items: center;
-  gap: 14px;
-  font-size: 42px;
-  font-weight: 500;
-  color: var(--muted);
-}
-
-.qrRetry {
-  flex: 0 0 auto;
-  display: inline-flex;
-  align-items: center;
-  gap: 16px;
-  height: 140px;
-  padding: 0 56px;
-  border: 5px solid var(--primary-line);
-  border-radius: 45px;
-  background: #fff;
-  color: var(--primary);
-  font-size: 56px;
+.save,
+.home {
+  width: 650px;
+  height: 150px;
+  padding: 0;
+  border: 0;
+  border-radius: 42.9px;
+  box-shadow: 0 21.45px 42.9px rgba(143, 147, 157, 0.1);
+  color: #fff;
+  font-family: inherit;
+  font-size: 58px;
   font-weight: 700;
+  line-height: 1;
   cursor: pointer;
 }
 
-/* 하단 버튼 y3413 */
-.actions {
-  position: absolute;
-  left: 170px;
-  top: 3413px;
-  width: 1820px;
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 40px;
+.save:active,
+.home:active {
+  transform: scale(0.98);
 }
 
-.action {
-  width: 100%;
+.save {
+  background: #ff7f0f;
+}
+
+.home {
+  background: #999;
 }

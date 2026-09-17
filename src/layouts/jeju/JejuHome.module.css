@@ -536,23 +536,23 @@
   word-break: break-word;
 }
 
-/* ── Bottom action row: JEJU ISLAND / 사진촬영 / 화장실 ───────────────── */
+/* ── Bottom action row: 필미 / 사진촬영 / 화장실 ───────────────────────── */
 /*
- * The slot K-DRAMA used to hold. That button was a 381×235 rounded rect and
- * permanently disabled — the screen behind it was never built — and it now
- * carries the JEJU ISLAND badge into the AR 한복체험 picker instead.
- *
- * The art is a CIRCLE, so the box follows 화장실 rather than the old rect:
- * 233×234 on the same 3389 top, which puts its foot on the row's shared 3623.
- * Horizontally it keeps the slot's own centre (x494.5, where the K-DRAMA art
- * and its caption were both centred) rather than the old left edge, so the
- * button does not slide left inside a row whose other two members did not move.
+ * The slot K-DRAMA held (a permanently disabled 381×235 rect), then the JEJU
+ * ISLAND circle, and now 필미 — FillMe's own tile, which leads to AI 손톱
+ * 건강분석. Every tenant kept the slot's centre (x494.5, where the caption is
+ * centred too) and the row's shared foot (3623), so the button never slides
+ * inside a row whose other two members did not move. See .fillme.
  */
-.arJeju {
+/* 필미 (FillMe). The tile is landscape (381×235), so it keeps the old JEJU
+   ISLAND circle's height (234) and centre (x494.5) and grows sideways:
+   234 × 381/235 = 379 wide, from x305. The row's baseline and the label under
+   it do not move. */
+.fillme {
   position: absolute;
-  left: 378px;
+  left: 305px;
   top: 3389px;
-  width: 233px;
+  width: 379px;
   height: 234px;
   padding: 0;
   border: none;
@@ -597,8 +597,8 @@
   pointer-events: none;
 }
 
-/* All three are ellipses now — the 50px rounded rect went with K-DRAMA. */
-.arJeju .actionImg,
+/* 사진촬영 and 화장실 are circles. The FillMe tile brings its own rounded
+   corners, so it is NOT clipped to an ellipse. */
 .camera .actionImg,
 .restroom .actionImg { border-radius: 50%; }
 
@@ -614,15 +614,15 @@
 }
 
 
-/* Centred on x494, the same centre .arJeju sits on — this is the old
+/* Centred on x494, the same centre .fillme sits on — this is the old
    .labelKdrama box, kept because the button kept the slot's centre too. */
-.labelArJeju {
+.labelFillme {
   left: 294px;
   width: 400px;
 }
 
 /* Widened from 142 (1678…1820) to 400 on the SAME centre, x1749 — the same
-   box .labelArJeju uses. MainButton_WC is translated, and "Restroom" /
+   box .labelFillme uses. MainButton_WC is translated, and "Restroom" /
    "Nhà vệ sinh" did not fit 142: they wrapped mid-word or ran off-centre.
    화장실 still centres on 1749, so Korean is unchanged. */
 .labelRestroom {
@@ -879,7 +879,7 @@
   to   { opacity: 1; }
 }
 
-.arJejuLow { top: 3468px; }
+.fillmeLow { top: 3468px; }
 .cameraLow { top: 3417px; }
 .restroomLow { top: 3468px; }
 .actionLabelLow { top: 3727px; }

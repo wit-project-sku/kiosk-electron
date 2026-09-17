@@ -1,129 +1,168 @@
+/*
+ * 손톱 촬영 — Figma 7334:84998.
+ *
+ *    700  주황 한 줄 Bold 60 ("*2초 뒤 촬영이 시작됩니다.")
+ *    810  왼손 · 오른손 580×170 r42.9, 사이 200 (1360 폭 가운데) — 지금 찍는 손이 주황
+ *   1080  촬영 팁 판 1718×670 r45 (x221)
+ *           팁 카드 셋 490×570 · 사이 45 · 판 안 79/50, 5px #ffeac7 테두리 r80
+ *           그림 원 215 · 제목 Bold 45 · 설명 Regular 38 #8e8e8e
+ *   1850  카메라 미리보기 1718×1285 r40 (판 아래 100) — 가운데 'Countdown' 원 112
+ *   3267  배너
+ *
+ * ── 시안과 다른 곳 ──────────────────────────────────────────────────────
+ *  · 시안의 미리보기는 자리만 잡은 사진이라, 실제 촬영의 겹침(모서리 · 가이드 ·
+ *    스캔선 · 완료 표시 · 플래시 · 준비 중/오류)은 이 칸 크기에 맞춰 그대로 둔다.
+ *  · 'Countdown' 원은 시안에서 비어 있다 — 남은 초를 그 안에 쓴다.
+ *  · 시안 밖으로 빠진 것: 상태 카드(주황 한 줄이 대신한다), 손 칩의 완료 체크,
+ *    아래쪽 '촬영 팁' 목록과 '버튼을 누르지 않아도 자동으로 촬영돼요' 줄.
+ */
 .root {
   position: absolute;
   inset: 0;
 }
 
-/* ── 상태 카드 y760 ── */
-.status {
+.note {
   position: absolute;
-  left: 170px;
-  top: 760px;
-  width: 1820px;
-  height: 220px;
-  border-radius: 60px;
-  background: #fff;
-  box-shadow: var(--shadow-card);
-  display: flex;
-  align-items: center;
-  gap: 50px;
-  padding: 0 70px;
-  transition: background-color 0.25s ease;
+  left: 0;
+  top: 700px;
+  width: 2160px;
+  margin: 0;
+  font-size: 60px;
+  font-weight: 700;
+  line-height: 1;
+  color: #ff7f0f;
+  text-align: center;
 }
 
-.statusIcon {
-  width: 140px;
-  height: 140px;
-  border-radius: 50%;
-  display: grid;
-  place-items: center;
-  background: var(--primary-tint);
-  color: var(--primary);
-  flex: 0 0 auto;
-}
-
-.statusText {
-  font-size: 76px;
-  font-weight: 800;
-  letter-spacing: -0.01em;
-  color: var(--ink);
-}
-
-.statusDone {
-  background: var(--primary);
-}
-
-.statusDone .statusIcon {
-  background: #fff;
-}
-
-.statusDone .statusText {
-  color: #fff;
-}
-
-.statusError .statusIcon {
-  background: var(--danger-tint);
-  color: var(--danger);
-}
-
-/* ── 손 진행 칩 y1030 ── */
+/* ── 왼손 · 오른손 (7334:85099) ── */
 .hands {
   position: absolute;
-  left: 170px;
-  top: 1030px;
-  width: 1820px;
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 40px;
-}
-
-.handChip {
-  height: 150px;
-  border-radius: 45px;
-  background: #fff;
-  box-shadow: var(--shadow-chip);
+  left: 400px; /* (2160 − 1360) / 2 */
+  top: 810px;
+  width: 1360px;
+  height: 170px;
   display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 24px;
-  font-size: 60px;
-  font-weight: 600;
-  color: #b3aca7;
-  border: 6px solid transparent;
+  gap: 200px;
 }
 
-.handDot {
-  width: 36px;
-  height: 36px;
-  border-radius: 50%;
-  background: #ddd5cf;
+.handTab {
+  width: 580px;
+  height: 170px;
+  border-radius: 42.9px;
+  background: #fff;
+  color: #999;
+  font-size: 50px;
+  font-weight: 500;
+  line-height: 1;
+  display: grid;
+  place-items: center;
 }
 
 .handActive {
-  border-color: var(--primary);
-  color: var(--primary);
-  font-weight: 800;
-}
-
-.handActive .handDot {
-  background: var(--primary);
-  animation: pulse 1.2s ease-in-out infinite;
-}
-
-.handDone {
-  background: var(--primary);
+  background: #ff7f0f;
   color: #fff;
-  font-weight: 800;
-  box-shadow: none;
+  font-weight: 700;
 }
 
-@keyframes pulse {
-  50% {
-    transform: scale(0.6);
-    opacity: 0.5;
-  }
+/* ── 촬영 팁 (7384:85728) ── */
+.tips {
+  position: absolute;
+  left: 221px;
+  top: 1080px;
+  width: 1718px;
+  height: 670px;
+  box-sizing: border-box;
+  margin: 0;
+  padding: 50px 0 0 79px;
+  list-style: none;
+  border-radius: 45px;
+  background: #fff;
+  display: flex;
+  gap: 45px;
 }
 
-/* ── 카메라 y1230 · 1820×1365(4:3) ── */
+.tip {
+  box-sizing: border-box;
+  width: 490px;
+  height: 570px;
+  padding: 50px 65px 0;
+  border: 5px solid #ffeac7;
+  border-radius: 80px;
+  background: #fff;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 65px;
+}
+
+.tipIcon {
+  flex: 0 0 auto;
+  width: 215px;
+  height: 215px;
+  border-radius: 50%;
+  background: #ffeac7;
+  display: grid;
+  place-items: center;
+}
+
+.tip-hand {
+  width: 121px;
+  height: 121px;
+}
+
+/* 시안이 그림을 -90° 돌려 놓았다 (7384:85720). */
+.tip-spread {
+  width: 149px;
+  height: 150px;
+  transform: rotate(-90deg);
+}
+
+.tip-focus {
+  width: 124px;
+  height: 125px;
+}
+
+.tipText {
+  /* 카드 안쪽 65 를 글에는 25 만 두어 380 폭을 쓴다 — 시안의 Pretendard 로는 350 에
+     한 줄로 들어가는 '손톱이 카메라를 향하게' 가 키오스크 글꼴에서는 세 줄로 접혀
+     카드 아래로 넘쳤다. 두 줄이면 시안과 같다. */
+  width: calc(100% + 80px);
+  margin: 0 -40px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 33px;
+  text-align: center;
+}
+
+.tipTitle {
+  margin: 0;
+  font-size: 45px;
+  font-weight: 700;
+  line-height: 1.2;
+  color: #1e1e1e;
+}
+
+.tipCaption {
+  margin: 0;
+  font-size: 38px;
+  font-weight: 400;
+  line-height: 1.4;
+  color: #8e8e8e;
+  white-space: pre-line;
+  word-break: keep-all;
+}
+
+/* ── 카메라 미리보기 (7334:85007) ── */
 .camBox {
   position: absolute;
-  left: 170px;
-  top: 1230px;
-  width: 1820px;
-  height: 1365px;
-  border-radius: 60px;
+  left: 221px;
+  top: 1850px;
+  width: 1718px;
+  height: 1285px;
+  border-radius: 40px;
   overflow: hidden;
   background: linear-gradient(180deg, #2f2926 0%, #1d1917 100%);
-  box-shadow: var(--shadow-card);
 }
 
 .video {
@@ -143,60 +182,61 @@
 
 .corner {
   position: absolute;
-  width: 170px;
-  height: 170px;
+  width: 160px;
+  height: 160px;
   border: 0 solid var(--primary);
   pointer-events: none;
 }
 
 .tl {
-  left: 70px;
-  top: 70px;
+  left: 66px;
+  top: 66px;
   border-left-width: 16px;
   border-top-width: 16px;
   border-top-left-radius: 44px;
 }
 
 .tr {
-  right: 70px;
-  top: 70px;
+  right: 66px;
+  top: 66px;
   border-right-width: 16px;
   border-top-width: 16px;
   border-top-right-radius: 44px;
 }
 
 .bl {
-  left: 70px;
-  bottom: 70px;
+  left: 66px;
+  bottom: 66px;
   border-left-width: 16px;
   border-bottom-width: 16px;
   border-bottom-left-radius: 44px;
 }
 
 .br {
-  right: 70px;
-  bottom: 70px;
+  right: 66px;
+  bottom: 66px;
   border-right-width: 16px;
   border-bottom-width: 16px;
   border-bottom-right-radius: 44px;
 }
 
+/* 칸이 1820×1365 에서 1718×1285 로 줄어든 만큼 같은 비율로. */
 .guide {
   position: absolute;
   left: 50%;
   top: 50%;
-  width: 1080px;
-  height: 960px;
+  width: 1020px;
+  height: 904px;
   transform: translate(-50%, -46%);
   border: 8px dashed rgba(255, 255, 255, 0.7);
-  border-radius: 360px 360px 140px 140px;
+  border-radius: 340px 340px 132px 132px;
   pointer-events: none;
 }
 
 .guideLabel {
   position: absolute;
   left: 50%;
-  top: 96px;
+  top: 90px;
   transform: translateX(-50%);
   padding: 20px 50px;
   border-radius: 60px;
@@ -213,7 +253,7 @@
   right: 0;
   height: 14px;
   background: linear-gradient(90deg, transparent, rgba(255, 127, 15, 0.95), transparent);
-  box-shadow: 0 0 60px 20px rgba(255, 127, 15, 0.35);
+  box-shadow: 0 0 60px 20px rgba(255, 127, 15, 0.25);
   animation: scan 1.6s ease-in-out infinite alternate;
 }
 
@@ -226,24 +266,33 @@
   }
 }
 
+/* 'Countdown' 원 112 (7334:85008) — 가운데, 남은 초를 흰 글씨로. */
 .count {
   position: absolute;
   left: 50%;
   top: 50%;
-  width: 420px;
-  height: 420px;
-  margin: -210px 0 0 -210px;
-  border-radius: 50%;
+  width: 112px;
+  height: 112px;
+  margin: -56px 0 0 -56px;
   display: grid;
   place-items: center;
-  background: rgba(255, 127, 15, 0.9);
+  animation: pop 1s ease-out;
+}
+
+.countArt {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.countNum {
+  position: relative;
   color: #fff;
-  font-size: 250px;
+  font-size: 64px;
   font-weight: 800;
   line-height: 1;
   font-variant-numeric: tabular-nums;
-  box-shadow: 0 0 0 30px rgba(255, 127, 15, 0.25);
-  animation: pop 1s ease-out;
 }
 
 @keyframes pop {
@@ -288,6 +337,14 @@
   }
   to {
     opacity: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .scan,
+  .count,
+  .doneBadge {
+    animation: none;
   }
 }
 
@@ -342,70 +399,4 @@
   align-items: center;
   gap: 24px;
   cursor: pointer;
-}
-
-/* ── 촬영 팁 y2700 ── */
-.tipsLabel {
-  position: absolute;
-  left: 170px;
-  top: 2700px;
-}
-
-.tips {
-  position: absolute;
-  left: 170px;
-  top: 2836px;
-  width: 1820px;
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 40px;
-}
-
-.tip {
-  height: 400px;
-  border-radius: 60px;
-  background: #fff;
-  box-shadow: var(--shadow-card);
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 30px;
-  text-align: center;
-}
-
-.tipIcon {
-  width: 150px;
-  height: 150px;
-  border-radius: 50%;
-  display: grid;
-  place-items: center;
-  background: var(--primary-tint);
-  color: var(--primary);
-}
-
-.tipTitle {
-  font-size: 58px;
-  font-weight: 700;
-  color: var(--ink);
-}
-
-.tipCaption {
-  margin-top: 12px;
-  font-size: 42px;
-  font-weight: 500;
-  line-height: 1.4;
-  color: var(--muted);
-  white-space: pre-line;
-}
-
-.auto {
-  position: absolute;
-  left: 170px;
-  top: 3340px;
-  width: 1820px;
-  text-align: center;
-  font-size: 50px;
-  font-weight: 600;
-  color: #8a837e;
 }

@@ -98,6 +98,3 @@ export const FILLME_CONFIG = {
   /** 분석 요청 타임아웃(ms). 서버 nginx proxy_read_timeout(120s)보다 짧게. */
   requestTimeoutMs: 110000,
 } as const;
-
-/** 만 14세 미만 안내 기준(개인정보처리방침 제11조). */
-export const CHILD_AGE = 14;

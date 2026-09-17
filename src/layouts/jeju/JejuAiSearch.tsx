@@ -99,6 +99,12 @@ interface Props {
  * fills: a tap adds the tile to the day in view, and the same tile can be picked
  * on several days (2026-09-15). See `dayPicks` and `dayQueries`.
  */
+/** The category reset's accessible name (Figma 7397:9938 draws only the glyph). */
+const RESET_LABEL: Partial<Record<Lang, string>> = {
+  ko: '선택 초기화', en: 'Clear picks', ja: '選択をリセット', zh: '重置选择',
+  vi: 'Chọn lại từ đầu', th: 'ล้างการเลือก', ru: 'Сбросить выбор', id: 'Atur ulang pilihan',
+};
+
 const DAY_TAB: Partial<Record<Lang, (n: number) => string>> = {
   ko: (n) => `${n}일차`, en: (n) => `Day ${n}`, ja: (n) => `${n}日目`, zh: (n) => `第${n}天`,
   vi: (n) => `Ngày ${n}`, th: (n) => `วันที่ ${n}`, ru: (n) => `День ${n}`, id: (n) => `Hari ${n}`,
@@ -1078,6 +1084,19 @@ export function JejuAiSearch({ controller }: Props): JSX.Element {
   };
 
   /**
+   * The category reset beside the day tabs (Figma 7397:9938): clears every
+   * 즐길 거리 picked on EVERY day and returns to 1일차, so the visitor starts the
+   * trip over rather than untapping tile by tile. Only the picks — 방문 인원 /
+   * 체류 기간 / 이동수단 keep their answers. The picker re-plans from the empty
+   * lists on its own (dayQueries follow dayPicks).
+   */
+  const hasPicks = dayPicks.some((list) => list.length > 0);
+  const resetPicks = (): void => {
+    setDayPicks([]);
+    setViewDay(1);
+  };
+
+  /**
    * The hours note's window (7334:10548). The day in view's own, as the picker
    * answered it; before its first answer — and whenever the picker is down —
    * the same window the query asks for, so the note never contradicts the plan.
@@ -1089,16 +1108,18 @@ export function JejuAiSearch({ controller }: Props): JSX.Element {
     return (HOURS_NOTE[lang as Lang] ?? HOURS_NOTE.ko)!(clock(from), clock(to));
   }, [plan, activeDay, startMin, lang]);
 
-  /** The gauge: how much of the day in view is spent, as a bar and as time. */
+  /**
+   * The gauge: how much of the day in view is spent, as time. Text only since the
+   * 2026-09-17 frame (7249:9687 is the "3시간 30분 소요" line alone) — the bar was
+   * dropped to make room for the category reset at the end of the tab row.
+   */
   const gauge = useMemo(() => {
     const day = plan?.days[0];
     if (!plan || !day) return null;
-    const percent =
-      day.budgetMinutes > 0 ? Math.min(100, Math.round((day.usedMinutes / day.budgetMinutes) * 100)) : 100;
     if (plan.full) {
-      return { percent, text: pick(day.remainingMinutes >= FULL_WITH_TIME_LEFT_MIN ? NO_MORE_PLACES : PLAN_FULL, lang) };
+      return { text: pick(day.remainingMinutes >= FULL_WITH_TIME_LEFT_MIN ? NO_MORE_PLACES : PLAN_FULL, lang) };
     }
-    return { percent, text: fill(USED, lang as Lang, minutesLabel(day.usedMinutes, lang as Lang)) };
+    return { text: fill(USED, lang as Lang, minutesLabel(day.usedMinutes, lang as Lang)) };
   }, [plan, lang]);
 
   const submit = async (): Promise<void> => {
@@ -1515,6 +1536,17 @@ export function JejuAiSearch({ controller }: Props): JSX.Element {
               </button>
             );
           })}
+          <button
+            type="button"
+            className={styles.dayReset}
+            aria-label={pick(RESET_LABEL, lang as Lang)}
+            disabled={!hasPicks}
+            onClick={resetPicks}
+          >
+            {jejuIconUrl('ico-reset') && (
+              <img src={jejuIconUrl('ico-reset')} alt="" className={styles.dayResetIcon} draggable={false} />
+            )}
+          </button>
         </div>
         {gauge && (
           <div
@@ -1523,9 +1555,6 @@ export function JejuAiSearch({ controller }: Props): JSX.Element {
             role="status"
             aria-live="polite"
           >
-            <span className={styles.gaugeTrack}>
-              <span className={styles.gaugeFill} style={{ width: `${gauge.percent}%` }} />
-            </span>
             <span className={styles.gaugeText}>{gauge.text}</span>
           </div>
         )}

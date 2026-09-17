@@ -162,8 +162,8 @@ export type KioskScreenId =
   // `rest_info` overload — those exist only because those kiosks' CMS rows
   // happened to share a slot, and the alias makes every later reader guess.
   | 'rentcar'      // 렌트카 (간편 예약) — 제주공항 W006 only
-  // AI 손톱 건강분석 (FillMe). Not a grid tile: it is the bottom-row JEJU ISLAND
-  // button on the 제주 home, which used to open the AR 한복 outfit picker.
+  // AI 손톱 건강분석 (FillMe). Not a grid tile: it is the bottom-row 필미 button
+  // on the 제주 home (the slot JEJU ISLAND held before it).
   // See layouts/jeju/fillme/JejuFillme.tsx.
   | 'fillme'
   | 'tamnao'       // 탐나오 (제주공공플랫폼)

@@ -3,8 +3,13 @@
  * 제주 키오스크 안에서 직접 그린다. 웹뷰가 아니라 앱이 그리는 화면이다.
  *
  * 흐름(샘플 앱 kiosk.js 와 같은 순서·규칙, fillme-jeju-prototype 을 거쳐 옮겼다):
- *   시작 → 손톱 촬영(왼손·오른손 자동) → 정보 입력 → 개인정보 동의 → AI 분석 중 → 결과
- * 촬영 사진은 '분석 시작'(동의) 전까지 기기 메모리에만 있고 서버로 보내지 않는다.
+ *   시작 → 손톱 촬영(왼손·오른손 자동) → 정보 입력 → AI 분석 중 → 결과
+ * 촬영 사진은 정보 입력 화면에서 동의하고 '다음으로' 를 누르기 전까지 기기 메모리에만
+ * 있고 서버로 보내지 않는다.
+ *
+ * 2026-09-17: 샘플 앱에 있던 별도의 '개인정보 이용 동의' 화면(개인정보 · 민감정보
+ * 두 체크박스)을 뺐다 — 요청에 따라. 동의는 정보 입력 화면의 한 줄
+ * ("서비스 제공을 위해 이용자의 정보 수집을 동의합니다")로만 받는다.
  *
  * ── 시안과 달라진 곳 ───────────────────────────────────────────────────────
  *  · 틀: 시안의 JejuFrame(복제본) 대신 실제 JejuPageFrame 을 쓴다. 좌표계가 같아
@@ -28,16 +33,15 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import type { KioskController } from '@renderer/hooks/useKioskController';
 import { JejuPageFrame } from '../JejuPageFrame';
-import { FILLME_CONFIG, FILLME_CAMERA_MODE, CHILD_AGE } from './config';
+import { FILLME_CONFIG, FILLME_CAMERA_MODE } from './config';
 import { ApiError, analyzeGuest, needsRecapture, type AnalysisResult, type Hand, type Sex } from './api';
 import { NailCamera } from './camera';
-import { CONSENT_KEYS, FIELD_ORDER, HAND_LABEL, type ConsentKey, type FieldKey } from './copy';
+import { FIELD_ORDER, HAND_LABEL, type ConsentKey, type FieldKey } from './copy';
 import { createShare, type ShareState } from './share';
 import { renderResultImage } from './shareImage';
 import { FillmeIntro } from './FillmeIntro';
 import { FillmeCapture, type CapturePhase } from './FillmeCapture';
-import { FillmeInfo, infoValid, fieldValid, type InfoValues } from './FillmeInfo';
-import { FillmeConsent } from './FillmeConsent';
+import { FillmeInfo, infoValid, type InfoValues } from './FillmeInfo';
 import { FillmeAnalyzing } from './FillmeAnalyzing';
 import { FillmeResult } from './FillmeResult';
 import { Keypad } from './Keypad';
@@ -45,7 +49,7 @@ import { PolicySheet } from './PolicySheet';
 import { IdleModal, Modal, type ModalAction } from './Modal';
 import styles from './JejuFillme.module.css';
 
-type Screen = 'intro' | 'capture' | 'info' | 'consent' | 'analyzing' | 'result';
+type Screen = 'intro' | 'capture' | 'info' | 'analyzing' | 'result';
 /** 촬영이 끝난 뒤 어디로 — 처음 촬영이면 정보 입력, 재촬영이면 곧바로 재분석. */
 type After = 'info' | 'analyze';
 
@@ -55,7 +59,7 @@ interface Shot {
 }
 
 type ModalState =
-  | { kind: 'recapture'; hands: Hand[]; chips: string[] }
+  | { kind: 'recapture'; hands: Hand[] }
   | { kind: 'error'; error: ApiError }
   | null;
 
@@ -74,15 +78,18 @@ const sleep = (ms: number): Promise<void> => new Promise((r) => setTimeout(r, ms
  * 시트에 올릴 때는 다른 화면처럼 여기 제목이 `screenTitle` 의 키가 된다.
  */
 const TITLES: Record<Screen, [string, string]> = {
-  intro: ['AI 손톱 건강분석', 'FillMe와 함께하는 손톱 건강 체크 서비스예요'],
-  capture: ['손톱 촬영', '안내에 따라 왼손, 오른손 순서로 올려 주세요'],
+  /* 시안 7212:66398 의 머리말 — 다른 FillMe 화면과 같은 기능 이름. */
+  intro: ['AI 손톱 건강 분석', 'FillMe와 함께하는 손톱 건강 체크 서비스예요'],
+  /* 시안 7334:84998 의 머리말 — 다른 FillMe 화면과 같은 기능 이름. */
+  capture: ['AI 손톱 건강 분석', '안내에 따라 왼손, 오른손 순서로 올려 주세요'],
   /* 시안 7212:66381 은 이 화면의 제목을 기능 이름으로 적는다(검색창 자리의
      "AI 손톱 건강 분석"). 설명문은 시안이 자리만 잡아 둔 "페이지 설명문" 이라 쓰던
      문장을 그대로 둔다. */
   info: ['AI 손톱 건강 분석', '정확한 분석을 위해 기본 정보를 입력해 주세요'],
-  consent: ['개인정보 이용 동의', '동의해야 분석을 시작할 수 있어요'],
-  analyzing: ['AI 분석 중', '잠시만 기다려 주세요'],
-  result: ['AI 건강분석 결과', '나에게 맞는 영양 관리 방법을 확인해 보세요'],
+  /* 시안 7334:54793 의 머리말도 기능 이름이다(정보 입력과 같다). */
+  analyzing: ['AI 손톱 건강 분석', '잠시만 기다려 주세요'],
+  /* 시안 7334:83586 의 머리말도 기능 이름이다. */
+  result: ['AI 손톱 건강 분석', '나에게 맞는 영양 관리 방법을 확인해 보세요'],
 };
 
 export function JejuFillme({ controller }: Props): JSX.Element {
@@ -94,11 +101,9 @@ export function JejuFillme({ controller }: Props): JSX.Element {
   const [flashKey, setFlashKey] = useState(0);
   const [shots, setShots] = useState<Record<Hand, Shot | null>>({ left: null, right: null });
   const [info, setInfo] = useState<InfoValues>({ nums: EMPTY_NUMS, sex: null, pregnant: null });
-  const [agree, setAgree] = useState<Record<ConsentKey, boolean>>({ privacy: false, sensitive: false });
   /**
-   * 정보 입력 화면 안의 동의 한 줄 (Figma 7212:66381 / 7334:54219). 다음 화면의
-   * 법정 동의 두 가지와 별개다 — 여기서는 '다음으로' 를 여는 문지기일 뿐이고,
-   * 개인정보·민감정보 동의는 그대로 동의 화면에서 받는다. FillmeInfo 머리말 참고.
+   * 정보 입력 화면 안의 동의 한 줄 (Figma 7212:66381 / 7334:54219). 이 흐름의 유일한
+   * 동의다 — 체크해야 '다음으로' 가 열리고, 누르면 곧바로 분석을 시작한다.
    */
   const [infoAgreed, setInfoAgreed] = useState(false);
   const [keypad, setKeypad] = useState<FieldKey | null>(null);
@@ -148,7 +153,6 @@ export function JejuFillme({ controller }: Props): JSX.Element {
     stopProgress();
     replaceShots({ left: null, right: null });
     setInfo({ nums: EMPTY_NUMS, sex: null, pregnant: null });
-    setAgree({ privacy: false, sensitive: false });
     setInfoAgreed(false);
     setKeypad(null);
     setPolicy(null);
@@ -217,13 +221,10 @@ export function JejuFillme({ controller }: Props): JSX.Element {
       stopProgress();
       if (needsRecapture(results)) {
         const hands = HANDS.filter((h) => results.recapture.some((r) => String(r).startsWith(h)));
-        const detected = results.detectedFingers ?? {};
         const targets = hands.length ? hands : HANDS;
-        setModal({
-          kind: 'recapture',
-          hands: targets,
-          chips: targets.map((h) => `${HAND_LABEL[h]} 손톱 ${Number(detected[`${h}_hand`]) || 0}개 인식`),
-        });
+        // 모달(7334:84658)은 인식한 손톱 수를 그리지 않는다 — 운영에서 볼 수 있게 남긴다.
+        console.warn('[fillme] recapture needed', { hands: targets, detected: results.detectedFingers });
+        setModal({ kind: 'recapture', hands: targets });
         return;
       }
       setProgress(100);
@@ -234,7 +235,10 @@ export function JejuFillme({ controller }: Props): JSX.Element {
     } catch (e) {
       stopProgress();
       if (session !== sessionRef.current) return;
-      setModal({ kind: 'error', error: e instanceof ApiError ? e : new ApiError('server', String(e)) });
+      const error = e instanceof ApiError ? e : new ApiError('server', String(e));
+      // 모달(7334:84538)은 상태·코드 줄을 그리지 않는다 — 원인은 로그에 남긴다.
+      console.error('[fillme] analysis failed', { kind: error.kind, status: error.status, code: error.code, error });
+      setModal({ kind: 'error', error });
     }
   }, [stopProgress]);
 
@@ -341,7 +345,6 @@ export function JejuFillme({ controller }: Props): JSX.Element {
     setKeypad(next ?? null);
   };
 
-  const allAgreed = CONSENT_KEYS.every((k) => agree[k]);
 
   // ───────────────────────────────── 무입력
   // 입력을 받는 화면과 결과 화면에서만 센다. 모달을 띄운 채 자리를 떠나도 홈으로
@@ -349,7 +352,7 @@ export function JejuFillme({ controller }: Props): JSX.Element {
   const idleLimit =
     screen === 'result'
       ? FILLME_CONFIG.resultIdleSeconds
-      : screen === 'capture' || screen === 'info' || screen === 'consent' || modal
+      : screen === 'capture' || screen === 'info' || modal
         ? FILLME_CONFIG.idleSeconds
         : null;
   const idleActive = idleLimit != null;
@@ -392,8 +395,7 @@ export function JejuFillme({ controller }: Props): JSX.Element {
   // ───────────────────────────────── 화면
   /** 헤더·레일의 뒤로. 첫 화면에서는 키오스크 홈으로 나간다. */
   const back = (): void => {
-    if (screen === 'consent') setScreen('info');
-    else if (screen === 'info') startCapture(HANDS, 'info');
+    if (screen === 'info') startCapture(HANDS, 'info');
     else if (screen === 'intro') goHome();
     else resetAll();
   };
@@ -401,17 +403,20 @@ export function JejuFillme({ controller }: Props): JSX.Element {
   const [title, subtitle] = TITLES[screen];
   const shotUrls = { left: shots.left?.url ?? null, right: shots.right?.url ?? null };
 
+  /* 모달의 막대: 이 화면이 처음으로 돌아가기까지 남은 시간 (모달이 떠 있으면 무입력
+     타이머가 돈다 — idleLimit). */
+  const modalTimeLeft = idleLeft != null && idleLimit ? idleLeft / idleLimit : 1;
   let modalView: JSX.Element | null = null;
   if (modal?.kind === 'recapture') {
     const target = modal.hands.map((h) => HAND_LABEL[h]).join('과 ');
     const hands = modal.hands;
     modalView = (
       <Modal
-        icon="retry"
-        tone="orange"
+        art="retake"
+        secondary="plain"
+        timeLeft={modalTimeLeft}
         title="손톱이 충분히 보이지 않았어요"
         body={`손가락 3개 이상이 선명하게 보이도록\n${target}을 다시 촬영해 주세요`}
-        chips={modal.chips}
         actions={[
           { label: '처음으로', onClick: resetAll },
           { label: '다시 촬영하기', primary: true, onClick: () => startCapture(hands, 'analyze') },
@@ -435,11 +440,11 @@ export function JejuFillme({ controller }: Props): JSX.Element {
     ];
     modalView = (
       <Modal
-        icon="alert"
-        tone="red"
+        art="alert"
+        secondary="solid"
+        timeLeft={modalTimeLeft}
         title="분석을 완료하지 못했어요"
         body={body}
-        detail={[e.status, (e.code ?? '').trim() || e.kind].filter(Boolean).join(' · ')}
         actions={actions}
       />
     );
@@ -454,9 +459,10 @@ export function JejuFillme({ controller }: Props): JSX.Element {
       subtitle={subtitle}
       onBack={back}
       /* 본문이 y3267 을 넘지 않는 화면에만 배너가 들어간다 — 다른 제주 화면과 같은
-         규칙. 정보 입력은 2026-09-16 개편으로 본문이 2577 에서 끝나 배너가 들어왔다
-         (시안 7212:66381 도 그린다). */
-      showBanner={screen === 'intro' || screen === 'info'}
+         규칙. 정보 입력(본문 …2577, 시안 7212:66381) · 분석 중(카드 …2803, 7334:54793)
+         · 결과(버튼 줄 …3037, 7334:83586) · 촬영(미리보기 …3135, 7334:84998)은
+         2026-09-16 개편으로 배너가 들어왔다 — 이제 모든 화면에 들어간다. */
+      showBanner
       /* 분석 중에는 떠날 수 없다: 홈 한 번에 이미 동의하고 보낸 사진 두 장이 버려진다. */
       navDisabled={screen === 'analyzing'}
     >
@@ -497,26 +503,15 @@ export function JejuFillme({ controller }: Props): JSX.Element {
               setKeypad(null);
               setInfoAgreed((prev) => !prev);
             }}
-            /* 줄 안의 [개인보호정책] — 동의 화면과 같은 방침 전문을 연다. */
+            /* 줄 안의 [개인보호정책] — 방침 전문을 연다. */
             onOpenPolicy={() => setPolicy('privacy')}
             onRetake={() => startCapture(HANDS, 'info')}
+            /* 동의 화면을 거치지 않고 곧바로 분석한다 (2026-09-17, 파일 머리말). */
             onNext={() => {
               if (infoValid(info) && infoAgreed) {
                 setKeypad(null);
-                setScreen('consent');
+                void analyze();
               }
-            }}
-          />
-        )}
-        {screen === 'consent' && (
-          <FillmeConsent
-            agree={agree}
-            childAlert={fieldValid(info, 'age') && Number(info.nums.age) < CHILD_AGE}
-            onToggleAll={() => setAgree({ privacy: !allAgreed, sensitive: !allAgreed })}
-            onToggle={(key) => setAgree((prev) => ({ ...prev, [key]: !prev[key] }))}
-            onOpenPolicy={setPolicy}
-            onAnalyze={() => {
-              if (allAgreed && infoValid(info)) void analyze();
             }}
           />
         )}
@@ -527,7 +522,6 @@ export function JejuFillme({ controller }: Props): JSX.Element {
             share={share}
             onRetryShare={() => void makeShare(result)}
             onHome={resetAll}
-            onRetake={() => startCapture(HANDS, 'info')}
           />
         )}
 
@@ -537,7 +531,14 @@ export function JejuFillme({ controller }: Props): JSX.Element {
         {/* 읽기만 하는 창 (7334:54335) — 동의는 화면의 체크로만 받는다. */}
         {policy && <PolicySheet target={policy} onClose={() => setPolicy(null)} />}
         {modalView}
-        {showIdle && <IdleModal remaining={idleLeft ?? 0} onContinue={poke} />}
+        {showIdle && (
+          <IdleModal
+            remaining={idleLeft ?? 0}
+            total={FILLME_CONFIG.idleWarningSeconds}
+            onContinue={poke}
+            onReset={resetAll}
+          />
+        )}
       </div>
     </JejuPageFrame>
   );

@@ -193,7 +193,7 @@ export function JejuKiosk(): JSX.Element {
   ) : cur === 'rentcar' ? (
     <JejuRentcar controller={controller} />
   ) : cur === 'fillme' ? (
-    // AI 손톱 건강분석 — the home screen's JEJU ISLAND button. Its own camera
+    // AI 손톱 건강분석 — the home screen's 필미 button. Its own camera
     // (a USB nail camera), separate from 사진촬영's; see fillme/JejuFillme.tsx.
     <JejuFillme controller={controller} />
   ) : cur === 'taxfree' ? (

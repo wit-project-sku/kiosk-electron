@@ -1071,7 +1071,7 @@ export function JejuHelp({ controller, initialCategory }: Props): JSX.Element {
   const chips = chipsFor(terminal);
   const categoryRows = Math.ceil(chips.length / PER_ROW);
   const map = atPort ? PORT_MAPS[zone] : MAPS[`${terminal}-${floor}`];
-  const here = jejuIconUrl('ico-here');
+  const here = jejuIconUrl('ico-here-pin');
   const marker = jejuIconUrl('ico-map-pin');
 
   /** The Korean plan for Korean, the Latin one for everything else — and the
@@ -1347,12 +1347,14 @@ export function JejuHelp({ controller, initialCategory }: Props): JSX.Element {
         >
           <img src={src} alt="" draggable={false} />
 
-          {activePins.map((a) => (
+          {activePins.map((a, i) => (
             <button
-              key={`${a.pin.x},${a.pin.y}`}
+              // The chip is in the key so switching filters remounts the pins
+              // and their drop-in animation replays.
+              key={`${a.chip}:${a.pin.x},${a.pin.y}`}
               type="button"
               className={styles.pin}
-              style={at(a.pin, lang)}
+              style={{ ...at(a.pin, lang), '--pin-i': i } as CSSProperties}
               onClick={() => openPin(a)}
               aria-label={
                 a.facility ? pickText(a.facility.name, lang) : pinLabel(a.pin, a.chip, lang)
@@ -1369,6 +1371,10 @@ export function JejuHelp({ controller, initialCategory }: Props): JSX.Element {
               className={styles.here}
               style={{ left: `${hereAt.x * 100}%`, top: `${hereAt.y * 100}%` }}
             >
+              {/* The ground ring is drawn in CSS so it stays on the floor while
+                  the pin (ico-here with its ring erased) jumps. */}
+              <span className={styles.herePulse} aria-hidden />
+              <span className={styles.hereRing} aria-hidden />
               <img src={here} alt="" className={styles.hereIcon} draggable={false} />
               <p className={styles.hereLabel}>{pick(YOU_ARE_HERE, lang)}</p>
             </div>

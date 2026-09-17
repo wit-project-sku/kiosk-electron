@@ -1,7 +1,6 @@
 import type { JSX } from 'react';
 import { ANALYZE_STEPS, ANALYZE_SUBS } from './copy';
 import { fillmeArtUrl } from '@renderer/assets/fillme';
-import { Icon } from './Icon';
 import styles from './FillmeAnalyzing.module.css';
 
 interface Props {
@@ -9,24 +8,55 @@ interface Props {
   progress: number;
 }
 
+/**
+ * 스캔 격자 (analysis-overlay) — 823×823 정사각형을 4×4 로 나누는 가로·세로 다섯
+ * 줄씩. 시안 좌표 그대로(분석 판 안에서 x174 · y112 부터 204.46 간격).
+ */
+const GRID_STEP = 823 / 4;
+const GRID_LINES = [0, 1, 2, 3, 4].map((i) => i * GRID_STEP);
+
+/** 단계 아이콘: 끝남 · 지금 · 아직 (7370:14320 · 14329 · 14334). */
+const STEP_ART = {
+  done: 'step-done',
+  current: 'step-current',
+  pending: 'step-pending',
+} as const;
+
+/**
+ * AI 분석 중 — Figma 7334:54793. 좌표와 시안과 다른 곳은 스타일시트 머리말 참고.
+ */
 export function FillmeAnalyzing({ progress }: Props): JSX.Element {
   const p = Math.max(0, Math.min(100, progress));
   const step = p >= 100 ? 4 : Math.floor(p / 25);
+  const hand = fillmeArtUrl('hand-scan');
+  const beam = fillmeArtUrl('scan-beam');
   return (
     <div className={styles.root}>
       <section className={styles.card}>
-        <div className={styles.ring} aria-hidden="true">
-          <svg viewBox="0 0 120 120" className={styles.ringSvg}>
-            <circle cx="60" cy="60" r="56" className={styles.ringBase} />
-            <circle cx="60" cy="60" r="56" className={styles.ringArcs} pathLength="100" />
-          </svg>
-          <img src={fillmeArtUrl('hand')} alt="" className={styles.hand} draggable={false} />
-          <span className={styles.scan} />
+        <div className={styles.texts}>
+          <h2 className={styles.title}>AI가 손톱을 분석하고 있어요</h2>
+          <p className={styles.sub} aria-live="polite">
+            {ANALYZE_SUBS[step]}
+          </p>
         </div>
 
-        <h2 className={styles.title}>AI가 손톱을 분석하고 있어요</h2>
-        <p className={styles.sub} aria-live="polite">
-          {ANALYZE_SUBS[step]}
+        {/* 분석 판 (7334:84386) — 두 손, 그 위에 격자, 맨 위에 스캔 빛줄기. */}
+        <div className={styles.stage} aria-hidden="true">
+          {hand && <img src={hand} alt="" className={`${styles.hand} ${styles.handLeft}`} draggable={false} />}
+          {hand && <img src={hand} alt="" className={`${styles.hand} ${styles.handRight}`} draggable={false} />}
+          {GRID_LINES.map((d) => (
+            <span key={`h${d}`} className={`${styles.line} ${styles.lineH}`} style={{ top: 112 + d }} />
+          ))}
+          {GRID_LINES.map((d) => (
+            <span key={`v${d}`} className={`${styles.line} ${styles.lineV}`} style={{ left: 174 + d }} />
+          ))}
+          {beam && <img src={beam} alt="" className={styles.beam} draggable={false} />}
+        </div>
+
+        <p className={styles.note}>
+          보통 10-30초 걸려요.
+          <br />
+          화면을 떠나지 말고 잠시 기다려 주세요.
         </p>
 
         <div className={styles.progress}>
@@ -38,26 +68,17 @@ export function FillmeAnalyzing({ progress }: Props): JSX.Element {
 
         <ul className={styles.steps}>
           {ANALYZE_STEPS.map((label, i) => {
-            const state = i < step ? styles.done : i === step ? styles.current : '';
+            const state = i < step ? 'done' : i === step ? 'current' : 'pending';
+            const art = fillmeArtUrl(STEP_ART[state]);
             return (
-              <li key={label} className={`${styles.step} ${state}`}>
-                <span className={styles.stepCheck}>
-                  {i < step ? <Icon name="check" size={52} strokeWidth={3.4} /> : <span className={styles.stepDot} />}
-                </span>
-                {label}
+              <li key={label} className={`${styles.step} ${styles[state]}`}>
+                {art && <img src={art} alt="" className={styles.stepIcon} draggable={false} />}
+                <span className={styles.stepLabel}>{label}</span>
               </li>
             );
           })}
         </ul>
       </section>
-
-      <p className={styles.note}>
-        <Icon name="clock" size={58} strokeWidth={2.2} />
-        보통 10~30초 걸려요. 화면을 떠나지 말고 잠시 기다려 주세요
-      </p>
-      <p className={styles.powered}>
-        Powered by <img src={fillmeArtUrl('fillme-logo')} alt="FillMe" />
-      </p>
     </div>
   );
 }

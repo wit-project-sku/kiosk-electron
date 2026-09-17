@@ -190,6 +190,9 @@
 .spotSlim {
   min-height: 416px;
   padding: 48px 44px;
+  /* The frame's drop-shadow(5 10 5 rgba(0,0,0,.1)) — the plate sits on the white
+     sheet, and this is all that separates the two. */
+  box-shadow: 5px 10px 5px rgba(0, 0, 0, 0.1);
 }
 
 .spotSlim .spotImg {

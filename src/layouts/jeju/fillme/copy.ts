@@ -38,12 +38,8 @@ export const CONSENTS: Record<ConsentKey, { title: string; rows: [string, string
   },
 };
 
-export const CONSENT_KEYS: ConsentKey[] = ['privacy', 'sensitive'];
-
 export const REFUSE_NOTICE =
   '동의를 거부할 권리가 있으며, 동의하지 않으면 손톱 분석 서비스를 이용할 수 없습니다.';
-
-export const CHILD_NOTICE = '만 14세 미만 아동은 법정대리인의 동의 및 보호 하에서만 이용할 수 있어요.';
 
 export const POLICY_SUB = '주식회사 링커버스 · 개인정보처리방침(무인 키오스크용) 시행일자 2026.06.01.';
 

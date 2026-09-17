@@ -33,7 +33,7 @@
  *   1139 날짜 네비게이션 — DAY 1/2/3 tabs (7334:10348), h120
  *   1259 the sheet (7334:10355), white to y3840, top-right corner rounded
  *   1353 the start-point plate (7334:10533), 1714 wide — fixed, and discless
- *   1583 the list: discs x212, cards 1588 at x364 (1353 on a day with no plate)
+ *   1583 the list: discs x212, cards 1588 at x347 (1353 on a day with no plate)
  * No 전체보기 / 선택보기 and no ← → here: the frame has neither.
  *
  * WHAT THE RE-STACK CHANGED against 6516:73138: the course DESCRIPTION that sat
@@ -352,15 +352,32 @@
   pointer-events: none;
 }
 
+/* A leg with its distance (7334:10527): two centred lines, time over km, in
+   Pretendard Medium 25. The frame's "normal" leading is Pretendard's ~1.2 — 30 a
+   line, an 80-tall pill with the 10/10 padding — spelled out so a fallback font
+   with looser leading does not grow the pill. */
+.legKm {
+  font-size: 25px;
+  line-height: 1.2;
+}
+
+.legLine {
+  display: block;
+  white-space: nowrap;
+}
+
 /*
- * Row = [disc 105][gap 47][card 1588] = 1740, which is the sheet's own gutter:
- * the disc sits at x212 and the card at x364, 38 inside the sheet's right edge.
+ * Row = [disc 105][gap 30][card 1588] = 1723: the disc at x212 and the card at
+ * x347, its right edge on 1935 — measured off both 2026-09-17 frames (the plate's
+ * drop shadow starts at x1936 in 7058:21462 and 7058:22277 alike), and the
+ * frame's own list box (7334:9872, x347). The 55 left before the sheet's edge
+ * holds the shadow, which the list's overflow would otherwise clip.
  */
 .stopRow {
   flex: none;
   display: flex;
   align-items: center;
-  gap: 47px;
+  gap: 30px;
 }
 
 /* Positioned + z-index so the disc paints OVER the rail (an absolutely placed
@@ -381,7 +398,7 @@
 }
 
 /* ── Spot list — all stops for the day, scrollable ──
-   Inset to the sheet: rows start at x212 (disc) / x364 (card), and the box
+   Inset to the sheet: rows start at x212 (disc) / x347 (card), and the box
    itself starts 40 further left with a 40px pad, because it scrolls and so clips
    at its own edge — the travel pills centred on the x266.5 rail reach left of
    the discs. Only `top` / `max-height` vary, per route and per day; see the four
@@ -461,7 +478,7 @@
 /* ── Empty state ── */
 .empty {
   position: absolute;
-  left: 364px;
+  left: 347px;
   top: 1700px;
   width: 1588px;
   margin: 0;
