@@ -17,6 +17,14 @@
  *
  * The zones are labelled with what SHE does, not with what the hand does.
  *
+ * ── A hand ducks with a FIST, so its meter has no duck zone ───────────
+ * While a hand is steering, down means nothing (see runControl), and a zone
+ * below the line labelled DUCK would re-teach exactly the gesture that was
+ * replaced. So in hand mode that zone is gone, "run" fills the rest of the
+ * track, and a ✊ badge under it lights while the fist is held — with the
+ * marker itself turning into a fist, so the visitor sees their own hand close.
+ * The body fallback still ducks by crouching, and keeps the zone.
+ *
  * ── Drawn from a ref, not from state ──────────────────────────────────
  * The reading changes twenty times a second. Rendering React at that rate for
  * one moving marker would be waste, so an animation frame writes the marker's
@@ -60,6 +68,9 @@ export function ControlMeter({ control, emphasis = null }: Props): JSX.Element {
   const jumpRef = useRef<HTMLDivElement>(null);
   const duckRef = useRef<HTMLDivElement>(null);
   const trackRef = useRef<HTMLDivElement>(null);
+  const rootRef = useRef<HTMLDivElement>(null);
+  const fistRef = useRef<HTMLDivElement>(null);
+  const glyphRef = useRef<HTMLSpanElement>(null);
 
   useEffect(() => {
     let raf = 0;
@@ -71,16 +82,24 @@ export function ControlMeter({ control, emphasis = null }: Props): JSX.Element {
 
       const seen = reading.level !== null;
       marker.style.top = `${seen ? toPercent(reading.level!) : 50}%`;
+      rootRef.current?.classList.toggle(styles.meterHandMode!, reading.byHand);
       trackRef.current?.classList.toggle(styles.meterLost!, !seen);
       jumpRef.current?.classList.toggle(styles.meterZoneOn!, seen && reading.level! <= -1);
-      duckRef.current?.classList.toggle(styles.meterZoneOn!, seen && reading.level! >= 1);
+      // Lit by the DETECTOR's answer, not by the marker's position: what
+      // matters is whether she is ducking, and for a hand that is the fist.
+      duckRef.current?.classList.toggle(styles.meterZoneOn!, reading.ducking);
+      fistRef.current?.classList.toggle(styles.meterZoneOn!, reading.ducking);
+      const glyph = reading.byHand && reading.ducking ? '✊' : '✋';
+      if (glyphRef.current && glyphRef.current.textContent !== glyph) {
+        glyphRef.current.textContent = glyph;
+      }
     };
     paint();
     return () => cancelAnimationFrame(raf);
   }, [control]);
 
   return (
-    <div className={styles.meter} aria-hidden>
+    <div ref={rootRef} className={`${styles.meter} ${styles.meterHandMode}`} aria-hidden>
       <div ref={trackRef} className={styles.meterTrack}>
         <div
           ref={jumpRef}
@@ -104,8 +123,17 @@ export function ControlMeter({ control, emphasis = null }: Props): JSX.Element {
         </div>
 
         <div ref={markerRef} className={styles.meterMarker} style={{ top: '50%' }}>
-          <span className={styles.meterHand}>✋</span>
+          <span ref={glyphRef} className={styles.meterHand}>
+            ✋
+          </span>
         </div>
+      </div>
+      <div
+        ref={fistRef}
+        className={`${styles.meterFist} ${emphasis === 'duck' ? styles.meterPulse : ''}`}
+      >
+        <span className={styles.meterFistGlyph}>✊</span>
+        <span className={styles.meterFistLabel}>{pick(MOTION.meterDuck, lang)}</span>
       </div>
       <p className={styles.meterCaption}>✋ = {pick(MOTION.meterHand, lang)}</p>
     </div>

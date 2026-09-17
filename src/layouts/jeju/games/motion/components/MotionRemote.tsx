@@ -156,7 +156,7 @@ export function MotionRemote({
             {game === 'jeju-run' ? (
               <>
                 <span>✋⬆️ {pick(MOTION.tutJumpSub, lang)}</span>
-                <span>✋⬇️ {pick(MOTION.tutDuckSub, lang)}</span>
+                <span>✊ {pick(MOTION.tutDuckSub, lang)}</span>
               </>
             ) : (
               <span>✋↔️ {pick(MOTION.moveLeftRight, lang)}</span>

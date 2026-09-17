@@ -144,3 +144,61 @@ export function handQuality(landmarks: readonly HandLandmark[], span: number): n
 
   return plausible * (0.5 + 0.5 * scale);
 }
+
+/** Middle joint and tip of each of the four fingers. The thumb is left out. */
+const GAME_FINGERS: ReadonlyArray<{ pip: number; tip: number }> = [
+  { pip: 6, tip: 8 },
+  { pip: 10, tip: 12 },
+  { pip: 14, tip: 16 },
+  { pip: 18, tip: 20 },
+];
+
+/**
+ * Open hand or fist, tuned for a GAME controller rather than a trigger.
+ *
+ * ══ WHY NOT THE CAPTURE SCREEN'S CLASSIFIER ═══════════════════════════
+ * `classifyHand` in lib/handGesture starts a photo countdown, so it is strict
+ * on purpose: all four fingers must agree, and a hand below a minimum size is
+ * ignored. A false positive there fires a camera at somebody.
+ *
+ * Here the fist is how she DUCKS, and the costs are the other way round. A fist
+ * the model reads with one finger half-open — very common, because a curled
+ * finger hides behind its neighbours — must still count, or the visitor makes a
+ * perfectly good fist and gets hit by the gull. So three fingers of four decide
+ * it, and there is no size floor (the tracker already refuses hands too small
+ * to be the player's).
+ *
+ * The thumb is excluded for the same reason as there: it folds across a fist on
+ * some people and sticks out on others.
+ *
+ * Returns null for anything in between — a hand opening or closing, or a
+ * pointing finger. The caller treats null as "no change", which is what stops
+ * the half-second it takes to close a hand from flickering her up and down.
+ */
+export function classifyGameHand(landmarks: readonly HandLandmark[]): 'open' | 'fist' | null {
+  if (landmarks.length < 21) return null;
+  const wrist = landmarks[WRIST];
+  if (!wrist) return null;
+
+  let extended = 0;
+  let curled = 0;
+  for (const { pip, tip } of GAME_FINGERS) {
+    const p = landmarks[pip];
+    const t = landmarks[tip];
+    if (!p || !t) continue;
+    const pipReach = Math.hypot(p.x - wrist.x, p.y - wrist.y);
+    if (pipReach <= 0) continue;
+    // Rotation-invariant: how far the tip is from the wrist, against how far the
+    // middle joint is. Curled tips come back in past their own middle joint.
+    const ratio = Math.hypot(t.x - wrist.x, t.y - wrist.y) / pipReach;
+    // 0.9, not the capture gate's looser-looking 1.0: against a kinematic hand
+    // model, 1.0 called a half-closed "claw" (50% curl) a fist, and 0.9 moves
+    // that boundary to 60% while a loose 70–80% fist still counts.
+    if (ratio >= 1.15) extended += 1;
+    else if (ratio <= 0.9) curled += 1;
+  }
+
+  if (curled >= 3) return 'fist';
+  if (extended >= 3) return 'open';
+  return null;
+}

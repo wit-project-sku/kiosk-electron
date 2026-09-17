@@ -63,12 +63,18 @@ import {
 import { getCameraRotation } from '@shared/config/kioskLocations';
 import type { KioskId } from '@shared/types/kiosk';
 import { useKioskStore } from '@renderer/store/kioskStore';
-import { classifyHand, type HandGesture } from '@renderer/lib/handGesture';
 import { FrameSource } from './FrameSource';
+import { OneEuroFilter } from './oneEuro';
 import { HandTracker } from './HandTracker';
 import { PoseTracker } from './PoseTracker';
 import { emptyTrackingState, type PlayerTrackingState, type TrackingStatus } from './poseTypes';
-import { handApparentSize, handCentre, handQuality, toGameHand } from './handMath';
+import {
+  classifyGameHand,
+  handApparentSize,
+  handCentre,
+  handQuality,
+  toGameHand,
+} from './handMath';
 import {
   apparentSize,
   expandRange,
@@ -176,13 +182,19 @@ const HAND_MIN_SIZE = 0.02;
 const GOOD_HAND = 0.45;
 
 /**
- * Smoothing time constant for a hand, in seconds.
+ * One Euro filter settings for the hand — see oneEuro.ts for why a hand is not
+ * smoothed the way the body is.
  *
- * Shorter than the body's 0.09 because a hand is a quicker instrument and the
- * player can SEE it: lag that reads as weight in a torso controller reads as
- * unresponsiveness when the thing lagging is at the end of their own arm.
+ * ══ CHOSEN BY SIMULATION, NOT BY FEEL ═════════════════════════════════
+ * These came out of a sweep of simulated players — near and far, small and big
+ * gestures, tired arms, noisy frames and dropouts — run through the real
+ * RunControl detector. Every setting tried beat the fixed filter this replaced;
+ * the dial between them trades false jumps (snappier) against held ducks
+ * (steadier). 1.0 / 2.2 sits where false jumps had nearly vanished and a
+ * jump still registered in well under 200ms. Move it and re-run the sweep.
  */
-const HAND_TAU = 0.06;
+const HAND_MIN_CUTOFF = 1.0;
+const HAND_BETA = 2.2;
 
 /**
  * How long a hand may steer, while the orientation is unsettled, before the
@@ -457,6 +469,12 @@ export function useMotionTracking({ enabled }: Options): MotionTracking {
   const lockSourceRef = useRef<'hand' | 'body' | null>(null);
   /** performance.now() of the last frame that contained a usable hand. */
   const lastHandAtRef = useRef(0);
+  /**
+   * The hand's filters. Reset whenever the lock is taken fresh, so a new hand
+   * does not glide in from wherever the last one was.
+   */
+  const handXFilterRef = useRef(new OneEuroFilter(HAND_MIN_CUTOFF, HAND_BETA));
+  const handYFilterRef = useRef(new OneEuroFilter(HAND_MIN_CUTOFF, HAND_BETA));
   /** When the current unbroken run of hand frames began. 0 = no hand. */
   const handHeldSinceRef = useRef(0);
   /**
@@ -517,6 +535,8 @@ export function useMotionTracking({ enabled }: Options): MotionTracking {
   const recalibrate = useCallback((): void => {
     lockRef.current = null;
     lockSourceRef.current = null;
+    handXFilterRef.current.reset();
+    handYFilterRef.current.reset();
     handHeldSinceRef.current = 0;
     rawXRef.current = 0.5;
     smoothXRef.current = 0.5;
@@ -552,6 +572,8 @@ export function useMotionTracking({ enabled }: Options): MotionTracking {
     let lastAt = 0;
 
     lastHandAtRef.current = 0;
+    handXFilterRef.current.reset();
+    handYFilterRef.current.reset();
     handHeldSinceRef.current = 0;
     rawXRef.current = 0.5;
     lockRef.current = null;
@@ -588,8 +610,10 @@ export function useMotionTracking({ enabled }: Options): MotionTracking {
           x: number;
           y: number;
           span: number;
+          /** Palm width in frame-height units — see PlayerTrackingState.scale. */
+          scale: number;
           quality: number;
-          gesture: HandGesture | null;
+          gesture: 'open' | 'fist' | null;
         }
         const handCandidates: Candidate[] = [];
         let bestHandQuality = 0;
@@ -606,15 +630,28 @@ export function useMotionTracking({ enabled }: Options): MotionTracking {
           if (quality < GOOD_HAND) continue;
           // The distance floor, not a quality one — see HAND_MIN_SIZE.
           if (handApparentSize(centre.span, frame.width, frame.height) < HAND_MIN_SIZE) continue;
+          // Palm width measured in PIXELS before being expressed in frame
+          // heights. The normalized span mixes a width-normalized x with a
+          // height-normalized y, which on a portrait frame is not a length.
+          const knuckleA = marks[5];
+          const knuckleB = marks[17];
+          const palmPx =
+            knuckleA && knuckleB
+              ? Math.hypot(
+                  (knuckleA.x - knuckleB.x) * frame.width,
+                  (knuckleA.y - knuckleB.y) * frame.height,
+                )
+              : 0;
           handCandidates.push({
             x: centre.x,
             y: centre.y,
             span: centre.span,
+            scale: frame.height > 0 ? palmPx / frame.height : 0,
             quality,
             // Classified from the MIRRORED landmarks, which is harmless: every
-            // test in `classifyHand` is a distance, and a mirror preserves
+            // test in `classifyGameHand` is a distance, and a mirror preserves
             // distances. Reaching for the raw ones would only be a second copy.
-            gesture: classifyHand(marks),
+            gesture: classifyGameHand(marks),
           });
         }
 
@@ -772,22 +809,26 @@ export function useMotionTracking({ enabled }: Options): MotionTracking {
 
         // ── Smooth whichever one won, into the same two numbers ──
         if (hand) {
+          // A fresh lock — first hand, a hand after the body, or a hand after a
+          // loss — starts its filters from scratch, so the controller jumps
+          // straight to the new hand instead of gliding across the screen.
+          if (lockSourceRef.current !== 'hand') {
+            handXFilterRef.current.reset();
+            handYFilterRef.current.reset();
+          }
           lockRef.current = { x: hand.x, y: hand.y };
           lockSourceRef.current = 'hand';
           rawXRef.current = hand.x;
-          // Expand first, then smooth: smoothing the raw value and expanding
-          // afterwards would multiply the residual jitter by the same factor as
-          // the signal, undoing the filter at the screen edges.
-          smoothXRef.current = smoothToward(
-            smoothXRef.current,
-            expandRange(hand.x),
-            dt,
-            HAND_TAU,
-          );
+          const tSec = started / 1000;
+          // Expand AFTER filtering here, unlike the body. The One Euro filter
+          // judges speed from the value it is given, and handing it the
+          // expanded value would make every movement look 1.6× faster than it
+          // was — opening the filter up and letting the jitter through.
+          smoothXRef.current = expandRange(handXFilterRef.current.filter(hand.x, tSec));
           // NOT expanded. The vertical channel is read against a baseline
-          // measured on this visitor (see useJejuRun), so stretching it would
+          // measured on this visitor (see runControl), so stretching it would
           // only rescale both sides of a comparison that is already relative.
-          smoothYRef.current = smoothToward(smoothYRef.current, hand.y, dt, HAND_TAU);
+          smoothYRef.current = handYFilterRef.current.filter(hand.y, tSec);
 
           playerRef.current = {
             detected: true,
@@ -796,6 +837,7 @@ export function useMotionTracking({ enabled }: Options): MotionTracking {
             centerY: smoothYRef.current,
             width: handApparentSize(hand.span, frame.width, frame.height),
             height: 0,
+            scale: hand.scale,
             confidence: hand.quality,
             gesture: hand.gesture,
             landmarks: null,
@@ -816,6 +858,7 @@ export function useMotionTracking({ enabled }: Options): MotionTracking {
             centerY: smoothYRef.current,
             width: apparentSize(best.landmarks, frame.width, frame.height),
             height: best.height,
+            scale: 0,
             confidence: best.confidence,
             gesture: null,
             landmarks: best.landmarks,

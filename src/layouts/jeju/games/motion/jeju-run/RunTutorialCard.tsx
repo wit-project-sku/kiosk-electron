@@ -41,11 +41,17 @@ export function RunTutorialCard({ step }: Props): JSX.Element | null {
 
       {step === 'duck' && (
         <>
+          {/* The demonstration is the shape changing, in place: an open hand
+              closing into a fist and opening again. Two glyphs cross-fading
+              rather than one moving, because the move is a SHAPE, not a
+              direction — a hand travelling down here would re-teach the old
+              control this one replaced. */}
           <span className={styles.tutDemo} aria-hidden>
-            <span className={`${styles.tutHand} ${styles.tutHandDown}`}>✋</span>
+            <span className={`${styles.tutHand} ${styles.tutShapeOpen}`}>✋</span>
+            <span className={`${styles.tutHand} ${styles.tutShapeFist}`}>✊</span>
           </span>
           <p className={styles.tutLine}>{pick(MOTION.tutDuck, lang)}</p>
-          <p className={styles.tutSub}>⬇️ {pick(MOTION.tutDuckSub, lang)}</p>
+          <p className={styles.tutSub}>✊ {pick(MOTION.tutDuckSub, lang)}</p>
         </>
       )}
 
@@ -55,6 +61,11 @@ export function RunTutorialCard({ step }: Props): JSX.Element | null {
             👍
           </span>
           <p className={styles.tutLine}>{pick(MOTION.tutGood, lang)}</p>
+          {/* After the first duck the fist is still closed and she is still
+              down. Say how to get up, or they wait there for the game. */}
+          {step === 'duck-ok' && (
+            <p className={styles.tutSub}>✋ {pick(MOTION.tutDuckRelease, lang)}</p>
+          )}
         </>
       )}
 

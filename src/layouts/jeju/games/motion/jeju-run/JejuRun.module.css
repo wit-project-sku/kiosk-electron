@@ -119,6 +119,49 @@
   animation: handDown 1.4s cubic-bezier(0.45, 0, 0.2, 1) infinite;
 }
 
+/* Open → fist → open, in place. Both glyphs sit at the same spot and trade
+   opacity, with a small squeeze on the fist so "close it tight" reads. */
+.tutShapeOpen,
+.tutShapeFist {
+  top: 80px;
+}
+
+.tutShapeOpen {
+  animation: shapeOpen 1.6s ease-in-out infinite;
+}
+
+.tutShapeFist {
+  animation: shapeFist 1.6s ease-in-out infinite;
+}
+
+@keyframes shapeOpen {
+  0%,
+  30%,
+  100% {
+    opacity: 1;
+    transform: translateX(-50%) scale(1);
+  }
+  42%,
+  88% {
+    opacity: 0;
+    transform: translateX(-50%) scale(0.8);
+  }
+}
+
+@keyframes shapeFist {
+  0%,
+  30%,
+  100% {
+    opacity: 0;
+    transform: translateX(-50%) scale(1.1);
+  }
+  42%,
+  88% {
+    opacity: 1;
+    transform: translateX(-50%) scale(0.92);
+  }
+}
+
 @keyframes handUp {
   0%,
   15% {
@@ -167,7 +210,9 @@
 .meterTrack {
   position: relative;
   width: 300px;
-  height: 940px;
+  /* Short enough that the ✊ badge and caption below it stay above the ground
+     line rather than sitting on it. */
+  height: 760px;
   border-radius: 48px;
   border: 6px solid rgba(255, 255, 255, 0.2);
   background: rgba(40, 32, 52, 0.8);
@@ -271,6 +316,50 @@
 .meterHand {
   font-size: 120px;
   line-height: 1;
+}
+
+/* ── Hand mode: a fist ducks, so there is no duck zone ───────────────── */
+.meterHandMode .meterDuck {
+  display: none;
+}
+
+/* "Run" fills everything below the jump line: down means nothing for a hand. */
+.meterHandMode .meterRun {
+  bottom: 0;
+  height: auto !important;
+  border-radius: 0 0 42px 42px;
+}
+
+.meterFist {
+  display: none;
+  align-items: center;
+  gap: 18px;
+  padding: 18px 40px 18px 26px;
+  border-radius: 999px;
+  border: 6px solid rgba(255, 255, 255, 0.2);
+  background: rgba(40, 32, 52, 0.8);
+  transition: background 120ms;
+}
+
+.meterHandMode .meterFist {
+  display: flex;
+}
+
+.meterFist.meterZoneOn {
+  background: rgba(96, 160, 240, 0.95);
+  border-color: rgba(255, 255, 255, 0.5);
+}
+
+.meterFistGlyph {
+  font-size: 96px;
+  line-height: 1;
+}
+
+.meterFistLabel {
+  font-size: 58px;
+  font-weight: 800;
+  color: #fff;
+  white-space: nowrap;
 }
 
 /* No hand: the marker parks in the middle and fades, so the meter reads as

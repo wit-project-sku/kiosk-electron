@@ -14,15 +14,11 @@
  * ends, {@link useMotionTracking} releases the camera and drops the state.
  */
 
-import type { HandGesture } from '@renderer/lib/handGesture';
-
 /**
  * One body point, already normalized and already turned upright — see
  * `toUpright` in poseMath. `x` 0..1 left→right AS THE PLAYER SEES IT (mirrored),
  * `y` 0..1 top→bottom.
  */
-export type { HandGesture } from '@renderer/lib/handGesture';
-
 export interface BodyLandmark {
   x: number;
   y: number;
@@ -109,17 +105,27 @@ export interface PlayerTrackingState {
   width: number;
   /** Hip-to-shoulder span, same units. Zero while a hand is steering. */
   height: number;
+  /**
+   * The steering palm's width in FRAME-HEIGHT units, or 0 for a body.
+   *
+   * The ruler a game should measure hand movement with. A fixed fraction of the
+   * frame is a big arm movement for someone two metres back and a small one for
+   * a child at arm's length; the same number of PALM WIDTHS is roughly the same
+   * movement for both, because a palm shrinks with distance at exactly the rate
+   * the movement does. Frame-HEIGHT units because that is what `centerY` is in.
+   */
+  scale: number;
   /** 0..1. How much the games should trust the numbers above. */
   confidence: number;
   /**
-   * The open palm / closed fist the steering hand is holding, or null.
+   * The open hand / fist the steering hand is holding, or null while it is in
+   * between.
    *
-   * Classified by the same `handGesture` code the capture screen's 손동작 게이트
-   * uses. No game requires it today — the controller is positional, which is
-   * legible without instructions — but it is the natural home for a discrete
-   * action, and it costs nothing to publish from a hand we have already found.
+   * Load-bearing for 제주 달리기, where a FIST is how she ducks. Classified per
+   * frame by `classifyGameHand` — three fingers of four decide it — so a game
+   * reading it should debounce it rather than act on a single frame.
    */
-  gesture: HandGesture | null;
+  gesture: 'open' | 'fist' | null;
   /**
    * The upright, mirrored 33-point pose, or null when no BODY is locked.
    *
@@ -146,6 +152,7 @@ export function emptyTrackingState(): PlayerTrackingState {
     centerY: 0.5,
     width: 0,
     height: 0,
+    scale: 0,
     confidence: 0,
     gesture: null,
     landmarks: null,

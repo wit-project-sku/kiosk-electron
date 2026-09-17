@@ -2,78 +2,23 @@
  * 제주 달리기 — the bridge between a raised hand and the runner.
  *
  * The engine ({@link createRunEngine}) owns the game entirely: its own canvas,
- * its own fixed-step loop, its own score. This hook does two things and nothing
- * else — it drives the shared MotionPhase lifecycle, and it turns the tracked
- * controller into JUMP and DUCK.
+ * its own fixed-step loop, its own score. This hook drives the shared
+ * MotionPhase lifecycle and the practice run, and hands the tracked controller
+ * to {@link RunControlDetector}, which turns it into JUMP and DUCK.
  *
- * ══ HOW A JUMP IS RECOGNISED ══════════════════════════════════════════
- * From the CONTROLLER'S HEIGHT, and relative to a baseline measured on this
- * specific visitor a moment earlier.
- *
- * An absolute threshold cannot work here: where someone's hand rests in the
- * frame depends on their height, their reach and how far back they stood, so a
- * line that catches a child's raise is one an adult crosses by standing still.
- * The countdown is the calibration — three seconds of somebody holding still,
- * which is exactly what the baseline needs — and everything after is measured
- * as a fraction of the frame away from where THEY were.
- *
- * ══ THE TWO CONTROLLERS ARE NOT THE SAME SIZE ═════════════════════════
- * This is the one game where `source` is load-bearing. Raising a HAND moves the
- * tracked point by a quarter of the frame or more; JUMPING moves the shoulder
- * line by about a twentieth. A single threshold cannot serve both — tuned for
- * the hand nobody could ever jump high enough, tuned for the body the game
- * would fire on a hand that merely drifted.
- *
- * So the thresholds are a pair, picked per frame from whichever input the
- * tracker says is steering. See {@link THRESHOLDS}.
- *
- * ── Why the hand and not the shoulders any more ───────────────────────
- * Because 제주공항 is a concourse and the previous version asked visitors to
- * jump up and down in it. The full argument is on HandTracker. The body path
- * below is unchanged and still runs for anyone whose hands are full — it is a
- * fallback now rather than the only way in.
+ * ── Where the detection rules live ────────────────────────────────────
+ * Not here. They were — a fixed pair of lines against a baseline taken from
+ * the first second of the countdown — and they lost accuracy in half a dozen
+ * ways that only showed up with distance, a tired arm, a hand still settling,
+ * or a hand leaving the frame. They now live in `runControl.ts`, which is pure
+ * so every rule can be measured against simulated hands; its header lists what
+ * each rule fixes. This file only feeds it and acts on what it says.
  */
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { sfx } from '../../gameSound';
 import type { MotionPhase, PlayerTrackingState } from '../poseTypes';
+import { RunControl as RunControlDetector } from './runControl';
 import { createRunEngine, type RunEngineHandle } from './runEngine';
-
-/**
- * How far the controller must travel from the baseline to fire, as a fraction
- * of frame height, per input.
- *
- * Both pairs are asymmetric on purpose: going up is a deliberate, fast movement
- * and coming back down is a slow one, so the duck needs more travel to be sure
- * it is not the tail of a jump.
- *
- *   hand — a raise clears this several times over. The margin is sized against
- *          the drift of an arm the player is holding still, which is real: an
- *          unsupported arm sags a few percent of the frame over a 30-second
- *          run, and a threshold tight enough to catch a small raise would be
- *          crossed by that sag alone.
- *   body — unchanged from when this was the only input. A jump moves the
- *          shoulder line far more than 0.055; the margin exists so that
- *          shifting weight, breathing, or the tracker's own jitter never fires.
- */
-const THRESHOLDS = {
-  hand: { rise: 0.11, drop: 0.13 },
-  body: { rise: 0.055, drop: 0.085 },
-} as const;
-
-/**
- * Once a jump fires, ignore the controller's height for this long.
- *
- * A raised hand — or an airborne body — keeps satisfying the jump condition for
- * as long as it is up, so without this one gesture would fire on every frame it
- * lasted. The engine ignores a jump while the pony is airborne anyway; this
- * stops the sound and the intent being spammed alongside it.
- *
- * It also sets the game's rhythm for a hand: raise, let it drop, raise again.
- */
-const JUMP_LOCKOUT_MS = 550;
-
-/** Frames of holding still used to fix the baseline before a run. */
-const BASELINE_SAMPLES = 20;
 
 /**
  * The practice run that opens every game, one move at a time.
@@ -129,6 +74,13 @@ export interface RunControl {
   level: number | null;
   /** True while the baseline is still being measured. */
   calibrating: boolean;
+  /** She is ducking — for a hand, the fist is held. Lights the meter's fist badge. */
+  ducking: boolean;
+  /**
+   * A hand is steering (or nothing is). False only for the body fallback, whose
+   * duck is still a downward line and whose meter shows it.
+   */
+  byHand: boolean;
 }
 
 export interface JejuRunApi {
@@ -158,33 +110,20 @@ export function useJejuRun(player: React.RefObject<PlayerTrackingState>): JejuRu
   /** Mirrors `tutorial` for the 20Hz loop, which must not re-subscribe on it. */
   const tutorialRef = useRef<RunTutorial>('jump');
   const duckSinceRef = useRef(0);
-  const control = useRef<RunControl>({ level: null, calibrating: true });
+  const control = useRef<RunControl>({
+    level: null,
+    calibrating: true,
+    ducking: false,
+    byHand: true,
+  });
 
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const engineRef = useRef<RunEngineHandle | null>(null);
-  /** Height this visitor's controller rests at, 0..1 of frame. */
-  const baselineRef = useRef<number | null>(null);
-  const samplesRef = useRef<number[]>([]);
-  /** Which input the baseline was measured from. A change invalidates it. */
-  const baselineSourceRef = useRef<'hand' | 'body' | null>(null);
-  const jumpUntilRef = useRef(0);
+  /** One detector per screen; reset for every countdown. */
+  const detectorRef = useRef(new RunControlDetector());
   const duckingRef = useRef(false);
   const stalledRef = useRef(false);
   const doneRef = useRef(false);
-
-  /**
-   * The controller's height right now, with the input it came from.
-   *
-   * `centerY` is the palm centre while a hand is steering and the shoulder line
-   * while the body is — the tracker publishes both into the same field on
-   * purpose (see PlayerTrackingState), so the only thing this has to carry
-   * across is WHICH, for the thresholds.
-   */
-  const controlY = useCallback((): { y: number; source: 'hand' | 'body' } | null => {
-    const state = player.current;
-    if (!state?.detected || state.source === null) return null;
-    return { y: state.centerY, source: state.source };
-  }, [player]);
 
   // ── The engine lives exactly as long as the screen ────────────────────
   useEffect(() => {
@@ -213,9 +152,9 @@ export function useJejuRun(player: React.RefObject<PlayerTrackingState>): JejuRu
   }, []);
 
   const ready = useCallback(() => {
-    baselineRef.current = null;
-    baselineSourceRef.current = null;
-    samplesRef.current = [];
+    // A new countdown is a new calibration: the visitor may have stepped closer,
+    // swapped hands, or be somebody else entirely.
+    detectorRef.current.reset();
     doneRef.current = false;
     setFinalScore(null);
     setScore(0);
@@ -264,9 +203,7 @@ export function useJejuRun(player: React.RefObject<PlayerTrackingState>): JejuRu
   }, [phase, tutorial, goTo]);
 
   const restart = useCallback(() => {
-    baselineRef.current = null;
-    baselineSourceRef.current = null;
-    samplesRef.current = [];
+    detectorRef.current.reset();
     doneRef.current = false;
     setFinalScore(null);
     setScore(0);
@@ -281,87 +218,59 @@ export function useJejuRun(player: React.RefObject<PlayerTrackingState>): JejuRu
     if (phase !== 'countdown' && phase !== 'playing') return;
     const engine = engineRef.current;
     if (!engine) return;
+    const detector = detectorRef.current;
 
     const id = setInterval(() => {
-      const reading = controlY();
+      const now = performance.now();
+      const state = player.current;
+      const sample =
+        state?.detected && state.source !== null
+          ? {
+              // The tracker's own timestamp, not `now`: the detector measures
+              // SPEED, and a reading held through a dropped frame must not look
+              // like a hand that stopped dead.
+              t: state.lastSeenAt,
+              y: state.centerY,
+              scale: state.scale,
+              source: state.source,
+              gesture: state.gesture,
+            }
+          : null;
 
-      // Out of view: freeze rather than kill. Lowering your hand — or walking
-      // away — must never be scored as a crash; the engine keeps the run alive
-      // and the world stops until the controller comes back.
-      const lost = reading === null;
-      if (lost !== stalledRef.current) {
-        stalledRef.current = lost;
-        setStalled(lost);
-        engine.setPaused(lost);
-      }
-      if (reading === null) {
-        control.current = { level: null, calibrating: baselineRef.current === null };
-        return;
-      }
-      const { y, source } = reading;
-
-      // ── A change of input invalidates the baseline ──
-      //
-      // A baseline taken from a raised palm is meaningless the moment the
-      // tracker falls back to a shoulder line most of a frame lower down: every
-      // reading after that clears the duck threshold, and the pony spends the
-      // rest of the run crouched with no way for the player to stand it up.
-      // Re-measuring costs a second of running in a straight line.
-      if (baselineSourceRef.current !== null && baselineSourceRef.current !== source) {
-        baselineRef.current = null;
-        samplesRef.current = [];
-        if (duckingRef.current) {
-          duckingRef.current = false;
-          engine.setDucking(false);
-        }
-      }
-
-      // The countdown doubles as calibration: somebody holding still, which is
-      // exactly the measurement the baseline needs.
-      if (baselineRef.current === null) {
-        const samples = samplesRef.current;
-        samples.push(y);
-        if (samples.length >= BASELINE_SAMPLES) {
-          // Median, not mean — one frame of a mis-fitted pose would drag a mean
-          // far enough to make every jump register or none of them.
-          const sorted = [...samples].sort((a, b) => a - b);
-          baselineRef.current = sorted[Math.floor(sorted.length / 2)] ?? y;
-          baselineSourceRef.current = source;
-        }
-        control.current = { level: null, calibrating: true };
-        return;
-      }
-
-      const base = baselineRef.current;
-      const { rise, drop } = THRESHOLDS[source];
-      // Signed, in threshold units, so the meter's lines sit at exactly ±1
-      // whichever input is steering.
-      const delta = y - base;
+      const out = detector.update(sample, now, phase === 'playing');
       control.current = {
-        level: delta < 0 ? delta / rise : delta / drop,
-        calibrating: false,
+        level: out.level,
+        calibrating: !out.calibrated,
+        ducking: out.ducking,
+        byHand: state?.source !== 'body',
       };
 
-      if (phase !== 'playing') return;
-      const now = performance.now();
+      // Out of view: freeze rather than kill. Walking away must never be scored
+      // as a crash. NOT stalled while the detector is holding a duck for a hand
+      // that left through the bottom of the frame — pausing there was the game
+      // refusing the very move the visitor had just made.
+      if (out.stalled !== stalledRef.current) {
+        stalledRef.current = out.stalled;
+        setStalled(out.stalled);
+        engine.setPaused(out.stalled);
+      }
 
-      // Screen y grows downward, so RAISING the controller makes it SMALLER.
-      if (y < base - rise && now > jumpUntilRef.current) {
-        jumpUntilRef.current = now + JUMP_LOCKOUT_MS;
+      if (phase !== 'playing') return;
+
+      if (out.jump) {
         engine.jump();
         sfx.tap();
         if (tutorialRef.current === 'jump') goTo('jump-ok');
       }
 
-      const ducking = y > base + drop;
-      if (ducking !== duckingRef.current) {
-        duckingRef.current = ducking;
-        engine.setDucking(ducking);
-        duckSinceRef.current = ducking ? now : 0;
+      if (out.ducking !== duckingRef.current) {
+        duckingRef.current = out.ducking;
+        engine.setDucking(out.ducking);
+        duckSinceRef.current = out.ducking ? now : 0;
       }
       if (
         tutorialRef.current === 'duck' &&
-        ducking &&
+        out.ducking &&
         duckSinceRef.current > 0 &&
         now - duckSinceRef.current >= DUCK_HOLD_MS
       ) {
@@ -370,7 +279,7 @@ export function useJejuRun(player: React.RefObject<PlayerTrackingState>): JejuRu
     }, 50);
 
     return () => clearInterval(id);
-  }, [phase, controlY, goTo]);
+  }, [phase, player, goTo]);
 
   // Stop the world the moment the run is over, so a finished game is not still
   // burning frames behind its own result card.
