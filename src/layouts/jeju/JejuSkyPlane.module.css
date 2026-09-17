@@ -1,0 +1,73 @@
+/*
+ * The background plane's flight — a full pass across the sky.
+ *
+ * The plane enters off the LEFT edge, flies along its contrail, through the spot
+ * bg-page.png used to draw it (sprite centre 631.5 / 782 — 105×56 at 579, 754),
+ * rides a slow wave through the open sky under the orange branches, and leaves
+ * off the RIGHT edge. It only ever reappears off-screen on the left, so no one
+ * sees it restart: each pass is a new plane crossing. 22s in the air, then 4s
+ * out of view before the next pass.
+ *
+ * Moved with CSS motion path (Chromium): `offset-rotate: auto` turns the plane
+ * to follow the wave; +7deg because the sprite itself is drawn nose-up by 7°.
+ * On the right the wave dips to leave below the falling leaves and blossom
+ * (≈1620/912, 1520/1088, 1852/920) and well under the branches, so the plane
+ * never crosses the artwork's foreground. The root clips it at the edges.
+ *
+ * Without motion (reduced-motion), it simply sits where the artwork drew it.
+ */
+.flight {
+  position: absolute;
+  left: 579px;
+  top: 754px;
+  width: 105px;
+  height: 56px;
+  pointer-events: none;
+}
+
+.plane {
+  display: block;
+  width: 105px;
+  height: 56px;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .flight {
+    left: 0;
+    top: 0;
+    offset-path: path(
+      'M -160 1010 C 250 900, 450 800, 631.5 782 C 900 760, 1150 830, 1400 930 C 1650 1030, 1950 1190, 2330 1210'
+    );
+    offset-anchor: center;
+    offset-rotate: auto 7deg;
+    offset-distance: 0%;
+    will-change: offset-distance;
+    animation: jeju-plane-pass 26s linear infinite;
+  }
+
+  /* A slow rise-and-fall on top of the glide, so it reads as flying, not sliding. */
+  .plane {
+    animation: jeju-plane-bob 2.8s ease-in-out infinite alternate;
+  }
+}
+
+@keyframes jeju-plane-pass {
+  0% {
+    offset-distance: 0%;
+  }
+  85% {
+    offset-distance: 100%;
+  }
+  100% {
+    offset-distance: 100%;
+  }
+}
+
+@keyframes jeju-plane-bob {
+  from {
+    transform: translateY(3px) rotate(0.8deg);
+  }
+  to {
+    transform: translateY(-5px) rotate(-1.2deg);
+  }
+}

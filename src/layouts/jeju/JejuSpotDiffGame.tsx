@@ -73,6 +73,7 @@ import { useKioskStore } from '@renderer/store/kioskStore';
 import { useAccessibilityStore } from '@renderer/store/accessibilityStore';
 import { usePhotoChrome } from '../photo/photoChrome';
 import { modeBarVars } from './lowReach';
+import { JejuBgMotion } from './JejuBgMotion';
 import styles from './JejuSpotDiffGame.module.css';
 
 /**
@@ -652,6 +653,7 @@ export function JejuSpotDiffGame({ rounds, aiReady, onFinish, onHome }: Props): 
           2160×3840, so asking for the wrong one loses the artwork silently —
           same slip as JejuHanbokSelect had. `bg` stays as the fallback. */}
       {pageBg && <img className={styles.bg} src={pageBg} alt="" draggable={false} />}
+      {icon('bg-page') && <JejuBgMotion />}
 
       {/* ♿ 6980:17652 — the bar the whole low-reach stack hangs off. The header
           follows it down through `--jeju-shift` (see .rootLowReach in the CSS);

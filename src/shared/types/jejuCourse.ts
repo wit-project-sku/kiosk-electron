@@ -68,9 +68,9 @@ export interface JejuCourseRecommendQuery {
    */
   region?: JejuRegion;
   /**
-   * Every 권역 picked, in tap order — the map takes two since 2026-09-16. Sent
-   * only when there are two of them, so a single-region request is exactly the
-   * one this kiosk has always made.
+   * Every 권역 picked, in tap order — one or two (the map takes two since
+   * 2026-09-16). Sent whenever a region is picked, alongside `region`:
+   *   { "region": "SEOGWIPO", "regions": ["SEOGWIPO", "WEST"], … }
    */
   regions?: JejuRegion[];
   transport: JejuTransport;

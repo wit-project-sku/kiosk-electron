@@ -129,6 +129,7 @@ import { pick, useLang, type Lang } from '@renderer/lib/i18n';
 import { useAccessibilityStore } from '@renderer/store/accessibilityStore';
 import { modeBarVars } from './lowReach';
 import { jejuMascot, type JejuMascot } from './jejuMascot';
+import { JejuBgMotion } from './JejuBgMotion';
 /* The privacy modal and the camera-direction popup are identical on every
    layout, so their styles are reused from the shared step rather than copied. */
 import shared from '../photo/HanbokSelect.module.css';
@@ -658,6 +659,7 @@ export function JejuHanbokSelect({
     return (
       <div className={`${styles.root} ${lowReach ? styles.rootLowReach : ''}`} style={modeBarVars}>
         {pageBg && <img src={pageBg} alt="" className={styles.bg} draggable={false} />}
+      {icon('bg-page') && <JejuBgMotion />}
         {/* This page has no low-reach frame of its own — so ♿ gives it the mode
             bar and pushes both blocks past the bar's height (the `.rootLowReach`
             calcs on `.infoOutfits` / `.infoCard`, off --jeju-mode-bar). */}
@@ -774,6 +776,7 @@ export function JejuHanbokSelect({
       }
     >
       {pageBg && <img src={pageBg} alt="" className={styles.bg} draggable={false} />}
+      {icon('bg-page') && <JejuBgMotion />}
 
       {lowReach && <div className={styles.modeBar}>{sheetText('BarrierFree_Title', lang, BARRIER_FREE)}</div>}
 

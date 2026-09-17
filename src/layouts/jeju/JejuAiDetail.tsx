@@ -730,10 +730,10 @@ export function JejuAiDetail({ controller }: Props): JSX.Element {
    * course: the 커스텀 코스 has no map, so a region left on aiStore by an earlier
    * themed visit must not confine its fallback request.
    *
-   * The map takes two regions now, and both are sent: `region` is the first —
-   * the field the endpoint has always taken — and `regions` carries the pair,
-   * added only when there are two. A single pick therefore makes exactly the
-   * request this kiosk has always made.
+   * The map takes up to two regions, and the body carries both fields, as the
+   * API documents it: `region` is the first pick and `regions` every pick in
+   * tap order — { "region": "SEOGWIPO", "regions": ["SEOGWIPO", "WEST"] }.
+   * With one pick, `regions` is that one alone.
    */
   useEffect(() => {
     // The catalogue is needed twice over — to recover each interest's prefix,
@@ -763,7 +763,7 @@ export function JejuAiDetail({ controller }: Props): JSX.Element {
       .recommend({
         course: courseLetter(courseKey),
         ...(regionParam ? { region: regionParam } : {}),
-        ...(regionParams.length > 1 ? { regions: regionParams } : {}),
+        ...(regionParams.length > 0 ? { regions: regionParams } : {}),
         transport: transportCode(transport),
         party: partySize(visitors),
         nights: nightCount(stay),

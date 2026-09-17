@@ -1,0 +1,149 @@
+/*
+ * The moving pieces of the 제주 page background — see JejuBgMotion.tsx.
+ * Every sprite is absolutely placed at its artboard position (inline), so at
+ * rest the page is the illustration as drawn. Per-piece timing and paths come
+ * in as custom properties.
+ */
+.layer {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.piece {
+  position: absolute;
+  display: block;
+  max-width: none;
+  pointer-events: none;
+  user-select: none;
+}
+
+/* The lamp glow only exists while things move. */
+.lighthouse {
+  display: none;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  /* Clouds drift back and forth, very slowly. */
+  .cloud {
+    will-change: transform;
+    animation: jeju-cloud-drift var(--dur, 40s) ease-in-out infinite alternate;
+  }
+
+  /* The branch sways from the top-right corner it grows in from (972, 0). */
+  .branch {
+    transform-origin: 972px 0;
+    will-change: transform;
+    animation: jeju-branch-sway 7s ease-in-out infinite alternate;
+  }
+
+  /* The beach tree sways from the foot of its trunk (306, 432). */
+  .tree {
+    transform-origin: 306px 432px;
+    will-change: transform;
+    animation: jeju-tree-sway 5.5s ease-in-out infinite alternate;
+  }
+
+  /* Turbine blades turn about their hub. */
+  .blades {
+    transform-origin: var(--px) var(--py);
+    will-change: transform;
+    animation: jeju-blades-spin var(--dur, 10s) linear infinite;
+  }
+
+  /* Petals fall with a sway and a spin, fading out; a new one fades in where
+     the artwork drew it. Negative delays start them mid-fall, staggered. */
+  .petal {
+    will-change: transform, opacity;
+    animation: jeju-petal-fall var(--dur, 12s) linear var(--delay, 0s) infinite;
+  }
+
+  /* The lighthouse lamp (1696, 3058) — a warm glow that pulses. */
+  .lighthouse {
+    display: block;
+    position: absolute;
+    left: 1651px;
+    top: 3013px;
+    width: 90px;
+    height: 90px;
+    border-radius: 50%;
+    background: radial-gradient(
+      circle,
+      rgba(255, 238, 176, 0.95) 0%,
+      rgba(255, 204, 120, 0.5) 30%,
+      rgba(255, 204, 120, 0) 70%
+    );
+    opacity: 0;
+    will-change: transform, opacity;
+    animation: jeju-lamp-blink 3.2s ease-in-out infinite;
+  }
+}
+
+@keyframes jeju-cloud-drift {
+  from {
+    transform: translateX(var(--from, -30px));
+  }
+  to {
+    transform: translateX(var(--to, 30px));
+  }
+}
+
+@keyframes jeju-branch-sway {
+  from {
+    transform: rotate(-1deg);
+  }
+  to {
+    transform: rotate(1.2deg);
+  }
+}
+
+@keyframes jeju-tree-sway {
+  from {
+    transform: rotate(-0.6deg);
+  }
+  to {
+    transform: rotate(0.6deg);
+  }
+}
+
+@keyframes jeju-blades-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes jeju-petal-fall {
+  0% {
+    transform: translate(0, -24px) rotate(0deg);
+    opacity: 0;
+  }
+  8% {
+    transform: translate(0, 0) rotate(8deg);
+    opacity: 1;
+  }
+  35% {
+    transform: translate(var(--sway), calc(var(--fall) * 0.33)) rotate(calc(var(--spin) * 0.35));
+  }
+  65% {
+    transform: translate(calc(var(--sway) * -0.6), calc(var(--fall) * 0.66)) rotate(calc(var(--spin) * 0.7));
+    opacity: 1;
+  }
+  100% {
+    transform: translate(calc(var(--sway) * 0.4), var(--fall)) rotate(var(--spin));
+    opacity: 0;
+  }
+}
+
+@keyframes jeju-lamp-blink {
+  0%,
+  100% {
+    transform: scale(0.7);
+    opacity: 0;
+  }
+  45%,
+  60% {
+    transform: scale(1);
+    opacity: 0.9;
+  }
+}

@@ -16,6 +16,7 @@ import { useAccessibilityStore } from '@renderer/store/accessibilityStore';
 import { useLanguageStore } from '@renderer/store/languageStore';
 import { JejuHeader } from './JejuHeader';
 import { modeBarVars } from './lowReach';
+import { JejuBgMotion } from './JejuBgMotion';
 import styles from './JejuPageFrame.module.css';
 
 /** Fallback — sheet `BarrierFree_Title`. */
@@ -200,6 +201,7 @@ export function JejuPageFrame({
     >
       <div className={styles.bgBase} />
       {bg && <img src={bg} alt="" className={styles.bgImage} draggable={false} />}
+      {bg && <JejuBgMotion />}
 
       {modeBar && <div className={styles.modeBar}>{barrierFreeTitle}</div>}
 

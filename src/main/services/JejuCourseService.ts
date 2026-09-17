@@ -134,9 +134,9 @@ export class JejuCourseService {
       // Only when picked: no region means the whole island, and an empty string
       // would 400 ("권역은 JEJU_CITY·EAST·WEST·SEOGWIPO 중 하나여야 합니다").
       ...(query.region ? { region: query.region } : {}),
-      // The second 권역, when the visitor picked one. `region` above stays the
-      // first, so this only ever ADDS to a request that was already valid.
-      ...(query.regions && query.regions.length > 1 ? { regions: query.regions } : {}),
+      // Every 권역 picked (one or two), in tap order — the API's `regions`.
+      // `region` above stays the first, for a server that reads only that.
+      ...(query.regions && query.regions.length > 0 ? { regions: query.regions } : {}),
       transport: query.transport,
       party: query.party,
       nights: query.nights,
@@ -180,6 +180,7 @@ export class JejuCourseService {
         url,
         kioskId: this.kiosk.kioskNum(),
         region: query.region ?? null,
+        regions: query.regions ?? null,
         error: error instanceof Error ? error.message : String(error),
       });
       throw new AppError('UNKNOWN', 'Failed to build the Jeju course.');
