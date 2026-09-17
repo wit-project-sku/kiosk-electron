@@ -15,6 +15,8 @@ import type { Lang } from '@renderer/lib/i18n';
 import { useAccessibilityStore } from '@renderer/store/accessibilityStore';
 import { useLanguageStore } from '@renderer/store/languageStore';
 import { JejuHeader } from './JejuHeader';
+import { modeBarVars } from './lowReach';
+import { JejuBgMotion } from './JejuBgMotion';
 import styles from './JejuPageFrame.module.css';
 
 /** Fallback — sheet `BarrierFree_Title`. */
@@ -64,9 +66,14 @@ interface Props {
   lowReachSelfLayout?: boolean;
   /**
    * Draw the page banner at the top in LOW-REACH even though the standard
-   * layout has none (`showBanner={false}`). 도와줘 '하영' is bannerless normally
-   * but its low-reach frame opens with the 573 promo, and the header follows it
-   * down exactly as it does for the pages that always carry one.
+   * layout has none (`showBanner={false}`). 도와줘 상세 gives its banner up
+   * whenever it draws a 다음 장소 stack, yet its low-reach frame opens with the
+   * 573 promo, and the header follows it down exactly as it does for the pages
+   * that always carry one.
+   *
+   * 도와줘 '하영' itself used to be the case this was written for; its
+   * 2026-09-09 frame carries the promo in BOTH layouts, so it just keeps the
+   * default `showBanner` now.
    */
   lowReachBanner?: boolean;
   /**
@@ -95,6 +102,19 @@ interface Props {
   subtitleColor?: string;
   /** Draw the ★ before the subtitle (WIT Store omits it). */
   subtitleStar?: boolean;
+  /** Bold subtitle — see JejuHeader. */
+  subtitleBold?: boolean;
+  /**
+   * Grey out 홈/뒤로 — in the header AND on the left rail — and make them inert.
+   * For a screen the visitor must not leave mid-way: AI 손톱 건강분석 sets it while
+   * the analysis request is in flight, where a stray 홈 tap throws away two
+   * photos the visitor has already consented to send.
+   *
+   * JejuHeader has carried this for a while (틀린그림찾기 passes it directly);
+   * the frame forwards it so a page that uses the shared chrome does not lose
+   * the rail half of it. See that prop for why the buttons stay drawn.
+   */
+  navDisabled?: boolean;
   children?: ReactNode;
 }
 
@@ -114,6 +134,8 @@ export function JejuPageFrame({
   lowReachBarBanner = false,
   subtitleColor,
   subtitleStar,
+  subtitleBold,
+  navDisabled = false,
   children,
 }: Props): JSX.Element {
   // Live API banner when one is active, else this page's bundled promo.
@@ -165,12 +187,21 @@ export function JejuPageFrame({
          as inline vars — inline beats every class above, which is intended. */
       style={
         modeBar
-          ? ({ '--jeju-shift': `${lowReachShift}px`, '--jeju-body-shift': `${lowReachBodyShift}px` } as CSSProperties)
-          : undefined
+          ? ({
+              ...modeBarVars,
+              '--jeju-shift': `${lowReachShift}px`,
+              '--jeju-body-shift': `${lowReachBodyShift}px`,
+            } as CSSProperties)
+          : /* Unconditional on purpose: --jeju-mode-bar has no CSS-side default,
+               and `.hero` reads it whenever `lowReachHero` is set — which today
+               always comes with the bar, but would silently collapse the hero to
+               the top of the artboard on any page that took one without it. */
+            modeBarVars
       }
     >
       <div className={styles.bgBase} />
       {bg && <img src={bg} alt="" className={styles.bgImage} draggable={false} />}
+      {bg && <JejuBgMotion />}
 
       {modeBar && <div className={styles.modeBar}>{barrierFreeTitle}</div>}
 
@@ -187,11 +218,13 @@ export function JejuPageFrame({
         onBack={onBack}
         subtitleColor={subtitleColor}
         subtitleStar={subtitleStar}
+        subtitleBold={subtitleBold}
+        navDisabled={navDisabled}
       />
 
       <div className={styles.body}>{children}</div>
 
-      <div className={styles.leftNav}>
+      <div className={`${styles.leftNav} ${navDisabled ? styles.leftNavOff : ''}`}>
         {jejuIconUrl('nav-left') && (
           <img src={jejuIconUrl('nav-left')} alt="" className={styles.leftNavImg} draggable={false} />
         )}
@@ -199,12 +232,14 @@ export function JejuPageFrame({
           type="button"
           className={`${styles.leftNavZone} ${styles.leftNavHome}`}
           onClick={goHome}
+          disabled={navDisabled}
           aria-label="홈"
         />
         <button
           type="button"
           className={`${styles.leftNavZone} ${styles.leftNavBack}`}
           onClick={onBack ?? goHome}
+          disabled={navDisabled}
           aria-label="뒤로"
         />
       </div>

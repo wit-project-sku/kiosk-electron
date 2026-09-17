@@ -85,8 +85,10 @@ import {
   assignFacilities,
   chipLabel,
   facilitiesOn,
+  chipsForTerminal,
   facilityImageUrl,
   HELP_CHIPS,
+  RESTROOM_CHIP,
   type AirportFacility,
   type AssignedPin,
 } from '@renderer/lib/airportFacilities';
@@ -119,26 +121,21 @@ import mapTerminalHall from '@renderer/assets/photos/jeju/help/map-terminal-hall
 import mapTerminalHallEn from '@renderer/assets/photos/jeju/help/map-terminal-hall-en.png';
 import mapTerminalDeparture from '@renderer/assets/photos/jeju/help/map-terminal-departure.png';
 import mapTerminalDepartureEn from '@renderer/assets/photos/jeju/help/map-terminal-departure-en.png';
+import { belowModeBar, LOW_REACH_BANNER_HEIGHT } from './lowReach';
 
 type TerminalId = 'international' | 'domestic';
 type FloorId = '1F' | '2F' | '3F' | '4F';
 
-/** Terminal pills in frame order (6219:98779 / 98783). Sheet: Help_International / Help_Domestic. */
+/**
+ * Terminal pills, LEFT to RIGHT. Sheet: Help_Domestic / Help_International.
+ *
+ * 국내선 leads and is the landing tab (see the `terminal` state below) — the
+ * order 6862:9953 draws, and the older 6219:98779 / 98783 pair had it the other
+ * way round. Array order IS the on-screen order: the row `.map`s this straight
+ * out, and nothing indexes it (both lookups are by id), so the two move together
+ * by editing here alone.
+ */
 const TERMINALS = [
-  {
-    id: 'international',
-    sheetKey: 'Help_International',
-    label: {
-      ko: '국제선',
-      en: 'International',
-      ja: '国際線',
-      zh: '国际线',
-      vi: 'Chuyến bay quốc tế',
-      th: 'เที่ยวบินระหว่างประเทศ',
-      ru: 'Международные рейсы',
-      id: 'Penerbangan Internasional',
-    },
-  },
   {
     id: 'domestic',
     sheetKey: 'Help_Domestic',
@@ -151,6 +148,20 @@ const TERMINALS = [
       th: 'เที่ยวบินในประเทศ',
       ru: 'Внутренние рейсы',
       id: 'Penerbangan Domestik',
+    },
+  },
+  {
+    id: 'international',
+    sheetKey: 'Help_International',
+    label: {
+      ko: '국제선',
+      en: 'International',
+      ja: '国際線',
+      zh: '国际线',
+      vi: 'Chuyến bay quốc tế',
+      th: 'เที่ยวบินระหว่างประเทศ',
+      ru: 'Международные рейсы',
+      id: 'Penerbangan Internasional',
     },
   },
 ] as const satisfies ReadonlyArray<{
@@ -208,15 +219,24 @@ const FLOORS: Record<TerminalId, ReadonlyArray<{ id: FloorId; label: string }>> 
  * 유아휴게실, 교통약자 편의시설, 유실물센터) are gone with the hard-coded list —
  * see lib/airportFacilities for what that costs the pins below.
  *
- * Ten chips is two rows, which is what Figma drew (6219:98787); the third row
- * the fifteen needed is gone again, so the map goes back up 205 to its 1620.
- * That number follows CATEGORIES.length and is NOT fixed — an eleventh category
- * in the sheet makes three rows again and .map has to move back down. See the
- * note on .cats in the CSS.
+ * ★ PER TERMINAL (2026-09-11): each tab draws only the categories ITS rows use
+ * — the sheet splits them by the ShopID's 국내선 / 국제선. Today that is ten
+ * chips on 국내선 and eight on 국제선, which has no 항공사 or 라운지・휴식 rows;
+ * both tabs used to draw all ten, and those two opened an empty list on 국제선.
+ * See chipsForTerminal.
+ *
+ * Ten chips is two rows, which is what Figma drew (6219:98787), and eight is
+ * two as well (5 + 3, left-aligned), so the map stays at its 1620 on both tabs.
+ * The row count follows the tab's own list and is NOT fixed — a terminal that
+ * reaches eleven categories makes three rows and .map has to move back down.
+ * See the note on .cats in the CSS.
  */
 const CATEGORIES = HELP_CHIPS;
 const PER_ROW = 5;
-const CATEGORY_ROWS = Math.ceil(CATEGORIES.length / PER_ROW);
+const TERMINAL_CHIPS: Record<TerminalId, readonly string[]> = {
+  domestic: chipsForTerminal('domestic'),
+  international: chipsForTerminal('international'),
+};
 
 /**
  * Chip caption for the 340×170 plates (Figma 6393:59030 / I6771:66722).
@@ -283,13 +303,12 @@ interface FacilityPin {
  * PINS uses. It travels with the map rather than living in the CSS because it is
  * a property of the drawing: a different floor plan puts it somewhere else.
  *
- * NO map carries `here` today. The 현위치 marker the old placeholder plan had was
- * positioned against THAT artwork, and the real plans are different drawings of
- * a different building — the marker's coordinate did not survive them, and where
- * in 제주공항 the kiosk physically stands is not something the plans say. A pin
- * at a guessed position is worse than no pin, so it is left off until someone
- * who can see the machine supplies the floor and the fraction; the marker
- * renders again the moment one entry gets a `here`.
+ * Only 국내선 1F carries one: the 2026-09 revision of that plan drew the kiosk's
+ * 현위치 pin beside GATE 3. The pin is taken off the artwork and its ground point
+ * (the bottom of its shadow ellipse) kept here, so the app draws the marker with
+ * a label in the visitor's language instead of a baked-in Korean one. The KO and
+ * EN plans put the pin in slightly different spots, so `hereEn` holds the Latin
+ * plan's position. Every other plan has no pin, so no marker is drawn on them.
  */
 interface AirportMap {
   /** The Korean plan. */
@@ -298,6 +317,8 @@ interface AirportMap {
    *  the plan carries no lettering and so reads the same in any language. */
   srcEn?: string;
   here?: { x: number; y: number };
+  /** `here` on `srcEn`, when the Latin plan draws the kiosk somewhere else. */
+  hereEn?: { x: number; y: number };
   /**
    * How large this plan draws its pictograms, relative to the ~38px the domestic
    * 1F/2F/3F plans put on screen.
@@ -316,16 +337,25 @@ interface AirportMap {
    */
   pinScale?: number;
   /**
-   * White slot height in px. Default is the Figma 813; taller upright plans
-   * (국내선 4F at 1.25:1) need more or the drawing is clipped by `.map`'s
-   * overflow. Sized so the plan fills the 1820-wide slot after `.zoomLayer`'s
-   * 40×50 padding: content width 1720 → height = 1720 × (h/w) + 80.
+   * White slot height in px. Default is the Figma 813, which leaves the plan
+   * 685px after `.zoomLayer`'s 64px top/bottom inset. The plan always draws at
+   * the full 1644 content width (its `max-height: 100%` has no definite height
+   * to resolve against), so any plan taller than 2.4:1 needs its own slot or its
+   * bottom is cut off by `.map`'s overflow: height = 1644 × (h/w) + 128.
    */
   height?: number;
 }
 
 const MAPS: Record<string, AirportMap> = {
-  'domestic-1F': { src: mapDomestic1f, srcEn: mapDomestic1fEn },
+  // 3640×1653 (2.20:1) draws 747 tall — at 813 its foot sat 2px off the card's
+  // edge, under the rounded corners. 875 gives it the same 64 inset as its top.
+  'domestic-1F': {
+    src: mapDomestic1f,
+    srcEn: mapDomestic1fEn,
+    here: { x: 0.2827, y: 0.6065 },
+    hereEn: { x: 0.3194, y: 0.5829 },
+    height: 875,
+  },
   'domestic-2F': { src: mapDomestic2f, srcEn: mapDomestic2fEn },
   'domestic-3F': { src: mapDomestic3f, srcEn: mapDomestic3fEn },
   // No `srcEn`: 국내선 4F is the one plan with no lettering on it.
@@ -336,6 +366,9 @@ const MAPS: Record<string, AirportMap> = {
     src: mapInternational1f,
     srcEn: mapInternational1fEn,
     pinScale: 1.6,
+    // 3640×1797 (2.03:1) draws 812 tall — 63px more than the default 813 slot
+    // leaves, so its bottom row was cut off. 940 = 812 + the 64 inset above and below.
+    height: 940,
   },
   'international-3F': { src: mapInternational3f, srcEn: mapInternational3fEn },
 };
@@ -820,6 +853,21 @@ interface ViewState {
  * The `key` its caller passes doubles as the reset: a new plan (floor, zone,
  * or language switch) remounts this and starts back at fitted.
  */
+/**
+ * The list card's right-hand photo (382×213). Rows are numbered to match the
+ * bundled help photos, but a few numbers have no file — a failed load drops
+ * the box so the card reads as text-only instead of showing a broken image.
+ */
+function CardPhoto({ src }: { src: string | undefined }): ReactNode {
+  const [failed, setFailed] = useState<string | undefined>(undefined);
+  if (!src || failed === src) return null;
+  return (
+    <span className={styles.cardPhotoBox}>
+      <img className={styles.cardPhoto} src={src} alt="" draggable={false} onError={() => setFailed(src)} />
+    </span>
+  );
+}
+
 function MapZoomPan({
   className,
   style,
@@ -999,12 +1047,18 @@ export function JejuHelp({ controller, initialCategory }: Props): JSX.Element {
   // W007 shows its own building; every other 제주 kiosk keeps the airport plans.
   // Non-reactive on purpose, like jejuMascot: the id is provisioned per machine.
   const atPort = getKioskLocation(controller.kioskId).code === 'W007';
-  const [terminal, setTerminal] = useState<TerminalId>('international');
+  /* Opens on 국내선 — the first pill, and the one 6862:9953 draws picked. */
+  const [terminal, setTerminal] = useState<TerminalId>('domestic');
   const [floor, setFloor] = useState<FloorId>('1F');
   const [zone, setZone] = useState<PortZoneId>('hall');
-  const [category, setCategory] = useState(
-    initialCategory && CATEGORIES.includes(initialCategory) ? initialCategory : CATEGORIES[0]!,
-  );
+  /* The chips a view draws: the terminal's own categories. The ferry terminal
+     (W007) matches no sheet terminal — none of its pins has a row — so it keeps
+     the whole list, as it always has. */
+  const chipsFor = (t: TerminalId): readonly string[] => (atPort ? CATEGORIES : TERMINAL_CHIPS[t]);
+  const [category, setCategory] = useState(() => {
+    const landing = chipsFor('domestic');
+    return initialCategory && landing.includes(initialCategory) ? initialCategory : landing[0]!;
+  });
 
   const track = (payload: Record<string, string>): void => {
     trackEvent({
@@ -1014,13 +1068,17 @@ export function JejuHelp({ controller, initialCategory }: Props): JSX.Element {
   };
 
   const floors = FLOORS[terminal];
+  const chips = chipsFor(terminal);
+  const categoryRows = Math.ceil(chips.length / PER_ROW);
   const map = atPort ? PORT_MAPS[zone] : MAPS[`${terminal}-${floor}`];
-  const here = jejuIconUrl('ico-here');
+  const here = jejuIconUrl('ico-here-pin');
   const marker = jejuIconUrl('ico-map-pin');
 
   /** The Korean plan for Korean, the Latin one for everything else — and the
    *  Korean one again when a plan has no Latin twin because it has no text. */
   const planSrc = map && (lang === 'ko' ? map.src : (map.srcEn ?? map.src));
+  /** The 현위치 point on whichever of the two plans `planSrc` picked. */
+  const hereAt = map && (planSrc === map.srcEn ? (map.hereEn ?? map.here) : map.here);
 
   /**
    * This floor's pins, each paired with the sheet row behind it and told which
@@ -1066,6 +1124,14 @@ export function JejuHelp({ controller, initialCategory }: Props): JSX.Element {
     track({ terminal: id });
     setTerminal(id);
     if (!FLOORS[id].some((f) => f.id === floor)) setFloor(FLOORS[id][0]!.id);
+    /* Same for the chip: keep it when the other terminal has the category (쇼핑
+       is on both), else land on that terminal's first — 항공사 has no 국제선 rows. */
+    const next = chipsFor(id);
+    const chip = next.includes(category) ? category : next[0]!;
+    if (chip !== category) setCategory(chip);
+    /* 재생조건 "도와줘 -> 터미널·층·카테고리 선택": a terminal press is one of the
+       three picks that play ToHelp_Category (Toilet while 화장실 is the chip). */
+    void window.api.kiosk.setScreen(chip === RESTROOM_CHIP ? 'restroom' : 'help_category');
   };
 
   /**
@@ -1094,6 +1160,23 @@ export function JejuHelp({ controller, initialCategory }: Props): JSX.Element {
     const { chip, facility, pin } = args;
     const wanted = facility?.name.ko ?? pin?.shop ?? pin?.label ?? chip;
     const shop = facilities.find((s) => s.shopNameKr === wanted);
+
+    /*
+     * The pictogram this place sits on, for the plan the 상세 card draws.
+     *
+     * A tap on the MAP already hands us its pin. A tap on a LIST CARD does not
+     * — the card is a sheet row — so the row is looked back up in `assigned`,
+     * the same pairing that decided which pictogram lights for this chip. Both
+     * sides read the identical AIRPORT_FACILITIES_JEJU objects (assignFacilities
+     * and the list both come from `facilitiesOn`), so identity is the right test
+     * and needs no name matching.
+     *
+     * `at()`'s language rule is applied HERE rather than in the card: the Korean
+     * and Latin plans are drawn differently, and the pin's `en` twin is what
+     * lands on the Latin one.
+     */
+    const cardPin = pin ?? assigned.find((a) => a.facility != null && a.facility === facility)?.pin;
+    const detailPin = cardPin && (lang === 'ko' ? cardPin : (cardPin.en ?? cardPin));
 
     const facilityPhoto = facility && facilityImageUrl(facility);
 
@@ -1136,6 +1219,8 @@ export function JejuHelp({ controller, initialCategory }: Props): JSX.Element {
       // Floor plan of the terminal/floor this facility was opened from — Figma
       // 6219:99127 draws it under the description on the help detail card.
       mapImage: planSrc,
+      // … and WHERE on that plan this place is, so the card can mark it.
+      mapPin: detailPin ? { x: detailPin.x, y: detailPin.y } : undefined,
     });
     controller.navigate('detail', `도와줘 ${jejuMascot().ko} 상세`);
   };
@@ -1194,6 +1279,8 @@ export function JejuHelp({ controller, initialCategory }: Props): JSX.Element {
           onChange={(id) => {
             track({ floor: id });
             setFloor(id);
+            // Floor is the second of 터미널·층·카테고리 선택 — see pickTerminal.
+            void window.api.kiosk.setScreen(category === RESTROOM_CHIP ? 'restroom' : 'help_category');
           }}
         />
       )}
@@ -1202,9 +1289,9 @@ export function JejuHelp({ controller, initialCategory }: Props): JSX.Element {
 
   const categoryChips = (
     <div className={styles.cats}>
-      {Array.from({ length: CATEGORY_ROWS }, (_, row) => row * PER_ROW).map((start) => (
+      {Array.from({ length: categoryRows }, (_, row) => row * PER_ROW).map((start) => (
         <div key={start} className={styles.catRow}>
-          {CATEGORIES.slice(start, start + PER_ROW).map((id) => (
+          {chips.slice(start, start + PER_ROW).map((id) => (
             <button
               key={id}
               type="button"
@@ -1212,6 +1299,27 @@ export function JejuHelp({ controller, initialCategory }: Props): JSX.Element {
               onClick={() => {
                 track({ category: id });
                 setCategory(id);
+                /*
+                 * Advance the customer display to the drill-in clip
+                 * (help_category → ToHelp_Category), which this screen was not
+                 * reporting at all — OsanHelp does it, JejuListScreen does it for
+                 * eat/shop/lodging, and the clip has been sitting in
+                 * VideoSubtitle_귀이 unreachable.
+                 *
+                 * On a PRESS, not in an effect on `category`. Osan runs it as an
+                 * effect because its chips come from the shops API, so ToHelp
+                 * still plays for the load; Jeju's come from the tab's first chip
+                 * synchronously, so an effect would fire on mount and ToHelp
+                 * would never be seen at all. Both clips stay reachable this way.
+                 *
+                 * Not guarded on the 화장실 deep link the way Osan's is: there the
+                 * guard exists because the tile lands on a chip WITHOUT a press,
+                 * and a press here is the visitor leaving 화장실 for another
+                 * category, at which point the Toilet clip is no longer what they
+                 * are looking at.
+                 */
+                // 화장실 has its own clip (재생조건 "도와줘 '귤이' -> 화장실/흡연구역").
+                void window.api.kiosk.setScreen(id === RESTROOM_CHIP ? 'restroom' : 'help_category');
               }}
             >
               <span className={styles.pillLabel}>{chipLine(id, lang)}</span>
@@ -1239,12 +1347,14 @@ export function JejuHelp({ controller, initialCategory }: Props): JSX.Element {
         >
           <img src={src} alt="" draggable={false} />
 
-          {activePins.map((a) => (
+          {activePins.map((a, i) => (
             <button
-              key={`${a.pin.x},${a.pin.y}`}
+              // The chip is in the key so switching filters remounts the pins
+              // and their drop-in animation replays.
+              key={`${a.chip}:${a.pin.x},${a.pin.y}`}
               type="button"
               className={styles.pin}
-              style={at(a.pin, lang)}
+              style={{ ...at(a.pin, lang), '--pin-i': i } as CSSProperties}
               onClick={() => openPin(a)}
               aria-label={
                 a.facility ? pickText(a.facility.name, lang) : pinLabel(a.pin, a.chip, lang)
@@ -1256,11 +1366,15 @@ export function JejuHelp({ controller, initialCategory }: Props): JSX.Element {
             </button>
           ))}
 
-          {map.here && here && (
+          {hereAt && here && (
             <div
               className={styles.here}
-              style={{ left: `${map.here.x * 100}%`, top: `${map.here.y * 100}%` }}
+              style={{ left: `${hereAt.x * 100}%`, top: `${hereAt.y * 100}%` }}
             >
+              {/* The ground ring is drawn in CSS so it stays on the floor while
+                  the pin (ico-here with its ring erased) jumps. */}
+              <span className={styles.herePulse} aria-hidden />
+              <span className={styles.hereRing} aria-hidden />
               <img src={here} alt="" className={styles.hereIcon} draggable={false} />
               <p className={styles.hereLabel}>{pick(YOU_ARE_HERE, lang)}</p>
             </div>
@@ -1269,6 +1383,21 @@ export function JejuHelp({ controller, initialCategory }: Props): JSX.Element {
       </MapZoomPan>
     );
   })();
+
+  /**
+   * 화장실 is MAP-ONLY — the pins already answer the only question a visitor
+   * has ("where is the nearest one"), and the sheet's rows behind this chip hold
+   * a name and a category and nothing else, so the cards render "화장실 · 화장실"
+   * over an empty 위치/전화 line. Every other chip keeps its directory: theirs are
+   * real rows, and the list is how a visitor reads hours and a phone number
+   * without hunting for the pin.
+   *
+   * Gated on the chip rather than on "are the rows blank?" on purpose — the
+   * blankness is what the operators intend for toilets, not a data gap waiting
+   * to be filled, and a row that gains a location later should not make the
+   * list reappear on its own.
+   */
+  const showList = category !== RESTROOM_CHIP;
 
   const listBlock = (
     <div className={styles.list}>
@@ -1282,15 +1411,18 @@ export function JejuHelp({ controller, initialCategory }: Props): JSX.Element {
                 className={styles.card}
                 onClick={() => openDetail({ chip: category, facility })}
               >
-                <div className={styles.cardNameRow}>
-                  <p className={styles.cardName}>{cardName(facility)}</p>
-                  <span className={styles.cardCat}>
-                    <span className={styles.cardDot} />
-                    {chipLabel(facility.category.ko, lang).replace('\n', ' ')}
-                  </span>
+                <div className={styles.cardText}>
+                  <div className={styles.cardNameRow}>
+                    <p className={styles.cardName}>{cardName(facility)}</p>
+                    <span className={styles.cardCat}>
+                      <span className={styles.cardDot} />
+                      {chipLabel(facility.category.ko, lang).replace('\n', ' ')}
+                    </span>
+                  </div>
+                  <p className={styles.cardMeta}>{cardPlace(facility)}</p>
+                  {tel ? <p className={styles.cardMeta}>{tel}</p> : null}
                 </div>
-                <p className={styles.cardMeta}>{cardPlace(facility)}</p>
-                {tel ? <p className={styles.cardMeta}>{tel}</p> : null}
+                <CardPhoto src={facilityImageUrl(facility)} />
               </button>
             );
           })
@@ -1303,15 +1435,18 @@ export function JejuHelp({ controller, initialCategory }: Props): JSX.Element {
                 className={styles.card}
                 onClick={() => openPin(a)}
               >
-                <div className={styles.cardNameRow}>
-                  <p className={styles.cardName}>{cardName(a.facility, a.pin, a.chip)}</p>
-                  <span className={styles.cardCat}>
-                    <span className={styles.cardDot} />
-                    {chipLabel(a.facility?.category.ko ?? a.chip, lang).replace('\n', ' ')}
-                  </span>
+                <div className={styles.cardText}>
+                  <div className={styles.cardNameRow}>
+                    <p className={styles.cardName}>{cardName(a.facility, a.pin, a.chip)}</p>
+                    <span className={styles.cardCat}>
+                      <span className={styles.cardDot} />
+                      {chipLabel(a.facility?.category.ko ?? a.chip, lang).replace('\n', ' ')}
+                    </span>
+                  </div>
+                  <p className={styles.cardMeta}>{cardPlace(a.facility)}</p>
+                  {tel ? <p className={styles.cardMeta}>{tel}</p> : null}
                 </div>
-                <p className={styles.cardMeta}>{cardPlace(a.facility)}</p>
-                {tel ? <p className={styles.cardMeta}>{tel}</p> : null}
+                <CardPhoto src={a.facility ? facilityImageUrl(a.facility) : undefined} />
               </button>
             );
           })}
@@ -1326,17 +1461,20 @@ export function JejuHelp({ controller, initialCategory }: Props): JSX.Element {
   };
 
   return (
-    // No banner in the standard layout: the frame runs the background
-    // illustration to the bottom. ♿ (6422:44067) opens with the mode bar +
-    // promo, header at 686, map/list scroll above, pickers at the foot.
+    // The 2026-09-09 frame (6862:9953) PUTS THE PROMO BACK in the standard
+    // layout — 2160×573 at y3267, under a 15px #f49c56 rule that is already
+    // baked into banner-detail.png's top edge, so the slot needs no extra rule.
+    // The earlier frame ran the background illustration to the bottom instead,
+    // which is why this was `showBanner={false}`. `.scroll` now ends at 3267 to
+    // keep the last result card out from under it.
+    // ♿ (6422:44067) is unchanged: mode bar + promo, header at bar+573,
+    // map/list scroll above, pickers at the foot.
     <JejuPageFrame
       controller={controller}
       title={jejuMascot().helpTitle}
-      showBanner={false}
-      lowReachBanner
       lowReachModeBar
       lowReachBarBanner
-      lowReachShift={686}
+      lowReachShift={belowModeBar(LOW_REACH_BANNER_HEIGHT)}
       bannerFallback="banner-detail"
       onBack={() => controller.navigate('home', '뒤로')}
     >
@@ -1344,7 +1482,7 @@ export function JejuHelp({ controller, initialCategory }: Props): JSX.Element {
         <>
           <div ref={scrollRef} className={`${styles.scroll} ${styles.scrollLow}`}>
             {mapBlock}
-            {listBlock}
+            {showList && listBlock}
           </div>
           <div className={styles.controlsLow}>
             {pickers}
@@ -1388,7 +1526,7 @@ export function JejuHelp({ controller, initialCategory }: Props): JSX.Element {
           </div>
           {categoryChips}
           {mapBlock}
-          {listBlock}
+          {showList && listBlock}
         </div>
       )}
     </JejuPageFrame>

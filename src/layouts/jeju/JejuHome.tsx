@@ -19,7 +19,7 @@
  * The 운항 정보 board was redrawn with six columns and three 현황 conditions
  * (탑승중 / 지연 / 탑승최종) — it lives in JejuFlightBoard.tsx.
  */
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState, type ReactElement } from 'react';
 import { IDLE_TIMEOUT_MS, type KioskController } from '@renderer/hooks/useKioskController';
 import { useInactivityReset } from '@renderer/hooks/useInactivityReset';
 import type { KioskScreenId } from '@shared/types/kiosk';
@@ -37,6 +37,8 @@ import { DONATION_COMING_SOON, withComingSoon } from '@shared/config/donation';
 import { JejuFlightBoard } from './JejuFlightBoard';
 import { JejuSailingBoard } from './JejuSailingBoard';
 import { JejuWeatherPanel } from './JejuWeatherPanel';
+import { modeBarVars } from './lowReach';
+import { useFitText } from './fitText';
 import { FloatingKeyboard } from '../insadong/keyboard/FloatingKeyboard';
 import { HangulComposer } from '../insadong/keyboard/hangul';
 import type { KeyAction } from '../insadong/keyboard/VirtualKeyboard';
@@ -143,10 +145,10 @@ const noticeText = (lang: Lang): string => {
  * languages, so the tile says the pair even though `navigate()` still receives
  * the CMS's 탐나오.
  *
- * MainButton_Cruise / SubButton_Cruise (운항정보 · 입·출항 정보) serve DOUBLE duty
- * and that is correct: on 제주공항 they title the 운항정보 page (see i18n's
- * TITLE_KEYS), and on 여객터미널 they also label the 크루즈 운항 tile that opens
- * the ferry board. The sheet files both under "유산문화센터, 여객선터미널에 적용".
+ * MainButton_Cruise / SubButton_Cruise (운항정보 · 입·출항 정보) label the
+ * 크루즈 운항 home tile on 여객터미널. The opened ferry board's header uses
+ * CRUISE_TITLE → OP_Schedule_Title (see i18n TITLE_KEYS). On 제주공항 the
+ * 운항정보 page still titles via MainButton_Airplane_Schedule.
  * Note the tile therefore READS 운항정보 while `navigate()` still receives
  * 크루즈 운항 — the CMS's button_type, and the only string the analytics join
  * matches on.
@@ -221,6 +223,66 @@ const TILE_SUB_KEYS: Partial<Record<string, string | readonly string[]>> = {
   market: ['MainButton_Goods_Subtext', 'SubButton_Goods'],
   events: ['MainButton_Event_Subtext', 'SubButton_Event'],
 };
+
+/**
+ * Dwell time on each half of a paired tile title, in ms. Long enough to read
+ * and re-read the name at kiosk distance; short enough that a visitor walking
+ * past the grid still sees both within one pass.
+ */
+const TILE_TITLE_CYCLE_MS = 4_500;
+
+/**
+ * The middle dot the sheet pairs two names with — U+00B7 in ko/en/zh/vi/th/ru/id
+ * and U+30FB in ja, with or without spaces around it. Surrounding whitespace is
+ * eaten with the dot so the halves need no trimming.
+ */
+const TITLE_PAIR_SEPARATOR = /\s*[·・]\s*/;
+
+/** The halves of a paired title, or a single-element list for an ordinary one. */
+const titleParts = (label: string): string[] => {
+  const parts = label.split(TITLE_PAIR_SEPARATOR).filter(Boolean);
+  return parts.length > 1 ? parts : [label];
+};
+
+/**
+ * A tile title that names TWO things — MainButton_Tamnao reads 탐나오·제주큐랑
+ * in all eight languages, and it is the only such row today — shown one name at
+ * a time instead of wrapped onto a second line.
+ *
+ * Low-reach narrows every tile from 300px to 230px (`.tileLow`), and the pair
+ * does not fit that column on one line in ANY language: it wrapped, and since
+ * `.tileTextLow` is a fixed box that starts 260px down a 303px tile, the second
+ * row ran off the bottom of the tile. Alternating the halves keeps the single
+ * row the frame draws.
+ *
+ * Only the DISPLAY splits. `navigate()` still receives the CMS's 탐나오 (see
+ * TILE_LABEL_KEYS), so the analytics label and the buttons-table join are
+ * untouched by this.
+ *
+ * The timer is per-tile and starts on mount, so the halves of different tiles
+ * would not be in step if the sheet ever pairs a second one — that is fine, and
+ * cheaper than a shared clock the whole grid would re-render on.
+ */
+function CyclingTileTitle({ label }: { label: string }): ReactElement {
+  const parts = useMemo(() => titleParts(label), [label]);
+  const [index, setIndex] = useState(0);
+
+  useEffect(() => {
+    setIndex(0);
+    if (parts.length < 2) return;
+    const id = setInterval(() => setIndex((i) => (i + 1) % parts.length), TILE_TITLE_CYCLE_MS);
+    return () => clearInterval(id);
+  }, [parts]);
+
+  const shown = parts[index] ?? parts[0] ?? label;
+  /* `key` restarts the fade on every swap — without it React reuses the node,
+     the animation never re-runs and the name changes in one hard cut. */
+  return (
+    <span key={`${shown}-${index}`} className={parts.length > 1 ? styles.tileTitleCycle : undefined}>
+      {shown}
+    </span>
+  );
+}
 
 /** A `<b>`-and-newline run, as the sheet's NoticeContent stores it. */
 interface Run {
@@ -367,6 +429,9 @@ interface TileMascot {
 const HAYOUNG_LABELS: TileMascot = { hello: "안녕 '하영'", helloSub: '하영 소개', help: "도와줘 '하영'" };
 const YUSAN_LABELS: TileMascot = { hello: "안녕 '유산'", helloSub: '유산 소개', help: "도와줘 '유산'" };
 
+/** Shared by every venue's grid — see the plate note on {@link Tile}. */
+const TAMNAO_TILE: Tile = { screen: 'tamnao', label: '탐나오', sub: '제주공공플랫폼', icon: 'tile-tamnao', plate: '#e8534c' };
+
 /** The 12 grid tiles, in Figma reading order (4 columns × 3 rows). */
 const tilesWith = (venue: Tile, m: TileMascot = HAYOUNG_LABELS): Tile[] => [
   { screen: 'eat',      label: "'제주'뭐먹지", sub: '맛집 추천',      icon: 'tile-eat'      },
@@ -379,7 +444,7 @@ const tilesWith = (venue: Tile, m: TileMascot = HAYOUNG_LABELS): Tile[] => [
   venue,
   { screen: 'exchange', label: '환율',         sub: '환율계산기',     icon: 'tile-exchange' },
   { screen: 'donation', label: '기부',         sub: '교복 기부',      icon: 'tile-donation' },
-  { screen: 'tamnao',   label: '탐나오',       sub: '제주공공플랫폼', icon: 'tile-tamnao', plate: '#e8534c' },
+  TAMNAO_TILE,
   { screen: 'localpay', label: '지역화폐',     sub: '탐나는전',       icon: 'tile-localpay' },
 ];
 
@@ -392,8 +457,40 @@ const tilesWith = (venue: Tile, m: TileMascot = HAYOUNG_LABELS): Tile[] => [
  */
 const TILES_AIRPORT = tilesWith(RENTCAR_TILE);
 const TILES_TERMINAL = tilesWith(CRUISE_TILE);
-// W008 세계자연유산본부 — W007's grid (크루즈 운항, not 렌트카) with the 유산 tiles.
-const TILES_HERITAGE = tilesWith(CRUISE_TILE, YUSAN_LABELS);
+
+/**
+ * W008 세계자연유산본부 — no longer W007's grid. The 2026-09 redesign (Figma
+ * 6792:126444) dropped 숙박안내 / 크루즈 운항 / 지역화폐 and put three venue-own
+ * tiles in their cells: 제주세계유산 (row 1), 거문오름 예약 (row 2 — the slot the
+ * per-venue tile used to fill), 제주세계유산센터 (row 3, sliding 탐나오 to the
+ * last cell). Written out in full because the venue now differs in FOUR slots,
+ * which is past what tilesWith's single venue parameter can say.
+ *
+ * The frame's own tile subtitles are stale placeholders (면세혜택 under eleven of
+ * twelve tiles), so the three new subs here are authored, not transcribed. All
+ * three icons are the designer's exports with the plate baked in (same pattern as
+ * every other tile-*.png). None of the three has a CMS `buttons` row or a
+ * MainButton_* sheet key yet — until those land, clicks log label-only (see
+ * buttonCatalog's W008 note) and the grid keeps this authored order.
+ *
+ * heritage opens JejuHeritage (제주 유네스코 유산, 6908:51916) and geomun opens
+ * JejuGeomun (6935:69555); heritage_center still falls through to the
+ * JejuScreen scaffold in JejuKiosk until its frame lands.
+ */
+const TILES_HERITAGE: Tile[] = [
+  { screen: 'eat',      label: "'제주'뭐먹지",   sub: '맛집 추천',        icon: 'tile-eat'      },
+  { screen: 'shop',     label: "'제주'뭐사지",   sub: '쇼핑 추천',        icon: 'tile-shop'     },
+  { screen: 'heritage', label: '제주세계유산',    sub: '유네스코 세계유산', icon: 'tile-heritage' },
+  { screen: 'taxfree',  label: 'TAX-FREE',      sub: '면세혜택',         icon: 'tile-taxfree'  },
+  { screen: 'about',    label: '여기는 제주도',   sub: '관광지 추천',      icon: 'tile-about'    },
+  { screen: 'hello',    label: YUSAN_LABELS.hello, sub: YUSAN_LABELS.helloSub, icon: 'tile-hello' },
+  { screen: 'help',     label: YUSAN_LABELS.help, sub: '편의시설 안내',    icon: 'tile-help'     },
+  { screen: 'geomun',   label: '거문오름 예약',   sub: '탐방 예약',        icon: 'tile-geomun'   },
+  { screen: 'exchange', label: '환율',           sub: '환율계산기',       icon: 'tile-exchange' },
+  { screen: 'donation', label: '기부',           sub: '교복 기부',        icon: 'tile-donation' },
+  { screen: 'heritage_center', label: '제주세계유산센터', sub: '센터 안내', icon: 'tile-heritage-center' },
+  TAMNAO_TILE,
+];
 
 /**
  * Which grid a 제주 kiosk draws, by kiosk id.
@@ -534,6 +631,9 @@ export function JejuHome({ controller }: Props): JSX.Element {
     return tile.screen === 'donation' && donationPending ? withComingSoon(base, lang) : base;
   };
   const noticeRuns = parseNotice(noticeText(lang));
+  const noticeBody = noticeRuns.map((run, i) =>
+    run.bold ? <b key={i}>{run.text}</b> : <span key={i}>{run.text}</span>,
+  );
 
   /**
    * Grid order from the buttons CMS (`/api/kiosks/{6,7}/buttons`), falling back to
@@ -548,8 +648,9 @@ export function JejuHome({ controller }: Props): JSX.Element {
   const tiles = TILES_BY_KIOSK[controller.kioskId] ?? TILES_AIRPORT;
   const orderedTiles = useOrderedTiles(controller.kioskId, tiles, jejuTileKey);
 
-  /* Low-reach: 191px mode bar + 573px 한복 promo, then the frame's own
-     coordinates — see the block at the foot of JejuHome.module.css. */
+  /* Low-reach: the shared mode bar (lowReach.ts) + a 573px 한복 promo flush
+     under it, then the frame's own coordinates — see the block at the foot of
+     JejuHome.module.css. */
   const lowReach = useAccessibilityStore((s) => s.lowReach);
   const toggleLowReach = useAccessibilityStore((s) => s.toggleLowReach);
   /* Params are optional because CSS Module lookups are typed `string | undefined`. */
@@ -562,8 +663,38 @@ export function JejuHome({ controller }: Props): JSX.Element {
   const accessibilityIcon =
     (lowReach ? jejuIconUrl('ico-accessibility-on') : undefined) ?? jejuIconUrl('ico-accessibility');
 
+  /**
+   * ── Other languages ─────────────────────────────────────────────────────
+   * Korean is laid out exactly as the frame draws it. Every other language runs
+   * longer — this month's notice is 118 characters in Korean and 213 in Russian —
+   * and three blocks here have nowhere to grow: the notice sits in a fixed band
+   * above the 운항 정보 board, the feature cards are 310 tall, and a tile's text
+   * has only the gap above the next row's plate. So in `wide` mode each block's
+   * text WRAPS through the whole band it has (see the "Other languages" notes at
+   * the foot of the CSS), and only copy that still outgrows it is scaled down —
+   * by one factor per block, so the twelve tiles (and the three cards) keep one
+   * text size as a set. Nothing is clamped. See fitText.ts.
+   */
+  const wide = lang !== 'ko';
+  const noticeRef = useRef<HTMLDivElement>(null);
+  const cardsRef = useRef<HTMLDivElement>(null);
+  const gridRef = useRef<HTMLDivElement>(null);
+  /* Everything the three fits depend on — re-fit when any of it changes. */
+  const fitKey = [
+    lang,
+    lowReach,
+    noticeRuns.map((r) => r.text).join(''),
+    CARDS.map((c) => labelFor(c.screen, c.label) + subFor(c.screen, c.sub)).join('|'),
+    orderedTiles.map((tile) => tileLabel(tile) + subFor(tile.screen, tile.sub)).join('|'),
+  ].join('§');
+  useFitText(noticeRef, styles.noticeLead, wide, 0.7, fitKey);
+  useFitText(cardsRef, styles.cardText, wide, 0.75, fitKey);
+  useFitText(gridRef, styles.tileText, wide, 0.7, fitKey);
+
   return (
-    <div className={styles.root}>
+    /* --jeju-mode-bar sizes the ♿ bar and places the 한복 hero flush under it;
+       one value shared with every sub-page frame (see lowReach.ts). */
+    <div className={styles.root} style={modeBarVars}>
       {jejuIconUrl('bg') && (
         <img src={jejuIconUrl('bg')} alt="" className={styles.bgImage} draggable={false} />
       )}
@@ -588,45 +719,61 @@ export function JejuHome({ controller }: Props): JSX.Element {
         <span className={styles.dateTime}>{clock}</span>
       </div>
 
-      {/* ── 공지 card + weather ── */}
-      <div className={low(styles.notice, styles.noticeLow)}>
-        <div className={styles.noticeLead}>
-          <div className={styles.noticeRule} />
-          <p className={styles.noticeText}>
-            {noticeRuns.map((run, i) => (run.bold ? <b key={i}>{run.text}</b> : <span key={i}>{run.text}</span>))}
-          </p>
-        </div>
-
-        {/* Tapping the weather opens the 날씨 panel (Figma 6516:74521) on this
-            screen AND plays today's condition clip on the customer display
-            (Weather_Rain/Cold/Sunny) — the clip is the behaviour the other
-            kiosks have always had, and it runs on the second monitor, so the
-            panel does not displace it. */}
-        <div
-          className={styles.weather}
-          role="button"
-          aria-label="제주 날씨"
-          aria-expanded={weatherOpen}
-          onClick={() => {
-            playWeatherVideo();
-            setWeatherOpen((open) => !open);
-          }}
-        >
-          <span className={styles.weatherTemp}>
-            {weather ? `${Math.round(weather.tempC)}˚` : '--˚'}
-          </span>
-          {weatherIcon && (
-            <img src={weatherIcon} alt="" className={styles.weatherIcon} draggable={false} />
+      {/* 공지 card, its weather card and the 운항 정보 board — Figma's group
+          6516:74628. While the 날씨 popup is up the frame blurs exactly this
+          group (and nothing else on the home screen): see .noticeGroupBehind. */}
+      <div className={weatherOpen ? `${styles.noticeGroup} ${styles.noticeGroupBehind}` : styles.noticeGroup}>
+        {/* ── 공지 card + weather ── */}
+        <div className={low(styles.notice, styles.noticeLow)}>
+          {wide ? (
+            /* Non-Korean: the frame's 1060 width (Figma 7058:22669) in the taller
+               band the panel really has, ending 60 above the board; the rule
+               follows the text's own height; type scales down only for copy that
+               still outgrows the band. Never clamped — see .noticeLeadWide. */
+            <div className={`${styles.noticeLead} ${styles.noticeLeadWide}`} ref={noticeRef}>
+              <div className={styles.noticeRow}>
+                <div className={styles.noticeRule} />
+                <p className={`${styles.noticeText} ${styles.noticeTextWide}`}>{noticeBody}</p>
+              </div>
+            </div>
+          ) : (
+            <div className={styles.noticeLead}>
+              <div className={styles.noticeRule} />
+              <p className={styles.noticeText}>{noticeBody}</p>
+            </div>
           )}
-        </div>
-      </div>
 
-      {/* ── 운항 정보 board — W006 flights, W007 ferry sailings ── */}
-      {controller.kioskId === 'W007' ? (
-        <JejuSailingBoard controller={controller} lang={lang} />
-      ) : (
-        <JejuFlightBoard controller={controller} lang={lang} />
-      )}
+          {/* Tapping the weather opens the 날씨 panel (Figma 6516:74521) on this
+              screen AND plays today's condition clip on the customer display
+              (Weather_Rain/Cold/Sunny) — the clip is the behaviour the other
+              kiosks have always had, and it runs on the second monitor, so the
+              panel does not displace it. */}
+          <div
+            className={styles.weather}
+            role="button"
+            aria-label="제주 날씨"
+            aria-expanded={weatherOpen}
+            onClick={() => {
+              playWeatherVideo();
+              setWeatherOpen((open) => !open);
+            }}
+          >
+            <span className={styles.weatherTemp}>
+              {weather ? `${Math.round(weather.tempC)}˚` : '--˚'}
+            </span>
+            {weatherIcon && (
+              <img src={weatherIcon} alt="" className={styles.weatherIcon} draggable={false} />
+            )}
+          </div>
+        </div>
+
+        {/* ── 운항 정보 board — W006 flights, W007 ferry sailings ── */}
+        {controller.kioskId === 'W007' ? (
+          <JejuSailingBoard controller={controller} lang={lang} />
+        ) : (
+          <JejuFlightBoard controller={controller} lang={lang} />
+        )}
+      </div>
 
       {/* ── Search row ── */}
       <div className={low(styles.searchRow, styles.searchRowLow)}>
@@ -662,26 +809,44 @@ export function JejuHome({ controller }: Props): JSX.Element {
       </div>
 
       {/* ── Three feature cards ── */}
-      <div className={low(styles.cards, styles.cardsLow)}>
-        {CARDS.map((card) => (
-          <button
-            key={card.screen}
-            type="button"
-            className={`${styles.card} ${styles[card.variant]}`}
-            onClick={() => go(card.screen, card.label)}
-          >
-            <span className={styles.cardTitle}>{labelFor(card.screen, card.label)}</span>
-            <span className={styles.cardSub}>{subFor(card.screen, card.sub)}</span>
-            {jejuIconUrl(card.icon) && (
-              <img src={jejuIconUrl(card.icon)} alt="" className={styles.cardArt} draggable={false} />
-            )}
-          </button>
-        ))}
+      <div className={low(styles.cards, styles.cardsLow)} ref={cardsRef}>
+        {CARDS.map((card) => {
+          const title = <span className={styles.cardTitle}>{labelFor(card.screen, card.label)}</span>;
+          const sub = <span className={styles.cardSub}>{subFor(card.screen, card.sub)}</span>;
+          return (
+            <button
+              key={card.screen}
+              type="button"
+              className={`${styles.card} ${styles[card.variant]}`}
+              onClick={() => go(card.screen, card.label)}
+            >
+              {/* Non-Korean: title and subtitle as ONE column centred in the
+                  card (7058:22669, "크기 넘으면 단 내리기"), so a title that
+                  wraps pushes its subtitle down instead of running past the art
+                  or out of the card — see .cardText. Korean keeps the frame's
+                  two pinned lines. */}
+              {wide ? (
+                <span className={styles.cardText}>
+                  {title}
+                  {sub}
+                </span>
+              ) : (
+                <>
+                  {title}
+                  {sub}
+                </>
+              )}
+              {jejuIconUrl(card.icon) && (
+                <img src={jejuIconUrl(card.icon)} alt="" className={styles.cardArt} draggable={false} />
+              )}
+            </button>
+          );
+        })}
       </div>
 
       {/* ── Menu grid ── */}
       <div className={low(styles.panel, styles.panelLow)} />
-      <div className={low(styles.grid, styles.gridLow)}>
+      <div className={low(styles.grid, styles.gridLow)} ref={gridRef}>
         {orderedTiles.map((tile, i) => {
           const art = jejuIconUrl(tile.icon);
           const disabled = tile.screen === 'donation' && donationPending;
@@ -706,8 +871,14 @@ export function JejuHome({ controller }: Props): JSX.Element {
               ) : (
                 <span className={styles.tileArtMissing}>{tile.label[0]}</span>
               )}
-              <span className={low(styles.tileText, styles.tileTextLow)}>
-                <span className={styles.tileTitle}>{tileLabel(tile)}</span>
+              {/* Non-Korean: the text box spans the whole gap above the next
+                  row, and the grid's type is fitted to it — see .tileTextFit. */}
+              <span className={`${low(styles.tileText, styles.tileTextLow)} ${wide ? styles.tileTextFit : ''}`}>
+                <span className={styles.tileTitle}>
+                  {/* Low-reach only: at 300px the pair still fits one line, so the
+                     full label stays on the standard grid. */}
+                  {lowReach ? <CyclingTileTitle label={tileLabel(tile)} /> : tileLabel(tile)}
+                </span>
                 <span className={styles.tileSub}>{subFor(tile.screen, tile.sub)}</span>
               </span>
             </button>
@@ -716,23 +887,25 @@ export function JejuHome({ controller }: Props): JSX.Element {
       </div>
 
       {/* ── Bottom actions — low-reach shifts +79 (Figma 6442:105429) ── */}
-      {/* K-DRAMA is DISABLED for now — the screen behind it is not ready. Only
-          the click is off: no dim, no colour change, so the art stays exactly
-          as the frame draws it (`disabled` alone would take Chrome's UA fade).
-          Re-enable by restoring `onClick={() => go('kdrama', 'K-DRAMA')}`. */}
+      {/* 필미 — AI 손톱 건강분석 (FillMe). The slot was JEJU ISLAND, a placeholder
+          wordmark on a circle that already led here; the button now says what
+          it opens, with FillMe's own tile (icons/fillme.png → btn-fillme).
+          A plain `navigate()` like every other destination on this screen. */}
       <button
         type="button"
-        className={low(styles.kdrama, styles.kdramaLow)}
-        disabled
-        aria-disabled="true"
-        aria-label="K-DRAMA"
+        className={low(styles.fillme, styles.fillmeLow)}
+        onClick={() => go('fillme', '필미')}
+        aria-label={lang === 'ko' ? '필미' : 'FillMe'}
       >
-        {jejuIconUrl('btn-kdrama') && (
-          <img src={jejuIconUrl('btn-kdrama')} alt="" className={styles.actionImg} draggable={false} />
+        {jejuIconUrl('btn-fillme') && (
+          <img src={jejuIconUrl('btn-fillme')} alt="" className={styles.actionImg} draggable={false} />
         )}
       </button>
-      <span className={low(`${styles.actionLabel} ${styles.labelKdrama}`, styles.actionLabelLow)}>
-        K-DRAMA
+      {/* A brand, not a sheet key: 필미 in Korean, FillMe everywhere else — the
+          name printed on the tile. 화장실 next door DOES come from the sheet,
+          because it is a word. */}
+      <span className={low(`${styles.actionLabel} ${styles.labelFillme}`, styles.actionLabelLow)}>
+        {lang === 'ko' ? '필미' : 'FillMe'}
       </span>
 
       <button
@@ -805,7 +978,6 @@ export function JejuHome({ controller }: Props): JSX.Element {
       {weatherOpen && (
         <JejuWeatherPanel
           forecast={forecast}
-          current={weather}
           lang={lang}
           onClose={() => setWeatherOpen(false)}
         />

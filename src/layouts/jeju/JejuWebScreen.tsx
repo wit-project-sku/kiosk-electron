@@ -16,22 +16,26 @@ import { useEffect, useRef, useState } from 'react';
 import { QRCodeSVG } from 'qrcode.react';
 import type { KioskController } from '@renderer/hooks/useKioskController';
 import { useLanguageStore } from '@renderer/store/languageStore';
-import { pick } from '@renderer/lib/i18n';
+import { useAccessibilityStore } from '@renderer/store/accessibilityStore';
+import { pick, type Lang } from '@renderer/lib/i18n';
+import { sheetText } from '@renderer/lib/loc';
+import { ui, type UiTextKey } from '@renderer/lib/uiText';
 import { trackEvent } from '@renderer/lib/analytics';
 import { JejuPageFrame } from './JejuPageFrame';
+import { belowModeBar, LOW_REACH_BANNER_HEIGHT } from './lowReach';
 import styles from './JejuWebScreen.module.css';
 
 /** The slice of Electron's WebviewTag this screen drives. */
 type WebviewEl = HTMLElement & {
   insertCSS?: (css: string) => Promise<string>;
+  removeInsertedCSS?: (key: string) => Promise<void>;
 };
 
 /**
  * Chrome injected into every embedded site.
  *
- * The scrollbar is drawn to match the kiosk's own lists (JejuEvents' .listScroll
- * is a 34.32px track with a #ff7f0f thumb) instead of Chromium's 15px grey bar,
- * which reads as a desktop artefact on a 4K touch panel.
+ * The scrollbar is drawn to match the kiosk's own lists instead of Chromium's
+ * grey bar, which reads as a desktop artefact on a 4K touch panel.
  *
  * There is deliberately NO `overflow-x: hidden` here. It was tried, and it does
  * not prevent horizontal overflow — it only makes the overflowing content
@@ -40,41 +44,66 @@ type WebviewEl = HTMLElement & {
  * right edge, with no scrollbar to hint that anything was missing. A styled
  * horizontal bar on the pages that need one is the correct outcome.
  *
- * `zoom: 1.5` enlarges the guest page so it reads at a comfortable size on the
- * 4K kiosk panel. CSS `zoom` (not `transform: scale`) is used here because it
- * expands the layout box itself, so scrolling, hit-testing and the scrollbar
- * track all reflect the zoomed dimensions without extra JS.
+ * `zoom` (탐나오&제주큐랑 only) enlarges the guest page. CSS `zoom` also scales
+ * scrollbar thickness, so zoomed panes inject a smaller CSS width that lands
+ * near the intended on-screen size after zoom.
  */
-const SCROLLBAR_CSS = [
-  '::-webkit-scrollbar{width:26px;height:26px}',
-  '::-webkit-scrollbar-track{background:transparent}',
-  '::-webkit-scrollbar-thumb{background:#ff7f0f;border-radius:13px}',
-  '::-webkit-scrollbar-corner{background:transparent}',
-].join('');
+const SCROLLBAR_CSS = (widthPx: number): string =>
+  [
+    `::-webkit-scrollbar{width:${widthPx}px !important;height:${widthPx}px !important}`,
+    '::-webkit-scrollbar-track{background:transparent !important}',
+    `::-webkit-scrollbar-thumb{background:#ff7f0f !important;border-radius:${Math.round(widthPx / 2)}px !important}`,
+    '::-webkit-scrollbar-corner{background:transparent !important}',
+  ].join('');
 
-/** 탐나오&제주큐랑 전용 — 2.3× 확대. WIT Store는 이 CSS를 쓰지 않는다. */
-const EMBED_CHROME_CSS_ZOOMED = `html{zoom:2.3}${SCROLLBAR_CSS}`;
-const EMBED_CHROME_CSS = SCROLLBAR_CSS;
+/** WIT Store — house track (no page zoom). */
+const EMBED_CHROME_CSS = SCROLLBAR_CSS(26);
+
+/** 탐나오&제주큐랑 page zoom. */
+const TAMNAO_ZOOM = 2.3;
+/** Desired on-screen scrollbar thickness after zoom. */
+const TAMNAO_SCROLLBAR_SCREEN_PX = 18;
+const TAMNAO_SCROLLBAR_CSS_PX = Math.max(6, Math.round(TAMNAO_SCROLLBAR_SCREEN_PX / TAMNAO_ZOOM));
+
+const EMBED_CHROME_CSS_ZOOMED = `html{zoom:${TAMNAO_ZOOM} !important}${SCROLLBAR_CSS(TAMNAO_SCROLLBAR_CSS_PX)}`;
 
 /** One embedded site. A screen draws a tab per entry once it has more than one. */
 export interface EmbedTab {
   id: string;
   /**
-   * Tab label. Left in Korean deliberately: 탐나오 and 제주큐랑 are the BRAND
-   * NAMES of two Korean sites, and this screen's header title has never been
-   * localized either (neither id is in i18n's TITLE_KEYS). A translated label
-   * would name something the visitor then cannot find on the site itself.
+   * Localization_Jeju key for the tab label (Tamnao_Tab / JejuQurang_Tab). The
+   * sheet names both sites in all eight languages — "Tamnao", "タムナオ" — and
+   * wins wherever its cell is filled; see {@link tabLabel}.
    */
-  label: string;
+  labelKey?: string;
+  /** The authored label per language: what shows where the sheet's cell is
+   *  empty, or before a kiosk has synced a row the bundled copy lacks. */
+  label: Partial<Record<Lang, string>>;
   url: string;
 }
+
+/**
+ * A tab's label: the sheet's cell for this language, else the authored one.
+ * A leading or trailing "·" is trimmed — the sheet's zh cells were split out of
+ * MainButton_Tamnao's "塔姆瑙·济州岛古兰" and each kept the joining dot
+ * ("塔姆瑙·" / "·济州岛古兰"), which would print on a tab of its own.
+ */
+const tabLabel = (tab: EmbedTab, lang: Lang): string =>
+  (tab.labelKey ? sheetText(tab.labelKey, lang, tab.label) : pick(tab.label, lang)).replace(
+    /^\s*·\s*|\s*·\s*$/g,
+    '',
+  );
 
 interface Props {
   controller: KioskController;
   /** Header title (Korean id — localized by JejuHeader). */
   title: string;
-  /** Header subtitle; omit to fall back to the sheet. */
-  subtitle?: string;
+  /**
+   * Header subtitle, from uiText (all eight languages) — for a screen whose
+   * description has no sheet row, as WIT Store's does not. Omit to fall back to
+   * the sheet (탐나오&제주큐랑 → Tamnao_Subtitle).
+   */
+  subtitleKey?: UiTextKey;
   /** The single embedded site. Ignored when `tabs` is given. */
   url: string;
   /** Subtitle colour — WIT Store uses the store's brown. */
@@ -148,21 +177,42 @@ function EmbedPane({
 
   // Re-applied per document: insertCSS lives only for the document that was
   // loaded when it ran. `did-navigate-in-page` covers the in-app routes these
-  // sites use, which never fire `did-navigate`.
+  // sites use, which never fire `did-navigate`. Also re-run immediately when
+  // `css` changes (HMR / zoom tweak) — listeners alone would leave the old
+  // thickness until the next navigation.
   useEffect(() => {
     const wv = webviewRef.current;
     if (!wv) return;
 
+    let cssKey: string | undefined;
+    let cancelled = false;
+
     const apply = (): void => {
-      wv.insertCSS?.(css)?.catch(() => {});
+      void (async () => {
+        try {
+          if (cssKey && wv.removeInsertedCSS) {
+            await wv.removeInsertedCSS(cssKey);
+          }
+          const next = await wv.insertCSS?.(css);
+          if (!cancelled && next) cssKey = next;
+        } catch {
+          /* guest may not be ready yet — next navigate event retries */
+        }
+      })();
     };
+
+    apply();
     wv.addEventListener('dom-ready', apply);
     wv.addEventListener('did-navigate', apply);
     wv.addEventListener('did-navigate-in-page', apply);
     return () => {
+      cancelled = true;
       wv.removeEventListener('dom-ready', apply);
       wv.removeEventListener('did-navigate', apply);
       wv.removeEventListener('did-navigate-in-page', apply);
+      if (cssKey && wv.removeInsertedCSS) {
+        void wv.removeInsertedCSS(cssKey).catch(() => {});
+      }
     };
   }, [css]);
 
@@ -184,7 +234,7 @@ function EmbedPane({
 export function JejuWebScreen({
   controller,
   title,
-  subtitle,
+  subtitleKey,
   url,
   subtitleColor,
   subtitleStar,
@@ -193,9 +243,20 @@ export function JejuWebScreen({
   showBanner = true,
 }: Props): JSX.Element {
   const lang = useLanguageStore((s) => s.currentLanguage);
+  /*
+   * ♿ draws the 베리어프리 mode bar on BOTH web screens, like every other 제주
+   * page, but only 탐나오&제주큐랑 (6778:69905) has its own low-reach frame —
+   * the same flag that already selects this screen's other 탐나오-specific
+   * metrics, so `lowTamnao` moves its tab row / panel / QR row. WIT Store has no
+   * low-reach frame, so it keeps the re-stack it has always had (the 573 promo
+   * banner at the top, the page pushed down under it) with the bar added above:
+   * the banner sits under the bar, and the header and panel under the banner.
+   */
+  const lowReach = useAccessibilityStore((s) => s.lowReach);
+  const lowTamnao = lowReach && showMobileQr;
   /* One code path for both shapes: a screen without `tabs` is a screen with one
      unlabelled site, and the row below only draws when there is a choice. */
-  const landing: EmbedTab = tabs?.[0] ?? { id: 'main', label: '', url };
+  const landing: EmbedTab = tabs?.[0] ?? { id: 'main', label: {}, url };
   const sites: readonly EmbedTab[] = tabs?.length ? tabs : [landing];
   const [tab, setTab] = useState(landing.id);
   /* Guard the id against a `tabs` list that changed under a stale selection, so
@@ -218,15 +279,27 @@ export function JejuWebScreen({
     <JejuPageFrame
       controller={controller}
       title={title}
-      subtitle={subtitle}
+      subtitle={subtitleKey ? ui(subtitleKey, lang) : undefined}
       subtitleColor={subtitleColor}
       subtitleStar={subtitleStar}
       showBanner={showBanner}
       bannerFallback="banner-detail"
       onBack={() => controller.navigate('home', '뒤로')}
+      /* 탐나오: header flush under the bar (the frame's y146), and the body left
+         unshifted — its three blocks carry the frame's own absolute tops rather
+         than riding a single offset, because two of them swap ends between the
+         layouts.
+         WIT Store: the promo banner is kept flush under the bar, and the header
+         and the store panel drop below it (bar + 573 = 719). The panel lands on
+         1419…3669, the same lowered position the old banner re-stack gave it
+         plus the bar, and still inside the 3840 artboard. */
+      lowReachModeBar
+      lowReachBarBanner={!showMobileQr}
+      lowReachShift={showMobileQr ? belowModeBar() : belowModeBar(LOW_REACH_BANNER_HEIGHT)}
+      lowReachBodyShift={showMobileQr ? 0 : belowModeBar(LOW_REACH_BANNER_HEIGHT)}
     >
       {sites.length > 1 && (
-        <div className={styles.tabs}>
+        <div className={`${styles.tabs} ${lowTamnao ? styles.tabsLow : ''}`}>
           {sites.map((t) => (
             <button
               key={t.id}
@@ -234,13 +307,17 @@ export function JejuWebScreen({
               className={`${styles.tab} ${t.id === active ? styles.tabActive : ''}`}
               onClick={() => select(t.id)}
             >
-              {t.label}
+              {tabLabel(t, lang)}
             </button>
           ))}
         </div>
       )}
 
-      <div className={`${styles.body} ${showMobileQr ? styles.bodyTamnao : ''}`}>
+      <div
+        className={[styles.body, showMobileQr ? styles.bodyTamnao : '', lowTamnao ? styles.bodyTamnaoLow : '']
+          .filter(Boolean)
+          .join(' ')}
+      >
         {sites.some((t) => t.url) ? (
           sites.map((t) => (
             <EmbedPane
@@ -260,7 +337,7 @@ export function JejuWebScreen({
       </div>
 
       {showMobileQr && activeUrl && (
-        <div className={styles.qrRow}>
+        <div className={`${styles.qrRow} ${lowTamnao ? styles.qrRowLow : ''}`}>
           <div className={styles.qrDivider} />
           <p className={styles.qrText}>{pick(MOBILE_QR, lang)}</p>
           <div className={styles.qrBox}>

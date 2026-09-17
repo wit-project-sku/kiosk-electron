@@ -27,10 +27,12 @@
  * `flightNo` with case/space-insensitive partial match. Switching 출발/도착
  * clears the query and closes the keyboard.
  *
- * ♿ low-reach: same "controls to the foot" shape as the terminal's JejuCruise —
- * the 출발/도착 tabs (and the search field above them) drop to the artboard
- * floor and the board slides up 159 into the space. All of it is positional
- * (`*Low` classes); see the CSS header.
+ * 목적지 / 출발지 column header opens a dropdown of every distinct place in
+ * the loaded board; picking one filters the rows (combined with 편명 search).
+ *
+ * Non-Korean languages force English for the column headers and list cells
+ * (place / kind / status / airline via local + IATA map — the feed has no Eng
+ * airline field). Tabs / search stay in the visitor's selected language.
  */
 import { useEffect, useMemo, useRef, useState } from 'react';
 import type { KioskController } from '@renderer/hooks/useKioskController';
@@ -50,6 +52,8 @@ import {
   useJejuDepartures,
 } from '@renderer/lib/jejuFlight';
 import type { JejuFlightBase } from '@renderer/lib/jejuFlight';
+import { flightAirlineLabel } from '@renderer/lib/jejuAirlines';
+import { flightPlaceLabel } from '@renderer/lib/jejuAirportPlaces';
 import { useAccessibilityStore } from '@renderer/store/accessibilityStore';
 import { useFlightStore } from '@renderer/store/flightStore';
 import { FloatingKeyboard } from '../insadong/keyboard/FloatingKeyboard';
@@ -134,6 +138,32 @@ const NO_RESULT = {
   ru: 'Номер рейса не найден.', id: 'Nomor penerbangan tidak ditemukan.',
 };
 
+const PLACE_ALL = {
+  ko: '전체', en: 'All', ja: 'すべて', zh: '全部',
+  vi: 'Tất cả', th: 'ทั้งหมด', ru: 'Все', id: 'Semua',
+};
+
+/**
+ * The note after 전체 in the place dropdown — "전체(가나다순)" in 7038:18998, the
+ * smaller "(가나다순)" saying the places below are in alphabetical order (which
+ * `placeOptions` sorts them into, by the board language's own labels).
+ */
+const PLACE_ALL_NOTE = {
+  ko: '(가나다순)', en: '(A–Z)', ja: '(五十音順)', zh: '(按字母顺序)',
+  vi: '(A–Z)', th: '(ก–ฮ)', ru: '(А–Я)', id: '(A–Z)',
+};
+
+const PLACE_NO_RESULT = {
+  ko: '해당 조건의 운항 정보가 없습니다.',
+  en: 'No flights match this filter.',
+  ja: '条件に合う運航情報はありません。',
+  zh: '没有符合条件的航班。',
+  vi: 'Không có chuyến bay phù hợp.',
+  th: 'ไม่มีเที่ยวบินที่ตรงเงื่อนไข',
+  ru: 'Нет рейсов по фильтру.',
+  id: 'Tidak ada penerbangan yang cocok.',
+};
+
 /**
  * A column: where its centre axis sits.
  *
@@ -154,6 +184,19 @@ interface Column {
   centred: boolean;
   sheetKey?: string;
   head: Partial<Record<Lang, string>>;
+  /**
+   * Widest the header may run before it wraps: the distance to the nearer
+   * neighbouring axis (the plate's end, for the outer two), so two heads at
+   * their caps can at most meet halfway between their axes.
+   */
+  headMax: number;
+  /**
+   * Row cells' wrap width, TEXT columns only. Sized off what the cells carry
+   * rather than the axis pitch — 아시아나항공(OZ8900) needs ~475 on one line —
+   * while keeping neighbouring text boxes apart. Absent = the value never
+   * wraps (times, gate / belt codes).
+   */
+  cellMax?: number;
 }
 
 const COL_TIME_DEPARTURE = {
@@ -201,20 +244,22 @@ const COL_STATUS = {
 
 const COLUMNS: Record<FlightDirection, Column[]> = {
   departure: [
-    { key: 'time',    x: 280,  centred: true, sheetKey: 'OP_Schedule_Info_col1', head: COL_TIME_DEPARTURE },
-    { key: 'airline', x: 670,  centred: true, sheetKey: 'OP_Schedule_Info_col2', head: COL_AIRLINE },
-    { key: 'place',   x: 1140, centred: true, sheetKey: 'OP_Schedule_Info_col3', head: COL_DESTINATION },
-    { key: 'kind',    x: 1500, centred: true, sheetKey: 'OP_Schedule_Info_col4', head: COL_KIND },
-    { key: 'stand',   x: 1700, centred: true, sheetKey: 'OP_Schedule_Info_col5', head: COL_GATE },
-    { key: 'status',  x: 1915, centred: true, sheetKey: 'OP_Schedule_Info_col6', head: COL_STATUS },
+    /* stand sits on 1710 (the English-board pass); status' head keeps to the
+       205 that leaves between them. */
+    { key: 'time',    x: 280,  centred: true, sheetKey: 'OP_Schedule_Info_col1', head: COL_TIME_DEPARTURE, headMax: 340 },
+    { key: 'airline', x: 670,  centred: true, sheetKey: 'OP_Schedule_Info_col2', head: COL_AIRLINE, headMax: 390, cellMax: 480 },
+    { key: 'place',   x: 1140, centred: true, sheetKey: 'OP_Schedule_Info_col3', head: COL_DESTINATION, headMax: 360, cellMax: 400 },
+    { key: 'kind',    x: 1500, centred: true, sheetKey: 'OP_Schedule_Info_col4', head: COL_KIND, headMax: 200, cellMax: 300 },
+    { key: 'stand',   x: 1710, centred: true, sheetKey: 'OP_Schedule_Info_col5', head: COL_GATE, headMax: 200 },
+    { key: 'status',  x: 1915, centred: true, sheetKey: 'OP_Schedule_Info_col6', head: COL_STATUS, headMax: 205, cellMax: 290 },
   ],
   arrival: [
-    { key: 'time',    x: 280,  centred: true, sheetKey: 'OP_Schedule_Info_col12', head: COL_TIME_ARRIVAL },
-    { key: 'airline', x: 670,  centred: true, sheetKey: 'OP_Schedule_Info_col2', head: COL_AIRLINE },
-    { key: 'place',   x: 1140, centred: true, head: COL_ORIGIN },
-    { key: 'kind',    x: 1500, centred: true, sheetKey: 'OP_Schedule_Info_col4', head: COL_KIND },
-    { key: 'stand',   x: 1700, centred: true, sheetKey: 'OP_Schedule_Info_col7', head: COL_BELT },
-    { key: 'status',  x: 1915, centred: true, sheetKey: 'OP_Schedule_Info_col6', head: COL_STATUS },
+    { key: 'time',    x: 280,  centred: true, sheetKey: 'OP_Schedule_Info_col12', head: COL_TIME_ARRIVAL, headMax: 340 },
+    { key: 'airline', x: 670,  centred: true, sheetKey: 'OP_Schedule_Info_col2', head: COL_AIRLINE, headMax: 390, cellMax: 480 },
+    { key: 'place',   x: 1140, centred: true, head: COL_ORIGIN, headMax: 360, cellMax: 400 },
+    { key: 'kind',    x: 1500, centred: true, sheetKey: 'OP_Schedule_Info_col4', head: COL_KIND, headMax: 200, cellMax: 300 },
+    { key: 'stand',   x: 1710, centred: true, sheetKey: 'OP_Schedule_Info_col7', head: COL_BELT, headMax: 200 },
+    { key: 'status',  x: 1915, centred: true, sheetKey: 'OP_Schedule_Info_col6', head: COL_STATUS, headMax: 205, cellMax: 290 },
   ],
 };
 
@@ -232,10 +277,15 @@ function normalizeFlightNo(value: string): string {
 
 export function JejuFlights({ controller }: Props): JSX.Element {
   const lang = useLang();
+  /** Board chrome (columns + row labels) is Korean or English only. */
+  const boardLang: Lang = lang === 'ko' ? 'ko' : 'en';
   const lowReach = useAccessibilityStore((s) => s.lowReach);
   const [direction, setDirection] = useState<FlightDirection>('departure');
   const [query, setQuery] = useState('');
   const [focused, setFocused] = useState(false);
+  /** `null` = show every place. Cleared when the 출발/도착 tab changes. */
+  const [placeFilter, setPlaceFilter] = useState<string | null>(null);
+  const [placeOpen, setPlaceOpen] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
   const composer = useRef(new HangulComposer());
 
@@ -246,7 +296,7 @@ export function JejuFlights({ controller }: Props): JSX.Element {
 
   useEffect(() => {
     scrollRef.current?.scrollTo(0, 0);
-  }, [direction, query]);
+  }, [direction, query, placeFilter]);
 
   const allRows: Row[] = useMemo(
     () =>
@@ -256,14 +306,36 @@ export function JejuFlights({ controller }: Props): JSX.Element {
     [direction, departures, arrivals],
   );
 
+  const placeOptions = useMemo(() => {
+    const set = new Set<string>();
+    for (const row of allRows) {
+      const p = row.place.trim();
+      if (p) set.add(p);
+    }
+    const locale = boardLang === 'ko' ? 'ko' : 'en';
+    return Array.from(set).sort((a, b) =>
+      flightPlaceLabel(a, boardLang).localeCompare(flightPlaceLabel(b, boardLang), locale),
+    );
+  }, [allRows, boardLang]);
+
+  useEffect(() => {
+    if (placeFilter && !placeOptions.includes(placeFilter)) {
+      setPlaceFilter(null);
+    }
+  }, [placeFilter, placeOptions]);
+
   const rows = useMemo(() => {
     const needle = normalizeFlightNo(query);
-    if (!needle) return allRows;
-    return allRows.filter((row) => normalizeFlightNo(row.flight.flightNo).includes(needle));
-  }, [allRows, query]);
+    return allRows.filter((row) => {
+      if (placeFilter && row.place !== placeFilter) return false;
+      if (needle && !normalizeFlightNo(row.flight.flightNo).includes(needle)) return false;
+      return true;
+    });
+  }, [allRows, query, placeFilter]);
 
   const columns = COLUMNS[direction];
   const timeColX = columns.find((c) => c.key === 'time')?.x ?? 300;
+  const placeColX = columns.find((c) => c.key === 'place')?.x ?? 1140;
 
   const clearSearch = (): void => {
     composer.current.reset('');
@@ -274,11 +346,24 @@ export function JejuFlights({ controller }: Props): JSX.Element {
   const selectTab = (id: FlightDirection): void => {
     setDirection(id);
     clearSearch();
+    setPlaceFilter(null);
+    setPlaceOpen(false);
   };
 
   const openSearch = (): void => {
+    setPlaceOpen(false);
     composer.current.reset(query);
     setFocused(true);
+  };
+
+  const togglePlaceMenu = (): void => {
+    setFocused(false);
+    setPlaceOpen((open) => !open);
+  };
+
+  const pickPlace = (value: string | null): void => {
+    setPlaceFilter(value);
+    setPlaceOpen(false);
   };
 
   const applyKey = (action: KeyAction): void => {
@@ -319,14 +404,17 @@ export function JejuFlights({ controller }: Props): JSX.Element {
   const cellText = (col: Column, row: Row): string => {
     switch (col.key) {
       case 'time':    return displayTime(row.flight);
-      case 'airline': return `${row.flight.airline}(${row.flight.flightNo})`;
-      case 'place':   return row.place;
-      case 'kind':    return flightKindLabel(row.flight.kind, lang);
+      // U+200B: a break point before "(" — keep-all leaves 아시아나항공(OZ8900)
+      // no other place to wrap but the middle of the flight number.
+      case 'airline':
+        return `${flightAirlineLabel(row.flight.airline, row.flight.flightNo, boardLang)}\u200B(${row.flight.flightNo})`;
+      case 'place':   return flightPlaceLabel(row.place, boardLang);
+      case 'kind':    return flightKindLabel(row.flight.kind, boardLang);
       case 'stand':
         return direction === 'departure' ? formatGate(row.stand) : dashIfEmpty(row.stand);
       case 'status':
         return row.flight.status
-          ? flightStatusLabel(row.flight.status, lang)
+          ? flightStatusLabel(row.flight.status, boardLang)
           : '-';
       default:        return '';
     }
@@ -336,9 +424,12 @@ export function JejuFlights({ controller }: Props): JSX.Element {
     ? opText('OP_Schedule_Loading', lang, LOADING)
     : allRows.length === 0
       ? opText('OP_Schedule_Result', lang, EMPTY)
-      : opText('OP_Schedule_Search_Result', lang, NO_RESULT);
+      : placeFilter && !normalizeFlightNo(query)
+        ? pick(PLACE_NO_RESULT, lang)
+        : opText('OP_Schedule_Search_Result', lang, NO_RESULT);
 
   const searchPlaceholder = opText('OP_Schedule_Search_placeholder', lang, SEARCH_PLACEHOLDER);
+  const placeAllLabel = pick(PLACE_ALL, boardLang);
 
   return (
     <JejuPageFrame
@@ -377,15 +468,85 @@ export function JejuFlights({ controller }: Props): JSX.Element {
       </div>
 
       <div className={low(styles.headPlate, styles.headPlateLow)} />
-      {columns.map((col) => (
-        <span
-          key={`${direction}-${col.key}`}
-          className={`${low(styles.head, styles.headLow)} ${col.centred ? styles.cellCentred : ''}`}
-          style={{ left: col.x }}
-        >
-          {col.sheetKey ? opText(col.sheetKey, lang, col.head) : pick(col.head, lang)}
-        </span>
-      ))}
+      {columns.map((col) => {
+        if (col.key === 'place') {
+          const title = col.sheetKey
+            ? opText(col.sheetKey, boardLang, col.head)
+            : pick(col.head, boardLang);
+          /* 7253:9751 (제주>운항정보=도착): once a place is picked the header
+             reads THAT place — "서울/김포▼" — instead of 목적지 / 출발지, so the
+             board says what it is filtered to. "전체" puts the title back. */
+          const placeLabel = placeFilter ? flightPlaceLabel(placeFilter, boardLang) : title;
+          return (
+            <button
+              key={`${direction}-${col.key}`}
+              type="button"
+              className={`${low(styles.head, styles.headLow)} ${styles.headPlace} ${styles.cellCentred}`}
+              style={{ left: col.x, maxWidth: col.headMax }}
+              aria-expanded={placeOpen}
+              aria-haspopup="listbox"
+              aria-label={placeFilter ? `${title}: ${placeLabel}` : title}
+              onClick={togglePlaceMenu}
+            >
+              <span className={styles.headPlaceLabel}>{placeLabel}</span>
+              <span
+                className={`${styles.headPlaceCaret} ${placeFilter ? styles.headPlaceCaretActive : ''}`}
+                aria-hidden="true"
+              >
+                ▼
+              </span>
+            </button>
+          );
+        }
+        return (
+          <span
+            key={`${direction}-${col.key}`}
+            className={`${low(styles.head, styles.headLow)} ${col.centred ? styles.cellCentred : ''}`}
+            style={{ left: col.x, maxWidth: col.headMax }}
+          >
+            {col.sheetKey ? opText(col.sheetKey, boardLang, col.head) : pick(col.head, boardLang)}
+          </span>
+        );
+      })}
+
+      {placeOpen && (
+        <>
+          <button
+            type="button"
+            className={styles.placeBackdrop}
+            aria-label="Close"
+            onClick={() => setPlaceOpen(false)}
+          />
+          <div
+            className={low(styles.placeDropdown, styles.placeDropdownLow)}
+            style={{ left: placeColX }}
+            role="listbox"
+          >
+            <button
+              type="button"
+              className={`${styles.placeOption} ${placeFilter == null ? styles.placeOptionActive : ''}`}
+              role="option"
+              aria-selected={placeFilter == null}
+              onClick={() => pickPlace(null)}
+            >
+              {placeAllLabel}
+              <span className={styles.placeOptionNote}>{pick(PLACE_ALL_NOTE, boardLang)}</span>
+            </button>
+            {placeOptions.map((place) => (
+              <button
+                key={place}
+                type="button"
+                className={`${styles.placeOption} ${placeFilter === place ? styles.placeOptionActive : ''}`}
+                role="option"
+                aria-selected={placeFilter === place}
+                onClick={() => pickPlace(place)}
+              >
+                {flightPlaceLabel(place, boardLang)}
+              </button>
+            ))}
+          </div>
+        </>
+      )}
 
       <div className={low(styles.scroll, styles.scrollLow)} ref={scrollRef}>
         <div key={direction} className={styles.rows}>
@@ -393,22 +554,23 @@ export function JejuFlights({ controller }: Props): JSX.Element {
             <p className={styles.empty}>{emptyCopy}</p>
           ) : (
             rows.map((row) => {
-              const tintStatus =
+              // Whole-row accent on this board only: 출발예정 (not 탑승최종) / 도착.
+              // Jeju main, not the home board's green 탑승최종 token.
+              const highlightRow =
                 (direction === 'arrival' && row.flight.status === 'arrived') ||
-                (direction === 'departure' && row.flight.status === 'final')
-                  ? row.flight.status
-                  : undefined;
-              const tintColor = tintStatus
-                ? flightStatusColor(tintStatus)
+                (direction === 'departure' && row.flight.status === 'scheduled');
+              const tintColor = highlightRow
+                ? 'var(--kiosk-primary, #ff7f0f)'
                 : undefined;
               return (
               <div key={`${direction}-${row.flight.id}`} className={styles.row}>
                 {columns.map((col) => (
                   <span
                     key={`${direction}-${col.key}`}
-                    className={`${styles.cell} ${col.centred ? styles.cellCentred : ''} ${col.key === 'status' ? styles.cellStatus : ''}`}
+                    className={`${styles.cell} ${col.centred ? styles.cellCentred : ''} ${col.cellMax ? styles.cellWrap : ''} ${col.key === 'status' ? styles.cellStatus : ''}`}
                     style={{
                       left: col.x,
+                      maxWidth: col.cellMax,
                       ...(tintColor
                         ? { color: tintColor }
                         : col.key === 'status' && row.flight.status

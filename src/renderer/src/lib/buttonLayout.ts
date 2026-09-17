@@ -23,16 +23,28 @@ function buttonNameForSlot(kioskId: string, slot: number): string {
 function tileIdentity(
   kioskId: string,
   key: TileKey,
-): { id: number | null; name: string | undefined; type: string | undefined } {
+): { id: number | null; name: string | undefined; type: string | undefined; prefix: string | undefined } {
   if (key.slot != null) {
     return {
       id: buttonIdForSlot(kioskId, key.slot),
       name: buttonNameForSlot(kioskId, key.slot),
       type: undefined,
+      prefix: undefined,
     };
   }
   const ref = resolveButton(kioskId, key.screen);
-  return { id: ref?.id ?? null, name: ref?.buttonName, type: ref?.buttonType };
+  return { id: ref?.id ?? null, name: ref?.buttonName, type: ref?.buttonType, prefix: ref?.typePrefix };
+}
+
+/**
+ * The one row whose `buttonType` starts with `prefix`, or undefined when none or
+ * several do — the last join pass, for rows whose type carries operator copy
+ * (the 제주 mascot in 안녕 '하영'). Ambiguity identifies nothing, as for types.
+ */
+function rowByTypePrefix(buttons: readonly KioskButton[], prefix: string | undefined): KioskButton | undefined {
+  if (!prefix) return undefined;
+  const hits = buttons.filter((b) => b.buttonType?.startsWith(prefix));
+  return hits.length === 1 ? hits[0] : undefined;
 }
 
 /**
@@ -65,60 +77,70 @@ export function useApiTileRows<T>(
   keyOf: (tile: T) => TileKey,
 ): T[][] | null {
   const buttons = useButtonStore((s) => s.buttons);
-  return useMemo(() => {
-    const tag = `[buttonLayout:${kioskId}]`;
-    if (buttons.length === 0) {
-      console.info(`${tag} no cached buttons yet — using authored order`);
+  return useMemo(() => joinTileRows(buttons, kioskId, tiles, keyOf), [buttons, kioskId, tiles, keyOf]);
+}
+
+/** The join behind {@link useApiTileRows}, as a plain function (no store, no React). */
+export function joinTileRows<T>(
+  buttons: readonly KioskButton[],
+  kioskId: string,
+  tiles: readonly T[],
+  keyOf: (tile: T) => TileKey,
+): T[][] | null {
+  const tag = `[buttonLayout:${kioskId}]`;
+  if (buttons.length === 0) {
+    console.info(`${tag} no cached buttons yet — using authored order`);
+    return null;
+  }
+  const byId = new Map<number, KioskButton>(buttons.map((b) => [b.id, b]));
+  const byName = new Map<string, KioskButton>(
+    buttons.filter((b) => b.buttonName).map((b) => [b.buttonName as string, b]),
+  );
+  // buttonType → row, but ONLY for types that appear exactly once: a duplicate
+  // type identifies nothing, and silently picking one row would misplace a tile.
+  const byType = new Map<string, KioskButton | null>();
+  for (const b of buttons) {
+    if (!b.buttonType) continue;
+    byType.set(b.buttonType, byType.has(b.buttonType) ? null : b);
+  }
+  const rows = new Map<number, { col: number; tile: T }[]>();
+  const seen = new Set<string>();
+  for (const tile of tiles) {
+    const key = keyOf(tile);
+    const { id, name, type, prefix } = tileIdentity(kioskId, key);
+    const b =
+      (id != null ? byId.get(id) : undefined) ??
+      (name != null ? byName.get(name) : undefined) ??
+      (type != null ? byType.get(type) ?? undefined : undefined) ??
+      rowByTypePrefix(buttons, prefix);
+    if (!b) {
+      console.warn(`${tag} FALLBACK — no API row for tile`, {
+        key,
+        expectedId: id,
+        expectedName: name,
+        expectedType: type,
+        expectedTypePrefix: prefix,
+      });
       return null;
     }
-    const byId = new Map<number, KioskButton>(buttons.map((b) => [b.id, b]));
-    const byName = new Map<string, KioskButton>(
-      buttons.filter((b) => b.buttonName).map((b) => [b.buttonName as string, b]),
-    );
-    // buttonType → row, but ONLY for types that appear exactly once: a duplicate
-    // type identifies nothing, and silently picking one row would misplace a tile.
-    const byType = new Map<string, KioskButton | null>();
-    for (const b of buttons) {
-      if (!b.buttonType) continue;
-      byType.set(b.buttonType, byType.has(b.buttonType) ? null : b);
+    const cell = `${b.line}:${b.position}`;
+    if (seen.has(cell)) {
+      console.warn(`${tag} FALLBACK — collision`, { key, cell, buttonId: b.id });
+      return null;
     }
-    const rows = new Map<number, { col: number; tile: T }[]>();
-    const seen = new Set<string>();
-    for (const tile of tiles) {
-      const key = keyOf(tile);
-      const { id, name, type } = tileIdentity(kioskId, key);
-      const b =
-        (id != null ? byId.get(id) : undefined) ??
-        (name != null ? byName.get(name) : undefined) ??
-        (type != null ? byType.get(type) ?? undefined : undefined);
-      if (!b) {
-        console.warn(`${tag} FALLBACK — no API row for tile`, {
-          key,
-          expectedId: id,
-          expectedName: name,
-          expectedType: type,
-        });
-        return null;
-      }
-      const cell = `${b.line}:${b.position}`;
-      if (seen.has(cell)) {
-        console.warn(`${tag} FALLBACK — collision`, { key, cell, buttonId: b.id });
-        return null;
-      }
-      seen.add(cell);
-      const list = rows.get(b.line) ?? [];
-      list.push({ col: b.position, tile });
-      rows.set(b.line, list);
-    }
-    const result = [...rows.entries()]
-      .sort(([a], [b]) => a - b)
-      .map(([line, list]) => ({ line, cols: list.sort((a, b) => a.col - b.col) }));
-    console.info(
-      `${tag} applied CMS order`,
-      result.map((r) => ({ line: r.line, order: r.cols.map((c) => `${JSON.stringify(keyOf(c.tile))}@${c.col}`) })),
-    );
-    return result.map((r) => r.cols.map((e) => e.tile));
-  }, [buttons, kioskId, tiles, keyOf]);
+    seen.add(cell);
+    const list = rows.get(b.line) ?? [];
+    list.push({ col: b.position, tile });
+    rows.set(b.line, list);
+  }
+  const result = [...rows.entries()]
+    .sort(([a], [b]) => a - b)
+    .map(([line, list]) => ({ line, cols: list.sort((a, b) => a.col - b.col) }));
+  console.info(
+    `${tag} applied CMS order`,
+    result.map((r) => ({ line: r.line, order: r.cols.map((c) => `${JSON.stringify(keyOf(c.tile))}@${c.col}`) })),
+  );
+  return result.map((r) => r.cols.map((e) => e.tile));
 }
 
 /**
@@ -163,7 +185,8 @@ export function useResolveButton(kioskId: string): (key: string) => KioskButtonR
     return (key: string) => {
       const ref = resolveButton(kioskId, key);
       if (!ref) return null;
-      const apiId = idByName.get(ref.buttonName) ?? idByType.get(ref.buttonType) ?? null;
+      const apiId =
+        idByName.get(ref.buttonName) ?? idByType.get(ref.buttonType) ?? rowByTypePrefix(buttons, ref.typePrefix)?.id ?? null;
       return apiId != null ? { ...ref, id: apiId } : ref;
     };
   }, [buttons, kioskId]);

@@ -25,8 +25,16 @@
   font-style: normal;
 }
 
+/* Labels come from the sheet in eight languages, so they may wrap: when the
+   run is wider than the 2160 band the items shrink and take a second line
+   instead of running off both edges. The band itself stays 82 tall — callers
+   place it absolutely with content right under it — so a two-line item
+   (~144px) overhangs it symmetrically (the row centres its items), ~31px each
+   side, which every current caller clears. Labels that fit are unchanged. */
 .item {
-  height: 82px;
+  flex: 0 1 auto;
+  min-width: 0;
+  min-height: 82px;
   padding: 0 60px;
   border: none;
   background: none;
@@ -36,7 +44,9 @@
   font-weight: 600;
   line-height: normal;
   color: var(--jeju-subtab-idle, #1a1a1a);
-  white-space: nowrap;
+  white-space: normal;
+  word-break: keep-all;
+  overflow-wrap: anywhere;
   cursor: pointer;
   -webkit-tap-highlight-color: transparent;
 }
@@ -61,6 +71,7 @@
  * to reproduce the frame's ~168px ink gap.
  */
 .sep {
+  flex: none;
   margin: 0 var(--jeju-subtab-sep-after, 90px) 0 var(--jeju-subtab-sep-before, 60px);
   font-family: inherit;
   font-size: 60px;
@@ -76,7 +87,7 @@
 
 .compact .item,
 .compact .sep {
-  height: 60px;
+  min-height: 60px;
   font-size: 38px;
   padding: 0 40px;
 }

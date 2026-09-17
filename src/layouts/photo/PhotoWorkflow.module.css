@@ -43,6 +43,25 @@
 
 /* ── Result: WIT Store webview ─────────────────────────────────────────── */
 /* Header is provided by InsadongHeader (top 0 → 699px).                  */
+/*
+ * 위드마켓 sub-title — 6980:17803 (서브타이틀, y559). Sits between the header
+ * and the store panel's y700, so a wrapped second line still clears the panel.
+ * #8b7355 is the frame's own colour and NOT the #909090 the other 제주 page
+ * descriptions use, so it is written out rather than tokenised.
+ */
+.marketSubtitle {
+  position: absolute;
+  left: 170px;
+  top: 559px;
+  width: 1820px;
+  margin: 0;
+  font-size: 60px;
+  font-weight: 400;
+  line-height: 1;
+  color: #8b7355;
+  text-align: center;
+}
+
 .marketBody {
   position: absolute;
   top: 699px;
@@ -77,7 +96,7 @@
   height: 214.525px;
   padding: 36px;
   background: #ffffff;
-  border: 4.291px solid var(--photo-accent, #fe6c50);
+  border: var(--photo-qr-border-width, 4.291px) solid var(--photo-accent, #fe6c50);
   border-radius: 21.453px;
 }
 
@@ -99,7 +118,7 @@
   padding: 40px 30px;
   border: none;
   border-radius: 42.9px;
-  box-shadow: 0 21.45px 42.9px rgba(143, 147, 157, 0.1);
+  box-shadow: var(--photo-button-shadow, 0 21.45px 42.9px rgba(143, 147, 157, 0.1));
   font-family: var(--kiosk-font, sans-serif);
   font-weight: 700;
   font-size: 58px;
@@ -155,6 +174,18 @@
   display: flex;
   flex-direction: column;
   gap: 35px;
+}
+
+/*
+ * 제주 only. 6980:17803 puts the rail at x50/y2163 with a THIRD control (the ♿
+ * toggle) under 홈 and 뒤로, which is where every other 제주 page draws it; the
+ * shared x21/y1995 pair above stays for W003/W004, whose own frames put it
+ * there. Doubled so it beats `.leftNav` regardless of the order CSS modules
+ * emit the two rules in.
+ */
+.leftNavJeju.leftNavJeju {
+  left: 50px;
+  top: 2163px;
 }
 
 .leftNavBtn {
@@ -254,7 +285,7 @@
   border-radius: 32px;
   overflow: hidden;
   background: #ffffff;
-  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.12);
+  box-shadow: var(--photo-result-shadow, 0 20px 50px rgba(0, 0, 0, 0.12));
 }
 .resultPhoto img {
   width: 100%;
@@ -306,7 +337,7 @@
   flex: none;
   width: var(--photo-qr-size, 200px);
   height: var(--photo-qr-size, 200px);
-  border: 4px solid var(--photo-accent, #fe6c50);
+  border: var(--photo-qr-border-width, 4px) solid var(--photo-accent, #fe6c50);
   border-radius: 24px;
   background: #ffffff;
   /* Bigger inner padding → smaller QR while the box/border stay the same. */
@@ -362,9 +393,9 @@
      reaches 132px) instead of overlapping it. */
   padding: 170px 80px 80px;
   background: #ffffff;
-  border: 6px solid var(--photo-accent, #fe6c50);
+  border: var(--photo-modal-border-width, 6px) solid var(--photo-accent, #fe6c50);
   border-radius: 42.9px;
-  box-shadow: 0 30px 90px rgba(0, 0, 0, 0.3);
+  box-shadow: var(--photo-modal-shadow, 0 30px 90px rgba(0, 0, 0, 0.3));
 }
 
 .qrClose {

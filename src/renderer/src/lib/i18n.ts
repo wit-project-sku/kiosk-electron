@@ -166,6 +166,11 @@ const SCREEN_TITLES: Record<string, Partial<Record<Lang, string>>> = {
   // 여기는 제주도 is kept out of TITLE_KEYS for the same reason: MainButton_Here
   // resolves to Insadong's own "여기는 인사동" through the fallback table.
   '여기는 제주도': { en: 'This is Jeju', ja: 'ここは済州島', zh: '这里是济州岛', vi: 'Đây là Jeju', th: 'ที่นี่คือเชจู', ru: 'Это Чеджудо', id: 'Ini Jeju' },
+  // W008's 제주세계유산 page header (JejuHeritage, Figma 6908:51916). No sheet
+  // row exists for it yet, so the hand map is what localizes the pill.
+  '제주 유네스코 유산': { en: 'Jeju UNESCO Heritage', ja: '済州ユネスコ遺産', zh: '济州联合国教科文组织遗产', vi: 'Di sản UNESCO Jeju', th: 'มรดกยูเนสโกเชจู', ru: 'Наследие ЮНЕСКО Чеджу', id: 'Warisan UNESCO Jeju' },
+  // W008's 거문오름 예약 page header (JejuGeomun, Figma 6935:69555) — same deal.
+  '거문오름 예약': { en: 'Geomunoreum Reservation', ja: 'コムンオルム予約', zh: '拒文岳预约', vi: 'Đặt chỗ Geomunoreum', th: 'จองคอมุนออรึม', ru: 'Бронирование Комунорым', id: 'Reservasi Geomunoreum' },
   // Curly quotes, as the frame writes it (6219:98770) — the straight-quote form
   // is Insadong's own '도와줘 ‘인사’' above. Hardcoded display id is now 제주
   // (jejuMascot); keep the old 하영 key so any stale caller still localizes.
@@ -278,7 +283,20 @@ const TITLE_KEYS: Record<string, TitleKeySpec> = {
   // 지역화폐/환율/언어선택/숙박안내/TAX-FREE/상세 already resolve through the shared
   // entries above — 제주's sheet carries the same key names, and bundledTable()
   // has already picked the 제주 table by then, so they land on 제주's own copy.
-  "'제주' 뭐하지 (AI 검색)": { title: 'MainButton_AI', sub: 'SubHeader_AISearch' },
+  // The AI 검색 pages read their OWN rows. They were mapped to MainButton_AI —
+  // the home TILE's label ("'제주' 뭐하지", en "To do (AI)") — and to
+  // SubHeader_AISearch, Insadong's "3개의 카테고리" line, so the header never
+  // showed what Localization_Jeju writes for this page. The id is passed by the
+  // questionnaires, the course detail and an AI spot's 상세; the landing and the
+  // detail pass their own description (Jeju_Todo_Subtitle1 / the course + day).
+  // Jeju_Todo_Subtitle2 is v2's "* 각 카테고리를 선택해 주세요" (the retired
+  // Jeju_Todo_Subtitle's copy under its new key).
+  "'제주' 뭐하지 (AI 검색)": { title: 'Jeju_Todo_Title', sub: 'Jeju_Todo_Subtitle2' },
+  // The AI course DETAIL's own header since 7058:21462 (2026-09-15): "‘제주’ 뭐하지",
+  // without "(AI 검색)". That is the home tile's label, so it resolves the same
+  // row the tile does — MainButton_AI, filled in all eight languages. The
+  // questionnaires and an AI spot's 상세 keep the id above.
+  '‘제주’ 뭐하지': { title: 'MainButton_AI', sub: 'Jeju_Todo_Subtitle2' },
   // 탐나오&제주큐랑 (6493:118287). The sheet has already caught up with that
   // frame's two-tab redraw — MainButton_Tamnao reads 탐나오·제주큐랑 in all eight
   // languages — so the header follows the sheet, not the id, and the visitor sees
@@ -309,10 +327,17 @@ const TITLE_KEYS: Record<string, TitleKeySpec> = {
   "제주도 이벤트": { title: 'MainButton_Event', sub: 'SubHeader_Event' },
   "렌트카": { title: 'MainButton_RentCar', sub: 'RentCar_Subtitle' },
   탐나오: { title: 'MainButton_Tamnao', sub: 'Tamnao_Subtitle' },
-  // W006 reads MainButton_Airplane_Schedule, W007 MainButton_Cruise — same header
-  // id (운항정보), different title rows. OP_Schedule_Subtitle is the page copy.
+  // W006 공항 board keeps MainButton_Airplane_Schedule. W007/W008 ferry board
+  // uses a separate header id (see CRUISE_TITLE) → OP_Schedule_Title. Subtitle
+  // stays OP_Schedule_Subtitle on both.
   "운항정보": {
-    title: ['MainButton_Airplane_Schedule', 'MainButton_Cruise'],
+    title: 'MainButton_Airplane_Schedule',
+    sub: 'OP_Schedule_Subtitle',
+  },
+  // JejuCruise / JejuSailingBoard (여객터미널·유산). Korean sheet cell is still
+  // 운항정보; the id just routes the lookup away from the airport button row.
+  "크루즈 운항": {
+    title: 'OP_Schedule_Title',
     sub: 'OP_Schedule_Subtitle',
   },
   // Header id stays `검색`; title/sub come from Localization_Jeju. `Main_Search`

@@ -4,6 +4,12 @@
   inset: 0;
   /* Whitish base so any momentary gap reads as a soft flash, never black. */
   background: #f6f6f6;
+  /* Its own stacking context, so the two video layers' z-index (1/2) and the
+     captions' (3) order only each other. Without it the front layer's
+     z-index: 2 competed with the wall's SIBLINGS and painted over anything the
+     screen draws on top of the wall — the generating screen's 60s spinner and
+     countdown vanished under the waiting clip. */
+  isolation: isolate;
 }
 
 .video {
@@ -12,25 +18,27 @@
   width: 100%;
   height: 100%;
   object-fit: cover;
-  background: #f6f6f6;
   display: block;
-  /* Instant cut between the two stacked layers (no animation) — the hidden
-     layer is only revealed once it is actually playing, so there is never a
-     black frame, and switching costs nothing. */
+  /* NO background and NO opacity swap: the two layers switch by z-order, and a
+     <video> paints nothing until its first frame decodes. So on a cut the new
+     front is transparent for the few frames the decoder needs and the old clip
+     (still on the layer underneath) shows through — the switch is immediate
+     with never a blank. A background here would paint over that under-layer. */
 }
 
 .show {
-  opacity: 1;
+  z-index: 2;
 }
 
 .hide {
-  opacity: 0;
+  z-index: 1;
 }
 
 /* PARK SUL NYEO brand logo, top-left. Source SVG embeds a 3000×2121 raster,
    so it stays crisp at this size. */
 .logo {
   position: absolute;
+  z-index: 3; /* above both z-ordered video layers */
   top: 80px;
   left: 80px;
   width: 460px;
@@ -43,6 +51,7 @@
 /* Ambassador label (title), top-right. Figma: NOTOSANS / FFFFFF / regular / 68. */
 .label {
   position: absolute;
+  z-index: 3; /* above both z-ordered video layers */
   top: 90px;
   right: 90px;
   max-width: 1400px;
@@ -59,6 +68,7 @@
    Sits a bit higher up the screen (not pinned to the bottom). */
 .subtitle {
   position: absolute;
+  z-index: 3; /* above both z-ordered video layers */
   left: 50%;
   bottom: 480px;
   transform: translateX(-50%);

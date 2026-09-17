@@ -1,0 +1,11 @@
+<svg preserveAspectRatio="xMidYMid meet" overflow="visible" width="1116" height="10" viewBox="0 0 1116 10" fill="none" xmlns="http://www.w3.org/2000/svg">
+<path id="divider" d="M0 5H1116" stroke="url(#paint0_linear_0_43)" stroke-width="10"/>
+<defs>
+<linearGradient id="paint0_linear_0_43" x1="0" y1="10.5" x2="1023.72" y2="10.5" gradientUnits="userSpaceOnUse">
+<stop stop-color="#FFFCF9"/>
+<stop offset="0.375" stop-color="#FF7F0F"/>
+<stop offset="0.601" stop-color="#FF8C27"/>
+<stop offset="1" stop-color="#FFF1E9"/>
+</linearGradient>
+</defs>
+</svg>

@@ -17,29 +17,47 @@
   composes: pillActive from './JejuPill.module.css';
 }
 
+/*
+ * The scrolling body — Figma 6862:9953's `6862:9957`, a centred column at y700
+ * holding pickers · category chips · map · result cards.
+ *
+ * GAP 50, not the 150 this carried: the 2026-09-09 frame tightens the whole
+ * stack, which is what puts the map at y1497 instead of y1697 and leaves the
+ * last card clear of the promo. Every block's own internal gaps (70 in
+ * .pickers, 35 in .cats, 52 in .list) are unchanged — only the spacing BETWEEN
+ * the four blocks moved.
+ *
+ * `bottom: 573px` stops the viewport at the promo banner's top edge (3840 −
+ * 573 = 3267), so a scrolled card can never slide under it. The 80px bottom
+ * padding is the frame's own clearance between the last card and the banner.
+ *
+ * Right padding is 136 against the left's 170 on purpose: the 34.32px scrollbar
+ * makes up the difference (136 + 34.32 ≈ 170), so the 1820-wide blocks stay
+ * centred on the artboard.
+ */
 .scroll {
   position: absolute;
   left: 0;
   right: 0;
   top: 700px;
-  bottom: 0;
+  bottom: 573px;
   box-sizing: border-box;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 150px;
+  gap: 50px;
   overflow-x: hidden;
   overflow-y: auto;
   padding: 0 136px 80px 170px;
 }
 
 .scroll::-webkit-scrollbar {
-  width: 34.32px;
+  width: 28px;
 }
 
 .scroll::-webkit-scrollbar-thumb {
   background: var(--kiosk-primary, #ff7f0f);
-  border-radius: 17.16px;
+  border-radius: 14px;
 }
 
 .scroll::-webkit-scrollbar-track {
@@ -79,7 +97,10 @@
   color: #fff;
 }
 
-/* Floors ride inside the scroll column — override JejuSubTabRow's absolute band. */
+/* Floors ride inside the scroll column — override JejuSubTabRow's absolute band.
+   Idle ink is #999 here, not the shared row's #1a1a1a default: 6862:9953 draws
+   the unpicked floors and both ㅣ separators in 글씨-main (#999), against the
+   Black orange 1F. That is the override hook the shared row documents. */
 .floors.floors {
   position: relative;
   top: auto;
@@ -87,11 +108,16 @@
   right: auto;
   width: 100%;
   flex: 0 0 auto;
+  --jeju-subtab-idle: #999;
 }
 
 /* ── Categories (R>상단 카테고리-5개*2) ──
    Five 340×170 per row, col gap 30 / row gap 35. Short last rows keep the
-   left edge (flex-start), not space-between. */
+   left edge (flex-start), not space-between.
+
+   Labels are never clamped: two lines (and three, at 1.15 × 50 = 172) fit the
+   170 plate as drawn; anything longer grows the plate, and the row stretches
+   its siblings to match so the grid stays even. */
 .cats {
   display: flex;
   flex-direction: column;
@@ -104,11 +130,13 @@
 
 .catRow {
   display: flex;
-  align-items: center;
+  align-items: stretch;
   justify-content: flex-start;
   gap: 30px;
 }
 
+/* `height: auto` + `overflow: visible` undo the composed JejuPill's fixed 170
+   and clip, so a long label grows its plate instead of being cut. */
 .cats .pill {
   display: flex;
   flex: 0 0 340px;
@@ -117,7 +145,8 @@
   width: 340px;
   max-width: 340px;
   min-width: 0;
-  height: 170px;
+  height: auto;
+  min-height: 170px;
   box-sizing: border-box;
   padding: 0 12px;
   font-family: inherit;
@@ -130,15 +159,11 @@
   white-space: normal;
   word-break: keep-all;
   overflow-wrap: anywhere;
-  overflow: hidden;
+  overflow: visible;
 }
 
 .cats .pillLabel {
-  display: -webkit-box;
-  -webkit-box-orient: vertical;
-  -webkit-line-clamp: 2;
   max-width: 100%;
-  overflow: hidden;
   line-height: 1.15;
   white-space: normal;
   word-break: keep-all;
@@ -157,8 +182,9 @@
 }
 
 /* ── Map (6819:10197) — 1820×813, radius 58
-   국내선 4F overrides height inline (see AirportMap.height) — its plan is
-   upright 1.25:1 and needs ~1456px or the drawing clips inside this plate. */
+   Plans taller than this plate allows override the height inline (see
+   AirportMap.height): 국내선 1F 875, 국제선 1F 940, 국내선 4F 1456 — without it
+   the drawing's foot is clipped by the overflow below. */
 .map {
   position: relative;
   left: auto;
@@ -214,10 +240,37 @@
   filter: drop-shadow(0 2px 3px rgba(0, 0, 0, 0.3));
   transition: transform 120ms ease-out;
   pointer-events: none;
+  /* Drops onto the plan when its chip is picked, bounces once, then stays
+     still — only 현위치 keeps moving, so it never competes with a crowd of
+     bobbing pins. Animated on `translate`, not `transform`, so the centring
+     above and the :active press below still apply on top. --pin-i staggers
+     the drop per pin (set inline), capped so a long category lands quickly. */
+  animation: pinDrop 650ms ease-out calc(min(var(--pin-i, 0), 10) * 60ms) backwards;
 }
 
 .pin:active .pinMarker {
   transform: translateX(-50%) scale(1.18);
+}
+
+@keyframes pinDrop {
+  0% {
+    translate: 0 -70px;
+    opacity: 0;
+    animation-timing-function: ease-in;
+  }
+  55% {
+    translate: 0 0;
+    opacity: 1;
+    animation-timing-function: ease-out;
+  }
+  75% {
+    translate: 0 -14px;
+    animation-timing-function: ease-in;
+  }
+  100% {
+    translate: 0 0;
+    opacity: 1;
+  }
 }
 
 .here {
@@ -233,6 +286,102 @@
   width: 100%;
   height: 100%;
   object-fit: contain;
+  /* Jump-and-spin: a hop with a full turn about the vertical axis, a squash on
+     landing, then a rest — so the 현위치 marker draws the eye without spinning
+     nonstop. Pivots on the pin's tip (500 of the art's 550) so it lands where
+     it stood. ico-here-pin is ico-here with the ground ring erased; the ring
+     is .hereRing below, which stays on the floor. */
+  position: relative;
+  transform-origin: 50% 91%;
+  animation: hereJump 2600ms ease-in-out infinite;
+}
+
+/* The ground ring, re-drawn where ico-here had it: x 38–332, y 461–548 of its
+   371×550 art, with the thin back stroke and heavier front stroke it drew. It
+   shrinks and fades while the pin is in the air, like a shadow would. */
+.hereRing,
+.herePulse {
+  position: absolute;
+  left: 10.2%;
+  top: 83.8%;
+  width: 79.2%;
+  height: 15.8%;
+  box-sizing: border-box;
+  border: 2px solid #f00;
+  border-top-width: 1px;
+  border-bottom-width: 3px;
+  border-radius: 50%;
+}
+
+.hereRing {
+  animation: hereRing 2600ms ease-in-out infinite;
+}
+
+@keyframes hereRing {
+  0%,
+  52%,
+  80%,
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  66% {
+    transform: scale(0.6);
+    opacity: 0.45;
+  }
+}
+
+/* The "you are here" ripple: a copy of the ring that spreads out and fades,
+   twice per jump. */
+.herePulse {
+  border-width: 3px;
+  animation: herePulse 1300ms ease-out infinite;
+}
+
+@keyframes herePulse {
+  from {
+    transform: scale(1);
+    opacity: 0.8;
+  }
+  to {
+    transform: scale(3.2);
+    opacity: 0;
+  }
+}
+
+@keyframes hereJump {
+  0%,
+  45% {
+    transform: perspective(300px) translateY(0) rotateY(0deg) scale(1, 1);
+  }
+  52% {
+    transform: perspective(300px) translateY(4px) rotateY(0deg) scale(1.08, 0.9);
+  }
+  66% {
+    transform: perspective(300px) translateY(-34px) rotateY(180deg) scale(1, 1.04);
+  }
+  80% {
+    transform: perspective(300px) translateY(0) rotateY(360deg) scale(1, 1);
+  }
+  85% {
+    transform: perspective(300px) translateY(2px) rotateY(360deg) scale(1.1, 0.88);
+  }
+  92%,
+  100% {
+    transform: perspective(300px) translateY(0) rotateY(360deg) scale(1, 1);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hereIcon,
+  .hereRing,
+  .pinMarker {
+    animation: none;
+  }
+
+  .herePulse {
+    display: none;
+  }
 }
 
 .hereLabel {
@@ -259,7 +408,15 @@
   width: 100%;
   height: 100%;
   box-sizing: border-box;
-  padding: 40px 50px;
+  /* Inset of the plan inside its white card (1820×813, or the 1456-tall
+     국내선 4F). Was 40/50, which read as
+     the plan touching the card's edges — the corners especially, where the 58px
+     radius cuts in. The plans are 2.2–3.1 aspect against the card's 2.4, so the
+     wide ones (2F/3F) had slack to give horizontally and only the taller 1F
+     plans lose height by this.
+     Note it rides INSIDE the transform, so it zooms with the plan — the inset
+     is the resting frame, not a hard gutter. */
+  padding: 64px 88px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -280,12 +437,16 @@
   text-align: center;
 }
 
-/* ── Result cards under the map (6862:9971) ──
-   1820×384 white plates; name · category · location · phone. */
+/* ── Result cards under the map (7212:66344 "R>리스트-사진4개") ──
+   1820×390 white plates, 50 apart. Padding 40/45 around a 299-tall row: the
+   text column (name · category / location / phone, 40 apart) on the left and
+   a 382×213 photo on the right, both centred in that row. The plate is 11
+   taller than padding + row (390 − 40 − 299 = 51 below), so the row sits
+   5.5 above the plate's centre, as in the frame. */
 .list {
   display: flex;
   flex-direction: column;
-  gap: 52px;
+  gap: 50px;
   width: 1820px;
   flex: 0 0 auto;
 }
@@ -293,20 +454,46 @@
 .card {
   box-sizing: border-box;
   width: 1820px;
-  min-height: 384px;
+  min-height: 390px;
   margin: 0;
-  padding: 65px 45px;
+  padding: 40px 45px;
   border: none;
   border-radius: 42.9px;
   background: #fff;
   display: flex;
-  flex-direction: column;
   align-items: flex-start;
-  gap: 40px;
   text-align: left;
   cursor: pointer;
   -webkit-tap-highlight-color: transparent;
   font-family: Pretendard, 'Noto Sans KR', sans-serif;
+}
+
+.cardText {
+  box-sizing: border-box;
+  flex: 1 1 auto;
+  min-width: 0;
+  min-height: 299px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: flex-start;
+  gap: 40px;
+}
+
+.cardPhotoBox {
+  flex: 0 0 auto;
+  height: 299px;
+  display: flex;
+  align-items: center;
+  margin-left: 60px;
+}
+
+.cardPhoto {
+  display: block;
+  width: 382px;
+  height: 213px;
+  border-radius: 21.45px;
+  object-fit: cover;
 }
 
 .card:active {
@@ -321,27 +508,35 @@
   max-width: 100%;
 }
 
+/* Name and category share the row; either may shrink and wrap onto a second
+   line rather than ellipsise or run into the other. The card is min-height,
+   so it grows to fit. */
 .cardName {
+  flex: 0 1 auto;
+  min-width: 0;
   margin: 0;
   font-size: 68px;
   font-weight: 600;
   line-height: 1;
   color: #2b2b2b;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  white-space: normal;
+  word-break: keep-all;
+  overflow-wrap: anywhere;
 }
 
 .cardCat {
   display: flex;
   align-items: center;
   gap: 21.45px;
-  flex: 0 0 auto;
+  flex: 0 1 auto;
+  min-width: 0;
   font-size: 52px;
   font-weight: 400;
   line-height: 1;
   color: #999;
-  white-space: nowrap;
+  white-space: normal;
+  word-break: keep-all;
+  overflow-wrap: anywhere;
 }
 
 .cardDot {

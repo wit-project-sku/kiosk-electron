@@ -24,6 +24,10 @@
  * The 현황 cell is BLANK when the operator has published no status — that is the
  * design, not a fallback. See `normalizeSailingStatus`.
  *
+ * Non-Korean languages force English for the column headers and list cells
+ * (place / route / ship / status via local maps — the feed is Korean-only).
+ * Tabs / berth filter stay in the visitor's selected language.
+ *
  * ♿ low-reach: 6420:23158 (출발) / 6420:23243 (도착). Nothing about the table
  * changes — the two control rows drop to the foot of the artboard and the board
  * slides up 159 into the space. All of it is positional, so it lives in the
@@ -43,6 +47,11 @@ import {
   useJejuDepartureSailings,
 } from '@renderer/lib/jejuSailing';
 import type { JejuSailing, SailingPort } from '@renderer/lib/jejuSailing';
+import {
+  sailingPlaceLabel,
+  sailingRouteLabel,
+  sailingShipLabel,
+} from '@renderer/lib/jejuSailingPlaces';
 import { useAccessibilityStore } from '@renderer/store/accessibilityStore';
 import { JejuPageFrame } from './JejuPageFrame';
 import { JejuSubTabRow } from './JejuSubTabRow';
@@ -58,15 +67,13 @@ interface Props {
 export type SailingDirection = 'departure' | 'arrival';
 
 /**
- * Korean id handed to JejuHeader / navigate() — also the analytics label.
+ * Header id handed to JejuHeader / navigate().
  *
- * The same string the airport board uses, and deliberately so: i18n's TITLE_KEYS
- * already maps 운항정보 → `MainButton_Cruise`, and Localization_Jeju files that
- * row under "유산문화센터, 여객선터미널에 적용" — this venue's own row. The two
- * boards never run on one machine, so sharing the id shares the translation
- * rather than colliding.
+ * Matches the CMS `button_type` for the home cruise tile. i18n maps it to
+ * `OP_Schedule_Title` (not MainButton_Cruise — that labels the home tile). The
+ * sheet's Korean for OP_Schedule_Title is still 운항정보.
  */
-export const CRUISE_TITLE = '운항정보';
+export const CRUISE_TITLE = '크루즈 운항';
 
 const TABS: ReadonlyArray<{
   id: SailingDirection;
@@ -143,6 +150,18 @@ interface Column {
   x: number;
   sheetKey: string;
   head: Partial<Record<Lang, string>>;
+  /**
+   * Widest the header may run before it wraps: the distance to the nearer
+   * neighbouring axis (the plate's end, for 현황), so two heads at their caps
+   * can at most meet halfway between their axes.
+   */
+  headMax: number;
+  /**
+   * Row cells' wrap width, TEXT columns only, sized off what the cells carry
+   * while keeping neighbouring text boxes apart. Absent = the value never wraps
+   * (시각 and 소요시간 are both `HH:mm`).
+   */
+  cellMax?: number;
 }
 
 const COL_TIME_DEPARTURE = {
@@ -180,25 +199,31 @@ const COL_STATUS = {
 
 const COLUMNS: Record<SailingDirection, Column[]> = {
   departure: [
-    { key: 'time',     x: 285.5,  sheetKey: 'OP_Schedule_Info_col1', head: COL_TIME_DEPARTURE },
-    { key: 'duration', x: 515,    sheetKey: 'OP_Schedule_Info_col8', head: COL_DURATION },
-    { key: 'ship',     x: 840,    sheetKey: 'OP_Schedule_Info_col9', head: COL_SHIP },
-    { key: 'route',    x: 1260,   sheetKey: 'OP_Schedule_Info_col10', head: COL_ROUTE },
-    { key: 'place',    x: 1630,   sheetKey: 'OP_Schedule_Info_col11', head: COL_PLACE_DEPARTURE },
-    { key: 'status',   x: 1918.5, sheetKey: 'OP_Schedule_Info_col6', head: COL_STATUS },
+    /* x: the re-spaced axes from the English-board pass. headMax / cellMax are
+       re-derived for them — a head wraps within the distance to its nearer
+       neighbouring axis, and the text cells stay clear of each other (place
+       280 and status 200 now meet at 1810 instead of overlapping). */
+    { key: 'time',     x: 290,  sheetKey: 'OP_Schedule_Info_col1', head: COL_TIME_DEPARTURE, headMax: 240 },
+    { key: 'duration', x: 530,  sheetKey: 'OP_Schedule_Info_col8', head: COL_DURATION, headMax: 240 },
+    { key: 'ship',     x: 860,  sheetKey: 'OP_Schedule_Info_col9', head: COL_SHIP, headMax: 330, cellMax: 460 },
+    { key: 'route',    x: 1300, sheetKey: 'OP_Schedule_Info_col10', head: COL_ROUTE, headMax: 370, cellMax: 340 },
+    { key: 'place',    x: 1670, sheetKey: 'OP_Schedule_Info_col11', head: COL_PLACE_DEPARTURE, headMax: 240, cellMax: 280 },
+    { key: 'status',   x: 1910, sheetKey: 'OP_Schedule_Info_col6', head: COL_STATUS, headMax: 200, cellMax: 200 },
   ],
   arrival: [
-    { key: 'time',     x: 285.5,  sheetKey: 'OP_Schedule_Info_col12', head: COL_TIME_ARRIVAL },
-    { key: 'duration', x: 515,    sheetKey: 'OP_Schedule_Info_col8', head: COL_DURATION },
-    { key: 'ship',     x: 840,    sheetKey: 'OP_Schedule_Info_col9', head: COL_SHIP },
-    { key: 'route',    x: 1260,   sheetKey: 'OP_Schedule_Info_col10', head: COL_ROUTE },
-    { key: 'place',    x: 1630,   sheetKey: 'OP_Schedule_Info_col13', head: COL_PLACE_ARRIVAL },
-    { key: 'status',   x: 1918.5, sheetKey: 'OP_Schedule_Info_col6', head: COL_STATUS },
+    { key: 'time',     x: 290,  sheetKey: 'OP_Schedule_Info_col12', head: COL_TIME_ARRIVAL, headMax: 240 },
+    { key: 'duration', x: 530,  sheetKey: 'OP_Schedule_Info_col8', head: COL_DURATION, headMax: 240 },
+    { key: 'ship',     x: 860,  sheetKey: 'OP_Schedule_Info_col9', head: COL_SHIP, headMax: 330, cellMax: 460 },
+    { key: 'route',    x: 1300, sheetKey: 'OP_Schedule_Info_col10', head: COL_ROUTE, headMax: 370, cellMax: 340 },
+    { key: 'place',    x: 1670, sheetKey: 'OP_Schedule_Info_col13', head: COL_PLACE_ARRIVAL, headMax: 240, cellMax: 280 },
+    { key: 'status',   x: 1910, sheetKey: 'OP_Schedule_Info_col6', head: COL_STATUS, headMax: 200, cellMax: 200 },
   ],
 };
 
 export function JejuCruise({ controller }: Props): JSX.Element {
   const lang = useLang();
+  /** Board chrome (columns + row labels) is Korean or English only. */
+  const boardLang: Lang = lang === 'ko' ? 'ko' : 'en';
   const lowReach = useAccessibilityStore((s) => s.lowReach);
   const [direction, setDirection] = useState<SailingDirection>('departure');
   const [port, setPort] = useState<SailingPort>('international');
@@ -225,11 +250,11 @@ export function JejuCruise({ controller }: Props): JSX.Element {
     switch (col.key) {
       case 'time':     return displaySailingTime(row);
       case 'duration': return row.duration;
-      case 'ship':     return row.shipName;
-      case 'route':    return row.route;
-      case 'place':    return row.place;
+      case 'ship':     return sailingShipLabel(row.shipName, boardLang);
+      case 'route':    return sailingRouteLabel(row.route, boardLang);
+      case 'place':    return sailingPlaceLabel(row.place, boardLang);
       // Blank when nothing is published — see the header comment.
-      case 'status':   return row.status ? sailingStatusLabel(row.status, lang) : '';
+      case 'status':   return row.status ? sailingStatusLabel(row.status, boardLang) : '';
       default:         return '';
     }
   };
@@ -267,16 +292,16 @@ export function JejuCruise({ controller }: Props): JSX.Element {
         <span
           key={col.key}
           className={`${low(styles.head, styles.headLow)} ${styles.cellCentred}`}
-          style={{ left: col.x }}
+          style={{ left: col.x, maxWidth: col.headMax }}
         >
-          {opText(col.sheetKey, lang, col.head)}
+          {opText(col.sheetKey, boardLang, col.head)}
         </span>
       ))}
 
       <div className={low(styles.scroll, styles.scrollLow)}>
         <div className={styles.rows}>
           {rows.length === 0 ? (
-            <p className={styles.empty}>{opText('OP_Schedule_Result', lang, EMPTY)}</p>
+            <p className={styles.empty}>{opText('OP_Schedule_Result', boardLang, EMPTY)}</p>
           ) : (
             rows.map((row) => (
               <div key={row.id} className={styles.row}>
@@ -284,20 +309,25 @@ export function JejuCruise({ controller }: Props): JSX.Element {
                   <span
                     key={col.key}
                     className={`${styles.cell} ${styles.cellCentred} ${
-                      col.key === 'status' ? styles.cellStatus : ''
-                    }`}
+                      col.cellMax ? styles.cellWrap : ''
+                    } ${col.key === 'status' ? styles.cellStatus : ''}`}
                     style={{
                       left: col.x,
+                      maxWidth: col.cellMax,
                       ...(col.key === 'status' && row.status
                         ? { color: sailingStatusColor(row.status) }
                         : null),
                     }}
                   >
                     {cellText(col, row)}
+                    {/* The 결항 note rides inside 현황 so a wrapped status
+                        pushes it down instead of overprinting it. */}
+                    {col.key === 'status' && row.note && (
+                      <span className={styles.note}>{row.note}</span>
+                    )}
                   </span>
                 ))}
                 {hasTimeChange(row) && <span className={styles.timeWas}>{row.scheduledTime}</span>}
-                {row.note && <span className={styles.note}>{row.note}</span>}
                 <div className={styles.rowRule} />
               </div>
             ))

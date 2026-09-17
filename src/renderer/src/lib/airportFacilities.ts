@@ -85,20 +85,54 @@ for (const f of AIRPORT_FACILITIES_JEJU) {
  * The chip row — every BaseCategory AirportFacilityData_Jeju uses, and nothing
  * else.
  *
- * ORDER: 화장실 is always the first chip (left of row 1) when the sheet lists
- * it — operators asked for that fixed lead-in; everything else follows the
- * sheet's first-appearance order (its NO column), so an operator can still
- * reshuffle the rest by moving rows, with no release.
+ * ORDER: 화장실 is always the first chip (left of row 1) and 기타 always the
+ * last (end of the final row) when the sheet lists them — operators asked for
+ * both fixed ends. 기타 is the catch-all, so it belongs after every named
+ * category; left to sheet order it landed 4th, because its first row happens to
+ * sit early in the tab. Everything between follows the sheet's first-appearance
+ * order (its NO column), so an operator can still reshuffle the middle by
+ * moving rows, with no release.
  *
  * The one thing a new category still needs from code is a GROUPS entry saying
  * which pictogram stands for it. Without that its rows sit on no pin — which is
  * what the startup warning below is for.
  */
-const RESTROOM_CHIP = '화장실';
+/**
+ * Exported because it is not only an ORDER rule: JejuHelp draws this one chip
+ * map-only. The sheet's two 화장실 rows (국내선 · 국제선) carry a name and a
+ * category and nothing else — no floor, location, hours or phone — so the
+ * directory cards under the plan read "화장실 · 화장실" over a blank line. The
+ * pins are the answer for toilets; the list is not.
+ */
+export const RESTROOM_CHIP = '화장실';
+/** The catch-all category — pinned to the END of the chip row; see ORDER above. */
+const OTHER_CHIP = '기타';
 const sheetChips = Object.keys(CHIP_LABELS);
-export const HELP_CHIPS: readonly string[] = sheetChips.includes(RESTROOM_CHIP)
-  ? [RESTROOM_CHIP, ...sheetChips.filter((c) => c !== RESTROOM_CHIP)]
-  : sheetChips;
+const pinnedFirst = sheetChips.includes(RESTROOM_CHIP) ? [RESTROOM_CHIP] : [];
+const pinnedLast = sheetChips.includes(OTHER_CHIP) ? [OTHER_CHIP] : [];
+export const HELP_CHIPS: readonly string[] = [
+  ...pinnedFirst,
+  ...sheetChips.filter((c) => c !== RESTROOM_CHIP && c !== OTHER_CHIP),
+  ...pinnedLast,
+];
+
+/**
+ * The chips ONE terminal draws: HELP_CHIPS, in its order, narrowed to the
+ * categories that terminal's own rows use.
+ *
+ * The sheet splits its rows by terminal (the ShopID's 국내선 / 국제선), and the
+ * two do not carry the same categories — 국제선 has no 항공사 and no 라운지・휴식
+ * rows today. Drawing HELP_CHIPS on both tabs gave 국제선 two chips that could
+ * only ever open an empty list. Built from the rows, so a category appears on a
+ * tab the day the sheet gives that terminal a row for it, and leaves when the
+ * last one goes.
+ */
+export function chipsForTerminal(terminal: string): readonly string[] {
+  const used = new Set(
+    AIRPORT_FACILITIES_JEJU.filter((f) => f.terminal === terminal).map((f) => f.category.ko),
+  );
+  return HELP_CHIPS.filter((c) => used.has(c));
+}
 
 /**
  * A BaseCategory the sheet uses that no pin group routes.

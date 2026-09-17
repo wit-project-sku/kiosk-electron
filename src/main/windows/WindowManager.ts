@@ -22,6 +22,7 @@ export class WindowManager {
   private unsubscribeSync: (() => void) | null = null;
   private unsubscribeContent: (() => void) | null = null;
   private unsubscribePhoto: (() => void) | null = null;
+  private unsubscribeMotion: (() => void) | null = null;
   private unsubscribeWeather: (() => void) | null = null;
   private unsubscribeWeatherForecast: (() => void) | null = null;
   private unsubscribeFlights: (() => void) | null = null;
@@ -62,6 +63,13 @@ export class WindowManager {
 
     this.unsubscribePhoto = this.container.photoWorkflow.subscribe((state) => {
       this.broadcast(IpcEvents.PhotoWorkflowChanged, state);
+    });
+
+    // 제주 모션 게임. Broadcast to EVERY window, not just the display: Monitor 2
+    // mounts the game from this and Monitor 1 draws its remote from the same
+    // payload, so both stay in step off one message.
+    this.unsubscribeMotion = this.container.motionGame.subscribe((state) => {
+      this.broadcast(IpcEvents.MotionGameChanged, state);
     });
 
     // Forward weather refreshes so the kiosk header updates without a reload.
@@ -229,6 +237,8 @@ export class WindowManager {
     this.unsubscribeContent = null;
     this.unsubscribePhoto?.();
     this.unsubscribePhoto = null;
+    this.unsubscribeMotion?.();
+    this.unsubscribeMotion = null;
     this.unsubscribeWeather?.();
     this.unsubscribeWeather = null;
     this.unsubscribeWeatherForecast?.();

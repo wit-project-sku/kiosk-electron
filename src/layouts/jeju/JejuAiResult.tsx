@@ -20,6 +20,7 @@ import { localizeJejuAiPick } from '@renderer/lib/jejuAiPicksLabel';
 import { sheetText } from '@renderer/lib/loc';
 import { JejuPageFrame } from './JejuPageFrame';
 import styles from './JejuAiResult.module.css';
+import { belowModeBar, LOW_REACH_BANNER_HEIGHT } from './lowReach';
 
 interface Props {
   controller: KioskController;
@@ -53,7 +54,7 @@ const T = {
   },
 };
 
-interface Course {
+export interface Course {
   /** Stable key stored on aiStore for the detail screen. */
   key: string;
   /** Rail label — A코스 / B코스 / C코스. */
@@ -80,18 +81,13 @@ interface Course {
  * label `navigate()` records and the string the detail screen matches on.
  */
 /**
- * The card blurb — sheet row per course; authored `course.desc` is the fallback.
+ * The card blurb. Localization_Jeju_v2 retired the per-course ACourseDesc3 /
+ * BCourseDesc3 / CCourseDesc3 rows, so it is the authored `course.desc` only.
  */
-const COURSE_DESC_KEY: Record<string, string> = {
-  nature: 'ACourseDesc3',
-  food: 'BCourseDesc3',
-  family: 'CCourseDesc3',
-};
+const courseDesc = (course: Course, lang: Lang): string => pick(course.desc, lang);
 
-const courseDesc = (course: Course, lang: Lang): string =>
-  sheetText(COURSE_DESC_KEY[course.key] ?? 'ACourseDesc3', lang, course.desc);
-
-const COURSES: Course[] = [
+/** Also drawn by the 뭐하지 landing's course cards (JejuAiSearch) — one source for both. */
+export const COURSES: Course[] = [
   {
     key: 'nature',
     label: {
@@ -213,8 +209,16 @@ const COURSES: Course[] = [
  */
 const CARD_TOPS = [923, 1683, 2440];
 
+/**
+ * The card body's left edge (.courseTitle / .tags in the CSS). `art.left −
+ * BODY_LEFT` is how far a title or tag line can run before it reaches the
+ * card's illustration, so it is where those two wrap.
+ */
+const BODY_LEFT = 269;
+
 export function JejuAiResult({ controller }: Props): JSX.Element {
   const setCourse = useAiStore((s) => s.setCourse);
+  const setResumeQuestions = useAiStore((s) => s.setResumeQuestions);
   const lang = useLanguageStore((s) => s.currentLanguage);
   const lowReach = useAccessibilityStore((s) => s.lowReach);
 
@@ -244,19 +248,26 @@ export function JejuAiResult({ controller }: Props): JSX.Element {
   };
 
   return (
-    /* Mode-bar revision with the promo kept under the bar — header at y686.
-       Body shift +623 pulls the block up 80px so the subtitle sits closer to
-       the pills (~41px); cards at y1546 / y2306 / y3063. */
+    /* Mode-bar revision with the promo kept under the bar — header flush under
+       it at bar + 573 (the frame's y686). The body shift rides 63px HIGHER than
+       the header so the subtitle sits closer to the pills (~41px); the frame's
+       623 against its 113 bar. Cards at y1546 / y2306 / y3063. */
     <JejuPageFrame
       controller={controller}
       title="'제주' 뭐하지 (AI 검색)"
-      subtitle={pick(T.subtitle, lang)}
+      subtitle={sheetText('Jeju_Todo_Subtitle1', lang, T.subtitle)}
       bannerFallback="banner-detail"
-      onBack={() => controller.navigate('ai_search', '뒤로')}
+      /* Back to the questionnaire this visitor just filled in, not to the course
+         picker in front of it: this page is only reached through AI 맞춤 추천
+         코스, so the questions are the step they came from. */
+      onBack={() => {
+        setResumeQuestions(true);
+        controller.navigate('ai_search', '뒤로');
+      }}
       lowReachModeBar
       lowReachBarBanner
-      lowReachShift={686}
-      lowReachBodyShift={623}
+      lowReachShift={belowModeBar(LOW_REACH_BANNER_HEIGHT)}
+      lowReachBodyShift={belowModeBar(LOW_REACH_BANNER_HEIGHT - 63)}
     >
       {picks.length > 0 && (
         <div className={`${styles.picks} ${lowReach ? styles.picksLow : ''}`}>
@@ -277,9 +288,15 @@ export function JejuAiResult({ controller }: Props): JSX.Element {
           <span className={styles.courseLabel}>{pick(course.label, lang)}</span>
 
           <span className={styles.courseSubtitle}>{pick(course.subtitle, lang)}</span>
-          <span className={styles.courseTitle}>{pick(course.title, lang)}</span>
-          <span className={styles.desc}>{courseDesc(course, lang)}</span>
-          <span className={styles.tags}>{pick(course.tags, lang)}</span>
+          <span className={styles.courseTitle} style={{ maxWidth: course.art.left - BODY_LEFT }}>
+            {pick(course.title, lang)}
+          </span>
+          <span className={styles.desc} style={{ maxWidth: course.art.left - BODY_LEFT }}>
+            {courseDesc(course, lang)}
+          </span>
+          <span className={styles.tags} style={{ maxWidth: course.art.left - BODY_LEFT }}>
+            {pick(course.tags, lang)}
+          </span>
 
           {jejuIconUrl(course.icon) && (
             <img

@@ -78,6 +78,17 @@
  * banner band (and draws no banner), every other tab hangs it above the banner
  * — so the 한복 설명 page is reachable from anywhere.
  *
+ * ── 2026-09-08 redraw (6258:48134 · 48469) ───────────────────────────
+ * Both frames re-issued; every y in the CSS's map still checks out against them,
+ * so only three things actually moved:
+ *   · the tab row is drawn as 10 tabs in 5 × 350 columns rather than 8 in 4 ×
+ *     420, which is a different GAP — see `.catsTight` in the CSS.
+ *   · the chip row gained the 박술녀 attribution on the 한복 tab
+ *     (HANBOK_BRAND_NOTE below).
+ *   · step ② gained a leading 배경 없음 tile there — since DROPPED (2026-09-11)
+ *     to match 6530:10400, which draws photo tiles only: the blank plate read
+ *     as a broken first image. A second tap on the picked tile clears it.
+ *
  * ── ♿ 베리어프리 (Figma 6327:85598 · 6422:25455 · 6418:10583) ─────────
  * The ♿ button on the left rail — the third and last control there — now has a
  * layout to switch to. Both tab conditions get one, and they differ from each
@@ -98,7 +109,7 @@ import 'swiper/css/free-mode';
 import { usePhotoChrome } from '../photo/photoChrome';
 import { HANBOK_INFO, PRIVACY } from '../photo/photoTexts';
 import hanbokInfo from '@renderer/assets/photos/insadong/hanbok/hanbok-info.png';
-import { t, sheetText } from '@renderer/lib/loc';
+import { t, sheetText, tExact } from '@renderer/lib/loc';
 import type { CaptureMode } from '../photo/HanbokSelect';
 import { useOutfitStore } from '@renderer/store/outfitStore';
 import type { PickerOutfit } from '@renderer/store/outfitStore';
@@ -116,7 +127,9 @@ import {
 import { cameraIconUrl } from '@renderer/assets/icons/insadong/camera';
 import { pick, useLang, type Lang } from '@renderer/lib/i18n';
 import { useAccessibilityStore } from '@renderer/store/accessibilityStore';
+import { modeBarVars } from './lowReach';
 import { jejuMascot, type JejuMascot } from './jejuMascot';
+import { JejuBgMotion } from './JejuBgMotion';
 /* The privacy modal and the camera-direction popup are identical on every
    layout, so their styles are reused from the shared step rather than copied. */
 import shared from '../photo/HanbokSelect.module.css';
@@ -180,6 +193,14 @@ const isHanbokCategory = (name: string): boolean => /^(?:[wm]=)?hann?bok$/i.test
  * admin web and absent in the other seven languages.
  */
 const JEJU_CATEGORY = 'jeju';
+
+/**
+ * The same tab, spelled as the API registers it — what a caller hands to
+ * `photoStore.setInitialCategory` to open this picker on 제주. Exported so the
+ * home screen's JEJU ISLAND button cannot drift from `JEJU_CATEGORY` above;
+ * the two are compared case-insensitively, so only the spelling travels.
+ */
+export const JEJU_OUTFIT_CATEGORY = 'Jeju';
 
 /**
  * Tab-row geometry. Figma 6258:48134 draws 8 tabs as 2 rows of 4 — 420-wide
@@ -298,6 +319,25 @@ const NO_OUTFITS = {
   th: 'ชุดกำลังจัดเตรียม',
   ru: 'Наряды готовятся.',
   id: 'Busana sedang disiapkan.',
+};
+
+/**
+ * The attribution the 2026-09-08 redraw hung off the end of the chip row
+ * (6258:48134 · 6862:10120) — 한복 tab only, see `isHanbokCategory`.
+ *
+ * Authored here AND looked up by key: the sheet has no `Photo_HanbokBrandNote`
+ * row today (its only 박술녀 copy is the long 한복 설명 paragraph), so these
+ * carry the page until an operator adds one. Same shape as `BARRIER_FREE`.
+ */
+const HANBOK_BRAND_NOTE: Partial<Record<Lang, string>> = {
+  ko: 'WITH의 모든 한복은 박술녀 한복입니다.',
+  en: 'Every hanbok at WITH is a Park Sul-nyeo hanbok.',
+  ja: 'WITHの韓服はすべてパク・スルニョ韓服です。',
+  zh: 'WITH的所有韩服均为朴述女韩服。',
+  vi: 'Mọi hanbok tại WITH đều là hanbok Park Sul-nyeo.',
+  th: 'ฮันบกทุกชุดของ WITH เป็นฮันบกของพัคซุลนยอ',
+  ru: 'Весь ханбок в WITH — от Пак Суль Нё.',
+  id: 'Semua hanbok di WITH adalah hanbok Park Sul-nyeo.',
 };
 
 /**
@@ -420,8 +460,13 @@ export function JejuHanbokSelect({
     const landing = tabs[0] as Tab;
     if (initialCategory) {
       // The caller names the tab in Korean (`프로모션`), which is a label rather
-      // than a code, so both are accepted.
-      const match = tabs.find((t) => t.id === initialCategory || t.ko === initialCategory);
+      // than a code, so both are accepted. The CODE compares case-insensitively
+      // — the rest of this file already lower-cases before matching it (see
+      // JEJU_CATEGORY and the `tabs` reorder), and an operator who registers
+      // `jeju` rather than `Jeju` should not silently drop the caller on the
+      // landing tab. The label is matched as authored.
+      const wanted = initialCategory.toLowerCase();
+      const match = tabs.find((t) => t.id.toLowerCase() === wanted || t.ko === initialCategory);
       setCategoryId((match ?? landing).id);
       setInitialCategory(null);
       return;
@@ -436,6 +481,13 @@ export function JejuHanbokSelect({
   const [backgroundId, setBackgroundId] = useState<number | null>(null);
   const [privacyOpen, setPrivacyOpen] = useState(false);
   const [infoOpen, setInfoOpen] = useState(false);
+
+  // 한복 설명 plays its own display clip (HanbokExplain); the AR selection page
+  // stays on 'photo'. Mirrors the shared HanbokSelect's effect — 제주 draws its
+  // own picker, so it needs its own copy.
+  useEffect(() => {
+    void window.api.kiosk.setScreen(infoOpen ? 'hanbok_explain' : 'photo');
+  }, [infoOpen]);
 
   // Cards whose image fails to load are dropped rather than left as empty boxes.
   const [brokenCodes, setBrokenCodes] = useState<Set<string>>(new Set());
@@ -581,9 +633,18 @@ export function JejuHanbokSelect({
   const lowReachSubShift = lowReachTheme && subs.length > 0 ? '110px' : '0px';
   /* ③ No promo banner on either condition — see the render. */
 
-  // ── 한복 설명 (opened from the 사진촬영안내 card) ──
-  // Same content and chrome as the shared step's page, so it reuses those
-  // styles rather than re-authoring them; 뒤로 in JejuHeader closes it.
+  /*
+   * ── 한복 설명 (opened from the 사진촬영안내 card) ──
+   *
+   * 제주 has its OWN frame for this page — 6258:49124 — and it is not the
+   * shared step's: it hand-places two blocks in the same 1820 column the picker
+   * uses, both of which fit the 3840 artboard above the banner, so the page does
+   * not scroll and its outfit strip is the picker's own two-row grid rather than
+   * the shared 478×490 carousel. See the `한복 설명 page` block in the CSS for
+   * the y map. The copy is still the fleet-wide `HANBOK_INFO`, and the privacy
+   * modal and camera popup below still come from the shared sheet; 뒤로 in
+   * JejuHeader closes the page.
+   */
   if (infoOpen) {
     const info = pick(HANBOK_INFO, lang);
     // Walk the catalogue's OWN keys rather than probing for names we guessed:
@@ -596,36 +657,69 @@ export function JejuHanbokSelect({
       .flatMap((name) => byCategory[name] ?? [])
       .filter((o) => Boolean(o.url) && !brokenCodes.has(o.code));
     return (
-      <div className={`${styles.root} ${lowReach ? styles.rootLowReach : ''}`}>
+      <div className={`${styles.root} ${lowReach ? styles.rootLowReach : ''}`} style={modeBarVars}>
         {pageBg && <img src={pageBg} alt="" className={styles.bg} draggable={false} />}
-        {/* This page has no low-reach frame of its own — it is a scrolling text
-            page — so ♿ gives it the mode bar and clears the bar's 113. */}
+      {icon('bg-page') && <JejuBgMotion />}
+        {/* This page has no low-reach frame of its own — so ♿ gives it the mode
+            bar and pushes both blocks past the bar's height (the `.rootLowReach`
+            calcs on `.infoOutfits` / `.infoCard`, off --jeju-mode-bar). */}
         {lowReach && <div className={styles.modeBar}>{sheetText('BarrierFree_Title', lang, BARRIER_FREE)}</div>}
         <Header
           title={t('MainButton_Hanbok', lang)}
           onHome={onHome}
           onBack={() => setInfoOpen(false)}
         />
-        <div className={`${shared.infoContent} ${styles.infoContent}`}>
-          <div className={shared.infoCarousel}>
+        {/*
+         * The strip is the PICKER's card, not a page-local one: 6258:49124 draws
+         * the same 350 plate on the same 391 cell and 441 pitch as 48326, two
+         * rows of five across the 1820 column, each with the outfit's name under
+         * it — so it reuses `.outfits` / `.outfitsGrid` / `.outfit` and moves
+         * only the strip's top (`.infoOutfits`). It replaces the free-scrolling
+         * 478×490 row the shared step draws, which was never this frame.
+         *
+         * Swiper for the same reason the picker uses it: the frame draws exactly
+         * ten cards and the catalogue carries twice that (22 한복 outfits on stage),
+         * so the eleventh onward has to be reachable by drag.
+         *
+         * Nothing here is tappable — this is the explanation page, and the
+         * capture happens on the picker — so the plate is a plain div. The first
+         * card carries the frame's orange/cream fill as a still life: it is what
+         * 49124 draws, not a selection anyone made or can change.
+         */}
+        {allHanbok.length > 0 && (
+          <Swiper
+            className={`${styles.outfits} ${styles.outfitsGrid} ${styles.infoOutfits}`}
+            modules={[Grid, FreeMode]}
+            grid={{ rows: 2, fill: 'row' }}
+            slidesPerView={CARDS_PER_VIEW}
+            spaceBetween={CARD_GAP}
+            freeMode
+          >
             {allHanbok.map((o, i) => (
-              <div
-                key={o.code}
-                className={`${shared.infoThumb} ${i === 0 ? shared.infoThumbSel : ''}`}
-              >
-                <img src={o.url} alt="" draggable={false} onError={() => markBroken(o.code)} />
-              </div>
+              <SwiperSlide key={o.code} className={styles.outfitSlide}>
+                <div className={`${styles.outfit} ${i === 0 ? styles.outfitActive : ''}`}>
+                  <img
+                    src={o.url}
+                    alt=""
+                    className={styles.outfitImg}
+                    draggable={false}
+                    decoding="async"
+                    onError={() => markBroken(o.code)}
+                  />
+                </div>
+                <p className={styles.outfitName}>{outfitLabel(o, lang)}</p>
+              </SwiperSlide>
             ))}
-          </div>
-          <div className={shared.infoCard}>
-            <p className={shared.infoHeading}>{info.heading}</p>
-            <div className={shared.infoBody}>
-              {info.paragraphs.map((p, i) => (
-                <p key={i} className={shared.infoPara}>
-                  {p}
-                </p>
-              ))}
-            </div>
+          </Swiper>
+        )}
+        <div className={styles.infoCard}>
+          <p className={styles.infoHeading}>{info.heading}</p>
+          <div className={styles.infoBody}>
+            {info.paragraphs.map((p, i) => (
+              <p key={i} className={styles.infoPara}>
+                {p}
+              </p>
+            ))}
           </div>
         </div>
         {banner && (
@@ -675,9 +769,14 @@ export function JejuHanbokSelect({
       ]
         .filter(Boolean)
         .join(' ')}
-      style={lowReach ? ({ '--lr-sub': lowReachSubShift } as React.CSSProperties) : undefined}
+      style={
+        lowReach
+          ? ({ ...modeBarVars, '--lr-sub': lowReachSubShift } as React.CSSProperties)
+          : modeBarVars
+      }
     >
       {pageBg && <img src={pageBg} alt="" className={styles.bg} draggable={false} />}
+      {icon('bg-page') && <JejuBgMotion />}
 
       {lowReach && <div className={styles.modeBar}>{sheetText('BarrierFree_Title', lang, BARRIER_FREE)}</div>}
 
@@ -688,7 +787,9 @@ export function JejuHanbokSelect({
           the header component's own 페이지 설명문 placeholder: that is the
           instance's default, not copy anyone wrote, and the request was about
           the page rather than about one of its layouts. */}
-      <Header title={photoTitle} onHome={onHome} subtitleHidden />
+      {/* The title is Localization_Jeju's Photo_HanbokTry ("AR 한복체험"); the
+          shared photo chrome's literal only covers an empty cell. */}
+      <Header title={tExact('Photo_HanbokTry', lang) || photoTitle} onHome={onHome} subtitleHidden />
 
       <>
         {/* ── ① 의상 선택하기 ── */}
@@ -753,6 +854,12 @@ export function JejuHanbokSelect({
                 {outfitSubCategoryLabel(sc, lang)}
               </button>
             ))}
+            {/* 한복 only — 6258:48469 draws the same row on 제주 without it. */}
+            {isHanbokCategory(categoryId) && (
+              <p className={styles.subcatNote}>
+                {sheetText('Photo_HanbokBrandNote', lang, HANBOK_BRAND_NOTE)}
+              </p>
+            )}
           </div>
         )}
 
@@ -832,6 +939,11 @@ export function JejuHanbokSelect({
               <p className={styles.emptyThemes}>{pick(NO_BACKGROUNDS, lang)}</p>
             ) : (
               <div className={styles.themes}>
+                {/* Photo tiles only, first scene first — 6530:10400. There is
+                    no blank 배경 없음 plate any more: it drew as an empty white
+                    box at the head of the row. Tapping the picked tile again
+                    clears it instead, which is the way back to the plain
+                    template (the null pick → change_background=false). */}
                 {backgrounds.map((bg) => {
                   const on = bg.backgroundId === backgroundId;
                   return (
@@ -840,7 +952,7 @@ export function JejuHanbokSelect({
                       type="button"
                       className={`${styles.theme} ${on ? styles.themeActive : ''}`}
                       aria-pressed={on}
-                      onClick={() => setBackgroundId(bg.backgroundId)}
+                      onClick={() => setBackgroundId(on ? null : bg.backgroundId)}
                     >
                       <img
                         src={bg.imageUrl}

@@ -31,9 +31,9 @@ export interface SpotDiffRound {
   id: string;
   /** Optional caption drawn above the panels. Null → the generic title. */
   title?: string | null;
-  /** The unaltered picture (top panel). */
+  /** The unaltered picture (left panel). */
   originalUrl: string;
-  /** The altered picture (bottom panel). */
+  /** The altered picture (right panel). */
   modifiedUrl: string;
   /**
    * width / height of BOTH images. The panels reserve their box from this

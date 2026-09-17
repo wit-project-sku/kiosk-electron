@@ -11,9 +11,13 @@
  *   (W004 오색시장: *_Osaek tabs;  W005 화성휴게소: *_Hwaseong tabs — separate sheets)
  *   NationwideMarkets (전국시장, own sheet) → src/.../nationwideMarkets.generated.ts
  *
- * NOTE: VideoSubtitle_* is NOT generated here. Subtitles are fetched live from
- * the witteria API (SubtitleService → /api/kiosks/{id}/subtitles) and cached in
- * SQLite — the API is their single source of truth, with no build-time fallback.
+ * NOTE: VideoSubtitle_* is NOT generated here — for ANY location. Subtitles are
+ * fetched live from the witteria API (SubtitleService → /api/kiosks/{id}/subtitles)
+ * and cached in SQLite. (제주 used to have a generated fallback table while its
+ * CMS carried no clips; retired 2026-09-11. A 제주 kiosk whose API has no rows
+ * now reads its VideoSubtitle tab at RUNTIME instead — SubtitleService →
+ * JejuSubtitleSheet — and the renderer's normalizeClipIndexKeys adapts the raw
+ * sheet-style playKeys from either source.)
  *
  * Raw CSVs are cached under src/renderer/src/data/sheet-cache/ so the build
  * still works offline; pass --offline to regenerate from the cache only.
@@ -28,12 +32,12 @@ const OSAEK_SHEET_ID = '1_CkWFXfB7ud0sJw-cnIWGvFlTzF12UxDuNylp5HkOiw';
 /** W005 화성휴게소 content sheet (tabs suffixed _Hwaseong). */
 const HWASEONG_SHEET_ID = '14aWRWrJXPC_J-W4GpZqa_g-3fDjjUsy6BpAhDg8OvVU';
 /** W006 제주공항 content sheet (tabs suffixed _Jeju).
- *  Tabs: ShopData_Jeju · AICategory_Jeju · Localization_Jeju ·
+ *  Tabs: ShopData_Jeju · AICategory_Jeju · Localization_Jeju_v2 ·
  *  AirportFacilityData_Jeju ·
- *  VideoSubtitle_Jeju_하영 · VideoSubtitle_Jeju_유산 · three 규칙 reference tabs.
- *  Only the two middle tabs are generated here — ShopData is served by the shops
- *  API (kioskId=7) and VideoSubtitle by the subtitles API, same as every other
- *  location. Mirrored in the runtime sync
+ *  VideoSubtitle_귤이 · VideoSubtitle_Jeju_유산 · three 규칙 reference tabs.
+ *  ShopData is served by the shops API (kioskId=6) and the VideoSubtitle_* tabs
+ *  by the subtitles API (see NOTE above); the rest is generated here.
+ *  Mirrored in the runtime sync
  *  (src/main/services/sync/GoogleSheetsSyncTransport.ts CONTENT_SHEETS). */
 const JEJU_SHEET_ID = '1A90MnKneWksKeL2zEcCUn75JKbnMFj7-OBmQsTkI72I';
 /** 전국시장 (nationwide markets) dataset — shared, used by 화성휴게소's 전국휴게소 screen. */
@@ -481,7 +485,7 @@ function jejuVenueScore(r) {
 }
 
 async function genLocalizationJeju() {
-  const rows = await loadTab('Localization_Jeju', JEJU_SHEET_ID);
+  const rows = await loadTab('Localization_Jeju_v2', JEJU_SHEET_ID);
   /** One venue's picks — sign +1 keeps the 하영 rows (W006/W007), −1 keeps 유산's (W008). */
   const pickVenue = (sign) => {
     const entries = {};
@@ -505,7 +509,7 @@ async function genLocalizationJeju() {
     .join('\n');
   const out = `${BANNER}import type { LangText } from './types';
 
-/** W006 제주공항 UI strings keyed by their sheet \`Key\` (Localization_Jeju). */
+/** W006 제주공항 UI strings keyed by their sheet \`Key\` (Localization_Jeju_v2). */
 export const LOCALIZATION_JEJU: Record<string, LangText> = {
 ${body}
 };
@@ -521,7 +525,7 @@ ${body}
   const heritageBody = overrides.map(([k, v]) => `  ${JSON.stringify(k)}: ${JSON.stringify(v)},`).join('\n');
   const heritageOut = `${BANNER}import type { LangText } from './types';
 
-/** W008 세계자연유산본부 (JEJU_HERITAGE): the Localization_Jeju keys whose venue
+/** W008 세계자연유산본부 (JEJU_HERITAGE): the Localization_Jeju_v2 keys whose venue
  *  pick differs from W006's — i.e. the 유산-mascot rows. Overlaid on
  *  LOCALIZATION_JEJU by loc.ts; mirrors the runtime split in
  *  LocalizationSyncParser.VENUE_MASCOTS. */

@@ -1,0 +1,68 @@
+/*
+ * AI 손톱 건강분석 화면의 토큰 범위.
+ *
+ * 시안(fillme-jeju-prototype)은 이 값들을 `:root` 에 뒀지만, 앱에는 레이아웃이
+ * 여섯 개 있고 저마다 색이 다르다. 그래서 전역이 아니라 이 화면의 뿌리에만 건다 —
+ * 아래 CSS 모듈들(ui·screens·components)이 `var(--primary)` 처럼 짧은 이름으로
+ * 참조하는 것은 전부 여기서 나온다.
+ *
+ * 값은 themes/jeju-airport.json 과 같고, 시트에 없는 보조색(beige-2, line,
+ * danger…)은 시안이 Figma 에서 뽑아 둔 것을 그대로 옮겼다. primary 계열은 테마가
+ * 이미 심어 둔 --kiosk-primary 를 먼저 읽어, 운영에서 테마 색을 바꾸면 이 화면도
+ * 따라가게 한다.
+ */
+.root {
+  position: absolute;
+  inset: 0;
+
+  --primary: var(--kiosk-primary, #ff7f0f);
+  --primary-press: var(--kiosk-primary-hover, #e56f06);
+  --primary-tint: #fff1e4;
+  --primary-line: #ffd2ab;
+  --ink: #232323;
+  --ink-2: #555555;
+  --muted: #909090;
+  --beige: #f5f1ef;
+  --beige-2: #efe8e3;
+  --line: #ece5e0;
+  --danger: #e5484d;
+  --danger-tint: #fdecec;
+  --shadow-chip: 0 21.45px 42.9px rgba(143, 147, 157, 0.1);
+  --shadow-card: 0 21.45px 49.2px rgba(143, 147, 157, 0.1);
+
+  font-family: var(--kiosk-font, 'Pretendard', 'Noto Sans KR', sans-serif);
+  color: var(--ink);
+  /* 한국어 어절 단위 줄바꿈 — 시안의 body 규칙이 이 화면에만 필요한 만큼. */
+  word-break: keep-all;
+
+  /*
+   * z-index 를 주지 않는다. 주면 쌓임 맥락이 새로 생겨 숫자 키패드(20)·개인정보
+   * 전문 시트(30)·모달(40)이 JejuPageFrame 의 왼쪽 레일과 배너 아래로 깔린다.
+   * (시안 README 의 같은 경고와 같은 이유다.)
+   */
+}
+
+/*
+ * 시안의 전역 reset 중 이 화면이 실제로 기대는 것만 다시 깐다.
+ *
+ * ★ 전부 `:where()` 로 감싼다 — 그래야 특이도가 0 이 되어, 아래 CSS 모듈들이
+ *   제 클래스로 지정한 값이 언제나 이긴다. `:where` 없이 `.root button` 으로
+ *   쓰면 특이도가 (0,1,1) 이라 `.cta` 같은 (0,1,0) 클래스를 눌러 버리고,
+ *   실제로 그 탓에 '시작하기' 버튼 글자가 64px 대신 본문 크기로 나왔다.
+ *
+ * box-sizing·h1~h4/p 의 margin·button 의 font-family 는 앱 전역(styles/global.css)에
+ * 이미 있어 다시 적지 않는다. 여기 있는 것은 전역에 없는 것들이다.
+ */
+:where(.root) :where(button) {
+  color: inherit;
+  -webkit-tap-highlight-color: transparent;
+}
+
+:where(.root) :where(h5, ul, ol, dl, dd) {
+  margin: 0;
+}
+
+:where(.root) :where(ul, ol) {
+  padding: 0;
+  list-style: none;
+}

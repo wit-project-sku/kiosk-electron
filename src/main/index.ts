@@ -145,7 +145,8 @@ async function bootstrap(): Promise<void> {
 
   // Provision OS-level kiosk power behavior + auto-start on boot so the fleet
   // self-heals without anyone running the .bat helpers. Osaek (W004) gets an
-  // 08:00 시작 / 22:00 종료 cycle; every other kiosk keeps the 02:00 reboot.
+  // 08:00 시작 / 22:00 종료 cycle; every other kiosk keeps the 02:00 reboot; the
+  // beta channel opts out of both and reboots once at 09:00.
   // Best-effort: never blocks or fails startup.
   void setupKioskPower(container.kiosk.getConfig().kioskId);
 

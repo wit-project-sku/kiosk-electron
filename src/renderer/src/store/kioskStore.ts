@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import type { CachedContent, KioskConfig, KioskScreenId, KioskTheme, SupportedLanguage } from '@shared/types/kiosk';
+import { DEFAULT_KIOSK_CONFIG } from '@shared/constants';
 
 type TranslationMap = {
   [key: string]: Partial<Record<SupportedLanguage, string>>;
@@ -21,7 +22,7 @@ interface KioskState {
 }
 
 export const useKioskStore = create<KioskState>((set, get) => ({
-  config: { kioskId: 'W001', layout: 'INSADONG' },
+  config: DEFAULT_KIOSK_CONFIG,
   theme: {
     id: 'insadong',
     name: 'Insadong',

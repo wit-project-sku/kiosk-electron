@@ -1,0 +1,68 @@
+/**
+ * 제주 모션 게임 on the customer display — the Monitor 2 entry point.
+ *
+ * Mounted by CustomerDisplay whenever main says a camera game is running, and
+ * unmounted the moment it says one is not. That unmount is the ONLY way a
+ * motion game stops, which is what makes the cleanup story simple: the camera,
+ * the inference loop, the animation loop and every timer belong to the game
+ * component's subtree, so releasing them is React's job rather than a teardown
+ * protocol nobody remembers to call.
+ *
+ * ── The remount is load-bearing, and it used to be fatal ──────────────
+ * Because every run is a fresh mount, every run built a fresh PoseTracker
+ * around a landmarker that is a deliberate module-level singleton — and the
+ * tracker's MediaPipe frame clock restarted at zero while the landmarker's did
+ * not. MediaPipe rejects a timestamp that does not increase, so every frame of
+ * every run after the first threw inside the loop's catch and nobody was ever
+ * detected again: "play once and the camera games stop working". The clock now
+ * belongs to the models rather than to a tracker — see `nextFrameStamp`.
+ *
+ * ── Why `key={runId}` is not optional ─────────────────────────────────
+ * A visitor pressing 다시 하기 on the remote starts the SAME game again. Without
+ * the key, `game` would not change between runs, React would keep the existing
+ * component, and the second run would inherit the first one's finished state —
+ * a result card that never goes away. `runId` changes on every start, so a new
+ * run is always a fresh mount with a fresh camera lock.
+ */
+import { useEffect, useState } from 'react';
+import type { MotionGameId } from '@shared/types/motionGame';
+import { isOk } from '@shared/types/result';
+import { JejuRun } from './jeju-run/JejuRun';
+
+interface Props {
+  game: MotionGameId;
+  runId: number;
+}
+
+/**
+ * Whether the AR photo has landed, as this (display) window sees it.
+ *
+ * Main broadcasts the workflow to every window, so the display can follow it
+ * directly — seeded from `getWorkflow` so a game mounted after the photo landed
+ * still knows.
+ */
+function usePhotoReady(): boolean {
+  const [ready, setReady] = useState(false);
+  useEffect(() => {
+    void window.api.photo.getWorkflow().then((result) => {
+      if (isOk(result)) setReady(result.value.phase === 'result');
+    });
+    return window.api.events.onPhotoWorkflowChanged((state) => setReady(state.phase === 'result'));
+  }, []);
+  return ready;
+}
+
+export function JejuMotionDisplay({ game, runId }: Props): JSX.Element {
+  const photoReady = usePhotoReady();
+  switch (game) {
+    case 'jeju-run':
+      return <JejuRun key={runId} runId={runId} photoReady={photoReady} />;
+    default: {
+      // A game id main knows about and this switch does not. Rendering nothing
+      // is the safe reading — the remote still offers a way out.
+      const exhaustive: never = game;
+      void exhaustive;
+      return <></>;
+    }
+  }
+}

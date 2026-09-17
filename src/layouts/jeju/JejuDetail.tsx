@@ -18,6 +18,7 @@
  * NOTE on the data: `DetailItem.blogReviews` is not a review count — it carries
  * the shop's Naver link, which is what the card turns into a QR.
  */
+import { useEffect } from 'react';
 import type { KioskController } from '@renderer/hooks/useKioskController';
 import { jejuIconUrl } from '@renderer/assets/icons/jeju';
 import { useAccessibilityStore } from '@renderer/store/accessibilityStore';
@@ -29,6 +30,7 @@ import { JejuPageFrame } from './JejuPageFrame';
 import { JejuCourseSpotCard } from './JejuCourseSpotCard';
 import { JejuSpotDetailCard } from './JejuSpotDetailCard';
 import styles from './JejuDetail.module.css';
+import { belowModeBar, LOW_REACH_BANNER_HEIGHT } from './lowReach';
 
 interface Props {
   controller: KioskController;
@@ -45,7 +47,7 @@ const T = {
 /** Artboard height — scroll viewports are sized to its foot. */
 const ARTBOARD = 3840;
 /** Mode-bar revision: header drops by the bar height; content follows (JejuListScreen). */
-const MODE_BAR = 113;
+const MODE_BAR = belowModeBar();
 
 /**
  * The 상세 page description, straight from Localization_Jeju.
@@ -120,6 +122,14 @@ export function JejuDetail({ controller }: Props): JSX.Element {
   // Back returns to the screen the item came from, not home.
   const goBack = (): void => controller.navigate(item?.from ?? 'search', '뒤로');
 
+  // Tell the customer display WHICH detail this is (e.g. `eat_detail` →
+  // ToEat_Detail). navigate() only reported the generic 'detail' screen, which
+  // maps to the idle sequence. Same effect InsadongDetail / OsanDetail carry.
+  const from = item?.from;
+  useEffect(() => {
+    if (from) void window.api.kiosk.setScreen(`${from}_detail`);
+  }, [from]);
+
   if (!item) {
     return (
       <JejuPageFrame
@@ -152,10 +162,12 @@ export function JejuDetail({ controller }: Props): JSX.Element {
    */
   const next = item.courseNext;
   const cardTop = chrome.cardTop ?? 700;
-  /* ♿: most detail pages only carry the 113 mode bar, so content is nudged
-     +113 in markup. 도와줘 상세 (6297:74899) keeps the promo under the bar —
-     header at 686, card at 1387 — via lowReachBarBanner + body shift 687, so
-     the card stays at its standing top and the frame moves the body. */
+  /* ♿: most detail pages only carry the mode bar, so content is nudged past
+     it in markup (MODE_BAR, which is the bar's own height — lowReach.ts).
+     도와줘 상세 (6297:74899) keeps the promo under the bar — header at
+     bar+573, card at 1387 — via lowReachBarBanner + a body shift one px
+     rounder, so the card stays at its standing top and the frame moves the
+     body. The frame measured those two as 686/687 against a 113 bar. */
   const contentTop = lowReach && !isHelp ? cardTop + MODE_BAR : cardTop;
   /* Help ♿ card viewport is 2318 tall at y1387 (6297:74899); others fill to
      the artboard foot from contentTop. */
@@ -170,17 +182,23 @@ export function JejuDetail({ controller }: Props): JSX.Element {
       subtitle={chrome.subtitle ?? detailSubtitle(lang)}
       subtitleColor={chrome.subtitleColor}
       /* The 다음 장소 stack can run past y3267, so the page gives the banner up
-         whenever it draws one — the same trade the AI search page makes.
-         Help keeps showBanner off in standing layout but asks for the promo
-         in ♿ via lowReachBanner (see drawBanner). */
-      showBanner={!next && !isHelp}
+         whenever it draws one — the same trade the AI search page makes. That
+         is the ONLY reason a 상세 page goes without one now.
+         ★ 도와줘 상세 used to be a second reason (`!isHelp`), from the frame that
+         ran the background illustration to the foot. The redraw puts the promo
+         back — 6219:99127 draws it at y3267, 2160×573, under the 15px #f49c56
+         rule that is already baked into banner-detail.png's top edge — which is
+         the same change JejuHelp's own list page took. `lowReachBanner` went
+         with it: that flag exists for a page with NO banner normally, and help
+         now has one in both layouts. `next` is never set from help (only the AI
+         course sets courseNext), so this is unconditional there. */
+      showBanner={!next}
       bannerFallback="banner-detail"
       onBack={goBack}
-      lowReachBanner={isHelp}
       lowReachModeBar
       lowReachBarBanner={isHelp}
-      lowReachShift={isHelp ? 686 : MODE_BAR}
-      lowReachBodyShift={isHelp ? 687 : 0}
+      lowReachShift={isHelp ? belowModeBar(LOW_REACH_BANNER_HEIGHT) : MODE_BAR}
+      lowReachBodyShift={isHelp ? belowModeBar(LOW_REACH_BANNER_HEIGHT + 1) : 0}
     >
       {next ? (
         <div className={styles.courseScroll} style={{ top: contentTop, height: scrollHeight }}>

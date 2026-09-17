@@ -48,6 +48,7 @@ import { GoogleDriveService } from './services/drive/GoogleDriveService';
 import { PhotoGenerationService } from './services/photo/PhotoGenerationService';
 import { ImageHostService } from './services/photo/ImageHostService';
 import { PhotoWorkflowService } from './services/photo/PhotoWorkflowService';
+import { MotionGameService } from './services/motion/MotionGameService';
 import { FootfallService } from './services/footfall/FootfallService';
 import { FootfallUploader } from './services/footfall/FootfallUploader';
 import { HeightService } from './services/height/HeightService';
@@ -73,6 +74,8 @@ export interface AppContainer {
   drive: GoogleDriveService;
   photoGeneration: PhotoGenerationService;
   photoWorkflow: PhotoWorkflowService;
+  /** 제주 모션 게임 — which camera game Monitor 2 is running. */
+  motionGame: MotionGameService;
   translations: TranslationService;
   weather: WeatherService;
   flights: FlightService;
@@ -126,13 +129,13 @@ export function createContainer(): AppContainer {
   const shops = new ShopService(cache, kiosk);
   const buttons = new ButtonLayoutService(cache, kiosk);
   const banners = new BannerService(cache, kiosk);
-  // Shared by both screens that draw CMS imagery on the AR 한복체험 picker, so
-  // one directory and one prune covers outfit cards and 배경 테마 tiles alike.
-  const remoteImages = new RemoteImageCache();
-  const backgrounds = new BackgroundService(cache, kiosk, remoteImages);
+  // One image mirror PER service, each in its own subdirectory. They used to
+  // share one, and each prune() read the other's files as retired — the outfit
+  // sync deleted the 배경 테마 tiles right after the picker was pointed at them.
+  const backgrounds = new BackgroundService(cache, kiosk, new RemoteImageCache('backgrounds'));
   const attractions = new AttractionService(cache, kiosk);
   const spotDiff = new SpotDiffService(cache);
-  const outfits = new OutfitService(cache, kiosk, remoteImages);
+  const outfits = new OutfitService(cache, kiosk, new RemoteImageCache('outfits'));
   // No cache dependency: every recommendation is a fresh POST. It only needs
   // the kiosk so it can stamp `kioskId` on the request itself.
   const jejuCourse = new JejuCourseService(kiosk);
@@ -170,6 +173,12 @@ export function createContainer(): AppContainer {
   photoWorkflow.subscribe((state) => footfall.onPhotoWorkflowChanged(state));
   display.subscribe((state) => footfall.onDisplayStateChanged(state));
   const footfallUploader = new FootfallUploader(footfallRepo, kiosk, footfall);
+
+  // 제주 모션 게임. A running camera game means the customer display has the
+  // camera open, so counting yields exactly as it does for a photo session —
+  // reusing the 'display-camera' reason, because that is literally what it is.
+  const motionGame = new MotionGameService();
+  motionGame.subscribe((state) => footfall.onMotionGameChanged(state));
 
   // 키 측정. Subscribes to the same workflow broadcast 유동인구 does, for the same
   // reason: the capture pipeline stays unaware that anything else is watching,
@@ -209,6 +218,7 @@ export function createContainer(): AppContainer {
     drive,
     photoGeneration,
     photoWorkflow,
+    motionGame,
     translations,
     weather,
     flights,

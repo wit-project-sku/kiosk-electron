@@ -2,6 +2,10 @@
  * 제주국제여객터미널 (W007) home 운항 정보 board — same frame slot as
  * JejuFlightBoard.module.css, with six sailing columns.
  *
+ * Korean keeps the original rule/column band. English wraps the title onto
+ * two lines (`.titleEn`) so the rule/columns can sit closer to the Korean
+ * left edge via `.ruleEn` + `COLUMNS_EN`.
+ *
  * The 국제항 ㅣ 연안항 sub-tab row that used to sit above the panel is gone; the
  * berth filter lives on the 운항정보 page (JejuCruise) now. Nothing else moved —
  * every element here is absolutely positioned, so removing it left no gap to
@@ -19,9 +23,10 @@
   -webkit-tap-highlight-color: transparent;
 }
 
-/* Low-reach — Figma 6442:105429 (same slot as JejuFlightBoard). */
+/* Low-reach — Figma 6442:105429 (same slot as JejuFlightBoard), which the
+   2026-09-10 re-read moved up 68 with the whole upper block. */
 .boardLow {
-  top: 1570px;
+  top: 1502px;
 }
 
 .title {
@@ -37,6 +42,15 @@
   white-space: nowrap;
 }
 
+/* English — "Operation / information" stacked so the data band can start left. */
+.titleEn {
+  top: 48px;
+  line-height: 1.15;
+  white-space: pre-line;
+  text-align: center;
+}
+
+/* Default (Korean): original band under the six columns. */
 .rule {
   position: absolute;
   left: 330px;
@@ -44,6 +58,12 @@
   width: 1462px;
   height: 3px;
   background: #c8bda9;
+}
+
+/* Non-Korean — still a touch right of Korean, but closer now that the title wraps. */
+.ruleEn {
+  left: 350px;
+  width: 1442px;
 }
 
 .head,
@@ -54,11 +74,20 @@
   transform: translateX(-50%);
 }
 
+/* Hung from its CENTRE — the old single line's middle, 38 + 38/2 — so a head
+   that wraps to two lines (76) fills 19…95, still clear of the rule at 97,
+   while one line lands exactly where the 38-top one did. Wrap width is capped
+   per column (HEAD_MAX in the TSX). */
 .head {
-  top: 38px;
+  top: 57px;
+  transform: translate(-50%, -50%);
   font-size: 38px;
   font-weight: 600;
   color: #c8bda9;
+  text-align: center;
+  white-space: normal;
+  word-break: keep-all;
+  overflow-wrap: anywhere;
 }
 
 .value {
@@ -72,6 +101,19 @@
   font-weight: 500;
 }
 
+/* 선박명 · 항로 · 장소 · 현황 are text, so they wrap inside the column's
+   VALUE_MAX (TSX) rather than running into the next column. Two lines (90)
+   fill 118…208 against the 206 board — the glyphs' own leading keeps the ink
+   inside it. The time and the duration keep the shared nowrap. */
+.valueWrap {
+  text-align: center;
+  white-space: normal;
+  word-break: keep-all;
+  overflow-wrap: anywhere;
+}
+
+/* Wraps at the board's edge if a translation outruns it; two 40px lines end
+   at 198, inside the 206 board. */
 .empty {
   position: absolute;
   top: 118px;
@@ -79,7 +121,9 @@
   font-weight: 400;
   line-height: 1;
   color: #999;
-  white-space: nowrap;
+  white-space: normal;
+  word-break: keep-all;
+  overflow-wrap: anywhere;
 }
 
 .valueRetimed {
@@ -99,6 +143,8 @@
   transform: translateX(-50%);
 }
 
+/* Why the lead sailing is 결항, under 현황. Wraps at the status column's
+   width (VALUE_MAX in the TSX) rather than running off along the board. */
 .note {
   position: absolute;
   top: 168px;
@@ -106,7 +152,10 @@
   font-weight: 400;
   line-height: 1;
   color: #ff7f0f;
-  white-space: nowrap;
+  text-align: center;
+  white-space: normal;
+  word-break: keep-all;
+  overflow-wrap: anywhere;
   transform: translateX(-50%);
 }
 
@@ -124,7 +173,7 @@
 }
 
 .moreLow {
-  top: 1822px;
+  top: 1754px;
 }
 
 .chevron {
@@ -138,15 +187,21 @@
   border-top: 38.25px solid var(--kiosk-primary, #ff7f0f);
 }
 
+/* Sized to its text rather than a fixed 360 — same call as JejuFlightBoard:
+   the 공지 panel is empty to the right of the control, so a long translation
+   stays on one line there, and only past 1000 (the panel's inner edge) wraps. */
 .moreText {
   position: absolute;
   left: 96px;
   top: 19px;
-  width: 360px;
+  width: max-content;
+  max-width: 1000px;
   font-size: 38px;
   font-weight: 500;
   line-height: 1;
   color: var(--kiosk-primary, #ff7f0f);
   text-align: left;
-  white-space: nowrap;
+  white-space: normal;
+  word-break: keep-all;
+  overflow-wrap: anywhere;
 }

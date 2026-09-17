@@ -1,0 +1,191 @@
+/*
+ * 모달 — Figma 7334:84538 (분석 실패) · 7334:84658 (다시 촬영) · 7334:84788 (무입력).
+ *
+ * 판 1300×1191 r60, 흰색, drop-shadow 0 75 75 rgba(0,0,0,.25). 가로 가운데, y756
+ * (시안이 판의 가운데를 1351.5 에 둔다). 뒤는 rgba(0,0,0,.2) 로만 덮는다.
+ *
+ * 판 안 세로:
+ *    108  그림 317×317 (#ffeac7 원 · 무입력은 주황 고리)
+ *    470  제목 Medium 68 #1a1a1a (줄높이 121.68)
+ *    619  본문 Regular 38 #1a1a1a (줄높이 68.445, 두 줄)
+ *    831  막대 942×24 (#e5e5e5 · 주황 채움)
+ *    934  버튼 두 개 550×131 r45, Bold 48 — 1159 폭 양끝
+ *   1191  끝 (아래 여백 126)
+ * 두 줄 본문에서 위 숫자가 정확히 나오도록 여백으로 쌓았다 — 본문이 길어지면 판이
+ * 아래로만 자란다.
+ *
+ * 시안과 다른 곳: 시안의 내용물이 판 가운데에서 오른쪽으로 10.5~12 치우쳐 있다
+ * (left: calc(50% + 11px)). 가운데에 맞췄다.
+ */
+.overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 40;
+  background: rgba(0, 0, 0, 0.2);
+}
+
+.panel {
+  position: absolute;
+  left: 430px; /* (2160 − 1300) / 2 */
+  top: 756px;
+  width: 1300px;
+  box-sizing: border-box;
+  padding: 108px 70.5px 126px;
+  border-radius: 60px;
+  background: #fff;
+  filter: drop-shadow(0 75px 75px rgba(0, 0, 0, 0.25));
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  animation: appear 0.2s ease-out;
+}
+
+@keyframes appear {
+  from {
+    transform: scale(0.96);
+    opacity: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .panel {
+    animation: none;
+  }
+}
+
+/* ── 그림 317 ── */
+.art {
+  position: relative;
+  flex: 0 0 auto;
+  width: 317px;
+  height: 317px;
+  display: grid;
+  place-items: center;
+}
+
+.disc {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+/* 분석 실패: 121 고리 + '!' (7334:84645 · 84647). */
+.alertRing {
+  position: absolute;
+  width: 121px;
+  height: 121px;
+  left: 98px;
+  top: 98px;
+}
+
+.alertMark {
+  position: relative;
+  font-family: 'Gmarket Sans', inherit;
+  font-size: 64px;
+  font-weight: 700;
+  line-height: 1;
+  color: #ff7f0f;
+}
+
+/* 다시 촬영: 새로고침 그림 100 (그리는 틀은 획 두께만큼 6% 큰 112). */
+.retake {
+  position: relative;
+  width: 112px;
+  height: 112px;
+}
+
+/* 무입력: 남은 초, Medium 150 주황 (7334:84911). */
+.count {
+  position: relative;
+  font-size: 150px;
+  font-weight: 500;
+  line-height: 1;
+  color: #ff7f0f;
+  font-variant-numeric: tabular-nums;
+}
+
+.title {
+  margin: 45px 0 0;
+  font-size: 68px;
+  font-weight: 500;
+  line-height: 121.68px;
+  color: #1a1a1a;
+  white-space: nowrap;
+}
+
+.body {
+  margin: 27px 0 0;
+  font-size: 38px;
+  font-weight: 400;
+  line-height: 68.445px;
+  color: #1a1a1a;
+  white-space: pre-line;
+}
+
+/* ── 남은 시간 막대 ── */
+.bar {
+  flex: 0 0 auto;
+  margin-top: 75px;
+  width: 942px;
+  height: 24px;
+  border-radius: 999px;
+  background: #e5e5e5;
+  overflow: hidden;
+}
+
+.barFill {
+  height: 100%;
+  border-radius: 999px;
+  background: #ff7f0f;
+  /* 1초마다 한 칸씩 줄어드는 타이머를 부드럽게 잇는다. */
+  transition: width 1s linear;
+}
+
+/* ── 버튼 ── */
+.actions {
+  margin-top: 79px;
+  width: 1159px;
+  display: flex;
+  justify-content: space-between;
+}
+
+.primary,
+.secondarySolid,
+.secondaryPlain {
+  width: 550px;
+  height: 131px;
+  padding: 0;
+  border: 0;
+  border-radius: 45px;
+  box-shadow: 0 21.45px 42.9px rgba(143, 147, 157, 0.1);
+  font-family: inherit;
+  font-size: 48px;
+  font-weight: 700;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.primary:active,
+.secondarySolid:active,
+.secondaryPlain:active {
+  transform: scale(0.98);
+}
+
+.primary {
+  background: #ff7f0f;
+  color: #fff;
+}
+
+/* 분석 실패의 처음으로 (7334:84651). */
+.secondarySolid {
+  background: #999;
+  color: #fff;
+}
+
+/* 다시 촬영 · 무입력의 처음으로 (7334:84753). */
+.secondaryPlain {
+  background: #fff;
+  color: #999;
+}

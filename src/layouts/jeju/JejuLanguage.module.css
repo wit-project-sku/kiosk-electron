@@ -145,21 +145,24 @@
 
 .langName {
   margin: 0;
+  min-width: 0;
   font-size: 68px;
   font-weight: 600;
   /* NOT `line-height: 1`. At 68px the font's content area is ~1.45em tall
      (ascender + descender), so a 1.0 line box is ~15px shorter than the glyphs
-     at BOTH ends — and `overflow: hidden` (there for the ellipsis) then cuts
-     whatever pokes out. Only the names with descenders showed it: English's
-     "g", Tiếng Việt's "g", Español's "p", Русский's "у"; 한국어 / 日本語 / 中國語
-     have none, which is why it looked language-specific. 1.5 clears the
-     descender on both the Noto Sans KR and Malgun Gothic fallbacks, and the
+     at BOTH ends — which the old ellipsis's `overflow: hidden` used to cut.
+     Only the names with descenders showed it: English's "g", Tiếng Việt's "g",
+     Español's "p", Русский's "у"; 한국어 / 日本語 / 中國語 have none. 1.5 clears
+     the descender on both the Noto Sans KR and Malgun Gothic fallbacks, and the
      card centres its row, so nothing else moves. */
   line-height: 1.5;
   color: #333;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  /* Wraps instead of ellipsising — every endonym fits one line today, but a
+     name that ever outgrows the card takes a second line (2 × 102 inside the
+     card's 210 content height) rather than being cut. */
+  white-space: normal;
+  word-break: keep-all;
+  overflow-wrap: anywhere;
 }
 
 /* The 현재 언어 card's name is pure black; the change-list cards use #333. */

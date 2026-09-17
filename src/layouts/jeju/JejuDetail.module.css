@@ -36,12 +36,12 @@
 }
 
 .courseScroll::-webkit-scrollbar {
-  width: 34.32px;
+  width: 28px;
 }
 
 .courseScroll::-webkit-scrollbar-thumb {
   background: var(--kiosk-primary, #ff7f0f);
-  border-radius: 17.16px;
+  border-radius: 14px;
 }
 
 .courseScroll::-webkit-scrollbar-track {

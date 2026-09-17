@@ -76,6 +76,36 @@
   white-space: pre;
 }
 
+/*
+ * The 공지 card, its weather card and the 운항 정보 board, as ONE layer — Figma's
+ * group 6516:74628.
+ *
+ * Zero-size and pinned to the root's top-left, so its children keep the root as
+ * their coordinate origin either way — `filter` makes this box the containing
+ * block for them, and at (0, 0) that changes nothing — and so the wrapper itself
+ * never takes a tap.
+ */
+.noticeGroup {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 0;
+  height: 0;
+}
+
+/*
+ * While the 날씨 popup is open (Figma 6516:74521, 제주>홈-날씨), the frame gives
+ * this group — and only this group — a LAYER blur of 50 at 80% opacity. It is
+ * what shows, soft, between the top bar and the popup, left of its close tab,
+ * and through the popup's own frosted ground. 25px because Figma's blur radius
+ * is twice the CSS one: the same frame's background blur of 30 exports as
+ * `backdrop-blur-[15px]`, which is what the popup's panel uses.
+ */
+.noticeGroupBehind {
+  filter: blur(25px);
+  opacity: 0.8;
+}
+
 /* ── 공지 card (notice + weather) ───────────────────────────────────── */
 /*
  * The frosted panels (.notice, .weather, .panel and .board in the flight-board
@@ -232,15 +262,20 @@
   -webkit-tap-highlight-color: transparent;
 }
 
+/* Placeholder (sheet copy) or the typed query — wraps rather than ellipsising,
+   so the whole query and the caret stay visible. The field is a fixed 182
+   slot; the text is centred in it, so a second line spills into the 55px
+   padding (two lines at 1.1 are 132 of the 182) and a single line sits exactly
+   where it did. */
 .searchText {
   flex: 1 1 auto;
   min-width: 0;
   font-size: 60.06px;
   font-weight: 500;
-  line-height: 1;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  line-height: 1.1;
+  white-space: normal;
+  word-break: keep-all;
+  overflow-wrap: anywhere;
 }
 
 .searchPlaceholder {
@@ -501,13 +536,24 @@
   word-break: break-word;
 }
 
-/* ── Bottom action row: K-DRAMA / 사진촬영 / 화장실 ───────────────────── */
-.kdrama {
+/* ── Bottom action row: 필미 / 사진촬영 / 화장실 ───────────────────────── */
+/*
+ * The slot K-DRAMA held (a permanently disabled 381×235 rect), then the JEJU
+ * ISLAND circle, and now 필미 — FillMe's own tile, which leads to AI 손톱
+ * 건강분석. Every tenant kept the slot's centre (x494.5, where the caption is
+ * centred too) and the row's shared foot (3623), so the button never slides
+ * inside a row whose other two members did not move. See .fillme.
+ */
+/* 필미 (FillMe). The tile is landscape (381×235), so it keeps the old JEJU
+   ISLAND circle's height (234) and centre (x494.5) and grows sideways:
+   234 × 381/235 = 379 wide, from x305. The row's baseline and the label under
+   it do not move. */
+.fillme {
   position: absolute;
-  left: 304px;
-  top: 3388px;
-  width: 381px;
-  height: 235px;
+  left: 305px;
+  top: 3389px;
+  width: 379px;
+  height: 234px;
   padding: 0;
   border: none;
   background: none;
@@ -543,8 +589,7 @@
 
 /* Same baked-corner problem as .tileArt — these three sit directly on the page
    background, so their grey corners are the most visible of the lot. Each is
-   clipped to its own Figma shape: K-DRAMA is a 50px rounded rect, 사진촬영 and
-   화장실 are ellipses filling their box. */
+   clipped to its own shape; all three are ellipses filling their box. */
 .actionImg {
   width: 100%;
   height: 100%;
@@ -552,7 +597,8 @@
   pointer-events: none;
 }
 
-.kdrama .actionImg { border-radius: 50px; }
+/* 사진촬영 and 화장실 are circles. The FillMe tile brings its own rounded
+   corners, so it is NOT clipped to an ellipse. */
 .camera .actionImg,
 .restroom .actionImg { border-radius: 50%; }
 
@@ -567,14 +613,21 @@
   text-align: center;
 }
 
-.labelKdrama {
+
+/* Centred on x494, the same centre .fillme sits on — this is the old
+   .labelKdrama box, kept because the button kept the slot's centre too. */
+.labelFillme {
   left: 294px;
   width: 400px;
 }
 
+/* Widened from 142 (1678…1820) to 400 on the SAME centre, x1749 — the same
+   box .labelFillme uses. MainButton_WC is translated, and "Restroom" /
+   "Nhà vệ sinh" did not fit 142: they wrapped mid-word or ran off-centre.
+   화장실 still centres on 1749, so Korean is unchanged. */
 .labelRestroom {
-  left: 1678px;
-  width: 142px;
+  left: 1549px;
+  width: 400px;
 }
 
 /* ── Left nav (home / back) + accessibility ─────────────────────────── */
@@ -635,21 +688,24 @@
 
 
 /* ────────────────────────────────────────────────────────────────────────────
- * LOW-REACH (♿) — Figma 6442:105429, re-read 2026-09-03.
+ * LOW-REACH (♿) — Figma 6442:105429, re-read 2026-09-10.
  *
- * Opens with a 191px mode bar ("지금은 배리어프리 모드입니다.") and a 573px
- * 한복 promo banner under it (y191–764). Everything below is re-laid at the
+ * Opens with the shared mode bar ("지금은 배리어프리 모드입니다.") and a 573px
+ * 한복 promo banner flush under it. This frame drew the bar 191 tall and the
+ * sub-page frames drew theirs 113; the kiosk now uses ONE height for both —
+ * lowReach.ts's MODE_BAR_HEIGHT, arriving as --jeju-mode-bar — so the banner
+ * reads its top off the bar rather than a literal. Everything below is re-laid at the
  * frame's own coordinates — not a rigid +shift of the standing page. The bar
  * keeps white text on brand-orange #ff7f0f (standing product direction). The
  * tile grid stays 6×2 with a single 400-weight label per tile.
  *
  *                     standard        low-reach
- *   mode bar          —               0      h191
- *   hero (한복 promo)  —               191    h573
- *   top bar           125             879
- *   공지 panel         297  h750      1066   h885
- *   운항 정보 board     732             1570   ┐ JejuFlightBoard / JejuSailingBoard
- *   운항 정보 더보기    955             1822   ┘
+ *   mode bar          —               0      h(bar)
+ *   hero (한복 promo)  —               (bar)  h573
+ *   top bar           125             817
+ *   공지 panel         297  h750      998    h885
+ *   운항 정보 board     732             1502   ┐ JejuFlightBoard / JejuSailingBoard
+ *   운항 정보 더보기    955             1754   ┘
  *   검색장             1136            2024   (1910 wide at x125; no home icon)
  *   feature cards     1407  h310      2253   h250 (x170 / w1860)
  *   tile panel        1772  h1494     2555   h810
@@ -666,7 +722,10 @@
   left: 0;
   top: 0;
   width: 2160px;
-  height: 191px;
+  /* Was a hardcoded 191 — the one bar on the kiosk that did not agree with the
+     other sixteen. Height now comes from lowReach.ts via the root's inline
+     --jeju-mode-bar, so home and the sub-pages cannot drift apart again. */
+  height: var(--jeju-mode-bar);
   background: var(--kiosk-primary, #ff7f0f);
   display: flex;
   align-items: center;
@@ -682,7 +741,8 @@
 .hero {
   position: absolute;
   left: 0;
-  top: 191px;
+  /* Flush under the bar — follows it rather than restating its height. */
+  top: var(--jeju-mode-bar);
   width: 2160px;
   height: 573px;
   overflow: hidden;
@@ -697,10 +757,18 @@
   pointer-events: none;
 }
 
-.topBarLow { top: 879px; }
+/*
+ * The upper block rides UP in the 2026-09-10 re-read: the bar came down from
+ * 191 to 145.759 and the designer re-flowed everything between the hero and the
+ * search row rather than absorbing the 45px in one gap. Top bar 879 → 817,
+ * 공지 panel 1066 → 998, and the flight board follows in
+ * JejuFlightBoard.module.css (1570 → 1502, 더보기 1822 → 1754). Nothing at or
+ * below the search row (2024) moved.
+ */
+.topBarLow { top: 817px; }
 
 .noticeLow {
-  top: 1066px;
+  top: 998px;
   height: 885px;
 }
 
@@ -794,7 +862,24 @@
 .tileTextLow .tileTitle { font-weight: 400; }
 .tileTextLow .tileSub { display: none; }
 
-.kdramaLow { top: 3467px; }
+/* One half of a paired title (탐나오·제주큐랑) while it is being cycled — see
+   CyclingTileTitle. `nowrap` is what makes the fix hold: the wrap it prevents is
+   the bug, and a single half is short enough to clear the 230px low-reach
+   column in every language. Scoped to this span, NOT to `.tileTitle`, so the
+   long ordinary labels (TAX-FREE, "'제주'뭐먹지") keep wrapping inside their own
+   tile instead of spilling over their neighbours. */
+.tileTitleCycle {
+  display: inline-block;
+  white-space: nowrap;
+  animation: jejuTileTitleFade 400ms ease-out;
+}
+
+@keyframes jejuTileTitleFade {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+.fillmeLow { top: 3468px; }
 .cameraLow { top: 3417px; }
 .restroomLow { top: 3468px; }
 .actionLabelLow { top: 3727px; }
@@ -806,4 +891,145 @@
 
 .accessibilityLow {
   top: 2403px;
+}
+
+/* ── Other languages (Figma 7058:22669 — the annotated 제주>홈) ────────────
+ *
+ * The frame is the Korean home with three red notes for what a longer
+ * language may do. Every rule here is reached only through a class the TSX
+ * adds when lang !== 'ko', so the Korean screen is untouched.
+ *
+ * 1. Notice — "최대 4줄까지, 날짜랑 간격 최대 60": the frame's own 1060 width
+ *    (vs 977). Four 70px lines centred on the lead's 242 band land on
+ *    392…672 — exactly the note's red box — which is the frame's 60px gap
+ *    above the 운항 정보 board at 732. NOT clamped: the whole notice is always
+ *    shown. A fifth line (357…707) still clears the board, only with a 25px
+ *    gap instead of 60; a sixth would touch it, so the copy must stay within
+ *    five lines — an authoring limit, not something CSS hides.
+ */
+.noticeTextWide {
+  width: 1060px;
+  font-size: calc(60px * var(--fit, 1));
+  line-height: calc(70px * var(--fit, 1));
+}
+
+/*
+ * 1b. …and the band it sits in. Four lines is the frame's limit, and the live
+ *    translations run to six, seven, eight (ru 213 / id 242 characters against
+ *    Korean's 118): centred on the Korean 242 band they were clipped by the
+ *    panel's top edge AND ran into the board. So non-Korean text gets the band
+ *    the panel really has — 40 under its top down to the note's 60 above the
+ *    board (rel 40…375) — centred in it, with the orange rule following the
+ *    text's own height rather than the Korean band's. Copy that still does not
+ *    fit is scaled down (`--fit`, set by useFitText; never below 0.7 → 42px).
+ *    Never clamped: the whole notice is always shown.
+ */
+.noticeLeadWide {
+  top: 40px;
+  height: 335px;
+}
+
+/* ♿: the same band in the taller low-reach panel — 12 lower at the top, as the
+   Korean lead is (126 vs 114), and 60 above the board at rel 504. */
+.noticeLow .noticeLeadWide {
+  top: 52px;
+  height: 392px;
+}
+
+.noticeRow {
+  display: flex;
+  align-items: stretch;
+  gap: 42.565px;
+}
+
+.noticeRow .noticeRule {
+  height: auto;
+}
+
+/*
+ * 3. Feature cards — "크기 넘으면 단 내리기". The frame marks it on 제주도
+ *    이벤트; 뭐하지 and 위드마켓 overflow the same way in a long language. Title
+ *    and subtitle become ONE column, centred in the card between 20px insets and
+ *    bounded by the art (or, on 뭐하지, the card edge), so a title that wraps
+ *    pushes its subtitle down. The two lines used to be pinned separately, and
+ *    a wrapping title had to grow away from its subtitle — "Чем заняться на
+ *    острове Чеджу" and "Hal-hal yang dapat dilakukan di Jeju" climbed out of
+ *    the top of the 뭐하지 card. A one-line title lands within a few px of the
+ *    Korean line. If a column still outgrows its card, all three cards' type
+ *    scales down together (`--fit` on .cards, ≥ 0.75).
+ */
+.cardText {
+  position: absolute;
+  top: 20px;
+  bottom: 20px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: calc(29px * var(--fit, 1)); /* Korean: subtitle 178 − title foot 149 */
+}
+
+/* Wrap at word boundaries only — never inside a word ("Мероприяти / е").
+   A word too long for the column is caught by the fit instead, which scales
+   the cards down until it fits (fitText.ts checks width as well as height).
+   `normal`, not `keep-all`: this block is never Korean, and keep-all would turn
+   a Japanese or Chinese title into one unbreakable run. */
+.cardText .cardTitle,
+.cardText .cardSub {
+  position: static;
+  white-space: normal;
+  word-break: normal;
+  overflow-wrap: normal;
+}
+
+.cardText .cardTitle {
+  font-size: calc(45px * var(--fit, 1));
+  line-height: 1.02; /* 46 on 45 — the leading the frame's wrap note uses */
+}
+
+.cardText .cardSub {
+  font-size: calc(38px * var(--fit, 1));
+  line-height: 1.1;
+}
+
+/* Column x is the Korean title's; the width stops 44 short of 뭐하지's edge and
+   35+ short of the art on the other two. */
+.cardAi .cardText     { left: 356px; width: 270px; }
+.cardMarket .cardText { left: 57px;  width: 260px; }
+.cardEvents .cardText { left: 50px;  width: 280px; }
+
+.cardsLow .cardAi .cardText     { left: 401px; width: 265px; }
+.cardsLow .cardMarket .cardText { width: 250px; }
+.cardsLow .cardEvents .cardText { width: 270px; }
+
+/*
+ * 4. Tiles — no note in the frame, but a long language needs one: "Что мне
+ *    стоит купить на острове Чеджу?" is four lines in the 300 column, and with
+ *    its subtitle it ran 139px past the tile onto the next row's plate. The grid
+ *    cannot grow (the bottom action row is pinned under it), so the text gets
+ *    the whole gap it DOES have — from under the plate (335) to 10 above the
+ *    next row's plate (482); ♿ 260…364 — and wraps there. Only if a tile still
+ *    outgrows that does the grid's type scale down, all twelve by the same
+ *    factor so the grid keeps one text size (`--fit` on .grid, ≥ 0.7).
+ */
+.tileTextFit {
+  height: 147px;
+}
+
+.tileTextLow.tileTextFit {
+  height: 104px;
+}
+
+/* Word boundaries only, as on the cards: a label word too wide for the 300
+   column shrinks the grid (the fit checks width) instead of being split. */
+.tileTextFit .tileTitle {
+  font-size: calc(38px * var(--fit, 1));
+  word-break: normal;
+  overflow-wrap: normal;
+}
+
+.tileTextFit .tileSub {
+  margin-top: calc(14px * var(--fit, 1));
+  font-size: calc(25px * var(--fit, 1));
+  word-break: normal;
+  overflow-wrap: normal;
 }

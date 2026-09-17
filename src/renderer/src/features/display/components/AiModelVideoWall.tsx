@@ -17,6 +17,17 @@ interface AiModelVideoWallProps {
   playOnce?: boolean;
   /** Fires when a `playOnce` list reaches the end of its last clip. */
   onDone?: () => void;
+  /**
+   * The clip most likely to be asked for NEXT (e.g. the neighbouring tab's
+   * clip — see siblingClipUrls). While the current list is a single looping
+   * clip the back layer has nothing to preload, so it warms this URL instead;
+   * a screen change that lands on exactly it then swaps with a ready, decoded
+   * layer — instant — and a different target simply overwrites the layer as
+   * always. Ignored for multi-clip lists (the back layer is busy with the
+   * cycle) and for playOnce lists. Pass it DEFERRED (only once the screen has
+   * settled): the whole point is to use idle time, never the switch itself.
+   */
+  preloadUrl?: string | null;
 }
 
 /**
@@ -26,11 +37,13 @@ interface AiModelVideoWallProps {
  * - Several clips auto-advance on `ended`, wrapping — this is how the sheet's
  *   numbered home videos (기본화면_1…10) cycle.
  * - `playOnce` opts out of both: the list runs through once and reports `onDone`.
- * - The hidden back layer always has the NEXT clip preloaded, so advancing is an
- *   instant cut with no black frame. On a screen change the old clip keeps
- *   playing until the new one can play, so navigation switches fast and smooth.
+ * - The back layer always has the NEXT clip preloaded, so advancing is an
+ *   instant cut with no black frame. On a screen change the swap happens
+ *   IMMEDIATELY: the layers switch by z-order, and since a <video> paints
+ *   nothing until its first frame is decoded, the outgoing clip (still playing
+ *   underneath) covers exactly the decode gap — no wait, no blank.
  *
- * Visibility is driven by React state (`front`); the video `src` is set
+ * Stacking is driven by React state (`front`); the video `src` is set
  * imperatively so React never clears it on re-render.
  */
 export function AiModelVideoWall({
@@ -39,6 +52,7 @@ export function AiModelVideoWall({
   hideLogo = false,
   playOnce = false,
   onDone,
+  preloadUrl = null,
 }: AiModelVideoWallProps): JSX.Element | null {
   const aRef = useRef<HTMLVideoElement>(null);
   const bRef = useRef<HTMLVideoElement>(null);
@@ -54,6 +68,9 @@ export function AiModelVideoWall({
   const elOf = (l: 'a' | 'b'): HTMLVideoElement | null => (l === 'a' ? aRef.current : bRef.current);
 
   // Preload the next clip into the hidden back layer so advancing is instant.
+  // (A single clip loops natively and leaves the back layer idle — the
+  // DEFERRED preloadUrl effect below warms it then, never this call: at
+  // transition time the prediction is still the previous screen's.)
   const preloadNext = (frontLayer: 'a' | 'b', list: DisplayClip[], index: number): void => {
     if (list.length <= 1) return;
     // A playOnce list never wraps, so there is nothing to preload past the end.
@@ -67,8 +84,14 @@ export function AiModelVideoWall({
     }
   };
 
-  // Reveal clips[index] on the back layer once it can play (the old layer stays
-  // visible until then → no black/slow gap).
+  // Cut to clips[index] IMMEDIATELY on the back layer — no waiting.
+  //
+  // The two layers are stacked by z-order (front on top), and a <video> paints
+  // nothing until its first frame is decoded, so the outgoing clip — still
+  // playing on the layer underneath — stays on screen for exactly the frames
+  // the decoder needs and not one more. The switch is as fast as physically
+  // possible: caption and state flip on the spot, the new picture lands the
+  // instant it exists, and there is never a blank or a stuck old video.
   const transitionTo = (list: DisplayClip[], index: number, frontLayer: 'a' | 'b'): void => {
     const clip = list[index];
     const back: 'a' | 'b' = frontLayer === 'a' ? 'b' : 'a';
@@ -78,25 +101,69 @@ export function AiModelVideoWall({
       eng.current.cleanup();
       eng.current.cleanup = null;
     }
+
+    // The front layer is already playing this exact file (screens often share a
+    // clip — e.g. two pages that both resolve Default): adopt the new list in
+    // place instead of reloading the same bytes into the back layer. The video
+    // doesn't restart; only the caption swaps.
+    const frontEl = elOf(frontLayer);
+    if (frontEl && frontEl.src === clip.url) {
+      frontEl.loop = !playOnce && list.length <= 1;
+      if (frontEl.paused) void frontEl.play().catch(() => {});
+      eng.current.clips = list;
+      eng.current.index = index;
+      setActive(clip);
+      preloadNext(frontLayer, list, index);
+      return;
+    }
+
     el.loop = !playOnce && list.length <= 1;
     if (el.src !== clip.url) {
       el.src = clip.url;
       el.load();
-    }
-    const reveal = (): void => {
-      el.currentTime = 0;
-      void el.play().catch(() => {});
-      eng.current.clips = list;
-      eng.current.index = index;
-      setFront(back);
-      setActive(clip);
-      preloadNext(back, list, index);
-    };
-    if (el.readyState >= 3 /* HAVE_FUTURE_DATA */) {
-      reveal();
     } else {
-      el.addEventListener('canplay', reveal, { once: true });
-      eng.current.cleanup = () => el.removeEventListener('canplay', reveal);
+      // Reusing the layer's preloaded file — rewind in case it played before.
+      el.currentTime = 0;
+    }
+    void el.play().catch(() => {});
+    eng.current.clips = list;
+    eng.current.index = index;
+    setFront(back);
+    setActive(clip);
+
+    // Once the new front is actually rendering, the covered layer's job is
+    // done — PAUSE it. Without this it kept playing (and, when looping,
+    // looping forever) invisibly underneath, decoding a whole second stream
+    // for nothing; on heavy clips that steals exactly the throughput the next
+    // switch needs. It must NOT pause before the new first frame exists (it is
+    // the visible under-layer masking the decode gap), and a later transition
+    // resumes it explicitly wherever it is reused.
+    //
+    // Preload the FOLLOWING clip on the same trigger: repointing the covered
+    // layer's src before the new frame renders would blank the screen.
+    if (el.readyState >= 2 /* HAVE_CURRENT_DATA */) {
+      frontEl?.pause();
+      preloadNext(back, list, index);
+    } else {
+      const handlers: Array<[keyof HTMLVideoElementEventMap, () => void]> = [];
+      const detach = (): void => {
+        for (const [ev, fn] of handlers) el.removeEventListener(ev, fn);
+        eng.current.cleanup = null;
+      };
+      const onReady = (): void => {
+        detach();
+        frontEl?.pause();
+        preloadNext(back, list, index);
+      };
+      const onError = (): void => {
+        detach();
+        // A broken/missing file: the transparent front leaves the old clip
+        // visible underneath. Log it — the screen shows the previous video.
+        console.warn('[wall] clip failed to load — previous video stays visible', clip.url);
+      };
+      handlers.push(['loadeddata', onReady], ['canplay', onReady], ['error', onError]);
+      for (const [ev, fn] of handlers) el.addEventListener(ev, fn);
+      eng.current.cleanup = detach;
     }
   };
 
@@ -135,8 +202,29 @@ export function AiModelVideoWall({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [sig]);
 
+  // The predicted-next warm-up arrives DEFERRED (CustomerDisplay only updates
+  // preloadUrl once the screen has settled, so warming never competes with the
+  // switch itself) — which means it changes without the clip signature
+  // changing, and the transition-time preloadNext call never sees it. React to
+  // the prop directly instead, but only while the back layer is truly idle: a
+  // single looping clip, no load in flight, and not a playOnce list.
+  useEffect(() => {
+    if (!preloadUrl || playOnce) return;
+    if (eng.current.clips.length !== 1 || eng.current.cleanup) return;
+    const el = elOf(front === 'a' ? 'b' : 'a');
+    if (el && el.src !== preloadUrl) {
+      el.loop = false;
+      el.src = preloadUrl;
+      el.load();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [preloadUrl]);
+
   const onEnded = (layer: 'a' | 'b'): void => {
     if (layer !== front) return; // only the visible layer advances the cycle
+    // The front's own data hasn't loaded yet (cleanup = its pending listeners) —
+    // an `ended` here would be a stale event; the load path finishes the job.
+    if (eng.current.cleanup) return;
     const list = eng.current.clips;
     // One-shot list (the weather clip): walk to the end, then hand back.
     if (playOnce) {

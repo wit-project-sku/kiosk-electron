@@ -30,12 +30,12 @@ import {
 } from '@renderer/lib/shops';
 import { useAccessibilityStore } from '@renderer/store/accessibilityStore';
 import { JejuPageFrame } from './JejuPageFrame';
-import { JejuScrollHint } from './JejuScrollHint';
 import { JejuShopCard } from './JejuShopCard';
 import { FloatingKeyboard } from '../insadong/keyboard/FloatingKeyboard';
 import { HangulComposer } from '../insadong/keyboard/hangul';
 import type { KeyAction } from '../insadong/keyboard/VirtualKeyboard';
 import styles from './JejuRentcar.module.css';
+import { belowModeBar } from './lowReach';
 
 interface Props {
   controller: KioskController;
@@ -236,11 +236,8 @@ export function JejuRentcar({ controller }: Props): JSX.Element {
         return catalogShops.filter((s) => shopHasRentcarShuttle(s) && !isInsideAirport(s));
       case 'noShuttle':
         return catalogShops.filter(shopHasRentcarNoShuttle);
-      default: {
-        const inside = catalogShops.filter(isInsideAirport);
-        const rest = catalogShops.filter((s) => !isInsideAirport(s));
-        return [...inside, ...rest];
-      }
+      default:
+        return catalogShops;
     }
   }, [catalogShops, rentcarFilter]);
 
@@ -319,6 +316,7 @@ export function JejuRentcar({ controller }: Props): JSX.Element {
       rating: '',
       instagram: '',
       blogReviews: shop.naverLink ?? '',
+      homepageUrl: shop.homepage?.trim() || undefined,
       rentcarGuide: {
         modeLabel: shopRentcarGuideModeLabel(shop, lang),
         distanceKm: shopRentcarGuideDistanceKm(shop),
@@ -435,7 +433,7 @@ export function JejuRentcar({ controller }: Props): JSX.Element {
       title={TITLE}
       showBanner={false}
       lowReachModeBar
-      lowReachShift={113}
+      lowReachShift={belowModeBar()}
     >
       <div
         className={`${styles.scroll} ${lowReach ? styles.scrollLow : ''}`}
@@ -485,10 +483,6 @@ export function JejuRentcar({ controller }: Props): JSX.Element {
             )}
           </button>
         </>
-      )}
-
-      {!lowReach && (
-        <JejuScrollHint onUp={() => scrollBy(-SCROLL_STEP)} onDown={() => scrollBy(SCROLL_STEP)} />
       )}
 
       <FloatingKeyboard

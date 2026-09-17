@@ -1,0 +1,101 @@
+/*
+ * The photo-ready sheet. Artboard px on the 2160×3840 board.
+ *
+ * Anchored to the bottom and covering the banner band (3267…3840) plus a little
+ * above it, so the game area stays visible behind a light scrim.
+ */
+
+.scrim {
+  position: absolute;
+  inset: 0;
+  z-index: 60;
+  background: rgba(31, 27, 22, 0.32);
+  animation: fade 200ms ease;
+}
+
+@keyframes fade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.sheet {
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  width: 2160px;
+  padding: 110px 180px 150px;
+  box-sizing: border-box;
+  border-radius: 64px 64px 0 0;
+  background: #fff;
+  display: flex;
+  flex-direction: column;
+  gap: 80px;
+  animation: rise 380ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+@keyframes rise {
+  from {
+    transform: translateY(100%);
+  }
+  to {
+    transform: translateY(0);
+  }
+}
+
+.head {
+  display: flex;
+  align-items: center;
+  gap: 56px;
+}
+
+.icon {
+  width: 200px;
+  height: 200px;
+  flex: 0 0 auto;
+  border-radius: 40px;
+  background: #fff3e6;
+  color: var(--kiosk-primary, #ff7f0f);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.text {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.title {
+  margin: 0;
+  font-size: 84px;
+  font-weight: 800;
+  line-height: 1.1;
+  letter-spacing: -0.03em;
+  color: #1f1b16;
+}
+
+.sub {
+  margin: 0;
+  font-size: 48px;
+  font-weight: 500;
+  line-height: 1.35;
+  color: #6f675d;
+  word-break: keep-all;
+}
+
+.actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 36px;
+}
+
+.actions > button {
+  height: 170px;
+  font-size: 60px;
+}

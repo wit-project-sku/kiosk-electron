@@ -9,7 +9,11 @@
  * 제주 is separate because the constraints are: the islands need a ferry, the
  * 5일장 only stands on its market day, and a day has to fit travel time, opening
  * hours, closing days and party capacity inside one time budget. The server
- * schedules 220 places that carry coordinates and hands the itinerary back.
+ * schedules the 592 places that carry coordinates and hands the itinerary back.
+ *
+ * The route starts where the REQUESTING kiosk stands (since 2026-09-14): DAY 1's
+ * first `travelMinutes` / `travelKm` are measured from 제주국제공항, 제주항 여객터미널
+ * or 세계자연유산본부, so the three kiosks can get different courses.
  *
  * ── It is rule-based, not an LLM ──────────────────────────────────────
  * The same request gives the same course every time, which is what makes
@@ -17,8 +21,12 @@
  * got and asking for a different combination.
  *
  * Rules worth knowing, because the UI must not contradict them:
- *   · a day is cut at an 8-hour budget with no cap on the number of spots (the
- *     last day gets 5, for check-out and the trip home);
+ *   · a day holds at most 6 places inside a 12-hour budget, two of them kept
+ *     for lunch and dinner; the rest are spread to the evening, so 30–120 min
+ *     of slack between places is intended, not a gap;
+ *   · `region` confines the course to one 권역. The leg from the kiosk to it is
+ *     not a course leg: DAY 1's first spot comes back with `isApproach` and is
+ *     timed by transit (or car, if CAR was picked), with no distance cap;
  *   · days = nights + 1, capped at 4 (the server clamps; `nights: 9` still
  *     answers 4 days). Each morning starts from the previous day's last spot;
  *   · `interests` are the shop's `aiCategoryKr` VERBATIM, prefix and all —
@@ -38,12 +46,33 @@ export type JejuCourseKey = 'A' | 'B' | 'C';
 export type JejuTransport = 'WALK' | 'BIKE' | 'TRANSIT' | 'CAR';
 
 /**
+ * 권역, as the API spells it — the four regions of the themed questionnaire's
+ * map. Anything else 400s ("권역은 JEJU_CITY·EAST·WEST·SEOGWIPO 중 하나여야
+ * 합니다"). See `regionCode` in lib/jejuCourse for the map's ids.
+ */
+export type JejuRegion = 'JEJU_CITY' | 'EAST' | 'WEST' | 'SEOGWIPO';
+
+/**
  * What the renderer asks for. `kioskId` is deliberately absent: the main
  * process fills it from KioskService, so no screen has to know its own number
  * and none can send the wrong one.
  */
 export interface JejuCourseRecommendQuery {
   course: JejuCourseKey;
+  /**
+   * The 권역 picked on the themed map. Omitted, the course may range over the
+   * whole island. With it, `transport` means getting around INSIDE the region.
+   *
+   * Always the FIRST of `regions`, so a server that only knows this field still
+   * gets a course confined to somewhere the visitor picked.
+   */
+  region?: JejuRegion;
+  /**
+   * Every 권역 picked, in tap order — one or two (the map takes two since
+   * 2026-09-16). Sent whenever a region is picked, alongside `region`:
+   *   { "region": "SEOGWIPO", "regions": ["SEOGWIPO", "WEST"], … }
+   */
+  regions?: JejuRegion[];
   transport: JejuTransport;
   /** Group size. The server drops venues that cannot take this many. */
   party: number;
@@ -65,6 +94,24 @@ export interface JejuCourseSpot {
   order: number;
   /** Travel time from the previous stop (from the day's start, for order 1). */
   travelMinutes: number;
+  /** Distance of the same leg, km. 0 when the server gave none. */
+  travelKm: number;
+  /**
+   * The leg INTO the picked region, not a trip inside the course — only ever on
+   * a day's first spot. The screen reads it as "권역까지 이동". Also set without a
+   * region when the chosen transport cannot make a day around the kiosk
+   * (e.g. 도보 from 세계자연유산본부).
+   */
+  isApproach: boolean;
+  /** What the approach leg was timed with (e.g. TRANSIT / CAR); null otherwise. */
+  approachMode: string | null;
+  /** A picked 즐길 거리 place (true) or the recommender's own fill-in (false). */
+  isSelectedByUser: boolean;
+  /**
+   * A restaurant let in for a party of 10+ without its capacity check — show
+   * "단체는 사전 예약이 필요합니다" with it.
+   */
+  isReservationRequired: boolean;
   /** Minutes past midnight — 540 = 09:00. */
   arriveMin: number;
   leaveMin: number;
@@ -108,4 +155,134 @@ export interface JejuCourse {
    */
   unmetInterests: string[];
   schedule: JejuCourseDay[];
+}
+
+/*
+ * ── 커스텀 코스 picker — `POST /api/jeju/courses/picker` ──────────────────
+ *
+ * A different feature from /recommend: called on EVERY 즐길 거리 tap, it adds
+ * exactly one real place per tapped tile — the one the visitor can reach
+ * soonest (travel + any wait for it to open) that is open that date and for the
+ * whole stay — and takes its time out of a 09:00–21:00 day. It answers with the
+ * whole plan AND the state of every tile, so the screen can grey out what no
+ * longer fits. No course letter, no meal rules; tap order is the route.
+ *
+ * Stateless: every call sends all the taps so far. Same input, same answer.
+ * Rules in full: jeju-course-lab/spec/picker.md.
+ */
+
+/**
+ * A tile's state for the next tap.
+ *   OK           — fits; `costMinutes` is what the tap will add, on `day`.
+ *   PICKED       — already tapped (tapping again removes it).
+ *   DAY_OFF      — every reachable place is shut all day on that date (휴무
+ *                  요일, or not a market day). Checked again once the trip moves
+ *                  on to the next day.
+ *   CLOSED       — open that date, but shut by the time the visitor gets there.
+ *   NO_TIME      — would run past 21:00, today and on a fresh next day.
+ *   OUT_OF_RANGE — nothing within one leg of the last stop (도보 2 km …).
+ *   NO_PLACES    — none left: none exist, too big a party, or all used.
+ */
+export type JejuPickerStatus = 'OK' | 'PICKED' | 'DAY_OFF' | 'CLOSED' | 'NO_TIME' | 'OUT_OF_RANGE' | 'NO_PLACES';
+
+/** What the renderer asks for. `kioskId` is filled by the main process, as for /recommend. */
+export interface JejuPickerQuery {
+  transport: JejuTransport;
+  party: number;
+  /** 0 = 당일치기. Days = min(nights + 1, 4), each 09:00 → 21:00. */
+  nights: number;
+  /** `YYYY-MM-DD` of DAY 1 — closed weekdays and 5일장 dates are checked per day. */
+  visitDate: string;
+  /**
+   * When DAY 1 starts, minutes past midnight — the kiosk clock when the page
+   * opened, sent unchanged on every tap. Before 09:00 counts as 09:00; later
+   * days always start at 09:00.
+   */
+  startMin: number;
+  /** Every tile tapped so far, whole trip, tap order — `aiCategoryKr` with its prefix. */
+  picks: string[];
+  /** The tiles on screen, so each gets a row back (a tile with no places reads NO_PLACES). */
+  categories?: string[];
+}
+
+/** One stop the picker placed. Times are minutes past midnight (540 = 09:00). */
+export interface JejuPickerStop {
+  order: number;
+  aiCategory: string;
+  shopId: number;
+  travelMinutes: number;
+  travelKm: number;
+  /** Arrived before it opened, so waited this long. */
+  waitMinutes: number;
+  dwellMinutes: number;
+  arriveMin: number;
+  leaveMin: number;
+  /** travel + wait + dwell — what this tap took off its day. */
+  costMinutes: number;
+  viewAnchor: string | null;
+}
+
+export interface JejuPickerDay {
+  day: number;
+  date: string;
+  startMin: number;
+  endMin: number;
+  budgetMinutes: number;
+  usedMinutes: number;
+  /** Left on this day — a later tap that fits can still use it (days never close). */
+  remainingMinutes: number;
+  /** What the taps placed on this day. */
+  stops: JejuPickerStop[];
+  /**
+   * The first tapped day's categories again, at new places: after the stops of
+   * the last tapped day (unless it is the first tapped day), and as the whole
+   * of every empty day after it. Only for the result page — it is not in this
+   * day's minutes or the trip totals, and the tiles ignore it. Null otherwise,
+   * and always null from an API that does not send it yet.
+   */
+  repeat: JejuPickerRepeat | null;
+}
+
+export interface JejuPickerRepeat {
+  /** The day whose categories are repeated (DAY 1 unless it is empty). */
+  ofDay: number;
+  /** The whole day as shown — tapped and repeated stops — from its startMin. */
+  usedMinutes: number;
+  remainingMinutes: number;
+  stops: JejuPickerStop[];
+  /** Categories of `ofDay` with no place that fitted this day. */
+  skipped: { aiCategory: string; reason: string }[];
+}
+
+/** One row per tile. */
+export interface JejuPickerOption {
+  aiCategory: string;
+  /** Can be tapped to ADD it. A PICKED tile is not enabled but stays tappable to remove. */
+  enabled: boolean;
+  status: JejuPickerStatus;
+  /** OK: what a tap would add (wait included). PICKED: what it took. Else null. */
+  costMinutes: number | null;
+  shopId: number | null;
+  /** OK: the day a tap lands on. PICKED: the day it went to. Else null. */
+  day: number | null;
+  /** OK / PICKED: arrival time there. Else null. */
+  arriveMin: number | null;
+}
+
+/** The whole plan, as of the taps sent. */
+export interface JejuPickerPlan {
+  visitDate: string;
+  dayCount: number;
+  budgetMinutes: number;
+  usedMinutes: number;
+  /** Every day's leftover together — days never close, so all of it can still be used. */
+  remainingMinutes: number;
+  /** The earliest day a tappable tile lands on (else the last day with stops). */
+  currentDay: number;
+  /** No tile can be tapped. With a lot of `remainingMinutes` left, places ran out, not time. */
+  full: boolean;
+  days: JejuPickerDay[];
+  categories: JejuPickerOption[];
+  /** Taps that no longer fit after a change of 이동수단 / 인원 / 기간. */
+  dropped: { aiCategory: string; reason: string }[];
 }

@@ -36,6 +36,33 @@ const SPOT_MAP_H = 631;
  */
 const RENTCAR_HOUSE_PIN = { x: 0.405, y: 0.35 };
 
+/** Caption under the address QR on 렌터카 상세. */
+const RENTCAR_ADDRESS_QR_LABEL = {
+  ko: '주소 보기',
+  en: 'View address',
+  ja: '住所を見る',
+  zh: '查看地址',
+  vi: 'Xem địa chỉ',
+  th: 'ดูที่อยู่',
+  ru: 'Адрес',
+  id: 'Lihat alamat',
+};
+
+/**
+ * Caption under the homepage QR on 렌터카 상세.
+ * URL comes from shop `homepage` via `DetailItem.homepageUrl`.
+ */
+const RENTCAR_HOMEPAGE_QR_LABEL = {
+  ko: '홈페이지',
+  en: 'Homepage',
+  ja: 'ホームページ',
+  zh: '主页',
+  vi: 'Trang chủ',
+  th: 'โฮมเพจ',
+  ru: 'Сайт',
+  id: 'Beranda',
+};
+
 /** Replaces the km directions heading on 렌터카하우스 detail. */
 const RENTCAR_HOUSE_HEADING = {
   ko: '1층 2번 게이트',
@@ -134,6 +161,10 @@ export function JejuSpotDetailCard({
   // Only a real URL becomes a QR; the shops API leaves this empty for many rows.
   // `blogReviews` carries the Naver link, not a review count — see JejuDetail.
   const qrLink = /^https?:\/\//i.test(item.blogReviews) ? item.blogReviews : null;
+  const homepageQrUrl =
+    item.homepageUrl && /^https?:\/\//i.test(item.homepageUrl.trim())
+      ? item.homepageUrl.trim()
+      : null;
   const ratingValue = parseFloat(item.rating);
   const hasRating = Number.isFinite(ratingValue) && ratingValue > 0;
   const filledStars = Math.round(ratingValue);
@@ -259,7 +290,9 @@ export function JejuSpotDetailCard({
         <div className={`${styles.head} ${photoRow ? styles.headRow : ''}`}>
           <div className={`${styles.nameRow} ${item.rentcarBadge ? styles.nameRowWithBadge : ''}`}>
             <div className={styles.nameRowLeft}>
-              <p className={`${styles.name} ${single ? styles.nameBoxed : ''}`}>{item.name}</p>
+              {/* Flush left in both variants — see the .nameBoxed note in the CSS
+                  for why the frame's centred 700px box is deliberately not here. */}
+              <p className={styles.name}>{item.name}</p>
               {item.category && (
                 <span className={styles.cat}>
                   <span className={styles.dot} />
@@ -323,10 +356,34 @@ export function JejuSpotDetailCard({
             )}
           </div>
 
-          {qrLink && (
-            <div className={styles.qr}>
-              <QRCodeSVG className={styles.qrCode} value={qrLink} bgColor="#ffffff" fgColor="#000000" />
-            </div>
+          {isRentcar ? (
+            (homepageQrUrl || qrLink) && (
+              <div className={styles.qrGroup}>
+                {homepageQrUrl && (
+                  <div className={`${styles.qr} ${styles.qrWithCaption}`}>
+                    <QRCodeSVG
+                      className={styles.qrCode}
+                      value={homepageQrUrl}
+                      bgColor="#ffffff"
+                      fgColor="#000000"
+                    />
+                    <span className={styles.qrCaption}>{pick(RENTCAR_HOMEPAGE_QR_LABEL, lang)}</span>
+                  </div>
+                )}
+                {qrLink && (
+                  <div className={`${styles.qr} ${styles.qrWithCaption}`}>
+                    <QRCodeSVG className={styles.qrCode} value={qrLink} bgColor="#ffffff" fgColor="#000000" />
+                    <span className={styles.qrCaption}>{pick(RENTCAR_ADDRESS_QR_LABEL, lang)}</span>
+                  </div>
+                )}
+              </div>
+            )
+          ) : (
+            qrLink && (
+              <div className={styles.qr}>
+                <QRCodeSVG className={styles.qrCode} value={qrLink} bgColor="#ffffff" fgColor="#000000" />
+              </div>
+            )
           )}
         </div>
 
@@ -336,9 +393,31 @@ export function JejuSpotDetailCard({
             {item.description && <p className={styles.desc}>{item.description}</p>}
             {item.tags && <p className={styles.tags}>{item.tags}</p>}
 
+            {/* Floor plan under the description (6219:99127), marked with the
+                place this card is about.
+                The <img> sizes the inner box rather than filling the outer one,
+                so `item.mapPin`'s fractions land on the PLAN and not on the
+                letterboxing `contain` leaves around it — the plans run 2.2–3.1
+                aspect against this slot's 2.24, so there is always some. Same
+                arrangement as JejuHelp's own .map/.plan, which is what makes the
+                two screens mark the identical spot. */}
             {item.mapImage && (
               <div className={styles.detailMap}>
-                <img src={item.mapImage} alt="" draggable={false} />
+                <div className={styles.detailPlan}>
+                  <img src={item.mapImage} alt="" className={styles.detailPlanImg} draggable={false} />
+                  {/* `mapPin` is the marker ART (ico-map-pin, shared with the
+                      lat/lng 상세 map below and with JejuHelp's own pins);
+                      `item.mapPin` is WHERE to put it. */}
+                  {item.mapPin && mapPin && (
+                    <img
+                      src={mapPin}
+                      alt=""
+                      className={styles.detailPin}
+                      style={{ left: `${item.mapPin.x * 100}%`, top: `${item.mapPin.y * 100}%` }}
+                      draggable={false}
+                    />
+                  )}
+                </div>
               </div>
             )}
 

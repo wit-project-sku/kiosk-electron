@@ -11,6 +11,30 @@ export interface ResultCopy {
   retake: string;
 }
 
+/**
+ * The 위드마켓 result page's sub-title — Figma 6980:17803, which added it above
+ * the store panel. Distinct from `RESULT.subtitle`: that one belongs to the
+ * no-payment 저장하기 screen, which shows the photo itself rather than a shop,
+ * so its line talks about the PHOTO ("사진 촬영 결과물을 통해…") where this one
+ * talks about the AR dress-up the goods are made from.
+ *
+ * Localized rather than drawn as the frame's Korean: the market page is reached
+ * by every visitor who finishes the AR flow, in all eight shipped languages.
+ */
+/* Each line is kept under the 1820px the frame gives it at 60px, so every
+   language draws on ONE line as 6980:17803 does; ja / ru / id are phrased
+   tighter than a literal rendering for exactly that reason. */
+export const MARKET_SUBTITLE: Partial<Record<Lang, string>> = {
+  ko: 'AR착장을 통해서 세상의 하나뿐인 나만의 굿즈를 제작해보세요',
+  en: 'Turn your AR dress-up into goods that are yours alone',
+  ja: 'AR着せ替えで世界に一つだけのグッズを作りましょう',
+  zh: '通过 AR 试穿，制作独一无二的专属周边',
+  vi: 'Biến màn thử đồ AR của bạn thành món đồ độc nhất',
+  th: 'เปลี่ยนการลองชุด AR ของคุณให้เป็นของที่ระลึกชิ้นเดียวในโลก',
+  ru: 'Превратите AR-примерку в уникальный сувенир',
+  id: 'Jadikan busana AR Anda merchandise milik Anda sendiri',
+};
+
 /** 저장하기 result screen copy (Figma 사진촬영후 / no-payment kiosks). */
 export const RESULT: Partial<Record<Lang, ResultCopy>> = {
   ko: {

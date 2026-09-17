@@ -13,4 +13,6 @@ import { handle } from '../registry';
  */
 export function registerJejuCourseHandlers(container: AppContainer): void {
   handle(IpcChannels.JejuCourseRecommend, (query) => container.jejuCourse.recommend(query));
+  // 커스텀 코스 picker — one call per 즐길 거리 tap; a failure leaves the tiles usable.
+  handle(IpcChannels.JejuCoursePicker, (query) => container.jejuCourse.picker(query));
 }

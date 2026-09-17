@@ -1,0 +1,189 @@
+/*
+ * 개인정보처리방침 시트 — Figma 7334:54335 (정보 입력 위에 뜬 상태).
+ *
+ * 판: 1820×2591, r53.625, 안쪽 50/40, 블록 사이 20. 가운데 정렬이고 뒤는
+ * rgba(0,0,0,.2) 로만 덮는다 — 시안이 뒤 화면을 읽을 수 있게 남겨 둔다.
+ *
+ *    머리말 (제목 68 ExtraBold · 부제 25 Medium, 1px #ebebeb 밑줄)
+ *    읽는 영역 (좌우 24)
+ *      18  요약 상자 (#f9f7f5 r16, 항목 Bold 38 · 내용 Medium 38 #666)
+ *     269  거부 고지 (Bold 38, 주황)
+ *     342  가는 줄
+ *     362  전문 (제목 ExtraBold 38 · 본문 Medium 38 #666, 줄 간격 12)
+ *    닫기 1692×120 r40 (#f2f2f2, Bold 50)
+ *
+ * ★ 시안에는 '동의하기' 가 없다 — 이 시트는 읽는 곳이고, 동의는 정보 입력 화면의
+ *   체크 줄과 동의 화면의 체크박스에서 받는다. 읽는 창 안에서 동의를 받지 않는
+ *   편이 법적으로도 깔끔하다.
+ */
+.overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 30;
+  background: rgba(0, 0, 0, 0.2);
+  display: grid;
+  place-items: center;
+}
+
+.panel {
+  box-sizing: border-box;
+  width: 1820px;
+  height: 2591px;
+  padding: 50px 40px;
+  border-radius: 53.625px;
+  background: #fff;
+  box-shadow: 0 40px 120px rgba(0, 0, 0, 0.25);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+  overflow: hidden;
+}
+
+.head {
+  box-sizing: border-box;
+  width: 100%;
+  padding: 24px 24px 16px;
+  border-bottom: 1px solid #ebebeb;
+  display: flex;
+  flex-direction: column;
+  gap: 30px;
+}
+
+.title {
+  margin: 0;
+  font-size: 68px;
+  font-weight: 800;
+  line-height: 1.2;
+  color: #1a1a1a;
+}
+
+.sub {
+  margin: 0;
+  font-size: 25px;
+  font-weight: 500;
+  line-height: 1.4;
+  color: #999;
+}
+
+/* 읽는 영역. 시안은 좌우 24 안쪽에 블록들을 20 간격으로 쌓는다. */
+.body {
+  flex: 1;
+  min-height: 0;
+  width: 100%;
+  box-sizing: border-box;
+  padding: 18px 24px 0;
+  overflow-y: auto;
+  font-size: 38px;
+  line-height: 1.5;
+  color: #666;
+  scrollbar-width: none;
+}
+
+.body::-webkit-scrollbar {
+  display: none;
+}
+
+.summary {
+  margin: 0;
+  padding: 16px;
+  border-radius: 16px;
+  background: #f9f7f5;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.row {
+  display: flex;
+  gap: 16px;
+  align-items: flex-start;
+}
+
+.row dt {
+  flex: 0 0 170px;
+  font-weight: 700;
+  line-height: 1.4;
+  color: #1a1a1a;
+}
+
+.row dd {
+  flex: 1 1 auto;
+  margin: 0;
+  line-height: 1.4;
+  color: #666;
+}
+
+.refuse {
+  margin: 20px 0 0;
+  font-weight: 700;
+  line-height: 1.4;
+  color: var(--primary);
+}
+
+.fullTitle {
+  margin: 20px 0 0;
+  padding-top: 20px;
+  border-top: 1px solid #ebebeb;
+  font-size: 38px;
+  font-weight: 800;
+  line-height: 1.4;
+  color: #1a1a1a;
+}
+
+.section {
+  margin-top: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.section h4,
+.section h5 {
+  margin: 0;
+  font-size: 38px;
+  font-weight: 800;
+  line-height: 1.4;
+  color: #1a1a1a;
+}
+
+.section p {
+  margin: 0;
+}
+
+/* 4px 점 + 6px 사이 (7356:154955). */
+.bullet {
+  position: relative;
+  padding-left: 10px;
+  line-height: 1.4;
+}
+
+.bullet::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0.62em;
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: #666;
+}
+
+/* 시안의 단 하나의 버튼 (7356:154968). */
+.close {
+  flex: 0 0 auto;
+  width: 1692px;
+  height: 120px;
+  border: 0;
+  border-radius: 40px;
+  background: #f2f2f2;
+  color: #1a1a1a;
+  font-size: 50px;
+  font-weight: 700;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.close:active {
+  transform: scale(0.99);
+}

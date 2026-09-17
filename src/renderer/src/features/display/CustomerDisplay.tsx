@@ -11,15 +11,17 @@ import { usePhotoStore } from '@renderer/store/photoStore';
 import { trackEvent } from '@renderer/lib/analytics';
 import { displayVideosFor } from '@renderer/assets/videos';
 import { cameraIconUrl } from '@renderer/assets/icons/insadong/camera';
-import { clipsForPlayKey, clipsForScreen, initSubtitles, initVideoFiles } from '@renderer/lib/videoMap';
+import { allScreenEntryUrls, clipsForPlayKey, clipsForScreen, initSubtitles, initVideoFiles, normalizeClipIndexKeys, siblingClipUrls } from '@renderer/lib/videoMap';
 import { getCameraRotation, getKioskLocation, isJejuLayout } from '@shared/config/kioskLocations';
 import { PHOTO_COUNTDOWN_SECONDS } from '@shared/constants/photoOptions';
 import type { WeatherPlayKey } from '@shared/config/weatherVideo';
 import spinnerImg from '@renderer/assets/spinner.svg';
 import { KioskArtboard } from '@layouts/components/KioskScreenImage';
+import { JejuMotionDisplay } from '@layouts/jeju/games/motion/JejuMotionDisplay';
+import { useMotionGameState } from '@layouts/jeju/games/motion/useMotionGameState';
 import { Slideshow } from './components/Slideshow';
-import { VideoWall } from './components/VideoWall';
 import { AiModelVideoWall } from './components/AiModelVideoWall';
+import { ClipPrefetch } from './components/ClipPrefetch';
 import { JejuCameraGuide } from './components/JejuCameraGuide';
 import styles from './CustomerDisplay.module.css';
 
@@ -100,16 +102,24 @@ export function CustomerDisplay(): JSX.Element {
       const id = r.value.kioskConfig.kioskId as KioskId;
       setKioskId(id);
       // Freshly load, on every launch: (1) the real on-disk video file list,
-      // THEN (2) this kiosk's API subtitles. Order matters — initSubtitles drops
-      // any entry whose video file isn't known, so the file list must be loaded
-      // first. Both replace the initially-empty maps; there is no hardcoded/
-      // build-time data. Needs the resolved kioskId so entries land in the right
-      // set. Bump dataVersion afterwards so the clip lookups recompute.
+      // THEN (2) this kiosk's subtitles. Order matters — initSubtitles drops any
+      // entry whose video file isn't known, so the file list must be loaded
+      // first. Needs the resolved kioskId so entries land in the right set.
+      // Bump dataVersion afterwards so the clip lookups recompute.
+      //
+      // Entries come from main (SubtitleService, SQLite-cached): the CMS API,
+      // or — on a 제주 kiosk whose CMS has no rows — the venue's VideoSubtitle
+      // Google Sheet tab, read at runtime. Either way 제주 playKeys arrive in
+      // raw sheet form (`Default-1`…`-10`, alias keys), so they are normalized
+      // to the keys this app addresses before loading. Only when neither has
+      // rows does the display fall back to the generic uncaptioned attract wall.
       void (async () => {
         const vr = await window.api.videos.list();
         if (isOk(vr) && vr.value) initVideoFiles(vr.value);
         const sr = await window.api.subtitles.get();
-        if (isOk(sr) && sr.value) initSubtitles(sr.value, id);
+        const fromApi = isOk(sr) && sr.value ? sr.value : [];
+        const entries = normalizeClipIndexKeys(fromApi, id);
+        if (entries.length > 0) initSubtitles(entries, id);
         setDataVersion((v) => v + 1);
       })();
     });
@@ -151,6 +161,38 @@ export function CustomerDisplay(): JSX.Element {
     [weatherKey, lang, kioskId, dataVersion],
   );
 
+  // Clip warming, so the wall's switch never starts from cold disk (the visible
+  // "video changes a beat after the touch screen" delay — reported on 제주,
+  // whose sheet gives every tab its own clip, so every tap is a real file
+  // switch). Two tiers, both derived from the same screen map the wall resolves
+  // through: the current screen's one-tap neighbours fully buffered, and every
+  // screen's entry clip header-read. See ClipPrefetch for the mechanics.
+  //
+  // DEFERRED, never eager: warming that starts at the moment of the switch
+  // competes with the ONE load that matters — the incoming clip — and made the
+  // switch measurably worse on the 제주 kiosks. So the sibling tier waits until
+  // the screen has sat still (the visitor is reading the page; the wall's load
+  // is long done), and the broad tier waits until well after boot.
+  const [settledScreen, setSettledScreen] = useState<string>('home');
+  useEffect(() => {
+    const timer = setTimeout(() => setSettledScreen(kioskScreen), 1500);
+    return () => clearTimeout(timer);
+  }, [kioskScreen]);
+  const [warmAll, setWarmAll] = useState(false);
+  useEffect(() => {
+    if (dataVersion === 0) return;
+    const timer = setTimeout(() => setWarmAll(true), 8000);
+    return () => clearTimeout(timer);
+  }, [dataVersion]);
+  const prefetchAuto = useMemo(
+    () => siblingClipUrls(settledScreen, lang, kioskId).slice(0, 4),
+    [settledScreen, lang, kioskId, dataVersion],
+  );
+  const prefetchMeta = useMemo(
+    () => (warmAll ? allScreenEntryUrls(lang, kioskId).slice(0, 32) : []),
+    [warmAll, lang, kioskId, dataVersion],
+  );
+
   // Navigating away cancels a playing weather clip — the new screen's own video
   // wins, otherwise the weather clip would keep overriding it.
   useEffect(() => {
@@ -168,10 +210,24 @@ export function CustomerDisplay(): JSX.Element {
       });
     }
   }, [weatherKey, weatherClips.length, kioskId]);
-  // Osaek (W004) and Hwaseong (W005) don't use the PARK SUL NYEO brand logo.
-  const noBrandLogo = kioskId === 'W004' || kioskId === 'W005';
-  // Generic-wall fallback URLs for the active kiosk's video set (W004 → osaek).
+  // The PARK SUL NYEO brand logo belongs to the 인사동 kiosks (W001–W003) only —
+  // every other venue (Osaek, Hwaseong, 제주, KADA) shows no brand mark on the
+  // video wall.
+  const kioskLayout = kioskId ? getKioskLocation(kioskId as KioskId).layout : null;
+  const noBrandLogo = kioskLayout !== 'INSADONG' && kioskLayout !== 'NAM_INSADONG';
+  // Generic-wall fallback for the active kiosk's video set (W004 → osaek): every
+  // file in the folder, with no captions, shown when no subtitle entry resolved.
+  //
+  // Rendered through the SAME double-buffered wall as the real clips rather than
+  // a plain <video>: the old VideoWall keyed its element on the src, so each
+  // advance tore down and rebuilt the element and the screen went black while
+  // the next file loaded. On a 1080x1920 kiosk reel that gap reads as the video
+  // being stuck. Captions are empty strings, so the wall draws none.
   const displayVideos = useMemo(() => displayVideosFor(kioskId), [kioskId, dataVersion]);
+  const displayClips = useMemo(
+    () => displayVideos.map((url) => ({ url, subtitle: '', label: '' })),
+    [displayVideos],
+  );
 
   useEffect(() => {
     if (state.mode === 'generating') {
@@ -214,7 +270,18 @@ export function CustomerDisplay(): JSX.Element {
   /** The venue's mount rotation — 90 on 제주, 0 (upright) everywhere else. */
   const cameraRotation = kioskId ? getCameraRotation(kioskId as KioskId) : 0;
 
-  const cameraEnabled = state.mode === 'camera' || state.mode === 'countdown';
+  // ── 제주 모션 게임 ─────────────────────────────────────────────────────
+  // The camera games run HERE, on the big screen, because that is the screen
+  // the camera faces and the one a visitor standing back can actually see. The
+  // touch window only chooses one and then acts as its remote.
+  const motion = useMotionGameState();
+
+  // Never both. A running motion game has the camera open for pose tracking,
+  // and this window opening it a second time is exactly the failure
+  // FootfallService exists to prevent — on Windows the second opener inherits
+  // the first one's negotiated format.
+  const cameraEnabled =
+    (state.mode === 'camera' || state.mode === 'countdown') && motion.game === null;
   const { videoRef, capture } = useKioskCamera({
     deviceId: state.cameraDeviceId,
     enabled: cameraEnabled,
@@ -281,6 +348,18 @@ export function CustomerDisplay(): JSX.Element {
     return () => clearTimeout(timer);
   }, [gestureGate]);
 
+  // A running motion game takes the WHOLE screen and every other branch below
+  // is skipped. Returning early rather than layering it over the stage is
+  // deliberate: the game owns the camera, and leaving the display's own camera
+  // preview mounted underneath would be a second opener of the same device.
+  if (motion.game) {
+    return (
+      <KioskArtboard>
+        <JejuMotionDisplay game={motion.game} runId={motion.runId} />
+      </KioskArtboard>
+    );
+  }
+
   return (
     <KioskArtboard>
       <div className={styles.stage}>
@@ -297,9 +376,12 @@ export function CustomerDisplay(): JSX.Element {
               hideLogo={noBrandLogo}
               playOnce={weatherClips.length > 0}
               onDone={() => setWeatherKey(null)}
+              // Warm the likeliest next clip in the wall's idle back layer —
+              // a right guess makes the tab switch an instant layer swap.
+              preloadUrl={weatherClips.length > 0 ? null : prefetchAuto[0] ?? null}
             />
-          ) : displayVideos.length > 0 ? (
-            <VideoWall videos={displayVideos} />
+          ) : displayClips.length > 0 ? (
+            <AiModelVideoWall clips={displayClips} hideLabel />
           ) : assets.length > 0 ? (
             <Slideshow assets={assets} intervalMs={settings.slideshowIntervalMs} />
           ) : (
@@ -308,6 +390,10 @@ export function CustomerDisplay(): JSX.Element {
               <p className={styles.attractSub}>AI Photo Experience</p>
             </div>
           )}
+          {/* Hidden. Only while idling/navigating — the camera and generating
+              modes need the machine to themselves, and no screen changes
+              arrive during them anyway. */}
+          <ClipPrefetch auto={prefetchAuto} metadata={prefetchMeta} />
         </>
       )}
 

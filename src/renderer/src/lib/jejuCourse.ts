@@ -1,5 +1,13 @@
 import type { Shop } from '@shared/types/shop';
-import type { JejuCourseKey, JejuTransport } from '@shared/types/jejuCourse';
+import type {
+  JejuCourse,
+  JejuCourseDay,
+  JejuCourseKey,
+  JejuCourseSpot,
+  JejuPickerPlan,
+  JejuRegion,
+  JejuTransport,
+} from '@shared/types/jejuCourse';
 import { stripPrefix } from '@renderer/lib/shops';
 import { pick, type Lang } from '@renderer/lib/i18n';
 
@@ -24,6 +32,14 @@ const COURSE_LETTERS: Record<string, JejuCourseKey> = {
   nature: 'A',
   food: 'B',
   family: 'C',
+  /*
+   * ★ 쇼핑·로컬 체험 has no letter of its own — the API takes A/B/C only and
+   * JejuCourseService coerces anything else to A (자연·유산). It borrows B, the
+   * course whose own tags already read #로컬, and the landing sends 즐길 거리
+   * 제주 기념품 · 전통시장 · 로컬샵 with it, which the API guarantees to fit into
+   * the day. Give it its own letter the moment the API grows a 'D'.
+   */
+  shop: 'B',
 };
 
 export const courseLetter = (courseKey: string): JejuCourseKey =>
@@ -42,6 +58,21 @@ const TRANSPORTS: Record<string, JejuTransport> = {
 
 /** Unanswered falls to CAR, which is what the summary bar has always defaulted to. */
 export const transportCode = (label: string): JejuTransport => TRANSPORTS[label] ?? 'CAR';
+
+/**
+ * The themed map's region (a JejuRegionId from jejuRegionMap) → the API's 권역.
+ * The map's four shapes are 1:1 with the four codes. Anything unknown — no pick,
+ * or a stale value — yields undefined, and the request then goes without a
+ * region rather than with a guessed one (a wrong code would 400 the whole call).
+ */
+const REGIONS: Record<string, JejuRegion> = {
+  'jeju-aewol': 'JEJU_CITY',
+  'east-seongsan': 'EAST',
+  'west-hallim': 'WEST',
+  'seogwipo-jungmun': 'SEOGWIPO',
+};
+
+export const regionCode = (regionId: string): JejuRegion | undefined => REGIONS[regionId];
 
 /**
  * 방문 인원 chip → a party size.
@@ -67,7 +98,7 @@ const NIGHTS: Record<string, number> = {
   '당일치기': 0,
   '1박 2일': 1,
   '2박 3일': 2,
-  '3박 이상': 3,
+  '3박 4일': 3,
 };
 
 export const nightCount = (label: string): number => NIGHTS[label] ?? 0;
@@ -95,6 +126,88 @@ export function interestCodes(interests: string[], shops: Shop[]): string[] {
     if (key && !byStripped.has(key)) byStripped.set(key, raw);
   }
   return interests.map((i) => byStripped.get(i) ?? i);
+}
+
+/** Minutes past midnight as a clock — 544 → "09:04". */
+export function clockLabel(minutes: number): string {
+  const m = Math.max(0, Math.round(minutes));
+  return `${String(Math.floor(m / 60) % 24).padStart(2, '0')}:${String(m % 60).padStart(2, '0')}`;
+}
+
+/**
+ * A 커스텀 코스 picker plan in the shape the course detail already draws.
+ *
+ * The detail was built for /recommend's `JejuCourse`; the picker returns the
+ * same stops with more to say (waits, costs, per-tile states). Only what the
+ * detail reads is carried over:
+ *  - a day's `repeat` — the first tapped day's categories again at new places —
+ *    follows its own stops: on the last tapped day it tops the day up, on an
+ *    empty day after it it is the whole day, so a 2박 3일 visitor who tapped one
+ *    day's worth still gets three days;
+ *  - a day with neither stops nor a repeat is left out — it would page to a
+ *    blank list (an API that predates repeats sends none);
+ *  - 난이도 comes from the catalogue row (the picker does not grade), and a shop
+ *    with no grade reads 0, which the detail already shows as no label;
+ *  - 영업시간 is the catalogue's own `openTime` text — the picker already
+ *    scheduled the visit inside those hours, so showing them is safe.
+ * The course letter is meaningless here and fixed to 'A'.
+ */
+export function pickerPlanToCourse(plan: JejuPickerPlan, shops: Shop[]): JejuCourse | null {
+  const byId = new Map(shops.map((shop) => [shop.id, shop]));
+  const gradeOf = (shopId: number): number => {
+    const grade = (byId.get(shopId) as { difficulty?: unknown } | undefined)?.difficulty;
+    return typeof grade === 'number' ? grade : 0;
+  };
+  const meanGrade = (spots: JejuCourseSpot[]): number => {
+    const graded = spots.map((s) => s.difficulty).filter((g) => g > 0);
+    return graded.length ? Math.round(graded.reduce((a, b) => a + b, 0) / graded.length) : 0;
+  };
+
+  const schedule: JejuCourseDay[] = plan.days
+    .map((day) => ({
+      day: day.day,
+      // A repeat follows the day's own stops (none on an empty day), and its minutes cover both.
+      stops: [...day.stops, ...(day.repeat?.stops ?? [])],
+      usedMinutes: day.repeat ? day.repeat.usedMinutes : day.usedMinutes,
+    }))
+    .filter((day) => day.stops.length > 0)
+    .map((day) => {
+      const spots: JejuCourseSpot[] = day.stops.map((stop) => ({
+        shopId: stop.shopId,
+        order: stop.order,
+        travelMinutes: stop.travelMinutes,
+        travelKm: stop.travelKm,
+        // The picker has no regions and every stop is one the visitor tapped for.
+        isApproach: false,
+        approachMode: null,
+        isSelectedByUser: true,
+        isReservationRequired: false,
+        arriveMin: stop.arriveMin,
+        leaveMin: stop.leaveMin,
+        dwellMinutes: stop.dwellMinutes,
+        difficulty: gradeOf(stop.shopId),
+        openTimeText: byId.get(stop.shopId)?.openTime?.trim() || null,
+        viewAnchor: stop.viewAnchor,
+      }));
+      return { day: day.day, spotCount: spots.length, minutes: day.usedMinutes, difficulty: meanGrade(spots), spots };
+    });
+  if (schedule.length === 0) return null;
+
+  return {
+    course: 'A',
+    days: schedule.length,
+    totalSpots: schedule.reduce((n, day) => n + day.spots.length, 0),
+    totalMinutes: schedule.reduce((n, day) => n + day.minutes, 0),
+    difficulty: meanGrade(schedule.flatMap((day) => day.spots)),
+    unmetInterests: [],
+    schedule,
+  };
+}
+
+/** Now, as the picker's `startMin` — minutes past local midnight (13:05 → 785). */
+export function nowMinutes(): number {
+  const now = new Date();
+  return now.getHours() * 60 + now.getMinutes();
 }
 
 /** Today, as the API's `visitDate` — local date, never UTC. */

@@ -76,9 +76,13 @@ class AppPaths {
    * `resources/videos` lived inside the install dir (process.resourcesPath) and
    * would be lost on every update. Videos are NO LONGER shipped in the installer
    * (removed from electron-builder extraResources) — drop the .mp4s into
-   * `<dir>/<set>/` (insadong|osaek|hwaseong|jeju — see VIDEO_SETS) once per
-   * machine and updates leave
-   * them untouched.
+   * `<dir>/<set>/` once per machine and updates leave them untouched.
+   *
+   * The set folders are the VIDEO_SETS names, and the app creates the empty tree
+   * on first launch (see video.handlers' listVideoFiles) so the exact folder
+   * names are visible on the machine rather than guessed. Note that 제주 is THREE
+   * of them — `jeju-airport` (W006), `jeju-terminal` (W007) and `jeju-heritage`
+   * (W008) — because those venues share a design but not their footage.
    *
    * Default `C:\KioskVideos` on a packaged Windows kiosk (mirrors C:\KioskPhotos);
    * override with `KIOSK_VIDEOS_DIR`. Dev keeps using the repo's resources/videos.

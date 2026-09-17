@@ -13,6 +13,7 @@ import { useLang } from '@renderer/lib/i18n';
 import { t } from '@renderer/lib/loc';
 import { JejuPageFrame } from './JejuPageFrame';
 import styles from './JejuLanguage.module.css';
+import { belowModeBar } from './lowReach';
 
 interface Props {
   controller: KioskController;
@@ -75,13 +76,14 @@ export function JejuLanguage({ controller }: Props): JSX.Element {
 
   return (
     /* This page's ♿ frame (6286:24611) is on the 2026-08-26 mode-bar revision:
-       bar at the top, no promo banner, header y113, body +420 (언어선택영역
+       bar at the top, no promo banner, header flush under the bar (the frame's
+       y113), body +420 (언어선택영역
        y700 → y1120, measured). */
     <JejuPageFrame
       controller={controller}
       title="언어선택"
       lowReachModeBar
-      lowReachShift={113}
+      lowReachShift={belowModeBar()}
       lowReachBodyShift={420}
     >
       <div className={styles.area}>

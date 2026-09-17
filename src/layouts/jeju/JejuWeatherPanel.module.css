@@ -1,10 +1,31 @@
 /*
- * 제주 날씨 overlay — Figma node 6516:74520, the group the home weather card
- * opens over 제주>홈. Page coordinates: the frosted panel is 2000×3407 at
- * (81, 302); everything inside is panel-relative, so the numbers below are the
- * Figma values minus that origin. The seventh row and close button are siblings
- * of that group on frame 6516:74521; their positions are still measured from
- * the same panel origin.
+ * 제주 날씨 overlay — Figma frame 6516:74521 (제주>홈-날씨): the frosted panel
+ * group 6876:16421, its close tab 7181:9853 + 6876:16416, and the source line
+ * 7181:9854. Page coordinates: the panel body is 2000×3239 at (80, 460) and
+ * everything inside it is panel-relative, so the numbers below are the Figma
+ * values minus that origin.
+ *
+ * ── What the 2026-09-14 redraw moved ────────────────────────────────
+ * The close button left the foot of the panel for a TAB: a 329-wide piece of
+ * the same frosted panel rising from its top-right corner (page 1751…2080,
+ * from y297), with the button centred in it. To make room the panel body starts
+ * lower — y460 rather than y295 — and loses its own top-right radius where the
+ * tab joins it. Inside, the 오늘 card, the heads and row 1 moved down 178 and
+ * rows 2–6 and the rules 156; the column axes, every cell's geometry and the
+ * row template are untouched. The foot the close button left now carries the
+ * "※ 출처" line.
+ *
+ * Earlier redraws, for the history of the grid itself:
+ *   2026-09-09 — the columns became three PLACES (제주시 · 서귀포시 · 성산),
+ *     each with its own 208×200 glyph and 50px low/high;
+ *   2026-09-10 — seven rows became six, rows 3–6 on a 528 pitch.
+ *
+ * y map, panel-relative:
+ *    103…600   오늘 card (holds the column heads and the first row)
+ *    145       column heads
+ *    258       row 1 glyph top · then 719 / 1172 / 1700 / 2228 / 2756
+ *   1093…2636  four rules
+ *   3173.5     ※ 출처 line (centre)
  */
 
 .layer {
@@ -21,45 +42,6 @@
 /* Invisible dismiss target covering the page BEHIND the panel — see the note in
    JejuWeatherPanel.tsx. Tapping the bare screen around the panel is still a way
    out; the visible close button is the advertised one. */
-/* ── Close (6760:18767) ──
-   The same circle-and-X the 제주도 이벤트 MBTI card uses (both nodes are named
-   "Frame 1392"), so it is the same exported asset — see ico-close.svg.
-
-   Centred on the panel, as the frame centres it (page x 1018 → panel mid).
-   Page y 3518 − panel origin 302 = 3216. 129 rather than the node's 125 because
-   the export's box is 128.699: the 4.29 ring stroke overflows the node's
-   bounds, which is what Figma's inset-[0_-2.96%_-2.96%_0] describes.
-
-   The frame lays it across the seventh row's band, in the gap between the 오전
-   and 오후 columns — not below the list. */
-.close {
-  position: absolute;
-  left: 50%;
-  top: 3216px;
-  width: 129px;
-  height: 129px;
-  transform: translateX(-50%);
-  padding: 0;
-  border: none;
-  background: transparent;
-  cursor: pointer;
-  -webkit-tap-highlight-color: transparent;
-  /* Above the last row's glyphs so the X stays tappable. */
-  z-index: 1;
-}
-
-.closeIcon {
-  display: block;
-  width: 100%;
-  height: 100%;
-  object-fit: contain;
-  transition: transform 120ms ease-out;
-}
-
-.close:active .closeIcon {
-  transform: scale(1.08);
-}
-
 .dismiss {
   position: absolute;
   inset: 0;
@@ -76,58 +58,117 @@
  * one flat colour) this panel KEEPS its backdrop-filter: what sits behind it is
  * the home screen itself — the 공지 card, the 운항 정보 board and the tile grid —
  * so the blur is doing real work here.
+ *
+ * Top-right corner square: that is where the close tab joins (6873:16214 rounds
+ * only tl / bl / br).
  */
 .panel {
   position: absolute;
-  left: 81px;
-  top: 302px;
+  left: 80px;
+  top: 460px;
   width: 2000px;
-  /* Figma 6516:74169 — 2000×3407. Covers seven 357-tall rows (step 461 from
-     y178) plus the close button that sits in the last row's 오전/오후 gap. */
-  height: 3407px;
-  border-radius: 45px;
+  height: 3239px;
+  border-radius: 45px 0 45px 45px;
   background: rgba(237, 233, 226, 0.9);
   backdrop-filter: blur(15px);
   -webkit-backdrop-filter: blur(15px);
   overflow: hidden;
 }
 
+/*
+ * The close tab (7181:9853): the same frosted ground, 329 wide, flush with the
+ * panel's right edge, top corners rounded. The frame's node is 174 tall and
+ * overlaps the panel body by 11px; two 0.9-alpha layers would darken that strip,
+ * and the frame's own render shows one continuous surface, so the tab stops
+ * where the body starts (297…460).
+ */
+.tab {
+  position: absolute;
+  left: 1751px;
+  top: 297px;
+  width: 329px;
+  height: 163px;
+  border-radius: 45px 45px 0 0;
+  background: rgba(237, 233, 226, 0.9);
+  backdrop-filter: blur(15px);
+  -webkit-backdrop-filter: blur(15px);
+}
+
 /* 오늘's lighter card. It reaches above the first row to take in the column
-   heads, which is why the frame draws no rule between rows 1 and 2. */
+   heads, which is why the frame draws no rule between rows 1 and 2. Its own
+   42.9 blur is the frame's (6873:16215) — it reads as a brighter pane over the
+   panel's already-blurred ground, not as a flat white wash. */
 .todayCard {
   position: absolute;
   left: 70px;
-  top: 90px;
+  top: 103px;
   width: 1861px;
   height: 497px;
   border-radius: 45px;
   background: rgba(255, 255, 255, 0.5);
+  backdrop-filter: blur(42.9px);
+  -webkit-backdrop-filter: blur(42.9px);
 }
 
-/* ── Column heads ───────────────────────────────────────────────────── */
+/* ── Columns ─────────────────────────────────────────────────────────
+ * One custom property per column — the axis the frame draws that place's head,
+ * glyph and temperatures on (page x 770 / 1253 / 1717). Everything in the
+ * column is positioned off it, so a column moves as one.
+ *
+ * The three are NOT evenly pitched: 483 then 464. That is the frame's own
+ * spacing (heads and glyphs agree on it to the pixel), not slop worth
+ * normalising — the day label on the left is what the first gap is making room
+ * for.
+ */
+.col1 {
+  --col: 690px;
+  --head-left: 632px;
+  --head-top: 145px;
+}
+
+.col2 {
+  --col: 1173px;
+  --head-left: 1105px;
+  --head-top: 145px;
+}
+
+.col3 {
+  --col: 1637px;
+  --head-left: 1598px;
+  /* The frame draws 성산 5px lower than the other two heads. */
+  --head-top: 150px;
+}
+
+/* ── Column heads (제주시 · 서귀포시 · 성산) ─────────────────────────
+   Tops per column (--head-top): 성산 sits 5px under the other two, as drawn.
+   Capped at 440 (the tighter 464 column pitch, less a gutter) and allowed to
+   wrap, so a long translated place name stays over its own column; a second
+   line ends at 226, clear of the row-1 glyphs at 258. */
 .head {
   position: absolute;
+  left: var(--col);
+  top: var(--head-top);
+  max-width: 440px;
+  transform: translateX(-50%);
   font-size: 38px;
   font-weight: 400;
   line-height: 1;
   color: #999; /* 글씨-main */
-  white-space: nowrap;
+  text-align: center;
+  white-space: normal;
+  word-break: keep-all;
+  overflow-wrap: anywhere;
 }
 
-.headMorning {
-  left: 697px;
-  top: 132px;
-}
-
-.headAfternoon {
-  left: 1154px;
-  top: 132px;
-}
-
-/* The one head the frame sets 5px lower than the other two. */
-.headRange {
-  left: 1598px;
-  top: 137px;
+/* Korean: the frame's own text boxes (page x 712 / 1185 / 1678, 116 / 137 / 78
+   wide), with the name LEFT-aligned in them. They are centred on the column
+   axes, but the names are narrower than the boxes, so centring the text
+   instead lands 제주시 9px and 성산 6px right of where the frame draws them.
+   Korean only: a translated name is wider than its box and stays centred. */
+.headKo {
+  left: var(--head-left);
+  transform: none;
+  text-align: left;
 }
 
 /* Figma "Line 106": a 3px #C8BDA9 rule inset 111 from the panel edge — the same
@@ -140,25 +181,31 @@
   background: #c8bda9;
 }
 
-/* ── One day ────────────────────────────────────────────────────────── */
-/* 357 tall — the height of the taller (afternoon) glyph box, which is what sets
-   the row. `top` comes from the TSX. */
+/* ── One day ─────────────────────────────────────────────────────────
+ * 294 tall: the 200 glyph, then the temperatures at 244 with a 50px line. `top`
+ * comes from the TSX and is the row's GLYPH top, which is the one anchor all
+ * six rows agree on. The day LABEL does not: three of the six sit at glyph + 82,
+ * and the frame places the other three off it — 오늘 12px up, 내일 7 down, and
+ * the third weekday row 41 up. Those are reproduced as drawn: the TSX sets each
+ * label's and date's `top` (LABEL_OFFSETS), and 82 / 174 below are only the
+ * defaults.
+ */
 .row {
   position: absolute;
   left: 0;
   width: 2000px;
-  height: 357px;
+  height: 294px;
 }
 
 /*
- * 오늘 / 내일 fill this 126 box at 68px and overhang it slightly either side;
- * the single-letter weekdays are centred in it. Centring both is what the frame
- * draws — 목/금/토/일 sit visibly further right than 오늘/내일.
+ * The 126 label box. The single-letter weekdays are centred in it (the frame's
+ * `text-center` on a box centred at page x300); 오늘 / 내일 are LEFT-aligned in
+ * it — see .dayRelative.
  */
 .day {
   position: absolute;
   left: 157px;
-  top: 137px;
+  top: 82px;
   width: 126px;
   font-size: 68px;
   font-weight: 700;
@@ -168,10 +215,17 @@
   white-space: nowrap;
 }
 
+/* 오늘 / 내일 (rows 1–2): the frame sets these two left-aligned in the box from
+   page x237, which puts their ink 4–5px left of where centring would. */
+.dayRelative {
+  text-align: left;
+}
+
 .date {
   position: absolute;
   left: 167px;
-  top: 229px;
+  top: 174px;
+  width: 106px;
   font-size: 38px;
   font-weight: 400;
   line-height: 1;
@@ -179,29 +233,28 @@
   white-space: nowrap;
 }
 
+/* One place's cell: the glyph, and that place's low/high under it. */
+.cell {
+  position: absolute;
+  left: calc(var(--col) - 104px);
+  top: 0;
+  width: 208px;
+  height: 294px;
+}
+
 /*
- * Both glyph slots are one fixed 280×357 box with `contain`, centred on the axis
- * the frame draws each half-day's art on (795 / 1257.5 in page coordinates).
+ * 208×200 with `contain`, the box the frame draws every glyph in.
  *
- * The frame itself sizes every glyph by hand and does not agree with itself —
- * 04 lands at 265×256 (0.88× its source), 03 at 277×357 (0.89×) and the 내일
- * sun_cloud at 345×239 (1.10×). A single box reproduces the two 0.88× glyphs to
- * within a few px and keeps the whole column consistent, which the hand-sized
- * version is not.
+ * The frame sizes them by hand and does not quite agree with itself across the
+ * 18 cells; a single box reproduces the drawn size to within a pixel or two and
+ * keeps the three columns consistent, which the hand-sized version is not.
  */
 .glyphSlot {
   position: absolute;
+  left: 0;
   top: 0;
-  width: 280px;
-  height: 357px;
-}
-
-.glyphMorning {
-  left: 580px;
-}
-
-.glyphAfternoon {
-  left: 1038px;
+  width: 208px;
+  height: 200px;
 }
 
 .glyph {
@@ -210,33 +263,92 @@
   object-fit: contain;
 }
 
-/* ── 최저 / 최고 ────────────────────────────────────────────────────── */
-.min,
-.max {
+/* ── 최저 / 최고, per place ──────────────────────────────────────────
+ * The frame writes the three parts at fixed x (min, then the slash 80 on, then
+ * the max 33 after that) and the group lands centred on the column axis. Drawn
+ * as a centred flex row instead so it stays centred when the digits are not the
+ * frame's own two per number — `-5˚` in winter, `--˚` for a cell the outlook
+ * does not reach.
+ */
+.temps {
   position: absolute;
-  top: 129px;
-  font-size: 100px;
-  font-weight: 700;
+  left: 50%;
+  top: 244px;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: baseline;
+  font-size: 50px;
   line-height: 1;
   white-space: nowrap;
 }
 
 .min {
-  left: 1466px;
+  font-weight: 700;
   color: #3172e7;
 }
 
 .max {
-  left: 1712px;
+  font-weight: 700;
   color: #cd3534;
 }
 
+/* The frame's own 33px gutter between the two numbers, carried by the slash —
+   drawn LEFT-aligned in it, as the frame's box sets it (page x753 for a group
+   starting at 673); centred, it sat 8px right of the frame's. */
 .slash {
-  position: absolute;
-  left: 1653px;
-  top: 144px;
-  font-size: 70px;
+  width: 33px;
   font-weight: 400;
-  line-height: 1;
   color: #999; /* 글씨-main */
+  text-align: left;
+}
+
+/* ── ※ 출처 (7181:9854) ──
+   Pretendard Light 38, #1A1A1A (gray 07), 0.38 tracking, vertically centred on
+   page y3633.5. The frame's box is right-anchored at x1358, which with its own
+   string puts the text centred on the page; it is centred here directly, so a
+   source string of a different length stays centred too. */
+.source {
+  position: absolute;
+  left: 50%;
+  top: 3173.5px;
+  transform: translate(-50%, -50%);
+  margin: 0;
+  font-size: 38px;
+  font-weight: 300;
+  line-height: normal;
+  letter-spacing: 0.38px;
+  color: #1a1a1a;
+  white-space: nowrap;
+}
+
+/* ── Close (6876:16416), in the tab ──
+   ★ Its OWN glyph — ico-close-weather.svg, exported from this node (unchanged
+   by this redraw) — and NOT the ico-close.svg the 제주도 이벤트 MBTI card uses:
+   a 7px stroke against 4.29, and a ring that fills its own 117 box.
+
+   Page (1857, 328) minus the tab origin (1751, 297): centred across the tab's
+   329 width, 31 below its top. */
+.close {
+  position: absolute;
+  left: 106px;
+  top: 31px;
+  width: 117px;
+  height: 117px;
+  padding: 0;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.closeIcon {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  transition: transform 120ms ease-out;
+}
+
+.close:active .closeIcon {
+  transform: scale(1.08);
 }

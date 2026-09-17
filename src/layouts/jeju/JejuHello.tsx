@@ -23,7 +23,7 @@
  * mascots, but 제주 draws its own frame (JejuPageFrame chrome, tab row at y700,
  * one 1820×2160 card), so it is a sibling rather than a fork of those.
  */
-import { Fragment, useState } from 'react';
+import { Fragment, useEffect, useState, type ReactNode } from 'react';
 import type { KioskController } from '@renderer/hooks/useKioskController';
 import { jejuIconUrl } from '@renderer/assets/icons/jeju';
 import helloVideo from '@renderer/assets/videos/jeju/hello-hayoung.mp4';
@@ -56,6 +56,7 @@ import ysHobbyTennis from '@renderer/assets/photos/jeju/hello/yusan-hobby-tennis
 import ysHealthNeck from '@renderer/assets/photos/jeju/hello/yusan-health-neck.jpg';
 import ysHealthWaist from '@renderer/assets/photos/jeju/hello/yusan-health-waist.jpg';
 import ysHealthRefresh from '@renderer/assets/photos/jeju/hello/yusan-health-refresh.jpg';
+import { belowModeBar } from './lowReach';
 
 type TabId = 'profile' | 'hobbies' | 'health';
 /** The two sub-tabbed tabs; `profile` has no sub-tabs. */
@@ -160,12 +161,6 @@ const DETAILS = [
  * `focus` is the object-position the frame crops its photo to — sources taller
  * than their slot lose ~13% of their height, and each frame anchors that
  * differently. A source that fits its slot needs none.
- *
- * `bodyWidth` is per-frame for the same reason it looks arbitrary: the designer
- * drags the copy's box until it sits on two lines, so it runs 1188 / 1233 / 1584
- * / 1721 for copy of 46 / 57 / 72 / 62 characters, routinely overflowing the
- * 1188 column it lives in. It is a line-breaking decision, not a layout rule —
- * expect to redo it when the translations land.
  */
 interface Topic {
   id: string;
@@ -180,7 +175,6 @@ interface Topic {
   focus?: string;
   title?: string;
   body?: string;
-  bodyWidth?: number;
 }
 
 /**
@@ -210,7 +204,6 @@ const HOBBIES: readonly Topic[] = [
     focus: 'center 83%',
     title: 'K-POP 댄스로 에너지를 충전해요!',
     body: '좋아하는 안무를 하나씩 배우며 즐거운 시간을 보내요.\n신나는 음악이 들리면 어디서든 리듬을 타게 된답니다.',
-    bodyWidth: 1188,
   },
   {
     id: 'running',
@@ -222,7 +215,6 @@ const HOBBIES: readonly Topic[] = [
     focus: 'center bottom',
     title: '달리는 순간이 가장 행복해요!',
     body: '상쾌한 바람을 맞으며 제주 곳곳을 달리는 시간을 사랑해요. 좋은 코스만 보이면 언제 어디서든 바로 러닝을 즐긴답니다.',
-    bodyWidth: 1233,
   },
   {
     id: 'tennis',
@@ -234,7 +226,6 @@ const HOBBIES: readonly Topic[] = [
     focus: 'center bottom',
     title: '테니스는 내 스트레스 해소법!',
     body: '랠리를 이어가며 한 점 한 점 승부를 즐기는 시간이 가장 행복해요. 친구들과 함께 경기를 하거나 새로운 기술을 연습하며 건강한 에너지를 충전한답니다.',
-    bodyWidth: 1584,
   },
 ];
 
@@ -253,7 +244,6 @@ const HEALTH: readonly Topic[] = [
     photo: healthNeck,
     title: '여행의 설렘만큼 몸도 가볍게 풀어보세요.',
     body: '여행 중 쌓인 목과 어깨의 긴장을 가볍게 풀어보세요. 화면 속 동작을\n천천히 따라 하며 몸을 리프레시하고, 더욱 편안한 여행을 이어가세요.',
-    bodyWidth: 1721,
   },
   {
     id: 'waist',
@@ -264,7 +254,6 @@ const HEALTH: readonly Topic[] = [
     photo: healthWaist,
     title: '비행과 여행으로 지친 몸, 잠시 쉬어가세요.',
     body: '오랜 이동으로 뻐근해진 허리를 시원하게 풀어보세요.\n간단한 스트레칭으로 몸의 균형을 되찾고, 가벼운 몸으로 여행을 시작해 보세요.',
-    bodyWidth: 1696,
   },
   {
     id: 'refresh',
@@ -277,7 +266,6 @@ const HEALTH: readonly Topic[] = [
     // No hard break in the frame, and the mock's own wrap splits 덜어보세요
     // mid-word; `keep-all` on .topicBody moves it whole onto the second line.
     body: '간단한 스트레칭을 따라 하며 긴장을 풀고, 여행 중 쌓인 피로를 자연스럽게 덜어보세요. 잠깐의 휴식이 제주 여행을 더욱 즐겁게 만드는 특별한 시간이 될 거예요.',
-    bodyWidth: 1696,
   },
 ];
 
@@ -303,7 +291,6 @@ const YS_HOBBIES: readonly Topic[] = [
     photo: ysHobbyKpop,
     title: 'K-POP 댄스로 에너지를 충전해요!',
     body: '좋아하는 안무를 하나씩 배우며 즐거운 시간을 보내요.\n신나는 음악이 들리면 어디서든 리듬을 타게 된답니다.',
-    bodyWidth: 1188,
   },
   {
     id: 'food',
@@ -314,7 +301,6 @@ const YS_HOBBIES: readonly Topic[] = [
     photo: ysHobbyFood,
     title: '맛집 탐방으로 미식의 즐거움을 느껴요!',
     body: '새로운 맛집을 찾아 맛있는 음식을 하나씩 즐겨보며 특별한 시간을 보내요.\n맛있는 음식이 보이면 누구보다 빠르게 찾아가고 싶어진답니다.',
-    bodyWidth: 1582,
   },
   {
     id: 'tennis',
@@ -325,7 +311,6 @@ const YS_HOBBIES: readonly Topic[] = [
     photo: ysHobbyTennis,
     title: '테니스는 내 스트레스 해소법!',
     body: '랠리를 이어가며 한 점 한 점 승부를 즐기는 시간이 가장 행복해요. 친구들과\n함께 경기를 하거나 새로운 기술을 연습하며 건강한 에너지를 충전한답니다.',
-    bodyWidth: 1618,
   },
 ];
 
@@ -334,7 +319,7 @@ const YS_HOBBIES: readonly Topic[] = [
  * 6431:31654 (기분전환).
  *
  * Same three sub-tabs and word-for-word the same captions as 하영's; only the
- * photos and the per-frame `bodyWidth` differ. (The three frames all draw
+ * photos differ. (The three frames all draw
  * 목·어깨 as the SELECTED sub-tab — stale, like 하영's 골프/런닝 labels. Identify
  * them by their copy, which is what the ids below follow.)
  */
@@ -348,7 +333,6 @@ const YS_HEALTH: readonly Topic[] = [
     photo: ysHealthNeck,
     title: '여행의 설렘만큼 몸도 가볍게 풀어보세요.',
     body: '여행 중 쌓인 목과 어깨의 긴장을 가볍게 풀어보세요.  화면 속 동작을 천천히 따라 하며 몸을 리프레시하고, 더욱 편안한 여행을 이어가세요.',
-    bodyWidth: 1459,
   },
   {
     id: 'waist',
@@ -359,7 +343,6 @@ const YS_HEALTH: readonly Topic[] = [
     photo: ysHealthWaist,
     title: '비행과 여행으로 지친 몸, 잠시 쉬어가세요.',
     body: '오랜 이동으로 뻐근해진 허리를 시원하게 풀어보세요.\n간단한 스트레칭으로 몸의 균형을 되찾고, 가벼운 몸으로 여행을 시작해 보세요.',
-    bodyWidth: 1568,
   },
   {
     id: 'refresh',
@@ -370,7 +353,6 @@ const YS_HEALTH: readonly Topic[] = [
     photo: ysHealthRefresh,
     title: '잠시 멈춰, 기분 좋은 에너지를 채워보세요.',
     body: '간단한 스트레칭을 따라 하며 긴장을 풀고, 여행 중 쌓인 피로를 자연스럽게\n덜어보세요. 잠깐의 휴식이 제주 여행을 더욱 즐겁게 만드는 특별한 시간이 될 거예요.',
-    bodyWidth: 1638,
   },
 ];
 
@@ -532,6 +514,26 @@ function TopicPanel({
     ? { width: Math.round(lowBase.width * 1.15), height: Math.round(lowBase.height * 1.15) }
     : photo;
 
+  /**
+   * ★ Korean keeps the frames' hand-placed photo and caption card; every other
+   * language FLOWS (see `flow` in JejuHello). The card is a fixed 549 with its
+   * footer pinned inside it and the copy in a box the designer dragged until the
+   * KOREAN sat on two lines, 48px above the banner — so a translation ran over
+   * the hashtags and had nowhere to grow. In flow mode the photo and the card
+   * are one column between the photo's top and the card's drawn bottom edge:
+   * the card grows with its copy, and the photo gives up height (cropped by
+   * `cover`, never squashed) rather than the card running into the banner.
+   */
+  const flow = lang !== 'ko';
+  const stack = (node: ReactNode): ReactNode =>
+    flow ? (
+      <div className={`${styles.topicStack} ${heritage} ${lowReach ? styles.topicStackLow : ''}`}>
+        {node}
+      </div>
+    ) : (
+      node
+    );
+
   return (
     <>
       <JejuSubTabRow
@@ -541,6 +543,7 @@ function TopicPanel({
         className={lowReach ? styles.subTabsLow : undefined}
       />
 
+      {stack(<>
       {current.photo && (
         <div
           className={`${styles.topicPhoto} ${heritage} ${lowReach ? styles.topicPhotoLow : ''}`}
@@ -558,10 +561,18 @@ function TopicPanel({
       <div className={`${styles.topicCard} ${heritage} ${lowReach ? styles.topicCardLow : ''}`}>
         {current.title ? (
           <div className={`${styles.topicText} ${heritage}`}>
-            <p className={styles.topicTitle}>
+            <p
+              className={`${styles.topicTitle}${
+                tab === 'health' &&
+                (current.id === 'neck' || current.id === 'refresh') &&
+                lang !== 'ko'
+                  ? ` ${styles.topicTitleCompact}`
+                  : ''
+              }`}
+            >
               {greet(mascot, current.titleKey, lang, { ko: current.title })}
             </p>
-            <p className={styles.topicBody} style={{ width: current.bodyWidth }}>
+            <p className={styles.topicBody}>
               {greet(mascot, current.bodyKey, lang, { ko: current.body })}
             </p>
           </div>
@@ -571,6 +582,7 @@ function TopicPanel({
 
         <HelloFooter mascot={mascot} lang={lang} position={`${styles.footerTopic} ${heritage}`} />
       </div>
+      </>)}
     </>
   );
 }
@@ -594,6 +606,19 @@ export function JejuHello({ controller }: Props): JSX.Element {
     hobbies: TOPICS_BY_MASCOT[mascot.id].hobbies.topics[0]!.id,
     health: TOPICS_BY_MASCOT[mascot.id].health.topics[0]!.id,
   }));
+
+  // Switch the customer-display video per tab AND sub-tab. VideoSubtitle_귤이's
+  // 재생조건 column gives every sub-tab its own clip — 취미 탭 → K-POP / 런닝 /
+  // 테니스 (Greeting-2-1…3), 건강습관 → 목·어깨 / 허리 / 기분전환 (Greeting-3-1…3)
+  // — so the display is told WHICH one, by the sub-tab's position in the mascot's
+  // table (the sheet's own order). Reporting only the tab left all three clips
+  // cycling whichever sub-tab was open.
+  const topicIndex =
+    tab === 'profile' ? 0 : TOPICS_BY_MASCOT[mascot.id][tab].topics.findIndex((t) => t.id === topic[tab]) + 1;
+  useEffect(() => {
+    const base = tab === 'hobbies' ? 'hello_hobby' : tab === 'health' ? 'hello_stretch' : 'hello';
+    void window.api.kiosk.setScreen(tab === 'profile' || topicIndex < 1 ? base : `${base}_${topicIndex}`);
+  }, [tab, topicIndex]);
 
   const select = (id: TabId): void => {
     trackEvent({
@@ -636,6 +661,22 @@ export function JejuHello({ controller }: Props): JSX.Element {
    */
   const portrait = jejuIconUrl('hello-portrait');
 
+  /**
+   * ★ Korean keeps the 소개 frame's hand-placed card; every other language
+   * FLOWS. The card is a fixed 2160 with `overflow: hidden` and its divider,
+   * detail rows and footer pinned at Korean y's, so a translation either ran
+   * over the block under it or was clipped at the card's edge. In flow mode the
+   * same blocks stack, the card grows with them (never below its drawn height),
+   * and it sits in a scroll box that ends above the banner (♿: the tab row).
+   */
+  const flow = lang !== 'ko';
+  const scrollBox = (node: ReactNode): ReactNode =>
+    flow ? (
+      <div className={`${styles.scroll} ${lowReach ? styles.scrollLow : ''}`}>{node}</div>
+    ) : (
+      node
+    );
+
   return (
     /* ♿ is on the 2026-08-26 mode-bar revision (6558:79587 / 6297:74010): bar
        at the top, header y113, no banner; the page self-positions its content
@@ -648,7 +689,7 @@ export function JejuHello({ controller }: Props): JSX.Element {
       onBack={() => controller.navigate('home', '뒤로')}
       lowReachSelfLayout
       lowReachModeBar
-      lowReachShift={113}
+      lowReachShift={belowModeBar()}
     >
       <JejuTabRow
         tabs={helloTabs(mascot).map(({ id, key, label: fb }) => ({
@@ -673,7 +714,7 @@ export function JejuHello({ controller }: Props): JSX.Element {
         />
       )}
 
-      {tab === 'profile' && (
+      {tab === 'profile' && scrollBox(
         <div className={`${styles.card} ${heritage} ${lowReach ? styles.cardLow : ''}`}>
           <div className={styles.portrait}>
             {/* Muted + playsInline so Chromium will autoplay it at all: an

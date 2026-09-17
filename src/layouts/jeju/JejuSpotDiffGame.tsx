@@ -38,6 +38,18 @@
  * it isn't drawing a game in progress. Those live in the empty band under the
  * pictures and at the two ends of the progress line — see the CSS header.
  *
+ * ── ♿ 베리어프리 (Figma 6980:17652) ─────────────────────
+ * The ♿ control on the left rail now has a layout to switch to. It was drawn
+ * and wired here from the start, but only ever chose its own icon — pressing it
+ * toggled the store and left this screen on the standing layout, which is the
+ * one thing a low-reach visitor could not use.
+ *
+ * The frame is the fleet's banner variant: mode bar at y0, the 573 promo moved
+ * from the foot to flush under it, the header under the banner, and the body
+ * dropped into reach. All of it lives in the CSS's `.rootLowReach` block; what
+ * the markup decides is only that the bar exists. The left rail does NOT move —
+ * the frame keeps it at y2163, where it already was.
+ *
  * ── Nothing here may throw the photo away ─────────────────────────────
  * Two departures from every other 제주 page, both the same rule: while the AI is
  * working, this screen has no destructive exit.
@@ -54,11 +66,31 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import type { CSSProperties, PointerEvent as ReactPointerEvent } from 'react';
 import { Lightbulb, Heart, Timer } from 'lucide-react';
 import type { SpotDiffRound, SpotDiffSpot } from '@shared/types/spotDiff';
-import { pick, useLang } from '@renderer/lib/i18n';
+import { pick, useLang, type Lang } from '@renderer/lib/i18n';
+import { sheetText, tExact } from '@renderer/lib/loc';
 import { trackEvent } from '@renderer/lib/analytics';
 import { useKioskStore } from '@renderer/store/kioskStore';
+import { useAccessibilityStore } from '@renderer/store/accessibilityStore';
 import { usePhotoChrome } from '../photo/photoChrome';
+import { modeBarVars } from './lowReach';
+import { JejuBgMotion } from './JejuBgMotion';
 import styles from './JejuSpotDiffGame.module.css';
+
+/**
+ * The ♿ bar's copy. Sheet-first (`BarrierFree_Title`) with this as the
+ * fallback, exactly as JejuHanbokSelect does it — the same one string on every
+ * 제주 low-reach screen, so it must not drift between them.
+ */
+const BARRIER_FREE: Partial<Record<Lang, string>> = {
+  ko: '지금은 배리어프리 모드입니다.',
+  en: 'Currently in Barrier-Free Mode.',
+  ja: '現在はバリアフリーモードです。',
+  zh: '现在是无障碍模式。',
+  vi: 'Hiện tại là chế độ không rào cản.',
+  th: 'ขณะนี้อยู่ในโหมดไร้อุปสรรค',
+  ru: 'В настоящее время используется безбарьерный режим.',
+  id: 'Saat ini dalam mode bebas hambatan.',
+};
 
 /** Wrong taps allowed before the round is lost. */
 const MAX_LIVES = 5;
@@ -210,6 +242,18 @@ const WRAPPING_UP = {
   id: 'Menyelesaikan foto AI Anda',
 };
 
+/** Hub only — the round-end card's way to the photo, now that nothing hands over by itself. */
+const SEE_PHOTO = {
+  ko: '사진 보기',
+  en: 'See my photo',
+  ja: '写真を見る',
+  zh: '查看照片',
+  vi: 'Xem ảnh',
+  th: 'ดูภาพ',
+  ru: 'Смотреть фото',
+  id: 'Lihat foto',
+};
+
 const READY = {
   ko: '사진이 완성됐어요!',
   en: 'Your photo is ready!',
@@ -241,6 +285,18 @@ const JUST_WAIT = {
   th: 'ขอรอก่อน',
   ru: 'Просто подожду',
   id: 'Saya tunggu saja',
+};
+
+/** Hub only — replaces 그냥 기다릴게요 when there are other games to go back to. */
+const OTHER_GAMES = {
+  ko: '다른 게임',
+  en: 'Back to Games',
+  ja: '他のゲーム',
+  zh: '其他游戏',
+  vi: 'Trò chơi khác',
+  th: 'เกมอื่น',
+  ru: 'Другие игры',
+  id: 'Gim lain',
 };
 
 /** Shown with the choice, so the offer doesn't read as "your photo failed". */
@@ -282,7 +338,28 @@ interface Props {
   onFinish: () => void;
   /** Home button in the header (abandons the photo session, as elsewhere). */
   onHome: () => void;
+  /**
+   * Present when this board is hosted inside the 제주 게임 hub (see
+   * games/JejuWaitingGames) — "leave this game for the card menu".
+   *
+   * Its presence changes exactly one rule: the 홈/뒤로 lock below is dropped.
+   * The lock exists because leaving THIS screen ran the photo reset; when the
+   * header instead goes back to a menu, leaving costs nothing and locking the
+   * visitor in would only trap them in a game they did not want.
+   *
+   * Absent (the original direct-render path), everything behaves exactly as it
+   * always did.
+   */
+  onExit?: () => void;
+  /**
+   * Bank this round's score into the session's JEJU POINTS. Hub-only; the
+   * standalone path scores nothing because there is nowhere to show it.
+   */
+  onAward?: (points: number) => void;
 }
+
+/** JEJU POINTS per difference found — same scale as the hub's other games. */
+const POINTS_PER_SPOT = 100;
 
 /** Distance test in NORMALIZED image space — see the note in shared/types/spotDiff. */
 function hitSpot(spots: SpotDiffSpot[], found: Set<string>, x: number, y: number, aspect: number):
@@ -310,10 +387,23 @@ function hitSpot(spots: SpotDiffSpot[], found: Set<string>, x: number, y: number
   return { spot: best.spot, alreadyFound: best.already };
 }
 
-export function JejuSpotDiffGame({ rounds, aiReady, onFinish, onHome }: Props): JSX.Element {
+export function JejuSpotDiffGame({
+  rounds,
+  aiReady,
+  onFinish,
+  onHome,
+  onExit,
+  onAward,
+}: Props): JSX.Element {
   const lang = useLang();
   const kioskId = useKioskStore((s) => s.config.kioskId);
   const { icon, Header, photoTitle, banner } = usePhotoChrome();
+  /* The rail's ♿ control — see the rail markup for what it does and does not
+     affect on this screen. */
+  const lowReach = useAccessibilityStore((s) => s.lowReach);
+  const toggleLowReach = useAccessibilityStore((s) => s.toggleLowReach);
+  const accessibilityIcon =
+    (lowReach ? icon('ico-accessibility-on') : undefined) ?? icon('ico-accessibility');
   const pageBg = icon('bg-page') || icon('bg');
 
   /** Which board of `rounds` is in play; a replay advances it. */
@@ -351,7 +441,9 @@ export function JejuSpotDiffGame({ rounds, aiReady, onFinish, onHome }: Props): 
    * the photo is still 10 seconds out would hand back an exit precisely when
    * leaving is still destructive. `navLockExpired` bounds the wait either way.
    */
-  const navLocked = !aiReady && !navLockExpired;
+  // Hosted in the game hub, 홈/뒤로 lead to the card menu, not out of the photo
+  // session — nothing destructive to guard, so no lock. See the `onExit` prop.
+  const navLocked = onExit ? false : !aiReady && !navLockExpired;
 
   /**
    * onFinish must fire exactly once. Note this guards the HAND-OVER, not the end
@@ -439,13 +531,18 @@ export function JejuSpotDiffGame({ rounds, aiReady, onFinish, onHome }: Props): 
   // be the exact opposite of the point. A round in play needs no rescue anyway,
   // because the game clock already bounds it — it always reaches won/lost, and
   // this sweep then covers the card that follows.
+  //
+  // Hosted in the game hub, the host runs its own (longer) sweep and asks the
+  // visitor before anything hands over — see JejuWaitingGames — so this one
+  // stands down rather than ending a card the visitor is still reading.
   useEffect(() => {
+    if (onExit) return;
     if (outcome === 'playing' || outcome === 'skipped' || !aiReady) return;
     const id = setInterval(() => {
       if (Date.now() - lastTouchRef.current >= IDLE_RELEASE_MS) handOver();
     }, 1000);
     return () => clearInterval(id);
-  }, [outcome, aiReady, handOver]);
+  }, [outcome, aiReady, handOver, onExit]);
 
   // ── Hand over to the result screen ────────────────────────────────────
   // 결과 보기 / idle goes straight through. A finished round does NOT: while the
@@ -459,13 +556,20 @@ export function JejuSpotDiffGame({ rounds, aiReady, onFinish, onHome }: Props): 
       handOver();
       return;
     }
-    if (!aiReady) return;
+    // Hosted: never. The round-end card offers 사진 보기 next to 한 판 더, and
+    // the visitor decides — the photo taking the screen three seconds after a
+    // round was the "it quits my game" complaint.
+    if (!aiReady || onExit) return;
     const id = setTimeout(handOver, outcome === 'waiting' ? 0 : OUTCOME_HOLD_MS);
     return () => clearTimeout(id);
-  }, [outcome, aiReady, handOver]);
+  }, [outcome, aiReady, handOver, onExit]);
 
   useEffect(() => {
     if (outcome === 'playing' || !round) return;
+    // Hub only. Fired here rather than on the win so a round that ran out of
+    // time still banks what the visitor actually found — `onAward` keeps the
+    // best run, so a replay can improve it but never inflate it.
+    onAward?.(found.size * POINTS_PER_SPOT);
     void trackEvent({
       name: 'button_clicked',
       payload: {
@@ -550,20 +654,12 @@ export function JejuSpotDiffGame({ rounds, aiReady, onFinish, onHome }: Props): 
     });
   };
 
-  /** One of the frame's two grey plates, with the picture fitted inside it. */
-  const renderSlot = (
-    panel: number,
-    slotClass: string | undefined,
-    src: string | undefined,
-  ): JSX.Element => (
-    <div className={`${styles.slot} ${slotClass ?? ''}`}>
+  /** One of the two grey plates, with the picture fitted inside it. Position is
+   *  the row's business (see `.board`) — this only draws the plate. */
+  const renderSlot = (panel: number, src: string | undefined): JSX.Element => (
+    <div className={styles.slot}>
       {round && src ? (
-        <div
-          className={styles.panel}
-          // Drives the fit-inside arithmetic in the CSS — see the note on .panel.
-          style={{ '--sd-aspect': String(round.aspect) } as CSSProperties}
-          onPointerDown={handlePanelTap(panel)}
-        >
+        <div className={styles.panel} onPointerDown={handlePanelTap(panel)}>
           <img className={styles.panelImg} src={src} alt="" draggable={false} />
 
           {round.spots
@@ -614,14 +710,77 @@ export function JejuSpotDiffGame({ rounds, aiReady, onFinish, onHome }: Props): 
   );
 
   return (
-    <div className={styles.root}>
+    <div
+      className={`${styles.root} ${lowReach ? styles.rootLowReach : ''}`}
+      style={modeBarVars}
+    >
       {/* `bg-page` is the illustrated 제주 plate 6258:78631 draws; `bg` is the
           BLANK #faf7f2 one the home screen uses. Both resolve and both are
           2160×3840, so asking for the wrong one loses the artwork silently —
           same slip as JejuHanbokSelect had. `bg` stays as the fallback. */}
       {pageBg && <img className={styles.bg} src={pageBg} alt="" draggable={false} />}
+      {icon('bg-page') && <JejuBgMotion />}
 
-      <Header title={photoTitle} onHome={onHome} onBack={onHome} navDisabled={navLocked} />
+      {/* ♿ 6980:17652 — the bar the whole low-reach stack hangs off. The header
+          follows it down through `--jeju-shift` (see .rootLowReach in the CSS);
+          everything else is re-placed there against the frame's own y map. */}
+      {lowReach && (
+        <div className={styles.modeBar}>{sheetText('BarrierFree_Title', lang, BARRIER_FREE)}</div>
+      )}
+
+      {/* Same title as the AR 한복 steps before it: Localization_Jeju's
+          Photo_HanbokTry, with the shared photo chrome's literal as fallback. */}
+      <Header
+        title={tExact('Photo_HanbokTry', lang) || photoTitle}
+        onHome={onExit ?? onHome}
+        onBack={onExit ?? onHome}
+        navDisabled={navLocked}
+      />
+
+      {/* ── Left rail: 홈 · 뒤로 · ♿ (6258:78631, x50/y2163) ──
+          홈 and 뒤로 carry `navLocked` exactly as the header's pair does — while
+          the photo is generating a tap there would discard it. Both the
+          `disabled` attribute AND a nulled `onClick`: a disabled button
+          dispatches no click at all, so the lock does not depend on anything
+          sitting over the rail. (It briefly LOOKED like it did — `.board` was
+          covering all three buttons until `.leftNav` got its z-index; see the
+          CSS. That covered the ♿ toggle too, which is the one control here
+          that is never locked, because it throws nothing away.)
+
+          The toggle now reflows this screen — 6980:17652, see `.rootLowReach`.
+          It used to only swap its own icon, which is what the 위드마켓 result
+          still does. */}
+      <div className={styles.leftNav}>
+        <button
+          type="button"
+          className={`${styles.leftNavBtn} ${navLocked ? styles.leftNavBtnLocked : ''}`}
+          onClick={navLocked ? undefined : (onExit ?? onHome)}
+          disabled={navLocked}
+          aria-label="홈으로"
+        >
+          {icon('home-btn') && <img src={icon('home-btn')} alt="" draggable={false} />}
+        </button>
+        <button
+          type="button"
+          className={`${styles.leftNavBtn} ${navLocked ? styles.leftNavBtnLocked : ''}`}
+          onClick={navLocked ? undefined : (onExit ?? onHome)}
+          disabled={navLocked}
+          aria-label="뒤로"
+        >
+          {icon('back-arrow') && <img src={icon('back-arrow')} alt="" draggable={false} />}
+        </button>
+        {accessibilityIcon && (
+          <button
+            type="button"
+            className={styles.leftNavBtn}
+            onClick={toggleLowReach}
+            aria-label="저상 화면"
+            aria-pressed={lowReach}
+          >
+            <img src={accessibilityIcon} alt="" draggable={false} />
+          </button>
+        )}
+      </div>
 
       {/* ── ③ 잠시만 기다려주세요! ── */}
       <div className={styles.step}>
@@ -655,8 +814,18 @@ export function JejuSpotDiffGame({ rounds, aiReady, onFinish, onHome }: Props): 
         </div>
       </div>
 
-      {renderSlot(0, styles.slotA, round?.originalUrl)}
-      {renderSlot(1, styles.slotB, round?.modifiedUrl)}
+      {/* Side by side since 6980:17652 — they were stacked before. `--sd-aspect`
+          rides the ROW rather than each panel: the plate's height is derived
+          from it too, so the plate and the picture inside it resolve from one
+          value. The 4/3 fallback matches SpotDiffService's own default and only
+          shows for the frame before a round arrives. */}
+      <div
+        className={styles.board}
+        style={{ '--sd-aspect': String(round?.aspect ?? 4 / 3) } as CSSProperties}
+      >
+        {renderSlot(0, round?.originalUrl)}
+        {renderSlot(1, round?.modifiedUrl)}
+      </div>
 
       <div className={styles.actions}>
         <button
@@ -689,10 +858,10 @@ export function JejuSpotDiffGame({ rounds, aiReady, onFinish, onHome }: Props): 
           Three shapes, decided by whether the photo has landed:
             round just ended, photo NOT ready → offer 한 판 더 / 그냥 기다릴게요
             player chose to wait             → spinner, no choice
-            photo ready                      → the score, then the result takes over
-          The choice is deliberately withheld once the photo is ready: at that
-          point the photo is the thing they came for, and offering another round
-          would only stall it. */}
+            photo ready, standalone          → the score, then the result takes over
+            photo ready, in the game hub     → 사진 보기 / 한 판 더 / 다른 게임
+          In the hub nothing hands over on its own: the visitor was already
+          asked when the photo landed (PhotoReadyPrompt) and chooses here too. */}
       {outcome !== 'playing' && outcome !== 'skipped' && (
         <div className={styles.overlay}>
           <div className={styles.overlayCard}>
@@ -718,11 +887,20 @@ export function JejuSpotDiffGame({ rounds, aiReady, onFinish, onHome }: Props): 
 
             {!aiReady && <span className={styles.overlaySpinner} aria-hidden />}
 
-            {!aiReady && outcome !== 'waiting' && (
+            {(!aiReady || onExit) && outcome !== 'waiting' && (
               <div className={styles.overlayActions}>
+                {aiReady && (
+                  <button
+                    type="button"
+                    className={`${styles.actionBtn} ${styles.hintBtn}`}
+                    onClick={handOver}
+                  >
+                    {pick(SEE_PHOTO, lang)}
+                  </button>
+                )}
                 <button
                   type="button"
-                  className={`${styles.actionBtn} ${styles.hintBtn}`}
+                  className={`${styles.actionBtn} ${aiReady ? styles.skipBtn : styles.hintBtn}`}
                   onClick={playAgain}
                 >
                   {pick(PLAY_AGAIN, lang)}
@@ -732,10 +910,14 @@ export function JejuSpotDiffGame({ rounds, aiReady, onFinish, onHome }: Props): 
                   className={`${styles.actionBtn} ${styles.skipBtn}`}
                   onClick={() => {
                     lastTouchRef.current = Date.now();
-                    setOutcome('waiting');
+                    // Hosted, there are three other games to go back to, which
+                    // is a better offer than watching a spinner. Standalone,
+                    // waiting IS the only other option.
+                    if (onExit) onExit();
+                    else setOutcome('waiting');
                   }}
                 >
-                  {pick(JUST_WAIT, lang)}
+                  {onExit ? pick(OTHER_GAMES, lang) : pick(JUST_WAIT, lang)}
                 </button>
               </div>
             )}

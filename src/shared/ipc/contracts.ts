@@ -30,6 +30,11 @@ import type {
 } from '../types/data';
 import type { CachedContent, KioskConfig, KioskTheme } from '../types/kiosk';
 import type {
+  MotionGameId,
+  MotionGameReport,
+  MotionGameState,
+} from '../types/motionGame';
+import type {
   CameraDeviceInfo,
   PhotoOption,
   PhotoWorkflowState,
@@ -49,7 +54,12 @@ import type { KioskBanner } from '../types/banner';
 import type { KioskBackground } from '../types/background';
 import type { SpotDiffRound } from '../types/spotDiff';
 import type { OutfitCatalogue } from '../types/outfit';
-import type { JejuCourse, JejuCourseRecommendQuery } from '../types/jejuCourse';
+import type {
+  JejuCourse,
+  JejuCourseRecommendQuery,
+  JejuPickerPlan,
+  JejuPickerQuery,
+} from '../types/jejuCourse';
 import type {
   EventDetail,
   EventRecommendation,
@@ -319,6 +329,24 @@ export interface IpcContract {
     response: Result<PhotoWorkflowState>;
   };
 
+  /** 제주 모션 게임 — Monitor 1 drives, Monitor 2 plays. */
+  [IpcChannels.MotionGet]: {
+    request: void;
+    response: Result<MotionGameState>;
+  };
+  [IpcChannels.MotionStart]: {
+    request: { game: MotionGameId };
+    response: Result<MotionGameState>;
+  };
+  [IpcChannels.MotionReport]: {
+    request: MotionGameReport;
+    response: Result<MotionGameState>;
+  };
+  [IpcChannels.MotionStop]: {
+    request: void;
+    response: Result<MotionGameState>;
+  };
+
   /** AR 한복 outfits + category tabs (cached; bundled fallback when empty). */
   [IpcChannels.OutfitsGet]: {
     request: void;
@@ -438,6 +466,15 @@ export interface IpcContract {
     response: Result<JejuCourse>;
   };
 
+  /**
+   * 제주 커스텀 코스 picker — one live POST per 즐길 거리 tap, carrying every tap
+   * so far. `kioskId` is filled by JejuCourseService, as for /recommend.
+   */
+  [IpcChannels.JejuCoursePicker]: {
+    request: JejuPickerQuery;
+    response: Result<JejuPickerPlan>;
+  };
+
   [IpcChannels.UpdateGetStatus]: {
     request: void;
     response: Result<UpdateStatus>;
@@ -498,6 +535,7 @@ export interface IpcEventPayloads {
   [IpcEvents.OutfitsChanged]: null;
   [IpcEvents.UpdateStatusChanged]: UpdateStatus;
   [IpcEvents.FootfallRuntimeChanged]: FootfallRuntime;
+  [IpcEvents.MotionGameChanged]: MotionGameState;
 }
 
 export type EventChannel = keyof IpcEventPayloads;

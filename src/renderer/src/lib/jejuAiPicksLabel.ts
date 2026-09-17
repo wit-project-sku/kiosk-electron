@@ -21,7 +21,7 @@ const STAY_KEYS: Record<string, string> = {
   '당일치기': 'StayTime_1',
   '1박 2일': 'StayTime_2',
   '2박 3일': 'StayTime_3',
-  '3박 이상': 'StayTime_4',
+  '3박 4일': 'StayTime_4',
 };
 
 const TRANSPORT_KEYS: Record<string, string> = {

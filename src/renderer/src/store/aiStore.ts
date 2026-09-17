@@ -1,4 +1,5 @@
 import { create } from 'zustand';
+import type { JejuPickerPlan } from '@shared/types/jejuCourse';
 
 interface AiState {
   /** Interest categories the user picked on the questionnaire (max 3, in order). */
@@ -21,6 +22,42 @@ interface AiState {
   stay: string;
   transport: string;
   setAnswers: (answers: { visitors: string; stay: string; transport: string }) => void;
+  /**
+   * How the visitor entered the 제주 course flow from the 뭐하지 landing (Figma
+   * 7019:17890): 'custom' through AI 맞춤 추천 코스 → questionnaire → result →
+   * detail, 'theme' by tapping a themed course card straight into the detail.
+   * Decides where 뒤로 lands from the detail. '' before any entry, and on
+   * every other layout.
+   */
+  entry: '' | 'custom' | 'theme';
+  setEntry: (entry: '' | 'custom' | 'theme') => void;
+  /**
+   * One-shot: set by the result page's 뒤로 so the landing re-opens on the
+   * questionnaire the visitor just filled in rather than on the course picker.
+   * JejuAiSearch consumes and clears it on mount — a fresh entry from home never
+   * sets it, so home always lands on the picker.
+   */
+  resumeQuestions: boolean;
+  setResumeQuestions: (resume: boolean) => void;
+  /**
+   * The 지역 picked on the themed questionnaire's map (Figma 7088:24139), as
+   * JejuRegionIds — one or two of them, in tap order (2026-09-16: the map takes
+   * up to two). Sent to /recommend as the API's 권역 on themed courses only, and
+   * the API takes exactly ONE, so the first is the one that travels — see
+   * `regionCode` in lib/jejuCourse and the request in JejuAiDetail.
+   */
+  regions: string[];
+  setRegions: (regions: string[]) => void;
+  /**
+   * The 커스텀 코스 plan the picker built on the questionnaire
+   * (`POST /api/jeju/courses/picker`), as it stood when 코스 추천받기 was
+   * pressed. The course detail draws THIS instead of asking /recommend, so the
+   * visitor sees exactly the places and times they watched fill the day. Null
+   * when the picker was unreachable (the detail then falls back to /recommend),
+   * and on every themed route.
+   */
+  pickerPlan: JejuPickerPlan | null;
+  setPickerPlan: (plan: JejuPickerPlan | null) => void;
 }
 
 /** Carries the AI-search selections from the questionnaire into the result page. */
@@ -33,4 +70,12 @@ export const useAiStore = create<AiState>((set) => ({
   stay: '',
   transport: '',
   setAnswers: (answers) => set(answers),
+  entry: '',
+  setEntry: (entry) => set({ entry }),
+  resumeQuestions: false,
+  setResumeQuestions: (resumeQuestions) => set({ resumeQuestions }),
+  regions: [],
+  setRegions: (regions) => set({ regions }),
+  pickerPlan: null,
+  setPickerPlan: (pickerPlan) => set({ pickerPlan }),
 }));

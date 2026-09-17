@@ -45,6 +45,7 @@ import { useAccessibilityStore } from '@renderer/store/accessibilityStore';
 import { JejuPageFrame } from './JejuPageFrame';
 import { JejuShopCard } from './JejuShopCard';
 import styles from './JejuListScreen.module.css';
+import { belowModeBar } from './lowReach';
 
 /** The screens this one file serves. */
 export type JejuListScreenId = Extract<KioskScreenId, 'eat' | 'shop' | 'lodging'>;
@@ -177,6 +178,16 @@ export function JejuListScreen({ screen, controller }: Props): JSX.Element {
       ? tabs
       : DEFAULT_TABS[screen].map((label) => ({ kr: label, label: catLabel(label, lang) }));
 
+  // Tell the customer display a category is open, so it plays the drill-in clip
+  // (`shop_category` → ToBuy_Category) instead of staying on the tile's own.
+  // navigate() only ever reported the top-level screen, exactly as on Insadong /
+  // Osan / Hwaseong, whose list screens each do this.
+  useEffect(() => {
+    // Clearing the chip (tap it again — there is no 전체 chip) shows the whole list
+    // again, so the display goes back to the page's own clip.
+    void window.api.kiosk.setScreen(activeKr ? `${screen}_category` : screen);
+  }, [activeKr, screen]);
+
   /*
    * Low-reach geometry follows the chip ROW COUNT, because the controls sit at
    * the foot and a shorter chip block gives the list back the space:
@@ -201,10 +212,16 @@ export function JejuListScreen({ screen, controller }: Props): JSX.Element {
     // are Korean consonants, so filtering a translated name would empty the list
     // for every non-Korean visitor.
     if (jamo) list = list.filter((s) => leadingChosung(shopName(s, 'ko')) === jamo);
-    // More photos first (4 → 3 → 2 → 1 → 0). Stable within the same count so
-    // catalogue / 초성 order holds — same idea as Insadong floating imaged
-    // shops, but ranked by how many photos the shop actually has.
-    return [...list].sort((a, b) => shopImages(b).length - shopImages(a).length);
+    // Association members float to the top (filter chips / 초성 included), then
+    // more photos first. The row shows two photos (7212:65355), so a shop is
+    // ranked by the photos it can actually SHOW — 2 → 1 → 0; three or four rank
+    // like two. Stable within the same rank so catalogue order holds.
+    const shown = (s: Shop): number => Math.min(shopImages(s).length, 2);
+    return [...list].sort((a, b) => {
+      const assoc = Number(!!b.fromAssociation) - Number(!!a.fromAssociation);
+      if (assoc !== 0) return assoc;
+      return shown(b) - shown(a);
+    });
   }, [baseShops, activeKr, jamo]);
 
   const scrollBy = (delta: number): void =>
@@ -237,9 +254,30 @@ export function JejuListScreen({ screen, controller }: Props): JSX.Element {
     controller.navigate('detail', TITLE[screen]);
   };
 
-  /* The category chips and the 초성 index. In the standard layout they scroll
-     with the cards; in low-reach they are pulled out of the scroller and pinned
-     to the foot of the page — same markup either way, see .controlsLow. */
+  const listBody =
+    visible.length > 0 ? (
+      <div className={styles.list}>
+        {visible.map((shop) => (
+          <JejuShopCard
+            key={shop.id}
+            shop={shop}
+            lang={lang}
+            associationDot
+            /* 7212:65355 — the 390 row with two photos (6391:57961 · 6212:55233 · 6391:58267). */
+            twoPhotos
+            onClick={() => openDetail(shop)}
+          />
+        ))}
+      </div>
+    ) : (
+      <p className={styles.empty}>
+        {baseShops.length === 0 ? '준비중입니다' : '조건에 맞는 상점이 없습니다'}
+      </p>
+    );
+
+  /* The category chips and the 초성 index — never scrolled away. In the
+     standard layout they are pinned above the scroller (.controlsTop); in
+     low-reach they are pinned to the foot of the page (.controlsLow). */
   const controls = (
     <>
       {/* `catsIdle` while nothing is picked — the whole row is drawn in the
@@ -291,35 +329,29 @@ export function JejuListScreen({ screen, controller }: Props): JSX.Element {
       title={TITLE[screen]}
       showBanner={false}
       lowReachModeBar
-      lowReachShift={113}
+      lowReachShift={belowModeBar()}
     >
-      <div
-        className={`${styles.scroll} ${lowReach ? styles.scrollLow : ''}`}
-        style={lowReach ? { height: lowListHeight } : undefined}
-        ref={scrollRef}
-      >
-        {!lowReach && controls}
-        {visible.length > 0 ? (
-          <div className={styles.list}>
-            {visible.map((shop) => (
-              <JejuShopCard
-                key={shop.id}
-                shop={shop}
-                lang={lang}
-                onClick={() => openDetail(shop)}
-              />
-            ))}
+      {lowReach ? (
+        <>
+          <div
+            className={`${styles.scroll} ${styles.scrollLow}`}
+            style={{ height: lowListHeight }}
+            ref={scrollRef}
+          >
+            {listBody}
           </div>
-        ) : (
-          <p className={styles.empty}>
-            {baseShops.length === 0 ? '준비중입니다' : '조건에 맞는 상점이 없습니다'}
-          </p>
-        )}
-      </div>
-
-      {lowReach && (
-        <div className={styles.controlsLow} style={{ top: lowControlsTop }}>
-          {controls}
+          <div className={styles.controlsLow} style={{ top: lowControlsTop }}>
+            {controls}
+          </div>
+        </>
+      ) : (
+        /* Standard: the controls are pinned above the scroller rather than
+           scrolling with the cards — see .body. */
+        <div className={styles.body}>
+          <div className={styles.controlsTop}>{controls}</div>
+          <div className={styles.scroll} ref={scrollRef}>
+            {listBody}
+          </div>
         </div>
       )}
 

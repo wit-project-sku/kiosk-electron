@@ -95,20 +95,27 @@
   color: #fff;
 }
 
+/* Wraps rather than running off the column: the heading is translated into
+   eight languages. Two lines (136) still clear the row under either step. */
 .stepTitle {
+  min-width: 0;
+  max-width: 1693px; /* 1820 − the 105 badge − the 21.45 gap */
   margin: 0;
   font-size: 68px;
   font-weight: 700;
   line-height: 1;
   color: #333;
-  white-space: nowrap;
+  white-space: normal;
+  word-break: keep-all;
+  overflow-wrap: anywhere;
 }
 
 .subtitle {
   position: absolute;
   left: 210px; /* 170 + the row's own 40 padding */
   top: 739px;
-  height: 47px;
+  max-width: 1780px; /* the 1820 column less that 40 */
+  min-height: 47px;
   display: flex;
   align-items: center;
   gap: 20px;
@@ -121,13 +128,17 @@
   flex: 0 0 auto;
 }
 
+/* Wraps inside the column; a second line (to 833) still clears the tabs at 844. */
 .subtitleText {
+  min-width: 0;
   margin: 0;
   font-size: 47px;
   font-weight: 700;
   line-height: 1;
   color: #909090;
-  white-space: nowrap;
+  white-space: normal;
+  word-break: keep-all;
+  overflow-wrap: anywhere;
 }
 
 /* ── Category tabs ──────────────────────────────────────────────────── */
@@ -143,6 +154,13 @@
  * 3006) and a third row would draw straight over the outfit cards. `--cat-cols`
  * is set inline by the component; the width below is the design's own
  * arithmetic, so 4 columns still resolve to exactly 420.
+ *
+ * ★ The GAP is per column count, because the design's two drawn counts do not
+ * share one. 4 columns is 420 on a 46.67 gap (the older 8-tab frame); the
+ * 2026-09-08 redraw (6258:48134 · 48469) draws 10 tabs as 5 × 350 justified
+ * across the same 1820, which is a 17.5 gap. Both are "space-between in 1820"
+ * with a drawn button width, so the gap is what has to move — see `.catsTight`,
+ * which carries the 5-column value and everything above it.
  */
 .cats {
   position: absolute;
@@ -196,15 +214,33 @@
 }
 
 /*
- * Five or more columns: the button is ~327 wide, so the type steps down and the
- * side padding with it. Measured, not guessed — the longest label the CMS ships
- * today is "Повседневное" (`m=everyday`, ru) at 288px, and 46px type inside a
- * 10px padding leaves a 307px content box, so it lands on ONE line. At 50px it
- * was 317 and broke mid-word, orphaning a single letter on the second line.
+ * Five or more columns — the count the 2026-09-08 frames actually draw, and the
+ * one prod is on (nine registered categories → 5). The design's own numbers:
+ * 350-wide buttons justified across the 1820, so the gap is (1820 − 5×350) / 4.
+ */
+.catsTight {
+  --cat-gap: 17.5px;
+}
+
+/*
+ * The design's 50px, which fits BECAUSE the button is the design's 350 — but
+ * only just, so the padding is what gives way rather than the type.
+ *
+ * Measured in Pretendard (the face jeju-airport.json leads with, and which does
+ * carry Cyrillic — so this label really is drawn in it, not in the Noto Sans KR
+ * behind it): the longest label the CMS ships is "Повседневное" (`m=everyday`,
+ * ru) at 344.2px, against 316.7px at the 46px this used to be. A 350 button
+ * therefore holds it at the drawn size with 5.8px to spare, and the 10px padding
+ * a side that the 46px version could afford would put it back over.
+ *
+ * 2px is a guard against sub-pixel differences between browsers, not a design
+ * value — the frame gives the label no padding at all. Anything longer than
+ * ~346px WRAPS rather than clipping (`.cat` is deliberately two-line-capable at
+ * 170px tall); re-measure here if a longer label appears.
  */
 .catsTight .cat {
-  font-size: 46px;
-  padding: 0 10px;
+  font-size: 50px;
+  padding: 0 2px;
 }
 
 .catActive {
@@ -282,6 +318,29 @@
   color: var(--kiosk-primary, #ff7f0f);
 }
 
+/*
+ * "WITH의 모든 한복은 박술녀 한복입니다." — the attribution the 2026-09-08 redraw
+ * hung off the END of the chip row (6258:48134 · 6862:10120). It is on the 한복
+ * tab only; 6258:48469 draws the same row on 제주 without it, which is what ties
+ * it to the category rather than to the row.
+ *
+ * ★ It FLOWS after the chips instead of taking the design's absolute x. Figma
+ * centres it at 1364 — 146 past its own 279-wide 남자 한복 chip — but the chips
+ * are CMS labels in eight languages and grow past that 279 (see `.subcat`), so a
+ * fixed x would let a long pair run underneath it. The margin reproduces the
+ * drawn 146 gap against the drawn chips (the row's own 40 gap makes up the
+ * rest) and simply follows them when they are wider.
+ */
+.subcatNote {
+  margin: 0 0 0 106px;
+  flex: 0 0 auto;
+  font-size: 50px;
+  font-weight: 500;
+  line-height: 1;
+  color: #999;
+  white-space: nowrap;
+}
+
 /* ── 사진촬영안내 card — EVERY condition, two positions ────────────────── */
 /*
  * The card is on EVERY tab, in one of two places: a non-제주 tab hangs it under
@@ -296,9 +355,13 @@
   left: 170px;
   top: 2565px;
   width: 1820px;
-  height: 500px;
+  /* A floor, not a size: the card grows when a translation wraps (see
+     `.guideMain`). The drawn 65 of padding was never really in effect — the
+     398.44 column overflowed the 370 it left and centred itself 50.78 from the
+     top — so that is the padding now, and a one-line card still measures 500. */
+  min-height: 500px;
   box-sizing: border-box;
-  padding: 65px 40px;
+  padding: 50.78px 40px;
   /* Flat plate — no outline, no shadow (2026-08-24 direction). */
   border: none;
   border-radius: 42.9px;
@@ -316,75 +379,111 @@
   top: 3210px;
 }
 
-/* The left column is a 1429×398 block with three absolutely-placed rows —
-   Figma stacks them at 0 / 117.64 / 351.44 inside it. */
+/*
+ * The left column: Figma stacks three rows at 0 / 117.64 / 351.44 inside a
+ * 1429×398 block. They FLOW rather than being absolutely placed, so a
+ * translation that wraps pushes the rows under it down (and grows the card)
+ * instead of printing over them. With one-line copy the flow lands every row on
+ * the drawn y: the title's 68 line box + 49.64 puts the sub-block at 117.64,
+ * and the privacy link is pinned to the bottom of the 398.44 box (351.44 + 47).
+ */
 .guideMain {
-  position: relative;
   flex: 0 0 1429px;
   width: 1429px;
-  height: 398px;
+  min-height: 398.44px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
 }
 
-/* Figma draws this as a <li> with `list-disc` and a 102px indent: the marker
-   sits at 45 and the label starts at 102. */
+/*
+ * Figma draws this as a <li> with `list-disc` and a 102px indent, so the marker
+ * is the browser's own disc at 68px Noto Sans Bold and its size is not written
+ * down anywhere in the file. Measured off the 1:1 render of 6422:24785 instead:
+ * the dot's ink is x81…100 y75–96 in the card, i.e. 20px at a card-relative 41
+ * (the card's own 40 of padding makes up the rest). 41 + 20 + 41 still lands the
+ * label on the drawn 102.
+ */
 .guideTitle {
-  position: absolute;
-  left: 45px;
-  top: 0;
+  max-width: calc(100% - 41px);
+  margin-left: 41px;
   display: flex;
   align-items: center;
-  gap: 39px;
+  gap: 41px;
 }
 
 .guideDot {
-  width: 18px;
-  height: 18px;
+  width: 20px;
+  height: 20px;
   flex: 0 0 auto;
   border-radius: 50%;
   background: var(--kiosk-primary, #ff7f0f);
 }
 
 .guideTitleText {
+  min-width: 0;
   margin: 0;
   font-size: 68px;
   font-weight: 700;
   line-height: 1;
   color: var(--kiosk-primary, #ff7f0f);
-  white-space: nowrap;
+  white-space: normal;
+  word-break: keep-all;
+  overflow-wrap: anywhere;
 }
 
 .guideSub {
-  position: absolute;
-  left: 40px;
-  top: 117.64px;
+  max-width: calc(100% - 40px);
+  margin: 49.64px 0 0 40px;
   display: flex;
   align-items: flex-start;
   gap: 20px;
 }
 
+/*
+ * Flush with the top of the row — 6422:24791 is `items-start` and hangs the
+ * star at y0, which the render confirms (ink y169…204 against the row's own
+ * 168.64). The 6px nudge that used to be here was centring it against a 50px
+ * line box; the line box is 65 now, and re-centring on that would drop the star
+ * 8px below where the frame draws it.
+ */
 .guideStar {
   width: 40px;
   height: 40px;
   flex: 0 0 auto;
   object-fit: contain;
-  margin-top: 6px;
 }
 
+/*
+ * ★ 65, not the 50 this carried — the 2026-09-08 redraw (6258:48134,
+ * `leading-[65px]` on 6422:24793) opened the three lines up, and the render
+ * measures the pitch at exactly 65 (ink at y180 / 245 / 310 in the card). The
+ * copy is CMS text and the sheet's longest 제주 translation is 3 lines, so the
+ * block grows from 150 to 195 and still clears `.guidePrivacy` at 351.44 by a
+ * comfortable margin. A 4-line translation would collide — it would have at 50
+ * as well, so the risk is not new, but it is 65px closer now.
+ */
 .guideLines {
   display: flex;
   flex-direction: column;
   font-size: 47px;
   font-weight: 700;
-  line-height: 50px;
+  line-height: 65px;
   color: #909090;
-  white-space: nowrap;
+  min-width: 0;
+  /* Each line wraps on its own; a longer translation now pushes the privacy
+     link down (see `.guideMain`) instead of running under it. */
+  white-space: normal;
+  word-break: keep-all;
+  overflow-wrap: anywhere;
 }
 
+/* Pinned to the column's bottom by `margin-top: auto`. The 20 of top padding
+   is only the floor between it and a sub-block long enough to reach it — at
+   the drawn size the label still sits on 351.44. */
 .guidePrivacy {
-  position: absolute;
-  left: 42.9px;
-  top: 351.44px;
-  padding: 0;
+  margin: auto 0 0 42.9px;
+  padding: 20px 0 0;
   border: none;
   background: none;
   font-size: 47px;
@@ -395,9 +494,13 @@
   -webkit-tap-highlight-color: transparent;
 }
 
+/* 235 is the disc. The column may widen to 311 — the slack the 1740 content
+   width leaves beside the 1429 column — so a translated label wraps inside
+   that rather than spilling over the text to its left. */
 .guideInfo {
-  flex: 0 0 235px;
-  width: 235px;
+  flex: 0 0 auto;
+  min-width: 235px;
+  max-width: 311px;
   padding: 0;
   border: none;
   background: none;
@@ -444,12 +547,15 @@
 }
 
 .guideInfoLabel {
+  max-width: 100%;
   font-size: 47px;
   font-weight: 600;
   line-height: 1;
   color: #333;
   text-align: center;
-  white-space: nowrap;
+  white-space: normal;
+  word-break: keep-all;
+  overflow-wrap: anywhere;
 }
 
 /* ── Outfit cards ───────────────────────────────────────────────────── */
@@ -472,12 +578,15 @@
  * assigned. Every other tab takes that space back as TWO rows — the same 391
  * cell on a 441 pitch (1447/1888, 6258:48326).
  */
+/* 408, not the 391 cell: the 17 down to step ② (1855) is room for an outfit
+   name that wraps to a second line — Swiper clips at its own box, so without
+   it the second line would be cut off (see `.outfitName`). */
 .outfits {
   position: absolute;
   left: 170px;
   top: 1447px;
   width: 1820px;
-  height: 391px;
+  height: 408px;
 }
 
 /* Two rows: 865 = 2 × 424 padded slides + the 17 Swiper puts between them —
@@ -587,23 +696,28 @@
  * already leads with, so no family is set here.
  *
  * The name is the operator's (`name` on the outfit row, e.g. "global_5.7") —
- * neither length-checked nor translated server-side, so it is held to ONE line
- * and ellipsised. Letting it wrap would push row 2 of the two-row grid off its
- * 441 pitch and into the capture buttons.
+ * neither length-checked nor translated server-side, so it WRAPS rather than
+ * being ellipsised — every name is shown in full. It overflows the fixed slide
+ * downward instead of resizing it, so row 2 stays on its pitch: the 20 line
+ * pitch plus 2.5 on top keeps a one-line name exactly where the 25 box drew it
+ * (centre 12.5), and a two-line one ends 42.5 under the gap — inside the
+ * room each strip leaves below it (`.outfits`, the 424 grid slide, the ♿ grid).
  */
 .outfitName {
   width: 100%;
-  height: 25px;
+  min-height: 25px;
+  box-sizing: border-box;
   margin: 16px 0 0;
+  padding-top: 2.5px;
   flex: 0 0 auto;
   font-size: 25px;
   font-weight: 400;
-  line-height: 25px;
+  line-height: 20px;
   color: rgba(0, 0, 0, 0.3);
   text-align: center;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  white-space: normal;
+  word-break: keep-all;
+  overflow-wrap: anywhere;
 }
 
 .emptyCat {
@@ -718,11 +832,16 @@
    frame: white type on an unwashed photo (the picked state) can vanish on a
    bright sky, and the shadow is the cheapest way to keep the name legible
    without re-adding the veil the redraw removed. */
+/* ★ Wraps, centred on the drawn line's middle (319 + 55/2 = 346.5): a one-line
+   name lands on the drawn 319 exactly, and a longer one ("Hallasan and
+   Tangerine Grove") opens up and down around it instead of running off both
+   edges of the 350 tile. */
 .themeLabel {
   position: absolute;
-  left: 0;
-  right: 0;
-  top: 319px;
+  left: 24px;
+  right: 24px;
+  top: 346.5px;
+  transform: translateY(-50%);
   z-index: 1;
   margin: 0;
   font-size: 45px;
@@ -730,7 +849,9 @@
   line-height: 55px; /* Figma's own box — `normal` renders 65 and drifts low */
   color: #fff;
   text-align: center;
-  white-space: nowrap;
+  white-space: normal;
+  word-break: keep-all;
+  overflow-wrap: anywhere;
   text-shadow: 0 2px 12px rgba(0, 0, 0, 0.45);
 }
 
@@ -738,7 +859,7 @@
    rule would push the name to a visual 324 — compensated back to the drawn
    319, exactly as `.outfitActive .outfitImg` does for the card. */
 .themeActive .themeLabel {
-  top: 314px;
+  top: 341.5px;
 }
 
 /*
@@ -798,9 +919,14 @@
   gap: 30px;
   font-size: 58px;
   font-weight: 700;
-  line-height: 1;
+  /* Two lines of 58 at 1.1 (128) fit the 150 button, so a long translation of
+     "사진촬영(with '하영')" wraps inside it instead of overflowing both ends. */
+  line-height: 1.1;
   color: #e9e9e9;
-  white-space: nowrap;
+  text-align: center;
+  white-space: normal;
+  word-break: keep-all;
+  overflow-wrap: anywhere;
   cursor: pointer;
   -webkit-tap-highlight-color: transparent;
 }
@@ -895,6 +1021,109 @@
   pointer-events: none;
 }
 
+/* ── 한복 설명 page (Figma 6258:49124) ──────────────────────
+ *
+ * 제주's own frame for the page behind the 사진촬영안내 card, and NOT the shared
+ * step's scrolling column (`../photo/HanbokSelect.module.css .infoContent`,
+ * which is what this drew until 2026-09-09). Two hand-placed blocks in the same
+ * 1820 column the picker uses, both clearing the banner — so nothing scrolls:
+ *
+ *   700…1532   outfit strip, TWO rows of five — the picker's own 391 cell
+ *               (350 plate + 16 + 25 name) on the drawn 441 pitch, which is why
+ *               only the strip's `top` is re-declared below
+ *  1583…2957   한복설명 card, 1820 × 1374
+ *  3267…3840   banner — `.banner`, unchanged and drawn on this page
+ *
+ * The frame types the card in Noto Sans where the rest of the page is
+ * Pretendard; that is the component sheet's default rather than a choice made
+ * for this card, so the family stays on `--kiosk-font` like every other 제주
+ * block and only the sizes below are taken from the frame.
+ */
+.infoOutfits {
+  /* Beats `.outfits`' 1447 on source order — same specificity, declared later.
+     left / width / height stay the picker's. */
+  top: 700px;
+}
+
+.infoCard {
+  position: absolute;
+  left: 170px;
+  top: 1583px;
+  width: 1820px;
+  height: 1374px;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  /*
+   * 43 top, so the heading sits as far from the card's top edge as from its
+   * left: measured on the rendered card, the Korean heading's ink is 48px in
+   * from the left edge and — at 43 — 48px down from the top (it was 93 at the
+   * frame's 88, twice the side gap; the difference is the glyphs' own space
+   * above the ink at line-height 1). Other languages land within ±6px of equal,
+   * as their glyphs sit a little higher or lower in the line.
+   *
+   * The body stays pinned under the heading (52 gap) rather than centred, since
+   * it is CMS-length copy in eight languages; a longer translation grows down
+   * into the slack. The bottom keeps 88 so the scrolling body ends clear of the
+   * card's foot. Sides are 44 — the frame's 40 plus the 4px it insets both
+   * blocks by.
+   */
+  padding: 43px 44px 88px;
+  gap: 52px;
+  background: #fff;
+  border: 2.145px solid #e8e8e8;
+  border-radius: 45px;
+  box-shadow: 0 21.45px 21.45px rgba(143, 147, 157, 0.1);
+}
+
+.infoHeading {
+  margin: 0;
+  font-size: 65px;
+  font-weight: 700;
+  line-height: 1;
+  color: #333;
+}
+
+/*
+ * The frame separates the three paragraphs with an empty 50px line rather than
+ * a margin, so 50 is the gap.
+ *
+ * `overflow-y` is the safety valve, not part of the frame: the copy is
+ * translated into eight languages and only the Korean one was measured against
+ * the 1374. A language that runs long scrolls inside the card instead of
+ * spilling out of it, which is what the fixed height would otherwise clip.
+ */
+.infoBody {
+  flex: 1 1 auto;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 50px;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+.infoBody::-webkit-scrollbar {
+  width: 34px;
+}
+
+.infoBody::-webkit-scrollbar-thumb {
+  background: var(--kiosk-primary, #ff7f0f);
+  border-radius: 21.45px;
+}
+
+.infoPara {
+  margin: 0;
+  font-size: 50px;
+  font-weight: 400;
+  line-height: 1.5;
+  /* The frame's own tracking — −0.05em at 50px. */
+  letter-spacing: -2.5px;
+  color: #000;
+}
+
+
 /* ── Banner ─────────────────────────────────────────────────────────── */
 .banner {
   position: absolute;
@@ -981,8 +1210,9 @@
  */
 .rootLowReach {
   /* JejuHeader's own `top` reads this, so the header block follows the mode bar
-     down without this file knowing anything about the header's internals. */
-  --jeju-shift: 113px;
+     down without this file knowing anything about the header's internals. Flush
+     against the bar, so it is the bar's height — not a copy of the number. */
+  --jeju-shift: var(--jeju-mode-bar);
 }
 
 .modeBar {
@@ -990,7 +1220,8 @@
   left: 0;
   top: 0;
   width: 2160px;
-  height: 113px;
+  /* Shared with home and JejuPageFrame — see lowReach.ts. */
+  height: var(--jeju-mode-bar);
   z-index: 3;
   background: var(--kiosk-primary, #ff7f0f);
   display: flex;
@@ -1002,10 +1233,16 @@
   color: #fff;
 }
 
-/* The 한복 설명 sub-page has no low-reach frame of its own; it scrolls, so
-   clearing the mode bar is the whole adjustment it needs. */
-.rootLowReach .infoContent {
-  top: 812px; /* 699 + the bar's 113 */
+/* The 한복 설명 sub-page has no low-reach frame of its own, so ♿ moves it the
+   one way the bar demands: both blocks drop by the bar's height, keeping their
+   own 700 / 1583 relative to it. The card still clears the banner — it ends at
+   1583 + 145.759 + 1374 = 3102.76, against the banner's 3267. */
+.rootLowReach .infoOutfits {
+  top: calc(700px + var(--jeju-mode-bar));
+}
+
+.rootLowReach .infoCard {
+  top: calc(1583px + var(--jeju-mode-bar));
 }
 
 /* ── Common to both conditions ── */
@@ -1050,7 +1287,9 @@
  * `.outfitsGrid .outfitSlide` plays with 424 for the standard layout.
  */
 .rootLowReach .outfitsGrid {
-  height: 813px; /* 2 × 398 + the 17 between the rows */
+  /* 2 × 398 + the 17 between the rows, plus 11 so a two-line name under row 2
+     (ending 415 + 408.5) is not clipped; still ends 3366, above capture's 3375. */
+  height: 824px;
 }
 
 .rootLowReach .outfitsGrid .outfitSlide {
@@ -1115,11 +1354,11 @@
 /* Figma's own y inside the shorter tile (312 of 680), and the same 5px
    compensation the standard rule makes for the picked tile's rule. */
 .rootLowReachTheme .themeLabel {
-  top: 312px;
+  top: 339.5px; /* 312 + 55/2 — the centre, as the standard rule uses */
 }
 
 .rootLowReachTheme .themeActive .themeLabel {
-  top: 307px;
+  top: 334.5px;
 }
 
 .rootLowReachTheme .captureRow {

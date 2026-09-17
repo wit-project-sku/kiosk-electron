@@ -1,0 +1,517 @@
+/*
+ * Shared chrome for the 제주 motion games on the CUSTOMER DISPLAY — header,
+ * camera preview, hand gate, coaching line.
+ *
+ * Artboard px on the 2160×3840 board, same as every other 제주 screen.
+ *
+ * ── Visual rules: the same 제주 palette as the touch screen ────────────
+ *   ground     #f6efe4 warm cream, flat — no gradients, no glows
+ *   surface    #fff panels
+ *   hairline   rgba(31,27,22,.08)
+ *   text       #1f1b16 / #6f675d secondary / #a39a8e tertiary
+ *   accent     var(--kiosk-primary, #ff7f0f) 감귤; #1c9c8c 제주 바다 for "ok"
+ *   no box-shadow and no text-shadow anywhere
+ *
+ * It was a near-black purple once, which looked like a generic arcade cabinet
+ * and nothing like the island the rest of the kiosk is dressed as.
+ *
+ * ── Everything here is read from two metres ───────────────────────────
+ * Nothing below is smaller than 40px, and the lines a visitor has to act on are
+ * 72px and up.
+ */
+
+/* ── The Monitor 2 shell ───────────────────────────────────────────────
+   Same 2160×3840 KioskArtboard as the touch screen, but no touch and no
+   navigation: no app header, no banner, no buttons. The whole board is the
+   game.
+
+   y map:
+    150 …  430   header — title + how-to left, score right
+    500 … 3740   the play field */
+.displayRoot {
+  position: absolute;
+  inset: 0;
+  width: 2160px;
+  height: 3840px;
+  overflow: hidden;
+  font-family: var(--kiosk-font, 'Noto Sans KR', 'Noto Sans', sans-serif);
+  background: #f6efe4;
+  color: #1f1b16;
+  user-select: none;
+  -webkit-user-select: none;
+  /* Nothing here is a touch target, and the customer display is not a
+     touchscreen at all on most installs. */
+  pointer-events: none;
+}
+
+.displayHeader {
+  position: absolute;
+  left: 110px;
+  top: 150px;
+  width: 1940px;
+  height: 280px;
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 60px;
+}
+
+.displayHeading {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+}
+
+.displayTitle {
+  margin: 0;
+  font-size: 120px;
+  font-weight: 800;
+  line-height: 1;
+  letter-spacing: -0.035em;
+}
+
+.displaySubtitle {
+  margin: 0;
+  font-size: 52px;
+  font-weight: 500;
+  line-height: 1.25;
+  color: #6f675d;
+  word-break: keep-all;
+}
+
+.displayScore {
+  flex: 0 0 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 16px;
+}
+
+.displayScoreLabel {
+  font-size: 40px;
+  font-weight: 600;
+  line-height: 1;
+  color: #a39a8e;
+}
+
+.displayScoreValue {
+  font-size: 170px;
+  font-weight: 800;
+  line-height: 0.85;
+  letter-spacing: -0.04em;
+  font-variant-numeric: tabular-nums;
+}
+
+.displayBest {
+  font-size: 44px;
+  font-weight: 600;
+  line-height: 1;
+  color: #6f675d;
+  font-variant-numeric: tabular-nums;
+}
+
+.displayField {
+  position: absolute;
+  left: 110px;
+  top: 500px;
+  width: 1940px;
+  height: 3240px;
+}
+
+/* ── Camera preview ────────────────────────────────────────────────────
+   The visitor has to be able to SEE that the kiosk can see them — it is the
+   only thing that makes a camera-controlled game feel controllable. Shown only
+   at the hand gate. */
+.preview {
+  position: relative;
+  border-radius: 48px;
+  overflow: hidden;
+  background: #e6dccb;
+  /* Lets the quarter-turn rule below size the video in the CONTAINER's units,
+     which is the only way to make a rotated element cover its own box. */
+  container-type: size;
+}
+
+.previewVideo {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  /* Mirrored, to match the control mapping in poseMath — the player must see
+     themselves as in a mirror or the whole thing feels inverted. The rotation
+     is applied by the caller through --mp-rotate, because the 제주 camera is
+     bolted on its side. */
+  transform: scaleX(-1) rotate(var(--mp-rotate, 0deg));
+}
+
+/* ── Quarter turns ─────────────────────────────────────────────────────
+   A rotation is applied AFTER layout, so a 1080×1400 element turned 90° still
+   occupies a 1080×1400 box — it just paints sideways. To cover the box after
+   turning, the element has to be laid out with its axes SWAPPED first.
+   `cqh`/`cqw` are the container's own height and width, which is exactly that
+   swap, and is why `.preview` declares `container-type: size`. */
+.previewQuarter .previewVideo {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 100cqh;
+  height: 100cqw;
+  object-fit: cover;
+  transform: translate(-50%, -50%) scaleX(-1) rotate(var(--mp-rotate, 0deg));
+}
+
+/* ── The guide inside the preview ──────────────────────────────────────
+   A plain hand icon, not a drawn outline: the visitor recognises ✋ instantly,
+   and an outline traced in dashes read as a rendering glitch. It sits over the
+   live picture, fades back while waiting, and turns solid inside a green ring
+   once a hand is locked. */
+.guide {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+}
+
+.guideGlyph {
+  font-size: 380px;
+  line-height: 1;
+  opacity: 0.5;
+  animation: guideBreathe 2.4s ease-in-out infinite;
+}
+
+@keyframes guideBreathe {
+  0%,
+  100% {
+    transform: scale(1);
+    opacity: 0.4;
+  }
+  50% {
+    transform: scale(1.06);
+    opacity: 0.65;
+  }
+}
+
+.guideLocked .guideGlyph {
+  opacity: 1;
+  animation: none;
+}
+
+/* The frame lights up green around the picture when a hand is locked. */
+.previewRing {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  border: 6px solid rgba(31, 27, 22, 0.1);
+  transition: border-color 200ms ease;
+  pointer-events: none;
+}
+
+.guideLocked + .previewRing,
+.previewRingLocked {
+  border-color: #1c9c8c;
+}
+
+/* The live horizontal marker — proof that the game is following THEM. */
+.tracker {
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  height: 14px;
+  width: 100%;
+  background: rgba(31, 27, 22, 0.1);
+  pointer-events: none;
+}
+
+.trackerDot {
+  position: absolute;
+  top: 50%;
+  width: 60px;
+  height: 60px;
+  margin: -30px 0 0 -30px;
+  border-radius: 50%;
+  background: var(--kiosk-primary, #ff7f0f);
+}
+
+/* ── Hand gate ─────────────────────────────────────────────────────────
+   Full-screen. Does not advance until a hand is actually locked, which is what
+   makes these games playable with no touchscreen at all.
+
+   Laid out with explicit artboard coordinates because the camera preview is
+   NOT part of this subtree — it is a single persistent element positioned by
+   MotionStage, since remounting a <video> would detach the stream. The gate
+   leaves a hole for it at 700…2300 and places its words underneath. */
+.gate {
+  position: absolute;
+  inset: 0;
+  z-index: 25;
+  background: #f6efe4;
+}
+
+.gateHeading {
+  position: absolute;
+  left: 0;
+  top: 300px;
+  width: 2160px;
+  margin: 0;
+  text-align: center;
+  font-size: 56px;
+  font-weight: 600;
+  line-height: 1;
+  color: #a39a8e;
+}
+
+.gateBody {
+  position: absolute;
+  left: 0;
+  top: 2440px;
+  width: 2160px;
+  padding: 0 200px;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 32px;
+  text-align: center;
+}
+
+.gateLine {
+  margin: 0;
+  font-size: 96px;
+  font-weight: 800;
+  line-height: 1.15;
+  letter-spacing: -0.03em;
+  word-break: keep-all;
+  text-wrap: balance;
+}
+
+.gateReady {
+  color: #1c9c8c;
+}
+
+.gateSub {
+  margin: 0;
+  font-size: 54px;
+  font-weight: 500;
+  line-height: 1.35;
+  color: #6f675d;
+  word-break: keep-all;
+  text-wrap: balance;
+}
+
+/* ── Hold progress ─────────────────────────────────────────────────────
+   The gate waits ~1.2s before starting, to tell a visitor from a passer-by.
+   This bar fills over exactly HOLD_MS, so the wait reads as a promise instead of
+   a silence. */
+.holdTrack {
+  margin-top: 30px;
+  width: 720px;
+  height: 12px;
+  border-radius: 6px;
+  background: rgba(31, 27, 22, 0.08);
+  overflow: hidden;
+}
+
+.holdFill {
+  display: block;
+  height: 100%;
+  width: 0;
+  border-radius: 6px;
+  background: #1c9c8c;
+  animation: holdFill 1200ms linear forwards;
+}
+
+@keyframes holdFill {
+  to {
+    width: 100%;
+  }
+}
+
+/* ── Coaching line, shown DURING play ──────────────────────────────────
+   An overlay rather than a layout element: it appears and vanishes as tracking
+   comes and goes, and reflowing the play field mid-game would be worse than the
+   problem it reports. */
+.coach {
+  position: absolute;
+  left: 50%;
+  top: 110px;
+  transform: translateX(-50%);
+  z-index: 12;
+  display: flex;
+  align-items: center;
+  gap: 28px;
+  padding: 36px 64px;
+  border-radius: 40px;
+  background: #1f1b16;
+  color: #fff;
+  font-size: 60px;
+  font-weight: 700;
+  line-height: 1;
+  white-space: nowrap;
+  animation: coachIn 240ms ease;
+  pointer-events: none;
+}
+
+.coachDot {
+  width: 26px;
+  height: 26px;
+  flex: 0 0 auto;
+  border-radius: 50%;
+  background: #f0a43a;
+  animation: coachPulse 1.2s ease-in-out infinite;
+}
+
+@keyframes coachPulse {
+  0%,
+  100% {
+    opacity: 0.35;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+@keyframes coachIn {
+  from {
+    opacity: 0;
+    transform: translateX(-50%) translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+}
+
+/* ── Camera unavailable ────────────────────────────────────────────────
+   The kiosk must never trap a visitor on a dead camera screen. */
+.dead {
+  position: absolute;
+  inset: 0;
+  z-index: 26;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 40px;
+  background: #f6efe4;
+  text-align: center;
+  padding: 0 200px;
+}
+
+/* ── Notice in the sand band ───────────────────────────────────────────
+   Information, not a control: this screen has no touch. Used for "your photo
+   is ready", whose choice lives on the touch screen. Placed on the empty sand
+   below the runner, clear of the practice card, the meter and the coaching
+   line at the top of the field. */
+.notice {
+  position: absolute;
+  left: 50%;
+  top: 3380px;
+  z-index: 13;
+  transform: translateX(-50%);
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 26px;
+  padding: 34px 60px;
+  border-radius: 36px;
+  background: #fff;
+  border: 4px solid var(--kiosk-primary, #ff7f0f);
+  font-size: 54px;
+  font-weight: 700;
+  line-height: 1.2;
+  white-space: nowrap;
+  animation: noticeIn 360ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.noticeDot {
+  width: 26px;
+  height: 26px;
+  flex: 0 0 auto;
+  border-radius: 50%;
+  background: var(--kiosk-primary, #ff7f0f);
+}
+
+@keyframes noticeIn {
+  from {
+    opacity: 0;
+    transform: translateX(-50%) translateY(-24px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+}
+
+/* ── Where the ONE persistent preview sits, per phase ──────────────────
+   There is exactly one <video> on a motion-game screen and it never unmounts
+   while the screen is alive: remounting it would detach the MediaStream and
+   leave MediaPipe reading a dead element. So the preview does not move between
+   subtrees — it stays a child of MotionStage and only changes these
+   coordinates, in artboard px on the 2160×3840 board. */
+.previewGate {
+  position: absolute;
+  left: 480px;
+  top: 560px;
+  width: 1200px;
+  height: 1640px;
+  z-index: 26;
+}
+
+/* ── In game: the preview is NOT shown ─────────────────────────────────
+   The element CANNOT be unmounted — the MediaStream is attached to this exact
+   <video> and MediaPipe reads frames from it every 50ms. Nor may it be
+   `display: none`: Chromium is free to stop decoding a hidden video, and a
+   video that stops decoding stops producing the frames the tracker needs.
+
+   So: one transparent pixel, off in the corner, still decoding. */
+.previewHidden {
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+  pointer-events: none;
+  z-index: -1;
+  border: none;
+  border-radius: 0;
+}
+
+/* ── Diagnostics ───────────────────────────────────────────────────────
+   Operator-facing, and shown only after the gate has failed for long enough
+   that a visitor is not being served anyway. Monospace and small: a readout,
+   not part of the design. */
+.diag {
+  position: absolute;
+  left: 50%;
+  bottom: 90px;
+  transform: translateX(-50%);
+  z-index: 27;
+  padding: 28px 48px;
+  border-radius: 28px;
+  background: rgba(0, 0, 0, 0.62);
+  border: 3px solid rgba(255, 255, 255, 0.14);
+  font-family: 'Consolas', 'Courier New', monospace;
+  text-align: center;
+}
+
+.diagRow {
+  margin: 0;
+  font-size: 38px;
+  line-height: 1.5;
+  color: rgba(255, 255, 255, 0.72);
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+}
+
+.diagHint {
+  margin: 14px 0 0;
+  font-size: 40px;
+  font-weight: 700;
+  line-height: 1.3;
+  color: #ffb020;
+  white-space: nowrap;
+}

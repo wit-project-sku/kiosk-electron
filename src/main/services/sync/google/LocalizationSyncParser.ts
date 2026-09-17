@@ -11,7 +11,7 @@ const log = createLogger('localization-sync-parser');
  *   Localization_Insa      → 6 Vietnamese, 7 Thai,       8 Russian, 9 Indonesian
  *   Localization_Osaek     → 6 Vietnamese, 7 Indonesian, 8 Thai,    9 Russian
  *   Localization_Hwaseong  → 6 Vietnamese, 7 Indonesian, 8 Thai,    9 Russian
- *   Localization_Jeju      → 6 Vietnamese, 7 Thai,       8 Russian, 9 Indonesian
+ *   Localization_Jeju_v2   → 6 Vietnamese, 7 Thai,       8 Russian, 9 Indonesian
  *                            (VERIFIED 2026-08-13 against the sheet's header row:
  *                            제주 follows the INSA order, not the newer template
  *                            this once assumed. Getting it wrong is silent — the
@@ -45,7 +45,7 @@ const NEW_LANG_COLS: Record<KioskLayoutId, Array<{ lang: SupportedLanguage; inde
   OSAN: OSAEK_HWASEONG_NEW,
   HWASEONG: OSAEK_HWASEONG_NEW,
   JEJU_AIRPORT: INSA_NEW,
-  JEJU_HERITAGE: INSA_NEW, // same Localization_Jeju tab, same column order
+  JEJU_HERITAGE: INSA_NEW, // same Localization_Jeju_v2 tab, same column order
   // KADA W202 has no Localization tab at all (see CONTENT_SHEETS), so there are
   // no extra language columns to map. The parser never runs for this layout —
   // the transport skips it on the empty sheetId — and an empty list keeps that
@@ -57,7 +57,7 @@ const NEW_LANG_COLS: Record<KioskLayoutId, Array<{ lang: SupportedLanguage; inde
  * Layouts whose Localization tab is SHARED with another venue, and the mascot
  * names that tell the rows apart.
  *
- * Localization_Jeju serves 제주국제공항 W006 / 제주국제여객터미널 W007 (both mascot
+ * Localization_Jeju_v2 serves 제주국제공항 W006 / 제주국제여객터미널 W007 (both mascot
  * 하영) and 세계자연유산본부 W008 (mascot 유산) from one tab — the sheet is titled
  * "#W6~8=제주_전체데이터" — so seven keys appear twice. Without this, last-wins gives
  * a 하영 machine the 유산 rows and the kiosk shows "안녕 '유산'", "도와줘 '유산'",

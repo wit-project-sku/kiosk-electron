@@ -279,8 +279,12 @@
 
 /* Top-right row: ambassador label + spinner, side by side with a gap so they
    never overlap. */
+/* z-index: always above the waiting clip under it (AiModelVideoWall layers its
+   two videos at z-index 1/2; the wall is also isolated, so this is the second
+   of two guards, not the only one). */
 .genTopRow {
   position: absolute;
+  z-index: 10;
   top: 20px;
   right: 20px;
   display: flex;

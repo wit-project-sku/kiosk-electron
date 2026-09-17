@@ -59,7 +59,31 @@ interface Props {
   routeLine?: string;
   /** 렌트카 compact bottom row — tel, or km · drive · tel. */
   footerLine?: string;
+  /**
+   * 뭐먹지·뭐사지·숙박 목록만. `fromAssociation`이 true면 이름 오른쪽 점을
+   * 빨강(#FF3737)으로 그린다.
+   */
+  associationDot?: boolean;
+  /**
+   * The 2026-09-14 list row (7212:65355 — 뭐먹지 6391:57961, 뭐사지 6212:55233,
+   * 숙박 6391:58267): a 1820×390 plate, no hashtag line, and ONE row of two
+   * 288×160 photos instead of the 2×2 grid. Opt-in, so the search results and
+   * the 렌트카 list keep their own frames until they are redrawn too.
+   */
+  twoPhotos?: boolean;
   onClick: () => void;
+}
+
+/** The two photo slots of the `twoPhotos` row, left → right. */
+function rowPhotos(shop: Shop): string[] {
+  const real = shopImages(shop).slice(0, 2);
+  // The frame right-aligns: a one-photo shop draws its photo in the RIGHT slot
+  // and leaves the left one blank (7212:65376 is an empty plate). A shop with no
+  // photo at all still shows the shared no-image placeholder in that slot, so
+  // the row never reads as a broken card.
+  if (real.length >= 2) return real;
+  if (real.length === 1) return ['', real[0]!];
+  return ['', jejuIconUrl('noimage') ?? ''];
 }
 
 export function JejuShopCard({
@@ -72,6 +96,8 @@ export function JejuShopCard({
   badgeVariant = 'primary',
   routeLine,
   footerLine,
+  associationDot = false,
+  twoPhotos = false,
   onClick,
 }: Props): JSX.Element {
   // Real photos first, then the shared no-image placeholder — the same asset
@@ -87,11 +113,13 @@ export function JejuShopCard({
     : shopSecondCategory(shop, lang);
   const mark = (text: string): ReturnType<typeof highlightMatch> | string =>
     query ? highlightMatch(text, query, styles.hl) : text;
+  const dotClass =
+    associationDot && shop.fromAssociation ? `${styles.dot} ${styles.dotAssociation}` : styles.dot;
 
   return (
     <button
       type="button"
-      className={`${styles.card} ${compact ? styles.cardCompact : ''}`}
+      className={`${styles.card} ${compact ? styles.cardCompact : ''} ${twoPhotos && !compact ? styles.cardList : ''}`}
       onClick={onClick}
     >
       <span className={`${styles.info} ${compact ? styles.infoCompact : ''}`}>
@@ -102,7 +130,7 @@ export function JejuShopCard({
                 <span className={styles.name}>{mark(displayName)}</span>
                 {displayCategory && (
                   <span className={styles.cat}>
-                    <span className={styles.dot} />
+                    <span className={dotClass} />
                     {displayCategory}
                   </span>
                 )}
@@ -115,7 +143,7 @@ export function JejuShopCard({
             <>
               <span className={styles.name}>{mark(displayName)}</span>
               <span className={styles.cat}>
-                <span className={styles.dot} />
+                <span className={dotClass} />
                 {displayCategory}
               </span>
             </>
@@ -137,12 +165,24 @@ export function JejuShopCard({
           <>
             <p className={styles.address}>{mark(shopAddress(shop, lang))}</p>
             <p className={styles.desc}>{mark(shopDescription(shop, lang))}</p>
-            <p className={styles.tags}>{mark(shopHashtag(shop, lang))}</p>
+            {/* The twoPhotos row draws no hashtag line. */}
+            {!twoPhotos && <p className={styles.tags}>{mark(shopHashtag(shop, lang))}</p>}
           </>
         )}
       </span>
 
-      {!compact && (
+      {!compact && twoPhotos && (
+        /* 7212:65375: two 288×160 slots, 30 apart, right-aligned (see rowPhotos). */
+        <span className={styles.photosRow}>
+          {rowPhotos(shop).map((src, j) => (
+            <span key={j} className={src ? styles.thumbWide : `${styles.thumbWide} ${styles.thumbBlank}`}>
+              {src && <img src={src} alt="" draggable={false} loading="lazy" />}
+            </span>
+          ))}
+        </span>
+      )}
+
+      {!compact && !twoPhotos && (
         /* Always four slots so the 2×2 grid holds its shape; padImages fills the
            spare ones with the no-image placeholder. */
         <span className={styles.photos}>

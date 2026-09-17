@@ -9,7 +9,7 @@
   --dir-road-note: 34px;
   --dir-mode: 48px;
   --dir-mode-time: 55px;
-  --dir-mode-time-left: 530px;
+  --dir-mode-time-gap: 90px;
   --dir-mode-icon: 80px;
   --dir-mode-icon-gap: 36px;
   --dir-rail-width: 40px;
@@ -50,9 +50,8 @@
   gap: 40px;
 }
 
-/* Icon · label on the left; time pinned at --dir-mode-time-left. */
+/* Icon · label, then time 90px to the right of the label. */
 .modeHead {
-  position: relative;
   display: flex;
   align-items: center;
   width: 100%;
@@ -65,8 +64,12 @@
   display: inline-flex;
   align-items: center;
   gap: var(--dir-mode-icon-gap);
-  flex: 0 1 auto;
+  flex: 0 0 auto;
   min-width: 0;
+  /* Stops 24px short of the time pinned at --dir-mode-time-left (measured from
+     the padding edge; this box starts at the pad), so a long label wraps onto
+     a second line instead of running under the time. */
+  max-width: calc(var(--dir-mode-time-left) - var(--dir-card-pad-x) - 24px);
 }
 
 .modeIcon {
@@ -75,19 +78,22 @@
   line-height: 1;
 }
 
+/* Wraps (see .modeHeadLeft); .modeHead's min-height grows around two lines and
+   keeps the icon and time centred on them. */
 .modeLabel {
+  min-width: 0;
   font-size: var(--dir-mode);
   font-weight: 700;
-  line-height: 1;
+  line-height: 1.15;
   color: #333;
-  white-space: nowrap;
+  white-space: normal;
+  word-break: keep-all;
+  overflow-wrap: anywhere;
 }
 
 .modeTime {
-  position: absolute;
-  left: var(--dir-mode-time-left);
-  top: 50%;
-  transform: translateY(-50%);
+  flex: 0 0 auto;
+  margin-left: var(--dir-mode-time-gap);
   font-size: var(--dir-mode-time);
   font-weight: 600;
   line-height: 1;
@@ -279,10 +285,13 @@
   color: #999;
 }
 
+/* A pill that doesn't fit beside the stop name drops to its own line first
+   (`.stopTop` wraps); only one wider than the whole column wraps its text. */
 .pill {
   flex: 0 0 auto;
   box-sizing: border-box;
   width: auto;
+  max-width: 100%;
   padding: 18px 36px;
   border-radius: 60px;
   background: var(--kiosk-primary, #ff7f0f);
@@ -290,7 +299,9 @@
   font-weight: 700;
   line-height: 1;
   color: #fff;
-  white-space: nowrap;
+  white-space: normal;
+  word-break: keep-all;
+  overflow-wrap: anywhere;
   display: inline-flex;
   align-items: center;
   justify-content: center;

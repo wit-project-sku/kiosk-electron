@@ -16,6 +16,11 @@ import type {
 } from './contracts';
 import type { Result } from '../types/result';
 import type {
+  MotionGameId,
+  MotionGameReport,
+  MotionGameState,
+} from '../types/motionGame';
+import type {
   AppSettings,
   DisplayState,
   EntityId,
@@ -39,7 +44,12 @@ import type { CameraDeviceInfo, PhotoOption, PhotoWorkflowState } from '../types
 import type { SpotDiffRound } from '../types/spotDiff';
 import type { FootfallReport, FootfallRuntime, FootfallStats } from '../types/footfall';
 import type { OutfitCatalogue } from '../types/outfit';
-import type { JejuCourse, JejuCourseRecommendQuery } from '../types/jejuCourse';
+import type {
+  JejuCourse,
+  JejuCourseRecommendQuery,
+  JejuPickerPlan,
+  JejuPickerQuery,
+} from '../types/jejuCourse';
 import type { WeatherForecast, WeatherSnapshot } from '../types/weather';
 import type { JejuFlightSnapshot } from '../types/jejuFlight';
 import type { JejuSailingSnapshot } from '../types/jejuSailing';
@@ -117,6 +127,19 @@ export interface KioskBridge {
     getSelected(): Promise<Result<{ deviceId: string | null; devices: CameraDeviceInfo[] }>>;
     setPreferred(deviceId: string): Promise<Result<{ deviceId: string }>>;
   };
+  /**
+   * 제주 모션 게임 — the camera games played on Monitor 2 and driven from
+   * Monitor 1. See shared/types/motionGame.ts for why this crosses processes.
+   */
+  motion: {
+    get(): Promise<Result<MotionGameState>>;
+    /** Monitor 1: run this game. Repeating the same id starts a NEW run. */
+    start(game: MotionGameId): Promise<Result<MotionGameState>>;
+    /** Monitor 2: live phase/score/tracking as the run progresses. */
+    report(report: MotionGameReport): Promise<Result<MotionGameState>>;
+    /** Monitor 1: the visitor pressed 그만하기, or the screen went away. */
+    stop(): Promise<Result<MotionGameState>>;
+  };
   photo: {
     getOptions(): Promise<Result<{ clothing: PhotoOption[]; styles: PhotoOption[] }>>;
     getWorkflow(): Promise<Result<PhotoWorkflowState>>;
@@ -192,6 +215,8 @@ export interface KioskBridge {
    */
   jejuCourse: {
     recommend(query: JejuCourseRecommendQuery): Promise<Result<JejuCourse>>;
+    /** 커스텀 코스: the plan for every tap so far, plus each tile's state. One call per tap. */
+    picker(query: JejuPickerQuery): Promise<Result<JejuPickerPlan>>;
   };
   language: {
     get(): Promise<Result<SupportedLanguage>>;
@@ -320,6 +345,8 @@ export interface KioskBridge {
     onSyncStatsChanged(listener: (stats: SyncQueueStats) => void): Unsubscribe;
     onContentChanged(listener: (content: CachedContent[]) => void): Unsubscribe;
     onPhotoWorkflowChanged(listener: (state: PhotoWorkflowState) => void): Unsubscribe;
+    /** 제주 모션 게임 started, progressed or ended — see MotionGameState. */
+    onMotionGameChanged(listener: (state: MotionGameState) => void): Unsubscribe;
     onLanguageChanged(listener: (language: SupportedLanguage) => void): Unsubscribe;
     onWeatherChanged(listener: (weather: WeatherSnapshot) => void): Unsubscribe;
     onWeatherForecastChanged(listener: (forecast: WeatherForecast) => void): Unsubscribe;
