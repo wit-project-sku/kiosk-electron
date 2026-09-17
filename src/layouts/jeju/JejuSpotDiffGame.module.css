@@ -698,6 +698,7 @@
    screen rather than a modal with its own styling. */
 .overlayActions {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   justify-content: center;
   gap: 40px;

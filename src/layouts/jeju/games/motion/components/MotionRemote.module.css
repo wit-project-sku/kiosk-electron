@@ -1,0 +1,205 @@
+/*
+ * 모션 게임 리모컨 — what the TOUCH screen shows while the big screen plays.
+ *
+ * Artboard px on the 2160×3840 board, on the same 180px margins as the game
+ * menu so moving between the two does not shift the page.
+ *
+ * One column from y690: eyebrow + title, the panel (status · score ·
+ * controls), the photo offer while one is pending, then the actions. It flows
+ * rather than pinning each block, so the buttons always sit right under
+ * whatever is showing instead of across an empty gap.
+ *
+ * The visitor is NOT looking at this screen — the score is read in a glance on
+ * the way past, so it is the one oversized element. Everything else is quiet.
+ */
+
+.root {
+  position: absolute;
+  inset: 0;
+  width: 2160px;
+  height: 3840px;
+  overflow: hidden;
+  font-family: var(--kiosk-font, 'Noto Sans KR', 'Noto Sans', sans-serif);
+  color: #1f1b16;
+}
+
+.bg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  pointer-events: none;
+}
+
+.column {
+  position: absolute;
+  left: 180px;
+  top: 690px;
+  width: 1800px;
+  display: flex;
+  flex-direction: column;
+  gap: 80px;
+}
+
+/* ── Header ────────────────────────────────────────────────────────── */
+.top {
+  margin-bottom: -10px;
+}
+
+.eyebrow {
+  margin: 0 0 24px;
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  font-size: 46px;
+  font-weight: 600;
+  line-height: 1;
+  color: var(--kiosk-primary, #ff7f0f);
+}
+
+.title {
+  margin: 0;
+  font-size: 110px;
+  font-weight: 800;
+  line-height: 1.05;
+  letter-spacing: -0.03em;
+}
+
+/* ── The panel ─────────────────────────────────────────────────────── */
+.panel {
+  padding: 0 90px;
+  box-sizing: border-box;
+  border: 4px solid rgba(31, 27, 22, 0.08);
+  border-radius: 48px;
+  background: #fff;
+}
+
+.panel > * + * {
+  border-top: 3px solid rgba(31, 27, 22, 0.07);
+}
+
+.status {
+  margin: 0;
+  height: 190px;
+  display: flex;
+  align-items: center;
+  gap: 30px;
+  font-size: 54px;
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+.statusDot {
+  width: 30px;
+  height: 30px;
+  flex: 0 0 auto;
+  border-radius: 50%;
+  background: #2f9e5f;
+}
+
+.status[data-tone='warn'] .statusDot {
+  background: #e8930c;
+  animation: pulse 1.2s ease-in-out infinite;
+}
+
+.status[data-tone='done'] .statusDot {
+  background: var(--kiosk-primary, #ff7f0f);
+}
+
+.statusText {
+  animation: fadeIn 240ms ease;
+}
+
+@keyframes pulse {
+  0%,
+  100% {
+    opacity: 0.35;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.label {
+  display: block;
+  font-size: 42px;
+  font-weight: 600;
+  line-height: 1;
+  color: #8a8176;
+}
+
+.scoreBlock {
+  padding: 70px 0 80px;
+  display: flex;
+  flex-direction: column;
+  gap: 30px;
+}
+
+.scoreValue {
+  font-size: 300px;
+  font-weight: 800;
+  line-height: 0.9;
+  letter-spacing: -0.04em;
+  font-variant-numeric: tabular-nums;
+}
+
+.scoreIdle {
+  color: #d6cfc5;
+}
+
+.controls {
+  padding: 70px 0 80px;
+  display: flex;
+  flex-direction: column;
+  gap: 40px;
+}
+
+.controlRows {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 30px;
+}
+
+.control {
+  height: 180px;
+  padding: 0 40px;
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  gap: 30px;
+  border-radius: 32px;
+  background: #f6f1ea;
+  font-size: 58px;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.controlHand {
+  font-size: 96px;
+  line-height: 1;
+}
+
+/* ── Actions ───────────────────────────────────────────────────────── */
+.actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 30px;
+}
+
+.actionWide {
+  grid-column: 1 / -1;
+}
+
+.actionHalf {
+  min-width: 0;
+}

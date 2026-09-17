@@ -6,6 +6,7 @@ import type {
   FootfallTuning,
 } from '@shared/types/footfall';
 import type { DisplayState } from '@shared/types/domain';
+import type { MotionGameState } from '@shared/types/motionGame';
 import type { PhotoWorkflowState } from '@shared/types/photo';
 import {
   DEFAULT_FOOTFALL_TUNING,
@@ -206,6 +207,19 @@ export class FootfallService {
    */
   onDisplayStateChanged(state: DisplayState): void {
     this.setBlocker('display-camera', state.mode === 'camera' || state.mode === 'countdown');
+  }
+
+  /**
+   * Follow the 제주 모션 게임 too.
+   *
+   * A running camera game means the customer display has the camera open for
+   * pose tracking — the same conflict a capture creates, so it takes the same
+   * blocker. Today those games only run during the photo wait, where
+   * 'photo-session' is already raised; this makes the rule hold on its own the
+   * day anything runs one outside that window.
+   */
+  onMotionGameChanged(state: MotionGameState): void {
+    this.setBlocker('display-camera', state.game !== null);
   }
 
   /**

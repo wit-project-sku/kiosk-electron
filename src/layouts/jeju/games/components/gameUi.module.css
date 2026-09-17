@@ -1,0 +1,367 @@
+/*
+ * Shared primitives for the 제주 waiting games — button, HUD, countdown, result.
+ *
+ * Inside KioskArtboard 1 CSS px = 1 Figma px (2160×3840), so every number here
+ * is artboard px, exactly as in the 제주 frames.
+ *
+ * No frame exists for these states: the AR flow's Figma stops at the static
+ * 틀린그림찾기 board. Everything below is therefore built from the tokens that
+ * board DOES establish, so the games read as the same product —
+ *   type      65 / 58px Noto Sans Bold, #333 body, #616161 secondary
+ *   primary   #ff7f0f (var(--kiosk-primary), the [제주] main 01 token)
+ *   buttons   150px tall, 42.9px radius
+ *   overlay   rgba(35,35,35,.6) scrim, 60px card radius
+ * Replace with the real thing if frames for these states ever land.
+ */
+
+/* ── GameButton ────────────────────────────────────────────────────────
+   Minimum 150px tall and never narrower than 380px: this is a public kiosk
+   read at arm's length by children and older visitors, so the 44px web
+   minimum is not the target — it is roughly a third of it. */
+.btn {
+  height: 150px;
+  min-width: 380px;
+  box-sizing: border-box;
+  padding: 0 70px;
+  border-radius: 42.9px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 26px;
+  font-family: inherit;
+  font-size: 56px;
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: -0.01em;
+  white-space: nowrap;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+  transition:
+    transform 120ms ease,
+    background-color 120ms ease,
+    border-color 120ms ease;
+}
+
+/* Press feedback is a transform, never a colour swap: on a resistive kiosk
+   panel the finger covers the button, and a shape change is still visible at
+   the edges when a fill change is not. */
+.btn:active:not(:disabled) {
+  transform: scale(0.96);
+}
+
+/* Flat fills and hairline borders only — no drop shadows anywhere in the games.
+   Elevation is carried by contrast against the page, not by blur. */
+.btnPrimary {
+  border: 4px solid var(--kiosk-primary, #ff7f0f);
+  background: var(--kiosk-primary, #ff7f0f);
+  color: #fff;
+}
+
+.btnGhost {
+  border: 4px solid rgba(31, 27, 22, 0.14);
+  background: #fff;
+  color: #1f1b16;
+}
+
+.btnGhost:active:not(:disabled) {
+  background: #f6f2ec;
+}
+
+.btnGold {
+  border: 4px solid #1f1b16;
+  background: #1f1b16;
+  color: #fff;
+}
+
+.btn:disabled {
+  background: #ece8e2;
+  border-color: #ece8e2;
+  color: #a39a8e;
+  cursor: default;
+}
+
+/* ── The customer display variant ───────────────────────────────
+   These primitives were built for the touch screen's warm, near-white board.
+   The motion games render on the customer display, whose ground is dark, and a
+   pale HUD and a pale countdown scrim there wash out to nothing.
+
+   Applied as ONE class on MotionStage's root rather than a prop on every
+   primitive — the descendant selectors work because all of these live in this
+   same module, and adding a `dark` prop to four components to say one thing
+   would be four chances to forget it. */
+.onDisplay .countdown {
+  background: rgba(246, 239, 228, 0.94);
+  backdrop-filter: none;
+}
+
+.onDisplay .countdownHint {
+  color: #6f675d;
+}
+
+/* The score card on the display: flat white on a cream scrim, no blur. */
+.onDisplay .resultScrim {
+  background: rgba(246, 239, 228, 0.86);
+}
+
+.onDisplay .resultTitle {
+  color: #1f1b16;
+}
+
+.onDisplay .resultNote {
+  color: #6f675d;
+}
+
+/* ── GameHud ───────────────────────────────────────────────────────────
+   SCORE left, TIME right, a centred slot between them for whatever the game
+   wants to say. Three equal columns keep the middle on the artboard centre
+   however wide the two ends grow — the same trick the 틀린그림찾기 progress
+   line uses. */
+.hud {
+  position: absolute;
+  left: 0;
+  width: 2160px;
+  height: 170px;
+  padding: 0 150px;
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+}
+
+.hudCell {
+  flex: 1 1 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 0;
+}
+
+.hudCellRight {
+  align-items: flex-end;
+}
+
+.hudCellMid {
+  align-items: center;
+}
+
+.hudLabel {
+  font-size: 40px;
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: 0.04em;
+  color: #9a9a9a;
+  white-space: nowrap;
+}
+
+.hudValue {
+  font-size: 86px;
+  font-weight: 800;
+  line-height: 1;
+  color: #333;
+  font-variant-numeric: tabular-nums;
+}
+
+.hudValueAccent {
+  color: var(--kiosk-primary, #ff7f0f);
+}
+
+/* The score jumps a beat on every change — keyed re-mount in GameHud restarts
+   it. Scale only, so it cannot reflow the row it sits in. */
+.hudBump {
+  animation: hudBump 320ms cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+@keyframes hudBump {
+  0% {
+    transform: scale(1);
+  }
+  35% {
+    transform: scale(1.18);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+/* Under 10 seconds the clock turns red and pulses. Colour alone would not
+   carry it — the panel is viewed off-axis and washes out. */
+.hudUrgent {
+  color: #e5484d;
+  animation: hudPulse 1s ease-in-out infinite;
+}
+
+@keyframes hudPulse {
+  0%,
+  100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.1);
+  }
+}
+
+/* ── GameCountdown ─────────────────────────────────────────────────────
+   Full-screen 3·2·1 over a dimmed board, so a visitor who has just tapped a
+   card has a beat to get their hand into position. */
+.countdown {
+  position: absolute;
+  inset: 0;
+  z-index: 20;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 60px;
+  background: rgba(255, 250, 244, 0.86);
+  backdrop-filter: blur(6px);
+}
+
+.countdownNum {
+  font-size: 620px;
+  font-weight: 800;
+  line-height: 1;
+  letter-spacing: -0.04em;
+  color: var(--kiosk-primary, #ff7f0f);
+  font-variant-numeric: tabular-nums;
+  animation: countdownPop 900ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.countdownGo {
+  font-size: 320px;
+  font-weight: 800;
+  line-height: 1;
+  color: var(--kiosk-primary, #ff7f0f);
+  animation: countdownPop 600ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+@keyframes countdownPop {
+  0% {
+    transform: scale(0.8);
+    opacity: 0;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+.countdownHint {
+  font-size: 58px;
+  font-weight: 500;
+  line-height: 1.3;
+  color: #616161;
+  text-align: center;
+  max-width: 1600px;
+  word-break: keep-all;
+}
+
+/* ── GameResult ────────────────────────────────────────────────────────
+   The score card. Same scrim and card radius as the 틀린그림찾기 outcome
+   overlay, so ending any game feels like ending that one. */
+.resultScrim {
+  position: absolute;
+  inset: 0;
+  z-index: 30;
+  background: rgba(35, 35, 35, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: fadeIn 260ms ease;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.resultCard {
+  width: 1500px;
+  padding: 120px 100px 130px;
+  box-sizing: border-box;
+  border-radius: 56px;
+  background: #fff;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 36px;
+  animation: resultRise 420ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+@keyframes resultRise {
+  from {
+    transform: translateY(50px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0) scale(1);
+    opacity: 1;
+  }
+}
+
+.resultEmojiPlain {
+  font-size: 150px;
+  line-height: 1;
+}
+
+/* "New best" — a small flat tag above the title, only when it is true. */
+.resultTag {
+  padding: 18px 36px;
+  border-radius: 20px;
+  background: var(--kiosk-primary, #ff7f0f);
+  color: #fff;
+  font-size: 44px;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.resultTitle {
+  margin: 0;
+  font-size: 80px;
+  font-weight: 700;
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+  color: #333;
+  text-align: center;
+}
+
+.resultScore {
+  font-size: 300px;
+  font-weight: 800;
+  line-height: 0.95;
+  letter-spacing: -0.045em;
+  color: var(--kiosk-primary, #ff7f0f);
+  font-variant-numeric: tabular-nums;
+}
+
+.resultNote {
+  margin: 0;
+  font-size: 52px;
+  font-weight: 600;
+  line-height: 1.35;
+  color: #616161;
+  text-align: center;
+}
+
+/* Slot for whatever the game wants above the buttons — the hunt's stamp row,
+   the cup game's per-round dots. */
+.resultExtra {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+}
+
+/* Wraps: three buttons fit one row at 1560px only when the labels are short,
+   and Russian and Vietnamese labels are not. */
+.resultActions {
+  margin-top: 16px;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 34px;
+}
+

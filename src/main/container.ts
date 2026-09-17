@@ -48,6 +48,7 @@ import { GoogleDriveService } from './services/drive/GoogleDriveService';
 import { PhotoGenerationService } from './services/photo/PhotoGenerationService';
 import { ImageHostService } from './services/photo/ImageHostService';
 import { PhotoWorkflowService } from './services/photo/PhotoWorkflowService';
+import { MotionGameService } from './services/motion/MotionGameService';
 import { FootfallService } from './services/footfall/FootfallService';
 import { FootfallUploader } from './services/footfall/FootfallUploader';
 import { HeightService } from './services/height/HeightService';
@@ -73,6 +74,8 @@ export interface AppContainer {
   drive: GoogleDriveService;
   photoGeneration: PhotoGenerationService;
   photoWorkflow: PhotoWorkflowService;
+  /** 제주 모션 게임 — which camera game Monitor 2 is running. */
+  motionGame: MotionGameService;
   translations: TranslationService;
   weather: WeatherService;
   flights: FlightService;
@@ -171,6 +174,12 @@ export function createContainer(): AppContainer {
   display.subscribe((state) => footfall.onDisplayStateChanged(state));
   const footfallUploader = new FootfallUploader(footfallRepo, kiosk, footfall);
 
+  // 제주 모션 게임. A running camera game means the customer display has the
+  // camera open, so counting yields exactly as it does for a photo session —
+  // reusing the 'display-camera' reason, because that is literally what it is.
+  const motionGame = new MotionGameService();
+  motionGame.subscribe((state) => footfall.onMotionGameChanged(state));
+
   // 키 측정. Subscribes to the same workflow broadcast 유동인구 does, for the same
   // reason: the capture pipeline stays unaware that anything else is watching,
   // and nothing it does can be delayed or failed by what happens here. Unlike
@@ -209,6 +218,7 @@ export function createContainer(): AppContainer {
     drive,
     photoGeneration,
     photoWorkflow,
+    motionGame,
     translations,
     weather,
     flights,
