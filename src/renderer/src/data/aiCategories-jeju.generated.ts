@@ -11,7 +11,7 @@ export const AI_CATEGORIES_JEJU: LangText[] = [
   {"ko":"제주 향토음식","en":"Jeju local food","ja":"済州の郷土料理","zh":"济州岛当地美食","vi":"Ẩm thực địa phương Jeju","th":"อาหารท้องถิ่นของเกาะเชจู","ru":"Местная еда на острове Чеджу","id":"Makanan lokal Jeju"},
   {"ko":"한식","en":"Korean food","ja":"韓国料理","zh":"韩国料理","vi":"Món ăn Hàn Quốc","th":"อาหารเกาหลี","ru":"корейская еда","id":"Makanan Korea"},
   {"ko":"한정식","en":"Korean set meal","ja":"限定式","zh":"韩式套餐","vi":"suất ăn kiểu Hàn Quốc","th":"ชุดอาหารเกาหลี","ru":"Корейский комплексный обед","id":"Paket makanan Korea"},
-  {"ko":"호텔뷔페","en":"Hotel buffet","ja":"ホテルビュッフェ","zh":"酒店自助餐","vi":"Tiệc buffet khách sạn","th":"บุฟเฟ่ต์ของโรงแรม","ru":"Шведский стол в отеле","id":"Prasmanan hotel"},
+  {"ko":"뷔페","en":"Buffet","ja":"ビュッフェ","zh":"自助餐","vi":"Buffet","th":"บุฟเฟ่ต์","ru":"буфет","id":"Prasmanan"},
   {"ko":"카페","en":"cafe","ja":"カフェ","zh":"咖啡店","vi":"quán cà phê","th":"คาเฟ่","ru":"кафе","id":"kafe"},
   {"ko":"제주특산품","en":"Jeju Specialty Products","ja":"済州特産品","zh":"济州岛特产","vi":"Sản phẩm đặc sản Jeju","th":"10 ผลิตภัณฑ์พิเศษจากเกาะเชจู","ru":"10. Специализированная продукция острова Чеджу","id":"Produk Khas Jeju"},
   {"ko":"전통차","en":"Traditional Tea","ja":"伝統的な車","zh":"传统茶","vi":"Trà truyền thống","th":"11. ชาแบบดั้งเดิม","ru":"11. Традиционный чай","id":"Teh Tradisional"},
