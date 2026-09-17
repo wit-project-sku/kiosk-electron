@@ -162,8 +162,8 @@ const clock = (min: number): string =>
 
 /**
  * The orange note over the questions (Figma 7334:10548) — the slice of the day
- * the courses are built inside: `*"13:00"부터 21:00까지 이용 가능한 코스를
- * 추천해드립니다.`
+ * the courses are built inside: `"13:00"부터 21:00까지 이용 가능한 코스를
+ * 추천해드립니다.` The frame's leading asterisk is left off on request.
  *
  * It follows the DAY IN VIEW rather than stating one fixed window, because the
  * two differ: DAY 1 runs from the clock as the page opened (09:00 at the
@@ -171,14 +171,14 @@ const clock = (min: number): string =>
  * out, so the sentence has to name the one actually in force.
  */
 const HOURS_NOTE: Partial<Record<Lang, (from: string, to: string) => string>> = {
-  ko: (f, t) => `*“${f}”부터 ${t}까지 이용 가능한 코스를 추천해드립니다.`,
-  en: (f, t) => `*We recommend courses you can enjoy from “${f}” to ${t}.`,
-  ja: (f, t) => `*「${f}」から${t}まで利用できるコースをおすすめします。`,
-  zh: (f, t) => `*为您推荐“${f}”至${t}期间可游玩的路线。`,
-  vi: (f, t) => `*Chúng tôi gợi ý các lộ trình có thể đi từ “${f}” đến ${t}.`,
-  th: (f, t) => `*เราแนะนำเส้นทางที่เที่ยวได้ตั้งแต่ “${f}” ถึง ${t}`,
-  ru: (f, t) => `*Рекомендуем маршруты, доступные с «${f}» до ${t}.`,
-  id: (f, t) => `*Kami merekomendasikan rute yang bisa dinikmati dari “${f}” hingga ${t}.`,
+  ko: (f, t) => `“${f}”부터 ${t}까지 이용 가능한 코스를 추천해드립니다.`,
+  en: (f, t) => `We recommend courses you can enjoy from “${f}” to ${t}.`,
+  ja: (f, t) => `「${f}」から${t}まで利用できるコースをおすすめします。`,
+  zh: (f, t) => `为您推荐“${f}”至${t}期间可游玩的路线。`,
+  vi: (f, t) => `Chúng tôi gợi ý các lộ trình có thể đi từ “${f}” đến ${t}.`,
+  th: (f, t) => `เราแนะนำเส้นทางที่เที่ยวได้ตั้งแต่ “${f}” ถึง ${t}`,
+  ru: (f, t) => `Рекомендуем маршруты, доступные с «${f}» до ${t}.`,
+  id: (f, t) => `Kami merekomendasikan rute yang bisa dinikmati dari “${f}” hingga ${t}.`,
 };
 
 /** `YYYY-MM-DD` plus `n` calendar days. UTC arithmetic on a date with no time, so no zone can shift it. */
