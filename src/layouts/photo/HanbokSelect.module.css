@@ -37,12 +37,21 @@
   flex-direction: column;
   align-items: center;
   gap: 60px; /* Figma 검색결과 gap 60 */
+  /* .content's bottom and the 573-tall banner are FLUSH by design, so without
+     this the step ② card kisses the banner. It costs the outfit grid a few px
+     (the only shrinkable child) and nothing else moves. */
+  padding-bottom: 40px;
   overflow-y: auto;
   font-family: var(--kiosk-font, sans-serif);
 }
 
 /* Step heading */
+/* ★ Every child of .content is rigid EXCEPT .grid / .emptyCat, which carry
+   `flex: 0 1 <basis>` and absorb the whole difference — see `.grid`. Without
+   this the sub-category row is squeezed under its own height and its borders
+   are clipped by the row's overflow. */
 .stepHead {
+  flex: none;
   display: flex;
   flex-direction: column;
   align-items: flex-start;
@@ -99,6 +108,7 @@
    exact 420 at 4 columns and divides the same 1820 at more. */
 .tabs {
   --tab-gap: 46.67px;
+  flex: none;
   display: flex;
   flex-direction: column;
   row-gap: 35px;
@@ -147,11 +157,78 @@
   font-size: 42px;
 }
 
+/* ── Sub-category chips (남자 / 여자) ─────────────────────────────────────
+   The row the 제주 picker draws under its tabs, brought over to the shared
+   step. It FLOWS in `.content`'s column (the 60px gap does the spacing) rather
+   than taking an absolute y, so a category WITHOUT chips leaves no gap at all
+   and the grid keeps the position it has today — which is what lets the row be
+   conditional in the first place.
+
+   ★ The band is ALWAYS in the column, empty chips or not (see the markup), so
+   every tab spends the same height on it and the outfit cards below never
+   change size as the visitor taps along the row. An empty band is 120px of
+   deliberate blank — the same bargain 제주 makes.
+
+   ★ The 279 min-width is a FLOOR, not a width: these are CMS labels in eight
+   languages, and "Мужской ханбок" is nothing like 남자. The chip grows on its
+   content and the row scrolls rather than clipping a real chip out of reach.
+
+   Colours reuse the category tab's own vars (`.tab` / `.tabSel`), so KADA's
+   inverted selected-pill and the Osan/Hwaseong themes carry over for free. */
+.subcats {
+  width: 1820px;
+  height: 120px;
+  flex: none;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 40px;
+  overflow-x: auto;
+  overflow-y: hidden;
+  scrollbar-width: none;
+}
+
+.subcats::-webkit-scrollbar {
+  display: none;
+}
+
+.subcat {
+  min-width: 279px;
+  height: 120px;
+  flex: 0 0 auto;
+  box-sizing: border-box;
+  padding: 0 30px;
+  background: var(--photo-card-bg, #ffffff);
+  border: 5px solid var(--photo-card-border, #e8e8e8);
+  border-radius: 42.9px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--kiosk-font, sans-serif);
+  font-weight: 500;
+  font-size: 50px;
+  line-height: 1.1;
+  color: var(--photo-tab-text, #999999);
+  text-align: center;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  /* Same reasoning as `.tab`: the label is CMS text in eight languages. */
+  white-space: nowrap;
+}
+
+.subcatSel {
+  background: var(--photo-tab-sel-bg, var(--photo-accent-soft, var(--kiosk-secondary)));
+  border-color: var(--photo-tab-sel-border, var(--photo-accent, #fe6c50));
+  font-weight: 700;
+  color: var(--photo-tab-sel-text, var(--photo-accent, #fe6c50));
+}
+
 /* A registered tab whose category has no outfits yet — takes the grid's band
-   so the layout below does not shift. */
+   so the layout below does not shift — and shrinks with it, see `.grid`. */
 .emptyCat {
   width: 1820px;
-  height: 1016px;
+  flex: 0 1 1016px;
+  min-height: 0;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -165,9 +242,19 @@
 /* Swiper Grid: 2 rows of 490px cards + 36px gap = 1016px tall, 1820 wide.
    slidesPerView 3.54 → 3 full cards + a peek (Figma swipe cue). Swiper keeps its
    own overflow:hidden so off-page cards are clipped to the peek. */
+/* ★ The ONE shrinkable band in the column, and the reason the rest can be
+   rigid. `flex: 0 1 1016px` means: take the design's exact 1016 when it fits
+   (no chip row → pixel-identical to Figma, it never GROWS), and give back
+   exactly as much as the layout is over when the sub-category row is drawn.
+   The slides are already sized as a percentage of this height, so the cards
+   follow it down on their own.
+
+   min-height:0 because a flex item will not shrink below its content otherwise
+   — Swiper's own box would win and the clipping would just move here. */
 .grid {
   width: 1820px;
-  height: 1016px;
+  flex: 0 1 1016px;
+  min-height: 0;
   cursor: grab;
 }
 .grid:active {
@@ -201,15 +288,19 @@
   border-width: var(--photo-card-sel-border-width, var(--photo-card-border-width, 2.145px));
 }
 
-/* Figma: outfit image is 181×350 inside the 478×490 card. */
+/* Figma: outfit image is 181×350 inside the 478×490 card. The max-height is a
+   guard for the shortened card a chip row leaves behind — at today's counts the
+   card still clears 350, so it changes nothing on the drawn design. */
 .outfit img {
   width: 181px;
   height: 350px;
+  max-height: calc(100% - 40px);
   object-fit: cover;
 }
 
 /* Capture buttons */
 .captureRow {
+  flex: none;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -243,6 +334,7 @@
 
 /* Step 2 card */
 .step2 {
+  flex: none;
   box-sizing: border-box;
   width: 1820px;
   height: 592px;

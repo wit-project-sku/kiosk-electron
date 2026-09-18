@@ -13,7 +13,8 @@ import { hasLoc, t } from '@renderer/lib/loc';
 import { ui } from '@renderer/lib/uiText';
 import { usePhotoChrome } from './photoChrome';
 import { useOutfitStore } from '@renderer/store/outfitStore';
-import { outfitCategoryLabel } from '@renderer/lib/outfitCategories';
+import { outfitCategoryLabel, outfitSubCategoryLabel } from '@renderer/lib/outfitCategories';
+import type { OutfitSubCategory } from '@shared/types/outfit';
 import hanbokInfo from '@renderer/assets/photos/insadong/hanbok/hanbok-info.png';
 import { HANBOK_INFO, PRIVACY } from './photoTexts';
 import styles from './HanbokSelect.module.css';
@@ -44,6 +45,12 @@ interface Tab {
   label: string;
   /** Korean label, for matching an `initialCategory` handed over by another page. */
   ko: string;
+  /**
+   * This tab's sub-category chips (남자 / 여자 on the catalogue that has them),
+   * in the operator's `sortOrder`. Empty for a category with none — which is
+   * every category on the older catalogue — and an empty row draws nothing.
+   */
+  subs: OutfitSubCategory[];
 }
 
 /**
@@ -156,6 +163,7 @@ export function HanbokSelect({ onCapture, onHome, countdownActive = false }: Han
         id: c.categoryName,
         label: outfitCategoryLabel(c, lang),
         ko: c.labelKr,
+        subs: c.subCategories,
       })),
     [categories, lang],
   );
@@ -184,6 +192,13 @@ export function HanbokSelect({ onCapture, onHome, countdownActive = false }: Han
     if (!tabs.some((t) => t.id === categoryId)) setCategoryId(landing.id);
   }, [initialCategory, tabs, categoryId, setInitialCategory]);
   const [outfitCode, setOutfitCode] = useState<string>('');
+  /**
+   * The picked sub-category chip, or null for the whole category. Nothing is
+   * pre-picked and a second tap on the picked chip clears it — unpicked means
+   * the whole category, which is also the only honest reading on a catalogue
+   * where `subCategoryId` is null on every outfit. Same contract as 제주's row.
+   */
+  const [subId, setSubId] = useState<number | null>(null);
   const [infoOpen, setInfoOpen] = useState(false);
   const [privacyOpen, setPrivacyOpen] = useState(false);
   const infoDrag = useDragScroll();
@@ -198,8 +213,26 @@ export function HanbokSelect({ onCapture, onHome, countdownActive = false }: Han
   const markBroken = (code: string): void => setBrokenCodes((s) => new Set(s).add(code));
   const isOk = (o: { code: string; url: string }): boolean => Boolean(o.url) && !brokenCodes.has(o.code);
 
-  // Real outfits for the selected category, keyed by lower-cased categoryName.
-  const outfits = (byCategory[categoryId.toLowerCase()] ?? []).filter(isOk);
+  /**
+   * The chip row for the selected tab, in `sortOrder`. Empty → no row drawn.
+   *
+   * Memoised on the tab rather than recomputed: the `?? []` fallback would
+   * otherwise be a fresh array every render and re-run the effect below with it.
+   */
+  const category = tabs.find((c) => c.id === categoryId);
+  const subs = useMemo(() => category?.subs ?? [], [category]);
+  useEffect(() => {
+    // The row is CMS content: the operator can retire the picked chip mid-
+    // session, and switching tabs lands on a row that never had it.
+    if (subId !== null && !subs.some((sc) => sc.id === subId)) setSubId(null);
+  }, [subId, subs]);
+
+  // Real outfits for the selected category, keyed by lower-cased categoryName,
+  // narrowed to the picked chip when there is one.
+  const outfits = (byCategory[categoryId.toLowerCase()] ?? []).filter(
+    // No chip picked → the whole category, chips or not.
+    (o) => isOk(o) && (subId === null || o.subCategoryId === subId),
+  );
   const selectedOutfit = outfits.find((o) => o.code === outfitCode) ?? outfits[0];
   // AR fields: gender + specific outfit code, passed through as the clothing key.
   const outfitKey = selectedOutfit ? `${selectedOutfit.gender ?? ''}|${selectedOutfit.code}` : '';
@@ -407,6 +440,7 @@ export function HanbokSelect({ onCapture, onHome, countdownActive = false }: Han
                   className={`${styles.tab} ${categoryId === c.id ? styles.tabSel : ''}`}
                   onClick={() => {
                     setCategoryId(c.id);
+                    setSubId(null);
                     setOutfitCode('');
                   }}
                 >
@@ -414,6 +448,39 @@ export function HanbokSelect({ onCapture, onHome, countdownActive = false }: Han
                 </button>
               ))}
             </div>
+          ))}
+        </div>
+
+        {/* ── Sub-category chips (남자 / 여자) ──
+            The chips are registered sub-categories from
+            `GET /api/outfits/categories`, not a locally-authored 남/여 pair, so
+            nothing here can outlive or contradict the admin web, and the labels
+            are the operator's in the visitor's language — never a hardcoded
+            '남자'/'여자'.
+
+            ★ The BAND is always drawn, even for a category with no chips in it.
+            It is the 제주 picker's arrangement: the row sits in space that is
+            RESERVED rather than taken, so a tab without chips leaves it empty
+            instead of handing the height back. That is what keeps the outfit
+            cards one size across the whole row — the alternative let the cards
+            grow on 글로벌 and shrink again on 한복, resizing under the visitor's
+            finger as they tapped along the tabs. The band costs `.grid` a fixed
+            133px on every tab; see its `flex: 0 1 1016px`. */}
+        <div className={styles.subcats}>
+          {subs.map((sc) => (
+            <button
+              key={sc.id}
+              type="button"
+              className={`${styles.subcat} ${sc.id === subId ? styles.subcatSel : ''}`}
+              onClick={() => {
+                // Tapping the picked chip clears it — the only way back to
+                // the whole category, since nothing here is pre-picked.
+                setSubId((cur) => (cur === sc.id ? null : sc.id));
+                setOutfitCode('');
+              }}
+            >
+              {outfitSubCategoryLabel(sc, lang)}
+            </button>
           ))}
         </div>
 
@@ -428,7 +495,11 @@ export function HanbokSelect({ onCapture, onHome, countdownActive = false }: Han
             spaceBetween={36}
             freeMode
             // The whole card area is draggable; selecting an outfit is a tap.
-            key={categoryId}
+            /* Remount on a tab OR chip change so the strip starts back at the
+               first card and Swiper re-measures the new (possibly much shorter)
+               list — filtering to 남자 from a scrolled 여자 row would otherwise
+               leave the strip parked past its own end. */
+            key={`${categoryId}-${subId ?? ''}`}
           >
             {outfits.map((o) => (
               <SwiperSlide key={o.code} className={styles.outfitSlide}>
