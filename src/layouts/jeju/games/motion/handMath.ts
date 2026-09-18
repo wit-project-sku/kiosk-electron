@@ -220,7 +220,23 @@ export function classifyGameHand(landmarks: readonly HandLandmark[]): GameHandSh
   // ✌️ / ☝️ before the fist: a pointing finger has three curled fingers too.
   // Told apart because a fist OPENING passes through ☝️ when the index finger
   // leads — runControl refuses that one for a moment after a fist.
-  if (index === 1 && ring === -1 && pinky === -1) return middle === -1 ? 'point' : 'victory';
+  //
+  // ── The ring and pinky may be LAZY, not only curled ──────────────────
+  // This used to demand both be scored -1, and that was the most common way a
+  // real jump went unread: most people hold a V with the pinky half-out, which
+  // lands it in the unsure band and scores 0. That hand then failed this test,
+  // failed `curled >= 3`, failed `extended >= 3`, and came back null — "no
+  // change" — so the vote never saw a V and the runner never jumped. Every
+  // other shape here already tolerates one bad finger (open and fist both
+  // decide on 3 of 4); the jump was the only one that did not.
+  //
+  // So: neither may be EXTENDED, and at least one must be clearly curled. The
+  // second half is what stops a lazily-open hand — every finger unsure — from
+  // reading as a jump, which is the one misread that would cost more than this
+  // fixes.
+  if (index === 1 && ring <= 0 && pinky <= 0 && (ring === -1 || pinky === -1)) {
+    return middle === -1 ? 'point' : 'victory';
+  }
   if (curled >= 3 && index !== 1) return 'fist';
   if (extended >= 3) return 'open';
   return null;

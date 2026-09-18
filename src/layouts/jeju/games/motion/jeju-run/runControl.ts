@@ -218,11 +218,20 @@ export class RunControl {
       this.shapes.push(sample.gesture);
       if (this.shapes.length > SHAPE_WINDOW) this.shapes.shift();
       this.lastShapeT = sample.t;
-      if (sample.gesture === 'fist') this.lastFistT = sample.t;
     }
     const votes = (shape: HandReading): number => this.shapes.filter((g) => g === shape).length;
     const fists = votes('fist');
     const opens = votes('open');
+    // ── The release guard is armed by a HELD fist, not by one frame ──────
+    //
+    // This used to stamp on the raw per-frame reading, so a SINGLE stray
+    // 'fist' — the kind a resting open hand produces every few seconds, and
+    // the exact misread SHAPE_WINDOW exists to absorb — armed the 450ms
+    // window. Any V-sign made inside it then needed a perfect 3-of-3 vote,
+    // for no reason the visitor could see or fix; they had never made a fist.
+    // Voting first means the guard fires only after a duck the player
+    // actually performed, which is the case it was written for.
+    if (fists >= SHAPE_VOTES) this.lastFistT = sample.t;
     // Just out of a fist, only a full window of real V-signs is a jump — see
     // RELEASE_GUARD_MS. Otherwise ✌️ and ☝️ vote together.
     const guarded = sample.t - this.lastFistT < RELEASE_GUARD_MS;

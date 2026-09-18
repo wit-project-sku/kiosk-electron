@@ -689,7 +689,24 @@ export function useMotionTracking({ enabled }: Options): MotionTracking {
         if (hand) {
           lastHandAtRef.current = started;
           if (handHeldSinceRef.current === 0) handHeldSinceRef.current = started;
-        } else {
+        } else if (started - lastHandAtRef.current > LOSS_GRACE_MS) {
+          // ── A DROPPED FRAME IS NOT THE HAND GOING AWAY ────────────────
+          //
+          // This used to clear on any frame without a hand, which made
+          // HAND_SETTLE_MS a demand for 1500ms of UNBROKEN detection — a
+          // stricter bar than the 1400ms of loss this very loop tolerates a
+          // few lines down, and one MediaPipe rarely clears: an edge-on palm
+          // drops out for a good half second all by itself (see
+          // POSE_FALLBACK_MS). So the accumulator kept restarting, the probe
+          // never settled on the hand, and `needPose` stayed true — meaning
+          // the pose model ran beside the hand model on EVERY frame, for up
+          // to four probe cycles, on a machine with no discrete GPU. That is
+          // the halved frame rate visitors feel as lag in the opening
+          // seconds, which is exactly when the practice run is asking them
+          // for a gesture.
+          //
+          // LOSS_GRACE_MS, not zero: it is already this file's answer to
+          // "how long a gap is still the same hand".
           handHeldSinceRef.current = 0;
         }
 
