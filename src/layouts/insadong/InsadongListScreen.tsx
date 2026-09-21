@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import type { KioskController } from '@renderer/hooks/useKioskController';
 import { iconUrl } from '@renderer/assets/icons/insadong';
 import { useDetailStore } from '@renderer/store/detailStore';
@@ -15,6 +15,7 @@ import {
   shopsForBase,
   padImages,
 } from '@renderer/lib/shops';
+import { useFitText } from '@layouts/components/fitText';
 import { InsadongHeader } from './InsadongHeader';
 import { InsadongLeftNav } from './InsadongLeftNav';
 import styles from './InsadongListScreen.module.css';
@@ -97,6 +98,14 @@ export function InsadongListScreen({ title, controller }: InsadongListScreenProp
 
   const fewTabs = tabs.length <= 5;
 
+  /* Korean category names are 2–3 glyphs and fit the 340px tab on one line; the
+     other languages run to "Товары для художников". In those, the tab label
+     wraps and the row shrinks together if it still overflows — see the
+     "Other languages" block in the CSS. */
+  const wide = lang !== 'ko';
+  const tabsRef = useRef<HTMLDivElement>(null);
+  useFitText(tabsRef, styles.tab, wide, 0.72, tabs.map((x) => x.label).join('|'));
+
   return (
     <>
       {iconUrl('bg') && <img className={styles.bg} src={iconUrl('bg')} alt="" draggable={false} />}
@@ -104,12 +113,12 @@ export function InsadongListScreen({ title, controller }: InsadongListScreenProp
       <InsadongHeader title={title} onHome={goHome} />
 
       <div className={styles.results}>
-        <div className={fewTabs ? `${styles.tabs} ${styles.tabsRow}` : styles.tabs}>
+        <div ref={tabsRef} className={fewTabs ? `${styles.tabs} ${styles.tabsRow}` : styles.tabs}>
           {tabs.map((tab) => (
             <button
               key={tab.kr}
               type="button"
-              className={`${styles.tab} ${fewTabs ? styles.tabWide : ''} ${tab.kr === activeKr ? styles.tabSelected : ''}`}
+              className={`${styles.tab} ${wide ? styles.tabLong : ''} ${fewTabs ? styles.tabWide : ''} ${tab.kr === activeKr ? styles.tabSelected : ''}`}
               onClick={() => setSelected(tab.kr)}
             >
               {tab.label}
@@ -125,7 +134,7 @@ export function InsadongListScreen({ title, controller }: InsadongListScreenProp
                 <div className={styles.info}>
                   <div className={styles.nameRow}>
                     <span className={styles.name}>{shopName(shop, lang)}</span>
-                    <span className={styles.cat}>
+                    <span className={`${styles.cat} ${wide ? styles.catLong : ''}`}>
                       <span className={styles.dot} />
                       {shopSecondCategory(shop, lang)}
                     </span>

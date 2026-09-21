@@ -245,3 +245,36 @@
   display: block;
   pointer-events: none;
 }
+
+/* ── Other languages ──────────────────────────────────────────────────────
+ * Reached only through a class the TSX adds when lang !== 'ko' — the Korean
+ * screen is untouched.
+ *
+ * The 340×170 tab is drawn around Korean category names (한식, 카페 — two or
+ * three glyphs on one 50px line). The same tab has to hold "Корейская кухня"
+ * and "Товары для художников". The tab already wrapped, but with `line-height: 1`
+ * and no break rule: a word wider than the tab ran straight out of it, and a
+ * third line ran out of the 170px bottom, into the list below.
+ *
+ * So the label wraps on the tab's own terms and, if the longest one still does
+ * not fit, the row shrinks as one (`--fit`, useFitText — never below 0.72 →
+ * 36px). The 14px inset is what lets "Антиквариат" wrap whole rather than be
+ * split mid-letter by the `overflow-wrap` guard. Nothing is clipped. */
+.tabLong {
+  box-sizing: border-box;
+  white-space: normal;
+  word-break: keep-all;
+  overflow-wrap: anywhere;
+  padding: 0 14px;
+  font-size: calc(50px * var(--fit, 1));
+  line-height: 1.12;
+}
+
+/* The category beside the shop name is `flex: none` + nowrap, so a long one
+   took the whole row and left the name no width. Let it give way and ellipsize. */
+.catLong {
+  flex: 0 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}

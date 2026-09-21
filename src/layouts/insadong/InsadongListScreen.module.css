@@ -235,3 +235,43 @@
   object-fit: cover;
   display: block;
 }
+
+/* ── Other languages ──────────────────────────────────────────────────────
+ * Reached only through a class the TSX adds when lang !== 'ko', so the Korean
+ * screen is untouched.
+ *
+ * The 340×170 tab is drawn around Korean category names — 한식, 카페, 공예품 are
+ * two or three glyphs and sat comfortably on one 50px line, which is why the
+ * tab was `nowrap`. The same tab has to hold "Корейская кухня",
+ * "Товары для художников" and "Азиатская·Китайская": on one line those run
+ * 500–900px through a 340px tab, and because `.tabs` is a wrapping flex row
+ * with `space-between`, an oversized tab drags the whole 2×5 grid out of shape.
+ *
+ * So the label WRAPS inside the tab it has, and a row whose longest label still
+ * does not fit shrinks as one (`--fit`, set by useFitText — never below 0.72,
+ * i.e. 36px). `overflow-wrap: anywhere` is the guard for a single word longer
+ * than the tab ("Достопримечательности"); `word-break: keep-all` keeps CJK from
+ * breaking mid-word before that. Nothing is clipped — the full label is always
+ * shown. */
+.tabLong {
+  white-space: normal;
+  word-break: keep-all;
+  overflow-wrap: anywhere;
+  /* 14px, not the 24 a padded tab would take: the inner width is what decides
+     whether a word wraps whole or is split mid-letter by the `anywhere` guard.
+     At 14 the tab has 302px, which holds "Антиквариат" (287px at 44px type);
+     at 24 it had 282 and broke it after "Антиквариа". */
+  padding: 0 14px;
+  font-size: calc(50px * var(--fit, 1));
+  line-height: 1.12;
+}
+
+/* The category beside the shop name is `flex: none` + nowrap, so a long one
+   ("Товары для художников") took the whole row and left the name no width.
+   Let it give way and ellipsize instead. */
+.catLong {
+  flex: 0 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}

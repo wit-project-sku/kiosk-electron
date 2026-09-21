@@ -62,7 +62,7 @@ export function InsadongExchange({ controller }: InsadongExchangeProps): JSX.Ele
                 <img className={styles.flag} src={c.flag} alt="" draggable={false} />
                 <span className={styles.label}>{c.label}</span>
               </div>
-              <span className={styles.rate}>{c.rateText}</span>
+              <span className={`${styles.rate} ${lang !== 'ko' ? styles.rateLong : ''}`}>{c.rateText}</span>
             </div>
           ))}
         </div>

@@ -126,3 +126,21 @@
   display: block;
   pointer-events: none;
 }
+
+/* ── Other languages ──────────────────────────────────────────────────────
+ * Reached only through a class the TSX adds when lang !== 'ko' — the Korean
+ * screen is untouched.
+ *
+ * The rate cell is a fixed 354px box holding the number plus the won suffix,
+ * which is one glyph in Korean ("1,320.50원") and a word in every other
+ * language ("1,320.50 KRW", "1,320.50 вон", "1,320.50 ウォン"). Those run past
+ * the 354px and, since the cell is right-aligned inside it, the overflow went
+ * LEFT — straight across the currency name beside it.
+ *
+ * The cell sizes to its content instead, with 354 as its minimum. The row is
+ * `space-between` and only about half full, so the extra width comes out of the
+ * empty middle, not out of the currency name. */
+.rateLong {
+  width: auto;
+  min-width: 354px;
+}

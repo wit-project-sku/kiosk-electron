@@ -1,8 +1,9 @@
-import { useMemo, type Ref } from 'react';
+import { type Ref, useMemo, useRef } from 'react';
 import type { KioskController } from '@renderer/hooks/useKioskController';
 import { hwaseongIconUrl } from '@renderer/assets/icons/hwaseong';
 import { screenSubtitle, screenTitle, useLang } from '@renderer/lib/i18n';
 import styles from './HwaseongHeader.module.css';
+import { useFitText } from '@layouts/components/fitText';
 
 const DAY_NAMES = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 function formatDate(d: Date): string {
@@ -46,6 +47,12 @@ export function HwaseongHeader({ controller, title, subtitle, onHome, onBack, su
     '',
   ).trim();
   const sub = (subtitle ?? screenSubtitle(title, lang) ?? '').replace(/^\s*[*★]\s*/, '').trim();
+  /* Korean titles fit the 1342px field on one line; several of the other
+     languages run to half again its width. See "Other languages" in the CSS. */
+  const wide = lang !== 'ko';
+  const titleRef = useRef<HTMLDivElement>(null);
+  useFitText(titleRef, styles.titleField, wide, 0.6, localizedTitle);
+
   const goHome = onHome ?? ((): void => controller?.navigate('home', 'Back'));
   const goBack = onBack ?? goHome;
 
@@ -77,8 +84,8 @@ export function HwaseongHeader({ controller, title, subtitle, onHome, onBack, su
               <svg viewBox="0 0 175 175" fill="none"><circle cx="87.5" cy="87.5" r="87.5" fill="var(--kiosk-primary)" /><path d="M50 92L87.5 55L125 92V130H102V104H73V130H50V92Z" fill="#fff" /></svg>
             )}
           </button>
-          <div className={styles.titleField}>
-            <span className={styles.titleText}>{localizedTitle}</span>
+          <div ref={titleRef} className={`${styles.titleField} ${wide ? styles.titleFieldLong : ''}`}>
+            <span className={`${styles.titleText} ${wide ? styles.titleTextLong : ''}`}>{localizedTitle}</span>
           </div>
           <button type="button" className={styles.navBtn} onClick={goBack} aria-label="뒤로">
             {hwaseongIconUrl('nav-back') ? (

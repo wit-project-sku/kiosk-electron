@@ -195,3 +195,25 @@
 /* ── Bottom banner ── */
 .banner { position: absolute; top: 3267px; left: 0; width: 2160px; height: 573px; pointer-events: none; }
 .bannerImg { width: 100%; height: 100%; object-fit: cover; display: block; }
+
+/* ── Other languages ──────────────────────────────────────────────────────
+ * Reached only through a class the TSX adds when lang !== 'ko' — the Korean
+ * screen is untouched.
+ *
+ * The 340×170 filter tab is drawn around Korean facility names and was `nowrap`
+ * because they fit on one 50px line. "Currency Exchange", "Пункт обмена валют"
+ * and "ศูนย์ข้อมูลนักท่องเที่ยว" do not — on one line they ran out of the tab
+ * and across the rest of the row.
+ *
+ * So the label wraps inside the tab it has and, if the longest one still does
+ * not fit, both rows shrink together (`--fit`, useFitText — never below 0.72 →
+ * 36px). Nothing is clipped. */
+.filterTabLong {
+  box-sizing: border-box;
+  white-space: normal;
+  word-break: keep-all;
+  overflow-wrap: anywhere;
+  padding: 0 14px;
+  font-size: calc(50px * var(--fit, 1));
+  line-height: 1.12;
+}

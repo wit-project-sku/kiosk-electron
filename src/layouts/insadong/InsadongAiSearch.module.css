@@ -171,3 +171,24 @@
   object-fit: cover;
   display: block;
 }
+
+/* ── Other languages ──────────────────────────────────────────────────────
+ * Reached only through a class the TSX adds when lang !== 'ko' — the Korean
+ * screen is untouched.
+ *
+ * The 방문 인원 pills are hand-sized per option (268px) around the Korean copy,
+ * which is three glyphs ("1명"). Russian needs 303–338px for the same six
+ * options ("2 человека"), so every pill in the row overflowed its border and ran
+ * into its neighbour. The pill is 192 tall, which is two 60px lines with room to
+ * spare, so the label wraps inside the pill it has; a row that still does not fit
+ * shrinks as one (`--fit`, useFitText — never below 0.7 → 42px). Nothing is
+ * clipped, and the pill widths stay exactly as the frame sets them. */
+.pillLong {
+  white-space: normal;
+  word-break: keep-all;
+  overflow-wrap: anywhere;
+  padding: 0 16px;
+  text-align: center;
+  font-size: calc(60px * var(--fit, 1));
+  line-height: 1.1;
+}

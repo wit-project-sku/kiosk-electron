@@ -1,0 +1,47 @@
+/*
+ * 85px circles on a 21 gap — 7489:67510…67516 draws them at 1629 and 1735 of
+ * the 1820 column, i.e. hard against its right edge (1735 + 85 = 1820), 17
+ * under the top of the 120 chip band. Both numbers come out of the layout the
+ * two pickers already have, so only the pair's own geometry lives here.
+ */
+.nav {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  gap: 21px;
+}
+
+.btn {
+  width: 85px;
+  height: 85px;
+  flex: 0 0 auto;
+  padding: 0;
+  border: none;
+  border-radius: 50%;
+  /* The layout's accent — 제주 orange, 화성 blue, 오색 / 인사동 their own — with
+     the shared photo theme's variable first because that is what every other
+     control on these two pages reads. */
+  background: var(--photo-accent, var(--kiosk-primary, #ff7f0f));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* The end it cannot move past. Figma's #999999 rather than a dimmed accent:
+   the frame draws the parked ← as a solid grey circle, not a faded orange one. */
+.btnOff {
+  background: #999999;
+  cursor: default;
+}
+
+.icon {
+  width: 85px;
+  height: 85px;
+  display: block;
+}
+
+.btnNext .icon {
+  transform: scaleX(-1);
+}

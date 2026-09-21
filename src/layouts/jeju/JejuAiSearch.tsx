@@ -72,7 +72,7 @@ import {
   REGIONS,
   type JejuRegionId,
 } from './jejuRegionMap';
-import { useFitText } from './fitText';
+import { useFitText } from '@layouts/components/fitText';
 import { JejuPageFrame } from './JejuPageFrame';
 import styles from './JejuAiSearch.module.css';
 import { belowModeBar, LOW_REACH_BANNER_HEIGHT, LOW_REACH_HERO_HEIGHT } from './lowReach';

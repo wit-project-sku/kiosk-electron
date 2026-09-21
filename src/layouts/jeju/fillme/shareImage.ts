@@ -5,7 +5,8 @@
  * 외부 라이브러리 없이 캔버스만 쓰므로 electron 렌더러에서도 그대로 돈다.
  */
 import { formatDate, type AnalysisResult, type Ingredient } from './api';
-import { DISCLAIMER } from './copy';
+import type { Lang } from '@renderer/lib/i18n';
+import { tx } from './text';
 import { fillmeArtUrl } from '@renderer/assets/fillme';
 import { ingredientIconSources } from './ingredients';
 
@@ -118,7 +119,12 @@ function drawPill(ctx: Ctx, cx: number, cy: number): void {
   ctx.restore();
 }
 
-export async function renderResultImage(result: AnalysisResult): Promise<Blob> {
+/*
+ * `lang` 은 부르는 쪽이 넘긴다 — 이 파일은 React 밖(캔버스)이라 useLang 을 쓸 수
+ * 없고, 저장된 결과 이미지는 손님이 보던 화면과 같은 언어여야 한다.
+ */
+export async function renderResultImage(result: AnalysisResult, lang: Lang): Promise<Blob> {
+  const disclaimer = tx('Fillme_text053', lang);
   const rs = result.recommendedSupplement ?? {};
   const title = rs.title ? `“${rs.title}”` : '';
   const description = rs.description || result.content || '';
@@ -127,7 +133,7 @@ export async function renderResultImage(result: AnalysisResult): Promise<Blob> {
 
   // 캔버스는 글꼴이 준비되기 전에 그리면 조용히 대체 글꼴로 그려진다 — 결과 이미지가
   // 화면과 다른 글꼴로 나가지 않도록, 쓸 글자를 모두 적재한 뒤에 그린다.
-  const allText = [title, description, DISCLAIMER, date, 'JEJUDO ISLAND AI 손톱 건강분석 결과 건강분석 추천 영양제 가지 Powered by', ...ingredients.map((i) => i.name)].join(' ');
+  const allText = [title, description, disclaimer, date, 'JEJUDO ISLAND AI 손톱 건강분석 결과 건강분석 추천 영양제 가지 Powered by', ...ingredients.map((i) => i.name)].join(' ');
   await Promise.all([500, 600, 700, 800].map((w) => document.fonts.load(font(w, 40), allText)));
 
   const [icons, logo] = await Promise.all([
@@ -145,7 +151,7 @@ export async function renderResultImage(result: AnalysisResult): Promise<Blob> {
   measure.font = font(500, 38);
   const descLines = description ? wrap(measure, description, textW) : [];
   measure.font = font(500, 30);
-  const noteLines = wrap(measure, DISCLAIMER, INNER - 72);
+  const noteLines = wrap(measure, disclaimer, INNER - 72);
 
   const COLS = 3;
   const GAP = 24;

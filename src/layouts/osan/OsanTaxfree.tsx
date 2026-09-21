@@ -12,6 +12,7 @@ import headerStyles from './OsanHeader.module.css';
 import { OsanBanner } from './OsanBanner';
 import { OsanLeftNav } from './OsanLeftNav';
 import styles from './OsanTaxfree.module.css';
+import { useFitText } from '@layouts/components/fitText';
 
 type TabId = 'refund' | 'intro' | 'merchant';
 /** Bottom tab labels, in tab order (refund / intro / merchant). Sourced from
@@ -81,6 +82,10 @@ interface OsanTaxfreeProps {
 export function OsanTaxfree({ controller }: OsanTaxfreeProps): JSX.Element {
   const goHome = (): void => controller.navigate('home', 'Back');
   const lang = useLanguageStore((s) => s.currentLanguage);
+  /* Korean tab names fit the tab on one line; the other languages do not.
+     See "Other languages" in the CSS. */
+  const wide = lang !== 'ko';
+  const tabsRef = useRef<HTMLDivElement>(null);
   const [activeTab, setActiveTab] = useState<TabId>('refund');
   const rootRef = useRef<HTMLDivElement>(null);
   const subtitleRef = useRef<HTMLDivElement>(null);
@@ -119,6 +124,8 @@ export function OsanTaxfree({ controller }: OsanTaxfreeProps): JSX.Element {
     }
   }, [lang]);
 
+  useFitText(tabsRef, styles.tab, wide, 0.72, lang);
+
   return (
     <div ref={rootRef} className={styles.root}>
       {osanIconUrl('bg') && <img className={styles.bgImage} src={osanIconUrl('bg')} alt="" draggable={false} />}
@@ -152,12 +159,12 @@ export function OsanTaxfree({ controller }: OsanTaxfreeProps): JSX.Element {
         {activeTab === 'merchant' && <MerchantTab lang={lang} />}
       </div>
 
-      <div className={styles.tabs}>
+      <div ref={tabsRef} className={styles.tabs}>
         {(['refund', 'intro', 'merchant'] as TabId[]).map((tab, i) => (
           <button
             key={tab}
             type="button"
-            className={`${styles.tab} ${activeTab === tab ? styles.tabSelected : ''}`}
+            className={`${styles.tab} ${wide ? styles.tabLong : ''} ${activeTab === tab ? styles.tabSelected : ''}`}
             onClick={() => setActiveTab(tab)}
           >
             {t(TAB_KEYS[i]!, lang)}

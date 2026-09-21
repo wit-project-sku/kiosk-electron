@@ -342,3 +342,22 @@
   color: #999999;
 }
 
+
+/* ── Other languages ──────────────────────────────────────────────────────
+ * Reached only through a class the TSX adds when lang !== 'ko' — the Korean
+ * screen is untouched.
+ *
+ * The 579×170 tab holds 지하철 / 버스 / 공항버스 on one 50px line. The same tab
+ * has to hold "Transportation", "Автобус до аэропорта" and
+ * "ข้อมูลการเดินทาง" — on one line those run past the tab and into the one
+ * beside it. The label wraps inside the tab instead, and the row shrinks as
+ * one if the longest still does not fit (`--fit`, useFitText — never below
+ * 0.72 → 36px). Nothing is clipped. */
+.tabLong {
+  white-space: normal;
+  word-break: keep-all;
+  overflow-wrap: anywhere;
+  padding: 0 20px;
+  font-size: calc(50px * var(--fit, 1));
+  line-height: 1.12;
+}

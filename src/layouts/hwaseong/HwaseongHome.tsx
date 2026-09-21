@@ -5,6 +5,7 @@ import { hwaseongIconUrl } from '@renderer/assets/icons/hwaseong';
 import { useWeatherStore } from '@renderer/store/weatherStore';
 import { useWeatherVideo } from '@renderer/hooks/useWeatherVideo';
 import { useLanguageStore } from '@renderer/store/languageStore';
+import { useFitText } from '@layouts/components/fitText';
 import { useSearchStore } from '@renderer/store/searchStore';
 import { weatherIconUrl, weatherIconName } from '@renderer/assets/weather';
 import { buttonText, pick } from '@renderer/lib/i18n';
@@ -142,7 +143,7 @@ function allTilesFor(hasDonation: boolean): HomeTile[] {
 const hwaseongTileKey = (t: HomeTile): TileKey => ({ screen: t.screen, slot: t.slot });
 
 // ── Sub-components ──────────────────────────────────────────────────
-function SquareTile({ tile, label, onClick, disabled }: { tile: Tile; label: string; onClick: () => void; disabled?: boolean }) {
+function SquareTile({ tile, label, onClick, disabled, longLang }: { tile: Tile; label: string; onClick: () => void; disabled?: boolean; longLang: boolean }) {
   const src = hwaseongIconUrl(tile.icon);
   return (
     <div className={`${styles.tileWrap} ${disabled ? styles.tileDisabled : ''}`} onClick={disabled ? undefined : onClick}>
@@ -155,13 +156,13 @@ function SquareTile({ tile, label, onClick, disabled }: { tile: Tile; label: str
           </div>
         )}
       </div>
-      <span className={styles.tileLabel}>{label}</span>
+      <span className={`${styles.tileLabel} ${longLang ? styles.tileLabelLong : ''}`}>{label}</span>
     </div>
   );
 }
 
 /** The wide traffic-style card (spans 2 columns). */
-function WideTile({ tile, label, onClick }: { tile: Tile; label: string; onClick: () => void }) {
+function WideTile({ tile, label, onClick, longLang }: { tile: Tile; label: string; onClick: () => void; longLang: boolean }) {
   const src = hwaseongIconUrl(tile.icon);
   return (
     <div className={styles.tileWrapWide} onClick={onClick}>
@@ -174,15 +175,15 @@ function WideTile({ tile, label, onClick }: { tile: Tile; label: string; onClick
           </div>
         )}
       </div>
-      <span className={styles.tileLabel}>{label}</span>
+      <span className={`${styles.tileLabel} ${longLang ? styles.tileLabelLong : ''}`}>{label}</span>
     </div>
   );
 }
 
 /** Renders a tile as the wide traffic card (tile.wide) or a square tile. */
-function TileView({ tile, label, onClick, disabled }: { tile: HomeTile; label: string; onClick: () => void; disabled?: boolean }) {
-  if (tile.wide) return <WideTile tile={tile} label={label} onClick={onClick} />;
-  return <SquareTile tile={tile} label={label} onClick={onClick} disabled={disabled} />;
+function TileView({ tile, label, onClick, disabled, longLang }: { tile: HomeTile; label: string; onClick: () => void; disabled?: boolean; longLang: boolean }) {
+  if (tile.wide) return <WideTile tile={tile} label={label} onClick={onClick} longLang={longLang} />;
+  return <SquareTile tile={tile} label={label} onClick={onClick} disabled={disabled} longLang={longLang} />;
 }
 
 // ── Main component ──────────────────────────────────────────────────
@@ -191,6 +192,11 @@ export function HwaseongHome({ controller }: Props): JSX.Element {
   const playWeatherVideo = useWeatherVideo();
   const today = useMemo(() => formatDate(new Date()), []);
   const lang = useLanguageStore((s) => s.currentLanguage);
+  /* Korean is what the row pitch was drawn around; every other language runs
+     longer. See "Other languages" at the foot of the CSS. (`longLang`, not
+     `wide` — a tile's own `wide` means it spans two columns.) */
+  const longLang = lang !== 'ko';
+  const gridRef = useRef<HTMLDivElement>(null);
   // Sheet-driven (Localization_Hwaseong): NoticeContent = body, Notice = vertical badge.
   const noticeLines = parseNotice(t('NoticeContent', lang));
   const noticeBadge = t('Notice', lang)
@@ -257,6 +263,8 @@ export function HwaseongHome({ controller }: Props): JSX.Element {
   const weatherIcon = weather
     ? weatherIconUrl(weatherIconName(weather.icon, weather.main))
     : undefined;
+
+  useFitText(gridRef, styles.tileLabel, longLang, 0.7, `${lang}|${dynamicRows ? 'dyn' : 'static'}`);
 
   return (
     <div className={styles.root}>
@@ -369,7 +377,7 @@ export function HwaseongHome({ controller }: Props): JSX.Element {
         </div>
 
         {/* Menu grid — API-ordered when a full layout is cached, else authored. */}
-        <div className={styles.menuGrid}>
+        <div ref={gridRef} className={styles.menuGrid}>
           {dynamicRows
             ? dynamicRows.map((row, i) => (
                 <div key={i} className={styles.menuRow}>
@@ -380,6 +388,7 @@ export function HwaseongHome({ controller }: Props): JSX.Element {
                       label={tileLabel(tile)}
                       onClick={() => go(tile)}
                       disabled={tile.disabled}
+                      longLang={longLang}
                     />
                   ))}
                 </div>
@@ -389,18 +398,18 @@ export function HwaseongHome({ controller }: Props): JSX.Element {
                 {/* Row 1: wide + 2 */}
                 <div className={styles.menuRow}>
                   {/* Wide traffic tile */}
-                  <WideTile tile={ROW1_WIDE} label={TILE(ROW1_WIDE.labelKey)} onClick={() => go(ROW1_WIDE)} />
+                  <WideTile tile={ROW1_WIDE} label={TILE(ROW1_WIDE.labelKey)} onClick={() => go(ROW1_WIDE)} longLang={longLang} />
 
                   {/* 2 square tiles */}
                   {ROW1.map((tile) => (
-                    <SquareTile key={tile.screen + tile.label} tile={tile} label={TILE(tile.labelKey, tile.disabled)} onClick={() => go(tile)} disabled={tile.disabled} />
+                    <SquareTile key={tile.screen + tile.label} tile={tile} label={TILE(tile.labelKey, tile.disabled)} onClick={() => go(tile)} disabled={tile.disabled} longLang={longLang} />
                   ))}
                 </div>
 
                 {/* Row 2 */}
                 <div className={styles.menuRow}>
                   {ROW2.map((tile) => (
-                    <SquareTile key={tile.screen + tile.label} tile={tile} label={tileLabel(tile)} onClick={() => go(tile)} />
+                    <SquareTile key={tile.screen + tile.label} tile={tile} label={tileLabel(tile)} onClick={() => go(tile)} longLang={longLang} />
                   ))}
                 </div>
 
@@ -408,14 +417,14 @@ export function HwaseongHome({ controller }: Props): JSX.Element {
                     pass disabled + keepPending like ROW1/ROW4 do. */}
                 <div className={styles.menuRow}>
                   {row3.map((tile) => (
-                    <SquareTile key={tile.screen + tile.label} tile={tile} label={tileLabel(tile)} onClick={() => go(tile)} disabled={tile.disabled} />
+                    <SquareTile key={tile.screen + tile.label} tile={tile} label={tileLabel(tile)} onClick={() => go(tile)} disabled={tile.disabled} longLang={longLang} />
                   ))}
                 </div>
 
                 {/* Row 4 */}
                 <div className={styles.menuRow}>
                   {ROW4.map((tile) => (
-                    <SquareTile key={tile.screen + tile.label} tile={tile} label={TILE(tile.labelKey, tile.disabled)} onClick={() => go(tile)} disabled={tile.disabled} />
+                    <SquareTile key={tile.screen + tile.label} tile={tile} label={TILE(tile.labelKey, tile.disabled)} onClick={() => go(tile)} disabled={tile.disabled} longLang={longLang} />
                   ))}
                 </div>
               </>

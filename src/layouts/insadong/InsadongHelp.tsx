@@ -1,10 +1,11 @@
-import { useMemo, useState } from 'react';
+import { useMemo, useRef, useState } from 'react';
 import { QRCodeSVG } from 'qrcode.react';
 import type { KioskController } from '@renderer/hooks/useKioskController';
 import { iconUrl } from '@renderer/assets/icons/insadong';
 import { useDetailStore } from '@renderer/store/detailStore';
 import { useShopStore } from '@renderer/store/shopStore';
 import { facilityLabel, useLang } from '@renderer/lib/i18n';
+import { useFitText } from '@layouts/components/fitText';
 import {
   shopAddress,
   shopDescription,
@@ -44,6 +45,11 @@ interface InsadongHelpProps {
 export function InsadongHelp({ controller, initialTab }: InsadongHelpProps): JSX.Element {
   const goHome = (): void => controller.navigate('home', 'Back');
   const lang = useLang();
+  /* Korean facility names fit the box on one line; every other language runs
+     longer ("Пункт обмена валют"). There the label wraps and the whole set
+     shrinks together if it still overflows — see "Other languages" in the CSS. */
+  const wide = lang !== 'ko';
+  const catsRef = useRef<HTMLDivElement>(null);
   const shops = useShopStore((s) => s.shops);
   const setDetail = useDetailStore((s) => s.setItem);
   // Deep-link: open on initialTab (e.g. 화장실 from the restroom tile), else 안내소.
@@ -90,6 +96,9 @@ export function InsadongHelp({ controller, initialTab }: InsadongHelpProps): JSX
     controller.navigate('detail', '도와줘 인사 상세');
   };
 
+  useFitText(catsRef, styles.cat, wide, 0.72,
+    CATEGORY_IDS.map((id) => catLabels.get(id) || facilityLabel(id, lang)).join('|'));
+
   return (
     <>
       {iconUrl('bg') && <img className={styles.bg} src={iconUrl('bg')} alt="" draggable={false} />}
@@ -97,12 +106,12 @@ export function InsadongHelp({ controller, initialTab }: InsadongHelpProps): JSX
       <InsadongHeader title="도와줘 ‘인사’" onHome={goHome} />
 
       <div className={styles.results}>
-        <div className={styles.cats}>
+        <div ref={catsRef} className={styles.cats}>
           {CATEGORY_IDS.map((id) => (
             <button
               key={id}
               type="button"
-              className={`${styles.cat} ${active === id ? styles.catSel : ''}`}
+              className={`${styles.cat} ${wide ? styles.catLong : ''} ${active === id ? styles.catSel : ''}`}
               onClick={() => setActive(id)}
             >
               {catLabels.get(id) || facilityLabel(id, lang)}

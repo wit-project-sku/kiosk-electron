@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import type { KioskController } from '@renderer/hooks/useKioskController';
 import { osanIconUrl } from '@renderer/assets/icons/osan';
 import { useAiStore } from '@renderer/store/aiStore';
@@ -22,6 +22,7 @@ import { OsanBanner } from './OsanBanner';
 import { interestColor } from './interestColors';
 import { OsanLeftNav } from './OsanLeftNav';
 import styles from './OsanAiResult.module.css';
+import { useFitText } from '@layouts/components/fitText';
 
 /** Course-picker heading + subheading — Localization rows, so a copy edit needs
  *  no code change and all eight languages come from the sheet. */
@@ -88,12 +89,17 @@ export function OsanAiResult({ controller }: OsanAiResultProps): JSX.Element {
   const goHome = (): void => controller.navigate('home', 'Back');
   const goBack = (): void => controller.navigate('ai_search', 'Back');
   const lang = useLang();
+  /* The AI returns the course name in the UI language; Korean comes back short
+     enough for the tab's one line, the others do not. See the CSS. */
+  const wide = lang !== 'ko';
+  const tabsRef = useRef<HTMLDivElement>(null);
   const shops = useShopStore((s) => s.shops);
   const setDetail = useDetailStore((s) => s.setItem);
   const noImg = osanIconUrl('noimage') ?? '';
 
   const interests = useAiStore((s) => s.interests);
   const courses = buildCourses(interests, shops, lang, noImg);
+  useFitText(tabsRef, styles.tab, wide, 0.6, courses.map((c) => c.name).join('|'));
 
   // null = overview (3 columns); 0/1/2 = that course's wide-card list.
   const [selected, setSelected] = useState<number | null>(null);
@@ -132,12 +138,12 @@ export function OsanAiResult({ controller }: OsanAiResultProps): JSX.Element {
   const capWidth = TAB_W + CAP_PAD * 2;
 
   const tabs = (
-    <div className={styles.tabs}>
+    <div ref={tabsRef} className={styles.tabs}>
       {courses.map((c, i) => (
         <button
           key={c.name}
           type="button"
-          className={`${styles.tab} ${selected === i ? styles.tabActive : ''}`}
+          className={`${styles.tab} ${wide ? styles.tabLong : ''} ${selected === i ? styles.tabActive : ''}`}
           onClick={() => setSelected((prev) => (prev === i ? null : i))}
         >
           {c.name}
@@ -212,7 +218,7 @@ export function OsanAiResult({ controller }: OsanAiResultProps): JSX.Element {
                       <div className={styles.wideBody}>
                         <div className={styles.wideHead}>
                           <span className={styles.wideTitle}>{spot.title}</span>
-                          <span className={styles.wideCat}>
+                          <span className={`${styles.wideCat} ${wide ? styles.wideCatLong : ''}`}>
                             <span
                               className={styles.dotSmall}
                               style={{ background: interestColor(spot.categoryKr) }}

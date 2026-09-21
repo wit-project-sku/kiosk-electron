@@ -12,6 +12,7 @@ import { InsadongHeader } from './InsadongHeader';
 import headerStyles from './InsadongHeader.module.css';
 import { InsadongLeftNav } from './InsadongLeftNav';
 import styles from './InsadongTaxfree.module.css';
+import { useFitText } from '@layouts/components/fitText';
 
 type TabId = 'refund' | 'intro' | 'merchant';
 /** Bottom tab labels, in tab order (refund / intro / merchant). Sourced from
@@ -87,6 +88,10 @@ export function InsadongTaxfree({ controller }: InsadongTaxfreeProps): JSX.Eleme
   const banner = useRotatingBanner();
   const goHome = (): void => controller.navigate('home', 'Back');
   const lang = useLanguageStore((s) => s.currentLanguage);
+  /* Korean tab names fit the tab on one line; the other languages do not.
+     See "Other languages" in the CSS. */
+  const wide = lang !== 'ko';
+  const tabsRef = useRef<HTMLDivElement>(null);
   const [activeTab, setActiveTab] = useState<TabId>('refund');
   const rootRef = useRef<HTMLDivElement>(null);
   const subtitleRef = useRef<HTMLDivElement>(null);
@@ -125,6 +130,8 @@ export function InsadongTaxfree({ controller }: InsadongTaxfreeProps): JSX.Eleme
     };
   }, []);
 
+  useFitText(tabsRef, styles.tab, wide, 0.72, lang);
+
   return (
     <div ref={rootRef} className={styles.root}>
       {iconUrl('bg') && <img className={styles.bgImage} src={iconUrl('bg')} alt="" draggable={false} />}
@@ -159,12 +166,12 @@ export function InsadongTaxfree({ controller }: InsadongTaxfreeProps): JSX.Eleme
         {activeTab === 'merchant' && <MerchantTab lang={lang} />}
       </div>
 
-      <div className={styles.tabs}>
+      <div ref={tabsRef} className={styles.tabs}>
         {(['refund', 'intro', 'merchant'] as TabId[]).map((tab, i) => (
           <button
             key={tab}
             type="button"
-            className={`${styles.tab} ${activeTab === tab ? styles.tabSelected : ''}`}
+            className={`${styles.tab} ${wide ? styles.tabLong : ''} ${activeTab === tab ? styles.tabSelected : ''}`}
             onClick={() => setActiveTab(tab)}
           >
             {t(TAB_KEYS[i]!, lang)}

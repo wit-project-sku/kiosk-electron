@@ -1,7 +1,8 @@
-import { useEffect, useState, type Ref } from 'react';
+import { type Ref, useEffect, useRef, useState } from 'react';
 import { iconUrl } from '@renderer/assets/icons/insadong';
 import { screenSubtitle, screenTitle, useLang } from '@renderer/lib/i18n';
 import styles from './InsadongHeader.module.css';
+import { useFitText } from '@layouts/components/fitText';
 
 const WEEKDAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 function formatDate(d: Date): string {
@@ -36,6 +37,11 @@ interface InsadongHeaderProps {
 export function InsadongHeader({ title, onHome, onBack, subtitle, compact = false, light = false, subtitleClassName, subtitleRef }: InsadongHeaderProps): JSX.Element {
   const lang = useLang();
   const localizedTitle = screenTitle(title, lang);
+  /* Korean titles sit on one line in the fixed 182px row; several of the other
+     languages need two or three. See "Other languages" in the CSS. */
+  const wide = lang !== 'ko';
+  const titleRowRef = useRef<HTMLDivElement>(null);
+  useFitText(titleRowRef, styles.titleRow, wide, 0.6, localizedTitle);
   const rawSub = subtitle ?? screenSubtitle(title, lang) ?? '';
   // The sheet copy often begins with its own "*"/"★"; the header already renders
   // a star, so strip a leading marker to avoid showing two.
@@ -59,11 +65,13 @@ export function InsadongHeader({ title, onHome, onBack, subtitle, compact = fals
           <span className={styles.date}>{formatDate(now)}</span>
         </div>
 
-        <div className={styles.titleRow}>
+        <div ref={titleRowRef} className={styles.titleRow}>
           <button type="button" className={styles.navBtn} onClick={onHome} aria-label="홈으로">
             {iconUrl('home-btn') && <img src={iconUrl('home-btn')} alt="" draggable={false} />}
           </button>
-          <h1 className={`${styles.title} ${light ? styles.titleLight : ''}`}>{localizedTitle}</h1>
+          <h1 className={`${styles.title} ${wide ? styles.titleLong : ''} ${light ? styles.titleLight : ''}`}>
+            {localizedTitle}
+          </h1>
           <button type="button" className={styles.navBtn} onClick={onBack ?? onHome} aria-label="뒤로">
             {iconUrl('back-arrow') && <img src={iconUrl('back-arrow')} alt="" draggable={false} />}
           </button>

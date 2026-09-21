@@ -17,6 +17,7 @@ import { outfitCategoryLabel, outfitSubCategoryLabel } from '@renderer/lib/outfi
 import type { OutfitSubCategory } from '@shared/types/outfit';
 import hanbokInfo from '@renderer/assets/photos/insadong/hanbok/hanbok-info.png';
 import { HANBOK_INFO, PRIVACY } from './photoTexts';
+import { SwipeNav, useSwipeNav } from './SwipeNav';
 import styles from './HanbokSelect.module.css';
 
 /** Sheet-backed labels — every location's Localization tab carries these in all
@@ -73,6 +74,15 @@ const TAB_ROWS = 2;
 const TAB_MIN_COLUMNS = 4;
 /** Past this the labels are cramped enough to want the smaller type. */
 const TAB_TIGHT_FROM = 5;
+
+/**
+ * Outfit-strip geometry. The ~half card at the right edge is the design's own
+ * swipe cue, and the ← → pair on the chip band (Figma 6258:48326 draws it on
+ * 제주; the same control, in this layout's accent, here) pages by whole cards.
+ */
+const CARDS_PER_VIEW = 3.54;
+const CARD_GAP = 36;
+const CARD_ROWS = 2;
 
 /** Shown on a registered tab whose category carries no outfits yet. */
 const NO_OUTFITS = {
@@ -234,6 +244,15 @@ export function HanbokSelect({ onCapture, onHome, countdownActive = false }: Han
     (o) => isOk(o) && (subId === null || o.subCategoryId === subId),
   );
   const selectedOutfit = outfits.find((o) => o.code === outfitCode) ?? outfits[0];
+  /*
+   * ← → for the strip (Figma 6258:48326 / 7489:67516). Counted off the
+   * CATALOGUE rather than measured, so the pair does not appear a frame late or
+   * flicker as Swiper re-measures on a tab change: the grid lays the list out
+   * in `CARD_ROWS` rows, and it only scrolls once those columns outrun the
+   * `CARDS_PER_VIEW` on screen.
+   */
+  const nav = useSwipeNav();
+  const canSwipe = Math.ceil(outfits.length / CARD_ROWS) > CARDS_PER_VIEW;
   // AR fields: gender + specific outfit code, passed through as the clothing key.
   const outfitKey = selectedOutfit ? `${selectedOutfit.gender ?? ''}|${selectedOutfit.code}` : '';
 
@@ -467,21 +486,29 @@ export function HanbokSelect({ onCapture, onHome, countdownActive = false }: Han
             finger as they tapped along the tabs. The band costs `.grid` a fixed
             133px on every tab; see its `flex: 0 1 1016px`. */}
         <div className={styles.subcats}>
-          {subs.map((sc) => (
-            <button
-              key={sc.id}
-              type="button"
-              className={`${styles.subcat} ${sc.id === subId ? styles.subcatSel : ''}`}
-              onClick={() => {
-                // Tapping the picked chip clears it — the only way back to
-                // the whole category, since nothing here is pre-picked.
-                setSubId((cur) => (cur === sc.id ? null : sc.id));
-                setOutfitCode('');
-              }}
-            >
-              {outfitSubCategoryLabel(sc, lang)}
-            </button>
-          ))}
+          {/* The chips scroll in their OWN track, not in the band: the ← → pair
+              sits in the band beside it, and a long row of CMS labels that
+              scrolled with the band would carry a chip under those buttons. */}
+          <div className={styles.subcatList}>
+            {subs.map((sc) => (
+              <button
+                key={sc.id}
+                type="button"
+                className={`${styles.subcat} ${sc.id === subId ? styles.subcatSel : ''}`}
+                onClick={() => {
+                  // Tapping the picked chip clears it — the only way back to
+                  // the whole category, since nothing here is pre-picked.
+                  setSubId((cur) => (cur === sc.id ? null : sc.id));
+                  setOutfitCode('');
+                }}
+              >
+                {outfitSubCategoryLabel(sc, lang)}
+              </button>
+            ))}
+          </div>
+          {/* The band is reserved on every tab (see above), so the pair keeps
+              its place whether or not the category has chips. */}
+          {canSwipe && <SwipeNav nav={nav} />}
         </div>
 
         {/* Outfit grid — Swiper Grid: 2 rows, swipe horizontally through pages.
@@ -490,10 +517,13 @@ export function HanbokSelect({ onCapture, onHome, countdownActive = false }: Han
           <Swiper
             className={styles.grid}
             modules={[Grid, FreeMode]}
-            grid={{ rows: 2, fill: 'row' }}
-            slidesPerView={3.54}
-            spaceBetween={36}
+            grid={{ rows: CARD_ROWS, fill: 'row' }}
+            slidesPerView={CARDS_PER_VIEW}
+            spaceBetween={CARD_GAP}
             freeMode
+            /* The ← → pair on the chip band drives this strip and follows a
+               drag — see useSwipeNav. */
+            {...nav.bind}
             // The whole card area is draggable; selecting an outfit is a tap.
             /* Remount on a tab OR chip change so the strip starts back at the
                first card and Swiper re-measures the new (possibly much shorter)

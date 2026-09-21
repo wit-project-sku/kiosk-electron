@@ -312,3 +312,35 @@
 /* ── Bottom banner ── */
 .banner { position: absolute; top: 3267px; left: 0; width: 2160px; height: 573px; pointer-events: none; z-index: 10; }
 .bannerImg { width: 100%; height: 100%; object-fit: cover; display: block; }
+
+/* ── Other languages ──────────────────────────────────────────────────────
+ * Reached only through a class the TSX adds when lang !== 'ko' — the Korean
+ * screen is untouched.
+ *
+ * The 580×170 tab was `nowrap` because its Korean names fit on one 50px line.
+ * The same tab has to hold the other languages' renderings, which do not: on
+ * one line they ran past the tab (and on 화성, where the tab clips, they were
+ * cut off mid-word instead). The label wraps inside the tab, and the pair
+ * shrinks together if the longer one still does not fit (`--fit`, useFitText —
+ * never below 0.72 → 36px). Nothing is clipped. */
+.tabLong {
+  white-space: normal;
+  word-break: keep-all;
+  overflow-wrap: anywhere;
+  padding: 0 20px;
+  font-size: calc(50px * var(--fit, 1));
+  line-height: 1.12;
+}
+
+/* The card headings were `nowrap` because the Korean titles are short
+   (온누리 상품권, 행복화성지역화폐). "Подарочные сертификаты Onnuri" and
+   "'Đồng tiền địa phương Happy Hwaseong' là gì?" are two to six times as wide
+   and ran into the card's clip. They wrap instead — the card has the height,
+   and wrapping a heading is what the note at the top of the TSX asked for. */
+.bigTitleLong,
+.block1HeadingLong {
+  white-space: normal;
+  word-break: keep-all;
+  overflow-wrap: anywhere;
+  line-height: 1.15;
+}

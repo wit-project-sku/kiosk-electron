@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import type { KioskController } from '@renderer/hooks/useKioskController';
 import { iconUrl } from '@renderer/assets/icons/insadong';
 import { useDetailStore } from '@renderer/store/detailStore';
@@ -17,6 +17,7 @@ import {
 import { InsadongHeader } from './InsadongHeader';
 import { InsadongLeftNav } from './InsadongLeftNav';
 import styles from './InsadongMuseum.module.css';
+import { useFitText } from '@layouts/components/fitText';
 
 const BASE_CATEGORY = '인사동 미술관';
 
@@ -32,6 +33,11 @@ export function InsadongMuseum({ controller }: InsadongMuseumProps): JSX.Element
   const shops = useShopStore((s) => s.shops);
   const setDetail = useDetailStore((s) => s.setItem);
   const [selected, setSelected] = useState('');
+
+  /* Korean gallery categories fit the tab on one line; the other languages run
+     to "Антикварное искусство". See "Other languages" in the CSS. */
+  const wide = lang !== 'ko';
+  const tabsRef = useRef<HTMLDivElement>(null);
 
   const baseShops = useMemo(() => shopsForBase(shops, BASE_CATEGORY), [shops]);
   const tabs = useMemo(() => {
@@ -78,6 +84,8 @@ export function InsadongMuseum({ controller }: InsadongMuseumProps): JSX.Element
     controller.navigate('detail', '인사 미술관 상세');
   };
 
+  useFitText(tabsRef, styles.tab, wide, 0.72, tabs.map((x) => x.label).join('|'));
+
   return (
     <>
       {iconUrl('bg') && <img className={styles.bg} src={iconUrl('bg')} alt="" draggable={false} />}
@@ -85,12 +93,12 @@ export function InsadongMuseum({ controller }: InsadongMuseumProps): JSX.Element
       <InsadongHeader title="인사 미술관" onHome={goHome} />
 
       <div className={styles.results}>
-        <div className={styles.tabs}>
+        <div ref={tabsRef} className={styles.tabs}>
           {tabs.map((tab) => (
             <button
               key={tab.kr}
               type="button"
-              className={tab.kr === activeKr ? `${styles.tab} ${styles.tabSelected}` : styles.tab}
+              className={`${styles.tab} ${wide ? styles.tabLong : ''} ${tab.kr === activeKr ? styles.tabSelected : ''}`}
               onClick={() => setSelected(tab.kr)}
             >
               {tab.label}
@@ -106,7 +114,7 @@ export function InsadongMuseum({ controller }: InsadongMuseumProps): JSX.Element
                 <div className={styles.info}>
                   <div className={styles.nameRow}>
                     <span className={styles.name}>{shopName(shop, lang)}</span>
-                    <span className={styles.cat}>
+                    <span className={`${styles.cat} ${wide ? styles.catLong : ''}`}>
                       <span className={styles.dot} />
                       {shopSecondCategory(shop, lang)}
                     </span>

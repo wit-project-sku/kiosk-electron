@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useMemo, useRef, useState } from 'react';
 import { QRCodeSVG } from 'qrcode.react';
 import type { KioskController } from '@renderer/hooks/useKioskController';
 import type { Shop } from '@shared/types/shop';
@@ -6,6 +6,7 @@ import { hwaseongIconUrl } from '@renderer/assets/icons/hwaseong';
 import { useDetailStore } from '@renderer/store/detailStore';
 import { useShopStore } from '@renderer/store/shopStore';
 import { facilityLabel, useLang, type Lang } from '@renderer/lib/i18n';
+import { useFitText } from '@layouts/components/fitText';
 import {
   firstTags,
   shopAddress,
@@ -61,6 +62,14 @@ export function HwaseongHelp({ controller, defaultTab, noScroll = false }: Props
   const setDetail = useDetailStore((s) => s.setItem);
   const [activeTab, setActiveTab] = useState(defaultTab ?? ALL_TAB);
 
+  /* Korean facility names fit the 340px tab on one line; every other language
+     runs longer ("Пункт обмена валют"). There the label wraps and both rows
+     shrink together if it still overflows — see "Other languages" in the CSS. */
+  const wide = lang !== 'ko';
+  const filtersRef = useRef<HTMLDivElement>(null);
+  useFitText(filtersRef, styles.filterTab, wide, 0.72,
+    [...TABS_ROW1, ...TABS_ROW2].map((c) => facilityLabel(c, lang)).join('|'));
+
   const baseShops = useMemo(() => shopsForBase(shops, BASE_CATEGORY), [shops]);
   const visible = useMemo(
     () =>
@@ -103,14 +112,14 @@ export function HwaseongHelp({ controller, defaultTab, noScroll = false }: Props
 
       <div className={styles.results} style={noScroll ? { overflowY: 'visible' } : undefined}>
         {/* Filter tabs — 2 rows × 5 (Figma 4167-172026) */}
-        <div className={styles.filterBlock}>
+        <div ref={filtersRef} className={styles.filterBlock}>
           {[TABS_ROW1, TABS_ROW2].map((row, i) => (
             <div key={i} className={styles.tabRow}>
               {row.map((cat) => (
                 <button
                   key={cat}
                   type="button"
-                  className={`${styles.filterTab} ${cat === activeTab ? styles.filterTabActive : ''}`}
+                  className={`${styles.filterTab} ${wide ? styles.filterTabLong : ''} ${cat === activeTab ? styles.filterTabActive : ''}`}
                   onClick={() => setActiveTab(cat)}
                 >
                   {facilityLabel(cat, lang)}

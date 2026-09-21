@@ -240,3 +240,24 @@
   object-fit: cover;
   display: block;
 }
+
+/* ── Other languages ──────────────────────────────────────────────────────
+ * Reached only through a class the TSX adds when lang !== 'ko' — the Korean
+ * screen is untouched.
+ *
+ * The 580×170 category is drawn around Korean facility names and was `nowrap`
+ * because they fit on one 50px line. "Пункт обмена валют" and
+ * "ศูนย์ข้อมูลนักท่องเที่ยว" do not — on one line they ran past the box and
+ * across the neighbouring category.
+ *
+ * So the label wraps inside the box it has and, if the longest one still does
+ * not fit, the whole set shrinks together (`--fit`, useFitText — never below
+ * 0.72 → 36px). Nothing is clipped. */
+.catLong {
+  white-space: normal;
+  word-break: keep-all;
+  overflow-wrap: anywhere;
+  padding: 0 20px;
+  font-size: calc(50px * var(--fit, 1));
+  line-height: 1.12;
+}

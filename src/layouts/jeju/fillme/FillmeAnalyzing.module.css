@@ -147,6 +147,10 @@
   }
 }
 
+.noteLine {
+  display: block;
+}
+
 .note {
   position: absolute;
   left: 20px;

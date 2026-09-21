@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useMemo, useRef, useState } from 'react';
 import { QRCodeSVG } from 'qrcode.react';
 import type { KioskController } from '@renderer/hooks/useKioskController';
 import { hwaseongIconUrl } from '@renderer/assets/icons/hwaseong';
@@ -7,6 +7,7 @@ import { provinceLabel, useLang } from '@renderer/lib/i18n';
 import { firstTags } from '@renderer/lib/shops';
 import { NATIONWIDE_MARKETS, type NationwideMarket } from '@renderer/data/nationwideMarkets.generated';
 import { pickText } from '@renderer/data/types';
+import { useFitText } from '@layouts/components/fitText';
 import { HwaseongHeader } from './HwaseongHeader';
 import { HwaseongBanner } from './HwaseongBanner';
 import { HwaseongLeftNav } from './HwaseongLeftNav';
@@ -30,6 +31,13 @@ export function HwaseongMarketList({ controller, title, provinces }: Props): JSX
   const lang = useLang();
   const setDetail = useDetailStore((s) => s.setItem);
   const [activeKr, setActiveKr] = useState(provinces[0] ?? '');
+
+  /* Korean province names are three glyphs and fit the 340px tab on one line;
+     every other language is far longer. There the label wraps and the row
+     shrinks together if it still overflows — see "Other languages" in the CSS. */
+  const wide = lang !== 'ko';
+  const tabsRef = useRef<HTMLDivElement>(null);
+  useFitText(tabsRef, styles.tab, wide, 0.72, provinces.map((p) => provinceLabel(p, lang)).join('|'));
 
   const visible = useMemo(
     () => NATIONWIDE_MARKETS.filter((m) => m.province.ko.trim() === activeKr),
@@ -68,12 +76,12 @@ export function HwaseongMarketList({ controller, title, provinces }: Props): JSX
 
       <div className={styles.results}>
         {/* Province tabs (from sheet) */}
-        <div className={styles.tabs}>
+        <div ref={tabsRef} className={styles.tabs}>
           {provinces.map((prov) => (
             <button
               key={prov}
               type="button"
-              className={`${styles.tab} ${prov === activeKr ? styles.tabSelected : ''}`}
+              className={`${styles.tab} ${wide ? styles.tabLong : ''} ${prov === activeKr ? styles.tabSelected : ''}`}
               onClick={() => setActiveKr(prov)}
             >
               {provinceLabel(prov, lang)}
@@ -93,7 +101,7 @@ export function HwaseongMarketList({ controller, title, provinces }: Props): JSX
                 <div className={styles.info}>
                   <div className={styles.nameRow}>
                     <span className={styles.name}>{name}</span>
-                    <span className={styles.region}>
+                    <span className={`${styles.region} ${wide ? styles.regionLong : ''}`}>
                       <span className={styles.dot} />
                       {pickText(m.district, lang) || provinceLabel(activeKr, lang)}
                     </span>

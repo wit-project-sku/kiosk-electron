@@ -1,4 +1,4 @@
-import { useState, type ReactNode } from 'react';
+import { type ReactNode, useRef, useState } from 'react';
 import type { SupportedLanguage } from '@shared/types/kiosk';
 import type { KioskController } from '@renderer/hooks/useKioskController';
 import { useLanguageStore } from '@renderer/store/languageStore';
@@ -15,6 +15,7 @@ import { OsanHeader } from './OsanHeader';
 import { OsanBanner } from './OsanBanner';
 import { OsanLeftNav } from './OsanLeftNav';
 import styles from './OsanLocalpay.module.css';
+import { useFitText } from '@layouts/components/fitText';
 
 type Lang = SupportedLanguage;
 function pick<T>(map: Partial<Record<Lang, T>>, lang: Lang): T {
@@ -412,8 +413,14 @@ interface OsanLocalpayProps {
 export function OsanLocalpay({ controller }: OsanLocalpayProps): JSX.Element {
   const goHome = (): void => controller.navigate('home', 'Back');
   const lang = useLanguageStore((s) => s.currentLanguage);
+  /* Korean tab names fit the tab on one line; the other languages do not.
+     See "Other languages" in the CSS. */
+  const wide = lang !== 'ko';
+  const tabsRef = useRef<HTMLDivElement>(null);
   const c = pick(CONTENT, lang);
   const [tab, setTab] = useState(0);
+
+  useFitText(tabsRef, styles.tab, wide, 0.72, lang);
 
   return (
     <>
@@ -422,12 +429,12 @@ export function OsanLocalpay({ controller }: OsanLocalpayProps): JSX.Element {
       <OsanHeader title={c.title} onHome={goHome} />
 
       <div className={styles.results}>
-        <div className={styles.tabs}>
+        <div ref={tabsRef} className={styles.tabs}>
           {c.tabs.map((label, i) => (
             <button
               key={i}
               type="button"
-              className={`${styles.tab} ${tab === i ? styles.tabSelected : ''}`}
+              className={`${styles.tab} ${wide ? styles.tabLong : ''} ${tab === i ? styles.tabSelected : ''}`}
               onClick={() => setTab(i)}
             >
               {label}

@@ -436,3 +436,130 @@
   object-fit: cover;
   display: block;
 }
+
+/* ── Other languages ──────────────────────────────────────────────────────
+ * Reached only through a class the TSX adds when lang !== 'ko' — the Korean
+ * screen is untouched.
+ *
+ * The hashtag pill is a fixed 322px box drawn around '#안녕인사'. The same pill
+ * carries '#こんにちはインサ' (≈460px at 51.48px type) and '#SawatdeeInsa', which
+ * ran straight out of the pill and under the one beside it. The pill grows
+ * instead — 322 is its minimum, not its size — which is what the sibling
+ * 화성 layout's chip already does. The footer row has the width to spare. */
+.hashtagLong {
+  width: auto;
+  min-width: 322px;
+  padding: 0 30px;
+}
+
+/* The 580px tab holds every tab label the screen authors today, in all eight
+   languages. This is the guard for a longer one arriving later: it wraps inside
+   the tab rather than running out of it, and the row shrinks as one if it still
+   does not fit (`--fit`, useFitText — never below 0.72). */
+.tabLong {
+  white-space: normal;
+  word-break: keep-all;
+  overflow-wrap: anywhere;
+  font-size: calc(50px * var(--fit, 1));
+  line-height: 1.12;
+}
+
+/* ── Other languages: the card itself ─────────────────────────────────────
+ * Reached only through `.cardLong`, which the TSX adds when lang !== 'ko'.
+ *
+ * All three tabs share one card of a FIXED 1820×2160 (the Figma frame draws
+ * them the same height), and the Korean copy fills it almost exactly — tab 1
+ * lands within ~6px of the 2160. So every other language overruns it, and
+ * because the card has no overflow of its own the copy ran straight out
+ * through the white rounded bottom and over the banner: 인사 소개 needs 2583px
+ * in Vietnamese (+423), 2392 in English and Indonesian, 2391 in Thai, 2317 in
+ * Russian; 스트레칭 needs 2545 in Indonesian (+385) and 2350 in English and
+ * Russian; 취미생활 overruns in vi/id.
+ *
+ * ── 1. The label columns ──
+ * 이름/출생/신체 are two glyphs, so the label column could be a fixed 210 (field)
+ * and 230 (detail) with the value simply starting at that offset. "Дата
+ * рождения", "Kewarganegaraan" and "ความสามารถพิเศษ" are three to five times
+ * that, and ran underneath their own value.
+ *
+ * The column sizes to its label instead, keeping the Korean offset as its
+ * MINIMUM (170 + the 40 gap = the old 210; 190 + 40 = the old 230), so a short
+ * label still lines up exactly where it did and only a long one pushes its
+ * value across. */
+.cardLong .field {
+  gap: 40px;
+}
+
+/* `flex: 0 1 auto`, not the base rule's `flex: none`: a label that is wider
+   than its own column must be able to give way and wrap, or the row's
+   min-content pushes the whole 1740 row past the card's edge. */
+.cardLong .field .label {
+  flex: 0 1 auto;
+  width: auto;
+  min-width: 170px;
+  word-break: keep-all;
+  overflow-wrap: anywhere;
+}
+
+.cardLong .detail .label {
+  flex: 0 1 auto;
+  width: auto;
+  min-width: 190px;
+  word-break: keep-all;
+  overflow-wrap: anywhere;
+}
+
+/* A value that now has to share the row wraps rather than run off the card. */
+.cardLong .value {
+  line-height: 1.3;
+  word-break: keep-all;
+  overflow-wrap: anywhere;
+}
+
+/*
+ * ── 2. The card's height ──
+ * With the columns fixed the copy still does not fit, so the card shrinks as
+ * ONE: `--fit` (set by useFitText on the card, never below 0.6) scales every
+ * type size and the three text-column gaps inside it. The portrait, the hobby
+ * and stretch photos, and the footer pills keep their frame sizes — only type
+ * and the space between paragraphs give way, which is what stops the card
+ * needing 2583px in the first place.
+ *
+ * Korean never gets this class, so the frame it was drawn for is untouched. */
+.cardLong .label {
+  font-size: calc(60px * var(--fit, 1));
+}
+
+.cardLong .namePill,
+.cardLong .value,
+.cardLong .detailValue {
+  font-size: calc(58px * var(--fit, 1));
+}
+
+.cardLong .hobbyTitle,
+.cardLong .stretchIntroTitle,
+.cardLong .stretchSecTitle {
+  font-size: calc(63px * var(--fit, 1));
+}
+
+.cardLong .hobbyBody,
+.cardLong .stretchIntroBody,
+.cardLong .stretchSecBody {
+  font-size: calc(50px * var(--fit, 1));
+}
+
+.cardLong .hashtag {
+  font-size: calc(51.48px * var(--fit, 1));
+}
+
+.cardLong .infoCol {
+  gap: calc(45px * var(--fit, 1));
+}
+
+.cardLong .detailsCol {
+  gap: calc(50px * var(--fit, 1));
+}
+
+.cardLong .stretchSections {
+  gap: calc(64.35px * var(--fit, 1));
+}

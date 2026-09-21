@@ -14,6 +14,7 @@ import { useRotatingBanner } from '@renderer/hooks/useRotatingBanner';
 import { useHasDonationTile, useOrderedTiles, type TileKey } from '@renderer/lib/buttonLayout';
 import { DONATION_COMING_SOON, withComingSoon } from '@shared/config/donation';
 import { t } from '@renderer/lib/loc';
+import { useFitText } from '@layouts/components/fitText';
 import { FloatingKeyboard } from './keyboard/FloatingKeyboard';
 import { HangulComposer } from './keyboard/hangul';
 import type { KeyAction } from './keyboard/VirtualKeyboard';
@@ -158,11 +159,14 @@ function Tile({
   label,
   onClick,
   disabled,
+  longLang,
 }: {
   tile: HomeTile;
   label: string;
   onClick: () => void;
   disabled?: boolean;
+  /** lang !== 'ko' — the label gets its band and joins the shared shrink. */
+  longLang: boolean;
 }): JSX.Element {
   const url = iconUrl(tile.icon);
   return (
@@ -175,7 +179,7 @@ function Tile({
       <span className={styles.tileArt}>
         {url ? <img src={url} alt="" draggable={false} /> : <span className={styles.tileFallback}>{label}</span>}
       </span>
-      <span className={styles.tileLabel}>{label}</span>
+      <span className={`${styles.tileLabel} ${longLang ? styles.tileLabelLong : ''}`}>{label}</span>
     </button>
   );
 }
@@ -191,6 +195,13 @@ export function InsadongHome({ controller }: InsadongHomeProps): JSX.Element {
   const weather = useWeatherStore((s) => s.weather);
   const playWeatherVideo = useWeatherVideo();
   const lang = useLanguageStore((s) => s.currentLanguage);
+  /* Korean is what the grid pitch and the bottom bar were drawn around; every
+     other language runs longer. See "Other languages" at the foot of the CSS.
+     (`longLang`, not `wide` — a tile's own `wide` means it spans two columns.) */
+  const longLang = lang !== 'ko';
+  const gridRef = useRef<HTMLDivElement>(null);
+  const kdramaRef = useRef<HTMLDivElement>(null);
+  const restroomRef = useRef<HTMLButtonElement>(null);
 
   // Sheet-driven (Localization_Insa): NoticeContent = body, Notice = vertical badge.
   const noticeLines = parseNotice(t('NoticeContent', lang));
@@ -266,6 +277,17 @@ export function InsadongHome({ controller }: InsadongHomeProps): JSX.Element {
   const cameraSrc = iconUrl('camera');
   const bottomBarSrc = iconUrl('bottom-bar');
 
+  /* One factor for the twelve tile labels, one for the two bottom-bar captions —
+     each group keeps a single text size rather than a patchwork. */
+  useFitText(gridRef, styles.tileLabel, longLang, 0.7, `${lang}|${orderedTiles.map((tile) => (TILE_LABEL_KEYS[tile.screen] ? t(TILE_LABEL_KEYS[tile.screen] as string, lang) : tile.label)).join('|')}`);
+  /* The two captions are fitted apart, not as a set: they sit on their own
+     bumps with the camera dome between them, so the long 프로모션 caption has no
+     business shrinking 화장실 with it. */
+  useFitText(kdramaRef, styles.navLabel, longLang, 0.55,
+    `${lang}|${withComingSoon(pick(KDRAMA_LABEL, lang), lang)}`);
+  useFitText(restroomRef, styles.navLabel, longLang, 0.55,
+    `${lang}|${t('MainButton_WC', lang)}`);
+
   return (
     <>
       {iconUrl('bg') && <img className={styles.bgImage} src={iconUrl('bg')} alt="" draggable={false} />}
@@ -335,7 +357,7 @@ export function InsadongHome({ controller }: InsadongHomeProps): JSX.Element {
         </div>
 
 
-        <div className={styles.grid}>
+        <div ref={gridRef} className={styles.grid}>
           {orderedTiles.map((tile) => {
             const key = TILE_LABEL_KEYS[tile.screen];
             // 인사랑(준비중) and — while soft-launching — 기부(준비중) are not ready:
@@ -350,6 +372,7 @@ export function InsadongHome({ controller }: InsadongHomeProps): JSX.Element {
                 tile={tile}
                 label={label}
                 disabled={comingSoon}
+                longLang={longLang}
                 onClick={() => navigate(tile.screen, tile.label)}
               />
             );
@@ -360,16 +383,16 @@ export function InsadongHome({ controller }: InsadongHomeProps): JSX.Element {
         <div className={styles.bottomRow}>
           {bottomBarSrc && <img className={styles.bottomBarBg} src={bottomBarSrc} alt="" draggable={false} />}
           {/* K-DRAMA 준비중: keeps its full colour, but is not tappable. */}
-          <div className={`${styles.kdramaItem} ${styles.kdramaSoon}`} aria-disabled="true">
+          <div ref={kdramaRef} className={`${styles.kdramaItem} ${styles.kdramaSoon}`} aria-disabled="true">
             <span className={styles.kdramaIcon}>{iconUrl('kdrama') && <img src={iconUrl('kdrama')} alt="" draggable={false} />}</span>
-            <span className={styles.navLabel}>{withComingSoon(pick(KDRAMA_LABEL, lang), lang)}</span>
+            <span className={`${styles.navLabel} ${longLang ? styles.navLabelLong : ''}`}>{withComingSoon(pick(KDRAMA_LABEL, lang), lang)}</span>
           </div>
           <button type="button" className={styles.cameraBtn} onClick={startPhoto} aria-label="AI 한복 촬영">
             {cameraSrc && <img src={cameraSrc} alt="" draggable={false} />}
           </button>
-          <button type="button" className={styles.restroomItem} onClick={() => navigate('restroom', '화장실')}>
+          <button ref={restroomRef} type="button" className={styles.restroomItem} onClick={() => navigate('restroom', '화장실')}>
             <span className={styles.navIcon}>{iconUrl('restroom') && <img src={iconUrl('restroom')} alt="" draggable={false} />}</span>
-            <span className={styles.navLabel}>{t('MainButton_WC', lang)}</span>
+            <span className={`${styles.navLabel} ${longLang ? styles.navLabelLong : ''}`}>{t('MainButton_WC', lang)}</span>
           </button>
         </div>
 

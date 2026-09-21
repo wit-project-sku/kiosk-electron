@@ -13,6 +13,7 @@ import { weatherIconName, weatherIconUrl } from '@renderer/assets/weather';
 import { useHasDonationTile, useOrderedTiles, type TileKey } from '@renderer/lib/buttonLayout';
 import { DONATION_COMING_SOON, withComingSoon } from '@shared/config/donation';
 import { t } from '@renderer/lib/loc';
+import { useFitText } from '@layouts/components/fitText';
 import { FloatingKeyboard } from '../insadong/keyboard/FloatingKeyboard';
 import { HangulComposer } from '../insadong/keyboard/hangul';
 import type { KeyAction } from '../insadong/keyboard/VirtualKeyboard';
@@ -180,12 +181,15 @@ function OsanTile({
   label,
   onClick,
   disabled = false,
+  longLang,
 }: {
   tile: OsanHomeTile;
   label: string;
   onClick: () => void;
   /** Not-ready page (e.g. 전국시장 준비중): inert click, but colours unchanged. */
   disabled?: boolean;
+  /** lang !== 'ko' — the label gets its band and joins the shared shrink. */
+  longLang: boolean;
 }): JSX.Element {
   const url = osanIconUrl(tile.icon);
   return (
@@ -217,7 +221,7 @@ function OsanTile({
           <span className={styles.tileFallback}>{label}</span>
         )}
       </span>
-      <span className={styles.tileLabel}>{label}</span>
+      <span className={`${styles.tileLabel} ${longLang ? styles.tileLabelLong : ''}`}>{label}</span>
     </button>
   );
 }
@@ -231,6 +235,13 @@ export function OsanHome({ controller }: OsanHomeProps): JSX.Element {
   const weather = useWeatherStore((s) => s.weather);
   const playWeatherVideo = useWeatherVideo();
   const lang = useLanguageStore((s) => s.currentLanguage);
+  /* Korean is what the grid pitch and the bottom bar were drawn around; every
+     other language runs longer. See "Other languages" at the foot of the CSS.
+     (`longLang`, not `wide` — a tile's own `wide` means it spans two columns.) */
+  const longLang = lang !== 'ko';
+  const gridRef = useRef<HTMLDivElement>(null);
+  const kdramaRef = useRef<HTMLDivElement>(null);
+  const restroomRef = useRef<HTMLButtonElement>(null);
 
   const noticeLines = parseNotice(t('NoticeContent', lang));
   const badge = t('Notice', lang)
@@ -289,6 +300,17 @@ export function OsanHome({ controller }: OsanHomeProps): JSX.Element {
     ? weatherIconUrl(weatherIconName(weather.icon, weather.main))
     : undefined;
   const bottomBarSrc = osanIconUrl('bottom-bar');
+
+  /* One factor for the twelve tile labels, one for the two bottom-bar captions —
+     each group keeps a single text size rather than a patchwork. */
+  useFitText(gridRef, styles.tileLabel, longLang, 0.7, `${lang}|${orderedTiles.map((tile) => (TILE_LABEL_KEYS[tile.screen] ? t(TILE_LABEL_KEYS[tile.screen] as string, lang) : tile.label)).join('|')}`);
+  /* The two captions are fitted apart, not as a set: they sit on their own
+     bumps with the camera dome between them, so the long 프로모션 caption has no
+     business shrinking 화장실 with it. */
+  useFitText(kdramaRef, styles.navLabel, longLang, 0.55,
+    `${lang}|${withComingSoon(pick(KDRAMA_LABEL, lang), lang)}`);
+  useFitText(restroomRef, styles.navLabel, longLang, 0.55,
+    `${lang}|${t('MainButton_WC', lang)}`);
 
   return (
     <>
@@ -375,7 +397,7 @@ export function OsanHome({ controller }: OsanHomeProps): JSX.Element {
             </button>
           </div>
 
-          <div className={styles.grid}>
+          <div ref={gridRef} className={styles.grid}>
             {orderedTiles.map((tile) => {
               const key = TILE_LABEL_KEYS[tile.screen];
               const base = key
@@ -394,6 +416,7 @@ export function OsanHome({ controller }: OsanHomeProps): JSX.Element {
                   tile={tile}
                   label={label}
                   disabled={notReady}
+                  longLang={longLang}
                   onClick={notReady ? () => {} : () => navigate(tile.screen, tile.label)}
                 />
               );
@@ -408,6 +431,7 @@ export function OsanHome({ controller }: OsanHomeProps): JSX.Element {
           )}
           {/* K-DRAMA 준비중: keeps its full colour, but is not tappable. */}
           <div
+            ref={kdramaRef}
             className={`${styles.kdramaItem} ${styles.kdramaSoon}`}
             aria-disabled="true"
           >
@@ -416,7 +440,7 @@ export function OsanHome({ controller }: OsanHomeProps): JSX.Element {
                 <img src={osanIconUrl('kdrama')} alt="" draggable={false} />
               )}
             </span>
-            <span className={styles.navLabel}>
+            <span className={`${styles.navLabel} ${longLang ? styles.navLabelLong : ''}`}>
               {withComingSoon(pick(KDRAMA_LABEL, lang), lang)}
             </span>
           </div>
@@ -436,6 +460,7 @@ export function OsanHome({ controller }: OsanHomeProps): JSX.Element {
             )}
           </button>
           <button
+            ref={restroomRef}
             type="button"
             className={styles.restroomItem}
             onClick={() => navigate('restroom', '화장실')}
@@ -445,7 +470,7 @@ export function OsanHome({ controller }: OsanHomeProps): JSX.Element {
                 <img src={osanIconUrl('restroom')} alt="" draggable={false} />
               )}
             </span>
-            <span className={styles.navLabel}>{t('MainButton_WC', lang)}</span>
+            <span className={`${styles.navLabel} ${longLang ? styles.navLabelLong : ''}`}>{t('MainButton_WC', lang)}</span>
           </button>
         </div>
 

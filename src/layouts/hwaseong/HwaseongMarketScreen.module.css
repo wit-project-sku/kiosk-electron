@@ -256,3 +256,35 @@
   display: block;
   pointer-events: none;
 }
+
+/* ── Other languages ──────────────────────────────────────────────────────
+ * Reached only through a class the TSX adds when lang !== 'ko' — the Korean
+ * screen is untouched.
+ *
+ * The 340×170 tab is drawn around Korean province names (경기도, 강원도 — three
+ * glyphs on one 50px line). The same tab has to hold "Gyeongsangbuk-do" and
+ * the Russian and Thai renderings of it. The tab already wrapped, but with
+ * `line-height: 1` and no break rule a word wider than the tab ran straight
+ * out of it, and a third line ran out of the 170px bottom.
+ *
+ * So the label wraps on the tab's own terms and, if the longest one still does
+ * not fit, the row shrinks as one (`--fit`, useFitText — never below 0.72 →
+ * 36px). Nothing is clipped. */
+.tabLong {
+  box-sizing: border-box;
+  white-space: normal;
+  word-break: keep-all;
+  overflow-wrap: anywhere;
+  padding: 0 14px;
+  font-size: calc(50px * var(--fit, 1));
+  line-height: 1.12;
+}
+
+/* The district beside the market name is `flex: none` + nowrap, so a long one
+   took the whole row and left the name no width. Let it give way and ellipsize. */
+.regionLong {
+  flex: 0 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}

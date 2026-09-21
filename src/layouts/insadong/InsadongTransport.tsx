@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import type { KioskController } from '@renderer/hooks/useKioskController';
 import { iconUrl } from '@renderer/assets/icons/insadong';
 import { useRotatingBanner } from '@renderer/hooks/useRotatingBanner';
@@ -15,6 +15,7 @@ import { InsadongHeader } from './InsadongHeader';
 import { ZoomableImage } from './ZoomableImage';
 import { InsadongLeftNav } from './InsadongLeftNav';
 import styles from './InsadongTransport.module.css';
+import { useFitText } from '@layouts/components/fitText';
 
 type TabIndex = 0 | 1 | 2;
 
@@ -50,8 +51,14 @@ interface InsadongTransportProps {
 export function InsadongTransport({ controller, initialTab = 0 }: InsadongTransportProps): JSX.Element {
   const banner = useRotatingBanner();
   const lang = useLang();
+  /* Korean tab names fit the tab on one line; the other languages do not.
+     See "Other languages" in the CSS. */
+  const wide = lang !== 'ko';
+  const tabsRef = useRef<HTMLDivElement>(null);
   const goHome = (): void => controller.navigate('home', 'Back');
   const [tab, setTab] = useState<TabIndex>(initialTab);
+
+  useFitText(tabsRef, styles.tab, wide, 0.72, lang);
 
   return (
     <>
@@ -60,12 +67,12 @@ export function InsadongTransport({ controller, initialTab = 0 }: InsadongTransp
       <InsadongHeader title="교통 안내" onHome={goHome} />
 
       <div className={styles.results}>
-        <div className={styles.tabs}>
+        <div ref={tabsRef} className={styles.tabs}>
           {TAB_KEYS.map((key, i) => (
             <button
               key={key}
               type="button"
-              className={`${styles.tab} ${tab === i ? styles.tabSelected : ''}`}
+              className={`${styles.tab} ${wide ? styles.tabLong : ''} ${tab === i ? styles.tabSelected : ''}`}
               onClick={() => setTab(i as TabIndex)}
             >
               {t(key, lang)}

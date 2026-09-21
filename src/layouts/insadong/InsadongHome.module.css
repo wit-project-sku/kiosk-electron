@@ -529,3 +529,45 @@
   opacity: 0.45;
 }
 
+
+/* ── Other languages ──────────────────────────────────────────────────────
+ * Reached only through a class the TSX adds when lang !== 'ko' — the Korean
+ * home is untouched.
+ *
+ * 1. Tile labels. The grid's row pitch is fixed at "300px art + 173px", so the
+ *    label has exactly the 146px left under the art (173 − the 27px art→label
+ *    gap) before it reaches the NEXT row's art. Korean labels are one or two
+ *    38px lines and never got near it; "ข้อมูลการเดินทาง" and
+ *    "Достопримечательности" wrap to four and ran into the row below.
+ *
+ *    Giving the label that 146px as a real height is what lets the fit measure
+ *    it — the label box used to be auto-height, so it could never report an
+ *    overflow of its own. Short labels are unaffected: they already sat at the
+ *    top of that band. All twelve tiles then shrink by ONE factor (`--fit`,
+ *    useFitText — never below 0.7 → 27px), so the grid keeps one text size
+ *    instead of a patchwork. Nothing is clipped. */
+.tileLabelLong {
+  height: 146px;
+  font-size: calc(0.99cqh * var(--fit, 1));
+}
+
+/* 2. Bottom-bar captions. Both sat on one `nowrap` 50px line centred on their
+ *    bump, which is all 화장실 and 프로모션 need. The same captions carry
+ *    "CHƯƠNG TRÌNH KHUYẾN MÃI (Sắp có)" — ~750px on one line, centred on a
+ *    381px bump, so it ran out across the bar and under the camera button.
+ *
+ *    They stay on one line (two lines would climb into the icon above) and are
+ *    instead given the width the bar really has around each bump — bounded by
+ *    the camera dome in the middle — and shrunk to fit it. `nowrap` against a
+ *    real width is what the fit measures. */
+.navLabelLong {
+  font-size: calc(50px * var(--fit, 1));
+}
+
+.kdramaItem .navLabelLong {
+  width: 520px;
+}
+
+.restroomItem .navLabelLong {
+  width: 430px;
+}

@@ -49,6 +49,15 @@
  * them carry no `-F` / `-M` either, so the sub-category is the only signal left
  * — see `genderOf` in OutfitService.
  *
+ * ── ← → at the end of that band (7489:67510…67516) ───────────────────
+ * The strip has always been draggable and nothing on screen said so, so the
+ * 한복 catalogue past the drawn ten was reachable only by a visitor who guessed
+ * to swipe. The band now ends in the frame's 85px pair, which pages the strip a
+ * whole view at a time (`SwipeNav`, shared with the 인사동 / 오색 / 화성 picker).
+ * They are drawn for a tab that overflows even when it has no chips, so the
+ * band opens for them alone — which is the one thing `--lr-sub` has to know
+ * about in ♿.
+ *
  * ── 배경 테마 comes from the API ──────────────────────────────────────
  * The plates are the ACTIVE backgrounds assigned to THIS kiosk
  * (`GET /api/kiosks/{kioskNum}/backgrounds`, cached in SQLite by
@@ -111,6 +120,7 @@ import { HANBOK_INFO, PRIVACY } from '../photo/photoTexts';
 import hanbokInfo from '@renderer/assets/photos/insadong/hanbok/hanbok-info.png';
 import { t, sheetText, tExact } from '@renderer/lib/loc';
 import type { CaptureMode } from '../photo/HanbokSelect';
+import { SwipeNav, useSwipeNav } from '../photo/SwipeNav';
 import { useOutfitStore } from '@renderer/store/outfitStore';
 import type { PickerOutfit } from '@renderer/store/outfitStore';
 import type { OutfitSubCategory } from '@shared/types/outfit';
@@ -610,6 +620,20 @@ export function JejuHanbokSelect({
   /** Tiles, or the 준비 중 message in the same 1820×700 band. */
   const hasBackgrounds = backgrounds.length > 0;
 
+  /*
+   * ── ← → on the chip band (7489:67510…67516) ──────────────────────────
+   * The strip has always been draggable and said so nowhere, so a catalogue
+   * past the drawn ten was reachable only by guessing. Counted off the
+   * CATALOGUE rather than measured: the strip shows exactly `CARDS_PER_VIEW`
+   * columns of 1 row (제주 tab) or 2, so anything longer is what the buttons
+   * are for — and one page-load answer keeps the band from appearing a frame
+   * late, or flickering as Swiper re-measures on a tab change.
+   */
+  const nav = useSwipeNav();
+  const canSwipe = outfits.length > CARDS_PER_VIEW * (isThemeTab ? 1 : 2);
+  /** The band is drawn for the chips OR for the buttons — either fills it. */
+  const hasChipBand = subs.length > 0 || canSwipe;
+
   /**
    * ── ♿ 베리어프리 ───────────────────────────────────────────────────────
    * The ♿ button on the left rail has always toggled `lowReach`; this page had
@@ -630,7 +654,7 @@ export function JejuHanbokSelect({
    *    a 30px gap either side of the row, with the buttons still landing inside
    *    the 3840 artboard (3667…3817).
    */
-  const lowReachSubShift = lowReachTheme && subs.length > 0 ? '110px' : '0px';
+  const lowReachSubShift = lowReachTheme && hasChipBand ? '110px' : '0px';
   /* ③ No promo banner on either condition — see the render. */
 
   /*
@@ -834,32 +858,40 @@ export function JejuHanbokSelect({
           ))}
         </div>
 
-        {/* ── sub-category chips (1266…1386) ──
-              Drawn only where the category has them, which is what kept this
-              row out of the layout until the API began sending them. */}
-        {subs.length > 0 && (
+        {/* ── sub-category chips (1266…1386) and the ← → pair (7489:67516) ──
+              The chips are drawn only where the category has them, which is
+              what kept this row out of the layout until the API began sending
+              them; the buttons hang off the band's right edge whether or not it
+              has chips in it, so a chipless tab with a long catalogue still
+              gets them. The chips scroll INSIDE their own track (`.subcatList`)
+              rather than in the band, so a long row can never carry a chip
+              under the buttons. */}
+        {hasChipBand && (
           <div className={styles.subcats}>
-            {subs.map((sc) => (
-              <button
-                key={sc.id}
-                type="button"
-                className={`${styles.subcat} ${sc.id === subId ? styles.subcatActive : ''}`}
-                onClick={() => {
-                  // Tapping the picked chip clears it — the only way back to
-                  // the whole category, since nothing here is pre-picked.
-                  setSubId((cur) => (cur === sc.id ? null : sc.id));
-                  setOutfitCode('');
-                }}
-              >
-                {outfitSubCategoryLabel(sc, lang)}
-              </button>
-            ))}
-            {/* 한복 only — 6258:48469 draws the same row on 제주 without it. */}
-            {isHanbokCategory(categoryId) && (
-              <p className={styles.subcatNote}>
-                {sheetText('Photo_HanbokBrandNote', lang, HANBOK_BRAND_NOTE)}
-              </p>
-            )}
+            <div className={styles.subcatList}>
+              {subs.map((sc) => (
+                <button
+                  key={sc.id}
+                  type="button"
+                  className={`${styles.subcat} ${sc.id === subId ? styles.subcatActive : ''}`}
+                  onClick={() => {
+                    // Tapping the picked chip clears it — the only way back to
+                    // the whole category, since nothing here is pre-picked.
+                    setSubId((cur) => (cur === sc.id ? null : sc.id));
+                    setOutfitCode('');
+                  }}
+                >
+                  {outfitSubCategoryLabel(sc, lang)}
+                </button>
+              ))}
+              {/* 한복 only — 6258:48469 draws the same row on 제주 without it. */}
+              {isHanbokCategory(categoryId) && (
+                <p className={styles.subcatNote}>
+                  {sheetText('Photo_HanbokBrandNote', lang, HANBOK_BRAND_NOTE)}
+                </p>
+              )}
+            </div>
+            {canSwipe && <SwipeNav nav={nav} />}
           </div>
         )}
 
@@ -874,6 +906,9 @@ export function JejuHanbokSelect({
             slidesPerView={CARDS_PER_VIEW}
             spaceBetween={CARD_GAP}
             freeMode
+            /* The ← → pair above drives this strip and follows a drag — see
+               useSwipeNav. */
+            {...nav.bind}
             /* Remount on a tab change so the strip starts back at the first card
              and Swiper re-measures the new (possibly shorter) list. The row count
              is in the key because Swiper does not re-grid an existing instance. */

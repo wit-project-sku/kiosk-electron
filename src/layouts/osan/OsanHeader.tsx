@@ -1,7 +1,8 @@
-import { useEffect, useState, type Ref } from 'react';
+import { type Ref, useEffect, useRef, useState } from 'react';
 import { osanIconUrl } from '@renderer/assets/icons/osan';
 import { screenSubtitle, screenTitle, useLang } from '@renderer/lib/i18n';
 import styles from './OsanHeader.module.css';
+import { useFitText } from '@layouts/components/fitText';
 
 const WEEKDAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 function formatDate(d: Date): string {
@@ -37,6 +38,11 @@ export function OsanHeader({
 }: OsanHeaderProps): JSX.Element {
   const lang = useLang();
   const localizedTitle = screenTitle(title, lang);
+  /* Korean titles sit on one line in the fixed 182px row; several of the other
+     languages need two or three. See "Other languages" in the CSS. */
+  const wide = lang !== 'ko';
+  const titleRowRef = useRef<HTMLDivElement>(null);
+  useFitText(titleRowRef, styles.titleRow, wide, 0.6, localizedTitle);
   const rawSub = subtitle ?? screenSubtitle(title, lang) ?? '';
   const sub = rawSub.replace(/^\s*[*★]\s*/, '').trim();
   const [now, setNow] = useState(() => new Date());
@@ -59,13 +65,15 @@ export function OsanHeader({
           <span className={styles.date}>{formatDate(now)}</span>
         </div>
 
-        <div className={styles.titleRow}>
+        <div ref={titleRowRef} className={styles.titleRow}>
           <button type="button" className={styles.navBtn} onClick={onHome} aria-label="홈으로">
             {osanIconUrl('home-btn') && (
               <img src={osanIconUrl('home-btn')} alt="" draggable={false} />
             )}
           </button>
-          <h1 className={`${styles.title} ${light ? styles.titleLight : ''}`}>{localizedTitle}</h1>
+          <h1 className={`${styles.title} ${wide ? styles.titleLong : ''} ${light ? styles.titleLight : ''}`}>
+            {localizedTitle}
+          </h1>
           <button
             type="button"
             className={styles.navBtn}

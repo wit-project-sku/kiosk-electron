@@ -1,7 +1,8 @@
-import { Fragment, useEffect, useState } from 'react';
+import { Fragment, useEffect, useRef, useState } from 'react';
 import type { SupportedLanguage } from '@shared/types/kiosk';
 import type { KioskController } from '@renderer/hooks/useKioskController';
 import { useLanguageStore } from '@renderer/store/languageStore';
+import { useFitText } from '@layouts/components/fitText';
 import { iconUrl } from '@renderer/assets/icons/insadong';
 import { useRotatingBanner } from '@renderer/hooks/useRotatingBanner';
 import portrait from '@renderer/assets/photos/insadong/hello/portrait.png';
@@ -389,11 +390,11 @@ const SOCIAL_LINKS = [
 ];
 
 /** Shared hashtags + social (TikTok/Instagram + QR) footer, on every tab. */
-function HelloFooter({ c }: { c: HelloContent }): JSX.Element {
+function HelloFooter({ c, wide }: { c: HelloContent; wide: boolean }): JSX.Element {
   return (
     <div className={styles.footer}>
       {c.hashtags.map((h) => (
-        <span key={h} className={styles.hashtag}>
+        <span key={h} className={`${styles.hashtag} ${wide ? styles.hashtagLong : ''}`}>
           {h}
         </span>
       ))}
@@ -422,6 +423,11 @@ export function InsadongHello({ controller }: InsadongHelloProps): JSX.Element {
   const banner = useRotatingBanner();
   const goHome = (): void => controller.navigate('home', 'Back');
   const lang = useLanguageStore((s) => s.currentLanguage);
+  /* Korean is the shortest copy this screen carries; the hashtag pill and the
+     tabs are both sized for it. See "Other languages" in the CSS. */
+  const wide = lang !== 'ko';
+  const tabsRef = useRef<HTMLDivElement>(null);
+  const cardRef = useRef<HTMLDivElement>(null);
   const c = pick(CONTENT, lang);
   const [tab, setTab] = useState(0);
 
@@ -431,6 +437,13 @@ export function InsadongHello({ controller }: InsadongHelloProps): JSX.Element {
     void window.api.kiosk.setScreen(key);
   }, [tab]);
 
+  useFitText(tabsRef, styles.tab, wide, 0.72, c.tabs.join('|'));
+  /* All three tabs share one fixed 1820×2160 card that the Korean copy already
+     fills; every other language overruns it. Only the mounted tab's card is
+     measured, so the key carries the tab. See "Other languages: the card
+     itself" in the CSS. */
+  useFitText(cardRef, styles.card, wide, 0.6, `${lang}|${tab}`, 'height');
+
   return (
     <>
       {iconUrl('bg') && <img className={styles.bg} src={iconUrl('bg')} alt="" draggable={false} />}
@@ -438,12 +451,12 @@ export function InsadongHello({ controller }: InsadongHelloProps): JSX.Element {
       <InsadongHeader title={c.title} onHome={goHome} />
 
       <div className={styles.content}>
-        <div className={styles.tabs}>
+        <div ref={tabsRef} className={styles.tabs}>
           {c.tabs.map((t, i) => (
             <button
               key={i}
               type="button"
-              className={`${styles.tab} ${tab === i ? styles.tabSelected : ''}`}
+              className={`${styles.tab} ${wide ? styles.tabLong : ''} ${tab === i ? styles.tabSelected : ''}`}
               onClick={() => setTab(i)}
             >
               {t}
@@ -452,7 +465,7 @@ export function InsadongHello({ controller }: InsadongHelloProps): JSX.Element {
         </div>
 
         {tab === 0 && (
-          <div className={styles.card}>
+          <div ref={cardRef} className={`${styles.card} ${wide ? styles.cardLong : ''}`}>
             <div className={styles.topRow}>
               <div className={styles.portrait}>
                 <img src={portrait} alt="" draggable={false} />
@@ -486,12 +499,12 @@ export function InsadongHello({ controller }: InsadongHelloProps): JSX.Element {
               ))}
             </div>
 
-            <HelloFooter c={c} />
+            <HelloFooter c={c} wide={wide} />
           </div>
         )}
 
         {tab === 1 && (
-          <div className={styles.card}>
+          <div ref={cardRef} className={`${styles.card} ${wide ? styles.cardLong : ''}`}>
             {c.hobbies.map((h, i) => (
               <div key={i} className={`${styles.hobby} ${i % 2 === 1 ? styles.hobbyReverse : ''}`}>
                 <div className={styles.hobbyText}>
@@ -507,12 +520,12 @@ export function InsadongHello({ controller }: InsadongHelloProps): JSX.Element {
                 </div>
               </div>
             ))}
-            <HelloFooter c={c} />
+            <HelloFooter c={c} wide={wide} />
           </div>
         )}
 
         {tab === 2 && (
-          <div className={styles.card}>
+          <div ref={cardRef} className={`${styles.card} ${wide ? styles.cardLong : ''}`}>
             <div className={styles.stretchPhotos}>
               {STRETCH_PHOTOS.map((p, i) => (
                 <div key={i} className={styles.stretchPhoto}>
@@ -545,7 +558,7 @@ export function InsadongHello({ controller }: InsadongHelloProps): JSX.Element {
                 <img src={stretchSide} alt="" draggable={false} />
               </div>
             </div>
-            <HelloFooter c={c} />
+            <HelloFooter c={c} wide={wide} />
           </div>
         )}
       </div>

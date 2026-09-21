@@ -278,13 +278,30 @@
   display: flex;
   align-items: center;
   justify-content: flex-start;
+  gap: 40px;
+}
+
+/*
+ * The chips' own track. It, not the band, is what scrolls: the ← → pair sits
+ * in the band beside it (7489:67516, hard against the 1820 column's right
+ * edge), and a row of long CMS labels that scrolled with the band would carry
+ * a chip underneath those buttons. `min-width: 0` is what lets the track give
+ * the pair its 191 back instead of overflowing the band.
+ */
+.subcatList {
+  flex: 1 1 auto;
+  min-width: 0;
+  height: 120px;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
   gap: 40px; /* 319 pitch − 279 chip */
   overflow-x: auto;
   overflow-y: hidden;
   scrollbar-width: none;
 }
 
-.subcats::-webkit-scrollbar {
+.subcatList::-webkit-scrollbar {
   display: none;
 }
 

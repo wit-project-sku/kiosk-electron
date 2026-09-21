@@ -374,3 +374,33 @@
   overflow: hidden;
 }
 
+
+/* ── Other languages ──────────────────────────────────────────────────────
+ * Reached only through a class the TSX adds when lang !== 'ko' — the Korean
+ * screen is untouched.
+ *
+ * The 565×170 course tab holds an AI-written course name, which the model
+ * returns in the UI language. Korean comes back short enough for one 63px line;
+ * the same course in Russian or Thai does not, and an unwrapped name ran out of
+ * the tab and under the folder cap. The name wraps inside the tab, and the row
+ * shrinks as one if it still does not fit (`--fit`, useFitText — never below
+ * 0.6 → 38px). Nothing is clipped. */
+.tabLong {
+  white-space: normal;
+  word-break: keep-all;
+  overflow-wrap: anywhere;
+  padding: 0 20px;
+  text-align: center;
+  font-size: calc(63px * var(--fit, 1));
+  line-height: 1.1;
+}
+
+/* The category beside a spot's title is `flex: none` + nowrap, so a long one
+   took the whole head row and left the title no width. Let it give way. */
+.wideCatLong {
+  flex: 0 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}

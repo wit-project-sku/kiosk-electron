@@ -147,3 +147,31 @@
 .subtitleWide .subtitleText {
   max-width: 2000px;
 }
+
+/* ── Other languages ──────────────────────────────────────────────────────
+ * Reached only through a class the TSX adds when lang !== 'ko' — the Korean
+ * header is untouched.
+ *
+ * The title sits in a fixed 1342×182 field between the home and back buttons,
+ * and was `nowrap` because the Korean titles are short (교통안내, 도와줘 '휴').
+ * The same field has to hold "Du lịch thông minh (Đang trong quá trình phát
+ * triển)" — 2001px on one line — and "Культурное наследие (в процессе
+ * подготовки)" at 1855px. Centred and unwrapped, those ran straight over both
+ * nav buttons.
+ *
+ * The title wraps inside the field instead (two 78px lines fit its 182px), and
+ * a title that still does not fit shrinks (`--fit`, useFitText — never below
+ * 0.6 → 47px). Nothing is clipped. */
+.titleFieldLong {
+  box-sizing: border-box;
+  padding: 0 20px;
+}
+
+.titleTextLong {
+  white-space: normal;
+  word-break: keep-all;
+  overflow-wrap: anywhere;
+  text-align: center;
+  font-size: calc(78px * var(--fit, 1));
+  line-height: 1.1;
+}

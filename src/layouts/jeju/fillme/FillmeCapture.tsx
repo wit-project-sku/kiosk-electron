@@ -1,11 +1,16 @@
 import type { JSX, RefObject } from 'react';
 import type { Hand } from './api';
-import { HAND_LABEL } from './copy';
 import { cameraRotation } from './camera';
 import { FILLME_CONFIG } from './config';
 import { fillmeArtUrl } from '@renderer/assets/fillme';
 import { Icon } from './Icon';
+import { useLang } from '@renderer/lib/i18n';
+import type { Lang } from '@renderer/lib/i18n';
+import { tx, tLines } from './text';
 import styles from './FillmeCapture.module.css';
+
+/** 손 이름도 시트가 준다 — copy.ts 의 HAND_LABEL 은 한국어뿐이었다. */
+const HAND_KEY: Record<Hand, string> = { left: 'Fillme_text013', right: 'Fillme_text014' };
 
 export type CapturePhase = 'loading' | 'prepare' | 'countdown' | 'done' | 'error';
 
@@ -21,27 +26,35 @@ interface Props {
   onRetryCamera: () => void;
 }
 
-/** 촬영 팁 (7384:85727) — 그림은 시안에서 내보낸 파일. */
+/** 촬영 팁 (7384:85727) — 그림은 시안에서 내보낸 파일, 글은 시트 KEY. */
 const TIPS: { art: 'tip-hand' | 'tip-spread' | 'tip-focus'; title: string; caption: string }[] = [
-  { art: 'tip-hand', title: '손등이 위로', caption: '손톱이 카메라를 향하게\n올려 주세요' },
-  { art: 'tip-spread', title: '손가락은 쫙', caption: '손가락 사이를\n벌려 주세요' },
-  { art: 'tip-focus', title: '가이드 안에', caption: '손톱 3개 이상이\n선명하게 보여야 해요' },
+  { art: 'tip-hand', title: 'Fillme_text015', caption: 'Fillme_text016' },
+  { art: 'tip-spread', title: 'Fillme_text017', caption: 'Fillme_text018' },
+  { art: 'tip-focus', title: 'Fillme_text019', caption: 'Fillme_text020' },
 ];
 
-/** 머리말 아래 주황 한 줄 (7334:85110 "*2초 뒤 촬영이 시작됩니다.") — 단계마다 바뀐다. */
-function statusText(phase: CapturePhase, hand: Hand, count: number): string {
-  const label = HAND_LABEL[hand];
+/*
+ * 시트가 주는 줄은 준비(Fillme_subtitle2)와 카운트다운(Fillme_text012) 둘뿐이고,
+ * 둘 다 손 이름이 들어가지 않는 통문장이다("왼손/오른손을 가이드 안에 올려
+ * 주세요", "*2초 뒤 촬영이 시작됩니다."). 그래서 예전처럼 손 이름을 문장에 끼워
+ * 넣지 않는다 — 조사(을/를)는 언어마다 사라지거나 자리가 달라 끼워 넣을 수가
+ * 없다. 지금 찍는 손은 바로 아래 왼손·오른손 칩이 주황으로 알려 준다.
+ *
+ * 카운트다운 숫자는 시트 문장이 '2초'로 박혀 있어 실제 남은 초로 바꿔 준다 —
+ * config 의 countdownSeconds 는 3 이라 그대로 두면 틀린 숫자를 읽는다.
+ * 준비 중·오류는 시트에 줄이 없어 빈 문자열이다(그 두 상태는 미리보기 칸 안의
+ * .state 안내가 따로 말해 준다).
+ */
+function statusText(phase: CapturePhase, count: number, lang: Lang): string {
   switch (phase) {
-    case 'loading':
-      return '*카메라를 준비하고 있어요';
     case 'prepare':
-      return `*${label}을 가이드 안에 올려 주세요`;
+      return tx('Fillme_subtitle2', lang);
     case 'countdown':
-      return `*${count}초 뒤 촬영이 시작됩니다.`;
+      return tx('Fillme_text012', lang).replace(/\d+/, String(count));
     case 'done':
-      return `*${label} 촬영이 끝났어요`;
+      return tx('Fillme_text022', lang);
     default:
-      return '*카메라 연결을 확인해 주세요';
+      return '';
   }
 }
 
@@ -66,16 +79,20 @@ export function FillmeCapture({
   flashKey,
   onRetryCamera,
 }: Props): JSX.Element {
+  const lang = useLang();
   const rotation = cameraRotation();
   const swap = rotation % 180 !== 0;
   const mirror = FILLME_CONFIG.camera.mirrorPreview ? ' scaleX(-1)' : '';
   const shotUrl = phase === 'done' ? shots[current] : null;
   const countdownArt = fillmeArtUrl('capture-countdown');
+  /* 왼손 → 엄지 오른쪽, 오른손 → 엄지 왼쪽. 실제 키오스크에서 반대로 보이면
+     이 한 줄만 뒤집으면 된다(그림 파일은 서로 대칭이라 이름만 바꿔도 된다). */
+  const guideArt = fillmeArtUrl(current === 'left' ? 'guide-left' : 'guide-right');
 
   return (
     <div className={styles.root}>
       <p className={styles.note} aria-live="polite">
-        {statusText(phase, current, count)}
+        {statusText(phase, count, lang)}
       </p>
 
       {/* ── 왼손 · 오른손 (7334:85099) — 지금 찍는 손이 주황. ── */}
@@ -84,7 +101,7 @@ export function FillmeCapture({
           const active = hand === current && hands.includes(hand);
           return (
             <span key={hand} className={active ? `${styles.handTab} ${styles.handActive}` : styles.handTab}>
-              {HAND_LABEL[hand]}
+              {tx(HAND_KEY[hand], lang)}
             </span>
           );
         })}
@@ -100,8 +117,14 @@ export function FillmeCapture({
                 {art && <img src={art} alt="" className={styles[tip.art]} draggable={false} />}
               </span>
               <div className={styles.tipText}>
-                <p className={styles.tipTitle}>{tip.title}</p>
-                <p className={styles.tipCaption}>{tip.caption}</p>
+                <p className={styles.tipTitle}>{tx(tip.title, lang)}</p>
+                <p className={styles.tipCaption}>
+                  {tLines(tip.caption, lang).map((line, i) => (
+                    <span key={i} className={styles.tipCaptionLine}>
+                      {line}
+                    </span>
+                  ))}
+                </p>
               </div>
             </li>
           );
@@ -131,8 +154,25 @@ export function FillmeCapture({
 
         {(phase === 'prepare' || phase === 'countdown') && (
           <>
-            <div className={styles.guide} />
-            <span className={styles.guideLabel}>{HAND_LABEL[current]} 가이드</span>
+            {/* 손 모양 가이드 — 지금 찍는 손의 그림을 미리보기 위에 겹친다.
+                두 그림은 서로 좌우 대칭이고, 어느 쪽이 어느 손인지는 카메라가
+                손등을 본다는 데서 나온다(팁 '손등이 위로'): 손등을 보면 오른손은
+                엄지가 왼쪽에, 왼손은 엄지가 오른쪽에 온다. 화면이 좌우반전이면
+                (mirrorPreview) 영상 속 손도 뒤집히므로 가이드도 같이 뒤집어야
+                실제 손과 겹친다 — 그래서 video 와 같은 mirror 를 쓴다. */}
+            {guideArt ? (
+              <img
+                src={guideArt}
+                alt=""
+                className={styles.guideArt}
+                style={{ transform: `translateX(-50%)${mirror}` }}
+                draggable={false}
+              />
+            ) : (
+              /* 그림이 없는 빌드에서는 예전의 점선 테두리로 돌아간다. */
+              <div className={styles.guide} />
+            )}
+            <span className={styles.guideLabel}>{tx(HAND_KEY[current], lang)}</span>
           </>
         )}
         {phase === 'countdown' && (

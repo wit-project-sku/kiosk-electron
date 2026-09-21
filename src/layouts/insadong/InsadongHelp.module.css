@@ -232,3 +232,25 @@
   object-fit: cover;
   display: block;
 }
+
+/* ── Other languages ──────────────────────────────────────────────────────
+ * Reached only through a class the TSX adds when lang !== 'ko' — the Korean
+ * screen is untouched.
+ *
+ * The 340×170 category is drawn around Korean facility names (환전소, 약국,
+ * 관광안내소). The same box has to hold "Currency Exchange", "Пункт обмена
+ * валют" and "ศูนย์ข้อมูลนักท่องเที่ยว". It already wrapped, but with no break
+ * rule a word wider than the box ran out of it, and a third line ran out of the
+ * 170px bottom into the cards below.
+ *
+ * So the label wraps on the box's own terms and, if the longest one still does
+ * not fit, the whole set shrinks together (`--fit`, useFitText — never below
+ * 0.72 → 36px). Nothing is clipped. */
+.catLong {
+  white-space: normal;
+  word-break: keep-all;
+  overflow-wrap: anywhere;
+  padding: 0 14px;
+  font-size: calc(50px * var(--fit, 1));
+  line-height: 1.12;
+}

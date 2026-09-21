@@ -339,3 +339,100 @@
 /* ── Bottom banner ── */
 .banner { position: absolute; top: 3267px; left: 0; width: 2160px; height: 573px; pointer-events: none; }
 .bannerImg { width: 100%; height: 100%; object-fit: cover; display: block; pointer-events: none; }
+
+/* ── Other languages ──────────────────────────────────────────────────────
+ * Reached only through a class the TSX adds when lang !== 'ko' — the Korean
+ * screen is untouched.
+ *
+ * The 566px tab holds the Korean tab names on one 50px line, which is why it
+ * was `nowrap`. Longer copy wraps inside the tab instead, and the row shrinks
+ * as one if it still does not fit (`--fit`, useFitText — never below 0.72). */
+.tabLong {
+  box-sizing: border-box;
+  white-space: normal;
+  word-break: keep-all;
+  overflow-wrap: anywhere;
+  padding: 0 20px;
+  font-size: calc(50px * var(--fit, 1));
+  line-height: 1.12;
+}
+
+/* ── Other languages: the card itself ─────────────────────────────────────
+ * Everything below hangs off `.cardLong`, which the TSX adds to the card when
+ * lang !== 'ko'.
+ *
+ * 휴' 소개 and 스트레칭 are drawn at a FIXED height (2160 and 2145.35), and the
+ * Korean copy fills them. The 자기소개 row alone is 89 characters in Korean and
+ * 211 in Russian, so the other languages overran the card and the copy ran out
+ * through its white rounded bottom: 소개 by 354px in ru and id, 204 in vi, 126
+ * in th; 스트레칭 by 675px in id, 535 in ru, 453 in vi, 161 in th. (한복 is
+ * height:auto and simply grows — the class costs it nothing, since a card that
+ * fits reports no overflow and keeps --fit at 1.)
+ *
+ * ── 1. The label columns ──
+ * 이름/생일/신체 are two glyphs, so the label was `nowrap` with a fixed 220/240
+ * minimum. "Место рождения" and "ความสามารถพิเศษ" do not fit that, and
+ * `flex-shrink: 0` meant they could not give way either — they pushed their own
+ * value off the row. The label wraps and is allowed to shrink; the min-width
+ * keeps a short label lined up exactly where the frame puts it. */
+.cardLong .infoLabel,
+.cardLong .detailLabel {
+  flex: 0 1 auto;
+  white-space: normal;
+  word-break: keep-all;
+  overflow-wrap: anywhere;
+}
+
+.cardLong .infoValue {
+  white-space: normal;
+  word-break: keep-all;
+  overflow-wrap: anywhere;
+  min-width: 0;
+  line-height: 1.2;
+}
+
+/*
+ * ── 2. The card's height ──
+ * With the columns fixed the copy still does not fit, so the card shrinks as
+ * ONE: `--fit` (set by useFitText on the card, never below 0.6) scales every
+ * type size and the text-column gaps. The portrait, the sport photos and the
+ * footer chips keep their frame sizes — only type and the space between
+ * paragraphs give way.
+ *
+ * The fit is measured on HEIGHT only (`'height'`): the card's rows are drawn
+ * 1740 wide inside 1730 of content box, and a width check would read that
+ * permanent 10px as "still too big" and shrink even a language that fits.
+ *
+ * Korean never gets this class, so the frame it was drawn for is untouched. */
+.cardLong .infoLabel,
+.cardLong .detailLabel {
+  font-size: calc(60px * var(--fit, 1));
+}
+
+.cardLong .nameValue,
+.cardLong .infoValue,
+.cardLong .detailValue {
+  font-size: calc(58px * var(--fit, 1));
+}
+
+.cardLong .hobbyTitle {
+  font-size: calc(63px * var(--fit, 1));
+}
+
+.cardLong .hobbyBody {
+  font-size: calc(50px * var(--fit, 1));
+}
+
+.cardLong .chip {
+  font-size: calc(51.48px * var(--fit, 1));
+}
+
+.cardLong .profileInfo,
+.cardLong .detailCol {
+  gap: calc(45px * var(--fit, 1));
+}
+
+.cardLong .hobbySections,
+.cardLong .stretchTextCol {
+  gap: calc(64.35px * var(--fit, 1));
+}

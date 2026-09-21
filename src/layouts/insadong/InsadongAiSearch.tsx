@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import type { KioskController } from '@renderer/hooks/useKioskController';
 import { iconUrl } from '@renderer/assets/icons/insadong';
 import { useRotatingBanner } from '@renderer/hooks/useRotatingBanner';
@@ -10,6 +10,7 @@ import { aiCatLabel } from '@renderer/lib/aiCategoryLabel';
 import { InsadongHeader } from './InsadongHeader';
 import { InsadongLeftNav } from './InsadongLeftNav';
 import styles from './InsadongAiSearch.module.css';
+import { useFitText } from '@layouts/components/fitText';
 
 /** 방문 인원 / 체류 시간 pills — Localization key + Figma fixed widths. */
 const VISITORS: { key: string; width: number }[] = [
@@ -44,6 +45,11 @@ export function InsadongAiSearch({ controller }: InsadongAiSearchProps): JSX.Ele
   const banner = useRotatingBanner();
   const goHome = (): void => controller.navigate('home', 'Back');
   const lang = useLang();
+  /* The pills are hand-sized around the Korean copy; ru needs half again as
+     much for the same option. See "Other languages" in the CSS. */
+  const wide = lang !== 'ko';
+  const visitorRowRef = useRef<HTMLDivElement>(null);
+  const durationRowRef = useRef<HTMLDivElement>(null);
   const setAiInterests = useAiStore((s) => s.setInterests);
   const [visitors, setVisitors] = useState('Visitor_2');
   const [duration, setDuration] = useState('StayTime_24');
@@ -65,6 +71,11 @@ export function InsadongAiSearch({ controller }: InsadongAiSearchProps): JSX.Ele
     controller.navigate('ai_result', 'AI 추천');
   };
 
+  /* Each row is fitted on its own — 방문 인원 is the row ru overruns, and there is
+     no reason for it to shrink the 체류 시간 pills with it. */
+  useFitText(visitorRowRef, styles.pill, wide, 0.7, lang);
+  useFitText(durationRowRef, styles.pill, wide, 0.7, lang);
+
   return (
     <>
       {iconUrl('bg') && <img className={styles.bg} src={iconUrl('bg')} alt="" draggable={false} />}
@@ -77,13 +88,13 @@ export function InsadongAiSearch({ controller }: InsadongAiSearchProps): JSX.Ele
             <span className={styles.bar} />
             {t('VisitorCount', lang)}
           </div>
-          <div className={styles.pillRow}>
+          <div ref={visitorRowRef} className={styles.pillRow}>
             {VISITORS.map((v) => (
               <button
                 key={v.key}
                 type="button"
                 style={{ width: `${v.width}px` }}
-                className={`${styles.pill} ${visitors === v.key ? styles.pillSel : ''}`}
+                className={`${styles.pill} ${wide ? styles.pillLong : ''} ${visitors === v.key ? styles.pillSel : ''}`}
                 onClick={() => setVisitors(v.key)}
               >
                 {t(v.key, lang)}
@@ -97,13 +108,13 @@ export function InsadongAiSearch({ controller }: InsadongAiSearchProps): JSX.Ele
             <span className={styles.bar} />
             {t('StayTime', lang)}
           </div>
-          <div className={styles.pillRow}>
+          <div ref={durationRowRef} className={styles.pillRow}>
             {DURATION.map((d) => (
               <button
                 key={d.key}
                 type="button"
                 style={{ width: `${d.width}px` }}
-                className={`${styles.pill} ${duration === d.key ? styles.pillSel : ''}`}
+                className={`${styles.pill} ${wide ? styles.pillLong : ''} ${duration === d.key ? styles.pillSel : ''}`}
                 onClick={() => setDuration(d.key)}
               >
                 {t(d.key, lang)}

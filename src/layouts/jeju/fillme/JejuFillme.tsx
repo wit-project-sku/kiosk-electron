@@ -36,7 +36,10 @@ import { JejuPageFrame } from '../JejuPageFrame';
 import { FILLME_CONFIG, FILLME_CAMERA_MODE } from './config';
 import { ApiError, analyzeGuest, needsRecapture, type AnalysisResult, type Hand, type Sex } from './api';
 import { NailCamera } from './camera';
-import { FIELD_ORDER, HAND_LABEL, type ConsentKey, type FieldKey } from './copy';
+import { FIELD_ORDER, type ConsentKey, type FieldKey } from './copy';
+import { useLang } from '@renderer/lib/i18n';
+import { sheetText } from '@renderer/lib/loc';
+import { tx, tLines } from './text';
 import { createShare, type ShareState } from './share';
 import { renderResultImage } from './shareImage';
 import { FillmeIntro } from './FillmeIntro';
@@ -77,22 +80,34 @@ const sleep = (ms: number): Promise<void> => new Promise((r) => setTimeout(r, ms
  * 한국어 그대로인 이유는 파일 머리말과 같다 — 이 기능의 문구는 아직 시트에 없다.
  * 시트에 올릴 때는 다른 화면처럼 여기 제목이 `screenTitle` 의 키가 된다.
  */
-const TITLES: Record<Screen, [string, string]> = {
-  /* 시안 7212:66398 의 머리말 — 다른 FillMe 화면과 같은 기능 이름. */
-  intro: ['AI 손톱 건강 분석', 'FillMe와 함께하는 손톱 건강 체크 서비스예요'],
-  /* 시안 7334:84998 의 머리말 — 다른 FillMe 화면과 같은 기능 이름. */
-  capture: ['AI 손톱 건강 분석', '안내에 따라 왼손, 오른손 순서로 올려 주세요'],
-  /* 시안 7212:66381 은 이 화면의 제목을 기능 이름으로 적는다(검색창 자리의
-     "AI 손톱 건강 분석"). 설명문은 시안이 자리만 잡아 둔 "페이지 설명문" 이라 쓰던
-     문장을 그대로 둔다. */
-  info: ['AI 손톱 건강 분석', '정확한 분석을 위해 기본 정보를 입력해 주세요'],
-  /* 시안 7334:54793 의 머리말도 기능 이름이다(정보 입력과 같다). */
-  analyzing: ['AI 손톱 건강 분석', '잠시만 기다려 주세요'],
-  /* 시안 7334:83586 의 머리말도 기능 이름이다. */
-  result: ['AI 손톱 건강 분석', '나에게 맞는 영양 관리 방법을 확인해 보세요'],
+/*
+ * 화면 머리말 — [기능 이름, 그 화면의 설명 한 줄]. 둘 다 시트 KEY 다.
+ *
+ * 설명 줄은 시트의 Fillme_subtitle1·2·3·5 가 다섯 화면에 하나씩 대응한다.
+ * subtitle4 가 없는 것은 실수다: 시트가 Fillme_subtitle3 을 두 번 쓰는 바람에
+ * (정보 입력 "정확한 분석을 위해…" 와 분석 중 "잠시만 기다려 주세요") 뒤엣것이
+ * 앞엣것을 덮어 정보 입력 줄이 통째로 사라졌다. 그래서 정보 화면만 아직 없는
+ * Fillme_subtitle4 를 읽고, 시트가 그 줄을 만들기 전까지는 authored 한국어로
+ * 버틴다 — sheetText 가 키가 생기는 순간 저절로 시트를 따른다.
+ */
+const TITLE_KEY = 'Fillme_title';
+const SUBTITLE_KEY: Record<Screen, string> = {
+  intro: 'Fillme_subtitle1',
+  capture: 'Fillme_subtitle2',
+  info: 'Fillme_subtitle4',
+  analyzing: 'Fillme_subtitle3',
+  result: 'Fillme_subtitle5',
 };
+/** 시트에 Fillme_subtitle4 가 생기면 쓰이지 않는다. */
+const INFO_SUB_FALLBACK = { ko: '정확한 분석을 위해 기본 정보를 입력해 주세요' };
+/* 아래 셋도 같다 — 시트에 아직 줄이 없는 모달 문구. 키 이름은 시트가 이어 쓰던
+   번호를 그대로 이었다(text055 다음). */
+const TIMEOUT_BODY = { ko: '분석 시간이 너무 오래 걸리고 있어요.\n잠시 후 다시 시도해 주세요.' };
+const NETWORK_BODY = { ko: '인터넷 연결이 원활하지 않아요.\n잠시 후 다시 시도해 주세요.' };
+const RETRY_LABEL = { ko: '다시 시도' };
 
 export function JejuFillme({ controller }: Props): JSX.Element {
+  const lang = useLang();
   const [screen, setScreen] = useState<Screen>('intro');
   const [phase, setPhase] = useState<CapturePhase>('loading');
   const [captureHands, setCaptureHands] = useState<Hand[]>(HANDS);
@@ -249,13 +264,13 @@ export function JejuFillme({ controller }: Props): JSX.Element {
     const run = ++shareRunRef.current;
     setShare({ status: 'loading' });
     try {
-      const link = await createShare(await renderResultImage(target));
+      const link = await createShare(await renderResultImage(target, lang));
       if (run === shareRunRef.current) setShare({ status: 'ready', link });
     } catch (e) {
       console.error('[fillme] share failed', e);
       if (run === shareRunRef.current) setShare({ status: 'error' });
     }
-  }, []);
+  }, [lang]);
 
   useEffect(() => {
     if (result) void makeShare(result);
@@ -400,7 +415,11 @@ export function JejuFillme({ controller }: Props): JSX.Element {
     else resetAll();
   };
 
-  const [title, subtitle] = TITLES[screen];
+  const title = tx(TITLE_KEY, lang);
+  const subtitle =
+    screen === 'info'
+      ? sheetText(SUBTITLE_KEY.info, lang, INFO_SUB_FALLBACK)
+      : tx(SUBTITLE_KEY[screen], lang);
   const shotUrls = { left: shots.left?.url ?? null, right: shots.right?.url ?? null };
 
   /* 모달의 막대: 이 화면이 처음으로 돌아가기까지 남은 시간 (모달이 떠 있으면 무입력
@@ -408,42 +427,46 @@ export function JejuFillme({ controller }: Props): JSX.Element {
   const modalTimeLeft = idleLeft != null && idleLimit ? idleLeft / idleLimit : 1;
   let modalView: JSX.Element | null = null;
   if (modal?.kind === 'recapture') {
-    const target = modal.hands.map((h) => HAND_LABEL[h]).join('과 ');
     const hands = modal.hands;
     modalView = (
       <Modal
         art="retake"
         secondary="plain"
         timeLeft={modalTimeLeft}
-        title="손톱이 충분히 보이지 않았어요"
-        body={`손가락 3개 이상이 선명하게 보이도록\n${target}을 다시 촬영해 주세요`}
+        title={tx('Fillme_text047', lang)}
+        /* 어느 손을 다시 찍어야 하는지는 시트 문장이 정한다 — 예전에는 손 이름을
+           문장에 끼워 넣었지만 조사가 언어마다 달라 옮길 수가 없다. */
+        body={tLines('Fillme_text048', lang).join('\n')}
         actions={[
-          { label: '처음으로', onClick: resetAll },
-          { label: '다시 촬영하기', primary: true, onClick: () => startCapture(hands, 'analyze') },
+          { label: tx('Fillme_text049', lang), onClick: resetAll },
+          { label: tx('Fillme_text050', lang), primary: true, onClick: () => startCapture(hands, 'analyze') },
         ]}
       />
     );
   } else if (modal?.kind === 'error') {
     const e = modal.error;
     const transient = e.kind === 'network' || e.kind === 'timeout';
+    /* 시트가 주는 것은 일반 실패 한 줄(Fillme_text046)뿐이다. 시간 초과·네트워크
+       두 경우는 아직 줄이 없어 authored 한국어로 남는다 — 키가 생기면 sheetText 가
+       바로 시트를 따른다. */
     const body =
       e.kind === 'timeout'
-        ? '분석 시간이 너무 오래 걸리고 있어요.\n잠시 후 다시 시도해 주세요.'
+        ? sheetText('Fillme_text056', lang, TIMEOUT_BODY)
         : e.kind === 'network'
-          ? '인터넷 연결이 원활하지 않아요.\n잠시 후 다시 시도해 주세요.'
-          : '사진을 분석하지 못했어요.\n손톱이 잘 보이도록 다시 촬영해 주세요.';
+          ? sheetText('Fillme_text057', lang, NETWORK_BODY)
+          : tLines('Fillme_text046', lang).join('\n');
     const actions: ModalAction[] = [
-      { label: '처음으로', onClick: resetAll },
+      { label: tx('Fillme_text049', lang), onClick: resetAll },
       transient
-        ? { label: '다시 시도', primary: true, onClick: () => void analyze() }
-        : { label: '다시 촬영하기', primary: true, onClick: () => startCapture(HANDS, 'analyze') },
+        ? { label: sheetText('Fillme_text058', lang, RETRY_LABEL), primary: true, onClick: () => void analyze() }
+        : { label: tx('Fillme_text050', lang), primary: true, onClick: () => startCapture(HANDS, 'analyze') },
     ];
     modalView = (
       <Modal
         art="alert"
         secondary="solid"
         timeLeft={modalTimeLeft}
-        title="분석을 완료하지 못했어요"
+        title={tx('Fillme_text045', lang)}
         body={body}
         actions={actions}
       />

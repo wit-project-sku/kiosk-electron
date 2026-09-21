@@ -143,6 +143,10 @@
   color: #1e1e1e;
 }
 
+.tipCaptionLine {
+  display: block;
+}
+
 .tipCaption {
   margin: 0;
   font-size: 38px;
@@ -231,6 +235,30 @@
   border: 8px dashed rgba(255, 255, 255, 0.7);
   border-radius: 340px 340px 132px 132px;
   pointer-events: none;
+}
+
+/*
+ * 손 모양 가이드 그림 — 점선 테두리(.guide)를 대신한다.
+ *
+ * 그림은 정사각 975 이고 미리보기 칸은 1718×1285 이라, 세로를 기준으로 맞춘다:
+ * 1100 이면 위아래로 92 씩 남아 손끝이 칸에 닿지 않는다. 그림 안에 이미 안내
+ * 문구가 들어 있으므로 따로 글자를 얹지 않는다.
+ *
+ * transform 은 인라인에서 준다 — 좌우반전(mirrorPreview)이 붙기 때문.
+ */
+.guideArt {
+  position: absolute;
+  left: 50%;
+  /* 칸 한가운데(642)가 아니라 227 — 머리말 알약(.guideLabel, 90…190)을 피한
+     자리다. 가운데에 두면 손가락 끝이 알약 바로 밑에 깔려 둘 다 읽기 나쁘다.
+     알약 아래 남는 190…1285 를 기준으로 가운데를 잡았고, 아래로 38 이 남는다. */
+  top: 227px;
+  width: 1020px;
+  height: 1020px;
+  object-fit: contain;
+  pointer-events: none;
+  /* 어두운 미리보기 위에서 주황 선이 뜨도록 살짝 그림자를 준다. */
+  filter: drop-shadow(0 0 12px rgba(0, 0, 0, 0.55));
 }
 
 .guideLabel {

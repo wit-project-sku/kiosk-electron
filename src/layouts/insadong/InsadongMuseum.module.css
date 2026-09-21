@@ -221,3 +221,35 @@
   object-fit: cover;
   display: block;
 }
+
+/* ── Other languages ──────────────────────────────────────────────────────
+ * Reached only through a class the TSX adds when lang !== 'ko' — the Korean
+ * screen is untouched.
+ *
+ * The tab is a third of the 1820 row (≈580) and 170 tall, drawn around Korean
+ * gallery categories (고미술, 화랑, 표구). The same tab has to hold
+ * "Антикварное искусство" and "Оформление картин". It already wrapped, but
+ * with no break rule a word wider than the column ran out of it, and a third
+ * line ran out of the 170px bottom.
+ *
+ * So the label wraps on the tab's own terms and the grid shrinks as one if the
+ * longest still does not fit (`--fit`, useFitText — never below 0.72 → 36px).
+ * Nothing is clipped. */
+.tabLong {
+  box-sizing: border-box;
+  white-space: normal;
+  word-break: keep-all;
+  overflow-wrap: anywhere;
+  padding: 0 20px;
+  font-size: calc(50px * var(--fit, 1));
+  line-height: 1.12;
+}
+
+/* The category beside the venue name is `flex: none` + nowrap, so a long one
+   took the whole row and left the name no width. Let it give way and ellipsize. */
+.catLong {
+  flex: 0 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}

@@ -136,3 +136,23 @@
 .subtitleWide .subtitleText {
   max-width: 1760px;
 }
+
+/* ── Other languages ──────────────────────────────────────────────────────
+ * Reached only through a class the TSX adds when lang !== 'ko' — the Korean
+ * header is untouched.
+ *
+ * The title row is a fixed 182px tall and the title already wraps, so Korean
+ * (교통안내, 여기는 인사동) sits on one 78px line. Two lines at the default
+ * line-height are ~212px, which is what "Достопримечательности (В разработке)"
+ * and "Thị trường Hàn Quốc (Đang chuẩn bị)" need — they spilled above and below
+ * the row, over the 공지 band and the content under it.
+ *
+ * Two lines are pulled back inside the row by a tighter leading, and a title
+ * that needs a third shrinks (`--fit`, useFitText — never below 0.6 → 47px).
+ * Nothing is clipped. */
+.titleLong {
+  line-height: 1.1;
+  word-break: keep-all;
+  overflow-wrap: anywhere;
+  font-size: calc(78px * var(--fit, 1));
+}

@@ -500,3 +500,24 @@
   display: block;
   pointer-events: none;
 }
+
+/* ── Other languages ──────────────────────────────────────────────────────
+ * Reached only through a class the TSX adds when lang !== 'ko' — the Korean
+ * home is untouched.
+ *
+ * The row pitch is fixed at "300px card + 173px", so a tile label has exactly
+ * the 148px left under its card (173 − the 25px card→label gap) before it
+ * reaches the next row. Korean labels are one or two 38px lines; the other
+ * languages wrap to three and four.
+ *
+ * Giving the label that 148px as a real height is what lets the fit measure it —
+ * an auto-height label can never report an overflow of its own. Short labels are
+ * unaffected: they already sat at the top of that band. The whole grid then
+ * shrinks by ONE factor (`--fit`, useFitText — never below 0.7 → 27px) so it
+ * keeps a single text size. `overflow-wrap` is the guard for a word wider than
+ * the 300px column, which the Korean rule never needed. Nothing is clipped. */
+.tileLabelLong {
+  height: 148px;
+  overflow-wrap: anywhere;
+  font-size: calc(38px * var(--fit, 1));
+}
