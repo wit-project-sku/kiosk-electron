@@ -43,14 +43,30 @@ const SLACK = 1;
  * "Мероприятие" in the 280 event card, would otherwise sit past the edge at
  * full size when one step smaller fits it.
  *
- * `height` is for a box measured against a fixed HEIGHT whose own layout is
- * allowed to be a little wider than its padding box — the 안녕 card, whose rows
- * are drawn 1740 wide inside 1730 of content box. There a permanent 10px of
- * horizontal overflow is by design, and a width check would read it as "still
- * too big" at every step and drive the factor to its floor even for a language
- * that fits at full size.
+ * `height` is for a fixed-HEIGHT card whose bottom PADDING is part of the
+ * design — the 안녕 card, the 지역화폐 cards. Two differences from `both`:
+ *
+ *  - Width is not checked. The 안녕 card's rows are drawn 1740 wide inside 1730
+ *    of content box; a width check would read that permanent 10px as "still too
+ *    big" at every step and drive the factor to its floor even for a language
+ *    that fits at full size.
+ *  - The content must stay above the bottom padding, not merely inside the
+ *    border. Chrome leaves end padding out of `scrollHeight` while the content
+ *    still ends inside the border box, so a scrollHeight test let copy run 45px
+ *    into the card's 65px bottom padding and still call it a fit — the footer
+ *    ended up 5px from the card edge where Korean leaves ~60.
  */
 export type FitAxis = 'both' | 'height';
+
+/** How far `b`'s content runs past the top edge of its bottom padding, in px. */
+function paddingOverrun(b: HTMLElement): number {
+  const style = getComputedStyle(b);
+  const top = b.getBoundingClientRect().top + parseFloat(style.borderTopWidth);
+  const limit = top + b.clientHeight - parseFloat(style.paddingBottom);
+  let bottom = -Infinity;
+  for (const child of b.children) bottom = Math.max(bottom, child.getBoundingClientRect().bottom);
+  return bottom === -Infinity ? 0 : bottom - limit;
+}
 
 function fitGroup(
   root: HTMLElement,
@@ -60,10 +76,10 @@ function fitGroup(
 ): void {
   const set = (k: number): void => root.style.setProperty('--fit', String(k));
   const overflowing = (): boolean =>
-    boxes.some(
-      (b) =>
-        b.scrollHeight > b.clientHeight + SLACK ||
-        (axis === 'both' && b.scrollWidth > b.clientWidth + SLACK),
+    boxes.some((b) =>
+      axis === 'height'
+        ? b.scrollHeight > b.clientHeight + SLACK || paddingOverrun(b) > SLACK
+        : b.scrollHeight > b.clientHeight + SLACK || b.scrollWidth > b.clientWidth + SLACK,
     );
   let k = 1;
   set(k);
@@ -108,8 +124,17 @@ export function useFitText(
     void document.fonts.ready.then(() => {
       if (live) run();
     });
+    // …and again whenever an image inside the group finishes loading. A box
+    // that holds images (지역화폐's cards and QR boxes) measures as if they were
+    // 0px tall until they decode, so the first run can conclude "it fits" and
+    // leave the real content overflowing. `load` does not bubble, hence capture.
+    const onLoad = (e: Event): void => {
+      if (live && e.target instanceof HTMLImageElement) run();
+    };
+    root.addEventListener('load', onLoad, true);
     return () => {
       live = false;
+      root.removeEventListener('load', onLoad, true);
     };
   }, [rootRef, boxClass, enabled, min, contentKey, axis]);
 }

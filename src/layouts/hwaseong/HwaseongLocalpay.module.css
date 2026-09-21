@@ -344,3 +344,165 @@
   overflow-wrap: anywhere;
   line-height: 1.15;
 }
+
+/* ── Other languages: the two cards ───────────────────────────────────────
+ * Everything below hangs off `.card0Long` / `.rootLong`, which the TSX adds when
+ * lang !== 'ko' — the Korean page is untouched.
+ *
+ * 온누리 (tab 0) is a fixed 1820×2344 card with `overflow: hidden`; 행복화성
+ * (tab 1) is a white card that holds only the title, with the copy laid ON TOP
+ * of it at fixed coordinates, and its first block pinned inside a 298px box
+ * (heading at top:0, body at top:80). Korean was drawn to fit those; the other
+ * languages were cut off inside the 온누리 card (312px in Russian, 254 in
+ * Vietnamese) and ran past the bottom of the 행복화성 card and under the banner
+ * (722px in Russian, 580 in Vietnamese/Indonesian), with the first block's
+ * body overrunning its 298 box into the photo below.
+ *
+ * Both cards now:
+ *  1. shrink as one (`--fit`, useFitText, never below 0.75) — type, the gaps
+ *     and the images, which are most of the height; and
+ *  2. past 0.75, scroll inside the card instead of cutting copy off.
+ */
+.card0Long,
+.content1Long {
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+.card0Long::-webkit-scrollbar,
+.content1Long::-webkit-scrollbar {
+  width: 34px;
+}
+.card0Long::-webkit-scrollbar-thumb,
+.content1Long::-webkit-scrollbar-thumb {
+  background: var(--kiosk-primary);
+  border-radius: 21.45px;
+}
+.card0Long::-webkit-scrollbar-track,
+.content1Long::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+/* ── 온누리 ── */
+.card0Long {
+  gap: calc(65px * var(--fit, 1));
+}
+
+.card0Long .bigTitle {
+  font-size: calc(100px * var(--fit, 1));
+}
+
+.card0Long .block,
+.card0Long .usageText {
+  gap: calc(20px * var(--fit, 1));
+}
+
+.card0Long .blockWithGap {
+  gap: calc(40px * var(--fit, 1));
+}
+
+.card0Long .imgPaper,
+.card0Long .imgPaper img {
+  height: calc(493px * var(--fit, 1));
+}
+.card0Long .imgPaper img {
+  width: calc(1321px * var(--fit, 1));
+}
+
+.card0Long .imgDigital,
+.card0Long .imgDigital img {
+  height: calc(492px * var(--fit, 1));
+}
+.card0Long .imgDigital img {
+  width: calc(1382px * var(--fit, 1));
+}
+
+/* The 사용처 row was a fixed 196px — a longer body wrapped out of it. */
+.card0Long .usageRow {
+  height: auto;
+  min-height: calc(196px * var(--fit, 1));
+  gap: 40px;
+}
+
+.card0Long .usageText {
+  flex: 1;
+  width: auto;
+  min-width: 0;
+}
+
+.card0Long .biLogo {
+  width: calc(244px * var(--fit, 1));
+  height: calc(250px * var(--fit, 1));
+}
+
+.card0Long .usageQr {
+  width: calc(230px * var(--fit, 1));
+  height: calc(253px * var(--fit, 1));
+}
+
+/* ── 행복화성 ── */
+/* 70, not the frame's 95: a title that wraps to two lines ("Chúc mừng ngày
+   Hwaseong! Tiền tệ địa phương") otherwise reaches y=267 and touches the copy,
+   which starts at 265 inside the card. */
+.rootLong .card1Title {
+  top: 70px;
+  font-size: calc(100px * var(--fit, 1));
+  line-height: 1.1;
+  word-break: keep-all;
+  overflow-wrap: anywhere;
+}
+
+/* The copy sits on the card from y=1189; bound it to end 70px above the card's
+   bottom edge (924 + 2314 = 3238), where it used to run on under the banner. */
+.content1Long {
+  height: calc(3238px - 70px - 1189px);
+  gap: calc(27px * var(--fit, 1));
+}
+
+/* The first block was a fixed 298px box with its heading and body pinned at
+   top:0 and top:80 — a body longer than the Korean one overran the box into the
+   photo, and a heading that wraps would land on the body. It flows instead. */
+.content1Long .block1 {
+  height: auto;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: calc(20px * var(--fit, 1));
+}
+
+.content1Long .block1Heading,
+.content1Long .block1Body {
+  position: static;
+  width: auto;
+}
+
+.content1Long .block1Heading {
+  font-size: calc(60px * var(--fit, 1));
+}
+
+.content1Long .block1Body {
+  font-size: calc(45px * var(--fit, 1));
+}
+
+.content1Long .imgLocalpay {
+  width: calc(1643px * var(--fit, 1));
+  height: calc(903px * var(--fit, 1));
+  align-self: center;
+}
+
+/* ── type shared by both cards ── */
+.card0Long .h,
+.content1Long .h {
+  font-size: calc(60px * var(--fit, 1));
+  line-height: 1.1;
+}
+
+.card0Long .body,
+.content1Long .body {
+  font-size: calc(45px * var(--fit, 1));
+}
+
+.card0Long .note,
+.content1Long .note {
+  font-size: calc(32px * var(--fit, 1));
+}

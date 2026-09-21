@@ -15,11 +15,10 @@ import { useFitText } from '@layouts/components/fitText';
 
 // Every string on this screen comes from Localization_Hwaseong's MarketPaper_*
 // rows (all 23 carry the full 8 languages), so a copy edit needs no code change.
-// NOTE: the Figma card boxes are fixed-height with overflow:hidden, so the
-// longest translations (ru/id run ~2× the Korean) can still clip. The tabs and
-// the card headings now wrap and shrink for non-Korean (see "Other languages"
-// in the CSS); the body copy inside the fixed-height blocks is still the
-// pending part of that responsive pass.
+// NOTE: the Figma card boxes are fixed-height, drawn around the Korean copy;
+// the longest translations (ru/id) run ~2× it. For non-Korean the tabs, the
+// headings and both cards' copy wrap and shrink to fit, and past the floor the
+// card scrolls rather than clipping (see "Other languages" in the CSS).
 const TAB_KEYS = ['MarketPaper_Onnuri', 'MarketPaper_Osaekjeon'] as const;
 
 /** Sheet copy carries `\n` line breaks and <b>…</b> bold runs. Render both
@@ -57,11 +56,20 @@ export function HwaseongLocalpay({ controller }: Props): JSX.Element {
      See "Other languages" in the CSS. */
   const wide = lang !== 'ko';
   const tabsRef = useRef<HTMLDivElement>(null);
+  const rootRef = useRef<HTMLDivElement>(null);
+  const card0Ref = useRef<HTMLDivElement>(null);
   const [tab, setTab] = useState(0);
   useFitText(tabsRef, styles.tab, wide, 0.72, lang);
+  /* Both cards are fixed-height and the Korean copy fills them; every other
+     language was cut off (온누리) or ran past the card under the banner
+     (행복화성). Each shrinks to fit, and past 0.75 scrolls — see "the two cards"
+     in the CSS. 행복화성's factor sits on the page root so the card title,
+     which lives outside the copy block, shrinks with it. */
+  useFitText(card0Ref, styles.card0, wide, 0.75, `${lang}|${tab}`, 'height');
+  useFitText(rootRef, styles.content1, wide, 0.75, `${lang}|${tab}`, 'height');
 
   return (
-    <div className={styles.root}>
+    <div ref={rootRef} className={`${styles.root} ${wide ? styles.rootLong : ''}`}>
       <div className={styles.bgBase} />
       {hwaseongIconUrl('bg') && (
         <img src={hwaseongIconUrl('bg')} alt="" className={styles.bgImage} draggable={false} />
@@ -85,7 +93,7 @@ export function HwaseongLocalpay({ controller }: Props): JSX.Element {
 
       {/* ── Tab 0: 온누리상품권 — full card, left=163 top=917 h=2344 ── */}
       {tab === 0 && (
-        <div className={styles.card0}>
+        <div ref={card0Ref} className={`${styles.card0} ${wide ? styles.card0Long : ''}`}>
           <p className={`${styles.bigTitle} ${wide ? styles.bigTitleLong : ''}`}>{t('MarketPaper_Onnuri', lang)}</p>
 
           {/* 온누리상품권이란? */}
@@ -142,7 +150,7 @@ export function HwaseongLocalpay({ controller }: Props): JSX.Element {
           </div>
 
           {/* Content: left=243 top=1189 w=1740 gap=27 */}
-          <div className={styles.content1}>
+          <div className={`${styles.content1} ${wide ? styles.content1Long : ''}`}>
             {/* Block 1: 행복화성지역화폐란? h=298 */}
             <div className={styles.block1}>
               <p className={`${styles.block1Heading} ${wide ? styles.block1HeadingLong : ''}`}>{t('MarketPaper_Osaekjeon_Content_1', lang)}</p>

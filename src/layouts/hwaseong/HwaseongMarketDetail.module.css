@@ -118,7 +118,11 @@
   border: 4.29px solid var(--kiosk-primary);
   border-radius: 25px;
   background: #fff;
-  padding: 50px;
+  /* 28px inset → a 275px code in the 340 box. The earlier insets (54 / 78 / 50)
+     drew a 175–231px code swimming in white, far smaller than its frame.
+     28px is still ~3 modules of quiet zone at this size, which is what a
+     phone camera needs to lock on; the same value on all three locations. */
+  padding: 28px;
   flex-shrink: 0;
 }
 

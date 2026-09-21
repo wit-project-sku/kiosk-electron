@@ -264,3 +264,105 @@
   font-size: calc(50px * var(--fit, 1));
   line-height: 1.12;
 }
+
+/* ── Other languages: the card ────────────────────────────────────────────
+ * Reached only through `.resultsLong` / `.cardLong`, which the TSX adds when
+ * lang !== 'ko' — the Korean page is untouched.
+ *
+ * The page is a fixed area (top 699 → 615 above the banner) with
+ * `overflow: hidden`, and the card is squeezed into what is left of it with
+ * `min-height: 0` + its own `overflow: hidden`. The Korean copy fits that box
+ * exactly; every other language is longer, and whatever did not fit was simply
+ * cut off with no way to reach it — up to 604px of 오색전 in Russian, 487 in
+ * Indonesian, 370 in Vietnamese; 280px of 온누리 in Russian.
+ *
+ * Two steps, in order:
+ *  1. The card SHRINKS as one (`--fit`, set by useFitText on the page area,
+ *     never below 0.75): type, the section gaps AND the images — the cards and
+ *     QR boxes are most of the height, so shrinking type alone would have to
+ *     go unreadably small.
+ *  2. Copy that still does not fit at 0.75 is not cut off: the card keeps its
+ *     full height and the page scrolls, with the same bar as the list pages.
+ */
+.resultsLong {
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+.resultsLong::-webkit-scrollbar {
+  width: 34px;
+}
+.resultsLong::-webkit-scrollbar-thumb {
+  background: var(--kiosk-primary);
+  border-radius: 21.45px;
+}
+.resultsLong::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+/* Grow to fill the page like before, but never shrink below the content —
+   that shrink (plus the card's own clip) is what hid the overflow. */
+.cardLong {
+  flex: 1 0 auto;
+  overflow: visible;
+  gap: calc(48px * var(--fit, 1));
+}
+
+.cardLong .bigTitle {
+  font-size: calc(100px * var(--fit, 1));
+  line-height: 1.1;
+  word-break: keep-all;
+  overflow-wrap: anywhere;
+}
+
+.cardLong .block,
+.cardLong .usageText {
+  gap: calc(20px * var(--fit, 1));
+}
+
+.cardLong .h {
+  font-size: calc(60px * var(--fit, 1));
+}
+
+.cardLong .body {
+  font-size: calc(45px * var(--fit, 1));
+}
+
+.cardLong .note {
+  font-size: calc(33px * var(--fit, 1));
+}
+
+.cardLong .qrLabel {
+  font-size: calc(32px * var(--fit, 1));
+}
+
+.cardLong .imageWide img {
+  max-height: calc(480px * var(--fit, 1));
+}
+
+.cardLong .biLogo {
+  height: calc(250px * var(--fit, 1));
+}
+
+.cardLong .usageQr {
+  width: calc(230px * var(--fit, 1));
+  height: calc(253px * var(--fit, 1));
+}
+
+.cardLong .payCard {
+  height: calc(630px * var(--fit, 1));
+}
+
+.cardLong .qrCol {
+  gap: calc(30px * var(--fit, 1));
+}
+
+.cardLong .qrBox {
+  width: calc(257px * var(--fit, 1));
+  height: calc(300px * var(--fit, 1));
+}
+
+.cardLong .qrBox img {
+  width: calc(200px * var(--fit, 1));
+  height: calc(200px * var(--fit, 1));
+}

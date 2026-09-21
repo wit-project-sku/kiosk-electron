@@ -417,10 +417,15 @@ export function OsanLocalpay({ controller }: OsanLocalpayProps): JSX.Element {
      See "Other languages" in the CSS. */
   const wide = lang !== 'ko';
   const tabsRef = useRef<HTMLDivElement>(null);
+  const resultsRef = useRef<HTMLDivElement>(null);
   const c = pick(CONTENT, lang);
   const [tab, setTab] = useState(0);
 
   useFitText(tabsRef, styles.tab, wide, 0.72, lang);
+  /* The page area is fixed-height and the Korean copy fills it; every other
+     language overran it and was cut off. The card shrinks (type + images) to
+     fit, and past 0.75 the page scrolls — see "the card" in the CSS. */
+  useFitText(resultsRef, styles.results, wide, 0.75, `${lang}|${tab}`, 'height');
 
   return (
     <>
@@ -428,7 +433,7 @@ export function OsanLocalpay({ controller }: OsanLocalpayProps): JSX.Element {
 
       <OsanHeader title={c.title} onHome={goHome} />
 
-      <div className={styles.results}>
+      <div ref={resultsRef} className={`${styles.results} ${wide ? styles.resultsLong : ''}`}>
         <div ref={tabsRef} className={styles.tabs}>
           {c.tabs.map((label, i) => (
             <button
@@ -443,7 +448,7 @@ export function OsanLocalpay({ controller }: OsanLocalpayProps): JSX.Element {
         </div>
 
         {tab === 0 ? (
-          <div className={`${styles.card} ${styles.cardCentered}`}>
+          <div className={`${styles.card} ${styles.cardCentered} ${wide ? styles.cardLong : ''}`}>
             <p className={styles.bigTitle}>{c.onnuri.title}</p>
 
             <section className={styles.block}>
@@ -489,7 +494,7 @@ export function OsanLocalpay({ controller }: OsanLocalpayProps): JSX.Element {
             </section>
           </div>
         ) : (
-          <div className={`${styles.card} ${styles.cardCentered}`}>
+          <div className={`${styles.card} ${styles.cardCentered} ${wide ? styles.cardLong : ''}`}>
             <p className={styles.bigTitle}>{c.osaek.title}</p>
 
             <section className={styles.block}>

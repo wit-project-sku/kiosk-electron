@@ -545,6 +545,11 @@
  *    real width is what the fit measures. */
 .navLabelLong {
   font-size: calc(50px * var(--fit, 1));
+  /* The box below is wider than the caption (that is the room the fit has to
+     work in), so the caption must be centred INSIDE it — left-aligned, a short
+     label like "PROMOTION (Soon)" sat at the box's left edge, visibly left of
+     the K-DRAMA logo it belongs under. */
+  text-align: center;
 }
 
 .kdramaItem .navLabelLong {

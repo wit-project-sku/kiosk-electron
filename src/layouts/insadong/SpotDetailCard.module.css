@@ -23,7 +23,11 @@
   display: flex;
   flex-direction: column;
   gap: 65px;
-  padding: 100px 45px;
+  /* Top matches the 45px sides VISUALLY: the 85px title at line-height 1 starts
+     its glyphs ~18px below its box, so 100px here read as a much bigger gap
+     above the title than beside it. 26.98 is the value the 오색 copy of this
+     card already uses (OsanSpotDetailCard) for the same reason. */
+  padding: 26.98px 45px 100px;
   background: #ffffff;
   border: 5px solid #e8e8e8;
   border-radius: 42.9px;
@@ -152,8 +156,11 @@
   border: 4.29px solid var(--kiosk-primary);
   border-radius: 25px;
   background: #ffffff;
-  /* Figma: QR sits ~17% inset inside the 340 box (≈224px). */
-  padding: 54px;
+  /* 28px inset → a 275px code in the 340 box. The earlier insets (54 / 78 / 50)
+     drew a 175–231px code swimming in white, far smaller than its frame.
+     28px is still ~3 modules of quiet zone at this size, which is what a
+     phone camera needs to lock on; the same value on all three locations. */
+  padding: 28px;
   display: flex;
   align-items: center;
   justify-content: center;
