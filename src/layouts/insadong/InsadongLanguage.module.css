@@ -13,7 +13,7 @@
    list scrolls instead of clipping. */
 .area {
   position: absolute;
-  top: 699px;
+  top: calc(699px + var(--header-push, 0px));
   left: 0;
   right: 0;
   bottom: 573px;

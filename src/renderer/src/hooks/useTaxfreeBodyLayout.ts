@@ -22,8 +22,16 @@ function kioskScale(from: HTMLElement): number {
 
 /**
  * Positions the TAX-FREE white card / webview under the subtitle.
- * Measured per language for 1–2 lines; capped at two lines so a third
- * wrapped line does not push the webview further down.
+ *
+ * Korean: measured for 1–2 lines and capped at two, the frame's own maximum —
+ * the Korean description is exactly two lines, so the cap is never reached.
+ *
+ * Other languages: NOT capped. The same description runs to three lines in
+ * English and Russian and to five in Vietnamese/Russian/Indonesian on 화성, and
+ * with the cap a third line and beyond were drawn over the top of the white
+ * card. The card now starts under the last line, whatever it is, and gets
+ * shorter by the same amount; its intro/merchant pages are `object-fit:
+ * contain` images, so they scale with it rather than clipping.
  */
 export function useTaxfreeBodyLayout(
   rootRef: RefObject<HTMLElement | null>,
@@ -43,7 +51,7 @@ export function useTaxfreeBodyLayout(
       const subRect = sub.getBoundingClientRect();
       const marginBottom = parseFloat(getComputedStyle(sub).marginBottom) || 0;
       const measured = Math.ceil((subRect.bottom - rootRect.top) / scale + marginBottom);
-      const top = Math.min(measured, BODY_TOP_MAX_TWO_LINES);
+      const top = lang === 'ko' ? Math.min(measured, BODY_TOP_MAX_TWO_LINES) : measured;
       setLayout({ top, height: BODY_BOTTOM - top });
     };
 

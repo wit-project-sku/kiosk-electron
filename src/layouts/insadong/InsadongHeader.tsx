@@ -3,6 +3,7 @@ import { iconUrl } from '@renderer/assets/icons/insadong';
 import { screenSubtitle, screenTitle, useLang } from '@renderer/lib/i18n';
 import styles from './InsadongHeader.module.css';
 import { useFitText } from '@layouts/components/fitText';
+import { useHeaderPush } from '@layouts/components/headerPush';
 
 const WEEKDAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 function formatDate(d: Date): string {
@@ -42,10 +43,15 @@ export function InsadongHeader({ title, onHome, onBack, subtitle, compact = fals
   const wide = lang !== 'ko';
   const titleRowRef = useRef<HTMLDivElement>(null);
   useFitText(titleRowRef, styles.titleRow, wide, 0.6, localizedTitle);
+  /* A description that wraps past one line pushes the page content down by the
+     extra lines instead of being drawn over it — see components/headerPush. */
+  const headerRef = useRef<HTMLElement>(null);
+  const subTextRef = useRef<HTMLSpanElement>(null);
   const rawSub = subtitle ?? screenSubtitle(title, lang) ?? '';
   // The sheet copy often begins with its own "*"/"★"; the header already renders
   // a star, so strip a leading marker to avoid showing two.
   const sub = rawSub.replace(/^\s*[*★]\s*/, '').trim();
+  useHeaderPush(headerRef, subTextRef, wide && !!sub, `${lang}|${sub}`);
   const [now, setNow] = useState(() => new Date());
   useEffect(() => {
     const id = setInterval(() => setNow(new Date()), 60_000);
@@ -53,7 +59,7 @@ export function InsadongHeader({ title, onHome, onBack, subtitle, compact = fals
   }, []);
 
   return (
-    <header className={`${styles.header} ${compact ? styles.headerCompact : ''}`}>
+    <header ref={headerRef} className={`${styles.header} ${compact ? styles.headerCompact : ''}`}>
       <div className={styles.headerBlock}>
         <div className={styles.topRow}>
           <div className={styles.brand}>
@@ -81,7 +87,7 @@ export function InsadongHeader({ title, onHome, onBack, subtitle, compact = fals
       {!compact && sub && (
         <div ref={subtitleRef} className={`${styles.subtitle} ${subtitleClassName ?? ''}`}>
           <span className={styles.star}>★</span>
-          <span className={styles.subtitleText}>{sub}</span>
+          <span ref={subTextRef} className={styles.subtitleText}>{sub}</span>
         </div>
       )}
     </header>

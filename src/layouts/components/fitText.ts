@@ -132,9 +132,23 @@ export function useFitText(
       if (live && e.target instanceof HTMLImageElement) run();
     };
     root.addEventListener('load', onLoad, true);
+    // `height` boxes are fixed cards whose height comes from the page, not from
+    // their text — and the page can move them after this ran: a translated
+    // header description that wraps pushes the page content down (and so makes
+    // the card shorter) once its web font lands. Re-fit when the box resizes.
+    // The fit itself never changes these boxes' size, so this cannot loop.
+    let ro: ResizeObserver | undefined;
+    if (axis === 'height') {
+      ro = new ResizeObserver(() => {
+        if (live) run();
+      });
+      for (const b of root.getElementsByClassName(boxClass)) ro.observe(b);
+      if (root.classList.contains(boxClass)) ro.observe(root);
+    }
     return () => {
       live = false;
       root.removeEventListener('load', onLoad, true);
+      ro?.disconnect();
     };
   }, [rootRef, boxClass, enabled, min, contentKey, axis]);
 }

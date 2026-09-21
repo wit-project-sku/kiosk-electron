@@ -31,7 +31,7 @@
    scrollbar sits in the outer padding, not crowding the 1820 cards. */
 .results {
   position: absolute;
-  top: 699px;
+  top: calc(699px + var(--header-push, 0px));
   left: 0;
   right: 0;
   /* Bottom banner is hidden on these data-heavy list screens, so the scroll

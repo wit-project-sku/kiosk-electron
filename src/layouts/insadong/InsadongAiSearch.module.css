@@ -12,7 +12,7 @@
    fills exactly — no scroll. gap 100, px 170, NO vertical padding. */
 .content {
   position: absolute;
-  top: 699px;
+  top: calc(699px + var(--header-push, 0px));
   left: 0;
   right: 0;
   bottom: 573px;

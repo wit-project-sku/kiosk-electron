@@ -16,7 +16,7 @@
 .regionTabs {
   position: absolute;
   left: 168px;
-  top: 699px;
+  top: calc(699px + var(--header-push, 0px));
   display: flex;
   gap: 63px;
 }
@@ -49,7 +49,7 @@
    others plain text. Pill drawn via ::before so siblings never shift. ── */
 .categoryTabs {
   position: absolute;
-  top: 941px;
+  top: calc(941px + var(--header-push, 0px));
   left: 735px;
   display: flex;
   align-items: center;
@@ -96,7 +96,7 @@
 .grid {
   position: absolute;
   left: 224px;
-  top: 1088px;
+  top: calc(1088px + var(--header-push, 0px));
   display: grid;
   grid-template-columns: repeat(3, 483.767px);
   column-gap: 125px;
@@ -155,7 +155,7 @@
 /* ── Pagination (1 2 3 ⟩) — 5494:134544 ── */
 .pagination {
   position: absolute;
-  top: 2831px;
+  top: calc(2831px + var(--header-push, 0px));
   left: 50%;
   transform: translateX(-50%);
   display: flex;
@@ -194,7 +194,7 @@
 .qrFooter {
   position: absolute;
   left: 180px;
-  top: 2939px;
+  top: calc(2939px + var(--header-push, 0px));
   width: 1820px;
   height: 219px;
 }
@@ -257,7 +257,7 @@
 /* 4×2 toggle grid — 5494:151799: 283×283, r50, border5, gap-x113 gap-y90. */
 .mbtiGrid {
   position: absolute;
-  top: 1088px;
+  top: calc(1088px + var(--header-push, 0px));
   left: 50%;
   transform: translateX(-50%);
   display: grid;
@@ -312,7 +312,7 @@
 /* CTA "추천 결과 보기" / "결과 로딩중.." — 4232:130741 / 4232:130943: 500×120, r30. */
 .mbtiCta {
   position: absolute;
-  top: 1875px;
+  top: calc(1875px + var(--header-push, 0px));
   left: 50%;
   transform: translateX(-50%);
   box-sizing: border-box;
@@ -357,7 +357,7 @@
 /* Description — 4232:130998: centered, 60px bold, "종로구 이벤트" in #ff5900. */
 .mbtiDesc {
   position: absolute;
-  top: 2141px;
+  top: calc(2141px + var(--header-push, 0px));
   left: 50%;
   transform: translateX(-50%);
   width: 1036px;

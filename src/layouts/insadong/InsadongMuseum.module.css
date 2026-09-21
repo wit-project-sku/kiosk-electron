@@ -11,7 +11,7 @@
 /* 검색결과: top 699, px170, gap 100 (tabs → list). No bottom banner. */
 .results {
   position: absolute;
-  top: 699px;
+  top: calc(699px + var(--header-push, 0px));
   left: 0;
   right: 0;
   bottom: 0;

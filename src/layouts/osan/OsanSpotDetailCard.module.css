@@ -4,7 +4,7 @@
    Figma. The description/tags are line-clamped so long text can't force a scroll. */
 .content {
   position: absolute;
-  top: 699px;
+  top: calc(699px + var(--header-push, 0px));
   left: 0;
   right: 0;
   bottom: 573px;

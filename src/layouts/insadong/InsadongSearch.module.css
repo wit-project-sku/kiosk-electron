@@ -11,7 +11,7 @@
 /* Figma 검색결과 5287:63967: top 699, px170, gap 100 (search field → list). */
 .results {
   position: absolute;
-  top: 699px;
+  top: calc(699px + var(--header-push, 0px));
   left: 0;
   right: 0;
   bottom: 573px;

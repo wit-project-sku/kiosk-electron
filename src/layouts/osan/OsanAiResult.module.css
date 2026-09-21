@@ -11,7 +11,7 @@
 /* ── Overview (3 course columns) — Figma 선택영역 top 743, gap 65 ── */
 .content {
   position: absolute;
-  top: 743px;
+  top: calc(743px + var(--header-push, 0px));
   left: 0;
   right: 0;
   bottom: 573px;
@@ -28,7 +28,7 @@
 /* ── Selected course — Figma 선택영역 top 699 ── */
 .contentSelected {
   position: absolute;
-  top: 699px;
+  top: calc(699px + var(--header-push, 0px));
   left: 0;
   right: 0;
   bottom: 573px;

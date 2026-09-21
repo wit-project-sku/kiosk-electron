@@ -11,7 +11,7 @@
 /* 컨텐츠: top 699, content width 1820 (px170), scrolls if taller than the artboard. */
 .content {
   position: absolute;
-  top: 699px;
+  top: calc(699px + var(--header-push, 0px));
   left: 170px;
   width: 1820px;
   bottom: 40px;

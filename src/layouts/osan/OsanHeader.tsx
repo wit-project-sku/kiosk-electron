@@ -3,6 +3,7 @@ import { osanIconUrl } from '@renderer/assets/icons/osan';
 import { screenSubtitle, screenTitle, useLang } from '@renderer/lib/i18n';
 import styles from './OsanHeader.module.css';
 import { useFitText } from '@layouts/components/fitText';
+import { useHeaderPush } from '@layouts/components/headerPush';
 
 const WEEKDAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 function formatDate(d: Date): string {
@@ -43,8 +44,13 @@ export function OsanHeader({
   const wide = lang !== 'ko';
   const titleRowRef = useRef<HTMLDivElement>(null);
   useFitText(titleRowRef, styles.titleRow, wide, 0.6, localizedTitle);
+  /* A description that wraps past one line pushes the page content down by the
+     extra lines instead of being drawn over it — see components/headerPush. */
+  const headerRef = useRef<HTMLElement>(null);
+  const subTextRef = useRef<HTMLSpanElement>(null);
   const rawSub = subtitle ?? screenSubtitle(title, lang) ?? '';
   const sub = rawSub.replace(/^\s*[*★]\s*/, '').trim();
+  useHeaderPush(headerRef, subTextRef, wide && !!sub, `${lang}|${sub}`);
   const [now, setNow] = useState(() => new Date());
 
   useEffect(() => {
@@ -53,7 +59,7 @@ export function OsanHeader({
   }, []);
 
   return (
-    <header className={`${styles.header} ${compact ? styles.headerCompact : ''}`}>
+    <header ref={headerRef} className={`${styles.header} ${compact ? styles.headerCompact : ''}`}>
       <div className={styles.headerBlock}>
         <div className={styles.topRow}>
           <div className={styles.brand}>
@@ -90,7 +96,7 @@ export function OsanHeader({
       {!compact && sub && (
         <div ref={subtitleRef} className={`${styles.subtitle} ${subtitleClassName ?? ''}`}>
           <span className={styles.star}>★</span>
-          <span className={styles.subtitleText}>{sub}</span>
+          <span ref={subTextRef} className={styles.subtitleText}>{sub}</span>
         </div>
       )}
     </header>

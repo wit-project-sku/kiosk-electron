@@ -29,10 +29,10 @@
 /* Body area — between header (699) and banner (573) */
 .body {
   position: absolute;
-  top: 699px;
+  top: calc(699px + var(--header-push, 0px));
   left: 0;
   width: 2160px;
-  height: 2568px;
+  height: calc(2568px - var(--header-push, 0px));
   display: flex;
   align-items: center;
   justify-content: center;

@@ -10,7 +10,7 @@
 
 .results {
   position: absolute;
-  top: 699px;
+  top: calc(699px + var(--header-push, 0px));
   left: 0;
   right: 0;
   /* Leave a gap above the bottom banner (banner top = 3267 → 573 from bottom). */
