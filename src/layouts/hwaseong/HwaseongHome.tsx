@@ -8,10 +8,10 @@ import { useLanguageStore } from '@renderer/store/languageStore';
 import { useFitText } from '@layouts/components/fitText';
 import { useSearchStore } from '@renderer/store/searchStore';
 import { weatherIconUrl, weatherIconName } from '@renderer/assets/weather';
-import { buttonText, pick } from '@renderer/lib/i18n';
+import { buttonText, pick, type Lang } from '@renderer/lib/i18n';
 import { useApiTileRows, useHasDonationTile, type TileKey } from '@renderer/lib/buttonLayout';
 import { DONATION_COMING_SOON, withComingSoon } from '@shared/config/donation';
-import { t } from '@renderer/lib/loc';
+import { t, tExact } from '@renderer/lib/loc';
 import { SearchIcon } from '@layouts/components/SearchIcon';
 import { FloatingKeyboard } from '../insadong/keyboard/FloatingKeyboard';
 
@@ -52,6 +52,42 @@ function formatDate(d: Date): string {
 }
 
 type NoticeRun = { t: string; b?: boolean };
+
+/**
+ * The notice badge is drawn as a narrow column, one glyph per line — the sheet
+ * stacks it that way for ko "공/지", en "I/N/F/O", ja and zh. For vi / id / th /
+ * ru the Hwaseong sheet has a single word instead ("уведомление"), which sits
+ * as one wide line and squeezes the notice text into a thin vertical column.
+ * Until the sheet stacks those too, they use the stacked badges the Insadong
+ * sheet already has. A sheet value that contains a line break always wins.
+ */
+const NOTICE_BADGE_STACKED: Partial<Record<Lang, string>> = {
+  vi: 'C\nH\nÚ\nÝ',
+  th: 'แ\nจ้\nง',
+  ru: 'И\nН\nФ\nО',
+  id: 'I\nN\nF\nO',
+};
+
+/**
+ * 스마트 관광 (bottom-left, 준비중) for when the sheet's MainButton_SmartTour cell
+ * is empty. The Korean is baked into fg-bottomnav.png, so `ko` is never drawn.
+ */
+const SMART_TOUR_FALLBACK: Partial<Record<Lang, string>> = {
+  ko: '스마트 관광(준비중)',
+  en: 'Smart Tourism (Preparing)',
+  ja: 'スマート観光（準備中）',
+  zh: '智慧旅游（准备中）',
+  vi: 'Du lịch thông minh (Đang chuẩn bị)',
+  th: 'การท่องเที่ยวอัจฉริยะ (เร็วๆ นี้)',
+  ru: 'Умный туризм (Скоро)',
+  id: 'Pariwisata Cerdas (Segera hadir)',
+};
+
+/** "Name (준비중)" → ["Name", "(준비중)"] — the baked Korean's two lines. */
+function splitPending(label: string): string[] {
+  const m = label.match(/^(.*?)\s*([(（].*)$/);
+  return m && m[1] ? [m[1], m[2]!] : [label];
+}
 
 /** Same as Insadong/Osan: `\n` = line break, `<b>…</b>` = bold. */
 function parseNotice(text: string): NoticeRun[][] {
@@ -197,9 +233,11 @@ export function HwaseongHome({ controller }: Props): JSX.Element {
      `wide` — a tile's own `wide` means it spans two columns.) */
   const longLang = lang !== 'ko';
   const gridRef = useRef<HTMLDivElement>(null);
+  const smartTourRef = useRef<HTMLDivElement>(null);
   // Sheet-driven (Localization_Hwaseong): NoticeContent = body, Notice = vertical badge.
   const noticeLines = parseNotice(t('NoticeContent', lang));
-  const noticeBadge = t('Notice', lang)
+  const noticeRaw = t('Notice', lang);
+  const noticeBadge = (noticeRaw.includes('\n') ? noticeRaw : (NOTICE_BADGE_STACKED[lang] ?? noticeRaw))
     .split('\n')
     .map((s) => s.trim())
     .filter(Boolean);
@@ -265,6 +303,14 @@ export function HwaseongHome({ controller }: Props): JSX.Element {
     : undefined;
 
   useFitText(gridRef, styles.tileLabel, longLang, 0.7, `${lang}|${dynamicRows ? 'dyn' : 'static'}`);
+
+  // 스마트 관광 (bottom-left): the sheet's MainButton_SmartTour, else the authored
+  // copy. Drawn as name / (준비중) on two lines, the way the baked Korean is, and
+  // shrunk to the strip when a translation is longer than it ('ink': the strip
+  // centres its text, so an overlong line spills out of both sides).
+  const smartTourLabel = tExact('MainButton_SmartTour', lang) || pick(SMART_TOUR_FALLBACK, lang);
+  const smartTourLines = splitPending(smartTourLabel);
+  useFitText(smartTourRef, styles.bottomNavSmartLabel, lang !== 'ko', 0.6, smartTourLabel, 'ink');
 
   return (
     <div className={styles.root}>
@@ -442,7 +488,18 @@ export function HwaseongHome({ controller }: Props): JSX.Element {
 
         {/* Transparent click zones over the three buttons (Figma coords) */}
         {/* 스마트 관광 — 준비중: not clickable, no navigation */}
-        <div className={styles.bottomNavZoneLeft} aria-label="스마트 관광(준비중)" />
+        <div className={styles.bottomNavZoneLeft} aria-label={smartTourLabel} />
+        {/* Other languages: covers the Korean "스마트 관광 (준비중)" baked into
+            fg-bottomnav.png, like the WC label. Korean keeps the baked art. */}
+        {lang !== 'ko' && (
+          <div ref={smartTourRef} className={styles.bottomNavSmartLabel}>
+            {smartTourLines.map((line, i) => (
+              <span key={i} className={styles.bottomNavSmartLine}>
+                {line}
+              </span>
+            ))}
+          </div>
+        )}
         <button
           type="button"
           className={styles.bottomNavZoneCenter}

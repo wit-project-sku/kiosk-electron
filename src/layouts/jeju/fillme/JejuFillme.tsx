@@ -98,8 +98,18 @@ const SUBTITLE_KEY: Record<Screen, string> = {
   analyzing: 'Fillme_subtitle3',
   result: 'Fillme_subtitle5',
 };
-/** 시트에 Fillme_subtitle4 가 생기면 쓰이지 않는다. */
-const INFO_SUB_FALLBACK = { ko: '정확한 분석을 위해 기본 정보를 입력해 주세요' };
+/** 시트에 Fillme_subtitle4 가 생기면 쓰이지 않는다. 그때까지 다른 일곱 언어도
+ *  한국어 줄이 뜨지 않게 authored 번역을 둔다. */
+const INFO_SUB_FALLBACK = {
+  ko: '정확한 분석을 위해 기본 정보를 입력해 주세요',
+  en: 'Please enter your basic information for an accurate analysis',
+  ja: '正確な分析のため、基本情報を入力してください',
+  zh: '为了准确分析，请输入基本信息',
+  vi: 'Vui lòng nhập thông tin cơ bản để phân tích chính xác',
+  th: 'กรุณากรอกข้อมูลพื้นฐานเพื่อการวิเคราะห์ที่แม่นยำ',
+  ru: 'Введите основные данные для точного анализа',
+  id: 'Masukkan informasi dasar Anda untuk analisis yang akurat',
+};
 /* 아래 셋도 같다 — 시트에 아직 줄이 없는 모달 문구. 키 이름은 시트가 이어 쓰던
    번호를 그대로 이었다(text055 다음). */
 const TIMEOUT_BODY = { ko: '분석 시간이 너무 오래 걸리고 있어요.\n잠시 후 다시 시도해 주세요.' };
@@ -491,6 +501,10 @@ export function JejuFillme({ controller }: Props): JSX.Element {
     >
       <div
         className={styles.root}
+        /* 한국어가 아닌 일곱 언어만 고르는 CSS 의 손잡이 — 각 화면 스타일시트의
+           `[data-lang]:not([data-lang='ko'])` 규칙. 한국어 화면은 그 규칙을 하나도
+           받지 않는다. */
+        data-lang={lang}
         onPointerDownCapture={poke}
         onKeyDownCapture={poke}
         onContextMenu={(e) => e.preventDefault()}

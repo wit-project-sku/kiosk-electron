@@ -901,6 +901,8 @@ export function JejuAiSearch({ controller }: Props): JSX.Element {
    */
   const chipFitRef = useRef<HTMLDivElement>(null);
   const gridFitRef = useRef<HTMLDivElement>(null);
+  /** The landing's cards — 커스텀 코스 and the four 추천코스 — one group. */
+  const cardsFitRef = useRef<HTMLDivElement>(null);
   /** Which kiosk this is — the landing note names it as every course's start. */
   const kioskId = useKioskStore((s) => s.config.kioskId);
 
@@ -1249,13 +1251,19 @@ export function JejuAiSearch({ controller }: Props): JSX.Element {
     setStage('questions');
   };
 
-  /* The two fit groups (see chipFitRef). `min` is the floor each may fall to —
-     0.7 of 60 is a 42px chip, 0.55 of the tile's 40 is 22px — and nothing is
-     ever clipped: past the floor the label keeps its full length at that size.
-     The keys re-run the fit when the copy or the row count changes. */
+  /* The fit groups (see chipFitRef). `min` is the floor the group may fall to
+     together — 0.7 of 60 is a 42px chip, 0.7 of the tile's 40 is 28px — and the
+     last number is how far ONE box that still does not fit may go on its own
+     (a 22-letter Russian word should not shrink all thirty tiles). Nothing is
+     ever clipped. `ink` because these boxes centre their text: a word too wide
+     for the box spills out of both sides, which scroll sizes cannot see. The
+     keys re-run the fit when the copy or the row count changes. */
   const fitOn = lang !== 'ko';
-  useFitText(chipFitRef, styles.chip, fitOn, 0.7, `${lang}|${themeKey ?? ''}|${step}`);
-  useFitText(gridFitRef, styles.tile, fitOn, 0.5, `${lang}|${dayCount}|${activeDay}|${dayStops.length}`);
+  // `stage` is in both keys: the groups only mount on the questions, so a key
+  // without it never re-ran the fit after the landing — the page opened unfitted.
+  useFitText(chipFitRef, styles.chip, fitOn, 0.7, `${lang}|${stage}|${themeKey ?? ''}|${step}`, 'ink', 0.6);
+  useFitText(gridFitRef, styles.tile, fitOn, 0.7, `${lang}|${stage}|${step}|${dayCount}|${activeDay}|${dayStops.length}`, 'ink', 0.5);
+  useFitText(cardsFitRef, styles.fitCard, fitOn && stage === 'pick', 0.8, `${lang}|${stage}`, 'ink');
 
   if (stage === 'pick') {
     const aiArt = jejuIconUrl('ai-course-custom');
@@ -1278,14 +1286,14 @@ export function JejuAiSearch({ controller }: Props): JSX.Element {
         lowReachShift={belowModeBar(LOW_REACH_BANNER_HEIGHT)}
         lowReachBodyShift={belowModeBar(LOW_REACH_BANNER_HEIGHT)}
       >
-        <div className={styles.root}>
+        <div className={styles.root} data-lang={lang} ref={cardsFitRef}>
           <p className={styles.pickNote}>{pickNoteText(kioskId, lang)}</p>
 
           <p className={`${styles.sectionHead} ${styles.headCustom}`}>
             I {sheetText('My_Course_title', lang, AI_CARD.title)}
           </p>
 
-          <button type="button" className={styles.bigCard} onClick={openCustom}>
+          <button type="button" className={`${styles.bigCard} ${styles.fitCard}`} onClick={openCustom}>
             {aiArt && <img src={aiArt} alt="" className={styles.bigArt} draggable={false} />}
             <span className={styles.bigText}>
               <span className={styles.bigSub}>{sheetText('My_Course_desc1', lang, AI_CARD.sub)}</span>
@@ -1310,7 +1318,7 @@ export function JejuAiSearch({ controller }: Props): JSX.Element {
                 <button
                   key={theme.key}
                   type="button"
-                  className={styles.courseCard}
+                  className={`${styles.courseCard} ${styles.fitCard}`}
                   onClick={() => openTheme(theme.key)}
                 >
                   {art && (
@@ -1324,7 +1332,10 @@ export function JejuAiSearch({ controller }: Props): JSX.Element {
                   )}
                   <span
                     className={lang === 'ko' ? styles.courseText : `${styles.courseText} ${styles.courseTextWrap}`}
-                    style={theme.text}
+                    /* Other languages drop the frame's per-card `top`: their text
+                       runs to more lines, so .courseTextWrap centres it in the
+                       plate instead of letting it hang off the bottom. */
+                    style={lang === 'ko' ? theme.text : { left: theme.text.left, width: theme.text.width }}
                   >
                     <span className={styles.courseSub}>{sub}</span>
                     <span className={styles.courseTitle}>{cardTitle(title)}</span>
@@ -1367,7 +1378,7 @@ export function JejuAiSearch({ controller }: Props): JSX.Element {
             lowReachShift: belowModeBar(LOW_REACH_HERO_HEIGHT),
           })}
     >
-      <div className={styles.root}>
+      <div className={styles.root} data-lang={lang}>
         {themeKey && (
           /* ── 지역 — the region map (Figma 7088:24139) ──
              Each region is its own <path>, so a tap lands on the painted shape

@@ -252,3 +252,43 @@
 .pending {
   color: #999;
 }
+
+/* ── 한국어가 아닌 일곱 언어 ──────────────────────────────────────────────
+ * 단계 넷은 한국어 짧은 이름에 맞춘 404 칸 두 줄이고 이름이 `nowrap` 이라, ru 의
+ * 'Формирование персонализированных результатов' 가 옆 칸을 덮고 카드 밖(237)까지
+ * 나갔다. 칸을 카드 폭에 가깝게 넓히고, 이름은 그림 옆에서 줄을 바꾼다.
+ * 카드는 2050 높이라 단계 아래(1718…)로 두 줄짜리 두 행이 들어갈 자리가 있다.
+ */
+[data-lang]:not([data-lang='ko']) .steps {
+  left: 110px;
+  width: 1600px;
+  grid-template-columns: 1fr 1fr;
+  column-gap: 70px;
+  row-gap: 36px;
+}
+
+[data-lang]:not([data-lang='ko']) .step {
+  height: auto;
+  min-height: 88px;
+  display: flex;
+  align-items: center;
+  gap: 26px;
+}
+
+[data-lang]:not([data-lang='ko']) .stepIcon {
+  position: static;
+  flex: 0 0 auto;
+}
+
+[data-lang]:not([data-lang='ko']) .stepLabel {
+  position: static;
+  min-width: 0;
+  font-size: 42px;
+  line-height: 1.2;
+  white-space: normal;
+}
+
+[data-lang]:not([data-lang='ko']) .note {
+  left: 80px;
+  right: 80px;
+}

@@ -66,3 +66,15 @@
   padding: 0;
   list-style: none;
 }
+
+/*
+ * 한국어가 아닌 일곱 언어 — `keep-all` 은 한국어 어절용이다. 일본어·중국어에 걸리면
+ * 띄어쓰기가 없는 문장이 한 줄로 이어져 카드 밖으로 나간다(ja 진행순서 설명이 카드
+ * 양쪽으로 74 씩 넘쳤다). 다른 언어는 보통 줄바꿈으로 돌리고, 한 낱말이 칸보다 길
+ * 때만 그 낱말을 자른다. 화면 스타일시트들이 저마다 `keep-all` 을 다시 적어 두어
+ * 그보다 한 단계 높은 특이도로 덮는다.
+ */
+.root[data-lang]:not([data-lang='ko']) * {
+  word-break: normal;
+  overflow-wrap: break-word;
+}

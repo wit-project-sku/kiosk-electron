@@ -483,6 +483,37 @@
   pointer-events: none;
 }
 
+/* Localized 스마트 관광 label (other languages only) — an opaque white strip over
+   the two-line Korean baked into fg-bottomnav.png, whose ink spans x368–559,
+   y354–433 of the bottom nav. The strip is centred on the button (x462.5) and
+   runs to the nav's foot; the camera button's zone starts at x725, so 460 wide
+   stays clear of it. A longer translation shrinks to fit (useFitText `ink`). */
+.bottomNavSmartLabel {
+  position: absolute;
+  left: 232.5px;
+  top: 344px;
+  width: 460px;
+  height: 102px;
+  box-sizing: border-box;
+  background: #fff;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  font-family: 'Noto Sans KR', 'Noto Sans', sans-serif;
+  font-size: calc(42px * var(--fit, 1));
+  font-weight: 400;
+  line-height: 1.15;
+  color: #000;
+  text-align: center;
+  white-space: nowrap;
+  pointer-events: none;
+}
+
+.bottomNavSmartLine {
+  display: block;
+}
+
 /* ── Bottom banner ──────────────────────────────────── */
 .bottomBanner {
   position: absolute;

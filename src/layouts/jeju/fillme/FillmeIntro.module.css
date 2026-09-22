@@ -254,3 +254,52 @@
   height: 150px;
   font-size: 60px;
 }
+
+/* ── 한국어가 아닌 일곱 언어 ──────────────────────────────────────────────
+ * 시안은 한국어 두 줄 설명에 맞춘 카드다. 다른 언어는 제목이 두 줄, 설명이 서너 줄로
+ * 늘어 카드 셋의 높이가 제각각이 되고, 긴 카드는 시작하기(2576) 밑으로 들어갔다.
+ * 셋을 같은 높이로 세우고(가장 긴 카드에 맞춘다) 안쪽 여백·그림·글자를 한 단계씩
+ * 줄여, 설명 다섯 줄까지 시작하기 위에서 끝나게 한다.
+ */
+[data-lang]:not([data-lang='ko']) .step {
+  display: flex;
+  flex-direction: column;
+}
+
+[data-lang]:not([data-lang='ko']) .stepCard {
+  flex: 1 1 auto;
+  padding: 90px 45px 70px;
+  gap: 45px;
+}
+
+[data-lang]:not([data-lang='ko']) .stepIcon,
+[data-lang]:not([data-lang='ko']) .stepArt {
+  flex: 0 0 auto;
+  width: 230px;
+  height: 230px;
+}
+
+[data-lang]:not([data-lang='ko']) .stepText {
+  gap: 22px;
+}
+
+[data-lang]:not([data-lang='ko']) .stepTitle {
+  font-size: 56px;
+  line-height: 1.15;
+}
+
+[data-lang]:not([data-lang='ko']) .stepCaption {
+  font-size: 36px;
+  line-height: 1.35;
+}
+
+/* 히어로: 긴 배지(ru 'AI-анализ здоровья ногтей')가 줄을 넘기면 제목 쪽으로 감긴다. */
+[data-lang]:not([data-lang='ko']) .badges {
+  flex-wrap: wrap;
+  row-gap: 16px;
+}
+
+[data-lang]:not([data-lang='ko']) .title {
+  font-size: 62px;
+  line-height: 1.3;
+}

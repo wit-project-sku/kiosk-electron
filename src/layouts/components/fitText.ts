@@ -55,8 +55,37 @@ const SLACK = 1;
  *    still ends inside the border box, so a scrollHeight test let copy run 45px
  *    into the card's 65px bottom padding and still call it a fit — the footer
  *    ended up 5px from the card edge where Korean leaves ~60.
+ *
+ * `ink` is `both` plus a check on where the TEXT actually lands. A box that
+ * centres its label (a flex chip or tile) lets a too-wide word spill out of
+ * BOTH sides evenly, and overflow past the start edge never shows up in
+ * `scrollWidth` — so `both` read "Общественный" poking 6px out of either side
+ * of a 412 chip as a fit and never shrank it. `ink` measures every text run
+ * under the box against the box's own edges instead.
  */
-export type FitAxis = 'both' | 'height';
+export type FitAxis = 'both' | 'height' | 'ink';
+
+/** True when any text under `b` is drawn past `b`'s border box. */
+function textEscapes(b: HTMLElement): boolean {
+  const box = b.getBoundingClientRect();
+  const walker = document.createTreeWalker(b, NodeFilter.SHOW_TEXT);
+  const range = document.createRange();
+  for (let n = walker.nextNode(); n; n = walker.nextNode()) {
+    if (!n.textContent?.trim()) continue;
+    range.selectNodeContents(n);
+    const r = range.getBoundingClientRect();
+    if (!r.width) continue;
+    if (
+      r.left < box.left - SLACK ||
+      r.right > box.right + SLACK ||
+      r.top < box.top - SLACK ||
+      r.bottom > box.bottom + SLACK
+    ) {
+      return true;
+    }
+  }
+  return false;
+}
 
 /** How far `b`'s content runs past the top edge of its bottom padding, in px. */
 function paddingOverrun(b: HTMLElement): number {
@@ -73,19 +102,32 @@ function fitGroup(
   boxes: readonly HTMLElement[],
   min: number,
   axis: FitAxis,
+  rescueMin: number | undefined,
 ): void {
   const set = (k: number): void => root.style.setProperty('--fit', String(k));
-  const overflowing = (): boolean =>
-    boxes.some((b) =>
-      axis === 'height'
-        ? b.scrollHeight > b.clientHeight + SLACK || paddingOverrun(b) > SLACK
-        : b.scrollHeight > b.clientHeight + SLACK || b.scrollWidth > b.clientWidth + SLACK,
-    );
+  const over = (b: HTMLElement): boolean =>
+    axis === 'height'
+      ? b.scrollHeight > b.clientHeight + SLACK || paddingOverrun(b) > SLACK
+      : b.scrollHeight > b.clientHeight + SLACK ||
+        b.scrollWidth > b.clientWidth + SLACK ||
+        (axis === 'ink' && textEscapes(b));
+  for (const b of boxes) b.style.removeProperty('--fit');
   let k = 1;
   set(k);
-  while (k > min && overflowing()) {
+  while (k > min && boxes.some(over)) {
     k = Math.max(min, Math.round((k - STEP) * 1000) / 1000);
     set(k);
+  }
+  // The rescue: a box that still overflows at the group's floor — one 22-letter
+  // Russian word in a 268 tile — takes its own smaller factor, so the one label
+  // that cannot fit does not drag every other label in the group down with it.
+  if (rescueMin === undefined || rescueMin >= k) return;
+  for (const b of boxes) {
+    let own = k;
+    while (own > rescueMin && over(b)) {
+      own = Math.max(rescueMin, Math.round((own - STEP) * 1000) / 1000);
+      b.style.setProperty('--fit', String(own));
+    }
   }
 }
 
@@ -98,6 +140,10 @@ function fitGroup(
  * draws it. `contentKey` is whatever text and layout the boxes depend on — the
  * fit re-runs when it changes, and once more when the web fonts finish loading,
  * since a fallback face measures differently from Pretendard.
+ *
+ * `rescueMin`, when given, lets a box that still overflows at `min` shrink on
+ * its own down to `rescueMin` (see fitGroup). Leave it out and every box keeps
+ * the group's one factor, as before.
  */
 export function useFitText(
   rootRef: RefObject<HTMLElement | null>,
@@ -106,18 +152,20 @@ export function useFitText(
   min: number,
   contentKey: string,
   axis: FitAxis = 'both',
+  rescueMin?: number,
 ): void {
   useLayoutEffect(() => {
     const root = rootRef.current;
     if (!root) return undefined;
     if (!enabled || !boxClass) {
       root.style.removeProperty('--fit');
+      for (const b of root.getElementsByClassName(boxClass ?? '')) (b as HTMLElement).style.removeProperty('--fit');
       return undefined;
     }
     const run = (): void => {
       const boxes = [...root.getElementsByClassName(boxClass)] as HTMLElement[];
       if (root.classList.contains(boxClass)) boxes.push(root);
-      fitGroup(root, boxes, min, axis);
+      fitGroup(root, boxes, min, axis, rescueMin);
     };
     run();
     let live = true;
@@ -150,5 +198,5 @@ export function useFitText(
       root.removeEventListener('load', onLoad, true);
       ro?.disconnect();
     };
-  }, [rootRef, boxClass, enabled, min, contentKey, axis]);
+  }, [rootRef, boxClass, enabled, min, contentKey, axis, rescueMin]);
 }

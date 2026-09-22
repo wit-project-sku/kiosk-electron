@@ -117,15 +117,23 @@
   display: flex;
   align-items: center;
   gap: 42.9px;
+  min-width: 0;
 }
+/* A long name gives way with "…" so the category beside it stays inside the
+   card — the full name is on the detail page. A name that fits is unchanged. */
 .cardTitle {
+  flex: 0 1 auto;
+  min-width: 0;
   font-size: 68px;
   font-weight: 600;
   color: #2b2b2b;
   line-height: 1;
   white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 .cardCat {
+  flex: none;
   display: flex;
   align-items: center;
   gap: 21.45px;

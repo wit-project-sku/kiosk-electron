@@ -428,3 +428,58 @@
   gap: 24px;
   cursor: pointer;
 }
+
+/* ── 한국어가 아닌 일곱 언어 ──────────────────────────────────────────────
+ * 안내 카드 셋(570 고정)은 한국어 한두 줄에 맞춰져 있어, 제목 두 줄 · 설명 세 줄인
+ * ru / vi 에서는 설명이 카드 아랫선 밖으로 나왔다. 카드는 필요한 만큼 늘어나고(셋이
+ * 같은 높이), 그림과 간격을 줄여 대부분의 언어는 시안의 높이 안에 머문다. 흰 판
+ * (.tips)도 따라 늘어나며 카메라 판(1850)까지 100 이 남아 있다.
+ */
+[data-lang]:not([data-lang='ko']) .tips {
+  height: auto;
+  min-height: 670px;
+  padding-bottom: 50px;
+  align-items: stretch;
+}
+
+[data-lang]:not([data-lang='ko']) .tip {
+  height: auto;
+  min-height: 570px;
+  padding: 40px 50px 36px;
+  gap: 36px;
+}
+
+[data-lang]:not([data-lang='ko']) .tipIcon {
+  width: 180px;
+  height: 180px;
+}
+
+[data-lang]:not([data-lang='ko']) .tipText {
+  gap: 16px;
+}
+
+[data-lang]:not([data-lang='ko']) .tipTitle {
+  font-size: 42px;
+  line-height: 1.15;
+}
+
+[data-lang]:not([data-lang='ko']) .tipCaption {
+  font-size: 34px;
+  line-height: 1.3;
+}
+
+/* 손 탭 두 개(580): 긴 이름은 줄을 바꿔 판 안에 머문다. */
+[data-lang]:not([data-lang='ko']) .handTab {
+  padding: 0 30px;
+  line-height: 1.15;
+  text-align: center;
+}
+
+/* 가이드 위 안내 알약: 한 줄로 두면 긴 번역이 카메라 판(1718) 밖으로 나간다. */
+[data-lang]:not([data-lang='ko']) .guideLabel {
+  width: max-content;
+  max-width: 1500px;
+  white-space: normal;
+  text-align: center;
+  line-height: 1.2;
+}

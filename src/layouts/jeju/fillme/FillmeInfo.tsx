@@ -8,7 +8,7 @@
 import type { JSX } from 'react';
 import type { Sex } from './api';
 import { FIELDS, type FieldKey } from './copy';
-import { useLang } from '@renderer/lib/i18n';
+import { useLang, type Lang } from '@renderer/lib/i18n';
 import { tx } from './text';
 import { Icon } from './Icon';
 import ui from './fillmeUi.module.css';
@@ -40,6 +40,25 @@ export function fieldValid(values: InfoValues, key: FieldKey): boolean {
   const n = Number(raw);
   return raw !== '' && n >= f.min && n <= f.max;
 }
+
+/**
+ * 범위 안내 — 시트에 줄이 없어 authored 로 둔다. 한국어 문장은 예전 그대로다.
+ * 다른 언어 화면에 한국어 한 줄이 섞이지 않게 일곱 언어를 채웠다.
+ */
+const RANGE_HINT: Partial<Record<Lang, (range: string) => string>> = {
+  ko: (r) => `${r} 사이로 입력해 주세요`,
+  en: (r) => `Please enter a value between ${r}`,
+  ja: (r) => `${r}の範囲で入力してください`,
+  zh: (r) => `请输入${r}之间的数值`,
+  vi: (r) => `Vui lòng nhập trong khoảng ${r}`,
+  th: (r) => `กรุณากรอกค่าระหว่าง ${r}`,
+  ru: (r) => `Допустимый диапазон: ${r}`,
+  id: (r) => `Masukkan nilai antara ${r}`,
+};
+
+/** 입력판의 예시 — 한국어는 '예) 35' 그대로, 다른 언어는 한국어 '예)' 를 떼고 숫자만. */
+const placeholderFor = (placeholder: string, lang: Lang): string =>
+  lang === 'ko' ? placeholder : placeholder.replace(/^\s*예\)\s*/, '');
 
 export function infoValid(values: InfoValues): boolean {
   return (
@@ -86,13 +105,13 @@ function NumberField({
         aria-label={`${f.label} 입력`}
       >
         <span className={raw ? styles.value : styles.placeholder}>
-          {raw || f.placeholder}
+          {raw || placeholderFor(f.placeholder, lang)}
           {focused && <i className={styles.caret} />}
         </span>
         <span className={styles.unit}>{unit}</span>
       </button>
-      {/* 범위 안내는 시트에 줄이 없다 — 숫자와 단위만 바꿔 끼우고 문장은 한국어로 남는다. */}
-      {invalid && <p className={styles.error}>{`${f.min}~${f.max}${unit} 사이로 입력해 주세요`}</p>}
+      {/* 범위 안내는 시트에 줄이 없다 — RANGE_HINT 참고. */}
+      {invalid && <p className={styles.error}>{(RANGE_HINT[lang] ?? RANGE_HINT.ko!)(`${f.min}~${f.max}${unit}`)}</p>}
     </div>
   );
 }
