@@ -704,7 +704,7 @@
  *   공지 panel           297  h429      1015.759
  *   검색장               778  h182      1496.759
  *   quick row           1012 h278      1730.759
- *   tile card           1342 h1494     2060.759 h1286  (plate 300 -> 230)
+ *   tile card           1342 h1494     2060.759 h1368  (plate 300 -> 230)
  *   bottom 3종           2871…3232     3469.759…3830.6
  *
  * The shift is 718.759 — the mode bar plus the promo — and NOT the 593.759 it
@@ -731,9 +731,10 @@
   transform: translateY(718.759px);
 }
 
-/* 35 below the shortened card, not 718.759 below its resting place. */
+/* 35 below the card's foot (3428.76 + 35 = 3463.76), not 718.759 below its
+   resting place — 2871 + 592.759 = 3463.759. */
 .homeLow .bottomRow {
-  transform: translateY(598.759px);
+  transform: translateY(592.759px);
 }
 
 /* ── ♿ tiles ──────────────────────────────────────────────────────────────
@@ -742,39 +743,41 @@
  *
  *                  standing            ♿
  *   plate          300 x 300 r85.8     230 x 230 r65.8   (제주: 230, r52)
- *   caption band   77 / 130 (long)     88, label only
- *   tile           412                 348
- *   row gap        80                  72                (제주: 71)
- *   grid           1396                1188
- *   card           1494                1286
+ *   caption band   77 / 130 (long)     77 / 130 (long)   - unchanged
+ *   tile           412                 390
+ *   row gap        80                  50
+ *   grid           1396                1270
+ *   card           1494                1368
  *
- * Dropping `.tileSub` is the part that matters: with the 25px sub-line under a
- * label that already wraps to two lines in several languages, the text ran out
- * of the tile and into the row beneath. 제주 hides the same line for the same
- * reason. The label keeps the full 300px column to wrap in — only the PLATE
- * narrows to 230 — so it has more room than it did at the larger size.
+ * ONLY the plate shrinks. The caption keeps BOTH lines at their standing sizes
+ * and their standing band — 77 in Korean, 130 where the label wraps — because a
+ * ♿ visitor needs the same information a standing one gets, and the sub-line is
+ * half of what a tile says. (제주's ♿ tiles do hide their second line; that is
+ * not followed here.)
  *
- * The band is 88 and NOT the 43 a single line needs, because the label itself
- * still wraps: measured at 38px/1.15 over the real 12 labels, `'INSA' makan
- * apa?` and `Saya butuh bantuan` take two lines and hung 44px below their tile
- * at 43. 88 is two of those lines. Korean is one line and simply leaves the
- * lower half of its band empty, which is what 제주's ♿ tiles do too — a
- * per-language row height cannot work here, `grid-auto-rows` is one value for
- * the whole grid.
+ * The room comes out of the row gap (80 -> 50) instead, which is enough: the
+ * tile is 390 at its tallest (230 plate + 30 + a 130 two-line caption), so the
+ * three rows plus two gaps are 1270 and the card 1368. That puts the card's
+ * foot at 3428.76 and leaves the bottom 3종 — which ride 592.759 rather than the
+ * page's own shift — ending at 3824.82, inside the artboard with 15px to spare.
+ *
+ * `grid-auto-rows` is one value for the whole grid, so it is the 390 the widest
+ * language needs; a Korean tile fills 337 of it and leaves the rest under its
+ * caption, which reads as a slightly looser row and nothing worse.
  *
  * The radius scales with the plate (85.799 x 230/300): the art is a rounded
  * #efefef plate baked onto a square sheet, so the clip has to keep its
  * proportion or the opaque corners show. 제주's 52 is for its own art. */
-.homeLow .gridCard { height: 1286px; }
+.homeLow .gridCard { height: 1368px; }
 
 .homeLow .grid {
-  height: 1188px;
-  grid-auto-rows: 348px;
-  row-gap: 72px;
+  height: 1270px;
+  grid-auto-rows: 390px;
+  row-gap: 50px;
 }
 
 .homeLow .tile {
-  height: 348px;
+  height: 390px;
   gap: 30px;
 }
 
@@ -787,15 +790,9 @@
 .homeLow .tileArt { border-radius: 65.78px; }
 .homeLow .tileFallback { border-radius: 65.78px; }
 
-/* Both, because a non-Korean tile carries `tileCaptionLong` as well and its
-   own 130 is sized for a sub-line this mode does not draw. */
-.homeLow .tileCaption,
-.homeLow .tileCaptionLong {
-  height: 88px;
-}
-
-.homeLow .tileLabel { font-weight: 400; }
-.homeLow .tileSub { display: none; }
+/* No caption overrides at all: `.tileCaption` (77) and `.tileCaptionLong` (130)
+   apply exactly as they do standing, both lines included, at their own weights.
+   Kept as a comment so the next reader does not re-add the 제주 hide. */
 
 .homeLow .modeBar {
   position: absolute;
