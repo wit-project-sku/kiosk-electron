@@ -4,7 +4,20 @@ import type { LocalCacheService } from '@main/services/LocalCacheService';
 import type { KioskService } from '@main/services/KioskService';
 
 const log = createLogger('button-layout-service');
-const CACHE_KEY = 'buttons';
+/**
+ * Cache key for this kiosk's button layout.
+ *
+ * ★ Kiosk-scoped since 2026-09-29. It used to be the bare string `'buttons'`,
+ * one row for the whole machine, so the LAST kiosk id to sync successfully owned
+ * it. Re-provisioning (or the operator DEV location switcher, see
+ * OPERATOR_DEV_MODE) therefore left the previous venue's layout in place until
+ * the next successful refresh — and if the API was unreachable, indefinitely.
+ * Observed on a W003 남인사마당 machine whose cache held a 제주 kiosk's 21 rows
+ * ('제주' 뭐하지, 제주도 이벤트, …), which drives the home grid's ordering and the
+ * 지도 ⇄ 기부 swap. Keying by kiosk makes a stale entry unreachable rather than
+ * wrong; the old bare-'buttons' row is simply never read again.
+ */
+const cacheKeyFor = (kioskNum: number): string => `buttons:${kioskNum}`;
 const DEFAULT_API_BASE = 'https://api-v3.witteria.com';
 
 /**
@@ -38,7 +51,7 @@ export class ButtonLayoutService {
 
   /** Cached buttons (from the last successful refresh). Empty until first sync. */
   list(): KioskButton[] {
-    const cached = this.cache.get(CACHE_KEY);
+    const cached = this.cache.get(cacheKeyFor(this.kiosk.kioskNum()));
     const buttons = cached?.data?.['buttons'];
     return Array.isArray(buttons) ? (buttons as KioskButton[]) : [];
   }
@@ -71,7 +84,7 @@ export class ButtonLayoutService {
           })),
       );
       if (buttons.length > 0) {
-        this.cache.upsert(CACHE_KEY, { buttons }, 'buttons_api');
+        this.cache.upsert(cacheKeyFor(kioskNum), { buttons }, 'buttons_api');
         log.info('Buttons cached from API', { count: buttons.length });
       } else {
         log.warn('Buttons API returned no rows', { url });
