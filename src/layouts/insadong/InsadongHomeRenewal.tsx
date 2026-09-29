@@ -254,6 +254,12 @@ interface InsadongHomeRenewalProps {
   debug?: boolean;
 }
 
+/** 검색장 — `.searchRow` in the CSS; the keyboard tray opens flush under it. */
+const SEARCH_ROW_TOP = 778;
+const SEARCH_ROW_HEIGHT = 182;
+/** What ♿ adds to the upper block (the mode bar + the promo) — see `.homeLow`. */
+const LOW_REACH_SHIFT = 718.759;
+
 export function InsadongHomeRenewal({ controller }: InsadongHomeRenewalProps): JSX.Element {
   const { navigate, startPhoto, kioskId } = controller;
   const weather = useWeatherStore((s) => s.weather);
@@ -566,7 +572,17 @@ const stripParenthetical = (label: string): string =>
         onBack={() => navigate('home', 'Back')}
       />
 
-      <FloatingKeyboard open={focused} onKey={applyKey} onClose={() => setFocused(false)} lang={lang} />
+      {/* `top` must track the search bar or the tray opens ON it: the shared
+          default is 900, which is where the OLD home's bar ended, but the
+          renewal's runs 778..960 — so the keyboard covered its bottom 59px.
+          ♿ carries the bar down with the rest of the upper block. */}
+      <FloatingKeyboard
+        open={focused}
+        onKey={applyKey}
+        onClose={() => setFocused(false)}
+        lang={lang}
+        top={SEARCH_ROW_TOP + SEARCH_ROW_HEIGHT + (lowReach ? LOW_REACH_SHIFT : 0)}
+      />
     </>
   );
 }

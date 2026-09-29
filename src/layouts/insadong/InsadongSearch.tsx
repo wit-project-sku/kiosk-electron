@@ -46,7 +46,14 @@ const T = {
 };
 
 /** 7574:71201 — the header band starts at y140, so the field opens at y840. */
-const SEARCH_SHIFT = { '--insa-header-shift': '140px' } as CSSProperties;
+const STANDING_SHIFT = 140;
+const SEARCH_SHIFT = { '--insa-header-shift': `${STANDING_SHIFT}px` } as CSSProperties;
+/** `.results` top before the shift, and the bar's own height — the keyboard
+ *  tray sits on their sum so it never covers the field. */
+const BODY_TOP = 700;
+const SEARCH_BAR_HEIGHT = 182;
+/** barrierFree.MODE_BAR_HEIGHT as a number; ♿ uses it as the header shift. */
+const MODE_BAR_PX = 145.759;
 
 interface InsadongSearchProps {
   controller: KioskController;
@@ -214,7 +221,17 @@ export function InsadongSearch({ controller }: InsadongSearchProps): JSX.Element
         </>
       )}
 
-      <FloatingKeyboard open={focused} onKey={applyKey} onClose={() => setFocused(false)} lang={lang} />
+      {/* Same reason as the home: the tray's 900 default is the OLD home's
+          position. Here `.results` starts at 700 + the header shift and the
+          search bar is its first child, 182 tall — so the bar ends at 1022
+          standing (shift 140) and 1027.759 in ♿ (shift 145.759). */}
+      <FloatingKeyboard
+        open={focused}
+        onKey={applyKey}
+        onClose={() => setFocused(false)}
+        lang={lang}
+        top={BODY_TOP + (lowReach ? MODE_BAR_PX : STANDING_SHIFT) + SEARCH_BAR_HEIGHT}
+      />
     </div>
   );
 }
