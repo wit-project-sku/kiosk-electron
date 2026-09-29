@@ -8,36 +8,29 @@
   pointer-events: none;
 }
 
-/* Figma 검색결과 5287:63967: top 699, px170, gap 100 (search field → list). */
+/* 검색결과 — Figma 7574:71201. The header band starts at y140 (not y0), so the
+   field row opens at y840. Gap 100, then the card list. The field stays put;
+   only the list scrolls. No bottom banner — the list runs to the foot.
+   Scroll track Rectangle 4227 is 34.32 wide at x2128: the list box is full
+   width past the 1820 cards so the thumb sits on the artboard edge. */
 .results {
   position: absolute;
-  top: calc(699px + var(--header-push, 0px));
+  top: calc(700px + var(--header-push, 0px) + var(--insa-header-shift, 0px));
   left: 0;
   right: 0;
-  bottom: 573px;
+  bottom: 0;
   box-sizing: border-box;
   display: flex;
   flex-direction: column;
-  align-items: center;
+  align-items: flex-start;
   gap: 100px;
-  overflow-y: auto;
-  overflow-x: hidden;
-  padding: 0 170px 80px;
-}
-
-.results::-webkit-scrollbar {
-  width: 34px;
-}
-.results::-webkit-scrollbar-thumb {
-  background: var(--kiosk-primary);
-  border-radius: 21.45px;
-}
-.results::-webkit-scrollbar-track {
-  background: transparent;
+  overflow: hidden;
+  padding: 0 0 0 170px;
 }
 
 /* ── Search bar ── */
-/* 검색장 5287:63968: w1820, the field itself is 1350 centred. */
+/* 검색장 4167:89412: w1820, the field itself is 1350 centred (the row's own home
+   and language buttons are hidden in this frame). */
 .searchRow {
   flex: none;
   width: 1820px;
@@ -45,7 +38,9 @@
   justify-content: center;
 }
 
-/* 검색필드 5287:63972: w1350 h182, border 4.29px var(--kiosk-primary), rounded 120, px75. */
+/* 검색필드 4167:89416: w1350 h182, border 4.29px var(--kiosk-primary), rounded 120,
+   padding 55/75 — the magnifier sits the same 75px in from the right as the
+   placeholder does from the left. */
 .searchInput {
   flex: none;
   width: 1350px;
@@ -54,9 +49,9 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 55px 62px 55px 75px;
+  padding: 55px 75px;
   background: #ffffff;
-  border: 5px solid var(--kiosk-primary);
+  border: 4.29px solid var(--kiosk-primary);
   border-radius: 120px;
   cursor: pointer;
   font-family: var(--kiosk-font, sans-serif);
@@ -74,7 +69,7 @@
 .inputText,
 .inputPlaceholder {
   min-width: 0;
-  font-size: 60px;
+  font-size: 60.06px;
   font-weight: 600;
   line-height: 1;
   white-space: nowrap;
@@ -99,38 +94,74 @@
   }
 }
 
+/* 7574:71211 — 71×68. */
 .searchIcon {
   flex: none;
-  width: 80px;
-  height: 77px;
+  width: 71px;
+  height: 68px;
   flex-shrink: 0;
   color: var(--kiosk-primary);
 }
 
-/* List 5287:63979: w1820, gap 60 between cards. */
+/* 7574:71216 — h2700, gap 60 (card pitch 450). Scrolls on its own. */
 .list {
-  flex: none;
+  flex: 1;
+  min-height: 0;
   width: 100%;
+  box-sizing: border-box;
   display: flex;
   flex-direction: column;
+  align-items: flex-start;
   gap: 60px;
+  overflow-y: auto;
+  overflow-x: hidden;
+  /* 136 + the 34 track = 170, so each card stays 1820 at x170. */
+  padding: 0 136px 80px 0;
 }
 
-/* Card R>리스트-사진4개 (1233:2477): w1820 h530, px45 py65, border 5px #e8e8e8,
-   radius 42.9, drop-shadow. Inner: info(1120) ↔ photos(570), gap 40. */
+.list::-webkit-scrollbar {
+  width: 34px;
+}
+.list::-webkit-scrollbar-thumb {
+  background: var(--kiosk-primary);
+  border-radius: 21.45px;
+}
+.list::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+/* Card R>리스트-사진4개 (7516:73644): w1820 h390, px45 py40, radius 42.9, plain
+   white — no stroke, no shadow. Inner row is h299: info(1120) ↔ photos(606).
+   The renewal drops the 4th line (hashtags) and halves the thumbnail strip. */
 .card {
-  width: 100%;
-  height: 530px;
+  width: 1820px;
+  height: 390px;
+  /* ★ REQUIRED, not cosmetic. `.list` is a flex COLUMN, so a card is a flex
+     item and `flex-shrink` defaults to 1 — `height: 390px` is then only a
+     preferred height. A search for a common syllable returns dozens of rows
+     whose natural stack (390 + 60 gap each) is many times the 2920px the list
+     box has, so every card was squashed to a ~58px strip. `overflow-y: auto`
+     does NOT prevent this; the scroll container still sizes its items first.
+     Worse, the squash was not obvious as a squash: the card is
+     `align-items: center` with `overflow: hidden`, so the three info rows
+     (name / address / description) were clipped symmetrically and only the
+     MIDDLE one — the address — stayed on screen. The list read as an
+     address-only index with no shop names at all. */
+  flex: none;
   box-sizing: border-box;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 40px;
-  padding: 65px 45px;
+  /* 4, not 43. 7516:73645 is a justify-between row of w1120 + w606 inside the
+     1730 the card's 45px padding leaves, so the slack between them is
+     1730 − 1120 − 606 = 4. At 43 the text column resolved to 1081 and every
+     name/address/desc in the list ellipsised ~39px earlier than the frame —
+     invisible on the 을지정육 sample, not on a real 인사동 shop name. */
+  gap: 4px;
+  padding: 40px 45px;
   background: #ffffff;
-  border: 5px solid #e8e8e8;
+  border: none;
   border-radius: 42.9px;
-  box-shadow: 0 21.45px 21.45px rgba(143, 147, 157, 0.1);
   text-align: left;
   cursor: pointer;
   overflow: hidden;
@@ -206,36 +237,24 @@
   margin: 0;
   font-weight: 500;
   font-size: 48px;
-  /* Figma token is 100%; use 1.2 only so wrapped Korean lines don't collide. */
-  line-height: 1.2;
+  line-height: 1;
   color: #2b2b2b;
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
-}
-
-.tags {
-  margin: 0;
-  font-weight: 400;
-  font-size: 40px;
-  line-height: 1; /* Figma: 100% */
-  color: #999999;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 
 .photos {
-  width: 570px;
+  width: 606px;
   flex: none;
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
+  display: flex;
   gap: 30px;
 }
 
 .thumb {
-  height: 150px;
+  width: 288px;
+  height: 160px;
+  flex: none;
   border-radius: 21.45px;
   overflow: hidden;
 }
@@ -246,30 +265,42 @@
   object-fit: cover;
 }
 
+/* Centred on the 1820 card column, not on the box: `.results` reserves its
+   scrollbar gutter on the right, so a plain `margin: auto` would sit 23px off. */
 .empty {
-  margin: auto;
+  width: 1820px;
+  margin: auto 0;
   font-size: 60px;
   color: #999999;
   text-align: center;
   font-family: var(--kiosk-font, sans-serif);
 }
 
-.banner {
+/* ── Right-hand scroll buttons (7574:70001 / 70002 — x2027, y2103 / y2223) ──
+   One asset rotated into an up and a down arrow, the same pair 제주's list pages
+   draw at these exact tops (JejuAbout.module.css). */
+.scrollBtn {
   position: absolute;
-  left: 0;
-  bottom: 0;
-  width: 2160px;
-  height: 573px;
+  left: 2027px;
+  width: 85px;
+  height: 85px;
   padding: 0;
   border: none;
   background: none;
   cursor: pointer;
-  overflow: hidden;
+  z-index: 20;
+  -webkit-tap-highlight-color: transparent;
 }
 
-.banner img {
+.scrollUp   { top: 2103px; }
+.scrollDown { top: 2223px; }
+
+.scrollBtnImg {
   width: 100%;
   height: 100%;
-  object-fit: cover;
-  display: block;
+  object-fit: contain;
+  pointer-events: none;
 }
+
+.scrollUp .scrollBtnImg   { transform: rotate(90deg); }
+.scrollDown .scrollBtnImg { transform: rotate(-90deg); }

@@ -8,7 +8,7 @@
  * 틀린그림찾기 board. Everything below is therefore built from the tokens that
  * board DOES establish, so the games read as the same product —
  *   type      65 / 58px Noto Sans Bold, #333 body, #616161 secondary
- *   primary   #ff7f0f (var(--kiosk-primary), the [제주] main 01 token)
+ *   primary   var(--kiosk-primary, #ff7f0f) (var(--kiosk-primary, #ff7f0f), the [제주] main 01 token)
  *   buttons   150px tall, 42.9px radius
  *   overlay   rgba(35,35,35,.6) scrim, 60px card radius
  * Replace with the real thing if frames for these states ever land.
@@ -53,8 +53,8 @@
 /* Flat fills and hairline borders only — no drop shadows anywhere in the games.
    Elevation is carried by contrast against the page, not by blur. */
 .btnPrimary {
-  border: 4px solid var(--kiosk-primary, #ff7f0f);
-  background: var(--kiosk-primary, #ff7f0f);
+  border: 4px solid var(--kiosk-primary, var(--kiosk-primary, #ff7f0f));
+  background: var(--kiosk-primary, var(--kiosk-primary, #ff7f0f));
   color: #fff;
 }
 
@@ -162,7 +162,7 @@
 }
 
 .hudValueAccent {
-  color: var(--kiosk-primary, #ff7f0f);
+  color: var(--kiosk-primary, var(--kiosk-primary, #ff7f0f));
 }
 
 /* The score jumps a beat on every change — keyed re-mount in GameHud restarts
@@ -221,7 +221,7 @@
   font-weight: 800;
   line-height: 1;
   letter-spacing: -0.04em;
-  color: var(--kiosk-primary, #ff7f0f);
+  color: var(--kiosk-primary, var(--kiosk-primary, #ff7f0f));
   font-variant-numeric: tabular-nums;
   animation: countdownPop 900ms cubic-bezier(0.22, 1, 0.36, 1);
 }
@@ -230,7 +230,7 @@
   font-size: 320px;
   font-weight: 800;
   line-height: 1;
-  color: var(--kiosk-primary, #ff7f0f);
+  color: var(--kiosk-primary, var(--kiosk-primary, #ff7f0f));
   animation: countdownPop 600ms cubic-bezier(0.22, 1, 0.36, 1);
 }
 
@@ -311,7 +311,7 @@
 .resultTag {
   padding: 18px 36px;
   border-radius: 20px;
-  background: var(--kiosk-primary, #ff7f0f);
+  background: var(--kiosk-primary, var(--kiosk-primary, #ff7f0f));
   color: #fff;
   font-size: 44px;
   font-weight: 700;
@@ -333,7 +333,7 @@
   font-weight: 800;
   line-height: 0.95;
   letter-spacing: -0.045em;
-  color: var(--kiosk-primary, #ff7f0f);
+  color: var(--kiosk-primary, var(--kiosk-primary, #ff7f0f));
   font-variant-numeric: tabular-nums;
 }
 

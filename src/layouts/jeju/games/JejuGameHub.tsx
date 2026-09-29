@@ -22,6 +22,7 @@ import type { ComponentType } from 'react';
 import { pick, useLang } from '@renderer/lib/i18n';
 import type { JejuGameId } from './gameTypes';
 import { isMotionGame } from './gameTypes';
+import { usePhotoChrome } from '../../photo/photoChrome';
 import { TEXT } from './gameText';
 import { MOTION } from './motion/motionText';
 import { sfx } from './gameSound';
@@ -54,6 +55,13 @@ export function JejuGameHub({
   onSeePhoto,
 }: Props): JSX.Element {
   const lang = useLang();
+  /* Camera games are offered only where the customer display can actually run
+     one — see PhotoChrome.motionGames. 인사동 takes this hub with 틀린그림찾기
+     alone: its display has no pose tracking wired, and `jeju-run` is Jeju-
+     branded end to end. Filtering the MENU (rather than the games themselves)
+     keeps every game a leaf, which is the invariant JejuWaitingGames documents. */
+  const { motionGames } = usePhotoChrome();
+  const games = motionGames ? GAMES : GAMES.filter((g) => !isMotionGame(g.id));
   const total = useJejuPointsTotal();
   const byGame = useJejuPointsStore((s) => s.byGame);
 
@@ -72,7 +80,7 @@ export function JejuGameHub({
       chrome={
         <>
           <ul className={styles.list}>
-            {GAMES.map(({ id, Icon }, index) => {
+            {games.map(({ id, Icon }, index) => {
               const camera = isMotionGame(id);
               const best = byGame[id];
               return (

@@ -85,7 +85,7 @@
   height: 105px;
   flex: 0 0 auto;
   border-radius: 50%;
-  background: var(--kiosk-primary, #ff7f0f);
+  background: var(--kiosk-primary, var(--kiosk-primary, #ff7f0f));
   display: flex;
   align-items: center;
   justify-content: center;
@@ -244,8 +244,8 @@
 }
 
 .catActive {
-  border-color: var(--kiosk-primary, #ff7f0f);
-  background: var(--kiosk-primary, #ff7f0f);
+  border-color: var(--kiosk-primary, var(--kiosk-primary, #ff7f0f));
+  background: var(--kiosk-primary, var(--kiosk-primary, #ff7f0f));
   font-weight: 700;
   color: #fff;
 }
@@ -320,7 +320,7 @@
   font-size: 50px;
   font-weight: 500;
   line-height: 1.1;
-  color: var(--kiosk-primary, #ff7f0f);
+  color: var(--kiosk-primary, var(--kiosk-primary, #ff7f0f));
   text-align: center;
   cursor: pointer;
   -webkit-tap-highlight-color: transparent;
@@ -329,10 +329,10 @@
 }
 
 .subcatActive {
-  border: 5px solid var(--kiosk-primary, #ff7f0f);
+  border: 5px solid var(--kiosk-primary, var(--kiosk-primary, #ff7f0f));
   background: #ffeac7;
   font-weight: 700;
-  color: var(--kiosk-primary, #ff7f0f);
+  color: var(--kiosk-primary, var(--kiosk-primary, #ff7f0f));
 }
 
 /*
@@ -434,7 +434,7 @@
   height: 20px;
   flex: 0 0 auto;
   border-radius: 50%;
-  background: var(--kiosk-primary, #ff7f0f);
+  background: var(--kiosk-primary, var(--kiosk-primary, #ff7f0f));
 }
 
 .guideTitleText {
@@ -443,7 +443,7 @@
   font-size: 68px;
   font-weight: 700;
   line-height: 1;
-  color: var(--kiosk-primary, #ff7f0f);
+  color: var(--kiosk-primary, var(--kiosk-primary, #ff7f0f));
   white-space: normal;
   word-break: keep-all;
   overflow-wrap: anywhere;
@@ -670,9 +670,9 @@
 }
 
 .outfitActive {
-  border-color: var(--kiosk-primary, #ff7f0f);
+  border-color: var(--kiosk-primary, var(--kiosk-primary, #ff7f0f));
   background: #ffeac7;
-  border: 5px solid var(--kiosk-primary, #ff7f0f);
+  border: 5px solid var(--kiosk-primary, var(--kiosk-primary, #ff7f0f));
   box-shadow: none;
 }
 
@@ -811,7 +811,7 @@
 }
 
 .themeActive {
-  border: 5px solid var(--kiosk-primary, #ff7f0f);
+  border: 5px solid var(--kiosk-primary, var(--kiosk-primary, #ff7f0f));
   background: #fff;
 }
 
@@ -1126,7 +1126,7 @@
 }
 
 .infoBody::-webkit-scrollbar-thumb {
-  background: var(--kiosk-primary, #ff7f0f);
+  background: var(--kiosk-primary, var(--kiosk-primary, #ff7f0f));
   border-radius: 21.45px;
 }
 
@@ -1170,7 +1170,7 @@
  *   scrim         shared rgba(0,0,0,.45)  제주 ~.30
  *
  * The scrim is derived, not eyeballed: three known colours under it — the
- * #ff7f0f home disc and two background samples — all come back multiplied by
+ * var(--kiosk-primary, #ff7f0f) home disc and two background samples — all come back multiplied by
  * 0.694…0.702, i.e. 30% black, where .45 would give 0.55.
  */
 .privacyOverlayJeju {
@@ -1240,7 +1240,7 @@
   /* Shared with home and JejuPageFrame — see lowReach.ts. */
   height: var(--jeju-mode-bar);
   z-index: 3;
-  background: var(--kiosk-primary, #ff7f0f);
+  background: var(--kiosk-primary, var(--kiosk-primary, #ff7f0f));
   display: flex;
   align-items: center;
   justify-content: center;

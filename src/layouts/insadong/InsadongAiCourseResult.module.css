@@ -1,0 +1,523 @@
+/* AI 맞춤 추천 코스 — Figma 7519:75267 (7519:76503 is a duplicate of it).
+   Inside KioskArtboard 1 CSS px === 1 Figma px (2160×3840). */
+
+.bg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  pointer-events: none;
+}
+
+/* 7519:76501 — the course's own hashtags, above the summary bar. */
+.tags {
+  position: absolute;
+  left: 838px;
+  top: calc(667px + var(--header-push, 0px) + var(--insa-header-shift, 0px));
+  width: 485px;
+  height: 61px;
+  margin: 0;
+  font-family: var(--kiosk-font, sans-serif);
+  font-size: 45px;
+  font-weight: 500;
+  line-height: 1;
+  color: #999999;
+  white-space: nowrap;
+}
+
+/* 7519:76256 — the save-this-course QR. */
+.qr {
+  position: absolute;
+  left: 1814px;
+  top: calc(554px + var(--header-push, 0px) + var(--insa-header-shift, 0px));
+  width: 174px;
+  height: 174px;
+  background: #ffffff;
+  padding: 6px;
+  box-sizing: border-box;
+  border-radius: 12px;
+}
+
+/* ── Summary bar (7519:76249) — 1820×150, r75, primary ──────────────────── */
+.summary {
+  position: absolute;
+  left: 170px;
+  top: calc(769px + var(--header-push, 0px) + var(--insa-header-shift, 0px));
+  width: 1820px;
+  height: 150px;
+  display: flex;
+  align-items: center;
+  border-radius: 75px;
+  background: var(--kiosk-primary);
+  font-family: var(--kiosk-font, sans-serif);
+  color: #ffffff;
+}
+
+.summaryCell {
+  flex: 1 1 0;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  text-align: center;
+}
+
+/* Pretendard Bold 25 over SemiBold 45, both line-height 1.3. */
+.summaryLabel {
+  font-size: 25px;
+  font-weight: 700;
+  line-height: 1.3;
+}
+
+.summaryValue {
+  font-size: 45px;
+  font-weight: 600;
+  line-height: 1.3;
+  white-space: nowrap;
+}
+
+/* 7519:76253/54/55 — 110px hairlines between the four cells. */
+.summaryRule {
+  flex: none;
+  width: 3px;
+  height: 110px;
+  background: #ffffff;
+  opacity: 0.6;
+}
+
+/* ── Picked categories (7519:76261) — 268×120 pills, gap 32 ─────────────── */
+.cats {
+  position: absolute;
+  left: 170px;
+  top: calc(959px + var(--header-push, 0px) + var(--insa-header-shift, 0px));
+  width: 1820px;
+  height: 130px;
+  display: flex;
+  align-items: center;
+  gap: 32px;
+  overflow-x: auto;
+  overflow-y: hidden;
+  scrollbar-width: none;
+}
+
+.cats::-webkit-scrollbar {
+  display: none;
+}
+
+.cat {
+  flex: none;
+  width: 268px;
+  height: 120px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 45px;
+  background: #ffffff;
+  font-family: var(--kiosk-font, sans-serif);
+  font-size: 45px;
+  font-weight: 700;
+  line-height: 1;
+  color: var(--kiosk-primary);
+  text-align: center;
+  word-break: keep-all;
+}
+
+/* ── DAY tabs (7519:76276) — h120, top corners 40 ───────────────────────── */
+.days {
+  position: absolute;
+  left: 170px;
+  top: calc(1139px + var(--header-push, 0px) + var(--insa-header-shift, 0px));
+  width: 1820px;
+  height: 120px;
+  display: flex;
+  align-items: flex-end;
+  border-radius: 40px 40px 0 0;
+}
+
+.day {
+  flex: 1 1 0;
+  min-width: 0;
+  height: 119px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  background: none;
+  cursor: pointer;
+  font-family: var(--kiosk-font, sans-serif);
+  font-size: 50px;
+  font-weight: 700;
+  line-height: 1;
+  color: #999999;
+  white-space: nowrap;
+  padding: 0;
+}
+
+/* The active tab is the panel's own white, so the two read as one sheet. */
+.dayOn {
+  background: #ffffff;
+  border-radius: 40px 40px 0 0;
+  color: var(--kiosk-primary);
+}
+
+/* ── Itinerary panel (7519:76283) — 1820×2581 under the tabs ────────────── */
+.panel {
+  position: absolute;
+  left: 170px;
+  top: calc(1259px + var(--header-push, 0px) + var(--insa-header-shift, 0px));
+  width: 1820px;
+  /* Runs to the foot of the artboard. It WAS `height: 2581px`, which is
+     1259 + 2581 = 3840 only while the page sits at its resting top — under ♿
+     the 145.759 mode-bar shift carried the panel's bottom 146px off the
+     screen, so the last of the course list could never be scrolled into view.
+     `bottom` re-derives it from wherever the top actually lands. */
+  bottom: 0;
+  box-sizing: border-box;
+  border-radius: 0 0 40px 40px;
+  background: #ffffff;
+  overflow-y: auto;
+  overflow-x: hidden;
+  scrollbar-width: thin;
+  scrollbar-color: var(--kiosk-primary) transparent;
+}
+
+.panel::-webkit-scrollbar {
+  width: 28px;
+}
+
+.panel::-webkit-scrollbar-thumb {
+  background: var(--kiosk-primary);
+  border-radius: 14px;
+}
+
+.panel::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+/* Everything inside is positioned against this, so the rail and the cards
+   scroll together. 94 = the 1353 origin chip minus the panel's own 1259. */
+.inner {
+  position: relative;
+  width: 1820px;
+  padding: 94px 0 120px;
+  box-sizing: border-box;
+}
+
+/* 7519:76484 — the start point, a 1714 white plate with the card shadow. */
+.origin {
+  position: relative;
+  left: 54px;
+  width: 1714px;
+  height: 172px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 40px;
+  background: #ffffff;
+  /* box-shadow, NOT filter: drop-shadow — a filter would composite this
+     card into its own layer under the artboard scale and soften every
+     glyph on it. Same look, no rasterisation. */
+  box-shadow: 5px 10px 10px rgba(0, 0, 0, 0.1);
+  font-family: var(--kiosk-font, sans-serif);
+  font-size: 50px;
+  font-weight: 700;
+  line-height: 1;
+  color: #000000;
+  white-space: nowrap;
+}
+
+/* ── Timeline ────────────────────────────────────────────────────────────
+   7519:76465 draws one rail at x264 (panel 94) behind the numbered markers;
+   the cards sit at x347 (panel 177). Rows are 416 tall on a 466 pitch, so the
+   50px between them is where the travel pill lands. */
+.timeline {
+  position: relative;
+  margin-top: 152px;
+}
+
+.rail {
+  position: absolute;
+  left: 94px;
+  top: 52px;
+  bottom: 52px;
+  width: 6px;
+  transform: translateX(-3px);
+  background: #ffe1d9;
+  border-radius: 3px;
+}
+
+.row {
+  position: relative;
+  height: 416px;
+  margin-bottom: 50px;
+}
+
+.row:last-child {
+  margin-bottom: 0;
+}
+
+/* 7519:76468 — 105×105, centred on its card. */
+.marker {
+  position: absolute;
+  left: 42px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 105px;
+  height: 105px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: var(--kiosk-primary);
+  color: #ffffff;
+  font-family: var(--kiosk-font, sans-serif);
+  font-size: 65px;
+  font-weight: 700;
+  line-height: 1;
+}
+
+/* 7519:76490 — the leg into the NEXT stop. 105×80 white pill, two lines
+   (minutes over km), no border. Sits in the 50px gap between cards. */
+.travel {
+  position: absolute;
+  left: 93.5px;
+  bottom: -65px;
+  transform: translateX(-50%);
+  min-width: 105px;
+  height: 80px;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 10px 16px;
+  border: none;
+  border-radius: 30px;
+  background: #ffffff;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  font-family: var(--kiosk-font, sans-serif);
+  font-size: 25px;
+  font-weight: 500;
+  line-height: 1.2;
+  color: var(--kiosk-primary);
+  text-align: center;
+  white-space: nowrap;
+}
+
+/* ── Spot card (7519:76307) — 1588×416, r40, pt65 pr80 pb51 pl74 ────────── */
+.card {
+  position: absolute;
+  left: 177px;
+  top: 0;
+  width: 1588px;
+  height: 416px;
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 65px 80px 51px 74px;
+  border: none;
+  border-radius: 40px;
+  background: #ffffff;
+  /* box-shadow, NOT filter: drop-shadow — a filter would composite this
+     card into its own layer under the artboard scale and soften every
+     glyph on it. Same look, no rasterisation. */
+  box-shadow: 5px 10px 10px rgba(0, 0, 0, 0.1);
+  cursor: pointer;
+  font-family: var(--kiosk-font, sans-serif);
+  text-align: left;
+}
+
+.cardRow {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 51px;
+  width: 1500px;
+}
+
+.photo {
+  flex: none;
+  width: 410px;
+  height: 263px;
+  border-radius: 42.9px;
+  object-fit: cover;
+}
+
+.cardBody {
+  flex: none;
+  width: 1039px;
+  height: 313px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.titleRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 85.799px;
+  width: 100%;
+}
+
+/* Pretendard Bold 68 black. */
+.name {
+  margin: 0;
+  font-size: 68px;
+  font-weight: 700;
+  line-height: 1;
+  color: #000000;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.catTag {
+  margin: 0;
+  flex: none;
+  font-size: 38px;
+  font-weight: 700;
+  line-height: 1;
+  color: #999999;
+  text-align: right;
+  white-space: nowrap;
+}
+
+/* 7519:76315 — 30px Medium #999 over two lines. */
+.desc {
+  margin: 0;
+  width: 100%;
+  font-size: 30px;
+  font-weight: 500;
+  line-height: 1.3;
+  color: #999999;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.metaRow {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.metaIcon {
+  flex: none;
+  width: 51px;
+  height: 51px;
+  object-fit: contain;
+}
+
+.metaText {
+  margin: 0;
+  font-size: 38px;
+  font-weight: 700;
+  line-height: 1;
+  color: #333333;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* 7519:76319 — hours on the left (486), dwell on the right (402). */
+.hoursRow {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+}
+
+.hoursCell {
+  flex: none;
+  width: 486px;
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.dwellCell {
+  flex: none;
+  width: 402px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.hoursIcon {
+  flex: none;
+  width: 58px;
+  height: 58px;
+  object-fit: contain;
+}
+
+.dwellText {
+  width: 348px;
+  margin: 0;
+  font-size: 38px;
+  font-weight: 700;
+  line-height: 1;
+  color: #333333;
+  text-align: right;
+  white-space: nowrap;
+}
+
+/* Nothing scheduled for the chosen day. */
+.empty {
+  margin: 240px 0 0;
+  font-size: 60px;
+  font-weight: 500;
+  color: #999999;
+  text-align: center;
+}
+
+/* ── Right-hand scroll (7574:70034 / 70037) — same tops as 검색 ─────────── */
+.scrollBtn {
+  position: absolute;
+  left: 2027px;
+  width: 85px;
+  height: 85px;
+  padding: 0;
+  border: none;
+  background: none;
+  cursor: pointer;
+  z-index: 20;
+}
+
+.scrollUp { top: calc(2103px + var(--insa-header-shift, 0px)); }
+.scrollDown { top: calc(2223px + var(--insa-header-shift, 0px)); }
+
+.scrollBtnImg {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  pointer-events: none;
+}
+
+.scrollUp .scrollBtnImg { transform: rotate(90deg); }
+.scrollDown .scrollBtnImg { transform: rotate(-90deg); }
+
+/* ── Other languages ─────────────────────────────────────────────────────
+ * The summary bar is the tight one: four fixed cells around "약 4~5시간" that
+ * have to hold "Approx. 4-5 hours" and "Примерно 4-5 часов". One factor for
+ * the four, so the bar keeps a single size. */
+.summaryValueLong {
+  font-size: calc(45px * var(--fit, 1));
+  white-space: normal;
+  line-height: 1.15;
+}
+
+.catLong {
+  font-size: calc(45px * var(--fit, 1));
+}
+
+.nameLong {
+  font-size: calc(68px * var(--fit, 1));
+  white-space: normal;
+  line-height: 1.1;
+}

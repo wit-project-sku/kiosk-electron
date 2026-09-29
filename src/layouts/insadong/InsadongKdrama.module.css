@@ -48,7 +48,7 @@
   position: absolute;
   left: calc(50% + 1px);
   transform: translateX(-50%);
-  top: 792px;
+  top: calc(792px + var(--insa-header-shift, 0px));
   width: 2020px;
   height: 2620px;
   z-index: 2;
@@ -146,7 +146,7 @@
 
 .goldBtnWrap {
   position: absolute;
-  top: 2973px;
+  top: calc(2973px + var(--insa-header-shift, 0px));
   height: 162px;
   width: 650px;
   z-index: 4;

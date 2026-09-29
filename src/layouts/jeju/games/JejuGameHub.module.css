@@ -72,7 +72,7 @@
 
 .card:active {
   transform: scale(0.985);
-  border-color: var(--kiosk-primary, #ff7f0f);
+  border-color: var(--kiosk-primary, var(--kiosk-primary, #ff7f0f));
   background: #fffaf4;
 }
 
@@ -84,7 +84,7 @@
   flex: 0 0 auto;
   border-radius: 36px;
   background: #f6f1ea;
-  color: var(--kiosk-primary, #ff7f0f);
+  color: var(--kiosk-primary, var(--kiosk-primary, #ff7f0f));
   display: flex;
   align-items: center;
   justify-content: center;
@@ -136,7 +136,7 @@
   font-size: 38px;
   font-weight: 700;
   line-height: 1;
-  color: var(--kiosk-primary, #ff7f0f);
+  color: var(--kiosk-primary, var(--kiosk-primary, #ff7f0f));
   font-variant-numeric: tabular-nums;
 }
 
@@ -212,7 +212,7 @@
   box-sizing: border-box;
   border-radius: 50%;
   border: 6px solid rgba(31, 27, 22, 0.1);
-  border-top-color: var(--kiosk-primary, #ff7f0f);
+  border-top-color: var(--kiosk-primary, var(--kiosk-primary, #ff7f0f));
   animation: spin 900ms linear infinite;
 }
 

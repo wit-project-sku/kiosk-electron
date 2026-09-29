@@ -131,6 +131,27 @@ const UI_TEXT = {
     ru: 'Нет данных карты.',
     id: 'Tidak ada informasi peta.',
   },
+  /** Attribution under the event grid (Figma 7525:77550). */
+  eventSource: {
+    ko: '※ 출처: 한국문화정보원',
+    en: '※ Source: Korea Culture Information Service',
+    ja: '※ 出典: 韓国文化情報院',
+    zh: '※ 来源：韩国文化信息服务局',
+    vi: '※ Nguồn: Viện Thông tin Văn hóa Hàn Quốc',
+    th: '※ ที่มา: สำนักงานข้อมูลวัฒนธรรมเกาหลี',
+    ru: '※ Источник: Корейская служба культурной информации',
+    id: '※ Sumber: Pusat Informasi Budaya Korea',
+  },
+  close: {
+    ko: '닫기',
+    en: 'Close',
+    ja: '閉じる',
+    zh: '关闭',
+    vi: 'Đóng',
+    th: 'ปิด',
+    ru: 'Закрыть',
+    id: 'Tutup',
+  },
 
   // ── MBTI 추천 패널 (이벤트 화면) ───────────────────────────────────────
   mbtiSubmit: {

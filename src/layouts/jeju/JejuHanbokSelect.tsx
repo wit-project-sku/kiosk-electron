@@ -124,7 +124,6 @@ import { SwipeNav, useSwipeNav } from '../photo/SwipeNav';
 import { useOutfitStore } from '@renderer/store/outfitStore';
 import type { PickerOutfit } from '@renderer/store/outfitStore';
 import type { OutfitSubCategory } from '@shared/types/outfit';
-import { jejuIconUrl } from '@renderer/assets/icons/jeju';
 import { useRotatingBanner } from '@renderer/hooks/useRotatingBanner';
 import { usePhotoStore } from '@renderer/store/photoStore';
 import { useBackgroundStore } from '@renderer/store/backgroundStore';
@@ -308,6 +307,14 @@ const SOLO = {
  * Built per mascot: 하영 on W006/W007, 유산 on W008. Only the LAST-RESORT
  * fallback — the sheet's Photo_SelectTogether row is already venue-split
  * (see LocalizationSyncParser.VENUE_MASCOTS) and wins whenever it has a cell.
+ *
+ * ★ That "wins" is enforced by {@link togetherText}, not by this literal. Until
+ * 2026-09-28 the button rendered this map DIRECTLY and never consulted the
+ * sheet at all, which was invisible while 제주 was the only caller — the
+ * fallback and the row agree there. 인사동 took this picker over from the
+ * legacy HanbokSelect (which has always read the row), and on 인사동
+ * `jejuMascot()` resolves to its non-heritage default 하영 — so the button
+ * would have promised a 제주 mascot on an 인사동 kiosk.
  */
 const togetherLabel = (m: JejuMascot) => ({
   ko: `사진촬영(with '${m.ko}')`,
@@ -319,6 +326,18 @@ const togetherLabel = (m: JejuMascot) => ({
   ru: `Фото (с «${m.ru}»)`,
   id: `Foto (dengan '${m.mixed}')`,
 });
+
+/**
+ * The 같이찍기 button's label: the venue's own sheet row, else the mascot
+ * literal above. `tExact` returns '' for a missing cell, which is precisely the
+ * "has a cell" test the row's precedence is defined in terms of.
+ *
+ * 인사동 carries no generated override file — it reads the BASE Localization
+ * tab, where this row is its own '인사' copy, so the sheet answers there and the
+ * 제주 fallback is never reached.
+ */
+const togetherText = (lang: Lang): string =>
+  tExact('Photo_SelectTogether', lang) || pick(togetherLabel(jejuMascot()), lang);
 
 const NO_OUTFITS = {
   ko: '준비 중인 의상입니다.',
@@ -586,9 +605,16 @@ export function JejuHanbokSelect({
    */
   const pageBg = icon('bg-page') || icon('bg');
 
-  const star = jejuIconUrl('star');
+  /* Resolved through the CHROME, not jejuIconUrl: this picker serves 인사동 as
+     well as 제주 now, and the rail art in particular is hard-filled with the
+     brand colour (nav-left.svg), so a direct 제주 lookup drew an orange rail on
+     a coral kiosk. Each location overrides by dropping a file of the same base
+     name into its own icons folder — the mechanism photoChrome documents.
+     Names 인사동 does not carry resolve to undefined and are simply not drawn,
+     which is what silences 제주's decorative star and ♿ button there. */
+  const star = icon('star');
   const accessibilityIcon =
-    (lowReach ? jejuIconUrl('ico-accessibility-on') : undefined) ?? jejuIconUrl('ico-accessibility');
+    (lowReach ? icon('ico-accessibility-on') : undefined) ?? icon('ico-accessibility');
   /**
    * Which tab owns step ② — the 제주 one, wherever the operator has put it.
    *
@@ -598,12 +624,29 @@ export function JejuHanbokSelect({
    * design while 제주 itself drew the plain two-row grid — each tab showing the
    * other's frame.
    *
-   * Falls back to the landing tab ONLY where no 제주 category is registered at
-   * all. Without that, a catalogue that never had one would strand whatever
-   * backgrounds this kiosk has been assigned behind a tab that does not exist.
+   * NO fallback: a venue that registers no 제주 category has no 배경 테마 step,
+   * full stop.
+   *
+   * ★ This used to fall back to `tabs[0]` (2026-09-29). The reasoning was that a
+   * catalogue with no 제주 category would otherwise strand whatever backgrounds
+   * the kiosk had been assigned behind a tab that does not exist. In practice
+   * the fallback did something much worse: 인사동 registers no 제주 category, so
+   * it promoted 인사동's FIRST tab — 한복 — to the theme tab, and the
+   * 배경 테마 선택하기 band drew there. On stage that band is not even empty; the
+   * kiosk is assigned five backgrounds and every one of them is 제주 scenery
+   * (해안 풍력단지 · 억새밭 언덕 · 유채꽃밭 · 한라산과 귤밭 · 노을 목장). A 인사동
+   * visitor picking a 한복 was being offered 제주 backdrops to wear it against.
+   *
+   * Stranding those five is the POINT, not a regression: they are 제주 content
+   * that should never have been reachable from 인사동. If 인사동 is ever given
+   * its own backdrops, give it its own registered category and make the lookup
+   * below per-location — do not resurrect a positional fallback, which cannot
+   * tell "this venue's theme tab" from "whatever happens to be first".
+   *
+   * 제주 is untouched: its 제주 category IS registered, so the `find` succeeds.
    */
   const themeTabId = useMemo(
-    () => (tabs.find((t) => t.id.toLowerCase() === JEJU_CATEGORY) ?? tabs[0])?.id,
+    () => tabs.find((t) => t.id.toLowerCase() === JEJU_CATEGORY)?.id,
     [tabs],
   );
   /**
@@ -753,8 +796,8 @@ export function JejuHanbokSelect({
         )}
 
         <div className={styles.leftNav}>
-          {jejuIconUrl('nav-left') && (
-            <img src={jejuIconUrl('nav-left')} alt="" className={styles.leftNavImg} draggable={false} />
+          {icon('nav-left') && (
+            <img src={icon('nav-left')} alt="" className={styles.leftNavImg} draggable={false} />
           )}
           <button
             type="button"
@@ -1056,7 +1099,7 @@ export function JejuHanbokSelect({
             onClick={() => startCapture('withInsa')}
           >
             <Camera className={styles.captureIcon} strokeWidth={2} />
-            {pick(togetherLabel(jejuMascot()), lang)}
+            {togetherText(lang)}
           </button>
         </div>
       </>
@@ -1074,8 +1117,8 @@ export function JejuHanbokSelect({
       )}
 
       <div className={styles.leftNav}>
-        {jejuIconUrl('nav-left') && (
-          <img src={jejuIconUrl('nav-left')} alt="" className={styles.leftNavImg} draggable={false} />
+        {icon('nav-left') && (
+          <img src={icon('nav-left')} alt="" className={styles.leftNavImg} draggable={false} />
         )}
         <button
           type="button"

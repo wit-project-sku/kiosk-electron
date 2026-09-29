@@ -1,0 +1,60 @@
+/* Shared ♿ chrome. The bar height matches the language and detail frames
+   (145.759). Classes set the CSS variables — an inline style would be wiped
+   over --header-push, which the header writes onto this same element. */
+
+.lowRoot {
+  position: absolute;
+  inset: 0;
+}
+
+.modeBar {
+  position: absolute;
+  left: 0;
+  top: 0;
+  z-index: 6;
+  width: 2160px;
+  height: var(--insa-mode-bar, 145.759px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--kiosk-primary);
+  color: #ffffff;
+  font-family: var(--kiosk-font, sans-serif);
+  font-size: 68px;
+  font-weight: 700;
+  line-height: 1;
+  text-align: center;
+  word-break: keep-all;
+  overflow-wrap: anywhere;
+}
+
+/* Header and the y700 content drop by the bar. Banner stays at the foot. */
+.shiftBar {
+  --insa-mode-bar: 145.759px;
+  --insa-header-shift: 145.759px;
+}
+
+/* Promo flush under the bar, then the header. Jeju's lowReachBarBanner. */
+.shiftBanner {
+  --insa-mode-bar: 145.759px;
+  --insa-header-shift: calc(145.759px + 573px);
+  --insa-banner-top: 145.759px;
+  --insa-banner-reserve: 0px;
+}
+
+/* 환율 mirrors JejuExchange: the calculator drops by the promo (573), while
+   the header drops by the bar plus that promo on the calculator tab. The live
+   tab hides the promo and only drops the header by the bar; the 573 still
+   pulls the rate list down toward the tabs, which sit at the foot. */
+.shiftExchangeLive {
+  --insa-mode-bar: 145.759px;
+  --insa-header-shift: 145.759px;
+  --insa-exch-shift: 573px;
+}
+
+.shiftExchangeCalc {
+  --insa-mode-bar: 145.759px;
+  --insa-header-shift: calc(145.759px + 573px);
+  --insa-banner-top: 145.759px;
+  --insa-exch-shift: 573px;
+}

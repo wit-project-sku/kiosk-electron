@@ -1,13 +1,18 @@
-/* Shared spot-detail card — the AI 검색상세 design (Figma node 4167:90939),
-   reused by the AI detail and every list/search 상세. Artboard 2160×3840. */
+/* Shared spot-detail card — 인사동 리뉴얼 `검색 > 상세` (Figma 7519:74932, card
+   7516:74269), reused by the AI detail and every list/search 상세.
+   Artboard 2160×3840, so every number below is a literal Figma coordinate. */
 /* Fixed area (top 699 → bottom 573) — the card fits without scrolling, like
    Figma. The description/tags are line-clamped so long text can't force a scroll. */
 .content {
   position: absolute;
-  top: calc(699px + var(--header-push, 0px));
+  top: calc(700px + var(--header-push, 0px) + var(--insa-header-shift, 0px));
   left: 0;
   right: 0;
-  bottom: 573px;
+  /* 573 is the promo at the foot. A page that lifts its promo to the top in ♿
+     (상세 — see DETAIL_LOW_REACH_STYLE) sets this to 0, and the card runs to the
+     artboard instead. Every other caller leaves the token unset and keeps the
+     reserve. */
+  bottom: var(--insa-banner-reserve, 573px);
   box-sizing: border-box;
   display: flex;
   flex-direction: column;
@@ -17,19 +22,18 @@
   font-family: var(--kiosk-font, sans-serif);
 }
 
+/* 7516:74269: 1820 wide at x170, plain white, radius 42.9 — no stroke, no
+   shadow. Its content column (7516:74273) starts at 59/72 and is 1703 wide
+   (1820 − 59×2), with 62px between rows. */
 .card {
   box-sizing: border-box;
   width: 1820px;
   display: flex;
   flex-direction: column;
-  gap: 65px;
-  /* Top matches the 45px sides VISUALLY: the 85px title at line-height 1 starts
-     its glyphs ~18px below its box, so 100px here read as a much bigger gap
-     above the title than beside it. 26.98 is the value the 오색 copy of this
-     card already uses (OsanSpotDetailCard) for the same reason. */
-  padding: 26.98px 45px 100px;
+  gap: 62px;
+  padding: 72px 59px;
   background: #ffffff;
-  border: 5px solid #e8e8e8;
+  border: none;
   border-radius: 42.9px;
 }
 
@@ -73,15 +77,15 @@
 }
 
 .gallery {
-  display: grid;
-  grid-template-columns: repeat(2, 575px);
-  gap: 45px;
-  justify-content: center;
+  display: flex;
+  justify-content: space-between;
 }
 
+/* 4 × 392 + 3 × 45 = 1703, the content column exactly. */
 .galleryCell {
-  width: 575px;
-  height: 324px;
+  width: 392px;
+  height: 220px;
+  flex: none;
   border-radius: 45px;
   overflow: hidden;
 }
@@ -137,7 +141,7 @@
 
 .infoText {
   font-weight: 400;
-  font-size: 55px;
+  font-size: 38px;
   color: #333333;
   line-height: 1; /* Figma: leading-none */
 }
@@ -151,8 +155,8 @@
 .qr {
   flex: none;
   box-sizing: border-box;
-  width: 340px;
-  height: 340px;
+  width: 300px;
+  height: 300px;
   border: 4.29px solid var(--kiosk-primary);
   border-radius: 25px;
   background: #ffffff;
@@ -177,10 +181,10 @@
 .desc {
   margin: 0;
   font-weight: 400;
-  font-size: 55px;
+  font-size: 45px;
   color: #333333;
   line-height: 1.3;
-  /* Figma allots h220 (~3 lines at 55px/1.3); clamp so the card always fits. */
+  /* Figma allots h116 (~2 lines at 45px/1.3); clamp so the card always fits. */
   display: -webkit-box;
   -webkit-line-clamp: 3;
   -webkit-box-orient: vertical;
@@ -190,7 +194,7 @@
 .descTags {
   margin: 0;
   font-weight: 400;
-  font-size: 45px;
+  font-size: 38px;
   color: #616161;
   line-height: 1.5;
   display: -webkit-box;
@@ -245,4 +249,80 @@
   width: 2px;
   height: 43px;
   background: #d9d9d9;
+}
+
+/* ── Distance + walking time (7516:74320 / 7516:74334) ──────────────────────
+   New in the renewal. Both are driven by the shop's witteria `route`, so the
+   pair is omitted entirely on a row that carries no route rather than printing
+   a placeholder distance. */
+.distance {
+  margin: 0;
+  font-weight: 600;
+  font-size: 50px;
+  line-height: 1;
+  color: var(--kiosk-primary);
+}
+
+/* 7516:74335: 1674×214, radius 80, [인사동] main 02 at 80%. */
+.walkPill {
+  box-sizing: border-box;
+  width: 1674px;
+  height: 214px;
+  display: flex;
+  align-items: center;
+  gap: 36px;
+  padding: 0 34px;
+  border-radius: 80px;
+  background: rgba(255, 230, 230, 0.8);
+}
+
+.walkGlyph {
+  font-size: 80px;
+  line-height: 1.3;
+}
+
+/* 7516:74338 sits 도보 at x116 inside the pill and 7516:74337 puts 약 9분 at
+   x371 — so the run is 34 padding + 80 glyph + 36 gap (=116), then 도보's own
+   78 + 36 + 141 to land 약 9분 on 371. */
+.walkMode {
+  font-weight: 700;
+  font-size: 45px;
+  line-height: 1;
+  color: #333333;
+  margin-right: 141px;
+}
+
+.walkTime {
+  font-weight: 600;
+  font-size: 55px;
+  line-height: 1;
+  color: var(--kiosk-primary);
+}
+
+/* ── Ratings: the renewal adds Instagram and blog counts beside 네이버 ──
+   Each item renders only when its field carries a value (see SpotDetailCard),
+   so today's Insadong rows — which supply a 네이버 rating and nothing else —
+   draw exactly the one item they have data for. */
+.ratingSepLine {
+  flex: none;
+  width: 2.145px;
+  height: 43px;
+  background: #d9d9d9;
+}
+
+/* 7537:81399 — the 145px save code on the right of the 도보 pill.
+   The frame pins it at x1676 in artboard space; the pill spans 229→1903, so it
+   sits 82px in from the pill's right edge. 34 of that is the pill's own
+   padding, hence the 48 here. `margin-left: auto` does the pushing so the
+   glyph / 도보 / 약 N분 run keeps the fixed offsets Figma gives it. */
+.walkQr {
+  flex: none;
+  box-sizing: border-box;
+  width: 145px;
+  height: 145px;
+  margin-left: auto;
+  margin-right: 48px;
+  padding: 6px;
+  border-radius: 11px;
+  background: #ffffff;
 }

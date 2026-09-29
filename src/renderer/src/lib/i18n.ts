@@ -239,7 +239,10 @@ const TITLE_KEYS: Record<string, TitleKeySpec> = {
   "'인사' 모하지 (AI검색)": { title: 'MainButton_AI', sub: 'SubHeader_AISearch' },
   인사랑: { title: 'MainButton_Insarang' },
   인사동미술관: { title: 'MainButton_ToGallery', sub: 'SubHeader_ToGallery' },
-  "안녕 '인사'": { title: 'MainButton_Greeting' },
+  // `sub` matches the 제주 / 하영 / 유산 entries below: Localization_Insa carries
+  // Greeting_Introduce ("* 안녕하세요! 마스코트 '인사'를 소개할게요!") in all eight
+  // languages and this screen was the only 안녕 that never asked for it.
+  "안녕 '인사'": { title: 'MainButton_Greeting', sub: 'Greeting_Introduce' },
   "안녕 '정이'": { title: 'MainButton_Greeting' },
   "도와줘 '인사'": { title: 'MainButton_ToHelp', sub: 'SubHeader_ToHelp' },
   인사동지도: { title: 'MainButton_Map' },

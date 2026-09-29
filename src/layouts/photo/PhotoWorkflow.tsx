@@ -88,7 +88,7 @@ export function PhotoWorkflow(): JSX.Element {
   // `generating`) when it is false. Flip it to `false` to go back to the popup;
   // keep the `boolean` annotation either way, so the branches it guards do not
   // narrow to unreachable code.
-  const playsWaitingGame: boolean = chrome.isJeju;
+  const playsWaitingGame: boolean = chrome.waitingGames;
   const [gameDone, setGameDone] = useState(false);
   const deferredRef = useRef(false);
 
@@ -186,8 +186,8 @@ export function PhotoWorkflow(): JSX.Element {
     });
     await window.api.photo.selectClothing(category);
     await window.api.photo.selectStyle(mode, backgroundId);
-    if (chrome.isJeju) {
-      // 제주 hands the trigger to the visitor: the press only brings the camera
+    if (chrome.gestureCapture) {
+      // The location hands the trigger to the visitor: the press only brings the camera
       // up, and the countdown waits for the open-palm gesture Monitor 2 is
       // watching for. The fallback timers inside the gate (see JejuCameraGuide /
       // CustomerDisplay) are what make this safe on a kiosk whose camera or
@@ -196,7 +196,9 @@ export function PhotoWorkflow(): JSX.Element {
       // It went fleet-wide for a couple of days (2026-08-24 → 08-26) and was
       // pulled back to 제주-only with the legacy camera screen's return: that
       // screen has no palm/fist chips, so a gate behind it would just be a
-      // silent 30s stall before the fallback timer fired.
+      // silent 30s stall before the fallback timer fired. That is why
+      // `gestureCapture` is documented as requiring `richOutfit` — 인사동 took
+      // both together on 2026-09-28, which is what makes the gate safe there.
       await window.api.photo.armGestureGate();
     } else {
       await window.api.photo.beginCountdown();
@@ -232,9 +234,9 @@ export function PhotoWorkflow(): JSX.Element {
   // the camera-direction popup ("look at the camera between the screens").
   if (phase === 'clothing' || phase === 'style' || phase === 'preview' || phase === 'countdown' || phase === 'generating') {
     const capturing = phase === 'preview' || phase === 'countdown' || phase === 'generating';
-    // 제주 redraws this step entirely (own taxonomy, background-theme row, its
-    // own layout) — same contract, different screen.
-    if (chrome.isJeju) {
+    // The rich picker redraws this step entirely (API-driven taxonomy,
+    // background-theme row, its own layout) — same contract, different screen.
+    if (chrome.richOutfit) {
       return <JejuHanbokSelect onHome={handleReset} onCapture={handleCapture} countdownActive={capturing} />;
     }
     return <HanbokSelect onHome={handleReset} onCapture={handleCapture} countdownActive={capturing} />;

@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import type { SupportedLanguage } from '@shared/types/kiosk';
 import type { KioskController } from '@renderer/hooks/useKioskController';
 import { useLanguageStore } from '@renderer/store/languageStore';
+import { useAccessibilityStore } from '@renderer/store/accessibilityStore';
 import { t } from '@renderer/lib/loc';
 import { iconUrl } from '@renderer/assets/icons/insadong';
 import { useRotatingBanner } from '@renderer/hooks/useRotatingBanner';
@@ -88,6 +89,7 @@ export function InsadongTaxfree({ controller }: InsadongTaxfreeProps): JSX.Eleme
   const banner = useRotatingBanner();
   const goHome = (): void => controller.navigate('home', 'Back');
   const lang = useLanguageStore((s) => s.currentLanguage);
+  const lowReach = useAccessibilityStore((s) => s.lowReach);
   /* Korean tab names fit the tab on one line; the other languages do not.
      See "Other languages" in the CSS. */
   const wide = lang !== 'ko';
@@ -95,7 +97,12 @@ export function InsadongTaxfree({ controller }: InsadongTaxfreeProps): JSX.Eleme
   const [activeTab, setActiveTab] = useState<TabId>('refund');
   const rootRef = useRef<HTMLDivElement>(null);
   const subtitleRef = useRef<HTMLDivElement>(null);
-  const bodyLayout = useTaxfreeBodyLayout(rootRef, subtitleRef, lang);
+  const bodyLayout = useTaxfreeBodyLayout(rootRef, subtitleRef, lang, lowReach, lowReach);
+  /* ♿ drops the promo and parks the tabs at y3435 (Jeju 7058:20102). The card
+     starts under the real subtitle — the standing y760 cap would cut it — and
+     runs down to 64px above those tabs, which is the space the promo left. */
+  const bodyTop = bodyLayout.top;
+  const bodyHeight = lowReach ? Math.max(0, 3371 - bodyTop) : bodyLayout.height;
 
   // Pre-decode every tab image for the active language so switching tabs (esp.
   // the merchant tab) is instant — the component is always mounted (pre-warmed),
@@ -143,7 +150,7 @@ export function InsadongTaxfree({ controller }: InsadongTaxfreeProps): JSX.Eleme
         subtitleRef={subtitleRef}
       />
 
-      <div className={styles.body} style={{ top: bodyLayout.top, height: bodyLayout.height }}>
+      <div className={styles.body} style={{ top: bodyTop, height: bodyHeight }}>
         {/* 텍스프리 소개 (intro): the static two-page info carousel. */}
         {activeTab === 'intro' && (
           <TaxRefundInfo lang={lang} onGoToWebview={() => setActiveTab('refund')} />
@@ -166,7 +173,7 @@ export function InsadongTaxfree({ controller }: InsadongTaxfreeProps): JSX.Eleme
         {activeTab === 'merchant' && <MerchantTab lang={lang} />}
       </div>
 
-      <div ref={tabsRef} className={styles.tabs}>
+      <div ref={tabsRef} className={lowReach ? `${styles.tabs} ${styles.tabsLow}` : styles.tabs}>
         {(['refund', 'intro', 'merchant'] as TabId[]).map((tab, i) => (
           <button
             key={tab}
@@ -181,7 +188,7 @@ export function InsadongTaxfree({ controller }: InsadongTaxfreeProps): JSX.Eleme
 
       <InsadongLeftNav onHome={goHome} />
 
-      {banner && (
+      {banner && !lowReach && (
         <button
           type="button"
           className={styles.banner}

@@ -7,7 +7,7 @@
  * y map (from the frame):
  *    0…594     header — Component 40, rendered by JejuHeader
  *    794…899   ③ 잠시만 기다려주세요!            (step row, left 180)
- *    947…1012  기다리는 동안 틀린 그림을 찾아보세요!  (#FF7F0F, centred)
+ *    947…1012  기다리는 동안 틀린 그림을 찾아보세요!  (var(--kiosk-primary, #ff7f0f), centred)
  *   1060…1125  n/5 progress                     (centred)
  *   1286…      the two pictures SIDE BY SIDE — 1703 wide overall (2 × 818,
  *              67 gap), square corners, #d9d9d9 plate; the height follows the
@@ -21,7 +21,7 @@
  * clock, the hint, the exit). Those go in the 3038…3267 band the frame leaves
  * empty, plus the two ends of the 1060 progress line — the designed centre
  * column is untouched, and everything added uses the frame's own type scale
- * (65/58px Noto Sans Bold), its primary #FF7F0F and its 42.9px button radius.
+ * (65/58px Noto Sans Bold), its primary var(--kiosk-primary, #ff7f0f) and its 42.9px button radius.
  * Replace with the real thing if a frame for those states lands.
  */
 
@@ -64,7 +64,7 @@
   height: 105px;
   flex: 0 0 auto;
   border-radius: 50%;
-  background: var(--kiosk-primary, #ff7f0f);
+  background: var(--kiosk-primary, var(--kiosk-primary, #ff7f0f));
   display: flex;
   align-items: center;
   justify-content: center;
@@ -99,7 +99,7 @@
   font-size: 65px;
   font-weight: 700;
   line-height: 1;
-  color: var(--kiosk-primary, #ff7f0f);
+  color: var(--kiosk-primary, var(--kiosk-primary, #ff7f0f));
   text-align: center;
 }
 
@@ -363,7 +363,7 @@
 /* Brand orange over a white halo, so the ring holds up over a dark photo as
    well as a light one. */
 .foundRing {
-  border: 10px solid var(--kiosk-primary, #ff7f0f);
+  border: 10px solid var(--kiosk-primary, var(--kiosk-primary, #ff7f0f));
   box-shadow:
     0 0 0 6px rgba(255, 255, 255, 0.9),
     inset 0 0 0 4px rgba(255, 255, 255, 0.6);
@@ -483,7 +483,7 @@
    the game early and is deliberately the quieter of the two. */
 .hintBtn {
   border: none;
-  background: var(--kiosk-primary, #ff7f0f);
+  background: var(--kiosk-primary, var(--kiosk-primary, #ff7f0f));
   color: #fff;
 }
 
@@ -583,7 +583,7 @@
   /* Shared with home, JejuPageFrame and JejuHanbokSelect — see lowReach.ts. */
   height: var(--jeju-mode-bar);
   z-index: 3;
-  background: var(--kiosk-primary, #ff7f0f);
+  background: var(--kiosk-primary, var(--kiosk-primary, #ff7f0f));
   display: flex;
   align-items: center;
   justify-content: center;
@@ -683,7 +683,7 @@
 .overlayScoreNum {
   font-size: 88px;
   font-weight: 700;
-  color: var(--kiosk-primary, #ff7f0f);
+  color: var(--kiosk-primary, var(--kiosk-primary, #ff7f0f));
 }
 
 .overlayNote {
@@ -709,7 +709,7 @@
   width: 84px;
   height: 84px;
   border: 10px solid #ececec;
-  border-top-color: var(--kiosk-primary, #ff7f0f);
+  border-top-color: var(--kiosk-primary, var(--kiosk-primary, #ff7f0f));
   border-radius: 50%;
   animation: spin 900ms linear infinite;
 }

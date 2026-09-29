@@ -58,7 +58,7 @@
   flex: 0 0 auto;
   border-radius: 40px;
   background: #fff3e6;
-  color: var(--kiosk-primary, #ff7f0f);
+  color: var(--kiosk-primary, var(--kiosk-primary, #ff7f0f));
   display: flex;
   align-items: center;
   justify-content: center;

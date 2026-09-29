@@ -76,10 +76,12 @@ const SLOTS: Record<string, Slot> = {
   about: { position: 11, type: '여기는 인사동' },
   hello: { position: 12, type: '안녕 인사' },
   help: { position: 13, type: '도와줘 인사' },
-  // Slot 14 is the 지도 slot, and 기부 takes it over on the kiosks that run the
-  // donation app (W003/W004/W005) — the two are mutually exclusive, so exactly
-  // one of `map`/`parking`/`donation` is rendered per kiosk. See hasDonation in
-  // kioskLocations and useHasDonationTile for who gets which.
+  // Slot 14 is the 지도 slot. It used to be shared with 기부, but the Insadong home
+  // now draws BOTH (see InsadongHome) — 기부 has its own row anyway, so only the
+  // other layouts (Osan/Hwaseong) still swap `map`/`parking` for `donation` here.
+  // Note the CMS has not caught up: kiosks 3/4/5 have no 지도 row and 1/2 no 기부
+  // row, so on Insadong one of the two never joins and the grid keeps its
+  // authored (= Figma) order. See joinTileRows.
   map: { position: 14, type: '인사동 지도' }, // W001/W002
   //
   // 기부 is NOT slot 14's DB row — it is its own row, and its id differs per API

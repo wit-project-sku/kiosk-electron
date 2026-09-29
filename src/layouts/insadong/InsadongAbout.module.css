@@ -1,4 +1,12 @@
-/* 여기는 인사동 — exact Figma px (artboard 2160×3840). */
+/* 여기는 인사동 — Figma 7567:60794.
+ *
+ * (The frame is still NAMED `제주>여기는 제주도` and its cards carry 제주 placeholder
+ * copy — 성산일출봉 / 제주특별자치도… — because it was copied from the 제주 page.
+ * Its header says 여기는 인사동 and its map is Insa-dong Culture Street, so the
+ * layout is the contract and the card text comes from the 인사동 catalogue.)
+ *
+ * Inside KioskArtboard 1 CSS px === 1 Figma px (2160×3840). */
+
 .bg {
   position: absolute;
   inset: 0;
@@ -8,96 +16,601 @@
   pointer-events: none;
 }
 
-/* 컨텐츠: top 699, content width 1820 (px170), scrolls if taller than the artboard. */
-.content {
+/* ── Tabs (7567:60934) — three 580×170 plates on the 1820 row, y700 ────── */
+.tabs {
   position: absolute;
-  top: calc(699px + var(--header-push, 0px));
   left: 170px;
+  top: calc(700px + var(--header-push, 0px) + var(--insa-header-shift, 0px));
   width: 1820px;
-  bottom: 40px;
-  overflow-y: auto;
-}
-
-.card {
-  width: 100%;
-  box-sizing: border-box;
+  height: 170px;
   display: flex;
-  flex-direction: column;
-  gap: 60px;
-  padding: 100px 40px;
-  background: #ffffff;
-  border: 5px solid #e8e8e8;
-  border-radius: 42.9px;
-  box-shadow: 0 21.45px 21.45px rgba(143, 147, 157, 0.1);
-}
-
-.block {
-  display: flex;
-  flex-direction: column;
-  gap: 45px;
-}
-
-.wideImage {
-  width: 100%;
-  height: 658px;
-  border-radius: 45px;
-  overflow: hidden;
-}
-
-.wideImage img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
-
-.row {
-  display: flex;
-  gap: 45px;
-  align-items: flex-start;
+  align-items: center;
   justify-content: space-between;
 }
 
-.squareImage {
-  width: 800px;
-  height: 800px;
+.tab {
   flex: none;
+  width: 580px;
+  height: 170px;
+  padding: 0;
+  border: none;
   border-radius: 42.9px;
+  background: #ffffff;
+  cursor: pointer;
+  font-family: var(--kiosk-font, sans-serif);
+  font-size: 50px;
+  font-weight: 500;
+  line-height: 1;
+  color: #999999;
+  white-space: nowrap;
+}
+
+.tabOn {
+  background: var(--kiosk-primary);
+  color: #ffffff;
+  font-weight: 700;
+}
+
+/* ── 초성 row (7567:60958) — x208 y920, 1686 wide, 14 cells ─────────────── */
+.initials {
+  position: absolute;
+  left: 208px;
+  top: calc(920px + var(--header-push, 0px) + var(--insa-header-shift, 0px));
+  width: 1686px;
+  height: 72px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.initial {
+  flex: none;
+  width: 104px;
+  height: 72px;
+  padding: 0;
+  border: none;
+  background: none;
+  cursor: pointer;
+  font-family: var(--kiosk-font, sans-serif);
+  font-size: 55px;
+  font-weight: 500;
+  line-height: 1;
+  color: #333333;
+}
+
+.initialOn {
+  color: var(--kiosk-primary);
+  font-weight: 700;
+}
+
+/* ── Body (7567:60796) — x170 y1052 w1812, scrolls under the fixed chrome ─ */
+.body {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: calc(1052px + var(--header-push, 0px) + var(--insa-header-shift, 0px));
+  bottom: 0;
+  box-sizing: border-box;
+  overflow-y: auto;
+  overflow-x: hidden;
+  /* The frame's own track (7567:60957) is 34.32 wide at x2126 — the ARTBOARD's
+     right edge, not this box's. So the box runs the full width and spends its
+     padding on the gutter: 170 + 1812 content + 144 + 34 track = 2160. It used
+     to be 1812 wide with the bar hidden, which is why a grid of hundreds of
+     cards scrolled with nothing on screen to say so. */
+  padding: 0 144px 0 170px;
+}
+
+.body::-webkit-scrollbar {
+  width: 34.32px;
+}
+
+.body::-webkit-scrollbar-thumb {
+  background: var(--kiosk-primary);
+  border-radius: 21.45px;
+}
+
+.body::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+/* 7567:60800 — the map plate, 1812×767. */
+.map {
+  width: 1812px;
+  height: 767px;
+  border-radius: 42.9px;
+  object-fit: cover;
+  display: block;
+}
+
+/* Rows of three 580-wide cards on a 616 pitch; rows 827 → 1617 → 2407 (790). */
+.grid {
+  margin-top: 60px;
+  display: grid;
+  grid-template-columns: repeat(3, 580px);
+  column-gap: 36px;
+  row-gap: 60px;
+  padding-bottom: 120px;
+}
+
+/* 7567:60802 — white plate, r42.905, pt43 pr23 pb47 pl36. */
+.card {
+  width: 580px;
+  box-sizing: border-box;
+  display: flex;
+  align-items: flex-start;
+  padding: 43px 23px 47px 36px;
+  border: none;
+  border-radius: 42.905px;
+  background: #ffffff;
+  cursor: pointer;
+  font-family: var(--kiosk-font, sans-serif);
+  text-align: left;
+}
+
+.copy {
+  width: 521px;
+  display: flex;
+  flex-direction: column;
+  gap: 25px;
+}
+
+.photo {
+  width: 509px;
+  height: 297px;
+  border-radius: 20px;
+  object-fit: cover;
+  display: block;
+}
+
+.copyText {
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+  width: 100%;
+}
+
+/* 7567:60806 — 50px Medium #333, line-height 1.3. */
+.name {
+  margin: 0;
+  width: 100%;
+  font-size: 50px;
+  font-weight: 500;
+  line-height: 1.3;
+  color: #333333;
+  word-break: keep-all;
+  display: -webkit-box;
+  -webkit-line-clamp: 1;
+  -webkit-box-orient: vertical;
   overflow: hidden;
 }
 
-.squareImage img {
+.metaCol {
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+  width: 100%;
+}
+
+/* 주소 (7567:60808) gap 12 · 영업시간 (7567:60811) gap 15 — both 40px #333. */
+.meta {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.metaHours {
+  gap: 15px;
+  width: 100%;
+}
+
+.marker {
+  flex: none;
+  width: 45px;
+  height: 45px;
+  object-fit: contain;
+}
+
+.alarm {
+  flex: none;
+  width: 41px;
+  height: 60px;
+  object-fit: contain;
+}
+
+.addr,
+.hours {
+  margin: 0;
+  font-size: 40px;
+  font-weight: 400;
+  line-height: 1.3;
+  color: #333333;
+  word-break: keep-all;
+}
+
+/* Two lines in the frame; a longer address is clamped rather than pushing the
+   card past the row it shares with two others. */
+.addr {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.hours {
+  line-height: 1;
+}
+
+/* 역사 / 문화 sit above the banner (7567:61113 / 61196), not under the 초성 row.
+ *
+ * These frames carry NO artboard scrollbar — 관광명소's `Rectangle 4227` at
+ * x2126 is its own thing, and 역사's same-named node is the timeline strip. So
+ * this variant undoes the gutter `.body` reserves: it pins itself back to the
+ * frame's own x170 / 1818 and drops the padding, or the panel would start at
+ * x0 (a declared width beats `right` when `left` is also set) and lose 314px of
+ * width to a gutter it has no bar in. */
+.storyBody {
+  top: calc(979px + var(--header-push, 0px) + var(--insa-header-shift, 0px));
+  left: 170px;
+  right: auto;
+  width: 1818px;
+  bottom: 573px;
+  padding: 0;
+  scrollbar-width: none;
+}
+
+.storyBody::-webkit-scrollbar {
+  display: none;
+}
+
+/* ♿ hides the promo, so 역사 / 문화 use the foot it used to cover. */
+.storyBodyLow.storyBodyLow {
+  bottom: 40px;
+}
+
+.detailEmbedLow.detailEmbedLow {
+  bottom: 40px;
+}
+
+/* White plate, radius 42.905 — the frame's 1818×2240 card. */
+.story {
+  box-sizing: border-box;
+  width: 1818px;
+  min-height: 2240px;
+  padding: 111px 87px 90px 88px;
+  background: #ffffff;
+  border-radius: 42.905px;
+}
+
+.storyCulture {
+  box-sizing: border-box;
+  width: 1818px;
+  min-height: 2240px;
+  padding: 68px 144px 78px;
+  background: #ffffff;
+  border-radius: 42.905px;
+}
+
+.bullet {
+  margin: 0;
+  font-size: 50px;
+  font-weight: 700;
+  line-height: 1.3;
+  color: #333333;
+}
+
+.bullet::before {
+  content: '● ';
+  color: var(--kiosk-primary);
+}
+
+.prose {
+  margin: 34px 0 0;
+  font-size: 38px;
+  font-weight: 400;
+  line-height: 1.3;
+  color: #333333;
+  word-break: keep-all;
+}
+
+.proseLight {
+  font-weight: 300;
+}
+
+/* Thumbs 175 wide, hero 885×590, intro 500 — one 590-tall row. */
+.historyTop {
+  display: flex;
+  align-items: flex-start;
+  min-height: 590px;
+}
+
+.thumbs {
+  flex: none;
+  width: 175px;
+  height: 590px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.thumb {
+  width: 175px;
+  flex: none;
+  padding: 0;
+  border: none;
+  border-radius: 20px;
+  overflow: hidden;
+  background: none;
+  cursor: pointer;
+}
+
+.thumb img {
   width: 100%;
   height: 100%;
   object-fit: cover;
+  display: block;
+  pointer-events: none;
 }
 
-.textCol {
+.thumbOn {
+  box-shadow: inset 0 0 0 5px var(--kiosk-primary);
+}
+
+.thumb:nth-child(1) { height: 117px; }
+.thumb:nth-child(2) { height: 102px; }
+.thumb:nth-child(3) { height: 116px; }
+.thumb:nth-child(4) { height: 105px; }
+.thumb:nth-child(5) { height: 117px; }
+
+.hero {
+  flex: none;
+  width: 885px;
+  height: 590px;
+  margin-left: 17px;
+  object-fit: cover;
+  border-radius: 20px;
+  display: block;
+}
+
+.historyIntro {
+  flex: none;
+  width: 500px;
+  margin-left: 66px;
+  padding-top: 44px;
+}
+
+.historyIntro .prose {
+  margin-top: 54px;
+}
+
+/* ● 인사동의 역사 흐름 sits 124px under the photo row. */
+.story > .bullet {
+  margin-top: 124px;
+}
+
+.timeline {
+  box-sizing: border-box;
+  width: 1623px;
+  height: 401px;
+  margin: 31px auto 0;
+  padding: 52px 12px 0;
+  display: flex;
+  align-items: flex-start;
+  background: #fbf8f3;
+  border-radius: 42.905px;
+}
+
+.stepWrap {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+}
+
+.step {
   flex: 1;
   min-width: 0;
   display: flex;
   flex-direction: column;
-  gap: 30px;
+  align-items: center;
+  text-align: center;
+  gap: 18px;
 }
 
-.heading {
+.stepIcon {
+  font-size: 40px;
+  line-height: 1;
+}
+
+.stepYear {
   margin: 0;
+  font-size: 40px;
   font-weight: 700;
-  font-size: 70px;
-  line-height: 1; /* Figma: leading-none */
-  color: #616161;
-  font-family: var(--kiosk-font, sans-serif);
+  line-height: 1.3;
+  color: #1a1a1a;
 }
 
-.headingCenter {
+.stepDesc {
+  margin: 0;
+  font-size: 38px;
+  font-weight: 300;
+  line-height: 1.3;
+  color: #999999;
+}
+
+.chevron {
+  flex: none;
+  width: 38px;
+  height: 22px;
+  transform: rotate(-90deg);
+}
+
+.section {
+  margin-top: 70px;
+}
+
+.section .prose {
+  width: 1623px;
+}
+
+/* Intro under ● 인사동 문화, then a 2×2 of 750×890 cards, gap 30 / 77. */
+.storyCulture .bullet,
+.lead {
+  margin-left: 50px;
+  margin-right: 50px;
+}
+
+.lead {
+  margin-top: 54px;
+  font-size: 38px;
+  line-height: 1.3;
+  color: #333333;
+  word-break: keep-all;
+}
+
+.cultureGrid {
+  margin-top: 20px;
+  display: grid;
+  grid-template-columns: 750px 750px;
+  column-gap: 30px;
+  row-gap: 77px;
+}
+
+.cultureCard {
+  box-sizing: border-box;
+  width: 750px;
+  min-height: 890px;
+  padding: 45px 50px 48px;
+  background: #ffffff;
+  border-radius: 42.905px;
+  box-shadow: 0 4px 4px rgba(0, 0, 0, 0.25);
+}
+
+.culturePhoto {
+  width: 650px;
+  height: 379px;
+  object-fit: cover;
+  border-radius: 20px;
+  display: block;
+}
+
+.cultureTitle {
+  margin: 29px 0 0;
+  font-size: 50px;
+  font-weight: 700;
+  line-height: 1.3;
+  color: #333333;
+}
+
+.cultureBody {
+  margin: 54px 0 0;
+  font-size: 38px;
+  font-weight: 400;
+  line-height: 1.3;
+  color: #333333;
+  word-break: keep-all;
+}
+
+.cultureBody.proseLight {
+  font-weight: 300;
+}
+
+/* The empty grid + its way back out of a narrowed map. */
+.emptyWrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 50px;
+}
+
+/* 전체 보기 — releases the viewport narrowing without touching the 초성. */
+.resetView {
+  padding: 0 60px;
+  height: 120px;
+  border: 4.29px solid var(--kiosk-primary);
+  border-radius: 60px;
+  background: #ffffff;
+  color: var(--kiosk-primary);
+  font-family: var(--kiosk-font, sans-serif);
+  font-size: 45px;
+  font-weight: 700;
+  line-height: 1;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.empty {
+  margin: 200px 0 0;
+  font-size: 55px;
+  font-weight: 500;
+  color: #999999;
   text-align: center;
 }
 
-.body {
-  margin: 0;
-  font-weight: 500;
-  font-size: 50px;
-  line-height: 1.3;
-  color: #333333;
-  font-family: var(--kiosk-font, sans-serif);
+/* The detail card replaces the body, under the same chrome. */
+.detailEmbed {
+  top: calc(1052px + var(--header-push, 0px) + var(--insa-header-shift, 0px));
 }
 
+/* ── Scroll rail (7567:60957 / 60959) ───────────────────────────────────── */
+.scrollBtn {
+  position: absolute;
+  left: 2027px;
+  width: 85px;
+  height: 85px;
+  padding: 0;
+  border: none;
+  background: none;
+  cursor: pointer;
+  z-index: 20;
+}
+
+.scrollUp { top: calc(2103px + var(--insa-header-shift, 0px)); }
+.scrollDown { top: calc(2223px + var(--insa-header-shift, 0px)); }
+
+.scrollBtnImg {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  pointer-events: none;
+}
+
+.scrollUp .scrollBtnImg { transform: rotate(90deg); }
+.scrollDown .scrollBtnImg { transform: rotate(-90deg); }
+
+.banner {
+  position: absolute;
+  left: 0;
+  top: 3267px;
+  width: 2160px;
+  height: 573px;
+  padding: 0;
+  border: none;
+  background: none;
+  cursor: pointer;
+  overflow: hidden;
+}
+
+.banner img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+/* ── Other languages ─────────────────────────────────────────────────────
+ * The tab plates are 580px around 관광명소 / 역사 / 문화; "Tourist Attractions"
+ * and "Достопримечательности" are far longer on a plate that cannot grow, so
+ * the three share one shrink factor (useFitText) rather than each finding its
+ * own size. The card name gets the same treatment inside its 521 column. */
+.tabLong {
+  font-size: calc(50px * var(--fit, 1));
+  white-space: normal;
+  line-height: 1.1;
+  padding: 0 20px;
+  box-sizing: border-box;
+}
+
+.nameLong {
+  font-size: calc(50px * var(--fit, 1));
+}

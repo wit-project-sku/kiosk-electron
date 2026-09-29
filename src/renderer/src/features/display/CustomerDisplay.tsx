@@ -12,7 +12,7 @@ import { trackEvent } from '@renderer/lib/analytics';
 import { displayVideosFor } from '@renderer/assets/videos';
 import { cameraIconUrl } from '@renderer/assets/icons/insadong/camera';
 import { allScreenEntryUrls, clipsForPlayKey, clipsForScreen, initSubtitles, initVideoFiles, normalizeClipIndexKeys, siblingClipUrls } from '@renderer/lib/videoMap';
-import { getCameraRotation, getKioskLocation, isJejuLayout } from '@shared/config/kioskLocations';
+import { getCameraRotation, getKioskLocation, usesGestureCapture } from '@shared/config/kioskLocations';
 import { PHOTO_COUNTDOWN_SECONDS } from '@shared/constants/photoOptions';
 import type { WeatherPlayKey } from '@shared/config/weatherVideo';
 import spinnerImg from '@renderer/assets/spinner.svg';
@@ -266,7 +266,12 @@ export function CustomerDisplay(): JSX.Element {
 
   // 제주 has its own camera screen (and the sideways camera mount that goes
   // with it); every other location draws the legacy screen further down.
-  const isJeju = kioskId ? isJejuLayout(getKioskLocation(kioskId as KioskId).layout) : false;
+  /* Not "is this 제주" but "does this kiosk shoot on a gesture" — the two were
+     the same venue until 인사동 joined. See usesGestureCapture for why this
+     MUST be the same predicate PhotoWorkflow arms the gate with. */
+  const gestureScreen = kioskId
+    ? usesGestureCapture(getKioskLocation(kioskId as KioskId).layout)
+    : false;
   /** The venue's mount rotation — 90 on 제주, 0 (upright) everywhere else. */
   const cameraRotation = kioskId ? getCameraRotation(kioskId as KioskId) : 0;
 
@@ -415,7 +420,7 @@ export function CustomerDisplay(): JSX.Element {
           fleet-wide for a couple of days (2026-08-24 → 08-26) but the other
           venues' cameras are mounted upright and their design is the legacy
           screen below, so the per-location branch is back. */}
-      {(state.mode === 'camera' || state.mode === 'countdown') && isJeju && (
+      {(state.mode === 'camera' || state.mode === 'countdown') && gestureScreen && (
         <JejuCameraGuide
           videoRef={videoRef}
           lang={lang}
@@ -431,7 +436,7 @@ export function CustomerDisplay(): JSX.Element {
           boxes, disclaimer, branding. Ungated: the countdown was started by the
           capture button (see PhotoWorkflow.handleCapture), so the gesture
           branches above stay inert here ('off'). */}
-      {(state.mode === 'camera' || state.mode === 'countdown') && !isJeju && (
+      {(state.mode === 'camera' || state.mode === 'countdown') && !gestureScreen && (
         <div className={styles.cameraScreen}>
           {/* Top: title + numbered tips. Left '10' is static info; the badge on
               the right is the LIVE countdown. */}

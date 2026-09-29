@@ -1,13 +1,13 @@
-import { useRef, useState } from 'react';
+import { useRef, useState, type CSSProperties } from 'react';
 import type { KioskController } from '@renderer/hooks/useKioskController';
 import { SearchIcon } from '@layouts/components/SearchIcon';
 import { iconUrl } from '@renderer/assets/icons/insadong';
-import { useRotatingBanner } from '@renderer/hooks/useRotatingBanner';
 import { useLanguageStore } from '@renderer/store/languageStore';
+import { useAccessibilityStore } from '@renderer/store/accessibilityStore';
 import { useSearchStore } from '@renderer/store/searchStore';
 import { useDetailStore } from '@renderer/store/detailStore';
 import { useShopStore } from '@renderer/store/shopStore';
-import { pick } from '@renderer/lib/i18n';
+import { pick, type Lang } from '@renderer/lib/i18n';
 import type { Shop } from '@shared/types/shop';
 import {
   searchShops,
@@ -21,6 +21,8 @@ import {
   padImages,
 } from '@renderer/lib/shops';
 import { highlightMatch } from '@renderer/lib/highlightMatch';
+import { barrierFreeTitle } from './barrierFree';
+import bf from './barrierFree.module.css';
 import { InsadongHeader } from './InsadongHeader';
 import { FloatingKeyboard } from './keyboard/FloatingKeyboard';
 import { HangulComposer } from './keyboard/hangul';
@@ -43,6 +45,9 @@ const T = {
   },
 };
 
+/** 7574:71201 — the header band starts at y140, so the field opens at y840. */
+const SEARCH_SHIFT = { '--insa-header-shift': '140px' } as CSSProperties;
+
 interface InsadongSearchProps {
   controller: KioskController;
   debug?: boolean;
@@ -56,6 +61,7 @@ interface InsadongSearchProps {
 export function InsadongSearch({ controller }: InsadongSearchProps): JSX.Element {
   const goHome = (): void => controller.navigate('home', 'Back');
   const lang = useLanguageStore((s) => s.currentLanguage);
+  const lowReach = useAccessibilityStore((s) => s.lowReach);
   const initialQuery = useSearchStore((s) => s.query);
   const setStoreQuery = useSearchStore((s) => s.setQuery);
   const setDetail = useDetailStore((s) => s.setItem);
@@ -67,9 +73,14 @@ export function InsadongSearch({ controller }: InsadongSearchProps): JSX.Element
     seeded.current = true;
   }
 
+  const listRef = useRef<HTMLDivElement>(null);
+  /* One card (390) + its 60px gap — the renewal's card pitch, so a tap always
+     lands the next card flush at the top of the viewport. */
+  const SCROLL_STEP = 450;
+  const scrollBy = (dy: number): void => listRef.current?.scrollBy({ top: dy, behavior: 'smooth' });
+
   const shops = useShopStore((s) => s.shops);
   const noImg = iconUrl('noimage');
-  const banner = useRotatingBanner();
   const [query, setQuery] = useState(initialQuery);
   const [focused, setFocused] = useState(false);
   const results = searchShops(shops, query, lang);
@@ -101,6 +112,7 @@ export function InsadongSearch({ controller }: InsadongSearchProps): JSX.Element
   const openDetail = (shop: Shop): void => {
     setDetail({
       from: 'search',
+      shopId: shop.id,
       title: shopBaseCategory(shop, lang) || '검색',
       name: shopName(shop, lang),
       category: shopSecondCategory(shop, lang),
@@ -113,12 +125,17 @@ export function InsadongSearch({ controller }: InsadongSearchProps): JSX.Element
       rating: shop.naverRating != null ? String(shop.naverRating) : '',
       instagram: '',
       blogReviews: shop.naverLink ?? '',
+      route: shop.route ?? null,
     });
     controller.navigate('detail', '검색 상세');
   };
 
   return (
-    <>
+    <div
+      className={lowReach ? `${bf.lowRoot} ${bf.shiftBar}` : undefined}
+      style={lowReach ? undefined : SEARCH_SHIFT}
+    >
+      {lowReach && <div className={bf.modeBar}>{barrierFreeTitle(lang as Lang)}</div>}
       {iconUrl('bg') && <img className={styles.bg} src={iconUrl('bg')} alt="" draggable={false} />}
 
       <InsadongHeader title="검색" onHome={goHome} />
@@ -139,7 +156,7 @@ export function InsadongSearch({ controller }: InsadongSearchProps): JSX.Element
         </div>
 
         {results.length > 0 ? (
-          <div className={styles.list}>
+          <div ref={listRef} className={styles.list}>
             {results.map((shop) => (
               <button type="button" key={shop.id} className={styles.card} onClick={() => openDetail(shop)}>
                 <div className={styles.info}>
@@ -152,10 +169,9 @@ export function InsadongSearch({ controller }: InsadongSearchProps): JSX.Element
                   </div>
                   <p className={styles.address}>{highlightMatch(shopAddress(shop, lang), query, styles.hl)}</p>
                   <p className={styles.desc}>{highlightMatch(shopDescription(shop, lang), query, styles.hl)}</p>
-                  <p className={styles.tags}>{highlightMatch(shopHashtag(shop, lang), query, styles.hl)}</p>
                 </div>
                 <div className={styles.photos}>
-                  {padImages(shopImages(shop), noImg, 4).map((src, j) => (
+                  {padImages(shopImages(shop), noImg, 2).map((src, j) => (
                     <div key={j} className={styles.thumb}>
                       <img src={src} alt="" draggable={false} loading="lazy" />
                     </div>
@@ -173,13 +189,32 @@ export function InsadongSearch({ controller }: InsadongSearchProps): JSX.Element
 
       <InsadongLeftNav onHome={goHome} />
 
-      {banner && (
-        <button type="button" className={styles.banner} onClick={() => controller.startPhoto()} aria-label="가상 한복 체험">
-          <img src={banner} alt="" draggable={false} />
-        </button>
+      {results.length > 0 && (
+        <>
+          <button
+            type="button"
+            className={`${styles.scrollBtn} ${styles.scrollUp}`}
+            onClick={() => scrollBy(-SCROLL_STEP)}
+            aria-label="위로"
+          >
+            {iconUrl('scroll-arrow') && (
+              <img src={iconUrl('scroll-arrow')} alt="" className={styles.scrollBtnImg} draggable={false} />
+            )}
+          </button>
+          <button
+            type="button"
+            className={`${styles.scrollBtn} ${styles.scrollDown}`}
+            onClick={() => scrollBy(SCROLL_STEP)}
+            aria-label="아래로"
+          >
+            {iconUrl('scroll-arrow') && (
+              <img src={iconUrl('scroll-arrow')} alt="" className={styles.scrollBtnImg} draggable={false} />
+            )}
+          </button>
+        </>
       )}
 
       <FloatingKeyboard open={focused} onKey={applyKey} onClose={() => setFocused(false)} lang={lang} />
-    </>
+    </div>
   );
 }

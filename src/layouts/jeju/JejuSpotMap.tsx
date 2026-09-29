@@ -71,6 +71,8 @@ const ZOOM_SINGLE = 14;
 /** Used only when the catalogue has no usable coordinates at all. */
 const JEJU_CENTER: LatLng = { lat: 33.3846, lng: 126.5535 };
 const ZOOM_FALLBACK = 10;
+/** Where the map opens when it has no spots to frame. Overridable per caller. */
+const FALLBACK_VIEW: View = { center: JEJU_CENTER, zoom: ZOOM_FALLBACK };
 
 /** Pins closer together than this (artboard px) collapse into a count bubble. */
 const CLUSTER_PX = 190;
@@ -147,8 +149,10 @@ interface View {
  * candidate zoom: world pixels are linear in 2^zoom, so one projection pass
  * answers both axes exactly.
  */
-function fitView(spots: readonly MapSpot[], box: Box): View {
-  if (spots.length === 0) return { center: JEJU_CENTER, zoom: ZOOM_FALLBACK };
+function fitView(spots: readonly MapSpot[], box: Box, empty: View = FALLBACK_VIEW): View {
+  /* No spots to frame — open where the CALLER says. 제주 is only the default:
+     an 인사동 kiosk with an unmapped catalogue would otherwise open on 제주. */
+  if (spots.length === 0) return empty;
 
   let minX = Infinity;
   let maxX = -Infinity;
@@ -346,6 +350,15 @@ interface Props {
   onViewportChange?: (ids: number[] | null) => void;
   lang: Lang;
   className?: string;
+  /**
+   * Where to open when `spots` is empty — the whole map, not just the pins.
+   * 제주 omits it and keeps the island view; 인사동 passes its own kiosk
+   * coordinates so an unmapped catalogue still shows ITS streets rather than
+   * an island 450km away.
+   */
+  fallbackCenter?: { lat: number; lng: number };
+  /** Zoom for {@link fallbackCenter}. Street level suits a walkable district. */
+  fallbackZoom?: number;
 }
 
 export function JejuSpotMap({
@@ -358,12 +371,33 @@ export function JejuSpotMap({
   onViewportChange,
   lang,
   className,
+  fallbackCenter,
+  fallbackZoom,
 }: Props): JSX.Element {
   const box = useMemo<Box>(() => ({ w: width, h: height }), [width, height]);
   /** Pins are buttons only where tapping one means something. */
   const interactive = onSelect != null;
   const filtering = onViewportChange != null;
-  const fit = useMemo(() => fitView(spots, box), [spots, box]);
+  /*
+   * Keyed on the PRIMITIVES, never on `fallbackCenter`'s identity.
+   *
+   * `fit` drives the refit effect below, so anything that changes its identity
+   * snaps the map back to its opening view. A caller passing the usual inline
+   * `fallbackCenter={{ lat, lng }}` hands over a new object every render, which
+   * made every drag and every zoom undo itself a frame later — the map read as
+   * completely dead. Depending on the numbers means it cannot happen again,
+   * whatever the caller does.
+   */
+  const emptyLat = fallbackCenter?.lat;
+  const emptyLng = fallbackCenter?.lng;
+  const emptyView = useMemo<View>(
+    () =>
+      emptyLat != null && emptyLng != null
+        ? { center: { lat: emptyLat, lng: emptyLng }, zoom: fallbackZoom ?? ZOOM_SINGLE }
+        : FALLBACK_VIEW,
+    [emptyLat, emptyLng, fallbackZoom],
+  );
+  const fit = useMemo(() => fitView(spots, box, emptyView), [spots, box, emptyView]);
   const [view, setView] = useState<View>(fit);
   /** Has the visitor moved the map off the fitted view? Drives the filtering. */
   const [moved, setMoved] = useState(false);

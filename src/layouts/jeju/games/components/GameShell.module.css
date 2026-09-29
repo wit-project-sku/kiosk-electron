@@ -8,7 +8,7 @@
  *
  *    0…594     header — JejuHeader, via usePhotoChrome
  *    700…790   game title            (centred, 76px)
- *    820…880   one-line how-to       (centred, 50px, #ff7f0f)
+ *    820…880   one-line how-to       (centred, 50px, var(--kiosk-primary, #ff7f0f))
  *    920…1090  HUD row               (GameHud, positioned by its own `top`)
  *   1120…3180  play field            (2060px tall, the games' own canvas)
  *   3267…3840  banner — drawn, never tappable (see the note there)

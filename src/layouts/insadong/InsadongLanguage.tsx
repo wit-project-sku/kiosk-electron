@@ -1,14 +1,23 @@
+import type { CSSProperties } from 'react';
 import type { SupportedLanguage } from '@shared/types/kiosk';
 import type { KioskController } from '@renderer/hooks/useKioskController';
 import { useLanguageStore } from '@renderer/store/languageStore';
+import { useAccessibilityStore } from '@renderer/store/accessibilityStore';
 import { trackEvent } from '@renderer/lib/analytics';
 import { iconUrl } from '@renderer/assets/icons/insadong';
 import { useRotatingBanner } from '@renderer/hooks/useRotatingBanner';
-import { pick } from '@renderer/lib/i18n';
+import { pick, type Lang } from '@renderer/lib/i18n';
 import { t } from '@renderer/lib/loc';
+import { barrierFreeTitle } from './barrierFree';
 import { InsadongHeader } from './InsadongHeader';
 import { InsadongLeftNav } from './InsadongLeftNav';
 import styles from './InsadongLanguage.module.css';
+
+/** Bar 145.759 + the 573 promo = the header's new top (frame y719). */
+const LOW_REACH_STYLE = {
+  '--insa-mode-bar': '145.759px',
+  '--insa-header-shift': 'calc(145.759px + 573px)',
+} as CSSProperties;
 
 /** Section labels — hardcoded because the sheet keys (Language_Now_Language /
  *  Language_Target_Language) hold English text in their ja/zh columns. */
@@ -44,6 +53,7 @@ export function InsadongLanguage({ controller }: InsadongLanguageProps): JSX.Ele
   const current = useLanguageStore((s) => s.currentLanguage);
   const available = useLanguageStore((s) => s.availableLanguages);
   const setLanguage = useLanguageStore((s) => s.setLanguage);
+  const lowReach = useAccessibilityStore((s) => s.lowReach);
 
   const goHome = (): void => navigate('home', 'Back');
   const langs = available.filter((c) => c in LANG_META);
@@ -56,8 +66,12 @@ export function InsadongLanguage({ controller }: InsadongLanguageProps): JSX.Ele
   };
 
   return (
-    <>
+    <div className={lowReach ? styles.lowRoot : undefined} style={lowReach ? LOW_REACH_STYLE : undefined}>
       {iconUrl('bg') && <img className={styles.bg} src={iconUrl('bg')} alt="" draggable={false} />}
+
+      {lowReach && (
+        <div className={styles.modeBar}>{barrierFreeTitle(current as Lang)}</div>
+      )}
 
       <InsadongHeader title={t('Language_Select_Language', current)} onHome={goHome} />
 
@@ -116,10 +130,15 @@ export function InsadongLanguage({ controller }: InsadongLanguageProps): JSX.Ele
       <InsadongLeftNav onHome={goHome} />
 
       {banner && (
-        <button type="button" className={styles.banner} onClick={() => controller.startPhoto()} aria-label="가상 한복 체험">
+        <button
+          type="button"
+          className={`${styles.banner} ${lowReach ? styles.bannerLow : ''}`}
+          onClick={() => controller.startPhoto()}
+          aria-label="가상 한복 체험"
+        >
           <img src={banner} alt="" draggable={false} />
         </button>
       )}
-    </>
+    </div>
   );
 }

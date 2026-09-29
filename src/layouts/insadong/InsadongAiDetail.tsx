@@ -1,51 +1,70 @@
 import type { KioskController } from '@renderer/hooks/useKioskController';
 import { iconUrl } from '@renderer/assets/icons/insadong';
 import { useRotatingBanner } from '@renderer/hooks/useRotatingBanner';
+import { useDetailStore } from '@renderer/store/detailStore';
+import { getKioskLocation } from '@shared/config/kioskLocations';
 import { InsadongHeader } from './InsadongHeader';
 import { SpotDetailCard, type SpotDetailData } from './SpotDetailCard';
-import detail1 from '@renderer/assets/photos/insadong/ai/detail-1.jpg';
-import detail2 from '@renderer/assets/photos/insadong/ai/detail-2.jpg';
-import detail3 from '@renderer/assets/photos/insadong/ai/detail-3.jpg';
 import { InsadongLeftNav } from './InsadongLeftNav';
 import styles from './InsadongAiDetail.module.css';
 
 /**
- * '인사' 뭐하지 (AI 검색) — spot DETAIL (Figma "인사>인사모하지(AI검색)-04",
- * node 4167:90939). Reached by tapping a recommendation card on the results
- * page. Sample content mirrors the Figma placeholder; wire to real data later.
+ * '인사' 뭐하지 — AI course spot DETAIL (Figma 7519:76755).
+ *
+ * The frame is the same plate as `검색 > 상세` (7519:74932), so it renders the
+ * shared {@link SpotDetailCard} and inherits the renewal styling rather than
+ * carrying a second copy of it. What changed here is the DATA: it used to draw
+ * a hardcoded 을지정육 placeholder, and now reads the stop the course result
+ * put in the detail store.
  */
-const DETAIL: SpotDetailData = {
-  name: '을지정육',
-  category: '한식',
-  photos: [detail1, detail2, detail3, detail1],
-  address: '서울시 중구 충무로5길 24 1층',
-  hours: ['매일 13:00 ~ 22:00', '(Breaktime 15:00~17:00)'],
-  phone: '02-000-0000',
-  description:
-    '점심엔 순두부와 솥밥으로 균형잡힌 한상을 저녁엔 파전에 막걸리를 인사동에서 보기 힘든 가성비 좋은 가격으로 판매합니다.',
-  tags: '#야장맛집 #인사동야장 #고기맛집 #항정살 #두툼항정 #종로맛집',
-  rating: '4.3',
-  instagram: '#127K',
-  blog: '블로그 리뷰 1,502개',
-};
-
-interface InsadongAiDetailProps {
-  controller: KioskController;
-  debug?: boolean;
-}
-
-export function InsadongAiDetail({ controller }: InsadongAiDetailProps): JSX.Element {
+export function InsadongAiDetail({ controller }: { controller: KioskController; debug?: boolean }): JSX.Element {
   const banner = useRotatingBanner();
+  const item = useDetailStore((s) => s.item);
   const goHome = (): void => controller.navigate('home', 'Back');
-  const goBack = (): void => controller.navigate('ai_result', 'Back');
+  const goBack = (): void => controller.navigate(item?.from ?? 'ai_result', 'Back');
+  /* The header ID, not a pre-resolved string. `AI_Course_Title` is not a row on
+     the 인사 tab, so this always fell through to the Korean literal — and the
+     literal is not a TITLE_KEYS id either (the id carries "(AI 검색)"), so
+     screenTitle had nothing to look up and drew 인사 뭐하지 in Korean in all
+     eight languages, with no page description at all. Passing the id resolves
+     MainButton_AI / SubHeader_AISearch from the sheet, the same as the AI
+     landing and the course result already do. */
+  const title = '‘인사’ 뭐하지 (AI 검색)';
+
+  if (!item) {
+    return (
+      <>
+        {iconUrl('bg') && <img className={styles.bg} src={iconUrl('bg')} alt="" draggable={false} />}
+        <InsadongHeader title={title} onHome={goHome} onBack={goBack} />
+        <InsadongLeftNav onHome={goHome} onBack={goBack} />
+      </>
+    );
+  }
+
+  const data: SpotDetailData = {
+    name: item.name,
+    category: item.category,
+    photos: item.photos,
+    address: item.address,
+    hours: [item.hours, ...(item.breaktime ? [`(${item.breaktime})`] : [])],
+    phone: item.phone,
+    description: item.description,
+    tags: item.tags,
+    rating: item.rating,
+    instagram: item.instagram,
+    blog: item.blogReviews,
+    originName: getKioskLocation(controller.kioskId).name,
+    distanceKm: item.route?.distanceKm ?? null,
+    walkMin: item.route?.walkMin ?? null,
+  };
 
   return (
     <>
       {iconUrl('bg') && <img className={styles.bg} src={iconUrl('bg')} alt="" draggable={false} />}
 
-      <InsadongHeader title="‘인사’ 뭐하지 (AI 검색)" onHome={goHome} onBack={goBack} />
+      <InsadongHeader title={title} onHome={goHome} onBack={goBack} />
 
-      <SpotDetailCard data={DETAIL} />
+      <SpotDetailCard data={data} />
 
       <InsadongLeftNav onHome={goHome} onBack={goBack} />
 

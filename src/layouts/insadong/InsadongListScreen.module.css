@@ -8,32 +8,21 @@
   pointer-events: none;
 }
 
-/* 검색결과 5287:64643: top 699, px170, gap 100 (tabs → list). No bottom banner. */
+/* 검색결과 — tabs, consonant index, then a scrolling card list.
+   Figma 7525:77709. The scrollbar sits in the right gutter (x≈2128). */
 .results {
   position: absolute;
-  top: calc(699px + var(--header-push, 0px));
+  top: calc(700px + var(--header-push, 0px) + var(--insa-header-shift, 0px));
   left: 0;
   right: 0;
   bottom: 0;
   box-sizing: border-box;
   display: flex;
   flex-direction: column;
-  align-items: center;
-  gap: 100px;
-  overflow-y: auto;
-  overflow-x: hidden;
-  padding: 0 170px 80px;
-}
-
-.results::-webkit-scrollbar {
-  width: 34px;
-}
-.results::-webkit-scrollbar-thumb {
-  background: var(--kiosk-primary);
-  border-radius: 21.45px;
-}
-.results::-webkit-scrollbar-track {
-  background: transparent;
+  align-items: flex-start;
+  gap: 50px;
+  overflow: hidden;
+  padding: 0 0 40px 170px;
 }
 
 /* Category tabs — 2×5 grid of rounded-rect tabs (exact Figma: 340×170, r42.9) */
@@ -44,7 +33,7 @@
   align-content: flex-start;
   justify-content: space-between;
   row-gap: 35px;
-  width: 100%;
+  width: 1820px;
 }
 
 /* ≤5 categories: one row, tabs share the width equally (≈580px for 3). */
@@ -67,7 +56,7 @@
   align-items: center;
   justify-content: center;
   background: #ffffff;
-  border: 5px solid #e8e8e8;
+  border: none;
   border-radius: 42.9px;
   box-shadow: 0 21.45px 42.9px rgba(143, 147, 157, 0.1);
   font-family: var(--kiosk-font, sans-serif);
@@ -76,15 +65,73 @@
   color: #999999;
   cursor: pointer;
   white-space: nowrap;
+  -webkit-tap-highlight-color: transparent;
 }
 
 .tabSelected {
-  background: var(--kiosk-secondary);
+  background: var(--kiosk-primary);
   font-weight: 700;
+  color: #ffffff;
+}
+
+/* ㄱ ㄴ ㄷ … index under the category pills. */
+.initials {
+  flex: none;
+  width: 1686px;
+  height: 72px;
+  margin-left: 67px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.initial {
+  border: none;
+  background: none;
+  padding: 0 4px;
+  font-family: var(--kiosk-font, sans-serif);
+  font-weight: 700;
+  font-size: 48px;
+  line-height: 1;
+  color: #1a1a1a;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.initialOn {
   color: var(--kiosk-primary);
 }
 
-/* List 5287:64645: w1820, gap 60 between cards. */
+/* ♿ — cards stay in the upper column; category tabs and the 초성 row pin
+   to the foot, the same restack as the Jeju list. */
+.resultsLow .listScroll {
+  order: -1;
+}
+
+.listScroll {
+  flex: 1;
+  min-height: 0;
+  width: 1990px;
+  box-sizing: border-box;
+  padding-right: 170px;
+  overflow-x: hidden;
+  overflow-y: auto;
+}
+
+.listScroll::-webkit-scrollbar {
+  width: 28px;
+}
+
+.listScroll::-webkit-scrollbar-thumb {
+  background: var(--kiosk-primary);
+  border-radius: 14px;
+}
+
+.listScroll::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+/* List: w1820, 60px between the 390px cards. */
 .list {
   flex: none;
   width: 1820px;
@@ -93,28 +140,27 @@
   gap: 60px;
 }
 
-/* Card R>리스트-사진4개 (1233:2477): w1820 h530, px45 py65, border 5px #e8e8e8,
-   radius 42.9. Inner: info(1120) ↔ photos(570), gap 40. */
+/* Card 7525:77720: 1820×390, px45 py40, no stroke. Two 288×160 photos. */
 .card {
   width: 100%;
-  height: 530px;
+  height: 390px;
   box-sizing: border-box;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 40px;
-  padding: 65px 45px;
+  padding: 40px 45px;
   background: #ffffff;
-  border: 5px solid #e8e8e8;
+  border: none;
   border-radius: 42.9px;
-  box-shadow: 0 21.45px 21.45px rgba(143, 147, 157, 0.1);
   text-align: left;
   cursor: pointer;
   overflow: hidden;
+  -webkit-tap-highlight-color: transparent;
 }
 
 .info {
   flex: 1;
+  width: auto;
   min-width: 0;
   display: flex;
   flex-direction: column;
@@ -172,42 +218,34 @@
   text-overflow: ellipsis;
 }
 
-/* Figma: description wraps to a max of 2 lines, then "…". */
+/* 7537:81635 — one line, then "…". The frame's copy sits on a single row. */
 .desc {
   margin: 0;
+  max-width: 100%;
   font-weight: 500;
   font-size: 48px;
-  line-height: 1.2;
+  line-height: 1;
   color: #2b2b2b;
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
-}
-
-.tags {
-  margin: 0;
-  font-weight: 400;
-  font-size: 40px;
-  line-height: 1; /* Figma: 100% */
-  color: #999999;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 
 .photos {
-  width: 570px;
+  width: 606px;
+  height: 160px;
   flex: none;
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
+  display: flex;
   gap: 30px;
 }
 
 .thumb {
-  height: 150px;
+  width: 288px;
+  height: 160px;
+  flex: none;
   border-radius: 21.45px;
   overflow: hidden;
+  background: rgba(147, 147, 147, 0.15);
 }
 
 .thumb img {
@@ -215,6 +253,32 @@
   height: 100%;
   object-fit: cover;
 }
+
+.scrollBtn {
+  position: absolute;
+  left: 2027px;
+  width: 85px;
+  height: 85px;
+  padding: 0;
+  border: none;
+  background: none;
+  cursor: pointer;
+  z-index: 5;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.scrollUp { top: calc(2103px + var(--header-push, 0px) + var(--insa-header-shift, 0px)); }
+.scrollDown { top: calc(2223px + var(--header-push, 0px) + var(--insa-header-shift, 0px)); }
+
+.scrollBtnImg {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  pointer-events: none;
+}
+
+.scrollUp .scrollBtnImg { transform: rotate(90deg); }
+.scrollDown .scrollBtnImg { transform: rotate(-90deg); }
 
 .banner {
   position: absolute;

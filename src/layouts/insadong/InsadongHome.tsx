@@ -11,9 +11,9 @@ import { getKioskLocation } from '@shared/config/kioskLocations';
 import { iconUrl } from '@renderer/assets/icons/insadong';
 import { weatherIconName, weatherIconUrl } from '@renderer/assets/weather';
 import { useRotatingBanner } from '@renderer/hooks/useRotatingBanner';
-import { useHasDonationTile, useOrderedTiles, type TileKey } from '@renderer/lib/buttonLayout';
+import { useOrderedTiles, type TileKey } from '@renderer/lib/buttonLayout';
 import { DONATION_COMING_SOON, withComingSoon } from '@shared/config/donation';
-import { t } from '@renderer/lib/loc';
+import { t, tExact } from '@renderer/lib/loc';
 import { useFitText } from '@layouts/components/fitText';
 import { FloatingKeyboard } from './keyboard/FloatingKeyboard';
 import { HangulComposer } from './keyboard/hangul';
@@ -25,23 +25,22 @@ interface HomeTile {
   screen: KioskScreenId;
   label: string;
   icon: string;
-  wide?: boolean;
 }
 
 /**
- * The AI tile is always first; the 2nd tile is location-specific (인사랑(준비중)
- * for W001/W002, 위드마켓 for W003 — see getKioskLocation). The rest are shared.
+ * The AI tile is always first — one column wide, like every other tile (the
+ * 인사>홈 frames draw a flat 4×4 of 300px tiles; it used to span two).
  */
-const AI_TILE: HomeTile = { screen: 'ai_search', label: "'인사' 모하지 (AI검색)", icon: 'ai-search', wide: true };
+const AI_TILE: HomeTile = { screen: 'ai_search', label: "'인사' 모하지 (AI검색)", icon: 'ai-search' };
 
-/** Grid slot 14 — 기부 on the kiosks running the donation app (남인사마당 W003),
- *  인사동 지도 on the rest. Mutually exclusive: the CMS carries a row for exactly
- *  one of them per kiosk, so rendering both would drop the grid to authored
- *  order. See useHasDonationTile. */
+/** Grid slots 2–3. 기부 is on EVERY Insadong kiosk since the 4×4 redesign — both
+ *  인사>홈-01 (W001/W002) and 인사>홈-02 (W003) draw it — and the 3rd tile is the
+ *  location-specific one (인사랑(준비중) for W001/W002, 위드마켓 for W003; see
+ *  getKioskLocation). 지도 keeps slot 12: the two are no longer alternatives. */
 const DONATION_TILE: HomeTile = { screen: 'donation', label: '기부', icon: 'donation' };
 const MAP_TILE: HomeTile = { screen: 'map', label: '인사동지도', icon: 'map' };
 
-/** Tiles authored before slot 14 (the 기부/지도 slot). */
+/** Tiles authored between the location tile and 지도 (grid slots 4–11). */
 const TILES_BEFORE_SLOT14: HomeTile[] = [
   { screen: 'events', label: '인사동 이벤트', icon: 'events' },
   { screen: 'eat', label: "'인사' 뭐먹지", icon: 'eat' },
@@ -52,7 +51,7 @@ const TILES_BEFORE_SLOT14: HomeTile[] = [
   { screen: 'hello', label: "안녕 '인사'", icon: 'hello' },
   { screen: 'help', label: "도와줘 '인사'", icon: 'help' },
 ];
-/** Tiles authored after slot 14. */
+/** Tiles authored after 지도 (grid slots 13–16). */
 const TILES_AFTER_SLOT14: HomeTile[] = [
   { screen: 'exchange', label: '환율', icon: 'exchange' },
   { screen: 'transport', label: '교통안내', icon: 'transport' },
@@ -110,20 +109,20 @@ function parseNotice(text: string): Run[][] {
   return lines;
 }
 
-/** Promo (K-DRAMA slot) button label — base word only, since `withComingSoon`
- *  appends the (준비중) marker per language. Hardcoded rather than read from
- *  MainButton_Promotion: that row still holds the old 취사병 drama title, while
- *  the tile now reads 프로모션. Wording matches Localization_Jeju's own
- *  MainButton_Promotion row, minus its baked-in suffix. */
-const KDRAMA_LABEL: Partial<Record<Lang, string>> = {
-  ko: '프로모션',
-  en: 'PROMOTION',
-  ja: 'PROMOTION',
-  zh: '促销活动',
-  vi: 'CHƯƠNG TRÌNH KHUYẾN MÃI',
-  th: 'โปรโมชั่น',
-  ru: 'АКЦИЯ',
-  id: 'PROMOSI',
+/** Bottom-bar left caption — 스마트관광(준비중), which replaced 프로모션/K-DRAMA on
+ *  that bump in the 인사>홈 redesign. Read from the sheet's MainButton_SmartTour
+ *  row, whose copy already carries the (준비중) marker in every language, so it
+ *  does NOT go through `withComingSoon`. This fallback only covers a kiosk whose
+ *  table predates the row. */
+const SMART_TOUR_LABEL: Partial<Record<Lang, string>> = {
+  ko: '스마트관광(준비중)',
+  en: 'Attraction (Preparing)',
+  ja: 'スマート観光（準備中）',
+  zh: '智慧旅游（准备中）',
+  vi: 'Du lịch thông minh',
+  th: 'สมาร์ททัวร์',
+  ru: 'Достопримечательности (В разработке)',
+  id: 'Wisata Pintar',
 };
 
 /** Search field placeholder per language. */
@@ -172,7 +171,7 @@ function Tile({
   return (
     <button
       type="button"
-      className={tile.wide ? `${styles.tile} ${styles.tileWide}` : styles.tile}
+      className={styles.tile}
       aria-disabled={disabled || undefined}
       onClick={disabled ? (e) => e.preventDefault() : onClick}
     >
@@ -197,10 +196,10 @@ export function InsadongHome({ controller }: InsadongHomeProps): JSX.Element {
   const lang = useLanguageStore((s) => s.currentLanguage);
   /* Korean is what the grid pitch and the bottom bar were drawn around; every
      other language runs longer. See "Other languages" at the foot of the CSS.
-     (`longLang`, not `wide` — a tile's own `wide` means it spans two columns.) */
+     (`longLang` is about the COPY, not the tile: every tile is one column now.) */
   const longLang = lang !== 'ko';
   const gridRef = useRef<HTMLDivElement>(null);
-  const kdramaRef = useRef<HTMLDivElement>(null);
+  const smartTourRef = useRef<HTMLDivElement>(null);
   const restroomRef = useRef<HTMLButtonElement>(null);
 
   // Sheet-driven (Localization_Insa): NoticeContent = body, Notice = vertical badge.
@@ -208,24 +207,30 @@ export function InsadongHome({ controller }: InsadongHomeProps): JSX.Element {
   const badge = t('Notice', lang).split('\n').map((s) => s.trim()).filter(Boolean);
   const placeholder = pick(SEARCH_PLACEHOLDER, lang);
 
-  // The 2nd home tile is location-specific (인사랑(준비중) vs 위드마켓), and slot 14
-  // is 기부 or 인사동 지도 depending on whether this kiosk runs the donation app.
-  const hasDonation = useHasDonationTile(kioskId);
+  // The 3rd home tile is location-specific (인사랑(준비중) vs 위드마켓); everything
+  // else is the same 4×4 on all three kiosks — 기부 and 지도 both ship now.
   const tiles: HomeTile[] = useMemo(
     () => [
       AI_TILE,
+      DONATION_TILE,
       // Optional since KADA (W202) has no home grid — every INSADONG-family
       // location still defines it, so this filter never fires here.
       ...(getKioskLocation(kioskId).secondTile ? [getKioskLocation(kioskId).secondTile as HomeTile] : []),
       ...TILES_BEFORE_SLOT14,
-      hasDonation ? DONATION_TILE : MAP_TILE,
+      MAP_TILE,
       ...TILES_AFTER_SLOT14,
     ],
-    [kioskId, hasDonation],
+    [kioskId],
   );
-  // Re-order the tiles to match the CMS layout (line/position); the 4-column grid
-  // auto-flows them (wide AI tile keeps its span-2 class). Falls back to authored
-  // order when the layout isn't cached — see useOrderedTiles.
+  /* Re-order the tiles to match the CMS layout (line/position); the 4-column grid
+     auto-flows them. Falls back to the authored order when the layout isn't
+     cached — see useOrderedTiles.
+     NOTE: since the redesign put 기부 AND 지도 on every Insadong kiosk, that
+     fallback is what runs today: the CMS still carries only one of the two per
+     kiosk (기부 on W003, 지도 on W001/W002), and one unmatched tile drops the whole
+     grid to authored order by design. The authored order above IS the Figma
+     order, so the grid is correct either way; CMS re-ordering starts working
+     again once the missing rows are added. */
   const orderedTiles = useOrderedTiles(kioskId, tiles, tileKey);
 
   const setSearchQuery = useSearchStore((s) => s.setQuery);
@@ -275,16 +280,19 @@ export function InsadongHome({ controller }: InsadongHomeProps): JSX.Element {
 
   const weatherSrc = weather ? weatherIconUrl(weatherIconName(weather.icon, weather.main)) : undefined;
   const cameraSrc = iconUrl('camera');
-  const bottomBarSrc = iconUrl('bottom-bar');
+  /* The three-dome bar the redesign restored — the same `Union` shape the
+     한복 선택 screen already uses. (`bottom-bar.png` is the retired variant whose
+     left bump was a wide square, sized for the K-DRAMA logo.) */
+  const bottomBarSrc = iconUrl('bottom-bar-classic');
+  const smartTourLabel = tExact('MainButton_SmartTour', lang) || pick(SMART_TOUR_LABEL, lang);
 
-  /* One factor for the twelve tile labels, one for the two bottom-bar captions —
+  /* One factor for the sixteen tile labels, one for the two bottom-bar captions —
      each group keeps a single text size rather than a patchwork. */
   useFitText(gridRef, styles.tileLabel, longLang, 0.7, `${lang}|${orderedTiles.map((tile) => (TILE_LABEL_KEYS[tile.screen] ? t(TILE_LABEL_KEYS[tile.screen] as string, lang) : tile.label)).join('|')}`);
   /* The two captions are fitted apart, not as a set: they sit on their own
-     bumps with the camera dome between them, so the long 프로모션 caption has no
+     bumps with the camera dome between them, so the long 스마트관광 caption has no
      business shrinking 화장실 with it. */
-  useFitText(kdramaRef, styles.navLabel, longLang, 0.55,
-    `${lang}|${withComingSoon(pick(KDRAMA_LABEL, lang), lang)}`);
+  useFitText(smartTourRef, styles.navLabel, longLang, 0.55, `${lang}|${smartTourLabel}`);
   useFitText(restroomRef, styles.navLabel, longLang, 0.55,
     `${lang}|${t('MainButton_WC', lang)}`);
 
@@ -382,10 +390,10 @@ export function InsadongHome({ controller }: InsadongHomeProps): JSX.Element {
 
         <div className={styles.bottomRow}>
           {bottomBarSrc && <img className={styles.bottomBarBg} src={bottomBarSrc} alt="" draggable={false} />}
-          {/* K-DRAMA 준비중: keeps its full colour, but is not tappable. */}
-          <div ref={kdramaRef} className={`${styles.kdramaItem} ${styles.kdramaSoon}`} aria-disabled="true">
-            <span className={styles.kdramaIcon}>{iconUrl('kdrama') && <img src={iconUrl('kdrama')} alt="" draggable={false} />}</span>
-            <span className={`${styles.navLabel} ${longLang ? styles.navLabelLong : ''}`}>{withComingSoon(pick(KDRAMA_LABEL, lang), lang)}</span>
+          {/* 스마트관광 준비중: keeps its full colour, but is not tappable. */}
+          <div ref={smartTourRef} className={`${styles.smartTourItem} ${styles.navSoon}`} aria-disabled="true">
+            <span className={styles.navIcon}>{iconUrl('smart-tour') && <img src={iconUrl('smart-tour')} alt="" draggable={false} />}</span>
+            <span className={`${styles.navLabel} ${longLang ? styles.navLabelLong : ''}`}>{smartTourLabel}</span>
           </div>
           <button type="button" className={styles.cameraBtn} onClick={startPhoto} aria-label="AI 한복 촬영">
             {cameraSrc && <img src={cameraSrc} alt="" draggable={false} />}

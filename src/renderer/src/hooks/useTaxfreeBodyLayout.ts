@@ -37,6 +37,10 @@ export function useTaxfreeBodyLayout(
   rootRef: RefObject<HTMLElement | null>,
   subtitleRef: RefObject<HTMLElement | null>,
   lang: string,
+  /** Re-measure when the header moves without the subtitle changing size (♿). */
+  revision: boolean | string = '',
+  /** Skip the Korean two-line cap. The ♿ bar drops the subtitle past y760. */
+  uncapped = false,
 ): { top: number; height: number } {
   const [layout, setLayout] = useState({ top: 760, height: BODY_BOTTOM - 760 });
 
@@ -51,7 +55,8 @@ export function useTaxfreeBodyLayout(
       const subRect = sub.getBoundingClientRect();
       const marginBottom = parseFloat(getComputedStyle(sub).marginBottom) || 0;
       const measured = Math.ceil((subRect.bottom - rootRect.top) / scale + marginBottom);
-      const top = lang === 'ko' ? Math.min(measured, BODY_TOP_MAX_TWO_LINES) : measured;
+      const top =
+        lang === 'ko' && !uncapped ? Math.min(measured, BODY_TOP_MAX_TWO_LINES) : measured;
       setLayout({ top, height: BODY_BOTTOM - top });
     };
 
@@ -64,7 +69,7 @@ export function useTaxfreeBodyLayout(
     if (text) ro.observe(text);
 
     return () => ro.disconnect();
-  }, [rootRef, subtitleRef, lang]);
+  }, [rootRef, subtitleRef, lang, revision, uncapped]);
 
   return layout;
 }

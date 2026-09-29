@@ -1,0 +1,572 @@
+/* '인사' 뭐하지 — AI course landing + 커스텀 코스 builder.
+ *
+ * Figma page `인사동 리뉴얼`:
+ *   · 7519:74937  landing   — 커스텀 코스 card + 4 추천코스 cards
+ *   · 7519:76902  builder   — 방문 인원 / 체류 기간 / 이동수단 + CTA (compact, banner)
+ *   · 7519:74960  builder   — the same three plus 즐길 거리 (tall, no banner)
+ *
+ * Inside KioskArtboard 1 CSS px === 1 Figma px (2160×3840), so every number is a
+ * literal Figma coordinate. The two builder variants are the same markup with
+ * `.builderFull` restacking it — their section tops genuinely differ
+ * (700/1129/1558 vs 822/1201/1580/1959), they are not one layout that grows.
+ */
+
+.bg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  pointer-events: none;
+}
+
+/* ── Shared section label: bar + 76px SemiBold ────────────────────────────
+   7519:75112 — Rectangle 10.725×72.929 r21.45, text 40.725 in. The landing
+   frame types the bar as a literal "I" glyph; drawn as the real rectangle here
+   so both screens use one element. */
+.label {
+  display: flex;
+  align-items: center;
+  gap: 30px;
+  font-family: var(--kiosk-font, sans-serif);
+  font-weight: 600;
+  font-size: 76px;
+  line-height: 1;
+  color: #000000;
+  white-space: nowrap;
+}
+
+.bar {
+  flex: none;
+  width: 10.725px;
+  height: 72.929px;
+  border-radius: 21.45px;
+  background: #000000;
+}
+
+/* ════════════════════════ LANDING (7519:74937) ════════════════════════ */
+
+/* 7519:74984 — x256 y700 1678×2078. */
+.landing {
+  position: absolute;
+  left: 256px;
+  top: calc(700px + var(--header-push, 0px) + var(--insa-header-shift, 0px));
+  width: 1678px;
+  height: 2078px;
+  font-family: var(--kiosk-font, sans-serif);
+}
+
+/* 7519:74985 — centred on the block, Pretendard Bold 60, primary. */
+.landingNotice {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 100%;
+  margin: 0;
+  font-size: 60px;
+  font-weight: 700;
+  line-height: 1;
+  color: var(--kiosk-primary);
+  text-align: center;
+  white-space: nowrap;
+}
+
+/* 7519:75103 / 75102 — the two section labels. */
+.landingLabelCustom {
+  position: absolute;
+  left: 4px;
+  top: 197px;
+  color: #1a1a1a;
+}
+
+.landingLabelTheme {
+  position: absolute;
+  left: 0;
+  top: 916px;
+  color: #1a1a1a;
+}
+
+/* 7519:74987 — 1678×482 at y333, white, 5px primary, r80. */
+.customCard {
+  position: absolute;
+  left: 0;
+  top: 333px;
+  width: 1678px;
+  height: 482px;
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 370px;
+  padding-right: 102px;
+  background: #ffffff;
+  border: 5px solid var(--kiosk-primary);
+  border-radius: 80px;
+  box-shadow: 0 21.45px 49.2px rgba(143, 147, 157, 0.1);
+  cursor: pointer;
+  font-family: inherit;
+  text-align: left;
+}
+
+/* 7519:74989 — icon 282×329 then the copy column, gap 86. */
+.customLeft {
+  display: flex;
+  align-items: center;
+  gap: 86px;
+}
+
+.customArt {
+  flex: none;
+  width: 282px;
+  height: 329px;
+  object-fit: contain;
+}
+
+.customCopy {
+  display: flex;
+  flex-direction: column;
+  gap: 30px;
+  width: 598px;
+}
+
+/* Eyebrow / body — Pretendard Medium 38, 글씨-main #999. */
+.eyebrow,
+.customBody {
+  margin: 0;
+  font-size: 38px;
+  font-weight: 500;
+  color: #999999;
+  word-break: keep-all;
+}
+
+.eyebrow {
+  line-height: 1;
+}
+
+.customBody {
+  line-height: 1.3;
+}
+
+/* 7519:74995 — Pretendard Bold 70 #333. */
+.customTitle {
+  margin: 0;
+  font-size: 70px;
+  font-weight: 700;
+  line-height: 1;
+  color: #333333;
+  word-break: keep-all;
+}
+
+/* 7519:74999 — 90×90, rotated 180 so the chevron points into the card. */
+.customArrow {
+  flex: none;
+  width: 90px;
+  height: 90px;
+  object-fit: contain;
+}
+
+/* ── 추천코스 cards ───────────────────────────────────────────────────────
+   Four 780×482 plates at block (0|898, 1052|1596). Figma draws the bottom-left
+   one 771.768 wide — an 8px slip against its three siblings — so all four take
+   780 here and the row edges line up. Everything inside is hand-placed in the
+   frame, so each card passes its own art and text offsets through the TSX. */
+.themeCard {
+  position: absolute;
+  width: 780px;
+  height: 482px;
+  padding: 0;
+  background: #ffffff;
+  border: none;
+  border-radius: 80px;
+  box-shadow: 0 21.45px 49.2px rgba(143, 147, 157, 0.1);
+  cursor: pointer;
+  font-family: inherit;
+  text-align: left;
+}
+
+.themeArt {
+  position: absolute;
+  left: var(--art-x);
+  top: var(--art-y);
+  width: var(--art-w);
+  height: var(--art-h);
+  object-fit: contain;
+}
+
+.themeCopy {
+  position: absolute;
+  left: var(--tx);
+  top: var(--ty);
+  width: var(--tw);
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+/* 7519:75011 — Pretendard Bold 70 #333, line-height 1.3 (two lines). */
+.themeTitle {
+  margin: 0;
+  font-size: 70px;
+  font-weight: 700;
+  line-height: 1.3;
+  color: #333333;
+  word-break: keep-all;
+}
+
+/* ════════════════════════ BUILDER (76902 / 74960) ════════════════════════ */
+
+.builder {
+  position: absolute;
+  inset: 0;
+  font-family: var(--kiosk-font, sans-serif);
+}
+
+/* 7519:75265 — only the tall variant carries it, x365 w1486 at y700. */
+.builderNotice {
+  position: absolute;
+  left: 365px;
+  top: calc(700px + var(--header-push, 0px) + var(--insa-header-shift, 0px));
+  width: 1486px;
+  height: 60px;
+  margin: 0;
+  font-size: 60px;
+  font-weight: 700;
+  line-height: 1;
+  color: var(--kiosk-primary);
+  text-align: center;
+  white-space: nowrap;
+}
+
+/* A question block: label row (76) + 60 + pill row (193) = 329. */
+.section {
+  position: absolute;
+  left: 170px;
+  width: 1820px;
+  display: flex;
+  flex-direction: column;
+  gap: 60px;
+}
+
+/* Compact tops (7519:76902). */
+.sectionParty     { top: calc(700px + var(--header-push, 0px) + var(--insa-header-shift, 0px)); }
+.sectionStay      { top: calc(1129px + var(--header-push, 0px) + var(--insa-header-shift, 0px)); }
+.sectionTransport { top: calc(1558px + var(--header-push, 0px) + var(--insa-header-shift, 0px)); }
+
+/* Tall tops (7519:74960) — the 선택영역 starts at 822 and the gaps halve. */
+.builderFull .sectionParty     { top: calc(822px + var(--header-push, 0px) + var(--insa-header-shift, 0px)); }
+.builderFull .sectionStay      { top: calc(1201px + var(--header-push, 0px) + var(--insa-header-shift, 0px)); }
+.builderFull .sectionTransport { top: calc(1580px + var(--header-push, 0px) + var(--insa-header-shift, 0px)); }
+.builderFull .sectionJoy       { top: calc(1959px + var(--header-push, 0px) + var(--insa-header-shift, 0px)); }
+
+.pillRow {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  width: 1820px;
+  height: 193px;
+}
+
+/* 7519:77058 — h193 r45. The label is centered in the chip. A top padding
+   fights the button's own centering and drops the word into the lower half.
+   Widths are per-chip (268 / 269 / 311 / 290 / 412) and come from the TSX. */
+.pill {
+  flex: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 193px;
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0 16px;
+  border: none;
+  border-radius: 45px;
+  background: #ffffff;
+  box-shadow: 0 21.45px 42.9px rgba(143, 147, 157, 0.1);
+  overflow: hidden;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 60px;
+  font-weight: 500;
+  line-height: 1;
+  color: #999999;
+  text-align: center;
+  white-space: nowrap;
+}
+
+/* 7519:77060 — the chosen chip is solid primary, Bold white, and drops the
+   shadow (the frame gives it none). */
+.pillOn {
+  background: var(--kiosk-primary);
+  color: #ffffff;
+  font-weight: 700;
+  box-shadow: none;
+}
+
+/* ── 즐길 거리 (7519:75154) ─────────────────────────────────────────────── */
+.sectionJoy {
+  position: absolute;
+  left: 170px;
+  width: 1820px;
+  display: flex;
+  flex-direction: column;
+  gap: 60px;
+}
+
+/* 7519:75158 — day tabs on the left, 소요 총계 on the right, h101. */
+.joyBar {
+  display: flex;
+  align-items: center;
+  width: 1820px;
+  height: 101px;
+}
+
+.dayTab {
+  flex: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  height: 101px;
+  margin: 0 16px 0 0;
+  padding: 0 33px;
+  border: none;
+  border-radius: 999px;
+  background: #ffffff;
+  box-shadow: 0 21.45px 42.9px rgba(143, 147, 157, 0.1);
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 45px;
+  font-weight: 700;
+  line-height: 1;
+  color: #5e5e5e;
+  white-space: nowrap;
+}
+
+.dayTabOn {
+  background: var(--kiosk-primary);
+  color: #ffffff;
+  box-shadow: none;
+}
+
+/* Idle count sits on the pale secondary; the active tab flips it to white. */
+.dayCount {
+  flex: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 57px;
+  height: 57px;
+  margin: 0;
+  padding: 0;
+  border-radius: 50%;
+  background: #ffe6e6;
+  color: var(--kiosk-primary);
+  font-size: 45px;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.dayTabOn .dayCount {
+  background: #ffffff;
+  color: var(--kiosk-primary);
+}
+
+/* 7519:75178 — 96×96 refresh, clears the current day's picks. */
+.refreshBtn {
+  flex: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 96px;
+  height: 96px;
+  margin: 0;
+  padding: 0;
+  border: none;
+  border-radius: 20px;
+  background: #ffffff;
+  box-shadow: 0 21.45px 42.9px rgba(143, 147, 157, 0.1);
+  cursor: pointer;
+  color: var(--kiosk-primary);
+}
+
+.refreshBtn svg {
+  width: 52px;
+  height: 52px;
+  display: block;
+}
+
+/* 7519:75159 — "3시간 30분 소요", Bold 43 #5e5e5e, pinned to the row's right edge. */
+.joyTotal {
+  margin-left: auto;
+  font-size: 43px;
+  font-weight: 700;
+  line-height: 1;
+  color: #5e5e5e;
+  white-space: nowrap;
+}
+
+/* 7519:75181 — 6 columns of 268 on a 310.4 pitch, rows 215 on a 244 pitch. */
+.joyGrid {
+  display: grid;
+  grid-template-columns: repeat(6, 268px);
+  column-gap: 42.4px;
+  row-gap: 29px;
+  width: 1820px;
+}
+
+.joyChip {
+  position: relative;
+  width: 268px;
+  height: 215px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  margin: 0;
+  padding: 0 12px;
+  box-sizing: border-box;
+  border: none;
+  border-radius: 45px;
+  background: #ffffff;
+  box-shadow: 0 21.45px 42.9px rgba(143, 147, 157, 0.1);
+  cursor: pointer;
+  font-family: inherit;
+  color: #f59993;
+  text-align: center;
+}
+
+.joyChipOn {
+  background: var(--kiosk-primary);
+  color: #ffffff;
+  box-shadow: none;
+}
+
+/* A tile the picker reports as not fitting the day any more. */
+.joyChipOff {
+  opacity: 0.4;
+  cursor: default;
+  pointer-events: none;
+}
+
+.joyChipText {
+  font-size: 47px;
+  font-weight: 700;
+  line-height: 1.15;
+  color: inherit;
+  word-break: keep-all;
+}
+
+/* 7519:75195 — the "+1시간" dwell hint under a tile's name. */
+.joyChipDwell {
+  font-size: 30px;
+  font-weight: 400;
+  line-height: 1;
+  opacity: 0.8;
+}
+
+/* 7519:75185 — the 57×57 order badge on a picked tile. */
+.joyChipBadge {
+  position: absolute;
+  left: 17px;
+  top: 13px;
+  width: 57px;
+  height: 57px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: #ffffff;
+  color: var(--kiosk-primary);
+  font-size: 45px;
+  font-weight: 700;
+}
+
+/* ── CTA (7519:77096 / 75261) ─────────────────────────────────────────── */
+.cta {
+  position: absolute;
+  left: 171.6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 1816.802px;
+  height: 178.034px;
+  margin: 0;
+  padding: 0;
+  border: none;
+  border-radius: 42.9px;
+  background: var(--kiosk-primary);
+  color: #ffffff;
+  font-family: inherit;
+  font-size: 60px;
+  font-weight: 700;
+  line-height: 1;
+  cursor: pointer;
+  top: calc(1987px + var(--header-push, 0px) + var(--insa-header-shift, 0px));
+}
+
+.builderFull .cta {
+  top: calc(3497px + var(--header-push, 0px) + var(--insa-header-shift, 0px));
+}
+
+.cta:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+/* ── Page banner ──────────────────────────────────────────────────────────
+   The landing and the compact builder carry the 키오스크몰 promo (7519:75106);
+   the tall builder's content runs to y3675, so it has none — the same rule
+   JejuPageFrame applies with `showBanner`. */
+.banner {
+  position: absolute;
+  left: 0;
+  top: 3267px;
+  width: 2160px;
+  height: 573px;
+  padding: 0;
+  border: none;
+  background: none;
+  cursor: pointer;
+  overflow: hidden;
+}
+
+.banner img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+/* ── Other languages ──────────────────────────────────────────────────────
+ * Every box above is drawn around Korean. The chips are the tightest: "5 ~ 9명"
+ * is 194px inside a 311px pill, while "5 ~ 9 people" and "5 - 9 человек" are
+ * half again as long on a chip that cannot grow without moving its neighbours.
+ * One shared factor per row (useFitText), never per chip. */
+.pillLong {
+  font-size: calc(60px * var(--fit, 1));
+  white-space: normal;
+  line-height: 1.1;
+  word-break: keep-all;
+}
+
+.joyChipTextLong {
+  font-size: calc(45px * var(--fit, 1));
+}
+
+.themeTitleLong {
+  font-size: calc(70px * var(--fit, 1));
+}
+
+.customTitleLong {
+  font-size: calc(70px * var(--fit, 1));
+}
+
+/* The landing notice is one nowrap line centred on 1678; a translation runs
+   past both ends, so it wraps and shrinks instead. */
+.landingNoticeLong,
+.builderNoticeLong {
+  white-space: normal;
+  line-height: 1.2;
+  font-size: calc(60px * var(--fit, 1));
+}

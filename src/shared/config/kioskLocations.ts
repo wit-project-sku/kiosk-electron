@@ -156,15 +156,20 @@ const KADA_COORDS: GeoCoordinates = { lat: 20.9806, lon: 105.7876 };
 const INSARANG_TILE: KioskLocationTile = { screen: 'insarang', label: '인사랑(준비중)', icon: 'insarang' };
 const MARKET_TILE: KioskLocationTile = { screen: 'market', label: '위드마켓', icon: 'market' };
 
-// 기부 is deployed on W003/W004/W005 — mirrors the `buttons` CMS, which carries a
-// 기부 row for kiosks 3/4/5 (line 6 position 2) and has dropped their 지도 row, while
-// W001/W002 still have 인사동 지도 and no 기부. As of 2026-07-31 화성휴게소 W005 also
-// has a physical TL-3800 terminal, so hasCardTerminal now matches hasDonation on
-// 3/4/5: all three drive card payment through the embedded loopback agent (the
-// donation webview posts to 127.0.0.1:8080), not an online-only flow.
+// 기부 is deployed on W001–W005. W003/W004/W005 have carried it from the start;
+// W001/W002 joined with the 인사>홈 4×4 redesign, whose 홈-01 frame draws 기부 and
+// 인사동 지도 side by side (they used to share one slot). The `buttons` CMS has not
+// caught up — it still carries a 기부 row only for kiosks 3/4/5 (line 6 position 2),
+// with 지도 dropped there and the reverse on 1/2 — so on Insadong this flag, not the
+// CMS, is what puts the tile on screen (see InsadongHome).
+//
+// CAUTION for W001/W002: hasCardTerminal is still false there. The donation webview
+// loads and the tile works, but card payment posts to the embedded loopback agent
+// (127.0.0.1:8080) and there is no TL-3800 on those two machines to answer it — the
+// flow cannot complete until terminals are fitted. W003/W004/W005 have one.
 export const KIOSK_LOCATIONS: Record<KioskLocationCode, KioskLocation> = {
-  W001: { code: 'W001', name: '북인사마당', layout: 'INSADONG', secondTile: INSARANG_TILE, hasCardTerminal: false, hasDonation: false, aiCompanion: '2', coordinates: INSADONG_COORDS, cameraRotation: 0 },
-  W002: { code: 'W002', name: '인사동쉼터', layout: 'INSADONG', secondTile: INSARANG_TILE, hasCardTerminal: false, hasDonation: false, aiCompanion: '2', coordinates: INSADONG_COORDS, cameraRotation: 0 },
+  W001: { code: 'W001', name: '북인사마당', layout: 'INSADONG', secondTile: INSARANG_TILE, hasCardTerminal: false, hasDonation: true, aiCompanion: '2', coordinates: INSADONG_COORDS, cameraRotation: 0 },
+  W002: { code: 'W002', name: '인사동쉼터', layout: 'INSADONG', secondTile: INSARANG_TILE, hasCardTerminal: false, hasDonation: true, aiCompanion: '2', coordinates: INSADONG_COORDS, cameraRotation: 0 },
   W003: { code: 'W003', name: '남인사마당', layout: 'NAM_INSADONG', secondTile: MARKET_TILE, hasCardTerminal: true, hasDonation: true, aiCompanion: '2', coordinates: INSADONG_COORDS, cameraRotation: 0 },
   // 오색시장 also has a physical card-payment terminal (like 남인사마당 W003), so it
   // takes the payment result flow (위드마켓 webview + save QR, result image on Monitor 2).
@@ -247,6 +252,32 @@ export const KIOSK_LOCATIONS: Record<KioskLocationCode, KioskLocation> = {
  */
 export function isJejuLayout(layout: KioskLayoutId): boolean {
   return layout === 'JEJU_AIRPORT' || layout === 'JEJU_HERITAGE';
+}
+
+/**
+ * True for the 인사동 design family — W001/W002 (INSADONG) and W003
+ * (NAM_INSADONG). The two ids split the home grid, not the design; anything
+ * asking "is this 인사동" wants both.
+ */
+export function isInsadongLayout(layout: KioskLayoutId): boolean {
+  return layout === 'INSADONG' || layout === 'NAM_INSADONG';
+}
+
+/**
+ * True where the photo countdown waits for the visitor's OPEN PALM instead of
+ * starting on a timer.
+ *
+ * ★ This lives here, rather than being spelled out at each call site, because
+ * it is read from BOTH processes' windows and they must never disagree:
+ *   · Monitor 1 (PhotoWorkflow → photoChrome.gestureCapture) arms the gate
+ *   · Monitor 2 (CustomerDisplay) draws the palm/fist chips and runs detection
+ * Arming the gate on a screen that draws no chips is not a cosmetic mismatch —
+ * it is a silent ~30s stall until the fallback timer fires, which is exactly
+ * why the 2026-08-24 fleet-wide rollout was reverted two days later. 인사동
+ * joined 2026-09-28, taking JejuCameraGuide and the rich picker with it.
+ */
+export function usesGestureCapture(layout: KioskLayoutId): boolean {
+  return isJejuLayout(layout) || isInsadongLayout(layout);
 }
 
 /**

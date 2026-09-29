@@ -1,5 +1,11 @@
 import type { ComponentType } from 'react';
-import { getKioskLocation, isJejuLayout, isKadaLayout } from '@shared/config/kioskLocations';
+import {
+  getKioskLocation,
+  isInsadongLayout,
+  isJejuLayout,
+  isKadaLayout,
+  usesGestureCapture,
+} from '@shared/config/kioskLocations';
 import { useKioskStore } from '@renderer/store/kioskStore';
 import { iconUrl } from '@renderer/assets/icons/insadong';
 import { osanIconUrl } from '@renderer/assets/icons/osan';
@@ -43,6 +49,8 @@ export interface PhotoChrome {
   isHwaseong: boolean;
   /** 제주 replaces the whole outfit-selection step — see JejuHanbokSelect. */
   isJeju: boolean;
+  /** 인사동 W001–W003 (both INSADONG and NAM_INSADONG layouts). */
+  isInsadong: boolean;
   /** KADA (W202) — the venue's K-CULTURE CHALLENGE entry into this same flow. */
   isKada: boolean;
   /** Icon resolver for the active location (falls back to insadong). */
@@ -53,6 +61,48 @@ export interface PhotoChrome {
   photoTitle: string;
   /** Single promo banner for this location (undefined → insadong rotates its set). */
   banner: string | undefined;
+
+  /* ── Photo-flow capabilities ──────────────────────────────────────────
+     These three used to be spelled `isJeju` at each call site in
+     PhotoWorkflow. They are separate NAMED capabilities now because 인사동
+     adopted the same three together (2026-09-28) and a fourth location may
+     well want one without the others — `isJeju` as a stand-in for "has the
+     rich flow" stopped being true the moment a second location had it.
+
+     They travel as a set for a reason: see `gestureCapture`. */
+
+  /**
+   * Draw the rich outfit picker (JejuHanbokSelect) instead of the legacy
+   * HanbokSelect. API-driven throughout — tabs come from
+   * `/api/outfits/categories` and cards from `/api/outfits`, both already
+   * filtered by kioskId — so it renders the HOST location's catalogue, not
+   * 제주's. 인사동 has 7 categories / 72 outfits and no `jeju` category, which
+   * simply leaves the background-theme tab unbuilt.
+   */
+  richOutfit: boolean;
+  /**
+   * Hand the capture trigger to the visitor's open palm rather than starting
+   * the countdown on a timer.
+   *
+   * ★ Requires `richOutfit`. This went fleet-wide once before (2026-08-24 →
+   * 08-26) and was pulled back precisely because the legacy camera screen
+   * draws no palm/fist chips: the gate then reads as a silent ~30s stall until
+   * the fallback timer fires. Never set this without the screen that explains
+   * it.
+   */
+  gestureCapture: boolean;
+  /** Fill the AI wait with the 게임존 instead of a static popup. */
+  waitingGames: boolean;
+  /**
+   * Whether the 게임존 offers the camera games as well as the touch ones.
+   *
+   * 제주-only for now: the motion games run on the CUSTOMER DISPLAY and need
+   * pose tracking on its camera, and the one that exists (`jeju-run`) is
+   * Jeju-branded end to end. 인사동 takes the hub with 틀린그림찾기 alone,
+   * whose puzzles come from a GLOBAL endpoint (no kioskId) and so need no
+   * per-location content.
+   */
+  motionGames: boolean;
 }
 
 /**
@@ -86,6 +136,7 @@ export function usePhotoChrome(): PhotoChrome {
   const isHwaseong = layout === 'HWASEONG';
   const isJeju = isJejuLayout(layout);
   const isKada = isKadaLayout(layout);
+  const isInsadong = isInsadongLayout(layout);
 
   const icon = isOsan
     ? (name: string) => osanIconUrl(name) ?? iconUrl(name)
@@ -119,7 +170,15 @@ export function usePhotoChrome(): PhotoChrome {
     isOsan,
     isHwaseong,
     isJeju,
+    isInsadong,
     isKada,
+    // 인사동 joined 제주 on all three 2026-09-28; Osan/Hwaseong/KADA keep the
+    // legacy picker and the timer countdown.
+    richOutfit: isJeju || isInsadong,
+    // Shared with the customer display, which draws the chips — see the helper.
+    gestureCapture: usesGestureCapture(layout),
+    waitingGames: isJeju || isInsadong,
+    motionGames: isJeju,
     icon,
     Header,
     // KADA's audience reads English and Vietnamese, not Korean — this string is

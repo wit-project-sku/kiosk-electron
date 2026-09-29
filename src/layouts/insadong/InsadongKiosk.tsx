@@ -4,12 +4,11 @@ import { useWeatherSync } from '@renderer/hooks/useWeatherSync';
 import { useExchangeSync } from '@renderer/hooks/useExchangeSync';
 import { WEB_EMBED_URLS, donationUrl } from '@shared/constants/webEmbeds';
 import { DONATION_COMING_SOON } from '@shared/config/donation';
-import { useHasDonationTile } from '@renderer/lib/buttonLayout';
 import { iconUrl } from '@renderer/assets/icons/insadong';
 import { kdramaAssetUrls } from '@renderer/assets/icons/insadong/kdrama';
 import { KioskArtboard } from '../components/KioskScreenImage';
 import { PhotoWorkflow } from '../photo/PhotoWorkflow';
-import { InsadongHome } from './InsadongHome';
+import { InsadongHomeRenewal } from './InsadongHomeRenewal';
 import { InsadongLanguage } from './InsadongLanguage';
 import { InsadongAbout } from './InsadongAbout';
 import { InsadongMuseum } from './InsadongMuseum';
@@ -17,8 +16,8 @@ import { InsadongListScreen } from './InsadongListScreen';
 import { InsadongExchange } from './InsadongExchange';
 import { InsadongPalace } from './InsadongPalace';
 import { InsadongTransport } from './InsadongTransport';
-import { InsadongAiSearch } from './InsadongAiSearch';
-import { InsadongAiResult } from './InsadongAiResult';
+import { InsadongAiCourse } from './InsadongAiCourse';
+import { InsadongAiCourseResult } from './InsadongAiCourseResult';
 import { InsadongAiDetail } from './InsadongAiDetail';
 import { InsadongSearch } from './InsadongSearch';
 import { InsadongHello } from './InsadongHello';
@@ -30,6 +29,7 @@ import { InsadongEvents } from './InsadongEvents';
 import { InsadongTaxfree } from './InsadongTaxfree';
 import { InsadongKdrama } from './InsadongKdrama';
 import { InsadongScreen } from './InsadongScreen';
+import { BarrierShell } from './barrierFreeChrome';
 import { INSADONG_SCREENS } from './screenAssets';
 
 function readDebugFlag(): boolean {
@@ -81,13 +81,16 @@ export function InsadongKiosk(): JSX.Element {
 
   const cur = controller.screen;
   const photoActive = controller.photoActive;
-  const hasDonation = useHasDonationTile(controller.kioskId);
 
   // The "foreground" slot — null when a pre-warmed web screen is active.
   const foreground = photoActive ? (
     <PhotoWorkflow />
   ) : cur === 'home' ? (
-    <InsadongHome controller={controller} debug={debug} />
+    /* 인사동 리뉴얼 (Figma 7516:63421 / 7574:68827) — W001 북인사마당 · W002 인사동쉼터
+       · W003 남인사마당 all draw it. The only per-location difference is the 2nd
+       quick card (인사랑 vs 위드마켓), which the renewal reads from `secondTile`,
+       and grid slot 10 (지도 ⇄ 기부), which the CMS decides. */
+    <InsadongHomeRenewal controller={controller} debug={debug} />
   ) : cur === 'language' ? (
     <InsadongLanguage controller={controller} debug={debug} />
   ) : cur === 'about' ? (
@@ -109,9 +112,12 @@ export function InsadongKiosk(): JSX.Element {
   ) : cur === 'map' ? (
     <InsadongTransport controller={controller} debug={debug} initialTab={1} />
   ) : cur === 'ai_search' ? (
-    <InsadongAiSearch controller={controller} debug={debug} />
+    /* 인사동 리뉴얼 7519:74937 (landing) + 76902 / 74960 (커스텀 코스 builder).
+       Replaces the pre-renewal questionnaire; one screen holds both steps. */
+    <InsadongAiCourse controller={controller} debug={debug} />
   ) : cur === 'ai_result' ? (
-    <InsadongAiResult controller={controller} debug={debug} />
+    /* 인사동 리뉴얼 7519:75267 (76503 is a duplicate of the same frame). */
+    <InsadongAiCourseResult controller={controller} debug={debug} />
   ) : cur === 'search' ? (
     <InsadongSearch controller={controller} debug={debug} />
   ) : cur === 'ai_detail' ? (
@@ -154,7 +160,9 @@ export function InsadongKiosk(): JSX.Element {
           }}
         />
       )}
-      {foreground}
+      {foreground && (
+        <BarrierShell screen={photoActive ? 'photo' : cur}>{foreground}</BarrierShell>
+      )}
 
       {/*
         Pre-warmed web screens — always in the DOM so webview guest processes
@@ -174,7 +182,9 @@ export function InsadongKiosk(): JSX.Element {
                 : { position: 'absolute', top: 0, left: 0, width: 0, height: 0, overflow: 'hidden', pointerEvents: 'none', zIndex: 0 }
             }
           >
-            <InsadongWebScreen title={title} url={url} controller={controller} bodyHeight={bodyHeight} />
+            <BarrierShell screen={screen}>
+              <InsadongWebScreen title={title} url={url} controller={controller} bodyHeight={bodyHeight} />
+            </BarrierShell>
           </div>
         );
       })}
@@ -190,17 +200,20 @@ export function InsadongKiosk(): JSX.Element {
                 : { position: 'absolute', top: 0, left: 0, width: 0, height: 0, overflow: 'hidden', pointerEvents: 'none', zIndex: 0 }
             }
           >
-            <InsadongTaxfree controller={controller} />
+            <BarrierShell screen="taxfree">
+              <InsadongTaxfree controller={controller} />
+            </BarrierShell>
           </div>
         );
       })()}
 
       {/* Donation web app — fullscreen embed, pre-warmed so it opens instantly.
           zIndex 2 so it covers the kiosk chrome and reads as a native page.
-          Only mounted where 기부 exists (남인사마당 W003) AND is live: the layer loads
-          the remote page immediately, so on a kiosk with no 기부 tile — or while
-          기부 is 준비중 (unreachable) — it would sit there fetching for nothing. */}
-      {hasDonation && !DONATION_COMING_SOON && (() => {
+          Every Insadong kiosk draws the 기부 tile since the 4×4 redesign (인사>홈-01
+          and -02 both show it), so the only gate left is whether 기부 is live: the
+          layer loads the remote page immediately, and while 기부 is 준비중 — i.e.
+          unreachable — it would sit there fetching for nothing. */}
+      {!DONATION_COMING_SOON && (() => {
         const active = !photoActive && cur === 'donation';
         return (
           <div

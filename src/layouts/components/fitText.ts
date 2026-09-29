@@ -87,14 +87,29 @@ function textEscapes(b: HTMLElement): boolean {
   return false;
 }
 
-/** How far `b`'s content runs past the top edge of its bottom padding, in px. */
+/**
+ * How far `b`'s content runs past the top edge of its bottom padding, in
+ * LAYOUT px — the same space `scrollHeight`/`clientHeight` and SLACK are in.
+ *
+ * ★ The conversion is the whole point. `getBoundingClientRect()` reports
+ * SCALED px (KioskArtboard draws every layout inside a `transform: scale`),
+ * while `clientHeight` and `paddingBottom` are layout px. Mixing the two put
+ * the limit a full artboard below the card — measured on the 안녕 hobby card at
+ * the kiosk's own scale, a real 18px overrun came back as −345, so this never
+ * fired anywhere and the `height` axis was silently just the scrollHeight test
+ * it was written to improve on. The factor comes off the element itself
+ * (`rect.height / offsetHeight`), so it needs no knowledge of the artboard.
+ */
 function paddingOverrun(b: HTMLElement): number {
   const style = getComputedStyle(b);
-  const top = b.getBoundingClientRect().top + parseFloat(style.borderTopWidth);
-  const limit = top + b.clientHeight - parseFloat(style.paddingBottom);
+  const rect = b.getBoundingClientRect();
+  const scale = b.offsetHeight > 0 ? rect.height / b.offsetHeight : 1;
+  const s = scale > 0 ? scale : 1;
+  const top = rect.top + parseFloat(style.borderTopWidth) * s;
+  const limit = top + (b.clientHeight - parseFloat(style.paddingBottom)) * s;
   let bottom = -Infinity;
   for (const child of b.children) bottom = Math.max(bottom, child.getBoundingClientRect().bottom);
-  return bottom === -Infinity ? 0 : bottom - limit;
+  return bottom === -Infinity ? 0 : (bottom - limit) / s;
 }
 
 function fitGroup(
