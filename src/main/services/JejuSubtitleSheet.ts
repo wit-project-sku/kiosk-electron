@@ -38,6 +38,44 @@ export const JEJU_SUBTITLE_TABS: Partial<Record<KioskLayoutId, string>> = {
   JEJU_HERITAGE: 'VideoSubtitle_Jeju_유산',
 };
 
+/**
+ * 인사동 (W001–W003) reads its own tab the same way — but as the PRIMARY source,
+ * not a fallback: the CMS still carries the pre-refresh file names, which match
+ * none of the clips now on the kiosks. See {@link INSA_PARSE}.
+ */
+export const INSA_SUBTITLE_TAB = 'VideoSubtitle_Insa';
+export const INSA_SUBTITLE_LAYOUTS: ReadonlySet<KioskLayoutId> = new Set<KioskLayoutId>(['INSADONG', 'NAM_INSADONG']);
+
+/** How a venue's tab differs from 제주's. */
+export interface SubtitleParseOptions {
+  /** Read `파일명 (개발)` only, ignoring `파일명 (운영)`. */
+  devNameOnly?: boolean;
+  /** Appended to every file stem that does not already end with it (case-insensitive). */
+  fileSuffix?: string;
+  /** Delete whitespace inside a Key (`To Gallery_Detail` → `ToGallery_Detail`). */
+  compactKeys?: boolean;
+  /** Keep the first of several rows that name the same key AND file. */
+  dedupe?: boolean;
+}
+
+/**
+ * 인사동's VideoSubtitle_Insa.
+ *
+ *  - `파일명 (개발)` is the name the footage is delivered under (`IS=Weather_Cold`);
+ *    `파일명 (운영)` is the retired CMS naming (`INSA=V1_68=Weather=FIN_DOWN`) and
+ *    matches no file on the machines any more.
+ *  - Every delivered file carries a trailing `=FIN` before `.mp4`
+ *    (`IS=Weather_Cold=FIN.mp4`) that the sheet's name does not, so it is added here.
+ *  - The Key column has a few stray spaces (`To Gallery`) where the app says `ToGallery`.
+ *  - `Photo-3` is listed on three rows for one clip.
+ */
+export const INSA_PARSE: SubtitleParseOptions = {
+  devNameOnly: true,
+  fileSuffix: '=FIN',
+  compactKeys: true,
+  dedupe: true,
+};
+
 /** Sheet language header → app code. Resolved by name, so a reorder cannot scramble it. */
 const SHEET_LANGS: Record<string, keyof SubtitleLangText> = {
   KR: 'ko', EN: 'en', JP: 'ja', CN: 'zh', VN: 'vi', ID: 'id', TH: 'th', RU: 'ru',
@@ -122,6 +160,7 @@ function langBlock(row: readonly string[], block: readonly LangCol[]): SubtitleL
  */
 export function parseJejuSubtitleSheet(
   rows: readonly (readonly string[])[],
+  options: SubtitleParseOptions = {},
 ): { entries: VideoEntry[]; noVideo: number } {
   const headerAt = rows
     .slice(0, 6)
@@ -130,21 +169,32 @@ export function parseJejuSubtitleSheet(
   const cols = resolveColumns(rows[headerAt] ?? []);
 
   const entries: VideoEntry[] = [];
+  const seen = new Set<string>();
   let noVideo = 0;
   rows.slice(headerAt + 1).forEach((r, i) => {
-    const key = clean(r[cols.key]);
-    if (!key || /^Key\b/i.test(key)) return;
-    // 운영 (the name the file actually ships under) wins over 개발 once filled.
-    const named =
-      (cols.fileOps >= 0 ? clean(r[cols.fileOps]) : '') || (cols.fileDev >= 0 ? clean(r[cols.fileDev]) : '');
+    const rawKey = clean(r[cols.key]);
+    if (!rawKey || /^Key\b/i.test(rawKey)) return;
+    const key = options.compactKeys ? rawKey.replace(/\s+/g, '') : rawKey;
+    // 운영 (the name the file actually ships under) wins over 개발 once filled —
+    // except where the venue's files are named after 개발 (see INSA_PARSE).
+    const ops = !options.devNameOnly && cols.fileOps >= 0 ? clean(r[cols.fileOps]) : '';
+    const named = ops || (cols.fileDev >= 0 ? clean(r[cols.fileDev]) : '');
     if (!named) {
       noVideo += 1;
       return;
     }
+    let file = named.slice(named.lastIndexOf('/') + 1).replace(/\.mp4$/i, '');
+    const suffix = options.fileSuffix;
+    if (suffix && !file.toLowerCase().endsWith(suffix.toLowerCase())) file += suffix;
+    if (options.dedupe) {
+      const id = `${key}\u0000${file}`;
+      if (seen.has(id)) return;
+      seen.add(id);
+    }
     const entry: VideoEntry = {
       key,
       // A folder prefix ("jeju/…") is dropped, as the API path drops it.
-      file: named.slice(named.lastIndexOf('/') + 1),
+      file,
       subtitle: langBlock(r, cols.main),
       label: langBlock(r, cols.rightTop),
       buttonId: null,

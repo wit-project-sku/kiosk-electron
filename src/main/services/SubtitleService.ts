@@ -5,7 +5,13 @@ import type { VideoEntry, SubtitleApiResponse } from '@shared/types/subtitle';
 import { transformSubtitleResponse } from '@shared/types/subtitle';
 import type { KioskService } from './KioskService';
 import type { LocalCacheService } from './LocalCacheService';
-import { JEJU_SUBTITLE_TABS, parseJejuSubtitleSheet } from './JejuSubtitleSheet';
+import {
+  INSA_PARSE,
+  INSA_SUBTITLE_LAYOUTS,
+  INSA_SUBTITLE_TAB,
+  JEJU_SUBTITLE_TABS,
+  parseJejuSubtitleSheet,
+} from './JejuSubtitleSheet';
 import { SheetsClient } from './sync/google/SheetsClient';
 import { contentSheetIdFor } from './sync/GoogleSheetsSyncTransport';
 
@@ -37,6 +43,15 @@ type SubtitleSource = 'api' | 'sheet';
  * answers with NO rows, the venue's VideoSubtitle tab is read from the 제주
  * content spreadsheet instead (see JejuSubtitleSheet). The API still wins the
  * moment it has rows — nothing needs switching off.
+ *
+ * ── 인사동: the sheet is the source ─────────────────────────────────────────
+ * The reverse order. The CMS still names the pre-refresh footage
+ * (`M=hanbok01=7.2-02=…`), none of which is on the kiosks now, so its rows would
+ * resolve no clip at all. VideoSubtitle_Insa is read FIRST and its
+ * `파일명 (개발)` + `=FIN` names are what the files on disk are called (see
+ * INSA_PARSE). The API is used only when the sheet cannot be read AND nothing
+ * from the sheet is cached — a network blip must not swap working sheet rows
+ * for names that match nothing.
  *
  * An UNREACHABLE API is a different case from an empty one: if what is cached
  * came from the API, it is kept rather than replaced by the sheet, so a network
@@ -84,6 +99,15 @@ export class SubtitleService {
   }
 
   private async refresh(): Promise<void> {
+    if (INSA_SUBTITLE_LAYOUTS.has(getKioskLocation(this.kiosk.getConfig().kioskId).layout)) {
+      const fromSheet = await this.fetchSheet(false);
+      if (fromSheet) {
+        this.store(fromSheet, 'sheet');
+        return;
+      }
+      // Sheet unavailable: keep what the sheet gave us last time, if anything.
+      if (this.source === 'sheet') return;
+    }
     const fromApi = await this.fetchApi();
     if (fromApi && fromApi.length > 0) {
       this.store(fromApi, 'api');
@@ -117,8 +141,9 @@ export class SubtitleService {
   /** The 제주 VideoSubtitle tab, or `null` when it does not apply or yields nothing. */
   private async fetchSheet(apiUnreachable: boolean): Promise<VideoEntry[] | null> {
     const layout = getKioskLocation(this.kiosk.getConfig().kioskId).layout;
-    const tab = JEJU_SUBTITLE_TABS[layout];
-    // Not a 제주 kiosk: keep the cache exactly as before.
+    const insa = INSA_SUBTITLE_LAYOUTS.has(layout);
+    const tab = insa ? INSA_SUBTITLE_TAB : JEJU_SUBTITLE_TABS[layout];
+    // Neither 인사동 nor 제주: keep the cache exactly as before.
     if (!tab) return null;
     // Offline with real CMS rows cached — never trade those for the sheet's.
     if (apiUnreachable && this.source === 'api') return null;
@@ -126,18 +151,18 @@ export class SubtitleService {
     const config = getGoogleSyncConfig();
     const sheetId = contentSheetIdFor(layout);
     if (!config || !sheetId) {
-      log.warn('No Google Sheets access on this machine; 제주 subtitle sheet fallback skipped', { tab });
+      log.warn('No Google Sheets access on this machine; subtitle sheet skipped', { tab });
       return null;
     }
     try {
       const range = `'${tab.replace(/'/g, "''")}'!A:AZ`;
       const rows = await new SheetsClient({ ...config, sheetId }).getValues(range);
-      const { entries, noVideo } = parseJejuSubtitleSheet(rows);
+      const { entries, noVideo } = parseJejuSubtitleSheet(rows, insa ? INSA_PARSE : {});
       if (entries.length === 0) {
         log.warn('Subtitle sheet has no rows with a video file name', { tab, noVideo });
         return null;
       }
-      log.info('Subtitles loaded from the Google Sheet (the API has none)', {
+      log.info(insa ? 'Subtitles loaded from the Google Sheet' : 'Subtitles loaded from the Google Sheet (the API has none)', {
         tab,
         count: entries.length,
         noVideo,

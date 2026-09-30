@@ -82,9 +82,19 @@ export function videoUrlsForSet(set: VideoSet): string[] {
   return FILES_BY_SET[set].map(mediaUrl);
 }
 
+/**
+ * The file a sheet stem names, within one set. Exact first; then the stem with
+ * the `=FIN` the delivered 인사동 files carry (`IS=Weather_Cold` →
+ * `IS=Weather_Cold=FIN.mp4`), so a plain sheet/CMS name still finds its clip.
+ */
+function findFile(stem: string, set: VideoSet): VideoFile | undefined {
+  const n = norm(stem);
+  return FILE_BY_NORM[set].get(n) ?? FILE_BY_NORM[set].get(`${n}fin`);
+}
+
 /** Resolve a sheet file stem to a media:// URL within the kiosk's video set. */
 function resolveUrl(stem: string, set: VideoSet): string | null {
-  const file = FILE_BY_NORM[set].get(norm(stem));
+  const file = findFile(stem, set);
   return file ? mediaUrl(file) : null;
 }
 
@@ -184,7 +194,7 @@ export function initSubtitles(entries: VideoEntry[], kioskId?: KioskId): void {
     // from the retired sheet table carried this; the API itself never does).
     // Silently skip another venue's row: not a misconfiguration, so no warn.
     if (e.set && e.set !== set) continue;
-    if (FILE_BY_NORM[set].has(norm(e.file))) matched.push(e);
+    if (findFile(e.file, set)) matched.push(e);
     else dropped.push(`${e.key}=${e.file}`);
   }
 
