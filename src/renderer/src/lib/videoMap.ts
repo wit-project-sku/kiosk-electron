@@ -233,16 +233,18 @@ export function initSubtitles(entries: VideoEntry[], kioskId?: KioskId): void {
   // follow the touch screen, so it reads as "subtitles are broken and the video
   // is stuck" rather than "these file names don't line up". Print both lists
   // side by side — the answer is always visible in the first two rows.
+  // The lists go INTO the message string: main.log (via spyRendererConsole)
+  // prints an object argument as "[object Object]", which hid exactly the two
+  // lists this line exists to show.
   if (real === 0 && FILES_BY_SET[set].length > 0) {
+    const expected = entries.filter((e) => !e.noVideo).slice(0, 10).map((e) => `${e.file}.mp4`);
+    const onDisk = FILES_BY_SET[set].slice(0, 10).map((f) => `${f.folder}/${f.name}`);
     console.error(
       `[videoMap] NO subtitle matched any video in "${set}". The clip names in the ` +
         `subtitle data and the files on disk are different — compare these two lists. ` +
         `Until they agree the customer display shows the generic wall: no subtitles, ` +
-        `and the same loop on every screen.`,
-      {
-        expectedByData: entries.slice(0, 10).map((e) => `${e.file}.mp4`),
-        foundOnDisk: FILES_BY_SET[set].slice(0, 10).map((f) => `${f.folder}/${f.name}`),
-      },
+        `and the same loop on every screen.\n  expected by data: ${expected.join(', ')}` +
+        `\n  found on disk:    ${onDisk.join(', ')}`,
     );
   }
 
