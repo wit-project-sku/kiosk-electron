@@ -76,7 +76,7 @@ const TEXT = {
     ko: 'AI 맞춤 추천 코스', en: 'Your AI course', ja: 'AIおすすめコース', zh: 'AI定制推荐路线',
     vi: 'Lộ trình AI dành cho bạn', th: 'เส้นทางแนะนำโดย AI', ru: 'Маршрут от ИИ', id: 'Rute rekomendasi AI',
   } as L8,
-  /** 7519:75284's hashtag line. No sheet row anywhere; authored. */
+  /** 7519:75284's hashtag line — sheet row `Insa_Todo_result_tags` since 2026-09-30, authored until it is filled. */
   tags: {
     ko: '#취향 #맞춤 #내맘대로', en: '#taste #tailored #myway', ja: '#好み #カスタム #自分流',
     zh: '#喜好 #定制 #随我心', vi: '#sởthích #riêngbạn #theoýbạn', th: '#สไตล์คุณ #จัดให้ #ตามใจ',
@@ -358,12 +358,12 @@ export function InsadongAiCourseResult({ controller }: Props): JSX.Element {
         /* The id, not a pre-localized string: screenTitle maps it to
            MainButton_AI, which the 인사 tab carries in all eight languages. */
         title="‘인사’ 뭐하지 (AI 검색)"
-        subtitle={`${line('AI_Course_Result', TEXT.result)} - ${insaDayTabLabel(day, lang)}`}
+        subtitle={`${line('Insa_Todo_result_Subtitle', TEXT.result)} - ${insaDayTabLabel(day, lang)}`}
         onHome={goHome}
         onBack={goBack}
       />
 
-      <p className={styles.tags}>{line('Tags', TEXT.tags)}</p>
+      <p className={styles.tags}>{line('Insa_Todo_result_tags', TEXT.tags)}</p>
 
       {qrValue && (
         <div className={styles.qr}>
@@ -477,7 +477,7 @@ export function InsadongAiCourseResult({ controller }: Props): JSX.Element {
                             <span className={styles.dwellCell}>
                               {dwellIcon && <img className={styles.hoursIcon} src={dwellIcon} alt="" draggable={false} />}
                               <span className={styles.dwellText}>
-                                {line('Course_Dwell', TEXT.dwell)} : {minutesLabel(stop.dwellMinutes, lang)}
+                                {line('TimeToAdjourn', TEXT.dwell)} : {minutesLabel(stop.dwellMinutes, lang)}
                               </span>
                             </span>
                           </span>

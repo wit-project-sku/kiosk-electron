@@ -47,8 +47,18 @@ const DATA_DIR = join(ROOT, 'src/renderer/src/data');
 const CACHE_DIR = join(DATA_DIR, 'sheet-cache');
 const OFFLINE = process.argv.includes('--offline');
 
+/**
+ * Localization tabs open with a title row ("운영팀> 2번 모니터> …") ABOVE the
+ * Num/Key/Korean header. gviz guesses how many rows are the header and, with that
+ * layout, folded the first ~75 data rows into one multi-line header cell (seen
+ * 2026-09-30: Localization_Insa came back with 143 of 290 keys, silently losing
+ * every MainButton_* / SubHeader_* row). `headers=0` turns the guess off and
+ * returns every row as data; the parsers already skip the title row (blank Key)
+ * and the header row (Key === 'Key').
+ */
 const csvUrl = (sheet, sheetId = SHEET_ID) =>
-  `https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(sheet)}`;
+  `https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(sheet)}` +
+  (sheet.startsWith('Localization_') ? '&headers=0' : '');
 
 /** RFC-4180 CSV parser (handles quoted fields, escaped quotes, embedded newlines). */
 function parseCSV(text) {

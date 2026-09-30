@@ -145,6 +145,9 @@ export function InsadongTaxfree({ controller }: InsadongTaxfreeProps): JSX.Eleme
 
       <InsadongHeader
         title="TAX-FREE"
+        /* SubHeader_TaxFree left the sheet; each tab now has its own line. 소개 shares the
+           refund tab's (Taxfree_desc1 is the same sentence). */
+        subtitle={t(activeTab === 'merchant' ? 'Taxfree_Subtitle2' : 'Taxfree_Subtitle1', lang)}
         onHome={goHome}
         subtitleClassName={`${headerStyles.subtitleBelowGap} ${headerStyles.subtitleWide}`}
         subtitleRef={subtitleRef}

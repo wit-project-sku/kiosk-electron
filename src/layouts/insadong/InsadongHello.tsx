@@ -29,9 +29,11 @@ function pick<T>(map: Partial<Record<Lang, T>>, lang: Lang): T {
 }
 
 /** Sheet cells are one block with newlines. Each line is a row on the card. */
-function sheetLines(key: string, lang: Lang): string[] {
-  return t(key, lang)
-    .split(/\n+/)
+function sheetLines(keys: readonly string[], lang: Lang): string[] {
+  /* A few cells carry a typed backslash-n rather than a real line break
+     (Greeting_Hobby_Second_Desc_2, Greeting_IntrodutionContent), so split on both. */
+  return keys
+    .flatMap((key) => t(key, lang).split(/\\n|\n+/))
     .map((s) => s.trim())
     .filter(Boolean);
 }
@@ -54,16 +56,36 @@ const DETAIL_ROWS: [string, string][] = [
   ['Greeting_Introdution', 'Greeting_IntrodutionContent'],
 ];
 
+/**
+ * 취미생활 cards. Titles are correct — the sheet carries
+ * `Greeting_Hobby_First/Second/Third` 8/8.
+ *
+ * The bodies are `_Desc_1` (a one-line hook) + `_Desc_2` (the paragraph); the
+ * old single `_Content` cell no longer exists. Each renders as its own row on
+ * the card, which is how `sheetLines` already lays out a multi-line cell.
+ */
 const HOBBIES = [
-  { title: 'Greeting_Hobby_First', body: 'Greeting_Hobby_First_Content', image: hobbyKpop },
-  { title: 'Greeting_Hobby_Second', body: 'Greeting_Hobby_Second_Content', image: hobbyGolf },
-  { title: 'Greeting_Hobby_Third', body: 'Greeting_Hobby_Third_Content', image: hobbyTennis },
+  { title: 'Greeting_Hobby_First', body: ['Greeting_Hobby_First_Desc_1', 'Greeting_Hobby_First_Desc_2'], image: hobbyKpop },
+  { title: 'Greeting_Hobby_Second', body: ['Greeting_Hobby_Second_Desc_1', 'Greeting_Hobby_Second_Desc_2'], image: hobbyGolf },
+  { title: 'Greeting_Hobby_Third', body: ['Greeting_Hobby_Third_Desc_1', 'Greeting_Hobby_Third_Desc_2'], image: hobbyTennis },
 ] as const;
 
+/**
+ * 건강습관 cards.
+ *
+ * ★ `Greeting_Healthy_Habit_*`, not `Greeting_Stretching_*` (corrected
+ * 2026-09-30). The sheet has never carried a single `Stretching` row, so every
+ * title AND body on this tab fell back to its authored Korean in all eight
+ * languages. The content was there the whole time under this name — verified
+ * 8/8 in the kiosk's own translations table ("목·어깨" / "Neck and shoulders" /
+ * "首・肩").
+ *
+ * The bodies follow the same `_Desc_1` + `_Desc_2` split as HOBBIES.
+ */
 const HEALTH = [
-  { title: 'Greeting_Stretching_First', body: 'Greeting_Stretching_First_Content', image: stretch1 },
-  { title: 'Greeting_Stretching_Second', body: 'Greeting_Stretching_Second_Content', image: stretch2 },
-  { title: 'Greeting_Stretching_Third', body: 'Greeting_Stretching_Third_Content', image: stretch3 },
+  { title: 'Greeting_Healthy_Habit_First', body: ['Greeting_Healthy_Habit_First_Desc_1', 'Greeting_Healthy_Habit_First_Desc_2'], image: stretch1 },
+  { title: 'Greeting_Healthy_Habit_Second', body: ['Greeting_Healthy_Habit_Second_Desc_1', 'Greeting_Healthy_Habit_Second_Desc_2'], image: stretch2 },
+  { title: 'Greeting_Healthy_Habit_Third', body: ['Greeting_Healthy_Habit_Third_Desc_1', 'Greeting_Healthy_Habit_Third_Desc_2'], image: stretch3 },
 ] as const;
 
 /**
@@ -244,7 +266,7 @@ export function InsadongHello({ controller }: InsadongHelloProps): JSX.Element {
                 <div key={labelKey} className={styles.detail}>
                   <span className={styles.label}>{t(labelKey, lang)}</span>
                   <div className={styles.detailValue}>
-                    {sheetLines(valueKey, lang).map((line, i) => (
+                    {sheetLines([valueKey], lang).map((line, i) => (
                       <span key={i}>{line}</span>
                     ))}
                   </div>

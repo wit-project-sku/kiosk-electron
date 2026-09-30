@@ -326,7 +326,7 @@
 
 .thumbs {
   flex: none;
-  width: 175px;
+  width: 183px;
   height: 590px;
   display: flex;
   flex-direction: column;
@@ -334,7 +334,7 @@
 }
 
 .thumb {
-  width: 175px;
+  width: 183px;
   flex: none;
   padding: 0;
   border: none;
@@ -356,17 +356,19 @@
   box-shadow: inset 0 0 0 5px var(--kiosk-primary);
 }
 
-.thumb:nth-child(1) { height: 117px; }
-.thumb:nth-child(2) { height: 102px; }
-.thumb:nth-child(3) { height: 116px; }
-.thumb:nth-child(4) { height: 105px; }
-.thumb:nth-child(5) { height: 117px; }
+/* 7567:61107 — four thumbs, 24px apart (space-between over 590px). The second is
+   the taller 154px one, and its frame shows the RIGHT edge of the photo. */
+.thumb:nth-child(1) { height: 122px; }
+.thumb:nth-child(2) { height: 154px; }
+.thumb:nth-child(3) { height: 122px; }
+.thumb:nth-child(4) { height: 122px; }
+.thumb:nth-child(2) img { object-position: 100% 50%; }
 
 .hero {
   flex: none;
-  width: 885px;
+  width: 894px;
   height: 590px;
-  margin-left: 17px;
+  margin-left: 19px;
   object-fit: cover;
   border-radius: 20px;
   display: block;
@@ -375,7 +377,7 @@
 .historyIntro {
   flex: none;
   width: 500px;
-  margin-left: 66px;
+  margin-left: 38px;
   padding-top: 44px;
 }
 

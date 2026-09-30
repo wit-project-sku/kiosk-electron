@@ -117,34 +117,42 @@ const TILE_LABEL_KEYS: Record<string, string> = {
 };
 
 /**
- * Sheet keys for the renewal's NEW 25px sub-caption line.
+ * Sheet keys for the renewal's 25px sub-caption line.
  *
- * These follow the existing `MainButton_*` rows with a `_Sub` suffix. Every one
- * is read through {@link tExact}, which returns '' for a key the sheet does not
- * carry — the tile then falls back to the Korean string authored in Figma. So a
- * kiosk whose Localization_Insa predates these rows still renders correctly, and
- * picks the translations up on the next night sync with no code change.
+ * ★ `_Subtext`, not `_Sub` (corrected 2026-09-30). The map was authored against
+ * a guessed `_Sub` suffix and the sheet uses `_Subtext`, so `tExact` returned ''
+ * for all seventeen and EVERY tile silently fell back to its Figma Korean — in
+ * all eight languages, on every kiosk, since the renewal shipped. Nothing looked
+ * broken because falling back is the designed behaviour for a missing row; only
+ * reading the synced table showed it. Verified against the kiosk's own
+ * translations table: e.g. MainButton_ToEat_Subtext is filled 8/8
+ * ("맛집 추천" / "Restaurant Recommendations" / "おすすめのレストラン").
  *
- * If the sheet names them differently, this map is the only thing to edit.
+ * `subOf` also tries a `_SubText` spelling, because the sheet really does spell
+ * 뭐사지 that way — see there.
+ *
+ * `Goods` (the 위드마켓 quick card at W003) has NO row under any spelling, so it
+ * is the one caption still served by its Korean fallback. Left pointing at the
+ * consistent name so it starts working the day the operator adds it.
  */
 const TILE_SUB_KEYS: Record<string, string> = {
-  eat: 'MainButton_ToEat_Sub',
-  shop: 'MainButton_ToBuy_Sub',
-  lodging: 'MainButton_ToStay_Sub',
-  palace: 'MainButton_Palace_Sub',
-  about: 'MainButton_Here_Sub',
-  hello: 'MainButton_Greeting_Sub',
-  help: 'MainButton_ToHelp_Sub',
-  museum: 'MainButton_ToGallery_Sub',
-  exchange: 'MainButton_Exchange_Sub',
-  map: 'MainButton_Map_Sub',
-  donation: 'MainButton_Donation_Sub',
-  transport: 'MainButton_Transport_Sub',
-  taxfree: 'MainButton_TaxFree_Sub',
-  ai_search: 'MainButton_AI_Sub',
-  insarang: 'MainButton_Insarang_Sub',
-  market: 'MainButton_Goods_Sub',
-  events: 'MainButton_Event_Sub',
+  eat: 'MainButton_ToEat_Subtext',
+  shop: 'MainButton_ToBuy_Subtext',
+  lodging: 'MainButton_ToStay_Subtext',
+  palace: 'MainButton_Palace_Subtext',
+  about: 'MainButton_Here_Subtext',
+  hello: 'MainButton_Greeting_Subtext',
+  help: 'MainButton_ToHelp_Subtext',
+  museum: 'MainButton_ToGallery_Subtext',
+  exchange: 'MainButton_Exchange_Subtext',
+  map: 'MainButton_Map_Subtext',
+  donation: 'MainButton_Donation_Subtext',
+  transport: 'MainButton_Transport_Subtext',
+  taxfree: 'MainButton_TaxFree_Subtext',
+  ai_search: 'MainButton_AI_Subtext',
+  insarang: 'MainButton_Insarang_Subtext',
+  market: 'MainButton_Goods_Subtext',
+  events: 'MainButton_Event_Subtext',
 };
 
 /**
@@ -366,8 +374,21 @@ const stripParenthetical = (label: string): string =>
   /** Label/sub for a tile: sheet row first, Figma's Korean copy as the fallback. */
   const labelOf = (screen: string, fallback: string): string =>
     (TILE_LABEL_KEYS[screen] ? tExact(TILE_LABEL_KEYS[screen] as string, lang) : '') || fallback;
-  const subOf = (screen: string, fallback: string): string =>
-    (TILE_SUB_KEYS[screen] ? tExact(TILE_SUB_KEYS[screen] as string, lang) : '') || fallback;
+  /**
+   * Sub-caption for a tile: sheet row first, Figma's Korean copy as the fallback.
+   *
+   * Two spellings are tried because the sheet carries both: fifteen rows are
+   * `..._Subtext` and 뭐사지's is `MainButton_ToBuy_SubText`, with a capital T.
+   * `tExact` is case-SENSITIVE, so without the second attempt that one tile
+   * alone would keep falling back. Tolerating it here rather than hardcoding
+   * the typo in the map means the tile keeps working whichever way the operator
+   * eventually settles the sheet.
+   */
+  const subOf = (screen: string, fallback: string): string => {
+    const key = TILE_SUB_KEYS[screen];
+    if (!key) return fallback;
+    return tExact(key, lang) || tExact(key.replace(/_Subtext$/, '_SubText'), lang) || fallback;
+  };
 
   const weatherSrc = weather ? weatherIconUrl(weatherIconName(weather.icon, weather.main)) : undefined;
 

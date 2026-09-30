@@ -8,7 +8,7 @@ import { useRotatingBanner } from '@renderer/hooks/useRotatingBanner';
 import { useEvents } from '@renderer/hooks/useEvents';
 import { EventDetailScreen } from '@layouts/components/EventDetailScreen';
 import { useLang } from '@renderer/lib/i18n';
-import { t } from '@renderer/lib/loc';
+import { t, tExact } from '@renderer/lib/loc';
 import { ui, uiParts, type UiTextKey } from '@renderer/lib/uiText';
 import { InsadongHeader } from './InsadongHeader';
 import { InsadongLeftNav } from './InsadongLeftNav';
@@ -114,7 +114,7 @@ function MbtiSection({ region }: MbtiSectionProps): JSX.Element {
         </div>
       ) : (
         <button type="button" className={styles.mbtiCta} onClick={() => void getResults()}>
-          {ui('mbtiSubmit', lang)}
+          {tExact('Event_MBTI_results', lang) || ui('mbtiSubmit', lang)}
         </button>
       )}
 
@@ -127,7 +127,7 @@ function MbtiSection({ region }: MbtiSectionProps): JSX.Element {
         {uiParts('mbtiIntro', lang)[1]}
         <br />
         <br />
-        {ui('mbtiHint', lang)
+        {(tExact('Event_MBTI_guide2', lang).replace(/<br\s*\/?>\s*/gi, '\n') || ui('mbtiHint', lang))
           .split('\n')
           .map((line, i, all) => (
             <span key={i}>
@@ -319,7 +319,7 @@ export function InsadongEvents({ controller }: InsadongEventsProps): JSX.Element
 
           <div className={styles.qrFooter}>
             <div className={styles.qrDivider} />
-            <p className={styles.qrSource}>{ui('eventSource', lang)}</p>
+            <p className={styles.qrSource}>{tExact('Event_Source', lang) || ui('eventSource', lang)}</p>
             <button type="button" className={styles.qrFrame} onClick={() => setQrZoomOpen(true)} aria-label="QR">
               <img src={qrCodeImg} alt="" draggable={false} />
             </button>

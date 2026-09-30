@@ -30,6 +30,27 @@ const UI_TEXT = {
     ru: 'Скоро открытие',
     id: 'Segera hadir',
   },
+  // ── 고궁안내 detail labels ─────────────────────────────────────────────
+  // Palace_History / _Attraction / _OpeningTime / _Fee were Localization_Insa rows
+  // until the sheet was restructured (2026-09-30) and were dropped without a
+  // replacement. PalaceDetailCard still asks the sheet first, so an operator who
+  // restores the rows wins; these stop t() printing the bare key in the meantime.
+  palaceHistory: {
+    ko: '역사', en: 'History', ja: '歴史', zh: '历史',
+    vi: 'Lịch sử', th: 'ประวัติ', ru: 'История', id: 'Sejarah',
+  },
+  palaceAttractions: {
+    ko: '볼거리', en: 'Attractions', ja: '見どころ', zh: '看点',
+    vi: 'Điểm tham quan', th: 'สิ่งที่น่าสนใจ', ru: 'Что посмотреть', id: 'Tempat Menarik',
+  },
+  palaceHours: {
+    ko: '영업시간', en: 'Business Hours', ja: '営業時間', zh: '营业时间',
+    vi: 'Giờ mở cửa', th: 'เวลาทำการ', ru: 'Часы работы', id: 'Jam Operasional',
+  },
+  palaceFee: {
+    ko: '입장료', en: 'Admission Fee', ja: '入場料', zh: '门票',
+    vi: 'Phí vào cửa', th: 'ค่าเข้าชม', ru: 'Входная плата', id: 'Biaya Masuk',
+  },
   backHome: {
     ko: '← 홈으로',
     en: '← Home',

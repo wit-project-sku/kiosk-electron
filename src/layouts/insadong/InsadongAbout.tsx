@@ -1,18 +1,17 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { KioskController } from '@renderer/hooks/useKioskController';
 import { iconUrl } from '@renderer/assets/icons/insadong';
 import iconMarker from '@renderer/assets/photos/insadong/ai/icon-marker.png';
 import iconAlarm from '@renderer/assets/photos/insadong/ai/icon-alarm.png';
 import historyHero from '@renderer/assets/photos/insadong/about/history-hero.png';
-import historyThumb1 from '@renderer/assets/photos/insadong/about/history-thumb-1.png';
-import historyThumb2 from '@renderer/assets/photos/insadong/about/history-thumb-2.png';
-import historyThumb3 from '@renderer/assets/photos/insadong/about/history-thumb-3.png';
-import historyThumb4 from '@renderer/assets/photos/insadong/about/history-thumb-4.png';
-import historyThumb5 from '@renderer/assets/photos/insadong/about/history-thumb-5.png';
+import historyThumb1 from '@renderer/assets/photos/insadong/about/history-thumb-1.jpg';
+import historyThumb2 from '@renderer/assets/photos/insadong/about/history-thumb-2.jpg';
+import historyThumb3 from '@renderer/assets/photos/insadong/about/history-thumb-3.jpg';
+import historyThumb4 from '@renderer/assets/photos/insadong/about/history-thumb-4.jpg';
 import cultureHanok from '@renderer/assets/photos/insadong/about/culture-hanok.png';
-import cultureMarket from '@renderer/assets/photos/insadong/about/culture-market.png';
-import cultureLife from '@renderer/assets/photos/insadong/about/culture-life.png';
-import cultureFood from '@renderer/assets/photos/insadong/about/culture-food.png';
+import cultureMarket from '@renderer/assets/photos/insadong/about/culture-market.jpg';
+import cultureLife from '@renderer/assets/photos/insadong/about/culture-life.jpg';
+import cultureFood from '@renderer/assets/photos/insadong/about/culture-food.jpg';
 import timelineChevron from '@renderer/assets/photos/insadong/about/timeline-chevron.svg';
 import { useRotatingBanner } from '@renderer/hooks/useRotatingBanner';
 import { useAccessibilityStore } from '@renderer/store/accessibilityStore';
@@ -103,9 +102,12 @@ const say = (table: L8, lang: Lang): string => table[toLocalizedLang(lang)];
  * fallback runs, and `t()` would hand back the key itself. This is the same
  * shape JejuAbout uses for its own `Here_HistoryContent_1..5` epochs.
  *
- * The sheet currently holds only the two original blobs (`Here_HistoryContent`,
- * `Here_CultureContent`), so today every one of these falls through — the rows
- * below are the names to add.
+ * Since 2026-09-30 the sheet carries these under its OWN names
+ * (`Here_History_Introduce_*`, `Here_HistoryFlow`, `Here_History_epoch1..6`,
+ * `Here_HistoryContent_1|2_*`, `Here_Culture_Introduce_*`,
+ * `Here_Culture_Content_1..4_*`), 8/8 languages — the calls below use those.
+ * The guessed `Here_History_Intro`-style names this file used to probe never
+ * existed, so all of it fell back to the authored tables.
  */
 const sheet = (key: string, fallback: L8, lang: Lang, ...also: string[]): string => {
   const row = tExact(key, lang);
@@ -129,7 +131,12 @@ const sheet = (key: string, fallback: L8, lang: Lang, ...also: string[]): string
 const sheetAt = (key: string, n: number, field: string, fallback: L8, lang: Lang): string =>
   tExact(`${key}_${n}_${field}`, lang) || say(fallback, lang);
 
-const HISTORY_THUMBS = [historyThumb1, historyThumb2, historyThumb3, historyThumb4, historyThumb5];
+/** `Here_History_epoch3` / `Here_History_epoch3_desc` — the number is glued on,
+ *  with no separator, unlike the `_n_field` rows above. */
+const epochAt = (n: number, suffix: '' | '_desc', lang: Lang): string =>
+  tExact(`Here_History_epoch${n}${suffix}`, lang);
+
+const HISTORY_THUMBS = [historyThumb1, historyThumb2, historyThumb3, historyThumb4];
 
 const HISTORY_INTRO_TITLE = L(
   '인사동 문화',
@@ -141,6 +148,10 @@ const HISTORY_INTRO_TITLE = L(
   'Культура Инсадона',
   'Budaya Insadong',
 );
+/** 문화 tab heading. Was borrowed from HISTORY_INTRO_TITLE (which said 인사동 문화);
+ *  the history tab's own heading is now the sheet's 인사동 소개, so this keeps the
+ *  old copy as its own table. */
+const HISTORY_CULTURE_TITLE = HISTORY_INTRO_TITLE;
 const HISTORY_INTRO = L(
   '인사동은 조선시대부터 서울의 중심 문화거리로, 골동품과 전통공예, 갤러리가 밀집한 곳으로 자리 잡았습니다. 관인방의 중심부에 위치하며, 서화와 골동품을 다루는 상점들이 형성되며 학문과 예술을 사랑하는 문화가 형성되었습니다.',
   'Since the Joseon Dynasty, Insadong has been a cultural street in the heart of Seoul, lined with antiques, traditional crafts, and galleries. At the center of Gwanin-bang, shops of calligraphy, painting, and antiques grew into a culture devoted to learning and art.',
@@ -341,22 +352,28 @@ function HistoryStory({ lang }: { lang: Lang }): JSX.Element {
         </div>
         <img className={styles.hero} src={hero} alt="" draggable={false} />
         <div className={styles.historyIntro}>
-          <Bullet text={sheet('Here_History_Intro_Title', HISTORY_INTRO_TITLE, lang)} />
-          <p className={`${styles.prose} ${styles.proseLight}`}>{sheet('Here_History_Intro', HISTORY_INTRO, lang, 'Here_HistoryContent')}</p>
+          <Bullet text={sheet('Here_History_Introduce_title', HISTORY_INTRO_TITLE, lang)} />
+          <p className={`${styles.prose} ${styles.proseLight}`}>{sheet('Here_History_Introduce_content', HISTORY_INTRO, lang, 'Here_HistoryContent')}</p>
         </div>
       </div>
 
-      <Bullet text={sheet('Here_History_Flow', HISTORY_FLOW, lang)} />
+      <Bullet text={sheet('Here_HistoryFlow', HISTORY_FLOW, lang)} />
       <div className={styles.timeline}>
         {HISTORY_STEPS.map((step, i) => (
           <div key={step.icon} className={styles.stepWrap}>
             <div className={styles.step}>
               <span className={styles.stepIcon} aria-hidden="true">{step.icon}</span>
-              <p className={styles.stepYear}>{sheetAt('Here_History_Step', i + 1, 'year', step.year, lang)}</p>
+              <p className={styles.stepYear}>{epochAt(i + 1, '', lang) || say(step.year, lang)}</p>
+              {/* The sheet gives ONE description per epoch; the authored fallback is
+                  split over two lines. Use whichever the sheet has, never both. */}
               <p className={styles.stepDesc}>
-                {sheetAt('Here_History_Step', i + 1, 'line1', step.lines[0], lang)}
-                <br />
-                {sheetAt('Here_History_Step', i + 1, 'line2', step.lines[1], lang)}
+                {epochAt(i + 1, '_desc', lang) || (
+                  <>
+                    {say(step.lines[0], lang)}
+                    <br />
+                    {say(step.lines[1], lang)}
+                  </>
+                )}
               </p>
             </div>
             {i < HISTORY_STEPS.length - 1 && (
@@ -367,16 +384,22 @@ function HistoryStory({ lang }: { lang: Lang }): JSX.Element {
       </div>
 
       <section className={styles.section}>
-        <Bullet text={sheet('Here_History_Joseon_Title', HISTORY_JOSEON_TITLE, lang)} />
-        <p className={styles.prose}>{sheet('Here_History_Joseon', HISTORY_JOSEON, lang)}</p>
+        <Bullet text={sheetAt('Here_HistoryContent', 1, 'title', HISTORY_JOSEON_TITLE, lang)} />
+        <p className={styles.prose}>{sheetAt('Here_HistoryContent', 1, 'summary', HISTORY_JOSEON, lang)}</p>
       </section>
       <section className={styles.section}>
-        <Bullet text={sheet('Here_History_Modern_Title', HISTORY_MODERN_TITLE, lang)} />
-        <p className={styles.prose}>{sheet('Here_History_Modern', HISTORY_MODERN, lang)}</p>
+        <Bullet text={sheetAt('Here_HistoryContent', 2, 'title', HISTORY_MODERN_TITLE, lang)} />
+        <p className={styles.prose}>{sheetAt('Here_HistoryContent', 2, 'summary', HISTORY_MODERN, lang)}</p>
       </section>
-      <section className={styles.section}>
-        <Bullet text={sheet('Here_History_Now', HISTORY_NOW, lang)} />
-      </section>
+      {/* 지금의 인사동 has never had a paragraph — the sheet's two history blocks are
+          the Joseon and modern ones above — so a bare heading hung at the bottom of
+          the tab. It renders only once `Here_HistoryContent_3_summary` is filled. */}
+      {tExact('Here_HistoryContent_3_summary', lang) && (
+        <section className={styles.section}>
+          <Bullet text={sheetAt('Here_HistoryContent', 3, 'title', HISTORY_NOW, lang)} />
+          <p className={styles.prose}>{tExact('Here_HistoryContent_3_summary', lang)}</p>
+        </section>
+      )}
     </article>
   );
 }
@@ -384,14 +407,14 @@ function HistoryStory({ lang }: { lang: Lang }): JSX.Element {
 function CultureStory({ lang }: { lang: Lang }): JSX.Element {
   return (
     <article className={styles.storyCulture}>
-      <Bullet text={sheet('Here_Culture_Title', HISTORY_INTRO_TITLE, lang)} />
-      <p className={`${styles.lead} ${styles.proseLight}`}>{sheet('Here_Culture_Lead', CULTURE_LEAD, lang, 'Here_CultureContent')}</p>
+      <Bullet text={sheet('Here_Culture_Introduce_title', HISTORY_CULTURE_TITLE, lang)} />
+      <p className={`${styles.lead} ${styles.proseLight}`}>{sheet('Here_Culture_Introduce_content', CULTURE_LEAD, lang, 'Here_CultureContent')}</p>
       <div className={styles.cultureGrid}>
         {CULTURE_CARDS.map((card, i) => (
           <article key={card.photo} className={styles.cultureCard}>
             <img className={styles.culturePhoto} src={card.photo} alt="" draggable={false} />
-            <h3 className={styles.cultureTitle}>{sheetAt('Here_Culture', i + 1, 'title', card.title, lang)}</h3>
-            <p className={`${styles.cultureBody} ${card.light ? styles.proseLight : ''}`}>{sheetAt('Here_Culture', i + 1, 'body', card.body, lang)}</p>
+            <h3 className={styles.cultureTitle}>{sheetAt('Here_Culture_Content', i + 1, 'title', card.title, lang)}</h3>
+            <p className={`${styles.cultureBody} ${card.light ? styles.proseLight : ''}`}>{sheetAt('Here_Culture_Content', i + 1, 'desc', card.body, lang)}</p>
           </article>
         ))}
       </div>
@@ -419,6 +442,55 @@ function placeDetail(shop: Shop, lang: ReturnType<typeof useLang>, originName: s
   };
 }
 
+/** Cards drawn up front, and added per step as the visitor nears the end of the grid. */
+const PAGE_SIZE = 24;
+
+interface SpotCardProps {
+  shop: Shop;
+  lang: Lang;
+  noImg: string | undefined;
+  onOpen: (shop: Shop) => void;
+}
+
+/**
+ * One 관광명소 card. Memoised because the map reports its viewport on every pan,
+ * which re-renders InsadongAbout: without this every card (hundreds on 인사동's
+ * shop catalogue) rebuilt its name / address / hours / image on each pan. Props
+ * are stable across a pan — `shop` is the store's own object and `onOpen` is a
+ * fixed callback — so only cards that newly appear render.
+ */
+const SpotCard = memo(function SpotCard({ shop, lang, noImg, onOpen }: SpotCardProps): JSX.Element {
+  const photo = shopImages(shop)[0] || noImg;
+  const address = shopAddress(shop, lang);
+  const hours = shopOpenTime(shop.openTime);
+  return (
+    <button type="button" className={styles.card} data-spot-id={shop.id} onClick={() => onOpen(shop)}>
+      <span className={styles.copy}>
+        {photo && (
+          <img className={styles.photo} src={photo} alt="" draggable={false} loading="lazy" decoding="async" />
+        )}
+        <span className={styles.copyText}>
+          <span className={`${styles.name} ${lang === 'ko' ? '' : styles.nameLong}`}>{shopName(shop, lang)}</span>
+          <span className={styles.metaCol}>
+            {address && (
+              <span className={styles.meta}>
+                <img className={styles.marker} src={iconMarker} alt="" draggable={false} />
+                <span className={styles.addr}>{address}</span>
+              </span>
+            )}
+            {hours && (
+              <span className={`${styles.meta} ${styles.metaHours}`}>
+                <img className={styles.alarm} src={iconAlarm} alt="" draggable={false} />
+                <span className={styles.hours}>{hours}</span>
+              </span>
+            )}
+          </span>
+        </span>
+      </span>
+    </button>
+  );
+});
+
 /** 여기는 인사동 — tabs, consonant index, Insadong map, and place cards.
  *  Tapping a card opens the shared detail under the same chrome. */
 export function InsadongAbout({ controller }: InsadongAboutProps): JSX.Element {
@@ -436,6 +508,9 @@ export function InsadongAbout({ controller }: InsadongAboutProps): JSX.Element {
   const [mapIds, setMapIds] = useState<number[] | null>(null);
   /** The pin whose callout is open — also the card the list scrolls to. */
   const [pinned, setPinned] = useState<number | null>(null);
+  /** How many cards of `listed` are in the DOM. Grows a page at a time; see PAGE_SIZE. */
+  const [shown, setShown] = useState(PAGE_SIZE);
+  const sentinelRef = useRef<HTMLDivElement>(null);
   const noImg = iconUrl('noimage');
 
   const goHome = (): void => controller.navigate('home', 'Back');
@@ -542,6 +617,37 @@ export function InsadongAbout({ controller }: InsadongAboutProps): JSX.Element {
     return visible.filter((sh) => inView.has(sh.id));
   }, [visible, mapIds, mappable]);
 
+  /* A tapped pin's card must be in the DOM to be scrolled to, so the window always
+     reaches at least one page past it. Derived, not state: it is right on the same
+     render the pin changes, so the scroll effect below finds the card. */
+  const pinnedIndex = pinned === null ? -1 : listed.findIndex((sh) => sh.id === pinned);
+  const limit = Math.max(shown, pinnedIndex + PAGE_SIZE);
+  const rendered = useMemo(() => listed.slice(0, limit), [listed, limit]);
+
+  /* A new tab or 초성 starts from the first page again. Map pans do NOT reset it —
+     that would yank a visitor who has scrolled down back to a short list. */
+  useEffect(() => {
+    setShown(PAGE_SIZE);
+  }, [tab, initial, lang]);
+
+  /* Grow the window when the end of the grid comes within a screen of the view. */
+  const more = rendered.length < listed.length;
+  useEffect(() => {
+    const box = listRef.current;
+    const end = sentinelRef.current;
+    if (!more || !box || !end) return;
+    const io = new IntersectionObserver(
+      (entries) => {
+        if (entries.some((e) => e.isIntersecting)) setShown((n) => Math.max(n, limit) + PAGE_SIZE);
+      },
+      { root: box, rootMargin: '0px 0px 1500px 0px' },
+    );
+    io.observe(end);
+    return () => io.disconnect();
+  }, [more, limit]);
+
+  const openSpot = useCallback((shop: Shop): void => setSpot(shop), []);
+
   /* Tapping a pin brings its card to the middle of the grid. */
   useEffect(() => {
     const box = listRef.current;
@@ -577,7 +683,7 @@ export function InsadongAbout({ controller }: InsadongAboutProps): JSX.Element {
      One factor for the three so the row keeps a single size, and one for the
      card names inside their 521 column. */
   useFitText(tabsRef, styles.tabLong, lang !== 'ko', 0.6, `${lang}|tabs`);
-  useFitText(listRef, styles.nameLong, lang !== 'ko', 0.7, `${lang}|${tab}|${visible.length}`);
+  useFitText(listRef, styles.nameLong, lang !== 'ko', 0.7, `${lang}|${tab}|${visible.length}|${rendered.length}`);
 
   return (
     <>
@@ -598,7 +704,7 @@ export function InsadongAbout({ controller }: InsadongAboutProps): JSX.Element {
         ))}
       </div>
 
-      {tab === 'attraction' && showInitials && (
+      {tab === 'attraction' && showInitials && !detail && (
       <div className={styles.initials}>
         {INITIALS.map((letter) => (
           <button
@@ -650,50 +756,21 @@ export function InsadongAbout({ controller }: InsadongAboutProps): JSX.Element {
                 fallbackZoom={16}
               />
               {listed.length > 0 ? (
-                <div className={styles.grid}>
-                  {listed.map((shop) => {
-                    const photo = shopImages(shop)[0] || noImg;
-                    const address = shopAddress(shop, lang);
-                    const hours = shopOpenTime(shop.openTime);
-                    return (
-                      <button
-                        key={shop.id}
-                        type="button"
-                        className={styles.card}
-                        data-spot-id={shop.id}
-                        onClick={() => setSpot(shop)}
-                      >
-                        <span className={styles.copy}>
-                          {photo && <img className={styles.photo} src={photo} alt="" draggable={false} loading="lazy" />}
-                          <span className={styles.copyText}>
-                            <span className={`${styles.name} ${lang === 'ko' ? '' : styles.nameLong}`}>
-                              {shopName(shop, lang)}
-                            </span>
-                            <span className={styles.metaCol}>
-                              {address && (
-                                <span className={styles.meta}>
-                                  <img className={styles.marker} src={iconMarker} alt="" draggable={false} />
-                                  <span className={styles.addr}>{address}</span>
-                                </span>
-                              )}
-                              {hours && (
-                                <span className={`${styles.meta} ${styles.metaHours}`}>
-                                  <img className={styles.alarm} src={iconAlarm} alt="" draggable={false} />
-                                  <span className={styles.hours}>{hours}</span>
-                                </span>
-                              )}
-                            </span>
-                          </span>
-                        </span>
-                      </button>
-                    );
-                  })}
-                </div>
+                <>
+                  <div className={styles.grid}>
+                    {rendered.map((shop) => (
+                      <SpotCard key={shop.id} shop={shop} lang={lang} noImg={noImg} onOpen={openSpot} />
+                    ))}
+                  </div>
+                  {more && <div ref={sentinelRef} aria-hidden="true" style={{ height: 1 }} />}
+                </>
               ) : (
                 <div className={styles.emptyWrap}>
                   <p className={styles.empty}>
                     {places.length === 0
-                      ? t('Here_AttractionContent', lang)
+                      ? /* Here_AttractionContent left the sheet (2026-09-30) and t() would print the
+                           bare key. Search_NoContent is the sheet's own "no such place" line. */
+                          tExact('Here_AttractionContent', lang) || tExact('Search_NoContent', lang) || '표시할 관광명소가 없습니다'
                       : visible.length > 0
                         ? /* The MAP is narrowed, not the filter — 전체 보기 is the way back. */
                           tExact('Here_NoMatchInView', lang) || '이 지역에는 관광명소가 없습니다'

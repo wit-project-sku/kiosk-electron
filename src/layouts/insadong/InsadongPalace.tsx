@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useMemo, useRef } from 'react';
 import type { KioskController } from '@renderer/hooks/useKioskController';
 import { iconUrl } from '@renderer/assets/icons/insadong';
 import { useLang } from '@renderer/lib/i18n';
@@ -18,24 +18,13 @@ interface InsadongPalaceProps {
   debug?: boolean;
 }
 
-/** Korean initial-consonant index (Figma 7553:57285). */
-const INITIALS = ['ㄱ', 'ㄴ', 'ㄷ', 'ㄹ', 'ㅁ', 'ㅂ', 'ㅅ', 'ㅇ', 'ㅈ', 'ㅊ', 'ㅋ', 'ㅌ', 'ㅍ', 'ㅎ'] as const;
-const CHOSEONG = ['ㄱ', 'ㄲ', 'ㄴ', 'ㄷ', 'ㄸ', 'ㄹ', 'ㅁ', 'ㅂ', 'ㅃ', 'ㅅ', 'ㅆ', 'ㅇ', 'ㅈ', 'ㅉ', 'ㅊ', 'ㅋ', 'ㅌ', 'ㅍ', 'ㅎ'];
-const CHOSEONG_FOLD: Record<string, string> = { 'ㄲ': 'ㄱ', 'ㄸ': 'ㄷ', 'ㅃ': 'ㅂ', 'ㅆ': 'ㅅ', 'ㅉ': 'ㅈ' };
 const SCROLL_STEP = 450;
-
-function nameInitial(name: string): string {
-  const code = name.trim().charCodeAt(0);
-  if (code < 0xac00 || code > 0xd7a3) return '';
-  const cho = CHOSEONG[Math.floor((code - 0xac00) / 588)] ?? '';
-  return CHOSEONG_FOLD[cho] ?? cho;
-}
 
 /**
  * 고궁안내 — Figma 7553:57278.
  *
  * The same card row as 뭐먹지 / 뭐사지 (name, category, address, one-line
- * description, two photos) plus the consonant index. There are no category
+ * description, two photos) with no consonant index and no category
  * tabs. Tapping a card opens the shared spot detail (7553:57198).
  */
 export function InsadongPalace({ controller }: InsadongPalaceProps): JSX.Element {
@@ -49,35 +38,10 @@ export function InsadongPalace({ controller }: InsadongPalaceProps): JSX.Element
   const goHome = (): void => controller.navigate('home', 'Back');
   const setDetail = useDetailStore((s) => s.setItem);
   const cat = palaceCategory(lang);
-  const [initial, setInitial] = useState('');
-
-  /* 초성 index is Korean-only: an alphabet index only works for the alphabet
-     the names are written in, and every card shows its name in the visitor's
-     own language. Same call InsadongAbout and JejuAbout already make. */
-  const showInitials = lang === 'ko';
-
-  /* Leaving Korean must also drop an ACTIVE filter, not just the control.
-     Otherwise a visitor who taps ㅅ and then switches to English is left on a
-     narrowed list with no visible reason and no way to clear it. */
-  useEffect(() => {
-    if (!showInitials && initial !== '') setInitial('');
-  }, [showInitials, initial]);
-
   const listRef = useRef<HTMLDivElement>(null);
   const noImg = iconUrl('noimage');
 
-  const visible = useMemo(
-    () =>
-      PALACES.map((p, i) => ({ p, i })).filter(({ p }) => {
-        if (!initial) return true;
-        return nameInitial(pickText(p.name, 'ko')) === initial;
-      }),
-    [initial],
-  );
-
-  useEffect(() => {
-    listRef.current?.scrollTo({ top: 0 });
-  }, [initial]);
+  const visible = useMemo(() => PALACES.map((p, i) => ({ p, i })), []);
 
   const openDetail = (i: number): void => {
     const p = PALACES[i]!;
@@ -111,21 +75,6 @@ export function InsadongPalace({ controller }: InsadongPalaceProps): JSX.Element
       <InsadongHeader title="고궁안내" onHome={goHome} />
 
       <div className={lowReach ? `${styles.results} ${styles.resultsLow}` : styles.results}>
-        {showInitials && (
-        <div className={styles.initials}>
-          {INITIALS.map((letter) => (
-            <button
-              key={letter}
-              type="button"
-              className={`${styles.initial} ${letter === initial ? styles.initialOn : ''}`}
-              onClick={() => setInitial((cur) => (cur === letter ? '' : letter))}
-            >
-              {letter}
-            </button>
-          ))}
-        </div>
-        )}
-
         <div ref={listRef} className={styles.listScroll}>
           <div className={styles.list}>
             {visible.map(({ p, i }) => {

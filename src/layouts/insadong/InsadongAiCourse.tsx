@@ -724,6 +724,10 @@ export function InsadongAiCourse({ controller }: Props): JSX.Element {
 
       <InsadongHeader
         title={title}
+        /* SubHeader_AISearch left the sheet; this page's line is Insa_Todo_Subtitle1
+           ("코스를 선택해 주세요"). Passed here rather than mapped in TITLE_KEYS
+           because that id is shared with the result and detail pages. */
+        subtitle={tExact('Insa_Todo_Subtitle1', lang)}
         onHome={goHome}
         onBack={step === 'landing' ? goHome : () => setStep('landing')}
       />

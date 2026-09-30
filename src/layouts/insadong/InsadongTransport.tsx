@@ -4,7 +4,7 @@ import type { KioskController } from '@renderer/hooks/useKioskController';
 import { iconUrl } from '@renderer/assets/icons/insadong';
 import { useLang } from '@renderer/lib/i18n';
 import { useAccessibilityStore } from '@renderer/store/accessibilityStore';
-import { t } from '@renderer/lib/loc';
+import { hasLoc, t } from '@renderer/lib/loc';
 import subwayMap from '@renderer/assets/photos/insadong/transport/subway-map.png';
 import marker from '@renderer/assets/photos/insadong/transport/marker.png';
 import areaMap from '@renderer/assets/photos/insadong/transport/area-map-overlay.png';
@@ -108,7 +108,13 @@ export function InsadongTransport({ controller, initialTab = 0 }: InsadongTransp
           {tab === 0 ? (
             <>
               <div className={styles.transitTop}>
-                <h2 className={styles.cardTitle}>{`${t('Transport_Subway', lang)}/${t('Transport_Bus', lang)}`}</h2>
+                <h2 className={styles.cardTitle}>
+                  {/* One row now (2026-09-30): Transport_Subway / Transport_Bus were folded
+                      into Transport_SubwayAndBus, and t() on a removed key prints the key. */}
+                  {hasLoc('Transport_SubwayAndBus')
+                    ? t('Transport_SubwayAndBus', lang)
+                    : `${t('Transport_Subway', lang)}/${t('Transport_Bus', lang)}`}
+                </h2>
                 <ZoomableImage className={styles.mapWrap} src={subwayMap} />
               </div>
 

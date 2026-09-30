@@ -148,6 +148,10 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
+  /* Breathing room between the text column and the photos. `.info` is `flex: 1`,
+     so a long title + category (English: "Information Center") ran right up to
+     the first photo; with the gap it gives up 60px of width instead. */
+  column-gap: 60px;
   padding: 40px 45px;
   background: #ffffff;
   border: none;

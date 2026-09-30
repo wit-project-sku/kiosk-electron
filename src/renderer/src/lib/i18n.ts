@@ -213,11 +213,11 @@ const SCREEN_TITLES: Record<string, Partial<Record<Lang, string>>> = {
 type TitleKeySpec = { title: string | readonly string[]; sub?: string | readonly string[] };
 
 const TITLE_KEYS: Record<string, TitleKeySpec> = {
-  '여기는 인사동': { title: 'MainButton_Here', sub: 'SubHeader_Attraction' },
+  '여기는 인사동': { title: 'MainButton_Here', sub: ['SubHeader_Attraction', 'Here_IsInsa_Subtitle'] },
   'TAX - FREE': { title: 'MainButton_TaxFree', sub: 'SubHeader_TaxFree' },
   '‘인사’ 뭐하지 (AI 검색)': { title: 'MainButton_AI', sub: 'SubHeader_AISearch' },
   // 제주's sheet has no SubHeader_Exchange; its welcome line is Exchange_Header.
-  환율: { title: 'MainButton_Exchange', sub: ['SubHeader_Exchange', 'Exchange_Header'] },
+  환율: { title: 'MainButton_Exchange', sub: ['SubHeader_Exchange', 'Exchange_Header', 'Exchange_Subtitle'] },
   '도와줘 ‘인사’': { title: 'MainButton_ToHelp', sub: 'SubHeader_ToHelp' },
   '인사 미술관': { title: 'MainButton_ToGallery', sub: 'SubHeader_ToGallery' },
   "'인사' 뭐먹지": { title: 'MainButton_ToEat', sub: 'SubHeader_ToEat' },
@@ -227,7 +227,7 @@ const TITLE_KEYS: Record<string, TitleKeySpec> = {
   숙박안내: { title: ['MainButton_ToStay', 'MainButton_Accommodation'], sub: 'SubHeader_ToStay' },
   고궁안내: { title: 'MainButton_Palace', sub: 'SubHeader_Palace' },
   언어선택: { title: 'Language_Select_Language', sub: 'Language_Content' },
-  '교통 안내': { title: 'MainButton_Transport', sub: 'SubHeader_Transport' },
+  '교통 안내': { title: 'MainButton_Transport', sub: ['SubHeader_Transport', 'Transport_Subtitle'] },
   위드마켓: { title: 'MainButton_Goods' },
   화장실: { title: 'MainButton_WC', sub: 'SubHeader_ToHelp' },
   // ── Aliases for the ids the 준비중 placeholder scaffolds pass ────────────
@@ -247,14 +247,14 @@ const TITLE_KEYS: Record<string, TitleKeySpec> = {
   "도와줘 '인사'": { title: 'MainButton_ToHelp', sub: 'SubHeader_ToHelp' },
   인사동지도: { title: 'MainButton_Map' },
   '오색시장 지도': { title: 'MainButton_Map' },
-  교통안내: { title: 'MainButton_Transport', sub: 'SubHeader_Transport' },
+  교통안내: { title: 'MainButton_Transport', sub: ['SubHeader_Transport', 'Transport_Subtitle'] },
   '언어 선택': { title: 'Language_Select_Language', sub: 'Language_Content' },
   '화장실 안내': { title: 'MainButton_WC', sub: 'SubHeader_ToHelp' },
   '여기는 오색시장': { title: 'MainButton_Here', sub: 'SubHeader_Attraction' },
   전국휴게소: { title: 'MainButton_ServiceArea', sub: 'SubHeader_ServiceArea' },
   // 이벤트 screens: each location's sheet carries its own MainButton_Event /
   // SubHeader_Event copy, so all three ids resolve through the same pair.
-  '인사동 이벤트': { title: 'MainButton_Event', sub: 'SubHeader_Event' },
+  '인사동 이벤트': { title: 'MainButton_Event', sub: ['SubHeader_Event', 'Event_SubTitle'] },
   '오산시 이벤트': { title: 'MainButton_Event', sub: 'SubHeader_Event' },
   // ── W004 오산 오색시장 header titles + page descriptions (Localization_Osaek) ──
   "도와줘 '정이'": { title: 'MainButton_ToHelp', sub: 'SubHeader_ToHelp' },
