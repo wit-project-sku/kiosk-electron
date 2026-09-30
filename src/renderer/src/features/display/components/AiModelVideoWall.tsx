@@ -272,7 +272,11 @@ export function AiModelVideoWall({
         onEnded={() => onEnded('b')}
       />
 
-      {!hideLabel && !hideLogo && <img className={styles.logo} src={logoUrl} alt="" draggable={false} />}
+      {/* 박술녀 logo only over the clips where the model wears the PARK SUL NYEO
+          hanbok (the sheet's 참고(reference) column) — not a brand mark on every clip. */}
+      {!hideLabel && !hideLogo && activeClip?.hanbok && (
+        <img className={styles.logo} src={logoUrl} alt="" draggable={false} />
+      )}
       {!hideLabel && activeClip?.label && <div className={styles.label}>{activeClip.label}</div>}
       {activeClip?.subtitle && <div className={styles.subtitle}>{activeClip.subtitle}</div>}
     </div>

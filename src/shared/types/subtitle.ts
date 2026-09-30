@@ -98,6 +98,11 @@ export interface VideoEntry {
    * whatever is already playing instead of cutting to the idle reel. `file` is ''.
    */
   noVideo?: boolean;
+  /**
+   * The model wears the PARK SUL NYEO hanbok in this row's clip — VideoSubtitle_Insa_v2's
+   * `참고(reference)` column reads `hanbok`. The display shows the 박술녀 logo only then.
+   */
+  hanbok?: boolean;
 }
 
 // ── Raw API response shapes ────────────────────────────────────────────────

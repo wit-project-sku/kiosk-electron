@@ -109,6 +109,7 @@ interface Columns {
   fileOps: number;
   condition: number;
   folder: number;
+  reference: number;
   main: LangCol[];
   rightTop: LangCol[];
 }
@@ -126,6 +127,8 @@ function resolveColumns(header: readonly string[]): Columns {
   const fileOps = at((h) => /파일명/.test(h) && /운영/.test(h));
   const folder = at((h) => /폴더/.test(h));
   const condition = at((h) => /재생조건/.test(h));
+  // `참고(reference)` — NOT `VideoFileName (참고용)`, which also contains 참고.
+  const reference = at((h) => /^참고|reference/i.test(h));
 
   // The tab carries two language blocks in sheet order — the subtitle line,
   // then the 우측상단 label. The second block starts where a language repeats,
@@ -149,7 +152,7 @@ function resolveColumns(header: readonly string[]): Columns {
         'changed; columns are never guessed by position',
     );
   }
-  return { key, fileDev, fileOps, condition, folder, main, rightTop };
+  return { key, fileDev, fileOps, condition, folder, reference, main, rightTop };
 }
 
 /** One language block of a row. ko/en/ja/zh are always present (SubtitleLangText
@@ -229,6 +232,7 @@ export function parseJejuSubtitleSheet(
     };
     const folder = cols.folder >= 0 ? clean(r[cols.folder]) : '';
     if (JEJU_SETS.has(folder)) entry.set = folder as VideoSet;
+    if (cols.reference >= 0 && /hanbok|한복/i.test(clean(r[cols.reference]))) entry.hanbok = true;
     entries.push(entry);
   });
   return { entries, noVideo };

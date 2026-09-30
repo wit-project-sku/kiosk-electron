@@ -20,7 +20,16 @@ export interface DisplayClip {
   url: string;
   subtitle: string;
   label: string;
+  /** The model wears the PARK SUL NYEO hanbok — the wall shows the 박술녀 logo. */
+  hanbok: boolean;
 }
+
+const toClip = (e: VideoEntry, url: string, lang: Lang): DisplayClip => ({
+  url,
+  subtitle: pickText(e.subtitle, lang),
+  label: pickText(e.label, lang),
+  hanbok: e.hanbok === true,
+});
 
 /** Normalize a file stem so API names tolerant-match the real files. */
 const norm = (s: string): string => s.toLowerCase().replace(/\.mp4$/, '').replace(/[^a-z0-9]/g, '');
@@ -348,7 +357,7 @@ function clipsForKey(
   for (const e of byKey.get(key) ?? []) {
     if (e.noVideo) continue;
     const url = resolveUrl(e.file, set);
-    if (url) clips.push({ url, subtitle: pickText(e.subtitle, lang), label: pickText(e.label, lang) });
+    if (url) clips.push(toClip(e, url, lang));
   }
   return clips;
 }
@@ -735,7 +744,7 @@ function clipsForButton(buttonId: number, lang: Lang, set: VideoSet): DisplayCli
   const clips: DisplayClip[] = [];
   for (const e of entries.filter((e) => e.key === basePlayKey).sort((a, b) => sortOf(a) - sortOf(b))) {
     const url = resolveUrl(e.file, set);
-    if (url) clips.push({ url, subtitle: pickText(e.subtitle, lang), label: pickText(e.label, lang) });
+    if (url) clips.push(toClip(e, url, lang));
   }
   return clips;
 }
@@ -789,7 +798,7 @@ function ownClipsForScreen(screen: string, lang: Lang, kioskId?: KioskId): Displ
   const e = BY_KEY[set].get(key)?.[clip - 1];
   if (!e || e.noVideo) return [];
   const url = resolveUrl(e.file, set);
-  return url ? [{ url, subtitle: pickText(e.subtitle, lang), label: pickText(e.label, lang) }] : [];
+  return url ? [toClip(e, url, lang)] : [];
 }
 
 /**

@@ -154,7 +154,7 @@ export function CustomerDisplay(): JSX.Element {
     const held = heldStateCaption(kioskScreen, lang, kioskId);
     if (held) {
       return heldClips.current.map((c) => ({
-        url: c.url,
+        ...c,
         subtitle: held.subtitle || c.subtitle,
         label: held.label || c.label,
       }));
@@ -239,7 +239,7 @@ export function CustomerDisplay(): JSX.Element {
   // being stuck. Captions are empty strings, so the wall draws none.
   const displayVideos = useMemo(() => displayVideosFor(kioskId), [kioskId, dataVersion]);
   const displayClips = useMemo(
-    () => displayVideos.map((url) => ({ url, subtitle: '', label: '' })),
+    () => displayVideos.map((url) => ({ url, subtitle: '', label: '', hanbok: false })),
     [displayVideos],
   );
 
