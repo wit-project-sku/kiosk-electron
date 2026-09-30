@@ -929,7 +929,9 @@ export function JejuHanbokSelect({
               ))}
               {/* 한복 only — 6258:48469 draws the same row on 제주 without it. */}
               {isHanbokCategory(categoryId) && (
-                <p className={styles.subcatNote}>
+                <p
+                  className={`${styles.subcatNote} ${lang === 'ko' ? '' : styles.subcatNoteLong}`}
+                >
                   {sheetText('Photo_HanbokBrandNote', lang, HANBOK_BRAND_NOTE)}
                 </p>
               )}

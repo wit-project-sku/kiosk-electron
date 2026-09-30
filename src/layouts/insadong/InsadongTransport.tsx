@@ -1,4 +1,5 @@
 import { useRef, useState } from 'react';
+import { QRCodeSVG } from 'qrcode.react';
 import type { KioskController } from '@renderer/hooks/useKioskController';
 import { iconUrl } from '@renderer/assets/icons/insadong';
 import { useLang } from '@renderer/lib/i18n';
@@ -33,6 +34,25 @@ const BUS_ROW1 = [
   { glyph: '5', color: '#996cac', key: 'Transport_BusContent_3' },
 ];
 const BUS_ROW2 = { glyph: 'B', color: '#3d5bab', key: 'Transport_BusContent_2' };
+/**
+ * 종로Pick store links, rendered as LIVE QR codes over the plate art.
+ *
+ * The art (qr-android.png / qr-ios.png) carries the white plate, the green
+ * frame and the platform mark, and used to carry the code itself — both files
+ * shipped a baked-in pattern that no longer pointed where these links do. The
+ * plate is kept and only the code area is overlaid, so the 안드로이드 robot and
+ * the IOS wordmark survive; see `.qrCode` for where the box comes from.
+ *
+ * ★ The iOS slug is percent-encoded. The App Store URL contains Korean
+ * ("종로pick"), which a QR would otherwise carry as raw UTF-8 bytes — legal, but
+ * byte-mode Korean is exactly what older scanners mis-decode. The encoded form
+ * is the same URL, 65 bytes of pure ASCII, and resolves identically.
+ */
+const PARKING_APP_ANDROID =
+  'https://play.google.com/store/apps/details?id=kr.go.jongno.pick&pcampaignid=web_share';
+const PARKING_APP_IOS =
+  'https://apps.apple.com/kr/app/%EC%A2%85%EB%A1%9Cpick/id6473773261';
+
 const PARKING_SERVICE_KEYS = [
   'Transport_JongroPickServiceContent_1',
   'Transport_JongroPickServiceContent_2',
@@ -151,8 +171,30 @@ export function InsadongTransport({ controller, initialTab = 0 }: InsadongTransp
                   </div>
                 </div>
                 <div className={styles.qrGroup}>
-                  <img className={styles.qrImg} src={parkingQrAndroid} alt="Android QR" draggable={false} />
-                  <img className={styles.qrImg} src={parkingQrIos} alt="iOS QR" draggable={false} />
+                  <span className={styles.qrTile} role="img" aria-label="Android">
+                    <img className={styles.qrImg} src={parkingQrAndroid} alt="" draggable={false} />
+                    <span className={styles.qrCode}>
+                      <QRCodeSVG
+                        value={PARKING_APP_ANDROID}
+                        level="M"
+                        bgColor="#ffffff"
+                        fgColor="#000000"
+                        style={{ width: '100%', height: '100%', display: 'block' }}
+                      />
+                    </span>
+                  </span>
+                  <span className={styles.qrTile} role="img" aria-label="iOS">
+                    <img className={styles.qrImg} src={parkingQrIos} alt="" draggable={false} />
+                    <span className={styles.qrCode}>
+                      <QRCodeSVG
+                        value={PARKING_APP_IOS}
+                        level="M"
+                        bgColor="#ffffff"
+                        fgColor="#000000"
+                        style={{ width: '100%', height: '100%', display: 'block' }}
+                      />
+                    </span>
+                  </span>
                 </div>
               </div>
 

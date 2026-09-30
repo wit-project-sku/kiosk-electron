@@ -76,6 +76,18 @@ const GRID_TILES: readonly HomeTile[] = [
   { screen: 'taxfree', label: 'TAX-FREE', sub: '면세혜택', icon: 'renewal-taxfree' },
 ];
 
+/**
+ * K-DRAMA soft-launch gate (2026-09-30).
+ *
+ * The screen behind it is not finished, so the home button is inert. It keeps
+ * its art, its colour and its label — the only thing that changes is that the
+ * tap goes nowhere, which is what was asked for: no 준비중 marker, no greying.
+ *
+ * Flip to false to go live; nothing else needs to change. The screen itself
+ * (InsadongKiosk's `kdrama` route) is untouched and still reachable in code.
+ */
+const KDRAMA_COMING_SOON = true;
+
 /** Grid slot 10, chosen per kiosk by {@link useHasDonationTile}. */
 const MAP_TILE: HomeTile = { screen: 'map', label: '인사동 지도', sub: '탐나는전', icon: 'renewal-map' };
 const DONATION_TILE: HomeTile = { screen: 'donation', label: '기부', sub: '교복 기부', icon: 'renewal-donation' };
@@ -525,7 +537,16 @@ const stripParenthetical = (label: string): string =>
           <button
             type="button"
             className={`${styles.navItem} ${styles.navKdrama}`}
-            onClick={() => navigate('kdrama', 'K-DRAMA')}
+            /* K-DRAMA is not ready — see KDRAMA_COMING_SOON. Deliberately
+               `aria-disabled` + a swallowed click, NOT the `disabled`
+               attribute and NOT the `.soon` class: the button must look
+               EXACTLY as it does today (same art, same colour, no 준비중
+               marker) and simply not go anywhere. Same treatment the grid
+               tiles use for 기부 / 인사랑. */
+            aria-disabled={KDRAMA_COMING_SOON || undefined}
+            onClick={
+              KDRAMA_COMING_SOON ? (e) => e.preventDefault() : () => navigate('kdrama', 'K-DRAMA')
+            }
             aria-label="K-DRAMA"
           >
             {iconUrl('nav-kdrama') && <img src={iconUrl('nav-kdrama')} alt="" draggable={false} />}

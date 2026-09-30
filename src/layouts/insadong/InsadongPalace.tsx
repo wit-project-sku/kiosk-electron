@@ -40,11 +40,29 @@ function nameInitial(name: string): string {
  */
 export function InsadongPalace({ controller }: InsadongPalaceProps): JSX.Element {
   const lang = useLang();
+  /* Korean category labels fit beside the title at 52px; the translations do
+     not — see .catLong. The other five card screens already made this call;
+     고궁안내 was passing `styles.cat` alone and so kept the Korean size in
+     every language. */
+  const wide = lang !== 'ko';
   const lowReach = useAccessibilityStore((s) => s.lowReach);
   const goHome = (): void => controller.navigate('home', 'Back');
   const setDetail = useDetailStore((s) => s.setItem);
   const cat = palaceCategory(lang);
   const [initial, setInitial] = useState('');
+
+  /* 초성 index is Korean-only: an alphabet index only works for the alphabet
+     the names are written in, and every card shows its name in the visitor's
+     own language. Same call InsadongAbout and JejuAbout already make. */
+  const showInitials = lang === 'ko';
+
+  /* Leaving Korean must also drop an ACTIVE filter, not just the control.
+     Otherwise a visitor who taps ㅅ and then switches to English is left on a
+     narrowed list with no visible reason and no way to clear it. */
+  useEffect(() => {
+    if (!showInitials && initial !== '') setInitial('');
+  }, [showInitials, initial]);
+
   const listRef = useRef<HTMLDivElement>(null);
   const noImg = iconUrl('noimage');
 
@@ -93,6 +111,7 @@ export function InsadongPalace({ controller }: InsadongPalaceProps): JSX.Element
       <InsadongHeader title="고궁안내" onHome={goHome} />
 
       <div className={lowReach ? `${styles.results} ${styles.resultsLow}` : styles.results}>
+        {showInitials && (
         <div className={styles.initials}>
           {INITIALS.map((letter) => (
             <button
@@ -105,6 +124,7 @@ export function InsadongPalace({ controller }: InsadongPalaceProps): JSX.Element
             </button>
           ))}
         </div>
+        )}
 
         <div ref={listRef} className={styles.listScroll}>
           <div className={styles.list}>
@@ -117,7 +137,7 @@ export function InsadongPalace({ controller }: InsadongPalaceProps): JSX.Element
                   <div className={styles.info}>
                     <div className={styles.nameRow}>
                       <span className={styles.name}>{pickText(p.name, lang)}</span>
-                      <span className={styles.cat}>
+                      <span className={`${styles.cat} ${wide ? styles.catLong : ''}`}>
                         <span className={styles.dot} />
                         {cat}
                       </span>

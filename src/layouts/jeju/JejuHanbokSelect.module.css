@@ -358,6 +358,38 @@
   white-space: nowrap;
 }
 
+/* Non-Korean attribution.
+   The Korean line is short ("WITH의 모든 한복은 박술녀 한복입니다.") and sits
+   on one line at 50px. Every translation is a full sentence — "Every hanbok at
+   WITH is a Park Sul-nyeo hanbok.", "Semua hanbok di WITH adalah hanbok Park
+   Sul-nyeo." — and at 50px `nowrap` it simply ran off the end of the chip
+   track, reachable only by scrolling the row sideways.
+
+   So: 32px, and allowed to WRAP. `flex: 0 1 auto` + `min-width: 0` is what
+   makes wrapping possible at all — as `0 0 auto` the box sized to its content
+   and there was nothing to wrap within. Two lines at line-height 1 is 64px,
+   inside the track's 120px, so the band does not grow. Past two lines it
+   ellipsises rather than pushing the chips out of line.
+
+   ★ 'Noto Sans' leads, per the spec, but the kiosk stack follows it: bare
+   'Noto Sans' has no Korean or Chinese cut, and this row still renders 中文 and
+   日本語. Without the fallback those two would drop to a system default. */
+.subcatNoteLong {
+  flex: 0 1 auto;
+  min-width: 0;
+  font-family: 'Noto Sans', var(--kiosk-font, sans-serif);
+  font-size: 32px;
+  font-style: normal;
+  font-weight: 500;
+  line-height: 1; /* spec: 100% */
+  text-align: center;
+  white-space: normal;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
 /* ── 사진촬영안내 card — EVERY condition, two positions ────────────────── */
 /*
  * The card is on EVERY tab, in one of two places: a non-제주 tab hangs it under

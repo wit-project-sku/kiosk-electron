@@ -158,16 +158,31 @@
   line-height: 135px;
 }
 
-/* Leaves room for the absolutely-positioned no-glasses icon over tip 1. */
+/* Leaves room for the absolutely-positioned no-glasses icon over tip 1.
+   The icon is NOT in the list's flow — it is a sibling of .camText — so this
+   span is the only thing holding a hole for it, and the two have to agree.
+   They did not: the hole ran 178→353 while the icon sat 226→380, so the icon
+   printed 27px ON TOP of "안경은", and the 48px it left after the "1." marker
+   made the pair read as one gap too far from the number and none from the
+   text.
+
+   202 = 24 + 154 (icon) + 24, so the icon now has the SAME 24px either side:
+   24 after the marker, 24 before the text. Keep this width and
+   `.camNoGlasses`'s `left` in step — one without the other re-opens the
+   overlap. */
 .camTipIconGap {
   display: inline-block;
-  width: 175px;
+  width: 202px;
 }
 
 .camNoGlasses {
   position: absolute;
-  left: 226px;
-  top: 426px;
+  /* 178 (tip 1's content edge) + 24. */
+  left: 202px;
+  /* Tip 1's line box is 447→582, so its centre is 515; the icon is 155 tall,
+     giving 515 − 78 = 437. At the old 426 it rode 11px high — visibly above
+     the line of text it belongs to. */
+  top: 437px;
   width: 154px;
   height: 155px;
   object-fit: contain;

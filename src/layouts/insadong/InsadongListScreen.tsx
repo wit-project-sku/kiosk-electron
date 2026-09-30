@@ -54,6 +54,19 @@ export function InsadongListScreen({ title, controller }: InsadongListScreenProp
   const setDetail = useDetailStore((s) => s.setItem);
   const [selected, setSelected] = useState('');
   const [initial, setInitial] = useState('');
+
+  /* 초성 index is Korean-only: an alphabet index only works for the alphabet
+     the names are written in, and every card shows its name in the visitor's
+     own language. Same call InsadongAbout and JejuAbout already make. */
+  const showInitials = lang === 'ko';
+
+  /* Leaving Korean must also drop an ACTIVE filter, not just the control.
+     Otherwise a visitor who taps ㅅ and then switches to English is left on a
+     narrowed list with no visible reason and no way to clear it. */
+  useEffect(() => {
+    if (!showInitials && initial !== '') setInitial('');
+  }, [showInitials, initial]);
+
   const listRef = useRef<HTMLDivElement>(null);
 
   const baseKr = SCREEN_BASE_CATEGORY[controller.screen] ?? '';
@@ -161,6 +174,7 @@ export function InsadongListScreen({ title, controller }: InsadongListScreenProp
           ))}
         </div>
 
+        {showInitials && (
         <div className={styles.initials}>
           {INITIALS.map((letter) => (
             <button
@@ -173,6 +187,7 @@ export function InsadongListScreen({ title, controller }: InsadongListScreenProp
             </button>
           ))}
         </div>
+        )}
 
         <div ref={listRef} className={styles.listScroll}>
           <div className={styles.list}>

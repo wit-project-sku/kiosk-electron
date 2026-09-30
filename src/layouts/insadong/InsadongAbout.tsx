@@ -484,6 +484,19 @@ export function InsadongAbout({ controller }: InsadongAboutProps): JSX.Element {
      the visitor's own language. Same call JejuAbout makes. */
   const showInitials = lang === 'ko';
 
+  /* Leaving Korean must also drop an ACTIVE filter, not just the control.
+     The row above was already hidden outside Korean, but `visible` kept
+     filtering on `initial`, so a visitor who tapped ㅅ and then switched to
+     English stayed on the narrowed list with no visible reason and no way to
+     clear it. Same effect JejuAbout carries for its own 초성 row. */
+  useEffect(() => {
+    if (!showInitials && initial !== '') {
+      setInitial('');
+      setMapIds(null);
+      setPinned(null);
+    }
+  }, [showInitials, initial]);
+
   /* What the map pins: the 초성-filtered set narrowed to placeable rows.
      Deliberately NOT the viewport-filtered list — feeding the map its own
      output would refit it to whatever it last showed and it would walk itself

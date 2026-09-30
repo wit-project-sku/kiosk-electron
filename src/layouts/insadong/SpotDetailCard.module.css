@@ -1,8 +1,14 @@
 /* Shared spot-detail card — 인사동 리뉴얼 `검색 > 상세` (Figma 7519:74932, card
    7516:74269), reused by the AI detail and every list/search 상세.
    Artboard 2160×3840, so every number below is a literal Figma coordinate. */
-/* Fixed area (top 699 → bottom 573) — the card fits without scrolling, like
-   Figma. The description/tags are line-clamped so long text can't force a scroll. */
+/* Fixed area (top 699 → bottom 573). The card SCROLLS inside it.
+
+   It used to be `overflow: hidden` with the description clamped to 3 lines and
+   the tags to 2, so a long 소개 simply ended in an ellipsis and the rest was
+   unreachable. Figma's own copy fits in three lines; real CMS copy often does
+   not, and in the translated languages almost never — the same sentence runs
+   half again as long in English or Russian as in Korean. Scrolling shows all of
+   it without the card having to grow past the promo band. */
 .content {
   position: absolute;
   top: calc(700px + var(--header-push, 0px) + var(--insa-header-shift, 0px));
@@ -16,10 +22,30 @@
   box-sizing: border-box;
   display: flex;
   flex-direction: column;
-  align-items: center;
-  overflow: hidden;
-  padding: 0 170px 60px;
+  /* `flex-start` + asymmetric padding, NOT `center` + 170/170. Once this box
+     scrolls, a classic scrollbar takes 34px off the content width, and a
+     centred card re-centres in what is left — measured: the card slid from
+     x170 to x153 the moment the description got long, so the plate visibly
+     jumped left on exactly the rows that needed to scroll. Pinning the start
+     edge and giving the track the 34px it wants (136 + 34 = 170) keeps the
+     card at x170 whether it scrolls or not — the same arrangement
+     InsadongSearch's result list uses. */
+  align-items: flex-start;
+  overflow-x: hidden;
+  overflow-y: auto;
+  padding: 0 136px 60px 170px;
   font-family: var(--kiosk-font, sans-serif);
+}
+
+.content::-webkit-scrollbar {
+  width: 34px;
+}
+.content::-webkit-scrollbar-thumb {
+  background: var(--kiosk-primary);
+  border-radius: 21.45px;
+}
+.content::-webkit-scrollbar-track {
+  background: transparent;
 }
 
 /* 7516:74269: 1820 wide at x170, plain white, radius 42.9 — no stroke, no
@@ -27,6 +53,10 @@
    (1820 − 59×2), with 62px between rows. */
 .card {
   box-sizing: border-box;
+  /* `.content` is a flex COLUMN, so the card is a flex item and would otherwise
+     be squeezed to fit rather than overflowing into a scroll — the same trap
+     that flattened the 검색 result cards. */
+  flex: none;
   width: 1820px;
   display: flex;
   flex-direction: column;
@@ -44,10 +74,34 @@
   gap: 42.9px;
 }
 
+/* Title + category.
+   Korean names are short and sit on one line with the category beside them.
+   Translated ones are not: "North Insadong Tourist Information Center" wraps to
+   two lines and "Information Center" then had to squeeze into whatever was
+   left, wrapping mid-phrase against a vertically-centred dot — the broken row
+   in the report.
+
+   `flex-wrap` is the fix: when the pair no longer fits on one line the CATEGORY
+   drops to its own line under the title, whole and left-aligned, instead of
+   being crushed into the gap. Korean is unaffected — it never reaches the wrap.
+
+   `center`, NOT `baseline`. Baseline was tried (2026-09-30) and is wrong here:
+   the title is 85px and the category 51px, so sharing a baseline drops the
+   category onto the title's foot rather than beside it — it reads as hanging
+   off the bottom of the name. Centring the two boxes is what the frame draws
+   and what the list cards already do. */
 .titleRow {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
-  gap: 42.9px;
+  column-gap: 42.9px;
+  row-gap: 18px;
+}
+
+.title,
+.cat {
+  flex: 0 1 auto;
+  min-width: 0;
 }
 
 .title {
@@ -60,7 +114,9 @@
 
 .cat {
   display: flex;
-  align-items: center;
+  /* `flex-start`, not `center`: a category that still has to wrap keeps its dot
+     on the FIRST line instead of floating to the middle of the block. */
+  align-items: flex-start;
   gap: 21.45px;
   font-weight: 400;
   font-size: 51px;
@@ -70,6 +126,9 @@
 
 .dot {
   flex: none;
+  /* (51px line − 17px dot) / 2 — optically centres it on the category's first
+     line now that `.cat` aligns to flex-start. */
+  margin-top: 17px;
   width: 17px;
   height: 17px;
   border-radius: 50%;
@@ -184,11 +243,8 @@
   font-size: 45px;
   color: #333333;
   line-height: 1.3;
-  /* Figma allots h116 (~2 lines at 45px/1.3); clamp so the card always fits. */
-  display: -webkit-box;
-  -webkit-line-clamp: 3;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
+  /* No clamp: the 소개 is the reason the visitor opened this page. `.content`
+     scrolls, so a long one is read rather than truncated. */
 }
 
 .descTags {
@@ -197,10 +253,6 @@
   font-size: 38px;
   color: #616161;
   line-height: 1.5;
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
 }
 
 /* ── Ratings ── */

@@ -254,12 +254,36 @@
   gap: 42.9px;
 }
 
-/* Existing QR art already includes the rounded plate and the store mark. */
-.qrImg {
+/* The art carries the rounded plate, the green frame and the store mark; the
+   CODE itself is drawn live on top — see .qrCode. */
+.qrTile {
+  position: relative;
+  display: block;
   width: 215px;
-  height: auto;
   flex: none;
+}
+
+.qrImg {
+  width: 100%;
+  height: auto;
+  display: block;
   object-fit: contain;
+}
+
+/* The live code, laid exactly over the art's green frame.
+   Measured off qr-android.png (246×299) rather than eyeballed: the frame's
+   INNER area — inside its 4px green border — is x 54…190, y 54…190, so as
+   fractions of the image that is 54/246 and 54/299 for the origin and 137/246
+   by 137/299 for the size. Percentages (not px) because the tile is 215 wide
+   here and the same art is free to be sized differently elsewhere.
+   The box is opaque white, so it fully covers the baked-in pattern beneath. */
+.qrCode {
+  position: absolute;
+  left: 21.95%;
+  top: 18.06%;
+  width: 55.69%;
+  height: 45.82%;
+  background: #ffffff;
 }
 
 /* Single composed image of the four app screenshots (Figma Frame 1102, 1740×558). */

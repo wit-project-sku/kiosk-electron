@@ -68,6 +68,19 @@ export function InsadongMuseum({ controller }: InsadongMuseumProps): JSX.Element
   const [active, setActive] = useState<string>(CATEGORY_IDS[0]);
   const [initial, setInitial] = useState('');
 
+  /* 초성 index is Korean-only: an alphabet index only works for the alphabet
+     the names are written in, and every card shows its name in the visitor's
+     own language. Same call InsadongAbout and JejuAbout already make. */
+  const showInitials = lang === 'ko';
+
+  /* Leaving Korean must also drop an ACTIVE filter, not just the control.
+     Otherwise a visitor who taps ㅅ and then switches to English is left on a
+     narrowed list with no visible reason and no way to clear it. */
+  useEffect(() => {
+    if (!showInitials && initial !== '') setInitial('');
+  }, [showInitials, initial]);
+
+
   const baseShops = useMemo(() => shopsForBase(shops, BASE_CATEGORY), [shops]);
 
   const catLabels = useMemo(() => {
@@ -156,6 +169,7 @@ export function InsadongMuseum({ controller }: InsadongMuseumProps): JSX.Element
           ))}
         </div>
 
+        {showInitials && (
         <div className={styles.initials}>
           {INITIALS.map((letter) => (
             <button
@@ -168,6 +182,7 @@ export function InsadongMuseum({ controller }: InsadongMuseumProps): JSX.Element
             </button>
           ))}
         </div>
+        )}
 
         <div ref={listRef} className={list.listScroll}>
           <div className={list.list}>

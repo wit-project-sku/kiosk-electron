@@ -273,11 +273,23 @@ export function isInsadongLayout(layout: KioskLayoutId): boolean {
  *   · Monitor 2 (CustomerDisplay) draws the palm/fist chips and runs detection
  * Arming the gate on a screen that draws no chips is not a cosmetic mismatch —
  * it is a silent ~30s stall until the fallback timer fires, which is exactly
- * why the 2026-08-24 fleet-wide rollout was reverted two days later. 인사동
- * joined 2026-09-28, taking JejuCameraGuide and the rich picker with it.
+ * why the 2026-08-24 fleet-wide rollout was reverted two days later.
+ *
+ * ── 제주-only again (2026-09-29) ───────────────────────────────────────
+ * 인사동 took this on 2026-09-28 and gave it back a day later: the venue wants
+ * its ORIGINAL Monitor 2 camera screen, and that screen cannot host the gate.
+ * JejuCameraGuide's two gesture chips are baked into its background artwork and
+ * cannot be lifted out, while the legacy screen tells the visitor
+ * "10초후에 촬영이 됩니다" — timer copy that a palm gate would contradict. So the
+ * pair travels together, both reverted rather than half.
+ *
+ * ★ Only the COUNTDOWN and the camera screen went back. 인사동 keeps the rich
+ * outfit picker (photoChrome.richOutfit) and the 게임존
+ * (photoChrome.waitingGames) — those are separate capabilities for exactly this
+ * reason, so one can be withdrawn without disturbing the others.
  */
 export function usesGestureCapture(layout: KioskLayoutId): boolean {
-  return isJejuLayout(layout) || isInsadongLayout(layout);
+  return isJejuLayout(layout);
 }
 
 /**

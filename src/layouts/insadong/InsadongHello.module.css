@@ -403,8 +403,23 @@
   flex: 0 0 auto;
 }
 
+/* The hashtag / 인스타 / QR row on 취미생활 and 건강습관.
+   `.footer` carries `margin-top: auto`, which pins it to the foot of the card
+   while the copy is short — and collapses to ZERO the moment the copy fills the
+   card, which is every long tab (골프, 테니스) and most of the translated ones.
+   The row then sat flush against the last line of the description.
+
+   `padding-top` rather than a margin, so BOTH behaviours survive: the padding
+   is always there, so the gap can never fall below it, while `margin-top: auto`
+   still takes up whatever slack is left on a short tab. Because the padding
+   grows the footer's own box, a short tab's tags do not move — the 25px opens
+   ABOVE them, inside the box that was already bottom-aligned.
+
+   25px is not a new number: it is exactly `.hobbyCard .hobbyBody`'s own
+   `margin-top`, i.e. the gap the description already keeps from the title. */
 .hobbyCard .footer {
   width: 100%;
+  padding-top: 25px;
 }
 
 .hobbyBody {
@@ -685,15 +700,40 @@
   gap: 40px;
 }
 
+/* ── Non-Korean 인사 소개: smaller portrait, word-safe labels ──────────────
+   The 939 circle leaves the info column 1696 − 939 − 106 = 651px, which the
+   Korean labels (국적 · 혈액형 · MBTI) fit easily. The translations do not:
+   measured against this stylesheet at the real 1820 card, 939 wraps
+   `Nationality` in en, `Гражданство` in ru, `Kewarganegaraan` in id and
+   `ถิ่นกำเนิด` in th — and because the rule below used `overflow-wrap: anywhere`,
+   they broke MID-WORD ("Nationalit" / "y"), which is what this was reported as.
+
+   700 is the first size at which no label in any of the eight languages wraps
+   at all (en/th/ko clear at 800, ru/id at 720, vi only at 700).
+
+   Scoped to `.cardLong`, so KOREAN KEEPS THE 939 FRAME EXACTLY. Korean was
+   never the problem and its layout is the one the design was drawn against. */
+.cardLong .portrait {
+  width: 700px;
+  height: 700px;
+}
+
 /* `flex: 0 1 auto`, not the base rule's `flex: none`: a label that is wider
    than its own column must be able to give way and wrap, or the row's
-   min-content pushes the whole 1740 row past the card's edge. */
+   min-content pushes the whole 1740 row past the card's edge.
+
+   `break-word`, not `anywhere`: both let an over-long label give way, but
+   `anywhere` breaks at ANY character — it is what split "Nationalit|y". With
+   `break-word` a word is only ever broken when it cannot fit on a line of its
+   own, so a label that must wrap does so at a space ("Hari ulang | tahun").
+   Kept as a floor even though 700 means nothing wraps today: the copy comes
+   from the CMS and the next translation may be longer. */
 .cardLong .field .label {
   flex: 0 1 auto;
   width: auto;
   min-width: 170px;
   word-break: keep-all;
-  overflow-wrap: anywhere;
+  overflow-wrap: break-word;
 }
 
 .cardLong .detail .label {
