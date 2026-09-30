@@ -163,8 +163,12 @@ export function CustomerDisplay(): JSX.Element {
     heldClips.current = clips;
     return clips;
   }, [kioskScreen, buttonId, lang, kioskId, dataVersion]);
+  /* The 60초 wait is the sheet's Photo_Creating rows (재생조건 "촬영버튼-> 60초대기"),
+     i.e. the `photo_creating` stage. It asked for `photo`, which on 인사동 and
+     제주 is the outfit-choice row — so the wait played "먼저 착용해보고 싶은
+     스타일을 선택하세요". Every other layout maps both ids to Photo_Creating. */
   const genClips = useMemo(
-    () => clipsForScreen('photo', lang, kioskId),
+    () => clipsForScreen('photo_creating', lang, kioskId),
     [lang, kioskId, dataVersion],
   );
   // The clip for the tapped weather condition. Empty when this kiosk's video
@@ -506,8 +510,9 @@ export function CustomerDisplay(): JSX.Element {
       {state.mode === 'generating' && (
         <div className={styles.genScreen}>
           {genClips.length > 0 ? (
-            // One clip on native loop → perfectly smooth, non-stop while waiting.
-            <AiModelVideoWall key="gen" clips={genClips.slice(0, 1)} hideLabel />
+            // Every Photo_Creating row, cycling (one loops natively): the sheet
+            // lists three clips, each with its own subtitle, for the wait.
+            <AiModelVideoWall key="gen" clips={genClips} hideLabel />
           ) : (
             displayVideos.length > 0 && (
               <video key={displayVideos[0]} className={styles.genVideo} autoPlay muted loop playsInline>
