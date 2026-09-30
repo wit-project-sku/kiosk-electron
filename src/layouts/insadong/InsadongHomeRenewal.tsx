@@ -492,10 +492,13 @@ const stripParenthetical = (label: string): string =>
               <>
                 {art && <img className={styles.quickArt} src={art} alt="" draggable={false} />}
                 <span className={`${styles.quickTitle} ${longLang ? styles.quickTitleLong : ''}`}>
-                  {stripParenthetical(labelOf(secondScreen, second.label))}
+                  {/* Read from the sheet's 인사랑 rows on EVERY kiosk. `MainButton_Goods` (the old
+                      위드마켓 row) is gone from Localization_Insa, so looking it up on W003 always
+                      missed and drew the hardcoded "위드마켓" while the sheet says 인사랑(준비중). */}
+                  {labelOf('insarang', second.label)}
                 </span>
                 <span className={`${styles.quickSub} ${longLang ? styles.quickSubLong : ''}`}>
-                  {subOf(secondScreen, second.sub)}
+                  {subOf('insarang', second.sub)}
                 </span>
               </>
             );

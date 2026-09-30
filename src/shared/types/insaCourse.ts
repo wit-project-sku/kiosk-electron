@@ -27,6 +27,8 @@ export interface InsaCourseQuery {
    */
   interests: string[];
   duration: InsaDuration;
+  /** Group size, from the 방문 인원 chips (1 · 2 · 3 · 4 · 9 for 5~9 · 10 for 10+). */
+  numberOfPeople: number;
   /** Local time the route starts, `YYYY-MM-DDTHH:mm:ss` (no zone). */
   startAt: string;
 }

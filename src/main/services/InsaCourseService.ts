@@ -52,6 +52,7 @@ export class InsaCourseService {
       kioskId: this.kiosk.kioskNum(),
       interests: query.interests,
       duration: query.duration,
+      numberOfPeople: query.numberOfPeople,
       startAt: query.startAt,
       lat: here.lat,
       lon: here.lon,

@@ -405,7 +405,8 @@
 .quickInsarang .quickTitle {
   left: 57px;
   top: 80.5px;
-  width: 290.52px;
+  /* The sheet's full "인사랑(준비중)" — 305 is all there is before the art at x362. */
+  width: 300px;
 }
 
 .quickInsarang .quickSub {

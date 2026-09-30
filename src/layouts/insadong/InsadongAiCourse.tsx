@@ -10,7 +10,7 @@ import { useLang, pick as pickLang } from '@renderer/lib/i18n';
 import type { Lang } from '@renderer/lib/i18n';
 import { tExact } from '@renderer/lib/loc';
 import { isOk } from '@shared/types/result';
-import { clockLabel, minutesLabel, nowMinutes } from '@renderer/lib/jejuCourse';
+import { clockLabel, minutesLabel, nowMinutes, partySize } from '@renderer/lib/jejuCourse';
 import { shopSecondCategory, stripPrefix } from '@renderer/lib/shops';
 import { useFitText } from '@layouts/components/fitText';
 import { InsadongHeader } from './InsadongHeader';
@@ -31,8 +31,8 @@ import styles from './InsadongAiCourse.module.css';
  * The course engine is 인사동's own: `POST /api/insa/courses/recommend` (see
  * InsaCourseService). One call turns the picked 관심사 and a time slot
  * (`0-2` · `2-4` · `4-6` · `6+` hours) into ONE walking route from this kiosk;
- * there is no per-tap plan, no multi-day schedule, no 이동수단 and the party
- * size is only shown back to the visitor. 관심사 are the shop catalogue's
+ * there is no per-tap plan, no multi-day schedule and no 이동수단; the party
+ * size travels as `numberOfPeople`. 관심사 are the shop catalogue's
  * `secondCategoryKr` strings with their number prefix (`2-화랑`, `9-카페`) — the
  * API rejects anything else, including the 30 AI categories of the old picker.
  */
@@ -421,8 +421,7 @@ export function InsadongAiCourse({ controller }: Props): JSX.Element {
     resumed?.entry === 'theme' ? resumed.course || null : null,
   );
   /* Answers are held as the canonical value the API takes; the chips show the
-     localized text over it. 방문 인원 is not sent (the route is the same for
-     any party) — it is only shown back on the result. */
+     localized text over it. 방문 인원 travels as `numberOfPeople`. */
   const [party, setParty] = useState(resumed?.visitors || '2명');
   const [duration, setDuration] = useState<InsaDuration>(
     (resumed?.stay as InsaDuration | undefined) || '2-4',
@@ -478,7 +477,7 @@ export function InsadongAiCourse({ controller }: Props): JSX.Element {
    */
   const [preview, setPreview] = useState<{ key: string; course: InsaCourse } | null>(null);
   const previewSeq = useRef(0);
-  const previewKey = `${duration}|${picks.join(',')}`;
+  const previewKey = `${duration}|${party}|${picks.join(',')}`;
   useEffect(() => {
     if (step !== 'custom' || picks.length === 0) {
       setPreview(null);
@@ -487,14 +486,19 @@ export function InsadongAiCourse({ controller }: Props): JSX.Element {
     const seq = ++previewSeq.current;
     const timer = setTimeout(() => {
       void window.api.insaCourse
-        .recommend({ interests: picks, duration, startAt: localIso(new Date()) })
+        .recommend({
+          interests: picks,
+          duration,
+          numberOfPeople: partySize(party),
+          startAt: localIso(new Date()),
+        })
         .then((res) => {
           if (previewSeq.current !== seq) return;
           setPreview(isOk(res) ? { key: previewKey, course: res.value } : null);
         });
     }, 350);
     return () => clearTimeout(timer);
-  }, [step, picks, duration, previewKey]);
+  }, [step, picks, duration, party, previewKey]);
 
   const toggle = (code: string): void =>
     setPicks((prev) => (prev.includes(code) ? prev.filter((c) => c !== code) : [...prev, code]));
@@ -508,6 +512,7 @@ export function InsadongAiCourse({ controller }: Props): JSX.Element {
     const res = await window.api.insaCourse.recommend({
       interests,
       duration,
+      numberOfPeople: partySize(party),
       startAt: localIso(new Date()),
     });
     setInsaCourse(isOk(res) ? res.value : null);
