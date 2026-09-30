@@ -43,7 +43,7 @@ export const JEJU_SUBTITLE_TABS: Partial<Record<KioskLayoutId, string>> = {
  * not a fallback: the CMS still carries the pre-refresh file names, which match
  * none of the clips now on the kiosks. See {@link INSA_PARSE}.
  */
-export const INSA_SUBTITLE_TAB = 'VideoSubtitle_Insa';
+export const INSA_SUBTITLE_TAB = 'VideoSubtitle_Insa_v2';
 export const INSA_SUBTITLE_LAYOUTS: ReadonlySet<KioskLayoutId> = new Set<KioskLayoutId>(['INSADONG', 'NAM_INSADONG']);
 
 /** How a venue's tab differs from 제주's. */
@@ -56,6 +56,10 @@ export interface SubtitleParseOptions {
   compactKeys?: boolean;
   /** Keep the first of several rows that name the same key AND file. */
   dedupe?: boolean;
+  /** Keep rows the sheet marks as having no clip, as `noVideo` placeholders. */
+  keepNoVideoRows?: boolean;
+  /** Sheet key → the key the app uses, for typos in the Key column. */
+  keyAliases?: Readonly<Record<string, string>>;
 }
 
 /**
@@ -74,7 +78,12 @@ export const INSA_PARSE: SubtitleParseOptions = {
   fileSuffix: '=FIN',
   compactKeys: true,
   dedupe: true,
+  keepNoVideoRows: true,
+  keyAliases: { Donation_Catgory: 'Donation_Category' },
 };
+
+/** A cell that says the state has no clip rather than naming one. */
+const NO_VIDEO = /no\s*video|영상\s*없음/i;
 
 /** Sheet language header → app code. Resolved by name, so a reorder cannot scramble it. */
 const SHEET_LANGS: Record<string, keyof SubtitleLangText> = {
@@ -98,6 +107,7 @@ interface Columns {
   key: number;
   fileDev: number;
   fileOps: number;
+  condition: number;
   folder: number;
   main: LangCol[];
   rightTop: LangCol[];
@@ -115,6 +125,7 @@ function resolveColumns(header: readonly string[]): Columns {
   const fileDev = at((h) => /파일명/.test(h) && /개발/.test(h));
   const fileOps = at((h) => /파일명/.test(h) && /운영/.test(h));
   const folder = at((h) => /폴더/.test(h));
+  const condition = at((h) => /재생조건/.test(h));
 
   // The tab carries two language blocks in sheet order — the subtitle line,
   // then the 우측상단 label. The second block starts where a language repeats,
@@ -138,7 +149,7 @@ function resolveColumns(header: readonly string[]): Columns {
         'changed; columns are never guessed by position',
     );
   }
-  return { key, fileDev, fileOps, folder, main, rightTop };
+  return { key, fileDev, fileOps, condition, folder, main, rightTop };
 }
 
 /** One language block of a row. ko/en/ja/zh are always present (SubtitleLangText
@@ -174,11 +185,27 @@ export function parseJejuSubtitleSheet(
   rows.slice(headerAt + 1).forEach((r, i) => {
     const rawKey = clean(r[cols.key]);
     if (!rawKey || /^Key\b/i.test(rawKey)) return;
-    const key = options.compactKeys ? rawKey.replace(/\s+/g, '') : rawKey;
+    const compact = options.compactKeys ? rawKey.replace(/\s+/g, '') : rawKey;
+    const key = options.keyAliases?.[compact] ?? compact;
     // 운영 (the name the file actually ships under) wins over 개발 once filled —
     // except where the venue's files are named after 개발 (see INSA_PARSE).
     const ops = !options.devNameOnly && cols.fileOps >= 0 ? clean(r[cols.fileOps]) : '';
     const named = ops || (cols.fileDev >= 0 ? clean(r[cols.fileDev]) : '');
+    const condition = cols.condition >= 0 ? clean(r[cols.condition]) : '';
+    if (options.keepNoVideoRows && (NO_VIDEO.test(named) || (!named && NO_VIDEO.test(condition)))) {
+      // Listed, but explicitly without a clip: keep its slot (see VideoEntry.noVideo).
+      noVideo += 1;
+      entries.push({
+        key,
+        file: '',
+        subtitle: langBlock(r, cols.main),
+        label: langBlock(r, cols.rightTop),
+        buttonId: null,
+        sortOrder: i,
+        noVideo: true,
+      });
+      return;
+    }
     if (!named) {
       noVideo += 1;
       return;

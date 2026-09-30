@@ -668,6 +668,10 @@ export function InsadongAbout({ controller }: InsadongAboutProps): JSX.Element {
 
   const selectTab = (id: AboutTab): void => {
     setTab(id);
+    /* 재생조건: Here-1 관광명소 · Here-2 역사 · Here-3 문화. */
+    void window.api.kiosk.setScreen(
+      id === 'history' ? 'about_history' : id === 'culture' ? 'about_culture' : 'about_attractions',
+    );
     setInitial('');
     setSpot(null);
     setMapIds(null);

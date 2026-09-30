@@ -47,11 +47,11 @@ type SubtitleSource = 'api' | 'sheet';
  * ── 인사동: the sheet is the source ─────────────────────────────────────────
  * The reverse order. The CMS still names the pre-refresh footage
  * (`M=hanbok01=7.2-02=…`), none of which is on the kiosks now, so its rows would
- * resolve no clip at all. VideoSubtitle_Insa is read FIRST and its
- * `파일명 (개발)` + `=FIN` names are what the files on disk are called (see
- * INSA_PARSE). The API is used only when the sheet cannot be read AND nothing
- * from the sheet is cached — a network blip must not swap working sheet rows
- * for names that match nothing.
+ * resolve no clip at all. VideoSubtitle_Insa_v2 is the ONLY source for now: its
+ * `파일명 (개발)` names (already `…=FIN`) are what the files on disk are called
+ * (see INSA_PARSE). If the sheet cannot be read the last sheet data is kept —
+ * the API is never consulted, so a network blip cannot swap working rows for
+ * names that match nothing.
  *
  * An UNREACHABLE API is a different case from an empty one: if what is cached
  * came from the API, it is kept rather than replaced by the sheet, so a network
@@ -105,8 +105,12 @@ export class SubtitleService {
         this.store(fromSheet, 'sheet');
         return;
       }
-      // Sheet unavailable: keep what the sheet gave us last time, if anything.
-      if (this.source === 'sheet') return;
+      // Sheet unavailable: keep what the sheet gave us last time, if anything. The
+      // API is deliberately NOT consulted for 인사동 for now (its rows name footage
+      // that is no longer on the kiosks); with nothing cached the display simply
+      // shows the generic attract wall until the sheet is next reachable.
+      log.warn('Insadong subtitle sheet unavailable; not falling back to the API');
+      return;
     }
     const fromApi = await this.fetchApi();
     if (fromApi && fromApi.length > 0) {

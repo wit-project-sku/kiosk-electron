@@ -91,6 +91,13 @@ export interface VideoEntry {
    * on that machine — the same file-existence filter every other kiosk uses.
    */
   set?: VideoSet;
+  /**
+   * The sheet lists this state but marks it as having NO clip ("display no video" /
+   * "영상 없음. 기존 영상 그대로 재생"). Kept in its position rather than dropped, so
+   * `Key#n` addressing still lands on the right row, and the display keeps
+   * whatever is already playing instead of cutting to the idle reel. `file` is ''.
+   */
+  noVideo?: boolean;
 }
 
 // ── Raw API response shapes ────────────────────────────────────────────────

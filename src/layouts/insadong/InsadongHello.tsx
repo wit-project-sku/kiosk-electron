@@ -190,9 +190,11 @@ export function InsadongHello({ controller }: InsadongHelloProps): JSX.Element {
   const [health, setHealth] = useState(0);
 
   useEffect(() => {
-    const key = tab === 1 ? 'hello_hobby' : tab === 2 ? 'hello_stretch' : 'hello';
+    /* One clip per sub-tab (VideoSubtitle_Insa_v2 재생조건: 취미생활 → k-pop / 골프 /
+       테니스, 건강습관 → 목·어깨 / 허리 / 기분전환). */
+    const key = tab === 1 ? `hello_hobby_${hobby + 1}` : tab === 2 ? `hello_stretch_${health + 1}` : 'hello';
     void window.api.kiosk.setScreen(key);
-  }, [tab]);
+  }, [tab, hobby, health]);
 
   useFitText(tabsRef, styles.tab, wide, 0.72, TABS.map((key) => t(key, lang)).join('|'));
   /* ONLY 인사 소개 is fitted, and only in the long languages.

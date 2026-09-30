@@ -111,6 +111,9 @@ export function InsadongSearch({ controller }: InsadongSearchProps): JSX.Element
         setStoreQuery(c.value.trim());
         setFocused(false);
         setQuery(c.value);
+        /* 재생조건 "검색 후 엔터": Search_Enter plays while the result list is up;
+           an emptied query hands the display back to the Search clip. */
+        void window.api.kiosk.setScreen(c.value.trim() ? 'search_enter' : 'search');
         return;
     }
     setQuery(c.value);

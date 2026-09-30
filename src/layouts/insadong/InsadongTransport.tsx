@@ -87,7 +87,11 @@ export function InsadongTransport({ controller, initialTab = 0 }: InsadongTransp
           key={key}
           type="button"
           className={`${styles.tab} ${wide ? styles.tabLong : ''} ${tab === i ? styles.tabSelected : ''}`}
-          onClick={() => setTab(i as TabIndex)}
+          onClick={() => {
+            setTab(i as TabIndex);
+            /* 재생조건: Transport-1 진입 · Transport-2 주차정보 (the 주차장 tab). */
+            void window.api.kiosk.setScreen(i === 2 ? 'transport_category' : 'transport');
+          }}
         >
           {t(key, lang)}
         </button>

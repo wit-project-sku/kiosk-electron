@@ -182,7 +182,13 @@ export function InsadongTaxfree({ controller }: InsadongTaxfreeProps): JSX.Eleme
             key={tab}
             type="button"
             className={`${styles.tab} ${wide ? styles.tabLong : ''} ${activeTab === tab ? styles.tabSelected : ''}`}
-            onClick={() => setActiveTab(tab)}
+            onClick={() => {
+              setActiveTab(tab);
+              /* 재생조건: 가맹점 → TaxFree-4, 환급신청 → TaxFree-2; 소개 keeps the entry clip. */
+              void window.api.kiosk.setScreen(
+                tab === 'merchant' ? 'taxfree_merchant' : tab === 'refund' ? 'taxfree_refund' : 'taxfree',
+              );
+            }}
           >
             {t(TAB_KEYS[i]!, lang)}
           </button>
