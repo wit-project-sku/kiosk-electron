@@ -92,28 +92,12 @@ export function videoUrlsForSet(set: VideoSet): string[] {
 }
 
 /**
- * The file a sheet stem names, within one set.
- *
- * The 인사동 footage has been delivered under several endings for the SAME clip:
- * `IS=Weather_Cold`, `IS=Weather_Cold=FIN`, and now `IS=Weather_Cold=FIN_low`
- * (a lighter encode). The sheet only ever says one of them, and a machine may
- * hold any of them, so the stem and the file are compared on what they share —
- * the name with a trailing `fin` / `low` / `finlow` taken off — and tried in this
- * order: exactly as written, then `…fin`, `…finlow`, `…low`, and the bare name.
- * Without this every clip whose ending differs from the sheet's was dropped as
- * "no local video", and with it its subtitle.
- *
- * (`norm` has already removed `=` and `_`, so `=FIN_low` reads `finlow`.)
+ * The file a sheet stem names, within one set — by exact name (`norm` only makes
+ * the comparison case- and punctuation-insensitive). The sheet's `파일명` is the
+ * file's name; nothing is added to or taken off it.
  */
 function findFile(stem: string, set: VideoSet): VideoFile | undefined {
-  const n = norm(stem);
-  const base = n.replace(/(fin)?(low)?$/, '') || n;
-  const files = FILE_BY_NORM[set];
-  for (const candidate of [n, `${base}fin`, `${base}finlow`, `${base}low`, base]) {
-    const hit = files.get(candidate);
-    if (hit) return hit;
-  }
-  return undefined;
+  return FILE_BY_NORM[set].get(norm(stem));
 }
 
 /** Resolve a sheet file stem to a media:// URL within the kiosk's video set. */

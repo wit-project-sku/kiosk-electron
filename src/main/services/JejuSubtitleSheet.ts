@@ -65,17 +65,14 @@ export interface SubtitleParseOptions {
 /**
  * 인사동's VideoSubtitle_Insa.
  *
- *  - `파일명 (개발)` is the name the footage is delivered under (`IS=Weather_Cold`);
- *    `파일명 (운영)` is the retired CMS naming (`INSA=V1_68=Weather=FIN_DOWN`) and
- *    matches no file on the machines any more.
- *  - Every delivered file carries a trailing `=FIN` before `.mp4`
- *    (`IS=Weather_Cold=FIN.mp4`) that the sheet's name does not, so it is added here.
+ *  - `파일명 (개발)` is the file's name, used EXACTLY as written (`IS=Weather_Cold=FIN`
+ *    ↔ `IS=Weather_Cold=FIN.mp4`) — nothing is added or removed. `파일명 (운영)` is the
+ *    retired CMS naming (`INSA=V1_68=Weather=FIN_DOWN`) and is ignored.
  *  - The Key column has a few stray spaces (`To Gallery`) where the app says `ToGallery`.
  *  - `Photo-3` is listed on three rows for one clip.
  */
 export const INSA_PARSE: SubtitleParseOptions = {
   devNameOnly: true,
-  fileSuffix: '=FIN',
   compactKeys: true,
   dedupe: true,
   keepNoVideoRows: true,
