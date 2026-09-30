@@ -8,6 +8,7 @@ import { useFitText } from '@layouts/components/fitText';
 import { iconUrl } from '@renderer/assets/icons/insadong';
 import { useRotatingBanner } from '@renderer/hooks/useRotatingBanner';
 import portrait from '@renderer/assets/photos/insadong/hello/portrait.png';
+import helloVideo from '@renderer/assets/videos/insadong/hello-insa.mp4';
 import tiktokIcon from '@renderer/assets/photos/insadong/hello/asset-1.png';
 import instaIcon from '@renderer/assets/photos/insadong/hello/asset-2.png';
 import hobbyKpop from '@renderer/assets/photos/insadong/hello/hobby-kpop.jpg';
@@ -245,7 +246,18 @@ export function InsadongHello({ controller }: InsadongHelloProps): JSX.Element {
           <div ref={cardRef} className={`${styles.profileCard} ${wide ? styles.cardLong : ''}`}>
             <div className={styles.topRow}>
               <div className={styles.portrait}>
-                <img src={portrait} alt="" draggable={false} />
+                {/* A looping, muted clip of 인사 (Hello_INSA_square, 6s) in place of the still.
+                    The still stays as the poster so the circle is never empty while it loads. */}
+                <video
+                  src={helloVideo}
+                  poster={portrait}
+                  autoPlay
+                  loop
+                  muted
+                  playsInline
+                  preload="auto"
+                  disablePictureInPicture
+                />
               </div>
               <div className={styles.infoCol}>
                 <div className={styles.nameRow}>
