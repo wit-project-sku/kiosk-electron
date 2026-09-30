@@ -252,11 +252,11 @@
 .sectionStay      { top: calc(1129px + var(--header-push, 0px) + var(--insa-header-shift, 0px)); }
 .sectionTransport { top: calc(1558px + var(--header-push, 0px) + var(--insa-header-shift, 0px)); }
 
-/* Tall tops (7519:74960) — the 선택영역 starts at 822 and the gaps halve. */
+/* Tall tops (7519:74960) — the 선택영역 starts at 822 and stacks 방문 인원 (326),
+   체류 기간 (326), 즐길 거리 (1488) on a 50px gap; there is no 이동수단 row. */
 .builderFull .sectionParty     { top: calc(822px + var(--header-push, 0px) + var(--insa-header-shift, 0px)); }
-.builderFull .sectionStay      { top: calc(1201px + var(--header-push, 0px) + var(--insa-header-shift, 0px)); }
-.builderFull .sectionTransport { top: calc(1580px + var(--header-push, 0px) + var(--insa-header-shift, 0px)); }
-.builderFull .sectionJoy       { top: calc(1959px + var(--header-push, 0px) + var(--insa-header-shift, 0px)); }
+.builderFull .sectionStay      { top: calc(1198px + var(--header-push, 0px) + var(--insa-header-shift, 0px)); }
+.builderFull .sectionJoy       { top: calc(1574px + var(--header-push, 0px) + var(--insa-header-shift, 0px)); }
 
 .pillRow {
   display: flex;
@@ -422,7 +422,7 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 9px;
+  gap: 5px;
   margin: 0;
   padding: 0 12px;
   box-sizing: border-box;
@@ -457,12 +457,16 @@
   word-break: keep-all;
 }
 
-/* 7519:75195 — the "+1시간" dwell hint under a tile's name. */
+/* 7519:75195 — the "+1시간" dwell hint under a tile's name: Regular 25, gray. */
 .joyChipDwell {
-  font-size: 30px;
+  font-size: 25px;
   font-weight: 400;
   line-height: 1;
-  opacity: 0.8;
+  color: #999999;
+}
+
+.joyChipOn .joyChipDwell {
+  color: #ffffff;
 }
 
 /* 7519:75185 — the 57×57 order badge on a picked tile. */
@@ -506,7 +510,7 @@
 }
 
 .builderFull .cta {
-  top: calc(3497px + var(--header-push, 0px) + var(--insa-header-shift, 0px));
+  top: calc(3112px + var(--header-push, 0px) + var(--insa-header-shift, 0px));
 }
 
 .cta:disabled {

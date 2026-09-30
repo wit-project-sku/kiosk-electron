@@ -31,6 +31,7 @@ import { AttractionService } from './services/AttractionService';
 import { SpotDiffService } from './services/SpotDiffService';
 import { OutfitService } from './services/OutfitService';
 import { JejuCourseService } from './services/JejuCourseService';
+import { InsaCourseService } from './services/InsaCourseService';
 import { StatsService } from './services/StatsService';
 import { FailedRequestService } from './services/FailedRequestService';
 import { TranslationService } from './services/TranslationService';
@@ -92,6 +93,8 @@ export interface AppContainer {
   outfits: OutfitService;
   /** 제주 AI 코스 추천 — live, uncached, 제주 kiosks only. */
   jejuCourse: JejuCourseService;
+  /** 인사동 AI 코스 추천 — live, uncached. */
+  insaCourse: InsaCourseService;
   stats: StatsService;
   events: EventsService;
   updater: UpdateService;
@@ -139,6 +142,7 @@ export function createContainer(): AppContainer {
   // No cache dependency: every recommendation is a fresh POST. It only needs
   // the kiosk so it can stamp `kioskId` on the request itself.
   const jejuCourse = new JejuCourseService(kiosk);
+  const insaCourse = new InsaCourseService(kiosk);
   const stats = new StatsService(kiosk, failedRequests);
   const weather = new WeatherService(cache, kiosk);
   const flights = new FlightService(cache, kiosk);
@@ -233,6 +237,7 @@ export function createContainer(): AppContainer {
     spotDiff,
     outfits,
     jejuCourse,
+    insaCourse,
     stats,
     events,
     updater,

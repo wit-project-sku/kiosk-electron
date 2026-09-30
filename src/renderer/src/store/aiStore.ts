@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import type { JejuPickerPlan } from '@shared/types/jejuCourse';
+import type { InsaCourse } from '@shared/types/insaCourse';
 
 interface AiState {
   /** Interest categories the user picked on the questionnaire (max 3, in order). */
@@ -58,6 +59,15 @@ interface AiState {
    */
   pickerPlan: JejuPickerPlan | null;
   setPickerPlan: (plan: JejuPickerPlan | null) => void;
+  /**
+   * The route `POST /api/insa/courses/recommend` returned for the 인사동 뭐하지
+   * questionnaire, drawn by the result page. Null when the call failed (the
+   * result page then shows its empty state) and on every other layout. On
+   * 인사동 `interests` holds the API's `N-name` codes and `stay` the slot
+   * (`0-2` · `2-4` · `4-6` · `6+`).
+   */
+  insaCourse: InsaCourse | null;
+  setInsaCourse: (course: InsaCourse | null) => void;
 }
 
 /** Carries the AI-search selections from the questionnaire into the result page. */
@@ -78,4 +88,6 @@ export const useAiStore = create<AiState>((set) => ({
   setRegions: (regions) => set({ regions }),
   pickerPlan: null,
   setPickerPlan: (pickerPlan) => set({ pickerPlan }),
+  insaCourse: null,
+  setInsaCourse: (insaCourse) => set({ insaCourse }),
 }));

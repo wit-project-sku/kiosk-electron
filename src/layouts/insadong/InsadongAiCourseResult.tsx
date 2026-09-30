@@ -1,7 +1,7 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useMemo, useRef, useState } from 'react';
 import { QRCodeSVG } from 'qrcode.react';
 import type { KioskController } from '@renderer/hooks/useKioskController';
-import type { JejuCourse, JejuPickerPlan } from '@shared/types/jejuCourse';
+import type { InsaCourse } from '@shared/types/insaCourse';
 import type { Shop } from '@shared/types/shop';
 import { iconUrl } from '@renderer/assets/icons/insadong';
 import iconMarker from '@renderer/assets/photos/insadong/ai/icon-marker.png';
@@ -13,17 +13,13 @@ import { getKioskLocation } from '@shared/config/kioskLocations';
 import { pick as pickLang, useLang } from '@renderer/lib/i18n';
 import type { Lang } from '@renderer/lib/i18n';
 import { sheetText } from '@renderer/lib/loc';
-import { isOk } from '@shared/types/result';
 import { buildAiCourseSaveUrlForQr } from '@renderer/lib/aiCourseSave';
 import {
   aboutMinutesLabel,
   courseLetter,
-  interestCodes,
   minutesLabel,
-  nightCount,
   partySize,
   todayIso,
-  transportCode,
 } from '@renderer/lib/jejuCourse';
 import {
   shopAddress,
@@ -43,15 +39,11 @@ import styles from './InsadongAiCourseResult.module.css';
  * AI 맞춤 추천 코스 — Figma 7519:75267 (7519:76503 is a straight duplicate of
  * the same frame, so one component draws both).
  *
- * Two sources feed it, normalised into {@link Stop} so the page never branches
- * on which one it got:
- *   · 커스텀 코스 — the {@link JejuPickerPlan} the builder already has in the
- *     store, so the visitor sees exactly the places they watched fill the day
- *     rather than a second, differently-scheduled answer.
- *   · 추천코스    — `/recommend` for the tapped course letter.
- *
- * Both are 제주's endpoints, reused unchanged; the server keys the catalogue off
- * kioskId, which now accepts the 인사동 kiosks.
+ * The route is `POST /api/insa/courses/recommend`'s answer, made by the builder
+ * and left in the store (`insaCourse`), normalised into {@link Stop}. ONE day,
+ * walking: the API schedules a single line of places from this kiosk, so there is
+ * no DAY pager beyond DAY 1 and no 이동수단 to report. A failed call leaves the
+ * store empty and this page draws its empty state.
  *
  * ── Copy ──────────────────────────────────────────────────────────────────
  * Every string here resolves sheet-row-for-this-language → authored copy for
@@ -122,16 +114,18 @@ const TEXT = {
   } as L8,
 };
 
-/** One scheduled stop, from either source. */
+/** One scheduled stop. */
 interface Stop {
   shopId: number;
   order: number;
-  /** Travel INTO this stop from the previous one. */
+  /** Walking INTO this stop from the previous one. */
   travelMinutes: number;
   travelKm: number;
   dwellMinutes: number;
   /** The 즐길 거리 this stop was picked for, prefix stripped. */
   category: string;
+  /** `default` = a category-typical guess at the opening hours: never shown as a time. */
+  hoursMethod: string;
 }
 
 interface Day {
@@ -139,41 +133,23 @@ interface Day {
   stops: Stop[];
 }
 
-const fromPlan = (plan: JejuPickerPlan): Day[] =>
-  plan.days.map((d) => ({
-    day: d.day,
-    /* `repeat` is the server's filler for days the visitor never tapped; it is
-       explicitly not in the day's minutes, so it is shown only when the day has
-       nothing of its own. */
-    stops: (d.stops.length > 0 ? d.stops : (d.repeat?.stops ?? [])).map((s) => ({
-      shopId: s.shopId,
-      order: s.order,
-      travelMinutes: s.travelMinutes,
-      travelKm: s.travelKm,
-      dwellMinutes: s.dwellMinutes,
-      category: stripPrefix(s.aiCategory),
-    })),
-  }));
-
-const fromCourse = (course: JejuCourse): Day[] =>
-  course.schedule.map((d) => ({
-    day: d.day,
-    stops: d.spots.map((s) => ({
-      shopId: s.shopId,
-      order: s.order,
-      travelMinutes: s.travelMinutes,
-      travelKm: s.travelKm,
-      /* /recommend carries no per-stop dwell; the day's own total minus its
-         travel, spread over the stops, is the only honest figure available. */
-      dwellMinutes: Math.max(
-        0,
-        Math.round(
-          (d.minutes - d.spots.reduce((t, x) => t + x.travelMinutes, 0)) / Math.max(1, d.spots.length),
-        ),
-      ),
-      category: '',
-    })),
-  }));
+const fromInsa = (course: InsaCourse): Day[] =>
+  course.spots.length === 0
+    ? []
+    : [
+        {
+          day: 1,
+          stops: course.spots.map((sp) => ({
+            shopId: sp.shopId,
+            order: sp.order,
+            travelMinutes: sp.walkMinutes,
+            travelKm: sp.walkMeters / 1000,
+            dwellMinutes: sp.stayMinutes,
+            category: stripPrefix(sp.secondCategory),
+            hoursMethod: sp.hoursMethod,
+          })),
+        },
+      ];
 
 interface Props {
   controller: KioskController;
@@ -195,56 +171,20 @@ export function InsadongAiCourseResult({ controller }: Props): JSX.Element {
 
   const entry = useAiStore((s) => s.entry);
   const courseKey = useAiStore((s) => s.course);
-  const pickerPlan = useAiStore((s) => s.pickerPlan);
+  const insaCourse = useAiStore((s) => s.insaCourse);
   const interests = useAiStore((s) => s.interests);
   const visitors = useAiStore((s) => s.visitors);
   const stay = useAiStore((s) => s.stay);
-  const transport = useAiStore((s) => s.transport);
 
   const shops = useShopStore((s) => s.shops);
   const setDetail = useDetailStore((s) => s.setItem);
 
-  const [course, setCourse] = useState<JejuCourse | null>(null);
   const [day, setDay] = useState(1);
   const panelRef = useRef<HTMLDivElement>(null);
   const summaryRef = useRef<HTMLDivElement>(null);
   const catsRef = useRef<HTMLDivElement>(null);
 
-  /* The picks as the `aiCategoryKr` the API matches, prefix included. Memoised
-     so it is a stable dependency for both the request and the QR — the prefix
-     is recovered from the shop catalogue, so it legitimately changes when that
-     catalogue does, and re-asking then is correct. */
-  const interestCats = useMemo(() => interestCodes(interests, shops), [interests, shops]);
-
-  /* A themed card carries no picks, so it asks /recommend for its letter. The
-     custom route never does — its plan is already in the store. */
-  useEffect(() => {
-    if (entry !== 'theme' || !courseKey) return;
-    let live = true;
-    void window.api.jejuCourse
-      .recommend({
-        course: courseLetter(courseKey),
-        transport: transportCode(transport),
-        party: partySize(visitors),
-        nights: nightCount(stay),
-        visitDate: todayIso(),
-        /* 쇼핑·로컬 rides on course B and carries the picks the landing preset;
-           the other themes send none and let the course's own rules choose. */
-        interests: interestCats,
-      })
-      .then((res) => {
-        if (live) setCourse(isOk(res) ? res.value : null);
-      });
-    return () => {
-      live = false;
-    };
-  }, [entry, courseKey, transport, visitors, stay, interestCats]);
-
-  const days: Day[] = useMemo(() => {
-    if (pickerPlan) return fromPlan(pickerPlan);
-    if (course) return fromCourse(course);
-    return [];
-  }, [pickerPlan, course]);
+  const days: Day[] = useMemo(() => (insaCourse ? fromInsa(insaCourse) : []), [insaCourse]);
 
   const byId = useMemo(() => new Map(shops.map((s) => [s.id, s])), [shops]);
   const current = days.find((d) => d.day === day) ?? days[0];
@@ -254,9 +194,14 @@ export function InsadongAiCourseResult({ controller }: Props): JSX.Element {
   /* 커스텀 코스 chips are the tiles the visitor tapped. A 추천코스 has none, so
      the row is the categories of the stops on the day being shown (7519:76503). */
   const chipLabels = useMemo(() => {
-    /* The store keeps these KOREAN (that is what the catalogue matches on), so
-       they are translated here rather than shown as stored. */
-    if (interests.length > 0) return interests.map((i) => localizeInsaAiPick(i, lang));
+    /* `interests` are the API's `N-name` codes; the label is the catalogue's own
+       (localized) name for that category, taken from any shop that carries it. */
+    if (interests.length > 0) {
+      return interests.map((code) => {
+        const shop = shops.find((sh) => sh.secondCategoryKr?.trim() === code);
+        return shop ? shopSecondCategory(shop, lang) || stripPrefix(code) : stripPrefix(code);
+      });
+    }
     const labels: string[] = [];
     for (const stop of stops) {
       const shop = byId.get(stop.shopId);
@@ -266,13 +211,15 @@ export function InsadongAiCourseResult({ controller }: Props): JSX.Element {
       if (label && !labels.includes(label)) labels.push(label);
     }
     return labels;
-  }, [interests, stops, byId, lang]);
+  }, [interests, shops, stops, byId, lang]);
 
   /* The bar reports the day on screen, not the whole trip — it sits directly
      above the DAY tabs and changes with them. */
   const dayTravel = stops.reduce((t, s) => t + s.travelMinutes, 0);
   const dayDwell = stops.reduce((t, s) => t + s.dwellMinutes, 0);
-  const dayKm = stops.reduce((t, s) => t + s.travelKm, 0);
+  /* The API's own totals win over a re-sum of the legs. */
+  const totalMinutes = insaCourse?.totalMinutes || dayTravel + dayDwell;
+  const dayKm = insaCourse ? insaCourse.totalWalkMeters / 1000 : stops.reduce((t, s) => t + s.travelKm, 0);
 
   const openStop = (stop: Stop, shop: Shop): void => {
     setDetail({
@@ -324,10 +271,10 @@ export function InsadongAiCourseResult({ controller }: Props): JSX.Element {
         lang,
         kioskNum: Number(kioskId.match(/\d+/)?.[0] ?? 1),
         course: entry === 'custom' ? 'X' : courseKey === 'shop' ? 'D' : courseLetter(courseKey),
-        transport: transportCode(transport),
+        transport: 'WALK',
         party: partySize(visitors),
-        nights: nightCount(stay),
-        interests: interestCats,
+        nights: 0,
+        interests,
         visitDate: todayIso(),
         days: days.map((d) => ({
           day: d.day,
@@ -338,16 +285,11 @@ export function InsadongAiCourseResult({ controller }: Props): JSX.Element {
             travelKm: stop.travelKm,
           })),
         })),
-        totalMinutes: course?.totalMinutes ?? null,
-        travelMinutes: course
-          ? course.schedule.reduce(
-              (sum, d) => sum + d.spots.reduce((n, sp) => n + (sp.travelMinutes ?? 0), 0),
-              0,
-            )
-          : null,
-        difficulty: course?.difficulty ?? null,
+        totalMinutes: insaCourse?.totalMinutes ?? null,
+        travelMinutes: insaCourse ? insaCourse.spots.reduce((n, sp) => n + sp.walkMinutes, 0) : null,
+        difficulty: null,
       }),
-    [lang, kioskId, entry, courseKey, transport, visitors, stay, interestCats, days, course],
+    [lang, kioskId, entry, courseKey, visitors, interests, days, insaCourse],
   );
 
   return (
@@ -375,7 +317,7 @@ export function InsadongAiCourseResult({ controller }: Props): JSX.Element {
         <div className={styles.summaryCell}>
           <span className={styles.summaryLabel}>{line('TotalStayTime', TEXT.totalTime)}</span>
           <span className={`${styles.summaryValue} ${long ? styles.summaryValueLong : ''}`}>
-            {aboutMinutesLabel(dayTravel + dayDwell, lang)}
+            {aboutMinutesLabel(totalMinutes, lang)}
           </span>
         </div>
         <span className={styles.summaryRule} />
@@ -396,7 +338,7 @@ export function InsadongAiCourseResult({ controller }: Props): JSX.Element {
         <div className={styles.summaryCell}>
           <span className={styles.summaryLabel}>{line('Transportation_Title', TEXT.transport)}</span>
           <span className={`${styles.summaryValue} ${long ? styles.summaryValueLong : ''}`}>
-            {transport ? localizeInsaAiPick(transport, lang) : '-'}
+            {localizeInsaAiPick('도보', lang)}
           </span>
         </div>
       </div>
@@ -472,7 +414,9 @@ export function InsadongAiCourseResult({ controller }: Props): JSX.Element {
                           <span className={styles.hoursRow}>
                             <span className={styles.hoursCell}>
                               <img className={styles.hoursIcon} src={iconAlarm} alt="" draggable={false} />
-                              <span className={styles.metaText}>{shop?.openTime ?? '-'}</span>
+                              <span className={styles.metaText}>
+                                {stop.hoursMethod === 'default' ? '-' : (shop?.openTime ?? '-')}
+                              </span>
                             </span>
                             <span className={styles.dwellCell}>
                               {dwellIcon && <img className={styles.hoursIcon} src={dwellIcon} alt="" draggable={false} />}

@@ -178,6 +178,9 @@ const api: KioskBridge = {
     recommend: (query) => invoke(IpcChannels.JejuCourseRecommend, query),
     picker: (query) => invoke(IpcChannels.JejuCoursePicker, query),
   },
+  insaCourse: {
+    recommend: (query) => invoke(IpcChannels.InsaCourseRecommend, query),
+  },
   language: {
     get: () => invoke(IpcChannels.LanguageGet),
     set: (language) => invoke(IpcChannels.LanguageSet, language),

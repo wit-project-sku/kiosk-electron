@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import type { KioskController } from '@renderer/hooks/useKioskController';
-import type { JejuPickerOption, JejuPickerPlan, JejuPickerQuery } from '@shared/types/jejuCourse';
+import type { InsaCourse, InsaDuration } from '@shared/types/insaCourse';
+import type { Shop } from '@shared/types/shop';
 import { iconUrl } from '@renderer/assets/icons/insadong';
 import { useAiStore } from '@renderer/store/aiStore';
 import { useShopStore } from '@renderer/store/shopStore';
@@ -9,19 +10,8 @@ import { useLang, pick as pickLang } from '@renderer/lib/i18n';
 import type { Lang } from '@renderer/lib/i18n';
 import { tExact } from '@renderer/lib/loc';
 import { isOk } from '@shared/types/result';
-import {
-  clockLabel,
-  interestCodes,
-  minutesLabel,
-  nightCount,
-  nowMinutes,
-  partySize,
-  todayIso,
-  transportCode,
-} from '@renderer/lib/jejuCourse';
-import { stripPrefix } from '@renderer/lib/shops';
-import { AI_CATEGORIES } from '@renderer/data/aiCategories.generated';
-import { aiCatLabel } from '@renderer/lib/aiCategoryLabel';
+import { clockLabel, minutesLabel, nowMinutes } from '@renderer/lib/jejuCourse';
+import { shopSecondCategory, stripPrefix } from '@renderer/lib/shops';
 import { useFitText } from '@layouts/components/fitText';
 import { InsadongHeader } from './InsadongHeader';
 import { InsadongLeftNav } from './InsadongLeftNav';
@@ -31,18 +21,20 @@ import styles from './InsadongAiCourse.module.css';
  * '인사' 뭐하지 — the AI course entry (Figma page `인사동 리뉴얼`).
  *
  *   · 7519:74937  landing  — 커스텀 코스 card + four 추천코스 cards
- *   · 7519:76902  builder  — 방문 인원 / 체류 기간 / 이동수단 + CTA
- *   · 7519:74960  builder  — the same three plus 즐길 거리, taller, no banner
+ *   · 7519:76902  builder  — 방문 인원 / 체류 기간 + CTA (no 이동수단: the route is on foot)
+ *   · 7519:74960  builder  — the same two plus 즐길 거리, taller, no banner
  *
  * Landing and builder are ONE screen with a step, the way 제주 does it
  * (JejuAiSearch), so 뒤로 from the builder returns to the cards without a
  * route change and the answers survive the trip.
  *
- * The course engine is 제주's, reused unchanged: the chip vocabularies in these
- * frames are character-for-character the maps in lib/jejuCourse (PARTY,
- * NIGHTS, TRANSPORTS), and `window.api.jejuCourse.picker` now accepts the
- * 인사동 kiosk ids. Only the catalogue differs, and that is keyed off kioskId
- * by the server.
+ * The course engine is 인사동's own: `POST /api/insa/courses/recommend` (see
+ * InsaCourseService). One call turns the picked 관심사 and a time slot
+ * (`0-2` · `2-4` · `4-6` · `6+` hours) into ONE walking route from this kiosk;
+ * there is no per-tap plan, no multi-day schedule, no 이동수단 and the party
+ * size is only shown back to the visitor. 관심사 are the shop catalogue's
+ * `secondCategoryKr` strings with their number prefix (`2-화랑`, `9-카페`) — the
+ * API rejects anything else, including the 30 AI categories of the old picker.
  */
 
 /*
@@ -113,21 +105,23 @@ const PARTY_CHIPS: Chip[] = [
   { ko: '10명~', key: 'Visitor_6', width: 290, label: { ko: '10명~', en: '10+ pax', ja: '10人~', zh: '10人~', vi: '10 người~', th: '10 คน~', ru: '10+ чел.', id: '10 orang~' } },
 ];
 
-/** 체류 기간 chips (7519:75132). */
-const STAY_CHIPS: Chip[] = [
-  { ko: '당일치기', key: 'StayTime_1', label: { ko: '당일치기', en: 'Day trip', ja: '日帰り', zh: '一日游', vi: 'Đi trong ngày', th: 'ไปเช้าเย็นกลับ', ru: '1 день', id: 'Sehari' } },
-  { ko: '1박 2일', key: 'StayTime_2', label: { ko: '1박 2일', en: '1 night 2 days', ja: '1泊2日', zh: '1晚2天', vi: '1 đêm 2 ngày', th: '1 คืน 2 วัน', ru: '1 ночь 2 дня', id: '1 malam 2 hari' } },
-  { ko: '2박 3일', key: 'StayTime_3', label: { ko: '2박 3일', en: '2 nights 3 days', ja: '2泊3日', zh: '2晚3天', vi: '2 đêm 3 ngày', th: '2 คืน 3 วัน', ru: '2 ночи 3 дня', id: '2 malam 3 hari' } },
-  { ko: '3박 4일', key: 'StayTime_4', label: { ko: '3박 4일', en: '3 nights 4 days', ja: '3泊4日', zh: '3晚4天', vi: '3 đêm 4 ngày', th: '3 คืน 4 วัน', ru: '3 ночи 4 дня', id: '3 malam 4 hari' } },
+/**
+ * 체류 기간 chips (7519:75132) — the four slots the API takes. `ko` holds the
+ * SLOT CODE (what travels to the API and lives in the store), the label is what
+ * the chip shows.
+ */
+const DURATION_CHIPS: Chip[] = [
+  { ko: '0-2', key: 'StayTime_02', label: { ko: '0 ~ 2시간', en: '0 ~ 2 hours', ja: '0〜2時間', zh: '0~2小时', vi: '0 ~ 2 giờ', th: '0 ~ 2 ชั่วโมง', ru: '0 ~ 2 часа', id: '0 ~ 2 jam' } },
+  { ko: '2-4', key: 'StayTime_24', label: { ko: '2 ~ 4시간', en: '2 ~ 4 hours', ja: '2〜4時間', zh: '2~4小时', vi: '2 ~ 4 giờ', th: '2 ~ 4 ชั่วโมง', ru: '2 ~ 4 часа', id: '2 ~ 4 jam' } },
+  { ko: '4-6', key: 'StayTime_46', label: { ko: '4 ~ 6시간', en: '4 ~ 6 hours', ja: '4〜6時間', zh: '4~6小时', vi: '4 ~ 6 giờ', th: '4 ~ 6 ชั่วโมง', ru: '4 ~ 6 часов', id: '4 ~ 6 jam' } },
+  { ko: '6+', key: 'StayTime_66', label: { ko: '6시간 ~', en: '6 hours ~', ja: '6時間〜', zh: '6小时以上', vi: 'Từ 6 giờ', th: '6 ชั่วโมงขึ้นไป', ru: 'От 6 часов', id: '6 jam ke atas' } },
 ];
 
-/** 이동수단 chips (7519:75145). */
-const TRANSPORT_CHIPS: Chip[] = [
-  { ko: '도보', key: 'Transportation_1', label: { ko: '도보', en: 'Walking', ja: '徒歩', zh: '步行', vi: 'Đi bộ', th: 'เดิน', ru: 'Пешком', id: 'Jalan kaki' } },
-  { ko: '자전거', key: 'Transportation_2', label: { ko: '자전거', en: 'Bicycle', ja: '自転車', zh: '自行车', vi: 'Xe đạp', th: 'จักรยาน', ru: 'Велосипед', id: 'Sepeda' } },
-  { ko: '대중교통', key: 'Transportation_3', label: { ko: '대중교통', en: 'Public transport', ja: '公共交通', zh: '公共交通', vi: 'Phương tiện công cộng', th: 'ขนส่งสาธารณะ', ru: 'Общественный транспорт', id: 'Transportasi umum' } },
-  { ko: '자동차', key: 'Transportation_4', label: { ko: '자동차', en: 'Car', ja: '車', zh: '汽车', vi: 'Ô tô', th: 'รถยนต์', ru: 'Автомобиль', id: 'Mobil' } },
-];
+/** The only way the route goes. Shown in the result's summary bar, never asked. */
+const WALK_CHIP: Chip = {
+  ko: '도보', key: 'Transportation_1',
+  label: { ko: '도보', en: 'Walking', ja: '徒歩', zh: '步行', vi: 'Đi bộ', th: 'เดิน', ru: 'Пешком', id: 'Jalan kaki' },
+};
 
 /** Section headings (7519:75120 · 75132 · 75145 · 75160). */
 const SECTION = {
@@ -138,10 +132,6 @@ const SECTION = {
   stay: {
     key: 'StayTime_Title', also: [],
     label: { ko: '체류 기간', en: 'Length of stay', ja: '滞在期間', zh: '停留时间', vi: 'Thời gian lưu trú', th: 'ระยะเวลาพำนัก', ru: 'Срок пребывания', id: 'Lama menginap' } as L8,
-  },
-  transport: {
-    key: 'Transportation_Title', also: [],
-    label: { ko: '이동수단', en: 'Getting around', ja: '移動手段', zh: '交通方式', vi: 'Phương tiện di chuyển', th: 'การเดินทาง', ru: 'Транспорт', id: 'Transportasi' } as L8,
   },
   interests: {
     key: 'Things_to_enjoy', also: [],
@@ -237,10 +227,8 @@ const SUBMIT_LABEL: L8 = {
  * through the chip tables above rather than through a second copy of them.
  */
 export const localizeInsaAiPick = (ko: string, lang: Lang): string => {
-  const chip = [...PARTY_CHIPS, ...STAY_CHIPS, ...TRANSPORT_CHIPS].find((c) => c.ko === ko);
-  if (chip) return s(chip.key, lang, chip.label);
-  const cat = AI_CATEGORIES.find((row) => row.ko === ko);
-  return cat ? aiCatLabel(cat, lang) : ko;
+  const chip = [...PARTY_CHIPS, ...DURATION_CHIPS, WALK_CHIP].find((c) => c.ko === ko);
+  return chip ? s(chip.key, lang, chip.label) : ko;
 };
 
 export { dayTabLabel as insaDayTabLabel };
@@ -354,66 +342,45 @@ const THEME_CARDS: ThemeCard[] = [
 ];
 
 /**
- * 즐길 거리 the 쇼핑·로컬 card presets. It borrows course B (맛집·감성), so without
- * these the API would schedule a food day under a shopping title. Picked by the
- * sheet's Korean NAME rather than by index, so a re-ordered AICategory table
- * cannot silently swap them — the same guard 제주's SHOP_PRESET uses.
+ * 즐길 거리 each 추천코스 card presets, by the catalogue's second-category NAME
+ * (prefix stripped) — resolved to the prefixed code the API wants from the shop
+ * rows this kiosk holds, so a renumbered category cannot silently stop matching.
+ * A name the catalogue does not carry is skipped rather than sent.
  */
-const SHOP_PRESET = ['기념품', '공예품', '체험'];
+const THEME_PICKS: Record<string, string[]> = {
+  nature: ['고미술', '역사유적지', '전시관', '필방'],
+  food: ['한식', '한정식', '전통차', '카페'],
+  shop: ['공예품', '수제도장', '기념품', '한복'],
+  family: ['전시관', '분식', '기념품', '수제도장'],
+};
 
-/** 09:00–21:00 is the picker's day; the notice quotes the live opening bound. */
+/** The notice quotes the live closing bound (the API closes at 22:00 unless a place stays open). */
 const DAY_END_MIN = 21 * 60;
-/** Every day after the first starts at 09:00; DAY 1 starts when the page opened. */
-const DAY_START_MIN = 9 * 60;
-
-/** `YYYY-MM-DD` n days on — each day of the trip is asked on its own date. */
-const addDaysIso = (iso: string, n: number): string => {
-  const [y, m, d] = iso.split('-').map(Number);
-  const dt = new Date(y ?? 1970, (m ?? 1) - 1, (d ?? 1) + n);
-  const p2 = (x: number): string => String(x).padStart(2, '0');
-  return `${dt.getFullYear()}-${p2(dt.getMonth() + 1)}-${p2(dt.getDate())}`;
-};
-
-/** `days` with day `d`'s list replaced, growing the array when `d` is new. */
-const withDay = (days: string[][], d: number, list: string[]): string[][] => {
-  const next = days.slice();
-  while (next.length <= d) next.push([]);
-  next[d] = list;
-  return next;
-};
 
 /**
- * The per-day plans as ONE trip, in the shape the result page reads. Days keep
- * their own dates and minutes; a day the visitor left empty stays empty rather
- * than repeating DAY 1 — they chose each day themselves.
+ * Which shop bases are 즐길 거리 — 도와줘 (편의점 · 병원 · 은행 …) and 숙박 are not
+ * places to walk to, and the API answers 404 for them. Listed in tile order, each
+ * with its label colour (Figma 7519:74960: food pink, 미술관 blue, shopping brown).
  */
-function mergeDayPlans(plans: JejuPickerPlan[], visitDate: string): JejuPickerPlan {
-  const days = plans.map((pl, d) => ({ ...pl.days[0]!, day: d + 1, repeat: null }));
-  const sum = (f: (day: (typeof days)[number]) => number): number =>
-    days.reduce((n, day) => n + f(day), 0);
-  return {
-    visitDate,
-    dayCount: days.length,
-    budgetMinutes: sum((x) => x.budgetMinutes),
-    usedMinutes: sum((x) => x.usedMinutes),
-    remainingMinutes: sum((x) => x.remainingMinutes),
-    currentDay: 1,
-    full: plans.every((pl) => pl.full),
-    days,
-    categories: [],
-    dropped: [],
-  };
+const JOY_BASES: { base: string; color: string }[] = [
+  { base: '인사 뭐먹지', color: '#f59993' },
+  { base: '인사동 미술관', color: '#6375bf' },
+  { base: '인사 뭐사지', color: '#c89b7b' },
+];
+
+interface JoyTile {
+  /** `N-name`, exactly as the API matches it. */
+  code: string;
+  color: string;
+  /** A shop of this category, for its localized name. */
+  shop: Shop;
 }
 
-/**
- * 즐길 거리 label colours, one per {@link AI_CATEGORIES} row — the same bands
- * Figma 7519:74960 paints (food, 특산품, 체험, 사진, 자연, 쇼핑).
- */
-const JOY_COLORS = [
-  '#f59993', '#f59993', '#f59993', '#f59993', '#f59993', '#f59993', '#f59993', '#f59993', '#f59993', '#ffa37e',
-  '#ffa37e', '#8bceaf', '#81caa8', '#ada6ef', '#ada6ef', '#ada6ef', '#ada6ef', '#6ea8eb', '#6ea8eb', '#6ea8eb',
-  '#6ea8eb', '#6ea8eb', '#6375bf', '#6375bf', '#6375bf', '#6375bf', '#c89b7b', '#c89b7b', '#c89b7b', '#c89b7b',
-];
+/** `YYYY-MM-DDTHH:mm:ss` in the kiosk's own clock — the API's `startAt`. */
+const localIso = (d: Date): string => {
+  const p = (n: number): string => String(n).padStart(2, '0');
+  return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}T${p(d.getHours())}:${p(d.getMinutes())}:${p(d.getSeconds())}`;
+};
 
 interface Props {
   controller: KioskController;
@@ -453,54 +420,50 @@ export function InsadongAiCourse({ controller }: Props): JSX.Element {
   const [themeKey, setThemeKey] = useState<string | null>(
     resumed?.entry === 'theme' ? resumed.course || null : null,
   );
-  /* Answers are held as the canonical KOREAN label, which is what the API
-     matches on; the chips show the localized text over the same value.
-     7519:76902 opens with 2명 / 3박 4일 / 자동차. */
+  /* Answers are held as the canonical value the API takes; the chips show the
+     localized text over it. 방문 인원 is not sent (the route is the same for
+     any party) — it is only shown back on the result. */
   const [party, setParty] = useState(resumed?.visitors || '2명');
-  const [stay, setStay] = useState(resumed?.stay || '3박 4일');
-  const [transport, setTransport] = useState(resumed?.transport || '자동차');
-  /* Taps are restored PER DAY from the merged plan rather than from
-     `interests` — the store holds those as DISPLAY labels, which the picker
-     cannot match. Each day's stops are already in route order. */
-  const [dayPicks, setDayPicks] = useState<string[][]>(() =>
-    (resumed?.pickerPlan?.days ?? []).map((d) => d.stops.map((st) => st.aiCategory)),
+  const [duration, setDuration] = useState<InsaDuration>(
+    (resumed?.stay as InsaDuration | undefined) || '2-4',
   );
-  const [day, setDay] = useState(1);
+  /* 즐길 거리 in tap order, as the API's `N-name` codes. */
+  const [picks, setPicks] = useState<string[]>(() => resumed?.interests ?? []);
+  const [busy, setBusy] = useState(false);
 
   const shops = useShopStore((s) => s.shops);
   const setAnswers = useAiStore((s) => s.setAnswers);
   const setInterests = useAiStore((s) => s.setInterests);
   const setCourse = useAiStore((s) => s.setCourse);
   const setEntry = useAiStore((s) => s.setEntry);
-  const setPickerPlan = useAiStore((s) => s.setPickerPlan);
+  const setInsaCourse = useAiStore((s) => s.setInsaCourse);
 
   const partyRef = useRef<HTMLDivElement>(null);
   const stayRef = useRef<HTMLDivElement>(null);
-  const transportRef = useRef<HTMLDivElement>(null);
   const joyRef = useRef<HTMLDivElement>(null);
   const landingRef = useRef<HTMLDivElement>(null);
 
-  /* The clock when the page opened — sent unchanged on every tap so a plan does
-     not shift under the visitor while they are still choosing. */
+  /* The clock when the page opened, for the notice only; every request carries
+     the clock at the moment it is sent. */
   const startMin = useRef(nowMinutes()).current;
-  const visitDate = useRef(todayIso()).current;
 
-  /* The tiles on screen, as the `aiCategoryKr` the API matches (prefix and all —
-     recovered from the shop catalogue this kiosk already holds). */
-  const allCategories = useMemo(
-    () => interestCodes(AI_CATEGORIES.map((c) => c.ko), shops),
-    [shops],
-  );
-  const labelOfCategory = useMemo(() => {
-    const m = new Map<string, string>();
-    AI_CATEGORIES.forEach((c, i) => m.set(allCategories[i] ?? c.ko, aiCatLabel(c, lang)));
-    return m;
-  }, [allCategories, lang]);
-  const colorOfCategory = useMemo(() => {
-    const m = new Map<string, string>();
-    AI_CATEGORIES.forEach((c, i) => m.set(allCategories[i] ?? c.ko, JOY_COLORS[i] ?? '#f59993'));
-    return m;
-  }, [allCategories]);
+  /**
+   * The tiles: every second category the catalogue carries under a place-to-go
+   * base, in base order and then by number. Read from the catalogue rather than
+   * from a fixed list because the API matches the catalogue's own strings.
+   */
+  const tiles: JoyTile[] = useMemo(() => {
+    const seen = new Map<string, JoyTile & { rank: number }>();
+    for (const shop of shops) {
+      const code = shop.secondCategoryKr?.trim();
+      const rank = JOY_BASES.findIndex((b) => b.base === shop.baseCategoryKr);
+      if (!code || rank < 0 || seen.has(code)) continue;
+      seen.set(code, { code, shop, color: JOY_BASES[rank]!.color, rank });
+    }
+    const num = (c: string): number => Number.parseInt(c, 10) || 0;
+    return [...seen.values()].sort((x, y) => x.rank - y.rank || num(x.code) - num(y.code));
+  }, [shops]);
+  const codeByName = useMemo(() => new Map(tiles.map((t) => [stripPrefix(t.code), t.code])), [tiles]);
 
   /* Tell the customer display which stage is up — the landing is the tile's own
      AISearch clip, the builder is 재생조건 "뭐하지 -> 관심사 선택". */
@@ -508,124 +471,57 @@ export function InsadongAiCourse({ controller }: Props): JSX.Element {
     void window.api.kiosk.setScreen(step === 'landing' ? 'ai_search' : 'ai_questions');
   }, [step]);
 
-  /** 체류 기간 decides how many days there are to fill (당일치기 = 1). */
-  const dayCount = nightCount(stay) + 1;
-  /* A shorter trip must not leave the view on a day that no longer exists. */
-  useEffect(() => {
-    setDay((d) => Math.min(d, dayCount));
-  }, [dayCount]);
-
   /**
-   * ── 즐길 거리 is per DAY, and each day is its own picker call ──────────────
-   *
-   * A single trip-wide `picks` list does NOT work: the API decides which day a
-   * tap lands on, so a visitor who set 3박 4일 and tried to fill 2일차 watched
-   * every tap pile onto the same day and the tabs did nothing.
-   *
-   * So each day is asked as its OWN 당일치기 on its own date — DAY 1 from the
-   * time the page opened, later days from 09:00 — carrying only that day's
-   * taps. The same tile can be picked on several days. What this gives up
-   * against one trip-wide call: a later day starts from the kiosk rather than
-   * from the previous day's last stop, and a category picked twice can land on
-   * the same place. That is the trade 제주 makes too (see dayQueries there).
+   * A live total under the tiles ("3시간 30분 소요"): the route for the taps so
+   * far, asked a moment after the last one. A failure or a stale answer simply
+   * leaves the total blank — the CTA still works.
    */
-  const dayQueries: JejuPickerQuery[] = useMemo(
-    () =>
-      Array.from({ length: dayCount }, (_, d) => ({
-        transport: transportCode(transport),
-        party: partySize(party),
-        nights: 0,
-        visitDate: addDaysIso(visitDate, d),
-        startMin: d === 0 ? startMin : DAY_START_MIN,
-        picks: dayPicks[d] ?? [],
-        categories: allCategories,
-      })),
-    [dayCount, transport, party, visitDate, startMin, dayPicks, allCategories],
-  );
-  const dayKeys = useMemo(() => dayQueries.map((q) => JSON.stringify(q)), [dayQueries]);
-
-  /** Each day's newest answer and the request it answers. */
-  const [dayAnswers, setDayAnswers] = useState<({ key: string; plan: JejuPickerPlan } | undefined)[]>([]);
-  /** The request last sent per day, so an older answer arriving late is ignored. */
-  const requested = useRef<string[]>([]);
-
+  const [preview, setPreview] = useState<{ key: string; course: InsaCourse } | null>(null);
+  const previewSeq = useRef(0);
+  const previewKey = `${duration}|${picks.join(',')}`;
   useEffect(() => {
-    if (step !== 'custom' || allCategories.length === 0) return;
-    dayQueries.forEach((q, d) => {
-      const key = dayKeys[d]!;
-      if (requested.current[d] === key) return;
-      requested.current[d] = key;
-      void window.api.jejuCourse.picker(q).then((res) => {
-        if (requested.current[d] !== key) return;
-        if (!isOk(res)) return;
-        setDayAnswers((prev) => {
-          const next = prev.slice();
-          next[d] = { key, plan: res.value };
-          return next;
+    if (step !== 'custom' || picks.length === 0) {
+      setPreview(null);
+      return;
+    }
+    const seq = ++previewSeq.current;
+    const timer = setTimeout(() => {
+      void window.api.insaCourse
+        .recommend({ interests: picks, duration, startAt: localIso(new Date()) })
+        .then((res) => {
+          if (previewSeq.current !== seq) return;
+          setPreview(isOk(res) ? { key: previewKey, course: res.value } : null);
         });
-      });
+    }, 350);
+    return () => clearTimeout(timer);
+  }, [step, picks, duration, previewKey]);
+
+  const toggle = (code: string): void =>
+    setPicks((prev) => (prev.includes(code) ? prev.filter((c) => c !== code) : [...prev, code]));
+
+  /** Ask for the route and hand it to the result page; a failure leaves it empty there. */
+  const go = async (interests: string[]): Promise<void> => {
+    if (busy) return;
+    setBusy(true);
+    setAnswers({ visitors: party, stay: duration, transport: '' });
+    setInterests(interests);
+    const res = await window.api.insaCourse.recommend({
+      interests,
+      duration,
+      startAt: localIso(new Date()),
     });
-  }, [step, dayQueries, dayKeys, allCategories.length]);
-
-  /** What the day in view draws from — its own newest answer. */
-  const plan = dayAnswers[day - 1]?.plan ?? null;
-
-  /**
-   * A change of 이동수단 / 인원 / 기간 replays each day's taps, and some may no
-   * longer fit. The picker reports those per day in `dropped`; take them out of
-   * THAT day's list so the tiles show what the plan really holds.
-   */
-  useEffect(() => {
-    dayAnswers.forEach((answer, d) => {
-      if (!answer || answer.key !== dayKeys[d] || answer.plan.dropped.length === 0) return;
-      const gone = new Set(answer.plan.dropped.map((x) => x.aiCategory));
-      setDayPicks((prev) =>
-        (prev[d] ?? []).some((c) => gone.has(c))
-          ? withDay(prev, d, (prev[d] ?? []).filter((c) => !gone.has(c)))
-          : prev,
-      );
-    });
-  }, [dayAnswers, dayKeys]);
-
-  /* A tap adds to or removes from the DAY IN VIEW only; the same tile may be
-     picked on another day. Tiles the picker disabled are inert. */
-  const toggle = (category: string): void => {
-    const d = day - 1;
-    setDayPicks((prev) =>
-      (prev[d] ?? []).includes(category)
-        ? withDay(prev, d, (prev[d] ?? []).filter((c) => c !== category))
-        : withDay(prev, d, [...(prev[d] ?? []), category]),
-    );
-  };
-
-  const allPicks = useMemo(() => dayPicks.slice(0, dayCount).flat(), [dayPicks, dayCount]);
-
-  const submit = async (): Promise<void> => {
-    setAnswers({ visitors: party, stay, transport });
-    /* KOREAN, not the label on screen. The store's `interests` are re-matched
-       against the catalogue by `interestCodes`, which keys on the shop's own
-       `aiCategoryKr` — handing it "Cafe" instead of "카페" matched nothing, so
-       an English visitor's picks were silently dropped from the request. The
-       result page translates them back for display. */
-    setInterests(allPicks.map((c) => stripPrefix(c)));
-    setEntry('custom');
-    /* Every day's plan, reusing the answer already on screen where it is still
-       the one this query asks for. A day that fails leaves the merge out
-       entirely and the result page falls back to /recommend. */
-    const plans = await Promise.all(
-      dayQueries.map(async (q, d) => {
-        const answer = dayAnswers[d];
-        if (answer && answer.key === dayKeys[d]) return answer.plan;
-        const res = await window.api.jejuCourse.picker(q);
-        return isOk(res) ? res.value : null;
-      }),
-    );
-    const complete = plans.every((pl): pl is JejuPickerPlan => pl !== null);
-    setPickerPlan(complete ? mergeDayPlans(plans, visitDate) : null);
+    setInsaCourse(isOk(res) ? res.value : null);
+    setBusy(false);
     navigate('ai_result', 'AI 추천');
   };
 
-  /* A 추천코스 card opens the short builder (7519:76902): the same three
+  const submit = (): Promise<void> => {
+    setEntry('custom');
+    setCourse('');
+    return go(picks);
+  };
+
+  /* A 추천코스 card opens the short builder (7519:76902): the same two
      questions, no 즐길 거리, then the banner. The result comes from the CTA. */
   const openTheme = (card: ThemeCard): void => {
     setThemeKey(card.key);
@@ -633,60 +529,22 @@ export function InsadongAiCourse({ controller }: Props): JSX.Element {
     setStep('theme');
   };
 
-  const submitTheme = (): void => {
-    if (!themeKey) return;
-    setAnswers({ visitors: party, stay, transport });
+  const submitTheme = (): Promise<void> => {
+    if (!themeKey) return Promise.resolve();
     setCourse(themeKey);
-    /* 쇼핑·로컬 rides on course B, so it carries its own 즐길 거리; every other
-       theme lets the course's own rules choose. */
-    setInterests(themeKey === 'shop' ? SHOP_PRESET : []);
     setEntry('theme');
-    setPickerPlan(null);
-    setInterests([]);
-    navigate('ai_result', 'AI 추천');
+    const codes = (THEME_PICKS[themeKey] ?? [])
+      .map((name) => codeByName.get(name))
+      .filter((c): c is string => !!c);
+    return go(codes);
   };
 
-  /* 7519:74960 always draws 즐길 거리. The picker fills in which tiles fit
-     and which day they land on; until that answer arrives the grid is the
-     catalogue itself, so the section is on screen the moment the card opens. */
-  const fallbackOptions: JejuPickerOption[] = useMemo(
-    () =>
-      allCategories.map((aiCategory) => {
-        const picked = (dayPicks[day - 1] ?? []).includes(aiCategory);
-        return {
-          aiCategory,
-          enabled: true,
-          status: picked ? 'PICKED' : 'OK',
-          costMinutes: null,
-          shopId: null,
-          day: picked ? 1 : null,
-          arriveMin: null,
-        };
-      }),
-    [allCategories, dayPicks, day],
-  );
-  const options = plan && plan.categories.length > 0 ? plan.categories : fallbackOptions;
-  /**
-   * A tab's badge counts ITS OWN day, not the one in view. When that day's
-   * answer is the one its current query asks for, the plan is authoritative —
-   * it knows a tap that did not fit; otherwise the taps themselves are all we
-   * have while the request is in flight.
-   */
-  const picksOnDay = (d: number): number => {
-    const answer = dayAnswers[d - 1];
-    const fresh = !!answer && answer.key === dayKeys[d - 1];
-    return fresh ? (answer.plan.days[0]?.stops.length ?? 0) : (dayPicks[d - 1]?.length ?? 0);
-  };
-  /* Each day is asked as its own 당일치기, so its plan holds ONE day and that
-     day is numbered 1 — looking it up by the trip-day number found nothing and
-     every day but the first reported 0 소요. */
-  const dayUsed = plan?.days[0]?.usedMinutes ?? 0;
+  const total = preview && preview.key === previewKey ? preview.course.totalMinutes : null;
 
   useFitText(landingRef, styles.themeTitleLong, long, 0.62, `${lang}|theme`);
   useFitText(partyRef, styles.pillLong, long, 0.55, `${lang}|party`);
   useFitText(stayRef, styles.pillLong, long, 0.55, `${lang}|stay`);
-  useFitText(transportRef, styles.pillLong, long, 0.55, `${lang}|transport`);
-  useFitText(joyRef, styles.joyChipTextLong, long, 0.6, `${lang}|${options.length}`);
+  useFitText(joyRef, styles.joyChipTextLong, long, 0.6, `${lang}|${tiles.length}`);
 
   const arrow = iconUrl('course-arrow');
   const banner = iconUrl('banner-kioskmall');
@@ -821,7 +679,7 @@ export function InsadongAiCourse({ controller }: Props): JSX.Element {
           {step === 'custom' && (
           <p className={`${styles.builderNotice} ${long ? styles.builderNoticeLong : ''}`}>
             {(HOURS_NOTE[lang] ?? HOURS_NOTE.ko)!(
-              clockLabel(Math.max(startMin, DAY_START_MIN)),
+              clockLabel(Math.max(startMin, 9 * 60)),
               clockLabel(DAY_END_MIN),
             )}
           </p>
@@ -840,15 +698,7 @@ export function InsadongAiCourse({ controller }: Props): JSX.Element {
               <span className={styles.bar} />
               {s(SECTION.stay.key, lang, SECTION.stay.label, ...SECTION.stay.also)}
             </div>
-            {chipRow(stayRef, STAY_CHIPS, stay, setStay, 412)}
-          </section>
-
-          <section className={`${styles.section} ${styles.sectionTransport}`}>
-            <div className={styles.label}>
-              <span className={styles.bar} />
-              {s(SECTION.transport.key, lang, SECTION.transport.label, ...SECTION.transport.also)}
-            </div>
-            {chipRow(transportRef, TRANSPORT_CHIPS, transport, setTransport, 412)}
+            {chipRow(stayRef, DURATION_CHIPS, duration, (v) => setDuration(v as InsaDuration), 412)}
           </section>
 
           {step === 'custom' && (
@@ -859,25 +709,19 @@ export function InsadongAiCourse({ controller }: Props): JSX.Element {
               </div>
 
               <div className={styles.joyBar}>
-                {Array.from({ length: dayCount }, (_, i) => i + 1).map((d) => {
-                  const n = picksOnDay(d);
-                  return (
-                    <button
-                      key={d}
-                      type="button"
-                      className={`${styles.dayTab} ${day === d ? styles.dayTabOn : ''}`}
-                      onClick={() => setDay(d)}
-                    >
-                      {dayTabLabel(d, lang)}
-                      {n > 0 && <span className={styles.dayCount}>{n}</span>}
-                    </button>
-                  );
-                })}
-                {/* 7519:75178 — clears this day's taps. */}
+                {/* 7519:75162 — the chosen 체류 기간 with how many 즐길 거리 are picked. */}
+                <span className={`${styles.dayTab} ${styles.dayTabOn}`}>
+                  {(() => {
+                    const chip = DURATION_CHIPS.find((c) => c.ko === duration) ?? DURATION_CHIPS[1]!;
+                    return s(chip.key, lang, chip.label);
+                  })()}
+                  {picks.length > 0 && <span className={styles.dayCount}>{picks.length}</span>}
+                </span>
+                {/* 7519:75178 — clears the picks. */}
                 <button
                   type="button"
                   className={styles.refreshBtn}
-                  onClick={() => setDayPicks((prev) => withDay(prev, day - 1, []))}
+                  onClick={() => setPicks([])}
                   aria-label={pickLang(RESET_LABEL, lang)}
                 >
                   <svg viewBox="0 0 96 96" fill="none" stroke="currentColor" strokeWidth="8" strokeLinecap="round" strokeLinejoin="round">
@@ -886,30 +730,27 @@ export function InsadongAiCourse({ controller }: Props): JSX.Element {
                     <path d="M22 40a28 28 0 0 1 46-10l16 10M74 56a28 28 0 0 1-46 10L12 56" />
                   </svg>
                 </button>
-                <span className={styles.joyTotal}>
-                  {(USED[lang] ?? USED.ko)!(minutesLabel(dayUsed, lang))}
-                </span>
+                {total != null && (
+                  <span className={styles.joyTotal}>{(USED[lang] ?? USED.ko)!(minutesLabel(total, lang))}</span>
+                )}
               </div>
 
               <div ref={joyRef} className={styles.joyGrid}>
-                {options.map((o) => {
-                  const picked = o.status === 'PICKED';
-                  const order = picked ? (dayPicks[day - 1] ?? []).indexOf(o.aiCategory) + 1 : 0;
+                {tiles.map((t) => {
+                  const order = picks.indexOf(t.code) + 1;
+                  const picked = order > 0;
                   return (
                     <button
-                      key={o.aiCategory}
+                      key={t.code}
                       type="button"
-                      className={`${styles.joyChip} ${picked ? styles.joyChipOn : ''} ${!picked && !o.enabled ? styles.joyChipOff : ''}`}
-                      style={{ color: picked ? '#ffffff' : (colorOfCategory.get(o.aiCategory) ?? '#f59993') }}
-                      onClick={() => toggle(o.aiCategory)}
+                      className={`${styles.joyChip} ${picked ? styles.joyChipOn : ''}`}
+                      style={{ color: picked ? '#ffffff' : t.color }}
+                      onClick={() => toggle(t.code)}
                     >
-                      {picked && order > 0 && <span className={styles.joyChipBadge}>{order}</span>}
+                      {picked && <span className={styles.joyChipBadge}>{order}</span>}
                       <span className={`${styles.joyChipText} ${long ? styles.joyChipTextLong : ''}`}>
-                        {labelOfCategory.get(o.aiCategory) ?? o.aiCategory}
+                        {shopSecondCategory(t.shop, lang) || stripPrefix(t.code)}
                       </span>
-                      {o.costMinutes != null && (
-                        <span className={styles.joyChipDwell}>+{minutesLabel(o.costMinutes, lang)}</span>
-                      )}
                     </button>
                   );
                 })}
@@ -917,7 +758,7 @@ export function InsadongAiCourse({ controller }: Props): JSX.Element {
             </section>
           )}
 
-          <button type="button" className={styles.cta} onClick={step === 'custom' ? submit : submitTheme}>
+          <button type="button" className={styles.cta} disabled={busy} onClick={step === 'custom' ? submit : submitTheme}>
             {s('SubmitButton', lang, SUBMIT_LABEL)}
           </button>
         </div>
