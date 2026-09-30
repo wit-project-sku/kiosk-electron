@@ -134,7 +134,7 @@ export function createContainer(): AppContainer {
   // sync deleted the 배경 테마 tiles right after the picker was pointed at them.
   const backgrounds = new BackgroundService(cache, kiosk, new RemoteImageCache('backgrounds'));
   const attractions = new AttractionService(cache, kiosk);
-  const spotDiff = new SpotDiffService(cache);
+  const spotDiff = new SpotDiffService(cache, kiosk);
   const outfits = new OutfitService(cache, kiosk, new RemoteImageCache('outfits'));
   // No cache dependency: every recommendation is a fresh POST. It only needs
   // the kiosk so it can stamp `kioskId` on the request itself.
