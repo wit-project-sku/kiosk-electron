@@ -47,6 +47,38 @@ export const TEXT = {
     ru: 'ОЧКИ ЧЕДЖУ',
     id: 'POIN JEJU',
   } as Str,
+  /* The same three lines without the venue name — every kiosk but 제주 (인사동
+     hosts this hub too, and "제주 게임" there names the wrong place). */
+  hubTitleGeneric: {
+    ko: '게임',
+    en: 'GAMES',
+    ja: 'ゲーム',
+    zh: '游戏',
+    vi: 'TRÒ CHƠI',
+    th: 'เกม',
+    ru: 'ИГРЫ',
+    id: 'GIM',
+  } as Str,
+  hubSubtitleGeneric: {
+    ko: '기다리는 동안 게임을 즐겨보세요!',
+    en: 'Play a quick game while you wait!',
+    ja: 'お待ちの間にゲームを楽しもう！',
+    zh: '等待时玩个小游戏吧！',
+    vi: 'Chơi game nhanh trong lúc chờ nhé!',
+    th: 'เล่นเกมสั้น ๆ ระหว่างรอกันเถอะ!',
+    ru: 'Сыграйте, пока ждёте!',
+    id: 'Main gim singkat sambil menunggu!',
+  } as Str,
+  pointsGeneric: {
+    ko: '포인트',
+    en: 'POINTS',
+    ja: 'ポイント',
+    zh: '积分',
+    vi: 'ĐIỂM',
+    th: 'แต้ม',
+    ru: 'ОЧКИ',
+    id: 'POIN',
+  } as Str,
 
   /** Section heading over the finger-on-glass games. */
   touchGames: {

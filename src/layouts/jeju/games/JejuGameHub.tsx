@@ -60,7 +60,7 @@ export function JejuGameHub({
      alone: its display has no pose tracking wired, and `jeju-run` is Jeju-
      branded end to end. Filtering the MENU (rather than the games themselves)
      keeps every game a leaf, which is the invariant JejuWaitingGames documents. */
-  const { motionGames } = usePhotoChrome();
+  const { motionGames, isJeju } = usePhotoChrome();
   const games = motionGames ? GAMES : GAMES.filter((g) => !isMotionGame(g.id));
   const total = useJejuPointsTotal();
   const byGame = useJejuPointsStore((s) => s.byGame);
@@ -73,8 +73,8 @@ export function JejuGameHub({
   return (
     <GameShell
       headerTitle="AR 한복체험"
-      title={pick(TEXT.hubTitle, lang)}
-      subtitle={pick(TEXT.hubSubtitle, lang)}
+      title={pick(isJeju ? TEXT.hubTitle : TEXT.hubTitleGeneric, lang)}
+      subtitle={pick(isJeju ? TEXT.hubSubtitle : TEXT.hubSubtitleGeneric, lang)}
       onHome={onHome}
       navDisabled={navLocked}
       chrome={
@@ -124,7 +124,7 @@ export function JejuGameHub({
               telling a visitor they have failed at a game they have not played. */}
           {total > 0 && (
             <p className={styles.points}>
-              <span className={styles.pointsLabel}>{pick(TEXT.points, lang)}</span>
+              <span className={styles.pointsLabel}>{pick(isJeju ? TEXT.points : TEXT.pointsGeneric, lang)}</span>
               <span className={styles.pointsValue}>{total}</span>
             </p>
           )}
