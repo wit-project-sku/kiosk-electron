@@ -42,11 +42,14 @@ export function getGoogleSyncConfig(): GoogleSyncConfig | null {
   };
 }
 
+/**
+ * Sheets is ALWAYS requested: the venue's VideoSubtitle tab is read whenever a
+ * service account exists, whether or not the night sync (GOOGLE_SHEETS_ID) is
+ * on — a Drive-only token would get every such read refused.
+ */
 export function getGoogleScopes(): string {
-  const scopes: string[] = [];
-  if (process.env['GOOGLE_SHEETS_ID']) scopes.push(SHEETS_SCOPE);
+  const scopes = [SHEETS_SCOPE];
   if (process.env['GOOGLE_DRIVE_FOLDER_ID']) scopes.push(DRIVE_SCOPE);
-  if (scopes.length === 0) return SHEETS_SCOPE;
   return scopes.join(' ');
 }
 
@@ -62,9 +65,28 @@ function resolveSecretPath(p: string): string {
   return direct;
 }
 
+/**
+ * Where the installer puts the key (electron-builder copies `secrets/` into
+ * resources/, and CI writes the environment's key there). Used when .env does
+ * not name a path, so a build whose .env omits the line still finds its key.
+ */
+const DEFAULT_SERVICE_ACCOUNT_PATH = 'secrets/service-account.json';
+
+/**
+ * Why no service account could be loaded, for the log line of whatever needed
+ * one — "no Google access" alone does not say which of three things to fix.
+ * `null` when it loads.
+ */
+export function serviceAccountProblem(): string | null {
+  const raw = process.env['GOOGLE_SERVICE_ACCOUNT_JSON'] || DEFAULT_SERVICE_ACCOUNT_PATH;
+  if (raw.trim().startsWith('{')) return loadServiceAccount() ? null : 'GOOGLE_SERVICE_ACCOUNT_JSON is inline JSON without client_email/private_key';
+  const path = resolveSecretPath(raw);
+  if (!existsSync(path)) return `service-account file not found: ${path}`;
+  return loadServiceAccount() ? null : `service-account file has no client_email/private_key (empty placeholder?): ${path}`;
+}
+
 function loadServiceAccount(): ServiceAccountCredentials | null {
-  const raw = process.env['GOOGLE_SERVICE_ACCOUNT_JSON'];
-  if (!raw) return null;
+  const raw = process.env['GOOGLE_SERVICE_ACCOUNT_JSON'] || DEFAULT_SERVICE_ACCOUNT_PATH;
 
   try {
     const json = raw.trim().startsWith('{') ? raw : readFileSync(resolveSecretPath(raw), 'utf-8');

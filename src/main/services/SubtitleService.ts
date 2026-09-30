@@ -1,5 +1,5 @@
 import { createLogger } from '@main/core/logger';
-import { getGoogleSyncConfig } from '@main/core/GoogleSyncConfig';
+import { getServiceAccount, serviceAccountProblem } from '@main/core/GoogleSyncConfig';
 import { getKioskLocation } from '@shared/config/kioskLocations';
 import type { VideoEntry, SubtitleApiResponse } from '@shared/types/subtitle';
 import { transformSubtitleResponse } from '@shared/types/subtitle';
@@ -72,11 +72,16 @@ export class SubtitleService {
   start(): void {
     const cached = this.cache.get(CACHE_KEY);
     const data = cached?.data as { entries?: VideoEntry[]; source?: SubtitleSource } | undefined;
-    if (data && Array.isArray(data.entries) && data.entries.length > 0) {
+    // A cache written before the sheet fallback existed carries no source; it
+    // can only have come from the API.
+    const source = data?.source ?? 'api';
+    // 인사동 never serves API rows (they name footage no longer on the kiosks):
+    // served while the sheet was unreadable, 4 of them matched a file and the
+    // display played just those few clips, uncaptioned, on every screen.
+    const insa = INSA_SUBTITLE_LAYOUTS.has(getKioskLocation(this.kiosk.getConfig().kioskId).layout);
+    if (data && Array.isArray(data.entries) && data.entries.length > 0 && !(insa && source === 'api')) {
       this.entries = data.entries;
-      // A cache written before the sheet fallback existed carries no source; it
-      // can only have come from the API.
-      this.source = data.source ?? 'api';
+      this.source = source;
     }
     this.refreshPromise = this.refresh();
   }
@@ -152,15 +157,23 @@ export class SubtitleService {
     // Offline with real CMS rows cached — never trade those for the sheet's.
     if (apiUnreachable && this.source === 'api') return null;
 
-    const config = getGoogleSyncConfig();
+    // The service account alone decides this, NOT getGoogleSyncConfig(): that
+    // also demands GOOGLE_SHEETS_ID, which is only the night-sync on/off switch.
+    // A beta build whose .env left it empty read no sheet at all, and every
+    // 인사동 kiosk on it showed uncaptioned footage.
+    const serviceAccount = getServiceAccount();
     const sheetId = contentSheetIdFor(layout);
-    if (!config || !sheetId) {
-      log.warn('No Google Sheets access on this machine; subtitle sheet skipped', { tab });
+    if (!serviceAccount || !sheetId) {
+      log.warn('No Google Sheets access on this machine; subtitle sheet skipped', {
+        tab,
+        reason: serviceAccountProblem() ?? 'no content sheet for this layout',
+      });
       return null;
     }
     try {
       const range = `'${tab.replace(/'/g, "''")}'!A:AZ`;
-      const rows = await new SheetsClient({ ...config, sheetId }).getValues(range);
+      const client = new SheetsClient({ sheetId, serviceAccount, contentRange: '', analyticsTab: '' });
+      const rows = await client.getValues(range);
       const { entries, noVideo } = parseJejuSubtitleSheet(rows, insa ? INSA_PARSE : {});
       if (entries.length === 0) {
         log.warn('Subtitle sheet has no rows with a video file name', { tab, noVideo });
