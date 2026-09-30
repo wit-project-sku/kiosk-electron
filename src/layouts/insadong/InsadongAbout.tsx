@@ -3,7 +3,7 @@ import type { KioskController } from '@renderer/hooks/useKioskController';
 import { iconUrl } from '@renderer/assets/icons/insadong';
 import iconMarker from '@renderer/assets/photos/insadong/ai/icon-marker.png';
 import iconAlarm from '@renderer/assets/photos/insadong/ai/icon-alarm.png';
-import historyHero from '@renderer/assets/photos/insadong/about/history-hero.png';
+import historyHero from '@renderer/assets/photos/insadong/about/history-hero.jpg';
 import historyThumb1 from '@renderer/assets/photos/insadong/about/history-thumb-1.jpg';
 import historyThumb2 from '@renderer/assets/photos/insadong/about/history-thumb-2.jpg';
 import historyThumb3 from '@renderer/assets/photos/insadong/about/history-thumb-3.jpg';
