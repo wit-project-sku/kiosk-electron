@@ -13,7 +13,6 @@ import { jejuIconUrl } from '@renderer/assets/icons/jeju';
 import { weatherIconName, weatherIconUrl } from '@renderer/assets/weather';
 import { useRotatingBanner } from '@renderer/hooks/useRotatingBanner';
 import { useHasDonationTile } from '@renderer/lib/buttonLayout';
-import { getKioskLocation } from '@shared/config/kioskLocations';
 import { DONATION_COMING_SOON, withComingSoon } from '@shared/config/donation';
 import { t, tExact } from '@renderer/lib/loc';
 import { barrierFreeTitle } from './barrierFree';
@@ -304,9 +303,10 @@ export function InsadongHomeRenewal({ controller }: InsadongHomeRenewalProps): J
   const hasDonation = useHasDonationTile(kioskId);
   /* Optional in the type because KADA has no home grid; every INSADONG-family
      location defines it, so the 인사랑 default never actually fires here. */
-  const secondScreen = getKioskLocation(kioskId).secondTile?.screen ?? 'insarang';
-  const second = QUICK_SECOND[secondScreen] ?? QUICK_SECOND.insarang!;
-  const secondSoon = secondScreen === 'insarang';
+  /* 인사랑(준비중) on EVERY kiosk, per the sheet: full colour, not tappable. W003 used to
+     swap this card for a live 위드마켓 shop screen; the sheet no longer carries that row
+     and calls the card 인사랑(준비중), so it is inert there too. */
+  const second = QUICK_SECOND.insarang!;
   const tiles: HomeTile[] = useMemo(() => {
     const out = [...GRID_TILES];
     out.splice(SLOT_10, 0, hasDonation ? DONATION_TILE : MAP_TILE);
@@ -399,7 +399,7 @@ const stripParenthetical = (label: string): string =>
   useFitText(gridRef, styles.tileCaptionLong, longLang, 0.62,
     `${lang}|${tiles.map((x) => `${labelOf(x.screen, x.label)}/${subOf(x.screen, x.sub)}`).join('|')}`);
   useFitText(quickRef, styles.quickTitleLong, longLang, 0.6,
-    `${lang}|${labelOf('ai_search', "'인사' 뭐하지")}|${labelOf(secondScreen, second.label)}|${labelOf('events', '인사동 이벤트')}`);
+    `${lang}|${labelOf('ai_search', "'인사' 뭐하지")}|${labelOf('insarang', second.label)}|${labelOf('events', '인사동 이벤트')}`);
   useFitText(kdramaRef, styles.navLabelLong, longLang, 0.55, `${lang}|K-DRAMA`);
   useFitText(restroomRef, styles.navLabelLong, longLang, 0.55, `${lang}|${t('MainButton_WC', lang)}`);
 
@@ -484,38 +484,20 @@ const stripParenthetical = (label: string): string =>
             </span>
           </button>
 
-          {/* 인사랑(준비중) at W001/W002 — full colour, simply not tappable —
-              or 위드마켓 at W003, which opens its pre-warmed web screen. */}
-          {(() => {
-            const art = QUICK_ART.market;
-            const body = (
-              <>
-                {art && <img className={styles.quickArt} src={art} alt="" draggable={false} />}
-                <span className={`${styles.quickTitle} ${longLang ? styles.quickTitleLong : ''}`}>
-                  {/* Read from the sheet's 인사랑 rows on EVERY kiosk. `MainButton_Goods` (the old
-                      위드마켓 row) is gone from Localization_Insa, so looking it up on W003 always
-                      missed and drew the hardcoded "위드마켓" while the sheet says 인사랑(준비중). */}
-                  {labelOf('insarang', second.label)}
-                </span>
-                <span className={`${styles.quickSub} ${longLang ? styles.quickSubLong : ''}`}>
-                  {subOf('insarang', second.sub)}
-                </span>
-              </>
-            );
-            return secondSoon ? (
-              <div className={`${styles.quickCard} ${styles.quickInsarang} ${styles.soon}`} aria-disabled="true">
-                {body}
-              </div>
-            ) : (
-              <button
-                type="button"
-                className={`${styles.quickCard} ${styles.quickInsarang}`}
-                onClick={() => navigate(secondScreen as KioskScreenId, second.label)}
-              >
-                {body}
-              </button>
-            );
-          })()}
+          {/* 인사랑(준비중) — full colour, simply not tappable. */}
+          <div className={`${styles.quickCard} ${styles.quickInsarang} ${styles.soon}`} aria-disabled="true">
+            {QUICK_ART.market && (
+              <img className={styles.quickArt} src={QUICK_ART.market} alt="" draggable={false} />
+            )}
+            <span className={`${styles.quickTitle} ${longLang ? styles.quickTitleLong : ''}`}>
+              {/* Read from the sheet's 인사랑 rows (MainButton_Insarang); the old 위드마켓 row
+                  MainButton_Goods is gone from Localization_Insa. */}
+              {labelOf('insarang', second.label)}
+            </span>
+            <span className={`${styles.quickSub} ${longLang ? styles.quickSubLong : ''}`}>
+              {subOf('insarang', second.sub)}
+            </span>
+          </div>
 
           <button
             type="button"
