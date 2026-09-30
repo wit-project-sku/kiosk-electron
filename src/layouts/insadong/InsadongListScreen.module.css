@@ -25,6 +25,11 @@
   padding: 0 0 40px 170px;
 }
 
+/* With the bottom promo on screen the list ends where the banner starts. */
+.resultsBanner {
+  bottom: 573px;
+}
+
 /* Category tabs — 2×5 grid of rounded-rect tabs (exact Figma: 340×170, r42.9) */
 .tabs {
   flex: none;

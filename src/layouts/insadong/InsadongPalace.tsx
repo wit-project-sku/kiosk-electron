@@ -5,6 +5,7 @@ import { useLang } from '@renderer/lib/i18n';
 import { palaceCategory } from '@renderer/lib/palace';
 import { useDetailStore } from '@renderer/store/detailStore';
 import { useAccessibilityStore } from '@renderer/store/accessibilityStore';
+import { useRotatingBanner } from '@renderer/hooks/useRotatingBanner';
 import { PALACES } from '@renderer/data/palaces.generated';
 import { pickText } from '@renderer/data/types';
 import { PALACE_PHOTOS } from '@renderer/assets/photos/insadong/palace/halls';
@@ -35,6 +36,10 @@ export function InsadongPalace({ controller }: InsadongPalaceProps): JSX.Element
      every language. */
   const wide = lang !== 'ko';
   const lowReach = useAccessibilityStore((s) => s.lowReach);
+  /* The standing layout carries the promo like every other content screen;
+     ♿ drops it, same as 인사 소개 and 택스리펀. */
+  const banner = useRotatingBanner();
+  const showBanner = !lowReach && !!banner;
   const goHome = (): void => controller.navigate('home', 'Back');
   const setDetail = useDetailStore((s) => s.setItem);
   const cat = palaceCategory(lang);
@@ -74,7 +79,9 @@ export function InsadongPalace({ controller }: InsadongPalaceProps): JSX.Element
 
       <InsadongHeader title="고궁안내" onHome={goHome} />
 
-      <div className={lowReach ? `${styles.results} ${styles.resultsLow}` : styles.results}>
+      <div
+        className={`${styles.results} ${lowReach ? styles.resultsLow : ''} ${showBanner ? styles.resultsBanner : ''}`}
+      >
         <div ref={listRef} className={styles.listScroll}>
           <div className={styles.list}>
             {visible.map(({ p, i }) => {
@@ -131,6 +138,12 @@ export function InsadongPalace({ controller }: InsadongPalaceProps): JSX.Element
             )}
           </button>
         </>
+      )}
+
+      {showBanner && (
+        <button type="button" className={styles.banner} onClick={() => controller.startPhoto()} aria-label="가상 한복 체험">
+          <img src={banner} alt="" draggable={false} />
+        </button>
       )}
 
       <InsadongLeftNav onHome={goHome} />
