@@ -11,7 +11,7 @@ import { usePhotoStore } from '@renderer/store/photoStore';
 import { trackEvent } from '@renderer/lib/analytics';
 import { displayVideosFor } from '@renderer/assets/videos';
 import { cameraIconUrl } from '@renderer/assets/icons/insadong/camera';
-import { allScreenEntryUrls, clipsForPlayKey, clipsForScreen, initSubtitles, initVideoFiles, normalizeClipIndexKeys, screenKeepsPlayback, siblingClipUrls } from '@renderer/lib/videoMap';
+import { allScreenEntryUrls, clipsForPlayKey, clipsForScreen, heldStateCaption, initSubtitles, initVideoFiles, normalizeClipIndexKeys, siblingClipUrls } from '@renderer/lib/videoMap';
 import { getCameraRotation, getKioskLocation, usesGestureCapture } from '@shared/config/kioskLocations';
 import { PHOTO_COUNTDOWN_SECONDS } from '@shared/constants/photoOptions';
 import type { WeatherPlayKey } from '@shared/config/weatherVideo';
@@ -146,10 +146,19 @@ export function CustomerDisplay(): JSX.Element {
   // preloads the next clip for an instant, no-flash switch.
   // dataVersion is a dep so these recompute once subtitles/video files load.
   /* A state the sheet marks "no video" leaves the current clip playing (재생조건
-     "영상 없음. 기존 영상 그대로 재생"), so the last resolved list is held. */
+     "영상 없음. 기존 영상 그대로 재생"), so the last resolved list is held — under
+     that row's own caption. Same URLs, so the wall does not reload; it only
+     swaps the text. An empty cell keeps the held clip's caption. */
   const heldClips = useRef<ReturnType<typeof clipsForScreen>>([]);
   const screenClips = useMemo(() => {
-    if (screenKeepsPlayback(kioskScreen, lang, kioskId)) return heldClips.current;
+    const held = heldStateCaption(kioskScreen, lang, kioskId);
+    if (held) {
+      return heldClips.current.map((c) => ({
+        url: c.url,
+        subtitle: held.subtitle || c.subtitle,
+        label: held.label || c.label,
+      }));
+    }
     const clips = clipsForScreen(kioskScreen, lang, kioskId, buttonId);
     heldClips.current = clips;
     return clips;

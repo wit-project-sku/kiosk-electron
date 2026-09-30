@@ -83,13 +83,18 @@ export function videoUrlsForSet(set: VideoSet): string[] {
 }
 
 /**
- * The file a sheet stem names, within one set. Exact first; then the stem with
- * the `=FIN` the delivered 인사동 files carry (`IS=Weather_Cold` →
- * `IS=Weather_Cold=FIN.mp4`), so a plain sheet/CMS name still finds its clip.
+ * The file a sheet stem names, within one set. Exact first, then BOTH spellings
+ * of the `=FIN` suffix the delivered 인사동 files carry — with it added
+ * (`IS=Weather_Cold` → `IS=Weather_Cold=FIN.mp4`) and with it removed
+ * (`IS=Weather_Cold=FIN` → `IS=Weather_Cold.mp4`). The sheet names every clip
+ * `…=FIN`, but a machine still holding the pre-`=FIN` footage must keep playing
+ * it, and one already updated must find the new files: without the second
+ * direction every subtitle was dropped as "no local video" on such a machine.
  */
 function findFile(stem: string, set: VideoSet): VideoFile | undefined {
   const n = norm(stem);
-  return FILE_BY_NORM[set].get(n) ?? FILE_BY_NORM[set].get(`${n}fin`);
+  const files = FILE_BY_NORM[set];
+  return files.get(n) ?? files.get(`${n}fin`) ?? (n.endsWith('fin') ? files.get(n.slice(0, -3)) : undefined);
 }
 
 /** Resolve a sheet file stem to a media:// URL within the kiosk's video set. */
@@ -457,6 +462,10 @@ const HWASEONG_SCREEN_TO_VIDEO_KEY: Record<string, string> = {
  *  - Exchange has ONE clip: both tabs play it (the tab ids are reported for the
  *    layouts that author a clip per tab, and unmapped they fell to the idle reel).
  *  - Search_Enter plays while the result list is up (검색 후 엔터).
+ *  - 인사 뭐하지's three stages: landing → AISearch, 각 코스 선택 (the builder,
+ *    reported as `ai_questions`) → AISearch_Category, 코스 추천 결과 (`ai_result`)
+ *    → AISearch_Detail. The base map sends `ai_result` to _Category, and
+ *    `ai_questions` had no entry at all, so the builder cut to the idle reel.
  *  - The AR flow's four stages, mirroring 제주's staging of the same Photo-1..4
  *    rows: 의상 선택 → Photo, 촬영 가이드 → Photo_SelectHanbok, 합성 대기 →
  *    Photo_Creating, 완료 → Photo_Complete.
@@ -472,6 +481,8 @@ const INSADONG_SCREEN_TO_VIDEO_KEY: Record<string, string> = {
   exchange_calc:    'Exchange',
   exchange_live:    'Exchange',
   search_enter:     'Search_Enter',
+  ai_questions:     'AISearch_Category',
+  ai_result:        'AISearch_Detail',
   photo:            'Photo',
   photo_guide:      'Photo_SelectHanbok',
   photo_creating:   'Photo_Creating',
@@ -780,17 +791,25 @@ function ownClipsForScreen(screen: string, lang: Lang, kioskId?: KioskId): Displ
 }
 
 /**
- * True when the sheet lists this screen's state but says it has NO clip
- * ("display no video" / "영상 없음. 기존 영상 그대로 재생"). The display then
- * leaves whatever is playing alone instead of cutting to the idle reel.
+ * The caption for a screen whose state the sheet lists with NO clip ("display
+ * no video" / "영상 없음. 기존 영상 그대로 재생"), or `null` when the screen has
+ * its own clip. The display then leaves whatever is playing alone instead of
+ * cutting to the idle reel — but the row still carries its OWN subtitle (the
+ * 환급 진행 / 가맹점 / 테니스 lines), which goes over the held video. Returning
+ * only "keep playing" left the previous screen's caption up on all ten such rows.
  */
-export function screenKeepsPlayback(screen: string, lang: Lang, kioskId?: KioskId): boolean {
-  if (screen === 'language') return false;
+export function heldStateCaption(
+  screen: string,
+  lang: Lang,
+  kioskId?: KioskId,
+): { subtitle: string; label: string } | null {
+  if (screen === 'language') return null;
   const set = videoSetFor(kioskId);
   const { key, clip } = splitClipIndex(screenKey(screen, lang, layoutOf(kioskId)));
   const list = BY_KEY[set].get(key) ?? [];
-  if (clip != null) return list[clip - 1]?.noVideo === true;
-  return list.length > 0 && list.every((e) => e.noVideo);
+  const row = clip != null ? list[clip - 1] : list.length > 0 && list.every((e) => e.noVideo) ? list[0] : undefined;
+  if (!row?.noVideo) return null;
+  return { subtitle: pickText(row.subtitle, lang), label: pickText(row.label, lang) };
 }
 
 export function clipsForScreen(
