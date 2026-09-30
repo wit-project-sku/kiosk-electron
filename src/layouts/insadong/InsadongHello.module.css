@@ -325,19 +325,22 @@
 
 .hobbyPhoto {
   position: absolute;
-  left: 600px;
+  /* 7553:49369 / 49431 / 49491 — the three 취미생활 photos are 843–853 wide by
+     1510–1521 tall, centred. 850×1515 is their common frame; `cover` absorbs the
+     few pixels each differs by. */
+  left: 655px;
   top: calc(1081px + var(--header-push, 0px) + var(--insa-header-shift, 0px));
-  width: 959px;
-  height: 1509px;
+  width: 850px;
+  height: 1515px;
   object-fit: cover;
   object-position: center top;
   border-radius: 45px;
 }
 
-/* 건강습관 photo is 869×1546, centered (7553:49558). */
+/* 건강습관 photos are 863×1546, centered (7553:49552 / 49614 / 49674). */
 .healthPhoto {
-  left: 645px;
-  width: 869px;
+  left: 649px;
+  width: 863px;
   height: 1546px;
 }
 
