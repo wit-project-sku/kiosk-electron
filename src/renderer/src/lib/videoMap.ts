@@ -492,9 +492,12 @@ const INSADONG_SCREEN_TO_VIDEO_KEY: Record<string, string> = {
   photo_guide:      'Photo_SelectHanbok',
   photo_creating:   'Photo_Creating',
   photo_complete:   'Photo_Complete',
-  /* 안녕 인사's sub-tabs, one row each: 취미생활 K-POP is filed under `Greeting`
-     (row 2), 골프 / 테니스 are Greeting_Hobby 1 / 2; 건강습관's three are
-     Greeting_Stretching 1..3. A row marked "no video" keeps the current clip. */
+  /* 안녕 인사's sub-tabs, one row each: 인사 소개 is `Greeting` row 1 and 취미생활
+     K-POP is filed under `Greeting` too (row 2) — so 소개 must name its row, or
+     it cycles the K-POP clip as well once that row carries a video. 골프 / 테니스
+     are Greeting_Hobby 1 / 2; 건강습관's three are Greeting_Stretching 1..3. A row
+     marked "no video" keeps the current clip. */
+  hello:            'Greeting#1',
   hello_hobby_1:    'Greeting#2',
   hello_hobby_2:    'Greeting_Hobby#1',
   hello_hobby_3:    'Greeting_Hobby#2',
