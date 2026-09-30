@@ -92,18 +92,28 @@ export function videoUrlsForSet(set: VideoSet): string[] {
 }
 
 /**
- * The file a sheet stem names, within one set. Exact first, then BOTH spellings
- * of the `=FIN` suffix the delivered 인사동 files carry — with it added
- * (`IS=Weather_Cold` → `IS=Weather_Cold=FIN.mp4`) and with it removed
- * (`IS=Weather_Cold=FIN` → `IS=Weather_Cold.mp4`). The sheet names every clip
- * `…=FIN`, but a machine still holding the pre-`=FIN` footage must keep playing
- * it, and one already updated must find the new files: without the second
- * direction every subtitle was dropped as "no local video" on such a machine.
+ * The file a sheet stem names, within one set.
+ *
+ * The 인사동 footage has been delivered under several endings for the SAME clip:
+ * `IS=Weather_Cold`, `IS=Weather_Cold=FIN`, and now `IS=Weather_Cold=FIN_low`
+ * (a lighter encode). The sheet only ever says one of them, and a machine may
+ * hold any of them, so the stem and the file are compared on what they share —
+ * the name with a trailing `fin` / `low` / `finlow` taken off — and tried in this
+ * order: exactly as written, then `…fin`, `…finlow`, `…low`, and the bare name.
+ * Without this every clip whose ending differs from the sheet's was dropped as
+ * "no local video", and with it its subtitle.
+ *
+ * (`norm` has already removed `=` and `_`, so `=FIN_low` reads `finlow`.)
  */
 function findFile(stem: string, set: VideoSet): VideoFile | undefined {
   const n = norm(stem);
+  const base = n.replace(/(fin)?(low)?$/, '') || n;
   const files = FILE_BY_NORM[set];
-  return files.get(n) ?? files.get(`${n}fin`) ?? (n.endsWith('fin') ? files.get(n.slice(0, -3)) : undefined);
+  for (const candidate of [n, `${base}fin`, `${base}finlow`, `${base}low`, base]) {
+    const hit = files.get(candidate);
+    if (hit) return hit;
+  }
+  return undefined;
 }
 
 /** Resolve a sheet file stem to a media:// URL within the kiosk's video set. */
