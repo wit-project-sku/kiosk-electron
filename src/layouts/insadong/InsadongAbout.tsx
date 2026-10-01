@@ -546,8 +546,11 @@ export function InsadongAbout({ controller }: InsadongAboutProps): JSX.Element {
        an 인사동 kiosk would pin 성산일출봉 on 여기는 인사동 AND fit the map to an
        island 450km away. */
     const mine = attractions.filter((a) => a.kioskId === kioskNum);
-    if (mine.length > 0) return mine;
-    return shops.filter((s) => s.baseCategoryKr && !RESERVED_BASES.has(s.baseCategoryKr));
+    const list = mine.length > 0 ? mine : shops.filter((s) => s.baseCategoryKr && !RESERVED_BASES.has(s.baseCategoryKr));
+    /* Places WITH a photo first, then the rest — a wall of "no image" plates up
+       top reads as an empty page. Stable, so each group keeps the feed's order. */
+    const hasPhoto = (s: (typeof list)[number]): boolean => shopImages(s).length > 0;
+    return [...list.filter(hasPhoto), ...list.filter((s) => !hasPhoto(s))];
   }, [attractions, shops, kioskNum]);
   const visible = useMemo(
     () => places.filter((s) => !initial || shopInitial(shopName(s, 'ko')) === initial),
