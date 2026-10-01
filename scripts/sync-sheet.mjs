@@ -184,6 +184,9 @@ async function genLocalization() {
   for (const r of rows.slice(1)) {
     const key = clean(r[1]);
     if (!key || key === 'Key') continue;
+    // First row wins, like the runtime sync (LocalizationSyncParser): the tab
+    // lists MainButton_Promotion twice and the home button's row is the first.
+    if (key in entries) continue;
     entries[key] = localizedRow(r, NEW_LANG_COLS_INSA);
   }
   const body = Object.entries(entries)

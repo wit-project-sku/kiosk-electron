@@ -288,6 +288,13 @@ export function InsadongHomeRenewal({ controller }: InsadongHomeRenewalProps): J
   /* Korean is what every band in the stylesheet was drawn around; every other
      language runs longer. See "Other languages" at the foot of the CSS. */
   const longLang = lang !== 'ko';
+  /* The bottom-left caption is the sheet's MainButton_Promotion ("PROMOTION(준비중)").
+     The tab lists that key twice — the home-button row, and again beside the
+     promotion page's rows — and the FIRST row wins (LocalizationSyncParser /
+     sync-sheet). `t` returns the key itself when no table has the row, so that
+     case keeps the Figma "K-DRAMA". */
+  const promoLabel = t('MainButton_Promotion', lang);
+  const kdramaLabel = promoLabel === 'MainButton_Promotion' ? 'K-DRAMA' : promoLabel;
   const gridRef = useRef<HTMLDivElement>(null);
   const quickRef = useRef<HTMLDivElement>(null);
   const kdramaRef = useRef<HTMLDivElement>(null);
@@ -400,7 +407,7 @@ const stripParenthetical = (label: string): string =>
     `${lang}|${tiles.map((x) => `${labelOf(x.screen, x.label)}/${subOf(x.screen, x.sub)}`).join('|')}`);
   useFitText(quickRef, styles.quickTitleLong, longLang, 0.6,
     `${lang}|${labelOf('ai_search', "'인사' 뭐하지")}|${labelOf('insarang', second.label)}|${labelOf('events', '인사동 이벤트')}`);
-  useFitText(kdramaRef, styles.navLabelLong, longLang, 0.55, `${lang}|K-DRAMA`);
+  useFitText(kdramaRef, styles.navLabelLong, longLang, 0.55, `${lang}|${kdramaLabel}`);
   useFitText(restroomRef, styles.navLabelLong, longLang, 0.55, `${lang}|${t('MainButton_WC', lang)}`);
 
   return (
@@ -553,7 +560,7 @@ const stripParenthetical = (label: string): string =>
             onClick={
               KDRAMA_COMING_SOON ? (e) => e.preventDefault() : () => navigate('kdrama', 'K-DRAMA')
             }
-            aria-label="K-DRAMA"
+            aria-label={kdramaLabel}
           >
             {iconUrl('nav-kdrama') && <img src={iconUrl('nav-kdrama')} alt="" draggable={false} />}
           </button>
@@ -577,7 +584,9 @@ const stripParenthetical = (label: string): string =>
             ref={kdramaRef}
             className={`${styles.navLabel} ${styles.navLabelKdrama} ${longLang ? styles.navLabelLong : ''}`}
           >
-            K-DRAMA
+            {/* The promoted drama's title (Localization_Insa MainButton_Promotion —
+                "취사병 전설이 되다"), so the operators retitle it with the show. */}
+            {kdramaLabel}
           </div>
           <div
             ref={restroomRef}
