@@ -101,11 +101,18 @@ export function PhotoWorkflow(): JSX.Element {
 
   // Hold Monitor 2 on its waiting screen for as long as the game runs, so the
   // big screen doesn't hand over the photo the visitor is still playing for.
+  //
+  // 인사동 does NOT hold it: the moment the photo lands (the 60s floor) the
+  // 저장하기 / 다시찍기 popup opens on this screen and the photo goes up on
+  // Monitor 2 with it, and it stays there until the visitor leaves — 다시찍기, 홈,
+  // 뒤로, any other page or the idle reset all run `photo:reset`, which puts the
+  // big screen back on its attract video. Never deferring also means there is
+  // nothing to release, so the hand-over below stays a no-op for 인사동.
   useEffect(() => {
-    if (!playsWaitingGame || phase !== 'generating' || deferredRef.current) return;
+    if (!playsWaitingGame || chrome.isInsadong || phase !== 'generating' || deferredRef.current) return;
     deferredRef.current = true;
     void window.api.photo.setDeferResultDisplay(true);
-  }, [playsWaitingGame, phase]);
+  }, [playsWaitingGame, chrome.isInsadong, phase]);
 
   // A new session (or a 다시찍기 / 홈) re-arms the gate. Keyed on the phase
   // leaving the generating→result pair rather than on the reset handler, so
