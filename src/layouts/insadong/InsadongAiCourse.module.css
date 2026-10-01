@@ -324,11 +324,13 @@
   flex: none;
   display: flex;
   align-items: center;
-  justify-content: center;
+  justify-content: space-between;
   gap: 10px;
+  box-sizing: border-box;
+  min-width: 289px;
   height: 101px;
   margin: 0 16px 0 0;
-  padding: 0 33px;
+  padding: 0 24px 0 33px;
   border: none;
   border-radius: 999px;
   background: #ffffff;
@@ -389,9 +391,10 @@
   color: var(--kiosk-primary);
 }
 
-.refreshBtn svg {
-  width: 52px;
-  height: 52px;
+/* The asset is the whole 96×96 glyph (orange stroke inside its own padding). */
+.refreshBtn img {
+  width: 96px;
+  height: 96px;
   display: block;
 }
 
@@ -482,7 +485,7 @@
   border-radius: 50%;
   background: #ffffff;
   color: var(--kiosk-primary);
-  font-size: 45px;
+  font-size: 50px;
   font-weight: 700;
 }
 

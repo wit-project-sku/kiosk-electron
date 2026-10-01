@@ -28,6 +28,8 @@ interface InsadongHeaderProps {
   subtitleClassName?: string;
   /** Ref on the subtitle row — used by TAX-FREE to size the webview card. */
   subtitleRef?: Ref<HTMLDivElement>;
+  /** AI 맞춤 추천 코스 (7681:59124): a plain Bold #616161 line, no ★. */
+  strongSubtitle?: boolean;
 }
 
 /**
@@ -35,7 +37,7 @@ interface InsadongHeaderProps {
  * date, then a title row (home button · centered title · back chevron), then a
  * subtitle. Exact Figma metrics in InsadongHeader.module.css.
  */
-export function InsadongHeader({ title, onHome, onBack, subtitle, compact = false, light = false, subtitleClassName, subtitleRef }: InsadongHeaderProps): JSX.Element {
+export function InsadongHeader({ title, onHome, onBack, subtitle, compact = false, light = false, subtitleClassName, subtitleRef, strongSubtitle = false }: InsadongHeaderProps): JSX.Element {
   const lang = useLang();
   const localizedTitle = screenTitle(title, lang);
   /* Korean titles sit on one line in the fixed 182px row; several of the other
@@ -86,8 +88,8 @@ export function InsadongHeader({ title, onHome, onBack, subtitle, compact = fals
 
       {!compact && sub && (
         <div ref={subtitleRef} className={`${styles.subtitle} ${subtitleClassName ?? ''}`}>
-          <span className={styles.star}>★</span>
-          <span ref={subTextRef} className={styles.subtitleText}>{sub}</span>
+          {!strongSubtitle && <span className={styles.star}>★</span>}
+          <span ref={subTextRef} className={`${styles.subtitleText} ${strongSubtitle ? styles.subtitleStrong : ''}`}>{sub}</span>
         </div>
       )}
     </header>

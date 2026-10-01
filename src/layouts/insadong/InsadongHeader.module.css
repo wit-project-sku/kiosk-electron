@@ -127,6 +127,13 @@
   white-space: pre-line;
 }
 
+/* 7681:59218 — Pretendard Bold 60, #616161, leading-none, no star. */
+.subtitleStrong {
+  font-weight: 700;
+  color: #616161;
+  line-height: 1;
+}
+
 .star {
   color: var(--kiosk-primary);
   /* Figma's star asset is 36×36 at y+12 inside the 60px row. */

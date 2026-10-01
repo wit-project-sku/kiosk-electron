@@ -225,6 +225,7 @@ export function PhotoWorkflow(): JSX.Element {
         aiReady={phase === 'result'}
         onFinish={handleGameFinish}
         onHome={handleReset}
+        readyModal={chrome.isInsadong}
       />
     );
   }

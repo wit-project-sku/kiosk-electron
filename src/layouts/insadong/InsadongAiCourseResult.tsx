@@ -1,4 +1,4 @@
-import { useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { QRCodeSVG } from 'qrcode.react';
 import type { KioskController } from '@renderer/hooks/useKioskController';
 import type { InsaCourse } from '@shared/types/insaCourse';
@@ -30,20 +30,23 @@ import {
   stripPrefix,
 } from '@renderer/lib/shops';
 import { useFitText } from '@layouts/components/fitText';
-import { insaDayTabLabel, localizeInsaAiPick } from './InsadongAiCourse';
+import { localizeInsaAiPick } from './InsadongAiCourse';
 import { InsadongHeader } from './InsadongHeader';
 import { InsadongLeftNav } from './InsadongLeftNav';
 import styles from './InsadongAiCourseResult.module.css';
 
 /**
- * AI 맞춤 추천 코스 — Figma 7519:75267 (7519:76503 is a straight duplicate of
- * the same frame, so one component draws both).
+ * AI 맞춤 추천 코스 — Figma 7681:59122, the redraw of 7519:75267: the same cards
+ * and timeline under 실시간 / 일반 코스 tabs (no DAY pager), and a summary bar of
+ * 총 소요시간 · 이동거리 · 방문 인원 · 일정.
  *
- * The route is `POST /api/insa/courses/recommend`'s answer, made by the builder
- * and left in the store (`insaCourse`), normalised into {@link Stop}. ONE day,
- * walking: the API schedules a single line of places from this kiosk, so there is
- * no DAY pager beyond DAY 1 and no 이동수단 to report. A failed call leaves the
- * store empty and this page draws its empty state.
+ * The routes are `POST /api/insa/courses/recommend/v2`'s answer, made by the
+ * builder and left in the store (`insaCourse`), each normalised into {@link Stop}:
+ * 실시간 코스 (scheduled from now, against opening hours — empty with a reason
+ * when nothing is open) and 일반 코스 (clock-free). ONE day, walking, so there is
+ * no DAY pager and no 이동수단 to report. Both tabs always show; when the API
+ * says the routes are the same (`sameAsRealtime`) they list the same stops. A
+ * failed call leaves the store empty and this page draws its empty state.
  *
  * ── Copy ──────────────────────────────────────────────────────────────────
  * Every string here resolves sheet-row-for-this-language → authored copy for
@@ -82,13 +85,40 @@ const TEXT = {
     ko: '이동거리', en: 'Distance', ja: '移動距離', zh: '移动距离',
     vi: 'Quãng đường', th: 'ระยะทาง', ru: 'Расстояние', id: 'Jarak',
   } as L8,
-  partyStay: {
-    ko: '방문 인원/ 일정', en: 'Group / Stay', ja: '人数 / 日程', zh: '人数 / 行程',
-    vi: 'Số người / Lịch', th: 'จำนวนคน / กำหนดการ', ru: 'Гости / Срок', id: 'Orang / Jadwal',
+  visitors: {
+    ko: '방문 인원', en: 'Number of Visitors', ja: '訪問人数', zh: '访问人数',
+    vi: 'Số người', th: 'จำนวนผู้เยี่ยมชม', ru: 'Число гостей', id: 'Jumlah pengunjung',
   } as L8,
-  transport: {
-    ko: '이동수단', en: 'Getting around', ja: '移動手段', zh: '交通方式',
-    vi: 'Phương tiện di chuyển', th: 'การเดินทาง', ru: 'Транспорт', id: 'Transportasi',
+  schedule: {
+    ko: '일정', en: 'Schedule', ja: '日程', zh: '行程',
+    vi: 'Lịch trình', th: 'กำหนดการ', ru: 'Время', id: 'Jadwal',
+  } as L8,
+  /** 7764:9879 / 7764:9878 — the two course tabs over the list. */
+  realtime: {
+    ko: '실시간 코스', en: 'Real-time course', ja: 'リアルタイムコース', zh: '实时路线',
+    vi: 'Lộ trình theo giờ thực', th: 'เส้นทางเรียลไทม์', ru: 'Маршрут сейчас', id: 'Rute real-time',
+  } as L8,
+  general: {
+    ko: '일반 코스', en: 'Standard course', ja: '一般コース', zh: '普通路线',
+    vi: 'Lộ trình thường', th: 'เส้นทางทั่วไป', ru: 'Обычный маршрут', id: 'Rute umum',
+  } as L8,
+  /** The body when the picked categories and tab leave nothing to show (night, a
+   *  tab with no route, a failed call). Localization_Insa `NotAvailableTime` —
+   *  authored here only as the fallback for a kiosk that has not synced the row. */
+  notAvailable: {
+    ko: '지금은 너무 이르거나 늦은 시간입니다! 잠시 후 다시 이용해 주세요.',
+    en: 'It is currently too early or too late! Please try again in a moment.',
+    ja: '現在は時間が早すぎるか遅すぎます！しばらくしてからもう一度ご利用ください。',
+    zh: '现在时间太早或太晚！请稍后再试。',
+    vi: 'Hiện tại quá sớm hoặc quá muộn! Vui lòng thử lại sau giây lát.',
+    th: 'ตอนนี้ยังเช้าเกินไปหรือดึกเกินไป! กรุณาลองใหม่อีกครั้งในอีกสักครู่ค่ะ',
+    ru: 'Сейчас слишком рано или слишком поздно! Пожалуйста, попробуйте еще раз позже.',
+    id: 'Saat ini terlalu awal atau terlalu larut! Silakan coba lagi beberapa saat lagi.',
+  } as L8,
+  /** 7681:59356 — the origin plate reads "출발 지점 > {kiosk}". */
+  start: {
+    ko: '출발 지점', en: 'Start', ja: '出発地点', zh: '出发地点',
+    vi: 'Điểm xuất phát', th: 'จุดเริ่มต้น', ru: 'Старт', id: 'Titik awal',
   } as L8,
   /** Prefixes the rounded distance — "약 4.2Km". */
   about: {
@@ -98,11 +128,6 @@ const TEXT = {
   dwell: {
     ko: '머무는 시간', en: 'Time here', ja: '滞在時間', zh: '停留时间',
     vi: 'Thời gian ở lại', th: 'เวลาที่แวะ', ru: 'Время на месте', id: 'Waktu di sini',
-  } as L8,
-  empty: {
-    ko: '추천된 코스가 없습니다.', en: 'No course to show.', ja: 'おすすめコースがありません。',
-    zh: '暂无推荐路线。', vi: 'Chưa có lộ trình nào.', th: 'ยังไม่มีเส้นทางแนะนำ',
-    ru: 'Маршрутов нет.', id: 'Belum ada rute.',
   } as L8,
   scrollUp: {
     ko: '위로', en: 'Scroll up', ja: '上へ', zh: '向上',
@@ -126,6 +151,8 @@ interface Stop {
   category: string;
   /** `default` = a category-typical guess at the opening hours: never shown as a time. */
   hoursMethod: string;
+  /** The API's own name for the stop — only for a shop the catalogue no longer holds. */
+  name: string;
 }
 
 interface Day {
@@ -147,6 +174,7 @@ const fromInsa = (course: InsaCourse): Day[] =>
             dwellMinutes: sp.stayMinutes,
             category: stripPrefix(sp.secondCategory),
             hoursMethod: sp.hoursMethod,
+            name: sp.name,
           })),
         },
       ];
@@ -179,15 +207,28 @@ export function InsadongAiCourseResult({ controller }: Props): JSX.Element {
   const shops = useShopStore((s) => s.shops);
   const setDetail = useDetailStore((s) => s.setItem);
 
-  const [day, setDay] = useState(1);
+  /* 7764:9879 / 7764:9878 — 실시간 코스 is the route scheduled from now (the
+     API's answer, below). 일반 코스 has its own API on the way; until then its
+     tab switches to a 준비 중 note. */
+  const realtimeRoute = insaCourse?.realtime;
+  const generalRoute = insaCourse?.general;
+  /* Nothing open now (night): open on the 일반 코스 instead of an empty list. */
+  const realtimeOpen = !!realtimeRoute && realtimeRoute.available && realtimeRoute.spots.length > 0;
+  const [tab, setTab] = useState<'realtime' | 'general'>(realtimeOpen || !generalRoute ? 'realtime' : 'general');
+  /* Both tabs are always drawn (the frame has both). When the API reports
+     `sameAsRealtime` — common for the short slots in the daytime — the 일반 코스
+     simply lists the same places. */
+  const tabIds: ('realtime' | 'general')[] = ['realtime', 'general'];
+  const route = tab === 'general' ? generalRoute : realtimeRoute;
   const panelRef = useRef<HTMLDivElement>(null);
   const summaryRef = useRef<HTMLDivElement>(null);
   const catsRef = useRef<HTMLDivElement>(null);
 
-  const days: Day[] = useMemo(() => (insaCourse ? fromInsa(insaCourse) : []), [insaCourse]);
+  const days: Day[] = useMemo(() => (route ? fromInsa(route) : []), [route]);
 
   const byId = useMemo(() => new Map(shops.map((s) => [s.id, s])), [shops]);
-  const current = days.find((d) => d.day === day) ?? days[0];
+  /* The API schedules ONE walking day, so there is no day pager. */
+  const current = days[0];
   /* Memoised because `?? []` would hand out a fresh array every render, which
      re-ran the chip-label memo below on every single one. */
   const stops = useMemo(() => current?.stops ?? [], [current]);
@@ -218,8 +259,8 @@ export function InsadongAiCourseResult({ controller }: Props): JSX.Element {
   const dayTravel = stops.reduce((t, s) => t + s.travelMinutes, 0);
   const dayDwell = stops.reduce((t, s) => t + s.dwellMinutes, 0);
   /* The API's own totals win over a re-sum of the legs. */
-  const totalMinutes = insaCourse?.totalMinutes || dayTravel + dayDwell;
-  const dayKm = insaCourse ? insaCourse.totalWalkMeters / 1000 : stops.reduce((t, s) => t + s.travelKm, 0);
+  const totalMinutes = route?.totalMinutes || dayTravel + dayDwell;
+  const dayKm = route ? route.totalWalkMeters / 1000 : stops.reduce((t, s) => t + s.travelKm, 0);
 
   const openStop = (stop: Stop, shop: Shop): void => {
     setDetail({
@@ -247,10 +288,33 @@ export function InsadongAiCourseResult({ controller }: Props): JSX.Element {
 
   useFitText(summaryRef, styles.summaryValueLong, long, 0.62, `${lang}|summary`);
   useFitText(catsRef, styles.catLong, long, 0.6, `${lang}|${chipLabels.join('|')}`);
-  useFitText(panelRef, styles.nameLong, long, 0.7, `${lang}|${day}|${stops.length}`);
+  useFitText(panelRef, styles.nameLong, long, 0.7, `${lang}|${tab}|${stops.length}`);
+
+  /* 7681:59372 — the scroll position is drawn on the artboard's right edge (a
+     34px pill at x2128), not as a bar inside the panel. Track and thumb are
+     fractions of the panel's own scroll range; null when nothing scrolls. */
+  const [thumb, setThumb] = useState<{ top: number; size: number } | null>(null);
+  useEffect(() => {
+    const el = panelRef.current;
+    if (!el) return undefined;
+    const sync = (): void => {
+      const range = el.scrollHeight - el.clientHeight;
+      if (range <= 1) return setThumb(null);
+      const size = Math.min(1, el.clientHeight / el.scrollHeight);
+      setThumb({ size, top: (el.scrollTop / range) * (1 - size) });
+    };
+    sync();
+    el.addEventListener('scroll', sync, { passive: true });
+    const ro = new ResizeObserver(sync);
+    ro.observe(el);
+    if (el.firstElementChild) ro.observe(el.firstElementChild);
+    return () => {
+      el.removeEventListener('scroll', sync);
+      ro.disconnect();
+    };
+  }, [tab, stops.length]);
 
   const scrollBy = (dy: number): void => panelRef.current?.scrollBy({ top: dy, behavior: 'smooth' });
-  const dayCount = Math.max(1, days.length);
   const arrow = iconUrl('scroll-arrow');
   const dwellIcon = iconUrl('course-dwell');
 
@@ -285,11 +349,13 @@ export function InsadongAiCourseResult({ controller }: Props): JSX.Element {
             travelKm: stop.travelKm,
           })),
         })),
-        totalMinutes: insaCourse?.totalMinutes ?? null,
-        travelMinutes: insaCourse ? insaCourse.spots.reduce((n, sp) => n + sp.walkMinutes, 0) : null,
+        totalMinutes: route?.totalMinutes ?? null,
+        distanceKm: route ? route.totalWalkMeters / 1000 : null,
+        stay,
+        travelMinutes: route ? route.spots.reduce((n, sp) => n + sp.walkMinutes, 0) : null,
         difficulty: null,
       }),
-    [lang, kioskId, entry, courseKey, visitors, interests, days, insaCourse],
+    [lang, kioskId, entry, courseKey, visitors, interests, days, route, stay],
   );
 
   return (
@@ -300,7 +366,8 @@ export function InsadongAiCourseResult({ controller }: Props): JSX.Element {
         /* The id, not a pre-localized string: screenTitle maps it to
            MainButton_AI, which the 인사 tab carries in all eight languages. */
         title="‘인사’ 뭐하지 (AI 검색)"
-        subtitle={`${line('Insa_Todo_result_Subtitle', TEXT.result)} - ${insaDayTabLabel(day, lang)}`}
+        subtitle={line('Insa_Todo_result_Subtitle', TEXT.result)}
+        strongSubtitle
         onHome={goHome}
         onBack={goBack}
       />
@@ -329,16 +396,16 @@ export function InsadongAiCourseResult({ controller }: Props): JSX.Element {
         </div>
         <span className={styles.summaryRule} />
         <div className={styles.summaryCell}>
-          <span className={styles.summaryLabel}>{line('Course_PartyStay', TEXT.partyStay)}</span>
+          <span className={`${styles.summaryLabel} ${styles.summaryLabelLarge}`}>{line('Visitor_Title', TEXT.visitors)}</span>
           <span className={`${styles.summaryValue} ${long ? styles.summaryValueLong : ''}`}>
-            {visitors ? localizeInsaAiPick(visitors, lang) : '-'} / {stay ? localizeInsaAiPick(stay, lang) : '-'}
+            {visitors ? localizeInsaAiPick(visitors, lang) : '-'}
           </span>
         </div>
         <span className={styles.summaryRule} />
         <div className={styles.summaryCell}>
-          <span className={styles.summaryLabel}>{line('Transportation_Title', TEXT.transport)}</span>
+          <span className={styles.summaryLabel}>{line('Insa_Todo_result_Schedule', TEXT.schedule)}</span>
           <span className={`${styles.summaryValue} ${long ? styles.summaryValueLong : ''}`}>
-            {localizeInsaAiPick('도보', lang)}
+            {stay ? localizeInsaAiPick(stay, lang) : '-'}
           </span>
         </div>
       </div>
@@ -353,26 +420,31 @@ export function InsadongAiCourseResult({ controller }: Props): JSX.Element {
         </div>
       )}
 
-      <div className={styles.days}>
-        {Array.from({ length: dayCount }, (_, i) => i + 1).map((d) => (
-          <button
-            key={d}
-            type="button"
-            className={`${styles.day} ${day === d ? styles.dayOn : ''}`}
-            onClick={() => setDay(d)}
-          >
-            DAY {d}
-          </button>
-        ))}
-      </div>
+      <div className={styles.panel}>
+        <div className={styles.tabs} role="tablist">
+          {tabIds.map((id) => (
+            <button
+              key={id}
+              type="button"
+              role="tab"
+              aria-selected={tab === id}
+              className={`${styles.tab} ${tab === id ? styles.tabOn : ''}`}
+              onClick={() => setTab(id)}
+            >
+              {line(id === 'realtime' ? 'Insa_Todo_result_Realtime' : 'Insa_Todo_result_General', TEXT[id])}
+            </button>
+          ))}
+        </div>
 
-      <div ref={panelRef} className={styles.panel}>
+        <div ref={panelRef} className={styles.scroll}>
         <div className={styles.inner}>
-          {/* 7519:76488 — the course starts at this kiosk. */}
-          <div className={styles.origin}>{getKioskLocation(kioskId).name}</div>
+          {/* 7681:59356 — "출발 지점 > …": the course starts at this kiosk. */}
+          <div className={styles.origin}>
+            {line('Insa_Todo_result_Start', TEXT.start)} &gt; {getKioskLocation(kioskId).name}
+          </div>
 
           {stops.length === 0 ? (
-            <p className={styles.empty}>{line('Course_Empty', TEXT.empty)}</p>
+            <p className={styles.empty}>{line('NotAvailableTime', TEXT.notAvailable)}</p>
           ) : (
             <div className={styles.timeline}>
               <span className={styles.rail} />
@@ -400,7 +472,7 @@ export function InsadongAiCourseResult({ controller }: Props): JSX.Element {
                         <span className={styles.cardBody}>
                           <span className={styles.titleRow}>
                             <span className={`${styles.name} ${long ? styles.nameLong : ''}`}>
-                              {shop ? shopName(shop, lang) : stop.category}
+                              {shop ? shopName(shop, lang) : stop.name || stop.category}
                             </span>
                             <span className={styles.catTag}>
                               #{shop ? shopSecondCategory(shop, lang) || stop.category : stop.category}
@@ -442,7 +514,17 @@ export function InsadongAiCourseResult({ controller }: Props): JSX.Element {
             </div>
           )}
         </div>
+        </div>
       </div>
+
+      {thumb && (
+        <div className={styles.track} aria-hidden>
+          <span
+            className={styles.thumb}
+            style={{ top: `${thumb.top * 100}%`, height: `${thumb.size * 100}%` }}
+          />
+        </div>
+      )}
 
       {stops.length > 0 && (
         <>

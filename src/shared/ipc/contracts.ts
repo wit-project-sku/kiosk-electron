@@ -60,7 +60,7 @@ import type {
   JejuPickerPlan,
   JejuPickerQuery,
 } from '../types/jejuCourse';
-import type { InsaCourse, InsaCourseQuery } from '../types/insaCourse';
+import type { InsaCourseQuery, InsaCourseSet } from '../types/insaCourse';
 import type {
   EventDetail,
   EventRecommendation,
@@ -482,7 +482,7 @@ export interface IpcContract {
    */
   [IpcChannels.InsaCourseRecommend]: {
     request: InsaCourseQuery;
-    response: Result<InsaCourse>;
+    response: Result<InsaCourseSet>;
   };
 
   [IpcChannels.UpdateGetStatus]: {

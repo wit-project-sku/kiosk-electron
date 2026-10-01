@@ -405,7 +405,7 @@ const stripParenthetical = (label: string): string =>
      buttons with the camera between them. */
   useFitText(gridRef, styles.tileCaptionLong, longLang, 0.62,
     `${lang}|${tiles.map((x) => `${labelOf(x.screen, x.label)}/${subOf(x.screen, x.sub)}`).join('|')}`);
-  useFitText(quickRef, styles.quickTitleLong, longLang, 0.6,
+  useFitText(quickRef, styles.quickCopyLong, longLang, 0.6,
     `${lang}|${labelOf('ai_search', "'인사' 뭐하지")}|${labelOf('insarang', second.label)}|${labelOf('events', '인사동 이벤트')}`);
   useFitText(kdramaRef, styles.navLabelLong, longLang, 0.55, `${lang}|${kdramaLabel}`);
   useFitText(restroomRef, styles.navLabelLong, longLang, 0.55, `${lang}|${t('MainButton_WC', lang)}`);
@@ -483,11 +483,13 @@ const stripParenthetical = (label: string): string =>
             {QUICK_ART.ai && (
               <img className={styles.quickArt} src={QUICK_ART.ai} alt="" draggable={false} />
             )}
-            <span className={`${styles.quickTitle} ${longLang ? styles.quickTitleLong : ''}`}>
-              {stripParenthetical(labelOf('ai_search', "'인사' 뭐하지"))}
-            </span>
-            <span className={`${styles.quickSub} ${longLang ? styles.quickSubLong : ''}`}>
-              {subOf('ai_search', 'AI 검색하기')}
+            <span className={`${styles.quickCopy} ${longLang ? styles.quickCopyLong : ''}`}>
+              <span className={`${styles.quickTitle} ${longLang ? styles.quickTitleLong : ''}`}>
+                {stripParenthetical(labelOf('ai_search', "'인사' 뭐하지"))}
+              </span>
+              <span className={`${styles.quickSub} ${longLang ? styles.quickSubLong : ''}`}>
+                {subOf('ai_search', 'AI 검색하기')}
+              </span>
             </span>
           </button>
 
@@ -496,13 +498,15 @@ const stripParenthetical = (label: string): string =>
             {QUICK_ART.market && (
               <img className={styles.quickArt} src={QUICK_ART.market} alt="" draggable={false} />
             )}
-            <span className={`${styles.quickTitle} ${longLang ? styles.quickTitleLong : ''}`}>
-              {/* Read from the sheet's 인사랑 rows (MainButton_Insarang); the old 위드마켓 row
-                  MainButton_Goods is gone from Localization_Insa. */}
-              {labelOf('insarang', second.label)}
-            </span>
-            <span className={`${styles.quickSub} ${longLang ? styles.quickSubLong : ''}`}>
-              {subOf('insarang', second.sub)}
+            <span className={`${styles.quickCopy} ${longLang ? styles.quickCopyLong : ''}`}>
+              <span className={`${styles.quickTitle} ${longLang ? styles.quickTitleLong : ''}`}>
+                {/* Read from the sheet's 인사랑 rows (MainButton_Insarang); the old 위드마켓 row
+                    MainButton_Goods is gone from Localization_Insa. */}
+                {labelOf('insarang', second.label)}
+              </span>
+              <span className={`${styles.quickSub} ${longLang ? styles.quickSubLong : ''}`}>
+                {subOf('insarang', second.sub)}
+              </span>
             </span>
           </div>
 
@@ -514,11 +518,13 @@ const stripParenthetical = (label: string): string =>
             {QUICK_ART.events && (
               <img className={styles.quickArt} src={QUICK_ART.events} alt="" draggable={false} />
             )}
-            <span className={`${styles.quickTitle} ${longLang ? styles.quickTitleLong : ''}`}>
-              {stripParenthetical(labelOf('events', '인사동 이벤트'))}
-            </span>
-            <span className={`${styles.quickSub} ${longLang ? styles.quickSubLong : ''}`}>
-              {subOf('events', '인사동 행사')}
+            <span className={`${styles.quickCopy} ${longLang ? styles.quickCopyLong : ''}`}>
+              <span className={`${styles.quickTitle} ${longLang ? styles.quickTitleLong : ''}`}>
+                {stripParenthetical(labelOf('events', '인사동 이벤트'))}
+              </span>
+              <span className={`${styles.quickSub} ${longLang ? styles.quickSubLong : ''}`}>
+                {subOf('events', '인사동 행사')}
+              </span>
             </span>
           </button>
         </div>

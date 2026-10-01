@@ -372,8 +372,18 @@
   height: 177px;
 }
 
-.quickTitle {
+/* Title + sub-caption are ONE flowing column, not two boxes pinned to their own
+   tops: a title that wraps (any language but Korean) pushes its caption down
+   instead of being drawn through it. The gap is the Figma 29 between them
+   (title 45 tall, caption 38px below it). */
+.quickCopy {
   position: absolute;
+  display: flex;
+  flex-direction: column;
+  gap: 29px;
+}
+
+.quickTitle {
   font-size: 45px;
   font-weight: 700;
   line-height: 1;
@@ -382,7 +392,6 @@
 }
 
 .quickSub {
-  position: absolute;
   font-size: 38px;
   font-weight: 400;
   line-height: 1;
@@ -390,41 +399,32 @@
   word-break: keep-all;
 }
 
-.quickAi .quickTitle {
+/* Per-card Figma origin of the title; the caption sits a few px right of it. */
+.quickAi .quickCopy {
   left: 426px;
   top: 72px;
   width: 269px;
 }
 
 .quickAi .quickSub {
-  left: 436px;
-  top: 146px;
-  width: 204px;
+  margin-left: 10px;
 }
 
-.quickInsarang .quickTitle {
+.quickInsarang .quickCopy {
   left: 57px;
   top: 80.5px;
   /* The sheet's full "인사랑(준비중)" — 305 is all there is before the art at x362. */
   width: 300px;
 }
 
-.quickInsarang .quickSub {
-  left: 57px;
-  top: 154.5px;
-  width: 220.32px;
-}
-
-.quickEvents .quickTitle {
+.quickEvents .quickCopy {
   left: 40px;
   top: 108px;
   width: 290.52px;
 }
 
 .quickEvents .quickSub {
-  left: 50.8px;
-  top: 182px;
-  width: 220.32px;
+  margin-left: 10.8px;
 }
 
 /* 준비중 (인사랑) — full colour, simply inert. */
@@ -656,8 +656,32 @@
   line-height: 1.15;
 }
 
-/* Quick cards: the title/sub boxes are pinned to Figma widths that only fit
- * Korean, so give each pair room to the card edge and let them wrap + shrink. */
+/* Quick cards: the column is given the card's full height and centres its two
+ * lines, so a title that wraps to two or three lines and a caption that does the
+ * same share the 230px without touching. It is also the box useFitText measures
+ * (a title alone never "overflows" — it just grows), so one shrink factor
+ * applies to all three cards until the whole column fits. */
+.quickCopyLong {
+  justify-content: center;
+  gap: 18px;
+}
+
+/* Spelled with the card class so they outrank the per-card Korean offsets above
+ * (`.quickAi .quickCopy { top: 72px }` …) — a bare `.quickCopyLong` lost to them
+ * and left the column 48px too low, its caption cut off by the card edge. */
+.quickAi .quickCopyLong,
+.quickInsarang .quickCopyLong,
+.quickEvents .quickCopyLong {
+  top: 24px;
+  height: 230px;
+  width: 300px;
+}
+
+.quickAi .quickCopyLong .quickSub,
+.quickEvents .quickCopyLong .quickSub {
+  margin-left: 0;
+}
+
 .quickTitleLong {
   font-size: calc(45px * var(--fit, 1));
   line-height: 1.1;
@@ -666,18 +690,6 @@
 .quickSubLong {
   font-size: calc(38px * var(--fit, 1));
   line-height: 1.1;
-}
-
-.quickAi .quickTitleLong,
-.quickAi .quickSubLong {
-  width: 300px;
-}
-
-.quickInsarang .quickTitleLong,
-.quickInsarang .quickSubLong,
-.quickEvents .quickTitleLong,
-.quickEvents .quickSubLong {
-  width: 300px;
 }
 
 /* Bottom captions stay on one line (two would climb into the art above) and are

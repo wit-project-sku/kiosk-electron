@@ -1,9 +1,14 @@
 /**
  * 인사동 코스 추천 — `POST /api/insa/courses/recommend`.
  *
- * One call turns a set of 관심사 and a time slot into ONE walking route. There is
- * no per-tap plan and no multi-day schedule (that was 제주's picker), and no
- * party / transport: it is always on foot, from the kiosk's own position.
+ * One call turns a set of 관심사 and a time slot into walking routes — since v2
+ * TWO of them, a 실시간 코스 (scheduled from now, against opening hours) and a
+ * 일반 코스 (clock-free, the same whenever it is asked). There is no per-tap
+ * plan and no multi-day schedule (that was 제주's picker), and no party /
+ * transport: it is always on foot, from the kiosk's own position.
+ *
+ * Endpoint: `POST /api/insa/courses/recommend/v2` (v1, a single route, is still
+ * served for the on-site kiosks and answers the same request).
  *
  * Rules the API applies, so the screens never re-derive them:
  *  - `duration` is a slot, not minutes: `0-2`, `2-4`, `4-6`, `6+` hours. `6+` aims
@@ -57,6 +62,15 @@ export interface InsaCourseSpot {
    * which the screen must NOT show as a clock time.
    */
   hoursMethod: string;
+  /**
+   * 일반 코스 only: minutes since the start instead of a clock time. 0 when the
+   * API gave none (the 실시간 코스 carries `arriveAt` / `leaveAt`).
+   */
+  arriveElapsedMinutes: number;
+  leaveElapsedMinutes: number;
+  /** The API's own name for the stop (일반 코스 rows carry one); '' when absent. */
+  name: string;
+  reservationRequired: boolean;
 }
 
 export interface InsaCourse {
@@ -72,4 +86,23 @@ export interface InsaCourse {
   unmetInterests: string[];
   /** In visiting order. */
   spots: InsaCourseSpot[];
+  /**
+   * 실시간 코스 only. False when nothing is open for the asked time (night): the
+   * route is empty and `unavailableReason` says why — NOT an error.
+   */
+  available: boolean;
+  unavailableReason: string;
+  /**
+   * 일반 코스 only. True when it visits the same places in the same order as the
+   * 실시간 코스, so a screen that shows one of them can drop the other.
+   */
+  sameAsRealtime: boolean;
+}
+
+/** The v2 answer: both routes for one request. */
+export interface InsaCourseSet {
+  duration: InsaDuration;
+  numberOfPeople: number;
+  realtime: InsaCourse;
+  general: InsaCourse;
 }

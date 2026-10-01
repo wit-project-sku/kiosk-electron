@@ -76,8 +76,15 @@ export interface AiCourseSaveInput {
   totalMinutes?: number | null;
   travelMinutes?: number | null;
   difficulty?: number | null;
-  /** The kiosk's number (6 / 7 / 8) — the phone names DAY 1's start plate from it. */
+  /** The kiosk's number (6 / 7 / 8, or 1–3 on 인사동) — the phone names DAY 1's start plate from it. */
   kioskNum?: number;
+  /**
+   * 인사동 only (the phone reads them when `k` is 1–5): the walking distance in
+   * km → `km` in tenths, and the 체류 기간 slot (`0-2` · `2-4` · `4-6` · `6+`) → `s`,
+   * its lower bound in hours. The 제주 kiosks send neither.
+   */
+  distanceKm?: number | null;
+  stay?: string | null;
 }
 
 /** Same override as detailCardSave. Static `import.meta.env.VITE_*` so Vite inlines it. */
@@ -170,6 +177,11 @@ export function buildAiCourseSaveUrlForQr(
     if (typeof input.difficulty === 'number' && input.difficulty > 0) {
       q.set('g', String(Math.round(input.difficulty)));
     }
+    if (typeof input.distanceKm === 'number' && Number.isFinite(input.distanceKm) && input.distanceKm >= 0) {
+      q.set('km', String(Math.round(input.distanceKm * 10)));
+    }
+    const slot = Number.parseInt(input.stay ?? '', 10);
+    if (Number.isFinite(slot) && slot >= 0) q.set('s', String(slot));
 
     for (const d of days) {
       const encoded = encodeDay(d.stops, withTravel);

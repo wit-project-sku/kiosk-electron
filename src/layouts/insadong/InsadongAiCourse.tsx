@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import type { KioskController } from '@renderer/hooks/useKioskController';
-import type { InsaCourse, InsaDuration } from '@shared/types/insaCourse';
+import type { InsaCourseSet, InsaDuration } from '@shared/types/insaCourse';
 import type { Shop } from '@shared/types/shop';
 import { iconUrl } from '@renderer/assets/icons/insadong';
 import { useAiStore } from '@renderer/store/aiStore';
@@ -28,9 +28,9 @@ import styles from './InsadongAiCourse.module.css';
  * (JejuAiSearch), so 뒤로 from the builder returns to the cards without a
  * route change and the answers survive the trip.
  *
- * The course engine is 인사동's own: `POST /api/insa/courses/recommend` (see
+ * The course engine is 인사동's own: `POST /api/insa/courses/recommend/v2` (see
  * InsaCourseService). One call turns the picked 관심사 and a time slot
- * (`0-2` · `2-4` · `4-6` · `6+` hours) into ONE walking route from this kiosk;
+ * (`0-2` · `2-4` · `4-6` · `6+` hours) into a 실시간 and a 일반 walking route from this kiosk;
  * there is no per-tap plan, no multi-day schedule and no 이동수단; the party
  * size travels as `numberOfPeople`. 관심사 are the shop catalogue's
  * `secondCategoryKr` strings with their number prefix (`2-화랑`, `9-카페`) — the
@@ -160,14 +160,14 @@ const USED: Partial<Record<Lang, (t: string) => string>> = {
 
 /** The orange note over the builder — the slice of the day courses fit inside. */
 const HOURS_NOTE: Partial<Record<Lang, (from: string, to: string) => string>> = {
-  ko: (f, t) => `*“${f}”부터 ${t}까지 이용 가능한 코스를 추천해드립니다.`,
-  en: (f, t) => `*We recommend courses you can enjoy from “${f}” to ${t}.`,
-  ja: (f, t) => `*「${f}」から${t}まで利用できるコースをおすすめします。`,
-  zh: (f, t) => `*为您推荐“${f}”至${t}期间可游玩的路线。`,
-  vi: (f, t) => `*Chúng tôi gợi ý các lộ trình có thể đi từ “${f}” đến ${t}.`,
-  th: (f, t) => `*เราแนะนำเส้นทางที่เที่ยวได้ตั้งแต่ “${f}” ถึง ${t}`,
-  ru: (f, t) => `*Рекомендуем маршруты, доступные с «${f}» до ${t}.`,
-  id: (f, t) => `*Kami merekomendasikan rute yang bisa dinikmati dari “${f}” hingga ${t}.`,
+  ko: (f, t) => `*${f}부터 ${t}까지 이용 가능한 코스를 추천해드립니다.`,
+  en: (f, t) => `*We recommend courses you can enjoy from ${f} to ${t}.`,
+  ja: (f, t) => `*${f}から${t}まで利用できるコースをおすすめします。`,
+  zh: (f, t) => `*为您推荐${f}至${t}期间可游玩的路线。`,
+  vi: (f, t) => `*Chúng tôi gợi ý các lộ trình có thể đi từ ${f} đến ${t}.`,
+  th: (f, t) => `*เราแนะนำเส้นทางที่เที่ยวได้ตั้งแต่ ${f} ถึง ${t}`,
+  ru: (f, t) => `*Рекомендуем маршруты, доступные с ${f} до ${t}.`,
+  id: (f, t) => `*Kami merekomendasikan rute yang bisa dinikmati dari ${f} hingga ${t}.`,
 };
 
 /** 7519:74985 — where every course on this page starts, i.e. THIS kiosk. */
@@ -368,6 +368,10 @@ const JOY_BASES: { base: string; color: string }[] = [
   { base: '인사 뭐사지', color: '#c89b7b' },
 ];
 
+/** 7519:75221 · 75223 · 75227 · 75229 — the frame draws the drink tiles in lilac, apart from the food pink. */
+const DRINK_COLOR = '#a9a3d9';
+const DRINK_NAMES = new Set(['카페', '전통차', '막걸리', '전통주']);
+
 interface JoyTile {
   /** `N-name`, exactly as the API matches it. */
   code: string;
@@ -457,7 +461,7 @@ export function InsadongAiCourse({ controller }: Props): JSX.Element {
       const code = shop.secondCategoryKr?.trim();
       const rank = JOY_BASES.findIndex((b) => b.base === shop.baseCategoryKr);
       if (!code || rank < 0 || seen.has(code)) continue;
-      seen.set(code, { code, shop, color: JOY_BASES[rank]!.color, rank });
+      seen.set(code, { code, shop, color: DRINK_NAMES.has(stripPrefix(code)) ? DRINK_COLOR : JOY_BASES[rank]!.color, rank });
     }
     const num = (c: string): number => Number.parseInt(c, 10) || 0;
     return [...seen.values()].sort((x, y) => x.rank - y.rank || num(x.code) - num(y.code));
@@ -475,7 +479,7 @@ export function InsadongAiCourse({ controller }: Props): JSX.Element {
    * far, asked a moment after the last one. A failure or a stale answer simply
    * leaves the total blank — the CTA still works.
    */
-  const [preview, setPreview] = useState<{ key: string; course: InsaCourse } | null>(null);
+  const [preview, setPreview] = useState<{ key: string; course: InsaCourseSet } | null>(null);
   const previewSeq = useRef(0);
   const previewKey = `${duration}|${party}|${picks.join(',')}`;
   useEffect(() => {
@@ -544,7 +548,14 @@ export function InsadongAiCourse({ controller }: Props): JSX.Element {
     return go(codes);
   };
 
-  const total = preview && preview.key === previewKey ? preview.course.totalMinutes : null;
+  /* The gauge follows the 실시간 코스 (what the result opens on); at night, when
+     nothing is open, it reports the 일반 코스 so the total is still a real number. */
+  const previewRoute = preview && preview.key === previewKey
+    ? (preview.course.realtime.available && preview.course.realtime.spots.length > 0
+        ? preview.course.realtime
+        : preview.course.general)
+    : null;
+  const total = previewRoute ? previewRoute.totalMinutes : null;
 
   useFitText(landingRef, styles.themeTitleLong, long, 0.62, `${lang}|theme`);
   useFitText(partyRef, styles.pillLong, long, 0.55, `${lang}|party`);
@@ -729,11 +740,7 @@ export function InsadongAiCourse({ controller }: Props): JSX.Element {
                   onClick={() => setPicks([])}
                   aria-label={pickLang(RESET_LABEL, lang)}
                 >
-                  <svg viewBox="0 0 96 96" fill="none" stroke="currentColor" strokeWidth="8" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M84 16v24H60" />
-                    <path d="M12 80V56h24" />
-                    <path d="M22 40a28 28 0 0 1 46-10l16 10M74 56a28 28 0 0 1-46 10L12 56" />
-                  </svg>
+                  <img src={iconUrl('course-refresh')} alt="" draggable={false} />
                 </button>
                 {total != null && (
                   <span className={styles.joyTotal}>{(USED[lang] ?? USED.ko)!(minutesLabel(total, lang))}</span>

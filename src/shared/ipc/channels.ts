@@ -156,7 +156,7 @@ export const IpcChannels = {
   JejuCourseRecommend: 'jejuCourse:recommend',
   // 제주 커스텀 코스 picker (live POST per 즐길 거리 tap; 제주 kiosks only)
   JejuCoursePicker: 'jejuCourse:picker',
-  // 인사동 AI 코스 추천 (live POST /api/insa/courses/recommend)
+  // 인사동 AI 코스 추천 (live POST /api/insa/courses/recommend/v2)
   InsaCourseRecommend: 'insaCourse:recommend',
 
   // Auto-update (electron-updater). Status is read-only; check/install are

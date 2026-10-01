@@ -1,4 +1,5 @@
-/* AI 맞춤 추천 코스 — Figma 7519:75267 (7519:76503 is a duplicate of it).
+/* AI 맞춤 추천 코스 — Figma 7681:59122 (was 7519:75267; same cards and timeline,
+   new 실시간/일반 코스 tabs in place of DAY, new summary cells).
    Inside KioskArtboard 1 CSS px === 1 Figma px (2160×3840). */
 
 .bg {
@@ -10,7 +11,7 @@
   pointer-events: none;
 }
 
-/* 7519:76501 — the course's own hashtags, above the summary bar. */
+/* 7681:59368 — the course's own hashtags, above the summary bar. Bold primary. */
 .tags {
   position: absolute;
   left: 838px;
@@ -20,13 +21,16 @@
   margin: 0;
   font-family: var(--kiosk-font, sans-serif);
   font-size: 45px;
-  font-weight: 500;
-  line-height: 1;
-  color: #999999;
+  font-weight: 700;
+  line-height: 1.3;
+  color: var(--kiosk-primary);
+  text-align: center;
   white-space: nowrap;
 }
 
-/* 7519:76256 — the save-this-course QR. */
+/* 7681:59133 — the save-this-course QR: a 174 white plate, r20, with a 5px
+   primary border inside its edge, and the code inset 19.33 from the outside
+   (5 border + 14.33 white), which is also its quiet zone. */
 .qr {
   position: absolute;
   left: 1814px;
@@ -34,9 +38,10 @@
   width: 174px;
   height: 174px;
   background: #ffffff;
-  padding: 6px;
+  padding: 14.33px;
   box-sizing: border-box;
-  border-radius: 12px;
+  border: 5px solid var(--kiosk-primary);
+  border-radius: 20px;
 }
 
 /* ── Summary bar (7519:76249) — 1820×150, r75, primary ──────────────────── */
@@ -70,6 +75,11 @@
   font-size: 25px;
   font-weight: 700;
   line-height: 1.3;
+}
+
+/* 7681:59367 — 방문 인원 is the one label drawn at 28. */
+.summaryLabelLarge {
+  font-size: 28px;
 }
 
 .summaryValue {
@@ -125,88 +135,99 @@
   word-break: keep-all;
 }
 
-/* ── DAY tabs (7519:76276) — h120, top corners 40 ───────────────────────── */
-.days {
-  position: absolute;
-  left: 170px;
-  top: calc(1139px + var(--header-push, 0px) + var(--insa-header-shift, 0px));
-  width: 1820px;
-  height: 120px;
-  display: flex;
-  align-items: flex-end;
-  border-radius: 40px 40px 0 0;
-}
-
-.day {
-  flex: 1 1 0;
-  min-width: 0;
-  height: 119px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border: none;
-  background: none;
-  cursor: pointer;
-  font-family: var(--kiosk-font, sans-serif);
-  font-size: 50px;
-  font-weight: 700;
-  line-height: 1;
-  color: #999999;
-  white-space: nowrap;
-  padding: 0;
-}
-
-/* The active tab is the panel's own white, so the two read as one sheet. */
-.dayOn {
-  background: #ffffff;
-  border-radius: 40px 40px 0 0;
-  color: var(--kiosk-primary);
-}
-
-/* ── Itinerary panel (7519:76283) — 1820×2581 under the tabs ────────────── */
+/* ── Itinerary panel (7681:59153) — 1820 wide from y1130, white, top r40 ── */
 .panel {
   position: absolute;
   left: 170px;
-  top: calc(1259px + var(--header-push, 0px) + var(--insa-header-shift, 0px));
+  top: calc(1130px + var(--header-push, 0px) + var(--insa-header-shift, 0px));
   width: 1820px;
-  /* Runs to the foot of the artboard. It WAS `height: 2581px`, which is
-     1259 + 2581 = 3840 only while the page sits at its resting top — under ♿
-     the 145.759 mode-bar shift carried the panel's bottom 146px off the
-     screen, so the last of the course list could never be scrolled into view.
-     `bottom` re-derives it from wherever the top actually lands. */
+  /* Runs to the foot of the artboard from wherever the top lands, so the ♿
+     mode-bar shift cannot carry the end of the list off the screen. */
   bottom: 0;
-  box-sizing: border-box;
-  border-radius: 0 0 40px 40px;
+  display: flex;
+  flex-direction: column;
+  border-radius: 40px 40px 0 0;
   background: #ffffff;
+  overflow: hidden;
+}
+
+/* 7764:9875 / 7764:9876 — the course tabs, 134 tall. The strip is main 02
+   (#FFEEE6) and the chosen tab is the panel's own white with its own top
+   corners, so it reads as one sheet with the list under it. */
+.tabs {
+  flex: none;
+  display: flex;
+  height: 134px;
+  border-radius: 40px 40px 0 0;
+  background: #ffeee6;
+}
+
+.tab {
+  flex: 1 1 0;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 20px;
+  border: none;
+  border-radius: 40px 40px 0 0;
+  background: none;
+  cursor: pointer;
+  font-family: var(--kiosk-font, sans-serif);
+  font-size: 45px;
+  font-weight: 700;
+  line-height: 1;
+  color: var(--kiosk-primary);
+  white-space: nowrap;
+}
+
+.tabOn {
+  background: #ffffff;
+}
+
+/* The list scrolls under the fixed tabs. */
+.scroll {
+  flex: 1 1 auto;
+  min-height: 0;
   overflow-y: auto;
   overflow-x: hidden;
-  scrollbar-width: thin;
-  scrollbar-color: var(--kiosk-primary) transparent;
+  scrollbar-width: none;
 }
 
-.panel::-webkit-scrollbar {
-  width: 28px;
+.scroll::-webkit-scrollbar {
+  display: none;
 }
 
-.panel::-webkit-scrollbar-thumb {
+/* 7681:59372 — the position marker on the artboard's right edge: a 34px
+   primary pill, beside the ▲/▼ rather than inside the panel. The track is the
+   list's own height (under the tabs), the thumb a fraction of it. */
+.track {
+  position: absolute;
+  left: 2128px;
+  top: calc(1264px + var(--header-push, 0px) + var(--insa-header-shift, 0px));
+  bottom: 0;
+  width: 32px;
+  pointer-events: none;
+}
+
+.thumb {
+  position: absolute;
+  left: 0;
+  width: 100%;
+  border-radius: 17px;
   background: var(--kiosk-primary);
-  border-radius: 14px;
-}
-
-.panel::-webkit-scrollbar-track {
-  background: transparent;
 }
 
 /* Everything inside is positioned against this, so the rail and the cards
-   scroll together. 94 = the 1353 origin chip minus the panel's own 1259. */
+   scroll together. 42 = the origin's panel-y 176 minus the 134 of tabs. */
 .inner {
   position: relative;
   width: 1820px;
-  padding: 94px 0 120px;
+  padding: 42px 0 120px;
   box-sizing: border-box;
 }
 
-/* 7519:76484 — the start point, a 1714 white plate with the card shadow. */
+/* 7681:59352 — the start point, a 1714 white plate with the card shadow. */
 .origin {
   position: relative;
   left: 54px;
@@ -235,7 +256,8 @@
    50px between them is where the travel pill lands. */
 .timeline {
   position: relative;
-  margin-top: 152px;
+  /* 7681:59157 — the first card at panel-y 406: 58 under the origin's foot (348). */
+  margin-top: 58px;
 }
 
 .rail {
@@ -467,13 +489,17 @@
   white-space: nowrap;
 }
 
-/* Nothing scheduled for the chosen day. */
+/* Nothing to show for the picked categories / tab — the sheet's NotAvailableTime,
+   a full sentence, so it wraps inside the panel rather than running off it. */
 .empty {
   margin: 240px 0 0;
+  padding: 0 160px;
   font-size: 60px;
   font-weight: 500;
+  line-height: 1.35;
   color: #999999;
   text-align: center;
+  word-break: keep-all;
 }
 
 /* ── Right-hand scroll (7574:70034 / 70037) — same tops as 검색 ─────────── */

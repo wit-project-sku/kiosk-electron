@@ -1,0 +1,101 @@
+/*
+ * 인사동 photo-ready popup — Figma 7768:10445. Artboard px on the 2160×3840 board.
+ *
+ *   scrim   7768:10629  2160×3840, black at 30%
+ *   card    7768:10459  1820×805, white, r40, centred (x170 y1571)
+ *   text    7768:10632  Pretendard Regular 60, black, centred on y1819 (card +248)
+ *   buttons 7768:10633  two 650×150, r42.9, x358 / x1151 (card +188 / +981), y2107 (card +536)
+ */
+
+.scrim {
+  position: absolute;
+  inset: 0;
+  z-index: 60;
+  background: rgba(0, 0, 0, 0.3);
+  animation: fade 200ms ease;
+}
+
+@keyframes fade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.card {
+  position: absolute;
+  left: 170px;
+  top: 1571px;
+  width: 1820px;
+  height: 805px;
+  box-sizing: border-box;
+  border-radius: 40px;
+  background: #ffffff;
+  font-family: var(--kiosk-font, sans-serif);
+}
+
+/* The sentence sits in the 556px above the buttons, so its centre is the
+   frame's y1819 (card +278) and a longer translation wraps around that line
+   rather than running into the buttons. */
+.message {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 556px;
+  margin: 0;
+  padding: 0 120px;
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 60px;
+  font-weight: 400;
+  line-height: 1.3;
+  color: #000000;
+  text-align: center;
+  word-break: keep-all;
+}
+
+.actions {
+  position: absolute;
+  left: 188px;
+  top: 536px;
+  width: 1443px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.btn {
+  flex: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 650px;
+  height: 150px;
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0 30px;
+  border: none;
+  border-radius: 42.9px;
+  box-shadow: 0 21.45px 42.9px rgba(143, 147, 157, 0.1);
+  font-family: inherit;
+  font-size: 58px;
+  font-weight: 700;
+  line-height: 1.1;
+  color: #ffffff;
+  text-align: center;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.save {
+  background: var(--kiosk-primary, #fe6c50);
+}
+
+.retake {
+  background: #999999;
+}
