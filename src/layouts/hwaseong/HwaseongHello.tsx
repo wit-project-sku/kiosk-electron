@@ -1,10 +1,11 @@
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { QRCodeSVG } from 'qrcode.react';
 import type { KioskController } from '@renderer/hooks/useKioskController';
 import { useKioskStore } from '@renderer/store/kioskStore';
 import { hwaseongIconUrl } from '@renderer/assets/icons/hwaseong';
 import { trackEvent } from '@renderer/lib/analytics';
 import { useLang } from '@renderer/lib/i18n';
+import { useFitText } from '@layouts/components/fitText';
 import { t } from '@renderer/lib/loc';
 import { HwaseongHeader } from './HwaseongHeader';
 import { HwaseongBanner } from './HwaseongBanner';
@@ -61,6 +62,11 @@ const stripArrow = (s: string): string => s.replace(/^\s*>\s*/, '');
 
 export function HwaseongHello({ controller }: Props): JSX.Element {
   const lang = useLang();
+  /* Korean is the shortest copy this screen carries, and the tabs and profile
+     rows are both sized for it. See "Other languages" in the CSS. */
+  const wide = lang !== 'ko';
+  const tabsRef = useRef<HTMLDivElement>(null);
+  const cardRef = useRef<HTMLDivElement>(null);
   const L = (key: string): string => t(key, lang);
   const [tab, setTab] = useState<TabKey>('intro');
 
@@ -68,6 +74,11 @@ export function HwaseongHello({ controller }: Props): JSX.Element {
     trackEvent({ name: 'button_clicked', payload: { screen: 'hello', tab: key, label, kiosk: 'W005' } });
     setTab(key);
   }
+
+  useFitText(tabsRef, styles.tab, wide, 0.72, TABS.map((tb) => L(tb.labelKey)).join('|'));
+  /* 소개 and 스트레칭 are fixed-height cards the Korean copy already fills; the
+     other languages overrun them. Height only — see "the card itself" in the CSS. */
+  useFitText(cardRef, styles.card, wide, 0.6, `${lang}|${tab}`, 'height');
 
   return (
     <div className={styles.root}>
@@ -80,14 +91,14 @@ export function HwaseongHello({ controller }: Props): JSX.Element {
 
       <div className={styles.results}>
         {/* Tabs */}
-        <div className={styles.tabs}>
+        <div ref={tabsRef} className={styles.tabs}>
           {TABS.map((tb) => {
             const label = L(tb.labelKey);
             return (
               <button
                 key={tb.key}
                 type="button"
-                className={`${styles.tab} ${tb.key === tab ? styles.tabSelected : ''}`}
+                className={`${styles.tab} ${wide ? styles.tabLong : ''} ${tb.key === tab ? styles.tabSelected : ''}`}
                 onClick={() => onTab(tb.key, label)}
               >
                 {label}
@@ -98,9 +109,10 @@ export function HwaseongHello({ controller }: Props): JSX.Element {
 
         {/* Card — per-tab sizing (Figma) */}
         <div
+          ref={cardRef}
           className={`${styles.card} ${
             tab === 'intro' ? styles.cardIntro : tab === 'hobby' ? styles.cardHobby : styles.cardStretch
-          }`}
+          } ${wide ? styles.cardLong : ''}`}
         >
           {/* ── Tab 1: 휴' 소개 ── */}
           {tab === 'intro' && (

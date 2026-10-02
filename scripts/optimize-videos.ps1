@@ -33,5 +33,10 @@ if (-not $exe) {
 }
 
 $env:ELECTRON_RUN_AS_NODE = '1'
-& $exe.FullName (Join-Path $PSScriptRoot 'reencode-videos.mjs') $VideosDir
+# Piped through Out-Host on purpose: the app exe is a GUI-subsystem binary, so
+# called bare PowerShell neither waits for it nor shows its output — the window
+# sat blank while the re-encode ran invisibly in the background. A pipe makes
+# PowerShell wait and stream every progress line. (No 2>&1: under 'Stop',
+# Windows PowerShell 5.1 turns the first stderr line into a terminating error.)
+& $exe.FullName (Join-Path $PSScriptRoot 'reencode-videos.mjs') $VideosDir | Out-Host
 exit $LASTEXITCODE

@@ -11,7 +11,7 @@
 /* Body = the area between the 700px header and the 573px banner. */
 .body {
   position: absolute;
-  top: 699px;
+  top: calc(699px + var(--header-push, 0px));
   left: 170px;
   width: 1820px;
   bottom: 573px;

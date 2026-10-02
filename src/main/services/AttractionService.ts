@@ -17,18 +17,10 @@ const DEFAULT_API_BASE = 'https://api-v3.witteria.com';
  *   JEJU_ATTRACTIONS_API_URL — full endpoint override (wins if set)
  *   WITTERIA_API_BASE        — shared API base, default https://api-v3.witteria.com
  *
- * ── On `kioskId`, and why this one is NOT the shop id ─────────────────
- * 제주 is the kiosk where the two ids diverge: its shops live at 7 while its
- * banners/backgrounds live at 6 (see ShopService.kioskNum). That trap does not
- * apply here — VERIFIED against stage on 2026-08-14, `?kioskId=6` and
- * `?kioskId=7` return the identical 101 rows, i.e. the parameter is accepted and
- * ignored server-side, the same way the outfit endpoint ignores `categoryName`.
- * So this sends the ordinary `kioskNum()` (W006 → 6) rather than reaching for
- * the shop-only override: it is the convention for every non-shop endpoint, and
- * nothing is gained by making an exception the server does not act on.
- *
- * If the server ever DOES start scoping this per kiosk and 제주's attractions
- * turn up empty, that is the first thing to check.
+ * ── On `region` ───────────────────────────────────────────────────────
+ * v2 is keyed by content branch (`?region=JEJU_AIRPORT`) instead of the v1
+ * `?kioskId=` device number. The catalogue is 제주's, so every 제주 venue asks
+ * with its own region and a non-제주 kiosk never reaches this service.
  */
 export class AttractionService {
   constructor(
@@ -39,7 +31,7 @@ export class AttractionService {
   private baseUrl(): string {
     if (process.env['JEJU_ATTRACTIONS_API_URL']) return process.env['JEJU_ATTRACTIONS_API_URL'];
     const base = (process.env['WITTERIA_API_BASE'] || DEFAULT_API_BASE).replace(/\/+$/, '');
-    return `${base}/api/jeju/attractions`;
+    return `${base}/api/jeju/attractions/v2`;
   }
 
   /** Cached attractions (from the last successful refresh). Empty until first sync. */
@@ -77,8 +69,10 @@ export class AttractionService {
       log.warn('Ignoring non-초성 initial filter', { initial });
       return null;
     }
+    const region = this.kiosk.region();
+    if (!region) return null;
     const url =
-      `${this.baseUrl()}?kioskId=${this.kiosk.kioskNum()}` +
+      `${this.baseUrl()}?region=${region}` +
       `&initial=${encodeURIComponent(initial)}`;
     try {
       const res = await fetch(url);
@@ -100,7 +94,9 @@ export class AttractionService {
 
   /** Pull the catalogue and cache it; falls back to the cache on any failure. */
   async refresh(): Promise<number> {
-    const url = `${this.baseUrl()}?kioskId=${this.kiosk.kioskNum()}`;
+    const region = this.kiosk.region();
+    if (!region) return this.list().length;
+    const url = `${this.baseUrl()}?region=${region}`;
     try {
       const res = await fetch(url);
       if (!res.ok) throw new Error(`HTTP ${res.status}`);

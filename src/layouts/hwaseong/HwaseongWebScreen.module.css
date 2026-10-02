@@ -29,7 +29,7 @@
 /* Body: 1820 × 2250, centred horizontally, just below the header (top 699). */
 .body {
   position: absolute;
-  top: 699px;
+  top: calc(699px + var(--header-push, 0px));
   left: 50%;
   transform: translateX(-50%);
   width: 1820px;

@@ -38,7 +38,7 @@ import { JejuFlightBoard } from './JejuFlightBoard';
 import { JejuSailingBoard } from './JejuSailingBoard';
 import { JejuWeatherPanel } from './JejuWeatherPanel';
 import { modeBarVars } from './lowReach';
-import { useFitText } from './fitText';
+import { useFitText } from '@layouts/components/fitText';
 import { FloatingKeyboard } from '../insadong/keyboard/FloatingKeyboard';
 import { HangulComposer } from '../insadong/keyboard/hangul';
 import type { KeyAction } from '../insadong/keyboard/VirtualKeyboard';

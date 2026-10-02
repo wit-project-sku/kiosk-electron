@@ -1,4 +1,16 @@
-/* 환율 — exact Figma px (artboard 2160×3840). */
+/*
+ * 환율 — exact Figma px (artboard 2160×3840), frames 7553:50260 (실시간 환율)
+ * and 7553:50518 (환율계산기).
+ *
+ * The two frames put every box on the same coordinates the 제주 환율 page uses,
+ * so this file mirrors JejuExchange.module.css one-for-one and only the palette
+ * differs: the 기준 환율 pill is #FFE6E6 ([인사동] main 02) instead of #FFEAC7,
+ * and every accent resolves through --kiosk-primary (#FE6C50).
+ *
+ * Every `top` that belongs to page content is offset by --header-push: a
+ * description that wraps past one line grows the header and pushes the page
+ * down instead of being drawn over (see components/headerPush).
+ */
 .bg {
   position: absolute;
   inset: 0;
@@ -8,103 +20,545 @@
   pointer-events: none;
 }
 
+/* ── Tabs (7553:50570) ────────────────────────────────────────────────────
+ * A 1360-wide strip at x400 holding two 580×170 pills — 580 + 200 + 580. */
+.tabs {
+  position: absolute;
+  left: 400px;
+  top: calc(700px + var(--header-push, 0px) + var(--insa-exch-shift, 0px));
+  width: 1360px;
+  height: 170px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.tab {
+  flex: none;
+  width: 580px;
+  height: 170px;
+  padding: 0;
+  border: none;
+  border-radius: 42.9px;
+  background: #ffffff;
+  cursor: pointer;
+  font-family: var(--kiosk-font, sans-serif);
+  font-size: 50px;
+  font-weight: 500;
+  line-height: 1;
+  color: #999999;
+  white-space: nowrap;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.tabOn {
+  background: var(--kiosk-primary, #fe6c50);
+  color: #ffffff;
+}
+
+/* ══ 실시간 환율 ═════════════════════════════════════════════════════════ */
+
+/* 7553:50514 — the snapshot's age, right-aligned above the list. */
+.liveStamp {
+  position: absolute;
+  right: 170px;
+  top: calc(900px + var(--header-push, 0px) + var(--insa-exch-shift, 0px));
+  min-width: 369px;
+  margin: 0;
+  font-family: var(--kiosk-font, sans-serif);
+  font-size: 40px;
+  font-weight: 400;
+  line-height: 1;
+  color: #999999;
+  text-align: right;
+  white-space: nowrap;
+}
+
 .results {
   position: absolute;
-  top: 699px;
+  top: calc(970px + var(--header-push, 0px) + var(--insa-exch-shift, 0px));
   left: 0;
   right: 0;
   bottom: 573px;
-  box-sizing: border-box;
-  display: flex;
-  flex-direction: column;
-  gap: 100px;
   overflow-y: auto;
   overflow-x: hidden;
-  padding: 0 170px 80px;
 }
 
 .results::-webkit-scrollbar {
-  width: 34px;
+  width: 28px;
 }
 .results::-webkit-scrollbar-thumb {
-  background: var(--kiosk-primary);
-  border-radius: 21.45px;
+  background: var(--kiosk-primary, #fe6c50);
+  border-radius: 14px;
 }
 .results::-webkit-scrollbar-track {
   background: transparent;
 }
 
-/* Rate list — items centred, 40px apart (Figma 4167:99955). */
+/* Rate list — 210 rows on a 250 pitch (7553:50292 and its siblings). */
 .list {
-  flex: none;
   display: flex;
   flex-direction: column;
-  align-items: center;
-  gap: 40px;
-  width: 100%;
+  gap: 40px; /* 250 pitch − 210 row */
+  padding: 0 170px 60px;
 }
 
-/* Currency pill row (Figma 5287:63634): w1820 px65 py40, border 5px #d9d9d9, r214.499. */
 .row {
-  flex: none;
+  flex: 0 0 210px;
+  height: 210px;
   box-sizing: border-box;
+  /* 30 top and bottom is what centres the 150 flag in a 210 row. */
+  padding: 30px 65px;
+  border: none;
+  border-radius: 214.499px;
+  background: #ffffff;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  width: 100%;
-  padding: 40px 65px;
-  background: #ffffff;
-  border: 5px solid #d9d9d9;
-  border-radius: 214.499px;
-  overflow: hidden;
   font-family: var(--kiosk-font, sans-serif);
 }
 
 .left {
+  flex: 0 0 560px;
   display: flex;
   align-items: center;
   gap: 42.9px;
-  width: 560px;
 }
 
-/* Figma: a uniform circular flag (the source SVGs are rectangular, so cover-crop
-   to a circle keeps every currency the same size/shape regardless of aspect). */
+/* The list flag is 150 where the calculator's is 170; .ccyFlag carries the
+   shared circle-crop and this narrows it. */
 .flag {
-  width: 170px;
-  height: 170px;
-  flex: none;
-  border-radius: 50%;
-  object-fit: cover;
-  background: #ffffff;
-  border: 2px solid #e8e8e8;
+  width: 150px;
+  height: 150px;
 }
 
 .label {
   font-weight: 500;
   font-size: 60px;
-  line-height: normal;
+  line-height: 1;
   color: #333333;
-  text-align: center;
   white-space: nowrap;
 }
 
 .rate {
-  flex: none;
   width: 354px;
-  height: 82px;
-  display: flex;
-  align-items: center;
-  justify-content: flex-end;
   font-weight: 500;
   font-size: 60px;
-  line-height: normal;
+  line-height: 1;
   color: #000000;
+  text-align: right;
   white-space: nowrap;
 }
 
+/* ── Other languages ──────────────────────────────────────────────────────
+ * Reached only through a class the TSX adds when lang !== 'ko' — the Korean
+ * screen is untouched.
+ *
+ * The rate cell is a fixed 354px box holding the number plus the won suffix,
+ * which is one glyph in Korean ("1,320.50원") and a word in every other
+ * language ("1,320.50 KRW", "1,320.50 вон"). Those run past the 354px and,
+ * since the cell is right-aligned inside it, the overflow went LEFT — straight
+ * across the currency name beside it.
+ *
+ * The cell sizes to its content instead, with 354 as its minimum. The row is
+ * `space-between` and only about half full, so the extra width comes out of the
+ * empty middle, not out of the currency name. */
+.rateLong {
+  width: auto;
+  min-width: 354px;
+}
+
+.empty {
+  margin: 0;
+  padding: 200px 170px 0;
+  font-family: var(--kiosk-font, sans-serif);
+  font-size: 60px;
+  font-weight: 500;
+  line-height: 1.5;
+  color: #999999;
+  text-align: center;
+  white-space: pre-line;
+}
+
+/* ══ 환율계산기 ══════════════════════════════════════════════════════════ */
+
+/* 7553:50566 — 794×283 r45 on [인사동] main 02, both lines in main01. */
+.basePill {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  top: calc(985px + var(--header-push, 0px) + var(--insa-exch-shift, 0px));
+  min-width: 794px;
+  height: 283px;
+  box-sizing: border-box;
+  padding: 33px 60px 0;
+  border: none;
+  border-radius: 45px;
+  background: #ffe6e6;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  font-family: var(--kiosk-font, sans-serif);
+  color: var(--kiosk-primary, #fe6c50);
+  white-space: nowrap;
+}
+
+.basePillLabel {
+  font-size: 50px;
+  font-weight: 600;
+  line-height: 90px;
+}
+
+.basePillRate {
+  font-size: 60px;
+  font-weight: 700;
+  line-height: 90px;
+}
+
+/* 7553:50569 — drawn over the pill's lower band, not inside its flex column. */
+.baseStamp {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: calc(1204px + var(--header-push, 0px) + var(--insa-exch-shift, 0px));
+  margin: 0;
+  font-family: var(--kiosk-font, sans-serif);
+  font-size: 40px;
+  font-weight: 400;
+  line-height: 1;
+  color: #999999;
+  text-align: center;
+}
+
+.fieldLabel {
+  position: absolute;
+  left: 280px;
+  width: 512px;
+  margin: 0;
+  font-family: var(--kiosk-font, sans-serif);
+  font-size: 60px;
+  font-weight: 500;
+  line-height: 1;
+  color: #000000;
+  white-space: normal;
+  word-break: keep-all;
+  overflow-wrap: anywhere;
+}
+
+.labelAmount {
+  top: calc(1244px + var(--header-push, 0px) + var(--insa-exch-shift, 0px));
+}
+.labelResult {
+  top: calc(1855px + var(--header-push, 0px) + var(--insa-exch-shift, 0px));
+}
+
+.field {
+  position: absolute;
+  left: 172px;
+  width: 1820px;
+  height: 270px;
+  padding: 0;
+  border: none;
+  border-radius: 135px;
+  background: #ffffff;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.fieldAmount {
+  top: calc(1381px + var(--header-push, 0px) + var(--insa-exch-shift, 0px));
+}
+.fieldResult {
+  top: calc(1997px + var(--header-push, 0px) + var(--insa-exch-shift, 0px));
+  cursor: default;
+}
+
+.value {
+  position: absolute;
+  left: 307px;
+  width: 1050px;
+  margin: 0;
+  font-family: var(--kiosk-font, sans-serif);
+  font-size: 90px;
+  font-weight: 500;
+  line-height: 1;
+  color: #000000;
+  text-align: left;
+  transform: translateY(-50%);
+  white-space: normal;
+  word-break: keep-all;
+  overflow-wrap: anywhere;
+  pointer-events: none;
+}
+
+.valueAmount {
+  top: calc(1516px + var(--header-push, 0px) + var(--insa-exch-shift, 0px)); /* field centre */
+}
+.valueResult {
+  top: calc(2132px + var(--header-push, 0px) + var(--insa-exch-shift, 0px)); /* field centre */
+}
+
+.placeholder {
+  font-size: 60px;
+  line-height: 90px;
+  color: #999999;
+}
+
+.caretBar {
+  display: inline-block;
+  width: 6px;
+  height: 90px;
+  margin-left: 10px;
+  /* `top`, not a -12px baseline nudge. The bar is an inline-block exactly as
+     tall as the line box, so aligning it to the box's top fills that box
+     without extending it; dangling it below the baseline pushes the line box
+     ~8px taller, nudging the number down as the keypad opens and back up as it
+     closes. Same 90px bar, no jump. */
+  vertical-align: top;
+  background: var(--kiosk-primary, #fe6c50);
+  animation: blink 1s steps(1, end) infinite;
+}
+
+@keyframes blink {
+  50% {
+    opacity: 0;
+  }
+}
+
+.ccyBtn {
+  position: absolute;
+  left: 1423px;
+  height: 170px;
+  padding: 0;
+  border: none;
+  background: none;
+  display: flex;
+  align-items: center;
+  gap: 42.9px;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.ccyAmount {
+  top: calc(1431px + var(--header-push, 0px) + var(--insa-exch-shift, 0px));
+}
+.ccyResult {
+  top: calc(2047px + var(--header-push, 0px) + var(--insa-exch-shift, 0px));
+}
+
+/* A uniform circular flag: the source SVGs are rectangular, so a cover-crop to
+   a circle keeps every currency the same size and shape regardless of aspect. */
+.ccyFlag {
+  width: 170px;
+  height: 170px;
+  border-radius: 50%;
+  object-fit: cover;
+  flex: 0 0 auto;
+}
+
+.ccyCode {
+  font-family: var(--kiosk-font, sans-serif);
+  font-size: 60px;
+  font-weight: 500;
+  line-height: 1;
+  color: #333333;
+  white-space: nowrap;
+}
+
+.caret {
+  position: absolute;
+  left: 1812px;
+  width: 57px;
+  margin: 0;
+  font-size: 68px;
+  font-weight: 400;
+  line-height: 1;
+  color: var(--kiosk-primary, #fe6c50);
+  pointer-events: none;
+}
+
+.caretAmount {
+  top: calc(1475px + var(--header-push, 0px) + var(--insa-exch-shift, 0px));
+}
+.caretResult {
+  top: calc(2091px + var(--header-push, 0px) + var(--insa-exch-shift, 0px));
+}
+
+/* 7553:50530 — the orange ⇅ disc between the two fields. */
+.swap {
+  position: absolute;
+  left: 1028px;
+  top: calc(1743px + var(--header-push, 0px) + var(--insa-exch-shift, 0px));
+  width: 162px;
+  height: 162px;
+  padding: 0;
+  border: none;
+  background: none;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.swapImg {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  pointer-events: none;
+}
+
+/* ── Overlays ─────────────────────────────────────────────────────────────
+ * The keypad and the two dropdowns are mutually exclusive; .backdrop sits
+ * under them and over everything else so the fields can't be tapped through. */
+.backdrop {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  padding: 0;
+  border: none;
+  background: none;
+  cursor: default;
+}
+
+.dropdown {
+  position: absolute;
+  left: 1327px;
+  width: 680px;
+  height: 1700px;
+  box-sizing: border-box;
+  /* 74/92 in Figma, less the 5px border — under border-box the border and the
+     padding both push the content in, so the raw values land the first row 5px
+     low and 5px right of the button it replaces. */
+  padding: 69px 0 52px 87px;
+  border: 5px solid #ffe6e6;
+  border-radius: 160px;
+  background: #ffffff;
+  overflow-y: auto;
+  z-index: 3;
+  display: flex;
+  flex-direction: column;
+  gap: 63px; /* 233 pitch − 170 row */
+}
+
+.dropdownAmount {
+  top: calc(1381px + var(--header-push, 0px) + var(--insa-exch-shift, 0px));
+}
+.dropdownResult {
+  top: calc(1997px + var(--header-push, 0px) + var(--insa-exch-shift, 0px));
+}
+
+/* ♿ — the 환전 dropdown would run off the artboard at +573. Jeju draws 1240. */
+.dropdownResultLow {
+  height: 1240px;
+}
+
+.dropdown::-webkit-scrollbar {
+  width: 28px;
+}
+.dropdown::-webkit-scrollbar-thumb {
+  background: var(--kiosk-primary, #fe6c50);
+  border-radius: 14px;
+}
+.dropdown::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.option {
+  position: relative;
+  flex: 0 0 170px;
+  width: 376px;
+  height: 170px;
+  padding: 0;
+  border: none;
+  background: none;
+  display: flex;
+  align-items: center;
+  gap: 42.9px;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.optionCaret {
+  position: absolute;
+  left: 406px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 68px;
+  font-weight: 400;
+  line-height: 1;
+  color: var(--kiosk-primary, #fe6c50);
+  pointer-events: none;
+}
+
+.keypad {
+  position: absolute;
+  left: 0;
+  top: calc(2326px + var(--header-push, 0px) + var(--insa-exch-shift, 0px));
+  width: 2160px;
+  /* 938 = the 860 key block + a symmetric 39 above and below. */
+  height: 938px;
+  z-index: 3;
+}
+
+.keypadScrim {
+  position: absolute;
+  inset: 0;
+  background: #c5c5c1;
+  opacity: 0.7;
+}
+
+.keys {
+  position: absolute;
+  left: 155px;
+  top: 39px;
+  width: 1850px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 20px;
+}
+
+.keyRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+}
+
+.keyRowShort {
+  width: 1215px;
+}
+
+.key {
+  width: 580px;
+  height: 200px;
+  padding: 0;
+  border: none;
+  border-radius: 30px;
+  background: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--kiosk-font, sans-serif);
+  font-size: 130px;
+  font-weight: 500;
+  line-height: 1;
+  color: #000000;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.keyIcon {
+  width: 114.997px;
+  height: 82.906px;
+  object-fit: contain;
+  pointer-events: none;
+}
+
+/* ══ Banner (7553:50265) ═════════════════════════════════════════════════ */
 .banner {
   position: absolute;
   left: 0;
+  top: var(--insa-banner-top, auto);
   bottom: 0;
   width: 2160px;
   height: 573px;
@@ -120,4 +574,30 @@
   height: 100%;
   object-fit: cover;
   display: block;
+}
+
+/* ♿ — same coordinates as JejuExchange. Tabs at y3438. The live list sits
+   10px under the header (bar + 700 = 846 → 856) and stops 121px above the
+   tabs. The 기준 환율 pill is the one calculator box that is NOT +573. */
+.tabsLow.tabsLow {
+  top: 3438px;
+  bottom: auto;
+  z-index: 4;
+}
+
+.resultsLow.resultsLow {
+  top: 856px;
+  bottom: 523px;
+}
+
+.basePillLow.basePillLow {
+  top: 1460px;
+}
+
+.keypadLow.keypadLow {
+  top: 2840px;
+}
+
+.bannerHidden {
+  display: none;
 }

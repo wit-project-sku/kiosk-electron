@@ -1,4 +1,35 @@
-/* 상세 chrome — the card itself is the shared SpotDetailCard. Artboard 2160×3840. */
+/* 상세 chrome — the card itself is the shared SpotDetailCard. Artboard 2160×3840.
+   ♿ drops a 145.759px bar at y0 and lifts the promo to sit flush under it; the
+   header and the card follow both down (--insa-header-shift). The frame
+   7574:71342 draws the promo at the foot instead — this deliberately does not,
+   so 상세 reaches the promo in the same place as every other ♿ page (이벤트,
+   위드마켓, 언어선택). See DETAIL_LOW_REACH_STYLE. */
+.lowRoot {
+  position: absolute;
+  inset: 0;
+}
+
+.modeBar {
+  position: absolute;
+  left: 0;
+  top: 0;
+  z-index: 6;
+  width: 2160px;
+  height: var(--insa-mode-bar, 145.759px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--kiosk-primary);
+  color: #ffffff;
+  font-family: var(--kiosk-font, sans-serif);
+  font-size: 68px;
+  font-weight: 700;
+  line-height: 1;
+  text-align: center;
+  word-break: keep-all;
+  overflow-wrap: anywhere;
+}
+
 .bg {
   position: absolute;
   inset: 0;
@@ -11,6 +42,11 @@
 .banner {
   position: absolute;
   left: 0;
+  /* `auto` in the standing layout, so `bottom: 0` parks it at the foot; ♿ sets
+     the token and the promo moves under the bar. An absolutely positioned box
+     with top + height + bottom is over-constrained, so `bottom` is the one the
+     browser drops — no need to unset it. */
+  top: var(--insa-banner-top, auto);
   bottom: 0;
   width: 2160px;
   height: 573px;

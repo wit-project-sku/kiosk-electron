@@ -8,6 +8,8 @@
 import type { JSX } from 'react';
 import type { Sex } from './api';
 import { FIELDS, type FieldKey } from './copy';
+import { useLang, type Lang } from '@renderer/lib/i18n';
+import { tx } from './text';
 import { Icon } from './Icon';
 import ui from './fillmeUi.module.css';
 import styles from './FillmeInfo.module.css';
@@ -39,6 +41,25 @@ export function fieldValid(values: InfoValues, key: FieldKey): boolean {
   return raw !== '' && n >= f.min && n <= f.max;
 }
 
+/**
+ * 범위 안내 — 시트에 줄이 없어 authored 로 둔다. 한국어 문장은 예전 그대로다.
+ * 다른 언어 화면에 한국어 한 줄이 섞이지 않게 일곱 언어를 채웠다.
+ */
+const RANGE_HINT: Partial<Record<Lang, (range: string) => string>> = {
+  ko: (r) => `${r} 사이로 입력해 주세요`,
+  en: (r) => `Please enter a value between ${r}`,
+  ja: (r) => `${r}の範囲で入力してください`,
+  zh: (r) => `请输入${r}之间的数值`,
+  vi: (r) => `Vui lòng nhập trong khoảng ${r}`,
+  th: (r) => `กรุณากรอกค่าระหว่าง ${r}`,
+  ru: (r) => `Допустимый диапазон: ${r}`,
+  id: (r) => `Masukkan nilai antara ${r}`,
+};
+
+/** 입력판의 예시 — 한국어는 '예) 35' 그대로, 다른 언어는 한국어 '예)' 를 떼고 숫자만. */
+const placeholderFor = (placeholder: string, lang: Lang): string =>
+  lang === 'ko' ? placeholder : placeholder.replace(/^\s*예\)\s*/, '');
+
 export function infoValid(values: InfoValues): boolean {
   return (
     (['age', 'height', 'weight'] as FieldKey[]).every((k) => fieldValid(values, k)) &&
@@ -61,12 +82,15 @@ function NumberField({
   /** 필드마다 다른 절대 좌표 클래스. CSS 모듈 조회는 값이 없을 수도 있는 타입이다. */
   className?: string;
 }): JSX.Element {
+  const lang = useLang();
   const f = FIELDS[field];
+  /* 단위: 나이의 '세'만 시트 줄이고 cm·kg 은 글자 그대로다 — copy.ts 참고. */
+  const unit = f.unitLiteral ? f.unit : tx(f.unit, lang);
   const raw = values.nums[field];
   const invalid = raw !== '' && !fieldValid(values, field) && !focused;
   return (
     <div className={className}>
-      <p className={ui.sectionLabel}>{f.label}</p>
+      <p className={ui.sectionLabel}>{tx(f.label, lang)}</p>
       <button
         type="button"
         className={[
@@ -81,12 +105,13 @@ function NumberField({
         aria-label={`${f.label} 입력`}
       >
         <span className={raw ? styles.value : styles.placeholder}>
-          {raw || f.placeholder}
+          {raw || placeholderFor(f.placeholder, lang)}
           {focused && <i className={styles.caret} />}
         </span>
-        <span className={styles.unit}>{f.unit}</span>
+        <span className={styles.unit}>{unit}</span>
       </button>
-      {invalid && <p className={styles.error}>{`${f.min}~${f.max}${f.unit} 사이로 입력해 주세요`}</p>}
+      {/* 범위 안내는 시트에 줄이 없다 — RANGE_HINT 참고. */}
+      {invalid && <p className={styles.error}>{(RANGE_HINT[lang] ?? RANGE_HINT.ko!)(`${f.min}~${f.max}${unit}`)}</p>}
     </div>
   );
 }
@@ -103,6 +128,18 @@ export function FillmeInfo({
   onRetake,
   onNext,
 }: Props): JSX.Element {
+  const lang = useLang();
+  /*
+   * 동의 한 줄은 시트에 한 문장으로 있다 — "[개인보호정책] 서비스 제공을 위해 …".
+   * 화면에서는 앞의 대괄호가 방침을 여는 링크이고 나머지가 본문이라, 그 대괄호를
+   * 잘라 낸다. 여덟 언어가 모두 같은 자리에 대괄호를 쓴다(확인함). 혹시 없는
+   * 언어가 생기면 링크 없이 문장만 나오고, 방침은 화면 아래 [개인보호정책] 버튼이
+   * 아니라 이 줄 전체가 토글이므로 읽는 데 지장은 없다.
+   */
+  const consent = tx('Fillme_text035', lang);
+  const tag = consent.match(/^\s*\[[^\]]*\]/);
+  const policyTag = tag ? tag[0].trim() : '';
+  const consentTail = tag ? consent.slice(tag[0].length).trim() : consent;
   /* 임신 여부는 시안에 없는 행이다 — 보일 때만 동의 줄과 CTA 가 그만큼 내려간다. */
   const askPregnant = values.sex === 'female';
   const ready = infoValid(values) && agreed;
@@ -113,13 +150,13 @@ export function FillmeInfo({
         <div className={styles.doneText}>
           <p className={styles.doneTitle}>
             <Icon name="check" size={56} strokeWidth={3} />
-            손톱 촬영이 끝났어요
+            {tx('Fillme_text022', lang)}
           </p>
-          <p className={styles.doneSub}>사진은 동의 전까지 키오스크에서만 가지고 있어요.</p>
+          <p className={styles.doneSub}>{tx('Fillme_text023', lang)}</p>
         </div>
         <button type="button" className={styles.retake} onClick={onRetake}>
           <Icon name="retry" size={44} strokeWidth={2.4} />
-          다시 촬영하기
+          {tx('Fillme_text024', lang)}
         </button>
       </section>
 
@@ -146,12 +183,12 @@ export function FillmeInfo({
       />
 
       <div className={styles.sex}>
-        <p className={ui.sectionLabel}>성별</p>
+        <p className={ui.sectionLabel}>{tx('Fillme_text029', lang)}</p>
         <div className={styles.choiceRow}>
           {(
             [
-              ['male', '남자'],
-              ['female', '여자'],
+              ['male', tx('Fillme_text030', lang)],
+              ['female', tx('Fillme_text031', lang)],
             ] as const
           ).map(([value, label]) => (
             <button
@@ -177,12 +214,12 @@ export function FillmeInfo({
 
       {askPregnant && (
         <div className={styles.pregnant}>
-          <p className={ui.sectionLabel}>임신 중이거나 임신을 준비하고 있나요?</p>
+          <p className={ui.sectionLabel}>{tx('Fillme_text032', lang)}</p>
           <div className={styles.choiceRow}>
             {(
               [
-                [true, '예'],
-                [false, '아니요'],
+                [true, tx('Fillme_text033', lang)],
+                [false, tx('Fillme_text034', lang)],
               ] as const
             ).map(([value, label]) => (
               <button
@@ -221,9 +258,9 @@ export function FillmeInfo({
             onOpenPolicy();
           }}
         >
-          [개인보호정책]
+          {policyTag}
         </span>
-        서비스 제공을 위해 이용자의 정보 수집을 동의합니다.
+        {consentTail}
       </button>
 
       <button
@@ -232,7 +269,7 @@ export function FillmeInfo({
         disabled={!ready}
         onClick={onNext}
       >
-        다음으로
+        {tx('Fillme_text036', lang)}
       </button>
     </div>
   );

@@ -49,6 +49,15 @@
  * them carry no `-F` / `-M` either, so the sub-category is the only signal left
  * — see `genderOf` in OutfitService.
  *
+ * ── ← → at the end of that band (7489:67510…67516) ───────────────────
+ * The strip has always been draggable and nothing on screen said so, so the
+ * 한복 catalogue past the drawn ten was reachable only by a visitor who guessed
+ * to swipe. The band now ends in the frame's 85px pair, which pages the strip a
+ * whole view at a time (`SwipeNav`, shared with the 인사동 / 오색 / 화성 picker).
+ * They are drawn for a tab that overflows even when it has no chips, so the
+ * band opens for them alone — which is the one thing `--lr-sub` has to know
+ * about in ♿.
+ *
  * ── 배경 테마 comes from the API ──────────────────────────────────────
  * The plates are the ACTIVE backgrounds assigned to THIS kiosk
  * (`GET /api/kiosks/{kioskNum}/backgrounds`, cached in SQLite by
@@ -111,10 +120,10 @@ import { HANBOK_INFO, PRIVACY } from '../photo/photoTexts';
 import hanbokInfo from '@renderer/assets/photos/insadong/hanbok/hanbok-info.png';
 import { t, sheetText, tExact } from '@renderer/lib/loc';
 import type { CaptureMode } from '../photo/HanbokSelect';
+import { SwipeNav, useSwipeNav } from '../photo/SwipeNav';
 import { useOutfitStore } from '@renderer/store/outfitStore';
 import type { PickerOutfit } from '@renderer/store/outfitStore';
 import type { OutfitSubCategory } from '@shared/types/outfit';
-import { jejuIconUrl } from '@renderer/assets/icons/jeju';
 import { useRotatingBanner } from '@renderer/hooks/useRotatingBanner';
 import { usePhotoStore } from '@renderer/store/photoStore';
 import { useBackgroundStore } from '@renderer/store/backgroundStore';
@@ -298,6 +307,14 @@ const SOLO = {
  * Built per mascot: 하영 on W006/W007, 유산 on W008. Only the LAST-RESORT
  * fallback — the sheet's Photo_SelectTogether row is already venue-split
  * (see LocalizationSyncParser.VENUE_MASCOTS) and wins whenever it has a cell.
+ *
+ * ★ That "wins" is enforced by {@link togetherText}, not by this literal. Until
+ * 2026-09-28 the button rendered this map DIRECTLY and never consulted the
+ * sheet at all, which was invisible while 제주 was the only caller — the
+ * fallback and the row agree there. 인사동 took this picker over from the
+ * legacy HanbokSelect (which has always read the row), and on 인사동
+ * `jejuMascot()` resolves to its non-heritage default 하영 — so the button
+ * would have promised a 제주 mascot on an 인사동 kiosk.
  */
 const togetherLabel = (m: JejuMascot) => ({
   ko: `사진촬영(with '${m.ko}')`,
@@ -309,6 +326,18 @@ const togetherLabel = (m: JejuMascot) => ({
   ru: `Фото (с «${m.ru}»)`,
   id: `Foto (dengan '${m.mixed}')`,
 });
+
+/**
+ * The 같이찍기 button's label: the venue's own sheet row, else the mascot
+ * literal above. `tExact` returns '' for a missing cell, which is precisely the
+ * "has a cell" test the row's precedence is defined in terms of.
+ *
+ * 인사동 carries no generated override file — it reads the BASE Localization
+ * tab, where this row is its own '인사' copy, so the sheet answers there and the
+ * 제주 fallback is never reached.
+ */
+const togetherText = (lang: Lang): string =>
+  tExact('Photo_SelectTogether', lang) || pick(togetherLabel(jejuMascot()), lang);
 
 const NO_OUTFITS = {
   ko: '준비 중인 의상입니다.',
@@ -576,9 +605,16 @@ export function JejuHanbokSelect({
    */
   const pageBg = icon('bg-page') || icon('bg');
 
-  const star = jejuIconUrl('star');
+  /* Resolved through the CHROME, not jejuIconUrl: this picker serves 인사동 as
+     well as 제주 now, and the rail art in particular is hard-filled with the
+     brand colour (nav-left.svg), so a direct 제주 lookup drew an orange rail on
+     a coral kiosk. Each location overrides by dropping a file of the same base
+     name into its own icons folder — the mechanism photoChrome documents.
+     Names 인사동 does not carry resolve to undefined and are simply not drawn,
+     which is what silences 제주's decorative star and ♿ button there. */
+  const star = icon('star');
   const accessibilityIcon =
-    (lowReach ? jejuIconUrl('ico-accessibility-on') : undefined) ?? jejuIconUrl('ico-accessibility');
+    (lowReach ? icon('ico-accessibility-on') : undefined) ?? icon('ico-accessibility');
   /**
    * Which tab owns step ② — the 제주 one, wherever the operator has put it.
    *
@@ -588,12 +624,29 @@ export function JejuHanbokSelect({
    * design while 제주 itself drew the plain two-row grid — each tab showing the
    * other's frame.
    *
-   * Falls back to the landing tab ONLY where no 제주 category is registered at
-   * all. Without that, a catalogue that never had one would strand whatever
-   * backgrounds this kiosk has been assigned behind a tab that does not exist.
+   * NO fallback: a venue that registers no 제주 category has no 배경 테마 step,
+   * full stop.
+   *
+   * ★ This used to fall back to `tabs[0]` (2026-09-29). The reasoning was that a
+   * catalogue with no 제주 category would otherwise strand whatever backgrounds
+   * the kiosk had been assigned behind a tab that does not exist. In practice
+   * the fallback did something much worse: 인사동 registers no 제주 category, so
+   * it promoted 인사동's FIRST tab — 한복 — to the theme tab, and the
+   * 배경 테마 선택하기 band drew there. On stage that band is not even empty; the
+   * kiosk is assigned five backgrounds and every one of them is 제주 scenery
+   * (해안 풍력단지 · 억새밭 언덕 · 유채꽃밭 · 한라산과 귤밭 · 노을 목장). A 인사동
+   * visitor picking a 한복 was being offered 제주 backdrops to wear it against.
+   *
+   * Stranding those five is the POINT, not a regression: they are 제주 content
+   * that should never have been reachable from 인사동. If 인사동 is ever given
+   * its own backdrops, give it its own registered category and make the lookup
+   * below per-location — do not resurrect a positional fallback, which cannot
+   * tell "this venue's theme tab" from "whatever happens to be first".
+   *
+   * 제주 is untouched: its 제주 category IS registered, so the `find` succeeds.
    */
   const themeTabId = useMemo(
-    () => (tabs.find((t) => t.id.toLowerCase() === JEJU_CATEGORY) ?? tabs[0])?.id,
+    () => tabs.find((t) => t.id.toLowerCase() === JEJU_CATEGORY)?.id,
     [tabs],
   );
   /**
@@ -609,6 +662,20 @@ export function JejuHanbokSelect({
   const isThemeTab = themeTabId !== undefined && categoryId === themeTabId;
   /** Tiles, or the 준비 중 message in the same 1820×700 band. */
   const hasBackgrounds = backgrounds.length > 0;
+
+  /*
+   * ── ← → on the chip band (7489:67510…67516) ──────────────────────────
+   * The strip has always been draggable and said so nowhere, so a catalogue
+   * past the drawn ten was reachable only by guessing. Counted off the
+   * CATALOGUE rather than measured: the strip shows exactly `CARDS_PER_VIEW`
+   * columns of 1 row (제주 tab) or 2, so anything longer is what the buttons
+   * are for — and one page-load answer keeps the band from appearing a frame
+   * late, or flickering as Swiper re-measures on a tab change.
+   */
+  const nav = useSwipeNav();
+  const canSwipe = outfits.length > CARDS_PER_VIEW * (isThemeTab ? 1 : 2);
+  /** The band is drawn for the chips OR for the buttons — either fills it. */
+  const hasChipBand = subs.length > 0 || canSwipe;
 
   /**
    * ── ♿ 베리어프리 ───────────────────────────────────────────────────────
@@ -630,7 +697,7 @@ export function JejuHanbokSelect({
    *    a 30px gap either side of the row, with the buttons still landing inside
    *    the 3840 artboard (3667…3817).
    */
-  const lowReachSubShift = lowReachTheme && subs.length > 0 ? '110px' : '0px';
+  const lowReachSubShift = lowReachTheme && hasChipBand ? '110px' : '0px';
   /* ③ No promo banner on either condition — see the render. */
 
   /*
@@ -729,8 +796,8 @@ export function JejuHanbokSelect({
         )}
 
         <div className={styles.leftNav}>
-          {jejuIconUrl('nav-left') && (
-            <img src={jejuIconUrl('nav-left')} alt="" className={styles.leftNavImg} draggable={false} />
+          {icon('nav-left') && (
+            <img src={icon('nav-left')} alt="" className={styles.leftNavImg} draggable={false} />
           )}
           <button
             type="button"
@@ -834,32 +901,42 @@ export function JejuHanbokSelect({
           ))}
         </div>
 
-        {/* ── sub-category chips (1266…1386) ──
-              Drawn only where the category has them, which is what kept this
-              row out of the layout until the API began sending them. */}
-        {subs.length > 0 && (
+        {/* ── sub-category chips (1266…1386) and the ← → pair (7489:67516) ──
+              The chips are drawn only where the category has them, which is
+              what kept this row out of the layout until the API began sending
+              them; the buttons hang off the band's right edge whether or not it
+              has chips in it, so a chipless tab with a long catalogue still
+              gets them. The chips scroll INSIDE their own track (`.subcatList`)
+              rather than in the band, so a long row can never carry a chip
+              under the buttons. */}
+        {hasChipBand && (
           <div className={styles.subcats}>
-            {subs.map((sc) => (
-              <button
-                key={sc.id}
-                type="button"
-                className={`${styles.subcat} ${sc.id === subId ? styles.subcatActive : ''}`}
-                onClick={() => {
-                  // Tapping the picked chip clears it — the only way back to
-                  // the whole category, since nothing here is pre-picked.
-                  setSubId((cur) => (cur === sc.id ? null : sc.id));
-                  setOutfitCode('');
-                }}
-              >
-                {outfitSubCategoryLabel(sc, lang)}
-              </button>
-            ))}
-            {/* 한복 only — 6258:48469 draws the same row on 제주 without it. */}
-            {isHanbokCategory(categoryId) && (
-              <p className={styles.subcatNote}>
-                {sheetText('Photo_HanbokBrandNote', lang, HANBOK_BRAND_NOTE)}
-              </p>
-            )}
+            <div className={styles.subcatList}>
+              {subs.map((sc) => (
+                <button
+                  key={sc.id}
+                  type="button"
+                  className={`${styles.subcat} ${sc.id === subId ? styles.subcatActive : ''}`}
+                  onClick={() => {
+                    // Tapping the picked chip clears it — the only way back to
+                    // the whole category, since nothing here is pre-picked.
+                    setSubId((cur) => (cur === sc.id ? null : sc.id));
+                    setOutfitCode('');
+                  }}
+                >
+                  {outfitSubCategoryLabel(sc, lang)}
+                </button>
+              ))}
+              {/* 한복 only — 6258:48469 draws the same row on 제주 without it. */}
+              {isHanbokCategory(categoryId) && (
+                <p
+                  className={`${styles.subcatNote} ${lang === 'ko' ? '' : styles.subcatNoteLong}`}
+                >
+                  {sheetText('Photo_HanbokBrandNote', lang, HANBOK_BRAND_NOTE)}
+                </p>
+              )}
+            </div>
+            {canSwipe && <SwipeNav nav={nav} />}
           </div>
         )}
 
@@ -874,6 +951,9 @@ export function JejuHanbokSelect({
             slidesPerView={CARDS_PER_VIEW}
             spaceBetween={CARD_GAP}
             freeMode
+            /* The ← → pair above drives this strip and follows a drag — see
+               useSwipeNav. */
+            {...nav.bind}
             /* Remount on a tab change so the strip starts back at the first card
              and Swiper re-measures the new (possibly shorter) list. The row count
              is in the key because Swiper does not re-grid an existing instance. */
@@ -1021,7 +1101,7 @@ export function JejuHanbokSelect({
             onClick={() => startCapture('withInsa')}
           >
             <Camera className={styles.captureIcon} strokeWidth={2} />
-            {pick(togetherLabel(jejuMascot()), lang)}
+            {togetherText(lang)}
           </button>
         </div>
       </>
@@ -1039,8 +1119,8 @@ export function JejuHanbokSelect({
       )}
 
       <div className={styles.leftNav}>
-        {jejuIconUrl('nav-left') && (
-          <img src={jejuIconUrl('nav-left')} alt="" className={styles.leftNavImg} draggable={false} />
+        {icon('nav-left') && (
+          <img src={icon('nav-left')} alt="" className={styles.leftNavImg} draggable={false} />
         )}
         <button
           type="button"

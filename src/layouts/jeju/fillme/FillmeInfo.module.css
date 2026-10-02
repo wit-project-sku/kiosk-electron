@@ -325,3 +325,57 @@
 /* 여자를 고르면: 두 줄이 임신 블록(2247…2576) 아래로 내려간다 (7384:86842 · 86847). */
 .consentShift { top: 2656px; }
 .ctaShift { top: 2789px; }
+
+/* ── 한국어가 아닌 일곱 언어 ──────────────────────────────────────────────
+ * 동의 한 줄: 한국어는 [동그라미][개인보호정책][문장] 이 88 높이 한 줄에 들어간다.
+ * 다른 언어는 문장이 두세 줄이라 flex 줄에서는 링크와 문장이 두 기둥으로 갈라지고,
+ * 넘친 줄이 다음으로 버튼에 닿았다. 동그라미를 첫 글자 앞에 붙인 한 문단으로 세워
+ * 가운데 정렬로 감기게 하고, 성별 칩(…2187)과 다음으로(2399) 사이 212 의 가운데에
+ * 둔다 — 두 줄(≈104)이면 위아래 54 씩 남는다.
+ */
+[data-lang]:not([data-lang='ko']) .consent {
+  top: 2241px;
+  height: auto;
+  display: block;
+  font-size: 40px;
+  line-height: 1.3;
+  text-align: center;
+}
+
+[data-lang]:not([data-lang='ko']) .consentBox {
+  width: 52px;
+  height: 52px;
+  margin-right: 18px;
+  vertical-align: -12px;
+}
+
+[data-lang]:not([data-lang='ko']) .policy {
+  margin-right: 0.3em;
+}
+
+/* 임신 칩(…2576)과 다음으로(2789) 사이의 가운데. */
+[data-lang]:not([data-lang='ko']) .consentShift {
+  top: 2630px;
+}
+
+/* 촬영 완료 카드의 다시 찍기 알약: 긴 이름은 알약 안에서 줄을 바꾼다. */
+[data-lang]:not([data-lang='ko']) .retake {
+  padding: 0 30px;
+  line-height: 1.1;
+  text-align: center;
+}
+
+[data-lang]:not([data-lang='ko']) .doneTitle {
+  font-size: 58px;
+}
+
+[data-lang]:not([data-lang='ko']) .doneSub {
+  font-size: 42px;
+}
+
+/* 성별 · 임신 칩: 긴 답('Не планирую…')이 칩 안에서 감긴다. */
+[data-lang]:not([data-lang='ko']) .choice {
+  padding: 0 40px;
+  line-height: 1.15;
+  text-align: center;
+}

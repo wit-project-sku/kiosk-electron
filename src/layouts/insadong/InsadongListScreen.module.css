@@ -8,32 +8,26 @@
   pointer-events: none;
 }
 
-/* 검색결과 5287:64643: top 699, px170, gap 100 (tabs → list). No bottom banner. */
+/* 검색결과 — tabs, consonant index, then a scrolling card list.
+   Figma 7525:77709. The scrollbar sits in the right gutter (x≈2128). */
 .results {
   position: absolute;
-  top: 699px;
+  top: calc(700px + var(--header-push, 0px) + var(--insa-header-shift, 0px));
   left: 0;
   right: 0;
   bottom: 0;
   box-sizing: border-box;
   display: flex;
   flex-direction: column;
-  align-items: center;
-  gap: 100px;
-  overflow-y: auto;
-  overflow-x: hidden;
-  padding: 0 170px 80px;
+  align-items: flex-start;
+  gap: 50px;
+  overflow: hidden;
+  padding: 0 0 40px 170px;
 }
 
-.results::-webkit-scrollbar {
-  width: 34px;
-}
-.results::-webkit-scrollbar-thumb {
-  background: var(--kiosk-primary);
-  border-radius: 21.45px;
-}
-.results::-webkit-scrollbar-track {
-  background: transparent;
+/* With the bottom promo on screen the list ends where the banner starts. */
+.resultsBanner {
+  bottom: 573px;
 }
 
 /* Category tabs — 2×5 grid of rounded-rect tabs (exact Figma: 340×170, r42.9) */
@@ -44,7 +38,7 @@
   align-content: flex-start;
   justify-content: space-between;
   row-gap: 35px;
-  width: 100%;
+  width: 1820px;
 }
 
 /* ≤5 categories: one row, tabs share the width equally (≈580px for 3). */
@@ -67,7 +61,7 @@
   align-items: center;
   justify-content: center;
   background: #ffffff;
-  border: 5px solid #e8e8e8;
+  border: none;
   border-radius: 42.9px;
   box-shadow: 0 21.45px 42.9px rgba(143, 147, 157, 0.1);
   font-family: var(--kiosk-font, sans-serif);
@@ -76,15 +70,73 @@
   color: #999999;
   cursor: pointer;
   white-space: nowrap;
+  -webkit-tap-highlight-color: transparent;
 }
 
 .tabSelected {
-  background: var(--kiosk-secondary);
+  background: var(--kiosk-primary);
   font-weight: 700;
+  color: #ffffff;
+}
+
+/* ㄱ ㄴ ㄷ … index under the category pills. */
+.initials {
+  flex: none;
+  width: 1686px;
+  height: 72px;
+  margin-left: 67px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.initial {
+  border: none;
+  background: none;
+  padding: 0 4px;
+  font-family: var(--kiosk-font, sans-serif);
+  font-weight: 700;
+  font-size: 48px;
+  line-height: 1;
+  color: #1a1a1a;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.initialOn {
   color: var(--kiosk-primary);
 }
 
-/* List 5287:64645: w1820, gap 60 between cards. */
+/* ♿ — cards stay in the upper column; category tabs and the 초성 row pin
+   to the foot, the same restack as the Jeju list. */
+.resultsLow .listScroll {
+  order: -1;
+}
+
+.listScroll {
+  flex: 1;
+  min-height: 0;
+  width: 1990px;
+  box-sizing: border-box;
+  padding-right: 170px;
+  overflow-x: hidden;
+  overflow-y: auto;
+}
+
+.listScroll::-webkit-scrollbar {
+  width: 28px;
+}
+
+.listScroll::-webkit-scrollbar-thumb {
+  background: var(--kiosk-primary);
+  border-radius: 14px;
+}
+
+.listScroll::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+/* List: w1820, 60px between the 390px cards. */
 .list {
   flex: none;
   width: 1820px;
@@ -93,33 +145,51 @@
   gap: 60px;
 }
 
-/* Card R>리스트-사진4개 (1233:2477): w1820 h530, px45 py65, border 5px #e8e8e8,
-   radius 42.9. Inner: info(1120) ↔ photos(570), gap 40. */
+/* Card 7525:77720: 1820×390, px45 py40, no stroke. Two 288×160 photos. */
 .card {
   width: 100%;
-  height: 530px;
+  height: 390px;
   box-sizing: border-box;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 40px;
-  padding: 65px 45px;
+  /* Breathing room between the text column and the photos. `.info` is `flex: 1`,
+     so a long title + category (English: "Information Center") ran right up to
+     the first photo; with the gap it gives up 60px of width instead. */
+  column-gap: 60px;
+  padding: 40px 45px;
   background: #ffffff;
-  border: 5px solid #e8e8e8;
+  border: none;
   border-radius: 42.9px;
-  box-shadow: 0 21.45px 21.45px rgba(143, 147, 157, 0.1);
   text-align: left;
   cursor: pointer;
   overflow: hidden;
+  -webkit-tap-highlight-color: transparent;
 }
 
+/* `.info` needs the SAME ink room as its rows, for the same reason.
+   Giving .name/.address/.desc a taller padding box only buys room INSIDE each
+   row — the extra sits outside that row's MARGIN box, which for the first and
+   last child is exactly .info's own content edge. This `overflow: hidden` then
+   clipped it straight back off: measured, the title still lost 14px off its
+   top and the description 10px off its bottom, which is the shaving still
+   being reported in English.
+
+   Same pad/negative-margin pair, so .info's margin box — and therefore the
+   card's `align-items: center` and its fixed 390px — are unchanged. 16px
+   covers the worst measured spill (14px) with a little to spare, and the card
+   leaves 33px of slack above and below .info, so nothing is clipped by the
+   card either. */
 .info {
   flex: 1;
+  width: auto;
   min-width: 0;
   display: flex;
   flex-direction: column;
   gap: 40px;
   overflow: hidden;
+  padding-block: 16px;
+  margin-block: -16px;
   font-family: var(--kiosk-font, sans-serif);
 }
 
@@ -130,6 +200,23 @@
   min-width: 0;
 }
 
+/* ── Ink room for `line-height: 1` ────────────────────────────────────────
+   The three card texts below (and .cat) are drawn at Figma's 100% leading, so
+   the line box is exactly 1em tall — and `overflow: hidden`, needed for the
+   ellipsis, then clips at that box. Korean survives it: measured against this
+   sheet, 한글 ink is 65px inside the 68px title box and 44–45px inside the 48px
+   rows, so it never touches the edge. Nothing else does. Ink measured for the
+   same strings: vi title 80px (12px lost — stacked diacritics sit highest),
+   th description 58px (10px), vi description 55px, en title 74px, ru title
+   73px. That is the top-and-bottom shaving reported on every non-Korean card.
+
+   The pad/negative-margin pair is what makes this safe to apply everywhere:
+   `overflow: hidden` clips at the PADDING edge, so the padding buys the glyphs
+   room, and the equal negative margin gives the space straight back to the
+   layout. Outer height, the .info column's 40px gaps and the 390px card are
+   all bit-for-bit what they were — only the clip rectangle grows. Applied
+   unconditionally rather than under .cardLong, because a Korean row carrying a
+   Latin brand name or a parenthesis has the same descender to lose. */
 .name {
   flex: 0 1 auto;
   min-width: 0;
@@ -140,6 +227,8 @@
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  padding-block: 0.2em;
+  margin-block: -0.2em;
 }
 
 .cat {
@@ -152,9 +241,17 @@
   line-height: 1; /* Figma: 100% */
   color: #999999;
   white-space: nowrap;
+  padding-block: 0.2em;
+  margin-block: -0.2em;
 }
 
+/* `flex: none` is load-bearing. `.catLong` makes the category a SHRINKABLE
+   flex item (flex: 0 1 auto), and the dot is a flex child of it — with the
+   default `flex-shrink: 1` it was the first thing squeezed, collapsing from
+   17px to 0. The brand dot simply disappeared in every non-Korean mode on the
+   card screens, while Korean (which never shrinks) kept it. */
 .dot {
+  flex: none;
   width: 17px;
   height: 17px;
   border-radius: 50%;
@@ -170,44 +267,40 @@
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  padding-block: 0.2em;
+  margin-block: -0.2em;
 }
 
-/* Figma: description wraps to a max of 2 lines, then "…". */
+/* 7537:81635 — one line, then "…". The frame's copy sits on a single row. */
 .desc {
   margin: 0;
+  max-width: 100%;
   font-weight: 500;
   font-size: 48px;
-  line-height: 1.2;
+  line-height: 1;
   color: #2b2b2b;
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
-}
-
-.tags {
-  margin: 0;
-  font-weight: 400;
-  font-size: 40px;
-  line-height: 1; /* Figma: 100% */
-  color: #999999;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  padding-block: 0.2em;
+  margin-block: -0.2em;
 }
 
 .photos {
-  width: 570px;
+  width: 606px;
+  height: 160px;
   flex: none;
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
+  display: flex;
   gap: 30px;
 }
 
 .thumb {
-  height: 150px;
+  width: 288px;
+  height: 160px;
+  flex: none;
   border-radius: 21.45px;
   overflow: hidden;
+  background: rgba(147, 147, 147, 0.15);
 }
 
 .thumb img {
@@ -215,6 +308,32 @@
   height: 100%;
   object-fit: cover;
 }
+
+.scrollBtn {
+  position: absolute;
+  left: 2027px;
+  width: 85px;
+  height: 85px;
+  padding: 0;
+  border: none;
+  background: none;
+  cursor: pointer;
+  z-index: 5;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.scrollUp { top: calc(2103px + var(--header-push, 0px) + var(--insa-header-shift, 0px)); }
+.scrollDown { top: calc(2223px + var(--header-push, 0px) + var(--insa-header-shift, 0px)); }
+
+.scrollBtnImg {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  pointer-events: none;
+}
+
+.scrollUp .scrollBtnImg { transform: rotate(90deg); }
+.scrollDown .scrollBtnImg { transform: rotate(-90deg); }
 
 .banner {
   position: absolute;
@@ -234,4 +353,74 @@
   height: 100%;
   object-fit: cover;
   display: block;
+}
+
+/* ── Other languages ──────────────────────────────────────────────────────
+ * Reached only through a class the TSX adds when lang !== 'ko', so the Korean
+ * screen is untouched.
+ *
+ * The 340×170 tab is drawn around Korean category names — 한식, 카페, 공예품 are
+ * two or three glyphs and sat comfortably on one 50px line, which is why the
+ * tab was `nowrap`. The same tab has to hold "Корейская кухня",
+ * "Товары для художников" and "Азиатская·Китайская": on one line those run
+ * 500–900px through a 340px tab, and because `.tabs` is a wrapping flex row
+ * with `space-between`, an oversized tab drags the whole 2×5 grid out of shape.
+ *
+ * So the label WRAPS inside the tab it has, and a row whose longest label still
+ * does not fit shrinks as one (`--fit`, set by useFitText — never below 0.72,
+ * i.e. 36px). `overflow-wrap: anywhere` is the guard for a single word longer
+ * than the tab ("Достопримечательности"); `word-break: keep-all` keeps CJK from
+ * breaking mid-word before that. Nothing is clipped — the full label is always
+ * shown. */
+.tabLong {
+  white-space: normal;
+  word-break: keep-all;
+  overflow-wrap: anywhere;
+  /* 14px, not the 24 a padded tab would take: the inner width is what decides
+     whether a word wraps whole or is split mid-letter by the `anywhere` guard.
+     At 14 the tab has 302px, which holds "Антиквариат" (287px at 44px type);
+     at 24 it had 282 and broke it after "Антиквариа". */
+  padding: 0 14px;
+  font-size: calc(50px * var(--fit, 1));
+  line-height: 1.12;
+}
+
+/* The category beside the shop name is `flex: none` + nowrap, so a long one
+   ("Товары для художников") took the whole row and left the name no width.
+   Let it give way and ellipsize instead. */
+/* Non-Korean card category (뭐먹지 · 뭐사지 · 숙박안내 · 고궁안내 · 도와줘 · 미술관).
+   Shared by all six screens — Palace/Help/Museum import this sheet.
+
+   The Korean labels are 2–3 glyphs and sit happily at 52px beside the title.
+   Translated ones are whole phrases ("Traditional Korean Course Meal",
+   "Комплексный обед из 3 блюд корейской кухни"), and at 52px they either
+   collide with a title that has grown for the same reason, or push past the
+   card. 32px is the size the design calls for in those modes.
+
+   ★ font-family is deliberately NOT set. The spec says Pretendard, and
+   `--kiosk-font` already leads with it — but it continues
+   'Noto Sans KR', 'Noto Sans SC', 'Microsoft YaHei', …, which is what actually
+   renders 中文 and 日本語. Pinning the family here would strip those fallbacks
+   from precisely the languages this rule exists for. */
+.catLong {
+  /* `flex: none`, NOT `0 1 auto`. It used to be shrinkable with its own
+     ellipsis, so in a row whose title was also too long BOTH gave way and the
+     category came out cut ("Information Cente"). The category is the shorter,
+     denser label — losing its last word costs more than losing more of a name
+     the visitor can still recognise — so the TITLE absorbs all the shrinking
+     (it keeps `flex: 0 1 auto` + `min-width: 0` + its own ellipsis) and the
+     category is drawn whole.
+
+     `max-width: 55%` is only a backstop for a pathologically long category: it
+     stops one from squeezing the title out of existence, and nothing in the
+     catalogue reaches it today. */
+  flex: none;
+  max-width: 55%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-size: 32px;
+  font-style: normal;
+  font-weight: 400;
+  line-height: 1; /* spec: 100% */
+  text-align: center;
 }

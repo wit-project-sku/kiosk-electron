@@ -22,6 +22,7 @@ import type { ComponentType } from 'react';
 import { pick, useLang } from '@renderer/lib/i18n';
 import type { JejuGameId } from './gameTypes';
 import { isMotionGame } from './gameTypes';
+import { usePhotoChrome } from '../../photo/photoChrome';
 import { TEXT } from './gameText';
 import { MOTION } from './motion/motionText';
 import { sfx } from './gameSound';
@@ -54,6 +55,13 @@ export function JejuGameHub({
   onSeePhoto,
 }: Props): JSX.Element {
   const lang = useLang();
+  /* Camera games are offered only where the customer display can actually run
+     one — see PhotoChrome.motionGames. 인사동 takes this hub with 틀린그림찾기
+     alone: its display has no pose tracking wired, and `jeju-run` is Jeju-
+     branded end to end. Filtering the MENU (rather than the games themselves)
+     keeps every game a leaf, which is the invariant JejuWaitingGames documents. */
+  const { motionGames, isJeju } = usePhotoChrome();
+  const games = motionGames ? GAMES : GAMES.filter((g) => !isMotionGame(g.id));
   const total = useJejuPointsTotal();
   const byGame = useJejuPointsStore((s) => s.byGame);
 
@@ -65,14 +73,14 @@ export function JejuGameHub({
   return (
     <GameShell
       headerTitle="AR 한복체험"
-      title={pick(TEXT.hubTitle, lang)}
-      subtitle={pick(TEXT.hubSubtitle, lang)}
+      title={pick(isJeju ? TEXT.hubTitle : TEXT.hubTitleGeneric, lang)}
+      subtitle={pick(isJeju ? TEXT.hubSubtitle : TEXT.hubSubtitleGeneric, lang)}
       onHome={onHome}
       navDisabled={navLocked}
       chrome={
         <>
           <ul className={styles.list}>
-            {GAMES.map(({ id, Icon }, index) => {
+            {games.map(({ id, Icon }, index) => {
               const camera = isMotionGame(id);
               const best = byGame[id];
               return (
@@ -116,7 +124,7 @@ export function JejuGameHub({
               telling a visitor they have failed at a game they have not played. */}
           {total > 0 && (
             <p className={styles.points}>
-              <span className={styles.pointsLabel}>{pick(TEXT.points, lang)}</span>
+              <span className={styles.pointsLabel}>{pick(isJeju ? TEXT.points : TEXT.pointsGeneric, lang)}</span>
               <span className={styles.pointsValue}>{total}</span>
             </p>
           )}

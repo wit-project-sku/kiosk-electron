@@ -40,6 +40,12 @@ export interface DetailItem {
   instagram: string;
   blogReviews: string;
   /**
+   * Witteria `route` for a plain (non-rentcar) row — drives the 거리 + 도보 pair
+   * the 인사동 리뉴얼 상세 adds (Figma 7516:74320 / 74334). Separate from
+   * `rentcarRoute`, which feeds 제주's full airport-directions panel.
+   */
+  route?: ShopRoute | null;
+  /**
    * Rentcar 상세 “홈페이지” QR — from shop `homepage`. Absent when the shop
    * has no homepage; the plate is then omitted.
    */

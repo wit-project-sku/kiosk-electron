@@ -25,6 +25,21 @@ export interface SpotDetailData {
   rating: string;
   instagram: string;
   blog: string;
+  /**
+   * 인사동 리뉴얼 7516:74320 / 74334 — "<이 키오스크>에서 1.6 km" plus the 도보 pill.
+   * Both come from the shop's witteria `route`; omitted together when the row
+   * carries none, so no placeholder distance is ever shown.
+   */
+  originName?: string;
+  distanceKm?: number | null;
+  walkMin?: number | null;
+  /**
+   * 7537:81399 — the 145px code the frame drops on the right of the 도보 pill.
+   * Same direction-fe "save to phone" link 제주 puts in its 가는 방법 panel; the
+   * page builds it (it needs the language) and passes the URL down so this card
+   * stays presentational. Null when the row carries no shopId.
+   */
+  saveQrUrl?: string | null;
 }
 
 /** Real QR for the shop's Naver place link (falls back to the static art). */
@@ -44,7 +59,14 @@ function RatingStar({ filled }: { filled: boolean }): JSX.Element {
  * Shared place-detail card (gallery + info + QR + reviews) using the AI 검색상세
  * design and icons. Driven by props so every 상세 page looks identical.
  */
-export function SpotDetailCard({ data }: { data: SpotDetailData }): JSX.Element {
+export function SpotDetailCard({
+  data,
+  className,
+}: {
+  data: SpotDetailData;
+  /** Extra class on the positioned shell, so a page can shift the card. */
+  className?: string;
+}): JSX.Element {
   // Real photos drive the lightbox; the grid is padded to 4 with the no-image
   // icon like the cards so the 2×2 layout always holds its shape.
   const realPhotos = (data.photos ?? []).filter(Boolean);
@@ -63,9 +85,18 @@ export function SpotDetailCard({ data }: { data: SpotDetailData }): JSX.Element 
   const ratingValue = parseFloat(str(data.rating));
   const hasRating = Number.isFinite(ratingValue) && ratingValue > 0;
   const filledStars = Math.round(ratingValue);
+  /* 7516:74320 — only drawn when the route actually carries a distance. */
+  const km = typeof data.distanceKm === 'number' && data.distanceKm > 0 ? data.distanceKm : null;
+  const walkMin = typeof data.walkMin === 'number' && data.walkMin > 0 ? Math.round(data.walkMin) : null;
+  /* 7516:74354 adds Instagram and blog counts beside 네이버. Insadong rows carry
+     neither today (the shops API has naverRating/naverLink and nothing else), so
+     each is gated on its own field rather than printing the frame's dummy
+     "#127K" / "블로그 리뷰 1,502개". */
+  const igText = str(data.instagram).trim();
+  const blogText = /^https?:\/\//i.test(str(data.blog)) ? '' : str(data.blog).trim();
 
   return (
-    <div className={styles.content}>
+    <div className={className ? `${styles.content} ${className}` : styles.content}>
       <div className={styles.card}>
         {/* Title + gallery */}
         <div className={styles.head}>
@@ -139,9 +170,40 @@ export function SpotDetailCard({ data }: { data: SpotDetailData }): JSX.Element 
         <p className={styles.desc}>{data.description}</p>
         <p className={styles.descTags}>{data.tags}</p>
 
+        {/* 거리 + 도보 — the renewal's new pair, both route-driven. */}
+        {km !== null && (
+          <>
+            <div className={styles.divider} />
+            <p className={styles.distance}>
+              {data.originName ? `${data.originName}에서 ` : ''}
+              {km.toFixed(1)} km
+            </p>
+            {walkMin !== null && (
+              <div className={styles.walkPill}>
+                <span className={styles.walkGlyph} aria-hidden="true">
+                  🚶
+                </span>
+                <span className={styles.walkMode}>도보</span>
+                <span className={styles.walkTime}>약 {walkMin}분</span>
+                {data.saveQrUrl && (
+                  <span className={styles.walkQr}>
+                    <QRCodeSVG
+                      value={data.saveQrUrl}
+                      level="L"
+                      bgColor="#ffffff"
+                      fgColor="#000000"
+                      style={{ width: '100%', height: '100%', display: 'block' }}
+                    />
+                  </span>
+                )}
+              </div>
+            )}
+          </>
+        )}
+
         <div className={styles.divider} />
 
-        {/* Naver rating only — stars reflect the real rating; hidden when none. */}
+        {/* 네이버 · 인스타그램 · 블로그 — each shown only where the row has data. */}
         <div className={styles.ratings}>
           <div className={styles.ratingItem}>
             <img className={styles.ratingIcon} src={iconNaver} alt="" draggable={false} />
@@ -156,6 +218,22 @@ export function SpotDetailCard({ data }: { data: SpotDetailData }): JSX.Element 
               </>
             )}
           </div>
+          {igText && (
+            <>
+              <span className={styles.ratingSepLine} />
+              <div className={styles.ratingItem}>
+                <span className={styles.ratingText}>{igText}</span>
+              </div>
+            </>
+          )}
+          {blogText && (
+            <>
+              <span className={styles.ratingSepLine} />
+              <div className={styles.ratingItem}>
+                <span className={styles.ratingText}>{blogText}</span>
+              </div>
+            </>
+          )}
         </div>
       </div>
 

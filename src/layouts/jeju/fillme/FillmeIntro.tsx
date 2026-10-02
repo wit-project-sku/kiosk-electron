@@ -1,6 +1,8 @@
 import type { JSX } from 'react';
 import { Icon } from './Icon';
 import { fillmeArtUrl } from '@renderer/assets/fillme';
+import { useLang } from '@renderer/lib/i18n';
+import { tx, tLines } from './text';
 import ui from './fillmeUi.module.css';
 import styles from './FillmeIntro.module.css';
 
@@ -11,9 +13,10 @@ import styles from './FillmeIntro.module.css';
  * (결과 그림은 연주황 원까지 한 장).
  */
 const STEPS: { art: 'camera' | 'intro-user' | 'intro-result'; title: string; caption: string }[] = [
-  { art: 'camera', title: '손톱 촬영', caption: '왼손, 오른손 순서로\n자동으로 촬영돼요' },
-  { art: 'intro-user', title: '정보 입력', caption: '나이·키·몸무게·성별을\n입력해요' },
-  { art: 'intro-result', title: '결과 확인', caption: '건강 분석과\n추천 영양제를 알려줘요' },
+  /* title·caption 은 이제 시트 KEY 다 — 그림만 여기 남는다. */
+  { art: 'camera', title: 'Fillme_text005', caption: 'Fillme_text006' },
+  { art: 'intro-user', title: 'Fillme_text007', caption: 'Fillme_text008' },
+  { art: 'intro-result', title: 'Fillme_text009', caption: 'Fillme_text010' },
 ];
 
 interface Props {
@@ -22,6 +25,7 @@ interface Props {
 
 /** 시작 화면 — Figma 7212:66398. 좌표와 시안과 다른 곳은 스타일시트 머리말 참고. */
 export function FillmeIntro({ onStart }: Props): JSX.Element {
+  const lang = useLang();
   const hand = fillmeArtUrl('hand-scan');
   return (
     <div className={styles.root}>
@@ -29,20 +33,27 @@ export function FillmeIntro({ onStart }: Props): JSX.Element {
       <section className={styles.hero}>
         <div className={styles.heroText}>
           <div className={styles.badges}>
-            <span className={styles.badge}>AI 손톱 건강분석</span>
+            <span className={styles.badge}>{tx('Fillme_text001', lang)}</span>
             <span className={styles.with}>with</span>
             {/* 시안에서도 로고 그림이 아니라 글자다 (ExtraBold 50 #2644da). */}
             <span className={styles.brand}>Fillme</span>
           </div>
+          {/* 시안의 <em>영양 상태</em> 강조는 한국어 문장 속 한 낱말이라 여덟 개
+              언어로 따라갈 수 없다 — 시트는 줄만 나눠 준다. 줄바꿈 자리도 시트가
+              정한다(셀 안 줄바꿈은 U+2028 로 실린다 — text.ts 참고). */}
           <h2 className={styles.title}>
-            손톱 사진으로
-            <br />
-            <em>영양 상태</em>를 확인해요
+            {tLines('Fillme_text002', lang).map((line, i) => (
+              <span key={i} className={styles.line}>
+                {line}
+              </span>
+            ))}
           </h2>
           <p className={styles.desc}>
-            양손 손톱을 촬영하면 AI가 분석해
-            <br />
-            나에게 맞는 영양제를 추천해 드려요
+            {tLines('Fillme_text003', lang).map((line, i) => (
+              <span key={i} className={styles.line}>
+                {line}
+              </span>
+            ))}
           </p>
         </div>
         <div className={styles.art} aria-hidden="true">
@@ -52,12 +63,12 @@ export function FillmeIntro({ onStart }: Props): JSX.Element {
       </section>
 
       {/* ── 진행순서 (7334:85451) ── */}
-      <p className={`${ui.sectionLabel} ${styles.stepsLabel}`}>진행순서</p>
+      <p className={`${ui.sectionLabel} ${styles.stepsLabel}`}>{tx('Fillme_text004', lang)}</p>
       <ol className={styles.steps}>
         {STEPS.map((s, i) => {
           const art = s.art === 'camera' ? null : fillmeArtUrl(s.art);
           return (
-            <li key={s.title} className={styles.step}>
+            <li key={s.art} className={styles.step}>
               <span className={styles.stepNo}>{i + 1}</span>
               <div className={styles.stepCard}>
                 {s.art === 'camera' ? (
@@ -72,8 +83,14 @@ export function FillmeIntro({ onStart }: Props): JSX.Element {
                   </span>
                 )}
                 <div className={styles.stepText}>
-                  <p className={styles.stepTitle}>{s.title}</p>
-                  <p className={styles.stepCaption}>{s.caption}</p>
+                  <p className={styles.stepTitle}>{tx(s.title, lang)}</p>
+                  <p className={styles.stepCaption}>
+                    {tLines(s.caption, lang).map((line, j) => (
+                      <span key={j} className={styles.line}>
+                        {line}
+                      </span>
+                    ))}
+                  </p>
                 </div>
               </div>
             </li>
@@ -82,7 +99,7 @@ export function FillmeIntro({ onStart }: Props): JSX.Element {
       </ol>
 
       <button type="button" className={`${ui.cta} ${styles.cta}`} onClick={onStart}>
-        시작하기
+        {tx('Fillme_text011', lang)}
       </button>
     </div>
   );

@@ -13,6 +13,7 @@ import { HwaseongBanner } from './HwaseongBanner';
 import { HwaseongLeftNav } from './HwaseongLeftNav';
 import headerStyles from './HwaseongHeader.module.css';
 import styles from './HwaseongTaxFree.module.css';
+import { useFitText } from '@layouts/components/fitText';
 
 type TabId = 'refund' | 'intro' | 'merchant';
 /** Bottom tab labels, in tab order (refund / intro / merchant). Sourced from
@@ -82,6 +83,10 @@ interface Props {
 export function HwaseongTaxFree({ controller }: Props): JSX.Element {
   const goHome = (): void => controller.navigate('home', 'Back');
   const lang = useLanguageStore((s) => s.currentLanguage);
+  /* Korean tab names fit the tab on one line; the other languages do not.
+     See "Other languages" in the CSS. */
+  const wide = lang !== 'ko';
+  const tabsRef = useRef<HTMLDivElement>(null);
   const [activeTab, setActiveTab] = useState<TabId>('refund');
   const rootRef = useRef<HTMLDivElement>(null);
   const subtitleRef = useRef<HTMLDivElement>(null);
@@ -119,6 +124,8 @@ export function HwaseongTaxFree({ controller }: Props): JSX.Element {
 
   const bgSrc = hwaseongIconUrl('bg');
 
+  useFitText(tabsRef, styles.tab, wide, 0.72, lang);
+
   return (
     <div ref={rootRef} className={styles.root}>
       {bgSrc && <img src={bgSrc} alt="" className={styles.bgImage} draggable={false} />}
@@ -152,12 +159,12 @@ export function HwaseongTaxFree({ controller }: Props): JSX.Element {
         {activeTab === 'merchant' && <MerchantTab lang={lang} />}
       </div>
 
-      <div className={styles.tabs}>
+      <div ref={tabsRef} className={styles.tabs}>
         {(['refund', 'intro', 'merchant'] as TabId[]).map((tab, i) => (
           <button
             key={tab}
             type="button"
-            className={`${styles.tab} ${activeTab === tab ? styles.tabSelected : ''}`}
+            className={`${styles.tab} ${wide ? styles.tabLong : ''} ${activeTab === tab ? styles.tabSelected : ''}`}
             onClick={() => {
               trackEvent({ name: 'button_clicked', payload: { screen: 'taxfree', tab, kiosk: 'W005' } });
               setActiveTab(tab);

@@ -10,17 +10,17 @@
 
 .results {
   position: absolute;
-  top: 699px;
+  top: calc(700px + var(--header-push, 0px) + var(--insa-header-shift, 0px));
   left: 0;
   right: 0;
-  bottom: 573px;
+  bottom: 0;
   box-sizing: border-box;
   display: flex;
   flex-direction: column;
-  gap: 60px;
+  gap: 100px;
   overflow-y: auto;
   overflow-x: hidden;
-  padding: 0 170px;
+  padding: 0 170px 80px;
 }
 
 .results::-webkit-scrollbar {
@@ -34,6 +34,20 @@
   background: transparent;
 }
 
+/* ♿ — the three tabs leave the column and sit at the foot, same y as the
+   Jeju list/hello tab rows. The card keeps the space above them. */
+.results.resultsFoot {
+  bottom: 426px;
+}
+
+.tabsFoot {
+  position: absolute;
+  left: 170px;
+  top: 3434px;
+  z-index: 4;
+  width: 1820px;
+}
+
 /* Category tabs (3, equal width) */
 .tabs {
   flex: none;
@@ -44,29 +58,32 @@
 }
 
 .tab {
-  width: 579px;
+  width: 580px;
   height: 170px;
   box-sizing: border-box;
   display: flex;
   align-items: center;
   justify-content: center;
+  padding: 0;
   background: #ffffff;
-  border: 5px solid #e8e8e8;
+  border: none;
   border-radius: 42.9px;
   font-family: var(--kiosk-font, sans-serif);
   font-weight: 500;
   font-size: 50px;
+  line-height: 1;
   color: #999999;
   cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
 }
 
-.tabSelected {
-  background: var(--kiosk-secondary);
+.tab.tabSelected {
+  background: var(--kiosk-primary);
   font-weight: 700;
-  color: var(--kiosk-primary);
+  color: #ffffff;
 }
 
-/* Big content card */
+/* Big content card — 1820 wide, radius 42.9, padding 100×40, gap 60. */
 .card {
   flex: none;
   width: 1820px;
@@ -75,22 +92,34 @@
   flex-direction: column;
   align-items: center;
   gap: 60px;
-  /* Trimmed top + bottom padding so the tall 1628 map fits with clear space
-     above the bottom banner (no scrollbar). */
-  padding: 55px 40px 45px;
+  padding: 100px 40px;
   background: #ffffff;
-  border: 5px solid #e8e8e8;
+  border: none;
   border-radius: 42.9px;
+}
+
+.cardShadow {
   box-shadow: 0 21.45px 21.45px rgba(143, 147, 157, 0.1);
+}
+
+/* Title + subway map sit 45px apart; the card gap (60) starts under the map. */
+.transitTop {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 45px;
+  width: 1740px;
 }
 
 /* Figma: 지하철/버스 title sits at the LEFT of the 1740 content row. */
 .cardTitle {
   margin: 0;
   width: 1740px;
+  height: 80px;
   font-family: var(--kiosk-font, sans-serif);
   font-weight: 700;
   font-size: 80px;
+  line-height: 1;
   color: #333333;
   text-align: left;
 }
@@ -111,8 +140,12 @@
 .legendRow {
   display: flex;
   align-items: flex-start;
-  gap: 42.9px;
+  gap: 40px;
   width: 1740px;
+}
+
+.legendRowBus {
+  gap: 42.9px;
 }
 
 .marker {
@@ -142,7 +175,13 @@
   font-family: var(--kiosk-font, sans-serif);
   font-weight: 500;
   font-size: 40px;
+  line-height: 1;
   color: #333333;
+}
+
+.legendItemBus {
+  font-weight: 400;
+  line-height: 1.2;
 }
 
 .badge {
@@ -179,7 +218,6 @@
   flex: none;
   border-radius: 42.9px;
   overflow: hidden;
-  box-shadow: 0 0 15.015px rgba(0, 0, 0, 0.15);
 }
 
 .appIcon img {
@@ -216,23 +254,49 @@
   gap: 42.9px;
 }
 
-/* QR image already includes the store glyph / IOS label baked in. */
-.qrImg {
-  width: 246px;
-  height: auto;
+/* The art carries the rounded plate, the green frame and the store mark; the
+   CODE itself is drawn live on top — see .qrCode. */
+.qrTile {
+  position: relative;
+  display: block;
+  width: 215px;
   flex: none;
+}
+
+.qrImg {
+  width: 100%;
+  height: auto;
+  display: block;
   object-fit: contain;
+}
+
+/* The live code, laid exactly over the art's green frame.
+   Measured off qr-android.png (246×299) rather than eyeballed: the frame's
+   INNER area — inside its 4px green border — is x 54…190, y 54…190, so as
+   fractions of the image that is 54/246 and 54/299 for the origin and 137/246
+   by 137/299 for the size. Percentages (not px) because the tile is 215 wide
+   here and the same art is free to be sized differently elsewhere.
+   The box is opaque white, so it fully covers the baked-in pattern beneath. */
+.qrCode {
+  position: absolute;
+  left: 21.95%;
+  top: 18.06%;
+  width: 55.69%;
+  height: 45.82%;
+  background: #ffffff;
 }
 
 /* Single composed image of the four app screenshots (Figma Frame 1102, 1740×558). */
 .parkingScreens {
   width: 1740px;
+  height: 558px;
   flex: none;
 }
 
 .parkingScreens img {
   width: 100%;
-  height: auto;
+  height: 100%;
+  object-fit: contain;
   display: block;
 }
 
@@ -285,7 +349,7 @@
   font-size: 60px;
   line-height: 1.5;
   color: #333333;
-  text-align: center;
+  text-align: left;
 }
 
 .serviceList {
@@ -366,22 +430,21 @@
   line-height: 1.5;
 }
 
-.banner {
-  position: absolute;
-  left: 0;
-  bottom: 0;
-  width: 2160px;
-  height: 573px;
-  padding: 0;
-  border: none;
-  background: none;
-  cursor: pointer;
-  overflow: hidden;
-}
-
-.banner img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  display: block;
+/* ── Other languages ──────────────────────────────────────────────────────
+ * Reached only through a class the TSX adds when lang !== 'ko' — the Korean
+ * screen is untouched.
+ *
+ * The 579×170 tab holds 지하철 / 버스 / 공항버스 on one 50px line. The same tab
+ * has to hold "Transportation", "Автобус до аэропорта" and
+ * "ข้อมูลการเดินทาง" — on one line those run past the tab and into the one
+ * beside it. The label wraps inside the tab instead, and the row shrinks as
+ * one if the longest still does not fit (`--fit`, useFitText — never below
+ * 0.72 → 36px). Nothing is clipped. */
+.tabLong {
+  white-space: normal;
+  word-break: keep-all;
+  overflow-wrap: anywhere;
+  padding: 0 20px;
+  font-size: calc(50px * var(--fit, 1));
+  line-height: 1.12;
 }

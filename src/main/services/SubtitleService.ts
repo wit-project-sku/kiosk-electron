@@ -1,11 +1,17 @@
 import { createLogger } from '@main/core/logger';
-import { getGoogleSyncConfig } from '@main/core/GoogleSyncConfig';
+import { getServiceAccount, serviceAccountProblem } from '@main/core/GoogleSyncConfig';
 import { getKioskLocation } from '@shared/config/kioskLocations';
 import type { VideoEntry, SubtitleApiResponse } from '@shared/types/subtitle';
 import { transformSubtitleResponse } from '@shared/types/subtitle';
 import type { KioskService } from './KioskService';
 import type { LocalCacheService } from './LocalCacheService';
-import { JEJU_SUBTITLE_TABS, parseJejuSubtitleSheet } from './JejuSubtitleSheet';
+import {
+  INSA_PARSE,
+  INSA_SUBTITLE_LAYOUTS,
+  INSA_SUBTITLE_TAB,
+  JEJU_SUBTITLE_TABS,
+  parseJejuSubtitleSheet,
+} from './JejuSubtitleSheet';
 import { SheetsClient } from './sync/google/SheetsClient';
 import { contentSheetIdFor } from './sync/GoogleSheetsSyncTransport';
 
@@ -38,6 +44,15 @@ type SubtitleSource = 'api' | 'sheet';
  * content spreadsheet instead (see JejuSubtitleSheet). The API still wins the
  * moment it has rows — nothing needs switching off.
  *
+ * ── 인사동: the sheet is the source ─────────────────────────────────────────
+ * The reverse order. The CMS still names the pre-refresh footage
+ * (`M=hanbok01=7.2-02=…`), none of which is on the kiosks now, so its rows would
+ * resolve no clip at all. VideoSubtitle_Insa_v2 is the ONLY source for now: its
+ * `파일명 (개발)` names (already `…=FIN`) are what the files on disk are called
+ * (see INSA_PARSE). If the sheet cannot be read the last sheet data is kept —
+ * the API is never consulted, so a network blip cannot swap working rows for
+ * names that match nothing.
+ *
  * An UNREACHABLE API is a different case from an empty one: if what is cached
  * came from the API, it is kept rather than replaced by the sheet, so a network
  * blip can never swap real CMS data for the sheet's.
@@ -57,11 +72,16 @@ export class SubtitleService {
   start(): void {
     const cached = this.cache.get(CACHE_KEY);
     const data = cached?.data as { entries?: VideoEntry[]; source?: SubtitleSource } | undefined;
-    if (data && Array.isArray(data.entries) && data.entries.length > 0) {
+    // A cache written before the sheet fallback existed carries no source; it
+    // can only have come from the API.
+    const source = data?.source ?? 'api';
+    // 인사동 never serves API rows (they name footage no longer on the kiosks):
+    // served while the sheet was unreadable, 4 of them matched a file and the
+    // display played just those few clips, uncaptioned, on every screen.
+    const insa = INSA_SUBTITLE_LAYOUTS.has(getKioskLocation(this.kiosk.getConfig().kioskId).layout);
+    if (data && Array.isArray(data.entries) && data.entries.length > 0 && !(insa && source === 'api')) {
       this.entries = data.entries;
-      // A cache written before the sheet fallback existed carries no source; it
-      // can only have come from the API.
-      this.source = data.source ?? 'api';
+      this.source = source;
     }
     this.refreshPromise = this.refresh();
   }
@@ -76,14 +96,28 @@ export class SubtitleService {
     return this.entries;
   }
 
-  private endpoint(): string {
+  /** `null` for a venue with no CMS content (KADA) — there is nothing to ask for. */
+  private endpoint(): string | null {
+    const region = this.kiosk.region();
+    if (!region) return null;
     const base = (process.env['WITTERIA_API_BASE'] ?? DEFAULT_API_BASE).replace(/\/+$/, '');
-    // Prefer the per-machine provisioned `shopApiKioskId` from electron-store
-    // (set by provision-kiosk.ps1), falling back to the W-code number.
-    return `${base}/api/kiosks/${this.kiosk.kioskNum()}/subtitles`;
+    return `${base}/api/kiosks/${region}/subtitles/v2`;
   }
 
   private async refresh(): Promise<void> {
+    if (INSA_SUBTITLE_LAYOUTS.has(getKioskLocation(this.kiosk.getConfig().kioskId).layout)) {
+      const fromSheet = await this.fetchSheet(false);
+      if (fromSheet) {
+        this.store(fromSheet, 'sheet');
+        return;
+      }
+      // Sheet unavailable: keep what the sheet gave us last time, if anything. The
+      // API is deliberately NOT consulted for 인사동 for now (its rows name footage
+      // that is no longer on the kiosks); with nothing cached the display simply
+      // shows the generic attract wall until the sheet is next reachable.
+      log.warn('Insadong subtitle sheet unavailable; not falling back to the API');
+      return;
+    }
     const fromApi = await this.fetchApi();
     if (fromApi && fromApi.length > 0) {
       this.store(fromApi, 'api');
@@ -99,6 +133,7 @@ export class SubtitleService {
   /** The API's entries: `[]` when it answered with no rows, `null` when it could not be reached or read. */
   private async fetchApi(): Promise<VideoEntry[] | null> {
     const url = this.endpoint();
+    if (!url) return null;
     log.info('Fetching subtitles from API', { url });
     try {
       const res = await fetch(url);
@@ -117,27 +152,36 @@ export class SubtitleService {
   /** The 제주 VideoSubtitle tab, or `null` when it does not apply or yields nothing. */
   private async fetchSheet(apiUnreachable: boolean): Promise<VideoEntry[] | null> {
     const layout = getKioskLocation(this.kiosk.getConfig().kioskId).layout;
-    const tab = JEJU_SUBTITLE_TABS[layout];
-    // Not a 제주 kiosk: keep the cache exactly as before.
+    const insa = INSA_SUBTITLE_LAYOUTS.has(layout);
+    const tab = insa ? INSA_SUBTITLE_TAB : JEJU_SUBTITLE_TABS[layout];
+    // Neither 인사동 nor 제주: keep the cache exactly as before.
     if (!tab) return null;
     // Offline with real CMS rows cached — never trade those for the sheet's.
     if (apiUnreachable && this.source === 'api') return null;
 
-    const config = getGoogleSyncConfig();
+    // The service account alone decides this, NOT getGoogleSyncConfig(): that
+    // also demands GOOGLE_SHEETS_ID, which is only the night-sync on/off switch.
+    // A beta build whose .env left it empty read no sheet at all, and every
+    // 인사동 kiosk on it showed uncaptioned footage.
+    const serviceAccount = getServiceAccount();
     const sheetId = contentSheetIdFor(layout);
-    if (!config || !sheetId) {
-      log.warn('No Google Sheets access on this machine; 제주 subtitle sheet fallback skipped', { tab });
+    if (!serviceAccount || !sheetId) {
+      log.warn('No Google Sheets access on this machine; subtitle sheet skipped', {
+        tab,
+        reason: serviceAccountProblem() ?? 'no content sheet for this layout',
+      });
       return null;
     }
     try {
       const range = `'${tab.replace(/'/g, "''")}'!A:AZ`;
-      const rows = await new SheetsClient({ ...config, sheetId }).getValues(range);
-      const { entries, noVideo } = parseJejuSubtitleSheet(rows);
+      const client = new SheetsClient({ sheetId, serviceAccount, contentRange: '', analyticsTab: '' });
+      const rows = await client.getValues(range);
+      const { entries, noVideo } = parseJejuSubtitleSheet(rows, insa ? INSA_PARSE : {});
       if (entries.length === 0) {
         log.warn('Subtitle sheet has no rows with a video file name', { tab, noVideo });
         return null;
       }
-      log.info('Subtitles loaded from the Google Sheet (the API has none)', {
+      log.info(insa ? 'Subtitles loaded from the Google Sheet' : 'Subtitles loaded from the Google Sheet (the API has none)', {
         tab,
         count: entries.length,
         noVideo,

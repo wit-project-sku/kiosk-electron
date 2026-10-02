@@ -183,12 +183,25 @@
   align-items: center;
   justify-content: flex-start;
   gap: 40px;
+}
+
+/* The chips' own track — the band holds it and the ← → pair (SwipeNav), and
+   `min-width: 0` is what lets it give the pair its 191 back instead of
+   overflowing the 1820 column. */
+.subcatList {
+  flex: 1 1 auto;
+  min-width: 0;
+  height: 120px;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 40px;
   overflow-x: auto;
   overflow-y: hidden;
   scrollbar-width: none;
 }
 
-.subcats::-webkit-scrollbar {
+.subcatList::-webkit-scrollbar {
   display: none;
 }
 

@@ -1,5 +1,7 @@
 import type { JSX } from 'react';
 import { FIELDS, FIELD_ORDER, type FieldKey } from './copy';
+import { useLang } from '@renderer/lib/i18n';
+import { tx } from './text';
 import { jejuIconUrl } from '@renderer/assets/icons/jeju';
 import styles from './Keypad.module.css';
 
@@ -20,6 +22,7 @@ const DIGITS = ['1', '2', '3', '4', '5', '6', '7', '8', '9'];
  * 닫는다 — JejuFillme 의 nextField). 띠 밖을 누르면 그냥 닫힌다.
  */
 export function Keypad({ field, onKey, onNext, onClose }: Props): JSX.Element {
+  const lang = useLang();
   const f = FIELDS[field];
   const isLast = FIELD_ORDER.indexOf(field) === FIELD_ORDER.length - 1;
   return (
@@ -30,7 +33,7 @@ export function Keypad({ field, onKey, onNext, onClose }: Props): JSX.Element {
         className={styles.pad}
         onPointerDown={(e) => e.preventDefault()}
         role="dialog"
-        aria-label={`${f.label} 입력`}
+        aria-label={tx(f.label, lang)}
       >
         <div className={styles.keys}>
           {DIGITS.map((d) => (
@@ -51,7 +54,7 @@ export function Keypad({ field, onKey, onNext, onClose }: Props): JSX.Element {
             onClick={onNext}
             aria-label={isLast ? '입력 마치기' : '다음 칸으로'}
           >
-            다음
+            {tx('Fillme_text037', lang)}
           </button>
         </div>
       </div>

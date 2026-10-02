@@ -1,8 +1,29 @@
-/* Sub-page left nav — home + back, 85×85, gap 35. */
+/* Sub-page left nav — home + back + ♿, 85×85, gap 35 (120px pitch), so the
+ * stack is 325 tall and its buttons sit at 2043 / 2163 / 2283.
+ *
+ * The rail USED to start at 21 / 1995. That came from the older frames, which
+ * drew only home and back: ♿ was appended below them at 2235 rather than
+ * re-centring, so the two buttons every 인사동 frame did draw stayed exactly
+ * where they were drawn. The frames have since been redrawn with all THREE
+ * buttons, and they re-centre the stack — `R>좌측네비-인사`, 85×325, lands at
+ * x48–50 y2043 in every one of them:
+ *   · 7553:50515 / 7553:50523  환율 실시간 · 계산기 (standing)   x50 y2043
+ *   · 7647:51618               언어선택 ♿ (7574:70736)          x48 y2043
+ *   · 7647:51632               검색 상세 ♿ (7574:71342)         x48 y2043
+ * So the rail was 48px high and 27px left of where it is drawn, on every page.
+ * x48 over the standing frames' x50: the two ♿ frames enumerate all three
+ * buttons as their own children rather than as one instance, and the 2px is
+ * inside export rounding either way.
+ *
+ * y is the same in BOTH modes — ♿ does not move this rail, it only re-stacks
+ * what is above it. 언어선택 (7574:70736) is the reference: a 145.759 mode bar,
+ * the 573 promo flush under it, header and body dropped by that sum, rail
+ * untouched at 2043.
+ */
 .leftNav {
   position: absolute;
-  left: 21px;
-  top: 1995px;
+  left: 48px;
+  top: 2043px;
   display: flex;
   flex-direction: column;
   gap: 35px;
@@ -19,7 +40,9 @@
   -webkit-tap-highlight-color: transparent;
 }
 
-.leftNavBtn img {
+.leftNavBtn img,
+.leftNavBtn svg {
+  display: block;
   width: 100%;
   height: 100%;
   object-fit: contain;

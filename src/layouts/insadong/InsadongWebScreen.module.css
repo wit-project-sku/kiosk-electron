@@ -11,10 +11,10 @@
 /* Body = the area between the 700px header and the 573px banner. */
 .body {
   position: absolute;
-  top: 699px;
+  top: calc(699px + var(--header-push, 0px) + var(--insa-header-shift, 0px));
   left: 170px;
   width: 1820px;
-  bottom: 573px;
+  bottom: var(--insa-banner-reserve, 573px);
   border-radius: 42.9px;
   overflow: hidden;
   background: #ffffff;
@@ -51,6 +51,7 @@
 .banner {
   position: absolute;
   left: 0;
+  top: var(--insa-banner-top, auto);
   bottom: 0;
   width: 2160px;
   height: 573px;

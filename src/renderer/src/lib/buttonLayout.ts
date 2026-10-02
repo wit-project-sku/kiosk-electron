@@ -205,11 +205,25 @@ const DONATION_BUTTON_TYPE = '기부';
  * Until the layout is cached — first boot, or offline — the API says nothing, and
  * we fall back to the authored `hasDonation` flag rather than guessing `false`,
  * which would flash the wrong tile on every cold start.
+ *
+ * ★ A CARD TERMINAL IS REQUIRED EITHER WAY (2026-09-29). 기부 ends in a payment
+ * on the TL-3800, so a kiosk without one cannot finish the flow — a visitor gets
+ * all the way to the amount and then cannot pay. 인사동 is exactly this case:
+ * W001 북인사마당 and W002 인사동쉼터 are authored `hasDonation: true` but have
+ * NO terminal (see the CAUTION on KIOSK_LOCATIONS), so the cold-start fallback
+ * alone would offer them a tile that dead-ends. Only W003 남인사마당 has one.
+ *
+ * This deliberately also overrides the CMS. The CMS and the hardware agree today
+ * (기부 rows exist for kiosks 3/4/5, all of which have a terminal), so the guard
+ * changes nothing now — it exists so that adding a 기부 row to W001 in the CMS
+ * cannot put an unusable tile on a kiosk that physically cannot take payment.
  */
 export function useHasDonationTile(kioskId: string): boolean {
   const buttons = useButtonStore((s) => s.buttons);
   return useMemo(() => {
-    if (buttons.length === 0) return getKioskLocation(kioskId).hasDonation;
+    const location = getKioskLocation(kioskId);
+    if (!location.hasCardTerminal) return false;
+    if (buttons.length === 0) return location.hasDonation;
     return buttons.some((b) => b.buttonType === DONATION_BUTTON_TYPE);
   }, [buttons, kioskId]);
 }

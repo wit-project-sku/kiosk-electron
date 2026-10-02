@@ -1,10 +1,11 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { QRCodeSVG } from 'qrcode.react';
 import type { KioskController } from '@renderer/hooks/useKioskController';
 import { osanIconUrl } from '@renderer/assets/icons/osan';
 import { useDetailStore } from '@renderer/store/detailStore';
 import { useShopStore } from '@renderer/store/shopStore';
 import { useLang } from '@renderer/lib/i18n';
+import { useFitText } from '@layouts/components/fitText';
 import {
   shopAddress,
   shopDescription,
@@ -39,6 +40,12 @@ export function OsanHelp({ controller, initialTab }: OsanHelpProps): JSX.Element
   const shops = useShopStore((s) => s.shops);
   const setDetail = useDetailStore((s) => s.setItem);
   const [selected, setSelected] = useState('');
+
+  /* Korean facility names fit the 580px box on one line; every other language
+     runs longer ("Пункт обмена валют"). There the label wraps and the whole set
+     shrinks together if it still overflows — see "Other languages" in the CSS. */
+  const wide = lang !== 'ko';
+  const catsRef = useRef<HTMLDivElement>(null);
 
   const baseShops = useMemo(() => shopsForBase(shops, BASE_CATEGORY), [shops]);
 
@@ -93,6 +100,8 @@ export function OsanHelp({ controller, initialTab }: OsanHelpProps): JSX.Element
     controller.navigate('detail', "도와줘 '정이' 상세");
   };
 
+  useFitText(catsRef, styles.cat, wide, 0.72, tabs.map((x) => x.label).join('|'));
+
   return (
     <>
       {osanIconUrl('bg') && <img className={styles.bg} src={osanIconUrl('bg')} alt="" draggable={false} />}
@@ -100,12 +109,12 @@ export function OsanHelp({ controller, initialTab }: OsanHelpProps): JSX.Element
       <OsanHeader title="도와줘 '정이'" onHome={goHome} />
 
       <div className={styles.results}>
-        <div className={styles.cats}>
+        <div ref={catsRef} className={styles.cats}>
           {tabs.map((tab) => (
             <button
               key={tab.kr}
               type="button"
-              className={`${styles.cat} ${tab.kr === activeKr ? styles.catSel : ''}`}
+              className={`${styles.cat} ${wide ? styles.catLong : ''} ${tab.kr === activeKr ? styles.catSel : ''}`}
               onClick={() => setSelected(tab.kr)}
             >
               {tab.label}

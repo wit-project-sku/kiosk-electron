@@ -20,7 +20,16 @@ export interface DisplayClip {
   url: string;
   subtitle: string;
   label: string;
+  /** The model wears the PARK SUL NYEO hanbok — the wall shows the 박술녀 logo. */
+  hanbok: boolean;
 }
+
+const toClip = (e: VideoEntry, url: string, lang: Lang): DisplayClip => ({
+  url,
+  subtitle: pickText(e.subtitle, lang),
+  label: pickText(e.label, lang),
+  hanbok: e.hanbok === true,
+});
 
 /** Normalize a file stem so API names tolerant-match the real files. */
 const norm = (s: string): string => s.toLowerCase().replace(/\.mp4$/, '').replace(/[^a-z0-9]/g, '');
@@ -82,9 +91,18 @@ export function videoUrlsForSet(set: VideoSet): string[] {
   return FILES_BY_SET[set].map(mediaUrl);
 }
 
+/**
+ * The file a sheet stem names, within one set — by exact name (`norm` only makes
+ * the comparison case- and punctuation-insensitive). The sheet's `파일명` is the
+ * file's name; nothing is added to or taken off it.
+ */
+function findFile(stem: string, set: VideoSet): VideoFile | undefined {
+  return FILE_BY_NORM[set].get(norm(stem));
+}
+
 /** Resolve a sheet file stem to a media:// URL within the kiosk's video set. */
 function resolveUrl(stem: string, set: VideoSet): string | null {
-  const file = FILE_BY_NORM[set].get(norm(stem));
+  const file = findFile(stem, set);
   return file ? mediaUrl(file) : null;
 }
 
@@ -179,12 +197,22 @@ export function initSubtitles(entries: VideoEntry[], kioskId?: KioskId): void {
   const matched: VideoEntry[] = [];
   const dropped: string[] = [];
 
+  let real = 0;
   for (const e of entries) {
+    // A row the sheet marks "no video" has no file to look for; it is kept so
+    // `Key#n` positions and "keep the current clip" both work (see noVideo).
+    if (e.noVideo) {
+      matched.push(e);
+      continue;
+    }
     // An entry may name the ONE set it belongs to (older SQLite-cached rows
     // from the retired sheet table carried this; the API itself never does).
     // Silently skip another venue's row: not a misconfiguration, so no warn.
     if (e.set && e.set !== set) continue;
-    if (FILE_BY_NORM[set].has(norm(e.file))) matched.push(e);
+    if (findFile(e.file, set)) {
+      matched.push(e);
+      real += 1;
+    }
     else dropped.push(`${e.key}=${e.file}`);
   }
 
@@ -208,20 +236,22 @@ export function initSubtitles(entries: VideoEntry[], kioskId?: KioskId): void {
   // follow the touch screen, so it reads as "subtitles are broken and the video
   // is stuck" rather than "these file names don't line up". Print both lists
   // side by side — the answer is always visible in the first two rows.
-  if (matched.length === 0 && FILES_BY_SET[set].length > 0) {
+  // The lists go INTO the message string: main.log (via spyRendererConsole)
+  // prints an object argument as "[object Object]", which hid exactly the two
+  // lists this line exists to show.
+  if (real === 0 && FILES_BY_SET[set].length > 0) {
+    const expected = entries.filter((e) => !e.noVideo).slice(0, 10).map((e) => `${e.file}.mp4`);
+    const onDisk = FILES_BY_SET[set].slice(0, 10).map((f) => `${f.folder}/${f.name}`);
     console.error(
       `[videoMap] NO subtitle matched any video in "${set}". The clip names in the ` +
         `subtitle data and the files on disk are different — compare these two lists. ` +
         `Until they agree the customer display shows the generic wall: no subtitles, ` +
-        `and the same loop on every screen.`,
-      {
-        expectedByData: entries.slice(0, 10).map((e) => `${e.file}.mp4`),
-        foundOnDisk: FILES_BY_SET[set].slice(0, 10).map((f) => `${f.folder}/${f.name}`),
-      },
+        `and the same loop on every screen.\n  expected by data: ${expected.join(', ')}` +
+        `\n  found on disk:    ${onDisk.join(', ')}`,
     );
   }
 
-  if (matched.length === 0) return;
+  if (real === 0) return;
   // Replace only this set's maps (the call is idempotent per set).
   BY_KEY = { ...BY_KEY, [set]: buildByKey(matched) };
   BY_BUTTON = { ...BY_BUTTON, [set]: buildByButton(matched) };
@@ -319,8 +349,9 @@ function clipsForKey(
 ): DisplayClip[] {
   const clips: DisplayClip[] = [];
   for (const e of byKey.get(key) ?? []) {
+    if (e.noVideo) continue;
     const url = resolveUrl(e.file, set);
-    if (url) clips.push({ url, subtitle: pickText(e.subtitle, lang), label: pickText(e.label, lang) });
+    if (url) clips.push(toClip(e, url, lang));
   }
   return clips;
 }
@@ -422,6 +453,61 @@ const HWASEONG_SCREEN_TO_VIDEO_KEY: Record<string, string> = {
   photo_complete:      'Photo_Creating',
   hanbok_explain:      'HanbokExplain',
   search_detail:       'Search_Detail',
+};
+
+/**
+ * 인사동 (W001–W003) — only the screens whose 재생조건 (VideoSubtitle_Insa) names a
+ * specific clip; everything else inherits SCREEN_TO_VIDEO_KEY.
+ *
+ * Per-TAB / per-STAGE clips are addressed by position (`Key#n`, see splitClipIndex):
+ *  - TAX-FREE -1 진입 · -2 리펀드 시작 (환급신청 tab) · -4 가맹점 문의. 소개 keeps the
+ *    entry clip; -3 (완료) happens inside the embedded refund app, which the kiosk
+ *    cannot observe.
+ *  - 여기는 인사동 -1/-2/-3 = 관광명소 / 역사 / 문화.
+ *  - Exchange has ONE clip: both tabs play it (the tab ids are reported for the
+ *    layouts that author a clip per tab, and unmapped they fell to the idle reel).
+ *  - Search_Enter plays while the result list is up (검색 후 엔터).
+ *  - 인사 뭐하지's three stages: landing → AISearch, 각 코스 선택 (the builder,
+ *    reported as `ai_questions`) → AISearch_Category, 코스 추천 결과 (`ai_result`)
+ *    → AISearch_Detail. The base map sends `ai_result` to _Category, and
+ *    `ai_questions` had no entry at all, so the builder cut to the idle reel.
+ *  - The AR flow's four stages, mirroring 제주's staging of the same Photo-1..4
+ *    rows: 의상 선택 → Photo, 촬영 가이드 → Photo_SelectHanbok, 합성 대기 →
+ *    Photo_Creating, 완료 → Photo_Complete.
+ */
+const INSADONG_SCREEN_TO_VIDEO_KEY: Record<string, string> = {
+  taxfree:          'TaxFree#1',
+  taxfree_refund:   'TaxFree#2',
+  taxfree_merchant: 'TaxFree#4',
+  about:              'Here#1',
+  about_attractions:  'Here#1',
+  about_history:      'Here#2',
+  about_culture:      'Here#3',
+  exchange_calc:    'Exchange',
+  exchange_live:    'Exchange',
+  search_enter:     'Search_Enter',
+  ai_questions:     'AISearch_Category',
+  ai_result:        'AISearch_Detail',
+  photo:            'Photo',
+  photo_guide:      'Photo_SelectHanbok',
+  photo_creating:   'Photo_Creating',
+  photo_complete:   'Photo_Complete',
+  /* 안녕 인사's sub-tabs, one row each: 인사 소개 is `Greeting` row 1 and 취미생활
+     K-POP is filed under `Greeting` too (row 2) — so 소개 must name its row, or
+     it cycles the K-POP clip as well once that row carries a video. 골프 / 테니스
+     are Greeting_Hobby 1 / 2; 건강습관's three are Greeting_Stretching 1..3. A row
+     marked "no video" keeps the current clip. */
+  hello:            'Greeting#1',
+  hello_hobby_1:    'Greeting#2',
+  hello_hobby_2:    'Greeting_Hobby#1',
+  hello_hobby_3:    'Greeting_Hobby#2',
+  hello_stretch_1:  'Greeting_Stretching#1',
+  hello_stretch_2:  'Greeting_Stretching#2',
+  hello_stretch_3:  'Greeting_Stretching#3',
+  /* 기부 webview pages. */
+  donation:          'Donation',
+  donation_category: 'Donation_Category',
+  donation_detail:   'Donation_Detail',
 };
 
 /**
@@ -597,8 +683,8 @@ interface LayoutScreenKeys {
 }
 
 const SCREEN_KEYS_BY_LAYOUT: Record<KioskLayoutId, LayoutScreenKeys> = {
-  INSADONG: { map: {}, inherit: true },
-  NAM_INSADONG: { map: {}, inherit: true },
+  INSADONG: { map: INSADONG_SCREEN_TO_VIDEO_KEY, inherit: true },
+  NAM_INSADONG: { map: INSADONG_SCREEN_TO_VIDEO_KEY, inherit: true },
   OSAN: { map: OSAN_SCREEN_TO_VIDEO_KEY, inherit: true },
   HWASEONG: { map: HWASEONG_SCREEN_TO_VIDEO_KEY, inherit: false },
   // Both 제주 layouts read the SAME map: VideoSubtitle_귤이 is one tab for all
@@ -655,7 +741,7 @@ function clipsForButton(buttonId: number, lang: Lang, set: VideoSet): DisplayCli
   const clips: DisplayClip[] = [];
   for (const e of entries.filter((e) => e.key === basePlayKey).sort((a, b) => sortOf(a) - sortOf(b))) {
     const url = resolveUrl(e.file, set);
-    if (url) clips.push({ url, subtitle: pickText(e.subtitle, lang), label: pickText(e.label, lang) });
+    if (url) clips.push(toClip(e, url, lang));
   }
   return clips;
 }
@@ -703,8 +789,35 @@ function splitClipIndex(key: string): { key: string; clip: number | null } {
 function ownClipsForScreen(screen: string, lang: Lang, kioskId?: KioskId): DisplayClip[] {
   const set = videoSetFor(kioskId);
   const { key, clip } = splitClipIndex(screenKey(screen, lang, layoutOf(kioskId)));
-  const all = clipsForKey(BY_KEY[set], key, lang, set);
-  return clip == null ? all : all.slice(clip - 1, clip);
+  if (clip == null) return clipsForKey(BY_KEY[set], key, lang, set);
+  // By POSITION over every row of the key, no-video placeholders included — the
+  // n-th row of the sheet is the n-th state, whether or not it has a clip.
+  const e = BY_KEY[set].get(key)?.[clip - 1];
+  if (!e || e.noVideo) return [];
+  const url = resolveUrl(e.file, set);
+  return url ? [toClip(e, url, lang)] : [];
+}
+
+/**
+ * The caption for a screen whose state the sheet lists with NO clip ("display
+ * no video" / "영상 없음. 기존 영상 그대로 재생"), or `null` when the screen has
+ * its own clip. The display then leaves whatever is playing alone instead of
+ * cutting to the idle reel — but the row still carries its OWN subtitle (the
+ * 환급 진행 / 가맹점 / 테니스 lines), which goes over the held video. Returning
+ * only "keep playing" left the previous screen's caption up on all ten such rows.
+ */
+export function heldStateCaption(
+  screen: string,
+  lang: Lang,
+  kioskId?: KioskId,
+): { subtitle: string; label: string } | null {
+  if (screen === 'language') return null;
+  const set = videoSetFor(kioskId);
+  const { key, clip } = splitClipIndex(screenKey(screen, lang, layoutOf(kioskId)));
+  const list = BY_KEY[set].get(key) ?? [];
+  const row = clip != null ? list[clip - 1] : list.length > 0 && list.every((e) => e.noVideo) ? list[0] : undefined;
+  if (!row?.noVideo) return null;
+  return { subtitle: pickText(row.subtitle, lang), label: pickText(row.label, lang) };
 }
 
 export function clipsForScreen(

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import type { KioskController } from '@renderer/hooks/useKioskController';
 import { osanIconUrl } from '@renderer/assets/icons/osan';
 import { useAiStore } from '@renderer/store/aiStore';
@@ -14,6 +14,7 @@ import { OsanHeader } from './OsanHeader';
 import { OsanBanner } from './OsanBanner';
 import { OsanLeftNav } from './OsanLeftNav';
 import styles from './OsanAiSearch.module.css';
+import { useFitText } from '@layouts/components/fitText';
 
 const VISITORS: { key: string; width: number }[] = [
   { key: 'Visitor_1', width: 268 },
@@ -37,6 +38,11 @@ interface OsanAiSearchProps {
 export function OsanAiSearch({ controller }: OsanAiSearchProps): JSX.Element {
   const goHome = (): void => controller.navigate('home', 'Back');
   const lang = useLang();
+  /* The pills are hand-sized around the Korean copy; ru needs half again as
+     much for the same option. See "Other languages" in the CSS. */
+  const wide = lang !== 'ko';
+  const visitorRowRef = useRef<HTMLDivElement>(null);
+  const durationRowRef = useRef<HTMLDivElement>(null);
   const setAiInterests = useAiStore((s) => s.setInterests);
   const [visitors, setVisitors] = useState('Visitor_2');
   const [duration, setDuration] = useState('StayTime_24');
@@ -57,6 +63,11 @@ export function OsanAiSearch({ controller }: OsanAiSearchProps): JSX.Element {
     controller.navigate('ai_result', 'AI 추천');
   };
 
+  /* Each row is fitted on its own — 방문 인원 is the row ru overruns, and there is
+     no reason for it to shrink the 체류 시간 pills with it. */
+  useFitText(visitorRowRef, styles.pill, wide, 0.7, lang);
+  useFitText(durationRowRef, styles.pill, wide, 0.7, lang);
+
   return (
     <>
       {osanIconUrl('bg') && (
@@ -71,13 +82,13 @@ export function OsanAiSearch({ controller }: OsanAiSearchProps): JSX.Element {
             <span className={styles.bar} />
             {t('VisitorCount', lang)}
           </div>
-          <div className={styles.pillRow}>
+          <div ref={visitorRowRef} className={styles.pillRow}>
             {VISITORS.map((v) => (
               <button
                 key={v.key}
                 type="button"
                 style={{ width: `${v.width}px` }}
-                className={`${styles.pill} ${visitors === v.key ? styles.pillSel : ''}`}
+                className={`${styles.pill} ${wide ? styles.pillLong : ''} ${visitors === v.key ? styles.pillSel : ''}`}
                 onClick={() => setVisitors(v.key)}
               >
                 {t(v.key, lang)}
@@ -91,13 +102,13 @@ export function OsanAiSearch({ controller }: OsanAiSearchProps): JSX.Element {
             <span className={styles.bar} />
             {t('StayTime', lang)}
           </div>
-          <div className={styles.pillRow}>
+          <div ref={durationRowRef} className={styles.pillRow}>
             {DURATION.map((d) => (
               <button
                 key={d.key}
                 type="button"
                 style={{ width: `${d.width}px` }}
-                className={`${styles.pill} ${duration === d.key ? styles.pillSel : ''}`}
+                className={`${styles.pill} ${wide ? styles.pillLong : ''} ${duration === d.key ? styles.pillSel : ''}`}
                 onClick={() => setDuration(d.key)}
               >
                 {t(d.key, lang)}

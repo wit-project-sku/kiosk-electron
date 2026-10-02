@@ -1,11 +1,12 @@
 import { useState, type JSX } from 'react';
 import { QRCodeSVG } from 'qrcode.react';
 import type { AnalysisResult, Ingredient } from './api';
-import { DISCLAIMER } from './copy';
 import { ingredientIconSources } from './ingredients';
 import type { ShareState } from './share';
 import { fillmeArtUrl } from '@renderer/assets/fillme';
 import { Icon } from './Icon';
+import { useLang } from '@renderer/lib/i18n';
+import { tx } from './text';
 import ui from './fillmeUi.module.css';
 import styles from './FillmeResult.module.css';
 
@@ -40,6 +41,7 @@ function IngredientIcon({ ingredient }: { ingredient: Ingredient }): JSX.Element
  *   — 건강 결과에 지어낸 점수를 보여 줄 수는 없다. API 가 점수를 주면 그 자리에 넣는다.
  */
 export function FillmeResult({ result, share, onRetryShare, onHome }: Props): JSX.Element {
+  const lang = useLang();
   const rs = result.recommendedSupplement ?? {};
   const title = rs.title;
   const description = rs.description || result.content;
@@ -63,7 +65,7 @@ export function FillmeResult({ result, share, onRetryShare, onHome }: Props): JS
       <div className={styles.scroll}>
         {/* ── 분석 요약 카드 (7360:154990) ── */}
         <section className={styles.card}>
-          <span className={styles.badge}>◇ AI 건강 분석</span>
+          <span className={styles.badge}>◇ {tx('Fillme_text051', lang)}</span>
           {title && <p className={styles.title}>“{title}”</p>}
           {(title || description) && <hr className={styles.rule} />}
           {description && <p className={styles.desc}>{description}</p>}
@@ -75,8 +77,11 @@ export function FillmeResult({ result, share, onRetryShare, onHome }: Props): JS
         {/* ── 필요 영양 성분 (7334:84995) ── */}
         {ingredients.length > 0 && (
           <>
+            {/* 시트 문장은 '필요 영양 성분 (5가지)'처럼 개수가 박혀 있다 — 실제
+                개수로 바꿔 끼운다. 개수를 따로 감싸던 .sectionCount 는 낱말 순서가
+                언어마다 달라 더는 쓰지 않는다(영어는 수가 뒤, 한국어는 괄호 안). */}
             <p className={`${ui.sectionLabel} ${styles.sectionLabel}`}>
-              필요 영양 성분 <span className={styles.sectionCount}>({ingredients.length}가지)</span>
+              {tx('Fillme_text052', lang).replace(/\d+/, String(ingredients.length))}
             </p>
             <ul className={styles.grid}>
               {ingredients.map((ing, i) => (
@@ -96,7 +101,7 @@ export function FillmeResult({ result, share, onRetryShare, onHome }: Props): JS
       <div className={styles.bottom}>
         <p className={styles.disclaimer}>
           {info && <img src={info} alt="" className={styles.infoIcon} draggable={false} />}
-          {DISCLAIMER}
+          {tx('Fillme_text053', lang)}
         </p>
 
         <div className={share.status === 'off' ? `${styles.actions} ${styles.actionsHomeOnly}` : styles.actions}>
@@ -122,12 +127,12 @@ export function FillmeResult({ result, share, onRetryShare, onHome }: Props): JS
               </div>
               {arrow && <img src={arrow} alt="" className={styles.arrow} draggable={false} />}
               <button type="button" className={styles.save} onClick={save}>
-                저장하기
+                {tx('Fillme_text054', lang)}
               </button>
             </>
           )}
           <button type="button" className={styles.home} onClick={onHome}>
-            처음으로
+            {tx('Fillme_text055', lang)}
           </button>
         </div>
       </div>

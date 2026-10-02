@@ -20,12 +20,16 @@
   color: #232323;
 }
 
-/* 상단 메인: top 0, h722, pt130 pb65 px170, gap80 */
+/* 상단 메인: top 39, h722, pt130 pb65 px170, gap80 — the 인사>홈 redesign drops the
+   whole block 39px (wordmark baseline 169, 공지/날씨 card 331..695). Everything
+   below keeps its old y, so the block's 65px bottom padding now runs 40px past
+   컨텐츠's top; it is empty, and .content paints over it, so the search row stays
+   tappable. */
 .topBlock {
   position: absolute;
   left: 0;
   right: 0;
-  top: 0;
+  top: 39px;
   height: 18.8%;
   display: flex;
   flex-direction: column;
@@ -69,16 +73,21 @@
   font-size: 1.77cqh;
 }
 
-/* 상단 공지/날씨: h365, gap40, 공지:날씨 = 1109:665 */
+/* 상단 공지/날씨: h365, 공지 173..1281 (1109) · 날씨 1322..1986 (665). Figma widths
+   are literal, not a ratio of the 1820 row — the pair is 1814 wide and sits 3px in
+   from both ends, which is what `space-between` + the 3px padding reproduces. */
 .infoRow {
   flex: none;
   height: 9.5cqh;
   display: flex;
-  gap: 1.85cqw;
+  justify-content: space-between;
+  padding: 0 3px;
+  box-sizing: border-box;
 }
 
 .notice {
-  flex: 1109 1 0;
+  flex: none;
+  width: 1109px;
   display: flex;
   align-items: center;
   gap: 1.79cqw;
@@ -138,7 +147,8 @@
 }
 
 .weather {
-  flex: 665 1 0;
+  flex: none;
+  width: 665px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -301,14 +311,22 @@
   flex: none;
 }
 
-/* 메인메뉴 (Figma 4167:87290): 4×300px columns, wide AI spans 2.
+/* 메인메뉴 (Figma 5827:164524): a flat 4×4 of 300px columns — no tile spans two
+   any more, the AI tile included.
    Image-to-image vertical gap is fixed at 173px (label line count must not
    change it): each row = 300px art + 173px band for label. */
 .grid {
   display: grid;
   grid-template-columns: repeat(4, 13.89cqw); /* 300px */
   justify-content: space-between;
-  grid-auto-rows: calc(7.8125cqh + 173px); /* 300px art + 173px to next art */
+  /* Art tops land on the Figma rows 968 / 1479 / 1952 / 2425 — 211px from row 1's
+     art to row 2's, 173px for the rest. Row 1 is the taller one because its AI
+     label is the only two-line caption in the Korean grid; the extra 38px is dead
+     space under the other three rather than a per-tile offset, so all four icons
+     in that row stay on one line (Figma's auto-layout centres the short cells and
+     nudges them down 19px — an artefact that would scatter the row in any
+     language whose labels wrap differently). */
+  grid-template-rows: calc(7.8125cqh + 211px) repeat(3, calc(7.8125cqh + 173px));
   row-gap: 0;
   align-items: stretch;
 }
@@ -323,10 +341,6 @@
   border: none;
   padding: 0;
   cursor: pointer;
-}
-
-.tileWide {
-  grid-column: span 2;
 }
 
 /* Fixed 300px art — label wraps inside the 173px band below, never shrinks art. */
@@ -371,11 +385,11 @@
   overflow-wrap: anywhere;
 }
 
-/* 하단네비 (R=하단버튼): the scalloped bar (Union, 2168×459) has THREE differently
-   sized bumps — measured from the actual PNG:
-     • LEFT  square bump : center x=438, ~436px wide  → K-DRAMA wide logo (381×235)
-     • MID   big dome     : center x=1080, ~380px wide → orange camera (356×356)
-     • RIGHT small dome   : center x=1688, ~192px wide → restroom icon (~185)
+/* 하단네비 (R=하단버튼>인사동, node 5827:164988 — 2160×446 at y=2821): the scalloped
+   bar is one `Union` shape with THREE bumps, the outer two now identical:
+     • LEFT  small dome : center x=463,  225px wide → 스마트관광 icon (235×235)
+     • MID   big dome   : center x=1080, 394px wide → orange camera (356×356)
+     • RIGHT small dome : center x=1698, 225px wide → restroom icon (235×235)
    Each item is centered on its bump; labels share one baseline near the bar base. */
 .bottomRow {
   position: absolute;
@@ -385,20 +399,23 @@
   height: 446px;
 }
 
+/* The Union export is 2246×532 — 2160 of bar plus the drop-shadow bleed on every
+   side. Offsetting by that bleed (−43, −52) is what lands the three bumps on the
+   Figma x-centres above; the 34px below the bar is shadow padding only. */
 .bottomBarBg {
   position: absolute;
-  top: -7px;
-  left: -4px;
-  width: 2168px;
-  height: 459px;
+  top: -52px;
+  left: -43px;
+  width: 2246px;
+  height: 532px;
   z-index: 0;
   pointer-events: none;
 }
 
-/* K-DRAMA / 화장실 — exact Figma component R=하단버튼 (node 5308:19877) coords.
-   Each item box wraps its icon (top:0) + label (bottom:0); item heights are
-   chosen so the label baseline lands on the Figma label-top (352 / 360). */
-.kdramaItem,
+/* 스마트관광 / 화장실 — exact Figma coords inside R=하단버튼>인사동. Each item box
+   wraps its icon (top:0) + label (bottom:0); item heights are chosen so the label
+   baseline lands on the Figma label-top (352 / 360). */
+.smartTourItem,
 .restroomItem {
   position: absolute;
   z-index: 1;
@@ -408,12 +425,12 @@
   cursor: pointer;
 }
 
-/* K-DRAMA logo: Figma left=245 top=89 381×235; label top=352 → height 314. */
-.kdramaItem {
-  left: 245px;
-  top: 89px;
-  width: 381px;
-  height: 314px;
+/* 스마트관광: Figma left=346 top=99 235×235; label top=352 → height 304. */
+.smartTourItem {
+  left: 346px;
+  top: 99px;
+  width: 235px;
+  height: 304px;
 }
 
 /* Restroom: Figma left=1581 top=99 235×235; label top=360 → height 312. */
@@ -424,32 +441,13 @@
   height: 312px;
 }
 
-/* K-DRAMA 준비중: rendered at full opacity/colour, just inert. */
-.kdramaSoon {
+/* 준비중: rendered at full opacity/colour, just inert. */
+.navSoon {
   cursor: default;
   pointer-events: none;
 }
 
-/* Wide K-DRAMA logo (native 381×235) — fills the square bump without squashing. */
-.kdramaIcon {
-  position: absolute;
-  top: 0;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 381px;
-  height: 235px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.kdramaIcon img {
-  width: 100%;
-  height: 100%;
-  object-fit: contain;
-}
-
-/* Restroom icon — Figma Group 132: 235×235 centered on the right dome. */
+/* Bump icons — Figma Frame 2085666886 / Group 132: 235×235 on their own dome. */
 .navIcon {
   position: absolute;
   top: 0;
@@ -529,3 +527,53 @@
   opacity: 0.45;
 }
 
+
+/* ── Other languages ──────────────────────────────────────────────────────
+ * Reached only through a class the TSX adds when lang !== 'ko' — the Korean
+ * home is untouched.
+ *
+ * 1. Tile labels. The grid's row pitch is fixed at "300px art + 173px", so the
+ *    label has exactly the 146px left under the art (173 − the 27px art→label
+ *    gap) before it reaches the NEXT row's art. Korean labels are one or two
+ *    38px lines and never got near it; "ข้อมูลการเดินทาง" and
+ *    "Достопримечательности" wrap to four and ran into the row below.
+ *
+ *    Giving the label that 146px as a real height is what lets the fit measure
+ *    it — the label box used to be auto-height, so it could never report an
+ *    overflow of its own. Short labels are unaffected: they already sat at the
+ *    top of that band. All twelve tiles then shrink by ONE factor (`--fit`,
+ *    useFitText — never below 0.7 → 27px), so the grid keeps one text size
+ *    instead of a patchwork. Nothing is clipped. */
+.tileLabelLong {
+  height: 146px;
+  font-size: calc(0.99cqh * var(--fit, 1));
+}
+
+/* 2. Bottom-bar captions. Both sit on one `nowrap` 50px line centred on their
+ *    bump, which is all 화장실 and 스마트관광 need in Korean. The same captions carry
+ *    "CHƯƠNG TRÌNH KHUYẾN MÃI (Sắp có)" — ~750px on one line, centred on a
+ *    381px bump, so it ran out across the bar and under the camera button.
+ *
+ *    They stay on one line (two lines would climb into the icon above) and are
+ *    instead given the width the bar really has around each bump — bounded by
+ *    the camera dome in the middle — and shrunk to fit it. `nowrap` against a
+ *    real width is what the fit measures.
+ *
+ *    스마트관광's box is the wider of the two because its Korean caption is already
+ *    403px on one line (화장실 is 143px), so a translation starts from further out. */
+.navLabelLong {
+  font-size: calc(50px * var(--fit, 1));
+  /* The box below is wider than the caption (that is the room the fit has to
+     work in), so the caption must be centred INSIDE it — left-aligned, a short
+     label like "PROMOTION (Soon)" sat at the box's left edge, visibly left of
+     the 스마트관광 icon it belongs under. */
+  text-align: center;
+}
+
+.smartTourItem .navLabelLong {
+  width: 560px;
+}
+
+.restroomItem .navLabelLong {
+  width: 430px;
+}

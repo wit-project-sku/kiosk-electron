@@ -1,4 +1,5 @@
 import type { KioskConfig, KioskTheme } from '@shared/types/kiosk';
+import { getKioskRegion, type ContentRegion } from '@shared/config/kioskLocations';
 import { kioskConfigStore } from '@main/core/KioskConfigStore';
 import { loadTheme } from '@main/core/ThemeLoader';
 
@@ -36,5 +37,18 @@ export class KioskService {
     const digits = (cfg.kioskId.match(/\d+/)?.[0] ?? '1').replace(/^0+/, '');
     const n = Number(digits || '1');
     return Number.isFinite(n) && n > 0 ? n : 1;
+  }
+
+  /**
+   * Content branch for the v2 endpoints (`/api/kiosks/{region}/…/v2`,
+   * `?region=`), derived from the kiosk id — W005 → HWASEONG. `null` for a venue
+   * with no CMS content (KADA); callers skip the request then.
+   *
+   * v2 keys content by venue, not by device number, so this replaces
+   * {@link kioskNum} for every endpoint that moved to v2. `kioskNum` stays for
+   * the ones that did not (stats, update-command, footfall, 인사동 courses).
+   */
+  region(): ContentRegion | null {
+    return getKioskRegion(this.getConfig().kioskId);
   }
 }

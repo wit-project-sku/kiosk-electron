@@ -1,6 +1,8 @@
 import type { JSX } from 'react';
-import { ANALYZE_STEPS, ANALYZE_SUBS } from './copy';
+import { ANALYZE_STEP_KEYS } from './copy';
 import { fillmeArtUrl } from '@renderer/assets/fillme';
+import { useLang } from '@renderer/lib/i18n';
+import { tx, tLines } from './text';
 import styles from './FillmeAnalyzing.module.css';
 
 interface Props {
@@ -26,6 +28,7 @@ const STEP_ART = {
  * AI 분석 중 — Figma 7334:54793. 좌표와 시안과 다른 곳은 스타일시트 머리말 참고.
  */
 export function FillmeAnalyzing({ progress }: Props): JSX.Element {
+  const lang = useLang();
   const p = Math.max(0, Math.min(100, progress));
   const step = p >= 100 ? 4 : Math.floor(p / 25);
   const hand = fillmeArtUrl('hand-scan');
@@ -34,9 +37,10 @@ export function FillmeAnalyzing({ progress }: Props): JSX.Element {
     <div className={styles.root}>
       <section className={styles.card}>
         <div className={styles.texts}>
-          <h2 className={styles.title}>AI가 손톱을 분석하고 있어요</h2>
+          <h2 className={styles.title}>{tx('Fillme_text038', lang)}</h2>
+          {/* 단계마다 바뀌던 줄이었다 — 시트가 한 줄만 주는 이유는 copy.ts 참고. */}
           <p className={styles.sub} aria-live="polite">
-            {ANALYZE_SUBS[step]}
+            {tx('Fillme_text039', lang)}
           </p>
         </div>
 
@@ -54,9 +58,11 @@ export function FillmeAnalyzing({ progress }: Props): JSX.Element {
         </div>
 
         <p className={styles.note}>
-          보통 10-30초 걸려요.
-          <br />
-          화면을 떠나지 말고 잠시 기다려 주세요.
+          {tLines('Fillme_text040', lang).map((line, i) => (
+            <span key={i} className={styles.noteLine}>
+              {line}
+            </span>
+          ))}
         </p>
 
         <div className={styles.progress}>
@@ -67,13 +73,13 @@ export function FillmeAnalyzing({ progress }: Props): JSX.Element {
         </div>
 
         <ul className={styles.steps}>
-          {ANALYZE_STEPS.map((label, i) => {
+          {ANALYZE_STEP_KEYS.map((key, i) => {
             const state = i < step ? 'done' : i === step ? 'current' : 'pending';
             const art = fillmeArtUrl(STEP_ART[state]);
             return (
-              <li key={label} className={`${styles.step} ${styles[state]}`}>
+              <li key={key} className={`${styles.step} ${styles[state]}`}>
                 {art && <img src={art} alt="" className={styles.stepIcon} draggable={false} />}
-                <span className={styles.stepLabel}>{label}</span>
+                <span className={styles.stepLabel}>{tx(key, lang)}</span>
               </li>
             );
           })}

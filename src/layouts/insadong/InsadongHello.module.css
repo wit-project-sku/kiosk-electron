@@ -10,36 +10,17 @@
 
 .content {
   position: absolute;
-  top: 699px;
-  left: 0;
-  right: 0;
-  bottom: 573px;
-  box-sizing: border-box;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 100px; /* Figma tab → card gap */
-  overflow-y: auto;
-  overflow-x: hidden;
-  padding: 0 170px 40px;
+  inset: 0;
   font-family: var(--kiosk-font, sans-serif);
 }
 
-.content::-webkit-scrollbar {
-  width: 34.32px;
-}
-.content::-webkit-scrollbar-thumb {
-  background: var(--kiosk-primary);
-  border-radius: 21.45px;
-}
-.content::-webkit-scrollbar-track {
-  background: transparent;
-}
-
-/* ── Tabs ── */
+/* ── Tabs (7553:49344) — 580×170, selected is solid primary ── */
 .tabs {
-  flex: none;
-  width: 1816.802px;
+  position: absolute;
+  left: 170px;
+  top: calc(700px + var(--header-push, 0px) + var(--insa-header-shift, 0px));
+  width: 1820px;
+  height: 170px;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -47,45 +28,117 @@
 
 .tab {
   box-sizing: border-box;
-  width: 580px; /* Figma tab w579-580 */
+  width: 580px;
   height: 170px;
   display: flex;
   align-items: center;
   justify-content: center;
   background: #ffffff;
-  border: 5px solid #e8e8e8;
+  border: none;
   border-radius: 42.9px;
   font-family: var(--kiosk-font, sans-serif);
   font-weight: 500;
   font-size: 50px;
+  line-height: 1;
   color: #999999;
   cursor: pointer;
   white-space: nowrap;
-  padding: 0 12px;
+  padding: 0 16px;
   text-align: center;
 }
 
-.tabSelected {
-  background: var(--kiosk-secondary);
-  font-weight: 600; /* Figma: SemiBold */
-  color: var(--kiosk-primary);
+/* ── ♿ 취미생활 · 건강습관 ────────────────────────────────────────────────
+ * Figma 7647:54805 (the 제주 안녕 frame — this layout is shared; only the palette
+ * differs, and ours is already right). It is a RE-LAYOUT, not the +145.759 the
+ * rest of the page rides: with the tabs moved to the foot, the whole middle of
+ * the artboard is free, and the frame spends it on the photo.
+ *
+ *                standing                      ♿
+ *   photo        600 / 1081  959 × 1509        527 / 921  1106 × 1740
+ *   card         170 / 2670  1820 × 549        170 / 2788 (same box)
+ *   tabs         170 / 700                     170 / 3428
+ *   inner nav    0   / 920                     0   / 3648
+ *
+ * Every ♿ top here is ABSOLUTE — no `--insa-header-shift` term. The frame's
+ * numbers already sit below its own 145.759 bar, so adding the shift on top
+ * would push everything down twice. That is also why they have to override
+ * rules that DO carry the shift, hence the doubled selectors.
+ *
+ * The promo is not drawn in ♿ (the TSX gates it on `!lowReach`), which is what
+ * frees the foot for the tab row.
+ */
+.hobbyPhoto.hobbyPhotoLow,
+.hobbyPhoto.healthPhoto.hobbyPhotoLow {
+  left: 527px;
+  top: 921px;
+  width: 1106px;
+  height: 1740px;
 }
 
-/* ── Card (shared) — Figma: w1820, h2160 (all 3 tabs same height), gap 65,
-   px40 py65, border 5px, radius 42.9. */
+.hobbyCard.hobbyCardLow {
+  top: 2788px;
+}
+
+.tabs.tabsLow {
+  top: 3428px;
+  z-index: 4;
+}
+
+.hobbyNav.hobbyNavLow {
+  top: 3648px;
+  z-index: 4;
+}
+
+.tab.tabSelected {
+  background: var(--kiosk-primary);
+  font-weight: 700;
+  color: #ffffff;
+}
+
+/* 건강습관 keeps the previous stretch layout; it scrolls above the banner. */
+.stretchWrap {
+  position: absolute;
+  left: 170px;
+  top: calc(972px + var(--header-push, 0px) + var(--insa-header-shift, 0px));
+  width: 1820px;
+  bottom: 573px;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+.stretchWrap::-webkit-scrollbar { width: 28px; }
+.stretchWrap::-webkit-scrollbar-thumb {
+  background: var(--kiosk-primary);
+  border-radius: 14px;
+}
+
+/* ── Card — stretch tab still uses this plate. */
 .card {
+  box-sizing: border-box;
+  width: 1820px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 45px;
+  padding: 50px 40px 65px;
+  background: #ffffff;
+  border: none;
+  border-radius: 42.9px;
+  box-shadow: 0 21.45px 21.45px rgba(143, 147, 157, 0.1);
+}
+
+/* 7553:49285 — profile plate, 1820×2160, radius 42.9, no stroke. */
+.profileCard {
+  position: absolute;
+  left: 170px;
+  top: calc(972px + var(--header-push, 0px) + var(--insa-header-shift, 0px));
   box-sizing: border-box;
   width: 1820px;
   height: 2160px;
   display: flex;
   flex-direction: column;
-  align-items: flex-start;
-  /* Tighter section gap + smaller top padding so the footer (hashtags/social)
-     doesn't crash the card's bottom edge within the fixed 2160 height. */
-  gap: 45px;
-  padding: 50px 40px 65px;
+  padding: 65px 62px 86px;
   background: #ffffff;
-  border: 5px solid #e8e8e8;
   border-radius: 42.9px;
   box-shadow: 0 21.45px 21.45px rgba(143, 147, 157, 0.1);
 }
@@ -95,19 +148,22 @@
    =========================================================== */
 .topRow {
   display: flex;
-  align-items: center;
-  gap: 100px;
-  width: 1740px;
+  align-items: flex-start;
+  gap: 106px;
+  width: 100%;
 }
 
 .portrait {
   flex: none;
-  width: 750px; /* Figma 750×750 */
-  height: 750px;
+  width: 939px;
+  height: 939px;
   border-radius: 50%;
   overflow: hidden;
+  background: #d9d9d9;
 }
-.portrait img {
+.portrait img,
+.portrait video {
+  display: block;
   width: 100%;
   height: 100%;
   object-fit: cover;
@@ -119,7 +175,9 @@
   flex: 1;
   display: flex;
   flex-direction: column;
-  gap: 45px; /* Figma info col gap 45 */
+  gap: 45px;
+  padding-top: 165px;
+  min-width: 0;
 }
 
 .nameRow {
@@ -131,7 +189,7 @@
 .label {
   flex: none;
   font-weight: 700;
-  font-size: 60px;
+  font-size: 50px;
   color: #000000;
   line-height: 1;
 }
@@ -139,12 +197,16 @@
 .namePill {
   display: inline-flex;
   align-items: center;
-  background: var(--kiosk-secondary);
-  color: var(--kiosk-primary);
+  box-sizing: border-box;
+  width: 300px;
+  height: 85px;
+  padding: 0 23px;
+  background: #ffeac7;
+  color: #fe6c50;
   font-weight: 700;
-  font-size: 58px;
-  padding: 14px 26px;
+  font-size: 50px;
   line-height: 1;
+  white-space: nowrap;
 }
 
 .field {
@@ -152,26 +214,29 @@
   align-items: center;
 }
 .field .label {
-  width: 210px;
+  width: 150px;
 }
 
 .value {
   font-weight: 400;
-  font-size: 58px;
+  font-size: 50px;
   color: #000000;
   line-height: 1;
 }
 
 .divider {
   height: 2px;
-  width: 100%;
+  width: 1731px;
+  margin: 76px 0 76px;
   background: #e8e8e8;
+  flex: none;
 }
 
 .detailsCol {
   display: flex;
   flex-direction: column;
-  gap: 50px; /* Figma body col gap 50 */
+  gap: 30px;
+  width: 1635px;
 }
 
 .detail {
@@ -180,7 +245,7 @@
   gap: 40px;
 }
 .detail .label {
-  width: 230px;
+  width: 220px;
 }
 
 .detailValue {
@@ -188,9 +253,10 @@
   display: flex;
   flex-direction: column;
   font-weight: 400;
-  font-size: 58px; /* Figma body value 58 */
+  font-size: 50px;
   color: #000000;
   line-height: 1.3;
+  min-width: 0;
 }
 
 /* ===========================================================
@@ -217,9 +283,148 @@
 .hobbyTitle {
   margin: 0;
   font-weight: 700;
-  font-size: 63px;
+  font-size: 60px;
   color: #000000;
   line-height: 1.3;
+}
+
+/* 취미생활 — K-POP / 골프 / 테니스 swaps the photo and the caption. */
+.hobbyNav {
+  position: absolute;
+  left: 0;
+  top: calc(920px + var(--header-push, 0px) + var(--insa-header-shift, 0px));
+  width: 2160px;
+  height: 82px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 48px;
+}
+
+.hobbyNav button {
+  border: none;
+  background: none;
+  padding: 0;
+  font-family: var(--kiosk-font, sans-serif);
+  font-size: 60px;
+  font-weight: 600;
+  line-height: 1;
+  color: #999999;
+  cursor: pointer;
+}
+
+.hobbyNav button.hobbyOn {
+  font-weight: 900;
+  color: var(--kiosk-primary);
+}
+
+.hobbyBar {
+  font-size: 60px;
+  font-weight: 600;
+  line-height: 1;
+  color: #999999;
+}
+
+.hobbyPhoto {
+  position: absolute;
+  /* 7553:49369 / 49431 / 49491 — the three 취미생활 photos are 843–853 wide by
+     1510–1521 tall, centred. 850×1515 is their common frame; `cover` absorbs the
+     few pixels each differs by. */
+  left: 655px;
+  top: calc(1081px + var(--header-push, 0px) + var(--insa-header-shift, 0px));
+  width: 850px;
+  height: 1515px;
+  object-fit: cover;
+  object-position: center top;
+  border-radius: 45px;
+}
+
+/* 건강습관 photos are 863×1546, centered (7553:49552 / 49614 / 49674). */
+.healthPhoto {
+  left: 649px;
+  width: 863px;
+  height: 1546px;
+}
+
+.hobbyCard {
+  position: absolute;
+  left: 170px;
+  top: calc(2670px + var(--header-push, 0px) + var(--insa-header-shift, 0px));
+  box-sizing: border-box;
+  width: 1820px;
+  height: 549px;
+  display: flex;
+  flex-direction: column;
+  padding: 56px 119px 48px;
+  background: #ffffff;
+  border-radius: 42.9px;
+  box-shadow: 0 21.45px 42.9px rgba(143, 147, 157, 0.1);
+  /* The card is the ONE scroll container on this tab. The copy per tab ranges
+     from three authored lines (허리) to six (골프, 테니스), and six do not fit a
+     549px card at the frame's 50px — so the tabs that overrun scroll, while
+     every tab keeps the same type size. Title, description and the hashtag /
+     QR row move together, which is what keeps the tags attached to the text
+     they belong to. */
+  overflow-y: auto;
+  overflow-x: hidden;
+  overscroll-behavior: contain;
+}
+
+/* The app's standard rail (환율, 목록, 여기는 인사동) rather than the browser's
+   hairline — at the artboard's scale a default scrollbar is a few real pixels
+   and reads as an artefact instead of a control. */
+.hobbyCard::-webkit-scrollbar {
+  width: 28px;
+}
+.hobbyCard::-webkit-scrollbar-thumb {
+  background: var(--kiosk-primary);
+  border-radius: 14px;
+}
+.hobbyCard::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+/*
+ * The description box sizes to its own text and NEVER scrolls — the card does.
+ *
+ * It WAS `flex: 1; min-height: 0; overflow-y: auto`, a scroll container around
+ * the description alone inside a 549px card, and the Korean copy does not fit
+ * it: measured against Localization_Insa, 골프 and 테니스 each need 390px of the
+ * 242px on offer (six authored lines at 65), so 148px of the text was not on
+ * screen, and K-POP and 목·어깨 need 260 — an 18px sliver, i.e. a half-cut line
+ * sitting hard against the hashtags with no gap.
+ *
+ * Scrolling the description also cuts the hashtags and the QR codes off from
+ * the text they belong to, and it is the wrapper a visitor is least likely to
+ * try to drag. The whole card scrolls instead: one scrollbar, on the card, and
+ * everything inside it keeps the size the frame draws.
+ *
+ * `margin-top: auto` on the footer still parks it at the card's foot whenever
+ * the copy is short enough to leave room, so the three-line tabs are drawn
+ * exactly as they were.
+ */
+.hobbyCard .hobbyBody {
+  margin-top: 25px;
+  flex: 0 0 auto;
+}
+
+/* The hashtag / 인스타 / QR row on 취미생활 and 건강습관.
+   `.footer` carries `margin-top: auto`, which pins it to the foot of the card
+   while the copy is short — and collapses to ZERO the moment the copy fills the
+   card, which is every long tab (골프, 테니스) and most of the translated ones.
+   The row then sat flush against the last line of the description.
+
+   `padding-top` rather than a margin, so BOTH behaviours survive: the padding
+   is always there, so the gap can never fall below it, while `margin-top: auto`
+   still takes up whatever slack is left on a short tab. Because the padding
+   grows the footer's own box, a short tab's tags do not move — the 25px opens
+   ABOVE them, inside the box that was already bottom-aligned.
+
+   25px is not a new number: it is exactly `.hobbyCard .hobbyBody`'s own
+   `margin-top`, i.e. the gap the description already keeps from the title. */
+.hobbyCard .footer {
+  width: 100%;
+  padding-top: 25px;
 }
 
 .hobbyBody {
@@ -345,24 +550,33 @@
 .footer {
   display: flex;
   align-items: center;
-  gap: 30px;
-  width: 1740px;
+  gap: 40px;
+  width: 1582px;
+  margin-top: auto;
+}
+
+.profileCard .footer {
+  align-self: center;
 }
 
 .hashtag {
   flex: none;
   box-sizing: border-box;
   width: 322px;
-  height: 125px;
+  height: 100px;
   display: flex;
   align-items: center;
   justify-content: center;
   background: var(--kiosk-primary);
   border-radius: 42.9px;
   font-weight: 700;
-  font-size: 51.48px;
+  font-size: 50px;
   color: #ffffff;
   white-space: nowrap;
+}
+
+.hashtag:nth-child(3) {
+  width: 343px;
 }
 
 .socials {
@@ -388,18 +602,18 @@
 /* Figma social icons / QR: 125×125, QR border 5px #f48570 r21.45. */
 .socialIcon {
   flex: none;
-  width: 125px;
-  height: 125px;
-  object-fit: contain;
+  width: 100px;
+  height: 100px;
+  object-fit: cover;
   border-radius: 21.45px;
 }
 
 .socialQr {
   flex: none;
   box-sizing: border-box;
-  width: 125px;
-  height: 125px;
-  border: 5px solid #f48570;
+  width: 100px;
+  height: 100px;
+  border: 5px solid var(--kiosk-primary);
   border-radius: 21.45px;
   background: #ffffff;
   padding: 10px;
@@ -435,4 +649,157 @@
   height: 100%;
   object-fit: cover;
   display: block;
+}
+
+/* ── Other languages ──────────────────────────────────────────────────────
+ * Reached only through a class the TSX adds when lang !== 'ko' — the Korean
+ * screen is untouched.
+ *
+ * The hashtag pill is a fixed 322px box drawn around '#안녕인사'. The same pill
+ * carries '#こんにちはインサ' (≈460px at 51.48px type) and '#SawatdeeInsa', which
+ * ran straight out of the pill and under the one beside it. The pill grows
+ * instead — 322 is its minimum, not its size — which is what the sibling
+ * 화성 layout's chip already does. The footer row has the width to spare. */
+.hashtagLong,
+.hashtagLong:nth-child(3) {
+  width: auto;
+  min-width: 322px;
+  padding: 0 30px;
+}
+
+/* The 580px tab holds every tab label the screen authors today, in all eight
+   languages. This is the guard for a longer one arriving later: it wraps inside
+   the tab rather than running out of it, and the row shrinks as one if it still
+   does not fit (`--fit`, useFitText — never below 0.72). */
+.tabLong {
+  white-space: normal;
+  word-break: keep-all;
+  overflow-wrap: anywhere;
+  font-size: calc(50px * var(--fit, 1));
+  line-height: 1.12;
+}
+
+/* ── Other languages: the card itself ─────────────────────────────────────
+ * Reached only through `.cardLong`, which the TSX adds when lang !== 'ko'.
+ *
+ * All three tabs share one card of a FIXED 1820×2160 (the Figma frame draws
+ * them the same height), and the Korean copy fills it almost exactly — tab 1
+ * lands within ~6px of the 2160. So every other language overruns it, and
+ * because the card has no overflow of its own the copy ran straight out
+ * through the white rounded bottom and over the banner: 인사 소개 needs 2583px
+ * in Vietnamese (+423), 2392 in English and Indonesian, 2391 in Thai, 2317 in
+ * Russian; 스트레칭 needs 2545 in Indonesian (+385) and 2350 in English and
+ * Russian; 취미생활 overruns in vi/id.
+ *
+ * ── 1. The label columns ──
+ * 이름/출생/신체 are two glyphs, so the label column could be a fixed 210 (field)
+ * and 230 (detail) with the value simply starting at that offset. "Дата
+ * рождения", "Kewarganegaraan" and "ความสามารถพิเศษ" are three to five times
+ * that, and ran underneath their own value.
+ *
+ * The column sizes to its label instead, keeping the Korean offset as its
+ * MINIMUM (170 + the 40 gap = the old 210; 190 + 40 = the old 230), so a short
+ * label still lines up exactly where it did and only a long one pushes its
+ * value across. */
+.cardLong .field {
+  gap: 40px;
+}
+
+/* ── Non-Korean 인사 소개: smaller portrait, word-safe labels ──────────────
+   The 939 circle leaves the info column 1696 − 939 − 106 = 651px, which the
+   Korean labels (국적 · 혈액형 · MBTI) fit easily. The translations do not:
+   measured against this stylesheet at the real 1820 card, 939 wraps
+   `Nationality` in en, `Гражданство` in ru, `Kewarganegaraan` in id and
+   `ถิ่นกำเนิด` in th — and because the rule below used `overflow-wrap: anywhere`,
+   they broke MID-WORD ("Nationalit" / "y"), which is what this was reported as.
+
+   700 is the first size at which no label in any of the eight languages wraps
+   at all (en/th/ko clear at 800, ru/id at 720, vi only at 700).
+
+   Scoped to `.cardLong`, so KOREAN KEEPS THE 939 FRAME EXACTLY. Korean was
+   never the problem and its layout is the one the design was drawn against. */
+.cardLong .portrait {
+  width: 700px;
+  height: 700px;
+}
+
+/* `flex: 0 1 auto`, not the base rule's `flex: none`: a label that is wider
+   than its own column must be able to give way and wrap, or the row's
+   min-content pushes the whole 1740 row past the card's edge.
+
+   `break-word`, not `anywhere`: both let an over-long label give way, but
+   `anywhere` breaks at ANY character — it is what split "Nationalit|y". With
+   `break-word` a word is only ever broken when it cannot fit on a line of its
+   own, so a label that must wrap does so at a space ("Hari ulang | tahun").
+   Kept as a floor even though 700 means nothing wraps today: the copy comes
+   from the CMS and the next translation may be longer. */
+.cardLong .field .label {
+  flex: 0 1 auto;
+  width: auto;
+  min-width: 170px;
+  word-break: keep-all;
+  overflow-wrap: break-word;
+}
+
+.cardLong .detail .label {
+  flex: 0 1 auto;
+  width: auto;
+  min-width: 190px;
+  word-break: keep-all;
+  overflow-wrap: anywhere;
+}
+
+/* A value that now has to share the row wraps rather than run off the card. */
+.cardLong .value {
+  line-height: 1.3;
+  word-break: keep-all;
+  overflow-wrap: anywhere;
+}
+
+/*
+ * ── 2. The card's height ──
+ * With the columns fixed the copy still does not fit, so the card shrinks as
+ * ONE: `--fit` (set by useFitText on the card, never below 0.6) scales every
+ * type size and the three text-column gaps inside it. The portrait, the hobby
+ * and stretch photos, and the footer pills keep their frame sizes — only type
+ * and the space between paragraphs give way, which is what stops the card
+ * needing 2583px in the first place.
+ *
+ * Korean never gets this class, so the frame it was drawn for is untouched. */
+.cardLong .label {
+  font-size: calc(50px * var(--fit, 1));
+}
+
+.cardLong .namePill,
+.cardLong .value,
+.cardLong .detailValue {
+  font-size: calc(50px * var(--fit, 1));
+}
+
+.cardLong .hobbyTitle,
+.cardLong .stretchIntroTitle,
+.cardLong .stretchSecTitle {
+  font-size: calc(63px * var(--fit, 1));
+}
+
+.cardLong .hobbyBody,
+.cardLong .stretchIntroBody,
+.cardLong .stretchSecBody {
+  font-size: calc(50px * var(--fit, 1));
+}
+
+.cardLong .hashtag {
+  font-size: calc(51.48px * var(--fit, 1));
+}
+
+.cardLong .infoCol {
+  gap: calc(45px * var(--fit, 1));
+}
+
+.cardLong .detailsCol {
+  gap: calc(50px * var(--fit, 1));
+}
+
+.cardLong .stretchSections {
+  gap: calc(64.35px * var(--fit, 1));
 }

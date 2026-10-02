@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import type { SupportedLanguage } from '@shared/types/kiosk';
 import type { KioskController } from '@renderer/hooks/useKioskController';
 import { useLanguageStore } from '@renderer/store/languageStore';
@@ -16,6 +16,7 @@ import { OsanBanner } from './OsanBanner';
 import { ZoomableImage } from '../insadong/ZoomableImage';
 import { OsanLeftNav } from './OsanLeftNav';
 import styles from './OsanTransport.module.css';
+import { useFitText } from '@layouts/components/fitText';
 
 type Lang = SupportedLanguage;
 function pick<T>(map: Partial<Record<Lang, T>>, lang: Lang): T {
@@ -327,10 +328,16 @@ export function OsanTransport({ controller, initialTab = 0 }: OsanTransportProps
   const goHome = (): void => controller.navigate('home', 'Back');
   const lang = useLanguageStore((s) => s.currentLanguage);
   const c = pick(CONTENT, lang);
+  /* Korean tab names fit the tab on one line; the other languages do not.
+     See "Other languages" in the CSS. */
+  const wide = lang !== 'ko';
+  const tabsRef = useRef<HTMLDivElement>(null);
   const [tab, setTab] = useState(initialTab);
 
   const row1 = c.tabs.slice(0, 5);
   const row2 = c.tabs.slice(5);
+
+  useFitText(tabsRef, styles.tab, wide, 0.72, lang);
 
   return (
     <>
@@ -340,13 +347,13 @@ export function OsanTransport({ controller, initialTab = 0 }: OsanTransportProps
 
       <div className={styles.results}>
         {/* Category tabs — Figma: 2 rows (5 + 3). */}
-        <div className={styles.tabs}>
+        <div ref={tabsRef} className={styles.tabs}>
           <div className={styles.tabRow1}>
             {row1.map((label, i) => (
               <button
                 key={i}
                 type="button"
-                className={`${styles.tab} ${tab === i ? styles.tabSelected : ''}`}
+                className={`${styles.tab} ${wide ? styles.tabLong : ''} ${tab === i ? styles.tabSelected : ''}`}
                 onClick={() => setTab(i)}
               >
                 {label}
@@ -358,7 +365,7 @@ export function OsanTransport({ controller, initialTab = 0 }: OsanTransportProps
               <button
                 key={i + 5}
                 type="button"
-                className={`${styles.tab} ${tab === i + 5 ? styles.tabSelected : ''}`}
+                className={`${styles.tab} ${wide ? styles.tabLong : ''} ${tab === i + 5 ? styles.tabSelected : ''}`}
                 onClick={() => setTab(i + 5)}
               >
                 {label}

@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import type { KioskController } from '@renderer/hooks/useKioskController';
 import { osanIconUrl } from '@renderer/assets/icons/osan';
 import { useDetailStore } from '@renderer/store/detailStore';
@@ -15,6 +15,7 @@ import {
   padImages,
 } from '@renderer/lib/shops';
 import type { KioskScreenId } from '@shared/types/kiosk';
+import { useFitText } from '@layouts/components/fitText';
 import { OsanHeader } from './OsanHeader';
 import { OsanLeftNav } from './OsanLeftNav';
 import styles from './OsanListScreen.module.css';
@@ -57,6 +58,13 @@ export function OsanListScreen({ title, controller }: OsanListScreenProps): JSX.
   }, [baseShops, lang]);
 
   const activeKr = selected || tabs[0]?.kr || '';
+
+  /* Korean category names fit the 340px tab on one line; the other languages run
+     to "Товары для художников". There the label wraps and the row shrinks
+     together if it still overflows — see "Other languages" in the CSS. */
+  const wide = lang !== 'ko';
+  const tabsRef = useRef<HTMLDivElement>(null);
+  useFitText(tabsRef, styles.tab, wide, 0.72, tabs.map((x) => x.label).join('|'));
 
   useEffect(() => {
     if (activeKr) void window.api.kiosk.setScreen(`${controller.screen}_category`);
@@ -109,12 +117,12 @@ export function OsanListScreen({ title, controller }: OsanListScreenProps): JSX.
       <OsanHeader title={title} onHome={goHome} />
 
       <div className={styles.results}>
-        <div className={styles.tabs}>
+        <div ref={tabsRef} className={styles.tabs}>
           {tabs.map((tab) => (
             <button
               key={tab.kr}
               type="button"
-              className={`${styles.tab} ${tab.kr === activeKr ? styles.tabSelected : ''}`}
+              className={`${styles.tab} ${wide ? styles.tabLong : ''} ${tab.kr === activeKr ? styles.tabSelected : ''}`}
               onClick={() => setSelected(tab.kr)}
             >
               {tab.label}
@@ -135,7 +143,7 @@ export function OsanListScreen({ title, controller }: OsanListScreenProps): JSX.
                 <div className={styles.info}>
                   <div className={styles.nameRow}>
                     <span className={styles.name}>{shopName(shop, lang)}</span>
-                    <span className={styles.cat}>
+                    <span className={`${styles.cat} ${wide ? styles.catLong : ''}`}>
                       <span className={styles.dot} />
                       {shopSecondCategory(shop, lang)}
                     </span>

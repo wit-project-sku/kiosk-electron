@@ -11,8 +11,8 @@ import { usePhotoStore } from '@renderer/store/photoStore';
 import { trackEvent } from '@renderer/lib/analytics';
 import { displayVideosFor } from '@renderer/assets/videos';
 import { cameraIconUrl } from '@renderer/assets/icons/insadong/camera';
-import { allScreenEntryUrls, clipsForPlayKey, clipsForScreen, initSubtitles, initVideoFiles, normalizeClipIndexKeys, siblingClipUrls } from '@renderer/lib/videoMap';
-import { getCameraRotation, getKioskLocation, isJejuLayout } from '@shared/config/kioskLocations';
+import { allScreenEntryUrls, clipsForPlayKey, clipsForScreen, heldStateCaption, initSubtitles, initVideoFiles, normalizeClipIndexKeys, siblingClipUrls } from '@renderer/lib/videoMap';
+import { getCameraRotation, getKioskLocation, usesGestureCapture } from '@shared/config/kioskLocations';
 import { PHOTO_COUNTDOWN_SECONDS } from '@shared/constants/photoOptions';
 import type { WeatherPlayKey } from '@shared/config/weatherVideo';
 import spinnerImg from '@renderer/assets/spinner.svg';
@@ -145,12 +145,30 @@ export function CustomerDisplay(): JSX.Element {
   // auto-advances through them on completion (home cycles 기본화면_1…10) and
   // preloads the next clip for an instant, no-flash switch.
   // dataVersion is a dep so these recompute once subtitles/video files load.
-  const screenClips = useMemo(
-    () => clipsForScreen(kioskScreen, lang, kioskId, buttonId),
-    [kioskScreen, buttonId, lang, kioskId, dataVersion],
-  );
+  /* A state the sheet marks "no video" leaves the current clip playing (재생조건
+     "영상 없음. 기존 영상 그대로 재생"), so the last resolved list is held — under
+     that row's own caption. Same URLs, so the wall does not reload; it only
+     swaps the text. An empty cell keeps the held clip's caption. */
+  const heldClips = useRef<ReturnType<typeof clipsForScreen>>([]);
+  const screenClips = useMemo(() => {
+    const held = heldStateCaption(kioskScreen, lang, kioskId);
+    if (held) {
+      return heldClips.current.map((c) => ({
+        ...c,
+        subtitle: held.subtitle || c.subtitle,
+        label: held.label || c.label,
+      }));
+    }
+    const clips = clipsForScreen(kioskScreen, lang, kioskId, buttonId);
+    heldClips.current = clips;
+    return clips;
+  }, [kioskScreen, buttonId, lang, kioskId, dataVersion]);
+  /* The 60초 wait is the sheet's Photo_Creating rows (재생조건 "촬영버튼-> 60초대기"),
+     i.e. the `photo_creating` stage. It asked for `photo`, which on 인사동 and
+     제주 is the outfit-choice row — so the wait played "먼저 착용해보고 싶은
+     스타일을 선택하세요". Every other layout maps both ids to Photo_Creating. */
   const genClips = useMemo(
-    () => clipsForScreen('photo', lang, kioskId),
+    () => clipsForScreen('photo_creating', lang, kioskId),
     [lang, kioskId, dataVersion],
   );
   // The clip for the tapped weather condition. Empty when this kiosk's video
@@ -225,7 +243,7 @@ export function CustomerDisplay(): JSX.Element {
   // being stuck. Captions are empty strings, so the wall draws none.
   const displayVideos = useMemo(() => displayVideosFor(kioskId), [kioskId, dataVersion]);
   const displayClips = useMemo(
-    () => displayVideos.map((url) => ({ url, subtitle: '', label: '' })),
+    () => displayVideos.map((url) => ({ url, subtitle: '', label: '', hanbok: false })),
     [displayVideos],
   );
 
@@ -266,7 +284,12 @@ export function CustomerDisplay(): JSX.Element {
 
   // 제주 has its own camera screen (and the sideways camera mount that goes
   // with it); every other location draws the legacy screen further down.
-  const isJeju = kioskId ? isJejuLayout(getKioskLocation(kioskId as KioskId).layout) : false;
+  /* Not "is this 제주" but "does this kiosk shoot on a gesture" — the two were
+     the same venue until 인사동 joined. See usesGestureCapture for why this
+     MUST be the same predicate PhotoWorkflow arms the gate with. */
+  const gestureScreen = kioskId
+    ? usesGestureCapture(getKioskLocation(kioskId as KioskId).layout)
+    : false;
   /** The venue's mount rotation — 90 on 제주, 0 (upright) everywhere else. */
   const cameraRotation = kioskId ? getCameraRotation(kioskId as KioskId) : 0;
 
@@ -415,7 +438,7 @@ export function CustomerDisplay(): JSX.Element {
           fleet-wide for a couple of days (2026-08-24 → 08-26) but the other
           venues' cameras are mounted upright and their design is the legacy
           screen below, so the per-location branch is back. */}
-      {(state.mode === 'camera' || state.mode === 'countdown') && isJeju && (
+      {(state.mode === 'camera' || state.mode === 'countdown') && gestureScreen && (
         <JejuCameraGuide
           videoRef={videoRef}
           lang={lang}
@@ -431,7 +454,7 @@ export function CustomerDisplay(): JSX.Element {
           boxes, disclaimer, branding. Ungated: the countdown was started by the
           capture button (see PhotoWorkflow.handleCapture), so the gesture
           branches above stay inert here ('off'). */}
-      {(state.mode === 'camera' || state.mode === 'countdown') && !isJeju && (
+      {(state.mode === 'camera' || state.mode === 'countdown') && !gestureScreen && (
         <div className={styles.cameraScreen}>
           {/* Top: title + numbered tips. Left '10' is static info; the badge on
               the right is the LIVE countdown. */}
@@ -487,8 +510,9 @@ export function CustomerDisplay(): JSX.Element {
       {state.mode === 'generating' && (
         <div className={styles.genScreen}>
           {genClips.length > 0 ? (
-            // One clip on native loop → perfectly smooth, non-stop while waiting.
-            <AiModelVideoWall key="gen" clips={genClips.slice(0, 1)} hideLabel />
+            // Every Photo_Creating row, cycling (one loops natively): the sheet
+            // lists three clips, each with its own subtitle, for the wait.
+            <AiModelVideoWall key="gen" clips={genClips} hideLabel />
           ) : (
             displayVideos.length > 0 && (
               <video key={displayVideos[0]} className={styles.genVideo} autoPlay muted loop playsInline>

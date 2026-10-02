@@ -28,12 +28,17 @@ function fetchEximJson(url: string, cookies = ''): Promise<unknown> {
       // Follow one redirect, carrying Set-Cookie back.
       if (status === 301 || status === 302) {
         res.resume();
-        const location = res.headers['location'];
+        const rawLocation = res.headers['location'];
         const setCookie = res.headers['set-cookie'];
-        if (!location) {
+        if (!rawLocation) {
           reject(new Error('HTTP 302 with no Location'));
           return;
         }
+        // Exim sends the Location as a PATH ("/site/program/…"), and https.get
+        // throws `TypeError: Invalid URL` on anything that isn't absolute — which
+        // made every redirected refresh fail and left the 환율 page on a stale
+        // snapshot. Resolve it against the URL we just requested.
+        const location = new URL(rawLocation, url).toString();
         const nextCookies = setCookie ? setCookie.map((c) => c.split(';')[0]).join('; ') : cookies;
         // Avoid infinite redirect loops.
         if (location === url && cookies === nextCookies) {

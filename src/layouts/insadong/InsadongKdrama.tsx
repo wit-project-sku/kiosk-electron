@@ -1,5 +1,6 @@
 import type { KioskController } from '@renderer/hooks/useKioskController';
 import { useLang, pick, type Lang } from '@renderer/lib/i18n';
+import { t, tPlain } from '@renderer/lib/loc';
 import { kdramaAsset } from '@renderer/assets/icons/insadong/kdrama';
 import { usePhotoStore } from '@renderer/store/photoStore';
 import { InsadongHeader } from './InsadongHeader';
@@ -19,6 +20,18 @@ const TITLE: Partial<Record<Lang, string>> = {
   ru: 'Tving Original: Повар-солдат становится легендой',
   id: 'Tving Original: Prajurit Juru Masak Jadi Legenda',
 };
+
+/**
+ * A Localization_Insa row, or the authored fallback when no table has it (`t`
+ * returns the key itself then). The button rows are written `> 이벤트 소개 <` —
+ * the sheet's way of drawing the ▶ ◀ the buttons already render as SVG — so
+ * those markers are stripped rather than shown twice.
+ */
+function sheetText(key: string, lang: Lang, fallback: Partial<Record<Lang, string>>): string {
+  const v = t(key, lang);
+  if (v === key) return pick(fallback, lang);
+  return v.replace(/^\s*>\s*/, '').replace(/\s*<\s*$/, '').trim();
+}
 
 const BTN_INTRO: Partial<Record<Lang, string>> = {
   ko: '이벤트 소개',
@@ -77,10 +90,15 @@ export function InsadongKdrama({ controller }: InsadongKdramaProps): JSX.Element
   const questImg = kdramaAsset(`quest-${lang}`) ?? kdramaAsset('quest-ko');
   const rewardImg = kdramaAsset(`reward-${lang}`) ?? kdramaAsset('reward-ko');
 
-  const title = pick(TITLE, lang);
-  const btnIntro = pick(BTN_INTRO, lang);
-  const btnPrize = pick(BTN_PRIZE, lang);
-  const btnJoin = pick(BTN_JOIN, lang);
+  /* All from Localization_Insa (Header_Promotion · SubHeader_Promotion ·
+     Promotion_Introduce / _Reward / _Participate); the tables above are the
+     fallback for a kiosk whose translations predate those rows. */
+  const title = sheetText('Header_Promotion', lang, TITLE);
+  const subtitle =
+    t('SubHeader_Promotion', lang) === 'SubHeader_Promotion' ? '' : tPlain('SubHeader_Promotion', lang);
+  const btnIntro = sheetText('Promotion_Introduce', lang, BTN_INTRO);
+  const btnPrize = sheetText('Promotion_Reward', lang, BTN_PRIZE);
+  const btnJoin = sheetText('Promotion_Participate', lang, BTN_JOIN);
 
   return (
     <div className={styles.screen}>
@@ -93,6 +111,7 @@ export function InsadongKdrama({ controller }: InsadongKdramaProps): JSX.Element
       {/* Header — standard InsadongHeader with promo title */}
       <InsadongHeader
         title={title}
+        subtitle={subtitle || undefined}
         light
         onHome={() => navigate('home', 'Back')}
         onBack={() => (view !== 'main' ? setView('main') : navigate('home', 'Back'))}

@@ -5,12 +5,13 @@ import { hwaseongIconUrl } from '@renderer/assets/icons/hwaseong';
 import { useWeatherStore } from '@renderer/store/weatherStore';
 import { useWeatherVideo } from '@renderer/hooks/useWeatherVideo';
 import { useLanguageStore } from '@renderer/store/languageStore';
+import { useFitText } from '@layouts/components/fitText';
 import { useSearchStore } from '@renderer/store/searchStore';
 import { weatherIconUrl, weatherIconName } from '@renderer/assets/weather';
-import { buttonText, pick } from '@renderer/lib/i18n';
+import { buttonText, pick, type Lang } from '@renderer/lib/i18n';
 import { useApiTileRows, useHasDonationTile, type TileKey } from '@renderer/lib/buttonLayout';
 import { DONATION_COMING_SOON, withComingSoon } from '@shared/config/donation';
-import { t } from '@renderer/lib/loc';
+import { t, tExact } from '@renderer/lib/loc';
 import { SearchIcon } from '@layouts/components/SearchIcon';
 import { FloatingKeyboard } from '../insadong/keyboard/FloatingKeyboard';
 
@@ -51,6 +52,42 @@ function formatDate(d: Date): string {
 }
 
 type NoticeRun = { t: string; b?: boolean };
+
+/**
+ * The notice badge is drawn as a narrow column, one glyph per line — the sheet
+ * stacks it that way for ko "공/지", en "I/N/F/O", ja and zh. For vi / id / th /
+ * ru the Hwaseong sheet has a single word instead ("уведомление"), which sits
+ * as one wide line and squeezes the notice text into a thin vertical column.
+ * Until the sheet stacks those too, they use the stacked badges the Insadong
+ * sheet already has. A sheet value that contains a line break always wins.
+ */
+const NOTICE_BADGE_STACKED: Partial<Record<Lang, string>> = {
+  vi: 'C\nH\nÚ\nÝ',
+  th: 'แ\nจ้\nง',
+  ru: 'И\nН\nФ\nО',
+  id: 'I\nN\nF\nO',
+};
+
+/**
+ * 스마트 관광 (bottom-left, 준비중) for when the sheet's MainButton_SmartTour cell
+ * is empty. The Korean is baked into fg-bottomnav.png, so `ko` is never drawn.
+ */
+const SMART_TOUR_FALLBACK: Partial<Record<Lang, string>> = {
+  ko: '스마트 관광(준비중)',
+  en: 'Smart Tourism (Preparing)',
+  ja: 'スマート観光（準備中）',
+  zh: '智慧旅游（准备中）',
+  vi: 'Du lịch thông minh (Đang chuẩn bị)',
+  th: 'การท่องเที่ยวอัจฉริยะ (เร็วๆ นี้)',
+  ru: 'Умный туризм (Скоро)',
+  id: 'Pariwisata Cerdas (Segera hadir)',
+};
+
+/** "Name (준비중)" → ["Name", "(준비중)"] — the baked Korean's two lines. */
+function splitPending(label: string): string[] {
+  const m = label.match(/^(.*?)\s*([(（].*)$/);
+  return m && m[1] ? [m[1], m[2]!] : [label];
+}
 
 /** Same as Insadong/Osan: `\n` = line break, `<b>…</b>` = bold. */
 function parseNotice(text: string): NoticeRun[][] {
@@ -142,7 +179,7 @@ function allTilesFor(hasDonation: boolean): HomeTile[] {
 const hwaseongTileKey = (t: HomeTile): TileKey => ({ screen: t.screen, slot: t.slot });
 
 // ── Sub-components ──────────────────────────────────────────────────
-function SquareTile({ tile, label, onClick, disabled }: { tile: Tile; label: string; onClick: () => void; disabled?: boolean }) {
+function SquareTile({ tile, label, onClick, disabled, longLang }: { tile: Tile; label: string; onClick: () => void; disabled?: boolean; longLang: boolean }) {
   const src = hwaseongIconUrl(tile.icon);
   return (
     <div className={`${styles.tileWrap} ${disabled ? styles.tileDisabled : ''}`} onClick={disabled ? undefined : onClick}>
@@ -155,13 +192,13 @@ function SquareTile({ tile, label, onClick, disabled }: { tile: Tile; label: str
           </div>
         )}
       </div>
-      <span className={styles.tileLabel}>{label}</span>
+      <span className={`${styles.tileLabel} ${longLang ? styles.tileLabelLong : ''}`}>{label}</span>
     </div>
   );
 }
 
 /** The wide traffic-style card (spans 2 columns). */
-function WideTile({ tile, label, onClick }: { tile: Tile; label: string; onClick: () => void }) {
+function WideTile({ tile, label, onClick, longLang }: { tile: Tile; label: string; onClick: () => void; longLang: boolean }) {
   const src = hwaseongIconUrl(tile.icon);
   return (
     <div className={styles.tileWrapWide} onClick={onClick}>
@@ -174,15 +211,15 @@ function WideTile({ tile, label, onClick }: { tile: Tile; label: string; onClick
           </div>
         )}
       </div>
-      <span className={styles.tileLabel}>{label}</span>
+      <span className={`${styles.tileLabel} ${longLang ? styles.tileLabelLong : ''}`}>{label}</span>
     </div>
   );
 }
 
 /** Renders a tile as the wide traffic card (tile.wide) or a square tile. */
-function TileView({ tile, label, onClick, disabled }: { tile: HomeTile; label: string; onClick: () => void; disabled?: boolean }) {
-  if (tile.wide) return <WideTile tile={tile} label={label} onClick={onClick} />;
-  return <SquareTile tile={tile} label={label} onClick={onClick} disabled={disabled} />;
+function TileView({ tile, label, onClick, disabled, longLang }: { tile: HomeTile; label: string; onClick: () => void; disabled?: boolean; longLang: boolean }) {
+  if (tile.wide) return <WideTile tile={tile} label={label} onClick={onClick} longLang={longLang} />;
+  return <SquareTile tile={tile} label={label} onClick={onClick} disabled={disabled} longLang={longLang} />;
 }
 
 // ── Main component ──────────────────────────────────────────────────
@@ -191,9 +228,16 @@ export function HwaseongHome({ controller }: Props): JSX.Element {
   const playWeatherVideo = useWeatherVideo();
   const today = useMemo(() => formatDate(new Date()), []);
   const lang = useLanguageStore((s) => s.currentLanguage);
+  /* Korean is what the row pitch was drawn around; every other language runs
+     longer. See "Other languages" at the foot of the CSS. (`longLang`, not
+     `wide` — a tile's own `wide` means it spans two columns.) */
+  const longLang = lang !== 'ko';
+  const gridRef = useRef<HTMLDivElement>(null);
+  const smartTourRef = useRef<HTMLDivElement>(null);
   // Sheet-driven (Localization_Hwaseong): NoticeContent = body, Notice = vertical badge.
   const noticeLines = parseNotice(t('NoticeContent', lang));
-  const noticeBadge = t('Notice', lang)
+  const noticeRaw = t('Notice', lang);
+  const noticeBadge = (noticeRaw.includes('\n') ? noticeRaw : (NOTICE_BADGE_STACKED[lang] ?? noticeRaw))
     .split('\n')
     .map((s) => s.trim())
     .filter(Boolean);
@@ -257,6 +301,16 @@ export function HwaseongHome({ controller }: Props): JSX.Element {
   const weatherIcon = weather
     ? weatherIconUrl(weatherIconName(weather.icon, weather.main))
     : undefined;
+
+  useFitText(gridRef, styles.tileLabel, longLang, 0.7, `${lang}|${dynamicRows ? 'dyn' : 'static'}`);
+
+  // 스마트 관광 (bottom-left): the sheet's MainButton_SmartTour, else the authored
+  // copy. Drawn as name / (준비중) on two lines, the way the baked Korean is, and
+  // shrunk to the strip when a translation is longer than it ('ink': the strip
+  // centres its text, so an overlong line spills out of both sides).
+  const smartTourLabel = tExact('MainButton_SmartTour', lang) || pick(SMART_TOUR_FALLBACK, lang);
+  const smartTourLines = splitPending(smartTourLabel);
+  useFitText(smartTourRef, styles.bottomNavSmartLabel, lang !== 'ko', 0.6, smartTourLabel, 'ink');
 
   return (
     <div className={styles.root}>
@@ -369,7 +423,7 @@ export function HwaseongHome({ controller }: Props): JSX.Element {
         </div>
 
         {/* Menu grid — API-ordered when a full layout is cached, else authored. */}
-        <div className={styles.menuGrid}>
+        <div ref={gridRef} className={styles.menuGrid}>
           {dynamicRows
             ? dynamicRows.map((row, i) => (
                 <div key={i} className={styles.menuRow}>
@@ -380,6 +434,7 @@ export function HwaseongHome({ controller }: Props): JSX.Element {
                       label={tileLabel(tile)}
                       onClick={() => go(tile)}
                       disabled={tile.disabled}
+                      longLang={longLang}
                     />
                   ))}
                 </div>
@@ -389,18 +444,18 @@ export function HwaseongHome({ controller }: Props): JSX.Element {
                 {/* Row 1: wide + 2 */}
                 <div className={styles.menuRow}>
                   {/* Wide traffic tile */}
-                  <WideTile tile={ROW1_WIDE} label={TILE(ROW1_WIDE.labelKey)} onClick={() => go(ROW1_WIDE)} />
+                  <WideTile tile={ROW1_WIDE} label={TILE(ROW1_WIDE.labelKey)} onClick={() => go(ROW1_WIDE)} longLang={longLang} />
 
                   {/* 2 square tiles */}
                   {ROW1.map((tile) => (
-                    <SquareTile key={tile.screen + tile.label} tile={tile} label={TILE(tile.labelKey, tile.disabled)} onClick={() => go(tile)} disabled={tile.disabled} />
+                    <SquareTile key={tile.screen + tile.label} tile={tile} label={TILE(tile.labelKey, tile.disabled)} onClick={() => go(tile)} disabled={tile.disabled} longLang={longLang} />
                   ))}
                 </div>
 
                 {/* Row 2 */}
                 <div className={styles.menuRow}>
                   {ROW2.map((tile) => (
-                    <SquareTile key={tile.screen + tile.label} tile={tile} label={tileLabel(tile)} onClick={() => go(tile)} />
+                    <SquareTile key={tile.screen + tile.label} tile={tile} label={tileLabel(tile)} onClick={() => go(tile)} longLang={longLang} />
                   ))}
                 </div>
 
@@ -408,14 +463,14 @@ export function HwaseongHome({ controller }: Props): JSX.Element {
                     pass disabled + keepPending like ROW1/ROW4 do. */}
                 <div className={styles.menuRow}>
                   {row3.map((tile) => (
-                    <SquareTile key={tile.screen + tile.label} tile={tile} label={tileLabel(tile)} onClick={() => go(tile)} disabled={tile.disabled} />
+                    <SquareTile key={tile.screen + tile.label} tile={tile} label={tileLabel(tile)} onClick={() => go(tile)} disabled={tile.disabled} longLang={longLang} />
                   ))}
                 </div>
 
                 {/* Row 4 */}
                 <div className={styles.menuRow}>
                   {ROW4.map((tile) => (
-                    <SquareTile key={tile.screen + tile.label} tile={tile} label={TILE(tile.labelKey, tile.disabled)} onClick={() => go(tile)} disabled={tile.disabled} />
+                    <SquareTile key={tile.screen + tile.label} tile={tile} label={TILE(tile.labelKey, tile.disabled)} onClick={() => go(tile)} disabled={tile.disabled} longLang={longLang} />
                   ))}
                 </div>
               </>
@@ -433,7 +488,18 @@ export function HwaseongHome({ controller }: Props): JSX.Element {
 
         {/* Transparent click zones over the three buttons (Figma coords) */}
         {/* 스마트 관광 — 준비중: not clickable, no navigation */}
-        <div className={styles.bottomNavZoneLeft} aria-label="스마트 관광(준비중)" />
+        <div className={styles.bottomNavZoneLeft} aria-label={smartTourLabel} />
+        {/* Other languages: covers the Korean "스마트 관광 (준비중)" baked into
+            fg-bottomnav.png, like the WC label. Korean keeps the baked art. */}
+        {lang !== 'ko' && (
+          <div ref={smartTourRef} className={styles.bottomNavSmartLabel}>
+            {smartTourLines.map((line, i) => (
+              <span key={i} className={styles.bottomNavSmartLine}>
+                {line}
+              </span>
+            ))}
+          </div>
+        )}
         <button
           type="button"
           className={styles.bottomNavZoneCenter}

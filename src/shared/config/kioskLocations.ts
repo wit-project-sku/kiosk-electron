@@ -15,6 +15,22 @@ import type { KioskId, KioskLayoutId, KioskScreenId } from '../types/kiosk';
  */
 export type KioskLocationCode = 'W001' | 'W002' | 'W003' | 'W004' | 'W005' | 'W006' | 'W007' | 'W008' | 'W202';
 
+/**
+ * Content-branch code the v2 witteria endpoints are keyed by
+ * (`/api/kiosks/{region}/banners/v2`, `/api/shops/v2?region=`, …) — it replaced
+ * the device number (`kioskId`). The API accepts exactly these eight values
+ * (case-insensitive) and answers 400 KIOSK4009 for anything else.
+ */
+export type ContentRegion =
+  | 'INSADONG_NORTH'
+  | 'INSADONG_CENTER'
+  | 'INSADONG_SOUTH'
+  | 'OSAEK'
+  | 'HWASEONG'
+  | 'JEJU_AIRPORT'
+  | 'JEJU_PORT'
+  | 'JEJU_HERITAGE';
+
 export interface KioskLocationTile {
   screen: KioskScreenId;
   label: string;
@@ -40,6 +56,12 @@ export interface KioskLocation {
   code: KioskLocationCode;
   /** Human name of the physical location. */
   name: string;
+  /**
+   * Content branch for the v2 endpoints. `null` for a venue that has no CMS rows
+   * (KADA W202) — its services skip the fetch rather than send a region the API
+   * would reject.
+   */
+  region: ContentRegion | null;
   /** React layout family — W001/W002 = INSADONG, W003 = NAM_INSADONG (separable
    *  design), W006/W007 = JEJU_AIRPORT (one 제주 design, two venues). */
   layout: KioskLayoutId;
@@ -118,6 +140,11 @@ export interface KioskLocation {
    * Do NOT copy an override onto a new 제주 kiosk without re-checking which
    * number actually carries the rows and the right route origin.
    *
+   * ⚠ SUPERSEDED (2026-10-02): the shop catalogue moved to `/api/shops/v2?region=`
+   * (see {@link KioskLocation.region}), which ignores this field and the
+   * per-machine `shopApiKioskId` override. Kept only so provisioned machines that
+   * still carry it keep loading their config.
+   *
    * This is SHOP-ONLY. The per-kiosk endpoints (`/api/kiosks/{n}/banners`,
    * `/buttons`, `/subtitles`, stats, update-command) still key off the W-code
    * number — W006's banners live at 6 and 7 has none — so `KioskService.kioskNum()`
@@ -156,24 +183,29 @@ const KADA_COORDS: GeoCoordinates = { lat: 20.9806, lon: 105.7876 };
 const INSARANG_TILE: KioskLocationTile = { screen: 'insarang', label: '인사랑(준비중)', icon: 'insarang' };
 const MARKET_TILE: KioskLocationTile = { screen: 'market', label: '위드마켓', icon: 'market' };
 
-// 기부 is deployed on W003/W004/W005 — mirrors the `buttons` CMS, which carries a
-// 기부 row for kiosks 3/4/5 (line 6 position 2) and has dropped their 지도 row, while
-// W001/W002 still have 인사동 지도 and no 기부. As of 2026-07-31 화성휴게소 W005 also
-// has a physical TL-3800 terminal, so hasCardTerminal now matches hasDonation on
-// 3/4/5: all three drive card payment through the embedded loopback agent (the
-// donation webview posts to 127.0.0.1:8080), not an online-only flow.
+// 기부 is deployed on W001–W005. W003/W004/W005 have carried it from the start;
+// W001/W002 joined with the 인사>홈 4×4 redesign, whose 홈-01 frame draws 기부 and
+// 인사동 지도 side by side (they used to share one slot). The `buttons` CMS has not
+// caught up — it still carries a 기부 row only for kiosks 3/4/5 (line 6 position 2),
+// with 지도 dropped there and the reverse on 1/2 — so on Insadong this flag, not the
+// CMS, is what puts the tile on screen (see InsadongHome).
+//
+// CAUTION for W001/W002: hasCardTerminal is still false there. The donation webview
+// loads and the tile works, but card payment posts to the embedded loopback agent
+// (127.0.0.1:8080) and there is no TL-3800 on those two machines to answer it — the
+// flow cannot complete until terminals are fitted. W003/W004/W005 have one.
 export const KIOSK_LOCATIONS: Record<KioskLocationCode, KioskLocation> = {
-  W001: { code: 'W001', name: '북인사마당', layout: 'INSADONG', secondTile: INSARANG_TILE, hasCardTerminal: false, hasDonation: false, aiCompanion: '2', coordinates: INSADONG_COORDS, cameraRotation: 0 },
-  W002: { code: 'W002', name: '인사동쉼터', layout: 'INSADONG', secondTile: INSARANG_TILE, hasCardTerminal: false, hasDonation: false, aiCompanion: '2', coordinates: INSADONG_COORDS, cameraRotation: 0 },
-  W003: { code: 'W003', name: '남인사마당', layout: 'NAM_INSADONG', secondTile: MARKET_TILE, hasCardTerminal: true, hasDonation: true, aiCompanion: '2', coordinates: INSADONG_COORDS, cameraRotation: 0 },
+  W001: { code: 'W001', name: '북인사마당', region: 'INSADONG_NORTH', layout: 'INSADONG', secondTile: INSARANG_TILE, hasCardTerminal: false, hasDonation: true, aiCompanion: '2', coordinates: INSADONG_COORDS, cameraRotation: 0 },
+  W002: { code: 'W002', name: '인사동쉼터', region: 'INSADONG_CENTER', layout: 'INSADONG', secondTile: INSARANG_TILE, hasCardTerminal: false, hasDonation: true, aiCompanion: '2', coordinates: INSADONG_COORDS, cameraRotation: 0 },
+  W003: { code: 'W003', name: '남인사마당', region: 'INSADONG_SOUTH', layout: 'NAM_INSADONG', secondTile: MARKET_TILE, hasCardTerminal: true, hasDonation: true, aiCompanion: '2', coordinates: INSADONG_COORDS, cameraRotation: 0 },
   // 오색시장 also has a physical card-payment terminal (like 남인사마당 W003), so it
   // takes the payment result flow (위드마켓 webview + save QR, result image on Monitor 2).
-  W004: { code: 'W004', name: '오산시 오색시장', layout: 'OSAN', secondTile: MARKET_TILE, hasCardTerminal: true, hasDonation: true, aiCompanion: '3', coordinates: OSAN_COORDS, cameraRotation: 0 },
+  W004: { code: 'W004', name: '오산시 오색시장', region: 'OSAEK', layout: 'OSAN', secondTile: MARKET_TILE, hasCardTerminal: true, hasDonation: true, aiCompanion: '3', coordinates: OSAN_COORDS, cameraRotation: 0 },
   // 화성휴게소's TL-3800 exists for the 기부 (donation) app ONLY — unlike W003/W004
   // the terminal does NOT put the photo flow onto the 위드마켓 result screen; its
   // photo result stays the plain image + save QR (see PhotoWorkflow's
   // showsMarketResult).
-  W005: { code: 'W005', name: '화성휴게소', layout: 'HWASEONG', secondTile: INSARANG_TILE, hasCardTerminal: true, hasDonation: true, aiCompanion: '4', coordinates: HWASEONG_COORDS, cameraRotation: 0 },
+  W005: { code: 'W005', name: '화성휴게소', region: 'HWASEONG', layout: 'HWASEONG', secondTile: INSARANG_TILE, hasCardTerminal: true, hasDonation: true, aiCompanion: '4', coordinates: HWASEONG_COORDS, cameraRotation: 0 },
   // 제주공항 W006 — has a TL-3800 terminal and runs 기부, like W003–W005.
   // TODO(제주): `secondTile` is provisional — the home grid is redefined by the
   // Jeju Figma (it only matters for layouts that consume it).
@@ -183,7 +215,7 @@ export const KIOSK_LOCATIONS: Record<KioskLocationCode, KioskLocation> = {
   // then it sent 인사('2'), so 같이찍기 photos composited the Insadong character
   // while the screen next to them said "사진촬영 (with '하영')" — the UI has always
   // promised 하영 (see Photo_SelectTogether and the two 하영 home tiles).
-  W006: { code: 'W006', name: '제주공항', layout: 'JEJU_AIRPORT', secondTile: MARKET_TILE, hasCardTerminal: true, hasDonation: true, aiCompanion: '5', coordinates: JEJU_AIRPORT_COORDS, cameraRotation: 0 },
+  W006: { code: 'W006', name: '제주공항', region: 'JEJU_AIRPORT', layout: 'JEJU_AIRPORT', secondTile: MARKET_TILE, hasCardTerminal: true, hasDonation: true, aiCompanion: '5', coordinates: JEJU_AIRPORT_COORDS, cameraRotation: 0 },
   // 제주국제여객터미널 W007 — the CMS name is `#W007-제주시=제주국제여객터미널`. It runs
   // the SAME design as 제주공항: one JEJU_AIRPORT layout, one Localization_Jeju tab,
   // the same 하영 mascot rows, the same 310-row 제주 shop catalogue.
@@ -197,7 +229,7 @@ export const KIOSK_LOCATIONS: Record<KioskLocationCode, KioskLocation> = {
   // catalogue as 6/8; the plain W-code number (7) is right for this terminal.
   // `aiCompanion` is 하영('5'), exactly like W006 — same venue mascot, same
   // Localization_Jeju rows, and the two were always meant to move together.
-  W007: { code: 'W007', name: '제주국제여객터미널', layout: 'JEJU_AIRPORT', secondTile: MARKET_TILE, hasCardTerminal: true, hasDonation: true, aiCompanion: '5', coordinates: JEJU_TERMINAL_COORDS, cameraRotation: 0 },
+  W007: { code: 'W007', name: '제주국제여객터미널', region: 'JEJU_PORT', layout: 'JEJU_AIRPORT', secondTile: MARKET_TILE, hasCardTerminal: true, hasDonation: true, aiCompanion: '5', coordinates: JEJU_TERMINAL_COORDS, cameraRotation: 0 },
   // 세계자연유산본부 W008 — the CMS name is `#W008-제주시=세계자연유산본부` (the sheet's
   // 비고 column calls the venue 제주유산문화센터). Same 제주 design, but its OWN
   // JEJU_HERITAGE layout because its mascot is 유산, not 하영 — the shared
@@ -222,7 +254,7 @@ export const KIOSK_LOCATIONS: Record<KioskLocationCode, KioskLocation> = {
   // (LocalizationSyncParser.VENUE_MASCOTS rewrites every 하영 row to 유산), so
   // compositing 하영 would contradict the one rule this layout exists to enforce.
   // Revisit when Digicon ships a 유산 code.
-  W008: { code: 'W008', name: '세계자연유산본부', layout: 'JEJU_HERITAGE', secondTile: MARKET_TILE, hasCardTerminal: true, hasDonation: true, aiCompanion: '2', coordinates: JEJU_HERITAGE_COORDS, cameraRotation: 0 },
+  W008: { code: 'W008', name: '세계자연유산본부', region: 'JEJU_HERITAGE', layout: 'JEJU_HERITAGE', secondTile: MARKET_TILE, hasCardTerminal: true, hasDonation: true, aiCompanion: '2', coordinates: JEJU_HERITAGE_COORDS, cameraRotation: 0 },
   // KADA W202 — Korea-ASEAN Digital Academy, Vietnam Chapter (PTIT, Hà Nội).
   //
   // The first NON-KOREAN deployment, and the first that is not a tourism kiosk.
@@ -237,7 +269,7 @@ export const KIOSK_LOCATIONS: Record<KioskLocationCode, KioskLocation> = {
   // so sending it changes nothing. The KADA photo screen never offers 같이찍기
   // (see KadaKiosk's PHOTO_MODES), so no visitor should ever see a composited
   // mascot here — revisit only if that flow is switched on for this venue.
-  W202: { code: 'W202', name: 'Korea-ASEAN Digital Academy', layout: 'KADA', hasCardTerminal: false, hasDonation: false, aiCompanion: '2', coordinates: KADA_COORDS, cameraRotation: 0 },
+  W202: { code: 'W202', name: 'Korea-ASEAN Digital Academy', region: null, layout: 'KADA', hasCardTerminal: false, hasDonation: false, aiCompanion: '2', coordinates: KADA_COORDS, cameraRotation: 0 },
 };
 
 /**
@@ -247,6 +279,44 @@ export const KIOSK_LOCATIONS: Record<KioskLocationCode, KioskLocation> = {
  */
 export function isJejuLayout(layout: KioskLayoutId): boolean {
   return layout === 'JEJU_AIRPORT' || layout === 'JEJU_HERITAGE';
+}
+
+/**
+ * True for the 인사동 design family — W001/W002 (INSADONG) and W003
+ * (NAM_INSADONG). The two ids split the home grid, not the design; anything
+ * asking "is this 인사동" wants both.
+ */
+export function isInsadongLayout(layout: KioskLayoutId): boolean {
+  return layout === 'INSADONG' || layout === 'NAM_INSADONG';
+}
+
+/**
+ * True where the photo countdown waits for the visitor's OPEN PALM instead of
+ * starting on a timer.
+ *
+ * ★ This lives here, rather than being spelled out at each call site, because
+ * it is read from BOTH processes' windows and they must never disagree:
+ *   · Monitor 1 (PhotoWorkflow → photoChrome.gestureCapture) arms the gate
+ *   · Monitor 2 (CustomerDisplay) draws the palm/fist chips and runs detection
+ * Arming the gate on a screen that draws no chips is not a cosmetic mismatch —
+ * it is a silent ~30s stall until the fallback timer fires, which is exactly
+ * why the 2026-08-24 fleet-wide rollout was reverted two days later.
+ *
+ * ── 제주-only again (2026-09-29) ───────────────────────────────────────
+ * 인사동 took this on 2026-09-28 and gave it back a day later: the venue wants
+ * its ORIGINAL Monitor 2 camera screen, and that screen cannot host the gate.
+ * JejuCameraGuide's two gesture chips are baked into its background artwork and
+ * cannot be lifted out, while the legacy screen tells the visitor
+ * "10초후에 촬영이 됩니다" — timer copy that a palm gate would contradict. So the
+ * pair travels together, both reverted rather than half.
+ *
+ * ★ Only the COUNTDOWN and the camera screen went back. 인사동 keeps the rich
+ * outfit picker (photoChrome.richOutfit) and the 게임존
+ * (photoChrome.waitingGames) — those are separate capabilities for exactly this
+ * reason, so one can be withdrawn without disturbing the others.
+ */
+export function usesGestureCapture(layout: KioskLayoutId): boolean {
+  return isJejuLayout(layout);
 }
 
 /**
@@ -290,4 +360,9 @@ export function getCameraRotation(kioskId: KioskId): 0 | 90 | 180 | 270 {
  */
 export function getShopApiKioskId(kioskId: KioskId): number | undefined {
   return getKioskLocation(kioskId).shopApiKioskId;
+}
+
+/** The v2 API `region` for a kiosk, or `null` when the venue has no CMS content. */
+export function getKioskRegion(kioskId: KioskId): ContentRegion | null {
+  return getKioskLocation(kioskId).region;
 }

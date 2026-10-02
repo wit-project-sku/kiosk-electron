@@ -1,14 +1,25 @@
 /**
- * 화면 문구. 동의·방침 문구는 FillMe(주식회사 링커버스) 샘플 앱에서 그대로 옮겼다 — 법적 문구라 임의로 다듬지 않는다.
- * 지금은 한국어만 있다. 제주 앱 통합 시 8개 언어 처리 방식(시트·authored copy)을 따로 정해야 한다.
+ * 화면 문구 중 시트에 줄이 없는 것들.
+ *
+ * 화면에 보이는 글은 이제 대부분 Localization_Jeju_v2 의 `Fillme_*` 줄에서 온다
+ * (text.ts). 여기 남은 것은 시트가 아직 다루지 않는 것들이다 — 동의 요약 상자,
+ * 거부 안내, 시행일자, 숫자 입력 예시, 그리고 방침 전문의 authored 사본(시트에
+ * 전문이 없을 때만 쓰인다).
+ *
+ * 동의·방침 문구는 FillMe(주식회사 링커버스) 샘플 앱에서 그대로 옮겼다 — 법적
+ * 문구라 임의로 다듬지 않는다. 그래서 여기 남은 줄들은 한국어뿐이고, 옮겨야
+ * 한다면 시트에 줄을 만드는 쪽이 맞다.
  */
 
-export const HAND_LABEL = { left: '왼손', right: '오른손' } as const;
-
+/*
+ * `label`·`unit` 은 시트 KEY 다(화면에서 tx 로 푼다). cm·kg 은 시트에 줄이 없고
+ * 여덟 언어가 모두 같은 기호를 쓰므로 글자 그대로 둔다 — 나이의 '세'만 언어마다
+ * 달라 시트가 한 줄(Fillme_text026)을 준다. placeholder 는 시트에 없다.
+ */
 export const FIELDS = {
-  age: { label: '나이', unit: '세', min: 1, max: 120, placeholder: '예) 35' },
-  height: { label: '키', unit: 'cm', min: 100, max: 250, placeholder: '예) 165' },
-  weight: { label: '몸무게', unit: 'kg', min: 20, max: 300, placeholder: '예) 60' },
+  age: { label: 'Fillme_text025', unit: 'Fillme_text026', unitLiteral: false, min: 1, max: 120, placeholder: '예) 35' },
+  height: { label: 'Fillme_text027', unit: 'cm', unitLiteral: true, min: 100, max: 250, placeholder: '예) 165' },
+  weight: { label: 'Fillme_text028', unit: 'kg', unitLiteral: true, min: 20, max: 300, placeholder: '예) 60' },
 } as const;
 
 export type FieldKey = keyof typeof FIELDS;
@@ -43,17 +54,21 @@ export const REFUSE_NOTICE =
 
 export const POLICY_SUB = '주식회사 링커버스 · 개인정보처리방침(무인 키오스크용) 시행일자 2026.06.01.';
 
-/** 분석 중 단계(진행률 25%마다 한 단계). */
-export const ANALYZE_STEPS = ['손톱 색상 분석', '손톱 형태 분석', '건강 지표 계산', '맞춤 결과 생성'];
-export const ANALYZE_SUBS = [
-  '손톱 색상을 분석하고 있어요',
-  '손톱 형태를 분석하고 있어요',
-  '건강 지표를 계산하고 있어요',
-  '맞춤 결과를 만들고 있어요',
-  '분석이 끝났어요',
+/**
+ * 분석 중 단계(진행률 25%마다 한 단계) — 시트 KEY 다.
+ *
+ * ANALYZE_SUBS 는 없어졌다. 단계마다 바뀌던 다섯 줄("손톱 색상을 분석하고
+ * 있어요" …)을 시트가 한 줄(Fillme_text039)로만 주기 때문이다. 다섯 줄 중 네
+ * 줄을 한국어로 남겨 두면 외국어 손님이 화면 한가운데에서 한국어를 보게 되므로,
+ * 시트가 준 한 줄을 고정으로 쓴다. 단계 진행은 아래 목록이 아이콘으로 이미
+ * 보여 준다. 시트에 네 줄을 더 넣으면 그때 되살리면 된다.
+ */
+export const ANALYZE_STEP_KEYS = [
+  'Fillme_text041',
+  'Fillme_text042',
+  'Fillme_text043',
+  'Fillme_text044',
 ];
-
-export const DISCLAIMER = '본 결과는 AI 분석에 기반한 건강 관리 참고 정보이며, 의학적 진단을 대체하지 않습니다.';
 
 /** 개인정보처리방침 전문. [제목, 문단들] — 문단 앞 '·' 는 목록 항목. */
 export const POLICY_FULL: { heading?: string; paragraphs: string[] }[] = [

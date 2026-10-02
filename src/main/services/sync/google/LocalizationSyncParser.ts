@@ -216,9 +216,16 @@ export function parseLocalizationSheet(rows: string[][], layout: KioskLayoutId):
   const mascots = VENUE_MASCOTS[layout];
   const source = mascots ? pickVenueRows(rows, mascots) : rows;
 
+  // A key listed twice keeps its FIRST row. Localization_Insa has
+  // MainButton_Promotion in the home-button block ("PROMOTION(준비중)", the K-DRAMA
+  // button's label) and again further down beside the promotion page's rows;
+  // last-wins put the second row's drama title on the home button.
+  const seen = new Set<string>();
   for (const row of source) {
     const key = (row[1] ?? '').trim();
     if (!key || key === 'Key') continue; // skip section/header rows
+    if (seen.has(key)) continue;
+    seen.add(key);
 
     for (const { lang, index } of cols) {
       const raw = (row[index] ?? '').replace(/ /g, ' ').trim();

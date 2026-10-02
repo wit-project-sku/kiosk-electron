@@ -8,6 +8,7 @@ import type {
   ShotInput,
 } from '@shared/types/data';
 import { createLogger } from '@main/core/logger';
+import { statsKioskNum } from './statsKiosk';
 import type { KioskService } from './KioskService';
 import type { FailedRequestService } from './FailedRequestService';
 
@@ -76,6 +77,12 @@ function sentEventIds(json: unknown): Set<string> {
  * by `eventId`, and re-sent once a day via the dedicated BATCH endpoints
  * (`/menu-touches/sync`, `/photo-shots/sync`) — see syncMenuTouches/syncPhotoShots.
  *
+ * The `kioskId` on every body here goes through {@link statsKioskNum}, which
+ * pins a BETA build to the 3-monitor rig's id whatever location the machine is
+ * currently provisioned as. Production is unaffected. It is applied at RECORD
+ * time, so an event that falls back to the nightly batch carries the same id as
+ * one that went out live.
+ *
  * Env:
  *   STATS_MENU_TOUCH_URL        — real-time menu-touch endpoint.
  *   STATS_MENU_TOUCHES_SYNC_URL — nightly menu-touch batch endpoint.
@@ -110,7 +117,7 @@ export class StatsService {
    * real-time endpoint takes no eventId; it's added only for batch idempotency.
    */
   async recordMenuTouch(input: MenuTouchInput): Promise<boolean> {
-    const kioskId = this.kiosk.kioskNum();
+    const kioskId = statsKioskNum(this.kiosk.kioskNum());
     const eventId = input.eventId ?? randomUUID();
 
     const realtime: MenuTouchBody = {
@@ -144,7 +151,7 @@ export class StatsService {
    * batch re-send. `eventId` is the idempotency key shared across both paths.
    */
   async recordShot(input: ShotInput): Promise<boolean> {
-    const kioskId = this.kiosk.kioskNum();
+    const kioskId = statsKioskNum(this.kiosk.kioskNum());
     const eventId = input.eventId ?? randomUUID();
     const shotAt = input.shotAt ?? localIso();
     const shotType = input.shotType ?? null;

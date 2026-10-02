@@ -7,7 +7,7 @@
  * y map (from the frame):
  *    0…594     header — Component 40, rendered by JejuHeader
  *    794…899   ③ 잠시만 기다려주세요!            (step row, left 180)
- *    947…1012  기다리는 동안 틀린 그림을 찾아보세요!  (#FF7F0F, centred)
+ *    947…1012  기다리는 동안 틀린 그림을 찾아보세요!  (var(--kiosk-primary, #ff7f0f), centred)
  *   1060…1125  n/5 progress                     (centred)
  *   1286…      the two pictures SIDE BY SIDE — 1703 wide overall (2 × 818,
  *              67 gap), square corners, #d9d9d9 plate; the height follows the
@@ -21,7 +21,7 @@
  * clock, the hint, the exit). Those go in the 3038…3267 band the frame leaves
  * empty, plus the two ends of the 1060 progress line — the designed centre
  * column is untouched, and everything added uses the frame's own type scale
- * (65/58px Noto Sans Bold), its primary #FF7F0F and its 42.9px button radius.
+ * (65/58px Noto Sans Bold), its primary var(--kiosk-primary, #ff7f0f) and its 42.9px button radius.
  * Replace with the real thing if a frame for those states lands.
  */
 
@@ -64,7 +64,7 @@
   height: 105px;
   flex: 0 0 auto;
   border-radius: 50%;
-  background: var(--kiosk-primary, #ff7f0f);
+  background: var(--kiosk-primary, var(--kiosk-primary, #ff7f0f));
   display: flex;
   align-items: center;
   justify-content: center;
@@ -99,7 +99,7 @@
   font-size: 65px;
   font-weight: 700;
   line-height: 1;
-  color: var(--kiosk-primary, #ff7f0f);
+  color: var(--kiosk-primary, var(--kiosk-primary, #ff7f0f));
   text-align: center;
 }
 
@@ -272,34 +272,33 @@
   left: 0;
   top: 1286px;
   width: 2160px;
+  /* The frame's 1196 band stays fixed; a pair shorter than it is centred in it,
+     so a landscape round neither hangs off the top nor leaves a hole below. */
+  height: var(--sd-max-h);
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   justify-content: center;
   gap: 67px;
-  /* Read by both plates and by the panels inside them. `--sd-aspect` is set on
-     this element by the component; these two resolve the plate's box once so
-     the arithmetic is written down in exactly one place. */
-  --sd-slot-w: 818px;
   /*
-   * PINNED to the frame's 1196, so the pair is always the 1703×1196 board
-   * 6980:17652 draws (131/92) — two 818 plates and the 67 gap.
-   *
-   * It was derived from the round's own art (`818 / --sd-aspect`) to avoid grey
-   * letterboxing, but that traded a fixed layout for a jumping one: a 4/3 round
-   * resolved to 613 and the board rendered barely half its drawn height, sitting
-   * high with a hole beneath it. A stable board reads better than a snug one on
-   * a screen the visitor only looks at for 60s.
-   *
-   * The PICTURE is untouched by this — `.panel` below still fits inside the
-   * plate by arithmetic and holds `--sd-aspect` exactly. That is not cosmetic:
-   * `hitSpot()` maps a tap through `round.aspect`, so a picture stretched or
-   * cropped to the plate would land every tap on the wrong place. A round whose
-   * art is not 0.684 letterboxes inside the plate instead, which is the right
-   * trade — grey edges cost nothing, a broken hit test costs the game.
-   *
-   * 1286 + 1196 = 2482, still clear of the actions row at 3060.
+   * The largest plate 6980:17652 draws: 818×1196 (the pair is 1703×1196, two
+   * plates and the 67 gap). 818 is also as wide as a plate can go — the left
+   * rail sits at x50…135 and the board must stay clear of it.
    */
-  --sd-slot-h: 1196px;
+  --sd-max-w: 818px;
+  --sd-max-h: 1196px;
+  /*
+   * The plate takes the PICTURE's shape (`--sd-aspect`, set on this element by
+   * the component), fitted into that box — so there is no grey above/below.
+   * Pinning the plate at 818×1196 letterboxed every non-portrait round: the
+   * 인사동 puzzles are ~4/3, and filled barely half the plate's height.
+   *
+   * The picture must never be stretched or cropped to fill instead —
+   * `hitSpot()` maps a tap through `round.aspect`, so either would land every
+   * tap on the wrong place. Portrait art at the frame's 0.684 resolves to the
+   * full 818×1196 exactly as drawn.
+   */
+  --sd-slot-w: min(var(--sd-max-w), calc(var(--sd-max-h) * var(--sd-aspect)));
+  --sd-slot-h: min(var(--sd-max-h), calc(var(--sd-max-w) / var(--sd-aspect)));
 }
 
 .slot {
@@ -363,7 +362,7 @@
 /* Brand orange over a white halo, so the ring holds up over a dark photo as
    well as a light one. */
 .foundRing {
-  border: 10px solid var(--kiosk-primary, #ff7f0f);
+  border: 10px solid var(--kiosk-primary, var(--kiosk-primary, #ff7f0f));
   box-shadow:
     0 0 0 6px rgba(255, 255, 255, 0.9),
     inset 0 0 0 4px rgba(255, 255, 255, 0.6);
@@ -483,7 +482,7 @@
    the game early and is deliberately the quieter of the two. */
 .hintBtn {
   border: none;
-  background: var(--kiosk-primary, #ff7f0f);
+  background: var(--kiosk-primary, var(--kiosk-primary, #ff7f0f));
   color: #fff;
 }
 
@@ -583,7 +582,7 @@
   /* Shared with home, JejuPageFrame and JejuHanbokSelect — see lowReach.ts. */
   height: var(--jeju-mode-bar);
   z-index: 3;
-  background: var(--kiosk-primary, #ff7f0f);
+  background: var(--kiosk-primary, var(--kiosk-primary, #ff7f0f));
   display: flex;
   align-items: center;
   justify-content: center;
@@ -683,7 +682,7 @@
 .overlayScoreNum {
   font-size: 88px;
   font-weight: 700;
-  color: var(--kiosk-primary, #ff7f0f);
+  color: var(--kiosk-primary, var(--kiosk-primary, #ff7f0f));
 }
 
 .overlayNote {
@@ -709,7 +708,7 @@
   width: 84px;
   height: 84px;
   border: 10px solid #ececec;
-  border-top-color: var(--kiosk-primary, #ff7f0f);
+  border-top-color: var(--kiosk-primary, var(--kiosk-primary, #ff7f0f));
   border-radius: 50%;
   animation: spin 900ms linear infinite;
 }

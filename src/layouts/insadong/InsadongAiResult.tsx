@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import type { KioskController } from '@renderer/hooks/useKioskController';
 import { iconUrl } from '@renderer/assets/icons/insadong';
 import { useRotatingBanner } from '@renderer/hooks/useRotatingBanner';
@@ -21,6 +21,7 @@ import {
 import { InsadongHeader } from './InsadongHeader';
 import { InsadongLeftNav } from './InsadongLeftNav';
 import styles from './InsadongAiResult.module.css';
+import { useFitText } from '@layouts/components/fitText';
 
 /**
  * '인사' 뭐하지 (AI 검색) — recommendation RESULTS.
@@ -105,6 +106,10 @@ export function InsadongAiResult({ controller }: InsadongAiResultProps): JSX.Ele
   const goBack = (): void => controller.navigate('ai_search', 'Back');
 
   const lang = useLang();
+  /* The AI returns the course name in the UI language; Korean comes back short
+     enough for the tab's one line, the others do not. See the CSS. */
+  const wide = lang !== 'ko';
+  const tabsRef = useRef<HTMLDivElement>(null);
   const shops = useShopStore((s) => s.shops);
   const setDetail = useDetailStore((s) => s.setItem);
   const noImg = iconUrl('noimage') ?? '';
@@ -112,6 +117,7 @@ export function InsadongAiResult({ controller }: InsadongAiResultProps): JSX.Ele
   // Cards are built from the interests the user picked, using REAL shop data.
   const interests = useAiStore((s) => s.interests);
   const courses = buildCourses(interests, shops, lang, noImg);
+  useFitText(tabsRef, styles.tab, wide, 0.6, courses.map((c) => c.name).join('|'));
 
   /** Open a spot — show its real shop detail (or the AI detail when none). */
   const openSpot = (spot: CourseSpot): void => {
@@ -157,12 +163,12 @@ export function InsadongAiResult({ controller }: InsadongAiResultProps): JSX.Ele
   const capWidth = TAB_W + CAP_PAD * 2;
 
   const tabs = (
-    <div className={styles.tabs}>
+    <div ref={tabsRef} className={styles.tabs}>
       {courses.map((c, i) => (
         <button
           key={c.name}
           type="button"
-          className={`${styles.tab} ${selected === i ? styles.tabActive : ''}`}
+          className={`${styles.tab} ${wide ? styles.tabLong : ''} ${selected === i ? styles.tabActive : ''}`}
           onClick={() => onTab(i)}
         >
           {c.name}
@@ -238,7 +244,7 @@ export function InsadongAiResult({ controller }: InsadongAiResultProps): JSX.Ele
                       <div className={styles.wideBody}>
                         <div className={styles.wideHead}>
                           <span className={styles.wideTitle}>{spot.title}</span>
-                          <span className={styles.wideCat}>
+                          <span className={`${styles.wideCat} ${wide ? styles.wideCatLong : ''}`}>
                             <span className={styles.dotSmall} />
                             {spot.category}
                           </span>

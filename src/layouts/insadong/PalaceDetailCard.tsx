@@ -1,6 +1,7 @@
 import type { DetailItem } from '@renderer/store/detailStore';
 import { useLang } from '@renderer/lib/i18n';
-import { t } from '@renderer/lib/loc';
+import { tExact } from '@renderer/lib/loc';
+import { ui } from '@renderer/lib/uiText';
 import { palaceCategory } from '@renderer/lib/palace';
 import { PALACES } from '@renderer/data/palaces.generated';
 import { pickText } from '@renderer/data/types';
@@ -41,10 +42,10 @@ export function PalaceDetailCard({ item }: PalaceDetailCardProps): JSX.Element {
   const thumbs = rest.slice(0, 4);
 
   const rows: Array<{ icon: string; label: string; value: string }> = [
-    { icon: iconHistory, label: t('Palace_History', lang), value: history },
-    { icon: iconSightseeing, label: t('Palace_Attraction', lang), value: highlights },
-    { icon: iconHours, label: t('Palace_OpeningTime', lang), value: hours },
-    { icon: iconTicket, label: t('Palace_Fee', lang), value: admission },
+    { icon: iconHistory, label: tExact('Palace_History', lang) || ui('palaceHistory', lang), value: history },
+    { icon: iconSightseeing, label: tExact('Palace_Attraction', lang) || ui('palaceAttractions', lang), value: highlights },
+    { icon: iconHours, label: tExact('Palace_OpeningTime', lang) || ui('palaceHours', lang), value: hours },
+    { icon: iconTicket, label: tExact('Palace_Fee', lang) || ui('palaceFee', lang), value: admission },
   ];
 
   return (

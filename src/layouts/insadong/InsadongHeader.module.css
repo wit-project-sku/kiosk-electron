@@ -4,7 +4,9 @@
    (justify-center made it content-dependent, shifting between pages.) */
 .header {
   position: absolute;
-  top: 0;
+  /* 0 on the ordinary pages. The 언어선택 ♿ frame (7574:70736) sets
+     --insa-header-shift so this band drops under the mode bar and the promo. */
+  top: var(--insa-header-shift, 0px);
   left: 0;
   width: 2160px;
   height: 700px;
@@ -13,7 +15,7 @@
   justify-content: flex-start;
   align-items: center;
   gap: 65px;
-  padding: 130px 170px 80px;
+  padding: 125px 170px 80px;
   box-sizing: border-box;
   z-index: 5;
 }
@@ -47,7 +49,9 @@
   align-items: center;
   gap: 25.74px;
   color: var(--kiosk-primary);
-  font-weight: 900;
+  /* Figma I7516:63306;1233:2164 is Pretendard **Bold**, not Black — 900 made the
+     wordmark heavier here than the renewal home draws it at the same 68px. */
+  font-weight: 700;
   font-size: 68px;
   line-height: 1;
 }
@@ -104,7 +108,8 @@
   color: #ffffff;
 }
 
-/* 서브타이틀: ★ 페이지 설명문, 60px #909090 */
+/* 서브타이틀: ★ 페이지 설명문 — Pretendard Regular 60, #909090, leading-none
+   (I7516:63306;1234:11218). It was rendering Bold at 60.06/1.3. */
 .subtitle {
   display: flex;
   align-items: flex-start;
@@ -113,8 +118,8 @@
 }
 
 .subtitleText {
-  font-size: 60.06px;
-  font-weight: 700;
+  font-size: 60px;
+  font-weight: 400;
   color: #909090;
   line-height: 1.3;
   max-width: 1640px;
@@ -122,9 +127,17 @@
   white-space: pre-line;
 }
 
+/* 7681:59218 — Pretendard Bold 60, #616161, leading-none, no star. */
+.subtitleStrong {
+  font-weight: 700;
+  color: #616161;
+  line-height: 1;
+}
+
 .star {
   color: var(--kiosk-primary);
-  font-size: 40px;
+  /* Figma's star asset is 36×36 at y+12 inside the 60px row. */
+  font-size: 36px;
   flex-shrink: 0;
   margin-top: 12px;
 }
@@ -141,4 +154,24 @@
 
 .subtitleWide .subtitleText {
   max-width: 1760px;
+}
+
+/* ── Other languages ──────────────────────────────────────────────────────
+ * Reached only through a class the TSX adds when lang !== 'ko' — the Korean
+ * header is untouched.
+ *
+ * The title row is a fixed 182px tall and the title already wraps, so Korean
+ * (교통안내, 여기는 인사동) sits on one 78px line. Two lines at the default
+ * line-height are ~212px, which is what "Достопримечательности (В разработке)"
+ * and "Thị trường Hàn Quốc (Đang chuẩn bị)" need — they spilled above and below
+ * the row, over the 공지 band and the content under it.
+ *
+ * Two lines are pulled back inside the row by a tighter leading, and a title
+ * that needs a third shrinks (`--fit`, useFitText — never below 0.6 → 47px).
+ * Nothing is clipped. */
+.titleLong {
+  line-height: 1.1;
+  word-break: keep-all;
+  overflow-wrap: anywhere;
+  font-size: calc(78px * var(--fit, 1));
 }

@@ -49,6 +49,7 @@ import { isMotionGame } from './gameTypes';
 import { useMotionGameState } from './motion/useMotionGameState';
 import { MotionRemote } from './motion/components/MotionRemote';
 import { PhotoReadyPrompt } from './components/PhotoReadyPrompt';
+import { PhotoReadyModal } from './components/PhotoReadyModal';
 
 /**
  * Hard ceiling on the 홈/뒤로 lock — rule 4 above.
@@ -84,9 +85,15 @@ interface Props {
   onFinish: () => void;
   /** The kiosk's real home. Abandons the photo session. */
   onHome: () => void;
+  /**
+   * 인사동: announce the finished photo with the centred 저장하기 / 다시찍기 popup
+   * (Figma 7768:10445) instead of 제주's bottom sheet, and on every view — the
+   * menu included — because the frame has no "keep playing" choice to make.
+   */
+  readyModal?: boolean;
 }
 
-export function JejuWaitingGames({ rounds, aiReady, onFinish, onHome }: Props): JSX.Element {
+export function JejuWaitingGames({ rounds, aiReady, onFinish, onHome, readyModal = false }: Props): JSX.Element {
   const [view, setView] = useState<JejuGameView>('hub');
   const kioskId = useKioskStore((s) => s.config.kioskId);
   const award = useJejuPointsStore((s) => s.award);
@@ -198,11 +205,11 @@ export function JejuWaitingGames({ rounds, aiReady, onFinish, onHome }: Props): 
   const [promptOpen, setPromptOpen] = useState(false);
   const promptedRef = useRef(false);
   useEffect(() => {
-    if (!aiReady || promptedRef.current || view === 'hub') return;
+    if (!aiReady || promptedRef.current || (view === 'hub' && !readyModal)) return;
     promptedRef.current = true;
     setPromptOpen(true);
     sfx.golden();
-  }, [aiReady, view]);
+  }, [aiReady, view, readyModal]);
 
   /** Stop whatever is on the big screen and come back to the menu. */
   const stopMotion = useCallback(() => {
@@ -307,7 +314,20 @@ export function JejuWaitingGames({ rounds, aiReady, onFinish, onHome }: Props): 
         />
       )}
 
-      {promptOpen && (
+      {promptOpen && readyModal && (
+        <PhotoReadyModal
+          onSave={() => {
+            setPromptOpen(false);
+            handOver();
+          }}
+          onRetake={() => {
+            setPromptOpen(false);
+            onHome();
+          }}
+        />
+      )}
+
+      {promptOpen && !readyModal && (
         <PhotoReadyPrompt
           onKeepPlaying={() => setPromptOpen(false)}
           onSeePhoto={() => {

@@ -32,18 +32,25 @@ const REQUEST_TIMEOUT_MS = 8000;
 const PICKER_TIMEOUT_MS = 3000;
 
 /**
- * 제주 AI 코스 추천 — a live pass-through to `POST /api/jeju/courses/recommend`.
+ * 제주 AI 코스 추천 — a live pass-through to `POST /api/jeju/courses/recommend/v2`.
  *
  * NOT cached, unlike banners/backgrounds/outfits: the answer depends on the
  * questionnaire, on today's date and on what the visitor already saw, so there
  * is nothing stable to cache. Each submission is one request, the same way
  * EventsService serves its paginated grid.
  *
- * The service supplies `kioskId` itself from KioskService — the renderer never
- * sends one, so a screen cannot ask on another kiosk's behalf. The API supports
- * 6 / 7 / 8 and answers 400 for the rest; that 400 arrives here as a
+ * The service supplies the venue `region` itself from KioskService — the
+ * renderer never sends one, so a screen cannot ask on another kiosk's behalf.
+ * The API supports the three 제주 venues (JEJU_AIRPORT / JEJU_PORT /
+ * JEJU_HERITAGE) and answers 400 for the rest; that 400 arrives here as a
  * VALIDATION AppError, which the AI course screen treats like any other failure
  * and falls back to its own client-side itinerary.
+ *
+ * ★ v2 renamed the venue field `kioskId` → `region`, and `region` was ALREADY
+ * the name of the 제주 권역 (JEJU_CITY·EAST·WEST·SEOGWIPO) in v1's /recommend
+ * body. In v2 `region` is the venue only — a 권역 sent there is a 400 — so the
+ * picked 권역 travels in `regions` alone. Verified against stage 2026-10-02:
+ * `{region: JEJU_AIRPORT, regions: [EAST]}` confines the course to the east.
  *
  * Also the 커스텀 코스 picker (`picker`) — same pass-through shape, one call
  * per 즐길 거리 tap. See JejuPickerPlan.
@@ -59,13 +66,20 @@ export class JejuCourseService {
   private endpoint(): string {
     if (process.env['JEJU_COURSE_API_URL']) return process.env['JEJU_COURSE_API_URL'];
     const base = (process.env['WITTERIA_API_BASE'] || DEFAULT_API_BASE).replace(/\/+$/, '');
-    return `${base}/api/jeju/courses/recommend`;
+    return `${base}/api/jeju/courses/recommend/v2`;
+  }
+
+  /** The venue's content region, or an AppError for one with no CMS (KADA) — no request is made. */
+  private requireRegion(): string {
+    const region = this.kiosk.region();
+    if (!region) throw new AppError('UNKNOWN', 'This kiosk has no 제주 course service.');
+    return region;
   }
 
   private pickerEndpoint(): string {
     if (process.env['JEJU_PICKER_API_URL']) return process.env['JEJU_PICKER_API_URL'];
     const base = (process.env['WITTERIA_API_BASE'] || DEFAULT_API_BASE).replace(/\/+$/, '');
-    return `${base}/api/jeju/courses/picker`;
+    return `${base}/api/jeju/courses/picker/v2`;
   }
 
   /**
@@ -76,8 +90,9 @@ export class JejuCourseService {
    */
   async picker(query: JejuPickerQuery): Promise<JejuPickerPlan> {
     const url = this.pickerEndpoint();
+    const region = this.requireRegion();
     const body = {
-      kioskId: this.kiosk.kioskNum(),
+      region,
       // An API that predates startMin ignores it and starts DAY 1 at 09:00.
       startMin: query.startMin,
       transport: query.transport,
@@ -110,7 +125,7 @@ export class JejuCourseService {
     } catch (error) {
       log.warn('Jeju picker failed', {
         url,
-        kioskId: this.kiosk.kioskNum(),
+        region,
         picks: query.picks.length,
         error: error instanceof Error ? error.message : String(error),
       });
@@ -128,15 +143,17 @@ export class JejuCourseService {
    */
   async recommend(query: JejuCourseRecommendQuery): Promise<JejuCourse> {
     const url = this.endpoint();
+    const region = this.requireRegion();
+    // Only when picked: no 권역 means the whole island, and an empty list would
+    // 400. `query.region` (the first pick) is not sent — v2's `region` is the
+    // venue — so a lone pick goes out as a one-element `regions`.
+    const picked =
+      query.regions && query.regions.length > 0 ? query.regions : query.region ? [query.region] : [];
     const body = {
-      kioskId: this.kiosk.kioskNum(),
+      region,
       course: query.course,
-      // Only when picked: no region means the whole island, and an empty string
-      // would 400 ("권역은 JEJU_CITY·EAST·WEST·SEOGWIPO 중 하나여야 합니다").
-      ...(query.region ? { region: query.region } : {}),
       // Every 권역 picked (one or two), in tap order — the API's `regions`.
-      // `region` above stays the first, for a server that reads only that.
-      ...(query.regions && query.regions.length > 0 ? { regions: query.regions } : {}),
+      ...(picked.length > 0 ? { regions: picked } : {}),
       transport: query.transport,
       party: query.party,
       nights: query.nights,
@@ -178,9 +195,8 @@ export class JejuCourseService {
     } catch (error) {
       log.warn('Jeju course recommendation failed', {
         url,
-        kioskId: this.kiosk.kioskNum(),
-        region: query.region ?? null,
-        regions: query.regions ?? null,
+        region,
+        areas: picked.length > 0 ? picked : null,
         error: error instanceof Error ? error.message : String(error),
       });
       throw new AppError('UNKNOWN', 'Failed to build the Jeju course.');

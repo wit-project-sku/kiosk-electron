@@ -1,0 +1,831 @@
+/* 인사동 리뉴얼 홈 — Figma page `인사동 리뉴얼`, frames 7516:63421 (지도 variant) and
+   7574:68827 (기부 variant). Both draw the SAME screen; they differ in exactly one
+   grid cell, which `useHasDonationTile` picks at runtime.
+
+   Inside KioskArtboard 1 CSS px === 1 Figma px (2160×3840), so every number below
+   is the literal Figma coordinate — no unit conversion, no ratios. */
+
+/* The 인사>홈 frame (7507:51968) is a FLAT #FBF8F3 plate — it carries no
+   background art at all. Only the sub-pages (언어선택 7519:74420, 검색 74664,
+   검색상세 74786) lay the hanok/blossom plate over white, which is what bg.png
+   now holds. Sampling the frame confirms it: page (251,248,243) = #FBF8F3 and
+   the grid card (254,252,251) = white at 70% over it. */
+/*
+ * ── No backdrop-filter anywhere on this screen ───────────────────────────
+ *
+ * The 인사>홈 frames specify a blur on 공지, 날씨 and the grid plate, and this
+ * sheet used to carry all three. They are dropped for the reasons 제주 already
+ * documented at the top of JejuHome.module.css's 공지 card:
+ *
+ *  1. Provably a no-op. This frame's page is a FLAT #FBF8F3 (7507:51968) with
+ *     no artwork behind it — blurring a uniform colour returns that colour.
+ *  2. Not free. Chromium's backdrop-filter path darkens the composite by
+ *     ~2/255, and .weather nests inside the 공지 card so the tint landed twice.
+ *  3. It was what made the tiles look soft. backdrop-filter promotes the
+ *     element to its own composited layer, and KioskArtboard scales the whole
+ *     2160×3840 canvas with `transform: scale()` — so that layer was
+ *     rasterised at its pre-transform size and then scaled up, taking all
+ *     twelve tile icons and their labels with it.
+ *
+ * Anything drawn over the SUB-page plate (bg.png) is a different case: there
+ * the backdrop is real artwork and a blur would actually do something.
+ */
+.home {
+  position: absolute;
+  inset: 0;
+  background: #fbf8f3;
+  /* Pretendard — named on essentially every node of 7516:63421 — now leads the
+     인사동 theme stack (themes/insadong.json), with Noto Sans KR still behind it
+     as the per-glyph fallback for the scripts Pretendard lacks. */
+  font-family: var(--kiosk-font, sans-serif);
+  color: #232323;
+}
+
+/* ── 상단 위치/날짜 (7507:52069) — x84 y125 2000×83 ─────────────────────── */
+.header {
+  position: absolute;
+  left: 84px;
+  top: 125px;
+  width: 2000px;
+  height: 83px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 26px;
+  color: var(--kiosk-primary);
+  font-weight: 700;
+  font-size: 68px;
+  line-height: 1;
+}
+
+.pin {
+  width: 63px;
+  height: 82px;
+  object-fit: contain;
+  flex: none;
+}
+
+/* 2025-09-13(Mon)  ㅣ  06:00 — the renewal adds the clock beside the date. */
+.date {
+  width: 993px;
+  text-align: right;
+  color: #232323;
+  font-weight: 700;
+  font-size: 68px;
+  line-height: 1;
+  white-space: pre;
+}
+
+/* ── 공지 / 날씨 카드 (7507:52074) — x80 y297 2000×429 ───────────────────── */
+.infoCard {
+  position: absolute;
+  left: 80px;
+  top: 297px;
+  width: 2000px;
+  height: 429px;
+  border-radius: 45px;
+  background: rgba(108, 90, 70, 0.1);
+}
+
+/* Frame 1287 (7507:52077) — the renewal replaces the vertical 공지 lettering with
+   a plain rule: x171 y390 within the artboard → 91 / 93 inside the card. */
+.noticeRule {
+  position: absolute;
+  left: 91px;
+  top: 93px;
+  width: 6.435px;
+  height: 242.383px;
+  border-radius: 3.22px;
+  background: var(--kiosk-primary);
+}
+
+/* 7507:52090 — 60px / line-height 70, three wrapped lines, regular weight.
+   Width runs out toward the weather card (starts at 1260) so the copy sits
+   beside it instead of stopping short and wrapping to a fourth line.
+   Only a `<b>` run from the sheet takes `.noticeBold`. */
+.noticeText {
+  position: absolute;
+  left: 140px;
+  top: 0;
+  width: 1080px;
+  height: 100%;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  font-size: 60px;
+  font-weight: 400;
+  line-height: 70px;
+  color: #000000;
+  word-break: keep-all;
+}
+
+.noticeBody {
+  min-width: 0;
+  font-weight: 400;
+}
+
+.noticeBold {
+  font-weight: 700;
+}
+
+/* 7507:52079 — x1340 y346 665×332 inside the artboard → 1260 / 49 inside the card. */
+.weather {
+  position: absolute;
+  left: 1260px;
+  top: 49px;
+  width: 665px;
+  height: 332px;
+  border-radius: 45px;
+  /* White at 50% over the notice tint. That composite is the Figma plate,
+     about #F6F4F0 — the same fill the 제주 home weather card uses. */
+  background: rgba(255, 255, 255, 0.5);
+  border: none;
+  padding: 0;
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Frame 27 (7507:52080) — +38/+21, 589×290. */
+.weatherInner {
+  position: absolute;
+  left: 38px;
+  top: 21px;
+  width: 589px;
+  height: 290px;
+}
+
+.temp {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 246.673px;
+  height: 145px;
+  display: flex;
+  align-items: flex-start;
+  font-size: 145px;
+  font-weight: 700;
+  line-height: 1;
+  color: #333333;
+  white-space: nowrap;
+}
+
+/* Group 119 (7507:52083) — x169.676, 418.889×289.998. */
+.weatherGlyph {
+  position: absolute;
+  left: 169.676px;
+  top: 0;
+  width: 418.889px;
+  height: 289.998px;
+  object-fit: contain;
+}
+
+/* ── 검색장 (7507:51969) — x80 y778 2000×182 ─────────────────────────────── */
+.searchRow {
+  position: absolute;
+  left: 80px;
+  top: 778px;
+  width: 2000px;
+  height: 182px;
+}
+
+/* ico_home (7507:51970) 180×178.826 at x0 · ico_lang (7507:51975) 180×180 at x1820. */
+.homeBtn,
+.krBtn {
+  position: absolute;
+  top: 0;
+  width: 180px;
+  height: 180px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  padding: 0;
+  background: var(--kiosk-primary);
+  border-radius: 50%;
+  overflow: hidden;
+  cursor: pointer;
+}
+
+.homeBtn {
+  left: 0;
+}
+
+.krBtn {
+  left: 1820px;
+  color: #ffffff;
+  font-weight: 700;
+  font-size: 60.06px;
+  line-height: 1;
+  font-family: var(--kiosk-font, sans-serif);
+}
+
+.homeBtn img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+/* 검색필드 (7507:51972) — x232 1536×182, 4.29px primary border, radius 120. */
+.searchInput {
+  position: absolute;
+  left: 232px;
+  top: 0;
+  width: 1536px;
+  height: 182px;
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  background: #ffffff;
+  border: 4.29px solid var(--kiosk-primary);
+  border-radius: 120px;
+  padding: 55px 75px;
+  cursor: text;
+  overflow: hidden;
+  font-family: var(--kiosk-font, sans-serif);
+}
+
+.inputTextWrap {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  overflow: hidden;
+}
+
+.inputText,
+.inputPlaceholder {
+  min-width: 0;
+  font-size: 60.06px;
+  font-weight: 500;
+  line-height: 1.1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-align: left;
+}
+
+.inputText {
+  color: #232323;
+}
+
+.inputPlaceholder {
+  color: #999999;
+}
+
+/* Icon (7507:51974) — 71×68. */
+.searchIcon {
+  flex: none;
+  width: 71px;
+  height: 68px;
+  color: var(--kiosk-primary);
+}
+
+.caret {
+  flex: none;
+  width: 6px;
+  height: 68px;
+  background: var(--kiosk-primary);
+  animation: blink 1s step-end infinite;
+}
+
+@keyframes blink {
+  50% {
+    opacity: 0;
+  }
+}
+
+/* ── 퀵 카드 3종 (7507:51979) — x120 y1012 1926×278 ──────────────────────
+   The renewal lifts AI검색 · 인사랑 · 인사동 이벤트 out of the tile grid into three
+   wide cards. Widths are literal (750 / 540 / 540) with space-between. */
+.quickRow {
+  position: absolute;
+  left: 120px;
+  top: 1012px;
+  width: 1926px;
+  height: 278px;
+  display: flex;
+  justify-content: space-between;
+}
+
+.quickCard {
+  position: relative;
+  height: 278px;
+  border: none;
+  padding: 0;
+  border-radius: 30px;
+  cursor: pointer;
+  overflow: hidden;
+  font-family: var(--kiosk-font, sans-serif);
+  text-align: left;
+}
+
+.quickAi {
+  width: 750px;
+  background: #f5f1ef;
+}
+
+.quickInsarang {
+  width: 540px;
+  background: #f3eae3;
+}
+
+.quickEvents {
+  width: 540px;
+  background: #f5efe9;
+}
+
+.quickArt {
+  position: absolute;
+  object-fit: contain;
+}
+
+/* Jeju card-ai (249×214), centered in the 278-tall card. */
+.quickAi .quickArt {
+  left: 53px;
+  top: 32px;
+  width: 249px;
+  height: 214px;
+}
+
+/* Jeju card-market (140×216), on the right of the 540 card. */
+.quickInsarang .quickArt {
+  left: 362px;
+  top: 31px;
+  width: 140px;
+  height: 216px;
+}
+
+/* Jeju card-events (177²), on the right of the 540 card. */
+.quickEvents .quickArt {
+  left: 348px;
+  top: 50px;
+  width: 177px;
+  height: 177px;
+}
+
+/* Title + sub-caption are ONE flowing column, not two boxes pinned to their own
+   tops: a title that wraps (any language but Korean) pushes its caption down
+   instead of being drawn through it. The gap is the Figma 29 between them
+   (title 45 tall, caption 38px below it). */
+.quickCopy {
+  position: absolute;
+  display: flex;
+  flex-direction: column;
+  gap: 29px;
+}
+
+.quickTitle {
+  font-size: 45px;
+  font-weight: 700;
+  line-height: 1;
+  color: #000000;
+  word-break: keep-all;
+}
+
+.quickSub {
+  font-size: 38px;
+  font-weight: 400;
+  line-height: 1;
+  color: #999999;
+  word-break: keep-all;
+}
+
+/* Per-card Figma origin of the title; the caption sits a few px right of it. */
+.quickAi .quickCopy {
+  left: 426px;
+  top: 72px;
+  width: 269px;
+}
+
+.quickAi .quickSub {
+  margin-left: 10px;
+}
+
+.quickInsarang .quickCopy {
+  left: 57px;
+  top: 80.5px;
+  /* The sheet's full "인사랑(준비중)" — 305 is all there is before the art at x362. */
+  width: 300px;
+}
+
+.quickEvents .quickCopy {
+  left: 40px;
+  top: 108px;
+  width: 290.52px;
+}
+
+.quickEvents .quickSub {
+  margin-left: 10.8px;
+}
+
+/* 준비중 (인사랑) — full colour, simply inert. */
+.soon {
+  cursor: default;
+  pointer-events: none;
+}
+
+/* ── 메인 그리드 카드 (7507:52091) — x135 y1342 1889×1494 ─────────────────── */
+.gridCard {
+  position: absolute;
+  left: 135px;
+  top: 1342px;
+  width: 1889px;
+  height: 1494px;
+  border-radius: 50px;
+  background: rgba(255, 255, 255, 0.7);
+}
+
+/* Frame 2085667107 (7507:52093) — x203 y1391 1741×1396 → 68 / 49 inside the card.
+   3 rows of 4: tile 300 wide, column pitch 480, row pitch 492. */
+.grid {
+  position: absolute;
+  left: 68px;
+  top: 49px;
+  width: 1741px;
+  height: 1396px;
+  display: grid;
+  grid-template-columns: repeat(4, 300px);
+  grid-auto-rows: 412px;
+  column-gap: 180px;
+  row-gap: 80px;
+}
+
+/* Tile: 300×300 art, 35px gap, then a 77px caption band (38 + 14 + 25). */
+.tile {
+  width: 300px;
+  height: 412px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 35px;
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  font-family: var(--kiosk-font, sans-serif);
+}
+
+.tileArt {
+  flex: none;
+  width: 300px;
+  height: 300px;
+  /* The 여기는 인사동 export is a rounded #efefef plate on a square #f5f5f5
+     sheet. Clip to the squircle so only the rounded plate shows. */
+  border-radius: 85.799px;
+  overflow: hidden;
+}
+
+.tileArt img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.tileFallback {
+  width: 300px;
+  height: 300px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #efe3d6;
+  border-radius: 85.7994px;
+  font-size: 32px;
+  text-align: center;
+  color: #a8917c;
+}
+
+.tileCaption {
+  flex: none;
+  width: 300px;
+  height: 77px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+/* 38px Medium, centred. */
+.tileLabel {
+  font-size: 38px;
+  font-weight: 500;
+  line-height: 1;
+  text-align: center;
+  color: #000000;
+  word-break: keep-all;
+  overflow-wrap: anywhere;
+}
+
+/* 25px Regular at 30% — the renewal's new second caption line. */
+.tileSub {
+  font-size: 25px;
+  font-weight: 400;
+  line-height: 1;
+  text-align: center;
+  color: #000000;
+  opacity: 0.3;
+  word-break: keep-all;
+  overflow-wrap: anywhere;
+}
+
+/* ── 하단 버튼 3종 (7516:73139) ───────────────────────────────────────────
+   The renewal drops the scalloped Union bar: K-DRAMA, the camera and 화장실 now
+   sit straight on the artboard at their own Figma coordinates. */
+.bottomRow {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 2160px;
+  height: 3840px;
+  pointer-events: none;
+}
+
+.navItem {
+  position: absolute;
+  padding: 0;
+  border: none;
+  background: none;
+  cursor: pointer;
+  pointer-events: auto;
+  font-family: var(--kiosk-font, sans-serif);
+}
+
+.navItem img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  display: block;
+}
+
+/* K-DRAMA (7516:73140) — x304 y2921 381×235. */
+.navKdrama {
+  left: 304px;
+  top: 2921px;
+  width: 381px;
+  height: 235px;
+}
+
+/* Group 1707482188 (7516:73148) — x950 y2871 353.382×354.799. */
+.navCamera {
+  left: 950px;
+  top: 2871px;
+  width: 353.382px;
+  height: 354.799px;
+}
+
+/* Group 1707482189 (7516:73154) — x1632 y2922 233.272×234.125. */
+.navRestroom {
+  left: 1632px;
+  top: 2922px;
+  width: 233.272px;
+  height: 234.125px;
+}
+
+/* Captions (7516:73166 / 7516:73167) — both baseline at y3181.233, 38px Regular. */
+.navLabel {
+  position: absolute;
+  top: 3181.233px;
+  height: 50.828px;
+  font-size: 38px;
+  font-weight: 400;
+  line-height: 1;
+  color: #000000;
+  text-align: center;
+  white-space: nowrap;
+  pointer-events: none;
+}
+
+.navLabelKdrama {
+  left: 294px;
+  width: 400.037px;
+}
+
+.navLabelRestroom {
+  left: 1678px;
+  width: 141.949px;
+}
+
+/* ── R>하단배너 (7507:52367) — x0 y3267 2160×573 ──────────────────────────── */
+.banner {
+  position: absolute;
+  left: 0;
+  top: 3267px;
+  width: 2160px;
+  height: 573px;
+  padding: 0;
+  border: none;
+  background: none;
+  cursor: pointer;
+  overflow: hidden;
+}
+
+.bannerImg {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+/* ── Other languages ──────────────────────────────────────────────────────
+ * Reached only via a class the TSX adds when lang !== 'ko'; the Korean screen is
+ * untouched. Korean is what every band below was drawn around — 38px titles on
+ * one line, 25px subtitles on one line, nowrap bottom captions. Translations run
+ * two to four times longer, so each band is given a real height/width for
+ * `useFitText` to measure and one shared shrink factor per group. */
+
+/* Caption band: 77px of its own + the 80px row gap below it. Capping at 130px
+ * keeps the longest label clear of the next row's art. */
+.tileCaptionLong {
+  height: 130px;
+}
+
+.tileCaptionLong .tileLabel {
+  font-size: calc(38px * var(--fit, 1));
+  line-height: 1.15;
+}
+
+.tileCaptionLong .tileSub {
+  font-size: calc(25px * var(--fit, 1));
+  line-height: 1.15;
+}
+
+/* Quick cards: the column is given the card's full height and centres its two
+ * lines, so a title that wraps to two or three lines and a caption that does the
+ * same share the 230px without touching. It is also the box useFitText measures
+ * (a title alone never "overflows" — it just grows), so one shrink factor
+ * applies to all three cards until the whole column fits. */
+.quickCopyLong {
+  justify-content: center;
+  gap: 18px;
+}
+
+/* Spelled with the card class so they outrank the per-card Korean offsets above
+ * (`.quickAi .quickCopy { top: 72px }` …) — a bare `.quickCopyLong` lost to them
+ * and left the column 48px too low, its caption cut off by the card edge. */
+.quickAi .quickCopyLong,
+.quickInsarang .quickCopyLong,
+.quickEvents .quickCopyLong {
+  top: 24px;
+  height: 230px;
+  width: 300px;
+}
+
+.quickAi .quickCopyLong .quickSub,
+.quickEvents .quickCopyLong .quickSub {
+  margin-left: 0;
+}
+
+.quickTitleLong {
+  font-size: calc(45px * var(--fit, 1));
+  line-height: 1.1;
+}
+
+.quickSubLong {
+  font-size: calc(38px * var(--fit, 1));
+  line-height: 1.1;
+}
+
+/* Bottom captions stay on one line (two would climb into the art above) and are
+ * instead given the clear width around their own button. */
+.navLabelLong {
+  font-size: calc(38px * var(--fit, 1));
+}
+
+.navLabelKdrama.navLabelLong {
+  left: 194px;
+  width: 600px;
+}
+
+.navLabelRestroom.navLabelLong {
+  left: 1524px;
+  width: 450px;
+}
+
+/* ♿ — the bar, then the 한복 promo flush under it, then the home below both.
+ *
+ *                       standing      ♿
+ *   mode bar            --            0       h145.759
+ *   promo               3267          145.759 h573
+ *   brand row           125           843.759
+ *   공지 panel           297  h429      1015.759
+ *   검색장               778  h182      1496.759
+ *   quick row           1012 h278      1730.759
+ *   tile card           1342 h1494     2060.759 h1368  (plate 300 -> 230)
+ *   bottom 3종           2871…3232     3469.759…3830.6
+ *
+ * The shift is 718.759 — the mode bar plus the promo — and NOT the 593.759 it
+ * used to be. That older number subtracted the brand row's resting y125 on top
+ * of a `transform`, which does not replace `top: 125px`, it adds to it. The row
+ * therefore landed at 718.759, exactly the promo's bottom edge, and 인사동 sat
+ * hard against the banner with no clear space at all — the reported defect.
+ * 718.759 is also the value every sub-page already uses (barrierFree.module.css
+ * `.shiftBanner`), and it puts the brand row at 843.759 against the 언어선택 ♿
+ * frame's own 719 + 125 = 844 (Figma 7574:70736, whose header component is 700
+ * tall with 125 of internal padding). So home now stacks like the rest.
+ *
+ * The extra 125 has to come from somewhere: at the full shift the bottom 3종
+ * ran 105px off the foot of the artboard. The tile card gives it up — see the
+ * ♿ tiles block below, which follows 제주's own ♿ home. The bottom 3종 then
+ * ride a shorter 598.759, which parks them near the foot (3469…3831) the way
+ * 제주 parks its own action row at 3417…3727 — in ♿ the reachable part of the
+ * screen is the bottom, so the slack belongs above them, not below. */
+.homeLow .header,
+.homeLow .infoCard,
+.homeLow .searchRow,
+.homeLow .quickRow,
+.homeLow .gridCard {
+  transform: translateY(718.759px);
+}
+
+/* 35 below the card's foot (3428.76 + 35 = 3463.76), not 718.759 below its
+   resting place — 2871 + 592.759 = 3463.759. */
+.homeLow .bottomRow {
+  transform: translateY(592.759px);
+}
+
+/* ── ♿ tiles ──────────────────────────────────────────────────────────────
+ * The same shape the 제주 home takes in ♿ (JejuHome.module.css .tileLow):
+ * a smaller plate, the caption dropped to ONE line at regular weight.
+ *
+ *                  standing            ♿
+ *   plate          300 x 300 r85.8     230 x 230 r65.8   (제주: 230, r52)
+ *   caption band   77 / 130 (long)     77 / 130 (long)   - unchanged
+ *   tile           412                 390
+ *   row gap        80                  50
+ *   grid           1396                1270
+ *   card           1494                1368
+ *
+ * ONLY the plate shrinks. The caption keeps BOTH lines at their standing sizes
+ * and their standing band — 77 in Korean, 130 where the label wraps — because a
+ * ♿ visitor needs the same information a standing one gets, and the sub-line is
+ * half of what a tile says. (제주's ♿ tiles do hide their second line; that is
+ * not followed here.)
+ *
+ * The room comes out of the row gap (80 -> 50) instead, which is enough: the
+ * tile is 390 at its tallest (230 plate + 30 + a 130 two-line caption), so the
+ * three rows plus two gaps are 1270 and the card 1368. That puts the card's
+ * foot at 3428.76 and leaves the bottom 3종 — which ride 592.759 rather than the
+ * page's own shift — ending at 3824.82, inside the artboard with 15px to spare.
+ *
+ * `grid-auto-rows` is one value for the whole grid, so it is the 390 the widest
+ * language needs; a Korean tile fills 337 of it and leaves the rest under its
+ * caption, which reads as a slightly looser row and nothing worse.
+ *
+ * The radius scales with the plate (85.799 x 230/300): the art is a rounded
+ * #efefef plate baked onto a square sheet, so the clip has to keep its
+ * proportion or the opaque corners show. 제주's 52 is for its own art. */
+.homeLow .gridCard { height: 1368px; }
+
+.homeLow .grid {
+  height: 1270px;
+  grid-auto-rows: 390px;
+  row-gap: 50px;
+}
+
+.homeLow .tile {
+  height: 390px;
+  gap: 30px;
+}
+
+.homeLow .tileArt,
+.homeLow .tileFallback {
+  width: 230px;
+  height: 230px;
+}
+
+.homeLow .tileArt { border-radius: 65.78px; }
+.homeLow .tileFallback { border-radius: 65.78px; }
+
+/* No caption overrides at all: `.tileCaption` (77) and `.tileCaptionLong` (130)
+   apply exactly as they do standing, both lines included, at their own weights.
+   Kept as a comment so the next reader does not re-add the 제주 hide. */
+
+.homeLow .modeBar {
+  position: absolute;
+  left: 0;
+  top: 0;
+  z-index: 6;
+  width: 2160px;
+  height: 145.759px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--kiosk-primary);
+  color: #ffffff;
+  font-family: var(--kiosk-font, sans-serif);
+  font-size: 68px;
+  font-weight: 700;
+  line-height: 1;
+  text-align: center;
+}
+
+.homeLow .banner {
+  top: 145.759px;
+}

@@ -1,10 +1,20 @@
 import type { SpotDiffRound, SpotDiffSpot } from '@shared/types/spotDiff';
 import { createLogger } from '@main/core/logger';
 import type { LocalCacheService } from '@main/services/LocalCacheService';
+import type { KioskService } from '@main/services/KioskService';
 import { buildPlaceholderRound } from './spotDiff/placeholderRound';
 
 const log = createLogger('spotdiff-service');
-const CACHE_KEY = 'spot_diff_rounds';
+/**
+ * Per-kiosk since 2026-09-30, because the puzzles are now per-kiosk.
+ *
+ * A single `spot_diff_rounds` row would let the LAST kiosk id to sync own the
+ * set, so re-provisioning (or the operator DEV location switcher) could leave
+ * 제주's 돌하르방·해녀 boards on an 인사동 machine until the next successful
+ * refresh — exactly the mixing the new endpoint exists to prevent, and exactly
+ * the staleness the bare `'buttons'` key caused on ButtonLayoutService.
+ */
+const cacheKeyFor = (kioskNum: number): string => `spot_diff_rounds:${kioskNum}`;
 const DEFAULT_API_BASE = 'https://api-v3.witteria.com';
 
 /**
@@ -15,12 +25,23 @@ const DEFAULT_API_BASE = 'https://api-v3.witteria.com';
  * with the network down.
  *
  * ── The endpoint ──────────────────────────────────────────────────────
- *   GET {base}/api/games/spot-difference/puzzles
+ *   GET {base}/api/kiosks/{region}/games/spot-difference/puzzles/v2
  *   { success, code, message, data: [
- *       { puzzleId, imageAUrl, imageBUrl, diffs: [{ x, y, radius }] } ] }
+ *       { puzzleId, imageAUrl, imageBUrl, kioskId,
+ *         diffs: [{ x, y, radius }] } ] }
  *
- * Note it is NOT kiosk-scoped, unlike banners/buttons/shops — one puzzle set
- * serves every machine, so there is no kioskNum in the path.
+ * ★ Kiosk-scoped since 2026-09-30, like banners/buttons/shops. It used to be
+ * the global `/api/games/spot-difference/puzzles`, one set for the whole fleet.
+ * The art is LOCAL — 인사동's boards are 부채가게 and 필방, 제주's are 돌하르방 and
+ * 해녀 — so a shared set put the wrong region's scenery in front of a visitor.
+ *
+ * The server groups kiosks by region and the app just sends its own id, the
+ * same rule shops and backgrounds follow: 인사동 1·2·3 resolve to one set and
+ * 제주 6·7·8 to another. Verified against stage — kiosks 1 and 3 both answer
+ * with puzzles 81…90, kiosk 6 with 66…75.
+ *
+ * `kioskId` on each row is the group it resolved to; nothing here reads it, but
+ * it is what makes a mixed cache visible if one is ever suspected.
  *
  * `diffs` already arrive in exactly the units the game wants: x/y in 0..1 and
  * radius as a fraction of image WIDTH. So the happy path here is a rename, not
@@ -53,19 +74,28 @@ export class SpotDiffService {
    */
   private placeholderSeed = 1;
 
-  // No KioskService here, unlike the sibling services — the puzzle endpoint is
-  // global rather than per-kiosk, so there is no kioskNum to resolve.
-  constructor(private readonly cache: LocalCacheService) {}
+  constructor(
+    private readonly cache: LocalCacheService,
+    private readonly kiosk: KioskService,
+  ) {}
 
-  private baseUrl(): string {
+  /**
+   * `SPOT_DIFF_API_URL` still wins outright, and is now expected to be a FULL
+   * per-kiosk path — it is a debugging override, so pointing it at one specific
+   * kiosk's puzzles is the useful behaviour. `null` for a venue with no CMS
+   * content (KADA), which has nothing to ask for.
+   */
+  private baseUrl(): string | null {
     if (process.env['SPOT_DIFF_API_URL']) return process.env['SPOT_DIFF_API_URL'];
+    const region = this.kiosk.region();
+    if (!region) return null;
     const base = (process.env['WITTERIA_API_BASE'] || DEFAULT_API_BASE).replace(/\/+$/, '');
-    return `${base}/api/games/spot-difference/puzzles`;
+    return `${base}/api/kiosks/${region}/games/spot-difference/puzzles/v2`;
   }
 
   /** Cached rounds from the last successful refresh. Empty until first sync. */
   list(): SpotDiffRound[] {
-    const cached = this.cache.get(CACHE_KEY);
+    const cached = this.cache.get(cacheKeyFor(this.kiosk.kioskNum()));
     const rounds = cached?.data?.['rounds'];
     return Array.isArray(rounds) ? (rounds as SpotDiffRound[]) : [];
   }
@@ -88,6 +118,7 @@ export class SpotDiffService {
   /** Pull the puzzle list and cache it. Returns the count stored. */
   async refresh(): Promise<number> {
     const url = this.baseUrl();
+    if (!url) return this.list().length;
     try {
       const res = await fetch(url);
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
@@ -107,7 +138,7 @@ export class SpotDiffService {
         });
       }
 
-      this.cache.upsert(CACHE_KEY, { rounds }, 'api');
+      this.cache.upsert(cacheKeyFor(this.kiosk.kioskNum()), { rounds }, 'api');
       log.info('Spot-diff rounds cached', { url, count: rounds.length });
       return rounds.length;
     } catch (error) {

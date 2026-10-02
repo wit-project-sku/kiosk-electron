@@ -30,6 +30,27 @@ const UI_TEXT = {
     ru: 'Скоро открытие',
     id: 'Segera hadir',
   },
+  // ── 고궁안내 detail labels ─────────────────────────────────────────────
+  // Palace_History / _Attraction / _OpeningTime / _Fee were Localization_Insa rows
+  // until the sheet was restructured (2026-09-30) and were dropped without a
+  // replacement. PalaceDetailCard still asks the sheet first, so an operator who
+  // restores the rows wins; these stop t() printing the bare key in the meantime.
+  palaceHistory: {
+    ko: '역사', en: 'History', ja: '歴史', zh: '历史',
+    vi: 'Lịch sử', th: 'ประวัติ', ru: 'История', id: 'Sejarah',
+  },
+  palaceAttractions: {
+    ko: '볼거리', en: 'Attractions', ja: '見どころ', zh: '看点',
+    vi: 'Điểm tham quan', th: 'สิ่งที่น่าสนใจ', ru: 'Что посмотреть', id: 'Tempat Menarik',
+  },
+  palaceHours: {
+    ko: '영업시간', en: 'Business Hours', ja: '営業時間', zh: '营业时间',
+    vi: 'Giờ mở cửa', th: 'เวลาทำการ', ru: 'Часы работы', id: 'Jam Operasional',
+  },
+  palaceFee: {
+    ko: '입장료', en: 'Admission Fee', ja: '入場料', zh: '门票',
+    vi: 'Phí vào cửa', th: 'ค่าเข้าชม', ru: 'Входная плата', id: 'Biaya Masuk',
+  },
   backHome: {
     ko: '← 홈으로',
     en: '← Home',
@@ -130,6 +151,27 @@ const UI_TEXT = {
     th: 'ไม่มีข้อมูลแผนที่',
     ru: 'Нет данных карты.',
     id: 'Tidak ada informasi peta.',
+  },
+  /** Attribution under the event grid (Figma 7525:77550). */
+  eventSource: {
+    ko: '※ 출처: 한국문화정보원',
+    en: '※ Source: Korea Culture Information Service',
+    ja: '※ 出典: 韓国文化情報院',
+    zh: '※ 来源：韩国文化信息服务局',
+    vi: '※ Nguồn: Viện Thông tin Văn hóa Hàn Quốc',
+    th: '※ ที่มา: สำนักงานข้อมูลวัฒนธรรมเกาหลี',
+    ru: '※ Источник: Корейская служба культурной информации',
+    id: '※ Sumber: Pusat Informasi Budaya Korea',
+  },
+  close: {
+    ko: '닫기',
+    en: 'Close',
+    ja: '閉じる',
+    zh: '关闭',
+    vi: 'Đóng',
+    th: 'ปิด',
+    ru: 'Закрыть',
+    id: 'Tutup',
   },
 
   // ── MBTI 추천 패널 (이벤트 화면) ───────────────────────────────────────

@@ -304,3 +304,30 @@
 .home {
   background: #999;
 }
+
+/* ── 한국어가 아닌 일곱 언어 ──────────────────────────────────────────────
+ * 배지는 한국어 'AI 분석 요약' 에 맞춘 265 고정 폭이라 ru / vi 에서 글자가 잘렸다.
+ * 글자만큼 넓어지게 한다. 성분 이름 칸(276)도 긴 이름이 세 줄로 접히지 않게 넓힌다.
+ */
+[data-lang]:not([data-lang='ko']) .badge {
+  width: auto;
+  min-width: 265px;
+  max-width: 100%;
+  height: auto;
+  min-height: 91px;
+  padding: 14px 44px;
+  line-height: 1.2;
+  box-sizing: border-box;
+  white-space: normal;
+  text-align: center;
+}
+
+[data-lang]:not([data-lang='ko']) .name {
+  width: 380px;
+}
+
+[data-lang]:not([data-lang='ko']) .save,
+[data-lang]:not([data-lang='ko']) .home {
+  padding: 0 30px;
+  line-height: 1.1;
+}

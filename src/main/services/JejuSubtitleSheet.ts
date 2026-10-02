@@ -38,6 +38,50 @@ export const JEJU_SUBTITLE_TABS: Partial<Record<KioskLayoutId, string>> = {
   JEJU_HERITAGE: 'VideoSubtitle_Jeju_유산',
 };
 
+/**
+ * 인사동 (W001–W003) reads its own tab the same way — but as the PRIMARY source,
+ * not a fallback: the CMS still carries the pre-refresh file names, which match
+ * none of the clips now on the kiosks. See {@link INSA_PARSE}.
+ */
+export const INSA_SUBTITLE_TAB = 'VideoSubtitle_Insa_v2';
+export const INSA_SUBTITLE_LAYOUTS: ReadonlySet<KioskLayoutId> = new Set<KioskLayoutId>(['INSADONG', 'NAM_INSADONG']);
+
+/** How a venue's tab differs from 제주's. */
+export interface SubtitleParseOptions {
+  /** Read `파일명 (개발)` only, ignoring `파일명 (운영)`. */
+  devNameOnly?: boolean;
+  /** Appended to every file stem that does not already end with it (case-insensitive). */
+  fileSuffix?: string;
+  /** Delete whitespace inside a Key (`To Gallery_Detail` → `ToGallery_Detail`). */
+  compactKeys?: boolean;
+  /** Keep the first of several rows that name the same key AND file. */
+  dedupe?: boolean;
+  /** Keep rows the sheet marks as having no clip, as `noVideo` placeholders. */
+  keepNoVideoRows?: boolean;
+  /** Sheet key → the key the app uses, for typos in the Key column. */
+  keyAliases?: Readonly<Record<string, string>>;
+}
+
+/**
+ * 인사동's VideoSubtitle_Insa.
+ *
+ *  - `파일명 (개발)` is the file's name, used EXACTLY as written (`IS=Weather_Cold=FIN`
+ *    ↔ `IS=Weather_Cold=FIN.mp4`) — nothing is added or removed. `파일명 (운영)` is the
+ *    retired CMS naming (`INSA=V1_68=Weather=FIN_DOWN`) and is ignored.
+ *  - The Key column has a few stray spaces (`To Gallery`) where the app says `ToGallery`.
+ *  - `Photo-3` is listed on three rows for one clip.
+ */
+export const INSA_PARSE: SubtitleParseOptions = {
+  devNameOnly: true,
+  compactKeys: true,
+  dedupe: true,
+  keepNoVideoRows: true,
+  keyAliases: { Donation_Catgory: 'Donation_Category' },
+};
+
+/** A cell that says the state has no clip rather than naming one. */
+const NO_VIDEO = /no\s*video|영상\s*없음/i;
+
 /** Sheet language header → app code. Resolved by name, so a reorder cannot scramble it. */
 const SHEET_LANGS: Record<string, keyof SubtitleLangText> = {
   KR: 'ko', EN: 'en', JP: 'ja', CN: 'zh', VN: 'vi', ID: 'id', TH: 'th', RU: 'ru',
@@ -60,7 +104,9 @@ interface Columns {
   key: number;
   fileDev: number;
   fileOps: number;
+  condition: number;
   folder: number;
+  reference: number;
   main: LangCol[];
   rightTop: LangCol[];
 }
@@ -77,6 +123,9 @@ function resolveColumns(header: readonly string[]): Columns {
   const fileDev = at((h) => /파일명/.test(h) && /개발/.test(h));
   const fileOps = at((h) => /파일명/.test(h) && /운영/.test(h));
   const folder = at((h) => /폴더/.test(h));
+  const condition = at((h) => /재생조건/.test(h));
+  // `참고(reference)` — NOT `VideoFileName (참고용)`, which also contains 참고.
+  const reference = at((h) => /^참고|reference/i.test(h));
 
   // The tab carries two language blocks in sheet order — the subtitle line,
   // then the 우측상단 label. The second block starts where a language repeats,
@@ -100,7 +149,7 @@ function resolveColumns(header: readonly string[]): Columns {
         'changed; columns are never guessed by position',
     );
   }
-  return { key, fileDev, fileOps, folder, main, rightTop };
+  return { key, fileDev, fileOps, condition, folder, reference, main, rightTop };
 }
 
 /** One language block of a row. ko/en/ja/zh are always present (SubtitleLangText
@@ -122,6 +171,7 @@ function langBlock(row: readonly string[], block: readonly LangCol[]): SubtitleL
  */
 export function parseJejuSubtitleSheet(
   rows: readonly (readonly string[])[],
+  options: SubtitleParseOptions = {},
 ): { entries: VideoEntry[]; noVideo: number } {
   const headerAt = rows
     .slice(0, 6)
@@ -130,21 +180,48 @@ export function parseJejuSubtitleSheet(
   const cols = resolveColumns(rows[headerAt] ?? []);
 
   const entries: VideoEntry[] = [];
+  const seen = new Set<string>();
   let noVideo = 0;
   rows.slice(headerAt + 1).forEach((r, i) => {
-    const key = clean(r[cols.key]);
-    if (!key || /^Key\b/i.test(key)) return;
-    // 운영 (the name the file actually ships under) wins over 개발 once filled.
-    const named =
-      (cols.fileOps >= 0 ? clean(r[cols.fileOps]) : '') || (cols.fileDev >= 0 ? clean(r[cols.fileDev]) : '');
+    const rawKey = clean(r[cols.key]);
+    if (!rawKey || /^Key\b/i.test(rawKey)) return;
+    const compact = options.compactKeys ? rawKey.replace(/\s+/g, '') : rawKey;
+    const key = options.keyAliases?.[compact] ?? compact;
+    // 운영 (the name the file actually ships under) wins over 개발 once filled —
+    // except where the venue's files are named after 개발 (see INSA_PARSE).
+    const ops = !options.devNameOnly && cols.fileOps >= 0 ? clean(r[cols.fileOps]) : '';
+    const named = ops || (cols.fileDev >= 0 ? clean(r[cols.fileDev]) : '');
+    const condition = cols.condition >= 0 ? clean(r[cols.condition]) : '';
+    if (options.keepNoVideoRows && (NO_VIDEO.test(named) || (!named && NO_VIDEO.test(condition)))) {
+      // Listed, but explicitly without a clip: keep its slot (see VideoEntry.noVideo).
+      noVideo += 1;
+      entries.push({
+        key,
+        file: '',
+        subtitle: langBlock(r, cols.main),
+        label: langBlock(r, cols.rightTop),
+        buttonId: null,
+        sortOrder: i,
+        noVideo: true,
+      });
+      return;
+    }
     if (!named) {
       noVideo += 1;
       return;
     }
+    let file = named.slice(named.lastIndexOf('/') + 1).replace(/\.mp4$/i, '');
+    const suffix = options.fileSuffix;
+    if (suffix && !file.toLowerCase().endsWith(suffix.toLowerCase())) file += suffix;
+    if (options.dedupe) {
+      const id = `${key}\u0000${file}`;
+      if (seen.has(id)) return;
+      seen.add(id);
+    }
     const entry: VideoEntry = {
       key,
       // A folder prefix ("jeju/…") is dropped, as the API path drops it.
-      file: named.slice(named.lastIndexOf('/') + 1),
+      file,
       subtitle: langBlock(r, cols.main),
       label: langBlock(r, cols.rightTop),
       buttonId: null,
@@ -152,6 +229,7 @@ export function parseJejuSubtitleSheet(
     };
     const folder = cols.folder >= 0 ? clean(r[cols.folder]) : '';
     if (JEJU_SETS.has(folder)) entry.set = folder as VideoSet;
+    if (cols.reference >= 0 && /hanbok|한복/i.test(clean(r[cols.reference]))) entry.hanbok = true;
     entries.push(entry);
   });
   return { entries, noVideo };

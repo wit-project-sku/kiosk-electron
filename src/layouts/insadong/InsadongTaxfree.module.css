@@ -681,12 +681,17 @@
   position: absolute;
   left: 50%;
   transform: translateX(-50%);
-  top: 2999px;
+  top: calc(2999px + var(--insa-header-shift, 0px));
   width: 1814px;
   display: flex;
   align-items: center;
   justify-content: space-between;
   z-index: 6;
+}
+
+/* ♿ — foot of the artboard, same y as the Jeju tax-free tab row. */
+.tabs.tabsLow {
+  top: 3435px;
 }
 
 .tab {
@@ -697,7 +702,7 @@
   align-items: center;
   justify-content: center;
   background: #ffffff;
-  border: 2.145px solid var(--kiosk-primary);
+  border: none;
   border-radius: 42.905px;
   box-shadow: 0 21.453px 42.905px rgba(143, 147, 157, 0.1);
   font-family: var(--kiosk-font, sans-serif);
@@ -710,9 +715,11 @@
   line-height: 1.2;
 }
 
-.tabSelected {
+.tab.tabSelected {
   background: var(--kiosk-primary);
+  border: none;
   color: #ffffff;
+  font-weight: 700;
 }
 
 .banner {
@@ -734,4 +741,23 @@
   height: 100%;
   object-fit: cover;
   display: block;
+}
+
+/* ── Other languages ──────────────────────────────────────────────────────
+ * Reached only through a class the TSX adds when lang !== 'ko' — the Korean
+ * screen is untouched.
+ *
+ * The 580×170 tab holds 환급방법 / 텍스프리 소개 / 가맹점 on one 52px line. The
+ * same tab has to hold "How to get a refund", "Как получить возврат" and
+ * "ร้านค้าที่ร่วมรายการ" — on one line those run past the tab and into the one
+ * beside it. The label wraps inside the tab instead, and the row shrinks as one
+ * if the longest still does not fit (`--fit`, useFitText — never below 0.72 →
+ * 37px). Nothing is clipped. */
+.tabLong {
+  white-space: normal;
+  word-break: keep-all;
+  overflow-wrap: anywhere;
+  padding: 0 20px;
+  font-size: calc(52px * var(--fit, 1));
+  line-height: 1.12;
 }

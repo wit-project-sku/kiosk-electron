@@ -60,6 +60,7 @@ import type {
   JejuPickerPlan,
   JejuPickerQuery,
 } from '../types/jejuCourse';
+import type { InsaCourseQuery, InsaCourseSet } from '../types/insaCourse';
 import type {
   EventDetail,
   EventRecommendation,
@@ -473,6 +474,15 @@ export interface IpcContract {
   [IpcChannels.JejuCoursePicker]: {
     request: JejuPickerQuery;
     response: Result<JejuPickerPlan>;
+  };
+
+  /**
+   * 인사동 코스 추천 — one live POST per request. `kioskId`, `lat` and `lon` are
+   * NOT part of the request: InsaCourseService fills them from the kiosk.
+   */
+  [IpcChannels.InsaCourseRecommend]: {
+    request: InsaCourseQuery;
+    response: Result<InsaCourseSet>;
   };
 
   [IpcChannels.UpdateGetStatus]: {

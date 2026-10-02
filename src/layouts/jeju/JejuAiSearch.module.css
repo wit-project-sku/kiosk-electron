@@ -768,3 +768,68 @@
 .ctaTheme {
   top: 2902px;
 }
+
+/* ── Other languages ─────────────────────────────────────────────────────
+ * Everything below is scoped to a root whose `data-lang` is not Korean, so the
+ * Korean page is drawn exactly as the rules above draw it. The frames are laid
+ * out around Korean copy; the other seven languages run two to three times
+ * longer, so here the boxes give their text room — more side padding, centred
+ * blocks instead of the frame's fixed text `top` — and `useFitText` (`ink`)
+ * shrinks what still does not fit.
+ */
+
+/* The landing's fit group — the class only marks which boxes are measured. */
+.fitCard {
+  isolation: auto;
+}
+
+/* Chips: a wrapped label keeps clear of the plate's rounded ends. */
+.root[data-lang]:not([data-lang='ko']) .chip {
+  padding: 0 26px;
+  line-height: 1.15;
+  text-align: center;
+}
+
+.root[data-lang]:not([data-lang='ko']) .tileWrap {
+  padding: 0 14px;
+}
+
+/* 커스텀 코스: the text column is centred on the plate's height, not hung from
+   the frame's y112 — a three-line description in ru ran 40 past the plate. */
+.root[data-lang]:not([data-lang='ko']) .bigText {
+  top: 50%;
+  transform: translateY(-50%);
+  gap: 24px;
+}
+
+.root[data-lang]:not([data-lang='ko']) .bigSub {
+  font-size: calc(38px * var(--fit, 1));
+  line-height: 1.2;
+}
+
+.root[data-lang]:not([data-lang='ko']) .bigTitle {
+  font-size: calc(70px * var(--fit, 1));
+  line-height: 1.1;
+}
+
+.root[data-lang]:not([data-lang='ko']) .bigDesc {
+  font-size: calc(38px * var(--fit, 1));
+}
+
+/* 추천코스 cards: the same centring (the TSX stops passing the per-card top).
+   A four-line title in en / vi / id / ru hung 16–21 below the 482 plate. */
+.root[data-lang]:not([data-lang='ko']) .courseTextWrap {
+  top: 50%;
+  transform: translateY(-50%);
+  gap: 16px;
+}
+
+.root[data-lang]:not([data-lang='ko']) .courseTextWrap .courseSub {
+  font-size: calc(38px * var(--fit, 1));
+}
+
+.root[data-lang]:not([data-lang='ko']) .courseTextWrap .courseTitle {
+  font-size: calc(56px * var(--fit, 1));
+  line-height: 1.2;
+  overflow-wrap: break-word;
+}

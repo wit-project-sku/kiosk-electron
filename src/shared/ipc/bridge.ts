@@ -50,6 +50,7 @@ import type {
   JejuPickerPlan,
   JejuPickerQuery,
 } from '../types/jejuCourse';
+import type { InsaCourseQuery, InsaCourseSet } from '../types/insaCourse';
 import type { WeatherForecast, WeatherSnapshot } from '../types/weather';
 import type { JejuFlightSnapshot } from '../types/jejuFlight';
 import type { JejuSailingSnapshot } from '../types/jejuSailing';
@@ -217,6 +218,10 @@ export interface KioskBridge {
     recommend(query: JejuCourseRecommendQuery): Promise<Result<JejuCourse>>;
     /** 커스텀 코스: the plan for every tap so far, plus each tile's state. One call per tap. */
     picker(query: JejuPickerQuery): Promise<Result<JejuPickerPlan>>;
+  };
+  /** 인사동 '인사' 뭐하지: the 실시간 and 일반 walking routes for the picked 관심사 and time slot. Live, uncached. */
+  insaCourse: {
+    recommend(query: InsaCourseQuery): Promise<Result<InsaCourseSet>>;
   };
   language: {
     get(): Promise<Result<SupportedLanguage>>;

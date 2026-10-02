@@ -26,6 +26,7 @@ import { registerBackgroundHandlers } from './handlers/backgrounds.handlers';
 import { registerSpotDiffHandlers } from './handlers/spotDiff.handlers';
 import { registerOutfitHandlers } from './handlers/outfits.handlers';
 import { registerJejuCourseHandlers } from './handlers/jejuCourse.handlers';
+import { registerInsaCourseHandlers } from './handlers/insaCourse.handlers';
 import { registerStatsHandlers } from './handlers/stats.handlers';
 import { registerSubtitleHandlers } from './handlers/subtitle.handlers';
 import { registerVideoHandlers } from './handlers/video.handlers';
@@ -65,6 +66,7 @@ export function registerIpcHandlers(container: AppContainer, windows: WindowMana
   registerSpotDiffHandlers(container);
   registerOutfitHandlers(container);
   registerJejuCourseHandlers(container);
+  registerInsaCourseHandlers(container);
   registerStatsHandlers(container);
   registerSubtitleHandlers(container);
   registerVideoHandlers(container);

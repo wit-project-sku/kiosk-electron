@@ -42,3 +42,6 @@ resources/videos
 # ZED SDK diagnostic dumps — machine-specific, generated on demand by
 # `ZED Diagnostic.exe -c`. Useful in a chat, never in the repo.
 ZED_Diagnostic_Results.json
+
+# eslint --cache artefact
+.eslintcache

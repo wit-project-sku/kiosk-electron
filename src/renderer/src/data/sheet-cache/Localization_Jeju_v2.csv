@@ -817,6 +817,82 @@ Siapkan struk toko dan pilih bahasa Anda.","","","","","","","","","","","","","
 "","Promotion_Introduce","> 이벤트 소개 <","> Event Introduction <","> イベント紹介 <","> 活动介绍 <","> Giới thiệu sự kiện <","> แนะนำกิจกรรม <","> Описание мероприятия <","> Pengenalan Acara <","","","","","","","","","","","","","","","",""
 "","Promotion_Participate","> 이벤트 참여 <","> Participate in Event <","> イベント参加 <","> 参与活动 <","> Tham gia sự kiện <","> เข้าร่วมกิจกรรม <","> Участие в мероприятии <","> Ikut Acara <","","","","","","","","","","","","","","","",""
 "","Promotion_Reward","> 이벤트 상품 <","> Event Prizes <","> イベント商品 <","> 活动奖品 <","> Phần thưởng sự kiện <","> รางวัลกิจกรรม <","> Призы мероприятия <","> Hadiah Acara <","","","","","","","","","","","","","","","",""
+"","Fillme_title","AI 손톱 건강 분석","AI Nail Health Analysis","AI爪健康分析","AI指甲健康分析","Phân tích sức khỏe móng tay bằng AI","การวิเคราะห์สุขภาพเล็บด้วย AI","AI-анализ здоровья ногтей","Analisis Kesehatan Kuku AI","","","","","","","","","","","","","","","",""
+"","Fillme_subtitle1","FillMe 와 함께하는 손톱 건강 체크 서비스에요","A nail health check service with FillMe","FillMeと共に行う爪の健康チェックサービスです","与FillMe一起体验指甲健康检查服务","Dịch vụ kiểm tra sức khỏe móng tay cùng FillMe","บริการตรวจสุขภาพเล็บร่วมกับ FillMe","Сервис проверки здоровья ногтей вместе с FillMe","Layanan pemeriksaan kesehatan kuku bersama FillMe","","","","","","","","","","","","","","","",""
+"","Fillme_text001","AI 손톱 건강 분석","AI Nail Health Analysis","AI爪健康分析","AI指甲健康分析","Phân tích sức khỏe móng tay bằng AI","การวิเคราะห์สุขภาพเล็บด้วย AI","AI-анализ здоровья ногтей","Analisis Kesehatan Kuku AI","","","","","","","","","","","","","","","",""
+"","Fillme_text002","손톱 사진으로 \n영양 상태를 확인해요","Check nutritional status
+with nail photos","爪の写真で
+栄養状態を確認します","通过指甲照片
+检查营养状况","Kiểm tra tình trạng dinh dưỡng
+qua ảnh chụp móng tay","ตรวจสอบภาวะโภชนาการ
+ด้วยภาพถ่ายเล็บ","Проверьте статус питания
+по фото ногтей","Periksa status nutrisi
+dengan foto kuku","","","","","","","","","","","","","","","",""
+"","Fillme_text003","양손 손톱을 촬영하면 AI가 분석해 나에게 맞는 영양제를 추천해 드려요","Take photos of both nails, and AI will analyze them to recommend the right supplements for you","両手の爪を撮影するとAIが分析し、あなたに合ったサプリメントをおすすめします","拍摄双手指甲，AI将进行分析并推荐适合您的营养品","Chụp ảnh móng hai bàn tay, AI sẽ phân tích và đề xuất thực phẩm bổ sung phù hợp cho bạn","ถ่ายภาพเล็บมือทั้งสองข้าง AI จะวิเคราะห์และแนะนำผลิตภัณฑ์เสริมอาหารที่เหมาะกับคุณ","Сфотографируйте ногти на обеих руках, и ИИ проанализирует их и порекомендует подходящие витамины","Ambil foto kuku kedua tangan, AI akan menganalisis dan merekomendasikan suplemen yang tepat untuk Anda","","","","","","","","","","","","","","","",""
+"","Fillme_text004","진행순서","Process","進行手順","进行步骤","Trình tự thực hiện","ขั้นตอนการดำเนินการ","Порядок действий","Urutan Proses","","","","","","","","","","","","","","","",""
+"","Fillme_text005","손톱 촬영","Nail Photography","爪の撮影","指甲拍摄","Chụp ảnh móng tay","ถ่ายภาพเล็บ","Съемка ногтей","Pengambilan Foto Kuku","","","","","","","","","","","","","","","",""
+"","Fillme_text006","왼손, 오른손 순서로 자동으로 촬영돼요","Photos are taken automatically in order: left hand, then right hand","左手、右手の順に自動で撮影されます","按左手、右手的顺序自动拍摄","Ảnh sẽ được chụp tự động theo thứ tự tay trái, tay phải","ถ่ายภาพโดยอัตโนมัติตามลำดับมือซ้ายและมือขวา","Съемка происходит автоматически: сначала левая рука, затем правая","Foto diambil secara otomatis dengan urutan tangan kiri, lalu tangan kanan","","","","","","","","","","","","","","","",""
+"","Fillme_text007","정보 입력","Enter Information","情報入力","输入信息","Nhập thông tin","ป้อนข้อมูล","Ввод данных","Masukkan Informasi","","","","","","","","","","","","","","","",""
+"","Fillme_text008","나이·키·몸무게·성별을 입력해요","Enter your age, height, weight, and gender","年齢・身長・体重・性別を入力します","请输入年龄、身高、体重和性别","Nhập tuổi, chiều cao, cân nặng và giới tính","ป้อนข้อมูลอายุ ส่วนสูง น้ำหนัก และเพศ","Введите возраст, рост, вес и пол","Masukkan usia, tinggi badan, berat badan, dan jenis kelamin","","","","","","","","","","","","","","","",""
+"","Fillme_text009","결과 확인","Check Results","結果確認","查看结果","Kiểm tra kết quả","ตรวจสอบผลลัพธ์","Просмотр результатов","Periksa Hasil","","","","","","","","","","","","","","","",""
+"","Fillme_text010","건강 분석과 추천 영양제를 알려줘요","Provides health analysis and recommended supplements","健康分析とおすすめのサプリメントをお知らせします","提供健康分析和推荐营养品","Cung cấp kết quả phân tích sức khỏe và đề xuất thực phẩm bổ sung","แสดงการวิเคราะห์สุขภาพและอาหารเสริมที่แนะนำ","Показывает анализ здоровья и рекомендации по добавкам","Memberikan analisis kesehatan dan rekomendasi suplemen","","","","","","","","","","","","","","","",""
+"","Fillme_text011","시작하기","Get Started","はじめる","开始","Bắt đầu","เริ่มต้น","Начать","Mulai","","","","","","","","","","","","","","","",""
+"","Fillme_subtitle2","왼손/오른손을 가이드 안에 올려 주세요","Place your left/right hand inside the guide","左手／右手をガイドの上に置いてください","请将左手/右手放在指引框内","Vui lòng đặt tay trái/tay phải vào trong khung hướng dẫn","กรุณาวางมือซ้าย/มือขวาลงในกรอบแนะนำ","Поместите левую/правую руку в зону контура","Letakkan tangan kiri/kanan di dalam bingkai panduan","","","","","","","","","","","","","","","",""
+"","Fillme_text012","*2초 뒤 촬영이 시작됩니다.","*Shooting starts in 2 seconds.","*2秒後に撮影が始まります。","*2秒后开始拍摄。","*Quá trình chụp ảnh sẽ bắt đầu sau 2 giây.","*การถ่ายภาพจะเริ่มต้นในอีก 2 วินาที","*Съемка начнется через 2 секунды.","*Pengambilan foto dimulai dalam 2 detik.","","","","","","","","","","","","","","","",""
+"","Fillme_text013","왼손","Left hand","左手","左手","Tay trái","มือซ้าย","Левая рука","Tangan kiri","","","","","","","","","","","","","","","",""
+"","Fillme_text014","오른손","Right hand","右手","右手","Tay phải","มือขวา","Правая рука","Tangan kanan","","","","","","","","","","","","","","","",""
+"","Fillme_text015","손등이 위로","Back of hand facing up","手の甲を上に","手背朝上","Mu bàn tay hướng lên trên","หงายหลังมือขึ้น","Тыльной стороной ладони вверх","Punggung tangan menghadap ke atas","","","","","","","","","","","","","","","",""
+"","Fillme_text016","손톱이 카메라를 향하게 올려 주세요","Place nails facing
+toward the camera","爪がカメラに向くように
+置いてください","请将指甲朝向摄像头
+放置","Đặt móng tay hướng
+về phía camera","วางเล็บให้หันหน้า
+เข้าหากล้อง","Расположите ногти так,
+чтобы они смотрели в камеру","Posisikan kuku menghadap
+ke arah kamera","","","","","","","","","","","","","","","",""
+"","Fillme_text017","손가락은 쫙","Spread fingers wide","指をしっかり広げて","手指张开","Xòe rộng các ngón tay","กางนิ้วมือออกให้สุด","Широко расставьте пальцы","Rentangkan jari-jari tangan","","","","","","","","","","","","","","","",""
+"","Fillme_text018","손가락 사이를 벌려 주세요","Please spread your fingers apart","指の間を広げてください","请张开手指缝隙","Vui lòng mở rộng khoảng cách giữa các ngón tay","กรุณากางช่องว่างระหว่างนิ้วมือออก","Пожалуйста, расставьте пальцы","Silakan renggangkan sela-sela jari Anda","","","","","","","","","","","","","","","",""
+"","Fillme_text019","가이드 안에","Inside the guide","ガイドの中に","在指引框内","Trong khung hướng dẫn","ภายในกรอบแนะนำ","Внутри контура","Di dalam panduan","","","","","","","","","","","","","","","",""
+"","Fillme_text020","손톱 3개 이상이  선명하게 보여야 해요","At least 3 nails
+must be clearly visible","3本以上の爪が
+はっきりと見える必要があります","必须清晰显示
+3个以上的指甲","Phải nhìn thấy rõ ràng
+từ 3 móng tay trở lên","ต้องเห็นเล็บอย่างน้อย 3 เล็บ
+อย่างชัดเจน","Должно быть четко видно
+не менее 3 ногтей","Setidaknya 3 kuku
+harus terlihat jelas","","","","","","","","","","","","","","","",""
+"","Fillme_text021","모든 손톱이 나오도록 촬영해주세요. 3개 이상의 손톱이 인식 되어야 AI가 분석할 수 있어요.","Please take the photo so all nails are visible.
+At least 3 nails must be recognized
+for the AI to analyze.","すべての爪が写るように撮影してください。
+3本以上の爪が認識されて初めて
+AIが分析できます。","请拍摄完整指甲。
+需要识别出3个以上的指甲，
+AI才能进行分析。","Vui lòng chụp ảnh để thấy rõ tất cả các móng tay.
+Phải nhận diện được từ 3 móng tay trở lên
+thì AI mới có thể phân tích.","กรุณาถ่ายภาพให้เห็นเล็บทั้งหมด
+ต้องตรวจพบเล็บตั้งแต่ 3 เล็บขึ้นไป
+AI จึงจะสามารถวิเคราะห์ได้","Сфотографируйте так, чтобы были видны все ногти.
+Для анализа ИИ
+должно распознаваться не менее 3 ногтей.","Ambil foto agar semua kuku terlihat.
+Setidaknya 3 kuku harus dikenali
+agar AI dapat menganalisis.","","","","","","","","","","","","","","","",""
+"","Fillme_subtitle3","정확한 분석을 위해 기본 정보를 입력해 주세요","Please enter basic information for an accurate analysis","正確な分析のために基本情報を入力してください","为确保分析准确，请输入基本信息","Vui lòng nhập thông tin cơ bản để có kết quả phân tích chính xác","กรุณากรอกข้อมูลพื้นฐานเพื่อการวิเคราะห์ที่แม่นยำ","Пожалуйста, введите базовую информацию для точного анализа","Silakan masukkan informasi dasar untuk analisis yang akurat","","","","","","","","","","","","","","","",""
+"","Fillme_text022","손톱 촬영이 끝났어요","Nail photography is complete","爪の撮影が完了しました","指甲拍摄已完成","Quá trình chụp ảnh móng tay đã hoàn tất","การถ่ายภาพเล็บเสร็จสิ้นแล้ว","Съемка ногтей завершена","Pengambilan foto kuku selesai","","","","","","","","","","","","","","","",""
+"","Fillme_text023","사진은 동의 전까지 키오스크에서만 가지고 있어요.","Photos are kept only on the kiosk until consent is given.","写真は同意いただくまでキオスク端末内のみに保存されます。","在您同意之前，照片仅保存在自助终端设备中。","Ảnh chỉ được lưu trữ trên ki-ốt cho đến khi bạn đồng ý.","รูปภาพจะถูกเก็บไว้ในตู้คีออสก์เท่านั้นจนกว่าจะได้รับความยินยอม","Фотографии хранятся только в киоске до получения согласия.","Foto hanya disimpan di kios sampai persetujuan diberikan.","","","","","","","","","","","","","","","",""
+"","Fillme_text024","다시 촬영하기","Retake","再撮影する","重新拍摄","Chụp lại","ถ่ายภาพใหม่","Переснять","Ambil Ulang","","","","","","","","","","","","","","","",""
+"","Fillme_text025","나이","Age","年齢","年龄","Tuổi","อายุ","Возраст","Usia","","","","","","","","","","","","","","","",""
+"","Fillme_text026","세","yrs","歳","岁","tuổi","ปี","лет","tahun","","","","","","","","","","","","","","","",""
+"","Fillme_text027","키","Height","身長","身高","Chiều cao","ส่วนสูง","Рост","Tinggi Badan","","","","","","","","","","","","","","","",""
+"","Fillme_text028","몸무게","Weight","体重","体重","Cân nặng","น้ำหนัก","Вес","Berat Badan","","","","","","","","","","","","","","","",""
+"","Fillme_text029","성별","Gender","性別","性别","Giới tính","เพศ","Пол","Jenis Kelamin","","","","","","","","","","","","","","","",""
+"","Fillme_text030","남자","Male","男性","男","Nam","ชาย","Мужской","Laki-laki","","","","","","","","","","","","","","","",""
+"","Fillme_text031","여자","Female","女性","女","Nữ","หญิง","Женский","Perempuan","","","","","","","","","","","","","","","",""
+"","Fillme_text032","임신 중이거나 임신을 준비하고 있나요?","Are you pregnant or planning a pregnancy?","妊娠中、または妊娠を希望されていますか？","您是否怀孕或正在备孕？","Bạn đang mang thai hoặc chuẩn bị mang thai phải không?","คุณกำลังตั้งครรภ์หรือกำลังเตรียมตัวตั้งครรภ์หรือไม่?","Вы беременны или планируете беременность?","Apakah Anda sedang hamil atau sedang merencanakan kehamilan?","","","","","","","","","","","","","","","",""
+"","Fillme_text033","예","Yes","はい","是","Có","ใช่","Да","Ya","","","","","","","","","","","","","","","",""
+"","Fillme_text034","아니요","No","いいえ","否","Không","ไม่","Нет","Tidak","","","","","","","","","","","","","","","",""
+"","Fillme_text035","[개인보호정책] 서비스 제공을 위해 이용자의 정보 수집을 동의합니다.","[Privacy Policy] I agree to the collection of user information for service provision.","[個人情報保護方針] サービス提供のための利用者情報の収集に同意します。","[隐私政策] 同意为了提供服务而收集用户信息。","[Chính sách bảo mật] Tôi đồng ý thu thập thông tin người dùng để cung cấp dịch vụ.","[นโยบายความเป็นส่วนตัว] ข้าพเจ้ายินยอมให้เก็บรวบรวมข้อมูลผู้ใช้เพื่อการให้บริการ","[Политика конфиденциальности] Я согласен(на) на сбор информации о пользователе для предоставления услуг.","[Kebijakan Privasi] Saya menyetujui pengumpulan informasi pengguna untuk penyediaan layanan.","","","","","","","","","","","","","","","",""
+"","Fillme_text036","다음으로","Next","次へ","下一步","Tiếp theo","ถัดไป","Далее","Lanjut","","","","","","","","","","","","","","","",""
+"","Fillme_text037","다음","Next","次へ","下一步","Tiếp","ถัดไป","Далее","Berikutnya","","","","","","","","","","","","","","","",""
 "","Fillme_PrivacyPolicyContent","개인정보처리방침
 
 주식회사 링커버스(이하 ""회사"")는 「개인정보 보호법」 등 관련 법규에 따라 이용자의 개인정보를 보호하고 개인정보와 관련한 이용자의 고충을 원활하게 처리할 수 있도록 다음과 같은 〈개인정보 처리방침〉에 따라 개인정보를 처리하고 있습니다. 본 방침은 회사가 운영하는 무인 키오스크(이하 ""기기"")를 통한 손톱 분석 서비스에 적용됩니다. 회사가 〈개인정보 처리방침〉을 개정하는 경우에는 기기 화면 또는 홈페이지에 게시하여 공지합니다.
@@ -1434,3 +1510,44 @@ Perusahaan tidak memproses informasi pribadi anak di bawah usia 14 tahun tanpa p
 Pasal 12 (Kewajiban Pemberitahuan)
 Jika ada penambahan, penghapusan, atau perubahan pada isi Kebijakan Privasi ini akibat perubahan kebijakan pemerintah atau teknologi keamanan, Perusahaan akan mengumumkannya melalui layar Perangkat dan situs web setidaknya 7 hari sebelum tanggal berlakunya revisi. Namun, jika terdapat keadaan yang tidak dapat dihindari, pemberitahuan awal mungkin tidak dapat dipenuhi atau diumumkan setelahnya. Kebijakan Privasi yang diubah akan berlaku efektif 7 hari setelah tanggal pemberitahuan.
 Tanggal Efektif Kebijakan Privasi: 01.06.2026","","","","","","","","","","","","","","","",""
+"","Fillme_subtitle3","잠시만 기다려 주세요","Please wait a moment","少々お待ちください","请稍候","Vui lòng đợi trong giây lát","กรุณารอสักครู่","Пожалуйста, подождите немного","Mohon tunggu sebentar","","","","","","","","","","","","","","","",""
+"","Fillme_text038","AI가 손톱을 분석하고 있어요","AI is analyzing your nails","AIが爪を分析しています","AI正在分析您的指甲","AI đang phân tích móng tay của bạn","AI กำลังวิเคราะห์เล็บของคุณ","ИИ анализирует состояние ногтей","AI sedang menganalisis kuku Anda","","","","","","","","","","","","","","","",""
+"","Fillme_text039","건강 지표를 계산하고 있어요","Calculating health indicators","健康指標を計算しています","正在计算健康指标","Đang tính toán các chỉ số sức khỏe","กำลังคำนวณดัชนีสุขภาพ","Рассчитываются показатели здоровья","Sedang menghitung indikator kesehatan","","","","","","","","","","","","","","","",""
+"","Fillme_text040","보통 10-30초 걸려요. \n화면을 떠나지 말고 잠시 기다려 주세요.","It usually takes 10–30 seconds.
+Please wait without leaving the screen.","通常10〜30秒ほどかかります。
+画面から離れずにお待ちください。","通常需要10至30秒。
+请勿离开屏幕，稍候片刻。","Thường mất khoảng 10–30 giây.
+Vui lòng không rời khỏi màn hình và đợi trong giây lát.","โดยปกติใช้เวลาประมาณ 10–30 วินาที
+กรุณารอสักครู่โดยอย่าเพิ่งออกจากหน้าจอ","Обычно это занимает 10–30 секунд.
+Пожалуйста, подождите, не закрывая экран.","Biasanya membutuhkan waktu 10–30 detik.
+Mohon tunggu sejenak dan jangan meninggalkan layar.","","","","","","","","","","","","","","","",""
+"","Fillme_text041","손톱 색상 분석","Nail color analysis","爪の色分析","指甲颜色分析","Phân tích màu sắc móng tay","การวิเคราะห์สีเล็บ","Анализ цвета ногтей","Analisis warna kuku","","","","","","","","","","","","","","","",""
+"","Fillme_text042","손톱 형태 분석","Nail shape analysis","爪の形状分析","指甲形状分析","Phân tích hình dạng móng tay","การวิเคราะห์รูปทรงเล็บ","Анализ формы ногтей","Analisis bentuk kuku","","","","","","","","","","","","","","","",""
+"","Fillme_text043","건강 지표 계산","Calculation of health indicators","健康指標の計算","计算健康指标","Tính toán chỉ số sức khỏe","การคำนวณดัชนีสุขภาพ","Расчет показателей здоровья","Perhitungan indikator kesehatan","","","","","","","","","","","","","","","",""
+"","Fillme_text044","맞춤 결과 생성","Generating personalized results","カスタマイズ結果の生成","生成个性化结果","Tạo kết quả được cá nhân hóa","สร้างผลลัพธ์ที่ปรับให้เหมาะกับแต่ละบุคคล","Формирование персонализированных результатов","Menghasilkan hasil yang dipersonalisasi","","","","","","","","","","","","","","","",""
+"","Fillme_text045","분석을 완료하지 못했어요","Could not complete the analysis","分析を完了できませんでした","未能完成分析","Không thể hoàn tất phân tích","ไม่สามารถทำการวิเคราะห์ให้เสร็จสิ้นได้","Не удалось завершить анализ","Tidak dapat menyelesaikan analisis","","","","","","","","","","","","","","","",""
+"","Fillme_text046","사진을 분석하지 못했어요. \n손톱이 잘 보이도록 다시 촬영해주세요.","Could not analyze the photo.
+Please retake the photo so your nails are clearly visible.","写真を分析できませんでした。
+爪がよく見えるように再撮影してください。","无法分析照片。
+请重新拍摄，确保指甲清晰可见。","Không thể phân tích bức ảnh.
+Vui lòng chụp lại để nhìn rõ móng tay.","ไม่สามารถวิเคราะห์ภาพถ่ายได้
+กรุณาถ่ายภาพใหม่อีกครั้งให้เห็นเล็บอย่างชัดเจน","Не удалось проанализировать фото.
+Пожалуйста, переснимите так, чтобы ногти были хорошо видны.","Tidak dapat menganalisis foto.
+Silakan ambil foto lagi agar kuku terlihat jelas.","","","","","","","","","","","","","","","",""
+"","Fillme_text047","손톱이 충분히 보이지 않았어요","Nails were not clearly visible enough","爪が十分に写っていませんでした","指甲显示不够充分","Móng tay không hiển thị đủ rõ","มองเห็นเล็บได้ไม่ชัดเจนเพียงพอ","Ногти видны недостаточно отчетливо","Kuku tidak terlihat dengan cukup jelas","","","","","","","","","","","","","","","",""
+"","Fillme_text048","손가락 3개 이상이 선명하게 보이도록\n왼손을 다시 촬영해 주세요","Please retake the photo of your left hand
+so that at least 3 nails are clearly visible","3本以上の指がはっきり写るよう
+左手を再撮影してください","请重新拍摄左手，
+确保3根以上的手指清晰可见","Vui lòng chụp lại tay trái
+để thấy rõ từ 3 ngón tay trở lên","กรุณาถ่ายภาพมือซ้ายใหม่อีกครั้ง
+เพื่อให้เห็นนิ้วมืออย่างน้อย 3 นิ้วอย่างชัดเจน","Пожалуйста, переснимите левую руку так,
+чтобы было четко видно не менее 3 пальцев","Silakan ambil foto ulang tangan kiri Anda
+agar minimal 3 jari terlihat jelas","","","","","","","","","","","","","","","",""
+"","Fillme_text049","처음으로","Home","最初へ","返回首页","Về trang đầu","กลับสู่หน้าแรก","В начало","Ke Awal","","","","","","","","","","","","","","","",""
+"","Fillme_text050","다시 촬영하기","Retake","再撮影する","重新拍摄","Chụp lại","ถ่ายภาพใหม่","Переснять","Ambil Ulang","","","","","","","","","","","","","","","",""
+"","Fillme_subtitle5","나에게 맞는 영양 관리 방법을 확인해 보세요.","Find out the nutritional management method that suits you best.","あなたに合った栄養管理法をご確認ください。","查看适合您的营养管理方案。","Hãy khám phá phương pháp quản lý dinh dưỡng phù hợp với bạn.","ตรวจสอบวิธีการจัดการทางโภชนาการที่เหมาะสำหรับคุณ","Узнайте подходящий вам план управления питанием.","Temukan cara pengelolaan nutrisi yang tepat untuk Anda.","","","","","","","","","","","","","","","",""
+"","Fillme_text051","AI 건강 분석","AI Health Analysis","AI健康分析","AI健康分析","Phân tích sức khỏe bằng AI","การวิเคราะห์สุขภาพด้วย AI","ИИ-анализ здоровья","Analisis Kesehatan AI","","","","","","","","","","","","","","","",""
+"","Fillme_text052","필요 영양 성분 (5가지)","Essential Nutrients (5 types)","必要な栄養素（5種類）","所需营养成分（5种）","Dinh dưỡng thiết yếu (5 loại)","สารอาหารที่จำเป็น (5 ชนิด)","Необходимые питательные вещества (5 видов)","Nutrisi yang Dibutuhkan (5 jenis)","","","","","","","","","","","","","","","",""
+"","Fillme_text053","본 결과는 AI 분석에 기반한 건강 관리 참고 정보이며, 의학적 진단을 대체하지 않습니다.","This result is reference information for health management based on AI analysis and does not replace medical diagnosis.","本結果はAI分析に基づく健康管理の参考情報であり、医学的診断に代わるものではありません。","本结果为基于AI分析的健康管理参考信息，不可替代医学诊断。","Kết quả này là thông tin tham khảo quản lý sức khỏe dựa trên phân tích AI, không thay thế cho chẩn đoán y khoa.","ผลลัพธ์นี้เป็นข้อมูลอ้างอิงเพื่อการดูแลสุขภาพจากการวิเคราะห์ของ AI และไม่สามารถใช้ทดแทนการวินิจฉัยทางการแพทย์ได้","Данный результат является справочной информацией для заботы о здоровье на основе ИИ-анализа и не заменяет медицинский диагноз.","Hasil ini merupakan informasi referensi pengelolaan kesehatan berbasis analisis AI dan tidak menggantikan diagnosis medis.","","","","","","","","","","","","","","","",""
+"","Fillme_text054","저장하기","Save","保存する","保存","Lưu lại","บันทึก","Сохранить","Simpan","","","","","","","","","","","","","","","",""
+"","Fillme_text055","처음으로","Home","最初へ","返回首页","Về trang đầu","กลับสู่หน้าแรก","В начало","Ke Awal","","","","","","","","","","","","","","","",""

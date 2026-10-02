@@ -87,8 +87,9 @@ export class BackgroundService {
 
   /** Pull the background set assigned to this kiosk and cache it. */
   async refresh(): Promise<number> {
-    const kioskNum = this.kiosk.kioskNum();
-    const url = `${this.baseUrl()}/${kioskNum}/backgrounds`;
+    const region = this.kiosk.region();
+    if (!region) return this.list().length;
+    const url = `${this.baseUrl()}/${region}/backgrounds/v2`;
     try {
       const res = await fetch(url);
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
