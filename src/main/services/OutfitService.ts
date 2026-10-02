@@ -93,11 +93,11 @@ export class OutfitService {
   }
 
   private outfitsUrl(): string {
-    return process.env['OUTFITS_API_URL'] || `${this.base()}/api/outfits`;
+    return process.env['OUTFITS_API_URL'] || `${this.base()}/api/outfits/v2`;
   }
 
   private categoriesUrl(): string {
-    return process.env['OUTFIT_CATEGORIES_API_URL'] || `${this.base()}/api/outfits/categories`;
+    return process.env['OUTFIT_CATEGORIES_API_URL'] || `${this.base()}/api/outfits/categories/v2`;
   }
 
   /** Pre-label tab list — the fallback while the labelled one 401s on prod. */
@@ -106,8 +106,10 @@ export class OutfitService {
   }
 
   /**
-   * Append `kioskId` to an endpoint, respecting a query string it may already
-   * have (both URLs are env-overridable, and an override may carry one).
+   * Append `region` to an endpoint, respecting a query string it may already
+   * have (both URLs are env-overridable, and an override may carry one). The v2
+   * endpoints are keyed by content branch (HWASEONG, JEJU_PORT, …), not by the
+   * device number the v1 `kioskId` param carried.
    *
    * Passing it is what makes the server do the work this class used to do
    * badly: it returns only outfits ASSIGNED to this kiosk AND inside their
@@ -115,8 +117,8 @@ export class OutfitService {
    * category stops arriving as an empty tab once its run ends. The client-side
    * filter in list() stays as a backstop for an override that drops the param.
    */
-  private withKioskId(url: string): string {
-    return `${url}${url.includes('?') ? '&' : '?'}kioskId=${this.kiosk.kioskNum()}`;
+  private withRegion(url: string, region: string): string {
+    return `${url}${url.includes('?') ? '&' : '?'}region=${region}`;
   }
 
   /**
@@ -169,10 +171,12 @@ export class OutfitService {
 
   /** Pull the catalogue + tabs and cache them. Returns the outfit count stored. */
   async refresh(): Promise<number> {
+    const region = this.kiosk.region();
+    if (!region) return this.list().length;
     try {
       const [outfits, categories] = await Promise.all([
-        this.fetchAllOutfits(),
-        this.fetchCategories(),
+        this.fetchAllOutfits(region),
+        this.fetchCategories(region),
       ]);
 
       // An empty catalogue is almost certainly a bad deploy rather than a real
@@ -202,12 +206,12 @@ export class OutfitService {
   }
 
   /** Walk every page. `last` ends it; MAX_PAGES is the backstop. */
-  private async fetchAllOutfits(): Promise<KioskOutfit[]> {
+  private async fetchAllOutfits(region: string): Promise<KioskOutfit[]> {
     const all: KioskOutfit[] = [];
     const seen = new Set<number>();
 
     for (let page = 1; page <= MAX_PAGES; page += 1) {
-      const url = this.withKioskId(`${this.outfitsUrl()}?pageNum=${page}&pageSize=${PAGE_SIZE}`);
+      const url = this.withRegion(`${this.outfitsUrl()}?pageNum=${page}&pageSize=${PAGE_SIZE}`, region);
       const res = await fetch(url);
       if (!res.ok) throw new Error(`HTTP ${res.status} on page ${page}`);
       const json = (await res.json()) as { data?: Record<string, unknown> };
@@ -242,8 +246,8 @@ export class OutfitService {
    * with it, since the cached tabs from the last sync are a perfectly good
    * answer and `refresh()` keeps them when this returns empty.
    */
-  private async fetchCategories(): Promise<OutfitCategory[]> {
-    for (const url of [this.withKioskId(this.categoriesUrl()), this.legacyCategoriesUrl()]) {
+  private async fetchCategories(region: string): Promise<OutfitCategory[]> {
+    for (const url of [this.withRegion(this.categoriesUrl(), region), this.legacyCategoriesUrl()]) {
       try {
         const res = await fetch(url);
         if (!res.ok) throw new Error(`HTTP ${res.status}`);

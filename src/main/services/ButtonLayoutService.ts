@@ -58,9 +58,10 @@ export class ButtonLayoutService {
 
   /** Pull the full button layout for this kiosk and cache it. */
   async refresh(): Promise<number> {
-    const kioskNum = this.kiosk.kioskNum();
-    const url = `${this.baseUrl()}/${kioskNum}/buttons`;
-    log.info('Fetching buttons from API', { url, kioskId: this.kiosk.getConfig().kioskId, kioskNum });
+    const region = this.kiosk.region();
+    if (!region) return this.list().length;
+    const url = `${this.baseUrl()}/${region}/buttons/v2`;
+    log.info('Fetching buttons from API', { url, kioskId: this.kiosk.getConfig().kioskId, region });
     try {
       const res = await fetch(url);
       log.info('Buttons API responded', { status: res.status, ok: res.ok });
@@ -84,7 +85,7 @@ export class ButtonLayoutService {
           })),
       );
       if (buttons.length > 0) {
-        this.cache.upsert(cacheKeyFor(kioskNum), { buttons }, 'buttons_api');
+        this.cache.upsert(cacheKeyFor(this.kiosk.kioskNum()), { buttons }, 'buttons_api');
         log.info('Buttons cached from API', { count: buttons.length });
       } else {
         log.warn('Buttons API returned no rows', { url });

@@ -25,7 +25,7 @@ const DEFAULT_API_BASE = 'https://api-v3.witteria.com';
  * with the network down.
  *
  * ── The endpoint ──────────────────────────────────────────────────────
- *   GET {base}/api/kiosks/{kioskNum}/games/spot-difference/puzzles
+ *   GET {base}/api/kiosks/{region}/games/spot-difference/puzzles/v2
  *   { success, code, message, data: [
  *       { puzzleId, imageAUrl, imageBUrl, kioskId,
  *         diffs: [{ x, y, radius }] } ] }
@@ -82,12 +82,15 @@ export class SpotDiffService {
   /**
    * `SPOT_DIFF_API_URL` still wins outright, and is now expected to be a FULL
    * per-kiosk path — it is a debugging override, so pointing it at one specific
-   * kiosk's puzzles is the useful behaviour.
+   * kiosk's puzzles is the useful behaviour. `null` for a venue with no CMS
+   * content (KADA), which has nothing to ask for.
    */
-  private baseUrl(): string {
+  private baseUrl(): string | null {
     if (process.env['SPOT_DIFF_API_URL']) return process.env['SPOT_DIFF_API_URL'];
+    const region = this.kiosk.region();
+    if (!region) return null;
     const base = (process.env['WITTERIA_API_BASE'] || DEFAULT_API_BASE).replace(/\/+$/, '');
-    return `${base}/api/kiosks/${this.kiosk.kioskNum()}/games/spot-difference/puzzles`;
+    return `${base}/api/kiosks/${region}/games/spot-difference/puzzles/v2`;
   }
 
   /** Cached rounds from the last successful refresh. Empty until first sync. */
@@ -115,6 +118,7 @@ export class SpotDiffService {
   /** Pull the puzzle list and cache it. Returns the count stored. */
   async refresh(): Promise<number> {
     const url = this.baseUrl();
+    if (!url) return this.list().length;
     try {
       const res = await fetch(url);
       if (!res.ok) throw new Error(`HTTP ${res.status}`);

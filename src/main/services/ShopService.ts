@@ -1,5 +1,4 @@
 import type { Shop } from '@shared/types/shop';
-import { getShopApiKioskId } from '@shared/config/kioskLocations';
 import { createLogger } from '@main/core/logger';
 import type { LocalCacheService } from '@main/services/LocalCacheService';
 import type { KioskService } from '@main/services/KioskService';
@@ -17,9 +16,9 @@ const DEFAULT_API_BASE = 'https://api-v3.witteria.com';
  *   SHOP_API_URL        — full endpoint override (wins if set)
  *   WITTERIA_API_BASE   — shared API base, default https://api-v3.witteria.com
  *
- * The API kiosk id is per-machine from electron-store (shopApiKioskId) or, when
- * that is unset, authored per location in kioskLocations.ts — never from env.
- * See {@link ShopService.kioskNum}.
+ * v2 is keyed by content branch (`?region=HWASEONG`), authored per location in
+ * kioskLocations.ts — never from env. It replaced the v1 `?kioskId=` param, and
+ * with it the per-machine `shopApiKioskId` override, which v2 ignores.
  */
 export class ShopService {
   constructor(
@@ -30,32 +29,7 @@ export class ShopService {
   private baseUrl(): string {
     if (process.env['SHOP_API_URL']) return process.env['SHOP_API_URL'];
     const base = (process.env['WITTERIA_API_BASE'] || DEFAULT_API_BASE).replace(/\/+$/, '');
-    return `${base}/api/shops`;
-  }
-
-  /**
-   * The `kioskId` this machine sends to the SHOP endpoint, in precedence order:
-   *
-   *   1. electron-store `shopApiKioskId` — the per-machine override written by
-   *      `provision-kiosk.ps1 <id> -ShopId <n>`;
-   *   2. the location's authored `shopApiKioskId` — for kiosks whose catalogue
-   *      is filed under a different number than their W-code (제주 W006 → 7);
-   *   3. the digits of the kiosk id itself (W003 → 3).
-   *
-   * Note this is NOT `KioskService.kioskNum()`: that one drives the per-kiosk
-   * endpoints, which key off the W-code number even when shops do not.
-   */
-  private kioskNum(): number {
-    const cfg = this.kiosk.getConfig();
-    if (cfg.shopApiKioskId != null && Number.isFinite(cfg.shopApiKioskId) && cfg.shopApiKioskId > 0) {
-      return cfg.shopApiKioskId;
-    }
-    const authored = getShopApiKioskId(cfg.kioskId);
-    if (authored != null && Number.isFinite(authored) && authored > 0) return authored;
-
-    const digits = (cfg.kioskId.match(/\d+/)?.[0] ?? '1').replace(/^0+/, '');
-    const n = Number(digits || '1');
-    return Number.isFinite(n) && n > 0 ? n : 1;
+    return `${base}/api/shops/v2`;
   }
 
   /**
@@ -75,7 +49,9 @@ export class ShopService {
 
   /** Pull the full catalogue and cache it. (Pagination removed from the API.) */
   async refresh(): Promise<number> {
-    const url = `${this.baseUrl()}?kioskId=${this.kioskNum()}`;
+    const region = this.kiosk.region();
+    if (!region) return this.list().length;
+    const url = `${this.baseUrl()}?region=${region}`;
     try {
       const res = await fetch(url);
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
@@ -86,7 +62,7 @@ export class ShopService {
       const raw: unknown[] = Array.isArray(data) ? data : (data?.content ?? []);
       // Coerce BEFORE caching so the bad shape is never persisted — see
       // normalizeShop.ts for what the API actually sends versus what Shop claims.
-      const { shops } = normalizeShops(raw, `api kiosk=${this.kioskNum()}`);
+      const { shops } = normalizeShops(raw, `api region=${region}`);
       if (shops.length > 0) {
         this.cache.upsert(CACHE_KEY, { shops }, 'shop_api');
         log.info('Shops cached from API', { count: shops.length });

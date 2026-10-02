@@ -96,11 +96,12 @@ export class SubtitleService {
     return this.entries;
   }
 
-  private endpoint(): string {
+  /** `null` for a venue with no CMS content (KADA) — there is nothing to ask for. */
+  private endpoint(): string | null {
+    const region = this.kiosk.region();
+    if (!region) return null;
     const base = (process.env['WITTERIA_API_BASE'] ?? DEFAULT_API_BASE).replace(/\/+$/, '');
-    // Prefer the per-machine provisioned `shopApiKioskId` from electron-store
-    // (set by provision-kiosk.ps1), falling back to the W-code number.
-    return `${base}/api/kiosks/${this.kiosk.kioskNum()}/subtitles`;
+    return `${base}/api/kiosks/${region}/subtitles/v2`;
   }
 
   private async refresh(): Promise<void> {
@@ -132,6 +133,7 @@ export class SubtitleService {
   /** The API's entries: `[]` when it answered with no rows, `null` when it could not be reached or read. */
   private async fetchApi(): Promise<VideoEntry[] | null> {
     const url = this.endpoint();
+    if (!url) return null;
     log.info('Fetching subtitles from API', { url });
     try {
       const res = await fetch(url);

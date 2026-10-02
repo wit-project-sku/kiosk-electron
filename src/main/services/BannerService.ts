@@ -45,12 +45,13 @@ export class BannerService {
 
   /** Pull the banner list for this kiosk and cache it. */
   async refresh(): Promise<number> {
-    const kioskNum = this.kiosk.kioskNum();
-    const url = `${this.baseUrl()}/${kioskNum}/banners`;
+    const region = this.kiosk.region();
+    if (!region) return this.list().length;
+    const url = `${this.baseUrl()}/${region}/banners/v2`;
     log.info('Fetching banners from API', {
       url,
       kioskId: this.kiosk.getConfig().kioskId,
-      kioskNum,
+      region,
     });
     try {
       const res = await fetch(url);
