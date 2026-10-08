@@ -132,6 +132,9 @@ export class ZedSidecarManager {
           // folder does not.
           HEIGHT_CALIBRATION: join(app.getPath('userData'), 'zed-height', 'calibration.json'),
           PYTHONIOENCODING: 'utf-8',
+          // A line per sampled frame in the dev terminal, so a test can be
+          // watched live. Never in a packaged build: kiosk logs would fill up.
+          ...(app.isPackaged ? {} : { HEIGHT_VERBOSE: '1' }),
         },
         stdio: ['pipe', 'pipe', 'pipe'],
         windowsHide: true,

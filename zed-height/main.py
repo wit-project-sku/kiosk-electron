@@ -102,6 +102,11 @@ FPS = _env_float("HEIGHT_FPS", 4.0)
 ZONE_MIN_M = _env_float("HEIGHT_ZONE_MIN", 0.8)
 ZONE_MAX_M = _env_float("HEIGHT_ZONE_MAX", 3.5)
 
+# Per-frame estimates on stderr while sampling, for watching a test live. The app
+# turns this on in development only (ZedSidecarManager) — at 4 fps it would
+# otherwise fill a kiosk's log files with one line per frame of every capture.
+VERBOSE = os.environ.get("HEIGHT_VERBOSE") == "1"
+
 # Reported with every result and stored with every row, so measurements from an
 # estimator later found to be wrong can be told apart and discarded.
 #   1  (unversioned) — calibration could be upside down or on a desk
@@ -269,6 +274,22 @@ class Session:
         return f"nobody counted; {hits} clusters rejected, mostly: {reason}"
 
 
+def log_frame(session: Session, subjects: list[Subject], rejected: list[Rejection]) -> None:
+    """One line per sampled frame: this frame's estimate and the running median."""
+    n = len(session.subject_counts)
+    if len(subjects) == 1:
+        s = subjects[0]
+        summary = summarise(session.heights)
+        running = f"median {summary[0]:5.1f} cm (conf {summary[1]:.2f})" if summary else "median --"
+        log(f"#{n:<3} {s.height_m * 100:5.1f} cm  at {s.distance_m:.2f} m  | {running}")
+    elif subjects:
+        log(f"#{n:<3} {len(subjects)} people in the zone, not measured")
+    elif rejected:
+        log(f"#{n:<3} nobody counted: {rejected[0].reason}")
+    else:
+        log(f"#{n:<3} nobody in the zone")
+
+
 def _empty(reason: str, subjects: int = 0) -> dict:
     return {
         "type": "result",
@@ -396,7 +417,10 @@ def run_service(camera: ZedCamera) -> int:
         frame = camera.grab()
         if frame is not None:
             rejected: list[Rejection] = []
-            session.add(measure(frame.points, floor, rejected), rejected)
+            subjects = measure(frame.points, floor, rejected)
+            session.add(subjects, rejected)
+            if VERBOSE:
+                log_frame(session, subjects, rejected)
 
 
 def run_selftest(camera: ZedCamera) -> int:

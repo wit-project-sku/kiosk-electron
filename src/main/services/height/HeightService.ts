@@ -186,14 +186,14 @@ export class HeightService {
         localDate: localDateOf(now),
         hour: now.getHours(),
       });
-      log.info('Height measured', {
-        heightCm: measurement.heightCm,
-        confidence: measurement.confidence,
-        samples: measurement.samples,
-        subjects: measurement.subjects,
-        reason: measurement.reason,
-        version: measurement.version,
-      });
+      // One readable line per capture — this is what a tester watches for.
+      log.info(
+        measurement.heightCm === null
+          ? `===== HEIGHT: none — ${measurement.reason ?? 'unknown'} =====`
+          : `===== HEIGHT: ${measurement.heightCm.toFixed(1)} cm ` +
+              `(confidence ${measurement.confidence.toFixed(2)}, ` +
+              `${measurement.samples} frames, v${measurement.version ?? '?'}) =====`,
+      );
     } catch (error) {
       // A failed analytics write is not worth surfacing anywhere: the photo is
       // already taken and the visitor is looking at it.
