@@ -62,6 +62,7 @@ from geometry import (
     FloorFrame,
     camera_is_above,
     finite_points,
+    fit_floor,
     fit_plane_ransac,
     orient_up,
     plane_is_plausible_floor,
@@ -146,13 +147,17 @@ def calibrate(camera: ZedCamera) -> FloorFrame:
             continue
         if frame.gravity is not None:
             gravity = frame.gravity
-        # Gravity constrains the SEARCH, not just the result. Indoors a wall
-        # covers more of the depth image than the visible floor does, so an
-        # unconstrained fit lands on the wall — see fit_plane_ransac.
-        fit = fit_plane_ransac(points, gravity=gravity)
-        if fit is None:
-            continue
-        candidate = orient_up(*fit, gravity=gravity)
+        if gravity is not None:
+            # The lowest strong horizontal layer along gravity — RANSAC picks
+            # the desk in a furnished room. See fit_floor.
+            candidate = fit_floor(points, gravity)
+            if candidate is None:
+                continue
+        else:
+            fit = fit_plane_ransac(points, gravity=None)
+            if fit is None:
+                continue
+            candidate = orient_up(*fit)
         if not plane_is_plausible_floor(candidate, gravity):
             continue
         # Level and gravity-aligned, but above the camera: a ceiling.

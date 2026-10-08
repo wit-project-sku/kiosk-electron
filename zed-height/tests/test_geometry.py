@@ -2,7 +2,7 @@ import numpy as np
 import pytest
 
 from estimator import estimate_crown, find_subjects, summarise
-from geometry import FloorFrame, fit_plane_ransac, orient_up, plane_is_plausible_floor
+from geometry import FloorFrame, fit_floor, fit_plane_ransac, orient_up, plane_is_plausible_floor
 from tests.synthetic import (
     ceiling,
     counter,
@@ -384,3 +384,40 @@ def test_a_visitor_outdoors_with_a_passer_by_behind_them(distance_m):
     assert subjects
     assert subjects[0].height_m == pytest.approx(1.76, abs=0.03)
     assert all(s.distance_m >= subjects[0].distance_m for s in subjects)
+
+
+# ── Calibration: the two faults found on the dev PC, 2026-10-08 ─────────────
+
+
+def _desk_top(rng, height_m=0.72, centre_xy=(0.0, 1.2), size=(1.6, 0.8)):
+    """A furniture top with MORE points than the visible floor — the case RANSAC lost."""
+    n = 60_000
+    x = rng.uniform(-size[0] / 2, size[0] / 2, n) + centre_xy[0]
+    y = rng.uniform(-size[1] / 2, size[1] / 2, n) + centre_xy[1]
+    return np.column_stack([x, y, np.full(n, height_m)])
+
+
+@pytest.mark.parametrize("roll_deg", [0.0, 90.0, 180.0, 270.0])
+def test_calibration_finds_the_floor_not_a_bigger_desk(roll_deg):
+    rng = np.random.default_rng(71)
+    world = np.concatenate([floor(rng), _desk_top(rng), person(rng)], axis=0)
+    cam = place(world, roll_deg=roll_deg)
+    frame = fit_floor(cam, gravity_in_camera_frame(roll_deg=roll_deg))
+    assert frame is not None
+    assert frame.offset == pytest.approx(1.4, abs=0.02)
+
+
+def test_calibration_finds_the_floor_under_a_tilted_mount():
+    rng = np.random.default_rng(72)
+    world = np.concatenate([floor(rng), _desk_top(rng)], axis=0)
+    cam = place(world, tilt_deg=12.0)
+    frame = fit_floor(cam, gravity_in_camera_frame(tilt_deg=12.0))
+    assert frame is not None
+    assert frame.offset == pytest.approx(1.4, abs=0.03)
+
+
+def test_a_calibration_from_a_camera_turned_upside_down_is_refused():
+    """The stored normal is on the right AXIS but points down: must not pass."""
+    gravity = np.array([0.0, 0.0, 9.81])
+    flipped = FloorFrame(normal=np.array([0.0, 0.0, -1.0]), offset=1.1)
+    assert not plane_is_plausible_floor(flipped, gravity)
