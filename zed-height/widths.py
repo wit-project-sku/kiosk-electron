@@ -68,6 +68,9 @@ ARM_MERGE_FRACTION = 0.95
 
 MIN_SLAB_POINTS = 20
 
+# Plausible shoulder width as a share of height (adults: ~0.22-0.30).
+SHOULDER_PER_HEIGHT = (0.18, 0.34)
+
 # What an arm looks like in a slab: a separate run this wide, starting within
 # ARM_REACH_M of the torso's edge. A torso slab is only trusted with one on EACH
 # side — positive evidence that both arms are clear of it. "Narrower than the
@@ -182,6 +185,11 @@ def body_widths(
         if run is not None:
             shoulder_widths.append(run[1] - run[0])
     shoulder = max(shoulder_widths) if shoulder_widths else None
+    # Deltoid-to-deltoid is about a quarter of stature on adults. Far outside
+    # that, the run caught a raised arm (the gesture gate: 72-76 cm on a 174 cm
+    # visitor on the dev PC) or something beside the shoulder.
+    if shoulder is not None and not SHOULDER_PER_HEIGHT[0] <= shoulder / crown <= SHOULDER_PER_HEIGHT[1]:
+        shoulder = None
 
     def torso(band) -> list[float]:
         widths = []

@@ -120,7 +120,8 @@ VERBOSE = os.environ.get("HEIGHT_VERBOSE") == "1"
 #   3  people far behind the visitor ignored; plateau instead of median
 #   4  only the person in the corridor in front of the lens
 #   5  shoulder/chest/waist/hip widths
-ALGORITHM_VERSION = 5
+#   6  a visitor beside an object is split from it; shoulder plausibility bound
+ALGORITHM_VERSION = 6
 
 CALIBRATION_PATH = Path(os.environ.get("HEIGHT_CALIBRATION", "calibration.json"))
 

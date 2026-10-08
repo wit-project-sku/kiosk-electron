@@ -83,3 +83,52 @@ def test_the_result_carries_widths_from_standing_frames_only():
     assert result["heightCm"] == pytest.approx(174.0)
     assert result["shoulderWidthCm"] == pytest.approx(46.0)
     assert result["waistWidthCm"] == pytest.approx(28.0)
+
+
+def _box(rng, x0, x1, y0, y1, height_m, density=20_000.0):
+    """A solid object's front and sides — a desk, a chair, the kiosk body."""
+    faces = []
+    for x in (x0, x1):
+        n = int((y1 - y0) * height_m * density)
+        faces.append(np.column_stack([np.full(n, x), rng.uniform(y0, y1, n), rng.uniform(0, height_m, n)]))
+    n = int((x1 - x0) * height_m * density)
+    faces.append(np.column_stack([rng.uniform(x0, x1, n), np.full(n, y0), rng.uniform(0, height_m, n)]))
+    return np.concatenate(faces)
+
+
+def test_a_visitor_standing_beside_an_object_is_still_measured():
+    """Dev PC, 2026-10-08: half of a test's frames were lost to "footprint too
+    wide" — the visitor merged with a ~130 cm object 0.4 m to one side."""
+    rng = np.random.default_rng(21)
+    body = shaped_person(rng, arm_gap_m=0.05)
+    beside = _box(rng, 0.42, 1.1, -0.3, 0.3, 1.3)  # 15 cm clear of the right arm
+    s = measure_one(np.concatenate([body, beside]))
+    assert s.height_m == pytest.approx(1.75, abs=0.03)
+    assert s.widths.shoulder_m == pytest.approx(0.46, abs=0.015)
+    # The object's edge must not be read as a right arm and widen the hip.
+    assert s.widths.hip_m is None or s.widths.hip_m == pytest.approx(0.35, abs=0.015)
+
+
+def test_a_raised_arm_is_not_a_shoulder():
+    from widths import body_widths
+
+    rng = np.random.default_rng(22)
+    # A slab 76 cm wide at shoulder height on a 174 cm visitor.
+    n = 4000
+    lat = rng.uniform(-0.38, 0.38, n)
+    h = rng.uniform(0.78 * 1.74, 0.83 * 1.74, n)
+    w = body_widths(h, lat, np.zeros(n), 1.74)
+    assert w.shoulder_m is None
+
+
+def test_a_cabinet_in_front_of_the_camera_is_not_a_person():
+    """The dev PC's ~130 cm object was recorded as a 130 cm visitor: tall enough,
+    person-sized footprint, a "torso" — but no head on shoulders."""
+    rng = np.random.default_rng(23)
+    cabinet = _box(rng, -0.3, 0.3, -0.25, 0.25, 1.3)
+    cam = place(np.concatenate([floor(rng), cabinet]), roll_deg=90.0, distance_m=1.3)
+    frame = fit_floor(cam, gravity_in_camera_frame(roll_deg=90.0))
+    rejected = []
+    subjects = find_subjects(frame, cam, *ZONE, rejections=rejected, forward=forward_in_camera_frame(roll_deg=90.0))
+    assert subjects == []
+    assert any("no head" in r.reason for r in rejected)
