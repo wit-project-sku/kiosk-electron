@@ -117,3 +117,26 @@ def test_a_taped_camera_height_replaces_the_fitted_one():
 
     with pytest.raises(ZedUnavailable):
         pin_camera_height(fitted, 1.40)  # 24 cm off: the fit found a desk, not stereo bias
+
+
+def test_someone_far_behind_the_visitor_does_not_void_the_capture():
+    """Dev PC, 2026-10-08: a 130 cm shape 2.2 m away, the visitor at 1.1 m."""
+    session = Session()
+    for _ in range(30):
+        session.add([subject(1.74, 1.1), subject(1.30, 2.2)])
+    result = session.result()
+    assert result["subjects"] == 1
+    assert result["heightCm"] == pytest.approx(174.0, abs=1.0)
+
+
+def test_the_real_capture_from_the_dev_pc_reads_the_standing_height():
+    """The single-subject frames of the 2026-10-08 test, in order. Truth: 174-175 cm."""
+    frames = [128, 124, 138, 130, 168, 130, 170, 174, 174, 174, 172, 174, 174, 174, 172,
+              174, 174, 172, 150, 172, 174, 174, 174, 174, 174, 172, 158, 156, 156, 172,
+              172, 174, 174, 174, 174, 170, 130, 122, 106]
+    session = Session()
+    for cm in frames:
+        session.add([subject(cm / 100.0)])
+    result = session.result()
+    assert result["heightCm"] == pytest.approx(174.0, abs=0.5)
+    assert result["confidence"] > 0.5

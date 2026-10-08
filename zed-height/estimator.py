@@ -391,22 +391,45 @@ def _cluster_centres(xy: np.ndarray) -> list[tuple[np.ndarray, float]]:
     return clusters
 
 
+# Width of the band of frames that agree on the visitor's height. Two slabs:
+# per-frame estimates are quantised to SLAB_M, so a standing visitor alternates
+# between two neighbouring values (172/174 on the dev PC).
+PLATEAU_M = 2 * SLAB_M + 1e-9
+
+# Share of frames in the plateau for full / zero confidence.
+PLATEAU_FULL_SHARE = 0.6
+PLATEAU_NONE_SHARE = 0.2
+
+
 def summarise(samples: list[float]) -> tuple[float, float] | None:
     """Collapse a window of per-frame estimates into (height_cm, confidence).
 
-    The median is what makes the whole approach work: over a 15-30 s window the
-    visitor is walking in, turning, raising a hand, settling. Individual frames
-    are wrong in both directions and the median does not care.
+    ── Why the plateau and not the median ─────────────────────────────────
+    Over a 15-30 s window the visitor walks in, leans toward the screen, bends,
+    and settles. Those frames are not wrong in both directions — they are all
+    SHORT: nobody reads taller than they stand (a raised hand is already cut by
+    the head column). A median of the whole window is dragged down by them; on
+    the dev PC a 174-175 cm visitor whose standing frames all read 172-174 got a
+    median of 172, with 106-158 cm lean-in frames pulling it.
 
-    Confidence comes from the spread (MAD) rather than from anything per-frame,
-    because agreement across a long window is the only evidence we actually have
-    that the number is right. 1 cm of MAD or better reads as 1.0, degrading to 0
-    at 6 cm.
+    What the standing frames have that the junk does not is AGREEMENT: they
+    pile up in one narrow band. So take the densest band of PLATEAU_M and the
+    median within it. Confidence is the share of frames in that band — the
+    evidence that the visitor actually stood still at that height.
     """
     if len(samples) < 5:
         return None
-    arr = np.asarray(samples, dtype=float)
-    median = float(np.median(arr))
-    mad_cm = float(np.median(np.abs(arr - median))) * 100.0
-    confidence = float(np.clip((6.0 - mad_cm) / 5.0, 0.0, 1.0))
-    return median * 100.0, confidence
+    arr = np.sort(np.asarray(samples, dtype=float))
+    ends = np.searchsorted(arr, arr + PLATEAU_M, side="right")
+    sizes = ends - np.arange(arr.size)
+    best = int(sizes.max())
+    if best < 3:
+        return None
+    # Among equally dense bands take the highest: errors here only ever run short.
+    start = int(np.flatnonzero(sizes == best)[-1])
+    plateau = arr[start : ends[start]]
+    share = best / arr.size
+    confidence = float(
+        np.clip((share - PLATEAU_NONE_SHARE) / (PLATEAU_FULL_SHARE - PLATEAU_NONE_SHARE), 0.0, 1.0)
+    )
+    return float(np.median(plateau)) * 100.0, confidence

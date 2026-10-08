@@ -111,7 +111,8 @@ VERBOSE = os.environ.get("HEIGHT_VERBOSE") == "1"
 # estimator later found to be wrong can be told apart and discarded.
 #   1  (unversioned) — calibration could be upside down or on a desk
 #   2  signed mount check + fit_floor
-ALGORITHM_VERSION = 2
+#   3  people far behind the visitor ignored; plateau instead of median
+ALGORITHM_VERSION = 3
 
 CALIBRATION_PATH = Path(os.environ.get("HEIGHT_CALIBRATION", "calibration.json"))
 
@@ -232,6 +233,22 @@ def load_calibration() -> FloorFrame | None:
 # ── Sampling ───────────────────────────────────────────────────────────────
 
 
+# How far behind the nearest person someone may stand and still count as part of
+# the capture. Two visitors in a 같이찍기 stand side by side, within a few tens of
+# cm of each other; anyone a metre further back is the room. Dev PC, 2026-10-08:
+# a ~130 cm shape 2.2 m away turned every frame with the visitor (at 1.1 m) into
+# "2 people" and threw it away. At an airport that is every passer-by.
+SAME_GROUP_M = 0.6
+
+
+def in_front(subjects: list[Subject]) -> list[Subject]:
+    """The people being photographed: the nearest subject and anyone beside them."""
+    if not subjects:
+        return subjects
+    nearest = min(s.distance_m for s in subjects)
+    return [s for s in subjects if s.distance_m - nearest <= SAME_GROUP_M]
+
+
 class Session:
     """One capture's worth of per-frame estimates."""
 
@@ -248,6 +265,7 @@ class Session:
         self.rejections: Counter[str] = Counter()
 
     def add(self, subjects: list[Subject], rejected: list[Rejection] | None = None) -> None:
+        subjects = in_front(subjects)
         self.subject_counts.append(len(subjects))
         if len(subjects) == 1:
             self.heights.append(subjects[0].height_m)
@@ -303,6 +321,7 @@ class Session:
 def log_frame(session: Session, subjects: list[Subject], rejected: list[Rejection]) -> None:
     """One line per sampled frame: this frame's estimate and the running median."""
     n = len(session.subject_counts)
+    subjects = in_front(subjects)
     if len(subjects) == 1:
         s = subjects[0]
         summary = summarise(session.heights)
