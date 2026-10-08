@@ -46,7 +46,7 @@ export interface HeightMeasurement {
 
 /** A stored row. Note what is absent: no session id, no photo reference. */
 export interface HeightRecord extends HeightMeasurement {
-  /** Random UUID — what the after-photo QR carries so the visitor can claim it in the app. */
+  /** Random UUID, linked to nothing — lets an upload be retried without duplicating the row. */
   id: string;
   kioskId: string;
   /** Local ISO-8601 with offset — the wall clock behind the kiosk, never UTC. */

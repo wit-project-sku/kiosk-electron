@@ -1,12 +1,12 @@
 import type { Migration } from './types';
 
 /**
- * 키 측정 — give each measurement an id a visitor can claim, and the version of
- * the estimator that produced it.
+ * 키 측정 — give each measurement a stable id, and the version of the estimator
+ * that produced it.
  *
- * `measurement_id` is what the after-photo QR carries: the visitor scans it,
- * signs in to the app and the measurement is attached to their account there.
- * The kiosk itself still stores no identity.
+ * `measurement_id` identifies the row when it is uploaded to the backend, so a
+ * retried upload cannot create a duplicate. It is random and links to nothing:
+ * collection is anonymous test data until the try-on app ships.
  *
  * `version` is the sidecar's ALGORITHM_VERSION. Rows from before it existed
  * stay NULL on purpose: those came from the abs(cos) calibration bug fixed in
