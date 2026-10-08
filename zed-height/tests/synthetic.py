@@ -133,3 +133,10 @@ def ceiling(rng: np.random.Generator, height_m: float = 2.45, extent: float = 3.
     n = int(extent * extent * 4 * 2_000)
     xy = rng.uniform(-extent, extent, size=(n, 2))
     return np.column_stack([xy, np.full(n, height_m)])
+
+
+def forward_in_camera_frame(tilt_deg: float = 0.0, roll_deg: float = 90.0) -> np.ndarray:
+    """The camera's line of sight in its own frame — world +y, as `place` looks."""
+    return place(np.array([[0.0, 1.0, 0.0]]), tilt_deg=tilt_deg, roll_deg=roll_deg)[0] - place(
+        np.zeros((1, 3)), tilt_deg=tilt_deg, roll_deg=roll_deg
+    )[0]

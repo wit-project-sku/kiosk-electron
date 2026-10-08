@@ -117,6 +117,9 @@ class Subject:
     height_m: float
     points: int
     distance_m: float
+    # Sideways from the camera's line of sight, along the floor. Signed; 0 when
+    # no forward axis was given.
+    lateral_m: float = 0.0
 
 
 def _slab_counts(heights: np.ndarray) -> tuple[np.ndarray, int]:
@@ -235,6 +238,8 @@ def find_subjects(
     zone_min_m: float,
     zone_max_m: float,
     rejections: list[Rejection] | None = None,
+    forward: np.ndarray | None = None,
+    corridor_m: float | None = None,
 ) -> list[Subject]:
     """Every person standing in the measurement zone, with a height estimate each.
 
@@ -278,6 +283,14 @@ def find_subjects(
         return []
     centres = _cluster_centres(xy[torso])
 
+    # The camera's line of sight laid flat on the floor. floor_xy is linear, so
+    # a direction projects like a point; normalised it is mount-independent.
+    ahead: np.ndarray | None = None
+    if forward is not None:
+        flat = frame.floor_xy(np.asarray(forward, dtype=float)[None, :])[0]
+        if np.linalg.norm(flat) > 1e-6:
+            ahead = flat / np.linalg.norm(flat)
+
     subjects: list[Subject] = []
     for centre, footprint in centres:
         offset = np.linalg.norm(xy - centre, axis=1)
@@ -300,6 +313,12 @@ def find_subjects(
         if count < MIN_CLUSTER_POINTS:
             drop("too few points — too far, too small, or mostly occluded")
             continue
+        lateral = float(ahead[0] * centre[1] - ahead[1] * centre[0]) if ahead is not None else 0.0
+        # Only the person standing in front of the lens is the visitor; anyone
+        # off to the side is the room, the queue, or a passer-by.
+        if corridor_m is not None and abs(lateral) > corridor_m:
+            drop(f"off to the side ({lateral:+.2f} m) — not in front of the camera")
+            continue
         # Two stages, because each answers a question the other cannot:
         # the full cluster is continuous, so it says where the BODY stops (and
         # thus excludes a ceiling); the narrow column excludes raised arms, so
@@ -321,7 +340,7 @@ def find_subjects(
         if crown < MIN_SUBJECT_HEIGHT_M:
             drop("too short to be standing — furniture", crown)
             continue
-        subjects.append(Subject(height_m=crown, points=count, distance_m=where))
+        subjects.append(Subject(height_m=crown, points=count, distance_m=where, lateral_m=lateral))
 
     subjects.sort(key=lambda s: s.distance_m)
     return subjects

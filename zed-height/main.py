@@ -67,7 +67,7 @@ from geometry import (
     orient_up,
     plane_is_plausible_floor,
 )
-from zed import ZedCamera, ZedUnavailable
+from zed import OPTICAL_AXIS, ZedCamera, ZedUnavailable
 
 
 def _env_float(name: str, default: float) -> float:
@@ -102,6 +102,11 @@ FPS = _env_float("HEIGHT_FPS", 4.0)
 ZONE_MIN_M = _env_float("HEIGHT_ZONE_MIN", 0.8)
 ZONE_MAX_M = _env_float("HEIGHT_ZONE_MAX", 3.5)
 
+# Half-width of the corridor straight in front of the lens, along the floor.
+# A visitor standing for the photo is centred within ~0.3 m; 0.5 m leaves room
+# to shift weight. Anyone wider is beside the visitor, not being photographed.
+CORRIDOR_M = _env_float("HEIGHT_CORRIDOR", 0.5)
+
 # Per-frame estimates on stderr while sampling, for watching a test live. The app
 # turns this on in development only (ZedSidecarManager) — at 4 fps it would
 # otherwise fill a kiosk's log files with one line per frame of every capture.
@@ -112,7 +117,8 @@ VERBOSE = os.environ.get("HEIGHT_VERBOSE") == "1"
 #   1  (unversioned) — calibration could be upside down or on a desk
 #   2  signed mount check + fit_floor
 #   3  people far behind the visitor ignored; plateau instead of median
-ALGORITHM_VERSION = 3
+#   4  only the person in the corridor in front of the lens
+ALGORITHM_VERSION = 4
 
 CALIBRATION_PATH = Path(os.environ.get("HEIGHT_CALIBRATION", "calibration.json"))
 
@@ -326,7 +332,10 @@ def log_frame(session: Session, subjects: list[Subject], rejected: list[Rejectio
         s = subjects[0]
         summary = summarise(session.heights)
         running = f"median {summary[0]:5.1f} cm (conf {summary[1]:.2f})" if summary else "median --"
-        log(f"#{n:<3} {s.height_m * 100:5.1f} cm  at {s.distance_m:.2f} m  | {running}")
+        log(
+            f"#{n:<3} {s.height_m * 100:5.1f} cm  at {s.distance_m:.2f} m, "
+            f"{s.lateral_m:+.2f} m sideways  | {running}"
+        )
     elif subjects:
         log(f"#{n:<3} {len(subjects)} people in the zone, not measured")
     elif rejected:
@@ -355,7 +364,15 @@ def measure(
     points = finite_points(frame_points)
     if len(points) < 500:
         return []
-    return find_subjects(floor, points, ZONE_MIN_M, ZONE_MAX_M, rejections=rejections)
+    return find_subjects(
+        floor,
+        points,
+        ZONE_MIN_M,
+        ZONE_MAX_M,
+        rejections=rejections,
+        forward=OPTICAL_AXIS,
+        corridor_m=CORRIDOR_M,
+    )
 
 
 # ── Modes ──────────────────────────────────────────────────────────────────

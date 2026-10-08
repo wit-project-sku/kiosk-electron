@@ -156,6 +156,7 @@ length is the whole reason a median works.
 | `HEIGHT_MEASURE_HEIGHT` | 720 | and its height |
 | `HEIGHT_ZONE_MIN` | 0.8 | standing zone, metres across the floor from the camera |
 | `HEIGHT_ZONE_MAX` | 3.5 | |
+| `HEIGHT_CORRIDOR` | 0.5 | half-width, metres, of the strip straight in front of the lens; anyone further to the side is ignored |
 | `HEIGHT_CALIBRATION` | `./calibration.json` | the app and `height-run.mjs` both point this at userData |
 | `HEIGHT_PYTHON` | — | interpreter override, when the system `python` is not the one holding pyzed |
 
