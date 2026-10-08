@@ -99,3 +99,21 @@ def test_measure_runs_the_whole_chain_on_a_raw_cloud():
     subjects = measure(grid, frame)
     assert len(subjects) == 1
     assert subjects[0].height_m == pytest.approx(1.74, abs=0.03)
+
+
+def test_a_taped_camera_height_replaces_the_fitted_one():
+    import pytest
+    from geometry import FloorFrame
+    from main import pin_camera_height
+    from zed import ZedUnavailable
+
+    fitted = FloorFrame(normal=np.array([0.0, 0.0, 1.0]), offset=1.163)
+    pinned = pin_camera_height(fitted, 1.19)
+    assert pinned.offset == 1.19
+    assert np.allclose(pinned.normal, fitted.normal)
+    # A person at 1.72 m measured from the fitted floor reads 2.7 cm higher once pinned.
+    point = np.array([[0.0, 0.0, 1.72 - 1.163]])
+    assert pinned.heights(point)[0] - fitted.heights(point)[0] == pytest.approx(0.027)
+
+    with pytest.raises(ZedUnavailable):
+        pin_camera_height(fitted, 1.40)  # 24 cm off: the fit found a desk, not stereo bias

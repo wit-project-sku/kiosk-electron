@@ -188,6 +188,32 @@ def calibrate(camera: ZedCamera) -> FloorFrame:
     return FloorFrame(normal=normal, offset=float(np.median([f.offset for f in fits])))
 
 
+# A tape reading further than this from the fit means the fit found some other
+# surface (or the tape was read wrong) — not stereo bias, which is a few cm.
+MAX_PIN_CORRECTION_M = 0.10
+
+
+def pin_camera_height(fitted: FloorFrame, measured_m: float) -> FloorFrame:
+    """Replace the fitted camera height with a tape-measured one.
+
+    The fit gets the floor's ANGLE right — thousands of points agree on it — but
+    its HEIGHT carries the stereo depth bias on a floor seen at a grazing angle.
+    On the dev PC, 2026-10-08, it fitted 1.163 m against a taped 1.19 m, and
+    every visitor read 2.7 cm short by exactly that. The tape is the truth.
+    """
+    correction = measured_m - fitted.offset
+    if abs(correction) > MAX_PIN_CORRECTION_M:
+        raise ZedUnavailable(
+            f"Tape says {measured_m:.2f} m but the floor was fitted at "
+            f"{fitted.offset:.2f} m. A gap that large means the fit found "
+            "something other than the floor. Clear the view and recalibrate, "
+            "or re-check the tape."
+        )
+    log(f"  camera height pinned to {measured_m:.3f} m (fit said {fitted.offset:.3f} m, "
+        f"correction {correction * 100:+.1f} cm)")
+    return FloorFrame(normal=fitted.normal, offset=measured_m)
+
+
 def save_calibration(frame: FloorFrame) -> None:
     CALIBRATION_PATH.parent.mkdir(parents=True, exist_ok=True)
     CALIBRATION_PATH.write_text(json.dumps(frame.to_json(), indent=2), encoding="utf-8")
@@ -521,6 +547,14 @@ def main() -> int:
         action="store_true",
         help="show every cluster and why each was or was not counted as a visitor",
     )
+    parser.add_argument(
+        "--camera-height",
+        type=float,
+        metavar="M",
+        help="with --calibrate: the lens height above the floor from a tape "
+        "measure, in metres. Overrides the fitted height; the fitted floor "
+        "angle is kept.",
+    )
     args = parser.parse_args()
 
     camera = ZedCamera()
@@ -538,6 +572,8 @@ def main() -> int:
     try:
         if args.calibrate:
             floor = calibrate(camera)
+            if args.camera_height is not None:
+                floor = pin_camera_height(floor, args.camera_height)
             save_calibration(floor)
             # ── The one number a human must check ──────────────────────
             # Nothing in software can tell the real floor from the largest flat
