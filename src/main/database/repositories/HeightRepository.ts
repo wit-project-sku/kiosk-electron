@@ -11,6 +11,10 @@ interface HeightRow {
   local_date: string;
   hour: number;
   height_cm: number | null;
+  shoulder_width_cm: number | null;
+  chest_width_cm: number | null;
+  waist_width_cm: number | null;
+  hip_width_cm: number | null;
   confidence: number;
   samples: number;
   subjects: number;
@@ -27,6 +31,10 @@ function toDomain(row: HeightRow): HeightRecord {
     localDate: row.local_date,
     hour: row.hour,
     heightCm: row.height_cm,
+    shoulderWidthCm: row.shoulder_width_cm,
+    chestWidthCm: row.chest_width_cm,
+    waistWidthCm: row.waist_width_cm,
+    hipWidthCm: row.hip_width_cm,
     confidence: row.confidence,
     samples: row.samples,
     subjects: row.subjects,
@@ -52,9 +60,11 @@ export class HeightRepository extends BaseRepository {
       .prepare(
         `INSERT INTO height_measurements
            (measurement_id, version, kiosk_id, measured_at, local_date, hour,
-            height_cm, confidence, samples, subjects, reason, created_at)
+            height_cm, shoulder_width_cm, chest_width_cm, waist_width_cm, hip_width_cm,
+            confidence, samples, subjects, reason, created_at)
          VALUES (@id, @version, @kioskId, @measuredAt, @localDate, @hour,
-                 @heightCm, @confidence, @samples, @subjects, @reason, @createdAt)`,
+                 @heightCm, @shoulderWidthCm, @chestWidthCm, @waistWidthCm, @hipWidthCm,
+                 @confidence, @samples, @subjects, @reason, @createdAt)`,
       )
       .run({ ...record, createdAt: new Date().toISOString() });
   }

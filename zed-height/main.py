@@ -58,6 +58,7 @@ for _stream in (sys.stdout, sys.stderr):
         pass
 
 from estimator import Rejection, Subject, find_subjects, summarise
+from widths import BodyWidths, summarise_widths
 from geometry import (
     FloorFrame,
     camera_is_above,
@@ -118,7 +119,8 @@ VERBOSE = os.environ.get("HEIGHT_VERBOSE") == "1"
 #   2  signed mount check + fit_floor
 #   3  people far behind the visitor ignored; plateau instead of median
 #   4  only the person in the corridor in front of the lens
-ALGORITHM_VERSION = 4
+#   5  shoulder/chest/waist/hip widths
+ALGORITHM_VERSION = 5
 
 CALIBRATION_PATH = Path(os.environ.get("HEIGHT_CALIBRATION", "calibration.json"))
 
@@ -260,6 +262,8 @@ class Session:
 
     def __init__(self) -> None:
         self.heights: list[float] = []
+        # Widths per single-visitor frame, parallel to `heights`.
+        self.widths: list[BodyWidths | None] = []
         self.subject_counts: list[int] = []
         # Why clusters were turned down, tallied across the capture. Without
         # this a null result says only "nobody in the measurement zone", which
@@ -275,6 +279,7 @@ class Session:
         self.subject_counts.append(len(subjects))
         if len(subjects) == 1:
             self.heights.append(subjects[0].height_m)
+            self.widths.append(subjects[0].widths)
         for r in rejected or ():
             self.rejections[r.reason] += 1
 
@@ -303,12 +308,26 @@ class Session:
         return {
             "type": "result",
             "heightCm": round(height_cm, 1),
+            **self._widths_at(height_cm / 100.0),
             "confidence": round(confidence, 3),
             "samples": len(self.heights),
             "subjects": 1,
             "reason": None,
             "version": ALGORITHM_VERSION,
         }
+
+    def _widths_at(self, height_m: float) -> dict:
+        """Widths from the frames where the visitor stood at their measured height.
+
+        Leaning toward the screen or walking in changes the body's shape in the
+        cloud as well as its height; those frames' widths are not the visitor's.
+        """
+        standing = [
+            w
+            for h, w in zip(self.heights, self.widths)
+            if w is not None and abs(h - height_m) <= STANDING_TOLERANCE_M
+        ]
+        return summarise_widths(standing)
 
 
     def _why_nobody(self) -> str:
@@ -324,6 +343,13 @@ class Session:
         return f"nobody counted; {hits} clusters rejected, mostly: {reason}"
 
 
+def _widths_text(w: BodyWidths | None) -> str:
+    if w is None:
+        return ""
+    cm = lambda v: f"{v * 100:4.1f}" if v is not None else "  --"  # noqa: E731
+    return f"  | shoulder {cm(w.shoulder_m)} chest {cm(w.chest_m)} waist {cm(w.waist_m)} hip {cm(w.hip_m)}"
+
+
 def log_frame(session: Session, subjects: list[Subject], rejected: list[Rejection]) -> None:
     """One line per sampled frame: this frame's estimate and the running median."""
     n = len(session.subject_counts)
@@ -334,7 +360,7 @@ def log_frame(session: Session, subjects: list[Subject], rejected: list[Rejectio
         running = f"median {summary[0]:5.1f} cm (conf {summary[1]:.2f})" if summary else "median --"
         log(
             f"#{n:<3} {s.height_m * 100:5.1f} cm  at {s.distance_m:.2f} m, "
-            f"{s.lateral_m:+.2f} m sideways  | {running}"
+            f"{s.lateral_m:+.2f} m sideways  | {running}{_widths_text(s.widths)}"
         )
     elif subjects:
         log(f"#{n:<3} {len(subjects)} people in the zone, not measured")
@@ -344,10 +370,15 @@ def log_frame(session: Session, subjects: list[Subject], rejected: list[Rejectio
         log(f"#{n:<3} nobody in the zone")
 
 
+# A frame counts as "standing" for widths within this of the final height.
+STANDING_TOLERANCE_M = 0.03
+
+
 def _empty(reason: str, subjects: int = 0) -> dict:
     return {
         "type": "result",
         "heightCm": None,
+        **summarise_widths([]),
         "confidence": 0.0,
         "samples": 0,
         "subjects": subjects,

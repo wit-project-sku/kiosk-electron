@@ -33,6 +33,7 @@ from dataclasses import dataclass
 
 import numpy as np
 
+from widths import BodyWidths, body_widths
 from geometry import (
     strip_vertical_planes,
     HEAD_SLAB_FRACTION,
@@ -120,6 +121,8 @@ class Subject:
     # Sideways from the camera's line of sight, along the floor. Signed; 0 when
     # no forward axis was given.
     lateral_m: float = 0.0
+    # Shoulder/chest/waist/hip breadth this frame; None without a forward axis.
+    widths: BodyWidths | None = None
 
 
 def _slab_counts(heights: np.ndarray) -> tuple[np.ndarray, int]:
@@ -340,7 +343,14 @@ def find_subjects(
         if crown < MIN_SUBJECT_HEIGHT_M:
             drop("too short to be standing — furniture", crown)
             continue
-        subjects.append(Subject(height_m=crown, points=count, distance_m=where, lateral_m=lateral))
+        widths = None
+        if ahead is not None:
+            rel = xy[near] - centre
+            side = np.array([-ahead[1], ahead[0]])
+            widths = body_widths(h[near], rel @ side, rel @ ahead, crown)
+        subjects.append(
+            Subject(height_m=crown, points=count, distance_m=where, lateral_m=lateral, widths=widths)
+        )
 
     subjects.sort(key=lambda s: s.distance_m)
     return subjects

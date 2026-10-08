@@ -140,3 +140,59 @@ def forward_in_camera_frame(tilt_deg: float = 0.0, roll_deg: float = 90.0) -> np
     return place(np.array([[0.0, 1.0, 0.0]]), tilt_deg=tilt_deg, roll_deg=roll_deg)[0] - place(
         np.zeros((1, 3)), tilt_deg=tilt_deg, roll_deg=roll_deg
     )[0]
+
+
+def shaped_person(
+    rng: np.random.Generator,
+    height_m: float = 1.75,
+    shoulder_m: float = 0.46,
+    chest_m: float = 0.32,
+    waist_m: float = 0.28,
+    hip_m: float = 0.35,
+    arm_gap_m: float | None = 0.04,
+) -> np.ndarray:
+    """A body with real proportions, for the width estimator.
+
+    The torso is a stack of elliptical rings whose breadth passes through the
+    given hip (0.51 H), waist (0.62 H) and chest (0.725 H) values and reaches the
+    deltoids at 0.80 H. Arms hang straight down from the shoulders: with
+    `arm_gap_m` there is that much air between arm and chest, with None the arm
+    touches the torso all the way down — arms relaxed at the sides.
+    """
+    arm_r = 0.045
+    knots_z = np.array([0.47, 0.51, 0.62, 0.725, 0.80, 0.82]) * height_m
+    torso_shoulder = shoulder_m - 4 * arm_r  # deltoid-to-deltoid includes both arms
+    knots_w = np.array([hip_m * 0.95, hip_m, waist_m, chest_m, torso_shoulder, torso_shoulder * 0.8])
+    parts = []
+    for z in np.arange(knots_z[0], knots_z[-1], 0.004):
+        a = np.interp(z, knots_z, knots_w) / 2.0
+        b = a * 0.65
+        # Evenly spaced side to side, as a camera's pixel grid sees a body —
+        # not evenly spaced around the ring, which would leave the middle of
+        # the torso the sparsest part of it.
+        n = max(int(2 * a * 0.004 * DENSITY), 8)
+        x = rng.uniform(-a, a, n)
+        y = b * np.sqrt(np.clip(1.0 - (x / a) ** 2, 0.0, 1.0)) * rng.choice([-1.0, 1.0], n)
+        parts.append(np.stack([x, y, np.full(n, z)], axis=1))
+
+    leg_x = hip_m / 4
+    parts += [
+        _cylinder(rng, 0.07, 0.0, knots_z[0], (-leg_x, 0.0)),
+        _cylinder(rng, 0.07, 0.0, knots_z[0], (leg_x, 0.0)),
+        _cylinder(rng, 0.05, knots_z[-1], height_m - 0.2, (0.0, 0.0)),
+        _sphere(rng, 0.09, (0.0, 0.0, height_m - 0.09)),
+    ]
+    # Arms hang from the shoulder joint, touching the torso at deltoid height
+    # (which is what makes deltoid-to-deltoid one run), then either angle out
+    # to leave `arm_gap_m` of air beside the chest, or rest against the body.
+    top_x = shoulder_m / 2 - arm_r
+    low_x = chest_m / 2 + arm_r + (arm_gap_m if arm_gap_m is not None else 0.0)
+    arm_z = np.array([0.45, 0.72, 0.78, 0.81]) * height_m
+    arm_xs = np.array([low_x, low_x, top_x, top_x])
+    for z in np.arange(arm_z[0], arm_z[-1], 0.004):
+        x = float(np.interp(z, arm_z, arm_xs))
+        n = max(int(2 * np.pi * arm_r * 0.004 * DENSITY), 6)
+        t = rng.uniform(0, 2 * np.pi, n)
+        for sx in (-x, x):
+            parts.append(np.stack([sx + arm_r * np.cos(t), arm_r * np.sin(t), np.full(n, z)], axis=1))
+    return np.concatenate(parts, axis=0)

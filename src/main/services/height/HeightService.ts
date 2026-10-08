@@ -25,6 +25,8 @@ const log = createLogger('height');
  */
 const RETENTION_DAYS = 180;
 
+const cm = (value: number | null): string => (value === null ? '--' : value.toFixed(1));
+
 /**
  * 키 측정 — anonymous visitor-height analytics. 제주 only.
  *
@@ -191,6 +193,8 @@ export class HeightService {
         measurement.heightCm === null
           ? `===== HEIGHT: none — ${measurement.reason ?? 'unknown'} =====`
           : `===== HEIGHT: ${measurement.heightCm.toFixed(1)} cm ` +
+              `| shoulder ${cm(measurement.shoulderWidthCm)} chest ${cm(measurement.chestWidthCm)} ` +
+              `waist ${cm(measurement.waistWidthCm)} hip ${cm(measurement.hipWidthCm)} ` +
               `(confidence ${measurement.confidence.toFixed(2)}, ` +
               `${measurement.samples} frames, v${measurement.version ?? '?'}) =====`,
       );

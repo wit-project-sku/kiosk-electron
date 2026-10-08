@@ -39,6 +39,15 @@ export interface HeightMeasurement {
   subjects: number;
   /** Why there is no height, or null when there is one. */
   reason: string | null;
+  /**
+   * Side-to-side body breadth seen from the front, in cm — not circumference.
+   * Null when the capture could not measure it honestly: chest, waist and hip
+   * need both arms visibly clear of the body.
+   */
+  shoulderWidthCm: number | null;
+  chestWidthCm: number | null;
+  waistWidthCm: number | null;
+  hipWidthCm: number | null;
   /** The sidecar's ALGORITHM_VERSION. Null from a sidecar that predates it —
    *  treat those numbers as untrustworthy (see migration 009). */
   version: number | null;
