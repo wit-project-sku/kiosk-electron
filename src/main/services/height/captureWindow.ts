@@ -61,6 +61,7 @@ export function toMeasurement(event: Record<string, unknown>): HeightMeasurement
     samples: finiteOr(event['samples'], 0),
     subjects: finiteOr(event['subjects'], 0),
     reason: typeof event['reason'] === 'string' ? event['reason'] : null,
+    version: finiteOrNull(event['version']),
   };
 }
 

@@ -39,10 +39,15 @@ export interface HeightMeasurement {
   subjects: number;
   /** Why there is no height, or null when there is one. */
   reason: string | null;
+  /** The sidecar's ALGORITHM_VERSION. Null from a sidecar that predates it —
+   *  treat those numbers as untrustworthy (see migration 009). */
+  version: number | null;
 }
 
 /** A stored row. Note what is absent: no session id, no photo reference. */
 export interface HeightRecord extends HeightMeasurement {
+  /** Random UUID — what the after-photo QR carries so the visitor can claim it in the app. */
+  id: string;
   kioskId: string;
   /** Local ISO-8601 with offset — the wall clock behind the kiosk, never UTC. */
   measuredAt: string;

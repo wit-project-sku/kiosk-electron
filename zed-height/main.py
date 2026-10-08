@@ -102,6 +102,12 @@ FPS = _env_float("HEIGHT_FPS", 4.0)
 ZONE_MIN_M = _env_float("HEIGHT_ZONE_MIN", 0.8)
 ZONE_MAX_M = _env_float("HEIGHT_ZONE_MAX", 3.5)
 
+# Reported with every result and stored with every row, so measurements from an
+# estimator later found to be wrong can be told apart and discarded.
+#   1  (unversioned) — calibration could be upside down or on a desk
+#   2  signed mount check + fit_floor
+ALGORITHM_VERSION = 2
+
 CALIBRATION_PATH = Path(os.environ.get("HEIGHT_CALIBRATION", "calibration.json"))
 
 # Frames averaged when fitting the floor. A single frame's plane fit is fine;
@@ -246,6 +252,7 @@ class Session:
             "samples": len(self.heights),
             "subjects": 1,
             "reason": None,
+            "version": ALGORITHM_VERSION,
         }
 
 
@@ -270,6 +277,7 @@ def _empty(reason: str, subjects: int = 0) -> dict:
         "samples": 0,
         "subjects": subjects,
         "reason": reason,
+        "version": ALGORITHM_VERSION,
     }
 
 

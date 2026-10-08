@@ -1,3 +1,4 @@
+import { randomUUID } from 'node:crypto';
 import type { PhotoWorkflowState } from '@shared/types/photo';
 import type { HeightMeasurement, HeightRuntime } from '@shared/types/height';
 import { isJejuLayout } from '@shared/config/kioskLocations';
@@ -179,6 +180,7 @@ export class HeightService {
     try {
       this.repo.insert({
         ...measurement,
+        id: randomUUID(),
         kioskId: this.kiosk.getConfig().kioskId,
         measuredAt: localIso(now),
         localDate: localDateOf(now),
@@ -190,6 +192,7 @@ export class HeightService {
         samples: measurement.samples,
         subjects: measurement.subjects,
         reason: measurement.reason,
+        version: measurement.version,
       });
     } catch (error) {
       // A failed analytics write is not worth surfacing anywhere: the photo is

@@ -4,6 +4,8 @@ import type { Database } from '../Database';
 
 interface HeightRow {
   id: number;
+  measurement_id: string;
+  version: number | null;
   kiosk_id: string;
   measured_at: string;
   local_date: string;
@@ -18,6 +20,8 @@ interface HeightRow {
 
 function toDomain(row: HeightRow): HeightRecord {
   return {
+    id: row.measurement_id,
+    version: row.version,
     kioskId: row.kiosk_id,
     measuredAt: row.measured_at,
     localDate: row.local_date,
@@ -47,10 +51,10 @@ export class HeightRepository extends BaseRepository {
     this.conn
       .prepare(
         `INSERT INTO height_measurements
-           (kiosk_id, measured_at, local_date, hour, height_cm,
-            confidence, samples, subjects, reason, created_at)
-         VALUES (@kioskId, @measuredAt, @localDate, @hour, @heightCm,
-                 @confidence, @samples, @subjects, @reason, @createdAt)`,
+           (measurement_id, version, kiosk_id, measured_at, local_date, hour,
+            height_cm, confidence, samples, subjects, reason, created_at)
+         VALUES (@id, @version, @kioskId, @measuredAt, @localDate, @hour,
+                 @heightCm, @confidence, @samples, @subjects, @reason, @createdAt)`,
       )
       .run({ ...record, createdAt: new Date().toISOString() });
   }
