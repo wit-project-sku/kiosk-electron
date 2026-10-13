@@ -5,6 +5,7 @@ import type { BootstrapData } from '@shared/ipc/contracts';
 import { createLogger } from '@main/core/logger';
 import { applyWebContentsSecurity } from '@main/core/security';
 import { baseWebPreferences, RENDERER_DIR, rendererUrl } from './windowConfig';
+import { e2eSuppressesDevTools } from '../core/e2e';
 
 function bootstrapArguments(data: BootstrapData): string[] {
   // The bootstrap travels as a command-line argument, which the OS caps (~32k
@@ -56,7 +57,9 @@ export function createMainWindow(bootstrap: BootstrapData): BrowserWindow {
     // means the kiosk window receives no keys — which makes 제주's keypad (and
     // any keyboard standing in for it) look broken on the dev machine when the
     // handling is fine. See useJejuKeypad.
-    if (is.dev) window.webContents.openDevTools({ mode: 'detach', activate: false });
+    if (is.dev && !e2eSuppressesDevTools()) {
+      window.webContents.openDevTools({ mode: 'detach', activate: false });
+    }
   });
 
   window.webContents.setWindowOpenHandler((details) => {

@@ -7,6 +7,7 @@ import type { AppContainer } from '@main/container';
 import { buildBootstrapData } from '@main/bootstrap';
 import { createMainWindow } from './MainWindow';
 import { createDisplayWindow, pickDisplay } from './DisplayWindow';
+import { e2eForcesDisplayWindow } from '../core/e2e';
 
 const log = createLogger('window-manager');
 
@@ -258,7 +259,7 @@ export class WindowManager {
   }
 
   private hasSecondaryDisplay(): boolean {
-    return screen.getAllDisplays().length > 1;
+    return screen.getAllDisplays().length > 1 || e2eForcesDisplayWindow();
   }
 
   private readonly handleDisplaysChanged = (): void => {

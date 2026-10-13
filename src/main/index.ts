@@ -17,6 +17,7 @@ import { initLogger, createLogger } from './core/logger';
 import { loadEnvFile } from './core/env';
 import { enforceSingleInstance, suppressEmbedAuthDialog } from './core/security';
 import { applyAppIdentity, appDisplayName } from './core/appIdentity';
+import { applyE2EUserData, e2eSkipsPaymentAgent } from './core/e2e';
 import { MEDIA_SCHEME_PRIVILEGES, registerMediaProtocol } from './core/mediaProtocol';
 import {
   APP_RESOURCE_SCHEME_PRIVILEGES,
@@ -95,6 +96,8 @@ loadEnvFile();
 // A PRODUCTION build is unaffected: it keeps the `kiosk-app` directory it has
 // always used. See core/appIdentity.ts for why that matters.
 const identity = applyAppIdentity();
+// Automated tests only (unpackaged + KIOSK_E2E=1): a throwaway userData per run.
+applyE2EUserData();
 
 initLogger();
 const log = createLogger('main');
@@ -220,7 +223,7 @@ async function bootstrap(): Promise<void> {
   // Launch the embedded payment agent ONLY on kiosks with a physical card
   // terminal (hasCardTerminal — W003 남인사마당 / W004 오색시장 / W005 화성휴게소).
   // Runs as an isolated child process; best-effort.
-  if (getKioskLocation(container.kiosk.getConfig().kioskId).hasCardTerminal) {
+  if (getKioskLocation(container.kiosk.getConfig().kioskId).hasCardTerminal && !e2eSkipsPaymentAgent()) {
     paymentAgent.start();
   }
 
