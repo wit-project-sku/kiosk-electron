@@ -145,8 +145,13 @@ tests/unit/        단위 테스트(Vitest)
 |---|---|
 | `npm run verify` | 타입 검사 + lint + 단위 테스트 + 빌드 — 커밋 전에 이것 하나 |
 | `npm run test` / `test:watch` | Vitest 단위 테스트(`tests/unit`, Electron·화면 없이 도는 순수 로직) |
+| `npm run test:e2e` | 실제 앱을 가짜 서버에 붙여 띄우는 검사(Playwright) — 지점 9곳 부팅·지역 요청·녹화에 없는 요청 0건, 인사동·오색·제주 '뭐먹지 → 상세 → 홈' |
+| `npm run test:e2e:record` | 가짜 서버의 응답(`tests/e2e/fixtures/api`)을 stage 에서 다시 녹화. 쓰기 요청은 stage 로 보내지 않는다. 공개 저장소이니 커밋 전 내용 확인 |
+| `npm run test:soak` | 장시간 메모리 시험(기본 30분, ffmpeg 필요) — 2번 모니터 창에서 영상을 돌리며 메인 프로세스 메모리 증가 속도를 잰다. CI 에는 없다 |
 | `npm run dev` | 개발 모드로 앱 실행(창 2개, DevTools) |
 | `footfall:selftest` · `camera:selftest` · `height:selftest` · `height:test` | 기존 점검 스크립트(유동인구·카메라 선택·키 측정) |
+
+e2e 는 `src/main/core/e2e.ts` 의 시험용 스위치를 쓴다(포장되지 않은 빌드 + `KIOSK_E2E=1` 일 때만 작동 — 실행마다 새 데이터 폴더, 모니터 하나여도 2번 모니터 창, 실제 결제 에이전트 대신 건너뜀). 서버 API 가 바뀌어 앱이 새 경로를 부르면 '녹화에 없는 요청'으로 실패한다 — 그때 `test:e2e:record` 로 다시 녹화한다.
 
 단위 테스트를 쓸 때 main 쪽 모듈이 `@main/core/logger`(Electron 의존)를 불러오면 `vi.mock` 으로 바꿔 끼운다 — `tests/unit/main/normalizeShop.test.ts` 참고.
 
