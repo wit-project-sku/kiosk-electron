@@ -162,4 +162,4 @@ e2e 는 `src/main/core/e2e.ts` 의 시험용 스위치를 쓴다(포장되지 �
 - **화면이 하얗게 되는 흔한 원인**: 서버가 타입과 다른 값(null)을 보낼 때. 상점 데이터는 `normalizeShop.ts` 가 들어오는 입구에서 막는다. 새 데이터도 같은 방식으로 입구에서 정리한다.
 - **영상은 PC 의 폴더에서 읽는다**(`C:\KioskVideos\<세트>`). 자막 행의 파일 이름과 맞는 영상이 없으면 그 행은 조용히 빠진다(`renderer/src/lib/videoMap.ts`).
 - **메인 프로세스가 오래 켜져 있으면 메모리가 쌓일 수 있다** — 영상 바이트가 `media://` 처리기를 지나기 때문이다. 메인 프로세스 쪽에 큰 데이터를 흘리는 코드를 추가할 때 특히 주의한다.
-- **크래시 기록 장치가 아직 없다**(crashReporter·`render-process-gone` 미설정). 현장 로그는 키오스크 PC 의 electron-log 파일에만 남는다.
+- **상태 보고(`src/main/core/HealthReporter.ts`)**: 실행 중 1분마다 `userData/health/run-state.json` 에 심장박동(메인 메모리 포함)을 쓰고, 정상 종료 때 "정상"으로 표시한다. 다음에 켜질 때 표시가 없으면 비정상 종료로 서버(`POST /api/kiosks/{번호}/crash-reports`)에 보고한다 — 마지막 박동 직후 PC 가 다시 켜졌으면 `SYSTEM_RESTART`, PC 는 켜져 있었으면 `APP_CRASH`, 그 사이가 10분을 넘으면 `UNKNOWN`. 화면·자식 프로세스 사망과 처리 안 된 예외도 바로 보고한다. 5분 신호(update-command)에는 버전·채널·가동 시간·메인 메모리를 `X-Kiosk-*` 헤더로 싣는다 — 서버 관리자 현황판에서 지점별로 보인다.
