@@ -44,6 +44,31 @@ type Row = Record<string, unknown>;
 const OK = { success: true, code: 200, message: 'OK', data: null };
 /** POST paths that only read (safe to forward to stage while recording). */
 const READ_ONLY_POST = /\/courses\//;
+/**
+ * Writes the app is known to make. Answered with OK and no fixture; any OTHER write is
+ * reported as unmatched, so a new write endpoint cannot slip past the contract check.
+ */
+const KNOWN_WRITES = [
+  /^\/api\/stats\/(menu-touch|shots|menu-touches\/sync|photo-shots\/sync)$/,
+  /^\/api\/kiosks\/\d+\/crash-reports$/,
+  /^\/api\/images$/,
+  /^\/api\/fillme\/shares$/,
+];
+const isKnownWrite = (url: string): boolean =>
+  KNOWN_WRITES.some((re) => re.test(url.split('?')[0] ?? ''));
+/** Phone fields are masked in fixtures — public business numbers, but the repo is public and some are mobiles. */
+const PHONE_KEYS = /^(tel|phone|telephone|phoneNumber)$/i;
+export function maskPhones(value: unknown): unknown {
+  if (Array.isArray(value)) return value.map(maskPhones);
+  if (value && typeof value === 'object') {
+    const out: Row = {};
+    for (const [k, v] of Object.entries(value as Row)) {
+      out[k] = PHONE_KEYS.test(k) && typeof v === 'string' && v ? '000-0000-0000' : maskPhones(v);
+    }
+    return out;
+  }
+  return value;
+}
 /** Upper bound on list sizes kept in a fixture — keeps the repo small, keeps variety. */
 const MAX_ITEMS = 20;
 
@@ -207,7 +232,10 @@ export async function startFakeApi({
 
     if (mode === 'record') {
       const forward = req.method === 'GET' || READ_ONLY_POST.test(req.url ?? '');
-      if (!forward) return send(200, JSON.stringify(OK));
+      if (!forward) {
+        if (!isKnownWrite(req.url ?? '')) unmatched.push(key);
+        return send(200, JSON.stringify(OK));
+      }
       try {
         const r = await fetch(new URL(req.url ?? '/', upstream ?? 'http://invalid'), {
           method: req.method,
@@ -221,7 +249,7 @@ export async function startFakeApi({
         } catch {
           return send(r.status, text, r.headers.get('content-type') ?? 'text/plain');
         }
-        const saved = rewriteImages(JSON.stringify(trimBody(json)));
+        const saved = rewriteImages(JSON.stringify(maskPhones(trimBody(json))));
         const fx: Fixture = { key, status: r.status, body: JSON.parse(saved) };
         mkdirSync(FIXTURE_DIR, { recursive: true });
         writeFileSync(join(FIXTURE_DIR, fileFor(key)), JSON.stringify(fx) + '\n');
@@ -234,8 +262,8 @@ export async function startFakeApi({
 
     const fx = fixtures.get(key);
     if (fx) return send(fx.status, JSON.stringify(fx.body).replaceAll('{{BASE}}', base));
-    if (req.method !== 'GET' && !READ_ONLY_POST.test(req.url ?? '')) {
-      // Writes (stats, menu touches …) need no fixture: accept them.
+    if (req.method !== 'GET' && isKnownWrite(req.url ?? '')) {
+      // Known writes (stats, crash reports …) need no fixture: accept them.
       return send(200, JSON.stringify(OK));
     }
     unmatched.push(key);
