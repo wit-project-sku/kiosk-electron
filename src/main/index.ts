@@ -145,6 +145,9 @@ async function bootstrap(): Promise<void> {
   }
 
   const container = createContainer();
+  // First thing after the container: reports how the previous run ended and starts the
+  // run-state heartbeat, so even a crash during the rest of startup is recorded.
+  container.health.start();
 
   // Provision OS-level kiosk power behavior + auto-start on boot so the fleet
   // self-heals without anyone running the .bat helpers. Osaek (W004) gets an
@@ -341,6 +344,7 @@ app.on('window-all-closed', () => {
 
 app.on('before-quit', () => {
   log.info('Shutting down');
+  markHealthCleanExit();
   paymentAgent.stop();
   try {
     getContainer().sync.stop();
@@ -365,7 +369,27 @@ app.on('before-quit', () => {
 // Last-resort safety nets; electron-log also captures these.
 process.on('uncaughtException', (error) => {
   log.error('Uncaught exception', error);
+  try {
+    getContainer().health.recordUncaught(error);
+  } catch {
+    // Container may not exist yet; the log line above is all we can do.
+  }
 });
+
+// Windows logs off / shuts down (the scheduled reboot): a normal end of a run, even
+// though the OS may not give the app time to reach before-quit. Windows-only event,
+// emitted on each BrowserWindow.
+app.on('browser-window-created', (_event, window) => {
+  window.on('session-end', () => markHealthCleanExit());
+});
+
+function markHealthCleanExit(): void {
+  try {
+    getContainer().health.markCleanExit();
+  } catch {
+    // Container may not exist if startup failed; nothing to mark.
+  }
+}
 process.on('unhandledRejection', (reason) => {
   log.error('Unhandled rejection', reason);
 });
