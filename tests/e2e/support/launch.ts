@@ -5,6 +5,7 @@
 // developer's real %APPDATA%. Third-party API keys are blanked: weather, exchange and
 // flight services switch themselves off without a key. The camera is Chromium's fake
 // device. The real card-terminal agent is skipped by the app's e2e hook.
+import { execFileSync } from 'node:child_process';
 import { mkdtempSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
@@ -121,8 +122,7 @@ export async function launchKiosk(opts: LaunchOptions): Promise<LaunchedKiosk> {
     userData,
     close: async () => {
       await app.close().catch(() => undefined);
-      if (!opts.keepUserData)
-        rmSync(userData, { recursive: true, force: true, maxRetries: 5, retryDelay: 200 });
+      if (!opts.keepUserData) removeDir(userData);
     },
   };
 }
@@ -143,4 +143,35 @@ export async function findWindow(
     await app.waitForEvent('window', { timeout: 1_000 }).catch(() => undefined);
   }
   throw new Error(`window ${file} did not open within ${timeoutMs} ms`);
+}
+
+/**
+ * Best-effort removal of a test's temp dir. On Windows a just-killed Electron's child
+ * processes can hold cache files for a moment (EPERM); a leftover temp dir must not
+ * fail the test.
+ */
+export function removeDir(dir: string): void {
+  try {
+    rmSync(dir, { recursive: true, force: true, maxRetries: 10, retryDelay: 300 });
+  } catch {
+    // left for the OS temp cleaner
+  }
+}
+
+/**
+ * Kill the app the way a crash does — no before-quit. On Windows kill the whole process
+ * tree: SIGKILL there ends only the main process and leaves renderer/GPU children behind.
+ */
+export function killHard(app: ElectronApplication): void {
+  const pid = app.process().pid;
+  if (pid === undefined) return;
+  if (process.platform === 'win32') {
+    try {
+      execFileSync('taskkill', ['/pid', String(pid), '/T', '/F'], { stdio: 'ignore' });
+    } catch {
+      // already gone
+    }
+  } else {
+    app.process().kill('SIGKILL');
+  }
 }

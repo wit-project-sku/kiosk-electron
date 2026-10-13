@@ -1,10 +1,9 @@
 // A run that dies without quitting is reported at the next launch: the kiosk sends
 // ABNORMAL_EXIT to POST /api/kiosks/{kioskNum}/crash-reports. A normal quit sends
 // nothing. (In the field this is what made the October shutdowns invisible.)
-import { rmSync } from 'node:fs';
 import { expect, test } from '@playwright/test';
 import { startFakeApi, type FakeApi } from './support/fake-api';
-import { launchKiosk } from './support/launch';
+import { killHard, launchKiosk, removeDir } from './support/launch';
 
 let api: FakeApi;
 test.beforeAll(async () => {
@@ -22,8 +21,8 @@ test('a killed run is reported as ABNORMAL_EXIT at the next launch; a clean quit
     await expect(first.main.locator('#root > *').first()).toBeVisible();
     // Let the run-state heartbeat file exist, then die without quitting.
     await first.main.waitForTimeout(1_500);
-    first.app.process().kill('SIGKILL');
-    await first.app.waitForEvent('close').catch(() => undefined);
+    killHard(first.app);
+    await first.app.waitForEvent('close', { timeout: 10_000 }).catch(() => undefined);
 
     const before = crashReports().length;
     const second = await launchKiosk({
@@ -56,6 +55,6 @@ test('a killed run is reported as ABNORMAL_EXIT at the next launch; a clean quit
     expect(crashReports().length).toBe(afterClean);
     await third.close();
   } finally {
-    rmSync(userData, { recursive: true, force: true, maxRetries: 5, retryDelay: 200 });
+    removeDir(userData);
   }
 });
