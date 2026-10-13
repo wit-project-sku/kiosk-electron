@@ -3,7 +3,9 @@
     "electron.vite.config.ts",
     "src/main/**/*",
     "src/preload/**/*",
-    "src/shared/**/*"
+    "src/shared/**/*",
+    "tests/unit/**/*",
+    "vitest.config.ts"
   ],
   "compilerOptions": {
     "composite": true,
