@@ -43,6 +43,10 @@ export interface LaunchOptions {
   displayWindow?: boolean;
   /** Extra env (e.g. KIOSK_VIDEOS_DIR for the soak run). */
   env?: Record<string, string>;
+  /** Reuse a userData directory from an earlier launch (e.g. to restart after a crash). */
+  userData?: string;
+  /** Leave userData on disk at close (the caller removes it). */
+  keepUserData?: boolean;
 }
 
 /** Service URL overrides a developer .env might carry — blanked so nothing bypasses the fake. */
@@ -68,7 +72,7 @@ const URL_OVERRIDES = [
 ];
 
 export async function launchKiosk(opts: LaunchOptions): Promise<LaunchedKiosk> {
-  const userData = mkdtempSync(join(tmpdir(), `kiosk-e2e-${opts.site}-`));
+  const userData = opts.userData ?? mkdtempSync(join(tmpdir(), `kiosk-e2e-${opts.site}-`));
   writeFileSync(join(userData, 'kiosk-config.json'), JSON.stringify({ kioskId: opts.site }));
 
   const env: Record<string, string> = {};
@@ -117,7 +121,8 @@ export async function launchKiosk(opts: LaunchOptions): Promise<LaunchedKiosk> {
     userData,
     close: async () => {
       await app.close().catch(() => undefined);
-      rmSync(userData, { recursive: true, force: true, maxRetries: 5, retryDelay: 200 });
+      if (!opts.keepUserData)
+        rmSync(userData, { recursive: true, force: true, maxRetries: 5, retryDelay: 200 });
     },
   };
 }
