@@ -287,7 +287,7 @@ export const LOCALIZATION: Record<string, LangText> = {
   "Province_15": {"ko":"경상남도","en":"Gyeongsangnam","ja":"きょんさんなむど","zh":"庆尚南道","vi":"Gyeongsangnam-do","th":"Kota Gyeongsangnam","ru":"Кёнсаннамдо","id":"Gyeongsangnam-do"},
   "Province_16": {"ko":"부산","en":"Busan","ja":"ぷさん","zh":"釜山","vi":"Busan","th":"Busan","ru":"Пусан","id":"Busan"},
   "Province_17": {"ko":"울산","en":"Ulsan","ja":"うるさん","zh":"蔚山","vi":"Ulsan","th":"Ulsan","ru":"Ульсан","id":"Ulsan"},
-  "Province_18": {"ko":"제주도","en":"Jeju-do","ja":"ちぇじゅど","zh":"济州岛","vi":"đảo Jeju","th":"Pulau Jeju","ru":"Чеджудо","id":"Pulau Jeju"},
+  "Province_18": {"ko":"인사도","en":"Jeju-do","ja":"ちぇじゅど","zh":"济州岛","vi":"Chào bạn","th":"Salam","ru":"Чеджудо","id":"Pulau Jeju"},
   "Photo_ResultSubHeader": {"ko":"사진 촬영 결과물을 통해 나만의 굿즈를 만들어 보세요","en":"Make your own photo merch.","ja":"写真で自分だけのグッズ作り。","zh":"用照片定制专属周边。","vi":"Tạo ra các sản phẩm mang thương hiệu riêng của bạn bằng cách sử dụng kết quả buổi chụp ảnh.","th":"สร้างสินค้าของคุณเองโดยใช้ผลลัพธ์จากการถ่ายภาพ","ru":"Создайте собственную продукцию, используя результаты вашей фотосессии.","id":"Buat merchandise Anda sendiri menggunakan hasil pemotretan Anda."},
   "SmartTour_RecommendContentShowMore": {"ko":"더보기","en":"More","ja":"もっと見る","zh":"查看更多","vi":"Xem thêm","th":"ดูเพิ่มเติม","ru":"Подробнее","id":"Lihat Lebih Lanjut"},
   "Header_Promotion": {"ko":"티빙 오리지널 취사병 전설이 되다","en":"TVING Original The Legend of a Cook","ja":"TVINGオリジナル 炊事兵、伝説になる","zh":"TVING原创 炊事兵成为传说","vi":"TVING Original Đầu Bếp Huyền Thoại","th":"TVING Original ตำนานพลทหารทำอาหาร","ru":"Оригинальный сериал TVING Легенда о поваре","id":"TVING Original The Legend of a Cook"},

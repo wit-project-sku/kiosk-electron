@@ -18,7 +18,7 @@ export const AI_CATEGORIES_JEJU: LangText[] = [
   {"ko":"막걸리","en":"Makgeolli","ja":"マッコリ","zh":"马格利酒","vi":"Makgeolli","th":"มักเกอลี","ru":"Макгеолли","id":"Makgeolli"},
   {"ko":"전통주","en":"Traditional Liquor","ja":"伝統株","zh":"传统酒","vi":"Rượu truyền thống","th":"13.สุราแบบดั้งเดิม","ru":"13. Традиционный алкогольный напиток","id":"Minuman Keras Tradisional"},
   {"ko":"해녀 체험","en":"Haenyeo Experience","ja":"海女体験","zh":"海女经历","vi":"Trải nghiệm Haenyeo","th":"ประสบการณ์ 14-Haenyeo","ru":"Опыт Хэнё","id":"Pengalaman Haenyeo"},
-  {"ko":"감귤 체험","en":"Tangerine Experience","ja":"柑橘系の体験","zh":"橘子体验","vi":"Trải nghiệm 15 quả quýt","th":"ประสบการณ์ส้มแมนดาริน 15 ชนิด","ru":"Tangerine Experience","id":"Pengalaman Jeruk Mandarin 15-Jeruk"},
+  {"ko":"감귤 체험","en":"Tangerine Experience","ja":"柑橘系の体験","zh":"橘子体验","vi":"Trải nghiệm 15 quả quýt","th":"ประสบการณ์ส้มแมนดาริน 15 ชนิด","ru":"Мандариновый опыт","id":"Pengalaman Jeruk Mandarin 15-Jeruk"},
   {"ko":"승마 체험","en":"Horseback Riding Experience","ja":"乗馬体験","zh":"16次骑马体验","vi":"Trải nghiệm cưỡi ngựa 16 ngày","th":"ประสบการณ์ขี่ม้า 16 ครั้ง","ru":"Программа верховой езды на 16 лошадях","id":"Pengalaman Berkuda 16 Hari"},
   {"ko":"레저·엑티비티","en":"Leisure & Activities","ja":"レジャー・アクティビティ","zh":"休闲与活动","vi":"Giải trí & Hoạt động","th":"17. กิจกรรมยามว่างและสันทนาการ","ru":"17. Досуг и развлечения","id":"Rekreasi & Aktivitas"},
   {"ko":"K-POP 체험","en":"K-POP Experience","ja":"K-POP体験","zh":"K-POP体验","vi":"Trải nghiệm K-POP 18 tuổi","th":"ประสบการณ์ K-POP 18 แบบ","ru":"K-POP Experience","id":"Pengalaman K-POP 18 tahun"},
