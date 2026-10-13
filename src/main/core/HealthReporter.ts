@@ -24,6 +24,7 @@ import {
   classifyPreviousRun,
   clip,
   enqueue,
+  isRunState,
   isoLocal,
   MAX_MESSAGE,
   MAX_STACK,
@@ -37,6 +38,9 @@ const BEAT_MS = 60_000;
 const POST_TIMEOUT_MS = 10_000;
 /** The same uncaught error can fire hundreds of times (Array buffer allocation failed: 516 in the field). */
 const SAME_ERROR_COOLDOWN_MS = 60 * 60_000;
+/** At most one run-state write per this interval for a repeating error (memory may be exhausted). */
+const ERROR_WRITE_MIN_MS = 10_000;
+const MAX_TRACKED_ERRORS = 50;
 
 export class HealthReporter {
   private readonly log = createLogger('health');
@@ -45,6 +49,7 @@ export class HealthReporter {
   private timer: NodeJS.Timeout | null = null;
   private flushing = false;
   private readonly lastErrorSent = new Map<string, number>();
+  private lastErrorWriteAt = 0;
 
   constructor(private readonly kiosk: KioskService) {}
 
@@ -65,7 +70,7 @@ export class HealthReporter {
       pid: process.pid,
       appVersion: app.getVersion(),
       channel: resolveUpdateChannel(),
-      kioskCode: this.kiosk.getConfig().kioskId,
+      kioskCode: this.kiosk.getConfig().kioskId.slice(0, 8),
       startedAt: now,
       lastBeatAt: now,
       lastRssMb: rssMb(),
@@ -77,14 +82,15 @@ export class HealthReporter {
     this.timer = setInterval(() => this.beat(), BEAT_MS);
     this.timer.unref?.();
 
-    app.on('render-process-gone', (_e, _wc, details) =>
+    app.on('render-process-gone', (_e, _wc, details) => {
+      if (details.reason === 'clean-exit') return;
       this.report({
         kind: 'RENDERER_GONE',
         processType: 'renderer',
         reason: details.reason,
         exitCode: details.exitCode,
-      }),
-    );
+      });
+    });
     app.on('child-process-gone', (_e, details) => {
       // A normal exit of a helper (e.g. a utility process finishing) is not news.
       if (details.reason === 'clean-exit') return;
@@ -111,20 +117,38 @@ export class HealthReporter {
     if (!this.state) return;
     const message = error instanceof Error ? error.message : String(error);
     const stack = error instanceof Error ? error.stack : undefined;
-    this.state.lastError = {
-      message: clip(message, MAX_MESSAGE) ?? '',
-      stack: clip(stack, MAX_STACK),
-      at: Date.now(),
-    };
-    this.write();
+    // Rewrite the file only when the error changes or now and then — an error storm while
+    // memory is exhausted must not become a disk-write storm.
+    const now = Date.now();
+    const clipped = clip(message, MAX_MESSAGE) ?? '';
+    if (
+      this.state.lastError?.message !== clipped ||
+      now - this.lastErrorWriteAt >= ERROR_WRITE_MIN_MS
+    ) {
+      this.state.lastError = { message: clipped, stack: clip(stack, MAX_STACK), at: now };
+      this.lastErrorWriteAt = now;
+      this.write();
+    }
     const last = this.lastErrorSent.get(message) ?? 0;
-    if (Date.now() - last < SAME_ERROR_COOLDOWN_MS) return;
-    this.lastErrorSent.set(message, Date.now());
+    if (now - last < SAME_ERROR_COOLDOWN_MS) return;
+    if (this.lastErrorSent.size >= MAX_TRACKED_ERRORS) this.lastErrorSent.clear();
+    this.lastErrorSent.set(message, now);
     this.report({ kind: 'UNCAUGHT_EXCEPTION', processType: 'browser', message, stack });
   }
 
   /** Headers for the update-command poll (version, channel, uptime, memory). */
   signalHeaders(): Record<string, string> {
+    // Never let the headers break the poll: it is the server's liveness signal and the
+    // remote update trigger. Without headers the kiosk reports exactly as before.
+    try {
+      return this.buildSignalHeaders();
+    } catch (e) {
+      this.log.warn('Signal headers skipped', { error: String(e) });
+      return {};
+    }
+  }
+
+  private buildSignalHeaders(): Record<string, string> {
     return signalHeaders({
       appVersion: app.getVersion(),
       channel: resolveUpdateChannel(),
@@ -210,7 +234,8 @@ export class HealthReporter {
 
   private read(): RunState | null {
     try {
-      return JSON.parse(readFileSync(this.file, 'utf8')) as RunState;
+      const parsed: unknown = JSON.parse(readFileSync(this.file, 'utf8'));
+      return isRunState(parsed) ? parsed : null;
     } catch {
       return null;
     }

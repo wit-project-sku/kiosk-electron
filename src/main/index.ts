@@ -147,7 +147,12 @@ async function bootstrap(): Promise<void> {
   const container = createContainer();
   // First thing after the container: reports how the previous run ended and starts the
   // run-state heartbeat, so even a crash during the rest of startup is recorded.
-  container.health.start();
+  try {
+    container.health.start();
+  } catch (e) {
+    // Health reporting must never stop a kiosk from starting.
+    log.warn('Health reporter failed to start', { error: String(e) });
+  }
 
   // Provision OS-level kiosk power behavior + auto-start on boot so the fleet
   // self-heals without anyone running the .bat helpers. Osaek (W004) gets an

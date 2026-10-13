@@ -5,6 +5,8 @@ import {
   classifyPreviousRun,
   clip,
   enqueue,
+  asciiHeader,
+  isRunState,
   isoLocal,
   signalHeaders,
   type CrashReport,
@@ -43,8 +45,16 @@ describe('classifyPreviousRun', () => {
     });
   });
 
-  it('calls it a system restart when the machine booted after the last heartbeat', () => {
-    expect(classifyPreviousRun(run(), 31 * H)?.suspectedCause).toBe('SYSTEM_RESTART');
+  it('calls it a system restart when the machine booted within minutes of the last heartbeat', () => {
+    const r = classifyPreviousRun(run(), 30 * H + 5 * 60_000);
+    expect(r?.suspectedCause).toBe('SYSTEM_RESTART');
+    expect(r?.reason).toBe('boot 5 min after last heartbeat');
+  });
+
+  it('leaves it UNKNOWN when the app went silent long before the boot (crash, then nightly reboot — or power off)', () => {
+    const r = classifyPreviousRun(run(), 40 * H);
+    expect(r?.suspectedCause).toBe('UNKNOWN');
+    expect(r?.reason).toBe('boot 600 min after last heartbeat');
   });
 
   it('carries the last uncaught error, clipped', () => {
@@ -106,5 +116,21 @@ describe('helpers', () => {
       'x-kiosk-uptime-sec': '62',
       'x-kiosk-main-rss-mb': '512',
     });
+  });
+});
+
+describe('defensive input', () => {
+  it('isRunState rejects damaged files instead of letting startup throw', () => {
+    expect(isRunState(run())).toBe(true);
+    expect(isRunState(null)).toBe(false);
+    expect(isRunState({ ...run(), pending: {} })).toBe(false);
+    expect(isRunState({ ...run(), lastBeatAt: 'x' })).toBe(false);
+    expect(isRunState([])).toBe(false);
+  });
+
+  it('asciiHeader replaces characters fetch would refuse in a header', () => {
+    expect(asciiHeader('W004', 8)).toBe('W004');
+    expect(asciiHeader('오색W4', 8)).toBe('??W4');
+    expect(asciiHeader('5.0.28\n', 40)).toBe('5.0.28?');
   });
 });
