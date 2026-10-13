@@ -1,28 +1,32 @@
 import type { KioskController } from '@renderer/hooks/useKioskController';
-import { osanIconUrl } from '@renderer/assets/icons/osan';
 import { useDetailStore } from '@renderer/store/detailStore';
-import { useLang } from '@renderer/lib/i18n';
-import { screenTitle } from '@renderer/lib/i18n';
+import { screenTitle, useLang } from '@renderer/lib/i18n';
+import { sheetText } from '@renderer/lib/loc';
+import { useAccessibilityStore } from '@renderer/store/accessibilityStore';
 import { OsanSpotDetailCard, type SpotDetailData } from './OsanSpotDetailCard';
 import { OsanHeader } from './OsanHeader';
 import { OsanBanner } from './OsanBanner';
 import { OsanLeftNav } from './OsanLeftNav';
-import styles from './OsanAiDetail.module.css';
+import { OsanPageBg } from './OsanPageBg';
+import { osanAiTitle } from './OsanAiCourse';
 
 interface OsanAiDetailProps {
   controller: KioskController;
 }
 
 /**
- * '정이' 모하지 (AI 검색) — spot detail.
- * If a real item is stored in detailStore (from tapping an AI result card) it
- * is shown; otherwise falls back to a blank state.
+ * '정이' 뭐하지 — a course stop's detail. Figma 오산>코스 상세 7812:111257: the
+ * shared 상세 card (OsanSpotDetailCard) under the course title, with the banner.
+ * Shows the item the result page stored in detailStore; blank without one.
  */
 export function OsanAiDetail({ controller }: OsanAiDetailProps): JSX.Element {
   const goHome = (): void => controller.navigate('home', 'Back');
   const goBack = (): void => controller.navigate('ai_result', 'Back');
   const lang = useLang();
   const item = useDetailStore((s) => s.item);
+  /* ♿ 오산>코스 상세 (7878:46583) titles the page "'정이' 뭐하지 > 상세"; the
+     normal frame (7812:111257) keeps the plain course title. */
+  const low = useAccessibilityStore((s) => s.lowReach);
 
   const data: SpotDetailData | null = item
     ? {
@@ -42,12 +46,12 @@ export function OsanAiDetail({ controller }: OsanAiDetailProps): JSX.Element {
 
   return (
     <>
-      {osanIconUrl('bg') && (
-        <img className={styles.bg} src={osanIconUrl('bg')} alt="" draggable={false} />
-      )}
+      <OsanPageBg />
 
       <OsanHeader
-        title={`${screenTitle("'정이' 모하지 (AI 검색)", lang)} > ${screenTitle('상세', lang)}`}
+        title={low ? `${osanAiTitle(lang)} > ${screenTitle('상세', lang)}` : osanAiTitle(lang)}
+        // SubHeader_Detail — the same description the shop 상세 page shows.
+        subtitle={sheetText('SubHeader_Detail', lang) || undefined}
         onHome={goHome}
         onBack={goBack}
       />

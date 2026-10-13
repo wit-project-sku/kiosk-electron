@@ -268,7 +268,10 @@ export function JejuWaitingGames({ rounds, aiReady, onFinish, onHome, readyModal
     // cannot be swallowed by stopPropagation and it cannot be forgotten by the
     // next game somebody adds.
     <div
-      style={{ position: 'absolute', inset: 0 }}
+      // ♿ on 오산: OsanKiosk moves the photo flow down under its bar
+      // (--osan-mode-push); these screens draw their own ♿ layout in screen
+      // coordinates, so they take the shift back. Unset elsewhere: a no-op.
+      style={{ position: 'absolute', inset: 0, transform: 'translateY(calc(-1 * var(--osan-mode-push, 0px)))' }}
       onPointerDownCapture={() => {
         lastTouchRef.current = Date.now();
       }}

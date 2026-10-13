@@ -1,122 +1,654 @@
-/* 여기는 오색시장 — exact Figma layout (artboard 2160×3840). */
-.bg {
+/* 여기는 오색시장 — Figma 오산>여기는오색시장-01-1 / -01-2 / -02 / -03 (7862:44787 /
+ * 44961 / 45100 / 45184). Exact px on the 2160×3840 artboard.
+ *
+ * (관광명소's cards and the 상세 card still carry 제주 / 인사동 placeholder copy —
+ * 성산일출봉, 을지정육 — and its map is Insa-dong's: the layout is the contract,
+ * the text comes from the attractions feed.) */
+
+/* ── Tabs (7862:44928) — three 580×170 plates across the 1820 row, y700 ── */
+.tabs {
   position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  pointer-events: none;
+  left: 170px;
+  top: calc(700px + var(--header-push, 0px));
+  width: 1820px;
+  height: 170px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
 }
 
-.content {
+/* Pretendard Medium 50 #999 on white; selected main 01, Bold white. */
+.tab {
+  flex: none;
+  width: 580px;
+  height: 170px;
+  padding: 0;
+  border: none;
+  border-radius: 42.9px;
+  background: #ffffff;
+  cursor: pointer;
+  font-family: 'Pretendard', var(--kiosk-font, sans-serif);
+  font-size: 50px;
+  font-weight: 500;
+  line-height: 1;
+  color: #999999;
+  white-space: nowrap;
+}
+
+.tabOn {
+  background: var(--kiosk-primary);
+  color: #ffffff;
+  font-weight: 700;
+}
+
+/* ── ㄱ–ㅎ (7862:44951) — one Pretendard Bold 60 line, 30 tracking, from x208 ── */
+.initials {
   position: absolute;
-  top: calc(699px + var(--header-push, 0px));
+  left: 208px;
+  top: calc(920px + var(--header-push, 0px));
+  margin: 0;
+  white-space: pre;
+  font-family: 'Pretendard', var(--kiosk-font, sans-serif);
+  font-size: 60px;
+  font-weight: 700;
+  line-height: normal;
+  letter-spacing: 30px;
+  color: #000000;
+}
+
+.initial {
+  position: relative;
+  padding: 0;
+  border: none;
+  background: none;
+  font: inherit;
+  letter-spacing: inherit;
+  color: inherit;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* A wider tap target than the glyph. */
+.initial::before {
+  content: '';
+  position: absolute;
+  inset: -30px -10px -30px -25px;
+}
+
+.initialOn {
+  color: var(--kiosk-primary);
+}
+
+/* ── Body (7862:44792) — x170 y1052 w1812, scrolls to the artboard's foot.
+   The 34.32 track sits at x2126 (7862:44950): 170 + 1812 + 144 + 34 = 2160. ── */
+.body {
+  position: absolute;
   left: 0;
   right: 0;
+  top: calc(1052px + var(--header-push, 0px));
   bottom: 0;
   box-sizing: border-box;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
   overflow-y: auto;
   overflow-x: hidden;
-  padding: 0 170px 80px;
+  padding: 0 144px 0 170px;
 }
 
-.content::-webkit-scrollbar { width: 34px; }
-.content::-webkit-scrollbar-thumb { background: var(--kiosk-primary); border-radius: 21.45px; }
-.content::-webkit-scrollbar-track { background: transparent; }
+.body::-webkit-scrollbar {
+  width: 34.32px;
+}
 
-/* White card: border 5px #e8e8e8, r42.9, px40 py100, gap 60 between sections. */
+.body::-webkit-scrollbar-thumb {
+  background: var(--kiosk-primary);
+  border-radius: 17.16px;
+}
+
+.body::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+/* 7862:44793 — the map plate, 1812×767. */
+.map {
+  width: 1812px;
+  height: 767px;
+  display: block;
+}
+
+/* Rows of three 580 cards, 36 apart, rows 60 apart (7862:44794 / 44837). */
+.grid {
+  margin-top: 60px;
+  display: grid;
+  grid-template-columns: repeat(3, 580px);
+  column-gap: 36px;
+  row-gap: 60px;
+  padding-bottom: 120px;
+}
+
+/* 7862:44795 — 580×730 white plate, r42.905, pt43 pr23 pb47 pl36. */
 .card {
-  flex: none;
-  width: 1820px;
+  width: 580px;
+  height: 730px;
   box-sizing: border-box;
   display: flex;
-  flex-direction: column;
-  gap: 60px;
-  padding: 100px 40px;
-  background: #ffffff;
-  border: 5px solid #e8e8e8;
-  border-radius: 42.9px;
-  box-shadow: 0 21.45px 21.45px rgba(143, 147, 157, 0.1);
-  font-family: var(--kiosk-font, sans-serif);
-}
-
-/* 역사 — stacked: full-width image, then centered title + body. */
-.sectionStacked {
-  display: flex;
-  flex-direction: column;
-  gap: 45px;
-  width: 100%;
-}
-
-.wideImage {
-  width: 1740px;
-  height: 658px;
-  border-radius: 45px;
-  overflow: hidden;
-}
-
-.wideImage img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  display: block;
-}
-
-/* 문화 / 관광명소 — image + text side by side. */
-.sectionRow {
-  display: flex;
-  gap: 45px;
   align-items: flex-start;
-  justify-content: space-between;
-  width: 100%;
-}
-
-.squareImage {
-  flex: none;
-  width: 800px;
-  height: 800px;
-  border-radius: 42.9px;
+  padding: 43px 23px 47px 36px;
+  border: none;
+  border-radius: 42.905px;
+  background: #ffffff;
+  cursor: pointer;
+  font-family: 'Noto Sans', 'Noto Sans KR', var(--kiosk-font, sans-serif);
+  text-align: left;
   overflow: hidden;
 }
 
-.squareImage img {
-  width: 100%;
-  height: 100%;
+.copy {
+  width: 521px;
+  display: flex;
+  flex-direction: column;
+  gap: 25px;
+}
+
+.photo {
+  width: 509px;
+  height: 297px;
+  border-radius: 20px;
   object-fit: cover;
   display: block;
 }
 
-.rowText {
-  flex: 1;
-  min-width: 0;
+.copyText {
   display: flex;
   flex-direction: column;
-  gap: 30px;
+  gap: 32px;
+  width: 100%;
 }
 
-/* Section headings — Figma: Noto Sans Bold 70px #616161. */
-.title,
-.titleCenter {
-  margin: 0;
-  font-weight: 700;
-  font-size: 70px;
-  color: #616161;
+/* 7862:44799 — Noto Sans Medium 50 #333, 1.3, one 60-tall line. */
+.name {
+  width: 100%;
+  height: 60px;
+  font-size: 50px;
+  font-weight: 500;
+  line-height: 1.3;
+  color: #333333;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.metaCol {
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+  width: 100%;
+}
+
+/* 주소 gap 12 · 영업시간 gap 15 — both Noto Sans Regular 40 #333. */
+.meta {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.metaHours {
+  gap: 15px;
+  width: 100%;
+}
+
+.marker {
+  flex: none;
+  width: 45px;
+  height: 45px;
+  object-fit: contain;
+}
+
+.alarm {
+  flex: none;
+  width: 41px;
+  height: 60px;
+  object-fit: contain;
+}
+
+.addr,
+.hours {
+  font-size: 40px;
+  font-weight: 400;
+  line-height: 1.3;
+  color: #333333;
+  word-break: keep-all;
+}
+
+/* Two lines in the frame; a longer address is clamped, not pushed past the row. */
+.addr {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.hours {
   line-height: 1;
 }
 
-.titleCenter {
+/* ── 역사 / 문화 — a white panel from y979 above the banner (7862:45106 / 45189) ── */
+.storyBody {
+  top: calc(979px + var(--header-push, 0px));
+  left: 170px;
+  right: auto;
+  width: 1818px;
+  bottom: 573px;
+  padding: 0;
+  scrollbar-width: none;
+}
+
+.storyBody::-webkit-scrollbar {
+  display: none;
+}
+
+.bullet {
+  margin: 0;
+  font-family: 'Pretendard', var(--kiosk-font, sans-serif);
+  font-size: 50px;
+  font-weight: 700;
+  line-height: 1.3;
+  color: #333333;
+}
+
+.bullet::before {
+  content: '● ';
+  color: var(--kiosk-primary);
+}
+
+.prose {
+  margin: 24px 0 0;
+  font-family: 'Pretendard', var(--kiosk-font, sans-serif);
+  font-size: 38px;
+  font-weight: 400;
+  line-height: 1.3;
+  color: #333333;
+  word-break: keep-all;
+}
+
+.proseLight {
+  font-weight: 300;
+}
+
+/* 역사 (7862:45106): the 1818×2072 plate, content at x88 from y111. */
+.story {
+  box-sizing: border-box;
+  width: 1818px;
+  min-height: 2072px;
+  padding: 111px 88px 90px;
+  background: #ffffff;
+  border-radius: 42.905px;
+}
+
+/* 7871:14885 — thumbs 175 · hero 885×590 · intro, 24 apart, one 590 row. */
+.historyTop {
+  display: flex;
+  align-items: flex-start;
+  gap: 24px;
+}
+
+.thumbs {
+  flex: none;
+  width: 175px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.thumb {
+  width: 175px;
+  height: 108.4px;
+  border-radius: 20px;
+  object-fit: cover;
+  display: block;
+}
+
+.hero {
+  flex: none;
+  width: 885px;
+  height: 590px;
+  border-radius: 20px;
+  object-fit: cover;
+  display: block;
+}
+
+.historyIntro {
+  flex: 1 1 0;
+  min-width: 0;
+}
+
+/* ● 오색시장의 역사 흐름 — 60 under the photo row. */
+.story > .bullet {
+  margin-top: 60px;
+}
+
+/* 7862:45108 — the 1623×373 #FBF8F3 strip, its top 28 over the year row, which
+   sits 60 under the heading. Its six columns span the 1642 content width. */
+.timeline {
+  box-sizing: border-box;
+  width: 1623px;
+  height: 373px;
+  margin: 32px auto 0;
+  padding-top: 28px;
+  background: #fbf8f3;
+  border-radius: 42.905px;
+}
+
+.timelineRow {
+  margin: 0 -9.5px;
+  display: flex;
+  gap: 24px;
+}
+
+.stepYear {
+  flex: 1 1 0;
+  min-width: 0;
+  margin: 0;
+  font-family: 'Pretendard', var(--kiosk-font, sans-serif);
+  font-size: 40px;
+  font-weight: 700;
+  line-height: 1.3;
+  color: #1a1a1a;
+  text-align: center;
+  white-space: nowrap;
+}
+
+/* 7871:14896 — 32 under the years, 261 tall, icon 60 + 12 + two Light 34 lines. */
+.steps {
+  margin-top: 32px;
+  height: 261px;
+}
+
+.step {
+  flex: 1 1 0;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+}
+
+.stepIcon {
+  width: 60px;
+  height: 60px;
+  display: block;
+}
+
+.stepDesc {
+  margin: 0;
+  font-family: 'Pretendard', var(--kiosk-font, sans-serif);
+  font-size: 34px;
+  font-weight: 300;
+  line-height: 1.3;
+  color: #999999;
+  text-align: center;
+  word-break: keep-all;
+}
+
+/* 7871:14897 — 90 under the 315 history block (the strip overhangs it by 30). */
+.section {
+  margin-top: 70px;
+}
+
+.sectionFirst {
+  margin-top: 60px;
+}
+
+/* 문화 (7862:45189): the 1818×2240 plate at (171, 981), heading + lead at x195, then a
+   2×2 of 750×890 cards from x145, 30 / 77 apart. */
+.storyCulture {
+  position: relative;
+  box-sizing: border-box;
+  width: 1818px;
+  min-height: 2240px;
+  /* The frame centres this plate (x171, y981), 1 / 2 off the 역사 one. */
+  margin: 2px 0 0 1px;
+  padding: 68px 144px 78px;
+  background: #ffffff;
+  border-radius: 42.905px;
+}
+
+.storyCulture .bullet,
+.lead {
+  margin-left: 50px;
+  margin-right: 50px;
+}
+
+.lead {
+  margin-top: 54px;
+  margin-bottom: 0;
+  font-family: 'Pretendard', var(--kiosk-font, sans-serif);
+  font-size: 38px;
+  line-height: 1.3;
+  color: #333333;
+  white-space: pre-line;
+  word-break: keep-all;
+}
+
+.cultureGrid {
+  margin-top: 20px;
+  display: grid;
+  grid-template-columns: 750px 750px;
+  column-gap: 30px;
+  row-gap: 77px;
+}
+
+.cultureCard {
+  box-sizing: border-box;
+  width: 750px;
+  height: 890px;
+  padding: 45px 50px 0;
+  background: #ffffff;
+  border-radius: 42.905px;
+  box-shadow: 0 4px 4px rgba(0, 0, 0, 0.25);
+  overflow: hidden;
+}
+
+.culturePhoto {
+  width: 650px;
+  height: 379px;
+  object-fit: cover;
+  border-radius: 20px;
+  display: block;
+}
+
+/* Title 29 under the photo, Pretendard Bold 50 (the long fourth one 46). */
+.cultureTitle {
+  margin: 29px 0 0;
+  font-family: 'Pretendard', var(--kiosk-font, sans-serif);
+  font-size: 50px;
+  font-weight: 700;
+  line-height: 1.3;
+  color: #333333;
+}
+
+.cultureTitleSmall {
+  font-size: 46px;
+}
+
+/* Body 11 under the 65 title line, Pretendard Light 38. */
+.cultureBody {
+  margin: 11px 0 0;
+  font-family: 'Pretendard', var(--kiosk-font, sans-serif);
+  font-size: 38px;
+  line-height: 1.3;
+  color: #333333;
+  word-break: keep-all;
+}
+
+/* 7867:159948 — centred on x1079, y3060 (panel 2079), Light 32 #AAA. */
+.cultureNote {
+  position: absolute;
+  left: 50%;
+  top: 2079px;
+  width: 1432px;
+  margin: 0;
+  transform: translateX(-50%);
+  font-family: 'Pretendard', var(--kiosk-font, sans-serif);
+  font-size: 32px;
+  font-weight: 300;
+  line-height: 1.3;
+  color: #aaaaaa;
   text-align: center;
 }
 
-/* Body — Figma: Noto Sans Medium 50px #333, line-height 1.3. */
-.body {
-  margin: 0;
-  font-weight: 500;
-  font-size: 50px;
-  color: #333333;
-  line-height: 1.3;
+/* The empty grid + its way back out of a narrowed map. */
+.emptyWrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 50px;
 }
 
+.resetView {
+  padding: 0 60px;
+  height: 120px;
+  border: 4.29px solid var(--kiosk-primary);
+  border-radius: 60px;
+  background: #ffffff;
+  color: var(--kiosk-primary);
+  font-family: 'Pretendard', var(--kiosk-font, sans-serif);
+  font-size: 45px;
+  font-weight: 700;
+  line-height: 1;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.empty {
+  margin: 200px 0 0;
+  font-family: 'Pretendard', var(--kiosk-font, sans-serif);
+  font-size: 55px;
+  font-weight: 500;
+  color: #999999;
+  text-align: center;
+}
+
+/* 상세 (7862:44966): the card at (170, 979), its map row 1514×631. */
+.detailEmbed {
+  top: calc(979px + var(--header-push, 0px));
+}
+
+.detailMap {
+  width: 1514px;
+  height: 631px;
+}
+
+/* ── ▲/▼ (7862:44953 / 44954) ──────────────────────────────────────────── */
+.scrollBtn {
+  position: absolute;
+  left: 2027px;
+  width: 85px;
+  height: 85px;
+  padding: 0;
+  border: none;
+  background: none;
+  cursor: pointer;
+  z-index: 20;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.scrollUp { top: 2103px; }
+.scrollDown { top: 2223px; }
+
+.scrollBtnImg {
+  display: block;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
+.scrollUp .scrollBtnImg { transform: rotate(90deg); }
+.scrollDown .scrollBtnImg { transform: rotate(-90deg); }
+
+/* 상점 검색 promo (7862:45150) — the 뭐하지 banner art with its orange strip. */
+.banner {
+  position: absolute;
+  left: 0;
+  top: 3267px;
+  transform: translateY(calc(-1 * var(--osan-mode-push, 0px)));
+  width: 2160px;
+  height: 573px;
+  padding: 0;
+  border: none;
+  background: none;
+  cursor: pointer;
+  overflow: hidden;
+}
+
+.banner img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+/* ── Other languages ─────────────────────────────────────────────────────
+ * The tab plates are 580 around 관광명소 / 역사 / 문화; "Tourist Attractions" and
+ * "Достопримечательности" are far longer, so the three share one shrink factor
+ * (useFitText). The card name gets the same inside its 521 column. */
+.tabLong {
+  font-size: calc(50px * var(--fit, 1));
+  white-space: normal;
+  line-height: 1.1;
+  padding: 0 20px;
+  box-sizing: border-box;
+}
+
+.nameLong {
+  font-size: calc(50px * var(--fit, 1));
+}
+
+/* ── ♿ (B오산>여기는오색시장-01-1 7887:50843, 문화 7887:50923, 관광명소 7887:50982,
+ *    관광명소 상세 7887:51156) ─────────────────────────────────────────────────
+ * The page sits inside OsanKiosk's shift, so each frame y is written as
+ * `y − --osan-mode-push`; a `bottom` is measured in the shifted box (+ push). */
+.lowHeader {
+  position: absolute;
+  left: 0;
+  top: calc(719px - var(--osan-mode-push, 0px));
+  width: 2160px;
+  height: 700px;
+}
+
+/* 역사 / 문화 / 관광명소 at the foot. The frames place the row at 3430–3435;
+   one value keeps it still when the visitor switches tabs. */
+.low .tabs {
+  top: calc(3435px - var(--osan-mode-push, 0px));
+}
+
+/* 7887:51145 — ㄱ–ㅎ under the tabs, at 3650. */
+.low .initials {
+  top: calc(3650px - var(--osan-mode-push, 0px));
+}
+
+/* 관광명소 list — the map straight under the header (857) and the grid
+   scrolling to 3326. */
+.low .body {
+  top: calc(857px - var(--osan-mode-push, 0px));
+  bottom: calc(514px + var(--osan-mode-push, 0px));
+}
+
+/* 역사 / 문화 — the story panel at (171, 1413), 1922 tall → 3335. */
+.low .storyBody {
+  top: calc(1413px - var(--osan-mode-push, 0px));
+  bottom: calc(505px + var(--osan-mode-push, 0px));
+}
+
+/* 관광명소 상세 — the card at 998. */
+.low .detailEmbed {
+  top: calc(998px - var(--osan-mode-push, 0px));
+}
+
+/* ▲/▼ at 2223 / 2343. */
+.low .scrollUp   { top: calc(2223px - var(--osan-mode-push, 0px)); }
+.low .scrollDown { top: calc(2343px - var(--osan-mode-push, 0px)); }
+
+/* 7887:51705 — the promo under the mode bar (its −push transform already
+   undoes the shift). */
+.low .banner {
+  top: 146px;
+}

@@ -22,15 +22,40 @@
 /** Depth/stereo cameras. Never valid as the photo camera. */
 export const DEPTH_CAMERA_PATTERN = /\bzed\b|stereolabs/i;
 
+/**
+ * The FillMe 손톱 분석 hand camera — a third 제주 camera (Arducam 16MP, IMX298),
+ * mounted looking down at the hand rest. It belongs to that screen alone
+ * (`layouts/jeju/fillme/camera.ts`), so it is never valid as the photo, motion
+ * or footfall camera: those would quietly open a close-up of a desk. Windows
+ * also gives a UVC camera to one opener at a time, so footfall holding it would
+ * leave the FillMe screen with "카메라를 사용할 수 없어요".
+ *
+ * No shape backstop exists for this one (it is 4:3 like any webcam), so every
+ * opener also checks the opened TRACK's label — see `isReservedCamera`.
+ */
+export const HAND_CAMERA_PATTERN = /arducam/i;
+
 /** The photo camera we prefer when several are available. */
 export const PREFERRED_CAMERA_PATTERN = /elgato|facecam|cam link|prompter/i;
 
-export type CameraVendor = 'elgato' | 'usb' | 'depth' | 'unknown';
+/**
+ * Cameras that some other feature owns: the ZED (height sidecar) and the
+ * Arducam (FillMe). The photo, motion and footfall paths skip these.
+ *
+ * Use it on the enumerated label AND on the opened track's label — a track's
+ * label is always filled in, even when `enumerateDevices()` gave an empty one.
+ */
+export function isReservedCamera(label: string): boolean {
+  return DEPTH_CAMERA_PATTERN.test(label) || HAND_CAMERA_PATTERN.test(label);
+}
+
+export type CameraVendor = 'elgato' | 'usb' | 'depth' | 'hand' | 'unknown';
 
 export function classifyCamera(label: string): CameraVendor {
-  // Checked FIRST: a depth sensor is disqualifying, and no later branch may
-  // reclassify it as a usable camera.
+  // Checked FIRST: a depth sensor or the FillMe hand camera is disqualifying,
+  // and no later branch may reclassify it as a usable camera.
   if (DEPTH_CAMERA_PATTERN.test(label)) return 'depth';
+  if (HAND_CAMERA_PATTERN.test(label)) return 'hand';
   if (PREFERRED_CAMERA_PATTERN.test(label)) return 'elgato';
   if (label.trim().length > 0) return 'usb';
   return 'unknown';

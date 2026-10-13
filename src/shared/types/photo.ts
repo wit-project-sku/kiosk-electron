@@ -75,8 +75,11 @@ export interface CameraDeviceInfo {
    * 2i, which measures visitor height headlessly and must never be opened by
    * `getUserMedia`. It is enumerated (an operator listing the kiosk's cameras
    * should see it) but excluded from selection. See CameraService.
+   *
+   * 'hand' is the FillMe 손톱 분석 camera (Arducam), owned by that screen —
+   * excluded from selection for the same reason.
    */
-  vendor: 'elgato' | 'usb' | 'depth' | 'unknown';
+  vendor: 'elgato' | 'usb' | 'depth' | 'hand' | 'unknown';
 }
 
 /** Runtime workflow state — lives in main process, synced via IPC. */

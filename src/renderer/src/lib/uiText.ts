@@ -163,6 +163,39 @@ const UI_TEXT = {
     ru: '※ Источник: Корейская служба культурной информации',
     id: '※ Sumber: Pusat Informasi Budaya Korea',
   },
+  /** The MBTI results footer's first line, pointing at the QR beside it. */
+  qrTap: {
+    ko: 'QR 클릭! ←',
+    en: 'Tap the QR! ←',
+    ja: 'QRをタップ！←',
+    zh: '点击二维码！←',
+    vi: 'Chạm vào QR! ←',
+    th: 'แตะ QR! ←',
+    ru: 'Нажмите на QR! ←',
+    id: 'Ketuk QR! ←',
+  },
+  /** Names the 상점 검색 promo banner (it is only artwork). */
+  searchShops: {
+    ko: '상점 검색',
+    en: 'Search shops',
+    ja: '店舗検索',
+    zh: '搜索店铺',
+    vi: 'Tìm cửa hàng',
+    th: 'ค้นหาร้านค้า',
+    ru: 'Поиск магазинов',
+    id: 'Cari toko',
+  },
+  /** The 정이 뭐먹지/뭐사지 list when the ㄱ–ㅎ filter leaves no shop. */
+  noShopsForInitial: {
+    ko: '해당하는 상점이 없습니다',
+    en: 'No shops start with this letter',
+    ja: '該当する店舗がありません',
+    zh: '没有符合的店铺',
+    vi: 'Không có cửa hàng phù hợp',
+    th: 'ไม่มีร้านค้าที่ตรงกัน',
+    ru: 'Нет подходящих магазинов',
+    id: 'Tidak ada toko yang sesuai',
+  },
   close: {
     ko: '닫기',
     en: 'Close',

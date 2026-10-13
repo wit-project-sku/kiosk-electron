@@ -9,6 +9,8 @@
   height: 100%;
   object-fit: cover;
   pointer-events: none;
+  /* ♿ stays at y0 while the page under the mode bar moves down (OsanKiosk). */
+  transform: translateY(calc(-1 * var(--osan-mode-push, 0px)));
 }
 
 /* ── Region tabs (오산시 / MBTI) — R>컴포넌트=코스추천-카테고리; centered (2 tabs) ── */
@@ -29,83 +31,113 @@
   align-items: center;
   justify-content: center;
   background: #ffffff;
-  border: 5px solid #e8e8e8;
+  border: none;
   border-radius: 42.9px;
-  font-family: var(--kiosk-font, sans-serif);
-  font-weight: 700;
-  font-size: 63px;
+  font-family: 'Pretendard', var(--kiosk-font, sans-serif);
+  font-weight: 500;
+  font-size: 50px;
   line-height: 1;
   color: #616161;
   cursor: pointer;
 }
 
+/* 7838:115221 (오산>오산시이벤트-02-1): Medium 50 #616161 / Bold 50 white on main 01. */
 .regionTabSelected {
   background: var(--kiosk-primary);
-  border-color: var(--kiosk-primary);
+  font-weight: 700;
   color: #ffffff;
 }
 
-/* ── Category tabs (전체/공연/전시/기타); active = 135×90 navy pill, others text ── */
-.categoryTabs {
+/* ── Category row (오산>오산시이벤트-01-1, 7838:115561) ──
+   One Pretendard 60 line centred on x1079 at y919: "전체 ㅣ 공연 ㅣ 전시 ㅣ 기타",
+   the gaps being literal spaces inside the text node — so the row is rendered
+   the same way (white-space: pre, the same spaces) and lands where Figma's does.
+   Selected = Black #1A4D7E, the rest SemiBold gray 07. */
+.categoryRow {
   position: absolute;
-  top: calc(941px + var(--header-push, 0px));
-  left: 735px;
-  display: flex;
-  align-items: center;
-  height: 90px;
-  gap: 119.611px;
+  left: -1px;
+  top: calc(919px + var(--header-push, 0px));
+  width: 2160px;
+  margin: 0;
+  text-align: center;
+  white-space: pre;
+  font-family: 'Pretendard', var(--kiosk-font, sans-serif);
+  font-weight: 600;
+  font-size: 60px;
+  line-height: normal;
+  color: #1a1a1a;
 }
 
+/* Each label reserves its Black width (the hidden ::after) so the row does
+   not shift when the selection moves; ::before widens the tap target. */
 .categoryTab {
   position: relative;
-  /* Own stacking context so the active ::before pill (z-index:-1) sits behind
-     the tab text but ABOVE the absolutely-positioned page background (.bg),
-     which would otherwise paint over the pill and hide the active highlight. */
-  isolation: isolate;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  height: 90px;
+  display: inline-grid;
+  justify-items: center;
   padding: 0;
   border: none;
-  background: transparent;
-  font-family: var(--kiosk-font, sans-serif);
-  font-weight: 700;
-  font-size: 45px;
-  line-height: 1;
-  color: #1b1d1f;
+  background: none;
+  font: inherit;
+  color: inherit;
   white-space: nowrap;
   cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
 }
 
-.categoryTab.categoryTabSelected {
-  color: #ffffff;
+.categoryTab > span,
+.categoryTab::after {
+  grid-area: 1 / 1;
 }
 
-.categoryTab.categoryTabSelected::before {
+.categoryTab::after {
+  content: attr(data-label);
+  font-weight: 900;
+  visibility: hidden;
+  height: 0;
+}
+
+.categoryTab::before {
   content: '';
   position: absolute;
-  inset: 0 -24px;
-  background: var(--kiosk-primary);
-  border-radius: 999px;
-  z-index: -1;
+  inset: -30px -40px;
 }
 
-/* ── Event card grid (이벤트 리스트) — 3×2 cards, 6 per page ── */
-.grid {
+.categoryTabSelected {
+  font-weight: 900;
+  color: var(--kiosk-primary);
+}
+
+/* ── Event grid (이벤트 리스트, 7838:115444) ──
+   3 columns of 483.767×683.286 posters from (224, 1088), row pitch 864, in a
+   window exactly two rows tall; ▲/▼ and the edge pill scroll it a row at a time.
+   Column pitch 609.375 = Figma's first row (224 / 829.74 / 1442.75). */
+.list {
   position: absolute;
   left: 224px;
   top: calc(1088px + var(--header-push, 0px));
-  display: grid;
-  grid-template-columns: repeat(3, 483.767px);
-  column-gap: 125px;
-  row-gap: 64px;
+  width: 1702.517px;
+  height: 1675.21px;
+  overflow-y: auto;
+  overflow-x: hidden;
+  scrollbar-width: none;
 }
 
-/* A card is a <button> (opens the detail modal) — reset the button chrome. */
+.list::-webkit-scrollbar {
+  display: none;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(3, 483.767px);
+  column-gap: 125.608px;
+  row-gap: 52.79px;
+}
+
+/* A card is a <button> (opens the detail page) — reset the button chrome. */
 .card {
   display: flex;
   flex-direction: column;
+  width: 483.767px;
   text-align: left;
   padding: 0;
   border: none;
@@ -128,72 +160,87 @@
   object-fit: cover;
 }
 
+/* Title — Noto Sans Bold 35, centred on y1823.99 (52.7 under the poster). */
 .cardTitle {
-  margin: 24px 0 0;
-  font-family: var(--kiosk-font, sans-serif);
+  margin: 23.48px 0 0;
+  font-family: 'Noto Sans', 'Noto Sans KR', var(--kiosk-font, sans-serif);
   font-weight: 700;
   font-size: 35px;
-  line-height: 1.3;
+  line-height: 58.444px;
   color: #000000;
-  /* Long titles stay on ONE line and truncate with … */
   max-width: 100%;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 
+/* Venue — Noto Sans Medium 24 #999, centred on y1882.2. */
 .cardVenue {
   margin: 12px 0 0;
-  font-family: var(--kiosk-font, sans-serif);
+  font-family: 'Noto Sans', 'Noto Sans KR', var(--kiosk-font, sans-serif);
   font-weight: 500;
   font-size: 24px;
-  line-height: 1;
+  line-height: 34px;
   color: #999999;
+  max-width: 100%;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
-/* ── Pagination (1 2 3 ⟩) ── */
-.pagination {
+/* ▲/▼ (7838:115554 / 115555 — x2027, y2103 / y2223): the 검색 page's export. */
+.scrollBtn {
   position: absolute;
-  top: calc(2831px + var(--header-push, 0px));
-  left: 50%;
-  transform: translateX(-50%);
-  display: flex;
-  align-items: center;
-  gap: 24px;
-}
-
-.pageBtn {
-  min-width: 96px;
-  height: 96px;
-  padding: 0 20px;
+  left: 2027px;
+  width: 85px;
+  height: 85px;
+  padding: 0;
   border: none;
-  border-radius: 9999px;
-  background: transparent;
-  font-family: var(--kiosk-font, sans-serif);
-  font-weight: 700;
-  font-size: 50px;
-  line-height: 1;
-  color: rgba(0, 0, 0, 0.7);
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  background: none;
   cursor: pointer;
+  z-index: 5;
+  -webkit-tap-highlight-color: transparent;
 }
 
-.pageBtnSelected {
+.scrollUp   { top: 2103px; }
+.scrollDown { top: 2223px; }
+
+.scrollBtnImg {
+  display: block;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
+.scrollUp .scrollBtnImg   { transform: rotate(90deg); }
+.scrollDown .scrollBtnImg { transform: rotate(-90deg); }
+
+/* Position pill (7838:115556): 34px main-01 at x2128, its top at y1214 when the
+   list is at the top. The track is as tall as the list window. */
+.track {
+  position: absolute;
+  left: 2128px;
+  top: calc(1214px + var(--header-push, 0px));
+  width: 34.32px;
+  height: 1675.21px;
+  pointer-events: none;
+}
+
+.trackThumb {
+  position: absolute;
+  left: 0;
+  width: 100%;
+  border-radius: 17.16px;
   background: var(--kiosk-primary);
-  color: #ffffff;
 }
 
-.pageNext {
-  font-size: 60px;
-}
-
-/* ── QR footer ── */
+/* ── Footer (Component Type 7838:115563): rule at y2993 from x327, a 187 white
+   frame with a 4.29 main-01 stroke at (1722, 3009) holding the 150 QR, and the
+   source line (Pretendard Light 38) right-aligned to x1358 around y3164.5. ── */
 .qrFooter {
   position: absolute;
-  left: 180px;
-  top: calc(2939px + var(--header-push, 0px));
+  left: 171px;
+  top: 2993px;
   width: 1820px;
   height: 219px;
 }
@@ -208,27 +255,46 @@
   border-radius: 2px;
 }
 
+.qrFrame {
+  position: absolute;
+  left: 1551px;
+  top: 16px;
+  box-sizing: border-box;
+  width: 187px;
+  height: 187px;
+  border: 4.29px solid var(--kiosk-primary);
+  border-radius: 25px;
+  background: #ffffff;
+}
+
 .qrImg {
   position: absolute;
-  left: 1588px;
+  left: 1570px;
   top: 35px;
   width: 150px;
   height: 150px;
 }
 
-.qrLabel {
+.qrImg img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.qrSource {
   position: absolute;
-  left: 1556px;
-  top: 110px;
-  transform: translate(-100%, -50%);
+  right: 633px;
+  top: 171.5px;
+  transform: translateY(-50%);
   margin: 0;
-  font-family: var(--kiosk-font, sans-serif);
-  font-weight: 700;
-  font-size: 40px;
-  line-height: 1.25;
-  color: var(--kiosk-primary);
+  font-family: 'Pretendard', var(--kiosk-font, sans-serif);
+  font-weight: 300;
+  font-size: 38px;
+  line-height: normal;
+  letter-spacing: 0.38px;
+  color: #000000;
   text-align: right;
-  letter-spacing: 0.4px;
   white-space: nowrap;
 }
 
@@ -258,11 +324,12 @@
   border: 5px solid #918b87;
   border-radius: 50px;
   cursor: pointer;
-  font-family: var(--kiosk-font, sans-serif);
+  font-family: 'Noto Sans', 'Noto Sans KR', var(--kiosk-font, sans-serif);
 }
 
+/* Selected (7838:115246): main 01 fill, white letter and label. */
 .mbtiCellSelected {
-  background: var(--kiosk-secondary);
+  background: var(--kiosk-primary);
   border-color: var(--kiosk-primary);
 }
 
@@ -274,7 +341,7 @@
 }
 
 .mbtiCellSelected .mbtiLetter {
-  color: var(--kiosk-primary);
+  color: #ffffff;
 }
 
 .mbtiLabel {
@@ -285,13 +352,15 @@
 }
 
 .mbtiCellSelected .mbtiLabel {
-  color: var(--kiosk-primary);
+  color: #ffffff;
 }
 
-/* CTA "추천 결과 보기" / "결과 로딩중.." — 5494:154632: 500×120, r30. */
+/* CTA "추천 결과 보기" / "결과 로딩중.." — 7838:115193: 500×120 at (830, 1928),
+   r30, 5px main-01 stroke, Noto Sans Bold 50. The loading state stays in the
+   same place (the -02-2 frame draws it 53px higher, which would make it jump). */
 .mbtiCta {
   position: absolute;
-  top: calc(1875px + var(--header-push, 0px));
+  top: calc(1928px + var(--header-push, 0px));
   left: 50%;
   transform: translateX(-50%);
   box-sizing: border-box;
@@ -304,9 +373,10 @@
   background: #ffffff;
   border: 5px solid var(--kiosk-primary);
   border-radius: 30px;
-  font-family: var(--kiosk-font, sans-serif);
+  font-family: 'Noto Sans', 'Noto Sans KR', var(--kiosk-font, sans-serif);
   font-weight: 700;
   font-size: 50px;
+  white-space: nowrap;
   color: var(--kiosk-primary);
   cursor: pointer;
 }
@@ -318,13 +388,21 @@
   cursor: default;
 }
 
+/* 7838:115254 — the frame's Loading glyph (41.67, stroke bleeding 4.8%), turning. */
 .mbtiSpinner {
-  width: 42px;
-  height: 42px;
-  border-radius: 50%;
-  border: 5px solid #e8e8e8;
-  border-top-color: #999999;
-  animation: mbtiSpin 0.8s linear infinite;
+  position: relative;
+  flex: none;
+  width: 41.667px;
+  height: 41.667px;
+  animation: mbtiSpin 1.2s linear infinite;
+}
+
+.mbtiSpinner img {
+  position: absolute;
+  left: -2px;
+  top: -2px;
+  width: 45.667px;
+  height: 45.667px;
 }
 
 @keyframes mbtiSpin {
@@ -333,19 +411,20 @@
   }
 }
 
-/* Description — 5494:154634: centered, 55px bold, "오산시 이벤트" in var(--kiosk-primary). */
+/* Description — 7838:115195: a 992-wide block centred on x1080, middle at
+   y2443; Noto Sans Bold 55 on 100px lines, "오산시 이벤트" in main 01. */
 .mbtiDesc {
   position: absolute;
-  top: calc(2141px + var(--header-push, 0px));
+  top: calc(2443px + var(--header-push, 0px));
   left: 50%;
-  transform: translateX(-50%);
-  width: 1036px;
+  transform: translate(-50%, -50%);
+  width: 992px;
   margin: 0;
   text-align: center;
-  font-family: var(--kiosk-font, sans-serif);
+  font-family: 'Noto Sans', 'Noto Sans KR', var(--kiosk-font, sans-serif);
   font-weight: 700;
   font-size: 55px;
-  line-height: 1.85;
+  line-height: 100px;
   color: #000000;
 }
 
@@ -364,79 +443,138 @@
   z-index: 10;
 }
 
-/* Results modal — 5535:6134: white card, 2 event cards + QR + label. */
+/* ── MBTI results (오산>오산시이벤트-02-3, 7838:115315) ──
+   A 20% black scrim over everything above the banner (0…3267), the 1720×1417
+   #FFFDFA card at y916, two 526.62×683.29 posters at x452 / x1214 (y1205) with
+   their title under them, and the Ø125 ✕ at y2123 that closes it. */
+.mbtiScrim {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 2160px;
+  height: 3267px;
+  background: rgba(0, 0, 0, 0.2);
+  z-index: 10;
+}
+
 .resultsBox {
+  position: absolute;
+  left: 220px;
+  top: 916px;
   box-sizing: border-box;
-  position: relative;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 105px;
   width: 1720px;
-  height: 1484px;
-  padding: 176px 0 0;
+  height: 1417px;
+  padding: 289px 0 0 232px;
   background: #fffdfa;
-  border: 5px solid #e8e8e8;
   border-radius: 80px;
+  z-index: 11;
 }
 
 .resultsCards {
   display: flex;
-  gap: 245px;
+  gap: 235.38px;
 }
 
 .resultCard {
-  width: 526px;
+  width: 526.62px;
   display: flex;
   flex-direction: column;
   text-align: left;
 }
 
 .resultThumb {
-  width: 526px;
-  height: 683px;
-  border-radius: 11px;
+  width: 526.62px;
+  height: 683.29px;
+  border-radius: 11.39px;
   background: rgba(142, 142, 142, 0.2);
 }
 
+/* Title — Noto Sans Bold 39.865, centred on y1940 (23 under the poster). */
 .resultTitle {
-  margin: 24px 0 0;
-  font-family: var(--kiosk-font, sans-serif);
+  margin: 23px 0 0;
+  font-family: 'Noto Sans', 'Noto Sans KR', var(--kiosk-font, sans-serif);
   font-weight: 700;
   font-size: 39.865px;
-  line-height: 1.2;
+  line-height: 57.377px;
   color: #000000;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
-.resultVenue {
-  margin: 12px 0 0;
-  font-family: var(--kiosk-font, sans-serif);
-  font-weight: 500;
-  font-size: 24px;
-  line-height: 1;
-  color: #999999;
-}
-
-.resultsQr {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 60px;
+.resultsClose {
+  position: absolute;
+  left: 1018px;
+  top: 2123px;
+  width: 125px;
+  height: 125px;
+  padding: 0;
   border: none;
-  background: transparent;
+  background: none;
+  cursor: pointer;
+  z-index: 12;
+}
+
+/* The export bleeds its 4.29 stroke 2.96% past the 125 box (128.7). */
+.resultsClose img {
+  display: block;
+  width: 128.699px;
+  height: 128.699px;
+  pointer-events: none;
+}
+
+/* "QR 클릭! ← 모바일에서 확인하기" (7838:115377): rule at y2939 from x326, QR 150
+   at (1758, 2974), the two lines right-aligned to x1726 around y3049. */
+.mbtiQrFooter {
+  position: absolute;
+  left: 170px;
+  top: 2939px;
+  width: 1820px;
+  height: 219px;
+  padding: 0;
+  border: none;
+  background: none;
   cursor: pointer;
 }
 
-.resultsQrImg {
-  width: 182px;
-  height: 182px;
+.mbtiQrDivider {
+  position: absolute;
+  left: 156px;
+  top: 0;
+  width: 1556px;
+  height: 1px;
+  border-radius: 2px;
+  background: #ebebeb;
 }
 
-.resultsQrLabel {
-  font-family: var(--kiosk-font, sans-serif);
+.mbtiQrText {
+  position: absolute;
+  right: 264px;
+  top: 110px;
+  transform: translateY(-50%);
+  font-family: 'Noto Sans', 'Noto Sans KR', var(--kiosk-font, sans-serif);
   font-weight: 700;
   font-size: 40px;
-  color: var(--kiosk-primary);
+  line-height: normal;
+  letter-spacing: 0.4px;
+  color: #1a4d7e;
+  text-align: right;
+  white-space: nowrap;
+}
+
+.mbtiQrImg {
+  position: absolute;
+  left: 1588px;
+  top: 35px;
+  width: 150px;
+  height: 150px;
+}
+
+.mbtiQrImg img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
 }
 
 /* QR zoom modal — "QR 확대 박스": 1035×1035, big QR + corner frame. */
@@ -512,8 +650,14 @@
 }
 
 /* Empty / error state shown in place of the event grid. */
+/* Centred in the two-row list window. */
 .emptyState {
-  margin: 40px 0;
+  position: absolute;
+  left: 50%;
+  top: calc(1925.6px + var(--header-push, 0px));
+  transform: translate(-50%, -50%);
+  margin: 0;
+  font-family: 'Pretendard', var(--kiosk-font, sans-serif);
   font-size: 52px;
   font-weight: 500;
   color: #999;
@@ -532,6 +676,11 @@
 }
 /* No-recommendation popup — small centered card with a message. */
 .noDataBox {
+  position: absolute;
+  left: 50%;
+  top: 1624.5px;
+  transform: translate(-50%, -50%);
+  z-index: 11;
   box-sizing: border-box;
   display: flex;
   align-items: center;
@@ -552,8 +701,125 @@
   text-align: center;
 }
 
-/* Disabled next-page chevron (on the last page). */
-.pageBtnDisabled {
-  opacity: 0.25;
-  cursor: default;
+/* 상점 검색 promo (7838:115223): the 뭐하지 banner art with its 15px top strip
+   in main 01 instead of orange. */
+.searchBanner {
+  position: absolute;
+  left: 0;
+  top: 3267px;
+  transform: translateY(calc(-1 * var(--osan-mode-push, 0px)));
+  width: 2160px;
+  height: 573px;
+  padding: 0;
+  border: none;
+  background: none;
+  cursor: pointer;
+  overflow: hidden;
+}
+
+.searchBanner img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  pointer-events: none;
+}
+
+.searchBannerStrip {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 2160px;
+  height: 15px;
+  background: #1a4d7e;
+  pointer-events: none;
+}
+
+/* Holds the shared detail page (its card at 1090); ♿ slides it to the frame. */
+.detailSlot {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+/* ── ♿ (제주>제주도이벤트-01-2 7878:48020, -02-1 7878:47622) ─────────────────────
+ * The page sits inside OsanKiosk's shift, so every frame y below is written as
+ * `y − --osan-mode-push` to land on the frame's absolute value. */
+.lowHeader {
+  position: absolute;
+  left: 0;
+  top: calc(719px - var(--osan-mode-push, 0px));
+  width: 2160px;
+  height: 700px;
+}
+
+/* 오산시 / MBTI — 580×170 with 200 between, at 3440. The two frames start the
+   pair at x356 (detail) and x426 (MBTI); centred here so the tabs do not jump
+   when the visitor switches between them. */
+.lowEvents .regionTabs {
+  top: calc(3440px - var(--osan-mode-push, 0px));
+  gap: 200px;
+}
+
+.lowEvents .regionTab {
+  width: 580px;
+}
+
+/* 7887:48675 — 전체 ㅣ 공연 ㅣ 전시 ㅣ 기타 at 3660, centred. */
+.lowEvents .categoryRow {
+  top: calc(3660px - var(--osan-mode-push, 0px));
+}
+
+/* 7878:48039 — the detail card at 1342 (the shared page draws it at 1090). */
+.lowEvents .detailSlot {
+  transform: translateY(calc(252px - var(--osan-mode-push, 0px)));
+}
+
+/* No frame for the list: it takes the card's slot, 1342 + its own 1675 window,
+   with the pill and ▲/▼ on the frames' usual marks. */
+.lowEvents .list {
+  top: calc(1342px - var(--osan-mode-push, 0px));
+}
+
+.lowEvents .emptyState {
+  top: calc(2179.6px - var(--osan-mode-push, 0px));
+}
+
+.lowEvents .track {
+  top: calc(1468px - var(--osan-mode-push, 0px));
+}
+
+.lowEvents .scrollUp   { top: calc(2103px - var(--osan-mode-push, 0px)); }
+.lowEvents .scrollDown { top: calc(2223px - var(--osan-mode-push, 0px)); }
+
+/* 7887:48677 — rule, QR and source at 3194. */
+.lowEvents .qrFooter {
+  top: calc(3194px - var(--osan-mode-push, 0px));
+}
+
+/* 7878:47632 — the 4×2 grid at (338, 1789); same 113 / 90 gaps. */
+.lowEvents .mbtiGrid {
+  left: 338px;
+  top: calc(1789px - var(--osan-mode-push, 0px));
+  transform: none;
+}
+
+/* 7878:47629 — 추천 결과 보기 at (856, 2642). */
+.lowEvents .mbtiCta {
+  left: 856px;
+  top: calc(2642px - var(--osan-mode-push, 0px));
+  transform: none;
+}
+
+/* 7878:47631 — the copy, 992 wide at x610, middle at 3157. */
+.lowEvents .mbtiDesc {
+  left: 610px;
+  top: calc(3157px - var(--osan-mode-push, 0px));
+  transform: translateY(-50%);
+}
+
+/* The promo under the mode bar. Its own −push transform already undoes the
+   shift, so top is the frame's 146. */
+.lowEvents .searchBanner {
+  top: 146px;
 }

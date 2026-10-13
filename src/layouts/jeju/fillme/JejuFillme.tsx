@@ -27,8 +27,8 @@
  *  · 문구가 한국어뿐이다. 제주는 8개 언어를 쓰지만 동의·개인정보처리방침은 법적
  *    문구라 임의로 번역하지 않는다 — 번역본을 받아 Localization_Jeju 에 올리는
  *    것이 다음 단계다. copy.ts 머리말 참고.
- *  · 손톱 카메라 모델과 설치 방향은 [확인 필요]. config.ts 의 VITE_FILLME_CAMERA_*
- *    로 조정한다.
+ *  · 손 카메라는 Arducam 16MP 이고 회전 없이 달린다(0°). 이 화면 전용이다 —
+ *    Elgato 는 사진촬영, ZED 2i 는 키·신체 치수 측정. config.ts 참고.
  */
 import { useCallback, useEffect, useRef, useState } from 'react';
 import type { KioskController } from '@renderer/hooks/useKioskController';

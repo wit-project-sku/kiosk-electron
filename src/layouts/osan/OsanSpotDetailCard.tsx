@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, type ReactNode } from 'react';
 import { QRCodeSVG } from 'qrcode.react';
 import iconNaver from '@renderer/assets/photos/insadong/ai/icon-naver.png';
 import qrImg from '@renderer/assets/photos/insadong/ai/detail-qr.png';
@@ -34,10 +34,27 @@ function RatingStar({ filled }: { filled: boolean }): JSX.Element {
 }
 
 /**
- * Osan place-detail card — same layout as the insadong 검색상세, but with the
- * Osaek navy theme (var(--kiosk-primary) accents) and the user-provided marker/alarm/phone icons.
+ * Osan place-detail card — Figma 오산>검색-03 7812:105263 (R>검색상세-사진4개):
+ * name · category, four photos, address / hours / phone with the QR, the
+ * description and tags, then the Naver rating. Icons are the existing navy
+ * marker / alarm / phone exports and the shared Naver mark.
  */
-export function OsanSpotDetailCard({ data }: { data: SpotDetailData }): JSX.Element {
+export function OsanSpotDetailCard({
+  data,
+  lowered = false,
+  map,
+  className,
+}: {
+  data: SpotDetailData;
+  /** 오산>여기는오색시장-01-2 (7862:44961): a 1514×631 map above the title; the
+      card grows to 2215 to hold it. */
+  map?: ReactNode;
+  /** Extra class on the positioned wrapper (a page-specific top). */
+  className?: string;
+  /** 오산>정이 뭐먹지-02 (7838:116041): from the 뭐먹지/뭐사지 lists the card
+      sits at y977 rather than 검색-03's y700. */
+  lowered?: boolean;
+}): JSX.Element {
   // Real photos drive the lightbox; the grid is padded to 4 with the no-image
   // placeholder so the 2×2 layout always holds its shape.
   // See SpotDetailCard: shop rows can carry a null address/tags, and a string
@@ -57,32 +74,33 @@ export function OsanSpotDetailCard({ data }: { data: SpotDetailData }): JSX.Elem
   const hours = (data.hours ?? []).filter((h) => str(h).trim());
 
   return (
-    <div className={styles.content}>
-      <div className={styles.card}>
-        {/* Title + gallery */}
-        <div className={styles.head}>
-          <div className={styles.titleRow}>
-            <h2 className={styles.title}>{data.name}</h2>
+    <div className={`${styles.content} ${lowered ? styles.contentLowered : ''} ${className ?? ''}`}>
+      <div className={`${styles.card} ${map ? styles.cardWithMap : ''}`}>
+        {map && <div className={styles.mapSlot}>{map}</div>}
+        <div className={styles.titleRow}>
+          <h2 className={styles.title}>{data.name}</h2>
+          {str(data.category).trim() && (
             <span className={styles.cat}>
               <span className={styles.dot} />
               {data.category}
             </span>
-          </div>
-          <div className={styles.gallery}>
-            {photos.map((src, i) => {
-              const isReal = i < realPhotos.length;
-              return (
-                <div
-                  key={i}
-                  className={styles.galleryCell}
-                  data-clickable={isReal ? 'true' : undefined}
-                  onClick={isReal ? () => setLightboxIndex(i) : undefined}
-                >
-                  <img className={styles.galleryImg} src={src} alt="" draggable={false} />
-                </div>
-              );
-            })}
-          </div>
+          )}
+        </div>
+
+        <div className={styles.gallery}>
+          {photos.map((src, i) => {
+            const isReal = i < realPhotos.length;
+            return (
+              <div
+                key={i}
+                className={styles.galleryCell}
+                data-clickable={isReal ? 'true' : undefined}
+                onClick={isReal ? () => setLightboxIndex(i) : undefined}
+              >
+                <img className={styles.galleryImg} src={src} alt="" draggable={false} />
+              </div>
+            );
+          })}
         </div>
 
         <div className={styles.divider} />
@@ -92,14 +110,16 @@ export function OsanSpotDetailCard({ data }: { data: SpotDetailData }): JSX.Elem
         <div className={styles.info}>
           <div className={styles.infoCol}>
             {str(data.address).trim() && (
-              <div className={styles.infoRow}>
+              <div className={`${styles.infoRow} ${styles.rowAddress}`}>
                 {marker && <img className={styles.infoIcon} src={marker} alt="" draggable={false} />}
                 <span className={styles.infoText}>{data.address}</span>
               </div>
             )}
             {hours.length > 0 && (
-              <div className={styles.infoRow}>
-                {alarm && <img className={styles.infoIcon} src={alarm} alt="" draggable={false} />}
+              <div className={`${styles.infoRow} ${styles.rowHours}`}>
+                <span className={styles.alarmFrame}>
+                  {alarm && <img className={styles.alarmIcon} src={alarm} alt="" draggable={false} />}
+                </span>
                 <div className={styles.infoTextCol}>
                   {hours.map((h) => (
                     <span key={h} className={styles.infoText}>
@@ -110,7 +130,7 @@ export function OsanSpotDetailCard({ data }: { data: SpotDetailData }): JSX.Elem
               </div>
             )}
             {str(data.phone).trim() && (
-              <div className={styles.infoRow}>
+              <div className={`${styles.infoRow} ${styles.rowPhone}`}>
                 {phone && <img className={styles.infoIcon} src={phone} alt="" draggable={false} />}
                 <span className={styles.infoText}>{data.phone}</span>
               </div>
@@ -127,13 +147,17 @@ export function OsanSpotDetailCard({ data }: { data: SpotDetailData }): JSX.Elem
 
         <div className={styles.divider} />
 
-        {/* Description + tags */}
-        <p className={styles.desc}>{data.description}</p>
-        <p className={styles.descTags}>{data.tags}</p>
+        <div className={styles.descBlock}>
+          <div className={styles.desc}>
+            <p className={styles.descClamp}>{data.description}</p>
+          </div>
+          <p className={styles.descTags}>{data.tags}</p>
+        </div>
 
         <div className={styles.divider} />
 
-        {/* Naver rating */}
+        {/* Ratings — the frame also draws Instagram followers and a blog-review
+            count, but the shop data carries neither, so only Naver is shown. */}
         <div className={styles.ratings}>
           <div className={styles.ratingItem}>
             <img className={styles.ratingIcon} src={iconNaver} alt="" draggable={false} />

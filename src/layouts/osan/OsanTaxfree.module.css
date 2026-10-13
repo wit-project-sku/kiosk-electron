@@ -17,11 +17,13 @@
   height: 100%;
   object-fit: cover;
   pointer-events: none;
+  /* ♿ stays at y0 while the page under the mode bar moves down (OsanKiosk). */
+  transform: translateY(calc(-1 * var(--osan-mode-push, 0px)));
 }
 
 /* ======================================================
-   BODY — shared white card / webview wrapper; top/height set inline.
-   Tab row at 2999; banner at 3267.
+   BODY — the white card (7838:124719, 1820×2290 at 170, 664) holding the tab
+   artwork or the refund webview; top/height set inline. Tabs at 3016.
    ====================================================== */
 .body {
   position: absolute;
@@ -30,6 +32,15 @@
   border-radius: 42.9px;
   overflow: hidden;
   background: #ffffff;
+}
+
+.embedFrame {
+  position: absolute;
+  left: 194.43px;
+  top: 114.77px;
+  width: 1475.15px;
+  height: 2122px;
+  overflow: hidden;
 }
 
 .embed {
@@ -675,14 +686,15 @@
 }
 
 /* ======================================================
-   BOTTOM TABS
-   top = 699 + 2290 + 64.7 = 3053.7px
+   BOTTOM TABS (7838:124810): three 580×170 r42.9 tabs across 1814 from x197,
+   y3016 — Figma's row sits 27 right of the card in all three frames.
+   Pretendard Medium 50 main 01 on white; selected main 01 with Bold white.
+   세금 환급 신청 keeps a 2.145 main-01 outline while it is not selected.
    ====================================================== */
 .tabs {
   position: absolute;
-  left: 50%;
-  transform: translateX(-50%);
-  top: 2999px;
+  left: 197px;
+  top: 3016px;
   width: 1814px;
   display: flex;
   align-items: center;
@@ -698,28 +710,35 @@
   align-items: center;
   justify-content: center;
   background: #ffffff;
-  border: 2.145px solid var(--kiosk-primary);
+  border: none;
   border-radius: 42.905px;
   box-shadow: 0 21.453px 42.905px rgba(143, 147, 157, 0.1);
-  font-family: var(--kiosk-font, sans-serif);
+  font-family: 'Pretendard', var(--kiosk-font, sans-serif);
   font-weight: 500;
-  font-size: 52px;
+  font-size: 50px;
   color: var(--kiosk-primary);
   cursor: pointer;
   text-align: center;
   padding: 0 18px;
-  line-height: 1.2;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.tabOutlined {
+  border: 2.145px solid var(--kiosk-primary);
 }
 
 .tabSelected {
   background: var(--kiosk-primary);
+  font-weight: 700;
   color: #ffffff;
 }
 
 .banner {
   position: absolute;
   left: 0;
-  bottom: 0;
+  top: 3267px;
+  transform: translateY(calc(-1 * var(--osan-mode-push, 0px)));
   width: 2160px;
   height: 573px;
   padding: 0;
@@ -740,17 +759,25 @@
  * Reached only through a class the TSX adds when lang !== 'ko' — the Korean
  * screen is untouched.
  *
- * The 580×170 tab holds 환급방법 / 텍스프리 소개 / 가맹점 on one 52px line. The
+ * The 580×170 tab holds 세금 환급 신청 / 텍스프리 소개 / 가맹점 신청 on one 50px line. The
  * same tab has to hold "How to get a refund", "Как получить возврат" and
  * "ร้านค้าที่ร่วมรายการ" — on one line those run past the tab and into the one
  * beside it. The label wraps inside the tab instead, and the row shrinks as one
  * if the longest still does not fit (`--fit`, useFitText — never below 0.72 →
- * 37px). Nothing is clipped. */
+ * 36px). Nothing is clipped. */
 .tabLong {
   white-space: normal;
   word-break: keep-all;
   overflow-wrap: anywhere;
   padding: 0 20px;
-  font-size: calc(52px * var(--fit, 1));
+  font-size: calc(50px * var(--fit, 1));
   line-height: 1.12;
+}
+
+/* ── ♿ (B오산>TAXFREE-01 7887:50688) ── The tabs at the foot: 3 × 580, 37
+   apart, centred (x173) at 3441. The frame draws the card at x202 — 32 off the
+   170 every other page and its own normal frame use — so the card keeps 170. */
+.low .tabs {
+  left: 173px;
+  top: calc(3441px - var(--osan-mode-push, 0px));
 }

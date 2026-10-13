@@ -43,8 +43,8 @@ export function OsanScreen({ screen, controller }: OsanScreenProps): JSX.Element
 
   return (
     <>
-      {osanIconUrl('bg') && (
-        <img className={styles.bg} src={osanIconUrl('bg')} alt="" draggable={false} />
+      {osanIconUrl('page-bg') && (
+        <img className={styles.bg} src={osanIconUrl('page-bg')} alt="" draggable={false} />
       )}
 
       <OsanHeader title={title} onHome={goHome} />

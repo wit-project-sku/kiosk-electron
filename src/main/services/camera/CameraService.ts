@@ -79,7 +79,7 @@ export class CameraService {
    * ignored instead of quietly re-breaking capture.
    */
   private selectableDevices(): CameraDeviceInfo[] {
-    return this.cachedDevices.filter((d) => d.vendor !== 'depth');
+    return this.cachedDevices.filter((d) => d.vendor !== 'depth' && d.vendor !== 'hand');
   }
 
   /** Select best camera: saved preference → Elgato → first available. */
@@ -95,7 +95,7 @@ export class CameraService {
     if (elgato) return elgato.deviceId;
 
     // Deliberately the first SELECTABLE device, never simply the first
-    // enumerated one — see DEPTH_CAMERA_PATTERN in @shared/config/cameras.
+    // enumerated one — see isReservedCamera in @shared/config/cameras.
     return selectable[0]?.deviceId ?? null;
   }
 

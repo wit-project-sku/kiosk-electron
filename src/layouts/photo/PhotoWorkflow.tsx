@@ -18,6 +18,7 @@ import { HanbokSelect, type CaptureMode } from './HanbokSelect';
 import { JejuHanbokSelect } from '../jeju/JejuHanbokSelect';
 import { JejuWaitingGames } from '../jeju/games/JejuWaitingGames';
 import { usePhotoChrome } from './photoChrome';
+import { OsanLeftNav } from '@layouts/osan/OsanLeftNav';
 import { MARKET_SUBTITLE, RESULT, RESULT_KADA } from './photoTexts';
 import styles from './PhotoWorkflow.module.css';
 
@@ -109,10 +110,10 @@ export function PhotoWorkflow(): JSX.Element {
   // big screen back on its attract video. Never deferring also means there is
   // nothing to release, so the hand-over below stays a no-op for 인사동.
   useEffect(() => {
-    if (!playsWaitingGame || chrome.isInsadong || phase !== 'generating' || deferredRef.current) return;
+    if (!playsWaitingGame || (chrome.isInsadong || chrome.isOsan) || phase !== 'generating' || deferredRef.current) return;
     deferredRef.current = true;
     void window.api.photo.setDeferResultDisplay(true);
-  }, [playsWaitingGame, chrome.isInsadong, phase]);
+  }, [playsWaitingGame, (chrome.isInsadong || chrome.isOsan), phase]);
 
   // A new session (or a 다시찍기 / 홈) re-arms the gate. Keyed on the phase
   // leaving the generating→result pair rather than on the reset handler, so
@@ -232,7 +233,7 @@ export function PhotoWorkflow(): JSX.Element {
         aiReady={phase === 'result'}
         onFinish={handleGameFinish}
         onHome={handleReset}
-        readyModal={chrome.isInsadong}
+        readyModal={(chrome.isInsadong || chrome.isOsan)}
       />
     );
   }
@@ -312,6 +313,10 @@ export function PhotoWorkflow(): JSX.Element {
           </button>
         </div>
 
+        {chrome.isOsan ? (
+          /* 오산: the shared rail (home · back · ♿), as on every other 오산 page. */
+          <OsanLeftNav onHome={handleReset} onBack={handleReset} />
+        ) : (
         <div className={`${styles.leftNav} ${isJeju ? styles.leftNavJeju : ''}`}>
           <button type="button" className={styles.leftNavBtn} onClick={handleReset} aria-label="홈으로">
             {icon('home-btn') && <img src={icon('home-btn')} alt="" draggable={false} />}
@@ -339,6 +344,7 @@ export function PhotoWorkflow(): JSX.Element {
             </button>
           )}
         </div>
+        )}
 
         {banner && (
           <button type="button" className={styles.banner} onClick={handleReset} aria-label="가상 한복 체험">
@@ -456,6 +462,9 @@ export function PhotoWorkflow(): JSX.Element {
           icon('partner-bar') && (
             <img className={styles.kadaPartnerBar} src={icon('partner-bar')} alt="" draggable={false} />
           )
+        ) : chrome.isOsan ? (
+          /* 오산: the shared rail (home · back · ♿), as on every other 오산 page. */
+          <OsanLeftNav onHome={handleReset} onBack={handleReset} />
         ) : (
           <div className={styles.leftNav}>
             <button type="button" className={styles.leftNavBtn} onClick={handleReset} aria-label="홈으로">

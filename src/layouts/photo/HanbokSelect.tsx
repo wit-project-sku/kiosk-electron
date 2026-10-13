@@ -18,6 +18,8 @@ import type { OutfitSubCategory } from '@shared/types/outfit';
 import hanbokInfo from '@renderer/assets/photos/insadong/hanbok/hanbok-info.png';
 import { HANBOK_INFO, PRIVACY } from './photoTexts';
 import { SwipeNav, useSwipeNav } from './SwipeNav';
+import { useAccessibilityStore } from '@renderer/store/accessibilityStore';
+import { OsanLeftNav } from '@layouts/osan/OsanLeftNav';
 import styles from './HanbokSelect.module.css';
 
 /** Sheet-backed labels — every location's Localization tab carries these in all
@@ -56,11 +58,16 @@ interface Tab {
 
 /**
  * The 한복 설명 page's illustration strip — NOT a tab. The page is specifically
- * about 한복, so its carousel shows the two registered 한복 categories whatever
- * tab it was opened from (these are the registered names, "hannbok" typo and
- * all — see outfitStore's BUNDLED_CATEGORY_NAMES).
+ * about 한복, so its carousel shows the 한복 categories whatever tab it was
+ * opened from.
+ *
+ * Matched by SHAPE, like JejuHanbokSelect's `isHanbokCategory`: this used to be
+ * the fixed pair `['w=hannbok', 'm=hanbok']`, and the current catalogue merged
+ * them into a single `hanbok` (22 outfits for OSAEK on stage, 2026-10-13), so
+ * the strip came up EMPTY on the kiosk. The pattern covers every spelling either
+ * catalogue has used (the retired `w=` / `m=` prefixes, the server's "hannbok").
  */
-const HANBOK_INFO_CATS = ['w=hannbok', 'm=hanbok'];
+const isHanbokCategory = (name: string): boolean => /^(?:[wm]=)?hann?bok$/i.test(name.trim());
 
 /**
  * Tab-row geometry. The Figma frame draws 8 tabs as 2 rows of 4 (420-wide
@@ -95,6 +102,31 @@ const NO_OUTFITS = {
   ru: 'Наряды готовятся.',
   id: 'Busana sedang disiapkan.',
 };
+/** Osan picker copy (Figma 7878:42863 / 7878:43050) that the sheets do not carry. */
+const OSAN_CAPTION = {
+  ko: '면세혜택',
+  en: 'Tax-free benefit',
+  ja: '免税特典',
+  zh: '免税优惠',
+  vi: 'Ưu đãi miễn thuế',
+  th: 'สิทธิ์ยกเว้นภาษี',
+  ru: 'Льгота без налогов',
+  id: 'Bebas pajak',
+};
+const OSAN_NOTE = {
+  ko: 'WITH의 모든 한복은 박술녀 한복입니다.',
+  en: 'Every WITH hanbok is made by Park Sul-nyeo.',
+  ja: 'WITHのすべての韓服はパク・スルニョの韓服です。',
+  zh: 'WITH的所有韩服均为朴淑女韩服。',
+  vi: 'Tất cả hanbok của WITH đều là hanbok của Park Sul-nyeo.',
+  th: 'ฮันบกทั้งหมดของ WITH เป็นฮันบกของพัค ซุลนยอ',
+  ru: 'Все ханбоки WITH — от Пак Сульнё.',
+  id: 'Semua hanbok WITH adalah karya Park Sul-nyeo.',
+};
+/** Osan picker: five outfit columns across 1820px, with a 17.5px gap (Figma 7878:42878). */
+const OSAN_COLUMNS = 5;
+const OSAN_GAP = 17.5;
+
 /** Click-and-drag (grab) horizontal scrolling for the 한복 설명 carousel. */
 function useDragScroll(): {
   ref: React.RefObject<HTMLDivElement | null>;
@@ -154,6 +186,11 @@ export function HanbokSelect({ onCapture, onHome, countdownActive = false }: Han
   const rotating = useRotatingBanner();
   const lang = useLang();
   const { isOsan, isHwaseong, isKada, icon, Header, photoTitle, banner: chromeBanner } = usePhotoChrome();
+  /* ♿ on 오산 (AR 한복체험 7894:56944): the full header (with its description),
+     the 사진촬영안내 card moved up under it, the picker below with looser gaps,
+     the capture row at the foot — and no promo. */
+  const lowReach = useAccessibilityStore((s) => s.lowReach);
+  const lowOsan = isOsan && lowReach;
   // Osan/Hwaseong have their own single promo banner; insadong rotates through several.
   const banner = chromeBanner ?? rotating;
   // Camera-direction popup (shown while the photo is captured/sent to AI) —
@@ -252,7 +289,8 @@ export function HanbokSelect({ onCapture, onHome, countdownActive = false }: Han
    * `CARDS_PER_VIEW` on screen.
    */
   const nav = useSwipeNav();
-  const canSwipe = Math.ceil(outfits.length / CARD_ROWS) > CARDS_PER_VIEW;
+  const cardsPerView = isOsan ? OSAN_COLUMNS : CARDS_PER_VIEW;
+  const canSwipe = Math.ceil(outfits.length / CARD_ROWS) > cardsPerView;
   // AR fields: gender + specific outfit code, passed through as the clothing key.
   const outfitKey = selectedOutfit ? `${selectedOutfit.gender ?? ''}|${selectedOutfit.code}` : '';
 
@@ -265,10 +303,13 @@ export function HanbokSelect({ onCapture, onHome, countdownActive = false }: Han
   };
 
   // 한복 설명 always shows ALL hanbok (여자 한복 + 남자 한복), never the last-picked tab.
-  const allHanbok = HANBOK_INFO_CATS.flatMap((name) => byCategory[name] ?? []).filter(isOk);
+  const allHanbok = Object.entries(byCategory)
+    .filter(([name]) => isHanbokCategory(name))
+    .flatMap(([, list]) => list)
+    .filter(isOk);
 
   /** 2 rows, columns derived from the count — see TAB_ROWS. */
-  const tabColumns = Math.max(TAB_MIN_COLUMNS, Math.ceil(tabs.length / TAB_ROWS));
+  const tabColumns = Math.max(isOsan ? OSAN_COLUMNS : TAB_MIN_COLUMNS, Math.ceil(tabs.length / TAB_ROWS));
   const tabRows = Array.from({ length: TAB_ROWS }, (_, r) =>
     tabs.slice(r * tabColumns, r * tabColumns + tabColumns),
   ).filter((row) => row.length > 0);
@@ -288,8 +329,10 @@ export function HanbokSelect({ onCapture, onHome, countdownActive = false }: Han
         )}
         {/* KADA has no Localization sheet, so t() here would render the Korean
             fallback on a Hanoi kiosk — its header shows the venue wordmark. */}
-        <Header title={isKada ? photoTitle : t(HANBOK_INFO_KEY, lang)} onHome={onHome} onBack={() => setInfoOpen(false)} />
-        <div className={styles.infoContent}>
+        {/* 7878:43050 shows the header's description line on this page (the picker
+            itself hides it). */}
+        <Header title={isKada || isOsan ? photoTitle : t(HANBOK_INFO_KEY, lang)} onHome={onHome} onBack={() => setInfoOpen(false)} />
+        <div className={`${styles.infoContent} ${isOsan ? styles.osanRoot : ''}`}>
           <div
             ref={infoDrag.ref}
             className={styles.infoCarousel}
@@ -301,7 +344,16 @@ export function HanbokSelect({ onCapture, onHome, countdownActive = false }: Han
           >
             {allHanbok.map((o, i) => (
               <div key={o.code} className={`${styles.infoThumb} ${i === 0 ? styles.infoThumbSel : ''}`}>
-                <img src={o.url} alt="" draggable={false} decoding="async" onError={() => markBroken(o.code)} />
+                {isOsan ? (
+                  <>
+                    <div className={styles.osanCard}>
+                      <img src={o.url} alt="" draggable={false} decoding="async" onError={() => markBroken(o.code)} />
+                    </div>
+                    <span className={styles.osanCap}>{pick(OSAN_CAPTION, lang)}</span>
+                  </>
+                ) : (
+                  <img src={o.url} alt="" draggable={false} decoding="async" onError={() => markBroken(o.code)} />
+                )}
               </div>
             ))}
           </div>
@@ -355,7 +407,7 @@ export function HanbokSelect({ onCapture, onHome, countdownActive = false }: Han
               aria-label="사진촬영"
             />
           </div>
-        ) : (
+        ) : isOsan ? null : (
           <div className={styles.infoNav}>
             {icon('bottom-bar-classic') && <img className={styles.infoNavBg} src={icon('bottom-bar-classic')} alt="" draggable={false} />}
             <button type="button" className={styles.infoNavLeft} onClick={() => setInfoOpen(false)}>
@@ -392,7 +444,10 @@ export function HanbokSelect({ onCapture, onHome, countdownActive = false }: Han
         {/* KADA draws home and back inside its header (KadaHeader), so this
             floating pair would be a second, duplicate set of the same two
             controls on the same screen. */}
-        {!isKada && (
+        {/* 오산: the rail every other 오산 page carries — home · back · ♿ at
+            (48, 2043). Back closes 한복 설명 and returns to the picker. */}
+        {isOsan && <OsanLeftNav onHome={onHome} onBack={() => setInfoOpen(false)} />}
+        {!isKada && !isOsan && (
           <div className={styles.leftNav}>
             <button type="button" className={styles.leftNavBtn} onClick={onHome} aria-label="홈으로">
               {icon('home-btn') && <img src={icon('home-btn')} alt="" draggable={false} />}
@@ -427,9 +482,9 @@ export function HanbokSelect({ onCapture, onHome, countdownActive = false }: Han
           is the first step of the flow, so there is nothing behind it but the
           way out. KADA draws that pair in the header, and without an onBack
           KadaHeader renders no arrow at all, which is why it went missing. */}
-      <Header title={photoTitle} onHome={onHome} onBack={onHome} />
+      <Header title={photoTitle} onHome={onHome} onBack={onHome} subtitleHidden={isOsan && !lowOsan} />
 
-      <div className={styles.content}>
+      <div className={`${styles.content} ${isOsan ? styles.osanRoot : ''} ${lowOsan ? styles.lowOsan : ''}`}>
         {/* Step 1 */}
         <div className={styles.stepHead}>
           <div className={styles.stepRow}>
@@ -447,7 +502,7 @@ export function HanbokSelect({ onCapture, onHome, countdownActive = false }: Han
             row still measures the design's 420 at 8 tabs and simply divides
             the same 1820 differently when the operator registers more. */}
         <div
-          className={`${styles.tabs} ${tabColumns >= TAB_TIGHT_FROM ? styles.tabsTight : ''}`}
+          className={`${styles.tabs} ${tabColumns >= TAB_TIGHT_FROM && !isOsan ? styles.tabsTight : ''}`}
           style={{ '--tab-cols': tabColumns } as React.CSSProperties}
         >
           {tabRows.map((row, i) => (
@@ -508,6 +563,7 @@ export function HanbokSelect({ onCapture, onHome, countdownActive = false }: Han
           </div>
           {/* The band is reserved on every tab (see above), so the pair keeps
               its place whether or not the category has chips. */}
+          {isOsan && <p className={styles.osanNote}>{pick(OSAN_NOTE, lang)}</p>}
           {canSwipe && <SwipeNav nav={nav} />}
         </div>
 
@@ -518,8 +574,8 @@ export function HanbokSelect({ onCapture, onHome, countdownActive = false }: Han
             className={styles.grid}
             modules={[Grid, FreeMode]}
             grid={{ rows: CARD_ROWS, fill: 'row' }}
-            slidesPerView={CARDS_PER_VIEW}
-            spaceBetween={CARD_GAP}
+            slidesPerView={cardsPerView}
+            spaceBetween={isOsan ? OSAN_GAP : CARD_GAP}
             freeMode
             /* The ← → pair on the chip band drives this strip and follows a
                drag — see useSwipeNav. */
@@ -540,6 +596,7 @@ export function HanbokSelect({ onCapture, onHome, countdownActive = false }: Han
                 >
                   <img src={o.url} alt="" draggable={false} decoding="async" onError={() => markBroken(o.code)} />
                 </button>
+                {isOsan && <span className={styles.osanCap}>{pick(OSAN_CAPTION, lang)}</span>}
               </SwiperSlide>
             ))}
           </Swiper>
@@ -600,7 +657,10 @@ export function HanbokSelect({ onCapture, onHome, countdownActive = false }: Han
       )}
       {/* Not `hidden` — .leftNav sets display:flex, which outranks the hidden
           attribute's UA display:none, so it would still have been drawn. */}
-      {!isKada && (
+      {/* 오산 takes the shared rail (home · back · ♿) so the ♿ toggle is
+          reachable here too, as on every other 오산 page. */}
+      {isOsan && <OsanLeftNav onHome={onHome} onBack={onHome} />}
+      {!isKada && !isOsan && (
         <div className={styles.leftNav}>
           <button type="button" className={styles.leftNavBtn} onClick={onHome} aria-label="홈으로">
             {icon('home-btn') && <img src={icon('home-btn')} alt="" draggable={false} />}
@@ -611,7 +671,7 @@ export function HanbokSelect({ onCapture, onHome, countdownActive = false }: Han
         </div>
       )}
 
-      {banner && (
+      {banner && !lowOsan && (
         <div className={styles.banner}>
           <img src={banner} alt="" draggable={false} />
         </div>
@@ -629,7 +689,7 @@ export function HanbokSelect({ onCapture, onHome, countdownActive = false }: Han
 
       {/* 개인정보 처리방침 popup */}
       {privacyOpen && (
-        <div className={styles.privacyOverlay} onClick={() => setPrivacyOpen(false)}>
+        <div className={`${styles.privacyOverlay} ${isOsan ? styles.osanOverlay : ''}`} onClick={() => setPrivacyOpen(false)}>
           <div className={styles.privacyModal} onClick={(e) => e.stopPropagation()}>
             <div className={styles.privacyHead}>
               <span className={styles.privacyTitle}>{pick(PRIVACY, lang).title}</span>

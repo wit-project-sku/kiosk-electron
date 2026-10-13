@@ -1,31 +1,5 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
-import { QRCodeSVG } from 'qrcode.react';
 import type { KioskController } from '@renderer/hooks/useKioskController';
-import { osanIconUrl } from '@renderer/assets/icons/osan';
-import { useDetailStore } from '@renderer/store/detailStore';
-import { useShopStore } from '@renderer/store/shopStore';
-import { useLang } from '@renderer/lib/i18n';
-import { useFitText } from '@layouts/components/fitText';
-import {
-  shopAddress,
-  shopDescription,
-  shopHashtag,
-  shopImages,
-  shopName,
-  shopSecondCategory,
-  shopsForBase,
-  stripPrefix,
-} from '@renderer/lib/shops';
-import { OsanHeader } from './OsanHeader';
-import { OsanLeftNav } from './OsanLeftNav';
-import styles from './OsanHelp.module.css';
-
-const BASE_CATEGORY = '정이 도와줘';
-
-/** Keep the card compact — show at most 3 hashtags so the text never runs into the QR. */
-function firstTags(raw: string, max = 3): string {
-  return raw.split(/\s+/).filter(Boolean).slice(0, max).join(' ');
-}
+import { OsanListScreen } from './OsanListScreen';
 
 interface OsanHelpProps {
   controller: KioskController;
@@ -33,127 +7,12 @@ interface OsanHelpProps {
   initialTab?: string;
 }
 
-/** 도와줘 '정이' — facility finder (category grid + photo/QR cards), shops API. */
+/**
+ * 도와줘 '정이' — Figma 7865:47290 (list) / 7865:47140 (상세). The facility list
+ * is the 뭐먹지/뭐사지 list screen with no ㄱ–ㅎ row: category tabs from the
+ * '정이 도와줘' shops (온누리상품권 · 은행 · 흡연실 · 화장실 · 주차장 · 마트&편의점),
+ * 390px cards in the 2589 window, and the same lowered 상세 card.
+ */
 export function OsanHelp({ controller, initialTab }: OsanHelpProps): JSX.Element {
-  const goHome = (): void => controller.navigate('home', 'Back');
-  const lang = useLang();
-  const shops = useShopStore((s) => s.shops);
-  const setDetail = useDetailStore((s) => s.setItem);
-  const [selected, setSelected] = useState('');
-
-  /* Korean facility names fit the 580px box on one line; every other language
-     runs longer ("Пункт обмена валют"). There the label wraps and the whole set
-     shrinks together if it still overflows — see "Other languages" in the CSS. */
-  const wide = lang !== 'ko';
-  const catsRef = useRef<HTMLDivElement>(null);
-
-  const baseShops = useMemo(() => shopsForBase(shops, BASE_CATEGORY), [shops]);
-
-  // Category tabs derived from the actual shop data (secondCategoryKr), sorted
-  // by the leading "N-" prefix — same as the 뭐먹지/뭐사지 list screens.
-  const tabs = useMemo(() => {
-    const map = new Map<string, string>();
-    for (const s of baseShops) {
-      const kr = s.secondCategoryKr;
-      if (kr && !map.has(kr)) map.set(kr, shopSecondCategory(s, lang));
-    }
-    return [...map.entries()]
-      .map(([kr, label]) => ({ kr, label }))
-      .sort((a, b) => (parseInt(a.kr, 10) || 999) - (parseInt(b.kr, 10) || 999));
-  }, [baseShops, lang]);
-
-  // Deep-link (e.g. 화장실 from the restroom tile) matches a tab by its bare name.
-  const initialKr = initialTab ? tabs.find((t) => stripPrefix(t.kr) === initialTab)?.kr : undefined;
-  const activeKr = selected || initialKr || tabs[0]?.kr || '';
-
-  useEffect(() => {
-    // The 화장실 (restroom) tile deep-links into this help screen but must keep the
-    // customer display on the 'restroom' → Toilet video that navigate() already
-    // set. Only the real 도와줘 help screen advances the display to its category clip.
-    if (controller.screen === 'restroom') return;
-    if (activeKr) void window.api.kiosk.setScreen('help_category');
-  }, [activeKr, controller.screen]);
-  const visible = useMemo(
-    () => baseShops.filter((s) => s.secondCategoryKr === activeKr),
-    [baseShops, activeKr],
-  );
-
-  const noImg = osanIconUrl('noimage');
-  const withFallback = (urls: string[]): string[] => (urls.length > 0 ? urls : noImg ? [noImg] : []);
-
-  const openDetail = (shop: (typeof shops)[number]): void => {
-    setDetail({
-      from: controller.screen,
-      title: "도와줘 '정이'",
-      name: shopName(shop, lang),
-      category: shopSecondCategory(shop, lang),
-      photos: withFallback(shopImages(shop)),
-      address: shopAddress(shop, lang),
-      hours: shop.openTime ?? '',
-      phone: shop.tel ?? '',
-      description: shopDescription(shop, lang),
-      tags: shopHashtag(shop, lang),
-      rating: shop.naverRating != null ? String(shop.naverRating) : '',
-      instagram: '',
-      blogReviews: shop.naverLink ?? '',
-    });
-    controller.navigate('detail', "도와줘 '정이' 상세");
-  };
-
-  useFitText(catsRef, styles.cat, wide, 0.72, tabs.map((x) => x.label).join('|'));
-
-  return (
-    <>
-      {osanIconUrl('bg') && <img className={styles.bg} src={osanIconUrl('bg')} alt="" draggable={false} />}
-
-      <OsanHeader title="도와줘 '정이'" onHome={goHome} />
-
-      <div className={styles.results}>
-        <div ref={catsRef} className={styles.cats}>
-          {tabs.map((tab) => (
-            <button
-              key={tab.kr}
-              type="button"
-              className={`${styles.cat} ${wide ? styles.catLong : ''} ${tab.kr === activeKr ? styles.catSel : ''}`}
-              onClick={() => setSelected(tab.kr)}
-            >
-              {tab.label}
-            </button>
-          ))}
-        </div>
-
-        <div className={styles.list}>
-          {visible.map((shop) => {
-            const photo = withFallback(shopImages(shop))[0];
-            return (
-              <button type="button" key={shop.id} className={styles.card} onClick={() => openDetail(shop)}>
-                <div className={styles.photo}>
-                  {photo && <img src={photo} alt="" draggable={false} loading="lazy" />}
-                </div>
-                <div className={styles.info}>
-                  <div className={styles.nameRow}>
-                    <span className={styles.name}>{shopName(shop, lang)}</span>
-                    <span className={styles.cat2}>
-                      <span className={styles.dot} />
-                      {shopSecondCategory(shop, lang)}
-                    </span>
-                  </div>
-                  <p className={styles.address}>{shopAddress(shop, lang)}</p>
-                  <p className={styles.hours}>{shop.openTime ?? ''}</p>
-                  <p className={styles.tags}>{firstTags(shopHashtag(shop, lang))}</p>
-                </div>
-                {shop.naverLink && (
-                  <div className={styles.qr}>
-                    <QRCodeSVG value={shop.naverLink} level="M" style={{ width: '100%', height: '100%' }} />
-                  </div>
-                )}
-              </button>
-            );
-          })}
-        </div>
-      </div>
-
-      <OsanLeftNav onHome={goHome} />
-    </>
-  );
+  return <OsanListScreen title="도와줘 '정이'" controller={controller} initials={false} initialTab={initialTab} />;
 }

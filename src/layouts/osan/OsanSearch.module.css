@@ -1,43 +1,34 @@
-/* 검색 (Osan) — same dimensions as InsadongSearch, navy accents. */
-.bg {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  pointer-events: none;
-}
-
+/*
+ * 오산 검색 results — Figma 7812:107004 (오산>검색-02). Artboard 2160×3840,
+ * 1 CSS px = 1 Figma px.
+ *
+ * 검색결과 7812:107007 at y700: the field row (182), gap 100, then the list
+ * 7812:107019 — 2640 tall (982 … 3622) and clipped, cards 390 + 60 gap. Only
+ * the list scrolls. No bottom banner in this frame.
+ */
 .results {
   position: absolute;
-  top: calc(699px + var(--header-push, 0px));
+  top: calc(700px + var(--header-push, 0px));
   left: 0;
   right: 0;
-  bottom: 573px;
+  bottom: 218px; /* 3840 − 3622: the list ends where the frame clips it */
   box-sizing: border-box;
   display: flex;
   flex-direction: column;
-  align-items: center;
+  align-items: flex-start;
   gap: 100px;
-  overflow-y: auto;
-  overflow-x: hidden;
-  padding: 0 170px 80px;
+  overflow: hidden;
+  padding: 0 0 0 170px;
 }
 
-.results::-webkit-scrollbar { width: 34px; }
-.results::-webkit-scrollbar-thumb {
-  background: var(--kiosk-primary);
-  border-radius: 21.45px;
-}
-.results::-webkit-scrollbar-track { background: transparent; }
-
-/* Search re-entry row */
+/* ── Search field (검색장 7812:107008 → field 7812:107012) ──
+   1350×182 centred in the 1820 row; white, 4.29 main-01 stroke, radius 120.
+   Figma's 75px side padding is measured from the frame edge — its auto layout
+   ignores the stroke, a CSS border does not — so 75 − 4.29. */
 .searchRow {
   flex: none;
   width: 1820px;
-  height: 182px;
   display: flex;
-  align-items: center;
   justify-content: center;
 }
 
@@ -49,13 +40,12 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  background: #ffffff;
-  border: 5px solid var(--kiosk-primary);
+  padding: 55px 70.71px;
+  background: #fff;
+  border: 4.29px solid #1a4d7e;
   border-radius: 120px;
-  padding: 55px 62px 55px 75px;
-  cursor: text;
-  overflow: hidden;
-  font-family: var(--kiosk-font, sans-serif);
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
 }
 
 .inputTextWrap {
@@ -67,73 +57,106 @@
   overflow: hidden;
 }
 
-.inputText,
-.inputPlaceholder {
+/* The query is drawn in the frame's grey (Noto Sans SemiBold 60.06 #999), the
+   same as the placeholder it replaces. */
+.inputText {
   min-width: 0;
-  font-size: 60px;
+  font-family: 'Noto Sans KR', var(--kiosk-font, sans-serif);
+  font-size: 60.06px;
   font-weight: 600;
   line-height: 1;
+  color: #999;
   white-space: nowrap;
   overflow: hidden;
   text-align: left;
-}
-
-.inputText        { color: #232323; }
-.inputPlaceholder { color: #999999; }
-
-.searchIcon {
-  flex: none;
-  width: 80px;
-  height: 77px;
-  flex-shrink: 0;
-  color: var(--kiosk-primary);
 }
 
 .caret {
   flex: none;
   width: 6px;
   height: 68px;
-  background: var(--kiosk-primary);
-  animation: blink 1s step-end infinite;
+  background: #1a4d7e;
+  animation: osanSearchCaret 1s step-end infinite;
 }
 
-@keyframes blink { 50% { opacity: 0; } }
+@keyframes osanSearchCaret {
+  50% { opacity: 0; }
+}
 
-/* Result list */
-.list {
+/* Icon box 71×68; the stroke overflows it, so the 80×77 glyph sits at −4.5. */
+.searchIcon {
+  position: relative;
   flex: none;
-  width: 100%;
-  display: flex;
-  flex-direction: column;
-  gap: 60px;
+  width: 71px;
+  height: 68px;
 }
 
-.card {
+.searchIconSvg {
+  position: absolute;
+  left: -4.5px;
+  top: -4.5px;
+  width: 80px;
+  height: 77px;
+  color: #1a4d7e;
+}
+
+/* ── Result list ──
+   Full width past the 1820 cards so the scrollbar sits on the artboard edge,
+   where the frame draws its thumb (Rectangle 4227: 34.32 wide at x2128, main 01,
+   fully rounded). 136 + the 34 track = 170, so each card stays 1820 at x170. */
+.list {
+  flex: 1;
+  min-height: 0;
   width: 100%;
-  height: 530px;
   box-sizing: border-box;
   display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 40px;
-  padding: 65px 45px;
-  background: #ffffff;
-  border: 5px solid #e8e8e8;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 60px;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: 0 136px 0 0;
+}
+
+.list::-webkit-scrollbar { width: 34.32px; }
+.list::-webkit-scrollbar-thumb {
+  background: #1a4d7e;
+  border-radius: 17.16px;
+}
+.list::-webkit-scrollbar-track { background: transparent; }
+
+/* Card R>리스트-사진4개: 1820×390, px45 py40, radius 42.9, plain white. Inner
+   row is 299 tall: info (1120) ↔ photos (606), justify-between → 4 apart.
+   `flex: none` is required — as a flex item in the list the card would
+   otherwise shrink to fit and crush its rows (see InsadongSearch.module.css). */
+.card {
+  flex: none;
+  width: 1820px;
+  height: 390px;
+  box-sizing: border-box;
+  display: flex;
+  align-items: flex-start;
+  gap: 4px; /* 1730 − 1120 − 606 */
+  padding: 40px 45px;
+  border: none;
   border-radius: 42.9px;
-  box-shadow: 0 21.45px 21.45px rgba(143, 147, 157, 0.1);
+  background: #fff;
+  font-family: 'Pretendard', var(--kiosk-font, sans-serif);
   text-align: left;
   cursor: pointer;
   overflow: hidden;
+  -webkit-tap-highlight-color: transparent;
 }
 
 .info {
   flex: 1;
   min-width: 0;
+  height: 299px;
   display: flex;
   flex-direction: column;
+  justify-content: center;
   gap: 40px;
   overflow: hidden;
-  font-family: var(--kiosk-font, sans-serif);
 }
 
 .nameRow {
@@ -143,6 +166,7 @@
   min-width: 0;
 }
 
+/* Name SemiBold 68 #2B2B2B · dot Ø17 main 01 · category Regular 52 #999. */
 .name {
   flex: 0 1 auto;
   min-width: 0;
@@ -163,7 +187,7 @@
   font-weight: 400;
   font-size: 52px;
   line-height: 1;
-  color: #999999;
+  color: #999;
   white-space: nowrap;
 }
 
@@ -171,55 +195,47 @@
   width: 17px;
   height: 17px;
   border-radius: 50%;
-  background: var(--kiosk-primary);
+  background: #1a4d7e;
 }
 
-.address {
-  margin: 0;
-  font-weight: 500;
-  font-size: 48px;
-  line-height: 1;
-  color: #999999;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
+/* Address Medium 48 #999; description Medium 48 #2B2B2B, one line. */
+.address,
 .desc {
   margin: 0;
   font-weight: 500;
   font-size: 48px;
-  line-height: 1.2;
-  color: #2b2b2b;
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
-}
-
-.tags {
-  margin: 0;
-  font-weight: 400;
-  font-size: 40px;
   line-height: 1;
-  color: #999999;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 
-.hl { color: var(--kiosk-primary); font-weight: 700; }
+.address { color: #999; }
+.desc    { color: #2b2b2b; }
 
+/* Matched query text — highlightMatch renders a <mark>, whose default yellow
+   box the frame does not have. */
+.hl {
+  background: transparent;
+  color: #1a4d7e;
+  font-weight: 700;
+}
+
+/* Two 288×160 photos, 30 apart, centred on the 299 row (the frame's 150-tall
+   strip lets them overhang 5px each way). */
 .photos {
-  width: 570px;
   flex: none;
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
+  width: 606px;
+  height: 299px;
+  display: flex;
+  align-items: center;
   gap: 30px;
 }
 
 .thumb {
-  height: 150px;
+  flex: none;
+  width: 288px;
+  height: 160px;
   border-radius: 21.45px;
   overflow: hidden;
 }
@@ -230,11 +246,40 @@
   object-fit: cover;
 }
 
+/* Centred on the 1820 card column. */
 .empty {
-  margin: auto;
+  width: 1820px;
+  margin: auto 0;
+  font-family: 'Pretendard', var(--kiosk-font, sans-serif);
   font-size: 60px;
-  color: #999999;
+  color: #999;
   text-align: center;
-  font-family: var(--kiosk-font, sans-serif);
 }
 
+/* ── Right-hand scroll buttons (7812:107107 / 107108 — x2027, y2103 / y2223) ──
+   One 85×85 export (main-01 disc, white chevron) turned into ▲ and ▼. */
+.scrollBtn {
+  position: absolute;
+  left: 2027px;
+  width: 85px;
+  height: 85px;
+  padding: 0;
+  border: none;
+  background: none;
+  cursor: pointer;
+  z-index: 20;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.scrollUp   { top: 2103px; }
+.scrollDown { top: 2223px; }
+
+.scrollBtnImg {
+  display: block;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
+.scrollUp .scrollBtnImg   { transform: rotate(90deg); }
+.scrollDown .scrollBtnImg { transform: rotate(-90deg); }

@@ -397,7 +397,7 @@ export function JejuSpotDiffGame({
 }: Props): JSX.Element {
   const lang = useLang();
   const kioskId = useKioskStore((s) => s.config.kioskId);
-  const { icon, Header, photoTitle, banner } = usePhotoChrome();
+  const { icon, Header, photoTitle, banner, isOsan } = usePhotoChrome();
   /* The rail's ♿ control — see the rail markup for what it does and does not
      affect on this screen. */
   const lowReach = useAccessibilityStore((s) => s.lowReach);
@@ -731,7 +731,9 @@ export function JejuSpotDiffGame({
       {/* Same title as the AR 한복 steps before it: Localization_Jeju's
           Photo_HanbokTry, with the shared photo chrome's literal as fallback. */}
       <Header
-        title={tExact('Photo_HanbokTry', lang) || photoTitle}
+        // OSAEK's game screens are titled AR 의상착장 (Figma 7878:43167 / 43190);
+        // the sheet row wins when the operators have one, the Figma text otherwise.
+        title={isOsan ? tExact('Photo_ArOutfitTitle', lang) || 'AR 의상착장' : tExact('Photo_HanbokTry', lang) || photoTitle}
         onHome={onExit ?? onHome}
         onBack={onExit ?? onHome}
         navDisabled={navLocked}
@@ -785,10 +787,10 @@ export function JejuSpotDiffGame({
       {/* ── ③ 잠시만 기다려주세요! ── */}
       <div className={styles.step}>
         <span className={styles.stepBadge}>{STEP_NUMBER}</span>
-        <p className={styles.stepTitle}>{pick(STEP_TITLE, lang)}</p>
+        <p className={styles.stepTitle}>{sheetText('Photo_WaitTitle', lang, STEP_TITLE)}</p>
       </div>
 
-      <p className={styles.prompt}>{pick(PROMPT, lang)}</p>
+      <p className={styles.prompt}>{sheetText('Photo_WaitPrompt', lang, PROMPT)}</p>
 
       {/* ── Progress: lives · n/5 · clock ── */}
       <div className={styles.status}>

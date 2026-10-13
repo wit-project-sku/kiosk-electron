@@ -1,15 +1,20 @@
-/* Sub-page left nav — home + back, 85×85, gap 35. */
+/* Left nav — Figma R>좌측네비-인사: home / back / ♿, 85×85, gap 35, at (48, 2043). */
 .leftNav {
   position: absolute;
-  left: 21px;
-  top: 1995px;
+  left: 48px;
+  top: 2043px;
+  width: 85px;
   display: flex;
   flex-direction: column;
   gap: 35px;
   z-index: 20;
+  /* ♿ every frame keeps the rail at 2043 while the page moves down under the
+     mode bar (오산>검색-03 7878:44343), so it undoes OsanKiosk's shift. */
+  transform: translateY(calc(-1 * var(--osan-mode-push, 0px)));
 }
 
 .leftNavBtn {
+  display: block;
   width: 85px;
   height: 85px;
   padding: 0;
@@ -20,7 +25,12 @@
 }
 
 .leftNavBtn img {
+  display: block;
   width: 100%;
   height: 100%;
-  object-fit: contain;
+  pointer-events: none;
+}
+
+.leftNavInert {
+  cursor: default;
 }

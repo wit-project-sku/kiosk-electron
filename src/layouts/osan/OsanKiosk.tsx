@@ -14,8 +14,8 @@ import { OsanLanguage } from './OsanLanguage';
 import { OsanSearch } from './OsanSearch';
 import { OsanListScreen } from './OsanListScreen';
 import { OsanDetail } from './OsanDetail';
-import { OsanAiSearch } from './OsanAiSearch';
-import { OsanAiResult } from './OsanAiResult';
+import { OsanAiCourse } from './OsanAiCourse';
+import { OsanAiCourseResult } from './OsanAiCourseResult';
 import { OsanAiDetail } from './OsanAiDetail';
 import { OsanExchange } from './OsanExchange';
 import { OsanHelp } from './OsanHelp';
@@ -28,6 +28,18 @@ import { OsanWebScreen } from './OsanWebScreen';
 import { OsanEvents } from './OsanEvents';
 import { OsanTaxfree } from './OsanTaxfree';
 import { OsanScreen } from './OsanScreen';
+import { useAccessibilityStore } from '@renderer/store/accessibilityStore';
+import { useLang } from '@renderer/lib/i18n';
+import { barrierFreeTitle } from '../insadong/barrierFree';
+
+/** Mode bar height (Figma 7894:57571), the shift every participating page takes. */
+const MODE_BAR = 145.759;
+/**
+ * Screens with their own barrier-free layout (7894:57182 home, 7878:44195
+ * language, 7878:44658 / 45935 / 44811 '정이' 뭐하지, 7878:46736 위드마켓). Every other Osan screen is moved down as a
+ * whole by the shift below.
+ */
+const MODE_DEDICATED = new Set(['home', 'language', 'ai_search', 'market']);
 
 /** Pre-warmed web screens, kept mounted so webview guests load before navigation. */
 const WEB_SCREENS = [
@@ -46,10 +58,14 @@ const PHOTO_THEME = {
   '--photo-accent-soft': 'var(--kiosk-secondary)',
   '--photo-tint': '#eef4fa',
   '--photo-accent-alt': '#616161',
+  /* The shared game UI reads this; 제주 and 인사동 keep their own orange. */
+  '--game-accent': '#1a4d7e',
 } as CSSProperties;
 
 export function OsanKiosk(): JSX.Element {
   const controller = useKioskController();
+  const lowReach = useAccessibilityStore((s) => s.lowReach);
+  const lang = useLang();
   useWeatherSync();
   useExchangeSync();
 
@@ -80,9 +96,12 @@ export function OsanKiosk(): JSX.Element {
   ) : cur === 'detail' ? (
     <OsanDetail controller={controller} />
   ) : cur === 'ai_search' ? (
-    <OsanAiSearch controller={controller} />
+    /* 오산>코스선택 7812:110430 (landing) + 오산>코스카테고리-01 7812:110570
+       (builder) — one screen with a step, on the 인사동 course API. */
+    <OsanAiCourse controller={controller} />
   ) : cur === 'ai_result' ? (
-    <OsanAiResult controller={controller} />
+    /* 오산>코스 결과-01 7812:110989. */
+    <OsanAiCourseResult controller={controller} />
   ) : cur === 'ai_detail' ? (
     <OsanAiDetail controller={controller} />
   ) : cur === 'eat' ? (
@@ -119,12 +138,32 @@ export function OsanKiosk(): JSX.Element {
     <OsanScreen screen={cur} controller={controller} />
   );
 
+  // The ♿ bar is on every screen, the photo flow included (AR 한복체험 저장하기,
+  // 7894:56717). Screens without a dedicated layout — and the photo flow — are
+  // moved down as a whole; backgrounds, rails and bottom banners counter-move
+  // (--osan-mode-push), so they stay where the frames draw them.
+  // 기부 is a separate website in a fullscreen webview: no ♿ bar and no shift,
+  // the site is shown exactly as it is.
+  const barOn = lowReach && (photoActive || cur !== 'donation');
+  const shiftOn = barOn && (photoActive || !MODE_DEDICATED.has(cur));
+  const shiftStyle = (
+    shiftOn ? { position: 'absolute', inset: 0, transform: `translateY(${MODE_BAR}px)`, '--osan-mode-push': `${MODE_BAR}px` } : { position: 'absolute', inset: 0 }
+  ) as CSSProperties;
+
   return (
     <KioskArtboard>
-      {/* Persistent background image — stays mounted across screen changes */}
-      {osanIconUrl('bg') && (
+      {barOn && (
+        <div
+          style={{ position: 'absolute', top: 0, left: 0, width: 2160, height: MODE_BAR, background: '#1a4d7e', color: '#ffffff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: 'Pretendard, sans-serif', fontWeight: 700, fontSize: 68, zIndex: 60 }}
+        >
+          {barrierFreeTitle(lang)}
+        </div>
+      )}
+      {/* Persistent background image — stays mounted across screen changes.
+          Outside the ♿ shift: every frame keeps the art at y0 (7878:44427). */}
+      {osanIconUrl('page-bg') && (
         <img
-          src={osanIconUrl('bg')}
+          src={osanIconUrl('page-bg')}
           alt=""
           draggable={false}
           style={{
@@ -138,6 +177,7 @@ export function OsanKiosk(): JSX.Element {
           }}
         />
       )}
+      <div style={shiftStyle}>
       {foreground}
 
       {/* Pre-warmed web screens (위드마켓 · 오산시 이벤트) — collapse to 0×0 when inactive. */}
@@ -192,6 +232,7 @@ export function OsanKiosk(): JSX.Element {
           </div>
         );
       })()}
+      </div>
     </KioskArtboard>
   );
 }

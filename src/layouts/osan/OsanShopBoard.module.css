@@ -1,0 +1,212 @@
+/*
+ * 오색시장 오늘의 상점 board — Figma 오산>홈 7812:106458, board frame
+ * 7865:49269 at (155, 732) and 상점 정보 더보기 group 7865:49252 at (910, 963).
+ *
+ * Positioned in OsanHome's frame coordinates (1 CSS px = 1 Figma px on the
+ * 2160×3840 artboard), so every number is the value read out of the design.
+ * No backdrop-filter: the only thing behind it is the flat #F3F8FB page under a
+ * translucent panel, so the blur is a no-op (see JejuHome.module.css .notice).
+ */
+.board {
+  position: absolute;
+  left: 155px;
+  top: 732px;
+  width: 1850px;
+  height: 206px;
+  border-radius: 45px;
+  background: rgba(255, 255, 255, 0.5);
+  font-family: 'Pretendard', var(--kiosk-font, sans-serif);
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.board[aria-disabled='true'] {
+  cursor: default;
+}
+
+/* 오늘의 상점 — Pretendard Bold 55, vertically centred (calc(50% − 27.5)). */
+.title {
+  position: absolute;
+  left: 57px;
+  top: 76px;
+  width: 257px;
+  margin: 0;
+  font-size: 55px;
+  font-weight: 700;
+  line-height: 1;
+  color: #000;
+  white-space: nowrap;
+}
+
+/* Line 104: 1376 long from x422, 3px #C8BDA9 centred on y95.5. */
+.rule {
+  position: absolute;
+  left: 422px;
+  top: 94px;
+  width: 1376px;
+  height: 3px;
+  background: #c8bda9;
+}
+
+/*
+ * Heads (SemiBold 38 #C8BDA9 at y38) and values (Regular 45 #333 at y118) are
+ * centred on one axis per column — in the frame each pair agrees to within 1px:
+ * 상점명 532, 카테고리 778, 위치 1241, 현황 1697. The widths are the room
+ * between neighbouring columns, so a long name or address ellipsises instead of
+ * running into the next cell.
+ */
+.head,
+.value {
+  position: absolute;
+  transform: translateX(-50%);
+  line-height: 1;
+  text-align: center;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.head {
+  top: 38px;
+  font-size: 38px;
+  font-weight: 600;
+  color: #c8bda9;
+}
+
+.value {
+  top: 118px;
+  font-size: 45px;
+  font-weight: 400;
+  color: #333;
+}
+
+.colName     { left: 532px;  width: 220px; }
+.colCategory { left: 778px;  width: 200px; }
+.colLocation { left: 1241px; width: 702px; }
+.colStatus   { left: 1697px; width: 200px; }
+
+/* 영업중 — SemiBold 45, main 01. Closed reads in the 글씨-main grey. */
+.statusOpen {
+  font-weight: 600;
+  color: #1a4d7e;
+}
+
+.statusClosed {
+  font-weight: 600;
+  color: #999;
+}
+
+/* Other languages: the title gets the whole band left of the rule and wraps
+   there at a smaller size ("Cửa hàng hôm nay" is ~430px at 55). */
+.boardWide .title {
+  top: 0;
+  bottom: 0;
+  width: 340px;
+  display: flex;
+  align-items: center;
+  font-size: 44px;
+  line-height: 1.1;
+  white-space: normal;
+  word-break: keep-all;
+}
+
+/* …and the columns step down a size on the same centre lines (head 57, value
+   140.5), so "Tên cửa hàng" or "営業時間外" fits its column instead of
+   ellipsising. Long names and addresses still ellipsise — they are data. */
+.boardWide .head {
+  top: 41px;
+  font-size: 32px;
+}
+
+.boardWide .value {
+  top: 121.5px;
+  font-size: 38px;
+}
+
+/*
+ * 상점 정보 더보기 — the triangle box (81×51, rotated 180°) then the text, as one
+ * group centred on x1080.5 (Figma 910…1251). The text box is 260 wide in the
+ * frame, so it keeps that as a minimum: Korean lands exactly on x991, and a
+ * longer language grows the group symmetrically instead of off to the right.
+ */
+.more {
+  position: absolute;
+  left: 1px;
+  top: 963px;
+  width: 2159px;
+  height: 51px;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  padding: 0;
+  border: none;
+  background: none;
+  font-family: 'Pretendard', var(--kiosk-font, sans-serif);
+  cursor: pointer;
+  pointer-events: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.more > * {
+  pointer-events: auto;
+}
+
+.more:disabled > * {
+  pointer-events: none;
+}
+
+.moreArrow {
+  position: relative;
+  flex: none;
+  width: 81px;
+  height: 51px;
+}
+
+/* Polygon 17: the export is the 70.148×38.25 triangle, inset 6.7% each side and
+   25% at the bottom of the 81×51 box — which the 180° turn moves to the top. */
+.moreArrowImg {
+  position: absolute;
+  left: 5.426px;
+  top: 12.75px;
+  width: 70.148px;
+  height: 38.25px;
+  transform: rotate(180deg);
+  pointer-events: none;
+}
+
+.moreText {
+  flex: none;
+  min-width: 260px;
+  margin-top: 11px;
+  font-size: 38px;
+  font-weight: 500;
+  line-height: 1;
+  color: #1a4d7e;
+  text-align: left;
+  white-space: nowrap;
+}
+
+/*
+ * Barrier-free home (Figma 7894:57182): the board sits inside the notice card
+ * at (166, 1508). Children keep their board-relative offsets, re-measured for
+ * that frame; 상점 정보 더보기 is centred on the artboard at y1766.
+ */
+.boardLow {
+  left: 166px;
+  top: 1508px;
+}
+
+.boardLow .rule {
+  left: 422px;
+  top: 97px;
+}
+
+.boardLow .colName     { left: 454px;  width: 240px; }
+.boardLow .colCategory { left: 712px;  width: 200px; }
+.boardLow .colLocation { left: 946px;  width: 680px; }
+.boardLow .colStatus   { left: 1638px; width: 200px; }
+
+/* 더보기 is a sibling of the board, so it takes its own barrier top (Figma y1766). */
+.moreLow {
+  top: 1766px;
+}

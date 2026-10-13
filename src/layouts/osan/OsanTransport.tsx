@@ -10,20 +10,29 @@ import streetRed from '@renderer/assets/photos/osan/transport/street-red.png';
 import streetGreen from '@renderer/assets/photos/osan/transport/street-green.png';
 import streetSmile from '@renderer/assets/photos/osan/transport/street-smile.png';
 import streetAreum from '@renderer/assets/photos/osan/transport/street-areum.png';
-import streetMoms from '@renderer/assets/photos/osan/transport/street-moms.png';
+import momsWindowMap from '@renderer/assets/photos/osan/transport/street-moms-window.png';
+import badge1 from '@renderer/assets/photos/osan/transport/transit-badge-1.svg';
+import badge3 from '@renderer/assets/photos/osan/transport/transit-badge-3.svg';
+import badge5 from '@renderer/assets/photos/osan/transport/transit-badge-5.svg';
+import badgeB1 from '@renderer/assets/photos/osan/transport/transit-badge-b1.svg';
+import badgeB2 from '@renderer/assets/photos/osan/transport/transit-badge-b2.svg';
+import badge5g from '@renderer/assets/photos/osan/transport/transit-badge-5g.svg';
+import transitDot from '@renderer/assets/photos/osan/transport/transit-dot.svg';
+import transitMarker from '@renderer/assets/photos/osan/transport/transit-marker.svg';
 import { OsanHeader } from './OsanHeader';
 import { OsanBanner } from './OsanBanner';
 import { ZoomableImage } from '../insadong/ZoomableImage';
 import { OsanLeftNav } from './OsanLeftNav';
 import styles from './OsanTransport.module.css';
 import { useFitText } from '@layouts/components/fitText';
+import { useAccessibilityStore } from '@renderer/store/accessibilityStore';
 
 type Lang = SupportedLanguage;
 function pick<T>(map: Partial<Record<Lang, T>>, lang: Lang): T {
   return (map[lang] ?? map.ko ?? (Object.values(map)[0] as T)) as T;
 }
 
-interface Badge { badge: string; color: string; text: string }
+interface Badge { badge: string; color: string; text: string; /** Badge circle key (defaults to `badge`). */ icon?: string }
 
 interface TransportContent {
   title: string;
@@ -50,6 +59,13 @@ const SUB3 = '#EF7C1C';
 const SUB5 = '#8B50A4';
 const BUS = '#3D5BAB';
 
+/** 버스 rows — Figma 7878:12899. Route numbers are not translated. */
+const BUS_ROWS: Badge[] = [
+  { badge: 'B', icon: 'B1', color: BUS, text: 'M4102, 5500, 9003, 9301, 9400,940, 9411' },
+  { badge: 'B', icon: 'B2', color: BUS, text: '103,109, 143, 150, 151, 160, 161, 162, 171, 172, 260, 270, 271, 273, 370, 601, 606' },
+  { badge: '5', icon: '5G', color: '#4CAF50', text: '7212, 1020, 7022,7025' },
+];
+
 const CONTENT: Partial<Record<Lang, TransportContent>> = {
   ko: {
     title: '교통안내',
@@ -65,10 +81,7 @@ const CONTENT: Partial<Record<Lang, TransportContent>> = {
         ],
         [{ badge: '5', color: SUB5, text: '5호선 종로3가역 5번출구' }],
       ],
-      busRows: [
-        { badge: 'B', color: BUS, text: 'M4102, 5500, 9003, 9301, 9400, 940, 9411' },
-        { badge: 'B', color: BUS, text: '103, 109, 143, 150, 151, 160, 161, 162, 171, 172, 260, 270, 271, 273, 370, 601, 606' },
-      ],
+      busRows: BUS_ROWS,
     },
     marketMap: {
       heading: '오산 오색시장 : 먹거리, 볼거리, 즐길거리가 가득한 오산의 대표 전통시장',
@@ -95,10 +108,7 @@ const CONTENT: Partial<Record<Lang, TransportContent>> = {
         ],
         [{ badge: '5', color: SUB5, text: 'Line 5 · Jongno 3-ga Stn. Exit 5' }],
       ],
-      busRows: [
-        { badge: 'B', color: BUS, text: 'M4102, 5500, 9003, 9301, 9400, 940, 9411' },
-        { badge: 'B', color: BUS, text: '103, 109, 143, 150, 151, 160, 161, 162, 171, 172, 260, 270, 271, 273, 370, 601, 606' },
-      ],
+      busRows: BUS_ROWS,
     },
     marketMap: {
       heading: 'Osan Osaek Market: Osan’s flagship traditional market full of food, sights and fun',
@@ -125,10 +135,7 @@ const CONTENT: Partial<Record<Lang, TransportContent>> = {
         ],
         [{ badge: '5', color: SUB5, text: '5号線 鍾路3街駅 5番出口' }],
       ],
-      busRows: [
-        { badge: 'B', color: BUS, text: 'M4102, 5500, 9003, 9301, 9400, 940, 9411' },
-        { badge: 'B', color: BUS, text: '103, 109, 143, 150, 151, 160, 161, 162, 171, 172, 260, 270, 271, 273, 370, 601, 606' },
-      ],
+      busRows: BUS_ROWS,
     },
     marketMap: {
       heading: '烏山 五色市場：グルメ・見どころ・遊びが満載の烏山を代表する伝統市場',
@@ -155,10 +162,7 @@ const CONTENT: Partial<Record<Lang, TransportContent>> = {
         ],
         [{ badge: '5', color: SUB5, text: '5号线 钟路3街站 5号出口' }],
       ],
-      busRows: [
-        { badge: 'B', color: BUS, text: 'M4102, 5500, 9003, 9301, 9400, 940, 9411' },
-        { badge: 'B', color: BUS, text: '103, 109, 143, 150, 151, 160, 161, 162, 171, 172, 260, 270, 271, 273, 370, 601, 606' },
-      ],
+      busRows: BUS_ROWS,
     },
     marketMap: {
       heading: '乌山五色市场：美食、看点、玩乐齐全的乌山代表性传统市场',
@@ -185,10 +189,7 @@ const CONTENT: Partial<Record<Lang, TransportContent>> = {
         ],
         [{ badge: '5', color: SUB5, text: 'Tuyến 5 · Ga Jongno 3-ga Cửa ra số 5' }],
       ],
-      busRows: [
-        { badge: 'B', color: BUS, text: 'M4102, 5500, 9003, 9301, 9400, 940, 9411' },
-        { badge: 'B', color: BUS, text: '103, 109, 143, 150, 151, 160, 161, 162, 171, 172, 260, 270, 271, 273, 370, 601, 606' },
-      ],
+      busRows: BUS_ROWS,
     },
     marketMap: {
       heading: 'Chợ Osaek Osan: Chợ truyền thống tiêu biểu của Osan, đầy ắp ẩm thực, cảnh đẹp và giải trí',
@@ -215,10 +216,7 @@ const CONTENT: Partial<Record<Lang, TransportContent>> = {
         ],
         [{ badge: '5', color: SUB5, text: 'สาย 5 · สถานีจงโน 3-กา ทางออก 5' }],
       ],
-      busRows: [
-        { badge: 'B', color: BUS, text: 'M4102, 5500, 9003, 9301, 9400, 940, 9411' },
-        { badge: 'B', color: BUS, text: '103, 109, 143, 150, 151, 160, 161, 162, 171, 172, 260, 270, 271, 273, 370, 601, 606' },
-      ],
+      busRows: BUS_ROWS,
     },
     marketMap: {
       heading: 'ตลาดโอแซกโอซาน: ตลาดดั้งเดิมตัวแทนของโอซานที่เต็มไปด้วยของกิน ของน่าชม และความสนุก',
@@ -245,10 +243,7 @@ const CONTENT: Partial<Record<Lang, TransportContent>> = {
         ],
         [{ badge: '5', color: SUB5, text: 'Линия 5 · Ст. Чонно 3-га, выход 5' }],
       ],
-      busRows: [
-        { badge: 'B', color: BUS, text: 'M4102, 5500, 9003, 9301, 9400, 940, 9411' },
-        { badge: 'B', color: BUS, text: '103, 109, 143, 150, 151, 160, 161, 162, 171, 172, 260, 270, 271, 273, 370, 601, 606' },
-      ],
+      busRows: BUS_ROWS,
     },
     marketMap: {
       heading: 'Рынок Осэк в Осане: главный традиционный рынок Осана, полный еды, достопримечательностей и развлечений',
@@ -275,10 +270,7 @@ const CONTENT: Partial<Record<Lang, TransportContent>> = {
         ],
         [{ badge: '5', color: SUB5, text: 'Jalur 5 · Stasiun Jongno 3-ga Pintu Keluar 5' }],
       ],
-      busRows: [
-        { badge: 'B', color: BUS, text: 'M4102, 5500, 9003, 9301, 9400, 940, 9411' },
-        { badge: 'B', color: BUS, text: '103, 109, 143, 150, 151, 160, 161, 162, 171, 172, 260, 270, 271, 273, 370, 601, 606' },
-      ],
+      busRows: BUS_ROWS,
     },
     marketMap: {
       heading: 'Pasar Osaek Osan: pasar tradisional unggulan Osan yang penuh kuliner, pemandangan, dan hiburan',
@@ -294,22 +286,49 @@ const CONTENT: Partial<Record<Lang, TransportContent>> = {
 };
 
 /** 골목/거리 tabs (2–6) share the 오색시장지도 layout; only the map crop differs.
- *  Sizes are the exact Figma frame dims (artboard px); aspect ratios match the
- *  images so ZoomableImage (object-fit: contain) fills with no gutters.
- *  Wide crops span the full 1740 body width; 맘스거리 is a centred 984 column. */
-const STREET_MAPS: Record<number, { src: string; w: number; h: number }> = {
-  2: { src: streetRed, w: 1740, h: 344 }, // 빨강길
-  3: { src: streetGreen, w: 1740, h: 338 }, // 녹색길
-  4: { src: streetSmile, w: 1740, h: 154 }, // 미소거리
-  5: { src: streetAreum, w: 1740, h: 1406 }, // 아름거리
-  6: { src: streetMoms, w: 984, h: 1379 }, // 맘스거리
+ *  Sizes are Figma artboard px (7878:12298 빨강길, 12409 녹색길, 12583 미소거리,
+ *  12674 아름거리, 12765 맘스거리). `gaps` override the default 100px between
+ *  heading → map → description. `window` is 맘스거리: a clipped window (Figma
+ *  7865:84292) onto the full 오색시장 map, positioned relative to that window. */
+interface StreetMap {
+  src: string;
+  w: number;
+  h: number;
+  cardH: number;
+  gaps?: { head: number; bottom: number };
+  window?: { left: number; top: number; w: number; h: number };
+}
+
+const STREET_MAPS: Record<number, StreetMap> = {
+  2: { src: streetRed, w: 1740, h: 344, cardH: 1426 }, // 빨강길
+  3: { src: streetGreen, w: 1740, h: 338, cardH: 1426 }, // 녹색길
+  4: { src: streetSmile, w: 1740, h: 154, cardH: 1426 }, // 미소거리
+  5: { src: streetAreum, w: 1508, h: 1219, cardH: 2075 }, // 아름거리
+  6: {
+    src: momsWindowMap,
+    w: 879,
+    h: 1333,
+    cardH: 2075,
+    gaps: { head: 40.5, bottom: 45.5 },
+    window: { left: -2699, top: -454, w: 4013, h: 2404 },
+  }, // 맘스거리
 };
 
-function BadgePill({ b }: { b: Badge }): JSX.Element {
+const BADGE_ICON: Record<string, string> = {
+  '1': badge1,
+  '3': badge3,
+  '5': badge5,
+  B1: badgeB1,
+  B2: badgeB2,
+  '5G': badge5g,
+};
+
+function BadgePill({ b, bus = false }: { b: Badge; bus?: boolean }): JSX.Element {
   return (
-    <div className={styles.transitItem}>
-      <span className={styles.badge} style={{ background: b.color }}>
-        {b.badge}
+    <div className={`${styles.transitItem} ${bus ? styles.busItem : ''}`}>
+      <span className={`${styles.badge} ${bus ? styles.badgeBus : ''}`}>
+        <img className={styles.badgeImg} src={BADGE_ICON[b.icon ?? b.badge]} alt="" draggable={false} />
+        <span className={styles.badgeLabel}>{b.badge}</span>
       </span>
       <span className={styles.transitText}>{b.text}</span>
     </div>
@@ -324,6 +343,9 @@ interface OsanTransportProps {
 
 /** 교통안내 — public transit + 오색시장 map (Figma 오산>교통안내). Only the first
  *  two tabs have content; the market-zone tabs show a 준비중 placeholder. */
+/** ♿ card tops by tab index (see OsanTransport). */
+const LOW_CARD_TOP: Record<number, number> = { 0: 987, 1: 944, 2: 1570, 3: 1580, 4: 1570, 5: 1047, 6: 1024 };
+
 export function OsanTransport({ controller, initialTab = 0 }: OsanTransportProps): JSX.Element {
   const goHome = (): void => controller.navigate('home', 'Back');
   const lang = useLanguageStore((s) => s.currentLanguage);
@@ -333,17 +355,37 @@ export function OsanTransport({ controller, initialTab = 0 }: OsanTransportProps
   const wide = lang !== 'ko';
   const tabsRef = useRef<HTMLDivElement>(null);
   const [tab, setTab] = useState(initialTab);
+  const street: StreetMap | undefined = STREET_MAPS[tab];
 
   const row1 = c.tabs.slice(0, 5);
   const row2 = c.tabs.slice(5);
 
   useFitText(tabsRef, styles.tab, wide, 0.72, lang);
 
-  return (
-    <>
-      {osanIconUrl('bg') && <img className={styles.bg} src={osanIconUrl('bg')} alt="" draggable={false} />}
+  /*
+   * ♿ (교통안내 7894:54695 오색시장 지도, 7894:54761 빨강길): the page keeps
+   * OsanKiosk's shift and the tabs drop to the foot (3213). A street map short
+   * enough to fit (빨강길 / 녹색길 / 미소거리, card 1426) gets 빨강길's layout:
+   * promo at 146, header at 719, card at 1572. Everything else — 대중교통, the
+   * 오색시장 map, 기타, and the tall 아름거리 / 맘스거리 crops, which would run
+   * into the tabs there — keeps the shifted header with no promo, card at 946.
+   */
+  const low = useAccessibilityStore((s) => s.lowReach);
+  const lowPromo = low && !!street && street.cardH <= 1426;
+  /* Card top per tab, measured off each ♿ frame (대중교통 7887:54432, 지도
+     7894:54695, 빨강길 7894:54761, 녹색길 7894:54826, 미소거리 7894:54891, 아름거리
+     7894:54956, 맘스거리 7894:55020). 기타 has no frame and takes the map's. */
+  const lowCardTop = LOW_CARD_TOP[tab] ?? LOW_CARD_TOP[1]!;
+  const header = <OsanHeader title={c.title} subtitle={t('SubHeader_Transport', lang)} onHome={goHome} />;
 
-      <OsanHeader title={c.title} subtitle={t('SubHeader_Transport', lang)} onHome={goHome} />
+  return (
+    <div
+      className={low ? `${styles.low} ${tab === 0 ? styles.lowTransit : ''}` : undefined}
+      style={{ display: 'contents', ['--low-card-top' as string]: `${lowCardTop}px` }}
+    >
+      {osanIconUrl('page-bg') && <img className={styles.bg} src={osanIconUrl('page-bg')} alt="" draggable={false} />}
+
+      {lowPromo ? <div className={styles.lowHeader}>{header}</div> : header}
 
       <div className={styles.results}>
         {/* Category tabs — Figma: 2 rows (5 + 3). */}
@@ -375,23 +417,23 @@ export function OsanTransport({ controller, initialTab = 0 }: OsanTransportProps
         </div>
 
         {tab === 0 ? (
-          /* ── 대중교통 ── */
+          /* ── 대중교통 — Figma 7878:12899: header + map, subway list, bus list ── */
           <div className={`${styles.card} ${styles.cardTransit}`}>
             <div className={styles.transitTop}>
               <div className={styles.transitHead}>
                 <span className={styles.transitHeading}>{c.transit.heading}</span>
                 <span className={styles.transitSub}>
-                  <span className={styles.dot} />
+                  <img className={styles.transitDot} src={transitDot} alt="" draggable={false} />
                   {c.transit.subtitle}
                 </span>
               </div>
-              <div className={styles.mapWrap}>
+              <div className={styles.transitMapBox}>
                 <ZoomableImage className={styles.mapZoom} src={transitMap} />
               </div>
             </div>
 
             <div className={styles.infoRow}>
-              {osanIconUrl('marker') && <img className={styles.markerIcon} src={osanIconUrl('marker')} alt="" draggable={false} />}
+              <img className={styles.markerIcon} src={transitMarker} alt="" draggable={false} />
               <div className={styles.subwayCol}>
                 {c.transit.subwayRows.map((rowItems, i) => (
                   <div key={i} className={styles.subwayRow}>
@@ -403,11 +445,11 @@ export function OsanTransport({ controller, initialTab = 0 }: OsanTransportProps
               </div>
             </div>
 
-            <div className={styles.infoRow}>
-              {osanIconUrl('marker') && <img className={styles.markerIcon} src={osanIconUrl('marker')} alt="" draggable={false} />}
+            <div className={styles.busSection}>
+              <img className={styles.markerIcon} src={transitMarker} alt="" draggable={false} />
               <div className={styles.busCol}>
                 {c.transit.busRows.map((b, i) => (
-                  <BadgePill key={i} b={b} />
+                  <BadgePill key={i} b={b} bus />
                 ))}
               </div>
             </div>
@@ -420,7 +462,7 @@ export function OsanTransport({ controller, initialTab = 0 }: OsanTransportProps
               <ZoomableImage className={styles.mapZoom} src={marketMap} />
             </div>
             <div className={styles.marketBottom}>
-              <div className={`${styles.marketDesc} ${styles.marketDescLeft}`}>
+              <div className={styles.marketDesc}>
                 {c.marketMap.description.map((line, i) => (
                   <span key={i}>{line}</span>
                 ))}
@@ -431,19 +473,34 @@ export function OsanTransport({ controller, initialTab = 0 }: OsanTransportProps
               </div>
             </div>
           </div>
-        ) : STREET_MAPS[tab] ? (
+        ) : street ? (
           /* ── 골목/거리 tabs (빨강길·녹색길·미소거리·아름거리·맘스거리) — same
              오색시장지도 layout, street-specific map crop ── */
-          <div className={`${styles.card} ${styles.cardMarket}`}>
-            <p className={styles.marketHeading}>{c.marketMap.heading}</p>
-            <div
-              className={styles.streetMapWrap}
-              style={{ width: STREET_MAPS[tab]!.w, height: STREET_MAPS[tab]!.h }}
-            >
-              <ZoomableImage className={styles.mapZoom} src={STREET_MAPS[tab]!.src} />
-            </div>
-            <div className={styles.marketBottom}>
-              <div className={`${styles.marketDesc} ${styles.marketDescLeft}`}>
+          <div className={`${styles.card} ${styles.cardMarket} ${styles.cardStreet}`} style={{ height: street.cardH }}>
+            <p className={styles.marketHeading} style={{ marginBottom: street.gaps?.head ?? 100 }}>
+              {c.marketMap.heading}
+            </p>
+            {street.window ? (
+              <div className={styles.windowClip} style={{ width: street.w, height: street.h }}>
+                <div
+                  style={{
+                    position: 'absolute',
+                    left: street.window.left,
+                    top: street.window.top,
+                    width: street.window.w,
+                    height: street.window.h,
+                  }}
+                >
+                  <ZoomableImage className={styles.mapZoom} src={street.src} />
+                </div>
+              </div>
+            ) : (
+              <div className={styles.streetMapWrap} style={{ width: street.w, height: street.h }}>
+                <ZoomableImage className={styles.mapZoom} src={street.src} />
+              </div>
+            )}
+            <div className={styles.marketBottom} style={{ marginTop: street.gaps?.bottom ?? 100 }}>
+              <div className={styles.marketDesc}>
                 {c.marketMap.description.map((line, i) => (
                   <span key={i}>{line}</span>
                 ))}
@@ -467,7 +524,7 @@ export function OsanTransport({ controller, initialTab = 0 }: OsanTransportProps
 
       <OsanLeftNav onHome={goHome} />
 
-      <OsanBanner onClick={() => controller.startPhoto()} />
-    </>
+      {(!low || lowPromo) && <OsanBanner onClick={() => controller.startPhoto()} top={lowPromo ? 146 : undefined} />}
+    </div>
   );
 }

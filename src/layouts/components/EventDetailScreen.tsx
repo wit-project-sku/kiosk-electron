@@ -324,6 +324,8 @@ export interface EventDetailScreenProps {
   eventId: number;
   /** Kiosk brand color (Hwaseong #005ab4 / Osan #1a4d7e / Insadong #fe6c50). */
   accent: string;
+  /** Card edge when a kiosk's frame draws a different one (오산 7838:115603). */
+  cardShadow?: string;
 }
 
 /**
@@ -334,13 +336,13 @@ export interface EventDetailScreenProps {
  * One white card (1820×1825, r80) holds the poster + title + 6 info rows,
  * then 오시는 길 안내 with an interactive map centered on the event.
  */
-export function EventDetailScreen({ eventId, accent }: EventDetailScreenProps): JSX.Element {
+export function EventDetailScreen({ eventId, accent, cardShadow }: EventDetailScreenProps): JSX.Element {
   const lang = useLang();
   const { detail, loading, error } = useEventDetail(eventId);
   const hasCoords = detail !== null && detail.latitude !== null && detail.longitude !== null;
 
   return (
-    <div className={styles.root} style={{ '--event-accent': accent } as CSSProperties}>
+    <div className={styles.root} style={{ '--event-accent': accent, ...(cardShadow && { '--event-card-shadow': cardShadow }) } as CSSProperties}>
       <div className={styles.card} />
 
       {loading && (

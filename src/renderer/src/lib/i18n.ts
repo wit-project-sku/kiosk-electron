@@ -243,7 +243,9 @@ const TITLE_KEYS: Record<string, TitleKeySpec> = {
   // Greeting_Introduce ("* 안녕하세요! 마스코트 '인사'를 소개할게요!") in all eight
   // languages and this screen was the only 안녕 that never asked for it.
   "안녕 '인사'": { title: 'MainButton_Greeting', sub: 'Greeting_Introduce' },
-  "안녕 '정이'": { title: 'MainButton_Greeting' },
+  // Localization_Osaek carries Greeting_Introduce in all eight languages, the same
+  // row 안녕 '인사' already reads.
+  "안녕 '정이'": { title: 'MainButton_Greeting', sub: 'Greeting_Introduce' },
   "도와줘 '인사'": { title: 'MainButton_ToHelp', sub: 'SubHeader_ToHelp' },
   인사동지도: { title: 'MainButton_Map' },
   '오색시장 지도': { title: 'MainButton_Map' },
@@ -260,7 +262,9 @@ const TITLE_KEYS: Record<string, TitleKeySpec> = {
   "도와줘 '정이'": { title: 'MainButton_ToHelp', sub: 'SubHeader_ToHelp' },
   "'정이' 뭐먹지": { title: 'MainButton_ToEat', sub: 'SubHeader_ToEat' },
   "'정이' 뭐사지(식품)": { title: 'MainButton_ToBuy', sub: 'SubHeader_ToBuy' },
-  "'정이' 뭐사지(물품)": { title: 'MainButton_ToBuy', sub: 'SubHeader_ToBuy' },
+  // 물품 has its OWN rows in Localization_Osaek (MainButton_ToBuy2 "'정이' 뭐사지?(물품)",
+  // SubHeader_ToBuy2); it used to borrow 식품's, so the 물품 page was titled (식품).
+  "'정이' 뭐사지(물품)": { title: ['MainButton_ToBuy2', 'MainButton_ToBuy'], sub: ['SubHeader_ToBuy2', 'SubHeader_ToBuy'] },
   "'정이' 모하지 (AI 검색)": { title: 'MainButton_AI', sub: 'SubHeader_AISearch' },
   "'정이' 모하지(AI 검색)": { title: 'MainButton_AI', sub: 'SubHeader_AICourse' },
   // ── W005 화성휴게소 header titles + page descriptions (Localization_Hwaseong) ──

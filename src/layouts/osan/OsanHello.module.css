@@ -1,4 +1,23 @@
-/* 안녕 '인사' — 인사 mascot (profile / hobbies / stretching). Exact Figma px (2160×3840). */
+/*
+ * 안녕 '정이' — Figma 7853:34459 ('정이'소개) and 7853:34558 / 34628 / 34698
+ * ('정이'취미생활 K-POP / 골프 / 테니스). Exact px on the 2160×3840 artboard.
+ *
+ * 소개 — one card, everything card-relative:
+ *   972   card 1820×2160 at x170 (the frame drags it to 172; every 오산 card is 170)
+ *   83    portrait circle 903² at x44
+ *   230   profile column at x1053, rows 45 apart
+ *   1080  divider 1731 wide at x44
+ *   1156  detail rows, 1635 wide, centred
+ *   1974  hashtags + socials, 1582 wide at x117
+ *
+ * 취미생활 — no big card:
+ *   920   sub-tab text row, centred
+ *   1080  photo 850×1510 r45, centred
+ *   2670  caption card 1820×549 at x170; copy at (119, 56 / 60), footer at y3052
+ *
+ * 건강습관 (7853:34768 / 34839 / 34909) is the same panel: an 869×1546 photo at
+ * y1081, the copy 60 into the card, unselected sub-tabs #999.
+ */
 .bg {
   position: absolute;
   inset: 0;
@@ -6,40 +25,17 @@
   height: 100%;
   object-fit: cover;
   pointer-events: none;
+  /* ♿ stays at y0 while the page under the mode bar moves down (OsanKiosk). */
+  transform: translateY(calc(-1 * var(--osan-mode-push, 0px)));
 }
 
-.content {
-  position: absolute;
-  top: calc(699px + var(--header-push, 0px));
-  left: 0;
-  right: 0;
-  bottom: 573px;
-  box-sizing: border-box;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 100px; /* Figma tab → card gap */
-  overflow-y: auto;
-  overflow-x: hidden;
-  padding: 0 170px 40px;
-  font-family: var(--kiosk-font, sans-serif);
-}
-
-.content::-webkit-scrollbar {
-  width: 34.32px;
-}
-.content::-webkit-scrollbar-thumb {
-  background: var(--kiosk-primary);
-  border-radius: 21.45px;
-}
-.content::-webkit-scrollbar-track {
-  background: transparent;
-}
-
-/* ── Tabs ── */
+/* ── Tabs (7853:34517) — three 580×170 plates across the 1820 row, y700 ── */
 .tabs {
-  flex: none;
-  width: 1816.802px;
+  position: absolute;
+  left: 170px;
+  top: calc(700px + var(--header-push, 0px));
+  width: 1820px;
+  height: 170px;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -47,321 +43,217 @@
 
 .tab {
   box-sizing: border-box;
-  width: 580px; /* Figma tab w579-580 */
+  width: 580px;
   height: 170px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: #ffffff;
-  border: 5px solid #e8e8e8;
+  padding: 0;
+  border: none;
   border-radius: 42.9px;
-  font-family: var(--kiosk-font, sans-serif);
-  font-weight: 500;
+  background: #ffffff;
+  font-family: 'Pretendard', var(--kiosk-font, sans-serif);
   font-size: 50px;
+  font-weight: 500;
+  line-height: 1;
   color: #999999;
-  cursor: pointer;
   white-space: nowrap;
-  padding: 0 12px;
-  text-align: center;
+  cursor: pointer;
 }
 
 .tabSelected {
-  background: var(--kiosk-secondary);
-  font-weight: 600; /* Figma: SemiBold */
-  color: var(--kiosk-primary);
+  background: var(--kiosk-primary);
+  font-weight: 700;
+  color: #ffffff;
 }
 
-/* ── Card (shared) — Figma: w1820, h2160 (all 3 tabs same height), gap 65,
-   px40 py65, border 5px, radius 42.9. */
+/* ── 소개 card (7853:34462) ── */
 .card {
-  box-sizing: border-box;
+  position: absolute;
+  left: 170px;
+  top: calc(972px + var(--header-push, 0px));
   width: 1820px;
   height: 2160px;
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  /* Tighter section gap + smaller top padding so the footer (hashtags/social)
-     doesn't crash the card's bottom edge within the fixed 2160 height. */
-  gap: 45px;
-  padding: 50px 40px 65px;
-  background: #ffffff;
-  border: 5px solid #e8e8e8;
   border-radius: 42.9px;
+  background: #ffffff;
   box-shadow: 0 21.45px 21.45px rgba(143, 147, 157, 0.1);
-}
-
-/* ===========================================================
-   TAB 1 — profile
-   =========================================================== */
-.topRow {
-  display: flex;
-  align-items: center;
-  gap: 100px;
-  width: 1740px;
-}
-
-.portrait {
-  flex: none;
-  width: 750px; /* Figma 750×750 */
-  height: 750px;
-  border-radius: 50%;
+  font-family: 'Pretendard', var(--kiosk-font, sans-serif);
   overflow: hidden;
 }
-.portrait img {
+
+/* 7853:34463 — the frame's #D9D9D9 circle, holding 정이's portrait. */
+.portrait {
+  position: absolute;
+  left: 44px;
+  top: 83px;
+  width: 903px;
+  height: 903px;
+  border-radius: 50%;
+  overflow: hidden;
+  background: #d9d9d9;
+}
+
+.portrait img,
+.portrait video {
   width: 100%;
   height: 100%;
   object-fit: cover;
-  /* Anchor to the top so the head is never cropped off. */
-  object-position: center top;
+  display: block;
 }
 
-.infoCol {
-  flex: 1;
+/* 7853:34465 — label + 40 + value, rows 45 apart. */
+.profile {
+  position: absolute;
+  left: 1053px;
+  top: 230px;
+  width: 733px;
   display: flex;
   flex-direction: column;
-  gap: 45px; /* Figma info col gap 45 */
+  gap: 45px;
 }
 
-.nameRow {
+/* Each value row is a 60-tall box with its text at the top (7853:34471); the
+   name row is the 85 plate, centred. */
+.row {
+  min-height: 60px;
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   gap: 40px;
+  min-width: 0;
+}
+
+.rowName {
+  min-height: 85px;
+  align-items: center;
 }
 
 .label {
+  margin: 0;
   flex: none;
+  font-size: 50px;
   font-weight: 700;
-  font-size: 60px;
-  color: #000000;
   line-height: 1;
+  color: #000000;
+  white-space: nowrap;
 }
 
-.namePill {
+/* Sheet values in eight languages: they wrap rather than run off the card. */
+.value {
+  margin: 0;
+  min-width: 0;
+  font-size: 50px;
+  font-weight: 400;
+  line-height: 1;
+  color: #000000;
+  word-break: keep-all;
+  overflow-wrap: anywhere;
+}
+
+/* 7853:34468 — the name on a 300×85 [오색시장] main 02 plate, Bold main 01. */
+.namePlate {
+  min-width: 300px;
+  min-height: 85px;
+  box-sizing: border-box;
+  padding: 0 23.44px;
   display: inline-flex;
   align-items: center;
-  background: var(--kiosk-secondary);
-  color: var(--kiosk-primary);
+  background: #d3dfec;
+  font-size: 50px;
   font-weight: 700;
-  font-size: 58px;
-  padding: 14px 26px;
   line-height: 1;
+  color: var(--kiosk-primary);
+  overflow-wrap: anywhere;
 }
 
-.field {
-  display: flex;
-  align-items: center;
-}
-.field .label {
-  width: 210px;
-}
-
-.value {
-  font-weight: 400;
-  font-size: 58px;
-  color: #000000;
-  line-height: 1;
-}
-
+/* 7853:34486 */
 .divider {
-  height: 2px;
-  width: 100%;
+  position: absolute;
+  left: 44px;
+  top: 1080px;
+  width: 1731px;
+  height: 2.145px;
   background: #e8e8e8;
 }
 
-.detailsCol {
+/* 7853:34487 — label + 40 + value, rows 30 apart, in the 818 between the
+   divider block and the footer; longer copy shrinks (--fit) rather than run
+   into the hashtags. */
+.details {
+  position: absolute;
+  left: 92.5px;
+  top: 1156px;
+  width: 1635px;
+  height: 778px;
   display: flex;
   flex-direction: column;
-  gap: 50px; /* Figma body col gap 50 */
+  gap: 30px;
+  overflow: hidden;
 }
 
-.detail {
+.detailRow {
   display: flex;
   align-items: flex-start;
   gap: 40px;
+  min-width: 0;
 }
-.detail .label {
-  width: 230px;
+
+.detailLabel {
+  margin: 0;
+  flex: none;
+  font-size: calc(50px * var(--fit, 1));
+  font-weight: 700;
+  line-height: 1.3;
+  color: #000000;
+  white-space: nowrap;
 }
 
 .detailValue {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  font-weight: 400;
-  font-size: 58px; /* Figma body value 58 */
-  color: #000000;
-  line-height: 1.3;
-}
-
-/* ===========================================================
-   TAB 2 — hobbies (alternating image side)
-   =========================================================== */
-/* Figma: title + description top-align with the image (items-start), not centered. */
-.hobby {
-  display: flex;
-  align-items: flex-start;
-  gap: 100px;
-  width: 1740px;
-}
-.hobbyReverse {
-  flex-direction: row-reverse;
-}
-
-.hobbyText {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  gap: 25px;
-}
-
-.hobbyTitle {
   margin: 0;
-  font-weight: 700;
-  font-size: 63px;
-  color: #000000;
-  line-height: 1.3;
-}
-
-.hobbyBody {
-  display: flex;
-  flex-direction: column;
+  min-width: 0;
+  font-size: calc(50px * var(--fit, 1));
   font-weight: 400;
-  font-size: 50px;
-  color: #000000;
   line-height: 1.3;
-}
-
-.hobbyImg {
-  flex: none;
-  width: 452px;
-  height: 565px;
-  border-radius: 45px;
-  overflow: hidden;
-}
-.hobbyImg img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
-
-/* ===========================================================
-   TAB 3 — stretching
-   =========================================================== */
-.stretchPhotos {
-  display: flex;
-  justify-content: space-between;
-  width: 1740px;
-}
-
-.stretchPhoto {
-  width: 536px;
-  height: 670px;
-  border-radius: 45px;
-  overflow: hidden;
-}
-.stretchPhoto img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
-
-.stretchIntro {
-  display: flex;
-  flex-direction: column;
-  gap: 25px;
-  width: 1740px;
-}
-
-.stretchIntroTitle {
-  margin: 0;
-  font-weight: 700;
-  font-size: 63px;
   color: #000000;
-  line-height: 1.3;
+  white-space: pre-line;
+  word-break: keep-all;
+  overflow-wrap: break-word;
 }
 
-.stretchIntroBody {
-  display: flex;
-  flex-direction: column;
-  font-weight: 400;
-  font-size: 50px;
-  color: #000000;
-  line-height: 1.3;
-}
-
-.stretchBottom {
-  display: flex;
-  align-items: flex-start;
-  gap: 100px;
-  width: 1740px;
-}
-
-.stretchSections {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  gap: 64.35px;
-}
-
-.stretchSection {
-  display: flex;
-  flex-direction: column;
-  gap: 25px;
-}
-
-.stretchSecTitle {
-  margin: 0;
-  font-weight: 700;
-  font-size: 63px;
-  color: #000000;
-  line-height: 1.3;
-}
-
-.stretchSecBody {
-  display: flex;
-  flex-direction: column;
-  font-weight: 400;
-  font-size: 50px;
-  color: #000000;
-  line-height: 1.3;
-}
-
-.stretchSide {
-  flex: none;
-  width: 499px;
-  height: 625px;
-  border-radius: 32.175px;
-  overflow: hidden;
-}
-.stretchSide img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
-
-/* ===========================================================
-   FOOTER — hashtags + social (TikTok/Instagram + QR)
-   =========================================================== */
+/* ── Hashtags + socials (7853:34500 / 34598) — 1582×100, pills 322/322/343 ── */
 .footer {
+  position: absolute;
+  width: 1582px;
+  height: 100px;
   display: flex;
   align-items: center;
-  gap: 63px; /* Figma gap between the hashtag buttons */
-  width: 1740px;
+  gap: 40px;
+}
+
+.footerProfile {
+  left: 117px;
+  top: 1974px;
+}
+
+/* page (289, 3052) − card (170, 2670) */
+.footerTopic {
+  left: 119px;
+  top: 382px;
 }
 
 .hashtag {
-  flex: none;
+  flex: 0 1 auto;
+  height: 100px;
+  min-width: 322px;
   box-sizing: border-box;
-  width: 322px;
-  height: 125px;
-  display: flex;
+  padding: 0 16px;
+  display: inline-flex;
   align-items: center;
   justify-content: center;
-  background: var(--kiosk-primary);
   border-radius: 42.9px;
+  background: var(--kiosk-primary);
+  font-family: 'Pretendard', var(--kiosk-font, sans-serif);
+  font-size: 50px;
   font-weight: 700;
-  font-size: 51.48px;
+  line-height: 1;
   color: #ffffff;
+  text-align: center;
   white-space: nowrap;
 }
 
@@ -369,59 +261,170 @@
   margin-left: auto;
   display: flex;
   align-items: center;
-  gap: 25px; /* Figma social row gap 25 */
-}
-
-.social {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 12px;
-}
-
-.socialPair {
-  display: flex;
-  align-items: center;
   gap: 25px;
 }
 
-/* Figma social icons / QR: 125×125, QR border 5px #f48570 r21.45. */
 .socialIcon {
   flex: none;
-  width: 125px;
-  height: 125px;
-  object-fit: contain;
+  width: 100px;
+  height: 100px;
   border-radius: 21.45px;
+  object-fit: contain;
+  display: block;
 }
 
+/* The frame's tile: white, 5px main-01 ring r21.45, the code inset 17px. */
 .socialQr {
   flex: none;
+  width: 100px;
+  height: 100px;
   box-sizing: border-box;
-  width: 125px;
-  height: 125px;
-  border: 5px solid #f48570;
+  padding: 17px;
   border-radius: 21.45px;
   background: #ffffff;
-  padding: 10px;
+  box-shadow: inset 0 0 0 5px var(--kiosk-primary);
 }
-.socialQr img {
+
+.socialQr svg {
+  display: block;
   width: 100%;
   height: 100%;
-  object-fit: contain;
-  image-rendering: pixelated;
 }
 
-.socialWho {
-  font-weight: 500;
-  font-size: 30px;
-  color: #999999;
+/* ── 취미생활 sub-tabs (7853:34597) — one Pretendard 60 line centred on the
+   page at y920: the selected label Black main 01, the rest SemiBold gray 07,
+   the gaps the frame's own spaces. Each label reserves its Black width so the
+   row does not shift on a tap. ── */
+.subTabs {
+  position: absolute;
+  left: 0.5px;
+  top: calc(920px + var(--header-push, 0px));
+  width: 2160px;
+  margin: 0;
+  text-align: center;
+  white-space: pre;
+  font-family: 'Pretendard', var(--kiosk-font, sans-serif);
+  font-size: 60px;
+  font-weight: 600;
+  line-height: normal;
+  color: #1a1a1a;
+}
+
+.subTab {
+  position: relative;
+  display: inline-grid;
+  justify-items: center;
+  padding: 0;
+  border: none;
+  background: none;
+  font: inherit;
+  color: inherit;
   white-space: nowrap;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
 }
 
+.subTab > span,
+.subTab::after {
+  grid-area: 1 / 1;
+}
+
+.subTab::after {
+  content: attr(data-label);
+  font-weight: 900;
+  visibility: hidden;
+  height: 0;
+}
+
+.subTab::before {
+  content: '';
+  position: absolute;
+  inset: -30px -40px;
+}
+
+/* 건강습관's frames draw the unselected labels #999 (7853:34879). */
+.subTabsMuted {
+  color: #999999;
+}
+
+.subTabOn {
+  font-weight: 900;
+  color: var(--kiosk-primary);
+}
+
+/* 취미생활 7902:20771 / 20768 / 20770 (850×1510 at y1080) and 건강습관
+   7902:20766 / 20767 / 20765 (869×1546 at y1081) — size and top come from the
+   TSX; centred, which is where all six frames are aiming (x645–659). */
+.topicPhoto {
+  position: absolute;
+  left: 50%;
+  top: calc(1080px + var(--header-push, 0px));
+  width: 850px;
+  height: 1510px;
+  transform: translateX(-50%);
+  border-radius: 45px;
+  overflow: hidden;
+  background: #f2ede6;
+}
+
+.topicPhoto img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+/* 7853:34561 — 1820×549 white, r42.9, 0 21.45 42.9 shadow. */
+.topicCard {
+  position: absolute;
+  left: 170px;
+  top: 2670px;
+  width: 1820px;
+  height: 549px;
+  border-radius: 42.9px;
+  background: #ffffff;
+  box-shadow: 0 21.45px 42.9px rgba(143, 147, 157, 0.1);
+  font-family: 'Pretendard', var(--kiosk-font, sans-serif);
+}
+
+/* 7853:34562 — title Bold 60 + 25 + body Regular 50, both 1.3, at (119, 56);
+   the box stops 20 above the footer, and longer copy shrinks to fit it. */
+.topicText {
+  position: absolute;
+  left: 119px;
+  right: 119px;
+  top: 56px;
+  height: 306px;
+  display: flex;
+  flex-direction: column;
+  gap: 25px;
+  overflow: hidden;
+}
+
+.topicTitle {
+  margin: 0;
+  font-size: calc(60px * var(--fit, 1));
+  font-weight: 700;
+  line-height: 1.3;
+  color: #000000;
+  word-break: keep-all;
+}
+
+.topicBody {
+  margin: 0;
+  font-size: calc(50px * var(--fit, 1));
+  font-weight: 400;
+  line-height: 1.3;
+  color: #000000;
+  white-space: pre-line;
+}
+
+/* 상점 검색 promo (7853:34567) — the 뭐하지 banner art with its orange strip. */
 .banner {
   position: absolute;
   left: 0;
-  bottom: 0;
+  top: 3267px;
+  transform: translateY(calc(-1 * var(--osan-mode-push, 0px)));
   width: 2160px;
   height: 573px;
   padding: 0;
@@ -430,6 +433,7 @@
   cursor: pointer;
   overflow: hidden;
 }
+
 .banner img {
   width: 100%;
   height: 100%;
@@ -437,129 +441,33 @@
   display: block;
 }
 
-/* ── Other languages ──────────────────────────────────────────────────────
- * Reached only through a class the TSX adds when lang !== 'ko' — the Korean
- * screen is untouched.
- *
- * The hashtag pill is a fixed 322px box drawn around '#안녕인사'. The same pill
- * carries '#こんにちはインサ' (≈460px at 51.48px type) and '#SawatdeeInsa', which
- * ran straight out of the pill and under the one beside it. The pill grows
- * instead — 322 is its minimum, not its size — which is what the sibling
- * 화성 layout's chip already does. The footer row has the width to spare. */
-.hashtagLong {
-  width: auto;
-  min-width: 322px;
-  padding: 0 30px;
-}
-
-/* The 580px tab holds every tab label the screen authors today, in all eight
-   languages. This is the guard for a longer one arriving later: it wraps inside
-   the tab rather than running out of it, and the row shrinks as one if it still
-   does not fit (`--fit`, useFitText — never below 0.72). */
+/* ── Other languages: the 580 tab plates shrink as one (useFitText). ── */
 .tabLong {
+  font-size: calc(50px * var(--fit, 1));
   white-space: normal;
   word-break: keep-all;
   overflow-wrap: anywhere;
-  font-size: calc(50px * var(--fit, 1));
+  padding: 0 20px;
   line-height: 1.12;
 }
 
-/* ── Other languages: the card itself ─────────────────────────────────────
- * Reached only through `.cardLong`, which the TSX adds when lang !== 'ko'.
- *
- * All three tabs share one card of a FIXED 1820×2160 (the Figma frame draws
- * them the same height), and the Korean copy fills it almost exactly — tab 1
- * lands within ~6px of the 2160. So every other language overruns it, and
- * because the card has no overflow of its own the copy ran straight out
- * through the white rounded bottom and over the banner: 인사 소개 needs 2583px
- * in Vietnamese (+423), 2392 in English and Indonesian, 2391 in Thai, 2317 in
- * Russian; 스트레칭 needs 2545 in Indonesian (+385) and 2350 in English and
- * Russian; 취미생활 overruns in vi/id.
- *
- * ── 1. The label columns ──
- * 이름/출생/신체 are two glyphs, so the label column could be a fixed 210 (field)
- * and 230 (detail) with the value simply starting at that offset. "Дата
- * рождения", "Kewarganegaraan" and "ความสามารถพิเศษ" are three to five times
- * that, and ran underneath their own value.
- *
- * The column sizes to its label instead, keeping the Korean offset as its
- * MINIMUM (170 + the 40 gap = the old 210; 190 + 40 = the old 230), so a short
- * label still lines up exactly where it did and only a long one pushes its
- * value across. */
-.cardLong .field {
-  gap: 40px;
+/* ── ♿ (7887:52114 소개, 7887:51936 / 51995 / 52054 취미생활) ──────────────────
+ * Inside OsanKiosk's shift, so each frame y is written as `y − --osan-mode-push`. */
+.low .tabs {
+  top: calc(3430px - var(--osan-mode-push, 0px));
 }
 
-/* `flex: 0 1 auto`, not the base rule's `flex: none`: a label that is wider
-   than its own column must be able to give way and wrap, or the row's
-   min-content pushes the whole 1740 row past the card's edge. */
-.cardLong .field .label {
-  flex: 0 1 auto;
-  width: auto;
-  min-width: 170px;
-  word-break: keep-all;
-  overflow-wrap: anywhere;
+/* K-POP ㅣ 골프 ㅣ 테니스 — 220 under the tabs, as on the normal page. */
+.low .subTabs {
+  top: calc(3650px - var(--osan-mode-push, 0px));
 }
 
-.cardLong .detail .label {
-  flex: 0 1 auto;
-  width: auto;
-  min-width: 190px;
-  word-break: keep-all;
-  overflow-wrap: anywhere;
+/* 소개 — the profile card at 1018. */
+.low .card {
+  top: calc(1018px - var(--osan-mode-push, 0px));
 }
 
-/* A value that now has to share the row wraps rather than run off the card. */
-.cardLong .value {
-  line-height: 1.3;
-  word-break: keep-all;
-  overflow-wrap: anywhere;
-}
-
-/*
- * ── 2. The card's height ──
- * With the columns fixed the copy still does not fit, so the card shrinks as
- * ONE: `--fit` (set by useFitText on the card, never below 0.6) scales every
- * type size and the three text-column gaps inside it. The portrait, the hobby
- * and stretch photos, and the footer pills keep their frame sizes — only type
- * and the space between paragraphs give way, which is what stops the card
- * needing 2583px in the first place.
- *
- * Korean never gets this class, so the frame it was drawn for is untouched. */
-.cardLong .label {
-  font-size: calc(60px * var(--fit, 1));
-}
-
-.cardLong .namePill,
-.cardLong .value,
-.cardLong .detailValue {
-  font-size: calc(58px * var(--fit, 1));
-}
-
-.cardLong .hobbyTitle,
-.cardLong .stretchIntroTitle,
-.cardLong .stretchSecTitle {
-  font-size: calc(63px * var(--fit, 1));
-}
-
-.cardLong .hobbyBody,
-.cardLong .stretchIntroBody,
-.cardLong .stretchSecBody {
-  font-size: calc(50px * var(--fit, 1));
-}
-
-.cardLong .hashtag {
-  font-size: calc(51.48px * var(--fit, 1));
-}
-
-.cardLong .infoCol {
-  gap: calc(45px * var(--fit, 1));
-}
-
-.cardLong .detailsCol {
-  gap: calc(50px * var(--fit, 1));
-}
-
-.cardLong .stretchSections {
-  gap: calc(64.35px * var(--fit, 1));
+/* 취미생활 — the caption card at 2779 (the photo's top is set inline). */
+.low .topicCard {
+  top: calc(2779px - var(--osan-mode-push, 0px));
 }
