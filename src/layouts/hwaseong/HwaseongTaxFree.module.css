@@ -1,4 +1,5 @@
-/* TAX-FREE — 화성휴게소 (W005). Same 3-tab layout as Osaek but var(--kiosk-primary) primary.
+/* TAX-FREE — 화성휴게소 (W005), Figma 7918:126869 (텍스프리 소개) / 7918:127083
+   (가맹점 신청): the 오산 TAX-FREE frames in [화성휴게소] main 1 #005AB4.
    Artboard: 2160×3840 px, 1 CSS px = 1 Figma px inside KioskArtboard. */
 
 .root {
@@ -18,9 +19,12 @@
   height: 100%;
   object-fit: cover;
   pointer-events: none;
+  transform: translateY(calc(-1 * var(--hwaseong-mode-push, 0px)));
 }
 
-/* ── Body card (white area below header, above tabs) ── */
+/* ── Body card — Rectangle 4226, 1820×2290 at (170, 664); top/height inline.
+   The 소개 frame draws it at x202, the 가맹점 frame at x170 — kept at 170 so the
+   card does not jump between tabs. ── */
 .body {
   position: absolute;
   left: 170px;
@@ -28,6 +32,16 @@
   border-radius: 42.9px;
   overflow: hidden;
   background: #ffffff;
+}
+
+/* The refund site, inset 1475×2122 in the card (as on the 오산 frame -03). */
+.embedFrame {
+  position: absolute;
+  left: 194.43px;
+  top: 114.77px;
+  width: 1475.15px;
+  height: 2122px;
+  overflow: hidden;
 }
 
 .embed {
@@ -97,17 +111,23 @@
   background: #fff;
 }
 
-/* ── Bottom tabs ── */
+/* ── Bottom tabs (7918:126966): 1814 wide at (197, 3016), three 580×170 ── */
 .tabs {
   position: absolute;
-  left: 50%;
-  transform: translateX(-50%);
-  top: 2999px;
+  left: 197px;
+  top: 3016px;
   width: 1814px;
   display: flex;
   align-items: center;
   justify-content: space-between;
   z-index: 6;
+}
+
+/* ♿ (7918:128392): the three tabs at the foot, 3441 on the artboard (the page
+   is shifted by the mode bar, hence − push), centred at x173. */
+.tabsLow {
+  left: 173px;
+  top: calc(3441px - var(--hwaseong-mode-push, 0px));
 }
 
 .tab {
@@ -118,13 +138,13 @@
   align-items: center;
   justify-content: center;
   background: #ffffff;
-  border: 2.145px solid var(--kiosk-primary);
+  border: none;
   border-radius: 42.905px;
   box-shadow: 0 21.453px 42.905px rgba(143, 147, 157, 0.1);
-  font-family: 'Noto Sans KR', 'Noto Sans', sans-serif;
+  font-family: 'Pretendard', var(--kiosk-font, sans-serif);
   font-weight: 500;
-  font-size: 52px;
-  color: var(--kiosk-primary);
+  font-size: 50px;
+  color: #005ab4;
   cursor: pointer;
   text-align: center;
   padding: 0 18px;
@@ -132,12 +152,20 @@
   -webkit-tap-highlight-color: transparent;
 }
 
+/* 세금 환급 신청, when not selected, keeps a 2.145 main 1 ring (both frames). */
+.tabOutlined {
+  border: 2.145px solid #005ab4;
+}
+
+/* Selected: main 1 fill, Bold white. */
 .tabSelected {
-  background: var(--kiosk-primary);
+  background: #005ab4;
+  font-weight: 700;
   color: #ffffff;
 }
 
-/* ── Bottom banner ── */
+/* ── 상점 검색 promo (7918:126979): the "WITH 키오스크로!" art with its orange
+   strip; it opens 검색. ── */
 .banner {
   position: absolute;
   top: 3267px;
@@ -145,7 +173,12 @@
   width: 2160px;
   height: 573px;
   z-index: 5;
-  pointer-events: none;
+  padding: 0;
+  border: none;
+  background: none;
+  cursor: pointer;
+  overflow: hidden;
+  transform: translateY(calc(-1 * var(--hwaseong-mode-push, 0px)));
 }
 
 .bannerImg {
@@ -153,6 +186,7 @@
   height: 100%;
   object-fit: cover;
   display: block;
+  pointer-events: none;
 }
 
 /* ── Other languages ──────────────────────────────────────────────────────
@@ -170,6 +204,6 @@
   word-break: keep-all;
   overflow-wrap: anywhere;
   padding: 0 20px;
-  font-size: calc(52px * var(--fit, 1));
+  font-size: calc(50px * var(--fit, 1));
   line-height: 1.12;
 }

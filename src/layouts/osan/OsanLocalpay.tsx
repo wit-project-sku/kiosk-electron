@@ -37,7 +37,7 @@ function renderRich(text: string): ReactNode {
   );
 }
 
-interface LocalpayContent {
+export interface LocalpayContent {
   title: string;
   tabs: [string, string];
   onnuri: {
@@ -69,8 +69,9 @@ interface LocalpayContent {
 }
 
 /** 지역화폐 — text verbatim from Figma (오산>지역화폐=온누리상품권 / =오색전);
+ *  화성's 온누리상품권 tab (HwaseongLocalpay) reads `onnuri` from here too;
  *  other languages translate the same copy. */
-const CONTENT: Partial<Record<Lang, LocalpayContent>> = {
+export const LOCALPAY_CONTENT: Partial<Record<Lang, LocalpayContent>> = {
   ko: {
     title: '지역화폐',
     tabs: ['오색전', '온누리상품권'],
@@ -473,7 +474,7 @@ export function OsanLocalpay({ controller }: OsanLocalpayProps): JSX.Element {
      See "Other languages" in the CSS. */
   const wide = lang !== 'ko';
   const tabsRef = useRef<HTMLDivElement>(null);
-  const c = pick(CONTENT, lang);
+  const c = pick(LOCALPAY_CONTENT, lang);
   const [tab, setTab] = useState(0);
 
   useFitText(tabsRef, styles.tab, wide, 0.72, lang);

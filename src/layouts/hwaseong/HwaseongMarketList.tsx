@@ -1,55 +1,71 @@
+/**
+ * Shared 전국시장 / 전국 휴게소 list — Figma 7956:62204 (전국시장; the 오산 list
+ * frame with region tabs, in [화성휴게소] main 1 #005AB4). Nationwide markets
+ * from the bundled sheet, grouped by region tab, then the ㄱ–ㅎ row and the
+ * cards in a scrolling window. Renders with HwaseongListScreen.module.css.
+ */
 import { useMemo, useRef, useState } from 'react';
-import { QRCodeSVG } from 'qrcode.react';
 import type { KioskController } from '@renderer/hooks/useKioskController';
 import { hwaseongIconUrl } from '@renderer/assets/icons/hwaseong';
 import { useDetailStore } from '@renderer/store/detailStore';
+import { useAccessibilityStore } from '@renderer/store/accessibilityStore';
 import { provinceLabel, useLang } from '@renderer/lib/i18n';
-import { firstTags } from '@renderer/lib/shops';
+import { padImages } from '@renderer/lib/shops';
 import { NATIONWIDE_MARKETS, type NationwideMarket } from '@renderer/data/nationwideMarkets.generated';
 import { pickText } from '@renderer/data/types';
 import { useFitText } from '@layouts/components/fitText';
 import { HwaseongHeader } from './HwaseongHeader';
-import { HwaseongBanner } from './HwaseongBanner';
 import { HwaseongLeftNav } from './HwaseongLeftNav';
-import styles from './HwaseongMarketScreen.module.css';
+import { HwaseongPageBg } from './HwaseongPageBg';
+import { InitialsRow, ListScrollControls, initialOf, useListScroll } from './HwaseongListParts';
+import styles from './HwaseongListScreen.module.css';
+
+/** One region tab: the sheet `province.ko` values it holds, and the Korean
+ *  label when it differs from the first of them (서울 → 서울시). */
+export interface RegionTab {
+  provinces: string[];
+  ko?: string;
+}
 
 interface Props {
   controller: KioskController;
-  /** Header title id (e.g. '전국시장' or '전국 휴게소'). */
+  /** Header title id — also the 상세 page's title (e.g. '전국시장', '전국 휴게소'). */
   title: string;
-  /** Province keys (sheet `province.ko` values) that get a tab, in order. */
-  provinces: string[];
+  tabs: RegionTab[];
 }
 
-/**
- * Shared 전국시장/전국휴게소 list — nationwide markets from the bundled sheet,
- * filtered to the given provinces (전국시장 = 시/cities, 전국휴게소 = 도/provinces).
- * Tabs + cards match Figma node 4167-173323. No images in the sheet → shared
- * no-image placeholder; QR only when a market has a real link.
- */
-export function HwaseongMarketList({ controller, title, provinces }: Props): JSX.Element {
+export function HwaseongMarketList({ controller, title, tabs }: Props): JSX.Element {
   const lang = useLang();
   const setDetail = useDetailStore((s) => s.setItem);
-  const [activeKr, setActiveKr] = useState(provinces[0] ?? '');
+  const [active, setActive] = useState(0);
+  const [initial, setInitial] = useState('');
 
-  /* Korean province names are three glyphs and fit the 340px tab on one line;
-     every other language is far longer. There the label wraps and the row
-     shrinks together if it still overflows — see "Other languages" in the CSS. */
+  const tabLabel = (tab: RegionTab): string =>
+    lang === 'ko' && tab.ko ? tab.ko : provinceLabel(tab.provinces[0] ?? '', lang);
+
+  /* Korean region names fit the 340px tab; other languages wrap inside it and
+     the row shrinks together — "Other languages" in the CSS. */
   const wide = lang !== 'ko';
   const tabsRef = useRef<HTMLDivElement>(null);
-  useFitText(tabsRef, styles.tab, wide, 0.72, provinces.map((p) => provinceLabel(p, lang)).join('|'));
+  useFitText(tabsRef, styles.tab, wide, 0.72, tabs.map(tabLabel).join('|'));
 
-  const visible = useMemo(
-    () => NATIONWIDE_MARKETS.filter((m) => m.province.ko.trim() === activeKr),
-    [activeKr],
-  );
+  const visible = useMemo(() => {
+    const provinces = new Set(tabs[active]?.provinces ?? []);
+    return NATIONWIDE_MARKETS.filter(
+      (m) => provinces.has(m.province.ko.trim()) && (!initial || initialOf(m.name.ko ?? '') === initial),
+    );
+  }, [tabs, active, initial]);
+
+  const { listRef, thumb, scrollBy, toTop } = useListScroll(visible);
 
   const noImg = hwaseongIconUrl('noimage');
+  /* ♿ (전국시장 7956:61868): the 뭐사지 list's barrier-free order (.lowList). */
+  const low = useAccessibilityStore((st) => st.lowReach);
 
   const openDetail = (m: NationwideMarket): void => {
     setDetail({
       from: 'market',
-      title: '전국시장',
+      title,
       name: pickText(m.name, lang),
       category: pickText(m.district, lang),
       photos: noImg ? [noImg] : [],
@@ -62,69 +78,78 @@ export function HwaseongMarketList({ controller, title, provinces }: Props): JSX
       instagram: '',
       blogReviews: m.naverLink,
     });
-    controller.navigate('detail', '전국시장 상세');
+    controller.navigate('detail', `${title} 상세`);
   };
 
   return (
-    <div className={styles.root}>
-      <div className={styles.bgBase} />
-      {hwaseongIconUrl('bg') && (
-        <img src={hwaseongIconUrl('bg')} alt="" className={styles.bgImage} draggable={false} />
-      )}
+    <div className={low ? `${styles.root} ${styles.lowList}` : styles.root}>
+      <HwaseongPageBg image="detail-page-bg" opacity={0.7} />
 
       <HwaseongHeader controller={controller} title={title} />
 
       <div className={styles.results}>
-        {/* Province tabs (from sheet) */}
-        <div ref={tabsRef} className={styles.tabs}>
-          {provinces.map((prov) => (
+        <div ref={tabsRef} className={`${styles.tabs} ${tabs.length > 5 ? styles.tabsTwoRows : ''}`}>
+          {tabs.map((tab, i) => (
             <button
-              key={prov}
+              key={tab.provinces.join('|')}
               type="button"
-              className={`${styles.tab} ${wide ? styles.tabLong : ''} ${prov === activeKr ? styles.tabSelected : ''}`}
-              onClick={() => setActiveKr(prov)}
+              className={`${styles.tab} ${wide ? styles.tabLong : ''} ${i === active ? styles.tabSelected : ''}`}
+              onClick={() => {
+                setActive(i);
+                toTop();
+              }}
             >
-              {provinceLabel(prov, lang)}
+              {tabLabel(tab)}
             </button>
           ))}
         </div>
 
-        {/* Market cards */}
-        {visible.map((m, i) => {
-          const name = pickText(m.name, lang);
-          return (
-            <button type="button" key={`${name}-${i}`} className={styles.card} onClick={() => openDetail(m)}>
-              <div className={styles.cardInner}>
-                <div className={styles.thumb}>
-                  {noImg ? <img src={noImg} alt="" draggable={false} loading="lazy" /> : <div className={styles.thumbEmpty} />}
-                </div>
-                <div className={styles.info}>
-                  <div className={styles.nameRow}>
-                    <span className={styles.name}>{name}</span>
-                    <span className={`${styles.region} ${wide ? styles.regionLong : ''}`}>
-                      <span className={styles.dot} />
-                      {pickText(m.district, lang) || provinceLabel(activeKr, lang)}
-                    </span>
+        <InitialsRow
+          value={initial}
+          onPick={(c) => {
+            setInitial((cur) => (cur === c ? '' : c));
+            toTop();
+          }}
+        />
+
+        <div ref={listRef} className={styles.list}>
+          <div className={styles.cards}>
+            {visible.map((m, i) => {
+              const name = pickText(m.name, lang);
+              const region = pickText(m.district, lang) || provinceLabel(m.province.ko.trim(), lang);
+              return (
+                <button type="button" key={`${m.name.ko}-${i}`} className={styles.card} onClick={() => openDetail(m)}>
+                  <div className={styles.info}>
+                    <div className={styles.nameRow}>
+                      <span className={styles.name}>{name}</span>
+                      {region && (
+                        <span className={`${styles.cat} ${wide ? styles.catLong : ''}`}>
+                          <span className={styles.dot} />
+                          {region}
+                        </span>
+                      )}
+                    </div>
+                    <p className={styles.address}>{pickText(m.address, lang)}</p>
+                    <p className={styles.desc}>{pickText(m.description, lang)}</p>
                   </div>
-                  <p className={styles.address}>{pickText(m.address, lang)}</p>
-                  <p className={styles.hours}>{pickText(m.openTime, lang)}</p>
-                  <p className={styles.tags}>{firstTags(pickText(m.hashtag, lang))}</p>
-                </div>
-              </div>
-              {/* QR only when the market has a real link (no empty bordered box). */}
-              {m.naverLink && (
-                <div className={styles.qr}>
-                  <QRCodeSVG value={m.naverLink} level="M" style={{ width: '100%', height: '100%' }} />
-                </div>
-              )}
-            </button>
-          );
-        })}
+                  {/* The sheet carries no photos — both slots show the placeholder. */}
+                  <div className={styles.photos}>
+                    {padImages([], noImg, 2).slice(0, 2).map((src, j) => (
+                      <div key={j} className={styles.thumb}>
+                        {src && <img src={src} alt="" draggable={false} loading="lazy" />}
+                      </div>
+                    ))}
+                  </div>
+                </button>
+              );
+            })}
+          </div>
+        </div>
       </div>
 
-      <HwaseongLeftNav onHome={() => controller.navigate('home', 'Back')} />
+      <ListScrollControls thumb={thumb} scrollBy={scrollBy} />
 
-      <HwaseongBanner onClick={() => controller.startPhoto()} />
+      <HwaseongLeftNav onHome={() => controller.navigate('home', 'Back')} />
     </div>
   );
 }
