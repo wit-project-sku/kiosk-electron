@@ -129,12 +129,16 @@ tests/unit/        단위 테스트(Vitest)
 
 | 단계 | 무엇이 일어나나 |
 |---|---|
-| PR(→ `dev`·`main`) / `dev_kdh` push | `ci.yml` — Windows 에서 설치·타입 검사·lint·단위 테스트·빌드. 배포는 안 한다 |
+| PR(→ `dev`·`main`·`prod_kdh`) / `dev_kdh` push | `ci.yml` — Windows 에서 설치·타입 검사·lint·단위 테스트·빌드. 배포는 안 한다 |
 | `dev` push | `release-beta.yml` — 베타 설치 파일을 GitHub Release(prerelease)로. 베타 키오스크(`UPDATE_CHANNEL=beta`)가 15분마다 확인해 설치 |
 | `main` push | `release-production.yml` — `package.json` 버전이 새것일 때만 운영 릴리스. 운영 키오스크는 매주 정해진 시각(기본 금요일 17:00)에 확인 |
+| `stage_kdh` push | `release-kdh.yml` — **kdh 채널**(실습 레인) 설치 파일, stage 서버 연결. 버전 `<major>.<minor+2>.0-kdh.<번호>` |
+| `prod_kdh` push | `release-kdh.yml` — kdh 채널, 운영 서버 연결. 베타·운영 키오스크는 kdh 릴리스를 보지 않는다(다른 채널의 prerelease 는 건너뜀) |
 | 서버의 "지금 업데이트" | 앱이 5분마다 `/api/kiosks/{번호}/update-command` 를 확인해 즉시 업데이트 확인을 돈다 |
 
 - 업데이트는 촬영 중에는 미루고, 설치에 두 번 실패한 버전은 다시 시도하지 않는다(`src/main/updater/`).
+- kdh 빌드는 베타와 같은 설치 정체성(`electron-builder.beta.yml`)이라 테스트 PC 의 베타 앱을 대신한다. 두 kdh 빌드(stage·운영)는 한 워크플로의 실행 번호를 나눠 써서 버전이 계속 오르고, 테스트 키오스크는 가장 새 것을 받는다 — 어느 서버용인지는 릴리스 설명에 적힌다. DEV_MODE 는 꺼져 있다.
+- **테스트 키오스크(`kioskId` = `W200`)**: 정체성(업데이트 명령·상태 보고·전원 일정)은 200 으로 고정하고, 화면·지역·서버 콘텐츠는 `kiosk-config.json` 의 `previewSite`(W001…W202, 없으면 W001) 지점으로 띄운다(`shared/config/testRig.ts`). 지점 전환 화면은 개발 모드가 아니어도 열린다. 카드 단말기 에이전트는 `testRigPayment: true` 일 때만 켠다.
 - 설치본의 실행 설정(`.env`)은 저장소가 아니라 GitHub Environment 비밀값에서 빌드할 때 만든다.
 
 ---

@@ -3,12 +3,13 @@ name: ci
 # Checks every change before it can reach a release branch. It never publishes and
 # never reads environment secrets — the release workflows (release-beta on dev,
 # release-production on main) stay exactly as they were.
+# PRs into prod_kdh (the kdh practice lane, release-kdh.yml) get the same checks.
 #
 # Runs on Windows because the kiosks are Windows machines and `npm ci` ABI-rebuilds
 # the native modules (better-sqlite3, serialport) for Electron there.
 on:
   pull_request:
-    branches: [dev, main]
+    branches: [dev, main, prod_kdh]
   push:
     branches: [dev_kdh]
   workflow_dispatch:
