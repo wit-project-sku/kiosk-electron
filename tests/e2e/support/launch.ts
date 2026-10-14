@@ -38,7 +38,10 @@ export interface LaunchedKiosk {
 }
 
 export interface LaunchOptions {
-  site: Site;
+  /** A site code, or the office test rig `W200` (then set `kioskConfig.previewSite`). */
+  site: Site | 'W200';
+  /** Extra kiosk-config.json fields (e.g. `{ previewSite: 'W004' }` on the test rig). */
+  kioskConfig?: Record<string, unknown>;
   apiBase: string;
   /** Open the customer-display window even on a single monitor. */
   displayWindow?: boolean;
@@ -74,7 +77,10 @@ const URL_OVERRIDES = [
 
 export async function launchKiosk(opts: LaunchOptions): Promise<LaunchedKiosk> {
   const userData = opts.userData ?? mkdtempSync(join(tmpdir(), `kiosk-e2e-${opts.site}-`));
-  writeFileSync(join(userData, 'kiosk-config.json'), JSON.stringify({ kioskId: opts.site }));
+  writeFileSync(
+    join(userData, 'kiosk-config.json'),
+    JSON.stringify({ kioskId: opts.site, ...opts.kioskConfig }),
+  );
 
   const env: Record<string, string> = {};
   for (const [k, v] of Object.entries(process.env)) if (v !== undefined) env[k] = v;

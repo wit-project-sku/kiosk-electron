@@ -70,7 +70,7 @@ export class HealthReporter {
       pid: process.pid,
       appVersion: app.getVersion(),
       channel: resolveUpdateChannel(),
-      kioskCode: this.kiosk.getConfig().kioskId.slice(0, 8),
+      kioskCode: this.kiosk.identityCode().slice(0, 8),
       startedAt: now,
       lastBeatAt: now,
       lastRssMb: rssMb(),
@@ -152,7 +152,7 @@ export class HealthReporter {
     return signalHeaders({
       appVersion: app.getVersion(),
       channel: resolveUpdateChannel(),
-      kioskCode: this.kiosk.getConfig().kioskId,
+      kioskCode: this.kiosk.identityCode(),
       uptimeSec: process.uptime(),
       mainRssMb: rssMb(),
     });
@@ -196,7 +196,7 @@ export class HealthReporter {
     if (!this.state || this.flushing || !this.state.pending.length) return;
     this.flushing = true;
     try {
-      const url = `${witteriaApiBase()}/api/kiosks/${this.kiosk.kioskNum()}/crash-reports`;
+      const url = `${witteriaApiBase()}/api/kiosks/${this.kiosk.identityNum()}/crash-reports`;
       while (this.state.pending.length) {
         const next = this.state.pending[0];
         const controller = new AbortController();

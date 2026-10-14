@@ -108,7 +108,7 @@ export class UpdateCommandService {
   private endpoint(): string {
     if (process.env['UPDATE_COMMAND_API_URL']) return process.env['UPDATE_COMMAND_API_URL'];
     const base = (process.env['WITTERIA_API_BASE'] || DEFAULT_API_BASE).replace(/\/+$/, '');
-    return `${base}/api/kiosks/${this.kiosk.kioskNum()}/update-command`;
+    return `${base}/api/kiosks/${this.kiosk.identityNum()}/update-command`;
   }
 
   private arm(delayMs: number): void {

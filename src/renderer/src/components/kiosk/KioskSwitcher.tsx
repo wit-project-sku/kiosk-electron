@@ -35,6 +35,7 @@ export function KioskSwitcher(): JSX.Element | null {
   const devMode = useKioskStore((s) => s.devMode);
   const screen = useKioskStore((s) => s.screen);
   const currentId = useKioskStore((s) => s.config.kioskId);
+  const testRig = useKioskStore((s) => s.config.testRig === true);
   const photoActive = usePhotoStore((s) => s.active);
 
   const [revealed, setRevealed] = useState(false);
@@ -44,7 +45,8 @@ export function KioskSwitcher(): JSX.Element | null {
   const stageRef = useRef<HTMLDivElement>(null);
   const handleRef = useRef<HTMLButtonElement>(null);
 
-  const enabled = devMode || import.meta.env.DEV;
+  // The office test rig (W200) switches between every site's app in production builds too.
+  const enabled = devMode || testRig || import.meta.env.DEV;
   const visible = enabled && screen === 'home' && !photoActive;
 
   // Mirror KioskArtboard's uniform fit so this chrome scales with the kiosk.

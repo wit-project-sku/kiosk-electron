@@ -159,7 +159,8 @@ async function bootstrap(): Promise<void> {
   // 08:00 시작 / 22:00 종료 cycle; every other kiosk keeps the 02:00 reboot; the
   // beta channel opts out of both and reboots once at 09:00.
   // Best-effort: never blocks or fails startup.
-  void setupKioskPower(container.kiosk.getConfig().kioskId);
+  // Power schedule follows the machine's own identity, not the test rig's preview site.
+  void setupKioskPower(container.kiosk.identityCode());
 
   // Seed rarely-changing config and local content before windows open so the
   // renderer renders instantly from injected bootstrap data — no network, no spinners.
@@ -231,7 +232,9 @@ async function bootstrap(): Promise<void> {
   // Launch the embedded payment agent ONLY on kiosks with a physical card
   // terminal (hasCardTerminal — W003 남인사마당 / W004 오색시장 / W005 화성휴게소).
   // Runs as an isolated child process; best-effort.
-  if (getKioskLocation(container.kiosk.getConfig().kioskId).hasCardTerminal && !e2eSkipsPaymentAgent()) {
+  const kioskCfg = container.kiosk.getConfig();
+  const paymentAllowed = !kioskCfg.testRig || kioskCfg.testRigPayment === true;
+  if (getKioskLocation(kioskCfg.kioskId).hasCardTerminal && paymentAllowed && !e2eSkipsPaymentAgent()) {
     paymentAgent.start();
   }
 
