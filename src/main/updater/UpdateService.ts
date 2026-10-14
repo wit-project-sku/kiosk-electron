@@ -177,7 +177,7 @@ export class UpdateService {
     autoUpdater.autoDownload = true; // background download
     autoUpdater.autoInstallOnAppQuit = true; // safety net: applies on the nightly reboot
     autoUpdater.channel = this.channel;
-    autoUpdater.allowPrerelease = this.channel === 'beta';
+    autoUpdater.allowPrerelease = this.channel !== 'latest';
     // MUST come after `channel`. electron-updater's channel SETTER forces
     // `allowDowngrade = true` (AppUpdater.js: "allowDowngrade will be
     // automatically set to true. If this behavior is not suitable for you,

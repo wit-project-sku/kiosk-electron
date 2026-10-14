@@ -17,6 +17,7 @@ import { initLogger, createLogger } from './core/logger';
 import { loadEnvFile } from './core/env';
 import { enforceSingleInstance, suppressEmbedAuthDialog } from './core/security';
 import { applyAppIdentity, appDisplayName } from './core/appIdentity';
+import { applyE2EUserData, e2eSkipsPaymentAgent } from './core/e2e';
 import { MEDIA_SCHEME_PRIVILEGES, registerMediaProtocol } from './core/mediaProtocol';
 import {
   APP_RESOURCE_SCHEME_PRIVILEGES,
@@ -95,6 +96,8 @@ loadEnvFile();
 // A PRODUCTION build is unaffected: it keeps the `kiosk-app` directory it has
 // always used. See core/appIdentity.ts for why that matters.
 const identity = applyAppIdentity();
+// Automated tests only (unpackaged + KIOSK_E2E=1): a throwaway userData per run.
+applyE2EUserData();
 
 initLogger();
 const log = createLogger('main');
@@ -142,13 +145,22 @@ async function bootstrap(): Promise<void> {
   }
 
   const container = createContainer();
+  // First thing after the container: reports how the previous run ended and starts the
+  // run-state heartbeat, so even a crash during the rest of startup is recorded.
+  try {
+    container.health.start();
+  } catch (e) {
+    // Health reporting must never stop a kiosk from starting.
+    log.warn('Health reporter failed to start', { error: String(e) });
+  }
 
   // Provision OS-level kiosk power behavior + auto-start on boot so the fleet
   // self-heals without anyone running the .bat helpers. Osaek (W004) gets an
   // 08:00 시작 / 22:00 종료 cycle; every other kiosk keeps the 02:00 reboot; the
   // beta channel opts out of both and reboots once at 09:00.
   // Best-effort: never blocks or fails startup.
-  void setupKioskPower(container.kiosk.getConfig().kioskId);
+  // Power schedule follows the machine's own identity, not the test rig's preview site.
+  void setupKioskPower(container.kiosk.identityCode());
 
   // Seed rarely-changing config and local content before windows open so the
   // renderer renders instantly from injected bootstrap data — no network, no spinners.
@@ -220,7 +232,9 @@ async function bootstrap(): Promise<void> {
   // Launch the embedded payment agent ONLY on kiosks with a physical card
   // terminal (hasCardTerminal — W003 남인사마당 / W004 오색시장 / W005 화성휴게소).
   // Runs as an isolated child process; best-effort.
-  if (getKioskLocation(container.kiosk.getConfig().kioskId).hasCardTerminal) {
+  const kioskCfg = container.kiosk.getConfig();
+  const paymentAllowed = !kioskCfg.testRig || kioskCfg.testRigPayment === true;
+  if (getKioskLocation(kioskCfg.kioskId).hasCardTerminal && paymentAllowed && !e2eSkipsPaymentAgent()) {
     paymentAgent.start();
   }
 
@@ -338,6 +352,7 @@ app.on('window-all-closed', () => {
 
 app.on('before-quit', () => {
   log.info('Shutting down');
+  markHealthCleanExit();
   paymentAgent.stop();
   try {
     getContainer().sync.stop();
@@ -362,7 +377,27 @@ app.on('before-quit', () => {
 // Last-resort safety nets; electron-log also captures these.
 process.on('uncaughtException', (error) => {
   log.error('Uncaught exception', error);
+  try {
+    getContainer().health.recordUncaught(error);
+  } catch {
+    // Container may not exist yet; the log line above is all we can do.
+  }
 });
+
+// Windows logs off / shuts down (the scheduled reboot): a normal end of a run, even
+// though the OS may not give the app time to reach before-quit. Windows-only event,
+// emitted on each BrowserWindow.
+app.on('browser-window-created', (_event, window) => {
+  window.on('session-end', () => markHealthCleanExit());
+});
+
+function markHealthCleanExit(): void {
+  try {
+    getContainer().health.markCleanExit();
+  } catch {
+    // Container may not exist if startup failed; nothing to mark.
+  }
+}
 process.on('unhandledRejection', (reason) => {
   log.error('Unhandled rejection', reason);
 });

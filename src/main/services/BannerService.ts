@@ -57,11 +57,13 @@ export class BannerService {
       const res = await fetch(url);
       log.info('Banners API responded', { status: res.status, ok: res.ok });
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      const json = (await res.json()) as { data?: any[] };
+      const json = (await res.json()) as { data?: unknown[] };
       const rawBanners = Array.isArray(json.data) ? json.data : [];
       
       if (rawBanners.length > 0) {
-        log.info('Banners API keys sample', { keys: Object.keys(rawBanners[0]) });
+        log.info('Banners API keys sample', {
+          keys: Object.keys(rawBanners[0] as Record<string, unknown>),
+        });
       }
 
       const banners = rawBanners.map((b) => normalizeBanner(b as Record<string, unknown>));

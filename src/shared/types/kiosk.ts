@@ -61,7 +61,14 @@ export type KioskLayoutId =
 export type KioskId = 'W001' | 'W002' | 'W003' | 'W004' | 'W005' | 'W006' | 'W007' | 'W008' | 'W202' | (string & {});
 
 export interface KioskConfig {
+  /** Location-derived id — on the test rig this is the preview site (see shared/config/testRig). */
   kioskId: KioskId;
+  /** Who this machine is to the server: the provisioned id (W200 on the test rig). */
+  identityKioskId?: KioskId;
+  /** True on the office test kiosk (W200), which can switch between every site's app. */
+  testRig?: boolean;
+  /** Test rig only: start the card-terminal agent for the preview site (off unless set). */
+  testRigPayment?: boolean;
   layout: KioskLayoutId;
   /** Per-machine witteria shop-API id (set in electron-store); optional. */
   shopApiKioskId?: number;

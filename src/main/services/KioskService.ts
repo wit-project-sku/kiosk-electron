@@ -1,6 +1,7 @@
 import type { KioskConfig, KioskTheme } from '@shared/types/kiosk';
 import { getKioskRegion, type ContentRegion } from '@shared/config/kioskLocations';
 import { kioskConfigStore } from '@main/core/KioskConfigStore';
+import { kioskNumOf } from '@shared/config/testRig';
 import { loadTheme } from '@main/core/ThemeLoader';
 
 /**
@@ -33,10 +34,23 @@ export class KioskService {
    * on every 제주 kiosk provisioned with `-ShopId 7`. See ShopService.kioskNum.
    */
   kioskNum(): number {
+    return kioskNumOf(this.getConfig().kioskId);
+  }
+
+  /**
+   * Who this machine is to the server — the provisioned id, even on the test rig
+   * (W200 → 200) where {@link kioskNum} follows the preview site. Used for the
+   * liveness signal (update-command) and crash reports only.
+   */
+  identityNum(): number {
     const cfg = this.getConfig();
-    const digits = (cfg.kioskId.match(/\d+/)?.[0] ?? '1').replace(/^0+/, '');
-    const n = Number(digits || '1');
-    return Number.isFinite(n) && n > 0 ? n : 1;
+    return kioskNumOf(cfg.identityKioskId ?? cfg.kioskId);
+  }
+
+  /** The provisioned kiosk code (W200 on the test rig). */
+  identityCode(): string {
+    const cfg = this.getConfig();
+    return cfg.identityKioskId ?? cfg.kioskId;
   }
 
   /**

@@ -67,7 +67,6 @@ export function HwaseongWebScreen({ controller, title, url, injectCss, bodyHeigh
       {/* Webview body — 1820 × 2250 (height overridable to crop a site's footer gap) */}
       <div className={styles.body} style={bodyHeight ? { height: bodyHeight } : undefined}>
         <webview
-          /* eslint-disable-next-line react/no-unknown-property */
           ref={webviewRef as unknown as React.Ref<HTMLElement>}
           src={url}
           partition="persist:embeds"
