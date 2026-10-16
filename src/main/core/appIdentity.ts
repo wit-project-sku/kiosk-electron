@@ -108,8 +108,29 @@ function packagedBuildChannel(): string {
  * UPDATE_CHANNEL is kept as the fallback so `npm run dev` can still exercise the
  * beta path without packaging anything.
  */
-export const isBetaBuild = (): boolean =>
-  packagedBuildChannel() === 'beta' || resolveUpdateChannel() === 'beta';
+export const isBetaBuild = (): boolean => buildChannelOf('beta');
+
+/**
+ * True when this build IS the demo (office showroom) build — production code
+ * and config, plus the location switcher. Same build-first rule as beta, with
+ * electron-builder.demo.yml stamping `buildChannel: demo`.
+ */
+export const isDemoBuild = (): boolean => buildChannelOf('demo');
+
+/**
+ * A packaged `buildChannel` is final; only a build without one (production, or
+ * `npm run dev`) falls back to UPDATE_CHANNEL. So a demo build can never be
+ * mistaken for beta, nor beta for demo, whatever its `.env` says.
+ */
+function buildChannelOf(channel: 'beta' | 'demo'): boolean {
+  const packaged = packagedBuildChannel();
+  return packaged ? packaged === channel : resolveUpdateChannel() === channel;
+}
+
+/** Demo's own `%APPDATA%` directory and AppUserModelID — see the beta ones above. */
+const DEMO_USER_DATA_DIR = 'kiosk-app-demo';
+/** MUST match `appId` in electron-builder.demo.yml. */
+const DEMO_APP_ID = `${APP_ID}.demo`;
 
 /**
  * Point this process at its own state directory, and tell Windows which app it
@@ -117,21 +138,29 @@ export const isBetaBuild = (): boolean =>
  *
  * A production build is a no-op apart from the AppUserModelID it already set.
  *
- * Returns what it resolved, so a support ticket can say which of the two
+ * Returns what it resolved, so a support ticket can say which of the
  * installs produced the log it is quoting.
  */
-export function applyAppIdentity(): { appId: string; userData: string; beta: boolean } {
+export function applyAppIdentity(): {
+  appId: string;
+  userData: string;
+  beta: boolean;
+  demo: boolean;
+} {
   const beta = isBetaBuild();
+  const demo = isDemoBuild();
 
-  if (beta) {
+  if (beta || demo) {
     // `appData` is %APPDATA% (roaming) — the parent Electron would have used
-    // anyway, so beta lands beside production rather than somewhere new.
-    app.setPath('userData', join(app.getPath('appData'), BETA_USER_DATA_DIR));
+    // anyway, so beta/demo land beside production rather than somewhere new.
+    const dir = beta ? BETA_USER_DATA_DIR : DEMO_USER_DATA_DIR;
+    app.setPath('userData', join(app.getPath('appData'), dir));
   }
 
-  electronApp.setAppUserModelId(beta ? BETA_APP_ID : APP_ID);
+  const appId = beta ? BETA_APP_ID : demo ? DEMO_APP_ID : APP_ID;
+  electronApp.setAppUserModelId(appId);
 
-  return { appId: beta ? BETA_APP_ID : APP_ID, userData: app.getPath('userData'), beta };
+  return { appId, userData: app.getPath('userData'), beta, demo };
 }
 
 /**
@@ -140,5 +169,7 @@ export function applyAppIdentity(): { appId: string; userData: string; beta: boo
  * precisely why it is safe to vary it per channel.
  */
 export function appDisplayName(baseName: string): string {
-  return isBetaBuild() ? `${baseName} Beta` : baseName;
+  if (isBetaBuild()) return `${baseName} Beta`;
+  if (isDemoBuild()) return `${baseName} Demo`;
+  return baseName;
 }

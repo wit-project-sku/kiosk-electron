@@ -8,6 +8,7 @@ import type {
   ShotInput,
 } from '@shared/types/data';
 import { createLogger } from '@main/core/logger';
+import { isDemoBuild } from '@main/core/appIdentity';
 import type { KioskService } from './KioskService';
 import type { FailedRequestService } from './FailedRequestService';
 
@@ -83,10 +84,27 @@ function sentEventIds(json: unknown): Set<string> {
  *   STATS_PHOTO_SHOTS_SYNC_URL  — nightly photo-shots batch endpoint.
  */
 export class StatsService {
+  /**
+   * The demo (office showroom) build reports NO stats. It switches between real
+   * locations while clients watch, so every touch would land under W001…W008's
+   * real kioskNum and inflate that site's numbers. Resolved lazily and once:
+   * `isDemoBuild()` reads the packaged package.json, and this is constructed
+   * while the container is wired, before `app` has resolved its paths.
+   */
+  private demo: boolean | undefined;
+
   constructor(
     private readonly kiosk: KioskService,
     private readonly failedRequests: FailedRequestService,
   ) {}
+
+  private statsDisabled(): boolean {
+    if (this.demo === undefined) {
+      this.demo = isDemoBuild();
+      if (this.demo) log.info('demo build: stats reporting is off');
+    }
+    return this.demo;
+  }
 
   private menuTouchUrl(): string {
     return process.env['STATS_MENU_TOUCH_URL'] ?? `${witteriaApiBase()}/api/stats/menu-touch`;
@@ -110,6 +128,7 @@ export class StatsService {
    * real-time endpoint takes no eventId; it's added only for batch idempotency.
    */
   async recordMenuTouch(input: MenuTouchInput): Promise<boolean> {
+    if (this.statsDisabled()) return true;
     const kioskId = this.kiosk.kioskNum();
     const eventId = input.eventId ?? randomUUID();
 
@@ -144,6 +163,7 @@ export class StatsService {
    * batch re-send. `eventId` is the idempotency key shared across both paths.
    */
   async recordShot(input: ShotInput): Promise<boolean> {
+    if (this.statsDisabled()) return true;
     const kioskId = this.kiosk.kioskNum();
     const eventId = input.eventId ?? randomUUID();
     const shotAt = input.shotAt ?? localIso();

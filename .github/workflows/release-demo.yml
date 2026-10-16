@@ -1,0 +1,40 @@
+name: release-demo
+
+# Demo channel (office showroom kiosk). Fires on every push to `demo`.
+#
+# The demo build is PRODUCTION: the `demo` branch is cut from `main` and only
+# ever takes `main` (git merge main / fast-forward), and its runtime config
+# comes from the `demo` GitHub Environment, which holds the same live URLs and
+# keys as `production`. Three things differ, all decided in release.yml and
+# electron-builder.demo.yml:
+#   - DEV_MODE=true      → the in-app location switcher (the "hamburger")
+#   - its own identity   → appId / productName / %APPDATA% (installs alongside)
+#   - UPDATE_CHANNEL=demo → follows only `-demo.N` releases
+#
+# Publishes a GitHub PRE-release v<package.json version>-demo.<run_number>, so
+# the version reads as the production release it mirrors (5.0.27-demo.4).
+# electron-updater treats `demo` as a custom channel: a demo kiosk only takes
+# `-demo.` tags, and beta (`beta` channel) and production (stable only) never
+# take a demo one. Unlike beta, it does not have to outrank the stable release.
+#
+# Set up once in GitHub → Settings → Environments → `demo`:
+#   - secrets KIOSK_ENV, GOOGLE_SERVICE_ACCOUNT_JSON(_OSAEK) = production's
+#     values (omit FOOTFALL_API_URL from KIOSK_ENV — the showroom has no footfall)
+#   - deployment branches: `demo` only
+on:
+  push:
+    branches: [demo]
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    uses: ./.github/workflows/release.yml
+    with:
+      prerelease: true
+      channel_label: demo
+      release_type: prerelease
+      environment: demo
+      update_channel: demo
+    secrets: inherit

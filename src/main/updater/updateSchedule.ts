@@ -9,6 +9,10 @@
  *  Beta (`beta`) — a fast polling INTERVAL so testers get builds quickly:
  *      UPDATE_BETA_INTERVAL_MIN (default 15) — minutes between checks
  *
+ *  Demo (`demo`) — the same interval as beta: the office showroom kiosk should
+ *  pick up a push to the `demo` branch before the next client visit, not on
+ *  Friday.
+ *
  * All times are LOCAL to the kiosk (Date getters/setters are local time).
  */
 
@@ -79,7 +83,7 @@ function parseIntervalMinutes(raw: string | undefined, fallback: number): number
 
 /** Resolve the schedule for a channel from the environment. */
 export function resolveUpdateSchedule(channel: UpdateChannel): UpdateSchedule {
-  if (channel === 'beta') {
+  if (channel === 'beta' || channel === 'demo') {
     const minutes = parseIntervalMinutes(process.env['UPDATE_BETA_INTERVAL_MIN'], BETA_DEFAULT_MINUTES);
     return { kind: 'interval', intervalMs: minutes * 60_000 };
   }

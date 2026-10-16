@@ -4,8 +4,9 @@
  * touches electron-updater directly (see the preload bridge).
  */
 
-/** Release channel. Production kiosks use `latest`; testing kiosks use `beta`. */
-export type UpdateChannel = 'latest' | 'beta';
+/** Release channel. Production kiosks use `latest`; testing kiosks use `beta`;
+ *  the office showroom kiosk uses `demo` (production code + location switcher). */
+export type UpdateChannel = 'latest' | 'beta' | 'demo';
 
 /**
  * Coarse state machine the UI renders from:

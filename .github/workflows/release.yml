@@ -1,8 +1,8 @@
 name: release
 
-# Reusable build+publish pipeline shared by both channels. The two thin caller
-# workflows (release-production.yml / release-beta.yml) only differ in inputs, so
-# the channels share all logic while staying completely isolated.
+# Reusable build+publish pipeline shared by every channel. The thin caller
+# workflows (release-production.yml / release-beta.yml / release-demo.yml) only
+# differ in inputs, so the channels share all logic while staying isolated.
 on:
   workflow_call:
     inputs:
@@ -19,9 +19,14 @@ on:
         required: true
         type: string
       environment:
-        description: 'GitHub Environment supplying the runtime config secrets (beta | production)'
+        description: 'GitHub Environment supplying the runtime config secrets (beta | production | demo)'
         required: true
         type: string
+      update_channel:
+        description: 'electron-updater channel (latest | beta | demo). Empty = derived from `prerelease` (beta / latest), so the production and beta callers need not pass it.'
+        required: false
+        type: string
+        default: ''
 
 permissions:
   contents: write # let the default GITHUB_TOKEN create/upload GitHub Releases
@@ -37,6 +42,9 @@ jobs:
     # NOTE: do NOT add required reviewers to these environments — a release would
     # then hang waiting for manual approval instead of publishing.
     environment: ${{ inputs.environment }}
+    env:
+      # The one place the update channel is decided; every step below reads it.
+      UPDATE_CH: ${{ inputs.update_channel != '' && inputs.update_channel || (inputs.prerelease && 'beta' || 'latest') }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -55,7 +63,8 @@ jobs:
         run: npm ci
 
       # Resolve the version to publish and decide whether to publish at all.
-      #  - beta:  <pkg>-beta.<run_number>  (always unique -> always publishes)
+      #  - demo:  <pkg>-demo.<run_number>  (always unique -> always publishes)
+      #  - beta:  <next minor>-beta.<run_number>  (always unique -> always publishes)
       #  - prod:  <pkg>                    (skips if that release already exists,
       #                                     so you cut a release by bumping the
       #                                     package.json version — no manual step)
@@ -66,7 +75,16 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           BASE=$(node -p "require('./package.json').version")
-          if [ "${{ inputs.prerelease }}" = "true" ]; then
+          if [ "$UPDATE_CH" = "demo" ]; then
+            # Demo is a CUSTOM channel to electron-updater: a demo kiosk only
+            # accepts `-demo.` tags and skips stable and beta entries, so none of
+            # the beta ordering problem below applies. It keeps production's
+            # version, so the tag says which release the showroom is showing.
+            FULL="${BASE}-demo.${{ github.run_number }}"
+            echo "Demo version $FULL (package.json $BASE)."
+            npm version "$FULL" --no-git-tag-version --allow-same-version
+            echo "skip=false" >> "$GITHUB_OUTPUT"
+          elif [ "${{ inputs.prerelease }}" = "true" ]; then
             # A beta MUST outrank the newest stable release, so it is a prerelease
             # of the next MINOR: 5.0.18 stable -> 5.1.0-beta.N.
             #
@@ -158,7 +176,7 @@ jobs:
         if: steps.ver.outputs.skip == 'false'
         shell: bash
         run: |
-          CH=$([ "${{ inputs.prerelease }}" = "true" ] && echo beta || echo latest)
+          CH="$UPDATE_CH"
           # Base the placeholder on the committed .env.example (all non-secret
           # operational defaults present, secrets blank) so the build is
           # structurally complete even without a KIOSK_ENV secret.
@@ -166,16 +184,17 @@ jobs:
             cp .env.example .env 2>/dev/null || : > .env
             echo "Note: no real .env — using .env.example defaults (no API keys; auto-update still works)."
           fi
-          # Force the update channel to match THIS workflow (production=latest, beta=beta).
+          # Force the update channel to match THIS workflow (production=latest, beta=beta, demo=demo).
           grep -v '^UPDATE_CHANNEL=' .env > .env.tmp 2>/dev/null || true
           mv -f .env.tmp .env 2>/dev/null || true
           echo "UPDATE_CHANNEL=$CH" >> .env
-          # DEV_MODE: true on beta/develop_1 builds, false on production/main builds.
-          DEV_MODE_VAL=$([ "${{ inputs.prerelease }}" = "true" ] && echo true || echo false)
+          # DEV_MODE: true on beta and demo builds (it is what shows the location
+          # switcher), false on production/main builds.
+          DEV_MODE_VAL=$([ "$CH" != "latest" ] && echo true || echo false)
           grep -v '^DEV_MODE=' .env > .env.tmp 2>/dev/null || true
           mv -f .env.tmp .env 2>/dev/null || true
           echo "DEV_MODE=$DEV_MODE_VAL" >> .env
-          echo "Injected DEV_MODE=$DEV_MODE_VAL (prerelease=${{ inputs.prerelease }})"
+          echo "Injected DEV_MODE=$DEV_MODE_VAL UPDATE_CHANNEL=$CH"
           mkdir -p secrets
           [ -f secrets/service-account.json ] || echo '{}' > secrets/service-account.json
           [ -f secrets/service-account-osaek.json ] || echo '{}' > secrets/service-account-osaek.json
@@ -203,13 +222,16 @@ jobs:
           # it from a `-beta.N` version: both earlier pre-releases shipped
           # `latest.yml` (verified 2026-08-03), so `beta.yml` 404s and every
           # UPDATE_CHANNEL=beta kiosk dies with ERR_UPDATER_CHANNEL_FILE_NOT_FOUND.
-          CH=$([ "${{ inputs.prerelease }}" = "true" ] && echo beta || echo latest)
-          # Beta builds carry their OWN identity (appId / productName / icon) so
-          # they install ALONGSIDE production rather than upgrading it — the
-          # office has one kiosk and both channels have to be testable on it.
-          # See electron-builder.beta.yml; the matching runtime half (the
-          # %APPDATA% tree and the singleton lock) is in core/appIdentity.ts.
-          CFG=$([ "${{ inputs.prerelease }}" = "true" ] && echo "--config electron-builder.beta.yml" || echo "")
+          CH="$UPDATE_CH"
+          # Beta and demo builds carry their OWN identity (appId / productName)
+          # so they install ALONGSIDE production rather than upgrading it.
+          # See electron-builder.beta.yml / .demo.yml; the matching runtime half
+          # (the %APPDATA% tree and the singleton lock) is in core/appIdentity.ts.
+          case "$CH" in
+            beta) CFG="--config electron-builder.beta.yml" ;;
+            demo) CFG="--config electron-builder.demo.yml" ;;
+            *)    CFG="" ;;
+          esac
           npx electron-builder --win --publish always $CFG \
             -c.publish.releaseType=${{ inputs.release_type }} \
             -c.publish.channel=$CH

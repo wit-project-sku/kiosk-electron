@@ -1,0 +1,36 @@
+# Demo (office showroom) build identity — everything else is inherited from
+# electron-builder.yml.
+#
+# The demo kiosk shows clients the PRODUCTION app, plus the location switcher
+# (DEV_MODE=true) so one machine can walk through every site. It is built from
+# the `demo` branch, which only ever takes `main` — see release-demo.yml.
+#
+# Same four-way separation as electron-builder.beta.yml, so demo can never
+# upgrade, or share state with, a production or beta install:
+#
+#   appId        → separate NSIS uninstall entry, separate Start-menu entry
+#   productName  → separate install directory and shortcut name
+#   app name     → separate %APPDATA% tree  (core/appIdentity.ts)
+#   buildChannel → read by appIdentity.ts; decides the above at runtime
+#
+# The icon stays production's: clients are looking at the real product.
+#
+# ── Usage ─────────────────────────────────────────────────────────────
+#   npm run build:win:demo                    (local)
+#   npx electron-builder --win --config electron-builder.demo.yml   (CI)
+extends: ./electron-builder.yml
+
+# Baked into the PACKAGED package.json — the build, not the shipped .env,
+# decides the identity. See the matching note in electron-builder.beta.yml.
+extraMetadata:
+  buildChannel: demo
+
+appId: com.kioskapp.desktop.demo
+productName: witworldwide-demo
+copyright: Copyright © 2026 witworldwide
+
+# release/<version>-demo so a local demo build never overwrites the production
+# artifacts sitting in release/<version>.
+directories:
+  output: release/${version}-demo
+  buildResources: build

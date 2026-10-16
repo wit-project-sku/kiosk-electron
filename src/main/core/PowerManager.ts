@@ -14,22 +14,23 @@
  * on other platforms every method is a no-op. Self-provisioning means the
  * fleet no longer depends on an operator remembering to run the .bat files.
  *
- * Three schedules exist, and a build only ever provisions ONE of them:
+ * Four schedules exist, and a build only ever provisions ONE of them:
  *
  *   production, most kiosks   02:00 reboot                 KioskAutoRestart
  *   production, W004/6/7/8    22:00 종료 + 08:00 시작       KioskShutdownAt10PM
  *                                                          KioskStartAt8AM
- *   beta (develop_1)          09:00 reboot                 KioskBetaAutoRestart
+ *   beta (dev)                09:00 reboot                 KioskBetaAutoRestart
+ *   demo (office showroom)    02:00 reboot                 KioskDemoAutoRestart
  *
- * The names are distinct on purpose: both channels install side by side on the
- * office machine and Scheduled Task / Run-key names are machine-global.
+ * The names are distinct on purpose: channels can be installed side by side on
+ * one machine and Scheduled Task / Run-key names are machine-global.
  */
 
 import { execFile } from 'node:child_process';
 import { promisify } from 'node:util';
 import { app } from 'electron';
 import { createLogger } from './logger';
-import { isBetaBuild } from './appIdentity';
+import { isBetaBuild, isDemoBuild } from './appIdentity';
 
 const exec = promisify(execFile);
 const log = createLogger('power');
@@ -94,6 +95,19 @@ const BETA_RESTART_TIME = '09:00';
 /** Beta's own Run value name, so it cannot clobber production's auto-start. */
 const BETA_AUTORUN_KEY = 'KioskAppBeta';
 
+/**
+ * ── DEMO (office showroom) power schedule ─────────────────────────────
+ * The demo kiosk stands in the office, so it takes neither production
+ * schedule: the 22:00/08:00 cycle is chosen by kioskId, and the location
+ * switcher changes that id all day — the box would start or stop shutting
+ * itself down depending on which location was last shown to a client. It gets
+ * the fleet's plain 02:00 reboot under its own names, for the same
+ * machine-global reason as beta.
+ */
+const DEMO_RESTART_TASK = 'KioskDemoAutoRestart';
+const DEMO_RESTART_TIME = '02:00';
+const DEMO_AUTORUN_KEY = 'KioskAppDemo';
+
 function isWindows(): boolean {
   return process.platform === 'win32';
 }
@@ -107,7 +121,9 @@ function startTime(): string {
 
 /** The Run value name this build owns — never the other channel's. */
 function autoRunKey(): string {
-  return isBetaBuild() ? BETA_AUTORUN_KEY : AUTORUN_KEY;
+  if (isBetaBuild()) return BETA_AUTORUN_KEY;
+  if (isDemoBuild()) return DEMO_AUTORUN_KEY;
+  return AUTORUN_KEY;
 }
 
 /**
@@ -251,6 +267,29 @@ async function removeBetaRestartTask(): Promise<void> {
   await exec('schtasks', ['/delete', '/tn', BETA_RESTART_TASK, '/f']).catch(() => {});
 }
 
+/** DEMO ONLY: the daily 02:00 reboot under demo's own task name. */
+async function ensureDemoRestartTask(): Promise<void> {
+  if (!isWindows() || !app.isPackaged) return;
+  try {
+    await exec('schtasks', [
+      '/create',
+      '/tn', DEMO_RESTART_TASK,
+      '/tr', 'shutdown /r /f /t 0',
+      '/sc', 'daily',
+      '/st', DEMO_RESTART_TIME,
+      '/f',
+    ]);
+    log.info('Demo reboot scheduled', { task: DEMO_RESTART_TASK, at: DEMO_RESTART_TIME });
+  } catch (error) {
+    log.warn('Failed to schedule demo reboot', error);
+  }
+}
+
+async function removeDemoRestartTask(): Promise<void> {
+  if (!isWindows()) return;
+  await exec('schtasks', ['/delete', '/tn', DEMO_RESTART_TASK, '/f']).catch(() => {});
+}
+
 /**
  * True when the named Scheduled Task's action runs THIS build's exe — i.e. the
  * task was registered by this install and not by the other channel.
@@ -356,6 +395,12 @@ export async function setupKioskPower(kioskId?: string): Promise<void> {
     return;
   }
 
+  // DEMO likewise returns before any production task name is touched.
+  if (isDemoBuild()) {
+    await ensureDemoRestartTask();
+    return;
+  }
+
   // W004/W006/W007 use an operating-hours power cycle (08:00 시작 / 22:00 종료);
   // every other kiosk keeps the fleet-wide 2AM reboot.
   if (kioskId != null && OPERATING_HOURS_KIOSK_IDS.has(kioskId)) {
@@ -377,6 +422,10 @@ export async function teardownKioskPower(): Promise<void> {
   // same machine with no reboot and no operating-hours cycle at all.
   if (isBetaBuild()) {
     await removeBetaRestartTask();
+    return;
+  }
+  if (isDemoBuild()) {
+    await removeDemoRestartTask();
     return;
   }
   await removeRestartTask();

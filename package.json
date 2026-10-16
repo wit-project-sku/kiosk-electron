@@ -24,6 +24,7 @@
     "prebuild:win": "npm run version:bump",
     "build:win": "node scripts/build-win.mjs",
     "build:win:beta": "node scripts/build-win.mjs --beta",
+    "build:win:demo": "node scripts/build-win.mjs --demo",
     "icon:beta": "node scripts/make-beta-icon.mjs",
     "release:win": "npm run build && electron-builder --win --publish always",
     "typecheck:node": "tsc --noEmit -p tsconfig.node.json --composite false",
