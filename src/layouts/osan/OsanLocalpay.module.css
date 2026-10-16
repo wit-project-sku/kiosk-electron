@@ -134,9 +134,12 @@
   gap: 20px;
 }
 
-/* Figma 7812:84453: the intro block is 213 tall, which places the gray panel 65px below it. */
+/* Figma 7812:84453: the intro block is 213 tall, which places the gray panel
+   65px below it. A floor, not a fixed height: a translated intro runs to four
+   or five lines, and a fixed 213 let them spill under the card panel. The card
+   (min-height) grows with it and the page scrolls. */
 .introBlock {
-  height: 213px;
+  min-height: 213px;
 }
 
 /* Gray card panel 1740×709 (Figma 7878:42846) with the two cards and two QR boxes. */
@@ -343,20 +346,32 @@
   white-space: nowrap;
 }
 
+/* Height is the box's room under the note (456 − 126 − 20), so a translation
+   that wraps too far can be measured and shrunk (--fit). */
 .benefits {
   position: absolute;
   left: 14px;
   top: 126px;
   width: 1155px;
+  height: 310px;
   font-family: 'Pretendard', var(--kiosk-font, sans-serif);
   font-weight: 600;
-  font-size: 40px;
+  font-size: calc(40px * var(--fit, 1));
   color: #1a4d7e;
   line-height: 1.7;
 }
 
 .benefits p {
   margin: 0;
+}
+
+/* Other languages: a translated bullet wraps inside the 1155 column, and the
+   fifth line at 40 / 1.7 ran 51px out of the 456 box. One step tighter (36 /
+   1.4) holds five lines inside it (126 + 5 × 50 = 378); a list that still
+   wraps past the 310 shrinks together (useFitText, never below 0.7). */
+.lightBoxLong .benefits {
+  font-size: calc(36px * var(--fit, 1));
+  line-height: 1.4;
 }
 
 .lightBi {

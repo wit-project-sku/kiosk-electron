@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import type { KioskController } from '@renderer/hooks/useKioskController';
 import type { InsaCourseSet, InsaDuration } from '@shared/types/insaCourse';
 import type { Shop } from '@shared/types/shop';
@@ -48,6 +48,10 @@ type L8 = Partial<Record<Lang, string>>;
 
 const txt = (lang: Lang, authored: L8): string => pick(authored, lang) ?? '';
 
+/** "Женщины/Лекарственные травы" has no break point until the space, so it
+ *  ran out of the 268 tile; a zero-width space lets a line end after "/". */
+const breakAfterSlash = (s: string): string => s.replace(/\/(?!\s)/g, '/\u200B');
+
 /** The frame's Korean title; other languages read MainButton_AI via screenTitle. */
 export const osanAiTitle = (lang: Lang): string => (lang === 'ko' ? '‘정이’ 뭐하지' : "'정이' 모하지 (AI 검색)");
 
@@ -55,17 +59,21 @@ interface Chip {
   /** The canonical value — what travels to the API and the AI store. */
   ko: string;
   label: L8;
+  /** What the chip itself shows, in every language, when it differs from
+   *  `label` (the 방문 인원 chips show bare numbers; the unit is in the title).
+   *  `label` stays the full answer the result page's summary repeats. */
+  chip?: string;
   width?: number;
 }
 
 /** 방문 인원 chips — the frame's widths (268 · 269 · 268 · 268 · 311 · 290). */
 const PARTY_CHIPS: Chip[] = [
-  { ko: '1명', width: 268, label: { ko: '1명', en: '1 person', ja: '1人', zh: '1人', vi: '1 người', th: '1 คน', ru: '1 человек', id: '1 orang' } },
-  { ko: '2명', width: 269, label: { ko: '2명', en: '2 people', ja: '2人', zh: '2人', vi: '2 người', th: '2 คน', ru: '2 человека', id: '2 orang' } },
-  { ko: '3명', width: 268, label: { ko: '3명', en: '3 people', ja: '3人', zh: '3人', vi: '3 người', th: '3 คน', ru: '3 человека', id: '3 orang' } },
-  { ko: '4명', width: 268, label: { ko: '4명', en: '4 people', ja: '4人', zh: '4人', vi: '4 người', th: '4 คน', ru: '4 человека', id: '4 orang' } },
-  { ko: '5 ~ 9명', width: 311, label: { ko: '5 ~ 9명', en: '5~9 pax', ja: '5~9人', zh: '5~9人', vi: '5~9 người', th: '5~9 คน', ru: '5~9 чел.', id: '5~9 orang' } },
-  { ko: '10명~', width: 290, label: { ko: '10명~', en: '10+ pax', ja: '10人~', zh: '10人~', vi: '10 người~', th: '10 คน~', ru: '10+ чел.', id: '10 orang~' } },
+  { ko: '1명', chip: '1', width: 268, label: { ko: '1명', en: '1 person', ja: '1人', zh: '1人', vi: '1 người', th: '1 คน', ru: '1 человек', id: '1 orang' } },
+  { ko: '2명', chip: '2', width: 269, label: { ko: '2명', en: '2 people', ja: '2人', zh: '2人', vi: '2 người', th: '2 คน', ru: '2 человека', id: '2 orang' } },
+  { ko: '3명', chip: '3', width: 268, label: { ko: '3명', en: '3 people', ja: '3人', zh: '3人', vi: '3 người', th: '3 คน', ru: '3 человека', id: '3 orang' } },
+  { ko: '4명', chip: '4', width: 268, label: { ko: '4명', en: '4 people', ja: '4人', zh: '4人', vi: '4 người', th: '4 คน', ru: '4 человека', id: '4 orang' } },
+  { ko: '5 ~ 9명', chip: '5 ~ 9', width: 311, label: { ko: '5 ~ 9명', en: '5~9 pax', ja: '5~9人', zh: '5~9人', vi: '5~9 người', th: '5~9 คน', ru: '5~9 чел.', id: '5~9 orang' } },
+  { ko: '10명~', chip: '10~', width: 290, label: { ko: '10명~', en: '10+ pax', ja: '10人~', zh: '10人~', vi: '10 người~', th: '10 คน~', ru: '10+ чел.', id: '10 orang~' } },
 ];
 
 /** 체류 기간 chips — `ko` holds the API's SLOT CODE, the label is what the chip shows. */
@@ -75,6 +83,14 @@ const DURATION_CHIPS: Chip[] = [
   { ko: '4-6', label: { ko: '4 ~ 6시간', en: '4 ~ 6 hours', ja: '4〜6時間', zh: '4~6小时', vi: '4 ~ 6 giờ', th: '4 ~ 6 ชั่วโมง', ru: '4 ~ 6 часов', id: '4 ~ 6 jam' } },
   { ko: '6+', label: { ko: '6시간 ~', en: '6 hours ~', ja: '6時間〜', zh: '6小时以上', vi: 'Từ 6 giờ', th: '6 ชั่วโมงขึ้นไป', ru: 'От 6 часов', id: '6 jam ke atas' } },
 ];
+
+/** The updated frame (인원(명)넣고 카테고리에는 숫자만), Korean included: the unit
+ *  goes once in the 방문 인원 title — "방문 인원 (명)", "Number of Visitors
+ *  (person/people)" — and the chips carry numbers only (1 … 5 ~ 9, 10~). */
+const VISITORS_WITH_UNIT: L8 = {
+  ko: '방문 인원 (명)', en: 'Number of Visitors (person/people)', ja: '訪問人数（人）', zh: '访问人数（人）',
+  vi: 'Số khách (người)', th: 'จำนวนผู้เยี่ยมชม (คน)', ru: 'Количество гостей (чел.)', id: 'Jumlah pengunjung (orang)',
+};
 
 const SECTION = {
   visitors: { ko: '방문 인원', en: 'Group size', ja: '訪問人数', zh: '同行人数', vi: 'Số người', th: 'จำนวนผู้มา', ru: 'Количество гостей', id: 'Jumlah orang' } as L8,
@@ -183,6 +199,9 @@ interface ThemeCard {
   art: { x: number; y: number; w: number; h: number };
   text: { x: number; y: number; w: number };
 }
+
+/** The frame's card height (7519:75011); other languages may grow it. */
+const THEME_CARD_H = 482;
 
 const THEME_CARDS: ThemeCard[] = [
   {
@@ -454,10 +473,80 @@ export function OsanAiCourse({ controller }: Props): JSX.Element {
     : null;
   const total = previewRoute ? previewRoute.totalMinutes : null;
 
-  useFitText(landingRef, styles.themeTitleLong, long, 0.62, `${lang}|theme`);
-  useFitText(partyRef, styles.pillLong, long, 0.55, `${lang}|party`);
-  useFitText(stayRef, styles.pillLong, long, 0.55, `${lang}|stay`);
-  useFitText(joyRef, styles.joyChipTextLong, long, 0.6, `${lang}|${tiles.length}`);
+  /* The step is part of every key: landing and builder are one screen, and a
+     group whose boxes are not mounted yet (the builder, while on the landing)
+     measures nothing — it must fit again when its step appears. */
+  useFitText(landingRef, styles.themeTitleLong, long, 0.62, `${lang}|theme|${step}`);
+
+  /* Figma note on the other-language frames (세로로 길어지게, 단 모든 칸의 크기는
+     같아야함): a 추천코스 card whose copy runs past its 482 grows taller, and all
+     four grow by the same amount — the tallest copy decides. The copy keeps the
+     frame's top offset and gets the same space under it as above it. */
+  useLayoutEffect(() => {
+    const landing = landingRef.current;
+    if (!landing || !styles.themeCopy) return undefined;
+    const copies = [...landing.getElementsByClassName(styles.themeCopy)] as HTMLElement[];
+    /* How far the cards may grow before the bottom row leaves the room the
+       screen has: two rows each grow, so half the space under them — above the
+       promo (3267) normally, above the screen's foot in ♿ (landing at 1419,
+     cards to 3497 + 2 × grow ≤ 3830). */
+    const cap = low ? 165 : 220;
+    // The copy keeps its frame top; under it, 70 of space is enough to read as
+    // the card's foot (the frame's own ~116 is only kept while it fits).
+    const need = (): number => copies.reduce((m, c) => Math.max(m, c.offsetTop + c.offsetHeight + 70), THEME_CARD_H);
+    const apply = (): void => {
+      if (!long) {
+        landing.style.setProperty('--theme-grow', '0px');
+        return;
+      }
+      // Past the cap the titles step down (the same --fit useFitText set)
+      // rather than push a card off the screen.
+      let k = parseFloat(landing.style.getPropertyValue('--fit')) || 1;
+      let n = need();
+      while (n - THEME_CARD_H > cap && k > 0.5) {
+        k = Math.round((k - 0.02) * 100) / 100;
+        landing.style.setProperty('--fit', String(k));
+        n = need();
+      }
+      landing.style.setProperty('--theme-grow', `${Math.ceil(Math.min(cap, n - THEME_CARD_H))}px`);
+    };
+    apply();
+    const ro = new ResizeObserver(apply);
+    for (const c of copies) ro.observe(c);
+    return () => {
+      ro.disconnect();
+      landing.style.removeProperty('--theme-grow');
+    };
+  }, [long, lang, step, low]);
+
+  useFitText(partyRef, styles.pillLong, long, 0.55, `${lang}|party|${step}|${joyPage}`);
+  useFitText(stayRef, styles.pillLong, long, 0.55, `${lang}|stay|${step}|${joyPage}`);
+  // A word longer than any tile ("Сельскохозяйственная") takes its own smaller
+  // factor (rescue, ≥ 0.45) instead of dragging all 26 tiles down with it.
+  useFitText(joyRef, styles.joyChipTextLong, long, 0.6, `${lang}|${tiles.length}|${step}|${joyPage}`, 'both', 0.45);
+
+  /* Other languages: a 즐길 거리 tile whose name needs more lines grows taller
+     (Figma note: 세로로 칸이 늘어나더라도), and its whole grid row with it. The CTA
+     under the grid is absolutely placed, so it moves down by whatever the grid
+     grew past its Korean height (rows × 215 + gaps × 29). */
+  useLayoutEffect(() => {
+    const grid = joyRef.current;
+    const builder = grid?.closest<HTMLElement>(`.${styles.builder}`);
+    if (!grid || !builder) return undefined;
+    const rows = Math.ceil(tiles.length / 6);
+    const base = rows > 0 ? rows * 215 + (rows - 1) * 29 : 0;
+    const apply = (): void => {
+      const grow = long ? Math.max(0, grid.offsetHeight - base) : 0;
+      builder.style.setProperty('--joy-grow', `${grow}px`);
+    };
+    apply();
+    const ro = new ResizeObserver(apply);
+    ro.observe(grid);
+    return () => {
+      ro.disconnect();
+      builder.style.removeProperty('--joy-grow');
+    };
+  }, [long, tiles.length, step, joyPage]);
 
   const arrow = osanIconUrl('course-arrow');
   const banner = osanIconUrl('banner-course');
@@ -495,7 +584,7 @@ export function OsanAiCourse({ controller }: Props): JSX.Element {
           className={`${styles.pill} ${long ? styles.pillLong : ''} ${value === c.ko ? styles.pillOn : ''}`}
           onClick={() => onPick(c.ko)}
         >
-          {txt(lang, c.label)}
+          {c.chip ?? txt(lang, c.label)}
         </button>
       ))}
     </div>
@@ -553,7 +642,11 @@ export function OsanAiCourse({ controller }: Props): JSX.Element {
               key={card.key}
               type="button"
               className={styles.themeCard}
-              style={{ left: `${card.x}px`, top: `${card.y}px` }}
+              style={{
+                left: `${card.x}px`,
+                // The bottom row moves down by however much the cards grew.
+                top: card.y > THEME_CARDS[0]!.y ? `calc(${card.y}px + var(--theme-grow, 0px))` : `${card.y}px`,
+              }}
               onClick={() => openTheme(card)}
             >
               {insaIconUrl(card.icon) && (
@@ -604,7 +697,7 @@ export function OsanAiCourse({ controller }: Props): JSX.Element {
           <section className={`${styles.section} ${styles.sectionParty}`}>
             <div className={styles.label}>
               <span className={styles.bar} />
-              {txt(lang, SECTION.visitors)}
+              {txt(lang, VISITORS_WITH_UNIT)}
             </div>
             {chipRow(partyRef, PARTY_CHIPS, party, setParty, 268)}
           </section>
@@ -664,7 +757,7 @@ export function OsanAiCourse({ controller }: Props): JSX.Element {
                     >
                       {picked && <span className={styles.joyChipBadge}>{order}</span>}
                       <span className={`${styles.joyChipText} ${long ? styles.joyChipTextLong : ''}`}>
-                        {shopSecondCategory(t.shop, lang) || stripPrefix(t.code)}
+                        {breakAfterSlash(shopSecondCategory(t.shop, lang) || stripPrefix(t.code))}
                       </span>
                     </button>
                   );

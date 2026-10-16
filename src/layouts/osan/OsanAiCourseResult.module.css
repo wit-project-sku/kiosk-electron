@@ -146,6 +146,12 @@
   overflow: hidden;
 }
 
+/* A 추천코스 draws no category row, so the panel takes its place (959): the
+   same distance under the summary bar the chips would have kept. */
+.panelNoCats {
+  top: calc(959px + var(--header-push, 0px));
+}
+
 /* 7764:9875 / 7764:9876 — the course tabs, 134 tall. The strip is main 02
    (#FFEEE6) and the chosen tab is the panel's own white with its own top
    corners, so it reads as one sheet with the list under it. */

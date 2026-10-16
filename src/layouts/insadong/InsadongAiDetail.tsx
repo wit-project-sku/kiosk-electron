@@ -2,7 +2,8 @@ import type { KioskController } from '@renderer/hooks/useKioskController';
 import { iconUrl } from '@renderer/assets/icons/insadong';
 import { useRotatingBanner } from '@renderer/hooks/useRotatingBanner';
 import { useDetailStore } from '@renderer/store/detailStore';
-import { getKioskLocation } from '@shared/config/kioskLocations';
+import { useLang } from '@renderer/lib/i18n';
+import { kioskPlaceName } from '@renderer/lib/kioskName';
 import { InsadongHeader } from './InsadongHeader';
 import { SpotDetailCard, type SpotDetailData } from './SpotDetailCard';
 import { InsadongLeftNav } from './InsadongLeftNav';
@@ -18,6 +19,7 @@ import styles from './InsadongAiDetail.module.css';
  * put in the detail store.
  */
 export function InsadongAiDetail({ controller }: { controller: KioskController; debug?: boolean }): JSX.Element {
+  const lang = useLang();
   const banner = useRotatingBanner();
   const item = useDetailStore((s) => s.item);
   const goHome = (): void => controller.navigate('home', 'Back');
@@ -53,7 +55,7 @@ export function InsadongAiDetail({ controller }: { controller: KioskController; 
     rating: item.rating,
     instagram: item.instagram,
     blog: item.blogReviews,
-    originName: getKioskLocation(controller.kioskId).name,
+    originName: kioskPlaceName(controller.kioskId, lang),
     distanceKm: item.route?.distanceKm ?? null,
     walkMin: item.route?.walkMin ?? null,
   };

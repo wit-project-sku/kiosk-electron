@@ -4,6 +4,8 @@
  * (HwaseongDetail) and on 여기는 화성휴게소's 지도 tab (HwaseongRestStop),
  * each a 1703-wide row (658 and 671 tall).
  */
+import { useRef } from 'react';
+import { useFitText } from '@layouts/components/fitText';
 import { hwaseongIconUrl } from '@renderer/assets/icons/hwaseong';
 import { pick, useLang, type Lang } from '@renderer/lib/i18n';
 import styles from './HwaseongFloorMap.module.css';
@@ -32,46 +34,86 @@ export const ROUTES: Record<string, { segments: Segment[]; head: { left: number;
 
 // ── Legend (화성휴게소_한국어 7956:61166) ───────────────────────────────
 /** A legend group: header icon + title, then numbered entries in the badge colour.
- *  Entry names are the floor signage, as on the map image (Korean). */
+ *  Entry names are the floor signage (Korean on the map image), translated for
+ *  the other languages; shop brands keep their romanised names. */
 interface LegendGroup {
   title: Text;
   icon: 'restaurant' | 'streetfood' | 'clothing' | 'coffee' | 'store';
   color: string;
-  items: string[];
+  items: Text[];
 }
+
+/** A signage entry in the eight kiosk languages (ko, en, ja, zh, vi, th, ru, id). */
+const n = (ko: string, en: string, ja: string, zh: string, vi: string, th: string, ru: string, id: string): Text => ({
+  ko, en, ja, zh, vi, th, ru, id,
+});
+/** A brand name: Korean on the Korean screen, its romanised name everywhere else. */
+const brand = (ko: string, latin: string): Text => n(ko, latin, latin, latin, latin, latin, latin, latin);
 
 const LEGEND: LegendGroup[][] = [
   [
     {
       title: { ko: '식당', en: 'Restaurants', ja: '食堂', zh: '餐厅', vi: 'Nhà hàng', th: 'ร้านอาหาร', ru: 'Рестораны', id: 'Restoran' },
       icon: 'restaurant', color: '#ffbe00',
-      items: ['양식당', '한식당', '우동코너', '라면코너', '이비가 짬뽕', '유가네 곰탕'],
+      items: [
+        n('양식당', 'Western Restaurant', '洋食レストラン', '西餐厅', 'Nhà hàng Âu', 'ร้านอาหารตะวันตก', 'Европейская кухня', 'Restoran Barat'),
+        n('한식당', 'Korean Restaurant', '韓国料理店', '韩餐厅', 'Nhà hàng Hàn', 'ร้านอาหารเกาหลี', 'Корейская кухня', 'Restoran Korea'),
+        n('우동코너', 'Udon Corner', 'うどんコーナー', '乌冬面专区', 'Quầy udon', 'มุมอุด้ง', 'Удон', 'Pojok Udon'),
+        n('라면코너', 'Ramyeon Corner', 'ラーメンコーナー', '拉面专区', 'Quầy mì ramyeon', 'มุมรามยอน', 'Рамён', 'Pojok Ramyeon'),
+        brand('이비가 짬뽕', 'Ibiga Jjamppong'),
+        brand('유가네 곰탕', 'Yugane Gomtang'),
+      ],
     },
   ],
   [
     {
       title: { ko: '먹거리', en: 'Snacks', ja: '軽食', zh: '小吃', vi: 'Đồ ăn vặt', th: 'ของว่าง', ru: 'Закуски', id: 'Jajanan' },
       icon: 'streetfood', color: '#f18019',
-      items: ['수제도너츠', '호두과자', '미스츄러스', '아리랑고로케', '빅찹', '못난이꽈배기', '공주밤빵', '핫바', '통감자 오징어'],
+      items: [
+        n('수제도너츠', 'Handmade Doughnuts', '手作りドーナツ', '手工甜甜圈', 'Bánh donut thủ công', 'โดนัททำมือ', 'Домашние пончики', 'Donat Buatan Tangan'),
+        n('호두과자', 'Walnut Cakes', 'くるみ饅頭', '核桃饼', 'Bánh óc chó', 'ขนมวอลนัท', 'Ореховое печенье', 'Kue Kenari'),
+        brand('미스츄러스', 'Miss Churros'),
+        n('아리랑고로케', 'Arirang Croquettes', 'アリランコロッケ', '阿里郎可乐饼', 'Croquette Arirang', 'โครเก้อารีรัง', 'Крокеты Ариран', 'Kroket Arirang'),
+        brand('빅찹', 'Big Chop'),
+        n('못난이꽈배기', 'Twisted Doughnuts', 'ねじりドーナツ', '麻花', 'Bánh quẩy xoắn', 'โดนัทเกลียว', 'Пончики-косички', 'Donat Pilin'),
+        n('공주밤빵', 'Gongju Chestnut Bread', '公州栗パン', '公州栗子面包', 'Bánh hạt dẻ Gongju', 'ขนมปังเกาลัดกงจู', 'Каштановый хлеб Конджу', 'Roti Kastanye Gongju'),
+        n('핫바', 'Fish Cake Bar', 'ホットバー', '鱼糕棒', 'Chả cá que', 'ฮอตบาร์', 'Рыбная палочка', 'Hot Bar Ikan'),
+        n('통감자 오징어', 'Whole Potato & Squid', '丸ごとポテト＆イカ', '整颗土豆和鱿鱼', 'Khoai tây & mực', 'มันฝรั่งทั้งหัวและปลาหมึก', 'Картофель и кальмар', 'Kentang Utuh & Cumi'),
+      ],
     },
   ],
   [
     {
       title: { ko: '의류매장', en: 'Clothing', ja: '衣料品店', zh: '服装店', vi: 'Cửa hàng quần áo', th: 'ร้านเสื้อผ้า', ru: 'Одежда', id: 'Toko pakaian' },
       icon: 'clothing', color: '#09b93b',
-      items: ['TOY 매장', 'JDX', '의류매장', '하이샵'],
+      items: [
+        n('TOY 매장', 'Toy Store', 'おもちゃ売場', '玩具店', 'Cửa hàng đồ chơi', 'ร้านของเล่น', 'Игрушки', 'Toko Mainan'),
+        brand('JDX', 'JDX'),
+        n('의류매장', 'Clothing Store', '衣料品店', '服装店', 'Cửa hàng quần áo', 'ร้านเสื้อผ้า', 'Одежда', 'Toko Pakaian'),
+        brand('하이샵', 'Hi Shop'),
+      ],
     },
     {
       title: { ko: '카페', en: 'Cafés', ja: 'カフェ', zh: '咖啡厅', vi: 'Quán cà phê', th: 'คาเฟ่', ru: 'Кафе', id: 'Kafe' },
       icon: 'coffee', color: '#8c502e',
-      items: ['할리스', '로봇커피', '두다트카페'],
+      items: [
+        brand('할리스', 'Hollys'),
+        brand('로봇커피', 'Robot Coffee'),
+        brand('두다트카페', 'Dudart Café'),
+      ],
     },
   ],
   [
     {
       title: { ko: '편의시설', en: 'Amenities', ja: '便利施設', zh: '便利设施', vi: 'Tiện ích', th: 'สิ่งอำนวยความสะดวก', ru: 'Удобства', id: 'Fasilitas' },
       icon: 'store', color: '#005ab4',
-      items: ['편의점', '화장실 (남자 / 여자)', '수유실', '흡연부스 1', '흡연부스 2'],
+      items: [
+        n('편의점', 'Convenience Store', 'コンビニ', '便利店', 'Cửa hàng tiện lợi', 'ร้านสะดวกซื้อ', 'Магазин у дома', 'Minimarket'),
+        n('화장실 (남자 / 여자)', 'Restrooms (Men / Women)', 'トイレ（男性／女性）', '洗手间（男／女）', 'Nhà vệ sinh (Nam / Nữ)', 'ห้องน้ำ (ชาย / หญิง)', 'Туалеты (М / Ж)', 'Toilet (Pria / Wanita)'),
+        n('수유실', 'Nursing Room', '授乳室', '哺乳室', 'Phòng cho con bú', 'ห้องให้นมบุตร', 'Комната матери и ребёнка', 'Ruang Menyusui'),
+        n('흡연부스 1', 'Smoking Booth 1', '喫煙ブース 1', '吸烟室 1', 'Khu hút thuốc 1', 'บูธสูบบุหรี่ 1', 'Курительная 1', 'Bilik Merokok 1'),
+        n('흡연부스 2', 'Smoking Booth 2', '喫煙ブース 2', '吸烟室 2', 'Khu hút thuốc 2', 'บูธสูบบุหรี่ 2', 'Курительная 2', 'Bilik Merokok 2'),
+      ],
     },
   ],
 ];
@@ -117,8 +159,14 @@ export function FloorMap({ route }: { route?: FloorRoute }): JSX.Element {
 /** The numbered signage legend under the map. */
 export function FloorLegend(): JSX.Element {
   const lang = useLang();
+  /* The four group headers are drawn for 식당 / 간식 / 의류 / 편의시설 in columns
+     about 360 wide; "Рестораны" or "สิ่งอำนวยความสะดวก" run into the next
+     column. The four shrink together only a little (≥ 0.9); a header that still
+     does not fit takes its own smaller size (the fitText rescue). */
+  const legendRef = useRef<HTMLDivElement>(null);
+  useFitText(legendRef, styles.legendHead, lang !== 'ko', 0.9, lang, 'both', 0.45);
   return (
-    <div className={styles.legend}>
+    <div ref={legendRef} className={styles.legend}>
       <div className={styles.legendRow}>
         {LEGEND.map((column, ci) => (
           <div key={ci} className={styles.legendColumn} style={{ width: LEGEND_WIDTHS[ci] }}>
@@ -130,9 +178,9 @@ export function FloorLegend(): JSX.Element {
                 </div>
                 <div className={styles.legendList}>
                   {group.items.map((name, i) => (
-                    <div key={name} className={styles.legendItem}>
+                    <div key={name.ko} className={styles.legendItem}>
                       <span className={styles.badge} style={{ background: group.color }}>{i + 1}</span>
-                      <span className={styles.legendName}>{name}</span>
+                      <span className={`${styles.legendName} ${lang !== 'ko' ? styles.legendNameLong : ''}`}>{pick(name, lang)}</span>
                     </div>
                   ))}
                 </div>

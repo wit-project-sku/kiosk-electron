@@ -69,6 +69,18 @@
   color: #1a1a1a;
 }
 
+/* Other languages: the line keeps the frame's 170 side margins and shrinks
+   (--fit, useFitText) until it fits between them. The 30px of block padding,
+   cancelled by the negative margin, holds each tab's enlarged tap area
+   (::before, 30 past the text) inside the row — otherwise it reads as vertical
+   overflow and drives the factor to its floor even when the words fit. */
+.categoryRowLong {
+  box-sizing: border-box;
+  margin-top: -30px;
+  padding: 30px 170px;
+  font-size: calc(60px * var(--fit, 1));
+}
+
 /* Each label reserves its Black width (the hidden ::after) so the row does
    not shift when the selection moves; ::before widens the tap target. */
 .categoryTab {
@@ -405,7 +417,12 @@
   left: 50%;
   transform: translateX(-50%);
   box-sizing: border-box;
-  width: 500px;
+  /* At least the frame's 500, and wider for a label that needs it — "See
+     recommendations" ran out past both sides of a fixed 500. Stays centred. */
+  width: max-content;
+  min-width: 500px;
+  max-width: 1700px;
+  padding: 0 50px;
   height: 120px;
   display: flex;
   align-items: center;
@@ -730,9 +747,10 @@
 
 /* 7918:122140 — 추천 결과 보기 at (856, 2642). */
 .lowEvents .mbtiCta {
-  left: 856px;
+  /* Centred on the frame's 500 box (856 + 250), so a wider label grows both ways. */
+  left: 1106px;
   top: 2642px;
-  transform: none;
+  transform: translateX(-50%);
 }
 
 /* 7918:122142 — the copy, 992 wide at x610, middle at 3157. */

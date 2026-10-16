@@ -4,7 +4,7 @@ import type { KioskController } from '@renderer/hooks/useKioskController';
 import { useLanguageStore } from '@renderer/store/languageStore';
 import { osanIconUrl } from '@renderer/assets/icons/osan';
 import onnuriPaper from '@renderer/assets/photos/osan/localpay/onnuri-paper.png';
-import onnuriDigital from '@renderer/assets/photos/osan/localpay/onnuri-digital.png';
+import onnuriMascot from '@renderer/assets/photos/osan/localpay/onnuri-mascot.png';
 import onnuriBi from '@renderer/assets/photos/osan/localpay/onnuri-bi.png';
 import card1 from '@renderer/assets/photos/osan/localpay/card1.png';
 import card2 from '@renderer/assets/photos/osan/localpay/card2.png';
@@ -478,6 +478,10 @@ export function OsanLocalpay({ controller }: OsanLocalpayProps): JSX.Element {
   const [tab, setTab] = useState(0);
 
   useFitText(tabsRef, styles.tab, wide, 0.72, lang);
+  /* 온누리 benefit bullets: a translation that wraps past the light box shrinks
+     the list together (keyed on the tab — the box only exists on 온누리). */
+  const lightBoxRef = useRef<HTMLDivElement>(null);
+  useFitText(lightBoxRef, styles.benefits, wide, 0.7, `${lang}|${tab}`, 'height');
   /* ♿ (지역화폐 오색전 7894:56717, 온누리상품권 7894:56838): the page keeps
      OsanKiosk's shift, the card starts at 944, the tabs drop to 3438 and the
      promo goes. */
@@ -576,14 +580,14 @@ export function OsanLocalpay({ controller }: OsanLocalpayProps): JSX.Element {
                 <p className={styles.body}>{renderRich(c.onnuri.digitalAfter)}</p>
               </div>
 
-              <img className={styles.mascot} src={onnuriDigital} alt="" draggable={false} />
+              <img className={styles.mascot} src={onnuriMascot} alt="" draggable={false} />
 
               <div className={styles.usageSection}>
                 <p className={styles.usageH}>{c.onnuri.usageH}</p>
                 <p className={styles.body}>{renderRich(c.onnuri.usageBody)}</p>
               </div>
 
-              <div className={styles.lightBox}>
+              <div ref={lightBoxRef} className={`${styles.lightBox} ${wide ? styles.lightBoxLong : ''}`}>
                 <p className={styles.lightNote}>{c.onnuri.digitalNote}</p>
                 {(c.onnuri.benefits ?? []).length > 0 && (
                   <div className={styles.benefits}>

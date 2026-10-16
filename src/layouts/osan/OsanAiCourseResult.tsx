@@ -8,8 +8,8 @@ import { osanIconUrl } from '@renderer/assets/icons/osan';
 import { useAiStore } from '@renderer/store/aiStore';
 import { useShopStore } from '@renderer/store/shopStore';
 import { useDetailStore } from '@renderer/store/detailStore';
-import { getKioskLocation } from '@shared/config/kioskLocations';
 import { pick as pickLang, useLang } from '@renderer/lib/i18n';
+import { kioskPlaceName } from '@renderer/lib/kioskName';
 import type { Lang } from '@renderer/lib/i18n';
 import { sheetText } from '@renderer/lib/loc';
 import { buildAiCourseSaveUrlForQr } from '@renderer/lib/aiCourseSave';
@@ -256,8 +256,10 @@ export function OsanAiCourseResult({ controller }: Props): JSX.Element {
   /* Memoised because `?? []` would hand out a fresh array every render, which
      re-ran the chip-label memo below on every single one. */
   const stops = useMemo(() => current?.stops ?? [], [current]);
-  /* 커스텀 코스 chips are the tiles the visitor tapped. A 추천코스 has none, so
-     the row is the categories of the stops on the day being shown (7519:76503). */
+  /* 커스텀 코스 chips are the tiles the visitor tapped. The stop-category
+     fallback below is only for a custom run with no recorded picks: a 추천코스
+     (entry 'theme') shows no chip row at all — the visitor chose no categories
+     there, so a row of them read as a choice they never made. */
   const chipLabels = useMemo(() => {
     /* `interests` are the API's `N-name` codes; the label is the catalogue's own
        (localized) name for that category, taken from any shop that carries it. */
@@ -277,6 +279,7 @@ export function OsanAiCourseResult({ controller }: Props): JSX.Element {
     }
     return labels;
   }, [interests, shops, stops, byId, lang]);
+  const showCats = entry === 'custom' && chipLabels.length > 0;
 
   /* The bar reports the day on screen, not the whole trip — it sits directly
      above the DAY tabs and changes with them. */
@@ -347,6 +350,16 @@ export function OsanAiCourseResult({ controller }: Props): JSX.Element {
    * letter the API was asked for: 커스텀 is X, and 쇼핑·로컬 is D even though it
    * requests B — sending B made 제주's phone page call it 맛집·감성.
    */
+  /* The QR follows the tab on screen, and falls back to the other tab's route
+     when that one has no stops: early or late in the day 실시간 is empty, and
+     the code used to vanish with it even though 일반 had a whole course. */
+  const otherRoute = tab === 'general' ? realtimeRoute : generalRoute;
+  const hasStops = days.some((d) => d.stops.length > 0);
+  const qrRoute = hasStops ? route : otherRoute;
+  const qrDays: Day[] = useMemo(
+    () => (hasStops ? days : otherRoute ? fromInsa(otherRoute) : []),
+    [hasStops, days, otherRoute],
+  );
   const qrValue = useMemo(
     () =>
       buildAiCourseSaveUrlForQr({
@@ -358,7 +371,7 @@ export function OsanAiCourseResult({ controller }: Props): JSX.Element {
         nights: 0,
         interests,
         visitDate: todayIso(),
-        days: days.map((d) => ({
+        days: qrDays.map((d) => ({
           day: d.day,
           stops: d.stops.map((stop) => ({
             shopId: stop.shopId,
@@ -367,13 +380,13 @@ export function OsanAiCourseResult({ controller }: Props): JSX.Element {
             travelKm: stop.travelKm,
           })),
         })),
-        totalMinutes: route?.totalMinutes ?? null,
-        distanceKm: route ? route.totalWalkMeters / 1000 : null,
+        totalMinutes: qrRoute?.totalMinutes ?? null,
+        distanceKm: qrRoute ? qrRoute.totalWalkMeters / 1000 : null,
         stay,
-        travelMinutes: route ? route.spots.reduce((n, sp) => n + sp.walkMinutes, 0) : null,
+        travelMinutes: qrRoute ? qrRoute.spots.reduce((n, sp) => n + sp.walkMinutes, 0) : null,
         difficulty: null,
       }),
-    [lang, kioskId, entry, courseKey, visitors, interests, days, route, stay],
+    [lang, kioskId, entry, courseKey, visitors, interests, qrDays, qrRoute, stay],
   );
 
   return (
@@ -438,7 +451,7 @@ export function OsanAiCourseResult({ controller }: Props): JSX.Element {
         </div>
       </div>
 
-      {chipLabels.length > 0 && (
+      {showCats && (
         <div ref={catsRef} className={styles.cats}>
           {chipLabels.map((c) => (
             <span key={c} className={`${styles.cat} ${long ? styles.catLong : ''}`}>
@@ -448,7 +461,7 @@ export function OsanAiCourseResult({ controller }: Props): JSX.Element {
         </div>
       )}
 
-      <div className={styles.panel}>
+      <div className={showCats ? styles.panel : `${styles.panel} ${styles.panelNoCats}`}>
         <div className={styles.tabs} role="tablist">
           {tabIds.map((id) => (
             <button
@@ -468,7 +481,7 @@ export function OsanAiCourseResult({ controller }: Props): JSX.Element {
         <div className={styles.inner}>
           {/* 7681:59356 — "출발 지점 > …": the course starts at this kiosk. */}
           <div className={styles.origin}>
-            {line('Insa_Todo_result_Start', TEXT.start)} &gt; {getKioskLocation(kioskId).name}
+            {line('Insa_Todo_result_Start', TEXT.start)} &gt; {kioskPlaceName(kioskId, lang)}
           </div>
 
           {stops.length === 0 ? (

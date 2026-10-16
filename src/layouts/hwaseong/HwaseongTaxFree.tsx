@@ -64,6 +64,8 @@ const MERCHANT_SUBTITLE = {
 
 /** The card's foot: 664 + 2290. */
 const BODY_BOTTOM = 2954;
+/** The refund site's design viewport height (it is 1820 wide, like the card). */
+const EMBED_HEIGHT = 2250;
 /**
  * ♿ (B오산>TAXFREE-01 7918:128289): HwaseongKiosk moves the page under the mode
  * bar (146); on top of that the card drops 143 (953 → 3243 on the artboard)
@@ -176,7 +178,7 @@ export function HwaseongTaxFree({ controller }: Props): JSX.Element {
 
   return (
     <div ref={rootRef} className={styles.root}>
-      <HwaseongPageBg image="detail-page-bg" opacity={0.7} />
+      <HwaseongPageBg />
 
       <HwaseongHeader
         controller={controller}
@@ -201,6 +203,7 @@ export function HwaseongTaxFree({ controller }: Props): JSX.Element {
         <div
           className={styles.embedFrame}
           style={{
+            ['--embed-scale' as string]: Math.min(1, (BODY_BOTTOM - bodyLayout.top) / EMBED_HEIGHT),
             visibility: activeTab === 'refund' ? 'visible' : 'hidden',
             pointerEvents: activeTab === 'refund' ? 'auto' : 'none',
           }}

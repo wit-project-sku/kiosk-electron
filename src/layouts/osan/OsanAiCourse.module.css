@@ -162,7 +162,8 @@
 .themeCard {
   position: absolute;
   width: 780px;
-  height: 482px;
+  /* --theme-grow: other languages only, the same for all four (TSX). */
+  height: calc(482px + var(--theme-grow, 0px));
   padding: 0;
   background: #ffffff;
   border: none;
@@ -180,6 +181,8 @@
   width: var(--art-w);
   height: var(--art-h);
   object-fit: contain;
+  /* Stays centred on a card that grew. */
+  translate: 0 calc(var(--theme-grow, 0px) / 2);
 }
 
 .themeCopy {
@@ -554,6 +557,27 @@
 
 .joyChipTextLong {
   font-size: calc(45px * var(--fit, 1));
+  /* Held to the tile's width so a word too long for it shows up as overflow
+     (useFitText) instead of widening the span past the tile's edges. */
+  max-width: 100%;
+  min-width: 0;
+  overflow-wrap: normal;
+}
+
+/* Figma note on the other-language frames: a long category name keeps
+   wrapping and the tile grows DOWN for it (세로로 칸이 늘어나더라도). 215 stays
+   the minimum; the grid row takes its tallest tile, so a row stays even. */
+.joyGrid:has(.joyChipTextLong) .joyChip {
+  height: auto;
+  min-height: 215px;
+  padding: 24px 12px;
+}
+
+/* …and whatever the grid grew (--joy-grow, set by the TSX) moves the CTA
+   under it down by the same amount. */
+.builderFull .cta,
+.builderLowJoy .cta {
+  translate: 0 var(--joy-grow, 0px);
 }
 
 .themeTitleLong {

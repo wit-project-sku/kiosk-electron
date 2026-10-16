@@ -392,6 +392,10 @@ export function HwaseongHome({ controller }: Props): JSX.Element {
   const tileTitle = (tile: Tile): string => {
     const base = titleOf(tile);
     if (tile.screen === 'donation' && donationPending) return withComingSoon(base, lang);
+    // Other languages: a gated tile carries the one short localized marker. The
+    // sheet writes some as a phrase — 문화재 is "Культурное наследие (в процессе
+    // подготовки)", three lines in the tile — so its own trailing (…) goes first.
+    if (tile.pending && lang !== 'ko') return pending(base.replace(/\s*[(（][^)）]*[)）]\s*$/, ''));
     // 전국시장 is gated but its frame title has no marker; add the localized one.
     if (tile.screen === 'market' && tile.pending) return pending(base.replace(/\s*\(준비중\)\s*/g, ''));
     return base;

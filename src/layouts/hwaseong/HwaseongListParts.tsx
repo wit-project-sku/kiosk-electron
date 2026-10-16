@@ -6,6 +6,7 @@
  */
 import { Fragment, useEffect, useRef, useState, type RefObject } from 'react';
 import { hwaseongIconUrl } from '@renderer/assets/icons/hwaseong';
+import { useLang } from '@renderer/lib/i18n';
 import styles from './HwaseongListScreen.module.css';
 
 /** The ㄱ–ㅎ row; a tap keeps the names starting with that consonant (tense
@@ -25,7 +26,16 @@ export function initialOf(name: string): string {
 /** One card (390) + the 60 gap — what ▲/▼ move the list by. */
 const CARD_PITCH = 450;
 
-export function InitialsRow({ value, onPick }: { value: string; onPick: (c: string) => void }): JSX.Element {
+/**
+ * Korean mode only. ㄱ–ㅎ filters by the Korean name's first consonant, which
+ * means nothing to a visitor reading another language (오산's list does the
+ * same). The screens lay out as a flex column, so the list simply moves up into
+ * the row's place. The language can only change on 언어선택, which unmounts the
+ * list, so no consonant filter survives into another language unseen.
+ */
+export function InitialsRow({ value, onPick }: { value: string; onPick: (c: string) => void }): JSX.Element | null {
+  const lang = useLang();
+  if (lang !== 'ko') return null;
   return (
     <p className={styles.initials}>
       {INITIALS.map((c, i) => (

@@ -84,6 +84,14 @@
   flex-shrink: 0;
 }
 
+/* 홈/뒤로 locked (navDisabled) — same treatment as JejuHeader's. */
+.navBtnOff {
+  opacity: 0.3;
+  pointer-events: none;
+  cursor: default;
+}
+
+
 .navBtn img,
 .navBtn svg {
   width: 100%;

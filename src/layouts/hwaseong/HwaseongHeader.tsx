@@ -29,6 +29,11 @@ interface Props {
   subtitleClassName?: string;
   /** Ref on the subtitle row — used by TAX-FREE to size the webview card. */
   subtitleRef?: Ref<HTMLDivElement>;
+  /** Draw no description row (the AR 한복체험 picker, as on 오산). */
+  subtitleHidden?: boolean;
+  /** Dim 홈/뒤로 and stop them responding — the AR photo wait (틀린그림찾기), where
+   *  leaving would throw away a photo that is still generating. */
+  navDisabled?: boolean;
 }
 
 /**
@@ -36,7 +41,17 @@ interface Props {
  * 7904:105950): HWASEONG S/A brand + date, home / title / back, then the grey
  * ★ description row. Identical across every 화성휴게소 sub-page.
  */
-export function HwaseongHeader({ controller, title, subtitle, onHome, onBack, subtitleClassName, subtitleRef }: Props): JSX.Element {
+export function HwaseongHeader({
+  controller,
+  title,
+  subtitle,
+  onHome,
+  onBack,
+  subtitleClassName,
+  subtitleRef,
+  subtitleHidden = false,
+  navDisabled = false,
+}: Props): JSX.Element {
   const today = useMemo(() => formatDate(new Date()), []);
   const lang = useLang();
   // Localize the Korean title id (Localization_Hwaseong) — same path as the
@@ -50,7 +65,7 @@ export function HwaseongHeader({ controller, title, subtitle, onHome, onBack, su
     /\s*[(（][^)）]*(?:준비\s?중|soon|準備中|筹备中|籌備中)[^)）]*[)）]\s*/gi,
     '',
   ).trim();
-  const sub = (subtitle ?? screenSubtitle(title, lang) ?? '').replace(/^\s*[*★]\s*/, '').trim();
+  const sub = subtitleHidden ? '' : (subtitle ?? screenSubtitle(title, lang) ?? '').replace(/^\s*[*★]\s*/, '').trim();
   /* Korean titles fit the 1342px field on one line; several of the other
      languages run to half again its width. See "Other languages" in the CSS. */
   const wide = lang !== 'ko';
@@ -86,7 +101,13 @@ export function HwaseongHeader({ controller, title, subtitle, onHome, onBack, su
 
         {/* Row 2: home | title | back */}
         <div className={styles.titleRow}>
-          <button type="button" className={styles.navBtn} onClick={goHome} aria-label="홈">
+          <button
+            type="button"
+            className={`${styles.navBtn} ${navDisabled ? styles.navBtnOff : ''}`}
+            onClick={navDisabled ? undefined : goHome}
+            disabled={navDisabled}
+            aria-label="홈"
+          >
             {hwaseongIconUrl('header-home') ? (
               <img src={hwaseongIconUrl('header-home')} alt="" draggable={false} />
             ) : (
@@ -96,7 +117,13 @@ export function HwaseongHeader({ controller, title, subtitle, onHome, onBack, su
           <div ref={titleRef} className={`${styles.titleField} ${wide ? styles.titleFieldLong : ''}`}>
             <span className={`${styles.titleText} ${wide ? styles.titleTextLong : ''}`}>{localizedTitle}</span>
           </div>
-          <button type="button" className={styles.navBtn} onClick={goBack} aria-label="뒤로">
+          <button
+            type="button"
+            className={`${styles.navBtn} ${navDisabled ? styles.navBtnOff : ''}`}
+            onClick={navDisabled ? undefined : goBack}
+            disabled={navDisabled}
+            aria-label="뒤로"
+          >
             {hwaseongIconUrl('header-back') ? (
               <img src={hwaseongIconUrl('header-back')} alt="" draggable={false} />
             ) : (

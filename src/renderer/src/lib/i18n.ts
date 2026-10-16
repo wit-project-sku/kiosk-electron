@@ -382,6 +382,31 @@ const BUTTON_OVERRIDES: Record<string, Partial<Record<Lang, string>>> = {
     ru: 'Местная валюта',
     id: 'Mata Uang Daerah',
   },
+  // 오산's 전국시장 header: Localization_Osaek has no MainButton_TraditionalMarket
+  // row at all, so the page title printed 전국시장 in every language. (화성's
+  // sheet has the row, and its own cells still win over these.)
+  MainButton_TraditionalMarket: {
+    ko: '전국시장',
+    en: 'Traditional Markets',
+    ja: '全国の伝統市場',
+    zh: '全国传统市场',
+    vi: 'Chợ truyền thống toàn quốc',
+    th: 'ตลาดดั้งเดิมทั่วประเทศ',
+    ru: 'Рынки страны',
+    id: 'Pasar Tradisional Nasional',
+  },
+  // 화성휴게소 지도: Localization_Hwaseong leaves the en cell empty, so English
+  // fell back to Korean. Only an empty cell reaches this.
+  MainButton_SAMap: {
+    ko: '화성휴게소 지도',
+    en: 'Hwaseong S/A Map',
+    ja: '華城休憩所マップ',
+    zh: '华城服务区地图',
+    vi: 'Bản đồ trạm dừng Hwaseong',
+    th: 'แผนที่จุดพักรถฮวาซอง',
+    ru: 'Карта зоны отдыха Хвасон',
+    id: 'Peta Rest Area Hwaseong',
+  },
 };
 
 /**

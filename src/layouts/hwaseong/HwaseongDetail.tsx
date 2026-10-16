@@ -84,7 +84,7 @@ export function HwaseongDetail({ controller }: Props): JSX.Element {
 
   return (
     <div className={styles.root}>
-      <HwaseongPageBg image="detail-page-bg" opacity={0.7} />
+      <HwaseongPageBg />
 
       {low ? (
         <div style={{ position: 'absolute', top: 719, left: 0, width: 2160, height: 700 }}>
@@ -181,23 +181,24 @@ export function HwaseongDetail({ controller }: Props): JSX.Element {
           {/* Legend */}
           {onSite && <FloorLegend />}
 
-          <div className={styles.divider} />
-
           {/* Ratings — the frame also draws Instagram followers and a blog-review
-              count, but the shop data carries neither, so only Naver is shown. */}
-          <div className={styles.ratings}>
-            {icon('detail-naver') && <img className={styles.ratingIcon} src={icon('detail-naver')} alt="" draggable={false} />}
-            {hasRating && (
-              <>
+              count, but the shop data carries neither, so only Naver is shown,
+              and only when the shop HAS a Naver rating: a bare Naver logo with
+              nothing beside it read as a broken review. Same rule as 제주. */}
+          {hasRating && (
+            <>
+              <div className={styles.divider} />
+              <div className={styles.ratings}>
+                {icon('detail-naver') && <img className={styles.ratingIcon} src={icon('detail-naver')} alt="" draggable={false} />}
                 <span className={styles.stars}>
                   {[0, 1, 2, 3, 4].map((i) => (
                     <RatingStar key={i} filled={i < Math.round(ratingValue)} />
                   ))}
                 </span>
                 <span className={styles.ratingText}>{item!.rating}</span>
-              </>
-            )}
-          </div>
+              </div>
+            </>
+          )}
         </div>
       </div>
 

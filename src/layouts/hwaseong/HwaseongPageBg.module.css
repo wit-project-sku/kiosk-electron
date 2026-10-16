@@ -6,11 +6,12 @@
   transform: translateY(calc(-1 * var(--hwaseong-mode-push, 0px)));
 }
 
-/* Opacity comes from the component (the frame's image-fill opacity). */
+/* The frame's image fill: page-bg at 60% over the white base. */
 .img {
   position: absolute;
   inset: 0;
   width: 100%;
   height: 100%;
   object-fit: cover;
+  opacity: 0.6;
 }

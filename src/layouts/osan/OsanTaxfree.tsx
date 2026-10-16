@@ -55,6 +55,8 @@ const MERCHANT_SUBTITLE = {
 
 /** The card's foot: 664 + 2290 (Figma 7838:124719). */
 const BODY_BOTTOM = 2954;
+/** The refund site's design viewport height (it is 1820 wide, like the card). */
+const EMBED_HEIGHT = 2250;
 
 function TaxRefundInfo({
   lang,
@@ -187,11 +189,12 @@ export function OsanTaxfree({ controller }: OsanTaxfreeProps): JSX.Element {
           <TaxRefundInfo lang={lang} onGoToWebview={() => setActiveTab('refund')} />
         )}
 
-        {/* refund webview — always mounted to pre-warm. 오산>TAXFREE-03
-            (7838:125099) draws the refund page 1475×2122, inset in the card. */}
+        {/* refund webview — always mounted to pre-warm. It fills the card at
+            the site's own 1820×2250 (see .embedFrame). */}
         <div
           className={styles.embedFrame}
           style={{
+            ['--embed-scale' as string]: Math.min(1, (low ? 2290 : BODY_BOTTOM - bodyLayout.top) / EMBED_HEIGHT),
             visibility: activeTab === 'refund' ? 'visible' : 'hidden',
             pointerEvents: activeTab === 'refund' ? 'auto' : 'none',
           }}

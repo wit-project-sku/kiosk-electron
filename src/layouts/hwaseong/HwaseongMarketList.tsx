@@ -32,9 +32,11 @@ interface Props {
   /** Header title id — also the 상세 page's title (e.g. '전국시장', '전국 휴게소'). */
   title: string;
   tabs: RegionTab[];
+  /** The rows to list — 전국시장's markets (default) or 전국휴게소's service areas. */
+  data?: readonly NationwideMarket[];
 }
 
-export function HwaseongMarketList({ controller, title, tabs }: Props): JSX.Element {
+export function HwaseongMarketList({ controller, title, tabs, data = NATIONWIDE_MARKETS }: Props): JSX.Element {
   const lang = useLang();
   const setDetail = useDetailStore((s) => s.setItem);
   const [active, setActive] = useState(0);
@@ -51,10 +53,10 @@ export function HwaseongMarketList({ controller, title, tabs }: Props): JSX.Elem
 
   const visible = useMemo(() => {
     const provinces = new Set(tabs[active]?.provinces ?? []);
-    return NATIONWIDE_MARKETS.filter(
+    return data.filter(
       (m) => provinces.has(m.province.ko.trim()) && (!initial || initialOf(m.name.ko ?? '') === initial),
     );
-  }, [tabs, active, initial]);
+  }, [data, tabs, active, initial]);
 
   const { listRef, thumb, scrollBy, toTop } = useListScroll(visible);
 
@@ -83,7 +85,7 @@ export function HwaseongMarketList({ controller, title, tabs }: Props): JSX.Elem
 
   return (
     <div className={low ? `${styles.root} ${styles.lowList}` : styles.root}>
-      <HwaseongPageBg image="detail-page-bg" opacity={0.7} />
+      <HwaseongPageBg />
 
       <HwaseongHeader controller={controller} title={title} />
 

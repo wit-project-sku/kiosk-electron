@@ -14,7 +14,7 @@
 /* ── Tabs — Figma 7878:22815: w1360, gap 200, each 580×170, radius 42.9 ── */
 .tabs {
   position: absolute;
-  top: 700px;
+  top: calc(700px + var(--header-push, 0px));
   left: 50%;
   transform: translateX(-50%);
   width: 1360px;
@@ -50,7 +50,7 @@
 /* Figma: "26.08.30. 19:30 기준" — Pretendard Regular 40, #999, right edge at 1990. */
 .stamp {
   position: absolute;
-  top: 900px;
+  top: calc(900px + var(--header-push, 0px));
   right: 170px;
   width: 369px;
   margin: 0;
@@ -67,9 +67,9 @@
 .listClip {
   position: absolute;
   left: 0;
-  top: 970px;
+  top: calc(970px + var(--header-push, 0px));
   width: 2160px;
-  height: 2298px;
+  height: calc(2298px - var(--header-push, 0px));
   overflow: hidden;
 }
 
@@ -225,6 +225,13 @@
   white-space: nowrap;
 }
 
+/* Empty-field hint (as on 인사동 / 제주): grey, a step smaller than a number. */
+.fieldPlaceholder {
+  font-weight: 400;
+  font-size: 60px;
+  color: #999999;
+}
+
 /* Currency button: flag 170 + code, gap 42.9, chevron at field x1640. */
 .fieldCurBtn {
   position: absolute;
@@ -249,6 +256,9 @@
   display: block;
   width: 170px;
   height: 170px;
+  /* The flags are 3:2 SVGs: without this they letterbox inside the circle
+     and leave grey bands top and bottom. Cover crops them to fill it. */
+  object-fit: cover;
 }
 
 .fieldCurLabel {
@@ -507,6 +517,9 @@
   display: block;
   width: 170px;
   height: 170px;
+  /* The flags are 3:2 SVGs: without this they letterbox inside the circle
+     and leave grey bands top and bottom. Cover crops them to fill it. */
+  object-fit: cover;
 }
 
 .pickerLabel {
@@ -520,6 +533,22 @@
 
 .contents {
   display: contents;
+}
+
+/* 계산기 (standard): every box under the tabs is placed at its frame y, several
+   inline. A translated description that wraps past one line (useHeaderPush,
+   --header-push) moves the whole group down with the tabs, so the 2-line
+   Russian / Thai text is not drawn over the tab row. Taps pass through the
+   layer itself; its children take them. */
+.calcStd {
+  position: absolute;
+  inset: 0;
+  transform: translateY(var(--header-push, 0px));
+  pointer-events: none;
+}
+
+.calcStd > * {
+  pointer-events: auto;
 }
 
 /* ── ♿ (실시간 환율 7956:78078; 환율계산기 7956:77643 / 77718 / 77933) ───────────

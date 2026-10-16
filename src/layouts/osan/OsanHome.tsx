@@ -172,7 +172,7 @@ const CARDS: Card[] = [
     sub: { ko: 'AI 검색하기', en: 'AI search', ja: 'AI検索', zh: 'AI搜索', vi: 'Tìm kiếm AI', th: 'ค้นหาด้วย AI', ru: 'AI-поиск', id: 'Pencarian AI' },
   },
   {
-    screen: 'market', label: '위드마켓', title: '위드마켓', titleKey: 'MainButton_Goods', icon: 'home-card-market', variant: 'cardMarket',
+    screen: 'market', label: '위드마켓', title: '위드마켓', titleKey: 'MainButton_WITH_Market', icon: 'home-card-market', variant: 'cardMarket',
     sub: { ko: '굿즈 만들기', en: 'Make goods', ja: 'グッズ作り', zh: '制作周边', vi: 'Làm quà lưu niệm', th: 'ทำของที่ระลึก', ru: 'Создать сувенир', id: 'Buat merchandise' },
   },
   {

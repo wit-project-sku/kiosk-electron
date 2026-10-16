@@ -5,8 +5,8 @@ import type { Shop } from '@shared/types/shop';
 import { iconUrl } from '@renderer/assets/icons/insadong';
 import { useAiStore } from '@renderer/store/aiStore';
 import { useShopStore } from '@renderer/store/shopStore';
-import { getKioskLocation } from '@shared/config/kioskLocations';
 import { useLang, pick as pickLang } from '@renderer/lib/i18n';
+import { kioskPlaceName } from '@renderer/lib/kioskName';
 import type { Lang } from '@renderer/lib/i18n';
 import { tExact } from '@renderer/lib/loc';
 import { isOk } from '@shared/types/result';
@@ -611,7 +611,7 @@ export function InsadongAiCourse({ controller }: Props): JSX.Element {
           {/* 7519:74985. The frame reads "제주 공항" — Jeju copy left in an 인사동
               frame — so the origin is this kiosk's own name instead. */}
           <p className={`${styles.landingNotice} ${long ? styles.landingNoticeLong : ''}`}>
-            {(START_NOTE[lang] ?? START_NOTE.ko)!(getKioskLocation(kioskId).name)}
+            {(START_NOTE[lang] ?? START_NOTE.ko)!(kioskPlaceName(kioskId, lang))}
           </p>
 
           <div className={`${styles.label} ${styles.landingLabelCustom}`}>

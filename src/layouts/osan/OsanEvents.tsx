@@ -230,7 +230,10 @@ export function OsanEvents({ controller }: OsanEventsProps): JSX.Element {
   const low = useAccessibilityStore((s) => s.lowReach);
   /* An event's detail page has its own row, SubHeader_Detail_Event ("* QR코드로
      이벤트의 상세정보를 확인하세요"); the list keeps SubHeader_Event. */
-  const eventSubtitle = detailId !== null ? sheetText('SubHeader_Detail_Event', lang) || undefined : undefined;
+  const eventSubtitle =
+    detailId !== null
+      ? sheetText('Event_Detail_SubHeader', lang) || sheetText('SubHeader_Detail_Event', lang) || undefined
+      : undefined;
 
   const { items, loading, error } = useEvents(
     isMbti ? null : activeRegion.region,

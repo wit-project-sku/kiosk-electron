@@ -111,8 +111,10 @@
 }
 
 .legendTitle {
+  min-width: 0;
   font-weight: 600;
-  font-size: 54px;
+  /* --fit: FloorLegend shrinks long translated headers; Korean stays 54. */
+  font-size: calc(54px * var(--fit, 1));
   line-height: 1.6;
   color: #000;
   white-space: nowrap;
@@ -152,4 +154,18 @@
   line-height: 1.6;
   color: #000;
   white-space: nowrap;
+}
+
+/* Other languages: "Restrooms (Men / Women)" or "Комната матери и ребёнка"
+   is far wider than the ~260 a column leaves for a name. A step smaller, and a
+   name that still does not fit wraps inside its column (never mid-word). The
+   tallest column (먹거리, nine entries) keeps room for several wrapped names
+   inside the 671 legend. */
+.legendNameLong {
+  min-width: 0;
+  font-size: 26px;
+  line-height: 1.2;
+  white-space: normal;
+  word-break: keep-all;
+  overflow-wrap: break-word;
 }

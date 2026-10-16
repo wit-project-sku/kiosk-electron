@@ -348,7 +348,7 @@ export function EventDetailScreen({ eventId, accent, cardShadow }: EventDetailSc
       {loading && (
         <div className={styles.pending}>
           <span className={styles.spinner} />
-          불러오는 중..
+          {ui('loading', lang)}
         </div>
       )}
 

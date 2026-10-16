@@ -726,7 +726,9 @@
 .noticeTextWide {
   width: 1060px;
   font-size: calc(60px * var(--fit, 1));
-  line-height: calc(70px * var(--fit, 1));
+  /* 1.3, not the frame's 70/60: Thai stacks tone marks above the line box and
+     Vietnamese stacks diacritics, which a 70 line clipped at the card's top. */
+  line-height: calc(78px * var(--fit, 1));
   word-break: normal;
 }
 
@@ -763,8 +765,14 @@
 .cardRest .cardText    { left: 57px;  width: 225px; }
 .cardEvents .cardText  { left: 40px;  width: 280px; }
 
-/* 3. Tiles — the text gets the whole gap down to 10 above the next plate. */
+/* 3. Tiles — the text gets the whole gap down to 10 above the next plate, and
+ *    half of the 180 gutter on each side (400 wide, centred on the 300 plate):
+ *    "Культурное наследие (в процессе подготовки)" wrapped to three lines in
+ *    300, pushed its subtitle out of the panel and dragged the whole grid's
+ *    shared --fit down until every subtitle was unreadable. */
 .tileTextFit {
+  left: -50px;
+  width: 400px;
   height: 147px;
 }
 
@@ -899,6 +907,13 @@
 
 .homeLow .tileText {
   top: 339.1px;
+}
+
+/* The 6 × 2 grid steps 312.41 (407 in the tile's scaled units), so the
+   widened label band leaves 107 − 90 between neighbours instead of 180. */
+.homeLow .tileTextFit {
+  left: -45px;
+  width: 390px;
 }
 
 .homeLow .tileTitle,

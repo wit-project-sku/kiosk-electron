@@ -3,7 +3,6 @@ import { useKioskController } from '@renderer/hooks/useKioskController';
 import { useWeatherSync } from '@renderer/hooks/useWeatherSync';
 import { useExchangeSync } from '@renderer/hooks/useExchangeSync';
 import { donationUrl } from '@shared/constants/webEmbeds';
-import { hwaseongIconUrl } from '@renderer/assets/icons/hwaseong';
 import { useAccessibilityStore } from '@renderer/store/accessibilityStore';
 import { useLang } from '@renderer/lib/i18n';
 import { barrierFreeTitle } from '../insadong/barrierFree';
@@ -27,6 +26,7 @@ import { HwaseongLocalpay } from './HwaseongLocalpay';
 import { HwaseongNationwideRestStop } from './HwaseongNationwideRestStop';
 import { HwaseongMap } from './HwaseongMap';
 import { HwaseongScreen } from './HwaseongScreen';
+import { HwaseongPageBg } from './HwaseongPageBg';
 
 // 전국도로교통상황 embeds https://www.its.go.kr/ — hide the site's own top
 // header (#div_topHeader / #header) and footer (#footer) so only the live map
@@ -48,6 +48,11 @@ const ITS_HIDE_CHROME_CSS = `
     padding: 0 !important;
     top: 0 !important;
     min-height: 0 !important;
+  }
+  /* The site sizes #container as 100vh minus its header; with the header gone
+     that leaves a blank strip under the map. Fill the whole viewport instead. */
+  #wrapper, #wrapper.mapType, #container {
+    height: 100vh !important;
   }
 `;
 
@@ -149,22 +154,7 @@ export function HwaseongKiosk(): JSX.Element {
 
   return (
     <KioskArtboard>
-      {hwaseongIconUrl('bg') && (
-        <img
-          src={hwaseongIconUrl('bg')}
-          alt=""
-          draggable={false}
-          style={{
-            position: 'absolute',
-            inset: 0,
-            width: '100%',
-            height: '100%',
-            objectFit: 'cover',
-            zIndex: 0,
-            pointerEvents: 'none',
-          }}
-        />
-      )}
+      <HwaseongPageBg />
       {barOn && (
         <div
           style={{ position: 'absolute', top: 0, left: 0, width: 2160, height: MODE_BAR, background: '#005ab4', color: '#ffffff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: 'Pretendard, sans-serif', fontWeight: 700, fontSize: 68, zIndex: 60 }}

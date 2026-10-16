@@ -23,7 +23,6 @@ import { osanIconUrl } from '@renderer/assets/icons/osan';
 import { pick, type Lang } from '@renderer/lib/i18n';
 import { sheetText } from '@renderer/lib/loc';
 import { ui } from '@renderer/lib/uiText';
-import portrait from '@renderer/assets/photos/osan/hello/portrait.png';
 import helloVideo from '@renderer/assets/videos/osan/hello-jeongi.mp4';
 import tiktokIcon from '@renderer/assets/photos/osan/hello/tiktok.png';
 import instaIcon from '@renderer/assets/photos/osan/hello/insta.png';
@@ -103,29 +102,31 @@ interface Topic {
 
 /**
  * 취미생활 sub-tabs (7853:34558 / 34628 / 34698). Labels are the frame's; the
- * caption is the sheet's `Greeting_Hobby_<n>` (title) / `…_Content` (body).
+ * caption is the sheet's `Greeting_Hobby_<n>_Desc_1` (title) / `…_Desc_2` (body).
+ * Since the 2026-10-15 sheet revision the bare `Greeting_Hobby_<n>` row is the
+ * TAB LABEL ("K-POP") and `…_Content` is gone — the same shape as 건강습관.
  */
 const HOBBIES: Topic[] = [
   {
     id: 'kpop',
     label: { ko: 'K-POP', en: 'K-POP', ja: 'K-POP', zh: 'K-POP', vi: 'K-POP', th: 'K-POP', ru: 'K-POP', id: 'K-POP' },
     photo: hobbyKpop,
-    titleKey: 'Greeting_Hobby_First',
-    bodyKey: 'Greeting_Hobby_First_Content',
+    titleKey: 'Greeting_Hobby_First_Desc_1',
+    bodyKey: 'Greeting_Hobby_First_Desc_2',
   },
   {
     id: 'golf',
     label: { ko: '골프', en: 'Golf', ja: 'ゴルフ', zh: '高尔夫', vi: 'Golf', th: 'กอล์ฟ', ru: 'Гольф', id: 'Golf' },
     photo: hobbyGolf,
-    titleKey: 'Greeting_Hobby_Second',
-    bodyKey: 'Greeting_Hobby_Second_Content',
+    titleKey: 'Greeting_Hobby_Second_Desc_1',
+    bodyKey: 'Greeting_Hobby_Second_Desc_2',
   },
   {
     id: 'tennis',
     label: { ko: '테니스', en: 'Tennis', ja: 'テニス', zh: '网球', vi: 'Tennis', th: 'เทนนิส', ru: 'Теннис', id: 'Tenis' },
     photo: hobbyTennis,
-    titleKey: 'Greeting_Hobby_Third',
-    bodyKey: 'Greeting_Hobby_Third_Content',
+    titleKey: 'Greeting_Hobby_Third_Desc_1',
+    bodyKey: 'Greeting_Hobby_Third_Desc_2',
   },
 ];
 /**
@@ -143,8 +144,8 @@ const HEALTH: Topic[] = [
     id: 'neck',
     label: { ko: '목·어깨', en: 'Neck & shoulders', ja: '首・肩', zh: '颈部·肩膀', vi: 'Cổ & vai', th: 'คอ·ไหล่', ru: 'Шея и плечи', id: 'Leher & bahu' },
     photo: healthNeck,
-    titleKey: 'Greeting_Healthy_Habit_First',
-    bodyKey: 'Greeting_Healthy_Habit_First_Content',
+    titleKey: 'Greeting_Healthy_Habit_First_Desc_1',
+    bodyKey: 'Greeting_Healthy_Habit_First_Desc_2',
     title: {
       ko: '오색시장을 즐기는 만큼 몸도 가볍게 풀어보세요.',
       en: 'Enjoy Osaek Market — and loosen up your body too.',
@@ -170,8 +171,8 @@ const HEALTH: Topic[] = [
     id: 'waist',
     label: { ko: '허리', en: 'Back', ja: '腰', zh: '腰部', vi: 'Lưng', th: 'หลัง', ru: 'Спина', id: 'Pinggang' },
     photo: healthWaist,
-    titleKey: 'Greeting_Healthy_Habit_Second',
-    bodyKey: 'Greeting_Healthy_Habit_Second_Content',
+    titleKey: 'Greeting_Healthy_Habit_Second_Desc_1',
+    bodyKey: 'Greeting_Healthy_Habit_Second_Desc_2',
     title: {
       ko: '지친 몸, 잠시 쉬어가세요.',
       en: 'Tired? Take a short break.',
@@ -197,8 +198,8 @@ const HEALTH: Topic[] = [
     id: 'refresh',
     label: { ko: '기분전환', en: 'Refresh', ja: '気分転換', zh: '换换心情', vi: 'Thư giãn', th: 'เปลี่ยนอารมณ์', ru: 'Перезагрузка', id: 'Segarkan diri' },
     photo: healthRefresh,
-    titleKey: 'Greeting_Healthy_Habit_Third',
-    bodyKey: 'Greeting_Healthy_Habit_Third_Content',
+    titleKey: 'Greeting_Healthy_Habit_Third_Desc_1',
+    bodyKey: 'Greeting_Healthy_Habit_Third_Desc_2',
     title: {
       ko: '잠시 멈춰, 기분 좋은 에너지를 채워보세요.',
       en: 'Pause for a moment and recharge.',
@@ -254,15 +255,24 @@ function hashPill(raw: string): string {
   return bare ? `#${bare}` : '';
 }
 
-/** Hashtag pills + the TikTok/Instagram tiles and their codes (7853:34500). */
+/** Hashtag pills + the TikTok/Instagram tiles and their codes (7853:34500).
+ *  The tags are what visitors search for on TikTok/Instagram, so they are
+ *  never translated: Korean on the Korean screen, English on every other
+ *  (Figma note on the other-language frames: 한국어/영어만 사용). */
 function HelloFooter({ lang, className }: { lang: Lang; className: string }): JSX.Element {
+  const tagLang: Lang = lang === 'ko' ? 'ko' : 'en';
   const tags = [
-    hashPill(sheetText('Greeting_Tag1', lang, { ko: 'JEONGE' })),
-    hashPill(sheetText('Greeting_Tag2', lang, { ko: '정이' })),
-    hashPill(sheetText('Greeting_Tag3', lang, { ko: '안녕 정이' })),
+    hashPill(sheetText('Greeting_Tag1', tagLang, { ko: 'JEONGE', en: 'JEONGE' })),
+    hashPill(sheetText('Greeting_Tag2', tagLang, { ko: '정이', en: 'JEONG-I' })),
+    hashPill(sheetText('Greeting_Tag3', tagLang, { ko: '안녕 정이', en: 'Hello Jeong-i' })),
   ].filter(Boolean);
+  /* "#Hello JEONG-I" is wider than its 322 pill. The pills keep their text
+     whole and the row's hashtag type shrinks together (--fit) until the footer
+     fits its 1582 beside the social tiles. */
+  const footerRef = useRef<HTMLDivElement>(null);
+  useFitText(footerRef, styles.footer, lang !== 'ko', 0.6, tags.join('|'));
   return (
-    <div className={`${styles.footer} ${className}`}>
+    <div ref={footerRef} className={`${styles.footer} ${className}`}>
       {tags.map((h, i) => (
         <span key={i} className={styles.hashtag}>
           {h}
@@ -345,11 +355,10 @@ export function OsanHello({ controller }: OsanHelloProps): JSX.Element {
       {tab === 'profile' && (
         <div className={styles.card}>
           <div className={styles.portrait}>
-            {/* 정이's intro clip, looped and muted like 인사동's; the still is the
-                poster so the circle is never empty while it loads. */}
+            {/* 정이's intro clip, looped and muted like 인사동's. No poster: the
+                old still flashed in the circle before the clip's first frame. */}
             <video
               src={helloVideo}
-              poster={portrait}
               autoPlay
               loop
               muted

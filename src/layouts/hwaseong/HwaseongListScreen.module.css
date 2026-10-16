@@ -314,13 +314,23 @@
   line-height: 1.12;
 }
 
-/* A long category beside the name gives way and ellipsizes instead of taking
-   the name's width. */
+/* A translated category keeps its word whole (up to 480 of the 1120 row) and
+   the NAME gives way with its ellipsis. Shrinking the category instead cut it
+   mid-word ("• Др"): .cat is a flex box, where text-overflow never applies to
+   the bare text item. As a block with an inline dot, an over-long category
+   ellipsizes properly. */
 .catLong {
-  flex: 0 1 auto;
-  min-width: 0;
+  display: block;
+  flex: 0 0 auto;
+  max-width: 480px;
   overflow: hidden;
   text-overflow: ellipsis;
+}
+
+.catLong .dot {
+  display: inline-block;
+  margin-right: 21.45px;
+  vertical-align: middle;
 }
 
 /* ── ♿ barrier-free (B오산>정이 뭐먹지-01 7918:123591) ─────────────────────────

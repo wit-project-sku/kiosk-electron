@@ -1,4 +1,5 @@
 import { Fragment, useEffect, useRef, useState } from 'react';
+import { useFitText } from '@layouts/components/fitText';
 import qrCodeImg from '@renderer/assets/event-qr.png';
 import type { KioskController } from '@renderer/hooks/useKioskController';
 import type { EventCategory, EventRecommendation, EventRegion } from '@shared/types/events';
@@ -33,6 +34,9 @@ const CATEGORY_TABS: { key: string; value: EventCategory }[] = [
 /* What follows each label in the frame's one-line row (7918:122002): the gaps
    are literal spaces, 7 before the first ㅣ and 8 before the others. */
 const CATEGORY_GAPS = ['       ㅣ          ', '        ㅣ          ', '        ㅣ          '];
+/** Other languages: the labels run 2–4× the Korean width, so the frame's wide
+ *  space runs would force the line down to its smallest size. */
+const CATEGORY_GAP_LONG = '   ㅣ   ';
 /* The design scrolls one list (▲/▼ + an edge pill) instead of paging, so one
    request fetches what a region realistically has — same as 오산. */
 const PAGE_SIZE = 30;
@@ -114,11 +118,11 @@ function MbtiSection({ onOpenQr, region }: MbtiSectionProps): JSX.Element {
       {status === 'loading' ? (
         <div className={`${styles.mbtiCta} ${styles.mbtiCtaLoading}`}>
           <span className={styles.mbtiSpinner} />
-          결과 로딩중..
+          {ui('mbtiLoading', lang)}
         </div>
       ) : (
         <button type="button" className={styles.mbtiCta} onClick={() => void getResults()}>
-          추천 결과 보기
+          {ui('mbtiSubmit', lang)}
         </button>
       )}
 
@@ -259,6 +263,10 @@ export function HwaseongEvents({ controller }: HwaseongEventsProps): JSX.Element
    * under them (3660). `.lowEvents` re-places each piece.
    */
   const low = useAccessibilityStore((st) => st.lowReach);
+  /* 전체 | 공연 | 전시 | 기타 is one centred line drawn around Korean; "Все | Выступление
+     | Выставка | Другое" ran off the right edge. Other languages shrink it. */
+  const categoryRef = useRef<HTMLParagraphElement>(null);
+  useFitText(categoryRef, styles.categoryRow, lang !== 'ko', 0.6, lang + String(isMbti) + String(low), 'ink');
   // Back closes the detail page first; from the list it leaves the screen.
   const goBack = (): void => {
     if (detailId !== null) setDetailId(null);
@@ -294,7 +302,7 @@ export function HwaseongEvents({ controller }: HwaseongEventsProps): JSX.Element
         <MbtiSection onOpenQr={() => setQrZoomOpen(true)} region="HWASEONG" />
       ) : (
         <>
-          <p className={styles.categoryRow}>
+          <p ref={categoryRef} className={lang !== 'ko' ? `${styles.categoryRow} ${styles.categoryRowLong}` : styles.categoryRow}>
             {CATEGORY_TABS.map((c, i) => (
               <Fragment key={c.value}>
                 <button
@@ -305,7 +313,7 @@ export function HwaseongEvents({ controller }: HwaseongEventsProps): JSX.Element
                 >
                   <span>{t(c.key, lang)}</span>
                 </button>
-                {CATEGORY_GAPS[i]}
+                {lang === 'ko' ? CATEGORY_GAPS[i] : i < CATEGORY_TABS.length - 1 ? CATEGORY_GAP_LONG : null}
               </Fragment>
             ))}
           </p>

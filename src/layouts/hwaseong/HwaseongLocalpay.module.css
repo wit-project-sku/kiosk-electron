@@ -16,10 +16,16 @@
 /* Tabs and cards share one scrolling area between the header (700) and the banner (3267). */
 .page {
   position: absolute;
-  top: 700px;
+  /* + the extra lines of a translated ★ description (useHeaderPush). */
+  top: calc(700px + var(--header-push, 0px));
   left: 0;
   right: 0;
-  bottom: 573px;
+  /* ♿: HwaseongKiosk moves the page down 146 while the promo counter-moves
+     back to 3267, so the column has to stop 146 higher too — it used to run on
+     under the promo and its last 146 could never be scrolled into view. */
+  bottom: calc(573px + var(--hwaseong-mode-push, 0px));
+  /* Room under the last card, so it never ends flush against the promo. */
+  padding-bottom: 60px;
   box-sizing: border-box;
   display: flex;
   flex-direction: column;
@@ -239,16 +245,28 @@
   white-space: nowrap;
 }
 
+/* Height is the box's room under the note (456 − 126 − 20), so a translation
+   that wraps too far can be measured and shrunk (--fit, below). */
 .benefits {
   position: absolute;
   left: 14px;
   top: 126px;
   width: 1155px;
+  height: 310px;
   font-family: 'Pretendard', var(--kiosk-font, sans-serif);
   font-weight: 600;
-  font-size: 40px;
+  font-size: calc(40px * var(--fit, 1));
   color: #005ab4;
   line-height: 1.7;
+}
+
+/* Other languages: a translated bullet wraps inside the 1155 column, and at
+   40 / 1.7 the Indonesian list ran out of the box. One step tighter (36 /
+   1.4), and if the lines still do not fit the 310 the whole list shrinks
+   together (useFitText, never below 0.7) rather than spill. */
+.lightBoxLong .benefits {
+  font-size: calc(36px * var(--fit, 1));
+  line-height: 1.4;
 }
 
 .benefits p {

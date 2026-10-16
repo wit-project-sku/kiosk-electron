@@ -253,17 +253,22 @@
   gap: 42.9px;
 }
 
-/* Name Bold 85 #333 in a 700 box, then the dot + Regular 51 #999. */
+/* Name Bold 85 #333, then the dot + Regular 51 #999. */
 .foodTitleRow {
   display: flex;
   align-items: center;
   gap: 42.9px;
 }
 
+/* The name takes its own width, so the · category sits the row's 42.9 after
+   it. It used to be a fixed 700 box, which left ~360 of blank space between
+   "순대국밥" and its category. A long translated name may wrap rather than push
+   the category off the card. */
 .foodName {
-  flex: none;
-  width: 700px;
+  flex: 0 1 auto;
+  min-width: 0;
   margin: 0;
+  overflow-wrap: break-word;
   font-weight: 700;
   font-size: 85px;
   line-height: 1;
