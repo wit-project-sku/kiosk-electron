@@ -188,16 +188,15 @@ export function HanbokSelect({ onCapture, onHome, countdownActive = false }: Han
   const rotating = useRotatingBanner();
   const lang = useLang();
   const { isOsan, isHwaseong, isKada, icon, Header, photoTitle, banner: chromeBanner } = usePhotoChrome();
-  /* ♿ on 오산 (AR 한복체험 7894:56944): the full header (with its description),
-     the 사진촬영안내 card moved up under it, the picker below with looser gaps,
-     the capture row at the foot — and no promo. */
   const lowReach = useAccessibilityStore((s) => s.lowReach);
-  const lowOsan = isOsan && lowReach;
   /* 화성휴게소 takes 오산's picker layout (tabs, chips, cards, capture row,
      guide card, 한복 설명, privacy sheet) in its own colours (`.hwTheme`), on
-     the one 화성 page background and with the 화성 rail. ♿ keeps the plain
-     page shift (HwaseongKiosk) — the re-stacked ♿ layout is 오산's frame. */
+     the one 화성 page background and with the 화성 rail. */
   const osanLook = isOsan || isHwaseong;
+  /* ♿ (오산 AR 한복체험 7894:56944, and 화성 the same since 2026-10-16): the full
+     header (with its description), the 사진촬영안내 card moved up under it, the
+     picker below with looser gaps, the capture row at the foot — and no promo. */
+  const lowOsan = osanLook && lowReach;
   const lookCls = osanLook ? `${styles.osanRoot} ${isHwaseong ? styles.hwTheme : ''}` : '';
   const sideNav = (onBack: () => void): JSX.Element =>
     isHwaseong ? <HwaseongLeftNav onHome={onHome} onBack={onBack} /> : <OsanLeftNav onHome={onHome} onBack={onBack} />;
