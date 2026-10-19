@@ -40,7 +40,7 @@ import styles from './InsadongAiCourseResult.module.css';
  * and timeline under 실시간 / 일반 코스 tabs (no DAY pager), and a summary bar of
  * 총 소요시간 · 이동거리 · 방문 인원 · 일정.
  *
- * The routes are `POST /api/insa/courses/recommend/v2`'s answer, made by the
+ * The routes are `POST /api/courses/recommend` (by region)'s answer, made by the
  * builder and left in the store (`insaCourse`), each normalised into {@link Stop}:
  * 실시간 코스 (scheduled from now, against opening hours — empty with a reason
  * when nothing is open) and 일반 코스 (clock-free). ONE day, walking, so there is

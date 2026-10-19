@@ -60,7 +60,7 @@ interface AiState {
   pickerPlan: JejuPickerPlan | null;
   setPickerPlan: (plan: JejuPickerPlan | null) => void;
   /**
-   * The routes `POST /api/insa/courses/recommend/v2` returned (실시간 + 일반) for the 인사동 뭐하지
+   * The routes `POST /api/courses/recommend` (by region) returned (실시간 + 일반) for the 인사동 뭐하지
    * questionnaire, drawn by the result page. Null when the call failed (the
    * result page then shows its empty state) and on every other layout. On
    * 인사동 `interests` holds the API's `N-name` codes and `stay` the slot
