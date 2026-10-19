@@ -28,7 +28,7 @@ import styles from './InsadongAiCourse.module.css';
  * (JejuAiSearch), so 뒤로 from the builder returns to the cards without a
  * route change and the answers survive the trip.
  *
- * The course engine is 인사동's own: `POST /api/insa/courses/recommend/v2` (see
+ * The course engine is the 지점 코스 API, `POST /api/courses/recommend` by region (see
  * InsaCourseService). One call turns the picked 관심사 and a time slot
  * (`0-2` · `2-4` · `4-6` · `6+` hours) into a 실시간 and a 일반 walking route from this kiosk;
  * there is no per-tap plan, no multi-day schedule and no 이동수단; the party

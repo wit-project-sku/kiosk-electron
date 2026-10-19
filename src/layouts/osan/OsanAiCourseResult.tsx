@@ -45,7 +45,7 @@ import styles from './OsanAiCourseResult.module.css';
  * 코스 tabs over a numbered walking timeline that starts at this kiosk, and the
  * QR that sends the course to a phone.
  *
- * The routes are `POST /api/insa/courses/recommend/v2`'s answer, made by the
+ * The routes are `POST /api/courses/recommend` (by region)'s answer, made by the
  * builder (OsanAiCourse) and left in the store as `insaCourse`. Nothing is made
  * up here: a refused or failed call leaves the store empty and this page draws
  * its empty state.

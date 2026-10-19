@@ -60,7 +60,7 @@ export class KioskService {
    *
    * v2 keys content by venue, not by device number, so this replaces
    * {@link kioskNum} for every endpoint that moved to v2. `kioskNum` stays for
-   * the ones that did not (stats, update-command, footfall, 인사동 courses).
+   * the ones that did not (stats, update-command, footfall).
    */
   region(): ContentRegion | null {
     return getKioskRegion(this.getConfig().kioskId);

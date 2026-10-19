@@ -1346,11 +1346,8 @@
   padding: 0;
   border: none;
   background: none;
-}
-
-.osanRoot .infoThumbSel .osanCard {
-  background: var(--osan-tint, #d3dfec);
-  border-color: var(--osan-accent, #1a4d7e);
+  /* The wrapper (card + caption) draws nothing; the shadow is the card's. */
+  box-shadow: none;
 }
 
 .osanCard {
@@ -1360,6 +1357,7 @@
   border: 5px solid transparent;
   border-radius: 42.9px;
   background: #ffffff;
+  box-shadow: var(--photo-card-shadow, 0 21.45px 42.9px rgba(143, 147, 157, 0.1));
   display: flex;
   align-items: center;
   justify-content: center;
@@ -1505,7 +1503,8 @@
 }
 
 /* ── ♿ on 오산 (AR 한복체험 7894:56944) ─────────────────────────────────────
- * OsanKiosk moves the photo flow down under its mode bar (--osan-mode-push).
+ * OsanKiosk moves the photo flow down under its mode bar (--osan-mode-push;
+ * HwaseongKiosk does the same as --hwaseong-mode-push — 화성 takes this layout).
  * The background, rail and promo take that back (a no-op on other kiosks).
  * The picker itself re-stacks: the 사진촬영안내 card (step2) first at 945, step ①
  * 193 under it (badge 1643), and the gaps the frame opens up — tabs +64,
@@ -1518,7 +1517,8 @@
 }
 
 .osanRoot.content.lowOsan {
-  top: calc(945px - var(--osan-mode-push, 0px));
+  /* 화성's kiosk publishes the same 146 shift as --hwaseong-mode-push. */
+  top: calc(945px - var(--osan-mode-push, var(--hwaseong-mode-push, 0px)));
   /* The shared .content stops 573 above the foot (the promo's band) and
      scrolls what does not fit. ♿ has no promo and the frame no scroll: the
      column is exactly as tall as its content (945 → the capture row ~3715). */

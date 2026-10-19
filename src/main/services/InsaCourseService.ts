@@ -20,30 +20,41 @@ const DEFAULT_API_BASE = 'https://api-v3.witteria.com';
 const REQUEST_TIMEOUT_MS = 8000;
 
 /**
- * 인사동 AI 코스 추천 — a live pass-through to `POST /api/insa/courses/recommend/v2`,
- * which answers with both a 실시간 코스 and a 일반 코스. The request is v1's, so a
- * server that has not shipped v2 yet (404 / 405) is asked the v1 route instead
- * and its single route stands in for both.
+ * 인사동 · 오색시장 AI 코스 추천 — a live pass-through to the 지점 코스 API,
+ * `POST /api/courses/recommend`, keyed by the venue's `region` (INSADONG_NORTH /
+ * CENTER / SOUTH, OSAEK). It answers with both a 실시간 코스 and a 일반 코스, in
+ * the same shape as `/api/insa/courses/recommend/v2` (same normaliser). 제주 has
+ * its own engine (JejuCourseService).
+ *
+ * A server that has not deployed the 지점 route yet (401 / 405 — prod
+ * `api-v3` 401s on it as of 2026-10-19) is asked the old 인사동 route by
+ * `kioskId` instead: v2, then v1, whose single route stands in for both.
  *
  * NOT cached: the answer depends on the interests, on the clock (opening hours,
  * meal windows) and on today's date, so there is nothing stable to keep.
  *
- * The service supplies `kioskId` and the kiosk's own `lat` / `lon` itself — the
- * renderer never sends them, so a screen cannot ask on another kiosk's behalf
- * and every route starts from where the visitor is standing.
+ * The service supplies the region itself — the renderer never sends it, so a
+ * screen cannot ask on another kiosk's behalf. No lat / lon goes to the 지점
+ * route: the server starts every route at that region's own kiosk.
  *
  * Env:
- *   INSA_COURSE_API_URL — full endpoint override (wins if set); v1 or v2, either
- *                         shape is understood
+ *   INSA_COURSE_API_URL — full endpoint override for the 지점 route (wins if set)
  *   WITTERIA_API_BASE   — shared API base, default https://api-v3.witteria.com
  */
 export class InsaCourseService {
   constructor(private readonly kiosk: KioskService) {}
 
-  private endpoint(version: 'v1' | 'v2'): string {
-    if (process.env['INSA_COURSE_API_URL']) return process.env['INSA_COURSE_API_URL'];
-    const base = (process.env['WITTERIA_API_BASE'] || DEFAULT_API_BASE).replace(/\/+$/, '');
-    return `${base}/api/insa/courses/recommend${version === 'v2' ? '/v2' : ''}`;
+  private base(): string {
+    return (process.env['WITTERIA_API_BASE'] || DEFAULT_API_BASE).replace(/\/+$/, '');
+  }
+
+  private endpoint(): string {
+    return process.env['INSA_COURSE_API_URL'] || `${this.base()}/api/courses/recommend`;
+  }
+
+  /** The pre-지점 인사동 route, kept only for a server without the 지점 one. */
+  private legacyEndpoint(version: 'v1' | 'v2'): string {
+    return `${this.base()}/api/insa/courses/recommend${version === 'v2' ? '/v2' : ''}`;
   }
 
   /**
@@ -51,6 +62,39 @@ export class InsaCourseService {
    * refusals are in Korean and are logged as the reason.
    */
   async recommend(query: InsaCourseQuery): Promise<InsaCourseSet> {
+    const region = this.kiosk.region();
+    const body = {
+      region,
+      interests: query.interests,
+      duration: query.duration,
+      numberOfPeople: query.numberOfPeople,
+      startAt: query.startAt,
+    };
+
+    try {
+      // KADA has no region (no CMS): nothing to ask.
+      if (!region) throw new Error('No content region for this kiosk');
+      const first = await this.post(this.endpoint(), body, query);
+      if (first.ok) return first.set;
+      // 지점 route not deployed on this server yet — ask the old 인사동 route.
+      // NOT on 404: that is the route's own SCRS4004 (both courses empty).
+      if (first.status === 401 || first.status === 405) {
+        return await this.recommendLegacy(query);
+      }
+      throw new Error(first.message);
+    } catch (error) {
+      log.warn('Branch course recommendation failed', {
+        region,
+        duration: query.duration,
+        interests: query.interests.length,
+        error: error instanceof Error ? error.message : String(error),
+      });
+      throw new AppError('UNKNOWN', 'Failed to build the course.');
+    }
+  }
+
+  /** `/api/insa/courses/recommend/v2`, then v1 — by `kioskId`, from the kiosk's own coordinates. */
+  private async recommendLegacy(query: InsaCourseQuery): Promise<InsaCourseSet> {
     const here = getKioskLocation(this.kiosk.getConfig().kioskId).coordinates;
     const body = {
       kioskId: this.kiosk.kioskNum(),
@@ -61,26 +105,14 @@ export class InsaCourseService {
       lat: here.lat,
       lon: here.lon,
     };
-
-    try {
-      const first = await this.post(this.endpoint('v2'), body, query);
-      if (first.ok) return first.set;
-      // v2 not deployed on this server yet — fall back to the single v1 route.
-      if (first.status === 404 || first.status === 405) {
-        const second = await this.post(this.endpoint('v1'), body, query);
-        if (second.ok) return second.set;
-        throw new Error(second.message);
-      }
-      throw new Error(first.message);
-    } catch (error) {
-      log.warn('Insa course recommendation failed', {
-        kioskId: this.kiosk.kioskNum(),
-        duration: query.duration,
-        interests: query.interests.length,
-        error: error instanceof Error ? error.message : String(error),
-      });
-      throw new AppError('UNKNOWN', 'Failed to build the Insadong course.');
+    const v2 = await this.post(this.legacyEndpoint('v2'), body, query);
+    if (v2.ok) return v2.set;
+    if (v2.status === 404 || v2.status === 405) {
+      const v1 = await this.post(this.legacyEndpoint('v1'), body, query);
+      if (v1.ok) return v1.set;
+      throw new Error(v1.message);
     }
+    throw new Error(v2.message);
   }
 
   private async post(

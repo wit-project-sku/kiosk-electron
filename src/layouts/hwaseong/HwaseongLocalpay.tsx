@@ -215,7 +215,7 @@ export function HwaseongLocalpay({ controller }: Props): JSX.Element {
         ) : (
           /* 온누리상품권 (7918:130124 / 130104) — 오산's two cards. */
           <>
-            <div className={styles.cardOnnuriTop}>
+            <div className={`${styles.cardOnnuriTop} ${wide ? styles.onnuriLong : ''}`}>
               <div className={styles.topText}>
                 <p className={styles.heading}>{renderHeading(onnuri.introH)}</p>
                 <p className={styles.body}>{onnuri.introBody}</p>
@@ -226,7 +226,7 @@ export function HwaseongLocalpay({ controller }: Props): JSX.Element {
               </div>
             </div>
 
-            <div className={styles.cardOnnuriBottom}>
+            <div className={`${styles.cardOnnuriBottom} ${wide ? styles.onnuriLong : ''}`}>
               <div className={styles.bottomText}>
                 <p className={styles.heading}>{renderHeading(onnuri.digitalH)}</p>
                 {onnuri.digitalBefore.map((line, i) => (
@@ -237,11 +237,13 @@ export function HwaseongLocalpay({ controller }: Props): JSX.Element {
                 <p className={styles.body}>{renderRich(onnuri.digitalAfter)}</p>
               </div>
 
-              <img className={styles.mascot} src={onnuriMascot} alt="" draggable={false} />
+              <div className={styles.onnuriUsage}>
+                <div className={styles.usageSection}>
+                  <p className={styles.subHeading}>{onnuri.usageH}</p>
+                  <p className={styles.body}>{renderRich(onnuri.usageBody)}</p>
+                </div>
 
-              <div className={styles.usageSection}>
-                <p className={styles.subHeading}>{onnuri.usageH}</p>
-                <p className={styles.body}>{renderRich(onnuri.usageBody)}</p>
+                <img className={styles.mascot} src={onnuriMascot} alt="" draggable={false} />
               </div>
 
               <div ref={lightBoxRef} className={`${styles.lightBox} ${wide ? styles.lightBoxLong : ''}`}>

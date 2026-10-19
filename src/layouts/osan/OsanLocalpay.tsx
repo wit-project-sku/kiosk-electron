@@ -558,7 +558,7 @@ export function OsanLocalpay({ controller }: OsanLocalpayProps): JSX.Element {
         ) : (
           /* ── 온누리상품권 — Figma 7878:42732: two cards (paper vouchers; digital) ── */
           <>
-            <div className={styles.cardOnnuriTop}>
+            <div className={`${styles.cardOnnuriTop} ${wide ? styles.onnuriLong : ''}`}>
               <div className={styles.topText}>
                 <p className={styles.heading}>{renderHeading(c.onnuri.introH)}</p>
                 <p className={styles.body}>{c.onnuri.introBody}</p>
@@ -569,7 +569,7 @@ export function OsanLocalpay({ controller }: OsanLocalpayProps): JSX.Element {
               </div>
             </div>
 
-            <div className={styles.cardOnnuriBottom}>
+            <div className={`${styles.cardOnnuriBottom} ${wide ? styles.onnuriLong : ''}`}>
               <div className={styles.bottomText}>
                 <p className={styles.heading}>{renderHeading(c.onnuri.digitalH)}</p>
                 {c.onnuri.digitalBefore.map((line, i) => (
@@ -580,11 +580,13 @@ export function OsanLocalpay({ controller }: OsanLocalpayProps): JSX.Element {
                 <p className={styles.body}>{renderRich(c.onnuri.digitalAfter)}</p>
               </div>
 
-              <img className={styles.mascot} src={onnuriMascot} alt="" draggable={false} />
+              <div className={styles.onnuriUsage}>
+                <div className={styles.usageSection}>
+                  <p className={styles.usageH}>{c.onnuri.usageH}</p>
+                  <p className={styles.body}>{renderRich(c.onnuri.usageBody)}</p>
+                </div>
 
-              <div className={styles.usageSection}>
-                <p className={styles.usageH}>{c.onnuri.usageH}</p>
-                <p className={styles.body}>{renderRich(c.onnuri.usageBody)}</p>
+                <img className={styles.mascot} src={onnuriMascot} alt="" draggable={false} />
               </div>
 
               <div ref={lightBoxRef} className={`${styles.lightBox} ${wide ? styles.lightBoxLong : ''}`}>

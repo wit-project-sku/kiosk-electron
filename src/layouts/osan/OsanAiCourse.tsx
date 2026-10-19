@@ -29,9 +29,9 @@ import styles from './OsanAiCourse.module.css';
  * card opens the short builder (no 즐길 거리), and 뒤로 from the result resumes
  * the answers the visitor gave.
  *
- * The course comes from the same engine as 인사동: `POST /api/insa/courses/recommend/v2`
- * through window.api.insaCourse (InsaCourseService adds this kiosk's id and
- * coordinates). 관심사 are the 오색시장 catalogue's own `secondCategoryKr` codes
+ * The course comes from the 지점 코스 API, `POST /api/courses/recommend` with
+ * `region: OSAEK`, through window.api.insaCourse (InsaCourseService adds the
+ * region; the server starts the route at this kiosk). 관심사 are the 오색시장 catalogue's own `secondCategoryKr` codes
  * (`2-한식`, `4-의류`). Nothing is computed on the kiosk: when the API answers
  * nothing, the result page shows its empty state.
  *
