@@ -16,6 +16,17 @@ const log = createLogger('spotdiff-service');
  */
 const cacheKeyFor = (kioskNum: number): string => `spot_diff_rounds:${kioskNum}`;
 const DEFAULT_API_BASE = 'https://api-v3.witteria.com';
+/**
+ * The region whose puzzles stand in for a region the CMS has none for yet.
+ *
+ * 오산 (OSAEK) and 화성 (HWASEONG) answer with 0 rows today (오산 has 10 on stage
+ * only), and an empty answer meant the generated placeholder art — the "dummy
+ * game". 인사동's set is real CMS content and the closest scenery to a market
+ * street (부채가게, 필방). The old fleet-wide endpoint is no substitute: it
+ * answers with 제주's 돌하르방·해녀 boards. A region's OWN puzzles always win —
+ * this is only asked for when that list comes back empty.
+ */
+const FALLBACK_REGION = 'INSADONG_NORTH';
 
 /**
  * 틀린그림찾기 rounds for the AR 한복 waiting game (제주 W006).
@@ -89,8 +100,45 @@ export class SpotDiffService {
     if (process.env['SPOT_DIFF_API_URL']) return process.env['SPOT_DIFF_API_URL'];
     const region = this.kiosk.region();
     if (!region) return null;
+    return this.regionUrl(region);
+  }
+
+  private regionUrl(region: string): string {
     const base = (process.env['WITTERIA_API_BASE'] || DEFAULT_API_BASE).replace(/\/+$/, '');
     return `${base}/api/kiosks/${region}/games/spot-difference/puzzles/v2`;
+  }
+
+  /**
+   * The fallback region's endpoint, or null when there is none to try: an
+   * explicit SPOT_DIFF_API_URL override is taken literally, a venue with no CMS
+   * content (KADA) asks for nothing, and the fallback region needs no fallback.
+   */
+  private fallbackUrl(): string | null {
+    if (process.env['SPOT_DIFF_API_URL']) return null;
+    const region = this.kiosk.region();
+    if (!region || region === FALLBACK_REGION) return null;
+    return this.regionUrl(FALLBACK_REGION);
+  }
+
+  /** One endpoint's usable rounds. Throws on a network/HTTP failure. */
+  private async fetchRounds(url: string): Promise<SpotDiffRound[]> {
+    const res = await fetch(url);
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const json = (await res.json()) as unknown;
+    const raw = extractList(json);
+    const rounds = raw
+      .map((entry, i) => normalizeRound(entry, i))
+      .filter((r): r is SpotDiffRound => r !== null);
+    if (raw.length > 0 && rounds.length === 0) {
+      // Loud on purpose: a 200 with rows we cannot read is the exact failure
+      // this normalizer exists to absorb, and it would otherwise look
+      // identical to "the CMS has no rounds yet" (silent placeholder art).
+      log.warn('Spot-diff API returned rows but none were usable — check the field names', {
+        url,
+        received: raw.length,
+      });
+    }
+    return rounds;
   }
 
   /** Cached rounds from the last successful refresh. Empty until first sync. */
@@ -120,21 +168,16 @@ export class SpotDiffService {
     const url = this.baseUrl();
     if (!url) return this.list().length;
     try {
-      const res = await fetch(url);
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      const json = (await res.json()) as unknown;
-      const raw = extractList(json);
-      const rounds = raw
-        .map((entry, i) => normalizeRound(entry, i))
-        .filter((r): r is SpotDiffRound => r !== null);
-
-      if (raw.length > 0 && rounds.length === 0) {
-        // Loud on purpose: a 200 with rows we cannot read is the exact failure
-        // this normalizer exists to absorb, and it would otherwise look
-        // identical to "the CMS has no rounds yet" (silent placeholder art).
-        log.warn('Spot-diff API returned rows but none were usable — check the field names', {
+      let rounds = await this.fetchRounds(url);
+      // This region has no puzzles of its own yet → play the fallback region's
+      // real ones rather than generated art (see FALLBACK_REGION).
+      const fallback = rounds.length === 0 ? this.fallbackUrl() : null;
+      if (fallback) {
+        rounds = await this.fetchRounds(fallback);
+        log.info('Spot-diff: no puzzles for this region, using the fallback set', {
           url,
-          received: raw.length,
+          fallback,
+          count: rounds.length,
         });
       }
 

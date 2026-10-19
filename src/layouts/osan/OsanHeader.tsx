@@ -28,6 +28,9 @@ interface OsanHeaderProps {
   subtitleRef?: Ref<HTMLDivElement>;
   /** Bold #616161 description with no ★ — the AI result frame's "AI 맞춤 추천 코스". */
   strongSubtitle?: boolean;
+  /** Dim 홈/뒤로 and stop them responding — the AR photo wait (틀린그림찾기), where
+   *  leaving would throw away a photo that is still generating. */
+  navDisabled?: boolean;
 }
 
 /**
@@ -46,6 +49,7 @@ export function OsanHeader({
   subtitleClassName,
   subtitleRef,
   strongSubtitle = false,
+  navDisabled = false,
 }: OsanHeaderProps): JSX.Element {
   const lang = useLang();
   // Some sheet title cells are authored as bullet lines ("* 언어선택") — the
@@ -84,7 +88,13 @@ export function OsanHeader({
         </div>
 
         <div ref={titleRowRef} className={styles.titleRow}>
-          <button type="button" className={styles.navBtn} onClick={onHome} aria-label="홈으로">
+          <button
+            type="button"
+            className={`${styles.navBtn} ${navDisabled ? styles.navBtnOff : ''}`}
+            onClick={navDisabled ? undefined : onHome}
+            disabled={navDisabled}
+            aria-label="홈으로"
+          >
             {osanIconUrl('home-btn') && (
               <img src={osanIconUrl('home-btn')} alt="" draggable={false} />
             )}
@@ -94,8 +104,9 @@ export function OsanHeader({
           </h1>
           <button
             type="button"
-            className={styles.navBtn}
-            onClick={onBack ?? onHome}
+            className={`${styles.navBtn} ${navDisabled ? styles.navBtnOff : ''}`}
+            onClick={navDisabled ? undefined : (onBack ?? onHome)}
+            disabled={navDisabled}
             aria-label="뒤로"
           >
             {osanIconUrl('back-arrow') && (

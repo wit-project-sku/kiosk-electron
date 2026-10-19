@@ -31,6 +31,7 @@ import { OsanScreen } from './OsanScreen';
 import { useAccessibilityStore } from '@renderer/store/accessibilityStore';
 import { useLang } from '@renderer/lib/i18n';
 import { barrierFreeTitle } from '../insadong/barrierFree';
+import styles from './OsanKiosk.module.css';
 
 /** Mode bar height (Figma 7894:57571), the shift every participating page takes. */
 const MODE_BAR = 145.759;
@@ -177,7 +178,8 @@ export function OsanKiosk(): JSX.Element {
           }}
         />
       )}
-      <div style={shiftStyle}>
+      {/* Japanese / Chinese: see OsanKiosk.module.css. */}
+      <div style={shiftStyle} className={lang === 'ja' || lang === 'zh' ? styles.cjk : undefined}>
       {foreground}
 
       {/* Pre-warmed web screens (위드마켓 · 오산시 이벤트) — collapse to 0×0 when inactive. */}

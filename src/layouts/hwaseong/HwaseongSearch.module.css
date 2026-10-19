@@ -1,52 +1,28 @@
-/* 화성휴게소 검색/결과 — exact Figma (node 4167:175236). Accent var(--kiosk-primary). */
+/*
+ * 화성휴게소 검색 결과 — Figma 7909:106538. 1 CSS px = 1 Figma px.
+ *
+ *   검색결과 7909:106541 at y700, px170, blocks 100 apart:
+ *   search pill 700…882 · list 982…3622 (cards 390 tall, 60 apart)
+ *
+ * The frame has no bottom banner: the list runs to 3622.
+ */
 .root {
   position: absolute;
   inset: 0;
   width: 2160px;
   height: 3840px;
   overflow: hidden;
-  background: #fff;
-  font-family: 'Noto Sans KR', 'Noto Sans', sans-serif;
+  font-family: 'Pretendard', var(--kiosk-font, 'Noto Sans KR', sans-serif);
 }
 
-.bg {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  pointer-events: none;
-}
-
-/* ── Results ───────────────────────────────────────── */
-.results {
-  position: absolute;
-  top: calc(699px + var(--header-push, 0px));
-  left: 0;
-  right: 0;
-  bottom: 573px;
-  box-sizing: border-box;
-  padding: 0 170px 80px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 100px;
-  overflow-y: auto;
-  overflow-x: hidden;
-  scrollbar-gutter: stable;
-}
-
-.results::-webkit-scrollbar { width: 34.32px; }
-.results::-webkit-scrollbar-thumb { background: var(--kiosk-primary); border-radius: 21.45px; }
-.results::-webkit-scrollbar-track { background: transparent; }
-
-/* Search re-entry field — centered 1350px pill */
+/* ── Search pill — 1350×182, 4.29 main 1 stroke, centred ─────────────── */
 .searchRow {
-  flex: none;
-  width: 1820px;
+  position: absolute;
+  top: calc(700px + var(--header-push, 0px));
+  left: 0;
+  width: 2160px;
   height: 182px;
   display: flex;
-  align-items: center;
   justify-content: center;
 }
 
@@ -57,14 +33,14 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
+  /* Figma's 75 side padding ignores the stroke; a CSS border does not. */
+  padding: 55px 70.71px;
   background: #fff;
-  border: 5px solid var(--kiosk-primary);
+  border: 4.29px solid #005ab4;
   border-radius: 120px;
-  padding: 55px 62px 55px 75px;
-  cursor: text;
-  overflow: hidden;
   font-family: inherit;
-  flex-shrink: 0;
+  cursor: text;
+  -webkit-tap-highlight-color: transparent;
 }
 
 .inputTextWrap {
@@ -76,74 +52,94 @@
   overflow: hidden;
 }
 
-.inputText,
-.inputPlaceholder {
+/* Noto Sans SemiBold 60.06 #999 — the frame draws the query in the same grey. */
+.inputText {
   min-width: 0;
-  font-size: 60px;
+  font-family: 'Noto Sans KR', var(--kiosk-font, sans-serif);
+  font-size: 60.06px;
   font-weight: 600;
   line-height: 1;
+  color: #999;
   white-space: nowrap;
   overflow: hidden;
+  text-overflow: ellipsis;
   text-align: left;
 }
 
-.inputText { color: #232323; }
-.inputPlaceholder { color: #999999; }
-
+/* Icon box 71×68; the stroke overflows it, so the 80×77 glyph sits at −4.5. */
 .searchIcon {
+  position: relative;
   flex: none;
+  width: 71px;
+  height: 68px;
+}
+
+.searchIconSvg {
+  position: absolute;
+  left: -4.5px;
+  top: -4.5px;
   width: 80px;
   height: 77px;
-  flex-shrink: 0;
-  color: var(--kiosk-primary);
+  color: #005ab4;
 }
 
 .caret {
   flex: none;
-  width: 6px;
-  height: 68px;
-  background: var(--kiosk-primary);
+  width: 4px;
+  height: 62px;
+  background: #005ab4;
   animation: blink 1s step-end infinite;
 }
 
 @keyframes blink { 50% { opacity: 0; } }
 
-/* Result list */
-.list {
-  flex: none;
-  width: 100%;
+/* ── Result list ─────────────────────────────────────────────────────── */
+.results {
+  position: absolute;
+  top: calc(982px + var(--header-push, 0px));
+  left: 0;
+  right: 0;
+  bottom: 218px;
+  box-sizing: border-box;
+  padding: 0 170px;
   display: flex;
   flex-direction: column;
   gap: 60px;
+  overflow-y: auto;
+  overflow-x: hidden;
 }
 
+/* Rectangle 4227 — a 34.32-wide main 1 thumb, fully rounded, at the right edge. */
+.results::-webkit-scrollbar { width: 34.32px; }
+.results::-webkit-scrollbar-thumb { background: #005ab4; border-radius: 17.16px; }
+.results::-webkit-scrollbar-track { background: transparent; }
+
+/* R>리스트-사진4개 — white 1820×390, radius 42.9, px45 py40; text column 1120
+   and the two photos (606) justified across a 299 row. */
 .card {
-  width: 100%;
-  height: 530px;
+  flex: none;
+  width: 1820px;
+  height: 390px;
   box-sizing: border-box;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 40px;
-  padding: 65px 45px;
-  background: #fff;
-  border: 5px solid #e8e8e8;
+  padding: 40px 45px;
+  border: none;
   border-radius: 42.9px;
-  box-shadow: 0 21.45px 21.45px rgba(143, 147, 157, 0.1);
+  background: #fff;
+  font-family: inherit;
   text-align: left;
   cursor: pointer;
-  overflow: hidden;
-  flex-shrink: 0;
+  -webkit-tap-highlight-color: transparent;
 }
 
 .info {
-  flex: 1;
+  width: 1120px;
   min-width: 0;
   display: flex;
   flex-direction: column;
   gap: 40px;
-  overflow: hidden;
-  font-family: var(--kiosk-font, sans-serif);
 }
 
 .nameRow {
@@ -153,6 +149,7 @@
   min-width: 0;
 }
 
+/* SemiBold 68 #2B2B2B. */
 .name {
   flex: 0 1 auto;
   min-width: 0;
@@ -163,9 +160,9 @@
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  font-variation-settings: 'CTGR' 0, 'wdth' 100;
 }
 
+/* Ø17 main 1 dot, 21.45 gap, Regular 52 #999. */
 .cat {
   flex: none;
   display: flex;
@@ -176,19 +173,18 @@
   line-height: 1;
   color: #999;
   white-space: nowrap;
-  font-variation-settings: 'CTGR' 0, 'wdth' 100;
 }
 
 .dot {
+  flex: none;
   width: 17px;
   height: 17px;
   border-radius: 50%;
-  background: var(--kiosk-primary);
-  flex-shrink: 0;
+  background: #005ab4;
 }
 
+/* Medium 48 #999. */
 .address {
-  margin: 0;
   font-weight: 500;
   font-size: 48px;
   line-height: 1;
@@ -196,59 +192,77 @@
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  font-variation-settings: 'CTGR' 0, 'wdth' 100;
 }
 
+/* Medium 48 #2B2B2B, one line in the 299 row. */
 .desc {
-  margin: 0;
+  width: 1092px;
   font-weight: 500;
   font-size: 48px;
   line-height: 1.2;
   color: #2b2b2b;
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
-  font-variation-settings: 'CTGR' 0, 'wdth' 100;
-}
-
-.tags {
-  margin: 0;
-  font-weight: 400;
-  font-size: 40px;
-  line-height: 1;
-  color: #999;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  font-variation-settings: 'CTGR' 0, 'wdth' 100;
 }
 
-.hl { color: var(--kiosk-primary); font-weight: 700; }
+/* highlightMatch wraps hits in <mark>; drop the browser's yellow fill. */
+.hl { background: none; color: #005ab4; font-weight: 700; }
 
+/* Two 288×160 photos, radius 21.45, 30 apart. */
 .photos {
-  width: 570px;
   flex: none;
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
+  width: 606px;
+  display: flex;
+  align-items: center;
   gap: 30px;
 }
 
 .thumb {
-  height: 150px;
+  flex: none;
+  width: 288px;
+  height: 160px;
   border-radius: 21.45px;
   overflow: hidden;
 }
 
 .thumb img {
+  display: block;
   width: 100%;
   height: 100%;
   object-fit: cover;
 }
 
 .empty {
-  margin: auto;
+  margin: 200px 0 0;
   font-size: 60px;
   color: #999;
   text-align: center;
 }
+
+/* ── ▲ / ▼ (7909:106641 / 106642): 85 discs at x2027, y2103 and 2223 ── */
+.scrollBtn {
+  position: absolute;
+  left: 2027px;
+  width: 85px;
+  height: 85px;
+  padding: 0;
+  border: none;
+  background: none;
+  cursor: pointer;
+  z-index: 10;
+  -webkit-tap-highlight-color: transparent;
+  transform: translateY(calc(-1 * var(--hwaseong-mode-push, 0px)));
+}
+
+.scrollBtn img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
+.scrollUp { top: 2103px; }
+.scrollUp img { transform: rotate(90deg); }
+.scrollDown { top: 2223px; }
+.scrollDown img { transform: rotate(-90deg); }

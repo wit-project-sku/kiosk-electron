@@ -1,5 +1,6 @@
-/* Canonical sub-page header (Figma Component29). Shared by every 화성휴게소
-   sub-page so position/size/gap/padding/fonts/icons are identical. */
+/* Canonical sub-page header — Figma Component 35 (화성 언어선택 7904:105950):
+   700 tall, pt 125 / pb 80 / px 170, blocks 65 apart. Shared by every
+   화성휴게소 sub-page so position/size/gap/padding/fonts/icons are identical. */
 .header {
   position: absolute;
   top: 0;
@@ -9,10 +10,10 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  /* Anchor from the top (pt 130) so the location/date row sits at the exact
-     same y as the home page header — not vertically centered. */
+  /* Anchor from the top (pt 125) so the location/date row sits at the exact
+     same y as the home page's top bar — not vertically centered. */
   justify-content: flex-start;
-  padding: 130px 170px 80px;
+  padding: 125px 170px 80px;
   gap: 65px;
   box-sizing: border-box;
   z-index: 5;
@@ -36,7 +37,7 @@
 .left {
   display: flex;
   align-items: center;
-  gap: 26px;
+  gap: 25.74px;
 }
 
 .pin {
@@ -83,6 +84,14 @@
   flex-shrink: 0;
 }
 
+/* 홈/뒤로 locked (navDisabled) — same treatment as JejuHeader's. */
+.navBtnOff {
+  opacity: 0.3;
+  pointer-events: none;
+  cursor: default;
+}
+
+
 .navBtn img,
 .navBtn svg {
   width: 100%;
@@ -114,16 +123,27 @@
   gap: 20px;
 }
 
+/* Star 4 — a 36px box at y12; the 34.238×32.562 export sits at its inset
+   (0 2.45% 9.55%). */
 .subtitleStar {
+  position: relative;
   width: 36px;
   height: 36px;
   flex-shrink: 0;
   margin-top: 12px;
 }
 
+.subtitleStarImg {
+  position: absolute;
+  left: 0.882px;
+  top: 0;
+  width: 34.238px;
+  height: 32.562px;
+}
+
 .subtitleText {
-  font-size: 60.06px;
-  font-weight: 700;
+  font-size: 60px;
+  font-weight: 400;
   color: #909090;
   line-height: 1.3;
   /* Wrap long descriptions (e.g. TAX-FREE) onto a second line instead of
@@ -137,6 +157,15 @@
 /* TAX-FREE: breathing room below SubHeader_TaxFree (up to 2 lines). */
 .subtitleBelowGap {
   margin-bottom: 40px;
+}
+
+/* TAX-FREE (7918:126976): the per-tab description sits at y578, 19 under the
+   shared row, and the card starts 26 under its 60-tall line (y664). This
+   line box is 78 (60 × 1.3), so the margin is 26 − 18. */
+.subtitleTaxfree {
+  position: relative;
+  top: 19px;
+  margin-bottom: 8px;
 }
 
 /* TAX-FREE: use the full header row width so the subtitle wraps less often. */

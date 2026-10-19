@@ -9,8 +9,8 @@ import iconAlarm from '@renderer/assets/photos/insadong/ai/icon-alarm.png';
 import { useAiStore } from '@renderer/store/aiStore';
 import { useShopStore } from '@renderer/store/shopStore';
 import { useDetailStore } from '@renderer/store/detailStore';
-import { getKioskLocation } from '@shared/config/kioskLocations';
 import { pick as pickLang, useLang } from '@renderer/lib/i18n';
+import { kioskPlaceName } from '@renderer/lib/kioskName';
 import type { Lang } from '@renderer/lib/i18n';
 import { sheetText } from '@renderer/lib/loc';
 import { buildAiCourseSaveUrlForQr } from '@renderer/lib/aiCourseSave';
@@ -440,7 +440,7 @@ export function InsadongAiCourseResult({ controller }: Props): JSX.Element {
         <div className={styles.inner}>
           {/* 7681:59356 — "출발 지점 > …": the course starts at this kiosk. */}
           <div className={styles.origin}>
-            {line('Insa_Todo_result_Start', TEXT.start)} &gt; {getKioskLocation(kioskId).name}
+            {line('Insa_Todo_result_Start', TEXT.start)} &gt; {kioskPlaceName(kioskId, lang)}
           </div>
 
           {stops.length === 0 ? (

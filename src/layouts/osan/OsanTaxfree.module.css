@@ -34,20 +34,23 @@
   background: #ffffff;
 }
 
+/* The refund site is laid out for a 1820×2250 viewport — the card itself. In
+   the old 1475-wide inset it overflowed and showed shifted right and clipped,
+   so it now fills the card; a card shortened by a long description scales it
+   down (--embed-scale, set inline) rather than cutting it. Same as 화성. */
 .embedFrame {
   position: absolute;
-  left: 194.43px;
-  top: 114.77px;
-  width: 1475.15px;
-  height: 2122px;
+  inset: 0;
   overflow: hidden;
 }
 
 .embed {
   display: inline-flex;
-  width: 100%;
-  height: 100%;
+  width: 1820px;
+  height: 2250px;
   border: none;
+  transform: scale(var(--embed-scale, 1));
+  transform-origin: top center;
 }
 
 /* ======================================================

@@ -3,7 +3,7 @@ import type { SupportedLanguage } from '@shared/types/kiosk';
 import type { KioskController } from '@renderer/hooks/useKioskController';
 import { useLanguageStore } from '@renderer/store/languageStore';
 import { osanIconUrl } from '@renderer/assets/icons/osan';
-import { t } from '@renderer/lib/loc';
+import { sheetText } from '@renderer/lib/loc';
 import transitMap from '@renderer/assets/photos/osan/transport/transit-map.png';
 import marketMap from '@renderer/assets/photos/osan/transport/market-map.png';
 import streetRed from '@renderer/assets/photos/osan/transport/street-red.png';
@@ -69,7 +69,7 @@ const BUS_ROWS: Badge[] = [
 const CONTENT: Partial<Record<Lang, TransportContent>> = {
   ko: {
     title: '교통안내',
-    tabs: ['대중교통', '오색시장지도', '빨강길', '녹색길', '미소거리', '아름거리', '맘스거리', '기타'],
+    tabs: ['대중교통', '오색시장지도', '빨강길', '녹색길', '미소거리', '아름거리', '맘스거리'],
     comingSoon: '준비 중입니다',
     transit: {
       heading: '지하철/버스',
@@ -96,7 +96,7 @@ const CONTENT: Partial<Record<Lang, TransportContent>> = {
   },
   en: {
     title: 'Directions',
-    tabs: ['Public Transit', 'Market Map', 'Red St.', 'Green St.', 'Smile St.', 'Areum St.', "Mom's St.", 'Other'],
+    tabs: ['Public Transit', 'Market Map', 'Red St.', 'Green St.', 'Smile St.', 'Areum St.', "Mom's St."],
     comingSoon: 'Coming soon',
     transit: {
       heading: 'Subway / Bus',
@@ -123,7 +123,7 @@ const CONTENT: Partial<Record<Lang, TransportContent>> = {
   },
   ja: {
     title: '交通案内',
-    tabs: ['公共交通', '五色市場地図', 'レッドロード', 'グリーンロード', 'スマイル通り', 'アルム通り', 'マムズ通り', 'その他'],
+    tabs: ['公共交通', '五色市場地図', 'レッドロード', 'グリーンロード', 'スマイル通り', 'アルム通り', 'マムズ通り'],
     comingSoon: '準備中です',
     transit: {
       heading: '地下鉄/バス',
@@ -150,7 +150,7 @@ const CONTENT: Partial<Record<Lang, TransportContent>> = {
   },
   zh: {
     title: '交通指南',
-    tabs: ['公共交通', '五色市场地图', '红色路', '绿色路', '微笑街', '美丽街', '妈妈街', '其他'],
+    tabs: ['公共交通', '五色市场地图', '红色路', '绿色路', '微笑街', '美丽街', '妈妈街'],
     comingSoon: '准备中',
     transit: {
       heading: '地铁/巴士',
@@ -177,7 +177,7 @@ const CONTENT: Partial<Record<Lang, TransportContent>> = {
   },
   vi: {
     title: 'Hướng dẫn giao thông',
-    tabs: ['Giao thông công cộng', 'Bản đồ chợ Osaek', 'Đường Đỏ', 'Đường Xanh', 'Phố Smile', 'Phố Areum', "Phố Mom's", 'Khác'],
+    tabs: ['Giao thông công cộng', 'Bản đồ chợ Osaek', 'Đường Đỏ', 'Đường Xanh', 'Phố Smile', 'Phố Areum', "Phố Mom's"],
     comingSoon: 'Đang chuẩn bị',
     transit: {
       heading: 'Tàu điện ngầm / Xe buýt',
@@ -204,7 +204,7 @@ const CONTENT: Partial<Record<Lang, TransportContent>> = {
   },
   th: {
     title: 'แนะนำการเดินทาง',
-    tabs: ['ขนส่งสาธารณะ', 'แผนที่ตลาดโอแซก', 'เส้นทางแดง', 'เส้นทางเขียว', 'ถนนสไมล์', 'ถนนอารึม', 'ถนนมัม', 'อื่นๆ'],
+    tabs: ['ขนส่งสาธารณะ', 'แผนที่ตลาดโอแซก', 'เส้นทางแดง', 'เส้นทางเขียว', 'ถนนสไมล์', 'ถนนอารึม', 'ถนนมัม'],
     comingSoon: 'กำลังเตรียมการ',
     transit: {
       heading: 'รถไฟใต้ดิน / รถบัส',
@@ -231,7 +231,7 @@ const CONTENT: Partial<Record<Lang, TransportContent>> = {
   },
   ru: {
     title: 'Транспорт',
-    tabs: ['Общественный транспорт', 'Карта рынка Осэк', 'Красный маршрут', 'Зелёный маршрут', 'Улица Smile', 'Улица Areum', 'Улица Mom’s', 'Другое'],
+    tabs: ['Общественный транспорт', 'Карта рынка Осэк', 'Красный маршрут', 'Зелёный маршрут', 'Улица Smile', 'Улица Areum', 'Улица Mom’s'],
     comingSoon: 'В процессе подготовки',
     transit: {
       heading: 'Метро / Автобус',
@@ -258,7 +258,7 @@ const CONTENT: Partial<Record<Lang, TransportContent>> = {
   },
   id: {
     title: 'Petunjuk Transportasi',
-    tabs: ['Transportasi Umum', 'Peta Pasar Osaek', 'Jalur Merah', 'Jalur Hijau', 'Jalan Smile', 'Jalan Areum', "Jalan Mom's", 'Lainnya'],
+    tabs: ['Transportasi Umum', 'Peta Pasar Osaek', 'Jalur Merah', 'Jalur Hijau', 'Jalan Smile', 'Jalan Areum', "Jalan Mom's"],
     comingSoon: 'Sedang dipersiapkan',
     transit: {
       heading: 'Kereta Bawah Tanah / Bus',
@@ -360,7 +360,7 @@ export function OsanTransport({ controller, initialTab = 0 }: OsanTransportProps
   const row1 = c.tabs.slice(0, 5);
   const row2 = c.tabs.slice(5);
 
-  useFitText(tabsRef, styles.tab, wide, 0.72, lang);
+  useFitText(tabsRef, styles.tabLabel, wide, 0.72, lang, 'ink', 0.5);
 
   /*
    * ♿ (교통안내 7894:54695 오색시장 지도, 7894:54761 빨강길): the page keeps
@@ -376,11 +376,14 @@ export function OsanTransport({ controller, initialTab = 0 }: OsanTransportProps
      7894:54695, 빨강길 7894:54761, 녹색길 7894:54826, 미소거리 7894:54891, 아름거리
      7894:54956, 맘스거리 7894:55020). 기타 has no frame and takes the map's. */
   const lowCardTop = LOW_CARD_TOP[tab] ?? LOW_CARD_TOP[1]!;
-  const header = <OsanHeader title={c.title} subtitle={t('SubHeader_Transport', lang)} onHome={goHome} />;
+  const header = <OsanHeader title={c.title} subtitle={sheetText('Transport_Subtitle', lang) || sheetText('SubHeader_Transport', lang) || undefined} onHome={goHome} />;
 
   return (
     <div
-      className={low ? `${styles.low} ${tab === 0 ? styles.lowTransit : ''}` : undefined}
+      className={
+        [low && styles.low, low && tab === 0 && styles.lowTransit, wide && styles.long].filter(Boolean).join(' ') ||
+        undefined
+      }
       style={{ display: 'contents', ['--low-card-top' as string]: `${lowCardTop}px` }}
     >
       {osanIconUrl('page-bg') && <img className={styles.bg} src={osanIconUrl('page-bg')} alt="" draggable={false} />}
@@ -398,7 +401,7 @@ export function OsanTransport({ controller, initialTab = 0 }: OsanTransportProps
                 className={`${styles.tab} ${wide ? styles.tabLong : ''} ${tab === i ? styles.tabSelected : ''}`}
                 onClick={() => setTab(i)}
               >
-                {label}
+                <span className={styles.tabLabel}>{label}</span>
               </button>
             ))}
           </div>
@@ -410,7 +413,7 @@ export function OsanTransport({ controller, initialTab = 0 }: OsanTransportProps
                 className={`${styles.tab} ${wide ? styles.tabLong : ''} ${tab === i + 5 ? styles.tabSelected : ''}`}
                 onClick={() => setTab(i + 5)}
               >
-                {label}
+                <span className={styles.tabLabel}>{label}</span>
               </button>
             ))}
           </div>
@@ -512,7 +515,8 @@ export function OsanTransport({ controller, initialTab = 0 }: OsanTransportProps
             </div>
           </div>
         ) : (
-          /* ── 기타 (Other) — not ready yet (placeholder image + 준비중) ── */
+          /* ── Fallback for a tab with no content (placeholder image + 준비중).
+                 The 기타 tab that used to land here was removed (2026-10-16). ── */
           <div className={`${styles.card} ${styles.cardEmpty}`}>
             {osanIconUrl('coming-soon') && (
               <img className={styles.comingSoonImg} src={osanIconUrl('coming-soon')} alt="" draggable={false} />

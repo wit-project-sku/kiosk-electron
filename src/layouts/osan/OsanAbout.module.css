@@ -305,6 +305,29 @@
   display: block;
 }
 
+/* Each thumbnail is a tap target that puts its picture in the big slot. The
+   picked one carries a main-01 ring, drawn inside so the column keeps its 175
+   width. */
+.thumbBtn {
+  position: relative;
+  display: block;
+  padding: 0;
+  border: none;
+  border-radius: 20px;
+  background: none;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.thumbBtnSel::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border: 6px solid #1a4d7e;
+  border-radius: 20px;
+  pointer-events: none;
+}
+
 .hero {
   flex: none;
   width: 885px;
@@ -386,6 +409,42 @@
   color: #999999;
   text-align: center;
   word-break: keep-all;
+}
+
+/* Other languages: the strip is drawn around Korean years (1914, 2013) and
+   two-line notes. "Joseon Dynasty" did not fit its ~254 column on one line,
+   and a four-line note ran out of the fixed 373 strip — both touched or crossed
+   the box edges. Here the rows sit inside 28px of side padding, a year may
+   wrap, the type is a step smaller, and the strip grows to fit its notes. */
+.timelineLong {
+  height: auto;
+  min-height: 373px;
+  padding: 28px 28px 32px;
+}
+
+.timelineLong .timelineRow {
+  margin: 0;
+  gap: 20px;
+}
+
+.timelineLong .stepYear {
+  font-size: 34px;
+  line-height: 1.2;
+  white-space: normal;
+  word-break: keep-all;
+  overflow-wrap: break-word;
+}
+
+.timelineLong .steps {
+  height: auto;
+  min-height: 261px;
+  align-items: flex-start;
+}
+
+.timelineLong .stepDesc {
+  font-size: 29px;
+  line-height: 1.25;
+  overflow-wrap: break-word;
 }
 
 /* 7871:14897 — 90 under the 315 history block (the strip overhangs it by 30). */
@@ -477,22 +536,6 @@
   line-height: 1.3;
   color: #333333;
   word-break: keep-all;
-}
-
-/* 7867:159948 — centred on x1079, y3060 (panel 2079), Light 32 #AAA. */
-.cultureNote {
-  position: absolute;
-  left: 50%;
-  top: 2079px;
-  width: 1432px;
-  margin: 0;
-  transform: translateX(-50%);
-  font-family: 'Pretendard', var(--kiosk-font, sans-serif);
-  font-size: 32px;
-  font-weight: 300;
-  line-height: 1.3;
-  color: #aaaaaa;
-  text-align: center;
 }
 
 /* The empty grid + its way back out of a narrowed map. */

@@ -122,7 +122,7 @@ export function OsanSearch({ controller }: OsanSearchProps): JSX.Element {
 
       <OsanHeader title="검색" onHome={goHome} />
 
-      <div className={styles.results}>
+      <div className={`${styles.results} ${lang !== 'ko' ? styles.long : ''}`}>
         <div className={styles.searchRow}>
           <button type="button" className={styles.searchInput} onClick={() => setFocused(true)}>
             <span className={styles.inputTextWrap}>

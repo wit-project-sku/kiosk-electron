@@ -7,9 +7,12 @@ const log = createLogger('localization-sync-parser');
  * Column index of each language in the Localization tab. The first six columns
  * are shared (0 Num, 1 Key, 2 Korean, 3 English, 4 Japanese, 5 Chinese) but the
  * four newer languages sit in a DIFFERENT order per location's sheet, so the
- * column set is keyed by layout:
+ * column set is keyed by layout. The tab's own header row is read first
+ * (headerLangCols); this table is the fallback when it names no language:
  *   Localization_Insa      → 6 Vietnamese, 7 Thai,       8 Russian, 9 Indonesian
- *   Localization_Osaek     → 6 Vietnamese, 7 Indonesian, 8 Thai,    9 Russian
+ *   Localization_Osaek     → 6 Vietnamese, 7 Thai,       8 Russian, 9 Indonesian
+ *                            (rebuilt in the INSA order 2026-10-15; it used to be
+ *                            vi, id, th, ru like 화성)
  *   Localization_Hwaseong  → 6 Vietnamese, 7 Indonesian, 8 Thai,    9 Russian
  *   Localization_Jeju_v2   → 6 Vietnamese, 7 Thai,       8 Russian, 9 Indonesian
  *                            (VERIFIED 2026-08-13 against the sheet's header row:
@@ -32,7 +35,7 @@ const INSA_NEW: Array<{ lang: SupportedLanguage; index: number }> = [
   { lang: 'id', index: 9 },
 ];
 
-const OSAEK_HWASEONG_NEW: Array<{ lang: SupportedLanguage; index: number }> = [
+const HWASEONG_NEW: Array<{ lang: SupportedLanguage; index: number }> = [
   { lang: 'vi', index: 6 },
   { lang: 'id', index: 7 },
   { lang: 'th', index: 8 },
@@ -42,8 +45,8 @@ const OSAEK_HWASEONG_NEW: Array<{ lang: SupportedLanguage; index: number }> = [
 const NEW_LANG_COLS: Record<KioskLayoutId, Array<{ lang: SupportedLanguage; index: number }>> = {
   INSADONG: INSA_NEW,
   NAM_INSADONG: INSA_NEW,
-  OSAN: OSAEK_HWASEONG_NEW,
-  HWASEONG: OSAEK_HWASEONG_NEW,
+  OSAN: INSA_NEW,
+  HWASEONG: HWASEONG_NEW,
   JEJU_AIRPORT: INSA_NEW,
   JEJU_HERITAGE: INSA_NEW, // same Localization_Jeju_v2 tab, same column order
   // KADA W202 has no Localization tab at all (see CONTENT_SHEETS), so there are
@@ -198,6 +201,40 @@ function pickVenueRows(rows: string[][], mascots: { ours: RegExp; other: RegExp 
 
 export type LocalizationByLang = Partial<Record<SupportedLanguage, Record<string, string>>>;
 
+/** Header text → language, for the four columns whose order varies by sheet. */
+const HEADER_LANGS: Array<{ lang: SupportedLanguage; pattern: RegExp }> = [
+  { lang: 'vi', pattern: /^vietnam(ese)?$|^베트남어?$/i },
+  { lang: 'th', pattern: /^thai$|^태국어?$/i },
+  { lang: 'ru', pattern: /^russian$|^러시아어?$/i },
+  { lang: 'id', pattern: /^indonesian?$|^인도네시아어?$/i },
+];
+
+/**
+ * vi/th/ru/id column indexes read from the tab's own header row (the row whose
+ * Key cell reads "Key"), or null when there is no such row or it names none of
+ * them — then the per-layout NEW_LANG_COLS table applies.
+ *
+ * The header wins because the order is not stable: on 2026-10-15
+ * Localization_Osaek was rebuilt in the INSA order (vi, th, ru, id) while
+ * NEW_LANG_COLS still said vi, id, th, ru — every cell populated, so the kiosk
+ * would have shown Thai to Indonesian visitors, Russian to Thai and Indonesian
+ * to Russian, with nothing reporting it. Mirrored in scripts/sync-sheet.mjs.
+ */
+function headerLangCols(rows: string[][]): Array<{ lang: SupportedLanguage; index: number }> | null {
+  const header = rows.find((row) => (row[1] ?? '').trim() === 'Key');
+  if (!header) return null;
+  const found: Array<{ lang: SupportedLanguage; index: number }> = [];
+  for (const { lang, pattern } of HEADER_LANGS) {
+    const index = header.findIndex((cell, i) => i > 5 && pattern.test((cell ?? '').trim()));
+    if (index >= 0) found.push({ lang, index });
+  }
+  if (found.length === 0) return null;
+  log.info('Localization language columns read from the header row', {
+    columns: Object.fromEntries(found.map(({ lang, index }) => [lang, index])),
+  });
+  return found;
+}
+
 /**
  * Parses a Localization tab into per-language `{ key: text }` maps. Header /
  * blank-key rows are skipped; empty cells are omitted (the renderer falls back
@@ -205,7 +242,7 @@ export type LocalizationByLang = Partial<Record<SupportedLanguage, Record<string
  * on the kiosk layout — see NEW_LANG_COLS.
  */
 export function parseLocalizationSheet(rows: string[][], layout: KioskLayoutId): LocalizationByLang {
-  const cols = [...SHARED_COLS, ...NEW_LANG_COLS[layout]];
+  const cols = [...SHARED_COLS, ...(headerLangCols(rows) ?? NEW_LANG_COLS[layout])];
   const result: LocalizationByLang = {};
   for (const { lang } of cols) result[lang] = {};
 

@@ -110,6 +110,12 @@ export function registerKioskHandlers(windows: WindowManager, container: AppCont
       container.backgrounds.refresh(),
       container.flights.refreshIfJeju(),
       container.sailings.refreshIfTerminal(),
+      // 틀린그림찾기 puzzles are cached per kiosk; the new one needs its own set.
+      container.spotDiff.refresh(),
+      // The new location's Localization sheet — its sync also drops the old
+      // location's strings (clearStaleTranslations), so the reloaded screens
+      // read the right venue's copy instead of the previous one's.
+      container.sync.syncContentNow(),
     ]);
     windows.reloadAll();
     windows.broadcast(IpcEvents.ShopsChanged, null);

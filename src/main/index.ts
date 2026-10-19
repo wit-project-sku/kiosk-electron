@@ -374,6 +374,45 @@ app.on('before-quit', () => {
   database.close();
 });
 
+/**
+ * Out of memory is not survivable. Logging and carrying on (as for any other
+ * uncaught error) left W001 limping — every photo failing, or the window gone —
+ * until a person or the 02:00 reboot noticed. Restart once, cleanly.
+ */
+let oomRelaunching = false;
+function relaunchAfterOutOfMemory(error: unknown): void {
+  if (oomRelaunching) return;
+  oomRelaunching = true;
+  log.error('Main process out of memory — relaunching', {
+    error: error instanceof Error ? error.message : String(error),
+    memory: process.memoryUsage(),
+  });
+  app.releaseSingleInstanceLock();
+  app.relaunch({ execPath: process.execPath, args: process.argv.slice(1) });
+  app.quit();
+  setTimeout(() => app.exit(0), 3000).unref();
+}
+
+function isOutOfMemory(error: unknown): boolean {
+  return (
+    error instanceof RangeError &&
+    /Array buffer allocation failed|allocation failed/i.test(error.message)
+  );
+}
+
+// Memory over the day, so the next leak shows up as a trend in the log
+// instead of as a crash at night.
+setInterval(() => {
+  const { rss, heapUsed, external, arrayBuffers } = process.memoryUsage();
+  const mb = (n: number): number => Math.round(n / 1048576);
+  log.info('Memory', {
+    rssMb: mb(rss),
+    heapMb: mb(heapUsed),
+    externalMb: mb(external),
+    arrayBuffersMb: mb(arrayBuffers),
+  });
+}, 15 * 60_000).unref();
+
 // Last-resort safety nets; electron-log also captures these.
 process.on('uncaughtException', (error) => {
   log.error('Uncaught exception', error);
@@ -382,6 +421,7 @@ process.on('uncaughtException', (error) => {
   } catch {
     // Container may not exist yet; the log line above is all we can do.
   }
+  if (isOutOfMemory(error)) relaunchAfterOutOfMemory(error);
 });
 
 // Windows logs off / shuts down (the scheduled reboot): a normal end of a run, even
@@ -400,4 +440,5 @@ function markHealthCleanExit(): void {
 }
 process.on('unhandledRejection', (reason) => {
   log.error('Unhandled rejection', reason);
+  if (isOutOfMemory(reason)) relaunchAfterOutOfMemory(reason);
 });

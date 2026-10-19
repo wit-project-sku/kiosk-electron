@@ -8,25 +8,6 @@
   pointer-events: none;
 }
 
-/* Hwaseong: white base beneath the semi-transparent bg image */
-.bgBase {
-  position: absolute;
-  inset: 0;
-  background: #fff;
-  pointer-events: none;
-}
-
-/* Hwaseong variant: bg image at 50% opacity like all other hwaseong pages */
-.bgHw {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  opacity: 0.5;
-  pointer-events: none;
-}
-
 .content {
   position: absolute;
   top: 594px;
@@ -569,29 +550,6 @@
   z-index: 5;
 }
 
-/* Hwaseong 한복 설명 bar — single curved-bar image + centre camera hit-area. */
-.hwInfoNavImg {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  object-fit: fill;
-  pointer-events: none;
-}
-
-.hwInfoNavCam {
-  position: absolute;
-  left: 903px;
-  top: 39px;
-  width: 356px;
-  height: 356px;
-  padding: 0;
-  border: none;
-  background: none;
-  cursor: pointer;
-  -webkit-tap-highlight-color: transparent;
-}
-
 .infoNavBg {
   position: absolute;
   top: -51px;
@@ -957,13 +915,25 @@
 }
 
 /* ── Osan (Figma 7878:42863 picker, 7878:43037 privacy, 7878:43050 한복 설명) ──
- * Only the OSAN kiosk gets these: the picker root (`.osanRoot`) and the privacy
- * overlay (`.osanOverlay`) carry the class, so every rule here is scoped to it.
+ * The OSAN and HWASEONG kiosks get these: the picker root (`.osanRoot`) and the
+ * privacy overlay (`.osanOverlay`) carry the class, so every rule here is scoped
+ * to it. 화성 takes the same layout in its own colours (`.hwTheme`, below).
  * Positions are artboard px: the content starts at y594 under the compact header.
  */
+
+/* 화성휴게소: Osan's picker, recoloured — main 1 #005ab4 for Osan's navy, and
+   the light blue 화성 uses for its info boxes (#daecfe) for Osan's tint. */
+.hwTheme {
+  --osan-accent: #005ab4;
+  --osan-tint: #daecfe;
+}
+
+/* The header now carries the page description (the 의상 선택하기 copy), so the
+   content starts under the full header like every other sub-page: y699, moved
+   down by any extra description lines (--header-push, components/headerPush). */
 .osanRoot.content {
   position: absolute;
-  top: 594px;
+  top: calc(699px + var(--header-push, 0px));
   left: 170px;
   width: 1820px;
   height: auto;
@@ -975,11 +945,12 @@
   gap: 0;
 }
 
-/* Step 1 heading: navy 105px number, Noto Sans Bold 68 title, ★ 47 grey line. */
+/* Step 1 heading: navy 105px number + Noto Sans Bold 68 title, then the same 45
+   down to the tabs (the ★ line moved into the header). */
 .osanRoot .stepHead {
   flex: none;
   width: 1820px;
-  height: 237px;
+  height: 150px;
   display: flex;
   flex-direction: column;
   justify-content: flex-start;
@@ -997,7 +968,7 @@
   height: 105px;
   flex: none;
   border-radius: 50%;
-  background: #1a4d7e;
+  background: var(--osan-accent, #1a4d7e);
   color: #ffffff;
   display: flex;
   align-items: center;
@@ -1059,7 +1030,7 @@
 }
 
 .osanRoot .tabSel {
-  background: #1a4d7e;
+  background: var(--osan-accent, #1a4d7e);
   color: #ffffff;
   font-weight: 700;
 }
@@ -1092,11 +1063,11 @@
   font-family: 'Pretendard', var(--kiosk-font, sans-serif);
   font-weight: 500;
   font-size: 50px;
-  color: #1a4d7e;
+  color: var(--osan-accent, #1a4d7e);
 }
 
 .osanRoot .subcatSel {
-  background: #d3dfec;
+  background: var(--osan-tint, #d3dfec);
   font-weight: 700;
 }
 
@@ -1109,6 +1080,18 @@
   font-size: 50px;
   color: #999999;
   white-space: nowrap;
+}
+
+/* Other languages: the Korean note fits one 50px line beside the chips, a
+   translation ran past the ← → pair. It wraps to two lines inside the 120
+   band instead (2 × 42 × 1.2 = 101). */
+.osanNoteLong {
+  font-size: 42px;
+  line-height: 1.2;
+  white-space: normal;
+  word-break: keep-all;
+  overflow-wrap: normal;
+  text-wrap: balance;
 }
 
 /* Outfit grid: 2 rows × 5, each card 350 with a 면세혜택 caption (rows 391 apart). */
@@ -1142,8 +1125,8 @@
 }
 
 .osanRoot .outfitSel {
-  background: #d3dfec;
-  border-color: #1a4d7e;
+  background: var(--osan-tint, #d3dfec);
+  border-color: var(--osan-accent, #1a4d7e);
 }
 
 .osanRoot .outfit img {
@@ -1193,6 +1176,45 @@
   white-space: nowrap;
 }
 
+/* Other languages (Osan): "Buổi chụp ảnh (cùng với 'Jeong-i')" and
+   "Повседневное" are wider than the 815 button / the category tab at the
+   Korean size. The label wraps inside the button at a step smaller, and a tab
+   label wraps and shrinks to the tab instead of running past its edge. */
+.osanLong .captureBtn,
+.osanLong .captureBtnPrimary {
+  /* "Фотографирование (самостоятельная фотосъемка)" needs three lines. */
+  height: auto;
+  min-height: 150px;
+  padding: 16px 40px;
+  font-size: 46px;
+  line-height: 1.1;
+  white-space: normal;
+  text-align: center;
+}
+
+.osanLong .captureIcon {
+  flex: none;
+}
+
+/* The label under the 235 한복 설명 circle: "пояснение к ханбоку" is 337
+   wide at 47px. It wraps under the circle a step smaller instead. */
+.osanRoot.osanLong .hanbokInfoLabel {
+  /* Doubled class: the plain .osanRoot rules for this label come later. */
+  max-width: 232px;
+  font-size: 38px;
+  line-height: 1.1;
+  text-align: center;
+  white-space: normal;
+}
+
+.osanLong .tab {
+  padding: 0 12px;
+  font-size: 44px;
+  line-height: 1.1;
+  text-align: center;
+  white-space: normal;
+}
+
 .osanRoot .captureIcon {
   width: 68px;
   height: 68px;
@@ -1225,13 +1247,13 @@
 }
 
 .osanRoot .step2 .stepTitle {
-  color: #1a4d7e;
+  color: var(--osan-accent, #1a4d7e);
 }
 
 .osanRoot .step2 .stepTitle::before {
   content: '•';
   margin-right: 20px;
-  color: #1a4d7e;
+  color: var(--osan-accent, #1a4d7e);
 }
 
 .osanRoot .step2Sub {
@@ -1270,7 +1292,7 @@
   width: 235px;
   height: 235px;
   border-radius: 50%;
-  background: #d3dfec;
+  background: var(--osan-tint, #d3dfec);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -1327,8 +1349,8 @@
 }
 
 .osanRoot .infoThumbSel .osanCard {
-  background: #d3dfec;
-  border-color: #1a4d7e;
+  background: var(--osan-tint, #d3dfec);
+  border-color: var(--osan-accent, #1a4d7e);
 }
 
 .osanCard {
@@ -1490,8 +1512,6 @@
  * 여자/남자 row +35, grid +45, capture row +40 — putting the capture buttons at
  * 3566. Frame y values are written `y − --osan-mode-push`. */
 .bg,
-.bgBase,
-.bgHw,
 .leftNav,
 .banner {
   transform: translateY(calc(-1 * var(--osan-mode-push, 0px)));
@@ -1602,11 +1622,58 @@
 .osanRoot .hanbokInfoCircle {
   width: 232px;
   height: 232px;
-  background: #76b6fe;
+  background: var(--osan-info-circle, #76b6fe);
 }
 
 .osanRoot .hanbokInfoLabel {
   margin-top: 18px;
   line-height: 1;
   white-space: nowrap;
+}
+
+/* ── 사진촬영안내 card in the other languages (오산 / 화성) ──────────────────
+ * The card above places its title, ★ lines and [개인정보…] at the frame's
+ * absolute offsets, sized for Korean's three short lines. A translation wraps
+ * each line in two (Russian: six lines) and ran straight over the privacy link
+ * at 397. Here the three stack in flow instead — title, lines, link — the card
+ * grows to fit (it ends well above the promo at 3267), and the lines are a step
+ * smaller. The 한복 설명 circle keeps its place on the right, with the copy
+ * column stopping short of it. */
+.osanRoot.osanLong .step2 {
+  height: auto;
+  min-height: 500px;
+  box-sizing: border-box;
+  padding: 47px 320px 44px 81px;
+}
+
+.osanRoot.osanLong .step2Main {
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+}
+
+.osanRoot.osanLong .step2Main .stepRow,
+.osanRoot.osanLong .step2Sub,
+.osanRoot.osanLong .step2 .privacy {
+  position: static;
+}
+
+.osanRoot.osanLong .step2Sub {
+  width: auto;
+}
+
+.osanRoot.osanLong .step2Sub .star {
+  font-size: 34px;
+  line-height: 48px;
+}
+
+.osanRoot.osanLong .step2Lines {
+  font-size: 40px;
+  line-height: 1.2;
+  gap: 6px;
+}
+
+.osanRoot.osanLong .step2 .privacy {
+  font-size: 40px;
+  line-height: 1.2;
 }

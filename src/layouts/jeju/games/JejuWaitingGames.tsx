@@ -50,6 +50,7 @@ import { useMotionGameState } from './motion/useMotionGameState';
 import { MotionRemote } from './motion/components/MotionRemote';
 import { PhotoReadyPrompt } from './components/PhotoReadyPrompt';
 import { PhotoReadyModal } from './components/PhotoReadyModal';
+import { usePhotoChrome } from '../../photo/photoChrome';
 
 /**
  * Hard ceiling on the 홈/뒤로 lock — rule 4 above.
@@ -94,7 +95,14 @@ interface Props {
 }
 
 export function JejuWaitingGames({ rounds, aiReady, onFinish, onHome, readyModal = false }: Props): JSX.Element {
-  const [view, setView] = useState<JejuGameView>('hub');
+  /* Without the camera games (everywhere but 제주) the menu would list
+     틀린그림찾기 alone — a page whose only job is one tap. Those venues open the
+     game straight away, standalone: no menu to go back to, so its home/back
+     are the kiosk's (locked until the photo is ready) and it offers 다시 하기
+     while the photo generates, exactly as it does outside the hub. */
+  const { motionGames } = usePhotoChrome();
+  const singleGame = !motionGames;
+  const [view, setView] = useState<JejuGameView>(singleGame ? 'spotdiff' : 'hub');
   const kioskId = useKioskStore((s) => s.config.kioskId);
   const award = useJejuPointsStore((s) => s.award);
   const resetPoints = useJejuPointsStore((s) => s.reset);
@@ -307,12 +315,12 @@ export function JejuWaitingGames({ rounds, aiReady, onFinish, onHome, readyModal
         <JejuSpotDiffGame
           rounds={rounds}
           aiReady={aiReady}
-          onFinish={finishFromSpotDiff}
+          onFinish={singleGame ? handOver : finishFromSpotDiff}
           onHome={onHome}
           // Presence of this prop is what tells 틀린그림찾기 it is hosted: its
           // header stops being the destructive kiosk home and becomes "back to
           // the menu", so its own nav lock no longer applies.
-          onExit={backToHub}
+          onExit={singleGame ? undefined : backToHub}
           onAward={awardSpotDiff}
         />
       )}

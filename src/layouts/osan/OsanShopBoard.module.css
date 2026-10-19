@@ -123,6 +123,22 @@
   font-size: 38px;
 }
 
+/* The translated name / category / address cut off with "…" after a few
+   letters ("Модные …"). Under the rule the board has ~110px; two 34px lines
+   (75) fit there, so those three columns wrap to two lines instead — the
+   one-word status stays on its line. */
+.boardWide .value:is(.colName, .colCategory, .colLocation) {
+  top: 112px;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  font-size: 34px;
+  line-height: 1.1;
+  white-space: normal;
+  word-break: keep-all;
+  overflow-wrap: anywhere;
+}
+
 /*
  * 상점 정보 더보기 — the triangle box (81×51, rotated 180°) then the text, as one
  * group centred on x1080.5 (Figma 910…1251). The text box is 260 wide in the
@@ -205,6 +221,13 @@
 .boardLow .colCategory { left: 712px;  width: 200px; }
 .boardLow .colLocation { left: 946px;  width: 680px; }
 .boardLow .colStatus   { left: 1638px; width: 200px; }
+
+/* Other languages: the 위치 column (centre 946, 680 wide → 606–1286) lies
+   across 카테고리 (612–812). A one-line Korean address is short and centred,
+   so it never reached that far; a translated one wrapped over two lines fills
+   the width and ran over the category. Centre it in the free band between
+   카테고리 and 현황 instead (830–1530). */
+.boardLow.boardWide .colLocation { left: 1180px; width: 680px; }
 
 /* 더보기 is a sibling of the board, so it takes its own barrier top (Figma y1766). */
 .moreLow {

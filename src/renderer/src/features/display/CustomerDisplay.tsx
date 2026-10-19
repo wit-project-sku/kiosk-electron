@@ -9,6 +9,7 @@ import { useHandGesture } from '@renderer/hooks/useHandGesture';
 import { usePhotoWorkflow } from '@renderer/hooks/usePhotoWorkflow';
 import { usePhotoStore } from '@renderer/store/photoStore';
 import { trackEvent } from '@renderer/lib/analytics';
+import { ui } from '@renderer/lib/uiText';
 import { displayVideosFor } from '@renderer/assets/videos';
 import { cameraIconUrl } from '@renderer/assets/icons/insadong/camera';
 import { allScreenEntryUrls, clipsForPlayKey, clipsForScreen, heldStateCaption, initSubtitles, initVideoFiles, normalizeClipIndexKeys, siblingClipUrls } from '@renderer/lib/videoMap';
@@ -455,23 +456,31 @@ export function CustomerDisplay(): JSX.Element {
           capture button (see PhotoWorkflow.handleCapture), so the gesture
           branches above stay inert here ('off'). */}
       {(state.mode === 'camera' || state.mode === 'countdown') && !gestureScreen && (
-        <div className={styles.cameraScreen}>
+        <div className={`${styles.cameraScreen} ${lang !== 'ko' ? styles.cameraScreenLong : ''}`}>
           {/* Top: title + numbered tips. Left '10' is static info; the badge on
               the right is the LIVE countdown. */}
           <div className={styles.camText}>
             <div className={styles.camTitleRow}>
+              {/* In the visitor's language (Monitor 2 follows the touch screen's).
+                  The '10' keeps its own colour, so the title is split around it. */}
               <p className={styles.camTitle}>
+                {ui('camTitleBefore', lang) && <span className={styles.camTitleRest}>{ui('camTitleBefore', lang)}</span>}
                 <span className={styles.camCount}>&apos;{PHOTO_COUNTDOWN_SECONDS}&apos;</span>
-                <span className={styles.camTitleRest}> 초후에 촬영이 됩니다.</span>
+                <span className={styles.camTitleRest}>{ui('camTitleAfter', lang)}</span>
               </p>
               <div className={styles.camLiveCount}>{state.countdown ?? PHOTO_COUNTDOWN_SECONDS}</div>
             </div>
             <ol className={styles.camTips}>
               <li className={styles.camTip}>
-                <span className={styles.camTipIconGap} aria-hidden />안경은 벗고 찍어주세요.
+                <span className={styles.camTipIconGap} aria-hidden />
+                <span className={`${styles.camTipText} ${styles.camTipTextIcon}`}>{ui('camTipGlasses', lang)}</span>
               </li>
-              <li className={styles.camTip}>원안에 ‘얼굴’과 ‘손’을 넣어주세요.</li>
-              <li className={styles.camTip}>원 밖으로 나가면 이상하게 합성될 수 있어요.</li>
+              <li className={styles.camTip}>
+                <span className={styles.camTipText}>{ui('camTipCircle', lang)}</span>
+              </li>
+              <li className={styles.camTip}>
+                <span className={styles.camTipText}>{ui('camTipOutside', lang)}</span>
+              </li>
             </ol>
           </div>
           {cameraIconUrl('no-glasses') && (
@@ -499,9 +508,7 @@ export function CustomerDisplay(): JSX.Element {
             )}
           </div>
 
-          <p className={styles.camDisclaimer}>
-            # 날씨가 어둡거나 흐린날은 AI 사진 합성이 어색할 수 있어요
-          </p>
+          <p className={styles.camDisclaimer}>{ui('camDisclaimer', lang)}</p>
           <p className={styles.camBranding}>WIT GLOBAL &nbsp;x&nbsp; DIGICON</p>
         </div>
       )}

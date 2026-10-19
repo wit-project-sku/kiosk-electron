@@ -28,13 +28,23 @@ const JEJU_SHEET_ID = '1A90MnKneWksKeL2zEcCUn75JKbnMFj7-OBmQsTkI72I';
 interface ContentSheet {
   sheetId: string;
   localizationRange: string;
+  /** Tried in order when the sheet no longer has the `localizationRange` tab
+   *  (Sheets answers 400 "Unable to parse range"). */
+  fallbackRanges?: readonly string[];
 }
 
 const CONTENT_SHEETS: Record<KioskLayoutId, ContentSheet> = {
   INSADONG: { sheetId: INSADONG_SHEET_ID, localizationRange: 'Localization_Insa!A:L' },
   NAM_INSADONG: { sheetId: INSADONG_SHEET_ID, localizationRange: 'Localization_Insa!A:L' },
   OSAN: { sheetId: OSAEK_SHEET_ID, localizationRange: 'Localization_Osaek!A:L' },
-  HWASEONG: { sheetId: HWASEONG_SHEET_ID, localizationRange: 'Localization_Hwaseong!A:L' },
+  // 2026-10-14 the tab was renamed Localization_Hwaseong_deprecated with no
+  // replacement yet; read it until a live Localization_Hwaseong reappears
+  // (mirrors genLocalizationHwaseong in scripts/sync-sheet.mjs).
+  HWASEONG: {
+    sheetId: HWASEONG_SHEET_ID,
+    localizationRange: 'Localization_Hwaseong!A:L',
+    fallbackRanges: ['Localization_Hwaseong_deprecated!A:L'],
+  },
   // Localization_Jeju_v2 (2026-09-14): the updated copy of Localization_Jeju — same
   // header, columns and keys; the old tab is no longer read.
   JEJU_AIRPORT: { sheetId: JEJU_SHEET_ID, localizationRange: 'Localization_Jeju_v2!A:L' },
@@ -181,7 +191,8 @@ export class GoogleSheetsSyncTransport implements SyncTransport {
    *  loads another location's strings — no env override (that caused cross-kiosk
    *  contamination). */
   private async downloadTranslations(config: NonNullable<ReturnType<typeof getGoogleSyncConfig>>): Promise<void> {
-    const { sheetId, localizationRange: range } = this.contentSheet();
+    const { sheetId, localizationRange, fallbackRanges = [] } = this.contentSheet();
+    let range = localizationRange;
     const layout = getKioskLocation(this.kiosk.getConfig().kioskId).layout;
     // A layout with no spreadsheet yet (see CONTENT_SHEETS) must not fall back to
     // another location's sheet — that is exactly the cross-kiosk contamination
@@ -192,7 +203,20 @@ export class GoogleSheetsSyncTransport implements SyncTransport {
     }
     try {
       const client = new SheetsClient({ ...config, sheetId });
-      const rows = await client.getValues(range);
+      const candidates = [localizationRange, ...fallbackRanges];
+      let rows: Awaited<ReturnType<SheetsClient['getValues']>> | undefined;
+      for (const [i, candidate] of candidates.entries()) {
+        range = candidate;
+        try {
+          rows = await client.getValues(candidate);
+          break;
+        } catch (error) {
+          const missingTab = error instanceof Error && /Unable to parse range/i.test(error.message);
+          if (!missingTab || i === candidates.length - 1) throw error;
+          log.warn('Localization tab missing; trying the next range', { range: candidate });
+        }
+      }
+      if (!rows) return;
       const byLang = parseLocalizationSheet(rows, layout);
 
       let total = 0;
