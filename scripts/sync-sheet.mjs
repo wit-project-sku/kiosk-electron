@@ -167,8 +167,30 @@ function headerLangCols(rows, fallback) {
   headerColsCache.set(rows, cols);
   return cols;
 }
-const localizedRow = (r, newCols) => {
+/**
+ * th/ru/id columns for ONE row: a tab can keep rows typed in an older column
+ * order than its header (67 Localization_Hwaseong rows hold Thai under
+ * "Indonesian", Russian under "Thai", Indonesian under "Russian"). When the
+ * row's Thai and Russian text sit in two of those three columns they are read
+ * from there, Indonesian from the third; otherwise the header's columns stand.
+ * Mirrors rowLangCols in src/main/services/sync/google/LocalizationSyncParser.ts.
+ */
+const THAI = /[฀-๿]/;
+const CYRILLIC = /[Ѐ-ӿ]/;
+function rowLangCols(r, cols) {
+  const { th, ru, id } = cols;
+  if (th == null || ru == null || id == null) return cols;
+  const trio = [th, ru, id];
+  const thaiAt = trio.find((i) => THAI.test(r[i] ?? ''));
+  const russianAt = trio.find((i) => CYRILLIC.test(r[i] ?? ''));
+  if (thaiAt == null || russianAt == null || thaiAt === russianAt) return cols;
+  if (thaiAt === th && russianAt === ru) return cols;
+  return { ...cols, th: thaiAt, ru: russianAt, id: trio.find((i) => i !== thaiAt && i !== russianAt) };
+}
+
+const localizedRow = (r, headerCols) => {
   const out = langText(r[2], r[3], r[4], r[5]);
+  const newCols = rowLangCols(r, headerCols);
   for (const [lang, idx] of Object.entries(newCols)) {
     const v = clean(r[idx]);
     if (v) out[lang] = v;

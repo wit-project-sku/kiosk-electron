@@ -12,6 +12,7 @@ import { ui, uiParts, type UiTextKey } from '@renderer/lib/uiText';
 import { OsanHeader } from './OsanHeader';
 import { OsanLeftNav } from './OsanLeftNav';
 import { useAccessibilityStore } from '@renderer/store/accessibilityStore';
+import { mbtiGuideText, mbtiHintText, mbtiLabel, mbtiSubmitText, renderSheetLines, type MbtiAxis } from '@layouts/components/eventSheetText';
 import styles from './OsanEvents.module.css';
 
 /** Region tabs → API eventRegion (MBTI has no region; it opens the quiz).
@@ -38,7 +39,6 @@ const PAGE_SIZE = 30;
 /** One grid row: poster 683.286 + title/venue + row gap (1088 → 1952). */
 const ROW_PITCH = 864;
 
-type MbtiAxis = 'E' | 'I' | 'S' | 'N' | 'T' | 'F' | 'J' | 'P';
 const MBTI_PAIRS: [MbtiAxis, MbtiAxis][] = [
   ['E', 'I'],
   ['S', 'N'],
@@ -108,7 +108,7 @@ function MbtiSection({ onOpenQr, region }: MbtiSectionProps): JSX.Element {
             onClick={() => toggle(letter)}
           >
             <span className={styles.mbtiLetter}>{letter}</span>
-            <span className={styles.mbtiLabel}>{ui(MBTI_LABEL_KEYS[letter], lang)}</span>
+            <span className={styles.mbtiLabel}>{mbtiLabel(letter, lang, MBTI_LABEL_KEYS[letter])}</span>
           </button>
         ))}
       </div>
@@ -122,27 +122,28 @@ function MbtiSection({ onOpenQr, region }: MbtiSectionProps): JSX.Element {
         </div>
       ) : (
         <button type="button" className={styles.mbtiCta} onClick={() => void getResults()}>
-          {ui('mbtiSubmit', lang)}
+          {mbtiSubmitText(lang)}
         </button>
       )}
 
       <p className={styles.mbtiDesc}>
-        {/* "{region}" is substituted here so the accent span survives translation. */}
-        {uiParts('mbtiIntro', lang)[0]}
-        {/* MainButton_Event is already "오산시 이벤트" — prefixing Event_Tab_Osan
-            ("오산시") read "오산시 오산시 이벤트". */}
-        <span className={styles.mbtiAccent}>{t('MainButton_Event', lang)}</span>
-        {uiParts('mbtiIntro', lang)[1]}
+        {/* Event_MBTI_guide1 / guide2 from the sheet; an empty guide1 cell keeps
+            the authored sentence below. */}
+        {mbtiGuideText(lang) ? (
+          renderSheetLines(mbtiGuideText(lang), [t('MainButton_Event', lang)], styles.mbtiAccent)
+        ) : (
+          <>
+            {/* "{region}" is substituted here so the accent span survives translation. */}
+            {uiParts('mbtiIntro', lang)[0]}
+            {/* MainButton_Event is already "오산시 이벤트" — prefixing Event_Tab_Osan
+                ("오산시") read "오산시 오산시 이벤트". */}
+            <span className={styles.mbtiAccent}>{t('MainButton_Event', lang)}</span>
+            {uiParts('mbtiIntro', lang)[1]}
+          </>
+        )}
         <br />
         <br />
-        {ui('mbtiHint', lang)
-          .split('\n')
-          .map((line, i, all) => (
-            <span key={i}>
-              {line}
-              {i < all.length - 1 && <br />}
-            </span>
-          ))}
+        {renderSheetLines(mbtiHintText(lang))}
       </p>
 
       {status === 'results' && (
@@ -406,7 +407,7 @@ export function OsanEvents({ controller }: OsanEventsProps): JSX.Element {
             <div className={styles.qrImg}>
               <img src={qrCodeImg} alt="QR" draggable={false} />
             </div>
-            <p className={styles.qrSource}>{ui('eventSource', lang)}</p>
+            <p className={styles.qrSource}>{sheetText('Event_Source', lang, { [lang]: ui('eventSource', lang) })}</p>
           </div>
         </>
       )}

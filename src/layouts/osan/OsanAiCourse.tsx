@@ -6,9 +6,10 @@ import { osanIconUrl } from '@renderer/assets/icons/osan';
 import { iconUrl as insaIconUrl } from '@renderer/assets/icons/insadong';
 import { useAiStore } from '@renderer/store/aiStore';
 import { useShopStore } from '@renderer/store/shopStore';
-import { useLang, pick, screenSubtitle } from '@renderer/lib/i18n';
+import { useLang, pick } from '@renderer/lib/i18n';
 import type { Lang } from '@renderer/lib/i18n';
 import { isOk } from '@shared/types/result';
+import { sheetText } from '@renderer/lib/loc';
 import { clockLabel, minutesLabel, nowMinutes, partySize } from '@renderer/lib/jejuCourse';
 import { shopSecondCategory, stripPrefix } from '@renderer/lib/shops';
 import { useFitText } from '@layouts/components/fitText';
@@ -36,28 +37,46 @@ import styles from './OsanAiCourse.module.css';
  * nothing, the result page shows its empty state.
  *
  * ── Copy ──────────────────────────────────────────────────────────────────
- * Authored in all eight languages. Localization_Osaek's rows for this flow
- * predate the renewal and say other things — StayTime_02…66 are the OLD
- * 0~1 / 1~2 / 2~3 / 3~ slots, Visitor_5/6 are 5명 / 6명, JoyContent asks for
- * exactly three — so reading them would put labels on the chips that disagree
- * with what the API is asked. The header title alone reads the sheet
- * (MainButton_AI) for the other languages.
+ * Localization_Osaek is the source of truth wherever it has a row (JEONGI_Todo_*,
+ * Visitor_*, StayTime_*, JoyContent, Recommended_Course_*, My_Course_*,
+ * SubmitButton) — read through `sheet()`, with the copy authored here as the
+ * per-language fallback. Only the chip LABELS come from the sheet; the values
+ * stored and sent to the API (`Chip.ko`) are unchanged. HOURS_NOTE stays
+ * authored: its sheet row (JEONGI_Todo_Subtitle1-2) bakes 21:00 into the
+ * sentence and has no slot for the start time outside Korean.
  */
 
 type L8 = Partial<Record<Lang, string>>;
 
 const txt = (lang: Lang, authored: L8): string => pick(authored, lang) ?? '';
 
+/** Localization_Osaek cell for this language (authored copy as the fallback). A
+ *  literal two-character "\\n" typed into a cell becomes a real line break. */
+const sheet = (key: string, lang: Lang, authored?: L8): string =>
+  sheetText(key, lang, authored).replace(/\\n/g, '\n');
+
+/** A sheet title, keeping the frame's authored line break when the sheet says
+ *  the same words (the sheet carries none); different wording wraps naturally. */
+const sheetTitle = (key: string, lang: Lang, authored: L8): string => {
+  const value = sheet(key, lang, authored);
+  const mine = pick(authored, lang) ?? '';
+  const bare = (x: string): string => x.replace(/\s+/g, '');
+  return mine.includes('\n') && bare(mine) === bare(value) ? mine : value;
+};
+
 /** "Женщины/Лекарственные травы" has no break point until the space, so it
  *  ran out of the 268 tile; a zero-width space lets a line end after "/". */
 const breakAfterSlash = (s: string): string => s.replace(/\/(?!\s)/g, '/\u200B');
 
-/** The frame's Korean title; other languages read MainButton_AI via screenTitle. */
-export const osanAiTitle = (lang: Lang): string => (lang === 'ko' ? '‘정이’ 뭐하지' : "'정이' 모하지 (AI 검색)");
+/** Localization_Osaek JEONGI_Todo_Title; the frame's Korean title as the fallback. */
+export const osanAiTitle = (lang: Lang): string =>
+  sheet('JEONGI_Todo_Title', lang, { ko: '‘정이’ 뭐하지' }) || "'정이' 모하지 (AI 검색)";
 
 interface Chip {
   /** The canonical value — what travels to the API and the AI store. */
   ko: string;
+  /** Localization_Osaek row for the displayed label (`label` is its fallback). */
+  key?: string;
   label: L8;
   /** What the chip itself shows, in every language, when it differs from
    *  `label` (the 방문 인원 chips show bare numbers; the unit is in the title).
@@ -68,28 +87,32 @@ interface Chip {
 
 /** 방문 인원 chips — the frame's widths (268 · 269 · 268 · 268 · 311 · 290). */
 const PARTY_CHIPS: Chip[] = [
-  { ko: '1명', chip: '1', width: 268, label: { ko: '1명', en: '1 person', ja: '1人', zh: '1人', vi: '1 người', th: '1 คน', ru: '1 человек', id: '1 orang' } },
-  { ko: '2명', chip: '2', width: 269, label: { ko: '2명', en: '2 people', ja: '2人', zh: '2人', vi: '2 người', th: '2 คน', ru: '2 человека', id: '2 orang' } },
-  { ko: '3명', chip: '3', width: 268, label: { ko: '3명', en: '3 people', ja: '3人', zh: '3人', vi: '3 người', th: '3 คน', ru: '3 человека', id: '3 orang' } },
-  { ko: '4명', chip: '4', width: 268, label: { ko: '4명', en: '4 people', ja: '4人', zh: '4人', vi: '4 người', th: '4 คน', ru: '4 человека', id: '4 orang' } },
-  { ko: '5 ~ 9명', chip: '5 ~ 9', width: 311, label: { ko: '5 ~ 9명', en: '5~9 pax', ja: '5~9人', zh: '5~9人', vi: '5~9 người', th: '5~9 คน', ru: '5~9 чел.', id: '5~9 orang' } },
-  { ko: '10명~', chip: '10~', width: 290, label: { ko: '10명~', en: '10+ pax', ja: '10人~', zh: '10人~', vi: '10 người~', th: '10 คน~', ru: '10+ чел.', id: '10 orang~' } },
+  { ko: '1명', key: 'Visitor_1', chip: '1', width: 268, label: { ko: '1명', en: '1 person', ja: '1人', zh: '1人', vi: '1 người', th: '1 คน', ru: '1 человек', id: '1 orang' } },
+  { ko: '2명', key: 'Visitor_2', chip: '2', width: 269, label: { ko: '2명', en: '2 people', ja: '2人', zh: '2人', vi: '2 người', th: '2 คน', ru: '2 человека', id: '2 orang' } },
+  { ko: '3명', key: 'Visitor_3', chip: '3', width: 268, label: { ko: '3명', en: '3 people', ja: '3人', zh: '3人', vi: '3 người', th: '3 คน', ru: '3 человека', id: '3 orang' } },
+  { ko: '4명', key: 'Visitor_4', chip: '4', width: 268, label: { ko: '4명', en: '4 people', ja: '4人', zh: '4人', vi: '4 người', th: '4 คน', ru: '4 человека', id: '4 orang' } },
+  { ko: '5 ~ 9명', key: 'Visitor_5', chip: '5 ~ 9', width: 311, label: { ko: '5 ~ 9명', en: '5~9 pax', ja: '5~9人', zh: '5~9人', vi: '5~9 người', th: '5~9 คน', ru: '5~9 чел.', id: '5~9 orang' } },
+  { ko: '10명~', key: 'Visitor_6', chip: '10~', width: 290, label: { ko: '10명~', en: '10+ pax', ja: '10人~', zh: '10人~', vi: '10 người~', th: '10 คน~', ru: '10+ чел.', id: '10 orang~' } },
 ];
 
 /** 체류 기간 chips — `ko` holds the API's SLOT CODE, the label is what the chip shows. */
 const DURATION_CHIPS: Chip[] = [
-  { ko: '0-2', label: { ko: '0 ~ 2시간', en: '0 ~ 2 hours', ja: '0〜2時間', zh: '0~2小时', vi: '0 ~ 2 giờ', th: '0 ~ 2 ชั่วโมง', ru: '0 ~ 2 часа', id: '0 ~ 2 jam' } },
-  { ko: '2-4', label: { ko: '2 ~ 4시간', en: '2 ~ 4 hours', ja: '2〜4時間', zh: '2~4小时', vi: '2 ~ 4 giờ', th: '2 ~ 4 ชั่วโมง', ru: '2 ~ 4 часа', id: '2 ~ 4 jam' } },
-  { ko: '4-6', label: { ko: '4 ~ 6시간', en: '4 ~ 6 hours', ja: '4〜6時間', zh: '4~6小时', vi: '4 ~ 6 giờ', th: '4 ~ 6 ชั่วโมง', ru: '4 ~ 6 часов', id: '4 ~ 6 jam' } },
-  { ko: '6+', label: { ko: '6시간 ~', en: '6 hours ~', ja: '6時間〜', zh: '6小时以上', vi: 'Từ 6 giờ', th: '6 ชั่วโมงขึ้นไป', ru: 'От 6 часов', id: '6 jam ke atas' } },
+  { ko: '0-2', key: 'StayTime_02', label: { ko: '0 ~ 2시간', en: '0 ~ 2 hours', ja: '0〜2時間', zh: '0~2小时', vi: '0 ~ 2 giờ', th: '0 ~ 2 ชั่วโมง', ru: '0 ~ 2 часа', id: '0 ~ 2 jam' } },
+  { ko: '2-4', key: 'StayTime_24', label: { ko: '2 ~ 4시간', en: '2 ~ 4 hours', ja: '2〜4時間', zh: '2~4小时', vi: '2 ~ 4 giờ', th: '2 ~ 4 ชั่วโมง', ru: '2 ~ 4 часа', id: '2 ~ 4 jam' } },
+  { ko: '4-6', key: 'StayTime_46', label: { ko: '4 ~ 6시간', en: '4 ~ 6 hours', ja: '4〜6時間', zh: '4~6小时', vi: '4 ~ 6 giờ', th: '4 ~ 6 ชั่วโมง', ru: '4 ~ 6 часов', id: '4 ~ 6 jam' } },
+  { ko: '6+', key: 'StayTime_66', label: { ko: '6시간 ~', en: '6 hours ~', ja: '6時間〜', zh: '6小时以上', vi: 'Từ 6 giờ', th: '6 ชั่วโมงขึ้นไป', ru: 'От 6 часов', id: '6 jam ke atas' } },
 ];
 
+/** What a chip's answer reads as — its sheet row, else the authored label. */
+const chipLabel = (c: Chip, lang: Lang): string => (c.key ? sheet(c.key, lang, c.label) : txt(lang, c.label));
+
 /** The updated frame (인원(명)넣고 카테고리에는 숫자만), Korean included: the unit
- *  goes once in the 방문 인원 title — "방문 인원 (명)", "Number of Visitors
- *  (person/people)" — and the chips carry numbers only (1 … 5 ~ 9, 10~). */
-const VISITORS_WITH_UNIT: L8 = {
-  ko: '방문 인원 (명)', en: 'Number of Visitors (person/people)', ja: '訪問人数（人）', zh: '访问人数（人）',
-  vi: 'Số khách (người)', th: 'จำนวนผู้เยี่ยมชม (คน)', ru: 'Количество гостей (чел.)', id: 'Jumlah pengunjung (orang)',
+ *  goes once in the 방문 인원 title — the sheet's Visitor_Title + this unit,
+ *  "방문 인원 (명)", "Number of Visitors (person/people)" — and the chips carry
+ *  numbers only (1 … 5 ~ 9, 10~). */
+const VISITORS_UNIT: L8 = {
+  ko: ' (명)', en: ' (person/people)', ja: '（人）', zh: '（人）',
+  vi: ' (người)', th: ' (คน)', ru: ' (чел.)', id: ' (orang)',
 };
 
 const SECTION = {
@@ -126,6 +149,16 @@ const START_NOTE: L8 = {
   th: '*เส้นทางแนะนำทั้งหมดเริ่มต้นจากตู้คีออสก์นี้',
   ru: '*Все рекомендованные маршруты начинаются от этого киоска.',
   id: '*Semua rute rekomendasi berangkat dari kios ini.',
+};
+
+/** START_NOTE without its "*" — the sheet row carries none; the notice draws the marker. */
+const noteBody = (authored: L8): L8 =>
+  Object.fromEntries(Object.entries(authored).map(([k, v]) => [k, (v ?? '').replace(/^\*/, '')])) as L8;
+
+/** The authored 방문 인원 title (no unit) — the fallback for the sheet's Visitor_Title. */
+const VISITORS_WITH_UNIT_BARE: L8 = {
+  ko: '방문 인원', en: 'Number of Visitors', ja: '訪問人数', zh: '访问人数',
+  vi: 'Số khách', th: 'จำนวนผู้เยี่ยมชม', ru: 'Количество гостей', id: 'Jumlah pengunjung',
 };
 
 const CUSTOM_SECTION: L8 = {
@@ -177,7 +210,7 @@ const SEARCH_LABEL: L8 = {
 /** One store answer (kept canonical) → the label the chip showed, in this language. */
 export const localizeOsanAiPick = (ko: string, lang: Lang): string => {
   const chip = [...PARTY_CHIPS, ...DURATION_CHIPS].find((c) => c.ko === ko);
-  return chip ? txt(lang, chip.label) : ko;
+  return chip ? chipLabel(chip, lang) : ko;
 };
 
 /**
@@ -190,6 +223,8 @@ export const localizeOsanAiPick = (ko: string, lang: Lang): string => {
 interface ThemeCard {
   /** Course key handed to the result page (`nature` / `food` / `shop` / `family`). */
   key: string;
+  /** Localization_Osaek Recommended_Course_{n}_subtitle / _title. */
+  n: number;
   icon: string;
   sub: L8;
   /** Title per language; `\n` is the break the frame draws. */
@@ -205,7 +240,7 @@ const THEME_CARD_H = 482;
 
 const THEME_CARDS: ThemeCard[] = [
   {
-    key: 'nature', icon: 'course-nature',
+    key: 'nature', n: 1, icon: 'course-nature',
     sub: {
       ko: '유산을 따라 걷는', en: 'Walking the heritage trail', ja: '遺産をたどって歩く',
       zh: '沿着遗产漫步', vi: 'Dạo bước theo dấu di sản', th: 'เดินตามรอยมรดก',
@@ -221,7 +256,7 @@ const THEME_CARDS: ThemeCard[] = [
     text: { x: 367.12, y: 116, w: 396.24 },
   },
   {
-    key: 'food', icon: 'course-food',
+    key: 'food', n: 2, icon: 'course-food',
     sub: {
       ko: '미식과 감성을 즐기는', en: 'Good food, good mood', ja: 'グルメと感性を楽しむ',
       zh: '享受美食与氛围', vi: 'Thưởng thức ẩm thực & cảm xúc', th: 'อร่อยและได้ฟีล',
@@ -237,7 +272,7 @@ const THEME_CARDS: ThemeCard[] = [
     text: { x: 416, y: 126, w: 343.2 },
   },
   {
-    key: 'shop', icon: 'course-shopping',
+    key: 'shop', n: 3, icon: 'course-shopping',
     sub: {
       ko: '지역의 매력을 발견하는', en: 'Discover local charm', ja: '街の魅力を見つける',
       zh: '发现在地魅力', vi: 'Khám phá nét duyên địa phương', th: 'ค้นพบเสน่ห์ท้องถิ่น',
@@ -253,7 +288,7 @@ const THEME_CARDS: ThemeCard[] = [
     text: { x: 393.09, y: 116, w: 386.913 },
   },
   {
-    key: 'family', icon: 'course-family',
+    key: 'family', n: 4, icon: 'course-family',
     sub: {
       ko: '아이와 함께 즐기는', en: 'Fun with the kids', ja: '子どもと一緒に楽しむ',
       zh: '和孩子一起享受', vi: 'Vui cùng trẻ nhỏ', th: 'สนุกกับเด็ก ๆ',
@@ -550,10 +585,9 @@ export function OsanAiCourse({ controller }: Props): JSX.Element {
 
   const arrow = osanIconUrl('course-arrow');
   const banner = osanIconUrl('banner-course');
-  /* Localization_Osaek's SubHeader_AISearch for every language. The Korean title
-     is the frame's literal ('‘정이’ 뭐하지'), which the header id map does not
-     know, so Korean showed no description while the others did. */
-  const aiSubtitle = screenSubtitle("'정이' 모하지 (AI 검색)", lang);
+  /* Localization_Osaek JEONGI_Todo_Subtitle1 — the sheet has no SubHeader_AISearch
+     row, which the old screenSubtitle lookup read, so the header showed nothing. */
+  const aiSubtitle = sheet('JEONGI_Todo_Subtitle1', lang);
 
   const toLanding = (): void => {
     setJoyPage(false);
@@ -584,7 +618,7 @@ export function OsanAiCourse({ controller }: Props): JSX.Element {
           className={`${styles.pill} ${long ? styles.pillLong : ''} ${value === c.ko ? styles.pillOn : ''}`}
           onClick={() => onPick(c.ko)}
         >
-          {c.chip ?? txt(lang, c.label)}
+          {c.chip ?? chipLabel(c, lang)}
         </button>
       ))}
     </div>
@@ -609,7 +643,7 @@ export function OsanAiCourse({ controller }: Props): JSX.Element {
 
       {step === 'landing' ? (
         <div ref={landingRef} className={low ? `${styles.landing} ${styles.landingLow}` : styles.landing}>
-          <p className={`${styles.landingNotice} ${long ? styles.landingNoticeLong : ''}`}>{txt(lang, START_NOTE)}</p>
+          <p className={`${styles.landingNotice} ${long ? styles.landingNoticeLong : ''}`}>{`*${sheet('JEONGI_Todo_Subtitle1-1', lang, noteBody(START_NOTE))}`}</p>
 
           <div className={`${styles.label} ${styles.landingLabelCustom}`}>
             <span className={styles.bar} />
@@ -622,11 +656,11 @@ export function OsanAiCourse({ controller }: Props): JSX.Element {
                 <img className={styles.customArt} src={insaIconUrl('course-ai')} alt="" draggable={false} />
               )}
               <span className={styles.customCopy}>
-                <span className={styles.eyebrow}>{txt(lang, MY_COURSE_SUB)}</span>
+                <span className={styles.eyebrow}>{sheet('My_Course_desc1', lang, MY_COURSE_SUB)}</span>
                 <span className={`${styles.customTitle} ${long ? styles.customTitleLong : ''}`}>
-                  {txt(lang, MY_COURSE_TITLE)}
+                  {sheet('My_Course_title', lang, MY_COURSE_TITLE)}
                 </span>
-                <span className={styles.customBody}>{lines(txt(lang, MY_COURSE_BODY))}</span>
+                <span className={styles.customBody}>{lines(sheet('My_Course_desc2', lang, MY_COURSE_BODY))}</span>
               </span>
             </span>
             {arrow && <img className={styles.customArrow} src={arrow} alt="" draggable={false} />}
@@ -634,7 +668,7 @@ export function OsanAiCourse({ controller }: Props): JSX.Element {
 
           <div className={`${styles.label} ${styles.landingLabelTheme}`}>
             <span className={styles.bar} />
-            {txt(lang, RECOMMENDED_SECTION)}
+            {sheet('Recommended_Course_title', lang, RECOMMENDED_SECTION)}
           </div>
 
           {THEME_CARDS.map((card) => (
@@ -671,9 +705,9 @@ export function OsanAiCourse({ controller }: Props): JSX.Element {
                   ['--tw' as string]: `${card.text.w}px`,
                 }}
               >
-                <span className={styles.eyebrow}>{txt(lang, card.sub)}</span>
+                <span className={styles.eyebrow}>{sheet(`Recommended_Course_${card.n}_subtitle`, lang, card.sub)}</span>
                 <span className={`${styles.themeTitle} ${long ? styles.themeTitleLong : ''}`}>
-                  {lines(txt(lang, card.title))}
+                  {lines(sheetTitle(`Recommended_Course_${card.n}_title`, lang, card.title))}
                 </span>
               </span>
             </button>
@@ -697,7 +731,7 @@ export function OsanAiCourse({ controller }: Props): JSX.Element {
           <section className={`${styles.section} ${styles.sectionParty}`}>
             <div className={styles.label}>
               <span className={styles.bar} />
-              {txt(lang, VISITORS_WITH_UNIT)}
+              {`${sheet('Visitor_Title', lang, VISITORS_WITH_UNIT_BARE)}${txt(lang, VISITORS_UNIT)}`}
             </div>
             {chipRow(partyRef, PARTY_CHIPS, party, setParty, 268)}
           </section>
@@ -705,7 +739,7 @@ export function OsanAiCourse({ controller }: Props): JSX.Element {
           <section className={`${styles.section} ${styles.sectionStay}`}>
             <div className={styles.label}>
               <span className={styles.bar} />
-              {txt(lang, SECTION.stay)}
+              {sheet('StayTime', lang, SECTION.stay)}
             </div>
             {chipRow(stayRef, DURATION_CHIPS, duration, (v) => setDuration(v as InsaDuration), 412)}
           </section>
@@ -718,7 +752,7 @@ export function OsanAiCourse({ controller }: Props): JSX.Element {
               {!low && (
                 <div className={styles.label}>
                   <span className={styles.bar} />
-                  {txt(lang, SECTION.interests)}
+                  {sheet('JoyContent', lang, SECTION.interests)}
                 </div>
               )}
 
@@ -726,12 +760,12 @@ export function OsanAiCourse({ controller }: Props): JSX.Element {
                 {low && (
                   <div className={`${styles.label} ${styles.joyBarLabel}`}>
                     <span className={styles.bar} />
-                    {txt(lang, SECTION.interests)}
+                    {sheet('JoyContent', lang, SECTION.interests)}
                   </div>
                 )}
                 {/* 7812:110611 — the chosen 체류 기간 with how many 즐길 거리 are picked. */}
                 <span className={`${styles.dayTab} ${styles.dayTabOn}`}>
-                  {txt(lang, (DURATION_CHIPS.find((c) => c.ko === duration) ?? DURATION_CHIPS[1]!).label)}
+                  {chipLabel(DURATION_CHIPS.find((c) => c.ko === duration) ?? DURATION_CHIPS[1]!, lang)}
                   {picks.length > 0 && <span className={styles.dayCount}>{picks.length}</span>}
                 </span>
                 {/* 7812:110616 — clears the picks. */}
@@ -772,7 +806,7 @@ export function OsanAiCourse({ controller }: Props): JSX.Element {
             </button>
           ) : (
             <button type="button" className={styles.cta} disabled={busy} onClick={step === 'custom' ? submit : submitTheme}>
-              {txt(lang, SUBMIT_LABEL)}
+              {sheet('SubmitButton', lang, SUBMIT_LABEL)}
             </button>
           )}
         </div>

@@ -225,8 +225,16 @@
   overflow: hidden;
 }
 
+/* One row only: hours longer than the card (multi-period or break-time strings
+   from the API) end in "…" instead of wrapping. min-width lets the flex item
+   shrink below its text width so the ellipsis can kick in. */
 .hours {
   line-height: 1;
+  flex: 1 1 auto;
+  min-width: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 /* ── 역사 / 문화 — a white panel from y979 above the banner (7862:45106 / 45189) ── */
@@ -359,9 +367,13 @@
   border-radius: 42.905px;
 }
 
+/* Every column is centred both ways, as the frame's auto layout centres them:
+   a year or note that wraps to more lines grows from the middle, and the
+   others stay level with it instead of hanging from the top. */
 .timelineRow {
   margin: 0 -9.5px;
   display: flex;
+  align-items: center;
   gap: 24px;
 }
 
@@ -409,13 +421,16 @@
   color: #999999;
   text-align: center;
   word-break: keep-all;
+  /* The sheet breaks each note into its two lines (Here_History_epochN_desc). */
+  white-space: pre-line;
 }
 
 /* Other languages: the strip is drawn around Korean years (1914, 2013) and
    two-line notes. "Joseon Dynasty" did not fit its ~254 column on one line,
    and a four-line note ran out of the fixed 373 strip — both touched or crossed
    the box edges. Here the rows sit inside 28px of side padding, a year may
-   wrap, the type is a step smaller, and the strip grows to fit its notes. */
+   wrap, the type is a step smaller, and the strip grows to fit its notes —
+   every column still centred on its row like the Korean frame. */
 .timelineLong {
   height: auto;
   min-height: 373px;
@@ -438,7 +453,6 @@
 .timelineLong .steps {
   height: auto;
   min-height: 261px;
-  align-items: flex-start;
 }
 
 .timelineLong .stepDesc {

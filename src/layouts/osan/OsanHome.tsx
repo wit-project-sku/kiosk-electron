@@ -31,7 +31,7 @@ import { osanIconUrl } from '@renderer/assets/icons/osan';
 import { weatherIconName, weatherIconUrl } from '@renderer/assets/weather';
 import { useHasDonationTile, useOrderedTiles, type TileKey } from '@renderer/lib/buttonLayout';
 import { pick, type Lang } from '@renderer/lib/i18n';
-import { t } from '@renderer/lib/loc';
+import { sheetText, t, tExact } from '@renderer/lib/loc';
 import { DONATION_COMING_SOON, withComingSoon } from '@shared/config/donation';
 import { SearchIcon } from '@layouts/components/SearchIcon';
 import { useFitText } from '@layouts/components/fitText';
@@ -69,9 +69,26 @@ interface Tile {
 }
 
 /**
- * 물품 shares 뭐사지's sheet wording in English ("To buy" for both), which would
- * make the two tiles indistinguishable — so it keeps its own authored title.
+ * 물품's fallback title. The sheet now carries its own row (MainButton_ToBuy2,
+ * "To buy(goods)"), so this only covers a language whose cell is empty.
  */
+/**
+ * 지역화폐's title in the other languages. Localization_Osaek has no
+ * MainButton_MarketPaper row yet (the tile showed Korean everywhere); this is
+ * Localization_Hwaseong's row for the same tile, and gives way to an 오색 row
+ * as soon as the sheet adds one.
+ */
+const LOCALPAY_TITLE: Text = {
+  ko: '지역화폐',
+  en: 'Local Currency',
+  ja: 'ちいきの おかね',
+  zh: '地区货币',
+  vi: 'Tiền tệ địa phương',
+  th: 'สกุลเงินท้องถิ่น',
+  ru: 'Местная валюта',
+  id: 'Mata uang lokal',
+};
+
 const LODGING_TITLE: Text = {
   en: 'To buy (Goods)',
   ja: 'お買い物（物品）',
@@ -100,7 +117,7 @@ const TILES: Tile[] = [
     sub: { ko: '쇼핑 추천', en: 'Shopping picks', ja: 'おすすめショッピング', zh: '购物推荐', vi: 'Gợi ý mua sắm', th: 'แนะนำช้อปปิ้ง', ru: 'Покупки', id: 'Rekomendasi belanja' },
   },
   {
-    screen: 'lodging', label: "'정이' 뭐사지(물품)", title: '‘정이’ 뭐사지(물품)', titleText: LODGING_TITLE, icon: 'home-tile-goods',
+    screen: 'lodging', label: "'정이' 뭐사지(물품)", title: '‘정이’ 뭐사지(물품)', titleKey: 'MainButton_ToBuy2', titleText: LODGING_TITLE, icon: 'home-tile-goods',
     sub: { ko: '물품 추천', en: 'Goods picks', ja: 'おすすめ雑貨', zh: '商品推荐', vi: 'Gợi ý hàng hóa', th: 'แนะนำสินค้า', ru: 'Товары', id: 'Rekomendasi barang' },
   },
   {
@@ -136,7 +153,7 @@ const TILES: Tile[] = [
     sub: { ko: '대중교통 안내', en: 'Public transit', ja: '公共交通のご案内', zh: '公共交通指南', vi: 'Giao thông công cộng', th: 'ขนส่งสาธารณะ', ru: 'Общественный транспорт', id: 'Transportasi umum' },
   },
   {
-    screen: 'museum', label: '지역화폐', title: '지역화폐', titleKey: 'MainButton_MarketPaper', icon: 'home-tile-localpay',
+    screen: 'museum', label: '지역화폐', title: '지역화폐', titleKey: 'MainButton_MarketPaper', titleText: LOCALPAY_TITLE, icon: 'home-tile-localpay',
     sub: { ko: '오색전·온누리', en: 'Osaekjeon · Onnuri', ja: 'オセク銭・オンヌリ', zh: '五色钱·温努里', vi: 'Osaekjeon · Onnuri', th: 'โอแซกจอน · ออนนูรี', ru: 'Осэкчон · Оннури', id: 'Osaekjeon · Onnuri' },
   },
 ];
@@ -155,6 +172,28 @@ const LOW_COL_STEP = (1792.059 - 230) / 5;
 const LOW_ROW_STEP = 374.27;
 
 // ── Feature cards ──────────────────────────────────────────────────────
+/**
+ * Localization_Osaek's second-line row per home button (`MainButton_*_Subtext`).
+ * The sheet drives the line wherever it has a cell for the language; the
+ * authored `sub` covers the gaps. 지역화폐 has no row yet.
+ */
+const SUB_KEYS: Partial<Record<KioskScreenId, string>> = {
+  ai_search: 'MainButton_AI_Subtext',
+  market: 'MainButton_WITH_Market_Subtext',
+  events: 'MainButton_Event_Subtext',
+  eat: 'MainButton_ToEat_Subtext',
+  shop: 'MainButton_ToBuy_SubText',
+  lodging: 'MainButton_ToBuy2_Subtext',
+  taxfree: 'MainButton_TaxFree_Subtext',
+  about: 'MainButton_Here_Subtext',
+  hello: 'MainButton_Greeting_Subtext',
+  help: 'MainButton_ToHelp_Subtext',
+  map: 'MainButton_Map_Subtext',
+  exchange: 'MainButton_Exchange_Subtext',
+  donation: 'MainButton_Donation_Subtext',
+  transport: 'MainButton_Transport_Subtext',
+};
+
 interface Card {
   screen: KioskScreenId;
   label: string;
@@ -318,10 +357,18 @@ export function OsanHome({ controller }: OsanHomeProps): JSX.Element {
    */
   const orderedTiles = useOrderedTiles(kioskId, TILES, osanTileKey);
 
+  // Every language follows the sheet's own cell first (Korean included); the
+  // frame's title / authored copy covers a cell that is empty.
   const titleOf = (item: Tile | Card): string => {
+    const own = item.titleKey ? tExact(item.titleKey, lang) : '';
+    if (own) return own;
     if (lang === 'ko') return item.title;
     const authored = 'titleText' in item && item.titleText ? pick(item.titleText, lang) : item.title;
     return sheetOr(item.titleKey, lang, authored);
+  };
+  const subOf = (item: Tile | Card): string => {
+    const key = SUB_KEYS[item.screen];
+    return key ? sheetText(key, lang, item.sub) : pick(item.sub, lang);
   };
   const tileTitle = (tile: Tile): string => {
     const base = titleOf(tile);
@@ -351,8 +398,8 @@ export function OsanHome({ controller }: OsanHomeProps): JSX.Element {
   const fitKey = [
     lang,
     noticeRuns.map((r) => r.text).join(''),
-    CARDS.map((c) => titleOf(c) + pick(c.sub, lang)).join('|'),
-    orderedTiles.map((tile) => tileTitle(tile) + pick(tile.sub, lang)).join('|'),
+    CARDS.map((c) => titleOf(c) + subOf(c)).join('|'),
+    orderedTiles.map((tile) => tileTitle(tile) + subOf(tile)).join('|'),
   ].join('§');
   useFitText(noticeRef, styles.noticeLead, wide, 0.7, fitKey);
   useFitText(cardsRef, styles.cardText, wide, 0.75, fitKey);
@@ -434,7 +481,7 @@ export function OsanHome({ controller }: OsanHomeProps): JSX.Element {
       <div className={styles.cards} ref={cardsRef}>
         {CARDS.map((card) => {
           const title = <span className={styles.cardTitle}>{titleOf(card)}</span>;
-          const sub = <span className={styles.cardSub}>{pick(card.sub, lang)}</span>;
+          const sub = <span className={styles.cardSub}>{subOf(card)}</span>;
           return (
             <button
               key={card.screen}
@@ -494,7 +541,7 @@ export function OsanHome({ controller }: OsanHomeProps): JSX.Element {
                 >
                   {tileTitle(tile)}
                 </span>
-                <span className={styles.tileSub}>{pick(tile.sub, lang)}</span>
+                <span className={styles.tileSub}>{subOf(tile)}</span>
               </span>
             </button>
           );

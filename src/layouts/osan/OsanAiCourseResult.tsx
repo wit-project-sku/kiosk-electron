@@ -3,11 +3,10 @@ import { QRCodeSVG } from 'qrcode.react';
 import type { KioskController } from '@renderer/hooks/useKioskController';
 import type { InsaCourse, InsaDuration } from '@shared/types/insaCourse';
 import { isOk } from '@shared/types/result';
-import type { Shop } from '@shared/types/shop';
 import { osanIconUrl } from '@renderer/assets/icons/osan';
 import { useAiStore } from '@renderer/store/aiStore';
 import { useShopStore } from '@renderer/store/shopStore';
-import { useDetailStore } from '@renderer/store/detailStore';
+import { useDetailStore, type DetailItem } from '@renderer/store/detailStore';
 import { pick as pickLang, useLang } from '@renderer/lib/i18n';
 import { kioskPlaceName } from '@renderer/lib/kioskName';
 import type { Lang } from '@renderer/lib/i18n';
@@ -289,16 +288,42 @@ export function OsanAiCourseResult({ controller }: Props): JSX.Element {
   const totalMinutes = route?.totalMinutes || dayTravel + dayDwell;
   const dayKm = route ? route.totalWalkMeters / 1000 : stops.reduce((t, s) => t + s.travelKm, 0);
 
-  const openStop = (stop: Stop, shop: Shop): void => {
+  /*
+   * A stop's 상세 payload. Like 제주's course detail it carries the NEXT stop of
+   * the route (courseNext: its 체류시간 and its own payload, chained), so the
+   * detail page draws the 다음 장소 card under the place and a visitor can walk
+   * the course stop by stop from there.
+   */
+  const detailAt = (list: Stop[], i: number): DetailItem | null => {
+    const stop = list[i];
+    const shop = stop ? byId.get(stop.shopId) : undefined;
+    if (!stop || !shop) return null;
     /* The shared payload, so the stop's 상세 carries its tags and photos (or the
        no-image plate) exactly as from the lists. */
     const base = osanShopDetail(shop, lang, 'ai_result', 'AI 추천', osanIconUrl('noimage'));
-    setDetail({
+    const nextStop = list[i + 1];
+    const nextItem = nextStop ? detailAt(list, i + 1) : null;
+    return {
       ...base,
       shopId: shop.id,
       category: base.category || stop.category,
       route: shop.route ?? null,
-    });
+      ...(nextStop && nextItem
+        ? {
+            courseNext: {
+              dwell: `${line('TimeToAdjourn', TEXT.dwell)} : ${minutesLabel(nextStop.dwellMinutes, lang)}`,
+              difficulty: '',
+              item: nextItem,
+            },
+          }
+        : {}),
+    };
+  };
+
+  const openStop = (stop: Stop): void => {
+    const item = detailAt(stops, stops.indexOf(stop));
+    if (!item) return;
+    setDetail(item);
     navigate('ai_detail', 'AI 상세');
   };
 
@@ -499,7 +524,7 @@ export function OsanAiCourseResult({ controller }: Props): JSX.Element {
                     <button
                       type="button"
                       className={styles.card}
-                      onClick={shop ? () => openStop(stop, shop) : undefined}
+                      onClick={shop ? () => openStop(stop) : undefined}
                       aria-disabled={shop ? undefined : true}
                     >
                       <span className={styles.cardRow}>
@@ -541,12 +566,20 @@ export function OsanAiCourseResult({ controller }: Props): JSX.Element {
                         </span>
                       </span>
                     </button>
-                    {next && (
+                    {/* As on 제주's course (JejuAiDetail legOf / legKmOf): a leg with no
+                        walk draws no pill, and a leg with no distance no distance line.
+                        Walks inside the market are tens of metres, which km rounds to
+                        "0.0km" — under 1 km the line is in metres. */}
+                    {next && next.travelMinutes > 0 && (
                       <span className={styles.travel}>
                         <span>{minutesLabel(next.travelMinutes, lang)}</span>
-                        <span>
-                          {next.travelKm < 10 ? next.travelKm.toFixed(1) : String(Math.round(next.travelKm))}km
-                        </span>
+                        {next.travelKm > 0 && (
+                          <span>
+                            {next.travelKm < 1
+                              ? `${Math.round(next.travelKm * 1000)}m`
+                              : `${next.travelKm < 10 ? next.travelKm.toFixed(1) : String(Math.round(next.travelKm))}km`}
+                          </span>
+                        )}
                       </span>
                     )}
                   </div>

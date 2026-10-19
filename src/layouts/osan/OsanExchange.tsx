@@ -2,7 +2,8 @@ import { useState } from 'react';
 import type { KioskController } from '@renderer/hooks/useKioskController';
 import { osanIconUrl } from '@renderer/assets/icons/osan';
 import { useLang, type Lang } from '@renderer/lib/i18n';
-import { ui } from '@renderer/lib/uiText';
+import { ui, type UiTextKey } from '@renderer/lib/uiText';
+import { tExact } from '@renderer/lib/loc';
 import { useExchangeStore } from '@renderer/store/exchangeStore';
 import type { ExchangeSnapshot } from '@shared/types/exchange';
 import jpnFlag from '@renderer/assets/photos/insadong/exchange/jpn.svg';
@@ -105,6 +106,18 @@ function CurrencyFlag({ c, className }: { c: Currency; className?: string }): JS
   return c.flag === null ? <KrwFlag /> : <img className={className} src={c.flag} alt="" draggable={false} />;
 }
 
+/**
+ * Label from Localization_Osaek (`Exchange_tab_*` / `Exchange_desc_*`) with the
+ * shared uiText copy behind it for an empty cell. `colon`: the field labels are
+ * drawn as "금액:" — the sheet stores "금액", so the colon is added here (never
+ * doubled if a cell already ends in one).
+ */
+function exchangeLabel(key: string, fallback: UiTextKey, lang: Lang, colon = false): string {
+  const sheet = tExact(key, lang);
+  if (!sheet) return ui(fallback, lang);
+  return colon ? `${sheet.replace(/\s*[:：]\s*$/, '')}:` : sheet;
+}
+
 interface OsanExchangeProps {
   controller: KioskController;
 }
@@ -188,14 +201,14 @@ export function OsanExchange({ controller }: OsanExchangeProps): JSX.Element {
           className={`${styles.tab} ${view === 'live' ? styles.tabSelected : ''}`}
           onClick={() => setView('live')}
         >
-          {ui('exchangeTabLive', lang)}
+          {exchangeLabel('Exchange_tab_1', 'exchangeTabLive', lang)}
         </button>
         <button
           type="button"
           className={`${styles.tab} ${view === 'calc' ? styles.tabSelected : ''}`}
           onClick={() => setView('calc')}
         >
-          {ui('exchangeTabCalc', lang)}
+          {exchangeLabel('Exchange_tab_2', 'exchangeTabCalc', lang)}
         </button>
       </div>
 
@@ -219,7 +232,7 @@ export function OsanExchange({ controller }: OsanExchangeProps): JSX.Element {
       ) : (
         <div className={calcLow ? styles.calcLow : undefined} style={calcLow ? undefined : { display: 'contents' }}>
           <div className={styles.baseBox}>
-            <p className={styles.baseTitle}>{ui('exchangeBaseRate', lang)}</p>
+            <p className={styles.baseTitle}>{exchangeLabel('Exchange_desc_1', 'exchangeBaseRate', lang)}</p>
             <p className={styles.baseRate}>{baseText}</p>
           </div>
           <p className={styles.stamp} style={{ top: 1204, right: 893 }}>
@@ -227,7 +240,7 @@ export function OsanExchange({ controller }: OsanExchangeProps): JSX.Element {
           </p>
 
           <p className={styles.fieldLabel} style={{ top: 1244 }}>
-            {ui('exchangeAmountLabel', lang)}
+            {exchangeLabel('Exchange_desc_2', 'exchangeAmountLabel', lang, true)}
           </p>
           <div className={`${styles.field} ${styles.fieldAmount}`} style={{ top: 1381 }} onClick={() => setKeypadOpen(true)}>
             {amount === '' ? (
@@ -263,7 +276,7 @@ export function OsanExchange({ controller }: OsanExchangeProps): JSX.Element {
           </button>
 
           <p className={styles.fieldLabel} style={{ top: 1855 }}>
-            {ui('exchangeResultLabel', lang)}
+            {exchangeLabel('Exchange_desc_3', 'exchangeResultLabel', lang, true)}
           </p>
           <div className={`${styles.field} ${styles.fieldResult}`}>
             {amount === '' ? (

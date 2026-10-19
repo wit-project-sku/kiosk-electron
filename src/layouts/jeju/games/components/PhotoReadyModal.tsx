@@ -11,11 +11,15 @@
  *   다시찍기  → the 한복 picker again, i.e. the kiosk's photo reset
  *
  * Both labels are the sheet's own `Photo_Save` / `Photo_Home` rows. The
- * sentence has no row, so it is authored here in the eight languages.
+ * sentence reads `Photo_popup_title_Complete` ("사진이 완성됐어요!") where the
+ * location's sheet has it (인사동 / 오색 / 화성 do); `Photo_popup_desc_Complete`
+ * ("게임을 계속하다가…") is the 제주 bottom sheet's keep-playing line and does
+ * not fit this blocking card, so it is not used. MESSAGE covers languages and
+ * sheets without the row.
  */
 import { useLang } from '@renderer/lib/i18n';
 import type { Lang } from '@renderer/lib/i18n';
-import { sheetText } from '@renderer/lib/loc';
+import { sheetText, tExact } from '@renderer/lib/loc';
 import styles from './PhotoReadyModal.module.css';
 
 type L8 = Partial<Record<Lang, string>>;
@@ -54,7 +58,7 @@ export function PhotoReadyModal({ onSave, onRetake }: Props): JSX.Element {
   return (
     <div className={styles.scrim}>
       <section className={styles.card} role="dialog" aria-modal="true">
-        <p className={styles.message}>{sheetText('Photo_popup_message_Complete', lang, MESSAGE)}</p>
+        <p className={styles.message}>{tExact('Photo_popup_message_Complete', lang) || sheetText('Photo_popup_title_Complete', lang, MESSAGE)}</p>
         <div className={styles.actions}>
           <button type="button" className={`${styles.btn} ${styles.save}`} onClick={onSave}>
             {sheetText('Photo_Save', lang, SAVE)}

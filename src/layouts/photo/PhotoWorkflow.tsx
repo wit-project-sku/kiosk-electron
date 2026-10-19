@@ -19,7 +19,7 @@ import { JejuHanbokSelect } from '../jeju/JejuHanbokSelect';
 import { JejuWaitingGames } from '../jeju/games/JejuWaitingGames';
 import { usePhotoChrome } from './photoChrome';
 import { OsanLeftNav } from '@layouts/osan/OsanLeftNav';
-import { MARKET_SUBTITLE, RESULT, RESULT_KADA } from './photoTexts';
+import { MARKET_SUBTITLE, RESULT_KADA, resultFromSheet } from './photoTexts';
 import styles from './PhotoWorkflow.module.css';
 
 /** Where the 굿즈제작 button's QR points. */
@@ -324,10 +324,10 @@ export function PhotoWorkflow(): JSX.Element {
             />
           </svg>
           <button type="button" className={styles.paySaveBtn} onClick={() => setSaveQrOpen(true)}>
-            {pick(RESULT, lang).save}
+            {resultFromSheet(lang).save}
           </button>
           <button type="button" className={styles.payRetakeBtn} onClick={handleReset}>
-            {pick(RESULT, lang).retake}
+            {resultFromSheet(lang).retake}
           </button>
         </div>
 
@@ -390,7 +390,9 @@ export function PhotoWorkflow(): JSX.Element {
   // ── Result (W001/W002/W005 + KADA): show the result image + QR to save.
   //    W005 lands here DESPITE its card terminal — see showsMarketResult above. ──
   if (phase === 'result') {
-    const c = pick(isKada ? RESULT_KADA : RESULT, lang);
+    /* KADA has no Localization sheet; every other venue reads its own sheet's
+       Photo_* rows over the authored RESULT copy. */
+    const c = isKada ? pick(RESULT_KADA, lang) : resultFromSheet(lang);
     const imageUrl = resultUrl ?? (resultFileName ? generatedUrl(resultFileName) : '');
     const saveUrl = saveQrUrl(resultShareUrl, imageUrl);
 

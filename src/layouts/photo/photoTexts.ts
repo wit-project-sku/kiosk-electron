@@ -1,4 +1,5 @@
-import type { Lang } from '@renderer/lib/i18n';
+import { pick, type Lang } from '@renderer/lib/i18n';
+import { tExact } from '@renderer/lib/loc';
 
 export interface ResultCopy {
   subtitle: string;
@@ -110,6 +111,50 @@ export const RESULT: Partial<Record<Lang, ResultCopy>> = {
     retake: 'Foto ulang',
   },
 };
+
+/** A sheet cell's literal "\n" (typed into the cell as text) as a real break. */
+const sheetBreaks = (s: string): string => s.replace(/\\n/g, '\n');
+/** Drop every `<b>` / `<color=…>` tag, balanced or not. */
+const stripSheetTags = (s: string): string => s.replace(/<\/?(?:b|color)(?:=[^>]*)?>/gi, '');
+
+/**
+ * Split `Photo_QRExplain` ("사진을 저장하려면 <color=#FE6C50>QR을 카메라로 찍어주세요!</color>")
+ * into the hint's plain lead and its accent-coloured clause. A cell without a
+ * colour span is all lead; any text after `</color>` stays with the accent so
+ * nothing is dropped.
+ */
+function splitSaveHint(cell: string): { lead: string; accent: string } {
+  const m = /^([\s\S]*?)<color=[^>]*>([\s\S]*?)<\/color>([\s\S]*)$/i.exec(cell);
+  if (!m) return { lead: stripSheetTags(cell), accent: '' };
+  return { lead: stripSheetTags(m[1] ?? ''), accent: stripSheetTags((m[2] ?? '') + (m[3] ?? '')) };
+}
+
+/**
+ * The 저장하기 result copy with the location's Localization sheet laid over
+ * `RESULT`, per language: Photo_ResultSubHeader, Photo_QRExplain, Photo_SNS,
+ * Photo_Save, Photo_Goods, Photo_Home. A cell the sheet leaves empty keeps the
+ * authored line. KADA has no sheet — callers keep `RESULT_KADA` for it.
+ */
+export function resultFromSheet(lang: Lang): ResultCopy {
+  const base = pick(RESULT, lang);
+  const hint = tExact('Photo_QRExplain', lang);
+  const sns = tExact('Photo_SNS', lang);
+  const note = sns
+    ? stripSheetTags(sheetBreaks(sns))
+        .split('\n')
+        .map((l) => l.trim())
+        .filter(Boolean)
+    : [];
+  return {
+    ...base,
+    subtitle: stripSheetTags(tExact('Photo_ResultSubHeader', lang)) || base.subtitle,
+    saveHint: hint ? splitSaveHint(hint) : base.saveHint,
+    note: note.length ? note : base.note,
+    save: stripSheetTags(tExact('Photo_Save', lang)) || base.save,
+    goods: stripSheetTags(tExact('Photo_Goods', lang)) || base.goods,
+    retake: stripSheetTags(tExact('Photo_Home', lang)) || base.retake,
+  };
+}
 
 export interface HanbokInfo {
   heading: string;
@@ -329,3 +374,40 @@ export const RESULT_KADA: Partial<Record<Lang, ResultCopy>> = {
     retake: 'Chụp lại',
   },
 };
+
+/** The sheet's paragraph mark (U+2028, LINE SEPARATOR). */
+const PARA_MARK = String.fromCharCode(0x2028);
+
+/**
+ * 개인정보 처리방침 as the Localization sheet writes it (`Photo_PrivacyPolicyContent`):
+ * the title on the first line, then blank-line separated sections, each a
+ * "N. 제목" line followed by its lines. `null` when the cell is empty, so the
+ * authored {@link PRIVACY} copy covers that language.
+ */
+export function parsePrivacySheet(text: string): PrivacyPolicy | null {
+  const lines = text.split(PARA_MARK).join('\n').split('\n').map((l) => l.trim());
+  const title = lines.find((l) => l !== '');
+  if (!title) return null;
+  const sections: PrivacySection[] = [];
+  for (const line of lines.slice(lines.indexOf(title) + 1)) {
+    if (line === '') continue;
+    if (/^\d+\s*\./.test(line) || sections.length === 0) sections.push({ title: line, lines: [] });
+    else sections[sections.length - 1]!.lines.push(line);
+  }
+  return sections.length > 0 ? { title, sections } : null;
+}
+
+/**
+ * 한복 설명 body from the sheet (`HanbokExplain_Content`). The cell breaks lines
+ * where its own mock-up wrapped; paragraphs are split on the sheet's paragraph
+ * marks (U+2028 or a blank line) and the line breaks inside one are reflowed, so
+ * the card wraps the text to its own width. `null` when the cell is empty.
+ */
+export function parseHanbokSheet(text: string): string[] | null {
+  const paras = text
+    .split(PARA_MARK).join('\n\n')
+    .split(/\n\s*\n/)
+    .map((p) => p.replace(/\s*\n\s*/g, ' ').replace(/\s{2,}/g, ' ').trim())
+    .filter(Boolean);
+  return paras.length > 0 ? paras : null;
+}

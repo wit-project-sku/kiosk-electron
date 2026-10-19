@@ -14,7 +14,7 @@ import type { SupportedLanguage } from '@shared/types/kiosk';
 import type { KioskController } from '@renderer/hooks/useKioskController';
 import { useLanguageStore } from '@renderer/store/languageStore';
 import { useAccessibilityStore } from '@renderer/store/accessibilityStore';
-import { sheetText, t } from '@renderer/lib/loc';
+import { sheetText, t, tExact } from '@renderer/lib/loc';
 import { ui } from '@renderer/lib/uiText';
 import { hwaseongIconUrl } from '@renderer/assets/icons/hwaseong';
 import { useTaxfreeBodyLayout } from '@renderer/hooks/useTaxfreeBodyLayout';
@@ -186,7 +186,8 @@ export function HwaseongTaxFree({ controller }: Props): JSX.Element {
         subtitle={
           activeTab === 'merchant'
             ? sheetText('Taxfree_header2', lang, MERCHANT_SUBTITLE)
-            : sheetText('Taxfree_header1', lang, REFUND_SUBTITLE)
+            : // The 2026-10-19 rebuild renamed Taxfree_header1 to Taxfree_desc1.
+              tExact('Taxfree_desc1', lang) || sheetText('Taxfree_header1', lang, REFUND_SUBTITLE)
         }
         subtitleClassName={`${headerStyles.subtitleTaxfree} ${headerStyles.subtitleWide}`}
         subtitleRef={subtitleRef}

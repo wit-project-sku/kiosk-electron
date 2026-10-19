@@ -82,17 +82,16 @@ const say = (table: L8, lang: Lang): string => table[toLocalizedLang(lang)];
  * Same keys InsadongAbout reads (`Here_History_Introduce_*`, `Here_HistoryFlow`,
  * `Here_History_epoch1..6`, `Here_HistoryContent_1|2_*`,
  * `Here_Culture_Introduce_*`, `Here_Culture_Content_1..4_*`), so 오색's operator
- * can override any block from Localization_Osaek without a release. Today that
- * sheet has none of them — only the one-paragraph `Here_HistoryContent` /
- * `Here_CultureContent`, which is NOT this copy — so the authored tables below
- * (Figma 오산>여기는오색시장-02 / -03, 7862:45100 / 45184) are what shows.
+ * can override any block from Localization_Osaek without a release. The
+ * authored tables below (Figma 오산>여기는오색시장-02 / -03, 7862:45100 / 45184)
+ * show wherever the sheet has no row for that language.
  * `tExact`, not `t`: a missing row must read as absent so the fallback runs.
  */
 const sheet = (key: string, fallback: L8, lang: Lang): string => tExact(key, lang) || say(fallback, lang);
 const sheetAt = (key: string, n: number, field: string, fallback: L8, lang: Lang): string =>
   tExact(`${key}_${n}_${field}`, lang) || say(fallback, lang);
 
-/** Tab labels of the frame (7862:44928). */
+/** Tab labels of the frame (7862:44928) — fallback for `Here_Attraction` / `Here_Culture`. */
 const TAB_ATTRACTION = L('관광명소', 'Attractions', '観光名所', '旅游景点', 'Điểm tham quan', 'สถานที่ท่องเที่ยว', 'Достопримечательности', 'Objek wisata');
 const TAB_CULTURE = L('문화', 'Culture', '文化', '文化', 'Văn hóa', 'วัฒนธรรม', 'Культура', 'Budaya');
 
@@ -586,13 +585,12 @@ export function OsanAbout({ controller }: OsanAboutProps): JSX.Element {
     });
   }, [pinned, listed]);
 
-  /* Localization_Osaek's `Here_Attraction` / `Here_Culture` rows still carry the
-     previous page's tab names (현재와 미래 / 특징), so those two use the frame's
-     labels; `Here_History` (역사) already matches and stays on the sheet. */
+  /* Tab labels from Localization_Osaek (`Here_Attraction` / `Here_History` /
+     `Here_Culture`); the frame's labels cover a language the sheet leaves empty. */
   const tabs: { id: AboutTab; label: string }[] = [
-    { id: 'attraction', label: say(TAB_ATTRACTION, lang) },
+    { id: 'attraction', label: sheet('Here_Attraction', TAB_ATTRACTION, lang) },
     { id: 'history', label: t('Here_History', lang) },
-    { id: 'culture', label: say(TAB_CULTURE, lang) },
+    { id: 'culture', label: sheet('Here_Culture', TAB_CULTURE, lang) },
   ];
 
   const selectTab = (id: AboutTab): void => {

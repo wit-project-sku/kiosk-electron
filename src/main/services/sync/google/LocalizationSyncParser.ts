@@ -235,6 +235,38 @@ function headerLangCols(rows: string[][]): Array<{ lang: SupportedLanguage; inde
   return found;
 }
 
+const THAI = /[฀-๿]/;
+const CYRILLIC = /[Ѐ-ӿ]/;
+
+/**
+ * The th/ru/id columns for ONE row. The header names them, but a tab can hold
+ * rows typed in an older column order: Localization_Hwaseong's header reads
+ * vi, id, th, ru while 67 of its rows (Photo_*, Taxfree_*, Search_*, …) still
+ * carry Thai under "Indonesian", Russian under "Thai" and Indonesian under
+ * "Russian". Thai and Russian are told apart by script, so when the row's Thai
+ * text and Russian text sit in two of those three columns, they are read from
+ * there and Indonesian from the third. Anything less certain keeps the header's
+ * columns. Mirrored in scripts/sync-sheet.mjs (rowLangCols).
+ */
+function rowLangCols(
+  row: string[],
+  cols: Array<{ lang: SupportedLanguage; index: number }>,
+): Array<{ lang: SupportedLanguage; index: number }> {
+  const at = (lang: SupportedLanguage): number | undefined => cols.find((c) => c.lang === lang)?.index;
+  const th = at('th');
+  const ru = at('ru');
+  const id = at('id');
+  if (th == null || ru == null || id == null) return cols;
+  const trio = [th, ru, id];
+  const thaiAt = trio.find((i) => THAI.test(row[i] ?? ''));
+  const russianAt = trio.find((i) => CYRILLIC.test(row[i] ?? ''));
+  if (thaiAt == null || russianAt == null || thaiAt === russianAt) return cols;
+  if (thaiAt === th && russianAt === ru) return cols;
+  const idAt = trio.find((i) => i !== thaiAt && i !== russianAt)!;
+  const moved: Partial<Record<SupportedLanguage, number>> = { th: thaiAt, ru: russianAt, id: idAt };
+  return cols.map((c) => (moved[c.lang] != null ? { lang: c.lang, index: moved[c.lang]! } : c));
+}
+
 /**
  * Parses a Localization tab into per-language `{ key: text }` maps. Header /
  * blank-key rows are skipped; empty cells are omitted (the renderer falls back
@@ -264,7 +296,7 @@ export function parseLocalizationSheet(rows: string[][], layout: KioskLayoutId):
     if (seen.has(key)) continue;
     seen.add(key);
 
-    for (const { lang, index } of cols) {
+    for (const { lang, index } of rowLangCols(row, cols)) {
       const raw = (row[index] ?? '').replace(/ /g, ' ').trim();
       // Correct any residual other-venue mascot name — see renameMascot.
       const text = mascots ? renameMascot(raw, mascots) : raw;

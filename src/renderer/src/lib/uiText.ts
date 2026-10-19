@@ -515,6 +515,66 @@ const UI_TEXT = {
     ru: '# В тёмную или пасмурную погоду ИИ-фото может выглядеть неестественно',
     id: '# Saat gelap atau mendung, hasil foto AI bisa kurang alami',
   },
+  // ── 화성휴게소 home 도로교통상황 board (GET /api/traffic/expressway) ─────
+  // No Localization_Hwaseong rows exist for the board. The server's typeName /
+  // road / direction / location / message are Korean source text; only the
+  // headers and the type labels (현황 outside Korean) are translated here.
+  trafficBoardTitle: {
+    ko: '도로교통상황', en: 'Road Traffic', ja: '道路交通状況', zh: '道路交通状况',
+    vi: 'Giao thông', th: 'สภาพจราจร', ru: 'Дорожная обстановка', id: 'Lalu Lintas Jalan',
+  },
+  trafficHeadRoad: {
+    ko: '노선', en: 'Route', ja: '路線', zh: '路线',
+    vi: 'Tuyến', th: 'เส้นทาง', ru: 'Трасса', id: 'Rute',
+  },
+  trafficHeadDirection: {
+    ko: '방향', en: 'Direction', ja: '方向', zh: '方向',
+    vi: 'Hướng', th: 'ทิศทาง', ru: 'Направление', id: 'Arah',
+  },
+  trafficHeadLocation: {
+    ko: '위치', en: 'Location', ja: '場所', zh: '位置',
+    vi: 'Vị trí', th: 'ตำแหน่ง', ru: 'Место', id: 'Lokasi',
+  },
+  trafficHeadStatus: {
+    ko: '현황', en: 'Status', ja: '状況', zh: '状况',
+    vi: 'Tình trạng', th: 'สถานะ', ru: 'Ситуация', id: 'Status',
+  },
+  trafficNone: {
+    ko: '특이사항 없음', en: 'No incidents', ja: '特になし', zh: '暂无异常',
+    vi: 'Không có sự cố', th: 'ไม่มีเหตุการณ์ผิดปกติ', ru: 'Без происшествий', id: 'Tidak ada gangguan',
+  },
+  trafficMore: {
+    ko: '교통정보 더보기', en: 'More traffic info', ja: '交通情報をもっと見る', zh: '查看更多路况',
+    vi: 'Xem thêm thông tin giao thông', th: 'ดูข้อมูลจราจรเพิ่มเติม', ru: 'Подробнее о дорогах', id: 'Info lalu lintas selengkapnya',
+  },
+  trafficTypeCongestion: {
+    ko: '정체', en: 'Congestion', ja: '渋滞', zh: '拥堵',
+    vi: 'Ùn tắc', th: 'รถติด', ru: 'Пробка', id: 'Kemacetan',
+  },
+  trafficTypeAccident: {
+    ko: '사고', en: 'Accident', ja: '事故', zh: '事故',
+    vi: 'Tai nạn', th: 'อุบัติเหตุ', ru: 'ДТП', id: 'Kecelakaan',
+  },
+  trafficTypeWork: {
+    ko: '작업', en: 'Roadwork', ja: '工事', zh: '施工',
+    vi: 'Thi công', th: 'งานซ่อมถนน', ru: 'Ремонт дороги', id: 'Perbaikan jalan',
+  },
+  trafficTypeObstacle: {
+    ko: '장애물', en: 'Obstacle', ja: '障害物', zh: '障碍物',
+    vi: 'Chướng ngại vật', th: 'สิ่งกีดขวาง', ru: 'Препятствие', id: 'Rintangan',
+  },
+  trafficTypeWeather: {
+    ko: '기상', en: 'Weather', ja: '気象', zh: '天气',
+    vi: 'Thời tiết', th: 'สภาพอากาศ', ru: 'Погода', id: 'Cuaca',
+  },
+  trafficTypeNotice: {
+    ko: '공지', en: 'Notice', ja: 'お知らせ', zh: '公告',
+    vi: 'Thông báo', th: 'ประกาศ', ru: 'Объявление', id: 'Pemberitahuan',
+  },
+  trafficTypeOther: {
+    ko: '교통정보', en: 'Traffic info', ja: '交通情報', zh: '交通信息',
+    vi: 'Giao thông', th: 'ข้อมูลจราจร', ru: 'Дорожная информация', id: 'Info lalu lintas',
+  },
 } satisfies Record<string, Record<LocalizedLang, string>>;
 
 export type UiTextKey = keyof typeof UI_TEXT;

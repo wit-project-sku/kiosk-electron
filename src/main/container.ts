@@ -41,6 +41,7 @@ import { SailingService } from './services/SailingService';
 import { ExchangeService } from './services/ExchangeService';
 import { SubtitleService } from './services/SubtitleService';
 import { EventsService } from './services/EventsService';
+import { TrafficService } from './services/TrafficService';
 import { SyncService } from './services/sync/SyncService';
 import { CameraService } from './services/camera/CameraService';
 import { CaptureService } from './services/camera/CaptureService';
@@ -97,6 +98,8 @@ export interface AppContainer {
   insaCourse: InsaCourseService;
   stats: StatsService;
   events: EventsService;
+  /** 화성휴게소 도로교통상황 — live, last good value kept. */
+  traffic: TrafficService;
   updater: UpdateService;
   updateCommands: UpdateCommandService;
   /** 유동인구 — anonymous passer-by counting (camera pipeline lives in the renderer). */
@@ -150,6 +153,7 @@ export function createContainer(): AppContainer {
   const exchange = new ExchangeService(cache);
   const subtitles = new SubtitleService(cache, kiosk);
   const events = new EventsService();
+  const traffic = new TrafficService();
 
   const display = new DisplayService();
   const camera = new CameraService();
@@ -240,6 +244,7 @@ export function createContainer(): AppContainer {
     insaCourse,
     stats,
     events,
+    traffic,
     updater,
     updateCommands,
     footfall,

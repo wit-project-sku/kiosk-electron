@@ -14,6 +14,7 @@ import { ui, uiParts, type UiTextKey } from '@renderer/lib/uiText';
 import { HwaseongHeader } from './HwaseongHeader';
 import { HwaseongLeftNav } from './HwaseongLeftNav';
 import { HwaseongPageBg } from './HwaseongPageBg';
+import { mbtiGuideText, mbtiHintText, mbtiLabel, mbtiSubmitText, renderSheetLines, type MbtiAxis } from '@layouts/components/eventSheetText';
 import styles from './HwaseongEvents.module.css';
 
 /** Region tabs → API eventRegion (MBTI has no region; it opens the quiz).
@@ -43,7 +44,6 @@ const PAGE_SIZE = 30;
 /** One grid row: poster 683.286 + title/venue + row gap (1088 → 1952). */
 const ROW_PITCH = 864;
 
-type MbtiAxis = 'E' | 'I' | 'S' | 'N' | 'T' | 'F' | 'J' | 'P';
 const MBTI_PAIRS: [MbtiAxis, MbtiAxis][] = [
   ['E', 'I'],
   ['S', 'N'],
@@ -110,7 +110,7 @@ function MbtiSection({ onOpenQr, region }: MbtiSectionProps): JSX.Element {
             onClick={() => toggle(letter)}
           >
             <span className={styles.mbtiLetter}>{letter}</span>
-            <span className={styles.mbtiLabel}>{ui(MBTI_LABEL_KEYS[letter], lang)}</span>
+            <span className={styles.mbtiLabel}>{mbtiLabel(letter, lang, MBTI_LABEL_KEYS[letter])}</span>
           </button>
         ))}
       </div>
@@ -122,27 +122,28 @@ function MbtiSection({ onOpenQr, region }: MbtiSectionProps): JSX.Element {
         </div>
       ) : (
         <button type="button" className={styles.mbtiCta} onClick={() => void getResults()}>
-          {ui('mbtiSubmit', lang)}
+          {mbtiSubmitText(lang)}
         </button>
       )}
 
       <p className={styles.mbtiDesc}>
-        {/* "{region}" is substituted here so the accent span survives translation. */}
-        {uiParts('mbtiIntro', lang)[0]}
-        <span className={styles.mbtiAccent}>
-          {`${t('Event_Tab_Hwaseong', lang)} ${t('MainButton_Event', lang)}`}
-        </span>
-        {uiParts('mbtiIntro', lang)[1]}
-        <br />
-        <br />
-        {ui('mbtiHint', lang)
-          .split('\n')
-          .map((line, i, all) => (
-            <span key={i}>
-              {line}
-              {i < all.length - 1 && <br />}
+        {/* Event_MBTI_guide1 / guide2 from the sheet; an empty guide1 cell keeps
+            the authored sentence below. */}
+        {mbtiGuideText(lang) ? (
+          renderSheetLines(mbtiGuideText(lang), [t('MainButton_Event', lang), `${t('Event_Tab_Hwaseong', lang)} ${t('MainButton_Event', lang)}`], styles.mbtiAccent)
+        ) : (
+          <>
+            {/* "{region}" is substituted here so the accent span survives translation. */}
+            {uiParts('mbtiIntro', lang)[0]}
+            <span className={styles.mbtiAccent}>
+              {`${t('Event_Tab_Hwaseong', lang)} ${t('MainButton_Event', lang)}`}
             </span>
-          ))}
+            {uiParts('mbtiIntro', lang)[1]}
+          </>
+        )}
+        <br />
+        <br />
+        {renderSheetLines(mbtiHintText(lang))}
       </p>
 
       {status === 'results' && (
@@ -387,7 +388,7 @@ export function HwaseongEvents({ controller }: HwaseongEventsProps): JSX.Element
             <div className={styles.qrImg}>
               <img src={qrCodeImg} alt="QR" draggable={false} />
             </div>
-            <p className={styles.qrSource}>{ui('eventSource', lang)}</p>
+            <p className={styles.qrSource}>{sheetText('Event_Source', lang, { [lang]: ui('eventSource', lang) })}</p>
           </div>
         </>
       )}
