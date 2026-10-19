@@ -39,6 +39,8 @@ module.exports = {
     'no-console': ['warn', { allow: ['warn', 'error'] }],
     'react/prop-types': 'off',
     'react-hooks/exhaustive-deps': 'warn',
+    // Electron's <webview> attributes (partition, allowpopups …) are not in React's DOM list.
+    'react/no-unknown-property': ['error', { ignore: ['partition', 'allowpopups', 'useragent'] }],
   },
   ignorePatterns: ['out', 'dist', 'node_modules', '*.cjs', 'release'],
 };

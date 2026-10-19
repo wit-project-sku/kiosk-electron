@@ -61,8 +61,9 @@ export function registerKioskHandlers(windows: WindowManager, container: AppCont
   // tools/location-tester): persist the new kioskId, then make the running app
   // become that kiosk.
   handle(IpcChannels.KioskSwitchLocation, async ({ kioskId }) => {
-    if (!isDevMode()) {
-      throw AppError.validation('Kiosk switching is only available in dev mode.');
+    const testRig = kioskConfigStore.get().testRig === true;
+    if (!isDevMode() && !testRig) {
+      throw AppError.validation('Kiosk switching is only available in dev mode or on the test rig.');
     }
     if (!(kioskId in KIOSK_LOCATIONS)) {
       throw AppError.validation(`Unknown kiosk location: ${kioskId}`, { kioskId });
@@ -71,7 +72,12 @@ export function registerKioskHandlers(windows: WindowManager, container: AppCont
     const current = kioskConfigStore.get().kioskId;
     if (kioskId === current) return true;
 
-    kioskConfigStore.update({ kioskId });
+    if (testRig) {
+      // The test rig keeps its identity (W200); only the site it shows changes.
+      kioskConfigStore.update({ previewSite: kioskId } as never);
+    } else {
+      kioskConfigStore.update({ kioskId });
+    }
     // Drop the previous location's shop-API id so it re-derives from the new
     // kioskId (W004 must not keep W003's id).
     kioskConfigStore.delete('shopApiKioskId');
@@ -104,6 +110,12 @@ export function registerKioskHandlers(windows: WindowManager, container: AppCont
       container.backgrounds.refresh(),
       container.flights.refreshIfJeju(),
       container.sailings.refreshIfTerminal(),
+      // 틀린그림찾기 puzzles are cached per kiosk; the new one needs its own set.
+      container.spotDiff.refresh(),
+      // The new location's Localization sheet — its sync also drops the old
+      // location's strings (clearStaleTranslations), so the reloaded screens
+      // read the right venue's copy instead of the previous one's.
+      container.sync.syncContentNow(),
     ]);
     windows.reloadAll();
     windows.broadcast(IpcEvents.ShopsChanged, null);

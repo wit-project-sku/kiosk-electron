@@ -9,6 +9,7 @@ import Store from 'electron-store';
 import type { KioskConfig } from '@shared/types/kiosk';
 import { DEFAULT_KIOSK_CONFIG } from '@shared/constants';
 import { getKioskLayout } from '@shared/config/kioskLocations';
+import { resolveKioskIdentity } from '@shared/config/testRig';
 import { witteriaApiBase } from './apiBase';
 
 let store: Store<Partial<KioskConfig>> | null = null;
@@ -33,11 +34,25 @@ export const kioskConfigStore = {
     // which writes {"kioskId":"W00x"} to %APPDATA%\kiosk-app\kiosk-config.json.
     // The default only applies to a machine that has not been provisioned yet.
     const s = getStore();
-    const kioskId = (s.get('kioskId') as string | undefined)?.trim() || DEFAULT_KIOSK_CONFIG.kioskId;
+    const storedId = (s.get('kioskId') as string | undefined)?.trim() || DEFAULT_KIOSK_CONFIG.kioskId;
+    // The office test rig (W200) keeps its identity but shows a switchable preview site.
+    const { kioskId, identityKioskId, testRig } = resolveKioskIdentity(
+      storedId,
+      (s.get('previewSite' as never) as string | undefined)?.trim(),
+    );
+    const testRigPayment = testRig && s.get('testRigPayment' as never) === true;
     const rawShopId = s.get('shopApiKioskId');
     const shopApiKioskId = Number.isFinite(Number(rawShopId)) ? Number(rawShopId) : undefined;
     // `apiBase` is derived like `layout`, not stored — see KioskConfig.apiBase.
-    return { kioskId, layout: getKioskLayout(kioskId), shopApiKioskId, apiBase: witteriaApiBase() };
+    return {
+      kioskId,
+      identityKioskId,
+      testRig,
+      testRigPayment,
+      layout: getKioskLayout(kioskId),
+      shopApiKioskId,
+      apiBase: witteriaApiBase(),
+    };
   },
 
   update(changes: Partial<KioskConfig>): KioskConfig {

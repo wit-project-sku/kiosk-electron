@@ -40,6 +40,9 @@ export interface GeneratePhotoResult {
   resultFileName: string;
   /** Public phone-openable URL of the result, when the AI returns one. */
   resultUrl: string | null;
+  /** Phone pickup page for the QR (the upload's data.shareUrl); null → the
+   *  QR falls back to withphoto.vercel.app/?imageUrl=. */
+  resultShareUrl: string | null;
 }
 
 type ProgressCallback = (message: string) => void;
@@ -88,7 +91,9 @@ export class PhotoGenerationService {
       // The AR API returns only image bytes, so upload to a public host to get a
       // phone-openable URL for the save QR (falls back to the API URL if it ever
       // provides one).
-      const resultUrl = publicUrl ?? (await this.imageHost.upload(resultBuffer, fileName));
+      const uploaded = publicUrl ? null : await this.imageHost.upload(resultBuffer, fileName);
+      const resultUrl = publicUrl ?? uploaded?.imageUrl ?? null;
+      const resultShareUrl = uploaded?.shareUrl ?? null;
 
       const session = this.sessions.create({
         sessionId,
@@ -119,8 +124,9 @@ export class PhotoGenerationService {
         // Phone QR: the public URL (from the host upload, since the AR API only
         // returns bytes). null means the upload failed → QR falls back to local.
         resultUrl: resultUrl ?? '(none — public upload failed)',
+        resultShareUrl,
       });
-      return { session, resultFileName: fileName, resultUrl };
+      return { session, resultFileName: fileName, resultUrl, resultShareUrl };
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Generation failed';
       this.analytics.track({

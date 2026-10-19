@@ -9,8 +9,8 @@ import iconAlarm from '@renderer/assets/photos/insadong/ai/icon-alarm.png';
 import { useAiStore } from '@renderer/store/aiStore';
 import { useShopStore } from '@renderer/store/shopStore';
 import { useDetailStore } from '@renderer/store/detailStore';
-import { getKioskLocation } from '@shared/config/kioskLocations';
 import { pick as pickLang, useLang } from '@renderer/lib/i18n';
+import { kioskPlaceName } from '@renderer/lib/kioskName';
 import type { Lang } from '@renderer/lib/i18n';
 import { sheetText } from '@renderer/lib/loc';
 import { buildAiCourseSaveUrlForQr } from '@renderer/lib/aiCourseSave';
@@ -40,7 +40,7 @@ import styles from './InsadongAiCourseResult.module.css';
  * and timeline under 실시간 / 일반 코스 tabs (no DAY pager), and a summary bar of
  * 총 소요시간 · 이동거리 · 방문 인원 · 일정.
  *
- * The routes are `POST /api/insa/courses/recommend/v2`'s answer, made by the
+ * The routes are `POST /api/courses/recommend` (by region)'s answer, made by the
  * builder and left in the store (`insaCourse`), each normalised into {@link Stop}:
  * 실시간 코스 (scheduled from now, against opening hours — empty with a reason
  * when nothing is open) and 일반 코스 (clock-free). ONE day, walking, so there is
@@ -440,7 +440,7 @@ export function InsadongAiCourseResult({ controller }: Props): JSX.Element {
         <div className={styles.inner}>
           {/* 7681:59356 — "출발 지점 > …": the course starts at this kiosk. */}
           <div className={styles.origin}>
-            {line('Insa_Todo_result_Start', TEXT.start)} &gt; {getKioskLocation(kioskId).name}
+            {line('Insa_Todo_result_Start', TEXT.start)} &gt; {kioskPlaceName(kioskId, lang)}
           </div>
 
           {stops.length === 0 ? (

@@ -1,9 +1,11 @@
-import { useState, type ReactNode } from 'react';
+import { useRef, useState, type ReactNode } from 'react';
 import { QRCodeSVG } from 'qrcode.react';
 import iconNaver from '@renderer/assets/photos/insadong/ai/icon-naver.png';
 import qrImg from '@renderer/assets/photos/insadong/ai/detail-qr.png';
 import { osanIconUrl } from '@renderer/assets/icons/osan';
 import { padImages } from '@renderer/lib/shops';
+import { useLang } from '@renderer/lib/i18n';
+import { useFitText } from '@layouts/components/fitText';
 import { ImageLightbox } from '../components/ImageLightbox';
 import styles from './OsanSpotDetailCard.module.css';
 
@@ -60,7 +62,12 @@ export function OsanSpotDetailCard({
   // See SpotDetailCard: shop rows can carry a null address/tags, and a string
   // method on one blanks the page. Guard every such access.
   const str = (v: string | null | undefined): string => (typeof v === 'string' ? v : '');
-  const realPhotos = (data.photos ?? []).filter(Boolean);
+  /* A URL the API lists can still 404 — 관광명소's photos point at files missing
+     from the storage bucket. One that fails to load is dropped, so its cell
+     takes the no-image plate like any short gallery and the lightbox never
+     opens on a broken file. */
+  const [broken, setBroken] = useState<ReadonlySet<string>>(() => new Set());
+  const realPhotos = (data.photos ?? []).filter((u) => Boolean(u) && !broken.has(u));
   const photos = padImages(realPhotos, osanIconUrl('noimage'), 4);
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
   const qrLink = /^https?:\/\//i.test(str(data.blog)) ? data.blog : null;
@@ -73,8 +80,17 @@ export function OsanSpotDetailCard({
   const phone = osanIconUrl('phone');
   const hours = (data.hours ?? []).filter((h) => str(h).trim());
 
+  /* Other languages: the name shrinks to fit its row instead of ending in "…".
+     The full-text rules for every language are "Show everything" in the CSS. */
+  const long = useLang() !== 'ko';
+  const rootRef = useRef<HTMLDivElement>(null);
+  useFitText(rootRef, styles.title, long, 0.7, str(data.name));
+
   return (
-    <div className={`${styles.content} ${lowered ? styles.contentLowered : ''} ${className ?? ''}`}>
+    <div
+      ref={rootRef}
+      className={`${styles.content} ${lowered ? styles.contentLowered : ''} ${long ? styles.long : ''} ${className ?? ''}`}
+    >
       <div className={`${styles.card} ${map ? styles.cardWithMap : ''}`}>
         {map && <div className={styles.mapSlot}>{map}</div>}
         <div className={styles.titleRow}>
@@ -97,7 +113,13 @@ export function OsanSpotDetailCard({
                 data-clickable={isReal ? 'true' : undefined}
                 onClick={isReal ? () => setLightboxIndex(i) : undefined}
               >
-                <img className={styles.galleryImg} src={src} alt="" draggable={false} />
+                <img
+                  className={styles.galleryImg}
+                  src={src}
+                  alt=""
+                  draggable={false}
+                  onError={isReal ? () => setBroken((prev) => new Set(prev).add(src)) : undefined}
+                />
               </div>
             );
           })}
@@ -154,25 +176,26 @@ export function OsanSpotDetailCard({
           <p className={styles.descTags}>{data.tags}</p>
         </div>
 
-        <div className={styles.divider} />
-
         {/* Ratings — the frame also draws Instagram followers and a blog-review
-            count, but the shop data carries neither, so only Naver is shown. */}
-        <div className={styles.ratings}>
-          <div className={styles.ratingItem}>
-            <img className={styles.ratingIcon} src={iconNaver} alt="" draggable={false} />
-            {hasRating && (
-              <>
+            count, but the shop data carries neither, so only Naver is shown,
+            and only when the shop HAS a Naver rating: a bare Naver logo with
+            nothing beside it read as a broken review. Same rule as 제주. */}
+        {hasRating && (
+          <>
+            <div className={styles.divider} />
+            <div className={styles.ratings}>
+              <div className={styles.ratingItem}>
+                <img className={styles.ratingIcon} src={iconNaver} alt="" draggable={false} />
                 <span className={styles.stars}>
                   {[0, 1, 2, 3, 4].map((i) => (
                     <RatingStar key={i} filled={i < filledStars} />
                   ))}
                 </span>
                 <span className={styles.ratingText}>{data.rating}</span>
-              </>
-            )}
-          </div>
-        </div>
+              </div>
+            </div>
+          </>
+        )}
       </div>
 
       {lightboxIndex !== null && (

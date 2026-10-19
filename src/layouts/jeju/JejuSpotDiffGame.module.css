@@ -521,6 +521,15 @@
   color: #616161;
 }
 
+/* 결과 보기 before the photo exists (standalone only, see the TSX): visibly
+   inert until the AI photo lands, then it switches back on by itself. */
+.skipBtn:disabled {
+  border-color: #eeeeee;
+  background: #f5f5f5;
+  color: #bdbdbd;
+  cursor: default;
+}
+
 /* ── Banner ─────────────────────────────────────────────────────────────
    The frame draws the 가상 한복 착장 banner here, so it is drawn. It is NOT a
    button, unlike every other 제주 page: the visitor's photo is mid-generation,

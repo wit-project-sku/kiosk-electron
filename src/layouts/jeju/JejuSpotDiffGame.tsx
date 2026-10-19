@@ -841,10 +841,17 @@ export function JejuSpotDiffGame({
           <span className={styles.hintCount}>{MAX_HINTS - hintsUsed}</span>
         </button>
 
+        {/* Standalone (인사동 / 오산 / 화성 — no game menu behind it), 결과 보기 waits
+            for the photo: pressed earlier it ended the round as 'skipped' and
+            asked for a hand-over that cannot happen while the photo is still
+            generating, so the board simply froze with nothing on screen. It
+            goes live the moment the photo lands. In the hub it stays live —
+            there it returns to the menu (finishFromSpotDiff). */}
         <button
           type="button"
           className={`${styles.actionBtn} ${styles.skipBtn}`}
           onClick={() => finish('skipped')}
+          disabled={!onExit && !aiReady}
         >
           {pick(SKIP, lang)}
         </button>

@@ -1,27 +1,6 @@
-"","Key","Korean","English","Japanese","Chinese","Vietnamese","Indonesian","Thai","Russian","Description","","","","",""
-"1","MainButton_AI","'정이' 모하지(AI검색)","To do (Ai)","旅行先 おすすめ(Ai)","做什么比较好呢？(Ai)","Để làm (Ai)","Untuk melakukan (Ai)","สิ่งที่ต้องทำ (AI)","Сделать (Ai)","","","","","",""
-"5","MainButton_Event","오산시 이벤트","Events","イベント","推荐活动","Sự kiện","Acara","กิจกรรม","События","","","","","",""
-"1603","MainButton_Goods","위드 마켓 (준비중)","WITH Market(Preparing)","WITH Market(Preparing)","WITH Market(Preparing)","VỚI Thị trường (Đang chuẩn bị)","DENGAN Pasar (Persiapan)","ร่วมกับตลาด (กำลังเตรียมการ)","С рынком (в процессе подготовки)","","","","","",""
-"2","MainButton_ToEat","'정이' 뭐먹지?","To eat","飲食店の","我们吃什么呢？","Để ăn","Untuk makan","กิน","есть","","","","","",""
-"3","MainButton_ToBuy","'정이' 뭐사지?(식품)","To buy","お買い物","我们买什么呢？","Để mua","Untuk membeli","เพื่อซื้อ","Купить","","","","","",""
-"3","MainButton_ToBuy2","'정이' 뭐사지?(물품)","To buy","お買い物 ","我们买什么呢？","Để mua","Untuk membeli","เพื่อซื้อ","Купить","","","","","",""
-"9","MainButton_Mission","텍스프리등록","TaxFree","TaxFree","TaxFree","Miễn thuế","Bebas Pajak","ปลอดภาษี","TaxFree","","","","","",""
-"6","MainButton_Here","여기는 오색시장","Osaek Market","オセク市場","这里是Osaek","Chợ Osaek","Pasar Osaek","ตลาดโอแซก","Рынок Осаек","","","","","",""
-"7","MainButton_Greeting","안녕 '정이'","Hello Jeong-i","Jeong-i","你好 'Jeong-i'","Chào Jeong-i","Halo Jeong-i","สวัสดีจองอี","Привет, Чон-и!","","","","","",""
-"8","MainButton_ToHelp","도와줘 '정이'","Help","ヘルプ","请帮忙","Giúp đỡ","Membantu","ช่วย","Помощь","","","","","",""
-"1605","MainButton_Map","오색시장 지도","OsaekMarket Map","オセク市場地図","OsaekMarket地图","Bản đồ chợ Osaek","Peta Pasar Osaka","แผนที่ตลาดโอแซก","Карта рынка Осаек","","","","","",""
-"10","MainButton_Exchange","환율","Exchange","為替レート情報","汇率信息","Trao đổi","Menukarkan","แลกเปลี่ยน","Обмен","","","","","",""
-"11","MainButton_Transport","교통안내","Transportation","交通案内","交通指南","Vận tải","Angkutan","การขนส่ง","Транспорт","","","","","",""
-"1604","MainButton_KCulture","K Culture(준비중)","K Culture(Preparing)","K Culture(Preparing)","K Culture(Preparing)","K Culture (Đang chuẩn bị)","Kultur K (Persiapan)","K Culture (การเตรียม)","K-культура (подготовка)","","","","","",""
-"4","MainButton_MarketPaper","시장화폐","Market Currency","市場通貨","市场货币","Tiền tệ thị trường","Mata Uang Pasar","สกุลเงินตลาด","Рыночная валюта","","","","","",""
-"14","MainButton_SmartTour","스마트관광(준비중)","Smart Tourism (Preparing)","スマート観光（準備中）","智慧旅游（准备中）","Du lịch thông minh (Đang chuẩn bị)","Pariwisata Cerdas (Persiapan)","การท่องเที่ยวอัจฉริยะ (กำลังเตรียมการ)","«Умный туризм» (подготовка)","","","","","",""
-"","MainButton_Donation","기부","Donation","寄付","捐款","Quyên góp","Donasi","บริจาค","Пожертвование","","","","","",""
-"16","MainButton_WC","화장실","Toilet","トイレ","廁所","Nhà vệ sinh","Toilet","ห้องน้ำ","Туалет","","","","","",""
-"12","MainButton_TraditionalMarket","전국시장(준비중)","Korea Market (Preparing)","伝統市場（準備中）","传统市场（准备中）","Thị trường Hàn Quốc (Đang chuẩn bị)","Pasar Korea (Persiapan)","ตลาดเกาหลี (กำลังเตรียมการ)","Корейский рынок (в процессе подготовки)","","","","","",""
-"13","MainButton_Palace","(준비중)","(Preparing)","(準備中）","(准备中）","(Chuẩn bị)","(Persiapan)","(กำลังเตรียมการ)","(Подготовка)","","","","","",""
-"15","MainButton_Hanbok","한복설명","Hanbok","韓服","韩服","Hanbok","Hanbok","ฮันบก","Ханбок","","","","","",""
-"1700","MainButton_ServiceArea","휴게소(준비중)","Service Area (Preparing)","Service Area (Preparing)","Service Area (Preparing)","Khu vực phục vụ (Chuẩn bị)","Area Layanan (Persiapan)","พื้นที่ให้บริการ (การเตรียมการ)","Зона обслуживания (подготовка)","","","","","",""
-"30","Notice","공
+"운영팀> 2번 모니터> 앱 콘텐츠 내용","","","","","","","","Команда управления > Монитор 2 > Содержание программы Unity","","",""
+"Num","Key","Korean","English","Japanese","Chinese","Vietnamese","Thai","Russian","Indonesian","Description","구분(위치)"
+"","Notice","공
 지","I
 N
 F
@@ -31,283 +10,313 @@ O","お
 せ","敬  
 请  
 期  
-待","THÔNG TIN","I
-IN
-O","ข้อมูล
-ข้อมูล
-ข้อมูล","Я
+待","C
+H
+Ú
+ Ý","แ
+จ้
+ง","И
 Н
 Ф
-О","","","","","",""
-"31","NoticeContent","'WITH' (WIT AI Tourism Hardware) 가 설치 되었습니다. 많은 이용부탁드려요 ","‘WITH’ (WIT AI Tourism Hardware) is now at Osaek Market. Please use it!","「WITH」（WIT AI Tourism Hardware）が設置されました。ぜひご利用ください。","“五色市场”已安装“WITH”（WIT AI旅游硬件）。欢迎使用！","Sản phẩm ‘WITH’ (WIT AI Tourism Hardware) hiện đã có mặt tại chợ Osaek. Mời bạn sử dụng!","‘WITH’ (WIT AI Tourism Hardware) kini tersedia di Pasar Osaek. Silakan gunakan!","‘WITH’ (WIT AI Tourism Hardware) พร้อมให้บริการแล้วที่ตลาดโอแซก โปรดใช้บริการด้วย!","Компания ‘WITH’ (WIT AI Tourism Hardware) теперь представлена ​​на рынке Осаек. Пожалуйста, воспользуйтесь ею!","","","","","",""
-"26","Event_Today","오늘의 행사","Today's Events","今日のイベント","今日的活动","Sự kiện hôm nay","Peristiwa Hari Ini","เหตุการณ์วันนี้","События сегодняшнего дня","","","","","",""
-"27","Event_Week","이번주 행사","This Week's Events","今週のイベント","本周活动","Các sự kiện trong tuần này","Peristiwa Minggu Ini","กิจกรรมประจำสัปดาห์นี้","События этой недели","","","","","",""
-"28","Event_Upcomming","예정 행사","Upcomming Events","予定イベント","即将举行的活动","Các sự kiện sắp tới","Acara Mendatang","กิจกรรมที่จะเกิดขึ้น","Предстоящие события","","","","","",""
-"29","Event_Past","지난 행사","Past Events","過去のイベント","往期活动","Các sự kiện đã qua","Peristiwa Masa Lalu","เหตุการณ์ที่ผ่านมา","Прошедшие события","","","","","",""
-"152","SubHeader_AISearch","* 방문하고자하는 3개의 카테고리를 선택해주세요 ","* Select 3 categories you want to visit.","* 訪れたいカテゴリを3つ選んでください","* 请选择您想参观的3个类别","* Chọn 3 danh mục bạn muốn truy cập.","* Pilih 3 kategori yang ingin Anda kunjungi.","* เลือก 3 หมวดหมู่ที่คุณต้องการเข้าชม","* Выберите 3 категории, которые вы хотите посетить.","","","","","",""
-"32","VisitorCount","방문 인원","Number of visitors","訪問者数","访客人数","Số lượng khách tham quan","Jumlah pengunjung","จำนวนผู้เข้าชม","Количество посетителей","","","","","",""
-"39","Visitor_1","1명","1 person","1人","1人","1 người","1 orang","1 คน","1 человек","","","","","",""
-"40","Visitor_2","2명","2 people","2人","2人","2 người","2 orang","2 คน","2 человека","","","","","",""
-"41","Visitor_3","3명","3 people","3人","3人","3 người","3 orang","3 คน","3 человека","","","","","",""
-"42","Visitor_4","4명","4 people","4人","4人","4 người","4 orang","4 คน","4 человека","","","","","",""
-"43","Visitor_5","5명","5 people","5人","5人","5 người","5 orang","5 คน","5 человек","","","","","",""
-"44","Visitor_6","6명","6 people","6人","6人","6 người","6 orang","6 คน","6 человек","","","","","",""
-"33","StayTime","체류 시간","How long are you planning to be here","どのくらい滞在する予定ですか？","您计划在这里停留多久？","Bạn dự định ở lại đây bao lâu?","Berapa lama Anda berencana berada di sini?","คุณวางแผนจะอยู่ที่นี่นานแค่ไหน","Как долго вы планируете здесь находиться?","","","","","",""
-"34","JoyContent","즐길 거리 (3개를 선택해주세요!)","Select 3 activities to enjoy","楽しむために3つのアクティビティを選択してください","选择3个活动来享受","Hãy chọn 3 hoạt động để tận hưởng.","Pilih 3 aktivitas untuk dinikmati","เลือกกิจกรรม 3 อย่างที่คุณชื่นชอบ","Выберите 3 занятия, которые вам понравятся.","","","","","",""
-"35","ShowDetailList","코스를 클릭하시면 상세 리스트가 나와요","Click the course for details","コースをクリックして詳細を確認してください。","点击课程查看详情。","Nhấp vào khóa học để xem chi tiết.","Klik kursus untuk detail selengkapnya","คลิกที่หลักสูตรเพื่อดูรายละเอียด","Нажмите на ссылку курса для получения подробной информации.","","","","","",""
-"36","ACourse","A코스","Course A","Aコース","A路线","Khóa học A","Kursus A","หลักสูตร A","Курс А","","","","","",""
-"37","BCourse","B코스","Course B","Bコース","B路线","Khóa học B","Kursus B","หลักสูตร B","Курс Б","","","","","",""
-"38","CCourse","C코스","Course C","Cコース","C路线","Khóa học C","Kursus C","หลักสูตร C","Курс C","","","","","",""
-"45","StayTime_02","0 ~ 1=시간","0 ~ 1 hours","0～1時間","0～1小时","0 ~ 1 giờ","0 ~ 1 jam","0 ~ 1 ชั่วโมง","0 ~ 1 час","","","","","",""
-"46","StayTime_24","1 ~ 2시간","1 ~ 2 hours","1～2時間","1～2小时","1 ~ 2 giờ","1 ~ 2 jam","1-2 ชั่วโมง","1–2 часа","","","","","",""
-"47","StayTime_46","2~ 3시간","2 ~ 3 hours","2～3時間","2～3小时","2 ~ 3 giờ","2 ~ 3 jam","2-3 ชั่วโมง","2–3 часа","","","","","",""
-"48","StayTime_66","3시간~","3 hours ~","3時間～","3小时以上","3 giờ ~","3 jam ~","3 ชั่วโมง ~","3 часа ~","","","","","",""
-"49","ShowDetailShop","업체 정보를 클릭하시면 상세 정보가 나와요","Click the store for details.","店舗をクリックして詳細を確認してください。","点击商店查看详情。","Nhấp vào cửa hàng để xem chi tiết.","Klik toko untuk detail selengkapnya.","คลิกที่ร้านค้าเพื่อดูรายละเอียดเพิ่มเติม","Нажмите на название магазина для получения подробной информации.","","","","","",""
-"499","Text_FillSpace"," "," "," "," ","#VALUE!","","","","","","","","",""
-"501","MonthOsaekPerson","이달의 오색인(준비중)","MonthOsaekPerson","MonthOsaekPerson","MonthOsaekPerson","ThángOsaekNgười","MonthOsaekPerson","เดือนโอแซกบุคคล","МесяцОсаекПерсон","","","","","",""
-"50","Here_IsOsaek","여기는 오색시장 ","This is Osaek Market","ここはオセク市場です","这里是五色市场","Đây là chợ Osaek.","Ini adalah Pasar Osaek","นี่คือตลาดโอแซก","Это рынок Осаек.","","","","","",""
-"51","Here_History","역사","History","歴史","历史","Lịch sử","Sejarah","ประวัติศาสตร์","История","","","","","",""
-"52","Here_HistoryContent","오산 오색시장은 정조 16년(1792년) 발간된 화성궐리지에 '오산장'으로 처음 등장할 정도로 유서 깊은 전통을 가지고 있습니다. 공식적으로는 1914년에 오산중앙시장이라는 이름으로 현재 위치에서 장이 열리기 시작했습니다. 이후 2013년에 '오색시장'으로 명칭을 변경하며 현대적인 정체성을 더했습니다. ","Osaek Market in OsanOsaek Market in Osan first appeared in the Hwaseong Gweollyeji published in the 16th year of King Jeongjo (1792), showing its long and rich tradition.
-Officially, in 1914 it began operating at its current location under the name ""Osan Central Market.""
-In 2013, it was renamed ""Osaek Market,"" adding a modern identity.
-","烏山のオセク市場は、正祖16年（1792年）に刊行された『華城闕里誌』に「烏山場」として初めて登場するほど、由緒ある伝統を持っています。
-公式には1914年に「烏山中央市場」という名前で現在の場所で市が開かれ始めました。
-その後、2013年に「オセク市場」と改称し、現代的なアイデンティティを加えました。","乌山五色市场最早出现在正祖16年（1792年）出版的《华城阙里志》中，作为“乌山场”，拥有悠久的传统。
-官方上，1914年以“乌山中央市场”的名称在现址开始营业。
-此后在2013年更名为“五色市场”，赋予其现代化的身份。","Chợ Osaek ở Osan lần đầu tiên xuất hiện trong cuốn Hwaseong Gweollyeji được xuất bản vào năm thứ 16 đời vua Jeongjo (1792), cho thấy truyền thống lâu đời và phong phú của nó.
-
-Chính thức, vào năm 1914, chợ bắt đầu hoạt động tại địa điểm hiện tại với tên gọi ""Chợ Trung tâm Osan"".
-
-Năm 2013, chợ được đổi tên thành ""Chợ Osaek"", mang một diện mạo hiện đại hơn.","Pasar Osaek di Osan pertama kali muncul dalam Hwaseong Gweollyeji yang diterbitkan pada tahun ke-16 pemerintahan Raja Jeongjo (1792), menunjukkan tradisinya yang panjang dan kaya.
-Secara resmi, pada tahun 1914 pasar ini mulai beroperasi di lokasi saat ini dengan nama ""Pasar Pusat Osan.""
-Pada tahun 2013, namanya diubah menjadi ""Pasar Osaek,"" menambahkan identitas modern.
-
-","ตลาดโอแซกในโอซาน ปรากฏครั้งแรกในหนังสือฮวาซอง กวอลเยจี ที่ตีพิมพ์ในรัชสมัยของพระเจ้าจองโจ ปีที่ 16 (1792) ซึ่งแสดงให้เห็นถึงประเพณีอันยาวนานและร่ำรวย
-อย่างเป็นทางการ ในปี 1914 ตลาดแห่งนี้ได้เริ่มดำเนินการในสถานที่ปัจจุบันภายใต้ชื่อ ""ตลาดกลางโอซาน""
-ในปี 2013 ได้เปลี่ยนชื่อเป็น ""ตลาดโอแซก"" เพื่อเพิ่มความทันสมัยให้กับตลาด
-","Рынок Осаек в Осане впервые упоминается в «Хвасон Гвеолльеджи», изданном в 16-м году правления короля Чонджо (1792), что свидетельствует о его давних и богатых традициях.
-Официально он начал свою работу в 1914 году на своем нынешнем месте под названием «Центральный рынок Осана».
-В 2013 году он был переименован в «Рынок Осаек», что придало ему современный облик.
-
-","","","","","",""
-"53","Here_Culture","특징","Characteristics","特徴","特点","Đặc trưng","Karakteristik","ลักษณะเฉพาะ","Характеристики","","","","","",""
-"54","Here_CultureContent","오색시장은 문화관광형 명소로, 신선한 식재료와 생활잡화를 두루 갖추고 있습니다. 다섯 가지 색 테마 길은 쇼핑의 편의와 색다른 즐거움을 더하며, 특히 주말 야시장과 수제맥주 축제는 젊은 층과 가족 방문객에게 큰 인기입니다.","Osaek Market has evolved into a cultural tourism destination offering fresh food and daily goods. Its five color-themed alleys make navigation easy and fun. The weekend night market and craft beer festival are huge hits with young people and families.","五色市場は文化観光スポットとして、新鮮な食材や生活雑貨を取り揃えています。5つの色をテーマにした通りは便利でユニークな魅力があり、週末の夜市やクラフトビール祭りは若者や家族連れに大人気です。","五色市场已发展成为文化旅游胜地，各类新鲜食材与生活用品应有尽有。五种颜色的主题街区既方便认路又别具魅力，周末夜市和精酿啤酒节更是深受年轻人及家庭游客的喜爱。","Chợ Osaek đã phát triển thành một điểm đến du lịch văn hóa, cung cấp thực phẩm tươi sống và các mặt hàng thiết yếu hàng ngày. Năm con hẻm được phân chia theo màu sắc giúp việc di chuyển dễ dàng và thú vị. Chợ đêm cuối tuần và lễ hội bia thủ công rất được giới trẻ và các gia đình yêu thích.","Pasar Osaek telah berkembang menjadi destinasi wisata budaya yang menawarkan makanan segar dan barang kebutuhan sehari-hari. Lima lorong bertema warnanya membuat navigasi menjadi mudah dan menyenangkan. Pasar malam akhir pekan dan festival bir kerajinan sangat populer di kalangan anak muda dan keluarga.","ตลาดโอแซกได้พัฒนาเป็นแหล่งท่องเที่ยวเชิงวัฒนธรรมที่นำเสนออาหารสดและสินค้าอุปโภคบริโภคประจำวัน ตรอกซอยห้าแห่งที่แบ่งตามสีทำให้การเดินชมตลาดง่ายและสนุกสนาน ตลาดกลางคืนช่วงสุดสัปดาห์และเทศกาลเบียร์คราฟต์ได้รับความนิยมอย่างมากจากคนหนุ่มสาวและครอบครัว","Рынок Осаек превратился в место культурного туризма, предлагающее свежие продукты и товары повседневного спроса. Пять тематических улочек, оформленных в разных цветах, делают навигацию легкой и увлекательной. Ночной рынок по выходным и фестиваль крафтового пива пользуются огромной популярностью у молодежи и семей.","","","","","",""
-"55","Here_Attraction","현재와 미래","Present and Future","現在と未来","现在与未来","Hiện tại và Tương lai","Masa Kini dan Masa Depan","ปัจจุบันและอนาคต","Настоящее и будущее","","","","","",""
-"56","Here_AttractionContent","오색시장은 전통과 현대가 어우러진 공간으로, 고객센터와 넓은 주차장 등 훌륭한 편의시설을 갖추고 있습니다. 특히 청년몰과 수제맥주 등 다채로운 콘텐츠로 젊은 층을 사로잡으며, 단순한 시장을 넘어 전국적인 관심을 받는 지역 문화 허브로 자리 잡았습니다.","Osaek Market seamlessly blends tradition with modernity, offering convenient amenities like ample parking. By attracting younger generations through its Youth Mall and unique craft beer, it has transcended the role of a traditional market to become a nationally recognized regional cultural hub.","五色市場は伝統と現代が調和した空間で、広い駐車場などの快適な施設を完備しています。青年モールやクラフトビールなどのコンテンツで若者を惹きつけ、単なる市場を超えて全国から注目される地域文化のハブとして定着しました。","五色市场完美融合了传统与现代，配备了宽敞的停车场等便利设施，让购物更加舒适。通过青年商城和精酿啤酒等文化元素吸引了年轻群体，现已超越单纯的市场功能，成为备受全国瞩目的地区文化枢纽。","Chợ Osaek kết hợp hài hòa giữa truyền thống và hiện đại, cung cấp các tiện nghi thuận tiện như bãi đậu xe rộng rãi. Bằng cách thu hút thế hệ trẻ thông qua khu phố dành cho giới trẻ và các loại bia thủ công độc đáo, chợ đã vượt qua vai trò của một khu chợ truyền thống để trở thành một trung tâm văn hóa khu vực được công nhận trên toàn quốc.","Pasar Osaek memadukan tradisi dengan modernitas secara harmonis, menawarkan fasilitas yang nyaman seperti tempat parkir yang luas. Dengan menarik generasi muda melalui Youth Mall dan bir kerajinan uniknya, pasar ini telah melampaui peran pasar tradisional dan menjadi pusat budaya regional yang diakui secara nasional.","ตลาดโอแซกผสมผสานประเพณีเข้ากับความทันสมัยได้อย่างลงตัว พร้อมสิ่งอำนวยความสะดวกมากมาย เช่น ที่จอดรถกว้างขวาง ด้วยการดึงดูดคนรุ่นใหม่ผ่านศูนย์การค้าสำหรับเยาวชนและเบียร์คราฟต์ที่เป็นเอกลักษณ์ ทำให้ตลาดแห่งนี้ก้าวข้ามบทบาทของตลาดแบบดั้งเดิมไปสู่การเป็นศูนย์กลางทางวัฒนธรรมระดับภูมิภาคที่ได้รับการยอมรับในระดับประเทศ","Рынок Осаек органично сочетает традиции и современность, предлагая такие удобства, как просторная парковка. Привлекая молодое поколение своим молодежным торговым центром и уникальным крафтовым пивом, он вышел за рамки традиционного рынка и стал признанным на национальном уровне региональным культурным центром.","","","","","",""
-"57","Greeting_Category1","정이' 소개","About ""Jeong-i""","「ジョンイ」について","关于“Jeong-i”","Giới thiệu về ""Jeong-i""","Tentang ""Jeong-i""","เกี่ยวกับ ""จองอี""","О фильме «Чон-и»","","","","","",""
-"58","Greeting_Introduce","안녕하세요! 전통시장 마스코트 '정이'를 소개할게요!","Hello 'Jeong-i'","「ジョンイ」、こんにちは","你好，“Jeong-i”","Chào 'Jeong-i'","Halo 'Jeong-i'","สวัสดี 'จองอี'","Привет, Чон И!","","","","","",""
-"59","Greeting_Name","본명","Name","名前","姓名","Tên","Nama","ชื่อ","Имя","","","","","",""
-"60","Greeting_NameContent","정이","JEONG-I","JEONG-I","JEONG-I","JEONG-I","JEONG-I","จองอี","ЧОН-И","","","","","",""
-"61","Greeting_BirthDay","출생","Date of Birth","生年月日","出生日期","Ngày sinh","Tanggal lahir","วันเกิด","Дата рождения","","","","","",""
-"62","Greeting_BirthDayContent","2006년 7월 31일","7월 31, 2006","2006年7月31日","2006年7月31日","Ngày 31 tháng 7 năm 2006","31 Juli 2006","7 มีนาคม 31, 2549","7–31 сентября 2006 г.","","","","","",""
-"63","Greeting_HomeTown","사는곳","Hometown","出身地","家乡","Quê hương","Kota asal","บ้านเกิด","Родной город","","","","","",""
-"64","Greeting_HomeTownContent","대한민국 경기도 ","Gyeonggi Province, South Korea","大韓民国 京畿道 ","韩国京畿道乌","Tỉnh Kyunggi, Hàn Quốc","Provinsi Gyeonggi, Korea Selatan","จังหวัดคย็องกี ประเทศเกาหลีใต้","Провинция Кёнгидо, Южная Корея","","","","","",""
-"65","Greeting_Nationality","국적","Nationality","国籍","国籍","Quốc tịch","Kebangsaan","สัญชาติ","Национальность","","","","","",""
-"66","Greeting_NationalityContent","대한민국","Republic of Korea","大韓民国","大韩民国","Cộng hòa Hàn Quốc","Republik Korea","สาธารณรัฐเกาหลี","Республика Корея","","","","","",""
-"67","Greeting_BloodType","혈액형","Blood Type","血液型","血型","Nhóm máu","Golongan darah","หมู่เลือด","Группа крови","","","","","",""
-"68","Greeting_BloodTypeContent","O형","Type O","O型","O型","Loại O","Tipe O","กรุ๊ป O","Тип O","","","","","",""
-"69","Greeting_MBTI","MBTI","MBTI","MBTI","MBTI","MBTI","MBTI","MBTI","MBTI","","","","","",""
-"70","Greeting_MBTIContent","ENTJ","ENTJ","ENTJ","ENTJ","ENTJ","ENTJ","ENTJ","ENTJ","","","","","",""
-"71","Greeting_BodyInfo","신체","Body","体型","身材","Thân hình","Tubuh","ร่างกาย","Тело","","","","","",""
-"72","Greeting_BodyInfoContent","168cm, 32-24-34, 235mm (몸무게는 비밀…)","168cm, 32-24-34, 235mm (weight is a secret...)","168cm、32-24-34, 235mm（体重は秘密…）","168cm，32-24-34, 235mm（体重保密…）","168cm, 32-24-34, 235mm (cân nặng là bí mật...)","168cm, 32-24-34, 235mm (beratnya dirahasiakan...)","ส่วนสูง 168 ซม., รอบอก 32-24-34 นิ้ว, ความกว้าง 235 มม. (น้ำหนักเป็นความลับ...)","168 см, 32-24-34, 235 мм (вес не разглашается...)","","","","","",""
-"73","Greeting_Hobby","성격","Vibe","雰囲気","气质","Rung cảm","Atmosfer","บรรยากาศ","Атмосфера","","","","","",""
-"74","Greeting_HobbyContent","자기 표현이 활발하고, 호기심 많으며 새로운 경험을 즐기는 스타일, 한국의 전통에 관심이 많고 K-컨텐츠에 푹 빠져 있는 20살 대학생 ","college student, curious, expressive, loves new experiences, and passionate about Korean tradition and K-content.","自己表現が活発で好奇心旺盛、新しい体験を楽しむ20歳の大学生。
-韓国の伝統やKコンテンツに夢中です。","性格外向、好奇心强、喜欢新体验的20岁大学生。
-对韩国传统和K内容非常感兴趣。","Sinh viên đại học, tò mò, cởi mở, yêu thích trải nghiệm mới và đam mê truyền thống Hàn Quốc cũng như các nội dung liên quan đến Hàn Quốc.","Mahasiswa, penasaran, ekspresif, menyukai pengalaman baru, dan bersemangat tentang tradisi Korea dan konten K-pop.","นักศึกษามหาวิทยาลัย ขี้สงสัย กล้าแสดงออก ชอบประสบการณ์ใหม่ๆ และหลงใหลในประเพณีเกาหลีและคอนเทนต์เกาหลี","Студентка колледжа, любознательная, экспрессивная, любит новые впечатления и увлечена корейскими традициями и контентом на корейском языке.","","","","","",""
-"75","Greeting_Specialty","취미","Hobbies","趣味","爱好","Sở thích","Hobi","งานอดิเรก","Хобби","","","","","",""
-"76","Greeting_SpecialtyContent","K-POP 댄스, 맛집 탐방, 디저트 카페 방문, 테니스, 골프","K-pop dance, discovering popular restaurants, visiting dessert cafés, playing golf","K-POPダンス、美味しい店探し、デザートカフェ巡り、ゴルフ","K-POP舞蹈、探店美食、甜品咖啡馆、打高尔夫","Nhảy K-pop, khám phá các nhà hàng nổi tiếng, ghé thăm các quán cà phê tráng miệng, chơi golf.","Menari K-pop, menjelajahi restoran populer, mengunjungi kafe makanan penutup, bermain golf.","การเต้นเคป็อป, การสำรวจร้านอาหารยอดนิยม, การไปร้านขนมหวาน, การเล่นกอล์ฟ","Танцы в стиле K-pop, знакомство с популярными ресторанами, посещение кафе-кондитерских, игра в гольф.","","","","","",""
-"77","Greeting_FutureHope","미래의 꿈","Future Dream","将来の夢","未来的梦想","Ước mơ tương lai","Mimpi Masa Depan","ความฝันในอนาคต","Мечта о будущем","","","","","",""
-"78","Greeting_FutureHopeContent","한국 전통문화를 현대 청년 라이프스타일과 연결해 세계적으로 한국을 대표하는 문화 트렌드세터","To be a cultural trendsetter who bridges traditional Korean culture with modern youth lifestyle, representing Korea globally","韓国伝統文化を現代の若者ライフスタイルと結び付け、世界に韓国を代表する文化トレンドセッターになること","把韩国传统文化与现代青年生活方式相结合，成为向世界代表韩国的文化潮流引领者","Trở thành người tiên phong về văn hóa, kết nối văn hóa truyền thống Hàn Quốc với lối sống hiện đại của giới trẻ, đại diện cho Hàn Quốc trên toàn cầu.","Menjadi pelopor tren budaya yang menjembatani budaya tradisional Korea dengan gaya hidup anak muda modern, serta mewakili Korea di kancah global.","เพื่อเป็นผู้นำเทรนด์ทางวัฒนธรรมที่เชื่อมโยงวัฒนธรรมเกาหลีแบบดั้งเดิมเข้ากับวิถีชีวิตของคนรุ่นใหม่ในยุคปัจจุบัน และเป็นตัวแทนของเกาหลีในระดับโลก","Быть законодателем культурных тенденций, объединяющим традиционную корейскую культуру с современным молодежным образом жизни, представляя Корею на мировой арене.","","","","","",""
-"79","Greeting_Introdution","소개","Intro","紹介","介绍","Giới thiệu","Pendahuluan","บทนำ","Введение","","","","","",""
-"80","Greeting_IntrodutionContent","저는 MZ 대학생입니다. K-POP, 미식 탐험, 세련된 카페, 테니스, 골프를 좋아해요 . SNS로 일상을 공유하며 친구들과 수다떠는걸 좋아해요. 요즘 K-컨텐츠에 많은 관심이 있어요 그리고 특히나 전통시장의 매력을 알리고 있습니다. ","I’m an MZ college student who loves K-POP, food adventures, stylish cafes, tennis, and golf.
-I enjoy sharing life on SNS and chatting with friends. Lately, I’m very interested in K-content and promoting traditional markets.","私は21歳の大学生です。K-POP、美食探し、おしゃれなカフェ、ゴルフが大好きです。SNSで日常をシェアしながら京畿道の魅力を紹介しています。伝統市場や韓国の大学生活について何でも聞いてください！","我今年21岁，是一名大学生。喜欢K-POP、美食探店、时尚咖啡馆和高尔夫。平时在社交媒体分享生活，展示京畿道的魅力。关于传统市场和韩国大学生活，尽管来问我！","Tôi là sinh viên đại học tại Zimbabwe, yêu thích K-POP, những chuyến phiêu lưu ẩm thực, các quán cà phê sành điệu, tennis và golf.
-Tôi thích chia sẻ cuộc sống trên mạng xã hội và trò chuyện với bạn bè. Gần đây, tôi rất quan tâm đến nội dung Hàn Quốc và việc quảng bá các thị trường truyền thống.","Saya seorang mahasiswa MZ yang menyukai K-POP, petualangan kuliner, kafe-kafe bergaya, tenis, dan golf.
-Saya senang berbagi kehidupan di SNS dan mengobrol dengan teman-teman. Akhir-akhir ini, saya sangat tertarik dengan konten K-pop dan mempromosikan pasar tradisional.","ฉันเป็นนักศึกษามหาวิทยาลัยในมาเลเซียที่ชื่นชอบ K-POP การผจญภัยด้านอาหาร คาเฟ่เก๋ๆ เทนนิส และกอล์ฟ
-ฉันชอบแบ่งปันเรื่องราวชีวิตบนโซเชียลมีเดียและพูดคุยกับเพื่อนๆ ช่วงนี้ฉันสนใจคอนเทนต์เกาหลีและการส่งเสริมตลาดดั้งเดิมเป็นพิเศษ","Я студентка MZ College, обожаю K-POP, гастрономические приключения, стильные кафе, теннис и гольф.
-Мне нравится делиться моментами из жизни в социальных сетях и общаться с друзьями. В последнее время меня очень интересует корейский контент и продвижение традиционных рынков.","","","","","",""
-"81","Greeting_Category2","정이의 취미","JEONG-I’s Hobbies","ジョンイの趣味","正伊的爱好","Sở thích của Jeong-i","Hobi JEONG-I","งานอดิเรกของจองอี","Хобби Чон И","","","","","",""
-"82","Greeting_Hobby_First","K-POP 댄스와 노래는 나의 무대!","K-POP dance and singing are my stage!","K-POPダンスと歌は私のステージ！","K-POP舞蹈和唱歌就是我的舞台！","Nhảy và hát K-POP là sân khấu của tôi!","Tarian dan nyanyian K-POP adalah panggungku!","การเต้นและการร้องเพลง K-POP คือเวทีของฉัน!","Танцы и пение в стиле K-POP – это моя сцена!","","","","","",""
-"83","Greeting_Hobby_First_Content","아이돌처럼 춤추고 노래하는 것을 좋아하고, 좋아하는 노래가 나오면 몸이 저절로 움직입니다.
-카페 & 맛집 탐방은 나의 열정!
-숨겨진 디저트 카페와 핫한 맛집을 찾아 친구들과 공유합니다.","I love to dance and sing like an idol, and when my favorite song comes on, I can’t resist moving to the beat.
-Café and restaurant hopping is my passion!
-I enjoy discovering hidden dessert cafés and the trendiest restaurants in town, sharing my finds with friends and followers.","アイドルのように踊って歌うのが大好きで、好きな曲が流れると体が自然に動きます。
-カフェ＆グルメ巡りは私の情熱！
-隠れたデザートカフェや流行りのレストランを見つけ、友達やフォロワーとシェアします。","我喜欢像偶像一样唱跳，喜欢的歌一响起就忍不住跟着节奏动起来。
-咖啡馆和美食探店是我的热情！
-喜欢发现隐藏的甜品咖啡馆和热门餐厅，并与朋友和粉丝分享。","Tôi thích nhảy và hát như một thần tượng, và khi bài hát yêu thích vang lên, tôi không thể cưỡng lại việc nhún nhảy theo điệu nhạc.
-
-Khám phá các quán cà phê và nhà hàng là niềm đam mê của tôi!
-
-Tôi thích tìm kiếm những quán cà phê tráng miệng ẩn mình và những nhà hàng thời thượng nhất trong thành phố, chia sẻ những phát hiện của mình với bạn bè và người theo dõi.","Aku suka menari dan bernyanyi seperti seorang idola, dan ketika lagu favoritku diputar, aku tak bisa menahan diri untuk ikut bergerak mengikuti irama.
-Berkeliling kafe dan restoran adalah hobiku!
-Aku senang menemukan kafe makanan penutup tersembunyi dan restoran paling trendi di kota, lalu berbagi temuanku dengan teman dan pengikutku.","ฉันชอบเต้นและร้องเพลงเหมือนไอดอล และเมื่อเพลงโปรดของฉันดังขึ้น ฉันอดใจไม่ไหวที่จะขยับตัวไปตามจังหวะ
-การตะลุยคาเฟ่และร้านอาหารคือสิ่งที่ฉันหลงใหล!
-ฉันสนุกกับการค้นพบคาเฟ่ขนมหวานลับๆ และร้านอาหารที่ทันสมัยที่สุดในเมือง และแบ่งปันสิ่งที่ฉันค้นพบกับเพื่อนๆ และผู้ติดตาม","Я обожаю танцевать и петь, как кумир, и когда играет моя любимая песня, я не могу удержаться от того, чтобы не начать двигаться в такт.
-Посещение кафе и ресторанов — моя страсть!
-Мне нравится открывать для себя скрытые кафе-кондитерские и самые модные рестораны города, делясь своими находками с друзьями и подписчиками.","","","","","",""
-"84","Greeting_Hobby_Second","골프는 나의 힐링 타임!","Golf is my healing time!","ゴルフは私の癒しの時間！","高尔夫是我的疗愈时光！","Chơi golf là khoảng thời gian giúp tôi thư giãn!","Golf adalah waktu penyembuhan saya!","การเล่นกอล์ฟคือช่วงเวลาแห่งการเยียวยาของฉัน!","Гольф – это мое время для восстановления сил!","","","","","",""
-"85","Greeting_Hobby_Second_Content","저 요즘 골프를 배우고 있어요!  필드에서 공을 치고 걷는 게 신나고, 자연 속에서 운동하는 느낌이 좋아요. 집중해서 스윙할 때는 마음이 차분해지고, 성취감을 느낄 수 있어요. 친구들이랑 함께 라운딩하면 더 즐겁고, 배운 기술을 바로 써먹을 수 있어 뿌듯해요!","I’ve started learning golf!  Playing on the course is exciting, and I love exercising in nature. Focusing on my swing feels calming, and it’s rewarding. Playing with friends is fun and satisfying!.","最近ゴルフを習い始めました！ コースでプレーするのは楽しく、自然の中で運動するのが気持ちいいです。 スイングに集中すると心が落ち着き、達成感があります。 友達と一緒にラウンドするとさらに楽しいです！","我最近开始学高尔夫！ 在球场上打球很刺激，喜欢在大自然中运动的感觉。 专注挥杆时心情很平静，也能获得成就感。 和朋友一起打更开心，学到的技巧也能马上用上！。","Tôi bắt đầu học chơi golf rồi! Chơi trên sân golf thật thú vị, và tôi thích tập thể dục giữa thiên nhiên. Tập trung vào cú đánh giúp tôi cảm thấy thư thái và hài lòng. Chơi cùng bạn bè cũng vui và thỏa mãn nữa!","Aku sudah mulai belajar golf! Bermain di lapangan sangat menyenangkan, dan aku suka berolahraga di alam. Berfokus pada ayunan terasa menenangkan, dan itu memuaskan. Bermain dengan teman-teman itu menyenangkan dan memuaskan!","ฉันเริ่มเรียนกอล์ฟแล้ว! การเล่นในสนามเป็นเรื่องน่าตื่นเต้น และฉันชอบออกกำลังกายท่ามกลางธรรมชาติ การจดจ่ออยู่กับการสวิงทำให้รู้สึกสงบ และรู้สึกคุ้มค่า การเล่นกับเพื่อนๆ ก็สนุกและน่าพึงพอใจ!","Я начала учиться играть в гольф! Игра на поле — это захватывающе, и мне нравится заниматься спортом на природе. Сосредоточение на ударе успокаивает и приносит удовлетворение. Играть с друзьями — это весело и приятно!","","","","","",""
-"86","Greeting_Hobby_Third","테니스는 나의 스트레스 해소법!","Tennis is my way of relieving stress!","テニスは私のストレス解消法！","网球是我缓解压力的方式！","Chơi tennis là cách tôi giải tỏa căng thẳng!","Tenis adalah cara saya untuk menghilangkan stres!","เทนนิสคือวิธีคลายเครียดของฉัน!","Теннис — мой способ снять стресс!","","","","","",""
-"87","Greeting_Hobby_Third_Content","저 요즘 테니스 배우고 있어요!  처음엔 라켓 잡기도 힘들고 공 맞추기도 어려웠는데, 조금씩 감이 생기더라고요. 운동하면서 스트레스 풀리고, 땀 흘리는 게 재밌어요. 친구들이랑 치면 신나고, 배운 걸 바로 써먹을 수 있어 뿌듯해요!","I’ve been learning tennis!  At first it was hard, but I’m getting the hang of it. It’s fun, relieves stress, and playing with friends is exciting!","最近テニスを習っています！ 最初は大変でしたが、少しずつ感覚がつかめました。 運動でストレス発散できて、友達とやると楽しいです。","我最近在学网球！
-刚开始很难，但慢慢上手了。
-运动减压，和朋友一起打更有趣！","Tôi đang học chơi tennis! Lúc đầu hơi khó, nhưng giờ tôi đã quen dần rồi. Môn này rất vui, giúp giảm căng thẳng, và chơi cùng bạn bè thì thật thú vị!","Aku sedang belajar tenis! Awalnya sulit, tapi aku mulai menguasainya. Ini menyenangkan, menghilangkan stres, dan bermain bersama teman-teman itu seru!","ฉันกำลังเรียนเทนนิสอยู่! ตอนแรกมันยาก แต่ตอนนี้ฉันเริ่มจับทางได้แล้ว มันสนุกดี ช่วยคลายเครียด และการได้เล่นกับเพื่อนๆ ก็ตื่นเต้นมาก!","Я начала учиться играть в теннис! Сначала было сложно, но я постепенно осваиваюсь. Это весело, снимает стресс, и играть с друзьями — это здорово!","","","","","",""
-"88","Greeting_Category3","스트레칭 고고~","Let’s go stretch~
-","ストレッチ~","拉伸走 ~","Cùng đi giãn cơ nào!
-","Ayo kita peregangan~
-
-
-","ไปยืดเส้นยืดสายกันเถอะ~
-
-","Пойдём разомнёмся~
-
-","","","","","",""
-"89","Greeting_Stretching_First","정이랑 함께 가볍게 스트레칭 해요!","Let’s do some light stretching together with Jeong-i!","ジョンイと一緒に軽くストレッチしましょう！","和Jeong-i一起轻松拉伸吧！","Cùng Jeong-i thực hiện một vài động tác giãn cơ nhẹ nhé!","Mari kita lakukan peregangan ringan bersama Jeong-i!","มาลองยืดเหยียดกล้ามเนื้อเบาๆ ไปพร้อมกับจองอีกันเถอะ!","Давайте вместе с Чон-и немного поразомнемся!","","","","","",""
-"90","Greeting_Stretching_First_Content","오랜 시간 걷기 전에, 잠깐! 저를 따라 가볍게 몸을 풀어볼까요? 
-기분도 리프레시~ 에너지도 업!
-화면 속 저를 따라 천천히 따라 해보세요. 
-스트레칭 후엔 더 가볍고 즐겁게 오색시장 여행할 수 있어요~","Before a long walk, take a moment!
-Let’s do some light stretching to refresh and energize.
-Just follow me on the screen—
-you’ll enjoy your Osaek Market trip even more after a good stretch!","長時間歩く前に、ちょっと待って！
-軽く体をほぐしてリフレッシュしましょう。
-画面の動きにゆっくり合わせてください。
-ストレッチ後は、もっと楽しくオセク・マーケットを歩けますよ〜","长时间步行前，先暂停一下！
-跟着我轻松地活动一下身体吧。
-让心情焕然一新，能量满满！
-慢慢跟着屏幕上的我做动作。
-拉伸后，你可以更轻松愉快地游览奥塞克市场哦~","Trước khi bắt đầu một chuyến đi bộ dài, hãy dành chút thời gian thư giãn!
-
-Hãy cùng thực hiện một vài động tác giãn cơ nhẹ nhàng để làm mới và nạp năng lượng.
-
-Chỉ cần làm theo hướng dẫn trên màn hình —
-bạn sẽ tận hưởng chuyến đi đến chợ Osaek hơn nữa sau khi được giãn cơ!","Sebelum berjalan jauh, luangkan waktu sejenak!
-
-Mari kita lakukan peregangan ringan untuk menyegarkan dan memberi energi.
-Ikuti saja petunjuk di layar— Anda akan lebih menikmati kunjungan ke Pasar Osaek setelah melakukan peregangan yang baik!","ก่อนเดินไกลๆ ลองหยุดพักสักครู่!
-มาเริ่มยืดเหยียดเบาๆ เพื่อให้สดชื่นและมีพลังกันเถอะ
-ทำตามที่ฉันบอกบนหน้าจอเลย—
-คุณจะสนุกกับการเที่ยวตลาดโอแซกมากขึ้นหลังจากยืดเหยียดร่างกายแล้ว!","Перед долгой прогулкой сделайте паузу!
-Давайте немного потянемся, чтобы освежиться и зарядиться энергией.
-Просто следуйте за мной на экране —
-после хорошей разминки вы получите еще больше удовольствия от поездки на рынок Осаек!","","","","","",""
-"91","Greeting_Stretching_Second","피로 예방!
-","Fatigue prevention!","疲労予防！","疲劳预防！","Ngăn ngừa mệt mỏi!","Pencegahan kelelahan!","ป้องกันความเหนื่อยล้า!","Профилактика усталости!","","","","","",""
-"92","Greeting_Stretching_Second_Content","계속 걷다 보면 다리와 허리에 피로가 쌓여요. 
-중간에 가볍게 스트레칭하면 몸이 훨씬 편해져요!
-‘정이’와 함께 간단한 운동을 함께 해봐요 
-","If you keep walking, your legs and lower back will get tired. Doing some light stretching in between makes your body feel much better! Let’s try some simple exercises together with ‘Jeong-i’
-","歩き続けると、脚や腰に疲れがたまります。
-途中で軽くストレッチをすると体がずっと楽になりますよ！
-「インサ」と一緒に簡単な運動をしてみましょう。","一直走路会让腿和腰感到疲劳。
-中途做些轻松的拉伸，身体会舒服很多！
-和“Jeong-i”一起做些简单的运动吧。","Nếu bạn cứ tiếp tục đi bộ, chân và lưng dưới của bạn sẽ mỏi. Thực hiện một vài động tác giãn cơ nhẹ nhàng giữa chừng sẽ giúp cơ thể bạn cảm thấy dễ chịu hơn! Hãy cùng thử một vài bài tập đơn giản với 'Jeong-i' nhé!","Jika kamu terus berjalan, kaki dan punggung bawahmu akan lelah. Melakukan peregangan ringan di sela-sela aktivitas akan membuat tubuhmu merasa jauh lebih baik! Mari kita coba beberapa latihan sederhana bersama ‘Jeong-i’
-
-","ถ้าเดินไปเรื่อยๆ ขาและหลังส่วนล่างของคุณจะเมื่อยล้า การยืดเหยียดเบาๆ ระหว่างเดินจะทำให้ร่างกายรู้สึกดีขึ้นมาก! มาลองออกกำลังกายง่ายๆ ไปพร้อมกับ 'จองอี' กันเถอะ
-
-","Если вы будете продолжать ходить, ваши ноги и поясница устанут. Легкая растяжка между подходами значительно улучшит самочувствие! Давайте попробуем несколько простых упражнений вместе с «Чон-и».
-
-","","","","","",""
-"93","Greeting_Stretching_Third","기분 전환!","Refresh your mood !","気分転換！","换换心情！","Hãy làm mới tâm trạng của bạn!","Segarkan suasana hatimu!","ทำให้คุณรู้สึกสดชื่น!","Поднимите себе настроение!","","","","","",""
-"94","Greeting_Stretching_Third_Content","스트레칭은 몸뿐 아니라 마음까지 리프레시! 
-활력 충전하고 더 신나게 여행할 수 있어요.
-잠시 쉬었다가는 휴식 타임 어떠신가요~","Stretching refreshes not only your body but also your mind! Recharge your energy and enjoy your trip even more. How about taking a short break for some rest~","ストレッチは体だけでなく心までリフレッシュ！
-活力をチャージして、もっと楽しく旅ができます。
-ちょっと休憩してリラックスタイムはいかがですか〜","拉伸不仅能让身体焕然一新，心情也会清爽！
-充电活力，更加开心地旅行吧。
-休息一下，来个小憩时间怎么样～
-","Việc giãn cơ không chỉ giúp bạn thư giãn cơ thể mà còn cả tinh thần! Hãy nạp lại năng lượng và tận hưởng chuyến đi của bạn trọn vẹn hơn. Sao không dành chút thời gian nghỉ ngơi nhỉ~","Peregangan tidak hanya menyegarkan tubuh tetapi juga pikiran Anda! Isi ulang energi Anda dan nikmati perjalanan Anda lebih maksimal. Bagaimana kalau beristirahat sejenak?","การยืดเหยียดร่างกายไม่เพียงแต่ช่วยให้ร่างกายสดชื่น แต่ยังช่วยให้จิตใจสดชื่นด้วย! เติมพลังและสนุกกับการเดินทางมากยิ่งขึ้น ลองหยุดพักสักครู่เพื่อพักผ่อนดูไหมนะ~","Растяжка освежает не только тело, но и разум! Восстановите силы и получите еще больше удовольствия от поездки. Как насчет того, чтобы сделать небольшой перерыв и немного отдохнуть?","","","","","",""
-"","Greeting_Tag1","#JEONGE","#JEONGE","#JEONGE","#JEONGE","#JEONGE","#JEONGE","#JEONGE","#JEONGE","","","","","",""
-"","Greeting_Tag2","#정이","#JEONG-I","#JEONG-I","#JEONG-I","#JEONG-I","#JEONG-I","#จองอี","#ЧОН-И","","","","","",""
-"","Greeting_Tag3","#안녕 정이","#Hello Jeong-i","#Jeong-i","#你好 'Jeong-i'","#Chào Jeong-i","#Halo Jeong-i","#สวัสดีจองอี","#Привет, Чон-и!","","","","","",""
-"95","Transport_Public","대중교통","Public Transportation","公共交通機関","公共交通機関","Phương tiện giao thông công cộng","Transportasi Umum","ระบบขนส่งสาธารณะ","Общественный транспорт","","","","","",""
-"96","Transport_Map","오색시장지도","Osaek Market Map","仁寺洞マップ","仁寺洞マップ","Bản đồ chợ Osaek","Peta Pasar Osaek","แผนที่ตลาดโอซาเอก","Карта рынка Осаек","","","","","",""
-"97","Transport_Parking","주차장 안내","Parking Information","駐車場案内","駐車場案内","Thông tin đỗ xe","Informasi Parkir","ข้อมูลเกี่ยวกับที่จอดรถ","Информация о парковке","","","","","",""
-"97","Transport_Load1","빨강길","Red Load","Red Load","Red Load","Tải đỏ","Beban Merah","โหลดสีแดง","Красная загрузка","","","","","",""
-"97","Transport_Load2","녹색길","Green Load","Green Load","Green Load","Tải xanh","Beban Hijau","โหลดสีเขียว","Зелёная загрузка","","","","","",""
-"97","Transport_Load3","미소거리","Miso Load","Miso Load","Miso Load","Tải Miso","Beban Miso","มิโซะโหลด","Мисо-загрузка","","","","","",""
-"97","Transport_Load4","아름거리","Arum Load","Arum Load","Arum Load","Tải Arum","Muatan Arum","อารัม โหลด","Арум Лоуд","","","","","",""
-"97","Transport_Load5","맘스거리","Mom's Load","Mom's Load","Mom's Load","Gánh nặng của mẹ","Beban Ibu","ภาระของแม่","Мамина ноша","","","","","",""
-"97","Transport_Load6","기타","ETC","ETC","ETC","VÂN VÂN","DLL","อีทีซี","И Т. Д","","","","","",""
-"97","Transport_Subway","지하철","Subway","地下鉄","地下鉄","Tàu điện ngầm","Subway","ซับเวย์","Метро","","","","","",""
-"99","Transport_SubwayContent_1","1호선 오산역 1번 출구 (오색시장까지 도보 약 9분)","Line 1–Osan Station, Exit 1 (≈9-minute walk to Osaek Market)","1号線 オサン駅 1番出口（オセク市場まで徒歩約9分）","1号线 乌山市站 1号出口（步行约9分钟到五色市场）","Tuyến số 1 – Ga Osan, Lối ra số 1 (đi bộ khoảng 9 phút đến chợ Osaek)","Jalur 1 – Stasiun Osan, Pintu Keluar 1 (sekitar 9 menit berjalan kaki ke Pasar Osaek)","สาย 1 – สถานีโอซาน ทางออก 1 (เดินประมาณ 9 นาทีถึงตลาดโอแซก)","Линия 1 – станция Осан, выход 1 (примерно 9 минут пешком до рынка Осаек)","","","","","",""
-"100","Transport_SubwayContent_2","","","","","","","","","","","","","",""
-"101","Transport_SubwayContent_3","","","","","","","","","","","","","",""
-"102","Transport_Bus","버스","Bus","バス","バス","Xe buýt","Bis","รสบัส","Автобус","","","","","",""
-"103","Transport_BusContent_1","일반: 11, 15, 20, 24, 25, 27, 28, 30, 31, 32, 33, 34, 35","Local: 11, 15, 20, 24, 25, 27, 28, 30, 31, 32, 33, 34, 35","一般: 11, 15, 20, 24, 25, 27, 28, 30, 31, 32, 33, 34, 35","普通: 11, 15, 20, 24, 25, 27, 28, 30, 31, 32, 33, 34, 35","Địa phương: 11, 15, 20, 24, 25, 27, 28, 30, 31, 32, 33, 34, 35","Lokal: 11, 15, 20, 24, 25, 27, 28, 30, 31, 32, 33, 34, 35","เวลาท้องถิ่น: 11, 15, 20, 24, 25, 27, 28, 30, 31, 32, 33, 34, 35","Местные: 11, 15, 20, 24, 25, 27, 28, 30, 31, 32, 33, 34, 35","","","","","",""
-"104","Transport_BusContent_2","광역: 1311, 1551B, 5001, 5005, 7000 (오산역 버스터미널 정차)","Express: 1311, 1551B, 5001, 5005, 7000 (stop at Osan Station Bus Terminal)","広域: 1311, 1551B, 5001, 5005, 7000（オサン駅バスターミナル停車）","快速: 1311, 1551B, 5001, 5005, 7000（乌山市站客运站停靠）","Tuyến xe buýt nhanh: 1311, 1551B, 5001, 5005, 7000 (dừng tại bến xe buýt Osan)","Ekspres: 1311, 1551B, 5001, 5005, 7000 (berhenti di Terminal Bus Stasiun Osan)","รถโดยสารด่วน: สาย 1311, 1551B, 5001, 5005, 7000 (จอดที่สถานีขนส่งโอซาน)","Экспресс: 1311, 1551B, 5001, 5005, 7000 (остановка у автовокзала Осан)","","","","","",""
-"105","Transport_BusContent_3","","","","","","","","","","","","","",""
-"106","Transport_MapInfo","오색시장은 신선한 먹거리와 다양한 전통 문화를 즐길 수 있는 오산의 활기찬 전통시장입니다.","Osaek Market is a lively traditional marketplace in Osan, where you can taste local street foods, buy fresh produce, and enjoy authentic Korean market culture.","オセク市場は、新鮮な食材や多様な伝統文化を楽しめるオサンの活気ある伝統市場です。","五色市场是乌山市一个充满活力的传统市场，可以品尝街头小吃、购买新鲜食材，感受韩国传统文化。","Chợ Osaek là một khu chợ truyền thống nhộn nhịp ở Osan, nơi bạn có thể thưởng thức các món ăn đường phố địa phương, mua nông sản tươi sống và tận hưởng văn hóa chợ truyền thống Hàn Quốc đích thực.","Pasar Osaek adalah pasar tradisional yang ramai di Osan, tempat Anda dapat mencicipi makanan jalanan lokal, membeli hasil bumi segar, dan menikmati budaya pasar Korea yang autentik.","ตลาดโอแซกเป็นตลาดแบบดั้งเดิมที่มีชีวิตชีวาในเมืองโอซาน ที่นี่คุณสามารถลิ้มลองอาหารริมทางท้องถิ่น ซื้อผลผลิตสดใหม่ และเพลิดเพลินไปกับวัฒนธรรมตลาดเกาหลีแท้ๆ","Рынок Осаек — это оживленный традиционный рынок в Осане, где вы можете попробовать местную уличную еду, купить свежие продукты и насладиться подлинной корейской рыночной культурой.","","","","","",""
-"107","Transport_MapContent_1","Jeong-I, 오색시장의 AI 마스코트를 [WITH]를 통해 만나보세요!
-장날: 매달 3일, 8일, 13일, 18일, 23일, 28일에 5일장이 열립니다.","Meet Jeong-I, Osaek Market’s AI mascot, via [WITH]!
-Market days: 3rd, 8th, 13th, 18th, 23rd, 28th each month.","Jeong-I、五色市場のAIマスコットを[WITH]で体験しよう！
-市の日：毎月3日、8日、13日、18日、23日、28日。","通过[WITH]认识五色市场的AI吉祥物Jeong-I吧！
-市集日：每月3、8、13、18、23、28日。","Gặp gỡ Jeong-I, linh vật AI của Chợ Osaek, thông qua [WITH]!
-
-Ngày chợ: 3, 8, 13, 18, 23, 28 mỗi tháng.","Mari berkenalan dengan Jeong-I, maskot AI Pasar Osaek, melalui [WITH]!
-Hari pasar: tanggal 3, 8, 13, 18, 23, 28 setiap bulan.","พบกับจองอี มาสคอต AI ของตลาดโอแซก ผ่านทาง [WITH]!
-วันทำการตลาด: วันที่ 3, 8, 13, 18, 23, 28 ของทุกเดือน","Познакомьтесь с Чон-И, искусственным интеллектом-талисманом рынка Осаек, через [WITH]!
-Рыночные дни: 3, 8, 13, 18, 23, 28 числа каждого месяца.","","","","","",""
-"108","Transport_MapContent_2","WITH' (WIT AI Smart-Tourism Hardware Platform) 설치장소","WITH' (WIT AI Smart-Tourism Hardware Platform) ","WITH' (WIT AI Smart-Tourism Hardware Platform) ","WITH' (WIT AI Smart-Tourism Hardware Platform) ","'WITH' (Nền tảng phần cứng du lịch thông minh WIT AI)","WITH' (Platform Perangkat Keras Pariwisata Cerdas AI WIT)","WITH' (แพลตฟอร์มฮาร์ดแวร์การท่องเที่ยวอัจฉริยะ WITH AI)","WITH' (WIT AI Smart-Tourism Hardware Platform)","","","","","",""
-"109","Transport_MapContent_3","오색시장 메인사거리  (오색시장 상인회 앞)"," "," "," ","#VALUE!","","","","","","","","",""
-"116","Transport_JongroPickServiceContent","<color=#FE6C50>•</color> 공용주차장 실시간 주차정보
-<color=#FE6C50>•</color> SOS 긴급신고
-<color=#FE6C50>•</color> 정화조 청소예약, 건강이상 서비스 신청 등 민원서비스
-<color=#FE6C50>•</color> 프로그램 / 강좌
-<color=#FE6C50>•</color> 종로산책(골목길 탐방코스)","<color=#FE6C50>•</color> Real-time public parking availability  
-<color=#FE6C50>•</color> SOS Emergency Alerts  
-<color=#FE6C50>•</color> Civil services like septic tank cleaning and health check requests  
-<color=#FE6C50>•</color> Programs / Courses  
-<color=#FE6C50>•</color> Jongno Walk (Alleyway Tour Courses)","<color=#FE6C50>•</color> 公共駐車場のリアルタイム情報  
-<color=#FE6C50>•</color> SOS緊急通報  
-<color=#FE6C50>•</color> 浄化槽清掃予約、健康異常サービス申請などの民願サービス  
-<color=#FE6C50>•</color> プログラム / 講座  
-<color=#FE6C50>•</color> チョンノ散歩（路地裏探訪コース）","<color=#FE6C50>•</color> 公共駐車場のリアルタイム情報  
-<color=#FE6C50>•</color> SOS緊急通報  
-<color=#FE6C50>•</color> 浄化槽清掃予約、健康異常サービス申請などの民願サービス  
-<color=#FE6C50>•</color> プログラム / 講座  
-<color=#FE6C50>•</color> チョンノ散歩（路地裏探訪コース）","<color=#FE6C50>•</color> Thông tin về chỗ đỗ xe công cộng theo thời gian thực
-<color=#FE6C50>•</color> Cảnh báo khẩn cấp SOS
-<color=#FE6C50>•</color> Các dịch vụ công cộng như vệ sinh bể phốt và yêu cầu kiểm tra sức khỏe
-<color=#FE6C50>•</color> Chương trình / Khóa học
-<color=#FE6C50>•</color> Jongno Walk (Các khóa học tham quan ngõ hẻm)","<color=#FE6C50>•</color> Ketersediaan parkir umum secara real-time
-<color=#FE6C50>•</color> Peringatan Darurat SOS
-<color=#FE6C50>•</color> Layanan sipil seperti pembersihan tangki septik dan permintaan pemeriksaan kesehatan
-<color=#FE6C50>•</color> Program / Kursus
-<color=#FE6C50>•</color> Jongno Walk (Kursus Tur Gang)","• ตรวจสอบความพร้อมใช้งานของที่จอดรถสาธารณะแบบเรียลไทม์
-• แจ้งเตือนเหตุฉุกเฉิน SOS
-• บริการสาธารณะ เช่น การทำความสะอาดถังบำบัดน้ำเสียและการขอตรวจสุขภาพ
-• โปรแกรม / หลักสูตร
-• เดินชมตรอกซอยจงโน (หลักสูตรทัวร์ชมตรอกซอย)","<color=#FE6C50>•</color> Информация о наличии общественных парковок в режиме реального времени
-<color=#FE6C50>•</color> Экстренные оповещения SOS
-<color=#FE6C50>•</color> Услуги гражданского сектора, такие как очистка септических резервуаров и запросы на проверку состояния здоровья
-<color=#FE6C50>•</color> Программы / Курсы
-<color=#FE6C50>•</color> Прогулка по переулкам Джонгно (курсы по аллеям)","","","","","",""
-"117","MarketPaper_Onnuri","온누리 상품권","Onnuri Gift Certificate","おんぬり しょうひんけん","稳楼里商品券","Phiếu quà tặng Onnuri","Sertifikat Hadiah Onnuri","บัตรของขวัญ Onnuri","Подарочный сертификат Onnuri","","","","","",""
-"117","MarketPaper_Onnuri_Content","온누리 상품권「온누리상품권」","Onnuri Gift Certificate「Onnuri Gift Certificate」","おんぬり しょうひんけん「おんぬり しょうひんけん」","稳楼里商品券「稳楼里商品券」","Phiếu quà tặng Onnuri「Phiếu quà tặng Onnuri」","Sertifikat Hadiah Onnuri「Sertifikat Hadiah Onnuri」","บัตรของขวัญ Onnuri「บัตรของขวัญ Onnuri」","Подарочный сертификат Onnuri「Onnuri Gift Certificate」","","","","","",""
-"117","MarketPaper_Onnuri_Content_1","온누리 상품권이란?","What is Onnuri Gift Certificate?","おんぬり しょうひんけんとは？","什么是稳楼里商品券？","Phiếu quà tặng Onnuri là gì?","Apa itu Sertifikat Hadiah Onnuri?","บัตรของขวัญ Onnuri คืออะไร?","Что такое подарочный сертификат Onnuri?","","","","","",""
-"117","MarketPaper_Onnuri_Content_1_1","전국 16개 금융기관에서 5천원, 1만원, 3만원권 단위로 구매하여 사용하는 온누리상품권","Onnuri Gift Certificates available in 5,000, 10,000, and 30,000 won denominations at 16 banks nationwide.","ぜんこく じゅうろくの きんゆう きかんで ごせんうぉん、いちまんうぉん、さんまんうぉん たんいで かって つかう おんぬり しょうひんけん","可在全国16家金融机构购买，面额分为5千、1万、3万韩元的稳楼里商品券。","Phiếu quà tặng Onnuri có các mệnh giá 5.000, 10.000 và 30.000 won, được phát hành tại 16 ngân hàng trên toàn quốc.","Sertifikat Hadiah Onnuri tersedia dalam nominal 5.000, 10.000, dan 30.000 won di 16 bank di seluruh negeri.","บัตรของขวัญ Onnuri มีจำหน่ายในราคา 5,000, 10,000 และ 30,000 วอน ที่ธนาคาร 16 แห่งทั่วประเทศ","Подарочные сертификаты Onnuri номиналом 5000, 10000 и 30000 вон можно приобрести в 16 банках по всей стране.","","","","","",""
-"117","MarketPaper_Onnuri_Content_2","지류상품권 권종","Paper voucher denominations","かみの しょうひんけんの しゅるい","纸质商品券面额","Các mệnh giá phiếu giấy","Nominal voucher kertas","มูลค่าของบัตรกำนัลกระดาษ","Номиналы бумажных ваучеров","","","","","",""
-"117","MarketPaper_Onnuri_Content_3","디지털 온누리상품권이란?","What is Digital Onnuri Gift Certificate?","でじたある おんぬり しょうひんけんとは？","什么是数字稳楼里商品券？","Phiếu quà tặng điện tử Onnuri là gì?","Apa itu Sertifikat Hadiah Digital Onnuri?","บัตรของขวัญดิจิทัล Onnuri คืออะไร?","Что такое цифровой подарочный сертификат Onnuri?","","","","","",""
-"117","MarketPaper_Onnuri_Content_3_1","디지털 온누리상품권 앱 설치 후 기존 갖고 있는 카드를 등록하고 금액 충전 후, 실물카드 또는 QR코드 결제 방식으로 이용 가능한 온누리상품권","An Onnuri Gift Certificate that can be used via physical card or QR code after installing the Digital Onnuri App, registering your existing card, and charging the balance.","でじたある おんぬり しょうひんけん あぷりを いれ、もっている かあどを とうろくして おかねを いれたあと、かあどや きゅうあある こおどで つかえる おんぬり しょうひんけん","安装数字稳楼里商品券App并绑定现有银行卡充值后，可通过实体卡或二维码支付使用的稳楼里商品券。","Phiếu quà tặng Onnuri có thể sử dụng bằng thẻ vật lý hoặc mã QR sau khi cài đặt ứng dụng Onnuri kỹ thuật số, đăng ký thẻ hiện có và trừ tiền vào thẻ.","Sertifikat Hadiah Onnuri yang dapat digunakan melalui kartu fisik atau kode QR setelah menginstal Aplikasi Digital Onnuri, mendaftarkan kartu Anda yang sudah ada, dan mengisi saldo.","บัตรของขวัญ Onnuri ที่สามารถใช้ได้ทั้งในรูปแบบบัตรจริงหรือรหัส QR หลังจากติดตั้งแอปพลิเคชัน Digital Onnuri ลงทะเบียนบัตรที่มีอยู่ และเติมเงินลงในบัตรแล้ว","Подарочный сертификат Onnuri, который можно использовать с помощью физической карты или QR-кода после установки цифрового приложения Onnuri, регистрации существующей карты и списания средств.","","","","","",""
-"117","MarketPaper_Onnuri_Content_3_2","상품권 금액의 10% 할인가로 충전 가능! 최대 보유한도금액은 200만원입니다.","Recharge at a 10% discount! The maximum holding limit is 2 million won.","しょうひんけんの じゅっぱあせんと わりびきで ちゃあじ できる！ さいだい ほゆう げんどがくは にひゃくまんうぉんです。","可享受10%折扣充值！最大持有金额为200万韩元。","Nạp tiền với ưu đãi giảm giá 10%! Giới hạn nạp tối đa là 2 triệu won.","Isi ulang dengan diskon 10%! Batas saldo maksimal adalah 2 juta won.","เติมเงินรับส่วนลด 10%! วงเงินสูงสุด 2 ล้านวอน","Пополните счет со скидкой 10%! Максимальный лимит пополнения — 2 миллиона вон.","","","","","",""
-"117","MarketPaper_Onnuri_Content_3_3","※ 단, 예산소진 상황에 따라 특별판매 내용 및 기간이 변경될 수 있습니다.","※ Note: Special sale details and periods are subject to change depending on budget exhaustion.","※ ただし、よさんが なくなり しだい、とくべつ はんばいの ないようや きかんが かわる ことが あります。","※ 注：特别销售内容及期限可能会根据预算消耗情况有所变更。","※ Lưu ý: Chi tiết và thời gian khuyến mãi đặc biệt có thể thay đổi tùy thuộc vào ngân sách hiện có.","※ Catatan: Detail dan periode penjualan khusus dapat berubah tergantung pada ketersediaan anggaran.","※ หมายเหตุ: รายละเอียดและระยะเวลาของโปรโมชั่นพิเศษอาจมีการเปลี่ยนแปลงได้ ขึ้นอยู่กับงบประมาณที่มีอยู่","※ Примечание: Условия и сроки проведения специальных распродаж могут быть изменены в зависимости от исчерпания бюджета.","","","","","",""
-"117","MarketPaper_Onnuri_Content_4","온누리상품권 사용처","Where to use Onnuri Gift Certificates","おんぬり しょうひんけんが つかえる ところ","稳楼里商品券使用处","Phiếu quà tặng Onnuri có thể được sử dụng ở đâu?","Di mana menggunakan Sertifikat Hadiah Onnuri?","สามารถใช้บัตรของขวัญ Onnuri ได้ที่ไหนบ้าง","Где использовать подарочные сертификаты Onnuri","","","","","",""
-"117","MarketPaper_Onnuri_Content_4_1","온누리상품권 가맹점 스티커가 있는 곳에서 사용이 가능합니다.","Can be used at places with the Onnuri Gift Certificate affiliated store sticker.","おんぬり しょうひんけん かめいてん すてっかあが ある ところで つかえます。","可在贴有稳楼里商品券加盟店贴纸的地方使用。","Có thể sử dụng tại các cửa hàng có dán tem phiếu quà tặng Onnuri.","Dapat digunakan di tempat-tempat yang memiliki stiker toko afiliasi Sertifikat Hadiah Onnuri.","สามารถใช้ได้ที่ร้านค้าที่มีสติกเกอร์ร้านค้าพันธมิตรของ Onnuri Gift Certificate","Можно использовать в местах, где есть наклейка магазина-партнера подарочного сертификата Onnuri.","","","","","",""
-"118","MarketPaper_Osaekjeon","오색전","Osaekjeon","オセクジョン","五色钱","Osaekjeon","Osaekjeon","โอแซกจอน","Осаекджон","","","","","",""
-"118","MarketPaper_Osaekjeon_Content","오산화폐「오색전」","Osan Currency “Osaekjeon”
-","オサン地域通貨「オセクジョン」","乌山市地域货币“五色钱","Tiền tệ Osan “Osaekjeon”
-
-","Mata uang Osan “Osaekjeon”
-
-","สกุลเงินโอซาน “โอแซกจอน”
-
-(Osan Currency “Osaekjeon”)
-","Валюта Осана «Осэкчжон»
-
-","","","","","",""
-"118","MarketPaper_Osaekjeon_Content_1","오산화폐 오색전이란?","What is Osaekjeon?","オセクジョンとは？","什么是五色钱？","Osaekjeon là gì?","Apa itu Osaekjeon?","โอแซกจอนคืออะไร?","Что такое Осаекджон?","","","","","",""
-"118","MarketPaper_Osaekjeon_Content_1_1","<b>오산시 내에서만 사용할 수 있는 카드형 지역화폐 입니다.</b>
+О","I
+N
+F
+O","",""
+"","NoticeContent","오색시장의 마스코트<b>'정이'가
+박술녀 한복을</b> 입고 나와요
+여러분도 체험할 수 있도록 
+할게요 <b>한복을 입어보세요~</b>","Osaek Market's mascot <b>'JEONG-I' comes out wearing
+Park Sul-nyeo hanbok.</b>
+So that you can experience it too,
+<b>Try wearing a hanbok~</b>","オセク市場のマスコット<b>「JEONG-I」が
+朴述女（パク・スルニョ）韓服を</b>着て登場します
+皆さんも体験できるように
+ご案内します <b>韓服を着てみてください〜</b>","五色市场的吉祥物<b>“JEONG-I”身穿
+朴述女韩服</b>亮相啦
+为了让大家也能体验，
+<b>快来试穿韩服吧~</b>","Linh vật của Chợ Osaek <b>'JEONG-I' xuất hiện
+trong trang phục Hanbok Park Sul-nyeo.</b>
+Để các bạn cũng có thể trải nghiệm,
+<b>Hãy thử mặc Hanbok nhé~</b>","มาสคอตของตลาดโอแซก <b>'JEONG-I' ปรากฏตัว
+ในชุดฮันบก พัคซุลนยอ</b>
+เพื่อให้ทุกคนได้สัมผัสประสบการณ์ด้วย
+<b>ลองสวมชุดฮันบกกันดูนะคะ~</b>","Маскот рынка Осаек <b>«JEONG-I» появляется
+в ханбоке от Пак Сульнё.</b>
+Чтобы вы тоже могли это испытать,
+<b>Примерьте ханбок~</b>","Maskot Pasar Osaek <b>'JEONG-I' hadir
+mengenakan Hanbok Park Sul-nyeo.</b>
+Agar Anda juga dapat merasakannya,
+<b>Cobalah mengenakan hanbok~</b>","",""
+"","Language_Select_Language","언어선택","Select Language","言語選択","选择语言","Chọn ngôn ngữ","เลือกภาษา","Выберите язык","Pilih Bahasa","",""
+"","Language_Content","* 원하는 언어를 선택해 주세요.","* Please select your preferred language.","* ご希望の言語を選択してください。","* 请选择您需要的语言。","* Vui lòng chọn ngôn ngữ bạn muốn.","* กรุณาเลือกภาษาที่ต้องการ","* Пожалуйста, выберите желаемый язык.","* Silakan pilih bahasa yang diinginkan.","",""
+"","Language_Now_Language","현재 언어","> Now Language","> Now Language","> Now Language","Ngôn ngữ hiện tại","ภาษาปัจจุบัน","> Текущий язык","Bahasa Saat Ini","",""
+"","Language_Target_Language","변경 언어","> Change Language","> Change Language","> Change Language","Đổi ngôn ngữ","เปลี่ยนภาษา","> Изменить язык","Ubah Bahasa","",""
+"","MainButton_AI"," '정이' 뭐하지","To do","旅行先 おすすめ","做什么比较好呢？","Để làm","Yang harus dilakukan","ต้องทำ","сделать","",""
+"","MainButton_AI_Subtext","AI 검색하기","AI Search","AI検索","AI搜索","Tìm kiếm AI","ค้นหาด้วย AI","AI Поиск","Pencarian AI","",""
+"","MainButton_WITH_Market","위드마켓","WITH Market","WITH Market","WITH Market","Với Thị trường","DENGAN Pasar","ด้วยตลาด","С рынком","",""
+"","MainButton_WITH_Market_Subtext","굿즈 만들기","Make Merch","グッズ作り","制作周边","Làm đồ lưu niệm","ทำสินค้าที่ระลึก","Создание сувениров","Membuat Souvenir","",""
+"","MainButton_Event","오산시 이벤트","Events","おすすめイベント","推荐活动","Sự kiện Insadong","กิจกรรมอินซาดง","Мероприятия","Event Insadong","",""
+"","MainButton_Event_Subtext","오산시 행사","Insadong Events","仁寺洞イベント","仁寺洞活动","Sự kiện Insadong","กิจกรรมอินซาดง","Мероприятия в Инсадоне","Acara Insadong","",""
+"","MainButton_ToEat"," '정이' 뭐먹지?","To eat","飲食店の","我们吃什么呢？","Để ăn","Untuk makan","กิน","есть","",""
+"","MainButton_ToEat_Subtext","맛집 추천","Restaurant Recommendations","おすすめのレストラン","推荐餐厅","Đề xuất nhà hàng","ร้านอาหารแนะนำ","Рекомендуемые рестораны","Rekomendasi Restoran","",""
+"","MainButton_ToBuy"," '정이' 뭐사지?(식품)","To buy(food)","「JEONG-I」何を買う？(食品)","“JEONG-I”买什么？(食品)","JEONG-I' mua gì?(thực phẩm)","JEONG-I' ซื้ออะไรดี?(อาหาร)","«JEONG-I» Что купить?(продукты)","JEONG-I' beli apa?(makanan)","",""
+"","MainButton_ToBuy_SubText","식품 추천","Food Recommendations","おすすめ食品","食品推荐","Đề xuất thực phẩm","อาหารแนะนำ","Рекомендуемые продукты","Rekomendasi Makanan","",""
+"","MainButton_ToBuy2"," '정이' 뭐사지?(물품)","To buy(goods)","「JEONG-I」何を買う？(物品)","“JEONG-I”买什么？(商品)","JEONG-I' mua gì?(hàng hóa)","JEONG-I' ซื้ออะไรดี?(สินค้า)","«JEONG-I» Что купить?(товары)","JEONG-I' beli apa?(barang)","",""
+"","MainButton_ToBuy2_Subtext","물품 추천","Goods Recommendations","おすすめ物品","商品推荐","Đề xuất hàng hóa","สินค้าแนะนำ","Рекомендуемые товары","Rekomendasi Barang","",""
+"","MainButton_TaxFree","TAX-FREE","TAX-FREE","TAX-FREE","TAX-FREE","TAX-FREE","TAX-FREE","TAX-FREE","TAX-FREE","",""
+"","MainButton_TaxFree_Subtext","면세 혜택","Duty-Free Benefits","免税特典","免税优惠","Ưu đãi miễn thuế","สิทธิประโยชน์ปลอดภาษี","Беспошлинные льготы","Manfaat Bebas Pajak","",""
+"","MainButton_Here","여기는 오색시장","Osaek Market","オセク市場","这里是Osaek","Chợ Osaek","Pasar Osaek","ตลาดโอแซก","Рынок Осаек","",""
+"","MainButton_Here_Subtext","관광지 추천","Recommended Attractions","観光地のおすすめ","景点推荐","Đề xuất điểm du lịch","สถานที่ท่องเที่ยวแนะนำ","Рекомендуемые достопримечательности","Rekomendasi Wisata","",""
+"","MainButton_Greeting","안녕 '정이'","Hello 'JEONG-I'","こんにちは「JEONG-I」","你好“JEONG-I”","Xin chào 'JEONG-I'","สวัสดี 'JEONG-I'","Привет, «JEONG-I»","Halo 'JEONG-I'","",""
+"","MainButton_Greeting_Subtext","정이' 소개","Introducing 'JEONG-I'","「JEONG-I」の紹介","“JEONG-I”介绍","Giới thiệu 'JEONG-I'","แนะนำ 'JEONG-I'","Знакомство с «JEONG-I»","Pengenalan 'JEONG-I'","",""
+"","MainButton_ToHelp","도와줘 '정이'","Help","ヘルプとサービスです","请帮忙","Giúp với 'INSA'","ช่วยด้วย 'INSA'","Помощь","Tolong 'INSA'","",""
+"","MainButton_ToHelp_Subtext","편의시설 안내","Facility Information","施設案内","设施指南","Thông tin cơ sở vật chất","ข้อมูลสิ่งอำนวยความสะดวก","Информация об удобствах","Informasi Fasilitas","",""
+"","MainButton_Map","오색시장 지도","OsaekMarket Map","オセク市場地図","OsaekMarket地图","Bản đồ chợ Osaek","Peta Pasar Osaka","แผนที่ตลาดโอแซก","Карта рынка Осаек","",""
+"","MainButton_Map_Subtext","오색시장 안내","Osaek Market Guide","オセク市場案内","五色市场指南","Hướng dẫn Chợ Osaek","แนะนำตลาดโอแซก","Путеводитель по рынку Осаек","Panduan Pasar Osaek","",""
+"","MainButton_Exchange","환율","Exchange","為替レート情報","汇率信息","Tỷ giá","อัตราแลกเปลี่ยน","Обмен валют","Kurs","",""
+"","MainButton_Exchange_Subtext","환율 계산기","Exchange Rate Calculator","為替レート計算機","汇率计算器","Máy tính tỷ giá","เครื่องคำนวณอัตราแลกเปลี่ยน","Калькулятор обменного курса","Kalkulator Nilai Tukar","",""
+"","MainButton_Donation","기부","Donation","寄付","捐款","Quyên góp","บริจาค","Пожертвование","Donasi","",""
+"","MainButton_Donation_Subtext","교복 기부","School Uniform Donation","制服の寄付","校服捐赠","Quyên góp đồng phục học sinh","บริจาคชุดนักเรียน","Пожертвование школьной формы","Donasi Seragam Sekolah","",""
+"","MainButton_Transport","교통안내","Transportation","交通案内","交通指南","Giao thông","ข้อมูลการเดินทาง","Транспорт","Info Transport","",""
+"","MainButton_Transport_Subtext","대중교통","Public Transportation","公共交通機関","公共交通","Giao thông công cộng","การขนส่งสาธารณะ","Общественный транспорт","Transportasi Umum","",""
+"","MainButton_Promotion","PROMOTION(준비중)","PROMOTION (Coming Soon)","PROMOTION（準備中）","促销活动（即将推出）","CHƯƠNG TRÌNH KHUYẾN MÃI (Sắp ra mắt)","โปรโมชั่น (เร็วๆ นี้)","АКЦИЯ (Скоро будет доступна)","PROMOSI (Segera Hadir)","",""
+"","MainButton_WC","화장실","Toilet","トイレ","廁所","Nhà vệ sinh","ห้องน้ำ","Туалет","Toilet","",""
+"","MainButton_Hanbok","한복설명","Hanbok","韓服","韩服","Thông tin Hanbok","ข้อมูลฮันบก","Ханбок","Info Hanbok","",""
+"","Search_Result_Title","검색","Search","検索","搜索","Tìm kiếm","ค้นหา","Поиск","Pencarian","",""
+"","Search_Result_Subtitle","* 검색결과를 클릭하시면 상세정보(길찾기)를 보실 수 있어요.","* Click a search result to see more details","* 検索結果をクリックして、詳細とルート案内をご覧ください。","* 点击搜索结果，查看详情与路线导航。","Nhấn vào kết quả để xem chi tiết (chỉ đường).","คลิกที่ผลการค้นหาเพื่อดูรายละเอียด (การนำทาง) ค่ะ","Нажмите результат — детали и маршрут.","Klik hasil pencarian untuk info detail (petunjuk arah).","",""
+"","Search_Detail_Title","검색 > 상세","Search > Details","検索 > 詳細","搜索 > 详情","Tìm kiếm > Chi tiết","ค้นหา > รายละเอียด","Поиск > Подробности","Cari > Detail","",""
+"","Search_NoContent","* 검색하신 단어는 해당 장소나 업체가 존재하지 않습니다. ","* The place or business you searched for does not exist.","* 検索された単語に該当する場所や店舗は存在しません。","* 未找到与检索词对应的地点或商户。","* Địa điểm hoặc cửa hàng bạn tìm kiếm không tồn tại.","* คำที่ค้นหาไม่มีสถานที่หรือร้านค้านี้อยู่","* По вашему запросу место или заведение не найдено.","* Tempat atau toko yang Anda cari tidak ditemukan.","",""
+"","JEONGI_Todo_Title","정이' 뭐하지","To do","旅行先 おすすめ","做什么比较好呢？"," 'JEONG-I làm gì?"," 'JEONG-I' ทำอะไรดี?","Чем заняться"," 'JEONG-I' ngapain ya?","",""
+"","JEONGI_Todo_Subtitle1","코스를 선택해 주세요","Please select a course","コースを選択してください","请选择路线","Vui lòng chọn tuyến đường","กรุณาเลือกเส้นทาง","Пожалуйста, выберите маршрут","Silakan pilih rute","",""
+"","JEONGI_Todo_Subtitle1-1","모든 추천코스는 오색시장을 기준으로 제작되었습니다.","All recommended courses are based on Osaek Market.","すべてのおすすめコースはオセク市場を基準に作成されました。","所有推荐路线均以五色市场为基准制定。","Tất cả các tuyến đường gợi ý đều được xây dựng dựa trên Chợ Osaek.","ทุกเส้นทางแนะนำสร้างขึ้นโดยอิงจากตลาดโอแซกเป็นเกณฑ์","Все рекомендуемые маршруты разработаны на основе рынка Осаек.","Semua rute yang direkomendasikan dibuat berdasarkan Pasar Osaek.","",""
+"","JEONGI_Todo_Subtitle1-2","부터 21:00까지 이용 가능한 코스를 추천해드립니다.","We recommend courses available until 21:00.","21:00まで利用可能なコースをおすすめします。","为您推荐截至21:00可游览的路线。","Chúng tôi gợi ý các tuyến đường có thể trải nghiệm đến 21:00.","เราแนะนำเส้นทางที่สามารถใช้บริการได้ถึง 21:00 น.","Мы рекомендуем маршруты, доступные до 21:00.","Kami merekomendasikan rute yang dapat dikunjungi hingga pukul 21:00.","",""
+"","My_Course_title","나만의 코스","My own course","自分だけのコース","专属路线","Khóa học của riêng tôi","หลักสูตรของฉันเอง","Мой собственный курс","Kursus saya sendiri","",""
+"","My_Course_desc1","원하는 대로 골라 만드는","Pick and choose as you like","思いのままに選んで作る","随心所欲挑选制作","Chọn và tạo theo ý muốn","เลือกและสร้างตามที่คุณต้องการ","Выбирайте и создавайте по своему желанию","Pilih dan buat sesuka Anda","",""
+"","My_Course_desc2","취향·동행·일정까지 원하는\n내가 원하는 여행 코스를 만들어 보세요.","Create your own travel course according to your tastes, companions, and schedule.","好み・同行者・日程まで希望通り
+自分だけの旅行コースを作ってみてください。","根据您的喜好、同行者和日程
+制定您专属的旅行路线。","Tạo khóa học du lịch của riêng bạn
+tùy theo sở thích, bạn đồng hành và lịch trình của bạn.","สร้างหลักสูตรการเดินทางของคุณเอง
+ตามรสนิยม ผู้ร่วมเดินทาง และตารางเวลาของคุณ","Создайте свой собственный туристический курс
+в соответствии с вашими вкусами, попутчиками и расписанием.","Buat kursus perjalanan Anda sendiri
+sesuai dengan selera, teman perjalanan, dan jadwal Anda.","",""
+"","Recommended_Course_title","추천코스","Recommended Course","おすすめコース","推荐路线","Khóa học được đề xuất","หลักสูตรที่แนะนำ","Рекомендуемый курс","Kursus yang direkomendasikan","",""
+"","Recommended_Course_1_subtitle","유산을 따라 걷는","Walking along Heritage","遺産をたどる散策","漫步历史遗产","Đi dọc theo di sản","เดินตามรอยมรดก","Прогулка по следам наследия","Menyusuri Jejak Warisan","",""
+"","Recommended_Course_1_title","유산 탐방 코스","Heritage Exploration Course","遺産探訪コース","遗产探访路线","Tuyến Khám phá Di sản","เส้นทางสำรวจมรดก","Маршрут: исследование наследия","Rute Eksplorasi Warisan","",""
+"","Recommended_Course_2_subtitle","미식과 감성을 즐기는","Savoring Food & Vibes","グルメと雰囲気を満喫","畅享美食与氛围","Tận hưởng ẩm thực & không gian chill","ดื่มด่ำรสชาติและบรรยากาศ","Наслаждаясь едой и атмосферой","Menikmati Kuliner & Suasana","",""
+"","Recommended_Course_2_title","맛집·감성 코스","Gourmet & Vibe Course","グルメ・感性コース","美食·感性路线","Tuyến Ẩm thực & Cảm xúc","เส้นทางอาหารและบรรยากาศ","Маршрут: гастрономия и атмосфера","Rute Kuliner & Suasana","",""
+"","Recommended_Course_3_subtitle","지역의 매력을 발견하는","Discovering Local Charm","地域の魅力を発見","发现当地魅力","Khám phá nét đẹp bản địa","ค้นพบเสน่ห์ท้องถิ่น","Открывая местный колорит","Menemukan Pesona Lokal","",""
+"","Recommended_Course_3_title","쇼핑·로컬 체험 코스","Shopping & Local Experience Course","ショッピング・ローカル体験コース","购物·当地体验路线","Tuyến Mua sắm & Trải nghiệm Bản địa","เส้นทางช้อปปิ้งและสัมผัสวิถีท้องถิ่น","Маршрут: шопинг и местный колорит","Rute Belanja & Pengalaman Lokal","",""
+"","Recommended_Course_4_subtitle","아이와 함께 즐기는","Fun with Kids","子どもと一緒に楽しむ","亲子同乐","Vui chơi cùng trẻ nhỏ","เพลิดเพลินกับเด็กๆ","Семейный отдых с детьми","Menikmati Bersama Anak","",""
+"","Recommended_Course_4_title","가족·체험 코스","Family & Experience Course","家族・体験コース","家庭·体验路线","Tuyến Gia đình & Trải nghiệm","เส้นทางครอบครัวและประสบการณ์","Маршрут: семья и впечатления","Rute Keluarga & Pengalaman","",""
+"","Visitor_Title","방문 인원","Number of Visitors","訪問人数","访问人数","Số lượng khách","จำนวนผู้เยี่ยมชม","Количество посетителей","Jumlah Pengunjung","",""
+"","Visitor_1","1명","1 person","1人","1人","1 người","1 คน","1 гость","1 orang","",""
+"","Visitor_2","2명","2 people","2人","2人","2 người","2 คน","2 гостя","2 orang","",""
+"","Visitor_3","3명","3 people","3人","3人","3 người","3 คน","3 гостя","3 orang","",""
+"","Visitor_4","4명","4 people","4人","4人","4 người","4 คน","4 гостя","4 orang","",""
+"","Visitor_5","5~9명","5~9 people","5~9人","5~9人","5~9 người","5~9 คน","5~9 чел.","5~9 orang","",""
+"","Visitor_6","10명~","10+ people","10人~","10人~","10 người~","10 คน~","10+ чел.","10 orang~","",""
+"","StayTime","체류 시간","How long are you planning to be here","どのくらい滞在する予定ですか？","您计划在这里停留多久？","Thời gian lưu trú","ระยะเวลาที่พำนัก","Как долго вы планируете здесь пробыть?","Durasi Kunjungan","",""
+"","StayTime_02","0 ~ 2시간","0 ~ 2 hours","0～2時間","0～2小时","0 ~ 2 giờ","0 ~ 2 ชั่วโมง","0 ~ 2 часа","0 - 2 jam","",""
+"","StayTime_24","2 ~ 4시간","2 ~ 4 hours","2～4時間","2～4小时","2 ~ 4 giờ","2 ~ 4 ชั่วโมง","2 ~ 4 часа","2 ~ 4 jam","",""
+"","StayTime_46","4 ~ 6시간","4 ~ 6 hours","4～6時間","4～6小时","4 ~ 6 giờ","4 ~ 6 ชั่วโมง","4 ~ 6 часов","4 ~ 6 jam","",""
+"","StayTime_66","6시간~","6 hours ~","6時間～","6小时以上","6 giờ ~","6 ชั่วโมง ~","от 6 часов","6 jam ~","",""
+"","JoyContent","즐길 거리","Things to Enjoy","楽しみ","娱乐项目","Hoạt động","สิ่งที่น่าสนใจ","Развлечения","Hal Menarik","",""
+"","SubmitButton","코스 추천받기","Get course recommendations","コースの推薦を受ける","获取路线推荐","Nhận đề xuất khóa học","รับคำแนะนำหลักสูตร","Получить рекомендации по курсу","Dapatkan rekomendasi kursus","",""
+"","Insa_Todo_result_Subtitle","AI 맞춤 추천 코스","AI Personalized Recommended Course","AIカスタムおすすめコース","AI定制推荐路线","Tuyến đường đề xuất tùy chỉnh AI","เส้นทางแนะนำส่วนตัวโดย AI","Персональный рекомендуемый маршрут от ИИ","Rute Rekomendasi Khusus AI","",""
+"","Insa_Todo_result_tags","#취향#맞춤#내맘대로","#Taste #Customized #AsYouLike","#好み #カスタム #思いのまま","#喜好 #定制 #随心所欲","#SởThích #CáNhânHóa #TùyÝ","#ตามใจชอบ #ปรับแต่งได้ #ตามสไตล์คุณ","#ПоВкусу #Индивидуально #КакДушеУгодно","#Selera #SesuaiKeinginan #SukaSuka","",""
+"","TotalStayTime","총 소요시간","Total time","総時間","总时间","Tổng thời gian","เวลารวมทั้งหมด","Общее время","Total waktu yang","",""
+"","TotalTravelTime","이동시간","Travel Time","移動時間","旅行时间","Thời gian di chuyển","เวลาเดินทาง","Время в пути","Waktu Perjalanan","",""
+"","dayLapsed","일차","First","一次","第一的","Đầu tiên","อันดับแรก","Первый","Pertama","",""
+"","blogReview","블로그 리뷰","Blog Review","ブログレビュー","博客评论","Đánh giá trên blog","รีวิวบล็อก","Обзор блога","Ulasan Blog","",""
+"","Distance","이동거리","Business Hours","営業時間","营业时间","Giờ làm việc","เวลาทำการ","Часы работы","Jam Operasional","",""
+"","Minute","분","Time spent","滞在時間","停留时间","Thời gian lưu trú","เวลาที่ใช้","Время пребывания","Waktu yang dihabiskan","",""
+"","Difficulty","난이도","Difficulty","難易度","难度","Độ khó","ความยาก","Сложность","Tingkat Kesulitan","",""
+"","Difficulty_easy","쉬움","Easy","簡単","简单","Dễ","ง่าย","Легкий","Mudah","",""
+"","Difficulty_normal","중간","Medium","普通","中等","Trung bình","ปานกลาง","Средний","Sedang","",""
+"","Difficulty_hard","어려움","Hard","難しい","困难","Khó","ยาก","Сложный","Sulit","",""
+"","Open&closeTime","영업 시간","Business Hours","営業時間","营业时间","Giờ mở cửa","เวลาทำการ","Часы работы","Jam Operasional","",""
+"","TimeToAdjourn","머무는 시간","Time spent","滞在時間","停留时间","Thời gian lưu trú","เวลาที่ใช้","Время пребывания","Waktu yang dihabiskan","",""
+"","NotAvailableTime","지금은 너무 이르거나 늦은 시간입니다! 잠시 후 다시 이용해 주세요.","It is currently too early or too late! Please try again in a moment.","現在は時間が早すぎるか遅すぎます！しばらくしてからもう一度ご利用ください。","现在时间太早或太晚！请稍后再试。","Hiện tại quá sớm hoặc quá muộn! Vui lòng thử lại sau giây lát.","ตอนนี้ยังเช้าเกินไปหรือดึกเกินไป! กรุณาลองใหม่อีกครั้งในอีกสักครู่ค่ะ","Сейчас слишком рано или слишком поздно! Пожалуйста, попробуйте еще раз позже.","Saat ini terlalu awal atau terlalu larut! Silakan coba lagi beberapa saat lagi.","",""
+"","Event_Title","오산시 이벤트","Osan City Events","オサン市イベント","乌山市活动","Sự kiện Thành phố Osan","กิจกรรมเมืองโอซาน","Мероприятия города Осан","Acara Kota Osan","",""
+"","Event_SubTitle","* 오산시에서 진행중인 이벤트를 찾아보세요 ","* Discover ongoing events in Osan City.","* 烏山市で開催中のイベントを探してみてください。","* 查看乌山市正在进行的精彩活动。","* Khám phá các sự kiện đang diễn ra tại Thành phố Osan.","* ค้นหากิจกรรมที่กำลังจัดขึ้นในเมืองโอซาน","* Узнайте о мероприятиях, проходящих в городе Осан.","* Temukan berbagai acara yang sedang berlangsung di Kota Osan.","",""
+"","Event_Tab_Osan","오산시","Osan City","烏山市","乌山市","Thành phố Osan","เมืองโอซาน","Город Осан","Kota Osan","",""
+"","Event_Category_All","전체","All","全て","全部","Tất cả","ทั้งหมด","Все","Semua","",""
+"","Event_Category_performance","공연","Performance","公演","演出","Biểu diễn","การแสดง","Выступление","Pertunjukan","",""
+"","Event_Category_exibition","전시","Exhibition","展示","展览","Triển lãm","นิทรรศการ","Выставка","Pameran","",""
+"","Event_Category_etc","기타","Etc","その他","其他","Khác","อื่นๆ","Другое","Lainnya","",""
+"","Event_MBTI_types","[외향적, 경험적, 이성적, 계획적, 내향적, 상상적, 감성적, 즉흥적]","[Extroverted, Experiential, Rational, Planned, Introverted, Imaginative, Emotional, Spontaneous]","[外向的、経験的、理性的、計画的、内向的、想像的、感性的、即興的]","[外向、经验、理性、计划、内向、想象、感性、即兴]","[Hướng ngoại, Dựa trên kinh nghiệm, Lý trí, Có kế hoạch, Hướng nội, Giàu trí tưởng tượng, Cảm xúc, Ngẫu hứng]","[เปิดเผย, ตามประสบการณ์, ใช้เหตุผล, มีแบบแผน, เก็บตัว, ใช้จินตนาการ, ใช้อารมณ์, ตามสัญชาตญาณ]","[Экстравертный, Опирающийся на опыт, Рациональный, Планирующий, Интровертный, Обладающий воображением, Эмоциональный, Спонтанный]","[Ekstrovert, Berdasarkan Pengalaman, Rasional, Terencana, Introvert, Imajinatif, Emosional, Spontan]","",""
+"","Event_MBTI_results","추천 결과 보기","View Recommendation Results","おすすめ結果を見る","查看推荐结果","Xem kết quả đề xuất","ดูผลลัพธ์ที่แนะนำ","Посмотреть результаты рекомендаций","Lihat Hasil Rekomendasi","",""
+"","Event_MBTI_guide1","MBTI 성향과 취향을 반영해 오산시 이벤트를<br/> 맞춤 추천해 드립니다!","We recommend personalized Osan City events<br/> tailored to your MBTI personality and preferences!","MBTIの傾向と好みを反映し、烏山市のイベントを<br/> カスタムおすすめします！","结合MBTI性格与喜好，<br/> 为您量身推荐乌山市精彩活动！","Gợi ý các sự kiện tại Thành phố Osan được thiết kế riêng<br/> dựa trên tính cách và sở thích MBTI của bạn!","แนะนำกิจกรรมในเมืองโอซานที่เหมาะกับคุณโดยเฉพาะ<br/> ตามลักษณะนิสัยและความชอบของ MBTI!","Рекомендуем персональные мероприятия города Осан<br/> с учетом вашего типа MBTI и предпочтений!","Merekomendasikan acara di Kota Osan yang disesuaikan<br/> dengan kepribadian dan preferensi MBTI Anda.","",""
+"","Event_MBTI_guide2","MBTI 4가지 유형을 전부 선택하지 않아도<br/> 나만의 추천 결과를 받아볼 수 있어요!","You can receive your own personalized recommendations<br/> even if you don't select all 4 MBTI types!","MBTIの4つのタイプをすべて選択しなくても、<br/> 自分だけのおすすめ結果を受け取ることができます！","即使不选择所有4个MBTI类型，<br/> 也能获得专属的推荐结果！","Bạn có thể nhận được kết quả đề xuất của riêng mình<br/> ngay cả khi bạn không chọn tất cả 4 loại MBTI!","คุณสามารถรับผลการแนะนำของคุณเองได้<br/> แม้ว่าคุณจะไม่ได้เลือก MBTI ทั้ง 4 ประเภทก็ตาม!","Вы можете получить свои собственные персональные рекомендации,<br/> даже если не выберете все 4 типа MBTI!","Anda bisa mendapatkan hasil rekomendasi sendiri<br/> meskipun Anda tidak memilih keempat tipe MBTI!","",""
+"","Event_Detail_SubHeader","* QR코드로 이벤트의 상세정보를 확인하세요","* Scan the QR code for event details","* QRコードでイベントの詳細を確認してください","* 扫描二维码查看活动详情","Quét QR xem chi tiết sự kiện.","สแกน QR เพื่อดูรายละเอียดค่ะ","* Отсканируйте QR-код, чтобы узнать подробности о мероприятии.","Scan QR untuk detail acara.","",""
+"","Event_Path_Guide","오시는 길 안내","Directions Guide","アクセス案内","路线指南","Hướng dẫn đường đi","คำแนะนำการเดินทาง","Схема проезда","Petunjuk Arah","",""
+"","Event_Source","출처 : 한국문화정보원 문화정보","Source: Korea Culture Information Service Agency (KCISA)","出典：韓国文化情報院 文化情報","来源：韩国文化信息院 文化信息","Nguồn: Cơ quan Thông tin Văn hóa Hàn Quốc","ที่มา: สำนักงานข้อมูลวัฒนธรรมเกาหลี","Источник: Корейское агентство культурной информации","Sumber: Badan Informasi Kebudayaan Korea","",""
+"","SubHeader_ToEat","* 검색결과를 클릭하시면 상세정보(길찾기)를 보실 수 있어요.","* Click a search result to see more details","* 検索結果をクリックして、詳細とルート案内をご覧ください。","* 点击搜索结果，查看详情与路线导航。","Nhấn vào kết quả để xem chi tiết (chỉ đường).","คลิกที่ผลการค้นหาเพื่อดูรายละเอียด (การนำทาง) ค่ะ","Нажмите результат — детали и маршрут.","Klik hasil pencarian untuk info detail (petunjuk arah).","",""
+"","SubHeader_ToBuy","* 검색결과를 클릭하시면 상세정보(길찾기)를 보실 수 있어요.","* Click a search result to see more details","* 検索結果をクリックして、詳細とルート案内をご覧ください。","* 点击搜索结果，查看详情与路线导航。","Nhấn vào kết quả để xem chi tiết (chỉ đường).","คลิกที่ผลการค้นหาเพื่อดูรายละเอียด (การนำทาง) ค่ะ","Нажмите результат — детали и маршрут.","Klik hasil pencarian untuk info detail (petunjuk arah).","",""
+"","SubHeader_ToStay","* 인사동에는 다양한 종류의 숙박이 가능합니다. ","* Various types of accommodation are available.","* インサドンでは多様な宿泊が可能です。","* 在仁寺洞可以选择多种住宿方式。","Có nhiều loại chỗ ở tại Insadong.","มีที่พักหลากหลายประเภทในอินซาดงค่ะ","* В Инсадоне доступны различные виды размещения.","Tersedia berbagai jenis penginapan di Insadong.","",""
+"","SubHeader_Palace","* 대한민국의 역사와 전통을 한눈에 볼 수있는 고궁을 방문해보세요 ","* Click a search result to see more details","* 検索結果をクリックして、詳細とルート案内をご覧ください。","* 点击搜索结果，查看详情与路线导航。","Nhấn vào kết quả để xem chi tiết (chỉ đường).","คลิกที่ผลการค้นหาเพื่อดูรายละเอียด (การนำทาง) ค่ะ","Нажмите результат — детали и маршрут.","Klik hasil pencarian untuk info detail (petunjuk arah).","",""
+"","SubHeader_ToHelp","* 검색결과를 클릭하시면 상세정보(길찾기)를 보실 수 있어요.","* Click a search result to see more details","* 検索結果をクリックして、詳細とルート案内をご覧ください。","* 点击搜索结果，查看详情与路线导航。","Nhấn vào kết quả để xem chi tiết (chỉ đường).","คลิกที่ผลการค้นหาเพื่อดูรายละเอียด (การนำทาง) ค่ะ","Нажмите результат — детали и маршрут.","Klik hasil pencarian untuk info detail (petunjuk arah).","",""
+"","SubHeader_ToGallery","* 검색결과를 클릭하시면 상세정보(길찾기)를 보실 수 있어요.","* Click a search result to see more details","* 検索結果をクリックして、詳細とルート案内をご覧ください。","* 点击搜索结果，查看详情与路线导航。","Nhấn vào kết quả để xem chi tiết (chỉ đường).","คลิกที่ผลการค้นหาเพื่อดูรายละเอียด (การนำทาง) ค่ะ","Нажмите результат — детали и маршрут.","Klik hasil pencarian untuk info detail (petunjuk arah).","",""
+"","SubHeader_Detail","* QR을 핸드폰으로 찍으시면 길을 안내해드려요","* Scan the QR code with your phone for directions","* スマホでQRコードを読み取ると道案内が表示されます","* 用手机扫描二维码即可获取路线导航","Quét mã QR bằng điện thoại để nhận chỉ đường.","สแกน QR ด้วยมือถือเพื่อดูเส้นทางค่ะ","Отсканируйте QR-код телефоном, чтобы проложить маршрут","Pindai QR dengan ponsel Anda untuk petunjuk arah","뭐먹지, 뭐사지, 숙박안내, 고궁안내, 도와줘 등 상세 페이지에서 subtitle 로 표시해 주기",""
+"","Taxfree_Subtitle1","텍스리펀드 서비스를 통해 텍스를 환급해가세요","Get your tax refunded through the tax refund service.","タックスリファンドで税金の払い戻しを受けましょう","通过退税服务机构获取退税。","Nhận lại tiền thuế của bạn thông qua dịch vụ hoàn thuế.","รับเงินคืนภาษีของคุณผ่านบริการคืนภาษี","Получите возврат налогов через службу возврата налогов.","Dapatkan pengembalian pajak Anda.","",""
+"","Taxfree_Subtitle2","텍스프리 가맹점을 무상으로 신청하세요","Apply to become a tax-free merchant for free.","テックスフリー加盟店を無償で申請してください","免费申请成为免税商家。","Đăng ký cửa hàng miễn thuế, miễn phí.","สมัครเป็นผู้ค้าปลอดภาษีได้ฟรี","Станьте магазином Tax-Free бесплатно.","Daftar toko bebas pajak, gratis.","",""
+"","Taxfree_Introduce","텍스프리 소개","About Tax-Free","免税サービス案内","免税服务介绍","Giới thiệu Tax Free","แนะนำแท็กซ์ฟรี (Tax Free)","О системе Tax-Free","Panduan Tax Free","",""
+"","Taxfree_desc1","텍스리펀드 서비스를 통해 텍스를 환급해가세요","Get your tax refunded through the tax refund service.","テックスリファンドサービスを通じてテックスを払い戻してください。","通过退税服务机构获取退税。","Nhận lại tiền thuế của bạn thông qua dịch vụ hoàn thuế.","รับเงินคืนภาษีของคุณผ่านบริการคืนภาษี","Получите возврат налогов через службу возврата налогов.","Dapatkan pengembalian pajak Anda melalui layanan pengembalian pajak.","",""
+"","Taxfree_desc2","외국인 관광객이 물품을 구입하고 출국하는 경우, 
+ 여행 중에 구매한 물품의 일정액 부가가치세를 돌려주는
+ 외국인 대상 세금 환급 제도로서 외국인 편의 향상을 위한 필수 서비스","As a tax refund system for foreigners that returns a certain amount of value-added tax on goods purchased during a trip when foreign tourists purchase items and depart the country, it is an essential service for enhancing convenience for foreigners.","外国人観光客が物品を購入して出国する場合、 
+ 旅行中に購入した商品の一定額の付加価値税を返す
+ 外国人対象税還付制度として外国人便宜向上のための必須サービス","作为一项针对外国人的退税制度，当外国游客在旅行期间购买商品并离境时，该制度会退还其在旅行期间购买商品的部分增值税，这是一项提高外国人出行便利性的必要服务。","Là một hệ thống hoàn thuế cho người nước ngoài, cho phép hoàn trả một khoản thuế giá trị gia tăng nhất định đối với hàng hóa mua trong chuyến đi khi khách du lịch nước ngoài mua hàng và rời khỏi đất nước, đây là một dịch vụ thiết yếu nhằm nâng cao sự thuận tiện cho người nước ngoài.","ระบบการคืนภาษีสำหรับชาวต่างชาติ ซึ่งจะคืนภาษีมูลค่าเพิ่มในจำนวนหนึ่งสำหรับสินค้าที่ซื้อระหว่างการเดินทาง เมื่อนักท่องเที่ยวต่างชาติซื้อสินค้าและเดินทางออกจากประเทศ ถือเป็นบริการที่สำคัญในการเพิ่มความสะดวกสบายให้กับชาวต่างชาติ","Система возврата налогов для иностранцев, которая предусматривает возврат определенной суммы налога на добавленную стоимость, уплаченного за товары, приобретенные во время поездки, когда иностранные туристы покупают товары и покидают страну, является важной услугой, повышающей удобство для иностранцев.","Sebagai sistem pengembalian pajak bagi warga asing yang mengembalikan sejumlah pajak pertambahan nilai (PPN) atas barang yang dibeli selama perjalanan ketika wisatawan asing membeli barang dan meninggalkan negara tersebut, ini merupakan layanan penting untuk meningkatkan kenyamanan bagi warga asing.","",""
+"","Taxfree_Apply","세금 환급 신청","Tax-Free","免税申請","申请退税","Hoàn thuế","ขอคืนภาษี","Заявка на возврат налога","Pengajuan Refund Pajak","",""
+"","Taxfree_Enroll","텍스프리 가맹점 신청","Apply Tax-Free","免税加盟店申請","申请免税加盟店","Đăng ký cửa hàng","สมัครร้านค้าสมาชิก","Регистрация торговой точки","Pendaftaran Merchant","",""
+"","Here_IsOsaek_Subtitle","* 오색시장은 200년이 넘는 역사를 지닌 대표적인 전통시장입니다.","* Osaek Market is a representative traditional market with a history of over 200 years.","* オセク市場は200年以上の歴史を持つ代表的な伝統市場です。","* 五色市场是拥有200多年悠久历史的代表性传统市场。","* Chợ Osaek là một khu chợ truyền thống tiêu biểu với bề dày lịch sử hơn 200 năm.","* ตลาดโอแซกเป็นตลาดดั้งเดิมที่เป็นตัวแทนสำคัญ โดยมีประวัติศาสตร์ยาวนานกว่า 200 ปี","* Рынок Осаек — это знаковый традиционный рынок с более чем 200-летней историей.","* Pasar Osaek adalah pasar tradisional representatif dengan sejarah lebih dari 200 tahun.","",""
+"","Here_Attraction","관광명소","Tourist Attractions","観光名所","旅游景点","Điểm tham quan","สถานที่ท่องเที่ยว","Достопримечательности","Objek Wisata","",""
+"","Here_History","역사","History","歴史","历史","Lịch sử","ประวัติศาสตร์","История","Sejarah","",""
+"","Here_HistoryFlow","오색시장의 역사 흐름","Historical Timeline of Osaek Market","オセク市場の歴史の流れ","五色市场历史沿革","Dòng chảy lịch sử của Chợ Osaek","ลำดับประวัติศาสตร์ของตลาดโอแซก","Хронология истории рынка Осаек","Alur Sejarah Pasar Osaek","",""
+"","Here_History_epoch1","조선시대","Joseon Dynasty","朝鮮時代","朝鲜时代","Thời Joseon","สมัยโชซอน","Династия Чосон","Dinasti Joseon","",""
+"","Here_History_epoch1_desc","오산장의 장터 전통","Marketplace tradition of Osan Market","烏山場（オサンジャン）の市場伝統","乌山场的集市传统","Truyền thống chợ phiên Osan-jang","ประเพณีตลาดนัดดั้งเดิมของโอซานจัง","Традиции ярмарки Осанджан","Tradisi pasar Osan-jang","",""
+"","Here_History_epoch2","1914년","1914","1914年","1914年","Năm 1914","ปี 1914","1914 год","Tahun 1914","",""
+"","Here_History_epoch2_desc","오산시장 명칭 제정\n전통 5일장","Named Osan Market
+Traditional 5-day market","烏山市場の名称制定
+伝統の5日立ち寄り市","确立“乌山市场”名称
+传统五日集市","Đặt tên là Chợ Osan
+Chợ phiên 5 ngày truyền thống","กำหนดชื่อเป็นตลาดโอซาน
+ตลาดนัด 5 วันตามประเพณี","Утверждение названия «Рынок Осан»
+Традиционный 5-дневный рынок","Penetapan nama Pasar Osan
+Pasar 5 hari tradisional","",""
+"","Here_History_epoch3","1980년대","1980s","1980年代","1980年代","Những năm 1980","ทศวรรษ 1980","1980-е годы","Era 1980-an","",""
+"","Here_History_epoch3_desc","현재 시장으로 상권 중심 이동","Commercial center shifted to current market","現在の市場へ商業の中心が移動","商圈中心转移至现今市场位置","Trung tâm thương mại chuyển về vị trí chợ hiện tại","ศูนย์กลางการค้าย้ายมายังตลาดในปัจจุบัน","Центр торговли переместился на нынешний рынок","Pusat komersial berpindah ke lokasi pasar saat ini","",""
+"","Here_History_epoch4","2013년","2013","2013年","2013年","Năm 2013","ปี 2013","2013 год","Tahun 2013","",""
+"","Here_History_epoch4_desc","시민 설문으로 오색시장 명칭 제정","Named Osaek Market through citizen survey","市民アンケートにより「オセク市場」に名称制定","通过市民问卷调查定名为“五色市场”","Đổi tên thành Chợ Osaek qua khảo sát ý kiến người dân","กำหนดชื่อเป็นตลาดโอแซกจากการสำรวจความคิดเห็นของประชาชน","Присвоение названия «Рынок Осаек» по результатам опроса жителей","Penetapan nama Pasar Osaek melalui survei warga","",""
+"","Here_History_epoch5","2015년","2015","2015年","2015年","Năm 2015","ปี 2015","2015 год","Tahun 2015","",""
+"","Here_History_epoch5_desc","문화관광형 시장사업 선정","Selected for Cultural Tourism Market Project","文化観光型市場事業に選定","入选文化观光型市场培育项目","Được chọn cho Dự án Chợ Du lịch Văn hóa","ได้รับเลือกให้เข้าร่วมโครงการตลาดเชิงวัฒนธรรมและการท่องเที่ยว","Выбран для проекта развития культурно-туристического рынка","Terpilih untuk Proyek Pasar Wisata Budaya","",""
+"","Here_History_epoch6","현재","Present","現在","现代","Hiện tại","ปัจจุบัน","Настоящее время","Masa Kini","",""
+"","Here_History_epoch6_desc","다섯 색 골목 장보기와 문화","Shopping and culture in 5 themed colored alleys","5色の路地での買い物と文化","五色小巷的购物与多元文化","Mua sắm và trải nghiệm văn hóa tại 5 con ngõ sắc màu","การจับจ่ายและสัมผัสวัฒนธรรมในตรอก 5 สี","Покупки и культура в пяти тематических цветных переулках","Berbelanja dan budaya di lima gang warna-warni","",""
+"","Here_HistoryContent_1_title","오산장의 전통","Tradition of Osan Market","烏山場（オサンジャン）の伝統","乌山场的传统","Truyền thống Chợ Osan-jang","ประเพณีของโอซานจัง","Традиции рынка Осанджан","Tradisi Osan-jang","",""
+"","Here_HistoryContent_1_summary","오산 오색시장은 조선시대 오산장의 전통을 잇는 시장입니다. 옛 오산장은 지역 주민이 물건을 사고팔며 소식을 나누던 장터였습니다. 1914년에는 ‘오산시장’이라는 명칭으로 전통 5일장을 이어왔습니다.","Osan Osaek Market is a market that carries on the tradition of Osan Market from the Joseon Dynasty. The historic Osan Market was a vibrant marketplace where local residents traded goods and shared news. In 1914, it officially became known as ""Osan Market"" and continued its traditional 5-day market heritage.","烏山（オサン）オセク市場は、朝鮮時代の烏山場（オサンジャン）の伝統を受け継ぐ市場です。昔の烏山場は地域住民が品物を売買し、近況を分かち合う場でした。1914年には「烏山市場」という名称で伝統の5日立ち寄り市を継承してきました。","乌山五色市场是继承了朝鲜时代“乌山场”传统的老字号市场。昔日的乌山场是当地居民买卖物品、交流互通的市集。1914年正式定名为“乌山市场”，并将传统五日集的风貌延续至今。","Chợ Osan Osaek là khu chợ kế thừa truyền thống của Chợ Osan-jang từ thời Joseon. Chợ Osan xưa là nơi người dân địa phương mua bán hàng hóa và giao lưu tin tức. Vào năm 1914, chợ chính thức mang tên ""Chợ Osan"" và tiếp tục duy trì truyền thống chợ phiên 5 ngày.","ตลาดโอซานโอแซกเป็นตลาดที่สืบทอดประเพณีของโอซานจังมาตั้งแต่สมัยโชซอน ในอดีตโอซานจังเคยเป็นตลาดนัดที่ชาวบ้านใช้ซื้อขายสินค้าและแลกเปลี่ยนข่าวสารกัน ในปี 1914 ได้ใช้ชื่อว่า ""ตลาดโอซาน"" และสืบทอดตลาดนัด 5 วันตามประเพณีเรื่อยมา","Рынок Осан Осаек продолжает традиции ярмарки Осанджан эпохи Чосон. В старые времена Осанджан был местом, где местные жители торговали товарами и делились новостями. В 1914 году рынок получил официальное название «Рынок Осан» и продолжил традицию пятидневных ярмарок.","Pasar Osan Osaek adalah pasar yang meneruskan tradisi Osan-jang dari era Dinasti Joseon. Dahulu, Osan-jang merupakan tempat warga bertransaksi barang dan bertukar kabar. Pada tahun 1914, pasar ini resmi dinamai ""Pasar Osan"" dan meneruskan tradisi pasar berkala 5 hari.","",""
+"","Here_HistoryContent_2_title","오색시장으로의 변화","Transformation into Osaek Market","オセク市場への変遷","蜕变为“五色市场”","Sự chuyển mình thành Chợ Osaek","การเปลี่ยนแปลงสู่ตลาดโอแซก","Превращение в рынок Осаек","Transformasi Menjadi Pasar Osaek","",""
+"","Here_HistoryContent_2_summary","1980년대 이후 상권의 중심이 현재 시장 쪽으로 이동했습니다. 2013년 시민 설문을 거쳐 ‘오산오색시장’으로 이름을 바꾸고, 2015년 문화관광형시장 육성사업에 선정됐습니다. 오늘날에는 다섯 색 골목에서 장보기와 먹거리, 시장 문화를 함께 즐길 수 있습니다.","Since the 1980s, the center of commerce shifted toward the current market location. In 2013, following a citizen survey, the name was changed to ""Osan Osaek Market,"" and in 2015 it was selected for the Cultural Tourism Market Development Project. Today, visitors can enjoy shopping, diverse street foods, and rich market culture along the five colored alleys.","1980年代以降、商圏の中心が現在の市場側へと移動しました。2013年に市民アンケートを経て「烏山オセク市場」に改称され、2015年には文化観光型市場育成事業に選定されました。今日では5色の路地で買い物やグルメ、市場文化を共に満喫できます。","20世纪80年代后，商业中心向现今的市场区域转移。2013年经市民问卷调查正式更名为“乌山五色市场”，2015年入选文化观光型市场培育项目。如今，游客可以在五条不同主题的彩色小巷中尽情体验购物、美食与市集文化。","Từ những năm 1980, trung tâm thương mại dần dịch chuyển về vị trí khu chợ hiện tại. Năm 2013, thông qua khảo sát người dân, chợ chính thức đổi tên thành ""Chợ Osan Osaek"" và đến năm 2015 được chọn vào dự án phát triển chợ du lịch văn hóa. Ngày nay, du khách có thể thỏa thích mua sắm, thưởng thức ẩm thực và văn hóa tại năm con ngõ sắc màu.","ตั้งแต่ทศวรรษ 1980 ศูนย์กลางการค้าได้ย้ายมายังที่ตั้งตลาดปัจจุบัน ในปี 2013 ได้เปลี่ยนชื่อเป็น ""ตลาดโอซานโอแซก"" ผ่านการสำรวจความคิดเห็นของประชาชน และได้รับเลือกในโครงการส่งเสริมตลาดเชิงวัฒนธรรมและการท่องเที่ยวในปี 2015 ปัจจุบันสามารถเพลิดเพลินกับการช้อปปิ้ง ของอร่อย และวัฒนธรรมตลาดในตรอก 5 สี","С 1980-х годов торговый центр переместился на нынешнее местоположение рынка. В 2013 году после опроса горожан он был переименован в «Рынок Осан Осаек», а в 2015 году выбран для участия в проекте развития культурно-туристических рынков. Сегодня здесь можно наслаждаться покупками, уличной едой и культурой на пяти тематических улицах.","Sejak tahun 1980-an, pusat perbelanjaan bergeser ke lokasi pasar saat ini. Pada tahun 2013, melalui survei warga, namanya diubah menjadi ""Pasar Osan Osaek"", dan pada tahun 2015 terpilih dalam proyek pengembangan pasar wisata budaya. Saat ini, pengunjung dapat menikmati belanja, kuliner, dan budaya pasar di lima gang berwarna.","",""
+"","Here_Culture","문화","Culture","文化","文化","Văn hóa","วัฒนธรรม","Культура","Kebudayaan","",""
+"","Here_Culture_Introduce_title","오색시장의 다섯 색","The Five Colors of Osaek Market","オセク市場の5色","五色市场的五种色彩","Năm sắc màu của Chợ Osaek","5 สีสันของตลาดโอแซก","Пять цветов рынка Осаек","Lima Warna Pasar Osaek","",""
+"","Here_Culture_Introduce_content","오산 오색시장은 다섯 색의 테마 골목을 가진 전통시장입니다.
+장보기와 먹거리, 상인의 정이 어우러진 시장 문화를 만나보세요.","Osan Osaek Market is a traditional market featuring five colored theme alleys.
+Experience the market culture where shopping, delicious food, and merchant warmth come together.","烏山オセク市場は、5色のテーマ路地を持つ伝統市場です。
+お買い物とグルメ、商人の温かい情が織りなす市場文化をお楽しみください。","乌山五色市场是一个拥有五色主题小巷的传统市场。
+快来感受融合了购物、美食以及摊贩人情味的市集文化吧！","Chợ Osan Osaek là khu chợ truyền thống với năm con ngõ chủ đề sắc màu.
+Hãy khám phá văn hóa chợ hòa quyện giữa mua sắm, ẩm thực và sự nồng hậu của các tiểu thương.","ตลาดโอซานโอแซกเป็นตลาดดั้งเดิมที่มีตรอกในธีม 5 สีสัน
+เชิญมาสัมผัสวัฒนธรรมตลาดที่ผสมผสานระหว่างการจับจ่าย อาหารอร่อย และน้ำใจอันอบอุ่นของพ่อค้าแม่ค้า","Рынок Осан Осаек — это традиционный рынок с пятью тематическими цветными переулками.
+Познакомьтесь с культурой рынка, объединяющей шопинг, вкусную еду и душевное тепло торговцев.","Pasar Osan Osaek adalah pasar tradisional yang memiliki lima gang bertema warna.
+Temukan budaya pasar yang memadukan belanja, kuliner, dan kehangatan para pedagang.","",""
+"","Here_Culture_Content_1_title","빨강길","Red Street","赤の道（レッドストリート）","红街","Đường Màu Đỏ","ถนนสีแดง","Красная улица","Jalur Merah","",""
+"","Here_Culture_Content_1_desc","야시장·야맥축제가 열리는 활기찬 거리입니다. 패션과 의류 중심으로 다양한 상품을 만날 수 있으며, 밤이 깊을수록 오색시장의 열기가 넘칩니다.","A lively street where night markets and craft beer festivals (Yamaek Festival) are held. Centered around fashion and apparel, various goods can be found, and the vibrant energy of Osaek Market deepens as the night goes on.","ナイトマーケットやヤメク（夜麦）ビール祭りが開かれる活気ある通りです。ファッション・衣料を中心に多彩な商品が揃い、夜が更けるほどオセク市場の熱気に包まれます。","这里是举办夜市和夜麦啤酒节的热闹街道。以时尚服饰为主，汇聚各式商品，越到夜晚，五色市场的活力与热情越发高涨。","Con đường sôi động nơi diễn ra chợ đêm và lễ hội bia đêm Yamaek. Tập trung vào thời trang và may mặc với nhiều mặt hàng đa dạng, càng về đêm sức nóng của Chợ Osaek càng bùng nổ.","ถนนอันมีชีวิตชีวาที่เป็นสถานที่จัดตลาดกลางคืนและเทศกาลเบียร์ยาแม็ก เต็มไปด้วยสินค้าแฟชั่นและเสื้อผ้าหลากหลาย ยิ่งดึกความคึกคักของตลาดโอแซกก็ยิ่งทวีคูณ","Оживленная улица, где проходят ночной рынок и фестиваль крафтового пива Ямэк. Здесь представлен широкий выбор модной одежды, а с наступлением ночи атмосфера рынка Осаек становится еще ярче.","Jalanan hidup tempat diadakannya pasar malam dan festival bir malam Yamaek. Menghadirkan beragam produk busana dan pakaian, suasana Pasar Osaek semakin meriah saat malam tiba.","",""
+"","Here_Culture_Content_2_title","녹색길","Green Street","緑の道（グリーンストリート）","绿街","Đường Màu Xanh Lá","ถนนสีเขียว","Зеленая улица","Jalur Hijau","",""
+"","Here_Culture_Content_2_desc","정육·채소·수산물·과일·건어물 등 신선한 식재료 골목입니다. 오색시장의 풍성한 먹거리를 준비하는 공간으로, 시장의 활기를 느낄 수 있습니다.","An alley filled with fresh ingredients including meat, vegetables, seafood, fruits, and dried fish. As a place that prepares the abundant foods of Osaek Market, you can truly feel the vitality of the market.","精肉・野菜・水産物・果物・乾物など、新鮮な食材が集まる路地です。オセク市場の豊かな食を支える空間で、市場ならではの活気を肌で感じられます。","汇集鲜肉、蔬菜、水产、水果及干货的新鲜食材小巷。这里是孕育五色市场丰盛美食的摇篮，处处洋溢着市场的蓬勃生机。","Con ngõ ngập tràn thực phẩm tươi sống như thịt, rau củ, hải sản, trái cây và đồ khô. Nơi chuẩn bị nguồn ẩm thực phong phú cho Chợ Osaek, mang lại cảm nhận trọn vẹn về sức sống của chợ.","ตรอกวัตถุดิบสดใหม่ทั้งเนื้อสัตว์ ผัก อาหารทะเล ผลไม้ และของแห้ง เป็นพื้นที่เตรียมอาหารอันอุดมสมบูรณ์ของตลาดโอแซกที่คุณสามารถสัมผัสความมีชีวิตชีวาได้อย่างแท้จริง","Улица свежих продуктов: мяса, овощей, морепродуктов, фруктов и сушеной рыбы. Это место, где рождается гастрономическое изобилие рынка Осаек и ощущается настоящий ритм торговли.","Gang bahan makanan segar mulai dari daging, sayur, hasil laut, buah, hingga ikan kering. Tempat yang menyajikan kekayaan kuliner Pasar Osaek, di mana Anda bisa merasakan denyut kehidupan pasar.","",""
+"","Here_Culture_Content_3_title","노랑 미소거리","Yellow Smile Street","黄色の微笑み通り（イエロースマイルストリート）","黄色微笑街","Đường Nụ Cười Vàng","ถนนรอยยิ้มสีเหลือง","Желтая улица улыбок","Jalur Senyum Kuning","",""
+"","Here_Culture_Content_3_desc","방앗간과 상인의 친절한 미소가 어우러진 골목입니다. 따뜻한 정과 서비스 정신을 느낄 수 있는 오색시장의 대표 정취 공간입니다.","An alley where traditional grain mills blend with warm and friendly smiles from merchants. A representative nostalgic space of Osaek Market where you can feel heartfelt warmth and service spirit.","精米所・精油所と商人たちの優しい笑顔が調和した路地です。温かい人情とサービス精神を感じられる、オセク市場を代表する情趣あふれる空間です。","传统磨坊与商贩亲切微笑相映成趣的街道。能真切感受热情待客之道与质朴人情味，是五色市场极具代表性的温情空间。","Con ngõ hòa quyện giữa các tiệm xay xát truyền thống và nụ cười thân thiện của tiểu thương. Không gian tiêu biểu của Chợ Osaek giúp bạn cảm nhận sự ấm áp và lòng hiếu khách chân thành.","ตรอกที่ผสานโรงโม่แบบดั้งเดิมเข้ากับรอยยิ้มอันเป็นมิตรของพ่อค้าแม่ค้า พื้นที่เปี่ยมเสน่ห์ของตลาดโอแซกที่ช่วยให้คุณสัมผัสถึงความอบอุ่นและจิตวิญญาณแห่งการบริการ","Переулок, где традиционные мельницы сочетаются с приветливыми улыбками продавцов. Культовое место рынка Осаек, где ощущаются искреннее душевное тепло и гостеприимство.","Gang yang memadukan penggilingan tradisional dengan senyuman ramah para pedagang. Ruang berkesan khas Pasar Osaek di mana Anda dapat merasakan kehangatan hati dan semangat pelayanan.","",""
+"","Here_Culture_Content_4_title","주황 아름거리&보라 맘스거리","Orange Areum Street & Purple Moms Street","オレンジアルム通り＆パープルマムズ通り","橙色美丽街＆紫色妈妈街","Đường Cam Areum & Đường Tím Moms","ถนนสีส้มอารึม & ถนนสีม่วงมัมส์","Оранжевая улица Арым и Фиолетовая улица Мамс","Jalur Oranye Areum & Jalur Ungu Moms","",""
+"","Here_Culture_Content_4_desc","주황 아름거리는 먹거리·맛집, 보라 맘스거리는 텃밭장터와 전통 장터 정취를 담고 있습니다.","Orange Areum Street features delicacies and restaurants, while Purple Moms Street embodies vegetable garden stalls and the nostalgic charm of traditional markets.","オレンジアルム通りにはグルメ・名店が、パープルマムズ通りには家庭菜園市場と伝統市場の情趣が広がっています。","橙色美丽街主打美食名店，紫色妈妈街则洋溢着农园集市与传统市集的质朴风情。","Đường Cam Areum ngập tràn món ngon và quán ăn nổi tiếng, trong khi Đường Tím Moms mang đậm nét mộc mạc của chợ rau vườn và chợ phiên truyền thống.","ถนนสีส้มอารึมรวบรวมอาหารอร่อยและร้านเด็ด ส่วนถนนสีม่วงมัมส์นำเสนอตลาดพืชผักสวนครัวและเสน่ห์ของตลาดนัดแบบดั้งเดิม","Оранжевая улица Арым славится ресторанами и уличной едой, а Фиолетовая улица Мамс наполнена атмосферой фермерских лавок и традиционного базара.","Jalur Oranye Areum menyajikan beragam kuliner lezat, sedangkan Jalur Ungu Moms memadukan pasar hasil kebun dengan nuansa pasar tradisional.","",""
+"","Greeting_Introduce","* 안녕하세요! 마스코트 '정이'를 소개할게요!","* Hello! Let me introduce our mascot 'JEONG-I'!","* こんにちは！マスコット「JEONG-I」をご紹介します！","* 大家好！让我来为大家介绍吉祥物“JEONG-I”！","* Xin chào! Mình xin giới thiệu linh vật 'JEONG-I' nhé!","* สวัสดีค่ะ! ขอแนะนำมาสคอต 'JEONG-I' ให้รู้จักกันนะคะ!","* Здравствуйте! Позвольте представить вам маскота «JEONG-I»!","* Halo! Mari berkenalan dengan maskot kami, 'JEONG-I'!","",""
+"","Greeting_Category1","정이' 소개","Introducing 'JEONG-I'","「JEONG-I」の紹介","“JEONG-I”介绍","Giới thiệu 'JEONG-I'","แนะนำ 'JEONG-I'","О маскоте «JEONG-I»","Profil 'JEONG-I'","",""
+"","Greeting_Category2","정이' 취미생활","JEONG-I's Hobbies","「JEONG-I」の趣味","“JEONG-I”的兴趣爱好","Sở thích của 'JEONG-I'","งานอดิเรกของ 'JEONG-I'","Хобби «JEONG-I»","Hobi 'JEONG-I'","",""
+"","Greeting_Category3","정이' 건강습관","JEONG-I's Healthy Habits","「JEONG-I」の健康習慣","“JEONG-I”的健康习惯","Thói quen sống khỏe của 'JEONG-I'","นิสัยเพื่อสุขภาพของ 'JEONG-I'","Здоровые привычки «JEONG-I»","Kebiasaan Sehat 'JEONG-I'","",""
+"","Greeting_Name","이름 ","Name","名前","姓名","Tên","ชื่อ","Имя","Nama","",""
+"","Greeting_NameContent","정이","JEONG-I","JEONG-I","JEONG-I","JEONG-I","JEONG-I","JEONG-I","JEONG-I","",""
+"","Greeting_BirthDay","출생","DOB","生年月日","出生日期","Sinh nhật","วันเกิด","Дата рождения","Hari ulang tahun","",""
+"","Greeting_BirthDayContent","2006년 7월 31일","July 31, 2006","2006年7月31日","2006年7月31日","31 tháng 7 năm 2006","31 กรกฎาคม 2006","31 июля 2006 г.","31 Juli 2006","",""
+"","Greeting_HomeTown","출신","Home","出身地","出生地","Xuất thân","ถิ่นกำเนิด","Родной город","Asal","",""
+"","Greeting_HomeTownContent","대한민국 경기도","Gyeonggi-do, Republic of Korea","大韓民国 京畿道","大韩民国 京畿道","Tỉnh Gyeonggi, Hàn Quốc","จังหวัดคยองกี สาธารณรัฐเกาหลี","Провинция Кёнгидо, Республика Корея","Gyeonggi-do, Republik Korea","",""
+"","Greeting_Nationality","국적","Nationality","国籍","国籍","Quốc tịch","สัญชาติ","Гражданство","Kewarganegaraan","",""
+"","Greeting_NationalityContent","대한민국","Republic of Korea","大韓民国","大韩民国","Hàn Quốc","สาธารณรัฐเกาหลี","Республика Корея","Republik Korea","",""
+"","Greeting_BloodType","혈액형","Blood ","血液型","血型","Nhóm máu","กรุ๊ปเลือด","Группа крови","Golongan Darah","",""
+"","Greeting_BloodTypeContent","O형","Type O","O型","O型","Nhóm máu O","กรุ๊ป O","Группа O","Golongan O","",""
+"","Greeting_MBTI","MBTI","MBTI","MBTI","MBTI","MBTI","MBTI","MBTI","MBTI","",""
+"","Greeting_MBTIContent","ENTJ","ENTJ","ENTJ","ENTJ","ENTJ","ENTJ","ENTJ","ENTJ","",""
+"","Greeting_Hobby","취미","Hobbies","趣味","兴趣爱好","Sở thích","งานอดิเรก","Хобби","Hobi","",""
+"","Greeting_HobbyContent","K-POP 댄스, 맛집 탐방, 디저트 카페 방문, 테니스, 골프","Going to cafes, dancing to K-POP, tennis","カフェ巡り、K-POPダンス、テニス","去咖啡馆、跳K-POP舞、打网球","Đi cà phê, Nhảy K-POP, Tennis","ไปคาเฟ่, เต้น K-POP, เทนนิส","Походы в кафе, танцы под K-POP, теннис","Pergi ke kafe, Menari K-POP, Tenis","",""
+"","Greeting_Specialty","특기","Specialty","特技","特长","Sở trường","ความสามารถพิเศษ","Особенности","Keahlian","",""
+"","Greeting_SpecialtyContent","다국어 회화 능력, 노래 등","Multilingual conversation skills, singing, etc.","多言語会話能力、歌など","多语种会话能力、唱歌等","Khả năng giao tiếp đa ngôn ngữ, ca hát, v.v.","ทักษะการสนทนาได้หลายภาษา, ร้องเพลง ฯลฯ","Владение иностранными языками, пение и др.","Kemampuan percakapan multibahasa, menyanyi, dll.","",""
+"","Greeting_FutureHope","장래희망","Dream","将来の夢","未来梦想","Ước mơ","ความฝันในอนาคต","Мечта","Cita-cita","",""
+"","Greeting_FutureHopeContent","인플루언서로서, 전통시장의 매력을 전 세계에 알리는 홍보모델이 
+되고 싶어요!","As an influencer, I want to become a promotional model that shares the charm of traditional markets with the world!","インフルエンサーとして、伝統市場の魅力を全世界に広める広報モデルになりたいです！","作为一名网红达人，希望能成为将传统市场的魅力传递给全世界的宣传大使！","Là một người có sức ảnh hưởng, mình muốn trở thành người mẫu đại sứ quảng bá nét đẹp chợ truyền thống ra toàn thế giới!","ในฐานะอินฟลูเอนเซอร์ ฉันอยากเป็นพรีเซนเตอร์ที่เผยแพร่เสน่ห์ของตลาดดั้งเดิมให้คนทั่วโลกได้รับรู้ค่ะ!","Как инфлюенсер, я хочу стать амбассадором, который расскажет всему миру об очаровании традиционных рынков!","Sebagai influencer, aku ingin menjadi duta promosi yang memperkenalkan pesona pasar tradisional ke seluruh dunia!","",""
+"","Greeting_Introdution","자기소개","Intro","自己紹介","你好","Giới thiệu bản thân","แนะนำตัว","О себе","Profil Diri","",""
+"","Greeting_IntrodutionContent","MZ세대의 취향을 가득 담은 오색시장 홍보모델이에요! 한식을 진~짜 사랑하고, 시장 먹방은 나만의 힐링 루틴이에요.
+한국의 매력을 전 세계에 알리는 인플루언서가 되는 게 꿈이에요!!
+정이의 특별한 순간을 함께 만나고 싶다면 인스타그램으로 놀러오세요! @jeongi_stagram","I'm the promotional model for Osaek Market, full of MZ generation vibes! I truly love Korean food, and market mukbangs are my personal healing routine.
+My dream is to become an influencer who spreads the charm of Korea across the globe!!
+If you want to catch JEONG-I's special moments, visit my Instagram! @jeongi_stagram","MZ世代の感性をたっぷり詰め込んだオセク市場の広報モデルです！韓国料理が本〜当に大好きで、市場での食べ歩きは私だけの癒しのルーティンです。
+韓国の魅力を世界中に届けるインフルエンサーになるのが夢です！！
+JEONG-Iの特別な瞬間をもっと見たい方は、インスタグラムに遊びに来てくださいね！ @jeongi_stagram","我是充满MZ世代潮流活力的五色市场宣传大使！我超级爱吃韩餐，在市场品尝美食是我独有的治愈日常。
+我的梦想是成为一名把韩国魅力推向全世界的网红！！
+想和JEONG-I一起分享更多精彩瞬间的话，欢迎关注我的Instagram！@jeongi_stagram","Mình là người mẫu quảng bá Chợ Osaek mang đậm phong cách thế hệ MZ! Mình cực kỳ yêu thích ẩm thực Hàn Quốc và mukbang tại chợ chính là thói quen chữa lành của mình.
+Ước mơ của mình là trở thành một influencer lan tỏa sức hút của Hàn Quốc ra toàn cầu!!
+Nếu bạn muốn đồng hành cùng những khoảnh khắc đặc biệt của JEONG-I, hãy ghé thăm Instagram nhé! @jeongi_stagram","ฉันคือพรีเซนเตอร์ของตลาดโอแซกที่สะท้อนเสน่ห์ของคนรุ่น MZ อย่างเต็มเปี่ยม! ฉันรักอาหารเกาหลีแบบสุดๆ และการตระเวนกินที่ตลาดคือรูทีนฮีลใจของฉัน
+ความฝันของฉันคือการเป็นอินฟลูเอนเซอร์ที่เผยแพร่เสน่ห์ของเกาหลีไปทั่วโลก!!
+หากอยากร่วมติดตามช่วงเวลาสุดพิเศษของ JEONG-I แวะมาที่ Instagram ได้เลยนะคะ! @jeongi_stagram","Я амбассадор рынка Осаек, воплощающий стиль поколения MZ! Я безумно люблю корейскую кухню, а гастрономические прогулки по рынку — мой любимый способ расслабиться.
+Моя мечта — стать инфлюенсером, открывающим миру очарование Кореи!!
+Если хотите разделить особенные моменты с JEONG-I, заглядывайте ко мне в Instagram! @jeongi_stagram","Aku adalah duta promosi Pasar Osaek yang mencerminkan gaya generasi MZ! Aku sangat mencintai kuliner Korea, dan wisata kuliner di pasar adalah rutinitas penyembuhan terbaikku.
+Mimpiku adalah menjadi influencer yang memperkenalkan pesona Korea ke seluruh dunia!!
+Jika ingin menikmati momen spesial bersama JEONG-I, yuk mampir ke Instagram! @jeongi_stagram","",""
+"","Greeting_Hobby_First","K-POP","K-POP","K-POP","K-POP","K-POP","K-POP","K-POP","K-POP","",""
+"","Greeting_Hobby_First_Desc_1","K-POP 댄스로 에너지를 충전해요!","Recharge your energy with K-POP dance!","K-POPダンスでエネルギーを充電！","用K-POP舞蹈补充能量！","Hãy nạp lại năng lượng với điệu nhảy K-POP!","เติมพลังให้ตัวเองด้วยการเต้น K-POP!","Восстановите силы с помощью танцев K-POP!","Isi ulang energimu dengan tarian K-POP!","",""
+"","Greeting_Hobby_First_Desc_2","좋아하는 안무를 하나씩 배우며 즐거운 시간을 보내요.  신나는 음악이 들리면 어디서든 리듬을 타게 된답니다.","Have a great time learning your favorite dance moves one by one. Whenever exciting music plays, you'll find yourself moving to the rhythm wherever you are.","好きな振り付けを一つずつ学び、楽しい時間を過ごします。  楽しい音楽が聞こえたらどこでもリズムに乗ることになります。","尽情享受学习你最喜欢的舞蹈动作的乐趣吧！每当动感的音乐响起，你都会情不自禁地随着节奏舞动起来。","Chúc bạn có khoảng thời gian tuyệt vời khi học từng bước nhảy yêu thích. Mỗi khi có nhạc sôi động vang lên, bạn sẽ thấy mình nhún nhảy theo điệu nhạc dù đang ở bất cứ đâu.","ขอให้สนุกกับการเรียนรู้ท่าเต้นที่คุณชื่นชอบทีละท่า เมื่อใดก็ตามที่เสียงเพลงสนุกสนานดังขึ้น คุณจะพบว่าตัวเองกำลังขยับตัวไปตามจังหวะไม่ว่าคุณจะอยู่ที่ไหนก็ตาม","Получайте удовольствие, разучивая свои любимые танцевальные движения одно за другим. Под зажигательную музыку вы будете двигаться в ритме, где бы вы ни находились.","Nikmati waktu menyenangkan mempelajari gerakan tari favoritmu satu per satu. Kapan pun musik yang asyik dimainkan, kamu akan ikut bergerak mengikuti irama di mana pun kamu berada.","",""
+"","Greeting_Hobby_Second","골프","Golf","ゴルフ","高尔夫","Golf","กอล์ฟ","Гольф","Golf","",""
+"","Greeting_Hobby_Second_Desc_1","스윙하는 순간, 스트레스가 싹 날아가요!","The moment I swing, all my stress flies away!","スイングした瞬間、ストレスが一気に吹き飛びます！","挥杆的那一刻，所有的压力都烟消云散！","Khoảnh khắc vung gậy, mọi căng thẳng đều tan biến!","วินาทีที่สวิง วงสวิงจะพัดพาความเครียดหายไปในพริบตา!","В момент удара весь стресс улетучивается!","Saat mengayunkan stik golf, semua stres langsung hilang!","",""
+"","Greeting_Hobby_Second_Desc_2","푸른 잔디 위에서 시원한 바람을 맞으며 여유롭게 스윙하는 순간이 정말 좋아요. \n
+자연 속에서 골프를 즐기며 힐링하고, 멋진 골프웨어 스타일링도 함께 즐겨보세요!","I love swinging leisurely on green grass in the cool breeze. Heal yourself playing golf in nature, and enjoy stylish golf wear looks too!","青い芝生の上で爽やかな風を感じながらゆったりスイングする瞬間が大好きです。自然の中でゴルフを楽しみながら癒され、おしゃれなゴルフウェアも楽しんでみてください！","我很喜欢在绿茵场上迎着凉爽清风悠闲挥杆的时刻。在自然中享受高尔夫带来的治愈，同时也能体验时尚高尔夫穿搭的乐趣！","Mình rất thích cảm giác thảnh thơi vung gậy trên thảm cỏ xanh đón làn gió mát. Vừa chữa lành giữa thiên nhiên vừa diện trang phục golf sành điệu nhé!","ชอบช่วงเวลาที่ได้สวิงอย่างผ่อนคลายบนสนามหญ้าสีเขียวรับสายลมเย็นสบาย ได้ฮีลใจท่ามกลางธรรมชาติและสนุกกับการแต่งตัวชุดกอล์ฟสุดเท่ด้วยค่ะ!","Обожаю не спеша делать свинг на зеленом газоне под свежим ветерком. Наслаждайтесь отдыхом на природе за игрой в гольф и примеряйте стильные спортивные образы!","Aku sangat suka momen santai mengayun stik di atas rumput hijau berhembus angin sejuk. Rasakan ketenangan bermain golf di alam terbuka sekaligus tampil modis dengan pakaian golf!","",""
+"","Greeting_Hobby_Third","테니스","tennis","テニス","网球","quần vợt","เทนนิส","теннис","tenis","",""
+"","Greeting_Hobby_Third_Desc_1","테니스는 내 스트레스 해소법!","Tennis is my way of relieving stress!","テニスは私のストレス解消法！ ","网球是我释放压力的方法！ ","Tennis là cách giải tỏa căng thẳng của mình!","เทนนิสคือวิธีคลายเครียดของฉัน!","Теннис — мой способ снять стресс!","Tenis adalah cara melepas stresku!","",""
+"","Greeting_Hobby_Third_Desc_2","랠리를 이어가며 한 점 한 점 승부를 즐기는 시간이 가장 행복해요. 친구들과 함께 경기를 하거나 새로운 기술을 연습하며 건강한 에너지를 충전한답니다.","I am happiest when I enjoy the match point by point while continuing the rally. I recharge my healthy energy by playing matches with friends or practicing new skills.","ラリーを続けて一点一点勝負を楽しむ時間が一番幸せです。友達と一緒に試合をしたり、新しいスキルを練習して健康なエネルギーを充電したりします。","我最快乐的时候，就是享受比赛的每一分，不断进行拉锯战。和朋友们一起比赛或者练习新技能，都能让我重新焕发活力。","Tôi cảm thấy hạnh phúc nhất khi tận hưởng từng điểm số của trận đấu và tiếp tục duy trì nhịp độ. Tôi nạp lại năng lượng bằng cách chơi các trận đấu với bạn bè hoặc luyện tập các kỹ năng mới.","ฉันมีความสุขที่สุดเมื่อได้สนุกกับแมตช์ทีละแต้มไปพร้อมกับการตีโต้กันอย่างต่อเนื่อง ฉันเติมพลังให้ตัวเองด้วยการเล่นแมตช์กับเพื่อนๆ หรือฝึกฝนทักษะใหม่ๆ","Я чувствую себя наиболее счастливым, когда наслаждаюсь каждым розыгрышем, продолжая игру. Я восстанавливаю свою энергию, играя в матчи с друзьями или оттачивая новые навыки.","Saya paling bahagia ketika menikmati setiap poin pertandingan sambil terus melanjutkan reli. Saya mengisi kembali energi saya dengan bermain pertandingan bersama teman-teman atau berlatih keterampilan baru.","",""
+"","Greeting_Healthy_Habit_First","목·어깨","Neck and shoulders","首・肩","颈部和肩部","Cổ và vai","คอและไหล่","Шея и плечи","Leher dan bahu","",""
+"","Greeting_Healthy_Habit_First_Desc_1","오색시장을 즐기는 만큼 몸도 가볍게 풀어보세요.","As much as you enjoy Osaek Market, relax your body lightly too.","オセク市場を満喫した分、体も軽くほぐしてみましょう。","在尽情逛五色市场的同时，也让身体轻松舒展一下吧。","Cùng với niềm vui khám phá Chợ Osaek, hãy thư giãn cơ thể thật nhẹ nhàng nhé.","สนุกกับตลาดโอแซกอย่างเต็มที่แล้ว อย่าลืมผ่อนคลายร่างกายกันด้วยนะคะ","Столько же, сколько вы наслаждаетесь рынком Осаек, дайте телу легкую разминку.","Sembari menikmati serunya Pasar Osaek, regangkan tubuhmu agar kembali bugar.","",""
+"","Greeting_Healthy_Habit_First_Desc_2","오색시장 곳곳을 둘러보며 쌓인 목과 어깨의 긴장을 가볍게 풀어보세요. 화면 속 동작을 천천히 따라 하며 몸을 리프레시하고, 더욱 편안하게 오색시장을 즐겨보세요.","Lightly relieve tension accumulated in your neck and shoulders while exploring every corner of Osaek Market. Slowly follow the movements on screen to refresh your body and enjoy Osaek Market even more comfortably.","オセク市場のあちこちを巡ってこわばった首や肩の緊張を軽くほぐしましょう。画面の動作をゆっくり真似して体をリフレッシュし、より快適にオセク市場をお楽しみください。","轻松缓解漫步五色市场各处时颈部与肩部积累的酸痛。跟随屏幕上的动作慢慢舒展身心，以更加舒适的状态享受五色市场之旅吧。","Hãy nhẹ nhàng xua tan căng thẳng ở cổ và vai tích tụ khi dạo quanh Chợ Osaek. Từ từ làm theo các động tác trên màn hình để làm mới cơ thể và tiếp tục tận hưởng Chợ Osaek thoải mái hơn.","ผ่อนคลายความตึงบริเวณคอและไหล่ที่สะสมจากการเดินชมจุดต่างๆ ในตลาดโอแซก ทำตามท่าทางบนหน้าจออย่างช้าๆ เพื่อเติมความสดชื่นให้ร่างกาย และเที่ยวชมตลาดโอแซกได้อย่างสบายยิ่งขึ้น","Снимите напряжение в шее и плечах, накопившееся во время прогулки по рынку Осаек. Не спеша повторяйте движения на экране, чтобы освежить тело и продолжить путешествие с комфортом.","Regangkan rasa tegang di leher dan bahu setelah asyik menjelajahi sudut-sudut Pasar Osaek. Ikuti gerakan di layar perlahan untuk menyegarkan badan dan nikmati Pasar Osaek dengan lebih nyaman.","",""
+"","Greeting_Healthy_Habit_Second","허리","Waist","ウエスト","腰部","Thắt lưng","เอว","Талия","Pinggang","",""
+"","Greeting_Healthy_Habit_Second_Desc_1","지친 몸, 잠시 쉬어가세요.","Take a short break for your tired body.","疲れた体、少し休んでいきましょう。","疲惫的身体，不妨稍作休息。","Cơ thể mệt mỏi rồi, hãy nghỉ ngơi một chút nhé.","ร่างกายที่เหนื่อยล้า พักสักครู่กันนะคะ","Дайте немного отдохнуть уставшему телу.","Istirahatkan sejenak tubuh yang lelah.","",""
+"","Greeting_Healthy_Habit_Second_Desc_2","오색시장 곳곳을 둘러보느라 뻐근해진 몸을 가볍게 풀어보세요. 간단한 스트레칭으로 몸의 긴장을 풀고, 편안한 마음으로 오색시장 여행을 이어가세요.","Gently ease your body that has become stiff from exploring every part of Osaek Market.
+Release tension with simple stretches and continue your Osaek Market journey with ease.","オセク市場を巡って疲れた体を軽くほぐしてみましょう。
+簡単なストレッチで体の緊張を和らげ、ゆったりとした気分でオセク市場の旅をお続けください。","轻轻放松因逛遍五色市场而感到酸麻紧绷的身体。
+通过简单的拉伸动作舒缓疲惫，带着轻松愉快的心情继续畅游五色市场吧。","Thả lỏng cơ thể đang mỏi nhừ sau khi dạo quanh Chợ Osaek.
+Giãn cơ nhẹ nhàng để giải tỏa căng thẳng và tiếp tục hành trình khám phá Chợ Osaek thật dễ chịu nhé.","ผ่อนคลายร่างกายที่เมื่อยล้าจากการเดินเที่ยวชมตลาดโอแซกกันนะคะ
+คลายความตึงด้วยการยืดเส้นง่ายๆ แล้วออกเดินทางท่องเที่ยวตลาดโอแซกต่อด้วยจิตใจที่สบาย","Разомните уставшее тело после прогулки по рынку Осаек.
+Снимите мышечное напряжение легкой растяжкой и продолжите знакомство с рынком с легким сердцем.","Ringankan badan yang kaku setelah berkeliling menikmati Pasar Osaek.
+Kendurkan ketegangan dengan peregangan sederhana, lalu lanjutkan petualangan di Pasar Osaek dengan nyaman.","",""
+"","Greeting_Healthy_Habit_Third","기분전환","A change of pace","気分転換","节奏变化","Một sự thay đổi nhịp độ","การเปลี่ยนบรรยากาศ","Смена темпа","Perubahan suasana","",""
+"","Greeting_Healthy_Habit_Third_Desc_1","잠시 멈춰, 기분 좋은 에너지를 채워보세요.","Pause for a moment and fill yourself with pleasant energy.","しばらく止まり、気持ちの良いエネルギーを満たしてください。","稍作停顿，让自己充满愉悦的情绪。","Hãy dừng lại một chút và lấp đầy bản thân bằng nguồn năng lượng tích cực.","หยุดพักสักครู่ แล้วเติมพลังแห่งความสุขให้กับตัวเอง","Остановитесь на мгновение и наполните себя приятной энергией.","Berhentilah sejenak dan isi dirimu dengan energi yang menyenangkan.","",""
+"","Greeting_Healthy_Habit_Third_Desc_2","간단한 스트레칭을 따라 하며 긴장을 풀고, 여행 중 쌓인 피로를 자연스럽게 덜어보세요. 잠깐의 휴식이 여행을 더욱 즐겁게 만드는 특별한 시간이 될 거예요.","Follow simple stretches to relieve tension and naturally ease travel fatigue. A short break will make your trip even more memorable and enjoyable.","簡単なストレッチで緊張をほぐし、旅の疲れを心地よくリセット。ひと休みの時間が、旅をさらに楽しくする特別なひとときになります。","跟随简单的拉伸动作放松身心，自然缓解旅行中的疲惫。片刻的小憩将成为让旅程更加愉悦难忘的特别时光。","Làm theo bài tập giãn cơ đơn giản để xua tan mệt mỏi trong chuyến đi. Khoảnh khắc nghỉ ngơi ngắn ngủi sẽ biến hành trình thêm phần trọn vẹn và thú vị.","ยืดเส้นง่ายๆ ตามเพื่อคลายความเมื่อยล้าจากการเดินทาง การพักผ่อนเพียงครู่เดียวจะกลายเป็นช่วงเวลาพิเศษที่ทำให้ทริปสนุกยิ่งขึ้น","Повторяйте несложную растяжку, чтобы снять накопившуюся в поездке усталость. Небольшая пауза подарит силы и сделает путешествие еще приятнее.","Ikuti peregangan simpel untuk meredakan ketegangan dan lelah selama perjalanan. Istirahat sejenak ini akan membuat petualanganmu terasa makin menyenangkan.","",""
+"","Greeting_Tag1","#JEONG-I","#JEONG-I","#JEONG-I","#JEONG-I","#JEONG-I","#JEONG-I","#JEONG-I","#JEONG-I","",""
+"","Greeting_Tag2","#정이","#JEONG-I","#JEONG-I","#JEONG-I","#JEONG-I","#JEONG-I","#JEONG-I","#JEONG-I","",""
+"","Greeting_Tag3","#안녕 정이","#Hello JEONG-I","#こんにちはJEONG-I","#你好JEONG-I","#XinChàoJEONG-I","#สวัสดีJEONG-I","#ПриветJEONG-I","#HaloJEONG-I","",""
+"","Transport_Subtitle","오색 시장을 올수 있는 다양한 방법을 알려드릴게요 ","Here are various ways to visit Osaek Market.","オセク市場へアクセスする様々な方法をご案内します。","为您介绍前往五色市场的多种交通方式。","Chúng tôi sẽ hướng dẫn bạn các cách di chuyển đa dạng đến Chợ Osaek.","ขอแนะนำวิธีต่างๆ ในการเดินทางมายังตลาดโอแซกค่ะ","Мы расскажем вам о различных способах добраться до рынка Осаек.","Berikut berbagai cara untuk berkunjung ke Pasar Osaek.","",""
+"","Transport_Public","대중교통","Public Transportation","公共交通機関","公共交通","Giao thông công cộng","ขนส่งสาธารณะ","Общественный транспорт","Transportasi Umum","",""
+"","Transport_Map","오색시장 지도","Osaek Market Map","オセク市場地図","五色市场地图","Bản đồ Chợ Osaek","แผนที่ตลาดโอแซก","Карта рынка Осаек","Peta Pasar Osaek","",""
+"","Transport_Red_Road","빨강길","Red Street","赤の道","红街","Đường Đỏ","ถนนสีแดง","Красная улица","Jalur Merah","",""
+"","Transport_Green_Road","녹색길","Green Street","緑の道","绿街","Đường Xanh","ถนนสีเขียว","Зеленая улица","Jalur Hijau","",""
+"","Transport_Miso_Road","미소거리","Miso Street","微笑み通り","微笑街","Đường Miso","ถนนมิโซ","Улица Мисо","Jalur Miso","",""
+"","Transport_Arum_Road","아름거리","Areum Street","アルム通り","美丽街","Đường Areum","ถนนอารึม","Улица Арым","Jalur Areum","",""
+"","Transport_Moms_Road","맘스거리","Moms Street","マムズ通り","妈妈街","Đường Moms","ถนนมัมส์","Улица Мамс","Jalur Moms","",""
+"","Transport_Bus","버스","Bus","バス","公交车","Xe buýt","รถบัส","Автобус","Bus","",""
+"","Transport_BusInfo_1","일반: 11, 15, 20, 24, 25, 27, 28, 30, 31, 32, 33, 34, 35","Local: 11, 15, 20, 24, 25, 27, 28, 30, 31, 32, 33, 34, 35","一般: 11, 15, 20, 24, 25, 27, 28, 30, 31, 32, 33, 34, 35","普通: 11, 15, 20, 24, 25, 27, 28, 30, 31, 32, 33, 34, 35","Địa phương: 11, 15, 20, 24, 25, 27, 28, 30, 31, 32, 33, 34, 35","สายธรรมดา: 11, 15, 20, 24, 25, 27, 28, 30, 31, 32, 33, 34, 35","Городские: 11, 15, 20, 24, 25, 27, 28, 30, 31, 32, 33, 34, 35","Lokal: 11, 15, 20, 24, 25, 27, 28, 30, 31, 32, 33, 34, 35","",""
+"","Transport_BusInfo_2","광역: 1311, 1551B, 5001, 5005, 7000 (오산역 버스터미널 정차)","Express: 1311, 1551B, 5001, 5005, 7000 (stop at Osan Station Bus Terminal)","広域: 1311, 1551B, 5001, 5005, 7000（オサン駅バスターミナル停車）","快速: 1311, 1551B, 5001, 5005, 7000（乌山市站客运站停靠）","Tuyến xe buýt nhanh: 1311, 1551B, 5001, 5005, 7000 (dừng tại bến xe buýt Osan)","รถโดยสารด่วน: สาย 1311, 1551B, 5001, 5005, 7000 (จอดที่สถานีขนส่งโอซาน)","Экспресс: 1311, 1551B, 5001, 5005, 7000 (остановка у автовокзала Осан)","Ekspres: 1311, 1551B, 5001, 5005, 7000 (berhenti di Terminal Bus Stasiun Osan)","",""
+"","Transport_MapInfo","오색시장은 신선한 먹거리와 다양한 전통 문화를 즐길 수 있는 오산의 활기찬 전통시장입니다.","Osaek Market is a lively traditional marketplace in Osan, where you can taste local street foods, buy fresh produce, and enjoy authentic Korean market culture.","オセク市場は、新鮮な食材や多様な伝統文化を楽しめるオサンの活気ある伝統市場です。","五色市场是乌山市一个充满活力的传统市场，可以品尝街头小吃、购买新鲜食材，感受韩国传统文化。","Chợ Osaek là một khu chợ truyền thống nhộn nhịp ở Osan, nơi bạn có thể thưởng thức các món ăn đường phố địa phương, mua nông sản tươi sống và tận hưởng văn hóa chợ truyền thống Hàn Quốc đích thực.","ตลาดโอแซกเป็นตลาดแบบดั้งเดิมที่มีชีวิตชีวาในเมืองโอซาน ที่นี่คุณสามารถลิ้มลองอาหารริมทางท้องถิ่น ซื้อผลผลิตสดใหม่ และเพลิดเพลินไปกับวัฒนธรรมตลาดเกาหลีแท้ๆ","Рынок Осаек — это оживленный традиционный рынок в Осане, где вы можете попробовать местную уличную еду, купить свежие продукты и насладиться подлинной корейской рыночной культурой.","Pasar Osaek adalah pasar tradisional yang ramai di Osan, tempat Anda dapat mencicipi makanan jalanan lokal, membeli hasil bumi segar, dan menikmati budaya pasar Korea yang autentik.","",""
+"","Transport_MapContent_1","오색시장의 AI 마스코트 정이를 [WITH]를 통해 만나보세요!
+장날: 매달 3일, 8일, 13일, 18일, 23일, 28일에 5일장이 열립니다.","Meet Osaek Market's AI mascot JEONG-I through [WITH]!
+Market Days: The 5-day traditional market is held on the 3rd, 8th, 13th, 18th, 23rd, and 28th of every month.","オセク市場のAIマスコット「JEONG-I」に[WITH]を通じて会いましょう！
+市場日：毎月3日、8日、13日、18日、23日、28日に伝統5日市が開かれます。","快通过[WITH]与五色市场的AI吉祥物“JEONG-I”相见吧！
+集市日：每月3日、8日、13日、18日、23日、28日举办传统五日集。","Hãy gặp gỡ linh vật AI JEONG-I của Chợ Osaek qua [WITH]!
+Ngày phiên chợ: Chợ phiên 5 ngày diễn ra vào các ngày 3, 8, 13, 18, 23, 28 hàng tháng.","มาพบกับ JEONG-I มาสคอต AI ของตลาดโอแซกผ่าน [WITH] กันนะคะ!
+วันตลาดนัด: ตลาดนัด 5 วันจะจัดขึ้นในวันที่ 3, 8, 13, 18, 23 และ 28 ของทุกเดือน","Познакомьтесь с ИИ-маскотом рынка Осаек JEONG-I с помощью [WITH]!
+Базарные дни: традиционная пятидневная ярмарка проводится 3, 8, 13, 18, 23 и 28 числа каждого месяца.","Jumpai maskot AI Pasar Osaek, JEONG-I, melalui [WITH]!
+Hari Pasar: Pasar berkala 5 hari diadakan setiap tanggal 3, 8, 13, 18, 23, dan 28 setiap bulannya.","",""
+"","Transport_MapContent_2","""WIT AI SMART KIOSK"" 설치장소","Installation Location of ""WIT AI SMART KIOSK""","「WIT AI SMART KIOSK」設置場所","""WIT AI SMART KIOSK"" 安装地点","Địa điểm lắp đặt ""WIT AI SMART KIOSK""","สถานที่ติดตั้ง ""WIT AI SMART KIOSK""","Место установки ""WIT AI SMART KIOSK""","Lokasi Pemasangan ""WIT AI SMART KIOSK""","",""
+"","Transport_MapContent_3","오색시장 메인사거리  (오색시장 상인회 앞)","Osaek Market Main Intersection (in front of Osaek Market Merchants Association)","オセク市場 メイン交差点（オセク市場商人会前）","五色市场主要十字路口（五色市场商会前）","Ngã tư chính Chợ Osaek (trước Hội Thương nhân Chợ Osaek)","สี่แยกหลักของตลาดโอแซก (หน้าสมาคมผู้ค้าตลาดโอแซก)","Главный перекресток рынка Осаек (перед Ассоциацией торговцев рынка Осаек)","Perempatan Utama Pasar Osaek (di depan Asosiasi Pedagang Pasar Osaek)","",""
+"","Exchange_Subtitle","오색시장에 오신걸 환영합니다. 오늘의 환율 정보입니다. ","Welcome to Osaek Market. Here is today's exchange rate information.","オセク市場へようこそ。本日の為替レート情報です。","欢迎光临五色市场。以下是今日汇率信息。","Chào mừng bạn đến với Chợ Osaek. Đây là thông tin tỷ giá hôm nay.","ยินดีต้อนรับสู่ตลาดโอแซก นี่คือข้อมูลอัตราแลกเปลี่ยนประจำวันนี้","Добро пожаловать на рынок Осаек. Информация о курсах валют на сегодня.","Selamat datang di Pasar Osaek. Berikut informasi kurs hari ini.","",""
+"","Exchange_tab_1","실시간 환율","Real-time","リアルタイム","实时","Thời gian thực","เรียลไทม์","Реального времени","Waktu nyata","",""
+"","Exchange_tab_2","환율 계산기","Calculator","計算機","计算器","Máy tính","เครื่องคิดเลข","Калькулятор","Kalkulator","",""
+"","Exchange_desc_1","기준 환율","Standard exchange rate","基準為替レート","标准汇率","Tỷ giá hối đoái tiêu chuẩn","อัตราแลกเปลี่ยนมาตรฐาน","Стандартный обменный курс","Nilai tukar standar","",""
+"","Exchange_desc_2","금액","Amount","金額","数量","Số lượng","จำนวน","Количество","Jumlah","",""
+"","Exchange_desc_3","환전","Currency exchange","両替","货币兑换","Trao đổi tiền tệ","การแลกเปลี่ยนสกุลเงิน","Обмен валюты","Penukaran mata uang","",""
+"","MarketPaper_Osaekjeon_Content","오색전","Osaekjeon","オセクジョン","五色钱","Osaekjeon","โอแซกจอน","Осаекджон","Osaekjeon","",""
+"","MarketPaper_Osaekjeon_Content_1","오산화폐 오색전이란?","What is Osaekjeon?","オセクジョンとは？","什么是五色钱？","Osaekjeon là gì?","Apa itu Osaekjeon?","โอแซกจอนคืออะไร?","Что такое Осаекджон?","",""
+"","MarketPaper_Osaekjeon_Content_1_1","<b>오산시 내에서만 사용할 수 있는 카드형 지역화폐 입니다.</b>
 대형마트, 기업형 슈퍼마켓, 유흥업소, 사행성 업소, 오산에 주소지를 두고 있지 않은 프랜차이즈 직영점을 제외한 <b>관내 IC 카드 단말기를 사용하는 업소 어디에서나 사용 가능</b>합니다. 또한 경기지역화폐 APP과 연동하여 언제, 어디서나 편리하게 충전하고 잔액을 관리 할 수 있습니다.","<b>It is a card-type local currency that can only be used within Osan.</b>
 Usable at any shop in Osan with an IC card terminal, except large supermarkets, corporate chains, entertainment venues, gambling businesses, and franchise headquarters outside Osan.
 <b>Available anywhere in the city with an IC card terminal.</b>
@@ -340,9 +349,9 @@ Terhubung dengan Aplikasi Mata Uang Lokal Gyeonggi untuk pengisian ulang dan pen
 Доступно в любом месте города с терминалом для IC-карт.</b>
 Связано с приложением Gyeonggi Local Currency для удобного пополнения счета и управления балансом в любое время и в любом месте.
 
-","","","","","",""
-"118","MarketPaper_Osaekjeon_Content_2","누구나 신청 가능 하나요?","Who can apply?","誰でも申請できますか？","谁可以申请？","Ai có thể đăng ký?","Siapa yang bisa mendaftar?","ใครสามารถสมัครได้บ้าง?","Кто может подать заявку?","","","","","",""
-"118","MarketPaper_Osaekjeon_Content_2_1","<b>본인 명의의 은행계좌를 가지고 있는 만14세 이상이면 신청 가능합니다.</b>
+","",""
+"","MarketPaper_Osaekjeon_Content_2","누구나 신청 가능 하나요?","Who can apply?","誰でも申請できますか？","谁可以申请？","Ai có thể đăng ký?","Siapa yang bisa mendaftar?","ใครสามารถสมัครได้บ้าง?","Кто может подать заявку?","",""
+"","MarketPaper_Osaekjeon_Content_2_1","<b>본인 명의의 은행계좌를 가지고 있는 만14세 이상이면 신청 가능합니다.</b>
 오산 자금의 역외유출을 방지하여 우리 지역경제 활성화와 지역공동체 강화를 도모하는 오산시 지역화폐로, <b>거주지역에 상관없이 오산시에서 소비하고 추가 포인트
 혜택 받고싶은 누구나 신청 가능합니다.</b>","<b>Anyone aged 14 or older with a bank account in their own name can apply.</b>
 Osaekjeon prevents capital outflow and revitalizes Osan’s local economy.
@@ -362,8 +371,8 @@ Osaekjeon mencegah arus keluar modal dan merevitalisasi ekonomi lokal Osan.
 <b>ผู้ที่ต้องการซื้อสินค้าในโอซานและรับสิทธิประโยชน์คะแนนพิเศษสามารถสมัครได้ ไม่ว่าจะอาศัยอยู่ที่ใดก็ตาม</b>","<b>Заявку может подать любой человек в возрасте 14 лет и старше, имеющий банковский счет на свое имя.</b>
 Программа Osaekjeon предотвращает отток капитала и оживляет местную экономику Осана.
 
-<b>Заявку может подать любой желающий совершать покупки в Осане и получать дополнительные бонусные баллы, независимо от места жительства.</b>","","","","","",""
-"118","MarketPaper_Osaekjeon_Content_2_2","신청방법은 <b>모바일앱(경기지역화폐APP)</b>또는 <b>관내 NH농협은행, 오산농협, 새마을금고, 새오산신협</b>에서 신청해주세요.","How to apply?
+<b>Заявку может подать любой желающий совершать покупки в Осане и получать дополнительные бонусные баллы, независимо от места жительства.</b>","",""
+"","MarketPaper_Osaekjeon_Content_2_2","신청방법은 <b>모바일앱(경기지역화폐APP)</b>또는 <b>관내 NH농협은행, 오산농협, 새마을금고, 새오산신협</b>에서 신청해주세요.","How to apply?
 Apply via <b>mobile app (Gyeonggi Local Currency App)</b> or at <b>NH Nonghyup Bank (Osan), Osan Nonghyup, Saemaeul Geumgo, Sae-Osan Credit Union.</b>
 ","申請方法は？
 <b>モバイルアプリ（京畿地域通貨アプリ）</b>または
@@ -385,9 +394,9 @@ Daftar melalui <b>aplikasi seluler (Aplikasi Mata Uang Lokal Gyeonggi)</b> atau 
 
 Подайте заявку через <b>мобильное приложение (приложение для обмена местной валюты в Кёнги)</b> или в <b>NH Nonghyup Bank (Osan), Osan Nonghyup, Saemaeul Geumgo, Sae-Osan Credit Union</b>.
 
-","","","","","",""
-"118","MarketPaper_Osaekjeon_Content_3","지역화폐사용처","Where can I use it?","地域通貨の利用先","地方货币使用处","Tôi có thể sử dụng nó ở đâu?","Di mana saya bisa menggunakannya?","ฉันสามารถใช้มันได้ที่ไหน?","Где я могу это использовать?","","","","","",""
-"118","MarketPaper_Osaekjeon_Content_3_1","백화점, 대형마트, 기업형슈퍼마켓(SSM), 프랜차이즈 직영점 및 유흥 사행업소는
+","",""
+"","MarketPaper_Osaekjeon_Content_3","지역화폐사용처","Where can I use it?","地域通貨の利用先","地方货币使用处","Tôi có thể sử dụng nó ở đâu?","Di mana saya bisa menggunakannya?","ฉันสามารถใช้มันได้ที่ไหน?","Где я могу это использовать?","",""
+"","MarketPaper_Osaekjeon_Content_3_1","백화점, 대형마트, 기업형슈퍼마켓(SSM), 프랜차이즈 직영점 및 유흥 사행업소는
 사용이 제한되며 <b>연 매출 10억 이하인 소상공인 점포에서만 사용 가능</b>합니다.","Cannot be used at department stores, large marts, corporate supermarkets (SSM), franchise headquarters, or entertainment/gambling venues.
 <b>Only valid at small businesses with annual sales under 1 billion KRW.</b>
 ","百貨店、大型マート、企業型スーパー（SSM）、フランチャイズ直営店、風俗・ギャンブル業種では使えません。
@@ -403,39 +412,85 @@ Chỉ có hiệu lực tại các doanh nghiệp nhỏ có doanh thu hàng năm 
 ใช้ได้เฉพาะกับธุรกิจขนาดเล็กที่มียอดขายต่อปีต่ำกว่า 1 พันล้านวอนเท่านั้น","Не может быть использовано в универмагах, крупных супермаркетах, корпоративных супермаркетах, штаб-квартирах франчайзи или развлекательных/игорных заведениях.
 
 <b>Действительно только для малых предприятий с годовым объемом продаж менее 1 миллиарда вон.</b>
-","","","","","",""
-"118","MarketPaper_Osaekjeon_Content_3_2","주유소 · 전통시장 · 골목상권 · 레저업소 (헬스클럽, 필라테스, 수영장, 골프연습장, 볼링장) 병·의원 (치과, 한의원 등) · 편의점 · 학원 (기능학원, 보습학원 등) ·보건위생 (안경, 미용원 등) 기타의료기관 (동물병원 등)","Examples: gas stations, traditional markets, local shops, leisure facilities (fitness clubs, pilates, swimming pools, golf ranges, bowling alleys), hospitals & clinics (dentists, oriental clinics, etc.), convenience stores, academies (tutoring, skills), eyewear shops, beauty salons, veterinary clinics, etc.","例: ガソリンスタンド、伝統市場、商店街、レジャー施設（ジム、ピラティス、水泳場、ゴルフ練習場、ボウリング場）、
+","",""
+"","MarketPaper_Osaekjeon_Content_3_2","주유소 · 전통시장 · 골목상권 · 레저업소 (헬스클럽, 필라테스, 수영장, 골프연습장, 볼링장) 병·의원 (치과, 한의원 등) · 편의점 · 학원 (기능학원, 보습학원 등) ·보건위생 (안경, 미용원 등) 기타의료기관 (동물병원 등)","Examples: gas stations, traditional markets, local shops, leisure facilities (fitness clubs, pilates, swimming pools, golf ranges, bowling alleys), hospitals & clinics (dentists, oriental clinics, etc.), convenience stores, academies (tutoring, skills), eyewear shops, beauty salons, veterinary clinics, etc.","例: ガソリンスタンド、伝統市場、商店街、レジャー施設（ジム、ピラティス、水泳場、ゴルフ練習場、ボウリング場）、
 病院・医院（歯科、韓医院など）、コンビニ、学園（補習・技能）、眼鏡店、美容院、動物病院など。
 ","例如: 加油站、传统市场、社区商店、休闲设施（健身房、普拉提、游泳馆、高尔夫练习场、保龄球馆）、
 医院/诊所（牙科、韩医馆等）、便利店、培训机构、眼镜行、美容院、动物医院等。
-","Ví dụ: trạm xăng, chợ truyền thống, cửa hàng địa phương, cơ sở giải trí (câu lạc bộ thể dục, pilates, bể bơi, sân golf, sân bowling), bệnh viện & phòng khám (nha sĩ, phòng khám Đông y, v.v.), cửa hàng tiện lợi, học viện (dạy kèm, dạy kỹ năng), cửa hàng kính mắt, thẩm mỹ viện, phòng khám thú y, v.v.","Contoh: pom bensin, pasar tradisional, toko lokal, fasilitas rekreasi (klub kebugaran, pilates, kolam renang, lapangan golf, arena bowling), rumah sakit & klinik (dokter gigi, klinik pengobatan tradisional, dll.), toko serba ada, akademi (bimbingan belajar, keterampilan), toko kacamata, salon kecantikan, klinik hewan, dll.","ตัวอย่างเช่น: ปั๊มน้ำมัน, ตลาดแบบดั้งเดิม, ร้านค้าท้องถิ่น, สถานที่พักผ่อนหย่อนใจ (ฟิตเนสคลับ, พิลาทิส, สระว่ายน้ำ, สนามกอล์ฟ, ลานโบว์ลิ่ง), โรงพยาบาลและคลินิก (ทันตแพทย์, คลินิกแผนตะวันออก ฯลฯ), ร้านสะดวกซื้อ, สถาบัน (ติวเตอร์, ฝึกทักษะ), ร้านแว่นตา, ร้านเสริมสวย, คลินิกสัตวแพทย์ ฯลฯ","Примеры: автозаправочные станции, традиционные рынки, местные магазины, развлекательные заведения (фитнес-клубы, пилатес, бассейны, поля для гольфа, боулинг), больницы и клиники (стоматологические клиники, клиники восточной медицины и т. д.), магазины товаров повседневного спроса, академии (репетиторство, обучение навыкам), магазины оптики, салоны красоты, ветеринарные клиники и т. д.","","","","","",""
-"126","MarketPaper_SubHeader","오산시장에서 사용할 수 있는 시장화폐 입니다.","A market currency that can be used at Osan Market.","おさん いちばで つかえる いちばの おかねです。","这是可以在乌山市场使用的市场货币。","Một loại tiền tệ thị trường có thể được sử dụng tại chợ Osan.","Mata uang pasar yang dapat digunakan di Pasar Osan.","สกุลเงินที่ใช้ได้ในตลาดโอซาน","Рыночная валюта, которую можно использовать на рынке Осан.","","","","","",""
-"127","MarketPaper_ButtonText","준비중","Coming soon","準備中","敬请期待","Sắp ra mắt","Segera hadir","เร็วๆ นี้","Вскоре","","","","","",""
-"128","Photo_HanbokTry","<AR 한복체험>  ","<AR Hanbok Try-On>","<AR 韓服 体験>","<AR 韩服 体验>","<AR Hanbok Try-On>","<AR Hanbok Try-On>","<AR Hanbok Try-On>","<Примерка ханбока AR>","","","","","",""
-"129","Photo_HanbokSelect","한복/의상 선택하기","Choose Hanbok","韓服を選ぶ","选择韩服","Chọn Hanbok","Pilih Hanbok","เลือกฮันบก","Выберите ханбок","","","","","",""
-"130","Photo_HanbokSelectContent","• 원하시는 의상을 고르고 선택 완료 버튼을 누른뒤 사진촬영 버튼을 눌러주세요 ","• Please choose your desired costume and press the ""Complete Selection"" button","• お好きな衣装を選んで「選択完了」ボタンを押してください","• 请选择您喜欢的服装，然后点击“完成选择”按钮","• Vui lòng chọn trang phục bạn muốn và nhấn nút ""Hoàn tất lựa chọn"".","• Silakan pilih kostum yang Anda inginkan dan tekan tombol ""Selesaikan Pilihan"".","• กรุณาเลือกชุดที่ต้องการแล้วกดปุ่ม ""เลือกให้ครบ""","• Пожалуйста, выберите желаемый костюм и нажмите кнопку «Завершить выбор».","","","","","",""
-"17","Hanbok_1","여자 한복","W>Hanbok","女性用韓服","女式韩服","Hanbok","Hanbok","W>ฮันบก","Ханбок","","","","","",""
-"18","Hanbok_2","여자 모델","M>Model        ","女性モデル","女性模特","M>Mô hình","M>Model","ม>โมเดล","М>Модель","","","","","",""
-"19","Hanbok_3","남자 한복","W>Hanbok","男性用韓服","男式韩服","Hanbok","Hanbok","W>ฮันบก","Ханбок","","","","","",""
-"20","Hanbok_4","남자 모델","M>Model        ","男性モデル","男性模特","M>Mô hình","M>Model","ม>โมเดล","М>Модель","","","","","",""
-"21","Hanbok_5","글로벌 의상","World ","世界の衣装","世界服饰","Thế giới ","Dunia ","โลก ","Мир ","","","","","",""
-"22","Hanbok_6","취사병 ","K-DRAMA","K-DRAMA","K-DRAMA","Phim truyền hình Hàn Quốc","K-DRAMA","ซีรีส์เกาหลี","Корейские дорамы","","","","","",""
-"23","Hanbok_7","브랜드의상","Brand","ブランド","品牌","Thương hiệu","Merek","ยี่ห้อ","Бренд","","","","","",""
-"24","Hanbok_8","이벤트","Event","イベント","活动","Sự kiện","Peristiwa","เหตุการณ์","Событие","","","","","",""
-"25","Hanbok_9","Test9","EnTest9","JPTest9","CHTest9","EnTest9","EnTest9","เอ็นทีเอสทีเอส9","EnTest9","","","","","",""
-"131","Photo_SelectConfirm","선택 완료","Complete Selection","選択完了","完成选择","Lựa chọn hoàn chỉnh","Pilihan Lengkap","การเลือกทั้งหมด","Полный выбор","","","","","",""
-"132","Photo_TakePhoto","사진 촬영","Take Photo","写真を撮る","拍照","Chụp ảnh","Ambil Foto","ถ่ายรูป","Сделать фото","","","","","",""
-"133","Photo_TakePhotoContent","• 사진촬영 버튼을 누르고 좌측 카메라에 얼굴을 바라봐주세요.  
-   10초후 촬영이 시작됩니다. 결과물은 QR을 통해 핸드폰에 저장하세요   ","• Press the photo button and look into the left camera.
-The photo will be taken in 10 seconds. The result will appear on both the left and front screens.","• 「写真を撮る」ボタンを押して、左側のカメラを見てください。
-5秒後に撮影が始まります。写真は左と正面の画面に表示されます。","• 点击拍照按钮，然后看向左边的摄像头。
-5秒后将开始拍照，结果将显示在左侧和前方的屏幕上。","• Nhấn nút chụp ảnh và nhìn vào camera bên trái.
-Ảnh sẽ được chụp trong 10 giây. Kết quả sẽ hiển thị trên cả màn hình bên trái và màn hình phía trước.","• Tekan tombol foto dan lihat ke kamera sebelah kiri.
-Foto akan diambil dalam 10 detik. Hasilnya akan muncul di layar kiri dan depan.","• กดปุ่มถ่ายภาพและมองไปที่กล้องด้านซ้าย
-ภาพจะถูกถ่ายใน 10 วินาที ผลลัพธ์จะปรากฏบนหน้าจอทั้งด้านซ้ายและด้านหน้า","• Нажмите кнопку фотосъемки и посмотрите в левую камеру.
-Фотография будет сделана через 10 секунд. Результат отобразится на левом и переднем экранах.","","","","","",""
-"134","Photo_PrivacyPolicy","[개인정보활용동의]","[Consent to Use of Personal Information]","[個人情報利用同意]","[同意使用个人信息]","[Đồng ý cho phép sử dụng thông tin cá nhân]","[Persetujuan Penggunaan Informasi Pribadi]","[ความยินยอมในการใช้ข้อมูลส่วนบุคคล]","[Согласие на использование персональных данных]","","","","","",""
-"135","Photo_PrivacyPolicyContent","개인정보 처리방침
+","Ví dụ: trạm xăng, chợ truyền thống, cửa hàng địa phương, cơ sở giải trí (câu lạc bộ thể dục, pilates, bể bơi, sân golf, sân bowling), bệnh viện & phòng khám (nha sĩ, phòng khám Đông y, v.v.), cửa hàng tiện lợi, học viện (dạy kèm, dạy kỹ năng), cửa hàng kính mắt, thẩm mỹ viện, phòng khám thú y, v.v.","Contoh: pom bensin, pasar tradisional, toko lokal, fasilitas rekreasi (klub kebugaran, pilates, kolam renang, lapangan golf, arena bowling), rumah sakit & klinik (dokter gigi, klinik pengobatan tradisional, dll.), toko serba ada, akademi (bimbingan belajar, keterampilan), toko kacamata, salon kecantikan, klinik hewan, dll.","ตัวอย่างเช่น สถานีบริการน้ำมัน ตลาดแบบดั้งเดิม ร้านค้าท้องถิ่น สถานที่พักผ่อนหย่อนใจ (ฟิตเนสคลับ พิลาทิส สระว่ายน้ำ สนามกอล์ฟ สนามโบว์ลิ่ง) โรงพยาบาลและคลินิก (ทันตแพทย์ คลินิกแผนตะวันออก ฯลฯ) ร้านสะดวกซื้อ สถาบัน (ติวเตอร์ สอนทักษะ) ร้านแว่นตา ร้านเสริมสวย คลินิกสัตวแพทย์ ฯลฯ","Примеры: автозаправочные станции, традиционные рынки, местные магазины, развлекательные заведения (фитнес-клубы, пилатес, бассейны, поля для гольфа, боулинг), больницы и клиники (стоматологические клиники, клиники восточной медицины и т. д.), магазины товаров повседневного спроса, академии (репетиторство, обучение навыкам), магазины оптики, салоны красоты, ветеринарные клиники и т. д.","",""
+"","MarketPaper_Onnuri","온누리 상품권","Onnuri Gift Certificate","オンヌリ商品券","稳楼里商品券","Phiếu quà tặng Onnuri","บัตรของขวัญ Onnuri","Подарочный сертификат Onnuri","Sertifikat Hadiah Onnuri","",""
+"","MarketPaper_Onnuri_Content_1","온누리 상품권이란?","What is Onnuri Gift Certificate?","オンヌリ商品券とは？","什么是稳楼里商品券？","Phiếu quà tặng Onnuri là gì?","บัตรของขวัญ Onnuri คืออะไร?","Что такое подарочный сертификат Onnuri?","Apa itu Sertifikat Hadiah Onnuri?","",""
+"","MarketPaper_Onnuri_Content_1_1","전통시장과 상점가의 활성화를 위해 발행된 전용 상품권으로, 전국의 온누리상품권 가맹점에서 다양한 상품과 서비스를 구매할 때 사용할 수 있습니다. 전통시장과 지역 상점가를 이용하면서 할인 혜택도 받고, 지역 경제 활성화에도 도움을 줄 수 있는 편리한 상품권입니다. ","A dedicated gift certificate issued to revitalize traditional markets and shopping districts, usable to purchase various goods and services at Onnuri Gift Certificate affiliated stores nationwide. It is a convenient voucher that offers discounts when using traditional markets and local commercial streets, helping support the local economy.","伝統市場と商店街の活性化のために発行された専用商品券で、全国のオンヌリ商品券加盟店で多様な商品やサービスを購入する際に利用できます。伝統市場や地域の商店街を利用しながら割引特典を受けられ、地域経済の活性化にも貢献できる便利な商品券です。","为促进传统市场与商业街活力而发行的专用商品券，可在全国稳楼里商品券加盟店购买各类商品与服务。既能在逛传统市场和当地商街时享受折扣优惠，又能为搞活地方经济贡献力量，非常便捷实用。","Phiếu quà tặng chuyên dụng được phát hành nhằm phục hồi các chợ truyền thống và khu phố thương mại, có thể dùng để mua nhiều mặt hàng và dịch vụ tại các cửa hàng liên kết của Phiếu quà tặng Onnuri trên toàn quốc. Đây là phiếu quà tặng tiện lợi vừa mang lại ưu đãi giảm giá khi mua sắm vừa góp phần thúc đẩy kinh tế địa phương.","บัตรของขวัญที่ออกขึ้นเพื่อฟื้นฟูตลาดแบบดั้งเดิมและย่านการค้า สามารถใช้ซื้อสินค้าและบริการต่างๆ ได้ที่ร้านค้าพันธมิตรบัตรของขวัญ Onnuri ทั่วประเทศ เป็นบัตรของขวัญที่สะดวกสบาย ช่วยให้ได้รับส่วนลดเมื่อใช้จ่ายในตลาดดั้งเดิมและย่านการค้าท้องถิ่น พร้อมช่วยกระตุ้นเศรษฐกิจในท้องถิ่นอีกด้วย","Специальный подарочный сертификат, выпущенный для поддержки традиционных рынков и торговых кварталов, который можно использовать для покупки товаров и услуг в магазинах-партнерах Onnuri по всей стране. Это удобный сертификат, позволяющий получать скидки на рынках и поддерживать местную экономику.","Sertifikat hadiah khusus yang diterbitkan untuk merevitalisasi pasar tradisional dan kawasan perbelanjaan, dapat digunakan untuk membeli berbagai produk dan layanan di toko terafiliasi Onnuri di seluruh negeri. Sertifikat praktis ini memberikan diskon belanja sekaligus mendukung perekonomian lokal.","",""
+"","MarketPaper_Onnuri_Content_2","지류상품권 권종","Paper voucher denominations","紙の商品券の種類","纸质商品券面额","Các mệnh giá phiếu giấy","มูลค่าของบัตรกำนัลกระดาษ","Номиналы бумажных ваучеров","Nominal voucher kertas","",""
+"","MarketPaper_Onnuri_Content_3","디지털 온누리상품권이란?","What is Digital Onnuri Gift Certificate?","デジタルオンヌリ商品券とは？","什么是数字稳楼里商品券？","Phiếu quà tặng điện tử Onnuri là gì?","บัตรของขวัญดิจิทัล Onnuri คืออะไร?","Что такое цифровой подарочный сертификат Onnuri?","Apa itu Sertifikat Hadiah Digital Onnuri?","",""
+"","MarketPaper_Onnuri_Content_3_1","스마트폰을 이용해 더욱 편리하게 사용할 수 있는 디지털 형태의 온누리상품권입니다. 모바일 앱을 통해 상품권을 충전하고, 가맹점에서 QR 또는 카드 결제 방식으로 간편하게 사용할 수 있습니다.","A digital version of the Onnuri Gift Certificate that can be used even more conveniently with a smartphone. You can recharge the certificate via the mobile app and easily pay at affiliated stores using QR codes or cards.","スマートフォンを利用してさらに便利に使えるデジタル版のオンヌリ商品券です。モバイルアプリでチャージし、加盟店にてQRコードまたはカード決済で手軽に利用できます。","可通过智能手机更便捷使用的数字稳楼里商品券。通过手机APP充值后，可在加盟店通过扫码（QR）或刷卡方式轻松支付。","Phiếu quà tặng Onnuri dạng kỹ thuật số giúp sử dụng tiện lợi hơn trên điện thoại thông minh. Bạn có thể nạp tiền qua ứng dụng di động và thanh toán dễ dàng bằng mã QR hoặc thẻ tại các cửa hàng liên kết.","บัตรของขวัญ Onnuri ในรูปแบบดิจิทัลที่ใช้งานสะดวกยิ่งขึ้นผ่านสมาร์ตโฟน เติมเงินผ่านแอปพลิเคชันมือถือ และชำระเงินได้อย่างง่ายดายด้วยรหัส QR หรือบัตรที่ร้านค้าพันธมิตร","Цифровая версия подарочного сертификата Onnuri, которой еще удобнее пользоваться со смартфона. Пополняйте баланс через мобильное приложение и легко оплачивайте покупки по QR-коду или карте в магазинах-партнерах.","Sertifikat Hadiah Onnuri versi digital yang lebih praktis digunakan melalui ponsel pintar. Isi ulang saldo melalui aplikasi seluler dan bayar dengan mudah menggunakan kode QR atau kartu di toko afiliasi.","",""
+"","MarketPaper_Onnuri_Content_3_2","상품권 금액의 10% 할인가로 충전 가능! 최대 보유한도금액은 200만원입니다.","Recharge at a 10% discount! The maximum holding limit is 2 million won.","商品券の10%割引でチャージ可能！ 最大保有限度額は200万ウォンです。","可享受10%折扣充值！最大持有金额为200万韩元。","Nạp tiền với ưu đãi giảm giá 10%! Giới hạn nạp tối đa là 2 triệu won.","เติมเงินรับส่วนลด 10%! วงเงินสูงสุด 2 ล้านวอน","Пополните счет со скидкой 10%! Максимальный лимит пополнения — 2 миллиона вон.","Isi ulang dengan diskon 10%! Batas isi ulang maksimal 2 juta won.","",""
+"","MarketPaper_Onnuri_Content_4","온누리상품권 사용처","Where to use Onnuri Gift Certificates","オンヌリ商品券の利用先","稳楼里商品券使用处","Nơi sử dụng phiếu quà tặng Onnuri","สามารถใช้บัตรของขวัญ Onnuri ได้ที่ไหนบ้าง","Где использовать подарочные сертификаты Onnuri","Di mana menggunakan Sertifikat Hadiah Onnuri?","",""
+"","MarketPaper_Onnuri_Content_4_1","온누리상품권 가맹점 스티커가 있는 곳에서 사용이 가능합니다.","Can be used at places with the Onnuri Gift Certificate affiliated store sticker.","オンヌリ商品券加盟店ステッカーがある場所でご利用いただけます。","可在贴有稳楼里商品券加盟店贴纸的地方使用。","Có thể sử dụng tại các cửa hàng có dán tem phiếu quà tặng Onnuri.","สามารถใช้ได้ที่ร้านค้าที่มีสติกเกอร์ร้านค้าพันธมิตรของ Onnuri Gift Certificate","Можно использовать в местах, где есть наклейка магазина-партнера подарочного сертификата Onnuri.","Dapat digunakan di tempat-tempat yang memiliki stiker toko afiliasi Sertifikat Hadiah Onnuri.","",""
+"","MarketPaper_Onnuri_Content_5_1","※ 할인율 및 혜택은 정책 및 판매 상황에 따라 변경될 수 있습니다.","※ Discount rates and benefits are subject to change depending on policies and sales conditions.","※ 割引率および特典は政策や販売状況により変更される場合があります。","※ 折扣率及优惠政策可能会根据政策与销售情况有所变动。","※ Tỷ lệ giảm giá và ưu đãi có thể thay đổi tùy theo chính sách và tình hình mở bán.","※ อัตราส่วนลดและสิทธิประโยชน์อาจเปลี่ยนแปลงได้ตามนโยบายและสถานการณ์การจำหน่าย","※ Размер скидки и льготы могут изменяться в зависимости от политики и условий продаж.","※ Tingkat diskon dan manfaat dapat berubah tergantung kebijakan dan kondisi penjualan.","",""
+"","MarketPaper_Onnuri_Content_5_2","<color=#1A4D7E>
+· 할인 혜택 : 충전 시 약 10% 할인 적용됨 · 소득공제 혜택 : 전통시장 사용 시 최대 40% 소득공제 가능
+· 사용처 확대 : 전통시장, 소상공인 매장뿐 아니라 온라인몰·배달앱까지
+· 간편하게 사용 가능 (카드 또는 QR코드 결제)
+</color>","<color=#1A4D7E>
+· Discount Benefit: Approx. 10% discount applied upon recharge
+· Income Deduction: Up to 40% income deduction when used at traditional markets
+· Expanded Usage: Usable at traditional markets, small businesses, online malls & delivery apps
+· Easy to Use: Simple payment via card or QR code
+</color>","<color=#1A4D7E>
+· 割引特典：チャージ時に約10%割引適用
+· 所得控除特典：伝統市場での利用時に最大40%所得控除可能
+· 利用先の拡大：伝統市場・小規模店舗に加えオンラインモール・配達アプリまで
+· 簡単決済：カードまたはQRコードで手軽にお支払い
+</color>","<color=#1A4D7E>
+· 折扣优惠：充值时享受约10%优惠
+· 减税优惠：在传统市场使用时可享受最高40%的所得税减免
+· 适用范围扩大：除传统市场、小微商户外，亦覆盖线上商城与外卖平台
+· 便捷使用：支持刷卡或扫码（QR）轻松支付
+</color>","<color=#1A4D7E>
+· Ưu đãi giảm giá: Áp dụng giảm giá khoảng 10% khi nạp tiền
+· Khấu trừ thu nhập: Khấu trừ tối đa đến 40% khi chi tiêu tại chợ truyền thống
+· Mở rộng phạm vi sử dụng: Áp dụng tại chợ truyền thống, tiểu thương, mua sắm online & ứng dụng giao hàng
+· Thanh toán dễ dàng: Sử dụng tiện lợi qua thẻ hoặc quét mã QR
+</color>","<color=#1A4D7E>
+· ส่วนลด: รับส่วนลดประมาณ 10% เมื่อเติมเงิน
+· สิทธิลดหย่อนภาษี: ลดหย่อนภาษีสูงสุด 40% เมื่อใช้จ่ายในตลาดดั้งเดิม
+· ขยายการใช้งาน: ใช้ได้ทั้งตลาดดั้งเดิม ร้านค้ารายย่อย ร้านค้าออนไลน์ และแอปเดลิเวอรี
+· ใช้งานสะดวก: ชำระเงินง่ายๆ ด้วยบัตรหรือสแกน QR Code
+</color>","<color=#1A4D7E>
+· Скидка: скидка около 10% при пополнении
+· Налоговый вычет: налоговый вычет до 40% при покупках на традиционных рынках
+· Расширение применения: традиционные рынки, малый бизнес, интернет-магазины и сервисы доставки
+· Удобство оплаты: простая оплата картой или по QR-коду
+</color>","<color=#1A4D7E>
+· Manfaat Diskon: Diskon sekitar 10% saat isi ulang
+· Pengurangan Pajak: Pengurangan pajak hingga 40% saat digunakan di pasar tradisional
+· Tempat Penggunaan Luas: Pasar tradisional, usaha kecil, toko online & aplikasi pesan antar
+· Mudah Digunakan: Pembayaran praktis dengan kartu atau kode QR
+</color>","",""
+"","Photo_HanbokTry","AR 한복체험  ","AR Hanbok Try-On","AR 韓服 体験","Ar 韩服 体验","Trải nghiệm Hanbok AR","ลองชุดฮันบก AR","Примерка ханбока в AR","Pengalaman Hanbok AR","",""
+"","Photo_HanbokSelect","의상 선택하기","Choose Hanbok","韓服を選ぶ","选择韩服","Chọn Hanbok/Trang phục","เลือกชุดฮันบก/เครื่องแต่งกาย","Выбор ханбока/костюма","Pilih Hanbok/Busana","",""
+"","Photo_HanbokSelectContent","원하시는 의상을 고르고 선택 완료 버튼을 누른뒤 사진촬영 버튼을 눌러주세요 ","Please choose your desired costume and press the ""Complete Selection"" button","お好きな衣装を選んで「選択完了」ボタンを押してください","请选择您喜欢的服装，然后点击“完成选择”按钮","Chọn trang phục, nhấn 'Đã chọn xong' rồi nhấn 'Chụp ảnh'.","เลือกชุดที่ชอบ กด 'เลือกเสร็จแล้ว' แล้วกด 'ถ่ายภาพ' ค่ะ","Выберите желаемый костюм, нажмите кнопку «Выбор завершен», а затем нажмите кнопку «Сделать фото».","Pilih busana, tekan 'Selesai Memilih' lalu 'Ambil Foto'.","",""
+"","Photo_SelectConfirm","선택 완료","Complete Selection","選択完了","完成选择","Đã chọn xong","เลือกเสร็จแล้ว","Выбор завершен","Selesai Memilih","",""
+"","Photo_SelectAlone","사진촬영 (혼자찍기)","Solo Shot","ひとりで撮影","单人拍摄","Chụp ảnh (Chụp một mình)","ถ่ายรูป (ถ่ายคนเดียว)","Фотосъемка (один)","Foto (Sendiri)","",""
+"","Photo_SelectTogether","사진촬영 (with '정이')","Photo Shoot (with 'JEONG-I')","写真撮影（with「JEONG-I」）","合影拍摄（with “JEONG-I”）","Chụp ảnh (cùng 'JEONG-I')","ถ่ายรูป (คู่กับ 'JEONG-I')","Фотосъемка (вместе с «JEONG-I»)","Foto Bersama (bersama 'JEONG-I')","",""
+"","Photo_TakePhoto","사진촬영 안내","Photo Shoot Guide","写真撮影のご案内","拍照指南","Hướng dẫn chụp ảnh","คำแนะนำในการถ่ายภาพ","Руководство по фотосъемке","Panduan Pengambilan Foto","",""
+"","Photo_TakePhotoContent","• 사진촬영 버튼을 누르고 좌측 카메라에 얼굴을 바라봐주세요.  
+   10초후 촬영이 시작됩니다. 결과물이 나오면 QR이 제공됩니다. 
+   QR에 핸드폰 카메라를 담으시면 핸드폰에 저장됩니다.  ","• Press Photo and look at the left camera. 
+   The photo will be taken in 10 seconds. Save it to your phone. ","• 撮影を押して左のカメラを見てください。
+   10秒後に開始し、結果は左と前の画面に表示されます。","• 按拍照按钮并看向左侧摄像头，10秒后开始拍摄。
+   结果会显示在左侧和前方屏幕。","• Nhấn nút chụp và nhìn vào camera bên trái.
+Chụp sau 10 giây. Sau đó mã QR sẽ hiện ra.
+Quét mã QR bằng điện thoại để lưu ảnh.","• กดปุ่มถ่ายภาพแล้วมองไปที่กล้องทางซ้ายค่ะ
+จะเริ่มถ่ายใน 10 วินาที และมี QR ปรากฏขึ้น
+สแกน QR ด้วยมือถือเพื่อบันทึกรูปค่ะ","• Нажмите кнопку съемки и посмотрите в левую камеру.
+Съемка начнется через 10 секунд. После завершения появится QR-код.
+Отсканируйте QR-код камерой телефона, чтобы сохранить фото на устройство.","• Tekan tombol foto dan lihat kamera di sisi kiri.
+Foto dimulai dlm 10 detik. QR akan muncul setelahnya.
+Scan QR dengan ponsel untuk menyimpan foto.","",""
+"","Photo_PrivacyPolicy","[개인정보활용동의]","[Consent to Use of Personal Information]","[個人情報利用同意]","[同意使用个人信息]","[Đồng ý dùng thông tin cá nhân]","[ยินยอมการใช้ข้อมูลส่วนบุคคล]","[Согласие на обработку персональных данных]","[Persetujuan Data Pribadi]","",""
+"","Photo_PrivacyPolicyContent","개인정보 처리방침
 1. 개인정보의 수집 항목 및 방법
 당사는 서비스 제공을 위해 아래와 같은 개인정보를 수집합니다:
 필수 항목: 사진 파일 및 관련 메타데이터
@@ -465,9 +520,10 @@ Foto akan diambil dalam 10 detik. Hasilnya akan muncul di layar kiri dan depan."
 본 개인정보 처리방침은 법적 요구사항이나 서비스 변경에 따라 수정될 수 있습니다. 변경 사항이 있을 경우, 변경된 사항을 앱 내 또는 웹사이트를 통해 고지합니다.
 
 7. 개인정보 보호 담당자
-담당자: 인디라 
+담당자: 진현욱 
 연락처: company@witworldwide.com
-","Privacy Policy  
+
+","Privacy Policy  
 1.Items and Collection Method
 We collect essential information such as photo files and related metadata when users select costumes and take photos at the kiosk, generating composite images.
 
@@ -488,7 +544,7 @@ This policy may change according to legal or service changes.
 All updates will be notified through the app or website.  
   
 7. Personal Information Manager  
-Manager: Indira  
+Manager: Jay Jin
 Contact: company@witworldwide.com  
 ","個人情報取扱方針  
 1. 収集項目および方法  
@@ -526,7 +582,7 @@ Contact: company@witworldwide.com
 変更時にはアプリまたはウェブサイトでお知らせします。  
   
 7. 個人情報保護責任者  
-担当者：インディラ  
+担当者：Jay Jin
 連絡先：company@witworldwide.com  ","隐私政策  
 1. 收集的项目与方式  
 为提供服务，我们收集以下个人信息：  
@@ -563,197 +619,186 @@ Contact: company@witworldwide.com
 所有更改将通过应用或网站公告通知。  
   
 7. 个人信息负责人  
-负责人：Indira  
-联系方式：company@witworldwide.com  ","Chính sách Bảo mật
-1. Các mục và Phương thức Thu thập
-Chúng tôi thu thập thông tin cần thiết như tệp ảnh và siêu dữ liệu liên quan khi người dùng chọn trang phục và chụp ảnh tại ki-ốt, tạo ra hình ảnh ghép.
+负责人：Jay jin
+联系方式：company@witworldwide.com  ","[Tiếng Việt]Chính sách xử lý thông tin cá nhân
 
-2. Mục đích Thu thập và Sử dụng
-Dữ liệu thu thập được sử dụng để cung cấp dịch vụ ảnh ghép và gửi thông báo cá nhân hóa như sự kiện, chương trình khuyến mãi và quảng cáo.
-
-3. Thời gian Lưu trữ
-Thông tin cá nhân sẽ được xóa an toàn sau khi mục đích thu thập được hoàn thành. Nếu người dùng rút khỏi hoặc ngừng sử dụng dịch vụ, dữ liệu sẽ bị xóa trừ trường hợp việc lưu trữ được yêu cầu theo luật.
-
-4. Cung cấp cho Bên thứ ba
-Thông tin nói chung không được chia sẻ với bên thứ ba, trừ khi được yêu cầu theo luật, chia sẻ tối thiểu với các đối tác dịch vụ cho các tính năng và chương trình khuyến mãi, hoặc với sự đồng ý trước của người dùng.
-
-5. Biện pháp Bảo mật
-Chúng tôi mã hóa dữ liệu cá nhân để lưu trữ và truyền tải, hạn chế quyền truy cập cho nhân viên và đối tác được ủy quyền, và thực hiện kiểm tra và cập nhật bảo mật thường xuyên.
-
-6. Thay đổi Chính sách Bảo mật
-Chính sách này có thể thay đổi theo các thay đổi về luật hoặc dịch vụ.
-
-Tất cả các bản cập nhật sẽ được thông báo thông qua ứng dụng hoặc trang web.
-
-7. Quản lý Thông tin Cá nhân
-Quản lý: Indira
-Liên hệ: company@witworldwide.com
-","Kebijakan Privasi
-1. Item dan Metode Pengumpulan
-Kami mengumpulkan informasi penting seperti file foto dan metadata terkait ketika pengguna memilih kostum dan mengambil foto di kios, menghasilkan gambar komposit.
-
-2. Tujuan Pengumpulan dan Penggunaan
-Data yang dikumpulkan digunakan untuk menyediakan layanan foto komposit dan memberikan pemberitahuan yang dipersonalisasi seperti acara, promosi, dan iklan.
-
-3. Jangka Waktu Penyimpanan
-Informasi pribadi akan dihapus secara aman setelah tujuan pengumpulan terpenuhi. Jika pengguna menarik diri atau berhenti menggunakan layanan, data akan dihapus kecuali jika penyimpanan diwajibkan oleh hukum.
-
-4. Pemberian kepada Pihak Ketiga
-Informasi umumnya tidak dibagikan kepada pihak ketiga, kecuali jika diwajibkan secara hukum, dibagikan seminimal mungkin dengan mitra layanan untuk fitur dan promosi, atau dengan persetujuan pengguna sebelumnya.
-
-5. Langkah-langkah Keamanan
-Kami mengenkripsi data pribadi untuk penyimpanan dan transmisi, membatasi akses kepada staf dan mitra yang berwenang, dan melakukan pemeriksaan dan pembaruan keamanan secara berkala.
-
-6. Perubahan Kebijakan Privasi
-Kebijakan ini dapat berubah sesuai dengan perubahan hukum atau layanan.
-
-Semua pembaruan akan diberitahukan melalui aplikasi atau situs web.
-
-7. Pengelola Informasi Pribadi
-Pengelola: Indira
-Kontak: company@witworldwide.com
-
-","นโยบายความเป็นส่วนตัว
-1. รายการและวิธีการเก็บรวบรวมข้อมูล
-เราเก็บรวบรวมข้อมูลที่จำเป็น เช่น ไฟล์ภาพถ่ายและข้อมูลเมตาที่เกี่ยวข้อง เมื่อผู้ใช้เลือกชุดและถ่ายภาพที่ตู้คีออสก์ เพื่อสร้างภาพประกอบ
-
-2. วัตถุประสงค์ของการเก็บรวบรวมและการใช้งาน
-ข้อมูลที่เก็บรวบรวมจะใช้เพื่อให้บริการภาพประกอบและส่งการแจ้งเตือนส่วนบุคคล เช่น กิจกรรม โปรโมชั่น และโฆษณา
-
-3. ระยะเวลาการเก็บรักษา
-ข้อมูลส่วนบุคคลจะถูกลบอย่างปลอดภัยเมื่อวัตถุประสงค์ในการเก็บรวบรวมเสร็จสิ้น หากผู้ใช้ยกเลิกหรือหยุดใช้บริการ ข้อมูลจะถูกลบ ยกเว้นในกรณีที่กฎหมายกำหนดให้ต้องเก็บรักษาไว้
-
-4. การเปิดเผยข้อมูลแก่บุคคลที่สาม
-โดยทั่วไปแล้ว ข้อมูลจะไม่ถูกเปิดเผยแก่บุคคลที่สาม ยกเว้นในกรณีที่กฎหมายกำหนด หรือเปิดเผยเพียงเล็กน้อยแก่พันธมิตรผู้ให้บริการสำหรับฟีเจอร์และโปรโมชั่น หรือได้รับความยินยอมจากผู้ใช้ก่อน
-
-5. มาตรการรักษาความปลอดภัย
-เราเข้ารหัสข้อมูลส่วนบุคคลสำหรับการจัดเก็บและการส่ง จำกัดการเข้าถึงเฉพาะเจ้าหน้าที่และพันธมิตรที่ได้รับอนุญาต และดำเนินการตรวจสอบและอัปเดตความปลอดภัยเป็นประจำ
-
-6. การเปลี่ยนแปลงนโยบายความเป็นส่วนตัว
-นโยบายนี้อาจเปลี่ยนแปลงได้ตามการเปลี่ยนแปลงทางกฎหมายหรือบริการ
-
-การอัปเดตทั้งหมดจะแจ้งให้ทราบผ่านแอปหรือเว็บไซต์
-
-7. ผู้จัดการข้อมูลส่วนบุคคล
-ผู้จัดการ: อินทิรา
-ติดต่อ: company@witworldwide.com
-
-","Политика конфиденциальности
-1. Информация и методы сбора
-Мы собираем необходимую информацию, такую ​​как файлы фотографий и связанные с ними метаданные, когда пользователи выбирают костюмы и делают фотографии в киоске, создавая составные изображения.
+1. Các mục và phương pháp thu thập thông tin cá nhân
+Công ty thu thập các thông tin cá nhân sau đây để cung cấp dịch vụ:
+Mục bắt buộc: File ảnh và siêu dữ liệu liên quan
+Phương pháp thu thập: Thông tin ảnh tổng hợp được tạo ra thông qua việc chụp ảnh sau khi người dùng chọn trang phục tại kiosk.
+2. Mục đích thu thập và sử dụng thông tin cá nhân
+Công ty sử dụng thông tin cá nhân đã thu thập cho các mục đích sau:
+Cung cấp dịch vụ: Cung cấp dữ liệu ảnh tổng hợp cho người dùng
+Thông báo và Tiếp thị: Sử dụng để cung cấp thông tin tùy chỉnh cho người dùng như sự kiện, chương trình khuyến mãi, quảng cáo.
+3. Thời hạn lưu trữ và sử dụng thông tin cá nhân
+Công ty lưu giữ thông tin cá nhân của người dùng cho đến khi đạt được mục đích thu thập và sẽ hủy bỏ một cách an toàn ngay sau khi mục đích sử dụng được hoàn thành. Ngay cả khi người dùng yêu cầu rút khỏi dịch vụ hoặc ngừng sử dụng, thông tin cá nhân vẫn được lưu giữ trong một thời gian nhất định theo các quy định pháp luật liên quan trước khi bị hủy bỏ.
+4. Cung cấp thông tin cá nhân cho bên thứ ba
+Về nguyên tắc, công ty không cung cấp thông tin cá nhân của người dùng cho bên thứ ba. Tuy nhiên, thông tin cá nhân có thể được cung cấp trong các trường hợp sau:
+Nghĩa vụ pháp lý: Theo yêu cầu của pháp luật hoặc tuân theo các thủ tục pháp lý.
+Đối tác cung cấp dịch vụ: Khi hợp tác với các đơn vị bên ngoài cần thiết để cung cấp tính năng và chương trình khuyến mãi, có thể chia sẻ thông tin cá nhân ở mức tối thiểu.
+Sự đồng ý trước của người dùng: Chỉ cung cấp thông tin cá nhân khi người dùng đã đồng ý.
+5. Biện pháp đảm bảo tính an toàn của thông tin cá nhân
+Công ty đang thực hiện các biện pháp sau để bảo vệ thông tin cá nhân của người dùng:
+Mã hóa dữ liệu: Lưu trữ và truyền tải thông tin cá nhân dưới dạng mã hóa.
+Hạn chế truy cập: Hạn chế quyền truy cập vào thông tin cá nhân đối với những nhân viên và đối tác cần thiết.
+Cập nhật bảo mật: Ngăn ngừa các lỗ hổng hệ thống thông qua kiểm tra và cập nhật bảo mật định kỳ.
+6. Thay đổi chính sách xử lý thông tin cá nhân
+Chính sách xử lý thông tin cá nhân này có thể được sửa đổi tùy theo yêu cầu pháp lý hoặc thay đổi dịch vụ. Nếu có thay đổi, nội dung thay đổi sẽ được thông báo qua ứng dụng hoặc trang web.
+7. Người phụ trách bảo vệ thông tin cá nhân
+Người phụ trách: Jin Hyeon-uk","[ภาษาไทย]
+นโยบายการจัดการข้อมูลส่วนบุคคล
+1. รายการและวิธีการเก็บรวบรวมข้อมูลส่วนบุคคล
+บริษัทเก็บรวบรวมข้อมูลส่วนบุคคลดังต่อไปนี้เพื่อให้บริการ:
+รายการที่จำเป็น: ไฟล์รูปภาพและข้อมูลเมตาที่เกี่ยวข้อง
+วิธีการเก็บรวบรวม: ข้อมูลภาพถ่ายที่สร้างขึ้นจากการถ่ายภาพหลังจากที่ผู้ใช้เลือกชุดที่ตู้คีออสก์
+2. วัตถุประสงค์ในการเก็บรวบรวมและใช้ข้อมูลส่วนบุคคล
+บริษัทใช้ข้อมูลส่วนบุคคลที่เก็บรวบรวมเพื่อวัตถุประสงค์ดังต่อไปนี้:
+การให้บริการ: ให้ข้อมูลภาพถ่ายแก่ผู้ใช้
+การแจ้งเตือนและการตลาด: ใช้เพื่อให้ข้อมูลที่ปรับให้เหมาะกับผู้ใช้ เช่น กิจกรรม โปรโมชั่น และการโฆษณา
+3. ระยะเวลาการเก็บรักษาและการใช้ข้อมูลส่วนบุคคล
+บริษัทจะเก็บรักษาข้อมูลส่วนบุคคลของผู้ใช้จนกว่าจะบรรลุวัตถุประสงค์ในการเก็บรวบรวม และจะทำลายทิ้งอย่างปลอดภัยทันทีหลังจากบรรลุวัตถุประสงค์การใช้งาน แม้ว่าผู้ใช้จะขอยกเลิกหรือหยุดใช้งาน ข้อมูลส่วนบุคคลจะถูกเก็บรักษาไว้เป็นระยะเวลาหนึ่งตามกฎหมายที่เกี่ยวข้องก่อนที่จะถูกทำลาย
+4. การให้ข้อมูลส่วนบุคคลแก่บุคคลที่สาม
+โดยหลักการแล้วบริษัทจะไม่ให้ข้อมูลส่วนบุคคลของผู้ใช้แก่บุคคลที่สาม อย่างไรก็ตาม อาจมีการให้ข้อมูลส่วนบุคคลในกรณีดังต่อไปนี้เท่านั้น:
+ภาระผูกพันตามกฎหมาย: ในกรณีที่มีการร้องขอตามกฎหมายหรือปฏิบัติตามขั้นตอนทางกฎหมาย
+พันธมิตรสำหรับการให้บริการ: เมื่อร่วมมือกับบริษัทภายนอกที่จำเป็นสำหรับการจัดหาฟังก์ชันและโปรโมชั่น อาจมีการแบ่งปันข้อมูลส่วนบุคคลขั้นต่ำ
+ความยินยอมล่วงหน้าของผู้ใช้: อาจมีการให้ข้อมูลส่วนบุคคลเฉพาะในกรณีที่ผู้ใช้ยินยอมเท่านั้น
+5. มาตรการรักษาความปลอดภัยของข้อมูลส่วนบุคคล
+บริษัทดำเนินมาตรการดังต่อไปนี้เพื่อปกป้องข้อมูลส่วนบุคคลของผู้ใช้:
+การเข้ารหัสข้อมูล: เข้ารหัสข้อมูลส่วนบุคคลในการจัดเก็บและส่งต่อ
+การจำกัดการเข้าถึง: จำกัดการเข้าถึงข้อมูลส่วนบุคคลเฉพาะพนักงานและพันธมิตรที่จำเป็นเท่านั้น
+การอัปเดตความปลอดภัย: ป้องกันช่องโหว่ของระบบผ่านการตรวจสอบความปลอดภัยและการอัปเดตเป็นประจำ
+6. การเปลี่ยนแปลงนโยบายการจัดการข้อมูลส่วนบุคคล
+นโยบายการจัดการข้อมูลส่วนบุคคลนี้อาจได้รับการแก้ไขตามข้อกำหนดทางกฎหมายหรือการเปลี่ยนแปลงบริการ หากมีการเปลี่ยนแปลงจะมีการแจ้งการเปลี่ยนแปลงผ่านแอปหรือเว็บไซต์
+7. เจ้าหน้าที่คุ้มครองข้อมูลส่วนบุคคล
+เจ้าหน้าที่: Jin Hyeon-uk
+ติดต่อ: company@witworldwide.com","Политика конфиденциальности
+1. Собираемые данные и метод сбора
+Мы собираем необходимую информацию, такую как файлы фотографий и связанные метаданные, когда пользователи выбирают костюмы и делают снимки в киоске, создавая комбинированные изображения.
 
 2. Цель сбора и использования
-Собранные данные используются для предоставления услуги создания составных фотографий и доставки персонализированных уведомлений, таких как события, акции и реклама.
+Собранные данные используются для предоставления услуг по созданию комбинированных фотографий, а также для отправки персонализированных уведомлений, таких как информация о мероприятиях, рекламных акциях и объявлениях.
 
 3. Срок хранения
-Персональные данные надежно удаляются после достижения цели сбора. Если пользователи отказываются от услуги или прекращают ее использование, данные удаляются, за исключением случаев, когда их хранение требуется по закону.
+Персональные данные надежно удаляются после достижения целей сбора. Если пользователь отзывает согласие или прекращает использование сервиса, данные удаляются, за исключением случаев, когда их хранение требуется по закону.
 
 4. Предоставление третьим лицам
-Информация, как правило, не передается третьим лицам, за исключением случаев, когда это требуется по закону, передается в минимальном объеме партнерам по сервису для функций и рекламных акций, или с предварительного согласия пользователя.
+Информация, как правило, не передается третьим лицам, за исключением случаев, предусмотренных законом, минимального совместного использования с партнерами для предоставления функций и рекламных акций или с предварительного согласия пользователя.
 
 5. Меры безопасности
-Мы шифруем персональные данные для хранения и передачи, ограничиваем доступ к ним уполномоченному персоналу и партнерам, а также проводим регулярные проверки и обновления безопасности.
+Мы шифруем персональные данные при хранении и передаче, ограничиваем доступ только для уполномоченного персонала и партнеров, а также проводим регулярные проверки и обновления безопасности.
 
-6. Изменения в Политике конфиденциальности
-Данная политика может быть изменена в соответствии с изменениями в законодательстве или в предоставляемых услугах.
+6. Изменения в политике конфиденциальности
+Настоящая политика может меняться в соответствии с изменениями в законодательстве или работе сервиса. Все обновления будут публиковаться в приложении или на веб-сайте.
 
-Обо всех обновлениях будет сообщено через приложение или веб-сайт.
-
-7. Менеджер по персональным данным
-Менеджер: Индира
-Контакты: company@witworldwide.com
-","","","","","",""
-"136","Photo_Start","촬영시작","Start Shooting","撮影開始","开始拍摄","Bắt đầu quay phim","Mulai Menembak","เริ่มยิง","Начать съемку","","","","","",""
-"137","Photo_QRExplain","사진을 저장하려면 <color=#1A4D7E>QR을 카메라로 찍어주세요!</color>","To save your photo, <color=#1A4D7E>scan the QR!</color>","写真を保存するには<color=#1A4D7E>QRコードをスキャンしてください！</color>","若要保存照片，请<color=#1A4D7E>扫描二维码！</color>","Để lưu ảnh của bạn, <color=#1A4D7E>quét mã QR!</color>","Untuk menyimpan foto Anda, <color=#1A4D7E>pindai kode QR!</color>","เพื่อบันทึกรูปภาพของคุณ โปรดสแกนคิวอาร์โค้ด!","Чтобы сохранить фотографию, отсканируйте QR-код!","","","","","",""
-"138","Photo_Save","저장하기","Save","保存","保存","Cứu","Menyimpan","บันทึก","Сохранять","","","","","",""
-"139","Photo_Home","다시찍기","Try Again","再撮影","重拍","Thử lại","Coba Lagi","ลองอีกครั้ง","Попробуйте еще раз","","","","","",""
-"1391","Photo_SelectAlone","혼자 찍기","Solo Shot","ひとりで撮影","单人拍摄","Ảnh chụp riêng","Foto Solo","ภาพถ่ายเดี่ยว","Одиночный кадр","","","","","",""
-"1392","Photo_SelectTogether","‘정이’와 함께","With ‘Jeong-i’","「Jeong-i」と一緒に","与“Jeong-i”一起","Với 'Jeong-i'","Dengan ‘Jeong-i’","กับ 'จองอี'","С «Чон-и»","","","","","",""
-"1393","Photo_SNS","QR을 통해서 내 핸드폰에 저장하고 다양한 SNS에 올려보세요 
-한복 착장에 관한 이벤트가 준비중이니 많은 참여 바랍니다. ","","","","Hãy lưu mã QR vào điện thoại và chia sẻ trên các nền tảng mạng xã hội khác nhau. Một sự kiện về việc mặc Hanbok hiện đang được chuẩn bị, vì vậy chúng tôi rất mong chờ sự tham gia của các bạn.","Simpan kode QR ke ponsel Anda dan bagikan di berbagai platform media sosial. Sebuah acara terkait pemakaian Hanbok sedang dipersiapkan, jadi kami menantikan partisipasi Anda.","บันทึกคิวอาร์โค้ดลงในโทรศัพท์มือถือของคุณแล้วแชร์บนแพลตฟอร์มโซเชียลมีเดียต่างๆ ขณะนี้กำลังมีการเตรียมจัดกิจกรรมเกี่ยวกับการสวมชุดฮันบก เราจึงหวังเป็นอย่างยิ่งว่าคุณจะเข้าร่วม","Сохраните QR-код на свой мобильный телефон и поделитесь им в различных социальных сетях. В настоящее время готовится мероприятие, посвященное ношению ханбока, поэтому мы с нетерпением ждем вашего участия.","","","","","",""
-"140","HanbokExplain_HanbokDesigner"," 'WITH' (WIT AI Tourism Hardware) 에 AR로 착용하는 한복은 대한민국의 한복 명인 
-박술녀’ 디자이너 선생님이 제공해주신 한복입니다.  ","The AR hanbok on ‘WITH’ (WIT AI Tourism Hardware) is provided by Korea’s master designer, Park Sul-nyeo.","「WITH」のAR韓服は、韓国の名匠パク・スルニョ氏提供です。","“WITH”上的AR韩服由韩国韩服大师朴述女提供。","Bộ trang phục Hanbok thực tế ảo (AR) trên nền tảng ‘WITH’ (WIT AI Tourism Hardware) được thiết kế bởi nhà thiết kế bậc thầy người Hàn Quốc, Park Sul-nyeo.","Hanbok AR pada ‘WITH’ (WIT AI Tourism Hardware) disediakan oleh desainer ternama Korea, Park Sul-nyeo.","ชุดฮันบก AR ในแอปพลิเคชัน ‘WITH’ (WIT AI Tourism Hardware) ออกแบบโดย พัค ซุล-นยอ นักออกแบบชั้นนำของเกาหลี","Дополненная реальностью одежда ханбок, представленная на платформе «WITH» (WIT AI Tourism Hardware), создана ведущим корейским дизайнером Пак Суль-нё.","","","","","",""
-"141","HanbokExplain_HanbokExplainContent","한복은 한국 전통 의복으로, 오랜 역사와 전통을 가진 옷입니다.
+7. Ответственный за защиту персональных данных
+Ответственный: Jay Jin
+Контакты: company@witworldwide.com","[ Bahasa Indonesia]
+Kebijakan Pemrosesan Informasi Pribadi
+1. Item dan Metode Pengumpulan Informasi Pribadi
+Perusahaan mengumpulkan informasi pribadi berikut untuk menyediakan layanan:
+Item Wajib: File foto dan metadata terkait
+Metode Pengumpulan: Informasi foto komposit yang dihasilkan melalui pengambilan foto setelah pengguna memilih kostum di kios.
+2. Tujuan Pengumpulan dan Penggunaan Informasi Pribadi
+Perusahaan menggunakan informasi pribadi yang dikumpulkan untuk tujuan berikut:
+Penyediaan Layanan: Menyediakan data foto komposit kepada pengguna
+Pemberitahuan dan Pemasaran: Penggunaan untuk memberikan informasi yang disesuaikan dengan pengguna seperti acara, promosi, dan iklan.
+3. Masa Retensi dan Penggunaan Informasi Pribadi
+Perusahaan menyimpan informasi pribadi pengguna hingga tujuan pengumpulan tercapai, dan segera memusnahkannya dengan aman setelah tujuan penggunaan tercapai. Bahkan jika pengguna meminta penarikan atau berhenti menggunakan layanan, informasi pribadi akan disimpan untuk jangka waktu tertentu sesuai dengan undang-undang terkait dan kemudian dimusnahkan.
+4. Penyediaan Informasi Pribadi kepada Pihak Ketiga
+Pada prinsipnya, perusahaan tidak memberikan informasi pribadi pengguna kepada pihak ketiga. Namun, informasi pribadi dapat diberikan hanya dalam kasus-kasus berikut:
+Kewajiban Hukum: Dalam hal permintaan berdasarkan undang-undang dan peraturan atau mengikuti prosedur hukum.
+Mitra Penyedia Layanan: Saat bekerja sama dengan perusahaan eksternal yang diperlukan untuk menyediakan fitur dan promosi, informasi pribadi minimum dapat dibagikan.
+Persetujuan Sebelumnya dari Pengguna: Informasi pribadi hanya dapat diberikan jika pengguna menyetujuinya.
+5. Langkah-langkah Menjamin Keamanan Informasi Pribadi
+Perusahaan mengambil langkah-langkah berikut untuk melindungi informasi pribadi pengguna:
+Enkripsi Data: Mengenkripsi informasi pribadi untuk disimpan dan dikirimkan.
+Pembatasan Akses: Membatasi akses ke informasi pribadi hanya untuk karyawan dan mitra yang diperlukan.
+Pembaruan Keamanan: Mencegah kerentanan sistem melalui pemeriksaan dan pembaruan keamanan rutin.
+6. Perubahan Kebijakan Pemrosesan Informasi Pribadi
+Kebijakan Pemrosesan Informasi Pribadi ini dapat diubah sesuai dengan persyaratan hukum atau perubahan layanan. Jika ada perubahan, hal-hal yang diubah akan diberitahukan melalui aplikasi atau situs web.
+7. Petugas Perlindungan Informasi Pribadi
+Petugas: Jin Hyeon-uk
+Kontak: company@witworldwide.com","",""
+"","Photo_Start","촬영시작","Start Shooting","撮影開始","开始拍摄","Bắt đầu chụp","เริ่มถ่ายภาพ","Начать съемку","Mulai Ambil Foto","",""
+"","Photo_QRExplain","사진을 저장하려면 <color=#FE6C50>QR을 카메라로 찍어주세요!</color>","To save your photo, <color=#FE6C50>scan the QR!</color>","写真を保存するには<color=#FE6C50>QRコードをスキャンしてください！</color>","若要保存照片，请<color=#FE6C50>扫描二维码！</color>","Quét mã QR để lưu ảnh của bạn!","สแกนคิวอาร์โค้ดเพื่อบันทึกรูปภาพค่ะ!","Чтобы сохранить фото, <color=#FE6C50>отсканируйте QR-код!</color>","Scan kode QR untuk menyimpan foto Anda!","",""
+"","Photo_Save","저장하기","Save","保存","保存","Lưu lại","บันทึก","Сохранить","Simpan","",""
+"","Photo_Home","다시찍기","Try Again","再撮影","重拍","Chụp lại","ถ่ายใหม่","Переснять","Ulangi Foto","",""
+"","Photo_SNS","QR을 통해서 내 핸드폰에 저장하고 다양한 SNS에 올려보세요 
+한복 착장에 관한 이벤트가 준비중이니 많은 참여 바랍니다. ","Scan the QR to save and share on socials! Stay tuned for our Hanbok event.","QRで保存してSNSにシェア！韓服イベントも準備中なのでお楽しみに。","扫码保存并分享至社交平台！韩服活动筹备中，敬请期待。","Lưu về máy qua QR và chia sẻ lên mạng xã hội.
+Sắp có sự kiện thử Hanbok, hãy cùng tham gia nhé!","บันทึกรูปผ่าน QR และแชร์ลงโซเชียลกันนะคะ
+กิจกรรมลองชุดฮันบกกำลังจะเริ่ม เชิญมาร่วมสนุกค่ะ","Сохраните фото на телефон с помощью QR-кода и делитесь им в социальных сетях!\nГотовится мероприятие по примерке ханбоков, надеемся на ваше активное участие.","Simpan ke ponsel via QR dan bagikan ke Sosmed.
+Event Hanbok segera hadir, ayo ikutan!","",""
+"","Photo_Wait","잠시만 기다려주세요!","Please wait a moment!","少々お待ちください！","请稍候！","Vui lòng đợi trong giây lát!","กรุณารอสักครู่ค่ะ!","Пожалуйста, подождите немного!","Mohon tunggu sebentar!","",""
+"","Photo_Game_Title","게임","Game","ゲーム","游戏","Trò chơi","เกม","Игра","Game","",""
+"","Photo_Game_desc1","기다리는 동안 게임을 즐겨보세요!","Enjoy a game while you wait!","待ち時間にゲームをお楽しみください！","等待期间不妨玩个游戏吧！","Hãy cùng chơi game trong lúc chờ đợi nhé!","เพลิดเพลินกับเกมระหว่างรอได้เลยค่ะ!","Сыграйте в игру, пока ждете!","Nikmati permainan sambil menunggu!","",""
+"","Photo_Game_1","틀린 그림 찾기","Spot the Difference","間違い探し","大家来找茬","Tìm điểm khác biệt","จับผิดภาพ","Найди отличия","Cari Perbedaan","",""
+"","Photo_Game_1_desc1","두 그림에서 다른 곳을 찾아보세요!","Find the differences between the two pictures!","2つの絵から違うところを見つけてみてください！","找出两幅画中的不同之处吧！","Hãy tìm điểm khác nhau giữa hai bức tranh!","หาจุดที่แตกต่างกันในภาพทั้งสองรูปค่ะ!","Найдите различия между двумя картинками!","Temukan perbedaan antara kedua gambar!","",""
+"","Photo_Game_Type_1","터치 게임","Touch Game","タッチゲーム","触摸游戏","Trò chơi chạm","เกมสัมผัส","Сенсорная игра","Game Sentuh","",""
+"","Photo_Game_1_Play_desc1","기다리는 동안 틀린 그림을 찾아보세요!","Spot the differences while you wait!","待ち時間の間に間違いを探してみてください！","在等待的过程中找出不同之处吧！","Hãy tìm các điểm khác biệt trong khi chờ đợi nhé!","ค้นหาจุดจับผิดภาพระหว่างรอนะคะ!","Найдите отличия, пока ждете!","Temukan perbedaan gambar sambil menunggu!","",""
+"","Photo_Game_1_show_hint","힌트","Hint","ヒント","提示","Gợi ý","คำใบ้","Подсказка","Petunjuk","",""
+"","Photo_Game_show_result","결과 보기","View Results","結果を見る","查看结果","Xem kết quả","ดูผลลัพธ์","Посмотреть результат","Lihat Hasil","",""
+"","Photo_Game_popup_title_success","다 찾았어요!","Found them all!","全部見つけました！","全部找到了！","Đã tìm thấy tất cả!","หาเจอครบแล้วค่ะ!","Все найдены!","Berhasil temukan semua!","",""
+"","Photo_Game_popup_title_failed","아쉬워요","Almost had it!","惜しい！","太可惜了","Tiếc quá","น่าเสียดายจัง","Не повезло","Kurang beruntung","",""
+"","Photo_Game_popup_desc_result","개를 찾았어요","found","個見つけました","个找到了","điểm đã tìm thấy","จุดที่เจอ","найдено","berhasil ditemukan","",""
+"","Photo_popup_title_Complete","사진이 완성됐어요!","Your photo is ready!","写真が完成しました！","照片制作完成！","Ảnh của bạn đã hoàn thành!","รูปถ่ายเสร็จเรียบร้อยแล้วค่ะ!","Фотография готова!","Foto Anda sudah selesai!","",""
+"","Photo_popup_desc_Complete","게임을 계속하다가 원할 때 사진을 봐도 돼요","You can keep playing and view the photo whenever you want.","ゲームを続けて、見たいときにいつでも写真を確認できます。","您可以继续玩游戏，并随时查看照片。","Bạn có thể tiếp tục chơi và xem ảnh bất cứ khi nào muốn.","เล่นเกมต่อแล้วเปิดดูรูปภาพเมื่อไหร่ก็ได้ที่ต้องการค่ะ","Вы можете продолжить игру и посмотреть фото в любое время.","Anda bisa lanjut bermain dan melihat foto kapan pun Anda mau.","",""
+"","Photo_Game_popup_button1","계속 게임하기","Keep Playing","ゲームを続ける","继续游戏","Tiếp tục chơi","เล่นเกมต่อ","Продолжить игру","Lanjut Bermain","",""
+"","Photo_Game_popup_button2","사진 보기","View Photo","写真を見る","查看照片","Xem ảnh","ดูรูปถ่าย","Посмотреть фото","Lihat Foto","",""
+"","Photo_Game_popup_button3","한 판 더!","Play Again!","もう一回！","再玩一局！","Chơi ván nữa!","เล่นอีกรอบ!","Еще раунд!","Main Lagi!","",""
+"","Photo_Game_popup_button4","다른 게임","Another Game","別のゲーム","其他游戏","Trò chơi khác","เกมอื่น","Другая игра","Game Lain","",""
+"","HanbokExplain_HanbokDesigner","WITH의 모든 한복은 박술녀 한복입니다.","All hanboks at WITH are crafted by Park Sulnyeo Hanbok.","WITHのすべての韓服はパク・スルニョ韓服です。","WITH的所有韩服均出自朴洙烈韩服。","Tất cả Hanbok tại WITH đều là Hanbok của Park Sul-nyeo.","ชุดฮันบกทั้งหมดที่ WITH เป็นชุดฮันบกจาก พัคซุลนยอ","Все ханбоки в WITH предоставлены брендом Park Sulnyeo Hanbok.","Semua Hanbok di WITH adalah karya Park Sul-nyeo Hanbok.","",""
+"","HanbokExplain_Header","한복 설명","Hanbok Guide","韓服の説明","韩服介绍","Giới thiệu Hanbok","ข้อมูลเกี่ยวกับชุดฮันบก","Описание ханбока","Penjelasan Hanbok","",""
+"","HanbokExplain_Content","한복은 한국 전통 의복으로, 오랜 역사와 전통을 가진 옷입니다.
 한복은 고유의 아름다움과 독특한 디자인으로 한국 문화를 대표하는  상징 중 하나로 
 여겨지며, 특별한 행사나 명절 때 주로 착용됩니다. 
 직선적인 서양 복식과 달리, 한복은 부드럽게 흐르는 선과 넉넉한 옷자락이 특징입니다. 
-전통적으로, 한복의 색은 사회적 지위, 연령, 계절 등에 따라 다르게 선택되었으며, 색상의 조합은 옷을 입는 사람의 개성과 상황을 반영합니다. 한복은 단순한 의복을 넘어 한국의 전통과 문화를 상징하는 중요한 문화유산으로, 세계적으로도 그 아름다움을 인정받고 있습니다. 바로 지금, 저 정이가 한복을 입은 여러분들의 예쁜 모습을 화면속에 담아드릴게요! 
-한복 착장서비스를 시작해보세요 ~~","Hanbok is traditional Korean attire with a long history, known for its elegant beauty and flowing design. Unlike Western clothing, it features soft lines and wide sleeves. Traditionally, its colors reflected social status, age, and season, expressing the wearer’s individuality. More than just clothing, hanbok is a symbol of Korean culture and heritage, admired worldwide. Now, I, Jeong-i, will capture your beautiful hanbok look on screen—try our hanbok fitting service today!","韓服（ハンボク）は、韓国の伝統衣装で、長い歴史と美しいデザインを持ち、特別な行事や祝日に着用されます。
+전통적으로, 한복의 색은 사회적 지위, 연령, 계절 등에 따라 다르게 선택되었으며, 
+색상의 조합은 옷을 입는 사람의 개성과 상황을 반영합니다. 
+한복은 단순한 의복을 넘어 한국의 전통과 문화를 상징하는 중요한 문화유산으로, 세계적으로도 그 아름다움을 인정받고 있습니다. 
+바로 지금, 저 인사가 한복을 입은 여러분들의 예쁜 모습을 화면속에 담아드릴게요! 
+한복 착장서비스를 시작해보세요 ~~","Hanbok is traditional Korean attire with a long history, known for its elegant beauty and flowing design. 
+Unlike Western clothing, it features soft lines and wide sleeves. 
+Traditionally, its colors reflected social status, age, and season, expressing the wearer’s individuality. 
+More than just clothing, hanbok is a symbol of Korean culture and heritage, admired worldwide. 
+Now, I, INSA, will capture your beautiful hanbok look on screen—try our hanbok fitting service today!","韓服（ハンボク）は、韓国の伝統衣装で、長い歴史と美しいデザインを持ち、特別な行事や祝日に着用されます。
 柔らかなラインとゆったりとしたシルエットが特徴で、色の組み合わせには着る人の個性や背景が表れます。
 韓服は韓国文化を象徴する重要な文化遺産として、世界でもその美しさが認められています。
-今、ジョンイが韓服姿の皆さんを画面に映し出します！
+今、インサが韓服姿の皆さんを画面に映し出します！
 韓服着用サービスを体験してみましょう〜","韩服是韩国传统服饰，拥有悠久历史，以柔美的线条和独特设计著称。
 它常在节日或特别场合穿着，颜色选择体现身份、年龄与个性。
 韩服不仅是服装，更是韩国文化的重要象征，因其美丽而享誉全球。
-现在，我是Jeong-i，要把你穿韩服的美丽模样展现在屏幕上！
+现在，我是INSA，要把你穿韩服的美丽模样展现在屏幕上！
 快来体验韩服穿搭服务吧〜
 
-","Hanbok là trang phục truyền thống của Hàn Quốc với lịch sử lâu đời, nổi tiếng với vẻ đẹp thanh lịch và thiết kế mềm mại, uyển chuyển. Khác với trang phục phương Tây, Hanbok có những đường nét mềm mại và tay áo rộng. Theo truyền thống, màu sắc của Hanbok phản ánh địa vị xã hội, tuổi tác và mùa, thể hiện cá tính của người mặc. Không chỉ đơn thuần là trang phục, Hanbok còn là biểu tượng của văn hóa và di sản Hàn Quốc, được ngưỡng mộ trên toàn thế giới. Giờ đây, tôi, Jeong-i, sẽ giúp bạn ghi lại vẻ đẹp trong bộ Hanbok của mình – hãy thử dịch vụ đo may Hanbok của chúng tôi ngay hôm nay!","Hanbok adalah pakaian tradisional Korea dengan sejarah panjang, dikenal karena keindahan elegannya dan desainnya yang mengalir. Tidak seperti pakaian Barat, hanbok memiliki garis-garis lembut dan lengan lebar. Secara tradisional, warnanya mencerminkan status sosial, usia, dan musim, mengekspresikan individualitas pemakainya. Lebih dari sekadar pakaian, hanbok adalah simbol budaya dan warisan Korea, yang dikagumi di seluruh dunia. Sekarang, saya, Jeong-i, akan mengabadikan penampilan hanbok Anda yang cantik di layar—coba layanan fitting hanbok kami hari ini!","ชุดฮันบกเป็นชุดประจำชาติเกาหลีที่มีประวัติศาสตร์ยาวนาน โดดเด่นด้วยความสวยงามสง่าและการออกแบบที่พลิ้วไหว แตกต่างจากเสื้อผ้าตะวันตกตรงที่ชุดฮันบกมีเส้นสายที่อ่อนโยนและแขนเสื้อกว้าง ตามประเพณีแล้ว สีของชุดฮันบกสะท้อนถึงสถานะทางสังคม อายุ และฤดูกาล แสดงออกถึงความเป็นเอกลักษณ์ของผู้สวมใส่ ชุดฮันบกไม่ใช่แค่เพียงเครื่องแต่งกาย แต่เป็นสัญลักษณ์ของวัฒนธรรมและมรดกของเกาหลีที่ได้รับการยกย่องไปทั่วโลก ตอนนี้ ฉัน จองอี จะบันทึกภาพชุดฮันบกที่สวยงามของคุณบนหน้าจอ ลองใช้บริการวัดตัวชุดฮันบกของเราวันนี้!","Ханбок — это традиционная корейская одежда с долгой историей, известная своей элегантной красотой и струящимся дизайном. В отличие от западной одежды, он отличается мягкими линиями и широкими рукавами. Традиционно его цвета отражали социальный статус, возраст и время года, выражая индивидуальность владельца. Ханбок — это больше, чем просто одежда, это символ корейской культуры и наследия, которым восхищаются во всем мире. Теперь я, Чон-и, запечатлю ваш прекрасный образ в ханбоке на экране — попробуйте нашу услугу примерки ханбока уже сегодня!","","","","","",""
-"142","Language_Select_Language","* 언어선택","* Select Language","* Select Language","* Select Language","* Chọn ngôn ngữ","* Pilih Bahasa","* เลือกภาษา","* Выберите язык","","","","","",""
-"143","Language_Now_Language","> 현재 언어","> Now Language","> Now Language","> Now Language","> Ngôn ngữ hiện tại","> Sekarang Bahasa","> ภาษาปัจจุบัน","> Язык","","","","","",""
-"144","Language_Target_Language","> 변경 언어","> Change Language","> Change Language","> Change Language","> Thay đổi ngôn ngữ","> Ubah Bahasa","> เปลี่ยนภาษา","> Изменить язык","","","","","",""
-"145","Language_Content","* 사용하실 언어를 선택해주세요","* Choose Language","* Choose Language","* Choose Language","* Chọn ngôn ngữ","* Pilih Bahasa","* เลือกภาษา","* Выберите язык","","","","","",""
-"146","SubHeader_Palace","* 검색결과를 클릭하시면 상세정보를 보실수 있어요 ","* Click a search result to see more details","* 検索結果をクリックして詳細を見る","* 点击搜索结果即可查看详细信息","* Nhấp vào kết quả tìm kiếm để xem thêm chi tiết","* Klik hasil pencarian untuk melihat detail selengkapnya","* คลิกที่ผลการค้นหาเพื่อดูรายละเอียดเพิ่มเติม","* Нажмите на результат поиска, чтобы увидеть более подробную информацию.","","","","","",""
-"147","SubHeader_ToEat","* 검색결과를 클릭하시면 상세정보를 보실수 있어요 ","* Click a search result to see more details","* 検索結果をクリックして詳細を見る","* 点击搜索结果即可查看详细信息","* Nhấp vào kết quả tìm kiếm để xem thêm chi tiết","* Klik hasil pencarian untuk melihat detail selengkapnya","* คลิกที่ผลการค้นหาเพื่อดูรายละเอียดเพิ่มเติม","* Нажмите на результат поиска, чтобы увидеть более подробную информацию.","","","","","",""
-"148","SubHeader_ToBuy","* 검색결과를 클릭하시면 상세정보를 보실수 있어요 ","* Click a search result to see more details","* 検索結果をクリックして詳細を見る","* 点击搜索结果即可查看详细信息","* Nhấp vào kết quả tìm kiếm để xem thêm chi tiết","* Klik hasil pencarian untuk melihat detail selengkapnya","* คลิกที่ผลการค้นหาเพื่อดูรายละเอียดเพิ่มเติม","* Нажмите на результат поиска, чтобы увидеть более подробную информацию.","","","","","",""
-"148","SubHeader_ToBuy2","* 검색결과를 클릭하시면 상세정보를 보실수 있어요 ","* Click a search result to see more details","* 検索結果をクリックして詳細を見る","* 点击搜索结果即可查看详细信息","* Nhấp vào kết quả tìm kiếm để xem thêm chi tiết","* Klik hasil pencarian untuk melihat detail selengkapnya","* คลิกที่ผลการค้นหาเพื่อดูรายละเอียดเพิ่มเติม","* Нажмите на результат поиска, чтобы увидеть более подробную информацию.","","","","","",""
-"149","SubHeader_ToGallery","* 검색결과를 클릭하시면 상세정보를 보실수 있어요 ","* Click a search result to see more details","* 検索結果をクリックして詳細を見る","* 点击搜索结果即可查看详细信息","* Nhấp vào kết quả tìm kiếm để xem thêm chi tiết","* Klik hasil pencarian untuk melihat detail selengkapnya","* คลิกที่ผลการค้นหาเพื่อดูรายละเอียดเพิ่มเติม","* Нажмите на результат поиска, чтобы увидеть более подробную информацию.","","","","","",""
-"150","SubHeader_ToHelp","* 검색결과를 클릭하시면 상세정보를 보실수 있어요 ","* Click a search result to see more details","* 検索結果をクリックして詳細を見る","* 点击搜索结果即可查看详细信息","* Nhấp vào kết quả tìm kiếm để xem thêm chi tiết","* Klik hasil pencarian untuk melihat detail selengkapnya","* คลิกที่ผลการค้นหาเพื่อดูรายละเอียดเพิ่มเติม","* Нажмите на результат поиска, чтобы увидеть более подробную информацию.","","","","","",""
-"151","SubHeader_ToStay","* 검색결과를 클릭하시면 상세정보를 보실수 있어요 ","* Click a search result to see more details","* 検索結果をクリックして詳細を見る","* 点击搜索结果即可查看详细信息","* Nhấp vào kết quả tìm kiếm để xem thêm chi tiết","* Klik hasil pencarian untuk melihat detail selengkapnya","* คลิกที่ผลการค้นหาเพื่อดูรายละเอียดเพิ่มเติม","* Нажмите на результат поиска, чтобы увидеть более подробную информацию.","","","","","",""
-"153","SubHeader_AICourse","* QR을 핸드폰으로 찍으시면 길을 안내해드려요.","* Scan the QR with your phone. We’ll guide you","* スマホでQRを読み取ってください。ご案内します","* 用手机扫QR码，我们导航","* Quét mã QR bằng điện thoại của bạn. Chúng tôi sẽ hướng dẫn bạn.","* Pindai kode QR dengan ponsel Anda. Kami akan memandu Anda.","* สแกนคิวอาร์โค้ดด้วยโทรศัพท์ของคุณ เราจะแนะนำคุณต่อไป","* Отсканируйте QR-код с помощью телефона. Мы вам поможем.","","","","","",""
-"154","SubHeader_Event","* 오색 시장에서 진행중인 이벤트를 찾아보세요 ","* Find events happening in Osaek Market","*オセク市場で開催中のイベントを探してみてください","* 查找正在五色市场举行的活动","* Tìm các sự kiện đang diễn ra tại Chợ Osaek","* Temukan acara yang berlangsung di Pasar Osaek","* ค้นหากิจกรรมที่เกิดขึ้นในตลาดโอเซค","* Найдите информацию о мероприятиях, проходящих на рынке Осаек","","","","","",""
-"","Event_Tab_Osan","오산시","Osan","烏山市","乌山市","Thành phố Osan","Kota Osan","เมืองโอซาน","Осан","","","","","",""
-"","Event_Category_All","전체","All","全て","全部","Tất cả","Semua","ทั้งหมด","Все","","","","","",""
-"","Event_Category_performance","공연","Performance","公演","演出","Biểu diễn","Pertunjukan","การแสดง","Выступление","","","","","",""
-"","Event_Category_exibition","전시","Exhibition","展示","展览","Triển lãm","Pameran","นิทรรศการ","Выставка","","","","","",""
-"","Event_Category_etc","기타","Etc","その他","其他","Khác","Lainnya","อื่นๆ","Другое","","","","","",""
-"","Event_MBTI_types","[외향적, 경험적, 이성적, 계획적, 내향적, 상상적, 감성적, 즉흥적]","[Extroverted, Experiential, Rational, Planned, Introverted, Imaginative, Emotional, Spontaneous]","[外向的、経験的、理性的、計画的、内向的、想像的、感性的、即興的]","[外向、经验、理性、计划、内向、想象、感性、即兴]","[Hướng ngoại, Dựa trên kinh nghiệm, Lý trí, Có kế hoạch, Hướng nội, Giàu trí tưởng tượng, Cảm xúc, Ngẫu hứng]","[Ekstrovert, Berdasarkan Pengalaman, Rasional, Terencana, Introvert, Imajinatif, Emosional, Spontan]","[เปิดเผย, ตามประสบการณ์, ใช้เหตุผล, มีแบบแผน, เก็บตัว, ใช้จินตนาการ, ใช้อารมณ์, ตามสัญชาตญาณ]","[Экстравертный, Опирающийся на опыт, Рациональный, Планирующий, Интровертный, Обладающий воображением, Эмоциональный, Спонтанный]","","","","","",""
-"","Event_MBTI_results","추천 결과 보기","View Recommendation Results","おすすめ結果を見る","查看推荐结果","Xem kết quả đề xuất","Lihat Hasil Rekomendasi","ดูผลลัพธ์ที่แนะนำ","Посмотреть результаты рекомендаций","","","","","",""
-"","Event_MBTI_guide1","MBTI 성향과 취향을 반영해 오산시 이벤트를<br/> 맞춤 추천해 드립니다!","We provide customized recommendations for Osan events<br/> reflecting your MBTI personality and tastes!","MBTIの傾向と好みを反映し、烏山のイベントを<br/> カスタマイズしておすすめします！","反映您的MBTI倾向和喜好，<br/> 为您量身推荐乌山的活动！","Chúng tôi đề xuất các sự kiện ở Osan<br/> phản ánh xu hướng và sở thích MBTI của bạn!","Kami memberikan rekomendasi khusus untuk acara Osan<br/> yang mencerminkan kepribadian MBTI dan selera Anda!","เราขอแนะนำกิจกรรมในโอซาน<br/> ที่ปรับแต่งตามความชอบและประเภท MBTI ของคุณ!","Мы предлагаем индивидуальные рекомендации мероприятий в Осане,<br/> отражающие ваши предпочтения и тип MBTI!","","","","","",""
-"","Event_MBTI_guide2","MBTI 4가지 유형을 전부 선택하지 않아도<br/> 나만의 추천 결과를 받아볼 수 있어요!","You can receive your own personalized recommendations<br/> even if you don't select all 4 MBTI types!","MBTIの4つのタイプをすべて選択しなくても、<br/> 自分だけのおすすめ結果を受け取ることができます！","即使不选择所有4个MBTI类型，<br/> 也能获得专属的推荐结果！","Bạn có thể nhận được kết quả đề xuất của riêng mình<br/> ngay cả khi bạn không chọn tất cả 4 loại MBTI!","Anda bisa mendapatkan hasil rekomendasi sendiri<br/> meskipun Anda tidak memilih keempat tipe MBTI!","คุณสามารถรับผลการแนะนำของคุณเองได้<br/> แม้ว่าคุณจะไม่ได้เลือก MBTI ทั้ง 4 ประเภทก็ตาม!","Вы можете получить свои собственные персональные рекомендации,<br/> даже если не выберете все 4 типа MBTI!","","","","","",""
-"155","SubHeader_Exchange","* 환영합니다. 오늘의 환율 정보입니다. ","* Welcome. Here is today’s exchange rate","* ようこそ。本日の為替情報です","* 欢迎您。以下是今日汇率信息","Chào mừng. Đây là tỷ giá hối đoái hôm nay.","Selamat datang. Berikut adalah nilai tukar hari ini.","* ยินดีต้อนรับ นี่คืออัตราแลกเปลี่ยนของวันนี้","* Добро пожаловать. Вот сегодняшний обменный курс.","","","","","",""
-"156","SubHeader_Detail","* QR을 핸드폰으로 찍으시면 길을 안내해드려요","* Scan the QR with your phone. We’ll guide you","* スマホでQRを読み取ってください。ご案内します","* 用手机扫QR码，我们导航","* Quét mã QR bằng điện thoại của bạn. Chúng tôi sẽ hướng dẫn bạn.","* Pindai kode QR dengan ponsel Anda. Kami akan memandu Anda.","* สแกนคิวอาร์โค้ดด้วยโทรศัพท์ของคุณ เราจะแนะนำคุณต่อไป","* Отсканируйте QR-код с помощью телефона. Мы вам поможем.","","","","","",""
-"157","SubHeader_Detail_Event","* QR코드로 이벤트의 상세정보를 확인하세요","* Scan the QR code for event details","* QRコードでイベントの詳細を確認してください","* 扫描二维码查看活动详情","* Quét mã QR để xem chi tiết sự kiện","* Pindai kode QR untuk detail acara","* สแกนคิวอาร์โค้ดเพื่อดูรายละเอียดกิจกรรม","* Отсканируйте QR-код, чтобы узнать подробности мероприятия.","","","","","",""
-"159","SubHeader_Transport","* 오색 시장을 올수 있는 다양한 방법을 알려드릴게요 ","* Let me show you the different ways you can get to Osaek Market","オセク市場へのさまざまなアクセス方法をご案内します","我来告诉你前往五色市场的多种方式","* Để tôi chỉ cho bạn những cách khác nhau để đến Chợ Osaek.","* Izinkan saya menunjukkan berbagai cara yang dapat Anda gunakan untuk menuju Pasar Osaek","* ผมจะแสดงวิธีต่างๆ ที่คุณสามารถเดินทางไปยังตลาดโอซาเอกได้","* Позвольте мне показать вам различные способы добраться до рынка Осаек.","","","","","",""
-"159","SubHeader_TaxFree","*TaxFree 리펀드 기능을 통해 공항하는 업무를 줄여 드립니다. 
-  상점에서 받은 영수증을 준비하시고 언어를 선택해보세요 ","*The Tax-Free refund reduces what you need to do at the airport.
-  Prepare your receipt and choose your language.","*TaxFree返金で空港手続き이 줄어요。
-  レシートを用意して言語を選んでください。","*TaxFree退税功能可以减少您在机场办理的手续。
-  请准备好商店给您的收据，并选择语言","*Hoàn thuế miễn phí giúp giảm bớt thủ tục tại sân bay.
-
-Hãy chuẩn bị biên lai và chọn ngôn ngữ của bạn.","*Pengembalian pajak bebas mengurangi hal-hal yang perlu Anda lakukan di bandara.
-Siapkan tanda terima Anda dan pilih bahasa Anda.","*การขอคืนภาษีแบบปลอดภาษีจะช่วยลดขั้นตอนที่คุณต้องทำที่สนามบิน
-เตรียมใบเสร็จรับเงินและเลือกภาษาของคุณ","*Возврат налога Tax-Free сокращает объем необходимых действий в аэропорту.
-
-Подготовьте квитанцию ​​и выберите язык.","","","","","",""
-"160","AI_SubmitButton","정이'에게 추천받기","Get recommendations from Jeong-i","ジョンイからおすすめをもらう","向Jeong-i获取推荐","Nhận đề xuất từ ​​Jeong-i","Dapatkan rekomendasi dari Jeong-i","รับคำแนะนำจากจองอี","Получите рекомендации от Чон-и.","","","","","",""
-"161","AI_CourseContent_1","•  맞춤 코스가 준비되었어요!","•  A personalized course is ready for you!","•  あなただけのカスタムコースが準備できました！","•  为你定制的专属路线已经准备好了！","• Một khóa học được thiết kế riêng dành cho bạn đã sẵn sàng!","• Kursus yang dipersonalisasi siap untuk Anda!","• หลักสูตรส่วนบุคคลพร้อมสำหรับคุณแล้ว!","• Для вас готов индивидуальный курс!","","","","","",""
-"162","AI_CourseContent_2","맞춤 코스에 따라 오색 시장을 즐겨보세요.","Enjoy Osaek Market with your personalized course","あなた専用のコースに沿ってオセク市場を楽しんでみてください","按照为你定制的路线，尽情畅游五色市场吧！","Hãy tận hưởng Chợ Osaek với lộ trình cá nhân hóa của bạn.","Nikmati Pasar Osaek dengan paket wisata yang dipersonalisasi untuk Anda.","เพลิดเพลินไปกับตลาดโอซาเอกพร้อมคอร์สเรียนส่วนตัวของคุณ","Насладитесь рынком Осаек, выбрав индивидуальный маршрут.","","","","","",""
-"163","Search_NoContent","콘텐츠 없음","No matching results","コンテンツがありません","暂无内容","Không tìm thấy kết quả phù hợp","Tidak ada hasil yang cocok.","ไม่พบผลลัพธ์ที่ตรงกัน","Результаты поиска отсутствуют.","","","","","",""
-"167","Taxfree_Apply","세금 환급 신청","Tax-Free","免税申請","申请退税","Miễn thuế","Bebas Pajak","ปลอดภาษี","Без налогов","","","","","",""
-"168","Taxfree_Introduce","텍스프리 소개","About Tax-Free","免税サービス案内","免税服务介绍","Về chính sách miễn thuế","Tentang Bebas Pajak","เกี่ยวกับภาษีปลอดภาษี","О компании TaxFree","","","","","",""
-"169","Taxfree_Enroll","텍스프리 가맹점 신청","Apply Tax-Free","免税加盟店申請","申请免税加盟店","Đăng ký miễn thuế","Ajukan Permohonan Bebas Pajak","สมัครโดยไม่เสียภาษี","Подать заявку без уплаты налогов","","","","","",""
-"170","Province_1","서울","Seoul","そうる","首尔","Seoul","Seoul","โซล","Сеул","","","","","",""
-"171","Province_2","경기도","Gyeonggi-do","きょんぎど","京畿道","Gyeonggi-do","Kota Gyeonggi","จังหวัดคยองกี","Кёнгидо","","","","","",""
-"172","Province_3","인천","Incheon","いんちょん","仁川","Incheon","Incheon","อินชอน","Инчхон","","","","","",""
-"173","Province_4","강원도","Gangwon-do","かんうぉんど","江原道","Gangwon-do","Gangwon-do","คังวอนโด","Канвондо","","","","","",""
-"174","Province_5","충청남도","Chungcheongnam-do","ちゅんちょんなむど","忠清南道","Chungcheongnam-do","Chungcheongnam-do","ชุงชองนัมโด","Чхунчхоннамдо","","","","","",""
-"175","Province_6","세종","Sejong","せじょん","世宗","Sejong","Sejong","เซจง","Седжон","","","","","",""
-"176","Province_7","대전","Daejeon","てじょん","大田","Đại Giê-hô-va","Daejeon","แดจอน","Тэджон","","","","","",""
-"177","Province_8","충청북도","Chungcheongbuk-do","ちゅんちょんぶくど","忠清北道","Chungcheongbuk-do","Chungcheongbuk-do","ชุงชองบุกโด","Чхунчхонбукдо","","","","","",""
-"178","Province_9","경상북도","Gyeongsangbuk-do","きょんさんぶくど","庆尚北道","Gyeongsangbuk-do","Kota Gyeongsangbuk","จังหวัดคยองซังบุกโด","Кёнсанбукдо","","","","","",""
-"179","Province_10","대구","Daegu","てぐ","大邱","Daegu","Daegu","แทกู","Тэгу","","","","","",""
-"180","Province_11","전라북도","Jeollabuk-do","ちょるらぶくど","全罗北道","Jeollabuk-do","Jeollabuk-do","ชอลลาบุกโด","Чоллабукдо","","","","","",""
-"181","Province_12","전라남도","Jeollanam-do","ちょるらなむど","全罗南道","Jeollanam-do","Jeollanam-do","ชอลลานัมโด","Чолланамдо","","","","","",""
-"182","Province_13","광주","Gwangju","くぁんじゅ","光州","Gwangju","Gwangju","กวางจู","Кванджу","","","","","",""
-"183","Province_14","경상남도","Gyeongsangnam-do","きょんさんなむど","庆尚南道","Gyeongsangnam-do","Kota Gyeongsangnam","จังหวัดคยองซังนัมโด","Кёнсаннамдо","","","","","",""
-"184","Province_15","부산","Busan","ぷさん","釜山","Busan","Busan","ปูซาน","Пусан","","","","","",""
-"185","Province_16","울산","Ulsan","うるさん","蔚山","Ulsan","Ulsan","อุลซาน","Ульсан","","","","","",""
-"186","Province_17","제주도","Jeju-do","ちぇじゅど","济州岛","Jeju-do","Jeju-do","เกาะเชจู","Чеджудо","","","","","",""
-"187","SmartTour_RecommendContentShowMore","더보기","See more","もっと みる","查看更多","Xem thêm","Lihat selengkapnya","ดูเพิ่มเติม","Смотрите больше","","","","","",""
-"188","MainButton_Promotion","취사병이벤트","","","","Sự kiện nấu ăn","Acara memasak","กิจกรรมทำอาหาร","Кулинарное мероприятие","","","","","",""
-"189","Header_Promotion","티빙 오리지널 취사병 전설이 되다","","","","Phim gốc của TVING: Người đầu bếp trở thành huyền thoại","TVING Original: Sang Koki Menjadi Legenda","รายการต้นฉบับจาก TVING: เชฟผู้กลายเป็นตำนาน","Оригинальный сериал TVING: Повар становится легендой","","","","","",""
-"190","SubHeader_Promotion","이벤트에 참가 해보세요.","","","","Hãy thử tham gia sự kiện này.","Cobalah berpartisipasi dalam acara tersebut.","ลองเข้าร่วมกิจกรรมดูสิ","Попробуйте принять участие в мероприятии.","","","","","",""
-"191","Promotion_Introduce","> 이벤트 소개 <","","","","Giới thiệu sự kiện <","Pengantar Acara <","แนะนำงานกิจกรรม <","Введение в мероприятие <","","","","","",""
-"192","Promotion_Participate","> 이벤트 참여 <","","","","Tham gia sự kiện <","> Ikuti Acara <","> เข้าร่วมกิจกรรม <","> Примите участие в мероприятии <","","","","","",""
-"193","Promotion_Reward","> 이벤트 상품 <","","","","Giải thưởng sự kiện <","Hadiah Acara <","รางวัลกิจกรรม <","Призы мероприятия <","","","","","",""
+","Hanbok là trang phục truyền thống của Hàn Quốc với lịch sử lâu đời. Với vẻ đẹp riêng biệt và thiết kế độc đáo, Hanbok được coi là biểu tượng văn hóa tiêu biểu của Hàn Quốc, thường được mặc vào các dịp lễ tết hoặc sự kiện đặc biệt. Khác với trang phục phương Tây có đường nét góc cạnh, Hanbok đặc trưng bởi những đường cong mềm mại và tà áo rộng rãi. Theo truyền thống, màu sắc được lựa chọn dựa trên địa vị, độ tuổi, mùa màng, phản ánh cá tính và hoàn cảnh của người mặc. Vượt xa một bộ trang phục, Hanbok là di sản văn hóa thế giới. Ngay bây giờ, tôi sẽ giúp bạn lưu lại khoảnh khắc xinh đẹp trong bộ Hanbok! Hãy bắt đầu dịch vụ mặc thử Hanbok nào!","ชุดฮันบกคือชุดประจำชาติเกาหลีที่มีประวัติศาสตร์อันยาวนาน ด้วยความงามที่เป็นเอกลักษณ์และดีไซน์ที่โดดเด่น จึงถือเป็นหนึ่งในสัญลักษณ์ทางวัฒนธรรมที่สำคัญและมักสวมใส่ในเทศกาลหรือโอกาสพิเศษ ชุดฮันบกต่างจากเสื้อผ้าตะวันตกตรงที่มีเส้นสายที่นุ่มนวลและชายเสื้อที่พลิ้วไหว ตามธรรมเนียมเดิม การเลือกสีจะขึ้นอยู่กับสถานะ อายุ และฤดูกาล ซึ่งสะท้อนถึงบุคลิกและโอกาสของผู้สวมใส่ ชุดฮันบกเป็นมรดกทางวัฒนธรรมที่ทั่วโลกยอมรับ ตอนนี้ฉันจะบันทึกภาพอันสวยงามของคุณในชุดฮันบกลงบนหน้าจอให้นะคะ! มาเริ่มใช้บริการลองชุดฮันบกกันเลยค่ะ!","Ханбок — это традиционная корейская одежда с долгой историей и традициями.\nБлагодаря своей неповторимой красоте и уникальному дизайну ханбок считается одним из символов корейской культуры и надевается в основном на особые мероприятия и праздники.\nВ отличие от западной одежды с прямыми линиями, ханбок отличается мягкими плавными линиями и свободным кроем.\nТрадиционно цвета ханбока подбирались в зависимости от социального статуса, возраста и времени года, а сочетание цветов отражало индивидуальность человека и ситуацию.\nХанбок — это не просто одежда, а важное культурное наследие, символизирующее традиции и культуру Кореи, красота которого признана во всем мире.\nПрямо сейчас я, Инса, запечатлею ваш прекрасный образ в ханбоке на экране! Попробуйте услугу примерки ханбока ~~","Hanbok adalah pakaian tradisional Korea yang memiliki sejarah dan tradisi panjang. Dengan keindahan khas dan desain uniknya, Hanbok dianggap sebagai salah satu simbol budaya Korea yang dikenakan pada hari raya atau acara khusus. Berbeda dengan pakaian Barat yang cenderung kaku, Hanbok memiliki ciri khas garis yang mengalir lembut dan potongan yang longgar. Secara tradisional, warna Hanbok dipilih berdasarkan status sosial, usia, dan musim, yang mencerminkan kepribadian serta situasi pemakainya. Hanbok bukan sekadar pakaian, melainkan warisan budaya penting yang diakui keindahannya secara global. Sekarang, saya akan mengabadikan momen cantik Anda saat mengenakan Hanbok ke dalam layar! Ayo mulai layanan mencoba Hanbok sekarang!","",""
+"","Photo_Goods","굿즈제작","Creating Goods","グッズ作り","制作商品","Tạo đồ lưu niệm","ทำสินค้าที่ระลึก","Изготовление сувениров","Buat Souvenir","AR사진촬영",""
+"","Header_KoreaMap","전국지도","KoreaMap","KoreaMap","KoreaMap","Bản đồ toàn quốc","แผนที่ทั่วประเทศ","Карта всей страны","Peta Nasional","",""
+"","SubHeader_KoreaMap","지역을 선택해 주세요.","Please select a region.","地域を選択してください。","请选择地区。","Vui lòng chọn khu vực.","กรุณาเลือกพื้นที่ค่ะ","Пожалуйста, выберите регион.","Silakan pilih wilayah.","",""
+"","SubHeader_Attraction","* 관광명소 서브헤더","* Tourist Attractions","* 観光名所","* 旅游景点","Điểm tham quan","สถานที่ท่องเที่ยว","Достопримечательности","Objek Wisata","관광명소 ",""
+"","SubHeader_TraditionalMarket","* 전통시장 서브헤더","* Traditional Markets","* 伝統市場","* 传统市场","Chợ truyền thống","ตลาดพื้นเมือง","Традиционные рынки","Pasar Tradisional","전통시장",""
+"","Province_1","서울","Seoul","そうる","首尔","Seoul","Seoul","Сеул","Seoul","",""
+"","Province_2","경기도","Gyeonggi","きょんぎど","京畿道","gyeonggi-do","Kota Gyeonggi","Кёнгидо","Gyeonggi-do","",""
+"","Province_3","인천","Incheon","いんちょん","仁川","Incheon","Incheon","Инчхон","Incheon","",""
+"","Province_4","강원도","Gangwon","かんうぉんど","江原道","Gangwon-do","Gangwon-do","Канвондо","Gangwon-do","",""
+"","Province_5","충청남도","Chungcheongnam","ちゅんちょんなむど","忠清南道","Chungcheongnam-do","Chungcheongnam-do","Чхунчхоннамдо","Chungcheongnam-do","",""
+"","Province_6","세종","Sejong","せじょん","世宗","Sejong","Sejong","Седжон","Sejong","",""
+"","Province_7","대전","Daejeon","てじょん","大田","Daejeon","Daejeon","Тэджон","Daejeon","",""
+"","Province_8","충청북도","Chungcheongbuk","ちゅんちょんぶくど","忠清北道","Chungcheongbuk-do","Chungcheongbuk-do","Чхунчхонбукдо","Chungcheongbuk-do","",""
+"","Province_9","경상북도","Gyeongsangbuk","きょんさんぶくど","庆尚北道","Tỉnh Bắc Gyeongsang","Provinsi Gyeongsang Utara","Кёнсанбукдо","Gyeongsangbuk-do","",""
+"","Province_10","대구","Daegu","てぐ","大邱","daegu","daegu","Тэгу","Daegu","",""
+"","Province_11","전라북도","Jeollabuk","ちょるらぶくど","全罗北道","Jeollabuk-do","Jeollabuk-do","Чоллабукдо","Jeollabuk-do","",""
+"","Province_12","전주","Jeonju","ぜんじゅ","全州","Jeonju","Jeonju","Чонджу","Jeonju","",""
+"","Province_13","전라남도","Jeollanam","ちょるらなむど","全罗南道","Jeollanam-do","Jeollanam-do","Чолланамдо","Jeollanam-do","",""
+"","Province_14","광주","Gwangju","くぁんじゅ","光州","gwangju","gwangju","Кванджу","Gwangju","",""
+"","Province_15","경상남도","Gyeongsangnam","きょんさんなむど","庆尚南道","Gyeongsangnam-do","Kota Gyeongsangnam","Кёнсаннамдо","Gyeongsangnam-do","",""
+"","Province_16","부산","Busan","ぷさん","釜山","Busan","Busan","Пусан","Busan","",""
+"","Province_17","울산","Ulsan","うるさん","蔚山","Ulsan","Ulsan","Ульсан","Ulsan","",""
+"","Province_18","인사도","Jeju-do","ちぇじゅど","济州岛","Chào bạn","Salam","Чеджудо","Pulau Jeju","",""
+"","Photo_ResultSubHeader","사진 촬영 결과물을 통해 나만의 굿즈를 만들어 보세요 ","Make your own photo merch.","写真で自分だけのグッズ作り。","用照片定制专属周边。","Tạo ra các sản phẩm mang thương hiệu riêng của bạn bằng cách sử dụng kết quả buổi chụp ảnh.","สร้างสินค้าของคุณเองโดยใช้ผลลัพธ์จากการถ่ายภาพ","Создайте собственную продукцию, используя результаты вашей фотосессии.","Buat merchandise Anda sendiri menggunakan hasil pemotretan Anda.","",""
+"","SmartTour_RecommendContentShowMore","더보기","More","もっと見る","查看更多","Xem thêm","ดูเพิ่มเติม","Подробнее","Lihat Lebih Lanjut","",""
+"","MainButton_Promotion","취사병 전설이 되다","The Legend of a Cook","炊事兵、伝説になる","炊事兵成为传说","Đầu Bếp Huyền Thoại","ตำนานพลทหารทำอาหาร","Легенда о поваре","The Legend of a Cook","",""
+"","Header_Promotion","티빙 오리지널 취사병 전설이 되다","TVING Original The Legend of a Cook","TVINGオリジナル 炊事兵、伝説になる","TVING原创 炊事兵成为传说","TVING Original Đầu Bếp Huyền Thoại","TVING Original ตำนานพลทหารทำอาหาร","Оригинальный сериал TVING Легенда о поваре","TVING Original The Legend of a Cook","",""
+"","SubHeader_Promotion","이벤트에 참가 해보세요.","Please participate in the event.","イベントに参加してみてください。","请参加活动。","Hãy tham gia sự kiện.","เข้าร่วมกิจกรรม","Пожалуйста, примите участие в мероприятии.","Silakan ikuti acara ini.","",""
+"","Promotion_Introduce","> 이벤트 소개 <","> Event Introduction <","> イベント紹介 <","> 活动介绍 <","> Giới thiệu sự kiện <","> แนะนำกิจกรรม <","> Описание мероприятия <","> Pengenalan Acara <","",""
+"","Promotion_Participate","> 이벤트 참여 <","> Participate in Event <","> イベント参加 <","> 参与活动 <","> Tham gia sự kiện <","> เข้าร่วมกิจกรรม <","> Участие в мероприятии <","> Ikut Acara <","",""
+"","Promotion_Reward","> 이벤트 상품 <","> Event Prizes <","> イベント商品 <","> 活动奖品 <","> Phần thưởng sự kiện <","> รางวัลกิจกรรม <","> Призы мероприятия <","> Hadiah Acara <","",""

@@ -162,7 +162,8 @@
 .themeCard {
   position: absolute;
   width: 780px;
-  height: 482px;
+  /* --theme-grow: other languages only, the same for all four (TSX). */
+  height: calc(482px + var(--theme-grow, 0px));
   padding: 0;
   background: #ffffff;
   border: none;
@@ -180,6 +181,8 @@
   width: var(--art-w);
   height: var(--art-h);
   object-fit: contain;
+  /* Stays centred on a card that grew. */
+  translate: 0 calc(var(--theme-grow, 0px) / 2);
 }
 
 .themeCopy {
@@ -238,16 +241,21 @@
 
 /* Compact tops — 오산>코스카테고리-02 (7812:111340), the 추천코스 builder: one
    column from y700 on a 60 gap — 방문 인원 (329), 체류 기간 (329), then the CTA
-   at 1478, all from x170. */
+   at 1478, all from x170. 이동수단 (2026-10-19, 제주's row — no 오산 frame yet)
+   takes the CTA's place on the same 389 pitch and the CTA moves to 1867. */
 .sectionParty     { top: calc(700px + var(--header-push, 0px)); }
 .sectionStay      { top: calc(1089px + var(--header-push, 0px)); }
-.sectionTransport { top: calc(1558px + var(--header-push, 0px)); }
+.sectionTransport { top: calc(1478px + var(--header-push, 0px)); }
 
 /* Tall tops (7519:74960) — the 선택영역 starts at 822 and stacks 방문 인원 (326),
-   체류 기간 (326), 즐길 거리 (1488) on a 50px gap; there is no 이동수단 row. */
+   체류 기간 (326), 즐길 거리 (1488) on a 50px gap. The frame has no 이동수단 row;
+   it goes under 체류 기간 on the same 376 pitch (2026-10-19) and 즐길 거리 and the
+   CTA move down by one row — the CTA then ends at 3666, inside the 3675 the
+   tall builder may use. */
 .builderFull .sectionParty     { top: calc(822px + var(--header-push, 0px)); }
 .builderFull .sectionStay      { top: calc(1198px + var(--header-push, 0px)); }
-.builderFull .sectionJoy       { top: calc(1574px + var(--header-push, 0px)); }
+.builderFull .sectionTransport { top: calc(1574px + var(--header-push, 0px)); }
+.builderFull .sectionJoy       { top: calc(1950px + var(--header-push, 0px)); }
 
 .pillRow {
   display: flex;
@@ -501,13 +509,13 @@
   line-height: 1;
   cursor: pointer;
   left: 170px;
-  top: calc(1478px + var(--header-push, 0px));
+  top: calc(1867px + var(--header-push, 0px));
 }
 
 /* The full builder's CTA is centred in its 선택영역 → x171.6. */
 .builderFull .cta {
   left: 171.6px;
-  top: calc(3112px + var(--header-push, 0px));
+  top: calc(3488px + var(--header-push, 0px));
 }
 
 .cta:disabled {
@@ -554,6 +562,27 @@
 
 .joyChipTextLong {
   font-size: calc(45px * var(--fit, 1));
+  /* Held to the tile's width so a word too long for it shows up as overflow
+     (useFitText) instead of widening the span past the tile's edges. */
+  max-width: 100%;
+  min-width: 0;
+  overflow-wrap: normal;
+}
+
+/* Figma note on the other-language frames: a long category name keeps
+   wrapping and the tile grows DOWN for it (세로로 칸이 늘어나더라도). 215 stays
+   the minimum; the grid row takes its tallest tile, so a row stays even. */
+.joyGrid:has(.joyChipTextLong) .joyChip {
+  height: auto;
+  min-height: 215px;
+  padding: 24px 12px;
+}
+
+/* …and whatever the grid grew (--joy-grow, set by the TSX) moves the CTA
+   under it down by the same amount. */
+.builderFull .cta,
+.builderLowJoy .cta {
+  translate: 0 var(--joy-grow, 0px);
 }
 
 .themeTitleLong {
@@ -598,10 +627,13 @@
   top: 1419px;
 }
 
-/* 7878:46119 — 방문 인원 at 2666, 체류 기간 at 3052, the CTA at 3438. */
-.builderLowAsk .sectionParty { top: 2666px; }
-.builderLowAsk .sectionStay  { top: 3052px; }
-.builderLowAsk .cta          { left: 170px; top: 3438px; }
+/* 7878:46119 — 방문 인원 at 2666, 체류 기간 at 3052, the CTA at 3438. 이동수단
+   (2026-10-19) needs one more 386 row: the questions start one row higher
+   (2280 — still the lower half) so the CTA keeps its 3438. */
+.builderLowAsk .sectionParty     { top: 2280px; }
+.builderLowAsk .sectionStay      { top: 2666px; }
+.builderLowAsk .sectionTransport { top: 3052px; }
+.builderLowAsk .cta              { left: 170px; top: 3438px; }
 
 /* 7878:46150 draws page 1's 다음으로 in 글씨-main #999, but the button is always
    live (방문 인원 / 체류 기간 both have a default), and grey read as disabled —

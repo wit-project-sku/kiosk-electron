@@ -1,14 +1,16 @@
 /**
- * 인사동 코스 추천 — `POST /api/insa/courses/recommend`.
+ * 인사동 · 오색시장 코스 추천 — `POST /api/courses/recommend` (지점 코스, by region).
  *
  * One call turns a set of 관심사 and a time slot into walking routes — since v2
  * TWO of them, a 실시간 코스 (scheduled from now, against opening hours) and a
  * 일반 코스 (clock-free, the same whenever it is asked). There is no per-tap
- * plan and no multi-day schedule (that was 제주's picker), and no party /
- * transport: it is always on foot, from the kiosk's own position.
+ * plan and no multi-day schedule (that was 제주's picker). 인사동 is always on
+ * foot; 오색시장 also takes a `transport` (2026-10-19) because its course can
+ * reach 관광명소 1–6 km out of the market (see InsaCourseQuery.transport).
  *
- * Endpoint: `POST /api/insa/courses/recommend/v2` (v1, a single route, is still
- * served for the on-site kiosks and answers the same request).
+ * Endpoint: `POST /api/courses/recommend` with the venue's `region`; it answers
+ * in the shape of the older `/api/insa/courses/recommend/v2`, which is still
+ * asked (by kioskId) on a server without the 지점 route.
  *
  * Rules the API applies, so the screens never re-derive them:
  *  - `duration` is a slot, not minutes: `0-2`, `2-4`, `4-6`, `6+` hours. `6+` aims
@@ -25,6 +27,9 @@ export type InsaDuration = '0-2' | '2-4' | '4-6' | '6+';
 
 export const INSA_DURATIONS: readonly InsaDuration[] = ['0-2', '2-4', '4-6', '6+'];
 
+/** 이동수단 — the same four values as 제주's course API. */
+export type CourseTransport = 'WALK' | 'BIKE' | 'TRANSIT' | 'CAR';
+
 export interface InsaCourseQuery {
   /**
    * 관심사 as the API matches them: the catalogue's own `aiCategoryKr`, number
@@ -36,6 +41,13 @@ export interface InsaCourseQuery {
   numberOfPeople: number;
   /** Local time the route starts, `YYYY-MM-DDTHH:mm:ss` (no zone). */
   startAt: string;
+  /**
+   * 이동수단 — 오색시장 only (the 지점 route ignores it elsewhere; the old 인사동
+   * route never gets it). Legs of 1 km or less are walked whatever is chosen;
+   * a longer leg is timed for this mode, and a place past the mode's per-leg
+   * limit (on foot: 2 km of road) is left out. Absent = WALK.
+   */
+  transport?: CourseTransport;
 }
 
 /**
@@ -52,9 +64,17 @@ export interface InsaCourseSpot {
   /** `HH:mm`, or '' when the API did not say. */
   arriveAt: string;
   leaveAt: string;
-  /** Walking INTO this stop from the previous one (0 for the first). */
+  /** Walking INTO this stop from the previous one (0 for the first). 0 when the leg was ridden (moveMode ≠ WALK). */
   walkMinutes: number;
   walkMeters: number;
+  /**
+   * The leg INTO this stop, whatever it was travelled by — only when the course
+   * took a `transport` (오색시장); null otherwise, and the leg is the walk above.
+   * Meters: straight line for a walk, estimated road for a ride.
+   */
+  moveMode: CourseTransport | null;
+  moveMinutes: number | null;
+  moveMeters: number | null;
   /** The shop's second category (`9-카페`) — what the stop was picked for. */
   secondCategory: string;
   /**

@@ -56,6 +56,7 @@ import { HeightService } from './services/height/HeightService';
 import { ZedSidecarManager } from './core/ZedSidecarManager';
 import { UpdateService } from './updater/UpdateService';
 import { UpdateCommandService } from './updater/UpdateCommandService';
+import { HealthReporter } from './core/HealthReporter';
 
 export interface AppContainer {
   database: Database;
@@ -99,6 +100,7 @@ export interface AppContainer {
   events: EventsService;
   updater: UpdateService;
   updateCommands: UpdateCommandService;
+  health: HealthReporter;
   /** 유동인구 — anonymous passer-by counting (camera pipeline lives in the renderer). */
   footfall: FootfallService;
   /** Nightly 21:30 push of the day's 유동인구 counts. */
@@ -197,7 +199,8 @@ export function createContainer(): AppContainer {
   // no competing installs). Hence the updater is built here rather than inline
   // in the container literal below.
   const updater = new UpdateService();
-  const updateCommands = new UpdateCommandService(updater, kiosk);
+  const health = new HealthReporter(kiosk);
+  const updateCommands = new UpdateCommandService(updater, kiosk, health);
 
   const sync = new SyncService(syncRepo, analyticsRepo, failedRequests, cache, photoGeneration);
   sync.setTransport(SyncService.createTransport(cache, failedRequests, kiosk, translations));
@@ -242,6 +245,7 @@ export function createContainer(): AppContainer {
     events,
     updater,
     updateCommands,
+    health,
     footfall,
     footfallUploader,
     height,

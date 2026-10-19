@@ -332,3 +332,104 @@
   color: #333;
   white-space: nowrap;
 }
+
+/* ── Show everything ──────────────────────────────────────────────────────
+ * The detail page is where a visitor reads the whole entry, so nothing on it
+ * ends in "…" or stops after two lines, in any language. The plain card (shop,
+ * help, AI course stops) grows downward for it: 1523 stays its minimum, the 98
+ * the frame leaves under the ratings row becomes bottom padding, and there is
+ * ~700 between its foot and the promo banner. A short Korean entry therefore
+ * draws exactly as the frame does. */
+.card:not(.cardWithMap) {
+  height: auto;
+  min-height: 1523px;
+  padding-bottom: 98px;
+}
+
+.card:not(.cardWithMap) .titleRow {
+  height: auto;
+  min-height: 85px;
+}
+
+.card:not(.cardWithMap) .title {
+  white-space: normal;
+  overflow: visible;
+  line-height: 1.1;
+  word-break: keep-all;
+  overflow-wrap: anywhere;
+}
+
+.card:not(.cardWithMap) .info {
+  height: auto;
+  min-height: 310px;
+}
+
+.card:not(.cardWithMap) .rowAddress,
+.card:not(.cardWithMap) .rowPhone {
+  height: auto;
+  min-height: 57px;
+}
+
+.card:not(.cardWithMap) .infoText {
+  white-space: normal;
+  overflow: visible;
+  line-height: 1.25;
+  word-break: keep-all;
+  overflow-wrap: anywhere;
+}
+
+.card:not(.cardWithMap) .descBlock {
+  height: auto;
+  min-height: 218px;
+}
+
+.card:not(.cardWithMap) .desc {
+  height: auto;
+  min-height: 161px;
+}
+
+/* The 44 under the text is the frame's gap to the tags (161 − 2 × 58.5). */
+.card:not(.cardWithMap) .descClamp {
+  display: block;
+  -webkit-line-clamp: unset;
+  overflow: visible;
+  margin-bottom: 44px;
+}
+
+.card:not(.cardWithMap) .descTags {
+  white-space: normal;
+  overflow: visible;
+}
+
+/* 관광명소 (About) draws the card with its 631 map and ends 73 above the
+   promo banner — there is no room to grow. Its description shows the frame's
+   two lines and SCROLLS (touch) for the rest instead of stopping at "…". */
+.cardWithMap .descClamp {
+  display: block;
+  -webkit-line-clamp: unset;
+  max-height: 117px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+/* ── Other languages ──────────────────────────────────────────────────────
+ * Reached only through `.long` (lang !== 'ko'). A translated name shrinks to
+ * fit its row (`--fit`, useFitText, never below 0.7). On the map card the
+ * description gets four lines one step smaller (40px) before it scrolls —
+ * 91px of the ~98 that card leaves free under its ratings row. */
+.long .title {
+  font-size: calc(85px * var(--fit, 1));
+}
+
+.long .cardWithMap .descBlock {
+  height: 309px;
+}
+
+.long .cardWithMap .desc {
+  height: 252px;
+  font-size: 40px;
+}
+
+.long .cardWithMap .descClamp {
+  max-height: 208px;
+}

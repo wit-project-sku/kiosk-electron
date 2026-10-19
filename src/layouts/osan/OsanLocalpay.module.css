@@ -134,9 +134,12 @@
   gap: 20px;
 }
 
-/* Figma 7812:84453: the intro block is 213 tall, which places the gray panel 65px below it. */
+/* Figma 7812:84453: the intro block is 213 tall, which places the gray panel
+   65px below it. A floor, not a fixed height: a translated intro runs to four
+   or five lines, and a fixed 213 let them spill under the card panel. The card
+   (min-height) grows with it and the page scrolls. */
 .introBlock {
-  height: 213px;
+  min-height: 213px;
 }
 
 /* Gray card panel 1740×709 (Figma 7878:42846) with the two cards and two QR boxes. */
@@ -310,6 +313,75 @@
   gap: 30px;
 }
 
+/* Groups 사용처 with the mascot. Korean: no box of its own, so both children
+   keep their Figma positions against the card. */
+.onnuriUsage {
+  display: contents;
+}
+
+/* ── 온누리 cards, other languages ─────────────────────────────────────────
+ * The Figma positions above are measured for the Korean copy. A translation
+ * runs longer, and the digital-voucher paragraphs ran into 사용처 (and the
+ * intro into the paper panel). Here the blocks flow top to bottom with the
+ * same 50 gaps and paddings, and the card grows; the page scrolls. */
+.onnuriLong {
+  height: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 50px;
+}
+
+.cardOnnuriTop.onnuriLong {
+  padding: 50px 40px;
+}
+
+.cardOnnuriBottom.onnuriLong {
+  padding: 50px 36px 65px;
+}
+
+.onnuriLong .topText,
+.onnuriLong .bottomText,
+.onnuriLong .usageSection,
+.onnuriLong .mascot {
+  position: static;
+}
+
+.onnuriLong .topText,
+.onnuriLong .bottomText {
+  width: auto;
+}
+
+.onnuriLong .paperBox,
+.onnuriLong .lightBox {
+  position: relative;
+  left: auto;
+  top: auto;
+  flex: none;
+  margin-left: -7px;
+}
+
+.cardOnnuriBottom.onnuriLong .lightBox {
+  margin-left: 0;
+}
+
+.onnuriLong .onnuriUsage {
+  display: flex;
+  align-items: center;
+  gap: 21px;
+}
+
+.onnuriLong .usageSection {
+  flex: 1;
+  width: auto;
+  min-width: 0;
+}
+
+/* Bleeds to the card's right edge, as in the Korean frame. */
+.onnuriLong .mascot {
+  flex: none;
+  margin-right: -36px;
+}
+
 .usageH {
   margin: 0;
   font-family: 'Pretendard', var(--kiosk-font, sans-serif);
@@ -343,20 +415,32 @@
   white-space: nowrap;
 }
 
+/* Height is the box's room under the note (456 − 126 − 20), so a translation
+   that wraps too far can be measured and shrunk (--fit). */
 .benefits {
   position: absolute;
   left: 14px;
   top: 126px;
   width: 1155px;
+  height: 310px;
   font-family: 'Pretendard', var(--kiosk-font, sans-serif);
   font-weight: 600;
-  font-size: 40px;
+  font-size: calc(40px * var(--fit, 1));
   color: #1a4d7e;
   line-height: 1.7;
 }
 
 .benefits p {
   margin: 0;
+}
+
+/* Other languages: a translated bullet wraps inside the 1155 column, and the
+   fifth line at 40 / 1.7 ran 51px out of the 456 box. One step tighter (36 /
+   1.4) holds five lines inside it (126 + 5 × 50 = 378); a list that still
+   wraps past the 310 shrinks together (useFitText, never below 0.7). */
+.lightBoxLong .benefits {
+  font-size: calc(36px * var(--fit, 1));
+  line-height: 1.4;
 }
 
 .lightBi {

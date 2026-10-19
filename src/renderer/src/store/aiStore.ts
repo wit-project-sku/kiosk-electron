@@ -60,7 +60,7 @@ interface AiState {
   pickerPlan: JejuPickerPlan | null;
   setPickerPlan: (plan: JejuPickerPlan | null) => void;
   /**
-   * The routes `POST /api/insa/courses/recommend/v2` returned (실시간 + 일반) for the 인사동 뭐하지
+   * The routes `POST /api/courses/recommend` (by region) returned (실시간 + 일반) for the 인사동 뭐하지
    * questionnaire, drawn by the result page. Null when the call failed (the
    * result page then shows its empty state) and on every other layout. On
    * 인사동 `interests` holds the API's `N-name` codes and `stay` the slot
@@ -68,6 +68,13 @@ interface AiState {
    */
   insaCourse: InsaCourseSet | null;
   setInsaCourse: (course: InsaCourseSet | null) => void;
+  /**
+   * Forget the visitor's answers. Called when the kiosk returns home: a new
+   * visit to 뭐하지 must start blank — the 커스텀 코스 picker used to reopen with
+   * the previous visitor's categories still selected. 뒤로 from the result never
+   * passes through home, so the resume-to-questionnaire path is unaffected.
+   */
+  resetSession: () => void;
 }
 
 /** Carries the AI-search selections from the questionnaire into the result page. */
@@ -90,4 +97,17 @@ export const useAiStore = create<AiState>((set) => ({
   setPickerPlan: (pickerPlan) => set({ pickerPlan }),
   insaCourse: null,
   setInsaCourse: (insaCourse) => set({ insaCourse }),
+  resetSession: () =>
+    set({
+      interests: [],
+      course: '',
+      visitors: '',
+      stay: '',
+      transport: '',
+      entry: '',
+      resumeQuestions: false,
+      regions: [],
+      pickerPlan: null,
+      insaCourse: null,
+    }),
 }));

@@ -1,96 +1,78 @@
-/* 화성휴게소 상세 — exact Figma (node 4167:174694). Card 1820×2980, scrolls. */
+/*
+ * 화성휴게소 상세 — Figma 7956:61087. 1 CSS px = 1 Figma px.
+ *
+ * The card (R>검색상세-사진4개 7956:61105) is a 1820×2455 white window at
+ * (170, 700) — ending at 3155, above the banner at 3267. Its content column is
+ * 1703 wide at (59, 72), blocks 62 apart, and is taller than the window (the
+ * frame clips it), so it scrolls inside the card:
+ *
+ *   title 85 · photos 220 · ─ · info 310 · ─ · description + tags 218 ·
+ *   floor map 658 · legend 671 · ─ · ratings 86
+ *
+ * A divider is a 0-tall slot whose 2.145 #E8E8E8 line is drawn above it, as
+ * Figma's Line nodes are — so the 62 gaps measure from the slot.
+ */
 .root {
   position: absolute;
   inset: 0;
   width: 2160px;
   height: 3840px;
   overflow: hidden;
+  font-family: 'Pretendard', var(--kiosk-font, 'Noto Sans KR', sans-serif);
+}
+
+.card {
+  position: absolute;
+  top: calc(700px + var(--header-push, 0px));
+  left: 170px;
+  width: 1820px;
+  height: calc(2455px - var(--header-push, 0px));
+  border-radius: 42.9px;
   background: #fff;
-  font-family: 'Noto Sans KR', 'Noto Sans', sans-serif;
+  overflow: hidden;
 }
 
-.bgBase {
-  position: absolute;
-  left: 0;
-  top: 0;
-  width: 2160px;
-  height: 3840px;
-  background: #fff;
+/* ♿ (7956:60794): 1820×2300 at (170, 1424), under the header at 719. */
+.cardLow {
+  top: calc(1424px + var(--header-push, 0px));
+  height: calc(2300px - var(--header-push, 0px));
 }
 
-.bgImage {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  pointer-events: none;
-}
-
-/* Scroll area — full width so the scrollbar sits in the outer padding. */
-.content {
-  position: absolute;
-  top: calc(699px + var(--header-push, 0px));
-  left: 0;
-  right: 0;
-  bottom: 573px;
+/* Touch-scrolled; the frame draws no scrollbar on this card. */
+.scroll {
   box-sizing: border-box;
-  padding: 0 136px 80px 170px;
+  height: 100%;
+  padding: 72px 58px 72px 59px;
   display: flex;
   flex-direction: column;
-  align-items: center;
+  gap: 62px;
   overflow-y: auto;
   overflow-x: hidden;
-  scrollbar-gutter: stable;
+  scrollbar-width: none;
 }
 
-.content::-webkit-scrollbar { width: 34.32px; }
-.content::-webkit-scrollbar-thumb { background: var(--kiosk-primary); border-radius: 21.45px; }
-.content::-webkit-scrollbar-track { background: transparent; }
+.scroll::-webkit-scrollbar { display: none; }
 
-/* Card — fixed Figma layout (children absolutely positioned). */
-.card {
-  position: relative;
-  flex: none;
-  width: 1820px;
-  /* Ends just below the floor map (top 1560 + ~692) — no legend below it. */
-  height: 2320px;
-  background: #fff;
-  border: 5px solid #e8e8e8;
-  border-radius: 42.9px;
-  box-sizing: border-box;
-}
-
-/* Title + gallery block — top 43, width 1730. Anchored to the same left edge
-   (40px) as .info / .desc / .dividerTop so the title's left start sits on the
-   exact same vertical line as the body text below (the gallery inside still
-   centres itself via its own justify-content). */
-.head {
-  position: absolute;
-  top: 43.48px;
-  left: 40px;
-  width: 1730px;
-  display: flex;
-  flex-direction: column;
-  gap: 40px;
-}
-
+/* ── Title: Bold 85 #333 · dot Ø17 main 1 · category Regular 51 #999 ── */
 .titleRow {
+  flex: none;
+  height: 85px;
   display: flex;
   align-items: center;
   gap: 42.9px;
+  min-width: 0;
 }
 
 .title {
   margin: 0;
-  font-size: 85px;
+  min-width: 0;
   font-weight: 700;
-  color: #333;
+  font-size: 85px;
   line-height: 1;
+  color: #333;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  font-variation-settings: 'CTGR' 0, 'wdth' 100;
 }
 
 .cat {
@@ -98,138 +80,252 @@
   display: flex;
   align-items: center;
   gap: 21.45px;
-  font-size: 51px;
   font-weight: 400;
-  color: #999;
+  font-size: 51px;
   line-height: 1;
+  color: #999;
   white-space: nowrap;
-  font-variation-settings: 'CTGR' 0, 'wdth' 100;
 }
 
 .dot {
+  flex: none;
   width: 17px;
   height: 17px;
   border-radius: 50%;
-  background: var(--kiosk-primary);
-  flex-shrink: 0;
+  background: #005ab4;
 }
 
-/* 2×2 grid of 575×324 cells, gap 45, centred (Figma 174877) */
+/* ── Photos: four across the 1703 row, radius 45 ──
+   NORMALISED: the frame's four are 391×220 / 386×218 / 384×216 / 388×218.
+   Four equal 388×218 plates, justify-between, keep the same outer edges. */
 .gallery {
-  display: grid;
-  grid-template-columns: repeat(2, 575px);
-  justify-content: center;
-  gap: 45px;
-  width: 100%;
+  flex: none;
+  height: 220px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
 }
 
-.cell {
-  width: 575px;
-  height: 324px;
+.galleryCell {
+  flex: none;
+  width: 388px;
+  height: 218px;
   border-radius: 45px;
   overflow: hidden;
-  flex-shrink: 0;
+  background: #ededed;
 }
 
-.cell img {
+.galleryCell[data-clickable='true'] {
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.galleryCell img {
+  display: block;
   width: 100%;
   height: 100%;
   object-fit: cover;
 }
 
-.cellEmpty {
-  width: 100%;
-  height: 100%;
-  background: #ededed;
+.divider {
+  flex: none;
+  position: relative;
+  height: 0;
 }
 
-.dividerTop,
-.dividerBottom {
+.divider::before {
+  content: '';
   position: absolute;
-  left: 40px;
-  width: 1730px;
-  height: 2px;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 2.145px;
   background: #e8e8e8;
 }
 
-.dividerTop { top: 912.48px; }
-.dividerBottom { top: 1525.38px; left: 53px; }
-
-/* Address / hours */
+/* ── Address / hours / phone + QR (R>검색상세-정보) — 1680×310, padding 10 ── */
 .info {
-  position: absolute;
-  top: 951.38px;
-  left: 40px;
-  width: 1730px;
+  flex: none;
+  box-sizing: border-box;
+  width: 1680px;
+  height: 310px;
+  padding: 10px;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+}
+
+.infoCol {
+  min-height: 300px;
   display: flex;
   flex-direction: column;
+  justify-content: center;
   gap: 40px;
 }
 
+/* Rows 57 / 96 / 67 tall; the 85 icons overhang the first and last. */
 .infoRow {
   display: flex;
   align-items: center;
   gap: 20px;
 }
 
+.rowAddress { height: 57px; }
+.rowPhone   { height: 67px; }
+
 .infoIcon {
+  flex: none;
   width: 85px;
   height: 85px;
-  flex-shrink: 0;
 }
 
+/* Regular 38 #333; capped at the 1300 column minus icon + gap. */
 .infoText {
-  font-size: 55px;
+  max-width: 1195px;
   font-weight: 400;
-  color: #333;
+  font-size: 38px;
   line-height: 1;
-  font-variation-settings: 'CTGR' 0, 'wdth' 100;
+  color: #333;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
-/* Description */
-.desc {
+/* alarm-01: an 84-wide frame, the 68 clock at (8, 8) — its stroke bleeds 3.15%,
+   so the export is 72.29 at (5.86, 5.86). Hours read in Noto Sans. */
+.rowHours {
+  align-items: stretch;
+  min-height: 96px;
+}
+
+.alarmFrame {
+  flex: none;
+  position: relative;
+  width: 84px;
+  min-height: 96px;
+}
+
+.alarmIcon {
   position: absolute;
-  top: 1191.38px;
-  left: 40px;
-  width: 1730px;
+  left: 5.86px;
+  top: 5.86px;
+  width: 72.29px;
+  height: 72.29px;
+}
+
+.infoTextCol {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 20px;
+}
+
+.infoTextCol .infoText {
+  font-family: 'Noto Sans KR', var(--kiosk-font, sans-serif);
+}
+
+/* QR — 300 square, 4.29 main 1 stroke, radius 25; the code sits at 10% / 10.9%
+   and fills 80% × 78.2%. */
+.qr {
+  flex: none;
+  position: relative;
+  box-sizing: border-box;
+  width: 300px;
+  height: 300px;
+  border: 4.29px solid #005ab4;
+  border-radius: 25px;
+  background: #fff;
+  overflow: hidden;
+}
+
+.qrImg,
+.qrCode {
+  position: absolute;
+  left: 10%;
+  top: 10.9%;
+  width: 80%;
+  height: 78.2%;
+}
+
+.qrImg {
+  object-fit: contain;
+  image-rendering: pixelated;
+}
+
+/* ── Description (Regular 45 #333 / 1.3, two lines) + tags (Regular 38
+   #616161 / 1.5, at +161) ── */
+.descBlock {
+  flex: none;
+  height: 218px;
+  display: flex;
+  flex-direction: column;
+}
+
+.desc {
+  flex: none;
+  height: 161px;
   margin: 0;
-  font-size: 55px;
   font-weight: 400;
+  font-size: 45px;
   line-height: 1.3;
   color: #333;
-  text-align: justify;
+}
+
+/* The clamp lives on an inner block: on the 161-tall slot itself a third line
+   would still show under the ellipsis. */
+.descClamp {
+  margin: 0;
   display: -webkit-box;
-  -webkit-line-clamp: 4;
+  -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
-  font-variation-settings: 'CTGR' 0, 'wdth' 100;
 }
 
-/* 화성휴게소 floor map — newly uploaded image (1730×658). Keep its native
-   aspect so nothing distorts. It labels the shops/numbers itself (no legend). */
-.map {
-  position: absolute;
-  top: 1560px;
-  left: 0;
-  width: 1820px;
-  aspect-ratio: 1730 / 658;
-  object-fit: contain;
+.tags {
+  margin: 0;
+  font-weight: 400;
+  font-size: 38px;
+  line-height: 1.5;
+  color: #616161;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
-/* ── Bottom banner ── */
-.banner {
-  position: absolute;
-  top: 3267px;
-  left: 0;
-  width: 2160px;
-  height: 573px;
-  pointer-events: none;
+/* ── Ratings (R>검색상세-별점후기): centred, 86 tall ── */
+.ratings {
+  flex: none;
+  height: 86px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 21.45px;
 }
 
-.bannerImg {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  display: block;
-  pointer-events: none;
+.ratingIcon {
+  flex: none;
+  width: 85.799px;
+  height: 85.799px;
+  border-radius: 50%;
+}
+
+/* Five 42.9 stars on a 45.05 pitch; the score starts 227.38 from the first. */
+.stars {
+  display: flex;
+  align-items: center;
+  gap: 2.15px;
+  margin-right: -17.17px;
+}
+
+.star {
+  width: 42.9px;
+  height: 42.9px;
+}
+
+.ratingText {
+  font-weight: 400;
+  font-size: 51.48px;
+  line-height: 1.5;
+  color: #333;
+  white-space: nowrap;
 }

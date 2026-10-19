@@ -101,6 +101,9 @@ export interface PhotoWorkflowState {
   resultFileName: string | null;
   /** Public phone-openable URL of the result, when the AI returns one. */
   resultUrl: string | null;
+  /** Phone pickup page the save QR opens (the upload's data.shareUrl). null
+   *  when the host returned none — the QR then uses withphoto.vercel.app. */
+  resultShareUrl: string | null;
   selectedCameraDeviceId: string | null;
   countdown: number | null;
   /** 제주 손동작 게이트. 'off' everywhere else — see PhotoGestureGate. */
