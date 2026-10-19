@@ -1346,11 +1346,8 @@
   padding: 0;
   border: none;
   background: none;
-}
-
-.osanRoot .infoThumbSel .osanCard {
-  background: var(--osan-tint, #d3dfec);
-  border-color: var(--osan-accent, #1a4d7e);
+  /* The wrapper (card + caption) draws nothing; the shadow is the card's. */
+  box-shadow: none;
 }
 
 .osanCard {
@@ -1360,6 +1357,7 @@
   border: 5px solid transparent;
   border-radius: 42.9px;
   background: #ffffff;
+  box-shadow: var(--photo-card-shadow, 0 21.45px 42.9px rgba(143, 147, 157, 0.1));
   display: flex;
   align-items: center;
   justify-content: center;

@@ -348,8 +348,13 @@ export function HanbokSelect({ onCapture, onHome, countdownActive = false }: Han
             onPointerLeave={infoDrag.onPointerLeave}
             onClickCapture={infoDrag.onClickCapture}
           >
+            {/* Display only — nothing here is selectable, so the Korean venues draw
+                no "selected" first card. KADA keeps its themed selected card. */}
             {allHanbok.map((o, i) => (
-              <div key={o.code} className={`${styles.infoThumb} ${i === 0 ? styles.infoThumbSel : ''}`}>
+              <div
+                key={o.code}
+                className={`${styles.infoThumb} ${isKada && i === 0 ? styles.infoThumbSel : ''}`}
+              >
                 {osanLook ? (
                   <>
                     <div className={styles.osanCard}>
