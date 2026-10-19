@@ -12,8 +12,8 @@ import { useAccessibilityStore } from '@renderer/store/accessibilityStore';
 import { generatedUrl } from '@renderer/lib/media';
 import { pick, useLang } from '@renderer/lib/i18n';
 import { ui } from '@renderer/lib/uiText';
-import { trackEvent } from '@renderer/lib/analytics';
-import { resolveButton } from '@renderer/lib/buttonCatalog';
+import { localIso, recordMenuTouch, trackEvent } from '@renderer/lib/analytics';
+import { photoModeTouch, resolveButton } from '@renderer/lib/buttonCatalog';
 import { HanbokSelect, type CaptureMode } from './HanbokSelect';
 import { JejuHanbokSelect } from '../jeju/JejuHanbokSelect';
 import { JejuWaitingGames } from '../jeju/games/JejuWaitingGames';
@@ -210,6 +210,10 @@ export function PhotoWorkflow(): JSX.Element {
         kioskId,
       },
     });
+    // Count the tap in the admin stats (혼자찍기 / 같이찍기). Fire-and-forget, so it
+    // never delays the capture; KADA has no row and sends nothing.
+    const touch = photoModeTouch(kioskId, mode === 'solo' ? 'solo' : 'together', localIso());
+    if (touch) recordMenuTouch(touch);
     await window.api.photo.selectClothing(category);
     await window.api.photo.selectStyle(mode, backgroundId);
     if (chrome.gestureCapture) {
