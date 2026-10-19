@@ -75,8 +75,11 @@ export interface CameraDeviceInfo {
    * 2i, which measures visitor height headlessly and must never be opened by
    * `getUserMedia`. It is enumerated (an operator listing the kiosk's cameras
    * should see it) but excluded from selection. See CameraService.
+   *
+   * 'hand' is the FillMe 손톱 분석 camera (Arducam), owned by that screen —
+   * excluded from selection for the same reason.
    */
-  vendor: 'elgato' | 'usb' | 'depth' | 'unknown';
+  vendor: 'elgato' | 'usb' | 'depth' | 'hand' | 'unknown';
 }
 
 /** Runtime workflow state — lives in main process, synced via IPC. */
@@ -98,6 +101,9 @@ export interface PhotoWorkflowState {
   resultFileName: string | null;
   /** Public phone-openable URL of the result, when the AI returns one. */
   resultUrl: string | null;
+  /** Phone pickup page the save QR opens (the upload's data.shareUrl). null
+   *  when the host returned none — the QR then uses withphoto.vercel.app. */
+  resultShareUrl: string | null;
   selectedCameraDeviceId: string | null;
   countdown: number | null;
   /** 제주 손동작 게이트. 'off' everywhere else — see PhotoGestureGate. */

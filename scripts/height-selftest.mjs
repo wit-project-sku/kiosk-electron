@@ -156,7 +156,7 @@ console.log('\ntoMeasurement — a result frame from a process we do not control
       subjects: 1,
       reason: null,
     }),
-    { heightCm: 171.4, confidence: 0.86, samples: 184, subjects: 1, reason: null },
+    { heightCm: 171.4, shoulderWidthCm: null, chestWidthCm: null, waistWidthCm: null, hipWidthCm: null, confidence: 0.86, samples: 184, subjects: 1, reason: null, version: null },
   );
 
   check(
@@ -171,19 +171,35 @@ console.log('\ntoMeasurement — a result frame from a process we do not control
     }),
     {
       heightCm: null,
+      shoulderWidthCm: null,
+      chestWidthCm: null,
+      waistWidthCm: null,
+      hipWidthCm: null,
       confidence: 0,
       samples: 0,
       subjects: 2,
       reason: 'more than one visitor in frame',
+      version: null,
     },
+  );
+
+  check(
+    'body widths and the estimator version are carried through',
+    toMeasurement({ heightCm: 171.4, shoulderWidthCm: 46, chestWidthCm: 32, waistWidthCm: null, hipWidthCm: 35.5, confidence: 0.9, samples: 60, subjects: 1, reason: null, version: 5 }),
+    { heightCm: 171.4, shoulderWidthCm: 46, chestWidthCm: 32, waistWidthCm: null, hipWidthCm: 35.5, confidence: 0.9, samples: 60, subjects: 1, reason: null, version: 5 },
   );
 
   check('an empty frame does not throw', toMeasurement({}), {
     heightCm: null,
+    shoulderWidthCm: null,
+    chestWidthCm: null,
+    waistWidthCm: null,
+    hipWidthCm: null,
     confidence: 0,
     samples: 0,
     subjects: 0,
     reason: null,
+    version: null,
   });
 
   // A height that arrived as a string would otherwise reach SQLite as one and
@@ -191,13 +207,13 @@ console.log('\ntoMeasurement — a result frame from a process we do not control
   check(
     'wrong types are refused, not coerced',
     toMeasurement({ heightCm: '171.4', confidence: 'high', samples: null, subjects: {} }),
-    { heightCm: null, confidence: 0, samples: 0, subjects: 0, reason: null },
+    { heightCm: null, shoulderWidthCm: null, chestWidthCm: null, waistWidthCm: null, hipWidthCm: null, confidence: 0, samples: 0, subjects: 0, reason: null, version: null },
   );
 
   check(
     'NaN and Infinity are not heights',
     toMeasurement({ heightCm: NaN, confidence: Infinity, samples: 3, subjects: 1 }),
-    { heightCm: null, confidence: 0, samples: 3, subjects: 1, reason: null },
+    { heightCm: null, shoulderWidthCm: null, chestWidthCm: null, waistWidthCm: null, hipWidthCm: null, confidence: 0, samples: 3, subjects: 1, reason: null, version: null },
   );
 }
 

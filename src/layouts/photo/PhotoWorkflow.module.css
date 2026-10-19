@@ -447,3 +447,15 @@
   object-fit: contain;
   pointer-events: none;
 }
+
+/* ♿ on 오산 (AR 한복체험 7894:56717): OsanKiosk moves the flow down under its
+   mode bar and sets --osan-mode-push; the background, the rail and the promo
+   undo it so they stay where the frame draws them. Unset on every other kiosk,
+   so this is a no-op there. */
+.bg,
+.bgBase,
+.bgHw,
+.banner,
+.leftNav {
+  transform: translateY(calc(-1 * var(--osan-mode-push, 0px)));
+}

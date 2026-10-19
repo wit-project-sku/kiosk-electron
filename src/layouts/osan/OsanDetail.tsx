@@ -28,8 +28,8 @@ export function OsanDetail({ controller }: OsanDetailProps): JSX.Element {
   if (!item) {
     return (
       <>
-        {osanIconUrl('bg') && (
-          <img className={styles.bg} src={osanIconUrl('bg')} alt="" draggable={false} />
+        {osanIconUrl('page-bg') && (
+          <img className={styles.bg} src={osanIconUrl('page-bg')} alt="" draggable={false} />
         )}
         <OsanHeader title="상세" onHome={goHome} />
       </>
@@ -52,8 +52,8 @@ export function OsanDetail({ controller }: OsanDetailProps): JSX.Element {
 
   return (
     <>
-      {osanIconUrl('bg') && (
-        <img className={styles.bg} src={osanIconUrl('bg')} alt="" draggable={false} />
+      {osanIconUrl('page-bg') && (
+        <img className={styles.bg} src={osanIconUrl('page-bg')} alt="" draggable={false} />
       )}
 
       <OsanHeader
@@ -63,7 +63,10 @@ export function OsanDetail({ controller }: OsanDetailProps): JSX.Element {
         onBack={goBack}
       />
 
-      <OsanSpotDetailCard data={data} />
+      <OsanSpotDetailCard
+        data={data}
+        lowered={['eat', 'shop', 'lodging', 'help', 'restroom'].includes(item.from ?? '')}
+      />
 
       <OsanLeftNav onHome={goHome} onBack={goBack} />
 

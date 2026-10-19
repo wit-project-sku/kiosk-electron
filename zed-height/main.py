@@ -58,15 +58,17 @@ for _stream in (sys.stdout, sys.stderr):
         pass
 
 from estimator import Rejection, Subject, find_subjects, summarise
+from widths import BodyWidths, summarise_widths
 from geometry import (
     FloorFrame,
     camera_is_above,
     finite_points,
+    fit_floor,
     fit_plane_ransac,
     orient_up,
     plane_is_plausible_floor,
 )
-from zed import ZedCamera, ZedUnavailable
+from zed import OPTICAL_AXIS, ZedCamera, ZedUnavailable
 
 
 def _env_float(name: str, default: float) -> float:
@@ -100,6 +102,26 @@ FPS = _env_float("HEIGHT_FPS", 4.0)
 # anything further is the concourse.
 ZONE_MIN_M = _env_float("HEIGHT_ZONE_MIN", 0.8)
 ZONE_MAX_M = _env_float("HEIGHT_ZONE_MAX", 3.5)
+
+# Half-width of the corridor straight in front of the lens, along the floor.
+# A visitor standing for the photo is centred within ~0.3 m; 0.5 m leaves room
+# to shift weight. Anyone wider is beside the visitor, not being photographed.
+CORRIDOR_M = _env_float("HEIGHT_CORRIDOR", 0.5)
+
+# Per-frame estimates on stderr while sampling, for watching a test live. The app
+# turns this on in development only (ZedSidecarManager) — at 4 fps it would
+# otherwise fill a kiosk's log files with one line per frame of every capture.
+VERBOSE = os.environ.get("HEIGHT_VERBOSE") == "1"
+
+# Reported with every result and stored with every row, so measurements from an
+# estimator later found to be wrong can be told apart and discarded.
+#   1  (unversioned) — calibration could be upside down or on a desk
+#   2  signed mount check + fit_floor
+#   3  people far behind the visitor ignored; plateau instead of median
+#   4  only the person in the corridor in front of the lens
+#   5  shoulder/chest/waist/hip widths
+#   6  a visitor beside an object is split from it; shoulder plausibility bound
+ALGORITHM_VERSION = 6
 
 CALIBRATION_PATH = Path(os.environ.get("HEIGHT_CALIBRATION", "calibration.json"))
 
@@ -146,13 +168,17 @@ def calibrate(camera: ZedCamera) -> FloorFrame:
             continue
         if frame.gravity is not None:
             gravity = frame.gravity
-        # Gravity constrains the SEARCH, not just the result. Indoors a wall
-        # covers more of the depth image than the visible floor does, so an
-        # unconstrained fit lands on the wall — see fit_plane_ransac.
-        fit = fit_plane_ransac(points, gravity=gravity)
-        if fit is None:
-            continue
-        candidate = orient_up(*fit, gravity=gravity)
+        if gravity is not None:
+            # The lowest strong horizontal layer along gravity — RANSAC picks
+            # the desk in a furnished room. See fit_floor.
+            candidate = fit_floor(points, gravity)
+            if candidate is None:
+                continue
+        else:
+            fit = fit_plane_ransac(points, gravity=None)
+            if fit is None:
+                continue
+            candidate = orient_up(*fit)
         if not plane_is_plausible_floor(candidate, gravity):
             continue
         # Level and gravity-aligned, but above the camera: a ceiling.
@@ -170,6 +196,32 @@ def calibrate(camera: ZedCamera) -> FloorFrame:
     normal = normals.mean(axis=0)
     normal /= np.linalg.norm(normal)
     return FloorFrame(normal=normal, offset=float(np.median([f.offset for f in fits])))
+
+
+# A tape reading further than this from the fit means the fit found some other
+# surface (or the tape was read wrong) — not stereo bias, which is a few cm.
+MAX_PIN_CORRECTION_M = 0.10
+
+
+def pin_camera_height(fitted: FloorFrame, measured_m: float) -> FloorFrame:
+    """Replace the fitted camera height with a tape-measured one.
+
+    The fit gets the floor's ANGLE right — thousands of points agree on it — but
+    its HEIGHT carries the stereo depth bias on a floor seen at a grazing angle.
+    On the dev PC, 2026-10-08, it fitted 1.163 m against a taped 1.19 m, and
+    every visitor read 2.7 cm short by exactly that. The tape is the truth.
+    """
+    correction = measured_m - fitted.offset
+    if abs(correction) > MAX_PIN_CORRECTION_M:
+        raise ZedUnavailable(
+            f"Tape says {measured_m:.2f} m but the floor was fitted at "
+            f"{fitted.offset:.2f} m. A gap that large means the fit found "
+            "something other than the floor. Clear the view and recalibrate, "
+            "or re-check the tape."
+        )
+    log(f"  camera height pinned to {measured_m:.3f} m (fit said {fitted.offset:.3f} m, "
+        f"correction {correction * 100:+.1f} cm)")
+    return FloorFrame(normal=fitted.normal, offset=measured_m)
 
 
 def save_calibration(frame: FloorFrame) -> None:
@@ -190,11 +242,29 @@ def load_calibration() -> FloorFrame | None:
 # ── Sampling ───────────────────────────────────────────────────────────────
 
 
+# How far behind the nearest person someone may stand and still count as part of
+# the capture. Two visitors in a 같이찍기 stand side by side, within a few tens of
+# cm of each other; anyone a metre further back is the room. Dev PC, 2026-10-08:
+# a ~130 cm shape 2.2 m away turned every frame with the visitor (at 1.1 m) into
+# "2 people" and threw it away. At an airport that is every passer-by.
+SAME_GROUP_M = 0.6
+
+
+def in_front(subjects: list[Subject]) -> list[Subject]:
+    """The people being photographed: the nearest subject and anyone beside them."""
+    if not subjects:
+        return subjects
+    nearest = min(s.distance_m for s in subjects)
+    return [s for s in subjects if s.distance_m - nearest <= SAME_GROUP_M]
+
+
 class Session:
     """One capture's worth of per-frame estimates."""
 
     def __init__(self) -> None:
         self.heights: list[float] = []
+        # Widths per single-visitor frame, parallel to `heights`.
+        self.widths: list[BodyWidths | None] = []
         self.subject_counts: list[int] = []
         # Why clusters were turned down, tallied across the capture. Without
         # this a null result says only "nobody in the measurement zone", which
@@ -206,9 +276,11 @@ class Session:
         self.rejections: Counter[str] = Counter()
 
     def add(self, subjects: list[Subject], rejected: list[Rejection] | None = None) -> None:
+        subjects = in_front(subjects)
         self.subject_counts.append(len(subjects))
         if len(subjects) == 1:
             self.heights.append(subjects[0].height_m)
+            self.widths.append(subjects[0].widths)
         for r in rejected or ():
             self.rejections[r.reason] += 1
 
@@ -237,11 +309,26 @@ class Session:
         return {
             "type": "result",
             "heightCm": round(height_cm, 1),
+            **self._widths_at(height_cm / 100.0),
             "confidence": round(confidence, 3),
             "samples": len(self.heights),
             "subjects": 1,
             "reason": None,
+            "version": ALGORITHM_VERSION,
         }
+
+    def _widths_at(self, height_m: float) -> dict:
+        """Widths from the frames where the visitor stood at their measured height.
+
+        Leaning toward the screen or walking in changes the body's shape in the
+        cloud as well as its height; those frames' widths are not the visitor's.
+        """
+        standing = [
+            w
+            for h, w in zip(self.heights, self.widths)
+            if w is not None and abs(h - height_m) <= STANDING_TOLERANCE_M
+        ]
+        return summarise_widths(standing)
 
 
     def _why_nobody(self) -> str:
@@ -257,14 +344,47 @@ class Session:
         return f"nobody counted; {hits} clusters rejected, mostly: {reason}"
 
 
+def _widths_text(w: BodyWidths | None) -> str:
+    if w is None:
+        return ""
+    cm = lambda v: f"{v * 100:4.1f}" if v is not None else "  --"  # noqa: E731
+    return f"  | shoulder {cm(w.shoulder_m)} chest {cm(w.chest_m)} waist {cm(w.waist_m)} hip {cm(w.hip_m)}"
+
+
+def log_frame(session: Session, subjects: list[Subject], rejected: list[Rejection]) -> None:
+    """One line per sampled frame: this frame's estimate and the running median."""
+    n = len(session.subject_counts)
+    subjects = in_front(subjects)
+    if len(subjects) == 1:
+        s = subjects[0]
+        summary = summarise(session.heights)
+        running = f"median {summary[0]:5.1f} cm (conf {summary[1]:.2f})" if summary else "median --"
+        log(
+            f"#{n:<3} {s.height_m * 100:5.1f} cm  at {s.distance_m:.2f} m, "
+            f"{s.lateral_m:+.2f} m sideways  | {running}{_widths_text(s.widths)}"
+        )
+    elif subjects:
+        log(f"#{n:<3} {len(subjects)} people in the zone, not measured")
+    elif rejected:
+        log(f"#{n:<3} nobody counted: {rejected[0].reason}")
+    else:
+        log(f"#{n:<3} nobody in the zone")
+
+
+# A frame counts as "standing" for widths within this of the final height.
+STANDING_TOLERANCE_M = 0.03
+
+
 def _empty(reason: str, subjects: int = 0) -> dict:
     return {
         "type": "result",
         "heightCm": None,
+        **summarise_widths([]),
         "confidence": 0.0,
         "samples": 0,
         "subjects": subjects,
         "reason": reason,
+        "version": ALGORITHM_VERSION,
     }
 
 
@@ -276,7 +396,15 @@ def measure(
     points = finite_points(frame_points)
     if len(points) < 500:
         return []
-    return find_subjects(floor, points, ZONE_MIN_M, ZONE_MAX_M, rejections=rejections)
+    return find_subjects(
+        floor,
+        points,
+        ZONE_MIN_M,
+        ZONE_MAX_M,
+        rejections=rejections,
+        forward=OPTICAL_AXIS,
+        corridor_m=CORRIDOR_M,
+    )
 
 
 # ── Modes ──────────────────────────────────────────────────────────────────
@@ -383,7 +511,10 @@ def run_service(camera: ZedCamera) -> int:
         frame = camera.grab()
         if frame is not None:
             rejected: list[Rejection] = []
-            session.add(measure(frame.points, floor, rejected), rejected)
+            subjects = measure(frame.points, floor, rejected)
+            session.add(subjects, rejected)
+            if VERBOSE:
+                log_frame(session, subjects, rejected)
 
 
 def run_selftest(camera: ZedCamera) -> int:
@@ -484,6 +615,14 @@ def main() -> int:
         action="store_true",
         help="show every cluster and why each was or was not counted as a visitor",
     )
+    parser.add_argument(
+        "--camera-height",
+        type=float,
+        metavar="M",
+        help="with --calibrate: the lens height above the floor from a tape "
+        "measure, in metres. Overrides the fitted height; the fitted floor "
+        "angle is kept.",
+    )
     args = parser.parse_args()
 
     camera = ZedCamera()
@@ -501,6 +640,8 @@ def main() -> int:
     try:
         if args.calibrate:
             floor = calibrate(camera)
+            if args.camera_height is not None:
+                floor = pin_camera_height(floor, args.camera_height)
             save_calibration(floor)
             # ── The one number a human must check ──────────────────────
             # Nothing in software can tell the real floor from the largest flat

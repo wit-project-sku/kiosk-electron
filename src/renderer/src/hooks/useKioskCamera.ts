@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState, type RefObject } from 'react';
 import {
-  DEPTH_CAMERA_PATTERN,
   PREFERRED_CAMERA_PATTERN,
+  isReservedCamera,
   looksLikeStereoPair,
 } from '@shared/config/cameras';
 
@@ -44,7 +44,7 @@ async function pickPhotoCamera(explicit: string | null, rejected: Set<string>): 
     (d) => d.kind === 'videoinput',
   );
   const usable = devices.filter(
-    (d) => !DEPTH_CAMERA_PATTERN.test(d.label) && !rejected.has(d.deviceId),
+    (d) => !isReservedCamera(d.label) && !rejected.has(d.deviceId),
   );
   const preferred = usable.find((d) => PREFERRED_CAMERA_PATTERN.test(d.label));
   return (preferred ?? usable[0])?.deviceId ?? null;
@@ -123,9 +123,11 @@ export function useKioskCamera({ deviceId, enabled, rotation = 0 }: UseKioskCame
 
         // The label-free backstop. A stereo pair's aspect ratio is nothing like
         // a webcam's, so if this is one we opened a depth sensor blind — drop
-        // it, remember it, and take the next candidate.
-        const { width = 0, height = 0 } = stream.getVideoTracks()[0]?.getSettings() ?? {};
-        if (looksLikeStereoPair(width, height)) {
+        // it, remember it, and take the next candidate. The track's own label
+        // catches the FillMe hand camera, which has no tell-tale shape.
+        const track = stream.getVideoTracks()[0];
+        const { width = 0, height = 0 } = track?.getSettings() ?? {};
+        if (looksLikeStereoPair(width, height) || isReservedCamera(track?.label ?? '')) {
           stream.getTracks().forEach((t) => t.stop());
           rejected.add(chosen);
           continue;

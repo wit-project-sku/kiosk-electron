@@ -13,6 +13,8 @@ interface PhotoUIState {
   cameraDeviceId: string | null;
   resultFileName: string | null;
   resultUrl: string | null;
+  /** Phone pickup page for the save QR — see PhotoWorkflowState.resultShareUrl. */
+  resultShareUrl: string | null;
   countdown: number | null;
   /**
    * 제주 손동작 게이트. Read by the customer display to decide whether to draw
@@ -37,6 +39,7 @@ interface PhotoUIState {
     selectedCameraDeviceId: string | null;
     resultFileName: string | null;
     resultUrl: string | null;
+    resultShareUrl: string | null;
     countdown: number | null;
     gestureGate: PhotoGestureGate;
     statusMessage: string | null;
@@ -53,6 +56,7 @@ const IDLE = {
   cameraDeviceId: null,
   resultFileName: null,
   resultUrl: null,
+  resultShareUrl: null,
   countdown: null,
   gestureGate: 'off' as PhotoGestureGate,
   statusMessage: null,
@@ -75,6 +79,7 @@ export const usePhotoStore = create<PhotoUIState>((set) => ({
       cameraDeviceId: wf.selectedCameraDeviceId,
       resultFileName: wf.resultFileName,
       resultUrl: wf.resultUrl,
+      resultShareUrl: wf.resultShareUrl,
       countdown: wf.countdown,
       gestureGate: wf.gestureGate,
       statusMessage: wf.statusMessage,

@@ -161,6 +161,7 @@ export function registerPhotoHandlers(container: AppContainer): void {
           result.session.resultImagePath,
           result.resultFileName,
           result.resultUrl,
+          result.resultShareUrl,
         );
       }
 

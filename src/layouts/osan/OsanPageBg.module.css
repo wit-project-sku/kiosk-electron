@@ -1,0 +1,17 @@
+.bg {
+  position: absolute;
+  inset: 0;
+  background: #fff;
+  pointer-events: none;
+  /* ♿ stays at y0 while the page under the mode bar moves down (OsanKiosk). */
+  transform: translateY(calc(-1 * var(--osan-mode-push, 0px)));
+}
+
+/* page-bg.png already has the frame's 70% opacity over white baked in. */
+.img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}

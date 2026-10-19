@@ -1,10 +1,15 @@
-/* Osan header — same dimensions as InsadongHeader, navy #0e4e8c brand. */
-/* Top-pinned (flex-start) so the brand/title/back row sits at the SAME 130px
-   top as the home screen's brand row — no vertical "drop" when navigating.
-   (justify-center made it content-dependent, shifting between pages.) */
+/* Osan header — Figma `Component 35` (오산>언어선택 7812:105898): 2160×700,
+   pt125 pb80 px170, gap 65; Pretendard, main 01 #1A4D7E.
+   Top-pinned (flex-start) so the brand row sits at the SAME 125px top as the
+   home screen's — no vertical "drop" when navigating. With the frame's content
+   (82 + 105 + 182 + 65 + 60 = 494 of the 495 inside the padding) this is the
+   same place justify-center puts it. */
 .header {
   position: absolute;
-  top: 0;
+  /* ♿ photo-game screens (틀린그림찾기 7894:58909, 게임 메뉴 7894:59610) drop
+     the header under their bar + promo through --jeju-shift, the variable the
+     shared game layouts already set for JejuHeader. Unset everywhere else. */
+  top: var(--jeju-shift, 0px);
   left: 0;
   width: 2160px;
   height: 700px;
@@ -13,9 +18,10 @@
   justify-content: flex-start;
   align-items: center;
   gap: 65px;
-  padding: 130px 170px 80px;
+  padding: 125px 170px 80px;
   box-sizing: border-box;
   z-index: 5;
+  font-family: 'Pretendard', var(--kiosk-font, sans-serif);
 }
 
 .headerCompact {
@@ -42,7 +48,7 @@
   display: flex;
   align-items: center;
   gap: 25.74px;
-  color: #0e4e8c;
+  color: #1a4d7e;
   font-weight: 700;
   font-size: 68px;
   line-height: 1;
@@ -51,7 +57,6 @@
 .pin {
   width: 63px;
   height: 82px;
-  aspect-ratio: 63 / 82;
 }
 
 .date {
@@ -79,6 +84,14 @@
   cursor: pointer;
 }
 
+/* 홈/뒤로 locked (navDisabled) — same treatment as JejuHeader's. */
+.navBtnOff {
+  opacity: 0.3;
+  pointer-events: none;
+  cursor: default;
+}
+
+
 .navBtn img {
   width: 100%;
   height: 100%;
@@ -89,8 +102,10 @@
   flex: 1;
   margin: 0;
   text-align: center;
+  font-family: inherit;
   font-weight: 700;
   font-size: 78px;
+  line-height: 1;
   color: #000000;
 }
 
@@ -99,33 +114,69 @@
   color: #ffffff;
 }
 
+/* 서브타이틀 — a 36px ★ (Star 4, #909090) 12px down the first line, then
+   Pretendard Regular 60 #909090. In the frame the star box ends at 36.23 and the
+   centred text starts at 57.46 → 21.23 apart. */
 .subtitle {
   display: flex;
   align-items: flex-start;
   justify-content: center;
-  gap: 20px;
+  gap: 21.23px;
 }
 
 .subtitleText {
-  font-size: 60.06px;
-  font-weight: 700;
+  font-size: 60px;
+  font-weight: 400;
   color: #909090;
-  line-height: 1.3;
+  line-height: 1;
   max-width: 1640px;
   text-align: center;
   white-space: pre-line;
 }
 
+.subtitleStrong {
+  font-weight: 700;
+  color: #616161;
+}
+
 .star {
-  color: var(--kiosk-primary);
-  font-size: 40px;
-  flex-shrink: 0;
+  position: relative;
+  flex: none;
+  width: 36px;
+  height: 36px;
   margin-top: 12px;
+}
+
+/* The export is the 34.238×32.562 star, inset 2.45% each side, 9.55% bottom. */
+.starImg {
+  position: absolute;
+  left: 0.882px;
+  top: 0;
+  width: 34.238px;
+  height: 32.562px;
+}
+
+/* Other languages: a description that wraps gets readable leading, with the
+   star kept centred on the first (72px) line. */
+.subtitleLong .subtitleText {
+  line-height: 1.2;
+}
+
+.subtitleLong .star {
+  margin-top: 18px;
 }
 
 /* TAX-FREE: breathing room below SubHeader_TaxFree (up to 2 lines). */
 .subtitleBelowGap {
   margin-bottom: 40px;
+}
+
+/* 오산>TAXFREE-01/-02 (7838:124713 / 125029): the description sits at y578,
+   19 lower than the standard header's, and the card starts 26 under it (664). */
+.subtitleTaxfree {
+  position: relative;
+  top: 19px;
+  margin-bottom: 26px;
 }
 
 /* TAX-FREE: use the full header row width so the subtitle wraps less often. */

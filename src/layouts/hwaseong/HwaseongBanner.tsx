@@ -4,6 +4,8 @@ import styles from './HwaseongBanner.module.css';
 
 interface HwaseongBannerProps {
   onClick: () => void;
+  /** Artboard top; the ♿ home draws it under the mode bar (146). */
+  top?: number;
 }
 
 /**
@@ -13,11 +15,17 @@ interface HwaseongBannerProps {
  * Shows the live banner from the witteria API when one is active, falling back
  * to the bundled fg-banner offline / when the API set is empty.
  */
-export function HwaseongBanner({ onClick }: HwaseongBannerProps): JSX.Element | null {
+export function HwaseongBanner({ onClick, top }: HwaseongBannerProps): JSX.Element | null {
   const src = useRotatingBanner(hwaseongIconUrl('fg-banner'));
   if (!src) return null;
   return (
-    <button type="button" className={styles.banner} onClick={onClick} aria-label="가상 한복 체험">
+    <button
+      type="button"
+      className={styles.banner}
+      style={top === undefined ? undefined : { top }}
+      onClick={onClick}
+      aria-label="가상 한복 체험"
+    >
       <img className={styles.bannerImg} src={src} alt="" draggable={false} />
     </button>
   );

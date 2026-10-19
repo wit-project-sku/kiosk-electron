@@ -30,6 +30,9 @@ interface InsadongHeaderProps {
   subtitleRef?: Ref<HTMLDivElement>;
   /** AI 맞춤 추천 코스 (7681:59124): a plain Bold #616161 line, no ★. */
   strongSubtitle?: boolean;
+  /** Dim 홈/뒤로 and stop them responding — the AR photo wait (틀린그림찾기), where
+   *  leaving would throw away a photo that is still generating. */
+  navDisabled?: boolean;
 }
 
 /**
@@ -37,7 +40,7 @@ interface InsadongHeaderProps {
  * date, then a title row (home button · centered title · back chevron), then a
  * subtitle. Exact Figma metrics in InsadongHeader.module.css.
  */
-export function InsadongHeader({ title, onHome, onBack, subtitle, compact = false, light = false, subtitleClassName, subtitleRef, strongSubtitle = false }: InsadongHeaderProps): JSX.Element {
+export function InsadongHeader({ title, onHome, onBack, subtitle, compact = false, light = false, subtitleClassName, subtitleRef, strongSubtitle = false, navDisabled = false }: InsadongHeaderProps): JSX.Element {
   const lang = useLang();
   const localizedTitle = screenTitle(title, lang);
   /* Korean titles sit on one line in the fixed 182px row; several of the other
@@ -74,13 +77,25 @@ export function InsadongHeader({ title, onHome, onBack, subtitle, compact = fals
         </div>
 
         <div ref={titleRowRef} className={styles.titleRow}>
-          <button type="button" className={styles.navBtn} onClick={onHome} aria-label="홈으로">
+          <button
+            type="button"
+            className={`${styles.navBtn} ${navDisabled ? styles.navBtnOff : ''}`}
+            onClick={navDisabled ? undefined : onHome}
+            disabled={navDisabled}
+            aria-label="홈으로"
+          >
             {iconUrl('home-btn') && <img src={iconUrl('home-btn')} alt="" draggable={false} />}
           </button>
           <h1 className={`${styles.title} ${wide ? styles.titleLong : ''} ${light ? styles.titleLight : ''}`}>
             {localizedTitle}
           </h1>
-          <button type="button" className={styles.navBtn} onClick={onBack ?? onHome} aria-label="뒤로">
+          <button
+            type="button"
+            className={`${styles.navBtn} ${navDisabled ? styles.navBtnOff : ''}`}
+            onClick={navDisabled ? undefined : (onBack ?? onHome)}
+            disabled={navDisabled}
+            aria-label="뒤로"
+          >
             {iconUrl('back-arrow') && <img src={iconUrl('back-arrow')} alt="" draggable={false} />}
           </button>
         </div>

@@ -39,10 +39,24 @@ export interface HeightMeasurement {
   subjects: number;
   /** Why there is no height, or null when there is one. */
   reason: string | null;
+  /**
+   * Side-to-side body breadth seen from the front, in cm — not circumference.
+   * Null when the capture could not measure it honestly: chest, waist and hip
+   * need both arms visibly clear of the body.
+   */
+  shoulderWidthCm: number | null;
+  chestWidthCm: number | null;
+  waistWidthCm: number | null;
+  hipWidthCm: number | null;
+  /** The sidecar's ALGORITHM_VERSION. Null from a sidecar that predates it —
+   *  treat those numbers as untrustworthy (see migration 009). */
+  version: number | null;
 }
 
 /** A stored row. Note what is absent: no session id, no photo reference. */
 export interface HeightRecord extends HeightMeasurement {
+  /** Random UUID, linked to nothing — lets an upload be retried without duplicating the row. */
+  id: string;
   kioskId: string;
   /** Local ISO-8601 with offset — the wall clock behind the kiosk, never UTC. */
   measuredAt: string;

@@ -1,26 +1,258 @@
-import { useMemo, useRef, useState } from 'react';
-import type { KioskController } from '@renderer/hooks/useKioskController';
+/**
+ * 화성휴게소 (W005) home — Figma node 7904:104580 (WIT-WITH>디자인), the
+ * 2026-10 redesign.
+ *
+ * Built from the node via get_design_context; every position/size in
+ * HwaseongHome.module.css is the exact Figma value (1 CSS px = 1 Figma px inside
+ * KioskArtboard). Artwork is each layer's own export in assets/icons/hwaseong as
+ * `home-*`; the plates' colours are CSS, as in the frame.
+ *
+ * Layout, top to bottom: location + clock · 공지 card with live weather ·
+ * 도로교통상황 board · search row · 3 feature cards · 12-tile grid on a white
+ * panel · 스마트관광 / 사진촬영 / 화장실. The frame is the 오산 home's structure
+ * in [화성휴게소] main 1 #005AB4, and like it draws no rotating banner.
+ *
+ * Copy: Korean is the frame's own text, except where the frame still carries
+ * 제주 / 오산 leftovers (the notice, the board, four second lines and the
+ * cards' subtitles) — those are authored for 화성휴게소 here. Other languages
+ * read Localization_Hwaseong (MainButton_*).
+ */
+import { useEffect, useMemo, useRef, useState, type CSSProperties } from 'react';
 import type { KioskScreenId } from '@shared/types/kiosk';
-import { hwaseongIconUrl } from '@renderer/assets/icons/hwaseong';
+import type { KioskController } from '@renderer/hooks/useKioskController';
+import { trackEvent } from '@renderer/lib/analytics';
+import { useLanguageStore } from '@renderer/store/languageStore';
+import { useSearchStore } from '@renderer/store/searchStore';
+import { useAccessibilityStore } from '@renderer/store/accessibilityStore';
 import { useWeatherStore } from '@renderer/store/weatherStore';
 import { useWeatherVideo } from '@renderer/hooks/useWeatherVideo';
-import { useLanguageStore } from '@renderer/store/languageStore';
-import { useFitText } from '@layouts/components/fitText';
-import { useSearchStore } from '@renderer/store/searchStore';
-import { weatherIconUrl, weatherIconName } from '@renderer/assets/weather';
+import { hwaseongIconUrl } from '@renderer/assets/icons/hwaseong';
+import { weatherIconName, weatherIconUrl } from '@renderer/assets/weather';
+import { useHasDonationTile } from '@renderer/lib/buttonLayout';
 import { buttonText, pick, type Lang } from '@renderer/lib/i18n';
-import { useApiTileRows, useHasDonationTile, type TileKey } from '@renderer/lib/buttonLayout';
+import { sheetText, t, tExact } from '@renderer/lib/loc';
 import { DONATION_COMING_SOON, withComingSoon } from '@shared/config/donation';
-import { t, tExact } from '@renderer/lib/loc';
 import { SearchIcon } from '@layouts/components/SearchIcon';
+import { useFitText } from '@layouts/components/fitText';
 import { FloatingKeyboard } from '../insadong/keyboard/FloatingKeyboard';
+import { HangulComposer } from '../insadong/keyboard/hangul';
+import type { KeyAction } from '../insadong/keyboard/VirtualKeyboard';
+import { HwaseongBanner } from './HwaseongBanner';
+import { HwaseongLeftNav } from './HwaseongLeftNav';
+import { HwaseongTrafficBoard } from './HwaseongTrafficBoard';
+import styles from './HwaseongHome.module.css';
 
-/** Search-bar language button → the current language's display code. */
-const LANG_CODE: Record<string, string> = { ko: 'KR', en: 'EN', ja: 'JP', zh: 'CN', vi: 'VN', th: 'TH', ru: 'RU', id: 'ID' };
+type Text = Partial<Record<Lang, string>>;
 
-/** Search placeholder. The notice card + 공/지 badge come from the sheet
- *  (NoticeContent / Notice), like Insadong and Osan. */
-const SEARCH_PLACEHOLDER = {
+interface Props {
+  controller: KioskController;
+}
+
+// ── Tiles ──────────────────────────────────────────────────────────────
+/** One exported layer inside a 300×300 plate: its key, box and offset (Figma px). */
+interface Art {
+  icon: string;
+  left: number;
+  top: number;
+  width: number;
+  height: number;
+}
+
+interface Tile {
+  screen: KioskScreenId;
+  /** Analytics label handed to navigate() — the CMS `button_type` join. */
+  label: string;
+  /** Korean title as the frame draws it. */
+  title: string;
+  /** Localization_Hwaseong key for the other languages' title. */
+  titleKey: string;
+  /** Localization_Hwaseong key for the second line (`MainButton_*_Subtext`). */
+  subKey: string;
+  /** Fallback second line when the sheet has no value for a language. */
+  sub: Text;
+  /** Plate fill from the frame. */
+  plate: string;
+  /** The tile's artwork; `null` = drawn by GoodsArt (a layered icon). */
+  art: Art | null;
+  /** 준비중 — drawn in full colour, not tappable. */
+  pending?: boolean;
+  /** Title letter-spacing the frame sets on this one tile (화성휴게소). */
+  tracking?: string;
+  /** Analytics/CMS slot when tiles share a screen key (the rest_info trio). */
+  slot?: number;
+}
+
+/**
+ * The 12 grid tiles in the frame's reading order (4 columns × 3 rows).
+ *
+ * Four second lines in the frame are leftovers from the 제주 / 오산 homes it was
+ * copied from — 제주 숙소 모음 (뭐사지), 환율 계산기 (문화재), 제주공공플랫폼
+ * (K-컬처) and 탐나는전 (지역화폐). Those four are authored here; the other
+ * eight are the frame's text.
+ *
+ * Art boxes are centred in the plate as the frame's auto layout centres them,
+ * then shifted by each export's bleed (its SVG is larger than the layer box).
+ */
+const TILES: Tile[] = [
+  {
+    screen: 'food_court', label: "'휴' 뭐먹지", title: "'휴' 뭐먹지", titleKey: 'MainButton_ToEat', subKey: 'MainButton_ToEat_Subtext', plate: '#fff0cb',
+    art: { icon: 'home-tile-eat', left: 57.51, top: 47.85, width: 203.586, height: 203.839 },
+    sub: { ko: '맛집 추천', en: 'Restaurant picks', ja: 'おすすめグルメ', zh: '美食推荐', vi: 'Gợi ý quán ăn', th: 'ร้านอาหารแนะนำ', ru: 'Где поесть', id: 'Rekomendasi kuliner' },
+  },
+  {
+    screen: 'shop', label: "'휴' 뭐사지", title: '‘휴’ 뭐사지(물품)', titleKey: 'MainButton_ToBuy', subKey: 'MainButton_ToBuy_SubText', plate: '#e5f2fc',
+    art: null,
+    sub: { ko: '물품 추천', en: 'Goods picks', ja: 'おすすめ雑貨', zh: '商品推荐', vi: 'Gợi ý hàng hóa', th: 'แนะนำสินค้า', ru: 'Товары', id: 'Rekomendasi barang' },
+  },
+  {
+    // 전국시장 stays 준비중 (product gate, as before the redesign) — the frame
+    // drops the marker, but the screen has not been released.
+    screen: 'market', label: '전국시장(준비중)', title: '전국시장', titleKey: 'MainButton_TraditionalMarket', subKey: 'MainButton_TraditionalMarket_Subtext', plate: '#ffe1fd',
+    art: { icon: 'home-tile-market', left: 75, top: 75, width: 150, height: 150 }, pending: true,
+    sub: { ko: '쇼핑 추천', en: 'Shopping picks', ja: 'おすすめショッピング', zh: '购物推荐', vi: 'Gợi ý mua sắm', th: 'แนะนำช้อปปิ้ง', ru: 'Покупки', id: 'Rekomendasi belanja' },
+  },
+  {
+    screen: 'taxfree', label: 'TAX-FREE', title: 'TAX-FREE', titleKey: 'MainButton_TaxFree', subKey: 'MainButton_TaxFree_Subtext', plate: '#efefef',
+    art: { icon: 'home-tile-taxfree', left: 47.5, top: 47.5, width: 205, height: 205 },
+    sub: { ko: '면세혜택', en: 'Tax refund', ja: '免税特典', zh: '免税优惠', vi: 'Ưu đãi miễn thuế', th: 'สิทธิ์ปลอดภาษี', ru: 'Возврат налога', id: 'Bebas pajak' },
+  },
+  {
+    screen: 'tourism', label: '화성휴게소', title: '화성휴게소', titleKey: 'MainButton_Here', subKey: 'MainButton_Here_Subtext', plate: '#deffbc', tracking: '-0.76px',
+    art: { icon: 'home-tile-here', left: 64, top: 64, width: 172, height: 172 },
+    sub: { ko: '관광지 추천', en: 'Attractions', ja: 'おすすめ観光地', zh: '景点推荐', vi: 'Điểm tham quan', th: 'สถานที่ท่องเที่ยว', ru: 'Достопримечательности', id: 'Tempat wisata' },
+  },
+  {
+    screen: 'hello', label: "안녕 '휴'", title: '안녕 ’휴’', titleKey: 'MainButton_Greeting', subKey: 'MainButton_Greeting_Subtext', plate: '#ffe1e4',
+    art: { icon: 'home-tile-hello', left: 72.656, top: 63.95, width: 154.688, height: 180.099 },
+    sub: { ko: '‘휴’ 소개', en: 'Meet Hyu', ja: 'ヒュの紹介', zh: '认识Hyu', vi: 'Giới thiệu Hyu', th: 'แนะนำฮยู', ru: 'Знакомьтесь, Хю', id: 'Kenalan dengan Hyu' },
+  },
+  {
+    screen: 'help', label: "도와줘 '휴'", title: '도와줘 ‘휴’', titleKey: 'MainButton_ToHelp', subKey: 'MainButton_ToHelp_Subtext', plate: '#ede4ff',
+    art: { icon: 'home-tile-help', left: 48, top: 56, width: 204, height: 193 },
+    sub: { ko: '편의시설 안내', en: 'Amenities', ja: '便利施設のご案内', zh: '便利设施指南', vi: 'Tiện ích', th: 'สิ่งอำนวยความสะดวก', ru: 'Удобства', id: 'Fasilitas' },
+  },
+  {
+    // The frame's plate has no justify-center: the art sits at its 64.35 padding.
+    screen: 'exchange', label: '환율', title: '환율', titleKey: 'MainButton_Exchange', subKey: 'MainButton_Exchange_Subtext', plate: '#ffefd9',
+    art: { icon: 'home-tile-exchange', left: 64.35, top: 56.5, width: 165, height: 187 },
+    sub: { ko: '환율 계산기', en: 'Currency calculator', ja: '為替計算', zh: '汇率计算器', vi: 'Tính tỷ giá', th: 'คำนวณอัตราแลกเปลี่ยน', ru: 'Калькулятор валют', id: 'Kalkulator kurs' },
+  },
+  {
+    screen: 'rest_info', label: '문화재(준비중)', title: '문화재(준비중)', titleKey: 'MainButton_Property', subKey: 'MainButton_Property_Subtext', plate: '#d3b7a5', slot: 16,
+    art: { icon: 'home-tile-heritage', left: 60, top: 50.93, width: 180, height: 202.137 }, pending: true,
+    sub: { ko: '문화유산 안내', en: 'Heritage guide', ja: '文化遺産のご案内', zh: '文化遗产指南', vi: 'Di sản văn hóa', th: 'มรดกทางวัฒนธรรม', ru: 'Культурное наследие', id: 'Warisan budaya' },
+  },
+  {
+    screen: 'donation', label: '기부', title: '기부', titleKey: 'MainButton_Donation', subKey: 'MainButton_Donation_Subtext', plate: '#e5f7f4',
+    art: { icon: 'home-tile-donation', left: 56, top: 42, width: 178.27, height: 199.327 },
+    sub: { ko: '교복 기부', en: 'Uniform donation', ja: '制服の寄付', zh: '校服捐赠', vi: 'Quyên góp đồng phục', th: 'บริจาคชุดนักเรียน', ru: 'Пожертвование формы', id: 'Donasi seragam' },
+  },
+  {
+    screen: 'rest_info', label: 'K-컬처(준비중)', title: 'K-컬처(준비중)', titleKey: 'MainButton_KCulture', subKey: 'MainButton_KCulture_Subtext', plate: '#fff5bb', slot: 17,
+    art: { icon: 'home-tile-kculture', left: 61.5, top: 56.5, width: 177, height: 186.189 }, pending: true,
+    sub: { ko: '한류 문화 체험', en: 'K-culture experience', ja: '韓流カルチャー体験', zh: '韩流文化体验', vi: 'Trải nghiệm văn hóa Hàn', th: 'สัมผัสวัฒนธรรมเกาหลี', ru: 'Корейская культура', id: 'Pengalaman budaya Korea' },
+  },
+  {
+    screen: 'rest_info', label: '지역화폐', title: '지역화폐', titleKey: 'MainButton_MarketPaper', subKey: 'MainButton_MarketPaper_Subtext', plate: '#f2ede6', slot: 18,
+    art: { icon: 'home-tile-localpay', left: 43, top: 43, width: 214, height: 214 },
+    sub: { ko: '행복화성지역화폐', en: 'Hwaseong local currency', ja: '華城地域通貨', zh: '华城地方货币', vi: 'Tiền địa phương Hwaseong', th: 'เงินท้องถิ่นฮวาซอง', ru: 'Местная валюта Хвасона', id: 'Mata uang lokal Hwaseong' },
+  },
+];
+
+/** 300-wide tile + 180 gap across, 412-tall tile + 80 gap down. */
+const COL_STEP = 480;
+const ROW_STEP = 492;
+const COLS = 4;
+/* ♿ low-reach grid (Figma 7904:105099): 6 × 2 tiles, 230 wide, justified
+   across 1792.059 → 312.41 apart; rows 374.27 apart. */
+const LOW_COLS = 6;
+const LOW_COL_STEP = (1792.059 - 230) / 5;
+const LOW_ROW_STEP = 374.27;
+/* ♿ the keyboard opens flush under the low search row (1952 + 182 − 1). */
+const LOW_KEYBOARD_TOP = 2133;
+
+/**
+ * '휴' 뭐사지 plate art — the frame's '인사' 뭐사지 icon group (7904:104783), a
+ * stack of layers rather than one export: bag, four leaves, the knot, the band
+ * and a 30% photo. Offsets are the group's own (177.62 × 182.7, centred).
+ */
+function GoodsArt(): JSX.Element {
+  const i = hwaseongIconUrl;
+  const leaf = (icon: string, box: CSSProperties, inner: string): JSX.Element => (
+    <span className={styles.goodsLeafBox} style={box}>
+      <img src={i(icon)} alt="" className={styles.goodsLeaf} style={{ transform: inner }} draggable={false} />
+    </span>
+  );
+  return (
+    <span className={styles.goods}>
+      <img src={i('home-tile-goods-bag')} alt="" className={styles.goodsBag} draggable={false} />
+      {leaf('home-tile-goods-leaf1', { left: 89.94, top: 1.6, width: 87.682, height: 80.498 }, 'rotate(-29.94deg)')}
+      {leaf('home-tile-goods-leaf2', { left: 0, top: 5.75, width: 87.682, height: 80.498 }, 'scaleY(-1) rotate(-150.06deg)')}
+      {leaf('home-tile-goods-leaf3', { left: 89.36, top: 0, width: 85.551, height: 74.734 }, 'rotate(-21.97deg)')}
+      {leaf('home-tile-goods-leaf4', { left: 2.72, top: 4.15, width: 85.551, height: 74.734 }, 'scaleY(-1) rotate(-158.03deg)')}
+      <img src={i('home-tile-goods-knot')} alt="" className={styles.goodsKnot} draggable={false} />
+      <span className={styles.goodsBand} />
+      <span className={styles.goodsBandLight} />
+      <span className={styles.goodsClasp} />
+      <img src={i('home-tile-goods-photo')} alt="" className={styles.goodsPhoto} draggable={false} />
+    </span>
+  );
+}
+
+// ── Feature cards ──────────────────────────────────────────────────────
+interface Card {
+  screen: KioskScreenId;
+  label: string;
+  title: string;
+  titleKey: string;
+  /** Localization_Hwaseong key for the second line (`MainButton_*_Subtext`). */
+  subKey: string;
+  /** The frame's subtitles are 오산 leftovers (AI 검색하기 / 굿즈 만들기 /
+   *  오산시 행사) — these are authored for the three 화성 destinations. */
+  sub: Text;
+  variant: 'cardTraffic' | 'cardRest' | 'cardEvents';
+}
+
+const CARDS: Card[] = [
+  {
+    screen: 'transport', label: '전국도로교통상황', title: '전국도로교통상황', titleKey: 'MainButton_TrafficInfo', subKey: 'MainButton_TrafficInfo_Subtext', variant: 'cardTraffic',
+    sub: { ko: '실시간 교통정보', en: 'Live traffic', ja: 'リアルタイム交通情報', zh: '实时交通信息', vi: 'Giao thông trực tiếp', th: 'สภาพจราจรสด', ru: 'Пробки онлайн', id: 'Lalu lintas langsung' },
+  },
+  {
+    screen: 'convenience', label: '전국휴게소', title: '전국휴게소', titleKey: 'MainButton_Restarea', subKey: 'MainButton_Restarea_Subtext', variant: 'cardRest',
+    sub: { ko: '휴게소 정보', en: 'Rest area info', ja: 'SA情報', zh: '休息站信息', vi: 'Thông tin trạm dừng', th: 'ข้อมูลจุดพักรถ', ru: 'Зоны отдыха', id: 'Info rest area' },
+  },
+  {
+    screen: 'events', label: '화성시 이벤트', title: '화성시 이벤트', titleKey: 'MainButton_Event', subKey: 'MainButton_Event_Subtext', variant: 'cardEvents',
+    sub: { ko: '화성시 행사', en: 'Hwaseong events', ja: '華城市の行事', zh: '华城市活动', vi: 'Sự kiện Hwaseong', th: 'งานเมืองฮวาซอง', ru: 'События Хвасона', id: 'Acara Kota Hwaseong' },
+  },
+];
+
+/** 화성시 이벤트 card art (Layer_4, 7904:104639) — ten layers, two of them masked. */
+function EventsArt(): JSX.Element {
+  const i = hwaseongIconUrl;
+  const mask = `url("${i('home-card-events-mask') ?? ''}")`;
+  return (
+    <span className={styles.eventsArt}>
+      <img src={i('home-card-events-a')} alt="" className={styles.evA} draggable={false} />
+      <img src={i('home-card-events-b')} alt="" className={styles.evB} draggable={false} />
+      <img src={i('home-card-events-c')} alt="" className={styles.evC} draggable={false} />
+      <span className={styles.evD} style={{ maskImage: mask, WebkitMaskImage: mask }}>
+        <img src={i('home-card-events-d')} alt="" draggable={false} />
+      </span>
+      <span className={styles.evE} style={{ maskImage: mask, WebkitMaskImage: mask }}>
+        <img src={i('home-card-events-e')} alt="" draggable={false} />
+      </span>
+      <img src={i('home-card-events-f')} alt="" className={styles.evF} draggable={false} />
+      <img src={i('home-card-events-g')} alt="" className={styles.evG} draggable={false} />
+      <img src={i('home-card-events-h')} alt="" className={styles.evH} draggable={false} />
+      <img src={i('home-card-events-i')} alt="" className={styles.evI} draggable={false} />
+    </span>
+  );
+}
+
+// ── Copy ───────────────────────────────────────────────────────────────
+const SEARCH_PLACEHOLDER: Text = {
   ko: '화성휴게소에 대해 검색해보세요!',
   en: 'Search about Hwaseong Service Area!',
   ja: '華城SAについて検索してみてください！',
@@ -30,497 +262,364 @@ const SEARCH_PLACEHOLDER = {
   ru: 'Поиск о зоне отдыха Хвасон!',
   id: 'Cari tentang Rest Area Hwaseong!',
 };
-import { HangulComposer } from '../insadong/keyboard/hangul';
-import type { KeyAction } from '../insadong/keyboard/VirtualKeyboard';
-import { HwaseongBanner } from './HwaseongBanner';
-import { HwaseongLeftNav } from './HwaseongLeftNav';
-import styles from './HwaseongHome.module.css';
 
-interface Props {
-  controller: KioskController;
+/** 스마트관광 caption when the sheet's MainButton_SmartTour is blank (base word;
+ *  withComingSoon adds 준비중). */
+const SMART_TOUR: Text = {
+  ko: '스마트관광',
+  en: 'Smart Tourism',
+  ja: 'スマート観光',
+  zh: '智慧旅游',
+  vi: 'Du lịch thông minh',
+  th: 'การท่องเที่ยวอัจฉริยะ',
+  ru: 'Умный туризм',
+  id: 'Pariwisata Cerdas',
+};
+
+/** Language button label — must match the 언어선택 pill codes (HwaseongLanguage). */
+const LANG_CODE: Record<string, string> = {
+  ko: 'KR', en: 'EN', ja: 'JP', zh: 'CN', vi: 'VN', th: 'TH', ru: 'RU', id: 'ID',
+};
+
+/**
+ * NoticeContent as bold/plain runs (`<b>…</b>`; a mistyped `<b>…<b>` still
+ * closes). Line breaks become spaces: the rule beside the copy is drawn for
+ * three 70px lines, and the text wraps to its 977px box.
+ */
+type Run = { text: string; bold?: boolean };
+function parseNotice(text: string): Run[] {
+  const runs: Run[] = [];
+  let bold = false;
+  for (const tok of text.split(/(<\s*\/?\s*b\s*>|<\s*br\s*\/?\s*>|\n)/gi)) {
+    if (!tok) continue;
+    if (/^<\s*\/?\s*b\s*>$/i.test(tok)) {
+      bold = /^<\s*\//.test(tok) ? false : !bold;
+      continue;
+    }
+    if (tok === '\n' || /^<\s*br/i.test(tok)) {
+      runs.push({ text: ' ' });
+      continue;
+    }
+    runs.push({ text: tok, bold });
+  }
+  return runs;
 }
 
-// ── Date formatting ────────────────────────────────────────────────
+// ── Date / time ────────────────────────────────────────────────────────
 const DAY_NAMES = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 
-function formatDate(d: Date): string {
+/** `2025-09-13(Mon)  ㅣ  06:00` — the frame's top-bar format. */
+function formatDateTime(d: Date): string {
   const y = d.getFullYear();
   const m = String(d.getMonth() + 1).padStart(2, '0');
   const day = String(d.getDate()).padStart(2, '0');
-  const dow = DAY_NAMES[d.getDay()];
-  return `${y}-${m}-${day}(${dow})`;
+  const hh = String(d.getHours()).padStart(2, '0');
+  const mm = String(d.getMinutes()).padStart(2, '0');
+  return `${y}-${m}-${day}(${DAY_NAMES[d.getDay()]})  ㅣ  ${hh}:${mm}`;
 }
 
-type NoticeRun = { t: string; b?: boolean };
+/** 키보드 tray top — Figma 7956:82920 draws it at 1315, 3 over the search row
+ *  (1136 + 182). */
+const KEYBOARD_TOP = 1315;
 
-/**
- * The notice badge is drawn as a narrow column, one glyph per line — the sheet
- * stacks it that way for ko "공/지", en "I/N/F/O", ja and zh. For vi / id / th /
- * ru the Hwaseong sheet has a single word instead ("уведомление"), which sits
- * as one wide line and squeezes the notice text into a thin vertical column.
- * Until the sheet stacks those too, they use the stacked badges the Insadong
- * sheet already has. A sheet value that contains a line break always wins.
- */
-const NOTICE_BADGE_STACKED: Partial<Record<Lang, string>> = {
-  vi: 'C\nH\nÚ\nÝ',
-  th: 'แ\nจ้\nง',
-  ru: 'И\nН\nФ\nО',
-  id: 'I\nN\nF\nO',
-};
-
-/**
- * 스마트 관광 (bottom-left, 준비중) for when the sheet's MainButton_SmartTour cell
- * is empty. The Korean is baked into fg-bottomnav.png, so `ko` is never drawn.
- */
-const SMART_TOUR_FALLBACK: Partial<Record<Lang, string>> = {
-  ko: '스마트 관광(준비중)',
-  en: 'Smart Tourism (Preparing)',
-  ja: 'スマート観光（準備中）',
-  zh: '智慧旅游（准备中）',
-  vi: 'Du lịch thông minh (Đang chuẩn bị)',
-  th: 'การท่องเที่ยวอัจฉริยะ (เร็วๆ นี้)',
-  ru: 'Умный туризм (Скоро)',
-  id: 'Pariwisata Cerdas (Segera hadir)',
-};
-
-/** "Name (준비중)" → ["Name", "(준비중)"] — the baked Korean's two lines. */
-function splitPending(label: string): string[] {
-  const m = label.match(/^(.*?)\s*([(（].*)$/);
-  return m && m[1] ? [m[1], m[2]!] : [label];
-}
-
-/** Same as Insadong/Osan: `\n` = line break, `<b>…</b>` = bold. */
-function parseNotice(text: string): NoticeRun[][] {
-  const lines: NoticeRun[][] = [[]];
-  let bold = false;
-  for (const tok of text.split(/(<b>|<\/b>|\n)/g)) {
-    if (tok === '') continue;
-    if (tok === '<b>') bold = true;
-    else if (tok === '</b>') bold = false;
-    else if (tok === '\n') lines.push([]);
-    else lines[lines.length - 1]!.push({ t: tok, b: bold });
-  }
-  return lines;
-}
-
-// ── Tile definitions ───────────────────────────────────────────────
-interface Tile {
-  screen: KioskScreenId;
-  /** Korean label — kept for analytics (button_type stays language-stable). */
-  label: string;
-  /** Localization_Hwaseong key — what the tile actually displays. */
-  labelKey: string;
-  icon: string; // hwaseongIconUrl key
-}
-
-// Icons are the actual Figma tile renders (fg-*), exported 1:1 from the
-// matching Figma node so every tile is pixel-exact to the design. Each tile's
-// visible text comes from the sheet (labelKey) so it switches with the language.
-// Row 1: wide traffic card + 2 square tiles
-const ROW1_WIDE: Tile = { screen: 'transport',  label: '전국도로교통상황', labelKey: 'MainButton_TrafficInfo', icon: 'fg-traffic'  };
-// Per Figma 4167-176562: 전국시장 is the top row's 2nd tile, 전국휴게소 the 2nd
-// row's 3rd tile. Only the LABEL/destination moved — each grid slot keeps its
-// original icon art (so fg-reststop stays at row 1, fg-market at row 2).
-const ROW1: HomeTile[] = [
-  { screen: 'market',      label: '전국시장(준비중)', labelKey: 'MainButton_TraditionalMarket', icon: 'fg-reststop', disabled: true },
-  { screen: 'events',      label: '화성시 이벤트',    labelKey: 'MainButton_Event',             icon: 'fg-event'    },
-];
-
-// Rows 2–4: 4 tiles each
-const ROW2: Tile[] = [
-  { screen: 'food_court',  label: "'휴' 뭐먹지", labelKey: 'MainButton_ToEat',       icon: 'fg-eat'     },
-  { screen: 'shop',        label: "'휴' 뭐사지", labelKey: 'MainButton_ToBuy',       icon: 'fg-buy'     },
-  { screen: 'convenience', label: '전국휴게소',   labelKey: 'MainButton_ServiceArea', icon: 'fg-market'  },
-  { screen: 'taxfree',     label: 'TAX-FREE',    labelKey: 'MainButton_TaxFree',     icon: 'fg-taxfree' },
-];
-
-const ROW3_HEAD: Tile[] = [
-  { screen: 'tourism',   label: '화성휴게소',      labelKey: 'MainButton_Here',     icon: 'fg-resthome' },
-  { screen: 'hello',     label: "안녕 '휴'",       labelKey: 'MainButton_Greeting', icon: 'fg-hello'    },
-  { screen: 'help',      label: "도와줘 '휴'",     labelKey: 'MainButton_ToHelp',   icon: 'fg-help'     },
-];
-
-/** Row 3's last tile (grid slot 14) — 기부 on kiosks running the donation app,
- *  화성휴게소 지도 otherwise. Mutually exclusive: the CMS carries a row for exactly
- *  one of them, so rendering both drops the grid to authored order. See
- *  useHasDonationTile. */
-const MAP_TILE: Tile = { screen: 'parking', label: '화성휴게소 지도', labelKey: 'MainButton_SAMap', icon: 'fg-map' };
-const DONATION_TILE: Tile = { screen: 'donation', label: '기부', labelKey: 'MainButton_Donation', icon: 'fg-donation' };
-
-/** A tile plus optional flags: `disabled` (준비중), `wide` (the 2-col traffic card),
- *  and an explicit DB `slot`. `slot` disambiguates tiles that share a screen key
- *  (the three `rest_info` tiles → slots 16/17/18) so each joins to a distinct API row. */
-type HomeTile = Tile & { disabled?: boolean; wide?: boolean; slot?: number };
-
-const ROW4: HomeTile[] = [
-  { screen: 'exchange',  label: '환율',          labelKey: 'MainButton_Exchange',    icon: 'fg-exchange' },
-  { screen: 'rest_info', label: '문화재(준비중)', labelKey: 'MainButton_Property',    icon: 'fg-heritage', disabled: true, slot: 16 },
-  { screen: 'rest_info', label: 'K-컬처(준비중)', labelKey: 'MainButton_KCulture',    icon: 'fg-kculture', disabled: true, slot: 17 },
-  { screen: 'rest_info', label: '지역화폐',       labelKey: 'MainButton_MarketPaper', icon: 'fg-localpay', slot: 18 },
-];
-
-/** Row 3 with its slot-14 tile resolved (기부 vs 지도). 기부 is inert while
- *  soft-launching (준비중) — same as the other disabled tiles. */
-function row3For(hasDonation: boolean): HomeTile[] {
-  const slot14: HomeTile = hasDonation
-    ? { ...DONATION_TILE, disabled: DONATION_COMING_SOON }
-    : MAP_TILE;
-  return [...ROW3_HEAD, slot14];
-}
-
-/** Flat tile list in authored order — reordered to the CMS layout by useApiTileRows.
- *  ROW1_WIDE is the 2-column traffic card (wide flag is local: the API span is null). */
-function allTilesFor(hasDonation: boolean): HomeTile[] {
-  return [{ ...ROW1_WIDE, wide: true }, ...ROW1, ...ROW2, ...row3For(hasDonation), ...ROW4];
-}
-
-/** Join a Hwaseong tile to its CMS button — by explicit slot when the screen key
- *  is shared (rest_info), else by screen key (see useApiTileRows). */
-const hwaseongTileKey = (t: HomeTile): TileKey => ({ screen: t.screen, slot: t.slot });
-
-// ── Sub-components ──────────────────────────────────────────────────
-function SquareTile({ tile, label, onClick, disabled, longLang }: { tile: Tile; label: string; onClick: () => void; disabled?: boolean; longLang: boolean }) {
-  const src = hwaseongIconUrl(tile.icon);
-  return (
-    <div className={`${styles.tileWrap} ${disabled ? styles.tileDisabled : ''}`} onClick={disabled ? undefined : onClick}>
-      <div className={styles.tileCard}>
-        {src ? (
-          <img src={src} alt={label} className={styles.tileCardImg} draggable={false} />
-        ) : (
-          <div style={{ width: '100%', height: '100%', background: '#e0e0e0', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 48, color: '#999' }}>
-            {label[0]}
-          </div>
-        )}
-      </div>
-      <span className={`${styles.tileLabel} ${longLang ? styles.tileLabelLong : ''}`}>{label}</span>
-    </div>
-  );
-}
-
-/** The wide traffic-style card (spans 2 columns). */
-function WideTile({ tile, label, onClick, longLang }: { tile: Tile; label: string; onClick: () => void; longLang: boolean }) {
-  const src = hwaseongIconUrl(tile.icon);
-  return (
-    <div className={styles.tileWrapWide} onClick={onClick}>
-      <div className={styles.tileCardWide}>
-        {src ? (
-          <img src={src} alt={label} className={styles.tileCardImg} draggable={false} />
-        ) : (
-          <div style={{ width: '100%', height: '100%', background: '#fff48d', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 48 }}>
-            🚗
-          </div>
-        )}
-      </div>
-      <span className={`${styles.tileLabel} ${longLang ? styles.tileLabelLong : ''}`}>{label}</span>
-    </div>
-  );
-}
-
-/** Renders a tile as the wide traffic card (tile.wide) or a square tile. */
-function TileView({ tile, label, onClick, disabled, longLang }: { tile: HomeTile; label: string; onClick: () => void; disabled?: boolean; longLang: boolean }) {
-  if (tile.wide) return <WideTile tile={tile} label={label} onClick={onClick} longLang={longLang} />;
-  return <SquareTile tile={tile} label={label} onClick={onClick} disabled={disabled} longLang={longLang} />;
-}
-
-// ── Main component ──────────────────────────────────────────────────
 export function HwaseongHome({ controller }: Props): JSX.Element {
+  const { navigate, startPhoto, kioskId } = controller;
   const weather = useWeatherStore((s) => s.weather);
   const playWeatherVideo = useWeatherVideo();
-  const today = useMemo(() => formatDate(new Date()), []);
   const lang = useLanguageStore((s) => s.currentLanguage);
-  /* Korean is what the row pitch was drawn around; every other language runs
-     longer. See "Other languages" at the foot of the CSS. (`longLang`, not
-     `wide` — a tile's own `wide` means it spans two columns.) */
-  const longLang = lang !== 'ko';
-  const gridRef = useRef<HTMLDivElement>(null);
-  const smartTourRef = useRef<HTMLDivElement>(null);
-  // Sheet-driven (Localization_Hwaseong): NoticeContent = body, Notice = vertical badge.
-  const noticeLines = parseNotice(t('NoticeContent', lang));
-  const noticeRaw = t('Notice', lang);
-  const noticeBadge = (noticeRaw.includes('\n') ? noticeRaw : (NOTICE_BADGE_STACKED[lang] ?? noticeRaw))
-    .split('\n')
-    .map((s) => s.trim())
-    .filter(Boolean);
-  const setStoreQuery = useSearchStore((s) => s.setQuery);
-  // Tile label: curated override (proper ja/zh) → sheet value. Active tiles
-  // strip a stale "(준비중)" suffix (e.g. a cached 전국시장(준비중)); only the
-  // genuinely-disabled tiles keep their 준비중 marker.
-  const L = (key: string): string => buttonText(key, lang) ?? t(key, lang);
-  const TILE = (key: string, keepPending = false): string =>
-    keepPending ? L(key) : L(key).replace(/\s*\(준비중\)\s*/g, '').trim();
-  // 기부 resolves through labelKey like every other tile (MainButton_Donation now
-  // carries all 8 languages in every location's sheet); the localized "(준비중)"
-  // suffix is appended while soft-launching.
-  // TAX-FREE stays the hardcoded brand string in every language — same as Osan,
-  // which omits MainButton_TaxFree from TILE_LABEL_KEYS and uses tile.label.
-  const tileLabel = (tile: HomeTile): string => {
-    if (tile.screen === 'taxfree') return 'TAX-FREE';
-    const base = TILE(tile.labelKey, tile.disabled);
-    if (tile.screen !== 'donation') return base;
-    return DONATION_COMING_SOON ? withComingSoon(base, lang) : base;
-  };
+  const low = useAccessibilityStore((s) => s.lowReach);
+  const setSearchQuery = useSearchStore((s) => s.setQuery);
 
-  // Inline search keyboard (no navigation on tap — keyboard shows in place).
+  const [now, setNow] = useState(() => new Date());
+  useEffect(() => {
+    const id = setInterval(() => setNow(new Date()), 30_000);
+    return () => clearInterval(id);
+  }, []);
+  const clock = useMemo(() => formatDateTime(now), [now]);
+
+  // Inline search keyboard — the field never navigates on tap, only on Enter.
   const composer = useRef(new HangulComposer());
   const [query, setQuery] = useState('');
   const [searching, setSearching] = useState(false);
 
-  function applyKey(action: KeyAction): void {
+  const submitSearch = (): void => {
+    const q = composer.current.value.trim();
+    setSearching(false);
+    if (q) {
+      trackEvent({ name: 'button_clicked', payload: { screen: 'search_submit', query: q, kioskId } });
+      setSearchQuery(q);
+      navigate('search', '검색');
+    }
+  };
+
+  const applyKey = (action: KeyAction): void => {
     const c = composer.current;
     switch (action.type) {
       case 'jamo':      c.inputJamo(action.value);    break;
       case 'literal':   c.inputLiteral(action.value); break;
       case 'space':     c.inputLiteral(' ');          break;
       case 'backspace': c.backspace();                break;
-      case 'enter':
-        // Only on Enter do we leave the home page → show results.
-        setStoreQuery(c.value.trim());
-        setSearching(false);
-        controller.navigate('search');
-        return;
+      case 'enter':     submitSearch(); return;
     }
     setQuery(c.value);
-  }
+  };
 
-  function go(tile: Tile): void {
-    // navigate() resolves the DB button id (buttonCatalog) and fires the
-    // button_clicked + menu-touch analytics — same path as the other kiosks.
-    controller.navigate(tile.screen, tile.label);
-  }
+  /**
+   * 기부 is in the frame, but the flow only exists where the donation app runs
+   * (useHasDonationTile) and is live. Anywhere else it stays drawn and coloured,
+   * labelled 준비중, and inert. The old grid's 화성휴게소 지도 alternative for
+   * slot 14 is not in the redesign.
+   */
+  const hasDonation = useHasDonationTile(kioskId);
+  const donationPending = DONATION_COMING_SOON || !hasDonation;
 
-  // Slot 14 is 기부 or 화성휴게소 지도 depending on whether this kiosk runs the
-  // donation app — resolved before ordering so both the CMS and authored paths agree.
-  const hasDonation = useHasDonationTile(controller.kioskId);
-  const allTiles = useMemo(() => allTilesFor(hasDonation), [hasDonation]);
-  const row3 = useMemo(() => row3For(hasDonation), [hasDonation]);
+  /*
+   * The grid renders in the frame's order. The buttons CMS still carries the
+   * pre-redesign layout (the wide traffic card in row 1, 지도 in slot 14), so
+   * ordering by it would scramble the new grid — re-enable useOrderedTiles once
+   * the CMS rows match this frame.
+   */
 
-  // CMS-driven menu order (grouped into rows by line, sorted by position). null →
-  // keep the authored rows below (offline / partial data / any cell collision).
-  const dynamicRows = useApiTileRows(controller.kioskId, allTiles, hwaseongTileKey);
+  // Sheet value (curated buttonText first), else the frame's Korean.
+  const sheet = (key: string): string => {
+    const v = buttonText(key, lang) ?? t(key, lang);
+    return v && v !== key ? v : '';
+  };
+  const titleOf = (item: Tile | Card): string => {
+    if (item.screen === 'taxfree') return 'TAX-FREE';
+    const gated = 'pending' in item && item.pending;
+    const base = sheet(item.titleKey) || item.title;
+    // Live tiles drop a stale "(준비중)" the sheet may still carry.
+    return gated ? base : base.replace(/\s*\(준비중\)\s*/g, '').trim();
+  };
+  // Second line: the sheet's *_Subtext row, else the authored copy.
+  const subOf = (item: Tile | Card): string => sheetText(item.subKey, lang, item.sub);
+  const isInert = (tile: Tile): boolean => !!tile.pending || (tile.screen === 'donation' && donationPending);
+  const tileTitle = (tile: Tile): string => {
+    const base = titleOf(tile);
+    if (tile.screen === 'donation' && donationPending) return withComingSoon(base, lang);
+    // Other languages: a gated tile carries the one short localized marker. The
+    // sheet writes some as a phrase — 문화재 is "Культурное наследие (в процессе
+    // подготовки)", three lines in the tile — so its own trailing (…) goes first.
+    if (tile.pending && lang !== 'ko') return pending(base.replace(/\s*[(（][^)）]*[)）]\s*$/, ''));
+    // 전국시장 is gated but its frame title has no marker; add the localized one.
+    if (tile.screen === 'market' && tile.pending) return pending(base.replace(/\s*\(준비중\)\s*/g, ''));
+    return base;
+  };
+  // Korean writes the marker tight, as the frame does (문화재(준비중)).
+  const pending = (base: string): string => (lang === 'ko' ? `${base}(준비중)` : withComingSoon(base, lang));
 
-  const weatherIcon = weather
-    ? weatherIconUrl(weatherIconName(weather.icon, weather.main))
-    : undefined;
+  const noticeRuns = parseNotice(t('NoticeContent', lang));
+  const noticeBody = noticeRuns.map((run, i) =>
+    run.bold ? <b key={i}>{run.text}</b> : <span key={i}>{run.text}</span>,
+  );
 
-  useFitText(gridRef, styles.tileLabel, longLang, 0.7, `${lang}|${dynamicRows ? 'dyn' : 'static'}`);
+  const weatherIcon = weather ? weatherIconUrl(weatherIconName(weather.icon, weather.main)) : undefined;
 
-  // 스마트 관광 (bottom-left): the sheet's MainButton_SmartTour, else the authored
-  // copy. Drawn as name / (준비중) on two lines, the way the baked Korean is, and
-  // shrunk to the strip when a translation is longer than it ('ink': the strip
-  // centres its text, so an overlong line spills out of both sides).
-  const smartTourLabel = tExact('MainButton_SmartTour', lang) || pick(SMART_TOUR_FALLBACK, lang);
-  const smartTourLines = splitPending(smartTourLabel);
-  useFitText(smartTourRef, styles.bottomNavSmartLabel, lang !== 'ko', 0.6, smartTourLabel, 'ink');
+  const smartTourLabel =
+    tExact('MainButton_SmartTour', lang) || (lang === 'ko' ? '스마트관광(준비중)' : pending(pick(SMART_TOUR, lang)));
+
+  /**
+   * Other languages: Korean is laid out exactly as the frame draws it. Every
+   * other language runs longer, so the notice, the cards and the tile text wrap
+   * through the band each has and then scale down together (fitText).
+   */
+  const wide = lang !== 'ko';
+  const noticeRef = useRef<HTMLDivElement>(null);
+  const cardsRef = useRef<HTMLDivElement>(null);
+  const gridRef = useRef<HTMLDivElement>(null);
+  const fitKey = [
+    lang,
+    noticeRuns.map((r) => r.text).join(''),
+    CARDS.map((c) => titleOf(c) + subOf(c)).join('|'),
+    TILES.map((tile) => tileTitle(tile) + subOf(tile)).join('|'),
+  ].join('§');
+  useFitText(noticeRef, styles.noticeLead, wide, 0.7, fitKey);
+  useFitText(cardsRef, styles.cardText, wide, 0.75, fitKey);
+  useFitText(gridRef, styles.tileText, wide, 0.7, fitKey);
+
+  const icon = hwaseongIconUrl;
 
   return (
-    <div className={styles.root}>
-      {/* ── Background layers ── */}
-      <div className={styles.bgBase} />
-      {hwaseongIconUrl('bg') && (
-        <img
-          src={hwaseongIconUrl('bg')}
-          alt=""
-          className={styles.bgImage}
-          draggable={false}
-        />
-      )}
-
-      {/* ── Header ─────────────────────────────────── */}
-      <div className={styles.header}>
-        {/* Row 1: site name + date */}
-        <div className={styles.headerTopRow}>
-          <div className={styles.headerLeft}>
-            {hwaseongIconUrl('location-pin') && (
-              <img
-                src={hwaseongIconUrl('location-pin')}
-                alt=""
-                className={styles.locationIcon}
-                draggable={false}
-              />
+    <div className={low ? `${styles.root} ${styles.homeLow}` : styles.root}>
+      {/* ── Top bar: location + date/time ── */}
+      <div className={styles.topBar}>
+        <div className={styles.topLeft}>
+          <span className={styles.locationIcon}>
+            {icon('home-location') && (
+              <img src={icon('home-location')} alt="" className={styles.locationIconImg} draggable={false} />
             )}
-            <span className={styles.siteName}>HWASEONG SA</span>
-          </div>
-          <span className={styles.headerDate}>{today}</span>
+          </span>
+          <span className={styles.siteName}>HWASEONG S/A</span>
         </div>
-
-        {/* Row 2: notice + weather */}
-        <div className={styles.headerBottomRow}>
-          {/* Notice card — layout matches Insadong/Osan so EN INFO + long copy wrap inside. */}
-          <div className={styles.notice}>
-            <div className={styles.noticeBadge}>
-              {noticeBadge.map((ch, i) => (
-                <span key={i}>{ch}</span>
-              ))}
-            </div>
-            <div className={styles.noticeDivider} />
-            <p className={styles.noticeText}>
-              {noticeLines.map((line, i) => (
-                <span key={i} className={styles.noticeLine}>
-                  {line.map((run, j) => (
-                    <span key={j} className={run.b ? styles.noticeBold : undefined}>
-                      {run.t}
-                    </span>
-                  ))}
-                </span>
-              ))}
-            </p>
-          </div>
-
-          {/* Weather card — tap plays today's condition clip on the customer
-              display (Weather_Rain/Cold/Sunny), same as the other kiosks. */}
-          <div
-            className={styles.weatherCard}
-            role="button"
-            aria-label="오늘 날씨 영상"
-            onClick={playWeatherVideo}
-          >
-            {weatherIcon && (
-              <img src={weatherIcon} alt="" className={styles.weatherIconImg} draggable={false} />
-            )}
-            {weather ? (
-              <span className={styles.weatherTemp}>{Math.round(weather.tempC)}˚</span>
-            ) : (
-              <span className={styles.weatherTemp}>--˚</span>
-            )}
-          </div>
-        </div>
+        <span className={styles.dateTime}>{clock}</span>
       </div>
 
-      {/* ── Content (search + menu grid) ─────────────── */}
-      <div className={styles.content}>
-        {/* Search bar */}
-        <div className={styles.searchBar}>
-          {hwaseongIconUrl('ico-home') ? (
-            <img
-              src={hwaseongIconUrl('ico-home')}
-              alt=""
-              className={styles.searchHomeIcon}
-              draggable={false}
-              onClick={() => controller.navigate('home')}
-            />
-          ) : (
-            <div style={{ width: 180, height: 180, borderRadius: '50%', background: 'var(--kiosk-primary)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}
-              onClick={() => controller.navigate('home')}>
-              <svg width="80" height="80" viewBox="0 0 24 24" fill="white"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
+      {/* ── 공지 card + weather ── */}
+      <div className={styles.notice}>
+        {wide ? (
+          <div className={`${styles.noticeLead} ${styles.noticeLeadWide}`} ref={noticeRef}>
+            <div className={styles.noticeRow}>
+              <div className={styles.noticeRule} />
+              <p className={`${styles.noticeText} ${styles.noticeTextWide}`}>{noticeBody}</p>
             </div>
-          )}
-
-          <div className={styles.searchField} onClick={() => setSearching(true)}>
-            <span className={styles.searchFieldText}>
-              {query ? (
-                <span className={styles.searchValue}>{query}</span>
-              ) : (
-                <span className={styles.searchPlaceholder}>{pick(SEARCH_PLACEHOLDER, lang)}</span>
-              )}
-              {searching && <span className={styles.searchCaret} />}
-            </span>
-            <SearchIcon className={styles.searchIcon} />
           </div>
-
-          <div className={styles.langBtn} onClick={() => controller.navigate('language')}>
-            <span className={styles.langBtnText}>{LANG_CODE[lang] ?? 'KR'}</span>
-          </div>
-        </div>
-
-        {/* Menu grid — API-ordered when a full layout is cached, else authored. */}
-        <div ref={gridRef} className={styles.menuGrid}>
-          {dynamicRows
-            ? dynamicRows.map((row, i) => (
-                <div key={i} className={styles.menuRow}>
-                  {row.map((tile) => (
-                    <TileView
-                      key={tile.screen + tile.label}
-                      tile={tile}
-                      label={tileLabel(tile)}
-                      onClick={() => go(tile)}
-                      disabled={tile.disabled}
-                      longLang={longLang}
-                    />
-                  ))}
-                </div>
-              ))
-            : (
-              <>
-                {/* Row 1: wide + 2 */}
-                <div className={styles.menuRow}>
-                  {/* Wide traffic tile */}
-                  <WideTile tile={ROW1_WIDE} label={TILE(ROW1_WIDE.labelKey)} onClick={() => go(ROW1_WIDE)} longLang={longLang} />
-
-                  {/* 2 square tiles */}
-                  {ROW1.map((tile) => (
-                    <SquareTile key={tile.screen + tile.label} tile={tile} label={TILE(tile.labelKey, tile.disabled)} onClick={() => go(tile)} disabled={tile.disabled} longLang={longLang} />
-                  ))}
-                </div>
-
-                {/* Row 2 */}
-                <div className={styles.menuRow}>
-                  {ROW2.map((tile) => (
-                    <SquareTile key={tile.screen + tile.label} tile={tile} label={tileLabel(tile)} onClick={() => go(tile)} longLang={longLang} />
-                  ))}
-                </div>
-
-                {/* Row 3 — its slot-14 tile (기부) can be disabled while 준비중, so
-                    pass disabled + keepPending like ROW1/ROW4 do. */}
-                <div className={styles.menuRow}>
-                  {row3.map((tile) => (
-                    <SquareTile key={tile.screen + tile.label} tile={tile} label={tileLabel(tile)} onClick={() => go(tile)} disabled={tile.disabled} longLang={longLang} />
-                  ))}
-                </div>
-
-                {/* Row 4 */}
-                <div className={styles.menuRow}>
-                  {ROW4.map((tile) => (
-                    <SquareTile key={tile.screen + tile.label} tile={tile} label={TILE(tile.labelKey, tile.disabled)} onClick={() => go(tile)} disabled={tile.disabled} longLang={longLang} />
-                  ))}
-                </div>
-              </>
-            )}
-        </div>
-      </div>
-
-      <HwaseongLeftNav onHome={() => controller.navigate('home')} />
-
-      {/* ── Bottom nav (single Figma render incl. labels) ── */}
-      <div className={styles.bottomNav}>
-        {hwaseongIconUrl('fg-bottomnav') && (
-          <img src={hwaseongIconUrl('fg-bottomnav')} alt="" className={styles.bottomNavImg} draggable={false} />
-        )}
-
-        {/* Transparent click zones over the three buttons (Figma coords) */}
-        {/* 스마트 관광 — 준비중: not clickable, no navigation */}
-        <div className={styles.bottomNavZoneLeft} aria-label={smartTourLabel} />
-        {/* Other languages: covers the Korean "스마트 관광 (준비중)" baked into
-            fg-bottomnav.png, like the WC label. Korean keeps the baked art. */}
-        {lang !== 'ko' && (
-          <div ref={smartTourRef} className={styles.bottomNavSmartLabel}>
-            {smartTourLines.map((line, i) => (
-              <span key={i} className={styles.bottomNavSmartLine}>
-                {line}
-              </span>
-            ))}
+        ) : (
+          <div className={styles.noticeLead}>
+            <div className={styles.noticeRule} />
+            <p className={styles.noticeText}>{noticeBody}</p>
           </div>
         )}
-        <button
-          type="button"
-          className={styles.bottomNavZoneCenter}
-          onClick={() => controller.startPhoto()}
-          aria-label="AR 한복체험"
-        />
-        <button
-          type="button"
-          className={styles.bottomNavZoneRight}
-          onClick={() => controller.navigate('restroom', '화장실')}
-          aria-label={t('MainButton_WC', lang)}
-        >
-          {/* Covers the Korean label baked into fg-bottomnav.png so language can switch. */}
-          <span className={styles.bottomNavWcLabel}>{t('MainButton_WC', lang)}</span>
+
+        {/* Tapping the weather plays today's condition clip on the customer display. */}
+        <button type="button" className={styles.weather} onClick={playWeatherVideo} aria-label="오늘 날씨 영상">
+          <span className={styles.weatherTemp}>{weather ? `${Math.round(weather.tempC)}˚` : '--˚'}</span>
+          {weatherIcon && <img src={weatherIcon} alt="" className={styles.weatherIcon} draggable={false} />}
         </button>
       </div>
 
-      <HwaseongBanner onClick={() => controller.startPhoto()} />
+      {/* ── 도로교통상황 board + 교통정보 더보기 ── */}
+      <HwaseongTrafficBoard controller={controller} lang={lang} low={low} />
 
-      {/* Inline search keyboard — shows in place, no navigation */}
-      <FloatingKeyboard open={searching} onKey={applyKey} onClose={() => setSearching(false)} lang={lang} />
+      {/* ── Search row ── */}
+      <div className={styles.searchRow}>
+        <button type="button" className={styles.searchHome} onClick={() => navigate('home', '홈')} aria-label="홈">
+          {icon('home-search-home') && (
+            <img src={icon('home-search-home')} alt="" className={styles.searchHomeImg} draggable={false} />
+          )}
+        </button>
+
+        <div className={styles.searchField} onClick={() => setSearching(true)} role="button">
+          <span className={`${styles.searchText} ${query ? styles.searchValue : styles.searchPlaceholder}`}>
+            {query || pick(SEARCH_PLACEHOLDER, lang)}
+            {searching && <span className={styles.searchCaret} />}
+          </span>
+          <span className={styles.searchIcon}>
+            <SearchIcon className={styles.searchIconSvg} />
+          </span>
+        </div>
+
+        <button type="button" className={styles.langBtn} onClick={() => navigate('language', '언어선택')} aria-label="언어선택">
+          {LANG_CODE[lang] ?? lang.toUpperCase()}
+        </button>
+      </div>
+
+      {/* ── Three feature cards ── */}
+      <div className={styles.cards} ref={cardsRef}>
+        {CARDS.map((card) => {
+          const title = <span className={styles.cardTitle}>{titleOf(card)}</span>;
+          const sub = <span className={styles.cardSub}>{subOf(card)}</span>;
+          return (
+            <button
+              key={card.screen}
+              type="button"
+              className={`${styles.card} ${styles[card.variant]}`}
+              onClick={() => navigate(card.screen, card.label)}
+            >
+              {wide ? (
+                <span className={styles.cardText}>
+                  {title}
+                  {sub}
+                </span>
+              ) : (
+                <>
+                  {title}
+                  {sub}
+                </>
+              )}
+              {card.variant === 'cardTraffic' && icon('home-card-traffic') && (
+                <img src={icon('home-card-traffic')} alt="" className={styles.cardArt} draggable={false} />
+              )}
+              {card.variant === 'cardRest' && icon('home-card-reststop') && (
+                <img src={icon('home-card-reststop')} alt="" className={styles.cardArt} draggable={false} />
+              )}
+              {card.variant === 'cardEvents' && <EventsArt />}
+            </button>
+          );
+        })}
+      </div>
+
+      {/* ── Menu grid on its white panel ── */}
+      <div className={styles.panel} />
+      <div className={styles.grid} ref={gridRef}>
+        {TILES.map((tile, i) => {
+          const inert = isInert(tile);
+          const art = tile.art;
+          const src = art ? icon(art.icon) : undefined;
+          return (
+            <button
+              key={tile.label}
+              type="button"
+              className={inert ? `${styles.tile} ${styles.tileInert}` : styles.tile}
+              style={
+                low
+                  ? { left: (i % LOW_COLS) * LOW_COL_STEP, top: Math.floor(i / LOW_COLS) * LOW_ROW_STEP }
+                  : { left: (i % COLS) * COL_STEP, top: Math.floor(i / COLS) * ROW_STEP }
+              }
+              onClick={inert ? undefined : () => navigate(tile.screen, tile.label)}
+              aria-disabled={inert || undefined}
+            >
+              <span className={styles.plate} style={{ background: tile.plate }}>
+                {art === null ? (
+                  <GoodsArt />
+                ) : src ? (
+                  <img
+                    src={src}
+                    alt=""
+                    className={styles.plateArt}
+                    style={{ left: art.left, top: art.top, width: art.width, height: art.height }}
+                    draggable={false}
+                  />
+                ) : null}
+              </span>
+              <span className={`${styles.tileText} ${wide ? styles.tileTextFit : ''}`}>
+                <span className={styles.tileTitle} style={!wide && tile.tracking ? { letterSpacing: tile.tracking } : undefined}>
+                  {tileTitle(tile)}
+                </span>
+                <span className={styles.tileSub}>{subOf(tile)}</span>
+              </span>
+            </button>
+          );
+        })}
+      </div>
+
+      {/* ── Left nav: home · back · ♿ (shared with every content screen) ── */}
+      <HwaseongLeftNav onHome={() => navigate('home', '홈')} onBack={() => navigate('home', '뒤로')} />
+
+      {/* ── Bottom actions: 스마트관광 · 사진촬영 · 화장실 ── */}
+      {/* 스마트관광 is 준비중: full colour, not tappable. */}
+      <div className={styles.smartTour} aria-disabled="true">
+        {icon('home-smarttour') && <img src={icon('home-smarttour')} alt="" className={styles.smartTourImg} draggable={false} />}
+      </div>
+      <span className={`${styles.actionLabel} ${styles.labelSmartTour}`}>{smartTourLabel}</span>
+
+      <button type="button" className={styles.camera} onClick={startPhoto} aria-label="사진 촬영">
+        {icon('home-camera') && <img src={icon('home-camera')} alt="" className={styles.actionImg} draggable={false} />}
+      </button>
+
+      <button type="button" className={styles.restroom} onClick={() => navigate('restroom', '화장실')} aria-label="화장실">
+        {icon('home-restroom-disc') && <img src={icon('home-restroom-disc')} alt="" className={styles.actionImg} draggable={false} />}
+        <span className={`${styles.wcFigure} ${styles.wcFigureLeft}`}>
+          <img src={icon('home-restroom-figures')} alt="" draggable={false} />
+        </span>
+        <span className={`${styles.wcFigure} ${styles.wcFigureRight}`}>
+          <img src={icon('home-restroom-figures')} alt="" draggable={false} />
+        </span>
+        <img src={icon('home-restroom-dot')} alt="" className={styles.wcDot} draggable={false} />
+      </button>
+      <span className={`${styles.actionLabel} ${styles.labelRestroom}`}>{t('MainButton_WC', lang)}</span>
+
+      <FloatingKeyboard
+        open={searching}
+        onKey={applyKey}
+        onClose={() => setSearching(false)}
+        lang={lang}
+        lightBackspace
+        top={low ? LOW_KEYBOARD_TOP : KEYBOARD_TOP}
+      />
+
+      {/* ♿ the 가상 한복 promo moves up under the mode bar (Figma 7904:105362). */}
+      {low && <HwaseongBanner onClick={startPhoto} top={146} />}
     </div>
   );
 }

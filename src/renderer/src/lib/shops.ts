@@ -256,6 +256,62 @@ export function shopOpenTime(openTime: string | null | undefined): string {
 
   return sanitized;
 }
+
+const WEEKDAY_EN = ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat'];
+const WEEKDAY_KO = ['일', '월', '화', '수', '목', '금', '토'];
+const HHMM = String.raw`(\d{1,2}):(\d{2})`;
+const RANGE = new RegExp(`${HHMM}\\s*[~\\-–]\\s*${HHMM}`);
+const BREAK = new RegExp(`(?:break|브레이크|휴게)[^0-9]*${HHMM}\\s*[~\\-–]\\s*${HHMM}`, 'i');
+
+const minutesOf = (h: string, m: string): number => Number(h) * 60 + Number(m);
+
+/**
+ * Whether a shop is open at `now`, read from its free-text `openTime`, or null
+ * when the text gives no hours to judge by.
+ *
+ * The witteria rows are hand-typed, so this reads only what it can be sure of:
+ * the FIRST `HH:MM ~ HH:MM` range (a close at or before the open, `24:00` or
+ * "next day" runs past midnight), "Open 24 hours" / 24시간, a weekly closing day
+ * ("Closed Mondays", 월요일 휴무) and a "Break 13:00-14:00" pause. Everything
+ * else — "closed on the 4th and 19th", weekend-only hours — is not modelled, so
+ * those days read as their weekday hours.
+ */
+export function shopOpenNow(openTime: string | null | undefined, now: Date): boolean | null {
+  const text = shopOpenTime(openTime);
+  if (!text || text === '-') return null;
+  const closedOn = (day: number): boolean =>
+    new RegExp(`closed[^.;)]*\\b${WEEKDAY_EN[day]}`, 'i').test(text) ||
+    new RegExp(`${WEEKDAY_KO[day]}요일[^.;)]*휴무`).test(text);
+  const today = now.getDay();
+  if (/open 24 hours|24\s*시간/i.test(text)) return !closedOn(today);
+
+  const range = RANGE.exec(text);
+  if (!range) return closedOn(today) ? false : null;
+  const open = minutesOf(range[1]!, range[2]!);
+  let close = minutesOf(range[3]!, range[4]!);
+  if (close <= open || /next day|익일/i.test(text)) close += 24 * 60;
+
+  // Past midnight inside an overnight session, it is still YESTERDAY's opening —
+  // and yesterday's closing day is the one that applies.
+  let at = now.getHours() * 60 + now.getMinutes();
+  let day = today;
+  if (at < open && at + 24 * 60 < close) {
+    at += 24 * 60;
+    day = (today + 6) % 7;
+  }
+  if (closedOn(day)) return false;
+  if (at < open || at >= close) return false;
+
+  const pause = BREAK.exec(text);
+  if (pause) {
+    const from = minutesOf(pause[1]!, pause[2]!);
+    const to = minutesOf(pause[3]!, pause[4]!);
+    const t = at % (24 * 60);
+    if (t >= from && t < to) return false;
+  }
+  return true;
+}
+
 export const shopSecondCategory = (s: Shop, lang: Lang): string =>
   stripPrefix(field(s, 'secondCategory', lang, s.secondCategoryKr ?? ''));
 export const shopBaseCategory = (s: Shop, lang: Lang): string =>
@@ -377,6 +433,25 @@ export const SCREEN_BASE_CATEGORY: Record<string, string> = {
   lodging: '인사동 숙박',
   help: '인사 도와줘',
 };
+
+/**
+ * The home boards' 오늘의 상점: from `pool`, the richest tier that has members —
+ * readable hours AND photos, then hours, then anything — sorted by id so the
+ * tier is stable, and indexed by a hash of the date so every restart on the same
+ * day lands on the same shop and the pick changes overnight.
+ */
+export function pickDailyShop(pool: readonly Shop[], now: Date): Shop | null {
+  const sorted = [...pool].sort((a, b) => a.id - b.id);
+  const withHours = sorted.filter((s) => shopOpenNow(s.openTime, now) !== null);
+  const withPhotos = withHours.filter((s) => shopImages(s).length > 0);
+  const tier = [withPhotos, withHours, sorted].find((list) => list.length > 0);
+  if (!tier) return null;
+  let hash = 0;
+  for (const ch of `${now.getFullYear()}-${now.getMonth() + 1}-${now.getDate()}`) {
+    hash = (hash * 31 + ch.charCodeAt(0)) >>> 0;
+  }
+  return tier[hash % tier.length] ?? null;
+}
 
 export function shopsForBase(shops: Shop[], baseKr: string): Shop[] {
   return shops.filter((s) => s.baseCategoryKr === baseKr);

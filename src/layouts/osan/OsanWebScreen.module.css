@@ -6,6 +6,8 @@
   height: 100%;
   object-fit: cover;
   pointer-events: none;
+  /* ♿ stays at y0 while the page under the mode bar moves down (OsanKiosk). */
+  transform: translateY(calc(-1 * var(--osan-mode-push, 0px)));
 }
 
 /* Body = the area between the 700px header and the 573px banner. */
@@ -48,3 +50,18 @@
   color: #999999;
 }
 
+
+/* ── ♿ (위드마켓_01_상품 목록 7878:46736) ── */
+.lowHeader {
+  position: absolute;
+  left: 0;
+  top: 719px;
+  width: 2160px;
+  height: 700px;
+}
+
+/* The store panel the frame draws: x170, 1356 → 3606. */
+.bodyLow {
+  top: 1356px;
+  bottom: 234px;
+}

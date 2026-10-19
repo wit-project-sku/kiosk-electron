@@ -152,11 +152,14 @@ export const IpcChannels = {
   // Event detail (GET /api/events/{eventId})
   EventsDetailGet: 'events:detail',
 
+  // 화성휴게소 home board 도로교통상황 (GET /api/traffic/expressway; renderer polls)
+  TrafficExpresswayGet: 'traffic:expressway',
+
   // 제주 AI 코스 추천 (live POST; 제주 kiosks only)
   JejuCourseRecommend: 'jejuCourse:recommend',
   // 제주 커스텀 코스 picker (live POST per 즐길 거리 tap; 제주 kiosks only)
   JejuCoursePicker: 'jejuCourse:picker',
-  // 인사동 AI 코스 추천 (live POST /api/insa/courses/recommend/v2)
+  // 인사동 · 오색 AI 코스 추천 (live POST /api/courses/recommend, by region)
   InsaCourseRecommend: 'insaCourse:recommend',
 
   // Auto-update (electron-updater). Status is read-only; check/install are
@@ -185,6 +188,8 @@ export const IpcEvents = {
   MonitorsChanged: 'event:system:monitorsChanged',
   SyncStatsChanged: 'event:sync:statsChanged',
   ContentChanged: 'event:content:changed',
+  /** Localization sheet re-synced (launch or 02:00); the renderer swaps its table. */
+  TranslationsChanged: 'event:translations:changed',
   PhotoWorkflowChanged: 'event:photo:workflowChanged',
   LanguageChanged: 'event:language:changed',
   WeatherChanged: 'event:weather:changed',

@@ -40,6 +40,12 @@ interface Props {
   children?: ReactNode;
   /** Overlays that must sit above the field — countdown, result card. */
   overlay?: ReactNode;
+  /**
+   * ♿ on 오산 (게임 메뉴 7894:59610): promo flush under the mode bar (146), the
+   * header under it (719), and the page body dropped into reach. Only the menu
+   * passes it.
+   */
+  lowOsan?: boolean;
 }
 
 export function GameShell({
@@ -51,6 +57,7 @@ export function GameShell({
   chrome,
   children,
   overlay,
+  lowOsan = false,
 }: Props): JSX.Element {
   const { icon, Header, banner } = usePhotoChrome();
   // `bg-page` is the illustrated 제주 plate; `bg` is the blank #faf7f2 one. Same
@@ -59,7 +66,7 @@ export function GameShell({
   const pageBg = icon('bg-page') || icon('bg');
 
   return (
-    <div className={styles.root}>
+    <div className={lowOsan ? `${styles.root} ${styles.rootLowOsan}` : styles.root}>
       {pageBg && <img className={styles.bg} src={pageBg} alt="" draggable={false} />}
 
       {/* `subtitleHidden` matches steps ① and ② of the AR flow (JejuHanbokSelect):

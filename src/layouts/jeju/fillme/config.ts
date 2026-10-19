@@ -27,10 +27,14 @@
  */
 const CAMERA_MODE_ENV = import.meta.env.VITE_FILLME_CAMERA_MODE;
 
-/** 손톱 카메라 장치 이름의 일부. 제주 기기에 달릴 모델은 [확인 필요] — 샘플 기준 Arducam. */
+/**
+ * 손톱 카메라 장치 이름의 일부. 제주에 다는 카메라는 Arducam 16MP(IMX298) — Windows 장치 이름
+ * `Arducam_16MP`. 사진·모션·유동인구 카메라는 같은 이름을 @shared/config/cameras 의
+ * HAND_CAMERA_PATTERN 으로 피해 간다 — 다른 모델로 바꾸면 그 패턴도 같이 바꾼다.
+ */
 const CAMERA_LABEL_ENV = import.meta.env.VITE_FILLME_CAMERA_LABEL;
 
-/** 설치 방향 보정(시계방향 0/90/180/270). 기기에 달아 보고 정한다 — [확인 필요]. */
+/** 설치 방향 보정(시계방향 0/90/180/270). 제주 Arducam 은 회전 없이 달리므로 비워 둔다(0). */
 const CAMERA_ROTATION_ENV = import.meta.env.VITE_FILLME_CAMERA_ROTATION;
 
 const trimmed = (value: unknown, fallback: string): string =>

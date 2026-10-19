@@ -25,21 +25,18 @@ export interface PhotoHeaderProps {
   onBack?: () => void;
   subtitle?: string;
   /**
-   * Drop the description row under the title. Like `navDisabled` below, only
-   * JejuHeader honours it — its header otherwise resolves a subtitle from the
+   * Drop the description row under the title. Honoured by JejuHeader (its header otherwise resolves a subtitle from the
    * sheet (or a generic fallback) even when none is passed, which is what the
-   * AR 한복체험 page uses this to switch off. A no-op on the other headers, which
-   * draw a subtitle only when one is explicitly given.
+   * AR 한복체험 page uses this to switch off) and by OsanHeader / HwaseongHeader.
+   * The 인사동 header draws a subtitle only when one is explicitly given.
    */
   subtitleHidden?: boolean;
   /**
    * Grey out 홈/뒤로 and stop them responding.
    *
-   * ★ Only JejuHeader honours this — it is the only location with a screen that
-   * must not be walked away from (틀린그림찾기, which runs over a photo that is
-   * already generating). Passing it to the other three is a no-op rather than an
-   * error, so if another location ever grows a comparable screen, wire the prop
-   * in that header rather than assuming this one already did.
+   * Every location's header honours this (인사동 / 오산 / 화성 since 2026-10-16,
+   * when 틀린그림찾기 went standalone there): the photo wait must not be walked
+   * away from — the game runs over a photo that is already generating.
    */
   navDisabled?: boolean;
 }
@@ -139,7 +136,8 @@ export function usePhotoChrome(): PhotoChrome {
   const isInsadong = isInsadongLayout(layout);
 
   const icon = isOsan
-    ? (name: string) => osanIconUrl(name) ?? iconUrl(name)
+    // Osan's content pages draw page-bg (the 70% 한옥 art), so the picker uses it too.
+    ? (name: string) => osanIconUrl(name === 'bg' ? 'page-bg' : name) ?? iconUrl(name)
     : isHwaseong
       ? (name: string) => hwaseongIconUrl(name) ?? iconUrl(name)
       : isJeju
@@ -177,7 +175,9 @@ export function usePhotoChrome(): PhotoChrome {
     richOutfit: isJeju || isInsadong,
     // Shared with the customer display, which draws the chips — see the helper.
     gestureCapture: usesGestureCapture(layout),
-    waitingGames: isJeju || isInsadong,
+    // 화성 joined 2026-10-16 (틀린그림찾기 only, like 오산 / 인사동). Its CMS has no
+    // puzzles yet, so SpotDiffService serves its generated placeholder round.
+    waitingGames: isJeju || isInsadong || isOsan || isHwaseong,
     motionGames: isJeju,
     icon,
     Header,
@@ -188,7 +188,7 @@ export function usePhotoChrome(): PhotoChrome {
     // Figma 4618:2742 and the partner pages all draw 'KADA' in the centre slot.
     // It doubles as the one string here that must never be Korean: KADA has no
     // Localization sheet, so a t() lookup would fall back to it.
-    photoTitle: isKada ? 'KADA' : isOsan ? '사진 촬영' : 'AR 한복체험',
+    photoTitle: isKada ? 'KADA' : 'AR 한복체험',
     banner: isKada
       ? // No promo banner at this venue, and '' is the only way to SAY that:
         // consumers resolve `chromeBanner ?? rotating`, so undefined would fall

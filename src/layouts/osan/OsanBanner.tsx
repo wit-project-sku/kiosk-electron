@@ -4,6 +4,8 @@ import styles from './OsanBanner.module.css';
 
 interface OsanBannerProps {
   onClick: () => void;
+  /** Artboard y of the banner's top edge; the low-reach language page moves it to 146. */
+  top?: number;
 }
 
 /**
@@ -13,11 +15,17 @@ interface OsanBannerProps {
  * Shows the live banner from the witteria API when one is active, falling back
  * to the bundled 오색시장 banner offline / when the API set is empty.
  */
-export function OsanBanner({ onClick }: OsanBannerProps): JSX.Element | null {
+export function OsanBanner({ onClick, top }: OsanBannerProps): JSX.Element | null {
   const src = useRotatingBanner(osanIconUrl('banner'));
   if (!src) return null;
   return (
-    <button type="button" className={styles.banner} onClick={onClick} aria-label="가상 한복 체험">
+    <button
+      type="button"
+      className={styles.banner}
+      style={top === undefined ? undefined : { top }}
+      onClick={onClick}
+      aria-label="가상 한복 체험"
+    >
       <img className={styles.bannerImg} src={src} alt="" draggable={false} />
     </button>
   );

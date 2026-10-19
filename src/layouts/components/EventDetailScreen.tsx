@@ -4,7 +4,7 @@ import type { EventDetail } from '@shared/types/events';
 import { useEventDetail } from '@renderer/hooks/useEvents';
 import type { Lang } from '@renderer/lib/i18n';
 import { useLang } from '@renderer/lib/i18n';
-import { t } from '@renderer/lib/loc';
+import { sheetText, t } from '@renderer/lib/loc';
 import { ui } from '@renderer/lib/uiText';
 import styles from './EventDetailScreen.module.css';
 
@@ -324,6 +324,8 @@ export interface EventDetailScreenProps {
   eventId: number;
   /** Kiosk brand color (Hwaseong #005ab4 / Osan #1a4d7e / Insadong #fe6c50). */
   accent: string;
+  /** Card edge when a kiosk's frame draws a different one (오산 7838:115603). */
+  cardShadow?: string;
 }
 
 /**
@@ -334,19 +336,19 @@ export interface EventDetailScreenProps {
  * One white card (1820×1825, r80) holds the poster + title + 6 info rows,
  * then 오시는 길 안내 with an interactive map centered on the event.
  */
-export function EventDetailScreen({ eventId, accent }: EventDetailScreenProps): JSX.Element {
+export function EventDetailScreen({ eventId, accent, cardShadow }: EventDetailScreenProps): JSX.Element {
   const lang = useLang();
   const { detail, loading, error } = useEventDetail(eventId);
   const hasCoords = detail !== null && detail.latitude !== null && detail.longitude !== null;
 
   return (
-    <div className={styles.root} style={{ '--event-accent': accent } as CSSProperties}>
+    <div className={styles.root} style={{ '--event-accent': accent, ...(cardShadow && { '--event-card-shadow': cardShadow }) } as CSSProperties}>
       <div className={styles.card} />
 
       {loading && (
         <div className={styles.pending}>
           <span className={styles.spinner} />
-          불러오는 중..
+          {ui('loading', lang)}
         </div>
       )}
 
@@ -388,7 +390,8 @@ export function EventDetailScreen({ eventId, accent }: EventDetailScreenProps): 
               />
               <circle cx="12" cy="10" r="2.6" fill="none" stroke="currentColor" strokeWidth="2" />
             </svg>
-            <span className={styles.mapTitle}>{ui('directions', lang)}</span>
+            {/* Event_Path_Guide where the venue's sheet has it (오산: "오시는 길 안내"). */}
+            <span className={styles.mapTitle}>{sheetText('Event_Path_Guide', lang, { [lang]: ui('directions', lang) })}</span>
           </div>
 
           {hasCoords ? (

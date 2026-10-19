@@ -99,3 +99,44 @@ def test_measure_runs_the_whole_chain_on_a_raw_cloud():
     subjects = measure(grid, frame)
     assert len(subjects) == 1
     assert subjects[0].height_m == pytest.approx(1.74, abs=0.03)
+
+
+def test_a_taped_camera_height_replaces_the_fitted_one():
+    import pytest
+    from geometry import FloorFrame
+    from main import pin_camera_height
+    from zed import ZedUnavailable
+
+    fitted = FloorFrame(normal=np.array([0.0, 0.0, 1.0]), offset=1.163)
+    pinned = pin_camera_height(fitted, 1.19)
+    assert pinned.offset == 1.19
+    assert np.allclose(pinned.normal, fitted.normal)
+    # A person at 1.72 m measured from the fitted floor reads 2.7 cm higher once pinned.
+    point = np.array([[0.0, 0.0, 1.72 - 1.163]])
+    assert pinned.heights(point)[0] - fitted.heights(point)[0] == pytest.approx(0.027)
+
+    with pytest.raises(ZedUnavailable):
+        pin_camera_height(fitted, 1.40)  # 24 cm off: the fit found a desk, not stereo bias
+
+
+def test_someone_far_behind_the_visitor_does_not_void_the_capture():
+    """Dev PC, 2026-10-08: a 130 cm shape 2.2 m away, the visitor at 1.1 m."""
+    session = Session()
+    for _ in range(30):
+        session.add([subject(1.74, 1.1), subject(1.30, 2.2)])
+    result = session.result()
+    assert result["subjects"] == 1
+    assert result["heightCm"] == pytest.approx(174.0, abs=1.0)
+
+
+def test_the_real_capture_from_the_dev_pc_reads_the_standing_height():
+    """The single-subject frames of the 2026-10-08 test, in order. Truth: 174-175 cm."""
+    frames = [128, 124, 138, 130, 168, 130, 170, 174, 174, 174, 172, 174, 174, 174, 172,
+              174, 174, 172, 150, 172, 174, 174, 174, 174, 174, 172, 158, 156, 156, 172,
+              172, 174, 174, 174, 174, 170, 130, 122, 106]
+    session = Session()
+    for cm in frames:
+        session.add([subject(cm / 100.0)])
+    result = session.result()
+    assert result["heightCm"] == pytest.approx(174.0, abs=0.5)
+    assert result["confidence"] > 0.5

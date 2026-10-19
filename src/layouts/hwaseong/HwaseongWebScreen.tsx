@@ -1,22 +1,29 @@
 /**
  * Embeds an external website in the body region while keeping the shared
- * 화성휴게소 chrome (background, header, left nav, banner). Used for pages whose
- * content is a live site — e.g. 전국도로교통상황 → https://www.its.go.kr/.
+ * 화성휴게소 chrome — Figma 7950:58002 (전국도로교통상황 → https://www.its.go.kr/):
+ * page background, header, a 1820-wide webview at (171, 818), the frame's ▲/▼
+ * scroll buttons at (2027, 2103 / 2223) and the left nav. The frame draws no
+ * bottom banner.
  */
 import { useEffect, useRef } from 'react';
 import type { KioskController } from '@renderer/hooks/useKioskController';
 import { hwaseongIconUrl } from '@renderer/assets/icons/hwaseong';
+import { useAccessibilityStore } from '@renderer/store/accessibilityStore';
 import { HwaseongHeader } from './HwaseongHeader';
-import { HwaseongBanner } from './HwaseongBanner';
 import { HwaseongLeftNav } from './HwaseongLeftNav';
+import { HwaseongPageBg } from './HwaseongPageBg';
 import styles from './HwaseongWebScreen.module.css';
 
-/** Minimal subset of Electron's WebviewTag we use for CSS injection. */
+/** Minimal subset of Electron's WebviewTag we use. */
 type WebviewEl = HTMLElement & {
   insertCSS: (css: string) => Promise<string>;
+  executeJavaScript: (code: string) => Promise<unknown>;
   addEventListener(event: string, listener: () => void): void;
   removeEventListener(event: string, listener: () => void): void;
 };
+
+/** One ▲/▼ press scrolls the embedded page by this much (its own CSS px). */
+const SCROLL_STEP = 600;
 
 interface Props {
   controller: KioskController;
@@ -31,6 +38,10 @@ interface Props {
 }
 
 export function HwaseongWebScreen({ controller, title, url, injectCss, bodyHeight }: Props): JSX.Element {
+  /* ♿ (전국도로교통상황 7986:94684): the page moves under the mode bar and the
+     body grows back to the full 2250 (171, 964 → 3214), so a shortened body
+     (bodyHeight) only applies outside the mode. */
+  const low = useAccessibilityStore((st) => st.lowReach);
   const webviewRef = useRef<WebviewEl | null>(null);
 
   useEffect(() => {
@@ -53,31 +64,39 @@ export function HwaseongWebScreen({ controller, title, url, injectCss, bodyHeigh
     };
   }, [injectCss]);
 
+  // Scrolls the guest page; a page that does not scroll (the ITS map) ignores it.
+  const scrollBy = (dir: 1 | -1): void => {
+    void webviewRef.current
+      ?.executeJavaScript(`window.scrollBy({ top: ${dir * SCROLL_STEP}, behavior: 'smooth' })`)
+      .catch(() => {});
+  };
+  const arrow = hwaseongIconUrl('search-scroll-arrow');
+
   return (
     <div className={styles.root}>
-      {/* Background */}
-      <div className={styles.bgBase} />
-      {hwaseongIconUrl('bg') && (
-        <img src={hwaseongIconUrl('bg')} alt="" className={styles.bgImage} draggable={false} />
-      )}
+      <HwaseongPageBg />
 
-      {/* Shared header */}
       <HwaseongHeader controller={controller} title={title} />
 
       {/* Webview body — 1820 × 2250 (height overridable to crop a site's footer gap) */}
-      <div className={styles.body} style={bodyHeight ? { height: bodyHeight } : undefined}>
+      <div className={styles.body} style={bodyHeight && !low ? { height: bodyHeight } : undefined}>
         <webview
-          /* eslint-disable-next-line react/no-unknown-property */
           ref={webviewRef as unknown as React.Ref<HTMLElement>}
           src={url}
+          // eslint-disable-next-line react/no-unknown-property -- Electron <webview> attribute
           partition="persist:embeds"
           className={styles.embed}
         />
       </div>
 
-      <HwaseongLeftNav onHome={() => controller.navigate('home', 'Back')} />
+      <button type="button" className={`${styles.scrollBtn} ${styles.scrollUp}`} onClick={() => scrollBy(-1)} aria-label="위로">
+        {arrow && <img src={arrow} alt="" draggable={false} />}
+      </button>
+      <button type="button" className={`${styles.scrollBtn} ${styles.scrollDown}`} onClick={() => scrollBy(1)} aria-label="아래로">
+        {arrow && <img src={arrow} alt="" draggable={false} />}
+      </button>
 
-      <HwaseongBanner onClick={() => controller.startPhoto()} />
+      <HwaseongLeftNav onHome={() => controller.navigate('home', 'Back')} />
     </div>
   );
 }

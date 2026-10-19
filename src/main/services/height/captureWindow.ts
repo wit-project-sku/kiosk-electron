@@ -57,10 +57,15 @@ export function isCameraLive(phase: PhotoWorkflowPhase): boolean {
 export function toMeasurement(event: Record<string, unknown>): HeightMeasurement {
   return {
     heightCm: finiteOrNull(event['heightCm']),
+    shoulderWidthCm: finiteOrNull(event['shoulderWidthCm']),
+    chestWidthCm: finiteOrNull(event['chestWidthCm']),
+    waistWidthCm: finiteOrNull(event['waistWidthCm']),
+    hipWidthCm: finiteOrNull(event['hipWidthCm']),
     confidence: finiteOr(event['confidence'], 0),
     samples: finiteOr(event['samples'], 0),
     subjects: finiteOr(event['subjects'], 0),
     reason: typeof event['reason'] === 'string' ? event['reason'] : null,
+    version: finiteOrNull(event['version']),
   };
 }
 

@@ -65,6 +65,12 @@ interface Props {
    * keeps the older plate until its own frame is redrawn.
    */
   slim?: boolean;
+  /**
+   * Another venue's own exports of the address pin and the two stat icons.
+   * 제주's are drawn in its orange; 오산 passes its navy copies so the card
+   * keeps this design in that venue's colour.
+   */
+  icons?: { marker?: string; duration?: string; difficulty?: string };
   className?: string;
   style?: CSSProperties;
   onClick: () => void;
@@ -117,13 +123,14 @@ export function JejuCourseSpotCard({
   badge = '',
   toggle,
   slim = false,
+  icons,
   className,
   style,
   onClick,
 }: Props): JSX.Element {
-  const marker = jejuIconUrl('ico-marker');
-  const durationIcon = jejuIconUrl('ico-duration');
-  const difficultyIcon = jejuIconUrl('ico-difficulty');
+  const marker = icons?.marker ?? jejuIconUrl('ico-marker');
+  const durationIcon = icons?.duration ?? jejuIconUrl('ico-duration');
+  const difficultyIcon = icons?.difficulty ?? jejuIconUrl('ico-difficulty');
 
   /* The two stats, in order. The itinerary row (hours given) keeps the frame's
      icons in place — clock first, bars second — and moves the text under them. */

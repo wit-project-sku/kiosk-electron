@@ -7,11 +7,13 @@
   height: 100%;
   object-fit: cover;
   pointer-events: none;
+  /* ♿ stays at y0 while the page under the mode bar moves down (OsanKiosk). */
+  transform: translateY(calc(-1 * var(--osan-mode-push, 0px)));
 }
 
 .results {
   position: absolute;
-  top: calc(699px + var(--header-push, 0px));
+  top: calc(700px + var(--header-push, 0px));
   left: 0;
   right: 0;
   bottom: 573px;
@@ -19,7 +21,8 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 60px;
+  /* Figma: tabs end at y1075, content card starts at y1125. */
+  gap: 50px;
   overflow: hidden;
   padding: 0 170px 60px;
 }
@@ -43,7 +46,7 @@
 .tabRow2 {
   display: flex;
   align-items: center;
-  gap: 30px;
+  gap: 21.45px;
   width: 100%;
 }
 
@@ -56,10 +59,10 @@
   align-items: center;
   justify-content: center;
   background: #ffffff;
-  border: 5px solid #e8e8e8;
+  border: none;
   border-radius: 42.9px;
   box-shadow: 0 21.45px 42.9px rgba(143, 147, 157, 0.1);
-  font-family: var(--kiosk-font, sans-serif);
+  font-family: 'Pretendard', var(--kiosk-font, sans-serif);
   font-weight: 500;
   font-size: 50px;
   color: #999999;
@@ -68,9 +71,9 @@
 }
 
 .tabSelected {
-  background: var(--kiosk-secondary);
+  background: var(--kiosk-primary);
   font-weight: 700;
-  color: var(--kiosk-primary);
+  color: #ffffff;
 }
 
 /* ── Content card — fills remaining height (no scroll) ── */
@@ -80,35 +83,54 @@
   width: 1820px;
   box-sizing: border-box;
   background: #ffffff;
-  border: 5px solid #e8e8e8;
+  border: none;
   border-radius: 42.9px;
-  font-family: var(--kiosk-font, sans-serif);
+  font-family: 'Pretendard', var(--kiosk-font, sans-serif);
 }
 
+/* Street tabs: Figma sizes the card to its content (no stretch to the frame
+   bottom). Shrinks only when a tall crop would otherwise overflow. */
+.cardStreet {
+  flex: 0 1 auto;
+  height: auto;
+}
+
+/* Figma 7878:12319 (빨강길): heading → map → description → kiosk are each
+   100px apart. */
+
+
+/* Figma 7878:12899: p40, sections stacked at the content left edge, no gaps. */
 .cardTransit {
   display: flex;
   flex-direction: column;
-  gap: 60px;
-  padding: 100px 40px;
-  align-items: center;
+  gap: 0;
+  padding: 40px;
+  align-items: flex-start;
 }
 
+/* Figma 7878:12135: p40, content 1988 → card 2068 tall (y1125–3193). Heading,
+   map and description are stacked by explicit margins, not a flex gap. */
 .cardMarket {
+  flex: none;
+  height: 2068px;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 60px;
+  gap: 0;
   padding: 40px;
 }
 
-/* ── Transit (대중교통) ── */
+/* ── Transit (대중교통) — Figma 7878:12899 ── */
+/* Header + map: 1470 tall (py20, header 80, gap 45, map 1305). */
 .transitTop {
-  flex: 1 1 auto;
-  min-height: 0;
+  flex: none;
+  width: 1731px;
+  height: 1470px;
+  box-sizing: border-box;
+  padding: 20px 0;
   display: flex;
   flex-direction: column;
   gap: 45px;
-  width: 1731px;
 }
 
 .transitHead {
@@ -120,6 +142,7 @@
 }
 
 .transitHeading {
+  font-family: 'Noto Sans KR', 'Noto Sans', var(--kiosk-font, sans-serif);
   font-weight: 700;
   font-size: 80px;
   color: #333333;
@@ -130,47 +153,55 @@
   display: flex;
   align-items: center;
   gap: 21.45px;
+  font-family: 'Noto Sans KR', 'Noto Sans', var(--kiosk-font, sans-serif);
   font-weight: 400;
   font-size: 52px;
   color: #999999;
   line-height: 1;
 }
 
-.dot {
+.transitDot {
+  flex: none;
+  display: block;
   width: 17px;
   height: 17px;
-  border-radius: 50%;
-  background: var(--kiosk-primary);
 }
 
-.mapWrap {
-  flex: 1 1 auto;
-  min-height: 0;
-  width: 100%;
-  border-radius: 21.45px;
+.transitMapBox {
+  flex: none;
+  width: 1731px;
+  height: 1305px;
   overflow: hidden;
   display: flex;
 }
 
-/* Zoomable map fills the flex viewport; pinch / drag / double-tap to zoom. */
+/* Figma frames the subway map with object-fit: cover. */
+.transitMapBox img {
+  object-fit: cover;
+}
+
+/* Zoomable map fills its box; pinch / drag / double-tap to zoom. */
 .mapZoom {
   width: 100%;
   height: 100%;
 }
 
+/* Subway list (section B): py20, marker 85 + gap 40, rows 25 apart. */
 .infoRow {
   flex: none;
   display: flex;
   align-items: flex-start;
   gap: 40px;
   width: 1740px;
+  box-sizing: border-box;
+  padding: 20px 0;
 }
 
 .markerIcon {
   flex: none;
+  display: block;
   width: 85px;
   height: 85px;
-  object-fit: contain;
 }
 
 .subwayCol {
@@ -179,7 +210,6 @@
   display: flex;
   flex-direction: column;
   gap: 25px;
-  padding-top: 4px;
 }
 
 .subwayRow {
@@ -188,13 +218,24 @@
   gap: 42.9px;
 }
 
+/* Bus list (section C): fixed 299 tall, py20, rows 21.45 apart. */
+.busSection {
+  flex: none;
+  display: flex;
+  align-items: flex-start;
+  gap: 42.9px;
+  width: 1740px;
+  height: 299px;
+  box-sizing: border-box;
+  padding: 20px 0;
+}
+
 .busCol {
   flex: none;
   width: 1602.304px;
   display: flex;
   flex-direction: column;
   gap: 21.45px;
-  padding-top: 4px;
 }
 
 .transitItem {
@@ -203,14 +244,36 @@
   gap: 20px;
 }
 
+.busItem {
+  align-items: center;
+}
+
 .badge {
+  position: relative;
   flex: none;
-  width: 85px;
-  height: 85px;
-  border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
+  width: 85px;
+  height: 85px;
+}
+
+/* Bus badges sit in an 87.33px slot, so the route text starts at the same x. */
+.badgeBus {
+  width: 87.332px;
+}
+
+.badgeImg {
+  position: absolute;
+  inset: 0;
+  display: block;
+  width: 85px;
+  height: 85px;
+}
+
+.badgeLabel {
+  position: relative;
+  font-family: 'Noto Sans KR', 'Noto Sans', var(--kiosk-font, sans-serif);
   font-weight: 600;
   font-size: 50px;
   color: #ffffff;
@@ -220,8 +283,9 @@
 .transitText {
   flex: 1;
   min-width: 0;
+  font-family: 'Noto Sans KR', 'Noto Sans', var(--kiosk-font, sans-serif);
   font-weight: 500;
-  font-size: 48px;
+  font-size: 40px;
   color: #333333;
   line-height: 1.3;
   white-space: normal;
@@ -229,24 +293,36 @@
   overflow-wrap: anywhere;
 }
 
+.busItem .transitText {
+  font-weight: 400;
+}
+
+/* 맘스거리: the clipped window onto the full map (see STREET_MAPS.window). */
+.windowClip {
+  position: relative;
+  flex: none;
+  overflow: hidden;
+}
+
 /* ── Market-map (오색시장지도) ── */
 .marketHeading {
   flex: none;
-  margin: 0;
+  margin: 0 0 30px;
   width: 1740px;
+  font-family: 'Pretendard', var(--kiosk-font, sans-serif);
   font-weight: 600;
   font-size: 58px;
   color: #333333;
   line-height: 1.5;
   text-align: center;
+  white-space: nowrap;
 }
 
-/* Market map: full body width, fills the remaining card height so it can be
-   pinch-zoomed (the title is part of the image). */
+/* Market map: Figma frame 1740×1270, pinch-zoomable (the title is part of the image). */
 .marketMapWrap {
-  flex: 1 1 auto;
-  min-height: 0;
+  flex: none;
   width: 1740px;
+  height: 1270px;
   border-radius: 21.45px;
   overflow: hidden;
   display: flex;
@@ -260,64 +336,68 @@
      lets the tall crops (아름/맘스) shrink to fit rather than clip the card. */
   flex: 0 1 auto;
   min-height: 0;
+  margin: 0;
   border-radius: 21.45px;
   overflow: hidden;
   display: flex;
 }
 
+/* Market: the description block sits in the card's free space below the map
+   (Figma 1988 content, map 1270 → 117px above the block). */
 .marketBottom {
   flex: none;
+  margin-top: auto;
   width: 1740px;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 60px;
-  padding-top: 20px;
+  gap: 100px;
 }
 
+/* Figma: description is left-aligned, Noto Sans Regular 42 / 1.5, paragraphs
+   with no spacing between them. */
 .marketDesc {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 0;
+  font-family: 'Noto Sans KR', 'Noto Sans', var(--kiosk-font, sans-serif);
   font-weight: 400;
   font-size: 42px;
   color: #2b2b2b;
   line-height: 1.5;
-  text-align: center;
-  width: 1740px;
-}
-
-/* Street tabs (빨강길·녹색길·미소거리·아름거리·맘스거리): the map description
-   reads left-aligned; the kiosk title/location below it stay centred. */
-.marketDescLeft {
   text-align: left;
+  width: 1740px;
 }
 
 .kioskBlock {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 20px;
+  gap: 30px;
   width: 1740px;
   text-align: center;
 }
 
+/* Figma: Noto Sans Bold 60 / 1.5 (title line 90px), location 30px below it. */
 .kioskTitle {
   margin: 0;
+  font-family: 'Noto Sans KR', 'Noto Sans', var(--kiosk-font, sans-serif);
   font-weight: 700;
   font-size: 60px;
   color: #333333;
-  line-height: 1.4;
+  line-height: 1.5;
   /* The full title (“WITH”=WIT AI SMART KIOSK 설치장소) stays on one row. */
   white-space: nowrap;
 }
 
+/* Figma: Noto Sans Medium 50 / 1.5. */
 .kioskLoc {
   margin: 0;
+  font-family: 'Noto Sans KR', 'Noto Sans', var(--kiosk-font, sans-serif);
   font-weight: 500;
   font-size: 50px;
   color: #333333;
-  line-height: 1.4;
+  line-height: 1.5;
 }
 
 /* ── Market-zone placeholder ── */
@@ -356,8 +436,134 @@
 .tabLong {
   white-space: normal;
   word-break: keep-all;
-  overflow-wrap: anywhere;
-  padding: 0 20px;
+  /* Never split a word ("Общественн / ый"): a word wider than the tab shrinks
+     the row instead (useFitText sees it in scrollWidth). */
+  overflow-wrap: normal;
+  hyphens: none;
+  text-align: center;
+  /* 10 at the sides: the selected tab sets its label Bold, which is wider than
+     the Medium the fit was measured at. */
+  padding: 20px 10px;
   font-size: calc(50px * var(--fit, 1));
   line-height: 1.12;
+}
+
+/* Figma note 넘칠때 (Russian frame): when a label needs more lines the tab
+   grows DOWN rather than clipping — 170 stays the minimum, and every tab in
+   the row takes the tallest one's height so the row stays even. */
+.long .tabLong {
+  height: auto;
+  min-height: 170px;
+}
+
+/* The row is fitted once, at Medium. A selected label set in Bold was wider
+   than that fit ("Общественный" filled the whole 340 tab), so under the long
+   languages the selected tab keeps the Medium weight — its navy fill and white
+   label already say which one is selected. */
+.long .tabLong.tabSelected {
+  font-weight: 500;
+}
+
+.long .tabRow1,
+.long .tabRow2 {
+  align-items: stretch;
+}
+
+/* The card title wraps under the long languages ("Рынок Осэк в Осане: …" ran
+   off the card on one line). The taller tabs and title come out of the map,
+   which shrinks to keep the card inside the frame. */
+.long .marketHeading {
+  white-space: normal;
+  word-break: keep-all;
+  overflow-wrap: normal;
+  text-wrap: balance;
+}
+
+.long .cardMarket:not(.cardStreet) {
+  flex: 0 1 2068px;
+  height: auto;
+  min-height: 0;
+}
+
+.long .marketMapWrap {
+  flex: 0 1 1270px;
+  min-height: 0;
+}
+
+.long .kioskTitle {
+  white-space: normal;
+}
+
+/* 대중교통: the same room comes out of the subway map, so the bus list keeps
+   its place inside the card. */
+.long .cardTransit .transitTop {
+  flex: 0 1 1470px;
+  height: auto;
+  min-height: 0;
+}
+
+.long .cardTransit .transitMapBox {
+  flex: 1 1 auto;
+  height: auto;
+  min-height: 0;
+}
+
+/* ── ♿ (교통안내 7894:54695 / 7894:54761) ────────────────────────────────────
+ * Inside OsanKiosk's shift: frame y values are written `y − --osan-mode-push`.
+ * The column runs to the screen's foot; the tabs leave the flow and sit at 3213
+ * (two rows, 3213 → 3588), and the card starts at its tab's frame top. */
+.low .results {
+  top: 0;
+  bottom: 0;
+  /* --low-card-top: the tab's card top in the frame, set inline. */
+  padding-top: calc(var(--low-card-top, 946px) - var(--osan-mode-push, 0px));
+  padding-bottom: calc(677px + var(--osan-mode-push, 0px));
+}
+
+/* 대중교통 (7887:54432) — its card stops at 3070 (2084 tall) instead of filling
+   down to the tabs. */
+.lowTransit .results {
+  padding-bottom: calc(770px + var(--osan-mode-push, 0px));
+}
+
+.low .tabs {
+  position: absolute;
+  left: 170px;
+  top: calc(3213px - var(--osan-mode-push, 0px));
+}
+
+.lowHeader {
+  position: absolute;
+  left: 0;
+  top: calc(719px - var(--osan-mode-push, 0px));
+  width: 2160px;
+  height: 700px;
+}
+
+/* 맘스거리: its window onto the map is `flex: none`, so with the title on two
+   lines the location text ran 42px out of the card's foot. It gives the room
+   back like the other street crops do. */
+.long .windowClip {
+  flex: 0 1 auto;
+  min-height: 0;
+}
+
+/* The label's own box, held inside the tab's padding: the row is fitted
+   against THIS (useFitText 'ink'), so a long word shrinks before it reaches
+   the tab's rounded edge rather than at it. */
+.tabLabel {
+  /* The whole inner width, not its text's: a box that shrink-wraps its
+     text has the space at a wrapped line's end hanging past its edge, and
+     the fit would read that as overflow on every row. */
+  width: 100%;
+  min-width: 0;
+  /* The glyphs stand ~4px taller than the 1.12 line box; without this the
+     fit reads every label as escaping its top. */
+  padding-block: 6px;
+}
+
+/* The size is set on the label, not only the tab: the fit's per-label rescue
+   (a word wider than any tab) writes its own --fit onto this box. */
+.tabLong .tabLabel {
+  font-size: calc(50px * var(--fit, 1));
 }

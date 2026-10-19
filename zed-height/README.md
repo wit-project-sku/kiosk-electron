@@ -66,7 +66,18 @@ Camera is 1.37 m above the surface it fitted.
 >> CHECK THIS WITH A TAPE MEASURE. <<
 ```
 
-**Do not skip that.** Nothing in software can tell the real floor from the
+Then pin the height to the tape reading — the fit gets the floor's angle right
+but its height carries a few cm of stereo bias (1.163 m fitted vs 1.19 m taped on
+the dev PC, which made every visitor read 2.7 cm short):
+
+```
+npm run height:calibrate -- --camera-height 1.19
+```
+
+It refuses a tape value more than 10 cm from the fit, since that means the fit
+found something other than the floor.
+
+**Do not skip the tape.** Nothing in software can tell the real floor from the
 largest flat surface in view — a desk, a counter and a floor are all level, all
 below the camera, all gravity-aligned. A fit that landed on furniture produces
 perfectly normal-looking readings that are wrong by a constant, which is the
@@ -145,6 +156,7 @@ length is the whole reason a median works.
 | `HEIGHT_MEASURE_HEIGHT` | 720 | and its height |
 | `HEIGHT_ZONE_MIN` | 0.8 | standing zone, metres across the floor from the camera |
 | `HEIGHT_ZONE_MAX` | 3.5 | |
+| `HEIGHT_CORRIDOR` | 0.5 | half-width, metres, of the strip straight in front of the lens; anyone further to the side is ignored |
 | `HEIGHT_CALIBRATION` | `./calibration.json` | the app and `height-run.mjs` both point this at userData |
 | `HEIGHT_PYTHON` | — | interpreter override, when the system `python` is not the one holding pyzed |
 
