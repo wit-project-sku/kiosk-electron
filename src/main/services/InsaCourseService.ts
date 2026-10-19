@@ -9,7 +9,10 @@ import {
   type InsaCourseSet,
   type InsaCourseSpot,
   type InsaDuration,
+  type CourseTransport,
 } from '@shared/types/insaCourse';
+
+const TRANSPORTS: readonly CourseTransport[] = ['WALK', 'BIKE', 'TRANSIT', 'CAR'];
 
 const log = createLogger('insa-course-service');
 const DEFAULT_API_BASE = 'https://api-v3.witteria.com';
@@ -69,6 +72,8 @@ export class InsaCourseService {
       duration: query.duration,
       numberOfPeople: query.numberOfPeople,
       startAt: query.startAt,
+      // 오색시장's 이동수단; only a known code goes out (an unknown one is a 400).
+      ...(query.transport && TRANSPORTS.includes(query.transport) ? { transport: query.transport } : {}),
     };
 
     try {
@@ -153,7 +158,12 @@ function normalizeSpot(row: unknown, index: number): InsaCourseSpot | null {
   if (!row || typeof row !== 'object') return null;
   const r = row as Record<string, unknown>;
   if (typeof r['shopId'] !== 'number') return null;
+  // 오색 sends the leg as travelled; elsewhere (인사동, v1/v2) it is the walk.
+  const mode = TRANSPORTS.includes(r['moveMode'] as CourseTransport) ? (r['moveMode'] as CourseTransport) : 'WALK';
   return {
+    moveMode: mode,
+    moveMinutes: num(r['moveMinutes'], num(r['walkMinutes'])),
+    moveMeters: num(r['moveMeters'], num(r['walkMeters'])),
     shopId: r['shopId'],
     stayMinutes: num(r['dwellMinutes'], num(r['stayMinutes'])),
     order: num(r['order'], index + 1),

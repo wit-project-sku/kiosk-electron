@@ -12,7 +12,14 @@ import { osanAiTitle } from './OsanAiCourse';
 import { useEffect, useRef } from 'react';
 import { osanIconUrl } from '@renderer/assets/icons/osan';
 import { JejuCourseSpotCard } from '@layouts/jeju/JejuCourseSpotCard';
+import { JejuAirportDirections } from '@layouts/jeju/JejuAirportDirections';
 import styles from './OsanAiDetail.module.css';
+
+/** The directions block's "…에서 n km" origin — the course starts at this kiosk. */
+const FROM_MARKET = {
+  ko: '오색시장에서', en: 'From Osaek Market', ja: 'オセク市場から', zh: '从五色市场',
+  vi: 'Từ chợ Osaek', th: 'จากตลาดโอแซก', ru: 'От рынка Осэк', id: 'Dari Pasar Osaek',
+};
 
 /** 오산's navy copies of 제주's course-card icons (same drawings, main 01). */
 const NEXT_ICONS = {
@@ -67,6 +74,22 @@ export function OsanAiDetail({ controller }: OsanAiDetailProps): JSX.Element {
       }
     : null;
 
+  /* 제주 6289:58438 puts the course and day under the title ("A코스 - 1일차") in
+     place of the QR line; 오산's is "유산 탐방 코스 - 실시간 코스", set by the
+     result page. A stop opened some other way keeps SubHeader_Detail. */
+  const courseLabel = item && item.title !== 'AI 추천' ? item.title : '';
+
+  /* "오색시장에서 n km" + 자동차/버스/자전거/도보 — 제주's panel in 오산's colours,
+     from the shop's `route`. Every 오색 shop's route is null on stage today
+     (2026-10-19), so nothing draws until the backend fills it. */
+  const route = item?.route;
+  const directions =
+    item && route && typeof route.distanceKm === 'number' && Number.isFinite(route.distanceKm) ? (
+      <div style={{ ['--dir-card-tint' as string]: 'var(--kiosk-secondary)' }}>
+        <JejuAirportDirections route={route} destination={item.name} lang={lang} origin={FROM_MARKET} />
+      </div>
+    ) : null;
+
   return (
     <>
       <OsanPageBg />
@@ -74,19 +97,20 @@ export function OsanAiDetail({ controller }: OsanAiDetailProps): JSX.Element {
       <OsanHeader
         title={low ? `${osanAiTitle(lang)} > ${screenTitle('상세', lang)}` : osanAiTitle(lang)}
         // SubHeader_Detail — the same description the shop 상세 page shows.
-        subtitle={sheetText('SubHeader_Detail', lang) || undefined}
+        subtitle={courseLabel || sheetText('SubHeader_Detail', lang) || undefined}
+        strongSubtitle={!!courseLabel}
         onHome={goHome}
         onBack={goBack}
       />
 
-      {data && next ? (
+      {data && (next || directions) ? (
         <div ref={scrollRef} className={styles.courseScroll}>
           <div className={styles.courseColumn}>
-            <OsanSpotDetailCard data={data} className={styles.flowCard} />
-            {osanIconUrl('course-next-chevron') && (
+            <OsanSpotDetailCard data={data} directions={directions} className={styles.flowCard} />
+            {next && osanIconUrl('course-next-chevron') && (
               <img src={osanIconUrl('course-next-chevron')} alt="" className={styles.nextChevron} draggable={false} />
             )}
-            <JejuCourseSpotCard
+            {next && <JejuCourseSpotCard
               width={1793}
               photo={next.item.photos[0] ?? osanIconUrl('noimage') ?? ''}
               name={next.item.name}
@@ -97,7 +121,7 @@ export function OsanAiDetail({ controller }: OsanAiDetailProps): JSX.Element {
               difficulty={next.difficulty}
               icons={NEXT_ICONS}
               onClick={() => setItem(next.item)}
-            />
+            />}
           </div>
         </div>
       ) : (

@@ -1,6 +1,6 @@
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import type { KioskController } from '@renderer/hooks/useKioskController';
-import type { InsaCourseSet, InsaDuration } from '@shared/types/insaCourse';
+import type { CourseTransport, InsaCourseSet, InsaDuration } from '@shared/types/insaCourse';
 import type { Shop } from '@shared/types/shop';
 import { osanIconUrl } from '@renderer/assets/icons/osan';
 import { iconUrl as insaIconUrl } from '@renderer/assets/icons/insadong';
@@ -103,6 +103,24 @@ const DURATION_CHIPS: Chip[] = [
   { ko: '6+', key: 'StayTime_66', label: { ko: '6시간 ~', en: '6 hours ~', ja: '6時間〜', zh: '6小时以上', vi: 'Từ 6 giờ', th: '6 ชั่วโมงขึ้นไป', ru: 'От 6 часов', id: '6 jam ke atas' } },
 ];
 
+/**
+ * 이동수단 chips — `ko` holds the API code (WALK · BIKE · TRANSIT · CAR), as
+ * 제주's row (JejuAiSearch TRANSPORT). Only 오색시장 takes one: legs within 1 km
+ * are walked whatever is picked, longer ones (the 관광명소 1–6 km out) use it.
+ * Localization_Osaek has no Transportation_* rows, so the labels are authored;
+ * a row added to the sheet takes over.
+ */
+const TRANSPORT_CHIPS: Chip[] = [
+  { ko: 'WALK', key: 'Transportation_1', label: { ko: '도보', en: 'Walking', ja: '徒歩', zh: '步行', vi: 'Đi bộ', th: 'เดิน', ru: 'Пешком', id: 'Jalan kaki' } },
+  { ko: 'BIKE', key: 'Transportation_2', label: { ko: '자전거', en: 'Bicycle', ja: '自転車', zh: '自行车', vi: 'Xe đạp', th: 'จักรยาน', ru: 'Велосипед', id: 'Sepeda' } },
+  { ko: 'TRANSIT', key: 'Transportation_3', label: { ko: '대중교통', en: 'Public transport', ja: '公共交通', zh: '公共交通', vi: 'Phương tiện công cộng', th: 'ขนส่งสาธารณะ', ru: 'Общественный транспорт', id: 'Transportasi umum' } },
+  { ko: 'CAR', key: 'Transportation_4', label: { ko: '자동차', en: 'Car', ja: '車', zh: '汽车', vi: 'Ô tô', th: 'รถยนต์', ru: 'Автомобиль', id: 'Mobil' } },
+];
+/** 도보: the market is walked, and it is what the API assumes when none is sent. */
+const DEFAULT_TRANSPORT: CourseTransport = 'WALK';
+const isTransport = (v: string | undefined): v is CourseTransport =>
+  TRANSPORT_CHIPS.some((c) => c.ko === v);
+
 /** What a chip's answer reads as — its sheet row, else the authored label. */
 const chipLabel = (c: Chip, lang: Lang): string => (c.key ? sheet(c.key, lang, c.label) : txt(lang, c.label));
 
@@ -119,6 +137,7 @@ const SECTION = {
   visitors: { ko: '방문 인원', en: 'Group size', ja: '訪問人数', zh: '同行人数', vi: 'Số người', th: 'จำนวนผู้มา', ru: 'Количество гостей', id: 'Jumlah orang' } as L8,
   stay: { ko: '체류 기간', en: 'Length of stay', ja: '滞在期間', zh: '停留时间', vi: 'Thời gian lưu trú', th: 'ระยะเวลาพำนัก', ru: 'Срок пребывания', id: 'Lama menginap' } as L8,
   interests: { ko: '즐길 거리', en: 'What to enjoy', ja: '楽しみ方', zh: '体验项目', vi: 'Hoạt động yêu thích', th: 'กิจกรรมที่สนใจ', ru: 'Что интересно', id: 'Aktivitas' } as L8,
+  transport: { ko: '이동수단', en: 'Getting around', ja: '移動手段', zh: '交通方式', vi: 'Phương tiện di chuyển', th: 'การเดินทาง', ru: 'Транспорт', id: 'Transportasi' } as L8,
 };
 
 /** The gauge on the 즐길 거리 bar ("3시간 30분 소요"). */
@@ -306,6 +325,18 @@ const THEME_CARDS: ThemeCard[] = [
 ];
 
 /**
+ * The course's name on one line — a 추천코스's own title (Recommended_Course_n_title,
+ * "유산 탐방 코스"), else 커스텀 코스. The 코스 상세 subtitle opens with it, the way
+ * 제주's reads "A코스 - 1일차" (6289:58438).
+ */
+export const osanCourseName = (courseKey: string, lang: Lang): string => {
+  const card = THEME_CARDS.find((c) => c.key === courseKey);
+  return card
+    ? sheetTitle(`Recommended_Course_${card.n}_title`, lang, card.title).replace(/\s*\n\s*/g, ' ')
+    : txt(lang, CUSTOM_SECTION);
+};
+
+/**
  * 즐길 거리 each 추천코스 card asks the API for, by the 오색시장 catalogue's
  * second-category NAME (prefix stripped) — resolved to the prefixed code from the
  * shop rows this kiosk holds; a name the catalogue does not carry is skipped.
@@ -389,6 +420,9 @@ export function OsanAiCourse({ controller }: Props): JSX.Element {
     (resumed?.stay as InsaDuration | undefined) || '2-4',
   );
   /* 즐길 거리 in tap order, as the API's `N-name` codes. */
+  const [transport, setTransport] = useState<CourseTransport>(() =>
+    isTransport(resumed?.transport) ? resumed!.transport as CourseTransport : DEFAULT_TRANSPORT,
+  );
   const [picks, setPicks] = useState<string[]>(() => resumed?.interests ?? []);
   const [busy, setBusy] = useState(false);
   /*
@@ -409,6 +443,7 @@ export function OsanAiCourse({ controller }: Props): JSX.Element {
 
   const partyRef = useRef<HTMLDivElement>(null);
   const stayRef = useRef<HTMLDivElement>(null);
+  const transportRef = useRef<HTMLDivElement>(null);
   const joyRef = useRef<HTMLDivElement>(null);
   const landingRef = useRef<HTMLDivElement>(null);
 
@@ -440,7 +475,7 @@ export function OsanAiCourse({ controller }: Props): JSX.Element {
      last one. A failure simply leaves it blank — the CTA still works. */
   const [preview, setPreview] = useState<{ key: string; course: InsaCourseSet } | null>(null);
   const previewSeq = useRef(0);
-  const previewKey = `${duration}|${party}|${picks.join(',')}`;
+  const previewKey = `${duration}|${party}|${transport}|${picks.join(',')}`;
   useEffect(() => {
     if (step !== 'custom' || picks.length === 0) {
       setPreview(null);
@@ -449,14 +484,14 @@ export function OsanAiCourse({ controller }: Props): JSX.Element {
     const seq = ++previewSeq.current;
     const timer = setTimeout(() => {
       void window.api.insaCourse
-        .recommend({ interests: picks, duration, numberOfPeople: partySize(party), startAt: localIso(new Date()) })
+        .recommend({ interests: picks, duration, numberOfPeople: partySize(party), startAt: localIso(new Date()), transport })
         .then((res) => {
           if (previewSeq.current !== seq) return;
           setPreview(isOk(res) ? { key: previewKey, course: res.value } : null);
         });
     }, 350);
     return () => clearTimeout(timer);
-  }, [step, picks, duration, party, previewKey]);
+  }, [step, picks, duration, party, transport, previewKey]);
 
   const toggle = (code: string): void =>
     setPicks((prev) => (prev.includes(code) ? prev.filter((c) => c !== code) : [...prev, code]));
@@ -465,13 +500,14 @@ export function OsanAiCourse({ controller }: Props): JSX.Element {
   const go = async (interests: string[]): Promise<void> => {
     if (busy) return;
     setBusy(true);
-    setAnswers({ visitors: party, stay: duration, transport: '' });
+    setAnswers({ visitors: party, stay: duration, transport });
     setInterests(interests);
     const res = await window.api.insaCourse.recommend({
       interests,
       duration,
       numberOfPeople: partySize(party),
       startAt: localIso(new Date()),
+      transport,
     });
     setInsaCourse(isOk(res) ? res.value : null);
     setBusy(false);
@@ -556,6 +592,7 @@ export function OsanAiCourse({ controller }: Props): JSX.Element {
 
   useFitText(partyRef, styles.pillLong, long, 0.55, `${lang}|party|${step}|${joyPage}`);
   useFitText(stayRef, styles.pillLong, long, 0.55, `${lang}|stay|${step}|${joyPage}`);
+  useFitText(transportRef, styles.pillLong, long, 0.55, `${lang}|transport|${step}|${joyPage}`);
   // A word longer than any tile ("Сельскохозяйственная") takes its own smaller
   // factor (rescue, ≥ 0.45) instead of dragging all 26 tiles down with it.
   useFitText(joyRef, styles.joyChipTextLong, long, 0.6, `${lang}|${tiles.length}|${step}|${joyPage}`, 'both', 0.45);
@@ -742,6 +779,15 @@ export function OsanAiCourse({ controller }: Props): JSX.Element {
               {sheet('StayTime', lang, SECTION.stay)}
             </div>
             {chipRow(stayRef, DURATION_CHIPS, duration, (v) => setDuration(v as InsaDuration), 412)}
+          </section>
+
+          {/* 이동수단 — as 제주's builder (JejuAiSearch); both 오산 builders ask it. */}
+          <section className={`${styles.section} ${styles.sectionTransport}`}>
+            <div className={styles.label}>
+              <span className={styles.bar} />
+              {sheet('Transportation', lang, SECTION.transport)}
+            </div>
+            {chipRow(transportRef, TRANSPORT_CHIPS, transport, (v) => setTransport(v as CourseTransport), 412)}
           </section>
           </>
           )}

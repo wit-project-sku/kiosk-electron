@@ -240,17 +240,19 @@
 }
 
 /* Compact tops — 오산>코스카테고리-02 (7812:111340), the 추천코스 builder: one
-   column from y700 on a 60 gap — 방문 인원 (329), 체류 기간 (329), then the CTA
-   at 1478, all from x170. */
+   column from y700 on a 60 gap — 방문 인원 (329), 체류 기간 (329), 이동수단
+   (329, added like 제주's builder), then the CTA, all from x170. */
 .sectionParty     { top: calc(700px + var(--header-push, 0px)); }
 .sectionStay      { top: calc(1089px + var(--header-push, 0px)); }
-.sectionTransport { top: calc(1558px + var(--header-push, 0px)); }
+.sectionTransport { top: calc(1478px + var(--header-push, 0px)); }
 
 /* Tall tops (7519:74960) — the 선택영역 starts at 822 and stacks 방문 인원 (326),
-   체류 기간 (326), 즐길 거리 (1488) on a 50px gap; there is no 이동수단 row. */
+   체류 기간 (326), 이동수단 (326, not in the frame — 제주's row), 즐길 거리
+   (1488) on a 50px gap; the CTA moves down by the added row (376). */
 .builderFull .sectionParty     { top: calc(822px + var(--header-push, 0px)); }
 .builderFull .sectionStay      { top: calc(1198px + var(--header-push, 0px)); }
-.builderFull .sectionJoy       { top: calc(1574px + var(--header-push, 0px)); }
+.builderFull .sectionTransport { top: calc(1574px + var(--header-push, 0px)); }
+.builderFull .sectionJoy       { top: calc(1950px + var(--header-push, 0px)); }
 
 .pillRow {
   display: flex;
@@ -504,13 +506,13 @@
   line-height: 1;
   cursor: pointer;
   left: 170px;
-  top: calc(1478px + var(--header-push, 0px));
+  top: calc(1867px + var(--header-push, 0px));
 }
 
 /* The full builder's CTA is centred in its 선택영역 → x171.6. */
 .builderFull .cta {
   left: 171.6px;
-  top: calc(3112px + var(--header-push, 0px));
+  top: calc(3488px + var(--header-push, 0px));
 }
 
 .cta:disabled {
@@ -622,10 +624,13 @@
   top: 1419px;
 }
 
-/* 7878:46119 — 방문 인원 at 2666, 체류 기간 at 3052, the CTA at 3438. */
-.builderLowAsk .sectionParty { top: 2666px; }
-.builderLowAsk .sectionStay  { top: 3052px; }
-.builderLowAsk .cta          { left: 170px; top: 3438px; }
+/* 7878:46119 — 방문 인원 at 2666, 체류 기간 at 3052, the CTA at 3438. The added
+   이동수단 row keeps the CTA where the frame has it and lifts the two above by
+   one step (386). */
+.builderLowAsk .sectionParty     { top: 2280px; }
+.builderLowAsk .sectionStay      { top: 2666px; }
+.builderLowAsk .sectionTransport { top: 3052px; }
+.builderLowAsk .cta              { left: 170px; top: 3438px; }
 
 /* 7878:46150 draws page 1's 다음으로 in 글씨-main #999, but the button is always
    live (방문 인원 / 체류 기간 both have a default), and grey read as disabled —

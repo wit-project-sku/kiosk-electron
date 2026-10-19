@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { QRCodeSVG } from 'qrcode.react';
 import type { KioskController } from '@renderer/hooks/useKioskController';
 import type { InsaCourse, InsaDuration } from '@shared/types/insaCourse';
+import type { Shop } from '@shared/types/shop';
 import { isOk } from '@shared/types/result';
 import { osanIconUrl } from '@renderer/assets/icons/osan';
 import { useAiStore } from '@renderer/store/aiStore';
@@ -28,7 +29,7 @@ import {
   stripPrefix,
 } from '@renderer/lib/shops';
 import { useFitText } from '@layouts/components/fitText';
-import { localizeOsanAiPick, osanAiTitle } from './OsanAiCourse';
+import { localizeOsanAiPick, osanAiTitle, osanCourseName } from './OsanAiCourse';
 import { OsanHeader } from './OsanHeader';
 import { OsanLeftNav } from './OsanLeftNav';
 import { OsanPageBg } from './OsanPageBg';
@@ -57,6 +58,15 @@ import styles from './OsanAiCourseResult.module.css';
  */
 
 type L8 = Partial<Record<Lang, string>>;
+
+/** 난이도 words for the 다음 장소 card — Localization_Osaek Difficulty / Difficulty_*
+ *  first; these cover an empty cell. */
+const DIFFICULTY: Record<'label' | 'easy' | 'normal' | 'hard', L8> = {
+  label: { ko: '난이도', en: 'Difficulty', ja: '難易度', zh: '难度', vi: 'Độ khó', th: 'ความยาก', ru: 'Сложность', id: 'Tingkat kesulitan' },
+  easy: { ko: '쉬움', en: 'Easy', ja: 'やさしい', zh: '简单', vi: 'Dễ', th: 'ง่าย', ru: 'Лёгкий', id: 'Mudah' },
+  normal: { ko: '중간', en: 'Medium', ja: 'ふつう', zh: '中等', vi: 'Trung bình', th: 'ปานกลาง', ru: 'Средний', id: 'Sedang' },
+  hard: { ko: '어려움', en: 'Hard', ja: 'むずかしい', zh: '困难', vi: 'Khó', th: 'ยาก', ru: 'Сложный', id: 'Sulit' },
+};
 
 /** The page's own copy — keys are the renewal vocabulary Localization_Jeju uses
  *  for the identical frame, so the 인사 tab can be filled the same way. */
@@ -169,8 +179,10 @@ const fromInsa = (course: InsaCourse): Day[] =>
           stops: course.spots.map((sp) => ({
             shopId: sp.shopId,
             order: sp.order,
-            travelMinutes: sp.walkMinutes,
-            travelKm: sp.walkMeters / 1000,
+            // The leg as travelled — with 이동수단 a bike / bus / car leg has a
+            // zero walk and its time in move* (the same as the walk otherwise).
+            travelMinutes: sp.moveMinutes,
+            travelKm: sp.moveMeters / 1000,
             dwellMinutes: sp.stayMinutes,
             category: stripPrefix(sp.secondCategory),
             hoursMethod: sp.hoursMethod,
@@ -203,6 +215,7 @@ export function OsanAiCourseResult({ controller }: Props): JSX.Element {
   const interests = useAiStore((s) => s.interests);
   const visitors = useAiStore((s) => s.visitors);
   const stay = useAiStore((s) => s.stay);
+  const transportAnswer = useAiStore((s) => s.transport);
 
   const shops = useShopStore((s) => s.shops);
   const setDetail = useDetailStore((s) => s.setItem);
@@ -225,6 +238,10 @@ export function OsanAiCourseResult({ controller }: Props): JSX.Element {
       duration: (stay as InsaDuration) || '2-4',
       numberOfPeople: partySize(visitors),
       startAt: `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}T${p(d.getHours())}:${p(d.getMinutes())}:${p(d.getSeconds())}`,
+      // The same 이동수단 the visitor picked (the builder stores the API code).
+      ...(transportAnswer === 'WALK' || transportAnswer === 'BIKE' || transportAnswer === 'TRANSIT' || transportAnswer === 'CAR'
+        ? { transport: transportAnswer }
+        : {}),
     });
     setInsaCourse(isOk(res) ? res.value : null);
     setRefreshing(false);
@@ -286,7 +303,29 @@ export function OsanAiCourseResult({ controller }: Props): JSX.Element {
   const dayDwell = stops.reduce((t, s) => t + s.dwellMinutes, 0);
   /* The API's own totals win over a re-sum of the legs. */
   const totalMinutes = route?.totalMinutes || dayTravel + dayDwell;
-  const dayKm = route ? route.totalWalkMeters / 1000 : stops.reduce((t, s) => t + s.travelKm, 0);
+  /* Every leg as travelled. The API's totalWalkMeters leaves out the legs
+     ridden with 이동수단, so on foot the two agree and otherwise this is the trip. */
+  const dayKm = stops.reduce((t, s) => t + s.travelKm, 0);
+
+  /** "유산 탐방 코스 - 실시간 코스": which course and which tab the stop came from. */
+  const courseLabelOf = (): string =>
+    `${osanCourseName(entry === 'theme' ? courseKey : '', lang)} - ${line(
+      tab === 'realtime' ? 'Insa_Todo_result_Realtime' : 'Insa_Todo_result_General',
+      TEXT[tab],
+    )}`;
+
+  /*
+   * 난이도 on the 다음 장소 card, as 제주 draws it — from the shop's own
+   * `difficulty` (1 쉬움 · 2 중간 · 3 어려움, Localization_Osaek Difficulty_*).
+   * Every 오색 row is null today, so the card shows the stay alone until the
+   * backend fills it.
+   */
+  const difficultyOf = (shop: Shop): string => {
+    const level = (shop as Shop & { difficulty?: number | null }).difficulty;
+    const grade = level === 1 ? 'easy' : level === 2 ? 'normal' : level === 3 ? 'hard' : '';
+    if (!grade) return '';
+    return `${line('Difficulty', DIFFICULTY.label)} : ${line(`Difficulty_${grade}`, DIFFICULTY[grade])}`;
+  };
 
   /*
    * A stop's 상세 payload. Like 제주's course detail it carries the NEXT stop of
@@ -303,8 +342,11 @@ export function OsanAiCourseResult({ controller }: Props): JSX.Element {
     const base = osanShopDetail(shop, lang, 'ai_result', 'AI 추천', osanIconUrl('noimage'));
     const nextStop = list[i + 1];
     const nextItem = nextStop ? detailAt(list, i + 1) : null;
+    const nextShop = nextStop ? byId.get(nextStop.shopId) : undefined;
     return {
       ...base,
+      // The detail page's subtitle — 제주 6289:58438 reads "A코스 - 1일차".
+      title: courseLabelOf(),
       shopId: shop.id,
       category: base.category || stop.category,
       route: shop.route ?? null,
@@ -312,7 +354,7 @@ export function OsanAiCourseResult({ controller }: Props): JSX.Element {
         ? {
             courseNext: {
               dwell: `${line('TimeToAdjourn', TEXT.dwell)} : ${minutesLabel(nextStop.dwellMinutes, lang)}`,
-              difficulty: '',
+              difficulty: nextShop ? difficultyOf(nextShop) : '',
               item: nextItem,
             },
           }
@@ -408,7 +450,7 @@ export function OsanAiCourseResult({ controller }: Props): JSX.Element {
         totalMinutes: qrRoute?.totalMinutes ?? null,
         distanceKm: qrRoute ? qrRoute.totalWalkMeters / 1000 : null,
         stay,
-        travelMinutes: qrRoute ? qrRoute.spots.reduce((n, sp) => n + sp.walkMinutes, 0) : null,
+        travelMinutes: qrRoute ? qrRoute.spots.reduce((n, sp) => n + sp.moveMinutes, 0) : null,
         difficulty: null,
       }),
     [lang, kioskId, entry, courseKey, visitors, interests, qrDays, qrRoute, stay],

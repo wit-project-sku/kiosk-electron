@@ -45,9 +45,12 @@ export function OsanSpotDetailCard({
   data,
   lowered = false,
   map,
+  directions,
   className,
 }: {
   data: SpotDetailData;
+  /** Getting-there block under the description (see the call in OsanAiDetail). */
+  directions?: ReactNode;
   /** 오산>여기는오색시장-01-2 (7862:44961): a 1514×631 map above the title; the
       card grows to 2215 to hold it. */
   map?: ReactNode;
@@ -91,7 +94,7 @@ export function OsanSpotDetailCard({
       ref={rootRef}
       className={`${styles.content} ${lowered ? styles.contentLowered : ''} ${long ? styles.long : ''} ${className ?? ''}`}
     >
-      <div className={`${styles.card} ${map ? styles.cardWithMap : ''}`}>
+      <div className={`${styles.card} ${map ? styles.cardWithMap : ''} ${directions ? styles.cardWithDirections : ''}`}>
         {map && <div className={styles.mapSlot}>{map}</div>}
         <div className={styles.titleRow}>
           <h2 className={styles.title}>{data.name}</h2>
@@ -175,6 +178,15 @@ export function OsanSpotDetailCard({
           </div>
           <p className={styles.descTags}>{data.tags}</p>
         </div>
+
+        {/* 제주 6289:58438's "…에서 n km" + 자동차/버스/자전거/도보 block, when the
+            caller has one (the 코스 상세, from the shop's `route`). */}
+        {directions && (
+          <>
+            <div className={styles.divider} />
+            {directions}
+          </>
+        )}
 
         {/* Ratings — the frame also draws Instagram followers and a blog-review
             count, but the shop data carries neither, so only Naver is shown,
