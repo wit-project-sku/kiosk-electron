@@ -151,7 +151,6 @@ export class InsaCourseService {
 const num = (v: unknown, fallback = 0): number => (typeof v === 'number' && Number.isFinite(v) ? v : fallback);
 const str = (v: unknown, fallback = ''): string => (typeof v === 'string' ? v : fallback);
 
-/** A stop without a `shopId` cannot be drawn — the card is built from the catalogue row. */
 const TRANSPORTS: readonly CourseTransport[] = ['WALK', 'BIKE', 'TRANSIT', 'CAR'];
 
 /** A leg's mode as the API spelled it, or null for anything else (absent on 인사동). */
@@ -159,6 +158,7 @@ function transportOf(v: unknown): CourseTransport | null {
   return typeof v === 'string' && (TRANSPORTS as readonly string[]).includes(v) ? (v as CourseTransport) : null;
 }
 
+/** A stop without a `shopId` cannot be drawn — the card is built from the catalogue row. */
 function normalizeSpot(row: unknown, index: number): InsaCourseSpot | null {
   if (!row || typeof row !== 'object') return null;
   const r = row as Record<string, unknown>;

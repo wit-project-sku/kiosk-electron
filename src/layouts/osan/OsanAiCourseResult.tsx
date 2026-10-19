@@ -494,6 +494,12 @@ export function OsanAiCourseResult({ controller }: Props): JSX.Element {
           {/* 7681:59356 — "출발 지점 > …": the course starts at this kiosk. */}
           <div className={styles.origin}>
             {line('Insa_Todo_result_Start', TEXT.start)} &gt; {kioskPlaceName(kioskId, lang)}
+            {/* The leg from this kiosk to stop 1 has no pill of its own (pills sit
+                between stops). Since 관광명소 come first it is often a drive, so the
+                plate names it: "· 자동차 5분". */}
+            {stops[0] && stops[0].travelMinutes > 0 && (
+              <> · {osanMoveLabel(stops[0].mode ?? 'WALK', lang)} {minutesLabel(stops[0].travelMinutes, lang)}</>
+            )}
           </div>
 
           {stops.length === 0 ? (
