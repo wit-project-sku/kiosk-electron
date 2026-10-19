@@ -13,7 +13,7 @@ import { hasLoc, t, tExact } from '@renderer/lib/loc';
 import { ui } from '@renderer/lib/uiText';
 import { usePhotoChrome } from './photoChrome';
 import { useOutfitStore } from '@renderer/store/outfitStore';
-import { outfitCategoryLabel, outfitSubCategoryLabel } from '@renderer/lib/outfitCategories';
+import { outfitCategoryLabel, outfitLabel, outfitSubCategoryLabel } from '@renderer/lib/outfitCategories';
 import type { OutfitSubCategory } from '@shared/types/outfit';
 import hanbokInfo from '@renderer/assets/photos/insadong/hanbok/hanbok-info.png';
 import { HANBOK_INFO, PRIVACY, parseHanbokSheet, parsePrivacySheet } from './photoTexts';
@@ -104,17 +104,9 @@ const NO_OUTFITS = {
   ru: 'Наряды готовятся.',
   id: 'Busana sedang disiapkan.',
 };
-/** Osan picker copy (Figma 7878:42863 / 7878:43050) that the sheets do not carry. */
-const OSAN_CAPTION = {
-  ko: '면세혜택',
-  en: 'Tax-free benefit',
-  ja: '免税特典',
-  zh: '免税优惠',
-  vi: 'Ưu đãi miễn thuế',
-  th: 'สิทธิ์ยกเว้นภาษี',
-  ru: 'Льгота без налогов',
-  id: 'Bebas pajak',
-};
+/** Osan picker copy (Figma 7878:42863 / 7878:43050) that the sheets do not carry.
+ *  The cards' captions are the outfits' own names (`outfitLabel`); the Figma
+ *  frame's placeholder "면세혜택" under every card was never real copy. */
 const OSAN_NOTE = {
   ko: 'WITH의 모든 한복은 박술녀 한복입니다.',
   en: 'Every WITH hanbok is made by Park Sul-nyeo.',
@@ -376,7 +368,7 @@ export function HanbokSelect({ onCapture, onHome, countdownActive = false }: Han
                     <div className={styles.osanCard}>
                       <img src={o.url} alt="" draggable={false} decoding="async" onError={() => markBroken(o.code)} />
                     </div>
-                    <span className={styles.osanCap}>{pick(OSAN_CAPTION, lang)}</span>
+                    <span className={styles.osanCap}>{outfitLabel(o, lang)}</span>
                   </>
                 ) : (
                   <img src={o.url} alt="" draggable={false} decoding="async" onError={() => markBroken(o.code)} />
@@ -620,7 +612,8 @@ export function HanbokSelect({ onCapture, onHome, countdownActive = false }: Han
                 >
                   <img src={o.url} alt="" draggable={false} decoding="async" onError={() => markBroken(o.code)} />
                 </button>
-                {osanLook && <span className={styles.osanCap}>{pick(OSAN_CAPTION, lang)}</span>}
+                {/* The outfit's own name (CMS `label*`, visitor's language). */}
+                {osanLook && <span className={styles.osanCap}>{outfitLabel(o, lang)}</span>}
               </SwiperSlide>
             ))}
           </Swiper>

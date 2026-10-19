@@ -1144,6 +1144,11 @@
   opacity: 0.3;
   text-align: center;
   white-space: nowrap;
+  /* The outfit's name: one row under its card, "…" past the card's width. */
+  display: block;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 /* Capture buttons: 815×150 grey pills, 1740 wide, Noto Sans Bold 58. */
