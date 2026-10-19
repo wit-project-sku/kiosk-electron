@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { QRCodeSVG } from 'qrcode.react';
 import type { KioskController } from '@renderer/hooks/useKioskController';
-import type { InsaCourse, InsaDuration } from '@shared/types/insaCourse';
+import type { CourseTransport, InsaCourse, InsaDuration } from '@shared/types/insaCourse';
 import { isOk } from '@shared/types/result';
 import type { Shop } from '@shared/types/shop';
 import { osanIconUrl } from '@renderer/assets/icons/osan';
@@ -19,6 +19,7 @@ import {
   minutesLabel,
   partySize,
   todayIso,
+  transportCode,
 } from '@renderer/lib/jejuCourse';
 import {
   shopAddress,
@@ -29,7 +30,7 @@ import {
   stripPrefix,
 } from '@renderer/lib/shops';
 import { useFitText } from '@layouts/components/fitText';
-import { localizeOsanAiPick, osanAiTitle } from './OsanAiCourse';
+import { localizeOsanAiPick, osanAiTitle, osanMoveLabel } from './OsanAiCourse';
 import { OsanHeader } from './OsanHeader';
 import { OsanLeftNav } from './OsanLeftNav';
 import { OsanPageBg } from './OsanPageBg';
@@ -144,9 +145,11 @@ const TEXT = {
 interface Stop {
   shopId: number;
   order: number;
-  /** Walking INTO this stop from the previous one. */
+  /** The leg INTO this stop — walked, or ridden on the chosen 이동수단 (see `mode`). */
   travelMinutes: number;
   travelKm: number;
+  /** How the leg was travelled; null = walked (인사동-style answer, no move fields). */
+  mode: CourseTransport | null;
   dwellMinutes: number;
   /** The 즐길 거리 this stop was picked for, prefix stripped. */
   category: string;
@@ -170,8 +173,10 @@ const fromInsa = (course: InsaCourse): Day[] =>
           stops: course.spots.map((sp) => ({
             shopId: sp.shopId,
             order: sp.order,
-            travelMinutes: sp.walkMinutes,
-            travelKm: sp.walkMeters / 1000,
+            // A ridden leg has walk = 0 and its time in move*; a walked one has both.
+            travelMinutes: sp.moveMinutes ?? sp.walkMinutes,
+            travelKm: (sp.moveMeters ?? sp.walkMeters) / 1000,
+            mode: sp.moveMode,
             dwellMinutes: sp.stayMinutes,
             category: stripPrefix(sp.secondCategory),
             hoursMethod: sp.hoursMethod,
@@ -204,6 +209,8 @@ export function OsanAiCourseResult({ controller }: Props): JSX.Element {
   const interests = useAiStore((s) => s.interests);
   const visitors = useAiStore((s) => s.visitors);
   const stay = useAiStore((s) => s.stay);
+  /* The 이동수단 answer ('자동차' …); empty only for a course asked before it existed. */
+  const transport = useAiStore((s) => s.transport);
 
   const shops = useShopStore((s) => s.shops);
   const setDetail = useDetailStore((s) => s.setItem);
@@ -225,6 +232,7 @@ export function OsanAiCourseResult({ controller }: Props): JSX.Element {
       interests,
       duration: (stay as InsaDuration) || '2-4',
       numberOfPeople: partySize(visitors),
+      transport: transportCode(transport || '자동차'),
       startAt: `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}T${p(d.getHours())}:${p(d.getMinutes())}:${p(d.getSeconds())}`,
     });
     setInsaCourse(isOk(res) ? res.value : null);
@@ -287,7 +295,11 @@ export function OsanAiCourseResult({ controller }: Props): JSX.Element {
   const dayDwell = stops.reduce((t, s) => t + s.dwellMinutes, 0);
   /* The API's own totals win over a re-sum of the legs. */
   const totalMinutes = route?.totalMinutes || dayTravel + dayDwell;
-  const dayKm = route ? route.totalWalkMeters / 1000 : stops.reduce((t, s) => t + s.travelKm, 0);
+  /* totalWalkMeters leaves the ridden legs out, so a course with any ridden leg
+     sums its legs instead (walked + ridden — the distance actually covered). */
+  const ridden = stops.some((s) => s.mode !== null && s.mode !== 'WALK');
+  const dayKm =
+    route && !ridden ? route.totalWalkMeters / 1000 : stops.reduce((t, s) => t + s.travelKm, 0);
 
   const openStop = (stop: Stop, shop: Shop): void => {
     /* The shared payload, so the stop's 상세 carries its tags and photos (or the
@@ -366,7 +378,7 @@ export function OsanAiCourseResult({ controller }: Props): JSX.Element {
         lang,
         kioskNum: Number(kioskId.match(/\d+/)?.[0] ?? 1),
         course: entry === 'custom' ? 'X' : courseKey === 'shop' ? 'D' : courseLetter(courseKey),
-        transport: 'WALK',
+        transport: transportCode(transport || '자동차'),
         party: partySize(visitors),
         nights: 0,
         interests,
@@ -381,12 +393,12 @@ export function OsanAiCourseResult({ controller }: Props): JSX.Element {
           })),
         })),
         totalMinutes: qrRoute?.totalMinutes ?? null,
-        distanceKm: qrRoute ? qrRoute.totalWalkMeters / 1000 : null,
+        distanceKm: qrDays.length > 0 ? qrDays[0]!.stops.reduce((t, s) => t + s.travelKm, 0) : null,
         stay,
-        travelMinutes: qrRoute ? qrRoute.spots.reduce((n, sp) => n + sp.walkMinutes, 0) : null,
+        travelMinutes: qrDays.length > 0 ? qrDays[0]!.stops.reduce((t, s) => t + s.travelMinutes, 0) : null,
         difficulty: null,
       }),
-    [lang, kioskId, entry, courseKey, visitors, interests, qrDays, qrRoute, stay],
+    [lang, kioskId, entry, courseKey, visitors, interests, qrDays, qrRoute, stay, transport],
   );
 
   return (
@@ -543,7 +555,11 @@ export function OsanAiCourseResult({ controller }: Props): JSX.Element {
                     </button>
                     {next && (
                       <span className={styles.travel}>
-                        <span>{minutesLabel(next.travelMinutes, lang)}</span>
+                        {/* A ridden leg names its mode; a walked one looks as it always has. */}
+                        <span>
+                          {next.mode && next.mode !== 'WALK' ? `${osanMoveLabel(next.mode, lang)} · ` : ''}
+                          {minutesLabel(next.travelMinutes, lang)}
+                        </span>
                         <span>
                           {next.travelKm < 10 ? next.travelKm.toFixed(1) : String(Math.round(next.travelKm))}km
                         </span>

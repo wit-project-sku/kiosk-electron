@@ -7,6 +7,7 @@ import {
   type InsaCourse,
   type InsaCourseQuery,
   type InsaCourseSet,
+  type CourseTransport,
   type InsaCourseSpot,
   type InsaDuration,
 } from '@shared/types/insaCourse';
@@ -69,6 +70,8 @@ export class InsaCourseService {
       duration: query.duration,
       numberOfPeople: query.numberOfPeople,
       startAt: query.startAt,
+      // 오색시장's 이동수단; the 지점 route ignores it for 인사동.
+      ...(query.transport ? { transport: query.transport } : {}),
     };
 
     try {
@@ -149,6 +152,13 @@ const num = (v: unknown, fallback = 0): number => (typeof v === 'number' && Numb
 const str = (v: unknown, fallback = ''): string => (typeof v === 'string' ? v : fallback);
 
 /** A stop without a `shopId` cannot be drawn — the card is built from the catalogue row. */
+const TRANSPORTS: readonly CourseTransport[] = ['WALK', 'BIKE', 'TRANSIT', 'CAR'];
+
+/** A leg's mode as the API spelled it, or null for anything else (absent on 인사동). */
+function transportOf(v: unknown): CourseTransport | null {
+  return typeof v === 'string' && (TRANSPORTS as readonly string[]).includes(v) ? (v as CourseTransport) : null;
+}
+
 function normalizeSpot(row: unknown, index: number): InsaCourseSpot | null {
   if (!row || typeof row !== 'object') return null;
   const r = row as Record<string, unknown>;
@@ -161,6 +171,9 @@ function normalizeSpot(row: unknown, index: number): InsaCourseSpot | null {
     leaveAt: str(r['leaveAt']),
     walkMinutes: num(r['walkMinutes']),
     walkMeters: num(r['walkMeters']),
+    moveMode: transportOf(r['moveMode']),
+    moveMinutes: typeof r['moveMinutes'] === 'number' ? r['moveMinutes'] : null,
+    moveMeters: typeof r['moveMeters'] === 'number' ? r['moveMeters'] : null,
     secondCategory: str(r['secondCategory']),
     hoursMethod: str(r['hoursMethod']),
     arriveElapsedMinutes: num(r['arriveElapsedMinutes']),
