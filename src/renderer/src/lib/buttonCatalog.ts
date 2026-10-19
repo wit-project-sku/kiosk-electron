@@ -130,9 +130,9 @@ const BUTTON_IDS: Record<string, Record<number, number>> = {
   // clicks with `id: null` until its first sync.
   //
   // The one exception is the photo-mode pair at the flat slots 23/24, which no 제주
-  // grid row uses: 혼자찍기/같이찍기 were added by admin-be V191 with ids FIXED to
-  // 301–306 so they are identical in both environments (2026-10-19). They are
-  // OFF_MAIN, which `buttons/v2` leaves out, so the live response cannot supply them.
+  // grid row uses: 혼자찍기/같이찍기 were added by an admin-be migration with ids
+  // FIXED to 301–306 so they are identical in both environments (2026-10-19). They
+  // are OFF_MAIN, which `buttons/v2` leaves out, so the live response cannot supply them.
   W006: { 23: 301, 24: 302 },
   // W007 (제주국제여객터미널) — photo-mode pair only, see W006.
   W007: { 23: 303, 24: 304 },
@@ -221,7 +221,7 @@ const SLOT_OVERRIDES: Partial<Record<KioskId, Record<string, Slot>>> = {
   //
   // Not in the CMS, so they stay id-less: K-DRAMA and 운항정보 (both on the 제주 home,
   // neither seeded). photo_solo/photo_together fall through to the base SLOTS (23/24)
-  // and take their fixed V191 ids from BUTTON_IDS. `프로모션` (id 147) is the
+  // and take their fixed ids (301–306) from BUTTON_IDS. `프로모션` (id 147) is the
   // opposite case — a seeded row with no 제주 screen behind it yet.
   W006: {
     home: { position: 1, type: '홈' },
@@ -264,7 +264,7 @@ const SLOT_OVERRIDES: Partial<Record<KioskId, Record<string, Slot>>> = {
   // 렌트카 (see JejuHome's VENUE_TILE). The row is mirrored anyway because this
   // file's job is to match the CMS, and the moment that tile is swapped the
   // analytics join is already correct. Not in the CMS, so still id-less here:
-  // K-DRAMA, 운항정보 (photo_solo/photo_together: fixed V191 ids, see W006); `프로모션` (id 168) is the reverse
+  // K-DRAMA, 운항정보 (photo_solo/photo_together: fixed ids, see W006); `프로모션` (id 168) is the reverse
   // — a seeded row with no 제주 screen behind it.
   W007: {
     home: { position: 1, type: '홈' },
@@ -300,7 +300,7 @@ const SLOT_OVERRIDES: Partial<Record<KioskId, Record<string, Slot>>> = {
   // No BUTTON_IDS mirror, same reasoning as W006/W007: 171–191 are verified for
   // PRODUCTION only and the 기부 case proved ids diverge between prod and stage, so
   // every id is resolved off the live response by `buttonType` instead. Not in the
-  // CMS, so still id-less here: K-DRAMA, 운항정보 (photo_solo/photo_together: fixed V191 ids, see W006);
+  // CMS, so still id-less here: K-DRAMA, 운항정보 (photo_solo/photo_together: fixed ids, see W006);
   // `프로모션` (id 189) is the reverse — a seeded row with no 제주 screen behind it.
   W008: {
     home: { position: 1, type: '홈' },

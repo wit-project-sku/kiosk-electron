@@ -12,7 +12,7 @@ describe('photoModeTouch — 혼자찍기 / 같이찍기 tap counts', () => {
     ['W003', 120, 121],
     ['W004', 122, 123],
     ['W005', 124, 125],
-    // 제주: ids fixed by admin-be V191 so stage and production agree.
+    // 제주: ids fixed by the admin-be migration so stage and production agree.
     ['W006', 301, 302],
     ['W007', 303, 304],
     ['W008', 305, 306],
