@@ -337,16 +337,23 @@ export const osanCourseName = (courseKey: string, lang: Lang): string => {
 };
 
 /**
- * 즐길 거리 each 추천코스 card asks the API for, by the 오색시장 catalogue's
- * second-category NAME (prefix stripped) — resolved to the prefixed code from the
- * shop rows this kiosk holds; a name the catalogue does not carry is skipped.
- * The market has no heritage sites, so 유산 탐방 walks its traditional trades.
+ * The `interests` each 추천코스 card sends — the catalogue's second-category
+ * CODES verbatim, as the product spec lists them (2026-10-19). They go to the
+ * API as they are, NOT through the 즐길 거리 tiles: the tiles hold only market
+ * bases, so the 관광명소 codes (1-자연/공원 · 2-역사/유적 · 3-문화/예술 ·
+ * 4-체험/놀이) would be dropped, and those are what bring the sights 1–6 km out
+ * into a course (only reachable ones for the picked 이동수단 — a walked leg is
+ * capped at 2 km).
  */
 const THEME_PICKS: Record<string, string[]> = {
-  nature: ['인삼/약재', '떡/두부', '기름/방앗간', '한식'],
-  food: ['한식', '카페/제과', '분식', '족발/만두'],
-  shop: ['의류', '패션잡화', '생활용품', '건강'],
-  family: ['분식', '치킨/강정', '카페/제과', '문구'],
+  /* 유산 탐방 코스 */
+  nature: ['2-역사/유적', '1-자연/공원'],
+  /* 맛집·감성 코스 */
+  food: ['2-한식', '1-카페/제과', '3-분식', '5-족발/만두', '3-문화/예술'],
+  /* 쇼핑·로컬 체험 코스 */
+  shop: ['4-의류', '6-패션잡화', '7-생활용품', '3-건강'],
+  /* 가족·체험 코스 */
+  family: ['4-체험/놀이', '1-자연/공원', '3-분식', '1-카페/제과'],
 };
 
 /** The notice quotes the closing bound the API schedules to. */
@@ -464,7 +471,6 @@ export function OsanAiCourse({ controller }: Props): JSX.Element {
       .sort((x, y) => x.rank - y.rank || num(x.code) - num(y.code))
       .map((t, i) => ({ code: t.code, shop: t.shop, color: slotColor(i) }));
   }, [shops]);
-  const codeByName = useMemo(() => new Map(tiles.map((t) => [stripPrefix(t.code), t.code])), [tiles]);
 
   /* Tell the customer display which stage is up. */
   useEffect(() => {
@@ -530,10 +536,7 @@ export function OsanAiCourse({ controller }: Props): JSX.Element {
     if (!themeKey) return Promise.resolve();
     setCourse(themeKey);
     setEntry('theme');
-    const codes = (THEME_PICKS[themeKey] ?? [])
-      .map((name) => codeByName.get(name))
-      .filter((c): c is string => !!c);
-    return go(codes);
+    return go(THEME_PICKS[themeKey] ?? []);
   };
 
   /* The gauge follows the 실시간 코스; when nothing is open it reports the 일반 코스. */
