@@ -56,8 +56,8 @@
  */
 import { useCallback, useEffect, useRef, useState, type RefObject } from 'react';
 import {
-  DEPTH_CAMERA_PATTERN,
   PREFERRED_CAMERA_PATTERN,
+  isReservedCamera,
   looksLikeStereoPair,
 } from '@shared/config/cameras';
 import { getCameraRotation } from '@shared/config/kioskLocations';
@@ -443,13 +443,13 @@ export interface MotionTracking {
   diagnostics: RefObject<MotionDiagnostics>;
 }
 
-/** Pick the venue camera, never the ZED. Same two-way exclusion as elsewhere. */
+/** Pick the venue camera, never the ZED or the FillMe hand camera. Same exclusion as elsewhere. */
 async function pickCamera(rejected: Set<string>): Promise<string | null> {
   const devices = (await navigator.mediaDevices.enumerateDevices()).filter(
     (d) => d.kind === 'videoinput',
   );
   const usable = devices.filter(
-    (d) => !DEPTH_CAMERA_PATTERN.test(d.label) && !rejected.has(d.deviceId),
+    (d) => !isReservedCamera(d.label) && !rejected.has(d.deviceId),
   );
   const preferred = usable.find((d) => PREFERRED_CAMERA_PATTERN.test(d.label));
   return (preferred ?? usable[0])?.deviceId ?? null;
@@ -1095,9 +1095,11 @@ export function useMotionTracking({ enabled }: Options): MotionTracking {
             continue;
           }
           // The label-free backstop: a stereo pair's aspect is nothing like a
-          // webcam's, so if this is one we opened the ZED blind.
-          const { width = 0, height = 0 } = candidate.getVideoTracks()[0]?.getSettings() ?? {};
-          if (looksLikeStereoPair(width, height)) {
+          // webcam's, so if this is one we opened the ZED blind. The track's
+          // label catches the FillMe hand camera, which has no such shape.
+          const track = candidate.getVideoTracks()[0];
+          const { width = 0, height = 0 } = track?.getSettings() ?? {};
+          if (looksLikeStereoPair(width, height) || isReservedCamera(track?.label ?? '')) {
             candidate.getTracks().forEach((t) => t.stop());
             rejected.add(deviceId);
             continue;

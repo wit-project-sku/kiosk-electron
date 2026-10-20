@@ -103,7 +103,8 @@ asarUnpack:
   - node_modules/better-sqlite3/**
   - node_modules/serialport/**
   - node_modules/@serialport/**
-  # Bundled UI video — 안녕 '하영's 소개 portrait clip, imported by JejuHello and
+  # Bundled UI video — the 소개 portrait clips (안녕 '하영' in JejuHello, 안녕 '정이'
+  # in OsanHello, 인사동 in InsadongHello), imported by the layouts and
   # emitted into out/renderer/assets by Vite. Unpacked so <video> streams it from
   # a real file on disk: media inside app.asar goes through Electron's virtual
   # fs, which is a poor fit for byte-range media requests. These are small UI

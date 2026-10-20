@@ -3,7 +3,9 @@ import { useKioskController } from '@renderer/hooks/useKioskController';
 import { useWeatherSync } from '@renderer/hooks/useWeatherSync';
 import { useExchangeSync } from '@renderer/hooks/useExchangeSync';
 import { donationUrl } from '@shared/constants/webEmbeds';
-import { hwaseongIconUrl } from '@renderer/assets/icons/hwaseong';
+import { useAccessibilityStore } from '@renderer/store/accessibilityStore';
+import { useLang } from '@renderer/lib/i18n';
+import { barrierFreeTitle } from '../insadong/barrierFree';
 import { KioskArtboard } from '../components/KioskScreenImage';
 import { DonationWebScreen } from '../components/DonationWebScreen';
 import { PhotoWorkflow } from '../photo/PhotoWorkflow';
@@ -19,13 +21,12 @@ import { HwaseongListScreen } from './HwaseongListScreen';
 import { HwaseongMarketScreen } from './HwaseongMarketScreen';
 import { HwaseongHello } from './HwaseongHello';
 import { HwaseongDetail } from './HwaseongDetail';
-import { HwaseongMarketDetail } from './HwaseongMarketDetail';
 import { HwaseongHelp } from './HwaseongHelp';
 import { HwaseongLocalpay } from './HwaseongLocalpay';
 import { HwaseongNationwideRestStop } from './HwaseongNationwideRestStop';
 import { HwaseongMap } from './HwaseongMap';
 import { HwaseongScreen } from './HwaseongScreen';
-import { useDetailStore } from '@renderer/store/detailStore';
+import { HwaseongPageBg } from './HwaseongPageBg';
 
 // 전국도로교통상황 embeds https://www.its.go.kr/ — hide the site's own top
 // header (#div_topHeader / #header) and footer (#footer) so only the live map
@@ -48,9 +49,29 @@ const ITS_HIDE_CHROME_CSS = `
     top: 0 !important;
     min-height: 0 !important;
   }
+  /* The site sizes #container as 100vh minus its header; with the header gone
+     that leaves a blank strip under the map. Fill the whole viewport instead. */
+  #wrapper, #wrapper.mapType, #container {
+    height: 100vh !important;
+  }
 `;
 
 const FOOD_TABS = ['한식', '한정식', '바베큐', '분식', '사찰음식'];
+
+/** ♿ mode bar height (Figma 7904:105363), the shift every participating page takes. */
+const MODE_BAR = 145.759;
+/**
+ * Screens with their own barrier-free layout (7904:104975 home, 7904:105977
+ * 언어선택, 7956:60794 상세, 7918:122434 / 122135 / 122215 화성시 이벤트;
+ * 7956:82043 / 82691 / 82477 여기는 화성휴게소; 7977:94221 is the home's search
+ * keyboard). 검색
+ * (7909:106330) and 전국도로교통상황 (7986:94684) are drawn as the plain shift,
+ * with ▲/▼ and the scroll track held in place. Every other
+ * 화성 screen is moved down under the bar as a whole until its frame arrives;
+ * backgrounds, the left nav and the bottom promos counter-move
+ * (--hwaseong-mode-push) so they stay where the frames draw them.
+ */
+const MODE_DEDICATED = new Set(['home', 'language', 'detail', 'events', 'tourism']);
 
 /** Theme the shared AR 한복 photo workflow with the 화성휴게소 blue (var(--kiosk-primary)). */
 const PHOTO_THEME = {
@@ -62,12 +83,13 @@ const PHOTO_THEME = {
 
 export function HwaseongKiosk(): JSX.Element {
   const controller = useKioskController();
+  const lowReach = useAccessibilityStore((s) => s.lowReach);
+  const lang = useLang();
   useWeatherSync();
   useExchangeSync();
 
   const cur = controller.screen;
   const photoActive = controller.photoActive;
-  const detailFrom = useDetailStore((s) => s.item?.from);
 
   const foreground = photoActive ? (
     <div style={{ position: 'absolute', inset: 0, ...PHOTO_THEME }}>
@@ -90,23 +112,22 @@ export function HwaseongKiosk(): JSX.Element {
     ) : cur === 'food_court' ? (
       <HwaseongListScreen controller={controller} title="'휴' 뭐먹지" baseCategory="휴 뭐먹지" defaultTabs={FOOD_TABS} />
     ) : cur === 'shop' ? (
-      <HwaseongListScreen controller={controller} title="'휴' 뭐사지" baseCategory="휴 뭐사지" hideTabs />
+      // Figma 7918:123976 draws category tabs here too; the 뭐사지 rows carry no
+      // second category yet, so the row stays empty until the data has them.
+      <HwaseongListScreen controller={controller} title="'휴' 뭐사지" baseCategory="휴 뭐사지" />
     ) : cur === 'market' ? (
       <HwaseongMarketScreen controller={controller} />
     ) : cur === 'hello' ? (
       <HwaseongHello controller={controller} />
     ) : cur === 'detail' ? (
-      detailFrom === 'market' ? (
-        <HwaseongMarketDetail controller={controller} />
-      ) : (
-        <HwaseongDetail controller={controller} />
-      )
+      // One 상세 for every list (Figma 7956:61987 draws 전국시장 > 상세 with it).
+      <HwaseongDetail controller={controller} />
     ) : cur === 'rest_info' ? (
       <HwaseongLocalpay controller={controller} />
     ) : cur === 'help' ? (
       <HwaseongHelp controller={controller} />
     ) : cur === 'restroom' ? (
-      <HwaseongHelp controller={controller} defaultTab="화장실" noScroll />
+      <HwaseongHelp controller={controller} defaultTab="화장실" />
     ) : cur === 'convenience' ? (
       <HwaseongNationwideRestStop controller={controller} />
     ) : cur === 'parking' ? (
@@ -121,25 +142,27 @@ export function HwaseongKiosk(): JSX.Element {
       <HwaseongScreen screen={cur} controller={controller} />
     );
 
+  // The ♿ bar is on every screen, the photo flow included. 기부 is a separate
+  // website in a fullscreen webview: no bar and no shift, shown as it is.
+  const barOn = lowReach && (photoActive || cur !== 'donation');
+  const shiftOn = barOn && (photoActive || !MODE_DEDICATED.has(cur));
+  const shiftStyle = (
+    shiftOn
+      ? { position: 'absolute', inset: 0, transform: `translateY(${MODE_BAR}px)`, '--hwaseong-mode-push': `${MODE_BAR}px` }
+      : { position: 'absolute', inset: 0 }
+  ) as CSSProperties;
+
   return (
     <KioskArtboard>
-      {hwaseongIconUrl('bg') && (
-        <img
-          src={hwaseongIconUrl('bg')}
-          alt=""
-          draggable={false}
-          style={{
-            position: 'absolute',
-            inset: 0,
-            width: '100%',
-            height: '100%',
-            objectFit: 'cover',
-            zIndex: 0,
-            pointerEvents: 'none',
-          }}
-        />
+      <HwaseongPageBg />
+      {barOn && (
+        <div
+          style={{ position: 'absolute', top: 0, left: 0, width: 2160, height: MODE_BAR, background: '#005ab4', color: '#ffffff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: 'Pretendard, sans-serif', fontWeight: 700, fontSize: 68, zIndex: 60 }}
+        >
+          {barrierFreeTitle(lang)}
+        </div>
       )}
-      {foreground}
+      <div style={shiftStyle}>{foreground}</div>
     </KioskArtboard>
   );
 }

@@ -5,6 +5,7 @@ import { useLanguageStore } from '@renderer/store/languageStore';
 import { OsanHeader } from './OsanHeader';
 import { OsanBanner } from './OsanBanner';
 import { OsanLeftNav } from './OsanLeftNav';
+import { useAccessibilityStore } from '@renderer/store/accessibilityStore';
 import styles from './OsanWebScreen.module.css';
 
 interface OsanWebScreenProps {
@@ -22,15 +23,25 @@ interface OsanWebScreenProps {
 export function OsanWebScreen({ title, url, controller, bodyHeight }: OsanWebScreenProps): JSX.Element {
   const goHome = (): void => controller.navigate('home', 'Back');
   const lang = useLanguageStore((s) => s.currentLanguage);
+  /* ♿ 위드마켓_01_상품 목록 (7878:46736): promo under the mode bar, header at 719,
+     the store panel from 1356 to 234 above the foot. OsanKiosk does not shift
+     this screen (MODE_DEDICATED). */
+  const low = useAccessibilityStore((s) => s.lowReach);
 
   return (
     <>
-      {osanIconUrl('bg') && <img className={styles.bg} src={osanIconUrl('bg')} alt="" draggable={false} />}
+      {osanIconUrl('page-bg') && <img className={styles.bg} src={osanIconUrl('page-bg')} alt="" draggable={false} />}
 
-      <OsanHeader title={title} onHome={goHome} />
+      {low ? (
+        <div className={styles.lowHeader}>
+          <OsanHeader title={title} onHome={goHome} />
+        </div>
+      ) : (
+        <OsanHeader title={title} onHome={goHome} />
+      )}
 
       <div
-        className={styles.body}
+        className={low ? `${styles.body} ${styles.bodyLow}` : styles.body}
         style={bodyHeight !== undefined ? { height: `${bodyHeight}px`, bottom: 'auto' } : undefined}
       >
         {url ? (
@@ -46,7 +57,7 @@ export function OsanWebScreen({ title, url, controller, bodyHeight }: OsanWebScr
 
       <OsanLeftNav onHome={goHome} />
 
-      <OsanBanner onClick={() => controller.startPhoto()} />
+      <OsanBanner onClick={() => controller.startPhoto()} top={low ? 146 : undefined} />
     </>
   );
 }

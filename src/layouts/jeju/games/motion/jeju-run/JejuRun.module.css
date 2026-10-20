@@ -101,7 +101,7 @@
 
 .tutGo {
   display: flex;
-  color: var(--kiosk-primary, #ff7f0f);
+  color: var(--kiosk-primary, var(--game-accent, #ff7f0f));
 }
 
 /* The demonstration: an open hand turning into the sign and back, in place. */
@@ -231,13 +231,13 @@
 
 .meterBadgeJump.meterZoneOn,
 .meterBadgeDuck.meterZoneOn {
-  background: var(--kiosk-primary, #ff7f0f);
+  background: var(--kiosk-primary, var(--game-accent, #ff7f0f));
 }
 
 /* The practice run pointing at the move it is asking for: an accent outline
    that breathes, not a glow. */
 .meterPulse {
-  outline: 6px solid var(--kiosk-primary, #ff7f0f);
+  outline: 6px solid var(--kiosk-primary, var(--game-accent, #ff7f0f));
   outline-offset: 8px;
   animation: meterPulse 1.1s ease-in-out infinite;
 }
@@ -297,7 +297,7 @@
 
 .meterJump.meterZoneOn,
 .meterDuck.meterZoneOn {
-  background: var(--kiosk-primary, #ff7f0f);
+  background: var(--kiosk-primary, var(--game-accent, #ff7f0f));
 }
 
 /* Labels sit OUTSIDE the track, to its left, so the marker never covers the

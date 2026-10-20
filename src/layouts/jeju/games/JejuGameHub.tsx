@@ -20,9 +20,11 @@
  */
 import type { ComponentType } from 'react';
 import { pick, useLang } from '@renderer/lib/i18n';
+import { tExact } from '@renderer/lib/loc';
 import type { JejuGameId } from './gameTypes';
 import { isMotionGame } from './gameTypes';
 import { usePhotoChrome } from '../../photo/photoChrome';
+import { useAccessibilityStore } from '@renderer/store/accessibilityStore';
 import { TEXT } from './gameText';
 import { MOTION } from './motion/motionText';
 import { sfx } from './gameSound';
@@ -60,7 +62,10 @@ export function JejuGameHub({
      alone: its display has no pose tracking wired, and `jeju-run` is Jeju-
      branded end to end. Filtering the MENU (rather than the games themselves)
      keeps every game a leaf, which is the invariant JejuWaitingGames documents. */
-  const { motionGames, isJeju } = usePhotoChrome();
+  const { motionGames, isJeju, isOsan } = usePhotoChrome();
+  // ♿ on 오산 (7894:59610) has its own menu layout; 제주 / 인사동 keep theirs.
+  const lowReach = useAccessibilityStore((s) => s.lowReach);
+  const lowOsan = isOsan && lowReach;
   const games = motionGames ? GAMES : GAMES.filter((g) => !isMotionGame(g.id));
   const total = useJejuPointsTotal();
   const byGame = useJejuPointsStore((s) => s.byGame);
@@ -72,13 +77,15 @@ export function JejuGameHub({
 
   return (
     <GameShell
-      headerTitle="AR 한복체험"
+      // OSAEK: AR 의상착장 (Figma 7878:43190), sheet row first.
+      headerTitle={isOsan ? tExact('Photo_ArOutfitTitle', lang) || 'AR 의상착장' : 'AR 한복체험'}
       title={pick(isJeju ? TEXT.hubTitle : TEXT.hubTitleGeneric, lang)}
       subtitle={pick(isJeju ? TEXT.hubSubtitle : TEXT.hubSubtitleGeneric, lang)}
       onHome={onHome}
       navDisabled={navLocked}
+      lowOsan={lowOsan}
       chrome={
-        <>
+        <div className={lowOsan ? styles.lowOsan : undefined} style={{ display: 'contents' }}>
           <ul className={styles.list}>
             {games.map(({ id, Icon }, index) => {
               const camera = isMotionGame(id);
@@ -141,7 +148,7 @@ export function JejuGameHub({
               </p>
             )}
           </div>
-        </>
+        </div>
       }
     />
   );

@@ -1,5 +1,334 @@
-/* 환율 — exact Figma px (artboard 2160×3840). */
+/* 환율 — exact Figma px (artboard 2160×3840). Two screens share the tab row:
+   실시간 환율 (7878:22804) and 환율계산기 (7878:23072, keypad 7878:23155). */
 .bg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  pointer-events: none;
+  /* ♿ stays at y0 while the page under the mode bar moves down (OsanKiosk). */
+  transform: translateY(calc(-1 * var(--osan-mode-push, 0px)));
+}
+
+/* ── Tabs — Figma 7878:22815: w1360, gap 200, each 580×170, radius 42.9 ── */
+.tabs {
+  position: absolute;
+  top: 700px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 1360px;
+  height: 170px;
+  display: flex;
+  align-items: center;
+  gap: 200px;
+}
+
+.tab {
+  box-sizing: border-box;
+  flex: none;
+  width: 580px;
+  height: 170px;
+  padding: 0;
+  border: none;
+  border-radius: 42.9px;
+  background: #ffffff;
+  font-family: 'Pretendard', var(--kiosk-font, sans-serif);
+  font-weight: 500;
+  font-size: 50px;
+  color: #999999;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.tabSelected {
+  background: #1a4d7e;
+  font-weight: 700;
+  color: #ffffff;
+}
+
+/* Figma: "26.08.30. 19:30 기준" — Pretendard Regular 40, #999, right edge at 1990. */
+.stamp {
+  position: absolute;
+  top: 900px;
+  right: 170px;
+  width: 369px;
+  margin: 0;
+  font-family: 'Pretendard', var(--kiosk-font, sans-serif);
+  font-weight: 400;
+  font-size: 40px;
+  color: #999999;
+  line-height: 1;
+  text-align: right;
+  white-space: nowrap;
+}
+
+/* ── 실시간 환율 — list 7878:22835: top 970, 1820 wide, gap 40, clipped at 3267 ── */
+.listClip {
+  position: absolute;
+  left: 0;
+  top: 970px;
+  width: 2160px;
+  height: 2298px;
+  overflow: hidden;
+}
+
+.list {
+  position: absolute;
+  top: 0;
+  left: 170px;
+  right: 170px;
+  display: flex;
+  flex-direction: column;
+  gap: 40px;
+}
+
+/* Rate row: 1820×210, white pill (radius 214.5), px65 py40, no border. */
+.row {
+  flex: none;
+  box-sizing: border-box;
+  width: 100%;
+  height: 210px;
+  padding: 40px 65px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: #ffffff;
+  border-radius: 214.499px;
+  overflow: hidden;
+}
+
+/* Left group: flag 150 + name, gap 42.9, 560 wide. */
+.left {
+  display: flex;
+  align-items: center;
+  gap: 42.9px;
+  width: 560px;
+  flex: none;
+}
+
+.flag {
+  border-radius: 50%;
+  background: #f0f0f0;
+  overflow: hidden;
+  flex: none;
+  display: block;
+  width: 150px;
+  height: 150px;
+  object-fit: cover;
+}
+
+.label {
+  font-family: 'Noto Sans KR', 'Noto Sans', var(--kiosk-font, sans-serif);
+  font-weight: 500;
+  font-size: 60px;
+  line-height: normal;
+  color: #333333;
+  white-space: nowrap;
+}
+
+/* Rate cell: 354 wide, right-aligned, Noto Sans Medium 60, black. */
+.rate {
+  flex: none;
+  width: 354px;
+  height: 82px;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  font-family: 'Noto Sans KR', 'Noto Sans', var(--kiosk-font, sans-serif);
+  font-weight: 500;
+  font-size: 60px;
+  line-height: normal;
+  color: #000000;
+  white-space: nowrap;
+}
+
+/* ── 환율계산기 — base rate box 7878:23116: 794×283, #d3dfec, radius 45, centred at x1080 ── */
+.baseBox {
+  position: absolute;
+  left: 683px;
+  top: 985px;
+  width: 794px;
+  height: 283px;
+  box-sizing: border-box;
+  padding-top: 33px;
+  background: #d3dfec;
+  border-radius: 45px;
+  text-align: center;
+  color: #1a4d7e;
+}
+
+.baseTitle,
+.baseRate {
+  margin: 0;
+  line-height: 90px;
+  white-space: nowrap;
+}
+
+.baseTitle {
+  font-family: 'Pretendard', var(--kiosk-font, sans-serif);
+  font-weight: 600;
+  font-size: 50px;
+}
+
+.baseRate {
+  font-family: 'Pretendard', var(--kiosk-font, sans-serif);
+  font-weight: 700;
+  font-size: 60px;
+}
+
+/* Field captions: "금액:" at (280, 1244), "환전:" at (280, 1855). */
+.fieldLabel {
+  position: absolute;
+  left: 280px;
+  margin: 0;
+  font-family: 'Pretendard', var(--kiosk-font, sans-serif);
+  font-weight: 500;
+  font-size: 60px;
+  line-height: normal;
+  color: #000000;
+  white-space: nowrap;
+}
+
+/* White field pill: 1820×270, radius 159. Children use field-relative coordinates. */
+.field {
+  position: absolute;
+  left: 172px;
+  width: 1820px;
+  height: 270px;
+  box-sizing: border-box;
+  background: #ffffff;
+  border-radius: 159px;
+  cursor: default;
+}
+
+.fieldAmount {
+  top: 1381px;
+  cursor: pointer;
+}
+
+.fieldResult {
+  top: 1997px;
+}
+
+/* Value: x307 (field-relative 135), vertically centred. */
+.fieldValue {
+  position: absolute;
+  left: 135px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-family: 'Pretendard', var(--kiosk-font, sans-serif);
+  font-weight: 500;
+  font-size: 90px;
+  line-height: normal;
+  color: #000000;
+  white-space: nowrap;
+}
+
+/* Empty-field hint (as on 인사동 / 제주): grey, a step smaller than a number. */
+.fieldPlaceholder {
+  font-weight: 400;
+  font-size: 60px;
+  color: #999999;
+}
+
+/* Currency button: flag 170 + code, gap 42.9, chevron at field x1640. */
+.fieldCurBtn {
+  position: absolute;
+  left: 1251px;
+  top: 50px;
+  width: 450px;
+  height: 170px;
+  padding: 0;
+  border: none;
+  background: none;
+  display: flex;
+  align-items: center;
+  gap: 42.9px;
+  cursor: pointer;
+}
+
+.fieldCurFlag {
+  border-radius: 50%;
+  background: #f0f0f0;
+  overflow: hidden;
+  flex: none;
+  display: block;
+  width: 170px;
+  height: 170px;
+  /* The flags are 3:2 SVGs: without this they letterbox inside the circle
+     and leave grey bands top and bottom. Cover crops them to fill it. */
+  object-fit: cover;
+}
+
+.fieldCurLabel {
+  font-family: 'Pretendard', var(--kiosk-font, sans-serif);
+  font-weight: 500;
+  font-size: 60px;
+  line-height: normal;
+  color: #333333;
+  white-space: nowrap;
+}
+
+.fieldChevron {
+  position: absolute;
+  left: 389px;
+  top: 44px;
+  font-family: 'Noto Sans KR', 'Noto Sans', var(--kiosk-font, sans-serif);
+  font-weight: 400;
+  font-size: 68px;
+  line-height: normal;
+  color: #1a4d7e;
+}
+
+/* Exchange swap icon: 162×162 at (1028, 1743). */
+.swap {
+  position: absolute;
+  left: 1028px;
+  top: 1743px;
+  width: 162px;
+  height: 162px;
+  padding: 0;
+  border: none;
+  background: none;
+  cursor: pointer;
+}
+
+.swap img {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+/* KRW flag: 170×170 composite of the Figma vectors and the masked photo. */
+.krwFlag {
+  position: relative;
+  flex: none;
+  width: 170px;
+  height: 170px;
+}
+
+.krwPiece {
+  position: absolute;
+  display: block;
+  max-width: none;
+}
+
+.krwMask {
+  position: absolute;
+  left: -174.31px;
+  top: -87.16px;
+  width: 517.767px;
+  height: 344.315px;
+  -webkit-mask-size: 170px 170px;
+  mask-size: 170px 170px;
+  -webkit-mask-position: 174.313px 87.16px;
+  mask-position: 174.313px 87.16px;
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
+}
+
+.krwMask img {
   position: absolute;
   inset: 0;
   width: 100%;
@@ -8,134 +337,267 @@
   pointer-events: none;
 }
 
-.results {
+/* ── Keypad 7878:23240: backdrop #c5c5c1 @70%, keys 580×200 r30, 55 apart, rows 220 apart ── */
+.keypadBackdrop {
   position: absolute;
-  top: calc(699px + var(--header-push, 0px));
   left: 0;
-  right: 0;
-  bottom: 573px;
-  box-sizing: border-box;
-  display: flex;
-  flex-direction: column;
-  gap: 100px;
-  overflow-y: auto;
-  overflow-x: hidden;
-  padding: 0 170px 80px;
+  top: 2326px;
+  width: 2160px;
+  height: 938px;
+  background: #c5c5c1;
+  opacity: 0.7;
+  cursor: pointer;
 }
 
-.results::-webkit-scrollbar {
+.keypad {
+  position: absolute;
+  left: 155px;
+  top: 2365px;
+  width: 1850px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.keyRow {
+  display: flex;
+  justify-content: space-between;
+  width: 100%;
+}
+
+/* Last row: 0 sits under key 2 and ⌫ under key 3 (right-aligned, Figma w1215). */
+.keyRowLast {
+  justify-content: flex-end;
+  gap: 55px;
+}
+
+.key {
+  box-sizing: border-box;
+  width: 580px;
+  height: 200px;
+  padding: 0;
+  border: none;
+  border-radius: 30px;
+  background: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'Noto Sans KR', 'Noto Sans', var(--kiosk-font, sans-serif);
+  font-weight: 500;
+  font-size: 130px;
+  line-height: 1;
+  color: #000000;
+  cursor: pointer;
+}
+
+/* Backspace: icon 115×83, pt74 pl204 pr203 pb73 (Figma 7878:23265). */
+.keyBackspace {
+  padding: 74px 203px 73px 204px;
+  align-items: flex-start;
+  justify-content: flex-start;
+}
+
+.keyBackspaceImg {
+  display: block;
+  width: 115px;
+  height: 83px;
+}
+
+/* ── Banner 7878:22810: 2160×573 at y3267, with the orange bar and cream label box ── */
+.banner {
+  position: absolute;
+  left: 0;
+  top: 3267px;
+  transform: translateY(calc(-1 * var(--osan-mode-push, 0px)));
+  width: 2160px;
+  height: 573px;
+  object-fit: cover;
+  pointer-events: none;
+}
+
+.bannerBar {
+  position: absolute;
+  left: 0;
+  top: 3267px;
+  transform: translateY(calc(-1 * var(--osan-mode-push, 0px)));
+  width: 2160px;
+  height: 15px;
+  background: #f49c56;
+}
+
+.bannerCream {
+  position: absolute;
+  left: 329px;
+  top: 3770px;
+  /* ♿ rides with the banner it sits on (OsanKiosk's shift). */
+  transform: translateY(calc(-1 * var(--osan-mode-push, 0px)));
+  width: 810px;
+  height: 70px;
+  background: #fcf4eb;
+}
+
+/* ── Other languages ──────────────────────────────────────────────────────
+ * Reached only through a class the TSX adds when lang !== 'ko'.
+ * The rate cell is 354px wide. "1,320.50원" fits in Korean; the longer
+ * suffixes in other languages ("1,320.50 KRW", "1,320.50 вон") do not, so the
+ * cell grows to its content with 354 as its minimum. The row is space-between
+ * and mostly empty, so the extra width comes out of the gap, not the name. */
+.rateLong {
+  width: auto;
+  min-width: 354px;
+}
+
+/* ── Currency picker — Figma 7878:23272 / 7878:23428: panel 680×1700 at x1327,
+   opened from the amount row (top 1378) or the 환전 row (top 1997). Items are 170
+   tall with 63px between them (233 pitch), starting 74px into the panel. ── */
+.pickerBackdrop {
+  position: absolute;
+  inset: 0;
+  z-index: 30;
+}
+
+.picker {
+  position: absolute;
+  left: 1327px;
+  width: 680px;
+  height: 1700px;
+  z-index: 31;
+}
+
+.pickerPanel {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+  pointer-events: none;
+}
+
+/* Scrolls inside the panel; the 34px scrollbar is the navy thumb at panel x586. */
+.pickerList {
+  position: absolute;
+  left: 92px;
+  top: 74px;
+  width: 528px;
+  height: 1560px;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+.pickerList::-webkit-scrollbar {
   width: 34px;
 }
-.results::-webkit-scrollbar-thumb {
-  background: var(--kiosk-primary);
+
+.pickerList::-webkit-scrollbar-thumb {
+  background: #1a4d7e;
   border-radius: 21.45px;
 }
-.results::-webkit-scrollbar-track {
+
+.pickerList::-webkit-scrollbar-track {
   background: transparent;
 }
 
-/* Rate list — items centred, 40px apart (Figma 4167:99955). */
-.list {
-  flex: none;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 40px;
-  width: 100%;
-}
-
-/* Currency pill row (Figma 5287:63634): w1820 px65 py40, border 5px #d9d9d9, r214.499. */
-.row {
+.pickerItem {
   flex: none;
   box-sizing: border-box;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  width: 100%;
-  padding: 40px 65px;
-  background: #ffffff;
-  border: 5px solid #d9d9d9;
-  border-radius: 214.499px;
-  overflow: hidden;
-  font-family: var(--kiosk-font, sans-serif);
-}
-
-.left {
+  width: 494px;
+  height: 170px;
+  margin: 0 0 63px;
+  padding: 0;
+  border: none;
+  background: none;
   display: flex;
   align-items: center;
   gap: 42.9px;
-  width: 560px;
+  cursor: pointer;
 }
 
-/* Figma: a uniform circular flag (the source SVGs are rectangular, so cover-crop
-   to a circle keeps every currency the same size/shape regardless of aspect). */
-.flag {
+.pickerFlagWrap {
+  position: relative;
+  flex: none;
+  display: block;
   width: 170px;
   height: 170px;
-  flex: none;
-  border-radius: 50%;
-  object-fit: cover;
-  background: #ffffff;
-  border: 2px solid #e8e8e8;
 }
 
-.label {
+.pickerFlag {
+  border-radius: 50%;
+  background: #f0f0f0;
+  overflow: hidden;
+  display: block;
+  width: 170px;
+  height: 170px;
+  /* The flags are 3:2 SVGs: without this they letterbox inside the circle
+     and leave grey bands top and bottom. Cover crops them to fill it. */
+  object-fit: cover;
+}
+
+.pickerLabel {
+  font-family: 'Pretendard', var(--kiosk-font, sans-serif);
   font-weight: 500;
   font-size: 60px;
   line-height: normal;
   color: #333333;
-  text-align: center;
   white-space: nowrap;
 }
 
-.rate {
-  flex: none;
-  width: 354px;
-  height: 82px;
-  display: flex;
-  align-items: center;
-  justify-content: flex-end;
-  font-weight: 500;
-  font-size: 60px;
-  line-height: normal;
-  color: #000000;
-  white-space: nowrap;
-}
-
-.banner {
+/* ── ♿ (실시간 환율 7894:56196, 환율 계산기 7894:55696) ─────────────────────────
+ * Inside OsanKiosk's shift: frame y values are written `y − --osan-mode-push`. */
+.lowHeader {
   position: absolute;
   left: 0;
-  bottom: 0;
+  top: calc(719px - var(--osan-mode-push, 0px));
   width: 2160px;
-  height: 573px;
-  padding: 0;
-  border: none;
-  background: none;
-  cursor: pointer;
-  overflow: hidden;
+  height: 700px;
 }
 
-.banner img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
+/* 580 × 2, 200 apart, centred, at 3438. */
+.low .tabs {
+  top: calc(3438px - var(--osan-mode-push, 0px));
+}
+
+/* 실시간 — ten 210 rows on a 250 pitch from 856 (to 3316); the frame draws no
+   update stamp above them. */
+.low .listClip {
+  top: calc(856px - var(--osan-mode-push, 0px));
+  height: 2460px;
+}
+
+.low .stamp {
+  display: none;
+}
+
+/* 계산기 — the base rate, fields, swap, picker and keypad move down together by
+   the promo's 573 (amount 1381 → 1954, result 1997 → 2570). The layer passes
+   taps through to the tabs beneath it; its children take them. */
+.calcLow {
+  position: absolute;
+  inset: 0;
+  transform: translateY(calc(573px - var(--osan-mode-push, 0px)));
+  pointer-events: none;
+}
+
+.calcLow > * {
+  pointer-events: auto;
+}
+
+.low .calcLow .stamp {
   display: block;
 }
 
-/* ── Other languages ──────────────────────────────────────────────────────
- * Reached only through a class the TSX adds when lang !== 'ko' — the Korean
- * screen is untouched.
- *
- * The rate cell is a fixed 354px box holding the number plus the won suffix,
- * which is one glyph in Korean ("1,320.50원") and a word in every other
- * language ("1,320.50 KRW", "1,320.50 вон", "1,320.50 ウォン"). Those run past
- * the 354px and, since the cell is right-aligned inside it, the overflow went
- * LEFT — straight across the currency name beside it.
- *
- * The cell sizes to its content instead, with 354 as its minimum. The row is
- * `space-between` and only about half full, so the extra width comes out of the
- * empty middle, not out of the currency name. */
-.rateLong {
-  width: auto;
-  min-width: 354px;
+/* The 기준 환율 box sits 98 higher than the rest of the group in the frame
+   (1460, not 1558); its update stamp, set inline at 1204, rides with it. */
+.low .calcLow .baseBox {
+  top: 887px;
+}
+
+.low .calcLow .stamp {
+  top: 1106px !important;
+}
+
+.bannerLow {
+  position: absolute;
+  inset: 0;
+  transform: translateY(-3121px);
+  pointer-events: none;
 }

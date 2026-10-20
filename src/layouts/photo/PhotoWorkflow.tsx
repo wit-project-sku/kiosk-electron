@@ -18,14 +18,29 @@ import { HanbokSelect, type CaptureMode } from './HanbokSelect';
 import { JejuHanbokSelect } from '../jeju/JejuHanbokSelect';
 import { JejuWaitingGames } from '../jeju/games/JejuWaitingGames';
 import { usePhotoChrome } from './photoChrome';
-import { MARKET_SUBTITLE, RESULT, RESULT_KADA } from './photoTexts';
+import { OsanLeftNav } from '@layouts/osan/OsanLeftNav';
+import { MARKET_SUBTITLE, RESULT_KADA, resultFromSheet } from './photoTexts';
 import styles from './PhotoWorkflow.module.css';
 
 /** Where the 굿즈제작 button's QR points. */
 const GOODS_URL = 'https://insarang.kr/';
 /** Phone save page — the result image URL is appended. Matches the (working)
- *  Unity kiosk, which uses the Vercel host (netlify is the fallback mirror). */
+ *  Unity kiosk, which uses the Vercel host (netlify is the fallback mirror).
+ *  Only the FALLBACK now: see saveQrUrl. */
 const SAVE_BASE = 'https://withphoto.vercel.app/?imageUrl=';
+
+/**
+ * What the phone-pickup QR opens. The witteria upload (/api/photo-booth)
+ * returns data.shareUrl — a pickup page with per-device save (iPhone share sheet,
+ * Android download, an "open in browser" prompt inside KakaoTalk), deleted after
+ * an hour — and the QR uses it directly, so the phone never goes through Vercel.
+ * Only a response without shareUrl (the old photo.witteria.com/api/images host)
+ * falls back to withphoto.vercel.app/?imageUrl=. imageUrl itself keeps every
+ * other job: the on-screen image and the 기부 hand-off.
+ */
+function saveQrUrl(shareUrl: string | null, imageUrl: string): string {
+  return shareUrl || `${SAVE_BASE}${encodeURIComponent(imageUrl)}`;
+}
 
 /**
  * AI 한복 photo workflow — Monitor 1 (touch kiosk).
@@ -45,6 +60,7 @@ export function PhotoWorkflow(): JSX.Element {
   const errorMessage = usePhotoStore((s) => s.errorMessage);
   const resultFileName = usePhotoStore((s) => s.resultFileName);
   const resultUrl = usePhotoStore((s) => s.resultUrl);
+  const resultShareUrl = usePhotoStore((s) => s.resultShareUrl);
   const reset = usePhotoStore((s) => s.reset);
   const kioskId = useKioskStore((s) => s.config.kioskId);
   const screen = useKioskStore((s) => s.screen);
@@ -89,6 +105,9 @@ export function PhotoWorkflow(): JSX.Element {
   // keep the `boolean` annotation either way, so the branches it guards do not
   // narrow to unreachable code.
   const playsWaitingGame: boolean = chrome.waitingGames;
+  /* 인사동 / 오산 / 화성 announce the finished photo with the 저장하기 / 다시찍기
+     popup and never hold Monitor 2 back (see below); 제주 does both its own way. */
+  const photoReadyModal = chrome.isInsadong || chrome.isOsan || chrome.isHwaseong;
   const [gameDone, setGameDone] = useState(false);
   const deferredRef = useRef(false);
 
@@ -109,10 +128,10 @@ export function PhotoWorkflow(): JSX.Element {
   // big screen back on its attract video. Never deferring also means there is
   // nothing to release, so the hand-over below stays a no-op for 인사동.
   useEffect(() => {
-    if (!playsWaitingGame || chrome.isInsadong || phase !== 'generating' || deferredRef.current) return;
+    if (!playsWaitingGame || photoReadyModal || phase !== 'generating' || deferredRef.current) return;
     deferredRef.current = true;
     void window.api.photo.setDeferResultDisplay(true);
-  }, [playsWaitingGame, chrome.isInsadong, phase]);
+  }, [playsWaitingGame, photoReadyModal, phase]);
 
   // A new session (or a 다시찍기 / 홈) re-arms the gate. Keyed on the phase
   // leaving the generating→result pair rather than on the reset handler, so
@@ -232,7 +251,7 @@ export function PhotoWorkflow(): JSX.Element {
         aiReady={phase === 'result'}
         onFinish={handleGameFinish}
         onHome={handleReset}
-        readyModal={chrome.isInsadong}
+        readyModal={photoReadyModal}
       />
     );
   }
@@ -253,7 +272,7 @@ export function PhotoWorkflow(): JSX.Element {
   // ── Result (MARKET kiosks W003/W004/제주): WIT Store on Monitor 1; result image big on Monitor 2 ──
   if (phase === 'result' && showsMarketResult) {
     const imageUrl = resultUrl ?? (resultFileName ? generatedUrl(resultFileName) : '');
-    const saveUrl = `${SAVE_BASE}${encodeURIComponent(imageUrl)}`;
+    const saveUrl = saveQrUrl(resultShareUrl, imageUrl);
     return (
       <>
         {isHwaseong ? (
@@ -305,13 +324,17 @@ export function PhotoWorkflow(): JSX.Element {
             />
           </svg>
           <button type="button" className={styles.paySaveBtn} onClick={() => setSaveQrOpen(true)}>
-            저장하기
+            {resultFromSheet(lang).save}
           </button>
           <button type="button" className={styles.payRetakeBtn} onClick={handleReset}>
-            다시찍기
+            {resultFromSheet(lang).retake}
           </button>
         </div>
 
+        {chrome.isOsan ? (
+          /* 오산: the shared rail (home · back · ♿), as on every other 오산 page. */
+          <OsanLeftNav onHome={handleReset} onBack={handleReset} />
+        ) : (
         <div className={`${styles.leftNav} ${isJeju ? styles.leftNavJeju : ''}`}>
           <button type="button" className={styles.leftNavBtn} onClick={handleReset} aria-label="홈으로">
             {icon('home-btn') && <img src={icon('home-btn')} alt="" draggable={false} />}
@@ -339,6 +362,7 @@ export function PhotoWorkflow(): JSX.Element {
             </button>
           )}
         </div>
+        )}
 
         {banner && (
           <button type="button" className={styles.banner} onClick={handleReset} aria-label="가상 한복 체험">
@@ -366,9 +390,11 @@ export function PhotoWorkflow(): JSX.Element {
   // ── Result (W001/W002/W005 + KADA): show the result image + QR to save.
   //    W005 lands here DESPITE its card terminal — see showsMarketResult above. ──
   if (phase === 'result') {
-    const c = pick(isKada ? RESULT_KADA : RESULT, lang);
+    /* KADA has no Localization sheet; every other venue reads its own sheet's
+       Photo_* rows over the authored RESULT copy. */
+    const c = isKada ? pick(RESULT_KADA, lang) : resultFromSheet(lang);
     const imageUrl = resultUrl ?? (resultFileName ? generatedUrl(resultFileName) : '');
-    const saveUrl = `${SAVE_BASE}${encodeURIComponent(imageUrl)}`;
+    const saveUrl = saveQrUrl(resultShareUrl, imageUrl);
 
     return (
       <>
@@ -456,6 +482,9 @@ export function PhotoWorkflow(): JSX.Element {
           icon('partner-bar') && (
             <img className={styles.kadaPartnerBar} src={icon('partner-bar')} alt="" draggable={false} />
           )
+        ) : chrome.isOsan ? (
+          /* 오산: the shared rail (home · back · ♿), as on every other 오산 page. */
+          <OsanLeftNav onHome={handleReset} onBack={handleReset} />
         ) : (
           <div className={styles.leftNav}>
             <button type="button" className={styles.leftNavBtn} onClick={handleReset} aria-label="홈으로">

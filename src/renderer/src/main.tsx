@@ -13,6 +13,7 @@ import '@fontsource/noto-sans-kr/900.css';
 // Hangul too, and declares no `unicode-range`, so the browser uses it wherever
 // it has a glyph and falls through to Noto Sans KR per-glyph for the scripts it
 // lacks (Thai, kana/kanji) — which is exactly the stack in jeju-airport.json.
+import '@fontsource/pretendard/300.css';
 import '@fontsource/pretendard/400.css';
 import '@fontsource/pretendard/500.css';
 import '@fontsource/pretendard/600.css';

@@ -55,7 +55,7 @@
   font-size: 46px;
   font-weight: 600;
   line-height: 1;
-  color: var(--kiosk-primary, #ff7f0f);
+  color: var(--kiosk-primary, var(--game-accent, #ff7f0f));
 }
 
 .title {
@@ -104,7 +104,7 @@
 }
 
 .status[data-tone='done'] .statusDot {
-  background: var(--kiosk-primary, #ff7f0f);
+  background: var(--kiosk-primary, var(--game-accent, #ff7f0f));
 }
 
 .statusText {

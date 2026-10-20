@@ -163,6 +163,39 @@ const UI_TEXT = {
     ru: '※ Источник: Корейская служба культурной информации',
     id: '※ Sumber: Pusat Informasi Budaya Korea',
   },
+  /** The MBTI results footer's first line, pointing at the QR beside it. */
+  qrTap: {
+    ko: 'QR 클릭! ←',
+    en: 'Tap the QR! ←',
+    ja: 'QRをタップ！←',
+    zh: '点击二维码！←',
+    vi: 'Chạm vào QR! ←',
+    th: 'แตะ QR! ←',
+    ru: 'Нажмите на QR! ←',
+    id: 'Ketuk QR! ←',
+  },
+  /** Names the 상점 검색 promo banner (it is only artwork). */
+  searchShops: {
+    ko: '상점 검색',
+    en: 'Search shops',
+    ja: '店舗検索',
+    zh: '搜索店铺',
+    vi: 'Tìm cửa hàng',
+    th: 'ค้นหาร้านค้า',
+    ru: 'Поиск магазинов',
+    id: 'Cari toko',
+  },
+  /** The 정이 뭐먹지/뭐사지 list when the ㄱ–ㅎ filter leaves no shop. */
+  noShopsForInitial: {
+    ko: '해당하는 상점이 없습니다',
+    en: 'No shops start with this letter',
+    ja: '該当する店舗がありません',
+    zh: '没有符合的店铺',
+    vi: 'Không có cửa hàng phù hợp',
+    th: 'ไม่มีร้านค้าที่ตรงกัน',
+    ru: 'Нет подходящих магазинов',
+    id: 'Tidak ada toko yang sesuai',
+  },
   close: {
     ko: '닫기',
     en: 'Close',
@@ -287,6 +320,55 @@ const UI_TEXT = {
     ru: ' вон',
     id: ' KRW',
   },
+  /** 환율 page copy for 오산 / 화성, whose sheets carry no 환율 rows — the same
+   *  words 인사동's 환율 page uses. */
+  exchangeTabLive: {
+    ko: '실시간 환율', en: 'Live Rates', ja: 'リアルタイム為替', zh: '实时汇率',
+    vi: 'Tỷ giá trực tiếp', th: 'อัตราเรียลไทม์', ru: 'Курсы валют', id: 'Kurs Terkini',
+  },
+  exchangeTabCalc: {
+    ko: '환율계산기', en: 'Converter', ja: '為替計算機', zh: '汇率计算器',
+    vi: 'Máy tính tỷ giá', th: 'เครื่องคำนวณ', ru: 'Калькулятор', id: 'Kalkulator',
+  },
+  exchangeBaseRate: {
+    ko: '기준 환율', en: 'Base rate', ja: '基準為替レート', zh: '基准汇率',
+    vi: 'Tỷ giá cơ sở', th: 'อัตราอ้างอิง', ru: 'Базовый курс', id: 'Kurs dasar',
+  },
+  exchangeAmountLabel: {
+    ko: '금액:', en: 'Amount:', ja: '金額:', zh: '金额:',
+    vi: 'Số tiền:', th: 'จำนวนเงิน:', ru: 'Сумма:', id: 'Jumlah:',
+  },
+  exchangeResultLabel: {
+    ko: '환전:', en: 'Converted:', ja: '換算:', zh: '兑换:',
+    vi: 'Quy đổi:', th: 'แลกเปลี่ยน:', ru: 'Обмен:', id: 'Konversi:',
+  },
+  /** Rate update stamp — `{t}` is `26.08.30. 19:30`. */
+  exchangeAsOf: {
+    ko: '{t} 기준', en: 'As of {t}', ja: '{t} 時点', zh: '{t} 基准',
+    vi: 'Cập nhật {t}', th: 'ณ {t}', ru: 'На {t}', id: 'Per {t}',
+  },
+  /** 환율계산기 empty-field hints (오산 / 화성) — the same copy 인사동 and 제주
+   *  draw in their calculators. */
+  exchangeAmountPlaceholder: {
+    ko: '금액을 입력하세요',
+    en: 'Enter amount',
+    ja: '金額を入力してください',
+    zh: '请输入金额',
+    vi: 'Nhập số tiền',
+    th: 'กรอกจำนวนเงิน',
+    ru: 'Введите сумму',
+    id: 'Masukkan jumlah',
+  },
+  exchangeResultPlaceholder: {
+    ko: '자동으로 계산됩니다',
+    en: 'Calculated automatically',
+    ja: '自動で計算されます',
+    zh: '自动计算',
+    vi: 'Tự động tính',
+    th: 'คำนวณอัตโนมัติ',
+    ru: 'Рассчитается автоматически',
+    id: 'Dihitung otomatis',
+  },
   /** Generic fallbacks for the AR-한복 nav buttons. Insadong/오색시장 have
    *  location-specific sheet rows (MainButton_Map / MainButton_WC); 화성휴게소
    *  has neither, and this screen is shared, so `t()` alone would print the raw
@@ -369,6 +451,129 @@ const UI_TEXT = {
     th: 'ดูข้อมูลที่คุณต้องการสำหรับการเดินทางในเชจู',
     ru: 'Здесь вы найдёте информацию, нужную для поездки по Чеджу.',
     id: 'Temukan informasi yang Anda perlukan untuk perjalanan ke Jeju.',
+  },
+  // ── 인사동 상세 card: distance from this kiosk + the 도보 pill ──────────────
+  /** `{place}` = this kiosk (kioskPlaceName), `{km}` = "1.6". */
+  distanceFrom: {
+    ko: '{place}에서 {km} km', en: '{km} km from {place}', ja: '{place}から {km} km', zh: '距{place} {km} km',
+    vi: 'Cách {place} {km} km', th: 'ห่างจาก {place} {km} กม.', ru: '{km} км от точки «{place}»', id: '{km} km dari {place}',
+  },
+  walkMode: {
+    ko: '도보', en: 'Walk', ja: '徒歩', zh: '步行', vi: 'Đi bộ', th: 'เดิน', ru: 'Пешком', id: 'Jalan kaki',
+  },
+  /** `{n}` = minutes. */
+  walkAbout: {
+    ko: '약 {n}분', en: 'about {n} min', ja: '約{n}分', zh: '约{n}分钟',
+    vi: 'khoảng {n} phút', th: 'ประมาณ {n} นาที', ru: 'около {n} мин', id: 'sekitar {n} menit',
+  },
+  // ── Monitor 2 camera guide (인사동 / 오산 / 화성, CustomerDisplay) ────────
+  /** The title is split around the '10' countdown, which is drawn in its own
+   *  colour: `camTitleBefore` + '10' + `camTitleAfter`. */
+  camTitleBefore: {
+    ko: '', en: 'Photo in ', ja: '', zh: '', vi: 'Chụp ảnh sau ', th: 'ถ่ายภาพใน ', ru: 'Снимок через ', id: 'Foto dalam ',
+  },
+  camTitleAfter: {
+    ko: ' 초후에 촬영이 됩니다.', en: ' seconds', ja: ' 秒後に撮影します', zh: ' 秒后拍照', vi: ' giây', th: ' วินาที', ru: ' секунд', id: ' detik',
+  },
+  camTipGlasses: {
+    ko: '안경은 벗고 찍어주세요.',
+    en: 'Please take off your glasses.',
+    ja: 'メガネを外して撮影してください。',
+    zh: '请摘下眼镜后拍摄。',
+    vi: 'Vui lòng tháo kính khi chụp.',
+    th: 'กรุณาถอดแว่นตาก่อนถ่ายภาพ',
+    ru: 'Пожалуйста, снимите очки.',
+    id: 'Mohon lepas kacamata saat berfoto.',
+  },
+  camTipCircle: {
+    ko: '원안에 ‘얼굴’과 ‘손’을 넣어주세요.',
+    en: 'Keep your ‘face’ and ‘hands’ inside the circles.',
+    ja: '円の中に「顔」と「手」を入れてください。',
+    zh: '请将“脸”和“手”放进圆圈内。',
+    vi: 'Đặt ‘khuôn mặt’ và ‘bàn tay’ vào trong vòng tròn.',
+    th: 'วาง ‘ใบหน้า’ และ ‘มือ’ ไว้ในวงกลม',
+    ru: 'Держите «лицо» и «руки» внутри кругов.',
+    id: 'Letakkan ‘wajah’ dan ‘tangan’ di dalam lingkaran.',
+  },
+  camTipOutside: {
+    ko: '원 밖으로 나가면 이상하게 합성될 수 있어요.',
+    en: 'Stepping outside the circles can distort the photo.',
+    ja: '円の外に出ると、不自然に合成されることがあります。',
+    zh: '离开圆圈可能导致合成效果不自然。',
+    vi: 'Ra ngoài vòng tròn, ảnh ghép có thể bị lỗi.',
+    th: 'หากออกนอกวงกลม ภาพอาจผสานออกมาผิดเพี้ยน',
+    ru: 'Если выйти за круги, фото может исказиться.',
+    id: 'Keluar dari lingkaran bisa membuat foto tampak aneh.',
+  },
+  camDisclaimer: {
+    ko: '# 날씨가 어둡거나 흐린날은 AI 사진 합성이 어색할 수 있어요',
+    en: '# On dark or cloudy days, the AI photo may look less natural',
+    ja: '# 暗い日や曇りの日は、AI写真の合成が不自然になることがあります',
+    zh: '# 天色昏暗或阴天时，AI照片合成可能不太自然',
+    vi: '# Khi trời tối hoặc nhiều mây, ảnh AI có thể kém tự nhiên',
+    th: '# วันที่มืดหรือมีเมฆมาก ภาพ AI อาจดูไม่เป็นธรรมชาติ',
+    ru: '# В тёмную или пасмурную погоду ИИ-фото может выглядеть неестественно',
+    id: '# Saat gelap atau mendung, hasil foto AI bisa kurang alami',
+  },
+  // ── 화성휴게소 home 도로교통상황 board (GET /api/traffic/expressway) ─────
+  // No Localization_Hwaseong rows exist for the board. The server's typeName /
+  // road / direction / location / message are Korean source text; only the
+  // headers and the type labels (현황 outside Korean) are translated here.
+  trafficBoardTitle: {
+    ko: '도로교통상황', en: 'Road Traffic', ja: '道路交通状況', zh: '道路交通状况',
+    vi: 'Giao thông', th: 'สภาพจราจร', ru: 'Дорожная обстановка', id: 'Lalu Lintas Jalan',
+  },
+  trafficHeadRoad: {
+    ko: '노선', en: 'Route', ja: '路線', zh: '路线',
+    vi: 'Tuyến', th: 'เส้นทาง', ru: 'Трасса', id: 'Rute',
+  },
+  trafficHeadDirection: {
+    ko: '방향', en: 'Direction', ja: '方向', zh: '方向',
+    vi: 'Hướng', th: 'ทิศทาง', ru: 'Направление', id: 'Arah',
+  },
+  trafficHeadLocation: {
+    ko: '위치', en: 'Location', ja: '場所', zh: '位置',
+    vi: 'Vị trí', th: 'ตำแหน่ง', ru: 'Место', id: 'Lokasi',
+  },
+  trafficHeadStatus: {
+    ko: '현황', en: 'Status', ja: '状況', zh: '状况',
+    vi: 'Tình trạng', th: 'สถานะ', ru: 'Ситуация', id: 'Status',
+  },
+  trafficNone: {
+    ko: '특이사항 없음', en: 'No incidents', ja: '特になし', zh: '暂无异常',
+    vi: 'Không có sự cố', th: 'ไม่มีเหตุการณ์ผิดปกติ', ru: 'Без происшествий', id: 'Tidak ada gangguan',
+  },
+  trafficMore: {
+    ko: '교통정보 더보기', en: 'More traffic info', ja: '交通情報をもっと見る', zh: '查看更多路况',
+    vi: 'Xem thêm thông tin giao thông', th: 'ดูข้อมูลจราจรเพิ่มเติม', ru: 'Подробнее о дорогах', id: 'Info lalu lintas selengkapnya',
+  },
+  trafficTypeCongestion: {
+    ko: '정체', en: 'Congestion', ja: '渋滞', zh: '拥堵',
+    vi: 'Ùn tắc', th: 'รถติด', ru: 'Пробка', id: 'Kemacetan',
+  },
+  trafficTypeAccident: {
+    ko: '사고', en: 'Accident', ja: '事故', zh: '事故',
+    vi: 'Tai nạn', th: 'อุบัติเหตุ', ru: 'ДТП', id: 'Kecelakaan',
+  },
+  trafficTypeWork: {
+    ko: '작업', en: 'Roadwork', ja: '工事', zh: '施工',
+    vi: 'Thi công', th: 'งานซ่อมถนน', ru: 'Ремонт дороги', id: 'Perbaikan jalan',
+  },
+  trafficTypeObstacle: {
+    ko: '장애물', en: 'Obstacle', ja: '障害物', zh: '障碍物',
+    vi: 'Chướng ngại vật', th: 'สิ่งกีดขวาง', ru: 'Препятствие', id: 'Rintangan',
+  },
+  trafficTypeWeather: {
+    ko: '기상', en: 'Weather', ja: '気象', zh: '天气',
+    vi: 'Thời tiết', th: 'สภาพอากาศ', ru: 'Погода', id: 'Cuaca',
+  },
+  trafficTypeNotice: {
+    ko: '공지', en: 'Notice', ja: 'お知らせ', zh: '公告',
+    vi: 'Thông báo', th: 'ประกาศ', ru: 'Объявление', id: 'Pemberitahuan',
+  },
+  trafficTypeOther: {
+    ko: '교통정보', en: 'Traffic info', ja: '交通情報', zh: '交通信息',
+    vi: 'Giao thông', th: 'ข้อมูลจราจร', ru: 'Дорожная информация', id: 'Info lalu lintas',
   },
 } satisfies Record<string, Record<LocalizedLang, string>>;
 

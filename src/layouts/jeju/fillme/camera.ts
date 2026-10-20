@@ -1,6 +1,8 @@
 /**
  * 손톱 촬영 카메라 — 샘플 앱 camera.js 를 옮기고 데모 영상 소스를 더했다.
- *  - real: USB(UVC) 카메라를 getUserMedia 로 연다. 장치 이름에 labelKeyword(Arducam)가 들어간 것을 우선한다.
+ *  - real: USB(UVC) 카메라를 getUserMedia 로 연다. 장치 이름에 labelKeyword(Arducam)가 들어간 카메라만 연다.
+ *    제주 기기에는 카메라가 셋(Elgato 사진 · ZED 키 측정 · Arducam 손)이라, 못 찾았을 때 기본 카메라로
+ *    넘어가면 Elgato 나 ZED 영상으로 손 분석을 하게 된다. 그래서 못 찾으면 열지 않고 오류 화면을 띄운다.
  *  - demo: 카메라 없이 화면을 확인하도록 캔버스로 만든 가짜 영상. 촬영·압축 경로는 real 과 같다.
  * 설치 방향(rotation)은 전송 이미지에 실제 픽셀로 반영해 AI 서버가 똑바른 사진을 받게 한다.
  */
@@ -70,9 +72,9 @@ class DemoFeed {
   }
 }
 
-async function pickDeviceId(): Promise<string | undefined> {
-  const keyword = cfg.labelKeyword.toLowerCase();
-  if (!keyword || !navigator.mediaDevices?.enumerateDevices) return undefined;
+/** 손 카메라의 deviceId. 없으면 'hand-camera-missing' 을 던진다 — 다른 카메라로 대신하지 않는다. */
+async function pickDeviceId(keyword: string): Promise<string> {
+  if (!navigator.mediaDevices?.enumerateDevices) throw new Error('camera-unsupported');
   const list = async (): Promise<MediaDeviceInfo[]> =>
     (await navigator.mediaDevices.enumerateDevices()).filter((d) => d.kind === 'videoinput');
   let cams = await list();
@@ -82,7 +84,12 @@ async function pickDeviceId(): Promise<string | undefined> {
     probe.getTracks().forEach((track) => track.stop());
     cams = await list();
   }
-  return cams.find((d) => d.label.toLowerCase().includes(keyword))?.deviceId;
+  const found = cams.find((d) => d.label.toLowerCase().includes(keyword));
+  if (!found) {
+    console.warn('[fillme] hand camera not found', { keyword, cameras: cams.map((d) => d.label) });
+    throw new Error('hand-camera-missing');
+  }
+  return found.deviceId;
 }
 
 function waitForFrames(video: HTMLVideoElement): Promise<void> {
@@ -167,14 +174,19 @@ export class NailCamera {
         this.stream = this.demo.stream;
       } else {
         if (!navigator.mediaDevices?.getUserMedia) throw new Error('camera-unsupported');
-        const deviceId = await pickDeviceId().catch(() => undefined);
-        const constraints: MediaTrackConstraints = {
-          width: { ideal: cfg.width },
-          height: { ideal: cfg.height },
-        };
-        if (deviceId) constraints.deviceId = { exact: deviceId };
-        this.stream = await navigator.mediaDevices.getUserMedia({ video: constraints, audio: false });
+        const keyword = cfg.labelKeyword.toLowerCase();
+        const deviceId = await pickDeviceId(keyword);
+        this.stream = await navigator.mediaDevices.getUserMedia({
+          video: { deviceId: { exact: deviceId }, width: { ideal: cfg.width }, height: { ideal: cfg.height } },
+          audio: false,
+        });
         const track = this.stream.getVideoTracks()[0];
+        // 열린 트랙의 이름으로 한 번 더 확인한다 — 장치 목록이 그사이 바뀌었으면 여기서 걸러진다.
+        if (!track?.label.toLowerCase().includes(keyword)) {
+          this.stream.getTracks().forEach((t) => t.stop());
+          this.stream = null;
+          throw new Error('hand-camera-missing');
+        }
         const caps = (track?.getCapabilities?.() ?? {}) as { focusMode?: string[] };
         if (track && caps.focusMode?.includes('continuous')) {
           track

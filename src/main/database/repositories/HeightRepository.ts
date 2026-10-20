@@ -4,11 +4,17 @@ import type { Database } from '../Database';
 
 interface HeightRow {
   id: number;
+  measurement_id: string;
+  version: number | null;
   kiosk_id: string;
   measured_at: string;
   local_date: string;
   hour: number;
   height_cm: number | null;
+  shoulder_width_cm: number | null;
+  chest_width_cm: number | null;
+  waist_width_cm: number | null;
+  hip_width_cm: number | null;
   confidence: number;
   samples: number;
   subjects: number;
@@ -18,11 +24,17 @@ interface HeightRow {
 
 function toDomain(row: HeightRow): HeightRecord {
   return {
+    id: row.measurement_id,
+    version: row.version,
     kioskId: row.kiosk_id,
     measuredAt: row.measured_at,
     localDate: row.local_date,
     hour: row.hour,
     heightCm: row.height_cm,
+    shoulderWidthCm: row.shoulder_width_cm,
+    chestWidthCm: row.chest_width_cm,
+    waistWidthCm: row.waist_width_cm,
+    hipWidthCm: row.hip_width_cm,
     confidence: row.confidence,
     samples: row.samples,
     subjects: row.subjects,
@@ -47,9 +59,11 @@ export class HeightRepository extends BaseRepository {
     this.conn
       .prepare(
         `INSERT INTO height_measurements
-           (kiosk_id, measured_at, local_date, hour, height_cm,
+           (measurement_id, version, kiosk_id, measured_at, local_date, hour,
+            height_cm, shoulder_width_cm, chest_width_cm, waist_width_cm, hip_width_cm,
             confidence, samples, subjects, reason, created_at)
-         VALUES (@kioskId, @measuredAt, @localDate, @hour, @heightCm,
+         VALUES (@id, @version, @kioskId, @measuredAt, @localDate, @hour,
+                 @heightCm, @shoulderWidthCm, @chestWidthCm, @waistWidthCm, @hipWidthCm,
                  @confidence, @samples, @subjects, @reason, @createdAt)`,
       )
       .run({ ...record, createdAt: new Date().toISOString() });

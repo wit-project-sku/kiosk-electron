@@ -1,3 +1,4 @@
+import { randomUUID } from 'node:crypto';
 import type { PhotoWorkflowState } from '@shared/types/photo';
 import type { HeightMeasurement, HeightRuntime } from '@shared/types/height';
 import { isJejuLayout } from '@shared/config/kioskLocations';
@@ -23,6 +24,8 @@ const log = createLogger('height');
  * housekeeping rather than disk pressure, but unbounded is still wrong.
  */
 const RETENTION_DAYS = 180;
+
+const cm = (value: number | null): string => (value === null ? '--' : value.toFixed(1));
 
 /**
  * 키 측정 — anonymous visitor-height analytics. 제주 only.
@@ -179,18 +182,22 @@ export class HeightService {
     try {
       this.repo.insert({
         ...measurement,
+        id: randomUUID(),
         kioskId: this.kiosk.getConfig().kioskId,
         measuredAt: localIso(now),
         localDate: localDateOf(now),
         hour: now.getHours(),
       });
-      log.info('Height measured', {
-        heightCm: measurement.heightCm,
-        confidence: measurement.confidence,
-        samples: measurement.samples,
-        subjects: measurement.subjects,
-        reason: measurement.reason,
-      });
+      // One readable line per capture — this is what a tester watches for.
+      log.info(
+        measurement.heightCm === null
+          ? `===== HEIGHT: none — ${measurement.reason ?? 'unknown'} =====`
+          : `===== HEIGHT: ${measurement.heightCm.toFixed(1)} cm ` +
+              `| shoulder ${cm(measurement.shoulderWidthCm)} chest ${cm(measurement.chestWidthCm)} ` +
+              `waist ${cm(measurement.waistWidthCm)} hip ${cm(measurement.hipWidthCm)} ` +
+              `(confidence ${measurement.confidence.toFixed(2)}, ` +
+              `${measurement.samples} frames, v${measurement.version ?? '?'}) =====`,
+      );
     } catch (error) {
       // A failed analytics write is not worth surfacing anywhere: the photo is
       // already taken and the visitor is looking at it.

@@ -5,8 +5,8 @@ import type { Shop } from '@shared/types/shop';
 import { iconUrl } from '@renderer/assets/icons/insadong';
 import { useAiStore } from '@renderer/store/aiStore';
 import { useShopStore } from '@renderer/store/shopStore';
-import { getKioskLocation } from '@shared/config/kioskLocations';
 import { useLang, pick as pickLang } from '@renderer/lib/i18n';
+import { kioskPlaceName } from '@renderer/lib/kioskName';
 import type { Lang } from '@renderer/lib/i18n';
 import { tExact } from '@renderer/lib/loc';
 import { isOk } from '@shared/types/result';
@@ -28,7 +28,7 @@ import styles from './InsadongAiCourse.module.css';
  * (JejuAiSearch), so 뒤로 from the builder returns to the cards without a
  * route change and the answers survive the trip.
  *
- * The course engine is 인사동's own: `POST /api/insa/courses/recommend/v2` (see
+ * The course engine is the 지점 코스 API, `POST /api/courses/recommend` by region (see
  * InsaCourseService). One call turns the picked 관심사 and a time slot
  * (`0-2` · `2-4` · `4-6` · `6+` hours) into a 실시간 and a 일반 walking route from this kiosk;
  * there is no per-tap plan, no multi-day schedule and no 이동수단; the party
@@ -611,7 +611,7 @@ export function InsadongAiCourse({ controller }: Props): JSX.Element {
           {/* 7519:74985. The frame reads "제주 공항" — Jeju copy left in an 인사동
               frame — so the origin is this kiosk's own name instead. */}
           <p className={`${styles.landingNotice} ${long ? styles.landingNoticeLong : ''}`}>
-            {(START_NOTE[lang] ?? START_NOTE.ko)!(getKioskLocation(kioskId).name)}
+            {(START_NOTE[lang] ?? START_NOTE.ko)!(kioskPlaceName(kioskId, lang))}
           </p>
 
           <div className={`${styles.label} ${styles.landingLabelCustom}`}>

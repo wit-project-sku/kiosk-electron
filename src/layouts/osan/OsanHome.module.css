@@ -1,561 +1,818 @@
-/* OsanHome — exact Figma layout (2160×3840). Primary: navy var(--kiosk-primary) / #0e4e8c. */
-
-.bgImage {
+/*
+ * 오산시 오색시장 (W004) home — Figma node 7812:106458 (WIT-WITH>디자인, 오산>홈).
+ *
+ * Inside KioskArtboard 1 CSS px = 1 Figma px (2160×3840), so every value here is
+ * the exact number read out of the design. Type is Pretendard throughout except
+ * the two card titles the frame sets in Noto Sans ('정이' 뭐하지, 위드마켓).
+ * Colours: main 01 #1A4D7E (the theme's --kiosk-primary), 글씨-main #999.
+ *
+ * Frosted panels (.notice, .weather, .panel, the board) drop the backdrop blur
+ * the frame specifies and keep only their translucent fill: the only thing
+ * behind them is the flat #F3F8FB page, so the blur is a no-op that Chromium
+ * still pays for — and darkens by ~2/255 (measured on the 제주 home, which this
+ * frame is built from; see JejuHome.module.css .notice).
+ */
+.root {
   position: absolute;
   inset: 0;
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  pointer-events: none;
+  width: 2160px;
+  height: 3840px;
+  overflow: hidden;
+  background: #f3f8fb;
+  font-family: 'Pretendard', var(--kiosk-font, 'Noto Sans KR', sans-serif);
 }
 
-.home {
+/* ── Top bar: location + date/time (frame 7812:106560) ─────────────── */
+.topBar {
   position: absolute;
-  inset: 0;
-  background: transparent;
-  font-family: var(--kiosk-font, sans-serif);
-  color: #232323;
-}
-
-/* ── Top block: top 0, h 722px, pt130 pb65 px170, gap80 ── */
-.topBlock {
-  position: absolute;
-  left: 0;
-  right: 0;
-  top: 0;
-  height: 18.8%;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  gap: 2.08cqh;
-  padding: 3.39cqh 7.87cqw 1.69cqh;
-  box-sizing: border-box;
-}
-
-.header {
-  flex: none;
-  height: 2.14cqh;
+  left: 84px;
+  top: 125px;
+  width: 2000px;
+  height: 83px;
   display: flex;
   align-items: center;
   justify-content: space-between;
 }
 
-/* OSAEK MARKET — Noto Sans 900, 68px, #0e4e8c */
-.brand {
+.topLeft {
   display: flex;
   align-items: center;
-  gap: 1.2cqw;
-  color: #0e4e8c;
-  font-weight: 700;
-  font-size: 1.77cqh;
-  line-height: 1;
+  gap: 26px;
 }
 
-/* Match the shared OsanHeader pin (63×82px) so the brand icon is the
-   same size as on every other page — the brand text is already 1.77cqh (68px). */
-.pin {
-  width: 2.917cqw;
-  height: 2.135cqh;
-  aspect-ratio: 63 / 82;
-}
-
-.date {
-  color: #232323;
-  font-weight: 700;
-  font-size: 1.77cqh;
-  line-height: 1;
-}
-
-/* Notice + weather row */
-.infoRow {
+/* 63×82 icon; its export carries a drop shadow, so the SVG is 71×90 and hangs
+   4px past each side and 8px below (Figma inset 0 −6.35% −9.76% −6.35%). */
+.locationIcon {
+  position: relative;
   flex: none;
-  height: 9.5cqh;
-  display: flex;
-  gap: 1.85cqw;
+  width: 63px;
+  height: 82px;
 }
 
+.locationIconImg {
+  position: absolute;
+  left: -4px;
+  top: 0;
+  width: 71px;
+  height: 90px;
+  pointer-events: none;
+}
+
+.siteName {
+  font-size: 68px;
+  font-weight: 700;
+  line-height: 1;
+  color: #1a4d7e;
+  white-space: nowrap;
+}
+
+.dateTime {
+  font-size: 68px;
+  font-weight: 700;
+  line-height: 1;
+  color: #232323;
+  text-align: right;
+  white-space: pre;
+}
+
+/* ── 공지 card (notice + weather) — rect 7865:49251 ──────────────────── */
 .notice {
-  flex: 1109 1 0;
-  display: flex;
-  align-items: center;
-  gap: 1.79cqw;
+  position: absolute;
+  left: 80px;
+  top: 297px;
+  width: 2000px;
+  height: 750px;
+  border-radius: 45px;
   background: rgba(108, 90, 70, 0.1);
-  backdrop-filter: blur(1.12cqh);
-  -webkit-backdrop-filter: blur(1.12cqh);
-  border-radius: 2.08cqw;
-  padding: 1.43cqh 2.78cqw;
-  box-sizing: border-box;
   overflow: hidden;
 }
 
-.noticeBadge {
-  flex: none;
+/* Rule (Frame 1287 at x91 y114, 6.435×242.383) and the copy share one band:
+   the text box (x140) is 42.565 right of the rule and centred on its height. */
+.noticeLead {
+  position: absolute;
+  left: 91px;
+  top: 114px;
+  height: 242.383px;
   display: flex;
-  flex-direction: column;
   align-items: center;
-  color: #000000;
-  font-weight: 900;
-  font-size: 1.33cqh;
-  line-height: 1.55;
+  gap: 42.565px;
 }
 
-.noticeDivider {
+.noticeRule {
   flex: none;
-  width: 0.3cqw;
-  height: 6.31cqh;
-  background: var(--kiosk-primary);
-  border-radius: 0.15cqw;
+  width: 6.435px;
+  height: 100%;
+  background: #1a4d7e;
 }
 
 .noticeText {
+  width: 977px;
   margin: 0;
+  font-size: 60px;
+  line-height: 70px;
+  font-weight: 400;
+  color: #000;
+  word-break: keep-all;
+  overflow-wrap: anywhere;
+}
+
+.noticeText b {
+  font-weight: 700;
+}
+
+/* Weather card — frame 7865:49257 at (1340, 366) → (1260, 69) in the card. */
+.weather {
+  position: absolute;
+  left: 1260px;
+  top: 69px;
+  width: 665px;
+  height: 332px;
+  padding: 0;
+  border: none;
+  border-radius: 45px;
+  background: rgba(255, 255, 255, 0.5);
+  font: inherit;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Content frame is 589×290, centred → origin (38, 21). */
+.weatherTemp {
+  position: absolute;
+  left: 38px;
+  top: 21px;
+  font-size: 145px;
+  font-weight: 700;
+  line-height: 1;
+  color: #333;
+  white-space: nowrap;
+}
+
+/* The frame's sun-and-cloud (Group 119, 418.889×289.998 at x169.68) is the slot
+   for the live condition icon. */
+.weatherIcon {
+  position: absolute;
+  left: 207.676px;
+  top: 21px;
+  width: 418.889px;
+  height: 289.998px;
+  object-fit: contain;
+  pointer-events: none;
+}
+
+/* The 오늘의 상점 board and its 더보기 live in OsanShopBoard.module.css. */
+
+/* ── Search row (검색장 7865:49149) ─────────────────────────────────── */
+.searchRow {
+  position: absolute;
+  left: 80px;
+  top: 1136px;
+  width: 2000px;
+  height: 182px;
+}
+
+.searchHome {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 180px;
+  height: 178.826px;
+  padding: 0;
+  border: none;
+  background: none;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.searchHomeImg {
+  display: block;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
+.searchField {
+  position: absolute;
+  left: 232px;
+  top: 0;
+  width: 1536px;
+  height: 182px;
+  box-sizing: border-box;
+  /* Figma's 75px side padding is measured from the frame edge — its auto layout
+     ignores the 4.29 stroke, a CSS border does not. 75 − 4.29 lands the
+     placeholder on x75 and the icon's right edge 75 in, as in the frame. */
+  padding: 55px 70.71px;
+  border: 4.29px solid #1a4d7e;
+  border-radius: 120px;
+  background: #fff;
   display: flex;
-  flex-direction: column;
-  justify-content: center;
+  align-items: center;
+  justify-content: space-between;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Placeholder or the typed query — wraps rather than ellipsising, so the whole
+   query and the caret stay visible; a second line spills into the padding. */
+.searchText {
   flex: 1 1 auto;
   min-width: 0;
-  font-size: 1.33cqh; /* 51px */
-  line-height: 1.676cqh; /* 64.35px */
-  font-weight: 400;
-  color: #000000;
+  font-size: 60.06px;
+  font-weight: 500;
+  line-height: 1.1;
   white-space: normal;
   word-break: keep-all;
   overflow-wrap: anywhere;
 }
 
-.noticeLine { font-weight: 400; }
-.noticeBold { font-weight: 700; }
-
-.weather {
-  flex: 665 1 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 1.5cqw;
-  background: rgba(108, 90, 70, 0.1);
-  backdrop-filter: blur(1.12cqh);
-  -webkit-backdrop-filter: blur(1.12cqh);
-  border-radius: 2.08cqw;
-  border: none;
-  padding: 0;
-  font: inherit;
-  color: inherit;
-  cursor: pointer;
-  align-self: stretch;
+.searchPlaceholder {
+  color: #999;
 }
 
-.weatherGlyph {
-  width: 6.5cqh;
-  height: 6.5cqh;
-  object-fit: contain;
+.searchValue {
+  color: #232323;
 }
 
-.temp {
-  font-size: 3.78cqh;
-  font-weight: 700;
-  color: #333333;
+.searchCaret {
+  display: inline-block;
+  width: 4px;
+  height: 62px;
+  margin-left: 6px;
+  vertical-align: middle;
+  background: #1a4d7e;
+  animation: osanCaret 1s step-end infinite;
 }
 
-/* ── Content: search row + grid ── */
-.content {
-  position: absolute;
-  left: 0;
-  right: 0;
-  top: 18.78%;
-  display: flex;
-  flex-direction: column;
-  gap: 1.69cqh;
-  padding: 0 7.87cqw;
-  box-sizing: border-box;
+@keyframes osanCaret {
+  50% { opacity: 0; }
 }
 
-/* Search row: h182px, circles Ø180, field 1350px, gap 55 */
-.searchRow {
-  display: flex;
-  align-items: center;
-  gap: 2.55cqw;
-  height: 4.74cqh;
-  flex: none;
-}
-
-/* Home button — the SVG is a complete #0E4E8C circle, render it directly */
-.homeBtn {
-  height: 100%;
-  aspect-ratio: 1;
-  flex: none;
-  padding: 0;
-  border: none;
-  background: none;
-  cursor: pointer;
-}
-
-.homeBtn img {
-  width: 100%;
-  height: 100%;
-  object-fit: contain;
-}
-
-/* KR circle — matches the home button's #0E4E8C */
-.krBtn {
-  height: 100%;
-  aspect-ratio: 1;
-  flex: none;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border: none;
-  background: #0e4e8c;
-  border-radius: 50%;
-  color: #ffffff;
-  font-weight: 700;
-  font-size: 1.56cqh;
-  line-height: 1;
-  font-family: var(--kiosk-font, sans-serif);
-  cursor: pointer;
-}
-
-.searchInput {
-  flex: 1;
-  min-width: 0;
-  height: 100%;
-  box-sizing: border-box;
-  display: flex;
-  align-items: center;
-  gap: 1cqw;
-  background: #ffffff;
-  border: 4.29px solid var(--kiosk-primary);
-  border-radius: 3.13cqh;
-  padding: 55px 62px 55px 75px;
-  cursor: text;
-  overflow: hidden;
-  font-family: var(--kiosk-font, sans-serif);
-}
-
-.inputTextWrap {
-  flex: 1;
-  min-width: 0;
-  display: flex;
-  align-items: center;
-  gap: 0.4cqw;
-  overflow: hidden;
-}
-
-.inputText,
-.inputPlaceholder {
-  min-width: 0;
-  font-size: 1.564cqh;
-  font-weight: 600;
-  line-height: 1.3;
-  white-space: nowrap;
-  overflow: hidden;
-  text-align: left;
-}
-
-.inputText        { color: #232323; }
-.inputPlaceholder { color: #999999; }
-
+/* Icon box 71×68; the stroke overflows it, so the 80×77 glyph sits at −4.5. */
 .searchIcon {
+  position: relative;
   flex: none;
+  width: 71px;
+  height: 68px;
+}
+
+.searchIconSvg {
+  position: absolute;
+  left: -4.5px;
+  top: -4.5px;
   width: 80px;
   height: 77px;
-  flex-shrink: 0;
-  color: var(--kiosk-primary);
+  color: #1a4d7e;
 }
 
-.caret {
-  flex: none;
-  width: 6px;
-  height: 68px;
-  background: var(--kiosk-primary);
-  animation: blink 1s step-end infinite;
-}
-
-@keyframes blink { 50% { opacity: 0; } }
-
-/* ── Tile grid ──
-   Image-to-image vertical gap fixed at 173px (label line count ignored):
-   each row = 300px box + 173px band for label. */
-.grid {
-  display: grid;
-  grid-template-columns: repeat(4, 13.89cqw); /* 300px */
-  justify-content: space-between;
-  grid-auto-rows: calc(7.8125cqh + 173px); /* 300px box + 173px to next box */
-  row-gap: 0;
-  align-items: stretch;
-}
-
-.tile {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 0.7cqh; /* 30px image→label */
-  height: 100%;
-  background: none;
-  border: none;
+/* ico_lang — Ø180 main 01 at (1820, 1), Bold 60.06 white. */
+.langBtn {
+  position: absolute;
+  left: 1820px;
+  top: 1px;
+  width: 180px;
+  height: 180px;
   padding: 0;
+  border: none;
+  border-radius: 50%;
+  background: #1a4d7e;
+  color: #fff;
+  font-family: inherit;
+  font-size: 60.06px;
+  font-weight: 700;
+  line-height: 1;
   cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
 }
 
-.tileWide {
-  grid-column: span 2;
+/* ── Three feature cards (Frame 7865:49159) ─────────────────────────── */
+/* 1926 wide, justify-between over 750 + 540 + 540 → lefts 0 / 798 / 1386. */
+.cards {
+  position: absolute;
+  left: 120px;
+  top: 1407px;
+  width: 1926px;
+  height: 310px;
 }
 
-/* The Figma colored rounded rectangle: 300×300 (wide: 830×300),
-   radius 85.799px = 3.97cqw, height 300px = 7.8125cqh.
-   flex: none + fixed height keeps the box stable when the label wraps. */
-.tileBox {
+.card {
+  position: absolute;
+  top: 0;
+  height: 310px;
+  padding: 0;
+  border: none;
+  border-radius: 30px;
+  font-family: inherit;
+  text-align: left;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.cardTitle {
+  position: absolute;
+  margin: 0;
+  font-size: 45px;
+  font-weight: 700;
+  line-height: 1;
+  color: #000;
+  white-space: nowrap;
+}
+
+.cardSub {
+  position: absolute;
+  margin: 0;
+  font-size: 38px;
+  font-weight: 400;
+  line-height: 1;
+  color: #999;
+  white-space: nowrap;
+}
+
+.cardArt {
+  position: absolute;
+  pointer-events: none;
+}
+
+.cardArtImg {
+  position: absolute;
+  inset: 0;
   width: 100%;
-  height: 7.8125cqh;
-  flex: none;
-  border-radius: 3.97cqw;
+  height: 100%;
+}
+
+/* Card 1 — '정이' 뭐하지. Title Noto Sans Bold at x426, subtitle at x436. */
+.cardAi {
+  left: 0;
+  width: 750px;
+  background: #f5f1ef;
+}
+.cardAi .cardTitle {
+  left: 426px;
+  top: 104px;
+  font-family: 'Noto Sans', 'Noto Sans KR', sans-serif;
+}
+.cardAi .cardSub { left: 436px; top: 178px; }
+.cardAi .cardArt { left: 53px; top: 57px; width: 238px; height: 205px; }
+
+/* Card 2 — 위드마켓. Title Noto Sans Bold. The art's export is 129.931×198.953
+   for a 126.911×196 box (it bleeds 1.5px each way) — positioned, not scaled. */
+.cardMarket {
+  left: 798px;
+  width: 540px;
+  background: #f3eae3;
+}
+.cardMarket .cardTitle {
+  left: 57px;
+  top: 108px;
+  font-family: 'Noto Sans', 'Noto Sans KR', sans-serif;
+}
+.cardMarket .cardSub { left: 57px; top: 182px; }
+.cardMarket .cardArt { left: 328.32px; top: 57px; width: 126.911px; height: 196px; }
+.cardMarket .cardArtImg {
+  inset: auto;
+  left: -1.498px;
+  top: -1.509px;
+  width: 129.931px;
+  height: 198.953px;
+}
+
+/* Card 3 — 오산시 이벤트. Title Pretendard Bold at x40, subtitle at x50.8. */
+.cardEvents {
+  left: 1386px;
+  width: 540px;
+  background: #f5efe9;
+}
+.cardEvents .cardTitle { left: 40px; top: 108px; }
+.cardEvents .cardSub { left: 50.8px; top: 182px; }
+.cardEvents .cardArt { left: 331px; top: 68px; width: 173.527px; height: 173.527px; }
+
+/* ── Menu grid on its white panel ───────────────────────────────────── */
+.panel {
+  position: absolute;
+  left: 135px;
+  top: 1772px;
+  width: 1889px;
+  height: 1494px;
+  border-radius: 50px;
+  background: rgba(255, 255, 255, 0.7);
+}
+
+.grid {
+  position: absolute;
+  left: 203px;
+  top: 1821px;
+  width: 1740px;
+  height: 1396px;
+}
+
+/*
+ * A tile is a 300-wide column: a 300×300 plate, a 35px gap, then the two text
+ * lines (38 + 14 + 25 = 77) → 412 tall. Columns step 480 (300 + 180), rows 492
+ * (412 + 80).
+ */
+.tile {
+  position: absolute;
+  width: 300px;
+  height: 412px;
+  padding: 0;
+  border: none;
+  background: none;
+  font-family: inherit;
+  text-align: center;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Not-ready tile (기부 where the donation app does not run): full colour, inert. */
+.tileInert {
+  cursor: default;
+}
+
+/* The art is the whole plate exported from its node — colour baked in. Clipped
+   to the plate's 85.799 radius: Figma flattens a backdrop-blurred node against
+   the canvas, so three of the exports (물품, 교통안내, 지역화폐) ship with opaque
+   #F5F5F5 corners that the clip removes. */
+.tileArt {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 300px;
+  height: 300px;
+  border-radius: 85.799px;
+  pointer-events: none;
+}
+
+/* Shown only when an export is missing, so a dropped asset is visible. */
+.tileArtMissing {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 300px;
+  height: 300px;
+  border-radius: 85.799px;
+  background: #efefef;
   display: flex;
   align-items: center;
   justify-content: center;
-  overflow: hidden;
+  font-size: 108px;
+  color: #b4b4b4;
 }
 
-.tileBox img {
-  width: 85%;
-  height: 85%;
-  object-fit: contain;
+.tileText {
+  position: absolute;
+  left: 0;
+  top: 335px;
+  width: 300px;
 }
 
-/* Art that IS the tile face (an opaque square, e.g. 기부) rather than a glyph on
-   the box colour: fill edge-to-edge so the box colour never frames it. `cover`
-   crops rather than letterboxes; .tileBox already clips to the radius. */
-.tileBoxFull img {
+/* display:block — inline spans would ignore the 14px gap. Medium 38 / Regular
+   25 at 30% black, both centred and allowed to wrap (word-break: break-word). */
+.tileTitle {
+  display: block;
+  margin: 0;
+  font-size: 38px;
+  font-weight: 500;
+  line-height: 1;
+  color: #000;
+  word-break: break-word;
+}
+
+.tileSub {
+  display: block;
+  margin: 14px 0 0;
+  font-size: 25px;
+  font-weight: 400;
+  line-height: 1;
+  color: #000;
+  opacity: 0.3;
+  word-break: break-word;
+}
+
+/* ── Bottom actions: 프로모션 / 사진촬영 / 화장실 ─────────────────────── */
+/* K-DRAMA plate 7865:49551 — #F44, radius 50, the 187×120 logo centred. */
+.promo {
+  position: absolute;
+  left: 304px;
+  top: 3389px;
+  width: 381px;
+  height: 235px;
+  border-radius: 50px;
+  background: #ff4444;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.promoLogo {
+  width: 187px;
+  height: 120.052px;
+  pointer-events: none;
+}
+
+/* Group 1707482188 — navy dome + camera glyph, one export. */
+.camera {
+  position: absolute;
+  left: 950px;
+  top: 3338px;
+  width: 353.382px;
+  height: 354.799px;
+  padding: 0;
+  border: none;
+  background: none;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Group 1707482756 — dark disc + the two figures, one export. */
+.restroom {
+  position: absolute;
+  left: 1632px;
+  top: 3389px;
+  width: 233.272px;
+  height: 234.125px;
+  padding: 0;
+  border: none;
+  background: none;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.actionImg {
+  display: block;
   width: 100%;
   height: 100%;
-  object-fit: cover;
+  pointer-events: none;
 }
 
-/* Bottom-anchored full-body illustrations (e.g. 안녕 '정이'): the figure sits
-   flush to the inner bottom of the box rather than vertically centered. */
-.tileBoxBottom {
-  align-items: flex-end;
-}
-
-.tileBoxBottom img {
-  width: 94%;
-  height: 94%;
-  object-fit: contain;
-  object-position: bottom;
-}
-
-.tileFallback {
-  font-size: 1.3cqh;
-  font-weight: 700;
-  color: rgba(255, 255, 255, 0.9);
-  text-align: center;
-  padding: 0.5cqw;
-  word-break: keep-all;
-}
-
-.tileLabel {
-  flex: none;
-  width: 100%;
-  font-size: 0.99cqh; /* 38px */
+/* Captions — Pretendard Regular 38 black at y3648, centred under their button.
+   Free space runs to the foot of the frame, so a long language wraps downward. */
+.actionLabel {
+  position: absolute;
+  top: 3648px;
+  margin: 0;
+  font-size: 38px;
   font-weight: 400;
-  line-height: 1.15;
+  line-height: 1;
+  color: #000;
   text-align: center;
-  color: #000000;
-  white-space: pre-line;
   word-break: keep-all;
   overflow-wrap: anywhere;
 }
 
-/* ── Bottom row (same absolute coords as insadong) ── */
-.bottomRow {
-  position: absolute;
-  left: 0;
-  top: 2821px;
-  width: 2160px;
-  height: 446px;
+/* Frame box 294…694 (centre 494). Widened symmetrically to 560 so "CHƯƠNG TRÌNH
+   KHUYẾN MÃI (Sắp có)" wraps in two lines, still clear of the camera at 950. */
+.labelPromo {
+  left: 214px;
+  width: 560px;
 }
 
-.bottomBarBg {
-  position: absolute;
-  top: -7px;
-  left: -4px;
-  width: 2168px;
-  height: 459px;
-  z-index: 0;
-  pointer-events: none;
+/* Frame box 1678…1820 (centre 1749), widened to 400 on the same centre for the
+   translated MainButton_WC ("Nhà vệ sinh"). */
+.labelRestroom {
+  left: 1549px;
+  width: 400px;
 }
-
-.kdramaItem,
-.restroomItem {
-  position: absolute;
-  z-index: 1;
-  padding: 0;
-  border: none;
-  background: none;
-  cursor: pointer;
-}
-
-/* K-DRAMA: Figma left=245 top=89 381×235; label top=352 → height 314 */
-.kdramaItem {
-  left: 245px;
-  top: 89px;
-  width: 381px;
-  height: 314px;
-}
-
-/* 화장실: Figma left=1581 top=99 235×235; label top=360 → height 312 */
-.restroomItem {
-  left: 1581px;
-  top: 99px;
-  width: 235px;
-  height: 312px;
-}
-
-/* K-DRAMA 준비중: rendered at full opacity/colour, just inert. */
-.kdramaSoon {
-  cursor: default;
-  pointer-events: none;
-}
-
-/* Figma 5358:48437: red #f44 box, rounded 50px, white K-DRAMA logo (187×120) inside */
-.kdramaIcon {
-  position: absolute;
-  top: 0;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 381px;
-  height: 235px;
-  background: #ff4444;
-  border-radius: 50px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.kdramaIcon img {
-  width: 187px;
-  height: 120px;
-  object-fit: contain;
-}
-
-.navIcon {
-  position: absolute;
-  top: 0;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 235px;
-  height: 235px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.navIcon img {
-  width: 100%;
-  height: 100%;
-  object-fit: contain;
-}
-
-.navLabel {
-  position: absolute;
-  bottom: 0;
-  left: 50%;
-  transform: translateX(-50%);
-  font-family: var(--kiosk-font, sans-serif);
-  font-size: 50px;
-  font-weight: 400;
-  line-height: 1;
-  color: #000000;
-  white-space: nowrap;
-}
-
-/* Camera — Figma: navy circle with white camera glyph (icon art has its own
-   circle, so the button itself is transparent), centered on the big dome */
-.cameraBtn {
-  position: absolute;
-  z-index: 1;
-  left: 903px;
-  top: 39px;
-  width: 356px;
-  height: 356px;
-  padding: 0;
-  border: none;
-  background: none;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-}
-
-.cameraImg {
-  width: 100%;
-  height: 100%;
-  object-fit: contain;
-}
-
-/* ── Bottom promo banner (오색시장 한복 체험): top 3267 → flush to artboard bottom ── */
-.banner {
-  position: absolute;
-  left: 0;
-  top: 3267px;
-  width: 2160px;
-  height: 573px;
-  padding: 0;
-  border: none;
-  background: none;
-  cursor: pointer;
-  overflow: hidden;
-}
-
-.bannerImg {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  display: block;
-}
-
 
 /* ── Other languages ──────────────────────────────────────────────────────
- * Reached only through a class the TSX adds when lang !== 'ko' — the Korean
- * home is untouched.
+ * Reached only through classes the TSX adds when lang !== 'ko' — the Korean
+ * screen is exactly the frame. Same treatment as the 제주 home, whose geometry
+ * this frame shares (notice band, board at 732, cards, 300-wide grid).
  *
- * 1. Tile labels. The grid's row pitch is fixed at "300px art + 173px", so the
- *    label has exactly the 146px left under the art (173 − the 27px art→label
- *    gap) before it reaches the NEXT row's art. Korean labels are one or two
- *    38px lines and never got near it; "ข้อมูลการเดินทาง" and
- *    "Достопримечательности" wrap to four and ran into the row below.
- *
- *    Giving the label that 146px as a real height is what lets the fit measure
- *    it — the label box used to be auto-height, so it could never report an
- *    overflow of its own. Short labels are unaffected: they already sat at the
- *    top of that band. All twelve tiles then shrink by ONE factor (`--fit`,
- *    useFitText — never below 0.7 → 27px), so the grid keeps one text size
- *    instead of a patchwork. Nothing is clipped. */
-.tileLabelLong {
-  height: 146px;
-  font-size: calc(0.99cqh * var(--fit, 1));
+ * 1. Notice — the band the panel really has: 40 under its top to 60 above the
+ *    board (rel 40…375), centred, with the rule following the text's height.
+ *    Copy that still overflows scales down (`--fit`, ≥ 0.7 → 42px). Never
+ *    clamped. */
+.noticeLeadWide {
+  top: 40px;
+  height: 335px;
 }
 
-/* 2. Bottom-bar captions. Both sat on one `nowrap` 50px line centred on their
- *    bump, which is all 화장실 and 프로모션 need. The same captions carry
- *    "CHƯƠNG TRÌNH KHUYẾN MÃI (Sắp có)" — ~750px on one line, centred on a
- *    381px bump, so it ran out across the bar and under the camera button.
- *
- *    They stay on one line (two lines would climb into the icon above) and are
- *    instead given the width the bar really has around each bump — bounded by
- *    the camera dome in the middle — and shrunk to fit it. `nowrap` against a
- *    real width is what the fit measures. */
-.navLabelLong {
-  font-size: calc(50px * var(--fit, 1));
-  /* The box below is wider than the caption (that is the room the fit has to
-     work in), so the caption must be centred INSIDE it — left-aligned, a short
-     label like "PROMOTION (Soon)" sat at the box's left edge, visibly left of
-     the K-DRAMA logo it belongs under. */
-  text-align: center;
+.noticeRow {
+  display: flex;
+  align-items: stretch;
+  gap: 42.565px;
 }
 
-.kdramaItem .navLabelLong {
-  width: 520px;
+.noticeRow .noticeRule {
+  height: auto;
 }
 
-.restroomItem .navLabelLong {
-  width: 430px;
+.noticeTextWide {
+  width: 1060px;
+  font-size: calc(60px * var(--fit, 1));
+  line-height: calc(70px * var(--fit, 1));
+  word-break: normal;
 }
+
+/* 2. Feature cards — title and subtitle become ONE column centred in the card
+ *    and bounded by the art (or 뭐하지's edge), so a wrapping title pushes its
+ *    subtitle down; all three cards scale together if one still overflows. */
+.cardText {
+  position: absolute;
+  top: 20px;
+  bottom: 20px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: calc(29px * var(--fit, 1));
+}
+
+.cardText .cardTitle,
+.cardText .cardSub {
+  position: static;
+  white-space: normal;
+  word-break: normal;
+  overflow-wrap: normal;
+}
+
+.cardText .cardTitle {
+  font-size: calc(45px * var(--fit, 1));
+  line-height: 1.02;
+}
+
+.cardText .cardSub {
+  font-size: calc(38px * var(--fit, 1));
+  line-height: 1.1;
+}
+
+.cardAi .cardText     { left: 426px; width: 280px; }
+.cardMarket .cardText { left: 57px;  width: 236px; }
+.cardEvents .cardText { left: 40px;  width: 256px; }
+
+/* 3. Tiles — the text gets the whole gap it has, from under the plate (335) to
+ *    10 above the next row's plate (482), and the grid's type scales down by one
+ *    factor if a tile still outgrows it (`--fit` on .grid, ≥ 0.7). */
+.tileTextFit {
+  height: 147px;
+}
+
+.tileTextFit .tileTitle {
+  font-size: calc(38px * var(--fit, 1));
+  word-break: normal;
+  overflow-wrap: normal;
+}
+
+.tileTextFit .tileSub {
+  margin-top: calc(14px * var(--fit, 1));
+  font-size: calc(25px * var(--fit, 1));
+  word-break: normal;
+  overflow-wrap: normal;
+}
+
+/* ── ♿ low-reach home (Figma 7894:57182 / 7894:58134): the search row drops to
+   1952 with the KR button, the three cards sit at 2208, the 12 tiles form a
+   6 × 2 grid from 2598, and the K-DRAMA / camera / 화장실 row moves to 3466. ── */
+.homeLow .topBar {
+  left: 84px;
+  top: 817px;
+}
+
+.homeLow .notice {
+  top: 998px;
+  height: 885px;
+}
+
+.homeLow .weather {
+  top: 81px;
+}
+
+.homeLow .searchRow {
+  left: 125px;
+  top: 1952px;
+  width: 1910px;
+  height: 182px;
+}
+
+.homeLow .searchHome {
+  display: none;
+}
+
+.homeLow .searchField {
+  left: 51px;
+  width: 1629px;
+}
+
+.homeLow .langBtn {
+  left: 1730px;
+}
+
+.homeLow .cards {
+  left: 170px;
+  top: 2208px;
+  width: 1860px;
+  height: 250px;
+}
+
+.homeLow .card {
+  top: 0;
+  height: 250px;
+}
+
+/* Card contents re-measured for the 250-tall cards (7894:57193 / 57214 / 57231):
+   type keeps its size, the art shrinks and everything moves up. */
+.homeLow .cardAi .cardTitle     { left: 401.01px; top: 74px; }
+.homeLow .cardAi .cardSub       { left: 410.42px; top: 148px; }
+.homeLow .cardAi .cardArt       { left: 55.82px; top: 31.49px; width: 222.357px; height: 191.421px; }
+.homeLow .cardMarket .cardTitle { left: 57px; top: 78px; }
+.homeLow .cardMarket .cardSub   { left: 57px; top: 152px; }
+/* 109.428×169 box; the export's bleed scaled by the same 0.8622. */
+.homeLow .cardMarket .cardArt   { left: 337.06px; top: 45px; width: 109.428px; height: 169px; }
+.homeLow .cardMarket .cardArtImg {
+  left: -1.292px;
+  top: -1.301px;
+  width: 112.032px;
+  height: 171.541px;
+}
+.homeLow .cardEvents .cardTitle { left: 40px; top: 78px; }
+.homeLow .cardEvents .cardSub   { left: 50.8px; top: 152px; }
+.homeLow .cardEvents .cardArt   { left: 354px; top: 60px; width: 143.331px; height: 143.331px; }
+.homeLow .cardAi .cardText      { left: 401px; width: 280px; }
+
+.homeLow .cardAi {
+  left: 0;
+  width: 706px;
+}
+
+.homeLow .cardMarket {
+  left: 743px;
+  width: 540px;
+}
+
+.homeLow .cardEvents {
+  left: 1320px;
+  width: 540px;
+}
+
+.homeLow .panel {
+  left: 150px;
+  top: 2532px;
+  width: 1860px;
+  height: 810px;
+}
+
+/* Frame 7894:57306 — 1792.059 wide at x188.43, rows at 0 / 374.27. */
+.homeLow .grid {
+  left: 188.43px;
+  top: 2598px;
+  width: 1792.059px;
+  height: 678px;
+}
+
+.homeLow .tile {
+  transform: scale(0.7667);
+  transform-origin: 0 0;
+}
+
+/* The tile is drawn at 0.7667× (230 / 300), so values here are pre-divided by
+   it: the label sits 260 under the plate's top and reads Regular 38, and the art
+   corners land at 45. The frame draws no second line under these tiles. */
+.homeLow .tileText {
+  top: 339.1px;
+}
+
+.homeLow .tileTitle,
+.homeLow .tileTextFit .tileTitle {
+  font-size: calc(49.56px * var(--fit, 1));
+  font-weight: 400;
+}
+
+.homeLow .tileSub {
+  display: none;
+}
+
+.homeLow .tileArt,
+.homeLow .tileArtMissing {
+  border-radius: 58.7px;
+}
+
+.homeLow .promo {
+  top: 3466px;
+}
+
+.homeLow .camera {
+  top: 3416px;
+}
+
+.homeLow .restroom {
+  top: 3466px;
+}
+
+.homeLow .actionLabel {
+  top: 3725px;
+}
+
+/* Notice: the rule sits at 1124 and the text 16px below its top (Figma 7894:57289). */
+.homeLow .noticeLead {
+  top: 126px;
+  justify-content: flex-start;
+  align-items: flex-start;
+}
+
+.homeLow .noticeRow {
+  align-items: flex-start;
+}
+
+.homeLow .noticeText {
+  margin-top: 16px;
+}
+

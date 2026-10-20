@@ -9,7 +9,7 @@
  *   surface    #fff panels
  *   hairline   rgba(31,27,22,.08)
  *   text       #1f1b16 / #6f675d secondary / #a39a8e tertiary
- *   accent     var(--kiosk-primary, #ff7f0f) 감귤; #1c9c8c 제주 바다 for "ok"
+ *   accent     var(--kiosk-primary, var(--game-accent, #ff7f0f)) 감귤; #1c9c8c 제주 바다 for "ok"
  *   no box-shadow and no text-shadow anywhere
  *
  * It was a near-black purple once, which looked like a generic arcade cabinet
@@ -232,7 +232,7 @@
   height: 60px;
   margin: -30px 0 0 -30px;
   border-radius: 50%;
-  background: var(--kiosk-primary, #ff7f0f);
+  background: var(--kiosk-primary, var(--game-accent, #ff7f0f));
 }
 
 /* ── Hand gate ─────────────────────────────────────────────────────────
@@ -418,7 +418,7 @@
   padding: 34px 60px;
   border-radius: 36px;
   background: #fff;
-  border: 4px solid var(--kiosk-primary, #ff7f0f);
+  border: 4px solid var(--kiosk-primary, var(--game-accent, #ff7f0f));
   font-size: 54px;
   font-weight: 700;
   line-height: 1.2;
@@ -431,7 +431,7 @@
   height: 26px;
   flex: 0 0 auto;
   border-radius: 50%;
-  background: var(--kiosk-primary, #ff7f0f);
+  background: var(--kiosk-primary, var(--game-accent, #ff7f0f));
 }
 
 @keyframes noticeIn {

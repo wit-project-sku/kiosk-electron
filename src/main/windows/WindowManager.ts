@@ -57,8 +57,12 @@ export class WindowManager {
       this.broadcast(IpcEvents.SyncStatsChanged, stats);
     });
 
+    // A content sync also re-downloads the Localization tab. Send the table with
+    // it: the renderer only reads translations at bootstrap, so without this a
+    // sheet edit pulled at launch or at 02:00 waited for the NEXT restart.
     this.unsubscribeContent = this.container.sync.subscribeContent((content) => {
       this.broadcast(IpcEvents.ContentChanged, content);
+      this.broadcast(IpcEvents.TranslationsChanged, this.container.translations.getInMemoryMap());
     });
 
     this.unsubscribePhoto = this.container.photoWorkflow.subscribe((state) => {

@@ -8,7 +8,7 @@
  *
  *    0…594     header — JejuHeader, via usePhotoChrome
  *    700…790   game title            (centred, 76px)
- *    820…880   one-line how-to       (centred, 50px, var(--kiosk-primary, #ff7f0f))
+ *    820…880   one-line how-to       (centred, 50px, var(--kiosk-primary, var(--game-accent, #ff7f0f)))
  *    920…1090  HUD row               (GameHud, positioned by its own `top`)
  *   1120…3180  play field            (2060px tall, the games' own canvas)
  *   3267…3840  banner — drawn, never tappable (see the note there)
@@ -101,4 +101,24 @@
   height: 100%;
   object-fit: cover;
   display: block;
+}
+
+/* ── ♿ 오산 game menu (7894:59610) ─────────────────────────────────────────
+ * Mode bar 0…146 (OsanKiosk), promo 146…719, header 719…1419 (OsanHeader reads
+ * --jeju-shift), then the body: status ~1640, title 1828, list 2027 (the list
+ * and status are placed by JejuGameHub). The frame draws no subtitle. */
+.rootLowOsan {
+  --jeju-shift: 719px;
+}
+
+.rootLowOsan .banner {
+  top: 145.759px;
+}
+
+.rootLowOsan .title {
+  top: 1828px;
+}
+
+.rootLowOsan .subtitle {
+  display: none;
 }

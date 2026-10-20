@@ -1,3 +1,12 @@
+/**
+ * 오산 검색 results — Figma 7812:107004 (오산>검색-02).
+ *
+ * Shared header, then 검색결과 at y700: the 1350-wide search field (182) and,
+ * 100 below, the result list (982 … 3622) of 390-tall shop cards — name ·
+ * category, address, one-line description, two photos. The list scrolls on its
+ * own with the ▲▼ pair on the right edge. No bottom banner in this frame.
+ * The navy twin of InsadongSearch's renewal, which shares the card spec.
+ */
 import { useRef, useState } from 'react';
 import type { KioskController } from '@renderer/hooks/useKioskController';
 import { SearchIcon } from '@layouts/components/SearchIcon';
@@ -7,13 +16,12 @@ import { useSearchStore } from '@renderer/store/searchStore';
 import { useDetailStore } from '@renderer/store/detailStore';
 import { useShopStore } from '@renderer/store/shopStore';
 import { pick } from '@renderer/lib/i18n';
+import { tExact } from '@renderer/lib/loc';
 import type { Shop } from '@shared/types/shop';
 import {
   searchShops,
   shopAddress,
-  shopBaseCategory,
   shopDescription,
-  shopHashtag,
   shopImages,
   shopName,
   shopSecondCategory,
@@ -21,11 +29,12 @@ import {
 } from '@renderer/lib/shops';
 import { highlightMatch } from '@renderer/lib/highlightMatch';
 import { OsanHeader } from './OsanHeader';
-import { OsanBanner } from './OsanBanner';
+import { OsanLeftNav } from './OsanLeftNav';
+import { OsanPageBg } from './OsanPageBg';
+import { osanShopDetail } from './osanShopDetail';
 import { FloatingKeyboard } from '../insadong/keyboard/FloatingKeyboard';
 import { HangulComposer } from '../insadong/keyboard/hangul';
 import type { KeyAction } from '../insadong/keyboard/VirtualKeyboard';
-import { OsanLeftNav } from './OsanLeftNav';
 import styles from './OsanSearch.module.css';
 
 const T = {
@@ -52,6 +61,12 @@ const T = {
   },
 };
 
+/** One card (390) + its 60px gap — a tap lands the next card flush at the top. */
+const SCROLL_STEP = 450;
+
+/** 검색결과 top (700) + the field (182): the keyboard tray opens flush under it. */
+const FIELD_BOTTOM = 700 + 182;
+
 interface OsanSearchProps {
   controller: KioskController;
 }
@@ -70,8 +85,12 @@ export function OsanSearch({ controller }: OsanSearchProps): JSX.Element {
     seeded.current = true;
   }
 
+  const listRef = useRef<HTMLDivElement>(null);
+  const scrollBy = (dy: number): void => listRef.current?.scrollBy({ top: dy, behavior: 'smooth' });
+
   const shops = useShopStore((s) => s.shops);
   const noImg = osanIconUrl('noimage');
+  const arrow = osanIconUrl('scroll-arrow');
   const [query, setQuery] = useState(initialQuery);
   const [focused, setFocused] = useState(false);
   const results = searchShops(shops, query, lang);
@@ -87,88 +106,53 @@ export function OsanSearch({ controller }: OsanSearchProps): JSX.Element {
         setStoreQuery(c.value.trim());
         setFocused(false);
         setQuery(c.value);
+        listRef.current?.scrollTo({ top: 0 });
         return;
     }
     setQuery(c.value);
   };
 
   const openDetail = (shop: Shop): void => {
-    setDetail({
-      from: 'search',
-      title: shopBaseCategory(shop, lang) || '검색',
-      name: shopName(shop, lang),
-      category: shopSecondCategory(shop, lang),
-      photos: shopImages(shop).length ? shopImages(shop) : noImg ? [noImg] : [],
-      address: shopAddress(shop, lang),
-      hours: shop.openTime ?? '',
-      phone: shop.tel ?? '',
-      description: shopDescription(shop, lang),
-      tags: shopHashtag(shop, lang),
-      rating: shop.naverRating != null ? String(shop.naverRating) : '',
-      instagram: '',
-      blogReviews: shop.naverLink ?? '',
-    });
+    setDetail(osanShopDetail(shop, lang, 'search', '검색', noImg));
     controller.navigate('detail', '검색 상세');
   };
 
   return (
     <>
-      {osanIconUrl('bg') && (
-        <img className={styles.bg} src={osanIconUrl('bg')} alt="" draggable={false} />
-      )}
+      <OsanPageBg />
 
       <OsanHeader title="검색" onHome={goHome} />
 
-      <div className={styles.results}>
+      <div className={`${styles.results} ${lang !== 'ko' ? styles.long : ''}`}>
         <div className={styles.searchRow}>
-          <button
-            type="button"
-            className={styles.searchInput}
-            onClick={() => setFocused(true)}
-          >
+          <button type="button" className={styles.searchInput} onClick={() => setFocused(true)}>
             <span className={styles.inputTextWrap}>
-              {query ? (
-                <span className={styles.inputText}>{query}</span>
-              ) : (
-                <span className={styles.inputPlaceholder}>{pick(T.placeholder, lang)}</span>
-              )}
+              <span className={styles.inputText}>{query || pick(T.placeholder, lang)}</span>
               {focused && <span className={styles.caret} />}
             </span>
-            <SearchIcon className={styles.searchIcon} />
+            <span className={styles.searchIcon}>
+              <SearchIcon className={styles.searchIconSvg} />
+            </span>
           </button>
         </div>
 
         {results.length > 0 ? (
-          <div className={styles.list}>
+          <div ref={listRef} className={styles.list}>
             {results.map((shop) => (
-              <button
-                type="button"
-                key={shop.id}
-                className={styles.card}
-                onClick={() => openDetail(shop)}
-              >
+              <button type="button" key={shop.id} className={styles.card} onClick={() => openDetail(shop)}>
                 <div className={styles.info}>
                   <div className={styles.nameRow}>
-                    <span className={styles.name}>
-                      {highlightMatch(shopName(shop, lang), query, styles.hl)}
-                    </span>
+                    <span className={styles.name}>{highlightMatch(shopName(shop, lang), query, styles.hl)}</span>
                     <span className={styles.cat}>
                       <span className={styles.dot} />
                       {shopSecondCategory(shop, lang)}
                     </span>
                   </div>
-                  <p className={styles.address}>
-                    {highlightMatch(shopAddress(shop, lang), query, styles.hl)}
-                  </p>
-                  <p className={styles.desc}>
-                    {highlightMatch(shopDescription(shop, lang), query, styles.hl)}
-                  </p>
-                  <p className={styles.tags}>
-                    {highlightMatch(shopHashtag(shop, lang), query, styles.hl)}
-                  </p>
+                  <p className={styles.address}>{highlightMatch(shopAddress(shop, lang), query, styles.hl)}</p>
+                  <p className={styles.desc}>{highlightMatch(shopDescription(shop, lang), query, styles.hl)}</p>
                 </div>
                 <div className={styles.photos}>
-                  {padImages(shopImages(shop), noImg, 4).map((src, j) => (
+                  {padImages(shopImages(shop), noImg, 2).map((src, j) => (
                     <div key={j} className={styles.thumb}>
                       <img src={src} alt="" draggable={false} loading="lazy" />
                     </div>
@@ -179,20 +163,44 @@ export function OsanSearch({ controller }: OsanSearchProps): JSX.Element {
           </div>
         ) : (
           <p className={styles.empty}>
-            {query ? pick(T.noResult, lang)(query) : pick(T.prompt, lang)}
+            {query
+              ? /* Localization_Osaek Search_NoContent — its leading "* " is the
+                   sheet's bullet formatting; T.noResult covers an empty cell. */
+                tExact('Search_NoContent', lang).replace(/^\s*[*•]\s*/, '') || pick(T.noResult, lang)(query)
+              : pick(T.prompt, lang)}
           </p>
         )}
       </div>
 
-      <OsanLeftNav onHome={goHome} />
+      {results.length > 0 && (
+        <>
+          <button
+            type="button"
+            className={`${styles.scrollBtn} ${styles.scrollUp}`}
+            onClick={() => scrollBy(-SCROLL_STEP)}
+            aria-label="위로"
+          >
+            {arrow && <img src={arrow} alt="" className={styles.scrollBtnImg} draggable={false} />}
+          </button>
+          <button
+            type="button"
+            className={`${styles.scrollBtn} ${styles.scrollDown}`}
+            onClick={() => scrollBy(SCROLL_STEP)}
+            aria-label="아래로"
+          >
+            {arrow && <img src={arrow} alt="" className={styles.scrollBtnImg} draggable={false} />}
+          </button>
+        </>
+      )}
 
-      <OsanBanner onClick={() => controller.startPhoto()} />
+      <OsanLeftNav onHome={goHome} />
 
       <FloatingKeyboard
         open={focused}
         onKey={applyKey}
         onClose={() => setFocused(false)}
         lang={lang}
+        top={FIELD_BOTTOM}
       />
     </>
   );

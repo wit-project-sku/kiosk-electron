@@ -1,5 +1,6 @@
 import type { SupportedLanguage } from '@shared/types/kiosk';
 import { useLanguageStore } from '@renderer/store/languageStore';
+import { useKioskStore } from '@renderer/store/kioskStore';
 import { hasLoc, t, tExact } from '@renderer/lib/loc';
 import { ui, type UiTextKey } from '@renderer/lib/uiText';
 
@@ -12,6 +13,10 @@ export function pick<T>(map: Partial<Record<Lang, T>>, lang: Lang): T {
 
 /** Hook: current UI language. */
 export function useLang(): Lang {
+  // Also subscribe to the synced translation table: `t()` / `sheetText()` read it
+  // with getState(), so without this a sheet sync that lands after first paint
+  // would stay invisible until each screen happened to re-render.
+  useKioskStore((s) => s.translations);
   return useLanguageStore((s) => s.currentLanguage);
 }
 
@@ -228,7 +233,11 @@ const TITLE_KEYS: Record<string, TitleKeySpec> = {
   고궁안내: { title: 'MainButton_Palace', sub: 'SubHeader_Palace' },
   언어선택: { title: 'Language_Select_Language', sub: 'Language_Content' },
   '교통 안내': { title: 'MainButton_Transport', sub: ['SubHeader_Transport', 'Transport_Subtitle'] },
-  위드마켓: { title: 'MainButton_Goods' },
+  // Localization_Osaek names this tile MainButton_WITH_Market; 제주 MainButton_Goods.
+  위드마켓: { title: ['MainButton_WITH_Market', 'MainButton_Goods'] },
+  // The photo flow's header id (photoChrome `photoTitle`). Insa, 오색, 화성 and
+  // 제주 all carry Photo_HanbokTry; KADA passes 'KADA' and never reaches this.
+  'AR 한복체험': { title: 'Photo_HanbokTry' },
   화장실: { title: 'MainButton_WC', sub: 'SubHeader_ToHelp' },
   // ── Aliases for the ids the 준비중 placeholder scaffolds pass ────────────
   // They spell the same screens differently from the real headers — straight
@@ -243,43 +252,56 @@ const TITLE_KEYS: Record<string, TitleKeySpec> = {
   // Greeting_Introduce ("* 안녕하세요! 마스코트 '인사'를 소개할게요!") in all eight
   // languages and this screen was the only 안녕 that never asked for it.
   "안녕 '인사'": { title: 'MainButton_Greeting', sub: 'Greeting_Introduce' },
-  "안녕 '정이'": { title: 'MainButton_Greeting' },
+  // Localization_Osaek carries Greeting_Introduce in all eight languages, the same
+  // row 안녕 '인사' already reads.
+  "안녕 '정이'": { title: 'MainButton_Greeting', sub: 'Greeting_Introduce' },
   "도와줘 '인사'": { title: 'MainButton_ToHelp', sub: 'SubHeader_ToHelp' },
   인사동지도: { title: 'MainButton_Map' },
   '오색시장 지도': { title: 'MainButton_Map' },
   교통안내: { title: 'MainButton_Transport', sub: ['SubHeader_Transport', 'Transport_Subtitle'] },
   '언어 선택': { title: 'Language_Select_Language', sub: 'Language_Content' },
   '화장실 안내': { title: 'MainButton_WC', sub: 'SubHeader_ToHelp' },
-  '여기는 오색시장': { title: 'MainButton_Here', sub: 'SubHeader_Attraction' },
-  전국휴게소: { title: 'MainButton_ServiceArea', sub: 'SubHeader_ServiceArea' },
+  // Localization_Osaek's SubHeader_Attraction is a placeholder ("* 관광명소 서브헤더");
+  // the page's own description row is Here_IsOsaek_Subtitle.
+  '여기는 오색시장': { title: 'MainButton_Here', sub: ['Here_IsOsaek_Subtitle', 'SubHeader_Attraction'] },
+  전국휴게소: { title: ['MainButton_Restarea', 'MainButton_ServiceArea'], sub: ['Restarea_Subtitle', 'SubHeader_ServiceArea'] },
   // 이벤트 screens: each location's sheet carries its own MainButton_Event /
   // SubHeader_Event copy, so all three ids resolve through the same pair.
   '인사동 이벤트': { title: 'MainButton_Event', sub: ['SubHeader_Event', 'Event_SubTitle'] },
-  '오산시 이벤트': { title: 'MainButton_Event', sub: 'SubHeader_Event' },
+  // Localization_Osaek titles this page with its own rows (Event_Title /
+  // Event_SubTitle) and has no SubHeader_Event.
+  '오산시 이벤트': { title: ['Event_Title', 'MainButton_Event'], sub: ['SubHeader_Event', 'Event_SubTitle'] },
   // ── W004 오산 오색시장 header titles + page descriptions (Localization_Osaek) ──
   "도와줘 '정이'": { title: 'MainButton_ToHelp', sub: 'SubHeader_ToHelp' },
   "'정이' 뭐먹지": { title: 'MainButton_ToEat', sub: 'SubHeader_ToEat' },
   "'정이' 뭐사지(식품)": { title: 'MainButton_ToBuy', sub: 'SubHeader_ToBuy' },
-  "'정이' 뭐사지(물품)": { title: 'MainButton_ToBuy', sub: 'SubHeader_ToBuy' },
+  // 물품 has its OWN rows in Localization_Osaek (MainButton_ToBuy2 "'정이' 뭐사지?(물품)",
+  // SubHeader_ToBuy2); it used to borrow 식품's, so the 물품 page was titled (식품).
+  "'정이' 뭐사지(물품)": { title: ['MainButton_ToBuy2', 'MainButton_ToBuy'], sub: ['SubHeader_ToBuy2', 'SubHeader_ToBuy'] },
   "'정이' 모하지 (AI 검색)": { title: 'MainButton_AI', sub: 'SubHeader_AISearch' },
   "'정이' 모하지(AI 검색)": { title: 'MainButton_AI', sub: 'SubHeader_AICourse' },
   // ── W005 화성휴게소 header titles + page descriptions (Localization_Hwaseong) ──
   // The Korean ids are the literal strings the Hwaseong screens pass to
   // HwaseongHeader; keys resolve against the Hwaseong bundled/synced table.
-  "전국도로교통상황": { title: 'MainButton_TrafficInfo', sub: 'SubHeader_TrafficInfo' },
-  "전국 휴게소": { title: 'MainButton_ServiceArea', sub: 'SubHeader_ServiceArea' },
-  "화성시 이벤트": { title: 'MainButton_Event', sub: 'SubHeader_Event' },
+  // 2026-10-19 the 화성 sheet was rebuilt: page rows moved to <Page>_Title /
+  // <Page>_Subtitle (Restarea_*, TrafficInfo_*, Here_map); the old keys stay
+  // second so an older synced table still resolves. The page titles
+  // (TrafficInfo_Title, Restarea_Title, Header_Event) lead, the home-tile
+  // labels (MainButton_*) follow.
+  "전국도로교통상황": { title: ['TrafficInfo_Title', 'MainButton_TrafficInfo'], sub: ['TrafficInfo_Subtitle', 'SubHeader_TrafficInfo'] },
+  "전국 휴게소": { title: ['Restarea_Title', 'MainButton_Restarea', 'MainButton_ServiceArea'], sub: ['Restarea_Subtitle', 'SubHeader_ServiceArea'] },
+  "화성시 이벤트": { title: ['Header_Event', 'MainButton_Event'], sub: 'SubHeader_Event' },
   "'휴' 뭐먹지": { title: 'MainButton_ToEat', sub: 'SubHeader_ToEat' },
   "'휴' 뭐사지": { title: 'MainButton_ToBuy', sub: 'SubHeader_ToBuy' },
   "전국시장": { title: 'MainButton_TraditionalMarket', sub: 'SubHeader_TraditionalMarket' },
   "TAX-FREE": { title: 'MainButton_TaxFree', sub: 'SubHeader_TaxFree' },
-  "화성휴게소": { title: 'MainButton_Here' },
+  "화성휴게소": { title: 'MainButton_Here', sub: 'Here_IsHwaseong_Subtitle' },
   "안녕 '휴'": { title: 'MainButton_Greeting' },
   "도와줘 '휴'": { title: 'MainButton_ToHelp', sub: 'SubHeader_ToHelp' },
-  "화성휴게소 지도": { title: 'MainButton_SAMap', sub: 'SubHeader_SAMap' },
+  "화성휴게소 지도": { title: ['Here_map', 'MainButton_SAMap'], sub: 'SubHeader_SAMap' },
   // 화성 spells this MainButton_MarketPaper, 제주 MainButton_LocalCurrency; only
   // 제주 carries a subtitle row for it.
-  "지역화폐": { title: ['MainButton_MarketPaper', 'MainButton_LocalCurrency'], sub: 'LocalCurrency_SubHeader' },
+  "지역화폐": { title: ['MainButton_MarketPaper', 'MainButton_LocalCurrency'], sub: ['LocalCurrency_SubHeader', 'MarketPaper_Subtitle'] },
   // ── W006 제주공항 header titles + page descriptions (Localization_Jeju) ──
   // The ids are the literal strings each 제주 screen hands to JejuPageFrame, so a
   // renamed header must be renamed here too or it silently falls back to Korean.
@@ -377,6 +399,31 @@ const BUTTON_OVERRIDES: Record<string, Partial<Record<Lang, string>>> = {
     th: 'สกุลเงินท้องถิ่น',
     ru: 'Местная валюта',
     id: 'Mata Uang Daerah',
+  },
+  // 오산's 전국시장 header: Localization_Osaek has no MainButton_TraditionalMarket
+  // row at all, so the page title printed 전국시장 in every language. (화성's
+  // sheet has the row, and its own cells still win over these.)
+  MainButton_TraditionalMarket: {
+    ko: '전국시장',
+    en: 'Traditional Markets',
+    ja: '全国の伝統市場',
+    zh: '全国传统市场',
+    vi: 'Chợ truyền thống toàn quốc',
+    th: 'ตลาดดั้งเดิมทั่วประเทศ',
+    ru: 'Рынки страны',
+    id: 'Pasar Tradisional Nasional',
+  },
+  // 화성휴게소 지도: Localization_Hwaseong leaves the en cell empty, so English
+  // fell back to Korean. Only an empty cell reaches this.
+  MainButton_SAMap: {
+    ko: '화성휴게소 지도',
+    en: 'Hwaseong S/A Map',
+    ja: '華城休憩所マップ',
+    zh: '华城服务区地图',
+    vi: 'Bản đồ trạm dừng Hwaseong',
+    th: 'แผนที่จุดพักรถฮวาซอง',
+    ru: 'Карта зоны отдыха Хвасон',
+    id: 'Peta Rest Area Hwaseong',
   },
 };
 

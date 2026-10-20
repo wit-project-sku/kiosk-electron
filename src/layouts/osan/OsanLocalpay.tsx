@@ -4,7 +4,7 @@ import type { KioskController } from '@renderer/hooks/useKioskController';
 import { useLanguageStore } from '@renderer/store/languageStore';
 import { osanIconUrl } from '@renderer/assets/icons/osan';
 import onnuriPaper from '@renderer/assets/photos/osan/localpay/onnuri-paper.png';
-import onnuriDigital from '@renderer/assets/photos/osan/localpay/onnuri-digital.png';
+import onnuriMascot from '@renderer/assets/photos/osan/localpay/onnuri-mascot.png';
 import onnuriBi from '@renderer/assets/photos/osan/localpay/onnuri-bi.png';
 import card1 from '@renderer/assets/photos/osan/localpay/card1.png';
 import card2 from '@renderer/assets/photos/osan/localpay/card2.png';
@@ -12,21 +12,24 @@ import iosQr from '@renderer/assets/photos/osan/localpay/ios.png';
 import androidQr from '@renderer/assets/photos/osan/localpay/android.png';
 import appQr from '@renderer/assets/photos/osan/localpay/app-qr.png';
 import { OsanHeader } from './OsanHeader';
-import { OsanBanner } from './OsanBanner';
+import { sheetText, tExact } from '@renderer/lib/loc';
+import bannerImg from '@renderer/assets/photos/osan/exchange/exchange-banner.png';
 import { OsanLeftNav } from './OsanLeftNav';
 import styles from './OsanLocalpay.module.css';
 import { useFitText } from '@layouts/components/fitText';
+import { useAccessibilityStore } from '@renderer/store/accessibilityStore';
 
 type Lang = SupportedLanguage;
 function pick<T>(map: Partial<Record<Lang, T>>, lang: Lang): T {
   return (map[lang] ?? map.ko ?? (Object.values(map)[0] as T)) as T;
 }
 
-/** Render body copy where **…** segments are emphasised (600 weight). */
-function renderRich(text: string): ReactNode {
+/** Render body copy where **…** segments are emphasised — SemiBold, or Bold
+ *  where the frame sets them Bold (the 디지털 할인 line, 7878:42744). */
+function renderRich(text: string, strong = false): ReactNode {
   return text.split('**').map((part, i) =>
     i % 2 === 1 ? (
-      <strong key={i} className={styles.bodyBold}>
+      <strong key={i} className={strong ? styles.bodyStrong : styles.bodyBold}>
         {part}
       </strong>
     ) : (
@@ -35,7 +38,7 @@ function renderRich(text: string): ReactNode {
   );
 }
 
-interface LocalpayContent {
+export interface LocalpayContent {
   title: string;
   tabs: [string, string];
   onnuri: {
@@ -49,6 +52,8 @@ interface LocalpayContent {
     digitalNote: string;
     usageH: string;
     usageBody: string;
+    /** Benefit bullets in the light box (Korean only for now). */
+    benefits?: string[];
   };
   osaek: {
     title: string;
@@ -65,32 +70,38 @@ interface LocalpayContent {
 }
 
 /** 지역화폐 — text verbatim from Figma (오산>지역화폐=온누리상품권 / =오색전);
+ *  화성's 온누리상품권 tab (HwaseongLocalpay) reads `onnuri` from here too;
  *  other languages translate the same copy. */
-const CONTENT: Partial<Record<Lang, LocalpayContent>> = {
+export const LOCALPAY_CONTENT: Partial<Record<Lang, LocalpayContent>> = {
   ko: {
     title: '지역화폐',
-    tabs: ['온누리상품권', '오색전'],
+    tabs: ['오색전', '온누리상품권'],
     onnuri: {
       title: '온누리상품권',
       introH: '온누리상품권이란?',
-      introBody: '전국 16개 금융기관에서 5천원, 1만원, 3만원권 단위로 구매하여 사용하는 온누리상품권',
+      introBody: '전통시장과 상점가의 활성화를 위해 발행된 전용 상품권으로, 전국의 온누리상품권 가맹점에서 다양한 상품과 서비스를 구매할 때 사용할 수 있습니다. 전통시장과 지역 상점가를 이용하면서 할인 혜택도 받고, 지역 경제 활성화에도 도움을 줄 수 있는 편리한 상품권입니다.',
       paperH: '지류상품권 권종',
       digitalH: '디지털 온누리상품권이란?',
       digitalBefore: [
-        '디지털 온누리상품권 앱 설치 후 기존 갖고 있는 카드를 등록하고 금액 충전 후,',
-        '실물카드 또는 QR코드 결제 방식으로 이용 가능한 온누리상품권',
+        '스마트폰을 이용해 더욱 편리하게 사용할 수 있는 디지털 형태의 온누리상품권입니다. 모바일 앱을 통해 상품권을 충전하고, 가맹점에서 QR 또는 카드 결제 방식으로 간편하게 사용할 수 있습니다.',
       ],
-      digitalAfter: '상품권 금액의 10% 할인가로 충전 가능! 최대 보유한도금액은 200만원입니다.',
-      digitalNote: '※ 단, 예산소진 상황에 따라 특별판매 내용 및 기간이 변경될 수 있습니다.',
+      digitalAfter: '상품권 금액의 **10% 할인가**로 충전 가능! **최대 보유한도금액**은 **200만원**입니다.',
+      digitalNote: '※ 할인율 및 혜택은 정책 및 판매 상황에 따라 변경될 수 있습니다.',
       usageH: '온누리상품권 사용처',
-      usageBody: '온누리상품권 가맹점 스티커가 있는 곳에서 사용이 가능합니다.',
+      usageBody: '**온누리상품권 가맹점 스티커**가 있는 곳에서 사용이 가능합니다.',
+      benefits: [
+        '· 할인 혜택 : 충전 시 약 10% 할인 적용됨',
+        '· 소득공제 혜택 : 전통시장 사용 시 최대 40% 소득공제 가능',
+        '· 사용처 확대 : 전통시장, 소상공인 매장뿐 아니라 온라인몰·배달앱까지',
+        '· 간편하게 사용 가능 (카드 또는 QR코드 결제)',
+      ],
     },
     osaek: {
-      title: '오산화폐「오색전」',
+      title: '오산화폐 「오색전」이란?',
       introH: '오산화폐 오색전이란?',
       introBody: [
-        '오산시 내에서만 사용할 수 있는 카드형 지역화폐 입니다.',
-        '대형마트, 기업형 슈퍼마켓, 유흥업소, 사행성 업소, 오산에 주소지를 두고 있지 않은 프랜차이즈 직영점을 제외한 관내 IC 카드 단말기를 사용하는 업소 어디에서나 사용 가능합니다. 또한 경기지역화폐 APP과 연동하여 언제, 어디서나 편리하게 충전하고 잔액을 관리 할 수 있습니다.',
+        '**오산시 내에서만 사용할 수 있는 카드형 지역화폐 입니다.**',
+        '대형마트, 기업형 슈퍼마켓, 유흥업소, 사행성 업소, 오산에 주소지를 두고 있지 않은 프랜차이즈 직영점을 제외한 **관내 IC 카드 단말기를 사용하는 업소 어디에서나 사용 가능**합니다. 또한 경기지역화폐 APP과 연동하여 언제, 어디서나 편리하게 충전하고 잔액을 관리 할 수 있습니다.',
       ],
       iosLabel: 'iOS',
       androidLabel: 'Android',
@@ -111,28 +122,33 @@ const CONTENT: Partial<Record<Lang, LocalpayContent>> = {
   },
   en: {
     title: 'Local Currency',
-    tabs: ['Onnuri Voucher', 'Osaek-jeon'],
+    tabs: ['Osaek-jeon', 'Onnuri Voucher'],
     onnuri: {
       title: 'Onnuri Gift Voucher',
       introH: 'What is the Onnuri voucher?',
-      introBody: 'An Onnuri gift voucher purchased at 16 financial institutions nationwide in denominations of ₩5,000, ₩10,000 and ₩30,000.',
+      introBody: 'An Onnuri voucher made to support traditional markets and shopping streets. It can be used at Onnuri voucher member stores nationwide for a wide range of goods and services. Shopping at traditional markets and local shopping streets earns discounts while supporting the local economy.',
       paperH: 'Paper voucher denominations',
       digitalH: 'What is the digital Onnuri voucher?',
       digitalBefore: [
-        'After installing the Digital Onnuri Voucher app, register your existing card and top it up,',
-        'then use it as an Onnuri voucher via physical card or QR-code payment.',
+        'The digital form of the Onnuri voucher, made for more convenient use on your smartphone. Top up through the mobile app and pay at member stores by QR code or card.',
       ],
-      digitalAfter: 'Top up at a 10% discount on the voucher amount! The maximum balance is ₩2,000,000.',
-      digitalNote: '※ Special-sale terms and periods may change depending on budget availability.',
+      digitalAfter: 'Top up at a **10% discount** on the voucher amount! The **maximum balance** is **₩2,000,000**.',
+      digitalNote: '※ Discount rates and benefits may change depending on policy and sales conditions.',
       usageH: 'Where to use',
-      usageBody: 'Can be used at places displaying the Onnuri voucher member-store sticker.',
+      usageBody: 'Can be used at places displaying the **Onnuri voucher member-store sticker**.',
+      benefits: [
+        '· Discount: about 10% off when you top up',
+        '· Income deduction: up to 40% deduction for use at traditional markets',
+        '· Wider use: traditional markets, small-business stores, online malls and delivery apps',
+        '· Easy to use (card or QR-code payment)',
+      ],
     },
     osaek: {
       title: 'Osan Currency “Osaek-jeon”',
       introH: 'What is Osan currency Osaek-jeon?',
       introBody: [
-        'A card-type local currency usable only within Osan City.',
-        'It can be used at any store with an in-city IC card terminal, except department/large marts, corporate supermarkets, entertainment/gambling venues and franchise direct stores not based in Osan. It also links with the Gyeonggi Local Currency app so you can top up and manage your balance anytime, anywhere.',
+        '**A card-type local currency that can be used only within Osan City.**',
+        'Except for large marts, corporate supermarkets, entertainment and gambling venues, and franchise direct stores not based in Osan, it can be used at **any store with an in-city IC card terminal**. It also links with the Gyeonggi Local Currency app, so you can top up and manage your balance anytime, anywhere.',
       ],
       iosLabel: 'iOS',
       androidLabel: 'Android',
@@ -153,28 +169,33 @@ const CONTENT: Partial<Record<Lang, LocalpayContent>> = {
   },
   ja: {
     title: '地域通貨',
-    tabs: ['オンヌリ商品券', '五色銭'],
+    tabs: ['五色銭', 'オンヌリ商品券'],
     onnuri: {
       title: 'オンヌリ商品券',
       introH: 'オンヌリ商品券とは？',
-      introBody: '全国16の金融機関で5千ウォン・1万ウォン・3万ウォン券単位で購入して使えるオンヌリ商品券。',
+      introBody: '伝統市場と商店街の活性化のために発行された専用商品券で、全国のオンヌリ商品券加盟店で多様な商品やサービスを購入するときに使えます。伝統市場や地域の商店街を利用しながら割引特典も受けられ、地域経済の活性化にも役立ちます。',
       paperH: '紙商品券の券種',
       digitalH: 'デジタルオンヌリ商品券とは？',
       digitalBefore: [
-        'デジタルオンヌリ商品券アプリをインストールし、お持ちのカードを登録してチャージ後、',
-        '実物カードまたはQRコード決済で利用できるオンヌリ商品券。',
+        'スマートフォンでより便利に使えるデジタル形式のオンヌリ商品券です。モバイルアプリでチャージし、加盟店でQRコードまたはカードで手軽に支払えます。',
       ],
-      digitalAfter: '商品券金額の10%割引でチャージ可能！最大保有限度額は200万ウォンです。',
-      digitalNote: '※ ただし、予算消尽の状況により特別販売の内容・期間が変更される場合があります。',
+      digitalAfter: '商品券金額の**10%割引価格**でチャージ可能！**最大保有限度額**は**200万ウォン**です。',
+      digitalNote: '※ 割引率および特典は政策や販売状況により変更される場合があります。',
       usageH: 'オンヌリ商品券の使用先',
-      usageBody: 'オンヌリ商品券加盟店ステッカーのある場所で使用できます。',
+      usageBody: '**オンヌリ商品券加盟店ステッカー**のある場所で使用できます。',
+      benefits: [
+        '· 割引特典：チャージ時に約10%割引',
+        '· 所得控除特典：伝統市場での利用時、最大40%の所得控除',
+        '· 利用先の拡大：伝統市場、小商工人の店舗に加え、オンラインモールや配達アプリまで',
+        '· 手軽に利用可能（カードまたはQRコード決済）',
+      ],
     },
     osaek: {
       title: '烏山貨幣「五色銭」',
       introH: '烏山貨幣 五色銭とは？',
       introBody: [
-        '烏山市内でのみ使えるカード型地域通貨です。',
-        '大型マート、企業型スーパー、遊興業所、射幸業所、烏山に住所のないフランチャイズ直営店を除く、市内のICカード端末を使う店舗ならどこでも使用可能。京畿地域通貨アプリと連動し、いつでもどこでも便利にチャージ・残高管理ができます。',
+        '**烏山市内でのみ使えるカード型地域通貨です。**',
+        '大型マート、企業型スーパー、遊興業所、射幸業所、烏山に住所のないフランチャイズ直営店を除き、**市内のICカード端末を使う店舗ならどこでも使用可能**です。京畿地域通貨アプリと連動し、いつでもどこでもチャージと残高管理ができます。',
       ],
       iosLabel: 'iOS',
       androidLabel: 'Android',
@@ -195,28 +216,33 @@ const CONTENT: Partial<Record<Lang, LocalpayContent>> = {
   },
   zh: {
     title: '地区货币',
-    tabs: ['온누리商品券', '五色钱'],
+    tabs: ['五色钱', '온누리商品券'],
     onnuri: {
       title: 'Onnuri商品券',
       introH: '什么是Onnuri商品券？',
-      introBody: '在全国16家金融机构以5千、1万、3万韩元面额购买使用的Onnuri商品券。',
+      introBody: '为振兴传统市场和商店街而发行的专用商品券，可在全国Onnuri商品券加盟店购买多样商品和服务时使用。在传统市场和本地商店街消费还能享受优惠，同时有助于地区经济活跃。',
       paperH: '纸质商品券面额',
       digitalH: '什么是数字Onnuri商品券？',
       digitalBefore: [
-        '安装数字Onnuri商品券App后，注册已有的卡并充值，',
-        '即可通过实体卡或二维码支付方式使用的Onnuri商品券。',
+        '更便捷的数字形式Onnuri商品券，可通过手机应用充值，并在加盟店以二维码或卡片支付。',
       ],
-      digitalAfter: '可按商品券金额的9折充值！最高持有额度为200万韩元。',
-      digitalNote: '※ 但根据预算消耗情况，特别销售内容及期间可能变更。',
+      digitalAfter: '可按商品券金额的**9折**充值！**最高持有额度**为**200万韩元**。',
+      digitalNote: '※ 折扣率及优惠内容可能因政策和销售情况而变更。',
       usageH: 'Onnuri商品券使用处',
-      usageBody: '可在贴有Onnuri商品券加盟店贴纸的地方使用。',
+      usageBody: '可在贴有**Onnuri商品券加盟店贴纸**的地方使用。',
+      benefits: [
+        '· 优惠：充值时约9折',
+        '· 所得扣除：在传统市场使用时最高可享40%所得扣除',
+        '· 扩大使用范围：传统市场、小商户店铺，以及网络商城和外卖应用',
+        '· 使用便捷（卡片或二维码支付）',
+      ],
     },
     osaek: {
       title: '乌山货币「五色钱」',
       introH: '什么是乌山货币五色钱？',
       introBody: [
-        '仅可在乌山市内使用的卡片型地区货币。',
-        '除百货店、大型超市、企业型超市、娱乐场所、博彩场所及非乌山注册的连锁直营店外，凡使用市内IC卡终端的店铺均可使用。还可与京畿地区货币App联动，随时随地便捷充值与管理余额。',
+        '**仅限在乌山市内使用的卡片式地区货币。**',
+        '除大型超市、企业型超市、娱乐场所、博彩场所以及非乌山注册地的连锁直营店外，**市内配备IC卡终端的店铺均可使用**。同时与京畿地区货币APP联动，可随时随地方便地充值并管理余额。',
       ],
       iosLabel: 'iOS',
       androidLabel: 'Android',
@@ -237,28 +263,33 @@ const CONTENT: Partial<Record<Lang, LocalpayContent>> = {
   },
   vi: {
     title: 'Tiền tệ địa phương',
-    tabs: ['Phiếu quà tặng Onnuri', 'Osaek-jeon'],
+    tabs: ['Osaek-jeon', 'Phiếu quà tặng Onnuri'],
     onnuri: {
       title: 'Phiếu quà tặng Onnuri',
       introH: 'Phiếu Onnuri là gì?',
-      introBody: 'Phiếu quà tặng Onnuri được mua tại 16 tổ chức tài chính trên toàn quốc theo các mệnh giá 5.000 won, 10.000 won và 30.000 won.',
+      introBody: 'Phiếu quà tặng được phát hành để hỗ trợ chợ truyền thống và các phố buôn bán, có thể dùng tại các cửa hàng liên kết phiếu Onnuri trên toàn quốc để mua nhiều loại hàng hóa và dịch vụ. Mua sắm tại chợ truyền thống và phố buôn bán địa phương vừa được giảm giá vừa góp phần phát triển kinh tế địa phương.',
       paperH: 'Các mệnh giá phiếu giấy',
       digitalH: 'Phiếu Onnuri kỹ thuật số là gì?',
       digitalBefore: [
-        'Sau khi cài ứng dụng Phiếu Onnuri kỹ thuật số, đăng ký thẻ hiện có và nạp tiền,',
-        'bạn có thể dùng như phiếu Onnuri qua thẻ vật lý hoặc thanh toán bằng mã QR.',
+        'Phiên bản kỹ thuật số của phiếu quà tặng Onnuri, tiện dụng hơn khi dùng trên điện thoại thông minh. Nạp tiền qua ứng dụng di động và thanh toán tại cửa hàng liên kết bằng mã QR hoặc thẻ.',
       ],
-      digitalAfter: 'Nạp tiền với mức giảm 10% trên giá trị phiếu! Hạn mức số dư tối đa là 2.000.000 won.',
-      digitalNote: '※ Tuy nhiên, nội dung và thời gian bán ưu đãi đặc biệt có thể thay đổi tùy theo tình hình sử dụng ngân sách.',
+      digitalAfter: 'Nạp tiền với giá **giảm 10%** trên mệnh giá phiếu! **Hạn mức số dư tối đa** là **2.000.000 won**.',
+      digitalNote: '※ Mức giảm giá và quyền lợi có thể thay đổi tùy theo chính sách và tình hình bán hàng.',
       usageH: 'Nơi sử dụng phiếu Onnuri',
-      usageBody: 'Có thể sử dụng tại những nơi có dán nhãn cửa hàng liên kết phiếu Onnuri.',
+      usageBody: 'Có thể dùng tại những nơi có **nhãn dán cửa hàng liên kết phiếu Onnuri**.',
+      benefits: [
+        '· Ưu đãi: giảm khoảng 10% khi nạp tiền',
+        '· Khấu trừ thu nhập: tối đa 40% khi dùng tại chợ truyền thống',
+        '· Mở rộng nơi sử dụng: chợ truyền thống, cửa hàng tiểu thương, mua sắm trực tuyến và ứng dụng giao hàng',
+        '· Thanh toán tiện lợi (thẻ hoặc mã QR)',
+      ],
     },
     osaek: {
       title: 'Tiền Osan「Osaek-jeon」',
       introH: 'Tiền Osan Osaek-jeon là gì?',
       introBody: [
-        'Đây là loại tiền tệ địa phương dạng thẻ chỉ dùng được trong thành phố Osan.',
-        'Có thể sử dụng ở bất kỳ cửa hàng nào trong thành phố dùng máy đọc thẻ IC, ngoại trừ đại siêu thị, siêu thị doanh nghiệp, quán giải trí, cơ sở cờ bạc và cửa hàng trực thuộc chuỗi nhượng quyền không có địa chỉ tại Osan. Ngoài ra, liên kết với ứng dụng Tiền tệ địa phương Gyeonggi để nạp tiền và quản lý số dư tiện lợi mọi lúc, mọi nơi.',
+        '**Là tiền tệ địa phương dạng thẻ, chỉ dùng được trong thành phố Osan.**',
+        'Có thể dùng tại **mọi cửa hàng trong thành phố có thiết bị đọc thẻ IC**, ngoại trừ đại siêu thị, siêu thị doanh nghiệp, quán giải trí và cờ bạc, cùng các cửa hàng nhượng quyền trực thuộc không có địa chỉ tại Osan. Liên kết với ứng dụng tiền tệ địa phương Gyeonggi, giúp nạp tiền và quản lý số dư mọi lúc, mọi nơi.',
       ],
       iosLabel: 'iOS',
       androidLabel: 'Android',
@@ -279,28 +310,33 @@ const CONTENT: Partial<Record<Lang, LocalpayContent>> = {
   },
   th: {
     title: 'สกุลเงินท้องถิ่น',
-    tabs: ['บัตรกำนัล Onnuri', 'Osaek-jeon'],
+    tabs: ['Osaek-jeon', 'บัตรกำนัล Onnuri'],
     onnuri: {
       title: 'บัตรกำนัล Onnuri',
       introH: 'บัตรกำนัล Onnuri คืออะไร?',
-      introBody: 'บัตรกำนัล Onnuri ที่ซื้อได้จากสถาบันการเงิน 16 แห่งทั่วประเทศ ในมูลค่า 5,000 วอน 10,000 วอน และ 30,000 วอน',
+      introBody: 'บัตรกำนัลที่ออกเพื่อส่งเสริมตลาดดั้งเดิมและถนนการค้า ใช้ซื้อสินค้าและบริการหลากหลายได้ที่ร้านค้าสมาชิกบัตรกำนัล Onnuri ทั่วประเทศ การจับจ่ายในตลาดดั้งเดิมและย่านการค้าท้องถิ่นยังได้รับส่วนลดและช่วยให้เศรษฐกิจท้องถิ่นเติบโต',
       paperH: 'มูลค่าบัตรกำนัลแบบกระดาษ',
       digitalH: 'บัตรกำนัล Onnuri แบบดิจิทัลคืออะไร?',
       digitalBefore: [
-        'หลังติดตั้งแอปบัตรกำนัล Onnuri แบบดิจิทัล ให้ลงทะเบียนบัตรที่มีอยู่และเติมเงิน',
-        'จากนั้นสามารถใช้เป็นบัตรกำนัล Onnuri ผ่านบัตรจริงหรือชำระด้วยคิวอาร์โค้ดได้',
+        'บัตรกำนัล Onnuri รูปแบบดิจิทัลที่ใช้งานบนสมาร์ทโฟนได้สะดวกยิ่งขึ้น เติมเงินผ่านแอปมือถือ แล้วชำระที่ร้านค้าสมาชิกด้วย QR code หรือบัตร',
       ],
-      digitalAfter: 'เติมเงินได้ในราคาลด 10% จากมูลค่าบัตรกำนัล! วงเงินถือครองสูงสุดคือ 2,000,000 วอน',
-      digitalNote: '※ อย่างไรก็ตาม เนื้อหาและระยะเวลาการขายพิเศษอาจเปลี่ยนแปลงได้ตามสถานการณ์การใช้งบประมาณ',
+      digitalAfter: 'เติมเงินในราคาลด **10%** จากมูลค่าบัตรกำนัล! **วงเงินถือครองสูงสุด**คือ **2,000,000 วอน**',
+      digitalNote: '※ ส่วนลดและสิทธิประโยชน์อาจเปลี่ยนแปลงตามนโยบายและสถานการณ์การขาย',
       usageH: 'สถานที่ใช้บัตรกำนัล Onnuri',
-      usageBody: 'สามารถใช้ได้ในสถานที่ที่มีสติกเกอร์ร้านค้าสมาชิกบัตรกำนัล Onnuri',
+      usageBody: 'สามารถใช้ได้ในสถานที่ที่มี **สติกเกอร์ร้านค้าสมาชิกบัตรกำนัล Onnuri**',
+      benefits: [
+        '· สิทธิส่วนลด: ลดประมาณ 10% เมื่อเติมเงิน',
+        '· สิทธิหักลดหย่อนรายได้: สูงสุด 40% เมื่อใช้ในตลาดดั้งเดิม',
+        '· ขยายการใช้งาน: ตลาดดั้งเดิม ร้านผู้ประกอบการรายย่อย ร้านค้าออนไลน์และแอปส่งอาหาร',
+        '· ใช้งานง่าย (ชำระด้วยบัตรหรือ QR code)',
+      ],
     },
     osaek: {
       title: 'สกุลเงินโอซาน「Osaek-jeon」',
       introH: 'สกุลเงินโอซาน Osaek-jeon คืออะไร?',
       introBody: [
-        'เป็นสกุลเงินท้องถิ่นแบบบัตรที่ใช้ได้เฉพาะภายในเมืองโอซานเท่านั้น',
-        'สามารถใช้ได้ที่ร้านค้าใดก็ได้ในเมืองที่ใช้เครื่องอ่านบัตร IC ยกเว้นห้างค้าปลีกขนาดใหญ่ ซูเปอร์มาร์เก็ตแบบองค์กร สถานบันเทิง สถานพนัน และร้านสาขาแฟรนไชส์ที่ไม่มีที่อยู่ในโอซาน อีกทั้งเชื่อมต่อกับแอปสกุลเงินท้องถิ่นคยองกี ทำให้เติมเงินและจัดการยอดคงเหลือได้สะดวกทุกที่ทุกเวลา',
+        '**สกุลเงินท้องถิ่นแบบบัตรที่ใช้ได้เฉพาะภายในเมืองโอซานเท่านั้น**',
+        'ยกเว้นห้างค้าปลีกขนาดใหญ่ ซูเปอร์มาร์เก็ตแบบองค์กร สถานบันเทิง สถานพนัน และร้านสาขาแฟรนไชส์ที่ไม่มีที่อยู่ในโอซาน **สามารถใช้ได้ที่ร้านค้าทุกแห่งในเมืองที่มีเครื่องอ่านบัตร IC** และเชื่อมต่อกับแอปสกุลเงินท้องถิ่นของจังหวัดคย็องกี ทำให้เติมเงินและจัดการยอดคงเหลือได้ทุกที่ทุกเวลา',
       ],
       iosLabel: 'iOS',
       androidLabel: 'Android',
@@ -321,28 +357,33 @@ const CONTENT: Partial<Record<Lang, LocalpayContent>> = {
   },
   ru: {
     title: 'Местная валюта',
-    tabs: ['Ваучер Onnuri', 'Осэк-чон'],
+    tabs: ['Осэк-чон', 'Ваучер Onnuri'],
     onnuri: {
       title: 'Подарочный ваучер Onnuri',
       introH: 'Что такое ваучер Onnuri?',
-      introBody: 'Подарочный ваучер Onnuri, который можно приобрести в 16 финансовых учреждениях по всей стране номиналом 5 000, 10 000 и 30 000 вон.',
+      introBody: 'Ваучер для поддержки традиционных рынков и торговых улиц, который можно использовать в магазинах-участниках ваучера Onnuri по всей стране для покупки самых разных товаров и услуг. Покупки на традиционных рынках и местных торговых улицах дают скидки и помогают местной экономике.',
       paperH: 'Номиналы бумажных ваучеров',
       digitalH: 'Что такое цифровой ваучер Onnuri?',
       digitalBefore: [
-        'После установки приложения «Цифровой ваучер Onnuri» зарегистрируйте имеющуюся карту и пополните счёт,',
-        'после чего используйте как ваучер Onnuri через физическую карту или оплату по QR-коду.',
+        'Цифровая форма ваучера Onnuri, которой удобнее пользоваться на смартфоне. Пополняйте её через мобильное приложение и расплачивайтесь в магазинах-участниках по QR-коду или картой.',
       ],
-      digitalAfter: 'Пополнение со скидкой 10% от суммы ваучера! Максимальный остаток на счёте — 2 000 000 вон.',
-      digitalNote: '※ Однако условия и сроки специальной продажи могут измениться в зависимости от расходования бюджета.',
+      digitalAfter: 'Пополнение со **скидкой 10%** от суммы ваучера! **Максимальный остаток** — **2 000 000 вон**.',
+      digitalNote: '※ Размер скидки и условия могут меняться в зависимости от политики и условий продаж.',
       usageH: 'Где использовать ваучер Onnuri',
-      usageBody: 'Можно использовать в местах со стикером магазина-участника ваучера Onnuri.',
+      usageBody: 'Можно использовать в местах с **наклейкой магазина-участника ваучера Onnuri**.',
+      benefits: [
+        '· Скидка: около 10% при пополнении',
+        '· Налоговый вычет: до 40% при покупках на традиционных рынках',
+        '· Больше мест: традиционные рынки, малый бизнес, интернет-магазины и приложения доставки',
+        '· Удобная оплата (картой или QR-кодом)',
+      ],
     },
     osaek: {
       title: 'Валюта Осана «Осэк-чон»',
       introH: 'Что такое валюта Осана Осэк-чон?',
       introBody: [
-        'Это местная валюта в виде карты, которую можно использовать только в пределах города Осан.',
-        'Ею можно расплатиться в любом магазине города, использующем терминал для IC-карт, кроме крупных гипермаркетов, корпоративных супермаркетов, развлекательных заведений, азартных заведений и фирменных франчайзинговых магазинов, не зарегистрированных в Осане. Кроме того, она связана с приложением местной валюты Кёнги, что позволяет удобно пополнять счёт и управлять балансом в любое время и в любом месте.',
+        '**Местная валюта в виде карты, которую можно использовать только в городе Осан.**',
+        'Её можно использовать в **любом магазине города с терминалом для IC-карт**, кроме крупных гипермаркетов, корпоративных супермаркетов, развлекательных и азартных заведений и фирменных магазинов сетей, не зарегистрированных в Осане. Связана с приложением местной валюты Кёнги, поэтому баланс можно пополнять и контролировать в любое время и в любом месте.',
       ],
       iosLabel: 'iOS',
       androidLabel: 'Android',
@@ -363,28 +404,33 @@ const CONTENT: Partial<Record<Lang, LocalpayContent>> = {
   },
   id: {
     title: 'Mata Uang Lokal',
-    tabs: ['Voucher Onnuri', 'Osaek-jeon'],
+    tabs: ['Osaek-jeon', 'Voucher Onnuri'],
     onnuri: {
       title: 'Voucher Hadiah Onnuri',
       introH: 'Apa itu voucher Onnuri?',
-      introBody: 'Voucher hadiah Onnuri yang dibeli di 16 lembaga keuangan di seluruh negeri dalam pecahan 5.000 won, 10.000 won, dan 30.000 won.',
+      introBody: 'Voucher untuk mendukung pasar tradisional dan kawasan pertokoan, yang dapat digunakan di toko mitra voucher Onnuri di seluruh negeri untuk berbagai produk dan layanan. Berbelanja di pasar tradisional dan kawasan pertokoan lokal memberi potongan harga sekaligus membantu ekonomi lokal.',
       paperH: 'Pecahan voucher kertas',
       digitalH: 'Apa itu voucher Onnuri digital?',
       digitalBefore: [
-        'Setelah memasang aplikasi Voucher Onnuri Digital, daftarkan kartu yang sudah Anda miliki dan isi saldo,',
-        'lalu gunakan sebagai voucher Onnuri melalui kartu fisik atau pembayaran kode QR.',
+        'Bentuk digital voucher Onnuri yang lebih praktis digunakan di ponsel pintar. Isi saldo melalui aplikasi seluler, lalu bayar di toko mitra dengan kode QR atau kartu.',
       ],
-      digitalAfter: 'Isi saldo dengan diskon 10% dari nilai voucher! Batas saldo maksimum adalah 2.000.000 won.',
-      digitalNote: '※ Namun, isi dan periode penjualan khusus dapat berubah sesuai kondisi penggunaan anggaran.',
+      digitalAfter: 'Isi saldo dengan **diskon 10%** dari nilai voucher! **Batas saldo maksimum** adalah **2.000.000 won**.',
+      digitalNote: '※ Besaran diskon dan manfaat dapat berubah sesuai kebijakan dan kondisi penjualan.',
       usageH: 'Tempat penggunaan voucher Onnuri',
-      usageBody: 'Dapat digunakan di tempat yang memiliki stiker toko mitra voucher Onnuri.',
+      usageBody: 'Dapat digunakan di tempat yang memiliki **stiker toko mitra voucher Onnuri**.',
+      benefits: [
+        '· Diskon: sekitar 10% saat mengisi saldo',
+        '· Pengurangan pajak penghasilan: hingga 40% saat digunakan di pasar tradisional',
+        '· Tempat penggunaan diperluas: pasar tradisional, toko usaha kecil, serta mal daring dan aplikasi antar',
+        '· Mudah digunakan (pembayaran kartu atau kode QR)',
+      ],
     },
     osaek: {
       title: 'Mata Uang Osan「Osaek-jeon」',
       introH: 'Apa itu mata uang Osan Osaek-jeon?',
       introBody: [
-        'Ini adalah mata uang lokal berbentuk kartu yang hanya dapat digunakan di dalam Kota Osan.',
-        'Dapat digunakan di toko mana pun di dalam kota yang memakai terminal kartu IC, kecuali hipermarket besar, supermarket korporat, tempat hiburan, tempat perjudian, dan gerai waralaba langsung yang tidak beralamat di Osan. Selain itu, terhubung dengan aplikasi Mata Uang Lokal Gyeonggi sehingga Anda dapat mengisi saldo dan mengelola sisa saldo dengan mudah kapan saja, di mana saja.',
+        '**Mata uang lokal berbentuk kartu yang hanya dapat digunakan di Kota Osan.**',
+        'Dapat digunakan di **toko mana pun di kota yang memiliki terminal kartu IC**, kecuali hipermarket besar, supermarket korporat, tempat hiburan dan perjudian, serta gerai waralaba langsung yang tidak beralamat di Osan. Terhubung dengan aplikasi Mata Uang Lokal Gyeonggi sehingga saldo dapat diisi dan dikelola kapan saja, di mana saja.',
       ],
       iosLabel: 'iOS',
       androidLabel: 'Android',
@@ -405,11 +451,165 @@ const CONTENT: Partial<Record<Lang, LocalpayContent>> = {
   },
 };
 
+/* ── Localization_Osaek → this page ─────────────────────────────────────────
+ * The sheet marks emphasis `<b>…</b>` and colour `<color=#hex>…</color>`; the
+ * page uses `**…**` (renderRich) and renderHeading's navy/black split. A tag
+ * the sheet leaves unmatched never breaks the text: a stray `</b>` is dropped,
+ * an unclosed `<b>` closes at the end of its line, any other `<color>` goes. */
+
+const SHEET_TAG = /<\/?(?:b|color)(?:=[^>]*)?>/gi;
+
+/** A cell's literal "\n" (typed into the cell as text) as a real break. */
+const sheetBreaks = (cell: string): string => cell.replace(/\\n/g, '\n');
+
+/** All markup gone — for lines the page draws without emphasis. */
+const plainText = (cell: string): string =>
+  sheetBreaks(cell).replace(SHEET_TAG, '').replace(/\s*\n\s*/g, ' ').trim();
+
+/** Same words as the authored copy, ignoring markup and spacing. */
+const sameWords = (a: string, b: string): boolean => {
+  const norm = (x: string): string => x.replace(SHEET_TAG, '').replace(/\*\*/g, '').replace(/\s+/g, '');
+  return norm(a) === norm(b);
+};
+
+/** A body cell as renderRich lines, one per sheet line; bold that spans a
+ *  line break is closed and reopened so each line stands alone. */
+function sheetLines(cell: string): string[] {
+  const out: string[] = [];
+  let open = false;
+  for (const raw of sheetBreaks(cell).replace(/<\/?color(?:=[^>]*)?>/gi, '').split(/\r?\n/)) {
+    let line = open ? '**' : '';
+    for (const part of raw.split(/(<\/?b>)/i)) {
+      const tag = part.toLowerCase();
+      if (tag === '<b>') {
+        if (!open) line += '**';
+        open = true;
+      } else if (tag === '</b>') {
+        if (open) line += '**';
+        open = false;
+      } else {
+        line += part;
+      }
+    }
+    if (open) line += '**';
+    line = line.replace(/\*\*\*\*/g, '').trim();
+    if (line.replace(/\*\*/g, '').trim()) out.push(line);
+  }
+  return out;
+}
+
+/** A heading cell: a leading `<color>` span is kept for renderHeading (that
+ *  part navy, the rest black); every other tag and break goes. */
+function sheetHeading(cell: string): string {
+  const text = sheetBreaks(cell).replace(/\s*\n\s*/g, ' ').trim();
+  const m = /^(<color=[^>]*>[\s\S]*?<\/color>)([\s\S]*)$/i.exec(text);
+  return m ? (m[1] ?? '').replace(/<\/?b>/gi, '') + (m[2] ?? '').replace(SHEET_TAG, '') : text.replace(SHEET_TAG, '').trim();
+}
+
+/**
+ * 오산's copy for one language: the Localization_Osaek cell wherever the sheet
+ * has one, else the authored LOCALPAY_CONTENT field. Where the sheet's words
+ * match the authored line exactly the authored line stays — it carries the
+ * Figma emphasis the sheet does not mark (디지털 할인 line, 7878:42744).
+ * 화성 keeps reading LOCALPAY_CONTENT directly; this is 오산-only.
+ */
+function osanContent(lang: Lang): LocalpayContent {
+  const base = pick(LOCALPAY_CONTENT, lang);
+  const cell = (key: string): string => tExact(`MarketPaper_${key}`, lang);
+  const lines = (key: string, fb: string[]): string[] => {
+    const v = cell(key);
+    if (!v) return fb;
+    const l = sheetLines(v);
+    return l.length === 0 || sameWords(l.join(''), fb.join('')) ? fb : l;
+  };
+  const para = (key: string, fb: string): string => lines(key, [fb]).join(' ');
+  const plain = (key: string, fb: string): string => {
+    const v = cell(key);
+    return (v && plainText(v)) || fb;
+  };
+  const heading = (key: string, fb: string): string => {
+    const v = cell(key);
+    return (v && sheetHeading(v)) || fb;
+  };
+  /* 온누리 benefits: one bullet per "· " — the ko cell runs two onto one line. */
+  const benefits = ((): string[] | undefined => {
+    const v = cell('Onnuri_Content_5_2');
+    if (!v) return base.onnuri.benefits;
+    const l = sheetBreaks(v)
+      .replace(SHEET_TAG, '')
+      .split(/\r?\n|\s+(?=·\s)/)
+      .map((x) => x.trim())
+      .filter(Boolean);
+    const fb = base.onnuri.benefits ?? [];
+    return l.length === 0 || sameWords(l.join(''), fb.join('')) ? base.onnuri.benefits : l;
+  })();
+  /* 신청 body = Content_2_1 (eligibility) + Content_2_2 (how to apply). */
+  const applyBody = [
+    ...lines('Osaekjeon_Content_2_1', base.osaek.applyBody.slice(0, 2)),
+    ...lines('Osaekjeon_Content_2_2', base.osaek.applyBody.slice(2)),
+  ];
+  const osaekIntroH = heading('Osaekjeon_Content_1', base.osaek.introH);
+
+  return {
+    ...base,
+    tabs: [plain('Osaekjeon_Content', base.tabs[0]), plain('Onnuri', base.tabs[1])],
+    onnuri: {
+      ...base.onnuri,
+      introH: heading('Onnuri_Content_1', base.onnuri.introH),
+      introBody: para('Onnuri_Content_1_1', base.onnuri.introBody),
+      paperH: plain('Onnuri_Content_2', base.onnuri.paperH),
+      digitalH: heading('Onnuri_Content_3', base.onnuri.digitalH),
+      digitalBefore: lines('Onnuri_Content_3_1', base.onnuri.digitalBefore),
+      digitalAfter: para('Onnuri_Content_3_2', base.onnuri.digitalAfter),
+      digitalNote: plain('Onnuri_Content_5_1', base.onnuri.digitalNote),
+      usageH: plain('Onnuri_Content_4', base.onnuri.usageH),
+      usageBody: para('Onnuri_Content_4_1', base.onnuri.usageBody),
+      benefits,
+    },
+    osaek: {
+      ...base.osaek,
+      /* The card's heading draws `title`; the sheet's 오색전 heading row is
+         Content_1, so it drives both. */
+      title: cell('Osaekjeon_Content_1') ? osaekIntroH : base.osaek.title,
+      introH: osaekIntroH,
+      introBody: lines('Osaekjeon_Content_1_1', base.osaek.introBody),
+      applyH: plain('Osaekjeon_Content_2', base.osaek.applyH),
+      applyBody,
+      usageH: plain('Osaekjeon_Content_3', base.osaek.usageH),
+      usageBody: para('Osaekjeon_Content_3_1', base.osaek.usageBody),
+      usageList: lines('Osaekjeon_Content_3_2', base.osaek.usageList).map((l) => l.replace(/\*\*/g, '')),
+    },
+  };
+}
+
+/** A heading ending in 이란? shows that suffix in black, the rest navy (Figma).
+ *  A sheet heading led by a `<color>` span draws that span navy, the rest black. */
+function renderHeading(text: string): ReactNode {
+  const m = /^<color=[^>]*>([\s\S]*?)<\/color>([\s\S]*)$/i.exec(text);
+  if (m) {
+    return (
+      <>
+        {m[1]}
+        <span className={styles.headBlack}>{m[2]}</span>
+      </>
+    );
+  }
+  const plain = text.replace(SHEET_TAG, '');
+  return plain.endsWith('이란?') ? (
+    <>
+      {plain.slice(0, -3)}
+      <span className={styles.headBlack}>이란?</span>
+    </>
+  ) : (
+    plain
+  );
+}
+
 interface OsanLocalpayProps {
   controller: KioskController;
 }
 
-/** 지역화폐 — Onnuri voucher + Osaek-jeon local currency (Figma 오산>지역화폐). */
+/** 시장화폐 — 오색전 (local card currency) and 온누리상품권 (Figma 7878:42763 / 7878:42732). */
 export function OsanLocalpay({ controller }: OsanLocalpayProps): JSX.Element {
   const goHome = (): void => controller.navigate('home', 'Back');
   const lang = useLanguageStore((s) => s.currentLanguage);
@@ -417,23 +617,29 @@ export function OsanLocalpay({ controller }: OsanLocalpayProps): JSX.Element {
      See "Other languages" in the CSS. */
   const wide = lang !== 'ko';
   const tabsRef = useRef<HTMLDivElement>(null);
-  const resultsRef = useRef<HTMLDivElement>(null);
-  const c = pick(CONTENT, lang);
+  const c = osanContent(lang);
   const [tab, setTab] = useState(0);
 
   useFitText(tabsRef, styles.tab, wide, 0.72, lang);
-  /* The page area is fixed-height and the Korean copy fills it; every other
-     language overran it and was cut off. The card shrinks (type + images) to
-     fit, and past 0.75 the page scrolls — see "the card" in the CSS. */
-  useFitText(resultsRef, styles.results, wide, 0.75, `${lang}|${tab}`, 'height');
+  /* 온누리 benefit bullets: a translation that wraps past the light box shrinks
+     the list together (keyed on the tab — the box only exists on 온누리). */
+  const lightBoxRef = useRef<HTMLDivElement>(null);
+  useFitText(lightBoxRef, styles.benefits, wide, 0.7, `${lang}|${tab}`, 'height');
+  /* ♿ (지역화폐 오색전 7894:56717, 온누리상품권 7894:56838): the page keeps
+     OsanKiosk's shift, the card starts at 944, the tabs drop to 3438 and the
+     promo goes. */
+  const low = useAccessibilityStore((s) => s.lowReach);
 
   return (
-    <>
-      {osanIconUrl('bg') && <img className={styles.bg} src={osanIconUrl('bg')} alt="" draggable={false} />}
+    <div className={low ? styles.low : undefined} style={{ display: 'contents' }}>
+      {osanIconUrl('page-bg') && <img className={styles.bg} src={osanIconUrl('page-bg')} alt="" draggable={false} />}
 
-      <OsanHeader title={c.title} onHome={goHome} />
+      {/* Localization_Osaek's MarketPaper_SubHeader ("오산시장에서 사용할 수 있는 시장화폐
+          입니다."). Passed here rather than through the shared 지역화폐 header id,
+          which 화성 and 제주 resolve against their own rows. */}
+      <OsanHeader title={c.title} subtitle={sheetText('MarketPaper_SubHeader', lang) || undefined} onHome={goHome} />
 
-      <div ref={resultsRef} className={`${styles.results} ${wide ? styles.resultsLong : ''}`}>
+      <div className={styles.page}>
         <div ref={tabsRef} className={styles.tabs}>
           {c.tabs.map((label, i) => (
             <button
@@ -448,85 +654,41 @@ export function OsanLocalpay({ controller }: OsanLocalpayProps): JSX.Element {
         </div>
 
         {tab === 0 ? (
-          <div className={`${styles.card} ${styles.cardCentered} ${wide ? styles.cardLong : ''}`}>
-            <p className={styles.bigTitle}>{c.onnuri.title}</p>
+          /* ── 오색전 — Figma 7878:42763: title, intro, card images + QR, apply, usage ── */
+          <div className={styles.cardOsaek}>
+            <p className={styles.heading}>{renderHeading(c.osaek.title)}</p>
 
-            <section className={styles.block}>
-              <p className={styles.h}>{c.onnuri.introH}</p>
-              <p className={styles.body}>{c.onnuri.introBody}</p>
-            </section>
-
-            <section className={styles.block}>
-              <p className={styles.h}>{c.onnuri.paperH}</p>
-              <div className={styles.imageWide}>
-                <img src={onnuriPaper} alt="" draggable={false} />
-              </div>
-            </section>
-
-            <section className={styles.block}>
-              <p className={styles.h}>{c.onnuri.digitalH}</p>
-              {c.onnuri.digitalBefore.map((line, i) => (
-                <p key={i} className={styles.body}>{line}</p>
-              ))}
-              <div className={styles.imageWide}>
-                <img src={onnuriDigital} alt="" draggable={false} />
-              </div>
-              <p className={styles.body}>{c.onnuri.digitalAfter}</p>
-              <p className={styles.note}>{c.onnuri.digitalNote}</p>
-            </section>
-
-            <section className={styles.usageRow}>
-              <div className={styles.usageText}>
-                <p className={styles.h}>{c.onnuri.usageH}</p>
-                <p className={styles.body}>{c.onnuri.usageBody}</p>
-              </div>
-              <div className={styles.usageMedia}>
-                <img className={styles.biLogo} src={onnuriBi} alt="" draggable={false} />
-                <div className={styles.usageQr}>
-                  <img
-                    src={appQr}
-                    alt=""
-                    draggable={false}
-                    style={{ width: '100%', height: '100%', objectFit: 'contain' }}
-                  />
-                </div>
-              </div>
-            </section>
-          </div>
-        ) : (
-          <div className={`${styles.card} ${styles.cardCentered} ${wide ? styles.cardLong : ''}`}>
-            <p className={styles.bigTitle}>{c.osaek.title}</p>
-
-            <section className={styles.block}>
-              <p className={styles.h}>{c.osaek.introH}</p>
+            <div className={styles.introBlock}>
               {c.osaek.introBody.map((line, i) => (
-                <p key={i} className={styles.body}>{line}</p>
+                <p key={i} className={styles.body}>
+                  {renderRich(line)}
+                </p>
               ))}
-            </section>
+            </div>
 
-            <div className={styles.cardsRow}>
-              <img className={styles.payCard} src={card2} alt="" draggable={false} />
-              <img className={styles.payCard} src={card1} alt="" draggable={false} />
-              <div className={styles.qrCol}>
-                <div className={styles.qrBox}>
-                  <img src={androidQr} alt="" draggable={false} />
-                  <span className={styles.qrLabel}>{c.osaek.androidLabel}</span>
-                </div>
-                <div className={styles.qrBox}>
-                  <img src={iosQr} alt="" draggable={false} />
-                  <span className={styles.qrLabel}>{c.osaek.iosLabel}</span>
-                </div>
+            <div className={styles.imageBox}>
+              <img className={styles.cardA2} src={card2} alt="" draggable={false} />
+              <img className={styles.cardA1} src={card1} alt="" draggable={false} />
+              <div className={styles.qrAndroid}>
+                <img src={androidQr} alt="" draggable={false} />
+                <span className={styles.qrLabel}>{c.osaek.androidLabel}</span>
+              </div>
+              <div className={styles.qrIos}>
+                <img src={iosQr} alt="" draggable={false} />
+                <span className={styles.qrLabel}>{c.osaek.iosLabel}</span>
               </div>
             </div>
 
-            <section className={styles.block}>
+            <section className={styles.sectionBlock}>
               <p className={styles.h}>{c.osaek.applyH}</p>
               {c.osaek.applyBody.map((line, i) => (
-                <p key={i} className={styles.body}>{renderRich(line)}</p>
+                <p key={i} className={styles.body}>
+                  {renderRich(line)}
+                </p>
               ))}
             </section>
 
-            <section className={styles.block}>
+            <section className={styles.sectionBlock}>
               <p className={styles.h}>{c.osaek.usageH}</p>
               <p className={styles.body}>{renderRich(c.osaek.usageBody)}</p>
               <div className={styles.note}>
@@ -536,12 +698,74 @@ export function OsanLocalpay({ controller }: OsanLocalpayProps): JSX.Element {
               </div>
             </section>
           </div>
+        ) : (
+          /* ── 온누리상품권 — Figma 7878:42732: two cards (paper vouchers; digital) ── */
+          <>
+            <div className={`${styles.cardOnnuriTop} ${wide ? styles.onnuriLong : ''}`}>
+              <div className={styles.topText}>
+                <p className={styles.heading}>{renderHeading(c.onnuri.introH)}</p>
+                <p className={styles.body}>{renderRich(c.onnuri.introBody)}</p>
+              </div>
+              <div className={styles.paperBox}>
+                <p className={styles.paperLabel}>{c.onnuri.paperH}</p>
+                {/* The frame crops the photo to fill its 1210×440 slot (7878:42854). */}
+                <div className={styles.paperImg}>
+                  <img src={onnuriPaper} alt="" draggable={false} />
+                </div>
+              </div>
+            </div>
+
+            <div className={`${styles.cardOnnuriBottom} ${wide ? styles.onnuriLong : ''}`}>
+              <div className={styles.bottomText}>
+                <p className={styles.heading}>{renderHeading(c.onnuri.digitalH)}</p>
+                {/* One text block in the frame (7878:42744): no gap between paragraphs. */}
+                <div>
+                  {c.onnuri.digitalBefore.map((line, i) => (
+                    <p key={i} className={styles.body}>
+                      {renderRich(line)}
+                    </p>
+                  ))}
+                  <p className={styles.body}>{renderRich(c.onnuri.digitalAfter, true)}</p>
+                </div>
+              </div>
+
+              <div className={styles.onnuriUsage}>
+                <div className={styles.usageSection}>
+                  <p className={styles.usageH}>{c.onnuri.usageH}</p>
+                  <p className={styles.body}>{renderRich(c.onnuri.usageBody)}</p>
+                </div>
+
+                <img className={styles.mascot} src={onnuriMascot} alt="" draggable={false} />
+              </div>
+
+              <div ref={lightBoxRef} className={`${styles.lightBox} ${wide ? styles.lightBoxLong : ''}`}>
+                <p className={styles.lightNote}>{c.onnuri.digitalNote}</p>
+                {(c.onnuri.benefits ?? []).length > 0 && (
+                  <div className={styles.benefits}>
+                    {(c.onnuri.benefits ?? []).map((line, i) => (
+                      <p key={i}>{line}</p>
+                    ))}
+                  </div>
+                )}
+                <img className={styles.lightBi} src={onnuriBi} alt="" draggable={false} />
+                <div className={styles.lightQr}>
+                  <img src={appQr} alt="" draggable={false} />
+                </div>
+              </div>
+            </div>
+          </>
         )}
       </div>
 
-      <OsanLeftNav onHome={goHome} />
+      {!low && (
+        <>
+          <img className={styles.banner} src={bannerImg} alt="" draggable={false} />
+          <div className={styles.bannerBar} />
+          <div className={styles.bannerCream} />
+        </>
+      )}
 
-      <OsanBanner onClick={() => controller.startPhoto()} />
-    </>
+      <OsanLeftNav onHome={goHome} />
+    </div>
   );
 }

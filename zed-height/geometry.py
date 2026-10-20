@@ -367,5 +367,82 @@ def plane_is_plausible_floor(
     norm = np.linalg.norm(g)
     if norm < 1e-6:
         return True
-    cos = abs(float(frame.normal @ (g / norm)))
+    # SIGNED, not abs(). A FloorFrame's normal points up, and so does the IMU,
+    # so the two must agree in direction as well as in axis. With abs() a
+    # camera turned 180° on its bracket after calibration passed this check —
+    # the stored "up" was now down, every height came out as roughly
+    # (2 x camera height) - (true height), and nothing said why. Found on the
+    # dev PC: a calibration 176.6° from live gravity, accepted as plausible.
+    cos = float(frame.normal @ (g / norm))
     return cos >= np.cos(np.deg2rad(max_tilt_deg))
+
+
+# Floor finding along gravity — see `fit_floor`.
+FLOOR_BIN_M = 0.02
+# A layer must hold this share of the strongest layer's points to be the floor.
+# Real room, 2026-10-08: the floor was the strongest layer (~60k points in its
+# peak bin) and the desk's best bin held ~16k, so the floor clears this easily
+# while sparse noise below it (stereo speckle, reflections) does not.
+FLOOR_PEAK_FRACTION = 0.25
+MIN_FLOOR_POINTS = 2000
+# How far from the layer's centre a point may sit and still seed the plane fit.
+# Wider than one bin because a floor seen at a grazing angle is smeared by
+# depth noise — in the real room it spread over ±4 cm.
+FLOOR_SEED_M = 0.05
+FLOOR_REFINE_M = 0.03
+
+
+def fit_floor(points: np.ndarray, gravity: np.ndarray) -> FloorFrame | None:
+    """The floor: the LOWEST strong horizontal layer of points along gravity.
+
+    Replaces `fit_plane_ransac` for calibration whenever an IMU reading exists.
+    RANSAC returns the plane with the MOST points, and a desk top can beat the
+    visible strip of floor; it also samples random triples, and with ~13% of a
+    real room's points on the floor, 200 tries miss the floor often enough that
+    the same room fitted the desk (camera "0.54-0.71 m" up) on 4 of 6 frames
+    and the floor (1.40 m) on 2. `calibrate` took the median — the desk.
+
+    Gravity makes that search unnecessary. Every horizontal surface is a peak
+    in the histogram of `points @ up`, and the floor is by definition the
+    lowest one with real support. Deterministic, and it cannot pick furniture
+    over the floor however much furniture is in view.
+    """
+    g = np.asarray(gravity, dtype=float)
+    norm = np.linalg.norm(g)
+    if len(points) < MIN_FLOOR_POINTS or norm < 1e-6:
+        return None
+    up = g / norm
+    along = points @ up  # camera at 0, floor strongly negative
+
+    edges = np.arange(-4.0, -MIN_CAMERA_HEIGHT_M + FLOOR_BIN_M, FLOOR_BIN_M)
+    counts, _ = np.histogram(along, bins=edges)
+    if counts.size < 3:
+        return None
+    # Three-bin sum, so a floor whose noise straddles a bin edge is not split
+    # into two half-strength layers that each miss the bar.
+    smooth = np.convolve(counts, np.ones(3, dtype=int), mode="same")
+    bar = max(MIN_FLOOR_POINTS, FLOOR_PEAK_FRACTION * float(smooth.max()))
+    strong = np.flatnonzero(smooth >= bar)
+    if strong.size == 0:
+        return None
+
+    # Lowest strong bin, then climb to that layer's own peak.
+    k = int(strong[0])
+    while k + 1 < smooth.size and smooth[k + 1] > smooth[k]:
+        k += 1
+    level = (edges[k] + edges[k + 1]) / 2.0
+
+    inliers = points[np.abs(along - level) < FLOOR_SEED_M]
+    for _ in range(2):
+        if len(inliers) < MIN_FLOOR_POINTS:
+            return None
+        centroid = inliers.mean(axis=0)
+        _, _, vh = np.linalg.svd(inliers - centroid, full_matrices=False)
+        normal = vh[2] / np.linalg.norm(vh[2])
+        offset = -float(normal @ centroid)
+        inliers = points[np.abs(points @ normal + offset) < FLOOR_REFINE_M]
+
+    frame = orient_up(normal, offset, gravity=g)
+    if not plane_is_plausible_floor(frame, g) or not camera_is_above(frame):
+        return None
+    return frame

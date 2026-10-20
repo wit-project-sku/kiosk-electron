@@ -1,4 +1,5 @@
-/* OsanListScreen — same layout as InsadongListScreen, navy accents. */
+/* OsanListScreen — Figma 오산>정이 뭐먹지-01 (7838:115928), shared by the three
+   정이 뭐먹지 / 뭐사지 lists. Exact px on the 2160×3840 artboard. */
 .bg {
   position: absolute;
   inset: 0;
@@ -6,32 +7,30 @@
   height: 100%;
   object-fit: cover;
   pointer-events: none;
+  /* ♿ stays at y0 while the page under the mode bar moves down (OsanKiosk). */
+  transform: translateY(calc(-1 * var(--osan-mode-push, 0px)));
 }
 
+/* 검색결과 (7838:115933 / 116726): from the header's foot (y700), 170 side
+   margins, 50 between the tabs, the ㄱ–ㅎ row and the list. Only the list
+   scrolls; its window is 2589 tall in both frames, so it ends at y3631 under
+   one tab row (뭐먹지) and y3836 under two (뭐사지 식품). A third row (the live
+   data has 12 식품 categories) shrinks it to stay on the artboard. */
 .results {
   position: absolute;
-  top: calc(699px + var(--header-push, 0px));
+  top: calc(700px + var(--header-push, 0px));
   left: 0;
   right: 0;
-  bottom: 0;
+  bottom: 4px;
   box-sizing: border-box;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 100px;
-  overflow-y: auto;
-  overflow-x: hidden;
-  padding: 0 170px 80px;
+  gap: 50px;
+  padding: 0 170px;
 }
 
-.results::-webkit-scrollbar { width: 34px; }
-.results::-webkit-scrollbar-thumb {
-  background: var(--kiosk-primary);
-  border-radius: 21.45px;
-}
-.results::-webkit-scrollbar-track { background: transparent; }
-
-/* Category tabs — Figma R>상단 카테고리-5개*2: 5 per row, 30px gap, 35px row gap,
+/* Category tabs — R>상단 카테고리-5개*2: 5 per row, 30px gap, 35px row gap,
    left-aligned wrap. 5×340 + 4×30 = 1820 → a full row fills the width exactly. */
 .tabs {
   flex: none;
@@ -43,6 +42,8 @@
   width: 1820px;
 }
 
+/* 340×170 r42.9, no stroke, the soft 21.45/42.9 shadow; Pretendard Medium 50
+   #999 — selected: main 01 fill, Bold white. */
 .tab {
   box-sizing: border-box;
   width: 340px;
@@ -50,59 +51,113 @@
   display: flex;
   align-items: center;
   justify-content: center;
+  padding: 0;
   background: #ffffff;
-  border: 5px solid #e8e8e8;
+  border: none;
   border-radius: 42.9px;
   box-shadow: 0 21.45px 42.9px rgba(143, 147, 157, 0.1);
-  font-family: var(--kiosk-font, sans-serif);
+  font-family: 'Pretendard', var(--kiosk-font, sans-serif);
   font-weight: 500;
   font-size: 50px;
+  line-height: 1;
   color: #999999;
   cursor: pointer;
   white-space: nowrap;
 }
 
 .tabSelected {
-  background: var(--kiosk-secondary);
+  background: var(--kiosk-primary);
   font-weight: 700;
+  color: #ffffff;
+}
+
+/* ㄱ–ㅎ (7838:115935): one Pretendard Bold 60 line, 30px tracking, centred. */
+.initials {
+  flex: none;
+  margin: 0;
+  white-space: pre;
+  font-family: 'Pretendard', var(--kiosk-font, sans-serif);
+  font-weight: 700;
+  font-size: 60px;
+  line-height: normal;
+  letter-spacing: 30px;
+  color: #000000;
+  /* Figma's text box (1686 at x237) ends at the last glyph, not after its
+     tracking — drop the trailing 30 so the centred row lands where it does. */
+  margin-right: -30px;
+}
+
+.initial {
+  position: relative;
+  padding: 0;
+  border: none;
+  background: none;
+  font: inherit;
+  letter-spacing: inherit;
+  color: inherit;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* A wider tap target than the glyph. */
+.initial::before {
+  content: '';
+  position: absolute;
+  inset: -30px -10px -30px -25px;
+}
+
+.initialSelected {
   color: var(--kiosk-primary);
 }
 
-/* List */
+/* The list window (h2589) — scrolls; the pill outside shows where. */
 .list {
-  flex: none;
+  flex: 0 1 2589px;
+  min-height: 0;
   width: 1820px;
+  overflow-y: auto;
+  overflow-x: hidden;
+  scrollbar-width: none;
+}
+
+.list::-webkit-scrollbar {
+  display: none;
+}
+
+.cards {
   display: flex;
   flex-direction: column;
   gap: 60px;
 }
 
+/* R>리스트-사진4개: 1820×390, r42.9, white, no stroke. Padding 40/45 around a
+   299-tall content row (so 51 below), everything centred in that row. */
 .card {
+  flex: none;
   width: 100%;
-  height: 530px;
+  height: 390px;
   box-sizing: border-box;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 40px;
-  padding: 65px 45px;
+  padding: 40px 45px 51px;
   background: #ffffff;
-  border: 5px solid #e8e8e8;
+  border: none;
   border-radius: 42.9px;
-  box-shadow: 0 21.45px 21.45px rgba(143, 147, 157, 0.1);
   text-align: left;
   cursor: pointer;
   overflow: hidden;
 }
 
 .info {
-  flex: 1;
+  width: 1120px;
+  flex: none;
   min-width: 0;
   display: flex;
   flex-direction: column;
-  gap: 40px;
+  gap: 24px; /* Figma 40 at line-height 1; the lines now carry 1.25 so glyphs are not clipped */
   overflow: hidden;
-  font-family: var(--kiosk-font, sans-serif);
+  font-family: 'Pretendard', var(--kiosk-font, sans-serif);
 }
 
 .nameRow {
@@ -115,10 +170,9 @@
 .name {
   flex: 0 1 auto;
   min-width: 0;
-  font-family: 'Noto Sans', 'Noto Sans KR', sans-serif;
   font-weight: 600;
   font-size: 68px;
-  line-height: 1; /* 100% */
+  line-height: 1.25;
   color: #2b2b2b;
   white-space: nowrap;
   overflow: hidden;
@@ -132,70 +186,114 @@
   gap: 21.45px;
   font-weight: 400;
   font-size: 52px;
-  line-height: 1;
+  line-height: 1.25;
   color: #999999;
   white-space: nowrap;
 }
 
 .dot {
+  flex: none;
   width: 17px;
   height: 17px;
   border-radius: 50%;
   background: var(--kiosk-primary);
 }
 
-.address {
-  margin: 0;
-  font-weight: 500;
-  font-size: 48px;
-  line-height: 1;
-  color: #999999;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
+/* Address Medium 48 #999; description Medium 48 #2B2B2B — one line each. */
+.address,
 .desc {
   margin: 0;
   font-weight: 500;
   font-size: 48px;
-  line-height: 1.2;
-  color: #2b2b2b;
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
-}
-
-.tags {
-  margin: 0;
-  font-weight: 400;
-  font-size: 40px;
-  line-height: 1;
-  color: #999999;
+  line-height: 1.25;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 
+.address {
+  color: #999999;
+}
+
+.desc {
+  line-height: 1.25;
+  color: #2b2b2b;
+}
+
+/* Two 288×160 photos, 30 apart (the 606 box). */
 .photos {
-  width: 570px;
   flex: none;
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
+  width: 606px;
+  display: flex;
   gap: 30px;
 }
 
 .thumb {
-  height: 150px;
+  width: 288px;
+  height: 160px;
   border-radius: 21.45px;
   overflow: hidden;
+  background: #ffffff;
 }
 
 .thumb img {
   width: 100%;
   height: 100%;
   object-fit: cover;
+}
+
+.empty {
+  margin: 200px 0 0;
+  font-family: 'Pretendard', var(--kiosk-font, sans-serif);
+  font-size: 60px;
+  color: #999999;
+  text-align: center;
+}
+
+/* ▲/▼ (7838:116025 / 116026 — x2027, y2103 / y2223): the 검색 page's export. */
+.scrollBtn {
+  position: absolute;
+  left: 2027px;
+  width: 85px;
+  height: 85px;
+  padding: 0;
+  border: none;
+  background: none;
+  cursor: pointer;
+  z-index: 5;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.scrollUp   { top: 2103px; }
+.scrollDown { top: 2223px; }
+
+.scrollBtnImg {
+  display: block;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
+.scrollUp .scrollBtnImg   { transform: rotate(90deg); }
+.scrollDown .scrollBtnImg { transform: rotate(-90deg); }
+
+/* Position pill (7838:116027 / 116820): 34px main 01 at x2128, top y1214 when
+   the list is at the top (both frames); the track runs to y3631. */
+.track {
+  position: absolute;
+  left: 2128px;
+  top: calc(1214px + var(--header-push, 0px));
+  bottom: 209px;
+  width: 34.32px;
+  pointer-events: none;
+}
+
+.trackThumb {
+  position: absolute;
+  left: 0;
+  width: 100%;
+  border-radius: 17.16px;
+  background: var(--kiosk-primary);
 }
 
 
@@ -215,17 +313,139 @@
 .tabLong {
   white-space: normal;
   word-break: keep-all;
-  overflow-wrap: anywhere;
-  padding: 0 14px;
+  /* Never split a word ("Сельскохозяйст / венная"): a word wider than the tab
+     shrinks the row instead (useFitText reads it as width overflow), and the
+     TSX lets a line end after "/". */
+  overflow-wrap: normal;
+  hyphens: none;
+  text-align: center;
+  /* 8 at the sides: the selected tab sets its label Bold, which is wider than
+     the Medium the fit was measured at. */
+  padding: 14px 8px;
   font-size: calc(50px * var(--fit, 1));
   line-height: 1.12;
 }
 
-/* The category beside the shop name is `flex: none` + nowrap, so a long one
-   took the whole row and left the name no width. Let it give way and ellipsize. */
+/* A label that needs three lines grows its tab down rather than overflowing
+   it; the wrapped row stretches every tab to the tallest one. */
+.long .tabLong {
+  height: auto;
+  min-height: 170px;
+}
+
+/* The row is fitted once, at Medium. A selected label set in Bold was wider
+   than that fit ("Общественный" filled the whole 340 tab), so under the long
+   languages the selected tab keeps the Medium weight — its navy fill and white
+   label already say which one is selected. */
+.long .tabLong.tabSelected {
+  font-weight: 500;
+}
+
+/* Shop cards. In Korean the name and its category fit one 68px line. The
+   translations ("Кафе «Осаек Кофе и Курица»" • Кафе/Кондитерская) were cut off
+   with "…". The name wraps instead, the category drops under it when there is
+   no room beside it, and the card grows to hold them. The address and the
+   description keep the frame's one-line "…" in Korean; here they get two
+   lines, which holds about what one Korean line does. */
 .catLong {
-  flex: 0 1 auto;
+  flex: none;
+  max-width: 100%;
+  white-space: normal;
+}
+
+.long .card {
+  height: auto;
+  min-height: 390px;
+}
+
+.long .info {
+  gap: 30px;
+}
+
+.long .nameRow {
+  flex-wrap: wrap;
+  row-gap: 16px;
+}
+
+.long .name {
+  white-space: normal;
+  word-break: keep-all;
+  overflow: visible;
+  line-height: 1.15;
+}
+
+.long .address,
+.long .desc {
+  white-space: normal;
+  word-break: keep-all;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  line-height: 1.2;
+}
+
+/* ── ♿ (B오산>정이 뭐먹지-01 7887:49244) ──────────────────────────────────────
+ * OsanKiosk moves the page down 146, so the list starts at 846 (700 + push).
+ * The tabs and ㄱ–ㅎ follow the list instead of leading it: list to 3314, tabs at
+ * 3418 (104 under it), ㄱ–ㅎ at 3638, its line ending at 3710. The column is
+ * pinned to that foot — `bottom` is measured in the shifted box, hence + push —
+ * and the list takes whatever height is left (2468 under one tab row; a second
+ * row of 뭐사지 tabs shortens it instead of pushing the tabs off the screen). */
+.lowList .results {
+  bottom: calc(130px + var(--osan-mode-push, 0px));
+}
+
+.lowList .list {
+  order: 0;
+  flex: 1 1 auto;
+}
+
+.lowList .tabs {
+  order: 1;
+  margin-top: 54px;
+}
+
+.lowList .initials {
+  order: 2;
+}
+
+/* More than one row of tabs (뭐사지 식품 7887:49838, 물품 7887:50298): the block
+   is 375 tall at 3213 and the list stops at 3036 — 177 above the tabs, not 104. */
+.lowListRows .tabs {
+  margin-top: 127px;
+}
+
+
+/* Frame 1214 for the pill's top (screen), running to the list's foot at 3314. */
+.lowList .track {
+  top: calc(1214px - var(--osan-mode-push, 0px));
+  bottom: calc(526px + var(--osan-mode-push, 0px));
+}
+
+/* ▲/▼ stay at the frame's 2103 / 2223. */
+.lowList .scrollUp   { top: calc(2103px - var(--osan-mode-push, 0px)); }
+.lowList .scrollDown { top: calc(2223px - var(--osan-mode-push, 0px)); }
+
+.lowListRows .track {
+  bottom: calc(804px + var(--osan-mode-push, 0px));
+}
+
+/* The label's own box, held inside the tab's padding: the row is fitted
+   against THIS (useFitText 'ink'), so a long word shrinks before it reaches
+   the tab's rounded edge rather than at it. */
+.tabLabel {
+  /* The whole inner width, not its text's: a box that shrink-wraps its
+     text has the space at a wrapped line's end hanging past its edge, and
+     the fit would read that as overflow on every row. */
+  width: 100%;
   min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  /* The glyphs stand ~4px taller than the 1.12 line box; without this the
+     fit reads every label as escaping its top. */
+  padding-block: 6px;
+}
+
+/* The size is set on the label, not only the tab: the fit's per-label rescue
+   (a word wider than any tab) writes its own --fit onto this box. */
+.tabLong .tabLabel {
+  font-size: calc(50px * var(--fit, 1));
 }

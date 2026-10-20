@@ -45,6 +45,10 @@ MEASURE_HEIGHT = int(os.environ.get("HEIGHT_MEASURE_HEIGHT", "720"))
 MAX_DEPTH_M = 5.0
 
 
+# Straight out of the lens, in COORDINATE_SYSTEM.IMAGE (x right, y down, z forward).
+OPTICAL_AXIS = np.array([0.0, 0.0, 1.0])
+
+
 class ZedUnavailable(RuntimeError):
     """The SDK is missing, or no camera answered."""
 
@@ -78,6 +82,9 @@ class ZedCamera:
         init.camera_resolution = sl.RESOLUTION.HD720
         init.depth_mode = _depth_mode(sl)
         init.coordinate_units = sl.UNIT.METER
+        # IMAGE is the SDK default, set explicitly because the front corridor
+        # depends on it: +Z is the optical axis (see OPTICAL_AXIS).
+        init.coordinate_system = sl.COORDINATE_SYSTEM.IMAGE
         init.depth_maximum_distance = MAX_DEPTH_M
         # The SDK logs to STDOUT, which is this process's protocol channel —
         # every "[ZED][INFO]" line arrives at the supervisor as an unparseable
