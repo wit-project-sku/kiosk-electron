@@ -1,17 +1,20 @@
 /*
- * 손톱 촬영 — Figma 7334:84998.
+ * 손톱 촬영 — Figma 8004:13397(왼손) · 8004:13761(오른손). 처음 시안은 7334:84998.
  *
  *    700  주황 한 줄 Bold 60 ("*2초 뒤 촬영이 시작됩니다.")
  *    810  왼손 · 오른손 580×170 r42.9, 사이 200 (1360 폭 가운데) — 지금 찍는 손이 주황
  *   1080  촬영 팁 판 1718×670 r45 (x221)
  *           팁 카드 셋 490×570 · 사이 45 · 판 안 79/50, 5px #ffeac7 테두리 r80
  *           그림 원 215 · 제목 Bold 45 · 설명 Regular 38 #8e8e8e
- *   1850  카메라 미리보기 1718×1285 r40 (판 아래 100) — 가운데 'Countdown' 원 112
+ *   1842  카메라 미리보기 1082×768 r40 흰 바탕 (x539) — 가운데 'Countdown' 원 112
+ *           손 그림 384×488 가운데 · 모서리 42 (좌우 80, 위아래 57)
+ *   2734  안내 세 줄 Medium 50 주황, 가운데 (예전에는 손 그림 안에 있던 문구)
  *   3267  배너
  *
  * ── 시안과 다른 곳 ──────────────────────────────────────────────────────
- *  · 시안의 미리보기는 자리만 잡은 사진이라, 실제 촬영의 겹침(모서리 · 가이드 ·
- *    스캔선 · 완료 표시 · 플래시 · 준비 중/오류)은 이 칸 크기에 맞춰 그대로 둔다.
+ *  · 시안의 미리보기는 흰 판에 손 그림뿐이다. 실제로는 그 위에 카메라 영상이
+ *    깔리고(흰 바탕은 카메라가 켜지기 전까지만 보인다), 촬영의 겹침(스캔선 · 완료
+ *    표시 · 플래시 · 준비 중/오류)도 이 칸 크기에 맞춰 그대로 둔다.
  *  · 'Countdown' 원은 시안에서 비어 있다 — 남은 초를 그 안에 쓴다.
  *  · 시안 밖으로 빠진 것: 상태 카드(주황 한 줄이 대신한다), 손 칩의 완료 체크,
  *    아래쪽 '촬영 팁' 목록과 '버튼을 누르지 않아도 자동으로 촬영돼요' 줄.
@@ -157,16 +160,16 @@
   word-break: keep-all;
 }
 
-/* ── 카메라 미리보기 (7334:85007) ── */
+/* ── 카메라 미리보기 (8004:13812) ── */
 .camBox {
   position: absolute;
-  left: 221px;
-  top: 1850px;
-  width: 1718px;
-  height: 1285px;
+  left: 539px;
+  top: 1842px;
+  width: 1082px;
+  height: 768px;
   border-radius: 40px;
   overflow: hidden;
-  background: linear-gradient(180deg, #2f2926 0%, #1d1917 100%);
+  background: #fff;
 }
 
 .video {
@@ -184,95 +187,79 @@
   object-fit: cover;
 }
 
+/* 모서리 그림(왼쪽 위, 42×41)을 뒤집어 네 귀퉁이에 쓴다. */
 .corner {
   position: absolute;
-  width: 160px;
-  height: 160px;
-  border: 0 solid var(--primary);
+  width: 42px;
+  height: 41px;
   pointer-events: none;
 }
 
 .tl {
-  left: 66px;
-  top: 66px;
-  border-left-width: 16px;
-  border-top-width: 16px;
-  border-top-left-radius: 44px;
+  left: 80px;
+  top: 57px;
 }
 
 .tr {
-  right: 66px;
-  top: 66px;
-  border-right-width: 16px;
-  border-top-width: 16px;
-  border-top-right-radius: 44px;
+  right: 80px;
+  top: 57px;
+  transform: scaleX(-1);
 }
 
 .bl {
-  left: 66px;
-  bottom: 66px;
-  border-left-width: 16px;
-  border-bottom-width: 16px;
-  border-bottom-left-radius: 44px;
+  left: 80px;
+  bottom: 57px;
+  transform: scaleY(-1);
 }
 
 .br {
-  right: 66px;
-  bottom: 66px;
-  border-right-width: 16px;
-  border-bottom-width: 16px;
-  border-bottom-right-radius: 44px;
+  right: 80px;
+  bottom: 57px;
+  transform: scale(-1);
 }
 
-/* 칸이 1820×1365 에서 1718×1285 로 줄어든 만큼 같은 비율로. */
+/* 손 그림이 없는 빌드의 점선 테두리 — 손 그림 자리(384×488)에 맞춘다. */
 .guide {
   position: absolute;
-  left: 50%;
-  top: 50%;
-  width: 1020px;
-  height: 904px;
-  transform: translate(-50%, -46%);
-  border: 8px dashed rgba(255, 255, 255, 0.7);
-  border-radius: 340px 340px 132px 132px;
+  left: 349px;
+  top: 140px;
+  width: 384px;
+  height: 488px;
+  box-sizing: border-box;
+  border: 6px dashed #ff7f0f;
+  border-radius: 190px 190px 80px 80px;
   pointer-events: none;
 }
 
-/*
- * 손 모양 가이드 그림 — 점선 테두리(.guide)를 대신한다.
- *
- * 그림은 정사각 975 이고 미리보기 칸은 1718×1285 이라, 세로를 기준으로 맞춘다:
- * 1100 이면 위아래로 92 씩 남아 손끝이 칸에 닿지 않는다. 그림 안에 이미 안내
- * 문구가 들어 있으므로 따로 글자를 얹지 않는다.
- *
- * transform 은 인라인에서 준다 — 좌우반전(mirrorPreview)이 붙기 때문.
- */
+/* 손 그림 (8004:13817) — 칸 가운데. 좌우 뒤집기는 인라인에서 준다. */
 .guideArt {
   position: absolute;
-  left: 50%;
-  /* 칸 한가운데(642)가 아니라 227 — 머리말 알약(.guideLabel, 90…190)을 피한
-     자리다. 가운데에 두면 손가락 끝이 알약 바로 밑에 깔려 둘 다 읽기 나쁘다.
-     알약 아래 남는 190…1285 를 기준으로 가운데를 잡았고, 아래로 38 이 남는다. */
-  top: 227px;
-  width: 1020px;
-  height: 1020px;
-  object-fit: contain;
+  left: 349px; /* (1082 − 384) / 2 */
+  top: 140px; /* (768 − 488) / 2 */
+  width: 384px;
+  height: 488px;
   pointer-events: none;
-  /* 어두운 미리보기 위에서 주황 선이 뜨도록 살짝 그림자를 준다. */
-  filter: drop-shadow(0 0 12px rgba(0, 0, 0, 0.55));
 }
 
-.guideLabel {
+/* 안내 (8004:13819) — 카메라 판 아래 124. */
+.caption {
   position: absolute;
-  left: 50%;
-  top: 90px;
-  transform: translateX(-50%);
-  padding: 20px 50px;
-  border-radius: 60px;
-  background: rgba(0, 0, 0, 0.45);
-  color: #fff;
+  left: 221px;
+  top: 2734px;
+  width: 1718px;
+  margin: 0;
   font-size: 50px;
-  font-weight: 700;
-  white-space: nowrap;
+  font-weight: 500;
+  line-height: 1.22;
+  letter-spacing: 0.5px;
+  color: #ff7f0f;
+  text-align: center;
+  word-break: keep-all;
+}
+
+.captionLine {
+  display: block;
+  text-wrap: balance;
 }
 
 .scan {
@@ -473,13 +460,4 @@
   padding: 0 30px;
   line-height: 1.15;
   text-align: center;
-}
-
-/* 가이드 위 안내 알약: 한 줄로 두면 긴 번역이 카메라 판(1718) 밖으로 나간다. */
-[data-lang]:not([data-lang='ko']) .guideLabel {
-  width: max-content;
-  max-width: 1500px;
-  white-space: normal;
-  text-align: center;
-  line-height: 1.2;
 }
