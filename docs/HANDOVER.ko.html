@@ -1,0 +1,304 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<title>Kiosk App — 인수인계</title>
+<style>
+  @page { size: A4; margin: 16mm 15mm; }
+  body { font-family: "Malgun Gothic", "Segoe UI", sans-serif; font-size: 10pt; line-height: 1.5; color: #1a1a1a; word-break: keep-all; }
+  h1 { font-size: 20pt; margin: 0 0 2px; }
+  .sub { color: #666; margin-bottom: 14px; }
+  h2 { font-size: 13pt; border-bottom: 2px solid #1a1a1a; padding-bottom: 2px; margin: 20px 0 8px; page-break-after: avoid; }
+  h3 { font-size: 11pt; margin: 12px 0 4px; page-break-after: avoid; }
+  p, ul, ol { margin: 4px 0 8px; }
+  li { margin: 2px 0; }
+  code { font-family: Consolas, "Malgun Gothic", monospace; font-size: 9pt; background: #f1f1f1; padding: 0 3px; border-radius: 2px; word-break: break-all; }
+  pre { font-family: Consolas, "Malgun Gothic", monospace; font-size: 8.6pt; background: #f6f6f6; border: 1px solid #ddd; padding: 8px 10px; line-height: 1.35; white-space: pre; page-break-inside: avoid; }
+  table { border-collapse: collapse; width: 100%; margin: 4px 0 10px; font-size: 9pt; page-break-inside: auto; }
+  tr { page-break-inside: avoid; }
+  th, td { border: 1px solid #ccc; padding: 4px 6px; text-align: left; vertical-align: top; }
+  th { background: #eee; }
+  .note { background: #fff6dd; border: 1px solid #e0a800; border-radius: 4px; padding: 6px 10px; margin: 8px 0; }
+  .toc { columns: 2; font-size: 10pt; }
+</style>
+</head>
+<body>
+
+<h1>Kiosk App — 개발자 인수인계</h1>
+<div class="sub">witworldwide 관광 안내 키오스크 · 저장소 <code>wit-project-sku/kiosk-electron</code> · v5.0.27 · 2026-10-21 기준</div>
+
+<ol class="toc">
+  <li>어떤 앱인가</li>
+  <li>내 PC에서 실행하기</li>
+  <li>폴더 구조</li>
+  <li>앱 동작 구조</li>
+  <li>설치 장소와 kioskId</li>
+  <li>데이터: 출처, 가져오는 시점, 저장 위치</li>
+  <li>구글 시트 상세</li>
+  <li>키오스크 PC의 파일 위치</li>
+  <li>매일 전원 스케줄 (자동 종료)</li>
+  <li>배포와 자동 업데이트</li>
+  <li>.env 설명</li>
+  <li>자주 하는 작업</li>
+  <li>주의할 점</li>
+</ol>
+
+<h2>1. 어떤 앱인가</h2>
+<p>관광지용 터치스크린 안내 키오스크입니다 (Electron 34 + React 19 + TypeScript, CSS Modules). Windows 전용입니다.
+<b>하나의 빌드가 모든 장소에서 실행됩니다.</b> 각 PC에는 자기가 어느 장소인지(<b>kioskId</b>, 예: <code>W004</code>)가 설정되어 있고,
+이 값에 따라 화면, 콘텐츠, 기능(카드 단말기, 카메라, 게임 등)이 결정됩니다.</p>
+<p>주요 기능: 안내 화면(상점, 행사, 궁궐, 교통, 택스리펀, 환율, 날씨, 제주 항공편/여객선), AI 코스 추천,
+QR로 받는 AR 한복 포토부스, 카드 결제가 되는 기부/상점 웹페이지, 유동인구 카운팅, 제주 모션 게임, 키 측정(제주, ZED 카메라).</p>
+
+<h2>2. 내 PC에서 실행하기</h2>
+<ol>
+  <li>Node 20 이상 설치 후 <code>npm install</code> (Electron용 네이티브 모듈도 함께 다시 빌드됩니다).</li>
+  <li>실제 <code>.env</code>와 <code>secrets/service-account.json</code>, <code>secrets/service-account-osaek.json</code>은 이전 개발자에게 직접 받습니다 (git에 없음). 모든 키 목록은 <code>.env.example</code>에 있습니다.</li>
+  <li><code>.env</code>에 <code>DEV_MODE=true</code>를 넣으면 홈 화면에 장소 전환 버튼이 나타나서 모든 키오스크 화면(W001~W202)을 볼 수 있습니다.</li>
+  <li><code>npm run dev</code> → 핫 리로드로 실행. <code>F12</code>로 개발자 도구를 엽니다.</li>
+</ol>
+<table>
+  <tr><th>명령어</th><th>하는 일</th></tr>
+  <tr><td><code>npm run dev</code></td><td>개발 모드 실행</td></tr>
+  <tr><td><code>npm run typecheck</code> / <code>npm run lint</code></td><td>커밋 전 검사</td></tr>
+  <tr><td><code>npm run sync:sheet</code></td><td>구글 시트를 받아 <code>src/renderer/src/data/*.generated.ts</code> 재생성 (7장 참고)</td></tr>
+  <tr><td><code>npm run build:win</code></td><td>운영용 설치 파일 생성 (패치 버전 자동 증가)</td></tr>
+  <tr><td><code>npm run build:win:beta</code></td><td>베타 설치 파일 (운영 버전과 같은 PC에 나란히 설치 가능)</td></tr>
+</table>
+
+<h2>3. 폴더 구조</h2>
+<pre>kiosk-app/
+├─ src/
+│  ├─ main/                 ← 백엔드 (Electron 메인 프로세스, Node). 로직·네트워크·DB 전부 여기
+│  │  ├─ index.ts           시작 순서: DB → 서비스 → 전원 → 창 → 동기화/업데이트
+│  │  ├─ container.ts       모든 서비스를 생성 (어떤 서비스가 있는지 한눈에)
+│  │  ├─ core/              앱 공통 기반
+│  │  │    KioskConfigStore.ts   kioskId 읽기/쓰기 (kiosk-config.json)
+│  │  │    AppConfigStore.ts     앱 설정            (settings.json)
+│  │  │    PowerManager.ts       매일 재부팅 / 종료 / 자동 시작
+│  │  │    env.ts  .env 로딩       paths.ts  모든 디스크 경로
+│  │  │    PaymentAgentManager.ts  카드 결제 에이전트 실행
+│  │  │    ZedSidecarManager.ts    제주 키 측정 카메라(Python) 실행
+│  │  │    logger.ts             로그 파일
+│  │  ├─ services/          기능별 서비스: ShopService, BannerService, WeatherService,
+│  │  │    ExchangeService, FlightService, SailingService, OutfitService, StatsService …
+│  │  │    sync/            야간 동기화 + 구글 시트 (SyncService, GoogleSheetsSyncTransport)
+│  │  │    photo/ ai/ camera/  AR 한복 사진       footfall/  유동인구 카운팅
+│  │  │    height/ motion/ spotDiff/ drive/  제주 기능, 게임, 구글 드라이브 업로드
+│  │  ├─ database/          SQLite: Database.ts, migrations/ (001~008), repositories/
+│  │  ├─ ipc/handlers/      UI가 호출하는 API (기능별 파일: shop.handlers.ts …)
+│  │  ├─ updater/           자동 업데이트 + 원격 "지금 업데이트" 명령
+│  │  └─ windows/           메인 창 + 고객용 디스플레이 창
+│  ├─ preload/              안전한 연결 통로: 메인의 IPC API를 UI에 window.api로 노출
+│  ├─ renderer/src/         ← 프론트엔드 기본 틀 (React)
+│  │    App.tsx             kioskId에 맞는 레이아웃 선택
+│  │    store/              Zustand 스토어 (shopStore, weatherStore, languageStore …)
+│  │    hooks/              useKioskController (화면 이동 + 무입력 초기화), usePhotoWorkflow …
+│  │    lib/                작은 도우미 (i18n, shops, videoMap …)
+│  │    data/               구글 시트로 만든 *.generated.ts + sheet-cache/ (원본 CSV)
+│  ├─ layouts/              ← 실제 화면. 장소 계열별 폴더
+│  │    InsadongLayout.tsx  insadong/   (W001, W002 / W003은 NamInsadongLayout)
+│  │    OsanLayout.tsx      osan/       (W004 오색시장)
+│  │    HwaseongLayout.tsx  hwaseong/   (W005 화성휴게소)
+│  │    JejuLayout.tsx      jeju/       (W006 공항, W007 여객터미널, W008 세계자연유산)
+│  │    KadaLayout.tsx      kada/       (W202 베트남)
+│  │    photo/  공용 AR 사진 화면       components/  공용 위젯
+│  └─ shared/               양쪽(메인/화면)에서 함께 사용
+│       config/kioskLocations.ts   ★ 전체 장소 목록과 장소별 기능
+│       types/  constants/  ipc/   (IPC 채널 이름 + 계약)
+├─ themes/                  장소별 색상/폰트 (JSON)
+├─ resources/               mediapipe (카메라 AI 모델), videos (개발용), 도움말 이미지
+├─ payment-agent/           컴파일된 카드 결제 서버 (별도 저장소, 여기서 수정 금지)
+├─ zed-height/              ZED 키 측정 카메라용 Python 스크립트 (제주)
+├─ scripts/                 빌드, sync-sheet, 프로비저닝, 자체 테스트, db-inspect
+├─ tools/location-tester/   설치된 키오스크의 장소 변경 도구
+├─ secrets/                 구글 서비스 계정 JSON (gitignore 대상)
+├─ docs/                    AUTO_UPDATE.md, FOOTFALL.md, UPDATE_COMMAND_API.md, 이 문서
+├─ provision-kiosk.ps1      PC의 kioskId 설정
+├─ Set/UnsetAutoShutdown*.bat  예전 수동 전원 스크립트 (지금은 앱이 직접 처리, 9장)
+└─ electron-builder.yml     설치 파일 설정 (베타는 .beta.yml)</pre>
+
+<p><b>기억할 규칙:</b> 데이터, 네트워크, 파일, 타이머 → <code>src/main/services</code>. 방문객이 보는 화면 → <code>src/layouts/&lt;장소&gt;</code>.
+화면(UI)은 인터넷을 직접 호출하지 않고, <code>window.api</code>(IPC)를 통해 메인에 요청합니다.</p>
+
+<h2>4. 앱 동작 구조</h2>
+<pre>구글 시트 / witteria API / 날씨 / 항공편
+          │  (가져옴)
+          ▼
+  src/main/services/*  ──저장──▶  SQLite  (%APPDATA%\kiosk-app\data\kiosk.db)
+          │
+  src/main/ipc/handlers/*   (메인이 요청에 응답하고 "변경됨" 이벤트를 보냄)
+          │
+  src/preload  → window.api
+          │
+  화면 스토어 (Zustand)  →  src/layouts/&lt;장소&gt;/*.tsx  (화면)</pre>
+<ul>
+  <li><b>시작 순서</b> (<code>src/main/index.ts</code>): .env 로딩 → DB 열기 + 마이그레이션 → 서비스 생성 → 전원 스케줄 설정 →
+    창 열기(저장된 데이터로 바로 표시) → 날씨/항공편/환율 주기 조회 시작 → 결제 에이전트 시작(카드 단말기 있는 장소만)
+    → 자동 업데이트 시작 → 백그라운드에서 콘텐츠 새로고침.</li>
+  <li><b>화면 크기</b>: 모든 레이아웃은 고정 <b>2160 × 3840</b> 캔버스를 모니터에 맞게 확대/축소합니다. 그래서 Figma px = CSS px 입니다.</li>
+  <li><b>화면 이동과 무입력</b>: <code>useKioskController.ts</code>. 3분 동안 터치가 없으면 홈으로 돌아가고 언어가 한국어로 초기화됩니다.</li>
+  <li><b>언어</b>: 한국어 / 영어 / 일본어 / 중국어. 문구는 장소별 구글 시트의 Localization 탭에서 옵니다.</li>
+</ul>
+
+<h2>5. 설치 장소와 kioskId</h2>
+<table>
+  <tr><th>kioskId</th><th>장소</th><th>레이아웃</th><th>카드 단말기</th></tr>
+  <tr><td>W001</td><td>북인사마당</td><td>INSADONG</td><td>없음</td></tr>
+  <tr><td>W002</td><td>인사동쉼터</td><td>INSADONG</td><td>없음</td></tr>
+  <tr><td>W003</td><td>남인사마당</td><td>NAM_INSADONG</td><td>있음</td></tr>
+  <tr><td>W004</td><td>오산 오색시장</td><td>OSAN</td><td>있음</td></tr>
+  <tr><td>W005</td><td>화성휴게소</td><td>HWASEONG</td><td>있음</td></tr>
+  <tr><td>W006</td><td>제주공항</td><td>JEJU_AIRPORT</td><td>있음</td></tr>
+  <tr><td>W007</td><td>제주국제여객터미널</td><td>JEJU_AIRPORT</td><td>있음</td></tr>
+  <tr><td>W008</td><td>세계자연유산본부</td><td>JEJU_HERITAGE</td><td>있음</td></tr>
+  <tr><td>W202</td><td>KADA (베트남 하노이)</td><td>KADA</td><td>없음</td></tr>
+</table>
+<p>기준 파일: <code>src/shared/config/kioskLocations.ts</code> (장소별 기능: 카드 단말기, 기부, 좌표, 카메라 회전 등).</p>
+
+<h3>kioskId 저장 위치</h3>
+<ul>
+  <li>파일: <code>%APPDATA%\kiosk-app\kiosk-config.json</code> → <code>{"kioskId":"W004"}</code> (베타: <code>%APPDATA%\kiosk-app-beta\</code>).</li>
+  <li><code>src/main/core/KioskConfigStore.ts</code>가 읽습니다. .env에도, 빌드에도 <b>들어있지 않기 때문에</b> 설치 파일 하나로 모든 장소에 설치할 수 있습니다.</li>
+  <li>새 PC에서 설정하기 (한 번 실행 후 앱 재시작):
+<pre>powershell -ExecutionPolicy Bypass -File provision-kiosk.ps1 W004</pre>
+    이 스크립트는 설치된 앱 폴더에도 함께 복사됩니다. <code>-ShopId N</code>은 상점 API id를 강제로 지정할 때만 사용합니다(보통 생략). 베타 설치는 <code>-Beta</code>.</li>
+  <li>설정하지 않은 PC는 <code>src/shared/constants</code>의 기본 kioskId를 사용합니다.</li>
+</ul>
+
+<h2>6. 데이터: 출처, 가져오는 시점, 저장 위치</h2>
+<table>
+  <tr><th>데이터</th><th>출처</th><th>가져오는 시점</th><th>저장 위치</th></tr>
+  <tr><td>화면 문구 / 번역</td><td>구글 시트 (Localization 탭)</td><td>앱 실행 시마다 + 매일 00:00</td><td>SQLite <code>translations</code>, 없으면 빌드에 포함된 <code>*.generated.ts</code></td></tr>
+  <tr><td>궁궐, AI 카테고리, 전국시장, 제주 공항 시설</td><td>구글 시트</td><td>빌드할 때만 (<code>npm run sync:sheet</code>)</td><td><code>src/renderer/src/data/*.generated.ts</code></td></tr>
+  <tr><td>상점, 관광명소, 배너, 한복 의상, AR 배경, 게임 문제</td><td>witteria API</td><td>앱 실행 시 + 매일 00:00</td><td>SQLite <code>local_cache</code>, 이미지는 <code>remote-images/</code></td></tr>
+  <tr><td>홈 버튼 배치</td><td>witteria API</td><td>앱 실행 시에만</td><td>SQLite</td></tr>
+  <tr><td>영상 자막</td><td>witteria API (제주는 시트로 대체 가능)</td><td>앱 실행 시</td><td>SQLite</td></tr>
+  <tr><td>날씨</td><td>OpenWeatherMap</td><td>30분마다</td><td>메모리</td></tr>
+  <tr><td>환율</td><td>한국수출입은행 API</td><td>6시간마다</td><td>메모리/캐시</td></tr>
+  <tr><td>항공편 / 여객선 (제주)</td><td>공공데이터포털 / KOMSA</td><td>2~10분마다</td><td>메모리/캐시</td></tr>
+  <tr><td>터치 통계, 사진 촬영 기록</td><td>→ witteria API로 전송</td><td>즉시 전송, 실패분은 00:00에 재전송</td><td>SQLite <code>analytics_events</code>, <code>failed_requests</code></td></tr>
+  <tr><td>유동인구 수</td><td>카메라 → FOOTFALL_API_URL</td><td>21:30에 업로드</td><td>SQLite <code>footfall_buckets</code></td></tr>
+  <tr><td>촬영한 사진</td><td>카메라 + AI 서버</td><td>—</td><td><code>C:\KioskPhotos</code></td></tr>
+</table>
+<p>인터넷이 끊겨도 마지막으로 저장된 데이터로 계속 동작합니다. 화면이 네트워크를 기다리며 멈추는 일은 없습니다.</p>
+
+<h2>7. 구글 시트 상세</h2>
+<p>장소 계열마다 <b>스프레드시트가 따로</b> 있습니다: 인사동(W001~W003), 오색(W004), 화성(W005), 제주(W006~W008). KADA는 시트가 없습니다(문구는 <code>layouts/kada/kadaText.ts</code>에 있음).
+시트 ID는 <code>GoogleSheetsSyncTransport.ts</code>(실행 중 사용)와 <code>scripts/sync-sheet.mjs</code>(빌드 시 사용) 두 곳에 있으니 항상 같이 수정해야 합니다.</p>
+<h3>시트를 읽는 두 가지 방식</h3>
+<ol>
+  <li><b>빌드 시</b>: <code>npm run sync:sheet</code>가 <code>Localization_Insa</code>, <code>PalaceInfo_Insa</code>, <code>AICategory_*</code> 같은 탭을 받아
+    <code>src/renderer/src/data/</code>에 타입이 있는 파일로 만듭니다(원본 CSV는 <code>sheet-cache/</code>에 저장). 이 파일들은 앱에 포함되어 오프라인 기본값이 됩니다.
+    콘텐츠가 바뀌었다면 배포 전에 실행하세요.</li>
+  <li><b>실행 중</b>: <code>SyncService</code> + <code>GoogleSheetsSyncTransport</code>가 해당 장소의 <code>Localization_*</code> 탭을
+    <b>앱을 켤 때마다</b>, 그리고 <b>매일 밤 00:00</b>(<code>NightSyncScheduler.ts</code>)에 읽어서 SQLite(<code>translations</code> 테이블)에 저장합니다.
+    바뀐 문구는 다음 새로고침 때 반영됩니다.</li>
+</ol>
+<h3>인증 방식</h3>
+<ul>
+  <li>구글 <b>서비스 계정</b>을 사용합니다 (<code>secrets/service-account*.json</code>, 경로는 <code>GOOGLE_SERVICE_ACCOUNT_JSON</code>). 각 스프레드시트는 이 서비스 계정 이메일과 공유되어 있어야 합니다.</li>
+  <li><code>GOOGLE_SHEETS_ID</code>는 <b>켜기/끄기 스위치</b>일 뿐입니다. 값이 있으면 야간 동기화가 켜지고, 어떤 시트를 읽을지는 kioskId로 정해집니다.</li>
+</ul>
+<h3>매일 00:00 야간 작업 내용</h3>
+<p>상점/관광명소/배너/의상/배경/게임 새로고침 → 실패한 통계 재전송 → 시트 문구 다운로드 → 분석 데이터 업로드 → 드라이브 사진 업로드 재시도 → 오래된 키 측정 기록 정리.</p>
+
+<h2>8. 키오스크 PC의 파일 위치</h2>
+<table>
+  <tr><th>무엇</th><th>위치</th></tr>
+  <tr><td>설치된 앱 (+ 포함된 .env, secrets, themes, provision-kiosk.ps1)</td><td>설치 폴더 → <code>resources\</code></td></tr>
+  <tr><td>kioskId</td><td><code>%APPDATA%\kiosk-app\kiosk-config.json</code></td></tr>
+  <tr><td>앱 설정</td><td><code>%APPDATA%\kiosk-app\settings.json</code></td></tr>
+  <tr><td>데이터베이스 (캐시된 콘텐츠, 통계, 대기열 전부)</td><td><code>%APPDATA%\kiosk-app\data\kiosk.db</code></td></tr>
+  <tr><td>로그 (10MB 단위 교체), 문제가 생기면 가장 먼저 확인</td><td><code>%APPDATA%\kiosk-app\logs\</code></td></tr>
+  <tr><td>다운로드한 CMS 이미지</td><td><code>%APPDATA%\kiosk-app\remote-images\</code></td></tr>
+  <tr><td>사진 (촬영 + AI 결과)</td><td><code>C:\KioskPhotos</code> (또는 <code>PHOTO_SAVE_DIR</code>)</td></tr>
+  <tr><td>대기/안내 영상 (직접 복사, 업데이트해도 유지)</td><td><code>C:\KioskVideos\&lt;세트&gt;\</code> (또는 <code>KIOSK_VIDEOS_DIR</code>)</td></tr>
+</table>
+<p>베타 빌드는 모든 데이터를 <code>%APPDATA%\kiosk-app-beta\</code>에 저장하므로, 같은 PC에 두 버전을 함께 설치할 수 있습니다.</p>
+
+<h2>9. 매일 전원 스케줄 (자동 종료)</h2>
+<p>앱이 <b>실행될 때마다 스스로</b> 설정합니다 (<code>src/main/core/PowerManager.ts</code>). Windows 작업 스케줄러를 사용하고, 로그인 시 앱이 자동 실행되도록 등록합니다.</p>
+<table>
+  <tr><th>대상</th><th>스케줄</th><th>Windows 작업 이름</th></tr>
+  <tr><td>W001, W002, W003, W005, W202</td><td>매일 <b>02:00 재부팅</b></td><td><code>KioskAutoRestart</code></td></tr>
+  <tr><td>W004, W006, W007, W008</td><td><b>22:00 종료</b>, <b>08:00 시작</b></td><td><code>KioskShutdownAt10PM</code>, <code>KioskStartAt8AM</code></td></tr>
+  <tr><td>베타 빌드</td><td>매일 <b>09:00 재부팅</b></td><td><code>KioskBetaAutoRestart</code></td></tr>
+</table>
+<div class="note"><b>중요:</b> Windows는 완전히 꺼진 PC를 켤 수 없습니다. 22:00/08:00 장소는 메인보드
+<b>BIOS → "Power On by RTC Alarm" = 08:00</b>으로 설정해야 합니다. 설정하지 않으면 아침에 키오스크가 꺼진 채로 있습니다.</div>
+<p>저장소 루트의 <code>SetAutoShutdown*.bat</code> / <code>UnsetAutoShutdown*.bat</code>는 예전 수동 방식이며 더 이상 필요 없습니다.
+PC에서 확인하려면 <i>작업 스케줄러</i>에서 위 작업 이름을 찾으면 됩니다. 제주 시간(22:00/08:00)은 오색시장 시간을 그대로 쓴 것이라 장소별로 확인이 필요합니다.</p>
+
+<h2>10. 배포와 자동 업데이트</h2>
+<ul>
+  <li><code>npm run build:win</code>이 설치 파일을 만들고 <b>GitHub Releases</b>에 올립니다. 키오스크는 스스로 업데이트합니다(electron-updater).</li>
+  <li><b>운영</b> 키오스크는 일주일에 한 번 확인합니다 (<code>UPDATE_DAY</code>/<code>UPDATE_TIME</code>, 기본 금요일 17:00, 놓치면 다음 실행 때 확인).
+      <b>베타</b> 키오스크는 15분마다 확인하며 베타 릴리스만 받습니다.</li>
+  <li>설치는 키오스크가 사용 중이 아닐 때만 진행됩니다 (사진 카운트다운 / AI 생성 중에는 안 함).</li>
+  <li><b>"지금 업데이트"</b>: witteria 관리자 사이트의 버튼입니다. 키오스크가 5분마다 확인하고 바로 업데이트합니다. <code>docs/UPDATE_COMMAND_API.md</code> 참고.</li>
+  <li>내 PC의 <code>.env</code>와 <code>secrets/</code>가 <b>설치 파일 안에 그대로 들어갑니다</b>. 반드시 올바른 운영용 <code>.env</code>가 있는 PC에서 빌드하세요.</li>
+  <li>자세한 내용: <code>docs/AUTO_UPDATE.md</code>.</li>
+</ul>
+
+<h2>11. .env 설명</h2>
+<p><code>src/main/core/env.ts</code>가 읽습니다. 개발 중에는 프로젝트 루트에서, 설치된 앱에서는 <code>resources\.env</code>에서 읽습니다.
+키오스크에서 값을 바꾸면 앱 재시작만 하면 됩니다. <b>절대 커밋하지 마세요.</b></p>
+<table>
+  <tr><th>키</th><th>의미</th><th>필수?</th></tr>
+  <tr><th colspan="3">외부 API</th></tr>
+  <tr><td><code>OPENWEATHER_API_KEY</code></td><td>날씨 카드 + 제주 예보</td><td>필수</td></tr>
+  <tr><td><code>EXIM_API_KEY</code></td><td>환율 (한국수출입은행)</td><td>필수</td></tr>
+  <tr><td><code>DATA_GO_KR_SERVICE_KEY</code></td><td>공공데이터포털 (제주 항공편)</td><td>제주</td></tr>
+  <tr><td><code>KOMSA_SERVICE_KEY</code></td><td>여객선 운항 정보 (제주항)</td><td>제주</td></tr>
+  <tr><td><code>WITTERIA_API_BASE</code></td><td>메인 백엔드: 상점, 배너, 행사, 통계, 사진 QR 업로드. 운영(PROD) 주소 사용.</td><td>필수</td></tr>
+  <tr><td><code>VITE_AR_PROCESS_IMAGE_API_URL</code>, <code>VITE_AR_PROCESS_API_URL</code></td><td>AI 한복 사진 서버 (혼자 / 함께)</td><td>포토부스</td></tr>
+  <tr><th colspan="3">구글 시트</th></tr>
+  <tr><td><code>GOOGLE_SHEETS_ID</code></td><td>시트 동기화 켜기/끄기 스위치 (값 자체는 사용 안 함)</td><td>필수</td></tr>
+  <tr><td><code>GOOGLE_SERVICE_ACCOUNT_JSON</code></td><td>서비스 계정 파일 경로, 예: <code>secrets/service-account.json</code></td><td>필수</td></tr>
+  <tr><th colspan="3">카드 결제 (단말기가 있는 W003~W008만)</th></tr>
+  <tr><td><code>PAYMENT_HTTP_HOST</code> / <code>_PORT</code></td><td>로컬 결제 서버 주소 (<code>127.0.0.1:8080</code>)</td><td>필수</td></tr>
+  <tr><td><code>PAYMENT_CORS_ORIGINS</code></td><td>결제 서버를 호출할 수 있는 웹페이지: witteria 상점 + Vercel 기부 앱 둘 다</td><td>필수</td></tr>
+  <tr><td><code>PAYMENT_CENTRAL_BASE_URL</code>, <code>_AUTH_TOKEN</code>, <code>_TIMEOUT_MS</code></td><td>중앙 결제 서버</td><td>필수</td></tr>
+  <tr><td><code>PAYMENT_TL3800_*</code></td><td>카드 단말기(TL-3800): 단말기 ID, 시리얼 포트 설정(포트 비우면 자동 탐색), 재시도 시간</td><td>필수</td></tr>
+  <tr><td><code>PAYMENT_OUTBOX_*</code></td><td>서버 전송에 실패한 결제의 재시도 대기열</td><td>기본값 OK</td></tr>
+  <tr><td><code>PAYMENT_LOG_LEVEL</code></td><td>결제 에이전트 로그 상세도</td><td>기본값 OK</td></tr>
+  <tr><th colspan="3">업데이트</th></tr>
+  <tr><td><code>UPDATE_CHANNEL</code></td><td><code>latest</code> = 운영, <code>beta</code> = 테스트 키오스크</td><td>필수</td></tr>
+  <tr><td><code>UPDATE_DAY</code>, <code>UPDATE_TIME</code></td><td>주간 업데이트 확인 시점 (기본 금요일 17:00)</td><td>선택</td></tr>
+  <tr><td><code>UPDATE_BETA_INTERVAL_MIN</code></td><td>베타 확인 간격 (기본 15분)</td><td>선택</td></tr>
+  <tr><td><code>UPDATE_COMMAND_POLL_MIN</code>, <code>UPDATE_COMMAND_API_URL</code></td><td>"지금 업데이트" 확인 설정</td><td>선택</td></tr>
+  <tr><th colspan="3">유동인구 카운팅</th></tr>
+  <tr><td><code>FOOTFALL_ENABLED</code>, <code>_LINE</code>, <code>_FPS</code>, <code>_SCORE</code>, <code>_TRACK_SCORE</code>, <code>_MIN_BOX</code></td><td>세부 조정값. 기본값이 현재 운영값. <code>docs/FOOTFALL.md</code> 참고</td><td>선택</td></tr>
+  <tr><td><code>FOOTFALL_API_URL</code>, <code>FOOTFALL_API_KEY</code></td><td>21:30에 집계를 올릴 주소. 비우면 PC에만 보관.</td><td>선택</td></tr>
+  <tr><th colspan="3">개발 / PC 설정</th></tr>
+  <tr><td><code>DEV_MODE</code></td><td><code>true</code>면 장소 전환 버튼 표시. <b>실제 키오스크에서는 반드시 false.</b></td><td>개발</td></tr>
+  <tr><td><code>KIOSK_VIDEOS_DIR</code></td><td>대기 영상 폴더 (개발 시 내 PC의 영상 폴더)</td><td>개발</td></tr>
+  <tr><td><code>PHOTO_SAVE_DIR</code></td><td><code>C:\KioskPhotos</code> 대신 사용할 폴더</td><td>선택</td></tr>
+</table>
+<p>kioskId는 일부러 .env에 넣지 않았습니다 (5장 참고).</p>
+
+<h2>12. 자주 하는 작업</h2>
+<table>
+  <tr><th>하고 싶은 일</th><th>방법</th></tr>
+  <tr><td>화면 문구 수정</td><td>해당 장소 구글 시트의 Localization 탭을 수정. 키오스크는 다음 실행 / 자정에 반영. 다음 배포 전에 <code>npm run sync:sheet</code>도 실행.</td></tr>
+  <tr><td>화면 디자인 수정</td><td><code>src/layouts/&lt;장소&gt;/</code> (컴포넌트 + <code>.module.css</code>). 색상은 <code>themes/</code>.</td></tr>
+  <tr><td>새 장소 추가</td><td><code>kioskLocations.ts</code>에 추가 → 레이아웃 선택/제작 → 시트 ID 두 곳에 추가 → PC 프로비저닝.</td></tr>
+  <tr><td>새 API 데이터 추가</td><td><code>src/main/services</code>에 서비스 → <code>container.ts</code>에 등록 → <code>ipc/handlers</code>에 핸들러 + <code>shared/ipc</code>에 채널 → <code>renderer/src/store</code>에 스토어 → 레이아웃에서 사용.</td></tr>
+  <tr><td>DB 변경</td><td>새 마이그레이션 파일(<code>009_…ts</code>)을 추가. 기존 파일은 절대 수정하지 않기.</td></tr>
+  <tr><td>새 키오스크 설치</td><td>설치 → 한 번 실행 → <code>provision-kiosk.ps1 W00x</code> → 영상을 <code>C:\KioskVideos</code>에 복사 → BIOS RTC 설정(22:00/08:00 장소) → 재시작.</td></tr>
+  <tr><td>키오스크 문제 확인</td><td><code>%APPDATA%\kiosk-app\logs\</code> 확인. DB는 <code>scripts/db-inspect.mjs</code>로 조회.</td></tr>
+</table>
+
+<h2>13. 주의할 점</h2>
+<ul>
+  <li><code>README.md</code>와 <code>PROJECT_STATE.md</code>는 <b>오래된 문서</b>입니다. 코드와 이 문서를 기준으로 하세요.</li>
+  <li>package.json의 <code>@nestjs/*</code>, <code>serialport</code>는 포함된 결제 에이전트용이며 앱 자체에서는 쓰지 않습니다.</li>
+  <li>일부 코드 주석에는 야간 동기화가 02:00이라고 되어 있지만 실제로는 <b>00:00</b>입니다 (<code>NightSyncScheduler.ts</code>).</li>
+  <li>이미 홈 화면이면 무입력 초기화가 홈 화면을 다시 그리지 않습니다. 홈 화면의 팝업은 스스로 닫혀야 합니다 (<code>useInactivityReset</code>).</li>
+  <li>카메라 AI(MediaPipe)는 <code>resources/mediapipe</code>에 오프라인으로 포함되어 <code>appres://</code>로 제공됩니다. 갱신은 <code>npm run vendor:mediapipe</code>.</li>
+  <li><code>.env</code>, <code>secrets/</code>, 사진은 절대 커밋하지 마세요.</li>
+</ul>
+
+</body>
+</html>
