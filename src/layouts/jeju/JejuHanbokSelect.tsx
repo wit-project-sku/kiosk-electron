@@ -128,6 +128,8 @@ import { useRotatingBanner } from '@renderer/hooks/useRotatingBanner';
 import { usePhotoStore } from '@renderer/store/photoStore';
 import { useBackgroundStore } from '@renderer/store/backgroundStore';
 import { backgroundName } from '@renderer/lib/backgrounds';
+import { trackEvent } from '@renderer/lib/analytics';
+import type { KioskBackground } from '@shared/types/background';
 import {
   outfitCategoryLabel,
   outfitLabel,
@@ -571,6 +573,43 @@ export function JejuHanbokSelect({
   const outfitKey = selectedOutfit ? `${selectedOutfit.gender ?? ''}|${selectedOutfit.code}` : '';
 
   /**
+   * Each tap is logged with what it picked: the outfit code and the image the
+   * visitor actually saw. `sourceUrl` is the CMS url — `url` is usually a local
+   * `media://` mirror that means nothing off this machine.
+   */
+  const pickOutfit = (o: PickerOutfit): void => {
+    setOutfitCode(o.code);
+    trackEvent({
+      name: 'outfit_selected',
+      payload: {
+        screen: 'jeju_hanbok',
+        outfitCode: o.code,
+        gender: o.gender ?? null,
+        category: category?.id ?? null,
+        subCategoryId: o.subCategoryId,
+        imageUrl: o.sourceUrl ?? o.url,
+      },
+    });
+  };
+
+  /** Tapping the picked plate again clears it — logged as `selected: false`. */
+  const pickBackground = (bg: KioskBackground): void => {
+    const selected = bg.backgroundId !== backgroundId;
+    setBackgroundId(selected ? bg.backgroundId : null);
+    trackEvent({
+      name: 'background_selected',
+      payload: {
+        screen: 'jeju_hanbok',
+        selected,
+        backgroundId: bg.backgroundId,
+        name: bg.nameKr,
+        outfitCode: selectedOutfit?.code ?? null,
+        imageUrl: bg.sourceImageUrl ?? bg.imageUrl,
+      },
+    });
+  };
+
+  /**
    * Straight to the camera. The 정보 입력 step (JejuPhotoRegister — 국적/키 plus
    * a consent tick) used to stand here; removed 2026-08-24 by request. The two
    * fields were collected-but-never-sent anyway, and dropping the step is also
@@ -964,7 +1003,7 @@ export function JejuHanbokSelect({
                 <button
                   type="button"
                   className={`${styles.outfit} ${o.code === selectedOutfit?.code ? styles.outfitActive : ''}`}
-                  onClick={() => setOutfitCode(o.code)}
+                  onClick={() => pickOutfit(o)}
                 >
                   <img
                     src={o.url}
@@ -1032,7 +1071,7 @@ export function JejuHanbokSelect({
                       type="button"
                       className={`${styles.theme} ${on ? styles.themeActive : ''}`}
                       aria-pressed={on}
-                      onClick={() => setBackgroundId(on ? null : bg.backgroundId)}
+                      onClick={() => pickBackground(bg)}
                     >
                       <img
                         src={bg.imageUrl}

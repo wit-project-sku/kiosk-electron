@@ -25,6 +25,11 @@ export interface KioskBackground {
   backgroundId: number;
   /** Remote 9:16 preview image URL (shown directly via <img src>). */
   imageUrl: string;
+  /**
+   * The API's remote url, set only when `imageUrl` was rewritten to a local
+   * `media://remote/` mirror — so a selection log can name the real image.
+   */
+  sourceImageUrl?: string;
   /** Ascending display order within the active set. */
   sortOrder: number;
   /** Lifecycle flag. The API filters to ACTIVE; kept so the app can too. */

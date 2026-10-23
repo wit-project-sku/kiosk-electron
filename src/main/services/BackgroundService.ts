@@ -82,7 +82,11 @@ export class BackgroundService {
     if (!this.images) return this.rawList();
     // Point each tile at its local mirror when one exists; the remote url passes
     // through untouched otherwise, so a cold cache behaves exactly as before.
-    return this.rawList().map((b) => ({ ...b, imageUrl: this.images!.localize(b.imageUrl) }));
+    return this.rawList().map((b) => ({
+      ...b,
+      imageUrl: this.images!.localize(b.imageUrl),
+      sourceImageUrl: b.imageUrl,
+    }));
   }
 
   /** Pull the background set assigned to this kiosk and cache it. */

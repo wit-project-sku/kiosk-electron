@@ -160,7 +160,9 @@ export class OutfitService {
       .filter((o) => o.kioskIds.length === 0 || o.kioskIds.includes(kioskNum))
       // Point each card at its local mirror when one exists. Falls back to the
       // remote url untouched, so a cold cache behaves exactly as before.
-      .map((o) => (this.images ? { ...o, imageUrl: this.images.localize(o.imageUrl) } : o));
+      .map((o) =>
+        this.images ? { ...o, imageUrl: this.images.localize(o.imageUrl), sourceImageUrl: o.imageUrl } : o,
+      );
   }
 
   /** Cached category tabs, in API order. */

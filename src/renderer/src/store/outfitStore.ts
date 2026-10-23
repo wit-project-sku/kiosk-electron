@@ -39,6 +39,8 @@ export interface PickerOutfit extends OutfitCategoryLabels {
   code: string;
   /** Card image: a remote URL from the API, or a bundled asset URL offline. */
   url: string;
+  /** The API's remote image url (for logs) — `url` may be a local mirror. Unset offline. */
+  sourceUrl?: string;
   gender: 'female' | 'male' | undefined;
   /**
    * The chip this outfit sits under, or null. Null for every outfit on a
@@ -133,6 +135,7 @@ function group(outfits: KioskOutfit[]): Record<string, PickerOutfit[]> {
     (out[key] ??= []).push({
       code: o.code,
       url: o.imageUrl,
+      sourceUrl: o.sourceImageUrl ?? o.imageUrl,
       // Already normalised to eight non-empty strings by OutfitService — except
       // on a cache written before the fields existed, where they are absent and
       // the AR code stands in rather than the caption slot rendering blank.
