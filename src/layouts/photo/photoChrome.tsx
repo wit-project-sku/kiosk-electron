@@ -91,13 +91,9 @@ export interface PhotoChrome {
   /** Fill the AI wait with the 게임존 instead of a static popup. */
   waitingGames: boolean;
   /**
-   * Whether the 게임존 offers the camera games as well as the touch ones.
-   *
-   * 제주-only for now: the motion games run on the CUSTOMER DISPLAY and need
-   * pose tracking on its camera, and the one that exists (`jeju-run`) is
-   * Jeju-branded end to end. 인사동 takes the hub with 틀린그림찾기 alone,
-   * whose puzzles come from a GLOBAL endpoint (no kioskId) and so need no
-   * per-location content.
+   * Whether the wait offers the camera games as well as 틀린그림찾기.
+   * Off: the jump game (`jeju-run`) is not shown, and the wait opens straight
+   * into the find-difference board.
    */
   motionGames: boolean;
 }
@@ -178,7 +174,8 @@ export function usePhotoChrome(): PhotoChrome {
     // 화성 joined 2026-10-16 (틀린그림찾기 only, like 오산 / 인사동). Its CMS has no
     // puzzles yet, so SpotDiffService serves its generated placeholder round.
     waitingGames: isJeju || isInsadong || isOsan || isHwaseong,
-    motionGames: isJeju,
+    // The jump game stays off the wait screen. 틀린그림찾기 is the only game shown.
+    motionGames: false,
     icon,
     Header,
     // KADA's audience reads English and Vietnamese, not Korean — this string is

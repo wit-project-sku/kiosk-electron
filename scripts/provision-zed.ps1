@@ -4,7 +4,7 @@
 #   powershell -ExecutionPolicy Bypass -File provision-zed.ps1
 #   powershell -ExecutionPolicy Bypass -File provision-zed.ps1 -Calibrate
 #
-# 제주 ONLY (W006 / W007 / W008). The app starts the height sidecar nowhere else,
+# 제주 ONLY (W008 / W009 / W010). The app starts the height sidecar nowhere else,
 # so running this on an Insadong / 오산 / 화성 machine achieves nothing.
 #
 # What this does NOT do: install the ZED SDK. That is a ~1.2 GB interactive

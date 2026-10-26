@@ -4,7 +4,7 @@ import { useSailingStore } from '@renderer/store/sailingStore';
 
 /**
  * Mirrors the main-process 제주 선박 운항 snapshot into the renderer store.
- * Call once from JejuKiosk on W007.
+ * Call once from JejuKiosk on W009.
  */
 export function useSailingSync(): void {
   const setSnapshot = useSailingStore((s) => s.setSnapshot);

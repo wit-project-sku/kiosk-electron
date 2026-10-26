@@ -2,10 +2,9 @@
  * "사진이 완성되었습니다. 확인해보세요!" — the 인사동 photo-ready popup
  * (Figma 7768:10445).
  *
- * The 제주 version of this moment is {@link PhotoReadyPrompt}, a light bottom
- * sheet over the game. On 인사동 it was too easy to miss, so the frame draws a
- * centred white card over a 30% black scrim instead — the game is dimmed and
- * the only things left to touch are the two buttons:
+ * 제주 and 인사동 both use this centred card over a 30% black scrim once the
+ * photo is ready. The game is dimmed and the only things left to touch are
+ * the two buttons:
  *
  *   저장하기  → the result screen (the photo and its save QR)
  *   다시찍기  → the 한복 picker again, i.e. the kiosk's photo reset

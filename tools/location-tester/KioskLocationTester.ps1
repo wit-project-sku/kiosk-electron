@@ -1,7 +1,7 @@
 # ============================================================================
 # Kiosk Location Tester
 # ============================================================================
-# A one-click GUI for NON-TECHNICAL testers: pick a kiosk location (W001-W006),
+# A one-click GUI for NON-TECHNICAL testers: pick a kiosk location (W001-W008),
 # and this tool sets the machine's kiosk id, closes the running Kiosk App, and
 # relaunches it as that location. No terminal, no editing config files.
 #
@@ -41,7 +41,9 @@ $Locations = @(
   @{ Id = 'W003'; Name = "$([char]0xB0A8)$([char]0xC778)$([char]0xC0AC)$([char]0xB9C8)$([char]0xB2F9) ($([char]0xCE74)$([char]0xB4DC)$([char]0xB2E8)$([char]0xB9D0)$([char]0xAE30))" }, # 남인사마당 (카드단말기)
   @{ Id = 'W004'; Name = "$([char]0xC624)$([char]0xC0B0)$([char]0xC2DC) $([char]0xC624)$([char]0xC0C9)$([char]0xC2DC)$([char]0xC7A5)" },                                                 # 오산시 오색시장
   @{ Id = 'W005'; Name = "$([char]0xD654)$([char]0xC131)$([char]0xD734)$([char]0xAC8C)$([char]0xC18C)" },                                                                                # 화성휴게소
-  @{ Id = 'W006'; Name = "$([char]0xC81C)$([char]0xC8FC)$([char]0xACF5)$([char]0xD56D)" }                                                                                              # 제주공항
+  @{ Id = 'W008'; Name = "$([char]0xC81C)$([char]0xC8FC)$([char]0xACF5)$([char]0xD56D)" },                                                                                             # 제주공항
+  @{ Id = 'W009'; Name = "$([char]0xC81C)$([char]0xC8FC)$([char]0xAD6D)$([char]0xC81C)$([char]0xC5EC)$([char]0xAC1D)$([char]0xD130)$([char]0xBBF8)$([char]0xB110)" },                                   # 제주국제여객터미널
+  @{ Id = 'W010'; Name = "$([char]0xC138)$([char]0xACC4)$([char]0xC790)$([char]0xC5F0)$([char]0xC720)$([char]0xC0B0)$([char]0xBCF8)$([char]0xBD80)" }                                                  # 세계자연유산본부
 )
 
 $ScriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path
@@ -80,7 +82,7 @@ function Write-KioskId([string]$id) {
     New-Item -ItemType Directory -Force -Path $dir | Out-Null
     $file = Join-Path $dir 'kiosk-config.json'
     # UTF-8 WITHOUT BOM — a BOM breaks electron-store's JSON.parse.
-    [System.IO.File]::WriteAllText($file, ('{"kioskId":"' + $id + '"}'))
+    [System.IO.File]::WriteAllText($file, ('{"kioskId":"' + $id + '","jejuIdShift202610":true}'))
     $written += $file
   }
   return $written

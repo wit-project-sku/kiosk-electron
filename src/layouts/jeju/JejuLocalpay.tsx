@@ -96,7 +96,7 @@ interface Content {
  * while the sheet says something else. Re-check this invariant when the sheet's
  * Korean is reworded.
  *
- * TODO(제주 W006): those seven translations are authored here, following
+ * TODO(제주 W008): those seven translations are authored here, following
  * OsanLocalpay, because a Korean-only 지역화폐 page on an international airport
  * kiosk is worse than a careful translation. They describe DISCOUNTS, LIMITS and
  * ELIGIBILITY, so have a person check them — and then move them into the sheet's

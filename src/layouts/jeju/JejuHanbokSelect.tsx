@@ -1,5 +1,5 @@
 /**
- * 제주공항 (W006) AR 한복체험 — outfit selection.
+ * 제주공항 (W008) AR 한복체험 — outfit selection.
  *
  * Figma 6258:48134 · 48264 (개인정보 처리방침) · 48326 · 48469 · 48575 · 48693 ·
  * 49124. A 제주-specific replacement for the shared `HanbokSelect` step: same
@@ -128,6 +128,8 @@ import { useRotatingBanner } from '@renderer/hooks/useRotatingBanner';
 import { usePhotoStore } from '@renderer/store/photoStore';
 import { useBackgroundStore } from '@renderer/store/backgroundStore';
 import { backgroundName } from '@renderer/lib/backgrounds';
+import { trackEvent } from '@renderer/lib/analytics';
+import type { KioskBackground } from '@shared/types/background';
 import {
   outfitCategoryLabel,
   outfitLabel,
@@ -304,7 +306,7 @@ const SOLO = {
 };
 
 /**
- * Built per mascot: 하영 on W006/W007, 유산 on W008. Only the LAST-RESORT
+ * Built per mascot: 하영 on W008/W009, 유산 on W010. Only the LAST-RESORT
  * fallback — the sheet's Photo_SelectTogether row is already venue-split
  * (see LocalizationSyncParser.VENUE_MASCOTS) and wins whenever it has a cell.
  *
@@ -571,6 +573,43 @@ export function JejuHanbokSelect({
   const outfitKey = selectedOutfit ? `${selectedOutfit.gender ?? ''}|${selectedOutfit.code}` : '';
 
   /**
+   * Each tap is logged with what it picked: the outfit code and the image the
+   * visitor actually saw. `sourceUrl` is the CMS url — `url` is usually a local
+   * `media://` mirror that means nothing off this machine.
+   */
+  const pickOutfit = (o: PickerOutfit): void => {
+    setOutfitCode(o.code);
+    trackEvent({
+      name: 'outfit_selected',
+      payload: {
+        screen: 'jeju_hanbok',
+        outfitCode: o.code,
+        gender: o.gender ?? null,
+        category: category?.id ?? null,
+        subCategoryId: o.subCategoryId,
+        imageUrl: o.sourceUrl ?? o.url,
+      },
+    });
+  };
+
+  /** Tapping the picked plate again clears it — logged as `selected: false`. */
+  const pickBackground = (bg: KioskBackground): void => {
+    const selected = bg.backgroundId !== backgroundId;
+    setBackgroundId(selected ? bg.backgroundId : null);
+    trackEvent({
+      name: 'background_selected',
+      payload: {
+        screen: 'jeju_hanbok',
+        selected,
+        backgroundId: bg.backgroundId,
+        name: bg.nameKr,
+        outfitCode: selectedOutfit?.code ?? null,
+        imageUrl: bg.sourceImageUrl ?? bg.imageUrl,
+      },
+    });
+  };
+
+  /**
    * Straight to the camera. The 정보 입력 step (JejuPhotoRegister — 국적/키 plus
    * a consent tick) used to stand here; removed 2026-08-24 by request. The two
    * fields were collected-but-never-sent anyway, and dropping the step is also
@@ -578,7 +617,7 @@ export function JejuHanbokSelect({
    * directly. The component file stays in the repo should the step return.
    */
   const startCapture = (mode: CaptureMode): void => {
-    if (!selectedOutfit) return; // nothing chosen — never send a bare category
+    if (!captureReady) return; // nothing chosen — never send a bare category
     // Only forward a plate that is STILL in the active set. The set is CMS
     // content refreshed on launch and nightly, so an operator retiring a 배경
     // 테마 mid-session can leave the tapped id pointing at nothing — and the AR
@@ -662,6 +701,15 @@ export function JejuHanbokSelect({
   const isThemeTab = themeTabId !== undefined && categoryId === themeTabId;
   /** Tiles, or the 준비 중 message in the same 1820×700 band. */
   const hasBackgrounds = backgrounds.length > 0;
+
+  /**
+   * Whether the capture buttons fire. Every tab needs an outfit; the 제주 tab
+   * ALSO needs a 배경 테마 (2026-10-26 request) — its step ② is part of the
+   * choice, not decoration, so a capture without one was half a session. A
+   * kiosk with no backgrounds assigned keeps the outfit-only rule: there is
+   * nothing to pick, and 준비 중 must not dead-lock the camera.
+   */
+  const captureReady = !!selectedOutfit && (!isThemeTab || !hasBackgrounds || backgroundId !== null);
 
   /*
    * ── ← → on the chip band (7489:67510…67516) ──────────────────────────
@@ -831,15 +879,21 @@ export function JejuHanbokSelect({
     <div
       className={[
         styles.root,
+        isThemeTab ? styles.rootTheme : '',
         lowReach ? styles.rootLowReach : '',
         lowReachTheme ? styles.rootLowReachTheme : '',
       ]
         .filter(Boolean)
         .join(' ')}
       style={
-        lowReach
-          ? ({ ...modeBarVars, '--lr-sub': lowReachSubShift } as React.CSSProperties)
-          : modeBarVars
+        {
+          ...modeBarVars,
+          // The chip band's slot on the 제주 tab — 170px when the band draws
+          // (sub-category chips or the ← → pair), reclaimed by the 2026-10-26
+          // frame otherwise. See `.rootTheme` in the CSS.
+          '--jeju-band': hasChipBand ? '170px' : '0px',
+          ...(lowReach ? { '--lr-sub': lowReachSubShift } : null),
+        } as React.CSSProperties
       }
     >
       {pageBg && <img src={pageBg} alt="" className={styles.bg} draggable={false} />}
@@ -964,7 +1018,7 @@ export function JejuHanbokSelect({
                 <button
                   type="button"
                   className={`${styles.outfit} ${o.code === selectedOutfit?.code ? styles.outfitActive : ''}`}
-                  onClick={() => setOutfitCode(o.code)}
+                  onClick={() => pickOutfit(o)}
                 >
                   <img
                     src={o.url}
@@ -1032,7 +1086,7 @@ export function JejuHanbokSelect({
                       type="button"
                       className={`${styles.theme} ${on ? styles.themeActive : ''}`}
                       aria-pressed={on}
-                      onClick={() => setBackgroundId(on ? null : bg.backgroundId)}
+                      onClick={() => pickBackground(bg)}
                     >
                       <img
                         src={bg.imageUrl}
@@ -1087,8 +1141,8 @@ export function JejuHanbokSelect({
         <div className={`${styles.captureRow} ${isThemeTab ? '' : styles.captureRowGuide}`}>
           <button
             type="button"
-            className={`${styles.capture} ${selectedOutfit ? '' : styles.captureDisabled}`}
-            disabled={!selectedOutfit}
+            className={`${styles.capture} ${captureReady ? '' : styles.captureDisabled}`}
+            disabled={!captureReady}
             onClick={() => startCapture('solo')}
           >
             <Camera className={styles.captureIcon} strokeWidth={2} />
@@ -1096,8 +1150,8 @@ export function JejuHanbokSelect({
           </button>
           <button
             type="button"
-            className={`${styles.capture} ${selectedOutfit ? '' : styles.captureDisabled}`}
-            disabled={!selectedOutfit}
+            className={`${styles.capture} ${captureReady ? '' : styles.captureDisabled}`}
+            disabled={!captureReady}
             onClick={() => startCapture('withInsa')}
           >
             <Camera className={styles.captureIcon} strokeWidth={2} />

@@ -1,6 +1,6 @@
 /**
- * The 제주 mascots — 하영 (W006 제주공항 / W007 제주국제여객터미널) and 유산
- * (W008 세계자연유산본부). One 제주 design family, two characters: every 제주
+ * The 제주 mascots — 하영 (W008 제주공항 / W009 제주국제여객터미널) and 유산
+ * (W010 세계자연유산본부). One 제주 design family, two characters: every 제주
  * screen that writes the mascot's NAME or biography resolves it through here
  * instead of hardcoding 하영, so a JEJU_HERITAGE machine reads '유산' everywhere
  * without per-screen forks.
@@ -25,10 +25,10 @@ export interface JejuMascotBio {
    * Whether Localization_Jeju's `Greeting_*` rows describe THIS mascot.
    *
    * `true` for 하영: the sheet is authoritative and the literals below are only
-   * the fallback — exactly the behaviour W006/W007 have always had.
+   * the fallback — exactly the behaviour W008/W009 have always had.
    *
    * `false` for 유산: the sheet's Greeting_* rows are 하영's data, so reading
-   * them on a W008 machine is not a fallback, it is the WRONG mascot's
+   * them on a W010 machine is not a fallback, it is the WRONG mascot's
    * biography (하영's birthday, hobbies and 자기소개 under the 유산 portrait).
    * The authored copy below — transcribed from the 유산 frames — wins instead.
    * Flip this to `true` the moment the operators add 유산 rows to the sheet and
@@ -85,7 +85,7 @@ export interface JejuMascot {
   /**
    * 안녕's page subtitle, passed to JejuHeader only when {@link JejuMascotBio.fromSheet}
    * is false. `Greeting_Introduce` is another single 하영 row, so without this a
-   * W008 kiosk would head the 유산 page with "마스코트 '하영'를 소개할게요".
+   * W010 kiosk would head the 유산 page with "마스코트 '하영'를 소개할게요".
    * The 유산 frames draw the Figma placeholder here, so this is the sheet's own
    * sentence with the mascot swapped rather than supplied copy.
    */
@@ -96,7 +96,7 @@ export interface JejuMascot {
 }
 
 /**
- * W006 제주공항 / W007 제주국제여객터미널 display copy.
+ * W008 제주공항 / W009 제주국제여객터미널 display copy.
  *
  * Internal id stays `hayoung` (assets, pin groups, CMS still key on that
  * mascot). Visitor-facing Korean hardcodes say 제주 — Localization_Jeju /
@@ -133,7 +133,7 @@ const HAYOUNG: JejuMascot = {
   },
 };
 
-/** 유산 — W008 세계자연유산본부. Figma 6432:46475 ('유산'소개). */
+/** 유산 — W010 세계자연유산본부. Figma 6432:46475 ('유산'소개). */
 const YUSAN: JejuMascot = {
   id: 'yusan',
   ko: '유산',

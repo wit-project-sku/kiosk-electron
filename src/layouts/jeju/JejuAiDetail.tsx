@@ -209,8 +209,8 @@ const AI_COURSE_NAME = {
 /**
  * The itinerary's first row (7181:18213) — where DAY 1 sets off: this kiosk.
  * The courses are built from the kiosk's own coordinates (JejuAiSearch's
- * PICK_NOTE_BY_KIOSK says the same in words), so W006 reads 제주국제공항, W007
- * its ferry terminal and W008 the heritage center. An id not listed keeps the
+ * PICK_NOTE_BY_KIOSK says the same in words), so W008 reads 제주국제공항, W009
+ * its ferry terminal and W010 the heritage center. An id not listed keeps the
  * frame's airport.
  *
  * Korean draws the frame's "제주국제공항(Jeju International Airport)"; the other
@@ -218,17 +218,17 @@ const AI_COURSE_NAME = {
  * reading Thai.
  */
 const START_PLACE: Record<string, Partial<Record<Lang, string>>> = {
-  W006: {
+  W008: {
     ko: '제주국제공항', en: 'Jeju International Airport', ja: '済州国際空港', zh: '济州国际机场',
     vi: 'Sân bay Quốc tế Jeju', th: 'ท่าอากาศยานนานาชาติเชจู', ru: 'Международный аэропорт Чеджу',
     id: 'Bandara Internasional Jeju',
   },
-  W007: {
+  W009: {
     ko: '제주국제여객터미널', en: 'Jeju International Ferry Terminal', ja: '済州国際旅客ターミナル',
     zh: '济州国际客运码头', vi: 'Bến tàu khách quốc tế Jeju', th: 'ท่าเรือโดยสารระหว่างประเทศเชจู',
     ru: 'Международный пассажирский терминал Чеджу', id: 'Terminal Penumpang Internasional Jeju',
   },
-  W008: {
+  W010: {
     ko: '세계자연유산본부', en: 'World Natural Heritage Center', ja: '世界自然遺産本部',
     zh: '世界自然遗产本部', vi: 'Trụ sở Di sản Thiên nhiên Thế giới', th: 'สำนักงานมรดกโลกทางธรรมชาติ',
     ru: 'Центр всемирного природного наследия', id: 'Kantor Warisan Alam Dunia',
@@ -236,7 +236,7 @@ const START_PLACE: Record<string, Partial<Record<Lang, string>>> = {
 };
 
 const startPlaceLabel = (kioskId: string, lang: Lang): string => {
-  const names = START_PLACE[kioskId] ?? START_PLACE.W006!;
+  const names = START_PLACE[kioskId] ?? START_PLACE.W008!;
   return lang === 'ko' ? `${names.ko}(${names.en})` : pick(names, lang);
 };
 
@@ -1110,8 +1110,8 @@ export function JejuAiDetail({ controller }: Props): JSX.Element {
     () =>
       buildAiCourseSaveUrlForQr({
         lang,
-        // "W007" → 7: the phone names DAY 1's start plate from it.
-        kioskNum: Number(controller.kioskId.match(/\d+/)?.[0] ?? 6),
+        // "W008" → 8: the phone names DAY 1's start plate from it.
+        kioskNum: Number(controller.kioskId.match(/\d+/)?.[0] ?? 8),
         // The phone titles the course from this code: the 커스텀 코스 and
         // 쇼핑·로컬 have their own (X / D) — sending the A / B they request
         // made the phone call them 자연·유산 / 맛집·감성.

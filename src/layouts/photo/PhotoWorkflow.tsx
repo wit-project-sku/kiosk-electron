@@ -251,7 +251,7 @@ export function PhotoWorkflow(): JSX.Element {
         aiReady={phase === 'result'}
         onFinish={handleGameFinish}
         onHome={handleReset}
-        readyModal={photoReadyModal}
+        readyModal={photoReadyModal || chrome.isJeju}
       />
     );
   }

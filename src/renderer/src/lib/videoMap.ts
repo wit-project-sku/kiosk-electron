@@ -132,7 +132,7 @@ function buildByButton(entries: VideoEntry[]): Map<number, VideoEntry[]> {
 // Mutable maps, one per video set — populated by initSubtitles() once main's
 // SubtitleService answers. Its source is the CMS API (SQLite-cached), with one
 // exception: a 제주 kiosk whose API has no rows gets its VideoSubtitle Google
-// Sheet tab instead, read at runtime (production still answers W006–W008 with
+// Sheet tab instead, read at runtime (production still answers W008–W010 with
 // zero rows). There is no bundled table, so a never-synced kiosk with no
 // network shows no clips (the generic attract wall) until it reaches one once.
 let BY_KEY: Record<VideoSet, Map<string, VideoEntry[]>> = emptyBySet(() => new Map());
@@ -162,7 +162,7 @@ const VIDEO_SET_BY_LAYOUT: Record<KioskLayoutId, VideoSet> = {
 /**
  * Per-KIOSK overrides, consulted before the layout table.
  *
- * Layout is the right granularity everywhere except 제주: W006 제주공항 and W007
+ * Layout is the right granularity everywhere except 제주: W008 제주공항 and W009
  * 제주국제여객터미널 deliberately share the JEJU_AIRPORT layout (one design, one
  * sheet, one mascot) but must NOT share footage — the airport reels are about
  * 항공편/탑승구 and the terminal's about 여객선/뱃길. So the venue that diverges
@@ -170,7 +170,7 @@ const VIDEO_SET_BY_LAYOUT: Record<KioskLayoutId, VideoSet> = {
  * it does not need.
  */
 const VIDEO_SET_BY_KIOSK: Partial<Record<KioskId, VideoSet>> = {
-  W007: 'jeju-terminal',
+  W009: 'jeju-terminal',
 };
 
 /** Which video set a kiosk's own subtitle entries belong to — the caller
@@ -511,7 +511,7 @@ const INSADONG_SCREEN_TO_VIDEO_KEY: Record<string, string> = {
 };
 
 /**
- * 제주 (W006 공항 / W007 여객터미널 / W008 세계자연유산본부) screen→key mapping,
+ * 제주 (W008 공항 / W009 여객터미널 / W010 세계자연유산본부) screen→key mapping,
  * transcribed from VideoSubtitle_귤이's `Key (개발)` + `재생조건(Condition)` columns.
  *
  * `inherit: false`, like Hwaseong: the 제주 home grid is its own (렌트카 · 탐나오 ·
@@ -689,7 +689,7 @@ const SCREEN_KEYS_BY_LAYOUT: Record<KioskLayoutId, LayoutScreenKeys> = {
   HWASEONG: { map: HWASEONG_SCREEN_TO_VIDEO_KEY, inherit: false },
   // Both 제주 layouts read the SAME map: VideoSubtitle_귤이 is one tab for all
   // three venues, and the grid differences between them (렌트카 vs 크루즈 운항,
-  // W008's 제주세계유산 trio) are extra screens, not different keys for the same
+  // W010's 제주세계유산 trio) are extra screens, not different keys for the same
   // screen. What differs per venue is the video SET, above.
   JEJU_AIRPORT: { map: JEJU_SCREEN_TO_VIDEO_KEY, inherit: false },
   JEJU_HERITAGE: { map: JEJU_SCREEN_TO_VIDEO_KEY, inherit: false },

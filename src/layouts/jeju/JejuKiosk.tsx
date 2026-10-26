@@ -1,5 +1,5 @@
 /**
- * Screen router for 제주공항 (W006).
+ * Screen router for 제주공항 (W008).
  *
  * Structure mirrors OsanKiosk/HwaseongKiosk so the Jeju screens can be filled in
  * one at a time: add a `cur === '<screen>'` branch as each Figma frame is built,
@@ -8,7 +8,7 @@
  * The shared flows are already wired and need no Jeju-specific code:
  *  - PhotoWorkflow (한복/사진) — themed via CSS vars, see PHOTO_THEME below and
  *    photoChrome.tsx for the per-layout header/icon resolution.
- *  - DonationWebScreen (기부) — W006 has hasDonation; URL via donationUrl(kioskId).
+ *  - DonationWebScreen (기부) — W008 has hasDonation; URL via donationUrl(kioskId).
  */
 import type { CSSProperties } from 'react';
 import type { KioskScreenId } from '@shared/types/kiosk';
@@ -185,7 +185,7 @@ export function JejuKiosk(): JSX.Element {
   ) : cur === 'flights' ? (
     <JejuFlights controller={controller} />
   ) : cur === 'cruise' ? (
-    // 여객터미널 W007's ferry board. Reachable only there — W006's home draws
+    // 여객터미널 W009's ferry board. Reachable only there — W008's home draws
     // 렌트카 in the slot that navigates here.
     <JejuCruise controller={controller} />
   ) : cur === 'exchange' ? (
@@ -201,10 +201,10 @@ export function JejuKiosk(): JSX.Element {
   ) : cur === 'about' ? (
     <JejuAbout controller={controller} />
   ) : cur === 'heritage' ? (
-    // W008's 제주세계유산 home tile (6792:126444) → 제주 유네스코 유산.
+    // W010's 제주세계유산 home tile (6792:126444) → 제주 유네스코 유산.
     <JejuHeritage controller={controller} />
   ) : cur === 'geomun' ? (
-    // W008's 거문오름 예약 home tile → 소개/안내 tabs (6935:69555 / 69554).
+    // W010's 거문오름 예약 home tile → 소개/안내 tabs (6935:69555 / 69554).
     <JejuGeomun controller={controller} />
   ) : cur === 'hello' ? (
     <JejuHello controller={controller} />

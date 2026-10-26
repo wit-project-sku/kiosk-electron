@@ -1,5 +1,5 @@
 /**
- * 제주공항 (W006) 운항 정보 — the departure row shown on the home board, and the
+ * 제주공항 (W008) 운항 정보 — the departure row shown on the home board, and the
  * status condition that decides how it is drawn.
  *
  * Figma draws the SAME board in three conditions (제주>홈 6212:48936 / 6217:96955

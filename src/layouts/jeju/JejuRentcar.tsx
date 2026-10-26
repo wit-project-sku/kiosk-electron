@@ -1,5 +1,5 @@
 /**
- * 제주공항 (W006) 렌트카 — Figma 6297:76578 / 6297:76391 (제주>하영=렌트카=공항-01).
+ * 제주공항 (W008) 렌트카 — Figma 6297:76578 / 6297:76391 (제주>하영=렌트카=공항-01).
  *
  * Search + filter chips (전체 / 공항 내 / 공항 셔틀 / 셔틀 없음), then a
  * single filtered catalogue. `#렌터카하우스` shops are reached via 공항 내.

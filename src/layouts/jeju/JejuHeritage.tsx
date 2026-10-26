@@ -1,6 +1,6 @@
 /**
  * 제주 유네스코 유산 — Figma 6942:51016 (세계지질공원 state; 6908:51920 / 51916
- * carry the same 2026-09-08 revision). The page behind W008's 제주세계유산 home
+ * carry the same 2026-09-08 revision). The page behind W010's 제주세계유산 home
  * tile (2026-09 redesign, home 6792:126444).
  *
  * One page, four tabs, one template. The revision over the first cut: the intro
@@ -294,7 +294,7 @@ const SOURCE = '※ 출처: 한국문화정보원, VISIT JEJU';
  * The intro row's QR (6942:51448) — "carry this on your phone". The frame's QR
  * is an unlabeled placeholder graphic, so the target is authored: the 제주
  * 세계유산본부's own site, the authority behind everything this page lists (and
- * the venue W008 stands in). Swap here if the operator names a different link.
+ * the venue W010 stands in). Swap here if the operator names a different link.
  */
 const HERITAGE_QR_URL = 'https://www.jeju.go.kr/wnhcenter/';
 

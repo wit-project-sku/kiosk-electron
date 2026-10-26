@@ -37,3 +37,19 @@ export function fillmeArtUrl(name: string): string | undefined {
 export function fillmeIngredientIconUrl(fileName: string): string | undefined {
   return ingredients[`./ingredients/${fileName}`];
 }
+
+const diagnosis = import.meta.glob('./diagnosis/*.svg', {
+  eager: true,
+  query: '?url',
+  import: 'default',
+}) as Record<string, string>;
+
+/**
+ * Bundled copy of a diagnosis (건강 상태) icon by `healthStatusDetails[].id` —
+ * the same files FillMe serves at `iconUrl` (`/fillme_asset/image/<id>.svg`),
+ * received from FillMe 2026-10-23 as `<id>_<이름>.svg` and stored as `<id>.svg`.
+ * Same rule as the ingredients: bundled first, remote only for ids added later.
+ */
+export function fillmeDiagnosisIconUrl(id: number): string | undefined {
+  return diagnosis[`./diagnosis/${id}.svg`];
+}

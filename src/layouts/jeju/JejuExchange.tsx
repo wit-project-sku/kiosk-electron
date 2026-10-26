@@ -1,5 +1,5 @@
 /**
- * 제주공항 (W006) 환율 — Figma 제주>환율-나라선택01, the 2026-08-24 redraw:
+ * 제주공항 (W008) 환율 — Figma 제주>환율-나라선택01, the 2026-08-24 redraw:
  * 6412:76217 (calculator), 6412:76438 (keyboard open), 6412:76521 / 6412:76726
  * (currency dropdown on the top / bottom field) and 6219:99645 (실시간 환율).
  * The 베리어프리 (♿) half follows the newer 2026-08-27 frames — 6326:84606,

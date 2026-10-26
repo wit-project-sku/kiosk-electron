@@ -119,12 +119,12 @@ const BUTTON_IDS: Record<string, Record<number, number>> = {
   W004: { 1: 105, 2: 106, 3: 107, 4: 52, 5: 53, 6: 54, 7: 55, 8: 56, 9: 57, 10: 58, 11: 59, 12: 60, 13: 61, 14: 62, 15: 63, 16: 64, 17: 65, 18: 66, 19: 67, 20: 94, 21: 68, 22: 114, 23: 122, 24: 123 },
   // W005 (화성휴게소)
   W005: { 1: 108, 2: 109, 3: 110, 4: 69, 5: 70, 6: 71, 7: 72, 8: 73, 9: 74, 10: 75, 11: 76, 12: 77, 13: 78, 14: 79, 15: 80, 16: 81, 17: 82, 18: 83, 19: 84, 20: 95, 21: 85, 22: 115, 23: 124, 24: 125 },
-  // W006 (제주공항) — still deliberately absent even though kiosk_id 6 is now
-  // seeded (ids 129–149 in production). Those ids are verified for PRODUCTION
+  // W008 (제주공항, device id 8) — still deliberately absent. The old seed was
+  // kiosk_id 6, ids 129–149. Those ids are verified for PRODUCTION
   // only, and the 기부 case proved ids diverge between prod and stage; a mirror
   // that is right in one environment and wrong in the other is worse than none.
-  // W006 resolves every id off the live response by `buttonType` instead — see
-  // SLOT_OVERRIDES.W006 — which is correct in both. The only thing given up is
+  // W008 resolves every id off the live response by `buttonType` instead — see
+  // SLOT_OVERRIDES.W008 — which is correct in both. The only thing given up is
   // the cold-start fallback: a 제주 kiosk that has never reached the API logs
   // clicks with `id: null` until its first sync.
 };
@@ -194,7 +194,7 @@ const SLOT_OVERRIDES: Partial<Record<KioskId, Record<string, Slot>>> = {
     photo_solo: { position: 23, type: '혼자찍기', suffix: '혼자찍기' },
     photo_together: { position: 24, type: '같이찍기', suffix: '같이찍기' },
   },
-  // ── W006 제주공항 ──
+  // ── W008 제주공항 ──
   // Transcribed from the live response on 2026-08-13, when kiosk_id 6 was seeded
   // (21 rows, ids 129–149 in production). Every `type` is byte-for-byte the CMS's
   // `button_type`: the response carries NO `buttonName`, so buttonType is the ONLY
@@ -204,13 +204,13 @@ const SLOT_OVERRIDES: Partial<Record<KioskId, Record<string, Slot>>> = {
   //
   // `position` here is the CMS reading order (line 3→8, left to right), because the
   // 제주 rows expose line/position rather than the flat 1–24 slot the older kiosks
-  // carry. It is analytics metadata only — W006 has no BUTTON_IDS mirror, so nothing
+  // carry. It is analytics metadata only — W008 has no BUTTON_IDS mirror, so nothing
   // looks an id up by position.
   //
   // Not in the CMS, so they stay id-less: K-DRAMA and 운항정보 (both on the 제주 home,
   // neither seeded), and photo_solo/photo_together. `프로모션` (id 147) is the
   // opposite case — a seeded row with no 제주 screen behind it yet.
-  W006: {
+  W008: {
     home: { position: 1, type: '홈' },
     search: { position: 2, type: '검색' },
     language: { position: 3, type: '언어선택' },
@@ -236,14 +236,14 @@ const SLOT_OVERRIDES: Partial<Record<KioskId, Record<string, Slot>>> = {
     photo: { position: 20, type: '사진촬영', suffix: '아이콘20' },
     restroom: { position: 21, type: '화장실' },
   },
-  // ── W007 제주국제여객터미널 ──
+  // ── W009 제주국제여객터미널 ──
   // Transcribed from the live response on 2026-08-24 (21 rows, ids 150–170 in
-  // production). It is W006's grid with EXACTLY ONE row changed: line 6 position 4
+  // production). It is W008's grid with EXACTLY ONE row changed: line 6 position 4
   // is 크루즈 운항 where 제주공항 has 렌트카. Every other type, line and position
   // matches byte-for-byte, apostrophes included (ASCII U+0027, not the Figma's
   // curly U+2018/2019).
   //
-  // No BUTTON_IDS mirror, same reasoning as W006: 150–170 are verified for
+  // No BUTTON_IDS mirror, same reasoning as W008: 150–170 are verified for
   // PRODUCTION only and the 기부 case proved ids diverge between prod and stage, so
   // every id is resolved off the live response by `buttonType` instead.
   //
@@ -253,7 +253,7 @@ const SLOT_OVERRIDES: Partial<Record<KioskId, Record<string, Slot>>> = {
   // analytics join is already correct. Not in the CMS, so still id-less here:
   // K-DRAMA, 운항정보, photo_solo/photo_together; `프로모션` (id 168) is the reverse
   // — a seeded row with no 제주 screen behind it.
-  W007: {
+  W009: {
     home: { position: 1, type: '홈' },
     search: { position: 2, type: '검색' },
     language: { position: 3, type: '언어선택' },
@@ -277,19 +277,19 @@ const SLOT_OVERRIDES: Partial<Record<KioskId, Record<string, Slot>>> = {
     photo: { position: 20, type: '사진촬영', suffix: '아이콘20' },
     restroom: { position: 21, type: '화장실' },
   },
-  // ── W008 세계자연유산본부 ──
+  // ── W010 세계자연유산본부 ──
   // Transcribed from the live response on 2026-08-24 (21 rows, ids 171–191 in
-  // production). It is W007's grid — 크루즈 운항 at line 6 position 4, NOT 렌트카 —
+  // production). It is W009's grid — 크루즈 운항 at line 6 position 4, NOT 렌트카 —
   // with the two mascot rows renamed: 안녕 '유산' / 도와줘 '유산' (ASCII U+0027
   // apostrophes, verified by dumping the codepoints). Every other type, line and
-  // position matches W007 byte-for-byte.
+  // position matches W009 byte-for-byte.
   //
-  // No BUTTON_IDS mirror, same reasoning as W006/W007: 171–191 are verified for
+  // No BUTTON_IDS mirror, same reasoning as W008/W009: 171–191 are verified for
   // PRODUCTION only and the 기부 case proved ids diverge between prod and stage, so
   // every id is resolved off the live response by `buttonType` instead. Not in the
   // CMS, so still id-less here: K-DRAMA, 운항정보, photo_solo/photo_together;
   // `프로모션` (id 189) is the reverse — a seeded row with no 제주 screen behind it.
-  W008: {
+  W010: {
     home: { position: 1, type: '홈' },
     search: { position: 2, type: '검색' },
     language: { position: 3, type: '언어선택' },
@@ -301,7 +301,7 @@ const SLOT_OVERRIDES: Partial<Record<KioskId, Record<string, Slot>>> = {
     lodging: { position: 9, type: '숙박안내' },
     taxfree: { position: 10, type: 'TAX-FREE' },
     about: { position: 11, type: '여기는 제주도' },
-    hello: { position: 12, type: "안녕 '유산'", typePrefix: "안녕 '" }, // ← the mascot rows W006/W007 spell 하영
+    hello: { position: 12, type: "안녕 '유산'", typePrefix: "안녕 '" }, // ← the mascot rows W008/W009 spell 하영
     help: { position: 13, type: "도와줘 '유산'", typePrefix: "도와줘 '" },
     cruise: { position: 14, type: '크루즈 운항' },
     exchange: { position: 15, type: '환율' },

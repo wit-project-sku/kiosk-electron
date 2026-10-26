@@ -7,6 +7,7 @@ import type {
   ShotBody,
   ShotInput,
 } from '@shared/types/data';
+import { isJejuLayout } from '@shared/config/kioskLocations';
 import { createLogger } from '@main/core/logger';
 import type { KioskService } from './KioskService';
 import type { FailedRequestService } from './FailedRequestService';
@@ -79,7 +80,7 @@ function sentEventIds(json: unknown): Set<string> {
  * Env:
  *   STATS_MENU_TOUCH_URL        — real-time menu-touch endpoint.
  *   STATS_MENU_TOUCHES_SYNC_URL — nightly menu-touch batch endpoint.
- *   STATS_SHOTS_URL             — real-time shots endpoint.
+ *   STATS_SHOTS_URL             — real-time shots endpoint (overrides the 제주 v2 switch).
  *   STATS_PHOTO_SHOTS_SYNC_URL  — nightly photo-shots batch endpoint.
  */
 export class StatsService {
@@ -96,8 +97,11 @@ export class StatsService {
     return process.env['STATS_MENU_TOUCHES_SYNC_URL'] ?? `${witteriaApiBase()}/api/stats/menu-touches/sync`;
   }
 
+  /** 제주 kiosks (W008/W009/W010) report to `/shots/v2`; every other venue stays on v1. */
   private shotsUrl(): string {
-    return process.env['STATS_SHOTS_URL'] ?? `${witteriaApiBase()}/api/stats/shots`;
+    if (process.env['STATS_SHOTS_URL']) return process.env['STATS_SHOTS_URL'];
+    const path = isJejuLayout(this.kiosk.getConfig().layout) ? '/api/stats/shots/v2' : '/api/stats/shots';
+    return `${witteriaApiBase()}${path}`;
   }
 
   private photoShotsSyncUrl(): string {

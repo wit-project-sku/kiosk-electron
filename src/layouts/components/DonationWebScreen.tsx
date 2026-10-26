@@ -57,7 +57,7 @@ interface DonationWebScreenProps {
  *
  * Shared by every layout that runs 기부 (Insadong/Osan/Hwaseong/Jeju). Callers
  * pass donationUrl(kioskId) so the donation app gets the right per-site
- * `kiosk` query (W003→1, W004→4, W005→5, W006–W008→6).
+ * `kiosk` query (W003→1, W004→4, W005→5, W008–W010→6).
  *
  * Preload-independent bridge (robust against webview preload quirks):
  *   guest -> host : donation app console.log's KIOSK_TAG + json; we catch it on

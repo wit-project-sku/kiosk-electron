@@ -1,0 +1,305 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Kiosk App — Handover</title>
+<style>
+  @page { size: A4; margin: 16mm 15mm; }
+  body { font-family: "Segoe UI", "Malgun Gothic", sans-serif; font-size: 10.5pt; line-height: 1.45; color: #1a1a1a; }
+  h1 { font-size: 20pt; margin: 0 0 2px; }
+  .sub { color: #666; margin-bottom: 14px; }
+  h2 { font-size: 13pt; border-bottom: 2px solid #1a1a1a; padding-bottom: 2px; margin: 20px 0 8px; page-break-after: avoid; }
+  h3 { font-size: 11pt; margin: 12px 0 4px; page-break-after: avoid; }
+  p, ul, ol { margin: 4px 0 8px; }
+  li { margin: 2px 0; }
+  code { font-family: Consolas, monospace; font-size: 9.5pt; background: #f1f1f1; padding: 0 3px; border-radius: 2px; }
+  pre { font-family: Consolas, "Malgun Gothic", monospace; font-size: 9pt; background: #f6f6f6; border: 1px solid #ddd; padding: 8px 10px; line-height: 1.35; white-space: pre; page-break-inside: avoid; }
+  table { border-collapse: collapse; width: 100%; margin: 4px 0 10px; font-size: 9.5pt; page-break-inside: auto; }
+  tr { page-break-inside: avoid; }
+  th, td { border: 1px solid #ccc; padding: 4px 6px; text-align: left; vertical-align: top; }
+  th { background: #eee; }
+  .note { background: #fff6dd; border: 1px solid #e0a800; border-radius: 4px; padding: 6px 10px; margin: 8px 0; }
+  .toc { columns: 2; font-size: 10pt; }
+</style>
+</head>
+<body>
+
+<h1>Kiosk App — Developer Handover</h1>
+<div class="sub">witworldwide tourist kiosk · repo <code>wit-project-sku/kiosk-electron</code> · v5.0.27 · updated 2026-10-21</div>
+
+<ol class="toc">
+  <li>What it is</li>
+  <li>Run it on your PC</li>
+  <li>Folder structure</li>
+  <li>How the app is wired</li>
+  <li>Locations and kioskId</li>
+  <li>Data: where it comes from, when, where it's saved</li>
+  <li>Google Sheets in detail</li>
+  <li>Files on a kiosk machine</li>
+  <li>Daily power schedule (auto shutdown)</li>
+  <li>Releases and auto-update</li>
+  <li>.env explained</li>
+  <li>Common tasks</li>
+  <li>Gotchas</li>
+</ol>
+
+<h2>1. What it is</h2>
+<p>A touch-screen tourist information kiosk (Electron 34 + React 19 + TypeScript, CSS Modules). Windows only.
+<b>One build runs at every location.</b> Each machine is told which location it is (its <b>kioskId</b>, e.g. <code>W004</code>), and that
+picks the screens, the content and the features (card terminal, camera, games…).</p>
+<p>Main features: info screens (shops, events, palaces, transport, tax-free, exchange rate, weather, flights/ferries in Jeju),
+AI course recommendation, AR hanbok photo booth with QR download, donation/shop web pages with card payment,
+footfall counting, Jeju motion games, height measurement (Jeju, ZED camera).</p>
+
+<h2>2. Run it on your PC</h2>
+<ol>
+  <li>Install Node 20+. Run <code>npm install</code> (it also rebuilds native modules for Electron).</li>
+  <li>Get the real <code>.env</code> and <code>secrets/service-account.json</code> + <code>secrets/service-account-osaek.json</code> from the previous developer (never in git). <code>.env.example</code> shows every key.</li>
+  <li>Set <code>DEV_MODE=true</code> in <code>.env</code> → a location switcher appears on the home screen so you can view any kiosk (W001…W202).</li>
+  <li><code>npm run dev</code> → app with hot reload. <code>F12</code> opens DevTools.</li>
+</ol>
+<table>
+  <tr><th>Command</th><th>What it does</th></tr>
+  <tr><td><code>npm run dev</code></td><td>Run in development</td></tr>
+  <tr><td><code>npm run typecheck</code> / <code>npm run lint</code></td><td>Check before committing</td></tr>
+  <tr><td><code>npm run sync:sheet</code></td><td>Pull Google Sheets → regenerate <code>src/renderer/src/data/*.generated.ts</code> (see §7)</td></tr>
+  <tr><td><code>npm run build:win</code></td><td>Production installer (bumps patch version)</td></tr>
+  <tr><td><code>npm run build:win:beta</code></td><td>Beta installer (installs side by side with production)</td></tr>
+</table>
+
+<h2>3. Folder structure</h2>
+<pre>kiosk-app/
+├─ src/
+│  ├─ main/                 ← BACKEND (Electron main process, Node). All logic, network, DB.
+│  │  ├─ index.ts           startup order: DB → services → power → windows → sync/updates
+│  │  ├─ container.ts       creates every service (one place to see what exists)
+│  │  ├─ core/              app-wide basics
+│  │  │    KioskConfigStore.ts   reads/writes kioskId  (kiosk-config.json)
+│  │  │    AppConfigStore.ts     app settings          (settings.json)
+│  │  │    PowerManager.ts       daily reboot / shutdown / auto-start
+│  │  │    env.ts                loads .env            paths.ts  all disk paths
+│  │  │    PaymentAgentManager.ts starts the card-payment agent
+│  │  │    ZedSidecarManager.ts   starts the Jeju height camera (Python)
+│  │  │    logger.ts             log files
+│  │  ├─ services/          one service per feature: ShopService, BannerService, WeatherService,
+│  │  │    ExchangeService, FlightService, SailingService, OutfitService, StatsService …
+│  │  │    sync/            night sync + Google Sheets (SyncService, GoogleSheetsSyncTransport)
+│  │  │    photo/ ai/ camera/  AR hanbok photo flow       footfall/  people counting
+│  │  │    height/ motion/ spotDiff/ drive/  Jeju extras, games, Google Drive upload
+│  │  ├─ database/          SQLite: Database.ts, migrations/ (001…008), repositories/
+│  │  ├─ ipc/handlers/      the API the UI calls (one file per feature: shop.handlers.ts …)
+│  │  ├─ updater/           auto-update + remote "update now" command
+│  │  └─ windows/           main window + customer display window
+│  ├─ preload/              safe bridge: exposes main's IPC API to the UI as window.api
+│  ├─ renderer/src/         ← FRONTEND shell (React)
+│  │    App.tsx             picks the layout for this kioskId
+│  │    store/              Zustand stores (shopStore, weatherStore, languageStore …)
+│  │    hooks/              useKioskController (navigation + idle reset), usePhotoWorkflow …
+│  │    lib/                small helpers (i18n, shops, videoMap …)
+│  │    data/               *.generated.ts from Google Sheets + sheet-cache/ (raw CSV)
+│  ├─ layouts/              ← THE SCREENS. One folder per location family
+│  │    InsadongLayout.tsx  insadong/   (W001, W002; W003 = NamInsadongLayout)
+│  │    OsanLayout.tsx      osan/       (W004 오색시장)
+│  │    HwaseongLayout.tsx  hwaseong/   (W005 화성휴게소)
+│  │    JejuLayout.tsx      jeju/       (W008 공항, W009 여객터미널, W010 세계자연유산)
+│  │    KadaLayout.tsx      kada/       (W202 Vietnam)
+│  │    photo/              shared AR photo screens     components/  shared widgets
+│  └─ shared/               used by BOTH sides
+│       config/kioskLocations.ts   ★ list of all locations and their features
+│       types/  constants/  ipc/   (IPC channel names + contracts)
+├─ themes/                  colours/fonts per location (JSON)
+├─ resources/               mediapipe (camera AI models), videos (dev only), help images
+├─ payment-agent/           compiled card-payment server (separate repo; don't edit here)
+├─ zed-height/              Python script for the ZED height camera (Jeju)
+├─ scripts/                 build, sync-sheet, provisioning, self-tests, db-inspect
+├─ tools/location-tester/   switch an installed kiosk to another location
+├─ secrets/                 Google service-account JSON (gitignored)
+├─ docs/                    AUTO_UPDATE.md, FOOTFALL.md, UPDATE_COMMAND_API.md, this file
+├─ provision-kiosk.ps1      set a machine's kioskId
+├─ Set/UnsetAutoShutdown*.bat  OLD manual power scripts (app now does this itself, §9)
+└─ electron-builder.yml     installer config (.beta.yml for beta)</pre>
+
+<p><b>Rule of thumb:</b> data, network, files, timers → <code>src/main/services</code>. What the visitor sees → <code>src/layouts/&lt;location&gt;</code>.
+The UI never calls the internet directly; it asks main through <code>window.api</code> (IPC).</p>
+
+<h2>4. How the app is wired</h2>
+<pre>Google Sheets / witteria API / weather / flights
+          │  (fetched by)
+          ▼
+  src/main/services/*  ──save──▶  SQLite  (%APPDATA%\kiosk-app\data\kiosk.db)
+          │
+  src/main/ipc/handlers/*   (main answers requests, pushes "changed" events)
+          │
+  src/preload  → window.api
+          │
+  renderer stores (Zustand)  →  src/layouts/&lt;location&gt;/*.tsx  (screens)</pre>
+<ul>
+  <li><b>Startup</b> (<code>src/main/index.ts</code>): load .env → open DB + migrations → create services → set power schedule →
+    open window (shows cached data instantly) → start weather/flights/exchange polling → start payment agent (if the location has a card terminal)
+    → start auto-update → refresh content in background.</li>
+  <li><b>Screens</b>: every layout is a fixed <b>2160 × 3840</b> canvas scaled to the monitor, so Figma px = CSS px.</li>
+  <li><b>Navigation and idle</b>: <code>useKioskController.ts</code>. After 3 minutes without touch the kiosk goes back to home and resets language to Korean.</li>
+  <li><b>Languages</b>: ko / en / ja / zh. Text comes from the Localization tab of the location's Google Sheet.</li>
+</ul>
+
+<h2>5. Locations and kioskId</h2>
+<table>
+  <tr><th>kioskId</th><th>Place</th><th>Layout</th><th>Card terminal</th></tr>
+  <tr><td>W001</td><td>북인사마당</td><td>INSADONG</td><td>no</td></tr>
+  <tr><td>W002</td><td>인사동쉼터</td><td>INSADONG</td><td>no</td></tr>
+  <tr><td>W003</td><td>남인사마당</td><td>NAM_INSADONG</td><td>yes</td></tr>
+  <tr><td>W004</td><td>오산 오색시장</td><td>OSAN</td><td>yes</td></tr>
+  <tr><td>W005</td><td>화성휴게소</td><td>HWASEONG</td><td>yes</td></tr>
+  <tr><td>W008</td><td>제주공항</td><td>JEJU_AIRPORT</td><td>yes</td></tr>
+  <tr><td>W009</td><td>제주국제여객터미널</td><td>JEJU_AIRPORT</td><td>yes</td></tr>
+  <tr><td>W010</td><td>세계자연유산본부</td><td>JEJU_HERITAGE</td><td>yes</td></tr>
+  <tr><td>W202</td><td>KADA (Hà Nội, Vietnam)</td><td>KADA</td><td>no</td></tr>
+</table>
+<p>Source of truth: <code>src/shared/config/kioskLocations.ts</code> (features per location: card terminal, donation, coordinates, camera rotation…).</p>
+
+<h3>Where kioskId is saved</h3>
+<ul>
+  <li>File: <code>%APPDATA%\kiosk-app\kiosk-config.json</code> → <code>{"kioskId":"W004"}</code> (beta: <code>%APPDATA%\kiosk-app-beta\</code>).</li>
+  <li>Read by <code>src/main/core/KioskConfigStore.ts</code>. It is <b>not</b> in .env and <b>not</b> in the build, so one installer fits every location.</li>
+  <li>Set it on a new machine (run once, then restart the app):
+<pre>powershell -ExecutionPolicy Bypass -File provision-kiosk.ps1 W004</pre>
+    The script is also copied next to the installed app. Optional <code>-ShopId N</code> overrides the shop-API id (normally leave it off). <code>-Beta</code> for the beta install.</li>
+  <li>Not provisioned → falls back to the default kioskId in <code>src/shared/constants</code>.</li>
+</ul>
+
+<h2>6. Data: where it comes from, when, where it's saved</h2>
+<table>
+  <tr><th>Data</th><th>Source</th><th>When fetched</th><th>Saved in</th></tr>
+  <tr><td>UI text / translations</td><td>Google Sheet (Localization tab)</td><td>On every launch + 00:00 nightly</td><td>SQLite <code>translations</code>; fallback = <code>*.generated.ts</code> in the build</td></tr>
+  <tr><td>Palaces, AI categories, markets, Jeju facilities</td><td>Google Sheet</td><td>Build time only (<code>npm run sync:sheet</code>)</td><td><code>src/renderer/src/data/*.generated.ts</code></td></tr>
+  <tr><td>Shops, attractions, banners, outfits, AR backgrounds, game rounds</td><td>witteria API</td><td>On launch + 00:00 nightly</td><td>SQLite <code>local_cache</code>; images in <code>remote-images/</code></td></tr>
+  <tr><td>Home button layout</td><td>witteria API</td><td>On launch only</td><td>SQLite</td></tr>
+  <tr><td>Video subtitles</td><td>witteria API (Jeju: sheet fallback)</td><td>On launch</td><td>SQLite</td></tr>
+  <tr><td>Weather</td><td>OpenWeatherMap</td><td>Every 30 min</td><td>memory</td></tr>
+  <tr><td>Exchange rates</td><td>Korea Eximbank API</td><td>Every 6 h</td><td>memory/cache</td></tr>
+  <tr><td>Flights / ferries (Jeju)</td><td>data.go.kr / KOMSA</td><td>Every 2–10 min</td><td>memory/cache</td></tr>
+  <tr><td>Touch stats, photo shots</td><td>→ witteria API</td><td>Sent live; failures retried at 00:00</td><td>SQLite <code>analytics_events</code>, <code>failed_requests</code></td></tr>
+  <tr><td>Footfall counts</td><td>camera → FOOTFALL_API_URL</td><td>Uploaded 21:30</td><td>SQLite <code>footfall_buckets</code></td></tr>
+  <tr><td>Photos taken</td><td>camera + AI server</td><td>—</td><td><code>C:\KioskPhotos</code></td></tr>
+</table>
+<p>If the internet is down the kiosk keeps working on the last saved data. Nothing on screen waits for the network.</p>
+
+<h2>7. Google Sheets in detail</h2>
+<p>Each location family has <b>its own spreadsheet</b>: Insadong (W001–W003), Osaek (W004), Hwaseong (W005), Jeju (W008–W010). KADA has none (its text is in <code>layouts/kada/kadaText.ts</code>).
+The sheet IDs are in <code>GoogleSheetsSyncTransport.ts</code> (runtime) and <code>scripts/sync-sheet.mjs</code> (build time) — keep both in sync.</p>
+<h3>Two ways sheets are read</h3>
+<ol>
+  <li><b>Build time</b> — <code>npm run sync:sheet</code> downloads tabs like <code>Localization_Insa</code>, <code>PalaceInfo_Insa</code>, <code>AICategory_*</code>
+    and writes typed files to <code>src/renderer/src/data/</code> (raw CSV cached in <code>sheet-cache/</code>). These ship inside the app as the offline default.
+    Run it before a release when content changed.</li>
+  <li><b>Runtime</b> — <code>SyncService</code> + <code>GoogleSheetsSyncTransport</code> read the location's <code>Localization_*</code> tab
+    <b>on every app launch</b> and <b>every night at 00:00</b> (<code>NightSyncScheduler.ts</code>), and save it to SQLite (<code>translations</code> table).
+    The new text shows after the next reload.</li>
+</ol>
+<h3>How it authenticates</h3>
+<ul>
+  <li>A Google <b>service account</b> (<code>secrets/service-account*.json</code>, path in <code>GOOGLE_SERVICE_ACCOUNT_JSON</code>). Each spreadsheet must be shared with that service account's email.</li>
+  <li><code>GOOGLE_SHEETS_ID</code> is only an <b>on/off switch</b> — any value turns night sync on. Which sheet is read depends on kioskId.</li>
+</ul>
+<h3>Nightly job at 00:00 does</h3>
+<p>refresh shops/attractions/banners/outfits/backgrounds/games → resend failed stats → download sheet text → upload analytics → retry Drive photo uploads → prune old height rows.</p>
+
+<h2>8. Files on a kiosk machine</h2>
+<table>
+  <tr><th>What</th><th>Where</th></tr>
+  <tr><td>Installed app (+ bundled .env, secrets, themes, provision-kiosk.ps1)</td><td>Install dir → <code>resources\</code></td></tr>
+  <tr><td>kioskId</td><td><code>%APPDATA%\kiosk-app\kiosk-config.json</code></td></tr>
+  <tr><td>Settings</td><td><code>%APPDATA%\kiosk-app\settings.json</code></td></tr>
+  <tr><td>Database (all cached content, stats, queues)</td><td><code>%APPDATA%\kiosk-app\data\kiosk.db</code></td></tr>
+  <tr><td>Logs (10 MB rotation) — look here first when something breaks</td><td><code>%APPDATA%\kiosk-app\logs\</code></td></tr>
+  <tr><td>Downloaded CMS images</td><td><code>%APPDATA%\kiosk-app\remote-images\</code></td></tr>
+  <tr><td>Photos (captured + AI)</td><td><code>C:\KioskPhotos</code> (or <code>PHOTO_SAVE_DIR</code>)</td></tr>
+  <tr><td>Attract / display videos (copied by hand, survive updates)</td><td><code>C:\KioskVideos\&lt;set&gt;\</code> (or <code>KIOSK_VIDEOS_DIR</code>)</td></tr>
+</table>
+<p>Beta build uses <code>%APPDATA%\kiosk-app-beta\</code> for everything, so both can be installed on the same PC.</p>
+
+<h2>9. Daily power schedule (auto shutdown)</h2>
+<p>The app sets this up <b>by itself on every launch</b> (<code>src/main/core/PowerManager.ts</code>) using Windows Scheduled Tasks, and registers itself to auto-start on login.</p>
+<table>
+  <tr><th>Who</th><th>Schedule</th><th>Windows task name</th></tr>
+  <tr><td>W001, W002, W003, W005, W202</td><td>Reboot every day at <b>02:00</b></td><td><code>KioskAutoRestart</code></td></tr>
+  <tr><td>W004, W008, W009, W010</td><td><b>Shut down 22:00</b>, start <b>08:00</b></td><td><code>KioskShutdownAt10PM</code>, <code>KioskStartAt8AM</code></td></tr>
+  <tr><td>Beta build</td><td>Reboot every day at <b>09:00</b></td><td><code>KioskBetaAutoRestart</code></td></tr>
+</table>
+<div class="note"><b>Important:</b> Windows cannot turn on a PC that is fully powered off. For the 22:00/08:00 sites, set the motherboard
+<b>BIOS → "Power On by RTC Alarm" = 08:00</b>, otherwise the kiosk stays off in the morning.</div>
+<p>The <code>SetAutoShutdown*.bat</code> / <code>UnsetAutoShutdown*.bat</code> files in the repo root are the old manual way — not needed any more.
+To check on a machine: open <i>Task Scheduler</i> and look for the task names above. The Jeju hours (22:00/08:00) are copied from 오색시장 and should be confirmed with each venue.</p>
+
+<h2>10. Releases and auto-update</h2>
+<ul>
+  <li><code>npm run build:win</code> builds the installer and publishes to <b>GitHub Releases</b>. Kiosks update themselves (electron-updater).</li>
+  <li><b>Production</b> kiosks check once a week (<code>UPDATE_DAY</code>/<code>UPDATE_TIME</code>, default Friday 17:00; a missed window is caught up at next start).
+      <b>Beta</b> kiosks check every 15 min and only take beta releases.</li>
+  <li>Install happens only when the kiosk is idle (never during photo countdown / AI generation).</li>
+  <li><b>"Update now"</b>: an admin button on the witteria site; kiosks poll it every 5 min and update immediately. See <code>docs/UPDATE_COMMAND_API.md</code>.</li>
+  <li>The <code>.env</code> and <code>secrets/</code> on your PC are <b>baked into the installer</b> — build from a machine with the correct production <code>.env</code>.</li>
+  <li>More: <code>docs/AUTO_UPDATE.md</code>.</li>
+</ul>
+
+<h2>11. .env explained</h2>
+<p>Loaded by <code>src/main/core/env.ts</code>: in dev from the project root, in the installed app from <code>resources\.env</code>.
+Changing it on a kiosk needs only an app restart. <b>Never commit it.</b></p>
+<table>
+  <tr><th>Key</th><th>Meaning</th><th>Needed?</th></tr>
+  <tr><th colspan="3">External APIs</th></tr>
+  <tr><td><code>OPENWEATHER_API_KEY</code></td><td>Weather card + Jeju forecast</td><td>yes</td></tr>
+  <tr><td><code>EXIM_API_KEY</code></td><td>Exchange rates (Korea Eximbank)</td><td>yes</td></tr>
+  <tr><td><code>DATA_GO_KR_SERVICE_KEY</code></td><td>Public data portal (Jeju flights)</td><td>Jeju</td></tr>
+  <tr><td><code>KOMSA_SERVICE_KEY</code></td><td>Ferry schedules (Jeju port)</td><td>Jeju</td></tr>
+  <tr><td><code>WITTERIA_API_BASE</code></td><td>Main backend: shops, banners, events, stats, photo QR upload. Use the PROD host.</td><td>yes</td></tr>
+  <tr><td><code>VITE_AR_PROCESS_IMAGE_API_URL</code>, <code>VITE_AR_PROCESS_API_URL</code></td><td>AI hanbok photo servers (solo / together)</td><td>photo booth</td></tr>
+  <tr><th colspan="3">Google Sheets</th></tr>
+  <tr><td><code>GOOGLE_SHEETS_ID</code></td><td>On/off switch for the sheet sync (value itself not used)</td><td>yes</td></tr>
+  <tr><td><code>GOOGLE_SERVICE_ACCOUNT_JSON</code></td><td>Path to the service-account file, e.g. <code>secrets/service-account.json</code></td><td>yes</td></tr>
+  <tr><th colspan="3">Card payment (only W003–W010, which have a terminal)</th></tr>
+  <tr><td><code>PAYMENT_HTTP_HOST</code> / <code>_PORT</code></td><td>Local payment server address (<code>127.0.0.1:8080</code>)</td><td>yes</td></tr>
+  <tr><td><code>PAYMENT_CORS_ORIGINS</code></td><td>Web pages allowed to call it: the witteria store AND the Vercel donation app</td><td>yes</td></tr>
+  <tr><td><code>PAYMENT_CENTRAL_BASE_URL</code>, <code>_AUTH_TOKEN</code>, <code>_TIMEOUT_MS</code></td><td>Central payment server</td><td>yes</td></tr>
+  <tr><td><code>PAYMENT_TL3800_*</code></td><td>Card terminal (TL-3800): terminal ID, serial port settings (blank port = auto-detect), retry timings</td><td>yes</td></tr>
+  <tr><td><code>PAYMENT_OUTBOX_*</code></td><td>Retry queue for payments that failed to reach the server</td><td>defaults ok</td></tr>
+  <tr><td><code>PAYMENT_LOG_LEVEL</code></td><td>Log detail of the payment agent</td><td>defaults ok</td></tr>
+  <tr><th colspan="3">Updates</th></tr>
+  <tr><td><code>UPDATE_CHANNEL</code></td><td><code>latest</code> = production, <code>beta</code> = test kiosks</td><td>yes</td></tr>
+  <tr><td><code>UPDATE_DAY</code>, <code>UPDATE_TIME</code></td><td>Weekly update check (default Friday 17:00)</td><td>optional</td></tr>
+  <tr><td><code>UPDATE_BETA_INTERVAL_MIN</code></td><td>Beta check interval (default 15)</td><td>optional</td></tr>
+  <tr><td><code>UPDATE_COMMAND_POLL_MIN</code>, <code>UPDATE_COMMAND_API_URL</code></td><td>"Update now" polling</td><td>optional</td></tr>
+  <tr><th colspan="3">Footfall (people counting)</th></tr>
+  <tr><td><code>FOOTFALL_ENABLED</code>, <code>_LINE</code>, <code>_FPS</code>, <code>_SCORE</code>, <code>_TRACK_SCORE</code>, <code>_MIN_BOX</code></td><td>Tuning; defaults are what the fleet uses. See <code>docs/FOOTFALL.md</code></td><td>optional</td></tr>
+  <tr><td><code>FOOTFALL_API_URL</code>, <code>FOOTFALL_API_KEY</code></td><td>Where to upload counts at 21:30. Empty = keep locally.</td><td>optional</td></tr>
+  <tr><th colspan="3">Dev / machine</th></tr>
+  <tr><td><code>DEV_MODE</code></td><td><code>true</code> shows the location switcher. <b>Must be false on live kiosks.</b></td><td>dev</td></tr>
+  <tr><td><code>KIOSK_VIDEOS_DIR</code></td><td>Folder of attract videos (dev: your local copy)</td><td>dev</td></tr>
+  <tr><td><code>PHOTO_SAVE_DIR</code></td><td>Override <code>C:\KioskPhotos</code></td><td>optional</td></tr>
+</table>
+<p>The kioskId is intentionally <b>not</b> an env var (see §5).</p>
+
+<h2>12. Common tasks</h2>
+<table>
+  <tr><th>I want to…</th><th>Do this</th></tr>
+  <tr><td>Change a text on screen</td><td>Edit the location's Google Sheet Localization tab. Kiosks pick it up at next launch / midnight. Also run <code>npm run sync:sheet</code> before the next release.</td></tr>
+  <tr><td>Change a screen design</td><td><code>src/layouts/&lt;location&gt;/</code> (component + <code>.module.css</code>). Colours: <code>themes/</code>.</td></tr>
+  <tr><td>Add a new location</td><td>Add it to <code>kioskLocations.ts</code>, pick/make a layout, add its sheet in both sheet-ID places, provision the machine.</td></tr>
+  <tr><td>Add data from a new API</td><td>Service in <code>src/main/services</code> → register in <code>container.ts</code> → IPC handler in <code>ipc/handlers</code> + channel in <code>shared/ipc</code> → store in <code>renderer/src/store</code> → use in layout.</td></tr>
+  <tr><td>Change the DB</td><td>Add a new migration file (<code>009_…ts</code>) — never edit old ones.</td></tr>
+  <tr><td>Install a new kiosk</td><td>Install → open once → <code>provision-kiosk.ps1 W00x</code> → copy videos to <code>C:\KioskVideos</code> → set BIOS RTC (22:00/08:00 sites) → restart.</td></tr>
+  <tr><td>Debug a kiosk</td><td>Read <code>%APPDATA%\kiosk-app\logs\</code>. <code>scripts/db-inspect.mjs</code> reads the DB.</td></tr>
+</table>
+
+<h2>13. Gotchas</h2>
+<ul>
+  <li><code>README.md</code> and <code>PROJECT_STATE.md</code> are <b>outdated</b>. Trust the code and this document.</li>
+  <li><code>@nestjs/*</code> and <code>serialport</code> in package.json are for the bundled payment agent, not for the app.</li>
+  <li>Some code comments say night sync is at 02:00 — it is really <b>00:00</b> (<code>NightSyncScheduler.ts</code>).</li>
+  <li>The home screen does not reset on idle if it's already on home: any popup on the home screen must close itself (<code>useInactivityReset</code>).</li>
+  <li>Camera AI (MediaPipe) is bundled offline in <code>resources/mediapipe</code> and served via <code>appres://</code>; refresh with <code>npm run vendor:mediapipe</code>.</li>
+  <li>Never commit <code>.env</code>, <code>secrets/</code>, or photos.</li>
+</ul>
+
+</body>
+</html>

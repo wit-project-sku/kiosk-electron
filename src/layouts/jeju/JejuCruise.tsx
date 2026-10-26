@@ -1,5 +1,5 @@
 /**
- * 제주국제여객터미널 (W007) 운항정보 — the ferry sailing board behind the home
+ * 제주국제여객터미널 (W009) 운항정보 — the ferry sailing board behind the home
  * screen's 크루즈 운항 tile.
  *
  * Figma 여객터미널 > 운항정보 - 출발 (6420:23807) and - 도착 (6420:23892).

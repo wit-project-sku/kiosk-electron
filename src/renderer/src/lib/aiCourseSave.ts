@@ -101,7 +101,11 @@ export const AI_COURSE_SAVE_ORIGIN =
  */
 export const QR_TRAVEL_BUDGET = 300;
 
-/** The kiosk the phone assumes when `k` is absent — 제주국제공항. */
+/**
+ * Value omitted from the QR when it matches. direction-fe still reads a missing
+ * `k` as 6, which is the office rig (WITH-I-001), not 제주공항 (8). Leaving this
+ * at 6 means W008/W009/W010 always send `k`.
+ */
 const DEFAULT_KIOSK = 6;
 
 /**
@@ -150,7 +154,7 @@ export function buildAiCourseSaveUrlForQr(
      * off the kiosk glass (see `.qr` in JejuAiDetail.module.css). So a value the
      * phone would assume anyway is left out: direction-fe's parseAiCourseParams
      * reads a missing `c` as A, `t` as CAR, `p` as 1, `n` as 0, `lang` as ko and
-     * `k` as 6. `v` (the visit date) is not sent at all — the phone never reads it.
+     * `k` as 6 (the office rig, not 제주공항). `v` (the visit date) is not sent at all — the phone never reads it.
      */
     const q = new URLSearchParams();
     const party = Math.max(1, Math.round(input.party || 1));

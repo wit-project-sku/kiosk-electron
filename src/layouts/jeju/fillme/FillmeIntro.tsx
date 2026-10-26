@@ -1,7 +1,8 @@
-import type { JSX } from 'react';
+import type { JSX, ReactNode } from 'react';
 import { Icon } from './Icon';
 import { fillmeArtUrl } from '@renderer/assets/fillme';
 import { useLang } from '@renderer/lib/i18n';
+import type { Lang } from '@renderer/lib/i18n';
 import { tx, tLines } from './text';
 import ui from './fillmeUi.module.css';
 import styles from './FillmeIntro.module.css';
@@ -23,6 +24,36 @@ interface Props {
   onStart: () => void;
 }
 
+/**
+ * 제목에서 주황으로 칠할 말 — 시안(7377:155064)의 '영양 상태'. 여덟 언어 모두 시트
+ * 문장(Fillme_text002) 안에 같은 뜻의 말이 그대로 들어 있어 그것을 찾아 칠한다.
+ * 시트 문장이 바뀌어 말을 못 찾으면 칠하지 않고 그대로 둔다.
+ */
+const TITLE_EMPHASIS: Partial<Record<Lang, string>> = {
+  ko: '영양 상태',
+  en: 'nutritional status',
+  ja: '栄養状態',
+  zh: '营养状况',
+  zh_cn: '营养状况',
+  vi: 'tình trạng dinh dưỡng',
+  th: 'ภาวะโภชนาการ',
+  ru: 'статус питания',
+  id: 'status nutrisi',
+};
+
+function emphasize(line: string, lang: Lang): ReactNode {
+  const word = TITLE_EMPHASIS[lang];
+  const at = word ? line.indexOf(word) : -1;
+  if (!word || at < 0) return line;
+  return (
+    <>
+      {line.slice(0, at)}
+      <em>{word}</em>
+      {line.slice(at + word.length)}
+    </>
+  );
+}
+
 /** 시작 화면 — Figma 7212:66398. 좌표와 시안과 다른 곳은 스타일시트 머리말 참고. */
 export function FillmeIntro({ onStart }: Props): JSX.Element {
   const lang = useLang();
@@ -38,13 +69,12 @@ export function FillmeIntro({ onStart }: Props): JSX.Element {
             {/* 시안에서도 로고 그림이 아니라 글자다 (ExtraBold 50 #2644da). */}
             <span className={styles.brand}>Fillme</span>
           </div>
-          {/* 시안의 <em>영양 상태</em> 강조는 한국어 문장 속 한 낱말이라 여덟 개
-              언어로 따라갈 수 없다 — 시트는 줄만 나눠 준다. 줄바꿈 자리도 시트가
-              정한다(셀 안 줄바꿈은 U+2028 로 실린다 — text.ts 참고). */}
+          {/* 줄바꿈 자리는 시트가 정한다(text.ts 참고). '영양 상태' 강조는
+              TITLE_EMPHASIS 가 언어마다 찾아 칠한다. */}
           <h2 className={styles.title}>
             {tLines('Fillme_text002', lang).map((line, i) => (
               <span key={i} className={styles.line}>
-                {line}
+                {emphasize(line, lang)}
               </span>
             ))}
           </h2>

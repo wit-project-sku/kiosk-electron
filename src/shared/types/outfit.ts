@@ -27,6 +27,11 @@ export interface KioskOutfit extends OutfitCategoryLabels {
   /** Remote card image (webp). Shown directly, like shop and banner images. */
   imageUrl: string;
   /**
+   * The API's remote url, set only when `imageUrl` was rewritten to a local
+   * `media://remote/` mirror — so a selection log can name the real image.
+   */
+  sourceImageUrl?: string;
+  /**
    * ★ The INTERNAL slug, e.g. "global_5.7" — NOT the caption. It is the
    * operator's filing name: category code plus outfit code, in one language,
    * and it is what the admin web lists rows by. The visitor sees `label*`.
@@ -59,7 +64,7 @@ export interface KioskOutfit extends OutfitCategoryLabels {
   /** Set only for SCHOOL_UNIFORM. */
   schoolId: number | null;
   gender: OutfitGender;
-  /** Kiosks this outfit is assigned to (DB kiosk ids, W006 → 6). */
+  /** Kiosks this outfit is assigned to (DB kiosk ids, W008 → 8). */
   kioskIds: number[];
 }
 

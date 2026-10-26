@@ -2,8 +2,8 @@
  * 제주 '제주' 뭐하지 (AI 검색) course recommendation —
  * `POST /api/jeju/courses/recommend`.
  *
- * 제주 only. The API answers for kiosk 6 (제주국제공항), 7 (제주항 여객터미널) and
- * 8 (세계자연유산본부) and 400s anything else; 인사동·오색·화성 do not use it at
+ * 제주 only. The API answers for kiosk 8 (제주국제공항), 9 (제주항 여객터미널) and
+ * 10 (세계자연유산본부) and 400s anything else; 인사동·오색·화성 do not use it at
  * all — they still assemble a course out of `/api/shops` in the renderer.
  *
  * 제주 is separate because the constraints are: the islands need a ferry, the
