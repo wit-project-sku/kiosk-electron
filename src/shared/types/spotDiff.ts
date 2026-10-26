@@ -1,5 +1,5 @@
 /**
- * 틀린그림찾기 (spot-the-difference) — the mini-game 제주공항 (W006) plays on the
+ * 틀린그림찾기 (spot-the-difference) — the mini-game 제주공항 (W008) plays on the
  * touch screen while the AR 한복 photo is generating.
  *
  * ── Why the coordinates are normalized ────────────────────────────────

@@ -60,16 +60,16 @@ const NEW_LANG_COLS: Record<KioskLayoutId, Array<{ lang: SupportedLanguage; inde
  * Layouts whose Localization tab is SHARED with another venue, and the mascot
  * names that tell the rows apart.
  *
- * Localization_Jeju_v2 serves 제주국제공항 W006 / 제주국제여객터미널 W007 (both mascot
- * 하영) and 세계자연유산본부 W008 (mascot 유산) from one tab — the sheet is titled
+ * Localization_Jeju_v2 serves 제주국제공항 W008 / 제주국제여객터미널 W009 (both mascot
+ * 하영) and 세계자연유산본부 W010 (mascot 유산) from one tab — the sheet is titled
  * "#W6~8=제주_전체데이터" — so seven keys appear twice. Without this, last-wins gives
  * a 하영 machine the 유산 rows and the kiosk shows "안녕 '유산'", "도와줘 '유산'",
  * "사진촬영 (with '유산')".
  *
- * The scoring is keyed by LAYOUT, so W006 and W007 are covered by the one
+ * The scoring is keyed by LAYOUT, so W008 and W009 are covered by the one
  * JEJU_AIRPORT entry — they are the same venue as far as this sheet is concerned.
- * JEJU_HERITAGE (W008) is the same tab with the mascots the other way round —
- * that asymmetry is the whole reason W008 has its own layout id.
+ * JEJU_HERITAGE (W010) is the same tab with the mascots the other way round —
+ * that asymmetry is the whole reason W010 has its own layout id.
  *
  * The `설명, 비고` column looks like the obvious discriminator and is not usable:
  * it is SWAPPED on NoticeContent (the row marked 제주공항 carries YUSAN in all
@@ -143,7 +143,7 @@ function matchCase(sample: string, replacement: string): string {
  * still say HAYOUNG in 18 cells: every non-Korean cell of MainButton_Greeting
  * ("Hello 'HAYOUNG'"), three of MainButton_ToHelp, and ALL EIGHT of
  * NoticeContent — whose Korean names HAYOUNG on both rows, so 제주공항 shows it
- * too. Without this a W008 kiosk headed 안녕 '유산' greets its visitors in
+ * too. Without this a W010 kiosk headed 안녕 '유산' greets its visitors in
  * English as "Hello 'HAYOUNG'".
  *
  * Scoped by construction rather than by a key list: on a 유산 kiosk the string

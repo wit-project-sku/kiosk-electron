@@ -3,7 +3,7 @@
 Estimates a visitor's height from a **ZED 2i** while the 제주 photo flow is
 taking their picture, and reports it to the kiosk app as an anonymous number.
 
-**제주 only** (W006 제주공항, W007 제주국제여객터미널, W008 세계자연유산본부). The app spawns
+**제주 only** (W008 제주공항, W009 제주국제여객터미널, W010 세계자연유산본부). The app spawns
 this only where `isJejuLayout()` is true.
 
 ## What it is not

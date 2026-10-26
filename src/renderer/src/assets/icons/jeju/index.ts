@@ -1,5 +1,5 @@
 /**
- * Resolver for 제주공항 (W006) icon/illustration art exported from Figma.
+ * Resolver for 제주공항 (W008) icon/illustration art exported from Figma.
  *
  * Drop PNG or SVG exports into this folder. Files are picked up automatically
  * via Vite's glob import — the build never breaks if some are missing;

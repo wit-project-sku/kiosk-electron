@@ -27,19 +27,19 @@ export type CustomerDisplayMode =
   | 'slideshow';
 
 /**
- * 제주 (W006) 손동작 게이트 — who is driving the capture countdown.
+ * 제주 (W008) 손동작 게이트 — who is driving the capture countdown.
  *
  * Every other location starts counting the instant the visitor presses the
  * capture button, which is the wrong moment: they still have to walk back far
  * enough to fit in frame, and the count is already running while they do it.
  * 제주 hands the trigger to the visitor instead — the camera screen watches for
- * an open palm to start and a closed fist to hold — so the 10 seconds are 10
- * seconds of posing rather than 10 seconds of walking.
+ * an open palm to start — so the 10 seconds are 10 seconds of posing rather
+ * than 10 seconds of walking.
  *
  *  'off'     — no gate; the countdown was started directly (all non-제주 flows).
  *  'waiting' — armed, camera live, nothing counting yet. Show the gesture guide.
  *  'running' — counting down.
- *  'held'    — a fist paused it; `countdown` keeps the value it stopped at.
+ *  'held'    — the count is frozen; `countdown` keeps the value it stopped at.
  *
  * The gate lives in main (next to the countdown timer it controls) rather than
  * on Monitor 2, because both screens have to agree on it: Monitor 2 reads it to

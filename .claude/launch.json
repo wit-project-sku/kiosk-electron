@@ -32,6 +32,21 @@
       ],
       "port": 5174,
       "autoPort": false
+    },
+    {
+      "name": "demo-outfit",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": [
+        "--prefix",
+        "C:/Users/isroi/OneDrive/Desktop/demo-outfit",
+        "run",
+        "dev",
+        "--",
+        "--port",
+        "3100"
+      ],
+      "port": 3100,
+      "autoPort": false
     }
   ]
 }

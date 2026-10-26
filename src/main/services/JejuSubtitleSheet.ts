@@ -4,7 +4,7 @@
  * ── Why a sheet at all ──────────────────────────────────────────────────────
  * Every other venue's second-monitor clip map comes from the CMS
  * (`/api/kiosks/{n}/subtitles`), and so does 제주's once its rows are
- * published. Until then the production endpoint answers 제주 (W006–W008) with
+ * published. Until then the production endpoint answers 제주 (W008–W010) with
  * zero rows, and a customer display with no rows cannot follow the touch screen
  * at all: it falls back to the generic reel, which advances only when a clip
  * ends and reads as "the video switches late". The operators author those rows
@@ -27,10 +27,10 @@ import type { KioskLayoutId } from '@shared/types/kiosk';
 import type { SubtitleLangText, VideoEntry, VideoSet } from '@shared/types/subtitle';
 
 /**
- * The VideoSubtitle tab each 제주 layout reads. W006 제주공항 and W007
+ * The VideoSubtitle tab each 제주 layout reads. W008 제주공항 and W009
  * 제주국제여객터미널 share JEJU_AIRPORT and one tab — each row is kept only where
  * its video file is on that machine (or where `비디오 폴더명` names that venue).
- * W008 has its own mascot and tab, which carries no file names yet, so it
+ * W010 has its own mascot and tab, which carries no file names yet, so it
  * yields nothing until one is filled in.
  */
 export const JEJU_SUBTITLE_TABS: Partial<Record<KioskLayoutId, string>> = {

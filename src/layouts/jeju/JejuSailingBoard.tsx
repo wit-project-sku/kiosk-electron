@@ -1,5 +1,5 @@
 /**
- * 제주국제여객터미널 (W007) home 운항 정보 board.
+ * 제주국제여객터미널 (W009) home 운항 정보 board.
  *
  * Counterpart to JejuFlightBoard: one lead departure row with the six sailing
  * columns (출발시각 · 소요시간 · 선박명 · 항로 · 출발장소 · 현황).

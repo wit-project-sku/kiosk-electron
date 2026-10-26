@@ -1,7 +1,7 @@
 /**
  * 게스트 분석 결과(api.ts) → 결과 화면(FillmeResult)이 그리는 모양.
  *
- * API 는 healthStatus · fingerScores · fingerCroppedImages 를 JSON 문자열로 준다.
+ * API 는 healthStatus · fingerScores 를 JSON 문자열로 준다.
  * 깨진 문자열 하나가 결과 화면 전체를 막으면 안 되므로 푸는 일은 전부 여기서,
  * 실패하면 그 칸만 비운다.
  */
@@ -36,10 +36,11 @@ export interface Solution {
 
 export interface ResultView {
   healthScore?: number;
-  /** 손가락별 잘라낸 손톱 사진, 손가락 순. */
-  nailImages: string[];
-  /** 그래프 탭마다 손가락 순 점수(0–100). x 축 1…10 은 손가락이다. */
-  fingerScores: Partial<Record<NailCategory, number[]>>;
+  /**
+   * 그래프 탭마다 손가락 10칸의 점수(0–100). x 축 1…10 은 손가락이다.
+   * 점수가 없는 손가락은 null — 뒤 손가락이 앞으로 당겨지지 않게 자리를 지킨다.
+   */
+  fingerScores: Partial<Record<NailCategory, (number | null)[]>>;
   /** 전체 진단 문장 (content). */
   comment?: string;
   solutions: Solution[];
@@ -73,12 +74,40 @@ function parseJson(raw: string | null | undefined): Record<string, unknown> | nu
   }
 }
 
-/** {"0": …, "1": …} 의 값을 손가락 번호 순으로. */
-function byFinger(obj: Record<string, unknown>): unknown[] {
-  return Object.keys(obj)
-    .filter((k) => /^\d+$/.test(k))
-    .sort((a, b) => Number(a) - Number(b))
-    .map((k) => obj[k]);
+export const FINGER_COUNT = 10;
+
+/**
+ * 손가락 1…10 막대 색 — 종합분석 결과 시안(8240:44779…44797)의 파스텔, 순서대로.
+ * 진단 아이콘 바탕색과는 다른 묶음이다. 결과 화면과 휴대폰 이미지가 같이 쓴다.
+ */
+export const FINGER_BAR_COLORS = ['#dcf6f7', '#dcf6f7', '#e6e4f9', '#fbe6d9', '#eeeef0', '#e6e4f9', '#dcf6f7', '#f3e2ed', '#dcf3f7', '#f1fad9'];
+
+/**
+ * {"0": …, "1": …} → 손가락 10칸. 칸은 키의 번호로 정한다 — 손가락 하나를 못
+ * 찾아 키가 빠져도 나머지가 제자리에 남는다(배열 순서로 채우면 뒤가 당겨져 9 · 10
+ * 칸이 빈다). 키는 0…9 가 문서 모양이고, 10 이 있고 0 이 없으면 1…10 으로 본다.
+ */
+function byFinger(obj: Record<string, unknown>): (Record<string, unknown> | null)[] {
+  const keys = Object.keys(obj).filter((k) => /^\d+$/.test(k));
+  const base = keys.includes(String(FINGER_COUNT)) && !keys.includes('0') ? 1 : 0;
+  const slots: (Record<string, unknown> | null)[] = Array.from({ length: FINGER_COUNT }, () => null);
+  for (const k of keys) {
+    const i = Number(k) - base;
+    const f = obj[k];
+    if (i >= 0 && i < FINGER_COUNT && f && typeof f === 'object') slots[i] = f as Record<string, unknown>;
+  }
+  return slots;
+}
+
+/**
+ * 손가락 한 개의 점수 — 키의 대소문자(Average / average)와 숫자 문자열("85.3")을
+ * 너그럽게 받는다. 문서의 예시와 실제 응답이 어긋나도 탭이 비지 않게.
+ */
+function scoreOf(finger: Record<string, unknown>, key: string): number | null {
+  const k = key in finger ? key : Object.keys(finger).find((x) => x.toLowerCase() === key.toLowerCase());
+  const raw = k == null ? undefined : finger[k];
+  const n = typeof raw === 'number' ? raw : typeof raw === 'string' && raw.trim() ? Number(raw) : NaN;
+  return Number.isFinite(n) ? n : null;
 }
 
 /**
@@ -102,17 +131,18 @@ export function toResultView(result: AnalysisResult): ResultView {
   const scores = parseJson(result.fingerScores);
   const fingerScores: ResultView['fingerScores'] = {};
   if (scores) {
-    const fingers = byFinger(scores).filter((f): f is Record<string, unknown> => !!f && typeof f === 'object');
+    const fingers = byFinger(scores);
     for (const [cat, key] of Object.entries(SCORE_KEY) as [NailCategory, string][]) {
-      const values = fingers.map((f) => f[key]).filter((v): v is number => typeof v === 'number' && Number.isFinite(v));
-      if (values.length) fingerScores[cat] = values;
+      const values = fingers.map((f) => (f ? scoreOf(f, key) : null));
+      if (values.some((v) => v != null)) fingerScores[cat] = values;
+    }
+    // 탭은 여섯 개가 늘 보인다 — 빈 탭 · 빈 칸이 생기면 API 가 실제로 준 모양을 남겨 둔다.
+    const missing = (Object.keys(SCORE_KEY) as NailCategory[]).filter((c) => !fingerScores[c]);
+    const absent = fingers.flatMap((f, i) => (f ? [] : [i + 1]));
+    if (missing.length || absent.length) {
+      console.warn('[fillme] fingerScores: empty tabs', missing, '· fingers without scores', absent, '· raw keys', Object.keys(scores), '· finger keys', Object.keys(fingers.find(Boolean) ?? {}));
     }
   }
-
-  const images = parseJson(result.fingerCroppedImages);
-  const nailImages = images
-    ? byFinger(images).filter((u): u is string => typeof u === 'string' && /^https?:\/\//i.test(u))
-    : [];
 
   const solutions: Solution[] = (result.healthStatusDetails ?? [])
     .filter((d) => d && typeof d.id === 'number' && d.issue)
@@ -132,7 +162,6 @@ export function toResultView(result: AnalysisResult): ResultView {
   const score = result.healthScore;
   return {
     healthScore: typeof score === 'number' && Number.isFinite(score) ? score : undefined,
-    nailImages,
     fingerScores,
     comment: result.content || undefined,
     solutions,

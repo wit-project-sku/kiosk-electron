@@ -101,7 +101,7 @@ footfall counting, Jeju motion games, height measurement (Jeju, ZED camera).</p>
 │  │    InsadongLayout.tsx  insadong/   (W001, W002; W003 = NamInsadongLayout)
 │  │    OsanLayout.tsx      osan/       (W004 오색시장)
 │  │    HwaseongLayout.tsx  hwaseong/   (W005 화성휴게소)
-│  │    JejuLayout.tsx      jeju/       (W006 공항, W007 여객터미널, W008 세계자연유산)
+│  │    JejuLayout.tsx      jeju/       (W008 공항, W009 여객터미널, W010 세계자연유산)
 │  │    KadaLayout.tsx      kada/       (W202 Vietnam)
 │  │    photo/              shared AR photo screens     components/  shared widgets
 │  └─ shared/               used by BOTH sides
@@ -150,9 +150,9 @@ The UI never calls the internet directly; it asks main through <code>window.api<
   <tr><td>W003</td><td>남인사마당</td><td>NAM_INSADONG</td><td>yes</td></tr>
   <tr><td>W004</td><td>오산 오색시장</td><td>OSAN</td><td>yes</td></tr>
   <tr><td>W005</td><td>화성휴게소</td><td>HWASEONG</td><td>yes</td></tr>
-  <tr><td>W006</td><td>제주공항</td><td>JEJU_AIRPORT</td><td>yes</td></tr>
-  <tr><td>W007</td><td>제주국제여객터미널</td><td>JEJU_AIRPORT</td><td>yes</td></tr>
-  <tr><td>W008</td><td>세계자연유산본부</td><td>JEJU_HERITAGE</td><td>yes</td></tr>
+  <tr><td>W008</td><td>제주공항</td><td>JEJU_AIRPORT</td><td>yes</td></tr>
+  <tr><td>W009</td><td>제주국제여객터미널</td><td>JEJU_AIRPORT</td><td>yes</td></tr>
+  <tr><td>W010</td><td>세계자연유산본부</td><td>JEJU_HERITAGE</td><td>yes</td></tr>
   <tr><td>W202</td><td>KADA (Hà Nội, Vietnam)</td><td>KADA</td><td>no</td></tr>
 </table>
 <p>Source of truth: <code>src/shared/config/kioskLocations.ts</code> (features per location: card terminal, donation, coordinates, camera rotation…).</p>
@@ -185,7 +185,7 @@ The UI never calls the internet directly; it asks main through <code>window.api<
 <p>If the internet is down the kiosk keeps working on the last saved data. Nothing on screen waits for the network.</p>
 
 <h2>7. Google Sheets in detail</h2>
-<p>Each location family has <b>its own spreadsheet</b>: Insadong (W001–W003), Osaek (W004), Hwaseong (W005), Jeju (W006–W008). KADA has none (its text is in <code>layouts/kada/kadaText.ts</code>).
+<p>Each location family has <b>its own spreadsheet</b>: Insadong (W001–W003), Osaek (W004), Hwaseong (W005), Jeju (W008–W010). KADA has none (its text is in <code>layouts/kada/kadaText.ts</code>).
 The sheet IDs are in <code>GoogleSheetsSyncTransport.ts</code> (runtime) and <code>scripts/sync-sheet.mjs</code> (build time) — keep both in sync.</p>
 <h3>Two ways sheets are read</h3>
 <ol>
@@ -223,7 +223,7 @@ The sheet IDs are in <code>GoogleSheetsSyncTransport.ts</code> (runtime) and <co
 <table>
   <tr><th>Who</th><th>Schedule</th><th>Windows task name</th></tr>
   <tr><td>W001, W002, W003, W005, W202</td><td>Reboot every day at <b>02:00</b></td><td><code>KioskAutoRestart</code></td></tr>
-  <tr><td>W004, W006, W007, W008</td><td><b>Shut down 22:00</b>, start <b>08:00</b></td><td><code>KioskShutdownAt10PM</code>, <code>KioskStartAt8AM</code></td></tr>
+  <tr><td>W004, W008, W009, W010</td><td><b>Shut down 22:00</b>, start <b>08:00</b></td><td><code>KioskShutdownAt10PM</code>, <code>KioskStartAt8AM</code></td></tr>
   <tr><td>Beta build</td><td>Reboot every day at <b>09:00</b></td><td><code>KioskBetaAutoRestart</code></td></tr>
 </table>
 <div class="note"><b>Important:</b> Windows cannot turn on a PC that is fully powered off. For the 22:00/08:00 sites, set the motherboard
@@ -257,7 +257,7 @@ Changing it on a kiosk needs only an app restart. <b>Never commit it.</b></p>
   <tr><th colspan="3">Google Sheets</th></tr>
   <tr><td><code>GOOGLE_SHEETS_ID</code></td><td>On/off switch for the sheet sync (value itself not used)</td><td>yes</td></tr>
   <tr><td><code>GOOGLE_SERVICE_ACCOUNT_JSON</code></td><td>Path to the service-account file, e.g. <code>secrets/service-account.json</code></td><td>yes</td></tr>
-  <tr><th colspan="3">Card payment (only W003–W008, which have a terminal)</th></tr>
+  <tr><th colspan="3">Card payment (only W003–W010, which have a terminal)</th></tr>
   <tr><td><code>PAYMENT_HTTP_HOST</code> / <code>_PORT</code></td><td>Local payment server address (<code>127.0.0.1:8080</code>)</td><td>yes</td></tr>
   <tr><td><code>PAYMENT_CORS_ORIGINS</code></td><td>Web pages allowed to call it: the witteria store AND the Vercel donation app</td><td>yes</td></tr>
   <tr><td><code>PAYMENT_CENTRAL_BASE_URL</code>, <code>_AUTH_TOKEN</code>, <code>_TIMEOUT_MS</code></td><td>Central payment server</td><td>yes</td></tr>

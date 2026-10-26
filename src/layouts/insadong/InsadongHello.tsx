@@ -25,10 +25,6 @@ import styles from './InsadongHello.module.css';
 
 type Lang = SupportedLanguage;
 
-function pick<T>(map: Partial<Record<Lang, T>>, lang: Lang): T {
-  return (map[lang] ?? map.ko ?? (Object.values(map)[0] as T)) as T;
-}
-
 /** Sheet cells are one block with newlines. Each line is a row on the card. */
 function sheetLines(keys: readonly string[], lang: Lang): string[] {
   /* A few cells carry a typed backslash-n rather than a real line break
@@ -89,32 +85,6 @@ const HEALTH = [
   { title: 'Greeting_Healthy_Habit_Third', body: ['Greeting_Healthy_Habit_Third_Desc_1', 'Greeting_Healthy_Habit_Third_Desc_2'], image: stretch3 },
 ] as const;
 
-/**
- * The sheet has the card title and body, not these short switcher labels.
- * They are the inner-tab words drawn on the frames (K-POP / 골프 / 테니스 and
- * 목·어깨 / 허리 / 기분전환).
- */
-const HOBBY_NAV: Partial<Record<Lang, [string, string, string]>> = {
-  ko: ['K-POP', '골프', '테니스'],
-  en: ['K-POP', 'Golf', 'Tennis'],
-  ja: ['K-POP', 'ゴルフ', 'テニス'],
-  zh: ['K-POP', '高尔夫', '网球'],
-  vi: ['K-POP', 'Golf', 'Quần vợt'],
-  th: ['K-POP', 'กอล์ฟ', 'เทนนิส'],
-  ru: ['K-POP', 'Гольф', 'Теннис'],
-  id: ['K-POP', 'Golf', 'Tenis'],
-};
-const HEALTH_NAV: Partial<Record<Lang, [string, string, string]>> = {
-  ko: ['목·어깨', '허리', '기분전환'],
-  en: ['Neck & shoulders', 'Waist', 'Refresh'],
-  ja: ['首・肩', '腰', '気分転換'],
-  zh: ['颈·肩', '腰', '转换心情'],
-  vi: ['Cổ vai', 'Eo', 'Đổi không khí'],
-  th: ['คอและไหล่', 'เอว', 'เปลี่ยนอารมณ์'],
-  ru: ['Шея и плечи', 'Поясница', 'Настроение'],
-  id: ['Leher & bahu', 'Pinggang', 'Segarkan'],
-};
-
 const TAGS = ['Greeting_Tag1', 'Greeting_Tag2', 'Greeting_Tag3'] as const;
 const SOCIAL_LINKS = [
   { icon: tiktokIcon, qr: qrInsaTiktok },
@@ -143,35 +113,6 @@ function HelloFooter({ lang, wide }: { lang: Lang; wide: boolean }): JSX.Element
   );
 }
 
-function InnerNav({
-  labels,
-  index,
-  onPick,
-  low,
-}: {
-  labels: readonly string[];
-  index: number;
-  onPick: (i: number) => void;
-  low?: boolean;
-}): JSX.Element {
-  return (
-    <div className={low ? `${styles.hobbyNav} ${styles.hobbyNavLow}` : styles.hobbyNav}>
-      {labels.map((label, i) => (
-        <Fragment key={label}>
-          {i > 0 && <span className={styles.hobbyBar} aria-hidden="true">ㅣ</span>}
-          <button
-            type="button"
-            className={index === i ? styles.hobbyOn : ''}
-            onClick={() => onPick(i)}
-          >
-            {label}
-          </button>
-        </Fragment>
-      ))}
-    </div>
-  );
-}
-
 interface InsadongHelloProps {
   controller: KioskController;
   debug?: boolean;
@@ -187,34 +128,14 @@ export function InsadongHello({ controller }: InsadongHelloProps): JSX.Element {
   const tabsRef = useRef<HTMLDivElement>(null);
   const cardRef = useRef<HTMLDivElement>(null);
   const [tab, setTab] = useState(0);
-  const [hobby, setHobby] = useState(0);
-  const [health, setHealth] = useState(0);
 
   useEffect(() => {
-    /* One clip per sub-tab (VideoSubtitle_Insa_v2 재생조건: 취미생활 → k-pop / 골프 /
-       테니스, 건강습관 → 목·어깨 / 허리 / 기분전환). */
-    const key = tab === 1 ? `hello_hobby_${hobby + 1}` : tab === 2 ? `hello_stretch_${health + 1}` : 'hello';
+    const key = tab === 1 ? 'hello_hobby' : tab === 2 ? 'hello_stretch' : 'hello';
     void window.api.kiosk.setScreen(key);
-  }, [tab, hobby, health]);
+  }, [tab]);
 
   useFitText(tabsRef, styles.tab, wide, 0.72, TABS.map((key) => t(key, lang)).join('|'));
-  /* ONLY 인사 소개 is fitted, and only in the long languages.
-     취미생활 / 건강습관 are deliberately NOT: their copy varies a lot per tab —
-     골프 and 테니스 are six authored lines where 허리 is three — so fitting them
-     drew the same screen at 34px on one tab and 50px on the next, which reads
-     as broken rather than as a design. The card scrolls instead (see
-     `.hobbyCard` in the CSS) and every tab keeps the frame's own type size. */
-  useFitText(
-    cardRef,
-    tab === 0 ? styles.profileCard : styles.hobbyCard,
-    wide && tab === 0,
-    0.6,
-    `${lang}|${tab}|${hobby}|${health}`,
-    'height',
-  );
-
-  const hobbyItem = HOBBIES[hobby] ?? HOBBIES[0];
-  const healthItem = HEALTH[health] ?? HEALTH[0];
+  useFitText(cardRef, styles.profileCard, wide && tab === 0, 0.6, `${lang}|${tab}`, 'height');
 
   return (
     <>
@@ -293,51 +214,61 @@ export function InsadongHello({ controller }: InsadongHelloProps): JSX.Element {
         )}
 
         {tab === 1 && (
-          <>
-            <InnerNav labels={pick(HOBBY_NAV, lang)} index={hobby} onPick={setHobby} low={lowReach} />
-            <img
-              className={`${styles.hobbyPhoto} ${lowReach ? styles.hobbyPhotoLow : ''}`}
-              src={hobbyItem.image}
-              alt=""
-              draggable={false}
-            />
-            <div
-              ref={cardRef}
-              className={`${styles.hobbyCard} ${wide ? styles.cardLong : ''} ${lowReach ? styles.hobbyCardLow : ''}`}
-            >
-              <p className={styles.hobbyTitle}>{t(hobbyItem.title, lang)}</p>
-              <div className={styles.hobbyBody}>
-                {sheetLines(hobbyItem.body, lang).map((line, j) => (
-                  <span key={j}>{line}</span>
-                ))}
-              </div>
+          <div className={styles.stretchWrap}>
+            <div className={`${styles.card} ${styles.stackCard} ${wide ? styles.cardLong : ''}`}>
+              {HOBBIES.map((item, i) => (
+                <div key={item.title} className={`${styles.hobby} ${i % 2 === 1 ? styles.hobbyReverse : ''}`}>
+                  <div className={styles.hobbyText}>
+                    <p className={styles.hobbyTitle}>{t(item.title, lang)}</p>
+                    <div className={styles.hobbyBody}>
+                      {sheetLines(item.body, lang).map((line, j) => (
+                        <span key={j}>{line}</span>
+                      ))}
+                    </div>
+                  </div>
+                  <div className={styles.hobbyImg}>
+                    <img src={item.image} alt="" draggable={false} />
+                  </div>
+                </div>
+              ))}
               <HelloFooter lang={lang} wide={wide} />
             </div>
-          </>
+          </div>
         )}
 
-        {tab === 2 && (
-          <>
-            <InnerNav labels={pick(HEALTH_NAV, lang)} index={health} onPick={setHealth} low={lowReach} />
-            <img
-              className={`${styles.hobbyPhoto} ${styles.healthPhoto} ${lowReach ? styles.hobbyPhotoLow : ''}`}
-              src={healthItem.image}
-              alt=""
-              draggable={false}
-            />
-            <div
-              ref={cardRef}
-              className={`${styles.hobbyCard} ${wide ? styles.cardLong : ''} ${lowReach ? styles.hobbyCardLow : ''}`}
-            >
-              <p className={styles.hobbyTitle}>{t(healthItem.title, lang)}</p>
-              <div className={styles.hobbyBody}>
-                {sheetLines(healthItem.body, lang).map((line, j) => (
-                  <span key={j}>{line}</span>
+        {tab === 2 && HEALTH[0] && (
+          <div className={styles.stretchWrap}>
+            <div className={`${styles.card} ${styles.stackCard} ${wide ? styles.cardLong : ''}`}>
+              <div className={styles.stretchPhotos}>
+                {HEALTH.map((item) => (
+                  <div key={item.title} className={styles.stretchPhoto}>
+                    <img src={item.image} alt="" draggable={false} />
+                  </div>
+                ))}
+              </div>
+              <div className={styles.stretchIntro}>
+                <p className={styles.stretchIntroTitle}>{t(HEALTH[0].title, lang)}</p>
+                <div className={styles.stretchIntroBody}>
+                  {sheetLines(HEALTH[0].body, lang).map((line, j) => (
+                    <span key={j}>{line}</span>
+                  ))}
+                </div>
+              </div>
+              <div className={styles.stretchSections}>
+                {HEALTH.slice(1).map((item) => (
+                  <div key={item.title} className={styles.stretchSection}>
+                    <p className={styles.stretchSecTitle}>{t(item.title, lang)}</p>
+                    <div className={styles.stretchSecBody}>
+                      {sheetLines(item.body, lang).map((line, j) => (
+                        <span key={j}>{line}</span>
+                      ))}
+                    </div>
+                  </div>
                 ))}
               </div>
               <HelloFooter lang={lang} wide={wide} />
             </div>
-          </>
+          </div>
         )}
       </div>
 

@@ -64,7 +64,7 @@ export interface KioskOutfit extends OutfitCategoryLabels {
   /** Set only for SCHOOL_UNIFORM. */
   schoolId: number | null;
   gender: OutfitGender;
-  /** Kiosks this outfit is assigned to (DB kiosk ids, W006 → 6). */
+  /** Kiosks this outfit is assigned to (DB kiosk ids, W008 → 8). */
   kioskIds: number[];
 }
 

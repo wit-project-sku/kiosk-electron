@@ -54,13 +54,9 @@ const GEN_WAIT_SECS = 60;
  *  BLIND  — detection could not start at all. Short, because there is nothing
  *           to wait FOR — just long enough for the briefing to be read and for
  *           them to get clear of the kiosk.
- *  HELD   — a fist has been holding the count. Long enough for a real pause,
- *           short enough that a false positive (crossed arms, a hand in a coat
- *           pocket) cannot strand the session.
  */
 const GESTURE_WAIT_FALLBACK_MS = 30_000;
 const GESTURE_BLIND_FALLBACK_MS = 8_000;
-const GESTURE_HELD_FALLBACK_MS = 45_000;
 
 /** 결제 전 블러 미리보기 위에 덮는 안내 문구(기부 학교 흐름). */
 const LOCKED_RESULT_NOTICE = '기부를 완료해 주세요. 완료 후 사진을 다운로드할 수 있습니다.';
@@ -340,16 +336,12 @@ export function CustomerDisplay(): JSX.Element {
     enabled: gated && cameraEnabled,
   });
 
-  // Each transition is guarded on the gate main reports rather than on a local
-  // flag, so the visitor simply LEAVING their palm up after the count starts
-  // sends nothing: 'open' + 'running' matches no branch. Without that, a held
-  // pose would fire an IPC call on every stable frame.
+  // Only the open palm starts the count, and only while the gate is still
+  // waiting. A palm that stays up after the count is running matches nothing,
+  // so a held pose does not fire an IPC call on every stable frame.
   useEffect(() => {
-    if (gesture === 'open') {
-      if (gestureGate === 'waiting') void window.api.photo.beginCountdown();
-      else if (gestureGate === 'held') void window.api.photo.resumeCountdown();
-    } else if (gesture === 'fist' && gestureGate === 'running') {
-      void window.api.photo.holdCountdown();
+    if (gesture === 'open' && gestureGate === 'waiting') {
+      void window.api.photo.beginCountdown();
     }
   }, [gesture, gestureGate]);
 
@@ -363,14 +355,6 @@ export function CustomerDisplay(): JSX.Element {
     const timer = setTimeout(() => void window.api.photo.beginCountdown(), ms);
     return () => clearTimeout(timer);
   }, [gestureGate, gestureStatus]);
-
-  // Fallback out of 'held'. Unconditional: if detection died WHILE paused, the
-  // open palm that would release it can no longer be seen either.
-  useEffect(() => {
-    if (gestureGate !== 'held') return;
-    const timer = setTimeout(() => void window.api.photo.resumeCountdown(), GESTURE_HELD_FALLBACK_MS);
-    return () => clearTimeout(timer);
-  }, [gestureGate]);
 
   // A running motion game takes the WHOLE screen and every other branch below
   // is skipped. Returning early rather than layering it over the stage is
@@ -434,8 +418,8 @@ export function CustomerDisplay(): JSX.Element {
       )}
 
       {/* ── Camera / countdown ──
-          제주 draws the gesture-gated guide (dark header, palm/fist chips, live
-          feed with the pose outline) over its sideways-mounted camera. It ran
+          제주 draws the gesture-gated guide (dark header, hand icon, footprint
+          arc) over its sideways-mounted camera. It ran
           fleet-wide for a couple of days (2026-08-24 → 08-26) but the other
           venues' cameras are mounted upright and their design is the legacy
           screen below, so the per-location branch is back. */}

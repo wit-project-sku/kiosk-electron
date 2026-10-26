@@ -1,17 +1,6 @@
 /**
- * 제주 게임 — the menu the AR wait opens on.
- *
- * ── Why a menu at all ─────────────────────────────────────────────────
- * The wait used to drop straight into 틀린그림찾기. One game is a good minute
- * for the visitor it suits and a dead minute for everyone else, and there is no
- * way for them to say so. A menu costs one tap and turns the wait into a choice.
- *
- * ── One list, and each row says how it is played ──────────────────────
- * The two games are two very different postures — a finger on the glass, or a
- * camera watching your hand — and that choice has to be deliberate. It used to
- * be carried by section headings, an orange camera badge and a tinted edge.
- * Now each row states it once, as a plain label with an icon, which says the
- * same thing with a third of the furniture.
+ * 제주 게임 — the card menu. The AR wait does not open on this screen; it
+ * opens straight into 틀린그림찾기. The jump game is not listed.
  *
  * ── The photo is always on screen ─────────────────────────────────────
  * The status line under the list is the only non-game element, and it is not
@@ -30,7 +19,7 @@ import { MOTION } from './motion/motionText';
 import { sfx } from './gameSound';
 import { GameShell } from './components/GameShell';
 import { GameButton } from './components/GameButton';
-import { CameraIcon, ChevronIcon, RunIcon, SpotDiffIcon, TouchIcon } from './components/GameIcons';
+import { CameraIcon, ChevronIcon, SpotDiffIcon, TouchIcon } from './components/GameIcons';
 import { useJejuPointsStore, useJejuPointsTotal } from './jejuPointsStore';
 import styles from './JejuGameHub.module.css';
 
@@ -43,10 +32,9 @@ interface Props {
   onSeePhoto: () => void;
 }
 
-/** Menu order. Touch first: it asks nothing of the visitor but a tap. */
+/** Menu order. The jump game (jeju-run) is not offered. */
 const GAMES: { id: JejuGameId; Icon: ComponentType<{ size?: number }> }[] = [
   { id: 'spotdiff', Icon: SpotDiffIcon },
-  { id: 'jeju-run', Icon: RunIcon },
 ];
 
 export function JejuGameHub({

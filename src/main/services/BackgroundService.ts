@@ -39,7 +39,7 @@ const DEFAULT_API_BASE = 'https://api-v3.witteria.com';
  *                         segment is still appended)
  *   WITTERIA_API_BASE   — shared API base, default https://api-v3.witteria.com
  *
- * The per-kiosk endpoint id comes from KioskService.kioskNum() (W006 → 6), NOT
+ * The per-kiosk endpoint id comes from KioskService.kioskNum() (W008 → 8), NOT
  * from the shop-only `shopApiKioskId` — see the note there.
  */
 export class BackgroundService {

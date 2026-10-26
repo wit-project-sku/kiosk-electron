@@ -561,7 +561,6 @@ export function JejuFillme({ controller }: Props): JSX.Element {
         {screen === 'result' && result && (
           <FillmeResult
             result={result}
-            photos={[shotUrls.left, shotUrls.right].filter((u): u is string => !!u)}
             share={share}
             onRetryShare={() => void makeShare(result)}
             onHome={resetAll}

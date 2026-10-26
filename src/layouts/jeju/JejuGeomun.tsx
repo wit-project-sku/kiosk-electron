@@ -1,6 +1,6 @@
 /**
  * 거문오름 예약 — Figma 6935:69555 (거문오름 소개) / 6935:69554 (탐방 안내).
- * The page behind W008's 거문오름 예약 home tile (2026-09 redesign, home
+ * The page behind W010's 거문오름 예약 home tile (2026-09 redesign, home
  * 6792:126444).
  *
  * Three tabs on the shared JejuTabRow (the frames draw exactly its 580×170

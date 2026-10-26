@@ -100,7 +100,7 @@ QR로 받는 AR 한복 포토부스, 카드 결제가 되는 기부/상점 웹�
 │  │    InsadongLayout.tsx  insadong/   (W001, W002 / W003은 NamInsadongLayout)
 │  │    OsanLayout.tsx      osan/       (W004 오색시장)
 │  │    HwaseongLayout.tsx  hwaseong/   (W005 화성휴게소)
-│  │    JejuLayout.tsx      jeju/       (W006 공항, W007 여객터미널, W008 세계자연유산)
+│  │    JejuLayout.tsx      jeju/       (W008 공항, W009 여객터미널, W010 세계자연유산)
 │  │    KadaLayout.tsx      kada/       (W202 베트남)
 │  │    photo/  공용 AR 사진 화면       components/  공용 위젯
 │  └─ shared/               양쪽(메인/화면)에서 함께 사용
@@ -149,9 +149,9 @@ QR로 받는 AR 한복 포토부스, 카드 결제가 되는 기부/상점 웹�
   <tr><td>W003</td><td>남인사마당</td><td>NAM_INSADONG</td><td>있음</td></tr>
   <tr><td>W004</td><td>오산 오색시장</td><td>OSAN</td><td>있음</td></tr>
   <tr><td>W005</td><td>화성휴게소</td><td>HWASEONG</td><td>있음</td></tr>
-  <tr><td>W006</td><td>제주공항</td><td>JEJU_AIRPORT</td><td>있음</td></tr>
-  <tr><td>W007</td><td>제주국제여객터미널</td><td>JEJU_AIRPORT</td><td>있음</td></tr>
-  <tr><td>W008</td><td>세계자연유산본부</td><td>JEJU_HERITAGE</td><td>있음</td></tr>
+  <tr><td>W008</td><td>제주공항</td><td>JEJU_AIRPORT</td><td>있음</td></tr>
+  <tr><td>W009</td><td>제주국제여객터미널</td><td>JEJU_AIRPORT</td><td>있음</td></tr>
+  <tr><td>W010</td><td>세계자연유산본부</td><td>JEJU_HERITAGE</td><td>있음</td></tr>
   <tr><td>W202</td><td>KADA (베트남 하노이)</td><td>KADA</td><td>없음</td></tr>
 </table>
 <p>기준 파일: <code>src/shared/config/kioskLocations.ts</code> (장소별 기능: 카드 단말기, 기부, 좌표, 카메라 회전 등).</p>
@@ -184,7 +184,7 @@ QR로 받는 AR 한복 포토부스, 카드 결제가 되는 기부/상점 웹�
 <p>인터넷이 끊겨도 마지막으로 저장된 데이터로 계속 동작합니다. 화면이 네트워크를 기다리며 멈추는 일은 없습니다.</p>
 
 <h2>7. 구글 시트 상세</h2>
-<p>장소 계열마다 <b>스프레드시트가 따로</b> 있습니다: 인사동(W001~W003), 오색(W004), 화성(W005), 제주(W006~W008). KADA는 시트가 없습니다(문구는 <code>layouts/kada/kadaText.ts</code>에 있음).
+<p>장소 계열마다 <b>스프레드시트가 따로</b> 있습니다: 인사동(W001~W003), 오색(W004), 화성(W005), 제주(W008~W010). KADA는 시트가 없습니다(문구는 <code>layouts/kada/kadaText.ts</code>에 있음).
 시트 ID는 <code>GoogleSheetsSyncTransport.ts</code>(실행 중 사용)와 <code>scripts/sync-sheet.mjs</code>(빌드 시 사용) 두 곳에 있으니 항상 같이 수정해야 합니다.</p>
 <h3>시트를 읽는 두 가지 방식</h3>
 <ol>
@@ -222,7 +222,7 @@ QR로 받는 AR 한복 포토부스, 카드 결제가 되는 기부/상점 웹�
 <table>
   <tr><th>대상</th><th>스케줄</th><th>Windows 작업 이름</th></tr>
   <tr><td>W001, W002, W003, W005, W202</td><td>매일 <b>02:00 재부팅</b></td><td><code>KioskAutoRestart</code></td></tr>
-  <tr><td>W004, W006, W007, W008</td><td><b>22:00 종료</b>, <b>08:00 시작</b></td><td><code>KioskShutdownAt10PM</code>, <code>KioskStartAt8AM</code></td></tr>
+  <tr><td>W004, W008, W009, W010</td><td><b>22:00 종료</b>, <b>08:00 시작</b></td><td><code>KioskShutdownAt10PM</code>, <code>KioskStartAt8AM</code></td></tr>
   <tr><td>베타 빌드</td><td>매일 <b>09:00 재부팅</b></td><td><code>KioskBetaAutoRestart</code></td></tr>
 </table>
 <div class="note"><b>중요:</b> Windows는 완전히 꺼진 PC를 켤 수 없습니다. 22:00/08:00 장소는 메인보드
@@ -256,7 +256,7 @@ PC에서 확인하려면 <i>작업 스케줄러</i>에서 위 작업 이름을 �
   <tr><th colspan="3">구글 시트</th></tr>
   <tr><td><code>GOOGLE_SHEETS_ID</code></td><td>시트 동기화 켜기/끄기 스위치 (값 자체는 사용 안 함)</td><td>필수</td></tr>
   <tr><td><code>GOOGLE_SERVICE_ACCOUNT_JSON</code></td><td>서비스 계정 파일 경로, 예: <code>secrets/service-account.json</code></td><td>필수</td></tr>
-  <tr><th colspan="3">카드 결제 (단말기가 있는 W003~W008만)</th></tr>
+  <tr><th colspan="3">카드 결제 (단말기가 있는 W003~W010만)</th></tr>
   <tr><td><code>PAYMENT_HTTP_HOST</code> / <code>_PORT</code></td><td>로컬 결제 서버 주소 (<code>127.0.0.1:8080</code>)</td><td>필수</td></tr>
   <tr><td><code>PAYMENT_CORS_ORIGINS</code></td><td>결제 서버를 호출할 수 있는 웹페이지: witteria 상점 + Vercel 기부 앱 둘 다</td><td>필수</td></tr>
   <tr><td><code>PAYMENT_CENTRAL_BASE_URL</code>, <code>_AUTH_TOKEN</code>, <code>_TIMEOUT_MS</code></td><td>중앙 결제 서버</td><td>필수</td></tr>

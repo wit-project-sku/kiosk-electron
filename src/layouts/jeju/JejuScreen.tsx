@@ -1,5 +1,5 @@
 /**
- * SCAFFOLD page for 제주공항 (W006) screens whose Figma frame is not built yet.
+ * SCAFFOLD page for 제주공항 (W008) screens whose Figma frame is not built yet.
  *
  * It is real chrome — JejuPageFrame gives it the correct sub-page background,
  * header, left nav and banner — with a 준비중 body. Replace screen by screen:
@@ -38,7 +38,7 @@ const SCREEN_LABELS: Partial<Record<KioskScreenId, string>> = {
   localpay: '지역화폐',
   market: '위드마켓',
   events: '제주도 이벤트',
-  // W008 세계자연유산본부's one 2026-09 home tile (Figma 6792:126444) still
+  // W010 세계자연유산본부's one 2026-09 home tile (Figma 6792:126444) still
   // scaffolded — 제주세계유산 and 거문오름 예약 have their real pages now
   // (JejuHeritage / JejuGeomun).
   heritage_center: '제주세계유산센터',

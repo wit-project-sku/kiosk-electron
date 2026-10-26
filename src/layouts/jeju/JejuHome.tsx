@@ -1,5 +1,5 @@
 /**
- * 제주공항 (W006) home — Figma node 6439:71456 (제주>홈), the 2026-08-24 redesign
+ * 제주공항 (W008) home — Figma node 6439:71456 (제주>홈), the 2026-08-24 redesign
  * of 6117:48085.
  *
  * Built from the real node via get_design_context; every position/size in
@@ -156,7 +156,7 @@ const noticeText = (lang: Lang): string => {
  * MainButton_Greeting and MainButton_ToHelp used to render "안녕 '유산'" and
  * "도와줘 '유산'" here. That was NOT stale sheet data: Localization_Jeju is one
  * tab shared by 제주공항 and 제주유산문화센터, so both keys carry two rows and a
- * last-wins parser handed W006 the 유산 one. Both parsers now break the tie on
+ * last-wins parser handed W008 the 유산 one. Both parsers now break the tie on
  * the mascot name — see LocalizationSyncParser.VENUE_MASCOTS and
  * sync-sheet.mjs jejuVenueScore. Nothing is overridden on this side.
  */
@@ -395,12 +395,12 @@ interface Tile {
 /**
  * The one grid slot that differs between the two 제주 venues — row 2, column 4.
  *
- * 제주공항 W006 draws 렌트카; 제주국제여객터미널 W007 draws 크루즈 운항, which opens
+ * 제주공항 W008 draws 렌트카; 제주국제여객터미널 W009 draws 크루즈 운항, which opens
  * the ferry sailing board (JejuCruise). Everything else on the two homes is
  * identical, so this is the whole of the per-venue difference.
  *
  * Verified against the live CMS on 2026-08-24: `/api/kiosks/7/buttons` is
- * byte-for-byte W006's 21 rows with exactly this one changed (id 163, line 6
+ * byte-for-byte W008's 21 rows with exactly this one changed (id 163, line 6
  * position 4), and the terminal's Figma home 6457:116495 draws a ship in the
  * same cell.
  *
@@ -414,7 +414,7 @@ const CRUISE_TILE: Tile = { screen: 'cruise', label: '크루즈 운항', sub: '�
 
 /**
  * The 안녕/도와줘 tiles carry the venue's MASCOT in their analytics labels, so
- * they too are per-venue: W006/W007's CMS rows read 하영, W008's read 유산
+ * they too are per-venue: W008/W009's CMS rows read 하영, W010's read 유산
  * (`/api/kiosks/8/buttons` ids 182/183, verified 2026-08-24). Like the venue
  * tile's label, these must stay byte-identical to the CMS `button_type`
  * (ASCII apostrophes); the label the visitor READS still comes from
@@ -459,7 +459,7 @@ const TILES_AIRPORT = tilesWith(RENTCAR_TILE);
 const TILES_TERMINAL = tilesWith(CRUISE_TILE);
 
 /**
- * W008 세계자연유산본부 — no longer W007's grid. The 2026-09 redesign (Figma
+ * W010 세계자연유산본부 — no longer W009's grid. The 2026-09 redesign (Figma
  * 6792:126444) dropped 숙박안내 / 크루즈 운항 / 지역화폐 and put three venue-own
  * tiles in their cells: 제주세계유산 (row 1), 거문오름 예약 (row 2 — the slot the
  * per-venue tile used to fill), 제주세계유산센터 (row 3, sliding 탐나오 to the
@@ -471,7 +471,7 @@ const TILES_TERMINAL = tilesWith(CRUISE_TILE);
  * three icons are the designer's exports with the plate baked in (same pattern as
  * every other tile-*.png). None of the three has a CMS `buttons` row or a
  * MainButton_* sheet key yet — until those land, clicks log label-only (see
- * buttonCatalog's W008 note) and the grid keeps this authored order.
+ * buttonCatalog's W010 note) and the grid keeps this authored order.
  *
  * heritage opens JejuHeritage (제주 유네스코 유산, 6908:51916) and geomun opens
  * JejuGeomun (6935:69555); heritage_center still falls through to the
@@ -495,12 +495,12 @@ const TILES_HERITAGE: Tile[] = [
 /**
  * Which grid a 제주 kiosk draws, by kiosk id.
  *
- * Keyed by KIOSK, not by layout: W006 and W007 deliberately share the
+ * Keyed by KIOSK, not by layout: W008 and W009 deliberately share the
  * JEJU_AIRPORT layout (one 제주 design, two venues — see KioskLayoutId), so the
  * layout cannot tell them apart and this is the level the difference lives at.
  * A kiosk with no entry gets the airport grid.
  */
-const TILES_BY_KIOSK: Partial<Record<string, Tile[]>> = { W007: TILES_TERMINAL, W008: TILES_HERITAGE };
+const TILES_BY_KIOSK: Partial<Record<string, Tile[]>> = { W009: TILES_TERMINAL, W010: TILES_HERITAGE };
 
 /** Join a home tile to its CMS button row by screen key (see useOrderedTiles). */
 const jejuTileKey = (tile: Tile): TileKey => ({ screen: tile.screen });
@@ -767,8 +767,8 @@ export function JejuHome({ controller }: Props): JSX.Element {
           </div>
         </div>
 
-        {/* ── 운항 정보 board — W006 flights, W007 ferry sailings ── */}
-        {controller.kioskId === 'W007' ? (
+        {/* ── 운항 정보 board — W008 flights, W009 ferry sailings ── */}
+        {controller.kioskId === 'W009' ? (
           <JejuSailingBoard controller={controller} lang={lang} />
         ) : (
           <JejuFlightBoard controller={controller} lang={lang} />

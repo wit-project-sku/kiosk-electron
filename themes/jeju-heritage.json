@@ -1,5 +1,5 @@
 {
-  "_comment": "W008 세계자연유산본부 (JEJU_HERITAGE) — byte-for-byte the 제주공항 theme (jeju-airport.json): one 제주 design family, three venues. Only id/name differ; the mascot split (하영 vs 유산) lives in the localization layer, not here. If a value changes in jeju-airport.json, change it here too.",
+  "_comment": "W010 세계자연유산본부 (JEJU_HERITAGE) — byte-for-byte the 제주공항 theme (jeju-airport.json): one 제주 design family, three venues. Only id/name differ; the mascot split (하영 vs 유산) lives in the localization layer, not here. If a value changes in jeju-airport.json, change it here too.",
   "id": "jeju-heritage",
   "name": "세계자연유산본부",
   "colors": {

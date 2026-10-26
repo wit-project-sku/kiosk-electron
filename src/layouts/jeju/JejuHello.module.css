@@ -4,11 +4,11 @@
  * 허리 / 기분전환). All six sub-tab frames are the same template and differ only
  * in their photo slot, labels and copy — see TOPICS_BY_MASCOT in JejuHello.tsx.
  *
- * 안녕 '유산' (W008 세계자연유산본부) — Figma 6432:46475 ('유산'소개); 6431:31474 /
+ * 안녕 '유산' (W010 세계자연유산본부) — Figma 6432:46475 ('유산'소개); 6431:31474 /
  * 31714 / 31773 (취미생활 K-POP / 맛집탐방 / 테니스); 6431:31534 / 31594 / 31654
  * (건강습관 목·어깨 / 허리 / 기분전환). The SAME page with a different character,
  * so it shares every rule here and overrides five boxes — see the
- * "유산 (W008)" section below for the measured deltas and why each one exists.
+ * "유산 (W010)" section below for the measured deltas and why each one exists.
  *
  * 취미생활 and 건강습관 keep the tab row and the hashtag/SNS footer, nothing else,
  * and are the same page as each other:
@@ -438,7 +438,7 @@
 
 
 /* ────────────────────────────────────────────────────────────────────────────
- * 유산 (W008 세계자연유산본부) — the five boxes the 유산 frames measure differently.
+ * 유산 (W010 세계자연유산본부) — the five boxes the 유산 frames measure differently.
  *
  * Everything else on the page is shared: the tab row, portrait circle, profile
  * and detail columns, divider, hashtag row and every type ramp land on the same
@@ -792,4 +792,127 @@
   top: auto;
   flex: none;
   margin-top: auto;
+}
+
+/* ── 취미생활 / 건강습관 — one scrolling card, Insadong row structure ──
+   Colors stay the venue's (orange pills, white plate). The card sits between
+   the tab row and the promo banner and scrolls when the copy is long. */
+.stackWrap {
+  position: absolute;
+  left: 140px;
+  top: 972px;
+  width: 1908px;
+  bottom: 603px;
+  box-sizing: border-box;
+  padding: 0 30px 40px 30px;
+  overflow-x: hidden;
+  overflow-y: auto;
+}
+
+.stackWrapLow {
+  top: 1025px;
+  bottom: 430px;
+}
+
+.stackWrap::-webkit-scrollbar {
+  width: 28px;
+}
+.stackWrap::-webkit-scrollbar-thumb {
+  background: var(--kiosk-primary, #ff7f0f);
+  border-radius: 14px;
+}
+
+.stackCard {
+  width: 1820px;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 64.35px;
+  padding: 65px 40px;
+  background: #fff;
+  border-radius: 42.9px;
+  box-shadow: 0 21.45px 21.45px rgba(143, 147, 157, 0.1);
+}
+
+.stackRow,
+.stackBottom {
+  display: flex;
+  align-items: flex-start;
+  gap: 100px;
+  width: 1740px;
+}
+
+.stackRowReverse {
+  flex-direction: row-reverse;
+}
+
+.stackText {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 25px;
+}
+
+.stackTitle {
+  margin: 0;
+  font-size: 63px;
+  font-weight: 700;
+  line-height: 1.3;
+  color: #000;
+}
+
+.stackBody {
+  margin: 0;
+  font-size: 50px;
+  font-weight: 400;
+  line-height: 1.3;
+  color: #000;
+  white-space: pre-wrap;
+}
+
+/* Width follows the portrait. 584 is the tallest the three hobby rows can be
+   and still sit inside .stackWrap (972…bottom 603, card padding and the
+   hashtag row included) without a scrollbar. Health photos are a different
+   row and stay at .stackPhotoWide. */
+.stackPhoto {
+  flex: none;
+  width: auto;
+  max-width: 452px;
+  height: auto;
+  max-height: 584px;
+  border-radius: 45px;
+  object-fit: contain;
+  display: block;
+}
+
+.stackPhotos {
+  display: flex;
+  justify-content: space-between;
+  width: 1740px;
+}
+
+.stackPhotoWide {
+  width: 536px;
+  height: auto;
+  border-radius: 45px;
+  object-fit: contain;
+  display: block;
+}
+
+.stackSections {
+  width: 1740px;
+  display: flex;
+  flex-direction: column;
+  gap: 64.35px;
+}
+
+.footerStack {
+  position: relative;
+  left: auto;
+  top: auto;
+  width: 1740px;
+  height: auto;
+  min-height: 100px;
 }

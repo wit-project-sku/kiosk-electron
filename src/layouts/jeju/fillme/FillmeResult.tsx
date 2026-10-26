@@ -4,18 +4,16 @@ import type { AnalysisResult, Ingredient } from './api';
 import { ingredientIconSources } from './ingredients';
 import type { ShareState } from './share';
 import { withSample } from './sampleResult';
-import { toResultView, type NailCategory, type Solution, type SolutionLevel } from './resultView';
+import { FINGER_BAR_COLORS, FINGER_COUNT, toResultView, type NailCategory, type Solution, type SolutionLevel } from './resultView';
 import { fillmeArtUrl, fillmeDiagnosisIconUrl } from '@renderer/assets/fillme';
 import { Icon } from './Icon';
 import { useLang, type Lang } from '@renderer/lib/i18n';
-import { sheetText } from '@renderer/lib/loc';
+import { copy } from './resultCopy';
 import { tx } from './text';
 import styles from './FillmeResult.module.css';
 
 interface Props {
   result: AnalysisResult;
-  /** 촬영한 손 사진(왼손 · 오른손) — API 가 손톱 사진을 주지 않을 때 캐러셀에 쓴다. */
-  photos: string[];
   /** 결과 QR — 결과 이미지를 서버에 올리는 중 / 주소 받음 / 실패. off 면 QR·저장하기 없이 처음으로만. */
   share: ShareState;
   onRetryShare: () => void;
@@ -23,41 +21,6 @@ interface Props {
 }
 
 type Tab = 'health' | 'summary';
-
-/* 시트에 아직 줄이 없는 문구 — sheetText 가 키가 생기는 순간 시트를 따른다. */
-const COPY = {
-  tabHealth: ['Fillme_result_tab1', '건강 분석'],
-  tabSummary: ['Fillme_result_tab2', '종합분석 결과'],
-  photos: ['Fillme_result_photos', '건강 분석'],
-  score: ['Fillme_result_score', '건강 점수'],
-  scoreUnit: ['Fillme_result_scoreUnit', '점'],
-  toSummary: ['Fillme_result_toSummary', '종합분석 결과보기'],
-  nail: ['Fillme_result_nail', '손톱 분석'],
-  /* 시안 문구는 '최근 10회의 기기사용' 이지만 API 의 fingerScores 는 손가락 10개다. */
-  chartNote: ['Fillme_result_chartNote', '그래프: 손가락 10개의 손톱 분석 점수를 표시합니다.'],
-  solutions: ['Fillme_result_solutions', '맞춤 솔루션'],
-  solutionHint: ['Fillme_result_solutionHint', '원하는 솔루션을 2개이상을 선택해주세요.\nⓘ 눌러 솔루션 상세정보를 확인해보세요.'],
-  aiResult: ['Fillme_result_ai', 'AI 분석 결과'],
-  status: ['Fillme_result_status', '건강 상태'],
-  aiNutrients: ['Fillme_result_aiNutrients', 'AI 추천영양제'],
-  /** {list} 자리에 영양소 이름들이 들어간다 — 낱말 순서는 언어마다 시트가 정한다. */
-  deficient: ['Fillme_result_deficient', '{list} 부족'],
-  close: ['Fillme_result_close', '닫기'],
-  care: ['Fillme_result_care', '관리'],
-  watch: ['Fillme_result_watch', '관심'],
-  good: ['Fillme_result_good', '권장'],
-  overall: ['Fillme_result_overall', '종합'],
-  color: ['Fillme_result_color', '색깔'],
-  pattern: ['Fillme_result_pattern', '패턴'],
-  damage: ['Fillme_result_damage', '손상'],
-  tool: ['Fillme_result_tool', '툴'],
-  skin: ['Fillme_result_skin', '주변 피부'],
-} as const;
-
-function copy(id: keyof typeof COPY, lang: Lang): string {
-  const [key, ko] = COPY[id];
-  return sheetText(key, lang, { ko });
-}
 
 const CATEGORIES: NailCategory[] = ['overall', 'color', 'pattern', 'damage', 'tool', 'skin'];
 const LEVELS: SolutionLevel[] = ['care', 'watch', 'good'];
@@ -80,42 +43,6 @@ function IngredientIcon({ ingredient }: { ingredient: Ingredient }): JSX.Element
       className={styles.ingredientIcon}
       onError={() => setSrc(src === local && server ? server : null)}
     />
-  );
-}
-
-/** 손톱 사진 — 가운데 한 장을 크게, 앞뒤 사진을 양옆에 깔고 점으로 위치를 보인다 (8240:45340). */
-function PhotoCarousel({ images }: { images: string[] }): JSX.Element {
-  const [index, setIndex] = useState(0);
-  const n = images.length;
-  const at = (i: number): string | undefined => images[((i % n) + n) % n];
-  // 두 장이면 옆자리는 하나뿐 — 같은 사진을 양옆에 두 번 깔지 않는다.
-  const prev = n > 2 || (n === 2 && index === 1) ? at(index - 1) : undefined;
-  const next = n > 2 || (n === 2 && index === 0) ? at(index + 1) : undefined;
-  return (
-    <>
-      <div className={styles.photos}>
-        {prev && (
-          <button type="button" className={`${styles.photo} ${styles.photoPrev}`} onClick={() => setIndex((i) => (i - 1 + n) % n)}>
-            <img src={prev} alt="" draggable={false} />
-          </button>
-        )}
-        {next && (
-          <button type="button" className={`${styles.photo} ${styles.photoNext}`} onClick={() => setIndex((i) => (i + 1) % n)}>
-            <img src={next} alt="" draggable={false} />
-          </button>
-        )}
-        <div className={`${styles.photo} ${styles.photoMain}`}>
-          <img src={at(index)} alt="" draggable={false} />
-        </div>
-      </div>
-      {n > 1 && (
-        <div className={styles.dots}>
-          {images.map((src, i) => (
-            <span key={`${src}-${i}`} className={i === index ? `${styles.dot} ${styles.dotActive}` : styles.dot} />
-          ))}
-        </div>
-      )}
-    </>
   );
 }
 
@@ -150,21 +77,18 @@ function ScoreGauge({ score, unit, cta, onCta }: { score: number; unit: string; 
 }
 
 /**
- * 막대 색 — 종합분석 결과 시안(8240:44779…44797)의 손가락 1…10 파스텔, 순서대로.
- * 진단 아이콘 바탕색(#FFCFCF · #D6E2F3 · #F1FBF2 · #FFF4EE)과는 다른 묶음이고,
- * 막대는 손가락이라 아이콘과 이어지지도 않는다 — 시안의 색을 그대로 쓴다.
- */
-const BAR_COLORS = ['#dcf6f7', '#dcf6f7', '#e6e4f9', '#fbe6d9', '#eeeef0', '#e6e4f9', '#dcf6f7', '#f3e2ed', '#dcf3f7', '#f1fad9'];
-
-/**
  * 손톱 분석 그래프 (8240:45423) — 탭마다 손가락 10개의 점수.
  * 시안의 다른 판(8240:45454…)은 #ffeac7 에 마지막 막대만 주황이었는데, 그건
  * '이번 회차' 였을 때의 뜻이라 손가락 그래프에는 맞지 않는다.
+ *
+ * 탭 여섯 개는 늘 다 보인다 — API 가 어느 항목을 빠뜨려도 탭은 남고, 그 탭은
+ * 축과 손가락 1…10 만 있는 빈 그래프다(지어낸 막대는 그리지 않는다).
  */
-function NailChart({ history, lang }: { history: Partial<Record<NailCategory, number[]>>; lang: Lang }): JSX.Element {
-  const tabs = CATEGORIES.filter((c) => history[c]?.length);
-  const [tab, setTab] = useState<NailCategory>(tabs[0] ?? 'overall');
-  const values = (history[tab] ?? []).slice(-10);
+function NailChart({ history, lang }: { history: Partial<Record<NailCategory, (number | null)[]>>; lang: Lang }): JSX.Element {
+  const tabs = CATEGORIES;
+  const [tab, setTab] = useState<NailCategory>('overall');
+  const values = history[tab] ?? [];
+  const slots = Array.from({ length: FINGER_COUNT }, (_, i) => values[i] ?? null);
   return (
     <div className={styles.chartCard}>
       <div className={styles.chartTabs} role="tablist">
@@ -189,18 +113,20 @@ function NailChart({ history, lang }: { history: Partial<Record<NailCategory, nu
           ))}
         </div>
         <div className={styles.bars}>
-          {values.map((v, i) => (
+          {slots.map((v, i) => (
             <div key={i} className={styles.barCol}>
-              <span
-                className={styles.bar}
-                style={{ height: `${clampScore(v)}%`, background: BAR_COLORS[i % BAR_COLORS.length] }}
-              />
+              {v != null && (
+                <span
+                  className={styles.bar}
+                  style={{ height: `${clampScore(v)}%`, background: FINGER_BAR_COLORS[i % FINGER_BAR_COLORS.length] }}
+                />
+              )}
             </div>
           ))}
         </div>
       </div>
       <div className={styles.xLabels} aria-hidden="true">
-        {values.map((_, i) => (
+        {slots.map((_, i) => (
           <span key={i}>{i + 1}</span>
         ))}
       </div>
@@ -383,7 +309,7 @@ function SolutionPopup({ solution, lang, onClose }: { solution: Solution; lang: 
  * 솔루션이 없으면 종합분석 결과 탭은 예전 결과 화면(7334:83586)의 요약 카드와
  * 필요 영양 성분으로 돌아간다 — 지금 API 가 주는 것이 그것뿐이다.
  */
-export function FillmeResult({ result: raw, photos, share, onRetryShare, onHome }: Props): JSX.Element {
+export function FillmeResult({ result: raw, share, onRetryShare, onHome }: Props): JSX.Element {
   const lang = useLang();
   // JSON 문자열 셋을 푸는 일 — 결과가 바뀔 때만.
   const view = useMemo(() => toResultView(withSample(raw)), [raw]);
@@ -395,7 +321,6 @@ export function FillmeResult({ result: raw, photos, share, onRetryShare, onHome 
   /** 'Fatigue Off(Fatigue Care)' — 시안의 '퍼티그 오프(피로 관리)'. */
   const productName = rs.name && rs.solution ? `${rs.name}(${rs.solution})` : rs.name || rs.solution;
   const ingredients = rs.ingredients;
-  const images = view.nailImages.length ? view.nailImages : photos;
   const history = view.fingerScores;
   const hasHistory = CATEGORIES.some((c) => history[c]?.length);
   const solutions = view.solutions;
@@ -442,13 +367,6 @@ export function FillmeResult({ result: raw, photos, share, onRetryShare, onHome 
 
           {tab === 'health' && (
             <>
-              {images.length > 0 && (
-                <>
-                  <h3 className={styles.heading}>{copy('photos', lang)}</h3>
-                  <PhotoCarousel images={images} />
-                </>
-              )}
-
               {result.healthScore != null && (
                 <>
                   <h3 className={styles.heading}>{copy('score', lang)}</h3>

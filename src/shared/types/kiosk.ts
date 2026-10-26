@@ -26,13 +26,13 @@ export type SupportedLanguage =
  * Layout identifiers mapped to React layout components.
  *
  * A layout is a DESIGN FAMILY, not a deployment: W001/W002 share INSADONG, and
- * W006 (제주국제공항) / W007 (제주국제여객터미널) share JEJU_AIRPORT. Everything keyed
+ * W008 (제주국제공항) / W009 (제주국제여객터미널) share JEJU_AIRPORT. Everything keyed
  * by layout — the content sheet, the localization column order and mascot, the
  * theme, the video map, the photo chrome — is therefore shared by both 제주
  * venues by construction. Per-venue differences belong in kioskLocations.ts or,
  * for home-grid rows, in buttonCatalog's SLOT_OVERRIDES.
  *
- * JEJU_HERITAGE (W008 세계자연유산본부) is the SAME 제주 design and screens
+ * JEJU_HERITAGE (W010 세계자연유산본부) is the SAME 제주 design and screens
  * (layouts/index.ts points it at JejuLayout) but a separate layout id, because
  * the mascot tie-break over the shared Localization_Jeju tab runs the OTHER way:
  * a JEJU_AIRPORT machine keeps the 하영 rows, a JEJU_HERITAGE machine keeps 유산's
@@ -58,7 +58,7 @@ export type KioskLayoutId =
   | 'KADA';
 
 /** Well-known kiosk deployment IDs. */
-export type KioskId = 'W001' | 'W002' | 'W003' | 'W004' | 'W005' | 'W006' | 'W007' | 'W008' | 'W202' | (string & {});
+export type KioskId = 'W001' | 'W002' | 'W003' | 'W004' | 'W005' | 'W008' | 'W009' | 'W010' | 'W202' | (string & {});
 
 export interface KioskConfig {
   kioskId: KioskId;
@@ -155,28 +155,28 @@ export type KioskScreenId =
   | 'tourism'      // 주변관광
   | 'parking'      // 주차안내
   | 'emergency'    // 긴급안내
-  // 제주공항 (W006) — the three home tiles with no equivalent in another layout.
+  // 제주공항 (W008) — the three home tiles with no equivalent in another layout.
   // Everything else on the Jeju home reuses the shared ids above
   // (eat/shop/lodging/taxfree/about/hello/help/exchange/donation/…).
   // 지역화폐 gets its OWN id rather than reusing Osan's `museum` or Hwaseong's
   // `rest_info` overload — those exist only because those kiosks' CMS rows
   // happened to share a slot, and the alias makes every later reader guess.
-  | 'rentcar'      // 렌트카 (간편 예약) — 제주공항 W006 only
+  | 'rentcar'      // 렌트카 (간편 예약) — 제주공항 W008 only
   // AI 손톱 건강분석 (FillMe). Not a grid tile: it is the bottom-row 필미 button
   // on the 제주 home (the slot JEJU ISLAND held before it).
   // See layouts/jeju/fillme/JejuFillme.tsx.
   | 'fillme'
   | 'tamnao'       // 탐나오 (제주공공플랫폼)
   | 'localpay'     // 지역화폐 (탐나는전)
-  // 제주국제여객터미널 (W007) — the one home tile W006 does not have. It takes
+  // 제주국제여객터미널 (W009) — the one home tile W008 does not have. It takes
   // 렌트카's grid slot (line 6 position 4), so the two are mutually exclusive:
   // exactly one of them is rendered per venue. See JejuHome's VENUE_TILE.
-  // W008 세계자연유산본부 used to draw it too; the 2026-09 redesign (6792:126444)
-  // put 거문오름 예약 in that cell, so the tile is W007-only again.
+  // W010 세계자연유산본부 used to draw it too; the 2026-09 redesign (6792:126444)
+  // put 거문오름 예약 in that cell, so the tile is W009-only again.
   | 'cruise'       // 크루즈 운항 → the ferry sailing board (JejuCruise)
-  // 세계자연유산본부 (W008) — the three tiles its 2026-09 home redesign added
+  // 세계자연유산본부 (W010) — the three tiles its 2026-09 home redesign added
   // (Figma 6792:126444). They replace 숙박안내 / 크루즈 운항 / 지역화폐 on that
-  // grid only; W006/W007 keep the shared ids. No screens are built for them yet,
+  // grid only; W008/W009 keep the shared ids. No screens are built for them yet,
   // so all three fall through to the JejuScreen scaffold until their frames land.
   | 'heritage'        // 제주세계유산
   | 'geomun'          // 거문오름 예약

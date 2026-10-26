@@ -29,7 +29,7 @@ const DEFAULT_API_BASE = 'https://api-v3.witteria.com';
 const FALLBACK_REGION = 'INSADONG_NORTH';
 
 /**
- * 틀린그림찾기 rounds for the AR 한복 waiting game (제주 W006).
+ * 틀린그림찾기 rounds for the AR 한복 waiting game (제주 W008).
  *
  * Same shape as BannerService/ShopService: pull on launch and at the nightly
  * sync, cache in SQLite, serve from cache so the kiosk is instant and works

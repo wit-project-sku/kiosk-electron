@@ -104,7 +104,7 @@ export class StatsService {
     return process.env['STATS_MENU_TOUCHES_SYNC_URL'] ?? `${witteriaApiBase()}/api/stats/menu-touches/sync`;
   }
 
-  /** 제주 kiosks (W006/W007/W008) report to `/shots/v2`; every other venue stays on v1. */
+  /** 제주 kiosks (W008/W009/W010) report to `/shots/v2`; every other venue stays on v1. */
   private shotsUrl(): string {
     if (process.env['STATS_SHOTS_URL']) return process.env['STATS_SHOTS_URL'];
     const path = isJejuLayout(this.kiosk.getConfig().layout) ? '/api/stats/shots/v2' : '/api/stats/shots';

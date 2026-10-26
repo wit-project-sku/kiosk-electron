@@ -1,22 +1,23 @@
 /**
  * 안녕 '하영' / 안녕 '유산' — Figma node 6217:94591 ('하영'소개 tab).
  *
- * One page for both 제주 mascots: 하영 on W006/W007, 유산 on W008 (jejuMascot).
+ * One page for both 제주 mascots: 하영 on W008/W009, 유산 on W010 (jejuMascot).
  * Everything NAMED after the mascot — title, tab fallbacks, name fallback,
  * hashtags — resolves through the mascot; pills 2–3 also read Greeting_Hashtag1/2
  * from the sheet. The biography VALUES stay sheet-driven (Greeting_*Content), so
  * 유산's profile appears the moment the operators add 유산 rows to
  * Localization_Jeju (the venue tie-break already prefers them on a
- * JEJU_HERITAGE machine). TODO(제주 W008): the ART is still 하영's — portrait
+ * JEJU_HERITAGE machine). TODO(제주 W010): the ART is still 하영's — portrait
  * (hello-portrait), hobby/health photos and the SNS QR (qr-hayoung) — swap in
- * 유산 exports when the designer supplies them, until then W008 shows 하영's.
+ * 유산 exports when the designer supplies them, until then W010 shows 하영's.
  *
- * Three tabs. 소개 has its own layout; the other two are the SAME page as each
- * other — a sub-tab row over a photo with a caption card under it — so they
- * share one renderer and differ only in their sub-tabs and photo size:
- *   '하영'소개       6217:94591              portrait circle + profile + details
- *   '하영'취미생활    6217:94681/94865/94926  K-POP / 런닝 / 테니스
- *   '하영' 건강습관   6217:94987              목·어깨 / 허리 / 기분전환
+ * Three tabs. 소개 keeps the portrait card. 취미생활 and 건강습관 share one
+ * scrolling card in the Insadong row structure (all items at once): hobbies
+ * alternate text and photo, health opens with three photos then text beside
+ * the last photo. Venue colors, photos and copy stay Jeju's.
+ *   '하영'소개       portrait circle + profile + details
+ *   '하영'취미생활    K-POP / 런닝 / 테니스, stacked
+ *   '하영' 건강습관   목·어깨 / 허리 / 기분전환, stacked
  * The tab row and the hashtag/SNS footer are all three share.
  *
  * Same page as OsanHello / InsadongHello / HwaseongHello carry for their own
@@ -28,13 +29,12 @@ import type { KioskController } from '@renderer/hooks/useKioskController';
 import { jejuIconUrl } from '@renderer/assets/icons/jeju';
 import helloVideo from '@renderer/assets/videos/jeju/hello-hayoung.mp4';
 import { useLanguageStore } from '@renderer/store/languageStore';
-import { pick, type Lang } from '@renderer/lib/i18n';
+import type { Lang } from '@renderer/lib/i18n';
 import { sheetText } from '@renderer/lib/loc';
 import { trackEvent } from '@renderer/lib/analytics';
 import { useAccessibilityStore } from '@renderer/store/accessibilityStore';
 import { jejuMascot, type JejuMascot, type JejuMascotBio } from './jejuMascot';
 import { JejuPageFrame } from './JejuPageFrame';
-import { JejuSubTabRow } from './JejuSubTabRow';
 import { JejuTabRow } from './JejuTabRow';
 import styles from './JejuHello.module.css';
 
@@ -47,7 +47,7 @@ import hobbyTennis from '@renderer/assets/photos/jeju/hello/hobby-tennis.png';
 import healthNeck from '@renderer/assets/photos/jeju/hello/health-neck.png';
 import healthWaist from '@renderer/assets/photos/jeju/hello/health-waist.jpg';
 import healthRefresh from '@renderer/assets/photos/jeju/hello/health-refresh.png';
-// 유산's own six topic photos (W008), exported 1:1 with the 842×1509 slot from
+// 유산's own six topic photos (W010), exported 1:1 with the 842×1509 slot from
 // the frames listed in TOPICS_BY_MASCOT. 하영's are the six above.
 import qrYusan from '@renderer/assets/photos/jeju/hello/qr-yusan.png';
 import ysHobbyKpop from '@renderer/assets/photos/jeju/hello/yusan-hobby-kpop.jpg';
@@ -72,17 +72,6 @@ const helloTabs = (m: JejuMascot) => [
   { id: 'hobbies', key: 'Greeting_Category2', label: { ko: `‘${m.ko}’취미생활`, en: `${m.roman}'s Hobbies`, ja: `‘${m.ja}’の趣味`, zh: `‘${m.roman}’的爱好`, vi: `Sở thích của ‘${m.roman}’`, th: `งานอดิเรกของ ‘${m.roman}’`, ru: `Хобби ‘${m.roman}’`, id: `Hobi ‘${m.roman}’` } },
   { id: 'health', key: 'Greeting_Category3', label: { ko: `‘${m.ko}’ 건강습관`, en: `${m.roman}'s Health`, ja: `‘${m.ja}’の健康習慣`, zh: `‘${m.roman}’的健康习惯`, vi: `Thói quen của ‘${m.roman}’`, th: `สุขภาพของ ‘${m.roman}’`, ru: `Привычки ‘${m.roman}’`, id: `Kebiasaan ‘${m.roman}’` } },
 ] as const satisfies ReadonlyArray<{ id: TabId; key: string; label: Record<string, string> }>;
-
-const COMING_SOON = {
-  ko: '준비중입니다',
-  en: 'Coming soon',
-  ja: '準備中です',
-  zh: '正在准备中',
-  vi: 'Đang chuẩn bị',
-  th: 'กำลังเตรียมการ',
-  ru: 'В подготовке',
-  id: 'Sedang disiapkan',
-};
 
 /**
  * Field labels — sheet key + the 8-language fallback.
@@ -115,7 +104,7 @@ const label = (f: { key: string } & Partial<Record<Lang, string>>, lang: Lang): 
  * label, a sub-tab label or a topic caption.
  *
  * 하영 reads the sheet first, exactly as before. 유산 does not: those rows exist
- * once and hold 하영's data (birthday, 런닝, 자기소개), so on a W008 machine the
+ * once and hold 하영's data (birthday, 런닝, 자기소개), so on a W010 machine the
  * sheet is the wrong mascot rather than a fallback — see JejuMascotBio.fromSheet
  * for how to hand these back to the sheet once 유산 rows exist.
  */
@@ -191,7 +180,7 @@ interface Topic {
  * underneath its own, hidden behind it. It is NOT 테니스's — that one has its own
  * on-court shot — so it stays uncommitted.
  *
- * TODO(제주 W006): Korean copy only, same as the 소개 tab.
+ * TODO(제주 W008): Korean copy only, same as the 소개 tab.
  */
 const HOBBIES: readonly Topic[] = [
   {
@@ -420,7 +409,7 @@ const SOCIAL_BRANDS: ReadonlyArray<{ id: string; icon: string }> = [
  *
  * Pill 0 stays the roman brand (`#HAYOUNG` / `#YUSAN`). Pills 1 and 2 come from
  * Localization_Jeju `Greeting_Hashtag1` / `Greeting_Hashtag2` (heritage table on
- * W008), with the mascot's authored tags as fallback.
+ * W010), with the mascot's authored tags as fallback.
  */
 function hashPill(raw: string): string {
   const bare = raw.replace(/^#+/, '').trim();
@@ -477,113 +466,85 @@ function HelloFooter({
   );
 }
 
+function TopicCopy({
+  mascot,
+  topic,
+  lang,
+}: {
+  mascot: JejuMascot;
+  topic: Topic;
+  lang: Lang;
+}): JSX.Element {
+  return (
+    <div className={styles.stackText}>
+      <p className={styles.stackTitle}>{greet(mascot, topic.titleKey, lang, { ko: topic.title })}</p>
+      <p className={styles.stackBody}>{greet(mascot, topic.bodyKey, lang, { ko: topic.body })}</p>
+    </div>
+  );
+}
+
 /**
- * The 취미생활 / 건강습관 body: sub-tab row, photo, caption card. One renderer for
- * both — the frames differ only in their labels, copy and photo size.
+ * 취미생활 and 건강습관, as one scrolling card.
+ *
+ * Hobbies alternate text and photo. Health habits open with the three photos,
+ * then the captions. There is no fourth photo.
  */
 function TopicPanel({
   mascot,
   tab,
-  value,
-  onChange,
-  emptyLabel,
   lang,
 }: {
   mascot: JejuMascot;
   tab: TopicTabId;
-  value: string;
-  onChange: (id: string) => void;
-  emptyLabel: string;
   lang: Lang;
 }): JSX.Element {
-  const { topics, photo } = TOPICS_BY_MASCOT[mascot.id][tab];
-  const current = topics.find((t) => t.id === value) ?? topics[0]!;
-
-  // Sub-tab captions follow the mascot (see `greet`); the PHOTO stays bundled.
   const lowReach = useAccessibilityStore((s) => s.lowReach);
-  const heritage = mascot.id === 'yusan' ? styles.topicHeritage : '';
-  const items = topics.map((t) => ({ id: t.id, label: greet(mascot, t.labelKey, lang, { ko: t.label }) }));
-
-  /* ♿ draws the topic photo 15% larger — 6297:74010's 1103×1736 is exactly
-     하영's 959×1509 × 1.15 (the round lands 1px under its 1736; slop) — and at
-     ONE size for both topic tabs: 건강습관 uses 취미생활's box rather than
-     scaling its own narrower standard dims (user's call, 2026-08-26). So the
-     scale rides the mascot's HOBBIES dims regardless of tab. */
-  const lowBase = TOPICS_BY_MASCOT[mascot.id].hobbies.photo;
-  const dims = lowReach
-    ? { width: Math.round(lowBase.width * 1.15), height: Math.round(lowBase.height * 1.15) }
-    : photo;
-
-  /**
-   * ★ Korean keeps the frames' hand-placed photo and caption card; every other
-   * language FLOWS (see `flow` in JejuHello). The card is a fixed 549 with its
-   * footer pinned inside it and the copy in a box the designer dragged until the
-   * KOREAN sat on two lines, 48px above the banner — so a translation ran over
-   * the hashtags and had nowhere to grow. In flow mode the photo and the card
-   * are one column between the photo's top and the card's drawn bottom edge:
-   * the card grows with its copy, and the photo gives up height (cropped by
-   * `cover`, never squashed) rather than the card running into the banner.
-   */
-  const flow = lang !== 'ko';
-  const stack = (node: ReactNode): ReactNode =>
-    flow ? (
-      <div className={`${styles.topicStack} ${heritage} ${lowReach ? styles.topicStackLow : ''}`}>
-        {node}
-      </div>
-    ) : (
-      node
-    );
+  const topics = TOPICS_BY_MASCOT[mascot.id][tab].topics;
+  const [first, ...rest] = topics;
 
   return (
-    <>
-      <JejuSubTabRow
-        items={items}
-        value={value}
-        onChange={onChange}
-        className={lowReach ? styles.subTabsLow : undefined}
-      />
-
-      {stack(<>
-      {current.photo && (
-        <div
-          className={`${styles.topicPhoto} ${heritage} ${lowReach ? styles.topicPhotoLow : ''}`}
-          style={dims}
-        >
-          <img
-            src={current.photo}
-            alt=""
-            style={{ objectPosition: current.focus }}
-            draggable={false}
-          />
-        </div>
-      )}
-
-      <div className={`${styles.topicCard} ${heritage} ${lowReach ? styles.topicCardLow : ''}`}>
-        {current.title ? (
-          <div className={`${styles.topicText} ${heritage}`}>
-            <p
-              className={`${styles.topicTitle}${
-                tab === 'health' &&
-                (current.id === 'neck' || current.id === 'refresh') &&
-                lang !== 'ko'
-                  ? ` ${styles.topicTitleCompact}`
-                  : ''
-              }`}
+    <div className={`${styles.stackWrap} ${lowReach ? styles.stackWrapLow : ''}`}>
+      <div className={styles.stackCard}>
+        {tab === 'hobbies' &&
+          topics.map((topic, i) => (
+            <div
+              key={topic.id}
+              className={`${styles.stackRow} ${i % 2 === 1 ? styles.stackRowReverse : ''}`}
             >
-              {greet(mascot, current.titleKey, lang, { ko: current.title })}
-            </p>
-            <p className={styles.topicBody}>
-              {greet(mascot, current.bodyKey, lang, { ko: current.body })}
-            </p>
-          </div>
-        ) : (
-          <p className={`${styles.empty} ${styles.emptyTopic}`}>{emptyLabel}</p>
+              <TopicCopy mascot={mascot} topic={topic} lang={lang} />
+              {topic.photo && (
+                <img className={styles.stackPhoto} src={topic.photo} alt="" draggable={false} />
+              )}
+            </div>
+          ))}
+
+        {tab === 'health' && first && (
+          <>
+            <div className={styles.stackPhotos}>
+              {topics.map((topic) =>
+                topic.photo ? (
+                  <img
+                    key={topic.id}
+                    className={styles.stackPhotoWide}
+                    src={topic.photo}
+                    alt=""
+                    draggable={false}
+                  />
+                ) : null,
+              )}
+            </div>
+            <TopicCopy mascot={mascot} topic={first} lang={lang} />
+            <div className={styles.stackSections}>
+              {rest.map((topic) => (
+                <TopicCopy key={topic.id} mascot={mascot} topic={topic} lang={lang} />
+              ))}
+            </div>
+          </>
         )}
 
-        <HelloFooter mascot={mascot} lang={lang} position={`${styles.footerTopic} ${heritage}`} />
+        <HelloFooter mascot={mascot} lang={lang} position={styles.footerStack} />
       </div>
-      </>)}
-    </>
+    </div>
   );
 }
 
@@ -597,28 +558,11 @@ export function JejuHello({ controller }: Props): JSX.Element {
   const mascot = jejuMascot();
   const heritage = mascot.id === 'yusan' ? styles.profileHeritage : '';
   const [tab, setTab] = useState<TabId>('profile');
-  /**
-   * Selected sub-tab per tab, so switching away and back keeps the place.
-   * Seeded from the mascot's own tables — 하영's middle hobby id is `running`
-   * and 유산's is `food`, so a hardcoded pair would be wrong for one of them.
-   */
-  const [topic, setTopic] = useState<Record<TopicTabId, string>>(() => ({
-    hobbies: TOPICS_BY_MASCOT[mascot.id].hobbies.topics[0]!.id,
-    health: TOPICS_BY_MASCOT[mascot.id].health.topics[0]!.id,
-  }));
 
-  // Switch the customer-display video per tab AND sub-tab. VideoSubtitle_귤이's
-  // 재생조건 column gives every sub-tab its own clip — 취미 탭 → K-POP / 런닝 /
-  // 테니스 (Greeting-2-1…3), 건강습관 → 목·어깨 / 허리 / 기분전환 (Greeting-3-1…3)
-  // — so the display is told WHICH one, by the sub-tab's position in the mascot's
-  // table (the sheet's own order). Reporting only the tab left all three clips
-  // cycling whichever sub-tab was open.
-  const topicIndex =
-    tab === 'profile' ? 0 : TOPICS_BY_MASCOT[mascot.id][tab].topics.findIndex((t) => t.id === topic[tab]) + 1;
   useEffect(() => {
-    const base = tab === 'hobbies' ? 'hello_hobby' : tab === 'health' ? 'hello_stretch' : 'hello';
-    void window.api.kiosk.setScreen(tab === 'profile' || topicIndex < 1 ? base : `${base}_${topicIndex}`);
-  }, [tab, topicIndex]);
+    const key = tab === 'hobbies' ? 'hello_hobby' : tab === 'health' ? 'hello_stretch' : 'hello';
+    void window.api.kiosk.setScreen(key);
+  }, [tab]);
 
   const select = (id: TabId): void => {
     trackEvent({
@@ -628,15 +572,7 @@ export function JejuHello({ controller }: Props): JSX.Element {
     setTab(id);
   };
 
-  const selectTopic = (parent: TopicTabId, id: string): void => {
-    trackEvent({
-      name: 'button_clicked',
-      payload: { screen: 'hello', tab: parent, topic: id, kioskId: controller.kioskId },
-    });
-    setTopic((prev) => ({ ...prev, [parent]: id }));
-  };
-
-/**
+  /**
    * The circle is a VIDEO now (2026-09-03), not the grey #D9D9D9 disc the frame
    * draws and not the still that never arrived.
    *
@@ -655,7 +591,7 @@ export function JejuHello({ controller }: Props): JSX.Element {
    * `hello-portrait` into the icon folder, and then it fills the circle for the
    * moment before the first frame paints instead of a grey flash.
    *
-   * TODO(제주 W008): the clip is 하영's, so a 유산 machine plays it — the same
+   * TODO(제주 W010): the clip is 하영's, so a 유산 machine plays it — the same
    * stand-in the portrait slot and the SNS QR already are (see the file header).
    * A per-mascot key goes here when 유산's own clip is shot.
    */
@@ -701,18 +637,7 @@ export function JejuHello({ controller }: Props): JSX.Element {
         className={lowReach ? styles.tabsLow : undefined}
       />
 
-      {/* 취미생활 and 건강습관 draw no big card — a sub-tab row over a photo,
-          with a short caption card under it. */}
-      {tab !== 'profile' && (
-        <TopicPanel
-          mascot={mascot}
-          tab={tab}
-          value={topic[tab]}
-          onChange={(id) => selectTopic(tab, id)}
-          emptyLabel={pick(COMING_SOON, lang)}
-          lang={lang}
-        />
-      )}
+      {tab !== 'profile' && <TopicPanel mascot={mascot} tab={tab} lang={lang} />}
 
       {tab === 'profile' && scrollBox(
         <div className={`${styles.card} ${heritage} ${lowReach ? styles.cardLow : ''}`}>

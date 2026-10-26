@@ -9,8 +9,8 @@
  * `KioskLocation.coordinates`): the home card's snapshot is the weather where
  * the visitor is standing. These lists are the opposite — a REGIONAL outlook,
  * drawn identically on every kiosk of the family, and none of the entries is
- * any kiosk's own position. 제주공항 (W006) sits ~5km from the 제주시 point below
- * and 세계자연유산본부 (W008) ~25km from it, so feeding a kiosk's own forecast
+ * any kiosk's own position. 제주공항 (W008) sits ~5km from the 제주시 point below
+ * and 세계자연유산본부 (W010) ~25km from it, so feeding a kiosk's own forecast
  * into a column headed 제주시 would put a number under a name that did not
  * produce it.
  *

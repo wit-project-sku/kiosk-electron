@@ -1,5 +1,5 @@
 /**
- * 제주공항 (W006) AR 한복체험 — outfit selection.
+ * 제주공항 (W008) AR 한복체험 — outfit selection.
  *
  * Figma 6258:48134 · 48264 (개인정보 처리방침) · 48326 · 48469 · 48575 · 48693 ·
  * 49124. A 제주-specific replacement for the shared `HanbokSelect` step: same
@@ -306,7 +306,7 @@ const SOLO = {
 };
 
 /**
- * Built per mascot: 하영 on W006/W007, 유산 on W008. Only the LAST-RESORT
+ * Built per mascot: 하영 on W008/W009, 유산 on W010. Only the LAST-RESORT
  * fallback — the sheet's Photo_SelectTogether row is already venue-split
  * (see LocalizationSyncParser.VENUE_MASCOTS) and wins whenever it has a cell.
  *

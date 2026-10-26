@@ -44,7 +44,7 @@
  * the selected category's sheet rows (or the marked pins when the sheet has
  * none). That frame is the 도와줘 flow's own detail.
  *
- * ── W007 draws ITS OWN building (2026-09-03) ────────────────────────────────
+ * ── W009 draws ITS OWN building (2026-09-03) ────────────────────────────────
  * 제주국제여객터미널 runs this same page (one JEJU_AIRPORT layout — see
  * kioskLocations), and until now it showed the AIRPORT's floor plans to visitors
  * standing in the FERRY terminal. It now has its own pair of plans, supplied
@@ -608,7 +608,7 @@ const PINS: Record<string, FacilityPin[]> = {
 type PortZoneId = 'hall' | 'departure';
 
 /**
- * 제주국제여객터미널 (W007)'s two maps, on the pill row where the airport puts its
+ * 제주국제여객터미널 (W009)'s two maps, on the pill row where the airport puts its
  * terminals. Zones of one storey, not floors — see the header note. 대합실 first:
  * it is where the kiosk's visitors physically are, and the 출국장 plan itself
  * draws that hall as faded context.
@@ -725,7 +725,7 @@ const COMING_SOON = {
 /**
  * Base category (witteria `baseCategoryKr`) the facility rows come from.
  *
- * TODO(제주 W006): the catalogue has NO 도와줘 rows yet. Checked 2026-08-12
+ * TODO(제주 W008): the catalogue has NO 도와줘 rows yet. Checked 2026-08-12
  * against `/api/shops?kioskId=7` (prod and stage): the only four base categories
  * are 제주 뭐하지 / 제주 뭐먹지 / 제주 뭐사지 / 숙박안내. The mascot form this used
  * to guess ('하영 도와줘') is ruled out by those four — 제주 keys on the LOCATION
@@ -779,7 +779,7 @@ const AIRPORT = {
   id: 'Bandara Internasional Jeju',
 };
 
-/** W007's venue name — kioskLocations' 제주국제여객터미널, localized. */
+/** W009's venue name — kioskLocations' 제주국제여객터미널, localized. */
 const PORT_TERMINAL = {
   ko: '제주국제여객터미널',
   en: 'Jeju International Passenger Terminal',
@@ -1044,15 +1044,15 @@ export function JejuHelp({ controller, initialCategory }: Props): JSX.Element {
   const lowReach = useAccessibilityStore((s) => s.lowReach);
   const shops = useShopStore((s) => s.shops);
   const setDetail = useDetailStore((s) => s.setItem);
-  // W007 shows its own building; every other 제주 kiosk keeps the airport plans.
+  // W009 shows its own building; every other 제주 kiosk keeps the airport plans.
   // Non-reactive on purpose, like jejuMascot: the id is provisioned per machine.
-  const atPort = getKioskLocation(controller.kioskId).code === 'W007';
+  const atPort = getKioskLocation(controller.kioskId).code === 'W009';
   /* Opens on 국내선 — the first pill, and the one 6862:9953 draws picked. */
   const [terminal, setTerminal] = useState<TerminalId>('domestic');
   const [floor, setFloor] = useState<FloorId>('1F');
   const [zone, setZone] = useState<PortZoneId>('hall');
   /* The chips a view draws: the terminal's own categories. The ferry terminal
-     (W007) matches no sheet terminal — none of its pins has a row — so it keeps
+     (W009) matches no sheet terminal — none of its pins has a row — so it keeps
      the whole list, as it always has. */
   const chipsFor = (t: TerminalId): readonly string[] => (atPort ? CATEGORIES : TERMINAL_CHIPS[t]);
   const [category, setCategory] = useState(() => {

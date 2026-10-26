@@ -45,7 +45,7 @@ const CATEGORY_LABELS: Record<string, Partial<Record<Lang, string>>> = {
   잡화: { en: 'Goods', ja: '雑貨', zh: '杂货', vi: 'Tạp hóa', th: 'สินค้าเบ็ดเตล็ด', ru: 'Разные товары', id: 'Aneka barang' },
   '표구·액자': { en: 'Framing', ja: '額装', zh: '装裱·画框', vi: 'Đóng khung', th: 'กรอบรูป', ru: 'Багетные работы', id: 'Bingkai' },
   기념품: { en: 'Souvenirs', ja: 'お土産', zh: '纪念品', vi: 'Quà lưu niệm', th: 'ของที่ระลึก', ru: 'Сувениры', id: 'Suvenir' },
-  // ── 제주 W006 (Figma 6212:55184 뭐먹지 / 6212:55233 뭐사지) ──
+  // ── 제주 W008 (Figma 6212:55184 뭐먹지 / 6212:55233 뭐사지) ──
   // Authored here, not synced: there is no AICategory_Jeju / Localization_Jeju
   // sheet yet, and an unmapped chip label silently renders Korean to every
   // non-Korean visitor. 한식 / 한정식 / 카페 / 기념품 / 특산품 / 먹거리 /
@@ -163,7 +163,7 @@ const SCREEN_TITLES: Record<string, Partial<Record<Lang, string>>> = {
   '인사 미술관': { en: 'Insa Gallery', ja: '仁寺美術館', zh: '仁寺美术馆', vi: 'Bảo tàng Insa', th: 'หอศิลป์อินซา', ru: 'Галерея Инса', id: 'Galeri Insa' },
   "'인사' 뭐먹지": { en: 'What to Eat', ja: '何を食べる', zh: '吃什么', vi: 'Ăn gì', th: 'กินอะไรดี', ru: 'Что поесть', id: 'Mau makan apa' },
   "'인사' 뭐사지": { en: 'What to Buy', ja: '何を買う', zh: '买什么', vi: 'Mua gì', th: 'ซื้ออะไรดี', ru: 'Что купить', id: 'Mau beli apa' },
-  // 제주 W006 — the frames spell the title with the quotes and question mark
+  // 제주 W008 — the frames spell the title with the quotes and question mark
   // (6212:55184 / 6212:55233), so those are the ids the screens pass. Kept OUT
   // of TITLE_KEYS on purpose: Jeju has no Localization_Jeju sheet yet and falls
   // back to the INSADONG bundled table, so MainButton_ToBuy would render
@@ -171,17 +171,17 @@ const SCREEN_TITLES: Record<string, Partial<Record<Lang, string>>> = {
   // 여기는 제주도 is kept out of TITLE_KEYS for the same reason: MainButton_Here
   // resolves to Insadong's own "여기는 인사동" through the fallback table.
   '여기는 제주도': { en: 'This is Jeju', ja: 'ここは済州島', zh: '这里是济州岛', vi: 'Đây là Jeju', th: 'ที่นี่คือเชจู', ru: 'Это Чеджудо', id: 'Ini Jeju' },
-  // W008's 제주세계유산 page header (JejuHeritage, Figma 6908:51916). No sheet
+  // W010's 제주세계유산 page header (JejuHeritage, Figma 6908:51916). No sheet
   // row exists for it yet, so the hand map is what localizes the pill.
   '제주 유네스코 유산': { en: 'Jeju UNESCO Heritage', ja: '済州ユネスコ遺産', zh: '济州联合国教科文组织遗产', vi: 'Di sản UNESCO Jeju', th: 'มรดกยูเนสโกเชจู', ru: 'Наследие ЮНЕСКО Чеджу', id: 'Warisan UNESCO Jeju' },
-  // W008's 거문오름 예약 page header (JejuGeomun, Figma 6935:69555) — same deal.
+  // W010's 거문오름 예약 page header (JejuGeomun, Figma 6935:69555) — same deal.
   '거문오름 예약': { en: 'Geomunoreum Reservation', ja: 'コムンオルム予約', zh: '拒文岳预约', vi: 'Đặt chỗ Geomunoreum', th: 'จองคอมุนออรึม', ru: 'Бронирование Комунорым', id: 'Reservasi Geomunoreum' },
   // Curly quotes, as the frame writes it (6219:98770) — the straight-quote form
   // is Insadong's own '도와줘 ‘인사’' above. Hardcoded display id is now 제주
   // (jejuMascot); keep the old 하영 key so any stale caller still localizes.
   '도와줘 ‘제주’': { en: 'Help', ja: 'ヘルプ', zh: '帮助', vi: 'Trợ giúp', th: 'ช่วยเหลือ', ru: 'Помощь', id: 'Bantuan' },
   '도와줘 ‘하영’': { en: 'Help', ja: 'ヘルプ', zh: '帮助', vi: 'Trợ giúp', th: 'ช่วยเหลือ', ru: 'Помощь', id: 'Bantuan' },
-  // W008 세계자연유산본부's mascot spelling of the same page (see jejuMascot).
+  // W010 세계자연유산본부's mascot spelling of the same page (see jejuMascot).
   '도와줘 ‘유산’': { en: 'Help', ja: 'ヘルプ', zh: '帮助', vi: 'Trợ giúp', th: 'ช่วยเหลือ', ru: 'Помощь', id: 'Bantuan' },
   "'제주' 뭐먹지?": { en: 'What to Eat', ja: '何を食べる', zh: '吃什么', vi: 'Ăn gì', th: 'กินอะไรดี', ru: 'Что поесть', id: 'Mau makan apa' },
   "'제주' 뭐사지?": { en: 'What to Buy', ja: '何を買う', zh: '买什么', vi: 'Mua gì', th: 'ซื้ออะไรดี', ru: 'Что купить', id: 'Mau beli apa' },
@@ -302,7 +302,7 @@ const TITLE_KEYS: Record<string, TitleKeySpec> = {
   // 화성 spells this MainButton_MarketPaper, 제주 MainButton_LocalCurrency; only
   // 제주 carries a subtitle row for it.
   "지역화폐": { title: ['MainButton_MarketPaper', 'MainButton_LocalCurrency'], sub: ['LocalCurrency_SubHeader', 'MarketPaper_Subtitle'] },
-  // ── W006 제주공항 header titles + page descriptions (Localization_Jeju) ──
+  // ── W008 제주공항 header titles + page descriptions (Localization_Jeju) ──
   // The ids are the literal strings each 제주 screen hands to JejuPageFrame, so a
   // renamed header must be renamed here too or it silently falls back to Korean.
   // 지역화폐/환율/언어선택/숙박안내/TAX-FREE/상세 already resolve through the shared
@@ -344,7 +344,7 @@ const TITLE_KEYS: Record<string, TitleKeySpec> = {
   // Stale 하영 ids — kept so CMS analytics labels / older callers still resolve.
   "안녕 '하영'": { title: 'MainButton_Greeting', sub: 'Greeting_Introduce' },
   "도와줘 ‘하영’": { title: 'MainButton_ToHelp', sub: 'Help_Subtitle' },
-  // W008 세계자연유산본부 passes the 유산 spellings (jejuMascot) — the KEYS are the
+  // W010 세계자연유산본부 passes the 유산 spellings (jejuMascot) — the KEYS are the
   // same because the sheet's mascot tie-break already answers per-layout, so the
   // header shows the 유산 row on a JEJU_HERITAGE machine and 하영's elsewhere.
   "안녕 '유산'": { title: 'MainButton_Greeting', sub: 'Greeting_Introduce' },
@@ -352,7 +352,7 @@ const TITLE_KEYS: Record<string, TitleKeySpec> = {
   "제주도 이벤트": { title: 'MainButton_Event', sub: 'SubHeader_Event' },
   "렌트카": { title: 'MainButton_RentCar', sub: 'RentCar_Subtitle' },
   탐나오: { title: 'MainButton_Tamnao', sub: 'Tamnao_Subtitle' },
-  // W006 공항 board keeps MainButton_Airplane_Schedule. W007/W008 ferry board
+  // W008 공항 board keeps MainButton_Airplane_Schedule. W009/W010 ferry board
   // uses a separate header id (see CRUISE_TITLE) → OP_Schedule_Title. Subtitle
   // stays OP_Schedule_Subtitle on both.
   "운항정보": {
