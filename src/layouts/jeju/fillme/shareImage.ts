@@ -20,7 +20,6 @@ import { copy, type COPY } from './resultCopy';
 import { withSample } from './sampleResult';
 import {
   FINGER_BAR_COLORS,
-  FINGER_COUNT,
   toResultView,
   type NailCategory,
   type Solution,
@@ -231,6 +230,7 @@ export async function renderResultImage(raw: AnalysisResult, lang: Lang): Promis
   const solutions = view.solutions;
   const history = view.fingerScores;
   const overall = history.overall ?? [];
+  const fingerCount = view.fingerCount;
   const hasChart = overall.some((v) => v != null);
   const subAverages = SUB_CATEGORIES.map((c) => ({ c, v: average(history[c] ?? []) })).filter(
     (x): x is { c: NailCategory; v: number } => x.v != null,
@@ -335,7 +335,8 @@ export async function renderResultImage(raw: AnalysisResult, lang: Lang): Promis
     );
   }
 
-  // ── 손톱 분석 (8240:45423) — 이미지는 탭을 누를 수 없어 종합을 막대로, 나머지는 평균으로
+  // ── 손톱 분석 (8240:45423) — 이미지는 탭을 누를 수 없어 종합을 막대로, 나머지는 평균으로.
+  //    막대 칸은 API 가 보낸 손가락 수만큼(fingerCount).
   if (hasChart || subAverages.length || view.comment) {
     const AXIS_W = 60;
     const PLOT_H = 260;
@@ -369,7 +370,7 @@ export async function renderResultImage(raw: AnalysisResult, lang: Lang): Promis
           cy += TAB_H + 28;
 
           const plotX = x + AXIS_W;
-          const slotW = (IW - AXIS_W) / FINGER_COUNT;
+          const slotW = (IW - AXIS_W) / fingerCount;
           ctx.font = font(400, 26);
           ctx.fillStyle = C.axis;
           ctx.textAlign = 'left';
@@ -377,7 +378,7 @@ export async function renderResultImage(raw: AnalysisResult, lang: Lang): Promis
             const ty = cy + (PLOT_H * i) / 5;
             ctx.fillText(String(v), x, ty + 9);
           });
-          for (let i = 0; i < FINGER_COUNT; i++) {
+          for (let i = 0; i < fingerCount; i++) {
             const v = overall[i];
             const bx = plotX + slotW * i + (slotW - 44) / 2;
             if (v != null) {

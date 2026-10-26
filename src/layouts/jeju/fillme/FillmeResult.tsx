@@ -4,7 +4,7 @@ import type { AnalysisResult, Ingredient } from './api';
 import { ingredientIconSources } from './ingredients';
 import type { ShareState } from './share';
 import { withSample } from './sampleResult';
-import { FINGER_BAR_COLORS, FINGER_COUNT, toResultView, type NailCategory, type Solution, type SolutionLevel } from './resultView';
+import { FINGER_BAR_COLORS, toResultView, type NailCategory, type Solution, type SolutionLevel } from './resultView';
 import { fillmeArtUrl, fillmeDiagnosisIconUrl } from '@renderer/assets/fillme';
 import { Icon } from './Icon';
 import { useLang, type Lang } from '@renderer/lib/i18n';
@@ -77,18 +77,27 @@ function ScoreGauge({ score, unit, cta, onCta }: { score: number; unit: string; 
 }
 
 /**
- * 손톱 분석 그래프 (8240:45423) — 탭마다 손가락 10개의 점수.
+ * 손톱 분석 그래프 (8240:45423) — 탭마다 손가락별 점수. 칸 수는 API 가 보낸 손가락
+ * 수(count)라, 8개가 오면 1…8 이 판 폭을 나눠 쓴다.
  * 시안의 다른 판(8240:45454…)은 #ffeac7 에 마지막 막대만 주황이었는데, 그건
  * '이번 회차' 였을 때의 뜻이라 손가락 그래프에는 맞지 않는다.
  *
  * 탭 여섯 개는 늘 다 보인다 — API 가 어느 항목을 빠뜨려도 탭은 남고, 그 탭은
- * 축과 손가락 1…10 만 있는 빈 그래프다(지어낸 막대는 그리지 않는다).
+ * 축과 손가락 번호만 있는 빈 그래프다(지어낸 막대는 그리지 않는다).
  */
-function NailChart({ history, lang }: { history: Partial<Record<NailCategory, (number | null)[]>>; lang: Lang }): JSX.Element {
+function NailChart({
+  history,
+  count,
+  lang,
+}: {
+  history: Partial<Record<NailCategory, (number | null)[]>>;
+  count: number;
+  lang: Lang;
+}): JSX.Element {
   const tabs = CATEGORIES;
   const [tab, setTab] = useState<NailCategory>('overall');
   const values = history[tab] ?? [];
-  const slots = Array.from({ length: FINGER_COUNT }, (_, i) => values[i] ?? null);
+  const slots = Array.from({ length: count }, (_, i) => values[i] ?? null);
   return (
     <div className={styles.chartCard}>
       <div className={styles.chartTabs} role="tablist">
@@ -380,7 +389,7 @@ export function FillmeResult({ result: raw, share, onRetryShare, onHome }: Props
               )}
 
               {(hasHistory || result.comment) && <h3 className={styles.heading}>{copy('nail', lang)}</h3>}
-              {hasHistory && <NailChart history={history} lang={lang} />}
+              {hasHistory && <NailChart history={history} count={view.fingerCount} lang={lang} />}
               {result.comment && <p className={styles.comment}>{result.comment}</p>}
 
               {(solutions.length > 0 || productName || title || description) && (
@@ -425,7 +434,7 @@ export function FillmeResult({ result: raw, share, onRetryShare, onHome }: Props
               {hasHistory && (
                 <>
                   <h3 className={styles.heading}>{copy('nail', lang)}</h3>
-                  <NailChart history={history} lang={lang} />
+                  <NailChart history={history} count={view.fingerCount} lang={lang} />
                 </>
               )}
               <h3 className={styles.heading}>{copy('status', lang)}</h3>

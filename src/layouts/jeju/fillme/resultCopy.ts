@@ -13,8 +13,9 @@ export const COPY = {
   scoreUnit: ['Fillme_result_scoreUnit', '점'],
   toSummary: ['Fillme_result_toSummary', '종합분석 결과보기'],
   nail: ['Fillme_result_nail', '손톱 분석'],
-  /* 시안 문구는 '최근 10회의 기기사용' 이지만 API 의 fingerScores 는 손가락 10개다. */
-  chartNote: ['Fillme_result_chartNote', '그래프: 손가락 10개의 손톱 분석 점수를 표시합니다.'],
+  /* 시안 문구는 '최근 10회의 기기사용' 이지만 API 의 fingerScores 는 손가락별 점수다 —
+     손가락 수는 응답마다 달라(실제 8개) 문구에 숫자를 넣지 않는다. */
+  chartNote: ['Fillme_result_chartNote', '그래프: 손가락별 손톱 분석 점수를 표시합니다.'],
   solutions: ['Fillme_result_solutions', '맞춤 솔루션'],
   solutionHint: ['Fillme_result_solutionHint', '원하는 솔루션을 2개이상을 선택해주세요.\nⓘ 눌러 솔루션 상세정보를 확인해보세요.'],
   aiResult: ['Fillme_result_ai', 'AI 분석 결과'],

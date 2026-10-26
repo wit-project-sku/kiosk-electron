@@ -37,10 +37,15 @@ export interface Solution {
 export interface ResultView {
   healthScore?: number;
   /**
-   * 그래프 탭마다 손가락 10칸의 점수(0–100). x 축 1…10 은 손가락이다.
+   * 그래프 탭마다 손가락 칸의 점수(0–100), 칸 수는 fingerCount. x 축 1…N 은 손가락이다.
    * 점수가 없는 손가락은 null — 뒤 손가락이 앞으로 당겨지지 않게 자리를 지킨다.
    */
   fingerScores: Partial<Record<NailCategory, (number | null)[]>>;
+  /**
+   * API 가 보낸 손가락 칸 수 — 가장 큰 손가락 번호까지(최대 FINGER_COUNT). 그래프는
+   * 이만큼만 그린다: 실제 응답이 8개(엄지 제외로 보임)일 때 9 · 10 빈 칸을 두지 않는다.
+   */
+  fingerCount: number;
   /** 전체 진단 문장 (content). */
   comment?: string;
   solutions: Solution[];
@@ -74,7 +79,8 @@ function parseJson(raw: string | null | undefined): Record<string, unknown> | nu
   }
 }
 
-export const FINGER_COUNT = 10;
+/** 손가락 칸의 최대 — 두 손. API 는 이보다 적게 보낼 수 있다(fingerCount). */
+const FINGER_COUNT = 10;
 
 /**
  * 손가락 1…10 막대 색 — 종합분석 결과 시안(8240:44779…44797)의 파스텔, 순서대로.
@@ -83,18 +89,21 @@ export const FINGER_COUNT = 10;
 export const FINGER_BAR_COLORS = ['#dcf6f7', '#dcf6f7', '#e6e4f9', '#fbe6d9', '#eeeef0', '#e6e4f9', '#dcf6f7', '#f3e2ed', '#dcf3f7', '#f1fad9'];
 
 /**
- * {"0": …, "1": …} → 손가락 10칸. 칸은 키의 번호로 정한다 — 손가락 하나를 못
- * 찾아 키가 빠져도 나머지가 제자리에 남는다(배열 순서로 채우면 뒤가 당겨져 9 · 10
- * 칸이 빈다). 키는 0…9 가 문서 모양이고, 10 이 있고 0 이 없으면 1…10 으로 본다.
+ * {"0": …, "1": …} → 손가락 칸. 칸은 키의 번호로 정한다 — 가운데 손가락 하나를
+ * 못 찾아 키가 빠져도 나머지가 제자리에 남는다. 칸 수는 가장 큰 번호까지라, API 가
+ * 8개를 보내면 8칸이다. 키는 0 부터가 문서 모양이고, 0 이 없고 1 이 있으면 1 부터로 본다.
  */
 function byFinger(obj: Record<string, unknown>): (Record<string, unknown> | null)[] {
-  const keys = Object.keys(obj).filter((k) => /^\d+$/.test(k));
-  const base = keys.includes(String(FINGER_COUNT)) && !keys.includes('0') ? 1 : 0;
-  const slots: (Record<string, unknown> | null)[] = Array.from({ length: FINGER_COUNT }, () => null);
+  const keys = Object.keys(obj).filter((k) => /^\d+$/.test(k) && obj[k] && typeof obj[k] === 'object');
+  const base = !keys.includes('0') && keys.includes('1') ? 1 : 0;
+  const index = keys.map((k) => Number(k) - base).filter((i) => i >= 0 && i < FINGER_COUNT);
+  const slots: (Record<string, unknown> | null)[] = Array.from(
+    { length: index.length ? Math.max(...index) + 1 : 0 },
+    () => null,
+  );
   for (const k of keys) {
     const i = Number(k) - base;
-    const f = obj[k];
-    if (i >= 0 && i < FINGER_COUNT && f && typeof f === 'object') slots[i] = f as Record<string, unknown>;
+    if (i >= 0 && i < slots.length) slots[i] = obj[k] as Record<string, unknown>;
   }
   return slots;
 }
@@ -130,8 +139,10 @@ const LEVEL_ORDER: Record<SolutionLevel, number> = { care: 0, watch: 1, good: 2 
 export function toResultView(result: AnalysisResult): ResultView {
   const scores = parseJson(result.fingerScores);
   const fingerScores: ResultView['fingerScores'] = {};
+  let fingerCount = 0;
   if (scores) {
     const fingers = byFinger(scores);
+    fingerCount = fingers.length;
     for (const [cat, key] of Object.entries(SCORE_KEY) as [NailCategory, string][]) {
       const values = fingers.map((f) => (f ? scoreOf(f, key) : null));
       if (values.some((v) => v != null)) fingerScores[cat] = values;
@@ -163,6 +174,7 @@ export function toResultView(result: AnalysisResult): ResultView {
   return {
     healthScore: typeof score === 'number' && Number.isFinite(score) ? score : undefined,
     fingerScores,
+    fingerCount,
     comment: result.content || undefined,
     solutions,
     supplement: {
