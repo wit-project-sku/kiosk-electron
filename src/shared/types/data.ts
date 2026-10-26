@@ -123,6 +123,8 @@ export interface ShotInput {
   shotAt?: IsoDateTime;
   /** Idempotency key (UUID v4); generated in main if omitted. */
   eventId?: string;
+  /** The AR original capture on disk (not the composite) — the `/shots/v2` photo part. */
+  photoPath?: string | null;
 }
 
 /** The exact POST body for `/api/stats/shots` (kioskId/eventId resolved in main). */
@@ -135,6 +137,23 @@ export interface ShotBody {
   outfitCode: string;
   /** Idempotency key — same value on retry blocks duplicate server records. */
   eventId: string;
+}
+
+/**
+ * The `data` part of `POST /api/stats/shots/v2` (multipart, sent with the AR
+ * original as `photo`). Measurements are front-facing widths in cm, sent
+ * unrounded; null when the ZED did not measure them for this capture.
+ */
+export interface ShotV2Data extends ShotBody {
+  channel: 'KIOSK';
+  measuredAt: IsoDateTime | null;
+  heightCm: number | null;
+  shoulderWidthCm: number | null;
+  chestWidthCm: number | null;
+  waistWidthCm: number | null;
+  hipWidthCm: number | null;
+  confidence: number | null;
+  version: number | null;
 }
 
 /**

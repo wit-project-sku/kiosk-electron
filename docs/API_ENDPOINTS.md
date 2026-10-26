@@ -52,7 +52,7 @@ Google Sheets (the CMS sync) is intentionally left out of this list.
 |---|---|---|---|
 | POST | `/api/stats/menu-touch` | StatsService | Real-time menu touch |
 | POST | `/api/stats/shots` | StatsService | Photo shot (non-Jeju) |
-| POST | `/api/stats/shots/v2` | StatsService | Photo shot (Jeju layouts) |
+| POST | `/api/stats/shots/v2` | StatsService | Photo shot + ZED measurement + AR original (Jeju layouts, multipart `data` + `photo`) |
 | POST | `/api/stats/menu-touches/sync` | StatsService | Nightly resend of failed touches |
 | POST | `/api/stats/photo-shots/sync` | StatsService | Nightly resend of failed shots |
 
@@ -123,5 +123,5 @@ Shop detail pages also link to many `naver.me` short links.
 ## Env overrides
 
 `OUTFITS_API_URL`, `OUTFIT_CATEGORIES_API_URL`, `STATS_MENU_TOUCH_URL`,
-`STATS_MENU_TOUCHES_SYNC_URL`, `STATS_PHOTO_SHOTS_SYNC_URL`,
+`STATS_MENU_TOUCHES_SYNC_URL`, `STATS_SHOTS_URL`, `STATS_SHOTS_V2_URL`, `STATS_PHOTO_SHOTS_SYNC_URL`,
 `PHOTO_PUBLIC_UPLOAD_URL`, `FOOTFALL_API_URL`, `PAYMENT_HTTP_PORT`.

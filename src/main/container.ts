@@ -195,6 +195,8 @@ export function createContainer(): AppContainer {
   // physically separate device that the photo path never opens.
   const height = new HeightService(new ZedSidecarManager(), heightRepo, kiosk);
   photoWorkflow.subscribe((state) => height.onPhotoWorkflowChanged(state));
+  // `/shots/v2` reports each capture's measurement with its shot.
+  stats.setMeasurementSource(() => height.claimShotMeasurement());
 
   // The remote "update now" trigger drives the SAME updater instance as the
   // weekly scheduler, so both paths share one state machine (no double download,

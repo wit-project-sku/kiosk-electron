@@ -64,6 +64,7 @@ export class PhotoGenerationService {
 
   async generate(input: GeneratePhotoInput, onProgress?: ProgressCallback): Promise<GeneratePhotoResult> {
     const { sessionId, dataUrl, clothingKey, styleKey, backgroundId = null } = input;
+    let capturePath: string | null = null;
 
     try {
       this.analytics.track({
@@ -75,6 +76,7 @@ export class PhotoGenerationService {
       // The original capture (the token image) is kept permanently in the same
       // folder as the result, paired by sessionId.
       const capture = await this.capture.saveCapture(dataUrl, sessionId);
+      capturePath = capture.filePath;
 
       onProgress?.('AI is creating your image…');
       const { buffer: resultBuffer, publicUrl } = await this.ai.generate({
@@ -113,6 +115,7 @@ export class PhotoGenerationService {
         isSuccess: true,
         outfitCode: outfitCodeOf(clothingKey),
         shotType: shotTypeOf(styleKey),
+        photoPath: capturePath,
       });
 
       void this.uploadToDrive(session);
@@ -141,6 +144,7 @@ export class PhotoGenerationService {
         isSuccess: false,
         outfitCode: outfitCodeOf(clothingKey),
         shotType: shotTypeOf(styleKey),
+        photoPath: capturePath,
       });
       throw error;
     }

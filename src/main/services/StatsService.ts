@@ -1,4 +1,6 @@
 import { randomUUID } from 'node:crypto';
+import { readFile } from 'node:fs/promises';
+import { basename, extname } from 'node:path';
 import type {
   MenuTouchBody,
   MenuTouchInput,
@@ -6,9 +8,11 @@ import type {
   PhotoShotSyncItem,
   ShotBody,
   ShotInput,
+  ShotV2Data,
 } from '@shared/types/data';
 import { isJejuLayout } from '@shared/config/kioskLocations';
 import { createLogger } from '@main/core/logger';
+import type { ShotMeasurement } from './height/HeightService';
 import type { KioskService } from './KioskService';
 import type { FailedRequestService } from './FailedRequestService';
 
@@ -24,6 +28,59 @@ function witteriaApiBase(): string {
 /** Failed-request queue types re-sent via the nightly batch endpoints. */
 export const MENU_TOUCH_REQUEST_TYPE = 'menu_touch';
 export const PHOTO_SHOT_REQUEST_TYPE = 'photo_shot';
+/** `/shots/v2` multipart sends (data + photo path), re-sent one by one at night. */
+export const PHOTO_SHOT_V2_REQUEST_TYPE = 'photo_shot_v2';
+
+/** Queued `/shots/v2` send. `outfitId` is kept for the v1 batch fallback. */
+interface ShotV2Pending {
+  data: ShotV2Data;
+  photoPath: string;
+  outfitId: number | null;
+}
+
+/**
+ * How a `/shots/v2` attempt ended. `sent` includes 409 (STATS4106: an earlier
+ * attempt already stored it). `retry` is 5xx / network. `rejected` is any other
+ * 4xx or an unreadable photo — resending the same request cannot succeed.
+ */
+type ShotV2Outcome = { kind: 'sent' } | { kind: 'retry' | 'rejected'; message: string };
+
+type MeasurementSource = () => Promise<ShotMeasurement | null>;
+
+/** Nightly `/shots/v2` re-sends per run; each is a full photo upload. */
+const SHOT_V2_RETRY_LIMIT = 200;
+
+const PHOTO_MIME: Record<string, string> = {
+  '.jpg': 'image/jpeg',
+  '.jpeg': 'image/jpeg',
+  '.png': 'image/png',
+  '.webp': 'image/webp',
+};
+
+/**
+ * The v2 `data` part: the v1 body plus the ZED measurement. Every measurement
+ * field is always present, null when not measured. measuredAt/confidence/
+ * version are null too when no size was measured — the sidecar's confidence 0
+ * on an empty result is not a real score.
+ */
+function shotV2Data(body: ShotBody, measurement: ShotMeasurement | null): ShotV2Data {
+  const sizes = {
+    heightCm: measurement?.heightCm ?? null,
+    shoulderWidthCm: measurement?.shoulderWidthCm ?? null,
+    chestWidthCm: measurement?.chestWidthCm ?? null,
+    waistWidthCm: measurement?.waistWidthCm ?? null,
+    hipWidthCm: measurement?.hipWidthCm ?? null,
+  };
+  const measured = measurement !== null && Object.values(sizes).some((v) => v !== null);
+  return {
+    ...body,
+    channel: 'KIOSK',
+    measuredAt: measured ? measurement.measuredAt : null,
+    ...sizes,
+    confidence: measured ? measurement.confidence : null,
+    version: measured ? measurement.version : null,
+  };
+}
 
 /** Server caps each sync batch at 1000 items (over → 400). */
 const SYNC_BATCH_LIMIT = 1000;
@@ -80,14 +137,22 @@ function sentEventIds(json: unknown): Set<string> {
  * Env:
  *   STATS_MENU_TOUCH_URL        — real-time menu-touch endpoint.
  *   STATS_MENU_TOUCHES_SYNC_URL — nightly menu-touch batch endpoint.
- *   STATS_SHOTS_URL             — real-time shots endpoint (overrides the 제주 v2 switch).
+ *   STATS_SHOTS_URL             — real-time v1 shots endpoint.
+ *   STATS_SHOTS_V2_URL          — 제주 `/shots/v2` endpoint (multipart, measurement + photo).
  *   STATS_PHOTO_SHOTS_SYNC_URL  — nightly photo-shots batch endpoint.
  */
 export class StatsService {
+  private measurementSource: MeasurementSource | null = null;
+
   constructor(
     private readonly kiosk: KioskService,
     private readonly failedRequests: FailedRequestService,
   ) {}
+
+  /** Where `/shots/v2` gets the ZED measurement of the capture being reported. */
+  setMeasurementSource(source: MeasurementSource): void {
+    this.measurementSource = source;
+  }
 
   private menuTouchUrl(): string {
     return process.env['STATS_MENU_TOUCH_URL'] ?? `${witteriaApiBase()}/api/stats/menu-touch`;
@@ -97,11 +162,17 @@ export class StatsService {
     return process.env['STATS_MENU_TOUCHES_SYNC_URL'] ?? `${witteriaApiBase()}/api/stats/menu-touches/sync`;
   }
 
-  /** 제주 kiosks (W008/W009/W010) report to `/shots/v2`; every other venue stays on v1. */
   private shotsUrl(): string {
-    if (process.env['STATS_SHOTS_URL']) return process.env['STATS_SHOTS_URL'];
-    const path = isJejuLayout(this.kiosk.getConfig().layout) ? '/api/stats/shots/v2' : '/api/stats/shots';
-    return `${witteriaApiBase()}${path}`;
+    return process.env['STATS_SHOTS_URL'] ?? `${witteriaApiBase()}/api/stats/shots`;
+  }
+
+  private shotsV2Url(): string {
+    return process.env['STATS_SHOTS_V2_URL'] ?? `${witteriaApiBase()}/api/stats/shots/v2`;
+  }
+
+  /** 제주 kiosks (W008/W009/W010) carry the ZED; every other venue stays on v1. */
+  private usesShotsV2(): boolean {
+    return isJejuLayout(this.kiosk.getConfig().layout);
   }
 
   private photoShotsSyncUrl(): string {
@@ -161,23 +232,131 @@ export class StatsService {
       outfitCode: input.outfitCode,
       eventId,
     };
+    const outfitId = input.outfitId ?? null;
+
+    // v2 needs the photo; a capture that never reached disk is reported on v1.
+    if (this.usesShotsV2() && input.photoPath) {
+      return this.recordShotV2(realtime, input.photoPath, outfitId);
+    }
+
     try {
       await this.post(this.shotsUrl(), realtime);
       return true;
     } catch (error) {
       const message = error instanceof Error ? error.message : 'shot POST failed';
-      // Store in the batch-endpoint shape (outfitId, not outfitCode).
-      const item: PhotoShotSyncItem = {
-        eventId,
-        kioskId,
-        outfitId: input.outfitId ?? null,
-        shotType,
-        isSuccess: input.isSuccess,
-        shotAt,
-      };
-      this.store(PHOTO_SHOT_REQUEST_TYPE, item, eventId, message);
-      log.warn('shot POST failed; stored for nightly batch', { message, eventId });
+      this.storeShotForBatch(realtime, outfitId, message);
       return false;
+    }
+  }
+
+  /**
+   * `/shots/v2`: shot + ZED measurement + AR original in one multipart POST.
+   * Replaces the v1 call. 5xx / network failures are queued and re-sent as v2
+   * at night; a request the server rejects falls back to the v1 batch so the
+   * shot itself is still counted.
+   */
+  private async recordShotV2(body: ShotBody, photoPath: string, outfitId: number | null): Promise<boolean> {
+    const measurement = await this.claimMeasurement();
+    const data = shotV2Data(body, measurement);
+    const outcome = await this.postShotV2(data, photoPath);
+    if (outcome.kind === 'sent') return true;
+
+    if (outcome.kind === 'retry') {
+      const pending: ShotV2Pending = { data, photoPath, outfitId };
+      this.store(PHOTO_SHOT_V2_REQUEST_TYPE, pending, body.eventId, outcome.message);
+      log.warn('shots/v2 POST failed; stored for nightly re-send', {
+        message: outcome.message,
+        eventId: body.eventId,
+      });
+    } else {
+      log.error('shots/v2 rejected; reporting the shot via the v1 batch', {
+        message: outcome.message,
+        eventId: body.eventId,
+      });
+      this.storeShotForBatch(body, outfitId, outcome.message);
+    }
+    return false;
+  }
+
+  private async claimMeasurement(): Promise<ShotMeasurement | null> {
+    if (!this.measurementSource) return null;
+    try {
+      return await this.measurementSource();
+    } catch (error) {
+      log.warn('No ZED measurement for this shot', error);
+      return null;
+    }
+  }
+
+  private async postShotV2(data: ShotV2Data, photoPath: string): Promise<ShotV2Outcome> {
+    let photo: Buffer;
+    try {
+      photo = await readFile(photoPath);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'photo unreadable';
+      return { kind: 'rejected', message: `photo: ${message}` };
+    }
+
+    const form = new FormData();
+    form.append('data', new Blob([JSON.stringify(data)], { type: 'application/json' }));
+    const type = PHOTO_MIME[extname(photoPath).toLowerCase()] ?? 'application/octet-stream';
+    form.append('photo', new Blob([photo], { type }), basename(photoPath));
+
+    let res: Response;
+    try {
+      res = await fetch(this.shotsV2Url(), { method: 'POST', body: form });
+    } catch (error) {
+      return { kind: 'retry', message: error instanceof Error ? error.message : 'network error' };
+    }
+    if (res.ok) return { kind: 'sent' };
+    if (res.status === 409) {
+      log.info('shots/v2 already stored (409); treating as sent', { eventId: data.eventId });
+      return { kind: 'sent' };
+    }
+    const detail = await res.text().catch(() => '');
+    const message = `HTTP ${res.status}${detail ? ` ${detail.slice(0, 300)}` : ''}`;
+    return { kind: res.status >= 500 ? 'retry' : 'rejected', message };
+  }
+
+  /** Store a shot in the v1 batch-endpoint shape (outfitId, not outfitCode). */
+  private storeShotForBatch(body: ShotBody, outfitId: number | null, message: string): void {
+    const item: PhotoShotSyncItem = {
+      eventId: body.eventId,
+      kioskId: body.kioskId,
+      outfitId,
+      shotType: body.shotType,
+      isSuccess: body.isSuccess,
+      shotAt: body.shotAt ?? localIso(),
+    };
+    this.store(PHOTO_SHOT_REQUEST_TYPE, item, body.eventId, message);
+    log.warn('shot stored for nightly batch', { message, eventId: body.eventId });
+  }
+
+  /**
+   * Nightly re-send of `/shots/v2` POSTs that hit 5xx / network errors, one
+   * multipart request each. Rejected ones (or a photo gone from disk) move to
+   * the v1 batch queue so the shot is still counted. Never throws.
+   */
+  private async syncShotsV2(): Promise<void> {
+    const pending = this.failedRequests.listByType(PHOTO_SHOT_V2_REQUEST_TYPE, SHOT_V2_RETRY_LIMIT);
+    let sent = 0;
+    for (const r of pending) {
+      const { data, photoPath, outfitId } = r.payload as unknown as ShotV2Pending;
+      const outcome = await this.postShotV2(data, photoPath);
+      if (outcome.kind === 'sent') {
+        this.failedRequests.resolve(r.id);
+        sent += 1;
+      } else if (outcome.kind === 'retry') {
+        this.failedRequests.markRetried(r.id, outcome.message);
+      } else {
+        // Same request_id (eventId): delete first, or the insert would only
+        // bump the v2 row's retry count instead of becoming a v1 item.
+        this.failedRequests.resolve(r.id);
+        this.storeShotForBatch(data, outfitId ?? null, outcome.message);
+      }
+    }
+    if (pending.length > 0) {
+      log.info('shots/v2 nightly re-send', { sent, kept: pending.length - sent });
     }
   }
 
@@ -189,8 +368,10 @@ export class StatsService {
     await this.syncBatch(MENU_TOUCH_REQUEST_TYPE, this.menuTouchesSyncUrl(), 'menu-touches');
   }
 
-  /** Once-a-day batch re-send of photo shots whose real-time POST failed. */
+  /** Once-a-day batch re-send of photo shots whose real-time POST failed. v2
+   *  goes first so anything it hands to the v1 batch is sent in the same run. */
   async syncPhotoShots(): Promise<void> {
+    await this.syncShotsV2();
     await this.syncBatch(PHOTO_SHOT_REQUEST_TYPE, this.photoShotsSyncUrl(), 'photo-shots');
   }
 
