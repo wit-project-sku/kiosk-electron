@@ -617,7 +617,7 @@ export function JejuHanbokSelect({
    * directly. The component file stays in the repo should the step return.
    */
   const startCapture = (mode: CaptureMode): void => {
-    if (!selectedOutfit) return; // nothing chosen — never send a bare category
+    if (!captureReady) return; // nothing chosen — never send a bare category
     // Only forward a plate that is STILL in the active set. The set is CMS
     // content refreshed on launch and nightly, so an operator retiring a 배경
     // 테마 mid-session can leave the tapped id pointing at nothing — and the AR
@@ -701,6 +701,15 @@ export function JejuHanbokSelect({
   const isThemeTab = themeTabId !== undefined && categoryId === themeTabId;
   /** Tiles, or the 준비 중 message in the same 1820×700 band. */
   const hasBackgrounds = backgrounds.length > 0;
+
+  /**
+   * Whether the capture buttons fire. Every tab needs an outfit; the 제주 tab
+   * ALSO needs a 배경 테마 (2026-10-26 request) — its step ② is part of the
+   * choice, not decoration, so a capture without one was half a session. A
+   * kiosk with no backgrounds assigned keeps the outfit-only rule: there is
+   * nothing to pick, and 준비 중 must not dead-lock the camera.
+   */
+  const captureReady = !!selectedOutfit && (!isThemeTab || !hasBackgrounds || backgroundId !== null);
 
   /*
    * ── ← → on the chip band (7489:67510…67516) ──────────────────────────
@@ -870,15 +879,21 @@ export function JejuHanbokSelect({
     <div
       className={[
         styles.root,
+        isThemeTab ? styles.rootTheme : '',
         lowReach ? styles.rootLowReach : '',
         lowReachTheme ? styles.rootLowReachTheme : '',
       ]
         .filter(Boolean)
         .join(' ')}
       style={
-        lowReach
-          ? ({ ...modeBarVars, '--lr-sub': lowReachSubShift } as React.CSSProperties)
-          : modeBarVars
+        {
+          ...modeBarVars,
+          // The chip band's slot on the 제주 tab — 170px when the band draws
+          // (sub-category chips or the ← → pair), reclaimed by the 2026-10-26
+          // frame otherwise. See `.rootTheme` in the CSS.
+          '--jeju-band': hasChipBand ? '170px' : '0px',
+          ...(lowReach ? { '--lr-sub': lowReachSubShift } : null),
+        } as React.CSSProperties
       }
     >
       {pageBg && <img src={pageBg} alt="" className={styles.bg} draggable={false} />}
@@ -1126,8 +1141,8 @@ export function JejuHanbokSelect({
         <div className={`${styles.captureRow} ${isThemeTab ? '' : styles.captureRowGuide}`}>
           <button
             type="button"
-            className={`${styles.capture} ${selectedOutfit ? '' : styles.captureDisabled}`}
-            disabled={!selectedOutfit}
+            className={`${styles.capture} ${captureReady ? '' : styles.captureDisabled}`}
+            disabled={!captureReady}
             onClick={() => startCapture('solo')}
           >
             <Camera className={styles.captureIcon} strokeWidth={2} />
@@ -1135,8 +1150,8 @@ export function JejuHanbokSelect({
           </button>
           <button
             type="button"
-            className={`${styles.capture} ${selectedOutfit ? '' : styles.captureDisabled}`}
-            disabled={!selectedOutfit}
+            className={`${styles.capture} ${captureReady ? '' : styles.captureDisabled}`}
+            disabled={!captureReady}
             onClick={() => startCapture('withInsa')}
           >
             <Camera className={styles.captureIcon} strokeWidth={2} />

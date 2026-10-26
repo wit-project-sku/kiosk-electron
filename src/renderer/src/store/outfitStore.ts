@@ -206,6 +206,10 @@ function prefetchOutfitImages(byCategory: Record<string, PickerOutfit[]>): void 
       const img = new Image();
       img.decoding = 'async';
       img.src = url;
+      // decode() forces the bitmap NOW rather than at first paint — fetching
+      // alone still left the picker's first open with a visible stall while
+      // each card decoded. Rejection (a 404'd card) is markBroken's problem.
+      void img.decode().catch(() => undefined);
       // Retained on purpose — see `warmed`. Dropping it here is what made the
       // picker reload its cards on every tab change.
       warmed.set(url, img);

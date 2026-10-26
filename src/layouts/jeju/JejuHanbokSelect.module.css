@@ -26,15 +26,20 @@
  *  1266…1386  sub-category chips — only where the category has any, so the
  *             band is empty on most tabs (see `.subcats`). 6530:10400 draws the
  *             same row 7px lower; normalised to 1266 for the same reason.
- *  1447…1838  outfit cells, ONE row  (제주 tab — 5 × 350 across the 1820,
- *             card 1447…1797 + name 1813…1838)
- *  1447…2279  outfit cells, TWO rows (every other tab; 441 pitch)
- *  1855…1960  ② 배경 테마 선택하기 — 제주 tab only, ALWAYS drawn there
- *  2018…2718  background themes (scrolls horizontally; 350×700 tiles), or
+ *  1447…2279  outfit cells, TWO rows (every tab but 제주; 441 pitch)
+ *  2347…2497  capture buttons (non-제주) · 2565…3065 사진촬영안내 card ·
+ *             3267…3840 banner
+ *
+ * ── 제주 tab (6530:10400, 2026-10-26 revision) ──────────────────────────
+ * The frame reclaims the chip band's slot — 제주 has no sub-categories — and
+ * the stack under the tab row rides `--jeju-band` (170px when the band draws,
+ * 0 otherwise; see `.rootTheme`):
+ *  1277…1668  outfit cells, ONE row (5 × 350 across the 1820, card + name)
+ *  1726…1831  ② 배경 테마 선택하기 — ALWAYS drawn on this tab
+ *  1889…2589  background themes (scrolls horizontally; 350×700 tiles), or
  *             준비 중인 배경입니다 in the same box when the kiosk has none
- *  2883…3033  capture buttons (제주) · 2347…2497 (other tabs)
- *  3210…3710  사진촬영안내 card (제주) · 2565…3065 (other tabs)
- *  3267…3840  banner — every tab EXCEPT 제주, whose guide card sits there
+ *  2689…2839  capture buttons
+ *  3210…3710  사진촬영안내 card — in the banner band; this tab draws no banner
  */
 .root {
   position: absolute;
@@ -1299,6 +1304,35 @@
    at 945 whichever tab drew it. */
 .rootLowReach .guide {
   top: 945px;
+}
+
+/*
+ * ── 제주 tab, 2026-10-26 revision of 6530:10400 ─────────────────────────
+ * The frame no longer leaves the chip band's 170px hole above the strip:
+ * 제주 registers no sub-categories, so the band's slot is reclaimed and the
+ * whole stack under the tab row moves up — strip 1277, ② 1726, tiles 1889,
+ * capture 2689. The band is still CMS content, so `--jeju-band` (170px when
+ * the component draws the band — chips or the ← → pair) gives the slot back
+ * and the stack lands on the old map (strip 1447…). Other tabs keep their
+ * two-row grid untouched; the ♿ section below overrides all of this by
+ * source order exactly as it did the old values.
+ */
+.rootTheme .outfits,
+.rootTheme .emptyCat {
+  top: calc(1277px + var(--jeju-band, 0px));
+}
+
+.rootTheme .stepTheme {
+  top: calc(1726px + var(--jeju-band, 0px));
+}
+
+.rootTheme .themes,
+.rootTheme .emptyThemes {
+  top: calc(1889px + var(--jeju-band, 0px));
+}
+
+.rootTheme .captureRow {
+  top: calc(2689px + var(--jeju-band, 0px));
 }
 
 /* ── Condition A — every tab except 제주 (6327:85598) ── */
