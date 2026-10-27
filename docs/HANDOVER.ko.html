@@ -222,13 +222,15 @@ QR로 받는 AR 한복 포토부스, 카드 결제가 되는 기부/상점 웹�
 <table>
   <tr><th>대상</th><th>스케줄</th><th>Windows 작업 이름</th></tr>
   <tr><td>W001, W002, W003, W005, W202</td><td>매일 <b>02:00 재부팅</b></td><td><code>KioskAutoRestart</code></td></tr>
-  <tr><td>W004, W008, W009, W010</td><td><b>22:00 종료</b>, <b>08:00 시작</b></td><td><code>KioskShutdownAt10PM</code>, <code>KioskStartAt8AM</code></td></tr>
+  <tr><td>W004, W009, W010</td><td><b>22:00 종료</b>, <b>08:00 시작</b></td><td><code>KioskShutdownAt10PM</code>, <code>KioskStartAt8AM</code></td></tr>
+  <tr><td>W008 (제주공항)</td><td><b>00:00 종료</b>, <b>06:00 시작</b></td><td><code>KioskShutdownAtMidnight</code>, <code>KioskStartAt6AM</code></td></tr>
   <tr><td>베타 빌드</td><td>매일 <b>09:00 재부팅</b></td><td><code>KioskBetaAutoRestart</code></td></tr>
 </table>
-<div class="note"><b>중요:</b> Windows는 완전히 꺼진 PC를 켤 수 없습니다. 22:00/08:00 장소는 메인보드
-<b>BIOS → "Power On by RTC Alarm" = 08:00</b>으로 설정해야 합니다. 설정하지 않으면 아침에 키오스크가 꺼진 채로 있습니다.</div>
+<div class="note"><b>중요:</b> Windows는 완전히 꺼진 PC를 켤 수 없습니다. 자동 종료 장소는 메인보드
+<b>BIOS → "Power On by RTC Alarm"</b>을 시작 시간(<b>08:00</b>, W008은 <b>06:00</b>)으로 설정해야 합니다.
+BIOS에 <b>ErP / Deep Sleep</b> 항목이 있으면 꺼야(Disabled) 알람이 동작합니다. 설정하지 않으면 아침에 키오스크가 꺼진 채로 있습니다.</div>
 <p>저장소 루트의 <code>SetAutoShutdown*.bat</code> / <code>UnsetAutoShutdown*.bat</code>는 예전 수동 방식이며 더 이상 필요 없습니다.
-PC에서 확인하려면 <i>작업 스케줄러</i>에서 위 작업 이름을 찾으면 됩니다. 제주 시간(22:00/08:00)은 오색시장 시간을 그대로 쓴 것이라 장소별로 확인이 필요합니다.</p>
+PC에서 확인하려면 <i>작업 스케줄러</i>에서 위 작업 이름을 찾으면 됩니다. W009/W010은 아직 오색시장 시간(22:00/08:00)을 그대로 쓰고 있어 장소별로 확인이 필요합니다.</p>
 
 <h2>10. 배포와 자동 업데이트</h2>
 <ul>
@@ -286,7 +288,7 @@ PC에서 확인하려면 <i>작업 스케줄러</i>에서 위 작업 이름을 �
   <tr><td>새 장소 추가</td><td><code>kioskLocations.ts</code>에 추가 → 레이아웃 선택/제작 → 시트 ID 두 곳에 추가 → PC 프로비저닝.</td></tr>
   <tr><td>새 API 데이터 추가</td><td><code>src/main/services</code>에 서비스 → <code>container.ts</code>에 등록 → <code>ipc/handlers</code>에 핸들러 + <code>shared/ipc</code>에 채널 → <code>renderer/src/store</code>에 스토어 → 레이아웃에서 사용.</td></tr>
   <tr><td>DB 변경</td><td>새 마이그레이션 파일(<code>009_…ts</code>)을 추가. 기존 파일은 절대 수정하지 않기.</td></tr>
-  <tr><td>새 키오스크 설치</td><td>설치 → 한 번 실행 → <code>provision-kiosk.ps1 W00x</code> → 영상을 <code>C:\KioskVideos</code>에 복사 → BIOS RTC 설정(22:00/08:00 장소) → 재시작.</td></tr>
+  <tr><td>새 키오스크 설치</td><td>설치 → 한 번 실행 → <code>provision-kiosk.ps1 W00x</code> → 영상을 <code>C:\KioskVideos</code>에 복사 → BIOS RTC 설정(08:00, W008은 06:00) → 재시작.</td></tr>
   <tr><td>키오스크 문제 확인</td><td><code>%APPDATA%\kiosk-app\logs\</code> 확인. DB는 <code>scripts/db-inspect.mjs</code>로 조회.</td></tr>
 </table>
 

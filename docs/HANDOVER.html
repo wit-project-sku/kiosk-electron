@@ -223,13 +223,15 @@ The sheet IDs are in <code>GoogleSheetsSyncTransport.ts</code> (runtime) and <co
 <table>
   <tr><th>Who</th><th>Schedule</th><th>Windows task name</th></tr>
   <tr><td>W001, W002, W003, W005, W202</td><td>Reboot every day at <b>02:00</b></td><td><code>KioskAutoRestart</code></td></tr>
-  <tr><td>W004, W008, W009, W010</td><td><b>Shut down 22:00</b>, start <b>08:00</b></td><td><code>KioskShutdownAt10PM</code>, <code>KioskStartAt8AM</code></td></tr>
+  <tr><td>W004, W009, W010</td><td><b>Shut down 22:00</b>, start <b>08:00</b></td><td><code>KioskShutdownAt10PM</code>, <code>KioskStartAt8AM</code></td></tr>
+  <tr><td>W008 (제주공항)</td><td><b>Shut down 00:00</b>, start <b>06:00</b></td><td><code>KioskShutdownAtMidnight</code>, <code>KioskStartAt6AM</code></td></tr>
   <tr><td>Beta build</td><td>Reboot every day at <b>09:00</b></td><td><code>KioskBetaAutoRestart</code></td></tr>
 </table>
-<div class="note"><b>Important:</b> Windows cannot turn on a PC that is fully powered off. For the 22:00/08:00 sites, set the motherboard
-<b>BIOS → "Power On by RTC Alarm" = 08:00</b>, otherwise the kiosk stays off in the morning.</div>
+<div class="note"><b>Important:</b> Windows cannot turn on a PC that is fully powered off. For the shut-down sites, set the motherboard
+<b>BIOS → "Power On by RTC Alarm"</b> to the start time (<b>08:00</b>, or <b>06:00</b> on W008), otherwise the kiosk stays off in the morning.
+Also disable <b>ErP / Deep Sleep</b> if the BIOS has it, or the alarm never fires.</div>
 <p>The <code>SetAutoShutdown*.bat</code> / <code>UnsetAutoShutdown*.bat</code> files in the repo root are the old manual way — not needed any more.
-To check on a machine: open <i>Task Scheduler</i> and look for the task names above. The Jeju hours (22:00/08:00) are copied from 오색시장 and should be confirmed with each venue.</p>
+To check on a machine: open <i>Task Scheduler</i> and look for the task names above. W009/W010 still use the 오색시장 hours (22:00/08:00) and should be confirmed with each venue.</p>
 
 <h2>10. Releases and auto-update</h2>
 <ul>
@@ -287,7 +289,7 @@ Changing it on a kiosk needs only an app restart. <b>Never commit it.</b></p>
   <tr><td>Add a new location</td><td>Add it to <code>kioskLocations.ts</code>, pick/make a layout, add its sheet in both sheet-ID places, provision the machine.</td></tr>
   <tr><td>Add data from a new API</td><td>Service in <code>src/main/services</code> → register in <code>container.ts</code> → IPC handler in <code>ipc/handlers</code> + channel in <code>shared/ipc</code> → store in <code>renderer/src/store</code> → use in layout.</td></tr>
   <tr><td>Change the DB</td><td>Add a new migration file (<code>009_…ts</code>) — never edit old ones.</td></tr>
-  <tr><td>Install a new kiosk</td><td>Install → open once → <code>provision-kiosk.ps1 W00x</code> → copy videos to <code>C:\KioskVideos</code> → set BIOS RTC (22:00/08:00 sites) → restart.</td></tr>
+  <tr><td>Install a new kiosk</td><td>Install → open once → <code>provision-kiosk.ps1 W00x</code> → copy videos to <code>C:\KioskVideos</code> → set BIOS RTC (08:00, or 06:00 on W008) → restart.</td></tr>
   <tr><td>Debug a kiosk</td><td>Read <code>%APPDATA%\kiosk-app\logs\</code>. <code>scripts/db-inspect.mjs</code> reads the DB.</td></tr>
 </table>
 
