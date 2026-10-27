@@ -17,8 +17,10 @@
  * Three schedules exist, and a build only ever provisions ONE of them:
  *
  *   production, most kiosks   02:00 reboot                 KioskAutoRestart
- *   production, W004/6/7/8    22:00 종료 + 08:00 시작       KioskShutdownAt10PM
+ *   production, W004/9/10     22:00 종료 + 08:00 시작       KioskShutdownAt10PM
  *                                                          KioskStartAt8AM
+ *   production, W008 제주공항  00:00 종료 + 06:00 시작       KioskShutdownAtMidnight
+ *                                                          KioskStartAt6AM
  *   beta (develop_1)          09:00 reboot                 KioskBetaAutoRestart
  *
  * The names are distinct on purpose: both channels install side by side on the
@@ -44,28 +46,59 @@ const AUTORUN_KEY = 'KioskApp';
 
 /**
  * Some sites run on a daily OPERATING-HOURS power cycle instead of the fleet-wide
- * 2AM reboot: shut down at 22:00 (종료), start at 08:00 (시작). Today that is
- * 오색시장 W004, 제주공항 W008 and 제주국제여객터미널 W009.
+ * 2AM reboot: shut down (종료) at night, start (시작) in the morning. The hours are
+ * per venue:
  *
- * Note on the 08:00 start: a scheduled task's "wake" timer can resume the PC from
+ *   오색시장 W004, 여객터미널 W009, 세계자연유산 W010   22:00 종료 / 08:00 시작
+ *   제주공항 W008                                       00:00 종료 / 06:00 시작
+ *
+ * Note on the morning start: a scheduled task's "wake" timer can resume the PC from
  * sleep/hibernate, but Windows cannot power on a fully powered-off (S5) machine —
- * that requires the motherboard BIOS "Power On by RTC Alarm" set to 08:00. The
- * 08:00 task below covers wake-from-sleep and relaunches the app after a BIOS boot.
+ * that requires the motherboard BIOS "Power On by RTC Alarm" set to the same start
+ * time (so 06:00 on W008, not the 08:00 copied from 오색). The start task below
+ * covers wake-from-sleep and relaunches the app after the BIOS boot.
+ *
+ * Full shutdown rather than sleep is deliberate: a sleeping kiosk wakes when a
+ * passer-by touches the screen, and the airport is busy all night.
  *
  * Do NOT add `-RunLevel Highest` to the Register-ScheduledTask call below: the app
  * auto-starts UNELEVATED (login item / HKCU Run), so an elevated registration
- * fails "Access denied" and the catch silently drops the 08:00 task AND the
- * powercfg call, leaving a kiosk that shuts down at 22:00 and never comes back.
+ * fails "Access denied" and the catch silently drops the start task AND the
+ * powercfg call, leaving a kiosk that shuts down at night and never comes back.
  *
- * TODO(제주 W008/W009): 22:00/08:00 are the 오색시장 hours. Confirm each 제주 venue's
- * actual operating hours and split the times per kiosk if they differ — a ferry
- * terminal's last sailing and an airport's last flight are not the same clock.
+ * Each cycle has its own task names, so Task Scheduler on a kiosk says what it
+ * actually does. Provisioning one cycle deletes the other cycles' tasks — a
+ * kiosk renumbered into a different venue must not keep the old shutdown time.
  */
-const OPERATING_HOURS_KIOSK_IDS = new Set(['W004', 'W008', 'W009', 'W010']);
-const OPERATING_HOURS_SHUTDOWN_TASK = 'KioskShutdownAt10PM';
-const OPERATING_HOURS_START_TASK = 'KioskStartAt8AM';
-const OPERATING_HOURS_SHUTDOWN_TIME = '22:00';
-const OPERATING_HOURS_START_TIME = '08:00';
+interface PowerCycle {
+  shutdownTask: string;
+  startTask: string;
+  shutdownTime: string;
+  startTime: string;
+}
+
+const STANDARD_HOURS_CYCLE: PowerCycle = {
+  shutdownTask: 'KioskShutdownAt10PM',
+  startTask: 'KioskStartAt8AM',
+  shutdownTime: '22:00',
+  startTime: '08:00',
+};
+
+const JEJU_AIRPORT_CYCLE: PowerCycle = {
+  shutdownTask: 'KioskShutdownAtMidnight',
+  startTask: 'KioskStartAt6AM',
+  shutdownTime: '00:00',
+  startTime: '06:00',
+};
+
+const OPERATING_HOURS_CYCLES: Record<string, PowerCycle> = {
+  W004: STANDARD_HOURS_CYCLE,
+  W008: JEJU_AIRPORT_CYCLE,
+  W009: STANDARD_HOURS_CYCLE,
+  W010: STANDARD_HOURS_CYCLE,
+};
+
+const ALL_POWER_CYCLES = [STANDARD_HOURS_CYCLE, JEJU_AIRPORT_CYCLE];
 
 /**
  * ── BETA (develop_1) power schedule ───────────────────────────────────
@@ -179,45 +212,52 @@ async function removeRestartTask(): Promise<void> {
 }
 
 /**
- * W004/W008/W009: provision the 08:00 시작 / 22:00 종료 daily power cycle and drop the
- * fleet-wide 2AM reboot. Idempotent (`/f`, `-Force`) — safe to run every launch.
+ * Operating-hours kiosks: provision the venue's daily 종료/시작 power cycle and drop
+ * the fleet-wide 2AM reboot. Idempotent (`/f`, `-Force`) — safe to run every launch.
  */
-async function ensureOperatingHoursPowerCycle(): Promise<void> {
+async function ensureOperatingHoursPowerCycle(cycle: PowerCycle): Promise<void> {
   if (!isWindows() || !app.isPackaged) return;
   // The 2AM reboot and the operating-hours cycle are mutually exclusive — make
   // sure a previously-provisioned reboot task can't also fire.
   await removeRestartTask();
+  // Same for another venue's cycle (e.g. W008 before it moved to 00:00/06:00).
+  for (const other of ALL_POWER_CYCLES) {
+    if (other === cycle) continue;
+    for (const task of [other.shutdownTask, other.startTask]) {
+      await exec('schtasks', ['/delete', '/tn', task, '/f']).catch(() => {});
+    }
+  }
   try {
-    // 22:00 종료 — full shutdown.
+    // 종료 — full shutdown.
     await exec('schtasks', [
       '/create',
-      '/tn', OPERATING_HOURS_SHUTDOWN_TASK,
+      '/tn', cycle.shutdownTask,
       '/tr', 'shutdown /s /f /t 0',
       '/sc', 'daily',
-      '/st', OPERATING_HOURS_SHUTDOWN_TIME,
+      '/st', cycle.shutdownTime,
       '/f',
     ]);
-    // 08:00 시작 — a WakeToRun task (PowerShell, since schtasks can't set the wake
+    // 시작 — a WakeToRun task (PowerShell, since schtasks can't set the wake
     // flag) that resumes the PC from sleep/hibernate and (re)launches the kiosk.
     //
     // Deliberately NO `-RunLevel Highest`: the kiosk app auto-starts UNELEVATED
     // (Electron login-item / HKCU Run key, no elevation manifest, perMachine:
     // false), and `Register-ScheduledTask -RunLevel Highest` fails with
     // "Access denied" for an unelevated caller — which the catch below then
-    // swallowed, silently dropping the 08:00 task AND the powercfg call. Limited
+    // swallowed, silently dropping the start task AND the powercfg call. Limited
     // level is enough to launch the exe and still honours WakeToRun, and matches
     // the fleet-wide 2AM reboot task (also Limited).
     const exePath = app.getPath('exe');
     const ps = [
       `$a=New-ScheduledTaskAction -Execute '${exePath}';`,
-      `$t=New-ScheduledTaskTrigger -Daily -At '${OPERATING_HOURS_START_TIME}';`,
+      `$t=New-ScheduledTaskTrigger -Daily -At '${cycle.startTime}';`,
       `$s=New-ScheduledTaskSettingsSet -WakeToRun -AllowStartIfOnBatteries -DontStopIfGoingOnBatteries -StartWhenAvailable;`,
-      `Register-ScheduledTask -TaskName '${OPERATING_HOURS_START_TASK}' -Action $a -Trigger $t -Settings $s -Force`,
+      `Register-ScheduledTask -TaskName '${cycle.startTask}' -Action $a -Trigger $t -Settings $s -Force`,
     ].join(' ');
     await exec('powershell', ['-NoProfile', '-ExecutionPolicy', 'Bypass', '-Command', ps]);
-    // Allow wake timers so the 08:00 task can actually wake the machine.
+    // Allow wake timers so the start task can actually wake the machine.
     await exec('powercfg', ['-change', '-standby-timeout-ac', '0']).catch(() => {});
-    log.info('Operating-hours power cycle scheduled', { start: OPERATING_HOURS_START_TIME, shutdown: OPERATING_HOURS_SHUTDOWN_TIME });
+    log.info('Operating-hours power cycle scheduled', { start: cycle.startTime, shutdown: cycle.shutdownTime });
   } catch (error) {
     log.warn('Failed to schedule operating-hours power cycle', error);
   }
@@ -288,8 +328,10 @@ async function taskRunsThisBuild(task: string): Promise<boolean> {
  */
 async function retireLegacyBetaPowerCycle(): Promise<void> {
   if (!isWindows() || !app.isPackaged) return;
-  if (!(await taskRunsThisBuild(OPERATING_HOURS_START_TASK))) return;
-  for (const task of [OPERATING_HOURS_START_TASK, OPERATING_HOURS_SHUTDOWN_TASK]) {
+  // Older beta builds only ever wrote the 22:00/08:00 names.
+  const legacy = STANDARD_HOURS_CYCLE;
+  if (!(await taskRunsThisBuild(legacy.startTask))) return;
+  for (const task of [legacy.startTask, legacy.shutdownTask]) {
     await exec('schtasks', ['/delete', '/tn', task, '/f']).catch(() => {});
   }
   log.info('Retired legacy beta-owned 22:00/08:00 power cycle', {
@@ -324,8 +366,10 @@ function retireLegacyBetaAutoStart(): void {
 
 async function removeOperatingHoursPowerCycle(): Promise<void> {
   if (!isWindows()) return;
-  for (const task of [OPERATING_HOURS_SHUTDOWN_TASK, OPERATING_HOURS_START_TASK]) {
-    await exec('schtasks', ['/delete', '/tn', task, '/f']).catch(() => {});
+  for (const cycle of ALL_POWER_CYCLES) {
+    for (const task of [cycle.shutdownTask, cycle.startTask]) {
+      await exec('schtasks', ['/delete', '/tn', task, '/f']).catch(() => {});
+    }
   }
 }
 
@@ -356,10 +400,11 @@ export async function setupKioskPower(kioskId?: string): Promise<void> {
     return;
   }
 
-  // W004/W008/W009 use an operating-hours power cycle (08:00 시작 / 22:00 종료);
-  // every other kiosk keeps the fleet-wide 2AM reboot.
-  if (kioskId != null && OPERATING_HOURS_KIOSK_IDS.has(kioskId)) {
-    await ensureOperatingHoursPowerCycle();
+  // Operating-hours kiosks (see OPERATING_HOURS_CYCLES) get their venue's 종료/시작
+  // cycle; every other kiosk keeps the fleet-wide 2AM reboot.
+  const cycle = kioskId != null ? OPERATING_HOURS_CYCLES[kioskId] : undefined;
+  if (cycle) {
+    await ensureOperatingHoursPowerCycle(cycle);
   } else {
     await ensureRestartTask();
   }
