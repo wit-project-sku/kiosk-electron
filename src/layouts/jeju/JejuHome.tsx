@@ -813,12 +813,17 @@ export function JejuHome({ controller }: Props): JSX.Element {
         {CARDS.map((card) => {
           const title = <span className={styles.cardTitle}>{labelFor(card.screen, card.label)}</span>;
           const sub = <span className={styles.cardSub}>{subFor(card.screen, card.sub)}</span>;
+          /* 제주공항 only. The card keeps its colours; it just does not open
+             WIT Store. W009 and W010 still do. */
+          const inert = card.screen === 'market' && controller.kioskId === 'W008';
           return (
             <button
               key={card.screen}
               type="button"
-              className={`${styles.card} ${styles[card.variant]}`}
-              onClick={() => go(card.screen, card.label)}
+              className={`${styles.card} ${styles[card.variant]}${inert ? ` ${styles.cardInert}` : ''}`}
+              onClick={inert ? undefined : () => go(card.screen, card.label)}
+              aria-disabled={inert || undefined}
+              tabIndex={inert ? -1 : undefined}
             >
               {/* Non-Korean: title and subtitle as ONE column centred in the
                   card (7058:22669, "크기 넘으면 단 내리기"), so a title that
