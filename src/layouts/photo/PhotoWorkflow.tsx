@@ -49,8 +49,10 @@ function saveQrUrl(shareUrl: string | null, imageUrl: string): string {
  *   clothing / style  → HanbokSelect (outfit selection, no popup)
  *   preview / countdown → camera-popup.png only (nothing else)
  *   generating        → camera popup; 제주 opens the 게임존 instead
- *   result            → WIT Store webview (Monitor 2 shows result image),
- *                       gated on the 제주 game finishing — see the gate below
+ *   result            → WIT Store webview on the market kiosks (Monitor 2
+ *                       shows the result image). 제주공항 shows the photo
+ *                       itself, the same screen 인사동 uses where there is no
+ *                       payment. 제주 still waits for the game — see the gate.
  */
 export function PhotoWorkflow(): JSX.Element {
   const phase = usePhotoStore((s) => s.phase);
@@ -75,12 +77,13 @@ export function PhotoWorkflow(): JSX.Element {
   const toggleLowReach = useAccessibilityStore((s) => s.toggleLowReach);
   const accessibilityIcon =
     (lowReach ? icon('ico-accessibility-on') : undefined) ?? icon('ico-accessibility');
-  // 위드마켓 result gate. `hasCardTerminal` alone is the wrong test: 화성휴게소
-  // W005 got a TL-3800 for the 기부 (donation) app, not for the store, so its
-  // photo result must stay the plain image + save QR like the no-payment
-  // kiosks — only venues that pair the terminal WITH the store webview take
-  // the 위드마켓 result screen.
-  const showsMarketResult = hasPayment && !isHwaseong;
+  // 위드마켓 result gate. `hasCardTerminal` alone is the wrong test:
+  //  - 화성휴게소 W005's TL-3800 is for the 기부 (donation) app, not the store
+  //  - 제주공항 W008 keeps its terminal for 기부 too, but the finished photo
+  //    is the plain image + save QR, the same screen 인사동 draws where there
+  //    is no payment. The home 위드마켓 card is inert there as well.
+  // Only venues that pair the terminal WITH the store webview take this screen.
+  const showsMarketResult = hasPayment && !isHwaseong && kioskId !== 'W008';
   // Osan/Hwaseong have their own single promo banner; insadong rotates through several.
   const banner = chromeBanner ?? rotating;
   const [goodsQrOpen, setGoodsQrOpen] = useState(false);
@@ -269,7 +272,7 @@ export function PhotoWorkflow(): JSX.Element {
     return <HanbokSelect onHome={handleReset} onCapture={handleCapture} countdownActive={capturing} />;
   }
 
-  // ── Result (MARKET kiosks W003/W004/제주): WIT Store on Monitor 1; result image big on Monitor 2 ──
+  // ── Result (MARKET kiosks W003/W004, and 제주 except 제주공항): WIT Store on Monitor 1; result image big on Monitor 2 ──
   if (phase === 'result' && showsMarketResult) {
     const imageUrl = resultUrl ?? (resultFileName ? generatedUrl(resultFileName) : '');
     const saveUrl = saveQrUrl(resultShareUrl, imageUrl);
@@ -486,13 +489,24 @@ export function PhotoWorkflow(): JSX.Element {
           /* 오산: the shared rail (home · back · ♿), as on every other 오산 page. */
           <OsanLeftNav onHome={handleReset} onBack={handleReset} />
         ) : (
-          <div className={styles.leftNav}>
+          <div className={`${styles.leftNav} ${isJeju ? styles.leftNavJeju : ''}`}>
             <button type="button" className={styles.leftNavBtn} onClick={handleReset} aria-label="홈으로">
               {icon('home-btn') && <img src={icon('home-btn')} alt="" draggable={false} />}
             </button>
             <button type="button" className={styles.leftNavBtn} onClick={handleReset} aria-label="뒤로">
               {icon('back-arrow') && <img src={icon('back-arrow')} alt="" draggable={false} />}
             </button>
+            {isJeju && accessibilityIcon && (
+              <button
+                type="button"
+                className={styles.leftNavBtn}
+                onClick={toggleLowReach}
+                aria-label="저상 화면"
+                aria-pressed={lowReach}
+              >
+                <img src={accessibilityIcon} alt="" draggable={false} />
+              </button>
+            )}
           </div>
         )}
 

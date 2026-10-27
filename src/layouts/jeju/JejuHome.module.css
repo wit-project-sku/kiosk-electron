@@ -349,6 +349,14 @@
   -webkit-tap-highlight-color: transparent;
 }
 
+/* 제주공항: 위드마켓 stays painted exactly as designed and simply does not
+   take a tap. No opacity, no grey — colour is the card's own. The keypad
+   also skips anything with pointer-events none (see spatialNav). */
+.cardInert {
+  pointer-events: none;
+  cursor: default;
+}
+
 .cardTitle {
   position: absolute;
   margin: 0;

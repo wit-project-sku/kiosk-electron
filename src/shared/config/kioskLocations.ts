@@ -207,6 +207,9 @@ export const KIOSK_LOCATIONS: Record<KioskLocationCode, KioskLocation> = {
   // showsMarketResult).
   W005: { code: 'W005', name: '화성휴게소', region: 'HWASEONG', layout: 'HWASEONG', secondTile: INSARANG_TILE, hasCardTerminal: true, hasDonation: true, aiCompanion: '4', coordinates: HWASEONG_COORDS, cameraRotation: 0 },
   // 제주공항 W008 — has a TL-3800 terminal and runs 기부, like W003–W005.
+  // The terminal does NOT put the photo flow onto the 위드마켓 result screen;
+  // the finished photo is the plain image + save QR (see PhotoWorkflow's
+  // showsMarketResult), and the home 위드마켓 card does not open.
   // TODO(제주): `secondTile` is provisional — the home grid is redefined by the
   // Jeju Figma (it only matters for layouts that consume it).
   //
