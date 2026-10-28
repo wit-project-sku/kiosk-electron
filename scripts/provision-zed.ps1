@@ -22,6 +22,9 @@
 param(
   # Run the floor calibration at the end. Stand clear of the camera first.
   [switch]$Calibrate,
+  # Install the pose measurement (mediapipe + its 30 MB model). Optional: without
+  # it the sidecar measures from the point cloud alone, less accurately.
+  [switch]$InstallPose,
   # Where the sidecar lives. Defaults to the installed app's resources folder.
   [string]$SidecarPath = '',
   # The interpreter pyzed was installed into. Must match the one the ZED SDK's
@@ -109,6 +112,43 @@ if ($pythonOk) {
     Write-Host '    installing numpy...' -ForegroundColor Yellow
     & $Python -m pip install --quiet numpy
     if ($LASTEXITCODE -ne 0) { $problems += 'numpy install failed.' }
+  }
+}
+
+# ---- 5b. Pose measurement (optional) -----------------------------------------
+# body.py: MediaPipe finds the visitor's skeleton and outline on the ZED's left
+# image, which measures height and sizes at the person's own anatomy and never
+# mistakes furniture for a visitor. Without it the sidecar falls back to the
+# point-cloud estimator, so this is a warning, never a blocker.
+# The model lives in userData (survives auto-updates). Must match
+# ZedSidecarManager's HEIGHT_POSE_MODEL.
+$poseModel = Join-Path $env:APPDATA 'kiosk-app\zed-height\models\pose_landmarker_heavy.task'
+$poseModelUrl = 'https://storage.googleapis.com/mediapipe-models/pose_landmarker/pose_landmarker_heavy/float16/latest/pose_landmarker_heavy.task'
+if ($pythonOk) {
+  $mpOk = Test-Step 'mediapipe (pose)' {
+    $out = & $Python -c "import mediapipe; print(mediapipe.__version__)" 2>$null
+    if ($LASTEXITCODE -eq 0) { return $out }
+    return $null
+  }
+  if (-not $mpOk -and $InstallPose) {
+    Write-Host '    installing mediapipe...' -ForegroundColor Yellow
+    & $Python -m pip install --quiet mediapipe
+    $mpOk = ($LASTEXITCODE -eq 0)
+    if (-not $mpOk) { Write-Host '    mediapipe install failed' -ForegroundColor Red }
+  }
+  $modelOk = Test-Step 'pose model' { if (Test-Path $poseModel) { return $poseModel } else { return $null } }
+  if (-not $modelOk -and $InstallPose) {
+    Write-Host '    downloading the pose model (30 MB)...' -ForegroundColor Yellow
+    New-Item -ItemType Directory -Force -Path (Split-Path $poseModel) | Out-Null
+    try {
+      Invoke-WebRequest -Uri $poseModelUrl -OutFile $poseModel -UseBasicParsing
+      $modelOk = Test-Path $poseModel
+    } catch {
+      Write-Host "    download failed: $($_.Exception.Message)" -ForegroundColor Red
+    }
+  }
+  if (-not ($mpOk -and $modelOk)) {
+    Write-Host '    pose measurement OFF - point cloud only. Run again with -InstallPose to add it.' -ForegroundColor Yellow
   }
 }
 

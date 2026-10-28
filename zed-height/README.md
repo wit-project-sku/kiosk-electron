@@ -42,6 +42,24 @@ it is a provisioning step, roughly 1.2 GB.
 3. `pip install numpy`
 4. Calibrate — see below.
 
+5. Optional but recommended — pose measurement:
+   `provision-zed.ps1 -InstallPose` installs `mediapipe` and downloads the
+   30 MB `pose_landmarker_heavy.task` into `%APPDATA%\kiosk-app\zed-height\models`
+   (dev: `zed-height/models`, or set `HEIGHT_POSE_MODEL`).
+
+## Two measurement paths
+
+`body.py` (ported from `Desktop/demo-outfit/zed-sidecar`, where it was tuned on
+real visitors) runs MediaPipe on the ZED's LEFT image, which is registered to
+the point cloud pixel for pixel. The skeleton and outline give the head, the
+shoulders, chest, waist and hips at this person's own anatomy (arms cut away),
+ellipse girths, and the floor right beside the shoes. Furniture has no skeleton,
+so it is never measured. Results say `"method":"pose"`.
+
+Without mediapipe or the model the sidecar logs `pose measurement off` and uses
+the point-cloud estimator (`estimator.py` + `widths.py`), `"method":"cloud"`.
+Either way the image only ever lives in memory: nothing is saved or sent.
+
 Verify with `npm run height:measure` (or, on a kiosk with no repo checked out,
 `scripts/provision-zed.ps1`, which checks every prerequisite and names whichever
 one is missing).
