@@ -175,3 +175,18 @@ export function jejuMascot(): JejuMascot {
   const layout = getKioskLocation(useKioskStore.getState().config.kioskId).layout;
   return layout === 'JEJU_HERITAGE' ? YUSAN : HAYOUNG;
 }
+
+/** W008's 도와줘 page, renamed with its home tile (2026-10-28). The header id
+ *  i18n's TITLE_KEYS maps to the sheet's MainButton_Airport_Guide row. */
+export const AIRPORT_GUIDE_TITLE = '제주공항 안내';
+
+/**
+ * The 도와줘 page's header id: 제주공항 안내 on the airport, the mascot's
+ * 도와줘 elsewhere. Mirrors JejuHome's TILES_BY_KIOSK — W009 and W010 draw their
+ * own grids and keep 도와줘; every other 제주 kiosk draws the airport grid,
+ * whose tile already reads 제주공항 안내, so its page must say the same.
+ */
+export function jejuHelpTitle(): string {
+  const { kioskId } = useKioskStore.getState().config;
+  return kioskId === 'W009' || kioskId === 'W010' ? jejuMascot().helpTitle : AIRPORT_GUIDE_TITLE;
+}
