@@ -328,13 +328,22 @@ class Session:
         "the visitor's height" stops being a well-defined thing. Rather than
         guess which one is the subject, the count is reported and the height is
         null — the analytics are better off with a smaller, honest dataset.
+
+        The count is the commonest among frames where SOMEONE was in front, not
+        among all frames. The window opens as the visitor walks up, and on the
+        way in they merge with the wall or the counter, stand off to the side,
+        or read as furniture; most frames can be empty with nobody absent. Dev
+        PC 2026-10-28: 168-170 cm in 14 of 41 frames, 26 empty — a mode over
+        all frames said "nobody" and threw the visitor away. Too little evidence
+        is still caught, by summarise() (5 frames, 3 of them agreeing).
         """
         if not self.subject_counts:
             return _empty("no frames sampled")
 
-        subjects = int(np.bincount(self.subject_counts).argmax())
-        if subjects == 0:
+        seen = [c for c in self.subject_counts if c > 0]
+        if not seen:
             return _empty(self._why_nobody(), subjects=0)
+        subjects = int(np.bincount(seen).argmax())
         if subjects > 1:
             return _empty("more than one visitor in frame", subjects=subjects)
 
