@@ -10,7 +10,7 @@
  *    photoChrome.tsx for the per-layout header/icon resolution.
  *  - DonationWebScreen (기부) — W008 has hasDonation; URL via donationUrl(kioskId).
  */
-import type { CSSProperties } from 'react';
+import { useState, type CSSProperties, type PointerEvent } from 'react';
 import type { KioskScreenId } from '@shared/types/kiosk';
 import { useKioskController } from '@renderer/hooks/useKioskController';
 import { useWeatherSync } from '@renderer/hooks/useWeatherSync';
@@ -48,6 +48,39 @@ import { JejuExchange } from './JejuExchange';
 import { JejuRentcar } from './JejuRentcar';
 import { JejuFillme } from './fillme/JejuFillme';
 import { useJejuKeypad } from './keypad/useJejuKeypad';
+import maintenanceUrl from '@renderer/assets/icons/jeju/maintenance.jpg';
+
+/** 제주 kiosks showing the full-screen 시스템 점검 notice instead of the app.
+ *  The art is icons/제주_운항정보=도착.png scaled to the 2160×3840 canvas. */
+const MAINTENANCE_KIOSKS: ReadonlySet<string> = new Set(['W008']);
+
+const MAINTENANCE_STYLE: CSSProperties = {
+  position: 'absolute',
+  inset: 0,
+  width: '100%',
+  height: '100%',
+  objectFit: 'cover',
+};
+
+/** Set once staff lift the notice, so the kiosk's reboot does not bring it back.
+ *  Delete this key (DevTools → Application → Local Storage) to show it again. */
+const MAINTENANCE_LIFTED_KEY = 'jeju.maintenanceLifted';
+
+function readMaintenanceLifted(): boolean {
+  try {
+    return localStorage.getItem(MAINTENANCE_LIFTED_KEY) === '1';
+  } catch {
+    return false;
+  }
+}
+
+function writeMaintenanceLifted(): void {
+  try {
+    localStorage.setItem(MAINTENANCE_LIFTED_KEY, '1');
+  } catch {
+    // Storage unavailable: lifted for this run only.
+  }
+}
 
 /** Theme the shared AR 한복 photo workflow with the 제주 orange (#ff7f0f, the
  *  Figma `[제주] main 01` token). photoChrome.tsx resolves Jeju's icons, header
@@ -158,7 +191,30 @@ export function JejuKiosk(): JSX.Element {
   // 제주 only: no other venue has the hardware. See the hook's header.
   useJejuKeypad(controller);
 
+  const [maintenanceLifted, setMaintenanceLifted] = useState(readMaintenanceLifted);
+
   const cur = controller.screen;
+
+  // 제주공항 is under system maintenance: the whole screen is the 점검 중 notice
+  // and nothing behind it can be reached by a visitor (touch or keypad). Staff
+  // lift it remotely with a MOUSE click — TeamViewer injects mouse input, while
+  // the kiosk's panel reports finger taps as pointerType 'touch'. Pointer events
+  // (not click/mousedown) because Windows follows every tap with emulated mouse
+  // events, which would otherwise read as a mouse.
+  if (MAINTENANCE_KIOSKS.has(controller.kioskId) && !maintenanceLifted) {
+    const lift = (e: PointerEvent<HTMLDivElement>): void => {
+      if (e.pointerType !== 'mouse') return;
+      writeMaintenanceLifted();
+      setMaintenanceLifted(true);
+    };
+    return (
+      <KioskArtboard>
+        <div style={MAINTENANCE_STYLE} onPointerUp={lift}>
+          <img src={maintenanceUrl} alt="" draggable={false} style={MAINTENANCE_STYLE} />
+        </div>
+      </KioskArtboard>
+    );
+  }
 
   const foreground = controller.photoActive ? (
     <div style={{ position: 'absolute', inset: 0, ...PHOTO_THEME }}>
