@@ -91,9 +91,23 @@ interface Props {
    * 다시찍기 popup (Figma 7768:10445) instead of the bottom sheet.
    */
   readyModal?: boolean;
+  /**
+   * 제주: the popup is the ONLY way to the photo. It opens the moment the photo
+   * lands (the 60s floor), over whatever game is running, and nothing else —
+   * not a finished round, not the idle sweep, not a game's own 사진 보기 — hands
+   * the screen over. Those routes just bring the popup back.
+   */
+  popupOnly?: boolean;
 }
 
-export function JejuWaitingGames({ rounds, aiReady, onFinish, onHome, readyModal = false }: Props): JSX.Element {
+export function JejuWaitingGames({
+  rounds,
+  aiReady,
+  onFinish,
+  onHome,
+  readyModal = false,
+  popupOnly = false,
+}: Props): JSX.Element {
   /* The jump game is off, so every venue opens 틀린그림찾기 already in play.
      No menu to go back to: home/back are the kiosk's until the photo is ready. */
   const { motionGames } = usePhotoChrome();
@@ -176,8 +190,11 @@ export function JejuWaitingGames({ rounds, aiReady, onFinish, onHome, readyModal
   // Body movement now counts. The sweep still rescues a kiosk somebody has
   // genuinely walked away from — `motionInPlay` goes false the moment the
   // tracker stops seeing anyone.
+  //
+  // Off under `popupOnly`: the photo waits behind the popup for a tap, and a
+  // kiosk somebody walked away from is the global inactivity reset's job.
   useEffect(() => {
-    if (!aiReady) return;
+    if (!aiReady || popupOnly) return;
     const id = setInterval(() => {
       if (motionInPlay) {
         lastTouchRef.current = Date.now();
@@ -186,7 +203,7 @@ export function JejuWaitingGames({ rounds, aiReady, onFinish, onHome, readyModal
       if (Date.now() - lastTouchRef.current >= IDLE_RELEASE_MS) handOver();
     }, 2000);
     return () => clearInterval(id);
-  }, [aiReady, handOver, motionInPlay]);
+  }, [aiReady, popupOnly, handOver, motionInPlay]);
 
   const handleAward = useCallback(
     (game: JejuGameId, points: number) => {
@@ -212,6 +229,19 @@ export function JejuWaitingGames({ rounds, aiReady, onFinish, onHome, readyModal
     setPromptOpen(true);
     sfx.golden();
   }, [aiReady, view, readyModal]);
+
+  /**
+   * What every in-game "see the photo" route calls. Under `popupOnly` it only
+   * re-opens the popup — and does nothing at all before the photo exists, since
+   * 틀린그림찾기 also reports a finished board through here while generating.
+   */
+  const requestPhoto = useCallback(() => {
+    if (!popupOnly) {
+      handOver();
+      return;
+    }
+    if (aiReady) setPromptOpen(true);
+  }, [popupOnly, aiReady, handOver]);
 
   /** Stop whatever is on the big screen and come back to the menu. */
   const stopMotion = useCallback(() => {
@@ -252,9 +282,9 @@ export function JejuWaitingGames({ rounds, aiReady, onFinish, onHome, readyModal
   const backToHub = useCallback(() => setView('hub'), []);
 
   const finishFromSpotDiff = useCallback(() => {
-    if (aiReady) handOver();
+    if (aiReady) requestPhoto();
     else backToHub();
-  }, [aiReady, handOver, backToHub]);
+  }, [aiReady, requestPhoto, backToHub]);
 
   // Memoised per game. An inline `onAward={(p) => ...}` would be a new function
   // on every render, and each game holds its award callback in an effect's dep
@@ -282,7 +312,7 @@ export function JejuWaitingGames({ rounds, aiReady, onFinish, onHome, readyModal
           onHome={onHome}
           navLocked={navLocked}
           aiReady={aiReady}
-          onSeePhoto={handOver}
+          onSeePhoto={requestPhoto}
         />
       )}
 
@@ -297,7 +327,7 @@ export function JejuWaitingGames({ rounds, aiReady, onFinish, onHome, readyModal
           state={motion}
           onStop={stopMotion}
           onPlayAgain={replayMotion}
-          onSeePhoto={handOver}
+          onSeePhoto={requestPhoto}
           aiReady={aiReady}
           onAward={handleAward}
         />
@@ -307,8 +337,8 @@ export function JejuWaitingGames({ rounds, aiReady, onFinish, onHome, readyModal
         <JejuSpotDiffGame
           rounds={rounds}
           aiReady={aiReady}
-          onFinish={singleGame ? handOver : finishFromSpotDiff}
-          onHome={aiReady ? handOver : onHome}
+          onFinish={singleGame ? requestPhoto : finishFromSpotDiff}
+          onHome={aiReady ? requestPhoto : onHome}
           // Presence of this prop is what tells 틀린그림찾기 it is hosted: its
           // header stops being the destructive kiosk home and becomes "back to
           // the menu", so its own nav lock no longer applies.

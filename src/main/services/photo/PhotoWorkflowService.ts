@@ -1,6 +1,6 @@
 import { randomUUID } from 'node:crypto';
 import type { PhotoWorkflowState } from '@shared/types/photo';
-import type { DisplayState } from '@shared/types/domain';
+import type { DisplayState, ResultLockReason } from '@shared/types/domain';
 import { PHOTO_COUNTDOWN_SECONDS } from '@shared/constants/photoOptions';
 import type { DisplayService } from '@main/services/DisplayService';
 import type { CameraService } from '@main/services/camera/CameraService';
@@ -300,13 +300,17 @@ export class PhotoWorkflowService {
    * 아직 생성 중이면 플래그만 풀고, 이후 setResult 가 바로 띄운다.
    * `holdResultDisplay`(기부 결제 대기)가 걸려 있으면 그쪽 규칙이 이긴다 —
    * 게임이 끝났다는 것이 결제를 대신하지는 않기 때문이다.
+   *
+   * `lock` — 제주공항: 사진 보기 직후에는 국적을 고를 때까지 블러로 띄운다.
+   * 국적 선택 후 lock 없이 다시 부르면 선명해진다.
    */
-  releaseResultDisplay(): PhotoWorkflowState {
+  releaseResultDisplay(lock: ResultLockReason | null = null): PhotoWorkflowState {
     this.deferResultDisplay = false;
     if (this.state.phase === 'result' && this.state.resultFileName) {
       this.syncDisplay('result', {
         resultFileName: this.state.resultFileName,
-        resultLocked: this.holdResultDisplay,
+        resultLocked: this.holdResultDisplay || lock !== null,
+        resultLockReason: this.holdResultDisplay ? null : lock,
       });
     }
     return this.state;
@@ -384,7 +388,10 @@ export class PhotoWorkflowService {
   private syncDisplay(
     mode: DisplayState['mode'],
     extras?: Partial<
-      Pick<DisplayState, 'cameraDeviceId' | 'countdown' | 'resultFileName' | 'resultLocked'>
+      Pick<
+        DisplayState,
+        'cameraDeviceId' | 'countdown' | 'resultFileName' | 'resultLocked' | 'resultLockReason'
+      >
     >,
   ): void {
     const current = this.display.getState();
@@ -397,6 +404,7 @@ export class PhotoWorkflowService {
       resultFileName: extras?.resultFileName ?? null,
       // 명시하지 않으면 항상 해제 — 잠금은 setResult(hold) 한 곳에서만 건다.
       resultLocked: extras?.resultLocked ?? false,
+      resultLockReason: extras?.resultLockReason ?? null,
     });
   }
 

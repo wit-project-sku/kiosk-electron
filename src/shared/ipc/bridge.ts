@@ -26,6 +26,7 @@ import type {
   EntityId,
   ImageAsset,
   MonitorInfo,
+  ResultLockReason,
 } from '../types/domain';
 import type {
   AnalyticsEvent,
@@ -204,8 +205,16 @@ export interface KioskBridge {
      * no result at all. Cleared by reset().
      */
     setDeferResultDisplay(defer: boolean): Promise<Result<PhotoWorkflowState>>;
-    /** Game over — put the deferred result up on Monitor 2. */
-    releaseResultDisplay(): Promise<Result<PhotoWorkflowState>>;
+    /**
+     * Game over — put the deferred result up on Monitor 2. With `lock` it goes
+     * up blurred behind that notice; call again without it to unblur.
+     */
+    releaseResultDisplay(lock?: ResultLockReason): Promise<Result<PhotoWorkflowState>>;
+    /**
+     * 제주공항: save the visitor's 국적 (ISO alpha-2) on this session's shot.
+     * Resolves false when it could not be sent now (queued or rejected).
+     */
+    setNationality(sessionId: string, nationality: string): Promise<Result<boolean>>;
     reset(): Promise<Result<PhotoWorkflowState>>;
   };
   /** AR 한복 outfit catalogue + category tabs (cached from the witteria API). */

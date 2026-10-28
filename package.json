@@ -66,6 +66,7 @@
     "better-sqlite3": "^11.8.1",
     "class-transformer": "^0.5.1",
     "class-validator": "^0.14.1",
+    "country-flag-icons": "^1.5.19",
     "electron-log": "^5.2.4",
     "electron-store": "^11.0.2",
     "electron-updater": "^6.3.9",

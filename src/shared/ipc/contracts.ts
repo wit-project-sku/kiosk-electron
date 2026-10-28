@@ -15,6 +15,7 @@ import type {
   EntityId,
   ImageAsset,
   MonitorInfo,
+  ResultLockReason,
 } from '../types/domain';
 import type {
   AnalyticsEvent,
@@ -328,8 +329,14 @@ export interface IpcContract {
   };
   /** 게임 종료 — 미뤄 둔 AI 결과를 Monitor 2 에 띄운다. */
   [IpcChannels.PhotoReleaseResultDisplay]: {
-    request: void;
+    /** `lock` puts it up blurred behind that notice; release again without it to unblur. */
+    request: { lock?: ResultLockReason } | void;
     response: Result<PhotoWorkflowState>;
+  };
+  /** 제주공항 국적 → PATCH /api/stats/shots/{eventId}/shooter. false = not sent now. */
+  [IpcChannels.PhotoSetNationality]: {
+    request: { sessionId: string; nationality: string };
+    response: Result<boolean>;
   };
   [IpcChannels.PhotoReset]: {
     request: void;
