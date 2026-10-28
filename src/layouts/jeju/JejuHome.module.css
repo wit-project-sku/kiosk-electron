@@ -349,14 +349,6 @@
   -webkit-tap-highlight-color: transparent;
 }
 
-/* 제주공항: 위드마켓 stays painted exactly as designed and simply does not
-   take a tap. No opacity, no grey — colour is the card's own. The keypad
-   also skips anything with pointer-events none (see spatialNav). */
-.cardInert {
-  pointer-events: none;
-  cursor: default;
-}
-
 .cardTitle {
   position: absolute;
   margin: 0;
@@ -403,6 +395,18 @@
 .cardMarket .cardTitle { left: 57px; top: 108px; }
 .cardMarket .cardSub   { left: 57px; top: 182px; }
 .cardMarket .cardArt   { left: 362px; top: 47px; width: 140px; height: 216px; }
+
+/* Card 2 on 제주공항 — 탐나오·제주큐랑 in 위드마켓's slot and colour. The art is
+   the 탐나오 app icon (a red squircle), so it gets a square box, not the
+   위드마켓 figure's tall one. */
+.cardTamnao {
+  left: 718px;
+  width: 570px;
+  background: #f3eae3;
+}
+.cardTamnao .cardTitle { left: 57px; top: 108px; }
+.cardTamnao .cardSub   { left: 57px; top: 182px; }
+.cardTamnao .cardArt   { left: 352px; top: 65px; width: 180px; height: 180px; border-radius: 45px; }
 
 /* Card 3 — 제주도 이벤트. NORMALISED: Figma has title x40 / subtitle x50.8;
    both render left-aligned in the design, so both use 40. */
@@ -455,6 +459,18 @@
 .tileDisabled {
   cursor: default;
   opacity: 0.45;
+}
+
+/* Coming Soon (제주공항 위드마켓 / TAX-FREE / 기부): a plain grey plate
+   (`.tilePlateBlank`) instead of the art, grey title, no subtitle. */
+.tileComingSoon {
+  cursor: default;
+}
+.tileComingSoon .tileTitle {
+  color: #9a9a9a;
+}
+.tilePlateBlank {
+  background: #e3e3e3;
 }
 
 /* The tile art is the whole rounded plate exported from Figma — its background
@@ -823,6 +839,14 @@
 .cardsLow .cardMarket .cardSub   { top: 152px; }
 .cardsLow .cardMarket .cardArt   { left: 337px; top: 45px; width: 109px; height: 169px; }
 
+.cardsLow .cardTamnao {
+  left: 743px;
+  width: 540px;
+}
+.cardsLow .cardTamnao .cardTitle { top: 78px; }
+.cardsLow .cardTamnao .cardSub   { top: 152px; }
+.cardsLow .cardTamnao .cardArt   { left: 340px; top: 50px; width: 150px; height: 150px; border-radius: 38px; }
+
 .cardsLow .cardEvents {
   left: 1320px;
   width: 540px;
@@ -1003,10 +1027,12 @@
    35+ short of the art on the other two. */
 .cardAi .cardText     { left: 356px; width: 270px; }
 .cardMarket .cardText { left: 57px;  width: 260px; }
+.cardTamnao .cardText { left: 57px;  width: 270px; }
 .cardEvents .cardText { left: 50px;  width: 280px; }
 
 .cardsLow .cardAi .cardText     { left: 401px; width: 265px; }
 .cardsLow .cardMarket .cardText { width: 250px; }
+.cardsLow .cardTamnao .cardText { width: 260px; }
 .cardsLow .cardEvents .cardText { width: 270px; }
 
 /*
