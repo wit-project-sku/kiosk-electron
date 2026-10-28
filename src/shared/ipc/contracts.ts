@@ -286,6 +286,11 @@ export interface IpcContract {
     request: void;
     response: Result<PhotoWorkflowState>;
   };
+  /** 제주: 테스트용 — 손 아이콘 클릭(원격 접속)으로 카운트다운을 건너뛰고 바로 촬영한다. */
+  [IpcChannels.PhotoSkipCountdown]: {
+    request: void;
+    response: Result<PhotoWorkflowState>;
+  };
   [IpcChannels.PhotoCaptureAndGenerate]: {
     request: {
       sessionId: string;

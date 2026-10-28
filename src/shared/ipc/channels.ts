@@ -70,6 +70,7 @@ export const IpcChannels = {
   PhotoArmGestureGate: 'photo:armGestureGate',
   PhotoHoldCountdown: 'photo:holdCountdown',
   PhotoResumeCountdown: 'photo:resumeCountdown',
+  PhotoSkipCountdown: 'photo:skipCountdown',
   PhotoCaptureAndGenerate: 'photo:captureAndGenerate',
   PhotoGetResultDataUrl: 'photo:getResultDataUrl',
   PhotoSetHoldResult: 'photo:setHoldResult',
