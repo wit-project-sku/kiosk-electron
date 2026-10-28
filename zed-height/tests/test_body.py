@@ -264,3 +264,14 @@ def test_semi_depth_fit_recovers_an_ellipse():
     z = 2.12 - 0.12 * np.sqrt(1 - s**2)
     z0, d = fit_semi_depth(s, z)
     assert z0 == pytest.approx(2.12, abs=1e-6) and d == pytest.approx(0.12, abs=1e-6)
+
+
+def test_a_broken_band_is_not_a_torso():
+    """demo-outfit 2026-10-22: a 9.1 cm waist on a 177 cm visitor; the rest read 35-37."""
+    from body import torso_width_plausible
+
+    assert not torso_width_plausible(0.091, 1.77)
+    assert torso_width_plausible(0.367, 1.77)
+    assert torso_width_plausible(0.23, 1.50)  # slim 150 cm waist
+    assert torso_width_plausible(0.44, 1.70)  # heavy 170 cm hips
+    assert not torso_width_plausible(0.70, 1.70)  # two people side by side

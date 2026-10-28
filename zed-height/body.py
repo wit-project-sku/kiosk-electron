@@ -355,6 +355,9 @@ def measure_person(lm, mask, frame: UprightFrame, floor: FloorFrame, forward, zo
         # Wider than the deltoids means an arm is still in the run.
         if shoulder is not None and widths[name] is not None and widths[name] > 1.05 * shoulder:
             widths[name] = girths[name] = lines[name] = None
+        # Far outside a torso's share of stature is a broken band, not a body.
+        if widths[name] is not None and not torso_width_plausible(widths[name], height):
+            widths[name] = girths[name] = lines[name] = None
 
     draped = _waist_draped(bands, widths)
 
@@ -393,6 +396,19 @@ def measure_person(lm, mask, frame: UprightFrame, floor: FloorFrame, forward, zo
         drawing=drawing,
     )
     return subject, None
+
+
+# Chest, waist and hip breadth as a share of stature. Adults run ~0.15-0.25
+# (Size Korea: a slim 150 cm woman's waist ~23 cm, a heavy 170 cm man's hips
+# ~44 cm); the margin either side is for coats and posture. A frame outside it
+# lost part of the band: demo-outfit 2026-10-22, a 9.1 cm "waist" on a 177 cm
+# visitor whose other frames read 35-37. The median would survive one such
+# frame; a capture with a few of them would not.
+TORSO_PER_HEIGHT = (0.12, 0.32)
+
+
+def torso_width_plausible(width_m: float, height_m: float) -> bool:
+    return TORSO_PER_HEIGHT[0] <= width_m / height_m <= TORSO_PER_HEIGHT[1]
 
 
 def _waist_draped(bands: dict, widths: dict) -> bool | None:
