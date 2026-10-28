@@ -38,11 +38,11 @@ O","お
 "","MainButton_ToHelp_Subtext","편의시설 안내","Amenities Guide","施設案内","便利设施指南","Hướng dẫn tiện ích","Panduan Fasilitas","แนะนำสิ่งอำนวยความสะดวก","Удобства и услуги","",""
 "","MainButton_Exchange","환율","Exchange","為替レート情報","汇率信息","Tỷ giá","อัตราแลกเปลี่ยน","Обмен валют","Kurs","",""
 "","MainButton_Exchange_Subtext","환율 계산기","Exchange Rate Calculator","為替レート計算機","汇率计算器","Máy tính tỷ giá","เครื่องคำนวณอัตราแลกเปลี่ยน","Калькулятор обменного курса","Kalkulator Nilai Tukar","",""
-"","MainButton_Property","문화재(준비중)","Korea Property","Korea Property","Korea Property","Di sản văn hóa (Đang trong quá trình chuẩn bị)","Warisan Budaya (Sedang dalam persiapan)","มรดกทางวัฒนธรรม (อยู่ระหว่างการจัดทำ)","Культурное наследие (в процессе подготовки)","",""
+"","MainButton_Property","문화재(준비중)","Korea Property","Korea Property","Korea Property","Di sản văn hóa (Đang trong quá trình chuẩn bị)","Warisan Budaya (Dalam tahap persiapan)","มรดกทางวัฒนธรรม (อยู่ระหว่างการจัดทำ)","Культурное наследие (в процессе подготовки)","",""
 "","MainButton_Property_Subtext","전통 문화재","Cultural Heritage","伝統文化財","传统文化遗产","Di sản văn hóa truyền thống","Warisan Budaya Tradisional","มรดกทางวัฒนธรรมดั้งเดิม","Культурное наследие","",""
 "","MainButton_Donation","기부","Donation","寄付","捐款","Quyên góp","บริจาค","Пожертвование","Donasi","",""
 "","MainButton_Donation_Subtext","교복 기부","School Uniform Donation","制服の寄付","校服捐赠","Quyên góp đồng phục học sinh","บริจาคชุดนักเรียน","Пожертвование школьной формы","Donasi Seragam Sekolah","",""
-"","MainButton_KCulture","K-컬쳐(준비중)","K-Culture(Preparing)","K-Culture(Preparing)","K-Culture(Preparing)","Văn hóa K-pop (Sắp ra mắt)","K-Culture (Segera Hadir)","วัฒนธรรมเกาหลี (เร็วๆ นี้)","K-Culture (Скоро)","",""
+"","MainButton_KCulture","K-컬쳐(준비중)","K-Culture(Preparing)","K-Culture(Preparing)","K-Culture(Preparing)","Văn hóa Hàn Quốc (Sắp ra mắt)","K-Culture (Segera Hadir)","วัฒนธรรมเกาหลี (เร็วๆ นี้)","K-Culture (Скоро)","",""
 "","MainButton_KCulture_Subtext","K-Culture","K-Culture","K-カルチャー","K-文化","K-Culture","K-Culture","เค-คัลเจอร์","К-культура","",""
 "","MainButton_MarketPaper","지역화폐","Local Currency","ちいきの おかね","地区货币","tiền tệ địa phương","mata uang lokal","สกุลเงินท้องถิ่น","местная валюта","",""
 "","MainButton_MarketPaper_Subtext","온누리상품권","Onnuri Gift Certificate","おんぬり しょうひんけん","稳楼里商品券","Phiếu quà tặng Onnuri","Sertifikat Hadiah Onnuri","บัตรของขวัญ Onnuri","Подарочные сертификаты Onnuri","",""
@@ -179,7 +179,7 @@ Istirahat sejenak akan membuat perjalanan Anda jauh lebih berkesan.","ผ่อ�
 "","Exchange_desc_2","금액","amount","金額","数量","số lượng","จำนวน","количество","jumlah","",""
 "","Exchange_desc_3","환전","currency exchange","両替","货币兑换","trao đổi tiền tệ","การแลกเปลี่ยนสกุลเงิน","обмен валюты","penukaran mata uang","",""
 "","MarketPaper_title","지역화폐","local currency","地域通貨","当地货币","tiền tệ địa phương","สกุลเงินท้องถิ่น","местная валюта","mata uang lokal","",""
-"","MarketPaper_Subtitle","화성시에서 사용할 수 있는 지역화폐 입니다.","A local currency that can be used in Hwaseong City.","ふぁそんしで つかえる ちいきの おかねです。","这是可以在华城市使用的地区货币。","Đây là đơn vị tiền tệ địa phương được sử dụng tại thành phố Hwaseong.","Ini adalah mata uang lokal yang dapat digunakan di Kota Hwaseong.","นี่คือสกุลเงินท้องถิ่นที่สามารถใช้ได้ในเมืองฮวาซอง","Это местная валюта, которую можно использовать в городе Хвасон.","",""
+"","MarketPaper_Subtitle","화성시에서 사용할 수 있는 지역화폐 입니다.","A local currency that can be used in Hwaseong City.","ふぁそんしで つかえる ちいきの おかねです。","这是可以在华城市使用的地区货币。","Đây là đơn vị tiền tệ địa phương có thể được sử dụng tại thành phố Hwaseong.","Ini adalah mata uang lokal yang dapat digunakan di Kota Hwaseong.","นี่คือสกุลเงินท้องถิ่นที่สามารถใช้ได้ในเมืองฮวาซอง","Это местная валюта, которую можно использовать в городе Хвасон.","",""
 "","MarketPaper_Hwaseong","희망화성지역화폐","Hope Hwaseong Local Currency","希望華城地域通貨","希望华城地区货币","Tiền tệ địa phương Hy vọng Hwaseong","Mata Uang Lokal Hope Hwaseong","สกุลเงินท้องถิ่นโฮปฮวาซอง","Местная валюта «Хыман Хвасон»","",""
 "","MarketPaper_Hwaseong_Content_1","<color=#005AB4>희망화성지역화폐</color>란?","What is <color=#005AB4>Hope Hwaseong Local Currency</color>?","<color=#005AB4>希望華城地域通貨</color>とは？","什么是<color=#005AB4>希望华城地区货币</color>？","<color=#005AB4>Tiền tệ địa phương Hy vọng Hwaseong</color> là gì?","Apa itu <color=#005AB4>Mata Uang Lokal Hope Hwaseong</color>?","<color=#005AB4>สกุลเงินท้องถิ่นโฮปฮวาซอง</color> คืออะไร?","Что такое <color=#005AB4>местная валюта «Хыман Хвасон»</color>?","",""
 "","MarketPaper_Hwaseong_Content_1_1","화성시 등록 가맹점에서 사용할 수 있는 충전식 카드형 지역화폐입니다.
@@ -312,7 +312,7 @@ Dapatkan diskon isi saldo <b>10%</b>! <b>Batas saldo maksimal</b> sebesar <b>2.0
 "","Photo_HanbokSelectContent","원하시는 의상을 고르고 선택 완료 버튼을 누른뒤 사진촬영 버튼을 눌러주세요 ","Please choose your desired costume and press the ""Complete Selection"" button","お好きな衣装を選んで「選択完了」ボタンを押してください","请选择您喜欢的服装，然后点击“完成选择”按钮","Chọn trang phục, nhấn 'Đã chọn xong' rồi nhấn 'Chụp ảnh'.","เลือกชุดที่ชอบ กด 'เลือกเสร็จแล้ว' แล้วกด 'ถ่ายภาพ' ค่ะ","Выберите желаемый костюм, нажмите кнопку «Выбор завершен», а затем нажмите кнопку «Сделать фото».","Pilih busana, tekan 'Selesai Memilih' lalu 'Ambil Foto'.","",""
 "","Photo_SelectConfirm","선택 완료","Complete Selection","選択完了","完成选择","Đã chọn xong","เลือกเสร็จแล้ว","Выбор завершен","Selesai Memilih","",""
 "","Photo_SelectAlone","사진촬영 (혼자찍기)","Solo Shot","ひとりで撮影","单人拍摄","Chụp ảnh (Chụp một mình)","ถ่ายรูป (ถ่ายคนเดียว)","Фотосъемка (один)","Foto (Sendiri)","",""
-"","Photo_SelectTogether","사진촬영 (with '인사')","With ‘Insa’","「インサ」と一緒に","与“INSA”一起","Chụp ảnh (cùng Insa)","ถ่ายรูป (กับอินซา)","Фотосъемка (с «Инса»)","Foto (bersama Insa)","",""
+"","Photo_SelectTogether","사진촬영 (with '휴')","With 'Hue'","「ヒュー」と一緒に撮影","与“Hue”合影","Chụp ảnh (cùng 'Hue')","ถ่ายรูป (กับ 'ฮยู')","Фотосъемка (с «Хью»)","Foto (Bersama 'Hue')","",""
 "","Photo_TakePhoto","사진촬영 안내","Photo Shoot Guide","写真撮影のご案内","拍照指南","Hướng dẫn chụp ảnh","คำแนะนำในการถ่ายภาพ","Руководство по фотосъемке","Panduan Pengambilan Foto","",""
 "","Photo_TakePhotoContent","• 사진촬영 버튼을 누르고 좌측 카메라에 얼굴을 바라봐주세요.  
    10초후 촬영이 시작됩니다. 결과물이 나오면 QR이 제공됩니다. 
