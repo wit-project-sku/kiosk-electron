@@ -6,6 +6,7 @@ import type {
   MenuTouchInput,
   MenuTouchSyncItem,
   PhotoShotSyncItem,
+  ShooterBody,
   ShotBody,
   ShotInput,
   ShotV2Data,
@@ -30,6 +31,20 @@ export const MENU_TOUCH_REQUEST_TYPE = 'menu_touch';
 export const PHOTO_SHOT_REQUEST_TYPE = 'photo_shot';
 /** `/shots/v2` multipart sends (data + photo path), re-sent one by one at night. */
 export const PHOTO_SHOT_V2_REQUEST_TYPE = 'photo_shot_v2';
+/** `/shots/{eventId}/shooter` PATCHes (제주공항 국적), re-sent one by one at night. */
+export const PHOTO_SHOOTER_REQUEST_TYPE = 'photo_shooter';
+
+/** Queued shooter PATCH. */
+interface ShooterPending {
+  eventId: string;
+  body: ShooterBody;
+}
+
+/**
+ * The server only takes shooter info within 24h of the shot (STATS4105), so a
+ * queued PATCH older than this can never land and is dropped.
+ */
+const SHOOTER_WINDOW_MS = 24 * 60 * 60 * 1000;
 
 /** Queued `/shots/v2` send. `outfitId` is kept for the v1 batch fallback. */
 interface ShotV2Pending {
@@ -186,6 +201,10 @@ export class StatsService {
     return isJejuLayout(this.kiosk.getConfig().layout);
   }
 
+  private shooterUrl(eventId: string): string {
+    return `${witteriaApiBase()}/api/stats/shots/${encodeURIComponent(eventId)}/shooter`;
+  }
+
   private photoShotsSyncUrl(): string {
     return process.env['STATS_PHOTO_SHOTS_SYNC_URL'] ?? `${witteriaApiBase()}/api/stats/photo-shots/sync`;
   }
@@ -329,6 +348,74 @@ export class StatsService {
     return { kind: res.status >= 500 ? 'retry' : 'rejected', message };
   }
 
+  /**
+   * Attach the visitor's 국적 to a shot already reported under `eventId`. The
+   * shot record need not exist yet — the server accepts it either way and joins
+   * the two by eventId, which is what makes a queued re-send safe. Never throws.
+   */
+  async recordShooter(eventId: string, body: ShooterBody): Promise<boolean> {
+    const outcome = await this.patchShooter(eventId, body);
+    if (outcome.kind === 'sent') return true;
+    if (outcome.kind === 'retry') {
+      const pending: ShooterPending = { eventId, body };
+      // Own request_id: the shot itself may be queued under the bare eventId.
+      this.store(PHOTO_SHOOTER_REQUEST_TYPE, pending, `${eventId}:shooter`, outcome.message);
+      log.warn('shooter PATCH failed; stored for nightly re-send', { eventId, message: outcome.message });
+    } else {
+      log.error('shooter PATCH rejected', { eventId, message: outcome.message });
+    }
+    return false;
+  }
+
+  /**
+   * `sent` includes 409 (STATS4104: already entered — it is one-shot). A 400 is
+   * kept as `retry`: it is also what a backend that still requires heightCm and
+   * gender answers, and the nightly run drops it once the 24h window is gone.
+   */
+  private async patchShooter(eventId: string, body: ShooterBody): Promise<ShotV2Outcome> {
+    let res: Response;
+    try {
+      res = await fetch(this.shooterUrl(eventId), {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body),
+      });
+    } catch (error) {
+      return { kind: 'retry', message: error instanceof Error ? error.message : 'network error' };
+    }
+    if (res.ok || res.status === 409) return { kind: 'sent' };
+    const detail = await res.text().catch(() => '');
+    const message = `HTTP ${res.status}${detail ? ` ${detail.slice(0, 300)}` : ''}`;
+    return { kind: res.status >= 500 || res.status === 400 ? 'retry' : 'rejected', message };
+  }
+
+  /** Nightly re-send of queued shooter PATCHes. Never throws. */
+  private async syncShooters(): Promise<void> {
+    const pending = this.failedRequests.listByType(PHOTO_SHOOTER_REQUEST_TYPE, SHOT_V2_RETRY_LIMIT);
+    let sent = 0;
+    for (const r of pending) {
+      const { eventId, body } = r.payload as unknown as ShooterPending;
+      if (Date.now() - Date.parse(r.createdAt) > SHOOTER_WINDOW_MS) {
+        this.failedRequests.resolve(r.id);
+        log.warn('shooter PATCH dropped: past the 24h window', { eventId });
+        continue;
+      }
+      const outcome = await this.patchShooter(eventId, body);
+      if (outcome.kind === 'sent') {
+        this.failedRequests.resolve(r.id);
+        sent += 1;
+      } else if (outcome.kind === 'retry') {
+        this.failedRequests.markRetried(r.id, outcome.message);
+      } else {
+        this.failedRequests.resolve(r.id);
+        log.error('shooter PATCH rejected on re-send', { eventId, message: outcome.message });
+      }
+    }
+    if (pending.length > 0) {
+      log.info('shooter nightly re-send', { sent, kept: pending.length - sent });
+    }
+  }
+
   /** Store a shot in the v1 batch-endpoint shape (outfitId, not outfitCode). */
   private storeShotForBatch(body: ShotBody, outfitId: number | null, message: string): void {
     const item: PhotoShotSyncItem = {
@@ -384,6 +471,7 @@ export class StatsService {
   async syncPhotoShots(): Promise<void> {
     await this.syncShotsV2();
     await this.syncBatch(PHOTO_SHOT_REQUEST_TYPE, this.photoShotsSyncUrl(), 'photo-shots');
+    await this.syncShooters();
   }
 
   /** Persist a failed real-time event for the nightly batch (request_id = eventId

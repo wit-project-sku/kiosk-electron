@@ -127,6 +127,15 @@ export interface ShotInput {
   photoPath?: string | null;
 }
 
+/**
+ * Body of `PATCH /api/stats/shots/{eventId}/shooter`. The API also takes
+ * heightCm and gender; the kiosk only asks the visitor's 국적, so only that is
+ * sent. ISO 3166-1 alpha-2, upper case (the server 400s on "jp").
+ */
+export interface ShooterBody {
+  nationality: string;
+}
+
 /** The exact POST body for `/api/stats/shots` (kioskId/eventId resolved in main). */
 export interface ShotBody {
   /** Numeric kiosk id (1–5), derived from the kiosk config in the main process. */

@@ -156,7 +156,9 @@ const api: KioskBridge = {
     setHoldResult: (hold) => invoke(IpcChannels.PhotoSetHoldResult, { hold }),
     revealResult: () => invoke(IpcChannels.PhotoRevealResult),
     setDeferResultDisplay: (defer) => invoke(IpcChannels.PhotoDeferResultDisplay, { defer }),
-    releaseResultDisplay: () => invoke(IpcChannels.PhotoReleaseResultDisplay),
+    releaseResultDisplay: (lock) => invoke(IpcChannels.PhotoReleaseResultDisplay, lock ? { lock } : undefined),
+    setNationality: (sessionId, nationality) =>
+      invoke(IpcChannels.PhotoSetNationality, { sessionId, nationality }),
     reset: () => invoke(IpcChannels.PhotoReset),
   },
   /**
