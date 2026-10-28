@@ -57,26 +57,37 @@ const PHOTO_MIME: Record<string, string> = {
   '.webp': 'image/webp',
 };
 
+const SIZE_FIELDS = ['heightCm', 'shoulderWidthCm', 'chestWidthCm', 'waistWidthCm', 'hipWidthCm'] as const;
+
 /**
- * The v2 `data` part: the v1 body plus the ZED measurement. Every measurement
- * field is always present, null when not measured. measuredAt/confidence/
- * version are null too when no size was measured — the sidecar's confidence 0
- * on an empty result is not a real score.
+ * Every size the ZED did not measure goes out as 0, never null or absent — the
+ * backend asked for 0 (2026-10-28). Applied at send time too, so shots queued
+ * for the nightly re-send before that (stored with nulls) go out the same way.
+ */
+function withZeroSizes(data: ShotV2Data): ShotV2Data {
+  const out = { ...data };
+  for (const field of SIZE_FIELDS) out[field] = out[field] ?? 0;
+  return out;
+}
+
+/**
+ * The v2 `data` part: the v1 body plus the ZED measurement. Every size field is
+ * always present, 0 when not measured (see withZeroSizes). measuredAt/
+ * confidence/version are null when no size was measured — the sidecar's
+ * confidence 0 on an empty result is not a real score.
  */
 function shotV2Data(body: ShotBody, measurement: ShotMeasurement | null): ShotV2Data {
-  const sizes = {
-    heightCm: measurement?.heightCm ?? null,
-    shoulderWidthCm: measurement?.shoulderWidthCm ?? null,
-    chestWidthCm: measurement?.chestWidthCm ?? null,
-    waistWidthCm: measurement?.waistWidthCm ?? null,
-    hipWidthCm: measurement?.hipWidthCm ?? null,
-  };
-  const measured = measurement !== null && Object.values(sizes).some((v) => v !== null);
+  const measured =
+    measurement !== null && SIZE_FIELDS.some((field) => measurement[field] !== null);
   return {
     ...body,
     channel: 'KIOSK',
     measuredAt: measured ? measurement.measuredAt : null,
-    ...sizes,
+    heightCm: measurement?.heightCm ?? 0,
+    shoulderWidthCm: measurement?.shoulderWidthCm ?? 0,
+    chestWidthCm: measurement?.chestWidthCm ?? 0,
+    waistWidthCm: measurement?.waistWidthCm ?? 0,
+    hipWidthCm: measurement?.hipWidthCm ?? 0,
     confidence: measured ? measurement.confidence : null,
     version: measured ? measurement.version : null,
   };
@@ -298,7 +309,7 @@ export class StatsService {
     }
 
     const form = new FormData();
-    form.append('data', new Blob([JSON.stringify(data)], { type: 'application/json' }));
+    form.append('data', new Blob([JSON.stringify(withZeroSizes(data))], { type: 'application/json' }));
     const type = PHOTO_MIME[extname(photoPath).toLowerCase()] ?? 'application/octet-stream';
     form.append('photo', new Blob([photo], { type }), basename(photoPath));
 
