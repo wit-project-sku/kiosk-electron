@@ -6,18 +6,12 @@
  * no UI, no live value, no preview. The whole feature is a number written to
  * SQLite after the fact.
  *
- * ── Why nothing links a measurement to a photo ─────────────────────────
- * A height on its own, with a timestamp, is not personal data. The same height
- * attached to a session id — and through it to a photograph of the person it was
- * taken from — is body-measurement data about an identifiable individual, which
- * under PIPA is a different thing entirely and would need its own consent
- * notice on the kiosk.
- *
- * The analytics this was asked for (what sizes of visitor come through, by hour)
- * need no such link, so the link is deliberately not made. If a future feature
- * wants height to influence the generated image, that is when the linkage gets
- * added — deliberately, with a notice — rather than something we carried
- * quietly through a test.
+ * ── Linked to a photo only on the server ───────────────────────────────
+ * The local SQLite rows stay unlinked: no session id, no photo reference. Each
+ * capture's result is also sent once with the AR original photo to
+ * `POST /api/stats/shots/v2` (private bucket). That pairing is body-measurement
+ * data about an identifiable individual under PIPA, so it relies on the kiosk
+ * showing the matching consent notice.
  */
 
 /** One capture's worth of measurement, as the sidecar reports it. */
