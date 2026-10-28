@@ -431,6 +431,7 @@ export function CustomerDisplay(): JSX.Element {
           rotation={cameraRotation}
           gestureGate={gestureGate}
           detectionUnavailable={gestureStatus === 'unavailable'}
+          onSkip={() => void window.api.photo.skipCountdown()}
         />
       )}
 

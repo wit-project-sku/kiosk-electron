@@ -251,7 +251,7 @@ export async function renderResultImage(raw: AnalysisResult, lang: Lang): Promis
     productName,
     rs.title,
     rs.description,
-    'JEJUDO ISLAND Powered by 0123456789',
+    'JEJU Powered by 0123456789',
     ...IMAGE_COPY.map((k) => copy(k, lang)),
     ...solutions.flatMap((s) => [s.name, s.description, s.detail, ...s.nutrients.map((n) => n.name)]),
     ...ingredients.map((i) => i.name),
@@ -270,7 +270,7 @@ export async function renderResultImage(raw: AnalysisResult, lang: Lang): Promis
   const m = document.createElement('canvas').getContext('2d') as Ctx;
   const blocks: Block[] = [];
 
-  // ── 머리: JEJUDO ISLAND · 날짜 / 제목 / 안내
+  // ── 머리: JEJU · 날짜 / 제목 / 안내
   m.font = font(500, 28);
   const noteLines = wrap(m, disclaimer, INNER - 44);
   blocks.push({
@@ -279,7 +279,7 @@ export async function renderResultImage(raw: AnalysisResult, lang: Lang): Promis
       ctx.font = font(700, 34);
       ctx.fillStyle = C.primary;
       ctx.textAlign = 'left';
-      lines(ctx, ['JEJUDO ISLAND'], PAD, y, 34, 34);
+      lines(ctx, ['JEJU'], PAD, y, 34, 34);
       ctx.font = font(600, 30);
       ctx.fillStyle = C.ink;
       ctx.textAlign = 'right';

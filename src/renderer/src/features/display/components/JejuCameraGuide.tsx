@@ -48,6 +48,8 @@ interface Props {
    * landmarker cannot read). The countdown will start by itself.
    */
   detectionUnavailable: boolean;
+  /** A click on the 손 icon — skip the countdown and shoot now (test shortcut). */
+  onSkip: () => void;
 }
 
 const PAUSED = {
@@ -80,6 +82,7 @@ export function JejuCameraGuide({
   rotation,
   gestureGate,
   detectionUnavailable,
+  onSkip,
 }: Props): JSX.Element {
   // Before the count starts the design shows the full duration, not a blank.
   const seconds = countdown ?? PHOTO_COUNTDOWN_SECONDS;
@@ -109,6 +112,11 @@ export function JejuCameraGuide({
       {/* The entire guide, exactly as the designer shipped it. Never mirrored —
           it is guidance, not part of the picture. */}
       {overlay && <img src={overlay} alt="" className={styles.overlay} draggable={false} />}
+
+      {/* Invisible hit area over the overlay's baked 손 icon. This monitor is
+          not a touch screen, so only a remote session (TeamViewer) can click
+          it — a tester's way past the 10 seconds, not a visitor control. */}
+      <button type="button" className={styles.skipHit} onClick={onSkip} aria-label="skip countdown" />
 
       {/* The live numeral, in the slot patched out of the overlay. Held: it
           dims — a full-brightness number that has stopped moving reads as a

@@ -142,7 +142,11 @@ export interface ShotBody {
 /**
  * The `data` part of `POST /api/stats/shots/v2` (multipart, sent with the AR
  * original as `photo`). Measurements are front-facing widths in cm, sent
- * unrounded; null when the ZED did not measure them for this capture.
+ * unrounded; 0 when the ZED did not measure them for this capture.
+ *
+ * The sizes stay `number | null` in the type because shots queued for the
+ * nightly re-send before 0 was asked for hold nulls; StatsService zeroes them
+ * on the way out, so null is never what the server receives.
  */
 export interface ShotV2Data extends ShotBody {
   channel: 'KIOSK';

@@ -131,6 +131,13 @@ export class ZedSidecarManager {
           // the install directory wholesale. userData does; the script's own
           // folder does not.
           HEIGHT_CALIBRATION: join(app.getPath('userData'), 'zed-height', 'calibration.json'),
+          // The pose model lives beside the calibration for the same reason, and
+          // is provisioned per kiosk (provision-zed.ps1 -InstallPose). Missing =
+          // the sidecar measures with the point cloud alone. Dev uses
+          // zed-height/models, body.py's own default.
+          ...(app.isPackaged
+            ? { HEIGHT_POSE_MODEL: join(app.getPath('userData'), 'zed-height', 'models', 'pose_landmarker_heavy.task') }
+            : {}),
           PYTHONIOENCODING: 'utf-8',
           // A line per sampled frame in the dev terminal, so a test can be
           // watched live. Never in a packaged build: kiosk logs would fill up.

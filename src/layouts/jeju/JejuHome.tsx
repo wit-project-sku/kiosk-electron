@@ -390,7 +390,40 @@ interface Tile {
    * it. Match this to the ART, not to a palette token.
    */
   plate?: string;
+  /**
+   * Shown but not tappable: the art is replaced by a plain grey plate and both
+   * text lines by a single localized "Coming Soon" (see COMING_SOON_LABEL).
+   */
+  comingSoon?: boolean;
+  /**
+   * Display title that replaces the tile's usual label: the sheet's `key` row
+   * when Localization_Jeju has one, else the authored `fallback` (per language,
+   * via sheetText).
+   */
+  title?: { key: string; fallback: Record<Lang, string> };
+  /** Sheet row for the second line, in place of TILE_SUB_KEYS; the usual
+   *  second line is the fallback when the row is missing. */
+  subKey?: string;
 }
+
+/**
+ * The title a {@link Tile.comingSoon} tile shows instead of its own name.
+ * Hard-coded on purpose: these buttons were removed, so the sheet has no row
+ * for them.
+ */
+const COMING_SOON_LABEL: Record<Lang, string> = {
+  ko: '준비중',
+  en: 'Coming Soon',
+  ja: '近日公開',
+  zh: '敬请期待',
+  zh_cn: '敬请期待',
+  zh_tw: '敬請期待',
+  vi: 'Sắp ra mắt',
+  th: 'เร็วๆ นี้',
+  ru: 'Скоро',
+  id: 'Segera Hadir',
+  es: 'Próximamente',
+};
 
 /**
  * The one grid slot that differs between the two 제주 venues — row 2, column 4.
@@ -455,8 +488,60 @@ const tilesWith = (venue: Tile, m: TileMascot = HAYOUNG_LABELS): Tile[] => [
  * on the array it is handed, so building one per render would re-run the CMS
  * join — and re-log its diagnostics — on every tick of the home clock.
  */
-const TILES_AIRPORT = tilesWith(RENTCAR_TILE);
 const TILES_TERMINAL = tilesWith(CRUISE_TILE);
+
+/** The FillMe button's caption when the sheet has no MainButton_SmartHealthCare. */
+const FILLME_LABEL_FALLBACK: Partial<Record<Lang, string>> = {
+  ko: '필미', en: 'FillMe', ja: 'FillMe', zh: 'FillMe', vi: 'FillMe', th: 'FillMe', ru: 'FillMe', id: 'FillMe',
+};
+
+/** W008's 도와줘 tile reads 제주공항 안내 (2026-10-28): the sheet's
+ *  MainButton_Airport_Guide row when it exists, else this copy. Its second line
+ *  is MainButton_Airport_Guide_SubText. Display only —
+ *  `navigate()` still receives the CMS's 도와줘 label, so analytics are unchanged. */
+const AIRPORT_HELP_TITLE_FALLBACK: Record<Lang, string> = {
+  ko: '제주공항 안내',
+  en: 'Jeju Airport Guide',
+  ja: '済州空港案内',
+  zh: '济州机场指南',
+  zh_cn: '济州机场指南',
+  zh_tw: '濟州機場指南',
+  vi: 'Hướng dẫn Sân bay Jeju',
+  th: 'คู่มือสนามบินเชจู',
+  ru: 'Гид по аэропорту Чеджу',
+  id: 'Panduan Bandara Jeju',
+  es: 'Guía del Aeropuerto de Jeju',
+};
+
+/**
+ * W008 제주공항 — the shared grid with four changes (2026-10-28):
+ *  · 지역화폐 and TAX-FREE trade places (지역화폐 to row 1, TAX-FREE to the end);
+ *  · 탐나오·제주큐랑 moves up into the 위드마켓 card slot (see AIRPORT_CARDS), and
+ *    위드마켓 takes its grid cell — with no name or art, as a grey placeholder;
+ *  · 위드마켓, TAX-FREE and 기부 are all Coming Soon (grey, not tappable);
+ *  · 도와줘 '하영' is titled 제주공항 안내 (AIRPORT_HELP_TITLE_FALLBACK).
+ *
+ * This order no longer matches W008's `buttons` CMS rows, so W008 skips the CMS
+ * reorder (see `orderedTiles` below) — the CMS would put 탐나오 back in the grid
+ * and swap the two tiles straight back.
+ */
+const TILES_AIRPORT: Tile[] = (() => {
+  const shared = tilesWith(RENTCAR_TILE);
+  const pick = (screen: KioskScreenId): Tile => shared.find((tile) => tile.screen === screen)!;
+  const AIRPORT_HELP_TILE: Tile = {
+    ...pick('help'),
+    title: { key: 'MainButton_Airport_Guide', fallback: AIRPORT_HELP_TITLE_FALLBACK },
+    subKey: 'MainButton_Airport_Guide_SubText',
+  };
+  return [
+    pick('eat'), pick('shop'), pick('lodging'), pick('localpay'),
+    pick('about'), pick('hello'), AIRPORT_HELP_TILE, RENTCAR_TILE,
+    pick('exchange'),
+    { ...pick('donation'), comingSoon: true },
+    { screen: 'market', label: '위드마켓', sub: '', icon: '', comingSoon: true },
+    { ...pick('taxfree'), comingSoon: true },
+  ];
+})();
 
 /**
  * W010 세계자연유산본부 — no longer W009's grid. The 2026-09 redesign (Figma
@@ -527,7 +612,7 @@ interface CardDef {
   sub: string;
   icon: string;
   /** Key into the per-card position/colour rules in JejuHome.module.css. */
-  variant: 'cardAi' | 'cardMarket' | 'cardEvents';
+  variant: 'cardAi' | 'cardMarket' | 'cardTamnao' | 'cardEvents';
 }
 
 const CARDS: CardDef[] = [
@@ -535,6 +620,13 @@ const CARDS: CardDef[] = [
   { screen: 'market',    label: '위드마켓',      sub: '굿즈 만들기', icon: 'card-market', variant: 'cardMarket' },
   { screen: 'events',    label: '제주도 이벤트',  sub: '제주행사',    icon: 'card-events', variant: 'cardEvents' },
 ];
+
+/** W008: 탐나오·제주큐랑 in the 위드마켓 card's slot — see TILES_AIRPORT. */
+const AIRPORT_CARDS: CardDef[] = CARDS.map((card) =>
+  card.screen === 'market'
+    ? { screen: 'tamnao', label: TAMNAO_TILE.label, sub: TAMNAO_TILE.sub, icon: TAMNAO_TILE.icon, variant: 'cardTamnao' }
+    : card,
+);
 
 export function JejuHome({ controller }: Props): JSX.Element {
   const weather = useWeatherStore((s) => s.weather);
@@ -627,9 +719,16 @@ export function JejuHome({ controller }: Props): JSX.Element {
   const subFor = (screen: string, authored: string): string =>
     fromSheet(TILE_SUB_KEYS, screen, authored, tPlain);
   const tileLabel = (tile: Tile): string => {
+    if (tile.comingSoon) return COMING_SOON_LABEL[lang];
+    if (tile.title) return sheetText(tile.title.key, lang, tile.title.fallback);
     const base = labelFor(tile.screen, tile.label);
     return tile.screen === 'donation' && donationPending ? withComingSoon(base, lang) : base;
   };
+  const tileSub = (tile: Tile): string =>
+    (tile.subKey && sheetText(tile.subKey, lang)) || subFor(tile.screen, tile.sub);
+  /* FillMe's caption: the sheet's MainButton_SmartHealthCare (스마트 헬스케어),
+     else the brand name it used to print. */
+  const fillmeLabel = sheetText('MainButton_SmartHealthCare', lang, FILLME_LABEL_FALLBACK);
   const noticeRuns = parseNotice(noticeText(lang));
   const noticeBody = noticeRuns.map((run, i) =>
     run.bold ? <b key={i}>{run.text}</b> : <span key={i}>{run.text}</span>,
@@ -646,7 +745,11 @@ export function JejuHome({ controller }: Props): JSX.Element {
    * other kiosks behave.
    */
   const tiles = TILES_BY_KIOSK[controller.kioskId] ?? TILES_AIRPORT;
-  const orderedTiles = useOrderedTiles(controller.kioskId, tiles, jejuTileKey);
+  const cmsOrderedTiles = useOrderedTiles(controller.kioskId, tiles, jejuTileKey);
+  /* W008's grid was rearranged on purpose and its CMS rows were not — see
+     TILES_AIRPORT. Keep the authored order there. */
+  const orderedTiles = tiles === TILES_AIRPORT ? tiles : cmsOrderedTiles;
+  const cards = tiles === TILES_AIRPORT ? AIRPORT_CARDS : CARDS;
 
   /* Low-reach: the shared mode bar (lowReach.ts) + a 573px 한복 promo flush
      under it, then the frame's own coordinates — see the block at the foot of
@@ -684,8 +787,8 @@ export function JejuHome({ controller }: Props): JSX.Element {
     lang,
     lowReach,
     noticeRuns.map((r) => r.text).join(''),
-    CARDS.map((c) => labelFor(c.screen, c.label) + subFor(c.screen, c.sub)).join('|'),
-    orderedTiles.map((tile) => tileLabel(tile) + subFor(tile.screen, tile.sub)).join('|'),
+    cards.map((c) => labelFor(c.screen, c.label) + subFor(c.screen, c.sub)).join('|'),
+    orderedTiles.map((tile) => tileLabel(tile) + (tile.comingSoon ? '' : tileSub(tile))).join('|'),
   ].join('§');
   useFitText(noticeRef, styles.noticeLead, wide, 0.7, fitKey);
   useFitText(cardsRef, styles.cardText, wide, 0.75, fitKey);
@@ -714,7 +817,7 @@ export function JejuHome({ controller }: Props): JSX.Element {
           {jejuIconUrl('ico-location') && (
             <img src={jejuIconUrl('ico-location')} alt="" className={styles.locationIcon} draggable={false} />
           )}
-          <span className={styles.siteName}>JEJUDO ISLAND</span>
+          <span className={styles.siteName}>JEJU</span>
         </div>
         <span className={styles.dateTime}>{clock}</span>
       </div>
@@ -810,20 +913,22 @@ export function JejuHome({ controller }: Props): JSX.Element {
 
       {/* ── Three feature cards ── */}
       <div className={low(styles.cards, styles.cardsLow)} ref={cardsRef}>
-        {CARDS.map((card) => {
-          const title = <span className={styles.cardTitle}>{labelFor(card.screen, card.label)}</span>;
+        {cards.map((card) => {
+          /* 탐나오·제주큐랑 is too wide for a card's title line, so the card
+             alternates the two names the same way the low-reach tile does. */
+          const label = labelFor(card.screen, card.label);
+          const title = (
+            <span className={styles.cardTitle}>
+              {card.screen === 'tamnao' ? <CyclingTileTitle label={label} /> : label}
+            </span>
+          );
           const sub = <span className={styles.cardSub}>{subFor(card.screen, card.sub)}</span>;
-          /* 제주공항 only. The card keeps its colours; it just does not open
-             WIT Store. W009 and W010 still do. */
-          const inert = card.screen === 'market' && controller.kioskId === 'W008';
           return (
             <button
               key={card.screen}
               type="button"
-              className={`${styles.card} ${styles[card.variant]}${inert ? ` ${styles.cardInert}` : ''}`}
-              onClick={inert ? undefined : () => go(card.screen, card.label)}
-              aria-disabled={inert || undefined}
-              tabIndex={inert ? -1 : undefined}
+              className={`${styles.card} ${styles[card.variant]}`}
+              onClick={() => go(card.screen, card.label)}
             >
               {/* Non-Korean: title and subtitle as ONE column centred in the
                   card (7058:22669, "크기 넘으면 단 내리기"), so a title that
@@ -853,13 +958,17 @@ export function JejuHome({ controller }: Props): JSX.Element {
       <div className={low(styles.panel, styles.panelLow)} />
       <div className={low(styles.grid, styles.gridLow)} ref={gridRef}>
         {orderedTiles.map((tile, i) => {
-          const art = jejuIconUrl(tile.icon);
-          const disabled = tile.screen === 'donation' && donationPending;
+          const art = tile.comingSoon || !tile.icon ? undefined : jejuIconUrl(tile.icon);
+          const disabled = tile.comingSoon || (tile.screen === 'donation' && donationPending);
           return (
             <button
               key={tile.screen}
               type="button"
-              className={[styles.tile, lowReach ? styles.tileLow : '', disabled ? styles.tileDisabled : '']
+              className={[
+                styles.tile,
+                lowReach ? styles.tileLow : '',
+                tile.comingSoon ? styles.tileComingSoon : disabled ? styles.tileDisabled : '',
+              ]
                 .filter(Boolean)
                 .join(' ')}
               style={{ left: (i % cols) * colStep, top: Math.floor(i / cols) * rowStep }}
@@ -873,6 +982,8 @@ export function JejuHome({ controller }: Props): JSX.Element {
                   )}
                   <img src={art} alt="" className={low(styles.tileArt, styles.tileArtLow)} draggable={false} />
                 </>
+              ) : tile.comingSoon ? (
+                <span className={`${low(styles.tilePlate, styles.tilePlateLow)} ${styles.tilePlateBlank}`} />
               ) : (
                 <span className={styles.tileArtMissing}>{tile.label[0]}</span>
               )}
@@ -884,7 +995,7 @@ export function JejuHome({ controller }: Props): JSX.Element {
                      full label stays on the standard grid. */}
                   {lowReach ? <CyclingTileTitle label={tileLabel(tile)} /> : tileLabel(tile)}
                 </span>
-                <span className={styles.tileSub}>{subFor(tile.screen, tile.sub)}</span>
+                {!tile.comingSoon && <span className={styles.tileSub}>{tileSub(tile)}</span>}
               </span>
             </button>
           );
@@ -900,17 +1011,16 @@ export function JejuHome({ controller }: Props): JSX.Element {
         type="button"
         className={low(styles.fillme, styles.fillmeLow)}
         onClick={() => go('fillme', '필미')}
-        aria-label={lang === 'ko' ? '필미' : 'FillMe'}
+        aria-label={fillmeLabel}
       >
         {jejuIconUrl('btn-fillme') && (
           <img src={jejuIconUrl('btn-fillme')} alt="" className={styles.actionImg} draggable={false} />
         )}
       </button>
-      {/* A brand, not a sheet key: 필미 in Korean, FillMe everywhere else — the
-          name printed on the tile. 화장실 next door DOES come from the sheet,
-          because it is a word. */}
+      {/* Localization_Jeju MainButton_SmartHealthCare (스마트 헬스케어) — see
+          fillmeLabel. `navigate()` above keeps the analytics label 필미. */}
       <span className={low(`${styles.actionLabel} ${styles.labelFillme}`, styles.actionLabelLow)}>
-        {lang === 'ko' ? '필미' : 'FillMe'}
+        {fillmeLabel}
       </span>
 
       <button

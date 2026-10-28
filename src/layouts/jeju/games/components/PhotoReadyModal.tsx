@@ -6,7 +6,8 @@
  * photo is ready. The game is dimmed and the only things left to touch are
  * the two buttons:
  *
- *   저장하기  → the result screen (the photo and its save QR)
+ *   저장하기  → the result screen (the photo and its save QR); 제주 labels it
+ *              사진 보기 (VIEW_PHOTO)
  *   다시찍기  → the 한복 picker again, i.e. the kiosk's photo reset
  *
  * Both labels are the sheet's own `Photo_Save` / `Photo_Home` rows. The
@@ -19,6 +20,7 @@
 import { useLang } from '@renderer/lib/i18n';
 import type { Lang } from '@renderer/lib/i18n';
 import { sheetText, tExact } from '@renderer/lib/loc';
+import { usePhotoChrome } from '../../../photo/photoChrome';
 import styles from './PhotoReadyModal.module.css';
 
 type L8 = Partial<Record<Lang, string>>;
@@ -39,6 +41,16 @@ const SAVE: L8 = {
   vi: 'Lưu lại', th: 'บันทึก', ru: 'Сохранить', id: 'Simpan',
 };
 
+/**
+ * 제주's label for the first button (2026-10-28): it opens the finished photo,
+ * so it says 사진 보기 rather than 저장하기. Hard-coded — the 제주 sheet's
+ * Photo_Save row is not this text (its en cell reads "Jeju").
+ */
+const VIEW_PHOTO: Record<string, string> = {
+  ko: '사진 보기', en: 'View Photo', ja: '写真を見る', zh: '查看照片',
+  vi: 'Xem ảnh', th: 'ดูรูปภาพ', ru: 'Посмотреть фото', id: 'Lihat Foto',
+};
+
 const RETAKE: L8 = {
   ko: '다시찍기', en: 'Try Again', ja: '再撮影', zh: '重拍',
   vi: 'Chụp lại', th: 'ถ่ายใหม่', ru: 'Переснять', id: 'Ulangi Foto',
@@ -53,6 +65,7 @@ interface Props {
 
 export function PhotoReadyModal({ onSave, onRetake }: Props): JSX.Element {
   const lang = useLang();
+  const { isJeju } = usePhotoChrome();
 
   return (
     <div className={styles.scrim}>
@@ -60,7 +73,7 @@ export function PhotoReadyModal({ onSave, onRetake }: Props): JSX.Element {
         <p className={styles.message}>{tExact('Photo_popup_message_Complete', lang) || sheetText('Photo_popup_title_Complete', lang, MESSAGE)}</p>
         <div className={styles.actions}>
           <button type="button" className={`${styles.btn} ${styles.save}`} onClick={onSave}>
-            {sheetText('Photo_Save', lang, SAVE)}
+            {isJeju ? VIEW_PHOTO[lang] ?? VIEW_PHOTO.en : sheetText('Photo_Save', lang, SAVE)}
           </button>
           <button type="button" className={`${styles.btn} ${styles.retake}`} onClick={onRetake}>
             {sheetText('Photo_Home', lang, RETAKE)}

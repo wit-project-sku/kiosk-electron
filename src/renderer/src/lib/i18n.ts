@@ -183,6 +183,9 @@ const SCREEN_TITLES: Record<string, Partial<Record<Lang, string>>> = {
   '도와줘 ‘하영’': { en: 'Help', ja: 'ヘルプ', zh: '帮助', vi: 'Trợ giúp', th: 'ช่วยเหลือ', ru: 'Помощь', id: 'Bantuan' },
   // W010 세계자연유산본부's mascot spelling of the same page (see jejuMascot).
   '도와줘 ‘유산’': { en: 'Help', ja: 'ヘルプ', zh: '帮助', vi: 'Trợ giúp', th: 'ช่วยเหลือ', ru: 'Помощь', id: 'Bantuan' },
+  // W008's 도와줘 page (jejuHelpTitle). Same copy as the sheet's
+  // MainButton_Airport_Guide, which TITLE_KEYS reads first.
+  '제주공항 안내': { en: 'Jeju Airport Guide', ja: '済州空港案内', zh: '济州机场指南', vi: 'Hướng dẫn sân bay Jeju', th: 'แนะนำสนามบินเชจู', ru: 'Информация об аэропорте Чеджу', id: 'Panduan Bandara Jeju' },
   "'제주' 뭐먹지?": { en: 'What to Eat', ja: '何を食べる', zh: '吃什么', vi: 'Ăn gì', th: 'กินอะไรดี', ru: 'Что поесть', id: 'Mau makan apa' },
   "'제주' 뭐사지?": { en: 'What to Buy', ja: '何を買う', zh: '买什么', vi: 'Mua gì', th: 'ซื้ออะไรดี', ru: 'Что купить', id: 'Mau beli apa' },
   숙박안내: { en: 'Lodging', ja: '宿泊案内', zh: '住宿指南', vi: 'Lưu trú', th: 'ที่พัก', ru: 'Проживание', id: 'Penginapan' },
@@ -349,6 +352,8 @@ const TITLE_KEYS: Record<string, TitleKeySpec> = {
   // header shows the 유산 row on a JEJU_HERITAGE machine and 하영's elsewhere.
   "안녕 '유산'": { title: 'MainButton_Greeting', sub: 'Greeting_Introduce' },
   "도와줘 ‘유산’": { title: 'MainButton_ToHelp', sub: 'Help_Subtitle' },
+  // W008's 도와줘 page, retitled with its home tile. Same page, same description.
+  '제주공항 안내': { title: 'MainButton_Airport_Guide', sub: 'Help_Subtitle' },
   "제주도 이벤트": { title: 'MainButton_Event', sub: 'SubHeader_Event' },
   "렌트카": { title: 'MainButton_RentCar', sub: 'RentCar_Subtitle' },
   탐나오: { title: 'MainButton_Tamnao', sub: 'Tamnao_Subtitle' },

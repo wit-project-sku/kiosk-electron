@@ -135,7 +135,7 @@ export function JejuHeader({
           {jejuIconUrl('ico-location') && (
             <img src={jejuIconUrl('ico-location')} alt="" className={styles.locationIcon} draggable={false} />
           )}
-          <span className={styles.siteName}>JEJUDO ISLAND</span>
+          <span className={styles.siteName}>JEJU</span>
         </div>
         <span className={styles.date}>{today}</span>
       </div>

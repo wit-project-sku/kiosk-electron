@@ -101,7 +101,7 @@ import {
   shopsForBase,
 } from '@renderer/lib/shops';
 import { trackEvent } from '@renderer/lib/analytics';
-import { jejuMascot } from './jejuMascot';
+import { jejuHelpTitle, jejuMascot } from './jejuMascot';
 import { JejuPageFrame } from './JejuPageFrame';
 import { JejuSubTabRow } from './JejuSubTabRow';
 import styles from './JejuHelp.module.css';
@@ -1195,7 +1195,7 @@ export function JejuHelp({ controller, initialCategory }: Props): JSX.Element {
           : pin
             ? pinLabel(pin, chip, lang)
             : chipLabel(chip, lang).replace('\n', ' '),
-      title: jejuMascot().helpTitle,
+      title: jejuHelpTitle(),
       category: chipLabel(facility?.category.ko ?? chip, lang).replace('\n', ' '),
       photos: [...(facilityPhoto ? [facilityPhoto] : []), ...(shop ? shopImages(shop) : [])],
       address: facility
@@ -1471,7 +1471,7 @@ export function JejuHelp({ controller, initialCategory }: Props): JSX.Element {
     // map/list scroll above, pickers at the foot.
     <JejuPageFrame
       controller={controller}
-      title={jejuMascot().helpTitle}
+      title={jejuHelpTitle()}
       lowReachModeBar
       lowReachBarBanner
       lowReachShift={belowModeBar(LOW_REACH_BANNER_HEIGHT)}

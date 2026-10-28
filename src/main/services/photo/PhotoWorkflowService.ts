@@ -24,10 +24,14 @@ const INITIAL: PhotoWorkflowState = {
   errorMessage: null,
 };
 
+/** skipCountdown: how long the 1 stays up before the shutter fires. */
+const SKIP_TICK_MS = 300;
+
 /**
  * Single source of truth for the AI photo workflow.
  * Drives Monitor 2 display state automatically on every transition.
  */
+
 export class PhotoWorkflowService {
   private state: PhotoWorkflowState = { ...INITIAL };
   private readonly listeners = new Set<WorkflowListener>();
@@ -183,6 +187,31 @@ export class PhotoWorkflowService {
     return this.state;
   }
 
+  /**
+   * Fire the shutter now instead of after the countdown — a click on the 손
+   * icon of the 제주 camera guide (Monitor 2). That monitor is not a touch
+   * screen, so only someone driving the kiosk remotely (TeamViewer) can do
+   * this; it is a test shortcut, not a visitor feature.
+   *
+   * Works from any point of the gated flow: still waiting for a palm, counting,
+   * or held. It shows 1 and lands on 0 a moment later, so the main screen sees
+   * the same >0 → 0 step it takes the photo on (usePhotoWorkflow).
+   */
+  skipCountdown(): PhotoWorkflowState {
+    const counting = this.state.phase === 'countdown';
+    if (this.state.gestureGate === 'off' && !counting) return this.state;
+    this.state = {
+      ...this.state,
+      phase: 'countdown',
+      countdown: 1,
+      gestureGate: this.state.gestureGate === 'off' ? 'off' : 'running',
+    };
+    this.syncDisplay('countdown', { countdown: 1 });
+    this.emit();
+    this.runCountdown(SKIP_TICK_MS);
+    return this.state;
+  }
+
   setGenerating(message: string): PhotoWorkflowState {
     this.clearCountdown();
     this.state = {
@@ -326,7 +355,7 @@ export class PhotoWorkflowService {
    * made every capture take 11 seconds instead of the 10 the screen promises,
    * and on a resume it would have re-shown the held second before moving.
    */
-  private runCountdown(): void {
+  private runCountdown(firstTickMs = 1000): void {
     this.clearCountdown();
     let value = this.state.countdown ?? PHOTO_COUNTDOWN_SECONDS;
 
@@ -344,7 +373,7 @@ export class PhotoWorkflowService {
       this.countdownTimer = setTimeout(tick, 1000);
     };
 
-    this.countdownTimer = setTimeout(tick, 1000);
+    this.countdownTimer = setTimeout(tick, firstTickMs);
   }
 
   private clearCountdown(): void {
