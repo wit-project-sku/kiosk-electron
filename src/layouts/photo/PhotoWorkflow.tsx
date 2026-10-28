@@ -71,6 +71,8 @@ export function PhotoWorkflow(): JSX.Element {
   const rotating = useRotatingBanner();
   const chrome = usePhotoChrome();
   const { isHwaseong, isJeju, isKada, icon, Header, photoTitle, banner: chromeBanner } = chrome;
+  /** Result page without 굿즈제작 (Save + Retake only) — see the button. */
+  const noGoods = isKada || isJeju;
   // The 위드마켓 rail's ♿ toggle (제주 only) — see the button for what it does
   // and does not affect on this screen.
   const lowReach = useAccessibilityStore((s) => s.lowReach);
@@ -456,13 +458,14 @@ export function PhotoWorkflow(): JSX.Element {
               </button>
               {/* 굿즈제작 opens insarang.kr — a Korean storefront with nothing behind
                   it for a Hanoi visitor, so KADA ships Save + Retake only, and its
-                  Retake takes the grey this third slot used to hold. */}
-              {!isKada && (
+                  Retake takes the grey this third slot used to hold. 제주 dropped
+                  it too (2026-10-28): an 인사동 shop has nothing for a 제주 visitor. */}
+              {!noGoods && (
                 <button type="button" className={`${styles.resultBtn} ${styles.resultBtnAlt}`} onClick={() => setGoodsQrOpen(true)}>
                   {c.goods}
                 </button>
               )}
-              <button type="button" className={isKada ? `${styles.resultBtn} ${styles.resultBtnAlt}` : styles.resultBtn} onClick={handleReset}>
+              <button type="button" className={noGoods ? `${styles.resultBtn} ${styles.resultBtnAlt}` : styles.resultBtn} onClick={handleReset}>
                 {c.retake}
               </button>
             </div>
