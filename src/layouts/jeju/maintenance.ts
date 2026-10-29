@@ -1,18 +1,22 @@
 /**
  * 제주공항 (W008) 시스템 점검 notice — which kiosks show it, whether it is up,
- * and the hidden 5-tap switch staff use to flip between it and the app.
+ * and the hidden switch staff use to flip between it and the app.
  *
- * The switch is the top-left corner of the screen on BOTH sides: the "JEJU"
- * marker on the home screen, and the same spot (blank sky in the art) on the
- * notice. Five taps within TAP_WINDOW_MS flip it — a single click used to lift
- * the notice for good, which staff hit by accident over TeamViewer and could
- * not undo (2026-10-29). Any pointer counts (TeamViewer mouse or a finger):
- * five quick taps on an empty corner is the guard, not the pointer type.
+ * Five MOUSE clicks within TAP_WINDOW_MS flip it: on the home screen, the
+ * "JEJU" marker turns the notice on; on the notice, the leftmost of the three
+ * tangerines at the top right turns it off. A single click used to lift the
+ * notice for good and there was no way back (2026-10-29).
+ *
+ * Mouse only — staff drive the kiosk over TeamViewer, which injects mouse
+ * input, while the kiosk's touch panel reports finger taps as pointerType
+ * 'touch'. Pointer events, not click/mousedown: Windows follows every tap with
+ * emulated mouse events, which would otherwise read as a mouse. A visitor's
+ * finger can never flip it.
  *
  * The state survives a reboot (localStorage), same key as before so a kiosk
  * that was already lifted stays lifted.
  */
-import { useCallback, useRef } from 'react';
+import { useCallback, useRef, type PointerEvent } from 'react';
 
 /** 제주 kiosks showing the full-screen 시스템 점검 notice instead of the app. */
 export const MAINTENANCE_KIOSKS: ReadonlySet<string> = new Set(['W008']);
@@ -56,12 +60,17 @@ export function registerTap(
     : { taps: recent, triggered: false };
 }
 
-/** Pointer-up handler that calls `onTrigger` on the fifth tap within the window. */
-export function useMultiTap(onTrigger: () => void): () => void {
+/** Pointer-up handler that calls `onTrigger` on the fifth MOUSE click within the
+ *  window. Touch and pen are ignored and do not count towards the five. */
+export function useMultiTap(onTrigger: () => void): (e: PointerEvent<HTMLElement>) => void {
   const taps = useRef<number[]>([]);
-  return useCallback(() => {
-    const next = registerTap(taps.current, Date.now());
-    taps.current = next.taps;
-    if (next.triggered) onTrigger();
-  }, [onTrigger]);
+  return useCallback(
+    (e: PointerEvent<HTMLElement>) => {
+      if (e.pointerType !== 'mouse') return;
+      const next = registerTap(taps.current, Date.now());
+      taps.current = next.taps;
+      if (next.triggered) onTrigger();
+    },
+    [onTrigger],
+  );
 }

@@ -60,14 +60,16 @@ const MAINTENANCE_STYLE: CSSProperties = {
   objectFit: 'cover',
 };
 
-/** The notice's hidden switch: the top-left corner, where the home screen's
- *  "JEJU" marker sits (topBar x84 y125, 2000×83), padded for a mouse. */
+/** The notice's hidden switch: the leftmost of the three tangerines at the top
+ *  right of the art (centre ≈ x1547 y250, ~195 across on the 2160×3840 canvas),
+ *  padded a little for a mouse. Move it with the art if the image changes. */
 const MAINTENANCE_SWITCH_STYLE: CSSProperties = {
   position: 'absolute',
-  left: 40,
-  top: 90,
-  width: 520,
-  height: 160,
+  left: 1437,
+  top: 140,
+  width: 220,
+  height: 220,
+  borderRadius: '50%',
 };
 
 /** Theme the shared AR 한복 photo workflow with the 제주 orange (#ff7f0f, the
@@ -181,8 +183,8 @@ export function JejuKiosk(): JSX.Element {
 
   const [maintenanceLifted, setMaintenanceLifted] = useState(readMaintenanceLifted);
   const maintenanceKiosk = MAINTENANCE_KIOSKS.has(controller.kioskId);
-  // Five quick taps on the top-left corner flip between the notice and the app —
-  // see maintenance.ts.
+  // Five quick mouse clicks flip between the notice and the app — the "JEJU"
+  // marker on the home screen, the leftmost tangerine on the notice (maintenance.ts).
   const toggleMaintenance = useCallback(() => {
     setMaintenanceLifted((lifted) => {
       writeMaintenanceLifted(!lifted);
@@ -195,9 +197,9 @@ export function JejuKiosk(): JSX.Element {
 
   // 제주공항 is under system maintenance: the whole screen is the 점검 중 notice
   // and nothing behind it can be reached by a visitor (touch or keypad). Staff
-  // switch it off with five quick taps on the top-left corner and back on the
-  // same way from the home screen's "JEJU" marker (maintenance.ts). Only that
-  // corner listens; a tap anywhere else on the notice does nothing.
+  // switch it off with five quick MOUSE clicks on the leftmost tangerine and
+  // back on the same way from the home screen's "JEJU" marker (maintenance.ts).
+  // Only that tangerine listens, and only to a mouse.
   if (maintenanceKiosk && !maintenanceLifted) {
     return (
       <KioskArtboard>
