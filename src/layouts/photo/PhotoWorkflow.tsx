@@ -40,8 +40,7 @@ const SAVE_BASE = 'https://withphoto.vercel.app/?imageUrl=';
  */
 function saveQrUrl(shareUrl: string | null, imageUrl: string, lang: string): string {
   if (!shareUrl) return `${SAVE_BASE}${encodeURIComponent(imageUrl)}`;
-  // The pickup page speaks the visitor's kiosk language (제주공항's page reads it;
-  // the others ignore it).
+  // The pickup page (every kiosk) opens in the visitor's kiosk language.
   return `${shareUrl}${shareUrl.includes('?') ? '&' : '?'}lang=${encodeURIComponent(lang)}`;
 }
 
