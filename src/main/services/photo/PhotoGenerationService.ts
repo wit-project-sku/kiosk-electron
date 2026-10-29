@@ -1,3 +1,4 @@
+import { randomUUID } from 'node:crypto';
 import { createLogger } from '@main/core/logger';
 import type { PhotoSession } from '@shared/types/photo';
 import type { ShotType } from '@shared/types/data';
@@ -7,6 +8,7 @@ import type { PhotoSessionRepository } from '@main/database/repositories/PhotoSe
 import type { CaptureService } from '@main/services/camera/CaptureService';
 import type { AIService } from '@main/services/ai/AIService';
 import type { GoogleDriveService } from '@main/services/drive/GoogleDriveService';
+import type { KioskService } from '@main/services/KioskService';
 import type { ImageHostService } from './ImageHostService';
 
 const log = createLogger('photo-generation');
@@ -60,11 +62,15 @@ export class PhotoGenerationService {
     private readonly analytics: AnalyticsService,
     private readonly imageHost: ImageHostService,
     private readonly stats: StatsService,
+    private readonly kiosk: KioskService,
   ) {}
 
   async generate(input: GeneratePhotoInput, onProgress?: ProgressCallback): Promise<GeneratePhotoResult> {
     const { sessionId, dataUrl, clothingKey, styleKey, backgroundId = null } = input;
     let capturePath: string | null = null;
+    // One id for the shot report AND the phone upload, so the pickup page can
+    // file the visitor's 국적 against this shot (photo_shot_shooter).
+    const eventId = randomUUID();
 
     try {
       this.analytics.track({
@@ -93,7 +99,9 @@ export class PhotoGenerationService {
       // The AR API returns only image bytes, so upload to a public host to get a
       // phone-openable URL for the save QR (falls back to the API URL if it ever
       // provides one).
-      const uploaded = publicUrl ? null : await this.imageHost.upload(resultBuffer, fileName);
+      const uploaded = publicUrl
+        ? null
+        : await this.imageHost.upload(resultBuffer, fileName, { eventId, region: this.kiosk.region() });
       const resultUrl = publicUrl ?? uploaded?.imageUrl ?? null;
       const resultShareUrl = uploaded?.shareUrl ?? null;
 
@@ -112,6 +120,7 @@ export class PhotoGenerationService {
       // Report the successful capture to the witteria shots API (fire-and-forget,
       // offline-queued + idempotent; never blocks the result).
       void this.stats.recordShot({
+        eventId,
         isSuccess: true,
         outfitCode: outfitCodeOf(clothingKey),
         shotType: shotTypeOf(styleKey),
@@ -141,6 +150,7 @@ export class PhotoGenerationService {
       // so we have a real image. Reported as a failed shot (isSuccess:false) so the
       // total counts the picture while isSuccess still reflects the AI outcome.
       void this.stats.recordShot({
+        eventId,
         isSuccess: false,
         outfitCode: outfitCodeOf(clothingKey),
         shotType: shotTypeOf(styleKey),
