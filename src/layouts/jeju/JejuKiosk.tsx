@@ -10,7 +10,7 @@
  *    photoChrome.tsx for the per-layout header/icon resolution.
  *  - DonationWebScreen (기부) — W008 has hasDonation; URL via donationUrl(kioskId).
  */
-import { useState, type CSSProperties, type PointerEvent } from 'react';
+import { useCallback, useState, type CSSProperties } from 'react';
 import type { KioskScreenId } from '@shared/types/kiosk';
 import { useKioskController } from '@renderer/hooks/useKioskController';
 import { useWeatherSync } from '@renderer/hooks/useWeatherSync';
@@ -49,11 +49,9 @@ import { JejuRentcar } from './JejuRentcar';
 import { JejuFillme } from './fillme/JejuFillme';
 import { useJejuKeypad } from './keypad/useJejuKeypad';
 import maintenanceUrl from '@renderer/assets/icons/jeju/maintenance.jpg';
+import { MAINTENANCE_KIOSKS, readMaintenanceLifted, useMultiTap, writeMaintenanceLifted } from './maintenance';
 
-/** 제주 kiosks showing the full-screen 시스템 점검 notice instead of the app.
- *  The art is icons/제주_운항정보=도착.png scaled to the 2160×3840 canvas. */
-const MAINTENANCE_KIOSKS: ReadonlySet<string> = new Set(['W008']);
-
+/** The 시스템 점검 notice art — icons/제주_운항정보=도착.png scaled to the 2160×3840 canvas. */
 const MAINTENANCE_STYLE: CSSProperties = {
   position: 'absolute',
   inset: 0,
@@ -62,25 +60,15 @@ const MAINTENANCE_STYLE: CSSProperties = {
   objectFit: 'cover',
 };
 
-/** Set once staff lift the notice, so the kiosk's reboot does not bring it back.
- *  Delete this key (DevTools → Application → Local Storage) to show it again. */
-const MAINTENANCE_LIFTED_KEY = 'jeju.maintenanceLifted';
-
-function readMaintenanceLifted(): boolean {
-  try {
-    return localStorage.getItem(MAINTENANCE_LIFTED_KEY) === '1';
-  } catch {
-    return false;
-  }
-}
-
-function writeMaintenanceLifted(): void {
-  try {
-    localStorage.setItem(MAINTENANCE_LIFTED_KEY, '1');
-  } catch {
-    // Storage unavailable: lifted for this run only.
-  }
-}
+/** The notice's hidden switch: the top-left corner, where the home screen's
+ *  "JEJU" marker sits (topBar x84 y125, 2000×83), padded for a mouse. */
+const MAINTENANCE_SWITCH_STYLE: CSSProperties = {
+  position: 'absolute',
+  left: 40,
+  top: 90,
+  width: 520,
+  height: 160,
+};
 
 /** Theme the shared AR 한복 photo workflow with the 제주 orange (#ff7f0f, the
  *  Figma `[제주] main 01` token). photoChrome.tsx resolves Jeju's icons, header
@@ -192,26 +180,29 @@ export function JejuKiosk(): JSX.Element {
   useJejuKeypad(controller);
 
   const [maintenanceLifted, setMaintenanceLifted] = useState(readMaintenanceLifted);
+  const maintenanceKiosk = MAINTENANCE_KIOSKS.has(controller.kioskId);
+  // Five quick taps on the top-left corner flip between the notice and the app —
+  // see maintenance.ts.
+  const toggleMaintenance = useCallback(() => {
+    setMaintenanceLifted((lifted) => {
+      writeMaintenanceLifted(!lifted);
+      return !lifted;
+    });
+  }, []);
+  const onMaintenanceSwitchTap = useMultiTap(toggleMaintenance);
 
   const cur = controller.screen;
 
   // 제주공항 is under system maintenance: the whole screen is the 점검 중 notice
   // and nothing behind it can be reached by a visitor (touch or keypad). Staff
-  // lift it remotely with a MOUSE click — TeamViewer injects mouse input, while
-  // the kiosk's panel reports finger taps as pointerType 'touch'. Pointer events
-  // (not click/mousedown) because Windows follows every tap with emulated mouse
-  // events, which would otherwise read as a mouse.
-  if (MAINTENANCE_KIOSKS.has(controller.kioskId) && !maintenanceLifted) {
-    const lift = (e: PointerEvent<HTMLDivElement>): void => {
-      if (e.pointerType !== 'mouse') return;
-      writeMaintenanceLifted();
-      setMaintenanceLifted(true);
-    };
+  // switch it off with five quick taps on the top-left corner and back on the
+  // same way from the home screen's "JEJU" marker (maintenance.ts). Only that
+  // corner listens; a tap anywhere else on the notice does nothing.
+  if (maintenanceKiosk && !maintenanceLifted) {
     return (
       <KioskArtboard>
-        <div style={MAINTENANCE_STYLE} onPointerUp={lift}>
-          <img src={maintenanceUrl} alt="" draggable={false} style={MAINTENANCE_STYLE} />
-        </div>
+        <img src={maintenanceUrl} alt="" draggable={false} style={MAINTENANCE_STYLE} />
+        <div style={MAINTENANCE_SWITCH_STYLE} onPointerUp={onMaintenanceSwitchTap} />
       </KioskArtboard>
     );
   }
@@ -221,7 +212,10 @@ export function JejuKiosk(): JSX.Element {
       <PhotoWorkflow />
     </div>
   ) : cur === 'home' ? (
-    <JejuHome controller={controller} />
+    <JejuHome
+      controller={controller}
+      onSiteMarkerTap={maintenanceKiosk ? onMaintenanceSwitchTap : undefined}
+    />
   ) : cur === 'language' ? (
     <JejuLanguage controller={controller} />
   ) : cur === 'ai_search' ? (

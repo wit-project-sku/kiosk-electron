@@ -46,6 +46,9 @@ import styles from './JejuHome.module.css';
 
 interface Props {
   controller: KioskController;
+  /** Pointer-up on the top-left "JEJU" marker — the hidden 시스템 점검 switch
+   *  (five quick taps, see maintenance.ts). Absent on kiosks without the notice. */
+  onSiteMarkerTap?: () => void;
 }
 
 /** Search-bar language button → the current language's display code. */
@@ -628,7 +631,7 @@ const AIRPORT_CARDS: CardDef[] = CARDS.map((card) =>
     : card,
 );
 
-export function JejuHome({ controller }: Props): JSX.Element {
+export function JejuHome({ controller, onSiteMarkerTap }: Props): JSX.Element {
   const weather = useWeatherStore((s) => s.weather);
   const forecast = useWeatherStore((s) => s.forecast);
   const [weatherOpen, setWeatherOpen] = useState(false);
@@ -813,7 +816,7 @@ export function JejuHome({ controller }: Props): JSX.Element {
 
       {/* ── Top bar ── */}
       <div className={low(styles.topBar, styles.topBarLow)}>
-        <div className={styles.topLeft}>
+        <div className={styles.topLeft} onPointerUp={onSiteMarkerTap}>
           {jejuIconUrl('ico-location') && (
             <img src={jejuIconUrl('ico-location')} alt="" className={styles.locationIcon} draggable={false} />
           )}
