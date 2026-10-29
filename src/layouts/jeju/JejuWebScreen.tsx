@@ -314,7 +314,13 @@ export function JejuWebScreen({
       )}
 
       <div
-        className={[styles.body, showMobileQr ? styles.bodyTamnao : '', lowTamnao ? styles.bodyTamnaoLow : '']
+        className={[
+          styles.body,
+          showMobileQr ? styles.bodyTamnao : '',
+          // One site, no tab row: the panel starts where the row would have.
+          showMobileQr && sites.length < 2 ? styles.bodyTamnaoSingle : '',
+          lowTamnao ? styles.bodyTamnaoLow : '',
+        ]
           .filter(Boolean)
           .join(' ')}
       >

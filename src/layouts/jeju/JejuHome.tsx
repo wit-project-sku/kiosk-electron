@@ -24,7 +24,8 @@ import { IDLE_TIMEOUT_MS, type KioskController } from '@renderer/hooks/useKioskC
 import { useInactivityReset } from '@renderer/hooks/useInactivityReset';
 import type { KioskScreenId } from '@shared/types/kiosk';
 import { jejuIconUrl } from '@renderer/assets/icons/jeju';
-import { useOrderedTiles, type TileKey } from '@renderer/lib/buttonLayout';
+import { useOrderedTiles, useResolveButton, type TileKey } from '@renderer/lib/buttonLayout';
+import { localIso, recordMenuTouch, trackEvent } from '@renderer/lib/analytics';
 import { useAccessibilityStore } from '@renderer/store/accessibilityStore';
 import { useWeatherStore } from '@renderer/store/weatherStore';
 import { useWeatherVideo } from '@renderer/hooks/useWeatherVideo';
@@ -38,6 +39,7 @@ import { JejuFlightBoard } from './JejuFlightBoard';
 import { JejuSailingBoard } from './JejuSailingBoard';
 import { JejuWeatherPanel } from './JejuWeatherPanel';
 import { modeBarVars } from './lowReach';
+import { JEJU_QURANG_LABEL, TAMNAO_LABEL, trimJoinDot } from './jejuEmbedLabels';
 import { useFitText } from '@layouts/components/fitText';
 import { FloatingKeyboard } from '../insadong/keyboard/FloatingKeyboard';
 import { HangulComposer } from '../insadong/keyboard/hangul';
@@ -403,10 +405,22 @@ interface Tile {
    * when Localization_Jeju has one, else the authored `fallback` (per language,
    * via sheetText).
    */
-  title?: { key: string; fallback: Record<Lang, string> };
+  title?: { key: string; fallback: Partial<Record<Lang, string>> };
   /** Sheet row for the second line, in place of TILE_SUB_KEYS; the usual
    *  second line is the fallback when the row is missing. */
   subKey?: string;
+  /** Per-language copy for {@link subKey}'s row while the sheet has none. */
+  subFallback?: Partial<Record<Lang, string>>;
+  /**
+   * Drawn as a feature CARD, not a tile: W008's middle row (여기는 제주도 /
+   * 안녕 / 제주공항 안내, 2026-10-29) is a second row of the three cards above —
+   * same sizes, colours and type, in the same three slots, in every mode
+   * (see MID_CARD_VARIANTS). The grid leaves that row's band to them.
+   */
+  wide?: boolean;
+  /** 오늘의 날씨: the art is the live weather, and a tap opens the 날씨 panel
+   *  instead of navigating. */
+  liveWeather?: boolean;
 }
 
 /**
@@ -516,33 +530,70 @@ const AIRPORT_HELP_TITLE_FALLBACK: Record<Lang, string> = {
   es: 'Guía del Aeropuerto de Jeju',
 };
 
+/** 오늘의 날씨 tile copy until Localization_Jeju has MainButton_Weather rows. */
+const WEATHER_TITLE_FALLBACK: Partial<Record<Lang, string>> = {
+  ko: '오늘의 날씨', en: "Today's Weather", ja: '今日の天気', zh: '今日天气', zh_cn: '今日天气',
+  zh_tw: '今日天氣', vi: 'Thời tiết hôm nay', th: 'สภาพอากาศวันนี้', ru: 'Погода сегодня',
+  id: 'Cuaca Hari Ini', es: 'El tiempo hoy',
+};
+const WEATHER_SUB_FALLBACK: Partial<Record<Lang, string>> = {
+  ko: '제주 날씨 예보', en: 'Jeju forecast', ja: '済州の天気予報', zh: '济州天气预报', zh_cn: '济州天气预报',
+  zh_tw: '濟州天氣預報', vi: 'Dự báo thời tiết Jeju', th: 'พยากรณ์อากาศเชจู', ru: 'Прогноз в Чеджу',
+  id: 'Prakiraan cuaca Jeju', es: 'Pronóstico de Jeju',
+};
+
 /**
- * W008 제주공항 — the shared grid with four changes (2026-10-28):
- *  · 지역화폐 and TAX-FREE trade places (지역화폐 to row 1, TAX-FREE to the end);
- *  · 탐나오·제주큐랑 moves up into the 위드마켓 card slot (see AIRPORT_CARDS), and
- *    위드마켓 takes its grid cell — with no name or art, as a grey placeholder;
- *  · 위드마켓, TAX-FREE and 기부 are all Coming Soon (grey, not tappable);
- *  · 도와줘 '하영' is titled 제주공항 안내 (AIRPORT_HELP_TITLE_FALLBACK).
+ * W008 제주공항 — 4 · 3 · 4 (2026-10-29):
+ *  · row 1 — 뭐먹지 · 뭐사지 · 숙박안내 · 제주큐랑 (split off 탐나오, in the cell
+ *    지역화폐 held);
+ *  · row 2 — 여기는 제주도 · 안녕 · 제주공항 안내, drawn as a second row of the
+ *    three feature cards (same sizes and design, every mode);
+ *  · row 3 — 환율 · 지역화폐 · 렌트카 · 오늘의 날씨 (opens the 날씨 panel).
+ * 위드마켓 / TAX-FREE / 기부 (the three Coming Soon cells) are gone, and the card
+ * above reads 탐나오 alone (AIRPORT_CARDS).
  *
- * This order no longer matches W008's `buttons` CMS rows, so W008 skips the CMS
- * reorder (see `orderedTiles` below) — the CMS would put 탐나오 back in the grid
- * and swap the two tiles straight back.
+ * This order does not match W008's `buttons` CMS rows, so W008 skips the CMS
+ * reorder (see `orderedTiles` below).
  */
 const TILES_AIRPORT: Tile[] = (() => {
   const shared = tilesWith(RENTCAR_TILE);
   const pick = (screen: KioskScreenId): Tile => shared.find((tile) => tile.screen === screen)!;
   const AIRPORT_HELP_TILE: Tile = {
     ...pick('help'),
+    // The terminal illustration, transparent — drawn as-is in the card's art box.
+    icon: 'card-airport-guide',
     title: { key: 'MainButton_Airport_Guide', fallback: AIRPORT_HELP_TITLE_FALLBACK },
     subKey: 'MainButton_Airport_Guide_SubText',
+    wide: true,
+  };
+  /* Localization_Jeju_v2 gives the split its own airport rows: the title is
+     MainButton_jejuQrang_airport, and the second line shares 탐나오's
+     MainButton_Tamnao_Subtext (the sheet keeps one subtext for both buttons). */
+  const QURANG_TILE: Tile = {
+    screen: 'jejuqrang',
+    label: '제주큐랑',
+    sub: TAMNAO_TILE.sub,
+    // The white 제주큐랑 wordmark baked onto a plate in the kiosk orange
+    // (#ff7f0f), like the other tile exports — the wordmark alone is white on
+    // transparent and would vanish on the grid's white panel.
+    icon: 'tile-jejuqrang',
+    title: { key: 'MainButton_jejuQrang_airport', fallback: JEJU_QURANG_LABEL },
+    subKey: 'MainButton_Tamnao_Subtext',
+  };
+  const WEATHER_TILE: Tile = {
+    screen: 'weather',
+    label: '오늘의 날씨',
+    sub: '제주 날씨 예보',
+    icon: '',
+    title: { key: 'MainButton_Weather', fallback: WEATHER_TITLE_FALLBACK },
+    subKey: 'MainButton_Weather_Subtext',
+    subFallback: WEATHER_SUB_FALLBACK,
+    liveWeather: true,
   };
   return [
-    pick('eat'), pick('shop'), pick('lodging'), pick('localpay'),
-    pick('about'), pick('hello'), AIRPORT_HELP_TILE, RENTCAR_TILE,
-    pick('exchange'),
-    { ...pick('donation'), comingSoon: true },
-    { screen: 'market', label: '위드마켓', sub: '', icon: '', comingSoon: true },
-    { ...pick('taxfree'), comingSoon: true },
+    pick('eat'), pick('shop'), pick('lodging'), QURANG_TILE,
+    { ...pick('about'), wide: true }, { ...pick('hello'), wide: true }, AIRPORT_HELP_TILE,
+    pick('exchange'), pick('localpay'), RENTCAR_TILE, WEATHER_TILE,
   ];
 })();
 
@@ -603,6 +654,58 @@ const ROW_STEP_LOW = 374;
 const COLS = 4;
 const COLS_LOW = 6;
 
+/*
+ * The W008 4 · 3 · 4 grid (2026-10-29). The middle row is cards, drawn outside
+ * the grid (see MID_CARD_VARIANTS), so the grid only places the two tile rows:
+ * standard keeps the tiles' own 480 × 492 steps with row 2's band left to the
+ * cards; low-reach draws 150px plates under a 34px title (192 tall) at rows 0
+ * and 538, the cards' 250 between them with a 48 gap either side.
+ */
+const WIDE_COLS = 3;
+const PLATE_LOW_3 = 150;
+const ROW_STEP_LOW_3 = (192 + 48 + 250 + 48) / 2;
+const COL_STEP_LOW_3 = (1792 - PLATE_LOW_3) / 3;
+
+/** The top row's three card slots, reused in order for the middle row's cards. */
+const MID_CARD_VARIANTS: readonly CardDef['variant'][] = ['cardAi', 'cardTamnao', 'cardEvents'];
+
+interface GridSlot {
+  left: number;
+  top: number;
+}
+
+/**
+ * Where each tile sits. A grid with no wide tile is the plain `cols`-across
+ * flow every 제주 home has always drawn. Once one is wide (W008), the grid runs
+ * in ROWS: consecutive wide tiles take a row of three (drawn as cards, outside
+ * the grid), ordinary tiles a row of four, and a change of kind starts a new row.
+ */
+function gridSlots(tiles: readonly Tile[], lowReach: boolean): GridSlot[] {
+  if (!tiles.some((tile) => tile.wide)) {
+    const cols = lowReach ? COLS_LOW : COLS;
+    const colStep = lowReach ? COL_STEP_LOW : COL_STEP;
+    const rowStep = lowReach ? ROW_STEP_LOW : ROW_STEP;
+    return tiles.map((_, i) => ({ left: (i % cols) * colStep, top: Math.floor(i / cols) * rowStep }));
+  }
+  const slots: GridSlot[] = [];
+  let row = -1;
+  let col = 0;
+  let rowWide: boolean | null = null;
+  for (const tile of tiles) {
+    const wide = !!tile.wide;
+    const perRow = wide ? WIDE_COLS : COLS;
+    if (wide !== rowWide || col >= perRow) {
+      row += 1;
+      col = 0;
+      rowWide = wide;
+    }
+    // A wide tile's slot is never used — the card row draws it.
+    slots.push({ left: col * (lowReach ? COL_STEP_LOW_3 : COL_STEP), top: row * (lowReach ? ROW_STEP_LOW_3 : ROW_STEP) });
+    col += 1;
+  }
+  return slots;
+}
+
 /** Search row geometry (mirrors .searchRow/.searchRowLow in the CSS) — the
  *  inline keyboard tray is positioned from it, so the two can't drift apart. */
 const SEARCH_ROW_TOP = 1136;
@@ -616,6 +719,8 @@ interface CardDef {
   icon: string;
   /** Key into the per-card position/colour rules in JejuHome.module.css. */
   variant: 'cardAi' | 'cardMarket' | 'cardTamnao' | 'cardEvents';
+  /** Display title in place of TILE_LABEL_KEYS' (see {@link Tile.title}). */
+  title?: { key: string; fallback: Partial<Record<Lang, string>> };
 }
 
 const CARDS: CardDef[] = [
@@ -624,10 +729,20 @@ const CARDS: CardDef[] = [
   { screen: 'events',    label: '제주도 이벤트',  sub: '제주행사',    icon: 'card-events', variant: 'cardEvents' },
 ];
 
-/** W008: 탐나오·제주큐랑 in the 위드마켓 card's slot — see TILES_AIRPORT. */
+/** W008: 탐나오 in the 위드마켓 card's slot — see TILES_AIRPORT. 제주큐랑 has
+ *  its own grid tile now, so the card names 탐나오 alone from the sheet's
+ *  airport row (MainButton_Tamnao_airport), not the MainButton_Tamnao pair
+ *  W009/W010 still show. Its second line stays MainButton_Tamnao_Subtext. */
 const AIRPORT_CARDS: CardDef[] = CARDS.map((card) =>
   card.screen === 'market'
-    ? { screen: 'tamnao', label: TAMNAO_TILE.label, sub: TAMNAO_TILE.sub, icon: TAMNAO_TILE.icon, variant: 'cardTamnao' }
+    ? {
+        screen: 'tamnao',
+        label: TAMNAO_TILE.label,
+        sub: TAMNAO_TILE.sub,
+        icon: TAMNAO_TILE.icon,
+        variant: 'cardTamnao',
+        title: { key: 'MainButton_Tamnao_airport', fallback: TAMNAO_LABEL },
+      }
     : card,
 );
 
@@ -644,6 +759,44 @@ export function JejuHome({ controller, onSiteMarkerTap }: Props): JSX.Element {
     onIdle: () => setWeatherOpen(false),
   });
   const playWeatherVideo = useWeatherVideo();
+  /*
+   * 오늘의 날씨 tile → the same 날씨 panel the weather card opens. It never
+   * leaves home, so the controller's menu-touch session (opened on navigation)
+   * never sees it: the tile keeps its own, opened on the tap and reported when
+   * the panel closes — the way the 사진촬영 overlay does in useKioskController.
+   */
+  const resolveBtn = useResolveButton(controller.kioskId);
+  const weatherTouchRef = useRef<string | null>(null);
+  useEffect(() => {
+    if (weatherOpen || !weatherTouchRef.current) return;
+    const btn = resolveBtn('weather');
+    if (btn?.id != null) {
+      recordMenuTouch({
+        buttonId: btn.id,
+        buttonType: btn.buttonType,
+        touchedAt: weatherTouchRef.current,
+        backToHomeAt: localIso(),
+      });
+    }
+    weatherTouchRef.current = null;
+  }, [weatherOpen, resolveBtn]);
+  function openWeatherFromTile(label: string): void {
+    const btn = resolveBtn('weather');
+    void trackEvent({
+      name: 'button_clicked',
+      payload: {
+        screen: 'weather',
+        label,
+        buttonId: btn?.id ?? null,
+        buttonName: btn?.buttonName ?? null,
+        position: btn?.position ?? null,
+        kioskId: controller.kioskId,
+      },
+    });
+    if (!weatherTouchRef.current) weatherTouchRef.current = localIso();
+    playWeatherVideo();
+    setWeatherOpen(true);
+  }
   const lang = useLanguageStore((s) => s.currentLanguage);
   const setStoreQuery = useSearchStore((s) => s.setQuery);
 
@@ -723,12 +876,14 @@ export function JejuHome({ controller, onSiteMarkerTap }: Props): JSX.Element {
     fromSheet(TILE_SUB_KEYS, screen, authored, tPlain);
   const tileLabel = (tile: Tile): string => {
     if (tile.comingSoon) return COMING_SOON_LABEL[lang];
-    if (tile.title) return sheetText(tile.title.key, lang, tile.title.fallback);
+    if (tile.title) return trimJoinDot(sheetText(tile.title.key, lang, tile.title.fallback));
     const base = labelFor(tile.screen, tile.label);
     return tile.screen === 'donation' && donationPending ? withComingSoon(base, lang) : base;
   };
   const tileSub = (tile: Tile): string =>
-    (tile.subKey && sheetText(tile.subKey, lang)) || subFor(tile.screen, tile.sub);
+    (tile.subKey && sheetText(tile.subKey, lang, tile.subFallback)) || subFor(tile.screen, tile.sub);
+  const cardLabel = (card: CardDef): string =>
+    card.title ? trimJoinDot(sheetText(card.title.key, lang, card.title.fallback)) : labelFor(card.screen, card.label);
   /* FillMe's caption: the sheet's MainButton_SmartHealthCare (스마트 헬스케어),
      else the brand name it used to print. */
   const fillmeLabel = sheetText('MainButton_SmartHealthCare', lang, FILLME_LABEL_FALLBACK);
@@ -761,9 +916,45 @@ export function JejuHome({ controller, onSiteMarkerTap }: Props): JSX.Element {
   const toggleLowReach = useAccessibilityStore((s) => s.toggleLowReach);
   /* Params are optional because CSS Module lookups are typed `string | undefined`. */
   const low = (base?: string, alt?: string): string => `${base ?? ''} ${lowReach ? alt ?? '' : ''}`;
-  const cols = lowReach ? COLS_LOW : COLS;
-  const colStep = lowReach ? COL_STEP_LOW : COL_STEP;
-  const rowStep = lowReach ? ROW_STEP_LOW : ROW_STEP;
+  const slots = gridSlots(orderedTiles, lowReach);
+  /* The 4 · 3 · 4 grid has its own low-reach metrics (see gridSlots). */
+  const rowsLayout = orderedTiles.some((tile) => tile.wide);
+  const midTiles = orderedTiles.filter((tile) => tile.wide);
+
+  /** One feature card — the top row's, and W008's middle row's. */
+  const renderCard = (c: {
+    key: string;
+    variant: CardDef['variant'];
+    label: string;
+    sub: string;
+    icon: string;
+    cycle: boolean;
+    onClick: () => void;
+  }): ReactElement => {
+    const title = <span className={styles.cardTitle}>{c.cycle ? <CyclingTileTitle label={c.label} /> : c.label}</span>;
+    const sub = <span className={styles.cardSub}>{c.sub}</span>;
+    const art = c.icon ? jejuIconUrl(c.icon) : undefined;
+    return (
+      <button key={c.key} type="button" className={`${styles.card} ${styles[c.variant]}`} onClick={c.onClick}>
+        {/* Non-Korean: title and subtitle as ONE column centred in the card
+            (7058:22669, "크기 넘으면 단 내리기"), so a title that wraps pushes
+            its subtitle down instead of running past the art or out of the card
+            — see .cardText. Korean keeps the frame's two pinned lines. */}
+        {wide ? (
+          <span className={styles.cardText}>
+            {title}
+            {sub}
+          </span>
+        ) : (
+          <>
+            {title}
+            {sub}
+          </>
+        )}
+        {art && <img src={art} alt="" className={styles.cardArt} draggable={false} />}
+      </button>
+    );
+  };
   /* The ♿ toggle swaps to its orange active render while low-reach is on
      (Figma image 503); fall back to the idle art until the asset lands. */
   const accessibilityIcon =
@@ -783,6 +974,8 @@ export function JejuHome({ controller, onSiteMarkerTap }: Props): JSX.Element {
    */
   const wide = lang !== 'ko';
   const noticeRef = useRef<HTMLDivElement>(null);
+  /* Both card rows (W008 draws its middle grid row as cards) fit as ONE group,
+     so the six keep one text size — the wrapper is display:contents. */
   const cardsRef = useRef<HTMLDivElement>(null);
   const gridRef = useRef<HTMLDivElement>(null);
   /* Everything the three fits depend on — re-fit when any of it changes. */
@@ -790,7 +983,7 @@ export function JejuHome({ controller, onSiteMarkerTap }: Props): JSX.Element {
     lang,
     lowReach,
     noticeRuns.map((r) => r.text).join(''),
-    cards.map((c) => labelFor(c.screen, c.label) + subFor(c.screen, c.sub)).join('|'),
+    cards.map((c) => cardLabel(c) + subFor(c.screen, c.sub)).join('|'),
     orderedTiles.map((tile) => tileLabel(tile) + (tile.comingSoon ? '' : tileSub(tile))).join('|'),
   ].join('§');
   useFitText(noticeRef, styles.noticeLead, wide, 0.7, fitKey);
@@ -914,71 +1107,80 @@ export function JejuHome({ controller, onSiteMarkerTap }: Props): JSX.Element {
         </button>
       </div>
 
-      {/* ── Three feature cards ── */}
-      <div className={low(styles.cards, styles.cardsLow)} ref={cardsRef}>
-        {cards.map((card) => {
-          /* 탐나오·제주큐랑 is too wide for a card's title line, so the card
-             alternates the two names the same way the low-reach tile does. */
-          const label = labelFor(card.screen, card.label);
-          const title = (
-            <span className={styles.cardTitle}>
-              {card.screen === 'tamnao' ? <CyclingTileTitle label={label} /> : label}
-            </span>
-          );
-          const sub = <span className={styles.cardSub}>{subFor(card.screen, card.sub)}</span>;
-          return (
-            <button
-              key={card.screen}
-              type="button"
-              className={`${styles.card} ${styles[card.variant]}`}
-              onClick={() => go(card.screen, card.label)}
-            >
-              {/* Non-Korean: title and subtitle as ONE column centred in the
-                  card (7058:22669, "크기 넘으면 단 내리기"), so a title that
-                  wraps pushes its subtitle down instead of running past the art
-                  or out of the card — see .cardText. Korean keeps the frame's
-                  two pinned lines. */}
-              {wide ? (
-                <span className={styles.cardText}>
-                  {title}
-                  {sub}
-                </span>
-              ) : (
-                <>
-                  {title}
-                  {sub}
-                </>
-              )}
-              {jejuIconUrl(card.icon) && (
-                <img src={jejuIconUrl(card.icon)} alt="" className={styles.cardArt} draggable={false} />
-              )}
-            </button>
-          );
-        })}
+      {/* ── Three feature cards (+ W008's middle row, below) ── */}
+      <div className={styles.cardRows} ref={cardsRef}>
+        <div className={low(styles.cards, styles.cardsLow)}>
+          {cards.map((card) =>
+            renderCard({
+              key: card.screen,
+              variant: card.variant,
+              label: cardLabel(card),
+              sub: subFor(card.screen, card.sub),
+              icon: card.icon,
+              /* 탐나오·제주큐랑 is too wide for a card's title line, so the card
+                 alternates the two names the same way the low-reach tile does. */
+              cycle: card.screen === 'tamnao',
+              onClick: () => go(card.screen, card.label),
+            }),
+          )}
+        </div>
+        {midTiles.length > 0 && (
+          <div className={`${low(styles.cards, styles.cardsLow)} ${low(styles.cardsMid, styles.cardsMidLow)}`}>
+            {midTiles.map((tile, i) =>
+              renderCard({
+                key: tile.screen,
+                variant: MID_CARD_VARIANTS[i] ?? 'cardEvents',
+                label: tileLabel(tile),
+                sub: tileSub(tile),
+                icon: tile.icon,
+                cycle: false,
+                onClick: () => go(tile.screen, tile.label),
+              }),
+            )}
+          </div>
+        )}
       </div>
 
       {/* ── Menu grid ── */}
-      <div className={low(styles.panel, styles.panelLow)} />
-      <div className={low(styles.grid, styles.gridLow)} ref={gridRef}>
+      <div className={`${low(styles.panel, styles.panelLow)} ${rowsLayout ? low(styles.panelCards, styles.panelCardsLow) : ''}`} />
+      <div className={`${low(styles.grid, styles.gridLow)} ${rowsLayout && lowReach ? styles.gridLow3 : ''}`} ref={gridRef}>
         {orderedTiles.map((tile, i) => {
+          if (tile.wide) return null; // drawn in the card row above
           const art = tile.comingSoon || !tile.icon ? undefined : jejuIconUrl(tile.icon);
           const disabled = tile.comingSoon || (tile.screen === 'donation' && donationPending);
+          const onTap = disabled
+            ? undefined
+            : tile.liveWeather
+              ? () => openWeatherFromTile(tile.label)
+              : () => go(tile.screen, tile.label);
+          const textClass = `${low(styles.tileText, styles.tileTextLow)} ${wide ? styles.tileTextFit : ''}`;
+
+          const weatherArt = tile.liveWeather ? weatherIcon : undefined;
           return (
             <button
               key={tile.screen}
               type="button"
               className={[
                 styles.tile,
-                lowReach ? styles.tileLow : '',
+                lowReach ? (rowsLayout ? styles.tileLow3 : styles.tileLow) : '',
                 tile.comingSoon ? styles.tileComingSoon : disabled ? styles.tileDisabled : '',
               ]
                 .filter(Boolean)
                 .join(' ')}
-              style={{ left: (i % cols) * colStep, top: Math.floor(i / cols) * rowStep }}
-              onClick={disabled ? undefined : () => go(tile.screen, tile.label)}
+              style={slots[i]}
+              onClick={onTap}
               disabled={disabled}
             >
-              {art ? (
+              {tile.liveWeather ? (
+                /* 오늘의 날씨: a sky plate with the live condition and temperature —
+                   the weather card's own two readings, at tile size. */
+                <span className={`${low(styles.tilePlate, styles.tilePlateLow)} ${styles.weatherPlate}`}>
+                  {weatherArt && <img src={weatherArt} alt="" className={styles.weatherPlateIcon} draggable={false} />}
+                  <span className={styles.weatherPlateTemp}>
+                    {weather ? `${Math.round(weather.tempC)}˚` : '--˚'}
+                  </span>
+                </span>
+              ) : art ? (
                 <>
                   {tile.plate && (
                     <span className={low(styles.tilePlate, styles.tilePlateLow)} style={{ background: tile.plate }} />
@@ -987,12 +1189,16 @@ export function JejuHome({ controller, onSiteMarkerTap }: Props): JSX.Element {
                 </>
               ) : tile.comingSoon ? (
                 <span className={`${low(styles.tilePlate, styles.tilePlateLow)} ${styles.tilePlateBlank}`} />
+              ) : !tile.icon ? (
+                /* No art yet (제주큐랑, 2026-10-29): an empty plate, not the
+                   missing-asset placeholder below. */
+                <span className={`${low(styles.tilePlate, styles.tilePlateLow)} ${styles.tilePlateEmpty}`} />
               ) : (
                 <span className={styles.tileArtMissing}>{tile.label[0]}</span>
               )}
               {/* Non-Korean: the text box spans the whole gap above the next
                   row, and the grid's type is fitted to it — see .tileTextFit. */}
-              <span className={`${low(styles.tileText, styles.tileTextLow)} ${wide ? styles.tileTextFit : ''}`}>
+              <span className={textClass}>
                 <span className={styles.tileTitle}>
                   {/* Low-reach only: at 300px the pair still fits one line, so the
                      full label stays on the standard grid. */}

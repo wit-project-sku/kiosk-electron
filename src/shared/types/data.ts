@@ -125,6 +125,8 @@ export interface ShotInput {
   eventId?: string;
   /** The AR original capture on disk (not the composite) — the `/shots/v2` photo part. */
   photoPath?: string | null;
+  /** Kiosk screen language when the photo was taken — the stats' 언어권 split. */
+  language?: string | null;
 }
 
 /** The exact POST body for `/api/stats/shots` (kioskId/eventId resolved in main). */
@@ -137,6 +139,9 @@ export interface ShotBody {
   outfitCode: string;
   /** Idempotency key — same value on retry blocks duplicate server records. */
   eventId: string;
+  /** Screen language at capture (ko/en/ja/…); null when unknown. Shots queued
+   *  before 2026-10-29 lack it — the server counts those as 언어 미확인. */
+  language?: string | null;
 }
 
 /**
@@ -176,6 +181,8 @@ export interface PhotoShotSyncItem {
   isSuccess: boolean;
   /** ISO-8601 with timezone offset (KST +09:00 or UTC Z). */
   shotAt: IsoDateTime;
+  /** Screen language at capture; absent on items queued before 2026-10-29. */
+  language?: string | null;
 }
 
 /* ------------------------------ Sessions ------------------------------ */

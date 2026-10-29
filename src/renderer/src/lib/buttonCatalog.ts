@@ -210,31 +210,37 @@ const SLOT_OVERRIDES: Partial<Record<KioskId, Record<string, Slot>>> = {
   // Not in the CMS, so they stay id-less: K-DRAMA and 운항정보 (both on the 제주 home,
   // neither seeded), and photo_solo/photo_together. `프로모션` (id 147) is the
   // opposite case — a seeded row with no 제주 screen behind it yet.
+  //
+  // 2026-10-29 (admin-be V205): 위드마켓 / TAX-FREE / 기부 left the home and their
+  // rows were deleted; 아이콘13 is renamed 제주공항 안내 and 아이콘19 (was 프로모션)
+  // 스마트 헬스케어 — the FillMe button, which until now logged label-only. Each
+  // renamed slot keeps its OLD name as `typePrefix`, so it resolves on a server
+  // that has not taken V205 yet as well as on one that has.
   W008: {
     home: { position: 1, type: '홈' },
     search: { position: 2, type: '검색' },
     language: { position: 3, type: '언어선택' },
     ai_search: { position: 4, type: "'제주' 뭐하지(AI검색)" },
-    market: { position: 5, type: '위드마켓' },
     events: { position: 6, type: '제주도 이벤트' },
     eat: { position: 7, type: "'제주' 뭐먹지" },
     shop: { position: 8, type: "'제주' 뭐사지" },
     lodging: { position: 9, type: '숙박안내' },
-    taxfree: { position: 10, type: 'TAX-FREE' },
     about: { position: 11, type: '여기는 제주도' },
     // The mascot inside the quotes is operator copy — stage already reads 귤이
     // where production reads 하영 — so these also match by the fixed prefix.
     hello: { position: 12, type: "안녕 '하영'", typePrefix: "안녕 '" },
-    help: { position: 13, type: "도와줘 '하영'", typePrefix: "도와줘 '" },
+    help: { position: 13, type: '제주공항 안내', typePrefix: "도와줘 '" },
     rentcar: { position: 14, type: '렌트카' },
     exchange: { position: 15, type: '환율' },
-    // Same reason as the base 기부 slot: the id differs per API environment, so it
-    // must come off the live response by type rather than any static mirror.
-    donation: { position: 16, type: '기부', suffix: '기부', dynamicId: true },
     tamnao: { position: 17, type: '탐나오' },
     localpay: { position: 18, type: '지역화폐' },
+    fillme: { position: 19, type: '스마트 헬스케어', typePrefix: '프로모션' },
     photo: { position: 20, type: '사진촬영', suffix: '아이콘20' },
     restroom: { position: 21, type: '화장실' },
+    // The 2026-10-29 home's two new tiles. Their CMS rows (#W008_아이콘22/23) are
+    // added server-side; until a kiosk has them, clicks log label-only.
+    jejuqrang: { position: 22, type: '제주큐랑' },
+    weather: { position: 23, type: '오늘의 날씨' },
   },
   // ── W009 제주국제여객터미널 ──
   // Transcribed from the live response on 2026-08-24 (21 rows, ids 150–170 in

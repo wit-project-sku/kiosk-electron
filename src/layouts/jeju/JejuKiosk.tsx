@@ -41,6 +41,7 @@ import { JejuHello } from './JejuHello';
 import { JejuHelp } from './JejuHelp';
 import { JejuLocalpay } from './JejuLocalpay';
 import { JejuWebScreen, type EmbedTab } from './JejuWebScreen';
+import { JEJU_QURANG_LABEL, TAMNAO_LABEL } from './jejuEmbedLabels';
 import { JejuEvents } from './JejuEvents';
 import { JejuFlights } from './JejuFlights';
 import { JejuCruise } from './JejuCruise';
@@ -94,7 +95,7 @@ const PHOTO_THEME = {
  * not restart a guest), all idle after load.
  */
 interface WebScreen {
-  screen: Extract<KioskScreenId, 'market' | 'tamnao'>;
+  screen: Extract<KioskScreenId, 'market' | 'tamnao' | 'jejuqrang'>;
   url: string;
   /** Header title id — JejuHeader localizes it (see i18n TITLE_KEYS). */
   title: string;
@@ -110,22 +111,6 @@ interface WebScreen {
   /** Off for a frame whose content runs past the banner at y3267. */
   showBanner?: boolean;
 }
-
-/*
- * 탐나오&제주큐랑 tab labels. Localization_Jeju carries both (Tamnao_Tab /
- * JejuQurang_Tab, 8/8) and is the source; these are the fallback, the sheet's
- * own words, for a cell left empty or a kiosk that has not synced the rows yet
- * (the bundled copy predates them).
- */
-const TAMNAO_TAB = {
-  ko: '탐나오', en: 'Tamnao', ja: 'タムナオ', zh: '塔姆瑙',
-  vi: 'Tamnao', th: 'Tamnao', ru: 'Тамнао', id: 'Tamnao',
-};
-
-const JEJU_QURANG_TAB = {
-  ko: '제주큐랑', en: 'Jeju Qurang', ja: '済州キュラン', zh: '济州岛古兰',
-  vi: 'Jeju Qurang', th: 'Jeju Qurang', ru: 'Чеджу Куранг', id: 'Jeju Qurang',
-};
 
 const WEB_SCREENS: readonly WebScreen[] = [
   {
@@ -152,8 +137,8 @@ const WEB_SCREENS: readonly WebScreen[] = [
     url: WEB_EMBED_URLS.tamnao,
     title: '탐나오&제주큐랑',
     tabs: [
-      { id: 'tamnao', labelKey: 'Tamnao_Tab', label: TAMNAO_TAB, url: WEB_EMBED_URLS.tamnao },
-      { id: 'jejuqrang', labelKey: 'JejuQurang_Tab', label: JEJU_QURANG_TAB, url: WEB_EMBED_URLS.jejuqrang },
+      { id: 'tamnao', labelKey: 'Tamnao_Tab', label: TAMNAO_LABEL, url: WEB_EMBED_URLS.tamnao },
+      { id: 'jejuqrang', labelKey: 'JejuQurang_Tab', label: JEJU_QURANG_LABEL, url: WEB_EMBED_URLS.jejuqrang },
     ],
     // 6516:71785 hangs a "모바일에서 확인하기" QR under the panel so a visitor
     // can carry the site away on their phone. WIT Store's frame has no such row.
@@ -164,10 +149,40 @@ const WEB_SCREENS: readonly WebScreen[] = [
   },
 ];
 
+/**
+ * 제주공항 W008 (2026-10-29): 탐나오 and 제주큐랑 are two home buttons now, so
+ * each opens its OWN page — the site alone, no tab row. Same chrome as the
+ * two-tab page (the QR row hands over whichever site is showing); the panel
+ * takes the tab row's band (see JejuWebScreen's single-site metrics).
+ * W009/W010 keep the two-tab page above.
+ */
+const WEB_SCREENS_AIRPORT: readonly WebScreen[] = WEB_SCREENS.flatMap((web): WebScreen[] =>
+  web.screen === 'tamnao'
+    ? [
+        { ...web, title: '탐나오', tabs: undefined },
+        {
+          ...web,
+          screen: 'jejuqrang',
+          url: WEB_EMBED_URLS.jejuqrang,
+          title: '제주큐랑',
+          subtitleKey: 'jejuQurangSubtitle',
+          tabs: undefined,
+        },
+      ]
+    : [web],
+);
+
+/** Which pages a 제주 kiosk keeps warm. Mirrors JejuHome's grid choice: the
+ *  airport layout is the default (a test rig previewing 제주 gets it too), and
+ *  only W009/W010 — whose homes still draw the 탐나오·제주큐랑 tile — keep the
+ *  two-tab page. */
+const webScreensFor = (kioskId: string): readonly WebScreen[] =>
+  kioskId === 'W009' || kioskId === 'W010' ? WEB_SCREENS : WEB_SCREENS_AIRPORT;
+
 type WebScreenKey = WebScreen['screen'];
 
 function isWebScreen(s: string): s is WebScreenKey {
-  return s === 'market' || s === 'tamnao';
+  return s === 'market' || s === 'tamnao' || s === 'jejuqrang';
 }
 
 export function JejuKiosk(): JSX.Element {
@@ -294,7 +309,7 @@ export function JejuKiosk(): JSX.Element {
         would sit on top of the home screen. Same reason Insadong and Osan do it
         this way.
       */}
-      {WEB_SCREENS.map((web) => {
+      {webScreensFor(controller.kioskId).map((web) => {
         const active = !controller.photoActive && cur === web.screen;
         return (
           <div

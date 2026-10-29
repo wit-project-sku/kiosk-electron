@@ -167,6 +167,13 @@ export type KioskScreenId =
   // See layouts/jeju/fillme/JejuFillme.tsx.
   | 'fillme'
   | 'tamnao'       // 탐나오 (제주공공플랫폼)
+  // 제주공항 W008 split 제주큐랑 off 탐나오's two-tab page into its own tile and
+  // page (2026-10-29). W009/W010 still reach it as 탐나오's second tab.
+  | 'jejuqrang'    // 제주큐랑 (QR 여행정보)
+  // 오늘의 날씨 — a W008 home tile that opens the home's own 날씨 panel, the same
+  // thing tapping the weather card does. Never navigated to: it is the tile's
+  // key for buttonCatalog / analytics only.
+  | 'weather'
   | 'localpay'     // 지역화폐 (탐나는전)
   // 제주국제여객터미널 (W009) — the one home tile W008 does not have. It takes
   // 렌트카's grid slot (line 6 position 4), so the two are mutually exclusive:

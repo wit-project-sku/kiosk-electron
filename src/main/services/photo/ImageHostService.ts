@@ -39,6 +39,14 @@ export interface UploadedImage {
   shareUrl: string | null;
 }
 
+/** What the witteria host stores beside the photo — see {@link ImageHostService.upload}. */
+export interface UploadLink {
+  /** The shot's idempotency id — the same value `/shots/v2` reports. */
+  eventId?: string;
+  /** Content region of this kiosk (JEJU_AIRPORT, …); omitted where there is none. */
+  region?: string | null;
+}
+
 /**
  * Uploads a generated photo so the kiosk can put a phone-openable URL in the
  * save QR. The AR API returns only image bytes (no public URL), so without this
@@ -60,18 +68,28 @@ export class ImageHostService {
     return true; // a default host is always available
   }
 
-  /** Returns the uploaded image's URLs, or null when both hosts fail. */
-  async upload(buffer: Buffer, fileName: string): Promise<UploadedImage | null> {
+  /**
+   * Returns the uploaded image's URLs, or null when both hosts fail.
+   *
+   * `link` ties the upload to its shot on the witteria host: the pickup page
+   * saves the 국적 a visitor picks there against `eventId` (the same id
+   * `/shots/v2` reports), and `region` decides whether it shows the 제주 app
+   * links (제주 kiosks only). The fallback host knows neither, so it is sent
+   * the image alone.
+   */
+  async upload(buffer: Buffer, fileName: string, link: UploadLink = {}): Promise<UploadedImage | null> {
     const photoBooth = process.env['PHOTO_PUBLIC_UPLOAD_URL'] || `${witteriaApiBase()}${PHOTO_BOOTH_PATH}`;
-    return (await this.post(photoBooth, buffer, fileName)) ?? (await this.post(PHOTO_HOST_UPLOAD_URL, buffer, fileName));
+    return (await this.post(photoBooth, buffer, fileName, link)) ?? (await this.post(PHOTO_HOST_UPLOAD_URL, buffer, fileName));
   }
 
   /** One upload attempt. Null on any failure (logged), so the caller can try the next host. */
-  private async post(url: string, buffer: Buffer, fileName: string): Promise<UploadedImage | null> {
+  private async post(url: string, buffer: Buffer, fileName: string, link: UploadLink = {}): Promise<UploadedImage | null> {
     try {
       const form = new FormData();
       // Field name MUST be `images` (matches the witteria API / Unity client).
       form.append('images', new Blob([buffer], { type: 'image/jpeg' }), fileName);
+      if (link.eventId) form.append('eventId', link.eventId);
+      if (link.region) form.append('region', link.region);
 
       const res = await fetch(url, {
         method: 'POST',

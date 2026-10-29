@@ -1067,3 +1067,120 @@
   word-break: normal;
   overflow-wrap: normal;
 }
+
+/* ── 제주공항 4 · 3 · 4 grid (2026-10-29) ───────────────────────────────
+   Row 2 (여기는 제주도 / 안녕 / 제주공항 안내) is a second row of the feature
+   cards: the same .cards / .cardsLow box and the same three slots
+   (.cardAi / .cardTamnao / .cardEvents), only moved down into the grid's
+   middle band. Standard: centred in the 412 band of row 2 —
+   1821 + 492 + (412 − 310) / 2 = 2364. Low-reach: 48 under the first tile row
+   (2595 + 192 + 48). */
+
+/* Both card rows share one fit root (cardsRef) — a wrapper that draws nothing. */
+.cardRows {
+  display: contents;
+}
+
+/* z-index: the grid's white panel is drawn after the card rows and sits over
+   this band — without it the 70% white would wash the cards out. */
+.cardsMid {
+  top: 2364px;
+  z-index: 1;
+}
+
+.cardsMidLow {
+  top: 2835px;
+}
+
+/* The slots were drawn for the cards' own art; a tile's square plate goes in
+   their box squared up, clipped to its rounded corners (the exports carry
+   opaque corners — see .tileArt). */
+.cardsMid .cardAi .cardArt {
+  left: 70px;
+  width: 214px;
+  height: 214px;
+  border-radius: 60px;
+}
+.cardsMid .cardEvents .cardArt {
+  border-radius: 45px;
+}
+.cardsMidLow .cardAi .cardArt {
+  left: 72px;
+  width: 191px;
+  height: 191px;
+  border-radius: 52px;
+}
+.cardsMidLow .cardEvents .cardArt {
+  border-radius: 38px;
+}
+
+/* The panel widens to take the cards (120…2046; ♿ 170…2030) with a margin,
+   where the 4-across grid alone sat inside 135…2024. */
+.panelCards {
+  left: 100px;
+  width: 1966px;
+}
+.panelCardsLow {
+  left: 150px;
+  width: 1900px;
+}
+
+/* ♿: the first tile row starts 40 under the panel top (2555). */
+.gridLow3 {
+  top: 2595px;
+}
+
+/* A tile with no art yet — an empty plate. */
+.tilePlateEmpty {
+  background: #f1ebe4;
+}
+
+/* 오늘의 날씨: a sky plate carrying the live condition and temperature. The
+   plate takes its size from .tilePlate / .tilePlateLow; the contents scale with
+   its font-size. */
+.weatherPlate {
+  background: #e2f0fb;
+  font-size: 64px;
+}
+.weatherPlateIcon {
+  position: absolute;
+  left: 22%;
+  top: 12%;
+  width: 56%;
+  height: 50%;
+  object-fit: contain;
+}
+.weatherPlateTemp {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 9%;
+  font-size: 1em;
+  font-weight: 700;
+  line-height: 1;
+  text-align: center;
+  color: #3d6488;
+}
+
+/* ♿ tiles in the 4 · 3 · 4 grid: 150 plates under a 34px title. */
+.tileLow3 {
+  width: 150px;
+  height: 192px;
+}
+.tileLow3 .tileArtLow,
+.tileLow3 .tilePlateLow {
+  width: 150px;
+  height: 150px;
+  border-radius: 36px;
+}
+.tileLow3 .weatherPlate {
+  font-size: 32px;
+}
+.tileLow3 .tileTextLow {
+  left: -75px;
+  top: 158px;
+  width: 300px;
+}
+.tileLow3 .tileTextLow.tileTextFit {
+  height: 34px;
+}

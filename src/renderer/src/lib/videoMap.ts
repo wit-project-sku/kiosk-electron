@@ -628,6 +628,9 @@ const JEJU_SCREEN_TO_VIDEO_KEY: Record<string, string> = {
   // 제주-only home tiles.
   rentcar:          'RentCar',
   tamnao:           'Tamnao',
+  // 제주큐랑 split off 탐나오's page (W008) — no clip of its own, so it keeps the
+  // one it played as 탐나오's second tab.
+  jejuqrang:        'Tamnao',
   // MarketPaper-1 온누리상품권 · -2 탐나는전. The page opens on 탐나는전.
   localpay:         'MarketPaper#2',
   localpay_onnuri:  'MarketPaper#1',
