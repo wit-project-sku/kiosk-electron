@@ -1069,62 +1069,70 @@
 }
 
 /* ── 제주공항 4 · 3 · 4 grid (2026-10-29) ───────────────────────────────
-   Row 2 is three WIDE cells drawn like the feature cards: the two lines
-   top-left, the art bottom-right. 540 × 412 — a tile's full height, so the
-   rows keep their 492 step. Positions come from gridSlots in JejuHome.tsx. */
-.wideCell {
-  position: absolute;
-  width: 540px;
-  height: 412px;
-  padding: 0;
-  border: none;
+   Row 2 (여기는 제주도 / 안녕 / 제주공항 안내) is a second row of the feature
+   cards: the same .cards / .cardsLow box and the same three slots
+   (.cardAi / .cardTamnao / .cardEvents), only moved down into the grid's
+   middle band. Standard: centred in the 412 band of row 2 —
+   1821 + 492 + (412 − 310) / 2 = 2364. Low-reach: 48 under the first tile row
+   (2595 + 192 + 48). */
+
+/* Both card rows share one fit root (cardsRef) — a wrapper that draws nothing. */
+.cardRows {
+  display: contents;
+}
+
+/* z-index: the grid's white panel is drawn after the card rows and sits over
+   this band — without it the 70% white would wash the cards out. */
+.cardsMid {
+  top: 2364px;
+  z-index: 1;
+}
+
+.cardsMidLow {
+  top: 2835px;
+}
+
+/* The slots were drawn for the cards' own art; a tile's square plate goes in
+   their box squared up, clipped to its rounded corners (the exports carry
+   opaque corners — see .tileArt). */
+.cardsMid .cardAi .cardArt {
+  left: 70px;
+  width: 214px;
+  height: 214px;
   border-radius: 60px;
-  background: #f6eee6;
-  cursor: pointer;
-  text-align: left;
-  -webkit-tap-highlight-color: transparent;
+}
+.cardsMid .cardEvents .cardArt {
+  border-radius: 45px;
+}
+.cardsMidLow .cardAi .cardArt {
+  left: 72px;
+  width: 191px;
+  height: 191px;
+  border-radius: 52px;
+}
+.cardsMidLow .cardEvents .cardArt {
+  border-radius: 38px;
 }
 
-/* Over .tileText's under-the-plate box: the text owns the cell's top band. */
-.wideText {
-  left: 52px;
-  top: 64px;
-  width: 436px;
-  text-align: left;
+/* The panel widens to take the cards (120…2046; ♿ 170…2030) with a margin,
+   where the 4-across grid alone sat inside 135…2024. */
+.panelCards {
+  left: 100px;
+  width: 1966px;
+}
+.panelCardsLow {
+  left: 150px;
+  width: 1900px;
 }
 
-.wideText .tileTitle {
-  font-size: 46px;
+/* ♿: the first tile row starts 40 under the panel top (2555). */
+.gridLow3 {
+  top: 2595px;
 }
 
-.wideText .tileSub {
-  margin-top: 18px;
-  font-size: 30px;
-}
-
-/* Non-Korean: the band runs down to the art's top (64 + 140 = 204, art from
-   212) — a two-line title plus its second line fits exactly; anything longer
-   scales with the tiles by the grid's one fit factor. */
-.wideText.tileTextFit {
-  height: 140px;
-}
-.wideText.tileTextFit .tileTitle {
-  font-size: calc(46px * var(--fit, 1));
-}
-.wideText.tileTextFit .tileSub {
-  margin-top: calc(18px * var(--fit, 1));
-  font-size: calc(30px * var(--fit, 1));
-}
-
-.wideArt {
-  position: absolute;
-  right: 36px;
-  bottom: 30px;
-  width: 170px;
-  height: 170px;
-  border-radius: 50px;
-  object-fit: contain;
-  pointer-events: none;
+/* A tile with no art yet — an empty plate. */
+.tilePlateEmpty {
+  background: #f1ebe4;
 }
 
 /* 오늘의 날씨: a sky plate carrying the live condition and temperature. The
@@ -1154,57 +1162,25 @@
   color: #3d6488;
 }
 
-/* ♿: the same three rows in the 1792 × 678 box — 170 plates, 214 rows, wide
-   cells 584 × 214 with the title left of a 150 art. */
+/* ♿ tiles in the 4 · 3 · 4 grid: 150 plates under a 34px title. */
 .tileLow3 {
-  width: 170px;
-  height: 214px;
+  width: 150px;
+  height: 192px;
 }
 .tileLow3 .tileArtLow,
 .tileLow3 .tilePlateLow {
-  width: 170px;
-  height: 170px;
-  border-radius: 40px;
+  width: 150px;
+  height: 150px;
+  border-radius: 36px;
 }
 .tileLow3 .weatherPlate {
-  font-size: 36px;
+  font-size: 32px;
 }
 .tileLow3 .tileTextLow {
-  left: -65px;
-  top: 180px;
+  left: -75px;
+  top: 158px;
   width: 300px;
 }
 .tileLow3 .tileTextLow.tileTextFit {
   height: 34px;
-}
-
-.wideCellLow {
-  width: 584px;
-  height: 214px;
-  border-radius: 40px;
-}
-.wideTextLow {
-  left: 40px;
-  top: 0;
-  width: 360px;
-  height: 214px;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-}
-.wideTextLow .tileTitle {
-  font-size: 40px;
-}
-.wideTextLow.tileTextFit {
-  height: 214px;
-}
-.wideTextLow.tileTextFit .tileTitle {
-  font-size: calc(40px * var(--fit, 1));
-}
-.wideArtLow {
-  right: 32px;
-  bottom: 32px;
-  width: 150px;
-  height: 150px;
-  border-radius: 40px;
 }
