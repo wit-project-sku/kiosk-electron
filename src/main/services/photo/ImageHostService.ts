@@ -73,8 +73,9 @@ export class ImageHostService {
    *
    * `link` ties the upload to its shot on the witteria host: the pickup page
    * saves the 국적 a visitor picks there against `eventId` (the same id
-   * `/shots/v2` reports), and `region` picks its design (JEJU_AIRPORT has its
-   * own). The fallback host knows neither, so it is sent the image alone.
+   * `/shots/v2` reports), and `region` decides whether it shows the 제주 app
+   * links (제주 kiosks only). The fallback host knows neither, so it is sent
+   * the image alone.
    */
   async upload(buffer: Buffer, fileName: string, link: UploadLink = {}): Promise<UploadedImage | null> {
     const photoBooth = process.env['PHOTO_PUBLIC_UPLOAD_URL'] || `${witteriaApiBase()}${PHOTO_BOOTH_PATH}`;

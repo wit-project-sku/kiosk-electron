@@ -242,6 +242,7 @@ export class StatsService {
       shotType,
       outfitCode: input.outfitCode,
       eventId,
+      language: input.language ?? null,
     };
     const outfitId = input.outfitId ?? null;
 
@@ -338,6 +339,7 @@ export class StatsService {
       shotType: body.shotType,
       isSuccess: body.isSuccess,
       shotAt: body.shotAt ?? localIso(),
+      language: body.language ?? null,
     };
     this.store(PHOTO_SHOT_REQUEST_TYPE, item, body.eventId, message);
     log.warn('shot stored for nightly batch', { message, eventId: body.eventId });

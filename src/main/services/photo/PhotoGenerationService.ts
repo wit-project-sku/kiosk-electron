@@ -1,5 +1,6 @@
 import { randomUUID } from 'node:crypto';
 import { createLogger } from '@main/core/logger';
+import { languageStore } from '@main/core/LanguageStore';
 import type { PhotoSession } from '@shared/types/photo';
 import type { ShotType } from '@shared/types/data';
 import type { AnalyticsService } from '@main/services/AnalyticsService';
@@ -71,6 +72,9 @@ export class PhotoGenerationService {
     // One id for the shot report AND the phone upload, so the pickup page can
     // file the visitor's 국적 against this shot (photo_shot_shooter).
     const eventId = randomUUID();
+    // The screen language at the moment of capture — the shot stats split
+    // visitors into 언어권 by it (read now, not when the AI finishes ~60 s later).
+    const language = languageStore.get();
 
     try {
       this.analytics.track({
@@ -125,6 +129,7 @@ export class PhotoGenerationService {
         outfitCode: outfitCodeOf(clothingKey),
         shotType: shotTypeOf(styleKey),
         photoPath: capturePath,
+        language,
       });
 
       void this.uploadToDrive(session);
@@ -155,6 +160,7 @@ export class PhotoGenerationService {
         outfitCode: outfitCodeOf(clothingKey),
         shotType: shotTypeOf(styleKey),
         photoPath: capturePath,
+        language,
       });
       throw error;
     }
