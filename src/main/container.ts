@@ -170,6 +170,7 @@ export function createContainer(): AppContainer {
     analytics,
     imageHost,
     stats,
+    kiosk,
   );
   const photoWorkflow = new PhotoWorkflowService(display, camera);
 

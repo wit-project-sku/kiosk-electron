@@ -38,8 +38,11 @@ const SAVE_BASE = 'https://withphoto.vercel.app/?imageUrl=';
  * falls back to withphoto.vercel.app/?imageUrl=. imageUrl itself keeps every
  * other job: the on-screen image and the 기부 hand-off.
  */
-function saveQrUrl(shareUrl: string | null, imageUrl: string): string {
-  return shareUrl || `${SAVE_BASE}${encodeURIComponent(imageUrl)}`;
+function saveQrUrl(shareUrl: string | null, imageUrl: string, lang: string): string {
+  if (!shareUrl) return `${SAVE_BASE}${encodeURIComponent(imageUrl)}`;
+  // The pickup page speaks the visitor's kiosk language (제주공항's page reads it;
+  // the others ignore it).
+  return `${shareUrl}${shareUrl.includes('?') ? '&' : '?'}lang=${encodeURIComponent(lang)}`;
 }
 
 /**
@@ -277,7 +280,7 @@ export function PhotoWorkflow(): JSX.Element {
   // ── Result (MARKET kiosks W003/W004, and 제주 except 제주공항): WIT Store on Monitor 1; result image big on Monitor 2 ──
   if (phase === 'result' && showsMarketResult) {
     const imageUrl = resultUrl ?? (resultFileName ? generatedUrl(resultFileName) : '');
-    const saveUrl = saveQrUrl(resultShareUrl, imageUrl);
+    const saveUrl = saveQrUrl(resultShareUrl, imageUrl, lang);
     return (
       <>
         {isHwaseong ? (
@@ -399,7 +402,7 @@ export function PhotoWorkflow(): JSX.Element {
        Photo_* rows over the authored RESULT copy. */
     const c = isKada ? pick(RESULT_KADA, lang) : resultFromSheet(lang);
     const imageUrl = resultUrl ?? (resultFileName ? generatedUrl(resultFileName) : '');
-    const saveUrl = saveQrUrl(resultShareUrl, imageUrl);
+    const saveUrl = saveQrUrl(resultShareUrl, imageUrl, lang);
 
     return (
       <>
