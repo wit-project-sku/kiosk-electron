@@ -541,12 +541,6 @@ const WEATHER_SUB_FALLBACK: Partial<Record<Lang, string>> = {
   zh_tw: '濟州天氣預報', vi: 'Dự báo thời tiết Jeju', th: 'พยากรณ์อากาศเชจู', ru: 'Прогноз в Чеджу',
   id: 'Prakiraan cuaca Jeju', es: 'Pronóstico de Jeju',
 };
-/** 제주큐랑 tile second line until the sheet has MainButton_JejuQurang_Subtext. */
-const QURANG_SUB_FALLBACK: Partial<Record<Lang, string>> = {
-  ko: 'QR 여행정보', en: 'QR travel info', ja: 'QR旅行情報', zh: 'QR旅游信息', zh_cn: 'QR旅游信息',
-  zh_tw: 'QR旅遊資訊', vi: 'Thông tin du lịch QR', th: 'ข้อมูลท่องเที่ยว QR', ru: 'Инфо для поездки по QR',
-  id: 'Info wisata QR', es: 'Info de viaje QR',
-};
 
 /**
  * W008 제주공항 — 4 · 3 · 4 (2026-10-29):
@@ -566,21 +560,25 @@ const TILES_AIRPORT: Tile[] = (() => {
   const pick = (screen: KioskScreenId): Tile => shared.find((tile) => tile.screen === screen)!;
   const AIRPORT_HELP_TILE: Tile = {
     ...pick('help'),
-    // Art lands separately (2026-10-29) — until then the card draws none.
-    icon: '',
+    // The terminal illustration, transparent — drawn as-is in the card's art box.
+    icon: 'card-airport-guide',
     title: { key: 'MainButton_Airport_Guide', fallback: AIRPORT_HELP_TITLE_FALLBACK },
     subKey: 'MainButton_Airport_Guide_SubText',
     wide: true,
   };
+  /* Localization_Jeju_v2 gives the split its own airport rows: the title is
+     MainButton_jejuQrang_airport, and the second line shares 탐나오's
+     MainButton_Tamnao_Subtext (the sheet keeps one subtext for both buttons). */
   const QURANG_TILE: Tile = {
     screen: 'jejuqrang',
     label: '제주큐랑',
-    sub: 'QR 여행정보',
-    // Art lands separately (2026-10-29) — an empty plate until then.
-    icon: '',
-    title: { key: 'JejuQurang_Tab', fallback: JEJU_QURANG_LABEL },
-    subKey: 'MainButton_JejuQurang_Subtext',
-    subFallback: QURANG_SUB_FALLBACK,
+    sub: TAMNAO_TILE.sub,
+    // The white 제주큐랑 wordmark baked onto a plate in the kiosk orange
+    // (#ff7f0f), like the other tile exports — the wordmark alone is white on
+    // transparent and would vanish on the grid's white panel.
+    icon: 'tile-jejuqrang',
+    title: { key: 'MainButton_jejuQrang_airport', fallback: JEJU_QURANG_LABEL },
+    subKey: 'MainButton_Tamnao_Subtext',
   };
   const WEATHER_TILE: Tile = {
     screen: 'weather',
@@ -732,8 +730,9 @@ const CARDS: CardDef[] = [
 ];
 
 /** W008: 탐나오 in the 위드마켓 card's slot — see TILES_AIRPORT. 제주큐랑 has
- *  its own grid tile now, so the card names 탐나오 alone (Tamnao_Tab), not the
- *  sheet's MainButton_Tamnao pair. */
+ *  its own grid tile now, so the card names 탐나오 alone from the sheet's
+ *  airport row (MainButton_Tamnao_airport), not the MainButton_Tamnao pair
+ *  W009/W010 still show. Its second line stays MainButton_Tamnao_Subtext. */
 const AIRPORT_CARDS: CardDef[] = CARDS.map((card) =>
   card.screen === 'market'
     ? {
@@ -742,7 +741,7 @@ const AIRPORT_CARDS: CardDef[] = CARDS.map((card) =>
         sub: TAMNAO_TILE.sub,
         icon: TAMNAO_TILE.icon,
         variant: 'cardTamnao',
-        title: { key: 'Tamnao_Tab', fallback: TAMNAO_LABEL },
+        title: { key: 'MainButton_Tamnao_airport', fallback: TAMNAO_LABEL },
       }
     : card,
 );
