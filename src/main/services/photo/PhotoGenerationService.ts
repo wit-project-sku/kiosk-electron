@@ -1,4 +1,3 @@
-import { randomUUID } from 'node:crypto';
 import { createLogger } from '@main/core/logger';
 import type { PhotoSession } from '@shared/types/photo';
 import type { ShotType } from '@shared/types/data';
@@ -63,25 +62,9 @@ export class PhotoGenerationService {
     private readonly stats: StatsService,
   ) {}
 
-  /**
-   * The stats eventId of the last capture, by photo session — what the
-   * 제주공항 국적 step attaches its PATCH to (see {@link shotEventId}). Only the
-   * latest is kept: the 국적 is asked right after that very photo.
-   */
-  private lastShot: { sessionId: string; eventId: string } | null = null;
-
-  /** The eventId the shot of `sessionId` was reported under, if it was the last one. */
-  shotEventId(sessionId: string): string | null {
-    return this.lastShot?.sessionId === sessionId ? this.lastShot.eventId : null;
-  }
-
   async generate(input: GeneratePhotoInput, onProgress?: ProgressCallback): Promise<GeneratePhotoResult> {
     const { sessionId, dataUrl, clothingKey, styleKey, backgroundId = null } = input;
     let capturePath: string | null = null;
-    // Made here rather than inside StatsService so the session can find its shot
-    // again — the shooter PATCH is keyed on this same id.
-    const eventId = randomUUID();
-    this.lastShot = { sessionId, eventId };
 
     try {
       this.analytics.track({
@@ -133,7 +116,6 @@ export class PhotoGenerationService {
         outfitCode: outfitCodeOf(clothingKey),
         shotType: shotTypeOf(styleKey),
         photoPath: capturePath,
-        eventId,
       });
 
       void this.uploadToDrive(session);
@@ -163,7 +145,6 @@ export class PhotoGenerationService {
         outfitCode: outfitCodeOf(clothingKey),
         shotType: shotTypeOf(styleKey),
         photoPath: capturePath,
-        eventId,
       });
       throw error;
     }
