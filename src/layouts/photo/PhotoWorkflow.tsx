@@ -17,7 +17,6 @@ import { resolveButton } from '@renderer/lib/buttonCatalog';
 import { HanbokSelect, type CaptureMode } from './HanbokSelect';
 import { JejuHanbokSelect } from '../jeju/JejuHanbokSelect';
 import { JejuWaitingGames } from '../jeju/games/JejuWaitingGames';
-import { JejuNationalityPicker } from '../jeju/JejuNationalityPicker';
 import { usePhotoChrome } from './photoChrome';
 import { OsanLeftNav } from '@layouts/osan/OsanLeftNav';
 import { MARKET_SUBTITLE, RESULT_KADA, resultFromSheet } from './photoTexts';
@@ -117,17 +116,6 @@ export function PhotoWorkflow(): JSX.Element {
   const [gameDone, setGameDone] = useState(false);
   const deferredRef = useRef(false);
 
-  // ── 제주공항: 국적 before the photo ────────────────────────────────────────
-  // 사진 보기 on the popup does not go straight to the result. Monitor 2 puts
-  // the photo up BLURRED (releaseResultDisplay 'nationality') and this screen
-  // asks the visitor's 국적; picking one unblurs the big screen and lets the
-  // result page through. Only where the result page IS the photo — the market
-  // result (W009) has the WIT Store there instead.
-  const asksNationality = isJeju && !showsMarketResult;
-  const [nationality, setNationality] = useState<string | null>(null);
-  const needsNationality =
-    asksNationality && phase === 'result' && !errorMessage && nationality === null && (gameDone || !playsWaitingGame);
-
   // Pick the puzzles and decode their images NOW — sessionId is set the moment
   // the visitor opens the outfit step, which is ~30s of idle network before the
   // capture. Doing it when the game appears would collide with the photo upload
@@ -156,15 +144,8 @@ export function PhotoWorkflow(): JSX.Element {
   useEffect(() => {
     if (phase === 'generating' || phase === 'result') return;
     setGameDone(false);
-    setNationality(null);
     deferredRef.current = false;
   }, [phase]);
-
-  // Covers a result that reached this screen without the game's hand-over (the
-  // game switched off): main already put it up sharp, so blur it now.
-  useEffect(() => {
-    if (needsNationality) void window.api.photo.releaseResultDisplay('nationality');
-  }, [needsNationality]);
 
   /*
    * Tell the customer display WHICH STAGE of the AR flow is on screen.
@@ -199,25 +180,8 @@ export function PhotoWorkflow(): JSX.Element {
   const handleGameFinish = useCallback(() => {
     setGameDone(true);
     deferredRef.current = false;
-    // Straight to the blur where a 국적 is still to come — releasing it sharp
-    // first would flash the photo on Monitor 2 before the lock lands.
-    void window.api.photo.releaseResultDisplay(asksNationality ? 'nationality' : undefined);
-  }, [asksNationality]);
-
-  const handleNationality = useCallback(
-    (code: string) => {
-      setNationality(code);
-      void window.api.photo.releaseResultDisplay();
-      // Saved on the shot for the stats API. Never blocks the photo: a failed
-      // send is queued in main and re-sent at night.
-      if (sessionId) void window.api.photo.setNationality(sessionId, code);
-      void trackEvent({
-        name: 'button_clicked',
-        payload: { screen: 'photo_nationality', nationality: code, lang, kioskId },
-      });
-    },
-    [lang, kioskId, sessionId],
-  );
+    void window.api.photo.releaseResultDisplay();
+  }, []);
 
   const handleReset = (): void => {
     void window.api.photo.reset();
@@ -293,18 +257,7 @@ export function PhotoWorkflow(): JSX.Element {
         onFinish={handleGameFinish}
         onHome={handleReset}
         readyModal={photoReadyModal || chrome.isJeju}
-        popupOnly={chrome.isJeju}
       />
-    );
-  }
-
-  if (needsNationality) {
-    return (
-      <>
-        {icon('bg') && <img className={styles.bg} src={icon('bg')} alt="" draggable={false} />}
-        <Header title={photoTitle} onHome={handleReset} subtitleHidden />
-        <JejuNationalityPicker lang={lang} onConfirm={handleNationality} />
-      </>
     );
   }
 

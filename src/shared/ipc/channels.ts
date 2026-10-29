@@ -77,7 +77,6 @@ export const IpcChannels = {
   PhotoRevealResult: 'photo:revealResult',
   PhotoDeferResultDisplay: 'photo:deferResultDisplay',
   PhotoReleaseResultDisplay: 'photo:releaseResultDisplay',
-  PhotoSetNationality: 'photo:setNationality',
   PhotoReset: 'photo:reset',
 
   // 제주 모션 게임 — driven from the touch screen, played on the customer

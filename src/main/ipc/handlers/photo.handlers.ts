@@ -2,7 +2,6 @@ import { readFile } from 'node:fs/promises';
 import { extname, join, normalize, sep } from 'node:path';
 import { IpcChannels } from '@shared/ipc/channels';
 import type { PhotoOption } from '@shared/types/photo';
-import type { ResultLockReason } from '@shared/types/domain';
 import { appPaths } from '@main/core/paths';
 import {
   DEFAULT_CLOTHING_OPTIONS,
@@ -105,19 +104,9 @@ export function registerPhotoHandlers(container: AppContainer): void {
       container.photoWorkflow.setDeferResultDisplay(Boolean(req?.defer)),
   );
 
-  handle(IpcChannels.PhotoReleaseResultDisplay, (req: { lock?: ResultLockReason } | void) =>
-    container.photoWorkflow.releaseResultDisplay(req && req.lock === 'nationality' ? 'nationality' : null),
+  handle(IpcChannels.PhotoReleaseResultDisplay, () =>
+    container.photoWorkflow.releaseResultDisplay(),
   );
-
-  // 제주공항 국적 → the shooter PATCH on this session's shot. The eventId never
-  // leaves main: the renderer names its session, main knows which shot that was.
-  handle(IpcChannels.PhotoSetNationality, async (req: { sessionId: string; nationality: string }) => {
-    const nationality = String(req?.nationality ?? '').trim().toUpperCase();
-    if (!/^[A-Z]{2}$/.test(nationality)) throw AppError.validation('Invalid nationality.');
-    const eventId = container.photoGeneration.shotEventId(String(req?.sessionId ?? ''));
-    if (!eventId) throw AppError.validation('No shot for this session.');
-    return container.stats.recordShooter(eventId, { nationality });
-  });
 
   handle(
     IpcChannels.PhotoGetResultDataUrl,

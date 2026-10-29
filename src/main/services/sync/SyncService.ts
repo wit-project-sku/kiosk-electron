@@ -13,7 +13,6 @@ import {
   MENU_TOUCH_REQUEST_TYPE,
   PHOTO_SHOT_REQUEST_TYPE,
   PHOTO_SHOT_V2_REQUEST_TYPE,
-  PHOTO_SHOOTER_REQUEST_TYPE,
   type StatsService,
 } from '@main/services/StatsService';
 import { NoopSyncTransport, type SyncTransport } from './SyncTransport';
@@ -261,8 +260,7 @@ export class SyncService {
       if (
         req.type === MENU_TOUCH_REQUEST_TYPE ||
         req.type === PHOTO_SHOT_REQUEST_TYPE ||
-        req.type === PHOTO_SHOT_V2_REQUEST_TYPE ||
-        req.type === PHOTO_SHOOTER_REQUEST_TYPE
+        req.type === PHOTO_SHOT_V2_REQUEST_TYPE
       ) {
         continue;
       }

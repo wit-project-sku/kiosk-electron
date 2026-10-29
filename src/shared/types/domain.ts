@@ -121,15 +121,7 @@ export interface DisplayState {
    * 결제 완료(revealResult) 시 false 가 되어 선명하게 노출된다.
    */
   resultLocked: boolean;
-  /**
-   * Why the result is locked, when it is not the 기부 payment. 제주공항 blurs the
-   * photo until the visitor picks their 국적 on the touch screen, and Monitor 2
-   * must say THAT instead of "기부를 완료해 주세요". Absent/null = the 기부 notice.
-   */
-  resultLockReason?: ResultLockReason | null;
 }
-
-export type ResultLockReason = 'nationality';
 
 /** Information about a connected monitor. */
 export interface MonitorInfo {
