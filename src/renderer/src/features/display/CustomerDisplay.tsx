@@ -62,21 +62,6 @@ const GESTURE_BLIND_FALLBACK_MS = 8_000;
 const LOCKED_RESULT_NOTICE = '기부를 완료해 주세요. 완료 후 사진을 다운로드할 수 있습니다.';
 
 /**
- * 제주공항: the photo stays blurred here until the visitor picks their 국적 on
- * the touch screen (resultLockReason 'nationality' — see PhotoWorkflow).
- */
-const NATIONALITY_NOTICE: Partial<Record<SupportedLanguage, string>> = {
-  ko: '화면에서 국적을 선택하면 사진이 공개됩니다',
-  en: 'Select your nationality on the screen to reveal your photo',
-  ja: '画面で国籍を選ぶと写真が表示されます',
-  zh: '在屏幕上选择国籍即可查看照片',
-  vi: 'Chọn quốc tịch trên màn hình để xem ảnh',
-  th: 'เลือกสัญชาติบนหน้าจอเพื่อดูรูปภาพ',
-  ru: 'Выберите гражданство на экране, чтобы увидеть фото',
-  id: 'Pilih kebangsaan di layar untuk melihat foto',
-};
-
-/**
  * Monitor 2 — borderless customer display.
  * Follows the photo workflow automatically via DisplayState from main process.
  */
@@ -545,8 +530,7 @@ export function CustomerDisplay(): JSX.Element {
 
       {/* ── Result ──
           resultLocked(기부 학교 흐름, 결제 전) → 블러 + 안내 문구.
-          결제 완료 시 revealResult 가 잠금을 풀어 선명하게 보인다.
-          제주공항은 국적 선택 전까지 같은 블러를 쓴다(resultLockReason). */}
+          결제 완료 시 revealResult 가 잠금을 풀어 선명하게 보인다. */}
       {state.mode === 'result' && state.resultFileName && (
         <>
           <img
@@ -556,11 +540,7 @@ export function CustomerDisplay(): JSX.Element {
           />
           {state.resultLocked && (
             <div className={styles.lockedNotice}>
-              <p className={styles.lockedNoticeText}>
-                {state.resultLockReason === 'nationality'
-                  ? NATIONALITY_NOTICE[lang] ?? NATIONALITY_NOTICE.en
-                  : LOCKED_RESULT_NOTICE}
-              </p>
+              <p className={styles.lockedNoticeText}>{LOCKED_RESULT_NOTICE}</p>
             </div>
           )}
         </>
