@@ -19,7 +19,7 @@
  * The 운항 정보 board was redrawn with six columns and three 현황 conditions
  * (탑승중 / 지연 / 탑승최종) — it lives in JejuFlightBoard.tsx.
  */
-import { useEffect, useMemo, useRef, useState, type ReactElement } from 'react';
+import { useEffect, useMemo, useRef, useState, type PointerEvent, type ReactElement } from 'react';
 import { IDLE_TIMEOUT_MS, type KioskController } from '@renderer/hooks/useKioskController';
 import { useInactivityReset } from '@renderer/hooks/useInactivityReset';
 import type { KioskScreenId } from '@shared/types/kiosk';
@@ -46,6 +46,9 @@ import styles from './JejuHome.module.css';
 
 interface Props {
   controller: KioskController;
+  /** Pointer-up on the top-left "JEJU" marker — the hidden 시스템 점검 switch
+   *  (five quick mouse clicks, see maintenance.ts). Absent on kiosks without the notice. */
+  onSiteMarkerTap?: (e: PointerEvent<HTMLElement>) => void;
 }
 
 /** Search-bar language button → the current language's display code. */
@@ -628,7 +631,7 @@ const AIRPORT_CARDS: CardDef[] = CARDS.map((card) =>
     : card,
 );
 
-export function JejuHome({ controller }: Props): JSX.Element {
+export function JejuHome({ controller, onSiteMarkerTap }: Props): JSX.Element {
   const weather = useWeatherStore((s) => s.weather);
   const forecast = useWeatherStore((s) => s.forecast);
   const [weatherOpen, setWeatherOpen] = useState(false);
@@ -813,7 +816,7 @@ export function JejuHome({ controller }: Props): JSX.Element {
 
       {/* ── Top bar ── */}
       <div className={low(styles.topBar, styles.topBarLow)}>
-        <div className={styles.topLeft}>
+        <div className={styles.topLeft} onPointerUp={onSiteMarkerTap}>
           {jejuIconUrl('ico-location') && (
             <img src={jejuIconUrl('ico-location')} alt="" className={styles.locationIcon} draggable={false} />
           )}
