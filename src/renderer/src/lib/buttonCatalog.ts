@@ -235,6 +235,10 @@ const SLOT_OVERRIDES: Partial<Record<KioskId, Record<string, Slot>>> = {
     localpay: { position: 18, type: '지역화폐' },
     photo: { position: 20, type: '사진촬영', suffix: '아이콘20' },
     restroom: { position: 21, type: '화장실' },
+    // The 2026-10-29 home's two new tiles. Their CMS rows (#W008_아이콘22/23) are
+    // added server-side; until a kiosk has them, clicks log label-only.
+    jejuqrang: { position: 22, type: '제주큐랑' },
+    weather: { position: 23, type: '오늘의 날씨' },
   },
   // ── W009 제주국제여객터미널 ──
   // Transcribed from the live response on 2026-08-24 (21 rows, ids 150–170 in

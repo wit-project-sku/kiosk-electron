@@ -356,7 +356,11 @@ const TITLE_KEYS: Record<string, TitleKeySpec> = {
   '제주공항 안내': { title: 'MainButton_Airport_Guide', sub: 'Help_Subtitle' },
   "제주도 이벤트": { title: 'MainButton_Event', sub: 'SubHeader_Event' },
   "렌트카": { title: 'MainButton_RentCar', sub: 'RentCar_Subtitle' },
-  탐나오: { title: 'MainButton_Tamnao', sub: 'Tamnao_Subtitle' },
+  // 제주공항's split pages (2026-10-29): each site alone, titled with its own
+  // tab row's name. MainButton_Tamnao (탐나오·제주큐랑) is the fallback only.
+  // 제주큐랑's description has no sheet row — JejuKiosk passes uiText's.
+  탐나오: { title: ['Tamnao_Tab', 'MainButton_Tamnao'], sub: 'Tamnao_Subtitle' },
+  제주큐랑: { title: 'JejuQurang_Tab' },
   // W008 공항 board keeps MainButton_Airplane_Schedule. W009/W010 ferry board
   // uses a separate header id (see CRUISE_TITLE) → OP_Schedule_Title. Subtitle
   // stays OP_Schedule_Subtitle on both.
@@ -456,7 +460,9 @@ export function screenTitle(id: string, lang: Lang): string {
   if (id === 'TAX-FREE' || id === 'TAX - FREE') return id;
   const k = TITLE_KEYS[id]?.title;
   for (const candidate of keyList(k)) {
-    const resolved = buttonText(candidate, lang);
+    // A leading/trailing "·" is a leftover of a split pair title (zh
+    // JejuQurang_Tab reads "·济州岛古兰") — never part of a page title.
+    const resolved = buttonText(candidate, lang)?.replace(/^\s*[·・]\s*|\s*[·・]\s*$/g, '');
     if (resolved) return resolved;
   }
   return SCREEN_TITLES[id]?.[lang] ?? id;
