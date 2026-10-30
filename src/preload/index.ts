@@ -150,7 +150,6 @@ const api: KioskBridge = {
     armGestureGate: () => invoke(IpcChannels.PhotoArmGestureGate),
     holdCountdown: () => invoke(IpcChannels.PhotoHoldCountdown),
     resumeCountdown: () => invoke(IpcChannels.PhotoResumeCountdown),
-    skipCountdown: () => invoke(IpcChannels.PhotoSkipCountdown),
     captureAndGenerate: (request) => invoke(IpcChannels.PhotoCaptureAndGenerate, request),
     getResultDataUrl: (fileName) => invoke(IpcChannels.PhotoGetResultDataUrl, { fileName }),
     setHoldResult: (hold) => invoke(IpcChannels.PhotoSetHoldResult, { hold }),

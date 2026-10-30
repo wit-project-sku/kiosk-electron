@@ -84,8 +84,6 @@ export function registerPhotoHandlers(container: AppContainer): void {
   handle(IpcChannels.PhotoArmGestureGate, () => container.photoWorkflow.armGestureGate());
   handle(IpcChannels.PhotoHoldCountdown, () => container.photoWorkflow.holdCountdown());
   handle(IpcChannels.PhotoResumeCountdown, () => container.photoWorkflow.resumeCountdown());
-  // Test shortcut: a click on the camera guide's 손 icon (remote session only).
-  handle(IpcChannels.PhotoSkipCountdown, () => container.photoWorkflow.skipCountdown());
 
   handle(IpcChannels.PhotoReset, () => container.photoWorkflow.reset());
 
