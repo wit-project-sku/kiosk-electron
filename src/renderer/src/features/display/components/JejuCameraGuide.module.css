@@ -80,20 +80,6 @@
   pointer-events: none;
 }
 
-/* Click target over the baked 손 icon — image x 1491…1786 / y 1084…1441,
-   mapped through the stretch (see the header note), with ~40px of slack. */
-.skipHit {
-  position: absolute;
-  left: 1454px;
-  top: 1073px;
-  width: 376px;
-  height: 447px;
-  padding: 0;
-  border: none;
-  background: transparent;
-  cursor: pointer;
-}
-
 /*
  * The live countdown numeral, inside the overlay's baked quotes.
  *

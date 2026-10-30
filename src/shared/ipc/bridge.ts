@@ -169,11 +169,6 @@ export interface KioskBridge {
     holdCountdown(): Promise<Result<PhotoWorkflowState>>;
     /** 손바닥 — continue a held count from where it stopped. */
     resumeCountdown(): Promise<Result<PhotoWorkflowState>>;
-    /**
-     * Skip the countdown and shoot now — a click on the camera guide's 손 icon.
-     * Monitor 2 is not a touch screen, so this is a remote-session test shortcut.
-     */
-    skipCountdown(): Promise<Result<PhotoWorkflowState>>;
     captureAndGenerate(request: {
       sessionId: string;
       dataUrl: string;
