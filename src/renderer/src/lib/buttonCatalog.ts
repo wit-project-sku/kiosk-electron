@@ -1,3 +1,4 @@
+import type { MenuTouchInput } from '@shared/types/data';
 import type { KioskId } from '@shared/types/kiosk';
 
 /**
@@ -40,6 +41,12 @@ interface Slot {
    * see `donation`.
    */
   dynamicId?: true;
+  /**
+   * This button's `buttons.id`, pinned by a migration to the SAME value on stage
+   * and production — so, unlike the BUTTON_IDS mirror, it is safe to hardcode for
+   * the 제주 kiosks too. Wins over BUTTON_IDS. See jejuPhotoMode.
+   */
+  fixedId?: number;
   /**
    * The fixed start of `type` for a row whose type carries operator copy — the
    * 제주 mascot rows, 안녕 '하영' in production and 안녕 '귤이' on stage. When the
@@ -130,6 +137,22 @@ const BUTTON_IDS: Record<string, Record<number, number>> = {
 };
 
 /**
+ * 혼자찍기 / 같이찍기 on the 제주 kiosks. admin-be V193 created these rows with ids
+ * FIXED to 301–306 so stage and production agree, and V201 (2026-10-26) moved them
+ * with the kiosks: W008 = 301/302, W009 = 303/304, W010 = 305/306 (both environments,
+ * checked 2026-10-30). They are OFF_MAIN (line -1, position 1/2), which `buttons/v2`
+ * leaves out, so the live response can never supply the id — it has to be `fixedId`.
+ * Not keyed by flat slot 23/24 as on W001–W005: 제주 positions are CMS reading order,
+ * and W008's 오늘의 날씨 already sits at 23.
+ */
+function jejuPhotoMode(solo: number, together: number): Record<string, Slot> {
+  return {
+    photo_solo: { position: 1, type: '혼자찍기', suffix: '혼자찍기', fixedId: solo },
+    photo_together: { position: 2, type: '같이찍기', suffix: '같이찍기', fixedId: together },
+  };
+}
+
+/**
  * Per-kiosk slot overrides where a deployment's home grid order (and labels)
  * differ from the Insadong base SLOTS.
  *
@@ -208,8 +231,9 @@ const SLOT_OVERRIDES: Partial<Record<KioskId, Record<string, Slot>>> = {
   // looks an id up by position.
   //
   // Not in the CMS, so they stay id-less: K-DRAMA and 운항정보 (both on the 제주 home,
-  // neither seeded), and photo_solo/photo_together. `프로모션` (id 147) is the
-  // opposite case — a seeded row with no 제주 screen behind it yet.
+  // neither seeded). photo_solo/photo_together carry fixed ids (see jejuPhotoMode).
+  // `프로모션` (id 147) is the opposite case — a seeded row with no 제주 screen
+  // behind it yet.
   //
   // 2026-10-29 (admin-be V205): 위드마켓 / TAX-FREE / 기부 left the home and their
   // rows were deleted; 아이콘13 is renamed 제주공항 안내 and 아이콘19 (was 프로모션)
@@ -241,6 +265,7 @@ const SLOT_OVERRIDES: Partial<Record<KioskId, Record<string, Slot>>> = {
     // added server-side; until a kiosk has them, clicks log label-only.
     jejuqrang: { position: 22, type: '제주큐랑' },
     weather: { position: 23, type: '오늘의 날씨' },
+    ...jejuPhotoMode(301, 302),
   },
   // ── W009 제주국제여객터미널 ──
   // Transcribed from the live response on 2026-08-24 (21 rows, ids 150–170 in
@@ -257,8 +282,8 @@ const SLOT_OVERRIDES: Partial<Record<KioskId, Record<string, Slot>>> = {
   // 렌트카 (see JejuHome's VENUE_TILE). The row is mirrored anyway because this
   // file's job is to match the CMS, and the moment that tile is swapped the
   // analytics join is already correct. Not in the CMS, so still id-less here:
-  // K-DRAMA, 운항정보, photo_solo/photo_together; `프로모션` (id 168) is the reverse
-  // — a seeded row with no 제주 screen behind it.
+  // K-DRAMA, 운항정보 (photo_solo/photo_together carry fixed ids, see jejuPhotoMode);
+  // `프로모션` (id 168) is the reverse — a seeded row with no 제주 screen behind it.
   W009: {
     home: { position: 1, type: '홈' },
     search: { position: 2, type: '검색' },
@@ -282,6 +307,7 @@ const SLOT_OVERRIDES: Partial<Record<KioskId, Record<string, Slot>>> = {
     localpay: { position: 18, type: '지역화폐' },
     photo: { position: 20, type: '사진촬영', suffix: '아이콘20' },
     restroom: { position: 21, type: '화장실' },
+    ...jejuPhotoMode(303, 304),
   },
   // ── W010 세계자연유산본부 ──
   // Transcribed from the live response on 2026-08-24 (21 rows, ids 171–191 in
@@ -293,8 +319,9 @@ const SLOT_OVERRIDES: Partial<Record<KioskId, Record<string, Slot>>> = {
   // No BUTTON_IDS mirror, same reasoning as W008/W009: 171–191 are verified for
   // PRODUCTION only and the 기부 case proved ids diverge between prod and stage, so
   // every id is resolved off the live response by `buttonType` instead. Not in the
-  // CMS, so still id-less here: K-DRAMA, 운항정보, photo_solo/photo_together;
-  // `프로모션` (id 189) is the reverse — a seeded row with no 제주 screen behind it.
+  // CMS, so still id-less here: K-DRAMA, 운항정보 (photo_solo/photo_together carry
+  // fixed ids, see jejuPhotoMode); `프로모션` (id 189) is the reverse — a seeded row
+  // with no 제주 screen behind it.
   W010: {
     home: { position: 1, type: '홈' },
     search: { position: 2, type: '검색' },
@@ -316,6 +343,7 @@ const SLOT_OVERRIDES: Partial<Record<KioskId, Record<string, Slot>>> = {
     localpay: { position: 18, type: '지역화폐' },
     photo: { position: 20, type: '사진촬영', suffix: '아이콘20' },
     restroom: { position: 21, type: '화장실' },
+    ...jejuPhotoMode(305, 306),
   },
 };
 
@@ -331,7 +359,7 @@ export function resolveButton(kioskId: KioskId, key: string): KioskButtonRef | n
   // dynamicId rows have no entry in the mirror — their id comes from the live API
   // (useResolveButton matches by buttonType). Reading BUTTON_IDS[position] here
   // would hand back the id of whichever button really owns that slot.
-  const id = slot.dynamicId ? null : BUTTON_IDS[kioskId]?.[slot.position] ?? null;
+  const id = slot.fixedId ?? (slot.dynamicId ? null : BUTTON_IDS[kioskId]?.[slot.position] ?? null);
   return {
     key,
     id,
@@ -350,4 +378,21 @@ export function resolveButton(kioskId: KioskId, key: string): KioskButtonRef | n
  */
 export function buttonIdForSlot(kioskId: KioskId, slot: number): number | null {
   return BUTTON_IDS[kioskId]?.[slot] ?? null;
+}
+
+/**
+ * The menu-touch record for a 혼자찍기 / 같이찍기 tap, or null when the kiosk has no
+ * row for it (KADA, the test rig). Only the COUNT is wanted — usage time means
+ * nothing for these two (2026-10-19), so the session is zero-length: touchedAt ===
+ * backToHomeAt. The 사진촬영 overlay session (useKioskController) still measures the
+ * photo flow.
+ */
+export function photoModeTouch(
+  kioskId: KioskId,
+  mode: 'solo' | 'together',
+  at: string,
+): MenuTouchInput | null {
+  const button = resolveButton(kioskId, mode === 'solo' ? 'photo_solo' : 'photo_together');
+  if (button?.id == null) return null;
+  return { buttonId: button.id, buttonType: button.buttonType, touchedAt: at, backToHomeAt: at };
 }
