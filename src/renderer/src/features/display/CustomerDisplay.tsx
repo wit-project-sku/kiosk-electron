@@ -431,6 +431,11 @@ export function CustomerDisplay(): JSX.Element {
           rotation={cameraRotation}
           gestureGate={gestureGate}
           detectionUnavailable={gestureStatus === 'unavailable'}
+          onHandClick={() => {
+            // Same rule as the palm: only a gate still waiting starts the count,
+            // so a click mid-count or while held never restarts it at 10.
+            if (gestureGate === 'waiting') void window.api.photo.beginCountdown();
+          }}
         />
       )}
 
