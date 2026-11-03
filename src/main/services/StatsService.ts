@@ -149,7 +149,8 @@ function sentEventIds(json: unknown): Set<string> {
  *   STATS_MENU_TOUCH_URL        — real-time menu-touch endpoint.
  *   STATS_MENU_TOUCHES_SYNC_URL — nightly menu-touch batch endpoint.
  *   STATS_SHOTS_URL             — real-time v1 shots endpoint.
- *   STATS_SHOTS_V2_URL          — 제주 `/shots/v2` endpoint (multipart, measurement + photo).
+ *   STATS_SHOTS_V2_URL          — 제주 measurement endpoint, `/shots/measurement` (formerly
+ *                                 `/shots/v2`; multipart, measurement + photo).
  *   STATS_PHOTO_SHOTS_SYNC_URL  — nightly photo-shots batch endpoint.
  */
 export class StatsService {
@@ -177,8 +178,9 @@ export class StatsService {
     return process.env['STATS_SHOTS_URL'] ?? `${witteriaApiBase()}/api/stats/shots`;
   }
 
+  /** Renamed from `/api/stats/shots/v2` (2026-11-03); the env name is kept so old .env files work. */
   private shotsV2Url(): string {
-    return process.env['STATS_SHOTS_V2_URL'] ?? `${witteriaApiBase()}/api/stats/shots/v2`;
+    return process.env['STATS_SHOTS_V2_URL'] ?? `${witteriaApiBase()}/api/stats/shots/measurement`;
   }
 
   /** 제주 kiosks (W008/W009/W010) carry the ZED; every other venue stays on v1. */

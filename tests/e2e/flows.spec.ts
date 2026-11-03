@@ -34,7 +34,9 @@ const visible = (page: Page, text: string | RegExp) =>
 const CASES: { site: Site; tile: RegExp }[] = [
   { site: 'W001', tile: /뭐먹지/ },
   { site: 'W004', tile: /뭐먹지/ },
-  { site: 'W006', tile: /뭐먹지/ },
+  // W009, not W008: 제주공항 boots into its 시스템 점검 notice (maintenance.ts), and
+  // 여객터미널 runs the same JEJU_AIRPORT layout behind no notice.
+  { site: 'W009', tile: /뭐먹지/ },
 ];
 
 let api: FakeApi;
