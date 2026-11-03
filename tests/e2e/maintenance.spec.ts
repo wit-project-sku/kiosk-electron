@@ -17,8 +17,14 @@ const noticeSwitch = (main: Page): Locator => main.locator('div[style*="left: 14
 const date = (main: Page): Locator => main.locator('[class*="dateTime"]').first();
 const pin = (main: Page): Locator => main.getByText('JEJU', { exact: true }).first();
 
+// Real mouse clicks at the target's centre, back to back. Not locator.click() in a
+// loop: on the Windows CI runner each one waits for the ticking clock to settle,
+// and five took ~8 s — past the switch's 3 s window.
 async function clickTimes(target: Locator, n: number): Promise<void> {
-  for (let i = 0; i < n; i++) await target.click();
+  const box = await target.boundingBox();
+  if (!box) throw new Error('click target is not visible');
+  const page = target.page();
+  for (let i = 0; i < n; i++) await page.mouse.click(box.x + box.width / 2, box.y + box.height / 2);
 }
 
 test('W008: five mouse clicks on the date open the 점검 notice directly', async () => {
@@ -47,7 +53,10 @@ test('W008: five mouse clicks on the date open the 점검 notice directly', asyn
     await clickTimes(date(main), 5);
     await expect(notice(main)).toBeVisible();
     await expect(main.getByText('Something went wrong')).toHaveCount(0);
-    expect(kiosk.errors.filter((e) => /WebView|ErrorBoundary|pageerror/.test(e))).toEqual([]);
+    // Our own window only: the third-party pages inside the webviews throw their
+    // own script errors now and then (e.g. "Swiper is not defined").
+    const appErrors = kiosk.errors.filter((e) => e.startsWith('[index.html]'));
+    expect(appErrors.filter((e) => /WebView|ErrorBoundary|pageerror/.test(e))).toEqual([]);
   } finally {
     await kiosk.close();
   }
