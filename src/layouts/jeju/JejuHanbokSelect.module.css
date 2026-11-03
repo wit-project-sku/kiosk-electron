@@ -1000,6 +1000,12 @@
   top: 2347px;
 }
 
+/* 같이찍기 hidden (제주공항's non-제주 tabs for now) → the lone 혼자 찍기
+   button sits centred. */
+.captureRowSolo {
+  justify-content: center;
+}
+
 .captureDisabled {
   opacity: 0.45;
   cursor: default;

@@ -139,6 +139,7 @@ import { cameraIconUrl } from '@renderer/assets/icons/insadong/camera';
 import { pick, useLang, type Lang } from '@renderer/lib/i18n';
 import { useAccessibilityStore } from '@renderer/store/accessibilityStore';
 import { modeBarVars } from './lowReach';
+import { useKioskStore } from '@renderer/store/kioskStore';
 import { jejuMascot, type JejuMascot } from './jejuMascot';
 import { JejuBgMotion } from './JejuBgMotion';
 /* The privacy modal and the camera-direction popup are identical on every
@@ -340,6 +341,14 @@ const togetherLabel = (m: JejuMascot) => ({
  */
 const togetherText = (lang: Lang): string =>
   tExact('Photo_SelectTogether', lang) || pick(togetherLabel(jejuMascot()), lang);
+
+/**
+ * 제주공항 (W008) offers 같이찍기 on the 제주 tab only for now — the 하영
+ * composite is not working with the other tabs' outfits yet, so they get
+ * 혼자 찍기 alone. Remove once it is fixed.
+ */
+const hidesTogether = (isThemeTab: boolean): boolean =>
+  !isThemeTab && useKioskStore.getState().config.kioskId === 'W008';
 
 const NO_OUTFITS = {
   ko: '준비 중인 의상입니다.',
@@ -1138,7 +1147,9 @@ export function JejuHanbokSelect({
         </div>
 
         {/* ── Capture ── */}
-        <div className={`${styles.captureRow} ${isThemeTab ? '' : styles.captureRowGuide}`}>
+        <div
+          className={`${styles.captureRow} ${isThemeTab ? '' : styles.captureRowGuide} ${hidesTogether(isThemeTab) ? styles.captureRowSolo : ''}`}
+        >
           <button
             type="button"
             className={`${styles.capture} ${captureReady ? '' : styles.captureDisabled}`}
@@ -1148,15 +1159,17 @@ export function JejuHanbokSelect({
             <Camera className={styles.captureIcon} strokeWidth={2} />
             {pick(SOLO, lang)}
           </button>
-          <button
-            type="button"
-            className={`${styles.capture} ${captureReady ? '' : styles.captureDisabled}`}
-            disabled={!captureReady}
-            onClick={() => startCapture('withInsa')}
-          >
-            <Camera className={styles.captureIcon} strokeWidth={2} />
-            {togetherText(lang)}
-          </button>
+          {!hidesTogether(isThemeTab) && (
+            <button
+              type="button"
+              className={`${styles.capture} ${captureReady ? '' : styles.captureDisabled}`}
+              disabled={!captureReady}
+              onClick={() => startCapture('withInsa')}
+            >
+              <Camera className={styles.captureIcon} strokeWidth={2} />
+              {togetherText(lang)}
+            </button>
+          )}
         </div>
       </>
 
