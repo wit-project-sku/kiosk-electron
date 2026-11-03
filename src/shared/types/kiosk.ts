@@ -69,6 +69,12 @@ export interface KioskConfig {
   testRig?: boolean;
   /** Test rig only: start the card-terminal agent for the preview site (off unless set). */
   testRigPayment?: boolean;
+  /**
+   * Derived, not stored: this build talks to a STAGE server (isStageApiBase on
+   * the API base). Enables the mouse-only site switcher on the home pin and lets
+   * `previewSite` apply to a venue machine. Always false on production servers.
+   */
+  stageServer?: boolean;
   layout: KioskLayoutId;
   /** Per-machine witteria shop-API id (set in electron-store); optional. */
   shopApiKioskId?: number;

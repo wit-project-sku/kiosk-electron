@@ -9,8 +9,9 @@ import Store from 'electron-store';
 import type { KioskConfig } from '@shared/types/kiosk';
 import { DEFAULT_KIOSK_CONFIG } from '@shared/constants';
 import { getKioskLayout } from '@shared/config/kioskLocations';
-import { resolveKioskIdentity } from '@shared/config/testRig';
+import { isStageApiBase, resolveKioskIdentity } from '@shared/config/testRig';
 import { witteriaApiBase } from './apiBase';
+import { e2eForcesStageServer } from './e2e';
 
 /**
  * One-shot map for machines provisioned before the 2026-10-26 CMS renumber.
@@ -57,14 +58,17 @@ export const kioskConfigStore = {
     // The default only applies to a machine that has not been provisioned yet.
     const s = getStore();
     // Pre-2026-10-26 제주 ids are shifted once (migratedKioskId), THEN the office
-    // test rig (W200) keeps its identity but shows a switchable preview site.
+    // test rig (W200) — or, on a stage server, any machine — keeps its identity
+    // but shows a switchable preview site.
     const storedId = migratedKioskId(
       s,
       (s.get('kioskId') as string | undefined)?.trim() || DEFAULT_KIOSK_CONFIG.kioskId,
     );
+    const stageServer = isStageApiBase(witteriaApiBase()) || e2eForcesStageServer();
     const { kioskId, identityKioskId, testRig } = resolveKioskIdentity(
       storedId,
       (s.get('previewSite' as never) as string | undefined)?.trim(),
+      { stageServer },
     );
     const testRigPayment = testRig && s.get('testRigPayment' as never) === true;
     const rawShopId = s.get('shopApiKioskId');
@@ -75,6 +79,7 @@ export const kioskConfigStore = {
       identityKioskId,
       testRig,
       testRigPayment,
+      stageServer,
       layout: getKioskLayout(kioskId),
       shopApiKioskId,
       apiBase: witteriaApiBase(),

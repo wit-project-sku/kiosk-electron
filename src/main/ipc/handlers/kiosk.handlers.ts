@@ -8,6 +8,7 @@ import { AppError } from '@main/core/AppError';
 import { createLogger } from '@main/core/logger';
 import { isDevMode } from '@main/core/env';
 import { kioskConfigStore } from '@main/core/KioskConfigStore';
+import { planSiteSwitch } from '@shared/config/testRig';
 import { handle } from '../registry';
 
 const log = createLogger('kiosk-switch');
@@ -57,26 +58,34 @@ export function registerKioskHandlers(windows: WindowManager, container: AppCont
     return true;
   });
 
-  // Dev-mode kiosk-location switch (the in-app equivalent of
-  // tools/location-tester): persist the new kioskId, then make the running app
-  // become that kiosk.
+  // Kiosk-location switch (the in-app equivalent of tools/location-tester):
+  // persist the choice, then make the running app show that site. Allowed in dev
+  // mode, on the test rig and on stage servers only (planSiteSwitch).
   handle(IpcChannels.KioskSwitchLocation, async ({ kioskId }) => {
-    const testRig = kioskConfigStore.get().testRig === true;
-    if (!isDevMode() && !testRig) {
-      throw AppError.validation('Kiosk switching is only available in dev mode or on the test rig.');
-    }
     if (!(kioskId in KIOSK_LOCATIONS)) {
       throw AppError.validation(`Unknown kiosk location: ${kioskId}`, { kioskId });
     }
-
-    const current = kioskConfigStore.get().kioskId;
-    if (kioskId === current) return true;
-
-    if (testRig) {
-      // The test rig keeps its identity (W200); only the site it shows changes.
-      kioskConfigStore.update({ previewSite: kioskId } as never);
-    } else {
-      kioskConfigStore.update({ kioskId });
+    const cfg = kioskConfigStore.get();
+    const current = cfg.kioskId;
+    // Test rig and stage machines keep their identity and only change the site
+    // they show (previewSite); dev mode on any other build becomes the new kiosk.
+    const plan = planSiteSwitch(cfg, kioskId, isDevMode());
+    switch (plan.kind) {
+      case 'denied':
+        throw AppError.validation(
+          'Kiosk switching is only available in dev mode, on the test rig or on a stage server.',
+        );
+      case 'none':
+        return true;
+      case 'preview':
+        kioskConfigStore.update({ previewSite: plan.site } as never);
+        break;
+      case 'clearPreview':
+        kioskConfigStore.delete('previewSite' as never);
+        break;
+      case 'kioskId':
+        kioskConfigStore.update({ kioskId: plan.site });
+        break;
     }
     // Drop the previous location's shop-API id so it re-derives from the new
     // kioskId (W004 must not keep W003's id).

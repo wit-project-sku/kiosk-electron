@@ -32,3 +32,7 @@ export const e2eSkipsPaymentAgent = (): boolean => isE2E();
 
 /** No detached DevTools window — it would be one more window for the test to sort out. */
 export const e2eSuppressesDevTools = (): boolean => isE2E();
+
+/** Treat the fake backend as a STAGE server (site switcher on, previewSite honoured). */
+export const e2eForcesStageServer = (): boolean =>
+  isE2E() && process.env['KIOSK_E2E_STAGE'] === '1';
