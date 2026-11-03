@@ -3,8 +3,9 @@
  * and the hidden switch staff use to flip between it and the app.
  *
  * Five MOUSE clicks within TAP_WINDOW_MS flip it: on the home screen, the
- * "JEJU" marker turns the notice on; on the notice, the leftmost of the three
- * tangerines at the top right turns it off. A single click used to lift the
+ * date at the top right turns the notice on (it was the top-left "JEJU" pin
+ * until 2026-11-03 — that pin now opens the stage-only site switcher); on the
+ * notice, the leftmost of the three tangerines at the top right turns it off. A single click used to lift the
  * notice for good and there was no way back (2026-10-29).
  *
  * Mouse only — staff drive the kiosk over TeamViewer, which injects mouse

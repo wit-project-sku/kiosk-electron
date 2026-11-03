@@ -198,8 +198,9 @@ export function JejuKiosk(): JSX.Element {
 
   const [maintenanceLifted, setMaintenanceLifted] = useState(readMaintenanceLifted);
   const maintenanceKiosk = MAINTENANCE_KIOSKS.has(controller.kioskId);
-  // Five quick mouse clicks flip between the notice and the app — the "JEJU"
-  // marker on the home screen, the leftmost tangerine on the notice (maintenance.ts).
+  // Five quick mouse clicks flip between the notice and the app — the date at
+  // the top right of the home screen, the leftmost tangerine on the notice
+  // (maintenance.ts).
   const toggleMaintenance = useCallback(() => {
     setMaintenanceLifted((lifted) => {
       writeMaintenanceLifted(!lifted);
@@ -213,7 +214,7 @@ export function JejuKiosk(): JSX.Element {
   // 제주공항 is under system maintenance: the whole screen is the 점검 중 notice
   // and nothing behind it can be reached by a visitor (touch or keypad). Staff
   // switch it off with five quick MOUSE clicks on the leftmost tangerine and
-  // back on the same way from the home screen's "JEJU" marker (maintenance.ts).
+  // back on the same way from the home screen's date, top right (maintenance.ts).
   // Only that tangerine listens, and only to a mouse.
   if (maintenanceKiosk && !maintenanceLifted) {
     return (
@@ -231,7 +232,7 @@ export function JejuKiosk(): JSX.Element {
   ) : cur === 'home' ? (
     <JejuHome
       controller={controller}
-      onSiteMarkerTap={maintenanceKiosk ? onMaintenanceSwitchTap : undefined}
+      onDateTap={maintenanceKiosk ? onMaintenanceSwitchTap : undefined}
     />
   ) : cur === 'language' ? (
     <JejuLanguage controller={controller} />

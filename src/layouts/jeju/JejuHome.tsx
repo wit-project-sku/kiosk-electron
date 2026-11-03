@@ -48,9 +48,11 @@ import styles from './JejuHome.module.css';
 
 interface Props {
   controller: KioskController;
-  /** Pointer-up on the top-left "JEJU" marker — the hidden 시스템 점검 switch
-   *  (five quick mouse clicks, see maintenance.ts). Absent on kiosks without the notice. */
-  onSiteMarkerTap?: (e: PointerEvent<HTMLElement>) => void;
+  /** Pointer-up on the top-right date — the hidden 시스템 점검 switch (five quick
+   *  mouse clicks, see maintenance.ts). Absent on kiosks without the notice. The
+   *  top-left pin is NOT the switch any more (2026-11-03): on stage builds a click
+   *  there opens the site switcher (KioskSwitcher). */
+  onDateTap?: (e: PointerEvent<HTMLElement>) => void;
 }
 
 /** Search-bar language button → the current language's display code. */
@@ -746,7 +748,7 @@ const AIRPORT_CARDS: CardDef[] = CARDS.map((card) =>
     : card,
 );
 
-export function JejuHome({ controller, onSiteMarkerTap }: Props): JSX.Element {
+export function JejuHome({ controller, onDateTap }: Props): JSX.Element {
   const weather = useWeatherStore((s) => s.weather);
   const forecast = useWeatherStore((s) => s.forecast);
   const [weatherOpen, setWeatherOpen] = useState(false);
@@ -1009,13 +1011,15 @@ export function JejuHome({ controller, onSiteMarkerTap }: Props): JSX.Element {
 
       {/* ── Top bar ── */}
       <div className={low(styles.topBar, styles.topBarLow)}>
-        <div className={styles.topLeft} onPointerUp={onSiteMarkerTap}>
+        <div className={styles.topLeft}>
           {jejuIconUrl('ico-location') && (
             <img src={jejuIconUrl('ico-location')} alt="" className={styles.locationIcon} draggable={false} />
           )}
           <span className={styles.siteName}>JEJU</span>
         </div>
-        <span className={styles.dateTime}>{clock}</span>
+        <span className={styles.dateTime} onPointerUp={onDateTap}>
+          {clock}
+        </span>
       </div>
 
       {/* 공지 card, its weather card and the 운항 정보 board — Figma's group
