@@ -272,6 +272,15 @@ async function bootstrap(): Promise<void> {
   // later uploads the whole backlog on the first night.
   container.footfallUploader.start();
 
+  // 사진 보관 — copies captures (original + composite) to the server for Google
+  // Drive. Sends only when the server's status says this kiosk is enabled, and
+  // never while a customer is mid-capture (same phases the updater waits for).
+  container.photoArchive.setBusyCheck(() => {
+    const { phase } = container.photoWorkflow.getState();
+    return phase === 'countdown' || phase === 'generating';
+  });
+  container.photoArchive.start();
+
   // 키 측정 — the headless ZED height sidecar. 제주 only; the service checks the
   // layout itself and does nothing anywhere else, so there is no condition here
   // to keep in sync with one inside it. Best-effort in every direction: a
@@ -364,6 +373,7 @@ app.on('before-quit', () => {
     // would drop up to a minute of 유동인구 every single night.
     getContainer().footfall.stop();
     getContainer().footfallUploader.stop();
+    getContainer().photoArchive.stop();
     // Kills the Python child. Without this it outlives the app and keeps the
     // ZED open, so the next launch cannot claim the camera.
     getContainer().height.stop();

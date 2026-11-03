@@ -14,6 +14,7 @@ import { PhotoSessionRepository } from './database/repositories/PhotoSessionRepo
 import { FootfallRepository } from './database/repositories/FootfallRepository';
 import { HeightRepository } from './database/repositories/HeightRepository';
 import { TranslationRepository } from './database/repositories/TranslationRepository';
+import { PhotoArchiveRepository } from './database/repositories/PhotoArchiveRepository';
 import { ImageService } from './services/ImageService';
 import { SettingsService } from './services/SettingsService';
 import { DisplayService } from './services/DisplayService';
@@ -50,11 +51,13 @@ import { GoogleDriveService } from './services/drive/GoogleDriveService';
 import { PhotoGenerationService } from './services/photo/PhotoGenerationService';
 import { ImageHostService } from './services/photo/ImageHostService';
 import { PhotoWorkflowService } from './services/photo/PhotoWorkflowService';
+import { PhotoArchiveService } from './services/photoArchive/PhotoArchiveService';
 import { MotionGameService } from './services/motion/MotionGameService';
 import { FootfallService } from './services/footfall/FootfallService';
 import { FootfallUploader } from './services/footfall/FootfallUploader';
 import { HeightService } from './services/height/HeightService';
 import { ZedSidecarManager } from './core/ZedSidecarManager';
+import { appPaths } from './core/paths';
 import { UpdateService } from './updater/UpdateService';
 import { UpdateCommandService } from './updater/UpdateCommandService';
 import { HealthReporter } from './core/HealthReporter';
@@ -77,6 +80,8 @@ export interface AppContainer {
   drive: GoogleDriveService;
   photoGeneration: PhotoGenerationService;
   photoWorkflow: PhotoWorkflowService;
+  /** 사진 보관 — copies the photo folder (original + composite) to the server for Google Drive. */
+  photoArchive: PhotoArchiveService;
   /** 제주 모션 게임 — which camera game Monitor 2 is running. */
   motionGame: MotionGameService;
   translations: TranslationService;
@@ -175,6 +180,15 @@ export function createContainer(): AppContainer {
     kiosk,
   );
   const photoWorkflow = new PhotoWorkflowService(display, camera);
+  // 사진 보관. Reads the photo folder CaptureService writes to — it never hooks
+  // the capture flow itself, so nothing above needs to know it exists.
+  const photoArchive = new PhotoArchiveService({
+    store: new PhotoArchiveRepository(database),
+    // The machine's own id, not the preview site's: the W200 test rig must stay
+    // 200 (excluded by the server) instead of archiving as the venue it previews.
+    kioskNum: () => kiosk.identityNum(),
+    photoDir: () => appPaths.generated,
+  });
 
   // 유동인구. The service decides WHEN counting may run, and it decides it by
   // watching the photo workflow and the customer display — the two things that
@@ -232,6 +246,7 @@ export function createContainer(): AppContainer {
     drive,
     photoGeneration,
     photoWorkflow,
+    photoArchive,
     motionGame,
     translations,
     weather,
