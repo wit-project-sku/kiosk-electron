@@ -16,6 +16,7 @@ import { useSearchStore } from '@renderer/store/searchStore';
 import { useDetailStore } from '@renderer/store/detailStore';
 import { useShopStore } from '@renderer/store/shopStore';
 import { pick } from '@renderer/lib/i18n';
+import { tExact } from '@renderer/lib/loc';
 import type { Shop } from '@shared/types/shop';
 import {
   searchShops,
@@ -162,7 +163,11 @@ export function OsanSearch({ controller }: OsanSearchProps): JSX.Element {
           </div>
         ) : (
           <p className={styles.empty}>
-            {query ? pick(T.noResult, lang)(query) : pick(T.prompt, lang)}
+            {query
+              ? /* Localization_Osaek Search_NoContent — its leading "* " is the
+                   sheet's bullet formatting; T.noResult covers an empty cell. */
+                tExact('Search_NoContent', lang).replace(/^\s*[*•]\s*/, '') || pick(T.noResult, lang)(query)
+              : pick(T.prompt, lang)}
           </p>
         )}
       </div>

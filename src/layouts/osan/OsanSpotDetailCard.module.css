@@ -41,6 +41,15 @@
   height: 2215px;
 }
 
+/* With the directions block (제주 6289:58438 grows to 2775) the card follows
+   its content instead of the frame's fixed height; it sits in the course
+   page's scroll column. */
+.cardWithDirections {
+  height: auto;
+  min-height: 1523px;
+  padding-bottom: 72px;
+}
+
 .mapSlot {
   flex: none;
   height: 631px;

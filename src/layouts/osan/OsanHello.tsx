@@ -20,7 +20,7 @@ import type { KioskController } from '@renderer/hooks/useKioskController';
 import { useLanguageStore } from '@renderer/store/languageStore';
 import { useFitText } from '@layouts/components/fitText';
 import { osanIconUrl } from '@renderer/assets/icons/osan';
-import { pick, type Lang } from '@renderer/lib/i18n';
+import type { Lang } from '@renderer/lib/i18n';
 import { sheetText } from '@renderer/lib/loc';
 import { ui } from '@renderer/lib/uiText';
 import helloVideo from '@renderer/assets/videos/osan/hello-jeongi.mp4';
@@ -42,17 +42,31 @@ type TabId = 'profile' | 'hobbies' | 'health';
 type TopicTabId = Exclude<TabId, 'profile'>;
 
 /**
- * Tab labels as the frame writes them (7853:34517). Not the sheet's
- * `Greeting_Category1–3`: those read "정이' 소개" (a lost opening quote),
- * "정이의 취미" and "스트레칭 고고~" — the previous page's names.
+ * Tab labels: the sheet's `Greeting_Category1–3` (it writes "정이' 소개" with
+ * no opening quote — the sheet is the source of truth). The frame's wording
+ * (7853:34517) below is only the per-language fallback.
  */
-const TABS: { id: TabId; label: L8 }[] = [
-  { id: 'profile', label: { ko: '‘정이’소개', en: 'About JEONG-I', ja: '‘ジョンイ’紹介', zh: '‘JEONG-I’介绍', vi: 'Giới thiệu ‘JEONG-I’', th: 'แนะนำ ‘จองอี’', ru: 'О ‘Чон-и’', id: 'Tentang ‘JEONG-I’' } },
-  { id: 'hobbies', label: { ko: '‘정이’취미생활', en: 'JEONG-I’s Hobbies', ja: '‘ジョンイ’の趣味', zh: '‘JEONG-I’的爱好', vi: 'Sở thích của ‘JEONG-I’', th: 'งานอดิเรกของ ‘จองอี’', ru: 'Хобби ‘Чон-и’', id: 'Hobi ‘JEONG-I’' } },
-  { id: 'health', label: { ko: '‘정이’건강습관', en: 'JEONG-I’s Health', ja: '‘ジョンイ’の健康習慣', zh: '‘JEONG-I’的健康习惯', vi: 'Thói quen của ‘JEONG-I’', th: 'สุขภาพของ ‘จองอี’', ru: 'Привычки ‘Чон-и’', id: 'Kebiasaan ‘JEONG-I’' } },
+const TABS: { id: TabId; key: string; label: L8 }[] = [
+  { id: 'profile', key: 'Greeting_Category1', label: { ko: '‘정이’소개', en: 'About JEONG-I', ja: '‘ジョンイ’紹介', zh: '‘JEONG-I’介绍', vi: 'Giới thiệu ‘JEONG-I’', th: 'แนะนำ ‘จองอี’', ru: 'О ‘Чон-и’', id: 'Tentang ‘JEONG-I’' } },
+  { id: 'hobbies', key: 'Greeting_Category2', label: { ko: '‘정이’취미생활', en: 'JEONG-I’s Hobbies', ja: '‘ジョンイ’の趣味', zh: '‘JEONG-I’的爱好', vi: 'Sở thích của ‘JEONG-I’', th: 'งานอดิเรกของ ‘จองอี’', ru: 'Хобби ‘Чон-и’', id: 'Hobi ‘JEONG-I’' } },
+  { id: 'health', key: 'Greeting_Category3', label: { ko: '‘정이’건강습관', en: 'JEONG-I’s Health', ja: '‘ジョンイ’の健康習慣', zh: '‘JEONG-I’的健康习惯', vi: 'Thói quen của ‘JEONG-I’', th: 'สุขภาพของ ‘จองอี’', ru: 'Привычки ‘Чон-и’', id: 'Kebiasaan ‘JEONG-I’' } },
 ];
 
-/** Field labels as the frame draws them (이름 / 출생 / 출신 …), 8 languages. */
+/** Field labels — the sheet's `Greeting_<Field>` rows; the frame's wording
+ *  (이름 / 출생 / 출신 …, 8 languages) is the fallback. */
+const LABEL_KEY = {
+  name: 'Greeting_Name',
+  born: 'Greeting_BirthDay',
+  from: 'Greeting_HomeTown',
+  nationality: 'Greeting_Nationality',
+  blood: 'Greeting_BloodType',
+  mbti: 'Greeting_MBTI',
+  hobby: 'Greeting_Hobby',
+  specialty: 'Greeting_Specialty',
+  dream: 'Greeting_FutureHope',
+  about: 'Greeting_Introdution',
+} as const;
+type LabelId = keyof typeof LABEL_KEY;
 const LABEL = {
   name: { ko: '이름', en: 'Name', ja: '名前', zh: '姓名', vi: 'Tên', th: 'ชื่อ', ru: 'Имя', id: 'Nama' },
   born: { ko: '출생', en: 'Born', ja: '生年月日', zh: '出生', vi: 'Ngày sinh', th: 'วันเกิด', ru: 'Дата рождения', id: 'Lahir' },
@@ -61,37 +75,36 @@ const LABEL = {
   blood: { ko: '혈액형', en: 'Blood type', ja: '血液型', zh: '血型', vi: 'Nhóm máu', th: 'กรุ๊ปเลือด', ru: 'Группа крови', id: 'Gol. darah' },
   mbti: { ko: 'MBTI', en: 'MBTI', ja: 'MBTI', zh: 'MBTI', vi: 'MBTI', th: 'MBTI', ru: 'MBTI', id: 'MBTI' },
   hobby: { ko: '취미', en: 'Hobbies', ja: '趣味', zh: '爱好', vi: 'Sở thích', th: 'งานอดิเรก', ru: 'Хобби', id: 'Hobi' },
-  vibe: { ko: '성격', en: 'Personality', ja: '性格', zh: '性格', vi: 'Tính cách', th: 'บุคลิก', ru: 'Характер', id: 'Kepribadian' },
+  specialty: { ko: '특기', en: 'Specialty', ja: '特技', zh: '特长', vi: 'Sở trường', th: 'ความสามารถพิเศษ', ru: 'Особенности', id: 'Keahlian' },
   dream: { ko: '장래희망', en: 'Dream', ja: '将来の夢', zh: '理想', vi: 'Ước mơ', th: 'ความฝัน', ru: 'Мечта', id: 'Cita-cita' },
   about: { ko: '자기소개', en: 'About me', ja: '自己紹介', zh: '自我介绍', vi: 'Giới thiệu', th: 'แนะนำตัว', ru: 'О себе', id: 'Tentang saya' },
-} satisfies Record<string, L8>;
+} satisfies Record<LabelId, L8>;
 
 /** Profile rows (7853:34465) — the value is the sheet's 정이 row. */
-const PROFILE: { label: L8; key: string; ko: string }[] = [
-  { label: LABEL.born, key: 'Greeting_BirthDayContent', ko: '2006년 7월 31일' },
-  { label: LABEL.from, key: 'Greeting_HomeTownContent', ko: '대한민국 경기도' },
-  { label: LABEL.nationality, key: 'Greeting_NationalityContent', ko: '대한민국' },
-  { label: LABEL.blood, key: 'Greeting_BloodTypeContent', ko: 'O형' },
-  { label: LABEL.mbti, key: 'Greeting_MBTIContent', ko: 'ENTJ' },
+const PROFILE: { label: LabelId; key: string; ko: string }[] = [
+  { label: 'born', key: 'Greeting_BirthDayContent', ko: '2006년 7월 31일' },
+  { label: 'from', key: 'Greeting_HomeTownContent', ko: '대한민국 경기도' },
+  { label: 'nationality', key: 'Greeting_NationalityContent', ko: '대한민국' },
+  { label: 'blood', key: 'Greeting_BloodTypeContent', ko: 'O형' },
+  { label: 'mbti', key: 'Greeting_MBTIContent', ko: 'ENTJ' },
 ];
 
 /**
- * Detail rows (7853:34487). The frame's four are 특기 / 취미 / 장래희망 /
- * 자기소개; the sheet has no 특기 for 정이, but it has a 취미 list and a 성격
- * line (`Greeting_Specialty*` is labelled 취미 there, `Greeting_Hobby*` 성격), so
- * those two take the first two slots under their own names.
+ * Detail rows (7853:34487): 취미 / 특기 / 장래희망 / 자기소개, each a sheet
+ * label row (`Greeting_Hobby`, `Greeting_Specialty` …) over its `…Content` row.
  */
-const DETAILS: { label: L8; key: string; ko: string }[] = [
-  { label: LABEL.hobby, key: 'Greeting_SpecialtyContent', ko: 'K-POP 댄스, 맛집 탐방, 디저트 카페 방문, 테니스, 골프' },
-  { label: LABEL.vibe, key: 'Greeting_HobbyContent', ko: '' },
-  { label: LABEL.dream, key: 'Greeting_FutureHopeContent', ko: '' },
-  { label: LABEL.about, key: 'Greeting_IntrodutionContent', ko: '' },
+const DETAILS: { label: LabelId; key: string; ko: string }[] = [
+  { label: 'hobby', key: 'Greeting_HobbyContent', ko: 'K-POP 댄스, 맛집 탐방, 디저트 카페 방문, 테니스, 골프' },
+  { label: 'specialty', key: 'Greeting_SpecialtyContent', ko: '다국어 회화 능력, 노래 등' },
+  { label: 'dream', key: 'Greeting_FutureHopeContent', ko: '' },
+  { label: 'about', key: 'Greeting_IntrodutionContent', ko: '' },
 ];
 
 /** One sub-tab of 취미생활 or 건강습관: a photo and a caption read from the sheet,
  *  with authored copy (8 languages) behind it where the sheet has none. */
 interface Topic {
   id: string;
+  labelKey: string;
   label: L8;
   photo: string;
   titleKey: string;
@@ -101,14 +114,14 @@ interface Topic {
 }
 
 /**
- * 취미생활 sub-tabs (7853:34558 / 34628 / 34698). Labels are the frame's; the
- * caption is the sheet's `Greeting_Hobby_<n>_Desc_1` (title) / `…_Desc_2` (body).
- * Since the 2026-10-15 sheet revision the bare `Greeting_Hobby_<n>` row is the
- * TAB LABEL ("K-POP") and `…_Content` is gone — the same shape as 건강습관.
+ * 취미생활 sub-tabs (7853:34558 / 34628 / 34698). The sub-tab label is the
+ * sheet's `Greeting_Hobby_<n>` row and the caption its `…_Desc_1` (title) /
+ * `…_Desc_2` (body); the frame's labels are the fallback.
  */
 const HOBBIES: Topic[] = [
   {
     id: 'kpop',
+    labelKey: 'Greeting_Hobby_First',
     label: { ko: 'K-POP', en: 'K-POP', ja: 'K-POP', zh: 'K-POP', vi: 'K-POP', th: 'K-POP', ru: 'K-POP', id: 'K-POP' },
     photo: hobbyKpop,
     titleKey: 'Greeting_Hobby_First_Desc_1',
@@ -116,6 +129,7 @@ const HOBBIES: Topic[] = [
   },
   {
     id: 'golf',
+    labelKey: 'Greeting_Hobby_Second',
     label: { ko: '골프', en: 'Golf', ja: 'ゴルフ', zh: '高尔夫', vi: 'Golf', th: 'กอล์ฟ', ru: 'Гольф', id: 'Golf' },
     photo: hobbyGolf,
     titleKey: 'Greeting_Hobby_Second_Desc_1',
@@ -123,6 +137,7 @@ const HOBBIES: Topic[] = [
   },
   {
     id: 'tennis',
+    labelKey: 'Greeting_Hobby_Third',
     label: { ko: '테니스', en: 'Tennis', ja: 'テニス', zh: '网球', vi: 'Tennis', th: 'เทนนิส', ru: 'Теннис', id: 'Tenis' },
     photo: hobbyTennis,
     titleKey: 'Greeting_Hobby_Third_Desc_1',
@@ -130,18 +145,14 @@ const HOBBIES: Topic[] = [
   },
 ];
 /**
- * 건강습관 sub-tabs (7853:34768 목·어깨, 34839 허리, 34909 기분전환).
- *
- * Localization_Osaek has no 건강습관 rows (only the previous page's
- * `Greeting_Stretching_*`), so the frames' captions are authored here, keyed like
- * the hobby rows so an operator can add `Greeting_Healthy_Habit_<n>` /
- * `…_Content` later. The frames' Korean reads "정이동" — a 인사동→정이동
- * find-and-replace left over from the 인사 template they were copied from — and
- * is written as 오색시장 here.
+ * 건강습관 sub-tabs (7853:34768 목·어깨, 34839 허리, 34909 기분전환). Label and
+ * caption are the sheet's `Greeting_Healthy_Habit_<n>` / `…_Desc_1` / `…_Desc_2`
+ * rows; the authored copy below is only the per-language fallback.
  */
 const HEALTH: Topic[] = [
   {
     id: 'neck',
+    labelKey: 'Greeting_Healthy_Habit_First',
     label: { ko: '목·어깨', en: 'Neck & shoulders', ja: '首・肩', zh: '颈部·肩膀', vi: 'Cổ & vai', th: 'คอ·ไหล่', ru: 'Шея и плечи', id: 'Leher & bahu' },
     photo: healthNeck,
     titleKey: 'Greeting_Healthy_Habit_First_Desc_1',
@@ -169,6 +180,7 @@ const HEALTH: Topic[] = [
   },
   {
     id: 'waist',
+    labelKey: 'Greeting_Healthy_Habit_Second',
     label: { ko: '허리', en: 'Back', ja: '腰', zh: '腰部', vi: 'Lưng', th: 'หลัง', ru: 'Спина', id: 'Pinggang' },
     photo: healthWaist,
     titleKey: 'Greeting_Healthy_Habit_Second_Desc_1',
@@ -196,6 +208,7 @@ const HEALTH: Topic[] = [
   },
   {
     id: 'refresh',
+    labelKey: 'Greeting_Healthy_Habit_Third',
     label: { ko: '기분전환', en: 'Refresh', ja: '気分転換', zh: '换换心情', vi: 'Thư giãn', th: 'เปลี่ยนอารมณ์', ru: 'Перезагрузка', id: 'Segarkan diri' },
     photo: healthRefresh,
     titleKey: 'Greeting_Healthy_Habit_Third_Desc_1',
@@ -247,8 +260,13 @@ const SOCIAL_LINKS = [
   { id: 'instagram', icon: instaIcon, url: 'https://www.instagram.com/jeong.i_stagram' },
 ];
 
-const say = (table: L8, lang: Lang): string => pick(table, lang);
-const fromSheet = (key: string, lang: Lang, ko: string): string => sheetText(key, lang, ko ? { ko } : undefined);
+/** Sheet text with the sheet's literal two-character "\\n" (sometimes followed
+ *  by a real line break) turned into one real newline — the text nodes render
+ *  newlines with `white-space: pre-line`. */
+const st = (key: string, lang: Lang, fallback?: L8): string =>
+  sheetText(key, lang, fallback).replace(/\\n(\r?\n)?/g, '\n');
+const fromSheet = (key: string, lang: Lang, ko: string): string => st(key, lang, ko ? { ko } : undefined);
+const labelText = (id: LabelId, lang: Lang): string => st(LABEL_KEY[id], lang, LABEL[id]);
 
 function hashPill(raw: string): string {
   const bare = raw.replace(/^#+/, '').trim();
@@ -347,7 +365,7 @@ export function OsanHello({ controller }: OsanHelloProps): JSX.Element {
             className={`${styles.tab} ${wide ? styles.tabLong : ''} ${tab === t.id ? styles.tabSelected : ''}`}
             onClick={() => setTab(t.id)}
           >
-            {say(t.label, lang)}
+            {st(t.key, lang, t.label)}
           </button>
         ))}
       </div>
@@ -370,12 +388,12 @@ export function OsanHello({ controller }: OsanHelloProps): JSX.Element {
 
           <div className={styles.profile}>
             <div className={`${styles.row} ${styles.rowName}`}>
-              <p className={styles.label}>{say(LABEL.name, lang)}</p>
+              <p className={styles.label}>{labelText('name', lang)}</p>
               <span className={styles.namePlate}>{fromSheet('Greeting_NameContent', lang, '정이')}</span>
             </div>
             {PROFILE.map((row) => (
               <div key={row.key} className={styles.row}>
-                <p className={styles.label}>{say(row.label, lang)}</p>
+                <p className={styles.label}>{labelText(row.label, lang)}</p>
                 <p className={styles.value}>{fromSheet(row.key, lang, row.ko)}</p>
               </div>
             ))}
@@ -388,7 +406,7 @@ export function OsanHello({ controller }: OsanHelloProps): JSX.Element {
               const value = fromSheet(row.key, lang, row.ko);
               return value ? (
                 <div key={row.key} className={styles.detailRow}>
-                  <p className={styles.detailLabel}>{say(row.label, lang)}</p>
+                  <p className={styles.detailLabel}>{labelText(row.label, lang)}</p>
                   <p className={styles.detailValue}>{value}</p>
                 </div>
               ) : null;
@@ -407,10 +425,10 @@ export function OsanHello({ controller }: OsanHelloProps): JSX.Element {
                 <button
                   type="button"
                   className={`${styles.subTab} ${t.id === topicId ? styles.subTabOn : ''}`}
-                  data-label={say(t.label, lang)}
+                  data-label={st(t.labelKey, lang, t.label)}
                   onClick={() => setTopic((prev) => ({ ...prev, [tab]: t.id }))}
                 >
-                  <span>{say(t.label, lang)}</span>
+                  <span>{st(t.labelKey, lang, t.label)}</span>
                 </button>
                 {SUB_GAPS[i]}
               </Fragment>
@@ -432,8 +450,8 @@ export function OsanHello({ controller }: OsanHelloProps): JSX.Element {
 
           <div className={styles.topicCard}>
             <div ref={captionRef} className={styles.topicText} style={{ top: topicTab.captionTop }}>
-              <p className={styles.topicTitle}>{sheetText(current.titleKey, lang, current.title)}</p>
-              <p className={styles.topicBody}>{sheetText(current.bodyKey, lang, current.body)}</p>
+              <p className={styles.topicTitle}>{st(current.titleKey, lang, current.title)}</p>
+              <p className={styles.topicBody}>{st(current.bodyKey, lang, current.body)}</p>
             </div>
             <HelloFooter lang={lang} className={styles.footerTopic ?? ''} />
           </div>

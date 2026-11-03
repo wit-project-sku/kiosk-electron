@@ -2,7 +2,8 @@
  * Open-palm / closed-fist classification from MediaPipe hand landmarks.
  *
  * 제주's camera screen hands the countdown trigger to the visitor: an open palm
- * starts it, a fist holds it. Those two poses are all this needs to tell apart,
+ * starts it. A fist is still classified, and the camera screen ignores it.
+ * Those two poses are all this needs to tell apart,
  * so it reads the 21 landmarks directly rather than shipping the heavier canned
  * `gesture_recognizer.task` classifier — which buys 7 gestures we do not want
  * and gives no way to tune the two we do.
@@ -122,8 +123,8 @@ export function classifyFrame(hands: ReadonlyArray<readonly HandLandmark[]>): Ha
  * Debounces the per-frame classification into a stable reading.
  *
  * Raw frames flicker — a finger crosses another, the detector drops a frame,
- * and a single stray 'fist' inside an open palm would pause a countdown the
- * visitor never meant to pause. Only a pose held for `framesToConfirm`
+ * and a single stray 'open' would start a countdown the visitor never meant
+ * to start. Only a pose held for `framesToConfirm`
  * consecutive frames is published, which at the ~12 fps this runs at is roughly
  * a third of a second: fast enough to feel immediate, slow enough that noise
  * never reaches the workflow.

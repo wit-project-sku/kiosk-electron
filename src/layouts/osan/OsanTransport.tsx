@@ -1,9 +1,9 @@
-import { useRef, useState } from 'react';
+import { type CSSProperties, useRef, useState } from 'react';
 import type { SupportedLanguage } from '@shared/types/kiosk';
 import type { KioskController } from '@renderer/hooks/useKioskController';
 import { useLanguageStore } from '@renderer/store/languageStore';
 import { osanIconUrl } from '@renderer/assets/icons/osan';
-import { sheetText } from '@renderer/lib/loc';
+import { sheetText, tExact } from '@renderer/lib/loc';
 import transitMap from '@renderer/assets/photos/osan/transport/transit-map.png';
 import marketMap from '@renderer/assets/photos/osan/transport/market-map.png';
 import streetRed from '@renderer/assets/photos/osan/transport/street-red.png';
@@ -11,12 +11,8 @@ import streetGreen from '@renderer/assets/photos/osan/transport/street-green.png
 import streetSmile from '@renderer/assets/photos/osan/transport/street-smile.png';
 import streetAreum from '@renderer/assets/photos/osan/transport/street-areum.png';
 import momsWindowMap from '@renderer/assets/photos/osan/transport/street-moms-window.png';
-import badge1 from '@renderer/assets/photos/osan/transport/transit-badge-1.svg';
-import badge3 from '@renderer/assets/photos/osan/transport/transit-badge-3.svg';
-import badge5 from '@renderer/assets/photos/osan/transport/transit-badge-5.svg';
 import badgeB1 from '@renderer/assets/photos/osan/transport/transit-badge-b1.svg';
 import badgeB2 from '@renderer/assets/photos/osan/transport/transit-badge-b2.svg';
-import badge5g from '@renderer/assets/photos/osan/transport/transit-badge-5g.svg';
 import transitDot from '@renderer/assets/photos/osan/transport/transit-dot.svg';
 import transitMarker from '@renderer/assets/photos/osan/transport/transit-marker.svg';
 import { OsanHeader } from './OsanHeader';
@@ -38,14 +34,6 @@ interface TransportContent {
   title: string;
   tabs: string[];
   comingSoon: string;
-  transit: {
-    heading: string;
-    subtitle: string;
-    /** Subway badges grouped into rows (Figma: [1,3] on one row, [5] below). */
-    subwayRows: Badge[][];
-    /** Bus badges, one per row. */
-    busRows: Badge[];
-  };
   marketMap: {
     heading: string;
     description: string[];
@@ -54,35 +42,42 @@ interface TransportContent {
   };
 }
 
-const SUB1 = '#0052A4';
-const SUB3 = '#EF7C1C';
-const SUB5 = '#8B50A4';
-const BUS = '#3D5BAB';
-
-/** 버스 rows — Figma 7878:12899. Route numbers are not translated. */
-const BUS_ROWS: Badge[] = [
-  { badge: 'B', icon: 'B1', color: BUS, text: 'M4102, 5500, 9003, 9301, 9400,940, 9411' },
-  { badge: 'B', icon: 'B2', color: BUS, text: '103,109, 143, 150, 151, 160, 161, 162, 171, 172, 260, 270, 271, 273, 370, 601, 606' },
-  { badge: '5', icon: '5G', color: '#4CAF50', text: '7212, 1020, 7022,7025' },
+/**
+ * 버스 rows — Localization_Osaek `Transport_BusInfo_1` (일반) and
+ * `Transport_BusInfo_2` (광역 … 오산역 버스터미널 정차). Route numbers are in the
+ * sheet text itself. 오산 has no subway block: the 1/3/5호선 rows this page used
+ * to carry (종각 / 안국 / 종로3가) were 인사동's and are gone.
+ */
+const BUS_ROW_KEYS: { key: string; icon: string; color: string }[] = [
+  { key: 'Transport_BusInfo_1', icon: 'B2', color: '#428BC1' }, // 일반 — blue badge
+  { key: 'Transport_BusInfo_2', icon: 'B1', color: '#FF733F' }, // 광역 — red badge
 ];
+
+/** Sheet cells may carry a literal two-char "\\n" as well as a real break. */
+function sheetLines(text: string): string[] {
+  return text
+    .split(/\r?\n|\\n/)
+    .map((l) => l.trim())
+    .filter(Boolean);
+}
+
+/** Tab labels, in tab order — Localization_Osaek rows; CONTENT.tabs is the
+ *  per-language fallback for a cell the sheet leaves empty. */
+const TAB_KEYS = [
+  'Transport_Public',
+  'Transport_Map',
+  'Transport_Red_Road',
+  'Transport_Green_Road',
+  'Transport_Miso_Road',
+  'Transport_Arum_Road',
+  'Transport_Moms_Road',
+] as const;
 
 const CONTENT: Partial<Record<Lang, TransportContent>> = {
   ko: {
     title: '교통안내',
     tabs: ['대중교통', '오색시장지도', '빨강길', '녹색길', '미소거리', '아름거리', '맘스거리'],
     comingSoon: '준비 중입니다',
-    transit: {
-      heading: '지하철/버스',
-      subtitle: '대중교통',
-      subwayRows: [
-        [
-          { badge: '1', color: SUB1, text: '1호선 종각역 11번출구' },
-          { badge: '3', color: SUB3, text: '3호선 안국역 6번출구' },
-        ],
-        [{ badge: '5', color: SUB5, text: '5호선 종로3가역 5번출구' }],
-      ],
-      busRows: BUS_ROWS,
-    },
     marketMap: {
       heading: '오산 오색시장 : 먹거리, 볼거리, 즐길거리가 가득한 오산의 대표 전통시장',
       description: [
@@ -98,18 +93,6 @@ const CONTENT: Partial<Record<Lang, TransportContent>> = {
     title: 'Directions',
     tabs: ['Public Transit', 'Market Map', 'Red St.', 'Green St.', 'Smile St.', 'Areum St.', "Mom's St."],
     comingSoon: 'Coming soon',
-    transit: {
-      heading: 'Subway / Bus',
-      subtitle: 'Public Transit',
-      subwayRows: [
-        [
-          { badge: '1', color: SUB1, text: 'Line 1 · Jonggak Stn. Exit 11' },
-          { badge: '3', color: SUB3, text: 'Line 3 · Anguk Stn. Exit 6' },
-        ],
-        [{ badge: '5', color: SUB5, text: 'Line 5 · Jongno 3-ga Stn. Exit 5' }],
-      ],
-      busRows: BUS_ROWS,
-    },
     marketMap: {
       heading: 'Osan Osaek Market: Osan’s flagship traditional market full of food, sights and fun',
       description: [
@@ -125,18 +108,6 @@ const CONTENT: Partial<Record<Lang, TransportContent>> = {
     title: '交通案内',
     tabs: ['公共交通', '五色市場地図', 'レッドロード', 'グリーンロード', 'スマイル通り', 'アルム通り', 'マムズ通り'],
     comingSoon: '準備中です',
-    transit: {
-      heading: '地下鉄/バス',
-      subtitle: '公共交通',
-      subwayRows: [
-        [
-          { badge: '1', color: SUB1, text: '1号線 鍾閣駅 11番出口' },
-          { badge: '3', color: SUB3, text: '3号線 安国駅 6番出口' },
-        ],
-        [{ badge: '5', color: SUB5, text: '5号線 鍾路3街駅 5番出口' }],
-      ],
-      busRows: BUS_ROWS,
-    },
     marketMap: {
       heading: '烏山 五色市場：グルメ・見どころ・遊びが満載の烏山を代表する伝統市場',
       description: [
@@ -152,18 +123,6 @@ const CONTENT: Partial<Record<Lang, TransportContent>> = {
     title: '交通指南',
     tabs: ['公共交通', '五色市场地图', '红色路', '绿色路', '微笑街', '美丽街', '妈妈街'],
     comingSoon: '准备中',
-    transit: {
-      heading: '地铁/巴士',
-      subtitle: '公共交通',
-      subwayRows: [
-        [
-          { badge: '1', color: SUB1, text: '1号线 钟阁站 11号出口' },
-          { badge: '3', color: SUB3, text: '3号线 安国站 6号出口' },
-        ],
-        [{ badge: '5', color: SUB5, text: '5号线 钟路3街站 5号出口' }],
-      ],
-      busRows: BUS_ROWS,
-    },
     marketMap: {
       heading: '乌山五色市场：美食、看点、玩乐齐全的乌山代表性传统市场',
       description: [
@@ -179,18 +138,6 @@ const CONTENT: Partial<Record<Lang, TransportContent>> = {
     title: 'Hướng dẫn giao thông',
     tabs: ['Giao thông công cộng', 'Bản đồ chợ Osaek', 'Đường Đỏ', 'Đường Xanh', 'Phố Smile', 'Phố Areum', "Phố Mom's"],
     comingSoon: 'Đang chuẩn bị',
-    transit: {
-      heading: 'Tàu điện ngầm / Xe buýt',
-      subtitle: 'Giao thông công cộng',
-      subwayRows: [
-        [
-          { badge: '1', color: SUB1, text: 'Tuyến 1 · Ga Jonggak Cửa ra số 11' },
-          { badge: '3', color: SUB3, text: 'Tuyến 3 · Ga Anguk Cửa ra số 6' },
-        ],
-        [{ badge: '5', color: SUB5, text: 'Tuyến 5 · Ga Jongno 3-ga Cửa ra số 5' }],
-      ],
-      busRows: BUS_ROWS,
-    },
     marketMap: {
       heading: 'Chợ Osaek Osan: Chợ truyền thống tiêu biểu của Osan, đầy ắp ẩm thực, cảnh đẹp và giải trí',
       description: [
@@ -206,18 +153,6 @@ const CONTENT: Partial<Record<Lang, TransportContent>> = {
     title: 'แนะนำการเดินทาง',
     tabs: ['ขนส่งสาธารณะ', 'แผนที่ตลาดโอแซก', 'เส้นทางแดง', 'เส้นทางเขียว', 'ถนนสไมล์', 'ถนนอารึม', 'ถนนมัม'],
     comingSoon: 'กำลังเตรียมการ',
-    transit: {
-      heading: 'รถไฟใต้ดิน / รถบัส',
-      subtitle: 'ขนส่งสาธารณะ',
-      subwayRows: [
-        [
-          { badge: '1', color: SUB1, text: 'สาย 1 · สถานีจงกัก ทางออก 11' },
-          { badge: '3', color: SUB3, text: 'สาย 3 · สถานีอันกุก ทางออก 6' },
-        ],
-        [{ badge: '5', color: SUB5, text: 'สาย 5 · สถานีจงโน 3-กา ทางออก 5' }],
-      ],
-      busRows: BUS_ROWS,
-    },
     marketMap: {
       heading: 'ตลาดโอแซกโอซาน: ตลาดดั้งเดิมตัวแทนของโอซานที่เต็มไปด้วยของกิน ของน่าชม และความสนุก',
       description: [
@@ -233,18 +168,6 @@ const CONTENT: Partial<Record<Lang, TransportContent>> = {
     title: 'Транспорт',
     tabs: ['Общественный транспорт', 'Карта рынка Осэк', 'Красный маршрут', 'Зелёный маршрут', 'Улица Smile', 'Улица Areum', 'Улица Mom’s'],
     comingSoon: 'В процессе подготовки',
-    transit: {
-      heading: 'Метро / Автобус',
-      subtitle: 'Общественный транспорт',
-      subwayRows: [
-        [
-          { badge: '1', color: SUB1, text: 'Линия 1 · Ст. Чонгак, выход 11' },
-          { badge: '3', color: SUB3, text: 'Линия 3 · Ст. Ангук, выход 6' },
-        ],
-        [{ badge: '5', color: SUB5, text: 'Линия 5 · Ст. Чонно 3-га, выход 5' }],
-      ],
-      busRows: BUS_ROWS,
-    },
     marketMap: {
       heading: 'Рынок Осэк в Осане: главный традиционный рынок Осана, полный еды, достопримечательностей и развлечений',
       description: [
@@ -260,18 +183,6 @@ const CONTENT: Partial<Record<Lang, TransportContent>> = {
     title: 'Petunjuk Transportasi',
     tabs: ['Transportasi Umum', 'Peta Pasar Osaek', 'Jalur Merah', 'Jalur Hijau', 'Jalan Smile', 'Jalan Areum', "Jalan Mom's"],
     comingSoon: 'Sedang dipersiapkan',
-    transit: {
-      heading: 'Kereta Bawah Tanah / Bus',
-      subtitle: 'Transportasi Umum',
-      subwayRows: [
-        [
-          { badge: '1', color: SUB1, text: 'Jalur 1 · Stasiun Jonggak Pintu Keluar 11' },
-          { badge: '3', color: SUB3, text: 'Jalur 3 · Stasiun Anguk Pintu Keluar 6' },
-        ],
-        [{ badge: '5', color: SUB5, text: 'Jalur 5 · Stasiun Jongno 3-ga Pintu Keluar 5' }],
-      ],
-      busRows: BUS_ROWS,
-    },
     marketMap: {
       heading: 'Pasar Osaek Osan: pasar tradisional unggulan Osan yang penuh kuliner, pemandangan, dan hiburan',
       description: [
@@ -315,12 +226,8 @@ const STREET_MAPS: Record<number, StreetMap> = {
 };
 
 const BADGE_ICON: Record<string, string> = {
-  '1': badge1,
-  '3': badge3,
-  '5': badge5,
   B1: badgeB1,
   B2: badgeB2,
-  '5G': badge5g,
 };
 
 function BadgePill({ b, bus = false }: { b: Badge; bus?: boolean }): JSX.Element {
@@ -343,6 +250,16 @@ interface OsanTransportProps {
 
 /** 교통안내 — public transit + 오색시장 map (Figma 오산>교통안내). Only the first
  *  two tabs have content; the market-zone tabs show a 준비중 placeholder. */
+/** The sheet's Transport_MapInfo is a full sentence — longer than the old
+ *  one-line Korean title the CSS keeps on one row — so it wraps in every
+ *  language (as `.long .marketHeading` already does for the others). */
+const HEADING_WRAP = {
+  whiteSpace: 'normal',
+  wordBreak: 'keep-all',
+  overflowWrap: 'normal',
+  textWrap: 'balance',
+} as CSSProperties;
+
 /** ♿ card tops by tab index (see OsanTransport). */
 const LOW_CARD_TOP: Record<number, number> = { 0: 987, 1: 944, 2: 1570, 3: 1580, 4: 1570, 5: 1047, 6: 1024 };
 
@@ -350,6 +267,23 @@ export function OsanTransport({ controller, initialTab = 0 }: OsanTransportProps
   const goHome = (): void => controller.navigate('home', 'Back');
   const lang = useLanguageStore((s) => s.currentLanguage);
   const c = pick(CONTENT, lang);
+  /* Sheet first (Localization_Osaek), the authored CONTENT behind it. */
+  const tabs = TAB_KEYS.map((key, i) => tExact(key, lang) || c.tabs[i] || '');
+  const busRows: Badge[] = BUS_ROW_KEYS.map(({ key, icon, color }) => ({
+    badge: 'B',
+    icon,
+    color,
+    text: sheetText(key, lang),
+  })).filter((b) => b.text);
+  const market = {
+    heading: tExact('Transport_MapInfo', lang) || c.marketMap.heading,
+    description: (() => {
+      const lines = sheetLines(tExact('Transport_MapContent_1', lang));
+      return lines.length ? lines : c.marketMap.description;
+    })(),
+    kioskTitle: tExact('Transport_MapContent_2', lang) || c.marketMap.kioskTitle,
+    kioskLoc: tExact('Transport_MapContent_3', lang) || c.marketMap.kioskLoc,
+  };
   /* Korean tab names fit the tab on one line; the other languages do not.
      See "Other languages" in the CSS. */
   const wide = lang !== 'ko';
@@ -357,8 +291,8 @@ export function OsanTransport({ controller, initialTab = 0 }: OsanTransportProps
   const [tab, setTab] = useState(initialTab);
   const street: StreetMap | undefined = STREET_MAPS[tab];
 
-  const row1 = c.tabs.slice(0, 5);
-  const row2 = c.tabs.slice(5);
+  const row1 = tabs.slice(0, 5);
+  const row2 = tabs.slice(5);
 
   useFitText(tabsRef, styles.tabLabel, wide, 0.72, lang, 'ink', 0.5);
 
@@ -376,7 +310,7 @@ export function OsanTransport({ controller, initialTab = 0 }: OsanTransportProps
      7894:54695, 빨강길 7894:54761, 녹색길 7894:54826, 미소거리 7894:54891, 아름거리
      7894:54956, 맘스거리 7894:55020). 기타 has no frame and takes the map's. */
   const lowCardTop = LOW_CARD_TOP[tab] ?? LOW_CARD_TOP[1]!;
-  const header = <OsanHeader title={c.title} subtitle={sheetText('Transport_Subtitle', lang) || sheetText('SubHeader_Transport', lang) || undefined} onHome={goHome} />;
+  const header = <OsanHeader title="교통안내" subtitle={sheetText('Transport_Subtitle', lang) || sheetText('SubHeader_Transport', lang) || undefined} onHome={goHome} />;
 
   return (
     <div
@@ -420,14 +354,15 @@ export function OsanTransport({ controller, initialTab = 0 }: OsanTransportProps
         </div>
 
         {tab === 0 ? (
-          /* ── 대중교통 — Figma 7878:12899: header + map, subway list, bus list ── */
+          /* ── 대중교통 — Figma 7878:12899: header + map, bus list (오산 has no
+                subway; the Figma's subway rows were 인사동's) ── */
           <div className={`${styles.card} ${styles.cardTransit}`}>
             <div className={styles.transitTop}>
               <div className={styles.transitHead}>
-                <span className={styles.transitHeading}>{c.transit.heading}</span>
+                <span className={styles.transitHeading}>{sheetText('Transport_Bus', lang)}</span>
                 <span className={styles.transitSub}>
                   <img className={styles.transitDot} src={transitDot} alt="" draggable={false} />
-                  {c.transit.subtitle}
+                  {tabs[0]}
                 </span>
               </div>
               <div className={styles.transitMapBox}>
@@ -435,23 +370,10 @@ export function OsanTransport({ controller, initialTab = 0 }: OsanTransportProps
               </div>
             </div>
 
-            <div className={styles.infoRow}>
-              <img className={styles.markerIcon} src={transitMarker} alt="" draggable={false} />
-              <div className={styles.subwayCol}>
-                {c.transit.subwayRows.map((rowItems, i) => (
-                  <div key={i} className={styles.subwayRow}>
-                    {rowItems.map((b, j) => (
-                      <BadgePill key={j} b={b} />
-                    ))}
-                  </div>
-                ))}
-              </div>
-            </div>
-
             <div className={styles.busSection}>
               <img className={styles.markerIcon} src={transitMarker} alt="" draggable={false} />
               <div className={styles.busCol}>
-                {c.transit.busRows.map((b, i) => (
+                {busRows.map((b, i) => (
                   <BadgePill key={i} b={b} bus />
                 ))}
               </div>
@@ -460,19 +382,21 @@ export function OsanTransport({ controller, initialTab = 0 }: OsanTransportProps
         ) : tab === 1 ? (
           /* ── 오색시장지도 — heading title above the (zoomable) market map ── */
           <div className={`${styles.card} ${styles.cardMarket}`}>
-            <p className={styles.marketHeading}>{c.marketMap.heading}</p>
+            <p className={styles.marketHeading} style={HEADING_WRAP}>
+              {market.heading}
+            </p>
             <div className={styles.marketMapWrap}>
               <ZoomableImage className={styles.mapZoom} src={marketMap} />
             </div>
             <div className={styles.marketBottom}>
               <div className={styles.marketDesc}>
-                {c.marketMap.description.map((line, i) => (
+                {market.description.map((line, i) => (
                   <span key={i}>{line}</span>
                 ))}
               </div>
               <div className={styles.kioskBlock}>
-                <p className={styles.kioskTitle}>{c.marketMap.kioskTitle}</p>
-                <p className={styles.kioskLoc}>{c.marketMap.kioskLoc}</p>
+                <p className={styles.kioskTitle}>{market.kioskTitle}</p>
+                <p className={styles.kioskLoc}>{market.kioskLoc}</p>
               </div>
             </div>
           </div>
@@ -480,8 +404,8 @@ export function OsanTransport({ controller, initialTab = 0 }: OsanTransportProps
           /* ── 골목/거리 tabs (빨강길·녹색길·미소거리·아름거리·맘스거리) — same
              오색시장지도 layout, street-specific map crop ── */
           <div className={`${styles.card} ${styles.cardMarket} ${styles.cardStreet}`} style={{ height: street.cardH }}>
-            <p className={styles.marketHeading} style={{ marginBottom: street.gaps?.head ?? 100 }}>
-              {c.marketMap.heading}
+            <p className={styles.marketHeading} style={{ ...HEADING_WRAP, marginBottom: street.gaps?.head ?? 100 }}>
+              {market.heading}
             </p>
             {street.window ? (
               <div className={styles.windowClip} style={{ width: street.w, height: street.h }}>
@@ -504,13 +428,13 @@ export function OsanTransport({ controller, initialTab = 0 }: OsanTransportProps
             )}
             <div className={styles.marketBottom} style={{ marginTop: street.gaps?.bottom ?? 100 }}>
               <div className={styles.marketDesc}>
-                {c.marketMap.description.map((line, i) => (
+                {market.description.map((line, i) => (
                   <span key={i}>{line}</span>
                 ))}
               </div>
               <div className={styles.kioskBlock}>
-                <p className={styles.kioskTitle}>{c.marketMap.kioskTitle}</p>
-                <p className={styles.kioskLoc}>{c.marketMap.kioskLoc}</p>
+                <p className={styles.kioskTitle}>{market.kioskTitle}</p>
+                <p className={styles.kioskLoc}>{market.kioskLoc}</p>
               </div>
             </div>
           </div>

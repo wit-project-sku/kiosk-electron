@@ -3,8 +3,9 @@
  * 7956:81568 (대표먹거리); frames named 오산>여기는오색시장-03 in the 화성 file.
  *
  * Header · three tabs at y700 · the tab's panel from y980 · the 상점 검색
- * promo. The copy is the frames' own (Korean) with English written here; the
- * other languages fall back to English, as the page has no sheet rows yet.
+ * promo. The copy follows Localization_Hwaseong's Here_* rows (added when the
+ * tab was rebuilt 2026-10-19); the frames' Korean and the eight-language copy
+ * below stay as the per-language fallback for an empty cell (see `sheetText`).
  */
 import { useState } from 'react';
 import type { KioskController } from '@renderer/hooks/useKioskController';
@@ -13,7 +14,8 @@ import nightImg from '@renderer/assets/photos/hwaseong/about/night.jpg';
 import gukbapImg from '@renderer/assets/photos/hwaseong/about/gukbap.jpg';
 import { trackEvent } from '@renderer/lib/analytics';
 import { useAccessibilityStore } from '@renderer/store/accessibilityStore';
-import { pick, screenSubtitle, useLang, type Lang } from '@renderer/lib/i18n';
+import { screenSubtitle, screenTitle, useLang, type Lang } from '@renderer/lib/i18n';
+import { sheetText } from '@renderer/lib/loc';
 import { ui } from '@renderer/lib/uiText';
 import { HwaseongBanner } from './HwaseongBanner';
 import { HwaseongHeader } from './HwaseongHeader';
@@ -28,10 +30,11 @@ const tr = (ko: string, en: string, rest: Omit<Text, 'ko' | 'en'>): Text => ({ k
 
 type TabId = 'map' | 'features' | 'food';
 
-const TABS: { id: TabId; label: Text }[] = [
-  { id: 'map', label: tr('화성휴게소 지도', 'Rest Area Map', {"ja":"休憩所マップ","zh":"休息站地图","vi":"Bản đồ trạm dừng","th":"แผนที่จุดพักรถ","ru":"Карта зоны отдыха","id":"Peta rest area"}) },
-  { id: 'features', label: tr('주요특징', 'Highlights', {"ja":"主な特徴","zh":"主要特色","vi":"Điểm nổi bật","th":"จุดเด่น","ru":"Особенности","id":"Keunggulan"}) },
-  { id: 'food', label: tr('대표먹거리', 'Signature Food', {"ja":"名物グルメ","zh":"招牌美食","vi":"Món đặc trưng","th":"อาหารขึ้นชื่อ","ru":"Фирменные блюда","id":"Kuliner khas"}) },
+/** `key` — the Localization_Hwaseong row for the label. */
+const TABS: { id: TabId; key: string; label: Text }[] = [
+  { id: 'map', key: 'Here_map', label: tr('화성휴게소 지도', 'Rest Area Map', {"ja":"休憩所マップ","zh":"休息站地图","vi":"Bản đồ trạm dừng","th":"แผนที่จุดพักรถ","ru":"Карта зоны отдыха","id":"Peta rest area"}) },
+  { id: 'features', key: 'Here_features', label: tr('주요특징', 'Highlights', {"ja":"主な特徴","zh":"主要特色","vi":"Điểm nổi bật","th":"จุดเด่น","ru":"Особенности","id":"Keunggulan"}) },
+  { id: 'food', key: 'Here_foods', label: tr('대표먹거리', 'Signature Food', {"ja":"名物グルメ","zh":"招牌美食","vi":"Món đặc trưng","th":"อาหารขึ้นชื่อ","ru":"Фирменные блюда","id":"Kuliner khas"}) },
 ];
 
 // ── 주요특징 (7956:81433) ──────────────────────────────────────────────
@@ -83,7 +86,8 @@ interface Props {
 export function HwaseongRestStop({ controller }: Props): JSX.Element {
   const lang = useLang();
   const [tab, setTab] = useState<TabId>('map');
-  const T = (text: Text): string => pick(text, lang);
+  /** Localization_Hwaseong's cell for this language, else the authored copy. */
+  const S = (key: string, text: Text): string => sheetText(key, lang, text);
   const icon = hwaseongIconUrl;
 
   const goHome = (label: string): void => {
@@ -108,13 +112,13 @@ export function HwaseongRestStop({ controller }: Props): JSX.Element {
     <div className={styles.root}>
       <HwaseongPageBg />
 
-      {/* "여기는 화성휴게소" is the frame's Korean title; other languages keep
-          the sheet's title for the 화성휴게소 tile. */}
+      {/* Here_IsHwaseong_Title / _Subtitle; an empty cell falls back to the
+          frame's Korean title, or the 화성휴게소 tile's title in other languages. */}
       <div className={low ? styles.lowHeader : styles.contents}>
         <HwaseongHeader
           controller={controller}
-          title={lang === 'ko' ? '여기는 화성휴게소' : '화성휴게소'}
-          subtitle={screenSubtitle('화성휴게소', lang)}
+          title={S('Here_IsHwaseong_Title', { ko: '여기는 화성휴게소', [lang]: lang === 'ko' ? '여기는 화성휴게소' : screenTitle('화성휴게소', lang) })}
+          subtitle={S('Here_IsHwaseong_Subtitle', { [lang]: screenSubtitle('화성휴게소', lang) }) || undefined}
           onHome={() => goHome('홈')}
           onBack={() => goHome('뒤로')}
         />
@@ -128,7 +132,7 @@ export function HwaseongRestStop({ controller }: Props): JSX.Element {
             className={`${styles.tab} ${t.id === tab ? styles.tabSelected : ''}`}
             onClick={() => pickTab(t.id)}
           >
-            {T(t.label)}
+            {S(t.key, t.label)}
           </button>
         ))}
       </div>
@@ -147,21 +151,21 @@ export function HwaseongRestStop({ controller }: Props): JSX.Element {
       )}
 
       {tab === 'features' && (
-        <div className={styles.featuresPanel}>
+        <div className={lang === 'ko' ? styles.featuresPanel : `${styles.featuresPanel} ${styles.featuresWide}`}>
           <div className={styles.heading}>
-            <p className={styles.eyebrow}>{T(FEATURES.eyebrow)}</p>
-            <p className={styles.headingTitle}>{T(FEATURES.title)}</p>
+            <p className={styles.eyebrow}>{S('Here_feature_desc1', FEATURES.eyebrow)}</p>
+            <p className={styles.headingTitle}>{S('Here_feature_desc2', FEATURES.title)}</p>
           </div>
-          <p className={styles.featuresBody}>{T(FEATURES.body)}</p>
+          <p className={styles.featuresBody}>{S('Here_feature_desc3', FEATURES.body)}</p>
           <img className={styles.featuresPhoto} src={nightImg} alt="" draggable={false} />
           <div className={styles.featureCards}>
-            {FEATURES.cards.map((c) => (
+            {FEATURES.cards.map((c, i) => (
               <div key={c.icon} className={styles.featureCard}>
                 <span className={styles.featureIcon}>
                   {icon(c.icon) && <img src={icon(c.icon)} alt="" draggable={false} />}
                 </span>
-                <p className={styles.featureTitle}>{T(c.title)}</p>
-                <p className={styles.featureBody}>{T(c.body)}</p>
+                <p className={styles.featureTitle}>{S(`Here_feature_${i + 1}_title`, c.title)}</p>
+                <p className={styles.featureBody}>{S(`Here_feature_${i + 1}_content`, c.body)}</p>
               </div>
             ))}
           </div>
@@ -171,8 +175,8 @@ export function HwaseongRestStop({ controller }: Props): JSX.Element {
               {icon('here-pin') && <img src={icon('here-pin')} alt="" draggable={false} />}
             </span>
             <div className={styles.locationText}>
-              <p className={styles.locationRoad}>{T(FEATURES.road)}</p>
-              <p className={styles.locationAddress}>{T(FEATURES.address)}</p>
+              <p className={styles.locationRoad}>{S('Here_address_1', FEATURES.road)}</p>
+              <p className={styles.locationAddress}>{S('Here_address_2', FEATURES.address)}</p>
             </div>
           </div>
         </div>
@@ -183,10 +187,10 @@ export function HwaseongRestStop({ controller }: Props): JSX.Element {
           <div className={styles.foodCard}>
             <div className={styles.foodTop}>
               <div className={styles.foodTitleRow}>
-                <h2 className={styles.foodName}>{T(FOOD.main.name)}</h2>
+                <h2 className={styles.foodName}>{S('Here_food_1_title', FOOD.main.name)}</h2>
                 <span className={styles.foodCat}>
                   <span className={styles.dot} />
-                  {T(FOOD.main.category)}
+                  {S('Here_foods', FOOD.main.category)}
                 </span>
               </div>
               <div className={styles.foodPhotoRow}>
@@ -194,18 +198,18 @@ export function HwaseongRestStop({ controller }: Props): JSX.Element {
               </div>
               <div className={styles.foodDivider} />
             </div>
-            <p className={styles.foodBody}>{T(FOOD.main.body)}</p>
-            <p className={styles.foodTags}>{T(FOOD.main.tags)}</p>
+            <p className={styles.foodBody}>{S('Here_food_1_desc1', FOOD.main.body)}</p>
+            <p className={styles.foodTags}>{S('Here_food_1_desc2', FOOD.main.tags)}</p>
           </div>
 
           <div className={styles.foodCard2}>
             <div className={styles.heading}>
-              <p className={styles.eyebrow}>{T(FOOD.second.eyebrow)}</p>
-              <p className={styles.headingTitle}>{T(FOOD.second.name)}</p>
+              <p className={styles.eyebrow}>{S('Here_food_2_title1', FOOD.second.eyebrow)}</p>
+              <p className={styles.headingTitle}>{S('Here_food_2_title2', FOOD.second.name)}</p>
             </div>
-            <p className={styles.food2Body}>{T(FOOD.second.body)}</p>
+            <p className={styles.food2Body}>{S('Here_food_2_desc1', FOOD.second.body)}</p>
             <div className={styles.rule} />
-            <p className={styles.food2Tags}>{T(FOOD.second.tags)}</p>
+            <p className={styles.food2Tags}>{S('Here_food_2_desc2', FOOD.second.tags)}</p>
           </div>
         </>
       )}

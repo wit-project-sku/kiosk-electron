@@ -87,19 +87,15 @@ interface Props {
   /** The kiosk's real home. Abandons the photo session. */
   onHome: () => void;
   /**
-   * 인사동: announce the finished photo with the centred 저장하기 / 다시찍기 popup
-   * (Figma 7768:10445) instead of 제주's bottom sheet, and on every view — the
-   * menu included — because the frame has no "keep playing" choice to make.
+   * 제주 and 인사동: announce the finished photo with the centred 저장하기 /
+   * 다시찍기 popup (Figma 7768:10445) instead of the bottom sheet.
    */
   readyModal?: boolean;
 }
 
 export function JejuWaitingGames({ rounds, aiReady, onFinish, onHome, readyModal = false }: Props): JSX.Element {
-  /* Without the camera games (everywhere but 제주) the menu would list
-     틀린그림찾기 alone — a page whose only job is one tap. Those venues open the
-     game straight away, standalone: no menu to go back to, so its home/back
-     are the kiosk's (locked until the photo is ready) and it offers 다시 하기
-     while the photo generates, exactly as it does outside the hub. */
+  /* The jump game is off, so every venue opens 틀린그림찾기 already in play.
+     No menu to go back to: home/back are the kiosk's until the photo is ready. */
   const { motionGames } = usePhotoChrome();
   const singleGame = !motionGames;
   const [view, setView] = useState<JejuGameView>(singleGame ? 'spotdiff' : 'hub');
@@ -203,8 +199,6 @@ export function JejuWaitingGames({ rounds, aiReady, onFinish, onHome, readyModal
     [award, aiReady, kioskId],
   );
 
-  const backToHub = useCallback(() => setView('hub'), []);
-
   // ── "Your photo is ready — keep playing, or see it?" ─────────────────
   //
   // Asked ONCE, the moment the photo lands, and only over a game: on the menu
@@ -249,16 +243,14 @@ export function JejuWaitingGames({ rounds, aiReady, onFinish, onHome, readyModal
   );
 
   /**
-   * 틀린그림찾기 finishing inside the hub.
+   * 틀린그림찾기 asked to leave.
    *
-   * Its 결과 보기 button hands over unconditionally, which is right when the
-   * photo is there and wrong when it is not — handing over early would set the
-   * workflow's gate while the phase is still 'generating', and this screen
-   * would simply be re-rendered over a game that has already ended. So before
-   * the photo lands, "finished" means "back to the menu", where the other game
-   * is and an honest status line. After it lands this only runs from the
-   * visitor's own 사진 보기 tap — 틀린그림찾기 no longer hands over by itself.
+   * Skip hands the screen back to the photo wait. A finished round does not
+   * call this while the photo is still generating — the board offers another
+   * round instead, because there is no game menu to return to.
    */
+  const backToHub = useCallback(() => setView('hub'), []);
+
   const finishFromSpotDiff = useCallback(() => {
     if (aiReady) handOver();
     else backToHub();
@@ -316,7 +308,7 @@ export function JejuWaitingGames({ rounds, aiReady, onFinish, onHome, readyModal
           rounds={rounds}
           aiReady={aiReady}
           onFinish={singleGame ? handOver : finishFromSpotDiff}
-          onHome={onHome}
+          onHome={aiReady ? handOver : onHome}
           // Presence of this prop is what tells 틀린그림찾기 it is hosted: its
           // header stops being the destructive kiosk home and becomes "back to
           // the menu", so its own nav lock no longer applies.

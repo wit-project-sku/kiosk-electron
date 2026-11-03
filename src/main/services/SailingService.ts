@@ -12,7 +12,7 @@ const REFRESH_MS = 5 * 60 * 1000;
 const CACHE_KEY = 'jeju-sailings';
 /** Same feed as http://jeju.ferry.or.kr/ (haewoon terminal board). */
 const TERMINAL_BOARD_URL = 'http://company.haewoon.co.kr/CompanySite/getJSONData.aspx';
-const TERMINAL_KIOSK = 'W007';
+const TERMINAL_KIOSK = 'W009';
 
 type SailingListener = (snapshot: JejuSailingSnapshot) => void;
 
@@ -33,7 +33,7 @@ interface TerminalBoardRow {
 /**
  * Fetches 제주항 departures + arrivals from the jeju.ferry.or.kr terminal board.
  * Berth (국제/연안), times, durations, and ship names match the public homepage.
- * Gated to W007.
+ * Gated to W009.
  */
 export class SailingService {
   private current: JejuSailingSnapshot | null = null;

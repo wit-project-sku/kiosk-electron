@@ -152,8 +152,12 @@ export function JejuFillme({ controller }: Props): JSX.Element {
   const progressTimer = useRef<number | undefined>(undefined);
   const [pendingRun, setPendingRun] = useState(0);
 
+  /** 분석 요청의 lang — analyze 의 정체성을 언어마다 바꾸지 않으려고 ref 로 읽는다. */
+  const langRef = useRef(lang);
+
   shotsRef.current = shots;
   infoRef.current = info;
+  langRef.current = lang;
 
   const goHome = useCallback((): void => controller.navigate('home', '홈'), [controller]);
 
@@ -241,6 +245,7 @@ export function JejuFillme({ controller }: Props): JSX.Element {
         },
         left,
         right,
+        langRef.current,
       );
       if (session !== sessionRef.current) return;
       stopProgress();

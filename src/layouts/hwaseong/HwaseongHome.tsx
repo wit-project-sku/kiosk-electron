@@ -8,7 +8,7 @@
  * `home-*`; the plates' colours are CSS, as in the frame.
  *
  * Layout, top to bottom: location + clock · 공지 card with live weather ·
- * 오늘의 상점 board · search row · 3 feature cards · 12-tile grid on a white
+ * 도로교통상황 board · search row · 3 feature cards · 12-tile grid on a white
  * panel · 스마트관광 / 사진촬영 / 화장실. The frame is the 오산 home's structure
  * in [화성휴게소] main 1 #005AB4, and like it draws no rotating banner.
  *
@@ -30,7 +30,7 @@ import { hwaseongIconUrl } from '@renderer/assets/icons/hwaseong';
 import { weatherIconName, weatherIconUrl } from '@renderer/assets/weather';
 import { useHasDonationTile } from '@renderer/lib/buttonLayout';
 import { buttonText, pick, type Lang } from '@renderer/lib/i18n';
-import { t, tExact } from '@renderer/lib/loc';
+import { sheetText, t, tExact } from '@renderer/lib/loc';
 import { DONATION_COMING_SOON, withComingSoon } from '@shared/config/donation';
 import { SearchIcon } from '@layouts/components/SearchIcon';
 import { useFitText } from '@layouts/components/fitText';
@@ -39,7 +39,7 @@ import { HangulComposer } from '../insadong/keyboard/hangul';
 import type { KeyAction } from '../insadong/keyboard/VirtualKeyboard';
 import { HwaseongBanner } from './HwaseongBanner';
 import { HwaseongLeftNav } from './HwaseongLeftNav';
-import { HwaseongShopBoard } from './HwaseongShopBoard';
+import { HwaseongTrafficBoard } from './HwaseongTrafficBoard';
 import styles from './HwaseongHome.module.css';
 
 type Text = Partial<Record<Lang, string>>;
@@ -66,6 +66,9 @@ interface Tile {
   title: string;
   /** Localization_Hwaseong key for the other languages' title. */
   titleKey: string;
+  /** Localization_Hwaseong key for the second line (`MainButton_*_Subtext`). */
+  subKey: string;
+  /** Fallback second line when the sheet has no value for a language. */
   sub: Text;
   /** Plate fill from the frame. */
   plate: string;
@@ -92,65 +95,65 @@ interface Tile {
  */
 const TILES: Tile[] = [
   {
-    screen: 'food_court', label: "'휴' 뭐먹지", title: "'휴' 뭐먹지", titleKey: 'MainButton_ToEat', plate: '#fff0cb',
+    screen: 'food_court', label: "'휴' 뭐먹지", title: "'휴' 뭐먹지", titleKey: 'MainButton_ToEat', subKey: 'MainButton_ToEat_Subtext', plate: '#fff0cb',
     art: { icon: 'home-tile-eat', left: 57.51, top: 47.85, width: 203.586, height: 203.839 },
     sub: { ko: '맛집 추천', en: 'Restaurant picks', ja: 'おすすめグルメ', zh: '美食推荐', vi: 'Gợi ý quán ăn', th: 'ร้านอาหารแนะนำ', ru: 'Где поесть', id: 'Rekomendasi kuliner' },
   },
   {
-    screen: 'shop', label: "'휴' 뭐사지", title: '‘휴’ 뭐사지(물품)', titleKey: 'MainButton_ToBuy', plate: '#e5f2fc',
+    screen: 'shop', label: "'휴' 뭐사지", title: '‘휴’ 뭐사지(물품)', titleKey: 'MainButton_ToBuy', subKey: 'MainButton_ToBuy_SubText', plate: '#e5f2fc',
     art: null,
     sub: { ko: '물품 추천', en: 'Goods picks', ja: 'おすすめ雑貨', zh: '商品推荐', vi: 'Gợi ý hàng hóa', th: 'แนะนำสินค้า', ru: 'Товары', id: 'Rekomendasi barang' },
   },
   {
     // 전국시장 stays 준비중 (product gate, as before the redesign) — the frame
     // drops the marker, but the screen has not been released.
-    screen: 'market', label: '전국시장(준비중)', title: '전국시장', titleKey: 'MainButton_TraditionalMarket', plate: '#ffe1fd',
+    screen: 'market', label: '전국시장(준비중)', title: '전국시장', titleKey: 'MainButton_TraditionalMarket', subKey: 'MainButton_TraditionalMarket_Subtext', plate: '#ffe1fd',
     art: { icon: 'home-tile-market', left: 75, top: 75, width: 150, height: 150 }, pending: true,
     sub: { ko: '쇼핑 추천', en: 'Shopping picks', ja: 'おすすめショッピング', zh: '购物推荐', vi: 'Gợi ý mua sắm', th: 'แนะนำช้อปปิ้ง', ru: 'Покупки', id: 'Rekomendasi belanja' },
   },
   {
-    screen: 'taxfree', label: 'TAX-FREE', title: 'TAX-FREE', titleKey: 'MainButton_TaxFree', plate: '#efefef',
+    screen: 'taxfree', label: 'TAX-FREE', title: 'TAX-FREE', titleKey: 'MainButton_TaxFree', subKey: 'MainButton_TaxFree_Subtext', plate: '#efefef',
     art: { icon: 'home-tile-taxfree', left: 47.5, top: 47.5, width: 205, height: 205 },
     sub: { ko: '면세혜택', en: 'Tax refund', ja: '免税特典', zh: '免税优惠', vi: 'Ưu đãi miễn thuế', th: 'สิทธิ์ปลอดภาษี', ru: 'Возврат налога', id: 'Bebas pajak' },
   },
   {
-    screen: 'tourism', label: '화성휴게소', title: '화성휴게소', titleKey: 'MainButton_Here', plate: '#deffbc', tracking: '-0.76px',
+    screen: 'tourism', label: '화성휴게소', title: '화성휴게소', titleKey: 'MainButton_Here', subKey: 'MainButton_Here_Subtext', plate: '#deffbc', tracking: '-0.76px',
     art: { icon: 'home-tile-here', left: 64, top: 64, width: 172, height: 172 },
     sub: { ko: '관광지 추천', en: 'Attractions', ja: 'おすすめ観光地', zh: '景点推荐', vi: 'Điểm tham quan', th: 'สถานที่ท่องเที่ยว', ru: 'Достопримечательности', id: 'Tempat wisata' },
   },
   {
-    screen: 'hello', label: "안녕 '휴'", title: '안녕 ’휴’', titleKey: 'MainButton_Greeting', plate: '#ffe1e4',
+    screen: 'hello', label: "안녕 '휴'", title: '안녕 ’휴’', titleKey: 'MainButton_Greeting', subKey: 'MainButton_Greeting_Subtext', plate: '#ffe1e4',
     art: { icon: 'home-tile-hello', left: 72.656, top: 63.95, width: 154.688, height: 180.099 },
     sub: { ko: '‘휴’ 소개', en: 'Meet Hyu', ja: 'ヒュの紹介', zh: '认识Hyu', vi: 'Giới thiệu Hyu', th: 'แนะนำฮยู', ru: 'Знакомьтесь, Хю', id: 'Kenalan dengan Hyu' },
   },
   {
-    screen: 'help', label: "도와줘 '휴'", title: '도와줘 ‘휴’', titleKey: 'MainButton_ToHelp', plate: '#ede4ff',
+    screen: 'help', label: "도와줘 '휴'", title: '도와줘 ‘휴’', titleKey: 'MainButton_ToHelp', subKey: 'MainButton_ToHelp_Subtext', plate: '#ede4ff',
     art: { icon: 'home-tile-help', left: 48, top: 56, width: 204, height: 193 },
     sub: { ko: '편의시설 안내', en: 'Amenities', ja: '便利施設のご案内', zh: '便利设施指南', vi: 'Tiện ích', th: 'สิ่งอำนวยความสะดวก', ru: 'Удобства', id: 'Fasilitas' },
   },
   {
     // The frame's plate has no justify-center: the art sits at its 64.35 padding.
-    screen: 'exchange', label: '환율', title: '환율', titleKey: 'MainButton_Exchange', plate: '#ffefd9',
+    screen: 'exchange', label: '환율', title: '환율', titleKey: 'MainButton_Exchange', subKey: 'MainButton_Exchange_Subtext', plate: '#ffefd9',
     art: { icon: 'home-tile-exchange', left: 64.35, top: 56.5, width: 165, height: 187 },
     sub: { ko: '환율 계산기', en: 'Currency calculator', ja: '為替計算', zh: '汇率计算器', vi: 'Tính tỷ giá', th: 'คำนวณอัตราแลกเปลี่ยน', ru: 'Калькулятор валют', id: 'Kalkulator kurs' },
   },
   {
-    screen: 'rest_info', label: '문화재(준비중)', title: '문화재(준비중)', titleKey: 'MainButton_Property', plate: '#d3b7a5', slot: 16,
+    screen: 'rest_info', label: '문화재(준비중)', title: '문화재(준비중)', titleKey: 'MainButton_Property', subKey: 'MainButton_Property_Subtext', plate: '#d3b7a5', slot: 16,
     art: { icon: 'home-tile-heritage', left: 60, top: 50.93, width: 180, height: 202.137 }, pending: true,
     sub: { ko: '문화유산 안내', en: 'Heritage guide', ja: '文化遺産のご案内', zh: '文化遗产指南', vi: 'Di sản văn hóa', th: 'มรดกทางวัฒนธรรม', ru: 'Культурное наследие', id: 'Warisan budaya' },
   },
   {
-    screen: 'donation', label: '기부', title: '기부', titleKey: 'MainButton_Donation', plate: '#e5f7f4',
+    screen: 'donation', label: '기부', title: '기부', titleKey: 'MainButton_Donation', subKey: 'MainButton_Donation_Subtext', plate: '#e5f7f4',
     art: { icon: 'home-tile-donation', left: 56, top: 42, width: 178.27, height: 199.327 },
     sub: { ko: '교복 기부', en: 'Uniform donation', ja: '制服の寄付', zh: '校服捐赠', vi: 'Quyên góp đồng phục', th: 'บริจาคชุดนักเรียน', ru: 'Пожертвование формы', id: 'Donasi seragam' },
   },
   {
-    screen: 'rest_info', label: 'K-컬처(준비중)', title: 'K-컬처(준비중)', titleKey: 'MainButton_KCulture', plate: '#fff5bb', slot: 17,
+    screen: 'rest_info', label: 'K-컬처(준비중)', title: 'K-컬처(준비중)', titleKey: 'MainButton_KCulture', subKey: 'MainButton_KCulture_Subtext', plate: '#fff5bb', slot: 17,
     art: { icon: 'home-tile-kculture', left: 61.5, top: 56.5, width: 177, height: 186.189 }, pending: true,
     sub: { ko: '한류 문화 체험', en: 'K-culture experience', ja: '韓流カルチャー体験', zh: '韩流文化体验', vi: 'Trải nghiệm văn hóa Hàn', th: 'สัมผัสวัฒนธรรมเกาหลี', ru: 'Корейская культура', id: 'Pengalaman budaya Korea' },
   },
   {
-    screen: 'rest_info', label: '지역화폐', title: '지역화폐', titleKey: 'MainButton_MarketPaper', plate: '#f2ede6', slot: 18,
+    screen: 'rest_info', label: '지역화폐', title: '지역화폐', titleKey: 'MainButton_MarketPaper', subKey: 'MainButton_MarketPaper_Subtext', plate: '#f2ede6', slot: 18,
     art: { icon: 'home-tile-localpay', left: 43, top: 43, width: 214, height: 214 },
     sub: { ko: '행복화성지역화폐', en: 'Hwaseong local currency', ja: '華城地域通貨', zh: '华城地方货币', vi: 'Tiền địa phương Hwaseong', th: 'เงินท้องถิ่นฮวาซอง', ru: 'Местная валюта Хвасона', id: 'Mata uang lokal Hwaseong' },
   },
@@ -202,6 +205,8 @@ interface Card {
   label: string;
   title: string;
   titleKey: string;
+  /** Localization_Hwaseong key for the second line (`MainButton_*_Subtext`). */
+  subKey: string;
   /** The frame's subtitles are 오산 leftovers (AI 검색하기 / 굿즈 만들기 /
    *  오산시 행사) — these are authored for the three 화성 destinations. */
   sub: Text;
@@ -210,15 +215,15 @@ interface Card {
 
 const CARDS: Card[] = [
   {
-    screen: 'transport', label: '전국도로교통상황', title: '전국도로교통상황', titleKey: 'MainButton_TrafficInfo', variant: 'cardTraffic',
+    screen: 'transport', label: '전국도로교통상황', title: '전국도로교통상황', titleKey: 'MainButton_TrafficInfo', subKey: 'MainButton_TrafficInfo_Subtext', variant: 'cardTraffic',
     sub: { ko: '실시간 교통정보', en: 'Live traffic', ja: 'リアルタイム交通情報', zh: '实时交通信息', vi: 'Giao thông trực tiếp', th: 'สภาพจราจรสด', ru: 'Пробки онлайн', id: 'Lalu lintas langsung' },
   },
   {
-    screen: 'convenience', label: '전국휴게소', title: '전국휴게소', titleKey: 'MainButton_ServiceArea', variant: 'cardRest',
+    screen: 'convenience', label: '전국휴게소', title: '전국휴게소', titleKey: 'MainButton_Restarea', subKey: 'MainButton_Restarea_Subtext', variant: 'cardRest',
     sub: { ko: '휴게소 정보', en: 'Rest area info', ja: 'SA情報', zh: '休息站信息', vi: 'Thông tin trạm dừng', th: 'ข้อมูลจุดพักรถ', ru: 'Зоны отдыха', id: 'Info rest area' },
   },
   {
-    screen: 'events', label: '화성시 이벤트', title: '화성시 이벤트', titleKey: 'MainButton_Event', variant: 'cardEvents',
+    screen: 'events', label: '화성시 이벤트', title: '화성시 이벤트', titleKey: 'MainButton_Event', subKey: 'MainButton_Event_Subtext', variant: 'cardEvents',
     sub: { ko: '화성시 행사', en: 'Hwaseong events', ja: '華城市の行事', zh: '华城市活动', vi: 'Sự kiện Hwaseong', th: 'งานเมืองฮวาซอง', ru: 'События Хвасона', id: 'Acara Kota Hwaseong' },
   },
 ];
@@ -381,13 +386,14 @@ export function HwaseongHome({ controller }: Props): JSX.Element {
     return v && v !== key ? v : '';
   };
   const titleOf = (item: Tile | Card): string => {
-    if (lang === 'ko') return item.title;
     if (item.screen === 'taxfree') return 'TAX-FREE';
     const gated = 'pending' in item && item.pending;
     const base = sheet(item.titleKey) || item.title;
     // Live tiles drop a stale "(준비중)" the sheet may still carry.
     return gated ? base : base.replace(/\s*\(준비중\)\s*/g, '').trim();
   };
+  // Second line: the sheet's *_Subtext row, else the authored copy.
+  const subOf = (item: Tile | Card): string => sheetText(item.subKey, lang, item.sub);
   const isInert = (tile: Tile): boolean => !!tile.pending || (tile.screen === 'donation' && donationPending);
   const tileTitle = (tile: Tile): string => {
     const base = titleOf(tile);
@@ -411,7 +417,7 @@ export function HwaseongHome({ controller }: Props): JSX.Element {
   const weatherIcon = weather ? weatherIconUrl(weatherIconName(weather.icon, weather.main)) : undefined;
 
   const smartTourLabel =
-    lang === 'ko' ? '스마트관광(준비중)' : tExact('MainButton_SmartTour', lang) || pending(pick(SMART_TOUR, lang));
+    tExact('MainButton_SmartTour', lang) || (lang === 'ko' ? '스마트관광(준비중)' : pending(pick(SMART_TOUR, lang)));
 
   /**
    * Other languages: Korean is laid out exactly as the frame draws it. Every
@@ -425,8 +431,8 @@ export function HwaseongHome({ controller }: Props): JSX.Element {
   const fitKey = [
     lang,
     noticeRuns.map((r) => r.text).join(''),
-    CARDS.map((c) => titleOf(c) + pick(c.sub, lang)).join('|'),
-    TILES.map((tile) => tileTitle(tile) + pick(tile.sub, lang)).join('|'),
+    CARDS.map((c) => titleOf(c) + subOf(c)).join('|'),
+    TILES.map((tile) => tileTitle(tile) + subOf(tile)).join('|'),
   ].join('§');
   useFitText(noticeRef, styles.noticeLead, wide, 0.7, fitKey);
   useFitText(cardsRef, styles.cardText, wide, 0.75, fitKey);
@@ -472,8 +478,8 @@ export function HwaseongHome({ controller }: Props): JSX.Element {
         </button>
       </div>
 
-      {/* ── 오늘의 상점 board + 상점 정보 더보기 ── */}
-      <HwaseongShopBoard controller={controller} lang={lang} now={now} low={low} />
+      {/* ── 도로교통상황 board + 교통정보 더보기 ── */}
+      <HwaseongTrafficBoard controller={controller} lang={lang} low={low} />
 
       {/* ── Search row ── */}
       <div className={styles.searchRow}>
@@ -502,7 +508,7 @@ export function HwaseongHome({ controller }: Props): JSX.Element {
       <div className={styles.cards} ref={cardsRef}>
         {CARDS.map((card) => {
           const title = <span className={styles.cardTitle}>{titleOf(card)}</span>;
-          const sub = <span className={styles.cardSub}>{pick(card.sub, lang)}</span>;
+          const sub = <span className={styles.cardSub}>{subOf(card)}</span>;
           return (
             <button
               key={card.screen}
@@ -570,7 +576,7 @@ export function HwaseongHome({ controller }: Props): JSX.Element {
                 <span className={styles.tileTitle} style={!wide && tile.tracking ? { letterSpacing: tile.tracking } : undefined}>
                   {tileTitle(tile)}
                 </span>
-                <span className={styles.tileSub}>{pick(tile.sub, lang)}</span>
+                <span className={styles.tileSub}>{subOf(tile)}</span>
               </span>
             </button>
           );

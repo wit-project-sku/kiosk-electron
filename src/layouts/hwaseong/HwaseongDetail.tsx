@@ -65,7 +65,9 @@ export function HwaseongDetail({ controller }: Props): JSX.Element {
   // Localize both the source-page title and the "상세" suffix; the header passes
   // this composite through unchanged (it isn't a TITLE_KEYS id).
   const detailWord = screenTitle('상세', lang);
-  const title = item ? `${screenTitle(item.title, lang)} > ${detailWord}` : detailWord;
+  // A 검색 result has its own sheet row (Search_Detail_Title, "검색 > 상세").
+  const searchTitle = item?.from === 'search' ? tExact('Search_Detail_Title', lang) : '';
+  const title = searchTitle || (item ? `${screenTitle(item.title, lang)} > ${detailWord}` : detailWord);
   const subtitle = (item && screenSubtitle(item.title, lang)) || tExact('SubHeader_Detail', lang) || undefined;
 
   const real = (item?.photos ?? []).filter(Boolean);

@@ -28,7 +28,7 @@ const VARIANT = 'wit';
 
 /**
  * Per-tab description, one line (오산>TAXFREE-01 / -02): the sheet's
- * `Taxfree_header1` / `Taxfree_header2` rows — as on 제주 — with this copy
+ * `Taxfree_Subtitle1` / `Taxfree_Subtitle2` rows (Localization_Osaek) — with this copy
  * behind them. Not `SubHeader_TaxFree`, the page's two-line receipts text,
  * which the frames do not show.
  */
@@ -173,8 +173,8 @@ export function OsanTaxfree({ controller }: OsanTaxfreeProps): JSX.Element {
         title="TAX-FREE"
         subtitle={
           activeTab === 'merchant'
-            ? sheetText('Taxfree_header2', lang, MERCHANT_SUBTITLE)
-            : sheetText('Taxfree_header1', lang, REFUND_SUBTITLE)
+            ? sheetText('Taxfree_Subtitle2', lang, MERCHANT_SUBTITLE)
+            : sheetText('Taxfree_Subtitle1', lang, REFUND_SUBTITLE)
         }
         onHome={goHome}
         subtitleClassName={`${headerStyles.subtitleTaxfree} ${headerStyles.subtitleWide}`}

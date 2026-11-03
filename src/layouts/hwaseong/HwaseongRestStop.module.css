@@ -181,6 +181,25 @@
   color: #333333;
 }
 
+/* Other languages run longer than the frame's Korean: the three cards grow to
+   their text and the night photo gives up the height, so the panel keeps the
+   frame's 2086 and nothing is clipped. Korean keeps the exact frame sizes. */
+.featuresWide .featuresPhoto {
+  flex: 1 1 0;
+  min-height: 0;
+  height: auto;
+}
+
+.featuresWide .featureCards {
+  height: auto;
+  min-height: 515px;
+}
+
+.featuresWide .featureCard {
+  overflow: visible;
+  overflow-wrap: break-word;
+}
+
 /* 구분선 — 2px #E8E8E8. */
 .rule {
   height: 2px;

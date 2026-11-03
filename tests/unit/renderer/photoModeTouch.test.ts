@@ -13,9 +13,9 @@ describe('photoModeTouch — 혼자찍기 / 같이찍기 tap counts', () => {
     ['W004', 122, 123],
     ['W005', 124, 125],
     // 제주: ids fixed by the admin-be migration so stage and production agree.
-    ['W006', 301, 302],
-    ['W007', 303, 304],
-    ['W008', 305, 306],
+    ['W008', 301, 302],
+    ['W009', 303, 304],
+    ['W010', 305, 306],
   ])('%s → solo %i, together %i', (kioskId, solo, together) => {
     expect(photoModeTouch(kioskId, 'solo', AT)).toEqual({
       buttonId: solo,
@@ -43,8 +43,8 @@ describe('photoModeTouch — 혼자찍기 / 같이찍기 tap counts', () => {
   });
 
   it('leaves the other 제주 slots resolving from the live list (no static id)', () => {
-    expect(resolveButton('W006', 'home')?.id).toBeNull();
-    expect(resolveButton('W007', 'photo')?.id).toBeNull();
-    expect(resolveButton('W008', 'restroom')?.id).toBeNull();
+    expect(resolveButton('W008', 'home')?.id).toBeNull();
+    expect(resolveButton('W009', 'photo')?.id).toBeNull();
+    expect(resolveButton('W010', 'restroom')?.id).toBeNull();
   });
 });

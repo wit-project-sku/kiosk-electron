@@ -27,12 +27,19 @@ const RETENTION_DAYS = 180;
 
 const cm = (value: number | null): string => (value === null ? '--' : value.toFixed(1));
 
+/** A sidecar result waiting to be attached to the shot it was taken during. */
+export interface ShotMeasurement extends HeightMeasurement {
+  measuredAt: string;
+}
+
+type MeasurementWaiter = (measurement: ShotMeasurement | null) => void;
+
 /**
  * 키 측정 — anonymous visitor-height analytics. 제주 only.
  *
- * Owns the ZED sidecar and decides when it samples. It writes rows and nothing
- * else: no IPC to the renderer, no UI, no live value. See
- * `src/shared/types/height.ts` for why a measurement is never linked to a photo.
+ * Owns the ZED sidecar and decides when it samples. It writes rows and hands
+ * each capture's result to `/shots/v2` via `claimShotMeasurement`; no IPC to
+ * the renderer, no UI, no live value. See `src/shared/types/height.ts`.
  *
  * ── This must never be in the photo flow's way ─────────────────────────
  * Nothing here is awaited by anything. `onPhotoWorkflowChanged` is a
@@ -52,6 +59,9 @@ export class HeightService {
   private readonly enabled: boolean;
   private sampling = false;
   private runtime: HeightRuntime;
+  /** The current capture window's result, until a shot claims it. */
+  private pendingShot: ShotMeasurement | null = null;
+  private waiters: MeasurementWaiter[] = [];
 
   constructor(
     private readonly sidecar: ZedSidecarManager,
@@ -103,7 +113,37 @@ export class HeightService {
     if (cameraLive === this.sampling) return;
 
     this.sampling = cameraLive;
+    // A new visitor: whatever the last window measured belongs to someone else.
+    if (cameraLive) this.pendingShot = null;
     this.sidecar.send({ cmd: cameraLive ? 'start' : 'stop' });
+  }
+
+  /**
+   * Claim the measurement of the capture that just ended, for `/shots/v2`.
+   *
+   * The sidecar answers only after the camera window closes, which can land
+   * after the shot is reported (an early pipeline failure), so this waits up to
+   * `timeoutMs` for it. Consumed once — a second shot never gets the same
+   * visitor's numbers. Resolves null when disabled or nothing arrives.
+   */
+  claimShotMeasurement(timeoutMs = 5000): Promise<ShotMeasurement | null> {
+    if (!this.enabled) return Promise.resolve(null);
+    if (this.pendingShot) {
+      const measurement = this.pendingShot;
+      this.pendingShot = null;
+      return Promise.resolve(measurement);
+    }
+    return new Promise((resolve) => {
+      const waiter: MeasurementWaiter = (measurement) => {
+        clearTimeout(timer);
+        resolve(measurement);
+      };
+      const timer = setTimeout(() => {
+        this.waiters = this.waiters.filter((w) => w !== waiter);
+        resolve(null);
+      }, timeoutMs);
+      this.waiters.push(waiter);
+    });
   }
 
   /**
@@ -179,6 +219,10 @@ export class HeightService {
    */
   private record(measurement: HeightMeasurement): void {
     const now = new Date();
+    const shot: ShotMeasurement = { ...measurement, measuredAt: localIso(now) };
+    const waiter = this.waiters.shift();
+    if (waiter) waiter(shot);
+    else this.pendingShot = shot;
     try {
       this.repo.insert({
         ...measurement,

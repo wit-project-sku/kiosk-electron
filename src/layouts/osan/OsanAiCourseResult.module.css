@@ -160,7 +160,7 @@
   display: flex;
   height: 134px;
   border-radius: 40px 40px 0 0;
-  background: #d3dfec;
+  background: var(--kiosk-secondary, #d3dfec);
 }
 
 .tab {
@@ -268,7 +268,7 @@
   bottom: 52px;
   width: 5px;
   transform: translateX(-2.5px);
-  background: repeating-linear-gradient(to bottom, #1a4d7e 0 20px, transparent 20px 40px);
+  background: repeating-linear-gradient(to bottom, var(--kiosk-primary, #1a4d7e) 0 20px, transparent 20px 40px);
 }
 
 .row {

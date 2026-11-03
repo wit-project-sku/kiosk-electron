@@ -101,6 +101,10 @@
   font-weight: 600;
 }
 
+.bodyStrong {
+  font-weight: 700;
+}
+
 .note {
   margin: 0;
   font-family: 'Pretendard', var(--kiosk-font, sans-serif);
@@ -275,13 +279,25 @@
   white-space: nowrap;
 }
 
+/* 1210×440 slot at (261, 85), radius 20; the photo is scaled 115.31% × 128.55%
+   and shifted (−7.35%, −13.29%) inside it, as the frame crops it. */
 .paperImg {
   position: absolute;
-  left: 265px;
+  left: 261px;
   top: 85px;
   width: 1210px;
   height: 440px;
-  object-fit: contain;
+  border-radius: 20px;
+  overflow: hidden;
+}
+
+.paperImg img {
+  position: absolute;
+  left: -7.35%;
+  top: -13.29%;
+  width: 115.31%;
+  height: 128.55%;
+  max-width: none;
 }
 
 .bottomText {

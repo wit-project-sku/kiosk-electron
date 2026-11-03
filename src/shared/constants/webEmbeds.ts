@@ -30,7 +30,7 @@ export const WEB_EMBED_URLS = {
 
   /**
    * 탐나오 — 제주's public tourism platform (제주공공플랫폼), the 탐나오 home tile
-   * on W006. Jeju-only: no other location has this screen.
+   * on W008. Jeju-only: no other location has this screen.
    *
    * Since 6493:118287 that tile opens a TWO-TAB screen, so this is the FIRST tab
    * only; `jejuqrang` below is the second. It briefly held jejuqrang.com, before
@@ -75,14 +75,17 @@ export function taxfreeUrl(kioskId: string): string {
  * Resolve the 기부 webview URL for a kiosk. The donation app's `kiosk` query
  * selects per-site config (campaigns / chrome), so each physical machine maps
  * to a fixed value:
- *   W003 → 1 · W004 → 4 · W005 → 5 · W006/W007/W008 → 6
+ *   W003 → 1 · W004 → 4 · W005 → 5 · W008 → 8 · W009 → 9 · W010 → 10
  * Anything else (incl. W001/W002, which have no 기부 tile) resolves to 1.
+ * 6 is the office rig WITH-I-001, not a 제주 venue.
  */
 export function donationUrl(kioskId: string): string {
   const param =
     kioskId === 'W004' ? 4
     : kioskId === 'W005' ? 5
-    : kioskId === 'W006' || kioskId === 'W007' || kioskId === 'W008' ? 6
+    : kioskId === 'W008' ? 8
+    : kioskId === 'W009' ? 9
+    : kioskId === 'W010' ? 10
     : 1;
   return `https://witglobaldonation.vercel.app/#/?kiosk=${param}`;
 }

@@ -8,7 +8,7 @@ import {
 
 describe('test rig identity', () => {
   it('a normal kiosk is itself', () => {
-    expect(resolveKioskIdentity('W004', 'W006')).toEqual({
+    expect(resolveKioskIdentity('W004', 'W008')).toEqual({
       kioskId: 'W004',
       identityKioskId: 'W004',
       testRig: false,
@@ -16,8 +16,8 @@ describe('test rig identity', () => {
   });
 
   it('the test rig keeps W200 as identity and shows the preview site', () => {
-    expect(resolveKioskIdentity(TEST_RIG_KIOSK_ID, 'W006')).toEqual({
-      kioskId: 'W006',
+    expect(resolveKioskIdentity(TEST_RIG_KIOSK_ID, 'W008')).toEqual({
+      kioskId: 'W008',
       identityKioskId: 'W200',
       testRig: true,
     });

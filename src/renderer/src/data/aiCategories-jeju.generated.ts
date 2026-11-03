@@ -2,7 +2,7 @@
 // Run `npm run sync:sheet` to refresh from the Google Sheet.
 import type { LangText } from './types';
 
-/** W006 제주공항 AI검색 categories, prefix stripped. */
+/** W008 제주공항 AI검색 categories, prefix stripped. */
 export const AI_CATEGORIES_JEJU: LangText[] = [
   {"ko":"흑돼지","en":"black pig","ja":"黒豚","zh":"黑猪","vi":"lợn đen","th":"หมูดำ","ru":"черная свинья","id":"babi hitam"},
   {"ko":"해산물·회","en":"Seafood and Sashimi","ja":"シーフード・会","zh":"海鲜和刺身","vi":"Hải sản và Sashimi","th":"อาหารทะเลและซาชิมิ","ru":"Морепродукты и сашими","id":"Makanan Laut dan Sashimi"},
@@ -31,7 +31,7 @@ export const AI_CATEGORIES_JEJU: LangText[] = [
   {"ko":"제주 기념품","en":"Jeju Souvenirs","ja":"済州のお土産","zh":"济州岛纪念品","vi":"25 món quà lưu niệm Jeju","th":"ของที่ระลึกจากเกาะเชจู 25 ชิ้น","ru":"25 сувениров с острова Чеджу","id":"25 Suvenir Jeju"},
   {"ko":"공예품","en":"Crafts","ja":"工芸品","zh":"工艺品","vi":"Thủ công mỹ nghệ","th":"งานฝีมือ","ru":"Ремесла","id":"26 Kerajinan Tangan"},
   {"ko":"전통시장","en":"Traditional Market","ja":"伝統市場","zh":"传统市场","vi":"Chợ truyền thống","th":"ตลาดแบบดั้งเดิม","ru":"27. Традиционный рынок","id":"Pasar Tradisional"},
-  {"ko":"전시관·문화공간","en":"Exhibition Halls · Cultural Spaces","ja":"展示館・文化空間","zh":"展览馆·文化空间","vi":"28 phòng triển lãm · Không gian văn hóa","th":"ห้องจัดแสดงนิทรรศการ · พื้นที่ทางวัฒนธรรม","ru":"28 выставочных залов · Культурные пространства","id":"Aula Pameran · Ruang Budaya"},
+  {"ko":"전시관·문화공간","en":"Exhibition Halls · Cultural Spaces","ja":"展示館・文化空間","zh":"28个展览馆·文化空间","vi":"28 phòng triển lãm · Không gian văn hóa","th":"ห้องจัดแสดงนิทรรศการ · พื้นที่ทางวัฒนธรรม","ru":"28 выставочных залов · Культурные пространства","id":"Aula Pameran · Ruang Budaya"},
   {"ko":"로컬샵","en":"Local Shop","ja":"ローカルショップ","zh":"本地商店","vi":"Cửa hàng địa phương","th":"ร้านค้าท้องถิ่น","ru":"Местный магазин","id":"Toko Lokal"},
   {"ko":"기타","en":"Others","ja":"その他","zh":"其他","vi":"Khác","th":"อื่นๆ","ru":"Другие","id":"30 Lainnya"},
 ];

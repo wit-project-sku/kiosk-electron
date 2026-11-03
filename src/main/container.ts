@@ -41,6 +41,7 @@ import { SailingService } from './services/SailingService';
 import { ExchangeService } from './services/ExchangeService';
 import { SubtitleService } from './services/SubtitleService';
 import { EventsService } from './services/EventsService';
+import { TrafficService } from './services/TrafficService';
 import { SyncService } from './services/sync/SyncService';
 import { CameraService } from './services/camera/CameraService';
 import { CaptureService } from './services/camera/CaptureService';
@@ -98,6 +99,8 @@ export interface AppContainer {
   insaCourse: InsaCourseService;
   stats: StatsService;
   events: EventsService;
+  /** 화성휴게소 도로교통상황 — live, last good value kept. */
+  traffic: TrafficService;
   updater: UpdateService;
   updateCommands: UpdateCommandService;
   health: HealthReporter;
@@ -152,6 +155,7 @@ export function createContainer(): AppContainer {
   const exchange = new ExchangeService(cache);
   const subtitles = new SubtitleService(cache, kiosk);
   const events = new EventsService();
+  const traffic = new TrafficService();
 
   const display = new DisplayService();
   const camera = new CameraService();
@@ -168,6 +172,7 @@ export function createContainer(): AppContainer {
     analytics,
     imageHost,
     stats,
+    kiosk,
   );
   const photoWorkflow = new PhotoWorkflowService(display, camera);
 
@@ -193,6 +198,8 @@ export function createContainer(): AppContainer {
   // physically separate device that the photo path never opens.
   const height = new HeightService(new ZedSidecarManager(), heightRepo, kiosk);
   photoWorkflow.subscribe((state) => height.onPhotoWorkflowChanged(state));
+  // `/shots/v2` reports each capture's measurement with its shot.
+  stats.setMeasurementSource(() => height.claimShotMeasurement());
 
   // The remote "update now" trigger drives the SAME updater instance as the
   // weekly scheduler, so both paths share one state machine (no double download,
@@ -243,6 +250,7 @@ export function createContainer(): AppContainer {
     insaCourse,
     stats,
     events,
+    traffic,
     updater,
     updateCommands,
     health,

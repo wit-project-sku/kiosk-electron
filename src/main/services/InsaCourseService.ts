@@ -7,10 +7,12 @@ import {
   type InsaCourse,
   type InsaCourseQuery,
   type InsaCourseSet,
-  type CourseTransport,
   type InsaCourseSpot,
   type InsaDuration,
+  type CourseTransport,
 } from '@shared/types/insaCourse';
+
+const TRANSPORTS: readonly CourseTransport[] = ['WALK', 'BIKE', 'TRANSIT', 'CAR'];
 
 const log = createLogger('insa-course-service');
 const DEFAULT_API_BASE = 'https://api-v3.witteria.com';
@@ -70,8 +72,8 @@ export class InsaCourseService {
       duration: query.duration,
       numberOfPeople: query.numberOfPeople,
       startAt: query.startAt,
-      // 오색시장's 이동수단; the 지점 route ignores it for 인사동.
-      ...(query.transport ? { transport: query.transport } : {}),
+      // 오색시장's 이동수단; only a known code goes out (an unknown one is a 400).
+      ...(query.transport && TRANSPORTS.includes(query.transport) ? { transport: query.transport } : {}),
     };
 
     try {
@@ -151,19 +153,17 @@ export class InsaCourseService {
 const num = (v: unknown, fallback = 0): number => (typeof v === 'number' && Number.isFinite(v) ? v : fallback);
 const str = (v: unknown, fallback = ''): string => (typeof v === 'string' ? v : fallback);
 
-const TRANSPORTS: readonly CourseTransport[] = ['WALK', 'BIKE', 'TRANSIT', 'CAR'];
-
-/** A leg's mode as the API spelled it, or null for anything else (absent on 인사동). */
-function transportOf(v: unknown): CourseTransport | null {
-  return typeof v === 'string' && (TRANSPORTS as readonly string[]).includes(v) ? (v as CourseTransport) : null;
-}
-
 /** A stop without a `shopId` cannot be drawn — the card is built from the catalogue row. */
 function normalizeSpot(row: unknown, index: number): InsaCourseSpot | null {
   if (!row || typeof row !== 'object') return null;
   const r = row as Record<string, unknown>;
   if (typeof r['shopId'] !== 'number') return null;
+  // 오색 sends the leg as travelled; elsewhere (인사동, v1/v2) it is the walk.
+  const mode = TRANSPORTS.includes(r['moveMode'] as CourseTransport) ? (r['moveMode'] as CourseTransport) : 'WALK';
   return {
+    moveMode: mode,
+    moveMinutes: num(r['moveMinutes'], num(r['walkMinutes'])),
+    moveMeters: num(r['moveMeters'], num(r['walkMeters'])),
     shopId: r['shopId'],
     stayMinutes: num(r['dwellMinutes'], num(r['stayMinutes'])),
     order: num(r['order'], index + 1),
@@ -171,9 +171,6 @@ function normalizeSpot(row: unknown, index: number): InsaCourseSpot | null {
     leaveAt: str(r['leaveAt']),
     walkMinutes: num(r['walkMinutes']),
     walkMeters: num(r['walkMeters']),
-    moveMode: transportOf(r['moveMode']),
-    moveMinutes: typeof r['moveMinutes'] === 'number' ? r['moveMinutes'] : null,
-    moveMeters: typeof r['moveMeters'] === 'number' ? r['moveMeters'] : null,
     secondCategory: str(r['secondCategory']),
     hoursMethod: str(r['hoursMethod']),
     arriveElapsedMinutes: num(r['arriveElapsedMinutes']),

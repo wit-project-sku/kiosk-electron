@@ -12,18 +12,40 @@ import { getKioskLayout } from '@shared/config/kioskLocations';
 import { resolveKioskIdentity } from '@shared/config/testRig';
 import { witteriaApiBase } from './apiBase';
 
-let store: Store<Partial<KioskConfig>> | null = null;
+/**
+ * One-shot map for machines provisioned before the 2026-10-26 CMS renumber.
+ * Applied only while `jejuIdShift202610` is absent, then the flag is stored so
+ * the new 제주공항 code (W008) is not shifted again on the next launch.
+ * A fresh provision writes the flag itself.
+ */
+const JEJU_ID_SHIFT: Record<string, string> = {
+  W006: 'W008',
+  W007: 'W009',
+  W008: 'W010',
+};
 
-function getStore(): Store<Partial<KioskConfig>> {
+type KioskConfigFile = Partial<KioskConfig> & { jejuIdShift202610?: boolean };
+
+let store: Store<KioskConfigFile> | null = null;
+
+function getStore(): Store<KioskConfigFile> {
   if (!store) {
     // No `defaults` here so an unprovisioned machine reads kioskId as undefined
     // (which lets the env/default fallback below kick in).
-    store = new Store<Partial<KioskConfig>>({
+    store = new Store<KioskConfigFile>({
       name: 'kiosk-config',
       clearInvalidConfig: true,
     });
   }
   return store;
+}
+
+function migratedKioskId(s: Store<KioskConfigFile>, kioskId: string): string {
+  if (s.get('jejuIdShift202610')) return kioskId;
+  const next = JEJU_ID_SHIFT[kioskId] ?? kioskId;
+  if (next !== kioskId) s.set('kioskId', next);
+  s.set('jejuIdShift202610', true);
+  return next;
 }
 
 export const kioskConfigStore = {
@@ -34,8 +56,12 @@ export const kioskConfigStore = {
     // which writes {"kioskId":"W00x"} to %APPDATA%\kiosk-app\kiosk-config.json.
     // The default only applies to a machine that has not been provisioned yet.
     const s = getStore();
-    const storedId = (s.get('kioskId') as string | undefined)?.trim() || DEFAULT_KIOSK_CONFIG.kioskId;
-    // The office test rig (W200) keeps its identity but shows a switchable preview site.
+    // Pre-2026-10-26 제주 ids are shifted once (migratedKioskId), THEN the office
+    // test rig (W200) keeps its identity but shows a switchable preview site.
+    const storedId = migratedKioskId(
+      s,
+      (s.get('kioskId') as string | undefined)?.trim() || DEFAULT_KIOSK_CONFIG.kioskId,
+    );
     const { kioskId, identityKioskId, testRig } = resolveKioskIdentity(
       storedId,
       (s.get('previewSite' as never) as string | undefined)?.trim(),
@@ -60,6 +86,7 @@ export const kioskConfigStore = {
     for (const [key, value] of Object.entries(changes)) {
       s.set(key, value as never);
     }
+    if (changes.kioskId) s.set('jejuIdShift202610', true);
     return this.get();
   },
 

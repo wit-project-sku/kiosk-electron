@@ -37,7 +37,7 @@ type SubtitleSource = 'api' | 'sheet';
  *    enough, and every kiosk restarts daily. A close+reopen refreshes it.
  *
  * ── 제주: the sheet fallback ────────────────────────────────────────────────
- * The CMS is the source everywhere, but production answers 제주 (W006–W008)
+ * The CMS is the source everywhere, but production answers 제주 (W008–W010)
  * with zero rows until its subtitles are published, and a display with no rows
  * cannot follow the touch screen at all. So on a 제주 kiosk, when the API
  * answers with NO rows, the venue's VideoSubtitle tab is read from the 제주

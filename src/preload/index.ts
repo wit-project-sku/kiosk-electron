@@ -245,6 +245,9 @@ const api: KioskBridge = {
     recommend: (query) => invoke(IpcChannels.EventsRecommend, query),
     detail: (eventId) => invoke(IpcChannels.EventsDetailGet, { eventId }),
   },
+  traffic: {
+    getExpressway: () => invoke(IpcChannels.TrafficExpresswayGet),
+  },
   view: {
     bounds: ZOOM_BOUNDS,
     getZoomFactor: () => webFrame.getZoomFactor(),
@@ -260,6 +263,7 @@ const api: KioskBridge = {
     onMonitorsChanged: (listener) => subscribe(IpcEvents.MonitorsChanged, listener),
     onSyncStatsChanged: (listener) => subscribe(IpcEvents.SyncStatsChanged, listener),
     onContentChanged: (listener) => subscribe(IpcEvents.ContentChanged, listener),
+    onTranslationsChanged: (listener) => subscribe(IpcEvents.TranslationsChanged, listener),
     onPhotoWorkflowChanged: (listener) => subscribe(IpcEvents.PhotoWorkflowChanged, listener),
     onMotionGameChanged: (listener) => subscribe(IpcEvents.MotionGameChanged, listener),
     onLanguageChanged: (listener) => subscribe(IpcEvents.LanguageChanged, listener),

@@ -11,16 +11,19 @@
  *   온누리상품권      오산's 온누리 cards (OsanLocalpay) in 화성 main 1 / main 2,
  *                     reading 오산's eight-language copy (LOCALPAY_CONTENT)
  *
- * The 희망화성 copy is the frame's (Korean) with English written here; the
- * other languages read English. Localization_Hwaseong's MarketPaper_Osaekjeon_*
- * rows are older text (행복화성, 오산 banks) and are not used. The frames title
- * the page 환율 — copied from the 환율 frame — so the header keeps 지역화폐.
+ * The 희망화성 copy follows Localization_Hwaseong's MarketPaper_Hwaseong_* rows
+ * (rebuilt 2026-10-19); the frame's Korean and the eight-language copy below
+ * are the per-language fallback for an empty cell (see `sheetText`). The 온누리
+ * tab reads MarketPaper_Onnuri / _Content_* the same way, over 오산's
+ * LOCALPAY_CONTENT (the 권종 art and QR stay images). The frames title
+ * the page 환율 — copied from the 환율 frame — so the header id stays 지역화폐
+ * and MarketPaper_title supplies its text.
  */
 import { type ReactNode, useRef, useState } from 'react';
 import type { KioskController } from '@renderer/hooks/useKioskController';
 import { hwaseongIconUrl } from '@renderer/assets/icons/hwaseong';
 import { pick, useLang, type Lang } from '@renderer/lib/i18n';
-import { sheetText } from '@renderer/lib/loc';
+import { sheetText, tExact } from '@renderer/lib/loc';
 import { ui } from '@renderer/lib/uiText';
 import { useFitText } from '@layouts/components/fitText';
 import onnuriPaper from '@renderer/assets/photos/osan/localpay/onnuri-paper.png';
@@ -37,8 +40,8 @@ import { HwaseongPageBg } from './HwaseongPageBg';
 import styles from './HwaseongLocalpay.module.css';
 
 type Text = Partial<Record<Lang, string>>;
-/** Korean from the frame, English authored, the other six written here —
- *  Localization_Hwaseong has no rows for this card. `\n` starts a paragraph. */
+/** Korean from the frame, English authored, the other six written here — the
+ *  fallback when a sheet cell is empty. `\n` starts a paragraph. */
 const tr = (ko: string, en: string, rest: Omit<Text, 'ko' | 'en'>): Text => ({ ko, en, ...rest });
 
 /** 희망화성지역화폐 (7956:81013). */
@@ -65,11 +68,12 @@ const HOPE = {
   benefitNote: tr("충전 인센티브와 한도는 시기·예산에 따라 달라질 수 있습니다.\n경기지역화폐 앱에서 확인하세요.", "Top-up incentives and limits may change with timing and budget.\nCheck the Gyeonggi Local Currency app.", {"ja":"チャージ特典と上限額は時期・予算により変わることがあります。\n京畿地域通貨アプリで確認してください。","zh":"充值奖励和限额可能因时期和预算而变动。\n请在京畿地方货币App中确认。","vi":"Ưu đãi và hạn mức nạp tiền có thể thay đổi theo thời điểm và ngân sách.\nVui lòng kiểm tra trong ứng dụng Tiền địa phương Gyeonggi.","th":"สิทธิประโยชน์และวงเงินการเติมเงินอาจเปลี่ยนแปลงตามช่วงเวลาและงบประมาณ\nโปรดตรวจสอบในแอปสกุลเงินท้องถิ่นคย็องกี","ru":"Бонусы и лимиты пополнения могут меняться в зависимости от периода и бюджета.\nПодробности — в приложении местной валюты Кёнгидо.","id":"Insentif dan batas isi ulang dapat berubah sesuai periode dan anggaran.\nCek di aplikasi Mata Uang Lokal Gyeonggi."}),
 };
 
-/** Render body copy where **…** segments are emphasised (600 weight). */
-function renderRich(text: string): ReactNode {
+/** Render body copy where **…** segments are emphasised — SemiBold, or Bold
+ *  where the frame sets them Bold (the 디지털 할인 line). */
+function renderRich(text: string, strong = false): ReactNode {
   return text.split('**').map((part, i) =>
     i % 2 === 1 ? (
-      <strong key={i} className={styles.bodyBold}>
+      <strong key={i} className={strong ? styles.bodyStrong : styles.bodyBold}>
         {part}
       </strong>
     ) : (
@@ -103,6 +107,48 @@ function Lines({ text, className }: { text: string; className?: string }): JSX.E
   );
 }
 
+/**
+ * A sheet cell as this page's plain `\n` text. Some cells carry a literal
+ * backslash-n the author typed before the real line break (Content_4_3 / 4_4 in
+ * Korean); either form is one break, never two.
+ */
+function cleanCell(text: string): string {
+  return text
+    .replace(/\\n\n?/g, '\n')
+    .split('\n')
+    .map((line) => line.trimEnd())
+    .join('\n');
+}
+
+/** The sheet's `<b>…</b>` as this page's `**…**` emphasis (see renderRich). */
+function boldToStars(text: string): string {
+  return text.replace(/<\s*\/?\s*b\s*>/gi, '**');
+}
+
+const COLOR_RUN =/(<color=[^>]*>[\s\S]*?<\/color>)/i;
+const COLOR_INNER = /^<color=[^>]*>([\s\S]*?)<\/color>$/i;
+
+/**
+ * A sheet heading like `<color=#005AB4>희망화성지역화폐</color>란?`: the tagged
+ * run keeps the heading's main-1 colour and the rest is black — the frame's
+ * two-tone "…란?" heading, in whatever word order the language uses
+ * ("What is <color>…</color>?"). Without a tag the whole heading is main 1.
+ */
+function renderColorHeading(text: string): ReactNode {
+  if (!COLOR_RUN.test(text)) return text;
+  return text.split(COLOR_RUN).map((part, i) => {
+    if (!part) return null;
+    const inner = COLOR_INNER.exec(part);
+    return inner ? (
+      <span key={i}>{inner[1]}</span>
+    ) : (
+      <span key={i} className={styles.headBlack}>
+        {part}
+      </span>
+    );
+  });
+}
+
 interface Props {
   controller: KioskController;
 }
@@ -110,7 +156,45 @@ interface Props {
 export function HwaseongLocalpay({ controller }: Props): JSX.Element {
   const lang = useLang();
   const T = (text: Text): string => pick(text, lang);
-  const onnuri = pick(LOCALPAY_CONTENT, lang).onnuri;
+  /** Localization_Hwaseong's cell for this language, else the authored copy. */
+  const S = (key: string, text: Text): string => cleanCell(sheetText(key, lang, text));
+  const H = 'MarketPaper_Hwaseong_Content_';
+  const onnuriBase = pick(LOCALPAY_CONTENT, lang).onnuri;
+  /* 5_2 stores the four "· …" bullets in one cell, one per line. */
+  const onnuriBullets = S('MarketPaper_Onnuri_Content_5_2', { [lang]: (onnuriBase.benefits ?? []).join('\n') })
+    .split('\n')
+    .map((line) => line.trim())
+    .filter(Boolean);
+  /* 3_1 is the digital card's whole body: its last line is the discount sentence
+     the frame sets Bold (digitalAfter), the lines before it the description. */
+  const digitalLines = S('MarketPaper_Onnuri_Content_3_1', {
+    [lang]: [...onnuriBase.digitalBefore, onnuriBase.digitalAfter].join('\n'),
+  })
+    .split('\n')
+    .map((line) => line.trim())
+    .filter(Boolean);
+  const onnuri = {
+    ...onnuriBase,
+    introBody: S('MarketPaper_Onnuri_Content_1_1', { [lang]: onnuriBase.introBody }),
+    paperH: S('MarketPaper_Onnuri_Content_2', { [lang]: onnuriBase.paperH }),
+    digitalBefore: digitalLines.length > 1 ? digitalLines.slice(0, -1) : onnuriBase.digitalBefore,
+    digitalAfter: digitalLines.length > 1 ? boldToStars(digitalLines[digitalLines.length - 1]!) : onnuriBase.digitalAfter,
+    usageH: S('MarketPaper_Onnuri_Content_4', { [lang]: onnuriBase.usageH }),
+    usageBody: boldToStars(S('MarketPaper_Onnuri_Content_4_1', { [lang]: onnuriBase.usageBody })),
+    digitalNote: S('MarketPaper_Onnuri_Content_5_1', { [lang]: onnuriBase.digitalNote }),
+    benefits: onnuriBullets.length ? onnuriBullets : onnuriBase.benefits,
+  };
+  /* Headings: the sheet's `<color>` markup when it has a cell, else 오산's
+     authored "…이란?" split. */
+  const onnuriHeading = (key: string, authored: string): ReactNode => {
+    const cell = tExact(key, lang);
+    return cell ? renderColorHeading(cell) : renderHeading(authored);
+  };
+  /* The authored heading is written in the sheet's own markup, so an empty cell
+     still draws the two-tone split. */
+  const hopeHeading = sheetText(`${H}1`, lang, {
+    [lang]: `<color=#005AB4>${T(HOPE.name)}</color>${T(HOPE.nameSuffix)}`,
+  });
   const [tab, setTab] = useState(0);
   const goHome = (): void => controller.navigate('home', 'Back');
   const banner = hwaseongIconUrl('banner-search');
@@ -122,7 +206,10 @@ export function HwaseongLocalpay({ controller }: Props): JSX.Element {
      the list together (keyed on the tab — the box only exists on 온누리). */
   const lightBoxRef = useRef<HTMLDivElement>(null);
   useFitText(lightBoxRef, styles.benefits, wide, 0.7, `${lang}|${tab}`, 'height');
-  const tabs = [T(HOPE.tab), pick(LOCALPAY_CONTENT, lang).tabs[1]];
+  const tabs = [
+    S('MarketPaper_Hwaseong', HOPE.tab),
+    S('MarketPaper_Onnuri', { [lang]: pick(LOCALPAY_CONTENT, lang).tabs[1] }),
+  ];
 
   return (
     <div className={styles.root}>
@@ -130,8 +217,8 @@ export function HwaseongLocalpay({ controller }: Props): JSX.Element {
 
       <HwaseongHeader
         controller={controller}
-        title="지역화폐"
-        subtitle={sheetText('MarketPaper_SubHeader', lang) || undefined}
+        title={S('MarketPaper_title', { ko: '지역화폐' }) || '지역화폐'}
+        subtitle={sheetText('MarketPaper_Subtitle', lang) || sheetText('MarketPaper_SubHeader', lang) || undefined}
         onHome={goHome}
       />
 
@@ -153,43 +240,41 @@ export function HwaseongLocalpay({ controller }: Props): JSX.Element {
           <>
             {/* 지역화폐 소개 (7956:81014) */}
             <section className={`${styles.hopeCard} ${styles.hopeIntro}`}>
-              <p className={styles.heading}>
-                {T(HOPE.name)}
-                <span className={styles.headBlack}>{T(HOPE.nameSuffix)}</span>
-              </p>
+              <p className={styles.heading}>{renderColorHeading(hopeHeading)}</p>
               <div>
-                <Lines text={T(HOPE.intro)} className={styles.body} />
+                <Lines text={S(`${H}1_1`, HOPE.intro)} className={styles.body} />
               </div>
               <div className={styles.keyBox}>
                 <div className={styles.keyCard}>
                   <img src={hopeCard} alt="" draggable={false} />
                 </div>
                 <div className={styles.keyText}>
-                  <p className={styles.keyTitle}>{T(HOPE.keyTitle)}</p>
+                  <p className={styles.keyTitle}>{S(`${H}2`, HOPE.keyTitle)}</p>
                   <div className={styles.keyBody}>
-                    <Lines text={T(HOPE.keyBody)} />
+                    <Lines text={S(`${H}2_1`, HOPE.keyBody)} />
                   </div>
-                  <p className={styles.keyPrep}>{T(HOPE.keyPrep)}</p>
+                  <p className={styles.keyPrep}>{S(`${H}2_2`, HOPE.keyPrep)}</p>
                 </div>
               </div>
             </section>
 
             {/* 신청 및 사용 안내 (7956:81025) */}
             <section className={`${styles.hopeCard} ${styles.hopeApply}`}>
-              <p className={styles.heading}>{T(HOPE.applyTitle)}</p>
-              <p className={styles.body}>{T(HOPE.applyBody)}</p>
+              <p className={styles.heading}>{S(`${H}3`, HOPE.applyTitle)}</p>
+              <p className={styles.body}>{S(`${H}3_1`, HOPE.applyBody)}</p>
               <div className={styles.steps}>
+                {/* Title/body per step: 3_2/3_3 · 3_4/3_5 · 3_6/3_7 · 3_8/3_9. */}
                 {HOPE.steps.map((s, i) => (
                   <div key={i} className={styles.step}>
-                    <p className={styles.stepTitle}>{T(s.title)}</p>
-                    <p className={styles.stepBody}>{T(s.body)}</p>
+                    <p className={styles.stepTitle}>{S(`${H}3_${2 + i * 2}`, s.title)}</p>
+                    <p className={styles.stepBody}>{S(`${H}3_${3 + i * 2}`, s.body)}</p>
                   </div>
                 ))}
               </div>
-              <p className={styles.subHeading}>{T(HOPE.usageTitle)}</p>
+              <p className={styles.subHeading}>{S(`${H}4`, HOPE.usageTitle)}</p>
               <div className={styles.usageRow}>
                 <div className={styles.usageText}>
-                  <Lines text={T(HOPE.usageBody)} />
+                  <Lines text={S(`${H}4_1`, HOPE.usageBody)} />
                 </div>
                 {[
                   { src: androidQr, label: 'Android' },
@@ -202,12 +287,12 @@ export function HwaseongLocalpay({ controller }: Props): JSX.Element {
                 ))}
               </div>
               <div className={styles.benefitBox}>
-                <p className={styles.benefitTitle}>{T(HOPE.benefitTitle)}</p>
+                <p className={styles.benefitTitle}>{S(`${H}4_2`, HOPE.benefitTitle)}</p>
                 <div className={styles.benefitPoints}>
-                  <Lines text={T(HOPE.benefitPoints)} />
+                  <Lines text={S(`${H}4_3`, HOPE.benefitPoints)} />
                 </div>
                 <div className={styles.benefitNote}>
-                  <Lines text={T(HOPE.benefitNote)} />
+                  <Lines text={S(`${H}4_4`, HOPE.benefitNote)} />
                 </div>
               </div>
             </section>
@@ -217,24 +302,30 @@ export function HwaseongLocalpay({ controller }: Props): JSX.Element {
           <>
             <div className={`${styles.cardOnnuriTop} ${wide ? styles.onnuriLong : ''}`}>
               <div className={styles.topText}>
-                <p className={styles.heading}>{renderHeading(onnuri.introH)}</p>
+                <p className={styles.heading}>{onnuriHeading('MarketPaper_Onnuri_Content_1', onnuri.introH)}</p>
                 <p className={styles.body}>{onnuri.introBody}</p>
               </div>
               <div className={styles.paperBox}>
                 <p className={styles.paperLabel}>{onnuri.paperH}</p>
-                <img className={styles.paperImg} src={onnuriPaper} alt="" draggable={false} />
+                {/* The frame crops the photo to fill its 1210×440 slot (7918:130130). */}
+                <div className={styles.paperImg}>
+                  <img src={onnuriPaper} alt="" draggable={false} />
+                </div>
               </div>
             </div>
 
             <div className={`${styles.cardOnnuriBottom} ${wide ? styles.onnuriLong : ''}`}>
               <div className={styles.bottomText}>
-                <p className={styles.heading}>{renderHeading(onnuri.digitalH)}</p>
-                {onnuri.digitalBefore.map((line, i) => (
-                  <p key={i} className={styles.body}>
-                    {line}
-                  </p>
-                ))}
-                <p className={styles.body}>{renderRich(onnuri.digitalAfter)}</p>
+                <p className={styles.heading}>{onnuriHeading('MarketPaper_Onnuri_Content_3', onnuri.digitalH)}</p>
+                {/* One text block in the frame (7918:130107): no gap between paragraphs. */}
+                <div>
+                  {onnuri.digitalBefore.map((line, i) => (
+                    <p key={i} className={styles.body}>
+                      {line}
+                    </p>
+                  ))}
+                  <p className={styles.body}>{renderRich(onnuri.digitalAfter, true)}</p>
+                </div>
               </div>
 
               <div className={styles.onnuriUsage}>

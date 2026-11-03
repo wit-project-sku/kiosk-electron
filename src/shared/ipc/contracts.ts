@@ -68,6 +68,7 @@ import type {
   EventsQuery,
   EventsRecommendQuery,
 } from '../types/events';
+import type { ExpresswayTrafficSnapshot } from '../types/traffic';
 import type { UpdateStatus } from '../types/update';
 import type {
   FootfallReport,
@@ -457,6 +458,10 @@ export interface IpcContract {
     request: { eventId: number };
     response: Result<EventDetail>;
   };
+  [IpcChannels.TrafficExpresswayGet]: {
+    request: void;
+    response: Result<ExpresswayTrafficSnapshot | null>;
+  };
 
   /**
    * 제주 AI 코스 추천 — one live POST per questionnaire submission. `kioskId` is
@@ -528,6 +533,7 @@ export interface IpcEventPayloads {
   [IpcEvents.MonitorsChanged]: MonitorInfo[];
   [IpcEvents.SyncStatsChanged]: SyncQueueStats;
   [IpcEvents.ContentChanged]: CachedContent[];
+  [IpcEvents.TranslationsChanged]: Record<string, Partial<Record<SupportedLanguage, string>>>;
   [IpcEvents.PhotoWorkflowChanged]: PhotoWorkflowState;
   [IpcEvents.LanguageChanged]: SupportedLanguage;
   [IpcEvents.WeatherChanged]: WeatherSnapshot;

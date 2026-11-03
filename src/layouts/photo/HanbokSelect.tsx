@@ -9,14 +9,14 @@ import { cameraIconUrl } from '@renderer/assets/icons/insadong/camera';
 import { useRotatingBanner } from '@renderer/hooks/useRotatingBanner';
 import { usePhotoStore } from '@renderer/store/photoStore';
 import { pick, useLang } from '@renderer/lib/i18n';
-import { hasLoc, t } from '@renderer/lib/loc';
+import { hasLoc, t, tExact } from '@renderer/lib/loc';
 import { ui } from '@renderer/lib/uiText';
 import { usePhotoChrome } from './photoChrome';
 import { useOutfitStore } from '@renderer/store/outfitStore';
-import { outfitCategoryLabel, outfitSubCategoryLabel } from '@renderer/lib/outfitCategories';
+import { outfitCategoryLabel, outfitLabel, outfitSubCategoryLabel } from '@renderer/lib/outfitCategories';
 import type { OutfitSubCategory } from '@shared/types/outfit';
 import hanbokInfo from '@renderer/assets/photos/insadong/hanbok/hanbok-info.png';
-import { HANBOK_INFO, PRIVACY } from './photoTexts';
+import { HANBOK_INFO, PRIVACY, parseHanbokSheet, parsePrivacySheet } from './photoTexts';
 import { SwipeNav, useSwipeNav } from './SwipeNav';
 import { useAccessibilityStore } from '@renderer/store/accessibilityStore';
 import { OsanLeftNav } from '@layouts/osan/OsanLeftNav';
@@ -104,17 +104,9 @@ const NO_OUTFITS = {
   ru: 'Наряды готовятся.',
   id: 'Busana sedang disiapkan.',
 };
-/** Osan picker copy (Figma 7878:42863 / 7878:43050) that the sheets do not carry. */
-const OSAN_CAPTION = {
-  ko: '면세혜택',
-  en: 'Tax-free benefit',
-  ja: '免税特典',
-  zh: '免税优惠',
-  vi: 'Ưu đãi miễn thuế',
-  th: 'สิทธิ์ยกเว้นภาษี',
-  ru: 'Льгота без налогов',
-  id: 'Bebas pajak',
-};
+/** Osan picker copy (Figma 7878:42863 / 7878:43050) that the sheets do not carry.
+ *  The cards' captions are the outfits' own names (`outfitLabel`); the Figma
+ *  frame's placeholder "면세혜택" under every card was never real copy. */
 const OSAN_NOTE = {
   ko: 'WITH의 모든 한복은 박술녀 한복입니다.',
   en: 'Every WITH hanbok is made by Park Sul-nyeo.',
@@ -323,9 +315,25 @@ export function HanbokSelect({ onCapture, onHome, countdownActive = false }: Han
     tabs.slice(r * tabColumns, r * tabColumns + tabColumns),
   ).filter((row) => row.length > 0);
 
+  /*
+   * 한복 설명 / 개인정보 처리방침 / the 박술녀 line follow the venue's Localization
+   * sheet (HanbokExplain_*, Photo_PrivacyPolicyContent) wherever it has a cell for
+   * this language; the authored copy in photoTexts covers the gaps. KADA has no
+   * sheet (its bundled fallback is 인사동's), so it keeps the authored copy.
+   */
+  const sheetCell = (key: string): string => (isKada ? '' : tExact(key, lang));
+  const hanbokCopy = () => {
+    const authored = pick(HANBOK_INFO, lang);
+    return {
+      heading: sheetCell('HanbokExplain_Header') || authored.heading,
+      paragraphs: parseHanbokSheet(sheetCell('HanbokExplain_Content')) ?? authored.paragraphs,
+    };
+  };
+  const privacy = () => parsePrivacySheet(sheetCell('Photo_PrivacyPolicyContent')) ?? pick(PRIVACY, lang);
+
   // ── 한복 설명 page ──
   if (infoOpen) {
-    const info = pick(HANBOK_INFO, lang);
+    const info = hanbokCopy();
     return (
       <>
         {isHwaseong ? (
@@ -360,7 +368,7 @@ export function HanbokSelect({ onCapture, onHome, countdownActive = false }: Han
                     <div className={styles.osanCard}>
                       <img src={o.url} alt="" draggable={false} decoding="async" onError={() => markBroken(o.code)} />
                     </div>
-                    <span className={styles.osanCap}>{pick(OSAN_CAPTION, lang)}</span>
+                    <span className={styles.osanCap}>{outfitLabel(o, lang)}</span>
                   </>
                 ) : (
                   <img src={o.url} alt="" draggable={false} decoding="async" onError={() => markBroken(o.code)} />
@@ -570,7 +578,7 @@ export function HanbokSelect({ onCapture, onHome, countdownActive = false }: Han
           {/* The band is reserved on every tab (see above), so the pair keeps
               its place whether or not the category has chips. */}
           {osanLook && (
-            <p className={`${styles.osanNote} ${lang !== 'ko' ? styles.osanNoteLong : ''}`}>{pick(OSAN_NOTE, lang)}</p>
+            <p className={`${styles.osanNote} ${lang !== 'ko' ? styles.osanNoteLong : ''}`}>{sheetCell('HanbokExplain_HanbokDesigner') || pick(OSAN_NOTE, lang)}</p>
           )}
           {canSwipe && <SwipeNav nav={nav} />}
         </div>
@@ -604,7 +612,8 @@ export function HanbokSelect({ onCapture, onHome, countdownActive = false }: Han
                 >
                   <img src={o.url} alt="" draggable={false} decoding="async" onError={() => markBroken(o.code)} />
                 </button>
-                {osanLook && <span className={styles.osanCap}>{pick(OSAN_CAPTION, lang)}</span>}
+                {/* The outfit's own name (CMS `label*`, visitor's language). */}
+                {osanLook && <span className={styles.osanCap}>{outfitLabel(o, lang)}</span>}
               </SwiperSlide>
             ))}
           </Swiper>
@@ -700,7 +709,7 @@ export function HanbokSelect({ onCapture, onHome, countdownActive = false }: Han
         <div className={`${styles.privacyOverlay} ${osanLook ? styles.osanOverlay : ''}`} onClick={() => setPrivacyOpen(false)}>
           <div className={styles.privacyModal} onClick={(e) => e.stopPropagation()}>
             <div className={styles.privacyHead}>
-              <span className={styles.privacyTitle}>{pick(PRIVACY, lang).title}</span>
+              <span className={styles.privacyTitle}>{privacy().title}</span>
               <button type="button" className={styles.privacyClose} onClick={() => setPrivacyOpen(false)} aria-label="닫기">
                 <svg className={styles.privacyCloseIcon} viewBox="0 0 129 129" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
                   <circle cx="64.3496" cy="64.3496" r="62.2046" stroke="#333333" strokeWidth="4.28997" />
@@ -710,7 +719,7 @@ export function HanbokSelect({ onCapture, onHome, countdownActive = false }: Han
               </button>
             </div>
             <div className={styles.privacyBody}>
-              {pick(PRIVACY, lang).sections.map((s, i) => (
+              {privacy().sections.map((s, i) => (
                 <div key={i} className={styles.privacySection}>
                   <p className={styles.privacySecTitle}>{s.title}</p>
                   {s.lines.map((line, j) => (

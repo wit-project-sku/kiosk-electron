@@ -4,7 +4,7 @@ import type { EventDetail } from '@shared/types/events';
 import { useEventDetail } from '@renderer/hooks/useEvents';
 import type { Lang } from '@renderer/lib/i18n';
 import { useLang } from '@renderer/lib/i18n';
-import { t } from '@renderer/lib/loc';
+import { sheetText, t } from '@renderer/lib/loc';
 import { ui } from '@renderer/lib/uiText';
 import styles from './EventDetailScreen.module.css';
 
@@ -390,7 +390,8 @@ export function EventDetailScreen({ eventId, accent, cardShadow }: EventDetailSc
               />
               <circle cx="12" cy="10" r="2.6" fill="none" stroke="currentColor" strokeWidth="2" />
             </svg>
-            <span className={styles.mapTitle}>{ui('directions', lang)}</span>
+            {/* Event_Path_Guide where the venue's sheet has it (오산: "오시는 길 안내"). */}
+            <span className={styles.mapTitle}>{sheetText('Event_Path_Guide', lang, { [lang]: ui('directions', lang) })}</span>
           </div>
 
           {hasCoords ? (

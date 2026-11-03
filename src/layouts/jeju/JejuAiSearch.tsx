@@ -625,14 +625,14 @@ const PICK_SUBTITLE = {
  * course APIs (/recommend and /picker) measure DAY 1's first leg from the
  * requesting kiosk's own coordinates — verified on stage 2026-09-14, 8 of 8
  * first legs from kiosk 7 measure from the ferry terminal, none from the
- * airport. The frame's copy only ever said 제주 공항, which was false on W007
- * and W008, so the note is per kiosk. Keyed by kiosk id, not layout: W006 and
- * W007 share JEJU_AIRPORT but start from different places. An id not listed
+ * airport. The frame's copy only ever said 제주 공항, which was false on W009
+ * and W010, so the note is per kiosk. Keyed by kiosk id, not layout: W008 and
+ * W009 share JEJU_AIRPORT but start from different places. An id not listed
  * keeps the frame's own airport copy.
  */
 const PICK_NOTE_BY_KIOSK: Record<string, Partial<Record<Lang, string>>> = {
-  // W006 제주공항 — the frame's copy.
-  W006: {
+  // W008 제주공항 — the frame's copy.
+  W008: {
     ko: '*모든 추천코스는 제주 공항을 기준으로 제작되었습니다.',
     en: '*All recommended courses start from Jeju Airport.',
     ja: '*すべてのおすすめコースは済州空港を起点に作成されています。',
@@ -642,9 +642,9 @@ const PICK_NOTE_BY_KIOSK: Record<string, Partial<Record<Lang, string>>> = {
     ru: '*Все рекомендуемые маршруты составлены от аэропорта Чеджу.',
     id: '*Semua rute rekomendasi dibuat dengan Bandara Jeju sebagai titik awal.',
   },
-  // W007 제주국제여객터미널. The Korean runs to two lines at 60px; the note has
+  // W009 제주국제여객터미널. The Korean runs to two lines at 60px; the note has
   // room for them above the 커스텀 코스 heading (694 + 2 × 72 = 838 < 897).
-  W007: {
+  W009: {
     ko: '*모든 추천코스는 제주국제여객터미널을 기준으로 제작되었습니다.',
     en: '*All recommended courses start from Jeju International Ferry Terminal.',
     ja: '*すべてのおすすめコースは済州国際旅客ターミナルを起点に作成されています。',
@@ -654,8 +654,8 @@ const PICK_NOTE_BY_KIOSK: Record<string, Partial<Record<Lang, string>>> = {
     ru: '*Все рекомендуемые маршруты составлены от международного пассажирского терминала Чеджу.',
     id: '*Semua rute rekomendasi dibuat dengan Terminal Penumpang Internasional Jeju sebagai titik awal.',
   },
-  // W008 세계자연유산본부.
-  W008: {
+  // W010 세계자연유산본부.
+  W010: {
     ko: '*모든 추천코스는 세계자연유산본부를 기준으로 제작되었습니다.',
     en: '*All recommended courses start from the World Natural Heritage Center.',
     ja: '*すべてのおすすめコースは世界自然遺産本部を起点に作成されています。',
@@ -686,24 +686,24 @@ const REGION_NOTE = {
 
 /** This kiosk's note — the airport copy for any id the table does not list. */
 const pickNoteFor = (kioskId: string): Partial<Record<Lang, string>> =>
-  PICK_NOTE_BY_KIOSK[kioskId] ?? PICK_NOTE_BY_KIOSK.W006!;
+  PICK_NOTE_BY_KIOSK[kioskId] ?? PICK_NOTE_BY_KIOSK.W008!;
 
 /**
  * The sheet's row for this kiosk's note: Jeju_Todo_Subtitle1-1 (제주 공항) and
  * Jeju_Todo_Subtitle1-2 (제주항 여객터미널). The sheet marks 1-2 for the 유산 centre
- * too, but its copy names the ferry terminal while W008's courses start at
- * 세계자연유산본부 (see above), so W008 keeps its own authored note until the
+ * too, but its copy names the ferry terminal while W010's courses start at
+ * 세계자연유산본부 (see above), so W010 keeps its own authored note until the
  * sheet has a row that names it.
  */
 const PICK_NOTE_KEY: Record<string, string> = {
-  W006: 'Jeju_Todo_Subtitle1-1',
-  W007: 'Jeju_Todo_Subtitle1-2',
+  W008: 'Jeju_Todo_Subtitle1-1',
+  W009: 'Jeju_Todo_Subtitle1-2',
 };
 
 /** The orange note, with the frame's leading asterisk the sheet's copy omits. */
 const pickNoteText = (kioskId: string, lang: Lang): string => {
   const authored = pickNoteFor(kioskId);
-  const key = PICK_NOTE_KEY[kioskId] ?? (PICK_NOTE_BY_KIOSK[kioskId] ? undefined : PICK_NOTE_KEY.W006);
+  const key = PICK_NOTE_KEY[kioskId] ?? (PICK_NOTE_BY_KIOSK[kioskId] ? undefined : PICK_NOTE_KEY.W008);
   const text = key ? sheetText(key, lang, authored) : pick(authored, lang);
   return text.startsWith('*') ? text : `*${text}`;
 };

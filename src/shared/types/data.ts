@@ -123,6 +123,10 @@ export interface ShotInput {
   shotAt?: IsoDateTime;
   /** Idempotency key (UUID v4); generated in main if omitted. */
   eventId?: string;
+  /** The AR original capture on disk (not the composite) — the `/shots/v2` photo part. */
+  photoPath?: string | null;
+  /** Kiosk screen language when the photo was taken — the stats' 언어권 split. */
+  language?: string | null;
 }
 
 /** The exact POST body for `/api/stats/shots` (kioskId/eventId resolved in main). */
@@ -135,6 +139,30 @@ export interface ShotBody {
   outfitCode: string;
   /** Idempotency key — same value on retry blocks duplicate server records. */
   eventId: string;
+  /** Screen language at capture (ko/en/ja/…); null when unknown. Shots queued
+   *  before 2026-10-29 lack it — the server counts those as 언어 미확인. */
+  language?: string | null;
+}
+
+/**
+ * The `data` part of `POST /api/stats/shots/v2` (multipart, sent with the AR
+ * original as `photo`). Measurements are front-facing widths in cm, sent
+ * unrounded; 0 when the ZED did not measure them for this capture.
+ *
+ * The sizes stay `number | null` in the type because shots queued for the
+ * nightly re-send before 0 was asked for hold nulls; StatsService zeroes them
+ * on the way out, so null is never what the server receives.
+ */
+export interface ShotV2Data extends ShotBody {
+  channel: 'KIOSK';
+  measuredAt: IsoDateTime | null;
+  heightCm: number | null;
+  shoulderWidthCm: number | null;
+  chestWidthCm: number | null;
+  waistWidthCm: number | null;
+  hipWidthCm: number | null;
+  confidence: number | null;
+  version: number | null;
 }
 
 /**
@@ -153,6 +181,8 @@ export interface PhotoShotSyncItem {
   isSuccess: boolean;
   /** ISO-8601 with timezone offset (KST +09:00 or UTC Z). */
   shotAt: IsoDateTime;
+  /** Screen language at capture; absent on items queued before 2026-10-29. */
+  language?: string | null;
 }
 
 /* ------------------------------ Sessions ------------------------------ */

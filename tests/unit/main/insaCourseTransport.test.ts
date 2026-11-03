@@ -91,7 +91,7 @@ describe('지점 코스 — 이동수단 (오색시장)', () => {
     });
   });
 
-  it('omits transport when the screen did not choose one (인사동), and the legs carry no mode', async () => {
+  it('omits transport when the screen did not choose one (인사동); the legs read as the walk', async () => {
     const fetchMock = vi.fn(async () => ({
       ok: true,
       status: 200,
@@ -106,14 +106,14 @@ describe('지점 코스 — 이동수단 (오색시장)', () => {
     );
     expect(body).not.toHaveProperty('transport');
     expect(set.realtime.spots[0]).toMatchObject({
-      moveMode: null,
-      moveMinutes: null,
-      moveMeters: null,
+      moveMode: 'WALK',
+      moveMinutes: 4,
+      moveMeters: 260,
       walkMinutes: 4,
     });
   });
 
-  it('ignores a mode it does not know', async () => {
+  it('reads a mode it does not know as the walk', async () => {
     vi.stubGlobal(
       'fetch',
       vi.fn(async () => ({
@@ -126,6 +126,6 @@ describe('지점 코스 — 이동수단 (오색시장)', () => {
       ...query,
       transport: 'WALK',
     });
-    expect(set.realtime.spots[0]!.moveMode).toBeNull();
+    expect(set.realtime.spots[0]!.moveMode).toBe('WALK');
   });
 });
