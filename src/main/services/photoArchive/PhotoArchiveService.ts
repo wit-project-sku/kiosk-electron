@@ -1,4 +1,4 @@
-import { openAsBlob } from 'node:fs';
+import { readFile } from 'node:fs/promises';
 import { readdir, stat } from 'node:fs/promises';
 import { join } from 'node:path';
 import { witteriaApiBase } from '@main/core/apiBase';
@@ -82,9 +82,9 @@ export interface CycleSummary {
  * It only WATCHES the folder CaptureService writes to; it never hooks the
  * capture flow, so a failure here cannot reach a customer's session.
  *
- * Memory: one pair in flight at a time, and the files go out as disk-backed
- * Blobs (fs.openAsBlob), so photo bytes stream from disk instead of being
- * buffered in the main process.
+ * Memory: one pair in flight at a time (~5 MB), read into memory and released
+ * after the request. Not fs.openAsBlob: on Windows its handle outlives the send,
+ * which keeps the photo locked (a staff member moving the folder would fail).
  */
 export class PhotoArchiveService {
   private readonly store: PhotoArchiveStore;
@@ -291,13 +291,15 @@ export class PhotoArchiveService {
     try {
       form.append(
         'original',
-        await openAsBlob(join(dir, candidate.fileName), { type: mimeOf(candidate.fileName) }),
+        new Blob([await readFile(join(dir, candidate.fileName))], {
+          type: mimeOf(candidate.fileName),
+        }),
         candidate.fileName,
       );
       if (candidate.resultFileName) {
         form.append(
           'result',
-          await openAsBlob(join(dir, candidate.resultFileName), {
+          new Blob([await readFile(join(dir, candidate.resultFileName))], {
             type: mimeOf(candidate.resultFileName),
           }),
           candidate.resultFileName,
