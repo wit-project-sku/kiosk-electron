@@ -4,7 +4,7 @@
 // because the unmounting 탐나오/제주큐랑 webviews threw from their cleanup.
 import { expect, test, type Locator, type Page } from '@playwright/test';
 import { startFakeApi, type FakeApi } from './support/fake-api';
-import { launchKiosk } from './support/launch';
+import { appWindowErrors, launchKiosk } from './support/launch';
 
 let api: FakeApi;
 test.beforeAll(async () => {
@@ -53,9 +53,7 @@ test('W008: five mouse clicks on the date open the 점검 notice directly', asyn
     await clickTimes(date(main), 5);
     await expect(notice(main)).toBeVisible();
     await expect(main.getByText('Something went wrong')).toHaveCount(0);
-    // Our own window only: the third-party pages inside the webviews throw their
-    // own script errors now and then (e.g. "Swiper is not defined").
-    const appErrors = kiosk.errors.filter((e) => e.startsWith('[index.html]'));
+    const appErrors = appWindowErrors(kiosk.errors);
     expect(appErrors.filter((e) => /WebView|ErrorBoundary|pageerror/.test(e))).toEqual([]);
   } finally {
     await kiosk.close();

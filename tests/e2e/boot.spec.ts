@@ -3,7 +3,7 @@
 import { expect, test } from '@playwright/test';
 import { getKioskRegion } from '@shared/config/kioskLocations';
 import { startFakeApi, type FakeApi } from './support/fake-api';
-import { SITES, launchKiosk } from './support/launch';
+import { SITES, appWindowErrors, launchKiosk } from './support/launch';
 import { waitForQuiet } from './support/wait';
 
 let api: FakeApi;
@@ -37,7 +37,7 @@ for (const site of SITES) {
         [],
       );
       expect(
-        kiosk.errors.filter((e) => e.includes('pageerror')),
+        appWindowErrors(kiosk.errors).filter((e) => e.includes('pageerror')),
         'uncaught errors in a window',
       ).toEqual([]);
       if (kiosk.errors.length) {

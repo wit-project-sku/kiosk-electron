@@ -5,7 +5,7 @@ import { join } from 'node:path';
 import { expect, test, type Page } from '@playwright/test';
 import { getKioskRegion } from '@shared/config/kioskLocations';
 import { FIXTURE_DIR, startFakeApi, type FakeApi } from './support/fake-api';
-import { launchKiosk, type Site } from './support/launch';
+import { appWindowErrors, launchKiosk, type Site } from './support/launch';
 
 interface FixtureShop {
   shopNameKr: string;
@@ -83,7 +83,7 @@ for (const { site, tile } of CASES) {
         main.getByRole('button', { name: tile }).locator('visible=true').first(),
       ).toBeVisible();
 
-      expect(kiosk.errors.filter((e) => e.includes('pageerror'))).toEqual([]);
+      expect(appWindowErrors(kiosk.errors).filter((e) => e.includes('pageerror'))).toEqual([]);
     } finally {
       await kiosk.close();
     }
