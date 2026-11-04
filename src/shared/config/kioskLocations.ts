@@ -218,7 +218,7 @@ export const KIOSK_LOCATIONS: Record<KioskLocationCode, KioskLocation> = {
   // then it sent 인사('2'), so 같이찍기 photos composited the Insadong character
   // while the screen next to them said "사진촬영 (with '하영')" — the UI has always
   // promised 하영 (see Photo_SelectTogether and the two 하영 home tiles).
-  W008: { code: 'W008', name: '제주공항', region: 'JEJU_AIRPORT', layout: 'JEJU_AIRPORT', secondTile: MARKET_TILE, hasCardTerminal: true, hasDonation: true, aiCompanion: '5', coordinates: JEJU_AIRPORT_COORDS, cameraRotation: 0 },
+  W008: { code: 'W008', name: '제주국제공항', region: 'JEJU_AIRPORT', layout: 'JEJU_AIRPORT', secondTile: MARKET_TILE, hasCardTerminal: true, hasDonation: true, aiCompanion: '5', coordinates: JEJU_AIRPORT_COORDS, cameraRotation: 0 },
   // 제주국제여객터미널 W009 — the CMS name is `#W009-제주시=제주국제여객터미널`. It runs
   // the SAME design as 제주공항: one JEJU_AIRPORT layout, one Localization_Jeju tab,
   // the same 하영 mascot rows, the same 310-row 제주 shop catalogue.

@@ -42,7 +42,9 @@ test('stage server: a mouse click on the pin opens the menu, a touch does not', 
 
     await hotspot(main).click();
     await expect(menu(main)).toBeVisible();
-    await expect(menu(main).getByText('제주국제여객터미널 (이 PC)')).toBeVisible();
+    await expect(menu(main).getByText('제주국제여객터미널', { exact: true })).toBeVisible();
+    await expect(menu(main).getByText('제주국제공항', { exact: true })).toBeVisible();
+    await expect(menu(main).getByText(/이 PC\)/)).toHaveCount(0);
     await expect(menu(main).getByText(/stage 서버 빌드에서만/)).toBeVisible();
   } finally {
     await kiosk.close();

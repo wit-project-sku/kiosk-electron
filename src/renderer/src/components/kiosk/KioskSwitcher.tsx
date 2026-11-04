@@ -220,7 +220,6 @@ export function KioskSwitcher(): JSX.Element | null {
               <ul className={styles.list}>
                 {LOCATIONS.map((loc) => {
                   const isCurrent = loc.code === currentId;
-                  const isThisPc = (stageServer || testRig) && loc.code === identityId;
                   return (
                     <li key={loc.code}>
                       <button
@@ -231,10 +230,7 @@ export function KioskSwitcher(): JSX.Element | null {
                       >
                         <span className={styles.code}>{loc.code}</span>
                         <span className={styles.meta}>
-                          <span className={styles.name}>
-                            {loc.name}
-                            {isThisPc ? ' (이 PC)' : ''}
-                          </span>
+                          <span className={styles.name}>{loc.name}</span>
                           <span className={styles.layout}>
                             {loc.layout}
                             {loc.hasCardTerminal ? ' · 카드단말기' : ''}
