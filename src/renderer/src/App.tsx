@@ -11,6 +11,7 @@ import { useBannerStore } from '@renderer/store/bannerStore';
 import { useBackgroundStore } from '@renderer/store/backgroundStore';
 import { useOutfitStore } from '@renderer/store/outfitStore';
 import { KioskSwitcher } from '@renderer/components/kiosk/KioskSwitcher';
+import { KioskSetup } from '@renderer/components/kiosk/KioskSetup';
 import { FootfallCounter } from '@renderer/features/footfall/FootfallCounter';
 
 /**
@@ -19,6 +20,8 @@ import { FootfallCounter } from '@renderer/features/footfall/FootfallCounter';
  */
 export function App(): JSX.Element {
   const layout = useKioskStore((s) => s.config.layout);
+  // A fresh PC is no kiosk yet: only the 지점 설정 screen until a site is picked.
+  const unprovisioned = useKioskStore((s) => s.config.setup === 'required');
   // Re-render the whole tree (no remount, so an open photo session keeps its
   // state) when a sheet sync swaps the translation table. t()/sheetText() read
   // the table with getState(), and most screens subscribe only to the language.
@@ -93,12 +96,16 @@ export function App(): JSX.Element {
 
   const KioskLayout = useMemo(() => resolveLayout(layout), [layout]);
 
+  if (unprovisioned) return <KioskSetup />;
+
   return (
     <>
       <KioskLayout />
       {/* DEV_MODE only (see .env): in-app W001–W005 location switcher. Renders
           null on every normal deployment, so no layout is affected. */}
       <KioskSwitcher />
+      {/* 지점 설정 — opened from the desktop shortcut (--setup). Renders null otherwise. */}
+      <KioskSetup />
       {/* 유동인구 — counts people walking past, invisibly. Renders a single
           transparent pixel and nothing else; it yields the camera whenever the
           photo flow needs it (see FootfallService). */}

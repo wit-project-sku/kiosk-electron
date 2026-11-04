@@ -75,6 +75,12 @@ export interface KioskConfig {
    * `previewSite` apply to a venue machine. Always false on production servers.
    */
   stageServer?: boolean;
+  /**
+   * Derived, not stored: the 지점 설정 screen should be open at boot —
+   * `required` on a fresh machine (nothing else is shown until a site is picked),
+   * `requested` when launched from the desktop shortcut. See shared/config/kioskSetup.
+   */
+  setup?: 'required' | 'requested';
   layout: KioskLayoutId;
   /** Per-machine witteria shop-API id (set in electron-store); optional. */
   shopApiKioskId?: number;

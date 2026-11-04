@@ -5,11 +5,13 @@
  * so operators cannot accidentally change the kiosk layout.
  */
 
+import { existsSync } from 'node:fs';
 import Store from 'electron-store';
 import type { KioskConfig } from '@shared/types/kiosk';
 import { DEFAULT_KIOSK_CONFIG } from '@shared/constants';
 import { getKioskLayout } from '@shared/config/kioskLocations';
-import { isStageApiBase, resolveKioskIdentity } from '@shared/config/testRig';
+import { TEST_RIG_KIOSK_ID, isStageApiBase, resolveKioskIdentity } from '@shared/config/testRig';
+import { setupStateFor, type KioskSetupState, type SetupSiteCode } from '@shared/config/kioskSetup';
 import { witteriaApiBase } from './apiBase';
 import { e2eForcesStageServer } from './e2e';
 
@@ -28,6 +30,8 @@ const JEJU_ID_SHIFT: Record<string, string> = {
 type KioskConfigFile = Partial<KioskConfig> & { jejuIdShift202610?: boolean };
 
 let store: Store<KioskConfigFile> | null = null;
+/** Whether the 지점 설정 screen opens this launch — see decideSetup(). */
+let setupState: KioskSetupState | null = null;
 
 function getStore(): Store<KioskConfigFile> {
   if (!store) {
@@ -50,6 +54,36 @@ function migratedKioskId(s: Store<KioskConfigFile>, kioskId: string): string {
 }
 
 export const kioskConfigStore = {
+  /**
+   * Decide, once per launch, whether to open the 지점 설정 screen. Must run
+   * BEFORE `database.init()` (which creates kiosk.db) and before the first
+   * `get()` (which stores the 제주 renumber flag) — after either, every machine
+   * would look like one that has run before.
+   */
+  decideSetup(databaseFile: string, argv: readonly string[]): KioskSetupState | null {
+    setupState = setupStateFor({
+      storedKeys: Object.keys(getStore().store).length,
+      databaseExists: existsSync(databaseFile),
+      argv,
+    });
+    return setupState;
+  },
+
+  /**
+   * Make this PC `code` — what provision-kiosk used to write. The 제주 renumber
+   * flag goes with it (a fresh W008 must not be read as a pre-2026-10-26 id and
+   * moved to W010), the shop-API id re-derives, and a venue drops any preview
+   * site left from stage testing. The test kiosk keeps its preview site.
+   */
+  applySetup(code: SetupSiteCode): void {
+    const s = getStore();
+    s.set('kioskId', code);
+    s.set('jejuIdShift202610', true);
+    s.delete('shopApiKioskId');
+    if (code !== TEST_RIG_KIOSK_ID) s.delete('previewSite' as never);
+    setupState = null;
+  },
+
   get(): KioskConfig {
     // electron-store is the SINGLE source of truth, set PER MACHINE — so one
     // build serves every location. Provision each kiosk with:
@@ -80,6 +114,7 @@ export const kioskConfigStore = {
       testRig,
       testRigPayment,
       stageServer,
+      setup: setupState ?? undefined,
       layout: getKioskLayout(kioskId),
       shopApiKioskId,
       apiBase: witteriaApiBase(),

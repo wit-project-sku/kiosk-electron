@@ -29,6 +29,16 @@ export const SITES = [
 ] as const;
 export type Site = (typeof SITES)[number];
 
+/**
+ * `errors` from the app's own windows only. The third-party pages inside its
+ * webviews (탐나오, 제주큐랑, …) throw their own script errors now and then
+ * ("Swiper is not defined"), which made every test that asserted "no page
+ * errors" fail at random.
+ */
+export function appWindowErrors(errors: readonly string[]): string[] {
+  return errors.filter((e) => /^\[(index|display)\.html\]/.test(e));
+}
+
 export interface LaunchedKiosk {
   app: ElectronApplication;
   main: Page;
@@ -52,6 +62,10 @@ export interface LaunchOptions {
   userData?: string;
   /** Leave userData on disk at close (the caller removes it). */
   keepUserData?: boolean;
+  /** Write no kiosk-config.json — a PC this app has never run on (지점 설정 opens). */
+  fresh?: boolean;
+  /** Extra command-line arguments (e.g. `--setup`, as the desktop shortcut passes). */
+  args?: string[];
 }
 
 /** Service URL overrides a developer .env might carry — blanked so nothing bypasses the fake. */
@@ -78,12 +92,14 @@ const URL_OVERRIDES = [
 
 export async function launchKiosk(opts: LaunchOptions): Promise<LaunchedKiosk> {
   const userData = opts.userData ?? mkdtempSync(join(tmpdir(), `kiosk-e2e-${opts.site}-`));
-  writeFileSync(
-    join(userData, 'kiosk-config.json'),
-    // jejuIdShift202610 is written by a fresh provision too — without it the app's
-    // one-shot renumber would read W008 as a pre-2026-10-26 id and move it to W010.
-    JSON.stringify({ kioskId: opts.site, jejuIdShift202610: true, ...opts.kioskConfig }),
-  );
+  if (!opts.fresh) {
+    writeFileSync(
+      join(userData, 'kiosk-config.json'),
+      // jejuIdShift202610 is written by a fresh provision too — without it the app's
+      // one-shot renumber would read W008 as a pre-2026-10-26 id and move it to W010.
+      JSON.stringify({ kioskId: opts.site, jejuIdShift202610: true, ...opts.kioskConfig }),
+    );
+  }
 
   const env: Record<string, string> = {};
   for (const [k, v] of Object.entries(process.env)) if (v !== undefined) env[k] = v;
@@ -106,7 +122,12 @@ export async function launchKiosk(opts: LaunchOptions): Promise<LaunchedKiosk> {
   delete env['ELECTRON_RENDERER_URL']; // always load the built renderer from out/
 
   const app = await electron.launch({
-    args: ['.', '--use-fake-device-for-media-stream', '--use-fake-ui-for-media-stream'],
+    args: [
+      '.',
+      '--use-fake-device-for-media-stream',
+      '--use-fake-ui-for-media-stream',
+      ...(opts.args ?? []),
+    ],
     cwd: REPO_ROOT,
     env,
   });

@@ -45,6 +45,7 @@ import type { JejuFlightSnapshot } from '../types/jejuFlight';
 import type { JejuSailingSnapshot } from '../types/jejuSailing';
 import type { WeatherPlayKey } from '../config/weatherVideo';
 import type { KioskLocationCode } from '../config/kioskLocations';
+import type { SetupSiteCode } from '../config/kioskSetup';
 import type { ExchangeSnapshot } from '../types/exchange';
 import type { VideoEntry, VideoFilesBySet } from '../types/subtitle';
 import type { Shop } from '../types/shop';
@@ -412,6 +413,11 @@ export interface IpcContract {
     // exits before the renderer ever sees the reply.
     response: Result<boolean>;
   };
+  [IpcChannels.KioskSetupApply]: {
+    request: { kioskId: SetupSiteCode };
+    // Like KioskSwitchLocation: on success the process restarts before replying.
+    response: Result<boolean>;
+  };
   [IpcChannels.ShopsList]: {
     request: void;
     response: Result<Shop[]>;
@@ -543,6 +549,7 @@ export interface IpcEventPayloads {
   [IpcEvents.ExchangeChanged]: ExchangeSnapshot;
   [IpcEvents.KioskScreenChanged]: { screen: string; buttonId: number | null };
   [IpcEvents.KioskWeatherVideo]: WeatherPlayKey;
+  [IpcEvents.KioskSetupOpen]: null;
   [IpcEvents.ShopsChanged]: null;
   [IpcEvents.AttractionsChanged]: null;
   [IpcEvents.ButtonsChanged]: null;

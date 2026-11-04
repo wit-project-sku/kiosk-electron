@@ -209,6 +209,7 @@ const api: KioskBridge = {
       invoke(IpcChannels.KioskSetScreen, { screen, buttonId: buttonId ?? null }),
     playWeatherVideo: (key) => invoke(IpcChannels.KioskPlayWeatherVideo, { key }),
     switchLocation: (kioskId) => invoke(IpcChannels.KioskSwitchLocation, { kioskId }),
+    applySetup: (kioskId) => invoke(IpcChannels.KioskSetupApply, { kioskId }),
   },
   shops: {
     list: () => invoke(IpcChannels.ShopsList),
@@ -275,6 +276,7 @@ const api: KioskBridge = {
     onExchangeChanged: (listener) => subscribe(IpcEvents.ExchangeChanged, listener),
     onKioskScreenChanged: (listener) => subscribe(IpcEvents.KioskScreenChanged, listener),
     onKioskWeatherVideo: (listener) => subscribe(IpcEvents.KioskWeatherVideo, listener),
+    onKioskSetupOpen: (listener) => subscribe(IpcEvents.KioskSetupOpen, listener),
     onShopsChanged: (listener) => subscribe(IpcEvents.ShopsChanged, listener),
     onAttractionsChanged: (listener) => subscribe(IpcEvents.AttractionsChanged, listener),
     onButtonsChanged: (listener) => subscribe(IpcEvents.ButtonsChanged, listener),
