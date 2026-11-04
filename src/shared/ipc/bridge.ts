@@ -156,7 +156,7 @@ export interface KioskBridge {
     selectStyle(styleKey: string, backgroundId?: number | null): Promise<Result<PhotoWorkflowState>>;
     beginCountdown(): Promise<Result<PhotoWorkflowState>>;
     /**
-     * 제주 (W006): hold the countdown until the visitor shows an open palm.
+     * 제주 (W008): hold the countdown until the visitor shows an open palm.
      *
      * Pressing 등록하기 is the moment they still have to WALK BACK to fit in
      * frame, so counting from that press spends the 10 seconds on the walk.

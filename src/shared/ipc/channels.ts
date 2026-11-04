@@ -86,7 +86,7 @@ export const IpcChannels = {
   MotionStop: 'motion:stop',
 
   // 틀린그림찾기 — the mini-game played on the touch screen while the AR 한복
-  // photo generates (제주 W006).
+  // photo generates (제주 W008).
   SpotDiffGetRound: 'spotDiff:getRound',
 
   // Language / Translations

@@ -32,7 +32,7 @@ const SHEET_ID = '1AVZoyepjrlWIUtwXamGRYU6TWkKKKgVb7fzwEtbRDaw';
 const OSAEK_SHEET_ID = '1_CkWFXfB7ud0sJw-cnIWGvFlTzF12UxDuNylp5HkOiw';
 /** W005 화성휴게소 content sheet (tabs suffixed _Hwaseong). */
 const HWASEONG_SHEET_ID = '14aWRWrJXPC_J-W4GpZqa_g-3fDjjUsy6BpAhDg8OvVU';
-/** W006 제주공항 content sheet (tabs suffixed _Jeju).
+/** W008 제주공항 content sheet (tabs suffixed _Jeju).
  *  Tabs: ShopData_Jeju · AICategory_Jeju · Localization_Jeju_v2 ·
  *  AirportFacilityData_Jeju ·
  *  VideoSubtitle_귤이 · VideoSubtitle_Jeju_유산 · three 규칙 reference tabs.
@@ -483,7 +483,7 @@ async function genAiCategoriesHwaseong() {
   return cats.length;
 }
 
-// ─── W006 제주공항 (separate sheet, _Jeju tabs) ────────────────────────
+// ─── W008 제주공항 (separate sheet, _Jeju tabs) ────────────────────────
 // VERIFIED 2026-08-13 against the real header row, which reads
 //   Num · Key · Korean · English · Japanese · Chinese · Vietnamese · Thai ·
 //   Russian · Indonesian · 설명,비고 · 구분(위치)
@@ -501,7 +501,7 @@ async function genAiCategoriesHwaseong() {
  * Seven keys therefore appear TWICE, once for 제주공항/여객선터미널 (mascot 하영)
  * and once for 제주유산문화센터 (mascot 유산): NoticeContent, MainButton_Greeting,
  * MainButton_ToHelp, SubButton_Greeting, Photo_SelectTogether, MainButton_Promotion
- * and SubButton_ToHelp. A plain last-wins loop hands W006 the 유산 rows, so the
+ * and SubButton_ToHelp. A plain last-wins loop hands W008 the 유산 rows, so the
  * kiosk renders "안녕 '유산'", "도와줘 '유산'" and "사진촬영 (with '유산')".
  *
  * Ties are broken on the MASCOT NAME, not the `설명, 비고` column, for two reasons:
@@ -522,7 +522,7 @@ async function genAiCategoriesHwaseong() {
  * behaves exactly as before. Mirrored at runtime in
  * src/main/services/sync/google/LocalizationSyncParser.ts — keep the two in sync.
  *
- * W008 세계자연유산본부 (JEJU_HERITAGE, mascot 유산) is the same tab scored the
+ * W010 세계자연유산본부 (JEJU_HERITAGE, mascot 유산) is the same tab scored the
  * other way round — genLocalizationJeju emits its picks as a small OVERRIDES
  * module (only the keys whose pick differs) that loc.ts overlays on
  * LOCALIZATION_JEJU, so the ~230-key table isn't bundled twice.
@@ -589,7 +589,7 @@ function jejuVenueScore(r) {
 
 async function genLocalizationJeju() {
   const rows = await loadTab('Localization_Jeju_v2', JEJU_SHEET_ID, LOCALIZATION_HEADER);
-  /** One venue's picks — sign +1 keeps the 하영 rows (W006/W007), −1 keeps 유산's (W008). */
+  /** One venue's picks — sign +1 keeps the 하영 rows (W008/W009), −1 keeps 유산's (W010). */
   const pickVenue = (sign) => {
     const entries = {};
     const scores = {};
@@ -612,15 +612,15 @@ async function genLocalizationJeju() {
     .join('\n');
   const out = `${BANNER}import type { LangText } from './types';
 
-/** W006 제주공항 UI strings keyed by their sheet \`Key\` (Localization_Jeju_v2). */
+/** W008 제주공항 UI strings keyed by their sheet \`Key\` (Localization_Jeju_v2). */
 export const LOCALIZATION_JEJU: Record<string, LangText> = {
 ${body}
 };
 `;
   await writeFile(join(DATA_DIR, 'localization-jeju.generated.ts'), out, 'utf8');
 
-  // W008 세계자연유산본부 (JEJU_HERITAGE) — the 유산-preferred picks, emitted as a
-  // delta: only the keys whose winning row differs from W006's make the file.
+  // W010 세계자연유산본부 (JEJU_HERITAGE) — the 유산-preferred picks, emitted as a
+  // delta: only the keys whose winning row differs from W008's make the file.
   const heritage = pickVenue(-1);
   const overrides = Object.entries(heritage).filter(
     ([k, v]) => JSON.stringify(entries[k]) !== JSON.stringify(v),
@@ -628,8 +628,8 @@ ${body}
   const heritageBody = overrides.map(([k, v]) => `  ${JSON.stringify(k)}: ${JSON.stringify(v)},`).join('\n');
   const heritageOut = `${BANNER}import type { LangText } from './types';
 
-/** W008 세계자연유산본부 (JEJU_HERITAGE): the Localization_Jeju_v2 keys whose venue
- *  pick differs from W006's — i.e. the 유산-mascot rows. Overlaid on
+/** W010 세계자연유산본부 (JEJU_HERITAGE): the Localization_Jeju_v2 keys whose venue
+ *  pick differs from W008's — i.e. the 유산-mascot rows. Overlaid on
  *  LOCALIZATION_JEJU by loc.ts; mirrors the runtime split in
  *  LocalizationSyncParser.VENUE_MASCOTS. */
 export const LOCALIZATION_JEJU_HERITAGE_OVERRIDES: Record<string, LangText> = {
@@ -653,7 +653,7 @@ async function genAiCategoriesJeju() {
   const body = cats.map((c) => `  ${JSON.stringify(c)},`).join('\n');
   const out = `${BANNER}import type { LangText } from './types';
 
-/** W006 제주공항 AI검색 categories, prefix stripped. */
+/** W008 제주공항 AI검색 categories, prefix stripped. */
 export const AI_CATEGORIES_JEJU: LangText[] = [
 ${body}
 ];
@@ -663,7 +663,7 @@ ${body}
 }
 
 /**
- * W006 제주공항 공항시설 (AirportFacilityData_Jeju) — the 도와줘 '하영' map's data.
+ * W008 제주공항 공항시설 (AirportFacilityData_Jeju) — the 도와줘 '하영' map's data.
  *
  * Unlike every other tab here, the eight languages sit in ONE contiguous block
  * per field (ko en jp ch vn th ru id), so `lang8` reads them positionally rather
@@ -761,7 +761,7 @@ export interface AirportFacility {
   mainProduct: LangText;
 }
 
-/** W006 제주공항 facilities, in sheet order (which the map's pin pairing relies on). */
+/** W008 제주공항 facilities, in sheet order (which the map's pin pairing relies on). */
 export const AIRPORT_FACILITIES_JEJU: AirportFacility[] = [
 ${body}
 ];
@@ -865,7 +865,7 @@ async function main() {
   console.log(`✓ [hwaseong] localization: ${locH} keys`);
   console.log(`✓ [hwaseong] aiCategories: ${catsH}`);
 
-  // W006 제주공항 (separate sheet, _Jeju tabs) — skipped until the sheet exists.
+  // W008 제주공항 (separate sheet, _Jeju tabs) — skipped until the sheet exists.
   if (JEJU_SHEET_ID) {
     const locJ = await genLocalizationJeju();
     const catsJ = await genAiCategoriesJeju();

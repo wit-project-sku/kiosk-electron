@@ -1,5 +1,5 @@
 /**
- * 제주공항 (W006) 틀린그림찾기 — the waiting game played on the touch screen
+ * 제주공항 (W008) 틀린그림찾기 — the waiting game played on the touch screen
  * while the AR 한복 photo generates. Figma 6258:78631.
  *
  * ── Why this screen exists ────────────────────────────────────────────

@@ -24,13 +24,15 @@ export class KioskService {
    * NOT a small sequence: the digits are whatever the venue's code carries, and
    * KADA is W202 → 202. Nothing here may assume a range (it never did — this is
    * a plain digit extraction — but the note used to say "1–6", which stopped
-   * being true at W007 and is now off by two orders of magnitude).
+   * being true at W009 and is now off by two orders of magnitude).
    *
    * It deliberately ignores `shopApiKioskId`: that field is the SHOP endpoint's
-   * id, and the two are not always the same number. 제주 W006 is the case that
-   * proves it — its shops are filed under 7, but `/api/kiosks/6/banners` carries
-   * the banners and 7 has none, so honouring it here would blank the banner rail
-   * on every 제주 kiosk provisioned with `-ShopId 7`. See ShopService.kioskNum.
+   * id, and the two are not always the same number. 제주공항 used to prove it —
+   * shops filed under 7 while `/api/kiosks/6/banners` carried the banners — so
+   * honouring the shop id here would blank the banner rail. See ShopService.
+   *
+   * 2026-10-26 device ids: W008 → 8 (제주공항), W009 → 9 (여객터미널), W010 → 10
+   * (유산본부). 6 is the office rig WITH-I-001, not one of these venues.
    */
   kioskNum(): number {
     const cfg = this.getConfig();

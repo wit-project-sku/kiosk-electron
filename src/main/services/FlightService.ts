@@ -12,7 +12,7 @@ const log = createLogger('flight-service');
 /** 2 min — see the 5,000/day quota discussion; two calls per cycle. */
 const REFRESH_MS = 2 * 60 * 1000;
 const CACHE_KEY = 'jeju-flights';
-const AIRPORT_KIOSK = 'W006';
+const AIRPORT_KIOSK = 'W008';
 const AIRPORT_CODE = 'CJU';
 const PAGE_SIZE = 100;
 const MAX_PAGES = 10;
@@ -83,7 +83,7 @@ interface PortalResponse {
 /**
  * Fetches 제주 (CJU) departures + arrivals from KAC's real-time board API,
  * caches them, and refreshes every two minutes. Network stays in main; the
- * renderer only reads the snapshot over IPC. Gated to W006 (제주공항) so the
+ * renderer only reads the snapshot over IPC. Gated to W008 (제주공항) so the
  * passenger terminal kiosk does not spend the shared 5,000/day quota.
  *
  * Cold start (no cache): first pull is limited to the next
@@ -114,7 +114,7 @@ export class FlightService {
 
   /**
    * Starts the polling loop. Each tick checks the *current* kiosk layout so a
-   * dev-mode switch to W006 can begin fetching without restarting main.
+   * dev-mode switch to W008 can begin fetching without restarting main.
    */
   start(): void {
     if (!this.timer) {

@@ -81,8 +81,8 @@ class AppPaths {
    * The set folders are the VIDEO_SETS names, and the app creates the empty tree
    * on first launch (see video.handlers' listVideoFiles) so the exact folder
    * names are visible on the machine rather than guessed. Note that 제주 is THREE
-   * of them — `jeju-airport` (W006), `jeju-terminal` (W007) and `jeju-heritage`
-   * (W008) — because those venues share a design but not their footage.
+   * of them — `jeju-airport` (W008), `jeju-terminal` (W009) and `jeju-heritage`
+   * (W010) — because those venues share a design but not their footage.
    *
    * Default `C:\KioskVideos` on a packaged Windows kiosk (mirrors C:\KioskPhotos);
    * override with `KIOSK_VIDEOS_DIR`. Dev keeps using the repo's resources/videos.

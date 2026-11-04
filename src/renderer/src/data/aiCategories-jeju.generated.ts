@@ -2,7 +2,7 @@
 // Run `npm run sync:sheet` to refresh from the Google Sheet.
 import type { LangText } from './types';
 
-/** W006 제주공항 AI검색 categories, prefix stripped. */
+/** W008 제주공항 AI검색 categories, prefix stripped. */
 export const AI_CATEGORIES_JEJU: LangText[] = [
   {"ko":"흑돼지","en":"black pig","ja":"黒豚","zh":"黑猪","vi":"lợn đen","th":"หมูดำ","ru":"черная свинья","id":"babi hitam"},
   {"ko":"해산물·회","en":"Seafood and Sashimi","ja":"シーフード・会","zh":"海鲜和刺身","vi":"Hải sản và Sashimi","th":"อาหารทะเลและซาชิมิ","ru":"Морепродукты и сашими","id":"Makanan Laut dan Sashimi"},

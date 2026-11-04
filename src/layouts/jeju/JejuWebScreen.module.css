@@ -39,8 +39,18 @@
    actually re-stacks around it is the other two blocks, which SWAP ends: the QR
    row comes up above the panel and the tab row goes to the foot, within seated
    reach. See .qrRowLow / .tabsLow. */
+/* 제주공항's single-site 탐나오 / 제주큐랑 pages (2026-10-29): no tab row, so the
+   panel rises into its band (700 = the plain .body's top) and keeps the same
+   bottom edge, 3264, above the QR row. Low-reach keeps .bodyTamnaoLow's frame
+   — that tab row sits at the foot, so the top band is the QR row's. */
+.bodyTamnaoSingle {
+  top: 700px;
+  height: 2564px;
+}
+
 .bodyTamnaoLow {
   top: 1032px;
+  height: 2291px;
 }
 
 /* ── Tab row — 6493:118322 ──

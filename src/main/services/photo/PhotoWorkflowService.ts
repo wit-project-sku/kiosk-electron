@@ -28,6 +28,7 @@ const INITIAL: PhotoWorkflowState = {
  * Single source of truth for the AI photo workflow.
  * Drives Monitor 2 display state automatically on every transition.
  */
+
 export class PhotoWorkflowService {
   private state: PhotoWorkflowState = { ...INITIAL };
   private readonly listeners = new Set<WorkflowListener>();

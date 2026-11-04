@@ -407,6 +407,18 @@ const UI_TEXT = {
     ru: 'Посмотрите товары со скидкой, доступной только здесь!',
     id: 'Lihat produk yang diskonnya hanya tersedia di lokasi!',
   },
+  /* 제주큐랑's own page (W008 split it off 탐나오). No sheet row for this line —
+     the site's own tagline: "QR 찍고, 내 주변 여행정보 한 눈에". */
+  jejuQurangSubtitle: {
+    ko: 'QR 찍고, 내 주변 여행정보를 한눈에 확인하세요.',
+    en: 'Scan a QR code and see travel info around you at a glance.',
+    ja: 'QRを読み取って、周辺の旅行情報をひと目で確認しましょう。',
+    zh: '扫一扫二维码，周边旅游信息一目了然。',
+    vi: 'Quét mã QR để xem ngay thông tin du lịch quanh bạn.',
+    th: 'สแกน QR แล้วดูข้อมูลท่องเที่ยวรอบตัวคุณได้ในพริบตา',
+    ru: 'Отсканируйте QR-код — и вся информация о поездке рядом с вами перед глазами.',
+    id: 'Pindai QR dan lihat info wisata di sekitar Anda sekaligus.',
+  },
 
   // ── 제주 page-header descriptions ──────────────────────────────────────
   // The row under a 제주 header title. Sheet copy wins wherever a page HAS a
