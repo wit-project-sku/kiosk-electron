@@ -263,7 +263,8 @@ export function KioskSetup(): JSX.Element | null {
 }
 
 function siteDetail(site: SetupSite): string {
-  if (site.testRig) return '모든 지점 화면 미리보기';
+  if (site.testRig)
+    return '번호는 200 그대로, 화면만 지점별로 미리보기 — 사진·통계도 200번으로 남습니다';
   const parts = [site.hasCardTerminal ? '카드단말기' : null, site.hasDonation ? '기부' : null];
   return parts.filter(Boolean).join(' · ') || '카드단말기·기부 없음';
 }

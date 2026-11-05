@@ -47,7 +47,7 @@ export const SETUP_SITES: readonly SetupSite[] = [
   })),
   {
     code: TEST_RIG_KIOSK_ID,
-    name: '사무실 테스트기',
+    name: '사무실 테스트기 (HQ)',
     testRig: true,
     hasCardTerminal: false,
     hasDonation: false,
