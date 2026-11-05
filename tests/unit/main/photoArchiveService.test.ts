@@ -10,6 +10,7 @@ vi.mock('@main/core/apiBase', () => ({ witteriaApiBase: () => 'https://api.examp
 
 import {
   PhotoArchiveService,
+  cycleIntervalFor,
   type PhotoArchiveStore,
 } from '@main/services/photoArchive/PhotoArchiveService';
 import type { ArchiveRecord } from '@main/services/photoArchive/plan';
@@ -326,5 +327,13 @@ describe('PhotoArchiveService.runCycle', () => {
       'https://override.example.test/status?kioskId=3',
       'https://override.example.test/upload',
     ]);
+  });
+});
+
+describe('scan cadence', () => {
+  it('scans every 5 minutes against a stage server, hourly otherwise', () => {
+    expect(cycleIntervalFor('https://api-stage-v3.witteria.com')).toBe(5 * MIN);
+    expect(cycleIntervalFor('https://api-v3.witteria.com')).toBe(60 * MIN);
+    expect(cycleIntervalFor('')).toBe(60 * MIN);
   });
 });

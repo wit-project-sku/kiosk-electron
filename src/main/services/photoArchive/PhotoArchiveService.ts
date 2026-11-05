@@ -3,6 +3,7 @@ import { readdir, stat } from 'node:fs/promises';
 import { join } from 'node:path';
 import { witteriaApiBase } from '@main/core/apiBase';
 import { createLogger } from '@main/core/logger';
+import { isStageApiBase } from '@shared/config/testRig';
 import {
   classifySendResponse,
   kstIso,
@@ -26,6 +27,18 @@ const log = createLogger('photo-archive');
  * Hourly: the archive is not real-time, and each cycle sends one hour's shots.
  */
 const CYCLE_INTERVAL_MS = 60 * 60_000;
+/**
+ * TEMPORARY (2026-11-05, stage testing): a build talking to a STAGE server scans
+ * every 5 minutes so a test shot reaches Drive while staff are still watching.
+ * Production builds keep the hourly cadence. Remove once Drive archiving is signed
+ * off on stage.
+ */
+const STAGE_CYCLE_INTERVAL_MS = 5 * 60_000;
+
+/** Scan cadence for the servers this build talks to. */
+export function cycleIntervalFor(apiBase: string): number {
+  return isStageApiBase(apiBase) ? STAGE_CYCLE_INTERVAL_MS : CYCLE_INTERVAL_MS;
+}
 /** First cycle after launch — boot, render and network come first. */
 const STARTUP_DELAY_MS = 2 * 60_000;
 /** Originals younger than this may still be waiting for their composite. */
@@ -114,7 +127,10 @@ export class PhotoArchiveService {
     this.started = true;
     this.stopped = false;
     this.schedule(STARTUP_DELAY_MS);
-    log.info('Photo archive started', { firstCycleInMs: STARTUP_DELAY_MS });
+    log.info('Photo archive started', {
+      firstCycleInMs: STARTUP_DELAY_MS,
+      cycleIntervalMs: cycleIntervalFor(witteriaApiBase()),
+    });
   }
 
   stop(): void {
@@ -130,7 +146,7 @@ export class PhotoArchiveService {
       this.timer = null;
       void this.runCycle()
         .catch((error: unknown) => log.warn('Photo archive cycle failed', errorMessage(error)))
-        .finally(() => this.schedule(CYCLE_INTERVAL_MS));
+        .finally(() => this.schedule(cycleIntervalFor(witteriaApiBase())));
     }, delayMs);
     if (typeof this.timer.unref === 'function') this.timer.unref();
   }
