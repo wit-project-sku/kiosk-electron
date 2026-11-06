@@ -195,9 +195,9 @@ const MARKET_TILE: KioskLocationTile = { screen: 'market', label: '위드마켓'
 // (127.0.0.1:8080) and there is no TL-3800 on those two machines to answer it — the
 // flow cannot complete until terminals are fitted. W003/W004/W005 have one.
 export const KIOSK_LOCATIONS: Record<KioskLocationCode, KioskLocation> = {
-  W001: { code: 'W001', name: '북인사마당', region: 'INSADONG_NORTH', layout: 'INSADONG', secondTile: INSARANG_TILE, hasCardTerminal: false, hasDonation: true, aiCompanion: '2', coordinates: INSADONG_COORDS, cameraRotation: 0 },
+  W001: { code: 'W001', name: '북인사광장', region: 'INSADONG_NORTH', layout: 'INSADONG', secondTile: INSARANG_TILE, hasCardTerminal: false, hasDonation: true, aiCompanion: '2', coordinates: INSADONG_COORDS, cameraRotation: 0 },
   W002: { code: 'W002', name: '인사동쉼터', region: 'INSADONG_CENTER', layout: 'INSADONG', secondTile: INSARANG_TILE, hasCardTerminal: false, hasDonation: true, aiCompanion: '2', coordinates: INSADONG_COORDS, cameraRotation: 0 },
-  W003: { code: 'W003', name: '남인사마당', region: 'INSADONG_SOUTH', layout: 'NAM_INSADONG', secondTile: MARKET_TILE, hasCardTerminal: true, hasDonation: true, aiCompanion: '2', coordinates: INSADONG_COORDS, cameraRotation: 0 },
+  W003: { code: 'W003', name: '남인사광장', region: 'INSADONG_SOUTH', layout: 'NAM_INSADONG', secondTile: MARKET_TILE, hasCardTerminal: true, hasDonation: true, aiCompanion: '2', coordinates: INSADONG_COORDS, cameraRotation: 0 },
   // 오색시장 also has a physical card-payment terminal (like 남인사마당 W003), so it
   // takes the payment result flow (위드마켓 webview + save QR, result image on Monitor 2).
   W004: { code: 'W004', name: '오산시 오색시장', region: 'OSAEK', layout: 'OSAN', secondTile: MARKET_TILE, hasCardTerminal: true, hasDonation: true, aiCompanion: '3', coordinates: OSAN_COORDS, cameraRotation: 0 },
