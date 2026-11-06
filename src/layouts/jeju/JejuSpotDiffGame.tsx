@@ -75,6 +75,7 @@ import { usePhotoChrome } from '../photo/photoChrome';
 import { modeBarVars } from './lowReach';
 import { JejuBgMotion } from './JejuBgMotion';
 import styles from './JejuSpotDiffGame.module.css';
+import { VoiceToggle } from './voice/VoiceToggle';
 
 /**
  * The ♿ bar's copy. Sheet-first (`BarrierFree_Title`) with this as the
@@ -809,6 +810,7 @@ export function JejuSpotDiffGame({
             <img src={accessibilityIcon} alt="" draggable={false} />
           </button>
         )}
+        <VoiceToggle className={styles.leftNavBtn} />
       </div>
 
       {/* ── ③ 잠시만 기다려주세요! ── */}

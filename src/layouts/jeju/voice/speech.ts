@@ -52,6 +52,40 @@ const LANG_TAGS: Record<VoiceLang, string> = {
   id: 'id-ID',
 };
 
+/** "5~9명": a number range, in words — a voice either reads the sign or runs the numbers together. */
+const RANGE_WORD: Record<VoiceLang, string> = {
+  ko: '에서',
+  en: 'to',
+  ja: 'から',
+  zh: '到',
+  vi: 'đến',
+  th: 'ถึง',
+  ru: 'до',
+  id: 'sampai',
+};
+/** "10명~", "10+ pax": an open range. */
+const OR_MORE: Record<VoiceLang, string> = {
+  ko: '이상',
+  en: 'or more',
+  ja: '以上',
+  zh: '以上',
+  vi: 'trở lên',
+  th: 'ขึ้นไป',
+  ru: 'и более',
+  id: 'atau lebih',
+};
+
+/** Screen text as it should sound: the sheet's chips and bodies are written for the eye. */
+export function speakable(text: string, lang: VoiceLang): string {
+  return text
+    .replace(/(\d)\s*[~～∼]\s*(?=\d)/g, `$1 ${RANGE_WORD[lang]} `)
+    .replace(/\s*[~～∼]+\s*$/gm, (_m, offset: number, all: string) =>
+      /\d\s*\S*$/.test(all.slice(0, offset)) ? ` ${OR_MORE[lang]}` : '',
+    )
+    .replace(/(\d)\+/g, `$1 ${OR_MORE[lang]}`)
+    .replace(/[~～∼]+/g, ' ');
+}
+
 let voices: SpeechSynthesisVoice[] = [];
 const loadVoices = (): void => {
   voices = window.speechSynthesis?.getVoices() ?? [];
@@ -89,7 +123,7 @@ let queue: Line[] = [];
 function play(line: Line): void {
   const synth = window.speechSynthesis;
   if (!synth) return;
-  const u = new SpeechSynthesisUtterance(line.text);
+  const u = new SpeechSynthesisUtterance(speakable(line.text, line.lang));
   u.lang = LANG_TAGS[line.lang];
   const voice = voiceFor(line.lang);
   if (voice) u.voice = voice;

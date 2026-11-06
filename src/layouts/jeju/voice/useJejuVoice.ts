@@ -26,8 +26,8 @@
  * timers and locks live, is not touched. Screens with tabs, steps or modals
  * declare their current intro with intro.ts's useVoiceIntro.
  *
- * Not covered yet: the 🔊 rail button (waiting on design) and earphone plug
- * detection (depends on the kiosk PC's sound driver).
+ * The rail's 🔊 button (VoiceToggle) turns it on and off by touch. Not covered
+ * yet: earphone plug detection (depends on the kiosk PC's sound driver).
  */
 import { useEffect, useRef } from 'react';
 import type { KioskController } from '@renderer/hooks/useKioskController';
@@ -40,7 +40,7 @@ import { BACK_SELECTOR, FOCUS_EVENT, HOME_SELECTOR } from '../keypad/useJejuKeyp
 import { announceKeys, currentIntro, setPhotoIntro, speakKey } from './intro';
 import { focusLine, sheetLine, toVoiceLang } from './lines';
 import { Priority, say, stop, canSpeak, listVoices, type Line } from './speech';
-import { useVoiceStore } from './voiceStore';
+import { VOICE_TOGGLE_EVENT, useVoiceStore } from './voiceStore';
 
 /** Spoken this long before the idle reset — the spec's 2m30s. */
 const IDLE_WARN_MS = IDLE_TIMEOUT_MS - 30_000;
@@ -212,8 +212,13 @@ export function useJejuVoice(controller: KioskController, enabled = true): void 
       }
     };
 
-    // A touch interrupts too; touching never turns voice on.
+    // A touch interrupts too; only the rail's own button turns voice on by touch.
     const onPointerDown = (): void => stop();
+
+    const onToggle = (): void => {
+      if (useVoiceStore.getState().on) turnOff();
+      else turnOn();
+    };
 
     const onFocus = (): void => {
       if (useVoiceStore.getState().on) announceFocus();
@@ -233,10 +238,12 @@ export function useJejuVoice(controller: KioskController, enabled = true): void 
     window.addEventListener('keydown', onKeyDown, true);
     window.addEventListener('pointerdown', onPointerDown, true);
     window.addEventListener(FOCUS_EVENT, onFocus);
+    window.addEventListener(VOICE_TOGGLE_EVENT, onToggle);
     return () => {
       window.removeEventListener('keydown', onKeyDown, true);
       window.removeEventListener('pointerdown', onPointerDown, true);
       window.removeEventListener(FOCUS_EVENT, onFocus);
+      window.removeEventListener(VOICE_TOGGLE_EVENT, onToggle);
       unsubLang();
       unsubLowReach();
       stop();

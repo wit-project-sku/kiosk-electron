@@ -147,6 +147,7 @@ import { JejuBgMotion } from './JejuBgMotion';
 import shared from '../photo/HanbokSelect.module.css';
 import styles from './JejuHanbokSelect.module.css';
 import { useVoiceIntro } from './voice/intro';
+import { VoiceToggle } from './voice/VoiceToggle';
 
 interface Props {
   /** Third argument: the step ② 배경 테마 plate, or null when none was tapped. */
@@ -892,6 +893,7 @@ export function JejuHanbokSelect({
             <img src={accessibilityIcon} alt="" className={styles.accessibilityImg} draggable={false} />
           </button>
         )}
+        <VoiceToggle className={styles.voiceToggle} />
       </div>
     );
   }
@@ -1225,6 +1227,7 @@ export function JejuHanbokSelect({
           <img src={accessibilityIcon} alt="" className={styles.accessibilityImg} draggable={false} />
         </button>
       )}
+      <VoiceToggle className={styles.voiceToggle} />
 
       {/* Camera-direction popup — shown while capturing / generating. */}
       {countdownActive && camPopupSrc && (
