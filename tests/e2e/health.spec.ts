@@ -31,8 +31,29 @@ test('a killed run is reported as ABNORMAL_EXIT at the next launch; a clean quit
       userData,
       keepUserData: true,
     });
-    await expect.poll(() => crashReports().length, { timeout: 20_000 }).toBe(before + 1);
-    const report = crashReports().at(-1)?.body as Record<string, unknown>;
+    const abnormalExits = (): Record<string, unknown>[] =>
+      crashReports()
+        .slice(before)
+        .map((r) => r.body as Record<string, unknown>)
+        .filter((body) => body['kind'] === 'ABNORMAL_EXIT');
+    await expect.poll(() => abnormalExits().length, { timeout: 20_000 }).toBe(1);
+    // Killing the process tree can also report the helpers that died first. Print
+    // everything so a real crash on the second launch is visible in the CI log.
+    console.log(
+      '[health] reports after the kill:',
+      JSON.stringify(
+        crashReports()
+          .slice(before)
+          .map((r) => {
+            const { kind, processType, reason, exitCode, message } = r.body as Record<
+              string,
+              unknown
+            >;
+            return { kind, processType, reason, exitCode, message };
+          }),
+      ),
+    );
+    const report = abnormalExits()[0]!;
     expect(report).toMatchObject({
       kind: 'ABNORMAL_EXIT',
       kioskCode: 'W004',
