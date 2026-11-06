@@ -351,12 +351,13 @@ const togetherText = (lang: Lang): string =>
   tExact('Photo_SelectTogether', lang) || pick(togetherLabel(jejuMascot()), lang);
 
 /**
- * 제주공항 (W008) offers 같이찍기 on the 제주 tab only for now — the 하영
- * composite is not working with the other tabs' outfits yet, so they get
- * 혼자 찍기 alone. Remove once it is fixed.
+ * 제주공항 (W008) and 여객터미널 (W009) offer 같이찍기 on the 제주 tab only for
+ * now — the 하영 composite is not working with the other tabs' outfits yet, so
+ * they get 혼자 찍기 alone. Remove once it is fixed.
  */
+const TOGETHER_ON_JEJU_TAB_ONLY: ReadonlySet<string> = new Set(['W008', 'W009']);
 const hidesTogether = (isThemeTab: boolean): boolean =>
-  !isThemeTab && useKioskStore.getState().config.kioskId === 'W008';
+  !isThemeTab && TOGETHER_ON_JEJU_TAB_ONLY.has(useKioskStore.getState().config.kioskId);
 
 const NO_OUTFITS = {
   ko: '준비 중인 의상입니다.',
