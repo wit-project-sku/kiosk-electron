@@ -5,14 +5,14 @@ import {
   readMaintenanceLifted,
   registerTap,
   writeMaintenanceLifted,
-} from '@layouts/jeju/maintenance';
+} from '../../../src/layouts/jeju/maintenance';
 
 describe('제주 점검 switch — counting taps', () => {
-  const tapAt = (times: number[]): { taps: number[]; triggered: boolean } =>
-    times.reduce((state, now) => registerTap(state.taps, now), {
-      taps: [] as number[],
-      triggered: false,
-    });
+  const tapAt = (times: number[]): { taps: number[]; triggered: boolean } => {
+    let state: { taps: number[]; triggered: boolean } = { taps: [], triggered: false };
+    for (const now of times) state = registerTap(state.taps, now);
+    return state;
+  };
 
   it('four taps are not enough, the fifth flips it and the count starts over', () => {
     expect(tapAt([0, 100, 200, 300]).triggered).toBe(false);
