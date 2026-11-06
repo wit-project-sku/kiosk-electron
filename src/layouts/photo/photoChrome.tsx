@@ -25,21 +25,18 @@ export interface PhotoHeaderProps {
   onBack?: () => void;
   subtitle?: string;
   /**
-   * Drop the description row under the title. Like `navDisabled` below, only
-   * JejuHeader honours it — its header otherwise resolves a subtitle from the
+   * Drop the description row under the title. Honoured by JejuHeader (its header otherwise resolves a subtitle from the
    * sheet (or a generic fallback) even when none is passed, which is what the
-   * AR 한복체험 page uses this to switch off. A no-op on the other headers, which
-   * draw a subtitle only when one is explicitly given.
+   * AR 한복체험 page uses this to switch off) and by OsanHeader / HwaseongHeader.
+   * The 인사동 header draws a subtitle only when one is explicitly given.
    */
   subtitleHidden?: boolean;
   /**
    * Grey out 홈/뒤로 and stop them responding.
    *
-   * ★ Only JejuHeader honours this — it is the only location with a screen that
-   * must not be walked away from (틀린그림찾기, which runs over a photo that is
-   * already generating). Passing it to the other three is a no-op rather than an
-   * error, so if another location ever grows a comparable screen, wire the prop
-   * in that header rather than assuming this one already did.
+   * Every location's header honours this (인사동 / 오산 / 화성 since 2026-10-16,
+   * when 틀린그림찾기 went standalone there): the photo wait must not be walked
+   * away from — the game runs over a photo that is already generating.
    */
   navDisabled?: boolean;
 }
@@ -94,13 +91,9 @@ export interface PhotoChrome {
   /** Fill the AI wait with the 게임존 instead of a static popup. */
   waitingGames: boolean;
   /**
-   * Whether the 게임존 offers the camera games as well as the touch ones.
-   *
-   * 제주-only for now: the motion games run on the CUSTOMER DISPLAY and need
-   * pose tracking on its camera, and the one that exists (`jeju-run`) is
-   * Jeju-branded end to end. 인사동 takes the hub with 틀린그림찾기 alone,
-   * whose puzzles come from a GLOBAL endpoint (no kioskId) and so need no
-   * per-location content.
+   * Whether the wait offers the camera games as well as 틀린그림찾기.
+   * Off: the jump game (`jeju-run`) is not shown, and the wait opens straight
+   * into the find-difference board.
    */
   motionGames: boolean;
 }
@@ -178,8 +171,11 @@ export function usePhotoChrome(): PhotoChrome {
     richOutfit: isJeju || isInsadong,
     // Shared with the customer display, which draws the chips — see the helper.
     gestureCapture: usesGestureCapture(layout),
-    waitingGames: isJeju || isInsadong || isOsan,
-    motionGames: isJeju,
+    // 화성 joined 2026-10-16 (틀린그림찾기 only, like 오산 / 인사동). Its CMS has no
+    // puzzles yet, so SpotDiffService serves its generated placeholder round.
+    waitingGames: isJeju || isInsadong || isOsan || isHwaseong,
+    // The jump game stays off the wait screen. 틀린그림찾기 is the only game shown.
+    motionGames: false,
     icon,
     Header,
     // KADA's audience reads English and Vietnamese, not Korean — this string is

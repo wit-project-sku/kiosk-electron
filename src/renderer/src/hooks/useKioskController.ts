@@ -4,6 +4,7 @@ import { useAccessibilityStore } from '@renderer/store/accessibilityStore';
 import { useLanguageStore } from '@renderer/store/languageStore';
 import { useKioskStore } from '@renderer/store/kioskStore';
 import { usePhotoStore } from '@renderer/store/photoStore';
+import { useAiStore } from '@renderer/store/aiStore';
 import { localIso, recordMenuTouch, trackEvent } from '@renderer/lib/analytics';
 import { useResolveButton } from '@renderer/lib/buttonLayout';
 import { useInactivityReset } from './useInactivityReset';
@@ -115,6 +116,9 @@ export function useKioskController(): KioskController {
     });
 
     if (screen === 'home') {
+      // Back home = the visit is over: drop the 뭐하지 answers so the next
+      // visitor's 커스텀 코스 starts with nothing picked (see resetSession).
+      useAiStore.getState().resetSession();
       // Returned home → close and report the open menu-touch session.
       if (menuTouchRef.current) {
         recordMenuTouch({

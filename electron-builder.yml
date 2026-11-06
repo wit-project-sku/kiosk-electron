@@ -136,6 +136,8 @@ nsis:
   perMachine: false
   allowToChangeInstallationDirectory: true
   deleteAppDataOnUninstall: false
+  # Desktop "키오스크 지점 설정" shortcut (the app with --setup) — see the file.
+  include: build/installer.nsh
 
 # Auto-update feed = GitHub Releases (electron-updater). This block is baked into
 # the app as `app-update.yml`, so each installed kiosk knows where to look. The

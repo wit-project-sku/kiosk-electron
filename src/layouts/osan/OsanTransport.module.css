@@ -436,10 +436,76 @@
 .tabLong {
   white-space: normal;
   word-break: keep-all;
-  overflow-wrap: anywhere;
-  padding: 0 20px;
+  /* Never split a word ("Общественн / ый"): a word wider than the tab shrinks
+     the row instead (useFitText sees it in scrollWidth). */
+  overflow-wrap: normal;
+  hyphens: none;
+  text-align: center;
+  /* 10 at the sides: the selected tab sets its label Bold, which is wider than
+     the Medium the fit was measured at. */
+  padding: 20px 10px;
   font-size: calc(50px * var(--fit, 1));
   line-height: 1.12;
+}
+
+/* Figma note 넘칠때 (Russian frame): when a label needs more lines the tab
+   grows DOWN rather than clipping — 170 stays the minimum, and every tab in
+   the row takes the tallest one's height so the row stays even. */
+.long .tabLong {
+  height: auto;
+  min-height: 170px;
+}
+
+/* The row is fitted once, at Medium. A selected label set in Bold was wider
+   than that fit ("Общественный" filled the whole 340 tab), so under the long
+   languages the selected tab keeps the Medium weight — its navy fill and white
+   label already say which one is selected. */
+.long .tabLong.tabSelected {
+  font-weight: 500;
+}
+
+.long .tabRow1,
+.long .tabRow2 {
+  align-items: stretch;
+}
+
+/* The card title wraps under the long languages ("Рынок Осэк в Осане: …" ran
+   off the card on one line). The taller tabs and title come out of the map,
+   which shrinks to keep the card inside the frame. */
+.long .marketHeading {
+  white-space: normal;
+  word-break: keep-all;
+  overflow-wrap: normal;
+  text-wrap: balance;
+}
+
+.long .cardMarket:not(.cardStreet) {
+  flex: 0 1 2068px;
+  height: auto;
+  min-height: 0;
+}
+
+.long .marketMapWrap {
+  flex: 0 1 1270px;
+  min-height: 0;
+}
+
+.long .kioskTitle {
+  white-space: normal;
+}
+
+/* 대중교통: the same room comes out of the subway map, so the bus list keeps
+   its place inside the card. */
+.long .cardTransit .transitTop {
+  flex: 0 1 1470px;
+  height: auto;
+  min-height: 0;
+}
+
+.long .cardTransit .transitMapBox {
+  flex: 1 1 auto;
+  height: auto;
+  min-height: 0;
 }
 
 /* ── ♿ (교통안내 7894:54695 / 7894:54761) ────────────────────────────────────
@@ -472,4 +538,32 @@
   top: calc(719px - var(--osan-mode-push, 0px));
   width: 2160px;
   height: 700px;
+}
+
+/* 맘스거리: its window onto the map is `flex: none`, so with the title on two
+   lines the location text ran 42px out of the card's foot. It gives the room
+   back like the other street crops do. */
+.long .windowClip {
+  flex: 0 1 auto;
+  min-height: 0;
+}
+
+/* The label's own box, held inside the tab's padding: the row is fitted
+   against THIS (useFitText 'ink'), so a long word shrinks before it reaches
+   the tab's rounded edge rather than at it. */
+.tabLabel {
+  /* The whole inner width, not its text's: a box that shrink-wraps its
+     text has the space at a wrapped line's end hanging past its edge, and
+     the fit would read that as overflow on every row. */
+  width: 100%;
+  min-width: 0;
+  /* The glyphs stand ~4px taller than the 1.12 line box; without this the
+     fit reads every label as escaping its top. */
+  padding-block: 6px;
+}
+
+/* The size is set on the label, not only the tab: the fit's per-label rescue
+   (a word wider than any tab) writes its own --fit onto this box. */
+.tabLong .tabLabel {
+  font-size: calc(50px * var(--fit, 1));
 }

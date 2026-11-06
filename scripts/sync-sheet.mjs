@@ -23,6 +23,7 @@
  * still works offline; pass --offline to regenerate from the cache only.
  */
 import { mkdir, writeFile, readFile } from 'node:fs/promises';
+import { existsSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
 
@@ -31,8 +32,8 @@ const SHEET_ID = '1AVZoyepjrlWIUtwXamGRYU6TWkKKKgVb7fzwEtbRDaw';
 const OSAEK_SHEET_ID = '1_CkWFXfB7ud0sJw-cnIWGvFlTzF12UxDuNylp5HkOiw';
 /** W005 화성휴게소 content sheet (tabs suffixed _Hwaseong). */
 const HWASEONG_SHEET_ID = '14aWRWrJXPC_J-W4GpZqa_g-3fDjjUsy6BpAhDg8OvVU';
-/** W006 제주공항 content sheet (tabs suffixed _Jeju).
- *  Tabs: ShopData_Jeju · AICategory_Jeju · Localization_Jeju_v2 ·
+/** W008 제주공항 content sheet (tabs suffixed _Jeju).
+ *  Tabs: ShopData_Jeju · AICategory_Jeju · Localization_Jeju_v3 ·
  *  AirportFacilityData_Jeju ·
  *  VideoSubtitle_귤이 · VideoSubtitle_Jeju_유산 · three 규칙 reference tabs.
  *  ShopData is served by the shops API (kioskId=6) and the VideoSubtitle_* tabs
@@ -46,6 +47,11 @@ const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
 const DATA_DIR = join(ROOT, 'src/renderer/src/data');
 const CACHE_DIR = join(DATA_DIR, 'sheet-cache');
 const OFFLINE = process.argv.includes('--offline');
+/** `--only=hwaseong` regenerates just the W005 tabs and the shared nationwide
+ *  sheet (전국시장 / 전국휴게소), leaving every other venue's bundle untouched.
+ *  `--only=voice` regenerates just the 제주 voice guidance script.
+ *  `--only=jeju-localization` regenerates just the 제주 UI strings. */
+const ONLY = (process.argv.find((a) => a.startsWith('--only=')) ?? '').slice('--only='.length);
 
 /**
  * Localization tabs open with a title row ("운영팀> 2번 모니터> …") ABOVE the
@@ -58,7 +64,7 @@ const OFFLINE = process.argv.includes('--offline');
  */
 const csvUrl = (sheet, sheetId = SHEET_ID) =>
   `https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(sheet)}` +
-  (sheet.startsWith('Localization_') ? '&headers=0' : '');
+  (sheet.startsWith('Localization_') || sheet === VOICE_TAB_JEJU ? '&headers=0' : '');
 
 /** RFC-4180 CSV parser (handles quoted fields, escaped quotes, embedded newlines). */
 function parseCSV(text) {
@@ -84,15 +90,38 @@ function parseCSV(text) {
   return rows;
 }
 
-async function loadTab(sheet, sheetId = SHEET_ID) {
+/**
+ * `expect` guards against gviz's silent fallback: asked for a tab that does not
+ * exist (renamed, deleted), gviz answers 200 with the spreadsheet's FIRST tab.
+ * That is how a renamed Localization_Hwaseong would have been regenerated from
+ * ShopData_Hwaseong. The pattern must match somewhere in the first rows (the
+ * header), or the tab is reported missing and nothing is written.
+ */
+async function loadTab(sheet, sheetId = SHEET_ID, expect = undefined) {
   const cacheFile = join(CACHE_DIR, `${sheet}.csv`);
-  if (OFFLINE) return parseCSV(await readFile(cacheFile, 'utf8'));
+  if (OFFLINE) {
+    if (!existsSync(cacheFile)) {
+      const err = new Error(`No cached copy of tab "${sheet}"`);
+      err.code = 'TAB_MISSING';
+      throw err;
+    }
+    return parseCSV(await readFile(cacheFile, 'utf8'));
+  }
   const res = await fetch(csvUrl(sheet, sheetId));
   if (!res.ok) throw new Error(`Fetch ${sheet} failed: HTTP ${res.status}`);
   const text = await res.text();
+  const rows = parseCSV(text);
+  // Ten rows: Text-to-speech_Script keeps a five-row colour legend above its header.
+  if (expect && !rows.slice(0, 10).some((r) => r.some((c) => expect.test(c)))) {
+    const err = new Error(`Tab "${sheet}" not found in sheet ${sheetId} (gviz returned another tab)`);
+    err.code = 'TAB_MISSING';
+    throw err;
+  }
   await writeFile(cacheFile, text, 'utf8');
-  return parseCSV(text);
+  return rows;
 }
+
+const LOCALIZATION_HEADER = /^\s*Key\s*$/;
 
 const clean = (s) => (s ?? '').replace(/ /g, ' ').trim();
 const langText = (ko, en, ja, zh) => ({ ko: clean(ko), en: clean(en), ja: clean(ja), zh: clean(zh) });
@@ -109,9 +138,62 @@ const stripPrefix = (s) => clean(s).replace(/^\s*\d+\s*-\s*/, '');
  * Korean (LangText's vi/th/ru/id are optional).
  */
 const NEW_LANG_COLS_INSA = { vi: 6, th: 7, ru: 8, id: 9 };
-const NEW_LANG_COLS_OSAEK = { vi: 6, id: 7, th: 8, ru: 9 };
-const localizedRow = (r, newCols) => {
+/** 화성 still uses vi, id, th, ru. 오산 used it too until 2026-10-15, when
+ *  Localization_Osaek was rebuilt in the INSA order — see headerLangCols. */
+const NEW_LANG_COLS_HWASEONG = { vi: 6, id: 7, th: 8, ru: 9 };
+
+/**
+ * vi/th/ru/id column indexes from the tab's own header row (the row whose Key
+ * cell reads "Key"), falling back to `fallback` when it names none of them.
+ * The positions are not stable across sheets or revisions, and a wrong guess is
+ * silent: every cell is populated, so Thai simply shows under Indonesian.
+ * Mirrors headerLangCols in src/main/services/sync/google/LocalizationSyncParser.ts.
+ */
+const HEADER_LANGS = [
+  ['vi', /^vietnam(ese)?$|^베트남어?$/i],
+  ['th', /^thai$|^태국어?$/i],
+  ['ru', /^russian$|^러시아어?$/i],
+  ['id', /^indonesian?$|^인도네시아어?$/i],
+];
+const headerColsCache = new WeakMap();
+function headerLangCols(rows, fallback) {
+  if (headerColsCache.has(rows)) return headerColsCache.get(rows);
+  const header = rows.find((r) => clean(r[1]) === 'Key');
+  const found = {};
+  if (header) {
+    for (const [lang, re] of HEADER_LANGS) {
+      const i = header.findIndex((c, idx) => idx > 5 && re.test(clean(c)));
+      if (i >= 0) found[lang] = i;
+    }
+  }
+  const cols = Object.keys(found).length ? found : fallback;
+  headerColsCache.set(rows, cols);
+  return cols;
+}
+/**
+ * th/ru/id columns for ONE row: a tab can keep rows typed in an older column
+ * order than its header (67 Localization_Hwaseong rows hold Thai under
+ * "Indonesian", Russian under "Thai", Indonesian under "Russian"). When the
+ * row's Thai and Russian text sit in two of those three columns they are read
+ * from there, Indonesian from the third; otherwise the header's columns stand.
+ * Mirrors rowLangCols in src/main/services/sync/google/LocalizationSyncParser.ts.
+ */
+const THAI = /[฀-๿]/;
+const CYRILLIC = /[Ѐ-ӿ]/;
+function rowLangCols(r, cols) {
+  const { th, ru, id } = cols;
+  if (th == null || ru == null || id == null) return cols;
+  const trio = [th, ru, id];
+  const thaiAt = trio.find((i) => THAI.test(r[i] ?? ''));
+  const russianAt = trio.find((i) => CYRILLIC.test(r[i] ?? ''));
+  if (thaiAt == null || russianAt == null || thaiAt === russianAt) return cols;
+  if (thaiAt === th && russianAt === ru) return cols;
+  return { ...cols, th: thaiAt, ru: russianAt, id: trio.find((i) => i !== thaiAt && i !== russianAt) };
+}
+
+const localizedRow = (r, headerCols) => {
   const out = langText(r[2], r[3], r[4], r[5]);
+  const newCols = rowLangCols(r, headerCols);
   for (const [lang, idx] of Object.entries(newCols)) {
     const v = clean(r[idx]);
     if (v) out[lang] = v;
@@ -178,7 +260,7 @@ const findLangCols = (header) => {
 const BANNER = '// AUTO-GENERATED by scripts/sync-sheet.mjs — do not edit by hand.\n// Run `npm run sync:sheet` to refresh from the Google Sheet.\n';
 
 async function genLocalization() {
-  const rows = await loadTab('Localization_Insa');
+  const rows = await loadTab('Localization_Insa', SHEET_ID, LOCALIZATION_HEADER);
   // Columns: 0 Num, 1 Key, 2 Korean, 3 English, 4 Japanese, 5 Chinese, 6 Vietnamese, 7 Thai, 8 Russian, 9 Indonesian.
   const entries = {};
   for (const r of rows.slice(1)) {
@@ -187,7 +269,7 @@ async function genLocalization() {
     // First row wins, like the runtime sync (LocalizationSyncParser): the tab
     // lists MainButton_Promotion twice and the home button's row is the first.
     if (key in entries) continue;
-    entries[key] = localizedRow(r, NEW_LANG_COLS_INSA);
+    entries[key] = localizedRow(r, headerLangCols(rows, NEW_LANG_COLS_INSA));
   }
   const body = Object.entries(entries)
     .map(([k, v]) => `  ${JSON.stringify(k)}: ${JSON.stringify(v)},`)
@@ -323,13 +405,14 @@ async function genAiCategories() {
 
 // ─── W004 오산 오색시장 (same column layout, _Osaek tabs, separate sheet) ───────
 async function genLocalizationOsaek() {
-  const rows = await loadTab('Localization_Osaek', OSAEK_SHEET_ID);
-  // Columns: 0 No, 1 Key, 2 Korean, 3 English, 4 Japanese, 5 Chinese, 6 Vietnamese, 7 Indonesian, 8 Thai, 9 Russian.
+  const rows = await loadTab('Localization_Osaek', OSAEK_SHEET_ID, LOCALIZATION_HEADER);
+  // Columns: 0 No, 1 Key, 2 Korean, 3 English, 4 Japanese, 5 Chinese, then vi/th/ru/id
+  // in the order the header row names them (INSA order since 2026-10-15).
   const entries = {};
   for (const r of rows.slice(1)) {
     const key = clean(r[1]);
     if (!key || key === 'Key') continue;
-    entries[key] = localizedRow(r, NEW_LANG_COLS_OSAEK);
+    entries[key] = localizedRow(r, headerLangCols(rows, NEW_LANG_COLS_INSA));
   }
   const body = Object.entries(entries)
     .map(([k, v]) => `  ${JSON.stringify(k)}: ${JSON.stringify(v)},`)
@@ -359,13 +442,23 @@ async function genAiCategoriesOsaek() {
 
 // ─── W005 화성휴게소 (same column layout, _Hwaseong tabs, separate sheet) ───────
 async function genLocalizationHwaseong() {
-  const rows = await loadTab('Localization_Hwaseong', HWASEONG_SHEET_ID);
+  // 2026-10-14: the sheet's tab was renamed Localization_Hwaseong_deprecated and
+  // no replacement exists yet. Read the live name first; while it is missing,
+  // read the deprecated tab (the only copy of the strings) and say so.
+  let rows;
+  try {
+    rows = await loadTab('Localization_Hwaseong', HWASEONG_SHEET_ID, LOCALIZATION_HEADER);
+  } catch (e) {
+    if (e.code !== 'TAB_MISSING') throw e;
+    console.warn('! [hwaseong] Localization_Hwaseong is missing — reading Localization_Hwaseong_deprecated');
+    rows = await loadTab('Localization_Hwaseong_deprecated', HWASEONG_SHEET_ID, LOCALIZATION_HEADER);
+  }
   // Columns: 0 Num, 1 Key, 2 Korean, 3 English, 4 Japanese, 5 Chinese, 6 Vietnamese, 7 Indonesian, 8 Thai, 9 Russian.
   const entries = {};
   for (const r of rows.slice(1)) {
     const key = clean(r[1]);
     if (!key || key === 'Key') continue;
-    entries[key] = localizedRow(r, NEW_LANG_COLS_OSAEK);
+    entries[key] = localizedRow(r, headerLangCols(rows, NEW_LANG_COLS_HWASEONG));
   }
   const body = Object.entries(entries)
     .map(([k, v]) => `  ${JSON.stringify(k)}: ${JSON.stringify(v)},`)
@@ -393,7 +486,7 @@ async function genAiCategoriesHwaseong() {
   return cats.length;
 }
 
-// ─── W006 제주공항 (separate sheet, _Jeju tabs) ────────────────────────
+// ─── W008 제주공항 (separate sheet, _Jeju tabs) ────────────────────────
 // VERIFIED 2026-08-13 against the real header row, which reads
 //   Num · Key · Korean · English · Japanese · Chinese · Vietnamese · Thai ·
 //   Russian · Indonesian · 설명,비고 · 구분(위치)
@@ -411,7 +504,7 @@ async function genAiCategoriesHwaseong() {
  * Seven keys therefore appear TWICE, once for 제주공항/여객선터미널 (mascot 하영)
  * and once for 제주유산문화센터 (mascot 유산): NoticeContent, MainButton_Greeting,
  * MainButton_ToHelp, SubButton_Greeting, Photo_SelectTogether, MainButton_Promotion
- * and SubButton_ToHelp. A plain last-wins loop hands W006 the 유산 rows, so the
+ * and SubButton_ToHelp. A plain last-wins loop hands W008 the 유산 rows, so the
  * kiosk renders "안녕 '유산'", "도와줘 '유산'" and "사진촬영 (with '유산')".
  *
  * Ties are broken on the MASCOT NAME, not the `설명, 비고` column, for two reasons:
@@ -432,7 +525,7 @@ async function genAiCategoriesHwaseong() {
  * behaves exactly as before. Mirrored at runtime in
  * src/main/services/sync/google/LocalizationSyncParser.ts — keep the two in sync.
  *
- * W008 세계자연유산본부 (JEJU_HERITAGE, mascot 유산) is the same tab scored the
+ * W010 세계자연유산본부 (JEJU_HERITAGE, mascot 유산) is the same tab scored the
  * other way round — genLocalizationJeju emits its picks as a small OVERRIDES
  * module (only the keys whose pick differs) that loc.ts overlays on
  * LOCALIZATION_JEJU, so the ~230-key table isn't bundled twice.
@@ -497,9 +590,21 @@ function jejuVenueScore(r) {
   return score;
 }
 
+/**
+ * Localization_Jeju_v3 has no Num column, so its Key sits in column A and every
+ * column after it is one to the left. Restores the shape the row helpers read,
+ * and drops the title row above the header — with the shift it would land in the
+ * Key column and read as a key.
+ * Mirrors withNumColumn in src/main/services/sync/google/LocalizationSyncParser.ts.
+ */
+function withNumColumn(rows) {
+  const header = rows.findIndex((r) => clean(r[0]) === 'Key');
+  return header < 0 ? rows : rows.slice(header).map((r) => ['', ...r]);
+}
+
 async function genLocalizationJeju() {
-  const rows = await loadTab('Localization_Jeju_v2', JEJU_SHEET_ID);
-  /** One venue's picks — sign +1 keeps the 하영 rows (W006/W007), −1 keeps 유산's (W008). */
+  const rows = withNumColumn(await loadTab('Localization_Jeju_v3', JEJU_SHEET_ID, LOCALIZATION_HEADER));
+  /** One venue's picks — sign +1 keeps the 하영 rows (W008/W009), −1 keeps 유산's (W010). */
   const pickVenue = (sign) => {
     const entries = {};
     const scores = {};
@@ -509,7 +614,7 @@ async function genLocalizationJeju() {
       const score = sign * jejuVenueScore(r);
       // `>=` keeps last-wins on a tie, so single-row keys are untouched.
       if (key in entries && score < scores[key]) continue;
-      const cells = localizedRow(r, NEW_LANG_COLS_INSA);
+      const cells = localizedRow(r, headerLangCols(rows, NEW_LANG_COLS_INSA));
       for (const lang of Object.keys(cells)) cells[lang] = jejuRenameMascot(cells[lang], sign);
       entries[key] = cells;
       scores[key] = score;
@@ -522,15 +627,15 @@ async function genLocalizationJeju() {
     .join('\n');
   const out = `${BANNER}import type { LangText } from './types';
 
-/** W006 제주공항 UI strings keyed by their sheet \`Key\` (Localization_Jeju_v2). */
+/** W008 제주공항 UI strings keyed by their sheet \`Key\` (Localization_Jeju_v3). */
 export const LOCALIZATION_JEJU: Record<string, LangText> = {
 ${body}
 };
 `;
   await writeFile(join(DATA_DIR, 'localization-jeju.generated.ts'), out, 'utf8');
 
-  // W008 세계자연유산본부 (JEJU_HERITAGE) — the 유산-preferred picks, emitted as a
-  // delta: only the keys whose winning row differs from W006's make the file.
+  // W010 세계자연유산본부 (JEJU_HERITAGE) — the 유산-preferred picks, emitted as a
+  // delta: only the keys whose winning row differs from W008's make the file.
   const heritage = pickVenue(-1);
   const overrides = Object.entries(heritage).filter(
     ([k, v]) => JSON.stringify(entries[k]) !== JSON.stringify(v),
@@ -538,8 +643,8 @@ ${body}
   const heritageBody = overrides.map(([k, v]) => `  ${JSON.stringify(k)}: ${JSON.stringify(v)},`).join('\n');
   const heritageOut = `${BANNER}import type { LangText } from './types';
 
-/** W008 세계자연유산본부 (JEJU_HERITAGE): the Localization_Jeju_v2 keys whose venue
- *  pick differs from W006's — i.e. the 유산-mascot rows. Overlaid on
+/** W010 세계자연유산본부 (JEJU_HERITAGE): the Localization_Jeju_v3 keys whose venue
+ *  pick differs from W008's — i.e. the 유산-mascot rows. Overlaid on
  *  LOCALIZATION_JEJU by loc.ts; mirrors the runtime split in
  *  LocalizationSyncParser.VENUE_MASCOTS. */
 export const LOCALIZATION_JEJU_HERITAGE_OVERRIDES: Record<string, LangText> = {
@@ -563,7 +668,7 @@ async function genAiCategoriesJeju() {
   const body = cats.map((c) => `  ${JSON.stringify(c)},`).join('\n');
   const out = `${BANNER}import type { LangText } from './types';
 
-/** W006 제주공항 AI검색 categories, prefix stripped. */
+/** W008 제주공항 AI검색 categories, prefix stripped. */
 export const AI_CATEGORIES_JEJU: LangText[] = [
 ${body}
 ];
@@ -573,7 +678,7 @@ ${body}
 }
 
 /**
- * W006 제주공항 공항시설 (AirportFacilityData_Jeju) — the 도와줘 '하영' map's data.
+ * W008 제주공항 공항시설 (AirportFacilityData_Jeju) — the 도와줘 '하영' map's data.
  *
  * Unlike every other tab here, the eight languages sit in ONE contiguous block
  * per field (ko en jp ch vn th ru id), so `lang8` reads them positionally rather
@@ -591,6 +696,61 @@ ${body}
  * than defaulted — a facility filed onto the wrong floor plan is worse on a
  * wayfinding kiosk than one that is missing.
  */
+/**
+ * 제주 voice guidance script (음성 안내) — one row per spoken line, keyed
+ * `Voice_<line>` (e.g. `Voice_jeju.food.list`, `Voice_global.voice.on`). A key
+ * may carry a site suffix (`Voice_jeju.home@W008`); the renderer looks that up
+ * before the bare key. Title rows sit above the Key/Korean…Indonesian header, so
+ * the language columns are found BY NAME in that header rather than by position.
+ * Read by src/layouts/jeju/voice.
+ */
+const VOICE_TAB_JEJU = 'Text-to-speech_Script';
+const VOICE_LANG_HEADERS = {
+  ko: /^korean$/i,
+  en: /^english$/i,
+  ja: /^japanese$/i,
+  zh: /^chinese$/i,
+  vi: /^vietnamese$/i,
+  th: /^thai$/i,
+  ru: /^russian$/i,
+  id: /^indonesian$/i,
+};
+
+async function genVoiceJeju() {
+  const rows = await loadTab(VOICE_TAB_JEJU, JEJU_SHEET_ID, LOCALIZATION_HEADER);
+  const header = rows.find((r) => clean(r[1]) === 'Key');
+  const cols = {};
+  for (const [lang, re] of Object.entries(VOICE_LANG_HEADERS)) {
+    const i = header.findIndex((c) => re.test(clean(c)));
+    if (i < 0) throw new Error(`${VOICE_TAB_JEJU}: no "${re.source}" column in the header`);
+    cols[lang] = i;
+  }
+  const entries = {};
+  for (const r of rows) {
+    const key = clean(r[1]);
+    if (!key.startsWith('Voice_')) continue;
+    const text = {};
+    for (const [lang, i] of Object.entries(cols)) {
+      const v = clean(r[i]);
+      if (v || ['ko', 'en', 'ja', 'zh'].includes(lang)) text[lang] = v;
+    }
+    entries[key.slice('Voice_'.length)] = text;
+  }
+  const body = Object.entries(entries)
+    .map(([k, v]) => `  ${JSON.stringify(k)}: ${JSON.stringify(v)},`)
+    .join('\n');
+  const out = `${BANNER}import type { LangText } from './types';
+
+/** 제주 voice guidance lines (${VOICE_TAB_JEJU}), keyed without the \`Voice_\`
+ *  prefix. \`<key>@W0xx\` rows are one site's version of \`<key>\`. */
+export const VOICE_JEJU: Record<string, LangText> = {
+${body}
+};
+`;
+  await writeFile(join(DATA_DIR, 'voice-jeju.generated.ts'), out, 'utf8');
+  return Object.keys(entries).length;
+}
+
 const JEJU_TERMINALS = { 국내선: 'domestic', 국제선: 'international' };
 
 /** Eight consecutive language cells starting at `start`, in sheet order. */
@@ -671,7 +831,7 @@ export interface AirportFacility {
   mainProduct: LangText;
 }
 
-/** W006 제주공항 facilities, in sheet order (which the map's pin pairing relies on). */
+/** W008 제주공항 facilities, in sheet order (which the map's pin pairing relies on). */
 export const AIRPORT_FACILITIES_JEJU: AirportFacility[] = [
 ${body}
 ];
@@ -685,7 +845,9 @@ async function genNationwideMarkets() {
   // Cols: 0 Num, 1 사진여부, 2-5 name ko/en/jp/cn, 6-9 province, 10-13 district,
   //       14-17 address, 18-21 hashtag, 22-25 description, 26-29 openTime,
   //       30 tel, 31 naverLink.
-  const rows = await loadTab('NationwideMarkets', NATIONWIDE_MARKETS_SHEET_ID);
+  // The tab was renamed NationwideMarkets → TraditionalMarket (2026-10); the
+  // old name only "worked" because gviz falls back to the first tab.
+  const rows = await loadTab('TraditionalMarket', NATIONWIDE_MARKETS_SHEET_ID, /MarketName/);
   const markets = [];
   for (const r of rows.slice(1)) {
     if (!/^\d+$/.test(clean(r[0]))) continue; // data rows are numbered
@@ -712,8 +874,56 @@ async function genNationwideMarkets() {
   return markets.length;
 }
 
+/**
+ * 전국휴게소 — the nationwide sheet's ServiceArea tab (화성휴게소's 전국휴게소 screen).
+ * Same columns as TraditionalMarket for name … description (ko/en/jp/cn), then
+ * ONE OpenTime column (26), Tel 27, NaverLink 28. No vi/th/ru/id yet; those
+ * languages fall back to Korean like any other untranslated cell.
+ */
+async function genServiceAreas() {
+  const rows = await loadTab('ServiceArea', NATIONWIDE_MARKETS_SHEET_ID, /SA Name/);
+  const one = (r, i) => ({ ko: clean(r[i]), en: '', ja: '', zh: '' });
+  const areas = [];
+  for (const r of rows.slice(1)) {
+    if (!/^\d+$/.test(clean(r[0]))) continue;
+    const name = langText(r[2], r[3], r[4], r[5]);
+    if (!name.ko) continue;
+    areas.push({
+      name,
+      province: langText(r[6], r[7], r[8], r[9]),
+      district: langText(r[10], r[11], r[12], r[13]),
+      address: langText(r[14], r[15], r[16], r[17]),
+      hashtag: langText(r[18], r[19], r[20], r[21]),
+      description: langText(r[22], r[23], r[24], r[25]),
+      openTime: one(r, 26),
+      tel: clean(r[27]),
+      naverLink: clean(r[28]),
+    });
+  }
+  const body = areas.map((m) => `  ${JSON.stringify(m)},`).join('\n');
+  const out = `${BANNER}import type { NationwideMarket } from './nationwideMarkets.generated';\n\n/** 전국휴게소 — nationwide service areas (ServiceArea tab), same shape as 전국시장. */\nexport const SERVICE_AREAS: NationwideMarket[] = [\n${body}\n];\n`;
+  await writeFile(join(DATA_DIR, 'serviceAreas.generated.ts'), out, 'utf8');
+  return areas.length;
+}
+
 async function main() {
   await mkdir(CACHE_DIR, { recursive: true });
+  if (ONLY === 'hwaseong') {
+    console.log(`✓ [hwaseong] localization: ${await genLocalizationHwaseong()} keys`);
+    console.log(`✓ [hwaseong] aiCategories: ${await genAiCategoriesHwaseong()}`);
+    console.log(`✓ nationwideMarkets: ${await genNationwideMarkets()}`);
+    console.log(`✓ serviceAreas: ${await genServiceAreas()}`);
+    return;
+  }
+  if (ONLY === 'voice') {
+    console.log(`✓ [jeju] voice lines: ${await genVoiceJeju()}`);
+    return;
+  }
+  if (ONLY === 'jeju-localization') {
+    console.log(`✓ [jeju] localization: ${await genLocalizationJeju()} keys`);
+    return;
+  }
+  if (ONLY) throw new Error(`Unknown --only=${ONLY}`);
   const loc = await genLocalization();
   const palaces = await genPalaces();
   const cats = await genAiCategories();
@@ -733,12 +943,14 @@ async function main() {
   console.log(`✓ [hwaseong] localization: ${locH} keys`);
   console.log(`✓ [hwaseong] aiCategories: ${catsH}`);
 
-  // W006 제주공항 (separate sheet, _Jeju tabs) — skipped until the sheet exists.
+  // W008 제주공항 (separate sheet, _Jeju tabs) — skipped until the sheet exists.
   if (JEJU_SHEET_ID) {
     const locJ = await genLocalizationJeju();
     const catsJ = await genAiCategoriesJeju();
     const facJ = await genAirportFacilitiesJeju();
+    const voiceJ = await genVoiceJeju();
     console.log(`✓ [jeju] localization: ${locJ} keys`);
+    console.log(`✓ [jeju] voice lines: ${voiceJ}`);
     console.log(`✓ [jeju] aiCategories: ${catsJ}`);
     console.log(
       `✓ [jeju] airportFacilities: ${facJ.count}` +
@@ -752,6 +964,7 @@ async function main() {
   // 전국시장 (nationwide markets, single shared sheet)
   const markets = await genNationwideMarkets();
   console.log(`✓ nationwideMarkets: ${markets}`);
+  console.log(`✓ serviceAreas: ${await genServiceAreas()}`);
   console.log(OFFLINE ? '(offline: regenerated from cache)' : '(synced from Google Sheets)');
 }
 

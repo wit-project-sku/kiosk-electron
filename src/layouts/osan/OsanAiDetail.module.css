@@ -1,0 +1,56 @@
+/*
+ * '정이' 뭐하지 상세 with the 다음 장소 card — 제주's course detail
+ * (JejuDetail .courseScroll / .courseColumn / .nextChevron) in 오산's chrome:
+ * the place card, the down chevron, then the next stop, in one column that
+ * scrolls between the header and the promo banner.
+ */
+.courseScroll {
+  position: absolute;
+  top: calc(700px + var(--header-push, 0px));
+  left: 0;
+  right: 0;
+  /* The promo banner holds 3267–3840. */
+  bottom: 573px;
+  box-sizing: border-box;
+  overflow-x: hidden;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  padding: 0 136px 80px 170px;
+}
+
+.courseScroll::-webkit-scrollbar {
+  width: 28px;
+}
+
+.courseScroll::-webkit-scrollbar-thumb {
+  background: var(--kiosk-primary, #1a4d7e);
+  border-radius: 14px;
+}
+
+.courseScroll::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.courseColumn {
+  width: 1820px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 70px;
+}
+
+/* The place card sits in the column instead of at its own absolute top. */
+.courseColumn .flowCard {
+  position: static;
+  top: auto;
+  left: auto;
+}
+
+/* 제주's shared chevron, rotated -90° into a down arrow (49×88 export). */
+.nextChevron {
+  width: 49px;
+  height: 88px;
+  flex-shrink: 0;
+  transform: rotate(-90deg);
+  pointer-events: none;
+}

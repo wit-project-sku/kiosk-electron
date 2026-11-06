@@ -256,7 +256,7 @@ export function JejuListScreen({ screen, controller }: Props): JSX.Element {
 
   const listBody =
     visible.length > 0 ? (
-      <div className={styles.list}>
+      <div className={styles.list} data-voice-list>
         {visible.map((shop) => (
           <JejuShopCard
             key={shop.id}
@@ -270,7 +270,7 @@ export function JejuListScreen({ screen, controller }: Props): JSX.Element {
         ))}
       </div>
     ) : (
-      <p className={styles.empty}>
+      <p className={styles.empty} data-voice-state={baseShops.length === 0 ? 'preparing' : 'empty'}>
         {baseShops.length === 0 ? '준비중입니다' : '조건에 맞는 상점이 없습니다'}
       </p>
     );

@@ -51,8 +51,18 @@ import { Keypad } from './Keypad';
 import { PolicySheet } from './PolicySheet';
 import { IdleModal, Modal, type ModalAction } from './Modal';
 import styles from './JejuFillme.module.css';
+import { speakKey, useVoiceIntro } from '../voice/intro';
 
 type Screen = 'intro' | 'capture' | 'info' | 'analyzing' | 'result';
+
+/** Voice intro per step. 정보 입력 adds that what is typed is never read aloud. */
+const VOICE_INTROS: Record<Screen, readonly string[]> = {
+  intro: ['fillme.start'],
+  capture: ['fillme.capture'],
+  info: ['fillme.info', 'global.privacy.notice'],
+  analyzing: ['fillme.analyzing'],
+  result: ['fillme.result'],
+};
 /** 촬영이 끝난 뒤 어디로 — 처음 촬영이면 정보 입력, 재촬영이면 곧바로 재분석. */
 type After = 'info' | 'analyze';
 
@@ -138,6 +148,7 @@ export function JejuFillme({ controller }: Props): JSX.Element {
   const [modal, setModal] = useState<ModalState>(null);
   const [share, setShare] = useState<ShareState>({ status: 'off' });
   const [idleLeft, setIdleLeft] = useState<number | null>(null);
+  useVoiceIntro(VOICE_INTROS[screen]);
 
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const cameraRef = useRef(new NailCamera(FILLME_CAMERA_MODE));
@@ -152,8 +163,12 @@ export function JejuFillme({ controller }: Props): JSX.Element {
   const progressTimer = useRef<number | undefined>(undefined);
   const [pendingRun, setPendingRun] = useState(0);
 
+  /** 분석 요청의 lang — analyze 의 정체성을 언어마다 바꾸지 않으려고 ref 로 읽는다. */
+  const langRef = useRef(lang);
+
   shotsRef.current = shots;
   infoRef.current = info;
+  langRef.current = lang;
 
   const goHome = useCallback((): void => controller.navigate('home', '홈'), [controller]);
 
@@ -241,6 +256,7 @@ export function JejuFillme({ controller }: Props): JSX.Element {
         },
         left,
         right,
+        langRef.current,
       );
       if (session !== sessionRef.current) return;
       stopProgress();
@@ -366,6 +382,8 @@ export function JejuFillme({ controller }: Props): JSX.Element {
 
   const nextField = (): void => {
     if (!keypad) return;
+    // 개인정보: the speaker plays with the earphones, so say THAT it was entered, never what.
+    if (info.nums[keypad]) speakKey('global.privacy.entered');
     const next = FIELD_ORDER[FIELD_ORDER.indexOf(keypad) + 1];
     setKeypad(next ?? null);
   };
@@ -484,6 +502,13 @@ export function JejuFillme({ controller }: Props): JSX.Element {
   }
 
   const showIdle = idleLeft != null && idleLeft <= FILLME_CONFIG.idleWarningSeconds && idleLeft > 0;
+
+  useEffect(() => {
+    if (screen === 'capture' && phase === 'countdown') speakKey(`num.${count}`);
+  }, [screen, phase, count]);
+  useEffect(() => {
+    if (showIdle) speakKey('fillme.timeout.warn');
+  }, [showIdle]);
 
   return (
     <JejuPageFrame

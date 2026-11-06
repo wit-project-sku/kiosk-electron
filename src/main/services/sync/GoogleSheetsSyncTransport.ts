@@ -10,9 +10,19 @@ import type { TranslationService } from '@main/services/TranslationService';
 import type { SyncTransport } from './SyncTransport';
 import { SheetsClient } from './google/SheetsClient';
 import { parseContentSheet } from './google/ContentSyncParser';
-import { parseLocalizationSheet } from './google/LocalizationSyncParser';
+import { parseLocalizationSheet, type LocalizationByLang } from './google/LocalizationSyncParser';
+import { parseVoiceSheet } from './google/VoiceSyncParser';
+import { parseJejuAiCategories, parseJejuAirportFacilities } from './google/JejuSheetDataParser';
+import { JEJU_AI_CATEGORIES_KEY, JEJU_AIRPORT_FACILITIES_KEY } from '@shared/constants/jejuSheetData';
 
 const log = createLogger('google-sheets-transport');
+
+/** Add `extra`'s entries to `target`, per language. */
+function mergeInto(target: LocalizationByLang, extra: LocalizationByLang): void {
+  for (const [lang, entries] of Object.entries(extra) as Array<[SupportedLanguage, Record<string, string>]>) {
+    target[lang] = { ...target[lang], ...entries };
+  }
+}
 
 /**
  * Each deployment's content lives in its OWN spreadsheet (one build, many
@@ -28,19 +38,46 @@ const JEJU_SHEET_ID = '1A90MnKneWksKeL2zEcCUn75JKbnMFj7-OBmQsTkI72I';
 interface ContentSheet {
   sheetId: string;
   localizationRange: string;
+  /** Tried in order when the sheet no longer has the `localizationRange` tab
+   *  (Sheets answers 400 "Unable to parse range"). */
+  fallbackRanges?: readonly string[];
+  /** 제주 voice guidance script, stored with the translations as `Voice_*` keys. */
+  voiceRange?: string;
 }
+
+/** Text-to-speech_Script: Key in B, the eight languages in E–L, notes after. */
+const JEJU_VOICE_RANGE = "'Text-to-speech_Script'!A:M";
+
+/** 제주's data tabs read at launch, and the columns each generator in sync-sheet uses. */
+const JEJU_AI_CATEGORY_RANGE = 'AICategory_Jeju!A:Z';
+const JEJU_FACILITY_RANGE = 'AirportFacilityData_Jeju!A:AJ';
 
 const CONTENT_SHEETS: Record<KioskLayoutId, ContentSheet> = {
   INSADONG: { sheetId: INSADONG_SHEET_ID, localizationRange: 'Localization_Insa!A:L' },
   NAM_INSADONG: { sheetId: INSADONG_SHEET_ID, localizationRange: 'Localization_Insa!A:L' },
   OSAN: { sheetId: OSAEK_SHEET_ID, localizationRange: 'Localization_Osaek!A:L' },
-  HWASEONG: { sheetId: HWASEONG_SHEET_ID, localizationRange: 'Localization_Hwaseong!A:L' },
-  // Localization_Jeju_v2 (2026-09-14): the updated copy of Localization_Jeju — same
-  // header, columns and keys; the old tab is no longer read.
-  JEJU_AIRPORT: { sheetId: JEJU_SHEET_ID, localizationRange: 'Localization_Jeju_v2!A:L' },
+  // 2026-10-14 the tab was renamed Localization_Hwaseong_deprecated with no
+  // replacement yet; read it until a live Localization_Hwaseong reappears
+  // (mirrors genLocalizationHwaseong in scripts/sync-sheet.mjs).
+  HWASEONG: {
+    sheetId: HWASEONG_SHEET_ID,
+    localizationRange: 'Localization_Hwaseong!A:L',
+    fallbackRanges: ['Localization_Hwaseong_deprecated!A:L'],
+  },
+  // Localization_Jeju_v3 (2026-11-05) replaces _v2: the same rows without the Num
+  // column, which parseLocalizationSheet handles. The old tabs are no longer read.
+  JEJU_AIRPORT: {
+    sheetId: JEJU_SHEET_ID,
+    localizationRange: 'Localization_Jeju_v3!A:L',
+    voiceRange: JEJU_VOICE_RANGE,
+  },
   // Same tab as JEJU_AIRPORT on purpose — "#W6~8=제주_전체데이터" serves all three
   // 제주 venues; the mascot rows are split per layout in LocalizationSyncParser.
-  JEJU_HERITAGE: { sheetId: JEJU_SHEET_ID, localizationRange: 'Localization_Jeju_v2!A:L' },
+  JEJU_HERITAGE: {
+    sheetId: JEJU_SHEET_ID,
+    localizationRange: 'Localization_Jeju_v3!A:L',
+    voiceRange: JEJU_VOICE_RANGE,
+  },
   // KADA W202 has NO content spreadsheet, and is not waiting for one: its ten
   // strings are authored in layouts/kada/kadaText.ts because the venue has no
   // CMS and no one on site to maintain a tab (see that file). The empty sheetId
@@ -159,6 +196,7 @@ export class GoogleSheetsSyncTransport implements SyncTransport {
 
     this.clearStaleTranslations();
     await this.downloadTranslations(config);
+    await this.downloadJejuData(config);
     await this.downloadScreenContent(config); // best-effort; legacy "Content" tab
   }
 
@@ -181,7 +219,8 @@ export class GoogleSheetsSyncTransport implements SyncTransport {
    *  loads another location's strings — no env override (that caused cross-kiosk
    *  contamination). */
   private async downloadTranslations(config: NonNullable<ReturnType<typeof getGoogleSyncConfig>>): Promise<void> {
-    const { sheetId, localizationRange: range } = this.contentSheet();
+    const { sheetId, localizationRange, fallbackRanges = [], voiceRange } = this.contentSheet();
+    let range = localizationRange;
     const layout = getKioskLocation(this.kiosk.getConfig().kioskId).layout;
     // A layout with no spreadsheet yet (see CONTENT_SHEETS) must not fall back to
     // another location's sheet — that is exactly the cross-kiosk contamination
@@ -192,8 +231,24 @@ export class GoogleSheetsSyncTransport implements SyncTransport {
     }
     try {
       const client = new SheetsClient({ ...config, sheetId });
-      const rows = await client.getValues(range);
+      const candidates = [localizationRange, ...fallbackRanges];
+      let rows: Awaited<ReturnType<SheetsClient['getValues']>> | undefined;
+      for (const [i, candidate] of candidates.entries()) {
+        range = candidate;
+        try {
+          rows = await client.getValues(candidate);
+          break;
+        } catch (error) {
+          const missingTab = error instanceof Error && /Unable to parse range/i.test(error.message);
+          if (!missingTab || i === candidates.length - 1) throw error;
+          log.warn('Localization tab missing; trying the next range', { range: candidate });
+        }
+      }
+      if (!rows) return;
       const byLang = parseLocalizationSheet(rows, layout);
+      // replaceLanguage rewrites a language's whole table, so the voice rows
+      // have to ride in the same batch or this write would drop them.
+      if (voiceRange) mergeInto(byLang, await this.downloadVoice(client, voiceRange));
 
       let total = 0;
       for (const [lang, entries] of Object.entries(byLang)) {
@@ -206,6 +261,52 @@ export class GoogleSheetsSyncTransport implements SyncTransport {
       const message = error instanceof Error ? error.message : 'Unknown error';
       this.failedRequests.record('sync_content', { range }, message);
       log.warn('Translation download failed', { range, error: message });
+    }
+  }
+
+  /**
+   * The 제주 voice script. Best-effort: on failure the kiosk keeps speaking the
+   * script bundled at build time, and the screen text still updates.
+   */
+  private async downloadVoice(client: SheetsClient, range: string): Promise<LocalizationByLang> {
+    try {
+      const byLang = parseVoiceSheet(await client.getValues(range));
+      const total = Object.values(byLang).reduce((n, entries) => n + Object.keys(entries ?? {}).length, 0);
+      log.info('Voice script updated from Google Sheets', { range, total });
+      return byLang;
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Unknown error';
+      log.warn('Voice script download failed; keeping the bundled script', { range, error: message });
+      return {};
+    }
+  }
+
+  /**
+   * 제주's two data tabs, into the content cache that travels with the bootstrap.
+   * Each is best-effort and independent: on a failure or an unreadable tab the
+   * kiosk keeps its last good copy, or the bundled one.
+   */
+  private async downloadJejuData(config: NonNullable<ReturnType<typeof getGoogleSyncConfig>>): Promise<void> {
+    const { sheetId, voiceRange } = this.contentSheet();
+    if (!voiceRange) return; // 제주 layouts only — they are the ones with this tab.
+    const client = new SheetsClient({ ...config, sheetId });
+    const tabs = [
+      { key: JEJU_AI_CATEGORIES_KEY, range: JEJU_AI_CATEGORY_RANGE, parse: parseJejuAiCategories },
+      { key: JEJU_AIRPORT_FACILITIES_KEY, range: JEJU_FACILITY_RANGE, parse: parseJejuAirportFacilities },
+    ];
+    for (const { key, range, parse } of tabs) {
+      try {
+        const rows = parse(await client.getValues(range));
+        if (rows.length === 0) {
+          log.warn('Sheet data tab had no readable rows; keeping the last copy', { range });
+          continue;
+        }
+        this.cache.upsert(key, { rows }, 'google_sheets');
+        log.info('Sheet data updated from Google Sheets', { range, total: rows.length });
+      } catch (error) {
+        const message = error instanceof Error ? error.message : 'Unknown error';
+        log.warn('Sheet data download failed; keeping the last copy', { range, error: message });
+      }
     }
   }
 

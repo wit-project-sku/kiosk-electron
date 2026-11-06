@@ -103,6 +103,7 @@ function NumberField({
           .join(' ')}
         onClick={onFocus}
         aria-label={`${f.label} 입력`}
+        data-voice-label={tx(f.label, lang)}
       >
         <span className={raw ? styles.value : styles.placeholder}>
           {raw || placeholderFor(f.placeholder, lang)}

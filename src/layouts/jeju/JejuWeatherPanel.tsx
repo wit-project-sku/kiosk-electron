@@ -8,7 +8,7 @@
  * The redraw replaces all three with 제주시 · 서귀포시 · 성산: one glyph AND its
  * own low/high per place, per day. So this is a regional outlook for the island
  * rather than a half-day breakdown of where the machine stands, and the three
- * 제주 kiosks (공항 W006 · 여객터미널 W007 · 세계자연유산본부 W008) all show the
+ * 제주 kiosks (공항 W008 · 여객터미널 W009 · 세계자연유산본부 W010) all show the
  * same three places.
  *
  * ★ That is a DATA change, not only a layout one: the columns are fed by

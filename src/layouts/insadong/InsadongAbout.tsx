@@ -29,6 +29,7 @@ import {
 import { useShopStore } from '@renderer/store/shopStore';
 import { useAttractionStore } from '@renderer/store/attractionStore';
 import { getKioskLocation } from '@shared/config/kioskLocations';
+import { kioskPlaceName } from '@renderer/lib/kioskName';
 import { toLocalizedLang, type LocalizedLang } from '@shared/config/languages';
 import type { Shop } from '@shared/types/shop';
 import { useFitText } from '@layouts/components/fitText';
@@ -683,7 +684,7 @@ export function InsadongAbout({ controller }: InsadongAboutProps): JSX.Element {
   };
 
   const detail = spot
-    ? placeDetail(spot, lang, getKioskLocation(controller.kioskId).name)
+    ? placeDetail(spot, lang, kioskPlaceName(controller.kioskId, lang))
     : null;
 
   /* 관광명소 / 역사 / 문화 sit on fixed 580px plates; their translations do not.

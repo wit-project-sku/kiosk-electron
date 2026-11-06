@@ -18,6 +18,8 @@ interface KioskState {
   setDevMode: (devMode: boolean) => void;
   hydrate: (config: KioskConfig, theme: KioskTheme, content: CachedContent[], translations: TranslationMap) => void;
   refreshContent: (content: CachedContent[]) => void;
+  /** Swap in the table from a sheet sync that finished after bootstrap. */
+  refreshTranslations: (translations: TranslationMap) => void;
   getContent: (key: string) => CachedContent | undefined;
 }
 
@@ -60,5 +62,6 @@ export const useKioskStore = create<KioskState>((set, get) => ({
     for (const item of content) map.set(item.key, item);
     set({ content: map });
   },
+  refreshTranslations: (translations) => set({ translations }),
   getContent: (key) => get().content.get(key),
 }));

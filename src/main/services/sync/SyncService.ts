@@ -12,6 +12,7 @@ import type { TranslationService } from '@main/services/TranslationService';
 import {
   MENU_TOUCH_REQUEST_TYPE,
   PHOTO_SHOT_REQUEST_TYPE,
+  PHOTO_SHOT_V2_REQUEST_TYPE,
   type StatsService,
 } from '@main/services/StatsService';
 import { NoopSyncTransport, type SyncTransport } from './SyncTransport';
@@ -256,7 +257,13 @@ export class SyncService {
     for (const req of pending) {
       // Menu touches and photo shots are re-sent via dedicated once-a-day batch
       // endpoints, not one-by-one here. Skip so this loop never deletes them.
-      if (req.type === MENU_TOUCH_REQUEST_TYPE || req.type === PHOTO_SHOT_REQUEST_TYPE) continue;
+      if (
+        req.type === MENU_TOUCH_REQUEST_TYPE ||
+        req.type === PHOTO_SHOT_REQUEST_TYPE ||
+        req.type === PHOTO_SHOT_V2_REQUEST_TYPE
+      ) {
+        continue;
+      }
       try {
         if (req.type === 'upload_analytics') {
           const eventIds = (req.payload['eventIds'] as number[]) ?? [];

@@ -11,6 +11,7 @@
   cursor: pointer;
   overflow: hidden;
   z-index: 1;
+  transform: translateY(calc(-1 * var(--hwaseong-mode-push, 0px)));
 }
 
 .bannerImg {

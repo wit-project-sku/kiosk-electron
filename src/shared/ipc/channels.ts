@@ -86,7 +86,7 @@ export const IpcChannels = {
   MotionStop: 'motion:stop',
 
   // 틀린그림찾기 — the mini-game played on the touch screen while the AR 한복
-  // photo generates (제주 W006).
+  // photo generates (제주 W008).
   SpotDiffGetRound: 'spotDiff:getRound',
 
   // Language / Translations
@@ -121,6 +121,8 @@ export const IpcChannels = {
   KioskPlayWeatherVideo: 'kiosk:playWeatherVideo',
   // Dev-mode only: persist a new kiosk location id and relaunch as that kiosk.
   KioskSwitchLocation: 'kiosk:switchLocation',
+  // 지점 설정 screen: make this PC the chosen site and restart (any build).
+  KioskSetupApply: 'kiosk:setupApply',
 
   // Shops (cached from the witteria API)
   ShopsList: 'shops:list',
@@ -152,11 +154,14 @@ export const IpcChannels = {
   // Event detail (GET /api/events/{eventId})
   EventsDetailGet: 'events:detail',
 
+  // 화성휴게소 home board 도로교통상황 (GET /api/traffic/expressway; renderer polls)
+  TrafficExpresswayGet: 'traffic:expressway',
+
   // 제주 AI 코스 추천 (live POST; 제주 kiosks only)
   JejuCourseRecommend: 'jejuCourse:recommend',
   // 제주 커스텀 코스 picker (live POST per 즐길 거리 tap; 제주 kiosks only)
   JejuCoursePicker: 'jejuCourse:picker',
-  // 인사동 AI 코스 추천 (live POST /api/insa/courses/recommend/v2)
+  // 인사동 · 오색 AI 코스 추천 (live POST /api/courses/recommend, by region)
   InsaCourseRecommend: 'insaCourse:recommend',
 
   // Auto-update (electron-updater). Status is read-only; check/install are
@@ -185,6 +190,8 @@ export const IpcEvents = {
   MonitorsChanged: 'event:system:monitorsChanged',
   SyncStatsChanged: 'event:sync:statsChanged',
   ContentChanged: 'event:content:changed',
+  /** Localization sheet re-synced (launch or 02:00); the renderer swaps its table. */
+  TranslationsChanged: 'event:translations:changed',
   PhotoWorkflowChanged: 'event:photo:workflowChanged',
   LanguageChanged: 'event:language:changed',
   WeatherChanged: 'event:weather:changed',
@@ -196,6 +203,7 @@ export const IpcEvents = {
   KioskScreenChanged: 'event:kiosk:screenChanged',
   /** Weather card tapped; the customer display plays that condition's clip. */
   KioskWeatherVideo: 'event:kiosk:weatherVideo',
+  /** The desktop 지점 설정 shortcut was opened while the kiosk runs; show the screen. */
   /** Shop catalogue refreshed into SQLite; the renderer reloads its store. */
   ShopsChanged: 'event:shops:changed',
   /** 제주 관광명소 refreshed into SQLite; the renderer reloads its store. */

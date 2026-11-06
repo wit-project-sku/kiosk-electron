@@ -45,6 +45,7 @@ import type { JejuFlightSnapshot } from '../types/jejuFlight';
 import type { JejuSailingSnapshot } from '../types/jejuSailing';
 import type { WeatherPlayKey } from '../config/weatherVideo';
 import type { KioskLocationCode } from '../config/kioskLocations';
+import type { SetupSiteCode } from '../config/kioskSetup';
 import type { ExchangeSnapshot } from '../types/exchange';
 import type { VideoEntry, VideoFilesBySet } from '../types/subtitle';
 import type { Shop } from '../types/shop';
@@ -68,6 +69,7 @@ import type {
   EventsQuery,
   EventsRecommendQuery,
 } from '../types/events';
+import type { ExpresswayTrafficSnapshot } from '../types/traffic';
 import type { UpdateStatus } from '../types/update';
 import type {
   FootfallReport,
@@ -411,6 +413,12 @@ export interface IpcContract {
     // exits before the renderer ever sees the reply.
     response: Result<boolean>;
   };
+  [IpcChannels.KioskSetupApply]: {
+    request: { kioskId: SetupSiteCode };
+    // false = cancelled in the confirm box. Once confirmed, like KioskSwitchLocation: the
+    // process restarts before replying.
+    response: Result<boolean>;
+  };
   [IpcChannels.ShopsList]: {
     request: void;
     response: Result<Shop[]>;
@@ -456,6 +464,10 @@ export interface IpcContract {
   [IpcChannels.EventsDetailGet]: {
     request: { eventId: number };
     response: Result<EventDetail>;
+  };
+  [IpcChannels.TrafficExpresswayGet]: {
+    request: void;
+    response: Result<ExpresswayTrafficSnapshot | null>;
   };
 
   /**
@@ -528,6 +540,7 @@ export interface IpcEventPayloads {
   [IpcEvents.MonitorsChanged]: MonitorInfo[];
   [IpcEvents.SyncStatsChanged]: SyncQueueStats;
   [IpcEvents.ContentChanged]: CachedContent[];
+  [IpcEvents.TranslationsChanged]: Record<string, Partial<Record<SupportedLanguage, string>>>;
   [IpcEvents.PhotoWorkflowChanged]: PhotoWorkflowState;
   [IpcEvents.LanguageChanged]: SupportedLanguage;
   [IpcEvents.WeatherChanged]: WeatherSnapshot;

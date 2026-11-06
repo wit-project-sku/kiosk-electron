@@ -18,7 +18,7 @@ import { useMemo } from 'react';
 import type { KioskController } from '@renderer/hooks/useKioskController';
 import { osanIconUrl } from '@renderer/assets/icons/osan';
 import { pick, type Lang } from '@renderer/lib/i18n';
-import { shopAddress, shopCategoryLabel, shopImages, shopName, shopOpenNow } from '@renderer/lib/shops';
+import { pickDailyShop, shopAddress, shopCategoryLabel, shopName, shopOpenNow } from '@renderer/lib/shops';
 import { useDetailStore } from '@renderer/store/detailStore';
 import { useShopStore } from '@renderer/store/shopStore';
 import type { KioskScreenId } from '@shared/types/kiosk';
@@ -83,22 +83,12 @@ const MORE = {
 
 const dayKey = (d: Date): string => `${d.getFullYear()}-${d.getMonth() + 1}-${d.getDate()}`;
 
-/**
- * Today's shop: the richest tier that has any members — hours AND photos, then
- * hours, then anything — sorted by id so the pool is stable, and indexed by a
- * hash of the date so every kiosk restart on the same day lands on the same row.
- */
+/** Today's shop from the 뭐먹지 / 뭐사지 catalogue (see pickDailyShop). */
 function pickTodayShop(shops: readonly Shop[], now: Date): Shop | null {
-  const pool = shops
-    .filter((s) => BASE_SCREENS[s.baseCategoryKr ?? ''] && shopName(s, 'ko'))
-    .sort((a, b) => a.id - b.id);
-  const withHours = pool.filter((s) => shopOpenNow(s.openTime, now) !== null);
-  const withPhotos = withHours.filter((s) => shopImages(s).length > 0);
-  const tier = [withPhotos, withHours, pool].find((list) => list.length > 0);
-  if (!tier) return null;
-  let hash = 0;
-  for (const ch of dayKey(now)) hash = (hash * 31 + ch.charCodeAt(0)) >>> 0;
-  return tier[hash % tier.length] ?? null;
+  return pickDailyShop(
+    shops.filter((s) => BASE_SCREENS[s.baseCategoryKr ?? ''] && shopName(s, 'ko')),
+    now,
+  );
 }
 
 export function OsanShopBoard({ controller, lang, now, low = false }: Props): JSX.Element {

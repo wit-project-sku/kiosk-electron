@@ -56,6 +56,7 @@ import type { JejuFlightSnapshot } from '../types/jejuFlight';
 import type { JejuSailingSnapshot } from '../types/jejuSailing';
 import type { WeatherPlayKey } from '../config/weatherVideo';
 import type { KioskLocationCode } from '../config/kioskLocations';
+import type { SetupSiteCode } from '../config/kioskSetup';
 import type { ExchangeSnapshot } from '../types/exchange';
 import type { VideoEntry, VideoFilesBySet } from '../types/subtitle';
 import type { Shop } from '../types/shop';
@@ -71,6 +72,7 @@ import type {
   EventsQuery,
   EventsRecommendQuery,
 } from '../types/events';
+import type { ExpresswayTrafficSnapshot } from '../types/traffic';
 
 /** Unsubscribe handle returned by every event subscription. */
 export type Unsubscribe = () => void;
@@ -155,7 +157,7 @@ export interface KioskBridge {
     selectStyle(styleKey: string, backgroundId?: number | null): Promise<Result<PhotoWorkflowState>>;
     beginCountdown(): Promise<Result<PhotoWorkflowState>>;
     /**
-     * 제주 (W006): hold the countdown until the visitor shows an open palm.
+     * 제주 (W008): hold the countdown until the visitor shows an open palm.
      *
      * Pressing 등록하기 is the moment they still have to WALK BACK to fit in
      * frame, so counting from that press spends the 10 seconds on the walk.
@@ -260,6 +262,9 @@ export interface KioskBridge {
     /** Dev-mode only: persist a new kiosk id and relaunch the app as that
      *  location. On success the process exits, so this never resolves. */
     switchLocation(kioskId: KioskLocationCode): Promise<Result<boolean>>;
+    /** 지점 설정: asks to confirm, then makes this PC `kioskId` and restarts (a packaged build
+     *  never resolves then). `false` = the person chose not to change it. */
+    applySetup(kioskId: SetupSiteCode): Promise<Result<boolean>>;
   };
   /** Cached shop catalogue (from the witteria API, refreshed on launch + nightly). */
   shops: {
@@ -330,6 +335,10 @@ export interface KioskBridge {
     /** Full record for one event (GET /api/events/{eventId}). */
     detail(eventId: number): Promise<Result<EventDetail>>;
   };
+  /** 화성휴게소 home board 도로교통상황 — null until the server has had a value. */
+  traffic: {
+    getExpressway(): Promise<Result<ExpresswayTrafficSnapshot | null>>;
+  };
   /**
    * Local display-scaling controls for the operator window. These act on the
    * renderer's own frame (Chromium zoom) — no main-process round-trip — and the
@@ -349,6 +358,10 @@ export interface KioskBridge {
     onMonitorsChanged(listener: (monitors: MonitorInfo[]) => void): Unsubscribe;
     onSyncStatsChanged(listener: (stats: SyncQueueStats) => void): Unsubscribe;
     onContentChanged(listener: (content: CachedContent[]) => void): Unsubscribe;
+    /** The full synced translation table, after a Localization sheet download. */
+    onTranslationsChanged(
+      listener: (translations: Record<string, Partial<Record<SupportedLanguage, string>>>) => void,
+    ): Unsubscribe;
     onPhotoWorkflowChanged(listener: (state: PhotoWorkflowState) => void): Unsubscribe;
     /** 제주 모션 게임 started, progressed or ended — see MotionGameState. */
     onMotionGameChanged(listener: (state: MotionGameState) => void): Unsubscribe;

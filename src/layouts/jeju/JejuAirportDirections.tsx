@@ -161,6 +161,8 @@ interface Props {
   ferryModeLabel?: string;
   /** Optional save-QR, pinned to the top-right of the orange bus/shuttle card. */
   qr?: ReactNode;
+  /** Where the distance is measured from ("오색시장에서"). Defaults to 제주공항. */
+  origin?: Partial<Record<Lang, string>>;
 }
 
 function buildTimeline(route: ShopRoute, destination: string, lang: Lang): TimelineNode[] {
@@ -213,6 +215,7 @@ export function JejuAirportDirections({
   showFerry = false,
   ferryModeLabel,
   qr,
+  origin = T.fromAirport,
 }: Props): JSX.Element | null {
   if (showFerry && ferryModeLabel) {
     return (
@@ -250,7 +253,7 @@ export function JejuAirportDirections({
   return (
     <div className={styles.wrap}>
       <p className={styles.distance}>
-        {pick(T.fromAirport, lang)}{' '}
+        {pick(origin, lang)}{' '}
         <span className={styles.distanceKm}>{route.distanceKm.toFixed(1)}</span> km
       </p>
 

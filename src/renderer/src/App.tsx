@@ -19,6 +19,11 @@ import { FootfallCounter } from '@renderer/features/footfall/FootfallCounter';
  */
 export function App(): JSX.Element {
   const layout = useKioskStore((s) => s.config.layout);
+  // A fresh PC is no kiosk yet: only the 지점 설정 screen until a site is picked.
+  // Re-render the whole tree (no remount, so an open photo session keeps its
+  // state) when a sheet sync swaps the translation table. t()/sheetText() read
+  // the table with getState(), and most screens subscribe only to the language.
+  useKioskStore((s) => s.translations);
 
   useBootstrap();
   useKioskTheme();
