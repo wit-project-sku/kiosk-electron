@@ -48,11 +48,11 @@ import styles from './JejuHome.module.css';
 
 interface Props {
   controller: KioskController;
-  /** Pointer-up on the top-right date — the hidden 시스템 점검 switch (five quick
-   *  mouse clicks, see maintenance.ts). Absent on kiosks without the notice. The
-   *  top-left pin is NOT the switch any more (2026-11-03): on stage builds a click
-   *  there opens the site switcher (KioskSwitcher). */
-  onDateTap?: (e: PointerEvent<HTMLElement>) => void;
+  /** Pointer-up on the small plane in the top bar — the hidden 시스템 점검 switch
+   *  (five quick mouse clicks, see maintenance.ts). Without it the plane is not
+   *  drawn. The date does nothing, and the top-left pin opens the site switcher on
+   *  stage builds (KioskSwitcher). */
+  onPlaneTap?: (e: PointerEvent<HTMLElement>) => void;
 }
 
 /** Search-bar language button → the current language's display code. */
@@ -748,7 +748,7 @@ const AIRPORT_CARDS: CardDef[] = CARDS.map((card) =>
     : card,
 );
 
-export function JejuHome({ controller, onDateTap }: Props): JSX.Element {
+export function JejuHome({ controller, onPlaneTap }: Props): JSX.Element {
   const weather = useWeatherStore((s) => s.weather);
   const forecast = useWeatherStore((s) => s.forecast);
   const [weatherOpen, setWeatherOpen] = useState(false);
@@ -1017,9 +1017,12 @@ export function JejuHome({ controller, onDateTap }: Props): JSX.Element {
           )}
           <span className={styles.siteName}>JEJU</span>
         </div>
-        <span className={styles.dateTime} onPointerUp={onDateTap}>
-          {clock}
-        </span>
+        {onPlaneTap && jejuIconUrl('bg-plane') && (
+          <span className={styles.planeSwitch} onPointerUp={onPlaneTap}>
+            <img src={jejuIconUrl('bg-plane')} alt="" draggable={false} />
+          </span>
+        )}
+        <span className={styles.dateTime}>{clock}</span>
       </div>
 
       {/* 공지 card, its weather card and the 운항 정보 board — Figma's group

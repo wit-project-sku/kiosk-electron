@@ -196,10 +196,12 @@ export function JejuKiosk(): JSX.Element {
   // 제주 only: no other venue has the hardware. See the hook's header.
   useJejuKeypad(controller);
 
-  const [maintenanceLifted, setMaintenanceLifted] = useState(readMaintenanceLifted);
+  const [maintenanceLifted, setMaintenanceLifted] = useState(() =>
+    readMaintenanceLifted(controller.kioskId),
+  );
   const maintenanceKiosk = MAINTENANCE_KIOSKS.has(controller.kioskId);
-  // Five quick mouse clicks flip between the notice and the app — the date at
-  // the top right of the home screen, the leftmost tangerine on the notice
+  // Five quick mouse clicks flip between the notice and the app — the small plane
+  // in the home screen's top bar, the leftmost tangerine on the notice
   // (maintenance.ts).
   const toggleMaintenance = useCallback(() => {
     setMaintenanceLifted((lifted) => {
@@ -211,10 +213,10 @@ export function JejuKiosk(): JSX.Element {
 
   const cur = controller.screen;
 
-  // 제주공항 is under system maintenance: the whole screen is the 점검 중 notice
-  // and nothing behind it can be reached by a visitor (touch or keypad). Staff
-  // switch it off with five quick MOUSE clicks on the leftmost tangerine and
-  // back on the same way from the home screen's date, top right (maintenance.ts).
+  // Under system maintenance the whole screen is the 점검 중 notice and nothing
+  // behind it can be reached by a visitor (touch or keypad). Staff switch it off
+  // with five quick MOUSE clicks on the leftmost tangerine and back on the same way
+  // from the plane in the home screen's top bar (maintenance.ts).
   // Only that tangerine listens, and only to a mouse.
   if (maintenanceKiosk && !maintenanceLifted) {
     return (
@@ -232,7 +234,7 @@ export function JejuKiosk(): JSX.Element {
   ) : cur === 'home' ? (
     <JejuHome
       controller={controller}
-      onDateTap={maintenanceKiosk ? onMaintenanceSwitchTap : undefined}
+      onPlaneTap={maintenanceKiosk ? onMaintenanceSwitchTap : undefined}
     />
   ) : cur === 'language' ? (
     <JejuLanguage controller={controller} />
