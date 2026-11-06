@@ -45,6 +45,10 @@ import { FloatingKeyboard } from '../insadong/keyboard/FloatingKeyboard';
 import { HangulComposer } from '../insadong/keyboard/hangul';
 import type { KeyAction } from '../insadong/keyboard/VirtualKeyboard';
 import styles from './JejuHome.module.css';
+import { useVoiceIntro } from './voice/intro';
+import { VoiceToggle } from './voice/VoiceToggle';
+
+const VOICE_WEATHER = ['jeju.weather'] as const;
 
 interface Props {
   controller: KioskController;
@@ -445,11 +449,11 @@ const COMING_SOON_LABEL: Record<Lang, string> = {
 };
 
 /**
- * The one grid slot that differs between the two 제주 venues — row 2, column 4.
+ * The venue tile — the one grid tile that differs between the two 제주 venues.
  *
  * 제주공항 W008 draws 렌트카; 제주국제여객터미널 W009 draws 크루즈 운항, which opens
- * the ferry sailing board (JejuCruise). Everything else on the two homes is
- * identical, so this is the whole of the per-venue difference.
+ * the ferry sailing board (JejuCruise). Apart from the help card (see cardsGrid),
+ * every other button on the two homes is identical.
  *
  * Verified against the live CMS on 2026-08-24: `/api/kiosks/7/buttons` is
  * byte-for-byte W008's 21 rows with exactly this one changed (id 163, line 6
@@ -500,15 +504,6 @@ const tilesWith = (venue: Tile, m: TileMascot = HAYOUNG_LABELS): Tile[] => [
   { screen: 'localpay', label: '지역화폐',     sub: '탐나는전',       icon: 'tile-localpay' },
 ];
 
-/**
- * Both grids, built once at module scope.
- *
- * Their identities have to be STABLE across renders: `useOrderedTiles` memoises
- * on the array it is handed, so building one per render would re-run the CMS
- * join — and re-log its diagnostics — on every tick of the home clock.
- */
-const TILES_TERMINAL = tilesWith(CRUISE_TILE);
-
 /** The FillMe button's caption when the sheet has no MainButton_SmartHealthCare. */
 const FILLME_LABEL_FALLBACK: Partial<Record<Lang, string>> = {
   ko: '필미', en: 'FillMe', ja: 'FillMe', zh: 'FillMe', vi: 'FillMe', th: 'FillMe', ru: 'FillMe', id: 'FillMe',
@@ -532,6 +527,23 @@ const AIRPORT_HELP_TITLE_FALLBACK: Record<Lang, string> = {
   es: 'Guía del Aeropuerto de Jeju',
 };
 
+/** W009's 도와줘 card reads 여객터미널 안내: the sheet's MainButton_Terminal_Guide
+ *  row when it exists, else this copy. Display only — `navigate()` still receives
+ *  the CMS's 도와줘 label, so analytics are unchanged. */
+const TERMINAL_HELP_TITLE_FALLBACK: Record<Lang, string> = {
+  ko: '여객터미널 안내',
+  en: 'Passenger Terminal Guide',
+  ja: '旅客ターミナル案内',
+  zh: '客运码头指南',
+  zh_cn: '客运码头指南',
+  zh_tw: '客運碼頭指南',
+  vi: 'Hướng dẫn bến tàu khách',
+  th: 'คู่มือท่าเรือโดยสาร',
+  ru: 'Гид по пассажирскому терминалу',
+  id: 'Panduan Terminal Penumpang',
+  es: 'Guía de la terminal de pasajeros',
+};
+
 /** 오늘의 날씨 tile copy until Localization_Jeju has MainButton_Weather rows. */
 const WEATHER_TITLE_FALLBACK: Partial<Record<Lang, string>> = {
   ko: '오늘의 날씨', en: "Today's Weather", ja: '今日の天気', zh: '今日天气', zh_cn: '今日天气',
@@ -544,60 +556,74 @@ const WEATHER_SUB_FALLBACK: Partial<Record<Lang, string>> = {
   id: 'Prakiraan cuaca Jeju', es: 'Pronóstico de Jeju',
 };
 
+/* Localization_Jeju_v3 gives the split its own rows: the title is
+   MainButton_jejuQrang_airport, and the second line shares 탐나오's
+   MainButton_Tamnao_Subtext (the sheet keeps one subtext for both buttons). */
+const QURANG_TILE: Tile = {
+  screen: 'jejuqrang',
+  label: '제주큐랑',
+  sub: TAMNAO_TILE.sub,
+  // The white 제주큐랑 wordmark baked onto a plate in the kiosk orange
+  // (#ff7f0f), like the other tile exports — the wordmark alone is white on
+  // transparent and would vanish on the grid's white panel.
+  icon: 'tile-jejuqrang',
+  title: { key: 'MainButton_jejuQrang_airport', fallback: JEJU_QURANG_LABEL },
+  subKey: 'MainButton_Tamnao_Subtext',
+};
+const WEATHER_TILE: Tile = {
+  screen: 'weather',
+  label: '오늘의 날씨',
+  sub: '제주 날씨 예보',
+  icon: '',
+  title: { key: 'MainButton_Weather', fallback: WEATHER_TITLE_FALLBACK },
+  subKey: 'MainButton_Weather_Subtext',
+  subFallback: WEATHER_SUB_FALLBACK,
+  liveWeather: true,
+};
+
 /**
- * W008 제주공항 — 4 · 3 · 4 (2026-10-29):
+ * The 4 · 3 · 4 grid shared by W008 제주공항 (2026-10-29) and W009
+ * 제주국제여객터미널:
  *  · row 1 — 뭐먹지 · 뭐사지 · 숙박안내 · 제주큐랑 (split off 탐나오, in the cell
  *    지역화폐 held);
- *  · row 2 — 여기는 제주도 · 안녕 · 제주공항 안내, drawn as a second row of the
- *    three feature cards (same sizes and design, every mode);
- *  · row 3 — 환율 · 지역화폐 · 렌트카 · 오늘의 날씨 (opens the 날씨 panel).
- * 위드마켓 / TAX-FREE / 기부 (the three Coming Soon cells) are gone, and the card
- * above reads 탐나오 alone (AIRPORT_CARDS).
+ *  · row 2 — 여기는 제주도 · 안녕 · the venue's help card, drawn as a second row
+ *    of the three feature cards (same sizes and design, every mode);
+ *  · row 3 — 환율 · 지역화폐 · the venue tile · 오늘의 날씨 (opens the 날씨 panel).
+ * 위드마켓 / TAX-FREE / 기부 are gone, and the card above reads 탐나오 alone
+ * (TAMNAO_CARDS).
  *
- * This order does not match W008's `buttons` CMS rows, so W008 skips the CMS
- * reorder (see `orderedTiles` below).
+ * This order does not match either venue's `buttons` CMS rows, so a grid with
+ * cards skips the CMS reorder (see `orderedTiles` below).
+ *
+ * Both grids are built once at module scope: `useOrderedTiles` memoises on the
+ * array it is handed, so building one per render would re-run the CMS join — and
+ * re-log its diagnostics — on every tick of the home clock.
  */
-const TILES_AIRPORT: Tile[] = (() => {
-  const shared = tilesWith(RENTCAR_TILE);
+const cardsGrid = (venue: Tile, helpCard: (help: Tile) => Tile): Tile[] => {
+  const shared = tilesWith(venue);
   const pick = (screen: KioskScreenId): Tile => shared.find((tile) => tile.screen === screen)!;
-  const AIRPORT_HELP_TILE: Tile = {
-    ...pick('help'),
-    // The terminal illustration, transparent — drawn as-is in the card's art box.
-    icon: 'card-airport-guide',
-    title: { key: 'MainButton_Airport_Guide', fallback: AIRPORT_HELP_TITLE_FALLBACK },
-    subKey: 'MainButton_Airport_Guide_SubText',
-    wide: true,
-  };
-  /* Localization_Jeju_v2 gives the split its own airport rows: the title is
-     MainButton_jejuQrang_airport, and the second line shares 탐나오's
-     MainButton_Tamnao_Subtext (the sheet keeps one subtext for both buttons). */
-  const QURANG_TILE: Tile = {
-    screen: 'jejuqrang',
-    label: '제주큐랑',
-    sub: TAMNAO_TILE.sub,
-    // The white 제주큐랑 wordmark baked onto a plate in the kiosk orange
-    // (#ff7f0f), like the other tile exports — the wordmark alone is white on
-    // transparent and would vanish on the grid's white panel.
-    icon: 'tile-jejuqrang',
-    title: { key: 'MainButton_jejuQrang_airport', fallback: JEJU_QURANG_LABEL },
-    subKey: 'MainButton_Tamnao_Subtext',
-  };
-  const WEATHER_TILE: Tile = {
-    screen: 'weather',
-    label: '오늘의 날씨',
-    sub: '제주 날씨 예보',
-    icon: '',
-    title: { key: 'MainButton_Weather', fallback: WEATHER_TITLE_FALLBACK },
-    subKey: 'MainButton_Weather_Subtext',
-    subFallback: WEATHER_SUB_FALLBACK,
-    liveWeather: true,
-  };
   return [
     pick('eat'), pick('shop'), pick('lodging'), QURANG_TILE,
-    { ...pick('about'), wide: true }, { ...pick('hello'), wide: true }, AIRPORT_HELP_TILE,
-    pick('exchange'), pick('localpay'), RENTCAR_TILE, WEATHER_TILE,
+    { ...pick('about'), wide: true }, { ...pick('hello'), wide: true }, { ...helpCard(pick('help')), wide: true },
+    pick('exchange'), pick('localpay'), venue, WEATHER_TILE,
   ];
-})();
+};
+
+const TILES_AIRPORT = cardsGrid(RENTCAR_TILE, (help) => ({
+  ...help,
+  // The terminal illustration, transparent — drawn as-is in the card's art box.
+  icon: 'card-airport-guide',
+  title: { key: 'MainButton_Airport_Guide', fallback: AIRPORT_HELP_TITLE_FALLBACK },
+  subKey: 'MainButton_Airport_Guide_SubText',
+}));
+
+/* The second line stays the shared 편의시설 안내 row. The art is the ferry terminal
+   illustration, its pink plate baked in like the tile exports. */
+const TILES_TERMINAL = cardsGrid(CRUISE_TILE, (help) => ({
+  ...help,
+  icon: 'card-terminal-guide',
+  title: { key: 'MainButton_Terminal_Guide', fallback: TERMINAL_HELP_TITLE_FALLBACK },
+}));
 
 /**
  * W010 세계자연유산본부 — no longer W009's grid. The 2026-09 redesign (Figma
@@ -638,7 +664,8 @@ const TILES_HERITAGE: Tile[] = [
  *
  * Keyed by KIOSK, not by layout: W008 and W009 deliberately share the
  * JEJU_AIRPORT layout (one 제주 design, two venues — see KioskLayoutId), so the
- * layout cannot tell them apart and this is the level the difference lives at.
+ * layout cannot tell them apart and this is the level their venue tile and help
+ * card differ at.
  * A kiosk with no entry gets the airport grid.
  */
 const TILES_BY_KIOSK: Partial<Record<string, Tile[]>> = { W009: TILES_TERMINAL, W010: TILES_HERITAGE };
@@ -731,11 +758,11 @@ const CARDS: CardDef[] = [
   { screen: 'events',    label: '제주도 이벤트',  sub: '제주행사',    icon: 'card-events', variant: 'cardEvents' },
 ];
 
-/** W008: 탐나오 in the 위드마켓 card's slot — see TILES_AIRPORT. 제주큐랑 has
+/** W008/W009: 탐나오 in the 위드마켓 card's slot — see cardsGrid. 제주큐랑 has
  *  its own grid tile now, so the card names 탐나오 alone from the sheet's
- *  airport row (MainButton_Tamnao_airport), not the MainButton_Tamnao pair
- *  W009/W010 still show. Its second line stays MainButton_Tamnao_Subtext. */
-const AIRPORT_CARDS: CardDef[] = CARDS.map((card) =>
+ *  MainButton_Tamnao_airport row, not the MainButton_Tamnao pair W010 still
+ *  shows. Its second line stays MainButton_Tamnao_Subtext. */
+const TAMNAO_CARDS: CardDef[] = CARDS.map((card) =>
   card.screen === 'market'
     ? {
         screen: 'tamnao',
@@ -752,6 +779,7 @@ export function JejuHome({ controller, onPlaneTap }: Props): JSX.Element {
   const weather = useWeatherStore((s) => s.weather);
   const forecast = useWeatherStore((s) => s.forecast);
   const [weatherOpen, setWeatherOpen] = useState(false);
+  useVoiceIntro(weatherOpen ? VOICE_WEATHER : null);
   /* The controller's own idle reset early-returns while the kiosk is already on
      home, so it would never take this overlay down — it would still be open for
      the next visitor. Armed only while the panel is up, on the same clock. */
@@ -906,10 +934,11 @@ export function JejuHome({ controller, onPlaneTap }: Props): JSX.Element {
    */
   const tiles = TILES_BY_KIOSK[controller.kioskId] ?? TILES_AIRPORT;
   const cmsOrderedTiles = useOrderedTiles(controller.kioskId, tiles, jejuTileKey);
-  /* W008's grid was rearranged on purpose and its CMS rows were not — see
-     TILES_AIRPORT. Keep the authored order there. */
-  const orderedTiles = tiles === TILES_AIRPORT ? tiles : cmsOrderedTiles;
-  const cards = tiles === TILES_AIRPORT ? AIRPORT_CARDS : CARDS;
+  /* W008/W009's grid was rearranged on purpose and their CMS rows were not — see
+     cardsGrid. Keep the authored order there. */
+  const hasCardRow = tiles.some((tile) => tile.wide);
+  const orderedTiles = hasCardRow ? tiles : cmsOrderedTiles;
+  const cards = hasCardRow ? TAMNAO_CARDS : CARDS;
 
   /* Low-reach: the shared mode bar (lowReach.ts) + a 573px 한복 promo flush
      under it, then the frame's own coordinates — see the block at the foot of
@@ -1177,6 +1206,8 @@ export function JejuHome({ controller, onPlaneTap }: Props): JSX.Element {
               style={slots[i]}
               onClick={onTap}
               disabled={disabled}
+              // Its first visible text is the temperature, not what the tile is.
+              data-voice-label={tile.liveWeather ? tileLabel(tile) : undefined}
             >
               {tile.liveWeather ? (
                 /* 오늘의 날씨: a sky plate with the live condition and temperature —
@@ -1302,6 +1333,7 @@ export function JejuHome({ controller, onPlaneTap }: Props): JSX.Element {
           />
         </button>
       )}
+      <VoiceToggle className={low(styles.voiceToggle, styles.voiceToggleLow)} />
 
       {/* 날씨 panel — the weather card's overlay. Its layer is z-index 20, over
           the whole (unlayered) home screen; the keyboard below is 2000, so it

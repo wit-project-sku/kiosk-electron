@@ -1,7 +1,7 @@
 import type { Lang } from '@renderer/lib/i18n';
 import { t } from '@renderer/lib/loc';
 import { aiCatLabel } from '@renderer/lib/aiCategoryLabel';
-import { AI_CATEGORIES_JEJU } from '@renderer/data/aiCategories-jeju.generated';
+import { jejuAiCategories } from '@renderer/lib/jejuAiCategories';
 
 /**
  * Korean questionnaire values on aiStore → Localization_Jeju keys.
@@ -50,7 +50,7 @@ export function localizeJejuAiPick(ko: string, lang: Lang): string {
   const transportKey = TRANSPORT_KEYS[ko];
   if (transportKey) return sheetLabel(transportKey, ko, lang);
 
-  const cat = AI_CATEGORIES_JEJU.find((row) => row.ko === ko);
+  const cat = jejuAiCategories().find((row) => row.ko === ko);
   if (cat) return aiCatLabel(cat, lang);
 
   return ko;

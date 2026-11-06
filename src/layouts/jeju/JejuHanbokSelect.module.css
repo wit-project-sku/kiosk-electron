@@ -1081,6 +1081,25 @@
   pointer-events: none;
 }
 
+/* 음성 안내 — under the ♿ toggle, one rail step (85 + 35) down. */
+.voiceToggle {
+  position: absolute;
+  left: 50px;
+  top: 2403px;
+  width: 85px;
+  height: 85px;
+  padding: 0;
+  border: none;
+  background: none;
+  cursor: pointer;
+  z-index: 10;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.rootLowReach .voiceToggle {
+  top: 2523px;
+}
+
 /* ── 한복 설명 page (Figma 6258:49124) ──────────────────────
  *
  * 제주's own frame for the page behind the 사진촬영안내 card, and NOT the shared

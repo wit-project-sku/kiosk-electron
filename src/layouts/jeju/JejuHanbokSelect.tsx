@@ -146,6 +146,8 @@ import { JejuBgMotion } from './JejuBgMotion';
    layout, so their styles are reused from the shared step rather than copied. */
 import shared from '../photo/HanbokSelect.module.css';
 import styles from './JejuHanbokSelect.module.css';
+import { useVoiceIntro } from './voice/intro';
+import { VoiceToggle } from './voice/VoiceToggle';
 
 interface Props {
   /** Third argument: the step ② 배경 테마 plate, or null when none was tapped. */
@@ -153,6 +155,12 @@ interface Props {
   onHome: () => void;
   countdownActive?: boolean;
 }
+
+/** 한복 설명 and 개인정보 처리방침 are long reads: their intro offers key 2. */
+const VOICE_INFO = ['hanbok.info', 'global.more.hint'] as const;
+const VOICE_PRIVACY = ['hanbok.privacy', 'global.more.hint'] as const;
+/** The 제주 tab is where the photo background is chosen. */
+const VOICE_BACKGROUND = ['hanbok.background'] as const;
 
 /** One tab in the row. Every one of them is a registered category. */
 interface Tab {
@@ -708,6 +716,11 @@ export function JejuHanbokSelect({
    * on the list.
    */
   const isThemeTab = themeTabId !== undefined && categoryId === themeTabId;
+  // Null while capturing: this page stays mounted behind the camera popup, and
+  // the flow's own intro (usePhotoVoice) is the one key 1 should repeat.
+  useVoiceIntro(
+    countdownActive ? null : infoOpen ? VOICE_INFO : privacyOpen ? VOICE_PRIVACY : isThemeTab ? VOICE_BACKGROUND : null,
+  );
   /** Tiles, or the 준비 중 message in the same 1820×700 band. */
   const hasBackgrounds = backgrounds.length > 0;
 
@@ -836,7 +849,7 @@ export function JejuHanbokSelect({
             ))}
           </Swiper>
         )}
-        <div className={styles.infoCard}>
+        <div className={styles.infoCard} data-voice-more>
           <p className={styles.infoHeading}>{info.heading}</p>
           <div className={styles.infoBody}>
             {info.paragraphs.map((p, i) => (
@@ -880,6 +893,7 @@ export function JejuHanbokSelect({
             <img src={accessibilityIcon} alt="" className={styles.accessibilityImg} draggable={false} />
           </button>
         )}
+        <VoiceToggle className={styles.voiceToggle} />
       </div>
     );
   }
@@ -1213,6 +1227,7 @@ export function JejuHanbokSelect({
           <img src={accessibilityIcon} alt="" className={styles.accessibilityImg} draggable={false} />
         </button>
       )}
+      <VoiceToggle className={styles.voiceToggle} />
 
       {/* Camera-direction popup — shown while capturing / generating. */}
       {countdownActive && camPopupSrc && (
@@ -1279,7 +1294,7 @@ export function JejuHanbokSelect({
                 </svg>
               </button>
             </div>
-            <div className={shared.privacyBody}>
+            <div className={shared.privacyBody} data-voice-more>
               {pick(PRIVACY, lang).sections.map((s, i) => (
                 <div key={i} className={shared.privacySection}>
                   <p className={shared.privacySecTitle}>{s.title}</p>

@@ -671,10 +671,12 @@
 }
 
 /* ── Left nav (home / back) + accessibility ─────────────────────────── */
+/* One rail step (120) above every other 제주 page: the rail is four controls here,
+   and the second row of feature cards starts at x120 / y2364, under a fourth one. */
 .leftNav {
   position: absolute;
   left: 50px;
-  top: 2043px;
+  top: 1923px;
   width: 85px;
   height: 205px;
 }
@@ -709,7 +711,7 @@
 .accessibility {
   position: absolute;
   left: 50px;
-  top: 2283px;
+  top: 2163px;
   width: 85px;
   height: 85px;
   padding: 0;
@@ -939,6 +941,24 @@
 
 .accessibilityLow {
   top: 2403px;
+}
+
+/* 음성 안내 — under the ♿ toggle, one rail step (85 + 35) down. */
+.voiceToggle {
+  position: absolute;
+  left: 50px;
+  top: 2283px;
+  width: 85px;
+  height: 85px;
+  padding: 0;
+  border: none;
+  background: none;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.voiceToggleLow {
+  top: 2523px;
 }
 
 /* ── Other languages (Figma 7058:22669 — the annotated 제주>홈) ────────────

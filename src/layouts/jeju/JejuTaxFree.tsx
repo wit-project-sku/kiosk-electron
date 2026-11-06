@@ -30,9 +30,17 @@ import { useHideEmbedScrollbars } from '../components/useHideEmbedScrollbars';
 import { useAccessibilityStore } from '@renderer/store/accessibilityStore';
 import { JejuPageFrame } from './JejuPageFrame';
 import { belowModeBar } from './lowReach';
+import { useVoiceIntro } from './voice/intro';
 import styles from './JejuTaxFree.module.css';
 
 type TabId = 'refund' | 'intro' | 'merchant';
+
+/** Voice intro per tab — 세금 환급 is a remote page, so only its entry line plays. */
+const VOICE_INTROS: Record<TabId, readonly string[]> = {
+  refund: ['jeju.taxfree.refund', 'global.web.exit'],
+  intro: ['jeju.taxfree.about'],
+  merchant: ['jeju.taxfree.merchant'],
+};
 
 /** Tabs in frame order (6212:57353 / 57356 / 57359) with their sheet keys. */
 const TABS: ReadonlyArray<{ id: TabId; key: string }> = [
@@ -98,6 +106,7 @@ const VARIANT: TaxfreeVariant = 'wit';
 export function JejuTaxFree({ controller }: Props): JSX.Element {
   const lang = useLanguageStore((s) => s.currentLanguage);
   const [tab, setTab] = useState<TabId>('refund');
+  useVoiceIntro(VOICE_INTROS[tab]);
   const lowReach = useAccessibilityStore((st) => st.lowReach);
   // 소개 is two pages, flipped by the chevrons drawn into the artwork.
   const [introPage, setIntroPage] = useState(0);

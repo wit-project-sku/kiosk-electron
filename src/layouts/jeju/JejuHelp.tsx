@@ -66,6 +66,7 @@ import {
   useMemo,
   useRef,
   useState,
+  useSyncExternalStore,
   type CSSProperties,
   type PointerEvent as ReactPointerEvent,
   type ReactNode,
@@ -87,8 +88,10 @@ import {
   facilitiesOn,
   chipsForTerminal,
   facilityImageUrl,
-  HELP_CHIPS,
+  facilityTableVersion,
+  helpChips,
   RESTROOM_CHIP,
+  subscribeFacilityTable,
   type AirportFacility,
   type AssignedPin,
 } from '@renderer/lib/airportFacilities';
@@ -231,12 +234,7 @@ const FLOORS: Record<TerminalId, ReadonlyArray<{ id: FloorId; label: string }>> 
  * reaches eleven categories makes three rows and .map has to move back down.
  * See the note on .cats in the CSS.
  */
-const CATEGORIES = HELP_CHIPS;
 const PER_ROW = 5;
-const TERMINAL_CHIPS: Record<TerminalId, readonly string[]> = {
-  domestic: chipsForTerminal('domestic'),
-  international: chipsForTerminal('international'),
-};
 
 /**
  * Chip caption for the 340×170 plates (Figma 6393:59030 / I6771:66722).
@@ -1054,8 +1052,10 @@ export function JejuHelp({ controller, initialCategory }: Props): JSX.Element {
   /* The chips a view draws: the terminal's own categories. The ferry terminal
      (W009) matches no sheet terminal — none of its pins has a row — so it keeps
      the whole list, as it always has. */
-  const chipsFor = (t: TerminalId): readonly string[] => (atPort ? CATEGORIES : TERMINAL_CHIPS[t]);
-  const [category, setCategory] = useState(() => {
+  const chipsFor = (t: TerminalId): readonly string[] => (atPort ? helpChips() : chipsForTerminal(t));
+  /* The sheet's rows can arrive a moment after this page opens (the launch sync). */
+  const tableVersion = useSyncExternalStore(subscribeFacilityTable, facilityTableVersion);
+  const [pickedCategory, setCategory] = useState(() => {
     const landing = chipsFor('domestic');
     return initialCategory && landing.includes(initialCategory) ? initialCategory : landing[0]!;
   });
@@ -1069,6 +1069,8 @@ export function JejuHelp({ controller, initialCategory }: Props): JSX.Element {
 
   const floors = FLOORS[terminal];
   const chips = chipsFor(terminal);
+  /* A chip the new rows no longer have falls back, rather than lighting nothing. */
+  const category = chips.includes(pickedCategory) ? pickedCategory : chips[0]!;
   const categoryRows = Math.ceil(chips.length / PER_ROW);
   const map = atPort ? PORT_MAPS[zone] : MAPS[`${terminal}-${floor}`];
   const here = jejuIconUrl('ico-here-pin');
@@ -1092,7 +1094,8 @@ export function JejuHelp({ controller, initialCategory }: Props): JSX.Element {
       atPort
         ? assignFacilities('port', zone, PORT_PINS[zone])
         : assignFacilities(terminal, floor, PINS[`${terminal}-${floor}`] ?? []),
-    [atPort, terminal, floor, zone],
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- tableVersion: the module's rows changed
+    [atPort, terminal, floor, zone, tableVersion],
   );
 
   /** The pictograms the selected chip marks — every other one stays as drawn. */
@@ -1109,7 +1112,8 @@ export function JejuHelp({ controller, initialCategory }: Props): JSX.Element {
   const sheetList = useMemo(() => {
     if (atPort) return [];
     return facilitiesOn(terminal, floor).filter((f) => f.category.ko === category);
-  }, [atPort, terminal, floor, category]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- tableVersion: the module's rows changed
+  }, [atPort, terminal, floor, category, tableVersion]);
 
   const facilities = useMemo(() => shopsForBase(shops, BASE_CATEGORY), [shops]);
 
@@ -1332,7 +1336,7 @@ export function JejuHelp({ controller, initialCategory }: Props): JSX.Element {
 
   const mapBlock = (() => {
     if (!map || !planSrc) {
-      return <p className={styles.empty}>{pick(COMING_SOON, lang)}</p>;
+      return <p className={styles.empty} data-voice-state="preparing">{pick(COMING_SOON, lang)}</p>;
     }
     const src = planSrc;
     return (

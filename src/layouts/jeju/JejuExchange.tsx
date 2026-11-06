@@ -46,12 +46,18 @@ import { useAccessibilityStore } from '@renderer/store/accessibilityStore';
 import { JejuPageFrame } from './JejuPageFrame';
 import styles from './JejuExchange.module.css';
 import { belowModeBar, LOW_REACH_BANNER_HEIGHT } from './lowReach';
+import { useVoiceIntro } from './voice/intro';
 
 interface Props {
   controller: KioskController;
 }
 
 type TabId = 'calc' | 'live';
+
+const VOICE_INTROS: Record<TabId, readonly string[]> = {
+  live: ['jeju.exchange.live'],
+  calc: ['jeju.exchange.calc'],
+};
 /** Which field's dropdown is open, if any. */
 type Picker = 'from' | 'to' | null;
 
@@ -238,6 +244,7 @@ export function JejuExchange({ controller }: Props): JSX.Element {
 
   /** Opens on 실시간 환율, the left-hand tab — see TABS. */
   const [tab, setTab] = useState<TabId>('live');
+  useVoiceIntro(VOICE_INTROS[tab]);
   /* The calculator opens on USD → KRW with the amount EMPTY. The unit rate a
      seeded `1` used to show is already on the 기준 환율 pill above, so the seed
      bought nothing and cost the visitor a backspace before they could type;

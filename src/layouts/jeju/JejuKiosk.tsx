@@ -49,6 +49,7 @@ import { JejuExchange } from './JejuExchange';
 import { JejuRentcar } from './JejuRentcar';
 import { JejuFillme } from './fillme/JejuFillme';
 import { useJejuKeypad } from './keypad/useJejuKeypad';
+import { useJejuVoice } from './voice/useJejuVoice';
 import maintenanceUrl from '@renderer/assets/icons/jeju/maintenance.jpg';
 import { MAINTENANCE_KIOSKS, readMaintenanceLifted, useMultiTap, writeMaintenanceLifted } from './maintenance';
 
@@ -149,13 +150,13 @@ const WEB_SCREENS: readonly WebScreen[] = [
 ];
 
 /**
- * 제주공항 W008 (2026-10-29): 탐나오 and 제주큐랑 are two home buttons now, so
- * each opens its OWN page — the site alone, no tab row. Same chrome as the
- * two-tab page (the QR row hands over whichever site is showing); the panel
- * takes the tab row's band (see JejuWebScreen's single-site metrics).
- * W009/W010 keep the two-tab page above.
+ * 제주공항 W008 (2026-10-29) and 여객터미널 W009: 탐나오 and 제주큐랑 are two home
+ * buttons now, so each opens its OWN page — the site alone, no tab row. Same
+ * chrome as the two-tab page (the QR row hands over whichever site is showing);
+ * the panel takes the tab row's band (see JejuWebScreen's single-site metrics).
+ * W010 keeps the two-tab page above.
  */
-const WEB_SCREENS_AIRPORT: readonly WebScreen[] = WEB_SCREENS.flatMap((web): WebScreen[] =>
+const WEB_SCREENS_SPLIT: readonly WebScreen[] = WEB_SCREENS.flatMap((web): WebScreen[] =>
   web.screen === 'tamnao'
     ? [
         { ...web, title: '탐나오', tabs: undefined },
@@ -173,10 +174,10 @@ const WEB_SCREENS_AIRPORT: readonly WebScreen[] = WEB_SCREENS.flatMap((web): Web
 
 /** Which pages a 제주 kiosk keeps warm. Mirrors JejuHome's grid choice: the
  *  airport layout is the default (a test rig previewing 제주 gets it too), and
- *  only W009/W010 — whose homes still draw the 탐나오·제주큐랑 tile — keep the
+ *  only W010 — whose home still draws the 탐나오·제주큐랑 tile — keeps the
  *  two-tab page. */
 const webScreensFor = (kioskId: string): readonly WebScreen[] =>
-  kioskId === 'W009' || kioskId === 'W010' ? WEB_SCREENS : WEB_SCREENS_AIRPORT;
+  kioskId === 'W010' ? WEB_SCREENS : WEB_SCREENS_SPLIT;
 
 type WebScreenKey = WebScreen['screen'];
 
@@ -199,6 +200,8 @@ export function JejuKiosk(): JSX.Element {
     readMaintenanceLifted(controller.kioskId),
   );
   const maintenanceKiosk = MAINTENANCE_KIOSKS.has(controller.kioskId);
+  // 음성 안내 — off until the keypad turns it on. See voice/useJejuVoice.
+  useJejuVoice(controller, !maintenanceKiosk || maintenanceLifted);
   // Five quick mouse clicks flip between the notice and the app — the small plane
   // in the home screen's top bar and the one in the notice's art (maintenance.ts).
   const toggleMaintenance = useCallback(() => {
