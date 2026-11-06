@@ -1,11 +1,11 @@
-// 지점 설정 (shared/config/kioskSetup.ts): a fresh PC chooses its site on screen
-// instead of through provision-kiosk, and the desktop shortcut (--setup) opens the
-// same screen over a running kiosk.
+// 지점 설정 (shared/config/kioskSetup.ts): a fresh PC chooses its site in an ordinary
+// window instead of through provision-kiosk, and the desktop shortcut (--setup) opens
+// the same window over a running kiosk.
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
-import { expect, test, type Locator, type Page } from '@playwright/test';
+import { expect, test, type ElectronApplication, type Page } from '@playwright/test';
 import { startFakeApi, type FakeApi } from './support/fake-api';
-import { launchKiosk } from './support/launch';
+import { appWindowErrors, findWindow, launchKiosk, removeDir } from './support/launch';
 
 let api: FakeApi;
 test.beforeAll(async () => {
@@ -13,11 +13,19 @@ test.beforeAll(async () => {
 });
 test.afterAll(async () => api.close());
 
-const setup = (main: Page): Locator => main.getByRole('dialog', { name: '키오스크 지점 설정' });
-const key = (main: Page, label: string): Locator =>
-  setup(main).getByRole('button', { name: label, exact: true });
+/** Answer the system confirm box: 0 = change and restart, 1 = cancel. */
+async function answerConfirm(app: ElectronApplication, response: 0 | 1): Promise<void> {
+  await app.evaluate(({ dialog }, r) => {
+    dialog.showMessageBox = (async () => ({ response: r, checkboxChecked: false })) as never;
+  }, response);
+}
 
-test('a fresh PC opens only the setup screen and becomes the site it confirms', async () => {
+const site = (setup: Page, name: RegExp) => setup.getByRole('radio').and(setup.getByLabel(name));
+const save = (setup: Page) => setup.getByRole('button', { name: '저장', exact: true });
+const hasWindow = (app: ElectronApplication, file: string): boolean =>
+  app.windows().some((w) => w.url().endsWith(file));
+
+test('a fresh PC opens only the setup window and becomes the site it confirms', async () => {
   const kiosk = await launchKiosk({
     site: 'W001',
     apiBase: api.url,
@@ -25,51 +33,74 @@ test('a fresh PC opens only the setup screen and becomes the site it confirms', 
     keepUserData: true,
   });
   try {
-    const { main } = kiosk;
-    await expect(setup(main)).toBeVisible({ timeout: 30_000 });
-    // Nothing to close and nothing behind it: the kiosk is not shown yet.
-    await expect(setup(main).getByRole('button', { name: '닫기' })).toHaveCount(0);
-    await expect(main.locator('#root > *')).toHaveCount(1);
-    // Nothing is "current" on a machine that is no kiosk yet.
-    await expect(setup(main).getByText('현재', { exact: true })).toHaveCount(0);
+    const { main: setup, app } = kiosk;
+    await expect(setup.getByText('고르기 전에는 키오스크 화면이 열리지 않습니다')).toBeVisible();
+    expect(hasWindow(app, 'index.html')).toBe(false);
+    // Nothing is "current" on a machine that is no kiosk yet, and nothing is chosen.
+    await expect(setup.getByText('현재', { exact: true })).toHaveCount(0);
+    await expect(save(setup)).toBeDisabled();
+    // No number to type: the site brings its own.
+    await expect(setup.getByRole('textbox')).toHaveCount(0);
 
-    await setup(main)
-      .getByRole('button', { name: /오산시 오색시장/ })
-      .click();
-    await expect(setup(main).getByText('키오스크 번호', { exact: true })).toBeVisible();
-    const save = setup(main).getByRole('button', { name: '저장하고 다시 시작' });
+    await site(setup, /오색시장/).check();
+    await answerConfirm(app, 1);
+    await save(setup).click();
+    await expect(save(setup)).toBeEnabled();
+    expect(hasWindow(app, 'index.html')).toBe(false);
 
-    // A wrong number never enables saving.
-    await key(main, '5').click();
-    await expect(save).toBeDisabled();
-    await key(main, '전체 지움').click();
-    for (const d of ['0', '0', '4']) await key(main, d).click();
-    await expect(save).toBeEnabled();
-    await save.click();
+    await answerConfirm(app, 0);
+    await save(setup).click();
 
-    // Unpackaged, the app reloads in place (a packaged build restarts) as W004.
-    await expect(setup(main)).toHaveCount(0, { timeout: 30_000 });
+    // Unpackaged, the app stays up (a packaged build restarts) and opens as W004.
+    const main = await findWindow(app, 'index.html');
     await expect(main.locator('#root > *').first()).toBeVisible();
+    await expect.poll(() => hasWindow(app, 'setup.html')).toBe(false);
     const stored = JSON.parse(readFileSync(join(kiosk.userData, 'kiosk-config.json'), 'utf8'));
     expect(stored).toMatchObject({ kioskId: 'W004', jejuIdShift202610: true });
     expect(stored.previewSite).toBeUndefined();
+    expect(stored.setupPending).toBeUndefined();
+    expect(appWindowErrors(kiosk.errors).filter((e) => e.startsWith('[setup.html]'))).toEqual([]);
   } finally {
     await kiosk.close();
+    removeDir(kiosk.userData);
+  }
+});
+
+test('a fresh PC closed without choosing asks again on its next launch', async () => {
+  const first = await launchKiosk({
+    site: 'W001',
+    apiBase: api.url,
+    fresh: true,
+    keepUserData: true,
+  });
+  await first.main.getByRole('button', { name: '나중에 하기' }).click();
+  await first.close();
+
+  const second = await launchKiosk({
+    site: 'W001',
+    apiBase: api.url,
+    fresh: true,
+    userData: first.userData,
+  });
+  try {
+    await expect(second.main.getByText('고르기 전에는')).toBeVisible();
+    expect(hasWindow(second.app, 'index.html')).toBe(false);
+  } finally {
+    await second.close();
   }
 });
 
 test('the desktop shortcut (--setup) opens it over a provisioned kiosk, and it closes', async () => {
   const kiosk = await launchKiosk({ site: 'W009', apiBase: api.url, args: ['--setup'] });
   try {
-    const { main } = kiosk;
-    await expect(setup(main)).toBeVisible({ timeout: 30_000 });
+    const setup = await findWindow(kiosk.app, 'setup.html');
+    await expect(setup.getByText(/현재 이 PC는 제주국제여객터미널\(009번\)/)).toBeVisible();
     // This PC's own site is marked and cannot be picked again.
-    const own = setup(main).getByRole('button', { name: /제주국제여객터미널/ });
-    await expect(own).toBeDisabled();
-    await expect(own).toContainText('현재');
+    await expect(site(setup, /제주국제여객터미널/)).toBeDisabled();
 
-    await setup(main).getByRole('button', { name: '닫기' }).click();
-    await expect(setup(main)).toHaveCount(0);
+    await setup.getByRole('button', { name: '닫기' }).click();
+    await expect.poll(() => hasWindow(kiosk.app, 'setup.html')).toBe(false);
+    await expect(kiosk.main.locator('#root > *').first()).toBeVisible();
     const stored = JSON.parse(readFileSync(join(kiosk.userData, 'kiosk-config.json'), 'utf8'));
     expect(stored.kioskId).toBe('W009');
   } finally {
@@ -77,19 +108,29 @@ test('the desktop shortcut (--setup) opens it over a provisioned kiosk, and it c
   }
 });
 
-test('opening the shortcut while the kiosk runs shows the screen in the running app', async () => {
+test('opening the shortcut while the kiosk runs opens one window, and the test kiosk can be chosen', async () => {
   const kiosk = await launchKiosk({ site: 'W004', apiBase: api.url });
   try {
-    const { main } = kiosk;
+    const { app, main } = kiosk;
     await expect(main.locator('#root > *').first()).toBeVisible({ timeout: 30_000 });
-    await expect(setup(main)).toHaveCount(0);
-    // What Windows does when the shortcut starts a second instance.
-    await kiosk.app.evaluate(({ app }) => {
-      app.emit('second-instance', {}, ['kiosk.exe', '--setup'], process.cwd());
-    });
-    await expect(setup(main)).toBeVisible();
-    await setup(main).getByRole('button', { name: '닫기' }).click();
-    await expect(setup(main)).toHaveCount(0);
+    expect(hasWindow(app, 'setup.html')).toBe(false);
+
+    // What Windows does when the shortcut starts a second instance, twice.
+    const secondInstance = (): Promise<void> =>
+      app.evaluate(({ app: electronApp }) => {
+        electronApp.emit('second-instance', {}, ['kiosk.exe', '--setup'], process.cwd());
+      });
+    await secondInstance();
+    const setup = await findWindow(app, 'setup.html');
+    await secondInstance();
+    expect(app.windows().filter((w) => w.url().endsWith('setup.html'))).toHaveLength(1);
+
+    await site(setup, /사무실 테스트기/).check();
+    await answerConfirm(app, 0);
+    await save(setup).click();
+    await expect.poll(() => hasWindow(app, 'setup.html')).toBe(false);
+    const stored = JSON.parse(readFileSync(join(kiosk.userData, 'kiosk-config.json'), 'utf8'));
+    expect(stored.kioskId).toBe('W200');
   } finally {
     await kiosk.close();
   }

@@ -415,7 +415,8 @@ export interface IpcContract {
   };
   [IpcChannels.KioskSetupApply]: {
     request: { kioskId: SetupSiteCode };
-    // Like KioskSwitchLocation: on success the process restarts before replying.
+    // false = cancelled in the confirm box. Once confirmed, like KioskSwitchLocation: the
+    // process restarts before replying.
     response: Result<boolean>;
   };
   [IpcChannels.ShopsList]: {
@@ -549,7 +550,6 @@ export interface IpcEventPayloads {
   [IpcEvents.ExchangeChanged]: ExchangeSnapshot;
   [IpcEvents.KioskScreenChanged]: { screen: string; buttonId: number | null };
   [IpcEvents.KioskWeatherVideo]: WeatherPlayKey;
-  [IpcEvents.KioskSetupOpen]: null;
   [IpcEvents.ShopsChanged]: null;
   [IpcEvents.AttractionsChanged]: null;
   [IpcEvents.ButtonsChanged]: null;

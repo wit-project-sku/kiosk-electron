@@ -276,7 +276,6 @@ const api: KioskBridge = {
     onExchangeChanged: (listener) => subscribe(IpcEvents.ExchangeChanged, listener),
     onKioskScreenChanged: (listener) => subscribe(IpcEvents.KioskScreenChanged, listener),
     onKioskWeatherVideo: (listener) => subscribe(IpcEvents.KioskWeatherVideo, listener),
-    onKioskSetupOpen: (listener) => subscribe(IpcEvents.KioskSetupOpen, listener),
     onShopsChanged: (listener) => subscribe(IpcEvents.ShopsChanged, listener),
     onAttractionsChanged: (listener) => subscribe(IpcEvents.AttractionsChanged, listener),
     onButtonsChanged: (listener) => subscribe(IpcEvents.ButtonsChanged, listener),

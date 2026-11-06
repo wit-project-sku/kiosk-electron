@@ -1,4 +1,4 @@
-import { app } from 'electron';
+import { app, dialog } from 'electron';
 import { is } from '@electron-toolkit/utils';
 import { IpcChannels, IpcEvents } from '@shared/ipc/channels';
 import { KIOSK_LOCATIONS } from '@shared/config/kioskLocations';
@@ -9,7 +9,12 @@ import { createLogger } from '@main/core/logger';
 import { isDevMode } from '@main/core/env';
 import { kioskConfigStore } from '@main/core/KioskConfigStore';
 import { planSiteSwitch } from '@shared/config/testRig';
-import { isSetupSite, withoutSetupArg } from '@shared/config/kioskSetup';
+import {
+  SETUP_SITES,
+  setupConfirmText,
+  withoutSetupArg,
+  type SetupSite,
+} from '@shared/config/kioskSetup';
 import { handle } from '../registry';
 
 const log = createLogger('kiosk-switch');
@@ -97,20 +102,39 @@ export function registerKioskHandlers(windows: WindowManager, container: AppCont
     return true;
   });
 
-  // 지점 설정 screen (fresh PC, or the desktop shortcut): make this PC the chosen
-  // site — any build, production included. What guards it is where it opens
-  // from (the Windows desktop, behind the kiosk window) and the kiosk number
-  // typed to confirm, not a build flag.
+  // 지점 설정 window (fresh PC, or the desktop shortcut): make this PC the chosen
+  // site — any build, production included. What guards it is where it opens from
+  // (the Windows desktop, behind the kiosk window) and the question asked here,
+  // not a build flag.
   handle(IpcChannels.KioskSetupApply, async ({ kioskId }) => {
-    if (!isSetupSite(kioskId)) {
+    const site = SETUP_SITES.find((s) => s.code === kioskId);
+    if (!site) {
       throw AppError.validation(`Unknown kiosk site: ${kioskId}`, { kioskId });
     }
+    if (!(await confirmSetup(site, windows))) return false;
     const from = kioskConfigStore.get().identityKioskId;
-    kioskConfigStore.applySetup(kioskId);
-    log.info('Kiosk site set from the setup screen', { from, to: kioskId });
-    await restartAs(kioskId, windows, container);
+    kioskConfigStore.applySetup(site.code);
+    log.info('Kiosk site set from the setup window', { from, to: site.code });
+    await restartAs(site.code, windows, container, { fromSetup: true });
     return true;
   });
+}
+
+async function confirmSetup(site: SetupSite, windows: WindowManager): Promise<boolean> {
+  const options = {
+    type: 'question' as const,
+    title: '키오스크 지점 설정',
+    buttons: ['바꾸고 다시 시작', '취소'],
+    defaultId: 1,
+    cancelId: 1,
+    noLink: true,
+    ...setupConfirmText(site),
+  };
+  const parent = windows.getSetupWindow();
+  const { response } = parent
+    ? await dialog.showMessageBox(parent, options)
+    : await dialog.showMessageBox(options);
+  return response === 0;
 }
 
 /**
@@ -123,6 +147,7 @@ async function restartAs(
   kioskId: string,
   windows: WindowManager,
   container: AppContainer,
+  options: { fromSetup?: boolean } = {},
 ): Promise<void> {
   if (!is.dev) {
     relaunchAs(kioskId, windows);
@@ -156,7 +181,11 @@ async function restartAs(
     // read the right venue's copy instead of the previous one's.
     container.sync.syncContentNow(),
   ]);
-  windows.reloadAll();
+  // A fresh PC has no kiosk windows yet. Open them BEFORE closing the setup window,
+  // the only one there is — the last window closing quits the app.
+  if (windows.getMainWindow()) windows.reloadAll();
+  else windows.bootstrap();
+  if (options.fromSetup) windows.closeSetupWindow();
   windows.broadcast(IpcEvents.ShopsChanged, null);
   windows.broadcast(IpcEvents.AttractionsChanged, null);
   windows.broadcast(IpcEvents.ButtonsChanged, null);

@@ -262,7 +262,8 @@ export interface KioskBridge {
     /** Dev-mode only: persist a new kiosk id and relaunch the app as that
      *  location. On success the process exits, so this never resolves. */
     switchLocation(kioskId: KioskLocationCode): Promise<Result<boolean>>;
-    /** 지점 설정: make this PC `kioskId` and restart. On success this never resolves. */
+    /** 지점 설정: asks to confirm, then makes this PC `kioskId` and restarts (a packaged build
+     *  never resolves then). `false` = the person chose not to change it. */
     applySetup(kioskId: SetupSiteCode): Promise<Result<boolean>>;
   };
   /** Cached shop catalogue (from the witteria API, refreshed on launch + nightly). */
@@ -374,7 +375,6 @@ export interface KioskBridge {
       listener: (payload: { screen: string; buttonId: number | null }) => void,
     ): Unsubscribe;
     onKioskWeatherVideo(listener: (key: WeatherPlayKey) => void): Unsubscribe;
-    onKioskSetupOpen(listener: () => void): Unsubscribe;
     onShopsChanged(listener: () => void): Unsubscribe;
     onAttractionsChanged(listener: () => void): Unsubscribe;
     onButtonsChanged(listener: () => void): Unsubscribe;

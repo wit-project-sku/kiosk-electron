@@ -61,11 +61,16 @@ export const kioskConfigStore = {
    * would look like one that has run before.
    */
   decideSetup(databaseFile: string, argv: readonly string[]): KioskSetupState | null {
+    const s = getStore();
     setupState = setupStateFor({
-      storedKeys: Object.keys(getStore().store).length,
+      storedKeys: Object.keys(s.store).length,
       databaseExists: existsSync(databaseFile),
+      pending: s.get('setupPending' as never) === true,
       argv,
     });
+    // This launch creates kiosk.db, so the next one would look like a machine that
+    // has run before and boot as W001 if the window was closed without choosing.
+    if (setupState === 'required') s.set('setupPending' as never, true as never);
     return setupState;
   },
 
@@ -80,6 +85,7 @@ export const kioskConfigStore = {
     s.set('kioskId', code);
     s.set('jejuIdShift202610', true);
     s.delete('shopApiKioskId');
+    s.delete('setupPending' as never);
     if (code !== TEST_RIG_KIOSK_ID) s.delete('previewSite' as never);
     setupState = null;
   },

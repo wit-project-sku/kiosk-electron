@@ -204,7 +204,6 @@ export const IpcEvents = {
   /** Weather card tapped; the customer display plays that condition's clip. */
   KioskWeatherVideo: 'event:kiosk:weatherVideo',
   /** The desktop 지점 설정 shortcut was opened while the kiosk runs; show the screen. */
-  KioskSetupOpen: 'event:kiosk:setupOpen',
   /** Shop catalogue refreshed into SQLite; the renderer reloads its store. */
   ShopsChanged: 'event:shops:changed',
   /** 제주 관광명소 refreshed into SQLite; the renderer reloads its store. */

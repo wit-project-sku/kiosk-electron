@@ -36,7 +36,7 @@ export type Site = (typeof SITES)[number];
  * errors" fail at random.
  */
 export function appWindowErrors(errors: readonly string[]): string[] {
-  return errors.filter((e) => /^\[(index|display)\.html\]/.test(e));
+  return errors.filter((e) => /^\[(index|display|setup)\.html\]/.test(e));
 }
 
 export interface LaunchedKiosk {
@@ -62,7 +62,7 @@ export interface LaunchOptions {
   userData?: string;
   /** Leave userData on disk at close (the caller removes it). */
   keepUserData?: boolean;
-  /** Write no kiosk-config.json — a PC this app has never run on (지점 설정 opens). */
+  /** Write no kiosk-config.json — a PC with no site yet. `main` is then the 지점 설정 window. */
   fresh?: boolean;
   /** Extra command-line arguments (e.g. `--setup`, as the desktop shortcut passes). */
   args?: string[];
@@ -142,7 +142,7 @@ export async function launchKiosk(opts: LaunchOptions): Promise<LaunchedKiosk> {
   };
   app.on('window', watch);
 
-  const main = await findWindow(app, 'index.html');
+  const main = await findWindow(app, opts.fresh ? 'setup.html' : 'index.html');
   for (const w of app.windows()) watch(w);
 
   return {
@@ -157,7 +157,7 @@ export async function launchKiosk(opts: LaunchOptions): Promise<LaunchedKiosk> {
   };
 }
 
-/** Wait for the window whose URL ends with `file` (index.html = touch, display.html = customer). */
+/** Wait for the window whose URL ends with `file` (index.html = touch, display.html = customer, setup.html = 지점 설정). */
 export async function findWindow(
   app: ElectronApplication,
   file: string,

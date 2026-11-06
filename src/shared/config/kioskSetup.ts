@@ -6,10 +6,10 @@
  * as W001 북인사마당 — its shots and touches landing in 북인사's numbers. Now:
  *
  *  - a FRESH machine (nothing in kiosk-config.json and no kiosk.db yet — this app
- *    has never run here) opens the setup screen and nothing else until a site is
- *    picked (`required`);
+ *    has never run here) opens the setup window and nothing else until a site is
+ *    picked (`required`). It stays that way across restarts until one is;
  *  - the installer's desktop shortcut starts the app with {@link SETUP_ARG}, which
- *    opens the same screen over a running kiosk (`requested`). It lives on the
+ *    opens the same window over a running kiosk (`requested`). It lives on the
  *    Windows desktop, behind the fullscreen kiosk window, so only staff at a
  *    keyboard or on TeamViewer reach it — never a visitor's finger.
  *
@@ -17,7 +17,7 @@
  * not: "never configured" alone is not enough to stop a working kiosk.
  */
 import { KIOSK_LOCATIONS, type KioskLocationCode } from './kioskLocations';
-import { TEST_RIG_KIOSK_ID, kioskNumOf } from './testRig';
+import { TEST_RIG_KIOSK_ID } from './testRig';
 
 /** `required` = fresh machine, nothing else until a site is chosen; `requested` = opened on purpose. */
 export type KioskSetupState = 'required' | 'requested';
@@ -54,19 +54,20 @@ export const SETUP_SITES: readonly SetupSite[] = [
   },
 ];
 
-export function isSetupSite(code: string): code is SetupSiteCode {
-  return SETUP_SITES.some((site) => site.code === code);
-}
-
-/** The number staff type to confirm — the code without its letter: W008 → "008". */
-export function confirmCodeOf(code: SetupSiteCode): string {
+/** The kiosk number as staff say it — the code without its letter: W008 → "008". */
+export function siteNumberOf(code: SetupSiteCode): string {
   return code.replace(/^\D+/, '');
 }
 
-/** True when `typed` names the same kiosk number ("008" or "8" for W008). */
-export function confirmMatches(code: SetupSiteCode, typed: string): boolean {
-  const digits = typed.trim();
-  return /^\d+$/.test(digits) && Number(digits) === kioskNumOf(code);
+/** The question asked before saving: one click in the list must not move a live kiosk. */
+export function setupConfirmText(site: SetupSite): { message: string; detail: string } {
+  const number = siteNumberOf(site.code);
+  return {
+    message: `이 PC를 ${site.name}(${number}번)으로 바꿀까요?`,
+    detail: site.testRig
+      ? `촬영 통계, 사진 보관, 업데이트, 오류 보고가 ${number}번으로 남습니다.\n화면은 왼쪽 위 핀으로 지점별로 바꿉니다. 앱이 다시 시작됩니다.`
+      : `촬영·메뉴 통계, 사진 보관, 업데이트, 오류 보고가 ${number}번으로 남습니다.\n앱이 다시 시작됩니다.`,
+  };
 }
 
 /**
@@ -79,9 +80,11 @@ export function setupStateFor(input: {
   storedKeys: number;
   /** kiosk.db existed before this launch. */
   databaseExists: boolean;
+  /** An earlier launch opened as `required` and no site has been chosen since. */
+  pending: boolean;
   argv: readonly string[];
 }): KioskSetupState | null {
-  if (input.storedKeys === 0 && !input.databaseExists) return 'required';
+  if (input.pending || (input.storedKeys === 0 && !input.databaseExists)) return 'required';
   if (input.argv.includes(SETUP_ARG)) return 'requested';
   return null;
 }

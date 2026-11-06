@@ -113,8 +113,8 @@ const paymentAgent = new PaymentAgentManager();
 // The desktop 지점 설정 shortcut IS a second launch (with --setup): it opens the
 // setup screen over the running kiosk instead of starting another app.
 const hasLock = enforceSingleInstance((argv) => {
-  windowManager?.focusMain();
-  if (argv.includes(SETUP_ARG)) windowManager?.broadcast(IpcEvents.KioskSetupOpen, null);
+  if (argv.includes(SETUP_ARG)) windowManager?.openSetupWindow();
+  else windowManager?.focusMain();
 });
 if (!hasLock) {
   log.warn('Another instance is already running; exiting.');
@@ -237,7 +237,13 @@ async function bootstrap(): Promise<void> {
   // Every launch starts in Korean; the visitor's in-session choice is cleared on
   // the next restart or idle timeout (see useKioskController.handleIdle).
   languageStore.set('ko');
-  windowManager.bootstrap();
+  // A fresh PC shows the 지점 설정 window alone; the kiosk windows open as the site chosen.
+  if (unprovisioned) {
+    windowManager.openSetupWindow();
+  } else {
+    windowManager.bootstrap();
+    if (setup === 'requested') windowManager.openSetupWindow();
+  }
 
   // Begin weather polling after the window subscription is wired so the first
   // refresh is broadcast to the renderer.
