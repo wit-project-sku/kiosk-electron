@@ -1,0 +1,114 @@
+:global(html),
+:global(body),
+:global(#root) {
+  height: 100%;
+  margin: 0;
+}
+
+:global(body) {
+  background: #fff;
+  color: #1a1a1a;
+  color-scheme: light;
+  font:
+    14px/1.4 'Segoe UI',
+    'Malgun Gothic',
+    system-ui,
+    sans-serif;
+}
+
+.root {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  height: 100%;
+  padding: 16px;
+  box-sizing: border-box;
+}
+
+.intro {
+  margin: 0;
+}
+
+.list {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  border: 1px solid #c8c8c8;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.table th {
+  position: sticky;
+  top: 0;
+  padding: 8px 12px;
+  background: #f3f3f3;
+  box-shadow: inset 0 -1px 0 #c8c8c8;
+  font-weight: 600;
+  text-align: left;
+}
+
+.table td {
+  padding: 10px 12px;
+  border-bottom: 1px solid #ececec;
+}
+
+.table tbody tr {
+  cursor: pointer;
+}
+
+.table tbody tr:hover {
+  background: #f3f3f3;
+}
+
+.table tbody .rowSelected,
+.table tbody .rowSelected:hover {
+  background: #e5f1fb;
+}
+
+.table tbody .rowCurrent,
+.table tbody .rowCurrent:hover {
+  background: none;
+  color: #767676;
+  cursor: default;
+}
+
+.pick {
+  width: 1px;
+  white-space: nowrap;
+}
+
+.pick input {
+  display: block;
+  margin: 0;
+}
+
+.number {
+  width: 3em;
+  font-variant-numeric: tabular-nums;
+}
+
+.state {
+  width: 6em;
+  white-space: nowrap;
+}
+
+.warn {
+  margin: 0;
+  color: #b3261e;
+}
+
+.actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.actions button {
+  min-width: 88px;
+  padding: 5px 12px;
+  font: inherit;
+}

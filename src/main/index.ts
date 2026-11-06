@@ -13,10 +13,12 @@ import { app, BrowserWindow, protocol } from 'electron';
 import { optimizer } from '@electron-toolkit/utils';
 import { APP_NAME } from '@shared/constants';
 import { IpcEvents } from '@shared/ipc/channels';
+import { SETUP_ARG } from '@shared/config/kioskSetup';
 import { initLogger, createLogger } from './core/logger';
 import { loadEnvFile } from './core/env';
 import { enforceSingleInstance, suppressEmbedAuthDialog } from './core/security';
 import { applyAppIdentity, appDisplayName } from './core/appIdentity';
+import { applyE2EUserData } from './core/e2e';
 import { MEDIA_SCHEME_PRIVILEGES, registerMediaProtocol } from './core/mediaProtocol';
 import {
   APP_RESOURCE_SCHEME_PRIVILEGES,
@@ -25,6 +27,8 @@ import {
 import { setupKioskPower } from './core/PowerManager';
 import { PaymentAgentManager } from './core/PaymentAgentManager';
 import { database } from './database/Database';
+import { appPaths } from './core/paths';
+import { kioskConfigStore } from './core/KioskConfigStore';
 import { createContainer, getContainer } from './container';
 import { WindowManager } from './windows/WindowManager';
 import { languageStore } from './core/LanguageStore';
@@ -94,6 +98,8 @@ loadEnvFile();
 // A PRODUCTION build is unaffected: it keeps the `kiosk-app` directory it has
 // always used. See core/appIdentity.ts for why that matters.
 const identity = applyAppIdentity();
+// Automated tests only (unpackaged + KIOSK_E2E=1): a throwaway userData per run.
+applyE2EUserData();
 
 initLogger();
 const log = createLogger('main');
@@ -103,7 +109,16 @@ let windowManager: WindowManager | null = null;
 const paymentAgent = new PaymentAgentManager();
 
 // A kiosk must be a singleton; focus the existing window on a second launch.
-const hasLock = enforceSingleInstance(() => windowManager?.focusMain());
+// The desktop 지점 설정 shortcut IS a second launch (with --setup): it opens the
+// setup screen over the running kiosk instead of starting another app.
+const hasLock = enforceSingleInstance((argv) => {
+  // No kiosk window = this launch is the setup window alone; bring that forward.
+  if (argv.includes(SETUP_ARG) || !windowManager?.getMainWindow()) {
+    windowManager?.openSetupWindow();
+  } else {
+    windowManager.focusMain();
+  }
+});
 if (!hasLock) {
   log.warn('Another instance is already running; exiting.');
 } else {
@@ -132,6 +147,18 @@ async function bootstrap(): Promise<void> {
   registerAppResourceProtocol();
   suppressEmbedAuthDialog();
 
+  // Before database.init() creates kiosk.db — a fresh machine is told apart by
+  // having neither that file nor any kiosk-config.json key (kioskSetup.ts).
+  const setup = kioskConfigStore.decideSetup(appPaths.database, process.argv);
+  // Opened for setup, this launch is not a kiosk: a fresh PC is none yet, and the
+  // desktop shortcut with the app off asks only for the setup window. Everything
+  // that reports or acts AS a kiosk id (crash reports, power schedule, update
+  // commands, stats, photo archive, card terminal, ZED) waits — choosing a site
+  // restarts the app, and closing the window leaves it off. Otherwise a fresh PC
+  // would boot as the W001 default and pollute 북인사's records.
+  const setupOnly = setup !== null;
+  if (setup) log.info('Kiosk setup screen', { setup });
+
   try {
     database.init();
   } catch (error) {
@@ -141,13 +168,22 @@ async function bootstrap(): Promise<void> {
   }
 
   const container = createContainer();
+  // First thing after the container: reports how the previous run ended and starts the
+  // run-state heartbeat, so even a crash during the rest of startup is recorded.
+  try {
+    if (!setupOnly) container.health.start();
+  } catch (e) {
+    // Health reporting must never stop a kiosk from starting.
+    log.warn('Health reporter failed to start', { error: String(e) });
+  }
 
   // Provision OS-level kiosk power behavior + auto-start on boot so the fleet
   // self-heals without anyone running the .bat helpers. Osaek (W004) gets an
   // 08:00 시작 / 22:00 종료 cycle; every other kiosk keeps the 02:00 reboot; the
   // beta channel opts out of both and reboots once at 09:00.
   // Best-effort: never blocks or fails startup.
-  void setupKioskPower(container.kiosk.getConfig().kioskId);
+  // Power schedule follows the machine's own identity, not the test rig's preview site.
+  if (!setupOnly) void setupKioskPower(container.kiosk.identityCode());
 
   // Seed rarely-changing config and local content before windows open so the
   // renderer renders instantly from injected bootstrap data — no network, no spinners.
@@ -206,7 +242,8 @@ async function bootstrap(): Promise<void> {
   // Every launch starts in Korean; the visitor's in-session choice is cleared on
   // the next restart or idle timeout (see useKioskController.handleIdle).
   languageStore.set('ko');
-  windowManager.bootstrap();
+  if (setupOnly) windowManager.openSetupWindow();
+  else windowManager.bootstrap();
 
   // Begin weather polling after the window subscription is wired so the first
   // refresh is broadcast to the renderer.
@@ -243,30 +280,41 @@ async function bootstrap(): Promise<void> {
     const { phase } = container.photoWorkflow.getState();
     return phase === 'countdown' || phase === 'generating';
   });
-  container.updater.start();
+  // Updates run on a fresh PC too: an installer left unconfigured still gets fixes.
+  // Not while opened from the shortcut: installing restarts the app, as a kiosk.
+  if (setup !== 'requested') container.updater.start();
   // Second, operator-initiated trigger: polls the witteria API for an "update
   // now" timestamp set from the admin site, and forces an immediate check when
   // it sees a newer one. Independent of — and does not disturb — the weekly
   // window above. Install is still gated on the same idle check.
-  container.updateCommands.start();
+  if (!setupOnly) container.updateCommands.start();
 
   // 유동인구 counting. Started after the window subscription is wired so the
   // renderer's counting loop receives the first runtime broadcast, and after the
   // photo workflow exists so a capture already in progress at boot (there never
   // is one, but the ordering should not depend on that) suppresses it. The
   // camera pipeline itself lives in the renderer; this half owns the counts.
-  container.footfall.start();
+  if (!setupOnly) container.footfall.start();
   // Pushes the day's counts at 21:30 local. With no FOOTFALL_API_URL configured
   // it is a no-op that keeps the rows pending — pointing it at a real endpoint
   // later uploads the whole backlog on the first night.
-  container.footfallUploader.start();
+  if (!setupOnly) container.footfallUploader.start();
+
+  // 사진 보관 — copies captures (original + composite) to the server for Google
+  // Drive. Sends only when the server's status says this kiosk is enabled, and
+  // never while a customer is mid-capture (same phases the updater waits for).
+  container.photoArchive.setBusyCheck(() => {
+    const { phase } = container.photoWorkflow.getState();
+    return phase === 'countdown' || phase === 'generating';
+  });
+  if (!setupOnly) container.photoArchive.start();
 
   // 키 측정 — the headless ZED height sidecar. 제주 only; the service checks the
   // layout itself and does nothing anywhere else, so there is no condition here
   // to keep in sync with one inside it. Best-effort in every direction: a
   // missing ZED SDK, an unplugged camera or a crashed child costs a null height
   // and never touches the photo flow.
-  container.height.start();
+  if (!setupOnly) container.height.start();
   // 키 측정 rows are one per capture, so unlike 유동인구's hourly buckets they grow
   // with how busy the kiosk is. Pruned on the same 02:00 pass that refreshes
   // content, rather than on a scheduler of its own.
@@ -341,6 +389,7 @@ app.on('window-all-closed', () => {
 
 app.on('before-quit', () => {
   log.info('Shutting down');
+  markHealthCleanExit();
   paymentAgent.stop();
   try {
     getContainer().sync.stop();
@@ -352,6 +401,7 @@ app.on('before-quit', () => {
     // would drop up to a minute of 유동인구 every single night.
     getContainer().footfall.stop();
     getContainer().footfallUploader.stop();
+    getContainer().photoArchive.stop();
     // Kills the Python child. Without this it outlives the app and keeps the
     // ZED open, so the next launch cannot claim the camera.
     getContainer().height.stop();
@@ -404,8 +454,28 @@ setInterval(() => {
 // Last-resort safety nets; electron-log also captures these.
 process.on('uncaughtException', (error) => {
   log.error('Uncaught exception', error);
+  try {
+    getContainer().health.recordUncaught(error);
+  } catch {
+    // Container may not exist yet; the log line above is all we can do.
+  }
   if (isOutOfMemory(error)) relaunchAfterOutOfMemory(error);
 });
+
+// Windows logs off / shuts down (the scheduled reboot): a normal end of a run, even
+// though the OS may not give the app time to reach before-quit. Windows-only event,
+// emitted on each BrowserWindow.
+app.on('browser-window-created', (_event, window) => {
+  window.on('session-end', () => markHealthCleanExit());
+});
+
+function markHealthCleanExit(): void {
+  try {
+    getContainer().health.markCleanExit();
+  } catch {
+    // Container may not exist if startup failed; nothing to mark.
+  }
+}
 process.on('unhandledRejection', (reason) => {
   log.error('Unhandled rejection', reason);
   if (isOutOfMemory(reason)) relaunchAfterOutOfMemory(reason);

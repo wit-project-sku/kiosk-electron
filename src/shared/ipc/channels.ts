@@ -121,6 +121,8 @@ export const IpcChannels = {
   KioskPlayWeatherVideo: 'kiosk:playWeatherVideo',
   // Dev-mode only: persist a new kiosk location id and relaunch as that kiosk.
   KioskSwitchLocation: 'kiosk:switchLocation',
+  // 지점 설정 screen: make this PC the chosen site and restart (any build).
+  KioskSetupApply: 'kiosk:setupApply',
 
   // Shops (cached from the witteria API)
   ShopsList: 'shops:list',
@@ -201,6 +203,7 @@ export const IpcEvents = {
   KioskScreenChanged: 'event:kiosk:screenChanged',
   /** Weather card tapped; the customer display plays that condition's clip. */
   KioskWeatherVideo: 'event:kiosk:weatherVideo',
+  /** The desktop 지점 설정 shortcut was opened while the kiosk runs; show the screen. */
   /** Shop catalogue refreshed into SQLite; the renderer reloads its store. */
   ShopsChanged: 'event:shops:changed',
   /** 제주 관광명소 refreshed into SQLite; the renderer reloads its store. */

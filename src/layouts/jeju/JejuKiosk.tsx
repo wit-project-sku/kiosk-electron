@@ -62,16 +62,15 @@ const MAINTENANCE_STYLE: CSSProperties = {
   objectFit: 'cover',
 };
 
-/** The notice's hidden switch: the leftmost of the three tangerines at the top
- *  right of the art (centre ≈ x1547 y250, ~195 across on the 2160×3840 canvas),
- *  padded a little for a mouse. Move it with the art if the image changes. */
+/** The notice's hidden switch: the small plane in the sky of the art (x588–679,
+ *  y764–805 on the 2160×3840 canvas), padded a little for a mouse. Move it with the
+ *  art if the image changes. */
 const MAINTENANCE_SWITCH_STYLE: CSSProperties = {
   position: 'absolute',
-  left: 1437,
-  top: 140,
-  width: 220,
-  height: 220,
-  borderRadius: '50%',
+  left: 558,
+  top: 734,
+  width: 151,
+  height: 101,
 };
 
 /** Theme the shared AR 한복 photo workflow with the 제주 orange (#ff7f0f, the
@@ -196,12 +195,15 @@ export function JejuKiosk(): JSX.Element {
   // 배리어프리 키패드 (JD-KP100) — arrow/OK/back control of every 제주 screen.
   // 제주 only: no other venue has the hardware. See the hook's header.
   useJejuKeypad(controller);
-  const [maintenanceLifted, setMaintenanceLifted] = useState(readMaintenanceLifted);
+
+  const [maintenanceLifted, setMaintenanceLifted] = useState(() =>
+    readMaintenanceLifted(controller.kioskId),
+  );
   const maintenanceKiosk = MAINTENANCE_KIOSKS.has(controller.kioskId);
   // 음성 안내 — off until the keypad turns it on. See voice/useJejuVoice.
   useJejuVoice(controller, !maintenanceKiosk || maintenanceLifted);
-  // Five quick mouse clicks flip between the notice and the app — the "JEJU"
-  // marker on the home screen, the leftmost tangerine on the notice (maintenance.ts).
+  // Five quick mouse clicks flip between the notice and the app — the small plane
+  // in the home screen's top bar and the one in the notice's art (maintenance.ts).
   const toggleMaintenance = useCallback(() => {
     setMaintenanceLifted((lifted) => {
       writeMaintenanceLifted(!lifted);
@@ -212,11 +214,11 @@ export function JejuKiosk(): JSX.Element {
 
   const cur = controller.screen;
 
-  // 제주공항 is under system maintenance: the whole screen is the 점검 중 notice
-  // and nothing behind it can be reached by a visitor (touch or keypad). Staff
-  // switch it off with five quick MOUSE clicks on the leftmost tangerine and
-  // back on the same way from the home screen's "JEJU" marker (maintenance.ts).
-  // Only that tangerine listens, and only to a mouse.
+  // Under system maintenance the whole screen is the 점검 중 notice and nothing
+  // behind it can be reached by a visitor (touch or keypad). Staff switch it off
+  // with five quick MOUSE clicks on the plane in the art and back on the same way
+  // from the plane in the home screen's top bar (maintenance.ts).
+  // Only that plane listens, and only to a mouse.
   if (maintenanceKiosk && !maintenanceLifted) {
     return (
       <KioskArtboard>
@@ -233,7 +235,7 @@ export function JejuKiosk(): JSX.Element {
   ) : cur === 'home' ? (
     <JejuHome
       controller={controller}
-      onSiteMarkerTap={maintenanceKiosk ? onMaintenanceSwitchTap : undefined}
+      onPlaneTap={maintenanceKiosk ? onMaintenanceSwitchTap : undefined}
     />
   ) : cur === 'language' ? (
     <JejuLanguage controller={controller} />

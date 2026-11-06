@@ -52,9 +52,11 @@ const VOICE_WEATHER = ['jeju.weather'] as const;
 
 interface Props {
   controller: KioskController;
-  /** Pointer-up on the top-left "JEJU" marker — the hidden 시스템 점검 switch
-   *  (five quick mouse clicks, see maintenance.ts). Absent on kiosks without the notice. */
-  onSiteMarkerTap?: (e: PointerEvent<HTMLElement>) => void;
+  /** Pointer-up on the small plane in the top bar — the hidden 시스템 점검 switch
+   *  (five quick mouse clicks, see maintenance.ts). Without it the plane is not
+   *  drawn. The date does nothing, and the top-left pin opens the site switcher on
+   *  stage builds (KioskSwitcher). */
+  onPlaneTap?: (e: PointerEvent<HTMLElement>) => void;
 }
 
 /** Search-bar language button → the current language's display code. */
@@ -773,7 +775,7 @@ const TAMNAO_CARDS: CardDef[] = CARDS.map((card) =>
     : card,
 );
 
-export function JejuHome({ controller, onSiteMarkerTap }: Props): JSX.Element {
+export function JejuHome({ controller, onPlaneTap }: Props): JSX.Element {
   const weather = useWeatherStore((s) => s.weather);
   const forecast = useWeatherStore((s) => s.forecast);
   const [weatherOpen, setWeatherOpen] = useState(false);
@@ -1038,12 +1040,17 @@ export function JejuHome({ controller, onSiteMarkerTap }: Props): JSX.Element {
 
       {/* ── Top bar ── */}
       <div className={low(styles.topBar, styles.topBarLow)}>
-        <div className={styles.topLeft} onPointerUp={onSiteMarkerTap}>
+        <div className={styles.topLeft}>
           {jejuIconUrl('ico-location') && (
             <img src={jejuIconUrl('ico-location')} alt="" className={styles.locationIcon} draggable={false} />
           )}
           <span className={styles.siteName}>JEJU</span>
         </div>
+        {onPlaneTap && jejuIconUrl('bg-plane') && (
+          <span className={styles.planeSwitch} onPointerUp={onPlaneTap}>
+            <img src={jejuIconUrl('bg-plane')} alt="" draggable={false} />
+          </span>
+        )}
         <span className={styles.dateTime}>{clock}</span>
       </div>
 

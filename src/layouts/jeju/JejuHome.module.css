@@ -67,6 +67,22 @@
   white-space: nowrap;
 }
 
+/* The hidden 시스템 점검 switch (maintenance.ts). The sprite is 105×56; the padding
+   is a bigger target for a mouse driven over TeamViewer. */
+.planeSwitch {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  padding: 20px;
+  transform: translate(-50%, -50%);
+}
+
+.planeSwitch img {
+  display: block;
+  width: 105px;
+  height: 56px;
+}
+
 .dateTime {
   font-size: 68px;
   font-weight: 700;

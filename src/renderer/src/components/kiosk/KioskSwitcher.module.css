@@ -46,6 +46,13 @@
   -webkit-tap-highlight-color: transparent;
 }
 
+/* 제주 homes draw the pin further left (topBar at x84, 63×82 pin + "JEJU"), so the
+   hotspot covers both there. The pin is decoration — the 점검 switch is on the date. */
+.revealHotspotJeju {
+  left: 60px;
+  width: 360px;
+}
+
 /* Drawer handle: a plain hamburger square, revealed over the pin that spawned
    it so the connection between tap and handle is obvious. */
 .trigger {
