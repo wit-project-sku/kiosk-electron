@@ -58,18 +58,18 @@ const CONTENT_SHEETS: Record<KioskLayoutId, ContentSheet> = {
     localizationRange: 'Localization_Hwaseong!A:L',
     fallbackRanges: ['Localization_Hwaseong_deprecated!A:L'],
   },
-  // Localization_Jeju_v2 (2026-09-14): the updated copy of Localization_Jeju — same
-  // header, columns and keys; the old tab is no longer read.
+  // Localization_Jeju_v3 (2026-11-05) replaces _v2: the same rows without the Num
+  // column, which parseLocalizationSheet handles. The old tabs are no longer read.
   JEJU_AIRPORT: {
     sheetId: JEJU_SHEET_ID,
-    localizationRange: 'Localization_Jeju_v2!A:L',
+    localizationRange: 'Localization_Jeju_v3!A:L',
     voiceRange: JEJU_VOICE_RANGE,
   },
   // Same tab as JEJU_AIRPORT on purpose — "#W6~8=제주_전체데이터" serves all three
   // 제주 venues; the mascot rows are split per layout in LocalizationSyncParser.
   JEJU_HERITAGE: {
     sheetId: JEJU_SHEET_ID,
-    localizationRange: 'Localization_Jeju_v2!A:L',
+    localizationRange: 'Localization_Jeju_v3!A:L',
     voiceRange: JEJU_VOICE_RANGE,
   },
   // KADA W202 has NO content spreadsheet, and is not waiting for one: its ten

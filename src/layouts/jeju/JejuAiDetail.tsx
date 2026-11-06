@@ -241,7 +241,7 @@ const startPlaceLabel = (kioskId: string, lang: Lang): string => {
 };
 
 /**
- * The themed courses' names, from Localization_Jeju_v2's `Recommended_Course_{n}_title`
+ * The themed courses' names, from Localization_Jeju_v3's `Recommended_Course_{n}_title`
  * — the same rows the landing's cards read, numbered in the landing's order, so
  * 쇼핑·로컬 now has one too. COURSE_META's copy only fills a cell the sheet leaves
  * empty. The v2 tab retired the per-course A/B/C rows, tags included, so tags
