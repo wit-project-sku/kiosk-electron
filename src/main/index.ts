@@ -113,8 +113,12 @@ const paymentAgent = new PaymentAgentManager();
 // The desktop 지점 설정 shortcut IS a second launch (with --setup): it opens the
 // setup screen over the running kiosk instead of starting another app.
 const hasLock = enforceSingleInstance((argv) => {
-  if (argv.includes(SETUP_ARG)) windowManager?.openSetupWindow();
-  else windowManager?.focusMain();
+  // No kiosk window = this launch is the setup window alone; bring that forward.
+  if (argv.includes(SETUP_ARG) || !windowManager?.getMainWindow()) {
+    windowManager?.openSetupWindow();
+  } else {
+    windowManager.focusMain();
+  }
 });
 if (!hasLock) {
   log.warn('Another instance is already running; exiting.');
@@ -147,11 +151,13 @@ async function bootstrap(): Promise<void> {
   // Before database.init() creates kiosk.db — a fresh machine is told apart by
   // having neither that file nor any kiosk-config.json key (kioskSetup.ts).
   const setup = kioskConfigStore.decideSetup(appPaths.database, process.argv);
-  // A fresh PC is no kiosk yet: everything that reports or acts AS a kiosk id
-  // (crash reports, power schedule, update commands, stats, photo archive, card
-  // terminal, ZED) waits for the site to be chosen — choosing it restarts the app.
-  // Otherwise the PC would boot as the W001 default and pollute 북인사's records.
-  const unprovisioned = setup === 'required';
+  // Opened for setup, this launch is not a kiosk: a fresh PC is none yet, and the
+  // desktop shortcut with the app off asks only for the setup window. Everything
+  // that reports or acts AS a kiosk id (crash reports, power schedule, update
+  // commands, stats, photo archive, card terminal, ZED) waits — choosing a site
+  // restarts the app, and closing the window leaves it off. Otherwise a fresh PC
+  // would boot as the W001 default and pollute 북인사's records.
+  const setupOnly = setup !== null;
   if (setup) log.info('Kiosk setup screen', { setup });
 
   try {
@@ -166,7 +172,7 @@ async function bootstrap(): Promise<void> {
   // First thing after the container: reports how the previous run ended and starts the
   // run-state heartbeat, so even a crash during the rest of startup is recorded.
   try {
-    if (!unprovisioned) container.health.start();
+    if (!setupOnly) container.health.start();
   } catch (e) {
     // Health reporting must never stop a kiosk from starting.
     log.warn('Health reporter failed to start', { error: String(e) });
@@ -178,7 +184,7 @@ async function bootstrap(): Promise<void> {
   // beta channel opts out of both and reboots once at 09:00.
   // Best-effort: never blocks or fails startup.
   // Power schedule follows the machine's own identity, not the test rig's preview site.
-  if (!unprovisioned) void setupKioskPower(container.kiosk.identityCode());
+  if (!setupOnly) void setupKioskPower(container.kiosk.identityCode());
 
   // Seed rarely-changing config and local content before windows open so the
   // renderer renders instantly from injected bootstrap data — no network, no spinners.
@@ -237,13 +243,8 @@ async function bootstrap(): Promise<void> {
   // Every launch starts in Korean; the visitor's in-session choice is cleared on
   // the next restart or idle timeout (see useKioskController.handleIdle).
   languageStore.set('ko');
-  // A fresh PC shows the 지점 설정 window alone; the kiosk windows open as the site chosen.
-  if (unprovisioned) {
-    windowManager.openSetupWindow();
-  } else {
-    windowManager.bootstrap();
-    if (setup === 'requested') windowManager.openSetupWindow();
-  }
+  if (setupOnly) windowManager.openSetupWindow();
+  else windowManager.bootstrap();
 
   // Begin weather polling after the window subscription is wired so the first
   // refresh is broadcast to the renderer.
@@ -259,7 +260,7 @@ async function bootstrap(): Promise<void> {
   const kioskCfg = container.kiosk.getConfig();
   const paymentAllowed = !kioskCfg.testRig || kioskCfg.testRigPayment === true;
   if (
-    !unprovisioned &&
+    !setupOnly &&
     getKioskLocation(kioskCfg.kioskId).hasCardTerminal &&
     paymentAllowed &&
     !e2eSkipsPaymentAgent()
@@ -284,23 +285,24 @@ async function bootstrap(): Promise<void> {
     return phase === 'countdown' || phase === 'generating';
   });
   // Updates run on a fresh PC too: an installer left unconfigured still gets fixes.
-  container.updater.start();
+  // Not while opened from the shortcut: installing restarts the app, as a kiosk.
+  if (setup !== 'requested') container.updater.start();
   // Second, operator-initiated trigger: polls the witteria API for an "update
   // now" timestamp set from the admin site, and forces an immediate check when
   // it sees a newer one. Independent of — and does not disturb — the weekly
   // window above. Install is still gated on the same idle check.
-  if (!unprovisioned) container.updateCommands.start();
+  if (!setupOnly) container.updateCommands.start();
 
   // 유동인구 counting. Started after the window subscription is wired so the
   // renderer's counting loop receives the first runtime broadcast, and after the
   // photo workflow exists so a capture already in progress at boot (there never
   // is one, but the ordering should not depend on that) suppresses it. The
   // camera pipeline itself lives in the renderer; this half owns the counts.
-  if (!unprovisioned) container.footfall.start();
+  if (!setupOnly) container.footfall.start();
   // Pushes the day's counts at 21:30 local. With no FOOTFALL_API_URL configured
   // it is a no-op that keeps the rows pending — pointing it at a real endpoint
   // later uploads the whole backlog on the first night.
-  if (!unprovisioned) container.footfallUploader.start();
+  if (!setupOnly) container.footfallUploader.start();
 
   // 사진 보관 — copies captures (original + composite) to the server for Google
   // Drive. Sends only when the server's status says this kiosk is enabled, and
@@ -309,14 +311,14 @@ async function bootstrap(): Promise<void> {
     const { phase } = container.photoWorkflow.getState();
     return phase === 'countdown' || phase === 'generating';
   });
-  if (!unprovisioned) container.photoArchive.start();
+  if (!setupOnly) container.photoArchive.start();
 
   // 키 측정 — the headless ZED height sidecar. 제주 only; the service checks the
   // layout itself and does nothing anywhere else, so there is no condition here
   // to keep in sync with one inside it. Best-effort in every direction: a
   // missing ZED SDK, an unplugged camera or a crashed child costs a null height
   // and never touches the photo flow.
-  if (!unprovisioned) container.height.start();
+  if (!setupOnly) container.height.start();
   // 키 측정 rows are one per capture, so unlike 유동인구's hourly buckets they grow
   // with how busy the kiosk is. Pruned on the same 02:00 pass that refreshes
   // content, rather than on a scheduler of its own.

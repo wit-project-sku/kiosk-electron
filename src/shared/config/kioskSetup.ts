@@ -8,10 +8,12 @@
  *  - a FRESH machine (nothing in kiosk-config.json and no kiosk.db yet — this app
  *    has never run here) opens the setup window and nothing else until a site is
  *    picked (`required`). It stays that way across restarts until one is;
- *  - the installer's desktop shortcut starts the app with {@link SETUP_ARG}, which
- *    opens the same window over a running kiosk (`requested`). It lives on the
- *    Windows desktop, behind the fullscreen kiosk window, so only staff at a
- *    keyboard or on TeamViewer reach it — never a visitor's finger.
+ *  - the installer's desktop shortcut starts the app with {@link SETUP_ARG}
+ *    (`requested`). With the app off that opens this window alone, and closing it
+ *    leaves the app off; over a running kiosk it opens on top, and closing it
+ *    leaves the kiosk running. It lives on the Windows desktop, behind the
+ *    fullscreen kiosk window, so only staff at a keyboard or on TeamViewer reach
+ *    it — never a visitor's finger.
  *
  * A machine that has run before keeps booting exactly as it did, provisioned or
  * not: "never configured" alone is not enough to stop a working kiosk.
@@ -32,8 +34,6 @@ export interface SetupSite {
   name: string;
   /** The office test kiosk: keeps id 200 and previews any site (testRig.ts). */
   testRig: boolean;
-  hasCardTerminal: boolean;
-  hasDonation: boolean;
 }
 
 /** Every site a PC can be set to, in kiosk order, then the office test kiosk. */
@@ -42,15 +42,11 @@ export const SETUP_SITES: readonly SetupSite[] = [
     code: loc.code,
     name: loc.name,
     testRig: false,
-    hasCardTerminal: loc.hasCardTerminal,
-    hasDonation: loc.hasDonation,
   })),
   {
     code: TEST_RIG_KIOSK_ID,
     name: '사무실 테스트기 (HQ)',
     testRig: true,
-    hasCardTerminal: false,
-    hasDonation: false,
   },
 ];
 

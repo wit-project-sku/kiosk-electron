@@ -64,7 +64,7 @@ export interface LaunchOptions {
   keepUserData?: boolean;
   /** Write no kiosk-config.json — a PC with no site yet. `main` is then the 지점 설정 window. */
   fresh?: boolean;
-  /** Extra command-line arguments (e.g. `--setup`, as the desktop shortcut passes). */
+  /** Extra command-line arguments. `--setup` (the desktop shortcut): `main` is the 지점 설정 window. */
   args?: string[];
 }
 
@@ -142,7 +142,8 @@ export async function launchKiosk(opts: LaunchOptions): Promise<LaunchedKiosk> {
   };
   app.on('window', watch);
 
-  const main = await findWindow(app, opts.fresh ? 'setup.html' : 'index.html');
+  const setupOnly = opts.fresh || opts.args?.includes('--setup');
+  const main = await findWindow(app, setupOnly ? 'setup.html' : 'index.html');
   for (const w of app.windows()) watch(w);
 
   return {

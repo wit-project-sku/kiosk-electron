@@ -64,17 +64,6 @@ describe('지점 설정 — sites and confirmation', () => {
     expect(SETUP_SITES.find((s) => s.code === 'W200')?.testRig).toBe(true);
   });
 
-  it('carries each site’s terminal and donation flags from kioskLocations', () => {
-    for (const loc of Object.values(KIOSK_LOCATIONS)) {
-      const site = SETUP_SITES.find((s) => s.code === loc.code)!;
-      expect(site).toMatchObject({
-        name: loc.name,
-        hasCardTerminal: loc.hasCardTerminal,
-        hasDonation: loc.hasDonation,
-      });
-    }
-  });
-
   it('names each site by its kiosk number', () => {
     expect(siteNumberOf('W008')).toBe('008');
     expect(siteNumberOf('W200')).toBe('200');

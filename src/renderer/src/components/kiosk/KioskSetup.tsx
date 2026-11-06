@@ -15,7 +15,7 @@ interface SetupContext {
  * 지점 설정 — the ordinary window that says which site this PC is (kioskSetup.ts).
  *
  * Opens by itself on a fresh machine, or from the installer's desktop shortcut.
- * A site is chosen from the list, by location rather than region because 인사동
+ * A site is chosen from the table, by location rather than region because 인사동
  * and 제주 have several kiosks each; its number comes with it. Saving asks once in
  * a system dialog, then the app restarts as that site.
  */
@@ -79,48 +79,53 @@ export function KioskSetup(): JSX.Element {
             : '이 PC의 지점을 고르세요.'}
       </p>
 
-      <div className={styles.list} role="radiogroup" aria-label="지점">
-        {SETUP_SITES.map((site) => {
-          const current = site === currentSite;
-          const videos = videoCounts?.[site.code];
-          return (
-            <label
-              key={site.code}
-              className={`${styles.row} ${current ? styles.rowCurrent : ''} ${
-                site === selected ? styles.rowSelected : ''
-              }`}
-            >
-              <input
-                type="radio"
-                name="site"
-                checked={site === selected}
-                disabled={current}
-                onChange={() => setSelected(site)}
-              />
-              <span className={styles.number}>{siteNumberOf(site.code)}</span>
-              <span className={styles.meta}>
-                <span className={styles.name}>{site.name}</span>
-                <span className={styles.detail}>{siteDetail(site)}</span>
-              </span>
-              <span className={styles.state}>
-                {current ? (
-                  '현재'
-                ) : site.testRig || videos == null ? null : videos > 0 ? (
-                  `영상 ${videos}개`
-                ) : (
-                  <span className={styles.warn}>영상 없음</span>
-                )}
-              </span>
-            </label>
-          );
-        })}
+      <div className={styles.list}>
+        <table className={styles.table}>
+          <thead>
+            <tr>
+              <th className={styles.pick} aria-label="선택" />
+              <th className={styles.number}>ID</th>
+              <th>키오스크 이름</th>
+              <th className={styles.state}>상태</th>
+            </tr>
+          </thead>
+          <tbody>
+            {SETUP_SITES.map((site) => {
+              const current = site === currentSite;
+              return (
+                <tr
+                  key={site.code}
+                  className={
+                    current ? styles.rowCurrent : site === selected ? styles.rowSelected : ''
+                  }
+                  onClick={current ? undefined : () => setSelected(site)}
+                >
+                  <td className={styles.pick}>
+                    <input
+                      type="radio"
+                      name="site"
+                      aria-label={site.name}
+                      checked={site === selected}
+                      disabled={current}
+                      onChange={() => setSelected(site)}
+                    />
+                  </td>
+                  <td className={styles.number}>{siteNumberOf(site.code)}</td>
+                  <td>{site.name}</td>
+                  <td className={styles.state}>
+                    {current ? (
+                      '현재'
+                    ) : !site.testRig && videoCounts?.[site.code] === 0 ? (
+                      <span className={styles.warn}>영상 없음</span>
+                    ) : null}
+                  </td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
       </div>
 
-      {selected && !selected.testRig && videoCounts?.[selected.code] === 0 && (
-        <p className={styles.warn}>
-          이 지점 영상이 이 PC에 없습니다. 두 번째 화면에 AI 모델 영상이 나오지 않습니다.
-        </p>
-      )}
       {error && <p className={styles.warn}>{error}</p>}
 
       <footer className={styles.actions}>
@@ -133,10 +138,4 @@ export function KioskSetup(): JSX.Element {
       </footer>
     </main>
   );
-}
-
-function siteDetail(site: SetupSite): string {
-  if (site.testRig) return '번호는 200 그대로, 화면만 지점별로 미리보기';
-  const parts = [site.hasCardTerminal ? '카드단말기' : null, site.hasDonation ? '기부' : null];
-  return parts.filter(Boolean).join(' · ') || '카드단말기·기부 없음';
 }
