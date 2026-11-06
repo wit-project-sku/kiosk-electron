@@ -872,7 +872,7 @@ export function JejuAbout({ controller }: Props): JSX.Element {
                 )}
 
                 {listedSpots.length > 0 ? (
-                  <div className={styles.spotGrid}>
+                  <div className={styles.spotGrid} data-voice-list>
                     {listedSpots.map((s) => (
                       <JejuAttractionCard
                         key={s.id}
@@ -890,7 +890,7 @@ export function JejuAbout({ controller }: Props): JSX.Element {
                     ))}
                   </div>
                 ) : (
-                  <p className={styles.empty}>
+                  <p className={styles.empty} data-voice-state={spots.length === 0 ? 'preparing' : 'empty'}>
                     {pick(
                       spots.length === 0
                         ? COMING_SOON

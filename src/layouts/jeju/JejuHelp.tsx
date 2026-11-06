@@ -1332,7 +1332,7 @@ export function JejuHelp({ controller, initialCategory }: Props): JSX.Element {
 
   const mapBlock = (() => {
     if (!map || !planSrc) {
-      return <p className={styles.empty}>{pick(COMING_SOON, lang)}</p>;
+      return <p className={styles.empty} data-voice-state="preparing">{pick(COMING_SOON, lang)}</p>;
     }
     const src = planSrc;
     return (

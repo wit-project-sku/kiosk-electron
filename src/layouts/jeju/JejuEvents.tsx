@@ -280,7 +280,7 @@ export function JejuEvents({ controller }: Props): JSX.Element {
           ) : (
             <>
               <div className={low(styles.listScroll, styles.listScrollLow)}>
-                <div className={styles.list}>
+                <div className={styles.list} data-voice-list>
                   {items.map((event) => (
                     <button
                       key={event.eventId}
