@@ -6,6 +6,7 @@ import { createLogger } from '@main/core/logger';
 import { isStageApiBase } from '@shared/config/testRig';
 import {
   classifySendResponse,
+  identityAt,
   kstIso,
   listFolder,
   mayBeSinceEnabled,
@@ -14,37 +15,53 @@ import {
   parseStatusEnabled,
   selectCandidates,
   stemOf,
+  withIdentity,
   type ArchiveRecord,
   type Candidate,
+  type IdentitySpan,
   type SendOutcome,
   type StatEntry,
 } from './plan';
 
 const log = createLogger('photo-archive');
 
-/**
- * Scan cadence, measured from the end of one cycle to the start of the next.
- * Hourly: the archive is not real-time, and each cycle sends one hour's shots.
- */
-const CYCLE_INTERVAL_MS = 60 * 60_000;
-/**
- * TEMPORARY (2026-11-05, stage testing): a build talking to a STAGE server scans
- * every 5 minutes so a test shot reaches Drive while staff are still watching.
- * Production builds keep the hourly cadence. Remove once Drive archiving is signed
- * off on stage.
- */
-const STAGE_CYCLE_INTERVAL_MS = 5 * 60_000;
-
-/** Scan cadence for the servers this build talks to. */
-export function cycleIntervalFor(apiBase: string): number {
-  return isStageApiBase(apiBase) ? STAGE_CYCLE_INTERVAL_MS : CYCLE_INTERVAL_MS;
+/** How soon photos move. Scan intervals run from the end of one cycle to the start of the next. */
+export interface ArchiveCadence {
+  /** First cycle after launch — boot, render and network come first. */
+  startupDelayMs: number;
+  /** Hourly in production: the archive is not real-time, and each cycle sends one hour's shots. */
+  cycleIntervalMs: number;
+  /** Originals younger than this may still be waiting for their composite. */
+  minAgeMs: number;
+  /** A composite younger than this may still be being written. */
+  resultMinAgeMs: number;
 }
-/** First cycle after launch — boot, render and network come first. */
-const STARTUP_DELAY_MS = 2 * 60_000;
-/** Originals younger than this may still be waiting for their composite. */
-const MIN_AGE_MS = 10 * 60_000;
-/** A composite younger than this may still be being written. */
-const RESULT_MIN_AGE_MS = 60_000;
+
+const PRODUCTION_CADENCE: ArchiveCadence = {
+  startupDelayMs: 2 * 60_000,
+  cycleIntervalMs: 60 * 60_000,
+  minAgeMs: 10 * 60_000,
+  resultMinAgeMs: 60_000,
+};
+
+/**
+ * TEMPORARY (2026-11-06, stage testing): a build talking to a STAGE server scans
+ * every minute so a test shot reaches Drive while staff are still watching. An
+ * original can go ahead of a slow composite; the composite then follows on its own.
+ * Remove once Drive archiving is signed off on stage.
+ */
+const STAGE_CADENCE: ArchiveCadence = {
+  startupDelayMs: 60_000,
+  cycleIntervalMs: 60_000,
+  minAgeMs: 60_000,
+  resultMinAgeMs: 30_000,
+};
+
+/** The cadence for the servers this build talks to. */
+export function cadenceFor(apiBase: string): ArchiveCadence {
+  return isStageApiBase(apiBase) ? STAGE_CADENCE : PRODUCTION_CADENCE;
+}
+
 /** Pairs per cycle — a busy hour fits; bounds the catch-up after an outage. */
 const CYCLE_LIMIT = 120;
 /** After this many failed tries a file goes to the back of the queue. */
@@ -65,6 +82,9 @@ export interface PhotoArchiveStore {
   markSent(fileName: string, withResult: boolean): void;
   markGivenUp(fileName: string, status: number, error: string): void;
   markFailed(fileName: string, status: number | null, error: string): void;
+  /** Which kiosk this PC has been, oldest first. */
+  identityHistory(): IdentitySpan[];
+  saveIdentityHistory(history: IdentitySpan[]): void;
 }
 
 export interface PhotoArchiveDeps {
@@ -87,6 +107,8 @@ export interface CycleSummary {
  * 사진 보관 — copies each new capture in the photo folder (original + AI
  * composite) to the server, which files it into Google Drive
  * (POST /api/kiosk/photos/upload, GET /api/kiosk/photos/upload/status).
+ *
+ * Each photo goes under the kiosk id the PC had when it was taken (identityAt).
  *
  * Only photos taken AFTER the server first enabled this kiosk are sent; the
  * moment is persisted as `enabled_since`. Older photos are uploaded by hand and
@@ -126,11 +148,10 @@ export class PhotoArchiveService {
     if (this.started) return;
     this.started = true;
     this.stopped = false;
-    this.schedule(STARTUP_DELAY_MS);
-    log.info('Photo archive started', {
-      firstCycleInMs: STARTUP_DELAY_MS,
-      cycleIntervalMs: cycleIntervalFor(witteriaApiBase()),
-    });
+    this.noteIdentity();
+    const cadence = cadenceFor(witteriaApiBase());
+    this.schedule(cadence.startupDelayMs);
+    log.info('Photo archive started', { kioskId: this.deps.kioskNum(), ...cadence });
   }
 
   stop(): void {
@@ -146,9 +167,19 @@ export class PhotoArchiveService {
       this.timer = null;
       void this.runCycle()
         .catch((error: unknown) => log.warn('Photo archive cycle failed', errorMessage(error)))
-        .finally(() => this.schedule(cycleIntervalFor(witteriaApiBase())));
+        .finally(() => this.schedule(cadenceFor(witteriaApiBase()).cycleIntervalMs));
     }, delayMs);
     if (typeof this.timer.unref === 'function') this.timer.unref();
+  }
+
+  /** Remember when this PC became the kiosk it is now, so older photos keep their own id. */
+  private noteIdentity(): IdentitySpan[] {
+    const stored = this.store.identityHistory();
+    const kioskId = this.deps.kioskNum();
+    if (stored.at(-1)?.kioskId === kioskId) return stored;
+    const history = withIdentity(stored, kioskId, this.now());
+    this.store.saveIdentityHistory(history);
+    return history;
   }
 
   private statusUrl(): string {
@@ -175,12 +206,14 @@ export class PhotoArchiveService {
       if (!summary.enabled) return { ...summary, stoppedBy: 'disabled' };
 
       const since = this.store.markEnabledSince(this.now());
+      const history = this.noteIdentity();
       const candidates = await this.plan(since);
       for (const candidate of candidates) {
         if (this.stopped) return { ...summary, stoppedBy: 'stopped' };
         if (this.busyCheck()) return { ...summary, stoppedBy: 'busy' };
 
-        const outcome = await this.send(kioskId, candidate);
+        const shotAs = identityAt(history, candidate.mtimeMs, kioskId);
+        const outcome = await this.send(shotAs, candidate);
         switch (outcome.kind) {
           case 'stored':
             this.store.markSent(candidate.fileName, candidate.resultFileName !== null);
@@ -195,6 +228,13 @@ export class PhotoArchiveService {
             });
             break;
           case 'discarded':
+            // A photo from an earlier id the server does not archive (the test
+            // kiosk, set to a venue since) must not hold up this kiosk's own.
+            if (shotAs !== kioskId) {
+              this.store.markGivenUp(candidate.fileName, 200, `kiosk ${shotAs} is not archived`);
+              summary.givenUp += 1;
+              break;
+            }
             // The server has archiving off for us right now. Leave the file
             // unmarked and re-ask for status next cycle instead of in 30 min.
             this.statusCache = null;
@@ -283,11 +323,12 @@ export class PhotoArchiveService {
       }
     }
 
+    const { minAgeMs, resultMinAgeMs } = cadenceFor(witteriaApiBase());
     return selectCandidates(entries, {
       now: this.now(),
       enabledSince: since,
-      minAgeMs: MIN_AGE_MS,
-      resultMinAgeMs: RESULT_MIN_AGE_MS,
+      minAgeMs,
+      resultMinAgeMs,
       limit: CYCLE_LIMIT,
       demoteAfterAttempts: DEMOTE_AFTER_ATTEMPTS,
     });

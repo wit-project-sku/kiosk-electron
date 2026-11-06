@@ -1,13 +1,16 @@
 import { describe, expect, it } from 'vitest';
 import {
   classifySendResponse,
+  identityAt,
   kstIso,
   listFolder,
   mayBeSinceEnabled,
   needsSend,
   parseStatusEnabled,
   selectCandidates,
+  withIdentity,
   type ArchiveRecord,
+  type IdentitySpan,
   type SelectOptions,
   type StatEntry,
 } from '@main/services/photoArchive/plan';
@@ -204,5 +207,35 @@ describe('kstIso', () => {
   it('is KST wall-clock time to the second, without an offset', () => {
     expect(kstIso(Date.UTC(2026, 10, 3, 5, 30, 12, 999))).toBe('2026-11-03T14:30:12');
     expect(kstIso(Date.UTC(2026, 11, 31, 15, 0, 0))).toBe('2027-01-01T00:00:00');
+  });
+});
+
+describe('identityAt / withIdentity', () => {
+  const history = [
+    { kioskId: 8, since: 100 },
+    { kioskId: 5, since: 200 },
+    { kioskId: 200, since: 300 },
+  ];
+
+  it('finds the kiosk this PC was at that moment', () => {
+    expect(identityAt(history, 150, 1)).toBe(8);
+    expect(identityAt(history, 200, 1)).toBe(5);
+    expect(identityAt(history, 299, 1)).toBe(5);
+    expect(identityAt(history, 900, 1)).toBe(200);
+  });
+
+  it('a photo older than the history belongs to the earliest id; no history = today’s id', () => {
+    expect(identityAt(history, 50, 1)).toBe(8);
+    expect(identityAt([], 50, 1)).toBe(1);
+  });
+
+  it('adds a span only when the id changes, keeping the newest 20', () => {
+    expect(withIdentity(history, 200, 999)).toEqual(history);
+    expect(withIdentity(history, 4, 999).at(-1)).toEqual({ kioskId: 4, since: 999 });
+    let long: IdentitySpan[] = [];
+    for (let i = 1; i <= 30; i++) long = withIdentity(long, i, i * 10);
+    expect(long).toHaveLength(20);
+    expect(long[0]?.kioskId).toBe(11);
+    expect(long.at(-1)?.kioskId).toBe(30);
   });
 });

@@ -1,4 +1,4 @@
-import type { ArchiveRecord, ArchiveState } from '@main/services/photoArchive/plan';
+import type { ArchiveRecord, ArchiveState, IdentitySpan } from '@main/services/photoArchive/plan';
 import type { PhotoArchiveStore } from '@main/services/photoArchive/PhotoArchiveService';
 import { BaseRepository } from './BaseRepository';
 import type { Database } from '../Database';
@@ -11,6 +11,7 @@ interface PhotoArchiveRow {
 }
 
 const ENABLED_SINCE_KEY = 'enabled_since';
+const IDENTITY_HISTORY_KEY = 'identity_history';
 
 /** SQLite side of PhotoArchiveService (tables from migration 011). */
 export class PhotoArchiveRepository extends BaseRepository implements PhotoArchiveStore {
@@ -32,6 +33,25 @@ export class PhotoArchiveRepository extends BaseRepository implements PhotoArchi
       .prepare('INSERT OR IGNORE INTO photo_archive_meta (key, value) VALUES (?, ?)')
       .run(ENABLED_SINCE_KEY, String(now));
     return this.enabledSince() ?? now;
+  }
+
+  identityHistory(): IdentitySpan[] {
+    const row = this.conn
+      .prepare('SELECT value FROM photo_archive_meta WHERE key = ?')
+      .get(IDENTITY_HISTORY_KEY) as { value: string } | undefined;
+    if (!row) return [];
+    try {
+      const parsed: unknown = JSON.parse(row.value);
+      return Array.isArray(parsed) ? (parsed as IdentitySpan[]) : [];
+    } catch {
+      return [];
+    }
+  }
+
+  saveIdentityHistory(history: IdentitySpan[]): void {
+    this.conn
+      .prepare('INSERT OR REPLACE INTO photo_archive_meta (key, value) VALUES (?, ?)')
+      .run(IDENTITY_HISTORY_KEY, JSON.stringify(history));
   }
 
   records(): Map<string, ArchiveRecord> {

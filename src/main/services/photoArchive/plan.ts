@@ -27,6 +27,42 @@ export interface ArchiveRecord {
   attempts: number;
 }
 
+/** From `since` on, this PC was kiosk `kioskId` to the server. */
+export interface IdentitySpan {
+  kioskId: number;
+  since: number;
+}
+
+const IDENTITY_HISTORY_LIMIT = 20;
+
+/** The history with this launch's identity added; unchanged while the PC stays the same kiosk. */
+export function withIdentity(
+  history: readonly IdentitySpan[],
+  kioskId: number,
+  now: number,
+): IdentitySpan[] {
+  if (history[history.length - 1]?.kioskId === kioskId) return [...history];
+  return [...history, { kioskId, since: now }].slice(-IDENTITY_HISTORY_LIMIT);
+}
+
+/**
+ * Which kiosk this PC was when a photo was taken. The server files a photo under
+ * the id it is sent with, and it may be sent long after the shot (the PC was off,
+ * or staff set it to another kiosk meanwhile), so the id at SEND time would put it
+ * in another kiosk's folder. A photo older than the whole history belongs to the
+ * earliest id known.
+ */
+export function identityAt(
+  history: readonly IdentitySpan[],
+  capturedAt: number,
+  fallback: number,
+): number {
+  for (let i = history.length - 1; i >= 0; i--) {
+    if (history[i]!.since <= capturedAt) return history[i]!.kioskId;
+  }
+  return history[0]?.kioskId ?? fallback;
+}
+
 /** What one readdir of the photo folder says, before any stat. */
 export interface FolderListing {
   /** Original file names, in no particular order. */

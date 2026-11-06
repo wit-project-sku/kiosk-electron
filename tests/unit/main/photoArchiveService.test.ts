@@ -10,10 +10,10 @@ vi.mock('@main/core/apiBase', () => ({ witteriaApiBase: () => 'https://api.examp
 
 import {
   PhotoArchiveService,
-  cycleIntervalFor,
+  cadenceFor,
   type PhotoArchiveStore,
 } from '@main/services/photoArchive/PhotoArchiveService';
-import type { ArchiveRecord } from '@main/services/photoArchive/plan';
+import type { ArchiveRecord, IdentitySpan } from '@main/services/photoArchive/plan';
 
 const MIN = 60_000;
 const NOW = Date.UTC(2026, 10, 3, 6, 0, 0);
@@ -22,6 +22,13 @@ const NOW = Date.UTC(2026, 10, 3, 6, 0, 0);
 class MemoryStore implements PhotoArchiveStore {
   rows = new Map<string, ArchiveRecord>();
   since: number | null = null;
+  identities: IdentitySpan[] = [];
+  identityHistory(): IdentitySpan[] {
+    return [...this.identities];
+  }
+  saveIdentityHistory(history: IdentitySpan[]): void {
+    this.identities = [...history];
+  }
   enabledSince(): number | null {
     return this.since;
   }
@@ -330,10 +337,70 @@ describe('PhotoArchiveService.runCycle', () => {
   });
 });
 
+describe('which kiosk a photo is filed under', () => {
+  it('uses the id the PC had when the photo was taken, not the id it has now', async () => {
+    // Set to kiosk 5, then to kiosk 3 ten minutes before NOW, with photos waiting.
+    photo('Captured_20261103_1.jpg', 30);
+    photo('Captured_20261103_2.jpg', 15);
+    photo('Captured_20261103_3.jpg', 9);
+    const store = enabledStore();
+    store.identities = [
+      { kioskId: 5, since: NOW - 60 * MIN },
+      { kioskId: 3, since: NOW - 10 * MIN },
+    ];
+    clock = NOW + 2 * MIN;
+    const server = fakeServer();
+    await service(store, server.fetchImpl).runCycle();
+
+    const idOf = (name: string): number | undefined =>
+      server.sent.find((s) => s.data.fileName === name)?.data.kioskId;
+    expect(idOf('Captured_20261103_1.jpg')).toBe(5);
+    expect(idOf('Captured_20261103_2.jpg')).toBe(5);
+    expect(idOf('Captured_20261103_3.jpg')).toBe(3);
+    expect(server.statusCalls[0]).toContain('kioskId=3');
+  });
+
+  it('records a new id once, with the moment it was first seen', async () => {
+    const store = enabledStore();
+    store.identities = [{ kioskId: 5, since: NOW - 60 * MIN }];
+    const svc = service(store, fakeServer().fetchImpl);
+    await svc.runCycle();
+    clock += MIN;
+    await svc.runCycle();
+    expect(store.identities).toEqual([
+      { kioskId: 5, since: NOW - 60 * MIN },
+      { kioskId: 3, since: NOW },
+    ]);
+  });
+
+  it('gives up on a photo whose earlier id the server does not archive, and carries on', async () => {
+    photo('Captured_20261103_1.jpg', 90); // taken as kiosk 200 (not archived)
+    photo('Captured_20261103_2.jpg', 30); // taken as kiosk 3
+    const store = enabledStore();
+    store.identities = [
+      { kioskId: 200, since: NOW - 120 * MIN },
+      { kioskId: 3, since: NOW - 60 * MIN },
+    ];
+    const server = fakeServer({
+      replies: [
+        { status: 200, body: { success: true, data: { stored: true } } },
+        { status: 200, body: { success: true, data: { stored: false } } },
+      ],
+    });
+    const summary = await service(store, server.fetchImpl).runCycle();
+
+    expect(summary).toMatchObject({ stored: 1, givenUp: 1, stoppedBy: 'done' });
+    expect(store.rows.get('Captured_20261103_1.jpg')?.state).toBe('given_up');
+  });
+});
+
 describe('scan cadence', () => {
-  it('scans every 5 minutes against a stage server, hourly otherwise', () => {
-    expect(cycleIntervalFor('https://api-stage-v3.witteria.com')).toBe(5 * MIN);
-    expect(cycleIntervalFor('https://api-v3.witteria.com')).toBe(60 * MIN);
-    expect(cycleIntervalFor('')).toBe(60 * MIN);
+  it('moves photos within minutes against a stage server, hourly otherwise', () => {
+    const stage = cadenceFor('https://api-stage-v3.witteria.com');
+    expect(stage.cycleIntervalMs).toBe(MIN);
+    expect(stage.minAgeMs).toBe(MIN);
+    for (const base of ['https://api-v3.witteria.com', '']) {
+      expect(cadenceFor(base)).toMatchObject({ cycleIntervalMs: 60 * MIN, minAgeMs: 10 * MIN });
+    }
   });
 });
