@@ -48,7 +48,9 @@ const DATA_DIR = join(ROOT, 'src/renderer/src/data');
 const CACHE_DIR = join(DATA_DIR, 'sheet-cache');
 const OFFLINE = process.argv.includes('--offline');
 /** `--only=hwaseong` regenerates just the W005 tabs and the shared nationwide
- *  sheet (전국시장 / 전국휴게소), leaving every other venue's bundle untouched. */
+ *  sheet (전국시장 / 전국휴게소), leaving every other venue's bundle untouched.
+ *  `--only=voice` regenerates just the 제주 voice guidance script.
+ *  `--only=jeju-localization` regenerates just the 제주 UI strings. */
 const ONLY = (process.argv.find((a) => a.startsWith('--only=')) ?? '').slice('--only='.length);
 
 /**
@@ -62,7 +64,7 @@ const ONLY = (process.argv.find((a) => a.startsWith('--only=')) ?? '').slice('--
  */
 const csvUrl = (sheet, sheetId = SHEET_ID) =>
   `https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(sheet)}` +
-  (sheet.startsWith('Localization_') ? '&headers=0' : '');
+  (sheet.startsWith('Localization_') || sheet === VOICE_TAB_JEJU ? '&headers=0' : '');
 
 /** RFC-4180 CSV parser (handles quoted fields, escaped quotes, embedded newlines). */
 function parseCSV(text) {
@@ -109,7 +111,8 @@ async function loadTab(sheet, sheetId = SHEET_ID, expect = undefined) {
   if (!res.ok) throw new Error(`Fetch ${sheet} failed: HTTP ${res.status}`);
   const text = await res.text();
   const rows = parseCSV(text);
-  if (expect && !rows.slice(0, 5).some((r) => r.some((c) => expect.test(c)))) {
+  // Ten rows: Text-to-speech_Script keeps a five-row colour legend above its header.
+  if (expect && !rows.slice(0, 10).some((r) => r.some((c) => expect.test(c)))) {
     const err = new Error(`Tab "${sheet}" not found in sheet ${sheetId} (gviz returned another tab)`);
     err.code = 'TAB_MISSING';
     throw err;
@@ -681,6 +684,61 @@ ${body}
  * than defaulted — a facility filed onto the wrong floor plan is worse on a
  * wayfinding kiosk than one that is missing.
  */
+/**
+ * 제주 voice guidance script (음성 안내) — one row per spoken line, keyed
+ * `Voice_<line>` (e.g. `Voice_jeju.food.list`, `Voice_global.voice.on`). A key
+ * may carry a site suffix (`Voice_jeju.home@W008`); the renderer looks that up
+ * before the bare key. Title rows sit above the Key/Korean…Indonesian header, so
+ * the language columns are found BY NAME in that header rather than by position.
+ * Read by src/layouts/jeju/voice.
+ */
+const VOICE_TAB_JEJU = 'Text-to-speech_Script';
+const VOICE_LANG_HEADERS = {
+  ko: /^korean$/i,
+  en: /^english$/i,
+  ja: /^japanese$/i,
+  zh: /^chinese$/i,
+  vi: /^vietnamese$/i,
+  th: /^thai$/i,
+  ru: /^russian$/i,
+  id: /^indonesian$/i,
+};
+
+async function genVoiceJeju() {
+  const rows = await loadTab(VOICE_TAB_JEJU, JEJU_SHEET_ID, LOCALIZATION_HEADER);
+  const header = rows.find((r) => clean(r[1]) === 'Key');
+  const cols = {};
+  for (const [lang, re] of Object.entries(VOICE_LANG_HEADERS)) {
+    const i = header.findIndex((c) => re.test(clean(c)));
+    if (i < 0) throw new Error(`${VOICE_TAB_JEJU}: no "${re.source}" column in the header`);
+    cols[lang] = i;
+  }
+  const entries = {};
+  for (const r of rows) {
+    const key = clean(r[1]);
+    if (!key.startsWith('Voice_')) continue;
+    const text = {};
+    for (const [lang, i] of Object.entries(cols)) {
+      const v = clean(r[i]);
+      if (v || ['ko', 'en', 'ja', 'zh'].includes(lang)) text[lang] = v;
+    }
+    entries[key.slice('Voice_'.length)] = text;
+  }
+  const body = Object.entries(entries)
+    .map(([k, v]) => `  ${JSON.stringify(k)}: ${JSON.stringify(v)},`)
+    .join('\n');
+  const out = `${BANNER}import type { LangText } from './types';
+
+/** 제주 voice guidance lines (${VOICE_TAB_JEJU}), keyed without the \`Voice_\`
+ *  prefix. \`<key>@W0xx\` rows are one site's version of \`<key>\`. */
+export const VOICE_JEJU: Record<string, LangText> = {
+${body}
+};
+`;
+  await writeFile(join(DATA_DIR, 'voice-jeju.generated.ts'), out, 'utf8');
+  return Object.keys(entries).length;
+}
+
 const JEJU_TERMINALS = { 국내선: 'domestic', 국제선: 'international' };
 
 /** Eight consecutive language cells starting at `start`, in sheet order. */
@@ -845,6 +903,14 @@ async function main() {
     console.log(`✓ serviceAreas: ${await genServiceAreas()}`);
     return;
   }
+  if (ONLY === 'voice') {
+    console.log(`✓ [jeju] voice lines: ${await genVoiceJeju()}`);
+    return;
+  }
+  if (ONLY === 'jeju-localization') {
+    console.log(`✓ [jeju] localization: ${await genLocalizationJeju()} keys`);
+    return;
+  }
   if (ONLY) throw new Error(`Unknown --only=${ONLY}`);
   const loc = await genLocalization();
   const palaces = await genPalaces();
@@ -870,7 +936,9 @@ async function main() {
     const locJ = await genLocalizationJeju();
     const catsJ = await genAiCategoriesJeju();
     const facJ = await genAirportFacilitiesJeju();
+    const voiceJ = await genVoiceJeju();
     console.log(`✓ [jeju] localization: ${locJ} keys`);
+    console.log(`✓ [jeju] voice lines: ${voiceJ}`);
     console.log(`✓ [jeju] aiCategories: ${catsJ}`);
     console.log(
       `✓ [jeju] airportFacilities: ${facJ.count}` +

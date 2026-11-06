@@ -28,7 +28,7 @@ export function Keypad({ field, onKey, onNext, onClose }: Props): JSX.Element {
   return (
     <>
       {/* 보이지 않는 닫기 판 — 시안에 없는 것을 그리지 않으면서 빠져나갈 길을 둔다. */}
-      <div className={styles.scrim} onClick={onClose} aria-hidden />
+      <div className={styles.scrim} onClick={onClose} aria-hidden data-pad-dismiss />
       <div
         className={styles.pad}
         onPointerDown={(e) => e.preventDefault()}
@@ -37,14 +37,14 @@ export function Keypad({ field, onKey, onNext, onClose }: Props): JSX.Element {
       >
         <div className={styles.keys}>
           {DIGITS.map((d) => (
-            <button key={d} type="button" className={styles.key} onClick={() => onKey(d)}>
+            <button key={d} type="button" className={styles.key} data-vk-digit={d} onClick={() => onKey(d)}>
               {d}
             </button>
           ))}
           <button type="button" className={styles.key} onClick={() => onKey('back')} aria-label="지우기">
             <img src={jejuIconUrl('ico-backspace')} alt="" className={styles.backIcon} />
           </button>
-          <button type="button" className={styles.key} onClick={() => onKey('0')}>
+          <button type="button" className={styles.key} data-vk-digit="0" onClick={() => onKey('0')}>
             0
           </button>
           {/* 마지막 칸에서는 이 버튼이 키패드를 닫는다. */}

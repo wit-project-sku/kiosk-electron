@@ -1326,7 +1326,7 @@ export function JejuAiDetail({ controller }: Props): JSX.Element {
         /* A day with no stops at all is the "we found nothing" case; a day whose
            stops were all filtered out is a different sentence, and saying the
            first there would send the visitor back to redo a search that worked. */
-        <p className={themed ? `${styles.empty} ${styles.emptyTheme}` : styles.empty}>
+        <p className={themed ? `${styles.empty} ${styles.emptyTheme}` : styles.empty} data-voice-state="empty">
           {pick(T.empty, lang)}
         </p>
       ) : (

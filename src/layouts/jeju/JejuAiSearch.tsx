@@ -76,10 +76,17 @@ import { useFitText } from '@layouts/components/fitText';
 import { JejuPageFrame } from './JejuPageFrame';
 import styles from './JejuAiSearch.module.css';
 import { belowModeBar, LOW_REACH_BANNER_HEIGHT, LOW_REACH_HERO_HEIGHT } from './lowReach';
+import { useVoiceIntro } from './voice/intro';
 
 interface Props {
   controller: KioskController;
 }
+
+/** Voice intros: the picker, then the questionnaire — a themed course asks for
+ *  regions, the full AI 맞춤 one for things to do. */
+const VOICE_PICK = ['jeju.ai.pick'] as const;
+const VOICE_THEMED = ['jeju.ai.questions', 'jeju.ai.region'] as const;
+const VOICE_CUSTOM = ['jeju.ai.questions', 'jeju.ai.activities'] as const;
 
 /*
  * ── 커스텀 코스 picker — POST /api/jeju/courses/picker ──────────────────
@@ -954,6 +961,7 @@ export function JejuAiSearch({ controller }: Props): JSX.Element {
   const lowReach = useAccessibilityStore((s) => s.lowReach);
   /** Low-reach only: 1 = the three chip groups, 2 = 즐길 거리. See Y_LOW. */
   const [step, setStep] = useState<1 | 2>(1);
+  useVoiceIntro(stage === 'pick' ? VOICE_PICK : themeKey ? VOICE_THEMED : VOICE_CUSTOM);
   const y = themeKey ? Y_THEME : lowReach ? Y_LOW : Y;
   // Standard shows everything at once; low-reach shows one step at a time. A
   // themed page is all chips and no 즐길 거리, in either layout — it rides the

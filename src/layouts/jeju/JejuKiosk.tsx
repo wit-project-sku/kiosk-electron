@@ -49,6 +49,7 @@ import { JejuExchange } from './JejuExchange';
 import { JejuRentcar } from './JejuRentcar';
 import { JejuFillme } from './fillme/JejuFillme';
 import { useJejuKeypad } from './keypad/useJejuKeypad';
+import { useJejuVoice } from './voice/useJejuVoice';
 import maintenanceUrl from '@renderer/assets/icons/jeju/maintenance.jpg';
 import { MAINTENANCE_KIOSKS, readMaintenanceLifted, useMultiTap, writeMaintenanceLifted } from './maintenance';
 
@@ -198,6 +199,8 @@ export function JejuKiosk(): JSX.Element {
 
   const [maintenanceLifted, setMaintenanceLifted] = useState(readMaintenanceLifted);
   const maintenanceKiosk = MAINTENANCE_KIOSKS.has(controller.kioskId);
+  // 음성 안내 — off until the keypad turns it on. See voice/useJejuVoice.
+  useJejuVoice(controller, !maintenanceKiosk || maintenanceLifted);
   // Five quick mouse clicks flip between the notice and the app — the "JEJU"
   // marker on the home screen, the leftmost tangerine on the notice (maintenance.ts).
   const toggleMaintenance = useCallback(() => {
