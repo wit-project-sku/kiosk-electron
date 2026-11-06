@@ -232,7 +232,9 @@ export class StatsService {
    * batch re-send. `eventId` is the idempotency key shared across both paths.
    */
   async recordShot(input: ShotInput): Promise<boolean> {
-    const kioskId = this.kiosk.kioskNum();
+    // The machine's own id: a test kiosk showing another site's screen must not
+    // add its shots to that site's numbers.
+    const kioskId = this.kiosk.identityNum();
     const eventId = input.eventId ?? randomUUID();
     const shotAt = input.shotAt ?? localIso();
     const shotType = input.shotType ?? null;

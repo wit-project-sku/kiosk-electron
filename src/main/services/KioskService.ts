@@ -42,7 +42,8 @@ export class KioskService {
   /**
    * Who this machine is to the server — the provisioned id, even on the test rig
    * (W200 → 200) where {@link kioskNum} follows the preview site. Used for the
-   * liveness signal (update-command) and crash reports only.
+   * liveness signal (update-command), crash reports, shot statistics and the photo
+   * archive.
    */
   identityNum(): number {
     const cfg = this.getConfig();
