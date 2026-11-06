@@ -61,16 +61,15 @@ const MAINTENANCE_STYLE: CSSProperties = {
   objectFit: 'cover',
 };
 
-/** The notice's hidden switch: the leftmost of the three tangerines at the top
- *  right of the art (centre ≈ x1547 y250, ~195 across on the 2160×3840 canvas),
- *  padded a little for a mouse. Move it with the art if the image changes. */
+/** The notice's hidden switch: the small plane in the sky of the art (x588–679,
+ *  y764–805 on the 2160×3840 canvas), padded a little for a mouse. Move it with the
+ *  art if the image changes. */
 const MAINTENANCE_SWITCH_STYLE: CSSProperties = {
   position: 'absolute',
-  left: 1437,
-  top: 140,
-  width: 220,
-  height: 220,
-  borderRadius: '50%',
+  left: 558,
+  top: 734,
+  width: 151,
+  height: 101,
 };
 
 /** Theme the shared AR 한복 photo workflow with the 제주 orange (#ff7f0f, the
@@ -201,8 +200,7 @@ export function JejuKiosk(): JSX.Element {
   );
   const maintenanceKiosk = MAINTENANCE_KIOSKS.has(controller.kioskId);
   // Five quick mouse clicks flip between the notice and the app — the small plane
-  // in the home screen's top bar, the leftmost tangerine on the notice
-  // (maintenance.ts).
+  // in the home screen's top bar and the one in the notice's art (maintenance.ts).
   const toggleMaintenance = useCallback(() => {
     setMaintenanceLifted((lifted) => {
       writeMaintenanceLifted(!lifted);
@@ -215,9 +213,9 @@ export function JejuKiosk(): JSX.Element {
 
   // Under system maintenance the whole screen is the 점검 중 notice and nothing
   // behind it can be reached by a visitor (touch or keypad). Staff switch it off
-  // with five quick MOUSE clicks on the leftmost tangerine and back on the same way
+  // with five quick MOUSE clicks on the plane in the art and back on the same way
   // from the plane in the home screen's top bar (maintenance.ts).
-  // Only that tangerine listens, and only to a mouse.
+  // Only that plane listens, and only to a mouse.
   if (maintenanceKiosk && !maintenanceLifted) {
     return (
       <KioskArtboard>

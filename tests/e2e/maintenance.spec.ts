@@ -1,5 +1,5 @@
 // 제주 시스템 점검 notice: staff flip it with five quick MOUSE clicks — on the small
-// plane in the home screen's top bar, and on the leftmost tangerine of the notice.
+// plane in the home screen's top bar, and on the plane in the notice's art.
 // Regression: switching it on used to show the error page ("Something went wrong"),
 // because the unmounting 탐나오/제주큐랑 webviews threw from their cleanup.
 import { expect, test, type Locator, type Page } from '@playwright/test';
@@ -13,7 +13,7 @@ test.beforeAll(async () => {
 test.afterAll(async () => api.close());
 
 const notice = (main: Page): Locator => main.locator('img[src*="maintenance"]');
-const noticeSwitch = (main: Page): Locator => main.locator('div[style*="left: 1437px"]');
+const noticeSwitch = (main: Page): Locator => main.locator('div[style*="left: 558px"]');
 const plane = (main: Page): Locator => main.locator('[class*="planeSwitch"]');
 const date = (main: Page): Locator => main.locator('[class*="dateTime"]').first();
 const pin = (main: Page): Locator => main.getByText('JEJU', { exact: true }).first();
@@ -43,7 +43,7 @@ test('W008: boots into the notice, and five mouse clicks on the plane bring it b
   const kiosk = await launchKiosk({ site: 'W008', apiBase: api.url });
   try {
     const { main } = kiosk;
-    // Boots into the notice; five clicks on the leftmost tangerine lift it.
+    // Boots into the notice; five clicks on its plane lift it.
     await expect(notice(main)).toBeVisible({ timeout: 30_000 });
     await clickTimes(noticeSwitch(main), 5);
     await expect(notice(main)).toHaveCount(0);
@@ -73,7 +73,7 @@ test('W008: boots into the notice, and five mouse clicks on the plane bring it b
 });
 
 for (const site of ['W009', 'W010'] as const) {
-  test(`${site}: boots into the app, and the plane and tangerine flip the notice`, async () => {
+  test(`${site}: boots into the app, and the two planes flip the notice`, async () => {
     const kiosk = await launchKiosk({ site, apiBase: api.url });
     try {
       const { main } = kiosk;

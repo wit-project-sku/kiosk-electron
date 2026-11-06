@@ -5,8 +5,8 @@
  * Five MOUSE clicks within TAP_WINDOW_MS flip it: on the home screen, the small
  * plane in the top bar turns the notice on (2026-11-06; before that the date, and
  * until 2026-11-03 the "JEJU" pin, which now opens the stage-only site switcher);
- * on the notice, the leftmost of the three tangerines at the top right turns it
- * off. A single click used to lift the notice for good and there was no way back
+ * on the notice, the small plane in the sky of the art turns it off (2026-11-06;
+ * before that the leftmost tangerine). A single click used to lift the notice for good and there was no way back
  * (2026-10-29).
  *
  * Mouse only — staff drive the kiosk over TeamViewer, which injects mouse
