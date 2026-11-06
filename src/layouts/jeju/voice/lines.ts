@@ -114,9 +114,10 @@ const SCREEN_INTROS: Partial<Record<KioskScreenId, string | ((kioskId: string) =
   rentcar: 'jeju.rentcar.list',
   localpay: 'jeju.localpay.tamna',
   events: 'jeju.event.list',
-  // W009 and W010 keep the two-tab 탐나오·제주큐랑 page — must match webScreensFor
-  // in JejuKiosk. The sheet's jeju.tamnao row is 제주공항's alone.
-  tamnao: (kioskId) => (isTerminalOrHeritage(kioskId) ? 'jeju.tamnao-qrang' : 'jeju.tamnao'),
+  // Only W010 keeps the two-tab 탐나오·제주큐랑 page — must match webScreensFor in
+  // JejuKiosk. The sheet still marks jeju.tamnao and jeju.qrang 제주공항-only and
+  // jeju.tamnao-qrang for W009 too; W009 has since moved to the split pages.
+  tamnao: (kioskId) => (kioskId === 'W010' ? 'jeju.tamnao-qrang' : 'jeju.tamnao'),
   jejuqrang: 'jeju.qrang',
   market: 'jeju.witstore',
   donation: 'jeju.donation',

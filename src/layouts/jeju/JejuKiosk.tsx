@@ -151,13 +151,13 @@ const WEB_SCREENS: readonly WebScreen[] = [
 ];
 
 /**
- * 제주공항 W008 (2026-10-29): 탐나오 and 제주큐랑 are two home buttons now, so
- * each opens its OWN page — the site alone, no tab row. Same chrome as the
- * two-tab page (the QR row hands over whichever site is showing); the panel
- * takes the tab row's band (see JejuWebScreen's single-site metrics).
- * W009/W010 keep the two-tab page above.
+ * 제주공항 W008 (2026-10-29) and 여객터미널 W009: 탐나오 and 제주큐랑 are two home
+ * buttons now, so each opens its OWN page — the site alone, no tab row. Same
+ * chrome as the two-tab page (the QR row hands over whichever site is showing);
+ * the panel takes the tab row's band (see JejuWebScreen's single-site metrics).
+ * W010 keeps the two-tab page above.
  */
-const WEB_SCREENS_AIRPORT: readonly WebScreen[] = WEB_SCREENS.flatMap((web): WebScreen[] =>
+const WEB_SCREENS_SPLIT: readonly WebScreen[] = WEB_SCREENS.flatMap((web): WebScreen[] =>
   web.screen === 'tamnao'
     ? [
         { ...web, title: '탐나오', tabs: undefined },
@@ -175,10 +175,10 @@ const WEB_SCREENS_AIRPORT: readonly WebScreen[] = WEB_SCREENS.flatMap((web): Web
 
 /** Which pages a 제주 kiosk keeps warm. Mirrors JejuHome's grid choice: the
  *  airport layout is the default (a test rig previewing 제주 gets it too), and
- *  only W009/W010 — whose homes still draw the 탐나오·제주큐랑 tile — keep the
+ *  only W010 — whose home still draws the 탐나오·제주큐랑 tile — keeps the
  *  two-tab page. */
 const webScreensFor = (kioskId: string): readonly WebScreen[] =>
-  kioskId === 'W009' || kioskId === 'W010' ? WEB_SCREENS : WEB_SCREENS_AIRPORT;
+  kioskId === 'W010' ? WEB_SCREENS : WEB_SCREENS_SPLIT;
 
 type WebScreenKey = WebScreen['screen'];
 
@@ -196,7 +196,6 @@ export function JejuKiosk(): JSX.Element {
   // 배리어프리 키패드 (JD-KP100) — arrow/OK/back control of every 제주 screen.
   // 제주 only: no other venue has the hardware. See the hook's header.
   useJejuKeypad(controller);
-
   const [maintenanceLifted, setMaintenanceLifted] = useState(readMaintenanceLifted);
   const maintenanceKiosk = MAINTENANCE_KIOSKS.has(controller.kioskId);
   // 음성 안내 — off until the keypad turns it on. See voice/useJejuVoice.
