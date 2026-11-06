@@ -256,7 +256,7 @@ export function JejuListScreen({ screen, controller }: Props): JSX.Element {
 
   const listBody =
     visible.length > 0 ? (
-      <div className={styles.list}>
+      <div className={styles.list} data-voice-list>
         {visible.map((shop) => (
           <JejuShopCard
             key={shop.id}

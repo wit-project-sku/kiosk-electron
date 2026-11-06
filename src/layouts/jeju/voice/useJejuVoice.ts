@@ -67,6 +67,17 @@ const TYPING_SELECTOR = 'button[data-vk-digit]';
  */
 const MORE_SELECTOR = '[data-voice-more]';
 
+/**
+ * Whether long text is Korean whatever the screen language: some bodies have no
+ * translated rows yet (세계유산, 거문오름, 개인정보 전문). Korean has to go through
+ * the Korean voice — through any other it is noise.
+ */
+function isMostlyKorean(text: string): boolean {
+  const letters = text.match(/\p{L}/gu)?.length ?? 0;
+  const hangul = text.match(/\p{Script=Hangul}/gu)?.length ?? 0;
+  return letters > 0 && hangul / letters > 0.5;
+}
+
 /** `enabled` false: the keys stay silent — the 시스템 점검 notice has no screen to describe. */
 export function useJejuVoice(controller: KioskController, enabled = true): void {
   const { screen, photoActive, kioskId } = controller;
@@ -158,7 +169,7 @@ export function useJejuVoice(controller: KioskController, enabled = true): void 
             const text = Array.from(root().querySelectorAll<HTMLElement>(MORE_SELECTOR), (el) => el.innerText)
               .join('\n')
               .trim();
-            const l = lang();
+            const l = isMostlyKorean(text) ? 'ko' : lang();
             if (text && canSpeak(l)) say({ text, lang: l, priority: Priority.Screen });
             return;
           }
@@ -277,6 +288,8 @@ const STATE_LINES: Readonly<Record<string, string>> = {
 
 /** "Loading" is only worth saying when it lasts — the spec's 3 seconds. */
 const LOADING_GRACE_MS = 3000;
+/** How long the other messages must stay up to be worth saying. */
+const SETTLE_MS = 800;
 
 /**
  * L3 for the screens' own loading / error / empty messages. 제주 has no shared
@@ -296,17 +309,15 @@ function useStateVoice(): void {
         const kind = el.dataset['voiceState'] ?? '';
         if (said.get(el) === kind || !STATE_LINES[kind]) continue;
         said.set(el, kind);
-        // After the screen's intro, not over it: the intro says where you are.
-        if (kind !== 'loading') {
-          speakKey(STATE_LINES[kind]!, Priority.State, true);
-          continue;
-        }
+        // A message has to last before it is said: a list is briefly "empty" while
+        // its request is in flight, and that must not reach the visitor as "no results".
         const timer = window.setTimeout(() => {
           timers.delete(timer);
-          if (el.isConnected && el.dataset['voiceState'] === 'loading') {
-            speakKey(STATE_LINES['loading']!, Priority.State, true);
+          if (el.isConnected && el.dataset['voiceState'] === kind) {
+            // After the screen's intro, not over it: the intro says where you are.
+            speakKey(STATE_LINES[kind]!, Priority.State, true);
           }
-        }, LOADING_GRACE_MS);
+        }, kind === 'loading' ? LOADING_GRACE_MS : SETTLE_MS);
         timers.add(timer);
       }
     };

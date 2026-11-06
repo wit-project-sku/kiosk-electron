@@ -73,6 +73,9 @@ const WEB_SCREENS: ReadonlySet<KioskScreenId> = new Set<KioskScreenId>([
   'taxfree',
 ]);
 
+/** Screens the sheet marks "자세히 듣기": key 2 reads their `data-voice-more` body. */
+const LONG_TEXT_SCREENS: ReadonlySet<KioskScreenId> = new Set<KioskScreenId>(['heritage', 'geomun']);
+
 /** W009/W010 keep 도와줘 instead of 공항 안내 — see jejuHelpTitle. */
 const isTerminalOrHeritage = (kioskId: string): boolean => kioskId === 'W009' || kioskId === 'W010';
 
@@ -88,6 +91,7 @@ export function screenKeys(screen: KioskScreenId, photoActive: boolean, kioskId:
   const key = typeof intro === 'function' ? intro(kioskId) : intro;
   if (!key) return [];
   if (WEB_SCREENS.has(screen)) return [key, 'global.web.exit'];
+  if (LONG_TEXT_SCREENS.has(screen)) return [key, 'global.more.hint'];
   return [key];
 }
 
@@ -110,8 +114,9 @@ const SCREEN_INTROS: Partial<Record<KioskScreenId, string | ((kioskId: string) =
   rentcar: 'jeju.rentcar.list',
   localpay: 'jeju.localpay.tamna',
   events: 'jeju.event.list',
-  // Only W010 keeps the two-tab 탐나오·제주큐랑 page — see JejuKiosk.
-  tamnao: (kioskId) => (kioskId === 'W010' ? 'jeju.tamnao-qrang' : 'jeju.tamnao'),
+  // W009 and W010 keep the two-tab 탐나오·제주큐랑 page — must match webScreensFor
+  // in JejuKiosk. The sheet's jeju.tamnao row is 제주공항's alone.
+  tamnao: (kioskId) => (isTerminalOrHeritage(kioskId) ? 'jeju.tamnao-qrang' : 'jeju.tamnao'),
   jejuqrang: 'jeju.qrang',
   market: 'jeju.witstore',
   donation: 'jeju.donation',
@@ -250,6 +255,12 @@ export function focusLine(
 
   const selected = el.getAttribute('aria-selected') === 'true' || el.getAttribute('aria-pressed') === 'true';
   if (selected && !privateScreen) return sheetLine('focus.selected', lang, kioskId, opts({ label }));
+
+  const list = el.closest<HTMLElement>('[data-voice-list]');
+  if (list && list !== el) {
+    const n = Array.from(list.children).findIndex((c) => c.contains(el));
+    if (n >= 0) return sheetLine('focus.listitem', lang, kioskId, opts({ n: n + 1, name: label }));
+  }
 
   return sheetLine('focus.button', lang, kioskId, opts({ label }));
 }

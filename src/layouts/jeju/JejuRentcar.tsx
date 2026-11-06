@@ -339,7 +339,7 @@ export function JejuRentcar({ controller }: Props): JSX.Element {
   const cardFooterLine = (shop: Shop): string => shop.tel?.trim() ?? '';
 
   const renderCards = (list: Shop[]): JSX.Element => (
-    <div className={styles.list}>
+    <div className={styles.list} data-voice-list>
       {list.map((shop) => {
         const badge = cardBadge(shop);
         const routeLine = cardRouteLine(shop);

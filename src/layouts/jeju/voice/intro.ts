@@ -37,12 +37,15 @@ export function currentIntro(screen: KioskScreenId, photoActive: boolean, kioskI
 const lang = () => toVoiceLang(useLanguageStore.getState().currentLanguage);
 const kioskId = () => useKioskStore.getState().config.kioskId;
 
-/** Lines spoken as one sentence: each leads, so the next follows it. */
-export function announceKeys(keys: readonly string[]): void {
+/**
+ * Lines spoken as one sentence: each leads, so the next follows it. `follow`
+ * waits for the line playing instead of cutting it.
+ */
+export function announceKeys(keys: readonly string[], follow = false): void {
   dropQueued(Priority.Screen);
   keys.forEach((key, i) => {
     const l = sheetLine(key, lang(), kioskId(), { priority: Priority.Screen });
-    say(l && { ...l, lead: i < keys.length - 1 });
+    say(l && { ...l, lead: i < keys.length - 1, after: follow });
   });
 }
 
@@ -73,7 +76,11 @@ export function useVoiceIntro(keys: readonly string[] | null): void {
     last.current = { signature, route };
     // On mount, or with the route, the screen announcement speaks it.
     if (!prev || prev.route !== route) return;
-    if (partIntro && useVoiceStore.getState().on) announceKeys(partIntro);
+    // Following, not cutting: a visitor's own press has already silenced the old
+    // line (useJejuVoice stops on every input), so anything still playing means
+    // this change came by itself — 한복 settling on the 제주 tab once its tabs
+    // load would otherwise cut hanbok.select off after a syllable.
+    if (partIntro && useVoiceStore.getState().on) announceKeys(partIntro, true);
   }, [signature, route]);
 
   useLayoutEffect(
@@ -95,7 +102,7 @@ export function useVoiceIntro(keys: readonly string[] | null): void {
 export function VoiceIntro({ keys }: { keys: readonly string[] }): null {
   useVoiceIntro(keys);
   useEffect(() => {
-    if (useVoiceStore.getState().on) announceKeys(keys);
+    if (useVoiceStore.getState().on) announceKeys(keys, true);
     // eslint-disable-next-line react-hooks/exhaustive-deps -- once, on arrival
   }, []);
   return null;
