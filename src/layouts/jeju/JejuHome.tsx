@@ -45,6 +45,9 @@ import { FloatingKeyboard } from '../insadong/keyboard/FloatingKeyboard';
 import { HangulComposer } from '../insadong/keyboard/hangul';
 import type { KeyAction } from '../insadong/keyboard/VirtualKeyboard';
 import styles from './JejuHome.module.css';
+import { useVoiceIntro } from './voice/intro';
+
+const VOICE_WEATHER = ['jeju.weather'] as const;
 
 interface Props {
   controller: KioskController;
@@ -750,6 +753,7 @@ export function JejuHome({ controller, onSiteMarkerTap }: Props): JSX.Element {
   const weather = useWeatherStore((s) => s.weather);
   const forecast = useWeatherStore((s) => s.forecast);
   const [weatherOpen, setWeatherOpen] = useState(false);
+  useVoiceIntro(weatherOpen ? VOICE_WEATHER : null);
   /* The controller's own idle reset early-returns while the kiosk is already on
      home, so it would never take this overlay down — it would still be open for
      the next visitor. Armed only while the panel is up, on the same clock. */

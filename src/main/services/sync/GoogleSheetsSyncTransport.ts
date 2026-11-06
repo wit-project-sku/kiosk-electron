@@ -10,9 +10,17 @@ import type { TranslationService } from '@main/services/TranslationService';
 import type { SyncTransport } from './SyncTransport';
 import { SheetsClient } from './google/SheetsClient';
 import { parseContentSheet } from './google/ContentSyncParser';
-import { parseLocalizationSheet } from './google/LocalizationSyncParser';
+import { parseLocalizationSheet, type LocalizationByLang } from './google/LocalizationSyncParser';
+import { parseVoiceSheet } from './google/VoiceSyncParser';
 
 const log = createLogger('google-sheets-transport');
+
+/** Add `extra`'s entries to `target`, per language. */
+function mergeInto(target: LocalizationByLang, extra: LocalizationByLang): void {
+  for (const [lang, entries] of Object.entries(extra) as Array<[SupportedLanguage, Record<string, string>]>) {
+    target[lang] = { ...target[lang], ...entries };
+  }
+}
 
 /**
  * Each deployment's content lives in its OWN spreadsheet (one build, many
@@ -31,7 +39,12 @@ interface ContentSheet {
   /** Tried in order when the sheet no longer has the `localizationRange` tab
    *  (Sheets answers 400 "Unable to parse range"). */
   fallbackRanges?: readonly string[];
+  /** 제주 voice guidance script, stored with the translations as `Voice_*` keys. */
+  voiceRange?: string;
 }
+
+/** Text-to-speech_Script: Key in B, the eight languages in E–L, notes after. */
+const JEJU_VOICE_RANGE = "'Text-to-speech_Script'!A:M";
 
 const CONTENT_SHEETS: Record<KioskLayoutId, ContentSheet> = {
   INSADONG: { sheetId: INSADONG_SHEET_ID, localizationRange: 'Localization_Insa!A:L' },
@@ -47,10 +60,18 @@ const CONTENT_SHEETS: Record<KioskLayoutId, ContentSheet> = {
   },
   // Localization_Jeju_v2 (2026-09-14): the updated copy of Localization_Jeju — same
   // header, columns and keys; the old tab is no longer read.
-  JEJU_AIRPORT: { sheetId: JEJU_SHEET_ID, localizationRange: 'Localization_Jeju_v2!A:L' },
+  JEJU_AIRPORT: {
+    sheetId: JEJU_SHEET_ID,
+    localizationRange: 'Localization_Jeju_v2!A:L',
+    voiceRange: JEJU_VOICE_RANGE,
+  },
   // Same tab as JEJU_AIRPORT on purpose — "#W6~8=제주_전체데이터" serves all three
   // 제주 venues; the mascot rows are split per layout in LocalizationSyncParser.
-  JEJU_HERITAGE: { sheetId: JEJU_SHEET_ID, localizationRange: 'Localization_Jeju_v2!A:L' },
+  JEJU_HERITAGE: {
+    sheetId: JEJU_SHEET_ID,
+    localizationRange: 'Localization_Jeju_v2!A:L',
+    voiceRange: JEJU_VOICE_RANGE,
+  },
   // KADA W202 has NO content spreadsheet, and is not waiting for one: its ten
   // strings are authored in layouts/kada/kadaText.ts because the venue has no
   // CMS and no one on site to maintain a tab (see that file). The empty sheetId
@@ -191,7 +212,7 @@ export class GoogleSheetsSyncTransport implements SyncTransport {
    *  loads another location's strings — no env override (that caused cross-kiosk
    *  contamination). */
   private async downloadTranslations(config: NonNullable<ReturnType<typeof getGoogleSyncConfig>>): Promise<void> {
-    const { sheetId, localizationRange, fallbackRanges = [] } = this.contentSheet();
+    const { sheetId, localizationRange, fallbackRanges = [], voiceRange } = this.contentSheet();
     let range = localizationRange;
     const layout = getKioskLocation(this.kiosk.getConfig().kioskId).layout;
     // A layout with no spreadsheet yet (see CONTENT_SHEETS) must not fall back to
@@ -218,6 +239,9 @@ export class GoogleSheetsSyncTransport implements SyncTransport {
       }
       if (!rows) return;
       const byLang = parseLocalizationSheet(rows, layout);
+      // replaceLanguage rewrites a language's whole table, so the voice rows
+      // have to ride in the same batch or this write would drop them.
+      if (voiceRange) mergeInto(byLang, await this.downloadVoice(client, voiceRange));
 
       let total = 0;
       for (const [lang, entries] of Object.entries(byLang)) {
@@ -230,6 +254,23 @@ export class GoogleSheetsSyncTransport implements SyncTransport {
       const message = error instanceof Error ? error.message : 'Unknown error';
       this.failedRequests.record('sync_content', { range }, message);
       log.warn('Translation download failed', { range, error: message });
+    }
+  }
+
+  /**
+   * The 제주 voice script. Best-effort: on failure the kiosk keeps speaking the
+   * script bundled at build time, and the screen text still updates.
+   */
+  private async downloadVoice(client: SheetsClient, range: string): Promise<LocalizationByLang> {
+    try {
+      const byLang = parseVoiceSheet(await client.getValues(range));
+      const total = Object.values(byLang).reduce((n, entries) => n + Object.keys(entries ?? {}).length, 0);
+      log.info('Voice script updated from Google Sheets', { range, total });
+      return byLang;
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Unknown error';
+      log.warn('Voice script download failed; keeping the bundled script', { range, error: message });
+      return {};
     }
   }
 

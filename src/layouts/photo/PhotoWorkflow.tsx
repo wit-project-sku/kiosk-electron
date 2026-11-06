@@ -21,6 +21,10 @@ import { usePhotoChrome } from './photoChrome';
 import { OsanLeftNav } from '@layouts/osan/OsanLeftNav';
 import { MARKET_SUBTITLE, RESULT_KADA, resultFromSheet } from './photoTexts';
 import styles from './PhotoWorkflow.module.css';
+import { VoiceIntro } from '../jeju/voice/intro';
+
+/** 제주 voice guidance on the result page (the sheet's W008 row differs — no WIT Store). */
+const VOICE_RESULT = ['hanbok.result'] as const;
 
 /** Where the 굿즈제작 button's QR points. */
 const GOODS_URL = 'https://insarang.kr/';
@@ -286,6 +290,7 @@ export function PhotoWorkflow(): JSX.Element {
     const saveUrl = saveQrUrl(resultShareUrl, imageUrl, lang);
     return (
       <>
+        <VoiceIntro keys={VOICE_RESULT} />
         {isHwaseong ? (
           <>
             <div className={styles.bgBase} />
@@ -409,6 +414,7 @@ export function PhotoWorkflow(): JSX.Element {
 
     return (
       <>
+        <VoiceIntro keys={VOICE_RESULT} />
         {isHwaseong ? (
           <>
             <div className={styles.bgBase} />

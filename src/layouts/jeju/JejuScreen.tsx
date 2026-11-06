@@ -11,6 +11,11 @@ import type { KioskScreenId } from '@shared/types/kiosk';
 import { pick, useLang } from '@renderer/lib/i18n';
 import { JejuPageFrame } from './JejuPageFrame';
 import styles from './JejuScreen.module.css';
+import { useVoiceIntro } from './voice/intro';
+
+/** Every scaffold page is a 준비중 page; 세계유산센터 has a sentence of its own. */
+const VOICE_CENTER = ['heritage.center'] as const;
+const VOICE_PREPARING = ['state.preparing'] as const;
 
 interface Props {
   screen: KioskScreenId;
@@ -57,6 +62,7 @@ const SCREEN_LABELS: Partial<Record<KioskScreenId, string>> = {
 export function JejuScreen({ screen, controller }: Props): JSX.Element {
   const lang = useLang();
   const title = SCREEN_LABELS[screen] ?? screen;
+  useVoiceIntro(screen === 'heritage_center' ? VOICE_CENTER : VOICE_PREPARING);
 
   return (
     <JejuPageFrame controller={controller} title={title}>
