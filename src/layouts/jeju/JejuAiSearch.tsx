@@ -59,6 +59,7 @@ import type { Lang } from '@renderer/lib/i18n';
 import { sheetText, t } from '@renderer/lib/loc';
 import { aiCatLabel } from '@renderer/lib/aiCategoryLabel';
 import { AI_CATEGORIES_JEJU } from '@renderer/data/aiCategories-jeju.generated';
+import { jejuAiCategories } from '@renderer/lib/jejuAiCategories';
 import { jejuIconUrl } from '@renderer/assets/icons/jeju';
 import { COURSES } from './JejuAiResult';
 import {
@@ -891,6 +892,8 @@ export function JejuAiSearch({ controller }: Props): JSX.Element {
     setResumeQuestions(false);
   }, [setResumeQuestions]);
   const lang = useLanguageStore((s) => s.currentLanguage);
+  // tileLabel reads the downloaded AICategory_Jeju, which can land after first paint.
+  useKioskStore((s) => s.content);
   /**
    * ── The other seven languages ────────────────────────────────────────
    * Every plate on this page is the Figma's Korean size: a 268 chip for "2명",
@@ -928,7 +931,7 @@ export function JejuAiSearch({ controller }: Props): JSX.Element {
   const tileLabel = (i: number): string => {
     const meta = INTERESTS[i];
     if (lang === 'ko' && meta?.ko) return meta.ko;
-    const cat = AI_CATEGORIES_JEJU[i];
+    const cat = jejuAiCategories()[i];
     return cat ? stripRowIndex(aiCatLabel(cat, lang)) : (meta?.ko ?? '');
   };
 

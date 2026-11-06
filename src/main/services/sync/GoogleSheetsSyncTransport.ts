@@ -12,6 +12,8 @@ import { SheetsClient } from './google/SheetsClient';
 import { parseContentSheet } from './google/ContentSyncParser';
 import { parseLocalizationSheet, type LocalizationByLang } from './google/LocalizationSyncParser';
 import { parseVoiceSheet } from './google/VoiceSyncParser';
+import { parseJejuAiCategories, parseJejuAirportFacilities } from './google/JejuSheetDataParser';
+import { JEJU_AI_CATEGORIES_KEY, JEJU_AIRPORT_FACILITIES_KEY } from '@shared/constants/jejuSheetData';
 
 const log = createLogger('google-sheets-transport');
 
@@ -45,6 +47,10 @@ interface ContentSheet {
 
 /** Text-to-speech_Script: Key in B, the eight languages in E–L, notes after. */
 const JEJU_VOICE_RANGE = "'Text-to-speech_Script'!A:M";
+
+/** 제주's data tabs read at launch, and the columns each generator in sync-sheet uses. */
+const JEJU_AI_CATEGORY_RANGE = 'AICategory_Jeju!A:Z';
+const JEJU_FACILITY_RANGE = 'AirportFacilityData_Jeju!A:AJ';
 
 const CONTENT_SHEETS: Record<KioskLayoutId, ContentSheet> = {
   INSADONG: { sheetId: INSADONG_SHEET_ID, localizationRange: 'Localization_Insa!A:L' },
@@ -190,6 +196,7 @@ export class GoogleSheetsSyncTransport implements SyncTransport {
 
     this.clearStaleTranslations();
     await this.downloadTranslations(config);
+    await this.downloadJejuData(config);
     await this.downloadScreenContent(config); // best-effort; legacy "Content" tab
   }
 
@@ -271,6 +278,35 @@ export class GoogleSheetsSyncTransport implements SyncTransport {
       const message = error instanceof Error ? error.message : 'Unknown error';
       log.warn('Voice script download failed; keeping the bundled script', { range, error: message });
       return {};
+    }
+  }
+
+  /**
+   * 제주's two data tabs, into the content cache that travels with the bootstrap.
+   * Each is best-effort and independent: on a failure or an unreadable tab the
+   * kiosk keeps its last good copy, or the bundled one.
+   */
+  private async downloadJejuData(config: NonNullable<ReturnType<typeof getGoogleSyncConfig>>): Promise<void> {
+    const { sheetId, voiceRange } = this.contentSheet();
+    if (!voiceRange) return; // 제주 layouts only — they are the ones with this tab.
+    const client = new SheetsClient({ ...config, sheetId });
+    const tabs = [
+      { key: JEJU_AI_CATEGORIES_KEY, range: JEJU_AI_CATEGORY_RANGE, parse: parseJejuAiCategories },
+      { key: JEJU_AIRPORT_FACILITIES_KEY, range: JEJU_FACILITY_RANGE, parse: parseJejuAirportFacilities },
+    ];
+    for (const { key, range, parse } of tabs) {
+      try {
+        const rows = parse(await client.getValues(range));
+        if (rows.length === 0) {
+          log.warn('Sheet data tab had no readable rows; keeping the last copy', { range });
+          continue;
+        }
+        this.cache.upsert(key, { rows }, 'google_sheets');
+        log.info('Sheet data updated from Google Sheets', { range, total: rows.length });
+      } catch (error) {
+        const message = error instanceof Error ? error.message : 'Unknown error';
+        log.warn('Sheet data download failed; keeping the last copy', { range, error: message });
+      }
     }
   }
 
