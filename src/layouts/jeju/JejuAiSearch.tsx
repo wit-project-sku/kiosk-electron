@@ -116,7 +116,7 @@ const DAY_TAB: Partial<Record<Lang, (n: number) => string>> = {
   ko: (n) => `${n}일차`, en: (n) => `Day ${n}`, ja: (n) => `${n}日目`, zh: (n) => `第${n}天`,
   vi: (n) => `Ngày ${n}`, th: (n) => `วันที่ ${n}`, ru: (n) => `День ${n}`, id: (n) => `Hari ${n}`,
 };
-/** Localization_Jeju_v2's day tabs (1일차 … 4일차). A 5th day has no row and keeps DAY_TAB. */
+/** Localization_Jeju_v3's day tabs (1일차 … 4일차). A 5th day has no row and keeps DAY_TAB. */
 const DAY_TAB_KEYS = ['1st_day', '2nd_day', '3rd_day', '4th_day'];
 /**
  * ⚠ KOREAN reads the sheet; every other language takes the table above.
@@ -597,7 +597,7 @@ const NEXT_LABEL = {
 /**
  * The CTA once every question is answered — Figma 6289:54956's "코스 추천받기".
  *
- * Read from Localization_Jeju_v2's `SubmitButton` ("코스 추천받기"), the row the
+ * Read from Localization_Jeju_v3's `SubmitButton` ("코스 추천받기"), the row the
  * sheet added for this button — NOT the mascot-worded AI_SubmitButton, which
  * the v2 tab retired. This table fills the languages the row leaves empty.
  */
@@ -614,7 +614,7 @@ const SUBMIT_LABEL = {
 
 /*
  * ── Course picker copy (Figma 7088:23517, redraw of 7019:17890) ──
- * Localization_Jeju_v2 carries this page's copy (Jeju_Todo_Subtitle1*,
+ * Localization_Jeju_v3 carries this page's copy (Jeju_Todo_Subtitle1*,
  * My_Course_*, Recommended_Course_*), so the sheet is the source everywhere
  * below; these eight-language tables only fill the cells it leaves empty —
  * most of those rows are Korean-only so far.
@@ -814,7 +814,7 @@ const THEMES = [
   },
 ] as const;
 
-/** Each card's Localization_Jeju_v2 row, `Recommended_Course_{n}_subtitle/_title` —
+/** Each card's Localization_Jeju_v3 row, `Recommended_Course_{n}_subtitle/_title` —
  *  numbered in the frame's reading order, 쇼핑·로컬 included. */
 const THEME_SHEET_NO: Record<string, number> = { nature: 1, food: 2, shop: 3, family: 4 };
 
