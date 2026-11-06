@@ -46,6 +46,7 @@ import { HangulComposer } from '../insadong/keyboard/hangul';
 import type { KeyAction } from '../insadong/keyboard/VirtualKeyboard';
 import styles from './JejuHome.module.css';
 import { useVoiceIntro } from './voice/intro';
+import { VoiceToggle } from './voice/VoiceToggle';
 
 const VOICE_WEATHER = ['jeju.weather'] as const;
 
@@ -1174,6 +1175,8 @@ export function JejuHome({ controller, onSiteMarkerTap }: Props): JSX.Element {
               style={slots[i]}
               onClick={onTap}
               disabled={disabled}
+              // Its first visible text is the temperature, not what the tile is.
+              data-voice-label={tile.liveWeather ? tileLabel(tile) : undefined}
             >
               {tile.liveWeather ? (
                 /* 오늘의 날씨: a sky plate with the live condition and temperature —
@@ -1299,6 +1302,7 @@ export function JejuHome({ controller, onSiteMarkerTap }: Props): JSX.Element {
           />
         </button>
       )}
+      <VoiceToggle className={low(styles.voiceToggle, styles.voiceToggleLow)} />
 
       {/* 날씨 panel — the weather card's overlay. Its layer is z-index 20, over
           the whole (unlayered) home screen; the keyboard below is 2000, so it

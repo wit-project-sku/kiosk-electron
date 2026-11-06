@@ -22,6 +22,7 @@ import { OsanLeftNav } from '@layouts/osan/OsanLeftNav';
 import { MARKET_SUBTITLE, RESULT_KADA, resultFromSheet } from './photoTexts';
 import styles from './PhotoWorkflow.module.css';
 import { VoiceIntro } from '../jeju/voice/intro';
+import { VoiceToggle } from '../jeju/voice/VoiceToggle';
 
 /** 제주 voice guidance on the result page (the sheet's W008 row differs — no WIT Store). */
 const VOICE_RESULT = ['hanbok.result'] as const;
@@ -377,6 +378,7 @@ export function PhotoWorkflow(): JSX.Element {
               <img src={accessibilityIcon} alt="" draggable={false} />
             </button>
           )}
+          <VoiceToggle className={styles.leftNavBtn} />
         </div>
         )}
 
@@ -522,6 +524,7 @@ export function PhotoWorkflow(): JSX.Element {
                 <img src={accessibilityIcon} alt="" draggable={false} />
               </button>
             )}
+            <VoiceToggle className={styles.leftNavBtn} />
           </div>
         )}
 

@@ -136,6 +136,16 @@ const ICON_LABELS: Record<string, LangText> = {
   뒤로: { ko: '뒤로', en: 'Back', ja: '戻る', zh: '返回', vi: 'Quay lại', th: 'ย้อนกลับ', ru: 'Назад', id: 'Kembali' },
   홈: { ko: '홈', en: 'Home', ja: 'ホーム', zh: '首页', vi: 'Trang chủ', th: 'หน้าแรก', ru: 'Главная', id: 'Beranda' },
   홈으로: { ko: '홈으로', en: 'Home', ja: 'ホームへ', zh: '回首页', vi: 'Về trang chủ', th: 'กลับหน้าแรก', ru: 'На главную', id: 'Ke beranda' },
+  '음성 안내': {
+    ko: '음성 안내',
+    en: 'Voice guidance',
+    ja: '音声案内',
+    zh: '语音导览',
+    vi: 'Hướng dẫn bằng giọng nói',
+    th: 'เสียงนำทาง',
+    ru: 'Голосовой гид',
+    id: 'Panduan suara',
+  },
   '저상 화면': {
     ko: '배리어프리 화면',
     en: 'Barrier-free layout',

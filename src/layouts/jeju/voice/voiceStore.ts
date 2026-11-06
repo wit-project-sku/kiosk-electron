@@ -1,5 +1,8 @@
 import { create } from 'zustand';
 
+/** Fired on `window` by the rail's button; useJejuVoice owns what turning on and off says. */
+export const VOICE_TOGGLE_EVENT = 'jeju-voice-toggle';
+
 /** Utterance volume for each step of the 7 / 8 keys. Low by default: a public hall. */
 export const VOLUME_STEPS = [0.2, 0.4, 0.6, 0.8, 1] as const;
 export const DEFAULT_VOLUME_STEP = 1;
