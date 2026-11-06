@@ -79,9 +79,9 @@ const OR_MORE: Record<VoiceLang, string> = {
 export function speakable(text: string, lang: VoiceLang): string {
   return text
     .replace(/(\d)\s*[~～∼]\s*(?=\d)/g, `$1 ${RANGE_WORD[lang]} `)
-    .replace(/\s*[~～∼]+\s*$/gm, (_m, offset: number, all: string) =>
-      /\d\s*\S*$/.test(all.slice(0, offset)) ? ` ${OR_MORE[lang]}` : '',
-    )
+    // A number and its unit, then the sign, with no second number: "10명~." — the
+    // focus templates add a period or "선택됨" after it, so it is rarely line-final.
+    .replace(/(\d[^\d~～∼\n]{0,6}?)\s*[~～∼]+(?!\s*\d)/g, `$1 ${OR_MORE[lang]}`)
     .replace(/(\d)\+/g, `$1 ${OR_MORE[lang]}`)
     .replace(/[~～∼]+/g, ' ');
 }

@@ -1301,7 +1301,13 @@ export function JejuAiSearch({ controller }: Props): JSX.Element {
             I {sheetText('My_Course_title', lang, AI_CARD.title)}
           </p>
 
-          <button type="button" className={`${styles.bigCard} ${styles.fitCard}`} onClick={openCustom}>
+          {/* data-voice-label on both kinds of card: their small line sits above the title. */}
+          <button
+            type="button"
+            className={`${styles.bigCard} ${styles.fitCard}`}
+            onClick={openCustom}
+            data-voice-label={sheetText('My_Course_title', lang, AI_CARD.title)}
+          >
             {aiArt && <img src={aiArt} alt="" className={styles.bigArt} draggable={false} />}
             <span className={styles.bigText}>
               <span className={styles.bigSub}>{sheetText('My_Course_desc1', lang, AI_CARD.sub)}</span>
@@ -1328,6 +1334,7 @@ export function JejuAiSearch({ controller }: Props): JSX.Element {
                   type="button"
                   className={`${styles.courseCard} ${styles.fitCard}`}
                   onClick={() => openTheme(theme.key)}
+                  data-voice-label={title}
                 >
                   {art && (
                     <img
