@@ -24,7 +24,6 @@ import {
 } from './core/appResourceProtocol';
 import { setupKioskPower } from './core/PowerManager';
 import { PaymentAgentManager } from './core/PaymentAgentManager';
-import { getKioskLocation } from '@shared/config/kioskLocations';
 import { database } from './database/Database';
 import { createContainer, getContainer } from './container';
 import { WindowManager } from './windows/WindowManager';
@@ -220,9 +219,13 @@ async function bootstrap(): Promise<void> {
   // Launch the embedded payment agent ONLY on kiosks with a physical card
   // terminal (hasCardTerminal — W003 남인사마당 / W004 오색시장 / W005 화성휴게소).
   // Runs as an isolated child process; best-effort.
-  if (getKioskLocation(container.kiosk.getConfig().kioskId).hasCardTerminal) {
-    paymentAgent.start();
-  }
+  //
+  // DISABLED: the kiosks run an external Node payment agent on the same
+  // 127.0.0.1:8080, and a second embedded one would fight it for the port.
+  // Re-enable by restoring the call below.
+  // if (getKioskLocation(container.kiosk.getConfig().kioskId).hasCardTerminal) {
+  //   paymentAgent.start();
+  // }
 
   // Background auto-update (electron-updater + GitHub Releases). Packaged builds
   // only. Production checks on a weekly maintenance window (UPDATE_DAY/UPDATE_TIME,
