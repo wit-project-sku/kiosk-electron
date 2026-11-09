@@ -53,6 +53,8 @@ import {
   type AirportFacility,
 } from '@renderer/data/airportFacilities-jeju.generated';
 import { pickText, type LangText } from '@renderer/data/types';
+import { JEJU_AIRPORT_FACILITIES_KEY } from '@shared/constants/jejuSheetData';
+import { useKioskStore } from '@renderer/store/kioskStore';
 import { facilityLabel, type Lang } from './i18n';
 
 export type { AirportFacility };
@@ -75,10 +77,17 @@ const GROUPS: Record<string, readonly string[]> = {
   기타: ['기타', '교통・렌터카', '항공사', '라운지・휴식', '의료'],
 };
 
-/** Sheet-category label lookup, built once from the first row carrying each. */
-const CHIP_LABELS: Record<string, LangText> = {};
-for (const f of AIRPORT_FACILITIES_JEJU) {
-  CHIP_LABELS[f.category.ko] ??= f.category;
+/**
+ * Everything derived from the sheet's rows. The bundled rows until the copy
+ * downloaded at launch arrives, then that one: see applyLiveRows at the bottom.
+ */
+interface FacilityTable {
+  rows: readonly AirportFacility[];
+  /** Sheet-category label lookup, from the first row carrying each. */
+  chipLabels: Record<string, LangText>;
+  chips: readonly string[];
+  /** See facilityImageUrl. */
+  numbers: Map<AirportFacility, number>;
 }
 
 /**
@@ -107,14 +116,40 @@ for (const f of AIRPORT_FACILITIES_JEJU) {
 export const RESTROOM_CHIP = '화장실';
 /** The catch-all category — pinned to the END of the chip row; see ORDER above. */
 const OTHER_CHIP = '기타';
-const sheetChips = Object.keys(CHIP_LABELS);
-const pinnedFirst = sheetChips.includes(RESTROOM_CHIP) ? [RESTROOM_CHIP] : [];
-const pinnedLast = sheetChips.includes(OTHER_CHIP) ? [OTHER_CHIP] : [];
-export const HELP_CHIPS: readonly string[] = [
-  ...pinnedFirst,
-  ...sheetChips.filter((c) => c !== RESTROOM_CHIP && c !== OTHER_CHIP),
-  ...pinnedLast,
-];
+
+function buildTable(rows: readonly AirportFacility[]): FacilityTable {
+  const chipLabels: Record<string, LangText> = {};
+  const numbers = new Map<AirportFacility, number>();
+  const counters: Record<string, number> = {};
+  for (const f of rows) {
+    chipLabels[f.category.ko] ??= f.category;
+    counters[f.terminal] = (counters[f.terminal] ?? 0) + 1;
+    numbers.set(f, counters[f.terminal]!);
+  }
+  const sheetChips = Object.keys(chipLabels);
+  const chips = [
+    ...(sheetChips.includes(RESTROOM_CHIP) ? [RESTROOM_CHIP] : []),
+    ...sheetChips.filter((c) => c !== RESTROOM_CHIP && c !== OTHER_CHIP),
+    ...(sheetChips.includes(OTHER_CHIP) ? [OTHER_CHIP] : []),
+  ];
+  // The one way the sheet can grow that the screen cannot absorb: see below.
+  const unreachable = chips.filter((ko) => !Object.values(GROUPS).flat().includes(ko));
+  if (unreachable.length > 0) {
+    console.warn(
+      '[airportFacilities] AirportFacilityData_Jeju categories no pictogram stands for:',
+      unreachable.join(', '),
+      '— add each to a GROUPS entry.',
+    );
+  }
+  return { rows, chipLabels, chips, numbers };
+}
+
+let table = buildTable(AIRPORT_FACILITIES_JEJU);
+
+/** Every chip the sheet's rows use, in the ORDER above. */
+export function helpChips(): readonly string[] {
+  return table.chips;
+}
 
 /**
  * The chips ONE terminal draws: HELP_CHIPS, in its order, narrowed to the
@@ -129,9 +164,9 @@ export const HELP_CHIPS: readonly string[] = [
  */
 export function chipsForTerminal(terminal: string): readonly string[] {
   const used = new Set(
-    AIRPORT_FACILITIES_JEJU.filter((f) => f.terminal === terminal).map((f) => f.category.ko),
+    table.rows.filter((f) => f.terminal === terminal).map((f) => f.category.ko),
   );
-  return HELP_CHIPS.filter((c) => used.has(c));
+  return table.chips.filter((c) => used.has(c));
 }
 
 /**
@@ -141,17 +176,8 @@ export function chipsForTerminal(terminal: string): readonly string[] {
  * its own. A new category arrives with its eight translations AND its chip for
  * free — HELP_CHIPS is built from the sheet — but until GROUPS says which
  * pictogram stands for it, that chip lights nothing at all. The failure is
- * silent on the panel, so it is said out loud at startup instead.
+ * silent on the panel, so buildTable says it out loud instead.
  */
-const routed = new Set(Object.values(GROUPS).flat());
-const unreachable = HELP_CHIPS.filter((ko) => !routed.has(ko));
-if (unreachable.length > 0) {
-  console.warn(
-    '[airportFacilities] AirportFacilityData_Jeju categories no pictogram stands for:',
-    unreachable.join(', '),
-    '— add each to a GROUPS entry.',
-  );
-}
 
 /**
  * What a chip is called on screen.
@@ -163,7 +189,7 @@ if (unreachable.length > 0) {
  * stale `initialCategory`, say); it is kept for exactly that.
  */
 export function chipLabel(chip: string, lang: Lang): string {
-  const fromSheet = CHIP_LABELS[chip];
+  const fromSheet = table.chipLabels[chip];
   return fromSheet ? pickText(fromSheet, lang) : facilityLabel(chip, lang);
 }
 
@@ -196,23 +222,17 @@ export interface AssignedPin<T> {
 
 /** The rows on one floor of one terminal, in sheet order. */
 export function facilitiesOn(terminal: string, floor: string): AirportFacility[] {
-  return AIRPORT_FACILITIES_JEJU.filter((f) => f.terminal === terminal && f.floor === floor);
+  return table.rows.filter((f) => f.terminal === terminal && f.floor === floor);
 }
 
 /**
  * Each row's number WITHIN ITS TERMINAL, in sheet order — 국내선 1..71 and
  * 국제선 1..29 today. This is the sheet's own per-terminal NO column re-derived
  * from row order (the generated file keeps sheet order and carries no NO field),
- * and it is what the facility photos under resources/help are named by.
+ * and it is what the facility photos under resources/help are named by. So a row
+ * inserted or removed mid-sheet moves the photos of the rows after it: add new
+ * rows at the end of their terminal's block.
  */
-const FACILITY_NO = new Map<AirportFacility, number>();
-{
-  const counters: Record<string, number> = {};
-  for (const f of AIRPORT_FACILITIES_JEJU) {
-    counters[f.terminal] = (counters[f.terminal] ?? 0) + 1;
-    FACILITY_NO.set(f, counters[f.terminal]!);
-  }
-}
 
 /**
  * The bundled photo of a facility row, or undefined for a row this build has
@@ -228,7 +248,7 @@ const FACILITY_NO = new Map<AirportFacility, number>();
  * were shot.
  */
 export function facilityImageUrl(facility: AirportFacility): string | undefined {
-  const no = FACILITY_NO.get(facility);
+  const no = table.numbers.get(facility);
   if (no == null) return undefined;
   const terminalKo = facility.terminal === 'domestic' ? '국내선' : '국제선';
   const file = `제주국제공항=${terminalKo}=${String(no).padStart(2, '0')}.jpg`;
@@ -297,3 +317,50 @@ export function assignFacilities<T extends PinLike>(
 
   return out;
 }
+
+/* ── The copy downloaded at launch ─────────────────────────────────────────── */
+
+let liveSource: unknown = null;
+let liveJson = '';
+let version = 0;
+const listeners = new Set<() => void>();
+
+/**
+ * Take the rows main downloaded, when they can be trusted. A wayfinding screen
+ * should not lose most of its directory to a half-deleted tab, so a table under
+ * half the bundled size, or a row missing what the map keys on, keeps what is
+ * showing. Identical rows are ignored: the pairing and any open card stay put.
+ */
+function applyLiveRows(): void {
+  const rows = useKioskStore.getState().getContent(JEJU_AIRPORT_FACILITIES_KEY)?.data['rows'];
+  if (rows === liveSource || !Array.isArray(rows)) return;
+  liveSource = rows;
+  const candidate = rows as AirportFacility[];
+  const usable =
+    candidate.length >= AIRPORT_FACILITIES_JEJU.length / 2 &&
+    candidate.every((f) => f.name?.ko && f.category?.ko && (f.terminal === 'domestic' || f.terminal === 'international'));
+  if (!usable) {
+    console.warn('[airportFacilities] Ignoring downloaded AirportFacilityData_Jeju', { rows: candidate.length });
+    return;
+  }
+  const json = JSON.stringify(candidate);
+  if (json === liveJson || json === JSON.stringify(table.rows)) return;
+  liveJson = json;
+  table = buildTable(candidate);
+  version += 1;
+  listeners.forEach((listener) => listener());
+}
+
+/** For useSyncExternalStore: which table is current, so a page can re-pair its pins. */
+export function facilityTableVersion(): number {
+  return version;
+}
+export function subscribeFacilityTable(listener: () => void): () => void {
+  listeners.add(listener);
+  return () => listeners.delete(listener);
+}
+
+applyLiveRows();
+useKioskStore.subscribe((state, prev) => {
+  if (state.content !== prev.content) applyLiveRows();
+});

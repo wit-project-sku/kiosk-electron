@@ -49,6 +49,7 @@ import { JejuExchange } from './JejuExchange';
 import { JejuRentcar } from './JejuRentcar';
 import { JejuFillme } from './fillme/JejuFillme';
 import { useJejuKeypad } from './keypad/useJejuKeypad';
+import { useJejuVoice } from './voice/useJejuVoice';
 import maintenanceUrl from '@renderer/assets/icons/jeju/maintenance.jpg';
 import { MAINTENANCE_KIOSKS, readMaintenanceLifted, useMultiTap, writeMaintenanceLifted } from './maintenance';
 
@@ -61,16 +62,15 @@ const MAINTENANCE_STYLE: CSSProperties = {
   objectFit: 'cover',
 };
 
-/** The notice's hidden switch: the leftmost of the three tangerines at the top
- *  right of the art (centre ≈ x1547 y250, ~195 across on the 2160×3840 canvas),
- *  padded a little for a mouse. Move it with the art if the image changes. */
+/** The notice's hidden switch: the small plane in the sky of the art (x588–679,
+ *  y764–805 on the 2160×3840 canvas), padded a little for a mouse. Move it with the
+ *  art if the image changes. */
 const MAINTENANCE_SWITCH_STYLE: CSSProperties = {
   position: 'absolute',
-  left: 1437,
-  top: 140,
-  width: 220,
-  height: 220,
-  borderRadius: '50%',
+  left: 558,
+  top: 734,
+  width: 151,
+  height: 101,
 };
 
 /** Theme the shared AR 한복 photo workflow with the 제주 orange (#ff7f0f, the
@@ -150,13 +150,13 @@ const WEB_SCREENS: readonly WebScreen[] = [
 ];
 
 /**
- * 제주공항 W008 (2026-10-29): 탐나오 and 제주큐랑 are two home buttons now, so
- * each opens its OWN page — the site alone, no tab row. Same chrome as the
- * two-tab page (the QR row hands over whichever site is showing); the panel
- * takes the tab row's band (see JejuWebScreen's single-site metrics).
- * W009/W010 keep the two-tab page above.
+ * 제주공항 W008 (2026-10-29) and 여객터미널 W009: 탐나오 and 제주큐랑 are two home
+ * buttons now, so each opens its OWN page — the site alone, no tab row. Same
+ * chrome as the two-tab page (the QR row hands over whichever site is showing);
+ * the panel takes the tab row's band (see JejuWebScreen's single-site metrics).
+ * W010 keeps the two-tab page above.
  */
-const WEB_SCREENS_AIRPORT: readonly WebScreen[] = WEB_SCREENS.flatMap((web): WebScreen[] =>
+const WEB_SCREENS_SPLIT: readonly WebScreen[] = WEB_SCREENS.flatMap((web): WebScreen[] =>
   web.screen === 'tamnao'
     ? [
         { ...web, title: '탐나오', tabs: undefined },
@@ -174,10 +174,10 @@ const WEB_SCREENS_AIRPORT: readonly WebScreen[] = WEB_SCREENS.flatMap((web): Web
 
 /** Which pages a 제주 kiosk keeps warm. Mirrors JejuHome's grid choice: the
  *  airport layout is the default (a test rig previewing 제주 gets it too), and
- *  only W009/W010 — whose homes still draw the 탐나오·제주큐랑 tile — keep the
+ *  only W010 — whose home still draws the 탐나오·제주큐랑 tile — keeps the
  *  two-tab page. */
 const webScreensFor = (kioskId: string): readonly WebScreen[] =>
-  kioskId === 'W009' || kioskId === 'W010' ? WEB_SCREENS : WEB_SCREENS_AIRPORT;
+  kioskId === 'W010' ? WEB_SCREENS : WEB_SCREENS_SPLIT;
 
 type WebScreenKey = WebScreen['screen'];
 
@@ -196,10 +196,14 @@ export function JejuKiosk(): JSX.Element {
   // 제주 only: no other venue has the hardware. See the hook's header.
   useJejuKeypad(controller);
 
-  const [maintenanceLifted, setMaintenanceLifted] = useState(readMaintenanceLifted);
+  const [maintenanceLifted, setMaintenanceLifted] = useState(() =>
+    readMaintenanceLifted(controller.kioskId),
+  );
   const maintenanceKiosk = MAINTENANCE_KIOSKS.has(controller.kioskId);
-  // Five quick mouse clicks flip between the notice and the app — the "JEJU"
-  // marker on the home screen, the leftmost tangerine on the notice (maintenance.ts).
+  // 음성 안내 — off until the keypad turns it on. See voice/useJejuVoice.
+  useJejuVoice(controller, !maintenanceKiosk || maintenanceLifted);
+  // Five quick mouse clicks flip between the notice and the app — the small plane
+  // in the home screen's top bar and the one in the notice's art (maintenance.ts).
   const toggleMaintenance = useCallback(() => {
     setMaintenanceLifted((lifted) => {
       writeMaintenanceLifted(!lifted);
@@ -210,11 +214,11 @@ export function JejuKiosk(): JSX.Element {
 
   const cur = controller.screen;
 
-  // 제주공항 is under system maintenance: the whole screen is the 점검 중 notice
-  // and nothing behind it can be reached by a visitor (touch or keypad). Staff
-  // switch it off with five quick MOUSE clicks on the leftmost tangerine and
-  // back on the same way from the home screen's "JEJU" marker (maintenance.ts).
-  // Only that tangerine listens, and only to a mouse.
+  // Under system maintenance the whole screen is the 점검 중 notice and nothing
+  // behind it can be reached by a visitor (touch or keypad). Staff switch it off
+  // with five quick MOUSE clicks on the plane in the art and back on the same way
+  // from the plane in the home screen's top bar (maintenance.ts).
+  // Only that plane listens, and only to a mouse.
   if (maintenanceKiosk && !maintenanceLifted) {
     return (
       <KioskArtboard>
@@ -231,7 +235,7 @@ export function JejuKiosk(): JSX.Element {
   ) : cur === 'home' ? (
     <JejuHome
       controller={controller}
-      onSiteMarkerTap={maintenanceKiosk ? onMaintenanceSwitchTap : undefined}
+      onPlaneTap={maintenanceKiosk ? onMaintenanceSwitchTap : undefined}
     />
   ) : cur === 'language' ? (
     <JejuLanguage controller={controller} />

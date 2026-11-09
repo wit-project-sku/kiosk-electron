@@ -180,13 +180,17 @@ export function jejuMascot(): JejuMascot {
  *  i18n's TITLE_KEYS maps to the sheet's MainButton_Airport_Guide row. */
 export const AIRPORT_GUIDE_TITLE = '제주공항 안내';
 
+/** W009's 도와줘 page, renamed with its home card. i18n's TITLE_KEYS maps it to
+ *  the sheet's MainButton_Terminal_Guide row. */
+export const TERMINAL_GUIDE_TITLE = '여객터미널 안내';
+
 /**
- * The 도와줘 page's header id: 제주공항 안내 on the airport, the mascot's
- * 도와줘 elsewhere. Mirrors JejuHome's TILES_BY_KIOSK — W009 and W010 draw their
- * own grids and keep 도와줘; every other 제주 kiosk draws the airport grid,
- * whose tile already reads 제주공항 안내, so its page must say the same.
+ * The 도와줘 page's header id, matching the home card that opens it. Mirrors
+ * JejuHome's TILES_BY_KIOSK: W009 reads 여객터미널 안내, W010 keeps the mascot's
+ * 도와줘, and every other 제주 kiosk draws the airport grid (제주공항 안내).
  */
 export function jejuHelpTitle(): string {
   const { kioskId } = useKioskStore.getState().config;
-  return kioskId === 'W009' || kioskId === 'W010' ? jejuMascot().helpTitle : AIRPORT_GUIDE_TITLE;
+  if (kioskId === 'W009') return TERMINAL_GUIDE_TITLE;
+  return kioskId === 'W010' ? jejuMascot().helpTitle : AIRPORT_GUIDE_TITLE;
 }

@@ -36,6 +36,7 @@ import { createLogger } from '@main/core/logger';
 import type { KioskService } from '@main/services/KioskService';
 import type { UpdateService } from './UpdateService';
 import { UpdateStateStore } from './UpdateStateStore';
+import type { HealthReporter } from '../core/HealthReporter';
 
 const DEFAULT_API_BASE = 'https://api-v3.witteria.com';
 
@@ -65,6 +66,7 @@ export class UpdateCommandService {
   constructor(
     private readonly updater: UpdateService,
     private readonly kiosk: KioskService,
+    private readonly health?: HealthReporter,
   ) {}
 
   /** Begin polling. No-op if already started or running unpackaged. */
@@ -106,7 +108,7 @@ export class UpdateCommandService {
   private endpoint(): string {
     if (process.env['UPDATE_COMMAND_API_URL']) return process.env['UPDATE_COMMAND_API_URL'];
     const base = (process.env['WITTERIA_API_BASE'] || DEFAULT_API_BASE).replace(/\/+$/, '');
-    return `${base}/api/kiosks/${this.kiosk.kioskNum()}/update-command`;
+    return `${base}/api/kiosks/${this.kiosk.identityNum()}/update-command`;
   }
 
   private arm(delayMs: number): void {
@@ -170,7 +172,9 @@ export class UpdateCommandService {
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), FETCH_TIMEOUT_MS);
     try {
-      const res = await fetch(url, { signal: controller.signal });
+      // The poll doubles as the liveness signal; the headers tell the server which
+      // version runs here and how much memory the main process holds.
+      const res = await fetch(url, { signal: controller.signal, headers: this.health?.signalHeaders() });
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const json = (await res.json()) as UpdateCommandPayload;
       if (this.failures > 0) {

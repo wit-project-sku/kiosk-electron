@@ -209,6 +209,7 @@ const api: KioskBridge = {
       invoke(IpcChannels.KioskSetScreen, { screen, buttonId: buttonId ?? null }),
     playWeatherVideo: (key) => invoke(IpcChannels.KioskPlayWeatherVideo, { key }),
     switchLocation: (kioskId) => invoke(IpcChannels.KioskSwitchLocation, { kioskId }),
+    applySetup: (kioskId) => invoke(IpcChannels.KioskSetupApply, { kioskId }),
   },
   shops: {
     list: () => invoke(IpcChannels.ShopsList),

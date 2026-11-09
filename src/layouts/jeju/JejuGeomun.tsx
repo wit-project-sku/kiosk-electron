@@ -357,7 +357,7 @@ export function JejuGeomun({ controller }: Props): JSX.Element {
       >
         {tab === 'intro' && (
           <>
-            <div className={styles.introPanel}>
+            <div className={styles.introPanel} data-voice-more>
               <div className={styles.introPhoto}>
                 <img src={geomunPhoto} alt="" draggable={false} />
               </div>
@@ -399,7 +399,7 @@ export function JejuGeomun({ controller }: Props): JSX.Element {
           <>
             {noticeBox}
 
-            <div className={styles.guidePanel}>
+            <div className={styles.guidePanel} data-voice-more>
               <div className={styles.guideBar}>
                 <ul>
                   {GUIDE_BAR.map((c) => (
@@ -501,7 +501,7 @@ export function JejuGeomun({ controller }: Props): JSX.Element {
 
         {tab === 'reserve' && (
           <div className={styles.reserveHold}>
-            <p className={styles.reserveHoldText}>{pick(COMING_SOON, lang)}</p>
+            <p className={styles.reserveHoldText} data-voice-state="preparing">{pick(COMING_SOON, lang)}</p>
           </div>
         )}
       </div>

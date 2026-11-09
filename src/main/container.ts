@@ -14,6 +14,7 @@ import { PhotoSessionRepository } from './database/repositories/PhotoSessionRepo
 import { FootfallRepository } from './database/repositories/FootfallRepository';
 import { HeightRepository } from './database/repositories/HeightRepository';
 import { TranslationRepository } from './database/repositories/TranslationRepository';
+import { PhotoArchiveRepository } from './database/repositories/PhotoArchiveRepository';
 import { ImageService } from './services/ImageService';
 import { SettingsService } from './services/SettingsService';
 import { DisplayService } from './services/DisplayService';
@@ -50,13 +51,16 @@ import { GoogleDriveService } from './services/drive/GoogleDriveService';
 import { PhotoGenerationService } from './services/photo/PhotoGenerationService';
 import { ImageHostService } from './services/photo/ImageHostService';
 import { PhotoWorkflowService } from './services/photo/PhotoWorkflowService';
+import { PhotoArchiveService } from './services/photoArchive/PhotoArchiveService';
 import { MotionGameService } from './services/motion/MotionGameService';
 import { FootfallService } from './services/footfall/FootfallService';
 import { FootfallUploader } from './services/footfall/FootfallUploader';
 import { HeightService } from './services/height/HeightService';
 import { ZedSidecarManager } from './core/ZedSidecarManager';
+import { appPaths } from './core/paths';
 import { UpdateService } from './updater/UpdateService';
 import { UpdateCommandService } from './updater/UpdateCommandService';
+import { HealthReporter } from './core/HealthReporter';
 
 export interface AppContainer {
   database: Database;
@@ -76,6 +80,8 @@ export interface AppContainer {
   drive: GoogleDriveService;
   photoGeneration: PhotoGenerationService;
   photoWorkflow: PhotoWorkflowService;
+  /** 사진 보관 — copies the photo folder (original + composite) to the server for Google Drive. */
+  photoArchive: PhotoArchiveService;
   /** 제주 모션 게임 — which camera game Monitor 2 is running. */
   motionGame: MotionGameService;
   translations: TranslationService;
@@ -102,6 +108,7 @@ export interface AppContainer {
   traffic: TrafficService;
   updater: UpdateService;
   updateCommands: UpdateCommandService;
+  health: HealthReporter;
   /** 유동인구 — anonymous passer-by counting (camera pipeline lives in the renderer). */
   footfall: FootfallService;
   /** Nightly 21:30 push of the day's 유동인구 counts. */
@@ -173,6 +180,15 @@ export function createContainer(): AppContainer {
     kiosk,
   );
   const photoWorkflow = new PhotoWorkflowService(display, camera);
+  // 사진 보관. Reads the photo folder CaptureService writes to — it never hooks
+  // the capture flow itself, so nothing above needs to know it exists.
+  const photoArchive = new PhotoArchiveService({
+    store: new PhotoArchiveRepository(database),
+    // The machine's own id, not the preview site's: the W200 test rig must stay
+    // 200 (excluded by the server) instead of archiving as the venue it previews.
+    kioskNum: () => kiosk.identityNum(),
+    photoDir: () => appPaths.generated,
+  });
 
   // 유동인구. The service decides WHEN counting may run, and it decides it by
   // watching the photo workflow and the customer display — the two things that
@@ -204,7 +220,8 @@ export function createContainer(): AppContainer {
   // no competing installs). Hence the updater is built here rather than inline
   // in the container literal below.
   const updater = new UpdateService();
-  const updateCommands = new UpdateCommandService(updater, kiosk);
+  const health = new HealthReporter(kiosk);
+  const updateCommands = new UpdateCommandService(updater, kiosk, health);
 
   const sync = new SyncService(syncRepo, analyticsRepo, failedRequests, cache, photoGeneration);
   sync.setTransport(SyncService.createTransport(cache, failedRequests, kiosk, translations));
@@ -229,6 +246,7 @@ export function createContainer(): AppContainer {
     drive,
     photoGeneration,
     photoWorkflow,
+    photoArchive,
     motionGame,
     translations,
     weather,
@@ -250,6 +268,7 @@ export function createContainer(): AppContainer {
     traffic,
     updater,
     updateCommands,
+    health,
     footfall,
     footfallUploader,
     height,

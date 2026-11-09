@@ -109,7 +109,7 @@ function packagedBuildChannel(): string {
  * beta path without packaging anything.
  */
 export const isBetaBuild = (): boolean =>
-  packagedBuildChannel() === 'beta' || resolveUpdateChannel() === 'beta';
+  packagedBuildChannel() === 'beta' || resolveUpdateChannel() !== 'latest';
 
 /**
  * Point this process at its own state directory, and tell Windows which app it

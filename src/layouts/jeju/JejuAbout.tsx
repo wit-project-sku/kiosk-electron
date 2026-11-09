@@ -63,8 +63,17 @@ import cultureStone from '@renderer/assets/photos/jeju/about/culture-stone.jpg';
 import cultureLiving from '@renderer/assets/photos/jeju/about/culture-living.jpg';
 import cultureFood from '@renderer/assets/photos/jeju/about/culture-food.jpg';
 import { belowModeBar } from './lowReach';
+import { useVoiceIntro } from './voice/intro';
 
 type TabId = 'history' | 'culture' | 'attractions';
+
+/** Voice intro per tab — the two long-text tabs offer key 2's full reading. */
+const VOICE_INTROS: Record<TabId, readonly string[]> = {
+  attractions: ['jeju.about.sights'],
+  history: ['jeju.about.history', 'global.more.hint'],
+  culture: ['jeju.about.culture', 'global.more.hint'],
+};
+const VOICE_SPOT = ['jeju.spot.detail'] as const;
 
 /**
  * Tabs — 관광명소 FIRST, then the frames' 역사 / 문화.
@@ -333,6 +342,7 @@ export function JejuAbout({ controller }: Props): JSX.Element {
   const [jamo, setJamo] = useState<Chosung | null>(null);
   /** The 관광명소 drill-down; null is the card grid. */
   const [spot, setSpot] = useState<Shop | null>(null);
+  useVoiceIntro(spot ? VOICE_SPOT : VOICE_INTROS[tab]);
   /**
    * The ids the map is showing, or null for "the map is not narrowing anything"
    * — its opening fit-to-all view, and after 전체 보기. The two are different
@@ -637,6 +647,7 @@ export function JejuAbout({ controller }: Props): JSX.Element {
         <div
           ref={scrollRef}
           className={`${styles.culturePanel} ${lowReach ? styles.culturePanelLow : ''}`}
+          data-voice-more
         >
           <header className={styles.cultureHeader}>
             <h2 className={styles.cultureTitle}>
@@ -674,6 +685,7 @@ export function JejuAbout({ controller }: Props): JSX.Element {
         <div
           ref={scrollRef}
           className={`${styles.historyPanel} ${lowReach ? styles.historyPanelLow : ''}`}
+          data-voice-more
         >
           <div className={styles.historyIntroRow}>
             <div className={styles.historyGallery}>
@@ -860,7 +872,7 @@ export function JejuAbout({ controller }: Props): JSX.Element {
                 )}
 
                 {listedSpots.length > 0 ? (
-                  <div className={styles.spotGrid}>
+                  <div className={styles.spotGrid} data-voice-list>
                     {listedSpots.map((s) => (
                       <JejuAttractionCard
                         key={s.id}
@@ -878,7 +890,7 @@ export function JejuAbout({ controller }: Props): JSX.Element {
                     ))}
                   </div>
                 ) : (
-                  <p className={styles.empty}>
+                  <p className={styles.empty} data-voice-state={spots.length === 0 ? 'preparing' : 'empty'}>
                     {pick(
                       spots.length === 0
                         ? COMING_SOON

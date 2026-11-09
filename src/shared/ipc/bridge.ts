@@ -56,6 +56,7 @@ import type { JejuFlightSnapshot } from '../types/jejuFlight';
 import type { JejuSailingSnapshot } from '../types/jejuSailing';
 import type { WeatherPlayKey } from '../config/weatherVideo';
 import type { KioskLocationCode } from '../config/kioskLocations';
+import type { SetupSiteCode } from '../config/kioskSetup';
 import type { ExchangeSnapshot } from '../types/exchange';
 import type { VideoEntry, VideoFilesBySet } from '../types/subtitle';
 import type { Shop } from '../types/shop';
@@ -261,6 +262,9 @@ export interface KioskBridge {
     /** Dev-mode only: persist a new kiosk id and relaunch the app as that
      *  location. On success the process exits, so this never resolves. */
     switchLocation(kioskId: KioskLocationCode): Promise<Result<boolean>>;
+    /** 지점 설정: asks to confirm, then makes this PC `kioskId` and restarts (a packaged build
+     *  never resolves then). `false` = the person chose not to change it. */
+    applySetup(kioskId: SetupSiteCode): Promise<Result<boolean>>;
   };
   /** Cached shop catalogue (from the witteria API, refreshed on launch + nightly). */
   shops: {

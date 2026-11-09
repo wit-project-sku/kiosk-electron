@@ -23,6 +23,7 @@ import { ui, type UiTextKey } from '@renderer/lib/uiText';
 import { trackEvent } from '@renderer/lib/analytics';
 import { JejuPageFrame } from './JejuPageFrame';
 import { belowModeBar, LOW_REACH_BANNER_HEIGHT } from './lowReach';
+import { removeInsertedCssSafely } from './webviewCss';
 import styles from './JejuWebScreen.module.css';
 
 /** The slice of Electron's WebviewTag this screen drives. */
@@ -210,9 +211,9 @@ function EmbedPane({
       wv.removeEventListener('dom-ready', apply);
       wv.removeEventListener('did-navigate', apply);
       wv.removeEventListener('did-navigate-in-page', apply);
-      if (cssKey && wv.removeInsertedCSS) {
-        void wv.removeInsertedCSS(cssKey).catch(() => {});
-      }
+      // Never throw from here: a webview unmounted with its page (the 점검 notice
+      // replacing the whole tree) throws synchronously — see webviewCss.ts.
+      removeInsertedCssSafely(wv, cssKey);
     };
   }, [css]);
 

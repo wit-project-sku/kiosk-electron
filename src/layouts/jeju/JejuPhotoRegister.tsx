@@ -187,6 +187,7 @@ export function JejuPhotoRegister({ onSubmit, onOpenPolicy }: Props): JSX.Elemen
         <button
           type="button"
           className={`${styles.field} ${styles.fieldHeight}`}
+          data-voice-label={pick(HEIGHT, lang)}
           onClick={() => {
             setPicker(false);
             setKeypad(true);

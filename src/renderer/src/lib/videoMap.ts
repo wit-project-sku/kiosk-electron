@@ -86,6 +86,17 @@ export function initVideoFiles(bySet: VideoFilesBySet): void {
   }
 }
 
+/**
+ * How many distinct clips `kioskId`'s video set has in a VideosList result —
+ * counted the way initVideoFiles resolves them (a 제주 set includes the
+ * pre-split shared folder). The 지점 설정 screen warns when a site has none.
+ */
+export function siteVideoCount(bySet: VideoFilesBySet, kioskId: KioskId): number {
+  const set = videoSetFor(kioskId);
+  const folders: (keyof VideoFilesBySet)[] = JEJU_SETS.includes(set) ? [set, ...LEGACY_VIDEO_SETS] : [set];
+  return new Set(folders.flatMap((folder) => (bySet[folder] ?? []).map(norm))).size;
+}
+
 /** Every playable video URL in a set, in listing order (generic attract wall). */
 export function videoUrlsForSet(set: VideoSet): string[] {
   return FILES_BY_SET[set].map(mediaUrl);

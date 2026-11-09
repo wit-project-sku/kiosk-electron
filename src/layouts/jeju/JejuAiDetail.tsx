@@ -241,7 +241,7 @@ const startPlaceLabel = (kioskId: string, lang: Lang): string => {
 };
 
 /**
- * The themed courses' names, from Localization_Jeju_v2's `Recommended_Course_{n}_title`
+ * The themed courses' names, from Localization_Jeju_v3's `Recommended_Course_{n}_title`
  * — the same rows the landing's cards read, numbered in the landing's order, so
  * 쇼핑·로컬 now has one too. COURSE_META's copy only fills a cell the sheet leaves
  * empty. The v2 tab retired the per-course A/B/C rows, tags included, so tags
@@ -1326,7 +1326,7 @@ export function JejuAiDetail({ controller }: Props): JSX.Element {
         /* A day with no stops at all is the "we found nothing" case; a day whose
            stops were all filtered out is a different sentence, and saying the
            first there would send the visitor back to redo a search that worked. */
-        <p className={themed ? `${styles.empty} ${styles.emptyTheme}` : styles.empty}>
+        <p className={themed ? `${styles.empty} ${styles.emptyTheme}` : styles.empty} data-voice-state="empty">
           {pick(T.empty, lang)}
         </p>
       ) : (
