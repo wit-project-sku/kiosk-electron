@@ -1,0 +1,246 @@
+/**
+ * Shared frame for every 롯데 sub-page (시안 A): flat background + a red band, header, left nav
+ * and bottom banner. Adapted from JejuPageFrame; its ♿ props stay so the two can be compared.
+ */
+import type { CSSProperties, ReactNode } from 'react';
+import type { KioskController } from '@renderer/hooks/useKioskController';
+import { lotteIconUrl } from '@renderer/assets/icons/lotte';
+import { useRotatingBanner } from '@renderer/hooks/useRotatingBanner';
+import { sheetText } from '@renderer/lib/loc';
+import type { Lang } from '@renderer/lib/i18n';
+import { useAccessibilityStore } from '@renderer/store/accessibilityStore';
+import { useLanguageStore } from '@renderer/store/languageStore';
+import { LotteHeader } from './LotteHeader';
+import { modeBarVars } from './lowReach';
+import styles from './LottePageFrame.module.css';
+
+/** Fallback — sheet `BarrierFree_Title`. */
+const BARRIER_FREE: Partial<Record<Lang, string>> = {
+  ko: '지금은 배리어프리 모드입니다.',
+  en: 'Currently in Barrier-Free Mode.',
+  ja: '現在はバリアフリーモードです。',
+  zh: '现在是无障碍模式。',
+  vi: 'Hiện tại là chế độ không rào cản.',
+  th: 'ขณะนี้อยู่ในโหมดไร้อุปสรรค',
+  ru: 'В настоящее время используется безбарьерный режим.',
+  id: 'Saat ini dalam mode bebas hambatan.',
+};
+
+interface Props {
+  controller: KioskController;
+  /** Header title (Korean id — localized by LotteHeader). */
+  title: string;
+  /** Optional header subtitle; omitted means "use the sheet, else hide". */
+  subtitle?: string;
+  /** Override the back button (defaults to going home, like the other layouts). */
+  onBack?: () => void;
+  /**
+   * Show the bottom 한복 banner. Off for pages whose content runs past y3267 —
+   * the AI search page ends at y3591, so a banner would sit on top of its CTA.
+   */
+  showBanner?: boolean;
+  /**
+   * lotteIconUrl key for the bundled banner shown when the API has no active
+   * one. Defaults to the 한복 promo; the search-detail page carries its own
+   * (상점 검색 promo), so the artwork is per-page, not per-layout.
+   */
+  bannerFallback?: string;
+  /**
+   * lotteIconUrl key for a 2160×1181 hero banner that opens the LOW-REACH layout
+   * (see .rootLowReachHero). Set it on pages too tall to shift down 573px: the
+   * frame draws the hero at y0 and moves the header to y1206, and the screen
+   * itself lays its body out at the coordinates its low-reach frame specifies.
+   * Only consulted while ♿ is on; the standard layout never draws it.
+   */
+  lowReachHero?: string;
+  /**
+   * Low-reach only: this screen positions its own body at the coordinates its
+   * low-reach frame specifies, so the frame must NOT also shift it. The header
+   * and banner still move. See .rootBodyUnshifted.
+   */
+  lowReachSelfLayout?: boolean;
+  /**
+   * Draw the page banner at the top in LOW-REACH even though the standard
+   * layout has none (`showBanner={false}`). 도와줘 상세 gives its banner up
+   * whenever it draws a 다음 장소 stack, yet its low-reach frame opens with the
+   * 573 promo, and the header follows it down exactly as it does for the pages
+   * that always carry one.
+   *
+   * 도와줘 '하영' itself used to be the case this was written for; its
+   * 2026-09-09 frame carries the promo in BOTH layouts, so it just keeps the
+   * default `showBanner` now.
+   */
+  lowReachBanner?: boolean;
+  /**
+   * The 2026-08-26 revised low-reach shape: the promo banner disappears
+   * entirely and a 113px mode bar overlays the top of the page instead. How far
+   * the header and body drop varies PER PAGE (measured from each revised
+   * frame, not derived): 언어선택 113/420, 검색 상세 687/687, 검색 0/0 — so the
+   * offsets ride along as props. Opt-in per page while the remaining pages'
+   * revised frames are still arriving; supersedes the plain re-stack where set.
+   */
+  lowReachModeBar?: boolean;
+  /** Header offset (px) while ♿ is on with the mode-bar shape. Default 0. */
+  lowReachShift?: number;
+  /** Body offset (px) while ♿ is on with the mode-bar shape. Default 0. */
+  lowReachBodyShift?: number;
+  /**
+   * Mode-bar shape only: KEEP the promo banner, drawn directly under the bar
+   * (y113–686). 검색 상세 is the page that wants this — its ♿ frame's y687
+   * header is exactly bar (113) + banner (573) + Figma's 1px round-up, and the
+   * user confirmed the banner stays (the frame just doesn't carry the node).
+   * Pages whose revised frames genuinely drop the banner (언어선택, AI 결과)
+   * leave this off.
+   */
+  lowReachBarBanner?: boolean;
+  /** Subtitle colour override — see LotteHeader. */
+  subtitleColor?: string;
+  /** Draw the ★ before the subtitle (WIT Store omits it). */
+  subtitleStar?: boolean;
+  /** Bold subtitle — see LotteHeader. */
+  subtitleBold?: boolean;
+  /**
+   * Grey out 홈/뒤로 — in the header AND on the left rail — and make them inert.
+   * For a screen the visitor must not leave mid-way: AI 손톱 건강분석 sets it while
+   * the analysis request is in flight, where a stray 홈 tap throws away two
+   * photos the visitor has already consented to send.
+   *
+   * LotteHeader has carried this for a while (틀린그림찾기 passes it directly);
+   * the frame forwards it so a page that uses the shared chrome does not lose
+   * the rail half of it. See that prop for why the buttons stay drawn.
+   */
+  navDisabled?: boolean;
+  children?: ReactNode;
+}
+
+export function LottePageFrame({
+  controller,
+  title,
+  subtitle,
+  onBack,
+  showBanner = true,
+  bannerFallback = 'banner-page',
+  lowReachHero,
+  lowReachSelfLayout = false,
+  lowReachBanner = false,
+  lowReachModeBar = false,
+  lowReachShift = 0,
+  lowReachBodyShift = 0,
+  lowReachBarBanner = false,
+  subtitleColor,
+  subtitleStar,
+  subtitleBold,
+  navDisabled = false,
+  children,
+}: Props): JSX.Element {
+  // Live API banner when one is active, else this page's bundled promo.
+  const banner = useRotatingBanner(lotteIconUrl(bannerFallback));
+  const goHome = (): void => controller.navigate('home', '홈');
+
+  const lowReach = useAccessibilityStore((s) => s.lowReach);
+  const lang = useLanguageStore((s) => s.currentLanguage) as Lang;
+  const barrierFreeTitle = sheetText('BarrierFree_Title', lang, BARRIER_FREE);
+  /*
+   * The variant re-stacks the page around the banner, so it only applies to
+   * pages that HAVE one. `showBanner` is exactly the right test and not a
+   * coincidence: it is switched off for the pages whose content runs past
+   * y3267, and those are precisely the ones that would overflow the artboard
+   * if pushed down another 573. Their low-reach frames are still to come from
+   * Figma; until then they keep the standard layout and ♿ is a no-op there.
+   */
+  const shifted = lowReach && (showBanner || lowReachBanner);
+  /* The revised re-stack: mode bar instead of any banner (see lowReachModeBar). */
+  const modeBar = lowReach && lowReachModeBar;
+  /* Pages that opt in via `lowReachBanner` have no banner at all normally, so
+     the element itself has to appear for the low-reach layout to move it. The
+     mode-bar revision drops the banner from low-reach — except on pages that
+     keep it under the bar via `lowReachBarBanner`. */
+  const drawBanner =
+    (showBanner || (lowReach && lowReachBanner)) && (!modeBar || lowReachBarBanner);
+  /* The other low-reach shape: too tall to re-stack, so the page restarts under
+     a hero banner instead. Opt-in per page via `lowReachHero`. */
+  const heroSrc = lowReach && lowReachHero ? lotteIconUrl(lowReachHero) : undefined;
+
+  return (
+    <div
+      className={[
+        styles.root,
+        shifted && !modeBar ? styles.rootLowReach : '',
+        heroSrc ? styles.rootLowReachHero : '',
+        shifted && lowReachSelfLayout ? styles.rootBodyUnshifted : '',
+        lowReach ? styles.lowReachSideControls : '',
+      ]
+        .filter(Boolean)
+        .join(' ')}
+      /* Mode-bar shape offsets are per page, so they arrive as props and land
+         as inline vars — inline beats every class above, which is intended. */
+      style={
+        modeBar
+          ? ({
+              ...modeBarVars,
+              '--lotte-shift': `${lowReachShift}px`,
+              '--lotte-body-shift': `${lowReachBodyShift}px`,
+            } as CSSProperties)
+          : /* Unconditional on purpose: --lotte-mode-bar has no CSS-side default,
+               and `.hero` reads it whenever `lowReachHero` is set — which today
+               always comes with the bar, but would silently collapse the hero to
+               the top of the artboard on any page that took one without it. */
+            modeBarVars
+      }
+    >
+      <div className={styles.bgBase} />
+
+      {modeBar && <div className={styles.modeBar}>{barrierFreeTitle}</div>}
+
+      {heroSrc && (
+        <div className={styles.hero}>
+          <img src={heroSrc} alt="" className={styles.heroImg} draggable={false} />
+        </div>
+      )}
+
+      <LotteHeader
+        controller={controller}
+        title={title}
+        subtitle={subtitle}
+        onBack={onBack}
+        subtitleColor={subtitleColor}
+        subtitleStar={subtitleStar}
+        subtitleBold={subtitleBold}
+        navDisabled={navDisabled}
+      />
+
+      <div className={styles.body}>{children}</div>
+
+      <div className={`${styles.leftNav} ${navDisabled ? styles.leftNavOff : ''}`}>
+        {lotteIconUrl('nav-left') && (
+          <img
+            src={lotteIconUrl('nav-left')}
+            alt=""
+            className={styles.leftNavImg}
+            draggable={false}
+          />
+        )}
+        <button
+          type="button"
+          className={`${styles.leftNavZone} ${styles.leftNavHome}`}
+          onClick={goHome}
+          disabled={navDisabled}
+          aria-label="홈"
+        />
+        <button
+          type="button"
+          className={`${styles.leftNavZone} ${styles.leftNavBack}`}
+          onClick={onBack ?? goHome}
+          disabled={navDisabled}
+          aria-label="뒤로"
+        />
+      </div>
+
+      {drawBanner && (
+        <div className={`${styles.banner} ${modeBar ? styles.bannerBelowBar : ''}`}>
+          {banner && <img src={banner} alt="" className={styles.bannerImg} draggable={false} />}
+        </div>
+      )}
+    </div>
+  );
+}

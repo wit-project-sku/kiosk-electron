@@ -25,6 +25,9 @@ export const SITES = [
   'W008',
   'W009',
   'W010',
+  'W011',
+  'W012',
+  'W013',
   'W202',
 ] as const;
 export type Site = (typeof SITES)[number];

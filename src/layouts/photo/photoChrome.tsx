@@ -16,6 +16,8 @@ import { InsadongHeader } from '@layouts/insadong/InsadongHeader';
 import { OsanHeader } from '@layouts/osan/OsanHeader';
 import { HwaseongHeader } from '@layouts/hwaseong/HwaseongHeader';
 import { JejuHeader } from '@layouts/jeju/JejuHeader';
+import { LotteHeader } from '../lotte/LotteHeader';
+import { lotteIconUrl } from '@renderer/assets/icons/lotte';
 import { KadaHeader } from '@layouts/kada/KadaHeader';
 
 /** Header props common to every location header used by the photo workflow. */
@@ -46,6 +48,7 @@ export interface PhotoChrome {
   isHwaseong: boolean;
   /** 제주 replaces the whole outfit-selection step — see JejuHanbokSelect. */
   isJeju: boolean;
+  isLotte: boolean;
   /** 인사동 W001–W003 (both INSADONG and NAM_INSADONG layouts). */
   isInsadong: boolean;
   /** KADA (W202) — the venue's K-CULTURE CHALLENGE entry into this same flow. */
@@ -130,14 +133,21 @@ export function usePhotoChrome(): PhotoChrome {
   const isJeju = isJejuLayout(layout);
   const isKada = isKadaLayout(layout);
   const isInsadong = isInsadongLayout(layout);
+  const isLotte = layout === 'LOTTE';
 
   const icon = isOsan
     // Osan's content pages draw page-bg (the 70% 한옥 art), so the picker uses it too.
     ? (name: string) => osanIconUrl(name === 'bg' ? 'page-bg' : name) ?? iconUrl(name)
     : isHwaseong
       ? (name: string) => hwaseongIconUrl(name) ?? iconUrl(name)
-      : isJeju
-        ? (name: string) => jejuIconUrl(JEJU_PHOTO_ICON_ALIASES[name] ?? name) ?? iconUrl(name)
+      : isJeju || isLotte
+        ? (name: string) =>
+            // 롯데 has no ♿ mode yet, so the toggle's art resolves to nothing and is not drawn.
+            isLotte && name.startsWith('ico-accessibility')
+              ? undefined
+              : ((isLotte ? lotteIconUrl(JEJU_PHOTO_ICON_ALIASES[name] ?? name) : undefined) ??
+                jejuIconUrl(JEJU_PHOTO_ICON_ALIASES[name] ?? name) ??
+                iconUrl(name))
         : isKada
           ? // KADA ships no AR-screen art of its own — only the home furniture in
             // assets/icons/kada. Everything the capture/result steps ask for
@@ -153,7 +163,9 @@ export function usePhotoChrome(): PhotoChrome {
       ? OsanHeader
       : isHwaseong
         ? HwaseongHeader
-        : isJeju
+        : isLotte
+          ? LotteHeader
+          : isJeju
           ? JejuHeader
           : isKada
             ? KadaHeader
@@ -166,9 +178,10 @@ export function usePhotoChrome(): PhotoChrome {
     isJeju,
     isInsadong,
     isKada,
+    isLotte,
     // 인사동 joined 제주 on all three 2026-09-28; Osan/Hwaseong/KADA keep the
     // legacy picker and the timer countdown.
-    richOutfit: isJeju || isInsadong,
+    richOutfit: isJeju || isInsadong || isLotte,
     // Shared with the customer display, which draws the chips — see the helper.
     gestureCapture: usesGestureCapture(layout),
     // 화성 joined 2026-10-16 (틀린그림찾기 only, like 오산 / 인사동). Its CMS has no
@@ -186,7 +199,7 @@ export function usePhotoChrome(): PhotoChrome {
     // It doubles as the one string here that must never be Korean: KADA has no
     // Localization sheet, so a t() lookup would fall back to it.
     photoTitle: isKada ? 'KADA' : 'AR 한복체험',
-    banner: isKada
+    banner: isKada || isLotte
       ? // No promo banner at this venue, and '' is the only way to SAY that:
         // consumers resolve `chromeBanner ?? rotating`, so undefined would fall
         // back to insadong's rotating set — 인사동 shop advertising on a Hanoi

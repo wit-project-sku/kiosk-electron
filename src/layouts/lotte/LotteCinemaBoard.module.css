@@ -1,0 +1,262 @@
+/*
+ * 제주공항 (W008) 운항 정보 board — Figma 제주>홈 6439:71583 inside the redesigned
+ * home node 6439:71456 (the three 현황 conditions were 6212:48936 / 6217:96955 /
+ * 6217:97433 and are unchanged apart from type sizes).
+ *
+ * Positioned in JejuHome's frame coordinates: inside KioskArtboard 1 CSS px =
+ * 1 Figma px on the 2160×3840 artboard, so every number here is the exact value
+ * read out of the design.
+ *
+ * The board is a SIBLING of .notice in the DOM even though 운항 정보 더보기 sits
+ * inside the 공지 frame in Figma — .notice has `overflow: hidden`, and the board
+ * (top 732, height 206) has to paint over it. Keeping both at frame level and
+ * ordering the board after .notice reproduces the Figma stacking without
+ * fighting that clip.
+ *
+ * No backdrop-filter: see the long note above .notice in JejuHome.module.css —
+ * the only thing behind these panels is a flat #FBF8F3, so the blur is a
+ * measurable no-op that darkens the composite.
+ *
+ * 2026-08-24 redesign: the board rides 53px higher (785 → 732) and every type
+ * size drops one step — 운항 정보 60→55, headers 40→38, values 48→45, 더보기
+ * 35→38 — with 항공사/편명 now one size instead of two.
+ */
+.board {
+  position: absolute;
+  left: 155px;
+  top: 732px;
+  width: 1850px;
+  height: 206px;
+  border-radius: 45px;
+  background: #2A2320;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/*
+ * LOW-REACH (♿) — Figma 6442:105429 at (155, 1502), re-read 2026-09-10.
+ *
+ * The card moved up 68 with the rest of the upper block when the mode bar came
+ * down from 191 to 145.759 — see the table in JejuHome.module.css.
+ * Board lives inside the taller 공지 panel (y1066 h885); chrome is otherwise
+ * unchanged (1850×206, title 55, heads 38, values 45).
+ */
+.boardLow {
+  top: 1502px;
+}
+
+.title {
+  position: absolute;
+  left: 57px;
+  top: 76px;
+  width: 242px;
+  margin: 0;
+  font-size: 55px;
+  font-weight: 700;
+  line-height: 1;
+  color: #000;
+  white-space: nowrap;
+}
+
+/* Figma "Line 104": a 3px #C8BDA9 rule under the column headers, spanning the
+   six data columns only (it starts at 336, well right of the 운항 정보 title). */
+.rule {
+  position: absolute;
+  left: 330px;
+  top: 97px;
+  width: 1462px;
+  height: 3px;
+  background: #B8AFA4;
+}
+
+/* Header and value share one column axis and are centred on it — every column
+   in all three Figma conditions centres to within 1px. */
+.head,
+.value {
+  position: absolute;
+  line-height: 1;
+  white-space: nowrap;
+  transform: translateX(-50%);
+}
+
+/* Hung from its CENTRE — the old single line's middle, 38 + 38/2 — so a head
+   that wraps to two lines (76) fills 19…95, still clear of the rule at 97,
+   while one line lands exactly where the 38-top one did. Wrap width is capped
+   per column (HEAD_MAX in the TSX). */
+.head {
+  top: 57px;
+  transform: translate(-50%, -50%);
+  font-size: 38px;
+  font-weight: 600;
+  color: #B8AFA4;
+  text-align: center;
+  white-space: normal;
+  word-break: keep-all;
+  overflow-wrap: anywhere;
+}
+
+.value {
+  top: 118px;
+  font-size: 45px;
+  font-weight: 400;
+  color: #333;
+}
+
+.valueStatus {
+  font-weight: 500;
+}
+
+/* 항공사/편명 · 목적지 · 구분 · 현황 are text, so they wrap inside the
+   column's VALUE_MAX (TSX) rather than running into the next column. Two lines
+   (90) fill 118…208 against the 206 board — the glyphs' own leading keeps the
+   ink inside it, and 더보기's label is 34 further down. The time and the gate
+   code keep the shared nowrap. */
+.valueWrap {
+  text-align: center;
+  white-space: normal;
+  word-break: keep-all;
+  overflow-wrap: anywhere;
+}
+
+.empty {
+  position: absolute;
+  /* Past the 출발시각 axis (410) so the long loading/empty line sits in the
+     open data band rather than crowding the 운항 정보 title. A translation that
+     outruns the board's edge (1070 from here) wraps; two 40px lines end at
+     198, inside the 206 board. */
+  left: 780px;
+  top: 118px;
+  font-size: 40px;
+  font-weight: 400;
+  line-height: 1;
+  color: #999;
+  white-space: normal;
+  word-break: keep-all;
+  overflow-wrap: anywhere;
+}
+
+/* 항공사/편명 is one line at two sizes: 대한항공 at 48, (KE1141) at 40. */
+.flightNo {
+  font-size: 45px;
+}
+
+/* 현황 is the one value drawn semibold — its colour comes from
+   flightStatusColor(), so only the weight belongs here. */
+.status {
+  font-weight: 600;
+}
+
+/*
+ * Condition 2 — the flight has been re-timed. The revised time rides 15px
+ * higher (118 → 103) to make room for the original, struck through beneath it.
+ * Driven by `hasTimeChange`, NOT by the 지연 status: the two are independent.
+ */
+.valueRetimed {
+  top: 103px;
+}
+
+.timeWas {
+  position: absolute;
+  top: 159px;
+  font-size: 35px;
+  font-weight: 400;
+  line-height: 1;
+  color: #DA291C;
+  text-decoration: line-through;
+  text-decoration-skip-ink: none;
+  white-space: nowrap;
+  transform: translateX(-50%);
+}
+
+/* ── 운항 정보 더보기 ────────────────────────────────────────────────── */
+/*
+ * Figma places this inside 공지 (text at 911,677 · triangle box at 830,666),
+ * i.e. frame 991,974 and 910,963. The hit area is padded out around both — the
+ * drawn control is only 38px tall, far under a comfortable touch target.
+ */
+.more {
+  position: absolute;
+  left: 895.03px;
+  top: 955px;
+  width: 476px;
+  height: 78px;
+  padding: 0;
+  border: 0;
+  background: none;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/*
+ * Figma 6442:105429: 더보기 triangle box at y1762; hit area keeps the same 8px
+ * lead over it as standing (955 vs 963). Cross-checks on the label — .moreText
+ * sits +19 inside the hit area, and 1754 + 19 = 1773, which is exactly where the
+ * frame draws "운항 정보 더보기".
+ */
+.moreLow {
+  top: 1754px;
+}
+
+/*
+ * A plain filled triangle, drawn rather than shipped as an asset — the same
+ * call as .noticeRule in JejuHome.module.css.
+ *
+ * Figma: an 81×51 box rotated 180°, holding a 70.148×38.25 triangle inset
+ * 6.7% left/right and 1/4 from the bottom. After the rotation the visible
+ * triangle lands at frame 915.43,975.75 pointing down.
+ */
+.chevron {
+  position: absolute;
+  left: 20.4px; /* 915.43 − 895.03 */
+  top: 20.75px; /* 975.75 − 955 */
+  width: 0;
+  height: 0;
+  border-left: 35.074px solid transparent;
+  border-right: 35.074px solid transparent;
+  border-top: 38.25px solid var(--kiosk-primary, #DA291C);
+}
+
+/* Sized to its text rather than a fixed 360: the English / Indonesian 더보기
+   run ~450–800, and the 공지 panel is empty to the right of the control, so
+   they stay on one line there. Past 1000 — the panel's inner edge — it wraps
+   rather than running out of the panel. */
+.moreText {
+  position: absolute;
+  left: 96px; /* 991 − 895.03 */
+  top: 19px; /* 974 − 955 */
+  width: max-content;
+  max-width: 1000px;
+  font-size: 38px;
+  font-weight: 500;
+  line-height: 1;
+  color: var(--kiosk-primary, #DA291C);
+  text-align: left;
+  white-space: normal;
+  word-break: keep-all;
+  overflow-wrap: anywhere;
+}
+
+/*
+ * Other languages (Figma 7058:22669, the annotated 제주>홈) — "font 45 / 단
+ * 내리기": the title drops to 45px and wraps inside the note's 242×96 box at
+ * 57/60 instead of running 55px past its 242 width into the header columns.
+ * Two lines at 48 fill the 96; a title that fits on one line is centred in it.
+ * Added only when lang !== 'ko' — Korean keeps its 55px single line.
+ */
+.titleWrap {
+  top: 60px;
+  height: 96px;
+  display: flex;
+  align-items: center;
+  font-size: 45px;
+  line-height: 48px;
+  white-space: normal;
+  word-break: keep-all;
+  overflow-wrap: anywhere;
+}
+
+/* 롯데 시안 A: 어두운 시간표 판. */
+.title { color: #fff; left: 50px; width: 270px; font-size: 50px; }
+.head { color: rgba(255, 255, 255, 0.62); }
+.value { color: #fff; }
+.rule { background: rgba(255, 255, 255, 0.35); left: 340px; width: 1452px; }

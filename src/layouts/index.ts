@@ -6,6 +6,7 @@ import { OsanLayout } from './OsanLayout';
 import { HwaseongLayout } from './HwaseongLayout';
 import { JejuLayout } from './JejuLayout';
 import { KadaLayout } from './KadaLayout';
+import { LotteLayout } from './LotteLayout';
 
 const LAYOUTS: Record<KioskLayoutId, ComponentType> = {
   INSADONG: InsadongLayout,
@@ -16,10 +17,11 @@ const LAYOUTS: Record<KioskLayoutId, ComponentType> = {
   // Same screens, different mascot rows — see KioskLayoutId on the split.
   JEJU_HERITAGE: JejuLayout,
   KADA: KadaLayout,
+  LOTTE: LotteLayout,
 };
 
 export function resolveLayout(layout: KioskLayoutId): ComponentType {
   return LAYOUTS[layout];
 }
 
-export { InsadongLayout, NamInsadongLayout, OsanLayout, HwaseongLayout, JejuLayout, KadaLayout };
+export { InsadongLayout, NamInsadongLayout, OsanLayout, HwaseongLayout, JejuLayout, KadaLayout, LotteLayout };
