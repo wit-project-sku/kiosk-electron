@@ -1,12 +1,14 @@
 /**
  * 제주 voice guidance — the barrier-free keypad's spoken half.
  *
- * Off by default. While off it says nothing at all; the first keypad press of a
- * visit turns it on (that press is spent on it, so the visitor hears what the
- * pad does before anything moves — except a digit typed into an open keyboard,
- * which must not be lost). Key 3 turns it off for the rest of the visit: the
- * other keys then just work, and key 3 turns it back on. The idle reset says
- * goodbye and turns it off, alongside the language and ♿ resets.
+ * On by default at 제주공항 W008 and 여객터미널 W009, off by default elsewhere
+ * (voiceStore's ON_BY_DEFAULT). While off it says nothing at all; the first
+ * keypad press of a visit turns it on (that press is spent on it, so the visitor
+ * hears what the pad does before anything moves — except a digit typed into an
+ * open keyboard, which must not be lost). Key 3 turns it off for the rest of the
+ * visit: the other keys then just work, and key 3 turns it back on. The idle
+ * reset says goodbye and puts it back to the venue's default, alongside the
+ * language and ♿ resets.
  *
  * What it says, by layer (see speech.ts for how they share one voice):
  *   L1  the screen's intro, once per screen change and per tab / step — intro.ts
@@ -40,7 +42,7 @@ import { BACK_SELECTOR, FOCUS_EVENT, HOME_SELECTOR } from '../keypad/useJejuKeyp
 import { announceKeys, currentIntro, setPhotoIntro, speakKey } from './intro';
 import { focusLine, sheetLine, toVoiceLang } from './lines';
 import { Priority, say, stop, canSpeak, listVoices, type Line } from './speech';
-import { VOICE_TOGGLE_EVENT, useVoiceStore } from './voiceStore';
+import { VOICE_TOGGLE_EVENT, useVoiceStore, voiceOnByDefault } from './voiceStore';
 
 /** Spoken this long before the idle reset — the spec's 2m30s. */
 const IDLE_WARN_MS = IDLE_TIMEOUT_MS - 30_000;
@@ -90,6 +92,17 @@ export function useJejuVoice(controller: KioskController, enabled = true): void 
   const stateRef = useRef({ screen, photoActive, kioskId });
   stateRef.current = { screen, photoActive, kioskId };
 
+  // 제주공항 / 여객터미널 start with voice on (voiceStore's ON_BY_DEFAULT). Set
+  // silently: nobody is at the machine at boot to hear "voice guidance is on".
+  useEffect(() => {
+    useVoiceStore.getState().setDefaultOn(voiceOnByDefault(kioskId));
+  }, [kioskId]);
+
+  // Someone has touched the kiosk since the last idle reset. Where voice is on by
+  // default the idle timers run on an empty hall too, and must not warn and say
+  // goodbye to nobody after every boot.
+  const visitedRef = useRef(false);
+
   useEffect(() => {
     const root = (): ParentNode => document.querySelector('[data-kiosk-artboard]') ?? document;
     const lang = () => toVoiceLang(useLanguageStore.getState().currentLanguage);
@@ -129,6 +142,7 @@ export function useJejuVoice(controller: KioskController, enabled = true): void 
     const onKeyDown = (e: KeyboardEvent): void => {
       if (e.ctrlKey || e.altKey || e.metaKey || e.key === 'Shift') return;
       if (!enabledRef.current || !isPadKey(e)) return;
+      visitedRef.current = true;
 
       const typing = root().querySelector(TYPING_SELECTOR) !== null;
       const isDigit = !e.shiftKey && /^[0-9]$/.test(e.key);
@@ -213,7 +227,10 @@ export function useJejuVoice(controller: KioskController, enabled = true): void 
     };
 
     // A touch interrupts too; only the rail's own button turns voice on by touch.
-    const onPointerDown = (): void => stop();
+    const onPointerDown = (): void => {
+      visitedRef.current = true;
+      stop();
+    };
 
     const onToggle = (): void => {
       if (useVoiceStore.getState().on) turnOff();
@@ -257,6 +274,9 @@ export function useJejuVoice(controller: KioskController, enabled = true): void 
       firstRef.current = false;
       return;
     }
+    // Not before anyone has touched the kiosk: where voice is on by default, the
+    // launch and the idle reset's return to home would read the intro to an empty hall.
+    if (!visitedRef.current) return;
     if (useVoiceStore.getState().on) announceKeys(currentIntro(screen, photoActive, kioskId));
   }, [screen, photoActive, kioskId]);
 
@@ -267,6 +287,7 @@ export function useJejuVoice(controller: KioskController, enabled = true): void 
     enabled: on,
     timeoutMs: IDLE_WARN_MS,
     onIdle: () => {
+      if (!visitedRef.current) return;
       const lang = toVoiceLang(useLanguageStore.getState().currentLanguage);
       say(sheetLine('global.idle.warn', lang, kioskId, { priority: Priority.State }));
     },
@@ -277,7 +298,8 @@ export function useJejuVoice(controller: KioskController, enabled = true): void 
     timeoutMs: IDLE_GOODBYE_MS,
     onIdle: () => {
       const lang = toVoiceLang(useLanguageStore.getState().currentLanguage);
-      const wasOn = useVoiceStore.getState().on;
+      const wasOn = useVoiceStore.getState().on && visitedRef.current;
+      visitedRef.current = false;
       stop();
       useVoiceStore.getState().reset();
       if (wasOn) say(sheetLine('global.idle.reset', lang, kioskId, { priority: Priority.State, force: true }));
