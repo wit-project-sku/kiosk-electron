@@ -19,7 +19,7 @@
  *   production, most kiosks   02:00 reboot                 KioskAutoRestart
  *   production, W004/9/10     22:00 종료 + 08:00 시작       KioskShutdownAt10PM
  *                                                          KioskStartAt8AM
- *   production, W008 제주공항  00:00 종료 + 06:00 시작       KioskShutdownAtMidnight
+ *   production, W008 제주공항  01:00 종료 + 06:00 시작       KioskShutdownAt1AM
  *                                                          KioskStartAt6AM
  *   beta (develop_1)          09:00 reboot                 KioskBetaAutoRestart
  *
@@ -50,7 +50,7 @@ const AUTORUN_KEY = 'KioskApp';
  * per venue:
  *
  *   오색시장 W004, 여객터미널 W009, 세계자연유산 W010   22:00 종료 / 08:00 시작
- *   제주공항 W008                                       00:00 종료 / 06:00 시작
+ *   제주공항 W008                                       01:00 종료 / 06:00 시작
  *
  * Note on the morning start: a scheduled task's "wake" timer can resume the PC from
  * sleep/hibernate, but Windows cannot power on a fully powered-off (S5) machine —
@@ -85,9 +85,9 @@ const STANDARD_HOURS_CYCLE: PowerCycle = {
 };
 
 const JEJU_AIRPORT_CYCLE: PowerCycle = {
-  shutdownTask: 'KioskShutdownAtMidnight',
+  shutdownTask: 'KioskShutdownAt1AM',
   startTask: 'KioskStartAt6AM',
-  shutdownTime: '00:00',
+  shutdownTime: '01:00',
   startTime: '06:00',
 };
 
@@ -99,6 +99,14 @@ const OPERATING_HOURS_CYCLES: Record<string, PowerCycle> = {
 };
 
 const ALL_POWER_CYCLES = [STANDARD_HOURS_CYCLE, JEJU_AIRPORT_CYCLE];
+
+/**
+ * Task names an earlier build registered that no cycle uses any more. Deleted on
+ * every provision: W008 shut down at 00:00 under `KioskShutdownAtMidnight` until
+ * 2026-11-10, and a kiosk that kept that task would still go dark at midnight,
+ * an hour before the 01:00 task this build registers.
+ */
+const RETIRED_POWER_TASKS = ['KioskShutdownAtMidnight'];
 
 /**
  * ── BETA (develop_1) power schedule ───────────────────────────────────
@@ -220,7 +228,10 @@ async function ensureOperatingHoursPowerCycle(cycle: PowerCycle): Promise<void> 
   // The 2AM reboot and the operating-hours cycle are mutually exclusive — make
   // sure a previously-provisioned reboot task can't also fire.
   await removeRestartTask();
-  // Same for another venue's cycle (e.g. W008 before it moved to 00:00/06:00).
+  for (const task of RETIRED_POWER_TASKS) {
+    await exec('schtasks', ['/delete', '/tn', task, '/f']).catch(() => {});
+  }
+  // Same for another venue's cycle (e.g. W008 before it moved to 01:00/06:00).
   for (const other of ALL_POWER_CYCLES) {
     if (other === cycle) continue;
     for (const task of [other.shutdownTask, other.startTask]) {
@@ -370,6 +381,9 @@ async function removeOperatingHoursPowerCycle(): Promise<void> {
     for (const task of [cycle.shutdownTask, cycle.startTask]) {
       await exec('schtasks', ['/delete', '/tn', task, '/f']).catch(() => {});
     }
+  }
+  for (const task of RETIRED_POWER_TASKS) {
+    await exec('schtasks', ['/delete', '/tn', task, '/f']).catch(() => {});
   }
 }
 
