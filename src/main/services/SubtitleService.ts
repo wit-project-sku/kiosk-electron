@@ -36,13 +36,13 @@ type SubtitleSource = 'api' | 'sheet';
  *  - We never poll: the data changes rarely, so one request per app launch is
  *    enough, and every kiosk restarts daily. A close+reopen refreshes it.
  *
- * ── 제주: the sheet fallback ────────────────────────────────────────────────
- * The CMS is the source everywhere, but production answers 제주 (W008–W010)
- * with zero rows until its subtitles are published, and a display with no rows
- * cannot follow the touch screen at all. So on a 제주 kiosk, when the API
- * answers with NO rows, the venue's VideoSubtitle tab is read from the 제주
- * content spreadsheet instead (see JejuSubtitleSheet). The API still wins the
- * moment it has rows — nothing needs switching off.
+ * ── 제주: the sheet first ───────────────────────────────────────────────────
+ * The venue's VideoSubtitle tab in the 제주 content spreadsheet is the source
+ * (see JejuSubtitleSheet): it is where the file names and captions are
+ * authored, and the CMS copy drifts from it — production carried stale file
+ * names for 뭐먹지 / 지역화폐 / 화장실, so those screens resolved no clip. The
+ * API is only the fallback, used when the sheet yields nothing (unreachable
+ * with no sheet rows cached, or a tab with no file names yet, like W010's).
  *
  * ── 인사동: the sheet is the source ─────────────────────────────────────────
  * The reverse order. The CMS still names the pre-refresh footage
@@ -118,12 +118,35 @@ export class SubtitleService {
       log.warn('Insadong subtitle sheet unavailable; not falling back to the API');
       return;
     }
+    // 제주: the sheet first. Its tab is where the operators author the file names
+    // and captions, and the CMS copy has drifted from it (production named
+    // `GYULI=ToBuy-1=To eat Market-1` / `MarketPaper-1` for clips that ship as
+    // `GYULI=ToEatMarket-1` / `GYULI=MarketPaper-1`, so 뭐먹지 and 지역화폐 fell to
+    // the idle reel). A tab with no file names yet (W010's) yields nothing and
+    // falls through to the API below.
+    const jejuSheetFirst = JEJU_SUBTITLE_TABS[getKioskLocation(this.kiosk.getConfig().kioskId).layout] != null;
+    if (jejuSheetFirst) {
+      const fromSheet = await this.fetchSheet(false);
+      if (fromSheet) {
+        this.store(fromSheet, 'sheet');
+        return;
+      }
+      // Sheet unreachable but its rows are cached from an earlier launch: keep
+      // them rather than trading them for the CMS's names.
+      if (this.source === 'sheet' && this.entries && this.entries.length > 0) {
+        log.warn('Jeju subtitle sheet unavailable; keeping the cached sheet rows');
+        return;
+      }
+      log.warn('Jeju subtitle sheet unavailable and nothing cached from it; falling back to the API');
+    }
     const fromApi = await this.fetchApi();
     if (fromApi && fromApi.length > 0) {
       this.store(fromApi, 'api');
       log.info('Subtitles loaded from API', { count: fromApi.length });
       return;
     }
+    // 제주 already asked the sheet above; asking again would only repeat the failure.
+    if (jejuSheetFirst) return;
     const fromSheet = await this.fetchSheet(fromApi === null);
     if (fromSheet) this.store(fromSheet, 'sheet');
     // Otherwise keep whatever was hydrated. With nothing cached either, the
@@ -181,7 +204,7 @@ export class SubtitleService {
         log.warn('Subtitle sheet has no rows with a video file name', { tab, noVideo });
         return null;
       }
-      log.info(insa ? 'Subtitles loaded from the Google Sheet' : 'Subtitles loaded from the Google Sheet (the API has none)', {
+      log.info('Subtitles loaded from the Google Sheet', {
         tab,
         count: entries.length,
         noVideo,
