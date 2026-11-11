@@ -159,7 +159,8 @@ export function createContainer(): AppContainer {
   const jejuCourse = new JejuCourseService(kiosk);
   const insaCourse = new InsaCourseService(kiosk);
   // 촬영 장부 lives next to main.log (shot-ledger.db + shot-ledger.txt). If the
-  // file cannot be opened the service falls back to memory + the old queue.
+  // file cannot be opened the service keeps rows in memory and also puts every
+  // unsent shot in the old failed-request queue, which is on disk.
   let shotLedger: ShotLedger | undefined;
   try {
     shotLedger = new SqliteShotLedger(appPaths.logs);

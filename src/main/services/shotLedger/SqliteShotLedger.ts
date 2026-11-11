@@ -64,6 +64,8 @@ function toShot(row: Row): ShotRow {
  * `shot-ledger.txt` (the same events as readable lines), both next to main.log
  * so whoever collects the logs gets the day's shots with them.
  *
+ * `due()` repeats plan.isDue in SQL — change them together.
+ *
  * Its own SQLite file rather than a table in kiosk.db: the ledger must stay
  * readable on its own, and a problem in the app database must not take the
  * record of what was shot with it.
@@ -75,8 +77,10 @@ export class SqliteShotLedger implements ShotLedger {
   constructor(dir: string) {
     this.textPath = join(dir, TEXT_FILE);
     this.db = new BetterSqlite3(join(dir, DB_FILE));
-    this.db.pragma('journal_mode = WAL');
-    this.db.pragma('synchronous = NORMAL');
+    // Rollback journal, not WAL: every commit lands in the .db itself, so copying
+    // that one file with the logs always has the latest shots.
+    this.db.pragma('journal_mode = DELETE');
+    this.db.pragma('synchronous = FULL');
     this.db.pragma('busy_timeout = 5000');
     this.db.exec(`
       CREATE TABLE IF NOT EXISTS shots (
@@ -133,7 +137,7 @@ export class SqliteShotLedger implements ShotLedger {
         `SELECT * FROM shots
           WHERE (state IN ('pending', 'rejected') AND next_attempt_at <= @now)
              OR (state = 'open' AND created_at <= @staleBefore)
-          ORDER BY created_at
+          ORDER BY attempts, created_at
           LIMIT @limit`,
       )
       .all({ now, staleBefore: now - STALE_OPEN_MS, limit }) as Row[];

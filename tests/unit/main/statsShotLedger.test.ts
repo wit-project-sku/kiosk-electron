@@ -136,6 +136,53 @@ describe('촬영 장부 — every shot is written first and sent from the ledger
     expect(calls).toHaveLength(3);
   });
 
+  it('rows that keep failing do not starve the ones behind them', async () => {
+    // Three old rows have already failed once; a newer row has never been tried.
+    serve({ [SHOTS]: Array<Answer>(10).fill('network') });
+    const stats = make(kioskOf('INSADONG', 1));
+    for (const id of ['old1', 'old2', 'old3']) {
+      await stats.recordShot({ eventId: id, isSuccess: true, outfitCode: '1.1' });
+    }
+    await stats.recordShot({ eventId: 'fresh', isSuccess: true, outfitCode: '1.1' });
+    await stats.syncShotLedger(); // everything fails again; the olds are now 2 attempts ahead
+
+    const { calls } = serve({ [SHOTS]: [200, 'network', 'network', 'network'] });
+    await stats.syncShotLedger();
+    expect((calls[0]?.body as { eventId: string }).eventId).toBe('fresh');
+    expect(ledger.get('fresh')?.state).toBe('sent');
+  });
+
+  it('a slower send of the same shot cannot turn a sent row back into an unsent one', async () => {
+    const stats = make(kioskOf('INSADONG', 1));
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async () => {
+        // The hourly cycle delivered this row while our own request was in flight.
+        const row = ledger.get('e1');
+        if (row) ledger.save({ ...row, state: 'sent', sentAt: now });
+        return new Response('{}', { status: 500 });
+      }),
+    );
+
+    await stats.recordShot({ eventId: 'e1', isSuccess: true, outfitCode: '1.1' });
+    expect(ledger.get('e1')?.state).toBe('sent');
+  });
+
+  it('with no ledger on disk an unsent shot also goes to the old queue, so a restart keeps it', async () => {
+    serve({ [SHOTS]: ['network'] });
+    const record = vi.fn();
+    const queue = { listByType: () => [], record } as unknown as FailedRequestService;
+    const stats = new StatsService(kioskOf('INSADONG', 1), queue, { now: () => now });
+
+    await stats.recordShot({ eventId: 'e1', isSuccess: true, outfitCode: '1.1' });
+    expect(record).toHaveBeenCalledWith(
+      'photo_shot',
+      expect.objectContaining({ eventId: 'e1' }),
+      expect.any(String),
+      'e1',
+    );
+  });
+
   it('prunes only rows sent more than 30 days ago', async () => {
     serve({ [SHOTS]: [200, 'network'] });
     const stats = make(kioskOf('INSADONG', 1));

@@ -127,7 +127,8 @@ export function textLine(now: number, event: string, row: ShotRow, detail = ''):
     result,
   ];
   if (detail) parts.push(detail);
-  return parts.join(' | ');
+  // One event, one line: a server error body may carry line breaks.
+  return parts.join(' | ').replace(/\s+/g, ' ');
 }
 
 /** Lines of the text ledger that are still inside the keep window. */

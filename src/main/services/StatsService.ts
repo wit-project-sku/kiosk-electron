@@ -66,7 +66,11 @@ const LEDGER_CYCLE_LIMIT = 500;
 const TRANSIENT_STOP_AFTER = 3;
 
 export interface StatsServiceOptions {
-  /** 촬영 장부. Defaults to an in-memory ledger (unit tests). */
+  /**
+   * 촬영 장부. Without one (unit tests, or the ledger file could not be opened)
+   * rows live in memory only, so an unsent shot is also put in the old
+   * failed-request queue — it must survive a restart.
+   */
   ledger?: ShotLedger;
   now?: () => number;
 }
@@ -197,6 +201,9 @@ export class StatsService {
 
   private readonly ledger: ShotLedger;
   private readonly now: () => number;
+  /** False when the ledger is memory-only. */
+  private readonly durableLedger: boolean;
+  private lastNotesPruneAt = 0;
   private syncTimer: NodeJS.Timeout | null = null;
   private syncing = false;
 
@@ -206,6 +213,7 @@ export class StatsService {
     options: StatsServiceOptions = {},
   ) {
     this.ledger = options.ledger ?? new MemoryShotLedger();
+    this.durableLedger = options.ledger !== undefined;
     this.now = options.now ?? Date.now;
   }
 
@@ -308,16 +316,19 @@ export class StatsService {
       photoPath: input.photoPath ?? existing?.photoPath ?? null,
       nextAttemptAt: this.now(),
     };
+    // Written before anything is awaited: if the app quits from here on, the
+    // composite's real outcome is already in the ledger.
+    let saved = this.writeLedger(row, '촬영');
     // 제주: the measurement of THIS capture is claimed once and kept in the row,
     // so a later re-send carries the same sizes.
     if (this.usesShotsV2() && row.photoPath) {
       row = { ...row, v2Data: shotV2Data(bodyOf(row), await this.claimMeasurement()) };
+      saved = this.saveLedger(row) && saved;
     }
-    const saved = this.writeLedger(row, '촬영');
 
     const after = await this.deliver(row);
-    if (after.state !== 'sent' && !saved) {
-      // The ledger file is unusable: fall back to the old queue so the shot is not lost.
+    if (after.state !== 'sent' && !(saved && this.durableLedger)) {
+      // No ledger on disk: fall back to the old queue so the shot survives a restart.
       this.storeShotForBatch(bodyOf(row), input.outfitId ?? null, after.lastError ?? 'unsent');
     }
     return after.state === 'sent';
@@ -361,16 +372,22 @@ export class StatsService {
     }
   }
 
-  /** Save the row and add a text line. False when the ledger could not be written. */
-  private writeLedger(row: ShotRow, event: string, detail = ''): boolean {
+  /** Save the row. False when the ledger could not be written. */
+  private saveLedger(row: ShotRow): boolean {
     try {
       this.ledger.save(row);
-      this.ledger.note(textLine(this.now(), event, row, detail));
       return true;
     } catch (error) {
       log.error('Could not write the shot ledger', error);
       return false;
     }
+  }
+
+  /** Save the row and add a text line. False when the ledger could not be written. */
+  private writeLedger(row: ShotRow, event: string, detail = ''): boolean {
+    const saved = this.saveLedger(row);
+    if (saved) this.ledger.note(textLine(this.now(), event, row, detail));
+    return saved;
   }
 
   /**
@@ -401,6 +418,12 @@ export class StatsService {
     } else {
       outcome = await this.postShot(bodyOf(next));
     }
+
+    // The shot's own send and the hourly cycle can both be working on this row.
+    // Whichever finishes second must not turn a row the server already has back
+    // into an unsent one.
+    const current = this.readLedger(next.eventId);
+    if (current?.state === 'sent') return current;
 
     next = afterAttempt(next, outcome, this.now());
     if (next.state === 'sent') {
@@ -469,7 +492,11 @@ export class StatsService {
         }
       }
       const pruned = this.ledger.pruneSent(this.now() - KEEP_SENT_MS);
-      this.ledger.pruneNotes(this.now(), KEEP_SENT_MS);
+      // The text ledger is rewritten whole, so once a day is enough.
+      if (this.now() - this.lastNotesPruneAt >= 24 * HOUR_MS) {
+        this.lastNotesPruneAt = this.now();
+        this.ledger.pruneNotes(this.now(), KEEP_SENT_MS);
+      }
       if (summary.sent > 0 || summary.kept > 0 || pruned > 0) {
         log.info('Shot ledger sync', { ...summary, pruned, unsent: this.ledger.unsent() });
       }
@@ -537,7 +564,10 @@ export class StatsService {
       photo = await readFile(photoPath);
     } catch (error) {
       const message = error instanceof Error ? error.message : 'photo unreadable';
-      return { kind: 'no-photo', message: `photo: ${message}` };
+      // Only a file that is GONE ends the upload for good; a locked or busy file
+      // (staff copying the folder) is tried again.
+      const gone = (error as NodeJS.ErrnoException | null)?.code === 'ENOENT';
+      return { kind: gone ? 'no-photo' : 'retry', message: `photo: ${message}` };
     }
 
     const form = new FormData();
@@ -593,7 +623,9 @@ export class StatsService {
       if (outcome.kind === 'sent') {
         this.failedRequests.resolve(r.id);
         sent += 1;
-      } else if (outcome.kind === 'retry') {
+      } else if (outcome.kind === 'retry' || outcome.message.startsWith('HTTP 500')) {
+        // Rows queued by older versions keep their old rule: a 500 is retried as
+        // an upload rather than handed to the v1 batch (which drops the measurement).
         this.failedRequests.markRetried(r.id, outcome.message);
       } else {
         // Same request_id (eventId): delete first, or the insert would only

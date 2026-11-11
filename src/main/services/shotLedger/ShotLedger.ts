@@ -5,7 +5,7 @@ export interface ShotLedger {
   get(eventId: string): ShotRow | null;
   /** Insert or replace the whole row. */
   save(row: ShotRow): void;
-  /** Rows due at `now`, oldest first. */
+  /** Rows due at `now`: least-tried first (a row that keeps failing cannot starve the rest), then oldest. */
   due(now: number, limit: number): ShotRow[];
   /** Delete `sent` rows acknowledged before `before`; returns how many. */
   pruneSent(before: number): number;
@@ -33,7 +33,7 @@ export class MemoryShotLedger implements ShotLedger {
   due(now: number, limit: number): ShotRow[] {
     return [...this.rows.values()]
       .filter((row) => isDue(row, now))
-      .sort((a, b) => a.createdAt - b.createdAt)
+      .sort((a, b) => a.attempts - b.attempts || a.createdAt - b.createdAt)
       .slice(0, limit)
       .map((row) => ({ ...row }));
   }
