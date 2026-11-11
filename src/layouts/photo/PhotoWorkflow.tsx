@@ -26,6 +26,14 @@ import { VoiceToggle } from '../jeju/voice/VoiceToggle';
 
 /** 제주 voice guidance on the result page (the sheet's W008 row differs — no WIT Store). */
 const VOICE_RESULT = ['hanbok.result'] as const;
+/**
+ * The plain result page (photo + save QR, no store). Named with the airport's
+ * row because the shared `hanbok.result` line also invites the visitor to make
+ * goods, which this page does not offer — 여객터미널 W009 draws it too now.
+ */
+const VOICE_RESULT_PLAIN = ['hanbok.result@W008'] as const;
+/** 제주 venues whose finished photo is the plain image + save QR, not the store. */
+const PLAIN_RESULT_KIOSKS: ReadonlySet<string> = new Set(['W008', 'W009']);
 
 /** Where the 굿즈제작 button's QR points. */
 const GOODS_URL = 'https://insarang.kr/';
@@ -91,8 +99,10 @@ export function PhotoWorkflow(): JSX.Element {
   //  - 제주공항 W008 keeps its terminal for 기부 too, but the finished photo
   //    is the plain image + save QR, the same screen 인사동 draws where there
   //    is no payment. The home 위드마켓 card is inert there as well.
+  //  - 여객터미널 W009 follows the airport (2026-11-10): no store on the result.
   // Only venues that pair the terminal WITH the store webview take this screen.
-  const showsMarketResult = hasPayment && !isHwaseong && !isLotte && kioskId !== 'W008';
+  const showsMarketResult =
+    hasPayment && !isHwaseong && !isLotte && !PLAIN_RESULT_KIOSKS.has(kioskId);
   // Osan/Hwaseong have their own single promo banner; insadong rotates through several.
   const banner = chromeBanner ?? rotating;
   const [goodsQrOpen, setGoodsQrOpen] = useState(false);
@@ -285,7 +295,7 @@ export function PhotoWorkflow(): JSX.Element {
     return <HanbokSelect onHome={handleReset} onCapture={handleCapture} countdownActive={capturing} />;
   }
 
-  // ── Result (MARKET kiosks W003/W004, and 제주 except 제주공항): WIT Store on Monitor 1; result image big on Monitor 2 ──
+  // ── Result (MARKET kiosks W003/W004, and 제주 except 제주공항 / 여객터미널): WIT Store on Monitor 1; result image big on Monitor 2 ──
   if (phase === 'result' && showsMarketResult) {
     const imageUrl = resultUrl ?? (resultFileName ? generatedUrl(resultFileName) : '');
     const saveUrl = saveQrUrl(resultShareUrl, imageUrl, lang);
@@ -416,7 +426,7 @@ export function PhotoWorkflow(): JSX.Element {
 
     return (
       <>
-        <VoiceIntro keys={VOICE_RESULT} />
+        <VoiceIntro keys={VOICE_RESULT_PLAIN} />
         {isHwaseong ? (
           <>
             <div className={styles.bgBase} />
