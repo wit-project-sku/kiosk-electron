@@ -309,6 +309,10 @@ async function bootstrap(): Promise<void> {
   });
   if (!setupOnly) container.photoArchive.start();
 
+  // 촬영·메뉴 터치 통계 재전송 — once shortly after launch, then hourly. The old
+  // midnight-only re-send never ran at venues that are switched off at night.
+  if (!setupOnly) container.stats.startPeriodicSync();
+
   // 키 측정 — the headless ZED height sidecar. 제주 only; the service checks the
   // layout itself and does nothing anywhere else, so there is no condition here
   // to keep in sync with one inside it. Best-effort in every direction: a
@@ -402,6 +406,7 @@ app.on('before-quit', () => {
     getContainer().footfall.stop();
     getContainer().footfallUploader.stop();
     getContainer().photoArchive.stop();
+    getContainer().stats.stopPeriodicSync();
     // Kills the Python child. Without this it outlives the app and keeps the
     // ZED open, so the next launch cannot claim the camera.
     getContainer().height.stop();
