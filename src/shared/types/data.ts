@@ -105,6 +105,23 @@ export interface MenuTouchSyncItem {
 /** Capture mode reported to the stats API: 혼자 찍기 vs 가상 캐릭터와 찍기. */
 export type ShotType = 'SOLO' | 'TOGETHER';
 
+/** How a call to the AR compose server (Digicon) failed. */
+export type ArErrorKind = 'HTTP' | 'NETWORK' | 'TIMEOUT' | 'INVALID_RESPONSE';
+
+/**
+ * Why the AR composite failed, sent with the failed shot so the server can post
+ * an alert to the kiosk-alert chat with a plain-language cause (2026-11-12).
+ */
+export interface ArFailure {
+  /** HTTP = the AR server answered with an error status · NETWORK = never reached it ·
+   *  TIMEOUT = no answer in time · INVALID_RESPONSE = answered 200 without a photo. */
+  kind: ArErrorKind;
+  /** The AR server's HTTP status; null when it never answered. */
+  status: number | null;
+  /** The AR server's `message` (or the raw body / network error), at most 1000 chars. */
+  message: string | null;
+}
+
 /**
  * A completed photo capture (success or failure) reported to `/api/stats/shots`.
  * Fired from the main process at the end of the AI pipeline, which resolves the
@@ -127,6 +144,10 @@ export interface ShotInput {
   photoPath?: string | null;
   /** Kiosk screen language when the photo was taken — the stats' 언어권 split. */
   language?: string | null;
+  /** 배경 테마 the visitor picked (the AR `background_to_use`); null/omitted when none. */
+  backgroundId?: number | null;
+  /** Why the AR composite failed — failed shots only; null when the cause is not an AR call. */
+  arFailure?: ArFailure | null;
 }
 
 /** The exact POST body for `/api/stats/shots` (kioskId/eventId resolved in main). */
@@ -142,6 +163,12 @@ export interface ShotBody {
   /** Screen language at capture (ko/en/ja/…); null when unknown. Shots queued
    *  before 2026-10-29 lack it — the server counts those as 언어 미확인. */
   language?: string | null;
+  /** 배경 테마 number; present only when one was picked. */
+  backgroundId?: number;
+  /** Present only on a failed shot whose AR call failed (see {@link ArFailure}). */
+  arErrorKind?: ArErrorKind;
+  arErrorStatus?: number;
+  arErrorMessage?: string;
 }
 
 /**
