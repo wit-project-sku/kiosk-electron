@@ -10,6 +10,7 @@ import type { CaptureService } from '@main/services/camera/CaptureService';
 import type { AIService } from '@main/services/ai/AIService';
 import type { GoogleDriveService } from '@main/services/drive/GoogleDriveService';
 import type { KioskService } from '@main/services/KioskService';
+import { arFailureOf } from '@main/services/ai/arFailure';
 import type { ImageHostService } from './ImageHostService';
 
 const log = createLogger('photo-generation');
@@ -95,6 +96,7 @@ export class PhotoGenerationService {
         shotType: shotTypeOf(styleKey),
         photoPath: capturePath,
         language,
+        backgroundId,
       });
 
       onProgress?.('AI is creating your image…');
@@ -139,6 +141,7 @@ export class PhotoGenerationService {
         shotType: shotTypeOf(styleKey),
         photoPath: capturePath,
         language,
+        backgroundId,
       });
 
       void this.uploadToDrive(session);
@@ -163,6 +166,8 @@ export class PhotoGenerationService {
       // a photo — the original camera capture is saved above (before ai.generate),
       // so we have a real image. Reported as a failed shot (isSuccess:false) so the
       // total counts the picture while isSuccess still reflects the AI outcome.
+      // Why the AR call failed (status + message) rides along so the server can alert
+      // the kiosk-alert chat; null when the failure was not the AR call itself.
       void this.stats.recordShot({
         eventId,
         isSuccess: false,
@@ -170,6 +175,8 @@ export class PhotoGenerationService {
         shotType: shotTypeOf(styleKey),
         photoPath: capturePath,
         language,
+        backgroundId,
+        arFailure: arFailureOf(error),
       });
       throw error;
     }

@@ -30,6 +30,8 @@ export interface LoggedRequest {
   scenario: string;
   eventId: string | null;
   isSuccess: boolean | null;
+  /** The AR failure the shot report carried — "HTTP 500 composite failed" — or null. */
+  arError: string | null;
   healed: boolean;
   answer: string;
 }
@@ -62,9 +64,18 @@ function readBody(req: IncomingMessage): Promise<Buffer> {
 
 /** A JSON (or multipart, read as latin1) body's field, without parsing multipart. */
 function field(raw: string, name: string): string | null {
-  const m = new RegExp(`"${name}"\\s*:\\s*("([^"]*)"|true|false|null)`).exec(raw);
+  const m = new RegExp(`"${name}"\\s*:\\s*("([^"]*)"|true|false|null|-?\\d+)`).exec(raw);
   if (!m) return null;
   return m[2] ?? m[1] ?? null;
+}
+
+/** The shot report's AR failure fields as one string, e.g. "HTTP 500 composite failed". */
+function arErrorOf(raw: string): string | null {
+  const kind = field(raw, 'arErrorKind');
+  if (!kind) return null;
+  return [kind, field(raw, 'arErrorStatus'), field(raw, 'arErrorMessage')]
+    .filter((p) => p !== null)
+    .join(' ');
 }
 
 /** The AR request's `outfit` form field. */
@@ -108,6 +119,7 @@ export async function startFaultServer(
         scenario,
         eventId: null,
         isSuccess: null,
+        arError: null,
         healed,
         answer: answer ? describe(answer) : '합성 이미지',
       });
@@ -143,6 +155,7 @@ export async function startFaultServer(
         scenario: '-',
         eventId: null,
         isSuccess: null,
+        arError: null,
         healed,
         answer: 'HTTP 200',
       });
@@ -161,6 +174,7 @@ export async function startFaultServer(
       scenario,
       eventId: field(raw, 'eventId'),
       isSuccess: success === null ? null : success === 'true',
+      arError: arErrorOf(raw),
       healed,
       answer: describe(answer),
     });

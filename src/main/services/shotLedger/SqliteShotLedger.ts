@@ -2,7 +2,7 @@ import { appendFileSync, existsSync, readFileSync, writeFileSync } from 'node:fs
 import { join } from 'node:path';
 import BetterSqlite3 from 'better-sqlite3';
 import { createLogger } from '@main/core/logger';
-import type { ShotType, ShotV2Data } from '@shared/types/data';
+import type { ArErrorKind, ArFailure, ShotType, ShotV2Data } from '@shared/types/data';
 import { keepRecentLines, STALE_OPEN_MS, type ShotRow, type ShotState } from './plan';
 import type { ShotLedger } from './ShotLedger';
 
@@ -19,6 +19,10 @@ interface Row {
   shot_type: string | null;
   outfit_code: string;
   language: string | null;
+  background_id: number | null;
+  ar_error_kind: string | null;
+  ar_error_status: number | null;
+  ar_error_message: string | null;
   photo_path: string | null;
   v2_data: string | null;
   state: ShotState;
@@ -28,6 +32,27 @@ interface Row {
   next_attempt_at: number;
   created_at: number;
   sent_at: number | null;
+}
+
+/**
+ * Columns added after the first 촬영 장부 (2026-11-12, AR 합성 실패 알림). A ledger
+ * file written by an older build lacks them; they are added on open, empty, so
+ * rows already in the file keep sending as before.
+ */
+const ADDED_COLUMNS: readonly (readonly [name: string, type: string])[] = [
+  ['background_id', 'INTEGER'],
+  ['ar_error_kind', 'TEXT'],
+  ['ar_error_status', 'INTEGER'],
+  ['ar_error_message', 'TEXT'],
+];
+
+function arFailureOf(row: Row): ArFailure | null {
+  if (!row.ar_error_kind) return null;
+  return {
+    kind: row.ar_error_kind as ArErrorKind,
+    status: row.ar_error_status,
+    message: row.ar_error_message,
+  };
 }
 
 function toShot(row: Row): ShotRow {
@@ -47,6 +72,8 @@ function toShot(row: Row): ShotRow {
     shotType: row.shot_type as ShotType | null,
     outfitCode: row.outfit_code,
     language: row.language,
+    backgroundId: row.background_id ?? null,
+    arFailure: arFailureOf(row),
     photoPath: row.photo_path,
     v2Data,
     state: row.state,
@@ -103,6 +130,12 @@ export class SqliteShotLedger implements ShotLedger {
       );
       CREATE INDEX IF NOT EXISTS idx_shots_state ON shots (state, next_attempt_at);
     `);
+    const existing = new Set(
+      (this.db.prepare('PRAGMA table_info(shots)').all() as { name: string }[]).map((c) => c.name),
+    );
+    for (const [name, type] of ADDED_COLUMNS) {
+      if (!existing.has(name)) this.db.exec(`ALTER TABLE shots ADD COLUMN ${name} ${type}`);
+    }
   }
 
   get(eventId: string): ShotRow | null {
@@ -113,18 +146,25 @@ export class SqliteShotLedger implements ShotLedger {
   }
 
   save(row: ShotRow): void {
+    // Named parameters must match the SQL exactly — the failure goes in as its three columns.
+    const { arFailure, ...fields } = row;
     this.db
       .prepare(
         `INSERT OR REPLACE INTO shots (
-           event_id, kiosk_id, shot_at, is_success, shot_type, outfit_code, language, photo_path,
+           event_id, kiosk_id, shot_at, is_success, shot_type, outfit_code, language,
+           background_id, ar_error_kind, ar_error_status, ar_error_message, photo_path,
            v2_data, state, v1_sent, attempts, last_error, next_attempt_at, created_at, sent_at
          ) VALUES (
-           @eventId, @kioskId, @shotAt, @isSuccess, @shotType, @outfitCode, @language, @photoPath,
+           @eventId, @kioskId, @shotAt, @isSuccess, @shotType, @outfitCode, @language,
+           @backgroundId, @arErrorKind, @arErrorStatus, @arErrorMessage, @photoPath,
            @v2Data, @state, @v1Sent, @attempts, @lastError, @nextAttemptAt, @createdAt, @sentAt
          )`,
       )
       .run({
-        ...row,
+        ...fields,
+        arErrorKind: arFailure?.kind ?? null,
+        arErrorStatus: arFailure?.status ?? null,
+        arErrorMessage: arFailure?.message ?? null,
         isSuccess: row.isSuccess === null ? null : row.isSuccess ? 1 : 0,
         v2Data: row.v2Data ? JSON.stringify(row.v2Data) : null,
         v1Sent: row.v1Sent ? 1 : 0,

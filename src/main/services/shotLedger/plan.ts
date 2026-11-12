@@ -3,7 +3,7 @@
  * and sent from it, so a shot survives a dead network, a rejected request or an
  * app that quits mid-composite. No fs, no fetch, no clock in this file.
  */
-import type { ShotType, ShotV2Data } from '@shared/types/data';
+import type { ArFailure, ShotType, ShotV2Data } from '@shared/types/data';
 
 /**
  * - `open`     — the original is on disk, the composite has not finished.
@@ -23,6 +23,10 @@ export interface ShotRow {
   shotType: ShotType | null;
   outfitCode: string;
   language: string | null;
+  /** 배경 테마 number, when one was picked. */
+  backgroundId: number | null;
+  /** Why the AR composite failed (failed shots only). */
+  arFailure: ArFailure | null;
   /** The AR original — the 제주 measurement upload's photo part. */
   photoPath: string | null;
   /** The measurement `data` part as first built, so a re-send carries the same sizes. */
@@ -126,6 +130,13 @@ export function textLine(now: number, event: string, row: ShotRow, detail = ''):
     row.language ?? '-',
     result,
   ];
+  if (row.backgroundId !== null) parts.push(`배경 ${row.backgroundId}`);
+  if (row.arFailure && row.isSuccess === false) {
+    const { kind, status, message } = row.arFailure;
+    parts.push(
+      `AR ${kind}${status !== null ? ` ${status}` : ''}${message ? `: ${message.slice(0, 120)}` : ''}`,
+    );
+  }
   if (detail) parts.push(detail);
   // One event, one line: a server error body may carry line breaks.
   return parts.join(' | ').replace(/\s+/g, ' ');

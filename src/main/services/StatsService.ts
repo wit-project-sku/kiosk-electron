@@ -123,17 +123,29 @@ function shotV2Data(body: ShotBody, measurement: ShotMeasurement | null): ShotV2
   };
 }
 
-/** The plain shot record of a ledger row. A composite that never finished counts as failed. */
+/**
+ * The plain shot record of a ledger row. A composite that never finished counts as failed.
+ * The 배경 and AR failure fields are added only when there is a value — older
+ * rows and plain shots send exactly the body they always did.
+ */
 function bodyOf(row: ShotRow): ShotBody {
-  return {
+  const isSuccess = row.isSuccess ?? false;
+  const body: ShotBody = {
     kioskId: row.kioskId,
     shotAt: row.shotAt,
-    isSuccess: row.isSuccess ?? false,
+    isSuccess,
     shotType: row.shotType,
     outfitCode: row.outfitCode,
     eventId: row.eventId,
     language: row.language,
   };
+  if (row.backgroundId !== null) body.backgroundId = row.backgroundId;
+  if (!isSuccess && row.arFailure) {
+    body.arErrorKind = row.arFailure.kind;
+    if (row.arFailure.status !== null) body.arErrorStatus = row.arFailure.status;
+    if (row.arFailure.message) body.arErrorMessage = row.arFailure.message;
+  }
+  return body;
 }
 
 /** Server caps each sync batch at 1000 items (over → 400). */
@@ -312,6 +324,8 @@ export class StatsService {
     let row: ShotRow = {
       ...(existing ?? this.newRow(eventId, input, input.isSuccess, 'pending')),
       isSuccess: input.isSuccess,
+      backgroundId: input.backgroundId ?? existing?.backgroundId ?? null,
+      arFailure: input.isSuccess ? null : (input.arFailure ?? null),
       state: 'pending',
       photoPath: input.photoPath ?? existing?.photoPath ?? null,
       nextAttemptAt: this.now(),
@@ -351,6 +365,8 @@ export class StatsService {
       shotType: input.shotType ?? null,
       outfitCode: input.outfitCode,
       language: input.language ?? null,
+      backgroundId: input.backgroundId ?? null,
+      arFailure: null,
       photoPath: input.photoPath ?? null,
       v2Data: null,
       state,
