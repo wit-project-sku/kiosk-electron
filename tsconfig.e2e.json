@@ -2,6 +2,8 @@
   "include": [
     "tests/e2e/**/*.ts",
     "tests/soak/**/*.ts",
+    "tests/faults/**/*.ts",
+    "playwright.faults.config.ts",
     "playwright.soak.config.ts",
     "playwright.config.ts",
     "playwright.record.config.ts"

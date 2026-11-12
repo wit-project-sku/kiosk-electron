@@ -265,6 +265,8 @@ export interface KioskBridge {
     /** 지점 설정: asks to confirm, then makes this PC `kioskId` and restarts (a packaged build
      *  never resolves then). `false` = the person chose not to change it. */
     applySetup(kioskId: SetupSiteCode): Promise<Result<boolean>>;
+    /** 지점 설정 with the app off: start the kiosk as it is (a packaged build restarts). */
+    launchFromSetup(): Promise<Result<boolean>>;
   };
   /** Cached shop catalogue (from the witteria API, refreshed on launch + nightly). */
   shops: {

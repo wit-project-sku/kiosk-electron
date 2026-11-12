@@ -419,6 +419,12 @@ export interface IpcContract {
     // process restarts before replying.
     response: Result<boolean>;
   };
+  [IpcChannels.KioskSetupLaunch]: {
+    request: void;
+    // A packaged build restarts as the kiosk before replying. Rejected on a fresh PC
+    // (no site yet); over a running kiosk it only closes the window.
+    response: Result<boolean>;
+  };
   [IpcChannels.ShopsList]: {
     request: void;
     response: Result<Shop[]>;

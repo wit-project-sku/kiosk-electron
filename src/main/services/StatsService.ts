@@ -15,6 +15,16 @@ import { createLogger } from '@main/core/logger';
 import type { ShotMeasurement } from './height/HeightService';
 import type { KioskService } from './KioskService';
 import type { FailedRequestService } from './FailedRequestService';
+import { MemoryShotLedger, type ShotLedger } from './shotLedger/ShotLedger';
+import {
+  afterAttempt,
+  classifyStatus,
+  HOUR_MS,
+  KEEP_SENT_MS,
+  textLine,
+  type SendOutcome,
+  type ShotRow,
+} from './shotLedger/plan';
 
 const log = createLogger('stats-service');
 
@@ -39,11 +49,31 @@ interface ShotV2Pending {
 }
 
 /**
- * How a `/shots/v2` attempt ended. `sent` includes 409 (STATS4106: an earlier
- * attempt already stored it). `retry` is 5xx / network. `rejected` is any other
- * 4xx or an unreadable photo — resending the same request cannot succeed.
+ * How a measurement upload ended: a SendOutcome (see classifyStatus), or
+ * `no-photo` when the original is gone from disk — that upload can never happen.
  */
-type ShotV2Outcome = { kind: 'sent' } | { kind: 'retry' | 'rejected'; message: string };
+type ShotV2Outcome = SendOutcome | { kind: 'no-photo'; message: string };
+
+/** A shot report is a few hundred bytes; the measurement upload carries the original (~0.2 MB). */
+const SHOT_TIMEOUT_MS = 15_000;
+const SHOT_V2_TIMEOUT_MS = 60_000;
+/** First re-send after launch, then hourly — venues keep different hours, so no fixed clock time. */
+const SYNC_STARTUP_DELAY_MS = 60_000;
+const SYNC_INTERVAL_MS = HOUR_MS;
+/** Ledger rows per cycle; bounds the catch-up after a long outage. */
+const LEDGER_CYCLE_LIMIT = 500;
+/** This many transient failures in a row means the line is down — stop the cycle. */
+const TRANSIENT_STOP_AFTER = 3;
+
+export interface StatsServiceOptions {
+  /**
+   * 촬영 장부. Without one (unit tests, or the ledger file could not be opened)
+   * rows live in memory only, so an unsent shot is also put in the old
+   * failed-request queue — it must survive a restart.
+   */
+  ledger?: ShotLedger;
+  now?: () => number;
+}
 
 type MeasurementSource = () => Promise<ShotMeasurement | null>;
 
@@ -90,6 +120,19 @@ function shotV2Data(body: ShotBody, measurement: ShotMeasurement | null): ShotV2
     hipWidthCm: measurement?.hipWidthCm ?? 0,
     confidence: measured ? measurement.confidence : null,
     version: measured ? measurement.version : null,
+  };
+}
+
+/** The plain shot record of a ledger row. A composite that never finished counts as failed. */
+function bodyOf(row: ShotRow): ShotBody {
+  return {
+    kioskId: row.kioskId,
+    shotAt: row.shotAt,
+    isSuccess: row.isSuccess ?? false,
+    shotType: row.shotType,
+    outfitCode: row.outfitCode,
+    eventId: row.eventId,
+    language: row.language,
   };
 }
 
@@ -156,10 +199,23 @@ function sentEventIds(json: unknown): Set<string> {
 export class StatsService {
   private measurementSource: MeasurementSource | null = null;
 
+  private readonly ledger: ShotLedger;
+  private readonly now: () => number;
+  /** False when the ledger is memory-only. */
+  private readonly durableLedger: boolean;
+  private lastNotesPruneAt = 0;
+  private syncTimer: NodeJS.Timeout | null = null;
+  private syncing = false;
+
   constructor(
     private readonly kiosk: KioskService,
     private readonly failedRequests: FailedRequestService,
-  ) {}
+    options: StatsServiceOptions = {},
+  ) {
+    this.ledger = options.ledger ?? new MemoryShotLedger();
+    this.durableLedger = options.ledger !== undefined;
+    this.now = options.now ?? Date.now;
+  }
 
   /** Where `/shots/v2` gets the ZED measurement of the capture being reported. */
   setMeasurementSource(source: MeasurementSource): void {
@@ -227,71 +283,269 @@ export class StatsService {
   }
 
   /**
-   * Record a completed photo capture (success or failure) in real time. On
-   * failure the shot is stored in SQLite (keyed by `eventId`) for the nightly
-   * batch re-send. `eventId` is the idempotency key shared across both paths.
+   * The original capture is on disk: write the shot to the ledger BEFORE the
+   * composite starts, so an app that quits mid-composite still leaves a record.
+   * Never throws — the capture flow must not notice the ledger.
    */
-  async recordShot(input: ShotInput): Promise<boolean> {
-    // The machine's own id: a test kiosk showing another site's screen must not
-    // add its shots to that site's numbers.
-    const kioskId = this.kiosk.identityNum();
-    const eventId = input.eventId ?? randomUUID();
-    const shotAt = input.shotAt ?? localIso();
-    const shotType = input.shotType ?? null;
-
-    const realtime: ShotBody = {
-      kioskId,
-      shotAt,
-      isSuccess: input.isSuccess,
-      shotType,
-      outfitCode: input.outfitCode,
-      eventId,
-      language: input.language ?? null,
-    };
-    const outfitId = input.outfitId ?? null;
-
-    // v2 needs the photo; a capture that never reached disk is reported on v1.
-    if (this.usesShotsV2() && input.photoPath) {
-      return this.recordShotV2(realtime, input.photoPath, outfitId);
-    }
-
+  openShot(input: Omit<ShotInput, 'isSuccess'> & { eventId: string }): void {
     try {
-      await this.post(this.shotsUrl(), realtime);
-      return true;
+      if (this.ledger.get(input.eventId)) return;
+      const row = this.newRow(input.eventId, input, null, 'open');
+      this.ledger.save(row);
+      this.ledger.note(textLine(this.now(), '촬영 시작', row));
     } catch (error) {
-      const message = error instanceof Error ? error.message : 'shot POST failed';
-      this.storeShotForBatch(realtime, outfitId, message);
-      return false;
+      log.warn('Could not open the shot in the ledger', error);
     }
   }
 
   /**
-   * `/shots/v2`: shot + ZED measurement + AR original in one multipart POST.
-   * Replaces the v1 call. 5xx / network failures are queued and re-sent as v2
-   * at night; a request the server rejects falls back to the v1 batch so the
-   * shot itself is still counted.
+   * Record a finished capture (composite succeeded or failed). The shot goes to
+   * the ledger first and is sent from it: a send that fails stays in the ledger
+   * and goes out again on the next cycle (hourly) — see deliver().
+   * `eventId` is the idempotency key the server dedupes on.
    */
-  private async recordShotV2(body: ShotBody, photoPath: string, outfitId: number | null): Promise<boolean> {
-    const measurement = await this.claimMeasurement();
-    const data = shotV2Data(body, measurement);
-    const outcome = await this.postShotV2(data, photoPath);
-    if (outcome.kind === 'sent') return true;
+  async recordShot(input: ShotInput): Promise<boolean> {
+    const eventId = input.eventId ?? randomUUID();
+    const existing = this.readLedger(eventId);
+    if (existing?.state === 'sent') return true;
 
-    if (outcome.kind === 'retry') {
-      const pending: ShotV2Pending = { data, photoPath, outfitId };
-      this.store(PHOTO_SHOT_V2_REQUEST_TYPE, pending, body.eventId, outcome.message);
-      log.warn('shots/v2 POST failed; stored for nightly re-send', {
-        message: outcome.message,
-        eventId: body.eventId,
-      });
-    } else {
-      log.error('shots/v2 rejected; reporting the shot via the v1 batch', {
-        message: outcome.message,
-        eventId: body.eventId,
-      });
-      this.storeShotForBatch(body, outfitId, outcome.message);
+    let row: ShotRow = {
+      ...(existing ?? this.newRow(eventId, input, input.isSuccess, 'pending')),
+      isSuccess: input.isSuccess,
+      state: 'pending',
+      photoPath: input.photoPath ?? existing?.photoPath ?? null,
+      nextAttemptAt: this.now(),
+    };
+    // Written before anything is awaited: if the app quits from here on, the
+    // composite's real outcome is already in the ledger.
+    let saved = this.writeLedger(row, '촬영');
+    // 제주: the measurement of THIS capture is claimed once and kept in the row,
+    // so a later re-send carries the same sizes.
+    if (this.usesShotsV2() && row.photoPath) {
+      row = { ...row, v2Data: shotV2Data(bodyOf(row), await this.claimMeasurement()) };
+      saved = this.saveLedger(row) && saved;
     }
-    return false;
+
+    const after = await this.deliver(row);
+    if (after.state !== 'sent' && !(saved && this.durableLedger)) {
+      // No ledger on disk: fall back to the old queue so the shot survives a restart.
+      this.storeShotForBatch(bodyOf(row), input.outfitId ?? null, after.lastError ?? 'unsent');
+    }
+    return after.state === 'sent';
+  }
+
+  private newRow(
+    eventId: string,
+    input: Omit<ShotInput, 'isSuccess'>,
+    isSuccess: boolean | null,
+    state: ShotRow['state'],
+  ): ShotRow {
+    const now = this.now();
+    return {
+      eventId,
+      // The machine's own id: a test kiosk showing another site's screen must not
+      // add its shots to that site's numbers.
+      kioskId: this.kiosk.identityNum(),
+      shotAt: input.shotAt ?? localIso(new Date(now)),
+      isSuccess,
+      shotType: input.shotType ?? null,
+      outfitCode: input.outfitCode,
+      language: input.language ?? null,
+      photoPath: input.photoPath ?? null,
+      v2Data: null,
+      state,
+      v1Sent: false,
+      attempts: 0,
+      lastError: null,
+      nextAttemptAt: now,
+      createdAt: now,
+      sentAt: null,
+    };
+  }
+
+  private readLedger(eventId: string): ShotRow | null {
+    try {
+      return this.ledger.get(eventId);
+    } catch (error) {
+      log.warn('Could not read the shot ledger', error);
+      return null;
+    }
+  }
+
+  /** Save the row. False when the ledger could not be written. */
+  private saveLedger(row: ShotRow): boolean {
+    try {
+      this.ledger.save(row);
+      return true;
+    } catch (error) {
+      log.error('Could not write the shot ledger', error);
+      return false;
+    }
+  }
+
+  /** Save the row and add a text line. False when the ledger could not be written. */
+  private writeLedger(row: ShotRow, event: string, detail = ''): boolean {
+    const saved = this.saveLedger(row);
+    if (saved) this.ledger.note(textLine(this.now(), event, row, detail));
+    return saved;
+  }
+
+  /**
+   * One delivery attempt for a ledger row; returns the row as it is afterwards.
+   *
+   * 제주 rows go to the measurement endpoint (shot + sizes + original). When that
+   * is REJECTED the plain shot record is sent on its own, so the shot is counted
+   * now; the measurement upload stays in the ledger and is tried again daily —
+   * the server attaches it to the shot that already exists.
+   */
+  private async deliver(row: ShotRow): Promise<ShotRow> {
+    let next = row;
+    let outcome: SendOutcome;
+
+    if (next.v2Data && next.photoPath) {
+      const v2 = await this.postShotV2(next.v2Data, next.photoPath);
+      if (v2.kind === 'no-photo') {
+        next = { ...next, photoPath: null, v2Data: null };
+        outcome = next.v1Sent ? { kind: 'sent' } : await this.postShot(bodyOf(next));
+      } else if (v2.kind === 'rejected' && !next.v1Sent) {
+        const v1 = await this.postShot(bodyOf(next));
+        if (v1.kind === 'sent') next = { ...next, v1Sent: true };
+        // A transient v1 failure is retried hourly; otherwise the row waits a day for v2.
+        outcome = v1.kind === 'retry' ? v1 : v2;
+      } else {
+        outcome = v2;
+      }
+    } else {
+      outcome = await this.postShot(bodyOf(next));
+    }
+
+    // The shot's own send and the hourly cycle can both be working on this row.
+    // Whichever finishes second must not turn a row the server already has back
+    // into an unsent one.
+    const current = this.readLedger(next.eventId);
+    if (current?.state === 'sent') return current;
+
+    next = afterAttempt(next, outcome, this.now());
+    if (next.state === 'sent') {
+      this.writeLedger(next, '전송 완료');
+    } else if (next.state === 'rejected') {
+      log.error('Shot rejected by the server; kept in the ledger, retried daily', {
+        eventId: next.eventId,
+        error: next.lastError,
+        counted: next.v1Sent,
+      });
+      this.writeLedger(
+        next,
+        '거부(하루 1회 재시도·확인 필요)',
+        `${next.lastError ?? ''}${next.v1Sent ? ' · 촬영 기록은 반영됨' : ''}`,
+      );
+    } else {
+      log.warn('Shot not sent; kept in the ledger for the next cycle', {
+        eventId: next.eventId,
+        error: next.lastError,
+      });
+      this.writeLedger(next, '전송 실패(매시간 재시도)', next.lastError ?? '');
+    }
+    return next;
+  }
+
+  /** POST one plain shot record. Never throws. */
+  private async postShot(body: ShotBody): Promise<SendOutcome> {
+    try {
+      const res = await fetch(this.shotsUrl(), {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body),
+        signal: AbortSignal.timeout(SHOT_TIMEOUT_MS),
+      });
+      return classifyStatus(res.status);
+    } catch (error) {
+      return { kind: 'retry', message: error instanceof Error ? error.message : 'network error' };
+    }
+  }
+
+  /**
+   * Send every ledger row that is due: unsent rows (hourly), rejected rows
+   * (daily), and rows whose composite never finished — the app quit — which go
+   * out as failed shots. Then prune rows sent more than 30 days ago. Never throws.
+   */
+  async syncShotLedger(): Promise<{ sent: number; kept: number }> {
+    const summary = { sent: 0, kept: 0 };
+    try {
+      let transient = 0;
+      for (const due of this.ledger.due(this.now(), LEDGER_CYCLE_LIMIT)) {
+        let row = due;
+        if (row.state === 'open') {
+          row = { ...row, isSuccess: false, state: 'pending' };
+          if (this.usesShotsV2() && row.photoPath) {
+            row = { ...row, v2Data: shotV2Data(bodyOf(row), null) };
+          }
+          this.writeLedger(row, '합성 미완료 — 실패 촬영으로 처리');
+        }
+        const after = await this.deliver(row);
+        if (after.state === 'sent') {
+          summary.sent += 1;
+          transient = 0;
+        } else {
+          summary.kept += 1;
+          if (after.state === 'pending' && ++transient >= TRANSIENT_STOP_AFTER) break;
+        }
+      }
+      const pruned = this.ledger.pruneSent(this.now() - KEEP_SENT_MS);
+      // The text ledger is rewritten whole, so once a day is enough.
+      if (this.now() - this.lastNotesPruneAt >= 24 * HOUR_MS) {
+        this.lastNotesPruneAt = this.now();
+        this.ledger.pruneNotes(this.now(), KEEP_SENT_MS);
+      }
+      if (summary.sent > 0 || summary.kept > 0 || pruned > 0) {
+        log.info('Shot ledger sync', { ...summary, pruned, unsent: this.ledger.unsent() });
+      }
+    } catch (error) {
+      log.error('Shot ledger sync failed', error);
+    }
+    return summary;
+  }
+
+  /**
+   * Re-send everything that has not reached the server: the shot ledger, plus
+   * the stored menu touches and the shots queued by older versions. Runs once
+   * shortly after launch and then hourly; the nightly sync still calls the two
+   * batch re-sends, which is harmless (the server dedupes on eventId).
+   */
+  async runPeriodicSync(): Promise<void> {
+    if (this.syncing) return;
+    this.syncing = true;
+    try {
+      await this.syncShotLedger();
+      await this.syncMenuTouches();
+      await this.syncPhotoShots();
+    } catch (error) {
+      log.warn('Periodic stats sync failed', error);
+    } finally {
+      this.syncing = false;
+    }
+  }
+
+  startPeriodicSync(): void {
+    if (this.syncTimer) return;
+    const schedule = (delayMs: number): void => {
+      this.syncTimer = setTimeout(() => {
+        void this.runPeriodicSync().finally(() => {
+          if (this.syncTimer) schedule(SYNC_INTERVAL_MS);
+        });
+      }, delayMs);
+      if (typeof this.syncTimer.unref === 'function') this.syncTimer.unref();
+    };
+    schedule(SYNC_STARTUP_DELAY_MS);
+    log.info('Periodic stats sync started', {
+      startupDelayMs: SYNC_STARTUP_DELAY_MS,
+      intervalMs: SYNC_INTERVAL_MS,
+    });
+  }
+
+  stopPeriodicSync(): void {
+    if (this.syncTimer) clearTimeout(this.syncTimer);
+    this.syncTimer = null;
   }
 
   private async claimMeasurement(): Promise<ShotMeasurement | null> {
@@ -310,7 +564,10 @@ export class StatsService {
       photo = await readFile(photoPath);
     } catch (error) {
       const message = error instanceof Error ? error.message : 'photo unreadable';
-      return { kind: 'rejected', message: `photo: ${message}` };
+      // Only a file that is GONE ends the upload for good; a locked or busy file
+      // (staff copying the folder) is tried again.
+      const gone = (error as NodeJS.ErrnoException | null)?.code === 'ENOENT';
+      return { kind: gone ? 'no-photo' : 'retry', message: `photo: ${message}` };
     }
 
     const form = new FormData();
@@ -320,18 +577,21 @@ export class StatsService {
 
     let res: Response;
     try {
-      res = await fetch(this.shotsV2Url(), { method: 'POST', body: form });
+      res = await fetch(this.shotsV2Url(), {
+        method: 'POST',
+        body: form,
+        signal: AbortSignal.timeout(SHOT_V2_TIMEOUT_MS),
+      });
     } catch (error) {
       return { kind: 'retry', message: error instanceof Error ? error.message : 'network error' };
     }
-    if (res.ok) return { kind: 'sent' };
     if (res.status === 409) {
       log.info('shots/v2 already stored (409); treating as sent', { eventId: data.eventId });
-      return { kind: 'sent' };
     }
+    const outcome = classifyStatus(res.status);
+    if (outcome.kind === 'sent') return outcome;
     const detail = await res.text().catch(() => '');
-    const message = `HTTP ${res.status}${detail ? ` ${detail.slice(0, 300)}` : ''}`;
-    return { kind: res.status >= 500 ? 'retry' : 'rejected', message };
+    return { ...outcome, message: `${outcome.message}${detail ? ` ${detail.slice(0, 300)}` : ''}` };
   }
 
   /** Store a shot in the v1 batch-endpoint shape (outfitId, not outfitCode). */
@@ -363,7 +623,9 @@ export class StatsService {
       if (outcome.kind === 'sent') {
         this.failedRequests.resolve(r.id);
         sent += 1;
-      } else if (outcome.kind === 'retry') {
+      } else if (outcome.kind === 'retry' || outcome.message.startsWith('HTTP 500')) {
+        // Rows queued by older versions keep their old rule: a 500 is retried as
+        // an upload rather than handed to the v1 batch (which drops the measurement).
         this.failedRequests.markRetried(r.id, outcome.message);
       } else {
         // Same request_id (eventId): delete first, or the insert would only
@@ -455,6 +717,7 @@ export class StatsService {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ items }),
+      signal: AbortSignal.timeout(SHOT_V2_TIMEOUT_MS),
     });
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     const json: unknown = await res.json().catch(() => ({}));
@@ -466,6 +729,7 @@ export class StatsService {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(body),
+      signal: AbortSignal.timeout(SHOT_TIMEOUT_MS),
     });
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
   }

@@ -101,7 +101,8 @@ export function PhotoWorkflow(): JSX.Element {
   //    is no payment. The home 위드마켓 card is inert there as well.
   //  - 여객터미널 W009 follows the airport (2026-11-10): no store on the result.
   // Only venues that pair the terminal WITH the store webview take this screen.
-  const showsMarketResult = hasPayment && !isHwaseong && !isLotte && !PLAIN_RESULT_KIOSKS.has(kioskId);
+  const showsMarketResult =
+    hasPayment && !isHwaseong && !isLotte && !PLAIN_RESULT_KIOSKS.has(kioskId);
   // Osan/Hwaseong have their own single promo banner; insadong rotates through several.
   const banner = chromeBanner ?? rotating;
   const [goodsQrOpen, setGoodsQrOpen] = useState(false);

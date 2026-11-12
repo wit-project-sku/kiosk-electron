@@ -118,6 +118,23 @@ export function registerKioskHandlers(windows: WindowManager, container: AppCont
     await restartAs(site.code, windows, container, { fromSetup: true });
     return true;
   });
+
+  // 지점 설정 opened from the desktop shortcut with the app off: 앱 실행 starts the
+  // kiosk as it is — the same restart as saving, without changing the site.
+  handle(IpcChannels.KioskSetupLaunch, async () => {
+    const cfg = kioskConfigStore.get();
+    if (cfg.setup === 'required') {
+      throw AppError.validation("Choose this PC's site before starting the kiosk.");
+    }
+    // Over a running kiosk there is nothing to start; the window just closes.
+    if (cfg.setup !== 'requested') {
+      windows.closeSetupWindow();
+      return true;
+    }
+    log.info('Starting the kiosk from the setup window', { kioskId: cfg.kioskId });
+    await restartAs(cfg.kioskId, windows, container, { fromSetup: true });
+    return true;
+  });
 }
 
 async function confirmSetup(site: SetupSite, windows: WindowManager): Promise<boolean> {

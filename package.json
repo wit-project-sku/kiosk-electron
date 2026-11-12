@@ -35,6 +35,7 @@
     "test:e2e": "electron-vite build && playwright test",
     "test:e2e:record": "electron-vite build && playwright test -c playwright.record.config.ts",
     "test:soak": "electron-vite build && playwright test -c playwright.soak.config.ts",
+    "test:faults": "electron-vite build && playwright test -c playwright.faults.config.ts",
     "verify": "npm run typecheck && npm run lint && npm run test && electron-vite build",
     "lint": "eslint . --ext .ts,.tsx --cache",
     "lint:fix": "eslint . --ext .ts,.tsx --fix",

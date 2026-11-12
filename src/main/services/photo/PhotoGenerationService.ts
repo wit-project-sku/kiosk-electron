@@ -87,6 +87,15 @@ export class PhotoGenerationService {
       // folder as the result, paired by sessionId.
       const capture = await this.capture.saveCapture(dataUrl, sessionId);
       capturePath = capture.filePath;
+      // The original exists: put the shot in the ledger now, so it is still
+      // reported if the app quits before the composite finishes.
+      this.stats.openShot({
+        eventId,
+        outfitCode: outfitCodeOf(clothingKey),
+        shotType: shotTypeOf(styleKey),
+        photoPath: capturePath,
+        language,
+      });
 
       onProgress?.('AI is creating your image…');
       const { buffer: resultBuffer, publicUrl } = await this.ai.generate({

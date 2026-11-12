@@ -1,12 +1,18 @@
 import { useEffect, useState } from 'react';
-import { SETUP_SITES, siteNumberOf, type SetupSite } from '@shared/config/kioskSetup';
+import {
+  SETUP_SITES,
+  setupActions,
+  siteNumberOf,
+  type KioskSetupState,
+  type SetupSite,
+} from '@shared/config/kioskSetup';
 import { isOk } from '@shared/types/result';
 import { siteVideoCount } from '@renderer/lib/videoMap';
 import styles from './KioskSetup.module.css';
 
 interface SetupContext {
-  /** A fresh PC: the kiosk is not shown until a site is chosen. */
-  required: boolean;
+  /** How this window was opened — `null` = over a running kiosk (kioskSetup.ts). */
+  state: KioskSetupState | null;
   /** This PC's own kiosk code. */
   current: string;
 }
@@ -14,10 +20,13 @@ interface SetupContext {
 /**
  * 지점 설정 — the ordinary window that says which site this PC is (kioskSetup.ts).
  *
- * Opens by itself on a fresh machine, or from the installer's desktop shortcut.
+ * Opens by itself on a fresh machine, or from the installer's one desktop shortcut.
  * A site is chosen from the table, by location rather than region because 인사동
  * and 제주 have several kiosks each; its number comes with it. Saving asks once in
- * a system dialog, then the app restarts as that site.
+ * a system dialog, then the app restarts as that site. Opened with the app off and
+ * no new site chosen, the main button is 앱 실행: the kiosk starts as it is.
+ * This PC's own site starts checked and can be picked again, so a tester who
+ * clicked another site can go back to 앱 실행 without reopening the window.
  */
 export function KioskSetup(): JSX.Element {
   const [context, setContext] = useState<SetupContext | null>(null);
@@ -32,7 +41,7 @@ export function KioskSetup(): JSX.Element {
       if (!alive || !isOk(result)) return;
       const config = result.value.kioskConfig;
       setContext({
-        required: config.setup === 'required',
+        state: config.setup ?? null,
         current: config.identityKioskId ?? config.kioskId,
       });
     });
@@ -49,12 +58,20 @@ export function KioskSetup(): JSX.Element {
     };
   }, []);
 
+  const required = context?.state === 'required';
+  const currentSite = required ? undefined : SETUP_SITES.find((s) => s.code === context?.current);
+  // What the table shows as chosen: the pick, or else this PC's own site.
+  const chosen = selected ?? currentSite ?? null;
+  // Choosing this PC's own site again is not a change.
+  const newSite = chosen !== null && chosen !== currentSite ? chosen : null;
+  const actions = setupActions(context?.state ?? null, newSite !== null);
+
   const save = (): void => {
-    if (!selected || saving) return;
+    if (!newSite || saving) return;
     setSaving(true);
     setError(null);
     // Once confirmed a packaged build restarts, so this never settles.
-    void window.api.kiosk.applySetup(selected.code).then(
+    void window.api.kiosk.applySetup(newSite.code).then(
       (result) => {
         setSaving(false);
         if (!isOk(result)) setError(result.error.message);
@@ -66,9 +83,22 @@ export function KioskSetup(): JSX.Element {
     );
   };
 
-  const required = context?.required === true;
-  const currentSite = required ? undefined : SETUP_SITES.find((s) => s.code === context?.current);
-
+  const launch = (): void => {
+    if (saving) return;
+    setSaving(true);
+    setError(null);
+    // A packaged build restarts as the kiosk, so this never settles.
+    void window.api.kiosk.launchFromSetup().then(
+      (result) => {
+        setSaving(false);
+        if (!isOk(result)) setError(result.error.message);
+      },
+      (e: unknown) => {
+        setSaving(false);
+        setError(e instanceof Error ? e.message : '앱을 실행하지 못했습니다.');
+      },
+    );
+  };
   return (
     <main className={styles.root}>
       <p className={styles.intro}>
@@ -95,18 +125,15 @@ export function KioskSetup(): JSX.Element {
               return (
                 <tr
                   key={site.code}
-                  className={
-                    current ? styles.rowCurrent : site === selected ? styles.rowSelected : ''
-                  }
-                  onClick={current ? undefined : () => setSelected(site)}
+                  className={site === chosen ? styles.rowSelected : ''}
+                  onClick={() => setSelected(site)}
                 >
                   <td className={styles.pick}>
                     <input
                       type="radio"
                       name="site"
                       aria-label={site.name}
-                      checked={site === selected}
-                      disabled={current}
+                      checked={site === chosen}
                       onChange={() => setSelected(site)}
                     />
                   </td>
@@ -130,10 +157,14 @@ export function KioskSetup(): JSX.Element {
 
       <footer className={styles.actions}>
         <button type="button" onClick={() => window.close()} disabled={saving}>
-          {required ? '나중에 하기' : '닫기'}
+          {actions.closeLabel}
         </button>
-        <button type="button" onClick={save} disabled={!selected || saving}>
-          저장
+        <button
+          type="button"
+          onClick={actions.primary === 'launch' ? launch : save}
+          disabled={!context || !actions.primaryEnabled || saving}
+        >
+          {actions.primaryLabel}
         </button>
       </footer>
     </main>
