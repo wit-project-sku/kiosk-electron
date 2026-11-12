@@ -39,13 +39,18 @@ export interface SetupSite {
   testRig: boolean;
 }
 
-/** Every site a PC can be set to, in kiosk order, then the office test kiosk. */
+/**
+ * Every site a PC can be set to, in kiosk order, then the office test kiosk.
+ * A site still being built (`notInSetup`) is left out — saving checks this list too.
+ */
 export const SETUP_SITES: readonly SetupSite[] = [
-  ...Object.values(KIOSK_LOCATIONS).map((loc) => ({
-    code: loc.code,
-    name: loc.name,
-    testRig: false,
-  })),
+  ...Object.values(KIOSK_LOCATIONS)
+    .filter((loc) => !loc.notInSetup)
+    .map((loc) => ({
+      code: loc.code,
+      name: loc.name,
+      testRig: false,
+    })),
   {
     code: TEST_RIG_KIOSK_ID,
     name: '사무실 테스트기 (HQ)',

@@ -60,9 +60,18 @@ describe('지점 설정 — when the screen opens', () => {
 describe('지점 설정 — sites and confirmation', () => {
   it('offers every site plus the office test kiosk, once each', () => {
     const codes = SETUP_SITES.map((s) => s.code);
-    expect(codes).toEqual([...Object.keys(KIOSK_LOCATIONS), 'W200']);
+    const live = Object.values(KIOSK_LOCATIONS).filter((l) => !l.notInSetup);
+    expect(codes).toEqual([...live.map((l) => l.code), 'W200']);
     expect(new Set(codes).size).toBe(codes.length);
     expect(SETUP_SITES.find((s) => s.code === 'W200')?.testRig).toBe(true);
+  });
+
+  it('leaves out the 롯데 sites still being built (no kiosk of that number on the server)', () => {
+    const codes = SETUP_SITES.map((s) => s.code);
+    for (const code of ['W011', 'W012', 'W013'] as const) {
+      expect(KIOSK_LOCATIONS[code].notInSetup).toBe(true);
+      expect(codes).not.toContain(code);
+    }
   });
 
   it('names each site by its kiosk number', () => {
