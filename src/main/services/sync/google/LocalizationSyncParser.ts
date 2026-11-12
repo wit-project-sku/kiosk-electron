@@ -55,6 +55,8 @@ const NEW_LANG_COLS: Record<KioskLayoutId, Array<{ lang: SupportedLanguage; inde
   // the transport skips it on the empty sheetId — and an empty list keeps that
   // true by construction rather than by borrowing another venue's column order.
   KADA: [],
+  // 롯데 has no Localization tab yet (see CONTENT_SHEETS) — same reasoning as KADA.
+  LOTTE: [],
 };
 
 /**

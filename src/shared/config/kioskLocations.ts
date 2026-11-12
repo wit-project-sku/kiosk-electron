@@ -13,7 +13,7 @@ import type { KioskId, KioskLayoutId, KioskScreenId } from '../types/kiosk';
  * is electron-store (see KioskConfigStore), set per machine via provision-kiosk.ps1.
  * There is NO env override; one build serves every location.
  */
-export type KioskLocationCode = 'W001' | 'W002' | 'W003' | 'W004' | 'W005' | 'W008' | 'W009' | 'W010' | 'W202';
+export type KioskLocationCode = 'W001' | 'W002' | 'W003' | 'W004' | 'W005' | 'W008' | 'W009' | 'W010' | 'W011' | 'W012' | 'W013' | 'W202';
 
 /**
  * Content-branch code the v2 witteria endpoints are keyed by
@@ -125,6 +125,13 @@ export interface KioskLocation {
    */
   cameraRotation: 0 | 90 | 180 | 270;
   /**
+   * Leave this site out of the 지점 설정 window. For a venue still being built
+   * (롯데 W011~W013, 2026-11-12): the server has no kiosk of that number yet, so
+   * a PC set to it would send every shot and touch to an id the server rejects.
+   * The office test kiosk still previews it with its pin (testRig.ts).
+   */
+  notInSetup?: true;
+  /**
    * `kioskId` to send to the SHOP API (`/api/shops?kioskId=`) when it differs
    * from this kiosk's own W-code number.
    *
@@ -178,6 +185,13 @@ const JEJU_HERITAGE_COORDS: GeoCoordinates = { lat: 33.4557, lon: 126.7126 };
  * query leaves the KMA's coverage; OpenWeatherMap answers for Hanoi the same way
  * it does for the domestic venues.
  */
+/** 롯데월드몰 (서울 송파구 올림픽로 300) — W011. Weather-grade precision. */
+const LOTTE_WORLD_MALL_COORDS: GeoCoordinates = { lat: 37.5126, lon: 127.1025 };
+/** 롯데백화점 청량리점 — W012. Weather-grade precision. */
+const LOTTE_CHEONGNYANGNI_COORDS: GeoCoordinates = { lat: 37.5803, lon: 127.0469 };
+/** 롯데백화점 건대스타시티점 — W013. Weather-grade precision. */
+const LOTTE_KONKUK_COORDS: GeoCoordinates = { lat: 37.5376, lon: 127.073 };
+
 const KADA_COORDS: GeoCoordinates = { lat: 20.9806, lon: 105.7876 };
 
 const INSARANG_TILE: KioskLocationTile = { screen: 'insarang', label: '인사랑(준비중)', icon: 'insarang' };
@@ -257,6 +271,14 @@ export const KIOSK_LOCATIONS: Record<KioskLocationCode, KioskLocation> = {
   // compositing 하영 would contradict the one rule this layout exists to enforce.
   // Revisit when Digicon ships a 유산 code.
   W010: { code: 'W010', name: '세계자연유산본부', region: 'JEJU_HERITAGE', layout: 'JEJU_HERITAGE', secondTile: MARKET_TILE, hasCardTerminal: true, hasDonation: true, aiCompanion: '2', coordinates: JEJU_HERITAGE_COORDS, cameraRotation: 0 },
+  // 롯데 W011~W013 — publishing stage (2026-11-09): the screens run on the sample data
+  // in layouts/lotte/lotteSample.ts. `region` stays null until the server has these
+  // three branches (ContentRegion), so the content services skip the fetch rather
+  // than send a value the API would reject. `aiCompanion` is the API's default only:
+  // Digicon has no 롯데 mascot yet, and the 롯데 photo flow offers no 같이찍기 until it does.
+  W011: { code: 'W011', name: '롯데월드몰', region: null, layout: 'LOTTE', hasCardTerminal: true, hasDonation: false, aiCompanion: '2', coordinates: LOTTE_WORLD_MALL_COORDS, cameraRotation: 0, notInSetup: true },
+  W012: { code: 'W012', name: '롯데백화점 청량리점', region: null, layout: 'LOTTE', hasCardTerminal: true, hasDonation: false, aiCompanion: '2', coordinates: LOTTE_CHEONGNYANGNI_COORDS, cameraRotation: 0, notInSetup: true },
+  W013: { code: 'W013', name: '롯데백화점 건대스타시티점', region: null, layout: 'LOTTE', hasCardTerminal: true, hasDonation: false, aiCompanion: '2', coordinates: LOTTE_KONKUK_COORDS, cameraRotation: 0, notInSetup: true },
   // KADA W202 — Korea-ASEAN Digital Academy, Vietnam Chapter (PTIT, Hà Nội).
   //
   // The first NON-KOREAN deployment, and the first that is not a tourism kiosk.

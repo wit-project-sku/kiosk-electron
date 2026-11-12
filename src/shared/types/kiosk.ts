@@ -55,10 +55,12 @@ export type KioskLayoutId =
   | 'HWASEONG'
   | 'JEJU_AIRPORT'
   | 'JEJU_HERITAGE'
-  | 'KADA';
+  | 'KADA'
+  // 롯데 W011~W013 — one design for all three venues.
+  | 'LOTTE';
 
 /** Well-known kiosk deployment IDs. */
-export type KioskId = 'W001' | 'W002' | 'W003' | 'W004' | 'W005' | 'W008' | 'W009' | 'W010' | 'W202' | (string & {});
+export type KioskId = 'W001' | 'W002' | 'W003' | 'W004' | 'W005' | 'W008' | 'W009' | 'W010' | 'W011' | 'W012' | 'W013' | 'W202' | (string & {});
 
 export interface KioskConfig {
   /** Location-derived id — on the test rig this is the preview site (see shared/config/testRig). */
@@ -193,6 +195,8 @@ export type KioskScreenId =
   // thing tapping the weather card does. Never navigated to: it is the tile's
   // key for buttonCatalog / analytics only.
   | 'weather'
+  // 롯데 W011~W013 — 롯데시네마 상영 시간표 전체 보기 (the home board's 더보기).
+  | 'cinema'
   | 'localpay'     // 지역화폐 (탐나는전)
   // 제주국제여객터미널 (W009) — the one home tile W008 does not have. It takes
   // 렌트카's grid slot (line 6 position 4), so the two are mutually exclusive:

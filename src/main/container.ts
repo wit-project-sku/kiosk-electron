@@ -52,15 +52,20 @@ import { PhotoGenerationService } from './services/photo/PhotoGenerationService'
 import { ImageHostService } from './services/photo/ImageHostService';
 import { PhotoWorkflowService } from './services/photo/PhotoWorkflowService';
 import { PhotoArchiveService } from './services/photoArchive/PhotoArchiveService';
+import type { ShotLedger } from './services/shotLedger/ShotLedger';
+import { SqliteShotLedger } from './services/shotLedger/SqliteShotLedger';
 import { MotionGameService } from './services/motion/MotionGameService';
 import { FootfallService } from './services/footfall/FootfallService';
 import { FootfallUploader } from './services/footfall/FootfallUploader';
 import { HeightService } from './services/height/HeightService';
 import { ZedSidecarManager } from './core/ZedSidecarManager';
 import { appPaths } from './core/paths';
+import { createLogger } from './core/logger';
 import { UpdateService } from './updater/UpdateService';
 import { UpdateCommandService } from './updater/UpdateCommandService';
 import { HealthReporter } from './core/HealthReporter';
+
+const log = createLogger('container');
 
 export interface AppContainer {
   database: Database;
@@ -153,7 +158,16 @@ export function createContainer(): AppContainer {
   // the kiosk so it can stamp `kioskId` on the request itself.
   const jejuCourse = new JejuCourseService(kiosk);
   const insaCourse = new InsaCourseService(kiosk);
-  const stats = new StatsService(kiosk, failedRequests);
+  // 촬영 장부 lives next to main.log (shot-ledger.db + shot-ledger.txt). If the
+  // file cannot be opened the service keeps rows in memory and also puts every
+  // unsent shot in the old failed-request queue, which is on disk.
+  let shotLedger: ShotLedger | undefined;
+  try {
+    shotLedger = new SqliteShotLedger(appPaths.logs);
+  } catch (error) {
+    log.error('Shot ledger unavailable; shots fall back to the failed-request queue', error);
+  }
+  const stats = new StatsService(kiosk, failedRequests, { ledger: shotLedger });
   const weather = new WeatherService(cache, kiosk);
   const flights = new FlightService(cache, kiosk);
   const sailings = new SailingService(cache, kiosk);

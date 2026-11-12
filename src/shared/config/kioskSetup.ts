@@ -8,12 +8,15 @@
  *  - a FRESH machine (nothing in kiosk-config.json and no kiosk.db yet — this app
  *    has never run here) opens the setup window and nothing else until a site is
  *    picked (`required`). It stays that way across restarts until one is;
- *  - the installer's desktop shortcut starts the app with {@link SETUP_ARG}
- *    (`requested`). With the app off that opens this window alone, and closing it
- *    leaves the app off; over a running kiosk it opens on top, and closing it
- *    leaves the kiosk running. It lives on the Windows desktop, behind the
- *    fullscreen kiosk window, so only staff at a keyboard or on TeamViewer reach
- *    it — never a visitor's finger.
+ *  - the installer's ONE desktop shortcut ("WITH 키오스크 앱", 2026-11-12 — it
+ *    replaced the separate app and 지점 설정 shortcuts) starts the app with
+ *    {@link SETUP_ARG} (`requested`). With the app off that opens this window
+ *    alone: 앱 실행 starts the kiosk as it is, closing leaves the app off. Over a
+ *    running kiosk it opens on top, and closing it leaves the kiosk running. It
+ *    lives on the Windows desktop, behind the fullscreen kiosk window, so only
+ *    staff at a keyboard or on TeamViewer reach it — never a visitor's finger.
+ *    Booting does not go through it: the login auto-start launches the kiosk
+ *    without the switch (PowerManager).
  *
  * A machine that has run before keeps booting exactly as it did, provisioned or
  * not: "never configured" alone is not enough to stop a working kiosk.
@@ -36,13 +39,18 @@ export interface SetupSite {
   testRig: boolean;
 }
 
-/** Every site a PC can be set to, in kiosk order, then the office test kiosk. */
+/**
+ * Every site a PC can be set to, in kiosk order, then the office test kiosk.
+ * A site still being built (`notInSetup`) is left out — saving checks this list too.
+ */
 export const SETUP_SITES: readonly SetupSite[] = [
-  ...Object.values(KIOSK_LOCATIONS).map((loc) => ({
-    code: loc.code,
-    name: loc.name,
-    testRig: false,
-  })),
+  ...Object.values(KIOSK_LOCATIONS)
+    .filter((loc) => !loc.notInSetup)
+    .map((loc) => ({
+      code: loc.code,
+      name: loc.name,
+      testRig: false,
+    })),
   {
     code: TEST_RIG_KIOSK_ID,
     name: '사무실 테스트기 (HQ)',
@@ -83,6 +91,43 @@ export function setupStateFor(input: {
   if (input.pending || (input.storedKeys === 0 && !input.databaseExists)) return 'required';
   if (input.argv.includes(SETUP_ARG)) return 'requested';
   return null;
+}
+
+/** What the window's main button does: start the kiosk as it is, or save a new site and restart. */
+export type SetupPrimaryAction = 'launch' | 'save';
+
+export interface SetupActions {
+  closeLabel: string;
+  primary: SetupPrimaryAction;
+  primaryLabel: string;
+  primaryEnabled: boolean;
+}
+
+/**
+ * The two footer buttons for how the window was opened. `null` = over a running
+ * kiosk: saving restarts it, and there is nothing to launch. `requested` = the
+ * shortcut with the app off: with no new site chosen the button starts the
+ * kiosk as it is. `required` = a fresh PC: it cannot start until a site is saved,
+ * or it would record as the W001 default.
+ */
+export function setupActions(state: KioskSetupState | null, hasSelection: boolean): SetupActions {
+  if (state === 'required') {
+    return {
+      closeLabel: '나중에 하기',
+      primary: 'save',
+      primaryLabel: '저장하고 실행',
+      primaryEnabled: hasSelection,
+    };
+  }
+  if (state === 'requested' && !hasSelection) {
+    return { closeLabel: '닫기', primary: 'launch', primaryLabel: '앱 실행', primaryEnabled: true };
+  }
+  return {
+    closeLabel: '닫기',
+    primary: 'save',
+    primaryLabel: state === 'requested' ? '저장하고 실행' : '저장',
+    primaryEnabled: hasSelection,
+  };
 }
 
 /** Relaunch arguments without the setup switch, so the restarted app opens normally. */

@@ -123,6 +123,8 @@ export const IpcChannels = {
   KioskSwitchLocation: 'kiosk:switchLocation',
   // 지점 설정 screen: make this PC the chosen site and restart (any build).
   KioskSetupApply: 'kiosk:setupApply',
+  // 지점 설정 screen opened from the shortcut with the app off: start the kiosk as it is.
+  KioskSetupLaunch: 'kiosk:setupLaunch',
 
   // Shops (cached from the witteria API)
   ShopsList: 'shops:list',

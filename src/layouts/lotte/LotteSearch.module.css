@@ -1,0 +1,170 @@
+/*
+ * 제주 검색 결과 — Figma node 6050:140667 (제주>유산=검색-01).
+ *
+ * The search row and the result list scroll together in one column starting at
+ * y700, exactly as the Figma stacks them inside 검색결과 (gap 100). Layout:
+ *   700   search field (h182, w1350, centred in the 1820 column)
+ *   982   first result card (h530), then +590 per card (530 + 60 gap)
+ */
+.scroll {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 700px;
+  bottom: 0;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 100px;
+  overflow-x: hidden;
+  overflow-y: auto;
+  /* The 28px scrollbar is carved out of the RIGHT margin (Figma puts it at
+     x2128, inside the 170px gutter) so the content column stays exactly 1820:
+     2160 − 170 − 136 − 34.32 = 1819.7. */
+  padding: 0 136px 80px 170px;
+}
+
+/*
+ * Low-reach (♿) — mode bar at y0, header at y113; the scroll column drops to
+ * match (700 → 813). Scroll buttons stay at their standard y (fixed reach).
+ */
+.scrollLow {
+  top: 813px;
+}
+
+.scroll::-webkit-scrollbar {
+  width: 28px;
+}
+
+.scroll::-webkit-scrollbar-thumb {
+  background: var(--kiosk-primary, #DA291C);
+  border-radius: 14px;
+}
+
+.scroll::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+/* ── Search re-entry field ── */
+.searchRow {
+  flex: none;
+  width: 1820px;
+  height: 182px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.searchField {
+  width: 1350px;
+  height: 182px;
+  box-sizing: border-box;
+  /* No vertical padding (it was 55): the field is flex-centred, so one line
+     lands exactly where the padding put it, and a query too long for one line
+     wraps to a second (or third) inside the drawn 182 rather than ellipsising.
+     The height stays fixed — the keyboard opens at y882, flush under it. */
+  padding: 0 75px;
+  border: 4.29px solid var(--kiosk-primary, #DA291C);
+  border-radius: 120px;
+  background: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.searchText {
+  flex: 1 1 auto;
+  min-width: 0;
+  font-size: 60.06px;
+  font-weight: 600;
+  line-height: 1;
+  text-align: left;
+  /* Wraps instead of ellipsising: the end of the query — and the caret after
+     it — has to stay visible while it is being typed. */
+  white-space: normal;
+  word-break: keep-all;
+  overflow-wrap: anywhere;
+  color: #999;
+}
+
+.searchValue { color: #2A2320; }
+
+.caret {
+  display: inline-block;
+  width: 4px;
+  height: 62px;
+  margin-left: 6px;
+  vertical-align: middle;
+  background: var(--kiosk-primary, #DA291C);
+  animation: jejuCaret 1s step-end infinite;
+}
+
+@keyframes jejuCaret {
+  50% { opacity: 0; }
+}
+
+.searchIcon {
+  flex: 0 0 auto;
+  width: 71px;
+  height: 68px;
+  object-fit: contain;
+}
+
+/* ── Result list ── */
+.list {
+  flex: none;
+  width: 1820px;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-auto-rows: 232px;
+  gap: 24px;
+}
+
+/* The card itself is LotteShopCard (Figma 4030:74958) — shared with the
+   뜼먹지 category list, which draws the identical component. */
+
+/* ── Empty / prompt state ── */
+.empty {
+  flex: none;
+  margin: 120px 0 0;
+  font-size: 60px;
+  font-weight: 500;
+  line-height: 1.3;
+  color: #909090;
+  text-align: center;
+}
+
+/* ── Right-hand scroll buttons (Figma x2027, y2103 / y2223) ──
+   One asset: the orange circle with a white LEFT chevron, rotated into an up
+   and a down arrow — exactly how the Figma composes them. */
+.scrollBtn {
+  position: absolute;
+  left: 2027px;
+  width: 85px;
+  height: 85px;
+  padding: 0;
+  border: none;
+  background: none;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.scrollUp   { top: 2103px; }
+.scrollDown { top: 2223px; }
+
+/* Barrier-free: Figma 6442:105429 right-hand ▲▼ (same tops as the home frame). */
+.scrollUpLow   { top: 2223px; }
+.scrollDownLow { top: 2428px; }
+
+.scrollBtnImg {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  pointer-events: none;
+}
+
+.scrollUp .scrollBtnImg   { transform: rotate(90deg); }
+.scrollDown .scrollBtnImg { transform: rotate(-90deg); }
