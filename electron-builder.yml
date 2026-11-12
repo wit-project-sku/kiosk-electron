@@ -136,7 +136,9 @@ nsis:
   perMachine: false
   allowToChangeInstallationDirectory: true
   deleteAppDataOnUninstall: false
-  # Desktop "키오스크 지점 설정" shortcut (the app with --setup) — see the file.
+  # One desktop shortcut, "WITH 키오스크 앱" (the app with --setup), made by the
+  # include below — electron-builder's own plain shortcut is turned off.
+  createDesktopShortcut: false
   include: build/installer.nsh
 
 # Auto-update feed = GitHub Releases (electron-updater). This block is baked into

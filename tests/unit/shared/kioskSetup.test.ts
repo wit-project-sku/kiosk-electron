@@ -3,6 +3,7 @@ import { KIOSK_LOCATIONS } from '@shared/config/kioskLocations';
 import {
   SETUP_ARG,
   SETUP_SITES,
+  setupActions,
   setupConfirmText,
   setupStateFor,
   siteNumberOf,
@@ -77,5 +78,46 @@ describe('지점 설정 — sites and confirmation', () => {
     const rig = SETUP_SITES.find((s) => s.testRig)!;
     expect(setupConfirmText(rig).detail).toContain('200번');
     expect(setupConfirmText(rig).detail).toContain('핀');
+  });
+});
+
+describe('지점 설정 — footer buttons', () => {
+  it('the shortcut with the app off starts the kiosk as it is', () => {
+    expect(setupActions('requested', false)).toEqual({
+      closeLabel: '닫기',
+      primary: 'launch',
+      primaryLabel: '앱 실행',
+      primaryEnabled: true,
+    });
+  });
+
+  it('choosing another site there saves it and starts as that site', () => {
+    expect(setupActions('requested', true)).toMatchObject({
+      primary: 'save',
+      primaryLabel: '저장하고 실행',
+      primaryEnabled: true,
+    });
+  });
+
+  it('a fresh PC cannot start before a site is saved', () => {
+    expect(setupActions('required', false)).toMatchObject({
+      closeLabel: '나중에 하기',
+      primary: 'save',
+      primaryEnabled: false,
+    });
+    expect(setupActions('required', true)).toMatchObject({
+      primary: 'save',
+      primaryLabel: '저장하고 실행',
+      primaryEnabled: true,
+    });
+  });
+
+  it('over a running kiosk there is nothing to launch — only save', () => {
+    expect(setupActions(null, false)).toMatchObject({
+      primary: 'save',
+      primaryLabel: '저장',
+      primaryEnabled: false,
+    });
+    expect(setupActions(null, true)).toMatchObject({ primary: 'save', primaryEnabled: true });
   });
 });

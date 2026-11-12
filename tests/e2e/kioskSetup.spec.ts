@@ -21,7 +21,8 @@ async function answerConfirm(app: ElectronApplication, response: 0 | 1): Promise
 }
 
 const site = (setup: Page, name: RegExp) => setup.getByRole('radio').and(setup.getByLabel(name));
-const save = (setup: Page) => setup.getByRole('button', { name: '저장', exact: true });
+// '저장' over a running kiosk, '저장하고 실행' with the app off or on a fresh PC.
+const save = (setup: Page) => setup.getByRole('button', { name: /^저장/ });
 const hasWindow = (app: ElectronApplication, file: string): boolean =>
   app.windows().some((w) => w.url().endsWith(file));
 const openWindows = (app: ElectronApplication): Promise<number> =>
@@ -105,6 +106,34 @@ test('with the app off, the shortcut opens only the setup window and closing lea
     await expect.poll(() => openWindows(app)).toBe(0);
     const stored = JSON.parse(readFileSync(join(kiosk.userData, 'kiosk-config.json'), 'utf8'));
     expect(stored.kioskId).toBe('W009');
+  } finally {
+    await kiosk.close();
+  }
+});
+
+test('with the app off, 앱 실행 starts the kiosk as it is, and choosing a site turns it into 저장하고 실행', async () => {
+  const kiosk = await launchKiosk({ site: 'W009', apiBase: api.url, args: ['--setup'] });
+  try {
+    const { main: setup, app } = kiosk;
+    const launch = setup.getByRole('button', { name: '앱 실행' });
+    await expect(launch).toBeEnabled();
+    expect(hasWindow(app, 'index.html')).toBe(false);
+
+    // Picking another site swaps the button; it would save, not just launch.
+    await site(setup, /오색시장/).check();
+    await expect(launch).toHaveCount(0);
+    await expect(setup.getByRole('button', { name: '저장하고 실행' })).toBeEnabled();
+    await setup.reload();
+    await expect(launch).toBeEnabled();
+
+    await launch.click();
+    // Unpackaged, the app stays up (a packaged build restarts) and opens as the same site.
+    const main = await findWindow(app, 'index.html');
+    await expect(main.locator('#root > *').first()).toBeVisible();
+    await expect.poll(() => hasWindow(app, 'setup.html')).toBe(false);
+    const stored = JSON.parse(readFileSync(join(kiosk.userData, 'kiosk-config.json'), 'utf8'));
+    expect(stored.kioskId).toBe('W009');
+    expect(appWindowErrors(kiosk.errors).filter((e) => e.startsWith('[setup.html]'))).toEqual([]);
   } finally {
     await kiosk.close();
   }
