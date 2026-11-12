@@ -34,6 +34,8 @@ interface Case {
   expect: [State, State, State];
   /** What the server must finally store as isSuccess. */
   success: boolean;
+  /** The AR failure the stored report must carry ("HTTP 500 composite failed"); none when omitted. */
+  arError?: string;
   /** Runs with the app closed after phase 1. */
   afterPhase1?: (row: LedgerRow) => void;
   /** Endpoint the shot must finally reach. */
@@ -108,6 +110,7 @@ const V1_CASES: Case[] = [
     answers: { ar: { kind: 'status', status: 500, body: 'composite failed' } },
     expect: ['sent', 'sent', 'sent'],
     success: false,
+    arError: 'HTTP 500 composite failed',
     lands: 'shots',
   },
   {
@@ -279,6 +282,9 @@ function judge(c: Case, phases: (LedgerRow | undefined)[], fault: FaultServer): 
   if (stored.length === 0) problems.push(`${c.lands} 에 저장된 요청 없음`);
   if (stored.some((r) => r.isSuccess !== c.success))
     problems.push(`isSuccess 가 ${c.success} 가 아님`);
+  const wantAr = c.arError ?? null;
+  const badAr = stored.find((r) => r.arError !== wantAr);
+  if (badAr) problems.push(`AR 실패 내용 ${badAr.arError ?? '없음'} (기대 ${wantAr ?? '없음'})`);
   return { case: c, phases, pass: problems.length === 0, problems };
 }
 

@@ -22,6 +22,8 @@ const row = (over: Partial<ShotRow> = {}): ShotRow => ({
   shotType: 'SOLO',
   outfitCode: '15.1',
   language: 'ko',
+  backgroundId: null,
+  arFailure: null,
   photoPath: null,
   v2Data: null,
   state: 'pending',
