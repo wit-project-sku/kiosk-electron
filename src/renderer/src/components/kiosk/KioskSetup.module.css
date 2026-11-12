@@ -69,13 +69,6 @@
   background: #e5f1fb;
 }
 
-.table tbody .rowCurrent,
-.table tbody .rowCurrent:hover {
-  background: none;
-  color: #767676;
-  cursor: default;
-}
-
 .pick {
   width: 1px;
   white-space: nowrap;

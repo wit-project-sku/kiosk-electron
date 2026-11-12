@@ -168,6 +168,9 @@ const VIDEO_SET_BY_LAYOUT: Record<KioskLayoutId, VideoSet> = {
   // empty set resolves no clips, so the customer display stays on its attract
   // slideshow until KADA footage is dropped into that folder.
   KADA: 'kada',
+  // 롯데 has no footage yet — borrowing KADA's empty set resolves no clips, so the
+  // customer display stays on its attract slideshow until 롯데 clips exist.
+  LOTTE: 'kada',
 };
 
 /**
@@ -710,6 +713,7 @@ const SCREEN_KEYS_BY_LAYOUT: Record<KioskLayoutId, LayoutScreenKeys> = {
   // KADA has five screens and no video set, so there is nothing to map and
   // nothing worth inheriting — Insadong's screen names do not exist here.
   KADA: { map: {}, inherit: false },
+  LOTTE: { map: {}, inherit: false },
 };
 
 // Every kiosk carries a dedicated ChangeLanguage_* clip per UI language (all 8),

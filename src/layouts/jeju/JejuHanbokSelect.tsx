@@ -116,6 +116,7 @@ import 'swiper/css';
 import 'swiper/css/grid';
 import 'swiper/css/free-mode';
 import { usePhotoChrome } from '../photo/photoChrome';
+import { getKioskLocation } from '@shared/config/kioskLocations';
 import { HANBOK_INFO, PRIVACY } from '../photo/photoTexts';
 import hanbokInfo from '@renderer/assets/photos/insadong/hanbok/hanbok-info.png';
 import { t, sheetText, tExact } from '@renderer/lib/loc';
@@ -356,8 +357,12 @@ const togetherText = (lang: Lang): string =>
  * they get 혼자 찍기 alone. Remove once it is fixed.
  */
 const TOGETHER_ON_JEJU_TAB_ONLY: ReadonlySet<string> = new Set(['W008', 'W009']);
-const hidesTogether = (isThemeTab: boolean): boolean =>
-  !isThemeTab && TOGETHER_ON_JEJU_TAB_ONLY.has(useKioskStore.getState().config.kioskId);
+/** 롯데 (W011~W013) has no mascot code at Digicon yet, so it offers 혼자 찍기 alone on every tab. */
+const hidesTogether = (isThemeTab: boolean): boolean => {
+  const kioskId = useKioskStore.getState().config.kioskId;
+  if (getKioskLocation(kioskId).layout === 'LOTTE') return true;
+  return !isThemeTab && TOGETHER_ON_JEJU_TAB_ONLY.has(kioskId);
+};
 
 const NO_OUTFITS = {
   ko: '준비 중인 의상입니다.',
@@ -442,6 +447,8 @@ export function JejuHanbokSelect({
   const lowReach = useAccessibilityStore((s) => s.lowReach);
   const toggleLowReach = useAccessibilityStore((s) => s.toggleLowReach);
   const { icon, Header, photoTitle, banner: chromeBanner } = usePhotoChrome();
+  /* 롯데 keeps the flat page colour: the drifting petals and trees are 제주's art. */
+  const isLotte = getKioskLocation(useKioskStore((s) => s.config.kioskId)).layout === 'LOTTE';
   const banner = chromeBanner ?? rotating;
   const camPopupSrc = icon('camera-popup') || cameraIconUrl('camera-popup');
 
@@ -475,7 +482,9 @@ export function JejuHanbokSelect({
    * touching the selection — `id` is the filter code, never a label.
    */
   const tabs: Tab[] = useMemo(() => {
-    const all = categories.map((c) => ({
+    /* 롯데 uses the same hanbok as every other venue, without the 제주 outfits (2026-11-09). */
+    const shown = isLotte ? categories.filter((c) => c.categoryName.toLowerCase() !== JEJU_CATEGORY) : categories;
+    const all = shown.map((c) => ({
       id: c.categoryName,
       label: outfitCategoryLabel(c, lang),
       ko: c.labelKr,
@@ -489,7 +498,7 @@ export function JejuHanbokSelect({
       all.unshift(jeju);
     }
     return all;
-  }, [categories, byCategory, lang]);
+  }, [categories, byCategory, lang, isLotte]);
 
   // A session can be opened with a pre-selected tab (e.g. 프로모션 from K-DRAMA).
   const initialCategory = usePhotoStore((s) => s.initialCategory);
@@ -797,7 +806,7 @@ export function JejuHanbokSelect({
     return (
       <div className={`${styles.root} ${lowReach ? styles.rootLowReach : ''}`} style={modeBarVars}>
         {pageBg && <img src={pageBg} alt="" className={styles.bg} draggable={false} />}
-      {icon('bg-page') && <JejuBgMotion />}
+      {icon('bg-page') && !isLotte && <JejuBgMotion />}
         {/* This page has no low-reach frame of its own — so ♿ gives it the mode
             bar and pushes both blocks past the bar's height (the `.rootLowReach`
             calcs on `.infoOutfits` / `.infoCard`, off --jeju-mode-bar). */}
@@ -921,7 +930,7 @@ export function JejuHanbokSelect({
       }
     >
       {pageBg && <img src={pageBg} alt="" className={styles.bg} draggable={false} />}
-      {icon('bg-page') && <JejuBgMotion />}
+      {icon('bg-page') && !isLotte && <JejuBgMotion />}
 
       {lowReach && <div className={styles.modeBar}>{sheetText('BarrierFree_Title', lang, BARRIER_FREE)}</div>}
 

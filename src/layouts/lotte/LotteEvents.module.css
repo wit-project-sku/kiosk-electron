@@ -1,0 +1,627 @@
+/*
+ * 제주도 이벤트 — Figma nodes 6212:54808 (MBTI tab, nothing picked), 6212:54858
+ * (MBTI tab mid-request), 6308:78956 (MBTI results) and 6212:54917 (list tab),
+ * the 2026-08-24 redesign of 6052:45789 / 6052:46385. The event DETAIL page
+ * (6212:55057) is the shared EventDetailScreen and is unchanged.
+ *
+ * Shared by both tabs:
+ *   699   tab row (h170, two 565-wide pills, gap 63 → 1193 centred at x483)
+ *
+ * The frames also draw a QR row at 2939. It is NOT built — removed 2026-08-24 at
+ * the user's request, along with the zoom it opened.
+ *
+ * List tab:
+ *   919   category row — "전체 ㅣ 공연 ㅣ 전시 ㅣ 기타" at 60px
+ *   1088  card grid (3 × 483.767 at x224, gap 130.35; rows pitch 864)
+ *
+ * MBTI tab:
+ *   1088  MBTI grid (1469×655 at x336; 4×2, gap-x 113, gap-y 90, cells 282.5²)
+ *   1928  추천 결과 보기 (500×120 at x830)
+ *   2201  description block (992 wide, centred, 55px / 100px leading)
+ *   916   results modal (1720×1417 at x190)
+ *
+ * What the redesign changed: the tab pills lost their #e8e8e8 hairline and
+ * dropped 63→50px (Medium when idle, Bold when picked); the category chips gave
+ * up their orange pill for a plain 60px row separated by ㅣ; the results modal
+ * lost its border, its own QR, and grew a 289px top inset while shrinking to
+ * 1417 tall.
+ */
+/* Two-tab row. 2 × 565 + a 200 gap = 1330, so left = (2160 − 1330) / 2 = 415.
+   200 is the gap every other two-tab 제주 page already uses (운항정보, 크루즈
+   운항, 지역화폐 — all 580 pills at gap 200); this row was still on the old 63.
+   Widening the band rather than shrinking the pills is what keeps them on
+   Figma's 565. */
+.tabs {
+  position: absolute;
+  left: 415px;
+  top: 699px;
+  width: 1330px;
+  height: 170px;
+  display: flex;
+  align-items: center;
+  gap: 200px;
+}
+
+/* flex:1 so the row always fills the column — the two tabs land on Figma's exact
+   565, and a different count still spaces evenly. */
+.tab {
+  flex: 1 1 0;
+  height: 170px;
+  min-width: 0;
+  box-sizing: border-box;
+  padding: 0;
+  /* Borderless — the idle pill is a plain white plate on the page background.
+     `none`, not omitted, because these are <button>s and would otherwise take
+     Chrome's UA outset bevel. */
+  border: none;
+  border-radius: 42.9px;
+  background: #fff;
+  font-size: 50px;
+  font-weight: 500;
+  line-height: 1;
+  color: #616161;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.tabActive {
+  background: var(--kiosk-primary, #DA291C);
+  color: #fff;
+  font-weight: 700;
+}
+
+/* ── Category row (list tab) ──
+   No longer a pill: Figma draws one centred 60px line, "전체 ㅣ 공연 ㅣ 전시 ㅣ
+   기타", with the picked label in #DA291C / weight 900 and the rest
+   gray-07/#1A1A1A / weight 600. */
+.chips {
+  position: absolute;
+  left: 0;
+  top: 919px;
+  width: 2160px;
+  height: 82px;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  gap: 126px;
+  font-family: Pretendard, 'Noto Sans KR', sans-serif;
+  font-style: normal;
+}
+
+.chip,
+.chipSep {
+  padding: 0;
+  border: none;
+  background: none;
+  font-family: inherit;
+  font-size: 60px;
+  font-style: normal;
+  font-weight: 600;
+  line-height: normal;
+  color: #1a1a1a;
+  white-space: nowrap;
+}
+
+/* Category labels are localized: a label too long for the row shrinks and
+   wraps instead of pushing the row past the artboard. The row is top-aligned,
+   so a second line grows downward (~72px) — still clear of the grid at 1088
+   (and of the artboard foot in ♿). The ㅣ separators stay one glyph. */
+.chip {
+  flex: 0 1 auto;
+  min-width: 0;
+  white-space: normal;
+  word-break: keep-all;
+  overflow-wrap: anywhere;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.chipSep {
+  flex: none;
+  pointer-events: none;
+  user-select: none;
+}
+
+.chipActive {
+  font-family: inherit;
+  font-size: 60px;
+  font-style: normal;
+  font-weight: 900;
+  line-height: normal;
+  text-align: center;
+  color: var(--kiosk-primary, #DA291C);
+}
+
+/* ── Event card grid (list tab) ──
+   The grid scrolls; the 24px orange bar is Figma's, now at x2128 (it was
+   x2080). The container runs to the artboard edge so the bar sits flush right
+   at 2125.68 — the design's 2128 is measured inside a 2162-wide frame and its
+   own bar overhangs the 2160 artboard by 2.3px. The padding absorbs the width
+   the scrollbar reserves, so the three 483.767 columns keep their geometry:
+   1936 − 189.68 − 34.32 = 1712 = 3 × 483.767 + 2 × 130.35. */
+.listScroll {
+  position: absolute;
+  left: 224px;
+  top: 1088px;
+  width: 1936px;
+  /* Two rows (2 × 864) fit unscrolled, so the six cards the design draws are
+     visible at rest. This was originally sized to stop short of the QR row at
+     2939; the row is gone, but the height stays — the space it freed is only
+     ~330px, half a card, so growing into it would put a clipped third row on
+     screen instead of the clean two the design draws. */
+  height: 1782px;
+  box-sizing: border-box;
+  padding-right: 189.68px;
+  overflow-x: hidden;
+  overflow-y: auto;
+}
+
+.listScroll::-webkit-scrollbar {
+  width: 28px;
+}
+
+.listScroll::-webkit-scrollbar-thumb {
+  background: var(--kiosk-primary, #DA291C);
+  border-radius: 14px;
+}
+
+.listScroll::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.list {
+  display: grid;
+  grid-template-columns: repeat(3, 483.767px);
+  column-gap: 130.35px;
+  /* 864 row pitch, so rows land on Figma's 1088 / 1952 — a two-line title
+     fits inside it and never pushes the next row down. It is a FLOOR, not a
+     clamp: titles are no longer ellipsised, and a row whose title runs to a
+     third line grows (the grid scrolls) rather than overlapping the next. */
+  grid-auto-rows: minmax(864px, auto);
+  row-gap: 0;
+}
+
+.card {
+  padding: 0;
+  border: none;
+  background: none;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  /* Both text lines sit flush with the image's left edge (measured off the
+     render: glyphs start at x226 against a card left of x224). Figma's
+     "centred" text boxes are an artifact of nowrap auto-width. */
+  text-align: left;
+  overflow: hidden;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.cardThumb {
+  width: 483.767px;
+  height: 683.287px;
+  flex: none;
+  border-radius: 10px;
+  /* The design's empty-image plate; also what shows before a photo loads.
+     147, not the modal's 142 — the two are drawn from different components and
+     each keeps its own value. */
+  background: rgba(147, 147, 147, 0.2);
+  overflow: hidden;
+  display: block;
+}
+
+.cardThumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.cardTitle {
+  margin-top: 34px;
+  font-size: 35px;
+  font-weight: 700;
+  line-height: 1.15;
+  color: #000;
+  /* Full title, wrapped — no ellipsis. The 181px below the image holds two
+     title lines plus the venue; a longer title grows its row (see .list). */
+  word-break: keep-all;
+  overflow-wrap: anywhere;
+}
+
+.cardVenue {
+  margin-top: 25px;
+  font-size: 24px;
+  font-weight: 500;
+  line-height: 1;
+  color: #999;
+  word-break: keep-all;
+  overflow-wrap: anywhere;
+}
+
+/* Restores the shared event detail's own pointer model (see LotteEvents.tsx):
+   the transparent full-bleed root must not intercept, only its card and map do. */
+.detailHost,
+.detailHost > * {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+/* ♿: header drops +686 (mode bar + promo); the shared EventDetailScreen still
+   draws at standing y (card 1090), so the host rides the same offset or the
+   plate sits under the lowered header. */
+.detailHostLow {
+  transform: translateY(400px);
+}
+
+.listEmpty {
+  margin: 300px 0 0;
+  font-size: 60px;
+  font-weight: 500;
+  line-height: 1.4;
+  color: #909090;
+  text-align: center;
+}
+
+/* Event_Source attribution — bottom-right under the card grid (list ends ~2870).
+   Right edge lines up with the three-column cards (x1936 → right: 224). */
+.listSource {
+  position: absolute;
+  right: 224px;
+  top: 2900px;
+  margin: 0;
+  max-width: 900px;
+  font-size: 32px;
+  font-weight: 400;
+  line-height: 1.35;
+  color: #999;
+  text-align: right;
+  white-space: pre-line;
+  pointer-events: none;
+}
+
+/* ── MBTI axis grid ── */
+.grid {
+  position: absolute;
+  left: 336px;
+  top: 1088px;
+  width: 1469px;
+  height: 655px;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  grid-template-rows: repeat(2, 1fr);
+  column-gap: 113px;
+  row-gap: 90px;
+}
+
+.cell {
+  box-sizing: border-box;
+  padding: 50px 30px;
+  border: 5px solid #918b87;
+  border-radius: 50px;
+  background: #fff;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Selected state.
+   6532:39157 draws it as a SOLID #DA291C plate with white type — the same move
+   every other picked control on 제주 has made (LottePill's tabs, LotteListScreen's
+   chips, 지역화폐's two tabs), replacing the pale #F3EEE7-with-orange-rule look
+   the older 6052:45974 rendered. The border stays 5px and only changes colour so
+   the cell's outer box is byte-identical between states and nothing nudges when
+   a letter is picked.
+
+   This is NOT low-reach-only: it is one component with one look, and the frame
+   that redrew it happens to be the ♿ one. */
+.cellSelected {
+  border-color: var(--kiosk-primary, #DA291C);
+  background: var(--kiosk-primary, #DA291C);
+}
+
+.letter {
+  font-size: 96px;
+  font-weight: 700;
+  line-height: 1;
+  color: #69605c;
+}
+
+.axisLabel {
+  font-size: 35px;
+  font-weight: 700;
+  line-height: 1;
+  color: rgba(0, 0, 0, 0.5);
+}
+
+.cellSelected .letter,
+.cellSelected .axisLabel {
+  color: #fff;
+}
+
+/* ── CTA ── */
+.cta {
+  position: absolute;
+  left: 830px;
+  top: 1928px;
+  width: 500px;
+  height: 120px;
+  box-sizing: border-box;
+  padding: 0;
+  border: 5px solid var(--kiosk-primary, #DA291C);
+  border-radius: 30px;
+  background: #fff;
+  color: var(--kiosk-primary, #DA291C);
+  font-size: 50px;
+  font-weight: 700;
+  line-height: 1;
+  /* A translated label wraps inside the 500×120 box — two 50px lines fit the
+     110 inside the border — without splitting a Korean word. */
+  text-align: center;
+  word-break: keep-all;
+  overflow-wrap: anywhere;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Loading state (6212:54858) — the same 500×120 box goes fully GREY (border and
+   label both #999, plate stays white) and the label steps down to SemiBold. It
+   is not the orange button dimmed.
+
+   The button does NOT move: 6212:54858 draws it 53px higher than the resting
+   frame and the copy block 60px higher, which would make the control jump under
+   the finger that pressed it. Both stay where 6212:54808 puts them. */
+.ctaLoading {
+  cursor: default;
+  border-color: #999;
+  color: #999;
+  font-weight: 600;
+}
+
+.spinner {
+  width: 41.67px;
+  height: 41.67px;
+  border: 5px solid rgba(153, 153, 153, 0.3);
+  border-top-color: #999;
+  border-radius: 50%;
+  animation: jejuSpin 0.9s linear infinite;
+}
+
+@keyframes jejuSpin {
+  to { transform: rotate(360deg); }
+}
+
+/* ── Explanatory copy ── */
+.desc {
+  position: absolute;
+  left: 584px;
+  top: 2201px;
+  width: 992px;
+  margin: 0;
+  font-size: 55px;
+  font-weight: 700;
+  line-height: 100px;
+  color: #000;
+  text-align: center;
+}
+
+.descAccent {
+  color: var(--kiosk-primary, #DA291C);
+}
+
+/* The QR row that used to sit here (a #ebebeb rule at y2939, the orange
+   "QR 클릭! ← 모바일에서 확인하기" label and the 150×150 code at x1588) was
+   removed 2026-08-24 at the user's request, together with the full-screen zoom
+   it opened. Nothing on this page draws a QR any more — see the note at the top
+   of LotteEvents.tsx. */
+
+/* ── Results modal — Figma node 6173:100721 ──
+   Dim + card sit over the page; tapping the dim closes (the design has no
+   close button). */
+.overlay {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 2160px;
+  /* 3267, NOT the full 3840: the dim stops at the banner line, leaving the
+     bottom promo at full brightness. */
+  height: 3267px;
+  background: rgba(0, 0, 0, 0.2);
+  z-index: 50;
+}
+
+.modal {
+  position: absolute;
+  left: 190px;
+  top: 916px;
+  width: 1720px;
+  height: 1417px;
+  box-sizing: border-box;
+  /* Borderless in the redesign — the plate is carried by the dim behind it. */
+  border: none;
+  border-radius: 80px;
+  background: #fffdfa;
+}
+
+/* Two result columns at x232 / x994 inside the card, 289 down from its top
+   edge (the images start at y1205 against a card top of 916). */
+.result {
+  position: absolute;
+  top: 289px;
+  width: 527px;
+}
+
+.resultLeft  { left: 232px; }
+.resultRight { left: 994px; }
+
+.resultImg {
+  width: 527px;
+  height: 683px;
+  border-radius: 11.39px;
+  object-fit: cover;
+  /* The design's empty-image plate; also what shows before a photo loads. */
+  background: rgba(142, 142, 142, 0.2);
+  display: block;
+}
+
+.resultName {
+  margin: 32px 0 0;
+  font-size: 40px;
+  font-weight: 700;
+  line-height: 1.3;
+  color: #000;
+  /* Full title, no clamp. The column has ~410px below the image before the
+     card's foot (the close button sits BETWEEN the columns, not under them). */
+  word-break: keep-all;
+  overflow-wrap: anywhere;
+}
+
+/* ── Close (6760:37439) ──
+   A circle-and-X centred in the card, 1207 below its top edge — the design puts
+   it at page y2123 against a card top of 916, and the card is page-centred, so
+   centring inside the card lands on the same point.
+
+   The art is a COMPLETE button: the orange ring is baked into the SVG, so it is
+   rendered directly rather than wrapped in a CSS circle — the same rule this
+   layout's home/back exports follow (see assets/icons/jeju/index.ts).
+
+   129 rather than the node's 125, because the export's own box is 128.699: the
+   4.29 ring stroke overflows the node's bounds, which is what Figma's
+   inset-[0_-2.96%_-2.96%_0] on the inner image describes. Sizing to the node
+   would shave the ring; the ~2px this shifts the circle off-centre is invisible
+   at this artboard's scale.
+
+   No low-reach override: ♿ moves the page around this card but not the card
+   itself, so the one rule serves both (only .overlayLow differs). */
+.modalClose {
+  position: absolute;
+  left: 50%;
+  top: 1207px;
+  width: 129px;
+  height: 129px;
+  transform: translateX(-50%);
+  padding: 0;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.modalCloseIcon {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  transition: transform 120ms ease-out;
+}
+
+/* Press feedback: the dim behind the card is still tappable, so this button has
+   to read as the deliberate way out rather than as decoration. */
+.modalClose:active .modalCloseIcon {
+  transform: scale(1.08);
+}
+
+/* The redesign has no QR inside the results card — 6308:78956 holds only the
+   two event columns and this close button. `.modalQr` / `.modalQrLabel` went
+   with it. */
+
+.modalEmpty {
+  position: absolute;
+  left: 0;
+  top: 700px;
+  width: 1710px;
+  margin: 0;
+  font-size: 50px;
+  line-height: 1.4;
+  color: #909090;
+  text-align: center;
+}
+
+/* ── ♿ 베리어프리 (low-reach) layout — Figma 6532:39157 ────────────────────
+ * The 2026-08-26 mode-bar shape: a 113px orange bar at y0, the 573 promo flush
+ * under it, and the header at 113 + 573 = 686 (LottePageFrame's lowReachModeBar
+ * + lowReachBarBanner + lowReachShift={686} — the same trio 환율's calculator
+ * tab already passes). The page then lays its OWN body out, so every rule below
+ * is an absolute artboard coordinate, not an offset.
+ *
+ * The re-stack is the point of the variant: the tab row leaves the top of the
+ * page and goes to the BOTTOM, within reach of a seated visitor, and the MBTI
+ * content moves down with it — copy first, then the grid, then the button, all
+ * of them 900-1000px lower than the standing layout puts them.
+ *
+ * ★ FROM THE FRAME: the tab row (3439), and the MBTI tab's copy (1415), grid
+ *   (2147) and button (2987). Sizes and gaps are unchanged from the standing
+ *   layout, which is what the frame draws too — only the tops move.
+ * ★ DERIVED, NO FRAME YET: the 제주도 (list) tab. 6532:39157 is the MBTI tab
+ *   only, and the list tab needs an answer because the header moving to 686
+ *   would otherwise land on top of it.
+ *
+ *   The CATEGORY ROW GOES DOWN TOO. It is the page's inner tab row — 전체 ㅣ
+ *   공연 ㅣ 전시 ㅣ 기타, one tap per category — so leaving it at the top while
+ *   the main tabs sit at the foot would strand half of this tab's controls out
+ *   of reach and split one act of choosing across the height of a 4K panel.
+ *   It lands 50px under the main row (3609 + 50 = 3659), which is exactly the
+ *   gap the standing layout puts between the two (869 -> 919), so the pair
+ *   reads as one block and keeps its reading order: outer tabs, then inner.
+ *
+ *   That frees the whole middle for the list, which keeps its standing 1782
+ *   height and is placed to end 100px clear of the main row (1557 + 1782 =
+ *   3339). Replace these two numbers with the list tab's own frame the moment
+ *   it exists.
+ */
+.tabsLow {
+  left: 483.5px;
+  top: 3439px;
+  width: 1193px;
+  gap: 63px;
+}
+
+.chipsLow {
+  top: 3659px;
+}
+
+/* Height deliberately NOT overridden — the standing 1782 still fits between the
+   header (ends 1386) and the main tab row (3439), so the list shows the same
+   number of rows in both layouts. */
+.listScrollLow {
+  top: 1557px;
+}
+
+/* listScrollLow ends at 1557 + 1782 = 3339; same ~30px gap as standing. */
+.listSourceLow {
+  top: 3369px;
+}
+
+.descLow {
+  top: 1415px;
+}
+
+.gridLow {
+  top: 2147px;
+}
+
+.ctaLow {
+  top: 2987px;
+}
+
+/* The dim stops at 3267 in the standing layout because nothing is tappable
+   below it. In ♿ the tab row is — at 3439 — so the dim has to reach the foot of
+   the artboard or the modal would sit over a live control. */
+.overlayLow {
+  height: 3840px;
+}
+
+/* ♿: ride the same +686 the header takes (mode bar + promo), so the card sits
+   over the lowered MBTI block instead of under the standing header band. */
+.modalLow {
+  top: 1602px;
+}

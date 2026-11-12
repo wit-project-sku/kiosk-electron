@@ -1,0 +1,322 @@
+/*
+ * Shared chrome for every 제주공항 sub-page (Figma 제주>언어선택, node 6050:140657,
+ * and every other sub-page frame): background, header, left nav, bottom banner.
+ */
+.root {
+  position: absolute;
+  inset: 0;
+  width: 2160px;
+  height: 3840px;
+  overflow: hidden;
+  font-family: var(--kiosk-font, 'Noto Sans KR', 'Noto Sans', sans-serif);
+
+  /* How far the header sits below the top of the artboard, and how far the body
+     does. They are separate because the two low-reach shapes differ: the banner
+     variant moves both by the banner's height, the hero variant moves only the
+     header and lets the screen place its own content. 0 / 0 normally. */
+  --lotte-shift: 0px;
+  --lotte-body-shift: 0px;
+}
+
+/*
+ * Low-reach variant (♿ on the left rail) — Figma 6286:24611 against the normal
+ * 6212:50714. The two frames hold the SAME content at the same sizes; the whole
+ * page is just re-stacked so the touchable half sits lower for a seated visitor:
+ * the banner moves from the bottom (y3267) to the top (y0), and the header and
+ * body follow it down by exactly its 573 height (header y0→573, body y700→1273).
+ *
+ * Driven by one inherited custom property so no screen file has to know about
+ * it: `.body` and LotteHeader's own `.root` both read --lotte-shift. Shifting via
+ * `top` rather than `transform` on purpose — a transform would make .body the
+ * containing block for ImageLightbox's `position: fixed`, which currently
+ * resolves against the artboard.
+ *
+ * The left rail used to stay put at y2043; Figma 6442:105429 (홈 ♿) now draws
+ * it at y2163 with ♿ at y2403, and every low-reach page that opts into
+ * `.lowReachSideControls` follows those tops.
+ *
+ * NORMALISED to 573. 언어선택 states 573/1273 outright, and 573 is the banner's
+ * own height, so the header lands flush under it. The 상세 low-reach frames
+ * (6336:100864 and the newer 6439:75165, whose banner IS at the top — measured
+ * bottom edge y573, home button y880 ⇒ header y564.5, card y1264) place theirs
+ * 9px higher, which would tuck the header band 9px INTO the banner for no
+ * visible gain: the header draws nothing above its own 125px top padding, so
+ * the two differ only in how far the whole page sits down the artboard. One
+ * derivable rule beats carrying a 9px per-page exception.
+ */
+.rootLowReach {
+  --lotte-shift: 573px;
+  --lotte-body-shift: 573px;
+}
+
+/*
+ * The 2026-08-26 REVISION of the low-reach shapes — Figma 6286:24611 (언어선택),
+ * 6336:100835 (검색-02), 6336:100864 (검색-03), as they stand now (the designer
+ * edits frames in place). The 573 promo banner is gone from low-reach entirely;
+ * the mode bar below overlays the top instead, and each page drops its
+ * header/body by ITS OWN measured offsets, which ride in as LottePageFrame's
+ * lowReachShift / lowReachBodyShift props and land as inline --lotte-shift /
+ * --lotte-body-shift (언어선택 bar/420 · 검색 상세 bar+573 · 검색 0/0). Opt-in per
+ * page via `lowReachModeBar`; flip each page over as its revised frame arrives.
+ *
+ * The frames measured that bar at 113 here and 191 on the home screen. The
+ * offsets above no longer carry either number: the pages pass `belowModeBar()`
+ * (see lowReach.ts), so a re-measured bar moves every header that sits on it.
+ *
+ * Same bar as LotteHome's — the frames draw #2A2320 on #999, but the standing
+ * direction (2026-08-26) is white on the brand orange, on every 베리어프리
+ * frame that carries it.
+ */
+.modeBar {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 2160px;
+  /* Was 113 here and 191 on the home screen. Single source: lowReach.ts, landing
+     as the root's inline --lotte-mode-bar. Everything below that is flush with
+     the bar reads the same var instead of restating the number. */
+  height: var(--lotte-mode-bar);
+  background: var(--kiosk-primary, #DA291C);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 68px;
+  font-weight: 700;
+  line-height: 1;
+  color: #fff;
+  /* A translation wider than the board wraps to a centred second line — two
+     68px lines (136) still fit the 146 bar. */
+  text-align: center;
+  word-break: keep-all;
+  overflow-wrap: anywhere;
+}
+
+/*
+ * Low-reach HERO variant — for the pages whose content is far too tall to push
+ * down. Instead of re-stacking the existing page, these frames restart the page
+ * under an illustrated banner: the screen lays its own content out at fresh
+ * coordinates (so --lotte-body-shift stays 0 — a shifted body would move the
+ * screen's absolute y values twice).
+ *
+ * Figma 6336:67216 / 6326:81769 / 6336:99702 / 6326:81686, the four states of
+ * 제주모하지(AI검색), re-read 2026-08-26 after the mode-bar revision: the bar
+ * takes y0–113, the hero shrinks 1181 → 959 and drops to y113–1072, and the
+ * header lands flush under it at y1072 (was 1206). The questionnaire content
+ * (y1906) and CTA (y3432) did NOT move — that part lives in LotteAiSearch.
+ */
+.rootLowReachHero {
+  /* 1072 = the bar + the hero's 959; written as the sum so a re-measured bar
+     carries the header with it. */
+  --lotte-shift: calc(var(--lotte-mode-bar) + 959px);
+  --lotte-body-shift: 0px;
+}
+
+/*
+ * The banner variant, but for a screen that re-lays-itself-out rather than
+ * riding the shift — 여기는 제주도, whose low-reach frames keep the 573 banner and
+ * the y573 header yet move their tab row to the foot and pull the panel up to
+ * y1229. Composed onto .rootLowReach so the header and banner rules still
+ * apply; only the body offset is cancelled, because the screen supplies its own
+ * absolute coordinates and shifting it too would apply the offset twice.
+ */
+.rootBodyUnshifted {
+  --lotte-body-shift: 0px;
+}
+
+/* The hero banner itself: 2160×959, flush under the mode bar (the frame's
+   y113). The 2026-08-26
+   revision dropped the 30px #E8786F rules the old 1181-tall hero carried —
+   verified on the render: no #E8786F at either edge (unlike the HOME hero,
+   whose frame keeps its rules). The artwork is exported at 1536×857, squarer
+   than the box, so it is drawn `cover` with Figma's own crop. */
+.hero {
+  position: absolute;
+  left: 0;
+  top: var(--lotte-mode-bar);
+  width: 2160px;
+  height: 959px;
+  overflow: hidden;
+}
+
+.heroImg {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  /* Figma scales the art to h125.76% and pins it at top -17.75%, so 68.9% of
+     the vertical overflow (17.75 / 25.76) is cropped off the TOP — not the even
+     split `cover` would default to. */
+  object-position: center 68.9%;
+  display: block;
+  pointer-events: none;
+}
+
+/* Sub-pages use a DIFFERENT background from the home screen: `image 182`
+   (Figma node 6043:14435), the same illustration on every sub-page — the AI
+   search page's `Ai_01` asset is byte-identical to the language page's.
+   Figma draws it at `opacity 70%` over white, but the shipped bg-page.png is
+   ALREADY that composite: sampling it against Figma's raw export matches
+   `0.7·raw + 0.3·255` exactly on every pixel (raw sky (254,235,217) →
+   (254,241,228) = ours). So it is drawn at full opacity here — re-applying 0.7
+   would lighten the artwork twice. The white base stays only as a guard for a
+   future asset with transparency; today's file is fully opaque. */
+.bgBase {
+  position: absolute;
+  inset: 0;
+  background: #fff;
+}
+
+.bgImage {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  pointer-events: none;
+}
+
+/* Page body — between the 700px header and the 573px banner. Screens position
+   their own content absolutely inside the artboard, so this is just a slot. */
+.body {
+  position: absolute;
+  left: 0;
+  top: var(--lotte-body-shift);
+  width: 2160px;
+  height: 3840px;
+  pointer-events: none;
+}
+
+.body > * {
+  pointer-events: auto;
+}
+
+/* ── Left nav: home / back / accessibility (x50; y2043 / 2163 / 2283) ──
+   Note x=50 here — the home screen draws the same rail at x=29. */
+.leftNav {
+  position: absolute;
+  left: 50px;
+  top: 2043px;
+  width: 85px;
+  height: 205px;
+}
+
+.leftNavImg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  pointer-events: none;
+}
+
+.leftNavZone {
+  position: absolute;
+  left: 0;
+  width: 85px;
+  height: 85px;
+  padding: 0;
+  border: none;
+  background: none;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.leftNavHome { top: 0; }
+.leftNavBack { top: 120px; }
+
+/* navDisabled — the rail half of the treatment LotteHeader gives 홈/뒤로. Dimmed
+   and dead rather than hidden, for the reason spelled out on that prop. */
+.leftNavOff {
+  opacity: 0.3;
+}
+
+.leftNavOff .leftNavZone {
+  pointer-events: none;
+}
+
+/*
+ * Barrier-free side controls — Figma 6442:105429 (제주 홈 ♿). Left rail at
+ * y2163 (home+back) and ♿ at y2403; right-hand ▲▼ siblings use the same band
+ * (2223 / 2428). Every 제주 page that opts into `.lowReachSideControls` shares
+ * these tops so seated reach matches the home frame.
+ */
+.lowReachSideControls .leftNav {
+  top: 2163px;
+}
+
+.lowReachSideControls .accessibility {
+  top: 2403px;
+}
+
+/* The ♿ toggle. Sits apart from .leftNav because the rail art (nav-left.svg)
+   covers only the home/back pair; this third icon is its own asset in Figma. */
+.accessibility {
+  position: absolute;
+  left: 50px;
+  top: 2283px;
+  width: 85px;
+  height: 85px;
+  padding: 0;
+  border: none;
+  background: none;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.accessibilityImg {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  pointer-events: none;
+}
+
+/* 음성 안내 — under the ♿ toggle, one rail step (85 + 35) down. */
+.voiceToggle {
+  position: absolute;
+  left: 50px;
+  top: 2403px;
+  width: 85px;
+  height: 85px;
+  padding: 0;
+  border: none;
+  background: none;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.lowReachSideControls .voiceToggle {
+  top: 2523px;
+}
+
+/* ── Banner: bottom normally, top in the low-reach variant ── */
+.banner {
+  position: absolute;
+  left: 0;
+  top: 3267px;
+  width: 2160px;
+  height: 573px;
+  overflow: hidden;
+}
+
+.rootLowReach .banner {
+  top: 0;
+}
+
+/* Mode-bar shape with the banner kept (lowReachBarBanner): the 573 promo sits
+   flush under the bar, and the header lands under the banner at bar + 573 —
+   `belowModeBar(LOW_REACH_BANNER_HEIGHT)` on the page side, which is where the
+   frames' 686 (and the 검색 상세 frame's one-px-rounder 687) came from. */
+.bannerBelowBar {
+  top: var(--lotte-mode-bar);
+}
+
+.bannerImg {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  pointer-events: none;
+}
+
+/* 롯데 시안 A */
+.bgBase { background: #FFF4F3 !important; }
+.topBand { position: absolute; left: 0; top: 0; width: 2160px; height: 24px; background: #DA291C; }

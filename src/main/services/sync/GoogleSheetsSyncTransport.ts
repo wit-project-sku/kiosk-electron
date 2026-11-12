@@ -85,6 +85,8 @@ const CONTENT_SHEETS: Record<KioskLayoutId, ContentSheet> = {
   // and `uploadAnalytics` both check it and skip rather than falling back to
   // another location's sheet.
   KADA: { sheetId: '', localizationRange: '' },
+  // 롯데 has no spreadsheet yet — same "no spreadsheet for this layout" signal as KADA.
+  LOTTE: { sheetId: '', localizationRange: '' },
 };
 
 /**

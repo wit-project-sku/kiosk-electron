@@ -21,7 +21,8 @@ async function answerConfirm(app: ElectronApplication, response: 0 | 1): Promise
 }
 
 const site = (setup: Page, name: RegExp) => setup.getByRole('radio').and(setup.getByLabel(name));
-const save = (setup: Page) => setup.getByRole('button', { name: '저장', exact: true });
+// '저장' over a running kiosk, '저장하고 실행' with the app off or on a fresh PC.
+const save = (setup: Page) => setup.getByRole('button', { name: /^저장/ });
 const hasWindow = (app: ElectronApplication, file: string): boolean =>
   app.windows().some((w) => w.url().endsWith(file));
 const openWindows = (app: ElectronApplication): Promise<number> =>
@@ -98,13 +99,45 @@ test('with the app off, the shortcut opens only the setup window and closing lea
     const { main: setup, app } = kiosk;
     await expect(setup.getByText(/현재 이 PC는 제주국제여객터미널\(009번\)/)).toBeVisible();
     expect(hasWindow(app, 'index.html')).toBe(false);
-    // This PC's own site is marked and cannot be picked again.
-    await expect(site(setup, /제주국제여객터미널/)).toBeDisabled();
+    // This PC's own site starts checked, and stays pickable.
+    await expect(site(setup, /제주국제여객터미널/)).toBeChecked();
+    await expect(site(setup, /제주국제여객터미널/)).toBeEnabled();
 
     await setup.getByRole('button', { name: '닫기' }).click();
     await expect.poll(() => openWindows(app)).toBe(0);
     const stored = JSON.parse(readFileSync(join(kiosk.userData, 'kiosk-config.json'), 'utf8'));
     expect(stored.kioskId).toBe('W009');
+  } finally {
+    await kiosk.close();
+  }
+});
+
+test('with the app off, 앱 실행 starts the kiosk as it is, and choosing a site turns it into 저장하고 실행', async () => {
+  const kiosk = await launchKiosk({ site: 'W009', apiBase: api.url, args: ['--setup'] });
+  try {
+    const { main: setup, app } = kiosk;
+    const launch = setup.getByRole('button', { name: '앱 실행' });
+    await expect(launch).toBeEnabled();
+    expect(hasWindow(app, 'index.html')).toBe(false);
+
+    // Picking another site swaps the button; it would save, not just launch.
+    await site(setup, /오색시장/).check();
+    await expect(launch).toHaveCount(0);
+    await expect(setup.getByRole('button', { name: '저장하고 실행' })).toBeEnabled();
+    // Changed their mind: picking this PC's own site again brings 앱 실행 back.
+    await setup.getByText('제주국제여객터미널', { exact: true }).click();
+    await expect(site(setup, /제주국제여객터미널/)).toBeChecked();
+    await expect(launch).toBeEnabled();
+    await expect(setup.getByRole('button', { name: '저장하고 실행' })).toHaveCount(0);
+
+    await launch.click();
+    // Unpackaged, the app stays up (a packaged build restarts) and opens as the same site.
+    const main = await findWindow(app, 'index.html');
+    await expect(main.locator('#root > *').first()).toBeVisible();
+    await expect.poll(() => hasWindow(app, 'setup.html')).toBe(false);
+    const stored = JSON.parse(readFileSync(join(kiosk.userData, 'kiosk-config.json'), 'utf8'));
+    expect(stored.kioskId).toBe('W009');
+    expect(appWindowErrors(kiosk.errors).filter((e) => e.startsWith('[setup.html]'))).toEqual([]);
   } finally {
     await kiosk.close();
   }
@@ -149,6 +182,13 @@ test('with the kiosk running, the shortcut opens one window and closing it leave
 
     await secondInstance();
     setup = await findWindow(app, 'setup.html');
+    // Over a running kiosk its own site is checked; picking it again is no change.
+    await expect(site(setup, /오색시장/)).toBeChecked();
+    await expect(save(setup)).toBeDisabled();
+    await site(setup, /화성휴게소/).check();
+    await expect(save(setup)).toBeEnabled();
+    await site(setup, /오색시장/).check();
+    await expect(save(setup)).toBeDisabled();
     await site(setup, /사무실 테스트기/).check();
     await answerConfirm(app, 0);
     await save(setup).click();
