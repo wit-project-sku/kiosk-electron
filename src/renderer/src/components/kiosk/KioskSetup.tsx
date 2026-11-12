@@ -25,6 +25,8 @@ interface SetupContext {
  * and 제주 have several kiosks each; its number comes with it. Saving asks once in
  * a system dialog, then the app restarts as that site. Opened with the app off and
  * no new site chosen, the main button is 앱 실행: the kiosk starts as it is.
+ * This PC's own site starts checked and can be picked again, so a tester who
+ * clicked another site can go back to 앱 실행 without reopening the window.
  */
 export function KioskSetup(): JSX.Element {
   const [context, setContext] = useState<SetupContext | null>(null);
@@ -56,12 +58,20 @@ export function KioskSetup(): JSX.Element {
     };
   }, []);
 
+  const required = context?.state === 'required';
+  const currentSite = required ? undefined : SETUP_SITES.find((s) => s.code === context?.current);
+  // What the table shows as chosen: the pick, or else this PC's own site.
+  const chosen = selected ?? currentSite ?? null;
+  // Choosing this PC's own site again is not a change.
+  const newSite = chosen !== null && chosen !== currentSite ? chosen : null;
+  const actions = setupActions(context?.state ?? null, newSite !== null);
+
   const save = (): void => {
-    if (!selected || saving) return;
+    if (!newSite || saving) return;
     setSaving(true);
     setError(null);
     // Once confirmed a packaged build restarts, so this never settles.
-    void window.api.kiosk.applySetup(selected.code).then(
+    void window.api.kiosk.applySetup(newSite.code).then(
       (result) => {
         setSaving(false);
         if (!isOk(result)) setError(result.error.message);
@@ -72,9 +82,6 @@ export function KioskSetup(): JSX.Element {
       },
     );
   };
-
-  const required = context?.state === 'required';
-  const actions = setupActions(context?.state ?? null, selected !== null);
 
   const launch = (): void => {
     if (saving) return;
@@ -92,8 +99,6 @@ export function KioskSetup(): JSX.Element {
       },
     );
   };
-  const currentSite = required ? undefined : SETUP_SITES.find((s) => s.code === context?.current);
-
   return (
     <main className={styles.root}>
       <p className={styles.intro}>
@@ -120,18 +125,15 @@ export function KioskSetup(): JSX.Element {
               return (
                 <tr
                   key={site.code}
-                  className={
-                    current ? styles.rowCurrent : site === selected ? styles.rowSelected : ''
-                  }
-                  onClick={current ? undefined : () => setSelected(site)}
+                  className={site === chosen ? styles.rowSelected : ''}
+                  onClick={() => setSelected(site)}
                 >
                   <td className={styles.pick}>
                     <input
                       type="radio"
                       name="site"
                       aria-label={site.name}
-                      checked={site === selected}
-                      disabled={current}
+                      checked={site === chosen}
                       onChange={() => setSelected(site)}
                     />
                   </td>
