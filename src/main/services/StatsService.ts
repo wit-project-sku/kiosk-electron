@@ -140,6 +140,7 @@ function bodyOf(row: ShotRow): ShotBody {
     language: row.language,
   };
   if (row.backgroundId !== null) body.backgroundId = row.backgroundId;
+  if (row.autoShot) body.autoShot = true;
   if (!isSuccess && row.arFailure) {
     body.arErrorKind = row.arFailure.kind;
     if (row.arFailure.status !== null) body.arErrorStatus = row.arFailure.status;
@@ -295,6 +296,21 @@ export class StatsService {
   }
 
   /**
+   * Shots this PC has recorded since `since` (epoch ms) — visitor and 자동 촬영
+   * alike, finished or not. The 자동 촬영 schedule counts the day with it.
+   */
+  shotsSince(since: number): number {
+    try {
+      return this.ledger.countSince(since);
+    } catch (error) {
+      // Unknown means "do not add shots": a broken count must never make the
+      // kiosk shoot on its own.
+      log.warn('Could not count the ledger', error);
+      return Number.POSITIVE_INFINITY;
+    }
+  }
+
+  /**
    * The original capture is on disk: write the shot to the ledger BEFORE the
    * composite starts, so an app that quits mid-composite still leaves a record.
    * Never throws — the capture flow must not notice the ledger.
@@ -326,6 +342,7 @@ export class StatsService {
       isSuccess: input.isSuccess,
       backgroundId: input.backgroundId ?? existing?.backgroundId ?? null,
       arFailure: input.isSuccess ? null : (input.arFailure ?? null),
+      autoShot: input.autoShot ?? existing?.autoShot ?? false,
       state: 'pending',
       photoPath: input.photoPath ?? existing?.photoPath ?? null,
       nextAttemptAt: this.now(),
@@ -367,6 +384,7 @@ export class StatsService {
       language: input.language ?? null,
       backgroundId: input.backgroundId ?? null,
       arFailure: null,
+      autoShot: input.autoShot ?? false,
       photoPath: input.photoPath ?? null,
       v2Data: null,
       state,

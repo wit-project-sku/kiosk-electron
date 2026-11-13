@@ -23,6 +23,7 @@ interface Row {
   ar_error_kind: string | null;
   ar_error_status: number | null;
   ar_error_message: string | null;
+  auto_shot: number | null;
   photo_path: string | null;
   v2_data: string | null;
   state: ShotState;
@@ -44,6 +45,7 @@ const ADDED_COLUMNS: readonly (readonly [name: string, type: string])[] = [
   ['ar_error_kind', 'TEXT'],
   ['ar_error_status', 'INTEGER'],
   ['ar_error_message', 'TEXT'],
+  ['auto_shot', 'INTEGER'],
 ];
 
 function arFailureOf(row: Row): ArFailure | null {
@@ -74,6 +76,7 @@ function toShot(row: Row): ShotRow {
     language: row.language,
     backgroundId: row.background_id ?? null,
     arFailure: arFailureOf(row),
+    autoShot: row.auto_shot === 1,
     photoPath: row.photo_path,
     v2Data,
     state: row.state,
@@ -152,11 +155,11 @@ export class SqliteShotLedger implements ShotLedger {
       .prepare(
         `INSERT OR REPLACE INTO shots (
            event_id, kiosk_id, shot_at, is_success, shot_type, outfit_code, language,
-           background_id, ar_error_kind, ar_error_status, ar_error_message, photo_path,
+           background_id, ar_error_kind, ar_error_status, ar_error_message, auto_shot, photo_path,
            v2_data, state, v1_sent, attempts, last_error, next_attempt_at, created_at, sent_at
          ) VALUES (
            @eventId, @kioskId, @shotAt, @isSuccess, @shotType, @outfitCode, @language,
-           @backgroundId, @arErrorKind, @arErrorStatus, @arErrorMessage, @photoPath,
+           @backgroundId, @arErrorKind, @arErrorStatus, @arErrorMessage, @autoShot, @photoPath,
            @v2Data, @state, @v1Sent, @attempts, @lastError, @nextAttemptAt, @createdAt, @sentAt
          )`,
       )
@@ -165,6 +168,7 @@ export class SqliteShotLedger implements ShotLedger {
         arErrorKind: arFailure?.kind ?? null,
         arErrorStatus: arFailure?.status ?? null,
         arErrorMessage: arFailure?.message ?? null,
+        autoShot: row.autoShot ? 1 : 0,
         isSuccess: row.isSuccess === null ? null : row.isSuccess ? 1 : 0,
         v2Data: row.v2Data ? JSON.stringify(row.v2Data) : null,
         v1Sent: row.v1Sent ? 1 : 0,
@@ -182,6 +186,15 @@ export class SqliteShotLedger implements ShotLedger {
       )
       .all({ now, staleBefore: now - STALE_OPEN_MS, limit }) as Row[];
     return rows.map(toShot);
+  }
+
+  countSince(since: number): number {
+    const row = this.db
+      .prepare('SELECT COUNT(*) AS n FROM shots WHERE created_at >= ?')
+      .get(since) as {
+      n: number;
+    };
+    return row.n;
   }
 
   pruneSent(before: number): number {

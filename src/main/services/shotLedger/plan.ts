@@ -27,6 +27,8 @@ export interface ShotRow {
   backgroundId: number | null;
   /** Why the AR composite failed (failed shots only). */
   arFailure: ArFailure | null;
+  /** The kiosk took this shot itself (자동 촬영). */
+  autoShot: boolean;
   /** The AR original — the 제주 measurement upload's photo part. */
   photoPath: string | null;
   /** The measurement `data` part as first built, so a re-send carries the same sizes. */
@@ -131,6 +133,7 @@ export function textLine(now: number, event: string, row: ShotRow, detail = ''):
     result,
   ];
   if (row.backgroundId !== null) parts.push(`배경 ${row.backgroundId}`);
+  if (row.autoShot) parts.push('자동 촬영');
   if (row.arFailure && row.isSuccess === false) {
     const { kind, status, message } = row.arFailure;
     parts.push(

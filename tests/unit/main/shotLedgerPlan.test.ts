@@ -24,6 +24,7 @@ const row = (over: Partial<ShotRow> = {}): ShotRow => ({
   language: 'ko',
   backgroundId: null,
   arFailure: null,
+  autoShot: false,
   photoPath: null,
   v2Data: null,
   state: 'pending',

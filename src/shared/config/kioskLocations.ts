@@ -132,6 +132,14 @@ export interface KioskLocation {
    */
   notInSetup?: true;
   /**
+   * Fewest photos this venue must have each day (2026-11-13, agreed with the
+   * venue). When the day's count is short the kiosk takes the photo itself —
+   * only on an untouched home screen with nobody in front of the camera — 10:00
+   * to 19:59, spread so the minimum is reached by 19:00 (AutoShotService). The
+   * shot is counted like any other and marked `autoShot` in its record.
+   */
+  autoShotDailyMin?: number;
+  /**
    * `kioskId` to send to the SHOP API (`/api/shops?kioskId=`) when it differs
    * from this kiosk's own W-code number.
    *
@@ -232,7 +240,7 @@ export const KIOSK_LOCATIONS: Record<KioskLocationCode, KioskLocation> = {
   // then it sent 인사('2'), so 같이찍기 photos composited the Insadong character
   // while the screen next to them said "사진촬영 (with '하영')" — the UI has always
   // promised 하영 (see Photo_SelectTogether and the two 하영 home tiles).
-  W008: { code: 'W008', name: '제주국제공항', region: 'JEJU_AIRPORT', layout: 'JEJU_AIRPORT', secondTile: MARKET_TILE, hasCardTerminal: true, hasDonation: true, aiCompanion: '5', coordinates: JEJU_AIRPORT_COORDS, cameraRotation: 0 },
+  W008: { code: 'W008', name: '제주국제공항', region: 'JEJU_AIRPORT', layout: 'JEJU_AIRPORT', secondTile: MARKET_TILE, hasCardTerminal: true, hasDonation: true, aiCompanion: '5', coordinates: JEJU_AIRPORT_COORDS, cameraRotation: 0, autoShotDailyMin: 10 },
   // 제주국제여객터미널 W009 — the CMS name is `#W009-제주시=제주국제여객터미널`. It runs
   // the SAME design as 제주공항: one JEJU_AIRPORT layout, one Localization_Jeju tab,
   // the same 하영 mascot rows, the same 310-row 제주 shop catalogue.
@@ -245,7 +253,7 @@ export const KIOSK_LOCATIONS: Record<KioskLocationCode, KioskLocation> = {
   // No `shopApiKioskId`: the plain W-code number (9) is this terminal's device id.
   // `aiCompanion` is 하영('5'), exactly like W008 — same venue mascot, same
   // Localization_Jeju rows, and the two were always meant to move together.
-  W009: { code: 'W009', name: '제주국제여객터미널', region: 'JEJU_PORT', layout: 'JEJU_AIRPORT', secondTile: MARKET_TILE, hasCardTerminal: true, hasDonation: true, aiCompanion: '5', coordinates: JEJU_TERMINAL_COORDS, cameraRotation: 0 },
+  W009: { code: 'W009', name: '제주국제여객터미널', region: 'JEJU_PORT', layout: 'JEJU_AIRPORT', secondTile: MARKET_TILE, hasCardTerminal: true, hasDonation: true, aiCompanion: '5', coordinates: JEJU_TERMINAL_COORDS, cameraRotation: 0, autoShotDailyMin: 10 },
   // 세계자연유산본부 W010 — the CMS name is `#W010-제주시=세계자연유산본부` (the sheet's
   // 비고 column calls the venue 제주유산문화센터). Same 제주 design, but its OWN
   // JEJU_HERITAGE layout because its mascot is 유산, not 하영 — the shared
