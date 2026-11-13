@@ -131,6 +131,13 @@ class Subject:
     lateral_m: float = 0.0
     # Shoulder/chest/waist/hip breadth this frame; None without a forward axis.
     widths: BodyWidths | None = None
+    # Torso centre in FloorFrame.floor_xy coordinates: static-object matching
+    # (scene.py) and the head-in-view check (overlay.py).
+    centre_xy: tuple[float, float] | None = None
+    # Pose path (body.py): ellipse circumferences, and per-frame detail
+    # (arm-touching fallbacks, the floor at the feet, head in view).
+    girths: object | None = None
+    drawing: dict | None = None
 
 
 def _slab_counts(heights: np.ndarray) -> tuple[np.ndarray, int]:
@@ -376,7 +383,14 @@ def find_subjects(
             side = np.array([-ahead[1], ahead[0]])
             widths = body_widths(h[near], rel @ side, rel @ ahead, crown)
         subjects.append(
-            Subject(height_m=crown, points=count, distance_m=where, lateral_m=lateral, widths=widths)
+            Subject(
+                height_m=crown,
+                points=count,
+                distance_m=where,
+                lateral_m=lateral,
+                widths=widths,
+                centre_xy=(float(centre[0]), float(centre[1])),
+            )
         )
 
     subjects.sort(key=lambda s: s.distance_m)

@@ -209,6 +209,8 @@ const api: KioskBridge = {
       invoke(IpcChannels.KioskSetScreen, { screen, buttonId: buttonId ?? null }),
     playWeatherVideo: (key) => invoke(IpcChannels.KioskPlayWeatherVideo, { key }),
     switchLocation: (kioskId) => invoke(IpcChannels.KioskSwitchLocation, { kioskId }),
+    applySetup: (kioskId) => invoke(IpcChannels.KioskSetupApply, { kioskId }),
+    launchFromSetup: () => invoke(IpcChannels.KioskSetupLaunch),
   },
   shops: {
     list: () => invoke(IpcChannels.ShopsList),
@@ -234,6 +236,10 @@ const api: KioskBridge = {
     checkNow: () => invoke(IpcChannels.UpdateCheckNow),
     installNow: () => invoke(IpcChannels.UpdateInstallNow),
   },
+  autoShot: {
+    plan: () => invoke(IpcChannels.AutoShotPlan),
+    run: (request) => invoke(IpcChannels.AutoShotRun, request),
+  },
   footfall: {
     getRuntime: () => invoke(IpcChannels.FootfallGetRuntime),
     report: (report) => invoke(IpcChannels.FootfallReport, report),
@@ -244,6 +250,9 @@ const api: KioskBridge = {
     list: (query) => invoke(IpcChannels.EventsGet, query),
     recommend: (query) => invoke(IpcChannels.EventsRecommend, query),
     detail: (eventId) => invoke(IpcChannels.EventsDetailGet, { eventId }),
+  },
+  traffic: {
+    getExpressway: () => invoke(IpcChannels.TrafficExpresswayGet),
   },
   view: {
     bounds: ZOOM_BOUNDS,
@@ -260,6 +269,7 @@ const api: KioskBridge = {
     onMonitorsChanged: (listener) => subscribe(IpcEvents.MonitorsChanged, listener),
     onSyncStatsChanged: (listener) => subscribe(IpcEvents.SyncStatsChanged, listener),
     onContentChanged: (listener) => subscribe(IpcEvents.ContentChanged, listener),
+    onTranslationsChanged: (listener) => subscribe(IpcEvents.TranslationsChanged, listener),
     onPhotoWorkflowChanged: (listener) => subscribe(IpcEvents.PhotoWorkflowChanged, listener),
     onMotionGameChanged: (listener) => subscribe(IpcEvents.MotionGameChanged, listener),
     onLanguageChanged: (listener) => subscribe(IpcEvents.LanguageChanged, listener),

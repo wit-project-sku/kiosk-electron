@@ -12,6 +12,7 @@ import { useBackgroundStore } from '@renderer/store/backgroundStore';
 import { useOutfitStore } from '@renderer/store/outfitStore';
 import { KioskSwitcher } from '@renderer/components/kiosk/KioskSwitcher';
 import { FootfallCounter } from '@renderer/features/footfall/FootfallCounter';
+import { AutoShotCamera } from '@renderer/features/autoShot/AutoShotCamera';
 
 /**
  * Root application shell. Reads kiosk config from synchronously-hydrated store
@@ -19,6 +20,11 @@ import { FootfallCounter } from '@renderer/features/footfall/FootfallCounter';
  */
 export function App(): JSX.Element {
   const layout = useKioskStore((s) => s.config.layout);
+  // A fresh PC is no kiosk yet: only the 지점 설정 screen until a site is picked.
+  // Re-render the whole tree (no remount, so an open photo session keeps its
+  // state) when a sheet sync swaps the translation table. t()/sheetText() read
+  // the table with getState(), and most screens subscribe only to the language.
+  useKioskStore((s) => s.translations);
 
   useBootstrap();
   useKioskTheme();
@@ -99,6 +105,10 @@ export function App(): JSX.Element {
           transparent pixel and nothing else; it yields the camera whenever the
           photo flow needs it (see FootfallService). */}
       <FootfallCounter />
+      {/* 자동 촬영 — only 제주국제공항·제주국제여객터미널 (kioskLocations.autoShotDailyMin):
+          one transparent pixel; opens the camera only on an idle home screen with
+          nobody in front of it (see AutoShotService). */}
+      <AutoShotCamera />
     </>
   );
 }

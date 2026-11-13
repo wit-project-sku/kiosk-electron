@@ -1,5 +1,5 @@
 /**
- * SCAFFOLD page for 제주공항 (W006) screens whose Figma frame is not built yet.
+ * SCAFFOLD page for 제주공항 (W008) screens whose Figma frame is not built yet.
  *
  * It is real chrome — JejuPageFrame gives it the correct sub-page background,
  * header, left nav and banner — with a 준비중 body. Replace screen by screen:
@@ -11,6 +11,11 @@ import type { KioskScreenId } from '@shared/types/kiosk';
 import { pick, useLang } from '@renderer/lib/i18n';
 import { JejuPageFrame } from './JejuPageFrame';
 import styles from './JejuScreen.module.css';
+import { useVoiceIntro } from './voice/intro';
+
+/** Every scaffold page is a 준비중 page; 세계유산센터 has a sentence of its own. */
+const VOICE_CENTER = ['heritage.center'] as const;
+const VOICE_PREPARING = ['state.preparing'] as const;
 
 interface Props {
   screen: KioskScreenId;
@@ -38,7 +43,7 @@ const SCREEN_LABELS: Partial<Record<KioskScreenId, string>> = {
   localpay: '지역화폐',
   market: '위드마켓',
   events: '제주도 이벤트',
-  // W008 세계자연유산본부's one 2026-09 home tile (Figma 6792:126444) still
+  // W010 세계자연유산본부's one 2026-09 home tile (Figma 6792:126444) still
   // scaffolded — 제주세계유산 and 거문오름 예약 have their real pages now
   // (JejuHeritage / JejuGeomun).
   heritage_center: '제주세계유산센터',
@@ -57,6 +62,7 @@ const SCREEN_LABELS: Partial<Record<KioskScreenId, string>> = {
 export function JejuScreen({ screen, controller }: Props): JSX.Element {
   const lang = useLang();
   const title = SCREEN_LABELS[screen] ?? screen;
+  useVoiceIntro(screen === 'heritage_center' ? VOICE_CENTER : VOICE_PREPARING);
 
   return (
     <JejuPageFrame controller={controller} title={title}>

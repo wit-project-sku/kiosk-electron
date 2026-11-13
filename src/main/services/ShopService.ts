@@ -71,7 +71,12 @@ export class ShopService {
       }
       return shops.length;
     } catch (error) {
+      // The url is logged because it is NOT what dev sees: a release reads the
+      // `.env` baked from the KIOSK_ENV secret, where a SHOP_API_URL override
+      // or a different WITTERIA_API_BASE changes it without touching the code.
       log.warn('Shops refresh failed (using cached)', {
+        url,
+        cached: this.list().length,
         error: error instanceof Error ? error.message : String(error),
       });
       return this.list().length;

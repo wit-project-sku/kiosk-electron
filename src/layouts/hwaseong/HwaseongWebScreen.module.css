@@ -1,37 +1,18 @@
-/* Webview page chrome (화성휴게소). Webview body is 1820 × 2250, centred. */
+/* Webview page chrome (화성휴게소) — Figma 7950:58002. 1 CSS px = 1 Figma px. */
 .root {
   position: absolute;
   inset: 0;
   width: 2160px;
   height: 3840px;
   overflow: hidden;
-  font-family: 'Noto Sans KR', 'Noto Sans', sans-serif;
+  font-family: 'Pretendard', var(--kiosk-font, 'Noto Sans KR', sans-serif);
 }
 
-.bgBase {
-  position: absolute;
-  left: 0;
-  top: 0;
-  width: 2160px;
-  height: 3840px;
-  background: #fff;
-}
-
-.bgImage {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  pointer-events: none;
-}
-
-/* Body: 1820 × 2250, centred horizontally, just below the header (top 699). */
+/* Body: 1820 × 2250 at (171, 818) — 118 under the header, ending at 3068. */
 .body {
   position: absolute;
-  top: calc(699px + var(--header-push, 0px));
-  left: 50%;
-  transform: translateX(-50%);
+  top: calc(818px + var(--header-push, 0px));
+  left: 171px;
   width: 1820px;
   height: 2250px;
   overflow: hidden;
@@ -45,19 +26,30 @@
   display: flex;
 }
 
-/* Bottom banner */
-.banner {
+/* ▲ / ▼ (7950:58105 / 58106): 85 discs at x2027, y2103 and 2223 — the back
+   chevron turned +90° / −90°. */
+.scrollBtn {
   position: absolute;
-  top: 3267px;
-  left: 0;
-  width: 2160px;
-  height: 573px;
+  left: 2027px;
+  width: 85px;
+  height: 85px;
+  padding: 0;
+  border: none;
+  background: none;
+  cursor: pointer;
+  z-index: 10;
+  -webkit-tap-highlight-color: transparent;
+  transform: translateY(calc(-1 * var(--hwaseong-mode-push, 0px)));
 }
 
-.bannerImg {
+.scrollBtn img {
+  display: block;
   width: 100%;
   height: 100%;
-  object-fit: cover;
-  display: block;
   pointer-events: none;
 }
+
+.scrollUp { top: 2103px; }
+.scrollUp img { transform: rotate(90deg); }
+.scrollDown { top: 2223px; }
+.scrollDown img { transform: rotate(-90deg); }

@@ -1,6 +1,6 @@
 /**
  * 거문오름 예약 — Figma 6935:69555 (거문오름 소개) / 6935:69554 (탐방 안내).
- * The page behind W008's 거문오름 예약 home tile (2026-09 redesign, home
+ * The page behind W010's 거문오름 예약 home tile (2026-09 redesign, home
  * 6792:126444).
  *
  * Three tabs on the shared JejuTabRow (the frames draw exactly its 580×170
@@ -357,7 +357,7 @@ export function JejuGeomun({ controller }: Props): JSX.Element {
       >
         {tab === 'intro' && (
           <>
-            <div className={styles.introPanel}>
+            <div className={styles.introPanel} data-voice-more>
               <div className={styles.introPhoto}>
                 <img src={geomunPhoto} alt="" draggable={false} />
               </div>
@@ -399,7 +399,7 @@ export function JejuGeomun({ controller }: Props): JSX.Element {
           <>
             {noticeBox}
 
-            <div className={styles.guidePanel}>
+            <div className={styles.guidePanel} data-voice-more>
               <div className={styles.guideBar}>
                 <ul>
                   {GUIDE_BAR.map((c) => (
@@ -501,7 +501,7 @@ export function JejuGeomun({ controller }: Props): JSX.Element {
 
         {tab === 'reserve' && (
           <div className={styles.reserveHold}>
-            <p className={styles.reserveHoldText}>{pick(COMING_SOON, lang)}</p>
+            <p className={styles.reserveHoldText} data-voice-state="preparing">{pick(COMING_SOON, lang)}</p>
           </div>
         )}
       </div>

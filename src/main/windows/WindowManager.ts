@@ -7,6 +7,8 @@ import type { AppContainer } from '@main/container';
 import { buildBootstrapData } from '@main/bootstrap';
 import { createMainWindow } from './MainWindow';
 import { createDisplayWindow, pickDisplay } from './DisplayWindow';
+import { createSetupWindow } from './SetupWindow';
+import { e2eForcesDisplayWindow } from '../core/e2e';
 
 const log = createLogger('window-manager');
 
@@ -18,6 +20,7 @@ const log = createLogger('window-manager');
 export class WindowManager {
   private mainWindow: BrowserWindow | null = null;
   private displayWindow: BrowserWindow | null = null;
+  private setupWindow: BrowserWindow | null = null;
   private unsubscribeDisplay: (() => void) | null = null;
   private unsubscribeSync: (() => void) | null = null;
   private unsubscribeContent: (() => void) | null = null;
@@ -57,8 +60,12 @@ export class WindowManager {
       this.broadcast(IpcEvents.SyncStatsChanged, stats);
     });
 
+    // A content sync also re-downloads the Localization tab. Send the table with
+    // it: the renderer only reads translations at bootstrap, so without this a
+    // sheet edit pulled at launch or at 02:00 waited for the NEXT restart.
     this.unsubscribeContent = this.container.sync.subscribeContent((content) => {
       this.broadcast(IpcEvents.ContentChanged, content);
+      this.broadcast(IpcEvents.TranslationsChanged, this.container.translations.getInMemoryMap());
     });
 
     this.unsubscribePhoto = this.container.photoWorkflow.subscribe((state) => {
@@ -128,6 +135,34 @@ export class WindowManager {
     if (!this.mainWindow) return;
     if (this.mainWindow.isMinimized()) this.mainWindow.restore();
     this.mainWindow.focus();
+  }
+
+  getSetupWindow(): BrowserWindow | null {
+    return this.setupWindow;
+  }
+
+  /** Open (or bring forward) the 지점 설정 window, above the kiosk once that is on screen. */
+  openSetupWindow(): void {
+    if (this.setupWindow && !this.setupWindow.isDestroyed()) {
+      this.setupWindow.show();
+      this.setupWindow.focus();
+      return;
+    }
+    const kiosk = this.mainWindow;
+    if (kiosk && !kiosk.isVisible()) {
+      kiosk.once('show', () => this.openSetupWindow());
+      return;
+    }
+    this.setupWindow = createSetupWindow(kiosk);
+    this.setupWindow.on('closed', () => {
+      this.setupWindow = null;
+      // Back to the touch window: it is the one with key handling (see bootstrap).
+      this.focusMain();
+    });
+  }
+
+  closeSetupWindow(): void {
+    if (this.setupWindow && !this.setupWindow.isDestroyed()) this.setupWindow.close();
   }
 
   /** Open (or focus) the customer display window. Returns true if open. */
@@ -225,6 +260,7 @@ export class WindowManager {
     }
     this.mainWindow = null;
     this.displayWindow = null;
+    this.setupWindow = null;
   }
 
   /** Release listeners. Called on app shutdown. */
@@ -258,7 +294,7 @@ export class WindowManager {
   }
 
   private hasSecondaryDisplay(): boolean {
-    return screen.getAllDisplays().length > 1;
+    return screen.getAllDisplays().length > 1 || e2eForcesDisplayWindow();
   }
 
   private readonly handleDisplaysChanged = (): void => {

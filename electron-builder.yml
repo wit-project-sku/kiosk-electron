@@ -136,6 +136,10 @@ nsis:
   perMachine: false
   allowToChangeInstallationDirectory: true
   deleteAppDataOnUninstall: false
+  # One desktop shortcut, "WITH 키오스크 앱" (the app with --setup), made by the
+  # include below — electron-builder's own plain shortcut is turned off.
+  createDesktopShortcut: false
+  include: build/installer.nsh
 
 # Auto-update feed = GitHub Releases (electron-updater). This block is baked into
 # the app as `app-update.yml`, so each installed kiosk knows where to look. The

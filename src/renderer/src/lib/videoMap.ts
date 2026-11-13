@@ -86,6 +86,17 @@ export function initVideoFiles(bySet: VideoFilesBySet): void {
   }
 }
 
+/**
+ * How many distinct clips `kioskId`'s video set has in a VideosList result —
+ * counted the way initVideoFiles resolves them (a 제주 set includes the
+ * pre-split shared folder). The 지점 설정 screen warns when a site has none.
+ */
+export function siteVideoCount(bySet: VideoFilesBySet, kioskId: KioskId): number {
+  const set = videoSetFor(kioskId);
+  const folders: (keyof VideoFilesBySet)[] = JEJU_SETS.includes(set) ? [set, ...LEGACY_VIDEO_SETS] : [set];
+  return new Set(folders.flatMap((folder) => (bySet[folder] ?? []).map(norm))).size;
+}
+
 /** Every playable video URL in a set, in listing order (generic attract wall). */
 export function videoUrlsForSet(set: VideoSet): string[] {
   return FILES_BY_SET[set].map(mediaUrl);
@@ -130,10 +141,10 @@ function buildByButton(entries: VideoEntry[]): Map<number, VideoEntry[]> {
 }
 
 // Mutable maps, one per video set — populated by initSubtitles() once main's
-// SubtitleService answers. Its source is the CMS API (SQLite-cached), with one
-// exception: a 제주 kiosk whose API has no rows gets its VideoSubtitle Google
-// Sheet tab instead, read at runtime (production still answers W006–W008 with
-// zero rows). There is no bundled table, so a never-synced kiosk with no
+// SubtitleService answers. Its source is the CMS API (SQLite-cached), except
+// where the venue's VideoSubtitle Google Sheet tab is read at runtime instead:
+// 인사동 always, and 제주 first (the API only when the sheet yields nothing —
+// see SubtitleService). There is no bundled table, so a never-synced kiosk with no
 // network shows no clips (the generic attract wall) until it reaches one once.
 let BY_KEY: Record<VideoSet, Map<string, VideoEntry[]>> = emptyBySet(() => new Map());
 
@@ -157,12 +168,15 @@ const VIDEO_SET_BY_LAYOUT: Record<KioskLayoutId, VideoSet> = {
   // empty set resolves no clips, so the customer display stays on its attract
   // slideshow until KADA footage is dropped into that folder.
   KADA: 'kada',
+  // 롯데 has no footage yet — borrowing KADA's empty set resolves no clips, so the
+  // customer display stays on its attract slideshow until 롯데 clips exist.
+  LOTTE: 'kada',
 };
 
 /**
  * Per-KIOSK overrides, consulted before the layout table.
  *
- * Layout is the right granularity everywhere except 제주: W006 제주공항 and W007
+ * Layout is the right granularity everywhere except 제주: W008 제주공항 and W009
  * 제주국제여객터미널 deliberately share the JEJU_AIRPORT layout (one design, one
  * sheet, one mascot) but must NOT share footage — the airport reels are about
  * 항공편/탑승구 and the terminal's about 여객선/뱃길. So the venue that diverges
@@ -170,7 +184,7 @@ const VIDEO_SET_BY_LAYOUT: Record<KioskLayoutId, VideoSet> = {
  * it does not need.
  */
 const VIDEO_SET_BY_KIOSK: Partial<Record<KioskId, VideoSet>> = {
-  W007: 'jeju-terminal',
+  W009: 'jeju-terminal',
 };
 
 /** Which video set a kiosk's own subtitle entries belong to — the caller
@@ -511,7 +525,7 @@ const INSADONG_SCREEN_TO_VIDEO_KEY: Record<string, string> = {
 };
 
 /**
- * 제주 (W006 공항 / W007 여객터미널 / W008 세계자연유산본부) screen→key mapping,
+ * 제주 (W008 공항 / W009 여객터미널 / W010 세계자연유산본부) screen→key mapping,
  * transcribed from VideoSubtitle_귤이's `Key (개발)` + `재생조건(Condition)` columns.
  *
  * `inherit: false`, like Hwaseong: the 제주 home grid is its own (렌트카 · 탐나오 ·
@@ -628,6 +642,9 @@ const JEJU_SCREEN_TO_VIDEO_KEY: Record<string, string> = {
   // 제주-only home tiles.
   rentcar:          'RentCar',
   tamnao:           'Tamnao',
+  // 제주큐랑 split off 탐나오's page (W008) — no clip of its own, so it keeps the
+  // one it played as 탐나오's second tab.
+  jejuqrang:        'Tamnao',
   // MarketPaper-1 온누리상품권 · -2 탐나는전. The page opens on 탐나는전.
   localpay:         'MarketPaper#2',
   localpay_onnuri:  'MarketPaper#1',
@@ -689,13 +706,14 @@ const SCREEN_KEYS_BY_LAYOUT: Record<KioskLayoutId, LayoutScreenKeys> = {
   HWASEONG: { map: HWASEONG_SCREEN_TO_VIDEO_KEY, inherit: false },
   // Both 제주 layouts read the SAME map: VideoSubtitle_귤이 is one tab for all
   // three venues, and the grid differences between them (렌트카 vs 크루즈 운항,
-  // W008's 제주세계유산 trio) are extra screens, not different keys for the same
+  // W010's 제주세계유산 trio) are extra screens, not different keys for the same
   // screen. What differs per venue is the video SET, above.
   JEJU_AIRPORT: { map: JEJU_SCREEN_TO_VIDEO_KEY, inherit: false },
   JEJU_HERITAGE: { map: JEJU_SCREEN_TO_VIDEO_KEY, inherit: false },
   // KADA has five screens and no video set, so there is nothing to map and
   // nothing worth inheriting — Insadong's screen names do not exist here.
   KADA: { map: {}, inherit: false },
+  LOTTE: { map: {}, inherit: false },
 };
 
 // Every kiosk carries a dedicated ChangeLanguage_* clip per UI language (all 8),

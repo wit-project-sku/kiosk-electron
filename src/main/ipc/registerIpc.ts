@@ -31,8 +31,10 @@ import { registerStatsHandlers } from './handlers/stats.handlers';
 import { registerSubtitleHandlers } from './handlers/subtitle.handlers';
 import { registerVideoHandlers } from './handlers/video.handlers';
 import { registerEventsHandlers } from './handlers/events.handlers';
+import { registerTrafficHandlers } from './handlers/traffic.handlers';
 import { registerUpdateHandlers } from './handlers/update.handlers';
 import { registerFootfallHandlers } from './handlers/footfall.handlers';
+import { registerAutoShotHandlers } from './handlers/autoShot.handlers';
 
 const log = createLogger('ipc');
 
@@ -71,7 +73,9 @@ export function registerIpcHandlers(container: AppContainer, windows: WindowMana
   registerSubtitleHandlers(container);
   registerVideoHandlers(container);
   registerEventsHandlers(container);
+  registerTrafficHandlers(container);
   registerUpdateHandlers(container);
   registerFootfallHandlers(container);
+  registerAutoShotHandlers(container);
   log.info('IPC handlers registered');
 }

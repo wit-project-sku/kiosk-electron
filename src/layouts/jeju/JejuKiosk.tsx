@@ -1,5 +1,5 @@
 /**
- * Screen router for 제주공항 (W006).
+ * Screen router for 제주공항 (W008).
  *
  * Structure mirrors OsanKiosk/HwaseongKiosk so the Jeju screens can be filled in
  * one at a time: add a `cur === '<screen>'` branch as each Figma frame is built,
@@ -8,9 +8,9 @@
  * The shared flows are already wired and need no Jeju-specific code:
  *  - PhotoWorkflow (한복/사진) — themed via CSS vars, see PHOTO_THEME below and
  *    photoChrome.tsx for the per-layout header/icon resolution.
- *  - DonationWebScreen (기부) — W006 has hasDonation; URL via donationUrl(kioskId).
+ *  - DonationWebScreen (기부) — W008 has hasDonation; URL via donationUrl(kioskId).
  */
-import type { CSSProperties } from 'react';
+import { useCallback, useState, type CSSProperties } from 'react';
 import type { KioskScreenId } from '@shared/types/kiosk';
 import { useKioskController } from '@renderer/hooks/useKioskController';
 import { useWeatherSync } from '@renderer/hooks/useWeatherSync';
@@ -41,6 +41,7 @@ import { JejuHello } from './JejuHello';
 import { JejuHelp } from './JejuHelp';
 import { JejuLocalpay } from './JejuLocalpay';
 import { JejuWebScreen, type EmbedTab } from './JejuWebScreen';
+import { JEJU_QURANG_LABEL, TAMNAO_LABEL } from './jejuEmbedLabels';
 import { JejuEvents } from './JejuEvents';
 import { JejuFlights } from './JejuFlights';
 import { JejuCruise } from './JejuCruise';
@@ -48,6 +49,29 @@ import { JejuExchange } from './JejuExchange';
 import { JejuRentcar } from './JejuRentcar';
 import { JejuFillme } from './fillme/JejuFillme';
 import { useJejuKeypad } from './keypad/useJejuKeypad';
+import { useJejuVoice } from './voice/useJejuVoice';
+import maintenanceUrl from '@renderer/assets/icons/jeju/maintenance.jpg';
+import { MAINTENANCE_KIOSKS, readMaintenanceLifted, useMultiTap, writeMaintenanceLifted } from './maintenance';
+
+/** The 시스템 점검 notice art — icons/제주_운항정보=도착.png scaled to the 2160×3840 canvas. */
+const MAINTENANCE_STYLE: CSSProperties = {
+  position: 'absolute',
+  inset: 0,
+  width: '100%',
+  height: '100%',
+  objectFit: 'cover',
+};
+
+/** The notice's hidden switch: the small plane in the sky of the art (x588–679,
+ *  y764–805 on the 2160×3840 canvas), padded a little for a mouse. Move it with the
+ *  art if the image changes. */
+const MAINTENANCE_SWITCH_STYLE: CSSProperties = {
+  position: 'absolute',
+  left: 558,
+  top: 734,
+  width: 151,
+  height: 101,
+};
 
 /** Theme the shared AR 한복 photo workflow with the 제주 orange (#ff7f0f, the
  *  Figma `[제주] main 01` token). photoChrome.tsx resolves Jeju's icons, header
@@ -71,7 +95,7 @@ const PHOTO_THEME = {
  * not restart a guest), all idle after load.
  */
 interface WebScreen {
-  screen: Extract<KioskScreenId, 'market' | 'tamnao'>;
+  screen: Extract<KioskScreenId, 'market' | 'tamnao' | 'jejuqrang'>;
   url: string;
   /** Header title id — JejuHeader localizes it (see i18n TITLE_KEYS). */
   title: string;
@@ -87,22 +111,6 @@ interface WebScreen {
   /** Off for a frame whose content runs past the banner at y3267. */
   showBanner?: boolean;
 }
-
-/*
- * 탐나오&제주큐랑 tab labels. Localization_Jeju carries both (Tamnao_Tab /
- * JejuQurang_Tab, 8/8) and is the source; these are the fallback, the sheet's
- * own words, for a cell left empty or a kiosk that has not synced the rows yet
- * (the bundled copy predates them).
- */
-const TAMNAO_TAB = {
-  ko: '탐나오', en: 'Tamnao', ja: 'タムナオ', zh: '塔姆瑙',
-  vi: 'Tamnao', th: 'Tamnao', ru: 'Тамнао', id: 'Tamnao',
-};
-
-const JEJU_QURANG_TAB = {
-  ko: '제주큐랑', en: 'Jeju Qurang', ja: '済州キュラン', zh: '济州岛古兰',
-  vi: 'Jeju Qurang', th: 'Jeju Qurang', ru: 'Чеджу Куранг', id: 'Jeju Qurang',
-};
 
 const WEB_SCREENS: readonly WebScreen[] = [
   {
@@ -129,8 +137,8 @@ const WEB_SCREENS: readonly WebScreen[] = [
     url: WEB_EMBED_URLS.tamnao,
     title: '탐나오&제주큐랑',
     tabs: [
-      { id: 'tamnao', labelKey: 'Tamnao_Tab', label: TAMNAO_TAB, url: WEB_EMBED_URLS.tamnao },
-      { id: 'jejuqrang', labelKey: 'JejuQurang_Tab', label: JEJU_QURANG_TAB, url: WEB_EMBED_URLS.jejuqrang },
+      { id: 'tamnao', labelKey: 'Tamnao_Tab', label: TAMNAO_LABEL, url: WEB_EMBED_URLS.tamnao },
+      { id: 'jejuqrang', labelKey: 'JejuQurang_Tab', label: JEJU_QURANG_LABEL, url: WEB_EMBED_URLS.jejuqrang },
     ],
     // 6516:71785 hangs a "모바일에서 확인하기" QR under the panel so a visitor
     // can carry the site away on their phone. WIT Store's frame has no such row.
@@ -141,10 +149,40 @@ const WEB_SCREENS: readonly WebScreen[] = [
   },
 ];
 
+/**
+ * 제주공항 W008 (2026-10-29) and 여객터미널 W009: 탐나오 and 제주큐랑 are two home
+ * buttons now, so each opens its OWN page — the site alone, no tab row. Same
+ * chrome as the two-tab page (the QR row hands over whichever site is showing);
+ * the panel takes the tab row's band (see JejuWebScreen's single-site metrics).
+ * W010 keeps the two-tab page above.
+ */
+const WEB_SCREENS_SPLIT: readonly WebScreen[] = WEB_SCREENS.flatMap((web): WebScreen[] =>
+  web.screen === 'tamnao'
+    ? [
+        { ...web, title: '탐나오', tabs: undefined },
+        {
+          ...web,
+          screen: 'jejuqrang',
+          url: WEB_EMBED_URLS.jejuqrang,
+          title: '제주큐랑',
+          subtitleKey: 'jejuQurangSubtitle',
+          tabs: undefined,
+        },
+      ]
+    : [web],
+);
+
+/** Which pages a 제주 kiosk keeps warm. Mirrors JejuHome's grid choice: the
+ *  airport layout is the default (a test rig previewing 제주 gets it too), and
+ *  only W010 — whose home still draws the 탐나오·제주큐랑 tile — keeps the
+ *  two-tab page. */
+const webScreensFor = (kioskId: string): readonly WebScreen[] =>
+  kioskId === 'W010' ? WEB_SCREENS : WEB_SCREENS_SPLIT;
+
 type WebScreenKey = WebScreen['screen'];
 
 function isWebScreen(s: string): s is WebScreenKey {
-  return s === 'market' || s === 'tamnao';
+  return s === 'market' || s === 'tamnao' || s === 'jejuqrang';
 }
 
 export function JejuKiosk(): JSX.Element {
@@ -158,14 +196,47 @@ export function JejuKiosk(): JSX.Element {
   // 제주 only: no other venue has the hardware. See the hook's header.
   useJejuKeypad(controller);
 
+  const [maintenanceLifted, setMaintenanceLifted] = useState(() =>
+    readMaintenanceLifted(controller.kioskId),
+  );
+  const maintenanceKiosk = MAINTENANCE_KIOSKS.has(controller.kioskId);
+  // 음성 안내 — off until the keypad turns it on. See voice/useJejuVoice.
+  useJejuVoice(controller, !maintenanceKiosk || maintenanceLifted);
+  // Five quick mouse clicks flip between the notice and the app — the small plane
+  // in the home screen's top bar and the one in the notice's art (maintenance.ts).
+  const toggleMaintenance = useCallback(() => {
+    setMaintenanceLifted((lifted) => {
+      writeMaintenanceLifted(!lifted);
+      return !lifted;
+    });
+  }, []);
+  const onMaintenanceSwitchTap = useMultiTap(toggleMaintenance);
+
   const cur = controller.screen;
+
+  // Under system maintenance the whole screen is the 점검 중 notice and nothing
+  // behind it can be reached by a visitor (touch or keypad). Staff switch it off
+  // with five quick MOUSE clicks on the plane in the art and back on the same way
+  // from the plane in the home screen's top bar (maintenance.ts).
+  // Only that plane listens, and only to a mouse.
+  if (maintenanceKiosk && !maintenanceLifted) {
+    return (
+      <KioskArtboard>
+        <img src={maintenanceUrl} alt="" draggable={false} style={MAINTENANCE_STYLE} />
+        <div style={MAINTENANCE_SWITCH_STYLE} onPointerUp={onMaintenanceSwitchTap} />
+      </KioskArtboard>
+    );
+  }
 
   const foreground = controller.photoActive ? (
     <div style={{ position: 'absolute', inset: 0, ...PHOTO_THEME }}>
       <PhotoWorkflow />
     </div>
   ) : cur === 'home' ? (
-    <JejuHome controller={controller} />
+    <JejuHome
+      controller={controller}
+      onPlaneTap={maintenanceKiosk ? onMaintenanceSwitchTap : undefined}
+    />
   ) : cur === 'language' ? (
     <JejuLanguage controller={controller} />
   ) : cur === 'ai_search' ? (
@@ -185,7 +256,7 @@ export function JejuKiosk(): JSX.Element {
   ) : cur === 'flights' ? (
     <JejuFlights controller={controller} />
   ) : cur === 'cruise' ? (
-    // 여객터미널 W007's ferry board. Reachable only there — W006's home draws
+    // 여객터미널 W009's ferry board. Reachable only there — W008's home draws
     // 렌트카 in the slot that navigates here.
     <JejuCruise controller={controller} />
   ) : cur === 'exchange' ? (
@@ -201,10 +272,10 @@ export function JejuKiosk(): JSX.Element {
   ) : cur === 'about' ? (
     <JejuAbout controller={controller} />
   ) : cur === 'heritage' ? (
-    // W008's 제주세계유산 home tile (6792:126444) → 제주 유네스코 유산.
+    // W010's 제주세계유산 home tile (6792:126444) → 제주 유네스코 유산.
     <JejuHeritage controller={controller} />
   ) : cur === 'geomun' ? (
-    // W008's 거문오름 예약 home tile → 소개/안내 tabs (6935:69555 / 69554).
+    // W010's 거문오름 예약 home tile → 소개/안내 tabs (6935:69555 / 69554).
     <JejuGeomun controller={controller} />
   ) : cur === 'hello' ? (
     <JejuHello controller={controller} />
@@ -242,7 +313,7 @@ export function JejuKiosk(): JSX.Element {
         would sit on top of the home screen. Same reason Insadong and Osan do it
         this way.
       */}
-      {WEB_SCREENS.map((web) => {
+      {webScreensFor(controller.kioskId).map((web) => {
         const active = !controller.photoActive && cur === web.screen;
         return (
           <div

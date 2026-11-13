@@ -1,5 +1,5 @@
 /**
- * 제주공항 (W006) 틀린그림찾기 — the waiting game played on the touch screen
+ * 제주공항 (W008) 틀린그림찾기 — the waiting game played on the touch screen
  * while the AR 한복 photo generates. Figma 6258:78631.
  *
  * ── Why this screen exists ────────────────────────────────────────────
@@ -67,7 +67,7 @@ import type { CSSProperties, PointerEvent as ReactPointerEvent } from 'react';
 import { Lightbulb, Heart, Timer } from 'lucide-react';
 import type { SpotDiffRound, SpotDiffSpot } from '@shared/types/spotDiff';
 import { pick, useLang, type Lang } from '@renderer/lib/i18n';
-import { sheetText, tExact } from '@renderer/lib/loc';
+import { hasLoc, sheetText, tExact } from '@renderer/lib/loc';
 import { trackEvent } from '@renderer/lib/analytics';
 import { useKioskStore } from '@renderer/store/kioskStore';
 import { useAccessibilityStore } from '@renderer/store/accessibilityStore';
@@ -75,6 +75,7 @@ import { usePhotoChrome } from '../photo/photoChrome';
 import { modeBarVars } from './lowReach';
 import { JejuBgMotion } from './JejuBgMotion';
 import styles from './JejuSpotDiffGame.module.css';
+import { VoiceToggle } from './voice/VoiceToggle';
 
 /**
  * The ♿ bar's copy. Sheet-first (`BarrierFree_Title`) with this as the
@@ -321,6 +322,33 @@ const LOADING = {
   ru: 'Загрузка игры…',
   id: 'Memuat permainan…',
 };
+
+/**
+ * Sheet rows for the copy above, first match wins. The 인사동 / 오산 / 화성
+ * Localization tabs carry the Photo_Game_* / Photo_popup_* family (화성's since
+ * the 2026-10-19 rebuild); 제주's has none of these keys, so it keeps the
+ * authored copy. Photo_WaitTitle / Photo_WaitPrompt stay first for any sheet
+ * that adds them.
+ */
+const SHEET_KEYS = {
+  stepTitle: ['Photo_WaitTitle', 'Photo_Wait'],
+  prompt: ['Photo_WaitPrompt', 'Photo_Game_1_Play_desc1'],
+  hint: ['Photo_Game_1_show_hint'],
+  skip: ['Photo_Game_show_result'],
+  won: ['Photo_Game_popup_title_success'],
+  lost: ['Photo_Game_popup_title_failed'],
+  score: ['Photo_Game_popup_desc_result'],
+  ready: ['Photo_popup_title_Complete'],
+  seePhoto: ['Photo_Game_popup_button2'],
+  playAgain: ['Photo_Game_popup_button3'],
+  otherGames: ['Photo_Game_popup_button4'],
+} as const;
+
+/** The first of `keys` this kiosk's sheet carries, else the authored copy. */
+function sheetFirst(keys: readonly string[], lang: Lang, authored: Partial<Record<Lang, string>>): string {
+  const key = keys.find(hasLoc);
+  return key ? sheetText(key, lang, authored) : pick(authored, lang);
+}
 
 interface Props {
   /**
@@ -782,15 +810,16 @@ export function JejuSpotDiffGame({
             <img src={accessibilityIcon} alt="" draggable={false} />
           </button>
         )}
+        <VoiceToggle className={styles.leftNavBtn} />
       </div>
 
       {/* ── ③ 잠시만 기다려주세요! ── */}
       <div className={styles.step}>
         <span className={styles.stepBadge}>{STEP_NUMBER}</span>
-        <p className={styles.stepTitle}>{sheetText('Photo_WaitTitle', lang, STEP_TITLE)}</p>
+        <p className={styles.stepTitle}>{sheetFirst(SHEET_KEYS.stepTitle, lang, STEP_TITLE)}</p>
       </div>
 
-      <p className={styles.prompt}>{sheetText('Photo_WaitPrompt', lang, PROMPT)}</p>
+      <p className={styles.prompt}>{sheetFirst(SHEET_KEYS.prompt, lang, PROMPT)}</p>
 
       {/* ── Progress: lives · n/5 · clock ── */}
       <div className={styles.status}>
@@ -837,16 +866,23 @@ export function JejuSpotDiffGame({
           disabled={!playing || hintsUsed >= MAX_HINTS}
         >
           <Lightbulb className={styles.hintIcon} strokeWidth={2.2} />
-          {pick(HINT, lang)}
+          {sheetFirst(SHEET_KEYS.hint, lang, HINT)}
           <span className={styles.hintCount}>{MAX_HINTS - hintsUsed}</span>
         </button>
 
+        {/* Standalone (인사동 / 오산 / 화성 — no game menu behind it), 결과 보기 waits
+            for the photo: pressed earlier it ended the round as 'skipped' and
+            asked for a hand-over that cannot happen while the photo is still
+            generating, so the board simply froze with nothing on screen. It
+            goes live the moment the photo lands. In the hub it stays live —
+            there it returns to the menu (finishFromSpotDiff). */}
         <button
           type="button"
           className={`${styles.actionBtn} ${styles.skipBtn}`}
           onClick={() => finish('skipped')}
+          disabled={!onExit && !aiReady}
         >
-          {pick(SKIP, lang)}
+          {sheetFirst(SHEET_KEYS.skip, lang, SKIP)}
         </button>
       </div>
 
@@ -870,18 +906,18 @@ export function JejuSpotDiffGame({
             {outcome !== 'waiting' && (
               <>
                 <p className={styles.overlayTitle}>
-                  {outcome === 'won' ? pick(WON, lang) : pick(LOST, lang)}
+                  {outcome === 'won' ? sheetFirst(SHEET_KEYS.won, lang, WON) : sheetFirst(SHEET_KEYS.lost, lang, LOST)}
                 </p>
                 <p className={styles.overlayScore}>
                   <span className={styles.overlayScoreNum}>{found.size}</span>
-                  {pick(SCORE, lang)}
+                  {sheetFirst(SHEET_KEYS.score, lang, SCORE)}
                 </p>
               </>
             )}
 
             <p className={styles.overlayNote}>
               {aiReady
-                ? pick(READY, lang)
+                ? sheetFirst(SHEET_KEYS.ready, lang, READY)
                 : outcome === 'waiting'
                   ? pick(WRAPPING_UP, lang)
                   : pick(STILL_MAKING, lang)}
@@ -897,7 +933,7 @@ export function JejuSpotDiffGame({
                     className={`${styles.actionBtn} ${styles.hintBtn}`}
                     onClick={handOver}
                   >
-                    {pick(SEE_PHOTO, lang)}
+                    {sheetFirst(SHEET_KEYS.seePhoto, lang, SEE_PHOTO)}
                   </button>
                 )}
                 <button
@@ -905,7 +941,7 @@ export function JejuSpotDiffGame({
                   className={`${styles.actionBtn} ${aiReady ? styles.skipBtn : styles.hintBtn}`}
                   onClick={playAgain}
                 >
-                  {pick(PLAY_AGAIN, lang)}
+                  {sheetFirst(SHEET_KEYS.playAgain, lang, PLAY_AGAIN)}
                 </button>
                 <button
                   type="button"
@@ -919,7 +955,7 @@ export function JejuSpotDiffGame({
                     else setOutcome('waiting');
                   }}
                 >
-                  {onExit ? pick(OTHER_GAMES, lang) : pick(JUST_WAIT, lang)}
+                  {onExit ? sheetFirst(SHEET_KEYS.otherGames, lang, OTHER_GAMES) : pick(JUST_WAIT, lang)}
                 </button>
               </div>
             )}

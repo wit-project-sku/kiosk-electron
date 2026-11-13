@@ -14,6 +14,7 @@ import { PhotoSessionRepository } from './database/repositories/PhotoSessionRepo
 import { FootfallRepository } from './database/repositories/FootfallRepository';
 import { HeightRepository } from './database/repositories/HeightRepository';
 import { TranslationRepository } from './database/repositories/TranslationRepository';
+import { PhotoArchiveRepository } from './database/repositories/PhotoArchiveRepository';
 import { ImageService } from './services/ImageService';
 import { SettingsService } from './services/SettingsService';
 import { DisplayService } from './services/DisplayService';
@@ -41,6 +42,7 @@ import { SailingService } from './services/SailingService';
 import { ExchangeService } from './services/ExchangeService';
 import { SubtitleService } from './services/SubtitleService';
 import { EventsService } from './services/EventsService';
+import { TrafficService } from './services/TrafficService';
 import { SyncService } from './services/sync/SyncService';
 import { CameraService } from './services/camera/CameraService';
 import { CaptureService } from './services/camera/CaptureService';
@@ -49,13 +51,22 @@ import { GoogleDriveService } from './services/drive/GoogleDriveService';
 import { PhotoGenerationService } from './services/photo/PhotoGenerationService';
 import { ImageHostService } from './services/photo/ImageHostService';
 import { PhotoWorkflowService } from './services/photo/PhotoWorkflowService';
+import { AutoShotService } from './services/photo/AutoShotService';
+import { PhotoArchiveService } from './services/photoArchive/PhotoArchiveService';
+import type { ShotLedger } from './services/shotLedger/ShotLedger';
+import { SqliteShotLedger } from './services/shotLedger/SqliteShotLedger';
 import { MotionGameService } from './services/motion/MotionGameService';
 import { FootfallService } from './services/footfall/FootfallService';
 import { FootfallUploader } from './services/footfall/FootfallUploader';
 import { HeightService } from './services/height/HeightService';
 import { ZedSidecarManager } from './core/ZedSidecarManager';
+import { appPaths } from './core/paths';
+import { createLogger } from './core/logger';
 import { UpdateService } from './updater/UpdateService';
 import { UpdateCommandService } from './updater/UpdateCommandService';
+import { HealthReporter } from './core/HealthReporter';
+
+const log = createLogger('container');
 
 export interface AppContainer {
   database: Database;
@@ -75,6 +86,8 @@ export interface AppContainer {
   drive: GoogleDriveService;
   photoGeneration: PhotoGenerationService;
   photoWorkflow: PhotoWorkflowService;
+  /** 사진 보관 — copies the photo folder (original + composite) to the server for Google Drive. */
+  photoArchive: PhotoArchiveService;
   /** 제주 모션 게임 — which camera game Monitor 2 is running. */
   motionGame: MotionGameService;
   translations: TranslationService;
@@ -97,10 +110,15 @@ export interface AppContainer {
   insaCourse: InsaCourseService;
   stats: StatsService;
   events: EventsService;
+  /** 화성휴게소 도로교통상황 — live, last good value kept. */
+  traffic: TrafficService;
   updater: UpdateService;
   updateCommands: UpdateCommandService;
+  health: HealthReporter;
   /** 유동인구 — anonymous passer-by counting (camera pipeline lives in the renderer). */
   footfall: FootfallService;
+  /** 자동 촬영 — the daily minimum at venues that have one. */
+  autoShot: AutoShotService;
   /** Nightly 21:30 push of the day's 유동인구 counts. */
   footfallUploader: FootfallUploader;
   /** 키 측정 — anonymous ZED height analytics, 제주 only. Inert everywhere else. */
@@ -143,13 +161,23 @@ export function createContainer(): AppContainer {
   // the kiosk so it can stamp `kioskId` on the request itself.
   const jejuCourse = new JejuCourseService(kiosk);
   const insaCourse = new InsaCourseService(kiosk);
-  const stats = new StatsService(kiosk, failedRequests);
+  // 촬영 장부 lives next to main.log (shot-ledger.db + shot-ledger.txt). If the
+  // file cannot be opened the service keeps rows in memory and also puts every
+  // unsent shot in the old failed-request queue, which is on disk.
+  let shotLedger: ShotLedger | undefined;
+  try {
+    shotLedger = new SqliteShotLedger(appPaths.logs);
+  } catch (error) {
+    log.error('Shot ledger unavailable; shots fall back to the failed-request queue', error);
+  }
+  const stats = new StatsService(kiosk, failedRequests, { ledger: shotLedger });
   const weather = new WeatherService(cache, kiosk);
   const flights = new FlightService(cache, kiosk);
   const sailings = new SailingService(cache, kiosk);
   const exchange = new ExchangeService(cache);
   const subtitles = new SubtitleService(cache, kiosk);
   const events = new EventsService();
+  const traffic = new TrafficService();
 
   const display = new DisplayService();
   const camera = new CameraService();
@@ -166,14 +194,25 @@ export function createContainer(): AppContainer {
     analytics,
     imageHost,
     stats,
+    kiosk,
   );
   const photoWorkflow = new PhotoWorkflowService(display, camera);
+  // 사진 보관. Reads the photo folder CaptureService writes to — it never hooks
+  // the capture flow itself, so nothing above needs to know it exists.
+  const photoArchive = new PhotoArchiveService({
+    store: new PhotoArchiveRepository(database),
+    // The machine's own id, not the preview site's: the W200 test rig must stay
+    // 200 (excluded by the server) instead of archiving as the venue it previews.
+    kioskNum: () => kiosk.identityNum(),
+    photoDir: () => appPaths.generated,
+  });
 
   // 유동인구. The service decides WHEN counting may run, and it decides it by
   // watching the photo workflow and the customer display — the two things that
   // open the camera. Subscribing here rather than editing those services keeps
   // the capture pipeline unaware that anything else wants the device.
   const footfall = new FootfallService(footfallRepo, kiosk, camera);
+  const autoShot = new AutoShotService(kiosk, stats, photoGeneration, photoWorkflow);
   photoWorkflow.subscribe((state) => footfall.onPhotoWorkflowChanged(state));
   display.subscribe((state) => footfall.onDisplayStateChanged(state));
   const footfallUploader = new FootfallUploader(footfallRepo, kiosk, footfall);
@@ -191,13 +230,16 @@ export function createContainer(): AppContainer {
   // physically separate device that the photo path never opens.
   const height = new HeightService(new ZedSidecarManager(), heightRepo, kiosk);
   photoWorkflow.subscribe((state) => height.onPhotoWorkflowChanged(state));
+  // `/shots/v2` reports each capture's measurement with its shot.
+  stats.setMeasurementSource(() => height.claimShotMeasurement());
 
   // The remote "update now" trigger drives the SAME updater instance as the
   // weekly scheduler, so both paths share one state machine (no double download,
   // no competing installs). Hence the updater is built here rather than inline
   // in the container literal below.
   const updater = new UpdateService();
-  const updateCommands = new UpdateCommandService(updater, kiosk);
+  const health = new HealthReporter(kiosk);
+  const updateCommands = new UpdateCommandService(updater, kiosk, health);
 
   const sync = new SyncService(syncRepo, analyticsRepo, failedRequests, cache, photoGeneration);
   sync.setTransport(SyncService.createTransport(cache, failedRequests, kiosk, translations));
@@ -222,6 +264,7 @@ export function createContainer(): AppContainer {
     drive,
     photoGeneration,
     photoWorkflow,
+    photoArchive,
     motionGame,
     translations,
     weather,
@@ -240,9 +283,12 @@ export function createContainer(): AppContainer {
     insaCourse,
     stats,
     events,
+    traffic,
     updater,
     updateCommands,
+    health,
     footfall,
+    autoShot,
     footfallUploader,
     height,
   };

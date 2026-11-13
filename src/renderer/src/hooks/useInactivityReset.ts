@@ -10,7 +10,7 @@ export interface UseInactivityResetOptions {
 }
 
 /** Interaction events that count as "the visitor is still using the kiosk". */
-const ACTIVITY_EVENTS: (keyof WindowEventMap)[] = [
+export const ACTIVITY_EVENTS: (keyof WindowEventMap)[] = [
   'pointerdown',
   'pointermove',
   'keydown',

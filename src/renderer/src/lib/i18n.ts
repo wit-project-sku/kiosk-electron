@@ -1,5 +1,6 @@
 import type { SupportedLanguage } from '@shared/types/kiosk';
 import { useLanguageStore } from '@renderer/store/languageStore';
+import { useKioskStore } from '@renderer/store/kioskStore';
 import { hasLoc, t, tExact } from '@renderer/lib/loc';
 import { ui, type UiTextKey } from '@renderer/lib/uiText';
 
@@ -12,6 +13,10 @@ export function pick<T>(map: Partial<Record<Lang, T>>, lang: Lang): T {
 
 /** Hook: current UI language. */
 export function useLang(): Lang {
+  // Also subscribe to the synced translation table: `t()` / `sheetText()` read it
+  // with getState(), so without this a sheet sync that lands after first paint
+  // would stay invisible until each screen happened to re-render.
+  useKioskStore((s) => s.translations);
   return useLanguageStore((s) => s.currentLanguage);
 }
 
@@ -40,7 +45,7 @@ const CATEGORY_LABELS: Record<string, Partial<Record<Lang, string>>> = {
   잡화: { en: 'Goods', ja: '雑貨', zh: '杂货', vi: 'Tạp hóa', th: 'สินค้าเบ็ดเตล็ด', ru: 'Разные товары', id: 'Aneka barang' },
   '표구·액자': { en: 'Framing', ja: '額装', zh: '装裱·画框', vi: 'Đóng khung', th: 'กรอบรูป', ru: 'Багетные работы', id: 'Bingkai' },
   기념품: { en: 'Souvenirs', ja: 'お土産', zh: '纪念品', vi: 'Quà lưu niệm', th: 'ของที่ระลึก', ru: 'Сувениры', id: 'Suvenir' },
-  // ── 제주 W006 (Figma 6212:55184 뭐먹지 / 6212:55233 뭐사지) ──
+  // ── 제주 W008 (Figma 6212:55184 뭐먹지 / 6212:55233 뭐사지) ──
   // Authored here, not synced: there is no AICategory_Jeju / Localization_Jeju
   // sheet yet, and an unmapped chip label silently renders Korean to every
   // non-Korean visitor. 한식 / 한정식 / 카페 / 기념품 / 특산품 / 먹거리 /
@@ -158,7 +163,7 @@ const SCREEN_TITLES: Record<string, Partial<Record<Lang, string>>> = {
   '인사 미술관': { en: 'Insa Gallery', ja: '仁寺美術館', zh: '仁寺美术馆', vi: 'Bảo tàng Insa', th: 'หอศิลป์อินซา', ru: 'Галерея Инса', id: 'Galeri Insa' },
   "'인사' 뭐먹지": { en: 'What to Eat', ja: '何を食べる', zh: '吃什么', vi: 'Ăn gì', th: 'กินอะไรดี', ru: 'Что поесть', id: 'Mau makan apa' },
   "'인사' 뭐사지": { en: 'What to Buy', ja: '何を買う', zh: '买什么', vi: 'Mua gì', th: 'ซื้ออะไรดี', ru: 'Что купить', id: 'Mau beli apa' },
-  // 제주 W006 — the frames spell the title with the quotes and question mark
+  // 제주 W008 — the frames spell the title with the quotes and question mark
   // (6212:55184 / 6212:55233), so those are the ids the screens pass. Kept OUT
   // of TITLE_KEYS on purpose: Jeju has no Localization_Jeju sheet yet and falls
   // back to the INSADONG bundled table, so MainButton_ToBuy would render
@@ -166,18 +171,21 @@ const SCREEN_TITLES: Record<string, Partial<Record<Lang, string>>> = {
   // 여기는 제주도 is kept out of TITLE_KEYS for the same reason: MainButton_Here
   // resolves to Insadong's own "여기는 인사동" through the fallback table.
   '여기는 제주도': { en: 'This is Jeju', ja: 'ここは済州島', zh: '这里是济州岛', vi: 'Đây là Jeju', th: 'ที่นี่คือเชจู', ru: 'Это Чеджудо', id: 'Ini Jeju' },
-  // W008's 제주세계유산 page header (JejuHeritage, Figma 6908:51916). No sheet
+  // W010's 제주세계유산 page header (JejuHeritage, Figma 6908:51916). No sheet
   // row exists for it yet, so the hand map is what localizes the pill.
   '제주 유네스코 유산': { en: 'Jeju UNESCO Heritage', ja: '済州ユネスコ遺産', zh: '济州联合国教科文组织遗产', vi: 'Di sản UNESCO Jeju', th: 'มรดกยูเนสโกเชจู', ru: 'Наследие ЮНЕСКО Чеджу', id: 'Warisan UNESCO Jeju' },
-  // W008's 거문오름 예약 page header (JejuGeomun, Figma 6935:69555) — same deal.
+  // W010's 거문오름 예약 page header (JejuGeomun, Figma 6935:69555) — same deal.
   '거문오름 예약': { en: 'Geomunoreum Reservation', ja: 'コムンオルム予約', zh: '拒文岳预约', vi: 'Đặt chỗ Geomunoreum', th: 'จองคอมุนออรึม', ru: 'Бронирование Комунорым', id: 'Reservasi Geomunoreum' },
   // Curly quotes, as the frame writes it (6219:98770) — the straight-quote form
   // is Insadong's own '도와줘 ‘인사’' above. Hardcoded display id is now 제주
   // (jejuMascot); keep the old 하영 key so any stale caller still localizes.
   '도와줘 ‘제주’': { en: 'Help', ja: 'ヘルプ', zh: '帮助', vi: 'Trợ giúp', th: 'ช่วยเหลือ', ru: 'Помощь', id: 'Bantuan' },
   '도와줘 ‘하영’': { en: 'Help', ja: 'ヘルプ', zh: '帮助', vi: 'Trợ giúp', th: 'ช่วยเหลือ', ru: 'Помощь', id: 'Bantuan' },
-  // W008 세계자연유산본부's mascot spelling of the same page (see jejuMascot).
+  // W010 세계자연유산본부's mascot spelling of the same page (see jejuMascot).
   '도와줘 ‘유산’': { en: 'Help', ja: 'ヘルプ', zh: '帮助', vi: 'Trợ giúp', th: 'ช่วยเหลือ', ru: 'Помощь', id: 'Bantuan' },
+  // W008's 도와줘 page (jejuHelpTitle). Same copy as the sheet's
+  // MainButton_Airport_Guide, which TITLE_KEYS reads first.
+  '제주공항 안내': { en: 'Jeju Airport Guide', ja: '済州空港案内', zh: '济州机场指南', vi: 'Hướng dẫn sân bay Jeju', th: 'แนะนำสนามบินเชจู', ru: 'Информация об аэропорте Чеджу', id: 'Panduan Bandara Jeju' },
   "'제주' 뭐먹지?": { en: 'What to Eat', ja: '何を食べる', zh: '吃什么', vi: 'Ăn gì', th: 'กินอะไรดี', ru: 'Что поесть', id: 'Mau makan apa' },
   "'제주' 뭐사지?": { en: 'What to Buy', ja: '何を買う', zh: '买什么', vi: 'Mua gì', th: 'ซื้ออะไรดี', ru: 'Что купить', id: 'Mau beli apa' },
   숙박안내: { en: 'Lodging', ja: '宿泊案内', zh: '住宿指南', vi: 'Lưu trú', th: 'ที่พัก', ru: 'Проживание', id: 'Penginapan' },
@@ -228,7 +236,11 @@ const TITLE_KEYS: Record<string, TitleKeySpec> = {
   고궁안내: { title: 'MainButton_Palace', sub: 'SubHeader_Palace' },
   언어선택: { title: 'Language_Select_Language', sub: 'Language_Content' },
   '교통 안내': { title: 'MainButton_Transport', sub: ['SubHeader_Transport', 'Transport_Subtitle'] },
-  위드마켓: { title: 'MainButton_Goods' },
+  // Localization_Osaek names this tile MainButton_WITH_Market; 제주 MainButton_Goods.
+  위드마켓: { title: ['MainButton_WITH_Market', 'MainButton_Goods'] },
+  // The photo flow's header id (photoChrome `photoTitle`). Insa, 오색, 화성 and
+  // 제주 all carry Photo_HanbokTry; KADA passes 'KADA' and never reaches this.
+  'AR 한복체험': { title: 'Photo_HanbokTry' },
   화장실: { title: 'MainButton_WC', sub: 'SubHeader_ToHelp' },
   // ── Aliases for the ids the 준비중 placeholder scaffolds pass ────────────
   // They spell the same screens differently from the real headers — straight
@@ -252,12 +264,16 @@ const TITLE_KEYS: Record<string, TitleKeySpec> = {
   교통안내: { title: 'MainButton_Transport', sub: ['SubHeader_Transport', 'Transport_Subtitle'] },
   '언어 선택': { title: 'Language_Select_Language', sub: 'Language_Content' },
   '화장실 안내': { title: 'MainButton_WC', sub: 'SubHeader_ToHelp' },
-  '여기는 오색시장': { title: 'MainButton_Here', sub: 'SubHeader_Attraction' },
-  전국휴게소: { title: 'MainButton_ServiceArea', sub: 'SubHeader_ServiceArea' },
+  // Localization_Osaek's SubHeader_Attraction is a placeholder ("* 관광명소 서브헤더");
+  // the page's own description row is Here_IsOsaek_Subtitle.
+  '여기는 오색시장': { title: 'MainButton_Here', sub: ['Here_IsOsaek_Subtitle', 'SubHeader_Attraction'] },
+  전국휴게소: { title: ['MainButton_Restarea', 'MainButton_ServiceArea'], sub: ['Restarea_Subtitle', 'SubHeader_ServiceArea'] },
   // 이벤트 screens: each location's sheet carries its own MainButton_Event /
   // SubHeader_Event copy, so all three ids resolve through the same pair.
   '인사동 이벤트': { title: 'MainButton_Event', sub: ['SubHeader_Event', 'Event_SubTitle'] },
-  '오산시 이벤트': { title: 'MainButton_Event', sub: 'SubHeader_Event' },
+  // Localization_Osaek titles this page with its own rows (Event_Title /
+  // Event_SubTitle) and has no SubHeader_Event.
+  '오산시 이벤트': { title: ['Event_Title', 'MainButton_Event'], sub: ['SubHeader_Event', 'Event_SubTitle'] },
   // ── W004 오산 오색시장 header titles + page descriptions (Localization_Osaek) ──
   "도와줘 '정이'": { title: 'MainButton_ToHelp', sub: 'SubHeader_ToHelp' },
   "'정이' 뭐먹지": { title: 'MainButton_ToEat', sub: 'SubHeader_ToEat' },
@@ -270,21 +286,26 @@ const TITLE_KEYS: Record<string, TitleKeySpec> = {
   // ── W005 화성휴게소 header titles + page descriptions (Localization_Hwaseong) ──
   // The Korean ids are the literal strings the Hwaseong screens pass to
   // HwaseongHeader; keys resolve against the Hwaseong bundled/synced table.
-  "전국도로교통상황": { title: 'MainButton_TrafficInfo', sub: 'SubHeader_TrafficInfo' },
-  "전국 휴게소": { title: 'MainButton_ServiceArea', sub: 'SubHeader_ServiceArea' },
-  "화성시 이벤트": { title: 'MainButton_Event', sub: 'SubHeader_Event' },
+  // 2026-10-19 the 화성 sheet was rebuilt: page rows moved to <Page>_Title /
+  // <Page>_Subtitle (Restarea_*, TrafficInfo_*, Here_map); the old keys stay
+  // second so an older synced table still resolves. The page titles
+  // (TrafficInfo_Title, Restarea_Title, Header_Event) lead, the home-tile
+  // labels (MainButton_*) follow.
+  "전국도로교통상황": { title: ['TrafficInfo_Title', 'MainButton_TrafficInfo'], sub: ['TrafficInfo_Subtitle', 'SubHeader_TrafficInfo'] },
+  "전국 휴게소": { title: ['Restarea_Title', 'MainButton_Restarea', 'MainButton_ServiceArea'], sub: ['Restarea_Subtitle', 'SubHeader_ServiceArea'] },
+  "화성시 이벤트": { title: ['Header_Event', 'MainButton_Event'], sub: 'SubHeader_Event' },
   "'휴' 뭐먹지": { title: 'MainButton_ToEat', sub: 'SubHeader_ToEat' },
   "'휴' 뭐사지": { title: 'MainButton_ToBuy', sub: 'SubHeader_ToBuy' },
   "전국시장": { title: 'MainButton_TraditionalMarket', sub: 'SubHeader_TraditionalMarket' },
   "TAX-FREE": { title: 'MainButton_TaxFree', sub: 'SubHeader_TaxFree' },
-  "화성휴게소": { title: 'MainButton_Here' },
+  "화성휴게소": { title: 'MainButton_Here', sub: 'Here_IsHwaseong_Subtitle' },
   "안녕 '휴'": { title: 'MainButton_Greeting' },
   "도와줘 '휴'": { title: 'MainButton_ToHelp', sub: 'SubHeader_ToHelp' },
-  "화성휴게소 지도": { title: 'MainButton_SAMap', sub: 'SubHeader_SAMap' },
+  "화성휴게소 지도": { title: ['Here_map', 'MainButton_SAMap'], sub: 'SubHeader_SAMap' },
   // 화성 spells this MainButton_MarketPaper, 제주 MainButton_LocalCurrency; only
   // 제주 carries a subtitle row for it.
-  "지역화폐": { title: ['MainButton_MarketPaper', 'MainButton_LocalCurrency'], sub: 'LocalCurrency_SubHeader' },
-  // ── W006 제주공항 header titles + page descriptions (Localization_Jeju) ──
+  "지역화폐": { title: ['MainButton_MarketPaper', 'MainButton_LocalCurrency'], sub: ['LocalCurrency_SubHeader', 'MarketPaper_Subtitle'] },
+  // ── W008 제주공항 header titles + page descriptions (Localization_Jeju) ──
   // The ids are the literal strings each 제주 screen hands to JejuPageFrame, so a
   // renamed header must be renamed here too or it silently falls back to Korean.
   // 지역화폐/환율/언어선택/숙박안내/TAX-FREE/상세 already resolve through the shared
@@ -326,15 +347,23 @@ const TITLE_KEYS: Record<string, TitleKeySpec> = {
   // Stale 하영 ids — kept so CMS analytics labels / older callers still resolve.
   "안녕 '하영'": { title: 'MainButton_Greeting', sub: 'Greeting_Introduce' },
   "도와줘 ‘하영’": { title: 'MainButton_ToHelp', sub: 'Help_Subtitle' },
-  // W008 세계자연유산본부 passes the 유산 spellings (jejuMascot) — the KEYS are the
+  // W010 세계자연유산본부 passes the 유산 spellings (jejuMascot) — the KEYS are the
   // same because the sheet's mascot tie-break already answers per-layout, so the
   // header shows the 유산 row on a JEJU_HERITAGE machine and 하영's elsewhere.
   "안녕 '유산'": { title: 'MainButton_Greeting', sub: 'Greeting_Introduce' },
   "도와줘 ‘유산’": { title: 'MainButton_ToHelp', sub: 'Help_Subtitle' },
+  // W008's 도와줘 page, retitled with its home tile. Same page, same description.
+  '제주공항 안내': { title: 'MainButton_Airport_Guide', sub: 'Help_Subtitle' },
+  // W009's 도와줘 page, retitled with its home card. Same page, same description.
+  '여객터미널 안내': { title: 'MainButton_Terminal_Guide', sub: 'Help_Subtitle' },
   "제주도 이벤트": { title: 'MainButton_Event', sub: 'SubHeader_Event' },
   "렌트카": { title: 'MainButton_RentCar', sub: 'RentCar_Subtitle' },
-  탐나오: { title: 'MainButton_Tamnao', sub: 'Tamnao_Subtitle' },
-  // W006 공항 board keeps MainButton_Airplane_Schedule. W007/W008 ferry board
+  // 제주공항's split pages (2026-10-29): each site alone, titled with its own
+  // tab row's name. MainButton_Tamnao (탐나오·제주큐랑) is the fallback only.
+  // 제주큐랑's description has no sheet row — JejuKiosk passes uiText's.
+  탐나오: { title: ['Tamnao_Tab', 'MainButton_Tamnao'], sub: 'Tamnao_Subtitle' },
+  제주큐랑: { title: 'JejuQurang_Tab' },
+  // W008 공항 board keeps MainButton_Airplane_Schedule. W009/W010 ferry board
   // uses a separate header id (see CRUISE_TITLE) → OP_Schedule_Title. Subtitle
   // stays OP_Schedule_Subtitle on both.
   "운항정보": {
@@ -372,6 +401,18 @@ const TITLE_KEYS: Record<string, TitleKeySpec> = {
  * sheet carries the other seven.
  */
 const BUTTON_OVERRIDES: Record<string, Partial<Record<Lang, string>>> = {
+  // W009's 도와줘 page (jejuHelpTitle). Any cell the sheet fills wins over this,
+  // per language; a row with only Korean keeps these for the other seven.
+  MainButton_Terminal_Guide: {
+    ko: '여객터미널 안내',
+    en: 'Passenger Terminal Guide',
+    ja: '旅客ターミナル案内',
+    zh: '客运码头指南',
+    vi: 'Hướng dẫn bến tàu khách',
+    th: 'คู่มือท่าเรือโดยสาร',
+    ru: 'Гид по пассажирскому терминалу',
+    id: 'Panduan Terminal Penumpang',
+  },
   MainButton_LocalCurrency: {
     ko: '지역화폐',
     en: 'Local Currency',
@@ -381,6 +422,31 @@ const BUTTON_OVERRIDES: Record<string, Partial<Record<Lang, string>>> = {
     th: 'สกุลเงินท้องถิ่น',
     ru: 'Местная валюта',
     id: 'Mata Uang Daerah',
+  },
+  // 오산's 전국시장 header: Localization_Osaek has no MainButton_TraditionalMarket
+  // row at all, so the page title printed 전국시장 in every language. (화성's
+  // sheet has the row, and its own cells still win over these.)
+  MainButton_TraditionalMarket: {
+    ko: '전국시장',
+    en: 'Traditional Markets',
+    ja: '全国の伝統市場',
+    zh: '全国传统市场',
+    vi: 'Chợ truyền thống toàn quốc',
+    th: 'ตลาดดั้งเดิมทั่วประเทศ',
+    ru: 'Рынки страны',
+    id: 'Pasar Tradisional Nasional',
+  },
+  // 화성휴게소 지도: Localization_Hwaseong leaves the en cell empty, so English
+  // fell back to Korean. Only an empty cell reaches this.
+  MainButton_SAMap: {
+    ko: '화성휴게소 지도',
+    en: 'Hwaseong S/A Map',
+    ja: '華城休憩所マップ',
+    zh: '华城服务区地图',
+    vi: 'Bản đồ trạm dừng Hwaseong',
+    th: 'แผนที่จุดพักรถฮวาซอง',
+    ru: 'Карта зоны отдыха Хвасон',
+    id: 'Peta Rest Area Hwaseong',
   },
 };
 
@@ -408,7 +474,9 @@ export function screenTitle(id: string, lang: Lang): string {
   if (id === 'TAX-FREE' || id === 'TAX - FREE') return id;
   const k = TITLE_KEYS[id]?.title;
   for (const candidate of keyList(k)) {
-    const resolved = buttonText(candidate, lang);
+    // A leading/trailing "·" is a leftover of a split pair title (zh
+    // JejuQurang_Tab reads "·济州岛古兰") — never part of a page title.
+    const resolved = buttonText(candidate, lang)?.replace(/^\s*[·・]\s*|\s*[·・]\s*$/g, '');
     if (resolved) return resolved;
   }
   return SCREEN_TITLES[id]?.[lang] ?? id;

@@ -1,4 +1,6 @@
+import { randomUUID } from 'node:crypto';
 import { createLogger } from '@main/core/logger';
+import { languageStore } from '@main/core/LanguageStore';
 import type { PhotoSession } from '@shared/types/photo';
 import type { ShotType } from '@shared/types/data';
 import type { AnalyticsService } from '@main/services/AnalyticsService';
@@ -7,6 +9,8 @@ import type { PhotoSessionRepository } from '@main/database/repositories/PhotoSe
 import type { CaptureService } from '@main/services/camera/CaptureService';
 import type { AIService } from '@main/services/ai/AIService';
 import type { GoogleDriveService } from '@main/services/drive/GoogleDriveService';
+import type { KioskService } from '@main/services/KioskService';
+import { arFailureOf } from '@main/services/ai/arFailure';
 import type { ImageHostService } from './ImageHostService';
 
 const log = createLogger('photo-generation');
@@ -33,6 +37,11 @@ export interface GeneratePhotoInput {
   styleKey: string;
   /** 배경 테마 choice (제주 step ②), or null when none was picked. */
   backgroundId?: number | null;
+  /**
+   * 자동 촬영 (AutoShotService): nobody is waiting for the result, so there is
+   * no phone pickup upload, and the shot record says it was the kiosk's own.
+   */
+  auto?: boolean;
 }
 
 export interface GeneratePhotoResult {
@@ -40,6 +49,9 @@ export interface GeneratePhotoResult {
   resultFileName: string;
   /** Public phone-openable URL of the result, when the AI returns one. */
   resultUrl: string | null;
+  /** Phone pickup page for the QR (the upload's data.shareUrl); null → the
+   *  QR falls back to withphoto.vercel.app/?imageUrl=. */
+  resultShareUrl: string | null;
 }
 
 type ProgressCallback = (message: string) => void;
@@ -57,21 +69,41 @@ export class PhotoGenerationService {
     private readonly analytics: AnalyticsService,
     private readonly imageHost: ImageHostService,
     private readonly stats: StatsService,
+    private readonly kiosk: KioskService,
   ) {}
 
   async generate(input: GeneratePhotoInput, onProgress?: ProgressCallback): Promise<GeneratePhotoResult> {
-    const { sessionId, dataUrl, clothingKey, styleKey, backgroundId = null } = input;
+    const { sessionId, dataUrl, clothingKey, styleKey, backgroundId = null, auto = false } = input;
+    let capturePath: string | null = null;
+    // One id for the shot report AND the phone upload, so the pickup page can
+    // file the visitor's 국적 against this shot (photo_shot_shooter).
+    const eventId = randomUUID();
+    // The screen language at the moment of capture — the shot stats split
+    // visitors into 언어권 by it (read now, not when the AI finishes ~60 s later).
+    const language = languageStore.get();
 
     try {
       this.analytics.track({
         name: 'ai_request_started',
-        payload: { sessionId, clothingKey, styleKey, backgroundId },
+        payload: { sessionId, clothingKey, styleKey, backgroundId, auto },
       });
 
       onProgress?.('Preparing your photo…');
       // The original capture (the token image) is kept permanently in the same
       // folder as the result, paired by sessionId.
       const capture = await this.capture.saveCapture(dataUrl, sessionId);
+      capturePath = capture.filePath;
+      // The original exists: put the shot in the ledger now, so it is still
+      // reported if the app quits before the composite finishes.
+      this.stats.openShot({
+        eventId,
+        outfitCode: outfitCodeOf(clothingKey),
+        shotType: shotTypeOf(styleKey),
+        photoPath: capturePath,
+        language,
+        backgroundId,
+        autoShot: auto,
+      });
 
       onProgress?.('AI is creating your image…');
       const { buffer: resultBuffer, publicUrl } = await this.ai.generate({
@@ -88,7 +120,12 @@ export class PhotoGenerationService {
       // The AR API returns only image bytes, so upload to a public host to get a
       // phone-openable URL for the save QR (falls back to the API URL if it ever
       // provides one).
-      const resultUrl = publicUrl ?? (await this.imageHost.upload(resultBuffer, fileName));
+      const uploaded =
+        publicUrl || auto
+          ? null
+          : await this.imageHost.upload(resultBuffer, fileName, { eventId, region: this.kiosk.region() });
+      const resultUrl = publicUrl ?? uploaded?.imageUrl ?? null;
+      const resultShareUrl = uploaded?.shareUrl ?? null;
 
       const session = this.sessions.create({
         sessionId,
@@ -105,9 +142,14 @@ export class PhotoGenerationService {
       // Report the successful capture to the witteria shots API (fire-and-forget,
       // offline-queued + idempotent; never blocks the result).
       void this.stats.recordShot({
+        eventId,
         isSuccess: true,
         outfitCode: outfitCodeOf(clothingKey),
         shotType: shotTypeOf(styleKey),
+        photoPath: capturePath,
+        language,
+        backgroundId,
+        autoShot: auto,
       });
 
       void this.uploadToDrive(session);
@@ -119,8 +161,9 @@ export class PhotoGenerationService {
         // Phone QR: the public URL (from the host upload, since the AR API only
         // returns bytes). null means the upload failed → QR falls back to local.
         resultUrl: resultUrl ?? '(none — public upload failed)',
+        resultShareUrl,
       });
-      return { session, resultFileName: fileName, resultUrl };
+      return { session, resultFileName: fileName, resultUrl, resultShareUrl };
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Generation failed';
       this.analytics.track({
@@ -131,10 +174,18 @@ export class PhotoGenerationService {
       // a photo — the original camera capture is saved above (before ai.generate),
       // so we have a real image. Reported as a failed shot (isSuccess:false) so the
       // total counts the picture while isSuccess still reflects the AI outcome.
+      // Why the AR call failed (status + message) rides along so the server can alert
+      // the kiosk-alert chat; null when the failure was not the AR call itself.
       void this.stats.recordShot({
+        eventId,
         isSuccess: false,
         outfitCode: outfitCodeOf(clothingKey),
         shotType: shotTypeOf(styleKey),
+        photoPath: capturePath,
+        language,
+        backgroundId,
+        arFailure: arFailureOf(error),
+        autoShot: auto,
       });
       throw error;
     }

@@ -50,6 +50,21 @@ export function useSpotDiffRounds(sessionId: string | null): SpotDiffRound[] {
     }
 
     let cancelled = false;
+    /*
+     * Measured aspects, by round id — the source of truth once an image has
+     * decoded. The API sends no dimensions, so every round arrives with the
+     * service's 4/3 guess. Publishing the list as rounds arrive used to spread
+     * the ORIGINAL objects (`[...picked]`) every time, so a round whose image had
+     * already been measured got its guess back the moment the next round came
+     * in: the board sometimes showed tall puzzles in small 4/3 panels — and
+     * mapped taps through the wrong shape. Every publish now applies this map.
+     */
+    const measuredAspect = new Map<string, number>();
+    const withMeasured = (list: SpotDiffRound[]): SpotDiffRound[] =>
+      list.map((r) => {
+        const aspect = measuredAspect.get(r.id);
+        return aspect !== undefined && Math.abs(aspect - r.aspect) >= 0.001 ? { ...r, aspect } : r;
+      });
 
     /** Warm both images and correct the round's aspect from the real file. */
     const prepare = (round: SpotDiffRound): void => {
@@ -63,10 +78,11 @@ export function useSpotDiffRounds(sessionId: string | null): SpotDiffRound[] {
           if (!w || !h) return;
           measured = true;
           const aspect = w / h;
+          measuredAspect.set(round.id, aspect);
           // Guard the no-op: an unchanged aspect must not re-render the board
           // mid-game, and the generated placeholder already ships the exact one.
           if (Math.abs(aspect - round.aspect) < 0.001) return;
-          setRounds((prev) => prev.map((r) => (r.id === round.id ? { ...r, aspect } : r)));
+          setRounds((prev) => withMeasured(prev));
         };
         img.src = url;
       }
@@ -83,8 +99,9 @@ export function useSpotDiffRounds(sessionId: string | null): SpotDiffRound[] {
         // retrying would just spin.
         if (picked.some((r) => r.id === result.value.id)) continue;
         picked.push(result.value);
-        // Publish as they arrive so the first board is playable immediately.
-        setRounds([...picked]);
+        // Publish as they arrive so the first board is playable immediately —
+        // with every aspect measured so far (see measuredAspect).
+        setRounds(withMeasured(picked));
         prepare(result.value);
       }
     })();

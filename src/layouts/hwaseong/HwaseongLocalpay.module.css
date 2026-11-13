@@ -1,27 +1,58 @@
-/* 지역화폐 — 화성휴게소. Artboard 2160×3840px. NO scroll anywhere.
-   Layout matches exact Figma positions (4167:170102 / 4167:170053). */
+/*
+ * 지역화폐 — Figma 7918:130132 (희망화성지역화폐) and 7918:130079 (온누리상품권).
+ * Exact px on the 2160×3840 artboard. The base and 온누리 rules are 오산's
+ * (OsanLocalpay.module.css) in 화성 main 1 #005AB4 / main 2 #DAECFE; the
+ * 희망화성 cards follow them at the end.
+ */
 .root {
   position: absolute;
   inset: 0;
   width: 2160px;
   height: 3840px;
   overflow: hidden;
-  background: #fff;
-  font-family: 'Noto Sans KR', 'Noto Sans', sans-serif;
+  font-family: 'Pretendard', var(--kiosk-font, 'Noto Sans KR', sans-serif);
 }
 
-.bgBase { position: absolute; left: 0; top: 0; width: 2160px; height: 3840px; background: #fff; }
-.bgImage { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; pointer-events: none; }
-
-/* ── Tab bar ── Figma: left=427 top=664 (온누리 active screen) */
-.tabs {
+/* Tabs and cards share one scrolling area between the header (700) and the banner (3267). */
+.page {
   position: absolute;
-  top: 664px;
-  left: 427px;
-  width: 1360px;
+  /* + the extra lines of a translated ★ description (useHeaderPush). */
+  top: calc(700px + var(--header-push, 0px));
+  left: 0;
+  right: 0;
+  /* ♿: HwaseongKiosk moves the page down 146 while the promo counter-moves
+     back to 3267, so the column has to stop 146 higher too — it used to run on
+     under the promo and its last 146 could never be scrolled into view. */
+  bottom: calc(573px + var(--hwaseong-mode-push, 0px));
+  /* Room under the last card, so it never ends flush against the promo. */
+  padding-bottom: 60px;
+  box-sizing: border-box;
   display: flex;
+  flex-direction: column;
+  align-items: center;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+.page::-webkit-scrollbar {
+  width: 34px;
+}
+.page::-webkit-scrollbar-thumb {
+  background: #005ab4;
+  border-radius: 21.45px;
+}
+.page::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+/* ── Tabs — Figma: two 580×170 pills, gap 200, centred (top 700). ── */
+.tabs {
+  flex: none;
+  display: flex;
+  align-items: center;
   gap: 200px;
-  z-index: 5;
+  width: 1360px;
+  height: 170px;
 }
 
 .tab {
@@ -32,297 +63,336 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background: #fff;
-  border: 2.145px solid #e8e8e8;
+  padding: 0;
+  border: none;
   border-radius: 42.9px;
-  box-shadow: 0 21.45px 42.9px rgba(143, 147, 157, 0.1);
+  background: #ffffff;
+  font-family: 'Pretendard', var(--kiosk-font, sans-serif);
   font-weight: 500;
   font-size: 50px;
-  color: #999;
-  line-height: 1;
+  color: #999999;
   cursor: pointer;
   white-space: nowrap;
-  -webkit-tap-highlight-color: transparent;
-  overflow: hidden;
 }
 
-/* 온누리상품권 active: var(--kiosk-secondary) / var(--kiosk-primary) */
-.tabSelected0 {
-  background: var(--kiosk-secondary);
+.tabSelected {
+  background: #005ab4;
   font-weight: 700;
-  color: var(--kiosk-primary);
+  color: #ffffff;
 }
 
-/* 행복화성지역화폐 active: #e8f0f4 / #005cb1 */
-.tabSelected1 {
-  background: #e8f0f4;
-  font-weight: 700;
-  color: #005cb1;
-}
-
-/* ─────────────────────────────────────────────────────────────────────────────
-   TAB 0: 온누리상품권
-   Card: left=163 top=917 w=1820 h=2344 padding=py-100 px-40 gap=65
-   ───────────────────────────────────────────────────────────────────────────── */
-.card0 {
-  position: absolute;
-  top: 917px;
-  left: 163px;
-  width: 1820px;
-  height: 2344px;
-  box-sizing: border-box;
-  background: #fff;
-  border: 2.145px solid #e8e8e8;
-  border-radius: 45px;
-  filter: drop-shadow(0 21.453px 21.453px rgba(143, 147, 157, 0.1));
-  padding: 100px 40px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 65px;
-  overflow: hidden;
-}
-
-/* Big title */
-.bigTitle {
+/* Card text: Pretendard. Heading 70 navy Bold ("이란?" in black). */
+.heading {
   margin: 0;
-  font-weight: 800;
-  font-size: 100px;
-  color: #1a4d7e;
-  line-height: 1;
-  text-align: center;
-  flex: none;
-  white-space: nowrap;
-}
-
-/* ── Inner blocks (inside card0) ── */
-.block {
-  width: 1740px;
-  flex: none;
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
-}
-
-.blockWithGap {
-  width: 1740px;
-  flex: none;
-  display: flex;
-  flex-direction: column;
-  gap: 40px;
-}
-
-/* Section heading */
-.h {
-  margin: 0;
+  font-family: 'Pretendard', var(--kiosk-font, sans-serif);
   font-weight: 700;
-  font-size: 60px;
-  color: #1a4d7e;
+  font-size: 70px;
   line-height: 1;
+  color: #005ab4;
 }
 
-/* Body text */
+.headBlack {
+  color: #000000;
+}
+
+/* Body: Pretendard Regular 45 #2b2b2b, 130%. **…** segments are SemiBold. */
 .body {
   margin: 0;
+  font-family: 'Pretendard', var(--kiosk-font, sans-serif);
   font-weight: 400;
   font-size: 45px;
   color: #2b2b2b;
   line-height: 1.3;
+  word-break: keep-all;
 }
 
-.bodySemi { font-weight: 600; }
+.bodyBold {
+  font-weight: 600;
+}
 
-/* Note text */
+.bodyStrong {
+  font-weight: 700;
+}
+
 .note {
   margin: 0;
-  font-size: 32px;
+  font-family: 'Pretendard', var(--kiosk-font, sans-serif);
+  font-weight: 400;
+  font-size: 33px;
   color: rgba(43, 43, 43, 0.7);
   line-height: 1.3;
 }
-.note p { margin: 0; }
 
-/* Image containers inside card0 */
-.imgPaper {
-  width: 1740px;
-  height: 493px;
+/* ── 온누리상품권 — Figma 7878:42732: card A (top 944) and card B (top 1998) ── */
+.cardOnnuriTop,
+.cardOnnuriBottom {
+  position: relative;
   flex: none;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-}
-.imgPaper img {
-  width: 1321px;
-  height: 493px;
-  object-fit: contain;
-  display: block;
+  box-sizing: border-box;
+  width: 1820px;
+  background: #ffffff;
+  border-radius: 45px;
 }
 
-.imgDigital {
-  width: 1740px;
-  height: 492px;
-  flex: none;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-}
-.imgDigital img {
-  width: 1382px;
-  height: 492px;
-  object-fit: contain;
-  display: block;
+.cardOnnuriTop {
+  height: 1002px;
+  margin-top: 74px;
 }
 
-/* 사용처 row */
-.usageRow {
-  width: 1740px;
-  height: 196px;
-  flex: none;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
+.cardOnnuriBottom {
+  height: 1194px;
+  margin-top: 52px;
 }
-.usageText {
-  width: 1169px;
+
+.topText {
+  position: absolute;
+  left: 40px;
+  top: 50px;
+  width: 1740px;
   display: flex;
   flex-direction: column;
-  gap: 20px;
+  gap: 50px;
 }
-.usageMedia {
+
+/* Paper voucher panel 1740×538 at (33, 414): label then the 1210×440 image. */
+.paperBox {
+  position: absolute;
+  left: 33px;
+  top: 414px;
+  width: 1740px;
+  height: 538px;
+  background: #f6f8f9;
+  border-radius: 20px;
+}
+
+.paperLabel {
+  position: absolute;
+  left: 40px;
+  top: 22px;
+  margin: 0;
+  font-family: 'Pretendard', var(--kiosk-font, sans-serif);
+  font-weight: 500;
+  font-size: 45px;
+  color: #2b2b2b;
+  line-height: normal;
+  white-space: nowrap;
+}
+
+/* 1210×440 slot at (261, 85), radius 20; the photo is scaled 115.31% × 128.55%
+   and shifted (−7.35%, −13.29%) inside it, as the frame crops it. */
+.paperImg {
+  position: absolute;
+  left: 261px;
+  top: 85px;
+  width: 1210px;
+  height: 440px;
+  border-radius: 20px;
+  overflow: hidden;
+}
+
+.paperImg img {
+  position: absolute;
+  left: -7.35%;
+  top: -13.29%;
+  width: 115.31%;
+  height: 128.55%;
+  max-width: none;
+}
+
+.bottomText {
+  position: absolute;
+  left: 36px;
+  top: 50px;
+  width: 1660px;
+  display: flex;
+  flex-direction: column;
+  gap: 50px;
+}
+
+.mascot {
+  position: absolute;
+  left: 1254px;
+  top: 407px;
+  width: 575px;
+  height: 304px;
+  object-fit: contain;
+}
+
+.usageSection {
+  position: absolute;
+  left: 36px;
+  top: 461px;
+  width: 1197px;
+  display: flex;
+  flex-direction: column;
+  gap: 30px;
+}
+
+/* Groups 사용처 with the mascot. Korean: no box of its own, so both children
+   keep their Figma positions against the card. */
+.onnuriUsage {
+  display: contents;
+}
+
+/* ── 온누리 cards, other languages ─────────────────────────────────────────
+ * The Figma positions above are measured for the Korean copy. A translation
+ * runs longer, and the digital-voucher paragraphs ran into 사용처 (and the
+ * intro into the paper panel). Here the blocks flow top to bottom with the
+ * same 50 gaps and paddings, and the card grows; the page scrolls. */
+.onnuriLong {
+  height: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 50px;
+}
+
+.cardOnnuriTop.onnuriLong {
+  padding: 50px 40px;
+}
+
+.cardOnnuriBottom.onnuriLong {
+  padding: 50px 36px 65px;
+}
+
+.onnuriLong .topText,
+.onnuriLong .bottomText,
+.onnuriLong .usageSection,
+.onnuriLong .mascot {
+  position: static;
+}
+
+.onnuriLong .topText,
+.onnuriLong .bottomText {
+  width: auto;
+}
+
+.onnuriLong .paperBox,
+.onnuriLong .lightBox {
+  position: relative;
+  left: auto;
+  top: auto;
   flex: none;
+  margin-left: -7px;
+}
+
+.cardOnnuriBottom.onnuriLong .lightBox {
+  margin-left: 0;
+}
+
+.onnuriLong .onnuriUsage {
   display: flex;
   align-items: center;
-  gap: 20px;
+  gap: 21px;
 }
-.biLogo {
+
+.onnuriLong .usageSection {
+  flex: 1;
+  width: auto;
+  min-width: 0;
+}
+
+/* Bleeds to the card's right edge, as in the Korean frame. */
+.onnuriLong .mascot {
+  flex: none;
+  margin-right: -36px;
+}
+
+.subHeading {
+  margin: 0;
+  font-family: 'Pretendard', var(--kiosk-font, sans-serif);
+  font-weight: 700;
+  font-size: 50px;
+  color: #005ab4;
+  line-height: 1;
+}
+
+/* Light-blue box 1748×456 at (36, 673): notes, benefit bullets, BI logo, app QR. */
+.lightBox {
+  position: absolute;
+  left: 36px;
+  top: 673px;
+  width: 1748px;
+  height: 456px;
+  background: #daecfe;
+  border-radius: 20px;
+}
+
+.lightNote {
+  position: absolute;
+  left: 21px;
+  top: 45px;
+  margin: 0;
+  font-family: 'Pretendard', var(--kiosk-font, sans-serif);
+  font-weight: 400;
+  font-size: 30px;
+  color: #000000;
+  line-height: 1.3;
+  white-space: nowrap;
+}
+
+/* Height is the box's room under the note (456 − 126 − 20), so a translation
+   that wraps too far can be measured and shrunk (--fit, below). */
+.benefits {
+  position: absolute;
+  left: 14px;
+  top: 126px;
+  width: 1155px;
+  height: 310px;
+  font-family: 'Pretendard', var(--kiosk-font, sans-serif);
+  font-weight: 600;
+  font-size: calc(40px * var(--fit, 1));
+  color: #005ab4;
+  line-height: 1.7;
+}
+
+/* Other languages: a translated bullet wraps inside the 1155 column, and at
+   40 / 1.7 the Indonesian list ran out of the box. One step tighter (36 /
+   1.4), and if the lines still do not fit the 310 the whole list shrinks
+   together (useFitText, never below 0.7) rather than spill. */
+.lightBoxLong .benefits {
+  font-size: calc(36px * var(--fit, 1));
+  line-height: 1.4;
+}
+
+.benefits p {
+  margin: 0;
+}
+
+.lightBi {
+  position: absolute;
+  left: 1209px;
+  top: 110px;
   width: 244px;
   height: 250px;
   object-fit: contain;
-  display: block;
 }
-.usageQr {
+
+.lightQr {
+  position: absolute;
+  left: 1456px;
+  top: 95px;
   box-sizing: border-box;
   width: 230px;
   height: 253px;
-  border: 4.291px solid #1a4d7e;
-  border-radius: 21.453px;
-  background: #fff;
-  padding: 15px;
   display: flex;
   align-items: center;
   justify-content: center;
+  background: #ffffff;
+  border-radius: 21.45px;
+  box-shadow: 0 4px 4px rgba(0, 0, 0, 0.25);
 }
-.usageQr img {
-  width: 100%;
-  height: 100%;
+
+.lightQr img {
+  display: block;
+  width: 200px;
+  height: 222px;
   object-fit: contain;
 }
 
-/* ─────────────────────────────────────────────────────────────────────────────
-   TAB 1: 행복화성지역화폐
-   White card (title only): left=203 top=924 w=1820 h=2314
-   Content block:           left=243 top=1189 w=1740 gap=27
-   ───────────────────────────────────────────────────────────────────────────── */
-.card1 {
-  position: absolute;
-  top: 924px;
-  left: 203px;
-  width: 1820px;
-  height: 2314px;
-  background: #fff;
-  border: 5px solid #e8e8e8;
-  border-radius: 42.905px;
-  overflow: hidden;
-}
-
-.card1Title {
-  position: absolute;
-  top: 95px;
-  left: 35px;
-  right: 35px;
-  margin: 0;
-  font-weight: 800;
-  font-size: 100px;
-  color: #1a4d7e;
-  line-height: 1;
-  text-align: center;
-}
-
-/* Content area outside the white card */
-.content1 {
-  position: absolute;
-  top: 1189px;
-  left: 243px;
-  width: 1740px;
-  display: flex;
-  flex-direction: column;
-  gap: 27px;
-}
-
-/* Block 1: 행복화성이란? — heading at top:0, body at top:80px */
-.block1 {
-  position: relative;
-  height: 298px;
-  width: 1630px;
-  flex: none;
-}
-.block1Heading {
-  position: absolute;
-  top: 0;
-  margin: 0;
-  font-weight: 700;
-  font-size: 60px;
-  color: #1a4d7e;
-  line-height: 1;
-  white-space: nowrap;
-}
-.block1Body {
-  position: absolute;
-  top: 80px;
-  width: 1630px;
-  font-size: 45px;
-  color: #2b2b2b;
-  line-height: 1.3;
-}
-.block1Body p { margin: 0; }
-
-/* Image 162 */
-.imgLocalpay {
-  width: 1643px;
-  height: 903px;
-  flex: none;
-  overflow: hidden;
-  position: relative;
-}
-.imgLocalpay img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  display: block;
-}
-
-/* Generic content1 inner block (누구나, 사용처) */
-.block1Inner {
-  flex: none;
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
-  width: 100%;
-}
-
-/* ── Bottom banner ── */
-.banner { position: absolute; top: 3267px; left: 0; width: 2160px; height: 573px; pointer-events: none; z-index: 10; }
-.bannerImg { width: 100%; height: 100%; object-fit: cover; display: block; }
-
 /* ── Other languages ──────────────────────────────────────────────────────
- * Reached only through a class the TSX adds when lang !== 'ko' — the Korean
- * screen is untouched.
- *
- * The 580×170 tab was `nowrap` because its Korean names fit on one 50px line.
- * The same tab has to hold the other languages' renderings, which do not: on
- * one line they ran past the tab (and on 화성, where the tab clips, they were
- * cut off mid-word instead). The label wraps inside the tab, and the pair
- * shrinks together if the longer one still does not fit (`--fit`, useFitText —
- * never below 0.72 → 36px). Nothing is clipped. */
+ * Reached only through a class the TSX adds when lang !== 'ko'. The tab label
+ * wraps inside its 580×170 pill, and the pair shrinks together if the longer
+ * one still does not fit (`--fit`, useFitText — never below 0.72 → 36px). */
 .tabLong {
   white-space: normal;
   word-break: keep-all;
@@ -332,177 +402,238 @@
   line-height: 1.12;
 }
 
-/* The card headings were `nowrap` because the Korean titles are short
-   (온누리 상품권, 행복화성지역화폐). "Подарочные сертификаты Onnuri" and
-   "'Đồng tiền địa phương Happy Hwaseong' là gì?" are two to six times as wide
-   and ran into the card's clip. They wrap instead — the card has the height,
-   and wrapping a heading is what the note at the top of the TSX asked for. */
-.bigTitleLong,
-.block1HeadingLong {
-  white-space: normal;
+/* ── 희망화성지역화폐 (7956:81013) — two white cards at 944 and 1998, 52 apart;
+   each pads 50 / 40 with its blocks 30 apart. Heights are the frame's for the
+   Korean copy; longer languages grow the card and the page scrolls. ── */
+.hopeCard {
+  flex: none;
+  box-sizing: border-box;
+  width: 1820px;
+  padding: 50px 40px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 30px;
+  background: #ffffff;
+  border-radius: 45px;
+}
+
+.hopeCard > * {
+  flex: none;
+  width: 100%;
+}
+
+.hopeIntro {
+  min-height: 1002px;
+  margin-top: 74px;
+}
+
+.hopeApply {
+  min-height: 1194px;
+  margin-top: 52px;
+}
+
+/* 카드형 지역화폐 안내 — #F6F8F9 panel, padding 40: the 598×444 card art
+   centred in a 660 column, 80 gap, then the key copy. */
+.keyBox {
+  box-sizing: border-box;
+  min-height: 523px;
+  padding: 40px;
+  display: flex;
+  align-items: center;
+  gap: 80px;
+  background: #f6f8f9;
+  border-radius: 20px;
+}
+
+.keyCard {
+  flex: none;
+  width: 660px;
+  height: 443px;
+  display: flex;
+  justify-content: center;
+}
+
+.keyCard img {
+  display: block;
+  width: 598px;
+  height: 444px;
+  object-fit: contain;
+}
+
+.keyText {
+  flex: 1 1 0;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
   word-break: keep-all;
-  overflow-wrap: anywhere;
-  line-height: 1.15;
 }
 
-/* ── Other languages: the two cards ───────────────────────────────────────
- * Everything below hangs off `.card0Long` / `.rootLong`, which the TSX adds when
- * lang !== 'ko' — the Korean page is untouched.
- *
- * 온누리 (tab 0) is a fixed 1820×2344 card with `overflow: hidden`; 행복화성
- * (tab 1) is a white card that holds only the title, with the copy laid ON TOP
- * of it at fixed coordinates, and its first block pinned inside a 298px box
- * (heading at top:0, body at top:80). Korean was drawn to fit those; the other
- * languages were cut off inside the 온누리 card (312px in Russian, 254 in
- * Vietnamese) and ran past the bottom of the 행복화성 card and under the banner
- * (722px in Russian, 580 in Vietnamese/Indonesian), with the first block's
- * body overrunning its 298 box into the photo below.
- *
- * Both cards now:
- *  1. shrink as one (`--fit`, useFitText, never below 0.75) — type, the gaps
- *     and the images, which are most of the height; and
- *  2. past 0.75, scroll inside the card instead of cutting copy off.
- */
-.card0Long,
-.content1Long {
-  overflow-y: auto;
-  overflow-x: hidden;
+.keyTitle {
+  margin: 0;
+  font-weight: 700;
+  font-size: 48px;
+  line-height: 1.2;
+  color: #005ab4;
 }
 
-.card0Long::-webkit-scrollbar,
-.content1Long::-webkit-scrollbar {
-  width: 34px;
-}
-.card0Long::-webkit-scrollbar-thumb,
-.content1Long::-webkit-scrollbar-thumb {
-  background: var(--kiosk-primary);
-  border-radius: 21.45px;
-}
-.card0Long::-webkit-scrollbar-track,
-.content1Long::-webkit-scrollbar-track {
-  background: transparent;
+.keyBody p {
+  margin: 0;
+  font-weight: 400;
+  font-size: 42px;
+  line-height: 1.45;
+  color: #2b2b2b;
 }
 
-/* ── 온누리 ── */
-.card0Long {
-  gap: calc(65px * var(--fit, 1));
+.keyPrep {
+  margin: 0;
+  font-weight: 600;
+  font-size: 38px;
+  line-height: 1.3;
+  color: #2b2b2b;
 }
 
-.card0Long .bigTitle {
-  font-size: calc(100px * var(--fit, 1));
+/* 앱 이용 순서 — four equal #F6F8F9 boxes, 18 apart, 140 tall. */
+.steps {
+  display: flex;
+  gap: 18px;
 }
 
-.card0Long .block,
-.card0Long .usageText {
-  gap: calc(20px * var(--fit, 1));
+.step {
+  flex: 1 1 0;
+  min-width: 0;
+  box-sizing: border-box;
+  min-height: 140px;
+  padding: 20px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  background: #f6f8f9;
+  border-radius: 20px;
+  word-break: keep-all;
 }
 
-.card0Long .blockWithGap {
-  gap: calc(40px * var(--fit, 1));
+.stepTitle {
+  margin: 0;
+  font-weight: 700;
+  font-size: 38px;
+  line-height: 1.2;
+  color: #005ab4;
 }
 
-.card0Long .imgPaper,
-.card0Long .imgPaper img {
-  height: calc(493px * var(--fit, 1));
-}
-.card0Long .imgPaper img {
-  width: calc(1321px * var(--fit, 1));
-}
-
-.card0Long .imgDigital,
-.card0Long .imgDigital img {
-  height: calc(492px * var(--fit, 1));
-}
-.card0Long .imgDigital img {
-  width: calc(1382px * var(--fit, 1));
+.stepBody {
+  margin: 0;
+  font-weight: 400;
+  font-size: 30px;
+  line-height: 1.3;
+  color: #2b2b2b;
 }
 
-/* The 사용처 row was a fixed 196px — a longer body wrapped out of it. */
-.card0Long .usageRow {
-  height: auto;
-  min-height: calc(196px * var(--fit, 1));
+/* 가맹점과 제한 업종 — the copy, then the two 230×253 app tiles, 40 apart. */
+.usageRow {
+  display: flex;
+  align-items: center;
   gap: 40px;
 }
 
-.card0Long .usageText {
-  flex: 1;
-  width: auto;
+.usageText {
+  flex: 1 1 0;
   min-width: 0;
 }
 
-.card0Long .biLogo {
-  width: calc(244px * var(--fit, 1));
-  height: calc(250px * var(--fit, 1));
+.usageText p {
+  margin: 0;
+  font-weight: 400;
+  font-size: 40px;
+  line-height: 1.35;
+  color: #2b2b2b;
 }
 
-.card0Long .usageQr {
-  width: calc(230px * var(--fit, 1));
-  height: calc(253px * var(--fit, 1));
-}
-
-/* ── 행복화성 ── */
-/* 70, not the frame's 95: a title that wraps to two lines ("Chúc mừng ngày
-   Hwaseong! Tiền tệ địa phương") otherwise reaches y=267 and touches the copy,
-   which starts at 265 inside the card. */
-.rootLong .card1Title {
-  top: 70px;
-  font-size: calc(100px * var(--fit, 1));
-  line-height: 1.1;
-  word-break: keep-all;
-  overflow-wrap: anywhere;
-}
-
-/* The copy sits on the card from y=1189; bound it to end 70px above the card's
-   bottom edge (924 + 2314 = 3238), where it used to run on under the banner. */
-.content1Long {
-  height: calc(3238px - 70px - 1189px);
-  gap: calc(27px * var(--fit, 1));
-}
-
-/* The first block was a fixed 298px box with its heading and body pinned at
-   top:0 and top:80 — a body longer than the Korean one overran the box into the
-   photo, and a heading that wraps would land on the body. It flows instead. */
-.content1Long .block1 {
-  height: auto;
-  width: 100%;
+/* A white tile, r21.45, 0 4 4 shadow: the 171 code over its Bold 36 label. */
+.appTile {
+  flex: none;
+  box-sizing: border-box;
+  width: 230px;
+  height: 253px;
   display: flex;
   flex-direction: column;
-  gap: calc(20px * var(--fit, 1));
+  align-items: center;
+  justify-content: center;
+  background: #ffffff;
+  border-radius: 21.453px;
+  box-shadow: 0 4px 4px rgba(0, 0, 0, 0.25);
 }
 
-.content1Long .block1Heading,
-.content1Long .block1Body {
-  position: static;
-  width: auto;
+.appTile img {
+  display: block;
+  width: 171px;
+  height: 172px;
+  image-rendering: pixelated;
 }
 
-.content1Long .block1Heading {
-  font-size: calc(60px * var(--fit, 1));
+.appTile span {
+  font-weight: 700;
+  font-size: 36px;
+  line-height: normal;
+  color: #000000;
 }
 
-.content1Long .block1Body {
-  font-size: calc(45px * var(--fit, 1));
+/* 혜택 및 유의사항 — main 2 panel, padding 32, blocks 22 apart. */
+.benefitBox {
+  box-sizing: border-box;
+  min-height: 400px;
+  padding: 32px;
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+  background: #daecfe;
+  border-radius: 20px;
 }
 
-.content1Long .imgLocalpay {
-  width: calc(1643px * var(--fit, 1));
-  height: calc(903px * var(--fit, 1));
-  align-self: center;
+.benefitTitle {
+  margin: 0;
+  font-weight: 700;
+  font-size: 40px;
+  line-height: 1.2;
+  color: #005ab4;
 }
 
-/* ── type shared by both cards ── */
-.card0Long .h,
-.content1Long .h {
-  font-size: calc(60px * var(--fit, 1));
-  line-height: 1.1;
+.benefitPoints p {
+  margin: 0;
+  font-weight: 600;
+  font-size: 38px;
+  line-height: 1.4;
+  color: #005ab4;
 }
 
-.card0Long .body,
-.content1Long .body {
-  font-size: calc(45px * var(--fit, 1));
+.benefitNote p {
+  margin: 0;
+  font-weight: 400;
+  font-size: 36px;
+  line-height: 1.45;
+  color: #2b2b2b;
 }
 
-.card0Long .note,
-.content1Long .note {
-  font-size: calc(32px * var(--fit, 1));
+/* ── 상점 검색 promo — the "WITH 키오스크로!" art with its orange strip ── */
+.banner {
+  position: absolute;
+  left: 0;
+  top: 3267px;
+  width: 2160px;
+  height: 573px;
+  padding: 0;
+  border: none;
+  background: none;
+  cursor: pointer;
+  overflow: hidden;
+  transform: translateY(calc(-1 * var(--hwaseong-mode-push, 0px)));
+}
+
+.banner img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  pointer-events: none;
 }

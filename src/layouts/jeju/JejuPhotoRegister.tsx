@@ -1,5 +1,5 @@
 /**
- * 제주공항 (W006) AR 한복체험 — 정보 입력. Figma 6258:49690.
+ * 제주공항 (W008) AR 한복체험 — 정보 입력. Figma 6258:49690.
  *
  * Sits between the outfit page's capture buttons and the camera: the visitor
  * gives 국적 and 키, ticks the consent line, then 등록하기 starts the countdown.
@@ -187,6 +187,7 @@ export function JejuPhotoRegister({ onSubmit, onOpenPolicy }: Props): JSX.Elemen
         <button
           type="button"
           className={`${styles.field} ${styles.fieldHeight}`}
+          data-voice-label={pick(HEIGHT, lang)}
           onClick={() => {
             setPicker(false);
             setKeypad(true);

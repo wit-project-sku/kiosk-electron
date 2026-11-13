@@ -5,18 +5,12 @@
  * but the other venues went back to their own legacy screen and an ungated
  * countdown — see the camera branch in CustomerDisplay.
  *
- * ★ ONE OVERLAY IMAGE since 2026-08-24: the designer shipped the whole guide
- * as a single transparent PNG (repo root icons/"Group 1707482852 (2).png",
- * 2155×3739) — the frosted header plate with its title, the no-glasses line,
- * the two gesture chips AND the glowing body art are all baked into it. It
- * is stretched over the full-screen camera feed exactly as delivered
- * ("put as it is"), which also means the copy on it is KOREAN ONLY — the
- * per-language strings the old built-up header carried are gone with it.
- *
- * Re-exported 2026-09-08: the full-height pose figure is gone — the body art
- * is now just the glowing 손 icon (upper right) over the footprint arc — and
- * the header band is shorter. Every hard-coded position in the CSS moved with
- * it; see the re-export note at the top of the stylesheet.
+ * ★ ONE OVERLAY IMAGE: the designer shipped the whole guide as a single
+ * transparent PNG (repo root icons/"Frame 2085667212.png", 2155×3739) —
+ * the frosted header plate with its title, the no-glasses line, the open-palm
+ * chip, the glowing 손 icon and the footprint arc.
+ * It is stretched over the full-screen camera feed exactly as delivered,
+ * which also means the copy on it is KOREAN ONLY.
  *
  * ── The live countdown ────────────────────────────────────────────────
  * The design bakes "'10'" into the title, but the number must count. The
@@ -51,11 +45,11 @@ interface Props {
   gestureGate: PhotoGestureGate;
   /**
    * Hand detection could not start (no model, no GPU delegate, a camera the
-   * landmarker cannot read). The overlay's gesture chips are baked in and
-   * cannot be hidden, so this states the truth on top of them: the countdown
-   * will start by itself.
+   * landmarker cannot read). The countdown will start by itself.
    */
   detectionUnavailable: boolean;
+  /** A click on the 손 icon — start the countdown, as an open palm would. */
+  onHandClick: () => void;
 }
 
 const PAUSED = {
@@ -88,6 +82,7 @@ export function JejuCameraGuide({
   rotation,
   gestureGate,
   detectionUnavailable,
+  onHandClick,
 }: Props): JSX.Element {
   // Before the count starts the design shows the full duration, not a blank.
   const seconds = countdown ?? PHOTO_COUNTDOWN_SECONDS;
@@ -118,6 +113,15 @@ export function JejuCameraGuide({
           it is guidance, not part of the picture. */}
       {overlay && <img src={overlay} alt="" className={styles.overlay} draggable={false} />}
 
+      {/* Invisible hit area over the overlay's baked 손 icon. A click starts the
+          10 seconds the way an open palm does — it never skips them. */}
+      <button
+        type="button"
+        className={styles.handHit}
+        onClick={onHandClick}
+        aria-label="start countdown"
+      />
+
       {/* The live numeral, in the slot patched out of the overlay. Held: it
           dims — a full-brightness number that has stopped moving reads as a
           crashed kiosk; this reads as the deliberate pause it is. */}
@@ -125,8 +129,7 @@ export function JejuCameraGuide({
 
       {detectionUnavailable && <p className={styles.autoStart}>{pick(AUTO_START, lang)}</p>}
 
-      {/* Over the feed, where the visitor is already looking at themselves to
-          check whether the kiosk noticed their fist. */}
+      {/* Over the feed, where the visitor is already looking at themselves. */}
       {held && (
         <div className={styles.pausedBadge}>
           <span className={styles.pausedBars} aria-hidden="true" />

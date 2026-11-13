@@ -196,13 +196,15 @@ export function applyWebContentsSecurity(
 /**
  * Enforce a single application instance. A second launch focuses the existing
  * window instead of starting a competing process (kiosks must be singletons).
+ * The second launch's arguments are handed over — the desktop 지점 설정
+ * shortcut is a second launch with `--setup`.
  */
-export function enforceSingleInstance(onSecondInstance: () => void): boolean {
+export function enforceSingleInstance(onSecondInstance: (argv: string[]) => void): boolean {
   const gotLock = app.requestSingleInstanceLock();
   if (!gotLock) {
     app.quit();
     return false;
   }
-  app.on('second-instance', onSecondInstance);
+  app.on('second-instance', (_event, argv) => onSecondInstance(argv));
   return true;
 }

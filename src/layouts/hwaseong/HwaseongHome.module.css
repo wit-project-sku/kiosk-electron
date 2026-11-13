@@ -1,554 +1,944 @@
-/* Root — fills the 2160×3840 artboard */
+/*
+ * 화성휴게소 (W005) home — Figma node 7904:104580 (WIT-WITH>디자인, 화성 홈).
+ *
+ * Inside KioskArtboard 1 CSS px = 1 Figma px (2160×3840), so every value here is
+ * the exact number read out of the design. Type is Pretendard throughout except
+ * the two card titles the frame sets in Noto Sans (전국도로교통상황, 전국휴게소).
+ * Colours: [화성휴게소] main 1 #005AB4, 글씨-main #999.
+ *
+ * Frosted panels drop the frame's backdrop blur and keep their translucent fill:
+ * the only thing behind them is the flat #F3F8FB page, so the blur is a no-op
+ * Chromium still pays for (see JejuHome.module.css .notice).
+ */
 .root {
   position: absolute;
   inset: 0;
   width: 2160px;
   height: 3840px;
   overflow: hidden;
-  font-family: 'Noto Sans KR', 'Noto Sans', sans-serif;
+  background: #f3f8fb;
+  font-family: 'Pretendard', var(--kiosk-font, 'Noto Sans KR', sans-serif);
 }
 
-/* ── Background layers ──────────────────────────────── */
-.bgBase {
+/* ── Top bar: location + date/time (상단 위치/날짜 7904:104582) ────────── */
+.topBar {
   position: absolute;
-  background: #fff;
-  left: 0;
-  top: 0;
-  width: 2160px;
-  height: 3840px;
-}
-
-.bgImage {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  pointer-events: none;
-}
-
-/* ── Header (Component29) ───────────────────────────── */
-.header {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 2160px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 130px 170px 65px;
-  gap: 80px;
-}
-
-.headerTopRow {
+  left: 84px;
+  top: 125px;
+  width: 2000px;
+  height: 83px;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  width: 1820px;
-  height: 82px;
-  flex-shrink: 0;
 }
 
-.headerLeft {
+.topLeft {
   display: flex;
   align-items: center;
   gap: 26px;
 }
 
+/* 63×82 icon; its export carries a drop shadow, so the SVG is 71×90 and hangs
+   4px past each side and 8px below (Figma inset 0 −6.35% −9.76% −6.35%). */
 .locationIcon {
+  position: relative;
+  flex: none;
   width: 63px;
   height: 82px;
-  object-fit: contain;
-  flex-shrink: 0;
+}
+
+.locationIconImg {
+  position: absolute;
+  left: -4px;
+  top: 0;
+  width: 71px;
+  height: 90px;
+  pointer-events: none;
 }
 
 .siteName {
   font-size: 68px;
   font-weight: 700;
-  color: var(--kiosk-primary);
-  white-space: nowrap;
   line-height: 1;
-  font-variation-settings: 'CTGR' 0, 'wdth' 100;
+  color: #005ab4;
+  white-space: nowrap;
 }
 
-.headerDate {
+.dateTime {
   font-size: 68px;
   font-weight: 700;
-  color: #232323;
-  white-space: nowrap;
   line-height: 1;
-  font-variation-settings: 'CTGR' 0, 'wdth' 100;
+  color: #232323;
+  text-align: right;
+  white-space: pre;
 }
 
-/* Notice + weather — same flex ratio as Insadong/Osan (1109 : 665) so the
-   weather card width matches the other homes on the 1820px content row. */
-.headerBottomRow {
-  display: flex;
-  align-items: stretch;
-  gap: 40px; /* ≈ 1.85cqw on 2160 */
-  width: 1820px;
-  height: 365px; /* ≈ 9.5cqh on 3840 */
-  flex-shrink: 0;
-}
-
-/* Notice card — wrapping matches Insadong/Osan so en/ja (and 4-letter INFO
-   badge) stay inside the box instead of overflowing Korean-tuned metrics. */
+/* ── 공지 card (notice + weather) — rect 7904:104689 ──────────────────── */
 .notice {
-  flex: 1109 1 0;
-  min-width: 0;
-  height: auto;
-  backdrop-filter: blur(42.9px);
-  background: rgba(108, 90, 70, 0.1);
+  position: absolute;
+  left: 80px;
+  top: 297px;
+  width: 2000px;
+  height: 750px;
   border-radius: 45px;
-  padding: 55px 60px;
-  display: flex;
-  align-items: center;
-  gap: 38.61px;
-  box-sizing: border-box;
+  background: rgba(108, 90, 70, 0.1);
   overflow: hidden;
 }
 
-.noticeBadge {
-  flex: none;
+/* Rule (Frame 1287 at x171 y411, 6.435×242.383) and the copy share one band:
+   the text box (x220) is 42.565 right of the rule and centred on its height. */
+.noticeLead {
+  position: absolute;
+  left: 91px;
+  top: 114px;
+  height: 242.383px;
   display: flex;
-  flex-direction: column;
   align-items: center;
-  font-family: 'Inter', sans-serif;
-  font-weight: 900;
-  font-size: 51px;
-  color: #000;
-  line-height: 1.55;
+  gap: 42.565px;
 }
 
-.noticeDivider {
+.noticeRule {
+  flex: none;
   width: 6.435px;
-  height: 242.383px;
-  background: var(--kiosk-primary);
-  border-radius: 3px;
-  flex-shrink: 0;
+  height: 100%;
+  background: #005ab4;
 }
 
 .noticeText {
+  width: 977px;
   margin: 0;
+  font-size: 60px;
+  line-height: 70px;
+  font-weight: 400;
+  color: #000;
+  word-break: keep-all;
+  overflow-wrap: anywhere;
+}
+
+.noticeText b {
+  font-weight: 700;
+}
+
+/* Weather card 7904:104695 at (1340, 366) → (1260, 69) in the card. */
+.weather {
+  position: absolute;
+  left: 1260px;
+  top: 69px;
+  width: 665px;
+  height: 332px;
+  padding: 0;
+  border: none;
+  border-radius: 45px;
+  background: rgba(255, 255, 255, 0.5);
+  font: inherit;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Content frame 589×290, centred → origin (38, 21). */
+.weatherTemp {
+  position: absolute;
+  left: 38px;
+  top: 21px;
+  font-size: 145px;
+  font-weight: 700;
+  line-height: 1;
+  color: #333;
+  white-space: nowrap;
+}
+
+/* The frame's sun-and-cloud (Group 119, 418.889×289.998 at x169.68) is the slot
+   for the live condition icon. */
+.weatherIcon {
+  position: absolute;
+  left: 207.676px;
+  top: 21px;
+  width: 418.889px;
+  height: 289.998px;
+  object-fit: contain;
+  pointer-events: none;
+}
+
+/* The board and its 더보기 live in HwaseongShopBoard.module.css. */
+
+/* ── Search row (검색장 7904:104587) ───────────────────────────────── */
+.searchRow {
+  position: absolute;
+  left: 80px;
+  top: 1136px;
+  width: 2000px;
+  height: 182px;
+}
+
+.searchHome {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 180px;
+  height: 178.826px;
+  padding: 0;
+  border: none;
+  background: none;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.searchHomeImg {
+  display: block;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
+.searchField {
+  position: absolute;
+  left: 232px;
+  top: 0;
+  width: 1536px;
+  height: 182px;
+  box-sizing: border-box;
+  /* Figma's 75px side padding ignores the 4.29 stroke; a CSS border does not. */
+  padding: 55px 70.71px;
+  border: 4.29px solid #005ab4;
+  border-radius: 120px;
+  background: #fff;
   display: flex;
-  flex-direction: column;
-  justify-content: center;
+  align-items: center;
+  justify-content: space-between;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.searchText {
   flex: 1 1 auto;
   min-width: 0;
-  font-size: 51px;
-  color: #000;
-  line-height: 64.35px;
+  font-size: 60.06px;
   font-weight: 500;
-  font-variation-settings: 'CTGR' 0, 'wdth' 100;
+  line-height: 1.1;
   white-space: normal;
   word-break: keep-all;
   overflow-wrap: anywhere;
 }
 
-.noticeLine {
-  font-weight: 500;
+.searchPlaceholder {
+  color: #999;
 }
 
-.noticeBold {
-  font-weight: 700;
-}
-
-/* Weather card */
-.weatherCard {
-  flex: 665 1 0;
-  min-width: 0;
-  height: auto;
-  cursor: pointer;
-  -webkit-tap-highlight-color: transparent;
-  backdrop-filter: blur(42.9px);
-  background: rgba(108, 90, 70, 0.1);
-  border-radius: 45px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 30px; /* ≈ 1.5cqw on 2160 */
-  box-sizing: border-box;
-}
-
-/* Match Insadong/Osan weatherGlyph (6.5cqh ≈ 250px on 3840 artboard). */
-.weatherIconImg {
-  width: 250px;
-  height: 250px;
-  object-fit: contain;
-  flex-shrink: 0;
-}
-
-.weatherTemp {
-  font-size: 145px; /* ≈ 3.78cqh on 3840 */
-  font-weight: 700;
-  color: #333;
-  line-height: 1;
-  white-space: nowrap;
-  font-variation-settings: 'CTGR' 0, 'wdth' 100;
-}
-
-/* ── Content section ────────────────────────────────── */
-.content {
-  position: absolute;
-  top: 721px;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 2160px;
-  padding: 0 170px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 65px;
-  box-sizing: border-box;
-  /* Keep the search bar + menu tiles above the decorative bottom nav / banner
-     so their tap targets are never blocked by an overlapping layer. */
-  z-index: 2;
-}
-
-/* Search bar */
-.searchBar {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  width: 1820px;
-  height: 182px;
-  flex-shrink: 0;
-}
-
-.searchHomeIcon {
-  width: 180px;
-  height: 180px;
-  object-fit: contain;
-  flex-shrink: 0;
-}
-
-.searchField {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  width: 1350px;
-  height: 182px;
-  background: #fff;
-  border: 4.29px solid var(--kiosk-primary);
-  border-radius: 120px;
-  padding: 55px 62px 55px 75px;
-  box-sizing: border-box;
-  cursor: pointer;
-  flex-shrink: 0;
-}
-
-.searchFieldText {
-  flex: 1;
-  min-width: 0;
-  display: flex;
-  align-items: center;
-  gap: 0.4cqw;
-  overflow: hidden;
-}
-
-.searchPlaceholder,
 .searchValue {
-  min-width: 0;
-  font-size: 1.564cqh;
-  font-weight: 600;
-  line-height: 1.3;
-  white-space: nowrap;
-  overflow: hidden;
-  text-align: left;
+  color: #232323;
 }
-
-.searchPlaceholder { color: #999999; }
-.searchValue { color: #232323; }
 
 .searchCaret {
-  flex: none;
-  width: 6px;
-  height: 68px;
-  background: var(--kiosk-primary);
-  animation: hwBlink 1s step-end infinite;
+  display: inline-block;
+  width: 4px;
+  height: 62px;
+  margin-left: 6px;
+  vertical-align: middle;
+  background: #005ab4;
+  animation: hwaseongCaret 1s step-end infinite;
 }
 
-@keyframes hwBlink { 50% { opacity: 0; } }
+@keyframes hwaseongCaret {
+  50% { opacity: 0; }
+}
 
+/* Icon box 71×68; the stroke overflows it, so the 80×77 glyph sits at −4.5. */
 .searchIcon {
+  position: relative;
+  flex: none;
+  width: 71px;
+  height: 68px;
+}
+
+.searchIconSvg {
+  position: absolute;
+  left: -4.5px;
+  top: -4.5px;
   width: 80px;
   height: 77px;
-  flex-shrink: 0;
-  color: var(--kiosk-primary);
+  color: #005ab4;
 }
 
+/* ico_lang — Ø180 main 1 at (1820, 1), Bold 60.06 white. */
 .langBtn {
+  position: absolute;
+  left: 1820px;
+  top: 1px;
   width: 180px;
   height: 180px;
-  background: var(--kiosk-primary);
+  padding: 0;
+  border: none;
   border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-  cursor: pointer;
-}
-
-.langBtnText {
+  background: #005ab4;
+  color: #fff;
+  font-family: inherit;
   font-size: 60.06px;
   font-weight: 700;
-  color: #fff;
   line-height: 1;
-  font-variation-settings: 'CTGR' 0, 'wdth' 100;
-}
-
-/* ── Menu grid ────────────────────────────────────────
-   Image-to-image vertical gap fixed at 173px (label line count ignored):
-   each row = 300px card + 173px band for label; no extra gap between rows. */
-.menuGrid {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 0;
-  width: 1820px;
-  flex-shrink: 0;
-}
-
-.menuRow {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  width: 1820px;
-  height: calc(300px + 173px);
-  flex-shrink: 0;
-}
-
-/* Tile wrapper (icon card + label) — fixed 300px column so the row's
-   justify-between spacing stays uniform regardless of label length. */
-.tileWrap {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 25px;
-  flex-shrink: 0;
-  width: 300px;
-  height: 100%;
   cursor: pointer;
   -webkit-tap-highlight-color: transparent;
 }
 
-.tileCard {
-  width: 300px;
-  height: 300px;
+/* ── Three feature cards (Frame 7904:104597) ───────────────────────── */
+/* 1926 wide, justify-between over 750 + 540 + 540 → lefts 0 / 798 / 1386. */
+.cards {
+  position: absolute;
+  left: 120px;
+  top: 1407px;
+  width: 1926px;
+  height: 310px;
+}
+
+.card {
+  position: absolute;
+  top: 0;
+  height: 310px;
+  padding: 0;
+  border: none;
+  border-radius: 30px;
+  background: #fff;
+  font-family: inherit;
+  text-align: left;
   cursor: pointer;
   -webkit-tap-highlight-color: transparent;
-  transition: transform 0.12s, filter 0.12s;
-  flex-shrink: 0;
 }
 
-.tileCard:active {
-  transform: scale(0.96);
-  filter: brightness(0.9);
+.cardTitle {
+  position: absolute;
+  margin: 0;
+  font-size: 45px;
+  font-weight: 700;
+  line-height: 1;
+  color: #000;
+  white-space: nowrap;
 }
 
-/* Figma tile renders already include the rounded card + drop shadow, so just
-   fit them into the slot (contain keeps the baked-in shadow from clipping). */
-.tileCardImg {
-  width: 100%;
-  height: 100%;
-  object-fit: contain;
-  display: block;
-  pointer-events: none;
-}
-
-.tileLabel {
+.cardSub {
+  position: absolute;
+  margin: 0;
   font-size: 38px;
   font-weight: 400;
-  color: #000;
-  text-align: center;
-  line-height: 1.1;
-  font-variation-settings: 'CTGR' 0, 'wdth' 100;
-  width: 100%;
-  white-space: pre-line;
-  word-break: keep-all;
+  line-height: 1;
+  color: #999;
+  white-space: nowrap;
 }
 
-/* Disabled tile — keeps visual appearance but blocks interaction */
-.tileDisabled {
+.cardArt {
+  position: absolute;
   pointer-events: none;
+}
+
+/* Card 1 — 전국도로교통상황. Title Noto Sans Bold at (363, 104). The car sits in
+   Layer_1 (238×205 at 81,59) at inset 10.24% 14.79% 14.83% 9.24%, its export
+   bleeding 1.04% top and bottom. */
+.cardTraffic {
+  left: 0;
+  width: 750px;
+}
+.cardTraffic .cardTitle {
+  left: 363px;
+  top: 104px;
+  font-family: 'Noto Sans', 'Noto Sans KR', sans-serif;
+}
+.cardTraffic .cardSub { left: 363px; top: 178px; }
+.cardTraffic .cardArt { left: 102.99px; top: 78.39px; width: 180.8px; height: 156.799px; }
+
+/* Card 2 — 전국휴게소. Title Noto Sans Bold at (57, 108). */
+.cardRest {
+  left: 798px;
+  width: 540px;
+}
+.cardRest .cardTitle {
+  left: 57px;
+  top: 108px;
+  font-family: 'Noto Sans', 'Noto Sans KR', sans-serif;
+}
+.cardRest .cardSub { left: 57px; top: 182px; }
+.cardRest .cardArt { left: 294px; top: 69px; width: 195.586px; height: 171.126px; }
+
+/* Card 3 — 화성시 이벤트. Title Pretendard Bold at x40, subtitle at x50.8. */
+.cardEvents {
+  left: 1386px;
+  width: 540px;
+}
+.cardEvents .cardTitle { left: 40px; top: 108px; }
+.cardEvents .cardSub { left: 50.8px; top: 182px; }
+
+/* Layer_4 (173.527 square at 331, 68): every layer at its Figma inset, in px. */
+.eventsArt {
+  position: absolute;
+  left: 331px;
+  top: 68px;
+  width: 173.527px;
+  height: 173.527px;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.eventsArt img {
+  position: absolute;
+  display: block;
+}
+
+.evA { left: 128.184px; top: 114.285px; width: 38.527px; height: 35.031px; }
+.evB { left: 145.329px; top: 84.855px; width: 28.192px; height: 29.052px; }
+.evC { left: 5.275px; top: 0; width: 124.891px; height: 158.925px; }
+.evF { left: 35.11px; top: 13.07px; width: 115.837px; height: 25.66px; }
+.evG { left: 74.366px; top: 24.338px; width: 17.713px; height: 21.585px; }
+.evH { left: 93.92px; top: 32.3px; width: 53.401px; height: 16.331px; }
+.evI { left: 110.571px; top: 136.323px; width: 36.894px; height: 37.181px; }
+
+/* The two bands are clipped by the jar's silhouette (Clip path group): the mask
+   is placed where the jar sits relative to each band. */
+.evD,
+.evE {
+  position: absolute;
+  left: 0;
+  width: 135.458px;
+  height: 20.953px;
+  mask-repeat: no-repeat;
+  -webkit-mask-repeat: no-repeat;
+  mask-size: 124.891px 158.926px;
+  -webkit-mask-size: 124.891px 158.926px;
+}
+
+.evD {
+  top: 91.397px;
+  mask-position: 5.28px -91.395px;
+  -webkit-mask-position: 5.28px -91.395px;
+}
+
+.evE {
+  top: 121.677px;
+  mask-position: 5.28px -121.676px;
+  -webkit-mask-position: 5.28px -121.676px;
+}
+
+.evD img,
+.evE img {
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+}
+
+/* ── Menu grid on its white panel ───────────────────────────────────── */
+.panel {
+  position: absolute;
+  left: 135px;
+  top: 1772px;
+  width: 1889px;
+  height: 1494px;
+  border-radius: 50px;
+  background: rgba(255, 255, 255, 0.7);
+}
+
+.grid {
+  position: absolute;
+  left: 203px;
+  top: 1821px;
+  width: 1740px;
+  height: 1396px;
+}
+
+/*
+ * A tile is a 300-wide column: a 300×300 plate, a 35px gap, then the two text
+ * lines (38 + 14 + 25 = 77) → 412 tall. Columns step 480, rows 492.
+ */
+.tile {
+  position: absolute;
+  width: 300px;
+  height: 412px;
+  padding: 0;
+  border: none;
+  background: none;
+  font-family: inherit;
+  text-align: center;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* 준비중 tiles: full colour, inert. */
+.tileInert {
   cursor: default;
 }
 
-/* Wide tile (전국도로교통상황) */
-.tileWrapWide {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 25px;
-  width: 830px;
-  height: 100%;
-  flex-shrink: 0;
-  cursor: pointer;
-  -webkit-tap-highlight-color: transparent;
-}
-
-.tileCardWide {
-  width: 830px;
-  height: 300px;
-  cursor: pointer;
-  -webkit-tap-highlight-color: transparent;
-  transition: transform 0.12s, filter 0.12s;
-  flex-shrink: 0;
-}
-
-.tileCardWide:active {
-  transform: scale(0.98);
-  filter: brightness(0.9);
-}
-
-/* ── Bottom nav ─────────────────────────────────────── */
-/* Single Figma render (strip + 3 buttons + labels), with click zones.
-   The container is click-through so it never blocks the menu tiles that may
-   sit beneath its transparent areas — only the three zones are interactive. */
-.bottomNav {
+/* The plate's fill comes from the tile config (the frame's per-tile colour). */
+.plate {
   position: absolute;
-  top: 2821px;
   left: 0;
-  width: 2160px;
-  height: 446px;
+  top: 0;
+  width: 300px;
+  height: 300px;
+  border-radius: 85.799px;
+  overflow: hidden;
+}
+
+/* Box and offset per tile, inline from the config. object-fit for the PNGs the
+   frame draws with object-cover (TAX-FREE, 화성휴게소, 지역화폐 — all square). */
+.plateArt {
+  position: absolute;
+  object-fit: cover;
   pointer-events: none;
 }
 
-.bottomNavImg {
+/* '휴' 뭐사지 icon group (177.62 × 182.7) centred in its plate. */
+.goods {
   position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  object-fit: fill;
+  left: 61.19px;
+  top: 58.65px;
+  width: 177.62px;
+  height: 182.7px;
   pointer-events: none;
 }
 
-/* Transparent click zones at exact Figma button coordinates */
-.bottomNavZoneLeft,
-.bottomNavZoneCenter,
-.bottomNavZoneRight {
+.goods > * {
   position: absolute;
+  display: block;
+}
+
+.goodsBag {
+  left: 4.99px;
+  top: 50.66px;
+  width: 166.089px;
+  height: 132.04px;
+}
+
+/* Each leaf is a 71.352×51.799 ellipse turned inside its rotated bounding box. */
+.goodsLeafBox {
+  display: flex !important;
+  align-items: center;
+  justify-content: center;
+}
+
+.goodsLeaf {
+  flex: none;
+  width: 71.352px;
+  height: 51.799px;
+}
+
+.goodsKnot {
+  left: 38.11px;
+  top: 37.37px;
+  width: 34.048px;
+  height: 14.948px;
+  transform: scaleY(-1) rotate(180deg);
+}
+
+.goodsBand {
+  left: 75.58px;
+  top: 59.79px;
+  width: 25.744px;
+  height: 122.906px;
+  background: #fec06d;
+}
+
+.goodsBandLight {
+  left: 85.54px;
+  top: 59.79px;
+  width: 5.813px;
+  height: 122.906px;
+  background: #ffdb8d;
+}
+
+.goodsClasp {
+  left: 68.1px;
+  top: 34.87px;
+  width: 38.201px;
+  height: 31.557px;
+  border-radius: 14px;
+  background: #039175;
+}
+
+.goodsPhoto {
+  left: 68.1px;
+  top: 84.7px;
+  width: 102.975px;
+  height: 97.993px;
+  border-radius: 24px;
+  opacity: 0.3;
+  object-position: bottom;
+}
+
+.tileText {
+  position: absolute;
+  left: 0;
+  top: 335px;
+  width: 300px;
+}
+
+/* Medium 38 / Regular 25 at 30% black, centred, allowed to wrap. */
+.tileTitle {
+  display: block;
+  margin: 0;
+  font-size: 38px;
+  font-weight: 500;
+  line-height: 1;
+  color: #000;
+  word-break: break-word;
+}
+
+.tileSub {
+  display: block;
+  margin: 14px 0 0;
+  font-size: 25px;
+  font-weight: 400;
+  line-height: 1;
+  color: #000;
+  opacity: 0.3;
+  word-break: break-word;
+}
+
+/* ── Bottom actions: 스마트관광 / 사진촬영 / 화장실 ───────────────────── */
+/* K-DRAMA plate 7904:104954 — #F44, radius 50; the map glyph (132.16×145.279,
+   export bleeding 2.71% each side and 3.55% below) centred. */
+.smartTour {
+  position: absolute;
+  left: 304px;
+  top: 3389px;
+  width: 381px;
+  height: 235px;
+  border-radius: 50px;
+  background: #ff4444;
+}
+
+.smartTourImg {
+  position: absolute;
+  left: 120.84px;
+  top: 44.86px;
+  width: 139.325px;
+  height: 150.439px;
+  pointer-events: none;
+}
+
+/* Group 1707482188 — blue dome + camera glyph, one export. */
+.camera {
+  position: absolute;
+  left: 950px;
+  top: 3338px;
+  width: 353.382px;
+  height: 354.799px;
   padding: 0;
   border: none;
   background: none;
   cursor: pointer;
-  pointer-events: auto;
   -webkit-tap-highlight-color: transparent;
 }
 
-/* 스마트 관광: Figma left 15.97% → 345px, top 99px, 235×235 */
-.bottomNavZoneLeft {
-  left: 345px;
-  top: 99px;
-  width: 235px;
-  height: 235px;
-}
-
-/* AR 한복체험 camera: Figma left 41.81% → 903px, top 39px, 356×356 */
-.bottomNavZoneCenter {
-  left: 903px;
-  top: 39px;
-  width: 356px;
-  height: 356px;
-}
-
-/* 화장실: Figma left 73.29% → 1583px, top 99px, icon 235×235 + label band
-   (same rhythm as Insadong restroomItem: label baseline ~360). */
-.bottomNavZoneRight {
-  left: 1583px;
-  top: 99px;
-  width: 235px;
-  height: 312px;
-}
-
-/* Localized WC label — opaque white strip hides the Korean text baked into
-   fg-bottomnav.png so en/ja/… can replace it. */
-.bottomNavWcLabel {
+/* Group 7904:104941 — dark disc, then the two figures cut from one image (image
+   500) and a small dot, at their offsets from the disc's (1632, 3389). */
+.restroom {
   position: absolute;
-  left: 50%;
-  bottom: 0;
-  transform: translateX(-50%);
-  box-sizing: border-box;
-  min-width: 235px;
-  padding: 6px 12px 2px;
-  background: #fff;
-  font-family: 'Noto Sans KR', 'Noto Sans', sans-serif;
-  font-size: 50px;
-  font-weight: 400;
-  line-height: 1.1;
-  color: #000;
-  text-align: center;
-  white-space: nowrap;
-  pointer-events: none;
+  left: 1632px;
+  top: 3389px;
+  width: 233.272px;
+  height: 234.125px;
+  padding: 0;
+  border: none;
+  background: none;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
 }
 
-/* Localized 스마트 관광 label (other languages only) — an opaque white strip over
-   the two-line Korean baked into fg-bottomnav.png, whose ink spans x368–559,
-   y354–433 of the bottom nav. The strip is centred on the button (x462.5) and
-   runs to the nav's foot; the camera button's zone starts at x725, so 460 wide
-   stays clear of it. A longer translation shrinks to fit (useFitText `ink`). */
-.bottomNavSmartLabel {
-  position: absolute;
-  left: 232.5px;
-  top: 344px;
-  width: 460px;
-  height: 102px;
-  box-sizing: border-box;
-  background: #fff;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  font-family: 'Noto Sans KR', 'Noto Sans', sans-serif;
-  font-size: calc(42px * var(--fit, 1));
-  font-weight: 400;
-  line-height: 1.15;
-  color: #000;
-  text-align: center;
-  white-space: nowrap;
-  pointer-events: none;
-}
-
-.bottomNavSmartLine {
+.actionImg {
   display: block;
-}
-
-/* ── Bottom banner ──────────────────────────────────── */
-.bottomBanner {
-  position: absolute;
-  top: 3267px;
-  left: 0;
-  width: 2160px;
-  height: 573px;
-  pointer-events: none;
-}
-
-.bottomBannerImg {
   width: 100%;
   height: 100%;
-  object-fit: cover;
-  display: block;
   pointer-events: none;
+}
+
+.wcFigure {
+  position: absolute;
+  top: 25.89px;
+  height: 183px;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.wcFigure img {
+  position: absolute;
+  top: 0;
+  height: 99.96%;
+  max-width: none;
+}
+
+.wcFigureLeft { left: 25.74px; width: 99px; }
+.wcFigureLeft img { left: -84.85%; width: 184.77%; }
+.wcFigureRight { left: 111.74px; width: 84px; }
+.wcFigureRight img { left: 0; width: 217.76%; }
+
+.wcDot {
+  position: absolute;
+  left: 149.18px;
+  top: 133.71px;
+  width: 13.576px;
+  height: 16.077px;
+  pointer-events: none;
+}
+
+/* Captions — Regular 38 black at y3648, centred under their button; a long
+   language wraps downward into the free space at the foot of the frame. */
+.actionLabel {
+  position: absolute;
+  top: 3648px;
+  margin: 0;
+  font-size: 38px;
+  font-weight: 400;
+  line-height: 1;
+  color: #000;
+  text-align: center;
+  word-break: keep-all;
+  overflow-wrap: anywhere;
+}
+
+/* Frame box 294…694 (centre 494), widened to 560 on the same centre. */
+.labelSmartTour {
+  left: 214px;
+  width: 560px;
+}
+
+/* Frame box 1678…1820 (centre 1749), widened to 400 on the same centre. */
+.labelRestroom {
+  left: 1549px;
+  width: 400px;
 }
 
 /* ── Other languages ──────────────────────────────────────────────────────
- * Reached only through a class the TSX adds when lang !== 'ko' — the Korean
- * home is untouched.
- *
- * The row pitch is fixed at "300px card + 173px", so a tile label has exactly
- * the 148px left under its card (173 − the 25px card→label gap) before it
- * reaches the next row. Korean labels are one or two 38px lines; the other
- * languages wrap to three and four.
- *
- * Giving the label that 148px as a real height is what lets the fit measure it —
- * an auto-height label can never report an overflow of its own. Short labels are
- * unaffected: they already sat at the top of that band. The whole grid then
- * shrinks by ONE factor (`--fit`, useFitText — never below 0.7 → 27px) so it
- * keeps a single text size. `overflow-wrap` is the guard for a word wider than
- * the 300px column, which the Korean rule never needed. Nothing is clipped. */
-.tileLabelLong {
-  height: 148px;
-  overflow-wrap: anywhere;
+ * Reached only through classes the TSX adds when lang !== 'ko'. */
+
+/* 1. Notice — the band the panel really has (40 under its top to 60 above the
+ *    board), with the rule following the text's height; scales down (≥ 0.7). */
+.noticeLeadWide {
+  top: 40px;
+  height: 335px;
+}
+
+.noticeRow {
+  display: flex;
+  align-items: stretch;
+  gap: 42.565px;
+}
+
+.noticeRow .noticeRule {
+  height: auto;
+}
+
+.noticeTextWide {
+  width: 1060px;
+  font-size: calc(60px * var(--fit, 1));
+  /* 1.3, not the frame's 70/60: Thai stacks tone marks above the line box and
+     Vietnamese stacks diacritics, which a 70 line clipped at the card's top. */
+  line-height: calc(78px * var(--fit, 1));
+  word-break: normal;
+}
+
+/* 2. Feature cards — title + subtitle as one column bounded by the art. */
+.cardText {
+  position: absolute;
+  top: 20px;
+  bottom: 20px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: calc(29px * var(--fit, 1));
+}
+
+.cardText .cardTitle,
+.cardText .cardSub {
+  position: static;
+  white-space: normal;
+  word-break: normal;
+  overflow-wrap: normal;
+}
+
+.cardText .cardTitle {
+  font-size: calc(45px * var(--fit, 1));
+  line-height: 1.02;
+}
+
+.cardText .cardSub {
   font-size: calc(38px * var(--fit, 1));
+  line-height: 1.1;
+}
+
+.cardTraffic .cardText { left: 363px; width: 350px; }
+.cardRest .cardText    { left: 57px;  width: 225px; }
+.cardEvents .cardText  { left: 40px;  width: 280px; }
+
+/* 3. Tiles — the text gets the whole gap down to 10 above the next plate, and
+ *    half of the 180 gutter on each side (400 wide, centred on the 300 plate):
+ *    "Культурное наследие (в процессе подготовки)" wrapped to three lines in
+ *    300, pushed its subtitle out of the panel and dragged the whole grid's
+ *    shared --fit down until every subtitle was unreadable. */
+.tileTextFit {
+  left: -50px;
+  width: 400px;
+  height: 147px;
+}
+
+.tileTextFit .tileTitle {
+  font-size: calc(38px * var(--fit, 1));
+  word-break: normal;
+  overflow-wrap: normal;
+}
+
+.tileTextFit .tileSub {
+  margin-top: calc(14px * var(--fit, 1));
+  font-size: calc(25px * var(--fit, 1));
+  word-break: normal;
+  overflow-wrap: normal;
+}
+
+/* ── ♿ barrier-free home (Figma 7904:104975) ──────────────────────────────
+ * Same positions as 오산's ♿ home: the mode bar (HwaseongKiosk) and the 가상
+ * 한복 promo take the top 719, the location row drops to 817, the notice card
+ * grows to hold the 오늘의 상점 board (998–1883), and the search row, cards,
+ * grid and actions follow it down. The home is a MODE_DEDICATED screen, so
+ * nothing here is shifted: every value is the frame's absolute y. */
+.homeLow .topBar {
+  top: 817px;
+}
+
+.homeLow .notice {
+  top: 998px;
+  height: 885px;
+}
+
+.homeLow .weather {
+  top: 81px;
+}
+
+/* The rule sits at 1124 and the text 16px below its top (7904:105083 / 105096). */
+.homeLow .noticeLead {
+  top: 126px;
+  justify-content: flex-start;
+  align-items: flex-start;
+}
+
+.homeLow .noticeRow {
+  align-items: flex-start;
+}
+
+.homeLow .noticeText {
+  margin-top: 16px;
+}
+
+/* 검색장 7904:104977 — 1910 wide at (125, 1952); no home button. */
+.homeLow .searchRow {
+  left: 125px;
+  top: 1952px;
+  width: 1910px;
+}
+
+.homeLow .searchHome {
+  display: none;
+}
+
+.homeLow .searchField {
+  left: 51px;
+  width: 1629px;
+}
+
+.homeLow .langBtn {
+  left: 1730px;
+}
+
+/* 7904:104985 — 706 / 540 / 540 cards, 250 tall, justified across 1860 at
+   (170, 2208). Type keeps its size; the art shrinks and everything moves up. */
+.homeLow .cards {
+  left: 170px;
+  top: 2208px;
+  width: 1860px;
+  height: 250px;
+}
+
+.homeLow .card {
+  height: 250px;
+}
+
+.homeLow .cardTraffic { left: 0; width: 706px; }
+.homeLow .cardRest    { left: 743px; width: 540px; }
+.homeLow .cardEvents  { left: 1320px; width: 540px; }
+
+.homeLow .cardTraffic .cardTitle { left: 313px; top: 74px; }
+.homeLow .cardTraffic .cardSub   { left: 319px; top: 148px; }
+/* Layer_1 222.235×191.421 at (55.88, 31.81) — the normal 238×205 at 0.9338. */
+.homeLow .cardTraffic .cardArt   { left: 76.41px; top: 49.92px; width: 168.83px; height: 146.42px; }
+
+.homeLow .cardRest .cardTitle { left: 57px; top: 78px; }
+.homeLow .cardRest .cardSub   { left: 57px; top: 152px; }
+.homeLow .cardRest .cardArt   { left: 337.06px; top: 81.63px; width: 109.428px; height: 95.744px; }
+
+.homeLow .cardEvents .cardTitle { left: 40px; top: 78px; }
+.homeLow .cardEvents .cardSub   { left: 50.8px; top: 152px; }
+/* Layer_4 143.331 square at (354, 60) — the normal 173.527 at 0.826. */
+.homeLow .eventsArt {
+  left: 354px;
+  top: 60px;
+  transform: scale(0.826);
+  transform-origin: 0 0;
+}
+
+.homeLow .cardTraffic .cardText { left: 313px; width: 360px; }
+
+/* 7904:105098 — the 1860×810 panel at (150, 2532); the 1792.059 grid at
+   (188.43, 2598), rows 0 / 374.27. */
+.homeLow .panel {
+  left: 150px;
+  top: 2532px;
+  width: 1860px;
+  height: 810px;
+}
+
+.homeLow .grid {
+  left: 188.43px;
+  top: 2598px;
+  width: 1792.059px;
+  height: 678px;
+}
+
+/* Tiles are drawn at 0.7667× (230 / 300), so the values below are pre-divided
+   by it: the plate's 85.8 radius lands on the frame's 65.78, the label sits 260
+   under the plate's top in Regular 38, and there is no second line. */
+.homeLow .tile {
+  transform: scale(0.7667);
+  transform-origin: 0 0;
+}
+
+.homeLow .tileText {
+  top: 339.1px;
+}
+
+/* The 6 × 2 grid steps 312.41 (407 in the tile's scaled units), so the
+   widened label band leaves 107 − 90 between neighbours instead of 180. */
+.homeLow .tileTextFit {
+  left: -45px;
+  width: 390px;
+}
+
+.homeLow .tileTitle,
+.homeLow .tileTextFit .tileTitle {
+  font-size: calc(49.56px * var(--fit, 1));
+  font-weight: 400;
+}
+
+.homeLow .tileSub {
+  display: none;
+}
+
+/* Bottom actions 7904:105333 — 77 lower than the normal home. */
+.homeLow .smartTour {
+  top: 3466px;
+}
+
+.homeLow .camera {
+  top: 3416px;
+}
+
+.homeLow .restroom {
+  top: 3466px;
+}
+
+.homeLow .actionLabel {
+  top: 3725px;
 }

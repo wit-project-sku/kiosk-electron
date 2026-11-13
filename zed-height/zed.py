@@ -68,6 +68,7 @@ class ZedCamera:
         self._runtime = None
         self._mat = None
         self._resolution = None
+        self._image = None
 
     def open(self) -> None:
         try:
@@ -96,6 +97,7 @@ class ZedCamera:
         cam = sl.Camera()
         status = cam.open(init)
         if status != sl.ERROR_CODE.SUCCESS:
+            cam.close()  # release whatever the failed open set up
             raise ZedUnavailable(f"ZED open failed: {status}")
 
         self._sl = sl
@@ -103,6 +105,7 @@ class ZedCamera:
         self._runtime = sl.RuntimeParameters()
         self._mat = sl.Mat()
         self._resolution = sl.Resolution(MEASURE_WIDTH, MEASURE_HEIGHT)
+        self._image = sl.Mat()
 
     def grab(self) -> Frame | None:
         """Next frame, or None if the camera had nothing ready."""
@@ -115,6 +118,27 @@ class ZedCamera:
 
         cam.retrieve_measure(self._mat, sl.MEASURE.XYZ, sl.MEM.CPU, self._resolution)
         return Frame(points=self._mat.get_data(), gravity=self._gravity())
+
+    def preview(self, width: int, height: int) -> np.ndarray:
+        """The LEFT lens image of the last grab, downscaled, as (H, W, 3) RGB uint8.
+
+        For the pose model only (body.py), held in memory and never stored.
+        Must be called after grab(), on the same frame the point cloud came from
+        — the two are registered pixel for pixel.
+        """
+        sl = self._sl
+        self._cam.retrieve_image(self._image, sl.VIEW.LEFT, sl.MEM.CPU, sl.Resolution(width, height))
+        bgra = self._image.get_data()
+        return np.ascontiguousarray(bgra[:, :, 2::-1])
+
+    def intrinsics(self) -> tuple[float, float, float, float, int, int]:
+        """(fx, fy, cx, cy, width, height) of the left lens at the point-cloud resolution."""
+        info = self._cam.get_camera_information()
+        config = getattr(info, "camera_configuration", info)
+        left = config.calibration_parameters.left_cam
+        res = getattr(config, "resolution", None) or info.camera_resolution
+        sx, sy = MEASURE_WIDTH / res.width, MEASURE_HEIGHT / res.height
+        return left.fx * sx, left.fy * sy, left.cx * sx, left.cy * sy, MEASURE_WIDTH, MEASURE_HEIGHT
 
     def _gravity(self) -> np.ndarray | None:
         """IMU acceleration, which at rest is the gravity vector.
@@ -153,6 +177,11 @@ def _depth_mode(sl):
     The enum has been reorganised across SDK majors, so the preference is
     resolved by name with a fallback rather than hard-coded.
     """
+    # Override: HEIGHT_DEPTH_MODE=NEURAL gives cleaner silhouette edges (so
+    # better widths) at the cost described above — a slow first start.
+    wanted = os.environ.get("HEIGHT_DEPTH_MODE", "").upper()
+    if wanted and getattr(sl.DEPTH_MODE, wanted, None) is not None:
+        return getattr(sl.DEPTH_MODE, wanted)
     for name in ("ULTRA", "QUALITY", "PERFORMANCE"):
         mode = getattr(sl.DEPTH_MODE, name, None)
         if mode is not None:

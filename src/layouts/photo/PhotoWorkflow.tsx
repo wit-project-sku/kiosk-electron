@@ -12,21 +12,50 @@ import { useAccessibilityStore } from '@renderer/store/accessibilityStore';
 import { generatedUrl } from '@renderer/lib/media';
 import { pick, useLang } from '@renderer/lib/i18n';
 import { ui } from '@renderer/lib/uiText';
-import { trackEvent } from '@renderer/lib/analytics';
-import { resolveButton } from '@renderer/lib/buttonCatalog';
+import { localIso, recordMenuTouch, trackEvent } from '@renderer/lib/analytics';
+import { photoModeTouch, resolveButton } from '@renderer/lib/buttonCatalog';
 import { HanbokSelect, type CaptureMode } from './HanbokSelect';
 import { JejuHanbokSelect } from '../jeju/JejuHanbokSelect';
 import { JejuWaitingGames } from '../jeju/games/JejuWaitingGames';
 import { usePhotoChrome } from './photoChrome';
 import { OsanLeftNav } from '@layouts/osan/OsanLeftNav';
-import { MARKET_SUBTITLE, RESULT, RESULT_KADA } from './photoTexts';
+import { MARKET_SUBTITLE, RESULT_KADA, resultFromSheet } from './photoTexts';
 import styles from './PhotoWorkflow.module.css';
+import { VoiceIntro } from '../jeju/voice/intro';
+import { VoiceToggle } from '../jeju/voice/VoiceToggle';
+
+/** 제주 voice guidance on the result page (the sheet's W008 row differs — no WIT Store). */
+const VOICE_RESULT = ['hanbok.result'] as const;
+/**
+ * The plain result page (photo + save QR, no store). Named with the airport's
+ * row because the shared `hanbok.result` line also invites the visitor to make
+ * goods, which this page does not offer — 여객터미널 W009 draws it too now.
+ */
+const VOICE_RESULT_PLAIN = ['hanbok.result@W008'] as const;
+/** 제주 venues whose finished photo is the plain image + save QR, not the store. */
+const PLAIN_RESULT_KIOSKS: ReadonlySet<string> = new Set(['W008', 'W009']);
 
 /** Where the 굿즈제작 button's QR points. */
 const GOODS_URL = 'https://insarang.kr/';
 /** Phone save page — the result image URL is appended. Matches the (working)
- *  Unity kiosk, which uses the Vercel host (netlify is the fallback mirror). */
+ *  Unity kiosk, which uses the Vercel host (netlify is the fallback mirror).
+ *  Only the FALLBACK now: see saveQrUrl. */
 const SAVE_BASE = 'https://withphoto.vercel.app/?imageUrl=';
+
+/**
+ * What the phone-pickup QR opens. The witteria upload (/api/photo-booth)
+ * returns data.shareUrl — a pickup page with per-device save (iPhone share sheet,
+ * Android download, an "open in browser" prompt inside KakaoTalk), deleted after
+ * an hour — and the QR uses it directly, so the phone never goes through Vercel.
+ * Only a response without shareUrl (the old photo.witteria.com/api/images host)
+ * falls back to withphoto.vercel.app/?imageUrl=. imageUrl itself keeps every
+ * other job: the on-screen image and the 기부 hand-off.
+ */
+function saveQrUrl(shareUrl: string | null, imageUrl: string, lang: string): string {
+  if (!shareUrl) return `${SAVE_BASE}${encodeURIComponent(imageUrl)}`;
+  // The pickup page (every kiosk) opens in the visitor's kiosk language.
+  return `${shareUrl}${shareUrl.includes('?') ? '&' : '?'}lang=${encodeURIComponent(lang)}`;
+}
 
 /**
  * AI 한복 photo workflow — Monitor 1 (touch kiosk).
@@ -35,8 +64,10 @@ const SAVE_BASE = 'https://withphoto.vercel.app/?imageUrl=';
  *   clothing / style  → HanbokSelect (outfit selection, no popup)
  *   preview / countdown → camera-popup.png only (nothing else)
  *   generating        → camera popup; 제주 opens the 게임존 instead
- *   result            → WIT Store webview (Monitor 2 shows result image),
- *                       gated on the 제주 game finishing — see the gate below
+ *   result            → WIT Store webview on the market kiosks (Monitor 2
+ *                       shows the result image). 제주공항 shows the photo
+ *                       itself, the same screen 인사동 uses where there is no
+ *                       payment. 제주 still waits for the game — see the gate.
  */
 export function PhotoWorkflow(): JSX.Element {
   const phase = usePhotoStore((s) => s.phase);
@@ -46,6 +77,7 @@ export function PhotoWorkflow(): JSX.Element {
   const errorMessage = usePhotoStore((s) => s.errorMessage);
   const resultFileName = usePhotoStore((s) => s.resultFileName);
   const resultUrl = usePhotoStore((s) => s.resultUrl);
+  const resultShareUrl = usePhotoStore((s) => s.resultShareUrl);
   const reset = usePhotoStore((s) => s.reset);
   const kioskId = useKioskStore((s) => s.config.kioskId);
   const screen = useKioskStore((s) => s.screen);
@@ -53,19 +85,24 @@ export function PhotoWorkflow(): JSX.Element {
   const hasPayment = getKioskLocation(kioskId).hasCardTerminal;
   const rotating = useRotatingBanner();
   const chrome = usePhotoChrome();
-  const { isHwaseong, isJeju, isKada, icon, Header, photoTitle, banner: chromeBanner } = chrome;
+  const { isHwaseong, isJeju, isKada, isLotte, icon, Header, photoTitle, banner: chromeBanner } = chrome;
+  /** Result page without 굿즈제작 (Save + Retake only) — see the button. */
+  const noGoods = isKada || isJeju || isLotte;
   // The 위드마켓 rail's ♿ toggle (제주 only) — see the button for what it does
   // and does not affect on this screen.
   const lowReach = useAccessibilityStore((s) => s.lowReach);
   const toggleLowReach = useAccessibilityStore((s) => s.toggleLowReach);
   const accessibilityIcon =
     (lowReach ? icon('ico-accessibility-on') : undefined) ?? icon('ico-accessibility');
-  // 위드마켓 result gate. `hasCardTerminal` alone is the wrong test: 화성휴게소
-  // W005 got a TL-3800 for the 기부 (donation) app, not for the store, so its
-  // photo result must stay the plain image + save QR like the no-payment
-  // kiosks — only venues that pair the terminal WITH the store webview take
-  // the 위드마켓 result screen.
-  const showsMarketResult = hasPayment && !isHwaseong;
+  // 위드마켓 result gate. `hasCardTerminal` alone is the wrong test:
+  //  - 화성휴게소 W005's TL-3800 is for the 기부 (donation) app, not the store
+  //  - 제주공항 W008 keeps its terminal for 기부 too, but the finished photo
+  //    is the plain image + save QR, the same screen 인사동 draws where there
+  //    is no payment. The home 위드마켓 card is inert there as well.
+  //  - 여객터미널 W009 follows the airport (2026-11-10): no store on the result.
+  // Only venues that pair the terminal WITH the store webview take this screen.
+  const showsMarketResult =
+    hasPayment && !isHwaseong && !isLotte && !PLAIN_RESULT_KIOSKS.has(kioskId);
   // Osan/Hwaseong have their own single promo banner; insadong rotates through several.
   const banner = chromeBanner ?? rotating;
   const [goodsQrOpen, setGoodsQrOpen] = useState(false);
@@ -90,6 +127,9 @@ export function PhotoWorkflow(): JSX.Element {
   // keep the `boolean` annotation either way, so the branches it guards do not
   // narrow to unreachable code.
   const playsWaitingGame: boolean = chrome.waitingGames;
+  /* 인사동 / 오산 / 화성 announce the finished photo with the 저장하기 / 다시찍기
+     popup and never hold Monitor 2 back (see below); 제주 does both its own way. */
+  const photoReadyModal = chrome.isInsadong || chrome.isOsan || chrome.isHwaseong;
   const [gameDone, setGameDone] = useState(false);
   const deferredRef = useRef(false);
 
@@ -110,10 +150,10 @@ export function PhotoWorkflow(): JSX.Element {
   // big screen back on its attract video. Never deferring also means there is
   // nothing to release, so the hand-over below stays a no-op for 인사동.
   useEffect(() => {
-    if (!playsWaitingGame || (chrome.isInsadong || chrome.isOsan) || phase !== 'generating' || deferredRef.current) return;
+    if (!playsWaitingGame || photoReadyModal || phase !== 'generating' || deferredRef.current) return;
     deferredRef.current = true;
     void window.api.photo.setDeferResultDisplay(true);
-  }, [playsWaitingGame, (chrome.isInsadong || chrome.isOsan), phase]);
+  }, [playsWaitingGame, photoReadyModal, phase]);
 
   // A new session (or a 다시찍기 / 홈) re-arms the gate. Keyed on the phase
   // leaving the generating→result pair rather than on the reset handler, so
@@ -192,6 +232,10 @@ export function PhotoWorkflow(): JSX.Element {
         kioskId,
       },
     });
+    // Count the tap in the admin stats (혼자찍기 / 같이찍기). Fire-and-forget, so it
+    // never delays the capture; a kiosk with no row (KADA) sends nothing.
+    const touch = photoModeTouch(kioskId, mode === 'solo' ? 'solo' : 'together', localIso());
+    if (touch) recordMenuTouch(touch);
     await window.api.photo.selectClothing(category);
     await window.api.photo.selectStyle(mode, backgroundId);
     if (chrome.gestureCapture) {
@@ -233,7 +277,7 @@ export function PhotoWorkflow(): JSX.Element {
         aiReady={phase === 'result'}
         onFinish={handleGameFinish}
         onHome={handleReset}
-        readyModal={(chrome.isInsadong || chrome.isOsan)}
+        readyModal={photoReadyModal || chrome.isJeju}
       />
     );
   }
@@ -251,12 +295,13 @@ export function PhotoWorkflow(): JSX.Element {
     return <HanbokSelect onHome={handleReset} onCapture={handleCapture} countdownActive={capturing} />;
   }
 
-  // ── Result (MARKET kiosks W003/W004/제주): WIT Store on Monitor 1; result image big on Monitor 2 ──
+  // ── Result (MARKET kiosks W003/W004, and 제주 except 제주공항 / 여객터미널): WIT Store on Monitor 1; result image big on Monitor 2 ──
   if (phase === 'result' && showsMarketResult) {
     const imageUrl = resultUrl ?? (resultFileName ? generatedUrl(resultFileName) : '');
-    const saveUrl = `${SAVE_BASE}${encodeURIComponent(imageUrl)}`;
+    const saveUrl = saveQrUrl(resultShareUrl, imageUrl, lang);
     return (
       <>
+        <VoiceIntro keys={VOICE_RESULT} />
         {isHwaseong ? (
           <>
             <div className={styles.bgBase} />
@@ -306,10 +351,10 @@ export function PhotoWorkflow(): JSX.Element {
             />
           </svg>
           <button type="button" className={styles.paySaveBtn} onClick={() => setSaveQrOpen(true)}>
-            저장하기
+            {resultFromSheet(lang).save}
           </button>
           <button type="button" className={styles.payRetakeBtn} onClick={handleReset}>
-            다시찍기
+            {resultFromSheet(lang).retake}
           </button>
         </div>
 
@@ -343,6 +388,7 @@ export function PhotoWorkflow(): JSX.Element {
               <img src={accessibilityIcon} alt="" draggable={false} />
             </button>
           )}
+          <VoiceToggle className={styles.leftNavBtn} />
         </div>
         )}
 
@@ -372,12 +418,15 @@ export function PhotoWorkflow(): JSX.Element {
   // ── Result (W001/W002/W005 + KADA): show the result image + QR to save.
   //    W005 lands here DESPITE its card terminal — see showsMarketResult above. ──
   if (phase === 'result') {
-    const c = pick(isKada ? RESULT_KADA : RESULT, lang);
+    /* KADA has no Localization sheet; every other venue reads its own sheet's
+       Photo_* rows over the authored RESULT copy. */
+    const c = isKada ? pick(RESULT_KADA, lang) : resultFromSheet(lang);
     const imageUrl = resultUrl ?? (resultFileName ? generatedUrl(resultFileName) : '');
-    const saveUrl = `${SAVE_BASE}${encodeURIComponent(imageUrl)}`;
+    const saveUrl = saveQrUrl(resultShareUrl, imageUrl, lang);
 
     return (
       <>
+        <VoiceIntro keys={VOICE_RESULT_PLAIN} />
         {isHwaseong ? (
           <>
             <div className={styles.bgBase} />
@@ -433,13 +482,14 @@ export function PhotoWorkflow(): JSX.Element {
               </button>
               {/* 굿즈제작 opens insarang.kr — a Korean storefront with nothing behind
                   it for a Hanoi visitor, so KADA ships Save + Retake only, and its
-                  Retake takes the grey this third slot used to hold. */}
-              {!isKada && (
+                  Retake takes the grey this third slot used to hold. 제주 dropped
+                  it too (2026-10-28): an 인사동 shop has nothing for a 제주 visitor. */}
+              {!noGoods && (
                 <button type="button" className={`${styles.resultBtn} ${styles.resultBtnAlt}`} onClick={() => setGoodsQrOpen(true)}>
                   {c.goods}
                 </button>
               )}
-              <button type="button" className={isKada ? `${styles.resultBtn} ${styles.resultBtnAlt}` : styles.resultBtn} onClick={handleReset}>
+              <button type="button" className={noGoods ? `${styles.resultBtn} ${styles.resultBtnAlt}` : styles.resultBtn} onClick={handleReset}>
                 {c.retake}
               </button>
             </div>
@@ -466,13 +516,25 @@ export function PhotoWorkflow(): JSX.Element {
           /* 오산: the shared rail (home · back · ♿), as on every other 오산 page. */
           <OsanLeftNav onHome={handleReset} onBack={handleReset} />
         ) : (
-          <div className={styles.leftNav}>
+          <div className={`${styles.leftNav} ${isJeju ? styles.leftNavJeju : ''}`}>
             <button type="button" className={styles.leftNavBtn} onClick={handleReset} aria-label="홈으로">
               {icon('home-btn') && <img src={icon('home-btn')} alt="" draggable={false} />}
             </button>
             <button type="button" className={styles.leftNavBtn} onClick={handleReset} aria-label="뒤로">
               {icon('back-arrow') && <img src={icon('back-arrow')} alt="" draggable={false} />}
             </button>
+            {isJeju && accessibilityIcon && (
+              <button
+                type="button"
+                className={styles.leftNavBtn}
+                onClick={toggleLowReach}
+                aria-label="저상 화면"
+                aria-pressed={lowReach}
+              >
+                <img src={accessibilityIcon} alt="" draggable={false} />
+              </button>
+            )}
+            <VoiceToggle className={styles.leftNavBtn} />
           </div>
         )}
 

@@ -18,6 +18,7 @@ const THEME_FILES: Record<KioskLayoutId, string> = {
   JEJU_AIRPORT: 'jeju-airport.json',
   JEJU_HERITAGE: 'jeju-heritage.json',
   KADA: 'kada.json',
+  LOTTE: 'lotte.json',
 };
 
 function themesDirectory(): string {
@@ -127,6 +128,16 @@ const FALLBACK_COLORS: Record<KioskLayoutId, KioskTheme['colors']> = {
     textMuted: '#878b91',
     accent: '#ffa69c',
   },
+  LOTTE: {
+    primary: '#DA291C',
+    primaryHover: '#A31A12',
+    secondary: '#F3EEE7',
+    background: '#FFF4F3',
+    surface: '#FFFFFF',
+    text: '#2A2320',
+    textMuted: '#7A716B',
+    accent: '#B8935A',
+  },
 };
 
 function fallbackTheme(layout: KioskLayoutId): KioskTheme {
@@ -138,6 +149,7 @@ function fallbackTheme(layout: KioskLayoutId): KioskTheme {
     JEJU_AIRPORT: 'jeju-airport',
     JEJU_HERITAGE: 'jeju-heritage',
     KADA: 'kada',
+    LOTTE: 'lotte',
   };
   const NAME_MAP: Record<KioskLayoutId, string> = {
     INSADONG: 'Insadong',
@@ -147,6 +159,7 @@ function fallbackTheme(layout: KioskLayoutId): KioskTheme {
     JEJU_AIRPORT: '제주공항',
     JEJU_HERITAGE: '세계자연유산본부',
     KADA: 'Korea-ASEAN Digital Academy',
+    LOTTE: '롯데',
   };
   const theme: KioskTheme = {
     id: ID_MAP[layout] ?? layout.toLowerCase(),

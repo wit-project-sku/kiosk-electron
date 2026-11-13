@@ -1,0 +1,198 @@
+/* Shared body styles for the 롯데 screens with no 제주 counterpart (시안 A). Figma px on 2160×3840. */
+.page { position: absolute; left: 150px; top: 700px; width: 1860px; height: 2500px; display: flex; flex-direction: column; gap: 48px; font-family: var(--kiosk-font, 'Noto Sans KR', sans-serif); color: #2A2320; }
+.pageBelowTabs { top: 920px; height: 2280px; }
+.scroll { flex: 1 1 0; min-height: 0; overflow-y: auto; display: flex; flex-direction: column; gap: 32px; padding-bottom: 40px; }
+.panel { background: #fff; border-radius: 45px; padding: 56px 64px; box-sizing: border-box; }
+.heading { margin: 0; font-size: 60px; font-weight: 700; line-height: 1.3; }
+.note { margin: 0; font-size: 42px; line-height: 1.5; color: #7A716B; }
+.chips { display: flex; flex-wrap: wrap; gap: 28px; }
+.chip { height: 120px; min-width: 240px; padding: 0 56px; border: 3px solid #E8E1D8; border-radius: 60px; background: #fff; font: inherit; font-size: 48px; font-weight: 600; color: #2A2320; cursor: pointer; }
+.chipOn { background: #DA291C; border-color: #DA291C; color: #fff; }
+.grid2 { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 40px; }
+.grid3 { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 32px; }
+.pick { height: 300px; border: 4px solid #E8E1D8; border-radius: 45px; background: #fff; font: inherit; font-size: 58px; font-weight: 700; color: #2A2320; cursor: pointer; }
+.pickOn { background: #DA291C; border-color: #DA291C; color: #fff; }
+.cta { align-self: center; width: 900px; height: 170px; border: 0; border-radius: 85px; background: #DA291C; color: #fff; font: inherit; font-size: 60px; font-weight: 700; cursor: pointer; }
+.ctaOff { background: #D9D2C9; color: #fff; }
+.ghost { align-self: center; width: 900px; height: 150px; border: 4px solid #DA291C; border-radius: 75px; background: #fff; color: #DA291C; font: inherit; font-size: 52px; font-weight: 700; cursor: pointer; }
+.card { display: flex; flex-direction: column; border: 0; padding: 0; overflow: hidden; border-radius: 45px; background: #fff; font: inherit; color: inherit; text-align: left; cursor: pointer; }
+.cardThumb { width: 100%; height: 460px; background: #F3EEE7; display: flex; align-items: center; justify-content: center; font-size: 42px; color: #A89E93; }
+.cardBody { width: 100%; box-sizing: border-box; padding: 40px 48px 48px; display: flex; flex-direction: column; gap: 16px; }
+.cardName { font-size: 54px; font-weight: 700; line-height: 1.25; }
+.cardNote { font-size: 40px; line-height: 1.45; color: #7A716B; }
+.floorRow { display: flex; align-items: center; gap: 48px; min-height: 170px; padding: 28px 56px; box-sizing: border-box; border-radius: 40px; background: #fff; }
+.floorName { flex: 0 0 170px; font-size: 72px; font-weight: 800; color: #DA291C; }
+.floorTheme { flex: 0 0 620px; font-size: 48px; font-weight: 600; }
+.floorTags { flex: 1 1 0; display: flex; flex-wrap: wrap; gap: 16px; }
+.tag { padding: 10px 28px; border-radius: 30px; background: #F3EEE7; font-size: 36px; color: #5D544E; }
+.tagOn { background: #F6E3E0; color: #A31A12; font-weight: 700; }
+.mapPlate { height: 460px; display: flex; align-items: center; justify-content: center; border: 4px dashed #D6CEC4; border-radius: 45px; background: #fff; font-size: 48px; color: #A89E93; text-align: center; }
+.row { display: flex; align-items: center; gap: 40px; width: 100%; min-height: 170px; padding: 28px 56px; box-sizing: border-box; border: 0; border-radius: 40px; background: #fff; font: inherit; color: inherit; text-align: left; cursor: pointer; }
+.rowFloor { flex: 0 0 150px; font-size: 56px; font-weight: 800; color: #DA291C; }
+.rowName { flex: 1 1 0; font-size: 50px; font-weight: 600; }
+.rowCat { font-size: 40px; color: #7A716B; }
+.table { display: flex; flex-direction: column; gap: 20px; }
+.thead, .tr { display: grid; grid-template-columns: 240px 1fr 160px 200px 240px; align-items: center; gap: 24px; padding: 0 56px; }
+.thead { height: 90px; font-size: 40px; font-weight: 600; color: #7A716B; }
+.tr { min-height: 150px; border-radius: 40px; background: #fff; font-size: 48px; }
+.trStart { font-size: 60px; font-weight: 800; color: #DA291C; }
+.profile { display: flex; gap: 72px; align-items: center; }
+.portrait { flex: 0 0 620px; height: 620px; border-radius: 50%; background: #F3EEE7; display: flex; align-items: center; justify-content: center; text-align: center; font-size: 42px; color: #A89E93; }
+.profileRows { flex: 1 1 0; display: flex; flex-direction: column; gap: 28px; }
+.profileRow { display: flex; gap: 40px; font-size: 48px; }
+.profileKey { flex: 0 0 240px; font-weight: 700; color: #DA291C; }
+.overlay { position: absolute; inset: 0; z-index: 20; display: flex; align-items: center; justify-content: center; background: rgba(42, 35, 32, 0.45); }
+.dialog { width: 1500px; padding: 72px; box-sizing: border-box; border-radius: 50px; background: #fff; display: flex; flex-direction: column; gap: 48px; font-family: var(--kiosk-font, 'Noto Sans KR', sans-serif); color: #2A2320; }
+.dialogHead { display: flex; justify-content: space-between; align-items: center; }
+.close { width: 120px; height: 120px; border: 0; border-radius: 50%; background: #F3EEE7; font-size: 64px; color: #2A2320; cursor: pointer; }
+.weatherNow { display: flex; align-items: center; gap: 56px; font-size: 150px; font-weight: 700; }
+.weatherIcon { width: 220px; height: 220px; object-fit: contain; }
+
+/* ── 2026-11-09 기능 화면 고도화 ─────────────────────────────── */
+.body { position: absolute; left: 150px; top: 700px; width: 1860px; height: 2520px; display: flex; flex-direction: column; gap: 32px; font-family: var(--kiosk-font, 'Noto Sans KR', sans-serif); color: #2A2320; }
+.bodyFull { height: 3000px; }
+.catGrid { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 20px; flex: none; }
+.cat { height: 118px; padding: 0 8px; border: 0; border-radius: 34px; background: #fff; font: inherit; font-size: 40px; font-weight: 600; color: #2A2320; cursor: pointer; word-break: keep-all; line-height: 1.1; }
+.catOn { background: #DA291C; color: #fff; }
+.floorStrip { display: flex; gap: 14px; flex: none; overflow-x: auto; align-items: center; }
+.floorLabel { flex: none; font-size: 40px; font-weight: 700; color: #7A716B; margin-right: 10px; }
+.floorPill { flex: none; min-width: 124px; height: 96px; padding: 0 22px; border: 3px solid #E8E1D8; border-radius: 48px; background: #fff; font: inherit; font-size: 38px; font-weight: 700; color: #2A2320; cursor: pointer; }
+.floorPillOn { background: #2A2320; border-color: #2A2320; color: #fff; }
+.metaRow { display: flex; justify-content: space-between; align-items: center; flex: none; font-size: 40px; color: #7A716B; }
+.metaRow b { color: #DA291C; font-weight: 800; }
+.listWrap { position: relative; flex: 1 1 0; min-height: 0; }
+.list2 { position: absolute; inset: 0; overflow-y: auto; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); grid-auto-rows: 232px; gap: 24px; padding-bottom: 24px; }
+.shopCard { display: flex; align-items: center; gap: 36px; padding: 0 36px; border: 0; border-radius: 40px; background: #fff; font: inherit; color: inherit; text-align: left; cursor: pointer; min-width: 0; }
+.shopFloor { flex: none; width: 156px; height: 156px; border-radius: 40px; background: #F6E3E0; display: flex; align-items: center; justify-content: center; font-size: 54px; font-weight: 800; color: #DA291C; overflow: hidden; }
+.shopFloor img { width: 100%; height: 100%; object-fit: cover; }
+.shopText { flex: 1 1 0; min-width: 0; display: flex; flex-direction: column; gap: 14px; }
+.shopName { font-size: 46px; font-weight: 700; line-height: 1.15; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; word-break: keep-all; }
+.shopSub { font-size: 34px; color: #7A716B; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.empty { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 24px; padding: 120px 40px; border-radius: 45px; background: #fff; text-align: center; font-size: 50px; font-weight: 600; }
+.empty small { font-size: 40px; font-weight: 400; color: #7A716B; line-height: 1.5; }
+.scrollBtns { position: absolute; left: 2030px; top: 1900px; display: flex; flex-direction: column; gap: 24px; }
+.scrollBtn { width: 96px; height: 96px; border: 0; border-radius: 50%; background: #DA291C; color: #fff; font-size: 44px; cursor: pointer; }
+
+/* 상세 */
+.detailHero { display: flex; gap: 56px; align-items: center; }
+.detailFloor { flex: none; width: 300px; height: 300px; border-radius: 60px; background: #DA291C; color: #fff; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; font-size: 92px; font-weight: 800; }
+.detailFloor small { font-size: 36px; font-weight: 500; }
+.detailName { margin: 0; font-size: 76px; font-weight: 800; line-height: 1.15; word-break: keep-all; }
+.detailCat { display: inline-block; margin-top: 24px; padding: 10px 32px; border-radius: 30px; background: #F3EEE7; font-size: 38px; color: #5D544E; }
+.gallery { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 24px; }
+.gallery img { width: 100%; height: 480px; object-fit: cover; border-radius: 32px; }
+.infoRows { display: flex; flex-direction: column; }
+.infoRow { display: flex; gap: 32px; padding: 34px 0; border-top: 2px solid #F3EEE7; font-size: 44px; line-height: 1.4; }
+.infoRow:first-child { border-top: 0; }
+.infoKey { flex: none; width: 210px; font-weight: 700; color: #DA291C; }
+.subHead { margin: 0; font-size: 50px; font-weight: 700; }
+.chipLinks { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 20px; }
+.chipLink { height: 124px; padding: 0 36px; border: 3px solid #E8E1D8; border-radius: 34px; background: #fff; font: inherit; font-size: 40px; font-weight: 600; color: #2A2320; text-align: left; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; cursor: pointer; }
+
+/* 시설안내 */
+.guide { display: flex; gap: 32px; flex: 1 1 0; min-height: 0; }
+.rail { flex: none; width: 230px; display: flex; flex-direction: column; gap: 14px; overflow-y: auto; }
+.railBtn { position: relative; flex: none; height: 122px; border: 0; border-radius: 34px; background: #fff; font: inherit; font-size: 50px; font-weight: 800; color: #2A2320; cursor: pointer; }
+.railOn { background: #DA291C; color: #fff; }
+.railDim { color: #C9C1B7; }
+.railDot { position: absolute; right: 22px; top: 22px; width: 22px; height: 22px; border-radius: 50%; background: #B8935A; }
+.guideMain { flex: 1 1 0; min-width: 0; display: flex; flex-direction: column; gap: 28px; }
+.floorHead { display: flex; align-items: baseline; gap: 32px; }
+.floorBig { font-size: 96px; font-weight: 800; color: #DA291C; line-height: 1; }
+.floorSum { font-size: 42px; color: #5D544E; line-height: 1.3; word-break: keep-all; }
+.plan { flex: none; height: 520px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px; border: 4px dashed #D6CEC4; border-radius: 45px; background: #fff; color: #A89E93; font-size: 46px; }
+.plan small { font-size: 36px; }
+.segment { display: flex; flex: none; gap: 0; padding: 8px; border-radius: 50px; background: #F3EEE7; }
+.segBtn { flex: 1 1 0; height: 104px; border: 0; border-radius: 44px; background: transparent; font: inherit; font-size: 44px; font-weight: 600; color: #5D544E; cursor: pointer; }
+.segOn { background: #fff; color: #DA291C; font-weight: 800; }
+.list1 { flex: 1 1 0; min-height: 0; overflow-y: auto; display: flex; flex-direction: column; gap: 16px; }
+.rowPlain { display: flex; justify-content: space-between; align-items: center; gap: 32px; min-height: 124px; padding: 16px 44px; box-sizing: border-box; border: 0; border-radius: 32px; background: #fff; font: inherit; font-size: 44px; font-weight: 600; color: inherit; text-align: left; cursor: pointer; flex: none; width: 100%; }
+.rowPlain span:last-child { font-size: 34px; font-weight: 400; color: #7A716B; white-space: nowrap; }
+
+/* 화장실 */
+.toiletFloor { display: flex; align-items: center; gap: 44px; min-height: 180px; padding: 24px 56px; box-sizing: border-box; border-radius: 40px; background: #fff; flex: none; }
+.toiletTags { display: flex; flex-wrap: wrap; gap: 16px; flex: 1 1 0; }
+
+/* 시네마 */
+.cinemaHead { display: flex; justify-content: space-between; align-items: center; flex: none; }
+.cinemaName { font-size: 56px; font-weight: 800; }
+.cinemaNote { font-size: 36px; color: #7A716B; }
+.movie { display: flex; gap: 44px; padding: 44px; border-radius: 45px; background: #fff; flex: none; }
+.poster { flex: none; width: 300px; height: 430px; border-radius: 28px; background: #2A2320; color: #FFF4F3; display: flex; align-items: center; justify-content: center; text-align: center; padding: 24px; box-sizing: border-box; font-size: 36px; font-weight: 700; word-break: keep-all; }
+.movieBody { flex: 1 1 0; min-width: 0; display: flex; flex-direction: column; gap: 26px; }
+.movieTitle { display: flex; align-items: center; gap: 22px; font-size: 58px; font-weight: 800; }
+.grade { flex: none; display: inline-flex; align-items: center; justify-content: center; min-width: 74px; height: 74px; padding: 0 10px; box-sizing: border-box; border-radius: 37px; font-size: 32px; font-weight: 800; color: #fff; }
+.grade전체 { background: #3B8E4A; }
+.grade12 { background: #2F73C9; }
+.grade15 { background: #D98A1F; }
+.grade19 { background: #C4261D; }
+.movieMeta { font-size: 36px; color: #7A716B; }
+.times { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 18px; }
+.time { padding: 22px 26px; border-radius: 28px; background: #F7F3ED; display: flex; flex-direction: column; gap: 8px; }
+.timeSoon { background: #DA291C; color: #fff; }
+.timeStart { font-size: 58px; font-weight: 800; line-height: 1; }
+.timeInfo { font-size: 32px; color: #7A716B; }
+.timeSoon .timeInfo { color: rgba(255, 255, 255, 0.85); }
+
+/* 안녕 롯데 */
+.helloName { align-self: flex-start; padding: 16px 44px; border-radius: 40px; background: #F6E3E0; color: #A31A12; font-size: 44px; font-weight: 800; }
+.storyRow { display: flex; gap: 44px; align-items: center; }
+.storyRowRev { flex-direction: row-reverse; }
+.storyPhoto { flex: none; width: 640px; height: 420px; border-radius: 36px; background: #F3EEE7; display: flex; align-items: center; justify-content: center; color: #A89E93; font-size: 38px; }
+.storyText { flex: 1 1 0; display: flex; flex-direction: column; gap: 18px; font-size: 42px; line-height: 1.45; color: #5D544E; }
+.storyText b { font-size: 52px; color: #2A2320; }
+.tags { display: flex; flex-wrap: wrap; gap: 16px; flex: none; }
+.hash { padding: 14px 34px; border-radius: 36px; background: #fff; font-size: 38px; color: #A31A12; font-weight: 600; }
+
+/* 여기는 롯데 */
+.heroPlate { flex: none; height: 300px; padding: 0 72px; box-sizing: border-box; border-radius: 45px; background: #2A2320; color: #fff; display: flex; flex-direction: column; justify-content: center; gap: 16px; }
+.heroPlate b { font-size: 72px; font-weight: 800; }
+.heroPlate span { font-size: 40px; color: rgba(255, 255, 255, 0.75); }
+.placeTag { align-self: flex-start; padding: 8px 26px; border-radius: 26px; background: #F6E3E0; color: #A31A12; font-size: 34px; font-weight: 700; }
+.bodyBelowTabs { top: 920px; height: 2780px; }
+.toiletTags .tag { font-size: 40px; }
+
+/* ── 2026-11-09 Figma 목록·상세·여기는 롯데·화장실 ──────────────────── */
+.body { left: 170px; width: 1820px; }
+.catGrid { grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 35px 26px; }
+.cat { height: 170px; border-radius: 40px; font-size: 50px; font-weight: 500; color: #999; box-shadow: 0 8px 24px rgba(0, 0, 0, 0.06); }
+.catOn { background: #DA291C; color: #fff; font-weight: 700; }
+.scrollBtns { left: 2027px; top: 2103px; gap: 35px; }
+.scrollBtn { width: 85px; height: 85px; font-size: 38px; }
+.list1col { position: absolute; inset: 0; overflow-y: auto; display: flex; flex-direction: column; gap: 30px; padding-bottom: 30px; }
+.shopRow { flex: none; display: flex; align-items: center; gap: 40px; width: 100%; min-height: 360px; padding: 36px 60px; box-sizing: border-box; border: 0; border-radius: 40px; background: #fff; font: inherit; color: #2A2320; text-align: left; cursor: pointer; }
+.shopRowText { flex: 1 1 0; min-width: 0; display: flex; flex-direction: column; gap: 22px; }
+.shopRowTop { display: flex; align-items: center; gap: 32px; }
+.shopRowName { font-size: 68px; font-weight: 600; line-height: 1.15; word-break: keep-all; }
+.shopRowTag { flex: none; display: inline-flex; align-items: center; gap: 18px; font-size: 52px; color: #999; }
+.shopRowTag::before { content: ''; width: 16px; height: 16px; border-radius: 50%; background: #DA291C; }
+.shopRowLine { min-height: 1em; font-size: 48px; font-weight: 500; color: #555; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.shopRowPhotos { flex: none; display: flex; gap: 24px; }
+.shopRowPhotos img { width: 280px; height: 200px; border-radius: 28px; object-fit: cover; background: #F3EEE7; }
+.detailCard { position: absolute; left: 170px; top: 700px; width: 1820px; box-sizing: border-box; padding: 60px 70px; display: flex; flex-direction: column; gap: 50px; border-radius: 45px; background: #fff; font-family: var(--kiosk-font, 'Pretendard', sans-serif); color: #2A2320; }
+.detailTop { display: flex; align-items: center; gap: 32px; }
+.detailTitle { margin: 0; font-size: 85px; font-weight: 700; line-height: 1.15; word-break: keep-all; }
+.detailTag { flex: none; display: inline-flex; align-items: center; gap: 18px; font-size: 51px; color: #999; }
+.detailTag::before { content: ''; width: 16px; height: 16px; border-radius: 50%; background: #DA291C; }
+.detailPhotos { display: grid; grid-template-columns: repeat(4, 1fr); gap: 28px; }
+.detailPhotos img { width: 100%; height: 300px; border-radius: 30px; object-fit: cover; background: #F3EEE7; }
+.detailFacts { display: flex; flex-direction: column; gap: 28px; padding: 40px 0; border-top: 2px solid #EEE; border-bottom: 2px solid #EEE; }
+.detailFact { display: flex; align-items: center; gap: 28px; font-size: 44px; white-space: pre-line; }
+.detailFact img { flex: none; width: 56px; height: 56px; object-fit: contain; }
+.detailText { margin: 0; font-size: 45px; line-height: 1.5; }
+.detailTags { margin: 0; font-size: 38px; color: #777; }
+.mapHold { flex: none; height: 767px; display: flex; align-items: center; justify-content: center; border-radius: 40px; background: #EDE8E3; font-size: 56px; font-weight: 700; color: #8C807A; }
+.cardThumbSmall { height: 297px; }
+.grid3 { gap: 36px; }
+.grid3 .cardName { font-size: 50px; font-weight: 500; }
+.grid3 .placeTag { padding: 0; background: none; font-size: 38px; font-weight: 400; color: #777; }
+.wcTabs { display: flex; justify-content: center; gap: 63px; flex: none; }
+.wcTab { width: 565px; height: 170px; border: 0; border-radius: 40px; background: #fff; font: inherit; font-size: 50px; font-weight: 500; color: #999; cursor: pointer; }
+.wcTabOn { background: #DA291C; color: #fff; font-weight: 700; }
+.wcFloors { display: flex; flex-wrap: wrap; justify-content: center; align-items: center; gap: 16px 64px; flex: none; }
+.wcFloor { padding: 0; border: 0; background: none; font: inherit; font-size: 60px; font-weight: 500; color: #999; cursor: pointer; }
+.wcFloorOn { font-weight: 800; color: #DA291C; }
+.wcNames { display: flex; flex-wrap: wrap; justify-content: center; gap: 16px; flex: none; }
+.wcNames .tag { font-size: 40px; }
+.wcPlate { flex: none; height: 1383px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 24px; border-radius: 40px; background: #EDE8E3; text-align: center; font-size: 56px; font-weight: 700; color: #8C807A; }
+.wcPlate small { font-size: 42px; font-weight: 400; }

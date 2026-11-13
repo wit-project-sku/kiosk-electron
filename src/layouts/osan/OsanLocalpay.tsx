@@ -4,7 +4,7 @@ import type { KioskController } from '@renderer/hooks/useKioskController';
 import { useLanguageStore } from '@renderer/store/languageStore';
 import { osanIconUrl } from '@renderer/assets/icons/osan';
 import onnuriPaper from '@renderer/assets/photos/osan/localpay/onnuri-paper.png';
-import onnuriDigital from '@renderer/assets/photos/osan/localpay/onnuri-digital.png';
+import onnuriMascot from '@renderer/assets/photos/osan/localpay/onnuri-mascot.png';
 import onnuriBi from '@renderer/assets/photos/osan/localpay/onnuri-bi.png';
 import card1 from '@renderer/assets/photos/osan/localpay/card1.png';
 import card2 from '@renderer/assets/photos/osan/localpay/card2.png';
@@ -12,7 +12,7 @@ import iosQr from '@renderer/assets/photos/osan/localpay/ios.png';
 import androidQr from '@renderer/assets/photos/osan/localpay/android.png';
 import appQr from '@renderer/assets/photos/osan/localpay/app-qr.png';
 import { OsanHeader } from './OsanHeader';
-import { sheetText } from '@renderer/lib/loc';
+import { sheetText, tExact } from '@renderer/lib/loc';
 import bannerImg from '@renderer/assets/photos/osan/exchange/exchange-banner.png';
 import { OsanLeftNav } from './OsanLeftNav';
 import styles from './OsanLocalpay.module.css';
@@ -24,11 +24,12 @@ function pick<T>(map: Partial<Record<Lang, T>>, lang: Lang): T {
   return (map[lang] ?? map.ko ?? (Object.values(map)[0] as T)) as T;
 }
 
-/** Render body copy where **…** segments are emphasised (600 weight). */
-function renderRich(text: string): ReactNode {
+/** Render body copy where **…** segments are emphasised — SemiBold, or Bold
+ *  where the frame sets them Bold (the 디지털 할인 line, 7878:42744). */
+function renderRich(text: string, strong = false): ReactNode {
   return text.split('**').map((part, i) =>
     i % 2 === 1 ? (
-      <strong key={i} className={styles.bodyBold}>
+      <strong key={i} className={strong ? styles.bodyStrong : styles.bodyBold}>
         {part}
       </strong>
     ) : (
@@ -37,7 +38,7 @@ function renderRich(text: string): ReactNode {
   );
 }
 
-interface LocalpayContent {
+export interface LocalpayContent {
   title: string;
   tabs: [string, string];
   onnuri: {
@@ -69,8 +70,9 @@ interface LocalpayContent {
 }
 
 /** 지역화폐 — text verbatim from Figma (오산>지역화폐=온누리상품권 / =오색전);
+ *  화성's 온누리상품권 tab (HwaseongLocalpay) reads `onnuri` from here too;
  *  other languages translate the same copy. */
-const CONTENT: Partial<Record<Lang, LocalpayContent>> = {
+export const LOCALPAY_CONTENT: Partial<Record<Lang, LocalpayContent>> = {
   ko: {
     title: '지역화폐',
     tabs: ['오색전', '온누리상품권'],
@@ -449,15 +451,157 @@ const CONTENT: Partial<Record<Lang, LocalpayContent>> = {
   },
 };
 
-/** A heading ending in 이란? shows that suffix in black, the rest navy (Figma). */
+/* ── Localization_Osaek → this page ─────────────────────────────────────────
+ * The sheet marks emphasis `<b>…</b>` and colour `<color=#hex>…</color>`; the
+ * page uses `**…**` (renderRich) and renderHeading's navy/black split. A tag
+ * the sheet leaves unmatched never breaks the text: a stray `</b>` is dropped,
+ * an unclosed `<b>` closes at the end of its line, any other `<color>` goes. */
+
+const SHEET_TAG = /<\/?(?:b|color)(?:=[^>]*)?>/gi;
+
+/** A cell's literal "\n" (typed into the cell as text) as a real break. */
+const sheetBreaks = (cell: string): string => cell.replace(/\\n/g, '\n');
+
+/** All markup gone — for lines the page draws without emphasis. */
+const plainText = (cell: string): string =>
+  sheetBreaks(cell).replace(SHEET_TAG, '').replace(/\s*\n\s*/g, ' ').trim();
+
+/** Same words as the authored copy, ignoring markup and spacing. */
+const sameWords = (a: string, b: string): boolean => {
+  const norm = (x: string): string => x.replace(SHEET_TAG, '').replace(/\*\*/g, '').replace(/\s+/g, '');
+  return norm(a) === norm(b);
+};
+
+/** A body cell as renderRich lines, one per sheet line; bold that spans a
+ *  line break is closed and reopened so each line stands alone. */
+function sheetLines(cell: string): string[] {
+  const out: string[] = [];
+  let open = false;
+  for (const raw of sheetBreaks(cell).replace(/<\/?color(?:=[^>]*)?>/gi, '').split(/\r?\n/)) {
+    let line = open ? '**' : '';
+    for (const part of raw.split(/(<\/?b>)/i)) {
+      const tag = part.toLowerCase();
+      if (tag === '<b>') {
+        if (!open) line += '**';
+        open = true;
+      } else if (tag === '</b>') {
+        if (open) line += '**';
+        open = false;
+      } else {
+        line += part;
+      }
+    }
+    if (open) line += '**';
+    line = line.replace(/\*\*\*\*/g, '').trim();
+    if (line.replace(/\*\*/g, '').trim()) out.push(line);
+  }
+  return out;
+}
+
+/** A heading cell: a leading `<color>` span is kept for renderHeading (that
+ *  part navy, the rest black); every other tag and break goes. */
+function sheetHeading(cell: string): string {
+  const text = sheetBreaks(cell).replace(/\s*\n\s*/g, ' ').trim();
+  const m = /^(<color=[^>]*>[\s\S]*?<\/color>)([\s\S]*)$/i.exec(text);
+  return m ? (m[1] ?? '').replace(/<\/?b>/gi, '') + (m[2] ?? '').replace(SHEET_TAG, '') : text.replace(SHEET_TAG, '').trim();
+}
+
+/**
+ * 오산's copy for one language: the Localization_Osaek cell wherever the sheet
+ * has one, else the authored LOCALPAY_CONTENT field. Where the sheet's words
+ * match the authored line exactly the authored line stays — it carries the
+ * Figma emphasis the sheet does not mark (디지털 할인 line, 7878:42744).
+ * 화성 keeps reading LOCALPAY_CONTENT directly; this is 오산-only.
+ */
+function osanContent(lang: Lang): LocalpayContent {
+  const base = pick(LOCALPAY_CONTENT, lang);
+  const cell = (key: string): string => tExact(`MarketPaper_${key}`, lang);
+  const lines = (key: string, fb: string[]): string[] => {
+    const v = cell(key);
+    if (!v) return fb;
+    const l = sheetLines(v);
+    return l.length === 0 || sameWords(l.join(''), fb.join('')) ? fb : l;
+  };
+  const para = (key: string, fb: string): string => lines(key, [fb]).join(' ');
+  const plain = (key: string, fb: string): string => {
+    const v = cell(key);
+    return (v && plainText(v)) || fb;
+  };
+  const heading = (key: string, fb: string): string => {
+    const v = cell(key);
+    return (v && sheetHeading(v)) || fb;
+  };
+  /* 온누리 benefits: one bullet per "· " — the ko cell runs two onto one line. */
+  const benefits = ((): string[] | undefined => {
+    const v = cell('Onnuri_Content_5_2');
+    if (!v) return base.onnuri.benefits;
+    const l = sheetBreaks(v)
+      .replace(SHEET_TAG, '')
+      .split(/\r?\n|\s+(?=·\s)/)
+      .map((x) => x.trim())
+      .filter(Boolean);
+    const fb = base.onnuri.benefits ?? [];
+    return l.length === 0 || sameWords(l.join(''), fb.join('')) ? base.onnuri.benefits : l;
+  })();
+  /* 신청 body = Content_2_1 (eligibility) + Content_2_2 (how to apply). */
+  const applyBody = [
+    ...lines('Osaekjeon_Content_2_1', base.osaek.applyBody.slice(0, 2)),
+    ...lines('Osaekjeon_Content_2_2', base.osaek.applyBody.slice(2)),
+  ];
+  const osaekIntroH = heading('Osaekjeon_Content_1', base.osaek.introH);
+
+  return {
+    ...base,
+    tabs: [plain('Osaekjeon_Content', base.tabs[0]), plain('Onnuri', base.tabs[1])],
+    onnuri: {
+      ...base.onnuri,
+      introH: heading('Onnuri_Content_1', base.onnuri.introH),
+      introBody: para('Onnuri_Content_1_1', base.onnuri.introBody),
+      paperH: plain('Onnuri_Content_2', base.onnuri.paperH),
+      digitalH: heading('Onnuri_Content_3', base.onnuri.digitalH),
+      digitalBefore: lines('Onnuri_Content_3_1', base.onnuri.digitalBefore),
+      digitalAfter: para('Onnuri_Content_3_2', base.onnuri.digitalAfter),
+      digitalNote: plain('Onnuri_Content_5_1', base.onnuri.digitalNote),
+      usageH: plain('Onnuri_Content_4', base.onnuri.usageH),
+      usageBody: para('Onnuri_Content_4_1', base.onnuri.usageBody),
+      benefits,
+    },
+    osaek: {
+      ...base.osaek,
+      /* The card's heading draws `title`; the sheet's 오색전 heading row is
+         Content_1, so it drives both. */
+      title: cell('Osaekjeon_Content_1') ? osaekIntroH : base.osaek.title,
+      introH: osaekIntroH,
+      introBody: lines('Osaekjeon_Content_1_1', base.osaek.introBody),
+      applyH: plain('Osaekjeon_Content_2', base.osaek.applyH),
+      applyBody,
+      usageH: plain('Osaekjeon_Content_3', base.osaek.usageH),
+      usageBody: para('Osaekjeon_Content_3_1', base.osaek.usageBody),
+      usageList: lines('Osaekjeon_Content_3_2', base.osaek.usageList).map((l) => l.replace(/\*\*/g, '')),
+    },
+  };
+}
+
+/** A heading ending in 이란? shows that suffix in black, the rest navy (Figma).
+ *  A sheet heading led by a `<color>` span draws that span navy, the rest black. */
 function renderHeading(text: string): ReactNode {
-  return text.endsWith('이란?') ? (
+  const m = /^<color=[^>]*>([\s\S]*?)<\/color>([\s\S]*)$/i.exec(text);
+  if (m) {
+    return (
+      <>
+        {m[1]}
+        <span className={styles.headBlack}>{m[2]}</span>
+      </>
+    );
+  }
+  const plain = text.replace(SHEET_TAG, '');
+  return plain.endsWith('이란?') ? (
     <>
-      {text.slice(0, -3)}
+      {plain.slice(0, -3)}
       <span className={styles.headBlack}>이란?</span>
     </>
   ) : (
-    text
+    plain
   );
 }
 
@@ -473,10 +617,14 @@ export function OsanLocalpay({ controller }: OsanLocalpayProps): JSX.Element {
      See "Other languages" in the CSS. */
   const wide = lang !== 'ko';
   const tabsRef = useRef<HTMLDivElement>(null);
-  const c = pick(CONTENT, lang);
+  const c = osanContent(lang);
   const [tab, setTab] = useState(0);
 
   useFitText(tabsRef, styles.tab, wide, 0.72, lang);
+  /* 온누리 benefit bullets: a translation that wraps past the light box shrinks
+     the list together (keyed on the tab — the box only exists on 온누리). */
+  const lightBoxRef = useRef<HTMLDivElement>(null);
+  useFitText(lightBoxRef, styles.benefits, wide, 0.7, `${lang}|${tab}`, 'height');
   /* ♿ (지역화폐 오색전 7894:56717, 온누리상품권 7894:56838): the page keeps
      OsanKiosk's shift, the card starts at 944, the tabs drop to 3438 and the
      promo goes. */
@@ -553,36 +701,44 @@ export function OsanLocalpay({ controller }: OsanLocalpayProps): JSX.Element {
         ) : (
           /* ── 온누리상품권 — Figma 7878:42732: two cards (paper vouchers; digital) ── */
           <>
-            <div className={styles.cardOnnuriTop}>
+            <div className={`${styles.cardOnnuriTop} ${wide ? styles.onnuriLong : ''}`}>
               <div className={styles.topText}>
                 <p className={styles.heading}>{renderHeading(c.onnuri.introH)}</p>
-                <p className={styles.body}>{c.onnuri.introBody}</p>
+                <p className={styles.body}>{renderRich(c.onnuri.introBody)}</p>
               </div>
               <div className={styles.paperBox}>
                 <p className={styles.paperLabel}>{c.onnuri.paperH}</p>
-                <img className={styles.paperImg} src={onnuriPaper} alt="" draggable={false} />
+                {/* The frame crops the photo to fill its 1210×440 slot (7878:42854). */}
+                <div className={styles.paperImg}>
+                  <img src={onnuriPaper} alt="" draggable={false} />
+                </div>
               </div>
             </div>
 
-            <div className={styles.cardOnnuriBottom}>
+            <div className={`${styles.cardOnnuriBottom} ${wide ? styles.onnuriLong : ''}`}>
               <div className={styles.bottomText}>
                 <p className={styles.heading}>{renderHeading(c.onnuri.digitalH)}</p>
-                {c.onnuri.digitalBefore.map((line, i) => (
-                  <p key={i} className={styles.body}>
-                    {line}
-                  </p>
-                ))}
-                <p className={styles.body}>{renderRich(c.onnuri.digitalAfter)}</p>
+                {/* One text block in the frame (7878:42744): no gap between paragraphs. */}
+                <div>
+                  {c.onnuri.digitalBefore.map((line, i) => (
+                    <p key={i} className={styles.body}>
+                      {renderRich(line)}
+                    </p>
+                  ))}
+                  <p className={styles.body}>{renderRich(c.onnuri.digitalAfter, true)}</p>
+                </div>
               </div>
 
-              <img className={styles.mascot} src={onnuriDigital} alt="" draggable={false} />
+              <div className={styles.onnuriUsage}>
+                <div className={styles.usageSection}>
+                  <p className={styles.usageH}>{c.onnuri.usageH}</p>
+                  <p className={styles.body}>{renderRich(c.onnuri.usageBody)}</p>
+                </div>
 
-              <div className={styles.usageSection}>
-                <p className={styles.usageH}>{c.onnuri.usageH}</p>
-                <p className={styles.body}>{renderRich(c.onnuri.usageBody)}</p>
+                <img className={styles.mascot} src={onnuriMascot} alt="" draggable={false} />
               </div>
 
-              <div className={styles.lightBox}>
+              <div ref={lightBoxRef} className={`${styles.lightBox} ${wide ? styles.lightBoxLong : ''}`}>
                 <p className={styles.lightNote}>{c.onnuri.digitalNote}</p>
                 {(c.onnuri.benefits ?? []).length > 0 && (
                   <div className={styles.benefits}>

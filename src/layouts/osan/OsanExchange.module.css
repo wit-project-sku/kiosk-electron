@@ -225,6 +225,13 @@
   white-space: nowrap;
 }
 
+/* Empty-field hint (as on 인사동 / 제주): grey, a step smaller than a number. */
+.fieldPlaceholder {
+  font-weight: 400;
+  font-size: 60px;
+  color: #999999;
+}
+
 /* Currency button: flag 170 + code, gap 42.9, chevron at field x1640. */
 .fieldCurBtn {
   position: absolute;
@@ -249,6 +256,9 @@
   display: block;
   width: 170px;
   height: 170px;
+  /* The flags are 3:2 SVGs: without this they letterbox inside the circle
+     and leave grey bands top and bottom. Cover crops them to fill it. */
+  object-fit: cover;
 }
 
 .fieldCurLabel {
@@ -517,6 +527,9 @@
   display: block;
   width: 170px;
   height: 170px;
+  /* The flags are 3:2 SVGs: without this they letterbox inside the circle
+     and leave grey bands top and bottom. Cover crops them to fill it. */
+  object-fit: cover;
 }
 
 .pickerLabel {

@@ -7,11 +7,15 @@ const log = createLogger('localization-sync-parser');
  * Column index of each language in the Localization tab. The first six columns
  * are shared (0 Num, 1 Key, 2 Korean, 3 English, 4 Japanese, 5 Chinese) but the
  * four newer languages sit in a DIFFERENT order per location's sheet, so the
- * column set is keyed by layout:
+ * column set is keyed by layout. The tab's own header row is read first
+ * (headerLangCols); this table is the fallback when it names no language:
  *   Localization_Insa      → 6 Vietnamese, 7 Thai,       8 Russian, 9 Indonesian
- *   Localization_Osaek     → 6 Vietnamese, 7 Indonesian, 8 Thai,    9 Russian
+ *   Localization_Osaek     → 6 Vietnamese, 7 Thai,       8 Russian, 9 Indonesian
+ *                            (rebuilt in the INSA order 2026-10-15; it used to be
+ *                            vi, id, th, ru like 화성)
  *   Localization_Hwaseong  → 6 Vietnamese, 7 Indonesian, 8 Thai,    9 Russian
- *   Localization_Jeju_v2   → 6 Vietnamese, 7 Thai,       8 Russian, 9 Indonesian
+ *   Localization_Jeju_v3   → 6 Vietnamese, 7 Thai,       8 Russian, 9 Indonesian
+ *                            once withNumColumn has restored its missing Num column
  *                            (VERIFIED 2026-08-13 against the sheet's header row:
  *                            제주 follows the INSA order, not the newer template
  *                            this once assumed. Getting it wrong is silent — the
@@ -32,7 +36,7 @@ const INSA_NEW: Array<{ lang: SupportedLanguage; index: number }> = [
   { lang: 'id', index: 9 },
 ];
 
-const OSAEK_HWASEONG_NEW: Array<{ lang: SupportedLanguage; index: number }> = [
+const HWASEONG_NEW: Array<{ lang: SupportedLanguage; index: number }> = [
   { lang: 'vi', index: 6 },
   { lang: 'id', index: 7 },
   { lang: 'th', index: 8 },
@@ -42,31 +46,33 @@ const OSAEK_HWASEONG_NEW: Array<{ lang: SupportedLanguage; index: number }> = [
 const NEW_LANG_COLS: Record<KioskLayoutId, Array<{ lang: SupportedLanguage; index: number }>> = {
   INSADONG: INSA_NEW,
   NAM_INSADONG: INSA_NEW,
-  OSAN: OSAEK_HWASEONG_NEW,
-  HWASEONG: OSAEK_HWASEONG_NEW,
+  OSAN: INSA_NEW,
+  HWASEONG: HWASEONG_NEW,
   JEJU_AIRPORT: INSA_NEW,
-  JEJU_HERITAGE: INSA_NEW, // same Localization_Jeju_v2 tab, same column order
+  JEJU_HERITAGE: INSA_NEW, // same Localization_Jeju_v3 tab, same column order
   // KADA W202 has no Localization tab at all (see CONTENT_SHEETS), so there are
   // no extra language columns to map. The parser never runs for this layout —
   // the transport skips it on the empty sheetId — and an empty list keeps that
   // true by construction rather than by borrowing another venue's column order.
   KADA: [],
+  // 롯데 has no Localization tab yet (see CONTENT_SHEETS) — same reasoning as KADA.
+  LOTTE: [],
 };
 
 /**
  * Layouts whose Localization tab is SHARED with another venue, and the mascot
  * names that tell the rows apart.
  *
- * Localization_Jeju_v2 serves 제주국제공항 W006 / 제주국제여객터미널 W007 (both mascot
- * 하영) and 세계자연유산본부 W008 (mascot 유산) from one tab — the sheet is titled
+ * Localization_Jeju_v3 serves 제주국제공항 W008 / 제주국제여객터미널 W009 (both mascot
+ * 하영) and 세계자연유산본부 W010 (mascot 유산) from one tab — the sheet is titled
  * "#W6~8=제주_전체데이터" — so seven keys appear twice. Without this, last-wins gives
  * a 하영 machine the 유산 rows and the kiosk shows "안녕 '유산'", "도와줘 '유산'",
  * "사진촬영 (with '유산')".
  *
- * The scoring is keyed by LAYOUT, so W006 and W007 are covered by the one
+ * The scoring is keyed by LAYOUT, so W008 and W009 are covered by the one
  * JEJU_AIRPORT entry — they are the same venue as far as this sheet is concerned.
- * JEJU_HERITAGE (W008) is the same tab with the mascots the other way round —
- * that asymmetry is the whole reason W008 has its own layout id.
+ * JEJU_HERITAGE (W010) is the same tab with the mascots the other way round —
+ * that asymmetry is the whole reason W010 has its own layout id.
  *
  * The `설명, 비고` column looks like the obvious discriminator and is not usable:
  * it is SWAPPED on NoticeContent (the row marked 제주공항 carries YUSAN in all
@@ -140,7 +146,7 @@ function matchCase(sample: string, replacement: string): string {
  * still say HAYOUNG in 18 cells: every non-Korean cell of MainButton_Greeting
  * ("Hello 'HAYOUNG'"), three of MainButton_ToHelp, and ALL EIGHT of
  * NoticeContent — whose Korean names HAYOUNG on both rows, so 제주공항 shows it
- * too. Without this a W008 kiosk headed 안녕 '유산' greets its visitors in
+ * too. Without this a W010 kiosk headed 안녕 '유산' greets its visitors in
  * English as "Hello 'HAYOUNG'".
  *
  * Scoped by construction rather than by a key list: on a 유산 kiosk the string
@@ -198,14 +204,93 @@ function pickVenueRows(rows: string[][], mascots: { ours: RegExp; other: RegExp 
 
 export type LocalizationByLang = Partial<Record<SupportedLanguage, Record<string, string>>>;
 
+/** Header text → language, for the four columns whose order varies by sheet. */
+const HEADER_LANGS: Array<{ lang: SupportedLanguage; pattern: RegExp }> = [
+  { lang: 'vi', pattern: /^vietnam(ese)?$|^베트남어?$/i },
+  { lang: 'th', pattern: /^thai$|^태국어?$/i },
+  { lang: 'ru', pattern: /^russian$|^러시아어?$/i },
+  { lang: 'id', pattern: /^indonesian?$|^인도네시아어?$/i },
+];
+
+/**
+ * vi/th/ru/id column indexes read from the tab's own header row (the row whose
+ * Key cell reads "Key"), or null when there is no such row or it names none of
+ * them — then the per-layout NEW_LANG_COLS table applies.
+ *
+ * The header wins because the order is not stable: on 2026-10-15
+ * Localization_Osaek was rebuilt in the INSA order (vi, th, ru, id) while
+ * NEW_LANG_COLS still said vi, id, th, ru — every cell populated, so the kiosk
+ * would have shown Thai to Indonesian visitors, Russian to Thai and Indonesian
+ * to Russian, with nothing reporting it. Mirrored in scripts/sync-sheet.mjs.
+ */
+function headerLangCols(rows: string[][]): Array<{ lang: SupportedLanguage; index: number }> | null {
+  const header = rows.find((row) => (row[1] ?? '').trim() === 'Key');
+  if (!header) return null;
+  const found: Array<{ lang: SupportedLanguage; index: number }> = [];
+  for (const { lang, pattern } of HEADER_LANGS) {
+    const index = header.findIndex((cell, i) => i > 5 && pattern.test((cell ?? '').trim()));
+    if (index >= 0) found.push({ lang, index });
+  }
+  if (found.length === 0) return null;
+  log.info('Localization language columns read from the header row', {
+    columns: Object.fromEntries(found.map(({ lang, index }) => [lang, index])),
+  });
+  return found;
+}
+
+const THAI = /[฀-๿]/;
+const CYRILLIC = /[Ѐ-ӿ]/;
+
+/**
+ * The th/ru/id columns for ONE row. The header names them, but a tab can hold
+ * rows typed in an older column order: Localization_Hwaseong's header reads
+ * vi, id, th, ru while 67 of its rows (Photo_*, Taxfree_*, Search_*, …) still
+ * carry Thai under "Indonesian", Russian under "Thai" and Indonesian under
+ * "Russian". Thai and Russian are told apart by script, so when the row's Thai
+ * text and Russian text sit in two of those three columns, they are read from
+ * there and Indonesian from the third. Anything less certain keeps the header's
+ * columns. Mirrored in scripts/sync-sheet.mjs (rowLangCols).
+ */
+function rowLangCols(
+  row: string[],
+  cols: Array<{ lang: SupportedLanguage; index: number }>,
+): Array<{ lang: SupportedLanguage; index: number }> {
+  const at = (lang: SupportedLanguage): number | undefined => cols.find((c) => c.lang === lang)?.index;
+  const th = at('th');
+  const ru = at('ru');
+  const id = at('id');
+  if (th == null || ru == null || id == null) return cols;
+  const trio = [th, ru, id];
+  const thaiAt = trio.find((i) => THAI.test(row[i] ?? ''));
+  const russianAt = trio.find((i) => CYRILLIC.test(row[i] ?? ''));
+  if (thaiAt == null || russianAt == null || thaiAt === russianAt) return cols;
+  if (thaiAt === th && russianAt === ru) return cols;
+  const idAt = trio.find((i) => i !== thaiAt && i !== russianAt)!;
+  const moved: Partial<Record<SupportedLanguage, number>> = { th: thaiAt, ru: russianAt, id: idAt };
+  return cols.map((c) => (moved[c.lang] != null ? { lang: c.lang, index: moved[c.lang]! } : c));
+}
+
+/**
+ * Localization_Jeju_v3 has no Num column, so its Key sits in column A rather
+ * than B and every column after it is one to the left. Restores the shape the
+ * rest of this file reads, and drops the title row above the header — with the
+ * shift it would land in the Key column and read as a key.
+ * Mirrored in scripts/sync-sheet.mjs.
+ */
+function withNumColumn(rows: string[][]): string[][] {
+  const header = rows.findIndex((row) => (row[0] ?? '').trim() === 'Key');
+  return header < 0 ? rows : rows.slice(header).map((row) => ['', ...row]);
+}
+
 /**
  * Parses a Localization tab into per-language `{ key: text }` maps. Header /
  * blank-key rows are skipped; empty cells are omitted (the renderer falls back
  * to Korean, then the key). Column layout for the four newer languages depends
  * on the kiosk layout — see NEW_LANG_COLS.
  */
-export function parseLocalizationSheet(rows: string[][], layout: KioskLayoutId): LocalizationByLang {
-  const cols = [...SHARED_COLS, ...NEW_LANG_COLS[layout]];
+export function parseLocalizationSheet(sheetRows: string[][], layout: KioskLayoutId): LocalizationByLang {
+  const rows = withNumColumn(sheetRows);
+  const cols = [...SHARED_COLS, ...(headerLangCols(rows) ?? NEW_LANG_COLS[layout])];
   const result: LocalizationByLang = {};
   for (const { lang } of cols) result[lang] = {};
 
@@ -227,7 +312,7 @@ export function parseLocalizationSheet(rows: string[][], layout: KioskLayoutId):
     if (seen.has(key)) continue;
     seen.add(key);
 
-    for (const { lang, index } of cols) {
+    for (const { lang, index } of rowLangCols(row, cols)) {
       const raw = (row[index] ?? '').replace(/ /g, ' ').trim();
       // Correct any residual other-venue mascot name — see renameMascot.
       const text = mascots ? renameMascot(raw, mascots) : raw;

@@ -3,7 +3,7 @@
 Estimates a visitor's height from a **ZED 2i** while the 제주 photo flow is
 taking their picture, and reports it to the kiosk app as an anonymous number.
 
-**제주 only** (W006 제주공항, W007 제주국제여객터미널, W008 세계자연유산본부). The app spawns
+**제주 only** (W008 제주공항, W009 제주국제여객터미널, W010 세계자연유산본부). The app spawns
 this only where `isJejuLayout()` is true.
 
 ## What it is not
@@ -41,6 +41,24 @@ it is a provisioning step, roughly 1.2 GB.
    ```
 3. `pip install numpy`
 4. Calibrate — see below.
+
+5. Optional but recommended — pose measurement:
+   `provision-zed.ps1 -InstallPose` installs `mediapipe` and downloads the
+   30 MB `pose_landmarker_heavy.task` into `%APPDATA%\kiosk-app\zed-height\models`
+   (dev: `zed-height/models`, or set `HEIGHT_POSE_MODEL`).
+
+## Two measurement paths
+
+`body.py` (ported from `Desktop/demo-outfit/zed-sidecar`, where it was tuned on
+real visitors) runs MediaPipe on the ZED's LEFT image, which is registered to
+the point cloud pixel for pixel. The skeleton and outline give the head, the
+shoulders, chest, waist and hips at this person's own anatomy (arms cut away),
+ellipse girths, and the floor right beside the shoes. Furniture has no skeleton,
+so it is never measured. Results say `"method":"pose"`.
+
+Without mediapipe or the model the sidecar logs `pose measurement off` and uses
+the point-cloud estimator (`estimator.py` + `widths.py`), `"method":"cloud"`.
+Either way the image only ever lives in memory: nothing is saved or sent.
 
 Verify with `npm run height:measure` (or, on a kiosk with no repo checked out,
 `scripts/provision-zed.ps1`, which checks every prerequisite and names whichever

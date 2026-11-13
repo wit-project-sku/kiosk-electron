@@ -1,5 +1,5 @@
 /**
- * 제주공항 (W006) 렌트카 — Figma 6297:76578 / 6297:76391 (제주>하영=렌트카=공항-01).
+ * 제주공항 (W008) 렌트카 — Figma 6297:76578 / 6297:76391 (제주>하영=렌트카=공항-01).
  *
  * Search + filter chips (전체 / 공항 내 / 공항 셔틀 / 셔틀 없음), then a
  * single filtered catalogue. `#렌터카하우스` shops are reached via 공항 내.
@@ -339,7 +339,7 @@ export function JejuRentcar({ controller }: Props): JSX.Element {
   const cardFooterLine = (shop: Shop): string => shop.tel?.trim() ?? '';
 
   const renderCards = (list: Shop[]): JSX.Element => (
-    <div className={styles.list}>
+    <div className={styles.list} data-voice-list>
       {list.map((shop) => {
         const badge = cardBadge(shop);
         const routeLine = cardRouteLine(shop);
@@ -410,9 +410,9 @@ export function JejuRentcar({ controller }: Props): JSX.Element {
 
   const catalogBody =
     baseShops.length === 0 ? (
-      <p className={styles.empty}>{pick(NO_DATA, lang)}</p>
+      <p className={styles.empty} data-voice-state="empty">{pick(NO_DATA, lang)}</p>
     ) : catalogShops.length === 0 ? (
-      <p className={styles.empty}>{pick(SEARCH_NO_RESULT, lang)(query.trim())}</p>
+      <p className={styles.empty} data-voice-state="empty">{pick(SEARCH_NO_RESULT, lang)(query.trim())}</p>
     ) : (
       <>
         {!lowReach && filterControls}
