@@ -51,6 +51,7 @@ import { GoogleDriveService } from './services/drive/GoogleDriveService';
 import { PhotoGenerationService } from './services/photo/PhotoGenerationService';
 import { ImageHostService } from './services/photo/ImageHostService';
 import { PhotoWorkflowService } from './services/photo/PhotoWorkflowService';
+import { AutoShotService } from './services/photo/AutoShotService';
 import { PhotoArchiveService } from './services/photoArchive/PhotoArchiveService';
 import type { ShotLedger } from './services/shotLedger/ShotLedger';
 import { SqliteShotLedger } from './services/shotLedger/SqliteShotLedger';
@@ -116,6 +117,8 @@ export interface AppContainer {
   health: HealthReporter;
   /** 유동인구 — anonymous passer-by counting (camera pipeline lives in the renderer). */
   footfall: FootfallService;
+  /** 자동 촬영 — the daily minimum at venues that have one. */
+  autoShot: AutoShotService;
   /** Nightly 21:30 push of the day's 유동인구 counts. */
   footfallUploader: FootfallUploader;
   /** 키 측정 — anonymous ZED height analytics, 제주 only. Inert everywhere else. */
@@ -209,6 +212,7 @@ export function createContainer(): AppContainer {
   // open the camera. Subscribing here rather than editing those services keeps
   // the capture pipeline unaware that anything else wants the device.
   const footfall = new FootfallService(footfallRepo, kiosk, camera);
+  const autoShot = new AutoShotService(kiosk, stats, photoGeneration, photoWorkflow);
   photoWorkflow.subscribe((state) => footfall.onPhotoWorkflowChanged(state));
   display.subscribe((state) => footfall.onDisplayStateChanged(state));
   const footfallUploader = new FootfallUploader(footfallRepo, kiosk, footfall);
@@ -284,6 +288,7 @@ export function createContainer(): AppContainer {
     updateCommands,
     health,
     footfall,
+    autoShot,
     footfallUploader,
     height,
   };

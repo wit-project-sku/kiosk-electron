@@ -76,6 +76,7 @@ import type {
   FootfallRuntime,
   FootfallStats,
 } from '../types/footfall';
+import type { AutoShotPlan, AutoShotRunRequest, AutoShotRunResult } from '../types/autoShot';
 
 /** Request payload for importing one or more image files. */
 export interface ImportImagesRequest {
@@ -516,6 +517,14 @@ export interface IpcContract {
     response: Result<boolean>;
   };
 
+  [IpcChannels.AutoShotPlan]: {
+    request: void;
+    response: Result<AutoShotPlan>;
+  };
+  [IpcChannels.AutoShotRun]: {
+    request: AutoShotRunRequest;
+    response: Result<AutoShotRunResult>;
+  };
   [IpcChannels.FootfallGetRuntime]: {
     request: void;
     response: Result<FootfallRuntime>;

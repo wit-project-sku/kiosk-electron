@@ -178,6 +178,10 @@ export const IpcChannels = {
   FootfallReport: 'footfall:report',
   FootfallStatus: 'footfall:status',
   FootfallGetStats: 'footfall:getStats',
+
+  // 자동 촬영 — main says when, the touch-screen window captures the frame.
+  AutoShotPlan: 'autoShot:plan',
+  AutoShotRun: 'autoShot:run',
 } as const;
 
 export type IpcInvokeChannel = (typeof IpcChannels)[keyof typeof IpcChannels];

@@ -7,6 +7,8 @@ export interface ShotLedger {
   save(row: ShotRow): void;
   /** Rows due at `now`: least-tried first (a row that keeps failing cannot starve the rest), then oldest. */
   due(now: number, limit: number): ShotRow[];
+  /** Shots recorded since `since` (epoch ms), whatever their state — the day's count. */
+  countSince(since: number): number;
   /** Delete `sent` rows acknowledged before `before`; returns how many. */
   pruneSent(before: number): number;
   /** Rows the server has not acknowledged, by state. */
@@ -36,6 +38,10 @@ export class MemoryShotLedger implements ShotLedger {
       .sort((a, b) => a.attempts - b.attempts || a.createdAt - b.createdAt)
       .slice(0, limit)
       .map((row) => ({ ...row }));
+  }
+
+  countSince(since: number): number {
+    return [...this.rows.values()].filter((row) => row.createdAt >= since).length;
   }
 
   pruneSent(before: number): number {

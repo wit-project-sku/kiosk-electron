@@ -236,6 +236,10 @@ const api: KioskBridge = {
     checkNow: () => invoke(IpcChannels.UpdateCheckNow),
     installNow: () => invoke(IpcChannels.UpdateInstallNow),
   },
+  autoShot: {
+    plan: () => invoke(IpcChannels.AutoShotPlan),
+    run: (request) => invoke(IpcChannels.AutoShotRun, request),
+  },
   footfall: {
     getRuntime: () => invoke(IpcChannels.FootfallGetRuntime),
     report: (report) => invoke(IpcChannels.FootfallReport, report),

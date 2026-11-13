@@ -37,6 +37,11 @@ export interface GeneratePhotoInput {
   styleKey: string;
   /** 배경 테마 choice (제주 step ②), or null when none was picked. */
   backgroundId?: number | null;
+  /**
+   * 자동 촬영 (AutoShotService): nobody is waiting for the result, so there is
+   * no phone pickup upload, and the shot record says it was the kiosk's own.
+   */
+  auto?: boolean;
 }
 
 export interface GeneratePhotoResult {
@@ -68,7 +73,7 @@ export class PhotoGenerationService {
   ) {}
 
   async generate(input: GeneratePhotoInput, onProgress?: ProgressCallback): Promise<GeneratePhotoResult> {
-    const { sessionId, dataUrl, clothingKey, styleKey, backgroundId = null } = input;
+    const { sessionId, dataUrl, clothingKey, styleKey, backgroundId = null, auto = false } = input;
     let capturePath: string | null = null;
     // One id for the shot report AND the phone upload, so the pickup page can
     // file the visitor's 국적 against this shot (photo_shot_shooter).
@@ -80,7 +85,7 @@ export class PhotoGenerationService {
     try {
       this.analytics.track({
         name: 'ai_request_started',
-        payload: { sessionId, clothingKey, styleKey, backgroundId },
+        payload: { sessionId, clothingKey, styleKey, backgroundId, auto },
       });
 
       onProgress?.('Preparing your photo…');
@@ -97,6 +102,7 @@ export class PhotoGenerationService {
         photoPath: capturePath,
         language,
         backgroundId,
+        autoShot: auto,
       });
 
       onProgress?.('AI is creating your image…');
@@ -114,9 +120,10 @@ export class PhotoGenerationService {
       // The AR API returns only image bytes, so upload to a public host to get a
       // phone-openable URL for the save QR (falls back to the API URL if it ever
       // provides one).
-      const uploaded = publicUrl
-        ? null
-        : await this.imageHost.upload(resultBuffer, fileName, { eventId, region: this.kiosk.region() });
+      const uploaded =
+        publicUrl || auto
+          ? null
+          : await this.imageHost.upload(resultBuffer, fileName, { eventId, region: this.kiosk.region() });
       const resultUrl = publicUrl ?? uploaded?.imageUrl ?? null;
       const resultShareUrl = uploaded?.shareUrl ?? null;
 
@@ -142,6 +149,7 @@ export class PhotoGenerationService {
         photoPath: capturePath,
         language,
         backgroundId,
+        autoShot: auto,
       });
 
       void this.uploadToDrive(session);
@@ -177,6 +185,7 @@ export class PhotoGenerationService {
         language,
         backgroundId,
         arFailure: arFailureOf(error),
+        autoShot: auto,
       });
       throw error;
     }

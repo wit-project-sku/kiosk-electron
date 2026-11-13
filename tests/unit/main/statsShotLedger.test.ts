@@ -360,3 +360,21 @@ describe('AR 합성 실패 알림 — the failed shot says why and which 배경'
     });
   });
 });
+
+describe('자동 촬영 — the record says it was the kiosk’s own', () => {
+  it('sends autoShot: true, keeps it for a re-send, and counts it in the day', async () => {
+    const { calls } = serve({ [SHOTS]: ['network'] });
+    const stats = make(kioskOf('JEJU_AIRPORT', 8));
+
+    stats.openShot({ eventId: 'e1', outfitCode: '15.1', shotType: 'SOLO', autoShot: true });
+    await stats.recordShot({ eventId: 'e1', isSuccess: true, outfitCode: '15.1', autoShot: true });
+    expect(ledger.get('e1')).toMatchObject({ autoShot: true, state: 'pending' });
+    expect(calls[0]?.body).toMatchObject({ eventId: 'e1', autoShot: true });
+
+    now += HOUR_MS;
+    await stats.syncShotLedger();
+    expect(calls[1]?.body).toMatchObject({ eventId: 'e1', autoShot: true });
+    expect(ledger.notes.some((line) => line.includes('자동 촬영'))).toBe(true);
+    expect(stats.shotsSince(now - 2 * HOUR_MS)).toBe(1);
+  });
+});
