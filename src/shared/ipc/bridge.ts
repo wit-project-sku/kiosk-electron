@@ -43,6 +43,7 @@ import type { CachedContent, SupportedLanguage } from '../types/kiosk';
 import type { CameraDeviceInfo, PhotoOption, PhotoWorkflowState } from '../types/photo';
 import type { SpotDiffRound } from '../types/spotDiff';
 import type { FootfallReport, FootfallRuntime, FootfallStats } from '../types/footfall';
+import type { AutoShotPlan, AutoShotRunRequest, AutoShotRunResult } from '../types/autoShot';
 import type { OutfitCatalogue } from '../types/outfit';
 import type {
   JejuCourse,
@@ -319,6 +320,11 @@ export interface KioskBridge {
    * this: it runs the camera pipeline and hands main integers. No frame, image,
    * or identifier ever crosses the bridge.
    */
+  /** 자동 촬영 — whether to take one now, and taking it with a captured frame. */
+  autoShot: {
+    plan(): Promise<Result<AutoShotPlan>>;
+    run(request: AutoShotRunRequest): Promise<Result<AutoShotRunResult>>;
+  };
   footfall: {
     /** What to run, on which camera, and whether to run it at all right now. */
     getRuntime(): Promise<Result<FootfallRuntime>>;

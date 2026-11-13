@@ -148,6 +148,8 @@ export interface ShotInput {
   backgroundId?: number | null;
   /** Why the AR composite failed — failed shots only; null when the cause is not an AR call. */
   arFailure?: ArFailure | null;
+  /** The kiosk took this shot itself (자동 촬영, AutoShotService); visitor shots omit it. */
+  autoShot?: boolean;
 }
 
 /** The exact POST body for `/api/stats/shots` (kioskId/eventId resolved in main). */
@@ -169,6 +171,8 @@ export interface ShotBody {
   arErrorKind?: ArErrorKind;
   arErrorStatus?: number;
   arErrorMessage?: string;
+  /** Present (true) only on a 자동 촬영. */
+  autoShot?: true;
 }
 
 /**
