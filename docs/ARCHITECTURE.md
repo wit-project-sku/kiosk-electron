@@ -84,7 +84,7 @@ tests/unit/        단위 테스트(Vitest)
 ## 3. 앱이 켜지는 순서 (`src/main/index.ts`)
 
 1. `.env` 읽기(`core/env.ts`) — 개발은 저장소 루트, 설치본은 `resources/.env`. OS 환경변수가 이긴다.
-2. 베타/운영 구분(`core/appIdentity.ts`) — 베타는 데이터 폴더가 따로다(`%APPDATA%\kiosk-app-beta`).
+2. 베타/운영 구분(`core/appIdentity.ts`) — 베타는 데이터 폴더가 따로다(`%APPDATA%\kiosk-app-beta`). 사진 폴더도 따로다 — 운영 `C:\KioskPhotos`, 베타·kdh `C:\KioskPhotos-beta`(`core/paths.ts`). 한 PC 에 두 앱이 있을 때 서로의 사진을 자기 지점으로 드라이브에 보내지 않게 한다(2026-11-12 사무실 PC 의 kdh 시험 사진이 W008 로 설정된 운영 앱을 통해 제주국제공항으로 보관된 사고).
 3. 로그 시작(`core/logger.ts`, electron-log, 10MB 회전) · **중복 실행 차단**(이미 떠 있으면 새 실행은 바로 끝난다).
 4. 사용자 정의 주소 등록 — `media://`(영상·사진 파일), `appres://`(mediapipe·도움말).
 5. 로컬 DB(SQLite) 열기 → 서비스 조립(`container.ts`) → 전원 일정 등록(`core/PowerManager.ts`).

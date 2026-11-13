@@ -9,6 +9,7 @@
 import { app } from 'electron';
 import { existsSync, mkdirSync } from 'node:fs';
 import { join } from 'node:path';
+import { isBetaBuild } from './appIdentity';
 
 function ensureDir(dir: string): string {
   if (!existsSync(dir)) {
@@ -17,7 +18,29 @@ function ensureDir(dir: string): string {
   return dir;
 }
 
+/** Production's photo folder — where field staff and the 드라이브 보관 look. */
+export const PHOTO_DIR = 'C:\\KioskPhotos';
+
+/**
+ * A non-production build's own photo folder (beta · kdh · demo — see isBetaBuild).
+ *
+ * Production and a test build can be installed side by side on one PC (the office
+ * test rig, core/appIdentity.ts). With one shared folder each build's 드라이브 보관
+ * scans the other's photos and sends them as its own kiosk: on 2026-11-12 three
+ * test shots taken with the kdh build were filed under 제주국제공항 by the
+ * production app on the same PC, which was set to W008.
+ */
+export const BETA_PHOTO_DIR = 'C:\\KioskPhotos-beta';
+
+/** The Windows photo folder for a production or a non-production build. */
+export function windowsPhotoDir(beta: boolean): string {
+  return beta ? BETA_PHOTO_DIR : PHOTO_DIR;
+}
+
 class AppPaths {
+  /** Read once: which build this is cannot change while it runs. */
+  private betaBuild: boolean | undefined;
+
   /** Root user-data directory managed by Electron. */
   get userData(): string {
     return app.getPath('userData');
@@ -59,13 +82,18 @@ class AppPaths {
    * Captured + AI-generated photos (permanent storage, paired by sessionId).
    *
    * Saved to a shallow, easy-to-find top-level folder rather than deep inside
-   * AppData. Default `C:\KioskPhotos` on Windows; override with PHOTO_SAVE_DIR.
+   * AppData. Default `C:\KioskPhotos` on Windows — `C:\KioskPhotos-beta` for a
+   * non-production build, so builds sharing a PC never archive each other's
+   * photos (windowsPhotoDir); override with PHOTO_SAVE_DIR.
    * Non-Windows (dev on mac/linux) falls back to the userData location.
    */
   get generated(): string {
     const custom = process.env['PHOTO_SAVE_DIR'];
     if (custom && custom.trim()) return ensureDir(custom.trim());
-    if (process.platform === 'win32') return ensureDir('C:\\KioskPhotos');
+    if (process.platform === 'win32') {
+      this.betaBuild ??= isBetaBuild();
+      return ensureDir(windowsPhotoDir(this.betaBuild));
+    }
     return ensureDir(join(this.userData, 'data', 'generated'));
   }
 
