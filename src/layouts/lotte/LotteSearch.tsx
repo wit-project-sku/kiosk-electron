@@ -207,7 +207,7 @@ export function LotteSearch({ controller }: Props): JSX.Element {
             ))}
           </div>
         ) : (
-          <p className={styles.empty}>
+          <p className={styles.empty} data-voice-state={query ? 'empty' : undefined}>
             {query ? pick(T.noResult, lang)(query) : pick(T.prompt, lang)}
           </p>
         )}

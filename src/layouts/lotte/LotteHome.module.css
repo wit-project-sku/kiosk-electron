@@ -1301,3 +1301,79 @@
 .cardAi .cardText { left: 426px; width: 300px; }
 .cardMarket .cardText { width: 260px; }
 .cardEvents .cardText { left: 51px; width: 210px; }
+
+/* ── 2026-11-13 Figma A-01 (화면정의서; W011 8746:1402 · W012 8746:1585 · W013 8746:1754) ──
+   롯데시네마-led home: 4 tiles (롯데시네마 · 영화 나눔 · 뭐먹지 · 뭐사지), 오늘의 사연 card, 건물 단추
+   under the art, ♿ + 음성 안내 on the rail, bottom row re-set. */
+.root { background: #FFF1F0; }
+.noticeText { width: 1003px; font-size: 48px; line-height: 60px; }
+.cardAi { background: #F5F1EF; }
+.cardMarket { background: #F3EAE3; }
+.cardEvents { background: #F5EFE9; }
+.cardEvents .cardTitle { left: 40px; }
+.cardEvents .cardSub { left: 51px; }
+.cardEvents .cardArt { top: 28px; }
+.panel { left: 135px; width: 1889px; top: 1684px; height: 1597px; }
+
+/* Plates the frame builds itself: a coloured squircle with the art centred on it. */
+.tilePlateCinema { background: #BCE1FF; display: flex; align-items: center; justify-content: center; }
+.tilePlateCinema img { width: 266px; height: 106px; object-fit: contain; }
+.tilePlateShare { background: #F1ECE8; border-radius: 60px; display: flex; align-items: center; justify-content: center; }
+.tilePlateShare img { width: 190px; height: 190px; }
+/* 롯데시네마: subtitle in full black on a 32.5 line (the other tiles' is 30% black). */
+.tilePlateCinemaText .tileSub { opacity: 1; line-height: 32.5px; }
+/* 영화 나눔: its own text block — 27 under the plate, bold #2A2320 title, grey 24px subtitle. */
+.tilePlateShareText { top: 327px; }
+.tilePlateShareText .tileTitle { font-weight: 700; line-height: 45.6px; color: #2A2320; }
+.tilePlateShareText .tileSub { margin-top: 0; font-size: 24px; line-height: 28.8px; color: #999; opacity: 1; }
+
+/* Second card row: 45/58.5 title at 108 and 38/49.4 subtitle at 182 — set on a 1.0 line here. */
+.cardWide1 .cardTitle, .cardWide2 .cardTitle, .cardWide3 .cardTitle { top: 114px; }
+.cardWide1 .cardSub, .cardWide2 .cardSub, .cardWide3 .cardSub { top: 187px; }
+
+/* 건물 단추 — white pill, 4px red ring, under the building art. */
+.buildingBtn {
+  position: absolute;
+  top: 3194px;
+  height: 76px;
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 0 34px;
+  border: 4px solid var(--kiosk-primary, #DA291C);
+  border-radius: 38px;
+  background: #fff;
+  color: var(--kiosk-primary, #DA291C);
+  font-size: 38px;
+  font-weight: 700;
+  white-space: nowrap;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+.buildingChevron { font-size: 30px; }
+
+/* Left rail: 홈 · 뒤로 (y2163), ♿ (2403), 음성 안내 (2523). */
+.rail { position: absolute; left: 50px; top: 2163px; width: 85px; height: 205px; }
+.railImg { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; }
+.railZone { position: absolute; left: 0; width: 85px; height: 85px; padding: 0; border: none; background: none; cursor: pointer; -webkit-tap-highlight-color: transparent; }
+.railHome { top: 0; }
+.railBack { top: 120px; }
+.railBtn { position: absolute; left: 50px; width: 85px; height: 85px; padding: 0; border: none; border-radius: 50%; background: none; cursor: pointer; -webkit-tap-highlight-color: transparent; }
+.railBtn img { display: block; width: 85px; height: 85px; pointer-events: none; }
+.railA11y { top: 2403px; }
+.railVoice { top: 2523px; }
+.railBtnOn { box-shadow: 0 0 0 6px rgba(218, 41, 28, 0.35); }
+
+/* Bottom row. */
+.fillme { left: 270px; top: 3400px; width: 381px; height: 235px; }
+.camera { left: 917px; top: 3341px; width: 353px; height: 355px; }
+.restroom { left: 1599px; top: 3392px; width: 233px; height: 234px; }
+.actionLabel { top: 3651px; font-weight: 400; }
+.labelFillme { left: 261px; width: 400px; }
+.labelRestroom { left: 1516px; width: 400px; }
+/* A-01 notice block: translucent warm grey (the V1 round had made it white), Korean wrapping at any
+   syllable as the frame's break-word does. */
+.notice { background: rgba(108, 90, 70, 0.1); }
+.weather { background: rgba(255, 255, 255, 0.5); }
+.noticeText { word-break: normal; overflow-wrap: anywhere; }

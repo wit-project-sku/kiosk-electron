@@ -1,0 +1,262 @@
+/*
+ * 건물 안내 — Figma C-04 (8744:1363) · A-07 (8745:1164 / 8745:1260 / 8745:1356).
+ * Artboard px (1 CSS px = 1 Figma px). Tabs at y700, content column from y920 (1820 wide at x170).
+ */
+.tabs {
+  position: absolute;
+  left: 170px;
+  top: 700px;
+  width: 1820px;
+  height: 170px;
+  display: flex;
+  gap: 20px;
+}
+
+.tab {
+  flex: 1 1 0;
+  height: 170px;
+  padding: 0;
+  border: none;
+  border-radius: 43px;
+  background: #fff;
+  font-family: inherit;
+  font-size: 50px;
+  font-weight: 500;
+  line-height: 55px;
+  color: #999;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.tabOn {
+  background: #DA291C;
+  color: #fff;
+  font-weight: 700;
+}
+
+.content {
+  position: absolute;
+  left: 170px;
+  top: 920px;
+  width: 1820px;
+  height: 2620px;
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+  overflow-y: auto;
+  /* room for the cards' drop shadow at the foot of the scroll */
+  padding-bottom: 24px;
+  box-sizing: border-box;
+  scrollbar-width: none;
+}
+
+.content::-webkit-scrollbar { display: none; }
+
+/* 월드몰 building chips. */
+.buildings {
+  flex: none;
+  display: flex;
+  gap: 22px;
+}
+
+.building {
+  height: 120px;
+  padding: 0 56px;
+  border: none;
+  border-radius: 40px;
+  background: #fff;
+  filter: drop-shadow(0 8px 12px rgba(0, 0, 0, 0.06));
+  font-family: inherit;
+  font-size: 46px;
+  font-weight: 400;
+  color: #999;
+  white-space: nowrap;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.buildingOn {
+  background: #DA291C;
+  color: #fff;
+  font-weight: 700;
+}
+
+/* Department stores' 지점 소개. */
+.siteCard {
+  flex: none;
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+  padding: 56px 72px;
+  border-radius: 45px;
+  background: #2A2320;
+}
+
+.siteName {
+  font-size: 64px;
+  font-weight: 800;
+  line-height: 76.8px;
+  color: #fff;
+  white-space: nowrap;
+}
+
+.siteHours {
+  font-size: 42px;
+  line-height: 60.9px;
+  color: rgba(255, 255, 255, 0.75);
+  white-space: nowrap;
+}
+
+/* ── 이벤트: 2 × 894 grid, 836-tall cards ── */
+.eventGrid {
+  flex: none;
+  display: grid;
+  grid-template-columns: repeat(2, 894px);
+  grid-auto-rows: 836px;
+  gap: 32px;
+}
+
+.eventCard {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  border-radius: 45px;
+  background: #fff;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.04);
+}
+
+.eventImage {
+  flex: none;
+  height: 520px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #F3EEE7;
+  font-size: 46px;
+  font-weight: 600;
+  color: #A89E93;
+}
+
+.eventBody {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 18px;
+  padding: 44px 56px;
+}
+
+/* Rose chip — 이벤트 종류 and the 핫스팟 floor. */
+.kind {
+  display: inline-flex;
+  align-items: center;
+  padding: 10px 30px;
+  border-radius: 30px;
+  background: #F6E3E0;
+  font-size: 36px;
+  font-weight: 700;
+  color: #A31A12;
+  white-space: nowrap;
+}
+
+.eventTitle {
+  font-size: 58px;
+  font-weight: 700;
+  color: #2A2320;
+  white-space: nowrap;
+}
+
+.eventWhen {
+  font-size: 40px;
+  line-height: 60px;
+  color: #7A716B;
+  white-space: nowrap;
+}
+
+/* ── 핫스팟 cards ── */
+.spot {
+  flex: none;
+  display: flex;
+  align-items: center;
+  gap: 48px;
+  padding: 36px;
+  border-radius: 45px;
+  background: #fff;
+  filter: drop-shadow(0 8px 12px rgba(0, 0, 0, 0.04));
+}
+
+.spotPhoto {
+  flex: none;
+  width: 560px;
+  height: 360px;
+  border-radius: 32px;
+  object-fit: cover;
+}
+
+.spotPhotoHold {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: #F3EEE7;
+  font-size: 40px;
+  font-weight: 600;
+  color: #A89E93;
+  text-align: center;
+}
+
+/* Department-store rows: 420×280 plate, 48/36 padding. */
+.spotCompact {
+  padding: 36px 48px;
+}
+
+.spotCompact .spotPhoto {
+  width: 420px;
+  height: 280px;
+}
+
+.spotBody {
+  flex: 1 1 0;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 20px;
+}
+
+.spotName {
+  font-size: 60px;
+  font-weight: 700;
+  color: #2A2320;
+  white-space: nowrap;
+}
+
+.spotIntro {
+  font-size: 42px;
+  color: #5D544E;
+}
+
+.chipRow {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.category {
+  display: inline-flex;
+  align-items: center;
+  padding: 10px 30px;
+  border-radius: 30px;
+  background: #F3EEE7;
+  font-size: 36px;
+  font-weight: 500;
+  color: #5D544E;
+  white-space: nowrap;
+}
+
+.spotHours {
+  font-size: 36px;
+  color: #7A716B;
+}
+
+/* Figma's 'normal' leading for Pretendard (see lotteUi .column). */
+.tabs, .content { line-height: 1.2; }

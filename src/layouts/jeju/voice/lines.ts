@@ -2,12 +2,19 @@
  * What 제주 voice guidance says — every line comes from the sheet's
  * Text-to-speech_Script tab (VOICE_JEJU), except what is read off the screen
  * itself: the name of the element the keypad ring is on.
+ *
+ * The LOTTE layout runs the same engine on its own sheet's tab (VOICE_LOTTE),
+ * screen map and key aliases — see layouts/lotte/lotteVoice.
  */
 import type { KioskScreenId } from '@shared/types/kiosk';
 import type { LangText } from '@renderer/data/types';
 import { VOICE_JEJU } from '@renderer/data/voice-jeju.generated';
+import { VOICE_LOTTE } from '@renderer/data/voice-lotte.generated';
 import { useKioskStore } from '@renderer/store/kioskStore';
+import { LOTTE_FALLBACK_SITE, LOTTE_KEY_ALIASES, LOTTE_SCREEN_INTROS } from '../../lotte/lotteVoice';
 import { canSpeak, Priority, type Line, type VoiceLang } from './speech';
+
+const isLotte = (): boolean => useKioskStore.getState().config.layout === 'LOTTE';
 
 const VOICE_LANGS: readonly VoiceLang[] = ['ko', 'en', 'ja', 'zh', 'vi', 'th', 'ru', 'id'];
 
@@ -24,9 +31,14 @@ export function toVoiceLang(lang: string): VoiceLang {
  */
 function row(key: string, kioskId: string): Partial<LangText> | undefined {
   const synced = useKioskStore.getState().translations;
-  for (const k of [`${key}@${kioskId}`, key, `${key}@W008`]) {
+  const lotte = isLotte();
+  // 롯데's synced `Voice_*` rows are its own sheet's: translations are per kiosk.
+  const table = lotte ? VOICE_LOTTE : VOICE_JEJU;
+  const base = lotte ? (LOTTE_KEY_ALIASES[key] ?? key) : key;
+  const fallbackSite = lotte ? LOTTE_FALLBACK_SITE : 'W008';
+  for (const k of [`${base}@${kioskId}`, base, `${base}@${fallbackSite}`]) {
     const live = synced[`Voice_${k}`];
-    const bundled = VOICE_JEJU[k];
+    const bundled = table[k];
     if (live || bundled) return { ...bundled, ...live };
   }
   return undefined;
@@ -87,7 +99,7 @@ const isTerminalOrHeritage = (kioskId: string): boolean => kioskId === 'W009' ||
  */
 export function screenKeys(screen: KioskScreenId, photoActive: boolean, kioskId: string): string[] {
   if (photoActive) return ['hanbok.select'];
-  const intro = SCREEN_INTROS[screen];
+  const intro = isLotte() ? LOTTE_SCREEN_INTROS[screen] : SCREEN_INTROS[screen];
   const key = typeof intro === 'function' ? intro(kioskId) : intro;
   if (!key) return [];
   if (WEB_SCREENS.has(screen)) return [key, 'global.web.exit'];

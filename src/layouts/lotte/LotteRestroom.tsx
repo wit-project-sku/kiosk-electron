@@ -11,6 +11,7 @@ import { useShopStore } from '@renderer/store/shopStore';
 import { shopName } from '@renderer/lib/shops';
 import { LottePageFrame } from './LottePageFrame';
 import { floorRank, lotteSite, shopFloor } from './lotteSample';
+import { lt } from './lotteText';
 import c from './lotteContent.module.css';
 
 const isRestroom = (second: string | null): boolean => !!second && second.endsWith('화장실');
@@ -50,7 +51,7 @@ export function LotteRestroom({ controller }: { controller: KioskController }): 
   return (
     <LottePageFrame
       controller={controller}
-      title={en ? 'Restroom' : '화장실'}
+      title={lt('MainButton_WC', lang, { ko: '화장실', en: 'Restroom' })}
       subtitle={en ? 'Restrooms by floor.' : '층별 화장실을 확인하세요'}
       showBanner={false}
     >

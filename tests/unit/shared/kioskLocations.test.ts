@@ -23,9 +23,9 @@ const EXPECTED = {
   W008: { layout: 'JEJU_AIRPORT', region: 'JEJU_AIRPORT', hasCardTerminal: true },
   W009: { layout: 'JEJU_AIRPORT', region: 'JEJU_PORT', hasCardTerminal: true },
   W010: { layout: 'JEJU_HERITAGE', region: 'JEJU_HERITAGE', hasCardTerminal: true },
-  W011: { layout: 'LOTTE', region: null, hasCardTerminal: true },
-  W012: { layout: 'LOTTE', region: null, hasCardTerminal: true },
-  W013: { layout: 'LOTTE', region: null, hasCardTerminal: true },
+  W011: { layout: 'LOTTE', region: 'LOTTE_WORLD_MALL', hasCardTerminal: true },
+  W012: { layout: 'LOTTE', region: 'LOTTE_CHEONGNYANGNI', hasCardTerminal: true },
+  W013: { layout: 'LOTTE', region: 'LOTTE_STARCITY', hasCardTerminal: true },
   W202: { layout: 'KADA', region: null, hasCardTerminal: false },
 } as const;
 

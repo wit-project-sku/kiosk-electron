@@ -14,6 +14,13 @@ import { parseLocalizationSheet, type LocalizationByLang } from './google/Locali
 import { parseVoiceSheet } from './google/VoiceSyncParser';
 import { parseJejuAiCategories, parseJejuAirportFacilities } from './google/JejuSheetDataParser';
 import { JEJU_AI_CATEGORIES_KEY, JEJU_AIRPORT_FACILITIES_KEY } from '@shared/constants/jejuSheetData';
+import { parseLotteFacilities } from './google/LotteSheetDataParser';
+import {
+  LOTTE_FACILITIES_KEY,
+  LOTTE_FACILITY_TABS,
+  LOTTE_LOCALIZATION_RANGE,
+  LOTTE_SHEET_ID,
+} from '@shared/constants/lotteSheet';
 
 const log = createLogger('google-sheets-transport');
 
@@ -41,7 +48,7 @@ interface ContentSheet {
   /** Tried in order when the sheet no longer has the `localizationRange` tab
    *  (Sheets answers 400 "Unable to parse range"). */
   fallbackRanges?: readonly string[];
-  /** 제주 voice guidance script, stored with the translations as `Voice_*` keys. */
+  /** Voice guidance script (제주, 롯데), stored with the translations as `Voice_*` keys. */
   voiceRange?: string;
 }
 
@@ -85,8 +92,10 @@ const CONTENT_SHEETS: Record<KioskLayoutId, ContentSheet> = {
   // and `uploadAnalytics` both check it and skip rather than falling back to
   // another location's sheet.
   KADA: { sheetId: '', localizationRange: '' },
-  // 롯데 has no spreadsheet yet — same "no spreadsheet for this layout" signal as KADA.
-  LOTTE: { sheetId: '', localizationRange: '' },
+  // 롯데 W011~W013 share one sheet; site rows are `Key@W011` (see layouts/lotte/lotteText). Its
+  // FacilityData_* tabs are read by downloadLotteData (@shared/constants/lotteSheet).
+  // Its own Text-to-speech_Script tab (same name and columns as 제주's) carries the 롯데 voice lines.
+  LOTTE: { sheetId: LOTTE_SHEET_ID, localizationRange: LOTTE_LOCALIZATION_RANGE, voiceRange: JEJU_VOICE_RANGE },
 };
 
 /**
@@ -199,6 +208,7 @@ export class GoogleSheetsSyncTransport implements SyncTransport {
     this.clearStaleTranslations();
     await this.downloadTranslations(config);
     await this.downloadJejuData(config);
+    await this.downloadLotteData(config);
     await this.downloadScreenContent(config); // best-effort; legacy "Content" tab
   }
 
@@ -267,7 +277,7 @@ export class GoogleSheetsSyncTransport implements SyncTransport {
   }
 
   /**
-   * The 제주 voice script. Best-effort: on failure the kiosk keeps speaking the
+   * The 제주 / 롯데 voice script. Best-effort: on failure the kiosk keeps speaking the
    * script bundled at build time, and the screen text still updates.
    */
   private async downloadVoice(client: SheetsClient, range: string): Promise<LocalizationByLang> {
@@ -290,7 +300,8 @@ export class GoogleSheetsSyncTransport implements SyncTransport {
    */
   private async downloadJejuData(config: NonNullable<ReturnType<typeof getGoogleSyncConfig>>): Promise<void> {
     const { sheetId, voiceRange } = this.contentSheet();
-    if (!voiceRange) return; // 제주 layouts only — they are the ones with this tab.
+    // 제주 layouts only. Not keyed on voiceRange: 롯데 has a voice tab but not these two.
+    if (!voiceRange || !getKioskLocation(this.kiosk.getConfig().kioskId).layout.startsWith('JEJU')) return;
     const client = new SheetsClient({ ...config, sheetId });
     const tabs = [
       { key: JEJU_AI_CATEGORIES_KEY, range: JEJU_AI_CATEGORY_RANGE, parse: parseJejuAiCategories },
@@ -309,6 +320,33 @@ export class GoogleSheetsSyncTransport implements SyncTransport {
         const message = error instanceof Error ? error.message : 'Unknown error';
         log.warn('Sheet data download failed; keeping the last copy', { range, error: message });
       }
+    }
+  }
+
+  /**
+   * This 롯데 site's FacilityData tab, into the content cache that travels with the bootstrap —
+   * the 시설안내 / 화장실 rows the shops API does not carry. Best-effort, like downloadJejuData:
+   * on a failure or an unreadable tab the kiosk keeps its last good copy, or the bundled one.
+   */
+  private async downloadLotteData(config: NonNullable<ReturnType<typeof getGoogleSyncConfig>>): Promise<void> {
+    const { kioskId } = this.kiosk.getConfig();
+    if (getKioskLocation(kioskId).layout !== 'LOTTE') return;
+    const tab = LOTTE_FACILITY_TABS[kioskId as keyof typeof LOTTE_FACILITY_TABS];
+    if (!tab) return;
+    const range = `${tab}!A:AJ`;
+    try {
+      const client = new SheetsClient({ ...config, sheetId: this.contentSheet().sheetId });
+      const rows = parseLotteFacilities(await client.getValues(range));
+      if (rows.length === 0) {
+        log.warn('Sheet data tab had no readable rows; keeping the last copy', { range });
+        return;
+      }
+      // The site rides along so a test-rig switch to another 롯데 site cannot show this one's rows.
+      this.cache.upsert(LOTTE_FACILITIES_KEY, { kioskId, rows }, 'google_sheets');
+      log.info('Sheet data updated from Google Sheets', { range, total: rows.length });
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Unknown error';
+      log.warn('Sheet data download failed; keeping the last copy', { range, error: message });
     }
   }
 

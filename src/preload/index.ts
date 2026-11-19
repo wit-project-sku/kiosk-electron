@@ -250,6 +250,11 @@ const api: KioskBridge = {
   traffic: {
     getExpressway: () => invoke(IpcChannels.TrafficExpresswayGet),
   },
+  lotte: {
+    getShowtimes: () => invoke(IpcChannels.LotteShowtimesGet),
+    getStories: () => invoke(IpcChannels.LotteStoriesGet),
+    getMovieShareSummary: () => invoke(IpcChannels.LotteMovieShareSummaryGet),
+  },
   view: {
     bounds: ZOOM_BOUNDS,
     getZoomFactor: () => webFrame.getZoomFactor(),

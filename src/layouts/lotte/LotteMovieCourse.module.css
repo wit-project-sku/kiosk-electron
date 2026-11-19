@@ -1,0 +1,152 @@
+/* 영화 전후 코스 — Figma C-01 (8768:567) · C-02 (8768:663). Shared pieces: lotteUi.module.css. */
+
+/* C-01 posters: 402 columns, 28 apart (4 across the 1692 card body). */
+.movies {
+  display: grid;
+  grid-template-columns: repeat(4, 402px);
+  gap: 40px 28px;
+}
+
+.movie {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.poster {
+  height: 380px;
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  border-radius: 28px;
+  background: #2A2320;
+  color: #FFF4F3;
+  font-size: 38px;
+  font-weight: 700;
+  text-align: center;
+  word-break: keep-all;
+}
+
+.sessions {
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+}
+
+.session {
+  padding: 10px 30px;
+  border: none;
+  border-radius: 30px;
+  background: #F3EEE7;
+  font-family: inherit;
+  font-size: 38px;
+  font-weight: 500;
+  color: #5D544E;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.sessionOn {
+  background: #F6E3E0;
+  color: #A31A12;
+  font-weight: 700;
+}
+
+/* C-02 timeline card. */
+.timeline {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 40px 56px;
+  border-radius: 45px;
+  background: #fff;
+  filter: drop-shadow(0 8px 12px rgba(0, 0, 0, 0.04));
+}
+
+.row {
+  position: relative;
+  height: 200px;
+  display: flex;
+  align-items: center;
+  gap: 44px;
+}
+
+.time {
+  flex: none;
+  width: 200px;
+  font-size: 56px;
+  font-weight: 700;
+  color: #2A2320;
+}
+
+.timeRed { color: #DA291C; }
+
+.badge {
+  position: relative;
+  z-index: 1;
+  flex: none;
+  width: 130px;
+  height: 130px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 40px;
+  background: #2A2320;
+  color: #fff;
+  font-size: 46px;
+  font-weight: 800;
+}
+
+.badgeRose {
+  background: #F6E3E0;
+  color: #DA291C;
+}
+
+.body {
+  flex: 1 1 0;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.name {
+  font-size: 54px;
+  font-weight: 700;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.detail {
+  font-size: 38px;
+  color: #7A716B;
+}
+
+.open {
+  font-size: 34px;
+  font-weight: 700;
+  color: #1E8E5A;
+}
+
+/* Connector down to the next badge: 6×120 at x325, from y170 of the row. */
+.line {
+  position: absolute;
+  left: 325px;
+  top: 170px;
+  width: 6px;
+  height: 120px;
+  background: #E8DCD5;
+}
+
+.empty {
+  padding: 24px 0 24px 288px;
+  font-size: 40px;
+  font-weight: 700;
+  color: #7A716B;
+}
+
+/* Poster from the feed, cropped into the 402×380 slot. */
+img.poster { width: 402px; padding: 0; object-fit: cover; }

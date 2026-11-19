@@ -159,6 +159,11 @@ export const IpcChannels = {
   // 화성휴게소 home board 도로교통상황 (GET /api/traffic/expressway; renderer polls)
   TrafficExpresswayGet: 'traffic:expressway',
 
+  // 롯데 (W011~W013) — keyed by kiosk number; the renderer polls (see LotteService)
+  LotteShowtimesGet: 'lotte:showtimes', // GET /api/cinema/showtimes
+  LotteStoriesGet: 'lotte:stories', // GET /api/stories
+  LotteMovieShareSummaryGet: 'lotte:movie-share-summary', // GET /api/movie-share/summary
+
   // 제주 AI 코스 추천 (live POST; 제주 kiosks only)
   JejuCourseRecommend: 'jejuCourse:recommend',
   // 제주 커스텀 코스 picker (live POST per 즐길 거리 tap; 제주 kiosks only)

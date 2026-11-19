@@ -1,0 +1,1 @@
+{"key":"GET /api/kiosks/LOTTE_WORLD_MALL/subtitles/v2","status":200,"body":{"success":true,"code":200,"message":"요청이 성공적으로 처리되었습니다.","data":{"kioskId":11,"kioskName":"#W011-송파구=롯데월드몰","buttons":[],"autoSubtitles":[]}}}
