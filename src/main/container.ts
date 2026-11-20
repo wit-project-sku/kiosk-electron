@@ -43,6 +43,7 @@ import { ExchangeService } from './services/ExchangeService';
 import { SubtitleService } from './services/SubtitleService';
 import { EventsService } from './services/EventsService';
 import { TrafficService } from './services/TrafficService';
+import { LotteService } from './services/LotteService';
 import { SyncService } from './services/sync/SyncService';
 import { CameraService } from './services/camera/CameraService';
 import { CaptureService } from './services/camera/CaptureService';
@@ -112,6 +113,7 @@ export interface AppContainer {
   events: EventsService;
   /** 화성휴게소 도로교통상황 — live, last good value kept. */
   traffic: TrafficService;
+  lotte: LotteService;
   updater: UpdateService;
   updateCommands: UpdateCommandService;
   health: HealthReporter;
@@ -178,6 +180,7 @@ export function createContainer(): AppContainer {
   const subtitles = new SubtitleService(cache, kiosk);
   const events = new EventsService();
   const traffic = new TrafficService();
+  const lotte = new LotteService(kiosk);
 
   const display = new DisplayService();
   const camera = new CameraService();
@@ -284,6 +287,7 @@ export function createContainer(): AppContainer {
     stats,
     events,
     traffic,
+    lotte,
     updater,
     updateCommands,
     health,

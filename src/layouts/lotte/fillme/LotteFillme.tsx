@@ -57,9 +57,19 @@ import { FillmeResult } from './FillmeResult';
 import { Keypad } from './Keypad';
 import { PolicySheet } from './PolicySheet';
 import { IdleModal, Modal, type ModalAction } from './Modal';
+import { speakKey, useVoiceIntro } from '../../jeju/voice/intro';
 import styles from './LotteFillme.module.css';
 
 type Screen = 'intro' | 'capture' | 'info' | 'analyzing' | 'result';
+
+/** 음성 안내 per step (the 롯데 sheet's Text-to-speech_Script). 정보 입력 adds that what is typed is never read aloud. */
+const VOICE_INTROS: Record<Screen, readonly string[]> = {
+  intro: ['lotte.fillme.start'],
+  capture: ['lotte.fillme.capture'],
+  info: ['lotte.fillme.info', 'global.privacy.notice'],
+  analyzing: ['lotte.fillme.analyzing'],
+  result: ['lotte.fillme.result'],
+};
 
 /** 촬영이 끝난 뒤 어디로 — 처음 촬영이면 정보 입력, 재촬영이면 곧바로 재분석. */
 type After = 'info' | 'analyze';
@@ -143,6 +153,7 @@ export function LotteFillme({ controller }: Props): JSX.Element {
   const [modal, setModal] = useState<ModalState>(null);
   const [share, setShare] = useState<ShareState>({ status: 'off' });
   const [idleLeft, setIdleLeft] = useState<number | null>(null);
+  useVoiceIntro(VOICE_INTROS[screen]);
 
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const cameraRef = useRef(new NailCamera(FILLME_CAMERA_MODE));
@@ -388,6 +399,7 @@ export function LotteFillme({ controller }: Props): JSX.Element {
   const nextField = (): void => {
     if (!keypad) return;
     // 개인정보: the speaker plays with the earphones, so say THAT it was entered, never what.
+    if (info.nums[keypad]) speakKey('global.privacy.entered');
     const next = FIELD_ORDER[FIELD_ORDER.indexOf(keypad) + 1];
     setKeypad(next ?? null);
   };
@@ -518,8 +530,12 @@ export function LotteFillme({ controller }: Props): JSX.Element {
 
   const showIdle = idleLeft != null && idleLeft <= FILLME_CONFIG.idleWarningSeconds && idleLeft > 0;
 
-  useEffect(() => {}, [screen, phase, count]);
-  useEffect(() => {}, [showIdle]);
+  useEffect(() => {
+    if (screen === 'capture' && phase === 'countdown') speakKey(`num.${count}`);
+  }, [screen, phase, count]);
+  useEffect(() => {
+    if (showIdle) speakKey('fillme.timeout.warn');
+  }, [showIdle]);
 
   return (
     <LottePageFrame

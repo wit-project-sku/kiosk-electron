@@ -320,3 +320,21 @@
 /* 롯데 시안 A */
 .bgBase { background: #FFF4F3 !important; }
 .topBand { position: absolute; left: 0; top: 0; width: 2160px; height: 24px; background: #DA291C; }
+
+/* ── 화면정의서 (2026-11-13): rail at x46 y2040, 음성 안내 one step under it (y2280). ── */
+.leftNav { left: 46px; top: 2040px; }
+.voice {
+  position: absolute;
+  left: 46px;
+  top: 2280px;
+  width: 85px;
+  height: 85px;
+  padding: 0;
+  border: none;
+  background: none;
+  cursor: default;
+  -webkit-tap-highlight-color: transparent;
+}
+.voice img { display: block; width: 85px; height: 85px; pointer-events: none; }
+.voiceOn { border-radius: 50%; box-shadow: 0 0 0 6px rgba(218, 41, 28, 0.35); }
+.rootLowReach .voice { display: none; }

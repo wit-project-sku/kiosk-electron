@@ -1,22 +1,25 @@
 /**
- * 롯데시네마 상영 시간표 on the home screen — sits where 제주공항 draws its 운항 정보 board, with the
- * same chrome. The rows are sample data until the 5-minute server feed exists; one session shows
- * at a time and the board steps through what is coming up.
+ * 상영 시간표 on the home screen — Figma A-01 (8746:1466): one row, the nearest session (상영시각 ·
+ * 영화 제목 · 잔여석 · 상영관), and '상영 정보 더보기' under it, which opens 롯데시네마 (A-06).
+ * Rows come from GET /api/cinema/showtimes (lotteLive.ts; the sample timetable until the first
+ * answer). The row is re-picked each minute so a session that has started drops off.
  */
 import { useEffect, useMemo, useState } from 'react';
 import type { KioskController } from '@renderer/hooks/useKioskController';
+import { lotteIconUrl } from '@renderer/assets/icons/lotte';
 import type { Lang } from '@renderer/lib/i18n';
-import { sampleCinema, upcomingSessions } from './lotteSample';
+import { useCinemaMovies } from './lotteLive';
+import { upcomingSessions } from './lotteSample';
+import { lt } from './lotteText';
 import styles from './LotteCinemaBoard.module.css';
 
-const STEP_MS = 5_000;
-const COLUMNS = { start: 460, title: 830, grade: 1190, screen: 1400, seats: 1660 } as const;
-const HEADS: Record<keyof typeof COLUMNS, { ko: string; en: string }> = {
-  start: { ko: '시작', en: 'Start' },
-  title: { ko: '영화', en: 'Movie' },
-  grade: { ko: '등급', en: 'Rating' },
+const COLUMNS = ['start', 'title', 'seats', 'screen'] as const;
+const COL_CLASS = { start: 'colStart', title: 'colTitle', seats: 'colSeats', screen: 'colScreen' } as const;
+const HEADS: Record<(typeof COLUMNS)[number], { ko: string; en: string }> = {
+  start: { ko: '상영시각', en: 'Time' },
+  title: { ko: '영화 제목', en: 'Movie' },
+  seats: { ko: '잔여석', en: 'Seats' },
   screen: { ko: '상영관', en: 'Screen' },
-  seats: { ko: '좌석', en: 'Seats' },
 };
 
 interface Props {
@@ -25,48 +28,44 @@ interface Props {
 }
 
 export function LotteCinemaBoard({ controller, lang }: Props): JSX.Element {
-  const rows = useMemo(() => upcomingSessions(sampleCinema(new Date())), []);
-  const [index, setIndex] = useState(0);
+  const [now, setNow] = useState(() => new Date());
   useEffect(() => {
-    const id = setInterval(() => setIndex((i) => (i + 1) % rows.length), STEP_MS);
+    const id = setInterval(() => setNow(new Date()), 60_000);
     return () => clearInterval(id);
-  }, [rows.length]);
-  const row = rows[index]!;
-  /* The feed has Korean and English names only, so the board follows 운항 정보: Korean or English. */
+  }, []);
+  const { movies } = useCinemaMovies();
+  const nowHm = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+  const row = useMemo(
+    () => upcomingSessions(movies).find((s) => s.start >= nowHm),
+    [movies, nowHm],
+  );
+  /* The feed has Korean and English names only, so the board is Korean or English. */
   const en = lang !== 'ko';
   const open = (): void => controller.navigate('cinema', '상영 시간표');
+  const values: Record<(typeof COLUMNS)[number], string> = {
+    start: row ? `${row.start} ~ ${row.end}` : '-',
+    title: row?.title ?? lt('Cinema_NoShow', lang, { ko: '오늘 남은 상영이 없습니다', en: 'No more shows today' }),
+    seats: row?.seatsLeft != null && row.seatsTotal != null ? `${row.seatsLeft}/${row.seatsTotal}` : '-',
+    screen: row ? row.screen.replace(/관$/, '') : '-',
+  };
 
   return (
     <>
       <div className={styles.board} role="button" aria-label="상영 시간표" onClick={open}>
-        <p className={en ? `${styles.title} ${styles.titleWrap}` : styles.title}>
-          {en ? 'LOTTE CINEMA' : '롯데시네마'}
-        </p>
+        <p className={styles.title}>{lt('MainButton_Cinema_Subtext', lang, { ko: '상영 시간표', en: 'Showtimes' })}</p>
         <div className={styles.rule} />
-        {(Object.keys(COLUMNS) as (keyof typeof COLUMNS)[]).map((key) => (
-          <span key={key} className={styles.head} style={{ left: COLUMNS[key] }}>
-            {en ? HEADS[key].en : HEADS[key].ko}
-          </span>
+        {COLUMNS.map((key) => (
+          <div key={key} className={`${styles.col} ${styles[COL_CLASS[key]]}`}>
+            <span className={styles.head}>{en ? HEADS[key].en : HEADS[key].ko}</span>
+            <span className={styles.value}>{values[key]}</span>
+          </div>
         ))}
-        <span className={styles.value} style={{ left: COLUMNS.start }}>
-          {row.start}
-        </span>
-        <span className={styles.value} style={{ left: COLUMNS.title }}>
-          {row.title}
-        </span>
-        <span className={styles.value} style={{ left: COLUMNS.grade }}>
-          {row.grade}
-        </span>
-        <span className={styles.value} style={{ left: COLUMNS.screen }}>
-          {row.screen}
-        </span>
-        <span className={styles.value} style={{ left: COLUMNS.seats }}>
-          {row.seatsLeft}/{row.seatsTotal}
-        </span>
       </div>
       <button type="button" className={styles.more} onClick={open}>
-        <span className={styles.chevron} />
-        <span className={styles.moreText}>{en ? 'More' : '더보기'}</span>
+        {lotteIconUrl('ico-more-tri') && (
+          <img src={lotteIconUrl('ico-more-tri')} alt="" className={styles.chevron} draggable={false} />
+        )}
+        <span className={styles.moreText}>{lt('Home_Cinema_More', lang, { ko: '상영 정보 더보기', en: 'More showtimes' })}</span>
       </button>
     </>
   );

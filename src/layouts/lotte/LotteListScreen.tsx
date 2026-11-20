@@ -16,6 +16,7 @@ import { LotteShopRow } from './LotteShopRow';
 import { shopDetail } from './lotteDetailItem';
 import { LOTTE_EAT, LOTTE_FACILITY, LOTTE_SHOP, compareShops } from './lotteSample';
 import c from './lotteContent.module.css';
+import { lt } from './lotteText';
 
 export type LotteListScreenId = Extract<KioskScreenId, 'eat' | 'shop' | 'help'>;
 const BASE: Record<LotteListScreenId, string> = {
@@ -27,6 +28,12 @@ const TITLE: Record<LotteListScreenId, string> = {
   eat: "'롯데' 뭐먹지?",
   shop: "'롯데' 뭐사지?",
   help: '롯데 시설안내',
+};
+/** The sheet's line under each list's title (written with a leading '* '). */
+const SUBHEADER: Record<LotteListScreenId, string> = {
+  eat: 'SubHeader_ToEat',
+  shop: 'SubHeader_ToBuy',
+  help: 'SubHeader_ToHelp',
 };
 const SCROLL_STEP = 760;
 
@@ -84,7 +91,7 @@ export function LotteListScreen({
     <LottePageFrame
       controller={controller}
       title={title}
-      subtitle={en ? 'Filter by category.' : '종류를 골라 찾아보세요'}
+      subtitle={lt(SUBHEADER[screen], lang, { ko: '종류를 골라 찾아보세요', en: 'Filter by category.' }).replace(/^\s*[*•]\s*/, '')}
       showBanner={false}
     >
       <div className={`${c.body} ${c.bodyFull}`}>
@@ -118,7 +125,7 @@ export function LotteListScreen({
               ))}
             </div>
           ) : (
-            <div className={c.empty}>
+            <div className={c.empty} data-voice-state="empty">
               {en ? 'No matching shops.' : '조건에 맞는 상점이 없습니다'}
             </div>
           )}

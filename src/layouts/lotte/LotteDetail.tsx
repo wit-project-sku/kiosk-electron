@@ -9,9 +9,12 @@ import { useDetailStore } from '@renderer/store/detailStore';
 import { useLanguageStore } from '@renderer/store/languageStore';
 import { screenTitle } from '@renderer/lib/i18n';
 import { LottePageFrame } from './LottePageFrame';
+import { useVoiceIntro } from '../jeju/voice/intro';
 import c from './lotteContent.module.css';
 
 const PHOTO_SLOTS = 4;
+
+const VOICE_ABOUT = ['lotte.about.detail'] as const;
 
 export function LotteDetail({ controller }: { controller: KioskController }): JSX.Element {
   const item = useDetailStore((s) => s.item);
@@ -22,6 +25,8 @@ export function LotteDetail({ controller }: { controller: KioskController }): JS
   useEffect(() => {
     if (from) void window.api.kiosk.setScreen(`${from}_detail`);
   }, [from]);
+  // 매장 상세 is the route's own intro (lotteVoice); 여기는 롯데's 시설 상세 has its own line.
+  useVoiceIntro(from === 'about' ? VOICE_ABOUT : null);
 
   if (!item) {
     return (

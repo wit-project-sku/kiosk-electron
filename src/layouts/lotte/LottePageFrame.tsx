@@ -1,5 +1,5 @@
 /**
- * Shared frame for every 롯데 sub-page (시안 A): flat background + a red band, header, left nav
+ * Shared frame for every 롯데 sub-page (시안 A): the page illustration + a red band, header, left nav
  * and bottom banner. Adapted from JejuPageFrame; its ♿ props stay so the two can be compared.
  */
 import type { CSSProperties, ReactNode } from 'react';
@@ -11,8 +11,12 @@ import type { Lang } from '@renderer/lib/i18n';
 import { useAccessibilityStore } from '@renderer/store/accessibilityStore';
 import { useLanguageStore } from '@renderer/store/languageStore';
 import { LotteHeader } from './LotteHeader';
+import { LotteVoiceButton } from './LotteVoiceButton';
 import { modeBarVars } from './lowReach';
 import styles from './LottePageFrame.module.css';
+
+/** Resolved once: the bundled art never changes at runtime. */
+const pageBg = lotteIconUrl('bg-page');
 
 /** Fallback — sheet `BarrierFree_Title`. */
 const BARRIER_FREE: Partial<Record<Lang, string>> = {
@@ -110,6 +114,8 @@ interface Props {
    * the rail half of it. See that prop for why the buttons stay drawn.
    */
   navDisabled?: boolean;
+  /** Title-only header — the 건물 안내 frames (C-04 · A-07) draw no description row. */
+  subtitleHidden?: boolean;
   children?: ReactNode;
 }
 
@@ -131,6 +137,7 @@ export function LottePageFrame({
   subtitleStar,
   subtitleBold,
   navDisabled = false,
+  subtitleHidden = false,
   children,
 }: Props): JSX.Element {
   // Live API banner when one is active, else this page's bundled promo.
@@ -189,6 +196,9 @@ export function LottePageFrame({
       }
     >
       <div className={styles.bgBase} />
+      {/* The 롯데 page illustration (bg-page.png, 2026-11-19 — 롯데월드타워 skyline), on every
+          sub-page like 제주's bg-page. The outfit picker reads the same file through photoChrome. */}
+      {pageBg && <img src={pageBg} alt="" className={styles.bgImage} draggable={false} />}
 
       {modeBar && <div className={styles.modeBar}>{barrierFreeTitle}</div>}
 
@@ -207,6 +217,7 @@ export function LottePageFrame({
         subtitleStar={subtitleStar}
         subtitleBold={subtitleBold}
         navDisabled={navDisabled}
+        subtitleHidden={subtitleHidden}
       />
 
       <div className={styles.body}>{children}</div>
@@ -235,6 +246,8 @@ export function LottePageFrame({
           aria-label="뒤로"
         />
       </div>
+      {/* 음성 안내 (화면정의서 2026-11-13): on every page — see lotteVoice.ts. */}
+      <LotteVoiceButton className={styles.voice} onClass={styles.voiceOn} />
 
       {drawBanner && (
         <div className={`${styles.banner} ${modeBar ? styles.bannerBelowBar : ''}`}>

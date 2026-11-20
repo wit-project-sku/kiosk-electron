@@ -1,0 +1,1 @@
+{"key": "GET /api/cinema/showtimes?kioskId=12", "status": 503, "body": {"success": false, "code": "CINEMA5032", "message": "요청 처리에 실패했습니다.", "data": null}}

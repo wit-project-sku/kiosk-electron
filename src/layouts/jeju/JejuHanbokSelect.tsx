@@ -328,7 +328,7 @@ const SOLO = {
  * `jejuMascot()` resolves to its non-heritage default 하영 — so the button
  * would have promised a 제주 mascot on an 인사동 kiosk.
  */
-const togetherLabel = (m: JejuMascot) => ({
+const togetherLabel = (m: Pick<JejuMascot, 'ko' | 'mixed' | 'ru'>) => ({
   ko: `사진촬영(with '${m.ko}')`,
   en: `Take a photo (with '${m.mixed}')`,
   ja: `写真撮影（${m.ko}と）`,
@@ -349,7 +349,12 @@ const togetherLabel = (m: JejuMascot) => ({
  * 제주 fallback is never reached.
  */
 const togetherText = (lang: Lang): string =>
-  tExact('Photo_SelectTogether', lang) || pick(togetherLabel(jejuMascot()), lang);
+  tExact('Photo_SelectTogether', lang) || pick(togetherLabel(isLotteKiosk() ? LOTTE_MASCOT : jejuMascot()), lang);
+
+/** 롯데's ambassador — 로씨 in Korean, LOCI everywhere else (the 롯데 voice script's rule). */
+const LOTTE_MASCOT = { ko: '로씨', mixed: 'LOCI', ru: 'LOCI' } as const;
+const isLotteKiosk = (): boolean =>
+  getKioskLocation(useKioskStore.getState().config.kioskId).layout === 'LOTTE';
 
 /**
  * 제주공항 (W008) and 여객터미널 (W009) offer 같이찍기 on the 제주 tab only for
@@ -357,10 +362,13 @@ const togetherText = (lang: Lang): string =>
  * they get 혼자 찍기 alone. Remove once it is fixed.
  */
 const TOGETHER_ON_JEJU_TAB_ONLY: ReadonlySet<string> = new Set(['W008', 'W009']);
-/** 롯데 (W011~W013) has no mascot code at Digicon yet, so it offers 혼자 찍기 alone on every tab. */
+/**
+ * 롯데 (W011~W013) shows 같이찍기 on every tab, like the other venues (2026-11-19 request).
+ * ⚠ Digicon has no 로씨 mascot code yet: until kioskLocations' `aiCompanion` for W011~W013
+ * changes, the composite is made with the API default ('2').
+ */
 const hidesTogether = (isThemeTab: boolean): boolean => {
   const kioskId = useKioskStore.getState().config.kioskId;
-  if (getKioskLocation(kioskId).layout === 'LOTTE') return true;
   return !isThemeTab && TOGETHER_ON_JEJU_TAB_ONLY.has(kioskId);
 };
 

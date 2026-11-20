@@ -74,6 +74,7 @@ import type {
   EventsRecommendQuery,
 } from '../types/events';
 import type { ExpresswayTrafficSnapshot } from '../types/traffic';
+import type { LotteMovieShareSummary, LotteShowtimes, LotteStory } from '../types/lotte';
 
 /** Unsubscribe handle returned by every event subscription. */
 export type Unsubscribe = () => void;
@@ -346,6 +347,12 @@ export interface KioskBridge {
   /** 화성휴게소 home board 도로교통상황 — null until the server has had a value. */
   traffic: {
     getExpressway(): Promise<Result<ExpresswayTrafficSnapshot | null>>;
+  };
+  /** 롯데 (W011~W013) kiosk-number endpoints — null until the server has answered once. */
+  lotte: {
+    getShowtimes(): Promise<Result<LotteShowtimes | null>>;
+    getStories(): Promise<Result<LotteStory[] | null>>;
+    getMovieShareSummary(): Promise<Result<LotteMovieShareSummary | null>>;
   };
   /**
    * Local display-scaling controls for the operator window. These act on the
