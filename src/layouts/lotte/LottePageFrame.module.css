@@ -321,12 +321,14 @@
 .bgBase { background: #FFF4F3 !important; }
 .topBand { position: absolute; left: 0; top: 0; width: 2160px; height: 24px; background: #DA291C; }
 
-/* ── 화면정의서 (2026-11-13): rail at x46 y2040, 음성 안내 one step under it (y2280). ── */
+/* ── 화면정의서 (2026-11-13): rail at x46 y2040, then ♿ and 음성 안내 one step (120) apart under it —
+   the home rail's order (홈 · 뒤로 · ♿ · 음성 안내). ── */
 .leftNav { left: 46px; top: 2040px; }
+.a11y,
 .voice {
   position: absolute;
   left: 46px;
-  top: 2280px;
+  top: 2400px;
   width: 85px;
   height: 85px;
   padding: 0;
@@ -335,6 +337,12 @@
   cursor: default;
   -webkit-tap-highlight-color: transparent;
 }
+.a11y { top: 2280px; cursor: pointer; }
+.voice { cursor: pointer; }
+.a11y img,
 .voice img { display: block; width: 85px; height: 85px; pointer-events: none; }
 .voiceOn { border-radius: 50%; box-shadow: 0 0 0 6px rgba(218, 41, 28, 0.35); }
-.rootLowReach .voice { display: none; }
+/* Low layout: the rail drops to y2163 (.lowReachSideControls .leftNav), the two buttons follow it.
+   ♿ must stay reachable there — it is the way back out of the low layout. */
+.lowReachSideControls .a11y { top: 2403px; }
+.lowReachSideControls .voice { top: 2523px; }

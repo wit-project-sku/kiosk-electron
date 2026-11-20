@@ -326,3 +326,15 @@ export function parseLocalizationSheet(sheetRows: string[][], layout: KioskLayou
   });
   return result;
 }
+
+/**
+ * Only the rows whose key starts with `prefix`, per language — what a venue borrows from another
+ * venue's Localization tab (GoogleSheetsSyncTransport's `borrowedRows`).
+ */
+export function rowsWithPrefix(byLang: LocalizationByLang, prefix: string): LocalizationByLang {
+  const out: LocalizationByLang = {};
+  for (const [lang, entries] of Object.entries(byLang) as Array<[keyof LocalizationByLang, Record<string, string> | undefined]>) {
+    out[lang] = Object.fromEntries(Object.entries(entries ?? {}).filter(([k]) => k.startsWith(prefix)));
+  }
+  return out;
+}

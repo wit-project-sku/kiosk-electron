@@ -30,11 +30,12 @@ import {
   shopSecondCategory,
 } from '@renderer/lib/shops';
 import { LottePageFrame } from './LottePageFrame';
-import { LotteShopRow } from './LotteShopRow';
+import { JejuShopCard } from '../jeju/JejuShopCard';
 import { FloatingKeyboard } from '../insadong/keyboard/FloatingKeyboard';
 import { HangulComposer } from '../insadong/keyboard/hangul';
 import type { KeyAction } from '../insadong/keyboard/VirtualKeyboard';
 import styles from './LotteSearch.module.css';
+import { lotteShopLink } from './lotteDetailItem';
 import { belowModeBar } from './lowReach';
 
 interface Props {
@@ -156,7 +157,7 @@ export function LotteSearch({ controller }: Props): JSX.Element {
       tags: shopHashtag(shop, lang),
       rating: shop.naverRating != null ? String(shop.naverRating) : '',
       instagram: '',
-      blogReviews: shop.naverLink ?? '',
+      blogReviews: lotteShopLink(shop),
       rentcarRoute: shop.route ?? null,
     });
     controller.navigate('detail', '검색 상세');
@@ -198,10 +199,11 @@ export function LotteSearch({ controller }: Props): JSX.Element {
         {results.length > 0 ? (
           <div className={styles.list}>
             {results.map((shop) => (
-              <LotteShopRow
+              <JejuShopCard
                 key={shop.id}
                 shop={shop}
                 lang={lang}
+                query={query}
                 onClick={() => openDetail(shop)}
               />
             ))}

@@ -186,7 +186,9 @@ export function usePhotoChrome(): PhotoChrome {
     gestureCapture: usesGestureCapture(layout),
     // 화성 joined 2026-10-16 (틀린그림찾기 only, like 오산 / 인사동). Its CMS has no
     // puzzles yet, so SpotDiffService serves its generated placeholder round.
-    waitingGames: isJeju || isInsadong || isOsan || isHwaseong,
+    // 롯데 joined 2026-11-20. Its CMS has no puzzles yet either (stage: 0 for LOTTE_WORLD_MALL),
+    // so it plays the placeholder round until some are uploaded for its region.
+    waitingGames: isJeju || isInsadong || isOsan || isHwaseong || isLotte,
     // The jump game stays off the wait screen. 틀린그림찾기 is the only game shown.
     motionGames: false,
     icon,

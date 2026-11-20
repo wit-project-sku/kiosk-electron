@@ -425,7 +425,7 @@ export function JejuSpotDiffGame({
 }: Props): JSX.Element {
   const lang = useLang();
   const kioskId = useKioskStore((s) => s.config.kioskId);
-  const { icon, Header, photoTitle, banner, isOsan } = usePhotoChrome();
+  const { icon, Header, photoTitle, banner, isOsan, isLotte } = usePhotoChrome();
   /* The rail's ♿ control — see the rail markup for what it does and does not
      affect on this screen. */
   const lowReach = useAccessibilityStore((s) => s.lowReach);
@@ -747,7 +747,8 @@ export function JejuSpotDiffGame({
           2160×3840, so asking for the wrong one loses the artwork silently —
           same slip as JejuHanbokSelect had. `bg` stays as the fallback. */}
       {pageBg && <img className={styles.bg} src={pageBg} alt="" draggable={false} />}
-      {icon('bg-page') && <JejuBgMotion />}
+      {/* 제주's moving pieces are cut from 제주's bg-page; 롯데 has its own (still) bg-page. */}
+      {icon('bg-page') && !isLotte && <JejuBgMotion />}
 
       {/* ♿ 6980:17652 — the bar the whole low-reach stack hangs off. The header
           follows it down through `--jeju-shift` (see .rootLowReach in the CSS);

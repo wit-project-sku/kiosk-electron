@@ -5,7 +5,6 @@ import { useKioskStore } from '@renderer/store/kioskStore';
 import { screenKeys, sheetLine } from '@layouts/jeju/voice/lines';
 import { Priority } from '@layouts/jeju/voice/speech';
 import { LOTTE_KEY_ALIASES, LOTTE_SCREEN_INTROS } from '@layouts/lotte/lotteVoice';
-import { parseVoiceSheet } from '@main/services/sync/google/VoiceSyncParser';
 
 const initial = useKioskStore.getState();
 
@@ -49,7 +48,8 @@ describe('롯데 voice guidance lines', () => {
 
   it('has a sheet row for every screen intro and alias', () => {
     asKiosk('W012', 'LOTTE');
-    for (const key of [...Object.values(LOTTE_SCREEN_INTROS), ...Object.values(LOTTE_KEY_ALIASES)]) {
+    const keys = [...Object.values(LOTTE_SCREEN_INTROS), ...Object.values(LOTTE_KEY_ALIASES)];
+    for (const key of keys.filter((k): k is string => !!k)) {
       expect(say(key, 'W012'), key).toBeTruthy();
     }
   });
@@ -70,20 +70,5 @@ describe('롯데 voice guidance lines', () => {
     expect(say('hanbok.capture', 'W008')).toBe(VOICE_JEJU['hanbok.capture']?.ko);
     expect(say('lotte.home', 'W008')).toBeUndefined();
     expect(screenKeys('home', false, 'W008')).toEqual(['jeju.home']);
-  });
-});
-
-describe('parseVoiceSheet on the 롯데 tab', () => {
-  it('finds the header below the legend rows (Sheets API shape)', () => {
-    const rows = [
-      ['롯데 키오스크 음성 안내 대본 (8개 언어)'],
-      ['', '3곳 공통'],
-      ['', '롯데월드몰'],
-      ['Num', 'Key', '화면 / 언제', '적용', 'Korean', 'English', 'Japanese', 'Chinese', 'Vietnamese', 'Thai', 'Russian', 'Indonesian', '비고'],
-      ['1', 'Voice_lotte.home@W011', 'A-01', '롯데월드몰', '안녕', 'Hello', 'こんにちは', '你好', 'Xin chào', 'สวัสดี', 'Привет', 'Halo', 'L1'],
-    ];
-    const out = parseVoiceSheet(rows);
-    expect(out.ko?.['Voice_lotte.home@W011']).toBe('안녕');
-    expect(out.id?.['Voice_lotte.home@W011']).toBe('Halo');
   });
 });

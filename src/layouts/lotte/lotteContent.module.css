@@ -176,7 +176,10 @@
 .detailTag::before { content: ''; width: 16px; height: 16px; border-radius: 50%; background: #DA291C; }
 .detailPhotos { display: grid; grid-template-columns: repeat(4, 1fr); gap: 28px; }
 .detailPhotos img { width: 100%; height: 300px; border-radius: 30px; object-fit: cover; background: #F3EEE7; }
-.detailFacts { display: flex; flex-direction: column; gap: 28px; padding: 40px 0; border-top: 2px solid #EEE; border-bottom: 2px solid #EEE; }
+.detailInfo { display: flex; align-items: center; gap: 48px; border-top: 2px solid #EEE; border-bottom: 2px solid #EEE; }
+.detailFacts { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 28px; padding: 40px 0; }
+.detailQrs { flex: none; display: flex; gap: 32px; padding: 32px 0; }
+.detailQr { display: flex; flex-direction: column; align-items: center; gap: 14px; font-size: 32px; color: #5D544E; white-space: nowrap; }
 .detailFact { display: flex; align-items: center; gap: 28px; font-size: 44px; white-space: pre-line; }
 .detailFact img { flex: none; width: 56px; height: 56px; object-fit: contain; }
 .detailText { margin: 0; font-size: 45px; line-height: 1.5; }
