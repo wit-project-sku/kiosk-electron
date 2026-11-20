@@ -342,9 +342,14 @@ export function isInsadongLayout(layout: KioskLayoutId): boolean {
  * outfit picker (photoChrome.richOutfit) and the 게임존
  * (photoChrome.waitingGames) — those are separate capabilities for exactly this
  * reason, so one can be withdrawn without disturbing the others.
+ *
+ * ── 롯데 joined 2026-11-20 ─────────────────────────────────────────────
+ * 롯데 has both halves the gate needs: the rich outfit picker (photoChrome.richOutfit) and, by this
+ * same predicate, JejuCameraGuide on Monitor 2 with its palm / fist guide (capture-guide.png — no
+ * 제주 branding in it). Its camera is mounted upright (cameraRotation 0).
  */
 export function usesGestureCapture(layout: KioskLayoutId): boolean {
-  return isJejuLayout(layout);
+  return isJejuLayout(layout) || layout === 'LOTTE';
 }
 
 /**

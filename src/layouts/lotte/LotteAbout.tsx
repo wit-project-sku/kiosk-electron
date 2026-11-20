@@ -119,7 +119,11 @@ export function LotteAbout({ controller }: { controller: KioskController }): JSX
   }, [kioskId, lang]);
   const nearby = useMemo((): Place[] => {
     if (sights.length > 0) {
-      return sights.map((a) => ({
+      // A card with a photo first, as every venue's lists do (stable, so feed order holds otherwise).
+      const withPhotoFirst = [...sights].sort(
+        (a, b) => Number(shopImages(b).length > 0) - Number(shopImages(a).length > 0),
+      );
+      return withPhotoFirst.map((a) => ({
         key: `api-${a.id}`,
         name: shopName(a, lang),
         line: shopDescription(a, lang) || shopAddress(a, lang),

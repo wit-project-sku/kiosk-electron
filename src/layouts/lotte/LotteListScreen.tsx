@@ -14,7 +14,7 @@ import { LotteChosungRow } from './LotteChosungRow';
 import { LottePageFrame } from './LottePageFrame';
 import { LotteShopRow } from './LotteShopRow';
 import { shopDetail } from './lotteDetailItem';
-import { LOTTE_EAT, LOTTE_FACILITY, LOTTE_SHOP, compareShops } from './lotteSample';
+import { LOTTE_EAT, LOTTE_FACILITY, LOTTE_SHOP, compareListShops } from './lotteSample';
 import c from './lotteContent.module.css';
 import { lt } from './lotteText';
 
@@ -76,7 +76,7 @@ export function LotteListScreen({
   const visible = useMemo(() => {
     let list = active ? base.filter((s) => s.secondCategoryKr === active) : base;
     if (jamo) list = list.filter((s) => leadingChosung(shopName(s, 'ko')) === jamo);
-    return [...list].sort(compareShops);
+    return [...list].sort(compareListShops);
   }, [base, active, jamo]);
 
   useEffect(() => {

@@ -145,6 +145,7 @@ export function LottePageFrame({
   const goHome = (): void => controller.navigate('home', '홈');
 
   const lowReach = useAccessibilityStore((s) => s.lowReach);
+  const toggleLowReach = useAccessibilityStore((s) => s.toggleLowReach);
   const lang = useLanguageStore((s) => s.currentLanguage) as Lang;
   const barrierFreeTitle = sheetText('BarrierFree_Title', lang, BARRIER_FREE);
   /*
@@ -246,7 +247,20 @@ export function LottePageFrame({
           aria-label="뒤로"
         />
       </div>
-      {/* 음성 안내 (화면정의서 2026-11-13): on every page — see lotteVoice.ts. */}
+      {/* ♿ 배리어프리 — the home rail's third button (LotteHome .railA11y), on every page too, so a
+          visitor can turn the low layout on or off wherever they are. Same art and label as home. */}
+      {lotteIconUrl('rail-a11y') && (
+        <button
+          type="button"
+          className={`${styles.a11y} ${lowReach ? styles.voiceOn : ''}`}
+          onClick={toggleLowReach}
+          aria-label="낮은 화면"
+          aria-pressed={lowReach}
+        >
+          <img src={lotteIconUrl('rail-a11y')} alt="" draggable={false} />
+        </button>
+      )}
+      {/* 음성 안내 (화면정의서 2026-11-13): on every page, under ♿ as on the home rail — see lotteVoice.ts. */}
       <LotteVoiceButton className={styles.voice} onClass={styles.voiceOn} />
 
       {drawBanner && (

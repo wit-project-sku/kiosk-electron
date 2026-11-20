@@ -77,6 +77,22 @@ export const compareShops = (a: Shop, b: Shop): number =>
   floorRank(shopFloor(b)) - floorRank(shopFloor(a)) ||
   a.shopNameKr.localeCompare(b.shopNameKr, 'ko');
 
+/**
+ * 목록 order (뭐먹지 · 뭐사지 · 시설안내), as on every other venue's list (JejuListScreen,
+ * InsadongListScreen…): association members first, then the shops with photos — ranked by the
+ * photos a row can SHOW (two, so 2 → 1 → 0) — and only then {@link compareShops}.
+ */
+export const compareListShops = (a: Shop, b: Shop): number => {
+  // Same count as shopImages(): rows with a URL. Counted here so this file stays free of renderer
+  // imports (the node typecheck compiles it through lotteCoursePlan's test).
+  const shown = (s: Shop): number => Math.min((s.images ?? []).filter((i) => !!i.imageUrl).length, 2);
+  return (
+    Number(!!b.fromAssociation) - Number(!!a.fromAssociation) ||
+    shown(b) - shown(a) ||
+    compareShops(a, b)
+  );
+};
+
 export interface CinemaSession {
   /** 'HH:MM' */
   start: string;

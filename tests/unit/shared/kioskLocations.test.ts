@@ -5,6 +5,7 @@ import {
   getKioskLocation,
   getKioskRegion,
   isJejuLayout,
+  usesGestureCapture,
 } from '@shared/config/kioskLocations';
 
 /**
@@ -64,5 +65,16 @@ describe('kioskLocations', () => {
       .map((l) => l.code)
       .sort();
     expect(jeju).toEqual(['W008', 'W009', 'W010']);
+  });
+});
+
+describe('usesGestureCapture', () => {
+  it('arms the palm gate on 제주 and 롯데 only', () => {
+    expect(usesGestureCapture('JEJU_AIRPORT')).toBe(true);
+    expect(usesGestureCapture('JEJU_HERITAGE')).toBe(true);
+    expect(usesGestureCapture('LOTTE')).toBe(true);
+    for (const layout of ['INSADONG', 'NAM_INSADONG', 'OSAN', 'HWASEONG', 'KADA'] as const) {
+      expect(usesGestureCapture(layout), layout).toBe(false);
+    }
   });
 });
