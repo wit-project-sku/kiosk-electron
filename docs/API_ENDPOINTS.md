@@ -111,7 +111,7 @@ Google Sheets (the CMS sync) is intentionally left out of this list.
 | Donation | `https://witglobaldonation.vercel.app/#/?kiosk=1` |
 | Events | `https://withevent.kr/kiosk/events?region=…` |
 | Tax refund | `https://wit.linktaxfree.com/` |
-| Tamnao | `https://www.tamnao.com/mw/` |
+| Tamnao | `https://www.tamnao.com/mw/?partner=kiosk` |
 | Jejuqrang | `https://jejuqrang.com/` |
 | Insarang | `https://insarang.kr/` |
 | AI course QR | `https://direction-fe.vercel.app/ai` |
