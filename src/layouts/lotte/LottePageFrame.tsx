@@ -2,7 +2,7 @@
  * Shared frame for every 롯데 sub-page (시안 A): the page illustration + a red band, header, left nav
  * and bottom banner. Adapted from JejuPageFrame; its ♿ props stay so the two can be compared.
  */
-import type { CSSProperties, ReactNode } from 'react';
+import { useRef, type CSSProperties, type ReactNode } from 'react';
 import type { KioskController } from '@renderer/hooks/useKioskController';
 import { lotteIconUrl } from '@renderer/assets/icons/lotte';
 import { useRotatingBanner } from '@renderer/hooks/useRotatingBanner';
@@ -11,24 +11,14 @@ import type { Lang } from '@renderer/lib/i18n';
 import { useAccessibilityStore } from '@renderer/store/accessibilityStore';
 import { useLanguageStore } from '@renderer/store/languageStore';
 import { LotteHeader } from './LotteHeader';
+import { LotteScrollbar } from './LotteScrollbar';
 import { LotteVoiceButton } from './LotteVoiceButton';
-import { modeBarVars } from './lowReach';
+import { BARRIER_FREE, modeBarVars } from './lowReach';
 import styles from './LottePageFrame.module.css';
 
 /** Resolved once: the bundled art never changes at runtime. */
 const pageBg = lotteIconUrl('bg-page');
 
-/** Fallback — sheet `BarrierFree_Title`. */
-const BARRIER_FREE: Partial<Record<Lang, string>> = {
-  ko: '지금은 배리어프리 모드입니다.',
-  en: 'Currently in Barrier-Free Mode.',
-  ja: '現在はバリアフリーモードです。',
-  zh: '现在是无障碍模式。',
-  vi: 'Hiện tại là chế độ không rào cản.',
-  th: 'ขณะนี้อยู่ในโหมดไร้อุปสรรค',
-  ru: 'В настоящее время используется безбарьерный режим.',
-  id: 'Saat ini dalam mode bebas hambatan.',
-};
 
 interface Props {
   controller: KioskController;
@@ -143,6 +133,7 @@ export function LottePageFrame({
   // Live API banner when one is active, else this page's bundled promo.
   const banner = useRotatingBanner(lotteIconUrl(bannerFallback));
   const goHome = (): void => controller.navigate('home', '홈');
+  const rootRef = useRef<HTMLDivElement>(null);
 
   const lowReach = useAccessibilityStore((s) => s.lowReach);
   const toggleLowReach = useAccessibilityStore((s) => s.toggleLowReach);
@@ -159,6 +150,14 @@ export function LottePageFrame({
   const shifted = lowReach && (showBanner || lowReachBanner);
   /* The revised re-stack: mode bar instead of any banner (see lowReachModeBar). */
   const modeBar = lowReach && lowReachModeBar;
+  /*
+   * Every other 롯데 page still gets the bar, so ♿ reads the same everywhere (제주 draws it on
+   * every low-reach page). Two generic shapes until a page is laid out by hand:
+   *  - a page WITH the bottom banner keeps the 573 re-stack (header/body +573, content still
+   *    ends at y3840) and the top 573 becomes bar + the banner cropped under it;
+   *  - a page without one moves header and body down by the bar alone (.rootLowReachBar).
+   */
+  const autoBar = lowReach && !lowReachModeBar;
   /* Pages that opt in via `lowReachBanner` have no banner at all normally, so
      the element itself has to appear for the low-reach layout to move it. The
      mode-bar revision drops the banner from low-reach — except on pages that
@@ -171,9 +170,11 @@ export function LottePageFrame({
 
   return (
     <div
+      ref={rootRef}
       className={[
         styles.root,
         shifted && !modeBar ? styles.rootLowReach : '',
+        autoBar && !shifted && !heroSrc ? styles.rootLowReachBar : '',
         heroSrc ? styles.rootLowReachHero : '',
         shifted && lowReachSelfLayout ? styles.rootBodyUnshifted : '',
         lowReach ? styles.lowReachSideControls : '',
@@ -201,7 +202,7 @@ export function LottePageFrame({
           sub-page like 제주's bg-page. The outfit picker reads the same file through photoChrome. */}
       {pageBg && <img src={pageBg} alt="" className={styles.bgImage} draggable={false} />}
 
-      {modeBar && <div className={styles.modeBar}>{barrierFreeTitle}</div>}
+      {(modeBar || autoBar) && <div className={styles.modeBar}>{barrierFreeTitle}</div>}
 
       {heroSrc && (
         <div className={styles.hero}>
@@ -222,6 +223,8 @@ export function LottePageFrame({
       />
 
       <div className={styles.body}>{children}</div>
+      {/* The Figma scroll bar for whatever this page scrolls (native bars are hidden below). */}
+      <LotteScrollbar rootRef={rootRef} />
 
       <div className={`${styles.leftNav} ${navDisabled ? styles.leftNavOff : ''}`}>
         {lotteIconUrl('nav-left') && (
@@ -264,7 +267,9 @@ export function LottePageFrame({
       <LotteVoiceButton className={styles.voice} onClass={styles.voiceOn} />
 
       {drawBanner && (
-        <div className={`${styles.banner} ${modeBar ? styles.bannerBelowBar : ''}`}>
+        <div
+          className={`${styles.banner} ${modeBar ? styles.bannerBelowBar : ''} ${autoBar && shifted ? styles.bannerUnderBar : ''}`}
+        >
           {banner && <img src={banner} alt="" className={styles.bannerImg} draggable={false} />}
         </div>
       )}

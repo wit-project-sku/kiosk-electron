@@ -12,6 +12,7 @@
  * #DA291C plate with white Bold — checked against BOTH nodes before touching the
  * shared component, since it is the one place the two pages meet.
  */
+import { useAccessibilityStore } from '@renderer/store/accessibilityStore';
 import styles from './LotteTabRow.module.css';
 
 interface Tab<Id extends string> {
@@ -34,8 +35,10 @@ export function LotteTabRow<Id extends string>({
   onChange,
   className,
 }: Props<Id>): JSX.Element {
+  /* ♿: the row drops to the foot of the page (both callers lay their body out above it). */
+  const lowReach = useAccessibilityStore((s) => s.lowReach);
   return (
-    <div className={`${styles.tabs} ${className ?? ''}`}>
+    <div className={`${styles.tabs} ${lowReach ? styles.tabsLow : ''} ${className ?? ''}`}>
       {tabs.map(({ id, label }) => (
         <button
           key={id}

@@ -133,12 +133,9 @@
 }
 
 /* ── Event card grid (list tab) ──
-   The grid scrolls; the 24px orange bar is Figma's, now at x2128 (it was
-   x2080). The container runs to the artboard edge so the bar sits flush right
-   at 2125.68 — the design's 2128 is measured inside a 2162-wide frame and its
-   own bar overhangs the 2160 artboard by 2.3px. The padding absorbs the width
-   the scrollbar reserves, so the three 483.767 columns keep their geometry:
-   1936 − 189.68 − 34.32 = 1712 = 3 × 483.767 + 2 × 130.35. */
+   The grid scrolls. Its bar is LotteScrollbar's (the Figma pill flush right at
+   x2125.68, drawn by LottePageFrame); the container still runs to the artboard
+   edge and the padding keeps the three 483.767 columns' geometry. */
 .listScroll {
   position: absolute;
   left: 224px;
@@ -151,23 +148,14 @@
      screen instead of the clean two the design draws. */
   height: 1782px;
   box-sizing: border-box;
-  padding-right: 189.68px;
+  /* 1936 − 224 = 1712 = 3 × 483.767 + 2 × 130.35. The bar is LotteScrollbar's, over the gutter. */
+  padding-right: 224px;
   overflow-x: hidden;
   overflow-y: auto;
 }
 
-.listScroll::-webkit-scrollbar {
-  width: 28px;
-}
 
-.listScroll::-webkit-scrollbar-thumb {
-  background: var(--kiosk-primary, #DA291C);
-  border-radius: 14px;
-}
 
-.listScroll::-webkit-scrollbar-track {
-  background: transparent;
-}
 
 .list {
   display: grid;
@@ -625,3 +613,7 @@
 .modalLow {
   top: 1602px;
 }
+
+/* 롯데 draws ONE main tab (415…1745); the 제주 .tabsLow above re-sizes the row for its two, so
+   ♿ keeps the 롯데 row's own box and only takes the top. */
+.tabsLowSingle { left: 415px; width: 1330px; }

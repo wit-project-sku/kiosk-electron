@@ -14,12 +14,16 @@ import { LOTTE_LINKS, withQuery } from './lotteLinks';
 import {
   PARTY_OPTIONS,
   WHEN_OPTIONS,
+  COURSE_KO,
   planCourse,
-  spanLabel,
   toHm,
   type CourseStop,
   type CourseWhen,
+  type CourseWords,
 } from './lotteCoursePlan';
+import { hallName, minutes, spanText, tc, tcRow } from './lotteCopy';
+import { shopName, shopSecondCategory } from '@renderer/lib/shops';
+import type { Lang } from '@renderer/lib/i18n';
 import { useCinemaMovies } from './lotteLive';
 import type { CinemaMovie } from './lotteSample';
 import { lt } from './lotteText';
@@ -55,6 +59,27 @@ export function LotteMovieCourse({ controller }: { controller: KioskController }
   const whenLabel = (id: CourseWhen, authored: string): string =>
     lt(`Course_When_${id === 'both' ? 'Both' : id === 'before' ? 'Before' : 'After'}`, lang, authored);
   const [now] = useState(() => new Date());
+  /* The planner's words in the visitor's language (Korean = COURSE_KO, unchanged). */
+  const words = useMemo<CourseWords>(
+    () =>
+      lang === 'ko'
+        ? COURSE_KO
+        : {
+            here: tc('Course_Here', lang),
+            kiosk: tc('Course_Kiosk', lang),
+            enter: tc('Course_EnterName', lang),
+            arriveEarly: (n) => tc('Course_ArriveEarly', lang, { n }),
+            minutes: (n) => minutes(n, lang),
+            meal: tc('Course_Meal', lang),
+            dinner: tc('Course_Dinner', lang),
+            openUntil: (hm) => tc('Course_OpenUntil', lang, { t: hm }),
+            openAfterUntil: (hm) => tc('Course_OpenAfterUntil', lang, { t: hm }),
+            shopName: (s) => shopName(s, lang),
+            category: (s) => shopSecondCategory(s, lang).replace(/^\d+-/, ''),
+            hall: (screen) => hallName(screen, lang),
+          },
+    [lang],
+  );
   const { movies: feed } = useCinemaMovies();
   /* Today's films with the sessions still to start — the course is planned around one of them. */
   const movies = useMemo<CinemaMovie[]>(
@@ -79,20 +104,22 @@ export function LotteMovieCourse({ controller }: { controller: KioskController }
   const course = useMemo(
     () =>
       movie && session
-        ? planCourse({ shops, kioskId: controller.kioskId, movie, session, when, party, now })
+        ? planCourse({ shops, kioskId: controller.kioskId, movie, session, when, party, now, words })
         : null,
-    [movie, session, shops, controller.kioskId, when, party, now],
+    [movie, session, shops, controller.kioskId, when, party, now, words],
   );
 
   if (result && movie && session && course) {
     const span = [
-      when !== 'after' ? `상영 전 ${spanLabel(course.beforeMinutes)}` : null,
-      when !== 'before' && course.afterMinutes > 0 ? `상영 후 ${spanLabel(course.afterMinutes)}` : null,
-      '그 시각에 열려 있는 곳만 골랐어요',
+      when !== 'after' ? tc('Course_Span_Before', lang, { t: spanText(course.beforeMinutes, lang) }) : null,
+      when !== 'before' && course.afterMinutes > 0
+        ? tc('Course_Span_After', lang, { t: spanText(course.afterMinutes, lang) })
+        : null,
+      tc('Course_OpenOnly', lang),
     ]
       .filter(Boolean)
       .join(' · ');
-    const kind = when === 'both' ? '앞뒤 코스' : when === 'before' ? '상영 전 코스' : '상영 후 코스';
+    const kind = tc(when === 'both' ? 'Course_Kind_Both' : when === 'before' ? 'Course_Kind_Before' : 'Course_Kind_After', lang);
     const qr = withQuery(
       LOTTE_LINKS.course,
       'course',
@@ -102,14 +129,14 @@ export function LotteMovieCourse({ controller }: { controller: KioskController }
       <LottePageFrame
         controller={controller}
         title={TITLE}
-        subtitle="영화 전후 코스 · 상영 시각에 맞춘 추천 코스입니다"
+        subtitle={tcRow('SubHeader_AICourse', 'Course_Subtitle_Result', lang)}
         showBanner={false}
         onBack={() => setResult(false)}
       >
         <div className={ui.column}>
           <div className={ui.hero}>
             <span className={ui.heroTitle}>
-              {movie.title} {session.start} · {PARTY_OPTIONS[party]} · {kind}
+              {movie.title} {session.start} · {lang === 'ko' ? PARTY_OPTIONS[party] : lt(`Visitor_${party + 1}`, lang, PARTY_OPTIONS[party]!)} · {kind}
             </span>
             <span className={ui.heroSub}>{span}</span>
           </div>
@@ -119,26 +146,27 @@ export function LotteMovieCourse({ controller }: { controller: KioskController }
               <Row
                 key={`${stop.kind}-${stop.at}-${stop.name}`}
                 stop={stop}
+                lang={lang}
                 last={i === course.stops.length - 1}
                 emptyAfter={
                   stop.kind === 'here' && course.emptyBefore && when !== 'after'
                     ? course.beforeMinutes < SHORTEST_BEFORE_MIN
-                      ? '상영 전에는 들를 시간이 부족해요'
-                      : '상영 전에는 지금 문을 연 곳이 없어요'
+                      ? tc('Course_NoTimeBefore', lang)
+                      : tcRow('Course_None', 'Course_NoneOpenBefore', lang)
                     : null
                 }
               />
             ))}
             {course.emptyAfter && when !== 'before' && (
-              <div className={s.empty}>상영 후에는 지금 문을 연 곳이 없어요</div>
+              <div className={s.empty}>{tcRow('Course_None', 'Course_NoneOpenAfter', lang)}</div>
             )}
           </div>
 
           <div className={ui.qrCard}>
             <LotteQr value={qr} />
             <div className={ui.qrText}>
-              <span className={ui.qrTitle}>코스를 휴대폰으로 가져가기</span>
-              <span className={ui.qrSub}>QR 을 찍으면 이 코스와 매장 위치가 열립니다.</span>
+              <span className={ui.qrTitle}>{tc('Course_QR_Title', lang)}</span>
+              <span className={ui.qrSub}>{tcRow('Course_QR', 'Course_QR_Sub', lang)}</span>
             </div>
           </div>
 
@@ -154,7 +182,7 @@ export function LotteMovieCourse({ controller }: { controller: KioskController }
     <LottePageFrame
       controller={controller}
       title={TITLE}
-      subtitle="영화 전후 코스 · 영화 앞뒤 시간을 알차게 보내 보세요"
+      subtitle={tcRow('Course_Title', 'Course_Subtitle_Pick', lang)}
       showBanner={false}
     >
       <div className={ui.column}>
@@ -163,7 +191,7 @@ export function LotteMovieCourse({ controller }: { controller: KioskController }
         </p>
 
         <div className={ui.card}>
-          <h2 className={ui.heading}>보실 영화와 시간</h2>
+          <h2 className={ui.heading}>{tc('Course_PickMovie', lang)}</h2>
           {movies.length === 0 ? (
             <span className={ui.muted}>{lt('Cinema_NoShow', lang, '오늘 남은 상영이 없습니다.')}</span>
           ) : (
@@ -238,17 +266,19 @@ export function LotteMovieCourse({ controller }: { controller: KioskController }
 
 function Row({
   stop,
+  lang,
   last,
   emptyAfter,
 }: {
   stop: CourseStop;
+  lang: Lang;
   last: boolean;
   /** Line under '지금 여기' when the before-half found nothing, saying why. */
   emptyAfter: string | null;
 }): JSX.Element {
   const place = stop.kind === 'place';
   const badge =
-    stop.kind === 'here' ? '★' : stop.kind === 'movie' ? '▶' : (stop.floor ?? '입장');
+    stop.kind === 'here' ? '★' : stop.kind === 'movie' ? '▶' : (stop.floor ?? tc('Course_EnterShort', lang));
   return (
     <>
       <div className={s.row}>
@@ -259,7 +289,7 @@ function Row({
           <span className={s.detail}>{stop.detail}</span>
           {stop.open && <span className={s.open}>{stop.open}</span>}
         </div>
-        {stop.walk != null && <span className={ui.chipGrey}>도보 {stop.walk}분</span>}
+        {stop.walk != null && <span className={ui.chipGrey}>{tcRow('Course_Walk', 'Course_Walk_Short', lang, { n: stop.walk })}</span>}
         {!last && <span className={s.line} />}
       </div>
       {emptyAfter && <div className={s.empty}>{emptyAfter}</div>}

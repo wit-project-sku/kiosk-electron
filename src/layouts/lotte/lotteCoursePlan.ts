@@ -113,6 +113,46 @@ export interface CourseStop {
   shop?: Shop;
 }
 
+/**
+ * The words a course is written in. Korean by default ({@link COURSE_KO}); the screen passes its
+ * own for other languages (lotteCopy), so this planner stays free of the sheet and the stores.
+ */
+export interface CourseWords {
+  here: string;
+  kiosk: string;
+  enter: string;
+  /** '상영 10분 전 도착' */
+  arriveEarly: (min: number) => string;
+  /** '40분' */
+  minutes: (min: number) => string;
+  meal: string;
+  dinner: string;
+  /** '영업 중 · 22:00 까지' */
+  openUntil: (hm: string) => string;
+  /** '상영 후에도 영업 · 22:00 까지' */
+  openAfterUntil: (hm: string) => string;
+  shopName: (s: Shop) => string;
+  /** The shop's category label ('카페·디저트'). */
+  category: (s: Shop) => string;
+  /** A cinema hall as the feed names it ('6관'). */
+  hall: (screen: string) => string;
+}
+
+export const COURSE_KO: CourseWords = {
+  here: '지금 여기',
+  kiosk: '키오스크',
+  enter: '상영관 입장',
+  arriveEarly: (n) => `상영 ${n}분 전 도착`,
+  minutes: (n) => `${n}분`,
+  meal: '식사',
+  dinner: '저녁',
+  openUntil: (hm) => `영업 중 · ${hm} 까지`,
+  openAfterUntil: (hm) => `상영 후에도 영업 · ${hm} 까지`,
+  shopName: (s) => s.shopNameKr,
+  category: (s) => (s.secondCategoryKr ?? '').replace(/^\d+-/, ''),
+  hall: (screen) => screen,
+};
+
 export interface Course {
   stops: CourseStop[];
   beforeMinutes: number;
@@ -122,7 +162,6 @@ export interface Course {
   emptyAfter: boolean;
 }
 
-const label = (s: Shop): string => cat(s).replace(/^\d+-/, '');
 
 export function planCourse(args: {
   shops: readonly Shop[];
@@ -132,8 +171,11 @@ export function planCourse(args: {
   when: CourseWhen;
   party: number;
   now: Date;
+  /** Wording; Korean when omitted. */
+  words?: CourseWords;
 }): Course {
   const { shops, kioskId, movie, session, when, party, now } = args;
+  const w = args.words ?? COURSE_KO;
   const floors = siteFloors(kioskId);
   const start = toMin(session.start);
   const end = start + movie.runtimeMin;
@@ -172,21 +214,21 @@ export function planCourse(args: {
     after: boolean,
   ): CourseStop => {
     const close = toHm(shopHours(p.shop, kioskId).close);
-    const meal = k.id === 'meal' ? `${p.arrive >= 17 * 60 ? '저녁' : '식사'} ` : '';
+    const meal = k.id === 'meal' ? `${p.arrive >= 17 * 60 ? w.dinner : w.meal} ` : '';
     return {
       kind: 'place',
       at: p.arrive,
       floor: shopFloor(p.shop),
-      name: p.shop.shopNameKr,
-      detail: `${label(p.shop)} · ${meal}${p.minutes}분`,
-      open: after ? `상영 후에도 영업 · ${close} 까지` : `영업 중 · ${close} 까지`,
+      name: w.shopName(p.shop),
+      detail: `${w.category(p.shop)} · ${meal}${w.minutes(p.minutes)}`,
+      open: after ? w.openAfterUntil(close) : w.openUntil(close),
       walk: p.walk,
       shop: p.shop,
     };
   };
 
   const stops: CourseStop[] = [
-    { kind: 'here', at: nowMin, floor: floors.kiosk, name: '지금 여기', detail: `키오스크 · ${floors.kiosk}` },
+    { kind: 'here', at: nowMin, floor: floors.kiosk, name: w.here, detail: `${w.kiosk} · ${floors.kiosk}` },
   ];
 
   let emptyBefore = false;
@@ -213,8 +255,8 @@ export function planCourse(args: {
     kind: 'enter',
     at: enterAt,
     floor: floors.cinema,
-    name: '상영관 입장',
-    detail: `${session.screen} · 상영 ${ENTER_BEFORE_MIN}분 전 도착`,
+    name: w.enter,
+    detail: `${w.hall(session.screen)} · ${w.arriveEarly(ENTER_BEFORE_MIN)}`,
     walk: walkBetween(at, cinemaFloor),
   });
   stops.push({
@@ -222,7 +264,7 @@ export function planCourse(args: {
     at: start,
     floor: null,
     name: movie.title,
-    detail: `${session.start} ~ ${toHm(end)} · ${movie.runtimeMin}분`,
+    detail: `${session.start} ~ ${toHm(end)} · ${w.minutes(movie.runtimeMin)}`,
   });
 
   let emptyAfter = false;

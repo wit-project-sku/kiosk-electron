@@ -6,12 +6,15 @@
  * pictures, and the hobby and habit write-ups, are slots until the character team's material
  * arrives. A row the sheet has not filled shows the slot line instead.
  */
+import { belowModeBar } from './lowReach';
+import { useAccessibilityStore } from '@renderer/store/accessibilityStore';
 import { useState } from 'react';
 import type { KioskController } from '@renderer/hooks/useKioskController';
 import { useLanguageStore } from '@renderer/store/languageStore';
 import { LottePageFrame } from './LottePageFrame';
 import { LotteTabRow } from './LotteTabRow';
 import { lt } from './lotteText';
+import { slot, tc, type CopyKey } from './lotteCopy';
 import { useVoiceIntro } from '../jeju/voice/intro';
 import c from './lotteContent.module.css';
 
@@ -22,6 +25,7 @@ const TABS: ReadonlyArray<{ id: Tab; label: string }> = [
   { id: 'health', label: '건강습관' },
 ];
 const SLOT = '자료를 받으면 표시합니다';
+const TAB_KEYS: Record<Tab, CopyKey> = { intro: 'Hello_Tab_Intro', hobby: 'Hello_Tab_Hobby', health: 'Hello_Tab_Health' };
 /** [label row, value row, authored label]. */
 const PROFILE: ReadonlyArray<readonly [string, string, string]> = [
   ['Hello_Label_Birth', 'Hello_Birth', '생일'],
@@ -57,30 +61,38 @@ export function LotteHello({ controller }: { controller: KioskController }): JSX
   const lang = useLanguageStore((s) => s.currentLanguage);
   const tags = lt('Hello_Hashtag', lang, '').split(/\s+/).filter(Boolean);
   const intro = lt('Hello_Intro', lang, '');
+  const lowReach = useAccessibilityStore((s) => s.lowReach);
   return (
     <LottePageFrame
       controller={controller}
       title={lt('MainButton_Greeting', lang, '안녕 롯데')}
       subtitle={lt('MainButton_Greeting_Subtext', lang, '캐릭터를 소개합니다')}
       showBanner={false}
+      /* ♿: header under the bar, the tab row at the foot (LotteTabRow .tabsLow). */
+      lowReachModeBar
+      lowReachShift={belowModeBar()}
     >
-      <LotteTabRow tabs={TABS} value={tab} onChange={setTab} />
-      <div className={`${c.body} ${c.bodyBelowTabs}`}>
+      <LotteTabRow
+        tabs={TABS.map((x) => ({ ...x, label: tc(TAB_KEYS[x.id], lang) }))}
+        value={tab}
+        onChange={setTab}
+      />
+      <div className={`${c.body} ${lowReach ? c.bodyAboveTabs : c.bodyBelowTabs}`}>
         <div className={c.scroll}>
           {tab === 'intro' ? (
             <div className={c.panel}>
               <div className={c.profile}>
-                <div className={c.portrait}>캐릭터 이미지 자리</div>
+                <div className={c.portrait}>{slot('캐릭터 이미지 자리', lang)}</div>
                 <div className={c.profileRows}>
                   <span className={c.helloName}>{lt('Hello_Name', lang, '캐릭터 이름 자리')}</span>
                   <div className={c.profileRow}>
-                    <span className={c.profileKey}>{lt('Hello_Label_Role', lang, '역할')}</span>
-                    <span>{lt('Hello_Role', lang, SLOT)}</span>
+                    <span className={c.profileKey}>{lang === 'ko' ? lt('Hello_Label_Role', lang, '역할') : tc('Hello_Label_Role', lang)}</span>
+                    <span>{lt('Hello_Role', lang, { ko: SLOT, [lang]: tc('Data_Soon', lang) })}</span>
                   </div>
                   {PROFILE.map(([label, value, authored]) => (
                     <div key={value} className={c.profileRow}>
                       <span className={c.profileKey}>{lt(label, lang, authored)}</span>
-                      <span>{lt(value, lang, SLOT)}</span>
+                      <span>{lt(value, lang, { ko: SLOT, [lang]: tc('Data_Soon', lang) })}</span>
                     </div>
                   ))}
                   {intro && <span>{intro}</span>}
@@ -91,10 +103,10 @@ export function LotteHello({ controller }: { controller: KioskController }): JSX
             STORIES[tab].map(([key, authored], i) => (
               <div key={key} className={c.panel}>
                 <div className={`${c.storyRow} ${i % 2 ? c.storyRowRev : ''}`}>
-                  <div className={c.storyPhoto}>사진 자리</div>
+                  <div className={c.storyPhoto}>{slot('사진 자리', lang)}</div>
                   <div className={c.storyText}>
                     <b>{lt(key, lang, authored)}</b>
-                    <span>{SLOT}</span>
+                    <span>{tc('Data_Soon', lang)}</span>
                   </div>
                 </div>
               </div>

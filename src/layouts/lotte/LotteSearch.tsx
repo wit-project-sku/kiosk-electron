@@ -210,7 +210,10 @@ export function LotteSearch({ controller }: Props): JSX.Element {
           </div>
         ) : (
           <p className={styles.empty} data-voice-state={query ? 'empty' : undefined}>
-            {query ? pick(T.noResult, lang)(query) : pick(T.prompt, lang)}
+            {query
+              ? /* The sheet's Search_NoContent (its leading '* ' dropped), else the line with the query. */
+                tExact('Search_NoContent', lang).replace(/^\s*\*\s*/, '') || pick(T.noResult, lang)(query)
+              : pick(T.prompt, lang)}
           </p>
         )}
       </div>

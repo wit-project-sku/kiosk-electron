@@ -4,13 +4,21 @@
  * (롯데시네마 · 영화 나눔 · 뭐먹지 · 뭐사지), 3 cards (여기는 롯데 · 안녕 · 오늘의 사연), the building
  * art with one 건물 단추 per building (→ 건물 안내), and the bottom actions.
  *
+ * ♿ (배리어프리) re-lays the page low for a seated visitor — the 제주 home's low-reach shape
+ * (mode bar · 573 promo · everything touchable re-stacked lower), in 롯데 colours. The 4 tiles
+ * and the 3 cards under them share ONE icon row there, as 제주 sets its tiles 6 to a row. See the
+ * LOW-REACH block at the end of LotteHome.module.css.
+ *
  * The left rail carries ♿ and 음성 안내 as the frame draws them. 음성 안내 turns voice guidance on
  * and off (LotteVoiceButton; lines from the 롯데 sheet's Text-to-speech_Script).
  */
 import { useEffect, useMemo, useRef, useState, type CSSProperties, type ReactElement } from 'react';
+import type { Lang } from '@renderer/lib/i18n';
+import { sheetText } from '@renderer/lib/loc';
 import type { KioskController } from '@renderer/hooks/useKioskController';
 import type { KioskScreenId } from '@shared/types/kiosk';
 import { lotteIconUrl } from '@renderer/assets/icons/lotte';
+import { useRotatingBanner } from '@renderer/hooks/useRotatingBanner';
 import { weatherIconName, weatherIconUrl } from '@renderer/assets/weather';
 import { useWeatherVideo } from '@renderer/hooks/useWeatherVideo';
 import { useLanguageStore } from '@renderer/store/languageStore';
@@ -29,6 +37,7 @@ import { useLotteNav } from './lotteNav';
 import { lt } from './lotteText';
 import { lotteSite } from './lotteSample';
 import { useVoiceIntro } from '../jeju/voice/intro';
+import { BARRIER_FREE, modeBarVars } from './lowReach';
 import styles from './LotteHome.module.css';
 
 type Copy = { ko: string; en: string; ja: string; zh: string };
@@ -138,6 +147,8 @@ const MID_CARDS: readonly CardDef[] = [
 ];
 
 const COL_STEP = 480;
+/** ♿: 7 icons of 210 across the low panel's 1780 inner width — (1780 − 210) / 6. */
+const COL_STEP_LOW = 261.67;
 /**
  * `plate` tiles draw their plate in CSS with the art centred on it (the A-01 frame's own build);
  * the others are the bundled 300×300 plate exports.
@@ -146,17 +157,39 @@ const TILES: readonly {
   screen: KioskScreenId;
   label: string;
   icon: string;
-  plate?: 'tilePlateCinema' | 'tilePlateShare';
+  plate?: 'tilePlateCinema' | 'tilePlateShare' | 'tilePlateCard';
 }[] = [
   { screen: 'cinema', label: '롯데시네마', icon: 'tile-cinema-logo', plate: 'tilePlateCinema' },
   { screen: 'movie_share', label: '영화 나눔', icon: 'tile-share', plate: 'tilePlateShare' },
   { screen: 'eat', label: '롯데 뭐먹지', icon: 'tile-eat' },
   { screen: 'shop', label: '롯데 뭐사지', icon: 'tile-shop' },
 ];
+/** ♿: the second card row (여기는 롯데 · 안녕 · 오늘의 사연) joins the tiles — card art on a plate. */
+const TILES_LOW: typeof TILES = [
+  ...TILES,
+  ...MID_CARDS.map((c) => ({ screen: c.screen, label: c.label, icon: c.icon, plate: 'tilePlateCard' as const })),
+];
 
 /** 건물 단추 lefts (A-01 W011, y3194). A single-building site centres its one button (y3200). */
 const BUILDING_X = [306, 805, 1193, 1533];
+/**
+ * Other languages place the same four 건물 단추 by their CENTRES — Korean's left + half its
+ * rendered width (229.9 · 262.8 · 295.6 · 262.8 in Pretendard Bold 38) — so a longer label grows
+ * evenly both ways instead of running into the next button. Each may be at most as wide as the
+ * distance to its nearest neighbour's centre, less a 14px gutter; past that the label wraps to two
+ * lines and then shrinks (useFitText). Korean keeps the frame's lefts exactly (BUILDING_X).
+ */
+const BUILDING_CX = [420.95, 936.4, 1340.8, 1664.4];
+const buildingMaxWidth = (i: number): number => {
+  const gaps = [BUILDING_CX[i]! - (BUILDING_CX[i - 1] ?? -Infinity), (BUILDING_CX[i + 1] ?? Infinity) - BUILDING_CX[i]!];
+  return Math.min(...gaps, 2 * (BUILDING_CX[i]! - 150)) - 14;
+};
 const SEARCH_ROW_BOTTOM = 1277;
+/** ♿: the search row drops to y1796 (182 tall). */
+const SEARCH_ROW_BOTTOM_LOW = 1978;
+/** ♿: 건물 단추 tops — the art drops 24 (2663 → 2687), the buttons with it. */
+const BUILDING_TOP_LOW = 3218;
+const BUILDING_TOP_LOW_SINGLE = 3224;
 const FILLME_LABEL: Copy = {
   ko: '스마트 헬스케어',
   en: 'Smart Healthcare',
@@ -178,6 +211,10 @@ export function LotteHome({ controller }: { controller: KioskController }): JSX.
   const toggleLowReach = useAccessibilityStore((s) => s.toggleLowReach);
   const lowReach = useAccessibilityStore((s) => s.lowReach);
   const openBuilding = useLotteNav((s) => s.openBuilding);
+  /** `base` always, plus `alt` while ♿ is on. */
+  const low = (base?: string, alt?: string): string => `${base ?? ''} ${lowReach ? alt ?? '' : ''}`;
+  const promo = useRotatingBanner(lotteIconUrl('banner-page'));
+  const tiles = lowReach ? TILES_LOW : TILES;
 
   const [weatherOpen, setWeatherOpen] = useState(false);
   useVoiceIntro(weatherOpen ? VOICE_WEATHER : null);
@@ -219,8 +256,14 @@ export function LotteHome({ controller }: { controller: KioskController }): JSX.
   const wide = lang !== 'ko';
   const cardsRef = useRef<HTMLDivElement>(null);
   const gridRef = useRef<HTMLDivElement>(null);
+  /* The 건물 단추 share one --fit: four labels at four sizes would read as broken. */
+  const buildingsRef = useRef<HTMLDivElement>(null);
   useFitText(cardsRef, styles.cardText, wide, 0.75, lang);
-  useFitText(gridRef, styles.tileText, wide, 0.7, lang);
+  /* lowReach is in the key: ♿ swaps the 4-tile grid for the 7-icon row, a different column. */
+  useFitText(gridRef, styles.tileText, wide, 0.7, `${lang}|${lowReach}`);
+  /* The label, not the pill: it is capped at two lines (max-height), so a third line or a word
+     wider than its button reads as overflow and the group shrinks. */
+  useFitText(buildingsRef, styles.buildingLabel, wide, 0.7, `${lang}|${lowReach}`);
 
   const kioskId = controller.kioskId;
   const titleOf = (screen: string): string =>
@@ -261,8 +304,20 @@ export function LotteHome({ controller }: { controller: KioskController }): JSX.
     : lotteIconUrl('weather-sun');
 
   return (
-    <div className={styles.root}>
-      <div className={styles.topBar}>
+    /* --lotte-mode-bar sizes the ♿ bar and places the promo flush under it (lowReach.ts). */
+    <div className={styles.root} style={modeBarVars} lang={lang}>
+      {lowReach && (
+        <div className={styles.modeBar}>
+          {sheetText('BarrierFree_Title', lang as Lang, BARRIER_FREE)}
+        </div>
+      )}
+      {lowReach && promo && (
+        <div className={styles.hero}>
+          <img src={promo} alt="" className={styles.heroImg} draggable={false} />
+        </div>
+      )}
+
+      <div className={low(styles.topBar, styles.topBarLow)}>
         <div className={styles.topLeft}>
           {lotteIconUrl('ico-location') && (
             <img
@@ -282,7 +337,7 @@ export function LotteHome({ controller }: { controller: KioskController }): JSX.
           weatherOpen ? `${styles.noticeGroup} ${styles.noticeGroupBehind}` : styles.noticeGroup
         }
       >
-        <div className={styles.notice}>
+        <div className={low(styles.notice, styles.noticeLow)}>
           <div className={styles.noticeLead}>
             <div className={styles.noticeRule} />
             <p className={styles.noticeText}>{lt('Home_Notice', lang, site.notice, kioskId)}</p>
@@ -290,7 +345,7 @@ export function LotteHome({ controller }: { controller: KioskController }): JSX.
           <div
             className={styles.weather}
             role="button"
-            aria-label="날씨"
+            aria-label={lt('Weather_Title', lang, '날씨')}
             aria-expanded={weatherOpen}
             onClick={() => {
               playWeatherVideo();
@@ -308,7 +363,7 @@ export function LotteHome({ controller }: { controller: KioskController }): JSX.
         <LotteCinemaBoard controller={controller} lang={lang} />
       </div>
 
-      <div className={styles.searchRow}>
+      <div className={low(styles.searchRow, styles.searchRowLow)}>
         <button
           type="button"
           className={styles.searchHome}
@@ -324,7 +379,7 @@ export function LotteHome({ controller }: { controller: KioskController }): JSX.
             />
           )}
         </button>
-        <div className={styles.searchField} onClick={() => setSearching(true)} role="button">
+        <div className={low(styles.searchField, styles.searchFieldLow)} onClick={() => setSearching(true)} role="button">
           <span
             className={`${styles.searchText} ${query ? styles.searchValue : styles.searchPlaceholder}`}
           >
@@ -342,7 +397,7 @@ export function LotteHome({ controller }: { controller: KioskController }): JSX.
         </div>
         <button
           type="button"
-          className={styles.langBtn}
+          className={low(styles.langBtn, styles.langBtnLow)}
           onClick={() => go('language', '언어선택')}
           aria-label="언어선택"
         >
@@ -351,34 +406,35 @@ export function LotteHome({ controller }: { controller: KioskController }): JSX.
       </div>
 
       <div className={styles.cardRows} ref={cardsRef}>
-        <div className={styles.cards}>{TOP_CARDS.map(renderCard)}</div>
-        <div className={`${styles.cards} ${styles.cardsMid}`}>{MID_CARDS.map(renderCard)}</div>
+        <div className={low(styles.cards, styles.cardsLow)}>{TOP_CARDS.map(renderCard)}</div>
+        {/* ♿: these three sit in the icon row instead (TILES_LOW). */}
+        {!lowReach && <div className={`${styles.cards} ${styles.cardsMid}`}>{MID_CARDS.map(renderCard)}</div>}
       </div>
 
-      <div className={styles.panel} />
-      <div className={styles.grid} ref={gridRef}>
-        {TILES.map((tile, i) => (
+      <div className={low(styles.panel, styles.panelLow)} />
+      <div className={low(styles.grid, styles.gridLow)} ref={gridRef}>
+        {tiles.map((tile, i) => (
           <button
             key={tile.screen}
             type="button"
-            className={styles.tile}
-            style={{ left: i * COL_STEP, top: 0 }}
+            className={low(styles.tile, styles.tileLow)}
+            style={{ left: i * (lowReach ? COL_STEP_LOW : COL_STEP), top: 0 }}
             onClick={() => go(tile.screen, tile.label)}
           >
             {tile.plate ? (
-              <span className={`${styles.tilePlate} ${styles[tile.plate]}`}>
+              <span className={`${styles.tilePlate} ${styles[tile.plate]} ${lowReach ? styles.tilePlateLow : ''}`}>
                 <img src={lotteIconUrl(tile.icon)} alt="" draggable={false} />
               </span>
             ) : (
               <img
                 src={lotteIconUrl(tile.icon)}
                 alt=""
-                className={styles.tileArt}
+                className={low(styles.tileArt, styles.tileArtLow)}
                 draggable={false}
               />
             )}
             <span
-              className={`${styles.tileText} ${tile.plate ? styles[`${tile.plate}Text`] : ''} ${wide ? styles.tileTextFit : ''}`}
+              className={`${styles.tileText} ${tile.plate ? styles[`${tile.plate}Text`] : ''} ${wide ? styles.tileTextFit : ''} ${lowReach ? styles.tileTextLow : ''}`}
             >
               <span className={styles.tileTitle}>{titleOf(tile.screen)}</span>
               <span className={styles.tileSub}>{subOf(tile.screen)}</span>
@@ -388,17 +444,25 @@ export function LotteHome({ controller }: { controller: KioskController }): JSX.
       </div>
 
       {site.art && lotteIconUrl(site.art) ? (
-        <img src={lotteIconUrl(site.art)} alt="" className={styles.skyline} draggable={false} />
+        <img src={lotteIconUrl(site.art)} alt="" className={low(styles.skyline, styles.skylineLow)} draggable={false} />
       ) : (
-        <div className={`${styles.skyline} ${styles.skylineHold}`}>
+        <div className={`${styles.skyline} ${styles.skylineHold} ${lowReach ? styles.skylineLow : ''}`}>
           {site.buildings[0]} 건물 그림 자리
         </div>
       )}
+      <div ref={buildingsRef}>
       {site.buildings.map((b, i) => {
         const single = site.buildings.length === 1;
         const pos: CSSProperties = single
-          ? { left: '50%', top: 3200, transform: 'translateX(-50%)' }
-          : { left: BUILDING_X[i] };
+          ? { left: '50%', top: lowReach ? BUILDING_TOP_LOW_SINGLE : 3200, transform: 'translateX(-50%)' }
+          : wide
+            ? {
+                left: BUILDING_CX[i] ?? BUILDING_X[i],
+                maxWidth: buildingMaxWidth(i),
+                transform: 'translateX(-50%)',
+                ...(lowReach ? { top: BUILDING_TOP_LOW } : {}),
+              }
+            : { left: BUILDING_X[i], ...(lowReach ? { top: BUILDING_TOP_LOW } : {}) };
         return (
           <button
             key={b}
@@ -410,11 +474,12 @@ export function LotteHome({ controller }: { controller: KioskController }): JSX.
               go('building', `건물 안내-${b}`);
             }}
           >
-            <span>{buildingLabel(b, i)}</span>
+            <span className={styles.buildingLabel}>{buildingLabel(b, i)}</span>
             <span className={styles.buildingChevron}>›</span>
           </button>
         );
       })}
+      </div>
 
       <div className={styles.rail}>
         {lotteIconUrl('nav-left') && (
@@ -447,7 +512,7 @@ export function LotteHome({ controller }: { controller: KioskController }): JSX.
 
       <button
         type="button"
-        className={styles.fillme}
+        className={low(styles.fillme, styles.fillmeLow)}
         onClick={() => go('fillme', '필미')}
         aria-label={lt('MainButton_SmartHealthCare', lang, FILLME_LABEL)}
       >
@@ -458,13 +523,13 @@ export function LotteHome({ controller }: { controller: KioskController }): JSX.
           draggable={false}
         />
       </button>
-      <span className={`${styles.actionLabel} ${styles.labelFillme}`}>
+      <span className={`${styles.actionLabel} ${styles.labelFillme} ${lowReach ? styles.actionLabelLow : ''}`}>
         {lt('MainButton_SmartHealthCare', lang, FILLME_CAPTION)}
       </span>
 
       <button
         type="button"
-        className={styles.camera}
+        className={low(styles.camera, styles.cameraLow)}
         onClick={() => controller.startPhoto()}
         aria-label="사진촬영"
       >
@@ -478,7 +543,7 @@ export function LotteHome({ controller }: { controller: KioskController }): JSX.
 
       <button
         type="button"
-        className={styles.restroom}
+        className={low(styles.restroom, styles.restroomLow)}
         onClick={() => go('restroom', '화장실')}
         aria-label="화장실"
       >
@@ -489,7 +554,7 @@ export function LotteHome({ controller }: { controller: KioskController }): JSX.
           draggable={false}
         />
       </button>
-      <span className={`${styles.actionLabel} ${styles.labelRestroom}`}>
+      <span className={`${styles.actionLabel} ${styles.labelRestroom} ${lowReach ? styles.actionLabelLow : ''}`}>
         {lt('MainButton_WC', lang, RESTROOM_LABEL)}
       </span>
 
@@ -500,7 +565,7 @@ export function LotteHome({ controller }: { controller: KioskController }): JSX.
         onKey={applyKey}
         onClose={() => setSearching(false)}
         lang={lang}
-        top={SEARCH_ROW_BOTTOM}
+        top={lowReach ? SEARCH_ROW_BOTTOM_LOW : SEARCH_ROW_BOTTOM}
       />
     </div>
   );

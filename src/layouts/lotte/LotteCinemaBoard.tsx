@@ -4,10 +4,12 @@
  * Rows come from GET /api/cinema/showtimes (lotteLive.ts; the sample timetable until the first
  * answer). The row is re-picked each minute so a session that has started drops off.
  */
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import { useFitText } from '@layouts/components/fitText';
 import type { KioskController } from '@renderer/hooks/useKioskController';
 import { lotteIconUrl } from '@renderer/assets/icons/lotte';
 import type { Lang } from '@renderer/lib/i18n';
+import { useAccessibilityStore } from '@renderer/store/accessibilityStore';
 import { useCinemaMovies } from './lotteLive';
 import { upcomingSessions } from './lotteSample';
 import { lt } from './lotteText';
@@ -28,6 +30,8 @@ interface Props {
 }
 
 export function LotteCinemaBoard({ controller, lang }: Props): JSX.Element {
+  const lowReach = useAccessibilityStore((s) => s.lowReach);
+  const boardRef = useRef<HTMLDivElement>(null);
   const [now, setNow] = useState(() => new Date());
   useEffect(() => {
     const id = setInterval(() => setNow(new Date()), 60_000);
@@ -41,6 +45,7 @@ export function LotteCinemaBoard({ controller, lang }: Props): JSX.Element {
   );
   /* The feed has Korean and English names only, so the board is Korean or English. */
   const en = lang !== 'ko';
+  useFitText(boardRef, styles.title, en, 0.6, `${lang}|${lowReach}`, 'ink');
   const open = (): void => controller.navigate('cinema', '상영 시간표');
   const values: Record<(typeof COLUMNS)[number], string> = {
     start: row ? `${row.start} ~ ${row.end}` : '-',
@@ -51,17 +56,20 @@ export function LotteCinemaBoard({ controller, lang }: Props): JSX.Element {
 
   return (
     <>
-      <div className={styles.board} role="button" aria-label="상영 시간표" onClick={open}>
+      <div ref={boardRef} className={`${styles.board} ${lowReach ? styles.boardLow : ''}`} role="button" aria-label="상영 시간표" onClick={open}>
         <p className={styles.title}>{lt('MainButton_Cinema_Subtext', lang, { ko: '상영 시간표', en: 'Showtimes' })}</p>
         <div className={styles.rule} />
         {COLUMNS.map((key) => (
           <div key={key} className={`${styles.col} ${styles[COL_CLASS[key]]}`}>
-            <span className={styles.head}>{en ? HEADS[key].en : HEADS[key].ko}</span>
+            <span className={styles.head}>
+              {/* 잔여석 is the sheet's Home_Cinema_Seats; the other three heads have no row yet. */}
+              {key === 'seats' ? lt('Home_Cinema_Seats', lang, HEADS.seats) : en ? HEADS[key].en : HEADS[key].ko}
+            </span>
             <span className={styles.value}>{values[key]}</span>
           </div>
         ))}
       </div>
-      <button type="button" className={styles.more} onClick={open}>
+      <button type="button" className={`${styles.more} ${lowReach ? styles.moreLow : ''}`} onClick={open}>
         {lotteIconUrl('ico-more-tri') && (
           <img src={lotteIconUrl('ico-more-tri')} alt="" className={styles.chevron} draggable={false} />
         )}
