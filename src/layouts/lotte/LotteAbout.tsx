@@ -1,14 +1,17 @@
 /**
  * 여기는 롯데 — three tabs, each its own frame of the 화면정의서 (2026-11-13):
  *
- *   시설 소개 (A-04 8723:2486/2606/2697) — the site map slot over place cards: the 롯데 sheet's
- *             `Here_Sight_n_Name/Desc@W0xx` rows, else the collected list.
- *   볼거리   (B-06 8723:6491) — photos, 롯데 소개 (`Here_About@W0xx`), the history steps
- *             (`Here_History_Title`, `Here_History_1..6@W0xx`, each 'YYYY.MM what'), then 시설 안내
- *             (`Here_Facility_Info@W0xx`, shown once the sheet has it) and 이용 안내
- *             (`Here_Usage_Info@W0xx`, else the site's opening hours).
- *   주변 명소 (B-07 8723:6598) — the shared 관광명소 feed (GET /api/sights?region=LOTTE_*) when it has
- *             rows for a 롯데 site, else the sheet's `Here_Nearby_n_Name/Desc@W0xx` cards.
+ * The places come from GET /api/sights?region=LOTTE_* (base '여기는 롯데', 2026-11-24), split by
+ * secondCategoryKr: 1-시설 소개 · 2-볼거리 · 3-주변 명소 · 4-건물. A tab whose group is empty falls
+ * back to the sheet rows below.
+ *
+ *   시설 소개 (A-04 8723:2486/2606/2697) — the site map slot over place cards: 1-시설 소개, else the
+ *             롯데 sheet's `Here_Sight_n_Name/Desc@W0xx` rows, else the collected list.
+ *   볼거리   (B-06 8723:6491) — the site's 4-건물 photos, 롯데 소개 (`Here_About@W0xx`), the history
+ *             steps (`Here_History_Title`, `Here_History_1..6@W0xx`, each 'YYYY.MM what'), 시설 안내
+ *             (`Here_Facility_Info@W0xx`, shown once the sheet has it), 이용 안내
+ *             (`Here_Usage_Info@W0xx`, else the site's opening hours), then the 2-볼거리 cards.
+ *   주변 명소 (B-07 8723:6598) — 3-주변 명소, else the sheet's `Here_Nearby_n_Name/Desc@W0xx` cards.
  *
  * The frames' photos are 인사동/제주 stand-ins and the specs say 사진은 자리 표시, so photos are
  * slots until the content brings its own. Nothing here is made up: a block with no data is left out.
@@ -105,37 +108,31 @@ export function LotteAbout({ controller }: { controller: KioskController }): JSX
   const attractions = useAttractionStore((st) => st.attractions);
   const { kioskId } = controller;
   const site = lotteSite(kioskId);
-  const sights = useMemo(
-    () => attractions.filter((a) => LOTTE_KIOSK_NUMS.has(a.kioskId)),
-    [attractions],
-  );
+  /* This site's /api/sights rows by group: 1-시설 소개 · 2-볼거리 · 3-주변 명소 · 4-건물. */
+  const groups = useMemo(() => groupSights(attractions, kioskId), [attractions, kioskId]);
   const title = lt('MainButton_Here', lang, TITLE);
   const tabs = TABS.map((t) => ({ id: t.id, label: lt(t.key, lang, t.label) }));
   const tabLabel = tabs.find((t) => t.id === tab)?.label ?? '';
 
+  /* Each tab: the API's group when it has rows, else the sheet rows, else the collected list. */
   const facilities = useMemo((): Place[] => {
+    if (groups.facility.length > 0) return apiPlaces(groups.facility, lang);
     const fromSheet = sheetPlaces('Here_Sight', kioskId, lang);
     if (fromSheet.length > 0) return fromSheet;
     return lotteAbout(kioskId)
       .filter((a) => a.tab === 'facility')
       .map((a) => ({ key: a.name, name: a.name, line: a.place }));
-  }, [kioskId, lang]);
-  const nearby = useMemo((): Place[] => {
-    if (sights.length > 0) {
-      // A card with a photo first, as every venue's lists do (stable, so feed order holds otherwise).
-      const withPhotoFirst = [...sights].sort(
-        (a, b) => Number(shopImages(b).length > 0) - Number(shopImages(a).length > 0),
-      );
-      return withPhotoFirst.map((a) => ({
-        key: `api-${a.id}`,
-        name: shopName(a, lang),
-        line: shopDescription(a, lang) || shopAddress(a, lang),
-        photo: shopImages(a)[0],
-        sight: a,
-      }));
-    }
-    return sheetPlaces('Here_Nearby', kioskId, lang);
-  }, [kioskId, lang, sights]);
+  }, [groups, kioskId, lang]);
+  const highlights = useMemo(() => apiPlaces(groups.sights, lang), [groups, lang]);
+  const nearby = useMemo(
+    (): Place[] => (groups.nearby.length > 0 ? apiPlaces(groups.nearby, lang) : sheetPlaces('Here_Nearby', kioskId, lang)),
+    [groups, kioskId, lang],
+  );
+  /* B-06's photos: this site's own building row (4-건물) — the one named like the site, else the first. */
+  const sitePhotos = useMemo(() => {
+    const own = groups.building.find((b) => b.shopNameKr === site.title) ?? groups.building[0];
+    return own ? shopImages(own) : [];
+  }, [groups, site.title]);
 
   const open = (place: Place): void => {
     if (place.sight) {
@@ -180,7 +177,9 @@ export function LotteAbout({ controller }: { controller: KioskController }): JSX
             <div className={c.grid3}>
               {facilities.map((p) => (
                 <button key={p.key} type="button" className={c.card} onClick={() => open(p)}>
-                  <span className={`${c.cardThumb} ${c.cardThumbSmall}`}>{slot('사진 자리', lang)}</span>
+                  <span className={`${c.cardThumb} ${c.cardThumbSmall}`}>
+                    {p.photo ? <img src={p.photo} alt="" draggable={false} /> : slot('사진 자리', lang)}
+                  </span>
                   <span className={c.cardBody}>
                     <span className={c.cardName}>{p.name}</span>
                     <span className={`${c.placeTag} ${c.cardLine}`}>{p.line}</span>
@@ -195,7 +194,17 @@ export function LotteAbout({ controller }: { controller: KioskController }): JSX
       </>
     );
   } else if (tab === 'sights') {
-    content = <SightsPanel kioskId={kioskId} lang={lang} hours={site.hours} />;
+    content = (
+      <SightsPanel
+        kioskId={kioskId}
+        lang={lang}
+        hours={site.hours}
+        photos={sitePhotos}
+        places={highlights}
+        heading={tabLabel}
+        onOpen={open}
+      />
+    );
   } else {
     content = (
       <div className={c.scroll}>
@@ -238,8 +247,29 @@ export function LotteAbout({ controller }: { controller: KioskController }): JSX
   );
 }
 
-/** B-06: photos · 롯데 소개 · 역사 흐름 · 시설 안내 · 이용 안내, each only when the sheet has it. */
-function SightsPanel({ kioskId, lang, hours }: { kioskId: KioskId; lang: Lang; hours: string }): JSX.Element {
+/**
+ * B-06: photos · 롯데 소개 · 역사 흐름 · 시설 안내 · 이용 안내, each only when the sheet has it —
+ * then the API's 2-볼거리 places as cards (the frame has no list of its own; they close the panel
+ * the way 주변 명소 draws its cards). Photos are the site's 4-건물 row: the first large, the next
+ * four in the thumbnail column.
+ */
+function SightsPanel({
+  kioskId,
+  lang,
+  hours,
+  photos,
+  places,
+  heading,
+  onOpen,
+}: {
+  kioskId: KioskId;
+  lang: Lang;
+  hours: string;
+  photos: readonly string[];
+  places: readonly Place[];
+  heading: string;
+  onOpen: (p: Place) => void;
+}): JSX.Element {
   const about = lt('Here_About', lang, '', kioskId);
   const steps = historySteps(kioskId, lang);
   const facilityInfo = hasLt('Here_Facility_Info', kioskId) ? lt('Here_Facility_Info', lang, '', kioskId) : '';
@@ -255,10 +285,14 @@ function SightsPanel({ kioskId, lang, hours }: { kioskId: KioskId; lang: Lang; h
         <div className={s.top}>
           <div className={s.thumbs} aria-hidden>
             {Array.from({ length: THUMBS }, (_, i) => (
-              <span key={i} className={s.thumb} />
+              <span key={i} className={s.thumb}>
+                {photos[i + 1] && <img src={photos[i + 1]} alt="" draggable={false} />}
+              </span>
             ))}
           </div>
-          <div className={s.photo}>{slot('사진 자리', lang)}</div>
+          <div className={s.photo}>
+            {photos[0] ? <img src={photos[0]} alt="" draggable={false} /> : slot('사진 자리', lang)}
+          </div>
           {about && (
             <div className={s.intro} data-voice-more>
               <span className={s.heading}>{lt('Here_About_Title', lang, '롯데 소개', kioskId)}</span>
@@ -304,6 +338,55 @@ function SightsPanel({ kioskId, lang, hours }: { kioskId: KioskId; lang: Lang; h
           </div>
         )}
       </div>
+      {places.length > 0 && (
+        <div className={`${s.panel} ${s.nearby}`}>
+          <span className={s.heading}>{heading}</span>
+          <div className={s.cards}>
+            {places.map((p) => (
+              <button key={p.key} type="button" className={s.card} onClick={() => onOpen(p)}>
+                <span className={s.cardPhoto}>
+                  {p.photo ? <img src={p.photo} alt="" draggable={false} /> : slot('사진 자리', lang)}
+                </span>
+                <span className={s.cardName}>{p.name}</span>
+                <p className={`${s.text} ${s.cardText}`}>{p.line}</p>
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   );
+}
+
+type SightGroup = 'facility' | 'sights' | 'nearby' | 'building';
+/** The API's secondCategoryKr number → its place on this page. */
+const GROUP_BY_NUMBER: Record<string, SightGroup> = { '1': 'facility', '2': 'sights', '3': 'nearby', '4': 'building' };
+
+/**
+ * This site's /api/sights rows (region LOTTE_*, base '여기는 롯데'), split by the number in front of
+ * secondCategoryKr. Only rows filed under THIS kiosk: the attraction cache keeps whatever site last
+ * answered with rows, and on the test rig that can be another 롯데 site or 제주.
+ */
+function groupSights(rows: readonly Attraction[], kioskId: KioskId): Record<SightGroup, Attraction[]> {
+  const out: Record<SightGroup, Attraction[]> = { facility: [], sights: [], nearby: [], building: [] };
+  const num = Number(kioskId.replace(/\D/g, ''));
+  for (const a of rows) {
+    if (!LOTTE_KIOSK_NUMS.has(a.kioskId) || a.kioskId !== num) continue;
+    const group = GROUP_BY_NUMBER[/^(\d+)-/.exec(a.secondCategoryKr ?? '')?.[1] ?? ''];
+    if (group) out[group].push(a);
+  }
+  return out;
+}
+
+/** API rows as cards, a row with a photo first (stable, so the feed's order holds otherwise). */
+function apiPlaces(rows: readonly Attraction[], lang: Lang): Place[] {
+  return [...rows]
+    .sort((a, b) => Number(shopImages(b).length > 0) - Number(shopImages(a).length > 0))
+    .map((a) => ({
+      key: `api-${a.id}`,
+      name: shopName(a, lang),
+      line: shopDescription(a, lang) || shopAddress(a, lang),
+      photo: shopImages(a)[0],
+      sight: a,
+    }));
 }

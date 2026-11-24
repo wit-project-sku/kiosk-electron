@@ -138,6 +138,8 @@
 .storyPhoto { flex: none; width: 640px; height: 420px; border-radius: 36px; background: #F3EEE7; display: flex; align-items: center; justify-content: center; color: #A89E93; font-size: 38px; }
 .storyText { flex: 1 1 0; display: flex; flex-direction: column; gap: 18px; font-size: 42px; line-height: 1.45; color: #5D544E; }
 .storyText b { font-size: 52px; color: #2A2320; }
+/* The hobby / habit headline (Greeting_*_Desc_1) between the name and the body. */
+.storyHead { font-size: 44px; font-weight: 700; color: #DA291C; }
 .tags { display: flex; flex-wrap: wrap; gap: 16px; flex: none; }
 .hash { padding: 14px 34px; border-radius: 36px; background: #fff; font-size: 38px; color: #A31A12; font-weight: 600; }
 
@@ -182,6 +184,9 @@
 .detailTags { margin: 0; font-size: 38px; color: #777; }
 .mapHold { flex: none; height: 767px; display: flex; align-items: center; justify-content: center; border-radius: 40px; background: #EDE8E3; font-size: 56px; font-weight: 700; color: #8C807A; }
 .cardThumbSmall { height: 297px; }
+/* A real photo (여기는 롯데 · 시설 소개, from /api/sights) fills the slot. */
+.cardThumb { overflow: hidden; }
+.cardThumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
 img.cardPhoto { display: block; object-fit: cover; }
 .cardLine { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
 .grid3 { gap: 36px; }
