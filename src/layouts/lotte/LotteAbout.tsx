@@ -5,12 +5,15 @@
  * secondCategoryKr: 1-시설 소개 · 2-볼거리 · 3-주변 명소 · 4-건물. A tab whose group is empty falls
  * back to the sheet rows below.
  *
- *   시설 소개 (A-04 8723:2486/2606/2697) — the site map slot over place cards: 1-시설 소개, else the
- *             롯데 sheet's `Here_Sight_n_Name/Desc@W0xx` rows, else the collected list.
+ *   시설 소개 (A-04 8723:2486/2606/2697) — the site map (제주's JejuSpotMap: OSM tiles, opened on the
+ *             venue's own pin, plus any facility row that carries coordinates) over place cards:
+ *             1-시설 소개, else the 롯데 sheet's `Here_Sight_n_Name/Desc@W0xx` rows, else the
+ *             collected list.
  *   볼거리   (B-06 8723:6491) — the site's 4-건물 photos, 롯데 소개 (`Here_About@W0xx`), the history
  *             steps (`Here_History_Title`, `Here_History_1..6@W0xx`, each 'YYYY.MM what'), 시설 안내
  *             (`Here_Facility_Info@W0xx`, shown once the sheet has it), 이용 안내
- *             (`Here_Usage_Info@W0xx`, else the site's opening hours), then the 2-볼거리 cards.
+ *             (`Here_Usage_Info@W0xx`, else the site's opening hours). The 2-볼거리 rows are not
+ *             drawn: B-06 has no list, and cards there read as the 주변 명소 tab's.
  *   주변 명소 (B-07 8723:6598) — 3-주변 명소, else the sheet's `Here_Nearby_n_Name/Desc@W0xx` cards.
  *
  * The frames' photos are 인사동/제주 stand-ins and the specs say 사진은 자리 표시, so photos are
@@ -29,6 +32,7 @@ import type { Lang } from '@renderer/lib/i18n';
 import type { Attraction } from '@shared/types/attraction';
 import type { KioskId } from '@shared/types/kiosk';
 import { getKioskLocation } from '@shared/config/kioskLocations';
+import { JejuSpotMap, type MapSpot } from '../jeju/JejuSpotMap';
 import { LottePageFrame } from './LottePageFrame';
 import { LotteTabRow } from './LotteTabRow';
 import { shopDetail } from './lotteDetailItem';
@@ -57,6 +61,12 @@ const MAX_SHEET_ROWS = 12;
 const STEP_ICONS = ['📖', '🏺', '🏠', '🎨', '🎪', '✨'];
 /** B-06 has one large photo and four small ones beside it. */
 const THUMBS = 4;
+/** The 시설 소개 map: A-04's map box (the old 지도 자리 plate), and the zoom it opens the venue at. */
+const MAP_W = 1820;
+const MAP_H = 767;
+const VENUE_ZOOM = 16;
+/** Map id of the venue's own pin — clear of every API row id. */
+const SITE_PIN = -1;
 
 interface Place {
   key: string;
@@ -123,16 +133,41 @@ export function LotteAbout({ controller }: { controller: KioskController }): JSX
       .filter((a) => a.tab === 'facility')
       .map((a) => ({ key: a.name, name: a.name, line: a.place }));
   }, [groups, kioskId, lang]);
-  const highlights = useMemo(() => apiPlaces(groups.sights, lang), [groups, lang]);
   const nearby = useMemo(
     (): Place[] => (groups.nearby.length > 0 ? apiPlaces(groups.nearby, lang) : sheetPlaces('Here_Nearby', kioskId, lang)),
     [groups, kioskId, lang],
   );
-  /* B-06's photos: this site's own building row (4-건물) — the one named like the site, else the first. */
-  const sitePhotos = useMemo(() => {
-    const own = groups.building.find((b) => b.shopNameKr === site.title) ?? groups.building[0];
-    return own ? shopImages(own) : [];
-  }, [groups, site.title]);
+  /* This site's own building row (4-건물) — the one named like the site, else the first. */
+  const siteRow = useMemo(
+    () => groups.building.find((b) => b.shopNameKr === site.title) ?? groups.building[0],
+    [groups, site.title],
+  );
+  /* B-06's photos come from it. */
+  const sitePhotos = useMemo(() => (siteRow ? shopImages(siteRow) : []), [siteRow]);
+
+  /*
+   * 시설 소개's map. The venue's own pin always (kioskLocations' coordinates — the API's 롯데 rows
+   * carry none yet, 2026-11-24), plus every facility row that does carry coordinates, so the pins
+   * fill in on their own once the server adds them.
+   */
+  const location = getKioskLocation(kioskId);
+  const [pinned, setPinned] = useState<number | null>(null);
+  const mapSpots = useMemo((): MapSpot[] => {
+    const venue: MapSpot = {
+      id: SITE_PIN,
+      lat: location.coordinates.lat,
+      lng: location.coordinates.lon,
+      name: siteRow ? shopName(siteRow, lang) : location.name,
+      address: siteRow ? shopAddress(siteRow, lang) : '',
+      photo: sitePhotos[0],
+    };
+    const rows = groups.facility.flatMap((a): MapSpot[] =>
+      typeof a.latitude === 'number' && typeof a.longitude === 'number' && (a.latitude !== 0 || a.longitude !== 0)
+        ? [{ id: a.id, lat: a.latitude, lng: a.longitude, name: shopName(a, lang), address: shopAddress(a, lang), photo: shopImages(a)[0] }]
+        : [],
+    );
+    return [venue, ...rows];
+  }, [groups, lang, location, siteRow, sitePhotos]);
 
   const open = (place: Place): void => {
     if (place.sight) {
@@ -159,6 +194,11 @@ export function LotteAbout({ controller }: { controller: KioskController }): JSX
     controller.navigate('detail', TITLE);
   };
 
+  const openPin = (id: number): void => {
+    const row = id === SITE_PIN ? siteRow : groups.facility.find((a) => a.id === id);
+    if (row) open({ key: `api-${row.id}`, name: shopName(row, lang), line: '', sight: row });
+  };
+
   const empty = (
     <div className={c.empty} data-voice-state="preparing">
       {tc('Content_Soon', lang)}
@@ -168,10 +208,20 @@ export function LotteAbout({ controller }: { controller: KioskController }): JSX
 
   let content: JSX.Element;
   if (tab === 'facility') {
-    const venue = getKioskLocation(kioskId).name;
     content = (
       <>
-        <div className={c.mapHold}>{lt('Here_Map_Soon', lang, `${venue} 지도 자리`)}</div>
+        <JejuSpotMap
+          className={c.map}
+          spots={mapSpots}
+          width={MAP_W}
+          height={MAP_H}
+          activeId={pinned}
+          onSelect={setPinned}
+          onOpen={openPin}
+          lang={lang}
+          fallbackCenter={{ lat: location.coordinates.lat, lng: location.coordinates.lon }}
+          fallbackZoom={VENUE_ZOOM}
+        />
         <div className={c.scroll}>
           {facilities.length > 0 ? (
             <div className={c.grid3}>
@@ -200,9 +250,6 @@ export function LotteAbout({ controller }: { controller: KioskController }): JSX
         lang={lang}
         hours={site.hours}
         photos={sitePhotos}
-        places={highlights}
-        heading={tabLabel}
-        onOpen={open}
       />
     );
   } else {
@@ -248,27 +295,19 @@ export function LotteAbout({ controller }: { controller: KioskController }): JSX
 }
 
 /**
- * B-06: photos · 롯데 소개 · 역사 흐름 · 시설 안내 · 이용 안내, each only when the sheet has it —
- * then the API's 2-볼거리 places as cards (the frame has no list of its own; they close the panel
- * the way 주변 명소 draws its cards). Photos are the site's 4-건물 row: the first large, the next
- * four in the thumbnail column.
+ * B-06: photos · 롯데 소개 · 역사 흐름 · 시설 안내 · 이용 안내, each only when the sheet has it.
+ * Photos are the site's 4-건물 row: the first large, the next four in the thumbnail column.
  */
 function SightsPanel({
   kioskId,
   lang,
   hours,
   photos,
-  places,
-  heading,
-  onOpen,
 }: {
   kioskId: KioskId;
   lang: Lang;
   hours: string;
   photos: readonly string[];
-  places: readonly Place[];
-  heading: string;
-  onOpen: (p: Place) => void;
 }): JSX.Element {
   const about = lt('Here_About', lang, '', kioskId);
   const steps = historySteps(kioskId, lang);
@@ -338,22 +377,6 @@ function SightsPanel({
           </div>
         )}
       </div>
-      {places.length > 0 && (
-        <div className={`${s.panel} ${s.nearby}`}>
-          <span className={s.heading}>{heading}</span>
-          <div className={s.cards}>
-            {places.map((p) => (
-              <button key={p.key} type="button" className={s.card} onClick={() => onOpen(p)}>
-                <span className={s.cardPhoto}>
-                  {p.photo ? <img src={p.photo} alt="" draggable={false} /> : slot('사진 자리', lang)}
-                </span>
-                <span className={s.cardName}>{p.name}</span>
-                <p className={`${s.text} ${s.cardText}`}>{p.line}</p>
-              </button>
-            ))}
-          </div>
-        </div>
-      )}
     </div>
   );
 }
