@@ -182,6 +182,15 @@
   border-radius: 45px;
   background: #fff;
   filter: drop-shadow(0 8px 12px rgba(0, 0, 0, 0.04));
+  /* A button now (it opens the 상세) — drop the UA chrome so it keeps the A-07 card. */
+  width: 100%;
+  box-sizing: border-box;
+  border: 0;
+  font: inherit;
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
 }
 
 .spotPhoto {
@@ -260,3 +269,30 @@
 
 /* Figma's 'normal' leading for Pretendard (see lotteUi .column). */
 .tabs, .content { line-height: 1.2; }
+
+/* ── ♿ (배리어프리): header under the bar (ends y846), cards from there, controls at the foot —
+   the 이벤트/핫스팟 tabs at 3434 and the building chips 50 under them (3654), outer row first,
+   as the 제주 이벤트 low frame stacks its two rows. ── */
+.contentLow { top: 846px; height: 2488px; }
+.tabsLow { top: 3434px; }
+.buildingsLow {
+  position: absolute;
+  left: 170px;
+  top: 3654px;
+  width: 1820px;
+  display: flex;
+  justify-content: center;
+  gap: 22px;
+}
+
+/* Other languages: the building names are longer ("Универмаг LOTTE", "LOTTE WORLD TOWER"), so the
+   chip row wraps onto a second line instead of running past the screen edge. Korean keeps one row. */
+.buildings:not(:lang(ko)),
+.buildingsLow:not(:lang(ko)) {
+  flex-wrap: wrap;
+  row-gap: 22px;
+}
+.buildings:not(:lang(ko)) .building,
+.buildingsLow:not(:lang(ko)) .building {
+  padding: 0 40px;
+}

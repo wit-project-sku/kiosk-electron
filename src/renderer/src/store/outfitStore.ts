@@ -153,11 +153,22 @@ async function fetchCatalogue(): Promise<Pick<OutfitState, 'byCategory' | 'categ
   if (!isOk(result)) return null;
   const { outfits, categories, fallback } = result.value;
   if (fallback || outfits.length === 0) {
-    // The two halves fail independently: a kiosk can hold cached tabs and no
-    // outfits. Keep whichever the cache has and only synthesize the missing one.
+    // ★ Bundled outfits get the BUNDLED tabs, never the cached ones. Tabs are
+    // matched to outfits by exact category name, and the cache's tabs are the
+    // current catalogue (`hanbok`, `daily`, `New Outfit`, …) while the bundle is
+    // filed under the retired names (`w=hannbok`, `m=everyday`, …). Mixing them
+    // drew half the row as 준비 중 — seen on 롯데 (2026-11-24), whose regions the
+    // API answers with zero outfits, so a kiosk that had synced as another site
+    // kept that site's tabs over the bundle. One source for both halves keeps
+    // every drawn tab reachable.
+    if (categories.length > 0) {
+      console.warn('[outfitStore] no outfits for this kiosk — using the bundled catalogue and its tabs', {
+        cachedTabs: categories.length,
+      });
+    }
     return {
       byCategory: bundledCatalogue(),
-      categories: categories.length > 0 ? categories : bundledCategories(),
+      categories: bundledCategories(),
       fallback: true,
     };
   }

@@ -14,6 +14,7 @@ import { LOTTE_LINKS } from './lotteLinks';
 import { useLotteStories } from './lotteLive';
 import { STORY_KIND_LABEL, toStory, type Story } from './lotteStoryData';
 import { lt } from './lotteText';
+import { tc } from './lotteCopy';
 import { useLanguageStore } from '@renderer/store/languageStore';
 import { useVoiceIntro } from '../jeju/voice/intro';
 import ui from './lotteUi.module.css';
@@ -34,7 +35,7 @@ function SendCard(): JSX.Element {
       <LotteQr value={LOTTE_LINKS.storySubmit} />
       <div className={ui.qrText}>
         <span className={ui.qrTitle}>{lt('Story_Send', lang, '내 사연 보내기')}</span>
-        <span className={ui.qrSub}>WITS 앱에서 보낼 수 있어요. 검수를 거쳐 이 화면에 올라옵니다.</span>
+        <span className={ui.qrSub}>{tc('Story_QR_Sub', lang)}</span>
       </div>
     </div>
   );
@@ -76,13 +77,13 @@ export function LotteStories({ controller }: { controller: KioskController }): J
           <div className={`${ui.card} ${s.empty}`}>
             <span className={s.emptyMark}>…</span>
             <span className={s.emptyTitle}>{plain(lt('Story_Empty', lang, '아직 사연이 없습니다'))}</span>
-            <span className={s.emptySub}>첫 사연을 보내 보세요.</span>
+            <span className={s.emptySub}>{tc('Story_Empty_Sub', lang)}</span>
           </div>
         ) : (
           <div className={s.list}>
             <div className={s.listHead}>
-              <h2 className={ui.heading}>사연 {stories.length}개</h2>
-              <span className={s.order}>최근 순</span>
+              <h2 className={ui.heading}>{tc('Story_Count', lang, { n: stories.length })}</h2>
+              <span className={s.order}>{tc('Story_Order', lang)}</span>
             </div>
             {stories.map((st) => (
               <button key={st.id} type="button" className={s.item} onClick={() => setOpenId(st.id)}>
@@ -93,7 +94,7 @@ export function LotteStories({ controller }: { controller: KioskController }): J
                     {st.author} · {st.date}
                   </span>
                 </span>
-                <span className={s.view}>보기 ›</span>
+                <span className={s.view}>{tc('Story_View', lang)}</span>
               </button>
             ))}
           </div>
@@ -170,7 +171,7 @@ function StoryView({
             <img src={story.mediaUrl} alt="" draggable={false} />
           )
         ) : (
-          <span className={s.mediaHold}>사연 사진 · 영상 (30초)</span>
+          <span className={s.mediaHold}>{tc('Story_Media', lang)}</span>
         )}
       </div>
 
@@ -178,7 +179,7 @@ function StoryView({
         <span className={s.title}>{story.title}</span>
         <span className={s.body}>{story.body}</span>
         <span className={s.from}>
-          — {story.author} 님
+          {tc('Story_Author', lang, { name: story.author })}
         </span>
       </div>
 
@@ -191,8 +192,8 @@ function StoryView({
       <div className={s.foot}>
         <LotteQr value={LOTTE_LINKS.storySubmit} className={s.qr} />
         <div className={s.footText}>
-          <span className={s.footTitle}>내 사연도 보내기</span>
-          <span className={s.footSub}>WITS 앱에서 보낼 수 있어요</span>
+          <span className={s.footTitle}>{tc('Story_SendMine', lang)}</span>
+          <span className={s.footSub}>{tc('Story_SendSub', lang)}</span>
         </div>
         <span className={s.spacer} />
         <span className={s.nav}>

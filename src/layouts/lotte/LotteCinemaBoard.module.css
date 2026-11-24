@@ -29,6 +29,23 @@
   white-space: nowrap;
 }
 
+/* Other languages: a 265 × 150 slot up to the first column (상영시각 starts at 338), centred on
+   Korean's line (28 + (150 − 55) / 2 ≈ 76). A longer title ("Расписание сеансов") wraps to two
+   lines inside it, then shrinks through --fit (useFitText in LotteCinemaBoard) instead of
+   running into the times. Korean keeps the rule above. */
+.title:not(:lang(ko)) {
+  top: 28px;
+  width: 265px;
+  height: 150px;
+  display: flex;
+  align-items: center;
+  font-size: calc(55px * var(--fit, 1));
+  line-height: 1.05;
+  white-space: normal;
+  word-break: auto-phrase;
+  overflow-wrap: normal;
+}
+
 /* Line 104: 1462 wide at x336 y97, 3px. */
 .rule {
   position: absolute;
@@ -104,3 +121,7 @@
   color: #DC3124;
   white-space: nowrap;
 }
+
+/* ♿ — the board rides down with the 공지 panel (297 → 998), at the same place inside it. */
+.boardLow { top: 1433px; }
+.moreLow { top: 1664px; }

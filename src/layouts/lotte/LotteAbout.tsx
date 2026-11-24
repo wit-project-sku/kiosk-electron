@@ -13,6 +13,8 @@
  * The frames' photos are 인사동/제주 stand-ins and the specs say 사진은 자리 표시, so photos are
  * slots until the content brings its own. Nothing here is made up: a block with no data is left out.
  */
+import { belowModeBar } from './lowReach';
+import { useAccessibilityStore } from '@renderer/store/accessibilityStore';
 import { useMemo, useState } from 'react';
 import type { KioskController } from '@renderer/hooks/useKioskController';
 import { lotteIconUrl } from '@renderer/assets/icons/lotte';
@@ -29,6 +31,7 @@ import { LotteTabRow } from './LotteTabRow';
 import { shopDetail } from './lotteDetailItem';
 import { lotteAbout, lotteSite, type AboutTab } from './lotteSample';
 import { hasLt, lt } from './lotteText';
+import { slot, tc, tcRow } from './lotteCopy';
 import { useVoiceIntro } from '../jeju/voice/intro';
 import c from './lotteContent.module.css';
 import s from './LotteAbout.module.css';
@@ -161,8 +164,8 @@ export function LotteAbout({ controller }: { controller: KioskController }): JSX
 
   const empty = (
     <div className={c.empty} data-voice-state="preparing">
-      콘텐츠 준비 중입니다
-      <small>{tabLabel} 정보를 받으면 이곳에 표시합니다</small>
+      {tc('Content_Soon', lang)}
+      <small>{tc('Content_Soon_Note', lang, { tab: tabLabel })}</small>
     </div>
   );
 
@@ -177,7 +180,7 @@ export function LotteAbout({ controller }: { controller: KioskController }): JSX
             <div className={c.grid3}>
               {facilities.map((p) => (
                 <button key={p.key} type="button" className={c.card} onClick={() => open(p)}>
-                  <span className={`${c.cardThumb} ${c.cardThumbSmall}`}>사진 자리</span>
+                  <span className={`${c.cardThumb} ${c.cardThumbSmall}`}>{slot('사진 자리', lang)}</span>
                   <span className={c.cardBody}>
                     <span className={c.cardName}>{p.name}</span>
                     <span className={`${c.placeTag} ${c.cardLine}`}>{p.line}</span>
@@ -203,7 +206,7 @@ export function LotteAbout({ controller }: { controller: KioskController }): JSX
               {nearby.map((p) => (
                 <button key={p.key} type="button" className={s.card} onClick={() => open(p)}>
                   <span className={s.cardPhoto}>
-                    {p.photo ? <img src={p.photo} alt="" draggable={false} /> : '사진 자리'}
+                    {p.photo ? <img src={p.photo} alt="" draggable={false} /> : slot('사진 자리', lang)}
                   </span>
                   <span className={s.cardName}>{p.name}</span>
                   <p className={`${s.text} ${s.cardText}`}>{p.line}</p>
@@ -218,15 +221,19 @@ export function LotteAbout({ controller }: { controller: KioskController }): JSX
     );
   }
 
+  const lowReach = useAccessibilityStore((s) => s.lowReach);
   return (
     <LottePageFrame
       controller={controller}
       title={title}
-      subtitle="이곳의 시설과 볼거리를 소개합니다"
+      subtitle={tcRow('MainButton_Here_Subtext', 'Here_Subtitle', lang)}
       showBanner={false}
+      /* ♿: header under the bar, the tab row at the foot (LotteTabRow .tabsLow). */
+      lowReachModeBar
+      lowReachShift={belowModeBar()}
     >
       <LotteTabRow tabs={tabs} value={tab} onChange={setTab} />
-      <div className={`${c.body} ${c.bodyBelowTabs}`}>{content}</div>
+      <div className={`${c.body} ${lowReach ? c.bodyAboveTabs : c.bodyBelowTabs}`}>{content}</div>
     </LottePageFrame>
   );
 }
@@ -251,7 +258,7 @@ function SightsPanel({ kioskId, lang, hours }: { kioskId: KioskId; lang: Lang; h
               <span key={i} className={s.thumb} />
             ))}
           </div>
-          <div className={s.photo}>사진 자리</div>
+          <div className={s.photo}>{slot('사진 자리', lang)}</div>
           {about && (
             <div className={s.intro} data-voice-more>
               <span className={s.heading}>{lt('Here_About_Title', lang, '롯데 소개', kioskId)}</span>

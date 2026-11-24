@@ -13,6 +13,7 @@ import { LOTTE_LINKS } from './lotteLinks';
 import { useLotteMovieShareSummary } from './lotteLive';
 import { LotteSteps } from './LotteSteps';
 import { lt } from './lotteText';
+import { tc } from './lotteCopy';
 import { useLanguageStore } from '@renderer/store/languageStore';
 import ui from './lotteUi.module.css';
 import s from './LotteMovieShare.module.css';
@@ -20,8 +21,6 @@ import s from './LotteMovieShare.module.css';
 /** A sheet line used as a subtitle loses its closing full stop, as the frame writes it. */
 const tPlainLine = (line: string): string => line.replace(/[.。]\s*$/, '');
 
-/** 롯데시네마 venues taking part (규칙 카드 5 · 대상 극장). */
-const CINEMAS = '월드타워 · 건대입구 · 청량리';
 /** Perforations along each edge of the strip. */
 const HOLES = 13;
 /** Films 1–3 drawn as verified in the illustration. */
@@ -88,14 +87,14 @@ export function LotteMovieShare({ controller }: { controller: KioskController })
             </div>
             {holes}
           </div>
-          <span className={s.caption}>영화 1편 = 필름 1칸 (그림은 예시)</span>
+          <span className={s.caption}>{tc('FilmShare_Caption', lang)}</span>
         </div>
 
         <LotteSteps
           steps={[
-            { title: lt('FilmShare_Step1', lang, '롯데시네마에서 영화 관람'), sub: CINEMAS },
-            { title: lt('FilmShare_Step2', lang, 'WITS 앱에서 예매번호 인증'), sub: '상영이 끝난 뒤 7일 안에' },
-            { title: lt('FilmShare_Step3', lang, '필름 5칸 = 영화 1편 나눔'), sub: '이웃에게 관람권 1장이 전달됩니다' },
+            { title: lt('FilmShare_Step1', lang, '롯데시네마에서 영화 관람'), sub: tc('FilmShare_Cinemas', lang) },
+            { title: lt('FilmShare_Step2', lang, 'WITS 앱에서 예매번호 인증'), sub: tc('FilmShare_Step2_Sub', lang) },
+            { title: lt('FilmShare_Step3', lang, '필름 5칸 = 영화 1편 나눔'), sub: tc('FilmShare_Step3_Sub', lang) },
           ]}
         />
 
@@ -104,7 +103,7 @@ export function LotteMovieShare({ controller }: { controller: KioskController })
           <div className={ui.qrText}>
             <span className={ui.qrTitle}>{lt('FilmShare_QR', lang, '휴대폰으로 QR 을 찍어 인증해요')}</span>
             <span className={ui.qrSub}>
-              WITS 앱의 영화 나눔이 열립니다. 앱이 없으면 설치 안내로 이어져요.
+              {tc('FilmShare_QR_Sub', lang)}
             </span>
           </div>
         </div>

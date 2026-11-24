@@ -19,10 +19,9 @@
   gap: 100px;
   overflow-x: hidden;
   overflow-y: auto;
-  /* The 28px scrollbar is carved out of the RIGHT margin (Figma puts it at
-     x2128, inside the 170px gutter) so the content column stays exactly 1820:
-     2160 − 170 − 136 − 34.32 = 1819.7. */
-  padding: 0 136px 80px 170px;
+  /* No native bar (LotteScrollbar draws the Figma one over the right gutter at x2125.68),
+     so both gutters are 170 and the column is exactly 1820. */
+  padding: 0 170px 80px 170px;
 }
 
 /*
@@ -33,18 +32,8 @@
   top: 813px;
 }
 
-.scroll::-webkit-scrollbar {
-  width: 28px;
-}
 
-.scroll::-webkit-scrollbar-thumb {
-  background: var(--kiosk-primary, #DA291C);
-  border-radius: 14px;
-}
 
-.scroll::-webkit-scrollbar-track {
-  background: transparent;
-}
 
 /* ── Search re-entry field ── */
 .searchRow {

@@ -14,6 +14,8 @@ import { screenTitle } from '@renderer/lib/i18n';
 import type { Lang } from '@renderer/lib/i18n';
 import { LottePageFrame } from './LottePageFrame';
 import { LotteQr } from './LotteQr';
+import { lotteTitle, tc } from './lotteCopy';
+import { lt } from './lotteText';
 import { useVoiceIntro } from '../jeju/voice/intro';
 import c from './lotteContent.module.css';
 
@@ -36,7 +38,6 @@ const VOICE_ABOUT = ['lotte.about.detail'] as const;
 export function LotteDetail({ controller }: { controller: KioskController }): JSX.Element {
   const item = useDetailStore((s) => s.item);
   const lang = useLanguageStore((s) => s.currentLanguage);
-  const en = lang !== 'ko';
   const goBack = (): void => controller.navigate(item?.from ?? 'home', '뒤로');
   const from = item?.from;
   useEffect(() => {
@@ -49,7 +50,7 @@ export function LotteDetail({ controller }: { controller: KioskController }): JS
     return (
       <LottePageFrame controller={controller} title="상세" showBanner={false} onBack={goBack}>
         <div className={c.body}>
-          <div className={c.empty}>{en ? 'Nothing to show.' : '정보를 찾을 수 없습니다'}</div>
+          <div className={c.empty}>{tc('Detail_Empty', lang)}</div>
         </div>
       </LottePageFrame>
     );
@@ -57,19 +58,20 @@ export function LotteDetail({ controller }: { controller: KioskController }): JS
 
   const noImage = lotteIconUrl('noimage') ?? '';
   const photos = Array.from({ length: PHOTO_SLOTS }, (_, i) => item.photos[i] ?? noImage);
-  const rows: ReadonlyArray<readonly [string, string]> = (
+  /* Icon rows; the sheet's Floor / Open&closeTime / Tel name each icon for a screen reader. */
+  const rows: ReadonlyArray<readonly [string, string, string]> = (
     [
-      ['ico-location', item.address],
-      ['ico-alarm', item.hours],
-      ['ico-phone', item.phone],
+      ['ico-location', item.address, lt('Floor', lang, '층')],
+      ['ico-alarm', item.hours, lt('Open&closeTime', lang, '영업 시간')],
+      ['ico-phone', item.phone, lt('Tel', lang, '전화번호')],
     ] as const
   ).filter((r) => !!r[1]);
 
   return (
     <LottePageFrame
       controller={controller}
-      title={`${screenTitle(item.title, lang)} > ${screenTitle('상세', lang)}`}
-      subtitle={en ? 'Check the location and details.' : '위치와 정보를 확인하세요'}
+      title={`${lotteTitle(item.title, lang)} > ${screenTitle('상세', lang)}`}
+      subtitle={tc('Detail_Subtitle', lang)}
       bannerFallback="banner-detail"
       onBack={goBack}
     >
@@ -85,9 +87,9 @@ export function LotteDetail({ controller }: { controller: KioskController }): JS
         </div>
         <div className={c.detailInfo}>
           <div className={c.detailFacts}>
-            {rows.map(([icon, v]) => (
+            {rows.map(([icon, v, label]) => (
               <div key={icon} className={c.detailFact}>
-                {lotteIconUrl(icon) && <img src={lotteIconUrl(icon)} alt="" draggable={false} />}
+                {lotteIconUrl(icon) && <img src={lotteIconUrl(icon)} alt={label} draggable={false} />}
                 <span>{v}</span>
               </div>
             ))}

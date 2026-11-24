@@ -13,6 +13,7 @@ import { LottePageFrame } from './LottePageFrame';
 import { useCinemaMovies } from './lotteLive';
 import { lotteSite, upcomingSessions } from './lotteSample';
 import { lt } from './lotteText';
+import { hallName, minutes, ratingLabel, tcRow } from './lotteCopy';
 import c from './lotteContent.module.css';
 
 const hmNow = (d: Date): string =>
@@ -20,7 +21,6 @@ const hmNow = (d: Date): string =>
 
 export function LotteCinema({ controller }: { controller: KioskController }): JSX.Element {
   const lang = useLanguageStore((s) => s.currentLanguage);
-  const en = lang !== 'ko';
   const { movies: feed, cinemaName } = useCinemaMovies();
   const [now, setNow] = useState(() => new Date());
   useEffect(() => {
@@ -41,7 +41,7 @@ export function LotteCinema({ controller }: { controller: KioskController }): JS
     <LottePageFrame
       controller={controller}
       title={lt('MainButton_Cinema', lang, { ko: '롯데시네마', en: 'LOTTE CINEMA' })}
-      subtitle={en ? "Today's remaining showtimes." : '오늘 남은 상영 회차를 확인하세요'}
+      subtitle={tcRow('MainButton_Cinema_Subtext', 'Cinema_Subtitle', lang)}
       showBanner={false}
     >
       <div className={`${c.body} ${c.bodyFull}`}>
@@ -69,12 +69,18 @@ export function LotteCinema({ controller }: { controller: KioskController }): JS
               <div className={c.movieBody}>
                 <div className={c.movieTitle}>
                   {m.grade && (
-                    <span className={`${c.grade} ${c[`grade${m.grade}`] ?? ''}`}>{m.grade}</span>
+                    <span
+                      className={`${c.grade} ${c[`grade${m.grade}`] ?? ''}`}
+                      title={ratingLabel(m.grade, lang)}
+                      aria-label={ratingLabel(m.grade, lang)}
+                    >{/* 전체 (all ages) is the one word on the badge; ages are numbers. */}
+                      {m.grade === '전체' && lang !== 'ko' ? 'ALL' : m.grade}
+                    </span>
                   )}
                   {m.title}
                 </div>
                 <div className={c.movieMeta}>
-                  {en ? `${m.runtimeMin} min` : `${m.runtimeMin}분`}
+                  {minutes(m.runtimeMin, lang)}
                 </div>
                 <div className={c.times}>
                   {m.sessions.map((s) => {
@@ -83,7 +89,7 @@ export function LotteCinema({ controller }: { controller: KioskController }): JS
                       <div key={s.start} className={`${c.time} ${soon ? c.timeSoon : ''}`}>
                         <span className={c.timeStart}>{s.start}</span>
                         <span className={c.timeInfo}>
-                          {s.format ? `${s.screen} · ${s.format}` : s.screen}
+                          {s.format ? `${hallName(s.screen, lang)} · ${s.format}` : hallName(s.screen, lang)}
                         </span>
                         {s.seatsLeft != null && s.seatsTotal != null && (
                           <span className={c.timeInfo}>

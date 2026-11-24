@@ -46,3 +46,7 @@
   font-weight: 700;
   color: #fff;
 }
+
+/* ♿: at the foot of the page — 3600…3770, in reach from a seat (the 제주 low frames put their
+   foot controls in the same 3434…3780 band). */
+.tabsLow { top: 3600px; }

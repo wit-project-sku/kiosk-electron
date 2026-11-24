@@ -1045,7 +1045,9 @@
 .cardText .cardSub {
   position: static;
   white-space: normal;
-  word-break: normal;
+  /* auto-phrase: Japanese breaks between phrases ("ウィズ / マーケット"), not mid-word
+     ("ウィズマーケ / ット"); every other language behaves as `normal`. Needs the root's lang. */
+  word-break: auto-phrase;
   overflow-wrap: normal;
 }
 
@@ -1345,13 +1347,37 @@
   border-radius: 38px;
   background: #fff;
   color: var(--kiosk-primary, #DA291C);
-  font-size: 38px;
+  font-size: calc(38px * var(--fit, 1));
   font-weight: 700;
   white-space: nowrap;
   cursor: pointer;
   -webkit-tap-highlight-color: transparent;
 }
-.buildingChevron { font-size: 30px; }
+.buildingChevron { font-size: calc(30px * var(--fit, 1)); }
+
+/* Other languages: the TSX centres each button with a max-width (BUILDING_CX); a longer label
+   wraps to a second line and the pill grows down, then the group shrinks through --fit. The
+   label breaks between words — or, with no spaces, between phrases (ロッテワールド / タワー,
+   auto-phrase from the root's lang) or characters (Chinese) — never running under the ›.
+   Korean keeps the rule above untouched. */
+.buildingBtn:not(:lang(ko)) {
+  height: auto;
+  min-height: 76px;
+  justify-content: center;
+  padding: 6px 34px;
+  line-height: 1.1;
+  white-space: normal;
+}
+.buildingBtn:not(:lang(ko)) > .buildingLabel {
+  min-width: 0;
+  /* Two lines at most: a third ("LOTTE / WORLD / TOWER") overflows this box, which is what
+     tells useFitText to shrink the group rather than let the pill grow a third row. */
+  max-height: 2.2em;
+  text-align: center;
+  word-break: auto-phrase;
+  overflow-wrap: normal;
+}
+.buildingBtn:not(:lang(ko)) > .buildingChevron { flex: none; }
 
 /* Left rail: 홈 · 뒤로 (y2163), ♿ (2403), 음성 안내 (2523). */
 .rail { position: absolute; left: 50px; top: 2163px; width: 85px; height: 205px; }
@@ -1377,3 +1403,115 @@
 .notice { background: rgba(108, 90, 70, 0.1); }
 .weather { background: rgba(255, 255, 255, 0.5); }
 .noticeText { word-break: normal; overflow-wrap: anywhere; }
+
+/* ────────────────────────────────────────────────────────────────────────────
+ * LOW-REACH (♿ 배리어프리) — 롯데 A-01 re-laid in the 제주 home's low-reach shape.
+ *
+ * Same treatment as JejuHome's ♿ frame (Figma 6442:105429): the 145.759 mode bar
+ * (lowReach.ts) and the 573 promo flush under it, the top cards 250 tall, the tiles in
+ * ONE row with a one-line label (제주 sets 6 to a row; 롯데's 4 tiles + the 3 cards of
+ * the second card row make 7), the bottom row +79 — everything touchable re-stacked
+ * lower for a seated visitor. The building art and its 건물 단추 stay at full size (they
+ * are the 건물 안내 buttons). Colours stay 롯데: the bar is --kiosk-primary (#DA291C) with
+ * white type, cards/panel/plates keep their A-01 creams.
+ *
+ * Kept at the END of the file on purpose: the A-01 blocks above restate .searchRow,
+ * .cards, .panel, .grid and the bottom row at the same specificity, so a low rule
+ * placed before them (as the 제주 copy above is) loses to them.
+ *
+ *                     standard          low-reach
+ *   mode bar          —                 0      h(bar)
+ *   promo banner      —                 (bar)  h573
+ *   top bar           125               817
+ *   공지 panel         297  h750         998    h750
+ *   상영 시간표 board   732               1433   (더보기 963 → 1664)
+ *   검색장             1095              1796   (1910 wide at x125; no home icon)
+ *   top cards         1325 h310         2026   h250 (x170 / w1860)
+ *   panel             1684 h1597        2324   h1041 (x150 / w1860)
+ *   icon row          1746 4 × 300      2360   7 × 210 (4 tiles + 3 cards), step 261.67
+ *   second card row   2246 h310         —      (in the icon row)
+ *   building art      2663 h548         2687   h548 (same size and x)
+ *   건물 단추           3194 (3200)       3218 (3224) — BUILDING_TOP_LOW in the TSX
+ *   bottom row        3341…3651         3420…3730  (+79, as 제주)
+ *
+ * The left rail is already at the 제주 low-reach tops (2163 / ♿ 2403 / 음성 2523).
+ * ──────────────────────────────────────────────────────────────────────────── */
+.modeBar {
+  z-index: 2;
+  text-align: center;
+  word-break: keep-all;
+  overflow-wrap: anywhere;
+}
+
+.topBarLow { top: 817px; }
+
+/* The 제주 copy above makes this panel 885 tall (998 → 1883), which ran over the search row at
+   1796. 롯데 keeps the standard 750 panel (998 → 1748) with its contents at the standard insets —
+   the 상영 시간표 board (1433) sits at the same place inside it as on the standing page. */
+.noticeLow { top: 998px; height: 750px; }
+.noticeLow .noticeLead { top: 114px; }
+.noticeLow .weather { top: 69px; }
+
+.searchRowLow { left: 125px; top: 1796px; width: 1910px; }
+.searchRowLow .searchHome { display: none; }
+.searchFieldLow { left: 51px; width: 1629px; }
+.langBtnLow { left: 1730px; }
+
+/* Top cards: 뭐하지 706 · 위드마켓 540 · 이벤트 540 (the 제주 low widths). */
+.cardsLow { left: 170px; top: 2026px; width: 1860px; height: 250px; }
+.cardsLow .card { height: 250px; }
+.cardsLow .card .cardTitle { top: 78px; }
+.cardsLow .card .cardSub { top: 152px; }
+.cardsLow .cardText { top: 16px; bottom: 16px; }
+
+.cardsLow .cardAi { left: 0; width: 706px; }
+.cardsLow .cardAi .cardTitle,
+.cardsLow .cardAi .cardSub,
+.cardsLow .cardAi .cardText { left: 330px; }
+.cardsLow .cardAi .cardText { width: 340px; }
+.cardsLow .cardAi .cardArt { left: 70px; top: 43px; width: 190px; height: 164px; }
+
+.cardsLow .cardMarket { left: 743px; width: 540px; }
+.cardsLow .cardMarket .cardArt { left: 340px; top: 46px; width: 102px; height: 158px; }
+
+.cardsLow .cardEvents { left: 1320px; width: 540px; }
+.cardsLow .cardEvents .cardArt { left: 300px; top: 25px; width: 200px; height: 200px; }
+
+.panelLow { left: 150px; top: 2324px; width: 1860px; height: 1041px; }
+
+/* Icon row: 7 × 210 across the panel's 1780 inner width (step 261.67 — see COL_STEP_LOW). */
+.gridLow { left: 190px; top: 2360px; width: 1780px; height: 303px; }
+.tileLow { width: 210px; height: 290px; }
+.tileArtLow,
+.tilePlateLow { width: 210px; height: 210px; border-radius: 60px; }
+.tilePlateLow.tilePlateCinema img { width: 186px; height: 74px; }
+.tilePlateLow.tilePlateShare { border-radius: 42px; }
+.tilePlateLow.tilePlateShare img { width: 133px; height: 133px; }
+/* The second card row's art, on the cards' own cream. */
+.tilePlateCard { background: #F5EFE9; display: flex; align-items: center; justify-content: center; }
+.tilePlateCard img { width: 140px; height: 140px; object-fit: contain; }
+/* One line under the plate, as on 제주 — a 260 column centred on the 210 plate. */
+/* 244 wide (not 260) so neighbouring labels keep an 18px gutter on the 261.67 step, and up to two
+   lines (82 = 2 × 34 × 1.2) before useFitText shrinks the row — "今日のストーリー" and
+   "Today's Stories" used to run into the next icon's label. */
+.tileTextLow,
+.tileTextLow.tilePlateShareText { left: -17px; top: 238px; width: 244px; }
+.tileTextLow .tileTitle,
+.tileTextLow.tilePlateShareText .tileTitle {
+  font-size: calc(34px * var(--fit, 1));
+  font-weight: 500;
+  line-height: 1.2;
+  color: #000;
+  word-break: auto-phrase;
+  overflow-wrap: normal;
+}
+.tileTextLow .tileSub { display: none; }
+.tileTextLow.tileTextFit { height: 82px; }
+
+/* Building art: same size and x, 24 lower; its 건물 단추 follow via BUILDING_TOP_LOW. */
+.skylineLow { top: 2687px; }
+
+.fillmeLow { top: 3479px; }
+.cameraLow { top: 3420px; }
+.restroomLow { top: 3471px; }
+.actionLabelLow { top: 3730px; }

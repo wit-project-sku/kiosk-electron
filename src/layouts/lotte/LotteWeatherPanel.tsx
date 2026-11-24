@@ -12,6 +12,7 @@ import { weatherIconName, weatherIconUrl } from '@renderer/assets/weather';
 import type { Lang } from '@renderer/lib/i18n';
 import { useWeatherStore } from '@renderer/store/weatherStore';
 import type { WeatherDayForecast } from '@shared/types/weather';
+import { lt } from './lotteText';
 import styles from '../jeju/JejuWeatherPanel.module.css';
 
 /** Six rows: 오늘 · 내일 · four weekdays — what a 5-day/3-hour outlook straddles. */
@@ -32,6 +33,7 @@ const pick = (map: Text, lang: Lang): string => map[lang] ?? map.en ?? map.ko ??
 const CLOSE: Text = {
   ko: '닫기', en: 'Close', ja: '閉じる', zh: '关闭', vi: 'Đóng', th: 'ปิด', ru: 'Закрыть', id: 'Tutup',
 };
+/** Fallback for the sheet's `Weather_Title` row (메인D). */
 const PANEL: Text = {
   ko: '날씨 예보', en: 'Weather forecast', ja: '天気予報', zh: '天气预报',
   vi: 'Dự báo thời tiết', th: 'พยากรณ์อากาศ', ru: 'Прогноз погоды', id: 'Prakiraan cuaca',
@@ -90,7 +92,7 @@ export function LotteWeatherPanel({ lang, onClose }: { lang: Lang; onClose: () =
         </button>
       </div>
 
-      <div className={styles.panel} role="dialog" aria-label={pick(PANEL, lang)}>
+      <div className={styles.panel} role="dialog" aria-label={lt('Weather_Title', lang, PANEL)}>
         <div className={styles.todayCard} />
         {HEADS.map((head, i) => (
           <span key={i} className={`${styles.head} ${COLUMNS[i]}`}>
