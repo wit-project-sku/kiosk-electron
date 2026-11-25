@@ -60,7 +60,7 @@ export function kioskNumOf(code: string): number {
 
 /**
  * Does this API base point at a STAGE server? True when one of the host's labels
- * is `stage` (`api-stage-v3.witteria.com` → `api`, `stage`, `v3`, …). The API base
+ * is `stage` (`api-stage-v3.witmarket.net` → `api`, `stage`, `v3`, …). The API base
  * is the one setting that literally says which servers a build talks to: the
  * update channel does not (the kdh lane builds `kdh` for BOTH stage and
  * production servers), and DEV_MODE is off on kdh-stage builds.

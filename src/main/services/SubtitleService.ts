@@ -16,7 +16,7 @@ import { SheetsClient } from './sync/google/SheetsClient';
 import { contentSheetIdFor } from './sync/GoogleSheetsSyncTransport';
 
 const log = createLogger('subtitle-service');
-const DEFAULT_API_BASE = 'https://api-v3.witteria.com';
+const DEFAULT_API_BASE = 'https://api-v3.witmarket.net';
 
 /** local_cache key for offline-first persistence of the entry list. */
 const CACHE_KEY = 'subtitles';

@@ -3,7 +3,7 @@
  *
  * `WITTERIA_API_BASE` is a MAIN-process env var read at runtime (not a build-time
  * `VITE_*`), so pointing a machine at stage is an .env edit plus a restart — no
- * rebuild. Setting it to `https://api-stage-v3.witteria.com` moves every witteria
+ * rebuild. Setting it to `https://api-stage-v3.witmarket.net` moves every witteria
  * call on that kiosk together, which is the point: one switch, not one per
  * feature.
  *
@@ -14,7 +14,7 @@
  */
 import { DEFAULT_WITTERIA_API_BASE } from '@shared/constants';
 
-/** Base URL with any trailing slashes removed, e.g. `https://api-v3.witteria.com`. */
+/** Base URL with any trailing slashes removed, e.g. `https://api-v3.witmarket.net`. */
 export function witteriaApiBase(): string {
   return (process.env['WITTERIA_API_BASE'] || DEFAULT_WITTERIA_API_BASE).replace(/\/+$/, '');
 }

@@ -13,7 +13,7 @@ import { getKioskLocation } from '@shared/config/kioskLocations';
  */
 export const WEB_EMBED_URLS = {
   /** 위드마켓 (WITStore / Goods) */
-  market: 'https://witteria.com/#/kiosk/store',
+  market: 'https://witmarket.net/#/kiosk/store',
   // market: 'https://insarang.kr/',               // payment없는 곳
 
   /**

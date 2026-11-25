@@ -15,7 +15,7 @@ const log = createLogger('spotdiff-service');
  * the staleness the bare `'buttons'` key caused on ButtonLayoutService.
  */
 const cacheKeyFor = (kioskNum: number): string => `spot_diff_rounds:${kioskNum}`;
-const DEFAULT_API_BASE = 'https://api-v3.witteria.com';
+const DEFAULT_API_BASE = 'https://api-v3.witmarket.net';
 /**
  * The region whose puzzles stand in for a region the CMS has none for yet.
  *
@@ -76,7 +76,7 @@ const FALLBACK_REGION = 'INSADONG_NORTH';
  *
  * Env:
  *   SPOT_DIFF_API_URL   — full endpoint override (wins if set)
- *   WITTERIA_API_BASE   — shared API base, default https://api-v3.witteria.com
+ *   WITTERIA_API_BASE   — shared API base, default https://api-v3.witmarket.net
  */
 export class SpotDiffService {
   /**

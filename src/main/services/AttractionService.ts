@@ -5,7 +5,7 @@ import type { KioskService } from '@main/services/KioskService';
 
 const log = createLogger('attraction-service');
 const CACHE_KEY = 'jeju_attractions';
-const DEFAULT_API_BASE = 'https://api-v3.witteria.com';
+const DEFAULT_API_BASE = 'https://api-v3.witmarket.net';
 
 /**
  * Fetches the site's 관광명소 catalogue (`GET /api/sights?region=`) and caches it
@@ -15,7 +15,7 @@ const DEFAULT_API_BASE = 'https://api-v3.witteria.com';
  *
  * Env:
  *   JEJU_ATTRACTIONS_API_URL — full endpoint override (wins if set)
- *   WITTERIA_API_BASE        — shared API base, default https://api-v3.witteria.com
+ *   WITTERIA_API_BASE        — shared API base, default https://api-v3.witmarket.net
  *
  * ── On the path ───────────────────────────────────────────────────────
  * `/api/sights` is the one 관광명소 path every site uses (API docs, 2026-11).

@@ -4,7 +4,7 @@
  *
  * The Figma renders each site as a static mockup; at runtime it is a live
  * <webview>, so none of the product grid / cart / 결제 UI is reimplemented here.
- * That UI belongs to witteria.com and changing it is a change to that site.
+ * That UI belongs to witmarket.net and changing it is a change to that site.
  *
  * Two shapes, one component: one site filling the panel (WIT Store), or several
  * behind a tab row (탐나오 / 제주큐랑). See `tabs`.
