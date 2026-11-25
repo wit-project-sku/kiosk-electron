@@ -19,7 +19,8 @@ export type KioskLocationCode = 'W001' | 'W002' | 'W003' | 'W004' | 'W005' | 'W0
  * Content-branch code the v2 witteria endpoints are keyed by
  * (`/api/kiosks/{region}/banners/v2`, `/api/shops/v2?region=`, …) — it replaced
  * the device number (`kioskId`). The API accepts exactly these eight values
- * (case-insensitive) and answers 400 KIOSK4009 for anything else.
+ * (case-insensitive) and answers 400 KIOSK4009 for anything else. The three 롯데 branches joined
+ * the list on the server in 2026-11 (stage, checked 2026-11-18).
  */
 export type ContentRegion =
   | 'INSADONG_NORTH'
@@ -29,7 +30,10 @@ export type ContentRegion =
   | 'HWASEONG'
   | 'JEJU_AIRPORT'
   | 'JEJU_PORT'
-  | 'JEJU_HERITAGE';
+  | 'JEJU_HERITAGE'
+  | 'LOTTE_WORLD_MALL'
+  | 'LOTTE_CHEONGNYANGNI'
+  | 'LOTTE_STARCITY';
 
 export interface KioskLocationTile {
   screen: KioskScreenId;
@@ -279,14 +283,15 @@ export const KIOSK_LOCATIONS: Record<KioskLocationCode, KioskLocation> = {
   // compositing 하영 would contradict the one rule this layout exists to enforce.
   // Revisit when Digicon ships a 유산 code.
   W010: { code: 'W010', name: '세계자연유산본부', region: 'JEJU_HERITAGE', layout: 'JEJU_HERITAGE', secondTile: MARKET_TILE, hasCardTerminal: true, hasDonation: true, aiCompanion: '2', coordinates: JEJU_HERITAGE_COORDS, cameraRotation: 0 },
-  // 롯데 W011~W013 — publishing stage (2026-11-09): the screens run on the sample data
-  // in layouts/lotte/lotteSample.ts. `region` stays null until the server has these
-  // three branches (ContentRegion), so the content services skip the fetch rather
-  // than send a value the API would reject. `aiCompanion` is the API's default only:
-  // Digicon has no 롯데 mascot yet, and the 롯데 photo flow offers no 같이찍기 until it does.
-  W011: { code: 'W011', name: '롯데월드몰', region: null, layout: 'LOTTE', hasCardTerminal: true, hasDonation: false, aiCompanion: '2', coordinates: LOTTE_WORLD_MALL_COORDS, cameraRotation: 0, notInSetup: true },
-  W012: { code: 'W012', name: '롯데백화점 청량리점', region: null, layout: 'LOTTE', hasCardTerminal: true, hasDonation: false, aiCompanion: '2', coordinates: LOTTE_CHEONGNYANGNI_COORDS, cameraRotation: 0, notInSetup: true },
-  W013: { code: 'W013', name: '롯데백화점 건대스타시티점', region: null, layout: 'LOTTE', hasCardTerminal: true, hasDonation: false, aiCompanion: '2', coordinates: LOTTE_KONKUK_COORDS, cameraRotation: 0, notInSetup: true },
+  // 롯데 W011~W013 — the server has these three branches since 2026-11 (stage), so shops,
+  // banners, buttons, backgrounds, subtitles and outfits come through the same region-keyed
+  // services as every other kiosk. The 롯데-only endpoints (상영 시간표 · 오늘의 사연 · 영화 나눔)
+  // are keyed by kiosk number — see LotteService. `aiCompanion` is the API's default only:
+  // Digicon has no 롯데 mascot (로씨) yet. The 롯데 photo flow shows 같이찍기 anyway (2026-11-19
+  // request), so its composites use '2' (인사) until Digicon gives 로씨 a code — change it here.
+  W011: { code: 'W011', name: '롯데월드몰', region: 'LOTTE_WORLD_MALL', layout: 'LOTTE', hasCardTerminal: true, hasDonation: false, aiCompanion: '2', coordinates: LOTTE_WORLD_MALL_COORDS, cameraRotation: 0, notInSetup: true },
+  W012: { code: 'W012', name: '롯데백화점 청량리점', region: 'LOTTE_CHEONGNYANGNI', layout: 'LOTTE', hasCardTerminal: true, hasDonation: false, aiCompanion: '2', coordinates: LOTTE_CHEONGNYANGNI_COORDS, cameraRotation: 0, notInSetup: true },
+  W013: { code: 'W013', name: '롯데백화점 건대스타시티점', region: 'LOTTE_STARCITY', layout: 'LOTTE', hasCardTerminal: true, hasDonation: false, aiCompanion: '2', coordinates: LOTTE_KONKUK_COORDS, cameraRotation: 0, notInSetup: true },
   // KADA W202 — Korea-ASEAN Digital Academy, Vietnam Chapter (PTIT, Hà Nội).
   //
   // The first NON-KOREAN deployment, and the first that is not a tourism kiosk.
@@ -345,9 +350,14 @@ export function isInsadongLayout(layout: KioskLayoutId): boolean {
  * outfit picker (photoChrome.richOutfit) and the 게임존
  * (photoChrome.waitingGames) — those are separate capabilities for exactly this
  * reason, so one can be withdrawn without disturbing the others.
+ *
+ * ── 롯데 joined 2026-11-20 ─────────────────────────────────────────────
+ * 롯데 has both halves the gate needs: the rich outfit picker (photoChrome.richOutfit) and, by this
+ * same predicate, JejuCameraGuide on Monitor 2 with its palm / fist guide (capture-guide.png — no
+ * 제주 branding in it). Its camera is mounted upright (cameraRotation 0).
  */
 export function usesGestureCapture(layout: KioskLayoutId): boolean {
-  return isJejuLayout(layout);
+  return isJejuLayout(layout) || layout === 'LOTTE';
 }
 
 /**

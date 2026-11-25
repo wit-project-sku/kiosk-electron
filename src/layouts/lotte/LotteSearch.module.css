@@ -19,10 +19,9 @@
   gap: 100px;
   overflow-x: hidden;
   overflow-y: auto;
-  /* The 28px scrollbar is carved out of the RIGHT margin (Figma puts it at
-     x2128, inside the 170px gutter) so the content column stays exactly 1820:
-     2160 − 170 − 136 − 34.32 = 1819.7. */
-  padding: 0 136px 80px 170px;
+  /* No native bar (LotteScrollbar draws the Figma one over the right gutter at x2125.68),
+     so both gutters are 170 and the column is exactly 1820. */
+  padding: 0 170px 80px 170px;
 }
 
 /*
@@ -33,18 +32,8 @@
   top: 813px;
 }
 
-.scroll::-webkit-scrollbar {
-  width: 28px;
-}
 
-.scroll::-webkit-scrollbar-thumb {
-  background: var(--kiosk-primary, #DA291C);
-  border-radius: 14px;
-}
 
-.scroll::-webkit-scrollbar-track {
-  background: transparent;
-}
 
 /* ── Search re-entry field ── */
 .searchRow {
@@ -117,14 +106,18 @@
 .list {
   flex: none;
   width: 1820px;
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  grid-auto-rows: 232px;
-  gap: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 60px;
 }
 
-/* The card itself is LotteShopCard (Figma 4030:74958) — shared with the
-   뜼먹지 category list, which draws the identical component. */
+/* The card itself is JejuShopCard, as on 제주's search: one full-width card per result, 2×2
+   photos, the search word in the brand colour. 롯데 used to put its 목록 row in a two-column grid
+   with fixed 232px rows, which drew the photos over the shop names. */
+
+/* The matched letters are bold brand-red text only, as on 인사동 · 오산 · 화성 — not the browser's
+   yellow <mark> background JejuShopCard leaves in place. */
+.list mark { background: none; }
 
 /* ── Empty / prompt state ── */
 .empty {

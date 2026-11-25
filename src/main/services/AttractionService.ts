@@ -5,22 +5,26 @@ import type { KioskService } from '@main/services/KioskService';
 
 const log = createLogger('attraction-service');
 const CACHE_KEY = 'jeju_attractions';
-const DEFAULT_API_BASE = 'https://api-v3.witteria.com';
+const DEFAULT_API_BASE = 'https://api-v3.witmarket.net';
 
 /**
- * Fetches 제주's curated 관광명소 catalogue and caches it in SQLite so 여기는
- * 제주도's third tab reads it instantly and works offline. Refreshed on launch
- * and at the nightly sync, exactly like the shop catalogue it used to be a
- * filtered view of — see {@link Attraction} for what changed by moving off it.
+ * Fetches the site's 관광명소 catalogue (`GET /api/sights?region=`) and caches it
+ * in SQLite so the 관광명소 screens read it instantly and work offline. Refreshed
+ * on launch and at the nightly sync, exactly like the shop catalogue it used to
+ * be a filtered view of — see {@link Attraction} for what changed by moving off it.
  *
  * Env:
  *   JEJU_ATTRACTIONS_API_URL — full endpoint override (wins if set)
- *   WITTERIA_API_BASE        — shared API base, default https://api-v3.witteria.com
+ *   WITTERIA_API_BASE        — shared API base, default https://api-v3.witmarket.net
  *
- * ── On `region` ───────────────────────────────────────────────────────
- * v2 is keyed by content branch (`?region=JEJU_AIRPORT`) instead of the v1
- * `?kioskId=` device number. The catalogue is 제주's, so every 제주 venue asks
- * with its own region and a non-제주 kiosk never reaches this service.
+ * ── On the path ───────────────────────────────────────────────────────
+ * `/api/sights` is the one 관광명소 path every site uses (API docs, 2026-11).
+ * For JEJU_AIRPORT / JEJU_PORT / JEJU_HERITAGE it is the same list as the old
+ * `/api/jeju/attractions/v2` — same ids and fields, checked against stage and
+ * prod on 2026-11-18. OSAEK gets 대분류 정이 관광명소; INSADONG_* and HWASEONG
+ * get an empty array (200, not 404). The LOTTE_* regions are valid values but
+ * still empty on stage, and prod 400s them until its rollout. Rows carry no
+ * `route` (distances).
  */
 export class AttractionService {
   constructor(
@@ -31,7 +35,7 @@ export class AttractionService {
   private baseUrl(): string {
     if (process.env['JEJU_ATTRACTIONS_API_URL']) return process.env['JEJU_ATTRACTIONS_API_URL'];
     const base = (process.env['WITTERIA_API_BASE'] || DEFAULT_API_BASE).replace(/\/+$/, '');
-    return `${base}/api/jeju/attractions/v2`;
+    return `${base}/api/sights`;
   }
 
   /** Cached attractions (from the last successful refresh). Empty until first sync. */
@@ -84,7 +88,7 @@ export class AttractionService {
       // each duplicate a slice of it would only add ways for the two to disagree.
       return rows;
     } catch (error) {
-      log.warn('제주 attractions 초성 filter failed (renderer keeps its local filter)', {
+      log.warn('관광명소 초성 filter failed (renderer keeps its local filter)', {
         initial,
         error: error instanceof Error ? error.message : String(error),
       });
@@ -108,17 +112,17 @@ export class AttractionService {
 
       if (rows.length > 0) {
         this.cache.upsert(CACHE_KEY, { attractions: rows }, 'jeju_attraction_api');
-        log.info('제주 attractions cached from API', { count: rows.length });
+        log.info('관광명소 cached from API', { count: rows.length });
       } else {
         // Deliberately NOT cached as an empty set, unlike the 배경 테마 list where
         // `[]` is a real state (a kiosk with no backgrounds assigned). 제주 having
         // zero attractions is not a state anyone configures — it is a bad
         // response — and caching it would blank the tab until the next sync.
-        log.warn('제주 attractions API returned no rows', { url });
+        log.warn('관광명소 API returned no rows', { url });
       }
       return rows.length;
     } catch (error) {
-      log.warn('제주 attractions refresh failed (using cached)', {
+      log.warn('관광명소 refresh failed (using cached)', {
         error: error instanceof Error ? error.message : String(error),
       });
       return this.list().length;

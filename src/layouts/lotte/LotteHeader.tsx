@@ -8,7 +8,8 @@
 import { useMemo } from 'react';
 import type { KioskController } from '@renderer/hooks/useKioskController';
 import { lotteIconUrl } from '@renderer/assets/icons/lotte';
-import { screenSubtitle, screenTitle, useLang, type Lang } from '@renderer/lib/i18n';
+import { lotteTitle } from './lotteCopy';
+import { screenSubtitle, useLang, type Lang } from '@renderer/lib/i18n';
 import styles from './LotteHeader.module.css';
 
 const DAY_NAMES = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
@@ -118,7 +119,7 @@ export function LotteHeader({
 
   // Localize the Korean title id through the same path as the other kiosks;
   // unknown ids fall through unchanged (which is every id until the sheet lands).
-  const localizedTitle = screenTitle(title, lang);
+  const localizedTitle = lotteTitle(title, lang);
   // `||`, not `??`: a sheet row that exists with an EMPTY cell resolves to '',
   // which is just as missing as undefined and should fall through too.
   //

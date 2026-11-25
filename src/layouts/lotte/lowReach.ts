@@ -1,5 +1,6 @@
 /**
- * The one 베리어프리 (♿ low-reach) measurement every 제주 screen shares.
+ * The one 베리어프리 (♿ low-reach) measurement every 롯데 screen shares — the same
+ * geometry as 제주's (jeju/lowReach.ts), drawn in 롯데 red (--kiosk-primary #DA291C).
  *
  * ── Why this is a module and not three CSS literals ─────────────────────────
  * The orange "지금은 배리어프리 모드입니다." bar is drawn by THREE different files
@@ -22,6 +23,19 @@
  * frame's own number and it survives the artboard scale.
  */
 import type { CSSProperties } from 'react';
+import type { Lang } from '@renderer/lib/i18n';
+
+/** The bar's line — sheet `BarrierFree_Title` first, this as the fallback. */
+export const BARRIER_FREE: Partial<Record<Lang, string>> = {
+  ko: '지금은 배리어프리 모드입니다.',
+  en: 'Currently in Barrier-Free Mode.',
+  ja: '現在はバリアフリーモードです。',
+  zh: '现在是无障碍模式。',
+  vi: 'Hiện tại là chế độ không rào cản.',
+  th: 'ขณะนี้อยู่ในโหมดไร้อุปสรรค',
+  ru: 'В настоящее время используется безбарьерный режим.',
+  id: 'Saat ini dalam mode bebas hambatan.',
+};
 
 /** Height of the 베리어프리 mode bar. Full-bleed 2160 wide, pinned to y0. */
 export const MODE_BAR_HEIGHT = 145.759;

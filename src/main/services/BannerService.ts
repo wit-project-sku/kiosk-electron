@@ -5,7 +5,7 @@ import type { KioskService } from '@main/services/KioskService';
 
 const log = createLogger('banner-service');
 const CACHE_KEY = 'banners';
-const DEFAULT_API_BASE = 'https://api-v3.witteria.com';
+const DEFAULT_API_BASE = 'https://api-v3.witmarket.net';
 
 /**
  * Fetches the bottom promo banners from the witteria API and caches them in
@@ -20,7 +20,7 @@ const DEFAULT_API_BASE = 'https://api-v3.witteria.com';
  *
  * Env:
  *   BANNERS_API_URL     — full endpoint override (wins if set)
- *   WITTERIA_API_BASE   — shared API base, default https://api-v3.witteria.com
+ *   WITTERIA_API_BASE   — shared API base, default https://api-v3.witmarket.net
  *
  * The API kiosk id is read per-machine from electron-store (shopApiKioskId),
  * set via provision-kiosk.ps1 — see KioskService.kioskNum().

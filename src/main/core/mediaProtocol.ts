@@ -60,7 +60,7 @@ function resolveSafe(baseDir: string, fileName: string): string | null {
 }
 
 /**
- * Remote webview origins (https://wit.linktaxfree.com, witteria.com, …) must
+ * Remote webview origins (https://wit.linktaxfree.com, witmarket.net, …) must
  * not read local media. The kiosk windows are file:// in production and the
  * Vite dev server on localhost — those either omit Origin, send `null`, or
  * use a loopback http origin.

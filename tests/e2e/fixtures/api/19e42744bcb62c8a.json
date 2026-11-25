@@ -1,0 +1,1 @@
+{"key":"GET /api/outfits/v2?pageNum=1&pageSize=200&region=LOTTE_STARCITY","status":200,"body":{"success":true,"code":200,"message":"요청이 성공적으로 처리되었습니다.","data":{"content":[],"totalElements":0,"totalPages":0,"pageNum":1,"pageSize":200,"last":true}}}

@@ -4,7 +4,7 @@
  *
  * The Figma renders each site as a static mockup; at runtime it is a live
  * <webview>, so none of the product grid / cart / 결제 UI is reimplemented here.
- * That UI belongs to witteria.com and changing it is a change to that site.
+ * That UI belongs to witmarket.net and changing it is a change to that site.
  *
  * Two shapes, one component: one site filling the panel (WIT Store), or several
  * behind a tab row (탐나오 / 제주큐랑). See `tabs`.
@@ -18,6 +18,7 @@ import type { KioskController } from '@renderer/hooks/useKioskController';
 import { useLanguageStore } from '@renderer/store/languageStore';
 import { useAccessibilityStore } from '@renderer/store/accessibilityStore';
 import { pick, type Lang } from '@renderer/lib/i18n';
+import { lt } from './lotteText';
 import { sheetText } from '@renderer/lib/loc';
 import { ui, type UiTextKey } from '@renderer/lib/uiText';
 import { trackEvent } from '@renderer/lib/analytics';
@@ -145,6 +146,12 @@ const MOBILE_QR = {
   th: ' สแกน QR ←\nดูบนมือถือ',
   ru: ' Сканируйте QR ←\nОткрыть на телефоне',
   id: ' Pindai QR ←\nBuka di ponsel',
+};
+
+/** The QR row's two lines; the second is the sheet's Check_on_mobile when it has one. */
+const mobileQrText = (lang: Lang): string => {
+  const [lead = '', second = ''] = pick(MOBILE_QR, lang).split('\n');
+  return `${lead}\n${lt('Check_on_mobile', lang, { [lang]: second })}`;
 };
 
 const NO_URL = {
@@ -346,7 +353,7 @@ export function LotteWebScreen({
       {showMobileQr && activeUrl && (
         <div className={`${styles.qrRow} ${lowTamnao ? styles.qrRowLow : ''}`}>
           <div className={styles.qrDivider} />
-          <p className={styles.qrText}>{pick(MOBILE_QR, lang)}</p>
+          <p className={styles.qrText}>{mobileQrText(lang)}</p>
           <div className={styles.qrBox}>
             {/* Generated per tab rather than a fixed export: the row sits under
                 whichever site is showing, so 탐나오 hands over tamnao.com and

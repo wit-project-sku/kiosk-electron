@@ -1,5 +1,5 @@
 /*
- * 개인정보처리방침 시트 — Figma 7334:54335 (정보 입력 위에 뜬 상태).
+ * 개인정보처리방침 시트 — Figma 7334:54335 (정보 입력 위에 뜬 상태); 롯데 B-33 8723:8931 과 같은 값.
  *
  * 판: 1820×2591, r53.625, 안쪽 50/40, 블록 사이 20. 가운데 정렬이고 뒤는
  * rgba(0,0,0,.2) 로만 덮는다 — 시안이 뒤 화면을 읽을 수 있게 남겨 둔다.
@@ -7,7 +7,7 @@
  *    머리말 (제목 68 ExtraBold · 부제 25 Medium, 1px #ebebeb 밑줄)
  *    읽는 영역 (좌우 24)
  *      18  요약 상자 (#f9f7f5 r16, 항목 Bold 38 · 내용 Medium 38 #666)
- *     269  거부 고지 (Bold 38, 주황)
+ *     269  거부 고지 (Bold 38, 브랜드 색 — 롯데 빨강)
  *     342  가는 줄
  *     362  전문 (제목 ExtraBold 38 · 본문 Medium 38 #666, 줄 간격 12)
  *    닫기 1692×120 r40 (#f2f2f2, Bold 50)
@@ -118,7 +118,8 @@
   margin: 20px 0 0;
   font-weight: 700;
   line-height: 1.4;
-  color: var(--primary);
+  /* 롯데 red (Figma 8723:9045 #dc3124) even when the sheet is drawn outside the FillMe root. */
+  color: var(--primary, var(--kiosk-primary, #da291c));
 }
 
 .fullTitle {

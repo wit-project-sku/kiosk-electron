@@ -41,9 +41,9 @@ describe('test rig identity', () => {
 
 describe('stage servers', () => {
   it('detects a stage API base by its host label', () => {
-    expect(isStageApiBase('https://api-stage-v3.witteria.com')).toBe(true);
+    expect(isStageApiBase('https://api-stage-v3.witmarket.net')).toBe(true);
     expect(isStageApiBase('https://stage.example.test/')).toBe(true);
-    expect(isStageApiBase('https://api-v3.witteria.com')).toBe(false);
+    expect(isStageApiBase('https://api-v3.witmarket.net')).toBe(false);
     expect(isStageApiBase('https://backstage.example.test')).toBe(false);
     expect(isStageApiBase('')).toBe(false);
     expect(isStageApiBase('not a url')).toBe(false);

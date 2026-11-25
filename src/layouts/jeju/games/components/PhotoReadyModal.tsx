@@ -42,7 +42,7 @@ const SAVE: L8 = {
 };
 
 /**
- * 제주's label for the first button (2026-10-28): it opens the finished photo,
+ * 제주's (and 롯데's, 2026-11-20) label for the first button: it opens the finished photo,
  * so it says 사진 보기 rather than 저장하기. Hard-coded — the 제주 sheet's
  * Photo_Save row is not this text (its en cell reads "Jeju").
  */
@@ -65,7 +65,7 @@ interface Props {
 
 export function PhotoReadyModal({ onSave, onRetake }: Props): JSX.Element {
   const lang = useLang();
-  const { isJeju } = usePhotoChrome();
+  const { isJeju, isLotte } = usePhotoChrome();
 
   return (
     <div className={styles.scrim}>
@@ -73,7 +73,7 @@ export function PhotoReadyModal({ onSave, onRetake }: Props): JSX.Element {
         <p className={styles.message}>{tExact('Photo_popup_message_Complete', lang) || sheetText('Photo_popup_title_Complete', lang, MESSAGE)}</p>
         <div className={styles.actions}>
           <button type="button" className={`${styles.btn} ${styles.save}`} onClick={onSave}>
-            {isJeju ? VIEW_PHOTO[lang] ?? VIEW_PHOTO.en : sheetText('Photo_Save', lang, SAVE)}
+            {isJeju || isLotte ? VIEW_PHOTO[lang] ?? VIEW_PHOTO.en : sheetText('Photo_Save', lang, SAVE)}
           </button>
           <button type="button" className={`${styles.btn} ${styles.retake}`} onClick={onRetake}>
             {sheetText('Photo_Home', lang, RETAKE)}

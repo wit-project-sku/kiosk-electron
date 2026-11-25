@@ -8,7 +8,7 @@ import { startFakeApi, type FakeApi } from './support/fake-api';
 import { SITES, launchKiosk } from './support/launch';
 import { waitForQuiet } from './support/wait';
 
-const UPSTREAM = process.env['RECORD_UPSTREAM'] ?? 'https://api-stage-v3.witteria.com';
+const UPSTREAM = process.env['RECORD_UPSTREAM'] ?? 'https://api-stage-v3.witmarket.net';
 
 test.describe('record fixtures', () => {
   test.skip(

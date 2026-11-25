@@ -30,7 +30,7 @@ const log = createLogger('stats-service');
 
 /** Production Witteria API base. Override with WITTERIA_API_BASE in .env.
  *  Resolved at call time so the value reflects the loaded env, not import order. */
-const DEFAULT_API_BASE = 'https://api-v3.witteria.com';
+const DEFAULT_API_BASE = 'https://api-v3.witmarket.net';
 function witteriaApiBase(): string {
   return (process.env['WITTERIA_API_BASE'] || DEFAULT_API_BASE).replace(/\/+$/, '');
 }

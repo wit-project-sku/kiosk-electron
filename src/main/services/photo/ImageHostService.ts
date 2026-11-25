@@ -17,7 +17,7 @@ const PHOTO_BOOTH_PATH = '/api/photo-booth';
  * .env). Tried only when the photo-booth upload fails, so the visitor still gets
  * a working QR; it returns no shareUrl, so that QR goes through withphoto.
  */
-const PHOTO_HOST_UPLOAD_URL = 'https://photo.witteria.com/api/images';
+const PHOTO_HOST_UPLOAD_URL = 'https://photo.witmarket.net/api/images';
 
 interface UploadResponse {
   success?: boolean;
@@ -33,7 +33,7 @@ export interface UploadedImage {
   /**
    * The phone pickup page (/api/photo-booth, 2026-10): save buttons per device,
    * an "open in browser" prompt inside KakaoTalk, expires after an hour. This is
-   * what the QR carries. null when the upload went to photo.witteria.com, which
+   * what the QR carries. null when the upload went to photo.witmarket.net, which
    * does not return one — the QR then falls back to withphoto.
    */
   shareUrl: string | null;
@@ -57,7 +57,7 @@ export interface UploadLink {
  *      → { success, data: { imageUrl, shareUrl } } — the QR is data.shareUrl
  *        (the backend's 2026-10 request: phones go to the pickup page, not
  *        through Vercel).
- *   2. POST https://photo.witteria.com/api/images — fallback only (see above).
+ *   2. POST https://photo.witmarket.net/api/images — fallback only (see above).
  *
  * Env:
  *   WITTERIA_API_BASE       — the shared API base (stage / production)

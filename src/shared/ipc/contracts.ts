@@ -70,6 +70,7 @@ import type {
   EventsRecommendQuery,
 } from '../types/events';
 import type { ExpresswayTrafficSnapshot } from '../types/traffic';
+import type { LotteMovieShareSummary, LotteShowtimes, LotteStory } from '../types/lotte';
 import type { UpdateStatus } from '../types/update';
 import type {
   FootfallReport,
@@ -475,6 +476,19 @@ export interface IpcContract {
   [IpcChannels.TrafficExpresswayGet]: {
     request: void;
     response: Result<ExpresswayTrafficSnapshot | null>;
+  };
+  /** 롯데 — null on a non-롯데 kiosk or before the first good answer. */
+  [IpcChannels.LotteShowtimesGet]: {
+    request: void;
+    response: Result<LotteShowtimes | null>;
+  };
+  [IpcChannels.LotteStoriesGet]: {
+    request: void;
+    response: Result<LotteStory[] | null>;
+  };
+  [IpcChannels.LotteMovieShareSummaryGet]: {
+    request: void;
+    response: Result<LotteMovieShareSummary | null>;
   };
 
   /**

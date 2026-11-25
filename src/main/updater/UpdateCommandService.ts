@@ -27,7 +27,7 @@
  *
  * Env:
  *   UPDATE_COMMAND_API_URL  — full endpoint override (wins if set)
- *   WITTERIA_API_BASE       — shared API base, default https://api-v3.witteria.com
+ *   WITTERIA_API_BASE       — shared API base, default https://api-v3.witmarket.net
  *   UPDATE_COMMAND_POLL_MIN — minutes between polls (default 5, clamped 1–60)
  */
 
@@ -38,7 +38,7 @@ import type { UpdateService } from './UpdateService';
 import { UpdateStateStore } from './UpdateStateStore';
 import type { HealthReporter } from '../core/HealthReporter';
 
-const DEFAULT_API_BASE = 'https://api-v3.witteria.com';
+const DEFAULT_API_BASE = 'https://api-v3.witmarket.net';
 
 const DEFAULT_POLL_MINUTES = 5;
 const MIN_POLL_MINUTES = 1;

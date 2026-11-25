@@ -1,0 +1,54 @@
+/* Numbered steps — C-03 node 8754:1490 (48 between steps, 40 between square and text). */
+.card { gap: 48px; }
+
+.step {
+  display: flex;
+  align-items: center;
+  gap: 40px;
+}
+
+.num {
+  flex: none;
+  width: 140px;
+  height: 140px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 40px;
+  background: #F6E3E0;
+  font-size: 54px;
+  font-weight: 800;
+  color: #DA291C;
+}
+
+.text {
+  flex: 1 1 0;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.title {
+  font-size: 54px;
+  font-weight: 700;
+  color: #2A2320;
+}
+
+.sub {
+  font-size: 40px;
+  line-height: 60px;
+  color: #7A716B;
+}
+
+/* M-02 (8809:734): 110 squares, radius 30, 10% red wash; 10 between the lines. */
+.compact .num {
+  width: 110px;
+  height: 110px;
+  border-radius: 30px;
+  background: rgba(218, 41, 28, 0.1);
+  font-weight: 900;
+}
+
+.compact .text { gap: 10px; }
+.compact .sub { line-height: normal; }

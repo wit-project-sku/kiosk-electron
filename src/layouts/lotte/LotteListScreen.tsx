@@ -2,7 +2,10 @@
  * 롯데 뭐먹지 / 뭐사지 / 시설안내 (Figma 목록-W011~W013): the 인사 list — category chips, 초성, scrolling
  * rows. The categories come from this venue's own catalogue, so the chips differ by branch.
  */
+import { belowModeBar } from './lowReach';
+import { useAccessibilityStore } from '@renderer/store/accessibilityStore';
 import { useEffect, useMemo, useRef, useState } from 'react';
+import { useFitText } from '@layouts/components/fitText';
 import type { KioskController } from '@renderer/hooks/useKioskController';
 import type { KioskScreenId } from '@shared/types/kiosk';
 import { useDetailStore } from '@renderer/store/detailStore';
@@ -14,8 +17,14 @@ import { LotteChosungRow } from './LotteChosungRow';
 import { LottePageFrame } from './LottePageFrame';
 import { LotteShopRow } from './LotteShopRow';
 import { shopDetail } from './lotteDetailItem';
-import { LOTTE_EAT, LOTTE_FACILITY, LOTTE_SHOP, compareShops } from './lotteSample';
+import { LOTTE_EAT, LOTTE_FACILITY, LOTTE_SHOP, compareListShops } from './lotteSample';
 import c from './lotteContent.module.css';
+import { lotteIconUrl } from '@renderer/assets/icons/lotte';
+
+/** Figma's ▲▼ (Group 310 — the red disc with a white chevron), turned ±90°. */
+const arrow = lotteIconUrl('scroll-arrow');
+import { lt } from './lotteText';
+import { tc } from './lotteCopy';
 
 export type LotteListScreenId = Extract<KioskScreenId, 'eat' | 'shop' | 'help'>;
 const BASE: Record<LotteListScreenId, string> = {
@@ -27,6 +36,12 @@ const TITLE: Record<LotteListScreenId, string> = {
   eat: "'롯데' 뭐먹지?",
   shop: "'롯데' 뭐사지?",
   help: '롯데 시설안내',
+};
+/** The sheet's line under each list's title (written with a leading '* '). */
+const SUBHEADER: Record<LotteListScreenId, string> = {
+  eat: 'SubHeader_ToEat',
+  shop: 'SubHeader_ToBuy',
+  help: 'SubHeader_ToHelp',
 };
 const SCROLL_STEP = 760;
 
@@ -69,26 +84,34 @@ export function LotteListScreen({
   const visible = useMemo(() => {
     let list = active ? base.filter((s) => s.secondCategoryKr === active) : base;
     if (jamo) list = list.filter((s) => leadingChosung(shopName(s, 'ko')) === jamo);
-    return [...list].sort(compareShops);
+    return [...list].sort(compareListShops);
   }, [base, active, jamo]);
 
   useEffect(() => {
     scrollRef.current?.scrollTo({ top: 0 });
   }, [active, jamo]);
 
+  const lowReach = useAccessibilityStore((s) => s.lowReach);
   const scrollBy = (delta: number): void =>
     scrollRef.current?.scrollBy({ top: delta, behavior: 'smooth' });
   const en = lang !== 'ko';
+  /* Category chips: wrap first, then shrink the row as one ("Culture·Convenience" in a 340 chip). */
+  const catsRef = useRef<HTMLDivElement>(null);
+  useFitText(catsRef, c.cat, en, 0.6, `${lang}|${categories.map(([k]) => k).join(',')}`, 'ink');
 
   return (
     <LottePageFrame
       controller={controller}
       title={title}
-      subtitle={en ? 'Filter by category.' : '종류를 골라 찾아보세요'}
+      subtitle={lt(SUBHEADER[screen], lang, { ko: '종류를 골라 찾아보세요', en: 'Filter by category.' }).replace(/^\s*[*•]\s*/, '')}
       showBanner={false}
+      /* ♿ (제주 목록's shape): header under the bar, list on top, the category chips and
+         초성 row pinned at the foot — see .bodyLow in lotteContent.module.css. */
+      lowReachModeBar
+      lowReachShift={belowModeBar()}
     >
-      <div className={`${c.body} ${c.bodyFull}`}>
-        <div className={c.catGrid}>
+      <div className={`${c.body} ${c.bodyFull} ${lowReach ? c.bodyLow : ''}`}>
+        <div className={c.catGrid} ref={catsRef} lang={lang}>
           {categories.map(([kr, label]) => (
             <button
               key={kr}
@@ -118,20 +141,20 @@ export function LotteListScreen({
               ))}
             </div>
           ) : (
-            <div className={c.empty}>
-              {en ? 'No matching shops.' : '조건에 맞는 상점이 없습니다'}
+            <div className={c.empty} data-voice-state="empty">
+              {tc('List_Empty', lang)}
             </div>
           )}
         </div>
       </div>
-      <div className={c.scrollBtns}>
+      <div className={`${c.scrollBtns} ${lowReach ? c.scrollBtnsLow : ''}`}>
         <button
           type="button"
           className={c.scrollBtn}
           aria-label="위로"
           onClick={() => scrollBy(-SCROLL_STEP)}
         >
-          ▲
+          <img src={arrow} alt="" className={`${c.scrollBtnImg} ${c.scrollBtnImgUp}`} draggable={false} />
         </button>
         <button
           type="button"
@@ -139,7 +162,7 @@ export function LotteListScreen({
           aria-label="아래로"
           onClick={() => scrollBy(SCROLL_STEP)}
         >
-          ▼
+          <img src={arrow} alt="" className={`${c.scrollBtnImg} ${c.scrollBtnImgDown}`} draggable={false} />
         </button>
       </div>
     </LottePageFrame>

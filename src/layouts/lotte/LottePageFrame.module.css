@@ -181,7 +181,9 @@
   left: 0;
   top: var(--lotte-body-shift);
   width: 2160px;
-  height: 3840px;
+  /* Ends at the artboard's foot however far ♿ drops it, so a screen anchored with
+     `bottom: 0` (the 목록 scroller) stays on screen. */
+  height: calc(3840px - var(--lotte-body-shift));
   pointer-events: none;
 }
 
@@ -320,3 +322,50 @@
 /* 롯데 시안 A */
 .bgBase { background: #FFF4F3 !important; }
 .topBand { position: absolute; left: 0; top: 0; width: 2160px; height: 24px; background: #DA291C; }
+
+/* ── 화면정의서 (2026-11-13): rail at x46 y2040, then ♿ and 음성 안내 one step (120) apart under it —
+   the home rail's order (홈 · 뒤로 · ♿ · 음성 안내). ── */
+.leftNav { left: 46px; top: 2040px; }
+.a11y,
+.voice {
+  position: absolute;
+  left: 46px;
+  top: 2400px;
+  width: 85px;
+  height: 85px;
+  padding: 0;
+  border: none;
+  background: none;
+  cursor: default;
+  -webkit-tap-highlight-color: transparent;
+}
+.a11y { top: 2280px; cursor: pointer; }
+.voice { cursor: pointer; }
+.a11y img,
+.voice img { display: block; width: 85px; height: 85px; pointer-events: none; }
+.voiceOn { border-radius: 50%; box-shadow: 0 0 0 6px rgba(218, 41, 28, 0.35); }
+/* Low layout: the rail drops to y2163 (.lowReachSideControls .leftNav), the two buttons follow it.
+   ♿ must stay reachable there — it is the way back out of the low layout. */
+.lowReachSideControls .a11y { top: 2403px; }
+.lowReachSideControls .voice { top: 2523px; }
+
+/* ── ♿ on the pages not yet laid out by hand (see `autoBar` in LottePageFrame) ──
+   No bottom banner: the whole page drops by the bar, so the header lands flush under it. */
+.rootLowReachBar {
+  --lotte-shift: var(--lotte-mode-bar);
+  --lotte-body-shift: var(--lotte-mode-bar);
+}
+
+/* Bottom-banner pages keep the 573 re-stack; the banner fills what the bar leaves of it. */
+.rootLowReach .bannerUnderBar {
+  top: var(--lotte-mode-bar);
+  height: calc(573px - var(--lotte-mode-bar));
+}
+
+/* Over the page art and banner, under nothing. */
+.modeBar { z-index: 3; }
+
+/* Native scroll bars are hidden on every 롯데 sub-page: LotteScrollbar draws the one Figma bar
+   (34.32 #DC3124 pill at the artboard's right edge) for whatever the page scrolls. */
+.root :global(*) { scrollbar-width: none; }
+.root :global(*)::-webkit-scrollbar { display: none; width: 0; height: 0; }

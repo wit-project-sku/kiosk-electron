@@ -1098,7 +1098,9 @@
 .osanRoot .grid {
   flex: none;
   width: 1820px;
-  height: 832px;
+  /* 844, not the drawn 832: each slide is (h − 36) / 2 (`.outfitSlide`), and
+     the 1.5× caption needs 350 + 16 + 37.5 = 403.5 or row 2's names clip. */
+  height: 844px;
   margin-top: 60px;
 }
 
@@ -1138,10 +1140,10 @@
 .osanCap {
   font-family: 'Pretendard', var(--kiosk-font, sans-serif);
   font-weight: 400;
-  font-size: 25px;
+  font-size: 37.5px; /* 2026-11-24 client ask: 1.5× the drawn 25, darker */
   line-height: 1;
   color: #000000;
-  opacity: 0.3;
+  opacity: 0.6;
   text-align: center;
   white-space: nowrap;
   /* The outfit's name: one row under its card, "…" past the card's width. */
@@ -1330,7 +1332,7 @@
 
 .osanRoot .infoCarousel {
   width: 1820px;
-  height: 832px;
+  height: 858px; /* 2 × the 404 tile + the 50 row gap (1.5× caption, 2026-11-24) */
   display: grid;
   grid-template-columns: repeat(5, 350px);
   column-gap: 17.5px;
@@ -1343,7 +1345,7 @@
 
 .osanRoot .infoThumb {
   width: 350px;
-  height: 391px;
+  height: 404px; /* 350 card + 16 + the 37.5 caption (was 391 at 25px) */
   display: flex;
   flex-direction: column;
   align-items: center;

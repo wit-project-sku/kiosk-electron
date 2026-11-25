@@ -1,7 +1,8 @@
 /**
- * PUBLISHING STAGE ONLY (2026-11-09): content for the 롯데 screens, so the layouts can be reviewed
- * before the server, events and 롯데시네마 feed exist. Stores come from the collected list
- * (docs/lotte-shop-data); everything named 예시 is made up. Replace each export with its real source.
+ * Fallback content for the 롯데 screens. Shops, 상영 시간표, 사연 and 영화 나눔 now come from the
+ * server (see withLotteFallback and LotteService); what is left here is what the server does not
+ * carry yet — 시설안내 rows, events, 여기는 롯데 — plus the offline stand-ins. Stores come from the
+ * collected list (docs/lotte-shop-data); everything named 예시 is made up.
  */
 import type { Shop } from '@shared/types/shop';
 import type { KioskId } from '@shared/types/kiosk';
@@ -9,6 +10,7 @@ import { LOTTE_SHOP_ROWS } from './lotteShops.generated';
 
 export const LOTTE_EAT = '롯데 뭐먹지';
 export const LOTTE_SHOP = '롯데 뭐사지';
+/** baseCategoryKr of every 시설안내 row (the shops API's name for the base). */
 export const LOTTE_FACILITY = '롯데 시설안내';
 const SITE_FALLBACK = 'W011';
 
@@ -75,18 +77,39 @@ export const compareShops = (a: Shop, b: Shop): number =>
   floorRank(shopFloor(b)) - floorRank(shopFloor(a)) ||
   a.shopNameKr.localeCompare(b.shopNameKr, 'ko');
 
+/**
+ * 목록 order (뭐먹지 · 뭐사지 · 시설안내), as on every other venue's list (JejuListScreen,
+ * InsadongListScreen…): association members first, then the shops with photos — ranked by the
+ * photos a row can SHOW (two, so 2 → 1 → 0) — and only then {@link compareShops}.
+ */
+export const compareListShops = (a: Shop, b: Shop): number => {
+  // Same count as shopImages(): rows with a URL. Counted here so this file stays free of renderer
+  // imports (the node typecheck compiles it through lotteCoursePlan's test).
+  const shown = (s: Shop): number => Math.min((s.images ?? []).filter((i) => !!i.imageUrl).length, 2);
+  return (
+    Number(!!b.fromAssociation) - Number(!!a.fromAssociation) ||
+    shown(b) - shown(a) ||
+    compareShops(a, b)
+  );
+};
+
 export interface CinemaSession {
+  /** 'HH:MM' */
   start: string;
   end: string;
   screen: string;
+  /** '2D' · 'IMAX' … — '' when the feed does not say (the 롯데시네마 API does not). */
   format: string;
-  seatsLeft: number;
-  seatsTotal: number;
+  /** null when 롯데시네마 does not send seat counts. */
+  seatsLeft: number | null;
+  seatsTotal: number | null;
 }
 export interface CinemaMovie {
   title: string;
-  grade: '전체' | '12' | '15' | '19';
+  /** null when the feed has no rating. */
+  grade: '전체' | '12' | '15' | '19' | null;
   runtimeMin: number;
+  posterUrl?: string | null;
   sessions: CinemaSession[];
 }
 
@@ -188,35 +211,55 @@ export interface LotteSiteInfo {
   notice: string;
   /** Name on the 화장실 building tab for the main building. */
   branch: string;
-  /** Captions under the home's building art; only 롯데월드몰 has art so far. */
+  /** Captions under the home's building art; only 롯데월드몰 has art so far. Each is a 건물 단추
+   *  that opens 건물 안내 (C-04 · A-07) for that building. */
   buildings: readonly string[];
   art: string | null;
+  /** Title of the home's 안녕 card — the A-01 frames name it per site (W011 '안녕 로시'). */
+  helloTitle: string;
+  /** 영업시간 shown on the department stores' 지점 소개 (A-07). */
+  hours: string;
+  /** Full site name — the header title of 건물 안내 (C-04 · A-07). */
+  title: string;
 }
+
+/** The A-01 frames carry the same notice on all three sites (2026-11-13). */
+const NOTICE_A01 =
+  '복합문화공간을 지향하는 롯데시네마와 글로벌을 지향하며 다양한 콘텐츠를 만들어 나가는 롯데엔터테인먼트로 운영하며 전 세계의 문화 및 트렌드를 선도하는 기업으로 도약하고 있습니다.';
 
 const SITE: Record<string, LotteSiteInfo> = {
   W011: {
     short: 'LOTTE WORLD MALL',
     cinema: '월드타워',
-    notice: '롯데월드몰에 오신 것을 환영합니다.',
+    notice: NOTICE_A01,
     branch: '월드몰',
     buildings: ['롯데월드', '롯데백화점', '롯데타워', '롯데월드몰'],
     art: 'home-skyline',
+    helloTitle: '안녕 로시',
+    hours: '10:30 ~ 22:00',
+    title: '롯데월드몰',
   },
   W012: {
     short: 'LOTTE CHEONGNYANGNI',
     cinema: '청량리',
-    notice: '롯데백화점 청량리점에 오신 것을 환영합니다.',
+    notice: NOTICE_A01,
     branch: '청량리점',
     buildings: ['롯데백화점 청량리점'],
     art: null,
+    helloTitle: '안녕 롯데',
+    hours: '쇼핑몰 10:30 ~ 22:00 · 백화점 10:30 ~ 20:00',
+    title: '롯데백화점 청량리점',
   },
   W013: {
     short: 'LOTTE STAR CITY',
     cinema: '건대입구',
-    notice: '롯데백화점 건대스타시티점에 오신 것을 환영합니다.',
+    notice: NOTICE_A01,
     branch: '건대스타시티점',
     buildings: ['롯데백화점 건대스타시티점'],
     art: null,
+    helloTitle: '안녕 롯데',
+    hours: '쇼핑몰 10:30 ~ 22:00 · 백화점 10:30 ~ 20:00',
+    title: '롯데백화점 건대스타시티점',
   },
 };
 
