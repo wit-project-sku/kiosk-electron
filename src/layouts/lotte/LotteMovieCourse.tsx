@@ -10,7 +10,8 @@ import type { KioskController } from '@renderer/hooks/useKioskController';
 import { useShopStore } from '@renderer/store/shopStore';
 import { LottePageFrame } from './LottePageFrame';
 import { LotteQr } from './LotteQr';
-import { LOTTE_LINKS, withQuery } from './lotteLinks';
+import { LOTTE_LINKS } from './lotteLinks';
+import { lotteCourseUrl } from './lotteCourseLink';
 import {
   PARTY_OPTIONS,
   WHEN_OPTIONS,
@@ -120,11 +121,15 @@ export function LotteMovieCourse({ controller }: { controller: KioskController }
       .filter(Boolean)
       .join(' · ');
     const kind = tc(when === 'both' ? 'Course_Kind_Both' : when === 'before' ? 'Course_Kind_Before' : 'Course_Kind_After', lang);
-    const qr = withQuery(
-      LOTTE_LINKS.course,
-      'course',
-      course.stops.map((x) => `${toHm(x.at)}|${x.name}`).join(';'),
-    );
+    const qr = lotteCourseUrl(LOTTE_LINKS.course, {
+      kioskId: controller.kioskId,
+      lang,
+      when,
+      party,
+      movie,
+      session,
+      course,
+    });
     return (
       <LottePageFrame
         controller={controller}

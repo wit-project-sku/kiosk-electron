@@ -127,6 +127,9 @@
 .times { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 18px; }
 .time { padding: 22px 26px; border-radius: 28px; background: #F7F3ED; display: flex; flex-direction: column; gap: 8px; }
 .timeSoon { background: #DA291C; color: #fff; }
+/* Each time is a button: tapping one makes it the red (chosen) card. */
+button.time { border: none; font: inherit; text-align: left; cursor: pointer; transition: background-color 0.15s ease, transform 0.12s ease; }
+button.time:active { transform: scale(0.97); }
 .timeStart { font-size: 58px; font-weight: 800; line-height: 1; }
 .timeInfo { font-size: 32px; color: #7A716B; }
 .timeSoon .timeInfo { color: rgba(255, 255, 255, 0.85); }

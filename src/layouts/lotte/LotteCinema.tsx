@@ -1,7 +1,7 @@
 /**
  * 롯데시네마 상영 시간표 — Figma A-06 (W011 8754:656 · W012 8754:805 · W013 8754:943). By movie, like
- * the cinema's own booking page; the nearest session is red and sessions that have started are
- * hidden. No tabs: 영화 전후 코스 and 영화 나눔 open from the home.
+ * the cinema's own booking page; the chosen session is red (the top movie's first time until one is
+ * tapped) and sessions that have started are hidden. No tabs: 영화 전후 코스 and 영화 나눔 open from the home.
  *
  * Data: GET /api/cinema/showtimes for this kiosk (lotteLive.ts), the sample timetable until the
  * first answer. Rating, poster and seats are optional in the feed and drawn only when present.
@@ -11,7 +11,7 @@ import type { KioskController } from '@renderer/hooks/useKioskController';
 import { useLanguageStore } from '@renderer/store/languageStore';
 import { LottePageFrame } from './LottePageFrame';
 import { useCinemaMovies } from './lotteLive';
-import { lotteSite, upcomingSessions } from './lotteSample';
+import { lotteSite } from './lotteSample';
 import { lt } from './lotteText';
 import { hallName, minutes, ratingLabel, tcRow } from './lotteCopy';
 import c from './lotteContent.module.css';
@@ -35,7 +35,17 @@ export function LotteCinema({ controller }: { controller: KioskController }): JS
         .filter((m) => m.sessions.length > 0),
     [feed, now],
   );
-  const next = useMemo(() => upcomingSessions(movies)[0], [movies]);
+  /*
+   * The red card is the chosen session: the top movie's first time until the visitor taps another.
+   * A choice that has since started (and dropped off) falls back to the top one.
+   */
+  const [picked, setPicked] = useState<{ title: string; start: string } | null>(null);
+  const chosen = useMemo(() => {
+    const hit = picked && movies.find((m) => m.title === picked.title)?.sessions.some((s) => s.start === picked.start);
+    if (hit) return picked;
+    const top = movies[0];
+    return top?.sessions[0] ? { title: top.title, start: top.sessions[0].start } : null;
+  }, [movies, picked]);
   const site = lotteSite(controller.kioskId);
   return (
     <LottePageFrame
@@ -84,9 +94,15 @@ export function LotteCinema({ controller }: { controller: KioskController }): JS
                 </div>
                 <div className={c.times}>
                   {m.sessions.map((s) => {
-                    const soon = next?.title === m.title && next.start === s.start;
+                    const on = chosen?.title === m.title && chosen.start === s.start;
                     return (
-                      <div key={s.start} className={`${c.time} ${soon ? c.timeSoon : ''}`}>
+                      <button
+                        key={s.start}
+                        type="button"
+                        className={`${c.time} ${on ? c.timeSoon : ''}`}
+                        aria-pressed={on}
+                        onClick={() => setPicked({ title: m.title, start: s.start })}
+                      >
                         <span className={c.timeStart}>{s.start}</span>
                         <span className={c.timeInfo}>
                           {s.format ? `${hallName(s.screen, lang)} · ${s.format}` : hallName(s.screen, lang)}
@@ -96,7 +112,7 @@ export function LotteCinema({ controller }: { controller: KioskController }): JS
                             {lt('Home_Cinema_Seats', lang, { ko: '남은 좌석', en: 'Seats' })} {s.seatsLeft}/{s.seatsTotal}
                           </span>
                         )}
-                      </div>
+                      </button>
                     );
                   })}
                 </div>

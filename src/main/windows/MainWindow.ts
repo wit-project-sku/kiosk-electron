@@ -1,11 +1,12 @@
 import { join } from 'node:path';
-import { BrowserWindow, screen, shell } from 'electron';
+import { BrowserWindow, screen } from 'electron';
 import { is } from '@electron-toolkit/utils';
 import type { BootstrapData } from '@shared/ipc/contracts';
 import { createLogger } from '@main/core/logger';
 import { applyWebContentsSecurity } from '@main/core/security';
 import { baseWebPreferences, RENDERER_DIR, rendererUrl } from './windowConfig';
 import { e2eSuppressesDevTools } from '../core/e2e';
+import { keepKioskForeground } from './keepForeground';
 
 function bootstrapArguments(data: BootstrapData): string[] {
   // The bootstrap travels as a command-line argument, which the OS caps (~32k
@@ -62,10 +63,9 @@ export function createMainWindow(bootstrap: BootstrapData): BrowserWindow {
     }
   });
 
-  window.webContents.setWindowOpenHandler((details) => {
-    void shell.openExternal(details.url);
-    return { action: 'deny' };
-  });
+  // Window-open handling lives in applyWebContentsSecurity (above). A second
+  // handler here used to replace it and send every link to the OS browser.
+  if (!is.dev) keepKioskForeground(window);
 
   const devUrl = rendererUrl();
   if (is.dev && devUrl) {
