@@ -144,7 +144,7 @@ function isAllowedNavigation(url: string, devServerUrl: string | undefined): boo
 
 /**
  * Suppress Electron's native HTTP-auth dialog for the webview embed session.
- * Without this, sites that return a 401 (e.g. witteria.com) pop up an OS-level
+ * Without this, sites that return a 401 (e.g. witmarket.net) pop up an OS-level
  * login modal. Calling callback() with no args cancels the challenge so the
  * site's own in-page login UI renders inside the webview instead.
  */

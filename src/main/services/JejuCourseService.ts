@@ -17,7 +17,7 @@ import type {
 } from '@shared/types/jejuCourse';
 
 const log = createLogger('jeju-course-service');
-const DEFAULT_API_BASE = 'https://api-v3.witteria.com';
+const DEFAULT_API_BASE = 'https://api-v3.witmarket.net';
 /**
  * The visitor is standing at the kiosk watching a spinner, and the renderer has
  * a client-side course to fall back on — so give up early rather than hold the
@@ -58,7 +58,7 @@ const PICKER_TIMEOUT_MS = 3000;
  * Env:
  *   JEJU_COURSE_API_URL — full /recommend endpoint override (wins if set)
  *   JEJU_PICKER_API_URL — full /picker endpoint override (wins if set)
- *   WITTERIA_API_BASE   — shared API base, default https://api-v3.witteria.com
+ *   WITTERIA_API_BASE   — shared API base, default https://api-v3.witmarket.net
  */
 export class JejuCourseService {
   constructor(private readonly kiosk: KioskService) {}

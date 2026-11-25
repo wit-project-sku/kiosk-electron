@@ -396,10 +396,10 @@ describe('which kiosk a photo is filed under', () => {
 
 describe('scan cadence', () => {
   it('moves photos within minutes against a stage server, hourly otherwise', () => {
-    const stage = cadenceFor('https://api-stage-v3.witteria.com');
+    const stage = cadenceFor('https://api-stage-v3.witmarket.net');
     expect(stage.cycleIntervalMs).toBe(MIN);
     expect(stage.minAgeMs).toBe(MIN);
-    for (const base of ['https://api-v3.witteria.com', '']) {
+    for (const base of ['https://api-v3.witmarket.net', '']) {
       expect(cadenceFor(base)).toMatchObject({ cycleIntervalMs: 60 * MIN, minAgeMs: 10 * MIN });
     }
   });

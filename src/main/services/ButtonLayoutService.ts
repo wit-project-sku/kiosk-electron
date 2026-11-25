@@ -18,7 +18,7 @@ const log = createLogger('button-layout-service');
  * wrong; the old bare-'buttons' row is simply never read again.
  */
 const cacheKeyFor = (kioskNum: number): string => `buttons:${kioskNum}`;
-const DEFAULT_API_BASE = 'https://api-v3.witteria.com';
+const DEFAULT_API_BASE = 'https://api-v3.witmarket.net';
 
 /**
  * Fetches the home button layout from the witteria API and caches it in SQLite
@@ -32,7 +32,7 @@ const DEFAULT_API_BASE = 'https://api-v3.witteria.com';
  *
  * Env:
  *   BUTTONS_API_URL     — full endpoint override (wins if set)
- *   WITTERIA_API_BASE   — shared API base, default https://api-v3.witteria.com
+ *   WITTERIA_API_BASE   — shared API base, default https://api-v3.witmarket.net
  *
  * The API kiosk id is read per-machine from electron-store (shopApiKioskId),
  * set via provision-kiosk.ps1 — see KioskService.kioskNum().

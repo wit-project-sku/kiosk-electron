@@ -9,8 +9,8 @@ Google Sheets (the CMS sync) is intentionally left out of this list.
 
 | Env | Base URL |
 |---|---|
-| Production | `https://api-v3.witteria.com` |
-| Staging | `https://api-stage-v3.witteria.com` |
+| Production | `https://api-v3.witmarket.net` |
+| Staging | `https://api-stage-v3.witmarket.net` |
 
 `{region}` = location key from `src/shared/config/kioskLocations.ts`.
 
@@ -74,7 +74,7 @@ Google Sheets (the CMS sync) is intentionally left out of this list.
 
 | Method | Endpoint | Service | Purpose |
 |---|---|---|---|
-| POST | `https://photo.witteria.com/api/images` | ImageHostService | Upload photo → QR link |
+| POST | `https://photo.witmarket.net/api/images` | ImageHostService | Upload photo → QR link |
 
 ---
 
@@ -115,7 +115,7 @@ Google Sheets (the CMS sync) is intentionally left out of this list.
 
 | Page | URL |
 |---|---|
-| Witteria store | `https://witteria.com/#/kiosk/store` |
+| Witteria store | `https://witmarket.net/#/kiosk/store` |
 | Donation | `https://witglobaldonation.vercel.app/#/?kiosk=1` |
 | Events | `https://withevent.kr/kiosk/events?region=…` |
 | Tax refund | `https://wit.linktaxfree.com/` |

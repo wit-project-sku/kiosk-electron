@@ -60,12 +60,12 @@ export class PaymentAgentManager {
       HTTP_PORT: process.env['PAYMENT_HTTP_PORT'] ?? '8080',
       // Must include BOTH webview origins (each with no path/trailing slash, or
       // it won't match the Origin header) so the loopback calls aren't
-      // CORS-blocked: the 위드마켓 store (https://witteria.com) AND the 기부
+      // CORS-blocked: the 위드마켓 store (https://witmarket.net) AND the 기부
       // donation app — which is hosted on VERCEL (witglobaldonation.vercel.app),
       // NOT netlify. WEB_EMBED_URLS.donation is the source of truth for that host.
       CORS_ORIGINS:
         process.env['PAYMENT_CORS_ORIGINS'] ??
-        'https://witteria.com,https://witglobaldonation.vercel.app,https://witglobaldonation.netlify.app,http://localhost:3000,http://localhost:5173',
+        'https://witmarket.net,https://witglobaldonation.vercel.app,https://witglobaldonation.netlify.app,http://localhost:3000,http://localhost:5173',
       CENTRAL_BASE_URL: process.env['PAYMENT_CENTRAL_BASE_URL'] ?? '',
       TL3800_TERMINAL_ID: process.env['PAYMENT_TL3800_TERMINAL_ID'] ?? '',
     };

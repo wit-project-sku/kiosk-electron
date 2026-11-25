@@ -15,7 +15,7 @@ import {
 const TRANSPORTS: readonly CourseTransport[] = ['WALK', 'BIKE', 'TRANSIT', 'CAR'];
 
 const log = createLogger('insa-course-service');
-const DEFAULT_API_BASE = 'https://api-v3.witteria.com';
+const DEFAULT_API_BASE = 'https://api-v3.witmarket.net';
 /**
  * The visitor is watching a spinner (or a total that updates as they tap), so
  * give up early rather than hold the screen — same budget as the events grid.
@@ -42,7 +42,7 @@ const REQUEST_TIMEOUT_MS = 8000;
  *
  * Env:
  *   INSA_COURSE_API_URL — full endpoint override for the 지점 route (wins if set)
- *   WITTERIA_API_BASE   — shared API base, default https://api-v3.witteria.com
+ *   WITTERIA_API_BASE   — shared API base, default https://api-v3.witmarket.net
  */
 export class InsaCourseService {
   constructor(private readonly kiosk: KioskService) {}

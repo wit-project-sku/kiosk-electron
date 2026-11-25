@@ -47,7 +47,7 @@ const SAVE_BASE = 'https://withphoto.vercel.app/?imageUrl=';
  * returns data.shareUrl — a pickup page with per-device save (iPhone share sheet,
  * Android download, an "open in browser" prompt inside KakaoTalk), deleted after
  * an hour — and the QR uses it directly, so the phone never goes through Vercel.
- * Only a response without shareUrl (the old photo.witteria.com/api/images host)
+ * Only a response without shareUrl (the old photo.witmarket.net/api/images host)
  * falls back to withphoto.vercel.app/?imageUrl=. imageUrl itself keeps every
  * other job: the on-screen image and the 기부 hand-off.
  */
