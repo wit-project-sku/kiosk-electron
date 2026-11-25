@@ -110,6 +110,8 @@ export interface CourseStop {
   open?: string;
   /** Walk from the previous row. */
   walk?: number;
+  /** A place's planned stay, minutes. */
+  stay?: number;
   shop?: Shop;
 }
 
@@ -223,6 +225,7 @@ export function planCourse(args: {
       detail: `${w.category(p.shop)} · ${meal}${w.minutes(p.minutes)}`,
       open: after ? w.openAfterUntil(close) : w.openUntil(close),
       walk: p.walk,
+      stay: p.minutes,
       shop: p.shop,
     };
   };

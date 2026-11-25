@@ -10,7 +10,7 @@ import type { KioskController } from '@renderer/hooks/useKioskController';
 import { lotteIconUrl } from '@renderer/assets/icons/lotte';
 import { LottePageFrame } from './LottePageFrame';
 import { LotteQr } from './LotteQr';
-import { LOTTE_LINKS } from './lotteLinks';
+import { storySubmitLink } from './lotteLinks';
 import { useLotteStories } from './lotteLive';
 import { STORY_KIND_LABEL, toStory, type Story } from './lotteStoryData';
 import { lt } from './lotteText';
@@ -28,11 +28,11 @@ const KIND_KEY = { photo: 'Story_Type_Photo', video: 'Story_Type_Video', text: '
 const plain = (line: string): string => line.replace(/[.。]\s*$/, '');
 const useLang = () => useLanguageStore((st) => st.currentLanguage);
 
-function SendCard(): JSX.Element {
+function SendCard({ link }: { link: string | null }): JSX.Element {
   const lang = useLang();
   return (
     <div className={ui.qrCard}>
-      <LotteQr value={LOTTE_LINKS.storySubmit} />
+      <LotteQr value={link} />
       <div className={ui.qrText}>
         <span className={ui.qrTitle}>{lt('Story_Send', lang, '내 사연 보내기')}</span>
         <span className={ui.qrSub}>{tc('Story_QR_Sub', lang)}</span>
@@ -53,10 +53,13 @@ export function LotteStories({ controller }: { controller: KioskController }): J
   const [openId, setOpenId] = useState<number | null>(null);
   const open = stories.findIndex((st) => st.id === openId);
   useVoiceIntro(open >= 0 ? VOICE_VIEW : stories.length === 0 ? VOICE_EMPTY : VOICE_LIST);
+  /* 사연 보내기 — this site's WITS page (the same QR on the list and on 보기). */
+  const sendLink = storySubmitLink(controller.kioskId);
 
   if (open >= 0) {
     return (
       <StoryView
+        sendLink={sendLink}
         stories={stories}
         index={open}
         onIndex={(i) => setOpenId(stories[i]?.id ?? null)}
@@ -99,7 +102,7 @@ export function LotteStories({ controller }: { controller: KioskController }): J
             ))}
           </div>
         )}
-        <SendCard />
+        <SendCard link={sendLink} />
       </div>
     </LottePageFrame>
   );
@@ -108,11 +111,13 @@ export function LotteStories({ controller }: { controller: KioskController }): J
 const pad = (n: number): string => String(n).padStart(2, '0');
 
 function StoryView({
+  sendLink,
   stories,
   index,
   onIndex,
   onClose,
 }: {
+  sendLink: string | null;
   stories: readonly Story[];
   index: number;
   onIndex: (i: number) => void;
@@ -190,7 +195,7 @@ function StoryView({
       )}
 
       <div className={s.foot}>
-        <LotteQr value={LOTTE_LINKS.storySubmit} className={s.qr} />
+        <LotteQr value={sendLink} className={s.qr} />
         <div className={s.footText}>
           <span className={s.footTitle}>{tc('Story_SendMine', lang)}</span>
           <span className={s.footSub}>{tc('Story_SendSub', lang)}</span>

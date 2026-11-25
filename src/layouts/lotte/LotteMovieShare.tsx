@@ -9,7 +9,7 @@ import type { KioskController } from '@renderer/hooks/useKioskController';
 import { lotteIconUrl } from '@renderer/assets/icons/lotte';
 import { LottePageFrame } from './LottePageFrame';
 import { LotteQr } from './LotteQr';
-import { LOTTE_LINKS } from './lotteLinks';
+import { movieShareLink } from './lotteLinks';
 import { useLotteMovieShareSummary } from './lotteLive';
 import { LotteSteps } from './LotteSteps';
 import { lt } from './lotteText';
@@ -99,7 +99,7 @@ export function LotteMovieShare({ controller }: { controller: KioskController })
         />
 
         <div className={ui.qrCard}>
-          <LotteQr value={LOTTE_LINKS.movieShare} />
+          <LotteQr value={movieShareLink(controller.kioskId)} />
           <div className={ui.qrText}>
             <span className={ui.qrTitle}>{lt('FilmShare_QR', lang, '휴대폰으로 QR 을 찍어 인증해요')}</span>
             <span className={ui.qrSub}>
