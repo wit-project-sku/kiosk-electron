@@ -318,19 +318,38 @@ function SightsPanel({
       ? `${lt('Hotspot_Hours', lang, '영업시간')} ${hours}`
       : '';
   const chevron = lotteIconUrl('ico-history-chevron');
+  /*
+   * Which photo sits where: order[0] is the large one, order[1..4] the thumbnails. Tapping a
+   * thumbnail swaps it with the large photo. Starts over when the site's photos change.
+   */
+  const shown = Math.min(photos.length, THUMBS + 1);
+  const [order, setOrder] = useState<{ photos: readonly string[]; idx: number[] }>({ photos, idx: [] });
+  const idx = order.photos === photos && order.idx.length === shown ? order.idx : Array.from({ length: shown }, (_, i) => i);
+  const swap = (slotIdx: number): void => {
+    if (slotIdx >= idx.length) return;
+    const next = [...idx];
+    [next[0], next[slotIdx]] = [next[slotIdx]!, next[0]!];
+    setOrder({ photos, idx: next });
+  };
+  const big = idx[0] !== undefined ? photos[idx[0]] : undefined;
   return (
     <div className={c.scroll}>
       <div className={`${s.panel} ${s.sights}`}>
         <div className={s.top}>
-          <div className={s.thumbs} aria-hidden>
-            {Array.from({ length: THUMBS }, (_, i) => (
-              <span key={i} className={s.thumb}>
-                {photos[i + 1] && <img src={photos[i + 1]} alt="" draggable={false} />}
-              </span>
-            ))}
+          <div className={s.thumbs}>
+            {Array.from({ length: THUMBS }, (_, i) => {
+              const src = idx[i + 1] !== undefined ? photos[idx[i + 1]!] : undefined;
+              return src ? (
+                <button key={i} type="button" className={s.thumb} onClick={() => swap(i + 1)}>
+                  <img src={src} alt="" draggable={false} />
+                </button>
+              ) : (
+                <span key={i} className={s.thumb} aria-hidden />
+              );
+            })}
           </div>
           <div className={s.photo}>
-            {photos[0] ? <img src={photos[0]} alt="" draggable={false} /> : slot('사진 자리', lang)}
+            {big ? <img key={big} className={s.photoIn} src={big} alt="" draggable={false} /> : slot('사진 자리', lang)}
           </div>
           {about && (
             <div className={s.intro} data-voice-more>
