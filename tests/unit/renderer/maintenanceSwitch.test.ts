@@ -34,14 +34,14 @@ describe('제주 점검 notice — whether it is up', () => {
   afterEach(() => vi.unstubAllGlobals());
 
   it('is available on all three 제주 kiosks', () => {
-    expect([...MAINTENANCE_KIOSKS].sort()).toEqual(['W008', 'W009', 'W010']);
+    expect([...MAINTENANCE_KIOSKS].sort()).toEqual(['W008', 'W009', 'W011']);
   });
 
   it('제주공항 shows it until first lifted; the other two start in the app', () => {
     storage(null);
     expect(readMaintenanceLifted('W008')).toBe(false);
     expect(readMaintenanceLifted('W009')).toBe(true);
-    expect(readMaintenanceLifted('W010')).toBe(true);
+    expect(readMaintenanceLifted('W011')).toBe(true);
   });
 
   it('a saved choice wins on every kiosk', () => {
@@ -61,7 +61,7 @@ describe('제주 점검 notice — whether it is up', () => {
       },
     });
     expect(readMaintenanceLifted('W008')).toBe(false);
-    expect(readMaintenanceLifted('W010')).toBe(true);
+    expect(readMaintenanceLifted('W011')).toBe(true);
     expect(() => writeMaintenanceLifted(true)).not.toThrow();
   });
 });

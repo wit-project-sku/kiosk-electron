@@ -1,5 +1,5 @@
 /**
- * Resolver for 롯데 (W011~W013) icon/illustration art exported from Figma.
+ * Resolver for 롯데 (W012~W014) icon/illustration art exported from Figma.
  *
  * Drop PNG or SVG exports (JPG for photos) into this folder. Files are picked up automatically
  * via Vite's glob import — the build never breaks if some are missing;

@@ -1,8 +1,8 @@
 /**
- * 건물 안내 — Figma C-04 (이벤트, 8744:1363) and A-07 (핫스팟; W011 8745:1164 · W012 8745:1260 ·
- * W013 8745:1356). Opened by the home's 건물 단추 with that building selected.
+ * 건물 안내 — Figma C-04 (이벤트, 8744:1363) and A-07 (핫스팟; W012 8745:1164 · W013 8745:1260 ·
+ * W014 8745:1356). Opened by the home's 건물 단추 with that building selected.
  *
- * 월드몰 (W011) picks one of four buildings with chips; the department stores have one building, so
+ * 월드몰 (W012) picks one of four buildings with chips; the department stores have one building, so
  * 이벤트 shows no chips and 핫스팟 opens with the dark 지점 소개 card (name · 영업시간) instead.
  * Rows are the frames' sample content — see lotteBuildingData.ts.
  */

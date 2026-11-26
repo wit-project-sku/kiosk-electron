@@ -1,5 +1,5 @@
 /**
- * Screen router for the 롯데 venues (W011~W013) — publishing stage: real layouts, sample data
+ * Screen router for the 롯데 venues (W012~W014) — publishing stage: real layouts, sample data
  * (lotteSample.ts and the per-screen lotte*.ts modules). The shared flows are the same ones 제주
  * uses: PhotoWorkflow; FillMe is a recoloured copy in ./fillme.
  *

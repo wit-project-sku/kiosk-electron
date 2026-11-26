@@ -28,7 +28,7 @@ export const LOTTE_LINKS: {
 };
 
 const WITS_WEB = 'https://www.witsapp.net/with/kiosks';
-/** The 롯데 kiosks the WITS pages know, by number (W011 → 11). */
+/** The 롯데 kiosks the WITS pages know, by number (W012 → 11). */
 const WITS_SITES = new Set([11, 12, 13]);
 
 function witsPage(kioskId: KioskId, page: string): string | null {

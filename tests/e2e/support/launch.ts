@@ -21,13 +21,13 @@ export const SITES = [
   'W003',
   'W004',
   'W005',
-  // 제주 since the 2026-10-26 renumber: 제주공항 W008, 여객터미널 W009, 유산본부 W010.
+  // 제주 since the 2026-10-26 renumber: 제주공항 W008, 여객터미널 W009, 유산본부 W011.
   'W008',
   'W009',
-  'W010',
   'W011',
   'W012',
   'W013',
+  'W014',
   'W202',
 ] as const;
 export type Site = (typeof SITES)[number];
@@ -98,9 +98,14 @@ export async function launchKiosk(opts: LaunchOptions): Promise<LaunchedKiosk> {
   if (!opts.fresh) {
     writeFileSync(
       join(userData, 'kiosk-config.json'),
-      // jejuIdShift202610 is written by a fresh provision too — without it the app's
-      // one-shot renumber would read W008 as a pre-2026-10-26 id and move it to W010.
-      JSON.stringify({ kioskId: opts.site, jejuIdShift202610: true, ...opts.kioskConfig }),
+      // Both renumber flags are written by a fresh provision too — without them the app's
+      // one-shot renumbers would read W008 as a pre-2026-10-26 id (→ W010 → W011).
+      JSON.stringify({
+        kioskId: opts.site,
+        jejuIdShift202610: true,
+        kioskIdShift202611: true,
+        ...opts.kioskConfig,
+      }),
     );
   }
 

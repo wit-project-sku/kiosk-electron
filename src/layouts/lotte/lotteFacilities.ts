@@ -14,7 +14,7 @@ import { LOTTE_FACILITIES } from '@renderer/data/lotteFacilities.generated';
 import { useKioskStore } from '@renderer/store/kioskStore';
 import { LOTTE_EAT, LOTTE_FACILITY, LOTTE_SHOP, lotteShopsFor } from './lotteSample';
 
-const SITES = ['W011', 'W012', 'W013'] as const;
+const SITES = ['W012', 'W013', 'W014'] as const;
 type Site = (typeof SITES)[number];
 const isSite = (id: string): id is Site => (SITES as readonly string[]).includes(id);
 
@@ -35,7 +35,7 @@ function syncedRows(site: Site): LotteFacility[] | null {
 }
 
 export function lotteFacilityRows(kioskId: KioskId): LotteFacility[] {
-  const site = isSite(kioskId) ? kioskId : 'W011';
+  const site = isSite(kioskId) ? kioskId : 'W012';
   return syncedRows(site) ?? LOTTE_FACILITIES[site];
 }
 
@@ -116,7 +116,7 @@ export function toFacilityShop(site: Site, f: LotteFacility): Shop {
 
 /** This site's 시설안내 rows as Shop rows. */
 export function lotteFacilityShops(kioskId: KioskId): Shop[] {
-  const site = isSite(kioskId) ? kioskId : 'W011';
+  const site = isSite(kioskId) ? kioskId : 'W012';
   return lotteFacilityRows(kioskId).map((f) => toFacilityShop(site, f));
 }
 

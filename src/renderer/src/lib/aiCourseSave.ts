@@ -104,7 +104,7 @@ export const QR_TRAVEL_BUDGET = 300;
 /**
  * Value omitted from the QR when it matches. direction-fe still reads a missing
  * `k` as 6, which is the office rig (WITH-I-001), not 제주공항 (8). Leaving this
- * at 6 means W008/W009/W010 always send `k`.
+ * at 6 means W008/W009/W011 always send `k`.
  */
 const DEFAULT_KIOSK = 6;
 

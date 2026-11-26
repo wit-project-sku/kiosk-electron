@@ -30,12 +30,12 @@ const PRESETS = {
   // names the 제주 design family, not the venue. See KioskLayoutId.
   W008: { kioskId: 'W008', layout: 'JEJU_AIRPORT' },
   W009: { kioskId: 'W009', layout: 'JEJU_AIRPORT' },
-  // W010 세계자연유산본부 gets its OWN layout — same 제주 design, but the shared
+  // W011 세계자연유산본부 gets its OWN layout — same 제주 design, but the shared
   // Localization_Jeju tab is split per layout on the mascot (유산, not 하영).
-  W010: { kioskId: 'W010', layout: 'JEJU_HERITAGE' },
-  W011: { kioskId: 'W011', layout: 'LOTTE' },
+  W011: { kioskId: 'W011', layout: 'JEJU_HERITAGE' },
   W012: { kioskId: 'W012', layout: 'LOTTE' },
   W013: { kioskId: 'W013', layout: 'LOTTE' },
+  W014: { kioskId: 'W014', layout: 'LOTTE' },
   // W202 KADA — Korea-ASEAN Digital Academy, Vietnam Chapter (PTIT, Hà Nội).
   // The only non-Korean deployment; its own layout, five screens, EN/VN.
   W202: { kioskId: 'W202', layout: 'KADA' },
@@ -86,7 +86,7 @@ function printUsage() {
   console.log(`
 Provision kiosk identity (kiosk-config.json)
 
-  node scripts/provision-kiosk.mjs <W001|W002|W003|W004|W005|W008|W009|W010|W011|W012|W013|W202>
+  node scripts/provision-kiosk.mjs <W001|W002|W003|W004|W005|W008|W009|W011|W012|W013|W014|W202>
   node scripts/provision-kiosk.mjs --kiosk-id W005 --layout HWASEONG
   node scripts/provision-kiosk.mjs W001 --data-dir "C:\\Custom\\Kiosk App"
 
@@ -98,7 +98,7 @@ Presets:
   W005  화성휴게소        → HWASEONG
   W008  제주국제공항        → JEJU_AIRPORT
   W009  제주국제여객터미널   → JEJU_AIRPORT
-  W010  세계자연유산본부     → JEJU_HERITAGE
+  W011  세계자연유산본부     → JEJU_HERITAGE
 `);
 }
 
@@ -115,6 +115,7 @@ function main() {
     kioskId,
     layout: layout ?? preset?.layout ?? 'INSADONG',
     jejuIdShift202610: true,
+    kioskIdShift202611: true,
   };
   if (shopId != null && Number.isFinite(shopId) && shopId > 0) {
     config.shopApiKioskId = shopId;

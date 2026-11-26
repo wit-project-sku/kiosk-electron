@@ -6,6 +6,7 @@
  * The LOTTE layout runs the same engine on its own sheet's tab (VOICE_LOTTE),
  * screen map and key aliases — see layouts/lotte/lotteVoice.
  */
+import { sheetSiteOf } from '@shared/config/kioskLocations';
 import type { KioskScreenId } from '@shared/types/kiosk';
 import type { LangText } from '@renderer/data/types';
 import { VOICE_JEJU } from '@renderer/data/voice-jeju.generated';
@@ -36,7 +37,8 @@ function row(key: string, kioskId: string): Partial<LangText> | undefined {
   const table = lotte ? VOICE_LOTTE : VOICE_JEJU;
   const base = lotte ? (LOTTE_KEY_ALIASES[key] ?? key) : key;
   const fallbackSite = lotte ? LOTTE_FALLBACK_SITE : 'W008';
-  for (const k of [`${base}@${kioskId}`, base, `${base}@${fallbackSite}`]) {
+  // Site rows carry the sheets' pre-V224 suffix (`@W010` 유산본부, `@W011` 롯데월드몰…) — sheetSiteOf.
+  for (const k of [`${base}@${sheetSiteOf(kioskId)}`, base, `${base}@${sheetSiteOf(fallbackSite)}`]) {
     const live = synced[`Voice_${k}`];
     const bundled = table[k];
     if (live || bundled) return { ...bundled, ...live };
@@ -88,8 +90,8 @@ const WEB_SCREENS: ReadonlySet<KioskScreenId> = new Set<KioskScreenId>([
 /** Screens the sheet marks "자세히 듣기": key 2 reads their `data-voice-more` body. */
 const LONG_TEXT_SCREENS: ReadonlySet<KioskScreenId> = new Set<KioskScreenId>(['heritage', 'geomun']);
 
-/** W009/W010 keep 도와줘 instead of 공항 안내 — see jejuHelpTitle. */
-const isTerminalOrHeritage = (kioskId: string): boolean => kioskId === 'W009' || kioskId === 'W010';
+/** W009/W011 keep 도와줘 instead of 공항 안내 — see jejuHelpTitle. */
+const isTerminalOrHeritage = (kioskId: string): boolean => kioskId === 'W009' || kioskId === 'W011';
 
 /**
  * The route's default intro (L1) and the hint lines that follow it — the tab or
@@ -126,10 +128,10 @@ const SCREEN_INTROS: Partial<Record<KioskScreenId, string | ((kioskId: string) =
   rentcar: 'jeju.rentcar.list',
   localpay: 'jeju.localpay.tamna',
   events: 'jeju.event.list',
-  // Only W010 keeps the two-tab 탐나오·제주큐랑 page — must match webScreensFor in
+  // Only W011 keeps the two-tab 탐나오·제주큐랑 page — must match webScreensFor in
   // JejuKiosk. The sheet still marks jeju.tamnao and jeju.qrang 제주공항-only and
   // jeju.tamnao-qrang for W009 too; W009 has since moved to the split pages.
-  tamnao: (kioskId) => (kioskId === 'W010' ? 'jeju.tamnao-qrang' : 'jeju.tamnao'),
+  tamnao: (kioskId) => (kioskId === 'W011' ? 'jeju.tamnao-qrang' : 'jeju.tamnao'),
   jejuqrang: 'jeju.qrang',
   market: 'jeju.witstore',
   donation: 'jeju.donation',

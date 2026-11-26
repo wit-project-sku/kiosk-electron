@@ -49,7 +49,7 @@ const AUTORUN_KEY = 'KioskApp';
  * 2AM reboot: shut down (종료) at night, start (시작) in the morning. The hours are
  * per venue:
  *
- *   오색시장 W004, 여객터미널 W009, 세계자연유산 W010   22:00 종료 / 08:00 시작
+ *   오색시장 W004, 여객터미널 W009, 세계자연유산 W011   22:00 종료 / 08:00 시작
  *   제주공항 W008                                       01:00 종료 / 06:00 시작
  *
  * Note on the morning start: a scheduled task's "wake" timer can resume the PC from
@@ -95,7 +95,7 @@ const OPERATING_HOURS_CYCLES: Record<string, PowerCycle> = {
   W004: STANDARD_HOURS_CYCLE,
   W008: JEJU_AIRPORT_CYCLE,
   W009: STANDARD_HOURS_CYCLE,
-  W010: STANDARD_HOURS_CYCLE,
+  W011: STANDARD_HOURS_CYCLE,
 };
 
 const ALL_POWER_CYCLES = [STANDARD_HOURS_CYCLE, JEJU_AIRPORT_CYCLE];

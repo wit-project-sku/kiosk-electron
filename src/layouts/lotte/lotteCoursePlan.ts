@@ -67,15 +67,15 @@ const AFTER_ORDER: readonly Kind['id'][] = ['meal', 'cafe'];
 
 /** Site default hours — for a shop without its own (규칙 카드 7). Minutes from midnight. */
 const SITE_HOURS: Record<string, { open: number; close: number }> = {
-  W011: { open: 630, close: 1320 },
-  W012: { open: 630, close: 1200 },
+  W012: { open: 630, close: 1320 },
   W013: { open: 630, close: 1200 },
+  W014: { open: 630, close: 1200 },
 };
-/** Where the kiosk stands and where the cinema is. W013's cinema floor is not in the data yet. */
+/** Where the kiosk stands and where the cinema is. W014's cinema floor is not in the data yet. */
 const SITE_FLOORS: Record<string, { kiosk: string; cinema: string | null }> = {
-  W011: { kiosk: '1F', cinema: '5F' },
-  W012: { kiosk: '1F', cinema: '7F' },
-  W013: { kiosk: '1F', cinema: null },
+  W012: { kiosk: '1F', cinema: '5F' },
+  W013: { kiosk: '1F', cinema: '7F' },
+  W014: { kiosk: '1F', cinema: null },
 };
 
 export const toMin = (hm: string): number => {
@@ -89,11 +89,11 @@ export const toHm = (min: number): string =>
 export function shopHours(shop: Pick<Shop, 'openTime'>, kioskId: KioskId): { open: number; close: number } {
   const m = /(\d{1,2}:\d{2})\s*[~-]\s*(\d{1,2}:\d{2})/.exec(shop.openTime ?? '');
   if (m) return { open: toMin(m[1]!), close: toMin(m[2]!) };
-  return SITE_HOURS[kioskId] ?? SITE_HOURS.W011!;
+  return SITE_HOURS[kioskId] ?? SITE_HOURS.W012!;
 }
 
 export const siteFloors = (kioskId: KioskId): { kiosk: string; cinema: string | null } =>
-  SITE_FLOORS[kioskId] ?? SITE_FLOORS.W011!;
+  SITE_FLOORS[kioskId] ?? SITE_FLOORS.W012!;
 
 const walkBetween = (a: string, b: string): number =>
   Math.min(2 + Math.abs(floorRank(a) - floorRank(b)), 8);

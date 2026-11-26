@@ -1,5 +1,5 @@
 /**
- * 화장실 — 목록 (Figma A-05: W011 8723:3334 · W012 8723:3402 · W013 8723:3470).
+ * 화장실 — 목록 (Figma A-05: W012 8723:3334 · W013 8723:3402 · W014 8723:3470).
  *
  *   1 건물 탭    월드몰 is split by building; a department store has one tab.
  *   2 층 선택    "1F  ㅣ  2F  ㅣ  3F" — the picked floor's plan.

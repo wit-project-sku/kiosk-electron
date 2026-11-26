@@ -21,7 +21,7 @@
 import { useCallback, useRef, type PointerEvent } from 'react';
 
 /** 제주 kiosks that can show the full-screen 시스템 점검 notice instead of the app. */
-export const MAINTENANCE_KIOSKS: ReadonlySet<string> = new Set(['W008', 'W009', 'W010']);
+export const MAINTENANCE_KIOSKS: ReadonlySet<string> = new Set(['W008', 'W009', 'W011']);
 
 /** Of those, the ones showing the notice until staff first lift it. */
 const NOTICE_UNTIL_LIFTED: ReadonlySet<string> = new Set(['W008']);

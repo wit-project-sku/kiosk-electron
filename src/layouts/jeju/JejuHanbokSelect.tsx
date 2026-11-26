@@ -316,7 +316,7 @@ const SOLO = {
 };
 
 /**
- * Built per mascot: 하영 on W008/W009, 유산 on W010. Only the LAST-RESORT
+ * Built per mascot: 하영 on W008/W009, 유산 on W011. Only the LAST-RESORT
  * fallback — the sheet's Photo_SelectTogether row is already venue-split
  * (see LocalizationSyncParser.VENUE_MASCOTS) and wins whenever it has a cell.
  *
@@ -363,8 +363,8 @@ const isLotteKiosk = (): boolean =>
  */
 const TOGETHER_ON_JEJU_TAB_ONLY: ReadonlySet<string> = new Set(['W008', 'W009']);
 /**
- * 롯데 (W011~W013) shows 같이찍기 on every tab, like the other venues (2026-11-19 request).
- * ⚠ Digicon has no 로씨 mascot code yet: until kioskLocations' `aiCompanion` for W011~W013
+ * 롯데 (W012~W014) shows 같이찍기 on every tab, like the other venues (2026-11-19 request).
+ * ⚠ Digicon has no 로씨 mascot code yet: until kioskLocations' `aiCompanion` for W012~W014
  * changes, the composite is made with the API default ('2').
  */
 const hidesTogether = (isThemeTab: boolean): boolean => {

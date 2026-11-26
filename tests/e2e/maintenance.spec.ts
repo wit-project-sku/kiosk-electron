@@ -72,7 +72,7 @@ test('W008: boots into the notice, and five mouse clicks on the plane bring it b
   }
 });
 
-for (const site of ['W009', 'W010'] as const) {
+for (const site of ['W009', 'W011'] as const) {
   test(`${site}: boots into the app, and the two planes flip the notice`, async () => {
     const kiosk = await launchKiosk({ site, apiBase: api.url });
     try {

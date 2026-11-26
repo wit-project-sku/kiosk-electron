@@ -2,7 +2,7 @@
  * ON HOLD (2026-11-18): 롯데 미션 is not decided yet, so this screen is NOT routed (LotteKiosk) and
  * has no screen id. Re-add `'mission'` to KioskScreenId and a route when it is.
  *
- * 롯데 미션 — Figma page '#W011~13=롯데(키오스크)-롯데 미션 (2026-11-16)':
+ * 롯데 미션 — Figma page '#W012~13=롯데(키오스크)-롯데 미션 (2026-11-16)':
  *   M-01 목록 (8804:1279) · M-02 상세 한 곳 (8804:1599) · M-03 상세 여러 곳 (8804:1919) ·
  *   M-04 종료 · 일시 중지 (8804:2239).
  *

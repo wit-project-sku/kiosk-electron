@@ -42,16 +42,16 @@ const HWASEONG_SHEET_ID = '14aWRWrJXPC_J-W4GpZqa_g-3fDjjUsy6BpAhDg8OvVU';
  *  (src/main/services/sync/GoogleSheetsSyncTransport.ts CONTENT_SHEETS). */
 const JEJU_SHEET_ID = '1A90MnKneWksKeL2zEcCUn75JKbnMFj7-OBmQsTkI72I';
 /** 전국시장 (nationwide markets) dataset — shared, used by 화성휴게소's 전국휴게소 screen. */
-/** W011~W013 롯데 content sheet (one sheet for the three sites; site rows are `Key@W011`).
+/** W012~W014 롯데 content sheet (one sheet for the three sites; site rows are `Key@W011`).
  *  Tabs read: Localization_Lotte · FacilityData_WorldMall/_Cheongnyangni/_StarCity ·
  *  Text-to-speech_Script (음성 안내). ShopData_* is served by the shops API; VideoSubtitle_LOCI
  *  and AICategory_Lotte have no 롯데 screen yet. Keep in step with @shared/constants/lotteSheet.
  *  Must stay a native Google Sheet: the kiosk's launch read (Sheets API) refuses an .xlsx. */
 const LOTTE_SHEET_ID = '1ZKoNbnQAtmLaY8Hx5MT1jS8su0FPXKiu9lO7TnsFNOs';
 const LOTTE_FACILITY_TABS = {
-  W011: 'FacilityData_WorldMall',
-  W012: 'FacilityData_Cheongnyangni',
-  W013: 'FacilityData_StarCity',
+  W012: 'FacilityData_WorldMall',
+  W013: 'FacilityData_Cheongnyangni',
+  W014: 'FacilityData_StarCity',
 };
 const NATIONWIDE_MARKETS_SHEET_ID = '1EGeS48JvN3YNzFDLiBduKW-t8P5ilSDucNIMUNS2M-4';
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
@@ -539,7 +539,7 @@ async function genAiCategoriesHwaseong() {
  * behaves exactly as before. Mirrored at runtime in
  * src/main/services/sync/google/LocalizationSyncParser.ts — keep the two in sync.
  *
- * W010 세계자연유산본부 (JEJU_HERITAGE, mascot 유산) is the same tab scored the
+ * W011 세계자연유산본부 (JEJU_HERITAGE, mascot 유산) is the same tab scored the
  * other way round — genLocalizationJeju emits its picks as a small OVERRIDES
  * module (only the keys whose pick differs) that loc.ts overlays on
  * LOCALIZATION_JEJU, so the ~230-key table isn't bundled twice.
@@ -618,7 +618,7 @@ function withNumColumn(rows) {
 
 async function genLocalizationJeju() {
   const rows = withNumColumn(await loadTab('Localization_Jeju_v3', JEJU_SHEET_ID, LOCALIZATION_HEADER));
-  /** One venue's picks — sign +1 keeps the 하영 rows (W008/W009), −1 keeps 유산's (W010). */
+  /** One venue's picks — sign +1 keeps the 하영 rows (W008/W009), −1 keeps 유산's (W011). */
   const pickVenue = (sign) => {
     const entries = {};
     const scores = {};
@@ -648,7 +648,7 @@ ${body}
 `;
   await writeFile(join(DATA_DIR, 'localization-jeju.generated.ts'), out, 'utf8');
 
-  // W010 세계자연유산본부 (JEJU_HERITAGE) — the 유산-preferred picks, emitted as a
+  // W011 세계자연유산본부 (JEJU_HERITAGE) — the 유산-preferred picks, emitted as a
   // delta: only the keys whose winning row differs from W008's make the file.
   const heritage = pickVenue(-1);
   const overrides = Object.entries(heritage).filter(
@@ -657,7 +657,7 @@ ${body}
   const heritageBody = overrides.map(([k, v]) => `  ${JSON.stringify(k)}: ${JSON.stringify(v)},`).join('\n');
   const heritageOut = `${BANNER}import type { LangText } from './types';
 
-/** W010 세계자연유산본부 (JEJU_HERITAGE): the Localization_Jeju_v3 keys whose venue
+/** W011 세계자연유산본부 (JEJU_HERITAGE): the Localization_Jeju_v3 keys whose venue
  *  pick differs from W008's — i.e. the 유산-mascot rows. Overlaid on
  *  LOCALIZATION_JEJU by loc.ts; mirrors the runtime split in
  *  LocalizationSyncParser.VENUE_MASCOTS. */
@@ -926,7 +926,7 @@ async function genLocalizationLotte() {
     .join('\n');
   const out = `${BANNER}import type { LangText } from './types';
 
-/** 롯데 W011~W013 UI strings keyed by their sheet \`Key\` (Localization_Lotte). A key with an
+/** 롯데 W012~W014 UI strings keyed by their sheet \`Key\` (Localization_Lotte). A key with an
  *  \`@W011\`-style suffix is that site's own row; layouts/lotte/lotteText prefers it. */
 export const LOCALIZATION_LOTTE_SHEET: Record<string, LangText> = {
 ${body}
@@ -981,7 +981,7 @@ async function genFacilitiesLotte() {
   const out = `${BANNER}import type { LotteFacility } from '@shared/types/lotteSheet';
 
 /** 롯데 시설안내 · 화장실 rows per site (FacilityData_* tabs of the 롯데 sheet). */
-export const LOTTE_FACILITIES: Record<'W011' | 'W012' | 'W013', LotteFacility[]> = {
+export const LOTTE_FACILITIES: Record<'W012' | 'W013' | 'W014', LotteFacility[]> = {
 ${body}
 };
 `;
@@ -1115,7 +1115,7 @@ async function main() {
     console.log('– [jeju] skipped (JEJU_SHEET_ID not set)');
   }
 
-  // W011~W013 롯데 (one sheet for the three sites)
+  // W012~W014 롯데 (one sheet for the three sites)
   console.log(`✓ [lotte] localization: ${await genLocalizationLotte()} keys`);
   console.log(`✓ [lotte] facilities: ${await genFacilitiesLotte()}`);
   console.log(`✓ [lotte] voice lines: ${await genVoiceLotte()}`);

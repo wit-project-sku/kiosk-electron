@@ -48,4 +48,4 @@ export const LOTTE_KEY_ALIASES: Readonly<Record<string, string>> = {
 };
 
 /** The site a test rig previewing 롯데 hears when its kiosk id has no site row. */
-export const LOTTE_FALLBACK_SITE = 'W011';
+export const LOTTE_FALLBACK_SITE = 'W012';

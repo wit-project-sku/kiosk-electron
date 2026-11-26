@@ -32,7 +32,7 @@ export class KioskService {
    * shops filed under 7 while `/api/kiosks/6/banners` carried the banners — so
    * honouring the shop id here would blank the banner rail. See ShopService.
    *
-   * 2026-10-26 device ids: W008 → 8 (제주공항), W009 → 9 (여객터미널), W010 → 10
+   * Device ids since the 2026-11-25 renumber (V224): W008 → 8 (제주공항), W009 → 9 (여객터미널), W011 → 11
    * (유산본부). 6 is the office rig WITH-I-001, not one of these venues.
    */
   kioskNum(): number {

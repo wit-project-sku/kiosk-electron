@@ -470,7 +470,7 @@ const CRUISE_TILE: Tile = { screen: 'cruise', label: '크루즈 운항', sub: '�
 
 /**
  * The 안녕/도와줘 tiles carry the venue's MASCOT in their analytics labels, so
- * they too are per-venue: W008/W009's CMS rows read 하영, W010's read 유산
+ * they too are per-venue: W008/W009's CMS rows read 하영, W011's read 유산
  * (`/api/kiosks/8/buttons` ids 182/183, verified 2026-08-24). Like the venue
  * tile's label, these must stay byte-identical to the CMS `button_type`
  * (ASCII apostrophes); the label the visitor READS still comes from
@@ -626,7 +626,7 @@ const TILES_TERMINAL = cardsGrid(CRUISE_TILE, (help) => ({
 }));
 
 /**
- * W010 세계자연유산본부 — no longer W009's grid. The 2026-09 redesign (Figma
+ * W011 세계자연유산본부 — no longer W009's grid. The 2026-09 redesign (Figma
  * 6792:126444) dropped 숙박안내 / 크루즈 운항 / 지역화폐 and put three venue-own
  * tiles in their cells: 제주세계유산 (row 1), 거문오름 예약 (row 2 — the slot the
  * per-venue tile used to fill), 제주세계유산센터 (row 3, sliding 탐나오 to the
@@ -638,7 +638,7 @@ const TILES_TERMINAL = cardsGrid(CRUISE_TILE, (help) => ({
  * three icons are the designer's exports with the plate baked in (same pattern as
  * every other tile-*.png). None of the three has a CMS `buttons` row or a
  * MainButton_* sheet key yet — until those land, clicks log label-only (see
- * buttonCatalog's W010 note) and the grid keeps this authored order.
+ * buttonCatalog's W011 note) and the grid keeps this authored order.
  *
  * heritage opens JejuHeritage (제주 유네스코 유산, 6908:51916) and geomun opens
  * JejuGeomun (6935:69555); heritage_center still falls through to the
@@ -668,7 +668,7 @@ const TILES_HERITAGE: Tile[] = [
  * card differ at.
  * A kiosk with no entry gets the airport grid.
  */
-const TILES_BY_KIOSK: Partial<Record<string, Tile[]>> = { W009: TILES_TERMINAL, W010: TILES_HERITAGE };
+const TILES_BY_KIOSK: Partial<Record<string, Tile[]>> = { W009: TILES_TERMINAL, W011: TILES_HERITAGE };
 
 /** Join a home tile to its CMS button row by screen key (see useOrderedTiles). */
 const jejuTileKey = (tile: Tile): TileKey => ({ screen: tile.screen });
@@ -760,7 +760,7 @@ const CARDS: CardDef[] = [
 
 /** W008/W009: 탐나오 in the 위드마켓 card's slot — see cardsGrid. 제주큐랑 has
  *  its own grid tile now, so the card names 탐나오 alone from the sheet's
- *  MainButton_Tamnao_airport row, not the MainButton_Tamnao pair W010 still
+ *  MainButton_Tamnao_airport row, not the MainButton_Tamnao pair W011 still
  *  shows. Its second line stays MainButton_Tamnao_Subtext. */
 const TAMNAO_CARDS: CardDef[] = CARDS.map((card) =>
   card.screen === 'market'

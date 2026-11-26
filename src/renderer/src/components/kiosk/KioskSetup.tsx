@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import {
-  SETUP_SITES,
   setupActions,
+  setupSites,
   siteNumberOf,
   type KioskSetupState,
   type SetupSite,
@@ -15,6 +15,8 @@ interface SetupContext {
   state: KioskSetupState | null;
   /** This PC's own kiosk code. */
   current: string;
+  /** The sites this build may be set to (setupSites — 롯데 only on a stage build). */
+  sites: readonly SetupSite[];
 }
 
 /**
@@ -43,12 +45,13 @@ export function KioskSetup(): JSX.Element {
       setContext({
         state: config.setup ?? null,
         current: config.identityKioskId ?? config.kioskId,
+        sites: setupSites({ stageServer: config.stageServer === true }),
       });
     });
     void window.api.videos.list().then((result) => {
       if (!alive || !isOk(result)) return;
       const counts: Record<string, number> = {};
-      for (const site of SETUP_SITES) {
+      for (const site of setupSites({ stageServer: true })) {
         if (!site.testRig) counts[site.code] = siteVideoCount(result.value, site.code);
       }
       setVideoCounts(counts);
@@ -59,7 +62,8 @@ export function KioskSetup(): JSX.Element {
   }, []);
 
   const required = context?.state === 'required';
-  const currentSite = required ? undefined : SETUP_SITES.find((s) => s.code === context?.current);
+  const sites = context?.sites ?? [];
+  const currentSite = required ? undefined : sites.find((s) => s.code === context?.current);
   // What the table shows as chosen: the pick, or else this PC's own site.
   const chosen = selected ?? currentSite ?? null;
   // Choosing this PC's own site again is not a change.
@@ -120,7 +124,7 @@ export function KioskSetup(): JSX.Element {
             </tr>
           </thead>
           <tbody>
-            {SETUP_SITES.map((site) => {
+            {sites.map((site) => {
               const current = site === currentSite;
               return (
                 <tr

@@ -1,4 +1,4 @@
-// 롯데 home (W011~W013): the 화면정의서 (2026-11-13) home, and every destination opens.
+// 롯데 home (W012~W014): the 화면정의서 (2026-11-13) home, and every destination opens.
 // Set LOTTE_SHOTS_DIR to also save a screenshot of each screen for review.
 import { expect, test, type Page } from '@playwright/test';
 import { readFileSync, readdirSync } from 'node:fs';
@@ -43,7 +43,7 @@ const home = async (main: Page): Promise<void> => {
 };
 
 test('home draws the 화면정의서 rows and each destination opens', async () => {
-  const kiosk = await launchKiosk({ site: 'W011', apiBase: api.url });
+  const kiosk = await launchKiosk({ site: 'W012', apiBase: api.url });
   try {
     const { main } = kiosk;
     // A-01 (2026-11-13): 3 cards · 롯데시네마 · 영화 나눔 · 뭐먹지 · 뭐사지 · 3 cards · 건물 단추.
@@ -178,7 +178,7 @@ test('home draws the 화면정의서 rows and each destination opens', async () 
 });
 
 test('a department store lists its own shops and has no restroom data to guess from', async () => {
-  const kiosk = await launchKiosk({ site: 'W012', apiBase: api.url });
+  const kiosk = await launchKiosk({ site: 'W013', apiBase: api.url });
   try {
     const { main } = kiosk;
     await expect(main.getByText('오늘의 사연', { exact: true })).toBeVisible({ timeout: 30_000 });

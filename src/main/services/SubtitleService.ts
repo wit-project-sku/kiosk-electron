@@ -42,7 +42,7 @@ type SubtitleSource = 'api' | 'sheet';
  * authored, and the CMS copy drifts from it — production carried stale file
  * names for 뭐먹지 / 지역화폐 / 화장실, so those screens resolved no clip. The
  * API is only the fallback, used when the sheet yields nothing (unreachable
- * with no sheet rows cached, or a tab with no file names yet, like W010's).
+ * with no sheet rows cached, or a tab with no file names yet, like W011's).
  *
  * ── 인사동: the sheet is the source ─────────────────────────────────────────
  * The reverse order. The CMS still names the pre-refresh footage
@@ -122,7 +122,7 @@ export class SubtitleService {
     // and captions, and the CMS copy has drifted from it (production named
     // `GYULI=ToBuy-1=To eat Market-1` / `MarketPaper-1` for clips that ship as
     // `GYULI=ToEatMarket-1` / `GYULI=MarketPaper-1`, so 뭐먹지 and 지역화폐 fell to
-    // the idle reel). A tab with no file names yet (W010's) yields nothing and
+    // the idle reel). A tab with no file names yet (W011's) yields nothing and
     // falls through to the API below.
     const jejuSheetFirst = JEJU_SUBTITLE_TABS[getKioskLocation(this.kiosk.getConfig().kioskId).layout] != null;
     if (jejuSheetFirst) {

@@ -348,7 +348,7 @@ export interface KioskBridge {
   traffic: {
     getExpressway(): Promise<Result<ExpresswayTrafficSnapshot | null>>;
   };
-  /** 롯데 (W011~W013) kiosk-number endpoints — null until the server has answered once. */
+  /** 롯데 (W012~W014) kiosk-number endpoints — null until the server has answered once. */
   lotte: {
     getShowtimes(): Promise<Result<LotteShowtimes | null>>;
     getStories(): Promise<Result<LotteStory[] | null>>;

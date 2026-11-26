@@ -525,7 +525,7 @@ const INSADONG_SCREEN_TO_VIDEO_KEY: Record<string, string> = {
 };
 
 /**
- * 제주 (W008 공항 / W009 여객터미널 / W010 세계자연유산본부) screen→key mapping,
+ * 제주 (W008 공항 / W009 여객터미널 / W011 세계자연유산본부) screen→key mapping,
  * transcribed from VideoSubtitle_귤이's `Key (개발)` + `재생조건(Condition)` columns.
  *
  * `inherit: false`, like Hwaseong: the 제주 home grid is its own (렌트카 · 탐나오 ·
@@ -706,7 +706,7 @@ const SCREEN_KEYS_BY_LAYOUT: Record<KioskLayoutId, LayoutScreenKeys> = {
   HWASEONG: { map: HWASEONG_SCREEN_TO_VIDEO_KEY, inherit: false },
   // Both 제주 layouts read the SAME map: VideoSubtitle_귤이 is one tab for all
   // three venues, and the grid differences between them (렌트카 vs 크루즈 운항,
-  // W010's 제주세계유산 trio) are extra screens, not different keys for the same
+  // W011's 제주세계유산 trio) are extra screens, not different keys for the same
   // screen. What differs per venue is the video SET, above.
   JEJU_AIRPORT: { map: JEJU_SCREEN_TO_VIDEO_KEY, inherit: false },
   JEJU_HERITAGE: { map: JEJU_SCREEN_TO_VIDEO_KEY, inherit: false },

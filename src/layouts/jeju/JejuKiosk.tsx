@@ -154,7 +154,7 @@ const WEB_SCREENS: readonly WebScreen[] = [
  * buttons now, so each opens its OWN page — the site alone, no tab row. Same
  * chrome as the two-tab page (the QR row hands over whichever site is showing);
  * the panel takes the tab row's band (see JejuWebScreen's single-site metrics).
- * W010 keeps the two-tab page above.
+ * W011 keeps the two-tab page above.
  */
 const WEB_SCREENS_SPLIT: readonly WebScreen[] = WEB_SCREENS.flatMap((web): WebScreen[] =>
   web.screen === 'tamnao'
@@ -174,10 +174,10 @@ const WEB_SCREENS_SPLIT: readonly WebScreen[] = WEB_SCREENS.flatMap((web): WebSc
 
 /** Which pages a 제주 kiosk keeps warm. Mirrors JejuHome's grid choice: the
  *  airport layout is the default (a test rig previewing 제주 gets it too), and
- *  only W010 — whose home still draws the 탐나오·제주큐랑 tile — keeps the
+ *  only W011 — whose home still draws the 탐나오·제주큐랑 tile — keeps the
  *  two-tab page. */
 const webScreensFor = (kioskId: string): readonly WebScreen[] =>
-  kioskId === 'W010' ? WEB_SCREENS : WEB_SCREENS_SPLIT;
+  kioskId === 'W011' ? WEB_SCREENS : WEB_SCREENS_SPLIT;
 
 type WebScreenKey = WebScreen['screen'];
 
@@ -272,10 +272,10 @@ export function JejuKiosk(): JSX.Element {
   ) : cur === 'about' ? (
     <JejuAbout controller={controller} />
   ) : cur === 'heritage' ? (
-    // W010's 제주세계유산 home tile (6792:126444) → 제주 유네스코 유산.
+    // W011's 제주세계유산 home tile (6792:126444) → 제주 유네스코 유산.
     <JejuHeritage controller={controller} />
   ) : cur === 'geomun' ? (
-    // W010's 거문오름 예약 home tile → 소개/안내 tabs (6935:69555 / 69554).
+    // W011's 거문오름 예약 home tile → 소개/안내 tabs (6935:69555 / 69554).
     <JejuGeomun controller={controller} />
   ) : cur === 'hello' ? (
     <JejuHello controller={controller} />

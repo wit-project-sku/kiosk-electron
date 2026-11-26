@@ -634,7 +634,7 @@ const PICK_SUBTITLE = {
  * requesting kiosk's own coordinates — verified on stage 2026-09-14, 8 of 8
  * first legs from kiosk 7 measure from the ferry terminal, none from the
  * airport. The frame's copy only ever said 제주 공항, which was false on W009
- * and W010, so the note is per kiosk. Keyed by kiosk id, not layout: W008 and
+ * and W011, so the note is per kiosk. Keyed by kiosk id, not layout: W008 and
  * W009 share JEJU_AIRPORT but start from different places. An id not listed
  * keeps the frame's own airport copy.
  */
@@ -662,8 +662,8 @@ const PICK_NOTE_BY_KIOSK: Record<string, Partial<Record<Lang, string>>> = {
     ru: '*Все рекомендуемые маршруты составлены от международного пассажирского терминала Чеджу.',
     id: '*Semua rute rekomendasi dibuat dengan Terminal Penumpang Internasional Jeju sebagai titik awal.',
   },
-  // W010 세계자연유산본부.
-  W010: {
+  // W011 세계자연유산본부.
+  W011: {
     ko: '*모든 추천코스는 세계자연유산본부를 기준으로 제작되었습니다.',
     en: '*All recommended courses start from the World Natural Heritage Center.',
     ja: '*すべてのおすすめコースは世界自然遺産本部を起点に作成されています。',
@@ -699,8 +699,8 @@ const pickNoteFor = (kioskId: string): Partial<Record<Lang, string>> =>
 /**
  * The sheet's row for this kiosk's note: Jeju_Todo_Subtitle1-1 (제주 공항) and
  * Jeju_Todo_Subtitle1-2 (제주항 여객터미널). The sheet marks 1-2 for the 유산 centre
- * too, but its copy names the ferry terminal while W010's courses start at
- * 세계자연유산본부 (see above), so W010 keeps its own authored note until the
+ * too, but its copy names the ferry terminal while W011's courses start at
+ * 세계자연유산본부 (see above), so W011 keeps its own authored note until the
  * sheet has a row that names it.
  */
 const PICK_NOTE_KEY: Record<string, string> = {
