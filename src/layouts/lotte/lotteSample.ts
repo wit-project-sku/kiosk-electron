@@ -12,7 +12,7 @@ export const LOTTE_EAT = '롯데 뭐먹지';
 export const LOTTE_SHOP = '롯데 뭐사지';
 /** baseCategoryKr of every 시설안내 row (the shops API's name for the base). */
 export const LOTTE_FACILITY = '롯데 시설안내';
-const SITE_FALLBACK = 'W011';
+const SITE_FALLBACK = 'W012';
 
 /** Collected store list as Shop rows; descriptions and translations come later. */
 export function lotteShopsFor(kioskId: KioskId): Shop[] {
@@ -184,7 +184,7 @@ export interface AboutItem {
 }
 
 const ABOUT: Record<string, readonly AboutItem[]> = {
-  W011: [
+  W012: [
     { tab: 'facility', name: '서울스카이', place: '롯데월드타워' },
     { tab: 'facility', name: '롯데시네마', place: '롯데월드몰 5F' },
     { tab: 'facility', name: '롯데월드 아쿠아리움', place: '롯데월드몰 B1F' },
@@ -192,12 +192,12 @@ const ABOUT: Record<string, readonly AboutItem[]> = {
     { tab: 'sights', name: '아레나광장', place: '롯데월드몰 1F' },
     { tab: 'sights', name: '롯데뮤지엄', place: '에비뉴엘' },
   ],
-  W012: [
+  W013: [
     { tab: 'facility', name: '롯데문화센터', place: '롯데백화점 청량리점' },
     { tab: 'facility', name: '샤롯데가든', place: '롯데백화점 청량리점 9F' },
     { tab: 'sights', name: '테라스가든', place: '롯데백화점 청량리점' },
   ],
-  W013: [
+  W014: [
     { tab: 'facility', name: '롯데문화센터', place: '롯데백화점 건대스타시티점' },
     { tab: 'facility', name: '롯데웨딩센터', place: '롯데백화점 건대스타시티점' },
   ],
@@ -215,7 +215,7 @@ export interface LotteSiteInfo {
    *  that opens 건물 안내 (C-04 · A-07) for that building. */
   buildings: readonly string[];
   art: string | null;
-  /** Title of the home's 안녕 card — the A-01 frames name it per site (W011 '안녕 로시'). */
+  /** Title of the home's 안녕 card — the A-01 frames name it per site (W012 '안녕 로시'). */
   helloTitle: string;
   /** 영업시간 shown on the department stores' 지점 소개 (A-07). */
   hours: string;
@@ -228,7 +228,7 @@ const NOTICE_A01 =
   '복합문화공간을 지향하는 롯데시네마와 글로벌을 지향하며 다양한 콘텐츠를 만들어 나가는 롯데엔터테인먼트로 운영하며 전 세계의 문화 및 트렌드를 선도하는 기업으로 도약하고 있습니다.';
 
 const SITE: Record<string, LotteSiteInfo> = {
-  W011: {
+  W012: {
     short: 'LOTTE WORLD MALL',
     cinema: '월드타워',
     notice: NOTICE_A01,
@@ -239,7 +239,7 @@ const SITE: Record<string, LotteSiteInfo> = {
     hours: '10:30 ~ 22:00',
     title: '롯데월드몰',
   },
-  W012: {
+  W013: {
     short: 'LOTTE CHEONGNYANGNI',
     cinema: '청량리',
     notice: NOTICE_A01,
@@ -250,7 +250,7 @@ const SITE: Record<string, LotteSiteInfo> = {
     hours: '쇼핑몰 10:30 ~ 22:00 · 백화점 10:30 ~ 20:00',
     title: '롯데백화점 청량리점',
   },
-  W013: {
+  W014: {
     short: 'LOTTE STAR CITY',
     cinema: '건대입구',
     notice: NOTICE_A01,

@@ -1,5 +1,5 @@
 /**
- * 롯데 뭐먹지 / 뭐사지 / 시설안내 (Figma 목록-W011~W013): the 인사 list — category chips, 초성, scrolling
+ * 롯데 뭐먹지 / 뭐사지 / 시설안내 (Figma 목록-W012~W014): the 인사 list — category chips, 초성, scrolling
  * rows. The categories come from this venue's own catalogue, so the chips differ by branch.
  */
 import { belowModeBar } from './lowReach';

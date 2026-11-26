@@ -4,11 +4,11 @@
  * 허리 / 기분전환). All six sub-tab frames are the same template and differ only
  * in their photo slot, labels and copy — see TOPICS_BY_MASCOT in JejuHello.tsx.
  *
- * 안녕 '유산' (W010 세계자연유산본부) — Figma 6432:46475 ('유산'소개); 6431:31474 /
+ * 안녕 '유산' (W011 세계자연유산본부) — Figma 6432:46475 ('유산'소개); 6431:31474 /
  * 31714 / 31773 (취미생활 K-POP / 맛집탐방 / 테니스); 6431:31534 / 31594 / 31654
  * (건강습관 목·어깨 / 허리 / 기분전환). The SAME page with a different character,
  * so it shares every rule here and overrides five boxes — see the
- * "유산 (W010)" section below for the measured deltas and why each one exists.
+ * "유산 (W011)" section below for the measured deltas and why each one exists.
  *
  * 취미생활 and 건강습관 keep the tab row and the hashtag/SNS footer, nothing else,
  * and are the same page as each other:
@@ -438,7 +438,7 @@
 
 
 /* ────────────────────────────────────────────────────────────────────────────
- * 유산 (W010 세계자연유산본부) — the five boxes the 유산 frames measure differently.
+ * 유산 (W011 세계자연유산본부) — the five boxes the 유산 frames measure differently.
  *
  * Everything else on the page is shared: the tab row, portrait circle, profile
  * and detail columns, divider, hashtag row and every type ramp land on the same

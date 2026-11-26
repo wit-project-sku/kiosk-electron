@@ -48,7 +48,7 @@ export const isMulti = (m: Mission): boolean => (m.places?.length ?? 0) > 1;
 export const typeLabel = (m: Mission, long = false): string =>
   isMulti(m) ? `${long ? '여러 곳 방문' : '여러 곳'} · ${m.places!.length}곳` : '한 곳 방문';
 
-const W011: readonly Mission[] = [
+const W012: readonly Mission[] = [
   {
     id: 'm1',
     title: '롯데시네마 월드타워 라운지 방문',
@@ -162,21 +162,21 @@ const store = (site: string, cinema: string): readonly Mission[] => [
 ];
 
 const MISSIONS: Record<string, readonly Mission[]> = {
-  W011,
-  W012: store('청량리점', '청량리'),
-  W013: store('건대스타시티점', '건대입구'),
+  W012,
+  W013: store('청량리점', '청량리'),
+  W014: store('건대스타시티점', '건대입구'),
 };
 
 /** Open missions first, finished/paused ones last (dimmed on the list). */
 export const lotteMissions = (kioskId: KioskId): readonly Mission[] =>
-  [...(MISSIONS[kioskId] ?? W011)].sort(
+  [...(MISSIONS[kioskId] ?? W012)].sort(
     (a, b) => Number(a.status !== 'open') - Number(b.status !== 'open'),
   );
 
 /** Hero copy of M-01 per site. */
 export const missionIntro = (kioskId: KioskId): string =>
-  kioskId === 'W012'
+  kioskId === 'W013'
     ? '롯데백화점 청량리점 곳곳을 방문하고,'
-    : kioskId === 'W013'
+    : kioskId === 'W014'
       ? '롯데백화점 건대스타시티점 곳곳을 방문하고,'
       : '롯데월드몰 · 롯데월드타워 곳곳을 방문하고,';

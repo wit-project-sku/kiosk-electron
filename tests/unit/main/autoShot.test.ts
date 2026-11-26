@@ -50,7 +50,7 @@ describe('자동 촬영 — whether to take one now', () => {
       enabled: false,
       due: false,
     });
-    expect(make({ site: 'W010', today: 0, now: at(12) }).service.plan()).toMatchObject({
+    expect(make({ site: 'W011', today: 0, now: at(12) }).service.plan()).toMatchObject({
       enabled: false,
     });
   });

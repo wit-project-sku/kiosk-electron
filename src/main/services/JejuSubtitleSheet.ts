@@ -27,7 +27,7 @@ import type { SubtitleLangText, VideoEntry, VideoSet } from '@shared/types/subti
  * The VideoSubtitle tab each 제주 layout reads. W008 제주공항 and W009
  * 제주국제여객터미널 share JEJU_AIRPORT and one tab — each row is kept only where
  * its video file is on that machine (or where `비디오 폴더명` names that venue).
- * W010 has its own mascot and tab, which carries no file names yet, so it
+ * W011 has its own mascot and tab, which carries no file names yet, so it
  * yields nothing until one is filled in.
  */
 export const JEJU_SUBTITLE_TABS: Partial<Record<KioskLayoutId, string>> = {

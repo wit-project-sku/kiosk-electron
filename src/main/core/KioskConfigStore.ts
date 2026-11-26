@@ -14,20 +14,16 @@ import { TEST_RIG_KIOSK_ID, isStageApiBase, resolveKioskIdentity } from '@shared
 import { setupStateFor, type KioskSetupState, type SetupSiteCode } from '@shared/config/kioskSetup';
 import { witteriaApiBase } from './apiBase';
 import { e2eForcesStageServer } from './e2e';
+import {
+  JEJU_ID_SHIFT_FLAG,
+  V224_ID_SHIFT_FLAG,
+  migrateStoredSite,
+} from '@shared/config/kioskRenumber';
 
-/**
- * One-shot map for machines provisioned before the 2026-10-26 CMS renumber.
- * Applied only while `jejuIdShift202610` is absent, then the flag is stored so
- * the new 제주공항 code (W008) is not shifted again on the next launch.
- * A fresh provision writes the flag itself.
- */
-const JEJU_ID_SHIFT: Record<string, string> = {
-  W006: 'W008',
-  W007: 'W009',
-  W008: 'W010',
+type KioskConfigFile = Partial<KioskConfig> & {
+  jejuIdShift202610?: boolean;
+  kioskIdShift202611?: boolean;
 };
-
-type KioskConfigFile = Partial<KioskConfig> & { jejuIdShift202610?: boolean };
 
 let store: Store<KioskConfigFile> | null = null;
 /** Whether the 지점 설정 screen opens this launch — see decideSetup(). */
@@ -45,12 +41,25 @@ function getStore(): Store<KioskConfigFile> {
   return store;
 }
 
+/** Apply the one-shot renumber moves (kioskRenumber.ts) and store their flags. */
 function migratedKioskId(s: Store<KioskConfigFile>, kioskId: string): string {
-  if (s.get('jejuIdShift202610')) return kioskId;
-  const next = JEJU_ID_SHIFT[kioskId] ?? kioskId;
-  if (next !== kioskId) s.set('kioskId', next);
-  s.set('jejuIdShift202610', true);
-  return next;
+  const jejuShifted = s.get(JEJU_ID_SHIFT_FLAG) === true;
+  const v224Shifted = s.get(V224_ID_SHIFT_FLAG) === true;
+  if (jejuShifted && v224Shifted) return kioskId;
+  const previewSite = (s.get('previewSite' as never) as string | undefined)?.trim() || undefined;
+  const next = migrateStoredSite({ kioskId, previewSite, jejuShifted, v224Shifted });
+  if (next.changed.includes('kioskId')) s.set('kioskId', next.kioskId);
+  if (next.changed.includes('previewSite'))
+    s.set('previewSite' as never, next.previewSite as never);
+  s.set(JEJU_ID_SHIFT_FLAG, true);
+  s.set(V224_ID_SHIFT_FLAG, true);
+  return next.kioskId;
+}
+
+/** A site written now is already in today's numbering — neither move may touch it. */
+function markRenumbered(s: Store<KioskConfigFile>): void {
+  s.set(JEJU_ID_SHIFT_FLAG, true);
+  s.set(V224_ID_SHIFT_FLAG, true);
 }
 
 export const kioskConfigStore = {
@@ -83,7 +92,7 @@ export const kioskConfigStore = {
   applySetup(code: SetupSiteCode): void {
     const s = getStore();
     s.set('kioskId', code);
-    s.set('jejuIdShift202610', true);
+    markRenumbered(s);
     s.delete('shopApiKioskId');
     s.delete('setupPending' as never);
     if (code !== TEST_RIG_KIOSK_ID) s.delete('previewSite' as never);
@@ -97,7 +106,7 @@ export const kioskConfigStore = {
     // which writes {"kioskId":"W00x"} to %APPDATA%\kiosk-app\kiosk-config.json.
     // The default only applies to a machine that has not been provisioned yet.
     const s = getStore();
-    // Pre-2026-10-26 제주 ids are shifted once (migratedKioskId), THEN the office
+    // Codes from before the 2026-10-26 / 2026-11-25 renumbers are moved once (migratedKioskId), THEN the office
     // test rig (W200) — or, on a stage server, any machine — keeps its identity
     // but shows a switchable preview site.
     const storedId = migratedKioskId(
@@ -132,7 +141,7 @@ export const kioskConfigStore = {
     for (const [key, value] of Object.entries(changes)) {
       s.set(key, value as never);
     }
-    if (changes.kioskId) s.set('jejuIdShift202610', true);
+    if (changes.kioskId) markRenumbered(s);
     return this.get();
   },
 

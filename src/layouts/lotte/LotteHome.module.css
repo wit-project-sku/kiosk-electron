@@ -1269,7 +1269,7 @@
 .cardWide1 .cardText, .cardWide2 .cardText, .cardWide3 .cardText { left: 56px; width: 320px; }
 .noticeText { word-break: keep-all; }
 
-/* ── 2026-11-09 Figma #W011~13=롯데(키오스크)-V1 홈: 3 cards · 4 tiles · 3 cards · building art. ── */
+/* ── 2026-11-09 Figma #W012~13=롯데(키오스크)-V1 홈: 3 cards · 4 tiles · 3 cards · building art. ── */
 .searchRow { top: 1095px; }
 .cards { top: 1325px; }
 .card { background: #F5EFE9; }
@@ -1304,7 +1304,7 @@
 .cardMarket .cardText { width: 260px; }
 .cardEvents .cardText { left: 51px; width: 210px; }
 
-/* ── 2026-11-13 Figma A-01 (화면정의서; W011 8746:1402 · W012 8746:1585 · W013 8746:1754) ──
+/* ── 2026-11-13 Figma A-01 (화면정의서; W012 8746:1402 · W013 8746:1585 · W014 8746:1754) ──
    롯데시네마-led home: 4 tiles (롯데시네마 · 영화 나눔 · 뭐먹지 · 뭐사지), 오늘의 사연 card, 건물 단추
    under the art, ♿ + 음성 안내 on the rail, bottom row re-set. */
 .root { background: #FFF1F0; }

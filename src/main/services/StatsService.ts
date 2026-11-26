@@ -252,7 +252,7 @@ export class StatsService {
     return process.env['STATS_SHOTS_V2_URL'] ?? `${witteriaApiBase()}/api/stats/shots/measurement`;
   }
 
-  /** 제주 kiosks (W008/W009/W010) carry the ZED; every other venue stays on v1. */
+  /** 제주 kiosks (W008/W009/W011) carry the ZED; every other venue stays on v1. */
   private usesShotsV2(): boolean {
     return isJejuLayout(this.kiosk.getConfig().layout);
   }

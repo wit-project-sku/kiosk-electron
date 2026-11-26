@@ -10,7 +10,7 @@ import { LANGUAGES, type LocalizedLang } from '@shared/config/languages';
  *  about 항공편/탑승구 and the terminal's about 여객선/뱃길 (see the FlightInfo_*
  *  vs FerryInfo_* rows of VideoSubtitle_귤이). One shared `jeju` folder would
  *  put flight clips on a ferry terminal's second monitor, so each venue reads
- *  its own folder and W010 세계자연유산본부 (mascot 유산, its own tab) gets a
+ *  its own folder and W011 세계자연유산본부 (mascot 유산, its own tab) gets a
  *  third — empty until 유산 footage exists, which simply plays nothing. */
 export const VIDEO_SETS = [
   'insadong',

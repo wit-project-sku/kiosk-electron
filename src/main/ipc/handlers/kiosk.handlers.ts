@@ -10,7 +10,7 @@ import { isDevMode } from '@main/core/env';
 import { kioskConfigStore } from '@main/core/KioskConfigStore';
 import { planSiteSwitch } from '@shared/config/testRig';
 import {
-  SETUP_SITES,
+  setupSites,
   setupConfirmText,
   withoutSetupArg,
   type SetupSite,
@@ -107,7 +107,9 @@ export function registerKioskHandlers(windows: WindowManager, container: AppCont
   // (the Windows desktop, behind the kiosk window) and the question asked here,
   // not a build flag.
   handle(IpcChannels.KioskSetupApply, async ({ kioskId }) => {
-    const site = SETUP_SITES.find((s) => s.code === kioskId);
+    const site = setupSites({ stageServer: kioskConfigStore.get().stageServer === true }).find(
+      (s) => s.code === kioskId,
+    );
     if (!site) {
       throw AppError.validation(`Unknown kiosk site: ${kioskId}`, { kioskId });
     }

@@ -39,24 +39,26 @@ export interface SetupSite {
   testRig: boolean;
 }
 
+const TEST_RIG_SITE: SetupSite = {
+  code: TEST_RIG_KIOSK_ID,
+  name: '사무실 테스트기 (HQ)',
+  testRig: true,
+};
+
 /**
  * Every site a PC can be set to, in kiosk order, then the office test kiosk.
- * A site still being built (`notInSetup`) is left out — saving checks this list too.
+ * A site whose kiosk only the stage server has yet (`setupStageOnly`, 롯데
+ * W012~W014) is offered only when this build talks to a stage server — saving
+ * checks the same list, so a production PC cannot be set to it.
  */
-export const SETUP_SITES: readonly SetupSite[] = [
-  ...Object.values(KIOSK_LOCATIONS)
-    .filter((loc) => !loc.notInSetup)
-    .map((loc) => ({
-      code: loc.code,
-      name: loc.name,
-      testRig: false,
-    })),
-  {
-    code: TEST_RIG_KIOSK_ID,
-    name: '사무실 테스트기 (HQ)',
-    testRig: true,
-  },
-];
+export function setupSites(opts: { stageServer: boolean }): readonly SetupSite[] {
+  return [
+    ...Object.values(KIOSK_LOCATIONS)
+      .filter((loc) => opts.stageServer || !loc.setupStageOnly)
+      .map((loc) => ({ code: loc.code, name: loc.name, testRig: false })),
+    TEST_RIG_SITE,
+  ];
+}
 
 /** The kiosk number as staff say it — the code without its letter: W008 → "008". */
 export function siteNumberOf(code: SetupSiteCode): string {

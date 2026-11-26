@@ -20,13 +20,13 @@ const EXPECTED = {
   W003: { layout: 'NAM_INSADONG', region: 'INSADONG_SOUTH', hasCardTerminal: true },
   W004: { layout: 'OSAN', region: 'OSAEK', hasCardTerminal: true },
   W005: { layout: 'HWASEONG', region: 'HWASEONG', hasCardTerminal: true },
-  // 2026-10-26 renumber: 제주공항 W008, 여객터미널 W009, 유산본부 W010.
+  // 2026-10-26 renumber: 제주공항 W008, 여객터미널 W009, 유산본부 W011.
   W008: { layout: 'JEJU_AIRPORT', region: 'JEJU_AIRPORT', hasCardTerminal: true },
   W009: { layout: 'JEJU_AIRPORT', region: 'JEJU_PORT', hasCardTerminal: true },
-  W010: { layout: 'JEJU_HERITAGE', region: 'JEJU_HERITAGE', hasCardTerminal: true },
-  W011: { layout: 'LOTTE', region: 'LOTTE_WORLD_MALL', hasCardTerminal: true },
-  W012: { layout: 'LOTTE', region: 'LOTTE_CHEONGNYANGNI', hasCardTerminal: true },
-  W013: { layout: 'LOTTE', region: 'LOTTE_STARCITY', hasCardTerminal: true },
+  W011: { layout: 'JEJU_HERITAGE', region: 'JEJU_HERITAGE', hasCardTerminal: true },
+  W012: { layout: 'LOTTE', region: 'LOTTE_WORLD_MALL', hasCardTerminal: true },
+  W013: { layout: 'LOTTE', region: 'LOTTE_CHEONGNYANGNI', hasCardTerminal: true },
+  W014: { layout: 'LOTTE', region: 'LOTTE_STARCITY', hasCardTerminal: true },
   W202: { layout: 'KADA', region: null, hasCardTerminal: false },
 } as const;
 
@@ -64,7 +64,7 @@ describe('kioskLocations', () => {
       .filter((l) => isJejuLayout(l.layout))
       .map((l) => l.code)
       .sort();
-    expect(jeju).toEqual(['W008', 'W009', 'W010']);
+    expect(jeju).toEqual(['W008', 'W009', 'W011']);
   });
 });
 

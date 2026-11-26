@@ -75,7 +75,8 @@ export function taxfreeUrl(kioskId: string): string {
  * Resolve the 기부 webview URL for a kiosk. The donation app's `kiosk` query
  * selects per-site config (campaigns / chrome), so each physical machine maps
  * to a fixed value:
- *   W003 → 1 · W004 → 4 · W005 → 5 · W008 → 8 · W009 → 9 · W010 → 10
+ *   W003 → 1 · W004 → 4 · W005 → 5 · W008 → 8 · W009 → 9 · W011 → 10
+ *   (the donation app's own site number for 유산본부 — not the kiosk id, which is 11 since V224)
  * Anything else (incl. W001/W002, which have no 기부 tile) resolves to 1.
  * 6 is the office rig WITH-I-001, not a 제주 venue.
  */
@@ -85,7 +86,7 @@ export function donationUrl(kioskId: string): string {
     : kioskId === 'W005' ? 5
     : kioskId === 'W008' ? 8
     : kioskId === 'W009' ? 9
-    : kioskId === 'W010' ? 10
+    : kioskId === 'W011' ? 10
     : 1;
   return `https://witglobaldonation.vercel.app/#/?kiosk=${param}`;
 }

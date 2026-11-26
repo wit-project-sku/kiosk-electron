@@ -12,19 +12,19 @@ afterEach(() => useKioskStore.setState(initial, true));
 
 describe('롯데 상세 QR link', () => {
   it("uses the shop's own Naver link when the server has one", () => {
-    asKiosk('W011');
+    asKiosk('W012');
     expect(lotteShopLink(shop({ naverLink: 'https://naver.me/abc' }))).toBe('https://naver.me/abc');
   });
 
   it('falls back to a Naver Map search for this venue and shop, like 제주 rows', () => {
-    asKiosk('W012');
+    asKiosk('W013');
     const url = lotteShopLink(shop({ naverLink: '' }));
     expect(url.startsWith('https://map.naver.com/p/search/')).toBe(true);
     expect(decodeURIComponent(url)).toContain('롯데백화점 청량리점 편백집');
   });
 
   it('puts the link and a homepage on the detail item', () => {
-    asKiosk('W011');
+    asKiosk('W012');
     const item = shopDetail(shop({ homepage: 'https://example.com' }), 'eat', '뭐먹지', 'ko');
     expect(item.blogReviews).toMatch(/^https:\/\/map\.naver\.com/);
     expect(item.homepageUrl).toBe('https://example.com');

@@ -1,5 +1,5 @@
 /**
- * 롯데 kiosk (W011~W013) live data — the three kiosk endpoints only the 롯데 venues call. Each is
+ * 롯데 kiosk (W012~W014) live data — the three kiosk endpoints only the 롯데 venues call. Each is
  * keyed by the kiosk number (11 · 12 · 13), not the content region, exactly as the API asks.
  *
  *   GET /api/cinema/showtimes?kioskId=   오늘 남은 상영 (server caches 1 min)

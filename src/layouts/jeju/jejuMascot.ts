@@ -1,6 +1,6 @@
 /**
  * The 제주 mascots — 하영 (W008 제주공항 / W009 제주국제여객터미널) and 유산
- * (W010 세계자연유산본부). One 제주 design family, two characters: every 제주
+ * (W011 세계자연유산본부). One 제주 design family, two characters: every 제주
  * screen that writes the mascot's NAME or biography resolves it through here
  * instead of hardcoding 하영, so a JEJU_HERITAGE machine reads '유산' everywhere
  * without per-screen forks.
@@ -28,7 +28,7 @@ export interface JejuMascotBio {
    * the fallback — exactly the behaviour W008/W009 have always had.
    *
    * `false` for 유산: the sheet's Greeting_* rows are 하영's data, so reading
-   * them on a W010 machine is not a fallback, it is the WRONG mascot's
+   * them on a W011 machine is not a fallback, it is the WRONG mascot's
    * biography (하영's birthday, hobbies and 자기소개 under the 유산 portrait).
    * The authored copy below — transcribed from the 유산 frames — wins instead.
    * Flip this to `true` the moment the operators add 유산 rows to the sheet and
@@ -85,7 +85,7 @@ export interface JejuMascot {
   /**
    * 안녕's page subtitle, passed to JejuHeader only when {@link JejuMascotBio.fromSheet}
    * is false. `Greeting_Introduce` is another single 하영 row, so without this a
-   * W010 kiosk would head the 유산 page with "마스코트 '하영'를 소개할게요".
+   * W011 kiosk would head the 유산 page with "마스코트 '하영'를 소개할게요".
    * The 유산 frames draw the Figma placeholder here, so this is the sheet's own
    * sentence with the mascot swapped rather than supplied copy.
    */
@@ -133,7 +133,7 @@ const HAYOUNG: JejuMascot = {
   },
 };
 
-/** 유산 — W010 세계자연유산본부. Figma 6432:46475 ('유산'소개). */
+/** 유산 — W011 세계자연유산본부. Figma 6432:46475 ('유산'소개). */
 const YUSAN: JejuMascot = {
   id: 'yusan',
   ko: '유산',
@@ -186,11 +186,11 @@ export const TERMINAL_GUIDE_TITLE = '여객터미널 안내';
 
 /**
  * The 도와줘 page's header id, matching the home card that opens it. Mirrors
- * JejuHome's TILES_BY_KIOSK: W009 reads 여객터미널 안내, W010 keeps the mascot's
+ * JejuHome's TILES_BY_KIOSK: W009 reads 여객터미널 안내, W011 keeps the mascot's
  * 도와줘, and every other 제주 kiosk draws the airport grid (제주공항 안내).
  */
 export function jejuHelpTitle(): string {
   const { kioskId } = useKioskStore.getState().config;
   if (kioskId === 'W009') return TERMINAL_GUIDE_TITLE;
-  return kioskId === 'W010' ? jejuMascot().helpTitle : AIRPORT_GUIDE_TITLE;
+  return kioskId === 'W011' ? jejuMascot().helpTitle : AIRPORT_GUIDE_TITLE;
 }

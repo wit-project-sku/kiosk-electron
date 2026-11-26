@@ -139,7 +139,7 @@ const BUTTON_IDS: Record<string, Record<number, number>> = {
 /**
  * 혼자찍기 / 같이찍기 on the 제주 kiosks. admin-be V193 created these rows with ids
  * FIXED to 301–306 so stage and production agree, and V201 (2026-10-26) moved them
- * with the kiosks: W008 = 301/302, W009 = 303/304, W010 = 305/306 (both environments,
+ * with the kiosks: W008 = 301/302, W009 = 303/304, W011 = 305/306 (both environments,
  * checked 2026-10-30). They are OFF_MAIN (line -1, position 1/2), which `buttons/v2`
  * leaves out, so the live response can never supply the id — it has to be `fixedId`.
  * Not keyed by flat slot 23/24 as on W001–W005: 제주 positions are CMS reading order,
@@ -316,7 +316,7 @@ const SLOT_OVERRIDES: Partial<Record<KioskId, Record<string, Slot>>> = {
     jejuqrang: { position: 22, type: '제주큐랑' },
     weather: { position: 23, type: '오늘의 날씨' },
   },
-  // ── W010 세계자연유산본부 ──
+  // ── W011 세계자연유산본부 ──
   // Transcribed from the live response on 2026-08-24 (21 rows, ids 171–191 in
   // production). It is W009's grid — 크루즈 운항 at line 6 position 4, NOT 렌트카 —
   // with the two mascot rows renamed: 안녕 '유산' / 도와줘 '유산' (ASCII U+0027
@@ -329,7 +329,7 @@ const SLOT_OVERRIDES: Partial<Record<KioskId, Record<string, Slot>>> = {
   // CMS, so still id-less here: K-DRAMA, 운항정보 (photo_solo/photo_together carry
   // fixed ids, see jejuPhotoMode); `프로모션` (id 189) is the reverse — a seeded row
   // with no 제주 screen behind it.
-  W010: {
+  W011: {
     home: { position: 1, type: '홈' },
     search: { position: 2, type: '검색' },
     language: { position: 3, type: '언어선택' },

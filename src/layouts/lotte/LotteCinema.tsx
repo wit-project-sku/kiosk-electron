@@ -1,5 +1,5 @@
 /**
- * 롯데시네마 상영 시간표 — Figma A-06 (W011 8754:656 · W012 8754:805 · W013 8754:943). By movie, like
+ * 롯데시네마 상영 시간표 — Figma A-06 (W012 8754:656 · W013 8754:805 · W014 8754:943). By movie, like
  * the cinema's own booking page; the chosen session is red (the top movie's first time until one is
  * tapped) and sessions that have started are hidden. No tabs: 영화 전후 코스 and 영화 나눔 open from the home.
  *

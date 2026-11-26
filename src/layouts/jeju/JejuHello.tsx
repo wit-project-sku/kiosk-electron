@@ -1,15 +1,15 @@
 /**
  * 안녕 '하영' / 안녕 '유산' — Figma node 6217:94591 ('하영'소개 tab).
  *
- * One page for both 제주 mascots: 하영 on W008/W009, 유산 on W010 (jejuMascot).
+ * One page for both 제주 mascots: 하영 on W008/W009, 유산 on W011 (jejuMascot).
  * Everything NAMED after the mascot — title, tab fallbacks, name fallback,
  * hashtags — resolves through the mascot; pills 2–3 also read Greeting_Hashtag1/2
  * from the sheet. The biography VALUES stay sheet-driven (Greeting_*Content), so
  * 유산's profile appears the moment the operators add 유산 rows to
  * Localization_Jeju (the venue tie-break already prefers them on a
- * JEJU_HERITAGE machine). TODO(제주 W010): the ART is still 하영's — portrait
+ * JEJU_HERITAGE machine). TODO(제주 W011): the ART is still 하영's — portrait
  * (hello-portrait), hobby/health photos and the SNS QR (qr-hayoung) — swap in
- * 유산 exports when the designer supplies them, until then W010 shows 하영's.
+ * 유산 exports when the designer supplies them, until then W011 shows 하영's.
  *
  * Three tabs. 소개 keeps the portrait card. 취미생활 and 건강습관 share one
  * scrolling card in the Insadong row structure (all items at once): hobbies
@@ -47,7 +47,7 @@ import hobbyTennis from '@renderer/assets/photos/jeju/hello/hobby-tennis.png';
 import healthNeck from '@renderer/assets/photos/jeju/hello/health-neck.png';
 import healthWaist from '@renderer/assets/photos/jeju/hello/health-waist.jpg';
 import healthRefresh from '@renderer/assets/photos/jeju/hello/health-refresh.png';
-// 유산's own six topic photos (W010), exported 1:1 with the 842×1509 slot from
+// 유산's own six topic photos (W011), exported 1:1 with the 842×1509 slot from
 // the frames listed in TOPICS_BY_MASCOT. 하영's are the six above.
 import qrYusan from '@renderer/assets/photos/jeju/hello/qr-yusan.png';
 import ysHobbyKpop from '@renderer/assets/photos/jeju/hello/yusan-hobby-kpop.jpg';
@@ -104,7 +104,7 @@ const label = (f: { key: string } & Partial<Record<Lang, string>>, lang: Lang): 
  * label, a sub-tab label or a topic caption.
  *
  * 하영 reads the sheet first, exactly as before. 유산 does not: those rows exist
- * once and hold 하영's data (birthday, 런닝, 자기소개), so on a W010 machine the
+ * once and hold 하영's data (birthday, 런닝, 자기소개), so on a W011 machine the
  * sheet is the wrong mascot rather than a fallback — see JejuMascotBio.fromSheet
  * for how to hand these back to the sheet once 유산 rows exist.
  */
@@ -409,7 +409,7 @@ const SOCIAL_BRANDS: ReadonlyArray<{ id: string; icon: string }> = [
  *
  * Pill 0 stays the roman brand (`#HAYOUNG` / `#YUSAN`). Pills 1 and 2 come from
  * Localization_Jeju `Greeting_Hashtag1` / `Greeting_Hashtag2` (heritage table on
- * W010), with the mascot's authored tags as fallback.
+ * W011), with the mascot's authored tags as fallback.
  */
 function hashPill(raw: string): string {
   const bare = raw.replace(/^#+/, '').trim();
@@ -591,7 +591,7 @@ export function JejuHello({ controller }: Props): JSX.Element {
    * `hello-portrait` into the icon folder, and then it fills the circle for the
    * moment before the first frame paints instead of a grey flash.
    *
-   * TODO(제주 W010): the clip is 하영's, so a 유산 machine plays it — the same
+   * TODO(제주 W011): the clip is 하영's, so a 유산 machine plays it — the same
    * stand-in the portrait slot and the SNS QR already are (see the file header).
    * A per-mascot key goes here when 유산's own clip is shot.
    */

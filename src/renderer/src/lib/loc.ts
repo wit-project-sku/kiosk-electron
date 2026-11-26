@@ -26,7 +26,7 @@ const locLang = (lang: Lang): LocLang => toLocalizedLang(lang);
  * location's copy is what the per-layout split exists to prevent.
  */
 /**
- * W010 세계자연유산본부's bundled table — W008's with the 유산-venue rows overlaid.
+ * W011 세계자연유산본부's bundled table — W008's with the 유산-venue rows overlaid.
  * The overrides file carries ONLY the keys whose mascot pick differs (7 today),
  * so the ~230-key 제주 table isn't bundled twice. Mirrors what the runtime sync
  * produces for a JEJU_HERITAGE machine (LocalizationSyncParser.VENUE_MASCOTS).

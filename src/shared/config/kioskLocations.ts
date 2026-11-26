@@ -13,7 +13,7 @@ import type { KioskId, KioskLayoutId, KioskScreenId } from '../types/kiosk';
  * is electron-store (see KioskConfigStore), set per machine via provision-kiosk.ps1.
  * There is NO env override; one build serves every location.
  */
-export type KioskLocationCode = 'W001' | 'W002' | 'W003' | 'W004' | 'W005' | 'W008' | 'W009' | 'W010' | 'W011' | 'W012' | 'W013' | 'W202';
+export type KioskLocationCode = 'W001' | 'W002' | 'W003' | 'W004' | 'W005' | 'W008' | 'W009' | 'W011' | 'W012' | 'W013' | 'W014' | 'W202';
 
 /**
  * Content-branch code the v2 witteria endpoints are keyed by
@@ -129,12 +129,21 @@ export interface KioskLocation {
    */
   cameraRotation: 0 | 90 | 180 | 270;
   /**
-   * Leave this site out of the 지점 설정 window. For a venue still being built
-   * (롯데 W011~W013, 2026-11-12): the server has no kiosk of that number yet, so
-   * a PC set to it would send every shot and touch to an id the server rejects.
-   * The office test kiosk still previews it with its pin (testRig.ts).
+   * Offer this site in the 지점 설정 window only on a build that talks to a STAGE
+   * server (2026-11-26, 롯데 W012~W014): the stage server has these kiosks
+   * (V224) and the production server does not yet, so a production PC set to one
+   * would send every shot and touch to an id the server rejects. The office test
+   * kiosk previews it with its pin either way (testRig.ts).
    */
-  notInSetup?: true;
+  setupStageOnly?: true;
+  /**
+   * The content sheets' per-site row suffix (`Key@W011`) when it is not this
+   * site's own code. The sheets were written before the 2026-11-25 server
+   * renumber (V224) — 유산본부 rows are `@W010`, 롯데 `@W011`~`@W013` — and the
+   * production app still reads them that way, so the sheets keep the old suffixes
+   * and the app maps to them here. See {@link sheetSiteOf}.
+   */
+  sheetSite?: string;
   /**
    * Fewest photos this venue must have each day (2026-11-13, agreed with the
    * venue). When the day's count is short the kiosk takes the photo itself —
@@ -154,7 +163,7 @@ export interface KioskLocation {
    * override was dropped.
    *
    * 2026-10-26 the device ids moved: 제주공항 W008 → 8, 여객터미널 W009 → 9,
-   * 유산본부 W010 → 10. Id 6 is the office rig WITH-I-001, not a 제주 venue.
+   * 유산본부 W011 → 11 (W010 → 10 is the HQ 1-monitor PC since V224). Id 6 is the office rig WITH-I-001, not a 제주 venue.
    * Each 제주 kiosk uses its plain W-code number.
    * Do NOT copy an override onto a new 제주 kiosk without re-checking which
    * number actually carries the rows and the right route origin.
@@ -166,7 +175,7 @@ export interface KioskLocation {
    *
    * This is SHOP-ONLY. The per-kiosk endpoints (`/api/kiosks/{n}/banners`,
    * `/buttons`, `/subtitles`, stats, update-command) still key off the W-code
-   * number — W008 → 8, W009 → 9, W010 → 10 — so `KioskService.kioskNum()`
+   * number — W008 → 8, W009 → 9, W011 → 11 — so `KioskService.kioskNum()`
    * deliberately ignores this field. See ShopService.
    */
   shopApiKioskId?: number;
@@ -184,7 +193,7 @@ const JEJU_AIRPORT_COORDS: GeoCoordinates = { lat: 33.5104, lon: 126.493 };
  *  airport: close enough that the weather usually agrees, far enough that reusing
  *  the airport's would be a guess rather than this kiosk's location. */
 const JEJU_TERMINAL_COORDS: GeoCoordinates = { lat: 33.5237, lon: 126.5427 };
-/** 세계자연유산본부 — W010. Coordinates are the 제주세계자연유산센터 (거문오름,
+/** 세계자연유산본부 — W011. Coordinates are the 제주세계자연유산센터 (거문오름,
  *  제주시 조천읍 선교로 569-36), the venue's visitor building — inland and ~25km
  *  east of 제주시내, so its weather genuinely differs from the other two 제주
  *  kiosks'. Weather-grade precision; re-verify against the machine's actual
@@ -197,11 +206,11 @@ const JEJU_HERITAGE_COORDS: GeoCoordinates = { lat: 33.4557, lon: 126.7126 };
  * query leaves the KMA's coverage; OpenWeatherMap answers for Hanoi the same way
  * it does for the domestic venues.
  */
-/** 롯데월드몰 (서울 송파구 올림픽로 300) — W011. Weather-grade precision. */
+/** 롯데월드몰 (서울 송파구 올림픽로 300) — W012. Weather-grade precision. */
 const LOTTE_WORLD_MALL_COORDS: GeoCoordinates = { lat: 37.5126, lon: 127.1025 };
-/** 롯데백화점 청량리점 — W012. Weather-grade precision. */
+/** 롯데백화점 청량리점 — W013. Weather-grade precision. */
 const LOTTE_CHEONGNYANGNI_COORDS: GeoCoordinates = { lat: 37.5803, lon: 127.0469 };
-/** 롯데백화점 건대스타시티점 — W013. Weather-grade precision. */
+/** 롯데백화점 건대스타시티점 — W014. Weather-grade precision. */
 const LOTTE_KONKUK_COORDS: GeoCoordinates = { lat: 37.5376, lon: 127.073 };
 
 const KADA_COORDS: GeoCoordinates = { lat: 20.9806, lon: 105.7876 };
@@ -258,7 +267,7 @@ export const KIOSK_LOCATIONS: Record<KioskLocationCode, KioskLocation> = {
   // `aiCompanion` is 하영('5'), exactly like W008 — same venue mascot, same
   // Localization_Jeju rows, and the two were always meant to move together.
   W009: { code: 'W009', name: '제주국제여객터미널', region: 'JEJU_PORT', layout: 'JEJU_AIRPORT', secondTile: MARKET_TILE, hasCardTerminal: true, hasDonation: true, aiCompanion: '5', coordinates: JEJU_TERMINAL_COORDS, cameraRotation: 0, autoShotDailyMin: 10 },
-  // 세계자연유산본부 W010 — the CMS name is `#W010-제주시=세계자연유산본부` (the sheet's
+  // 세계자연유산본부 W011 — the CMS name is `#W011-제주시=세계자연유산본부` (the sheet's
   // 비고 column calls the venue 제주유산문화센터). Same 제주 design, but its OWN
   // JEJU_HERITAGE layout because its mascot is 유산, not 하영 — the shared
   // Localization_Jeju tab is disambiguated per layout (see
@@ -272,9 +281,9 @@ export const KIOSK_LOCATIONS: Record<KioskLocationCode, KioskLocation> = {
   //
   // No `shopApiKioskId`: the plain W-code number (10) is this venue's device id.
   // (2026-08-24 the same catalogue answered `?kioskId=8`, the id this venue had then.)
-  // TODO(제주 W010): hasCardTerminal mirrors W008/W009 (the 기부 flow pays through
+  // TODO(제주 W011): hasCardTerminal mirrors W008/W009 (the 기부 flow pays through
   // the loopback agent) — confirm the venue actually receives a TL-3800 at install.
-  // TODO(제주 W010): `aiCompanion` still sends 인사('2'). W008/W009 moved to
+  // TODO(제주 W011): `aiCompanion` still sends 인사('2'). W008/W009 moved to
   // 하영('5') when Digicon added that code (2026-08-25), but there is STILL no
   // 유산 code, and this venue's mascot is 유산 — so both options are wrong here.
   // '2' is kept deliberately rather than borrowing W008/W009's '5': this kiosk
@@ -282,16 +291,16 @@ export const KIOSK_LOCATIONS: Record<KioskLocationCode, KioskLocation> = {
   // (LocalizationSyncParser.VENUE_MASCOTS rewrites every 하영 row to 유산), so
   // compositing 하영 would contradict the one rule this layout exists to enforce.
   // Revisit when Digicon ships a 유산 code.
-  W010: { code: 'W010', name: '세계자연유산본부', region: 'JEJU_HERITAGE', layout: 'JEJU_HERITAGE', secondTile: MARKET_TILE, hasCardTerminal: true, hasDonation: true, aiCompanion: '2', coordinates: JEJU_HERITAGE_COORDS, cameraRotation: 0 },
-  // 롯데 W011~W013 — the server has these three branches since 2026-11 (stage), so shops,
+  W011: { code: 'W011', name: '세계자연유산본부', region: 'JEJU_HERITAGE', layout: 'JEJU_HERITAGE', secondTile: MARKET_TILE, hasCardTerminal: true, hasDonation: true, aiCompanion: '2', coordinates: JEJU_HERITAGE_COORDS, cameraRotation: 0, sheetSite: 'W010' },
+  // 롯데 W012~W014 — the server has these three branches since 2026-11 (stage), so shops,
   // banners, buttons, backgrounds, subtitles and outfits come through the same region-keyed
   // services as every other kiosk. The 롯데-only endpoints (상영 시간표 · 오늘의 사연 · 영화 나눔)
   // are keyed by kiosk number — see LotteService. `aiCompanion` is the API's default only:
   // Digicon has no 롯데 mascot (로씨) yet. The 롯데 photo flow shows 같이찍기 anyway (2026-11-19
   // request), so its composites use '2' (인사) until Digicon gives 로씨 a code — change it here.
-  W011: { code: 'W011', name: '롯데월드몰', region: 'LOTTE_WORLD_MALL', layout: 'LOTTE', hasCardTerminal: true, hasDonation: false, aiCompanion: '2', coordinates: LOTTE_WORLD_MALL_COORDS, cameraRotation: 0, notInSetup: true },
-  W012: { code: 'W012', name: '롯데백화점 청량리점', region: 'LOTTE_CHEONGNYANGNI', layout: 'LOTTE', hasCardTerminal: true, hasDonation: false, aiCompanion: '2', coordinates: LOTTE_CHEONGNYANGNI_COORDS, cameraRotation: 0, notInSetup: true },
-  W013: { code: 'W013', name: '롯데백화점 건대스타시티점', region: 'LOTTE_STARCITY', layout: 'LOTTE', hasCardTerminal: true, hasDonation: false, aiCompanion: '2', coordinates: LOTTE_KONKUK_COORDS, cameraRotation: 0, notInSetup: true },
+  W012: { code: 'W012', name: '롯데월드몰', region: 'LOTTE_WORLD_MALL', layout: 'LOTTE', hasCardTerminal: true, hasDonation: false, aiCompanion: '2', coordinates: LOTTE_WORLD_MALL_COORDS, cameraRotation: 0, setupStageOnly: true, sheetSite: 'W011' },
+  W013: { code: 'W013', name: '롯데백화점 청량리점', region: 'LOTTE_CHEONGNYANGNI', layout: 'LOTTE', hasCardTerminal: true, hasDonation: false, aiCompanion: '2', coordinates: LOTTE_CHEONGNYANGNI_COORDS, cameraRotation: 0, setupStageOnly: true, sheetSite: 'W012' },
+  W014: { code: 'W014', name: '롯데백화점 건대스타시티점', region: 'LOTTE_STARCITY', layout: 'LOTTE', hasCardTerminal: true, hasDonation: false, aiCompanion: '2', coordinates: LOTTE_KONKUK_COORDS, cameraRotation: 0, setupStageOnly: true, sheetSite: 'W013' },
   // KADA W202 — Korea-ASEAN Digital Academy, Vietnam Chapter (PTIT, Hà Nội).
   //
   // The first NON-KOREAN deployment, and the first that is not a tourism kiosk.
@@ -310,7 +319,7 @@ export const KIOSK_LOCATIONS: Record<KioskLocationCode, KioskLocation> = {
 };
 
 /**
- * True for every 제주-design layout (JEJU_AIRPORT W008/W009, JEJU_HERITAGE W010).
+ * True for every 제주-design layout (JEJU_AIRPORT W008/W009, JEJU_HERITAGE W011).
  * The two layout ids exist only to split the mascot rows of one shared sheet —
  * design-family checks (photo chrome and friends) must treat them as one.
  */
@@ -370,6 +379,11 @@ export function isKadaLayout(layout: KioskLayoutId): boolean {
 }
 
 /** Resolve a location by kiosk id, falling back to W001 (북인사마당). */
+/** The suffix this site's rows carry in the content sheets (`Key@<suffix>`) — see {@link KioskLocation.sheetSite}. */
+export function sheetSiteOf(kioskId: string): string {
+  return (KIOSK_LOCATIONS as Record<string, KioskLocation | undefined>)[kioskId]?.sheetSite ?? kioskId;
+}
+
 export function getKioskLocation(kioskId: KioskId): KioskLocation {
   return KIOSK_LOCATIONS[kioskId as KioskLocationCode] ?? KIOSK_LOCATIONS.W001;
 }

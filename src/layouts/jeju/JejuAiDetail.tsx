@@ -210,7 +210,7 @@ const AI_COURSE_NAME = {
  * The itinerary's first row (7181:18213) — where DAY 1 sets off: this kiosk.
  * The courses are built from the kiosk's own coordinates (JejuAiSearch's
  * PICK_NOTE_BY_KIOSK says the same in words), so W008 reads 제주국제공항, W009
- * its ferry terminal and W010 the heritage center. An id not listed keeps the
+ * its ferry terminal and W011 the heritage center. An id not listed keeps the
  * frame's airport.
  *
  * Korean draws the frame's "제주국제공항(Jeju International Airport)"; the other
@@ -228,7 +228,7 @@ const START_PLACE: Record<string, Partial<Record<Lang, string>>> = {
     zh: '济州国际客运码头', vi: 'Bến tàu khách quốc tế Jeju', th: 'ท่าเรือโดยสารระหว่างประเทศเชจู',
     ru: 'Международный пассажирский терминал Чеджу', id: 'Terminal Penumpang Internasional Jeju',
   },
-  W010: {
+  W011: {
     ko: '세계자연유산본부', en: 'World Natural Heritage Center', ja: '世界自然遺産本部',
     zh: '世界自然遗产本部', vi: 'Trụ sở Di sản Thiên nhiên Thế giới', th: 'สำนักงานมรดกโลกทางธรรมชาติ',
     ru: 'Центр всемирного природного наследия', id: 'Kantor Warisan Alam Dunia',

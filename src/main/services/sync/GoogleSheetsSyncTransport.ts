@@ -98,7 +98,7 @@ const CONTENT_SHEETS: Record<KioskLayoutId, ContentSheet> = {
   // and `uploadAnalytics` both check it and skip rather than falling back to
   // another location's sheet.
   KADA: { sheetId: '', localizationRange: '' },
-  // 롯데 W011~W013 share one sheet; site rows are `Key@W011` (see layouts/lotte/lotteText). Its
+  // 롯데 W012~W014 share one sheet; site rows are `Key@W011` (see layouts/lotte/lotteText). Its
   // FacilityData_* tabs are read by downloadLotteData (@shared/constants/lotteSheet).
   // Its own Text-to-speech_Script tab (same name and columns as 제주's) carries the 롯데 voice lines.
   // FillMe (스마트 헬스케어) is the same Linkerverse service on both venues, and its 61 `Fillme_*`

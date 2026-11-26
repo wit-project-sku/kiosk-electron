@@ -1,6 +1,6 @@
 /**
- * 롯데 home (W011~W013) — Figma A-01 (화면정의서 2026-11-13; W011 8746:1402 · W012 8746:1585 ·
- * W013 8746:1754). 롯데시네마-led: 3 cards (뭐하지 = 영화 전후 코스 · 위드마켓 · 이벤트), 4 tiles
+ * 롯데 home (W012~W014) — Figma A-01 (화면정의서 2026-11-13; W012 8746:1402 · W013 8746:1585 ·
+ * W014 8746:1754). 롯데시네마-led: 3 cards (뭐하지 = 영화 전후 코스 · 위드마켓 · 이벤트), 4 tiles
  * (롯데시네마 · 영화 나눔 · 뭐먹지 · 뭐사지), 3 cards (여기는 롯데 · 안녕 · 오늘의 사연), the building
  * art with one 건물 단추 per building (→ 건물 안내), and the bottom actions.
  *
@@ -124,7 +124,7 @@ const SHEET_KEYS: Record<string, readonly [string, string]> = {
 
 /** 건물 단추 rows, in site.buildings order. A department store's one button is `Building_Btn@W012`. */
 const BUILDING_KEYS: Record<string, readonly string[]> = {
-  W011: ['Building_Btn_LotteWorld', 'Building_Btn_Dept', 'Building_Btn_Tower', 'Building_Btn_Mall'],
+  W012: ['Building_Btn_LotteWorld', 'Building_Btn_Dept', 'Building_Btn_Tower', 'Building_Btn_Mall'],
 };
 
 interface CardDef {
@@ -170,7 +170,7 @@ const TILES_LOW: typeof TILES = [
   ...MID_CARDS.map((c) => ({ screen: c.screen, label: c.label, icon: c.icon, plate: 'tilePlateCard' as const })),
 ];
 
-/** 건물 단추 lefts (A-01 W011, y3194). A single-building site centres its one button (y3200). */
+/** 건물 단추 lefts (A-01 W012, y3194). A single-building site centres its one button (y3200). */
 const BUILDING_X = [306, 805, 1193, 1533];
 /**
  * Other languages place the same four 건물 단추 by their CENTRES — Korean's left + half its

@@ -4,17 +4,20 @@
  *
  * `lt(key, lang, authored)` is the sheet's cell for this language, else the copy authored on the
  * screen for that language, else Korean — what shows while a key is missing. Rows that differ per site are written
- * `Key@W011` / `@W012` / `@W013` in the sheet; pass the kiosk id and the site's own row wins over
- * a shared one. The table is the copy synced at launch, else the one bundled at build time
+ * `Key@W011` / `@W012` / `@W013` in the sheet — the pre-V224 codes of 롯데월드몰 W012 · 청량리점 W013 ·
+ * 건대스타시티점 W014, mapped by `sheetSiteOf`; pass the kiosk id and the site's own row wins over a shared one. The table is the copy synced at launch, else the one bundled at build time
  * (lib/loc → data/localization-lotte).
  */
 import { hasLoc, sheetText } from '@renderer/lib/loc';
 import type { Lang } from '@renderer/lib/i18n';
+import { sheetSiteOf } from '@shared/config/kioskLocations';
 import type { KioskId } from '@shared/types/kiosk';
 
 /** The site's own row (`Key@W011`) when the sheet has one, else the shared `Key`. */
-export const siteKey = (key: string, kioskId?: KioskId): string =>
-  kioskId && hasLoc(`${key}@${kioskId}`) ? `${key}@${kioskId}` : key;
+export const siteKey = (key: string, kioskId?: KioskId): string => {
+  const own = kioskId ? `${key}@${sheetSiteOf(kioskId)}` : '';
+  return own && hasLoc(own) ? own : key;
+};
 
 /** Authored copy: the Korean line, or the screen's own per-language map. */
 export type Authored = string | Partial<Record<Lang, string>>;

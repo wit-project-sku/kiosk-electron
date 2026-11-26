@@ -141,13 +141,13 @@ const KONKUK: BuildingGuide = {
 };
 
 const GUIDES: Record<string, readonly BuildingGuide[]> = {
-  W011: [WORLD_MALL, TOWER, DEPARTMENT, WORLD],
-  W012: [CHEONGNYANGNI],
-  W013: [KONKUK],
+  W012: [WORLD_MALL, TOWER, DEPARTMENT, WORLD],
+  W013: [CHEONGNYANGNI],
+  W014: [KONKUK],
 };
 
 export const buildingGuides = (kioskId: KioskId): readonly BuildingGuide[] =>
-  GUIDES[kioskId] ?? GUIDES.W011!;
+  GUIDES[kioskId] ?? GUIDES.W012!;
 
 /** The guide a home 건물 단추 caption opens ('롯데타워' → index into buildingGuides). */
 export const guideIndexFor = (kioskId: KioskId, caption: string): number =>

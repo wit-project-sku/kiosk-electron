@@ -15,6 +15,7 @@
 import type { Lang } from '@renderer/lib/i18n';
 import { hasLoc, sheetText, tExact } from '@renderer/lib/loc';
 import { screenTitle } from '@renderer/lib/i18n';
+import { sheetSiteOf } from '@shared/config/kioskLocations';
 import type { KioskId } from '@shared/types/kiosk';
 import { lotteFacilityRows } from './lotteFacilities';
 
@@ -206,7 +207,8 @@ const BUILDING_KEYS: Record<string, string> = {
 export function buildingName(ko: string, kioskId: KioskId, lang: Lang): string {
   if (lang === 'ko') return ko;
   const key = BUILDING_KEYS[ko];
-  const siteKey = key && hasLoc(`${key}@${kioskId}`) ? `${key}@${kioskId}` : key;
+  const own = key ? `${key}@${sheetSiteOf(kioskId)}` : '';
+  const siteKey = own && hasLoc(own) ? own : key;
   return siteKey && hasLoc(siteKey) ? sheetText(siteKey, lang, { ko }) : placeName(ko, kioskId, lang);
 }
 

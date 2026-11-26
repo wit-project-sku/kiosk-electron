@@ -27,42 +27,42 @@ describe('롯데 voice guidance lines', () => {
   });
 
   it("reads the site's own home row", () => {
-    asKiosk('W012', 'LOTTE');
-    expect(say('lotte.home', 'W012')).toContain('청량리점');
     asKiosk('W013', 'LOTTE');
-    expect(say('lotte.home', 'W013')).toContain('건대스타시티점');
+    expect(say('lotte.home', 'W013')).toContain('청량리점');
+    asKiosk('W014', 'LOTTE');
+    expect(say('lotte.home', 'W014')).toContain('건대스타시티점');
   });
 
   it('gives 롯데월드몰 its own 핫스팟 line and the stores the shared one', () => {
-    asKiosk('W011', 'LOTTE');
-    expect(say('lotte.building.hotspot', 'W011')).toContain('롯데월드타워');
     asKiosk('W012', 'LOTTE');
-    expect(say('lotte.building.hotspot', 'W012')).not.toContain('롯데월드타워');
+    expect(say('lotte.building.hotspot', 'W012')).toContain('롯데월드타워');
+    asKiosk('W013', 'LOTTE');
+    expect(say('lotte.building.hotspot', 'W013')).not.toContain('롯데월드타워');
   });
 
   it("speaks 롯데's line for the shared photo flow's 제주 keys", () => {
-    asKiosk('W011', 'LOTTE');
-    expect(say('hanbok.capture', 'W011')).toBe(VOICE_LOTTE['lotte.photo.capture']?.ko);
-    expect(say('hanbok.result@W008', 'W011')).toBe(VOICE_LOTTE['lotte.photo.result']?.ko);
+    asKiosk('W012', 'LOTTE');
+    expect(say('hanbok.capture', 'W012')).toBe(VOICE_LOTTE['lotte.photo.capture']?.ko);
+    expect(say('hanbok.result@W008', 'W012')).toBe(VOICE_LOTTE['lotte.photo.result']?.ko);
   });
 
   it('has a sheet row for every screen intro and alias', () => {
-    asKiosk('W012', 'LOTTE');
+    asKiosk('W013', 'LOTTE');
     const keys = [...Object.values(LOTTE_SCREEN_INTROS), ...Object.values(LOTTE_KEY_ALIASES)];
     for (const key of keys.filter((k): k is string => !!k)) {
-      expect(say(key, 'W012'), key).toBeTruthy();
+      expect(say(key, 'W013'), key).toBeTruthy();
     }
   });
 
   it('routes 롯데 screens to 롯데 intros', () => {
-    asKiosk('W011', 'LOTTE');
-    expect(screenKeys('cinema', false, 'W011')).toEqual(['lotte.cinema.schedule']);
-    expect(screenKeys('market', false, 'W011')).toEqual(['lotte.witstore', 'global.web.exit']);
+    asKiosk('W012', 'LOTTE');
+    expect(screenKeys('cinema', false, 'W012')).toEqual(['lotte.cinema.schedule']);
+    expect(screenKeys('market', false, 'W012')).toEqual(['lotte.witstore', 'global.web.exit']);
   });
 
   it('prefers the copy synced at launch over the bundled one', () => {
-    asKiosk('W011', 'LOTTE', { 'Voice_lotte.language': { ko: '새 문구' } });
-    expect(say('lotte.language', 'W011')).toBe('새 문구');
+    asKiosk('W012', 'LOTTE', { 'Voice_lotte.language': { ko: '새 문구' } });
+    expect(say('lotte.language', 'W012')).toBe('새 문구');
   });
 
   it('leaves 제주 on its own script', () => {

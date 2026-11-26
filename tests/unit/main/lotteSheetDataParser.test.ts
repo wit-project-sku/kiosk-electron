@@ -50,8 +50,8 @@ describe('parseLotteFacilities', () => {
 
 describe('bundled 롯데 facilities', () => {
   it('has every site, and a restroom row on the 월드몰 floor list', () => {
-    expect(Object.keys(LOTTE_FACILITIES).sort()).toEqual(['W011', 'W012', 'W013']);
+    expect(Object.keys(LOTTE_FACILITIES).sort()).toEqual(['W012', 'W013', 'W014']);
     for (const rows of Object.values(LOTTE_FACILITIES)) expect(rows.length).toBeGreaterThan(0);
-    expect(LOTTE_FACILITIES.W011.some((r) => r.group.endsWith('화장실') && /F$/.test(r.location.ko))).toBe(true);
+    expect(LOTTE_FACILITIES.W012.some((r) => r.group.endsWith('화장실') && /F$/.test(r.location.ko))).toBe(true);
   });
 });

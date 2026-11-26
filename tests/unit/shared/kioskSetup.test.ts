@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { KIOSK_LOCATIONS } from '@shared/config/kioskLocations';
 import {
   SETUP_ARG,
-  SETUP_SITES,
+  setupSites,
   setupActions,
   setupConfirmText,
   setupStateFor,
@@ -58,20 +58,33 @@ describe('지점 설정 — when the screen opens', () => {
 });
 
 describe('지점 설정 — sites and confirmation', () => {
+  const SETUP_SITES = setupSites({ stageServer: false });
+
   it('offers every site plus the office test kiosk, once each', () => {
     const codes = SETUP_SITES.map((s) => s.code);
-    const live = Object.values(KIOSK_LOCATIONS).filter((l) => !l.notInSetup);
+    const live = Object.values(KIOSK_LOCATIONS).filter((l) => !l.setupStageOnly);
     expect(codes).toEqual([...live.map((l) => l.code), 'W200']);
     expect(new Set(codes).size).toBe(codes.length);
     expect(SETUP_SITES.find((s) => s.code === 'W200')?.testRig).toBe(true);
   });
 
-  it('leaves out the 롯데 sites still being built (no kiosk of that number on the server)', () => {
-    const codes = SETUP_SITES.map((s) => s.code);
-    for (const code of ['W011', 'W012', 'W013'] as const) {
-      expect(KIOSK_LOCATIONS[code].notInSetup).toBe(true);
-      expect(codes).not.toContain(code);
+  it('offers the 롯데 sites (W012~W014) only on a stage build — the production server has no such kiosk yet', () => {
+    const production = SETUP_SITES.map((s) => s.code);
+    const stage = setupSites({ stageServer: true }).map((s) => s.code);
+    for (const code of ['W012', 'W013', 'W014'] as const) {
+      expect(KIOSK_LOCATIONS[code].setupStageOnly).toBe(true);
+      expect(production).not.toContain(code);
+      expect(stage).toContain(code);
     }
+    expect(stage).toEqual([...Object.keys(KIOSK_LOCATIONS), 'W200']);
+  });
+
+  it('numbers 세계자연유산본부 11 and 롯데 12~14, the server kiosk ids since V224', () => {
+    expect(KIOSK_LOCATIONS.W011.name).toBe('세계자연유산본부');
+    expect(KIOSK_LOCATIONS.W012.name).toBe('롯데월드몰');
+    expect(KIOSK_LOCATIONS.W013.name).toBe('롯데백화점 청량리점');
+    expect(KIOSK_LOCATIONS.W014.name).toBe('롯데백화점 건대스타시티점');
+    expect(Object.keys(KIOSK_LOCATIONS)).not.toContain('W010');
   });
 
   it('names each site by its kiosk number', () => {

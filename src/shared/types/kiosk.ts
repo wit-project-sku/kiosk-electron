@@ -32,7 +32,7 @@ export type SupportedLanguage =
  * venues by construction. Per-venue differences belong in kioskLocations.ts or,
  * for home-grid rows, in buttonCatalog's SLOT_OVERRIDES.
  *
- * JEJU_HERITAGE (W010 세계자연유산본부) is the SAME 제주 design and screens
+ * JEJU_HERITAGE (W011 세계자연유산본부) is the SAME 제주 design and screens
  * (layouts/index.ts points it at JejuLayout) but a separate layout id, because
  * the mascot tie-break over the shared Localization_Jeju tab runs the OTHER way:
  * a JEJU_AIRPORT machine keeps the 하영 rows, a JEJU_HERITAGE machine keeps 유산's
@@ -56,11 +56,11 @@ export type KioskLayoutId =
   | 'JEJU_AIRPORT'
   | 'JEJU_HERITAGE'
   | 'KADA'
-  // 롯데 W011~W013 — one design for all three venues.
+  // 롯데 W012~W014 — one design for all three venues.
   | 'LOTTE';
 
 /** Well-known kiosk deployment IDs. */
-export type KioskId = 'W001' | 'W002' | 'W003' | 'W004' | 'W005' | 'W008' | 'W009' | 'W010' | 'W011' | 'W012' | 'W013' | 'W202' | (string & {});
+export type KioskId = 'W001' | 'W002' | 'W003' | 'W004' | 'W005' | 'W008' | 'W009' | 'W011' | 'W012' | 'W013' | 'W014' | 'W202' | (string & {});
 
 export interface KioskConfig {
   /** Location-derived id — on the test rig this is the preview site (see shared/config/testRig). */
@@ -189,15 +189,15 @@ export type KioskScreenId =
   | 'fillme'
   | 'tamnao'       // 탐나오 (제주공공플랫폼)
   // 제주공항 W008 split 제주큐랑 off 탐나오's two-tab page into its own tile and
-  // page (2026-10-29). W009/W010 still reach it as 탐나오's second tab.
+  // page (2026-10-29). W009/W011 still reach it as 탐나오's second tab.
   | 'jejuqrang'    // 제주큐랑 (QR 여행정보)
   // 오늘의 날씨 — a W008 home tile that opens the home's own 날씨 panel, the same
   // thing tapping the weather card does. Never navigated to: it is the tile's
   // key for buttonCatalog / analytics only.
   | 'weather'
-  // 롯데 W011~W013 — 롯데시네마 상영 시간표 전체 보기 (the home board's 더보기).
+  // 롯데 W012~W014 — 롯데시네마 상영 시간표 전체 보기 (the home board's 더보기).
   | 'cinema'
-  // 롯데 W011~W013 — the 화면정의서 (2026-11-13) and 롯데 미션 (2026-11-16) screens.
+  // 롯데 W012~W014 — the 화면정의서 (2026-11-13) and 롯데 미션 (2026-11-16) screens.
   | 'movie_share'  // 영화 나눔 안내 (C-03) — home tile
   | 'stories'      // 오늘의 사연 목록 · 없음 · 보기 (C-05~C-07) — home card
   | 'building'     // 건물 안내: 이벤트 (C-04) · 핫스팟 (A-07) — home building buttons
@@ -205,10 +205,10 @@ export type KioskScreenId =
   // 제주국제여객터미널 (W009) — the one home tile W008 does not have. It takes
   // 렌트카's grid slot (line 6 position 4), so the two are mutually exclusive:
   // exactly one of them is rendered per venue. See JejuHome's VENUE_TILE.
-  // W010 세계자연유산본부 used to draw it too; the 2026-09 redesign (6792:126444)
+  // W011 세계자연유산본부 used to draw it too; the 2026-09 redesign (6792:126444)
   // put 거문오름 예약 in that cell, so the tile is W009-only again.
   | 'cruise'       // 크루즈 운항 → the ferry sailing board (JejuCruise)
-  // 세계자연유산본부 (W010) — the three tiles its 2026-09 home redesign added
+  // 세계자연유산본부 (W011) — the three tiles its 2026-09 home redesign added
   // (Figma 6792:126444). They replace 숙박안내 / 크루즈 운항 / 지역화폐 on that
   // grid only; W008/W009 keep the shared ids. No screens are built for them yet,
   // so all three fall through to the JejuScreen scaffold until their frames land.
