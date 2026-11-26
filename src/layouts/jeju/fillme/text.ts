@@ -1,5 +1,5 @@
 /**
- * FillMe 화면 문구를 시트에서 읽는다 — Localization_Jeju_v2 의 `Fillme_*` 줄.
+ * FillMe 화면 문구를 시트에서 읽는다 — Localization_Jeju_v3 의 `Fillme_*` 줄.
  *
  * 이 화면들은 원래 한국어만 박혀 있었다(copy.ts 머리말이 말하는 "제주 앱 통합 시
  * 8개 언어 처리 방식을 따로 정해야 한다"가 이것이다). 이제 시트가 61줄을 여덟 개

@@ -1,0 +1,53 @@
+name: release-kdh
+
+# Practice lane (2026-10-14~). A separate `kdh` update channel so the new team can
+# run the whole develop → test → stage → production cycle without touching the
+# shared beta (`dev`) and live (`main`) lanes.
+#
+#   push stage_kdh → kdh build wired to the STAGE servers      (environment: beta)
+#   push prod_kdh  → kdh build wired to the PRODUCTION servers (environment: production)
+#
+# Both publish GitHub PRE-releases on the `kdh` channel only (`kdh.yml`), version
+# <major>.<minor+2>.0-kdh.<run_number>. Beta and live kiosks never see them: an
+# electron-updater client skips prerelease tags of another channel. Only a kiosk
+# installed from a kdh build (UPDATE_CHANNEL=kdh — the office test rig) follows
+# this lane, and it takes whichever kdh build is newest; the release notes say
+# which servers that build talks to.
+#
+# Both branches share this one workflow so run_number — and therefore the version —
+# keeps rising across stage and production builds (an updater never downgrades).
+on:
+  push:
+    branches: [stage_kdh, prod_kdh]
+
+concurrency:
+  group: release-kdh
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+
+jobs:
+  stage:
+    if: github.ref == 'refs/heads/stage_kdh'
+    uses: ./.github/workflows/release.yml
+    with:
+      prerelease: true
+      channel_label: kdh-stage
+      release_type: prerelease
+      environment: beta
+      update_channel: kdh
+      release_notes: 'kdh lane - STAGE servers (from stage_kdh)'
+    secrets: inherit
+
+  production:
+    if: github.ref == 'refs/heads/prod_kdh'
+    uses: ./.github/workflows/release.yml
+    with:
+      prerelease: true
+      channel_label: kdh-prod
+      release_type: prerelease
+      environment: production
+      update_channel: kdh
+      release_notes: 'kdh lane - PRODUCTION servers (from prod_kdh)'
+    secrets: inherit

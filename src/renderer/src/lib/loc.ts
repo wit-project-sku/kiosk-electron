@@ -5,6 +5,7 @@ import { LOCALIZATION_OSAEK } from '@renderer/data/localization-osaek.generated'
 import { LOCALIZATION_HWASEONG } from '@renderer/data/localization-hwaseong.generated';
 import { LOCALIZATION_JEJU } from '@renderer/data/localization-jeju.generated';
 import { LOCALIZATION_JEJU_HERITAGE_OVERRIDES } from '@renderer/data/localization-jeju-heritage.generated';
+import { LOCALIZATION_LOTTE } from '@renderer/data/localization-lotte';
 import { getKioskLocation } from '@shared/config/kioskLocations';
 import { useKioskStore } from '@renderer/store/kioskStore';
 
@@ -41,6 +42,7 @@ function bundledTable(): typeof LOCALIZATION {
   if (layout === 'HWASEONG') return LOCALIZATION_HWASEONG;
   if (layout === 'JEJU_AIRPORT') return LOCALIZATION_JEJU;
   if (layout === 'JEJU_HERITAGE') return LOCALIZATION_JEJU_HERITAGE;
+  if (layout === 'LOTTE') return LOCALIZATION_LOTTE;
   return LOCALIZATION;
 }
 

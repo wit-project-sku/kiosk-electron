@@ -339,7 +339,7 @@ export function JejuRentcar({ controller }: Props): JSX.Element {
   const cardFooterLine = (shop: Shop): string => shop.tel?.trim() ?? '';
 
   const renderCards = (list: Shop[]): JSX.Element => (
-    <div className={styles.list}>
+    <div className={styles.list} data-voice-list>
       {list.map((shop) => {
         const badge = cardBadge(shop);
         const routeLine = cardRouteLine(shop);
@@ -410,9 +410,9 @@ export function JejuRentcar({ controller }: Props): JSX.Element {
 
   const catalogBody =
     baseShops.length === 0 ? (
-      <p className={styles.empty}>{pick(NO_DATA, lang)}</p>
+      <p className={styles.empty} data-voice-state="empty">{pick(NO_DATA, lang)}</p>
     ) : catalogShops.length === 0 ? (
-      <p className={styles.empty}>{pick(SEARCH_NO_RESULT, lang)(query.trim())}</p>
+      <p className={styles.empty} data-voice-state="empty">{pick(SEARCH_NO_RESULT, lang)(query.trim())}</p>
     ) : (
       <>
         {!lowReach && filterControls}

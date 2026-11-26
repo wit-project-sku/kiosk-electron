@@ -4,6 +4,7 @@ import { createLogger } from '@main/core/logger';
 import { kioskConfigStore } from '@main/core/KioskConfigStore';
 import { getKioskLocation } from '@shared/config/kioskLocations';
 import type { AIGenerateOutput, AIGenerateParams, AITransport } from './AITransport';
+import { ArGenerationError, fetchFailure, httpFailure, invalidResponseFailure } from './arFailure';
 import { parseImageResponse } from './parseImageResponse';
 
 const log = createLogger('ar-image-transport');
@@ -141,13 +142,32 @@ export class ARImageTransport implements AITransport {
       backgroundToUse: params.backgroundId,
     });
 
-    const response = await fetch(endpoint, { method: 'POST', body: form });
+    // Every failure below carries WHY (ArGenerationError.failure) — the failed shot
+    // report sends it so the server can alert with a plain-language cause.
+    let response: Response;
+    try {
+      response = await fetch(endpoint, { method: 'POST', body: form });
+    } catch (error) {
+      const failure = fetchFailure(error);
+      throw new ArGenerationError(`AR request failed: ${failure.message ?? 'no answer'}`, failure);
+    }
     if (!response.ok) {
-      const body = await response.text();
-      throw new Error(`AR generation failed (${response.status}): ${body}`);
+      const body = await response.text().catch(() => '');
+      throw new ArGenerationError(
+        `AR generation failed (${response.status}): ${body}`,
+        httpFailure(response.status, body),
+      );
     }
 
-    const { buffer, url } = await parseImageResponse(response);
-    return { buffer, publicUrl: url };
+    try {
+      const { buffer, url } = await parseImageResponse(response);
+      return { buffer, publicUrl: url };
+    } catch (error) {
+      const failure = invalidResponseFailure(response.status, error);
+      throw new ArGenerationError(
+        error instanceof Error ? error.message : 'AR response unreadable',
+        failure,
+      );
+    }
   }
 }

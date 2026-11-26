@@ -13,7 +13,7 @@ import { getKioskLocation } from '@shared/config/kioskLocations';
  */
 export const WEB_EMBED_URLS = {
   /** 위드마켓 (WITStore / Goods) */
-  market: 'https://witteria.com/#/kiosk/store',
+  market: 'https://witmarket.net/#/kiosk/store',
   // market: 'https://insarang.kr/',               // payment없는 곳
 
   /**
@@ -36,7 +36,7 @@ export const WEB_EMBED_URLS = {
    * only; `jejuqrang` below is the second. It briefly held jejuqrang.com, before
    * the frame arrived showing both sites side by side.
    */
-  tamnao: 'https://www.tamnao.com/mw/?gad_source=1&gad_campaignid=19235838859&gbraid=0AAAAAotGqPwVq5XhZjAheDJ8r1cO0TcVa&gclid=Cj0KCQjwteTUBhD4ARIsAEYjs3p0RToPoJOytN4vkLmyFamP6JdhUTisb_Fe2I7COFtdoo7NqRkArs8aAnBAEALw_wcB',
+  tamnao: 'https://www.tamnao.com/mw/?partner=kiosk',
 
   /**
    * 제주큐랑 — the 제주관광협회's QR travel-info site, second tab of that screen.

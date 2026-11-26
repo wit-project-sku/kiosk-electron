@@ -33,7 +33,7 @@ const OSAEK_SHEET_ID = '1_CkWFXfB7ud0sJw-cnIWGvFlTzF12UxDuNylp5HkOiw';
 /** W005 화성휴게소 content sheet (tabs suffixed _Hwaseong). */
 const HWASEONG_SHEET_ID = '14aWRWrJXPC_J-W4GpZqa_g-3fDjjUsy6BpAhDg8OvVU';
 /** W008 제주공항 content sheet (tabs suffixed _Jeju).
- *  Tabs: ShopData_Jeju · AICategory_Jeju · Localization_Jeju_v2 ·
+ *  Tabs: ShopData_Jeju · AICategory_Jeju · Localization_Jeju_v3 ·
  *  AirportFacilityData_Jeju ·
  *  VideoSubtitle_귤이 · VideoSubtitle_Jeju_유산 · three 규칙 reference tabs.
  *  ShopData is served by the shops API (kioskId=6) and the VideoSubtitle_* tabs
@@ -42,13 +42,27 @@ const HWASEONG_SHEET_ID = '14aWRWrJXPC_J-W4GpZqa_g-3fDjjUsy6BpAhDg8OvVU';
  *  (src/main/services/sync/GoogleSheetsSyncTransport.ts CONTENT_SHEETS). */
 const JEJU_SHEET_ID = '1A90MnKneWksKeL2zEcCUn75JKbnMFj7-OBmQsTkI72I';
 /** 전국시장 (nationwide markets) dataset — shared, used by 화성휴게소's 전국휴게소 screen. */
+/** W011~W013 롯데 content sheet (one sheet for the three sites; site rows are `Key@W011`).
+ *  Tabs read: Localization_Lotte · FacilityData_WorldMall/_Cheongnyangni/_StarCity ·
+ *  Text-to-speech_Script (음성 안내). ShopData_* is served by the shops API; VideoSubtitle_LOCI
+ *  and AICategory_Lotte have no 롯데 screen yet. Keep in step with @shared/constants/lotteSheet.
+ *  Must stay a native Google Sheet: the kiosk's launch read (Sheets API) refuses an .xlsx. */
+const LOTTE_SHEET_ID = '1ZKoNbnQAtmLaY8Hx5MT1jS8su0FPXKiu9lO7TnsFNOs';
+const LOTTE_FACILITY_TABS = {
+  W011: 'FacilityData_WorldMall',
+  W012: 'FacilityData_Cheongnyangni',
+  W013: 'FacilityData_StarCity',
+};
 const NATIONWIDE_MARKETS_SHEET_ID = '1EGeS48JvN3YNzFDLiBduKW-t8P5ilSDucNIMUNS2M-4';
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
 const DATA_DIR = join(ROOT, 'src/renderer/src/data');
 const CACHE_DIR = join(DATA_DIR, 'sheet-cache');
 const OFFLINE = process.argv.includes('--offline');
 /** `--only=hwaseong` regenerates just the W005 tabs and the shared nationwide
- *  sheet (전국시장 / 전국휴게소), leaving every other venue's bundle untouched. */
+ *  sheet (전국시장 / 전국휴게소), leaving every other venue's bundle untouched.
+ *  `--only=voice` regenerates just the 제주 voice guidance script.
+ *  `--only=jeju-localization` regenerates just the 제주 UI strings.
+ *  `--only=lotte` regenerates just the 롯데 tabs (voice script included). */
 const ONLY = (process.argv.find((a) => a.startsWith('--only=')) ?? '').slice('--only='.length);
 
 /**
@@ -62,7 +76,9 @@ const ONLY = (process.argv.find((a) => a.startsWith('--only=')) ?? '').slice('--
  */
 const csvUrl = (sheet, sheetId = SHEET_ID) =>
   `https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(sheet)}` +
-  (sheet.startsWith('Localization_') ? '&headers=0' : '');
+  (sheet.startsWith('Localization_') || sheet.startsWith('FacilityData_') || sheet === VOICE_TAB_JEJU
+    ? '&headers=0'
+    : '');
 
 /** RFC-4180 CSV parser (handles quoted fields, escaped quotes, embedded newlines). */
 function parseCSV(text) {
@@ -95,8 +111,8 @@ function parseCSV(text) {
  * ShopData_Hwaseong. The pattern must match somewhere in the first rows (the
  * header), or the tab is reported missing and nothing is written.
  */
-async function loadTab(sheet, sheetId = SHEET_ID, expect = undefined) {
-  const cacheFile = join(CACHE_DIR, `${sheet}.csv`);
+async function loadTab(sheet, sheetId = SHEET_ID, expect = undefined, cacheAs = sheet) {
+  const cacheFile = join(CACHE_DIR, `${cacheAs}.csv`);
   if (OFFLINE) {
     if (!existsSync(cacheFile)) {
       const err = new Error(`No cached copy of tab "${sheet}"`);
@@ -109,7 +125,8 @@ async function loadTab(sheet, sheetId = SHEET_ID, expect = undefined) {
   if (!res.ok) throw new Error(`Fetch ${sheet} failed: HTTP ${res.status}`);
   const text = await res.text();
   const rows = parseCSV(text);
-  if (expect && !rows.slice(0, 5).some((r) => r.some((c) => expect.test(c)))) {
+  // Ten rows: Text-to-speech_Script keeps a five-row colour legend above its header.
+  if (expect && !rows.slice(0, 10).some((r) => r.some((c) => expect.test(c)))) {
     const err = new Error(`Tab "${sheet}" not found in sheet ${sheetId} (gviz returned another tab)`);
     err.code = 'TAB_MISSING';
     throw err;
@@ -587,8 +604,20 @@ function jejuVenueScore(r) {
   return score;
 }
 
+/**
+ * Localization_Jeju_v3 has no Num column, so its Key sits in column A and every
+ * column after it is one to the left. Restores the shape the row helpers read,
+ * and drops the title row above the header — with the shift it would land in the
+ * Key column and read as a key.
+ * Mirrors withNumColumn in src/main/services/sync/google/LocalizationSyncParser.ts.
+ */
+function withNumColumn(rows) {
+  const header = rows.findIndex((r) => clean(r[0]) === 'Key');
+  return header < 0 ? rows : rows.slice(header).map((r) => ['', ...r]);
+}
+
 async function genLocalizationJeju() {
-  const rows = await loadTab('Localization_Jeju_v2', JEJU_SHEET_ID, LOCALIZATION_HEADER);
+  const rows = withNumColumn(await loadTab('Localization_Jeju_v3', JEJU_SHEET_ID, LOCALIZATION_HEADER));
   /** One venue's picks — sign +1 keeps the 하영 rows (W008/W009), −1 keeps 유산's (W010). */
   const pickVenue = (sign) => {
     const entries = {};
@@ -612,7 +641,7 @@ async function genLocalizationJeju() {
     .join('\n');
   const out = `${BANNER}import type { LangText } from './types';
 
-/** W008 제주공항 UI strings keyed by their sheet \`Key\` (Localization_Jeju_v2). */
+/** W008 제주공항 UI strings keyed by their sheet \`Key\` (Localization_Jeju_v3). */
 export const LOCALIZATION_JEJU: Record<string, LangText> = {
 ${body}
 };
@@ -628,7 +657,7 @@ ${body}
   const heritageBody = overrides.map(([k, v]) => `  ${JSON.stringify(k)}: ${JSON.stringify(v)},`).join('\n');
   const heritageOut = `${BANNER}import type { LangText } from './types';
 
-/** W010 세계자연유산본부 (JEJU_HERITAGE): the Localization_Jeju_v2 keys whose venue
+/** W010 세계자연유산본부 (JEJU_HERITAGE): the Localization_Jeju_v3 keys whose venue
  *  pick differs from W008's — i.e. the 유산-mascot rows. Overlaid on
  *  LOCALIZATION_JEJU by loc.ts; mirrors the runtime split in
  *  LocalizationSyncParser.VENUE_MASCOTS. */
@@ -681,6 +710,114 @@ ${body}
  * than defaulted — a facility filed onto the wrong floor plan is worse on a
  * wayfinding kiosk than one that is missing.
  */
+/**
+ * 제주 voice guidance script (음성 안내) — one row per spoken line, keyed
+ * `Voice_<line>` (e.g. `Voice_jeju.food.list`, `Voice_global.voice.on`). A key
+ * may carry a site suffix (`Voice_jeju.home@W008`); the renderer looks that up
+ * before the bare key. Title rows sit above the Key/Korean…Indonesian header, so
+ * the language columns are found BY NAME in that header rather than by position.
+ * Read by src/layouts/jeju/voice.
+ */
+const VOICE_TAB_JEJU = 'Text-to-speech_Script';
+const VOICE_LANG_HEADERS = {
+  ko: /^korean$/i,
+  en: /^english$/i,
+  ja: /^japanese$/i,
+  zh: /^chinese$/i,
+  vi: /^vietnamese$/i,
+  th: /^thai$/i,
+  ru: /^russian$/i,
+  id: /^indonesian$/i,
+};
+
+/**
+ * The header cell's own words. gviz folds the 롯데 tab's legend rows INTO its header row, so a
+ * header cell there reads "…두 곳 Key" or "…Korean": the name is the cell's last word.
+ */
+const lastWord = (c) => clean(c).split(/\s+/).pop() ?? '';
+
+/** `Voice_*` rows of one voice tab → `{ key: LangText }`, keyed without the prefix. */
+async function loadVoiceTab(tab, sheetId, cacheAs) {
+  const rows = await loadTab(tab, sheetId, /(^|\s)Key\s*$/, cacheAs);
+  const header = rows.find((r) => lastWord(r[1]) === 'Key' && r.some((c) => /^korean$/i.test(lastWord(c))));
+  if (!header) throw new Error(`${tab}: no Key / Korean header row`);
+  const cols = {};
+  for (const [lang, re] of Object.entries(VOICE_LANG_HEADERS)) {
+    const i = header.findIndex((c) => re.test(lastWord(c)));
+    if (i < 0) throw new Error(`${tab}: no "${re.source}" column in the header`);
+    cols[lang] = i;
+  }
+  const entries = {};
+  for (const r of rows) {
+    const key = clean(r[1]);
+    if (!key.startsWith('Voice_')) continue;
+    const text = {};
+    for (const [lang, i] of Object.entries(cols)) {
+      const v = clean(r[i]);
+      if (v || ['ko', 'en', 'ja', 'zh'].includes(lang)) text[lang] = v;
+    }
+    entries[key.slice('Voice_'.length)] = text;
+  }
+  return entries;
+}
+
+/**
+ * 롯데 voice guidance script — the 롯데 sheet's own Text-to-speech_Script tab (same columns as
+ * 제주's; site rows `@W011`…`@W013`). Cached under another name: the tab name is 제주's too.
+ * Read by src/layouts/jeju/voice/lines.ts on the LOTTE layout.
+ */
+async function genVoiceLotte() {
+  const entries = await loadVoiceTab(VOICE_TAB_JEJU, LOTTE_SHEET_ID, 'Lotte_Text-to-speech_Script');
+  const body = Object.entries(entries)
+    .map(([k, v]) => `  ${JSON.stringify(k)}: ${JSON.stringify(v)},`)
+    .join('\n');
+  const out = `${BANNER}import type { LangText } from './types';
+
+/** 롯데 voice guidance lines (the 롯데 sheet's ${VOICE_TAB_JEJU}), keyed without the
+ *  \`Voice_\` prefix. \`<key>@W011\`-style rows are one site's version of \`<key>\`. */
+export const VOICE_LOTTE: Record<string, LangText> = {
+${body}
+};
+`;
+  await writeFile(join(DATA_DIR, 'voice-lotte.generated.ts'), out, 'utf8');
+  return Object.keys(entries).length;
+}
+
+async function genVoiceJeju() {
+  const rows = await loadTab(VOICE_TAB_JEJU, JEJU_SHEET_ID, LOCALIZATION_HEADER);
+  const header = rows.find((r) => clean(r[1]) === 'Key');
+  const cols = {};
+  for (const [lang, re] of Object.entries(VOICE_LANG_HEADERS)) {
+    const i = header.findIndex((c) => re.test(clean(c)));
+    if (i < 0) throw new Error(`${VOICE_TAB_JEJU}: no "${re.source}" column in the header`);
+    cols[lang] = i;
+  }
+  const entries = {};
+  for (const r of rows) {
+    const key = clean(r[1]);
+    if (!key.startsWith('Voice_')) continue;
+    const text = {};
+    for (const [lang, i] of Object.entries(cols)) {
+      const v = clean(r[i]);
+      if (v || ['ko', 'en', 'ja', 'zh'].includes(lang)) text[lang] = v;
+    }
+    entries[key.slice('Voice_'.length)] = text;
+  }
+  const body = Object.entries(entries)
+    .map(([k, v]) => `  ${JSON.stringify(k)}: ${JSON.stringify(v)},`)
+    .join('\n');
+  const out = `${BANNER}import type { LangText } from './types';
+
+/** 제주 voice guidance lines (${VOICE_TAB_JEJU}), keyed without the \`Voice_\`
+ *  prefix. \`<key>@W0xx\` rows are one site's version of \`<key>\`. */
+export const VOICE_JEJU: Record<string, LangText> = {
+${body}
+};
+`;
+  await writeFile(join(DATA_DIR, 'voice-jeju.generated.ts'), out, 'utf8');
+  return Object.keys(entries).length;
+}
+
 const JEJU_TERMINALS = { 국내선: 'domestic', 국제선: 'international' };
 
 /** Eight consecutive language cells starting at `start`, in sheet order. */
@@ -771,6 +908,87 @@ ${body}
 }
 
 // ─── 전국시장 (nationwide markets) — single sheet, grouped by province ──────────
+/** Localization_Lotte → localization-lotte.generated.ts. Same columns as Localization_Jeju_v3. */
+async function genLocalizationLotte() {
+  const rows = withNumColumn(await loadTab('Localization_Lotte', LOTTE_SHEET_ID, LOCALIZATION_HEADER));
+  const entries = {};
+  for (const r of rows.slice(1)) {
+    const key = clean(r[1]);
+    if (!key || key === 'Key') continue;
+    // First row wins, as the launch parser (LocalizationSyncParser) does.
+    if (key in entries) continue;
+    const cells = localizedRow(r, headerLangCols(rows, NEW_LANG_COLS_INSA));
+    if (!Object.values(cells).some(Boolean)) continue; // section rows ('홈 화면') and empty site rows
+    entries[key] = cells;
+  }
+  const body = Object.entries(entries)
+    .map(([k, v]) => `  ${JSON.stringify(k)}: ${JSON.stringify(v)},`)
+    .join('\n');
+  const out = `${BANNER}import type { LangText } from './types';
+
+/** 롯데 W011~W013 UI strings keyed by their sheet \`Key\` (Localization_Lotte). A key with an
+ *  \`@W011\`-style suffix is that site's own row; layouts/lotte/lotteText prefers it. */
+export const LOCALIZATION_LOTTE_SHEET: Record<string, LangText> = {
+${body}
+};
+`;
+  await writeFile(join(DATA_DIR, 'localization-lotte.generated.ts'), out, 'utf8');
+  return Object.keys(entries).length;
+}
+
+/**
+ * FacilityData_* → lotteFacilities.generated.ts (롯데 시설안내 · 화장실). Mirrors
+ * parseLotteFacilities in src/main/services/sync/google/LotteSheetDataParser.ts — change one,
+ * change the other. Columns are found by header name.
+ */
+async function genFacilitiesLotte() {
+  const SUFFIX = [['ko', 'Kr'], ['en', 'En'], ['ja', 'Jp'], ['zh', 'Ch'], ['vi', 'Vn'], ['th', 'Th'], ['ru', 'Ru'], ['id', 'Id']];
+  const bySite = {};
+  for (const [site, tab] of Object.entries(LOTTE_FACILITY_TABS)) {
+    // gviz types ShopID as a number column and drops its text header, so the header row is the
+    // one naming ShopName_Kr, and an unnamed first column is ShopID.
+    const rows = await loadTab(tab, LOTTE_SHEET_ID, /^ShopName_Kr$/);
+    const headerAt = rows.findIndex((r) => r.some((c) => clean(c) === 'ShopName_Kr'));
+    if (headerAt < 0) throw new Error(`${tab}: no ShopName_Kr header`);
+    const col = new Map();
+    rows[headerAt].forEach((c, i) => { const n = clean(c); if (n && !col.has(n)) col.set(n, i); });
+    if (!col.has('ShopID')) col.set('ShopID', 0);
+    const cell = (r, h) => (col.has(h) ? clean(r[col.get(h)]) : '');
+    const text = (r, f) => Object.fromEntries(SUFFIX.map(([lang, sfx]) => [lang, cell(r, `${f}_${sfx}`)]));
+    const out = [];
+    for (const r of rows.slice(headerAt + 1)) {
+      const no = cell(r, 'NO');
+      const parts = no.split('=');
+      const id = Number(cell(r, 'ShopID'));
+      if (parts.length !== 3 || !Number.isFinite(id) || !cell(r, 'ShopName_Kr')) continue;
+      out.push({
+        id,
+        no,
+        group: parts[1].trim(),
+        name: text(r, 'ShopName'),
+        category: text(r, 'BaseCategory'),
+        location: text(r, 'Location'),
+        hours: cell(r, 'OpeningHours_Kr'),
+        tel: cell(r, 'PhoneNumber_Kr'),
+        description: text(r, 'Description'),
+      });
+    }
+    bySite[site] = out;
+  }
+  const body = Object.entries(bySite)
+    .map(([site, rows]) => `  ${site}: [\n${rows.map((r) => `    ${JSON.stringify(r)},`).join('\n')}\n  ],`)
+    .join('\n');
+  const out = `${BANNER}import type { LotteFacility } from '@shared/types/lotteSheet';
+
+/** 롯데 시설안내 · 화장실 rows per site (FacilityData_* tabs of the 롯데 sheet). */
+export const LOTTE_FACILITIES: Record<'W011' | 'W012' | 'W013', LotteFacility[]> = {
+${body}
+};
+`;
+  await writeFile(join(DATA_DIR, 'lotteFacilities.generated.ts'), out, 'utf8');
+  return Object.entries(bySite).map(([s, r]) => `${s} ${r.length}`).join(' · ');
+}
+
 async function genNationwideMarkets() {
   // Cols: 0 Num, 1 사진여부, 2-5 name ko/en/jp/cn, 6-9 province, 10-13 district,
   //       14-17 address, 18-21 hashtag, 22-25 description, 26-29 openTime,
@@ -845,6 +1063,20 @@ async function main() {
     console.log(`✓ serviceAreas: ${await genServiceAreas()}`);
     return;
   }
+  if (ONLY === 'voice') {
+    console.log(`✓ [jeju] voice lines: ${await genVoiceJeju()}`);
+    return;
+  }
+  if (ONLY === 'jeju-localization') {
+    console.log(`✓ [jeju] localization: ${await genLocalizationJeju()} keys`);
+    return;
+  }
+  if (ONLY === 'lotte') {
+    console.log(`✓ [lotte] localization: ${await genLocalizationLotte()} keys`);
+    console.log(`✓ [lotte] facilities: ${await genFacilitiesLotte()}`);
+    console.log(`✓ [lotte] voice lines: ${await genVoiceLotte()}`);
+    return;
+  }
   if (ONLY) throw new Error(`Unknown --only=${ONLY}`);
   const loc = await genLocalization();
   const palaces = await genPalaces();
@@ -870,7 +1102,9 @@ async function main() {
     const locJ = await genLocalizationJeju();
     const catsJ = await genAiCategoriesJeju();
     const facJ = await genAirportFacilitiesJeju();
+    const voiceJ = await genVoiceJeju();
     console.log(`✓ [jeju] localization: ${locJ} keys`);
+    console.log(`✓ [jeju] voice lines: ${voiceJ}`);
     console.log(`✓ [jeju] aiCategories: ${catsJ}`);
     console.log(
       `✓ [jeju] airportFacilities: ${facJ.count}` +
@@ -880,6 +1114,11 @@ async function main() {
   } else {
     console.log('– [jeju] skipped (JEJU_SHEET_ID not set)');
   }
+
+  // W011~W013 롯데 (one sheet for the three sites)
+  console.log(`✓ [lotte] localization: ${await genLocalizationLotte()} keys`);
+  console.log(`✓ [lotte] facilities: ${await genFacilitiesLotte()}`);
+  console.log(`✓ [lotte] voice lines: ${await genVoiceLotte()}`);
 
   // 전국시장 (nationwide markets, single shared sheet)
   const markets = await genNationwideMarkets();

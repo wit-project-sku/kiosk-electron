@@ -1,17 +1,14 @@
 /**
- * 제주 VideoSubtitle tab → VideoEntry[] — SubtitleService's fallback source.
+ * 제주 VideoSubtitle tab → VideoEntry[] — SubtitleService's source for 제주.
  *
  * ── Why a sheet at all ──────────────────────────────────────────────────────
- * Every other venue's second-monitor clip map comes from the CMS
- * (`/api/kiosks/{n}/subtitles`), and so does 제주's once its rows are
- * published. Until then the production endpoint answers 제주 (W008–W010) with
- * zero rows, and a customer display with no rows cannot follow the touch screen
- * at all: it falls back to the generic reel, which advances only when a clip
- * ends and reads as "the video switches late". The operators author those rows
- * in the 제주 content spreadsheet first anyway — the CMS was populated FROM this
- * tab on stage — so the tab is read at runtime, through the same service-account
- * Sheets access the translations already use, and used only while the API has
- * nothing.
+ * Most venues' second-monitor clip map comes from the CMS
+ * (`/api/kiosks/{n}/subtitles`). 제주's comes from here: the operators author
+ * the rows in the 제주 content spreadsheet first — the CMS was populated FROM
+ * this tab — and the copy drifts (production kept stale file names for 뭐먹지 /
+ * 지역화폐 / 화장실, which then resolved no clip). So the tab is read at
+ * runtime, through the same service-account Sheets access the translations
+ * already use, and the API is consulted only when the tab yields nothing.
  *
  * ── What comes out ──────────────────────────────────────────────────────────
  * Rows are emitted exactly as the CMS would carry them: the sheet's own

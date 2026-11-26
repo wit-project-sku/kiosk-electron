@@ -108,7 +108,14 @@ function packagedBuildChannel(): string {
  * UPDATE_CHANNEL is kept as the fallback so `npm run dev` can still exercise the
  * beta path without packaging anything.
  */
-export const isBetaBuild = (): boolean => buildChannelOf('beta');
+export const isBetaBuild = (): boolean => {
+  const packaged = packagedBuildChannel();
+  if (packaged) return packaged === 'beta';
+  // Unpackaged: every non-production channel but demo runs as beta — the kdh lane
+  // included (its builds are packaged with electron-builder.beta.yml).
+  const ch = resolveUpdateChannel();
+  return ch !== 'latest' && ch !== 'demo';
+};
 
 /**
  * True when this build IS the demo (office showroom) build — production code
@@ -122,7 +129,7 @@ export const isDemoBuild = (): boolean => buildChannelOf('demo');
  * `npm run dev`) falls back to UPDATE_CHANNEL. So a demo build can never be
  * mistaken for beta, nor beta for demo, whatever its `.env` says.
  */
-function buildChannelOf(channel: 'beta' | 'demo'): boolean {
+function buildChannelOf(channel: 'demo'): boolean {
   const packaged = packagedBuildChannel();
   return packaged ? packaged === channel : resolveUpdateChannel() === channel;
 }

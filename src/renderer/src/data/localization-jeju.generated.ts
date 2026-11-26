@@ -2,7 +2,7 @@
 // Run `npm run sync:sheet` to refresh from the Google Sheet.
 import type { LangText } from './types';
 
-/** W008 제주공항 UI strings keyed by their sheet `Key` (Localization_Jeju_v2). */
+/** W008 제주공항 UI strings keyed by their sheet `Key` (Localization_Jeju_v3). */
 export const LOCALIZATION_JEJU: Record<string, LangText> = {
   "NoticeContent -1": {"ko":"<b>1월 제주</b>는 새콤달콤한 <b>노지감귤과 한라봉</b>이 제철을 맞고 겨울 바다에서 잡은 <b>방어와 갈치</b>까지 풍성하게 즐기기 좋은 시기입니다.","en":"January in Jeju is a great time to enjoy sweet tangerines, Hallabong, and fresh winter seafood like yellowtail and hairtail.","ja":"1月の済州は、甘酸っぱい露地みかんとハルラボンが旬を迎え、冬の海で獲れたブリやタチウオまで豊かに楽しめる時期です。","zh":"1月的济州岛，酸甜可口的露地柑橘和汉拿峰迎来旺季，还能品尝到冬季海里捕捞的肥美黄尾鱼和带鱼，是享受丰盛美食的好时节。","vi":"Tháng 1 ở Jeju là thời điểm tuyệt vời để thưởng thức quýt ngọt, Hallabong cùng cá cam và cá hố mùa đông.","th":"เดือนมกราคมในเชจูเป็นช่วงเวลาที่ดีในการเพลิดเพลินกับส้มแมนดารินและฮัลลาบงที่กำลังออกผล รวมถึงปลาหางเหลืองและปลาหางดาบที่จับได้ในทะเลฤดูหนาว","ru":"Январь на Чеджу — отличное время для сладких мандаринов, халлабона, свежего желтохвоста и рыбы-сабли.","id":"Januari di Jeju adalah waktu yang tepat untuk menikmati jeruk mandarin, Hallabong, serta hidangan laut musim dingin seperti yellowtail dan hairtail."},
   "NoticeContent -2": {"ko":"<b>2월 제주</b>는 <b>한라봉과 천혜향</b>의 맛과 향이 깊어지고 겨울 바다에서 살이 오른 <b>방어와 해산물</b>을 맛보기 좋은 시기입니다.","en":"February in Jeju is a great time to enjoy Hallabong, Cheonhyehyang, and fresh winter seafood like yellowtail.","ja":"2月の済州は、ハルラボンとチョンヘヒャンの味と香りが深まり、冬の海で脂がのったブリやシーフードを味わうのに良い時期です。","zh":"2月的济州岛，汉拿峰和天惠香的味道与香气更加浓郁，也是品尝冬季海里肥美黄尾鱼和海鲜的好时节。","vi":"Tháng 2 ở Jeju là thời điểm tuyệt vời để thưởng thức Hallabong, Cheonhyehyang và cá cam mùa đông.","th":"เดือนกุมภาพันธ์ในเชจูเป็นช่วงเวลาที่ดีในการลิ้มรสชาติและกลิ่นหอมของฮัลลาบงและชอนฮเยฮยาง รวมถึงปลาหางเหลืองและอาหารทะเลสดๆ จากทะเลฤดูหนาว","ru":"Февраль на Чеджу — отличное время для ароматного халлабона, чхонхехяна, жирного желтохвоста и зимних морепродуктов.","id":"Februari di Jeju sangat cocok untuk menikmati Hallabong, Cheonhyehyang, dan hidangan laut segar seperti yellowtail."},
@@ -62,6 +62,8 @@ export const LOCALIZATION_JEJU: Record<string, LangText> = {
   "MainButton_SmartHealthCare": {"ko":"스마트 헬스케어","en":"Smart Healthcare","ja":"スマートヘルスケア","zh":"智慧健康","vi":"Chăm sóc sức khỏe thông minh","th":"การดูแลสุขภาพอัจฉริยะ","ru":"Умное здравоохранение","id":"Layanan Kesehatan Pintar"},
   "MainButton_WC": {"ko":"화장실","en":"Toilet","ja":"トイレ","zh":"廁所","vi":"Nhà vệ sinh","th":"ห้องน้ำ","ru":"Туалет","id":"Toilet"},
   "MainButton_Hanbok": {"ko":"한복설명","en":"Hanbok","ja":"韓服","zh":"韩服","vi":"Thông tin Hanbok","th":"ข้อมูลฮันบก","ru":"Ханбок","id":"Info Hanbok"},
+  "MainButton_Tamnao_airport": {"ko":"탐나오","en":"Tamnao","ja":"タムナオ","zh":"塔姆瑙","vi":"Tamnao","th":"Tamnao","ru":"Тамнао","id":"Tamnao"},
+  "MainButton_jejuQrang_airport": {"ko":"제주큐랑","en":"Jeju Qurang","ja":"済州キュラン","zh":"济州岛古兰","vi":"Jeju Qurang","th":"Jeju Qurang","ru":"Чеджу Куранг","id":"Jeju Qurang"},
   "MainButton_Tamnao": {"ko":"탐나오·제주큐랑","en":"Tamnao · Jeju Qurang","ja":"タムナオ・済州キュラン","zh":"塔姆瑙·济州岛古兰","vi":"Tamnao · Jeju Qurang","th":"Tamnao · Jeju Qurang","ru":"Тамнао · Чеджу Куранг","id":"Tamnao · Jeju Qurang"},
   "MainButton_Tamnao_Subtext": {"ko":"제주공공플랫폼","en":"Jeju Public Platform","ja":"済州公共プラットフォーム","zh":"济州公共平台","vi":"Nền tảng công cộng Jeju","th":"แพลตฟอร์มสาธารณะเชจู","ru":"Публичная платформа Чеджу","id":"Platform Publik Jeju"},
   "Search_Result_Title": {"ko":"검색","en":"Search","ja":"検索","zh":"搜索","vi":"Tìm kiếm","th":"ค้นหา","ru":"Поиск","id":"Pencarian"},

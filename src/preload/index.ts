@@ -209,6 +209,8 @@ const api: KioskBridge = {
       invoke(IpcChannels.KioskSetScreen, { screen, buttonId: buttonId ?? null }),
     playWeatherVideo: (key) => invoke(IpcChannels.KioskPlayWeatherVideo, { key }),
     switchLocation: (kioskId) => invoke(IpcChannels.KioskSwitchLocation, { kioskId }),
+    applySetup: (kioskId) => invoke(IpcChannels.KioskSetupApply, { kioskId }),
+    launchFromSetup: () => invoke(IpcChannels.KioskSetupLaunch),
   },
   shops: {
     list: () => invoke(IpcChannels.ShopsList),
@@ -234,6 +236,10 @@ const api: KioskBridge = {
     checkNow: () => invoke(IpcChannels.UpdateCheckNow),
     installNow: () => invoke(IpcChannels.UpdateInstallNow),
   },
+  autoShot: {
+    plan: () => invoke(IpcChannels.AutoShotPlan),
+    run: (request) => invoke(IpcChannels.AutoShotRun, request),
+  },
   footfall: {
     getRuntime: () => invoke(IpcChannels.FootfallGetRuntime),
     report: (report) => invoke(IpcChannels.FootfallReport, report),
@@ -247,6 +253,11 @@ const api: KioskBridge = {
   },
   traffic: {
     getExpressway: () => invoke(IpcChannels.TrafficExpresswayGet),
+  },
+  lotte: {
+    getShowtimes: () => invoke(IpcChannels.LotteShowtimesGet),
+    getStories: () => invoke(IpcChannels.LotteStoriesGet),
+    getMovieShareSummary: () => invoke(IpcChannels.LotteMovieShareSummaryGet),
   },
   view: {
     bounds: ZOOM_BOUNDS,

@@ -305,9 +305,16 @@ const SLOT_OVERRIDES: Partial<Record<KioskId, Record<string, Slot>>> = {
     donation: { position: 16, type: '기부', suffix: '기부', dynamicId: true },
     tamnao: { position: 17, type: '탐나오' },
     localpay: { position: 18, type: '지역화폐' },
+    fillme: { position: 19, type: '스마트 헬스케어', typePrefix: '프로모션' },
     photo: { position: 20, type: '사진촬영', suffix: '아이콘20' },
     restroom: { position: 21, type: '화장실' },
     ...jejuPhotoMode(303, 304),
+    // W008's 2026-10-29 home came to this kiosk too. The two new tiles have no
+    // CMS rows here yet (#W009_아이콘22/23): until they land, clicks log label-only.
+    // 위드마켓 / TAX-FREE / 기부 left the home but their rows are still seeded,
+    // so they stay mirrored above until the server removes them.
+    jejuqrang: { position: 22, type: '제주큐랑' },
+    weather: { position: 23, type: '오늘의 날씨' },
   },
   // ── W010 세계자연유산본부 ──
   // Transcribed from the live response on 2026-08-24 (21 rows, ids 171–191 in

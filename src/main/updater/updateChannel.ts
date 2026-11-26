@@ -12,6 +12,5 @@ import type { UpdateChannel } from '@shared/types/update';
  */
 export function resolveUpdateChannel(): UpdateChannel {
   const raw = (process.env['UPDATE_CHANNEL'] ?? '').trim().toLowerCase();
-  if (raw === 'beta' || raw === 'demo') return raw;
-  return 'latest';
+  return raw === 'beta' || raw === 'demo' || raw === 'kdh' ? raw : 'latest';
 }

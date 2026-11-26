@@ -18,6 +18,7 @@ import { JejuHeader } from './JejuHeader';
 import { modeBarVars } from './lowReach';
 import { JejuBgMotion } from './JejuBgMotion';
 import styles from './JejuPageFrame.module.css';
+import { VoiceToggle } from './voice/VoiceToggle';
 
 /** Fallback — sheet `BarrierFree_Title`. */
 const BARRIER_FREE: Partial<Record<Lang, string>> = {
@@ -259,6 +260,7 @@ export function JejuPageFrame({
           />
         </button>
       )}
+      <VoiceToggle className={styles.voiceToggle} />
 
       {drawBanner && (
         <div className={`${styles.banner} ${modeBar ? styles.bannerBelowBar : ''}`}>

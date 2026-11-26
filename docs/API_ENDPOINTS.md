@@ -9,8 +9,8 @@ Google Sheets (the CMS sync) is intentionally left out of this list.
 
 | Env | Base URL |
 |---|---|
-| Production | `https://api-v3.witteria.com` |
-| Staging | `https://api-stage-v3.witteria.com` |
+| Production | `https://api-v3.witmarket.net` |
+| Staging | `https://api-stage-v3.witmarket.net` |
 
 `{region}` = location key from `src/shared/config/kioskLocations.ts`.
 
@@ -24,10 +24,18 @@ Google Sheets (the CMS sync) is intentionally left out of this list.
 | GET | `/api/kiosks/{region}/subtitles/v2` | SubtitleService | Video subtitles |
 | GET | `/api/kiosks/{region}/backgrounds/v2` | BackgroundService | AR photo backgrounds |
 | GET | `/api/kiosks/{region}/games/spot-difference/puzzles/v2` | SpotDiffService | Spot-the-difference game |
-| GET | `/api/jeju/attractions/v2?region={region}` | AttractionService | Jeju attractions |
+| GET | `/api/sights?region={region}` | AttractionService | 관광명소 (one path for every site; 제주 = the old `/api/jeju/attractions/v2` list) |
 | GET | `/api/events` | EventsService | Events list |
 | GET | `/api/events/{eventId}` | EventsService | Event detail |
 | GET | `/api/events/recommend` | EventsService | Recommended events |
+
+### 롯데 (W011~W013, keyed by kiosk number 11/12/13)
+
+| Method | Endpoint | Service | Purpose |
+|---|---|---|---|
+| GET | `/api/cinema/showtimes?kioskId={n}` | LotteService | Today's remaining 롯데시네마 sessions |
+| GET | `/api/stories?kioskId={n}` | LotteService | 오늘의 사연 (approved, last 7 days) |
+| GET | `/api/movie-share/summary` | LotteService | 영화 나눔 total |
 
 ### Outfits (hanbok photo)
 
@@ -66,7 +74,7 @@ Google Sheets (the CMS sync) is intentionally left out of this list.
 
 | Method | Endpoint | Service | Purpose |
 |---|---|---|---|
-| POST | `https://photo.witteria.com/api/images` | ImageHostService | Upload photo → QR link |
+| POST | `https://photo.witmarket.net/api/images` | ImageHostService | Upload photo → QR link |
 
 ---
 
@@ -107,11 +115,11 @@ Google Sheets (the CMS sync) is intentionally left out of this list.
 
 | Page | URL |
 |---|---|
-| Witteria store | `https://witteria.com/#/kiosk/store` |
+| Witteria store | `https://witmarket.net/#/kiosk/store` |
 | Donation | `https://witglobaldonation.vercel.app/#/?kiosk=1` |
 | Events | `https://withevent.kr/kiosk/events?region=…` |
 | Tax refund | `https://wit.linktaxfree.com/` |
-| Tamnao | `https://www.tamnao.com/mw/` |
+| Tamnao | `https://www.tamnao.com/mw/?partner=kiosk` |
 | Jejuqrang | `https://jejuqrang.com/` |
 | Insarang | `https://insarang.kr/` |
 | AI course QR | `https://direction-fe.vercel.app/ai` |

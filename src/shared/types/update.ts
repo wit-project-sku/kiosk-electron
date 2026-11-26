@@ -5,8 +5,9 @@
  */
 
 /** Release channel. Production kiosks use `latest`; testing kiosks use `beta`;
- *  the office showroom kiosk uses `demo` (production code + location switcher). */
-export type UpdateChannel = 'latest' | 'beta' | 'demo';
+ *  the office showroom kiosk uses `demo` (production code + location switcher).
+ *  `kdh` = the practice lane: only the office test rig subscribes (prod_kdh / stage_kdh). */
+export type UpdateChannel = 'latest' | 'beta' | 'demo' | 'kdh';
 
 /**
  * Coarse state machine the UI renders from:

@@ -1,11 +1,13 @@
 /**
- * 제주공항 (W008) 시스템 점검 notice — which kiosks show it, whether it is up,
- * and the hidden switch staff use to flip between it and the app.
+ * 제주 시스템 점검 notice — which kiosks can show it, whether it is up, and the
+ * hidden switch staff use to flip between it and the app.
  *
- * Five MOUSE clicks within TAP_WINDOW_MS flip it: on the home screen, the
- * "JEJU" marker turns the notice on; on the notice, the leftmost of the three
- * tangerines at the top right turns it off. A single click used to lift the
- * notice for good and there was no way back (2026-10-29).
+ * Five MOUSE clicks within TAP_WINDOW_MS flip it: on the home screen, the small
+ * plane in the top bar turns the notice on (2026-11-06; before that the date, and
+ * until 2026-11-03 the "JEJU" pin, which now opens the stage-only site switcher);
+ * on the notice, the small plane in the sky of the art turns it off (2026-11-06;
+ * before that the leftmost tangerine). A single click used to lift the notice for good and there was no way back
+ * (2026-10-29).
  *
  * Mouse only — staff drive the kiosk over TeamViewer, which injects mouse
  * input, while the kiosk's touch panel reports finger taps as pointerType
@@ -18,20 +20,25 @@
  */
 import { useCallback, useRef, type PointerEvent } from 'react';
 
-/** 제주 kiosks showing the full-screen 시스템 점검 notice instead of the app. */
-export const MAINTENANCE_KIOSKS: ReadonlySet<string> = new Set(['W008']);
+/** 제주 kiosks that can show the full-screen 시스템 점검 notice instead of the app. */
+export const MAINTENANCE_KIOSKS: ReadonlySet<string> = new Set(['W008', 'W009', 'W010']);
 
-/** '1' = lifted (the app shows). Anything else, or missing, = the notice. */
+/** Of those, the ones showing the notice until staff first lift it. */
+const NOTICE_UNTIL_LIFTED: ReadonlySet<string> = new Set(['W008']);
+
+/** '1' = lifted (the app shows), '0' = the notice. Missing = the kiosk's default. */
 const MAINTENANCE_LIFTED_KEY = 'jeju.maintenanceLifted';
 
 export const TAPS_TO_SWITCH = 5;
 export const TAP_WINDOW_MS = 3_000;
 
-export function readMaintenanceLifted(): boolean {
+export function readMaintenanceLifted(kioskId: string): boolean {
+  const byDefault = !NOTICE_UNTIL_LIFTED.has(kioskId);
   try {
-    return localStorage.getItem(MAINTENANCE_LIFTED_KEY) === '1';
+    const stored = localStorage.getItem(MAINTENANCE_LIFTED_KEY);
+    return stored === null ? byDefault : stored === '1';
   } catch {
-    return false;
+    return byDefault;
   }
 }
 

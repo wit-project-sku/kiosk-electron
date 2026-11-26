@@ -177,10 +177,10 @@ export class UpdateService {
     autoUpdater.autoDownload = true; // background download
     autoUpdater.autoInstallOnAppQuit = true; // safety net: applies on the nightly reboot
     autoUpdater.channel = this.channel;
-    // Beta and demo both ship as GitHub PRE-releases. Demo is a custom channel
-    // to electron-updater's GitHub provider: it only accepts tags whose
-    // prerelease id is `demo` (v5.0.27-demo.N), so it never takes a beta or a
-    // stable release, and beta/production never take a demo one.
+    // Beta, kdh and demo all ship as GitHub PRE-releases. Demo and kdh are custom
+    // channels to electron-updater's GitHub provider: each only accepts tags whose
+    // prerelease id matches (v5.0.27-demo.N), so it never takes another lane's
+    // release, and beta/production never take one of theirs.
     autoUpdater.allowPrerelease = this.channel !== 'latest';
     // MUST come after `channel`. electron-updater's channel SETTER forces
     // `allowDowngrade = true` (AppUpdater.js: "allowDowngrade will be

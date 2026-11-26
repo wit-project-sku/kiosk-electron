@@ -301,7 +301,9 @@ export function JejuCruise({ controller }: Props): JSX.Element {
       <div className={low(styles.scroll, styles.scrollLow)}>
         <div className={styles.rows}>
           {rows.length === 0 ? (
-            <p className={styles.empty}>{opText('OP_Schedule_Result', boardLang, EMPTY)}</p>
+            <p className={styles.empty} data-voice-state="empty">
+              {opText('OP_Schedule_Result', boardLang, EMPTY)}
+            </p>
           ) : (
             rows.map((row) => (
               <div key={row.id} className={styles.row}>

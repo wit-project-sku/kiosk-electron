@@ -21,6 +21,19 @@ import { usePhotoChrome } from './photoChrome';
 import { OsanLeftNav } from '@layouts/osan/OsanLeftNav';
 import { MARKET_SUBTITLE, RESULT_KADA, resultFromSheet } from './photoTexts';
 import styles from './PhotoWorkflow.module.css';
+import { VoiceIntro } from '../jeju/voice/intro';
+import { VoiceToggle } from '../jeju/voice/VoiceToggle';
+
+/** 제주 voice guidance on the result page (the sheet's W008 row differs — no WIT Store). */
+const VOICE_RESULT = ['hanbok.result'] as const;
+/**
+ * The plain result page (photo + save QR, no store). Named with the airport's
+ * row because the shared `hanbok.result` line also invites the visitor to make
+ * goods, which this page does not offer — 여객터미널 W009 draws it too now.
+ */
+const VOICE_RESULT_PLAIN = ['hanbok.result@W008'] as const;
+/** 제주 venues whose finished photo is the plain image + save QR, not the store. */
+const PLAIN_RESULT_KIOSKS: ReadonlySet<string> = new Set(['W008', 'W009']);
 
 /** Where the 굿즈제작 button's QR points. */
 const GOODS_URL = 'https://insarang.kr/';
@@ -34,7 +47,7 @@ const SAVE_BASE = 'https://withphoto.vercel.app/?imageUrl=';
  * returns data.shareUrl — a pickup page with per-device save (iPhone share sheet,
  * Android download, an "open in browser" prompt inside KakaoTalk), deleted after
  * an hour — and the QR uses it directly, so the phone never goes through Vercel.
- * Only a response without shareUrl (the old photo.witteria.com/api/images host)
+ * Only a response without shareUrl (the old photo.witmarket.net/api/images host)
  * falls back to withphoto.vercel.app/?imageUrl=. imageUrl itself keeps every
  * other job: the on-screen image and the 기부 hand-off.
  */
@@ -72,9 +85,9 @@ export function PhotoWorkflow(): JSX.Element {
   const hasPayment = getKioskLocation(kioskId).hasCardTerminal;
   const rotating = useRotatingBanner();
   const chrome = usePhotoChrome();
-  const { isHwaseong, isJeju, isKada, icon, Header, photoTitle, banner: chromeBanner } = chrome;
+  const { isHwaseong, isJeju, isKada, isLotte, icon, Header, photoTitle, banner: chromeBanner } = chrome;
   /** Result page without 굿즈제작 (Save + Retake only) — see the button. */
-  const noGoods = isKada || isJeju;
+  const noGoods = isKada || isJeju || isLotte;
   // The 위드마켓 rail's ♿ toggle (제주 only) — see the button for what it does
   // and does not affect on this screen.
   const lowReach = useAccessibilityStore((s) => s.lowReach);
@@ -86,8 +99,10 @@ export function PhotoWorkflow(): JSX.Element {
   //  - 제주공항 W008 keeps its terminal for 기부 too, but the finished photo
   //    is the plain image + save QR, the same screen 인사동 draws where there
   //    is no payment. The home 위드마켓 card is inert there as well.
+  //  - 여객터미널 W009 follows the airport (2026-11-10): no store on the result.
   // Only venues that pair the terminal WITH the store webview take this screen.
-  const showsMarketResult = hasPayment && !isHwaseong && kioskId !== 'W008';
+  const showsMarketResult =
+    hasPayment && !isHwaseong && !isLotte && !PLAIN_RESULT_KIOSKS.has(kioskId);
   // Osan/Hwaseong have their own single promo banner; insadong rotates through several.
   const banner = chromeBanner ?? rotating;
   const [goodsQrOpen, setGoodsQrOpen] = useState(false);
@@ -262,7 +277,7 @@ export function PhotoWorkflow(): JSX.Element {
         aiReady={phase === 'result'}
         onFinish={handleGameFinish}
         onHome={handleReset}
-        readyModal={photoReadyModal || chrome.isJeju}
+        readyModal={photoReadyModal || chrome.isJeju || chrome.isLotte}
       />
     );
   }
@@ -280,12 +295,13 @@ export function PhotoWorkflow(): JSX.Element {
     return <HanbokSelect onHome={handleReset} onCapture={handleCapture} countdownActive={capturing} />;
   }
 
-  // ── Result (MARKET kiosks W003/W004, and 제주 except 제주공항): WIT Store on Monitor 1; result image big on Monitor 2 ──
+  // ── Result (MARKET kiosks W003/W004, and 제주 except 제주공항 / 여객터미널): WIT Store on Monitor 1; result image big on Monitor 2 ──
   if (phase === 'result' && showsMarketResult) {
     const imageUrl = resultUrl ?? (resultFileName ? generatedUrl(resultFileName) : '');
     const saveUrl = saveQrUrl(resultShareUrl, imageUrl, lang);
     return (
       <>
+        <VoiceIntro keys={VOICE_RESULT} />
         {isHwaseong ? (
           <>
             <div className={styles.bgBase} />
@@ -372,6 +388,7 @@ export function PhotoWorkflow(): JSX.Element {
               <img src={accessibilityIcon} alt="" draggable={false} />
             </button>
           )}
+          <VoiceToggle className={styles.leftNavBtn} />
         </div>
         )}
 
@@ -409,6 +426,7 @@ export function PhotoWorkflow(): JSX.Element {
 
     return (
       <>
+        <VoiceIntro keys={VOICE_RESULT_PLAIN} />
         {isHwaseong ? (
           <>
             <div className={styles.bgBase} />
@@ -516,6 +534,7 @@ export function PhotoWorkflow(): JSX.Element {
                 <img src={accessibilityIcon} alt="" draggable={false} />
               </button>
             )}
+            <VoiceToggle className={styles.leftNavBtn} />
           </div>
         )}
 

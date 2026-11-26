@@ -121,6 +121,10 @@ export const IpcChannels = {
   KioskPlayWeatherVideo: 'kiosk:playWeatherVideo',
   // Dev-mode only: persist a new kiosk location id and relaunch as that kiosk.
   KioskSwitchLocation: 'kiosk:switchLocation',
+  // 지점 설정 screen: make this PC the chosen site and restart (any build).
+  KioskSetupApply: 'kiosk:setupApply',
+  // 지점 설정 screen opened from the shortcut with the app off: start the kiosk as it is.
+  KioskSetupLaunch: 'kiosk:setupLaunch',
 
   // Shops (cached from the witteria API)
   ShopsList: 'shops:list',
@@ -155,6 +159,11 @@ export const IpcChannels = {
   // 화성휴게소 home board 도로교통상황 (GET /api/traffic/expressway; renderer polls)
   TrafficExpresswayGet: 'traffic:expressway',
 
+  // 롯데 (W011~W013) — keyed by kiosk number; the renderer polls (see LotteService)
+  LotteShowtimesGet: 'lotte:showtimes', // GET /api/cinema/showtimes
+  LotteStoriesGet: 'lotte:stories', // GET /api/stories
+  LotteMovieShareSummaryGet: 'lotte:movie-share-summary', // GET /api/movie-share/summary
+
   // 제주 AI 코스 추천 (live POST; 제주 kiosks only)
   JejuCourseRecommend: 'jejuCourse:recommend',
   // 제주 커스텀 코스 picker (live POST per 즐길 거리 tap; 제주 kiosks only)
@@ -174,6 +183,10 @@ export const IpcChannels = {
   FootfallReport: 'footfall:report',
   FootfallStatus: 'footfall:status',
   FootfallGetStats: 'footfall:getStats',
+
+  // 자동 촬영 — main says when, the touch-screen window captures the frame.
+  AutoShotPlan: 'autoShot:plan',
+  AutoShotRun: 'autoShot:run',
 } as const;
 
 export type IpcInvokeChannel = (typeof IpcChannels)[keyof typeof IpcChannels];
@@ -201,6 +214,7 @@ export const IpcEvents = {
   KioskScreenChanged: 'event:kiosk:screenChanged',
   /** Weather card tapped; the customer display plays that condition's clip. */
   KioskWeatherVideo: 'event:kiosk:weatherVideo',
+  /** The desktop 지점 설정 shortcut was opened while the kiosk runs; show the screen. */
   /** Shop catalogue refreshed into SQLite; the renderer reloads its store. */
   ShopsChanged: 'event:shops:changed',
   /** 제주 관광명소 refreshed into SQLite; the renderer reloads its store. */

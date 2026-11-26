@@ -3,8 +3,13 @@
     "electron.vite.config.ts",
     "src/main/**/*",
     "src/preload/**/*",
-    "src/shared/**/*"
+    "src/shared/**/*",
+    "tests/unit/**/*",
+    "vitest.config.ts"
   ],
+  // `*.web.test.ts` exercise renderer stores and need the DOM and the @renderer / @layouts paths:
+  // tsconfig.web.json checks them instead.
+  "exclude": ["tests/unit/**/*.web.test.ts"],
   "compilerOptions": {
     "composite": true,
     "tsBuildInfoFile": "node_modules/.tmp/tsconfig.node.tsbuildinfo",

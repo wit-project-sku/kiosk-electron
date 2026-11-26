@@ -55,13 +55,34 @@ export type KioskLayoutId =
   | 'HWASEONG'
   | 'JEJU_AIRPORT'
   | 'JEJU_HERITAGE'
-  | 'KADA';
+  | 'KADA'
+  // 롯데 W011~W013 — one design for all three venues.
+  | 'LOTTE';
 
 /** Well-known kiosk deployment IDs. */
-export type KioskId = 'W001' | 'W002' | 'W003' | 'W004' | 'W005' | 'W008' | 'W009' | 'W010' | 'W202' | (string & {});
+export type KioskId = 'W001' | 'W002' | 'W003' | 'W004' | 'W005' | 'W008' | 'W009' | 'W010' | 'W011' | 'W012' | 'W013' | 'W202' | (string & {});
 
 export interface KioskConfig {
+  /** Location-derived id — on the test rig this is the preview site (see shared/config/testRig). */
   kioskId: KioskId;
+  /** Who this machine is to the server: the provisioned id (W200 on the test rig). */
+  identityKioskId?: KioskId;
+  /** True on the office test kiosk (W200), which can switch between every site's app. */
+  testRig?: boolean;
+  /** Test rig only: start the card-terminal agent for the preview site (off unless set). */
+  testRigPayment?: boolean;
+  /**
+   * Derived, not stored: this build talks to a STAGE server (isStageApiBase on
+   * the API base). Enables the mouse-only site switcher on the home pin and lets
+   * `previewSite` apply to a venue machine. Always false on production servers.
+   */
+  stageServer?: boolean;
+  /**
+   * Derived, not stored: the 지점 설정 screen should be open at boot —
+   * `required` on a fresh machine (nothing else is shown until a site is picked),
+   * `requested` when launched from the desktop shortcut. See shared/config/kioskSetup.
+   */
+  setup?: 'required' | 'requested';
   layout: KioskLayoutId;
   /** Per-machine witteria shop-API id (set in electron-store); optional. */
   shopApiKioskId?: number;
@@ -174,6 +195,12 @@ export type KioskScreenId =
   // thing tapping the weather card does. Never navigated to: it is the tile's
   // key for buttonCatalog / analytics only.
   | 'weather'
+  // 롯데 W011~W013 — 롯데시네마 상영 시간표 전체 보기 (the home board's 더보기).
+  | 'cinema'
+  // 롯데 W011~W013 — the 화면정의서 (2026-11-13) and 롯데 미션 (2026-11-16) screens.
+  | 'movie_share'  // 영화 나눔 안내 (C-03) — home tile
+  | 'stories'      // 오늘의 사연 목록 · 없음 · 보기 (C-05~C-07) — home card
+  | 'building'     // 건물 안내: 이벤트 (C-04) · 핫스팟 (A-07) — home building buttons
   | 'localpay'     // 지역화폐 (탐나는전)
   // 제주국제여객터미널 (W009) — the one home tile W008 does not have. It takes
   // 렌트카's grid slot (line 6 position 4), so the two are mutually exclusive:

@@ -354,6 +354,8 @@ const TITLE_KEYS: Record<string, TitleKeySpec> = {
   "도와줘 ‘유산’": { title: 'MainButton_ToHelp', sub: 'Help_Subtitle' },
   // W008's 도와줘 page, retitled with its home tile. Same page, same description.
   '제주공항 안내': { title: 'MainButton_Airport_Guide', sub: 'Help_Subtitle' },
+  // W009's 도와줘 page, retitled with its home card. Same page, same description.
+  '여객터미널 안내': { title: 'MainButton_Terminal_Guide', sub: 'Help_Subtitle' },
   "제주도 이벤트": { title: 'MainButton_Event', sub: 'SubHeader_Event' },
   "렌트카": { title: 'MainButton_RentCar', sub: 'RentCar_Subtitle' },
   // 제주공항's split pages (2026-10-29): each site alone, titled with its own
@@ -399,6 +401,18 @@ const TITLE_KEYS: Record<string, TitleKeySpec> = {
  * sheet carries the other seven.
  */
 const BUTTON_OVERRIDES: Record<string, Partial<Record<Lang, string>>> = {
+  // W009's 도와줘 page (jejuHelpTitle). Any cell the sheet fills wins over this,
+  // per language; a row with only Korean keeps these for the other seven.
+  MainButton_Terminal_Guide: {
+    ko: '여객터미널 안내',
+    en: 'Passenger Terminal Guide',
+    ja: '旅客ターミナル案内',
+    zh: '客运码头指南',
+    vi: 'Hướng dẫn bến tàu khách',
+    th: 'คู่มือท่าเรือโดยสาร',
+    ru: 'Гид по пассажирскому терминалу',
+    id: 'Panduan Terminal Penumpang',
+  },
   MainButton_LocalCurrency: {
     ko: '지역화폐',
     en: 'Local Currency',

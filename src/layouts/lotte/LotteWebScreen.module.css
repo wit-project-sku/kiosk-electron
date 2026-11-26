@@ -1,0 +1,227 @@
+/*
+ * 제주 embedded-website body — Figma node 6050:149556 (위드마켓_01_상품 목록).
+ *
+ * The Figma draws the WIT Store site as a mockup inside a 1820×2250 frame at
+ * (170, 700); at runtime that frame is a <webview> onto the live site. Those
+ * are exactly the dimensions already declared as WEB_EMBED_SIZE, which the
+ * other kiosks use for the same purpose.
+ */
+.body {
+  position: absolute;
+  left: 170px;
+  top: 700px;
+  width: 1820px;
+  height: 2250px;
+  overflow: hidden;
+  /* The store site's own page colour, so the gap before it paints matches. */
+  background: #fffbf2;
+}
+
+/*
+ * 탐나오&제주큐랑 (6493:118287, the redraw of 6219:105645) draws the same panel
+ * to its own numbers: 2291 tall rather than 2250, rounded 63, and pushed down to
+ * 973 to clear the tab row this frame adds at 700. The extra height is not free
+ * space — the panel ends at 3264 and the QR row follows at 3373, where WIT Store
+ * simply stops at 2950. Same flag drives both, because in the frame they are one
+ * composition.
+ *
+ * 973 + 2291 + the QR row = 3592, past the y3267 a page banner would occupy,
+ * which is why this screen passes showBanner={false} — see LotteWebScreen.
+ */
+.bodyTamnao {
+  top: 973px;
+  height: 2291px;
+  border-radius: 63px;
+}
+
+/* ♿ (6778:69905) — the low-reach frame this file said was still to come.
+   The panel keeps its 1820×2291 at x170 and only drops 973 → 1032; what
+   actually re-stacks around it is the other two blocks, which SWAP ends: the QR
+   row comes up above the panel and the tab row goes to the foot, within seated
+   reach. See .qrRowLow / .tabsLow. */
+/* 제주공항's single-site 탐나오 / 제주큐랑 pages (2026-10-29): no tab row, so the
+   panel rises into its band (700 = the plain .body's top) and keeps the same
+   bottom edge, 3264, above the QR row. Low-reach keeps .bodyTamnaoLow's frame
+   — that tab row sits at the foot, so the top band is the QR row's. */
+.bodyTamnaoSingle {
+  top: 700px;
+  height: 2564px;
+}
+
+.bodyTamnaoLow {
+  top: 1032px;
+  height: 2291px;
+}
+
+/* ── Tab row — 6493:118322 ──
+   탐나오 leads; 제주큐랑 is second. The frame puts the 1360-wide row at x429,
+   29px right of centre; drawn CENTRED (x400) on purpose, exactly as
+   LotteLocalpay normalises the same 29px drift its own tab frames carry — the
+   two pages draw the identical component and must not disagree. */
+.tabs {
+  position: absolute;
+  left: 400px;
+  top: 700px;
+  width: 1360px;
+  height: 170px;
+  display: flex;
+  align-items: center;
+  gap: 200px;
+}
+
+/* ♿: the same 1360-wide row, moved from above the panel to the foot of the
+   artboard (6778:69905) — the one control on this screen, put where a seated
+   visitor can reach it. Width, gap and both pill treatments are unchanged. */
+.tabsLow {
+  top: 3440px;
+}
+
+.tab {
+  composes: pill from './LottePill.module.css';
+  width: 580px;
+}
+
+/* Picked: the solid brand plate with white Bold type (6493:118325) — the same
+   treatment LotteLocalpay's tabs take, NOT LottePill's pale pillActive. */
+.tabActive {
+  border: none;
+  background: var(--kiosk-primary, #DA291C);
+  font-weight: 700;
+  color: #fff;
+}
+
+/*
+ * One pane per tab. Every site stays MOUNTED so switching is instant — a
+ * <webview> whose src changes has to boot, fetch and paint from scratch and the
+ * visitor watches it happen. The inactive pane collapses to 0×0 rather than
+ * `visibility: hidden`: Electron's webview paints at the OS compositor level
+ * and BLEEDS THROUGH CSS visibility on its parent. Same reason LotteKiosk hides
+ * whole screens this way.
+ */
+.pane {
+  position: absolute;
+  inset: 0;
+}
+
+.paneHidden {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 0;
+  height: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+/* ── "모바일에서 확인하기" QR row — 6352:144525 ────────────────────────────
+   Sits under the panel, which now ends at 3264. Nothing follows it — this
+   frame has no banner. Not interactive: the QR is something the visitor points
+   a phone at, and the kiosk has no larger view of it to open. */
+.qrRow {
+  position: absolute;
+  left: 252px;
+  top: 3373px;
+  width: 1820px;
+  height: 219px;
+}
+
+/* ♿: above the panel instead of below it, tucked into the header's own bottom
+   padding (the header runs 146–846 and draws nothing past its subtitle at 765).
+   Same 1820×219 box and the same divider/text/QR inside it — only `top` moves. */
+.qrRowLow {
+  top: 813px;
+}
+
+.qrDivider {
+  position: absolute;
+  left: 156px;
+  top: 0;
+  width: 1556px;
+  height: 1px;
+  border-radius: 2px;
+  background: #ebebeb;
+}
+
+/* The frame anchors this by its RIGHT edge at x1505 and centres it on y110
+   (`-translate-x-full -translate-y-1/2`), which is what keeps the two lines
+   ragged-right against the QR whatever the translation does to their width. */
+.qrText {
+  position: absolute;
+  right: 315px; /* 1820 − 1505 */
+  top: 110px;
+  transform: translateY(-50%);
+  margin: 0;
+  font-size: 40px;
+  font-weight: 700;
+  line-height: normal;
+  letter-spacing: 0.4px;
+  color: var(--kiosk-primary, #DA291C);
+  text-align: right;
+  white-space: pre-line;
+}
+
+.qrBox {
+  position: absolute;
+  left: 1551px;
+  top: 16px;
+  width: 187px;
+  height: 187px;
+  box-sizing: border-box;
+  border: 4.29px solid var(--kiosk-primary, #DA291C);
+  border-radius: 25px;
+  background: #fff;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* The exported asset is exactly the frame's 150×150, so it is placed at its
+   natural size and centred rather than stretched to the box. */
+.qrImg {
+  width: 150px;
+  height: 150px;
+  display: block;
+}
+
+/* `display` MUST stay flex/inline-flex. Electron's <webview> is a custom element
+   whose shadow root is `:host{display:flex}` around an `<iframe style="flex:1">`
+   — that iframe takes its HEIGHT only from the flex stretch, so `display:block`
+   collapses it to the intrinsic 150px and the site paints into a sliver at the
+   top of this 2250px panel while still loading fine. Same value every other
+   webview in the app uses (Insadong/Osan/기부/TaxFree). */
+.embed {
+  display: inline-flex;
+  width: 100%;
+  height: 100%;
+  border: none;
+}
+
+/* Shown instead of the webview when no URL is configured, so a missing address
+   reads as a stated problem rather than a blank panel. */
+.placeholder {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 40px;
+  text-align: center;
+}
+
+.placeholderTitle {
+  margin: 0;
+  font-size: 72px;
+  font-weight: 700;
+  line-height: 1;
+  color: #5d4e37;
+}
+
+.placeholderHint {
+  margin: 0;
+  font-size: 48px;
+  font-weight: 400;
+  line-height: 1.3;
+  color: #aca193;
+}

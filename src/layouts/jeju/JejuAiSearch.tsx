@@ -59,6 +59,7 @@ import type { Lang } from '@renderer/lib/i18n';
 import { sheetText, t } from '@renderer/lib/loc';
 import { aiCatLabel } from '@renderer/lib/aiCategoryLabel';
 import { AI_CATEGORIES_JEJU } from '@renderer/data/aiCategories-jeju.generated';
+import { jejuAiCategories } from '@renderer/lib/jejuAiCategories';
 import { jejuIconUrl } from '@renderer/assets/icons/jeju';
 import { COURSES } from './JejuAiResult';
 import {
@@ -76,10 +77,17 @@ import { useFitText } from '@layouts/components/fitText';
 import { JejuPageFrame } from './JejuPageFrame';
 import styles from './JejuAiSearch.module.css';
 import { belowModeBar, LOW_REACH_BANNER_HEIGHT, LOW_REACH_HERO_HEIGHT } from './lowReach';
+import { useVoiceIntro } from './voice/intro';
 
 interface Props {
   controller: KioskController;
 }
+
+/** Voice intros: the picker, then the questionnaire — a themed course asks for
+ *  regions, the full AI 맞춤 one for things to do. */
+const VOICE_PICK = ['jeju.ai.pick'] as const;
+const VOICE_THEMED = ['jeju.ai.questions', 'jeju.ai.region'] as const;
+const VOICE_CUSTOM = ['jeju.ai.questions', 'jeju.ai.activities'] as const;
 
 /*
  * ── 커스텀 코스 picker — POST /api/jeju/courses/picker ──────────────────
@@ -109,7 +117,7 @@ const DAY_TAB: Partial<Record<Lang, (n: number) => string>> = {
   ko: (n) => `${n}일차`, en: (n) => `Day ${n}`, ja: (n) => `${n}日目`, zh: (n) => `第${n}天`,
   vi: (n) => `Ngày ${n}`, th: (n) => `วันที่ ${n}`, ru: (n) => `День ${n}`, id: (n) => `Hari ${n}`,
 };
-/** Localization_Jeju_v2's day tabs (1일차 … 4일차). A 5th day has no row and keeps DAY_TAB. */
+/** Localization_Jeju_v3's day tabs (1일차 … 4일차). A 5th day has no row and keeps DAY_TAB. */
 const DAY_TAB_KEYS = ['1st_day', '2nd_day', '3rd_day', '4th_day'];
 /**
  * ⚠ KOREAN reads the sheet; every other language takes the table above.
@@ -590,7 +598,7 @@ const NEXT_LABEL = {
 /**
  * The CTA once every question is answered — Figma 6289:54956's "코스 추천받기".
  *
- * Read from Localization_Jeju_v2's `SubmitButton` ("코스 추천받기"), the row the
+ * Read from Localization_Jeju_v3's `SubmitButton` ("코스 추천받기"), the row the
  * sheet added for this button — NOT the mascot-worded AI_SubmitButton, which
  * the v2 tab retired. This table fills the languages the row leaves empty.
  */
@@ -607,7 +615,7 @@ const SUBMIT_LABEL = {
 
 /*
  * ── Course picker copy (Figma 7088:23517, redraw of 7019:17890) ──
- * Localization_Jeju_v2 carries this page's copy (Jeju_Todo_Subtitle1*,
+ * Localization_Jeju_v3 carries this page's copy (Jeju_Todo_Subtitle1*,
  * My_Course_*, Recommended_Course_*), so the sheet is the source everywhere
  * below; these eight-language tables only fill the cells it leaves empty —
  * most of those rows are Korean-only so far.
@@ -807,7 +815,7 @@ const THEMES = [
   },
 ] as const;
 
-/** Each card's Localization_Jeju_v2 row, `Recommended_Course_{n}_subtitle/_title` —
+/** Each card's Localization_Jeju_v3 row, `Recommended_Course_{n}_subtitle/_title` —
  *  numbered in the frame's reading order, 쇼핑·로컬 included. */
 const THEME_SHEET_NO: Record<string, number> = { nature: 1, food: 2, shop: 3, family: 4 };
 
@@ -884,6 +892,8 @@ export function JejuAiSearch({ controller }: Props): JSX.Element {
     setResumeQuestions(false);
   }, [setResumeQuestions]);
   const lang = useLanguageStore((s) => s.currentLanguage);
+  // tileLabel reads the downloaded AICategory_Jeju, which can land after first paint.
+  useKioskStore((s) => s.content);
   /**
    * ── The other seven languages ────────────────────────────────────────
    * Every plate on this page is the Figma's Korean size: a 268 chip for "2명",
@@ -921,7 +931,7 @@ export function JejuAiSearch({ controller }: Props): JSX.Element {
   const tileLabel = (i: number): string => {
     const meta = INTERESTS[i];
     if (lang === 'ko' && meta?.ko) return meta.ko;
-    const cat = AI_CATEGORIES_JEJU[i];
+    const cat = jejuAiCategories()[i];
     return cat ? stripRowIndex(aiCatLabel(cat, lang)) : (meta?.ko ?? '');
   };
 
@@ -954,6 +964,7 @@ export function JejuAiSearch({ controller }: Props): JSX.Element {
   const lowReach = useAccessibilityStore((s) => s.lowReach);
   /** Low-reach only: 1 = the three chip groups, 2 = 즐길 거리. See Y_LOW. */
   const [step, setStep] = useState<1 | 2>(1);
+  useVoiceIntro(stage === 'pick' ? VOICE_PICK : themeKey ? VOICE_THEMED : VOICE_CUSTOM);
   const y = themeKey ? Y_THEME : lowReach ? Y_LOW : Y;
   // Standard shows everything at once; low-reach shows one step at a time. A
   // themed page is all chips and no 즐길 거리, in either layout — it rides the
@@ -1293,7 +1304,13 @@ export function JejuAiSearch({ controller }: Props): JSX.Element {
             I {sheetText('My_Course_title', lang, AI_CARD.title)}
           </p>
 
-          <button type="button" className={`${styles.bigCard} ${styles.fitCard}`} onClick={openCustom}>
+          {/* data-voice-label on both kinds of card: their small line sits above the title. */}
+          <button
+            type="button"
+            className={`${styles.bigCard} ${styles.fitCard}`}
+            onClick={openCustom}
+            data-voice-label={sheetText('My_Course_title', lang, AI_CARD.title)}
+          >
             {aiArt && <img src={aiArt} alt="" className={styles.bigArt} draggable={false} />}
             <span className={styles.bigText}>
               <span className={styles.bigSub}>{sheetText('My_Course_desc1', lang, AI_CARD.sub)}</span>
@@ -1320,6 +1337,7 @@ export function JejuAiSearch({ controller }: Props): JSX.Element {
                   type="button"
                   className={`${styles.courseCard} ${styles.fitCard}`}
                   onClick={() => openTheme(theme.key)}
+                  data-voice-label={title}
                 >
                   {art && (
                     <img

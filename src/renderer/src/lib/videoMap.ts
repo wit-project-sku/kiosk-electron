@@ -86,6 +86,17 @@ export function initVideoFiles(bySet: VideoFilesBySet): void {
   }
 }
 
+/**
+ * How many distinct clips `kioskId`'s video set has in a VideosList result —
+ * counted the way initVideoFiles resolves them (a 제주 set includes the
+ * pre-split shared folder). The 지점 설정 screen warns when a site has none.
+ */
+export function siteVideoCount(bySet: VideoFilesBySet, kioskId: KioskId): number {
+  const set = videoSetFor(kioskId);
+  const folders: (keyof VideoFilesBySet)[] = JEJU_SETS.includes(set) ? [set, ...LEGACY_VIDEO_SETS] : [set];
+  return new Set(folders.flatMap((folder) => (bySet[folder] ?? []).map(norm))).size;
+}
+
 /** Every playable video URL in a set, in listing order (generic attract wall). */
 export function videoUrlsForSet(set: VideoSet): string[] {
   return FILES_BY_SET[set].map(mediaUrl);
@@ -130,10 +141,10 @@ function buildByButton(entries: VideoEntry[]): Map<number, VideoEntry[]> {
 }
 
 // Mutable maps, one per video set — populated by initSubtitles() once main's
-// SubtitleService answers. Its source is the CMS API (SQLite-cached), with one
-// exception: a 제주 kiosk whose API has no rows gets its VideoSubtitle Google
-// Sheet tab instead, read at runtime (production still answers W008–W010 with
-// zero rows). There is no bundled table, so a never-synced kiosk with no
+// SubtitleService answers. Its source is the CMS API (SQLite-cached), except
+// where the venue's VideoSubtitle Google Sheet tab is read at runtime instead:
+// 인사동 always, and 제주 first (the API only when the sheet yields nothing —
+// see SubtitleService). There is no bundled table, so a never-synced kiosk with no
 // network shows no clips (the generic attract wall) until it reaches one once.
 let BY_KEY: Record<VideoSet, Map<string, VideoEntry[]>> = emptyBySet(() => new Map());
 
@@ -157,6 +168,9 @@ const VIDEO_SET_BY_LAYOUT: Record<KioskLayoutId, VideoSet> = {
   // empty set resolves no clips, so the customer display stays on its attract
   // slideshow until KADA footage is dropped into that folder.
   KADA: 'kada',
+  // 롯데 has no footage yet — borrowing KADA's empty set resolves no clips, so the
+  // customer display stays on its attract slideshow until 롯데 clips exist.
+  LOTTE: 'kada',
 };
 
 /**
@@ -699,6 +713,7 @@ const SCREEN_KEYS_BY_LAYOUT: Record<KioskLayoutId, LayoutScreenKeys> = {
   // KADA has five screens and no video set, so there is nothing to map and
   // nothing worth inheriting — Insadong's screen names do not exist here.
   KADA: { map: {}, inherit: false },
+  LOTTE: { map: {}, inherit: false },
 };
 
 // Every kiosk carries a dedicated ChangeLanguage_* clip per UI language (all 8),

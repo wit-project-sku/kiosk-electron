@@ -551,7 +551,9 @@ export function JejuFlights({ controller }: Props): JSX.Element {
       <div className={low(styles.scroll, styles.scrollLow)} ref={scrollRef}>
         <div key={direction} className={styles.rows}>
           {rows.length === 0 ? (
-            <p className={styles.empty}>{emptyCopy}</p>
+            <p className={styles.empty} data-voice-state={isLoading ? 'loading' : 'empty'}>
+              {emptyCopy}
+            </p>
           ) : (
             rows.map((row) => {
               // Whole-row accent on this board only: 출발예정 (not 탑승최종) / 도착.

@@ -43,7 +43,7 @@
  *   #      confirm (검색) while one is open · else page down
  *   0–9    type into an open keyboard or number pad
  *   0      otherwise toggles ♿ 저상 화면
- *   1–9    otherwise nothing yet — see The digits, below
+ *   1–9    otherwise nothing here — 1 2 3 7 8 9 are voice guidance's (see Voice)
  *
  * Two of those read the screen through a marker attribute rather than through a
  * screen name: DISMISS_SELECTOR and the digit keys' `data-vk-digit`. That is
@@ -92,11 +92,12 @@
  * broken rather than limited. The guest case is handled at the bottom of this
  * file; the window case is not the renderer's to fix (see DisplayWindow).
  *
- * ── No audio ────────────────────────────────────────────────────────────────
- * There is no audio guidance on this kiosk and none planned (confirmed
- * 2026-09-03), so `△ * #` are NOT reserved for the play/pause and volume roles
- * a barrier-free pad conventionally gives them. They drive real screen actions
- * instead. Anyone adding speech later should expect to negotiate for them.
+ * ── Voice ───────────────────────────────────────────────────────────────────
+ * Voice guidance (voice/useJejuVoice) sits on top of this hook rather than in
+ * it. It claims its keys in the capture phase before this listener runs — the
+ * first press of a visit, and `1 2 3 7 8 9` while no keyboard is open — and
+ * reads the ring's element from FOCUS_EVENT. `△ * #` keep their screen actions;
+ * volume lives on `7` / `8` instead.
  */
 import { useEffect, useRef } from 'react';
 import type { KioskController } from '@renderer/hooks/useKioskController';
@@ -106,6 +107,12 @@ import './keypadFocus.css';
 
 /** Marks the one element wearing the focus ring. Styled in keypadFocus.css. */
 const FOCUS_ATTR = 'data-keypad-focus';
+
+/**
+ * Fired on `window` each time the ring lands on an element, for voice guidance
+ * to read it. The element is the one carrying FOCUS_ATTR.
+ */
+export const FOCUS_EVENT = 'jeju-keypad-focus';
 
 /** On `<body>` while the pad is in use, so the ring only shows for pad users. */
 const MODE_CLASS = 'jeju-keypad';
@@ -130,8 +137,13 @@ const ARROW_DIRS: Readonly<Record<string, Dir>> = {
  *
  * On the home screen there is no header and so no match, and `✕` does nothing.
  * That is correct: there is nowhere above home to go.
+ *
+ * `:not([data-keypad-inert] *)` because the pre-warmed web layers stay mounted
+ * with live headers of their own (see JejuKiosk). Without it these match a
+ * hidden layer's button whenever the visible screen has none or has disabled
+ * its own — and △ in 틀린그림찾기 then navigates home and discards the photo.
  */
-const BACK_SELECTOR = 'button[aria-label="뒤로"]:not([disabled])';
+export const BACK_SELECTOR = 'button[aria-label="뒤로"]:not([disabled]):not([data-keypad-inert] *)';
 
 /**
  * The 제주 header's home button — `△`'s target, and the same arrangement as
@@ -139,7 +151,7 @@ const BACK_SELECTOR = 'button[aria-label="뒤로"]:not([disabled])';
  * directly means a screen that has disabled its nav stays un-leavable from the
  * pad too. On the home screen there is no header, so `△` does nothing.
  */
-const HOME_SELECTOR = 'button[aria-label="홈"]:not([disabled])';
+export const HOME_SELECTOR = 'button[aria-label="홈"]:not([disabled]):not([data-keypad-inert] *)';
 
 /** Elements that should keep their own Enter behaviour instead of being clicked. */
 const TEXT_ENTRY = /^(INPUT|TEXTAREA|SELECT)$/;
@@ -284,6 +296,7 @@ export function useJejuKeypad(controller: KioskController): void {
       // scrollNav, where the same hazard is described in full.
       el.focus({ preventScroll: true });
       reveal(el, () => focusedRef.current === el);
+      if (el !== prev) window.dispatchEvent(new Event(FOCUS_EVENT));
     };
 
     /** Land on the first thing in reading order — used when nothing is focused. */
@@ -630,6 +643,7 @@ export function useJejuKeypad(controller: KioskController): void {
       if (needsTabIndex(first.el)) first.el.tabIndex = -1;
       first.el.setAttribute(FOCUS_ATTR, '');
       first.el.focus({ preventScroll: true });
+      window.dispatchEvent(new Event(FOCUS_EVENT));
     });
     return () => cancelAnimationFrame(id);
   }, [screen, photoActive]);

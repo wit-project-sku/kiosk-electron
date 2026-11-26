@@ -31,6 +31,10 @@ import { JejuCourseSpotCard } from './JejuCourseSpotCard';
 import { JejuSpotDetailCard } from './JejuSpotDetailCard';
 import styles from './JejuDetail.module.css';
 import { belowModeBar, LOW_REACH_BANNER_HEIGHT } from './lowReach';
+import { useVoiceIntro } from './voice/intro';
+
+/** 렌트카 opens this same page; its own intro is about the shuttle. */
+const VOICE_RENTCAR = ['jeju.rentcar.detail'] as const;
 
 interface Props {
   controller: KioskController;
@@ -115,6 +119,7 @@ function chromeFor(
 
 export function JejuDetail({ controller }: Props): JSX.Element {
   const item = useDetailStore((s) => s.item);
+  useVoiceIntro(item?.from === 'rentcar' ? VOICE_RENTCAR : null);
   const setItem = useDetailStore((s) => s.setItem);
   const lang = useLanguageStore((s) => s.currentLanguage);
   const lowReach = useAccessibilityStore((s) => s.lowReach);

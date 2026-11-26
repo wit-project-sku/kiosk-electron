@@ -116,6 +116,7 @@ import 'swiper/css';
 import 'swiper/css/grid';
 import 'swiper/css/free-mode';
 import { usePhotoChrome } from '../photo/photoChrome';
+import { getKioskLocation } from '@shared/config/kioskLocations';
 import { HANBOK_INFO, PRIVACY } from '../photo/photoTexts';
 import hanbokInfo from '@renderer/assets/photos/insadong/hanbok/hanbok-info.png';
 import { t, sheetText, tExact } from '@renderer/lib/loc';
@@ -146,6 +147,8 @@ import { JejuBgMotion } from './JejuBgMotion';
    layout, so their styles are reused from the shared step rather than copied. */
 import shared from '../photo/HanbokSelect.module.css';
 import styles from './JejuHanbokSelect.module.css';
+import { useVoiceIntro } from './voice/intro';
+import { VoiceToggle } from './voice/VoiceToggle';
 
 interface Props {
   /** Third argument: the step ② 배경 테마 plate, or null when none was tapped. */
@@ -153,6 +156,12 @@ interface Props {
   onHome: () => void;
   countdownActive?: boolean;
 }
+
+/** 한복 설명 and 개인정보 처리방침 are long reads: their intro offers key 2. */
+const VOICE_INFO = ['hanbok.info', 'global.more.hint'] as const;
+const VOICE_PRIVACY = ['hanbok.privacy', 'global.more.hint'] as const;
+/** The 제주 tab is where the photo background is chosen. */
+const VOICE_BACKGROUND = ['hanbok.background'] as const;
 
 /** One tab in the row. Every one of them is a registered category. */
 interface Tab {
@@ -319,7 +328,7 @@ const SOLO = {
  * `jejuMascot()` resolves to its non-heritage default 하영 — so the button
  * would have promised a 제주 mascot on an 인사동 kiosk.
  */
-const togetherLabel = (m: JejuMascot) => ({
+const togetherLabel = (m: Pick<JejuMascot, 'ko' | 'mixed' | 'ru'>) => ({
   ko: `사진촬영(with '${m.ko}')`,
   en: `Take a photo (with '${m.mixed}')`,
   ja: `写真撮影（${m.ko}と）`,
@@ -340,15 +349,28 @@ const togetherLabel = (m: JejuMascot) => ({
  * 제주 fallback is never reached.
  */
 const togetherText = (lang: Lang): string =>
-  tExact('Photo_SelectTogether', lang) || pick(togetherLabel(jejuMascot()), lang);
+  tExact('Photo_SelectTogether', lang) || pick(togetherLabel(isLotteKiosk() ? LOTTE_MASCOT : jejuMascot()), lang);
+
+/** 롯데's ambassador — 로씨 in Korean, LOCI everywhere else (the 롯데 voice script's rule). */
+const LOTTE_MASCOT = { ko: '로씨', mixed: 'LOCI', ru: 'LOCI' } as const;
+const isLotteKiosk = (): boolean =>
+  getKioskLocation(useKioskStore.getState().config.kioskId).layout === 'LOTTE';
 
 /**
- * 제주공항 (W008) offers 같이찍기 on the 제주 tab only for now — the 하영
- * composite is not working with the other tabs' outfits yet, so they get
- * 혼자 찍기 alone. Remove once it is fixed.
+ * 제주공항 (W008) and 여객터미널 (W009) offer 같이찍기 on the 제주 tab only for
+ * now — the 하영 composite is not working with the other tabs' outfits yet, so
+ * they get 혼자 찍기 alone. Remove once it is fixed.
  */
-const hidesTogether = (isThemeTab: boolean): boolean =>
-  !isThemeTab && useKioskStore.getState().config.kioskId === 'W008';
+const TOGETHER_ON_JEJU_TAB_ONLY: ReadonlySet<string> = new Set(['W008', 'W009']);
+/**
+ * 롯데 (W011~W013) shows 같이찍기 on every tab, like the other venues (2026-11-19 request).
+ * ⚠ Digicon has no 로씨 mascot code yet: until kioskLocations' `aiCompanion` for W011~W013
+ * changes, the composite is made with the API default ('2').
+ */
+const hidesTogether = (isThemeTab: boolean): boolean => {
+  const kioskId = useKioskStore.getState().config.kioskId;
+  return !isThemeTab && TOGETHER_ON_JEJU_TAB_ONLY.has(kioskId);
+};
 
 const NO_OUTFITS = {
   ko: '준비 중인 의상입니다.',
@@ -433,6 +455,8 @@ export function JejuHanbokSelect({
   const lowReach = useAccessibilityStore((s) => s.lowReach);
   const toggleLowReach = useAccessibilityStore((s) => s.toggleLowReach);
   const { icon, Header, photoTitle, banner: chromeBanner } = usePhotoChrome();
+  /* 롯데 keeps the flat page colour: the drifting petals and trees are 제주's art. */
+  const isLotte = getKioskLocation(useKioskStore((s) => s.config.kioskId)).layout === 'LOTTE';
   const banner = chromeBanner ?? rotating;
   const camPopupSrc = icon('camera-popup') || cameraIconUrl('camera-popup');
 
@@ -466,7 +490,9 @@ export function JejuHanbokSelect({
    * touching the selection — `id` is the filter code, never a label.
    */
   const tabs: Tab[] = useMemo(() => {
-    const all = categories.map((c) => ({
+    /* 롯데 uses the same hanbok as every other venue, without the 제주 outfits (2026-11-09). */
+    const shown = isLotte ? categories.filter((c) => c.categoryName.toLowerCase() !== JEJU_CATEGORY) : categories;
+    const all = shown.map((c) => ({
       id: c.categoryName,
       label: outfitCategoryLabel(c, lang),
       ko: c.labelKr,
@@ -480,7 +506,7 @@ export function JejuHanbokSelect({
       all.unshift(jeju);
     }
     return all;
-  }, [categories, byCategory, lang]);
+  }, [categories, byCategory, lang, isLotte]);
 
   // A session can be opened with a pre-selected tab (e.g. 프로모션 from K-DRAMA).
   const initialCategory = usePhotoStore((s) => s.initialCategory);
@@ -708,6 +734,11 @@ export function JejuHanbokSelect({
    * on the list.
    */
   const isThemeTab = themeTabId !== undefined && categoryId === themeTabId;
+  // Null while capturing: this page stays mounted behind the camera popup, and
+  // the flow's own intro (usePhotoVoice) is the one key 1 should repeat.
+  useVoiceIntro(
+    countdownActive ? null : infoOpen ? VOICE_INFO : privacyOpen ? VOICE_PRIVACY : isThemeTab ? VOICE_BACKGROUND : null,
+  );
   /** Tiles, or the 준비 중 message in the same 1820×700 band. */
   const hasBackgrounds = backgrounds.length > 0;
 
@@ -783,7 +814,7 @@ export function JejuHanbokSelect({
     return (
       <div className={`${styles.root} ${lowReach ? styles.rootLowReach : ''}`} style={modeBarVars}>
         {pageBg && <img src={pageBg} alt="" className={styles.bg} draggable={false} />}
-      {icon('bg-page') && <JejuBgMotion />}
+      {icon('bg-page') && !isLotte && <JejuBgMotion />}
         {/* This page has no low-reach frame of its own — so ♿ gives it the mode
             bar and pushes both blocks past the bar's height (the `.rootLowReach`
             calcs on `.infoOutfits` / `.infoCard`, off --jeju-mode-bar). */}
@@ -836,7 +867,7 @@ export function JejuHanbokSelect({
             ))}
           </Swiper>
         )}
-        <div className={styles.infoCard}>
+        <div className={styles.infoCard} data-voice-more>
           <p className={styles.infoHeading}>{info.heading}</p>
           <div className={styles.infoBody}>
             {info.paragraphs.map((p, i) => (
@@ -880,6 +911,7 @@ export function JejuHanbokSelect({
             <img src={accessibilityIcon} alt="" className={styles.accessibilityImg} draggable={false} />
           </button>
         )}
+        <VoiceToggle className={styles.voiceToggle} />
       </div>
     );
   }
@@ -906,7 +938,7 @@ export function JejuHanbokSelect({
       }
     >
       {pageBg && <img src={pageBg} alt="" className={styles.bg} draggable={false} />}
-      {icon('bg-page') && <JejuBgMotion />}
+      {icon('bg-page') && !isLotte && <JejuBgMotion />}
 
       {lowReach && <div className={styles.modeBar}>{sheetText('BarrierFree_Title', lang, BARRIER_FREE)}</div>}
 
@@ -1213,6 +1245,7 @@ export function JejuHanbokSelect({
           <img src={accessibilityIcon} alt="" className={styles.accessibilityImg} draggable={false} />
         </button>
       )}
+      <VoiceToggle className={styles.voiceToggle} />
 
       {/* Camera-direction popup — shown while capturing / generating. */}
       {countdownActive && camPopupSrc && (
@@ -1279,7 +1312,7 @@ export function JejuHanbokSelect({
                 </svg>
               </button>
             </div>
-            <div className={shared.privacyBody}>
+            <div className={shared.privacyBody} data-voice-more>
               {pick(PRIVACY, lang).sections.map((s, i) => (
                 <div key={i} className={shared.privacySection}>
                   <p className={shared.privacySecTitle}>{s.title}</p>

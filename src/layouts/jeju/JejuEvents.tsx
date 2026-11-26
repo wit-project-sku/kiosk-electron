@@ -27,6 +27,7 @@ import { useAccessibilityStore } from '@renderer/store/accessibilityStore';
 import { JejuPageFrame } from './JejuPageFrame';
 import styles from './JejuEvents.module.css';
 import { belowModeBar, LOW_REACH_BANNER_HEIGHT } from './lowReach';
+import { useVoiceIntro } from './voice/intro';
 
 interface Props {
   controller: KioskController;
@@ -64,6 +65,10 @@ const TABS: Array<{ id: string; key: string | null; label: string }> = [
   { id: 'REGION', key: 'Event_Tab_Jeju', label: '제주도' },
   { id: 'MBTI', key: null, label: 'MBTI' },
 ];
+
+const VOICE_LIST = ['jeju.event.list'] as const;
+const VOICE_DETAIL = ['jeju.event.detail'] as const;
+const VOICE_MBTI = ['jeju.event.mbti'] as const;
 
 /**
  * Category chips under the region tabs (Figma 6052:46478). Labels come from the
@@ -153,6 +158,7 @@ export function JejuEvents({ controller }: Props): JSX.Element {
   const [tab, setTab] = useState('REGION');
   const [category, setCategory] = useState<EventCategory>('ALL');
   const [detailId, setDetailId] = useState<number | null>(null);
+  useVoiceIntro(tab === 'MBTI' ? VOICE_MBTI : detailId != null ? VOICE_DETAIL : VOICE_LIST);
   const [selected, setSelected] = useState<Set<MbtiAxis>>(new Set());
   const axisLabels = useMemo(() => mbtiLabels(lang), [lang]);
   const [status, setStatus] = useState<'idle' | 'loading' | 'results'>('idle');
@@ -274,7 +280,7 @@ export function JejuEvents({ controller }: Props): JSX.Element {
           ) : (
             <>
               <div className={low(styles.listScroll, styles.listScrollLow)}>
-                <div className={styles.list}>
+                <div className={styles.list} data-voice-list>
                   {items.map((event) => (
                     <button
                       key={event.eventId}
@@ -296,7 +302,7 @@ export function JejuEvents({ controller }: Props): JSX.Element {
                 </div>
 
                 {!loading && items.length === 0 && (
-                  <p className={styles.listEmpty}>
+                  <p className={styles.listEmpty} data-voice-state={error ? 'error' : 'empty'}>
                     {error ? '이벤트를 불러오지 못했습니다.' : '등록된 이벤트가 없습니다.'}
                   </p>
                 )}
@@ -329,7 +335,7 @@ export function JejuEvents({ controller }: Props): JSX.Element {
           </div>
 
           {status === 'loading' ? (
-            <div className={`${low(styles.cta, styles.ctaLow)} ${styles.ctaLoading}`}>
+            <div className={`${low(styles.cta, styles.ctaLow)} ${styles.ctaLoading}`} data-voice-state="loading">
               <span className={styles.spinner} />
               결과 로딩중..
             </div>

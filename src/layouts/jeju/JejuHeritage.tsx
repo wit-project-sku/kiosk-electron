@@ -498,7 +498,7 @@ export function JejuHeritage({ controller }: Props): JSX.Element {
       {tab.blocks
         .filter((b) => b.kind === 'quote')
         .map((b) => (
-          <p key={b.key} className={styles.quote}>
+          <p key={b.key} className={styles.quote} data-voice-more>
             {sheetText(b.key, lang, { ko: b.ko })}
           </p>
         ))}
@@ -506,6 +506,7 @@ export function JejuHeritage({ controller }: Props): JSX.Element {
         className={`${styles.panelBody} ${
           expanded ? (lowReach ? styles.panelBodyLowScroll : '') : styles.panelBodyCollapsed
         }`}
+        data-voice-more
       >
         {tab.blocks
           .filter((b) => b.kind !== 'quote')

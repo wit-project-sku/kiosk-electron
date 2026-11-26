@@ -45,3 +45,7 @@ ZED_Diagnostic_Results.json
 
 # eslint --cache artefact
 .eslintcache
+
+# Playwright
+test-results/
+playwright-report/

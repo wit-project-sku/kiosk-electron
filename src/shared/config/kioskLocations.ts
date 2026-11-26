@@ -13,13 +13,14 @@ import type { KioskId, KioskLayoutId, KioskScreenId } from '../types/kiosk';
  * is electron-store (see KioskConfigStore), set per machine via provision-kiosk.ps1.
  * There is NO env override; one build serves every location.
  */
-export type KioskLocationCode = 'W001' | 'W002' | 'W003' | 'W004' | 'W005' | 'W008' | 'W009' | 'W010' | 'W202';
+export type KioskLocationCode = 'W001' | 'W002' | 'W003' | 'W004' | 'W005' | 'W008' | 'W009' | 'W010' | 'W011' | 'W012' | 'W013' | 'W202';
 
 /**
  * Content-branch code the v2 witteria endpoints are keyed by
  * (`/api/kiosks/{region}/banners/v2`, `/api/shops/v2?region=`, …) — it replaced
  * the device number (`kioskId`). The API accepts exactly these eight values
- * (case-insensitive) and answers 400 KIOSK4009 for anything else.
+ * (case-insensitive) and answers 400 KIOSK4009 for anything else. The three 롯데 branches joined
+ * the list on the server in 2026-11 (stage, checked 2026-11-18).
  */
 export type ContentRegion =
   | 'INSADONG_NORTH'
@@ -29,7 +30,10 @@ export type ContentRegion =
   | 'HWASEONG'
   | 'JEJU_AIRPORT'
   | 'JEJU_PORT'
-  | 'JEJU_HERITAGE';
+  | 'JEJU_HERITAGE'
+  | 'LOTTE_WORLD_MALL'
+  | 'LOTTE_CHEONGNYANGNI'
+  | 'LOTTE_STARCITY';
 
 export interface KioskLocationTile {
   screen: KioskScreenId;
@@ -125,6 +129,21 @@ export interface KioskLocation {
    */
   cameraRotation: 0 | 90 | 180 | 270;
   /**
+   * Leave this site out of the 지점 설정 window. For a venue still being built
+   * (롯데 W011~W013, 2026-11-12): the server has no kiosk of that number yet, so
+   * a PC set to it would send every shot and touch to an id the server rejects.
+   * The office test kiosk still previews it with its pin (testRig.ts).
+   */
+  notInSetup?: true;
+  /**
+   * Fewest photos this venue must have each day (2026-11-13, agreed with the
+   * venue). When the day's count is short the kiosk takes the photo itself —
+   * only on an untouched home screen with nobody in front of the camera — 10:00
+   * to 19:59, spread so the minimum is reached by 19:00 (AutoShotService). The
+   * shot is counted like any other and marked `autoShot` in its record.
+   */
+  autoShotDailyMin?: number;
+  /**
    * `kioskId` to send to the SHOP API (`/api/shops?kioskId=`) when it differs
    * from this kiosk's own W-code number.
    *
@@ -178,6 +197,13 @@ const JEJU_HERITAGE_COORDS: GeoCoordinates = { lat: 33.4557, lon: 126.7126 };
  * query leaves the KMA's coverage; OpenWeatherMap answers for Hanoi the same way
  * it does for the domestic venues.
  */
+/** 롯데월드몰 (서울 송파구 올림픽로 300) — W011. Weather-grade precision. */
+const LOTTE_WORLD_MALL_COORDS: GeoCoordinates = { lat: 37.5126, lon: 127.1025 };
+/** 롯데백화점 청량리점 — W012. Weather-grade precision. */
+const LOTTE_CHEONGNYANGNI_COORDS: GeoCoordinates = { lat: 37.5803, lon: 127.0469 };
+/** 롯데백화점 건대스타시티점 — W013. Weather-grade precision. */
+const LOTTE_KONKUK_COORDS: GeoCoordinates = { lat: 37.5376, lon: 127.073 };
+
 const KADA_COORDS: GeoCoordinates = { lat: 20.9806, lon: 105.7876 };
 
 const INSARANG_TILE: KioskLocationTile = { screen: 'insarang', label: '인사랑(준비중)', icon: 'insarang' };
@@ -195,9 +221,9 @@ const MARKET_TILE: KioskLocationTile = { screen: 'market', label: '위드마켓'
 // (127.0.0.1:8080) and there is no TL-3800 on those two machines to answer it — the
 // flow cannot complete until terminals are fitted. W003/W004/W005 have one.
 export const KIOSK_LOCATIONS: Record<KioskLocationCode, KioskLocation> = {
-  W001: { code: 'W001', name: '북인사마당', region: 'INSADONG_NORTH', layout: 'INSADONG', secondTile: INSARANG_TILE, hasCardTerminal: false, hasDonation: true, aiCompanion: '2', coordinates: INSADONG_COORDS, cameraRotation: 0 },
+  W001: { code: 'W001', name: '북인사광장', region: 'INSADONG_NORTH', layout: 'INSADONG', secondTile: INSARANG_TILE, hasCardTerminal: false, hasDonation: true, aiCompanion: '2', coordinates: INSADONG_COORDS, cameraRotation: 0 },
   W002: { code: 'W002', name: '인사동쉼터', region: 'INSADONG_CENTER', layout: 'INSADONG', secondTile: INSARANG_TILE, hasCardTerminal: false, hasDonation: true, aiCompanion: '2', coordinates: INSADONG_COORDS, cameraRotation: 0 },
-  W003: { code: 'W003', name: '남인사마당', region: 'INSADONG_SOUTH', layout: 'NAM_INSADONG', secondTile: MARKET_TILE, hasCardTerminal: true, hasDonation: true, aiCompanion: '2', coordinates: INSADONG_COORDS, cameraRotation: 0 },
+  W003: { code: 'W003', name: '남인사광장', region: 'INSADONG_SOUTH', layout: 'NAM_INSADONG', secondTile: MARKET_TILE, hasCardTerminal: true, hasDonation: true, aiCompanion: '2', coordinates: INSADONG_COORDS, cameraRotation: 0 },
   // 오색시장 also has a physical card-payment terminal (like 남인사마당 W003), so it
   // takes the payment result flow (위드마켓 webview + save QR, result image on Monitor 2).
   W004: { code: 'W004', name: '오산시 오색시장', region: 'OSAEK', layout: 'OSAN', secondTile: MARKET_TILE, hasCardTerminal: true, hasDonation: true, aiCompanion: '3', coordinates: OSAN_COORDS, cameraRotation: 0 },
@@ -218,7 +244,7 @@ export const KIOSK_LOCATIONS: Record<KioskLocationCode, KioskLocation> = {
   // then it sent 인사('2'), so 같이찍기 photos composited the Insadong character
   // while the screen next to them said "사진촬영 (with '하영')" — the UI has always
   // promised 하영 (see Photo_SelectTogether and the two 하영 home tiles).
-  W008: { code: 'W008', name: '제주공항', region: 'JEJU_AIRPORT', layout: 'JEJU_AIRPORT', secondTile: MARKET_TILE, hasCardTerminal: true, hasDonation: true, aiCompanion: '5', coordinates: JEJU_AIRPORT_COORDS, cameraRotation: 0 },
+  W008: { code: 'W008', name: '제주국제공항', region: 'JEJU_AIRPORT', layout: 'JEJU_AIRPORT', secondTile: MARKET_TILE, hasCardTerminal: true, hasDonation: true, aiCompanion: '5', coordinates: JEJU_AIRPORT_COORDS, cameraRotation: 0, autoShotDailyMin: 10 },
   // 제주국제여객터미널 W009 — the CMS name is `#W009-제주시=제주국제여객터미널`. It runs
   // the SAME design as 제주공항: one JEJU_AIRPORT layout, one Localization_Jeju tab,
   // the same 하영 mascot rows, the same 310-row 제주 shop catalogue.
@@ -231,7 +257,7 @@ export const KIOSK_LOCATIONS: Record<KioskLocationCode, KioskLocation> = {
   // No `shopApiKioskId`: the plain W-code number (9) is this terminal's device id.
   // `aiCompanion` is 하영('5'), exactly like W008 — same venue mascot, same
   // Localization_Jeju rows, and the two were always meant to move together.
-  W009: { code: 'W009', name: '제주국제여객터미널', region: 'JEJU_PORT', layout: 'JEJU_AIRPORT', secondTile: MARKET_TILE, hasCardTerminal: true, hasDonation: true, aiCompanion: '5', coordinates: JEJU_TERMINAL_COORDS, cameraRotation: 0 },
+  W009: { code: 'W009', name: '제주국제여객터미널', region: 'JEJU_PORT', layout: 'JEJU_AIRPORT', secondTile: MARKET_TILE, hasCardTerminal: true, hasDonation: true, aiCompanion: '5', coordinates: JEJU_TERMINAL_COORDS, cameraRotation: 0, autoShotDailyMin: 10 },
   // 세계자연유산본부 W010 — the CMS name is `#W010-제주시=세계자연유산본부` (the sheet's
   // 비고 column calls the venue 제주유산문화센터). Same 제주 design, but its OWN
   // JEJU_HERITAGE layout because its mascot is 유산, not 하영 — the shared
@@ -257,6 +283,15 @@ export const KIOSK_LOCATIONS: Record<KioskLocationCode, KioskLocation> = {
   // compositing 하영 would contradict the one rule this layout exists to enforce.
   // Revisit when Digicon ships a 유산 code.
   W010: { code: 'W010', name: '세계자연유산본부', region: 'JEJU_HERITAGE', layout: 'JEJU_HERITAGE', secondTile: MARKET_TILE, hasCardTerminal: true, hasDonation: true, aiCompanion: '2', coordinates: JEJU_HERITAGE_COORDS, cameraRotation: 0 },
+  // 롯데 W011~W013 — the server has these three branches since 2026-11 (stage), so shops,
+  // banners, buttons, backgrounds, subtitles and outfits come through the same region-keyed
+  // services as every other kiosk. The 롯데-only endpoints (상영 시간표 · 오늘의 사연 · 영화 나눔)
+  // are keyed by kiosk number — see LotteService. `aiCompanion` is the API's default only:
+  // Digicon has no 롯데 mascot (로씨) yet. The 롯데 photo flow shows 같이찍기 anyway (2026-11-19
+  // request), so its composites use '2' (인사) until Digicon gives 로씨 a code — change it here.
+  W011: { code: 'W011', name: '롯데월드몰', region: 'LOTTE_WORLD_MALL', layout: 'LOTTE', hasCardTerminal: true, hasDonation: false, aiCompanion: '2', coordinates: LOTTE_WORLD_MALL_COORDS, cameraRotation: 0, notInSetup: true },
+  W012: { code: 'W012', name: '롯데백화점 청량리점', region: 'LOTTE_CHEONGNYANGNI', layout: 'LOTTE', hasCardTerminal: true, hasDonation: false, aiCompanion: '2', coordinates: LOTTE_CHEONGNYANGNI_COORDS, cameraRotation: 0, notInSetup: true },
+  W013: { code: 'W013', name: '롯데백화점 건대스타시티점', region: 'LOTTE_STARCITY', layout: 'LOTTE', hasCardTerminal: true, hasDonation: false, aiCompanion: '2', coordinates: LOTTE_KONKUK_COORDS, cameraRotation: 0, notInSetup: true },
   // KADA W202 — Korea-ASEAN Digital Academy, Vietnam Chapter (PTIT, Hà Nội).
   //
   // The first NON-KOREAN deployment, and the first that is not a tourism kiosk.
@@ -315,9 +350,14 @@ export function isInsadongLayout(layout: KioskLayoutId): boolean {
  * outfit picker (photoChrome.richOutfit) and the 게임존
  * (photoChrome.waitingGames) — those are separate capabilities for exactly this
  * reason, so one can be withdrawn without disturbing the others.
+ *
+ * ── 롯데 joined 2026-11-20 ─────────────────────────────────────────────
+ * 롯데 has both halves the gate needs: the rich outfit picker (photoChrome.richOutfit) and, by this
+ * same predicate, JejuCameraGuide on Monitor 2 with its palm / fist guide (capture-guide.png — no
+ * 제주 branding in it). Its camera is mounted upright (cameraRotation 0).
  */
 export function usesGestureCapture(layout: KioskLayoutId): boolean {
-  return isJejuLayout(layout);
+  return isJejuLayout(layout) || layout === 'LOTTE';
 }
 
 /**
