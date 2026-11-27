@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+import { OFFICE_PCS } from '@shared/config/testRig';
 import { KIOSK_LOCATIONS } from '@shared/config/kioskLocations';
 import {
   SETUP_ARG,
@@ -60,15 +61,29 @@ describe('지점 설정 — when the screen opens', () => {
 describe('지점 설정 — sites and confirmation', () => {
   const SETUP_SITES = setupSites({ stageServer: false });
 
-  it('offers every site plus the office test kiosk, once each', () => {
+  const num = (code: string): number => Number(code.replace(/\D/g, ''));
+
+  it('offers every venue and office PC once each, in kiosk-number order', () => {
     const codes = SETUP_SITES.map((s) => s.code);
-    const live = Object.values(KIOSK_LOCATIONS).filter((l) => !l.setupStageOnly);
-    expect(codes).toEqual([...live.map((l) => l.code), 'W200']);
+    const live = Object.values(KIOSK_LOCATIONS)
+      .filter((l) => !l.setupStageOnly)
+      .map((l) => l.code);
+    const office = OFFICE_PCS.filter((pc) => !pc.stageOnly).map((pc) => pc.code);
+    expect([...codes].sort()).toEqual([...live, ...office].sort());
     expect(new Set(codes).size).toBe(codes.length);
-    expect(SETUP_SITES.find((s) => s.code === 'W200')?.testRig).toBe(true);
+    expect(codes.map(num)).toEqual([...codes.map(num)].sort((x, y) => x - y));
+    for (const code of office)
+      expect(SETUP_SITES.find((s) => s.code === code)?.testRig, code).toBe(true);
+    expect(SETUP_SITES.find((s) => s.code === 'W008')?.testRig).toBe(false);
   });
 
-  it('offers the 롯데 sites (W012~W014) only on a stage build — the production server has no such kiosk yet', () => {
+  it('a stage build offers every kiosk number the stage server has (1~6, 8~14, 200~202)', () => {
+    expect(setupSites({ stageServer: true }).map((s) => num(s.code))).toEqual([
+      1, 2, 3, 4, 5, 6, 8, 9, 10, 11, 12, 13, 14, 200, 201, 202,
+    ]);
+  });
+
+  it('a production build leaves out what production does not have yet: 롯데 W012~W014 and HQ W010', () => {
     const production = SETUP_SITES.map((s) => s.code);
     const stage = setupSites({ stageServer: true }).map((s) => s.code);
     for (const code of ['W012', 'W013', 'W014'] as const) {
@@ -76,7 +91,9 @@ describe('지점 설정 — sites and confirmation', () => {
       expect(production).not.toContain(code);
       expect(stage).toContain(code);
     }
-    expect(stage).toEqual([...Object.keys(KIOSK_LOCATIONS), 'W200']);
+    expect(production).not.toContain('W010');
+    expect(stage).toContain('W010');
+    expect(production.map(num)).toEqual([1, 2, 3, 4, 5, 6, 8, 9, 11, 200, 201, 202]);
   });
 
   it('numbers 세계자연유산본부 11 and 롯데 12~14, the server kiosk ids since V224', () => {
@@ -97,7 +114,7 @@ describe('지점 설정 — sites and confirmation', () => {
     expect(setupConfirmText(airport).message).toContain(`${airport.name}(008번)`);
     expect(setupConfirmText(airport).detail).toContain('008번');
 
-    const rig = SETUP_SITES.find((s) => s.testRig)!;
+    const rig = SETUP_SITES.find((s) => s.code === 'W200')!;
     expect(setupConfirmText(rig).detail).toContain('200번');
     expect(setupConfirmText(rig).detail).toContain('핀');
   });
