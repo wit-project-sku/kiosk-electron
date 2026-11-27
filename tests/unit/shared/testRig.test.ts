@@ -25,6 +25,16 @@ describe('test rig identity', () => {
     });
   });
 
+  it('every office PC keeps its own number as identity and shows the preview site', () => {
+    for (const code of ['W006', 'W010', 'W200', 'W201']) {
+      expect(resolveKioskIdentity(code, 'W004')).toEqual({
+        kioskId: 'W004',
+        identityKioskId: code,
+        testRig: true,
+      });
+    }
+  });
+
   it('an unknown or missing preview site falls back to the default site', () => {
     expect(resolveKioskIdentity('W200').kioskId).toBe(DEFAULT_PREVIEW_SITE);
     expect(resolveKioskIdentity('W200', 'W999').kioskId).toBe(DEFAULT_PREVIEW_SITE);

@@ -19,6 +19,36 @@
 import { KIOSK_LOCATIONS, type KioskLocationCode } from './kioskLocations';
 
 export const TEST_RIG_KIOSK_ID = 'W200';
+
+/**
+ * Office PCs (2026-11-27): kiosks the server has a number for that are not venues.
+ * Each works like the test rig above — it keeps its own number as its identity
+ * (signals, crash reports, power schedule, stats — the server excludes them) and
+ * shows whichever site is picked with the pin. Listed so the 지점 설정 window
+ * offers every kiosk number the server knows.
+ *
+ * `stageOnly`: 10 is the HQ 1-monitor PC only on a server that has the V224
+ * renumber (stage); on production 10 is still 세계자연유산본부, so a production
+ * build does not offer it.
+ */
+export type OfficePcCode = 'W006' | 'W010' | 'W200' | 'W201';
+
+export interface OfficePc {
+  code: OfficePcCode;
+  name: string;
+  stageOnly?: true;
+}
+
+export const OFFICE_PCS: readonly OfficePc[] = [
+  { code: 'W006', name: 'WITH-I-001 (사무실·행사)' },
+  { code: 'W010', name: '사무실 1개모니터 (HQ)', stageOnly: true },
+  { code: TEST_RIG_KIOSK_ID, name: '사무실 테스트기 · 2개모니터 (HQ)' },
+  { code: 'W201', name: '사무실 3개모니터 (HQ)' },
+];
+
+/** An office PC (OFFICE_PCS) — keeps its number and previews any site. */
+export const isOfficePc = (code: string | undefined): code is OfficePcCode =>
+  !!code && OFFICE_PCS.some((pc) => pc.code === code);
 /** What a freshly provisioned test rig shows until someone switches it. */
 export const DEFAULT_PREVIEW_SITE: KioskLocationCode = 'W001';
 
@@ -38,7 +68,7 @@ export function resolveKioskIdentity(
   previewSite?: string,
   opts: { stageServer?: boolean } = {},
 ): ResolvedKioskIdentity {
-  if (storedId !== TEST_RIG_KIOSK_ID) {
+  if (!isOfficePc(storedId)) {
     // Stage only: a provisioned venue machine keeps its identity and shows the
     // preview site. Without a (valid) preview it is simply itself.
     const kioskId = opts.stageServer && isPreviewSite(previewSite) ? previewSite : storedId;
@@ -46,7 +76,7 @@ export function resolveKioskIdentity(
   }
   return {
     kioskId: isPreviewSite(previewSite) ? previewSite : DEFAULT_PREVIEW_SITE,
-    identityKioskId: TEST_RIG_KIOSK_ID,
+    identityKioskId: storedId,
     testRig: true,
   };
 }

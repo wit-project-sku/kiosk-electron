@@ -10,7 +10,7 @@ import Store from 'electron-store';
 import type { KioskConfig } from '@shared/types/kiosk';
 import { DEFAULT_KIOSK_CONFIG } from '@shared/constants';
 import { getKioskLayout } from '@shared/config/kioskLocations';
-import { TEST_RIG_KIOSK_ID, isStageApiBase, resolveKioskIdentity } from '@shared/config/testRig';
+import { isOfficePc, isStageApiBase, resolveKioskIdentity } from '@shared/config/testRig';
 import { setupStateFor, type KioskSetupState, type SetupSiteCode } from '@shared/config/kioskSetup';
 import { witteriaApiBase } from './apiBase';
 import { e2eForcesStageServer } from './e2e';
@@ -95,7 +95,7 @@ export const kioskConfigStore = {
     markRenumbered(s);
     s.delete('shopApiKioskId');
     s.delete('setupPending' as never);
-    if (code !== TEST_RIG_KIOSK_ID) s.delete('previewSite' as never);
+    if (!isOfficePc(code)) s.delete('previewSite' as never);
     setupState = null;
   },
 

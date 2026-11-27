@@ -22,7 +22,7 @@
  * not: "never configured" alone is not enough to stop a working kiosk.
  */
 import { KIOSK_LOCATIONS, type KioskLocationCode } from './kioskLocations';
-import { TEST_RIG_KIOSK_ID } from './testRig';
+import { OFFICE_PCS, kioskNumOf, type OfficePcCode } from './testRig';
 
 /** `required` = fresh machine, nothing else until a site is chosen; `requested` = opened on purpose. */
 export type KioskSetupState = 'required' | 'requested';
@@ -30,34 +30,30 @@ export type KioskSetupState = 'required' | 'requested';
 /** Command-line switch the desktop shortcut passes. */
 export const SETUP_ARG = '--setup';
 
-export type SetupSiteCode = KioskLocationCode | typeof TEST_RIG_KIOSK_ID;
+export type SetupSiteCode = KioskLocationCode | OfficePcCode;
 
 export interface SetupSite {
   code: SetupSiteCode;
   name: string;
-  /** The office test kiosk: keeps id 200 and previews any site (testRig.ts). */
+  /** An office PC (W006·W010·W200·W201): keeps its own number and previews any site (testRig.ts). */
   testRig: boolean;
 }
 
-const TEST_RIG_SITE: SetupSite = {
-  code: TEST_RIG_KIOSK_ID,
-  name: '사무실 테스트기 (HQ)',
-  testRig: true,
-};
-
 /**
- * Every site a PC can be set to, in kiosk order, then the office test kiosk.
- * A site whose kiosk only the stage server has yet (`setupStageOnly`, 롯데
- * W012~W014) is offered only when this build talks to a stage server — saving
- * checks the same list, so a production PC cannot be set to it.
+ * Every kiosk number a PC can be set to — the venues and the office PCs
+ * (OFFICE_PCS) — in number order, so the window shows each number the server
+ * has. One the production server does not have yet (`setupStageOnly` 롯데
+ * W012~W014, the HQ PC W010) is offered only when this build talks to a stage
+ * server — saving checks the same list, so a production PC cannot be set to it.
  */
 export function setupSites(opts: { stageServer: boolean }): readonly SetupSite[] {
-  return [
-    ...Object.values(KIOSK_LOCATIONS)
-      .filter((loc) => opts.stageServer || !loc.setupStageOnly)
-      .map((loc) => ({ code: loc.code, name: loc.name, testRig: false })),
-    TEST_RIG_SITE,
-  ];
+  const venues = Object.values(KIOSK_LOCATIONS)
+    .filter((loc) => opts.stageServer || !loc.setupStageOnly)
+    .map((loc): SetupSite => ({ code: loc.code, name: loc.name, testRig: false }));
+  const office = OFFICE_PCS.filter((pc) => opts.stageServer || !pc.stageOnly).map(
+    (pc): SetupSite => ({ code: pc.code, name: pc.name, testRig: true }),
+  );
+  return [...venues, ...office].sort((a, b) => kioskNumOf(a.code) - kioskNumOf(b.code));
 }
 
 /** The kiosk number as staff say it — the code without its letter: W008 → "008". */
