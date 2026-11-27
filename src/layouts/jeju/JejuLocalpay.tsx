@@ -38,8 +38,15 @@ import tamnaPaper from '@renderer/assets/photos/jeju/localpay/tamna-paper.png';
 import tamnaAndroid from '@renderer/assets/photos/jeju/localpay/tamna-android.png';
 import tamnaIos from '@renderer/assets/photos/jeju/localpay/tamna-ios.png';
 import { belowModeBar } from './lowReach';
+import { useVoiceIntro } from './voice/intro';
 
 type TabId = 'onnuri' | 'tamna';
+
+/** Voice intro per tab; both read their cards in full on key 2. */
+const VOICE_INTROS: Record<TabId, readonly string[]> = {
+  tamna: ['jeju.localpay.tamna', 'global.more.hint'],
+  onnuri: ['jeju.localpay.onnuri', 'global.more.hint'],
+};
 
 /**
  * 탐나는전 card — block tops (card-relative px), KOREAN ONLY. Every other
@@ -96,7 +103,7 @@ interface Content {
  * while the sheet says something else. Re-check this invariant when the sheet's
  * Korean is reworded.
  *
- * TODO(제주 W006): those seven translations are authored here, following
+ * TODO(제주 W008): those seven translations are authored here, following
  * OsanLocalpay, because a Korean-only 지역화폐 page on an international airport
  * kiosk is worse than a careful translation. They describe DISCOUNTS, LIMITS and
  * ELIGIBILITY, so have a person check them — and then move them into the sheet's
@@ -576,6 +583,7 @@ export function JejuLocalpay({ controller }: Props): JSX.Element {
    * order below is the drawn order, so the first entry is the landing tab.
    */
   const [tab, setTab] = useState<TabId>('tamna');
+  useVoiceIntro(VOICE_INTROS[tab]);
   // `pick` falls back to Korean for the language codes this copy does not carry
   // (zh_cn / zh_tw / es), exactly as every other 제주 screen's label maps do;
   // `withSheet` then lets Localization_Jeju override whatever it has filled.
@@ -652,7 +660,7 @@ export function JejuLocalpay({ controller }: Props): JSX.Element {
         tab === 'onnuri' ? (
         <>
           {/* ── 온누리상품권이란? + 지류상품권 권종 (6249:32378) ── */}
-          <section className={card(styles.cardIntro, styles.cardIntroLow)}>
+          <section className={card(styles.cardIntro, styles.cardIntroLow)} data-voice-more>
             <div className={low(styles.introText, styles.introTextLow)}>
               <p className={styles.h70}>
                 <span className={styles.accent}>{c.onnuri.introH[0]}</span>
@@ -670,7 +678,7 @@ export function JejuLocalpay({ controller }: Props): JSX.Element {
           </section>
 
           {/* ── 디지털 온누리상품권이란? + 사용처 (6249:32386) ── */}
-          <section className={card(styles.cardDigital, styles.cardDigitalLow)}>
+          <section className={card(styles.cardDigital, styles.cardDigitalLow)} data-voice-more>
             <div className={low(styles.digitalText, styles.digitalTextLow)}>
               <p className={styles.h70}>
                 <span className={styles.accent}>{c.onnuri.digitalH[0]}</span>
@@ -722,7 +730,7 @@ export function JejuLocalpay({ controller }: Props): JSX.Element {
         </>
       ) : (
         /* ── 탐나는전 (6249:32310) ── */
-        <section className={card(styles.cardTamna, styles.cardTamnaLow)}>
+        <section className={card(styles.cardTamna, styles.cardTamnaLow)} data-voice-more>
           {/* Korean: tops from `TAMNA_BLOCK_TOP`. Flow mode: none — they stack. */}
           <div className={styles.tamnaHead} style={tamnaTop('head')}>
             <img className={styles.tamnaLogo} src={tamnaLogo} alt="" draggable={false} />

@@ -1,0 +1,12 @@
+/*
+ * Japanese and Chinese are written without spaces, so a line can end between
+ * any two characters. Most Osan text boxes say `word-break: keep-all`, which is
+ * right for Korean (never split a word) — but under ja/zh it means "never break
+ * at all", and a label like オンヌリ商品券の使い方 ran straight out of its tab
+ * instead of wrapping. Under these two languages every box breaks the way the
+ * language does. Korean, and the space-separated languages, are untouched.
+ */
+.cjk,
+.cjk * {
+  word-break: normal !important;
+}

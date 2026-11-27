@@ -1,0 +1,1 @@
+{"key":"GET /api/kiosks/LOTTE_CHEONGNYANGNI/subtitles/v2","status":200,"body":{"success":true,"code":200,"message":"요청이 성공적으로 처리되었습니다.","data":{"kioskId":12,"kioskName":"#W012-동대문구=롯데백화점 청량리점","buttons":[],"autoSubtitles":[]}}}

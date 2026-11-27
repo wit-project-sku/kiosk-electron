@@ -6,7 +6,7 @@ import type { RemoteImageCache } from '@main/services/RemoteImageCache';
 
 const log = createLogger('background-service');
 const CACHE_KEY = 'backgrounds';
-const DEFAULT_API_BASE = 'https://api-v3.witteria.com';
+const DEFAULT_API_BASE = 'https://api-v3.witmarket.net';
 
 /**
  * Fetches the AR 배경 테마 set from the witteria API and caches it in SQLite so
@@ -37,9 +37,9 @@ const DEFAULT_API_BASE = 'https://api-v3.witteria.com';
  * Env:
  *   BACKGROUNDS_API_URL — full endpoint override (wins if set; the `{kioskNum}`
  *                         segment is still appended)
- *   WITTERIA_API_BASE   — shared API base, default https://api-v3.witteria.com
+ *   WITTERIA_API_BASE   — shared API base, default https://api-v3.witmarket.net
  *
- * The per-kiosk endpoint id comes from KioskService.kioskNum() (W006 → 6), NOT
+ * The per-kiosk endpoint id comes from KioskService.kioskNum() (W008 → 8), NOT
  * from the shop-only `shopApiKioskId` — see the note there.
  */
 export class BackgroundService {
@@ -82,7 +82,11 @@ export class BackgroundService {
     if (!this.images) return this.rawList();
     // Point each tile at its local mirror when one exists; the remote url passes
     // through untouched otherwise, so a cold cache behaves exactly as before.
-    return this.rawList().map((b) => ({ ...b, imageUrl: this.images!.localize(b.imageUrl) }));
+    return this.rawList().map((b) => ({
+      ...b,
+      imageUrl: this.images!.localize(b.imageUrl),
+      sourceImageUrl: b.imageUrl,
+    }));
   }
 
   /** Pull the background set assigned to this kiosk and cache it. */

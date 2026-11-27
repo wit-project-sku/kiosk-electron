@@ -1,5 +1,9 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { KIOSK_LOCATIONS, type KioskLocationCode } from '@shared/config/kioskLocations';
+import {
+  KIOSK_LOCATIONS,
+  isJejuLayout,
+  type KioskLocationCode,
+} from '@shared/config/kioskLocations';
 import { isOk } from '@shared/types/result';
 import { ARTBOARD_HEIGHT, ARTBOARD_WIDTH } from '@layouts/components/KioskScreenImage';
 import { useKioskStore } from '@renderer/store/kioskStore';
@@ -26,6 +30,16 @@ const REVEAL_TIMEOUT_MS = 15_000;
  * again on the next tap anywhere else, or after {@link REVEAL_TIMEOUT_MS} — but
  * never while the drawer itself is open.
  *
+ * STAGE builds (config.stageServer — the API base is a stage server) get it too,
+ * opened differently: ONE MOUSE click on the location pin opens the drawer
+ * directly. Mouse only, because staff drive the kiosk over TeamViewer (mouse
+ * input) while the touch panel reports finger taps as pointerType 'touch' — the
+ * same rule as the 제주 점검 switch (layouts/jeju/maintenance.ts), and pointer
+ * events for the same reason: Windows follows every tap with emulated MOUSE
+ * events, which a click/mousedown handler would read as a mouse. On stage the
+ * machine keeps its own kiosk id and only the shown site changes (previewSite,
+ * shared/config/testRig.ts). Never on a production server.
+ *
  * Renders inside its own copy of the 2160×3840 artboard, scaled exactly like
  * {@link KioskArtboard}, so 1 CSS px = 1 Figma px here too and the button/drawer
  * sit at kiosk scale instead of tiny OS-sized chrome. It is a SIBLING of the
@@ -35,6 +49,10 @@ export function KioskSwitcher(): JSX.Element | null {
   const devMode = useKioskStore((s) => s.devMode);
   const screen = useKioskStore((s) => s.screen);
   const currentId = useKioskStore((s) => s.config.kioskId);
+  const testRig = useKioskStore((s) => s.config.testRig === true);
+  const stageServer = useKioskStore((s) => s.config.stageServer === true);
+  const identityId = useKioskStore((s) => s.config.identityKioskId ?? s.config.kioskId);
+  const jeju = useKioskStore((s) => isJejuLayout(s.config.layout));
   const photoActive = usePhotoStore((s) => s.active);
 
   const [revealed, setRevealed] = useState(false);
@@ -44,7 +62,10 @@ export function KioskSwitcher(): JSX.Element | null {
   const stageRef = useRef<HTMLDivElement>(null);
   const handleRef = useRef<HTMLButtonElement>(null);
 
-  const enabled = devMode || import.meta.env.DEV;
+  // The office test rig (W200) switches between every site's app in production builds too.
+  // `legacy` = the original reveal-then-open flow (any pointer); stage = mouse click opens.
+  const legacy = devMode || testRig || import.meta.env.DEV;
+  const enabled = legacy || stageServer;
   const visible = enabled && screen === 'home' && !photoActive;
 
   // Mirror KioskArtboard's uniform fit so this chrome scales with the kiosk.
@@ -147,9 +168,15 @@ export function KioskSwitcher(): JSX.Element | null {
             covering it steals no existing tap target. */}
         <button
           type="button"
-          className={styles.revealHotspot}
-          onClick={() => setRevealed(true)}
-          aria-label="키오스크 전환 메뉴 표시 (DEV)"
+          className={`${styles.revealHotspot} ${jeju ? styles.revealHotspotJeju : ''}`}
+          onPointerUp={(e) => {
+            if (stageServer && e.pointerType === 'mouse') {
+              setOpen(true);
+              return;
+            }
+            if (legacy) setRevealed(true);
+          }}
+          aria-label="키오스크 전환 메뉴 표시"
           tabIndex={-1}
         />
 
@@ -221,7 +248,11 @@ export function KioskSwitcher(): JSX.Element | null {
 
               {error && <p className={styles.error}>{error}</p>}
 
-              <footer className={styles.foot}>DEV_MODE=true (.env) 일 때만 표시됩니다.</footer>
+              <footer className={styles.foot}>
+                {stageServer
+                  ? `stage 서버 빌드에서만 표시됩니다. 이 PC 는 ${identityId} 그대로이고 화면만 바뀝니다.`
+                  : 'DEV_MODE=true (.env) 또는 테스트 키오스크에서만 표시됩니다.'}
+              </footer>
             </aside>
           </div>
         )}

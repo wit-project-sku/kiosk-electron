@@ -1,3 +1,12 @@
+/**
+ * 화성휴게소 검색 결과 — Figma 7909:106538 (오산>검색-02 in the 화성 file).
+ *
+ * Header (검색) · the 1350 search pill at y700 · result cards 1820×390, 60
+ * apart, in a scroll area that runs to y3622 (no banner on this frame) · the
+ * frame's scroll thumb on the right edge and its ▲/▼ buttons at (2027, 2103 /
+ * 2223) · the shared left nav. Positions in HwaseongSearch.module.css are the
+ * frame's values (1 CSS px = 1 Figma px).
+ */
 import { useRef, useState } from 'react';
 import type { KioskController } from '@renderer/hooks/useKioskController';
 import { SearchIcon } from '@layouts/components/SearchIcon';
@@ -24,8 +33,8 @@ import { FloatingKeyboard } from '../insadong/keyboard/FloatingKeyboard';
 import { HangulComposer } from '../insadong/keyboard/hangul';
 import type { KeyAction } from '../insadong/keyboard/VirtualKeyboard';
 import { HwaseongHeader } from './HwaseongHeader';
-import { HwaseongBanner } from './HwaseongBanner';
 import { HwaseongLeftNav } from './HwaseongLeftNav';
+import { HwaseongPageBg } from './HwaseongPageBg';
 import styles from './HwaseongSearch.module.css';
 
 const T = {
@@ -52,6 +61,12 @@ const T = {
   },
 };
 
+/** One ▲/▼ press scrolls the list by three cards (390 + 60 each). */
+const SCROLL_STEP = 3 * 450;
+
+/** Search pill geometry (mirrors .searchRow) — the keyboard opens just under it. */
+const KEYBOARD_TOP = 700 + 182 + 18;
+
 interface Props {
   controller: KioskController;
 }
@@ -77,6 +92,7 @@ export function HwaseongSearch({ controller }: Props): JSX.Element {
   // Tapping the field re-opens the keyboard to refine the search.
   const [focused, setFocused] = useState(false);
   const results = searchShops(shops, query, lang);
+  const listRef = useRef<HTMLDivElement>(null);
 
   const applyKey = (action: KeyAction): void => {
     const c = composer.current;
@@ -89,6 +105,7 @@ export function HwaseongSearch({ controller }: Props): JSX.Element {
         setStoreQuery(c.value.trim());
         setFocused(false);
         setQuery(c.value);
+        listRef.current?.scrollTo({ top: 0 });
         return;
     }
     setQuery(c.value);
@@ -97,6 +114,7 @@ export function HwaseongSearch({ controller }: Props): JSX.Element {
   const openDetail = (shop: Shop): void => {
     setDetail({
       from: 'search',
+      shopId: shop.id,
       title: shopBaseCategory(shop, lang) || '검색',
       name: shopName(shop, lang),
       category: shopSecondCategory(shop, lang),
@@ -113,68 +131,84 @@ export function HwaseongSearch({ controller }: Props): JSX.Element {
     controller.navigate('detail', '검색 상세');
   };
 
+  const scrollBy = (dir: 1 | -1): void => {
+    listRef.current?.scrollBy({ top: dir * SCROLL_STEP, behavior: 'smooth' });
+  };
+  const arrow = hwaseongIconUrl('search-scroll-arrow');
+
   return (
     <div className={styles.root}>
-      {hwaseongIconUrl('bg') && (
-        <img className={styles.bg} src={hwaseongIconUrl('bg')} alt="" draggable={false} />
-      )}
+      <HwaseongPageBg />
 
-      {/* ── Header (검색) ─────────────────────────────── */}
       <HwaseongHeader controller={controller} title="검색" />
 
-      {/* ── Results ──────────────────────────────────── */}
-      <div className={styles.results}>
-        <div className={styles.searchRow}>
-          <button type="button" className={styles.searchInput} onClick={() => setFocused(true)}>
-            <span className={styles.inputTextWrap}>
-              {query ? (
-                <span className={styles.inputText}>{query}</span>
-              ) : (
-                <span className={styles.inputPlaceholder}>{pick(T.placeholder, lang)}</span>
-              )}
-              {focused && <span className={styles.caret} />}
-            </span>
-            <SearchIcon className={styles.searchIcon} />
-          </button>
-        </div>
+      {/* ── Search pill (검색장 7909:106542) ── */}
+      <div className={styles.searchRow}>
+        <button type="button" className={styles.searchInput} onClick={() => setFocused(true)}>
+          <span className={styles.inputTextWrap}>
+            <span className={styles.inputText}>{query || pick(T.placeholder, lang)}</span>
+            {focused && <span className={styles.caret} />}
+          </span>
+          <span className={styles.searchIcon}>
+            <SearchIcon className={styles.searchIconSvg} />
+          </span>
+        </button>
+      </div>
 
+      {/* ── Results ── */}
+      <div ref={listRef} className={styles.results}>
         {results.length > 0 ? (
-          <div className={styles.list}>
-            {results.map((shop) => (
-              <button type="button" key={shop.id} className={styles.card} onClick={() => openDetail(shop)}>
-                <div className={styles.info}>
-                  <div className={styles.nameRow}>
-                    <span className={styles.name}>{highlightMatch(shopName(shop, lang), query, styles.hl)}</span>
+          results.map((shop) => (
+            <button type="button" key={shop.id} className={styles.card} onClick={() => openDetail(shop)}>
+              <span className={styles.info}>
+                <span className={styles.nameRow}>
+                  <span className={styles.name}>{highlightMatch(shopName(shop, lang), query, styles.hl)}</span>
+                  {shopSecondCategory(shop, lang) && (
                     <span className={styles.cat}>
                       <span className={styles.dot} />
                       {shopSecondCategory(shop, lang)}
                     </span>
-                  </div>
-                  <p className={styles.address}>{highlightMatch(shopAddress(shop, lang), query, styles.hl)}</p>
-                  <p className={styles.desc}>{highlightMatch(shopDescription(shop, lang), query, styles.hl)}</p>
-                  <p className={styles.tags}>{highlightMatch(shopHashtag(shop, lang), query, styles.hl)}</p>
-                </div>
-                <div className={styles.photos}>
-                  {padImages(shopImages(shop), noImg, 4).map((src, j) => (
-                    <div key={j} className={styles.thumb}>
-                      <img src={src} alt="" draggable={false} loading="lazy" />
-                    </div>
-                  ))}
-                </div>
-              </button>
-            ))}
-          </div>
+                  )}
+                </span>
+                <span className={styles.address}>{highlightMatch(shopAddress(shop, lang), query, styles.hl)}</span>
+                <span className={styles.desc}>{highlightMatch(shopDescription(shop, lang), query, styles.hl)}</span>
+              </span>
+              <span className={styles.photos}>
+                {padImages(shopImages(shop), noImg, 2).slice(0, 2).map((src, j) => (
+                  <span key={j} className={styles.thumb}>
+                    <img src={src} alt="" draggable={false} loading="lazy" />
+                  </span>
+                ))}
+              </span>
+            </button>
+          ))
         ) : (
           <p className={styles.empty}>{query ? pick(T.noResult, lang)(query) : pick(T.prompt, lang)}</p>
         )}
       </div>
 
+      {/* ▲ / ▼ — the frame's back chevrons turned ±90° at (2027, 2103 / 2223). */}
+      {results.length > 0 && (
+        <>
+          <button type="button" className={`${styles.scrollBtn} ${styles.scrollUp}`} onClick={() => scrollBy(-1)} aria-label="위로">
+            {arrow && <img src={arrow} alt="" draggable={false} />}
+          </button>
+          <button type="button" className={`${styles.scrollBtn} ${styles.scrollDown}`} onClick={() => scrollBy(1)} aria-label="아래로">
+            {arrow && <img src={arrow} alt="" draggable={false} />}
+          </button>
+        </>
+      )}
+
       <HwaseongLeftNav onHome={goHome} />
 
-      {/* ── Bottom banner ────────────────────────────── */}
-      <HwaseongBanner onClick={() => controller.startPhoto()} />
-
-      <FloatingKeyboard open={focused} onKey={applyKey} onClose={() => setFocused(false)} lang={lang} />
+      <FloatingKeyboard
+        open={focused}
+        onKey={applyKey}
+        onClose={() => setFocused(false)}
+        lang={lang}
+        lightBackspace
+        top={KEYBOARD_TOP}
+      />
     </div>
   );
 }

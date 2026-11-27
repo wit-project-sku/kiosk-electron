@@ -1,14 +1,17 @@
 /**
- * 인사동 코스 추천 — `POST /api/insa/courses/recommend`.
+ * 인사동 · 오색시장 코스 추천 — `POST /api/courses/recommend` (지점 코스, by region).
  *
  * One call turns a set of 관심사 and a time slot into walking routes — since v2
  * TWO of them, a 실시간 코스 (scheduled from now, against opening hours) and a
  * 일반 코스 (clock-free, the same whenever it is asked). There is no per-tap
- * plan and no multi-day schedule (that was 제주's picker), and no party /
- * transport: it is always on foot, from the kiosk's own position.
+ * plan and no multi-day schedule (that was 제주's picker). 인사동 is always on
+ * foot; 오색시장 takes a `transport` (WALK · BIKE · TRANSIT · CAR): legs within
+ * 1 km are still walked, longer ones use the chosen mode (`moveMode` /
+ * `moveMinutes` / `moveMeters` per stop, 오색 only).
  *
- * Endpoint: `POST /api/insa/courses/recommend/v2` (v1, a single route, is still
- * served for the on-site kiosks and answers the same request).
+ * Endpoint: `POST /api/courses/recommend` with the venue's `region`; it answers
+ * in the shape of the older `/api/insa/courses/recommend/v2`, which is still
+ * asked (by kioskId) on a server without the 지점 route.
  *
  * Rules the API applies, so the screens never re-derive them:
  *  - `duration` is a slot, not minutes: `0-2`, `2-4`, `4-6`, `6+` hours. `6+` aims
@@ -36,7 +39,12 @@ export interface InsaCourseQuery {
   numberOfPeople: number;
   /** Local time the route starts, `YYYY-MM-DDTHH:mm:ss` (no zone). */
   startAt: string;
+  /** 이동수단 — 오색시장 only (the server ignores it elsewhere). Omitted = WALK. */
+  transport?: CourseTransport;
 }
+
+/** The 지점 코스 API's 이동수단 codes. */
+export type CourseTransport = 'WALK' | 'BIKE' | 'TRANSIT' | 'CAR';
 
 /**
  * One stop. The docs list only `shopId` + `stayMinutes`; the live endpoint also
@@ -55,6 +63,13 @@ export interface InsaCourseSpot {
   /** Walking INTO this stop from the previous one (0 for the first). */
   walkMinutes: number;
   walkMeters: number;
+  /**
+   * The leg INTO this stop as actually travelled (오색 only; elsewhere the walk).
+   * A leg ridden by bike / bus / car has walkMinutes 0 and its time here.
+   */
+  moveMode: CourseTransport;
+  moveMinutes: number;
+  moveMeters: number;
   /** The shop's second category (`9-카페`) — what the stop was picked for. */
   secondCategory: string;
   /**

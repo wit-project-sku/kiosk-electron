@@ -13,7 +13,7 @@ import type { RemoteImageCache } from '@main/services/RemoteImageCache';
 
 const log = createLogger('outfit-service');
 const CACHE_KEY = 'outfits';
-const DEFAULT_API_BASE = 'https://api-v3.witteria.com';
+const DEFAULT_API_BASE = 'https://api-v3.witmarket.net';
 
 /** One request's worth. The whole catalogue is ~65 rows, so this is one page. */
 const PAGE_SIZE = 200;
@@ -74,7 +74,7 @@ const MAX_PAGES = 20;
  * Env:
  *   OUTFITS_API_URL            — full outfit endpoint override (wins if set)
  *   OUTFIT_CATEGORIES_API_URL  — full tab-list endpoint override (wins if set)
- *   WITTERIA_API_BASE          — shared API base, default https://api-v3.witteria.com
+ *   WITTERIA_API_BASE          — shared API base, default https://api-v3.witmarket.net
  */
 export class OutfitService {
   constructor(
@@ -160,7 +160,9 @@ export class OutfitService {
       .filter((o) => o.kioskIds.length === 0 || o.kioskIds.includes(kioskNum))
       // Point each card at its local mirror when one exists. Falls back to the
       // remote url untouched, so a cold cache behaves exactly as before.
-      .map((o) => (this.images ? { ...o, imageUrl: this.images.localize(o.imageUrl) } : o));
+      .map((o) =>
+        this.images ? { ...o, imageUrl: this.images.localize(o.imageUrl), sourceImageUrl: o.imageUrl } : o,
+      );
   }
 
   /** Cached category tabs, in API order. */

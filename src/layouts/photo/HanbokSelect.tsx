@@ -9,17 +9,19 @@ import { cameraIconUrl } from '@renderer/assets/icons/insadong/camera';
 import { useRotatingBanner } from '@renderer/hooks/useRotatingBanner';
 import { usePhotoStore } from '@renderer/store/photoStore';
 import { pick, useLang } from '@renderer/lib/i18n';
-import { hasLoc, t } from '@renderer/lib/loc';
+import { hasLoc, t, tExact } from '@renderer/lib/loc';
 import { ui } from '@renderer/lib/uiText';
 import { usePhotoChrome } from './photoChrome';
 import { useOutfitStore } from '@renderer/store/outfitStore';
-import { outfitCategoryLabel, outfitSubCategoryLabel } from '@renderer/lib/outfitCategories';
+import { outfitCategoryLabel, outfitLabel, outfitSubCategoryLabel } from '@renderer/lib/outfitCategories';
 import type { OutfitSubCategory } from '@shared/types/outfit';
 import hanbokInfo from '@renderer/assets/photos/insadong/hanbok/hanbok-info.png';
-import { HANBOK_INFO, PRIVACY } from './photoTexts';
+import { HANBOK_INFO, PRIVACY, parseHanbokSheet, parsePrivacySheet } from './photoTexts';
 import { SwipeNav, useSwipeNav } from './SwipeNav';
 import { useAccessibilityStore } from '@renderer/store/accessibilityStore';
 import { OsanLeftNav } from '@layouts/osan/OsanLeftNav';
+import { HwaseongLeftNav } from '@layouts/hwaseong/HwaseongLeftNav';
+import { HwaseongPageBg } from '@layouts/hwaseong/HwaseongPageBg';
 import styles from './HanbokSelect.module.css';
 
 /** Sheet-backed labels — every location's Localization tab carries these in all
@@ -102,17 +104,9 @@ const NO_OUTFITS = {
   ru: 'Наряды готовятся.',
   id: 'Busana sedang disiapkan.',
 };
-/** Osan picker copy (Figma 7878:42863 / 7878:43050) that the sheets do not carry. */
-const OSAN_CAPTION = {
-  ko: '면세혜택',
-  en: 'Tax-free benefit',
-  ja: '免税特典',
-  zh: '免税优惠',
-  vi: 'Ưu đãi miễn thuế',
-  th: 'สิทธิ์ยกเว้นภาษี',
-  ru: 'Льгота без налогов',
-  id: 'Bebas pajak',
-};
+/** Osan picker copy (Figma 7878:42863 / 7878:43050) that the sheets do not carry.
+ *  The cards' captions are the outfits' own names (`outfitLabel`); the Figma
+ *  frame's placeholder "면세혜택" under every card was never real copy. */
 const OSAN_NOTE = {
   ko: 'WITH의 모든 한복은 박술녀 한복입니다.',
   en: 'Every WITH hanbok is made by Park Sul-nyeo.',
@@ -186,11 +180,18 @@ export function HanbokSelect({ onCapture, onHome, countdownActive = false }: Han
   const rotating = useRotatingBanner();
   const lang = useLang();
   const { isOsan, isHwaseong, isKada, icon, Header, photoTitle, banner: chromeBanner } = usePhotoChrome();
-  /* ♿ on 오산 (AR 한복체험 7894:56944): the full header (with its description),
-     the 사진촬영안내 card moved up under it, the picker below with looser gaps,
-     the capture row at the foot — and no promo. */
   const lowReach = useAccessibilityStore((s) => s.lowReach);
-  const lowOsan = isOsan && lowReach;
+  /* 화성휴게소 takes 오산's picker layout (tabs, chips, cards, capture row,
+     guide card, 한복 설명, privacy sheet) in its own colours (`.hwTheme`), on
+     the one 화성 page background and with the 화성 rail. */
+  const osanLook = isOsan || isHwaseong;
+  /* ♿ (오산 AR 한복체험 7894:56944, and 화성 the same since 2026-10-16): the full
+     header (with its description), the 사진촬영안내 card moved up under it, the
+     picker below with looser gaps, the capture row at the foot — and no promo. */
+  const lowOsan = osanLook && lowReach;
+  const lookCls = osanLook ? `${styles.osanRoot} ${isHwaseong ? styles.hwTheme : ''}` : '';
+  const sideNav = (onBack: () => void): JSX.Element =>
+    isHwaseong ? <HwaseongLeftNav onHome={onHome} onBack={onBack} /> : <OsanLeftNav onHome={onHome} onBack={onBack} />;
   // Osan/Hwaseong have their own single promo banner; insadong rotates through several.
   const banner = chromeBanner ?? rotating;
   // Camera-direction popup (shown while the photo is captured/sent to AI) —
@@ -289,7 +290,7 @@ export function HanbokSelect({ onCapture, onHome, countdownActive = false }: Han
    * `CARDS_PER_VIEW` on screen.
    */
   const nav = useSwipeNav();
-  const cardsPerView = isOsan ? OSAN_COLUMNS : CARDS_PER_VIEW;
+  const cardsPerView = osanLook ? OSAN_COLUMNS : CARDS_PER_VIEW;
   const canSwipe = Math.ceil(outfits.length / CARD_ROWS) > cardsPerView;
   // AR fields: gender + specific outfit code, passed through as the clothing key.
   const outfitKey = selectedOutfit ? `${selectedOutfit.gender ?? ''}|${selectedOutfit.code}` : '';
@@ -309,21 +310,34 @@ export function HanbokSelect({ onCapture, onHome, countdownActive = false }: Han
     .filter(isOk);
 
   /** 2 rows, columns derived from the count — see TAB_ROWS. */
-  const tabColumns = Math.max(isOsan ? OSAN_COLUMNS : TAB_MIN_COLUMNS, Math.ceil(tabs.length / TAB_ROWS));
+  const tabColumns = Math.max(osanLook ? OSAN_COLUMNS : TAB_MIN_COLUMNS, Math.ceil(tabs.length / TAB_ROWS));
   const tabRows = Array.from({ length: TAB_ROWS }, (_, r) =>
     tabs.slice(r * tabColumns, r * tabColumns + tabColumns),
   ).filter((row) => row.length > 0);
 
+  /*
+   * 한복 설명 / 개인정보 처리방침 / the 박술녀 line follow the venue's Localization
+   * sheet (HanbokExplain_*, Photo_PrivacyPolicyContent) wherever it has a cell for
+   * this language; the authored copy in photoTexts covers the gaps. KADA has no
+   * sheet (its bundled fallback is 인사동's), so it keeps the authored copy.
+   */
+  const sheetCell = (key: string): string => (isKada ? '' : tExact(key, lang));
+  const hanbokCopy = () => {
+    const authored = pick(HANBOK_INFO, lang);
+    return {
+      heading: sheetCell('HanbokExplain_Header') || authored.heading,
+      paragraphs: parseHanbokSheet(sheetCell('HanbokExplain_Content')) ?? authored.paragraphs,
+    };
+  };
+  const privacy = () => parsePrivacySheet(sheetCell('Photo_PrivacyPolicyContent')) ?? pick(PRIVACY, lang);
+
   // ── 한복 설명 page ──
   if (infoOpen) {
-    const info = pick(HANBOK_INFO, lang);
+    const info = hanbokCopy();
     return (
       <>
         {isHwaseong ? (
-          <>
-            <div className={styles.bgBase} />
-            {icon('bg') && <img className={styles.bgHw} src={icon('bg')} alt="" draggable={false} />}
-          </>
+          <HwaseongPageBg />
         ) : (
           icon('bg') && <img className={styles.bg} src={icon('bg')} alt="" draggable={false} />
         )}
@@ -331,8 +345,8 @@ export function HanbokSelect({ onCapture, onHome, countdownActive = false }: Han
             fallback on a Hanoi kiosk — its header shows the venue wordmark. */}
         {/* 7878:43050 shows the header's description line on this page (the picker
             itself hides it). */}
-        <Header title={isKada || isOsan ? photoTitle : t(HANBOK_INFO_KEY, lang)} onHome={onHome} onBack={() => setInfoOpen(false)} />
-        <div className={`${styles.infoContent} ${isOsan ? styles.osanRoot : ''}`}>
+        <Header title={isKada || osanLook ? photoTitle : t(HANBOK_INFO_KEY, lang)} onHome={onHome} onBack={() => setInfoOpen(false)} />
+        <div className={`${styles.infoContent} ${lookCls}`}>
           <div
             ref={infoDrag.ref}
             className={styles.infoCarousel}
@@ -342,14 +356,19 @@ export function HanbokSelect({ onCapture, onHome, countdownActive = false }: Han
             onPointerLeave={infoDrag.onPointerLeave}
             onClickCapture={infoDrag.onClickCapture}
           >
+            {/* Display only — nothing here is selectable, so the Korean venues draw
+                no "selected" first card. KADA keeps its themed selected card. */}
             {allHanbok.map((o, i) => (
-              <div key={o.code} className={`${styles.infoThumb} ${i === 0 ? styles.infoThumbSel : ''}`}>
-                {isOsan ? (
+              <div
+                key={o.code}
+                className={`${styles.infoThumb} ${isKada && i === 0 ? styles.infoThumbSel : ''}`}
+              >
+                {osanLook ? (
                   <>
                     <div className={styles.osanCard}>
                       <img src={o.url} alt="" draggable={false} decoding="async" onError={() => markBroken(o.code)} />
                     </div>
-                    <span className={styles.osanCap}>{pick(OSAN_CAPTION, lang)}</span>
+                    <span className={styles.osanCap}>{outfitLabel(o, lang)}</span>
                   </>
                 ) : (
                   <img src={o.url} alt="" draggable={false} decoding="async" onError={() => markBroken(o.code)} />
@@ -392,22 +411,7 @@ export function HanbokSelect({ onCapture, onHome, countdownActive = false }: Han
               <img className={styles.kadaPartnerBar} src={icon('partner-bar')} alt="" draggable={false} />
             )}
           </>
-        ) : isHwaseong ? (
-          <div className={styles.infoNav}>
-            {icon('fg-hanbok-cam') && (
-              <img className={styles.hwInfoNavImg} src={icon('fg-hanbok-cam')} alt="" draggable={false} />
-            )}
-            <button
-              type="button"
-              className={styles.hwInfoNavCam}
-              onClick={() => {
-                setInfoOpen(false);
-                startCapture('solo');
-              }}
-              aria-label="사진촬영"
-            />
-          </div>
-        ) : isOsan ? null : (
+        ) : osanLook ? null : (
           <div className={styles.infoNav}>
             {icon('bottom-bar-classic') && <img className={styles.infoNavBg} src={icon('bottom-bar-classic')} alt="" draggable={false} />}
             <button type="button" className={styles.infoNavLeft} onClick={() => setInfoOpen(false)}>
@@ -446,8 +450,8 @@ export function HanbokSelect({ onCapture, onHome, countdownActive = false }: Han
             controls on the same screen. */}
         {/* 오산: the rail every other 오산 page carries — home · back · ♿ at
             (48, 2043). Back closes 한복 설명 and returns to the picker. */}
-        {isOsan && <OsanLeftNav onHome={onHome} onBack={() => setInfoOpen(false)} />}
-        {!isKada && !isOsan && (
+        {osanLook && sideNav(() => setInfoOpen(false))}
+        {!isKada && !osanLook && (
           <div className={styles.leftNav}>
             <button type="button" className={styles.leftNavBtn} onClick={onHome} aria-label="홈으로">
               {icon('home-btn') && <img src={icon('home-btn')} alt="" draggable={false} />}
@@ -469,10 +473,7 @@ export function HanbokSelect({ onCapture, onHome, countdownActive = false }: Han
   return (
     <>
       {isHwaseong ? (
-        <>
-          <div className={styles.bgBase} />
-          {icon('bg') && <img className={styles.bgHw} src={icon('bg')} alt="" draggable={false} />}
-        </>
+        <HwaseongPageBg />
       ) : (
         icon('bg') && <img className={styles.bg} src={icon('bg')} alt="" draggable={false} />
       )}
@@ -482,19 +483,32 @@ export function HanbokSelect({ onCapture, onHome, countdownActive = false }: Han
           is the first step of the flow, so there is nothing behind it but the
           way out. KADA draws that pair in the header, and without an onBack
           KadaHeader renders no arrow at all, which is why it went missing. */}
-      <Header title={photoTitle} onHome={onHome} onBack={onHome} subtitleHidden={isOsan && !lowOsan} />
+      {/* 오산 / 화성: the 의상 선택하기 description is the page's own description
+          (the header's ★ line) rather than a line under the step title. */}
+      <Header
+        title={photoTitle}
+        onHome={onHome}
+        onBack={onHome}
+        subtitle={osanLook ? t('Photo_HanbokSelectContent', lang) : undefined}
+      />
 
-      <div className={`${styles.content} ${isOsan ? styles.osanRoot : ''} ${lowOsan ? styles.lowOsan : ''}`}>
+      <div
+        className={`${styles.content} ${lookCls} ${lowOsan ? styles.lowOsan : ''} ${
+          osanLook && lang !== 'ko' ? styles.osanLong : ''
+        }`}
+      >
         {/* Step 1 */}
         <div className={styles.stepHead}>
           <div className={styles.stepRow}>
             <span className={styles.stepNum}>1</span>
             <span className={styles.stepTitle}>{t('Photo_HanbokSelect', lang)}</span>
           </div>
-          <div className={styles.stepSub}>
-            <span className={styles.star}>★</span>
-            {t('Photo_HanbokSelectContent', lang)}
-          </div>
+          {!osanLook && (
+            <div className={styles.stepSub}>
+              <span className={styles.star}>★</span>
+              {t('Photo_HanbokSelectContent', lang)}
+            </div>
+          )}
         </div>
 
         {/* Category tabs — 2 rows, columns derived from the API's count; the
@@ -502,7 +516,7 @@ export function HanbokSelect({ onCapture, onHome, countdownActive = false }: Han
             row still measures the design's 420 at 8 tabs and simply divides
             the same 1820 differently when the operator registers more. */}
         <div
-          className={`${styles.tabs} ${tabColumns >= TAB_TIGHT_FROM && !isOsan ? styles.tabsTight : ''}`}
+          className={`${styles.tabs} ${tabColumns >= TAB_TIGHT_FROM && !osanLook ? styles.tabsTight : ''}`}
           style={{ '--tab-cols': tabColumns } as React.CSSProperties}
         >
           {tabRows.map((row, i) => (
@@ -563,7 +577,9 @@ export function HanbokSelect({ onCapture, onHome, countdownActive = false }: Han
           </div>
           {/* The band is reserved on every tab (see above), so the pair keeps
               its place whether or not the category has chips. */}
-          {isOsan && <p className={styles.osanNote}>{pick(OSAN_NOTE, lang)}</p>}
+          {osanLook && (
+            <p className={`${styles.osanNote} ${lang !== 'ko' ? styles.osanNoteLong : ''}`}>{sheetCell('HanbokExplain_HanbokDesigner') || pick(OSAN_NOTE, lang)}</p>
+          )}
           {canSwipe && <SwipeNav nav={nav} />}
         </div>
 
@@ -575,7 +591,7 @@ export function HanbokSelect({ onCapture, onHome, countdownActive = false }: Han
             modules={[Grid, FreeMode]}
             grid={{ rows: CARD_ROWS, fill: 'row' }}
             slidesPerView={cardsPerView}
-            spaceBetween={isOsan ? OSAN_GAP : CARD_GAP}
+            spaceBetween={osanLook ? OSAN_GAP : CARD_GAP}
             freeMode
             /* The ← → pair on the chip band drives this strip and follows a
                drag — see useSwipeNav. */
@@ -596,7 +612,8 @@ export function HanbokSelect({ onCapture, onHome, countdownActive = false }: Han
                 >
                   <img src={o.url} alt="" draggable={false} decoding="async" onError={() => markBroken(o.code)} />
                 </button>
-                {isOsan && <span className={styles.osanCap}>{pick(OSAN_CAPTION, lang)}</span>}
+                {/* The outfit's own name (CMS `label*`, visitor's language). */}
+                {osanLook && <span className={styles.osanCap}>{outfitLabel(o, lang)}</span>}
               </SwiperSlide>
             ))}
           </Swiper>
@@ -659,8 +676,8 @@ export function HanbokSelect({ onCapture, onHome, countdownActive = false }: Han
           attribute's UA display:none, so it would still have been drawn. */}
       {/* 오산 takes the shared rail (home · back · ♿) so the ♿ toggle is
           reachable here too, as on every other 오산 page. */}
-      {isOsan && <OsanLeftNav onHome={onHome} onBack={onHome} />}
-      {!isKada && !isOsan && (
+      {osanLook && sideNav(onHome)}
+      {!isKada && !osanLook && (
         <div className={styles.leftNav}>
           <button type="button" className={styles.leftNavBtn} onClick={onHome} aria-label="홈으로">
             {icon('home-btn') && <img src={icon('home-btn')} alt="" draggable={false} />}
@@ -689,10 +706,10 @@ export function HanbokSelect({ onCapture, onHome, countdownActive = false }: Han
 
       {/* 개인정보 처리방침 popup */}
       {privacyOpen && (
-        <div className={`${styles.privacyOverlay} ${isOsan ? styles.osanOverlay : ''}`} onClick={() => setPrivacyOpen(false)}>
+        <div className={`${styles.privacyOverlay} ${osanLook ? styles.osanOverlay : ''}`} onClick={() => setPrivacyOpen(false)}>
           <div className={styles.privacyModal} onClick={(e) => e.stopPropagation()}>
             <div className={styles.privacyHead}>
-              <span className={styles.privacyTitle}>{pick(PRIVACY, lang).title}</span>
+              <span className={styles.privacyTitle}>{privacy().title}</span>
               <button type="button" className={styles.privacyClose} onClick={() => setPrivacyOpen(false)} aria-label="닫기">
                 <svg className={styles.privacyCloseIcon} viewBox="0 0 129 129" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
                   <circle cx="64.3496" cy="64.3496" r="62.2046" stroke="#333333" strokeWidth="4.28997" />
@@ -702,7 +719,7 @@ export function HanbokSelect({ onCapture, onHome, countdownActive = false }: Han
               </button>
             </div>
             <div className={styles.privacyBody}>
-              {pick(PRIVACY, lang).sections.map((s, i) => (
+              {privacy().sections.map((s, i) => (
                 <div key={i} className={styles.privacySection}>
                   <p className={styles.privacySecTitle}>{s.title}</p>
                   {s.lines.map((line, j) => (

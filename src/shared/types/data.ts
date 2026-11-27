@@ -105,6 +105,23 @@ export interface MenuTouchSyncItem {
 /** Capture mode reported to the stats API: 혼자 찍기 vs 가상 캐릭터와 찍기. */
 export type ShotType = 'SOLO' | 'TOGETHER';
 
+/** How a call to the AR compose server (Digicon) failed. */
+export type ArErrorKind = 'HTTP' | 'NETWORK' | 'TIMEOUT' | 'INVALID_RESPONSE';
+
+/**
+ * Why the AR composite failed, sent with the failed shot so the server can post
+ * an alert to the kiosk-alert chat with a plain-language cause (2026-11-12).
+ */
+export interface ArFailure {
+  /** HTTP = the AR server answered with an error status · NETWORK = never reached it ·
+   *  TIMEOUT = no answer in time · INVALID_RESPONSE = answered 200 without a photo. */
+  kind: ArErrorKind;
+  /** The AR server's HTTP status; null when it never answered. */
+  status: number | null;
+  /** The AR server's `message` (or the raw body / network error), at most 1000 chars. */
+  message: string | null;
+}
+
 /**
  * A completed photo capture (success or failure) reported to `/api/stats/shots`.
  * Fired from the main process at the end of the AI pipeline, which resolves the
@@ -123,6 +140,16 @@ export interface ShotInput {
   shotAt?: IsoDateTime;
   /** Idempotency key (UUID v4); generated in main if omitted. */
   eventId?: string;
+  /** The AR original capture on disk (not the composite) — the `/shots/v2` photo part. */
+  photoPath?: string | null;
+  /** Kiosk screen language when the photo was taken — the stats' 언어권 split. */
+  language?: string | null;
+  /** 배경 테마 the visitor picked (the AR `background_to_use`); null/omitted when none. */
+  backgroundId?: number | null;
+  /** Why the AR composite failed — failed shots only; null when the cause is not an AR call. */
+  arFailure?: ArFailure | null;
+  /** The kiosk took this shot itself (자동 촬영, AutoShotService); visitor shots omit it. */
+  autoShot?: boolean;
 }
 
 /** The exact POST body for `/api/stats/shots` (kioskId/eventId resolved in main). */
@@ -135,6 +162,38 @@ export interface ShotBody {
   outfitCode: string;
   /** Idempotency key — same value on retry blocks duplicate server records. */
   eventId: string;
+  /** Screen language at capture (ko/en/ja/…); null when unknown. Shots queued
+   *  before 2026-10-29 lack it — the server counts those as 언어 미확인. */
+  language?: string | null;
+  /** 배경 테마 number; present only when one was picked. */
+  backgroundId?: number;
+  /** Present only on a failed shot whose AR call failed (see {@link ArFailure}). */
+  arErrorKind?: ArErrorKind;
+  arErrorStatus?: number;
+  arErrorMessage?: string;
+  /** Present (true) only on a 자동 촬영. */
+  autoShot?: true;
+}
+
+/**
+ * The `data` part of `POST /api/stats/shots/v2` (multipart, sent with the AR
+ * original as `photo`). Measurements are front-facing widths in cm, sent
+ * unrounded; 0 when the ZED did not measure them for this capture.
+ *
+ * The sizes stay `number | null` in the type because shots queued for the
+ * nightly re-send before 0 was asked for hold nulls; StatsService zeroes them
+ * on the way out, so null is never what the server receives.
+ */
+export interface ShotV2Data extends ShotBody {
+  channel: 'KIOSK';
+  measuredAt: IsoDateTime | null;
+  heightCm: number | null;
+  shoulderWidthCm: number | null;
+  chestWidthCm: number | null;
+  waistWidthCm: number | null;
+  hipWidthCm: number | null;
+  confidence: number | null;
+  version: number | null;
 }
 
 /**
@@ -153,6 +212,8 @@ export interface PhotoShotSyncItem {
   isSuccess: boolean;
   /** ISO-8601 with timezone offset (KST +09:00 or UTC Z). */
   shotAt: IsoDateTime;
+  /** Screen language at capture; absent on items queued before 2026-10-29. */
+  language?: string | null;
 }
 
 /* ------------------------------ Sessions ------------------------------ */

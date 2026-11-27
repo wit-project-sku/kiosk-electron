@@ -1,5 +1,5 @@
 /**
- * 제주공항 (W006) 운항정보 — the full board behind the home screen's
+ * 제주공항 (W008) 운항정보 — the full board behind the home screen's
  * `▼ 운항 정보 더보기`.
  *
  * Figma 제주>운항정보=출발 (6412:75981) and 제주>운항정보=도착 (6412:76071),
@@ -551,7 +551,9 @@ export function JejuFlights({ controller }: Props): JSX.Element {
       <div className={low(styles.scroll, styles.scrollLow)} ref={scrollRef}>
         <div key={direction} className={styles.rows}>
           {rows.length === 0 ? (
-            <p className={styles.empty}>{emptyCopy}</p>
+            <p className={styles.empty} data-voice-state={isLoading ? 'loading' : 'empty'}>
+              {emptyCopy}
+            </p>
           ) : (
             rows.map((row) => {
               // Whole-row accent on this board only: 출발예정 (not 탑승최종) / 도착.

@@ -1,0 +1,10 @@
+/* Figma A-02 · Rectangle 4227: 34.3198 wide, radius 17.1599, #DC3124, no track. */
+.thumb {
+  position: absolute;
+  right: 0;
+  width: 34.3198px;
+  border-radius: 17.1599px;
+  background: #DC3124;
+  pointer-events: none;
+  z-index: 5;
+}

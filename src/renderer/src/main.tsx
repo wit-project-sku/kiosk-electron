@@ -8,7 +8,7 @@ import '@fontsource/noto-sans-kr/600.css';
 import '@fontsource/noto-sans-kr/700.css';
 import '@fontsource/noto-sans-kr/800.css';
 import '@fontsource/noto-sans-kr/900.css';
-// Pretendard — the 제주 (W006) redesign's face. Fontsource labels the file
+// Pretendard — the 제주 (W008) redesign's face. Fontsource labels the file
 // "latin" but ships one un-subsetted face per weight (~700KB) that carries
 // Hangul too, and declares no `unicode-range`, so the browser uses it wherever
 // it has a glyph and falls through to Noto Sans KR per-glyph for the scripts it

@@ -269,6 +269,24 @@
   pointer-events: none;
 }
 
+/* 음성 안내 — under the ♿ toggle, one rail step (85 + 35) down. */
+.voiceToggle {
+  position: absolute;
+  left: 50px;
+  top: 2403px;
+  width: 85px;
+  height: 85px;
+  padding: 0;
+  border: none;
+  background: none;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.lowReachSideControls .voiceToggle {
+  top: 2523px;
+}
+
 /* ── Banner: bottom normally, top in the low-reach variant ── */
 .banner {
   position: absolute;

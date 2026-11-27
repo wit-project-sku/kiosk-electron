@@ -13,6 +13,7 @@ import { trackEvent } from '@renderer/lib/analytics';
 import { osanIconUrl } from '@renderer/assets/icons/osan';
 import { useAccessibilityStore } from '@renderer/store/accessibilityStore';
 import { pick } from '@renderer/lib/i18n';
+import { tExact } from '@renderer/lib/loc';
 import { OsanHeader } from './OsanHeader';
 import { OsanBanner } from './OsanBanner';
 import { OsanLeftNav } from './OsanLeftNav';
@@ -23,6 +24,18 @@ const SECTION_LABELS = {
   now:    { ko: '현재 언어', en: 'Current Language', ja: '現在の言語', zh: '当前语言', vi: 'Ngôn ngữ hiện tại', th: 'ภาษาปัจจุบัน', ru: 'Текущий язык', id: 'Bahasa saat ini' },
   change: { ko: '변경 언어', en: 'Change Language',  ja: '変更する言語', zh: '更改语言', vi: 'Đổi ngôn ngữ', th: 'เปลี่ยนภาษา', ru: 'Сменить язык', id: 'Ubah bahasa' },
 };
+
+/** 현재 언어 / 변경 언어 — Localization_Osaek `Language_Now_Language` /
+ *  `Language_Target_Language`, with SECTION_LABELS behind an empty cell. The
+ *  sheet's en/ja/zh/ru cells are written "> Now Language"; that "> " (and a
+ *  trailing " <") is button decoration, not copy. Its ja/zh cells hold English —
+ *  followed as-is: the sheet is the source of truth. */
+function sectionLabel(key: string, authored: Partial<Record<SupportedLanguage, string>>, lang: SupportedLanguage): string {
+  const sheet = tExact(key, lang)
+    .replace(/^\s*>\s*/, '')
+    .replace(/\s*<\s*$/, '');
+  return sheet || pick(authored, lang);
+}
 
 const LANG_META: Record<SupportedLanguage, { code: string; name: string }> = {
   ko:    { code: 'KR', name: '한국어' },
@@ -86,7 +99,7 @@ export function OsanLanguage({ controller }: OsanLanguageProps): JSX.Element {
         <section className={`${styles.section} ${styles.sectionNow}`}>
           <div className={`${styles.label} ${styles.labelNow}`}>
             <span className={styles.bar} />
-            {pick(SECTION_LABELS.now, current)}
+            {sectionLabel('Language_Now_Language', SECTION_LABELS.now, current)}
           </div>
           <div className={styles.currentCard}>
             <div className={styles.currentRow}>
@@ -99,7 +112,7 @@ export function OsanLanguage({ controller }: OsanLanguageProps): JSX.Element {
         <section className={styles.section}>
           <div className={`${styles.label} ${styles.labelChange}`}>
             <span className={styles.bar} />
-            {pick(SECTION_LABELS.change, current)}
+            {sectionLabel('Language_Target_Language', SECTION_LABELS.change, current)}
           </div>
           <div className={styles.list}>
             {langs.map((code) => {

@@ -144,7 +144,7 @@ function isAllowedNavigation(url: string, devServerUrl: string | undefined): boo
 
 /**
  * Suppress Electron's native HTTP-auth dialog for the webview embed session.
- * Without this, sites that return a 401 (e.g. witteria.com) pop up an OS-level
+ * Without this, sites that return a 401 (e.g. witmarket.net) pop up an OS-level
  * login modal. Calling callback() with no args cancels the challenge so the
  * site's own in-page login UI renders inside the webview instead.
  */
@@ -174,9 +174,14 @@ export function applyWebContentsSecurity(
     }
   });
 
-  // Open external links in the OS browser; never spawn in-app windows.
+  // Never spawn in-app windows. In dev, links open in the OS browser; on a
+  // kiosk they must NOT: Chrome would come up over the touch screen and stay
+  // there for the next visitor (인사동 쉼터, 2026-11-24/25). Log the URL so a
+  // stray link can be traced from the kiosk's log.
   contents.setWindowOpenHandler(({ url }) => {
-    if (url.startsWith('https://') || url.startsWith('http://')) {
+    if (!is.dev) {
+      log.warn('Blocked external window on kiosk', { url });
+    } else if (url.startsWith('https://') || url.startsWith('http://')) {
       void shell.openExternal(url);
     }
     return { action: 'deny' };
@@ -196,13 +201,15 @@ export function applyWebContentsSecurity(
 /**
  * Enforce a single application instance. A second launch focuses the existing
  * window instead of starting a competing process (kiosks must be singletons).
+ * The second launch's arguments are handed over — the desktop 지점 설정
+ * shortcut is a second launch with `--setup`.
  */
-export function enforceSingleInstance(onSecondInstance: () => void): boolean {
+export function enforceSingleInstance(onSecondInstance: (argv: string[]) => void): boolean {
   const gotLock = app.requestSingleInstanceLock();
   if (!gotLock) {
     app.quit();
     return false;
   }
-  app.on('second-instance', onSecondInstance);
+  app.on('second-instance', (_event, argv) => onSecondInstance(argv));
   return true;
 }

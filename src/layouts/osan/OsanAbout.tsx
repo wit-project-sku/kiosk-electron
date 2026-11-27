@@ -24,6 +24,7 @@ import {
   shopSecondCategory,
 } from '@renderer/lib/shops';
 import { useAttractionStore } from '@renderer/store/attractionStore';
+import { useShopStore } from '@renderer/store/shopStore';
 import { getKioskLocation } from '@shared/config/kioskLocations';
 import { toLocalizedLang, type LocalizedLang } from '@shared/config/languages';
 import type { Shop } from '@shared/types/shop';
@@ -58,6 +59,9 @@ function shopInitial(name: string): string {
 }
 
 /** A place's pin position, or null when the row cannot be placed (see InsadongAbout). */
+/** The shop-catalogue base 오색's sights are entered under (`정이 관광명소`). */
+const SIGHT_BASE = /관광명소$/;
+
 const spotCoords = (s: Shop): { lat: number; lng: number } | null => {
   const { latitude, longitude } = s as Shop & { latitude?: unknown; longitude?: unknown };
   if (typeof latitude !== 'number' || typeof longitude !== 'number') return null;
@@ -78,17 +82,16 @@ const say = (table: L8, lang: Lang): string => table[toLocalizedLang(lang)];
  * Same keys InsadongAbout reads (`Here_History_Introduce_*`, `Here_HistoryFlow`,
  * `Here_History_epoch1..6`, `Here_HistoryContent_1|2_*`,
  * `Here_Culture_Introduce_*`, `Here_Culture_Content_1..4_*`), so 오색's operator
- * can override any block from Localization_Osaek without a release. Today that
- * sheet has none of them — only the one-paragraph `Here_HistoryContent` /
- * `Here_CultureContent`, which is NOT this copy — so the authored tables below
- * (Figma 오산>여기는오색시장-02 / -03, 7862:45100 / 45184) are what shows.
+ * can override any block from Localization_Osaek without a release. The
+ * authored tables below (Figma 오산>여기는오색시장-02 / -03, 7862:45100 / 45184)
+ * show wherever the sheet has no row for that language.
  * `tExact`, not `t`: a missing row must read as absent so the fallback runs.
  */
 const sheet = (key: string, fallback: L8, lang: Lang): string => tExact(key, lang) || say(fallback, lang);
 const sheetAt = (key: string, n: number, field: string, fallback: L8, lang: Lang): string =>
   tExact(`${key}_${n}_${field}`, lang) || say(fallback, lang);
 
-/** Tab labels of the frame (7862:44928). */
+/** Tab labels of the frame (7862:44928) — fallback for `Here_Attraction` / `Here_Culture`. */
 const TAB_ATTRACTION = L('관광명소', 'Attractions', '観光名所', '旅游景点', 'Điểm tham quan', 'สถานที่ท่องเที่ยว', 'Достопримечательности', 'Objek wisata');
 const TAB_CULTURE = L('문화', 'Culture', '文化', '文化', 'Văn hóa', 'วัฒนธรรม', 'Культура', 'Budaya');
 
@@ -195,18 +198,6 @@ const HISTORY_CHANGE = L(
   'С 1980-х центр торговли сместился туда, где рынок стоит сейчас. В 2013 году по итогам опроса горожан его переименовали в «Осан Осаек», а в 2015 году он вошёл в программу развития рынков культурного туризма. Сегодня в пяти цветных переулках можно и закупиться, и поесть, и почувствовать рыночную культуру.',
   'Sejak 1980-an pusat perdagangan pindah ke lokasi pasar sekarang. Lewat survei warga pada 2013 namanya diganti menjadi Pasar Osaek Osan, dan pada 2015 terpilih dalam program pengembangan pasar wisata budaya. Kini lima gang warnanya menawarkan belanja, kuliner, dan budaya pasar sekaligus.',
 );
-/** The frames' illustration note (7862:45123 last line / 7867:159948). */
-const ILLUSTRATION_NOTE = L(
-  '※ 이미지는 시장 문화를 표현한 예시 일러스트입니다.',
-  '※ Images are illustrations of the market’s culture.',
-  '※ 画像は市場の文化を表したイメージイラストです。',
-  '※ 图片为表现市场文化的示意插图。',
-  '※ Hình ảnh là tranh minh họa văn hóa chợ.',
-  '※ ภาพเป็นภาพประกอบที่สื่อถึงวัฒนธรรมตลาด',
-  '※ Изображения — иллюстрации, передающие культуру рынка.',
-  '※ Gambar adalah ilustrasi budaya pasar.',
-);
-
 /** 문화 tab description in the header (7862:45188). */
 const CULTURE_SUBTITLE = L(
   '다섯 색 골목에서 만나는 시장 문화', 'Market culture in five colour alleys', '五色の路地で出会う市場文化', '在五色小巷邂逅市场文化',
@@ -296,16 +287,27 @@ function Bullet({ text }: { text: string }): JSX.Element {
 }
 
 function HistoryStory({ lang }: { lang: Lang }): JSX.Element {
+  /* A tapped thumbnail takes the big 885×590 slot; tapping it again (or
+     nothing tapped yet) shows the main illustration. */
+  const [picked, setPicked] = useState<string | null>(null);
   return (
     <article className={styles.story}>
       {/* 7871:14885 — five street thumbnails, the main illustration, the intro. */}
       <div className={styles.historyTop}>
         <div className={styles.thumbs}>
           {HISTORY_THUMBS.map((src) => (
-            <img key={src} className={styles.thumb} src={src} alt="" draggable={false} />
+            <button
+              key={src}
+              type="button"
+              className={`${styles.thumbBtn} ${picked === src ? styles.thumbBtnSel : ''}`}
+              onClick={() => setPicked((cur) => (cur === src ? null : src))}
+              aria-pressed={picked === src}
+            >
+              <img className={styles.thumb} src={src} alt="" draggable={false} />
+            </button>
           ))}
         </div>
-        <img className={styles.hero} src={historyHero} alt="" draggable={false} />
+        <img key={picked ?? historyHero} className={styles.hero} src={picked ?? historyHero} alt="" draggable={false} />
         <div className={styles.historyIntro}>
           <Bullet text={sheet('Here_History_Introduce_title', HISTORY_INTRO_TITLE, lang)} />
           <p className={`${styles.prose} ${styles.proseLight}`}>
@@ -316,7 +318,7 @@ function HistoryStory({ lang }: { lang: Lang }): JSX.Element {
 
       <Bullet text={sheet('Here_HistoryFlow', HISTORY_FLOW, lang)} />
       {/* 7862:45108 — the #FBF8F3 strip: years on one row, icon + two lines under. */}
-      <div className={styles.timeline}>
+      <div className={lang === 'ko' ? styles.timeline : `${styles.timeline} ${styles.timelineLong}`}>
         <div className={styles.timelineRow}>
           {HISTORY_STEPS.map((step, i) => (
             <p key={i} className={styles.stepYear}>
@@ -351,11 +353,7 @@ function HistoryStory({ lang }: { lang: Lang }): JSX.Element {
       </section>
       <section className={styles.section}>
         <Bullet text={sheetAt('Here_HistoryContent', 2, 'title', HISTORY_CHANGE_TITLE, lang)} />
-        <p className={styles.prose}>
-          {sheetAt('Here_HistoryContent', 2, 'summary', HISTORY_CHANGE, lang)}
-          <br />
-          {say(ILLUSTRATION_NOTE, lang)}
-        </p>
+        <p className={styles.prose}>{sheetAt('Here_HistoryContent', 2, 'summary', HISTORY_CHANGE, lang)}</p>
       </section>
     </article>
   );
@@ -379,7 +377,6 @@ function CultureStory({ lang }: { lang: Lang }): JSX.Element {
           </article>
         ))}
       </div>
-      <p className={styles.cultureNote}>{say(ILLUSTRATION_NOTE, lang)}</p>
     </article>
   );
 }
@@ -418,7 +415,22 @@ const SpotCard = memo(function SpotCard({ shop, lang, noImg, onOpen }: SpotCardP
   return (
     <button type="button" className={styles.card} data-spot-id={shop.id} onClick={() => onOpen(shop)}>
       <span className={styles.copy}>
-        {photo && <img className={styles.photo} src={photo} alt="" draggable={false} loading="lazy" decoding="async" />}
+        {photo && (
+          <img
+            className={styles.photo}
+            src={photo}
+            alt=""
+            draggable={false}
+            loading="lazy"
+            decoding="async"
+            /* The API can list a photo whose file is missing from storage (all of
+               관광명소's on stage, 2026-10-16) — show the no-image plate, not a
+               broken-image glyph. */
+            onError={(e) => {
+              if (noImg && !e.currentTarget.src.endsWith(noImg)) e.currentTarget.src = noImg;
+            }}
+          />
+        )}
         <span className={styles.copyText}>
           <span className={`${styles.name} ${lang === 'ko' ? '' : styles.nameLong}`}>{shopName(shop, lang)}</span>
           <span className={styles.metaCol}>
@@ -446,15 +458,16 @@ const SpotCard = memo(function SpotCard({ shop, lang, noImg, onOpen }: SpotCardP
  * 44961 / 45100 / 45184). A port of InsadongAbout: 관광명소 (map, ㄱ–ㅎ, place
  * cards → the shared 상세 card with its own map), 역사 and 문화.
  *
- * 관광명소 is the curated attractions feed for this kiosk (`region=OSAEK`). 오색's
- * shop catalogue has no sight category — every base is 정이 뭐먹지/뭐사지/뭐사지2/
- * 도와줘, each with its own screen — so there is no shop fallback as on 인사동.
- * Stage answers OSAEK with 0 rows today: the grid shows its empty line and the
- * map opens on the market until the backend enters them.
+ * 관광명소 is the curated attractions feed for this kiosk (`region=OSAEK`) when it
+ * has rows for it — but that feed is 제주's (`/api/jeju/attractions`) and answers
+ * OSAEK with 0 rows, so the tab was always empty. 오색's sights are entered in the
+ * SHOP catalogue instead, as base `정이 관광명소` (12 places on stage, with photos
+ * and coordinates), and the tab falls back to those, as 인사동 does.
  */
 export function OsanAbout({ controller }: OsanAboutProps): JSX.Element {
   const lang = useLang();
   const attractions = useAttractionStore((s) => s.attractions);
+  const shops = useShopStore((s) => s.shops);
   const [tab, setTab] = useState<AboutTab>('attraction');
   const [initial, setInitial] = useState('');
   const [spot, setSpot] = useState<Shop | null>(null);
@@ -482,11 +495,15 @@ export function OsanAbout({ controller }: OsanAboutProps): JSX.Element {
   /** W004 → 4. The feed is per-region, but trust each row's own kioskId. */
   const kioskNum = useMemo(() => Number(controller.kioskId.match(/\d+/)?.[0] ?? 0), [controller.kioskId]);
   const places = useMemo(() => {
-    const mine = attractions.filter((a) => a.kioskId === kioskNum);
+    const curated = attractions.filter((a) => a.kioskId === kioskNum);
+    const mine: Shop[] =
+      curated.length > 0
+        ? curated
+        : shops.filter((s) => s.kioskId === kioskNum && SIGHT_BASE.test(s.baseCategoryKr ?? ''));
     // Places WITH a photo first — a wall of "no image" plates up top reads as empty.
     const hasPhoto = (s: Shop): boolean => shopImages(s).length > 0;
     return [...mine.filter(hasPhoto), ...mine.filter((s) => !hasPhoto(s))];
-  }, [attractions, kioskNum]);
+  }, [attractions, shops, kioskNum]);
   const visible = useMemo(
     () => places.filter((s) => !initial || shopInitial(shopName(s, 'ko')) === initial),
     [places, initial],
@@ -568,13 +585,12 @@ export function OsanAbout({ controller }: OsanAboutProps): JSX.Element {
     });
   }, [pinned, listed]);
 
-  /* Localization_Osaek's `Here_Attraction` / `Here_Culture` rows still carry the
-     previous page's tab names (현재와 미래 / 특징), so those two use the frame's
-     labels; `Here_History` (역사) already matches and stays on the sheet. */
+  /* Tab labels from Localization_Osaek (`Here_Attraction` / `Here_History` /
+     `Here_Culture`); the frame's labels cover a language the sheet leaves empty. */
   const tabs: { id: AboutTab; label: string }[] = [
-    { id: 'attraction', label: say(TAB_ATTRACTION, lang) },
+    { id: 'attraction', label: sheet('Here_Attraction', TAB_ATTRACTION, lang) },
     { id: 'history', label: t('Here_History', lang) },
-    { id: 'culture', label: say(TAB_CULTURE, lang) },
+    { id: 'culture', label: sheet('Here_Culture', TAB_CULTURE, lang) },
   ];
 
   const selectTab = (id: AboutTab): void => {

@@ -119,7 +119,7 @@ node scripts/db-inspect.mjs footfall_buckets 50
 
 ```json
 {
-  "kioskId": "W006",
+  "kioskId": "W008",
   "kioskNum": 6,
   "sentAt": "2026-08-24T21:30:00+09:00",
   "buckets": [

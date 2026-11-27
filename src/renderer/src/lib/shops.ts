@@ -434,6 +434,25 @@ export const SCREEN_BASE_CATEGORY: Record<string, string> = {
   help: '인사 도와줘',
 };
 
+/**
+ * The home boards' 오늘의 상점: from `pool`, the richest tier that has members —
+ * readable hours AND photos, then hours, then anything — sorted by id so the
+ * tier is stable, and indexed by a hash of the date so every restart on the same
+ * day lands on the same shop and the pick changes overnight.
+ */
+export function pickDailyShop(pool: readonly Shop[], now: Date): Shop | null {
+  const sorted = [...pool].sort((a, b) => a.id - b.id);
+  const withHours = sorted.filter((s) => shopOpenNow(s.openTime, now) !== null);
+  const withPhotos = withHours.filter((s) => shopImages(s).length > 0);
+  const tier = [withPhotos, withHours, sorted].find((list) => list.length > 0);
+  if (!tier) return null;
+  let hash = 0;
+  for (const ch of `${now.getFullYear()}-${now.getMonth() + 1}-${now.getDate()}`) {
+    hash = (hash * 31 + ch.charCodeAt(0)) >>> 0;
+  }
+  return tier[hash % tier.length] ?? null;
+}
+
 export function shopsForBase(shops: Shop[], baseKr: string): Shop[] {
   return shops.filter((s) => s.baseCategoryKr === baseKr);
 }

@@ -54,10 +54,11 @@ export default defineConfig({
     build: {
       rollupOptions: {
         input: {
-          // Two HTML entry points: the operator dashboard and the
-          // fullscreen customer display window.
+          // Three HTML entry points: the operator dashboard, the fullscreen
+          // customer display window and the ordinary 지점 설정 window.
           index: resolve('src/renderer/index.html'),
           display: resolve('src/renderer/display.html'),
+          setup: resolve('src/renderer/setup.html'),
         },
       },
     },

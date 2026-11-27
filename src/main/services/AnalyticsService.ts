@@ -7,6 +7,13 @@ import type { KioskService } from '@main/services/KioskService';
 const log = createLogger('analytics-service');
 
 /**
+ * Events whose payload is written to the log file too, not just SQLite — the
+ * AR 한복 picks (outfit code + image), so a kiosk's log shows what a visitor
+ * chose. Everything else stays a debug line, which a packaged build drops.
+ */
+const LOGGED_PAYLOAD_EVENTS = new Set(['outfit_selected', 'background_selected']);
+
+/**
  * Records business-critical analytics. The contract is simple and robust:
  * every event is persisted to SQLite synchronously and marked pending-sync
  * BEFORE the call returns. Nothing is ever sent to a remote server from here —
@@ -29,7 +36,11 @@ export class AnalyticsService {
         ? { ...input.payload, kioskId }
         : input.payload;
     const event = this.repo.create({ ...input, payload });
-    log.debug('Tracked analytics event', { name: event.name, id: event.id });
+    if (LOGGED_PAYLOAD_EVENTS.has(event.name)) {
+      log.info(`Selection: ${event.name}`, { id: event.id, ...event.payload });
+    } else {
+      log.debug('Tracked analytics event', { name: event.name, id: event.id });
+    }
     return event;
   }
 

@@ -8,3 +8,11 @@ calibration.json
 
 __pycache__/
 .pytest_cache/
+
+# Per machine like calibration.json: furniture learned from the empty room
+# (scene.py), and the floor at visitors' feet relative to the calibration.
+background.json
+feet_floor.json
+
+# The MediaPipe pose model (30 MB) — provisioned per kiosk, not committed. See README.
+models/

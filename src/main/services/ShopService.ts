@@ -6,7 +6,7 @@ import { normalizeShops } from '@main/services/normalizeShop';
 
 const log = createLogger('shop-service');
 const CACHE_KEY = 'shops';
-const DEFAULT_API_BASE = 'https://api-v3.witteria.com';
+const DEFAULT_API_BASE = 'https://api-v3.witmarket.net';
 
 /**
  * Fetches the shop catalogue from the witteria API and caches it in SQLite so
@@ -14,7 +14,7 @@ const DEFAULT_API_BASE = 'https://api-v3.witteria.com';
  *
  * Env:
  *   SHOP_API_URL        — full endpoint override (wins if set)
- *   WITTERIA_API_BASE   — shared API base, default https://api-v3.witteria.com
+ *   WITTERIA_API_BASE   — shared API base, default https://api-v3.witmarket.net
  *
  * v2 is keyed by content branch (`?region=HWASEONG`), authored per location in
  * kioskLocations.ts — never from env. It replaced the v1 `?kioskId=` param, and
@@ -71,7 +71,12 @@ export class ShopService {
       }
       return shops.length;
     } catch (error) {
+      // The url is logged because it is NOT what dev sees: a release reads the
+      // `.env` baked from the KIOSK_ENV secret, where a SHOP_API_URL override
+      // or a different WITTERIA_API_BASE changes it without touching the code.
       log.warn('Shops refresh failed (using cached)', {
+        url,
+        cached: this.list().length,
         error: error instanceof Error ? error.message : String(error),
       });
       return this.list().length;

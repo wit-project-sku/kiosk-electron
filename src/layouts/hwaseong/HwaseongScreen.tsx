@@ -5,12 +5,12 @@
  */
 import type { KioskController } from '@renderer/hooks/useKioskController';
 import type { KioskScreenId } from '@shared/types/kiosk';
-import { hwaseongIconUrl } from '@renderer/assets/icons/hwaseong';
 import { screenTitle, useLang } from '@renderer/lib/i18n';
 import { ui } from '@renderer/lib/uiText';
 import { HwaseongHeader } from './HwaseongHeader';
 import { HwaseongBanner } from './HwaseongBanner';
 import { HwaseongLeftNav } from './HwaseongLeftNav';
+import { HwaseongPageBg } from './HwaseongPageBg';
 import styles from './HwaseongScreen.module.css';
 
 interface Props {
@@ -48,11 +48,7 @@ export function HwaseongScreen({ screen, controller }: Props): JSX.Element {
 
   return (
     <div className={styles.root}>
-      {/* Background */}
-      <div className={styles.bgBase} />
-      {hwaseongIconUrl('bg') && (
-        <img src={hwaseongIconUrl('bg')} alt="" className={styles.bgImage} draggable={false} />
-      )}
+      <HwaseongPageBg />
 
       {/* Shared header */}
       <HwaseongHeader controller={controller} title={title} />

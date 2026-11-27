@@ -99,8 +99,8 @@ Because the `%APPDATA%` trees are separate, so are the database, the logs and
 the **provisioned kioskId** — each install needs `provision-kiosk.ps1` run once:
 
 ```powershell
-.\provision-kiosk.ps1 -KioskId W006            # production
-.\provision-kiosk.ps1 -KioskId W006 -Beta      # the beta install
+.\provision-kiosk.ps1 -KioskId W008            # production
+.\provision-kiosk.ps1 -KioskId W008 -Beta      # the beta install
 ```
 
 They can run at the same time: the singleton lock is a file inside `userData`,

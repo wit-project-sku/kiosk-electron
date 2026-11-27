@@ -129,6 +129,44 @@ def test_someone_far_behind_the_visitor_does_not_void_the_capture():
     assert result["heightCm"] == pytest.approx(174.0, abs=1.0)
 
 
+# The two 2026-10-28 dev-PC captures, frame by frame as the sidecar logged them:
+# a height in cm, 0 for "nobody counted", 2 for "2 people in the zone". Both
+# came back "nobody counted" when the count was a mode over every frame — most
+# frames were the visitor walking in and merging with the wall.
+WALK_IN_15_41 = [0] * 9 + [108, 0, 130, 112, 2, 0, 0, 108, 0, 0, 0, 0, 0, 0, 0, 0,
+                           168, 170, 0, 168, 0, 168, 170, 0, 0, 170, 168, 168, 0, 170, 170]
+WALK_IN_15_45 = [0, 0, 0, 0, 160, 0, 0, 170, 170, 170, 142, 156, 168, 0, 164, 160, 0, 0,
+                 166, 0, 0, 0, 166, 0]
+
+
+@pytest.mark.parametrize(
+    "frames, expected_cm",
+    [(WALK_IN_15_41, 169.0), (WALK_IN_15_45, 167.0)],
+    ids=["15:41", "15:45"],
+)
+def test_a_visitor_mostly_hidden_while_walking_in_still_reports(frames, expected_cm):
+    session = Session()
+    for f in frames:
+        session.add([] if f == 0 else [subject(1.7), subject(1.7, 2.1)] if f == 2 else [subject(f / 100.0)])
+    result = session.result()
+    assert result["subjects"] == 1
+    assert result["heightCm"] == pytest.approx(expected_cm, abs=2.0)
+
+
+def test_a_together_capture_is_still_refused_when_frames_are_empty():
+    """Ignoring empty frames must not turn a 같이찍기 into a solo capture."""
+    session = Session()
+    for _ in range(20):
+        session.add([])
+    for _ in range(12):
+        session.add([subject(1.78, 1.9), subject(1.61, 2.1)])
+    for _ in range(3):
+        session.add([subject(1.78, 1.9)])
+    result = session.result()
+    assert result["heightCm"] is None
+    assert result["subjects"] == 2
+
+
 def test_the_real_capture_from_the_dev_pc_reads_the_standing_height():
     """The single-subject frames of the 2026-10-08 test, in order. Truth: 174-175 cm."""
     frames = [128, 124, 138, 130, 168, 130, 170, 174, 174, 174, 172, 174, 174, 174, 172,

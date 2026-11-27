@@ -13,7 +13,7 @@ import { getKioskLocation } from '@shared/config/kioskLocations';
  */
 export const WEB_EMBED_URLS = {
   /** 위드마켓 (WITStore / Goods) */
-  market: 'https://witteria.com/#/kiosk/store',
+  market: 'https://witmarket.net/#/kiosk/store',
   // market: 'https://insarang.kr/',               // payment없는 곳
 
   /**
@@ -30,13 +30,13 @@ export const WEB_EMBED_URLS = {
 
   /**
    * 탐나오 — 제주's public tourism platform (제주공공플랫폼), the 탐나오 home tile
-   * on W006. Jeju-only: no other location has this screen.
+   * on W008. Jeju-only: no other location has this screen.
    *
    * Since 6493:118287 that tile opens a TWO-TAB screen, so this is the FIRST tab
    * only; `jejuqrang` below is the second. It briefly held jejuqrang.com, before
    * the frame arrived showing both sites side by side.
    */
-  tamnao: 'https://www.tamnao.com/mw/?gad_source=1&gad_campaignid=19235838859&gbraid=0AAAAAotGqPwVq5XhZjAheDJ8r1cO0TcVa&gclid=Cj0KCQjwteTUBhD4ARIsAEYjs3p0RToPoJOytN4vkLmyFamP6JdhUTisb_Fe2I7COFtdoo7NqRkArs8aAnBAEALw_wcB',
+  tamnao: 'https://www.tamnao.com/mw/?partner=kiosk',
 
   /**
    * 제주큐랑 — the 제주관광협회's QR travel-info site, second tab of that screen.
@@ -75,14 +75,18 @@ export function taxfreeUrl(kioskId: string): string {
  * Resolve the 기부 webview URL for a kiosk. The donation app's `kiosk` query
  * selects per-site config (campaigns / chrome), so each physical machine maps
  * to a fixed value:
- *   W003 → 1 · W004 → 4 · W005 → 5 · W006/W007/W008 → 6
+ *   W003 → 1 · W004 → 4 · W005 → 5 · W008 → 8 · W009 → 9 · W011 → 10
+ *   (the donation app's own site number for 유산본부 — not the kiosk id, which is 11 since V224)
  * Anything else (incl. W001/W002, which have no 기부 tile) resolves to 1.
+ * 6 is the office rig WITH-I-001, not a 제주 venue.
  */
 export function donationUrl(kioskId: string): string {
   const param =
     kioskId === 'W004' ? 4
     : kioskId === 'W005' ? 5
-    : kioskId === 'W006' || kioskId === 'W007' || kioskId === 'W008' ? 6
+    : kioskId === 'W008' ? 8
+    : kioskId === 'W009' ? 9
+    : kioskId === 'W011' ? 10
     : 1;
   return `https://witglobaldonation.vercel.app/#/?kiosk=${param}`;
 }

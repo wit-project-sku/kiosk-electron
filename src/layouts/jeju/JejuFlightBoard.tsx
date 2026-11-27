@@ -1,5 +1,5 @@
 /**
- * 제주공항 (W006) 운항 정보 board.
+ * 제주공항 (W008) 운항 정보 board.
  *
  * Figma draws this in three conditions — 제주>홈 6212:48936 (탑승 중),
  * 6217:96955 (지연, with the original time struck through) and 6217:97433

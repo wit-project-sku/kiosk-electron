@@ -45,6 +45,7 @@ import type { JejuFlightSnapshot } from '../types/jejuFlight';
 import type { JejuSailingSnapshot } from '../types/jejuSailing';
 import type { WeatherPlayKey } from '../config/weatherVideo';
 import type { KioskLocationCode } from '../config/kioskLocations';
+import type { SetupSiteCode } from '../config/kioskSetup';
 import type { ExchangeSnapshot } from '../types/exchange';
 import type { VideoEntry, VideoFilesBySet } from '../types/subtitle';
 import type { Shop } from '../types/shop';
@@ -68,12 +69,15 @@ import type {
   EventsQuery,
   EventsRecommendQuery,
 } from '../types/events';
+import type { ExpresswayTrafficSnapshot } from '../types/traffic';
+import type { LotteMovieShareSummary, LotteShowtimes, LotteStory } from '../types/lotte';
 import type { UpdateStatus } from '../types/update';
 import type {
   FootfallReport,
   FootfallRuntime,
   FootfallStats,
 } from '../types/footfall';
+import type { AutoShotPlan, AutoShotRunRequest, AutoShotRunResult } from '../types/autoShot';
 
 /** Request payload for importing one or more image files. */
 export interface ImportImagesRequest {
@@ -411,6 +415,18 @@ export interface IpcContract {
     // exits before the renderer ever sees the reply.
     response: Result<boolean>;
   };
+  [IpcChannels.KioskSetupApply]: {
+    request: { kioskId: SetupSiteCode };
+    // false = cancelled in the confirm box. Once confirmed, like KioskSwitchLocation: the
+    // process restarts before replying.
+    response: Result<boolean>;
+  };
+  [IpcChannels.KioskSetupLaunch]: {
+    request: void;
+    // A packaged build restarts as the kiosk before replying. Rejected on a fresh PC
+    // (no site yet); over a running kiosk it only closes the window.
+    response: Result<boolean>;
+  };
   [IpcChannels.ShopsList]: {
     request: void;
     response: Result<Shop[]>;
@@ -457,6 +473,23 @@ export interface IpcContract {
     request: { eventId: number };
     response: Result<EventDetail>;
   };
+  [IpcChannels.TrafficExpresswayGet]: {
+    request: void;
+    response: Result<ExpresswayTrafficSnapshot | null>;
+  };
+  /** 롯데 — null on a non-롯데 kiosk or before the first good answer. */
+  [IpcChannels.LotteShowtimesGet]: {
+    request: void;
+    response: Result<LotteShowtimes | null>;
+  };
+  [IpcChannels.LotteStoriesGet]: {
+    request: void;
+    response: Result<LotteStory[] | null>;
+  };
+  [IpcChannels.LotteMovieShareSummaryGet]: {
+    request: void;
+    response: Result<LotteMovieShareSummary | null>;
+  };
 
   /**
    * 제주 AI 코스 추천 — one live POST per questionnaire submission. `kioskId` is
@@ -498,6 +531,14 @@ export interface IpcContract {
     response: Result<boolean>;
   };
 
+  [IpcChannels.AutoShotPlan]: {
+    request: void;
+    response: Result<AutoShotPlan>;
+  };
+  [IpcChannels.AutoShotRun]: {
+    request: AutoShotRunRequest;
+    response: Result<AutoShotRunResult>;
+  };
   [IpcChannels.FootfallGetRuntime]: {
     request: void;
     response: Result<FootfallRuntime>;
@@ -528,6 +569,7 @@ export interface IpcEventPayloads {
   [IpcEvents.MonitorsChanged]: MonitorInfo[];
   [IpcEvents.SyncStatsChanged]: SyncQueueStats;
   [IpcEvents.ContentChanged]: CachedContent[];
+  [IpcEvents.TranslationsChanged]: Record<string, Partial<Record<SupportedLanguage, string>>>;
   [IpcEvents.PhotoWorkflowChanged]: PhotoWorkflowState;
   [IpcEvents.LanguageChanged]: SupportedLanguage;
   [IpcEvents.WeatherChanged]: WeatherSnapshot;

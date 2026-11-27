@@ -237,8 +237,11 @@
   top: 382px;
 }
 
+/* Never narrower than its own text (it used to shrink while the label stayed
+   on one line, so a long tag ran past the pill). A row that is too wide
+   shrinks every pill's type together instead (--fit, HelloFooter). */
 .hashtag {
-  flex: 0 1 auto;
+  flex: none;
   height: 100px;
   min-width: 322px;
   box-sizing: border-box;
@@ -249,7 +252,7 @@
   border-radius: 42.9px;
   background: var(--kiosk-primary);
   font-family: 'Pretendard', var(--kiosk-font, sans-serif);
-  font-size: 50px;
+  font-size: calc(50px * var(--fit, 1));
   font-weight: 700;
   line-height: 1;
   color: #ffffff;

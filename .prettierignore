@@ -4,3 +4,4 @@ release
 node_modules
 *.md
 package-lock.json
+tests/e2e/fixtures/

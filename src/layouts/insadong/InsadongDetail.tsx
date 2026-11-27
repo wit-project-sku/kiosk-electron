@@ -3,11 +3,11 @@ import type { KioskController } from '@renderer/hooks/useKioskController';
 import { iconUrl } from '@renderer/assets/icons/insadong';
 import { useRotatingBanner } from '@renderer/hooks/useRotatingBanner';
 import { screenSubtitle, screenTitle, useLang } from '@renderer/lib/i18n';
+import { kioskPlaceName } from '@renderer/lib/kioskName';
 import { t } from '@renderer/lib/loc';
 import { useAccessibilityStore } from '@renderer/store/accessibilityStore';
 import { useDetailStore } from '@renderer/store/detailStore';
 import { buildDetailCardSaveUrlForQr } from '@renderer/lib/detailCardSave';
-import { getKioskLocation } from '@shared/config/kioskLocations';
 import { barrierFreeTitle, DETAIL_LOW_REACH_STYLE } from './barrierFree';
 import { InsadongHeader } from './InsadongHeader';
 import { SpotDetailCard, type SpotDetailData } from './SpotDetailCard';
@@ -62,7 +62,7 @@ export function InsadongDetail({ controller }: InsadongDetailProps): JSX.Element
     blog: item.blogReviews,
     /* 7516:74320 reads "남인사마당에서 1.6 km" — the origin is THIS kiosk, so it
        comes from the location table rather than being hardcoded per frame. */
-    originName: getKioskLocation(controller.kioskId).name,
+    originName: kioskPlaceName(controller.kioskId, lang),
     distanceKm: item.route?.distanceKm ?? null,
     walkMin: item.route?.walkMin ?? null,
     /* 7537:81399 — the code on the 도보 pill. Built here because it needs the

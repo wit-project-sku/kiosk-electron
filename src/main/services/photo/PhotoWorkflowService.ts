@@ -16,6 +16,7 @@ const INITIAL: PhotoWorkflowState = {
   resultImagePath: null,
   resultFileName: null,
   resultUrl: null,
+  resultShareUrl: null,
   selectedCameraDeviceId: null,
   countdown: null,
   gestureGate: 'off',
@@ -27,6 +28,7 @@ const INITIAL: PhotoWorkflowState = {
  * Single source of truth for the AI photo workflow.
  * Drives Monitor 2 display state automatically on every transition.
  */
+
 export class PhotoWorkflowService {
   private state: PhotoWorkflowState = { ...INITIAL };
   private readonly listeners = new Set<WorkflowListener>();
@@ -199,13 +201,19 @@ export class PhotoWorkflowService {
     return this.state;
   }
 
-  setResult(resultImagePath: string, resultFileName: string, resultUrl: string | null = null): PhotoWorkflowState {
+  setResult(
+    resultImagePath: string,
+    resultFileName: string,
+    resultUrl: string | null = null,
+    resultShareUrl: string | null = null,
+  ): PhotoWorkflowState {
     this.state = {
       ...this.state,
       phase: 'result',
       resultImagePath,
       resultFileName,
       resultUrl,
+      resultShareUrl,
       countdown: null,
       statusMessage: null,
       errorMessage: null,

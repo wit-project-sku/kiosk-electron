@@ -44,7 +44,7 @@
  * the selected category's sheet rows (or the marked pins when the sheet has
  * none). That frame is the 도와줘 flow's own detail.
  *
- * ── W007 draws ITS OWN building (2026-09-03) ────────────────────────────────
+ * ── W009 draws ITS OWN building (2026-09-03) ────────────────────────────────
  * 제주국제여객터미널 runs this same page (one JEJU_AIRPORT layout — see
  * kioskLocations), and until now it showed the AIRPORT's floor plans to visitors
  * standing in the FERRY terminal. It now has its own pair of plans, supplied
@@ -66,6 +66,7 @@ import {
   useMemo,
   useRef,
   useState,
+  useSyncExternalStore,
   type CSSProperties,
   type PointerEvent as ReactPointerEvent,
   type ReactNode,
@@ -87,8 +88,10 @@ import {
   facilitiesOn,
   chipsForTerminal,
   facilityImageUrl,
-  HELP_CHIPS,
+  facilityTableVersion,
+  helpChips,
   RESTROOM_CHIP,
+  subscribeFacilityTable,
   type AirportFacility,
   type AssignedPin,
 } from '@renderer/lib/airportFacilities';
@@ -101,7 +104,7 @@ import {
   shopsForBase,
 } from '@renderer/lib/shops';
 import { trackEvent } from '@renderer/lib/analytics';
-import { jejuMascot } from './jejuMascot';
+import { jejuHelpTitle, jejuMascot } from './jejuMascot';
 import { JejuPageFrame } from './JejuPageFrame';
 import { JejuSubTabRow } from './JejuSubTabRow';
 import styles from './JejuHelp.module.css';
@@ -231,12 +234,7 @@ const FLOORS: Record<TerminalId, ReadonlyArray<{ id: FloorId; label: string }>> 
  * reaches eleven categories makes three rows and .map has to move back down.
  * See the note on .cats in the CSS.
  */
-const CATEGORIES = HELP_CHIPS;
 const PER_ROW = 5;
-const TERMINAL_CHIPS: Record<TerminalId, readonly string[]> = {
-  domestic: chipsForTerminal('domestic'),
-  international: chipsForTerminal('international'),
-};
 
 /**
  * Chip caption for the 340×170 plates (Figma 6393:59030 / I6771:66722).
@@ -608,7 +606,7 @@ const PINS: Record<string, FacilityPin[]> = {
 type PortZoneId = 'hall' | 'departure';
 
 /**
- * 제주국제여객터미널 (W007)'s two maps, on the pill row where the airport puts its
+ * 제주국제여객터미널 (W009)'s two maps, on the pill row where the airport puts its
  * terminals. Zones of one storey, not floors — see the header note. 대합실 first:
  * it is where the kiosk's visitors physically are, and the 출국장 plan itself
  * draws that hall as faded context.
@@ -725,7 +723,7 @@ const COMING_SOON = {
 /**
  * Base category (witteria `baseCategoryKr`) the facility rows come from.
  *
- * TODO(제주 W006): the catalogue has NO 도와줘 rows yet. Checked 2026-08-12
+ * TODO(제주 W008): the catalogue has NO 도와줘 rows yet. Checked 2026-08-12
  * against `/api/shops?kioskId=7` (prod and stage): the only four base categories
  * are 제주 뭐하지 / 제주 뭐먹지 / 제주 뭐사지 / 숙박안내. The mascot form this used
  * to guess ('하영 도와줘') is ruled out by those four — 제주 keys on the LOCATION
@@ -779,7 +777,7 @@ const AIRPORT = {
   id: 'Bandara Internasional Jeju',
 };
 
-/** W007's venue name — kioskLocations' 제주국제여객터미널, localized. */
+/** W009's venue name — kioskLocations' 제주국제여객터미널, localized. */
 const PORT_TERMINAL = {
   ko: '제주국제여객터미널',
   en: 'Jeju International Passenger Terminal',
@@ -1044,18 +1042,20 @@ export function JejuHelp({ controller, initialCategory }: Props): JSX.Element {
   const lowReach = useAccessibilityStore((s) => s.lowReach);
   const shops = useShopStore((s) => s.shops);
   const setDetail = useDetailStore((s) => s.setItem);
-  // W007 shows its own building; every other 제주 kiosk keeps the airport plans.
+  // W009 shows its own building; every other 제주 kiosk keeps the airport plans.
   // Non-reactive on purpose, like jejuMascot: the id is provisioned per machine.
-  const atPort = getKioskLocation(controller.kioskId).code === 'W007';
+  const atPort = getKioskLocation(controller.kioskId).code === 'W009';
   /* Opens on 국내선 — the first pill, and the one 6862:9953 draws picked. */
   const [terminal, setTerminal] = useState<TerminalId>('domestic');
   const [floor, setFloor] = useState<FloorId>('1F');
   const [zone, setZone] = useState<PortZoneId>('hall');
   /* The chips a view draws: the terminal's own categories. The ferry terminal
-     (W007) matches no sheet terminal — none of its pins has a row — so it keeps
+     (W009) matches no sheet terminal — none of its pins has a row — so it keeps
      the whole list, as it always has. */
-  const chipsFor = (t: TerminalId): readonly string[] => (atPort ? CATEGORIES : TERMINAL_CHIPS[t]);
-  const [category, setCategory] = useState(() => {
+  const chipsFor = (t: TerminalId): readonly string[] => (atPort ? helpChips() : chipsForTerminal(t));
+  /* The sheet's rows can arrive a moment after this page opens (the launch sync). */
+  const tableVersion = useSyncExternalStore(subscribeFacilityTable, facilityTableVersion);
+  const [pickedCategory, setCategory] = useState(() => {
     const landing = chipsFor('domestic');
     return initialCategory && landing.includes(initialCategory) ? initialCategory : landing[0]!;
   });
@@ -1069,6 +1069,8 @@ export function JejuHelp({ controller, initialCategory }: Props): JSX.Element {
 
   const floors = FLOORS[terminal];
   const chips = chipsFor(terminal);
+  /* A chip the new rows no longer have falls back, rather than lighting nothing. */
+  const category = chips.includes(pickedCategory) ? pickedCategory : chips[0]!;
   const categoryRows = Math.ceil(chips.length / PER_ROW);
   const map = atPort ? PORT_MAPS[zone] : MAPS[`${terminal}-${floor}`];
   const here = jejuIconUrl('ico-here-pin');
@@ -1092,7 +1094,8 @@ export function JejuHelp({ controller, initialCategory }: Props): JSX.Element {
       atPort
         ? assignFacilities('port', zone, PORT_PINS[zone])
         : assignFacilities(terminal, floor, PINS[`${terminal}-${floor}`] ?? []),
-    [atPort, terminal, floor, zone],
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- tableVersion: the module's rows changed
+    [atPort, terminal, floor, zone, tableVersion],
   );
 
   /** The pictograms the selected chip marks — every other one stays as drawn. */
@@ -1109,7 +1112,8 @@ export function JejuHelp({ controller, initialCategory }: Props): JSX.Element {
   const sheetList = useMemo(() => {
     if (atPort) return [];
     return facilitiesOn(terminal, floor).filter((f) => f.category.ko === category);
-  }, [atPort, terminal, floor, category]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- tableVersion: the module's rows changed
+  }, [atPort, terminal, floor, category, tableVersion]);
 
   const facilities = useMemo(() => shopsForBase(shops, BASE_CATEGORY), [shops]);
 
@@ -1195,7 +1199,7 @@ export function JejuHelp({ controller, initialCategory }: Props): JSX.Element {
           : pin
             ? pinLabel(pin, chip, lang)
             : chipLabel(chip, lang).replace('\n', ' '),
-      title: jejuMascot().helpTitle,
+      title: jejuHelpTitle(),
       category: chipLabel(facility?.category.ko ?? chip, lang).replace('\n', ' '),
       photos: [...(facilityPhoto ? [facilityPhoto] : []), ...(shop ? shopImages(shop) : [])],
       address: facility
@@ -1332,7 +1336,7 @@ export function JejuHelp({ controller, initialCategory }: Props): JSX.Element {
 
   const mapBlock = (() => {
     if (!map || !planSrc) {
-      return <p className={styles.empty}>{pick(COMING_SOON, lang)}</p>;
+      return <p className={styles.empty} data-voice-state="preparing">{pick(COMING_SOON, lang)}</p>;
     }
     const src = planSrc;
     return (
@@ -1471,7 +1475,7 @@ export function JejuHelp({ controller, initialCategory }: Props): JSX.Element {
     // map/list scroll above, pickers at the foot.
     <JejuPageFrame
       controller={controller}
-      title={jejuMascot().helpTitle}
+      title={jejuHelpTitle()}
       lowReachModeBar
       lowReachBarBanner
       lowReachShift={belowModeBar(LOW_REACH_BANNER_HEIGHT)}

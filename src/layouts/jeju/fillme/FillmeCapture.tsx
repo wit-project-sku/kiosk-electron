@@ -58,12 +58,22 @@ function statusText(phase: CapturePhase, count: number, lang: Lang): string {
   }
 }
 
-/** 미리보기 칸 1718×1285 안에 4:3 영상을 채운다. */
-const VIDEO_W = 1718;
+/** 미리보기 칸 1082×768 안에 4:3 영상을 채운다. */
+const VIDEO_W = 1082;
 const VIDEO_H = Math.round((VIDEO_W * 3) / 4);
 
 /**
- * 손톱 촬영 — Figma 7334:84998. 좌표와 시안과 다른 곳은 스타일시트 머리말 참고.
+ * 시트의 한국어 칸은 한 줄로 적혀 있지만 시안(8004:13819)은 문장마다 줄을 바꾼다.
+ * 시트가 줄을 나눠 주면 그대로 쓰고, 한 줄뿐이면 문장 끝('. ')에서 나눈다 —
+ * 둘째 문장이 길면 .captionLine 이 균형 있게 한 번 더 접는다.
+ */
+function captionLines(lang: Lang): string[] {
+  const lines = tLines('Fillme_text021', lang);
+  return lines.length > 1 ? lines : lines.flatMap((l) => l.split(/(?<=\.)\s+/));
+}
+
+/**
+ * 손톱 촬영 — Figma 8004:13397(왼손) · 8004:13761(오른손). 좌표와 시안과 다른 곳은 스타일시트 머리말 참고.
  *
  * 시안의 미리보기는 자리만 잡은 사진이다. 실제 촬영에 필요한 겹침(가이드·스캔선·
  * 촬영 완료 표시·플래시·준비 중/오류 안내)은 그 칸 안에 그대로 둔다 — 두 번째 팁이
@@ -85,9 +95,12 @@ export function FillmeCapture({
   const mirror = FILLME_CONFIG.camera.mirrorPreview ? ' scaleX(-1)' : '';
   const shotUrl = phase === 'done' ? shots[current] : null;
   const countdownArt = fillmeArtUrl('capture-countdown');
-  /* 왼손 → 엄지 오른쪽, 오른손 → 엄지 왼쪽. 실제 키오스크에서 반대로 보이면
-     이 한 줄만 뒤집으면 된다(그림 파일은 서로 대칭이라 이름만 바꿔도 된다). */
-  const guideArt = fillmeArtUrl(current === 'left' ? 'guide-left' : 'guide-right');
+  const cornerArt = fillmeArtUrl('capture-corner');
+  /* 손 그림 하나(엄지 오른쪽 = 왼손, 8004:13817)를 오른손일 때 좌우로 뒤집는다 —
+     시안의 오른손 판도 같은 그림을 뒤집어 썼다. 실제 키오스크에서 반대로 보이면
+     이 한 줄만 고치면 된다. 좌우반전 미리보기(mirrorPreview)면 한 번 더 뒤집는다. */
+  const guideArt = fillmeArtUrl('guide-hand');
+  const guideFlip = (current === 'right') !== Boolean(mirror);
 
   return (
     <div className={styles.root}>
@@ -131,7 +144,7 @@ export function FillmeCapture({
         })}
       </ul>
 
-      {/* ── 카메라 미리보기 (7334:85007) ── */}
+      {/* ── 카메라 미리보기 (8004:13812) ── */}
       <div className={styles.camBox}>
         <video
           ref={videoRef}
@@ -147,32 +160,30 @@ export function FillmeCapture({
         />
         {shotUrl && <img src={shotUrl} alt="" className={styles.shot} style={{ transform: mirror.trim() || undefined }} />}
 
-        <i className={`${styles.corner} ${styles.tl}`} />
-        <i className={`${styles.corner} ${styles.tr}`} />
-        <i className={`${styles.corner} ${styles.bl}`} />
-        <i className={`${styles.corner} ${styles.br}`} />
+        {cornerArt &&
+          (['tl', 'tr', 'bl', 'br'] as const).map((pos) => (
+            <img key={pos} src={cornerArt} alt="" className={`${styles.corner} ${styles[pos]}`} draggable={false} />
+          ))}
 
         {(phase === 'prepare' || phase === 'countdown') && (
           <>
             {/* 손 모양 가이드 — 지금 찍는 손의 그림을 미리보기 위에 겹친다.
-                두 그림은 서로 좌우 대칭이고, 어느 쪽이 어느 손인지는 카메라가
-                손등을 본다는 데서 나온다(팁 '손등이 위로'): 손등을 보면 오른손은
-                엄지가 왼쪽에, 왼손은 엄지가 오른쪽에 온다. 화면이 좌우반전이면
-                (mirrorPreview) 영상 속 손도 뒤집히므로 가이드도 같이 뒤집어야
-                실제 손과 겹친다 — 그래서 video 와 같은 mirror 를 쓴다. */}
+                어느 쪽이 어느 손인지는 카메라가 손등을 본다는 데서 나온다(팁
+                '손등이 위로'): 손등을 보면 오른손은 엄지가 왼쪽에, 왼손은 엄지가
+                오른쪽에 온다. 화면이 좌우반전이면 영상 속 손도 뒤집히므로 가이드도
+                같이 뒤집어야 실제 손과 겹친다. */}
             {guideArt ? (
               <img
                 src={guideArt}
                 alt=""
                 className={styles.guideArt}
-                style={{ transform: `translateX(-50%)${mirror}` }}
+                style={guideFlip ? { transform: 'scaleX(-1)' } : undefined}
                 draggable={false}
               />
             ) : (
               /* 그림이 없는 빌드에서는 예전의 점선 테두리로 돌아간다. */
               <div className={styles.guide} />
             )}
-            <span className={styles.guideLabel}>{tx(HAND_KEY[current], lang)}</span>
           </>
         )}
         {phase === 'countdown' && (
@@ -209,6 +220,15 @@ export function FillmeCapture({
           </div>
         )}
       </div>
+
+      {/* ── 안내 (8004:13819) — 예전에는 가이드 그림 안에 박혀 있던 문구. ── */}
+      <p className={styles.caption}>
+        {captionLines(lang).map((line, i) => (
+          <span key={i} className={styles.captionLine}>
+            {line}
+          </span>
+        ))}
+      </p>
     </div>
   );
 }

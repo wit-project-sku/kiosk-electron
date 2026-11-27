@@ -6,15 +6,13 @@
 #   powershell -ExecutionPolicy Bypass -File provision-kiosk.ps1 W003 -ShopId 3
 #
 #   W001 = 북인사마당   W002 = 인사동센터   W003 = 남인사마당
-#   W004 = 오산 오색시장  W005 = 화성휴게소   W006 = 제주국제공항
-#   W007 = 제주국제여객터미널   W008 = 세계자연유산본부
+#   W004 = 오산 오색시장  W005 = 화성휴게소   W008 = 제주국제공항
+#   W009 = 제주국제여객터미널   W010 = 세계자연유산본부
 #
 #   -ShopId is the witteria shop-API id for this kiosk. LEAVE IT OFF unless the
-#   API tells you otherwise: without it the app uses the id authored for the
-#   location in src/shared/config/kioskLocations.ts (제주 W006 -> 7, a historic
-#   filing that still resolves), falling back to the digits of the kiosk id
-#   (W003 -> 3, W007 -> 7). Passing it overrides both, so a wrong value silently
-#   empties every shop list.
+#   API tells you otherwise: without it the app uses the digits of the kiosk id
+#   (W003 -> 3, W008 -> 8, W009 -> 9, W010 -> 10). Passing it overrides that,
+#   so a wrong value silently empties every shop list.
 #
 # Tip: launch the app once first so its data folder exists, then run this,
 # then restart the app.
@@ -51,9 +49,9 @@ if (-not $dir) {
 
 $file = Join-Path $dir 'kiosk-config.json'
 if ($ShopId -gt 0) {
-  $json = '{"kioskId":"' + $id + '","shopApiKioskId":' + $ShopId + '}'
+  $json = '{"kioskId":"' + $id + '","shopApiKioskId":' + $ShopId + ',"jejuIdShift202610":true}'
 } else {
-  $json = '{"kioskId":"' + $id + '"}'
+  $json = '{"kioskId":"' + $id + '","jejuIdShift202610":true}'
 }
 
 # WriteAllText = UTF-8 without BOM (a BOM breaks JSON.parse / electron-store).

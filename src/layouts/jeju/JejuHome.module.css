@@ -1,5 +1,5 @@
 /*
- * 제주공항 (W006) home — Figma node 6439:71456 (WIT-WITH>디자인, 제주>홈).
+ * 제주공항 (W008) home — Figma node 6439:71456 (WIT-WITH>디자인, 제주>홈).
  *
  * Inside KioskArtboard 1 CSS px = 1 Figma px (2160×3840), so every value here is
  * the exact number read out of the design. Deliberate normalisations of designer
@@ -65,6 +65,22 @@
   line-height: 1;
   color: var(--kiosk-primary, #ff7f0f);
   white-space: nowrap;
+}
+
+/* The hidden 시스템 점검 switch (maintenance.ts). The sprite is 105×56; the padding
+   is a bigger target for a mouse driven over TeamViewer. */
+.planeSwitch {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  padding: 20px;
+  transform: translate(-50%, -50%);
+}
+
+.planeSwitch img {
+  display: block;
+  width: 105px;
+  height: 56px;
 }
 
 .dateTime {
@@ -396,6 +412,18 @@
 .cardMarket .cardSub   { left: 57px; top: 182px; }
 .cardMarket .cardArt   { left: 362px; top: 47px; width: 140px; height: 216px; }
 
+/* Card 2 on 제주공항 — 탐나오·제주큐랑 in 위드마켓's slot and colour. The art is
+   the 탐나오 app icon (a red squircle), so it gets a square box, not the
+   위드마켓 figure's tall one. */
+.cardTamnao {
+  left: 718px;
+  width: 570px;
+  background: #f3eae3;
+}
+.cardTamnao .cardTitle { left: 57px; top: 108px; }
+.cardTamnao .cardSub   { left: 57px; top: 182px; }
+.cardTamnao .cardArt   { left: 352px; top: 65px; width: 180px; height: 180px; border-radius: 45px; }
+
 /* Card 3 — 제주도 이벤트. NORMALISED: Figma has title x40 / subtitle x50.8;
    both render left-aligned in the design, so both use 40. */
 .cardEvents {
@@ -447,6 +475,18 @@
 .tileDisabled {
   cursor: default;
   opacity: 0.45;
+}
+
+/* Coming Soon (제주공항 위드마켓 / TAX-FREE / 기부): a plain grey plate
+   (`.tilePlateBlank`) instead of the art, grey title, no subtitle. */
+.tileComingSoon {
+  cursor: default;
+}
+.tileComingSoon .tileTitle {
+  color: #9a9a9a;
+}
+.tilePlateBlank {
+  background: #e3e3e3;
 }
 
 /* The tile art is the whole rounded plate exported from Figma — its background
@@ -631,10 +671,12 @@
 }
 
 /* ── Left nav (home / back) + accessibility ─────────────────────────── */
+/* One rail step (120) above every other 제주 page: the rail is four controls here,
+   and the second row of feature cards starts at x120 / y2364, under a fourth one. */
 .leftNav {
   position: absolute;
   left: 50px;
-  top: 2043px;
+  top: 1923px;
   width: 85px;
   height: 205px;
 }
@@ -669,7 +711,7 @@
 .accessibility {
   position: absolute;
   left: 50px;
-  top: 2283px;
+  top: 2163px;
   width: 85px;
   height: 85px;
   padding: 0;
@@ -815,6 +857,14 @@
 .cardsLow .cardMarket .cardSub   { top: 152px; }
 .cardsLow .cardMarket .cardArt   { left: 337px; top: 45px; width: 109px; height: 169px; }
 
+.cardsLow .cardTamnao {
+  left: 743px;
+  width: 540px;
+}
+.cardsLow .cardTamnao .cardTitle { top: 78px; }
+.cardsLow .cardTamnao .cardSub   { top: 152px; }
+.cardsLow .cardTamnao .cardArt   { left: 340px; top: 50px; width: 150px; height: 150px; border-radius: 38px; }
+
 .cardsLow .cardEvents {
   left: 1320px;
   width: 540px;
@@ -891,6 +941,24 @@
 
 .accessibilityLow {
   top: 2403px;
+}
+
+/* 음성 안내 — under the ♿ toggle, one rail step (85 + 35) down. */
+.voiceToggle {
+  position: absolute;
+  left: 50px;
+  top: 2283px;
+  width: 85px;
+  height: 85px;
+  padding: 0;
+  border: none;
+  background: none;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.voiceToggleLow {
+  top: 2523px;
 }
 
 /* ── Other languages (Figma 7058:22669 — the annotated 제주>홈) ────────────
@@ -995,10 +1063,12 @@
    35+ short of the art on the other two. */
 .cardAi .cardText     { left: 356px; width: 270px; }
 .cardMarket .cardText { left: 57px;  width: 260px; }
+.cardTamnao .cardText { left: 57px;  width: 270px; }
 .cardEvents .cardText { left: 50px;  width: 280px; }
 
 .cardsLow .cardAi .cardText     { left: 401px; width: 265px; }
 .cardsLow .cardMarket .cardText { width: 250px; }
+.cardsLow .cardTamnao .cardText { width: 260px; }
 .cardsLow .cardEvents .cardText { width: 270px; }
 
 /*
@@ -1032,4 +1102,121 @@
   font-size: calc(25px * var(--fit, 1));
   word-break: normal;
   overflow-wrap: normal;
+}
+
+/* ── 제주공항 4 · 3 · 4 grid (2026-10-29) ───────────────────────────────
+   Row 2 (여기는 제주도 / 안녕 / 제주공항 안내) is a second row of the feature
+   cards: the same .cards / .cardsLow box and the same three slots
+   (.cardAi / .cardTamnao / .cardEvents), only moved down into the grid's
+   middle band. Standard: centred in the 412 band of row 2 —
+   1821 + 492 + (412 − 310) / 2 = 2364. Low-reach: 48 under the first tile row
+   (2595 + 192 + 48). */
+
+/* Both card rows share one fit root (cardsRef) — a wrapper that draws nothing. */
+.cardRows {
+  display: contents;
+}
+
+/* z-index: the grid's white panel is drawn after the card rows and sits over
+   this band — without it the 70% white would wash the cards out. */
+.cardsMid {
+  top: 2364px;
+  z-index: 1;
+}
+
+.cardsMidLow {
+  top: 2835px;
+}
+
+/* The slots were drawn for the cards' own art; a tile's square plate goes in
+   their box squared up, clipped to its rounded corners (the exports carry
+   opaque corners — see .tileArt). */
+.cardsMid .cardAi .cardArt {
+  left: 70px;
+  width: 214px;
+  height: 214px;
+  border-radius: 60px;
+}
+.cardsMid .cardEvents .cardArt {
+  border-radius: 45px;
+}
+.cardsMidLow .cardAi .cardArt {
+  left: 72px;
+  width: 191px;
+  height: 191px;
+  border-radius: 52px;
+}
+.cardsMidLow .cardEvents .cardArt {
+  border-radius: 38px;
+}
+
+/* The panel widens to take the cards (120…2046; ♿ 170…2030) with a margin,
+   where the 4-across grid alone sat inside 135…2024. */
+.panelCards {
+  left: 100px;
+  width: 1966px;
+}
+.panelCardsLow {
+  left: 150px;
+  width: 1900px;
+}
+
+/* ♿: the first tile row starts 40 under the panel top (2555). */
+.gridLow3 {
+  top: 2595px;
+}
+
+/* A tile with no art yet — an empty plate. */
+.tilePlateEmpty {
+  background: #f1ebe4;
+}
+
+/* 오늘의 날씨: a sky plate carrying the live condition and temperature. The
+   plate takes its size from .tilePlate / .tilePlateLow; the contents scale with
+   its font-size. */
+.weatherPlate {
+  background: #e2f0fb;
+  font-size: 64px;
+}
+.weatherPlateIcon {
+  position: absolute;
+  left: 22%;
+  top: 12%;
+  width: 56%;
+  height: 50%;
+  object-fit: contain;
+}
+.weatherPlateTemp {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 9%;
+  font-size: 1em;
+  font-weight: 700;
+  line-height: 1;
+  text-align: center;
+  color: #3d6488;
+}
+
+/* ♿ tiles in the 4 · 3 · 4 grid: 150 plates under a 34px title. */
+.tileLow3 {
+  width: 150px;
+  height: 192px;
+}
+.tileLow3 .tileArtLow,
+.tileLow3 .tilePlateLow {
+  width: 150px;
+  height: 150px;
+  border-radius: 36px;
+}
+.tileLow3 .weatherPlate {
+  font-size: 32px;
+}
+.tileLow3 .tileTextLow {
+  left: -75px;
+  top: 158px;
+  width: 300px;
+}
+.tileLow3 .tileTextLow.tileTextFit {
+  height: 34px;
 }

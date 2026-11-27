@@ -7,6 +7,8 @@ import { QRCodeSVG } from 'qrcode.react';
 import qrImg from '@renderer/assets/photos/insadong/ai/detail-qr.png';
 import { iconUrl } from '@renderer/assets/icons/insadong';
 import { padImages } from '@renderer/lib/shops';
+import { useLang } from '@renderer/lib/i18n';
+import { ui } from '@renderer/lib/uiText';
 import { ImageLightbox } from '../components/ImageLightbox';
 import styles from './SpotDetailCard.module.css';
 
@@ -67,6 +69,7 @@ export function SpotDetailCard({
   /** Extra class on the positioned shell, so a page can shift the card. */
   className?: string;
 }): JSX.Element {
+  const lang = useLang();
   // Real photos drive the lightbox; the grid is padded to 4 with the no-image
   // icon like the cards so the 2×2 layout always holds its shape.
   const realPhotos = (data.photos ?? []).filter(Boolean);
@@ -175,16 +178,19 @@ export function SpotDetailCard({
           <>
             <div className={styles.divider} />
             <p className={styles.distance}>
-              {data.originName ? `${data.originName}에서 ` : ''}
-              {km.toFixed(1)} km
+              {/* In the visitor's language — the Korean "{place}에서" was printed
+                  in every language. */}
+              {data.originName
+                ? ui('distanceFrom', lang).replace('{place}', data.originName).replace('{km}', km.toFixed(1))
+                : `${km.toFixed(1)} km`}
             </p>
             {walkMin !== null && (
               <div className={styles.walkPill}>
                 <span className={styles.walkGlyph} aria-hidden="true">
                   🚶
                 </span>
-                <span className={styles.walkMode}>도보</span>
-                <span className={styles.walkTime}>약 {walkMin}분</span>
+                <span className={styles.walkMode}>{ui('walkMode', lang)}</span>
+                <span className={styles.walkTime}>{ui('walkAbout', lang).replace('{n}', String(walkMin))}</span>
                 {data.saveQrUrl && (
                   <span className={styles.walkQr}>
                     <QRCodeSVG
@@ -201,40 +207,44 @@ export function SpotDetailCard({
           </>
         )}
 
-        <div className={styles.divider} />
-
-        {/* 네이버 · 인스타그램 · 블로그 — each shown only where the row has data. */}
-        <div className={styles.ratings}>
-          <div className={styles.ratingItem}>
-            <img className={styles.ratingIcon} src={iconNaver} alt="" draggable={false} />
-            {hasRating && (
-              <>
-                <span className={styles.stars}>
-                  {[0, 1, 2, 3, 4].map((i) => (
-                    <RatingStar key={i} filled={i < filledStars} />
-                  ))}
-                </span>
-                <span className={styles.ratingText}>{data.rating}</span>
-              </>
-            )}
-          </div>
-          {igText && (
-            <>
-              <span className={styles.ratingSepLine} />
-              <div className={styles.ratingItem}>
-                <span className={styles.ratingText}>{igText}</span>
-              </div>
-            </>
-          )}
-          {blogText && (
-            <>
-              <span className={styles.ratingSepLine} />
-              <div className={styles.ratingItem}>
-                <span className={styles.ratingText}>{blogText}</span>
-              </div>
-            </>
-          )}
-        </div>
+        {/* 네이버 · 인스타그램 · 블로그 — each shown only where the row has data.
+            The Naver logo goes with the rating: without one, a bare logo read as
+            a broken review. A row with nothing to show (and its divider) is
+            left off entirely. Same rule as 제주. */}
+        {(hasRating || igText || blogText) && (
+          <>
+            <div className={styles.divider} />
+            <div className={styles.ratings}>
+              {hasRating && (
+                <div className={styles.ratingItem}>
+                  <img className={styles.ratingIcon} src={iconNaver} alt="" draggable={false} />
+                  <span className={styles.stars}>
+                    {[0, 1, 2, 3, 4].map((i) => (
+                      <RatingStar key={i} filled={i < filledStars} />
+                    ))}
+                  </span>
+                  <span className={styles.ratingText}>{data.rating}</span>
+                </div>
+              )}
+              {igText && (
+                <>
+                  {hasRating && <span className={styles.ratingSepLine} />}
+                  <div className={styles.ratingItem}>
+                    <span className={styles.ratingText}>{igText}</span>
+                  </div>
+                </>
+              )}
+              {blogText && (
+                <>
+                  {(hasRating || igText) && <span className={styles.ratingSepLine} />}
+                  <div className={styles.ratingItem}>
+                    <span className={styles.ratingText}>{blogText}</span>
+                  </div>
+                </>
+              )}
+            </div>
+          </>
+        )}
       </div>
 
       {lightboxIndex !== null && (

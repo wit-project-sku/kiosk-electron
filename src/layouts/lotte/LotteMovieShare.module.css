@@ -1,0 +1,88 @@
+/* 영화 나눔 — Figma C-03 (8754:1419). Shared pieces: lotteUi.module.css. */
+
+.hero { padding: 72px 80px; }
+
+.heroTitle {
+  font-size: 76px;
+  font-weight: 800;
+  line-height: 91.2px;
+}
+
+.stripCard { align-items: center; }
+
+/* The film strip: ink band, perforations top and bottom, five 250×290 frames. */
+.strip {
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+  padding: 34px 44px;
+  border-radius: 50px;
+  background: #2A2320;
+}
+
+.holes {
+  display: flex;
+  justify-content: space-between;
+}
+
+.hole {
+  width: 46px;
+  height: 30px;
+  border-radius: 8px;
+  background: #FFF4F3;
+  opacity: 0.85;
+}
+
+.frames {
+  display: flex;
+  gap: 28px;
+}
+
+.frame {
+  width: 250px;
+  height: 290px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 28px;
+  background: #4A413C;
+  font-size: 76px;
+  font-weight: 800;
+  color: #A89E93;
+}
+
+.frameOn { background: #DA291C; }
+
+.frameOn img {
+  width: 137.5px;
+  height: 159.5px;
+}
+
+.caption {
+  font-size: 40px;
+  line-height: 60px;
+  color: #7A716B;
+}
+
+.total {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 20px;
+}
+
+.totalLabel {
+  font-size: 46px;
+  color: #7A716B;
+}
+
+.totalValue {
+  font-size: 64px;
+  font-weight: 700;
+  color: #DA291C;
+}
+
+/* FilmShare_Desc is one sentence in the sheet; the frame breaks it after the comma. */
+.heroLine {
+  display: block;
+}

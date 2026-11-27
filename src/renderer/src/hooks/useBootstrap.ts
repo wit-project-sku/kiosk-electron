@@ -15,6 +15,7 @@ export function useBootstrap(): void {
   const applyExternalSettings = useSettingsStore((s) => s.applyExternal);
   const hydrateSync = useSyncStore((s) => s.hydrate);
   const refreshContent = useKioskStore((s) => s.refreshContent);
+  const refreshTranslations = useKioskStore((s) => s.refreshTranslations);
   const applyLanguage = useLanguageStore((s) => s.applyLanguage);
 
   useEffect(() => {
@@ -34,13 +35,17 @@ export function useBootstrap(): void {
     const offSettings = window.api.events.onSettingsChanged(applyExternalSettings);
     const offSync = window.api.events.onSyncStatsChanged(hydrateSync);
     const offContent = window.api.events.onContentChanged(refreshContent);
+    // The launch-time sheet sync finishes after first paint; apply its table now
+    // rather than on the next restart.
+    const offTranslations = window.api.events.onTranslationsChanged(refreshTranslations);
     const offLanguage = window.api.events.onLanguageChanged(applyLanguage);
 
     return () => {
       offSettings();
       offSync();
       offContent();
+      offTranslations();
       offLanguage();
     };
-  }, [applyExternalSettings, hydrateSync, refreshContent, applyLanguage]);
+  }, [applyExternalSettings, hydrateSync, refreshContent, refreshTranslations, applyLanguage]);
 }

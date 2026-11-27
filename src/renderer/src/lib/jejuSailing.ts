@@ -1,5 +1,5 @@
 /**
- * 제주국제여객터미널 (W007) 운항정보 — one ferry sailing and the status condition
+ * 제주국제여객터미널 (W009) 운항정보 — one ferry sailing and the status condition
  * that decides how it is drawn.
  *
  * The terminal's counterpart to {@link jejuFlight}: same shape of problem, same

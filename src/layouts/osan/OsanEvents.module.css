@@ -364,7 +364,12 @@
   left: 50%;
   transform: translateX(-50%);
   box-sizing: border-box;
-  width: 500px;
+  /* At least the frame's 500, and wider for a label that needs it — "See
+     recommendations" ran out past both sides of a fixed 500. Stays centred. */
+  width: max-content;
+  min-width: 500px;
+  max-width: 1700px;
+  padding: 0 50px;
   height: 120px;
   display: flex;
   align-items: center;
@@ -806,9 +811,10 @@
 
 /* 7878:47629 — 추천 결과 보기 at (856, 2642). */
 .lowEvents .mbtiCta {
-  left: 856px;
+  /* Centred on the frame's 500 box (856 + 250), so a wider label grows both ways. */
+  left: 1106px;
   top: calc(2642px - var(--osan-mode-push, 0px));
-  transform: none;
+  transform: translateX(-50%);
 }
 
 /* 7878:47631 — the copy, 992 wide at x610, middle at 3157. */

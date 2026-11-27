@@ -1,0 +1,127 @@
+/*
+ * Home 상영 시간표 strip — Figma A-01 node 8746:1466 (1850×206 at x155 y732) and its
+ * '상영 정보 더보기' (8746:1449, y963). Coordinates are artboard px (1 CSS px = 1 Figma px).
+ *
+ * Each column is centred on the axis its header and value share in the frame: 상영시각 488,
+ * 영화 제목 1048, 잔여석 1560, 상영관 1730 (board-relative).
+ */
+.board {
+  position: absolute;
+  left: 155px;
+  top: 732px;
+  width: 1850px;
+  height: 206px;
+  border-radius: 45px;
+  background: rgba(255, 255, 255, 0.5);
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.title {
+  position: absolute;
+  left: 57px;
+  top: 76px;
+  margin: 0;
+  font-size: 55px;
+  font-weight: 700;
+  line-height: 1;
+  color: #000;
+  white-space: nowrap;
+}
+
+/* Other languages: a 265 × 150 slot up to the first column (상영시각 starts at 338), centred on
+   Korean's line (28 + (150 − 55) / 2 ≈ 76). A longer title ("Расписание сеансов") wraps to two
+   lines inside it, then shrinks through --fit (useFitText in LotteCinemaBoard) instead of
+   running into the times. Korean keeps the rule above. */
+.title:not(:lang(ko)) {
+  top: 28px;
+  width: 265px;
+  height: 150px;
+  display: flex;
+  align-items: center;
+  font-size: calc(55px * var(--fit, 1));
+  line-height: 1.05;
+  white-space: normal;
+  word-break: auto-phrase;
+  overflow-wrap: normal;
+}
+
+/* Line 104: 1462 wide at x336 y97, 3px. */
+.rule {
+  position: absolute;
+  left: 336px;
+  top: 94px;
+  width: 1462px;
+  height: 3px;
+  background: #E7DFD2;
+}
+
+.col {
+  position: absolute;
+  top: 38px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 42px;
+  transform: translateX(-50%);
+}
+
+.colStart { left: 488px; width: 300px; }
+.colTitle { left: 1048px; width: 700px; }
+.colSeats { left: 1560px; width: 200px; }
+.colScreen { left: 1730px; width: 140px; }
+
+.head {
+  font-size: 38px;
+  font-weight: 600;
+  line-height: 1;
+  color: #C8BDA9;
+  white-space: nowrap;
+}
+
+.value {
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-size: 45px;
+  font-weight: 400;
+  line-height: 1;
+  color: #333;
+  white-space: nowrap;
+}
+
+/* 상영 정보 더보기: downward red triangle (70×38 in an 81×51 box at x910 y963) + 38px label at x991. */
+.more {
+  position: absolute;
+  left: 910px;
+  top: 963px;
+  height: 56px;
+  display: flex;
+  align-items: center;
+  padding: 0;
+  border: none;
+  background: none;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Margins, not padding: the band above the point must stay above it after the rotation. */
+.chevron {
+  width: 70px;
+  height: 38px;
+  margin: 13px 5.5px 0;
+  transform: rotate(180deg);
+  align-self: flex-start;
+}
+
+.moreText {
+  font-size: 38px;
+  font-weight: 500;
+  line-height: 49.4px;
+  color: #DC3124;
+  white-space: nowrap;
+}
+
+/* ♿ — the board rides down with the 공지 panel (297 → 998), at the same place inside it. */
+.boardLow { top: 1433px; }
+.moreLow { top: 1664px; }

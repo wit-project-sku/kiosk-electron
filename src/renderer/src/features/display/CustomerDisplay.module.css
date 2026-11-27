@@ -276,6 +276,50 @@
   white-space: nowrap;
 }
 
+/* ── Camera guide in the other languages ──────────────────────────────────
+ * The frame is drawn around the Korean copy. A translation is longer, and none
+ * of these boxes can grow: the title shares one row with the 258 countdown
+ * badge, the three tips sit in 135 rows that end at 852 (the live feed starts
+ * at 950), and the disclaimer has the branding 209 under it.
+ *
+ *  - Title: words 100 and the '10' 128 (Korean's 1.3 ratio), so "Снимок
+ *    через '10' секунд" fits the 1638 beside the badge on one line.
+ *  - Tips: each keeps its 135 row — the no-glasses icon is pinned to tip 1's —
+ *    and its text is a smaller block centred in that row that may take two
+ *    lines (2 × 60 × 1.12 = 134).
+ *  - Disclaimer: smaller, wrapping to at most two lines above the branding. */
+.cameraScreenLong .camTitleRest {
+  font-size: 100px;
+}
+
+/* The '10' keeps Korean's proportion to the words (174 : 135 ≈ 1.3), not its
+   174px: beside 100px words that read as a number almost twice their size. */
+.cameraScreenLong .camCount {
+  font-size: 128px;
+}
+
+/* Korean draws .camTipText as plain inline text, exactly as before. */
+.cameraScreenLong .camTipText {
+  display: inline-block;
+  max-width: 1860px;
+  vertical-align: middle;
+  font-size: 60px;
+  line-height: 1.12;
+  white-space: normal;
+  word-break: keep-all;
+  overflow-wrap: break-word;
+}
+
+/* Tip 1 starts after the 202 hole held for the no-glasses icon. */
+.cameraScreenLong .camTipTextIcon {
+  max-width: 1660px;
+}
+
+.cameraScreenLong .camDisclaimer {
+  font-size: 54px;
+  line-height: 1.3;
+}
+
 /* ── Generating / waiting screen ────────────────────────────────────────── */
 
 .genScreen {

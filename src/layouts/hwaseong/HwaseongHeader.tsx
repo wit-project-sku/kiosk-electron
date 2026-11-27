@@ -29,13 +29,29 @@ interface Props {
   subtitleClassName?: string;
   /** Ref on the subtitle row — used by TAX-FREE to size the webview card. */
   subtitleRef?: Ref<HTMLDivElement>;
+  /** Draw no description row (the AR 한복체험 picker, as on 오산). */
+  subtitleHidden?: boolean;
+  /** Dim 홈/뒤로 and stop them responding — the AR photo wait (틀린그림찾기), where
+   *  leaving would throw away a photo that is still generating. */
+  navDisabled?: boolean;
 }
 
 /**
- * Canonical sub-page header (Figma Component29 / node 3788:40351).
- * Identical position, sizing, fonts and icons across every 화성휴게소 sub-page.
+ * Canonical sub-page header — Figma `Component 35` (seen on 화성 언어선택
+ * 7904:105950): HWASEONG S/A brand + date, home / title / back, then the grey
+ * ★ description row. Identical across every 화성휴게소 sub-page.
  */
-export function HwaseongHeader({ controller, title, subtitle, onHome, onBack, subtitleClassName, subtitleRef }: Props): JSX.Element {
+export function HwaseongHeader({
+  controller,
+  title,
+  subtitle,
+  onHome,
+  onBack,
+  subtitleClassName,
+  subtitleRef,
+  subtitleHidden = false,
+  navDisabled = false,
+}: Props): JSX.Element {
   const today = useMemo(() => formatDate(new Date()), []);
   const lang = useLang();
   // Localize the Korean title id (Localization_Hwaseong) — same path as the
@@ -43,11 +59,13 @@ export function HwaseongHeader({ controller, title, subtitle, onHome, onBack, su
   // wins, else the sheet subtitle for this title id, else hidden.
   // Strip a stale "(준비중)" / "(Soon)" suffix the sheet may carry on an
   // otherwise-live title (e.g. 전국시장(준비중)) — same cleanup the home tiles do.
-  const localizedTitle = screenTitle(title, lang).replace(
+  // Some sheet title cells are authored as bullet lines ("* 언어선택") — the
+  // marker is spreadsheet formatting, not copy.
+  const localizedTitle = screenTitle(title, lang).replace(/^\s*[*★•]\s*/, '').replace(
     /\s*[(（][^)）]*(?:준비\s?중|soon|準備中|筹备中|籌備中)[^)）]*[)）]\s*/gi,
     '',
   ).trim();
-  const sub = (subtitle ?? screenSubtitle(title, lang) ?? '').replace(/^\s*[*★]\s*/, '').trim();
+  const sub = subtitleHidden ? '' : (subtitle ?? screenSubtitle(title, lang) ?? '').replace(/^\s*[*★]\s*/, '').trim();
   /* Korean titles fit the 1342px field on one line; several of the other
      languages run to half again its width. See "Other languages" in the CSS. */
   const wide = lang !== 'ko';
@@ -68,24 +86,30 @@ export function HwaseongHeader({ controller, title, subtitle, onHome, onBack, su
         {/* Row 1: location + brand + date */}
         <div className={styles.row1}>
           <div className={styles.left}>
-            {hwaseongIconUrl('location-pin') && (
+            {hwaseongIconUrl('header-location') && (
               <img
                 className={styles.pin}
-                src={hwaseongIconUrl('location-pin')}
+                src={hwaseongIconUrl('header-location')}
                 alt=""
                 draggable={false}
               />
             )}
-            <span className={styles.brand}>HWASEONG SA</span>
+            <span className={styles.brand}>HWASEONG S/A</span>
           </div>
           <span className={styles.date}>{today}</span>
         </div>
 
         {/* Row 2: home | title | back */}
         <div className={styles.titleRow}>
-          <button type="button" className={styles.navBtn} onClick={goHome} aria-label="홈">
-            {hwaseongIconUrl('ico-home') ? (
-              <img src={hwaseongIconUrl('ico-home')} alt="" draggable={false} />
+          <button
+            type="button"
+            className={`${styles.navBtn} ${navDisabled ? styles.navBtnOff : ''}`}
+            onClick={navDisabled ? undefined : goHome}
+            disabled={navDisabled}
+            aria-label="홈"
+          >
+            {hwaseongIconUrl('header-home') ? (
+              <img src={hwaseongIconUrl('header-home')} alt="" draggable={false} />
             ) : (
               <svg viewBox="0 0 175 175" fill="none"><circle cx="87.5" cy="87.5" r="87.5" fill="var(--kiosk-primary)" /><path d="M50 92L87.5 55L125 92V130H102V104H73V130H50V92Z" fill="#fff" /></svg>
             )}
@@ -93,9 +117,15 @@ export function HwaseongHeader({ controller, title, subtitle, onHome, onBack, su
           <div ref={titleRef} className={`${styles.titleField} ${wide ? styles.titleFieldLong : ''}`}>
             <span className={`${styles.titleText} ${wide ? styles.titleTextLong : ''}`}>{localizedTitle}</span>
           </div>
-          <button type="button" className={styles.navBtn} onClick={goBack} aria-label="뒤로">
-            {hwaseongIconUrl('nav-back') ? (
-              <img src={hwaseongIconUrl('nav-back')} alt="" draggable={false} />
+          <button
+            type="button"
+            className={`${styles.navBtn} ${navDisabled ? styles.navBtnOff : ''}`}
+            onClick={navDisabled ? undefined : goBack}
+            disabled={navDisabled}
+            aria-label="뒤로"
+          >
+            {hwaseongIconUrl('header-back') ? (
+              <img src={hwaseongIconUrl('header-back')} alt="" draggable={false} />
             ) : (
               <svg viewBox="0 0 175 175" fill="none"><circle cx="87.5" cy="87.5" r="87.5" fill="#e8e8e8" /><path d="M105 45L65 87.5L105 130" stroke="var(--kiosk-primary)" strokeWidth="12" strokeLinecap="round" strokeLinejoin="round" /></svg>
             )}
@@ -105,9 +135,11 @@ export function HwaseongHeader({ controller, title, subtitle, onHome, onBack, su
 
       {sub && (
         <div ref={subtitleRef} className={`${styles.subtitle} ${subtitleClassName ?? ''}`}>
-          <svg className={styles.subtitleStar} viewBox="0 0 36 36" fill="var(--kiosk-primary)">
-            <path d="M18 0l4.6 12.7L36 13.2l-10.5 8.3 3.7 13.5L18 27.6 6.8 35l3.7-13.5L0 13.2l13.4-.5z" />
-          </svg>
+          <span className={styles.subtitleStar}>
+            {hwaseongIconUrl('header-star') && (
+              <img className={styles.subtitleStarImg} src={hwaseongIconUrl('header-star')} alt="" draggable={false} />
+            )}
+          </span>
           <span ref={subTextRef} className={styles.subtitleText}>{sub}</span>
         </div>
       )}

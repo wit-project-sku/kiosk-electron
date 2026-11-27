@@ -22,6 +22,18 @@ on:
         description: 'GitHub Environment supplying the runtime config secrets (beta | production)'
         required: true
         type: string
+      update_channel:
+        description: >-
+          Optional custom update channel for a prerelease lane (e.g. kdh). Empty keeps the
+          original behaviour: prerelease = beta, otherwise latest.
+        required: false
+        type: string
+        default: ''
+      release_notes:
+        description: 'Optional release notes (e.g. which server this build talks to)'
+        required: false
+        type: string
+        default: ''
 
 permissions:
   contents: write # let the default GITHUB_TOKEN create/upload GitHub Releases
@@ -94,8 +106,12 @@ jobs:
               const stable = parse(process.argv[2]);
               const cmp = (a, b) => a[0] - b[0] || a[1] - b[1] || a[2] - b[2];
               const [major, minor] = cmp(pkg, stable) >= 0 ? pkg : stable;
-              console.log(`${major}.${minor + 1}.0-beta.${process.argv[3]}`);
-            ' "$BASE" "$STABLE" "${{ github.run_number }}")
+              // A custom lane (update_channel, e.g. kdh) sits one more minor up so its
+              // versions never interleave with the shared beta lane.
+              const lane = process.argv[4] || "beta";
+              const bump = lane === "beta" ? 1 : 2;
+              console.log(`${major}.${minor + bump}.0-${lane}.${process.argv[3]}`);
+            ' "$BASE" "$STABLE" "${{ github.run_number }}" "${{ inputs.update_channel }}")
             echo "Beta version $FULL (package.json $BASE, newest stable release ${STABLE:-none})."
             npm version "$FULL" --no-git-tag-version --allow-same-version
             echo "skip=false" >> "$GITHUB_OUTPUT"
@@ -158,7 +174,8 @@ jobs:
         if: steps.ver.outputs.skip == 'false'
         shell: bash
         run: |
-          CH=$([ "${{ inputs.prerelease }}" = "true" ] && echo beta || echo latest)
+          CH="${{ inputs.update_channel }}"
+          [ -n "$CH" ] || CH=$([ "${{ inputs.prerelease }}" = "true" ] && echo beta || echo latest)
           # Base the placeholder on the committed .env.example (all non-secret
           # operational defaults present, secrets blank) so the build is
           # structurally complete even without a KIOSK_ENV secret.
@@ -172,6 +189,9 @@ jobs:
           echo "UPDATE_CHANNEL=$CH" >> .env
           # DEV_MODE: true on beta/develop_1 builds, false on production/main builds.
           DEV_MODE_VAL=$([ "${{ inputs.prerelease }}" = "true" ] && echo true || echo false)
+          # A custom lane (kdh) is a production-like practice lane: no dev mode. The
+          # office test rig switches sites through its own W200 identity instead.
+          [ -z "${{ inputs.update_channel }}" ] || DEV_MODE_VAL=false
           grep -v '^DEV_MODE=' .env > .env.tmp 2>/dev/null || true
           mv -f .env.tmp .env 2>/dev/null || true
           echo "DEV_MODE=$DEV_MODE_VAL" >> .env
@@ -197,13 +217,15 @@ jobs:
           # signing with zero workflow changes; empty = unsigned (current state).
           CSC_LINK: ${{ secrets.WINDOWS_CSC_LINK }}
           CSC_KEY_PASSWORD: ${{ secrets.WINDOWS_CSC_KEY_PASSWORD }}
+          RELEASE_NOTES: ${{ inputs.release_notes }}
         run: |
           npm run build
           # publish.channel MUST be set explicitly. electron-builder does NOT derive
           # it from a `-beta.N` version: both earlier pre-releases shipped
           # `latest.yml` (verified 2026-08-03), so `beta.yml` 404s and every
           # UPDATE_CHANNEL=beta kiosk dies with ERR_UPDATER_CHANNEL_FILE_NOT_FOUND.
-          CH=$([ "${{ inputs.prerelease }}" = "true" ] && echo beta || echo latest)
+          CH="${{ inputs.update_channel }}"
+          [ -n "$CH" ] || CH=$([ "${{ inputs.prerelease }}" = "true" ] && echo beta || echo latest)
           # Beta builds carry their OWN identity (appId / productName / icon) so
           # they install ALONGSIDE production rather than upgrading it — the
           # office has one kiosk and both channels have to be testable on it.
@@ -212,4 +234,4 @@ jobs:
           CFG=$([ "${{ inputs.prerelease }}" = "true" ] && echo "--config electron-builder.beta.yml" || echo "")
           npx electron-builder --win --publish always $CFG \
             -c.publish.releaseType=${{ inputs.release_type }} \
-            -c.publish.channel=$CH
+            -c.publish.channel=$CH ${RELEASE_NOTES:+"-c.releaseInfo.releaseNotes=$RELEASE_NOTES"}

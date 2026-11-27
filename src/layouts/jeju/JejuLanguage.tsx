@@ -47,6 +47,20 @@ const LANG_META: Record<SupportedLanguage, { code: string; name: string }> = {
   es:    { code: 'ES', name: 'Español' },
 };
 
+/**
+ * What voice guidance calls a language: its name in the VISITOR's language
+ * (태국어, Thai), not the card's pill code or its endonym. The kiosk speaks through
+ * one voice at a time, and a Korean voice cannot read ภาษาไทย.
+ */
+function spokenName(code: SupportedLanguage, visitor: string): string {
+  try {
+    const names = new Intl.DisplayNames([visitor.replace('_', '-')], { type: 'language', fallback: 'none' });
+    return names.of(code.replace('_', '-')) ?? LANG_META[code].name;
+  } catch {
+    return LANG_META[code].name;
+  }
+}
+
 /** Grid geometry (see JejuLanguage.module.css). */
 const CARD_COL_X = [0, 945];
 const CARD_ROW_STEP = 420;
@@ -123,6 +137,8 @@ export function JejuLanguage({ controller }: Props): JSX.Element {
                   className={`${styles.card} ${selected ? styles.cardSelected : ''}`}
                   style={{ left: CARD_COL_X[c], top: r * CARD_ROW_STEP }}
                   onClick={() => choose(code)}
+                  aria-pressed={selected}
+                  data-voice-label={spokenName(code, lang)}
                 >
                   <span className={styles.cardLeft}>
                     <span className={`${styles.pill} ${selected ? styles.pillOn : styles.pillOff}`}>

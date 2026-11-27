@@ -1,5 +1,5 @@
 /**
- * 제주국제여객터미널 (W007) 선박 운항 보드 rows — jeju.ferry.or.kr terminal board feed.
+ * 제주국제여객터미널 (W009) 선박 운항 보드 rows — jeju.ferry.or.kr terminal board feed.
  * The renderer maps `status` / `port` through `normalizeSailing` in jejuSailing.ts.
  */
 export interface RawJejuSailing {

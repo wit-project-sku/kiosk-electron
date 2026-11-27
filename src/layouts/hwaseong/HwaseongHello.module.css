@@ -1,438 +1,463 @@
-/* 안녕 '휴' — exact Figma (nodes 4167:172656/726/767). Tabs + persona card. */
+/*
+ * 안녕 '휴' — Figma 7956:72869 ('휴'소개) and 7956:72981 / 73066 / 73150
+ * ('휴'취미생활 런닝 / 스키 / 테니스). Exact px on the 2160×3840 artboard.
+ *
+ * 소개 — one card, everything card-relative:
+ *   972   card 1820×2160 at x170 (the frame drags it to 172; the page's cards are 170)
+ *   83    portrait circle 903² at x44
+ *   230   profile column at x1053, rows 45 apart
+ *   1080  divider 1731 wide at x44
+ *   1156  detail rows, 1635 wide, centred
+ *   1974  hashtags + socials, 1582 wide at x117
+ *
+ * 취미생활 — no big card:
+ *   920   sub-tab text row, centred
+ *   1081  photo 853×1515 r45, centred
+ *   2670  caption card 1820×549 at x170; copy at (119, 56), footer at y3052
+ */
 .root {
   position: absolute;
   inset: 0;
   width: 2160px;
   height: 3840px;
   overflow: hidden;
-  background: #fff;
-  font-family: 'Noto Sans KR', 'Noto Sans', sans-serif;
+  font-family: 'Pretendard', var(--kiosk-font, 'Noto Sans KR', sans-serif);
 }
 
-.bgBase { position: absolute; left: 0; top: 0; width: 2160px; height: 3840px; background: #fff; }
-.bgImage { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; pointer-events: none; }
-
-.results {
-  position: absolute;
-  top: calc(699px + var(--header-push, 0px));
-  left: 0;
-  right: 0;
-  bottom: 573px;
-  box-sizing: border-box;
-  padding: 0 136px 40px 170px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 100px;
-  overflow-y: auto;
-  overflow-x: hidden;
-  scrollbar-gutter: stable;
-}
-
-.results::-webkit-scrollbar { width: 34.32px; }
-.results::-webkit-scrollbar-thumb { background: var(--kiosk-primary); border-radius: 21.45px; }
-.results::-webkit-scrollbar-track { background: transparent; }
-
-/* ── Tabs ── */
+/* ── Tabs — three 580×170 plates across the 1820 row, y700 ── */
 .tabs {
-  flex: none;
+  position: absolute;
+  left: 170px;
+  top: calc(700px + var(--header-push, 0px));
   width: 1820px;
   height: 170px;
   display: flex;
   align-items: center;
-  gap: 60px;
+  justify-content: space-between;
 }
 
+/* White, Noto Sans Medium 50 #999 — selected: main 1 fill, Bold white. */
 .tab {
-  width: 566px;
+  box-sizing: border-box;
+  width: 580px;
   height: 170px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: #fff;
-  border: 5px solid #e8e8e8;
+  padding: 0;
+  border: none;
   border-radius: 42.9px;
+  background: #ffffff;
+  font-family: 'Noto Sans KR', 'Noto Sans', var(--kiosk-font, sans-serif);
   font-size: 50px;
   font-weight: 500;
-  color: #999;
   line-height: 1;
+  color: #999999;
+  white-space: nowrap;
   cursor: pointer;
   -webkit-tap-highlight-color: transparent;
-  white-space: nowrap;
 }
 
 .tabSelected {
-  background: var(--kiosk-secondary);
-  color: var(--kiosk-primary);
+  background: #005ab4;
   font-weight: 700;
+  color: #ffffff;
 }
 
-/* ── Card ── */
+/* Other languages: the 580 plates shrink as one (useFitText). */
+.tabLong {
+  font-size: calc(50px * var(--fit, 1));
+  white-space: normal;
+  word-break: keep-all;
+  overflow-wrap: anywhere;
+  padding: 0 20px;
+  line-height: 1.12;
+}
+
+/* ── 소개 card ── */
 .card {
-  flex: none;
+  position: absolute;
+  left: 170px;
+  top: calc(972px + var(--header-push, 0px));
   width: 1820px;
-  box-sizing: border-box;
-  background: #fff;
-  border: 2.145px solid #e8e8e8;
-  border-radius: 42.9px;
-  filter: drop-shadow(0 21.45px 21.45px rgba(143, 147, 157, 0.1));
-  padding: 65px 40px;
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 60px;
-}
-
-/* Per-tab card sizing (Figma). */
-.cardIntro {
   height: 2160px;
-  gap: 60px;
-}
-.cardHobby {
-  gap: 78px; /* height auto — grows with the alternating sections */
-}
-.cardStretch {
-  display: inline-flex;
-  height: 2145.35px;
-  gap: 65px;
+  border-radius: 42.9px;
+  background: #ffffff;
+  box-shadow: 0 21.45px 21.45px rgba(143, 147, 157, 0.1);
+  overflow: hidden;
 }
 
-/* ── Tab 1: intro profile ── */
-.topRow {
-  display: flex;
-  align-items: center;
-  gap: 100px;
-  width: 1740px;
-}
-
-.profilePhoto {
-  width: 750px;
-  height: 750px;
+/* The frame's grey circle, holding 휴's portrait. */
+.portrait {
+  position: absolute;
+  left: 44px;
+  top: 83px;
+  width: 903px;
+  height: 903px;
   border-radius: 50%;
   overflow: hidden;
-  flex-shrink: 0;
+  background: #d9d9d9;
 }
-.profilePhoto img { width: 100%; height: 100%; object-fit: contain; object-position: center; }
 
-.profileInfo {
-  flex: 1;
-  min-width: 0;
+.portrait img,
+.portrait video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+/* label + 40 + value, rows 45 apart. */
+.profile {
+  position: absolute;
+  left: 1053px;
+  top: 230px;
+  width: 733px;
   display: flex;
   flex-direction: column;
   gap: 45px;
 }
 
-.nameRow { display: flex; align-items: center; gap: 40px; }
-
-.nameValue {
-  font-size: 58px;
-  font-weight: 700;
-  color: var(--kiosk-primary);
-  line-height: 1;
-  background: #f2fbff;
-  padding: 8px 14px;
+.row {
+  min-height: 60px;
+  display: flex;
+  align-items: flex-start;
+  gap: 40px;
+  min-width: 0;
 }
-.nameEn { font-weight: 600; }
 
-.infoRow { display: flex; align-items: baseline; gap: 40px; }
+.rowName {
+  min-height: 85px;
+  align-items: center;
+}
 
-.infoLabel {
-  font-size: 60px;
+.label {
+  margin: 0;
+  flex: none;
+  font-size: 50px;
   font-weight: 700;
-  color: #000;
   line-height: 1;
+  color: #000000;
   white-space: nowrap;
-  min-width: 220px;
-  flex-shrink: 0;
 }
 
-.infoValue {
-  font-size: 58px;
+/* Sheet values in eight languages: they wrap rather than run off the card. */
+.value {
+  margin: 0;
+  min-width: 0;
+  font-size: 50px;
   font-weight: 400;
-  color: #000;
   line-height: 1;
-  white-space: nowrap;
+  color: #000000;
+  word-break: keep-all;
+  overflow-wrap: anywhere;
 }
 
-.divider { width: 100%; height: 2.145px; background: #e8e8e8; flex: none; }
+/* The name on a 300×85 #DAECFE plate, Bold main 1. */
+.namePlate {
+  min-width: 300px;
+  min-height: 85px;
+  box-sizing: border-box;
+  padding: 0 23.44px;
+  display: inline-flex;
+  align-items: center;
+  background: #daecfe;
+  font-size: 50px;
+  font-weight: 700;
+  line-height: 1;
+  color: #005ab4;
+  overflow-wrap: anywhere;
+}
 
-.detailCol { display: flex; flex-direction: column; gap: 45px; width: 100%; }
-.detailRow { display: flex; align-items: flex-start; gap: 40px; }
+.divider {
+  position: absolute;
+  left: 44px;
+  top: 1080px;
+  width: 1731px;
+  height: 2.145px;
+  background: #e8e8e8;
+}
+
+/* label + 40 + value, rows 30 apart, in the 778 between the divider block and
+   the footer; longer copy shrinks (--fit) rather than run into the hashtags. */
+.details {
+  position: absolute;
+  left: 92.5px;
+  top: 1156px;
+  width: 1635px;
+  height: 778px;
+  display: flex;
+  flex-direction: column;
+  gap: 30px;
+  overflow: hidden;
+}
+
+.detailRow {
+  display: flex;
+  align-items: flex-start;
+  gap: 40px;
+  min-width: 0;
+}
 
 .detailLabel {
-  font-size: 60px;
+  margin: 0;
+  flex: none;
+  font-size: calc(50px * var(--fit, 1));
   font-weight: 700;
-  color: #000;
   line-height: 1.3;
+  color: #000000;
   white-space: nowrap;
-  flex-shrink: 0;
-  min-width: 240px;
 }
 
 .detailValue {
-  font-size: 58px;
-  font-weight: 400;
-  color: #000;
-  line-height: 1.3;
-  white-space: pre-wrap;
-}
-
-/* ── Tab 2: hobby — alternating text+image ── */
-.hobbySections {
-  display: flex;
-  flex-direction: column;
-  gap: 64.35px;
-  width: 1740px;
-}
-
-.hobbyRow {
-  display: flex;
-  align-items: flex-start;
-  gap: 100px;
-  width: 100%;
-}
-
-.hobbyText {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  gap: 25px;
-  min-width: 0;
-}
-
-.hobbyTitle {
   margin: 0;
-  font-size: 63px;
-  font-weight: 700;
-  color: #000;
-  line-height: 1.3;
-}
-
-.hobbyBody {
-  margin: 0;
-  font-size: 50px;
-  font-weight: 400;
-  color: #333;
-  line-height: 1.4;
-}
-
-.hobbyImg {
-  width: 452px;
-  height: 565px;
-  border-radius: 45px;
-  object-fit: cover;
-  object-position: top;
-  flex-shrink: 0;
-  display: block;
-}
-
-/* ── Tab 3: stretch — sport photos row + text sections ── */
-.sportImgRow {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  width: 1740px;
-  flex: none;
-}
-
-.sportImg {
-  width: 536px;
-  height: 670px;
-  border-radius: 45px;
-  object-fit: cover;
-  object-position: top;
-  display: block;
-}
-
-.stretchSection {
-  display: flex;
-  flex-direction: column;
-  gap: 25px;
-  width: 100%;
-}
-
-/* Sections 2+3: left text column + right exercising image */
-.stretchBottomBlock {
-  display: flex;
-  align-items: flex-start;
-  gap: 60px;
-  width: 1740px;
-}
-
-.stretchTextCol {
-  flex: 1;
   min-width: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 64.35px;
+  font-size: calc(50px * var(--fit, 1));
+  font-weight: 400;
+  line-height: 1.3;
+  color: #000000;
+  white-space: pre-line;
+  word-break: keep-all;
+  overflow-wrap: break-word;
 }
 
-.stretchImg {
-  width: 499px;
-  height: 650px;
-  border-radius: 45px;
-  object-fit: cover;
-  object-position: top;
-  flex-shrink: 0;
-  display: block;
-}
-
-/* ── Footer: chips + social ── */
+/* ── Hashtags + socials — 1582×100, pills 322/322/343 ── */
 .footer {
+  position: absolute;
+  width: 1582px;
+  height: 100px;
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  width: 100%;
+  gap: 40px;
+}
+
+.footerProfile {
+  left: 117px;
+  top: 1974px;
+}
+
+/* page (289, 3052) − card (170, 2670) */
+.footerTopic {
+  left: 119px;
+  top: 382px;
+}
+
+/* Never narrower than its own text: it used to shrink (flex 0 1) while the
+   label stayed on one line, so "#HaloJEONG-I" ran out past the pill's edge.
+   A row that is too wide instead shrinks every pill's type together (--fit,
+   HelloFooter), so the three stay one size. */
+.hashtag {
   flex: none;
-}
-
-.chips {
-  display: flex;
-  align-items: center;
-  gap: 60px;
-}
-
-.chip {
-  height: 124.409px;
-  min-width: 321px;
+  height: 100px;
+  min-width: 322px;
   box-sizing: border-box;
-  display: flex;
+  padding: 0 16px;
+  display: inline-flex;
   align-items: center;
   justify-content: center;
-  padding: 0 30px;
-  background: var(--kiosk-primary);
   border-radius: 42.9px;
-  font-size: 51.48px;
+  background: #005ab4;
+  font-size: calc(50px * var(--fit, 1));
   font-weight: 700;
-  color: #fff;
+  line-height: 1;
+  color: #ffffff;
+  text-align: center;
   white-space: nowrap;
 }
 
-.social { display: flex; align-items: center; gap: 21.45px; }
-
-.socialIconWrap {
-  width: 124.409px;
-  height: 124.409px;
-  flex-shrink: 0;
-  border-radius: 21.45px;
-  overflow: hidden;
+.socials {
+  margin-left: auto;
   display: flex;
   align-items: center;
-  justify-content: center;
+  gap: 25px;
 }
 
-.socialQrWrap {
-  width: 124.409px;
-  height: 124.409px;
-  flex-shrink: 0;
+.socialIcon {
+  flex: none;
+  width: 100px;
+  height: 100px;
   border-radius: 21.45px;
-  border: 4.29px solid var(--kiosk-primary);
-  background: #fff;
+  object-fit: contain;
+  display: block;
+}
+
+/* The frame's tile: white, 5px main-1 ring r21.45, the code inset 17px. */
+.socialQr {
+  flex: none;
+  width: 100px;
+  height: 100px;
   box-sizing: border-box;
+  padding: 17px;
+  border-radius: 21.45px;
+  background: #ffffff;
+  box-shadow: inset 0 0 0 5px #005ab4;
+}
+
+.socialQr svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+/* ── 취미생활 sub-tabs — one Pretendard 60 line centred at y920: the selected
+   label Black main 1, the rest SemiBold #999, the gaps the frame's own spaces.
+   Each label reserves its Black width so the row does not shift on a tap. ── */
+.subTabs {
+  position: absolute;
+  left: 0;
+  top: calc(920px + var(--header-push, 0px));
+  width: 2160px;
+  margin: 0;
+  text-align: center;
+  white-space: pre;
+  font-size: 60px;
+  font-weight: 600;
+  line-height: normal;
+  color: #999999;
+}
+
+.subTab {
+  position: relative;
+  display: inline-grid;
+  justify-items: center;
+  padding: 0;
+  border: none;
+  background: none;
+  font: inherit;
+  color: inherit;
+  white-space: nowrap;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.subTab > span,
+.subTab::after {
+  grid-area: 1 / 1;
+}
+
+.subTab::after {
+  content: attr(data-label);
+  font-weight: 900;
+  visibility: hidden;
+  height: 0;
+}
+
+.subTab::before {
+  content: '';
+  position: absolute;
+  inset: -30px -40px;
+}
+
+.subTabOn {
+  font-weight: 900;
+  color: #005ab4;
+}
+
+/* 853×1515 (취미생활) or 869×1546 (건강습관), r45, centred at y1081 — the size
+   comes from the TSX. */
+.topicPhoto {
+  position: absolute;
+  left: 50%;
+  top: calc(1081px + var(--header-push, 0px));
+  width: 853px;
+  height: 1515px;
+  transform: translateX(-50%);
+  border-radius: 45px;
   overflow: hidden;
+  background: #eaf3fc;
+}
+
+.topicPhoto img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+/* 1820×549 white, r42.9, 0 21.45 42.9 shadow. */
+.topicCard {
+  position: absolute;
+  left: 170px;
+  top: 2670px;
+  width: 1820px;
+  height: 549px;
+  border-radius: 42.9px;
+  background: #ffffff;
+  box-shadow: 0 21.45px 42.9px rgba(143, 147, 157, 0.1);
+}
+
+/* Title Bold 60 + 25 + body Regular 50, both 1.3, at (119, 56); the box stops
+   20 above the footer, and longer copy shrinks to fit it. */
+.topicText {
+  position: absolute;
+  left: 119px;
+  right: 119px;
+  top: 56px;
+  height: 306px;
   display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 6px;
+  flex-direction: column;
+  gap: 25px;
+  overflow: hidden;
 }
 
-/* ── Bottom banner ── */
-.banner { position: absolute; top: 3267px; left: 0; width: 2160px; height: 573px; pointer-events: none; }
-.bannerImg { width: 100%; height: 100%; object-fit: cover; display: block; pointer-events: none; }
-
-/* ── Other languages ──────────────────────────────────────────────────────
- * Reached only through a class the TSX adds when lang !== 'ko' — the Korean
- * screen is untouched.
- *
- * The 566px tab holds the Korean tab names on one 50px line, which is why it
- * was `nowrap`. Longer copy wraps inside the tab instead, and the row shrinks
- * as one if it still does not fit (`--fit`, useFitText — never below 0.72). */
-.tabLong {
-  box-sizing: border-box;
-  white-space: normal;
-  word-break: keep-all;
-  overflow-wrap: anywhere;
-  padding: 0 20px;
-  font-size: calc(50px * var(--fit, 1));
-  line-height: 1.12;
-}
-
-/* ── Other languages: the card itself ─────────────────────────────────────
- * Everything below hangs off `.cardLong`, which the TSX adds to the card when
- * lang !== 'ko'.
- *
- * 휴' 소개 and 스트레칭 are drawn at a FIXED height (2160 and 2145.35), and the
- * Korean copy fills them. The 자기소개 row alone is 89 characters in Korean and
- * 211 in Russian, so the other languages overran the card and the copy ran out
- * through its white rounded bottom: 소개 by 354px in ru and id, 204 in vi, 126
- * in th; 스트레칭 by 675px in id, 535 in ru, 453 in vi, 161 in th. (한복 is
- * height:auto and simply grows — the class costs it nothing, since a card that
- * fits reports no overflow and keeps --fit at 1.)
- *
- * ── 1. The label columns ──
- * 이름/생일/신체 are two glyphs, so the label was `nowrap` with a fixed 220/240
- * minimum. "Место рождения" and "ความสามารถพิเศษ" do not fit that, and
- * `flex-shrink: 0` meant they could not give way either — they pushed their own
- * value off the row. The label wraps and is allowed to shrink; the min-width
- * keeps a short label lined up exactly where the frame puts it. */
-.cardLong .infoLabel,
-.cardLong .detailLabel {
-  flex: 0 1 auto;
-  white-space: normal;
-  word-break: keep-all;
-  overflow-wrap: anywhere;
-}
-
-.cardLong .infoValue {
-  white-space: normal;
-  word-break: keep-all;
-  overflow-wrap: anywhere;
-  min-width: 0;
-  line-height: 1.2;
-}
-
-/*
- * ── 2. The card's height ──
- * With the columns fixed the copy still does not fit, so the card shrinks as
- * ONE: `--fit` (set by useFitText on the card, never below 0.6) scales every
- * type size and the text-column gaps. The portrait, the sport photos and the
- * footer chips keep their frame sizes — only type and the space between
- * paragraphs give way.
- *
- * The fit is measured on HEIGHT only (`'height'`): the card's rows are drawn
- * 1740 wide inside 1730 of content box, and a width check would read that
- * permanent 10px as "still too big" and shrink even a language that fits.
- *
- * Korean never gets this class, so the frame it was drawn for is untouched. */
-.cardLong .infoLabel,
-.cardLong .detailLabel {
+.topicTitle {
+  margin: 0;
   font-size: calc(60px * var(--fit, 1));
+  font-weight: 700;
+  line-height: 1.3;
+  color: #000000;
+  word-break: keep-all;
 }
 
-.cardLong .nameValue,
-.cardLong .infoValue,
-.cardLong .detailValue {
-  font-size: calc(58px * var(--fit, 1));
-}
-
-.cardLong .hobbyTitle {
-  font-size: calc(63px * var(--fit, 1));
-}
-
-.cardLong .hobbyBody {
+.topicBody {
+  margin: 0;
   font-size: calc(50px * var(--fit, 1));
+  font-weight: 400;
+  line-height: 1.3;
+  color: #000000;
+  white-space: pre-line;
+  word-break: keep-all;
 }
 
-.cardLong .chip {
-  font-size: calc(51.48px * var(--fit, 1));
+/* ── 상점 검색 promo — the "WITH 키오스크로!" art with its orange strip ── */
+.banner {
+  position: absolute;
+  left: 0;
+  top: 3267px;
+  width: 2160px;
+  height: 573px;
+  padding: 0;
+  border: none;
+  background: none;
+  cursor: pointer;
+  overflow: hidden;
+  transform: translateY(calc(-1 * var(--hwaseong-mode-push, 0px)));
 }
 
-.cardLong .profileInfo,
-.cardLong .detailCol {
-  gap: calc(45px * var(--fit, 1));
+.banner img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  pointer-events: none;
 }
 
-.cardLong .hobbySections,
-.cardLong .stretchTextCol {
-  gap: calc(64.35px * var(--fit, 1));
+/* ── ♿ barrier-free (안녕 '휴' 7956:73907) ───────────────────────────────────
+ * Inside HwaseongKiosk's shift, so each frame y is written as
+ * `y − --hwaseong-mode-push`. The 취미생활 / 건강습관 marks follow 오산's ♿
+ * 안녕 '정이' frames (no 화성 frame for them yet). */
+.low .tabs {
+  top: calc(3430px - var(--hwaseong-mode-push, 0px));
+}
+
+/* 런닝 ㅣ 스키 ㅣ 테니스 — 220 under the tabs, as on the normal page. */
+.low .subTabs {
+  top: calc(3650px - var(--hwaseong-mode-push, 0px));
+}
+
+/* 소개 — the profile card at 1018. */
+.low .card {
+  top: calc(1018px - var(--hwaseong-mode-push, 0px));
+}
+
+/* 취미생활 / 건강습관 — the caption card at 2779 (the photo's top is set inline). */
+.low .topicCard {
+  top: calc(2779px - var(--hwaseong-mode-push, 0px));
 }

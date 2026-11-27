@@ -1,5 +1,5 @@
 /**
- * FillMe 화면 문구를 시트에서 읽는다 — Localization_Jeju_v2 의 `Fillme_*` 줄.
+ * FillMe 화면 문구를 시트에서 읽는다 — Localization_Jeju_v3 의 `Fillme_*` 줄.
  *
  * 이 화면들은 원래 한국어만 박혀 있었다(copy.ts 머리말이 말하는 "제주 앱 통합 시
  * 8개 언어 처리 방식을 따로 정해야 한다"가 이것이다). 이제 시트가 61줄을 여덟 개
@@ -16,8 +16,12 @@
 import type { Lang } from '@renderer/lib/i18n';
 import { t } from '@renderer/lib/loc';
 
-/** 시트가 쓰는 줄바꿈 — 개행, U+2028(줄 구분), U+2029(문단 구분). */
-const BREAKS = /[\n\u2028\u2029]+/;
+/**
+ * 시트가 쓰는 줄바꿈 — 개행, U+2028(줄 구분), U+2029(문단 구분), 그리고 글자 그대로
+ * 적힌 `\n`. 마지막은 셀에 역슬래시와 n 을 직접 쳐 넣은 것으로, 한국어 칸 몇 곳
+ * (Fillme_text002 · 040 · 046 · 048)이 이렇게 적혀 있어 화면에 '\n' 이 그대로 보였다.
+ */
+export const BREAKS = /[\n\u2028\u2029]+/;
 
 /** 시트 한 줄 그대로. 줄바꿈이 없는 짧은 문구용. */
 export function tx(key: string, lang: Lang): string {
@@ -30,6 +34,7 @@ export function tx(key: string, lang: Lang): string {
  */
 export function tLines(key: string, lang: Lang): string[] {
   return t(key, lang)
+    .replace(/\\n/g, '\n')
     .split(BREAKS)
     .map((s) => s.trim())
     .filter(Boolean);

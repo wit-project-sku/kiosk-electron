@@ -79,7 +79,7 @@ function parseIntervalMinutes(raw: string | undefined, fallback: number): number
 
 /** Resolve the schedule for a channel from the environment. */
 export function resolveUpdateSchedule(channel: UpdateChannel): UpdateSchedule {
-  if (channel === 'beta') {
+  if (channel !== 'latest') {
     const minutes = parseIntervalMinutes(process.env['UPDATE_BETA_INTERVAL_MIN'], BETA_DEFAULT_MINUTES);
     return { kind: 'interval', intervalMs: minutes * 60_000 };
   }

@@ -32,6 +32,10 @@ const OSAN_BASE_CATEGORY: Partial<Record<KioskScreenId, string>> = {
   restroom: '정이 도와줘', // the 화장실 tile, opened on 화장실
 };
 
+/** "Животноводство/Мясная лавка" has no break point until the space, so the
+ *  tab split the word itself; a zero-width space lets a line end after "/". */
+const breakAfterSlash = (s: string): string => s.replace(/\/(?!\s)/g, '/\u200B');
+
 /** 7838:115935 — the ㄱ–ㅎ row; a tap keeps the shops whose Korean name starts
     with that consonant (tense ㄲ/ㄸ/ㅃ/ㅆ/ㅉ count as their plain letter). */
 const INITIALS = ['ㄱ', 'ㄴ', 'ㄷ', 'ㄹ', 'ㅁ', 'ㅂ', 'ㅅ', 'ㅇ', 'ㅈ', 'ㅊ', 'ㅋ', 'ㅌ', 'ㅍ', 'ㅎ'];
@@ -68,7 +72,7 @@ interface OsanListScreenProps {
 export function OsanListScreen({
   title,
   controller,
-  initials: showInitials = true,
+  initials = true,
   initialTab,
 }: OsanListScreenProps): JSX.Element {
   const goHome = (): void => controller.navigate('home', 'Back');
@@ -77,6 +81,14 @@ export function OsanListScreen({
   const setDetail = useDetailStore((s) => s.setItem);
   const [selected, setSelected] = useState('');
   const [initial, setInitial] = useState('');
+  /* The ㄱ–ㅎ row filters by the Korean name's first consonant, which means
+     nothing to a visitor reading another language — Korean mode only (the same
+     rule as OsanAbout's 관광명소). Leaving Korean drops a picked consonant so the
+     list is not left filtered by a row that is no longer on screen. */
+  const showInitials = initials && lang === 'ko';
+  useEffect(() => {
+    if (!showInitials) setInitial('');
+  }, [showInitials]);
 
   const baseKr = OSAN_BASE_CATEGORY[controller.screen] ?? '';
   const baseShops = useMemo(() => shopsForBase(shops, baseKr), [shops, baseKr]);
@@ -100,7 +112,9 @@ export function OsanListScreen({
      together if it still overflows — see "Other languages" in the CSS. */
   const wide = lang !== 'ko';
   const tabsRef = useRef<HTMLDivElement>(null);
-  useFitText(tabsRef, styles.tab, wide, 0.72, tabs.map((x) => x.label).join('|'));
+  // A word wider than any tab ("Сельскохозяйственная") shrinks on its own tab
+  // (rescue, ≥ 0.5) rather than taking the whole row down with it.
+  useFitText(tabsRef, styles.tabLabel, wide, 0.72, tabs.map((x) => x.label).join('|'), 'ink', 0.5);
 
   useEffect(() => {
     // The 화장실 tile opens this list but must keep the customer display on the
@@ -173,7 +187,11 @@ export function OsanListScreen({
 
   return (
     <div
-      className={low ? `${styles.lowList} ${tabs.length > 5 ? styles.lowListRows : ''}` : undefined}
+      className={
+        [low && styles.lowList, low && tabs.length > 5 && styles.lowListRows, wide && styles.long]
+          .filter(Boolean)
+          .join(' ') || undefined
+      }
       style={{ display: 'contents' }}
     >
       {osanIconUrl('page-bg') && (
@@ -191,7 +209,7 @@ export function OsanListScreen({
               className={`${styles.tab} ${wide ? styles.tabLong : ''} ${tab.kr === activeKr ? styles.tabSelected : ''}`}
               onClick={() => pickTab(tab.kr)}
             >
-              {tab.label}
+              <span className={styles.tabLabel}>{wide ? breakAfterSlash(tab.label) : tab.label}</span>
             </button>
           ))}
         </div>

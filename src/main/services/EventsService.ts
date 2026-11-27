@@ -12,7 +12,7 @@ import type {
 } from '@shared/types/events';
 
 const log = createLogger('events-service');
-const DEFAULT_API_BASE = 'https://api-v3.witteria.com';
+const DEFAULT_API_BASE = 'https://api-v3.witmarket.net';
 /** Give up on a slow/offline network rather than hang the events grid. */
 const REQUEST_TIMEOUT_MS = 8000;
 
@@ -46,7 +46,7 @@ function decodeOrNull(s: string | null): string | null {
  *
  * Env:
  *   EVENTS_API_URL    — full endpoint override (wins if set)
- *   WITTERIA_API_BASE — shared API base, default https://api-v3.witteria.com
+ *   WITTERIA_API_BASE — shared API base, default https://api-v3.witmarket.net
  */
 export class EventsService {
   private endpoint(): string {

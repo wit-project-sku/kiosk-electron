@@ -39,6 +39,8 @@ export interface PickerOutfit extends OutfitCategoryLabels {
   code: string;
   /** Card image: a remote URL from the API, or a bundled asset URL offline. */
   url: string;
+  /** The API's remote image url (for logs) — `url` may be a local mirror. Unset offline. */
+  sourceUrl?: string;
   gender: 'female' | 'male' | undefined;
   /**
    * The chip this outfit sits under, or null. Null for every outfit on a
@@ -133,6 +135,7 @@ function group(outfits: KioskOutfit[]): Record<string, PickerOutfit[]> {
     (out[key] ??= []).push({
       code: o.code,
       url: o.imageUrl,
+      sourceUrl: o.sourceImageUrl ?? o.imageUrl,
       // Already normalised to eight non-empty strings by OutfitService — except
       // on a cache written before the fields existed, where they are absent and
       // the AR code stands in rather than the caption slot rendering blank.
@@ -150,11 +153,22 @@ async function fetchCatalogue(): Promise<Pick<OutfitState, 'byCategory' | 'categ
   if (!isOk(result)) return null;
   const { outfits, categories, fallback } = result.value;
   if (fallback || outfits.length === 0) {
-    // The two halves fail independently: a kiosk can hold cached tabs and no
-    // outfits. Keep whichever the cache has and only synthesize the missing one.
+    // ★ Bundled outfits get the BUNDLED tabs, never the cached ones. Tabs are
+    // matched to outfits by exact category name, and the cache's tabs are the
+    // current catalogue (`hanbok`, `daily`, `New Outfit`, …) while the bundle is
+    // filed under the retired names (`w=hannbok`, `m=everyday`, …). Mixing them
+    // drew half the row as 준비 중 — seen on 롯데 (2026-11-24), whose regions the
+    // API answers with zero outfits, so a kiosk that had synced as another site
+    // kept that site's tabs over the bundle. One source for both halves keeps
+    // every drawn tab reachable.
+    if (categories.length > 0) {
+      console.warn('[outfitStore] no outfits for this kiosk — using the bundled catalogue and its tabs', {
+        cachedTabs: categories.length,
+      });
+    }
     return {
       byCategory: bundledCatalogue(),
-      categories: categories.length > 0 ? categories : bundledCategories(),
+      categories: bundledCategories(),
       fallback: true,
     };
   }
@@ -203,6 +217,10 @@ function prefetchOutfitImages(byCategory: Record<string, PickerOutfit[]>): void 
       const img = new Image();
       img.decoding = 'async';
       img.src = url;
+      // decode() forces the bitmap NOW rather than at first paint — fetching
+      // alone still left the picker's first open with a visible stall while
+      // each card decoded. Rejection (a 404'd card) is markBroken's problem.
+      void img.decode().catch(() => undefined);
       // Retained on purpose — see `warmed`. Dropping it here is what made the
       // picker reload its cards on every tab change.
       warmed.set(url, img);

@@ -24,7 +24,9 @@
   --dir-stop-meta: 40px;
   --dir-pill: 50px;
   --dir-foot: 34px;
-  --dir-card-bg: #ffeac7;
+  /* 제주 main 02; another kiosk sets --dir-card-tint on a wrapper (오산: its
+     main 02, see OsanAiDetail). */
+  --dir-card-bg: var(--dir-card-tint, #ffeac7);
 
   width: 100%;
   display: flex;

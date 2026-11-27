@@ -5,7 +5,7 @@ import type { KioskService } from '@main/services/KioskService';
 
 const log = createLogger('banner-service');
 const CACHE_KEY = 'banners';
-const DEFAULT_API_BASE = 'https://api-v3.witteria.com';
+const DEFAULT_API_BASE = 'https://api-v3.witmarket.net';
 
 /**
  * Fetches the bottom promo banners from the witteria API and caches them in
@@ -20,7 +20,7 @@ const DEFAULT_API_BASE = 'https://api-v3.witteria.com';
  *
  * Env:
  *   BANNERS_API_URL     — full endpoint override (wins if set)
- *   WITTERIA_API_BASE   — shared API base, default https://api-v3.witteria.com
+ *   WITTERIA_API_BASE   — shared API base, default https://api-v3.witmarket.net
  *
  * The API kiosk id is read per-machine from electron-store (shopApiKioskId),
  * set via provision-kiosk.ps1 — see KioskService.kioskNum().
@@ -57,11 +57,13 @@ export class BannerService {
       const res = await fetch(url);
       log.info('Banners API responded', { status: res.status, ok: res.ok });
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      const json = (await res.json()) as { data?: any[] };
+      const json = (await res.json()) as { data?: unknown[] };
       const rawBanners = Array.isArray(json.data) ? json.data : [];
       
       if (rawBanners.length > 0) {
-        log.info('Banners API keys sample', { keys: Object.keys(rawBanners[0]) });
+        log.info('Banners API keys sample', {
+          keys: Object.keys(rawBanners[0] as Record<string, unknown>),
+        });
       }
 
       const banners = rawBanners.map((b) => normalizeBanner(b as Record<string, unknown>));

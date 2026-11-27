@@ -112,7 +112,7 @@
   border-radius: 14px;
 }
 
-/* ── Card — stretch tab still uses this plate. */
+/* ── Card — hobby and health tabs use this plate. */
 .card {
   box-sizing: border-box;
   width: 1820px;
@@ -125,6 +125,16 @@
   border: none;
   border-radius: 42.9px;
   box-shadow: 0 21.45px 21.45px rgba(143, 147, 157, 0.1);
+}
+
+/* Figma row rhythm: 64px between the photo rows, 65px of padding. */
+.stackCard {
+  gap: 64.35px;
+  padding: 65px 40px;
+}
+
+.stackCard .footer {
+  width: 1740px;
 }
 
 /* 7553:49285 — profile plate, 1820×2160, radius 42.9, no stroke. */
@@ -436,17 +446,23 @@
   line-height: 1.3;
 }
 
+/* The three hobby portraits share .stretchWrap (972…bottom 573). 608px is the
+   tallest each can be before that card grows a scrollbar. */
 .hobbyImg {
   flex: none;
-  width: 452px;
-  height: 565px;
+  width: auto;
+  height: auto;
   border-radius: 45px;
   overflow: hidden;
+  line-height: 0;
 }
 .hobbyImg img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
+  width: auto;
+  max-width: 452px;
+  height: auto;
+  max-height: 608px;
+  object-fit: contain;
+  display: block;
 }
 
 /* ===========================================================
@@ -460,14 +476,15 @@
 
 .stretchPhoto {
   width: 536px;
-  height: 670px;
+  height: auto;
   border-radius: 45px;
   overflow: hidden;
 }
 .stretchPhoto img {
   width: 100%;
-  height: 100%;
-  object-fit: cover;
+  height: auto;
+  object-fit: contain;
+  display: block;
 }
 
 .stretchIntro {
@@ -502,7 +519,7 @@
 }
 
 .stretchSections {
-  flex: 1;
+  width: 1740px;
   display: flex;
   flex-direction: column;
   gap: 64.35px;

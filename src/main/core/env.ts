@@ -13,6 +13,31 @@ export function loadEnvFile(): void {
   const paths = [resolve(process.cwd(), '.env')];
   if (process.resourcesPath) paths.push(resolve(process.resourcesPath, '.env'));
   for (const path of paths) loadFrom(path);
+  migrateRetiredDomain(process.env);
+}
+
+/** The service domain that expired on 2026-11-25 and its replacement (same subdomains). */
+export const RETIRED_DOMAIN = 'witteria.com';
+export const CURRENT_DOMAIN = 'witmarket.net';
+
+/**
+ * Rewrites every env value that still names the retired domain to the current one.
+ *
+ * The installer's `.env` is baked from the GitHub Environment secret `KIOSK_ENV`,
+ * which still carries `witteria.com` URLs (API base, photo upload, payment CORS …).
+ * Those values override the code defaults, so without this the kiosk keeps calling
+ * a domain that no longer resolves. Subdomains are identical on the new domain,
+ * so a plain substitution is exact. Returns the keys it changed.
+ */
+export function migrateRetiredDomain(env: NodeJS.ProcessEnv): string[] {
+  const changed: string[] = [];
+  for (const [key, value] of Object.entries(env)) {
+    if (typeof value === 'string' && value.includes(RETIRED_DOMAIN)) {
+      env[key] = value.split(RETIRED_DOMAIN).join(CURRENT_DOMAIN);
+      changed.push(key);
+    }
+  }
+  return changed;
 }
 
 /**

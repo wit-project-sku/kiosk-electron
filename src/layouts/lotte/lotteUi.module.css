@@ -1,0 +1,222 @@
+/*
+ * Building blocks the 화면정의서 (2026-11-13) and 롯데 미션 (2026-11-16) frames share.
+ * Artboard px (1 CSS px = 1 Figma px). Ink #2A2320, muted #7A716B, red #DA291C.
+ */
+
+/* Content column under the header: x170, from y700, 1820 wide, scrolls to the foot. */
+.column {
+  position: absolute;
+  left: 170px;
+  top: 700px;
+  width: 1820px;
+  height: 2840px;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  gap: 40px;
+  overflow-y: auto;
+  padding-bottom: 24px;
+  scrollbar-width: none;
+  color: #2A2320;
+}
+
+.column::-webkit-scrollbar { display: none; }
+
+.column > * { flex: none; }
+
+/* Red bold lead line (C-01 '*고른 상영 시각에 …'). */
+.note {
+  margin: 0;
+  font-size: 40px;
+  font-weight: 700;
+  line-height: 60px;
+  color: #DA291C;
+  text-align: center;
+}
+
+/* White card with a soft shadow. */
+.card {
+  display: flex;
+  flex-direction: column;
+  gap: 36px;
+  padding: 56px 64px;
+  border-radius: 45px;
+  background: #fff;
+  filter: drop-shadow(0 8px 12px rgba(0, 0, 0, 0.04));
+}
+
+/* '| 보실 영화와 시간' — 8×52 ink bar + 58px bold. */
+.heading {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  margin: 0;
+  font-size: 58px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.heading::before {
+  content: '';
+  flex: none;
+  width: 8px;
+  height: 52px;
+  background: #2A2320;
+}
+
+/* Hero card (red or ink) — title + translucent sub line. */
+.hero {
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+  padding: 56px 72px;
+  border-radius: 45px;
+  background: #DA291C;
+  color: #fff;
+}
+
+.heroInk { background: #2A2320; }
+
+.heroTitle {
+  font-size: 62px;
+  font-weight: 800;
+  line-height: 74.4px;
+}
+
+.heroSub {
+  font-size: 42px;
+  line-height: 60.9px;
+  color: rgba(255, 255, 255, 0.75);
+}
+
+/* Equal-width choice buttons (언제 둘러볼까요 · 함께하는 인원 · 필터). */
+.choices {
+  display: flex;
+  gap: 26px;
+}
+
+.choice {
+  flex: 1 1 0;
+  min-width: 0;
+  height: 140px;
+  padding: 0;
+  border: none;
+  border-radius: 40px;
+  background: #fff;
+  filter: drop-shadow(0 8px 12px rgba(0, 0, 0, 0.06));
+  font-family: inherit;
+  font-size: 50px;
+  font-weight: 400;
+  color: #999;
+  white-space: nowrap;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.choiceOn {
+  background: #DA291C;
+  color: #fff;
+  font-weight: 700;
+}
+
+/* Small rounded chips. */
+.chipRose,
+.chipGrey {
+  display: inline-flex;
+  align-items: center;
+  padding: 10px 30px;
+  border-radius: 30px;
+  font-size: 36px;
+  white-space: nowrap;
+}
+
+.chipRose { background: #F6E3E0; color: #A31A12; font-weight: 700; }
+.chipGrey { background: #F3EEE7; color: #5D544E; font-weight: 500; }
+
+/* Full-width pill buttons. */
+.cta,
+.ctaOutline {
+  width: 100%;
+  border-radius: 85px;
+  font-family: inherit;
+  font-weight: 700;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.cta {
+  height: 170px;
+  border: none;
+  background: #DA291C;
+  color: #fff;
+  font-size: 60px;
+}
+
+.cta:disabled { opacity: 0.4; cursor: default; }
+
+.ctaOutline {
+  height: 150px;
+  box-sizing: border-box;
+  border: 4px solid #DA291C;
+  background: #fff;
+  color: #DA291C;
+  font-size: 52px;
+}
+
+/* QR card: 260 box with a 4px red ring, text beside it. */
+.qrCard {
+  display: flex;
+  align-items: center;
+  gap: 56px;
+  padding: 56px 64px;
+  border-radius: 45px;
+  background: #fff;
+  filter: drop-shadow(0 8px 12px rgba(0, 0, 0, 0.04));
+}
+
+.qrBox {
+  flex: none;
+  width: 260px;
+  height: 260px;
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 4px solid #DA291C;
+  border-radius: 30px;
+  background: #fff;
+}
+
+.qrBox > img,
+.qrBox > svg {
+  width: 190px;
+  height: 190px;
+}
+
+.qrText {
+  flex: 1 1 0;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.qrTitle {
+  font-size: 54px;
+  font-weight: 700;
+}
+
+.qrSub {
+  font-size: 40px;
+  line-height: 60px;
+  color: #7A716B;
+}
+
+.muted {
+  font-size: 38px;
+  color: #7A716B;
+}
+
+/* Figma sets these frames' text at 'normal' leading, which for Pretendard is 1.2 (76 → 91,
+   54 → 65, 42 → 50). Chromium's 'normal' for the bundled face is taller, so pin it. */
+.column { line-height: 1.2; }

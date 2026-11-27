@@ -1,0 +1,179 @@
+/*
+ * 화장실 — 목록, Figma A-05 (W012 8723:3334). Figma px on the 2160 × 3840 artboard.
+ *
+ *   y700   building tabs   565 × 170, gap 63, centred           ┐ gap 70
+ *   y940   floor row       h82, 60px, "1F  ㅣ  2F  ㅣ  3F"        ┘
+ *   y1172  kind chips      5 × 2 of 340 × 170 (col gap 30, row gap 35) — 150 under the floors
+ *   y1697  plan            1820 × 1383 #EDE8E3 (ends y3080)       — 150 under the chips
+ */
+.body {
+  position: absolute;
+  left: 170px;
+  top: 700px;
+  width: 1820px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 150px;
+  font-family: 'Pretendard', var(--kiosk-font, sans-serif);
+}
+
+/* ♿: the header drops by the mode bar (belowModeBar), the body with it. */
+.bodyLow {
+  top: calc(700px + var(--lotte-mode-bar, 0px));
+}
+
+.top {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 70px;
+  width: 100%;
+}
+
+/* ── 1 건물 탭 ── */
+.tabs {
+  display: flex;
+  justify-content: center;
+  gap: 63px;
+}
+
+.tab {
+  width: 565px;
+  height: 170px;
+  padding: 0;
+  border: 0;
+  border-radius: 42.9px;
+  background: #fff;
+  font: inherit;
+  font-size: 50px;
+  font-weight: 500;
+  line-height: 65px;
+  color: #999;
+  white-space: nowrap;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.tabOn {
+  background: #DC3124;
+  color: #fff;
+  font-weight: 700;
+}
+
+/* ── 2 층 선택 ── the frame spaces "1F    ㅣ    2F" with literal blanks; the same blanks here. */
+.floors {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 82px;
+  font-size: 60px;
+  line-height: normal;
+  white-space: pre;
+}
+
+.floorRule {
+  font-weight: 600;
+  color: #999;
+}
+
+.floor {
+  position: relative;
+  padding: 0;
+  border: 0;
+  background: none;
+  font: inherit;
+  font-weight: 600;
+  color: #999;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* A finger-sized target around the 60px label without moving the line. */
+.floor::before {
+  content: '';
+  position: absolute;
+  inset: -44px -48px;
+}
+
+.floorOn {
+  font-weight: 900;
+  color: #DC3124;
+}
+
+/* ── 3 시설 종류 ── */
+.kinds {
+  display: grid;
+  grid-template-columns: repeat(5, 340px);
+  justify-content: space-between;
+  row-gap: 35px;
+  width: 100%;
+}
+
+.kind {
+  box-sizing: border-box;
+  width: 340px;
+  height: 170px;
+  padding: 0 20px;
+  border: 0;
+  border-radius: 42.9px;
+  background: #fff;
+  font: inherit;
+  font-size: calc(50px * var(--fit, 1));
+  font-weight: 500;
+  line-height: 1.1;
+  color: #999;
+  /* Up to two lines, broken between words/phrases, never inside one; past that useFitText
+     shrinks the whole row (--fit). Korean keeps its one-line keep-all label. */
+  word-break: auto-phrase;
+  overflow-wrap: normal;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.kindOn {
+  border: 5px solid #DC3124;
+  background: #FFEAC7;
+  color: #DC3124;
+  font-weight: 700;
+}
+
+/* ── 4 도면 ── */
+.plan {
+  box-sizing: border-box;
+  width: 1820px;
+  height: 1383px;
+  padding: 0 80px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 24px;
+  background: #EDE8E3;
+  font-family: 'Noto Sans KR', sans-serif;
+  font-size: 56px;
+  font-weight: 700;
+  color: #8C8078;
+  text-align: center;
+}
+
+.plan small {
+  font-size: 42px;
+  font-weight: 400;
+}
+
+.kind:lang(ko) { word-break: keep-all; padding: 0 12px; }
+/* Japanese and Chinese have no spaces, so a long kind name would break mid-word
+   ("お客様サービ / ス"). keep-all forbids that; the name stays whole and the row shrinks. */
+.kind:lang(ja), .kind:lang(zh) { word-break: keep-all; }
+
+/* Building tabs in other languages: full building names ("LOTTE Department Store
+   Cheongnyangni") wrap to two lines, then the row shrinks as one (useFitText). */
+.tab:not(:lang(ko)) {
+  padding: 0 28px;
+  font-size: calc(50px * var(--fit, 1));
+  line-height: 1.1;
+  white-space: normal;
+  word-break: auto-phrase;
+  overflow-wrap: normal;
+}

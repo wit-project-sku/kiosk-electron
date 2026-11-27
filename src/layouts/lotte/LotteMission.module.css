@@ -1,0 +1,480 @@
+/*
+ * 롯데 미션 — Figma M-01 (8804:1279) · M-02 (8804:1599) · M-03 (8804:1919) · M-04 (8804:2239).
+ * Shared pieces: lotteUi.module.css. Weights 900 are the frames' 'Black'.
+ */
+
+/* ── Red hero ── */
+.hero {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 40px;
+  padding: 72px 80px;
+  border-radius: 45px;
+  background: #DA291C;
+  color: #fff;
+}
+
+.heroDetail { gap: 28px; }
+
+.heroTitle {
+  font-size: 76px;
+  font-weight: 900;
+}
+
+.heroBody {
+  font-size: 42px;
+}
+
+.heroTag {
+  padding: 8px 20px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.2);
+  font-size: 38px;
+  font-weight: 700;
+}
+
+.heroPoints {
+  display: flex;
+  align-items: baseline;
+  gap: 20px;
+  font-size: 42px;
+  font-weight: 500;
+}
+
+.heroPoints b {
+  font-size: 96px;
+  font-weight: 900;
+}
+
+/* M-04: the same hero, greyed out. */
+.heroClosed {
+  gap: 28px;
+  background: rgba(42, 35, 32, 0.08);
+  color: #7A716B;
+}
+
+.heroClosed .heroTag { background: rgba(42, 35, 32, 0.12); color: #7A716B; }
+
+/* 1 미션 찾기 › 2 매장 QR 찍기 › … */
+.flow {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  white-space: nowrap;
+}
+
+.flowItem {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.flowArrow {
+  font-size: 44px;
+  font-weight: 700;
+}
+
+.flowPill {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 18px 32px 18px 28px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.18);
+  font-size: 38px;
+  font-weight: 700;
+}
+
+.flowPill b { font-weight: 900; }
+
+/* ── M-01 filters ── */
+.filters {
+  display: flex;
+  gap: 24px;
+}
+
+.filter {
+  padding: 20px 48px;
+  border: 3px solid rgba(168, 158, 147, 0.5);
+  border-radius: 999px;
+  background: #fff;
+  font-family: inherit;
+  font-size: 44px;
+  font-weight: 500;
+  color: #7A716B;
+  white-space: nowrap;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.filterOn {
+  border-color: #DA291C;
+  background: #DA291C;
+  color: #fff;
+  font-weight: 700;
+}
+
+/* ── Mission rows ── */
+.list,
+.others,
+.table {
+  display: flex;
+  flex-direction: column;
+  padding: 24px 64px;
+  border-radius: 45px;
+  background: #fff;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.04);
+}
+
+.row {
+  display: flex;
+  align-items: center;
+  gap: 44px;
+  padding: 36px 0;
+  border: none;
+  border-bottom: 3px solid rgba(168, 158, 147, 0.25);
+  background: none;
+  font-family: inherit;
+  text-align: left;
+  color: #2A2320;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.row:last-child { border-bottom: none; }
+
+.rowOff { opacity: 0.45; }
+.rowOff .points { color: #7A716B; }
+
+.thumb {
+  flex: none;
+  width: 200px;
+  height: 200px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 28px;
+  background: #F3EFEA;
+  font-size: 32px;
+  color: #A89E93;
+}
+
+.rowText {
+  flex: 1 1 0;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 14px;
+}
+
+.typeSingle,
+.typeMulti {
+  padding: 8px 20px;
+  border-radius: 12px;
+  font-size: 34px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.typeSingle { background: rgba(218, 41, 28, 0.1); color: #DA291C; }
+.typeMulti { background: #2A2320; color: #fff; }
+
+.rowTitle {
+  max-width: 100%;
+  font-size: 54px;
+  font-weight: 700;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.rowLine {
+  font-size: 40px;
+  color: #7A716B;
+  white-space: pre;
+}
+
+.rowSide {
+  flex: none;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 16px;
+}
+
+.points {
+  flex: none;
+  font-size: 60px;
+  font-weight: 900;
+  color: #DA291C;
+}
+
+.stateOpen,
+.stateOff {
+  padding: 8px 20px;
+  border-radius: 12px;
+  font-size: 34px;
+  font-weight: 700;
+}
+
+.stateOpen { background: rgba(33, 140, 84, 0.1); color: #218C54; }
+.stateOff { background: rgba(42, 35, 32, 0.08); color: #7A716B; }
+
+.footNote {
+  margin: 0;
+  font-size: 44px;
+  color: #7A716B;
+  text-align: center;
+}
+
+/* ── M-02 single-place detail ── */
+.cover {
+  width: 1820px;
+  height: 560px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 36px;
+  background: #F3EFEA;
+  font-size: 40px;
+  color: #A89E93;
+  object-fit: cover;
+}
+
+.table { padding: 28px 64px; }
+
+.info {
+  display: flex;
+  align-items: center;
+  gap: 40px;
+  padding: 28px 0;
+  border-bottom: 3px solid rgba(168, 158, 147, 0.25);
+}
+
+.info:last-child { border-bottom: none; }
+
+.infoKey {
+  flex: none;
+  width: 300px;
+  font-size: 44px;
+  font-weight: 500;
+  color: #7A716B;
+}
+
+.infoValue {
+  flex: 1 1 0;
+  min-width: 0;
+  font-size: 46px;
+  font-weight: 700;
+  color: #2A2320;
+}
+
+/* ── M-03 multi-place detail ── */
+.routeCard {
+  align-items: center;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.04);
+  filter: none;
+}
+
+.route {
+  align-self: stretch;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  gap: 24px;
+  padding: 64px 80px;
+  border-radius: 50px;
+  background: #2A2320;
+}
+
+/* Rows after the first sit flush under it in the same dark band. */
+.route + .route {
+  margin-top: -36px;
+  padding-top: 0;
+  border-top-left-radius: 0;
+  border-top-right-radius: 0;
+}
+
+.route:has(+ .route) {
+  padding-bottom: 36px;
+  border-bottom-left-radius: 0;
+  border-bottom-right-radius: 0;
+}
+
+.stopWrap {
+  display: flex;
+  align-items: flex-start;
+  gap: 24px;
+}
+
+/* 180×6 bar at the stamps' mid-height (220 / 2 − 3). */
+.connector {
+  flex: none;
+  width: 180px;
+  height: 6px;
+  margin-top: 107px;
+  border-radius: 3px;
+  background: rgba(168, 158, 147, 0.5);
+}
+
+.stop {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+}
+
+.stamp {
+  width: 220px;
+  height: 220px;
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 6px dashed #A89E93;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.06);
+  font-size: 96px;
+  font-weight: 900;
+  color: #A89E93;
+}
+
+.stampDone {
+  border: none;
+  background: #DA291C;
+  font-size: 60px;
+  color: #fff;
+}
+
+.stopName {
+  font-size: 48px;
+  font-weight: 700;
+  color: #fff;
+  white-space: nowrap;
+}
+
+.stopFloor {
+  font-size: 38px;
+  color: #A89E93;
+  white-space: nowrap;
+}
+
+.caption {
+  font-size: 40px;
+  color: #7A716B;
+}
+
+.place {
+  display: flex;
+  align-items: center;
+  gap: 40px;
+  padding: 32px 0;
+  border-bottom: 3px solid rgba(168, 158, 147, 0.25);
+}
+
+.place:last-child { border-bottom: none; }
+
+.letter {
+  flex: none;
+  width: 110px;
+  height: 110px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 30px;
+  background: rgba(218, 41, 28, 0.1);
+  font-size: 54px;
+  font-weight: 900;
+  color: #DA291C;
+}
+
+.placeText {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.placeName {
+  font-size: 54px;
+  font-weight: 700;
+}
+
+.placeWhere {
+  font-size: 40px;
+  color: #7A716B;
+}
+
+.rules {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  padding: 44px 64px;
+  border-radius: 45px;
+  background: rgba(218, 41, 28, 0.07);
+  font-size: 44px;
+  font-weight: 500;
+  white-space: pre-wrap;
+}
+
+/* ── M-04 closed ── */
+.status {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 32px;
+  padding: 96px 64px;
+  border-radius: 45px;
+  background: #fff;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.04);
+}
+
+.bang {
+  width: 180px;
+  height: 180px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  background: #F3EFEA;
+  font-size: 96px;
+  font-weight: 900;
+  color: #A89E93;
+}
+
+.statusTitle {
+  font-size: 64px;
+  font-weight: 700;
+}
+
+.statusBody {
+  width: 1500px;
+  font-size: 44px;
+  color: #7A716B;
+  text-align: center;
+}
+
+.others { padding: 40px 64px 24px; }
+
+.othersTitle {
+  font-size: 52px;
+  font-weight: 700;
+}
+
+.rowSmall .thumb { width: 180px; height: 180px; }
+.rowSmall .rowTitle { font-size: 52px; }
+
+.toList {
+  width: 100%;
+  padding: 40px 0;
+  border: 5px solid #DA291C;
+  border-radius: 999px;
+  background: #fff;
+  font-family: inherit;
+  font-size: 54px;
+  font-weight: 700;
+  color: #DA291C;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}

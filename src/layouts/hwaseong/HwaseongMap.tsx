@@ -5,6 +5,7 @@ import { ui } from '@renderer/lib/uiText';
 import { HwaseongHeader } from './HwaseongHeader';
 import { HwaseongBanner } from './HwaseongBanner';
 import { HwaseongLeftNav } from './HwaseongLeftNav';
+import { HwaseongPageBg } from './HwaseongPageBg';
 import { ZoomableImage } from '../insadong/ZoomableImage';
 import styles from './HwaseongMap.module.css';
 
@@ -23,10 +24,7 @@ export function HwaseongMap({ controller }: Props): JSX.Element {
 
   return (
     <div className={styles.root}>
-      <div className={styles.bgBase} />
-      {hwaseongIconUrl('bg') && (
-        <img src={hwaseongIconUrl('bg')} alt="" className={styles.bgImage} draggable={false} />
-      )}
+      <HwaseongPageBg />
 
       <HwaseongHeader controller={controller} title="화성휴게소 지도" />
 
